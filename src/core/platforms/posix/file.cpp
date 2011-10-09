@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <sstream>
 #include <iostream>
-
+#include <unistd.h>
 
 
 namespace memoria {
@@ -78,6 +78,14 @@ bool File::IsExists() const {
 		return errno != ENOENT;
 	}
 }
+
+//int getcwd(char* buf, size_t size) {
+//	return 0;
+//}
+//
+//int rmdir(const char* path) {
+//	return 0;
+//}
 
 String File::GetAbsolutePath() const {
 	if (path_[0] == '/')
@@ -183,7 +191,7 @@ bool rm(const File &file)
 
 
 bool File::DelTree() const {
-	rm(*this);
+	return rm(*this);
 }
 
 
@@ -217,7 +225,7 @@ File::FileListType* File::ReadDir(const File& file)
 		dp = opendir (file.GetPath().c_str());
 		if (dp != NULL)
 		{
-			while (ep = readdir (dp))
+			while ((ep = readdir (dp)))
 			{
 				String name(ep->d_name);
 				if (name != "." && name != "..")

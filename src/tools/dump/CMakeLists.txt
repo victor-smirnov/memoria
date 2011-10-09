@@ -12,6 +12,5 @@ SET_TARGET_PROPERTIES(dump PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -D
 SET_TARGET_PROPERTIES(dump PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
 if (NOT CHECK_SYNTAX_ONLY)
-    target_link_libraries(dump Memoria MemoriaToolsTools)
+    target_link_libraries(dump Memoria MemoriaToolsTools ${MEMORIA_LIBS})
 endif()
-    

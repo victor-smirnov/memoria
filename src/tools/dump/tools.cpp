@@ -12,6 +12,6 @@
 #include <memoria/core/tools/id.hpp>
 using namespace memoria::vapi;
 
-template class set<IDValue>;
+//template class set<IDValue>;
 
 

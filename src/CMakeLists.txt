@@ -1,6 +1,10 @@
 include_directories(../include)
 include_directories(include)
 
+if (CLANG_COMPILER)
+	include_directories(/usr/local/include/c++/v1)
+endif()
+
 add_subdirectory(core)
 add_subdirectory(allocators)
 

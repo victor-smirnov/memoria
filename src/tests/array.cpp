@@ -81,7 +81,7 @@ int main(int argc, const char** argv, const char **envp) {
 		iter.DumpState("AfterInsert");
 
 		allocator.GetLogger()->level() = Logger::ERROR;
-		//Dump(allocator);
+		Dump(allocator);
 
 		free(buf);
 

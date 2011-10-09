@@ -16,10 +16,12 @@ using namespace std;
 using namespace memoria;
 
 
+namespace memoria {
+
 template class ContainerTypesCollection<StreamProfile<> >;
 template class ::memoria::StreamAllocator<StreamProfile<>, BasicContainerCollectionCfg<StreamProfile<> >::Page, EmptyType>;
 template class Checker<StreamContainerTypesCollection, DefaultStreamAllocator>;
-
+}
 
 typedef StreamContainerTypesCollection::Factory<DefKVMap>::Type KVMapType;
 

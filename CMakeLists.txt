@@ -8,6 +8,8 @@ project (Memoria)
 # Intel C++ for Linux is to be done
 #
 
+#TODO Use cmake options 
+
 # available variables to be used via -D switch in command line:
 # 
 # BUILD_STREAM_CONTAINER           build StreamContainer
@@ -34,12 +36,32 @@ if (NOT DEFINED BUILD_GENERIC_CONTAINER)
     set (BUILD_GENERIC_CONTAINER false)
 endif ()
 
-STRING(FIND ${CMAKE_CXX_COMPILER} "icl.exe" ICL_COMPILER_WIN REVERSE)
+STRING(FIND ${CMAKE_CXX_COMPILER} "icl.exe" ICL_COMPILER_WIN_POS REVERSE)
+STRING(FIND ${CMAKE_CXX_COMPILER} "clang"   CLANG_COMPILER_POS REVERSE)
 
-if (ICL_COMPILER_WIN EQUAL -1)
+if (ICL_COMPILER_WIN_POS EQUAL -1)
     set (INTEL_COMPILER false)
 else()
     set (INTEL_COMPILER true)     
+endif()
+
+if (CLANG_COMPILER_POS EQUAL -1)
+    set (CLANG_COMPILER false)
+else()
+    set (CLANG_COMPILER true)     
+endif()
+
+
+if (UNIX AND NOT CYGWIN)
+	set (BUILD_UNIX true)
+else()
+	set (BUILD_UNIX false)
+endif()
+
+if (MSVC OR INTEL_COMPILER)
+	set (BUILD_MSVC true)
+else()
+	set (BUILD_MSVC false)
 endif()
 
 
@@ -50,7 +72,7 @@ if (NOT DEFINED CHECK_SYNTAX_ONLY)
     set (CHECK_SYNTAX_ONLY false)
 endif()
 
-if (CMAKE_COMPILER_IS_GNUCXX)
+if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER)
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -std=c++0x -Wall -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors")
     
     if (CHECK_SYNTAX_ONLY)

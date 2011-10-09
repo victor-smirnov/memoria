@@ -1,1 +1,1 @@
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_MODULES=false -DBUILD_GENERIC_CONTAINER=false -DBUILD_POSIX=true ../../memoria
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ../../memoria

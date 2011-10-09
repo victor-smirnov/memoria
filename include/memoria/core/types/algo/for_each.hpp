@@ -16,7 +16,7 @@ namespace memoria    {
 template <
         typename Config,
         typename List,
-        template <typename Config, typename Item, typename LastResult> class Handler,
+        template <typename Config_, typename Item, typename LastResult> class Handler,
         typename Accumulator
 >
 struct ForEach;
