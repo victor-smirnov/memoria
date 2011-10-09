@@ -1,0 +1,2 @@
+cd mingw
+build.bat

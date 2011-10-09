@@ -1,0 +1,17 @@
+
+syntax: regexp
+^build$
+syntax: regexp
+^make\.bat$
+syntax: regexp
+^make\.mingw\.bat$
+syntax: regexp
+^make\.msvs\.bat$
+syntax: regexp
+^make\.msvc\.bat$
+syntax: regexp
+^mkbuild-mingw\.bat$
+syntax: regexp
+^mkbuild-msvc\.bat$
+syntax: regexp
+^msvc\.vars\.bat$
