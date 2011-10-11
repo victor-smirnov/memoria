@@ -20,6 +20,8 @@
 
 namespace memoria    {
 
+#pragma pack(1)
+
 typedef long bitmap_atom_t;
 
 template <long Size, long Align = sizeof(long)>
@@ -195,6 +197,7 @@ public:
     }
 };
 
+#pragma pack()
 
 } //memoria
 

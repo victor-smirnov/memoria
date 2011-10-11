@@ -23,6 +23,8 @@
 
 namespace memoria    {
 
+#pragma pack(1)
+
 using memoria::TL;
 
 
@@ -160,6 +162,8 @@ template <typename Types>
 class PageStart: public PageHelper<ListSize<typename Types::List>::Value - 1, Types> {
 
 };
+
+#pragma pack()
 
 }
 

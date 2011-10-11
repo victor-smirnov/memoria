@@ -68,15 +68,18 @@ public:
         return data_;
     }
 
-    virtual const String str() const {
-        char text[sizeof(data_)*2 + 3];
-        text[0] = '0';
-        text[1] = 'x';
+    virtual const String str() const
+    {
+        char text[sizeof(data_)*2 + 5];
+        text[0] = '[';
+        text[1] = '0';
+        text[2] = 'x';
+        text[sizeof(text) - 2] = ']';
         text[sizeof(text) - 1] = 0;
 
         for (unsigned c = 0; c < sizeof(data_); c++) {
-            text[c*2 + 3] = get_char(data_[sizeof(data_) - c - 1] & 0xf);
-            text[c*2 + 2] = get_char((data_[sizeof(data_) - c - 1] >> 4) & 0xf);
+            text[c*2 + 4] = get_char(data_[sizeof(data_) - c - 1] & 0xf);
+            text[c*2 + 3] = get_char((data_[sizeof(data_) - c - 1] >> 4) & 0xf);
         }
 
         return String(text);

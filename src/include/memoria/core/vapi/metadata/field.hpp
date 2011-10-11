@@ -165,11 +165,6 @@ private:
     const Int  offset_;
     const Int  limit_;
     const Int  item_size_;
-
-protected:
-    //Type* valueType_;
-
-
 };
 
 
@@ -179,11 +174,13 @@ typedef FieldMetadataImplT<memoria::vapi::FieldMetadata> 		FieldMetadataImpl;
 
 template <typename Interface>
 void FieldMetadataImplT<Interface>::SetValue(void *mem, const void *value, Int idx, Int ptr) const {
-    if (idx < Count()) {
+    if (idx < Count())
+    {
         char *buffer = static_cast<char*> (mem) + ptr + Offset() + Size() * idx;
         const char *val = static_cast<const char*> (value);
         memoria::CopyBuffer(val, buffer, Size());
-    } else {
+    }
+    else {
         throw new BoundsException(MEMORIA_SOURCE, "ArrayField index is out of bounds.", idx, 0, Count());
     }
 }

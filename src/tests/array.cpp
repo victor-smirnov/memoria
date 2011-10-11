@@ -73,14 +73,14 @@ int main(int argc, const char** argv, const char **envp) {
 
 		Fill(buf, size, 0xAA);
 
-		allocator.GetLogger()->level() = Logger::TRACE;
+		allocator.GetLogger()->level() = Logger::ERROR;
 		iter = dv->Seek(4060 + 96);
 
 		iter.DumpState("InsertInto");
 		iter.Insert(data, 0, 4060*9 + 100);
 		iter.DumpState("AfterInsert");
 
-		allocator.GetLogger()->level() = Logger::ERROR;
+		allocator.GetLogger()->level() = Logger::TRACE;
 		Dump(allocator);
 
 		free(buf);

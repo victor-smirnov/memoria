@@ -39,7 +39,7 @@ public:
 
 	virtual ~FileOutputStreamHandlerImpl() throw()
 	{
-		::fclose(fd_);
+		//::fclose(fd_);
 	}
 
 	virtual BigInt pos() {
@@ -101,6 +101,8 @@ public:
 
 	virtual Int read(void* mem, int offset, int length)
 	{
+		BigInt pos = this->pos();
+
 		char* data = static_cast<char*>(mem) + offset;
 		size_t size = ::fread(data, 1, length, fd_);
 		return size == (size_t)length ? size : -1;

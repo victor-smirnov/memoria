@@ -49,6 +49,7 @@ static LogHandler& operator<<(LogHandler &log, const AbstractPageID<T, Size>& va
 {
     IDValue id(&value);
     log.log(id);
+    log.log(" ");
     return log;
 }
 
@@ -57,6 +58,7 @@ static LogHandler* LogIt(LogHandler* log, const AbstractPageID<T, Size>& value)
 {
     IDValue id(&value);
     log->log(id);
+    log->log(" ");
     return log;
 }
 

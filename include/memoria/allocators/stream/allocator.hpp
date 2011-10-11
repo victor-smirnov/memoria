@@ -294,16 +294,19 @@ public:
 			for (Int c = 0; c < PAGE_SIZE; c++)
 				buf[c] = 0;
 
-			MEMORIA_TRACE(me_,"Page size", size, "from", input->pos());
+			Int page_hash;
+
+			MEMORIA_TRACE(me_,"File pos before reading page hash:", input->pos());
+			input->read(page_hash);
+
+			MEMORIA_TRACE(me_,"Page size", size, "from", input->pos(), "page_hash=", page_hash);
 			input->read(buf, 0, size);
 
 			Page* page = T2T<Page*>(buf);
 
-			MEMORIA_TRACE(me_, "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id());
+			MEMORIA_TRACE(me_, "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id(), &page->id());
 
-			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
-
-//			MEMORIA_TRACE(me_, "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id(), "metadata", pageMetadata);
+			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page_hash);
 
 			char* mem = new char[PAGE_SIZE];
 			for (Int c = 0; c < PAGE_SIZE; c++)
@@ -316,7 +319,11 @@ public:
 
 			pageMetadata->Internalize(page, mem, limit);
 
-			pages_[page->id()] = (Page*) mem;
+			page = T2T<Page*>(mem);
+
+			pages_[page->id()] = page;
+
+			MEMORIA_TRACE(me_, "Register page", page, page->id());
 
 			if (first)
 			{
@@ -369,7 +376,7 @@ public:
 	void dump_page(OutputStreamHandler *output, char* buf, Page *page) {
 		if (page->page_type_hash() != 0)
 		{
-			MEMORIA_TRACE(me_, "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id());
+			MEMORIA_TRACE(me_, "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
 			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
 
 			for (Int c = 0; c < PAGE_SIZE; c++)
@@ -385,7 +392,9 @@ public:
 			Short size = last_field != NULL ? last_field->AbiPtr() : PAGE_SIZE;
 
 			output->write(size);
-			MEMORIA_TRACE(me_, "Page size", size, "at", output->pos());
+			output->write(page->page_type_hash());
+
+			MEMORIA_TRACE(me_, "Page size", size, "at", output->pos(), page->page_type_hash());
 			output->write(buf, 0, size);
 		}
 		else {

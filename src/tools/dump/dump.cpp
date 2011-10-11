@@ -288,7 +288,7 @@ int main(int argc, const char** argv, const char** envp)
 {
 
 	try {
-		InitTypeSystem(argc, argv, envp, false);
+		//InitTypeSystem(argc, argv, envp, false);
 		StreamContainerTypesCollection::Init();
 
 		logger.level() = Logger::TRACE;
@@ -329,10 +329,16 @@ int main(int argc, const char** argv, const char** envp)
 
 		manager = new VStreamAllocator();
 
+		cout<<"Load file: "+file.GetPath()<<endl;
+
+		char cwd_buf[16384];
+		::getcwd(cwd_buf, 16384);
+
+		cout<<"CWD: "<<cwd_buf<<endl;
 
 		LoadFile(manager, file.GetPath().c_str());
 
-		cout<<"Here"<<endl;
+
 
 		VStreamAllocator::RootMapType* root = manager->roots();
 		auto iter = root->Begin();

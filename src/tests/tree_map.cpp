@@ -143,15 +143,10 @@ int main(int argc, const char** argv, const char **envp) {
 
 		ContainerTypesCollection<StreamProfile<> >::Init();
 		StreamContainerTypesCollection::Init();
-		cout<<"HERE"<<endl;
 
 		DefaultStreamAllocator allocator;
 
-		cout<<"HERE1"<<endl;
-
 		allocator.GetLogger()->level() = Logger::TRACE;
-
-		cout<<"HERE2"<<endl;
 
 		PairVector pairs;
 		PairVector pairs_sorted;
@@ -161,11 +156,7 @@ int main(int argc, const char** argv, const char **envp) {
 			pairs.push_back(KVPair(get_random(MAX_INT_VALUE), get_random(MAX_INT_VALUE)));
 		}
 
-		cout<<"HERE3"<<endl;
-
 		KVMapType* map = new KVMapType(allocator, 1, true);
-
-		cout<<"HERE4"<<endl;
 
 //		map->SetMaxChildrenPerNode(5);
 
