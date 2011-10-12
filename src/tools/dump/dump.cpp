@@ -331,10 +331,10 @@ int main(int argc, const char** argv, const char** envp)
 
 		cout<<"Load file: "+file.GetPath()<<endl;
 
-		char cwd_buf[16384];
-		::getcwd(cwd_buf, 16384);
-
-		cout<<"CWD: "<<cwd_buf<<endl;
+//		char cwd_buf[16384];
+//		::getcwd(cwd_buf, 16384);
+//
+//		cout<<"CWD: "<<cwd_buf<<endl;
 
 		LoadFile(manager, file.GetPath().c_str());
 

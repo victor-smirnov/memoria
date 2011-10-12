@@ -27,9 +27,11 @@ using namespace std;
 
 class FileOutputStreamHandlerImpl: public OutputStreamHandlerImplT<FileOutputStreamHandler> {
 	FILE* fd_;
+	bool closed_;
 public:
 	FileOutputStreamHandlerImpl(const char* file)
 	{
+		closed_ = false;
 		fd_ = fopen(file, "wb");
 		if (fd_ == NULL)
 		{
@@ -39,7 +41,10 @@ public:
 
 	virtual ~FileOutputStreamHandlerImpl() throw()
 	{
-		//::fclose(fd_);
+		if (!closed_)
+		{
+			::fclose(fd_);
+		}
 	}
 
 	virtual BigInt pos() {
@@ -52,18 +57,22 @@ public:
 
 	}
 
-	virtual void close() {
-		::fclose(fd_);
+	virtual void close()
+	{
+		if (!closed_)
+		{
+			::fclose(fd_);
+			closed_ = true;
+		}
 	}
 
 	virtual void write(const void* mem, int offset, int length)
 	{
 		const char* data = static_cast<const char*>(mem) + offset;
-
-//		size_t pos0 = pos();
 		size_t total_size = fwrite(data, 1, length, fd_);
 
-		if (total_size != (size_t)length) {
+		if (total_size != (size_t)length)
+		{
 			throw MemoriaException(MEMORIA_SOURCE, "Can't write "+ToString(length)+" bytes to file");
 		}
 	}
@@ -73,9 +82,11 @@ public:
 
 class FileInputStreamHandlerImpl: public InputStreamHandlerImplT<FileInputStreamHandler> {
 	FILE* fd_;
+	bool closed_;
 public:
 	FileInputStreamHandlerImpl(const char* file)
 	{
+		closed_ = false;
 		fd_ = fopen(file, "rb");
 		if (fd_ == NULL)
 		{
@@ -85,14 +96,22 @@ public:
 
 	virtual ~FileInputStreamHandlerImpl() throw()
 	{
-		::fclose(fd_);
+		if (!closed_)
+		{
+			::fclose(fd_);
+		}
 	}
 
 	virtual Int available() {return 0;}
 	virtual Int buffer_size() {return 0;}
 
-	virtual void close() {
-		::fclose(fd_);
+	virtual void close()
+	{
+		if (!closed_)
+		{
+			::fclose(fd_);
+			closed_ = true;
+		}
 	}
 
 	virtual BigInt pos() {
@@ -101,8 +120,6 @@ public:
 
 	virtual Int read(void* mem, int offset, int length)
 	{
-		BigInt pos = this->pos();
-
 		char* data = static_cast<char*>(mem) + offset;
 		size_t size = ::fread(data, 1, length, fd_);
 		return size == (size_t)length ? size : -1;

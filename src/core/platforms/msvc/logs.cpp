@@ -1,4 +1,4 @@
-#include <memoria/core/vapi/models/logs.hpp>
+#include <memoria/vapi/models/logs.hpp>
 
 
 
