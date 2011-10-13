@@ -54,9 +54,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dynvector::IteratorAPIName)
     	void operator()(NodeBase* node, Int idx)
     	{
     		idx_ = idx;
-    		//BigInt sum0 = sum_;
     		Base::Container::NodeDispatcher::Dispatch(node, *this);
-//    		MEMORIA_TRACE(me_.model(), "Sum", sum_, sum0, sum_ - sum0, node->id(), idx);
     	}
 
     	template <typename Node>

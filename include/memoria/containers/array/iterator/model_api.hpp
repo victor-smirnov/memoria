@@ -44,7 +44,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
 
-    virtual BigInt Read(ArrayData& data, BigInt start, BigInt len) {return 0;}
+    virtual BigInt Read(ArrayData& data, BigInt start, BigInt len);
     
     virtual void Insert(ArrayData& data, BigInt start, BigInt len);
 
@@ -74,6 +74,15 @@ MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE 		MEMORIA_ITERATOR_TYPE(memoria::models::array::IteratorContainerAPIName)
 #define M_PARAMS 	MEMORIA_ITERATOR_TEMPLATE_PARAMS
+
+M_PARAMS
+BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
+{
+	while (len > 0)
+	{
+		Int to_read = me_.data()->data().size() - me_.idx();
+	}
+}
 
 M_PARAMS
 void M_TYPE::Insert(ArrayData& data, BigInt start, BigInt len)
