@@ -345,7 +345,8 @@ int main(int argc, const char** argv, const char** envp)
 		while (!iter.IsFlag(memoria::vapi::Iterator::ITER_EOF))
 		{
 			BigInt  name 	= iter.GetKey(0);
-			BigInt  value 	= iter.GetData().value();
+			//FIXME
+			BigInt  value 	= 0;//iter.GetData().value();
 			IDValue id(value);
 
 			cout<<"Dumping name="<<name<<" root="<<id<<endl;

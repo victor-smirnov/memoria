@@ -153,12 +153,12 @@ public:
     	}
     }
 
-    static Int Init() {
+    static Int Init(Int salt = 0) {
         if (reflection_ == NULL) {
             MetadataList list;
             Types::Pages::NodeDispatcher::BuildMetadataList(list);
             PageInitDispatcher<typename Types::DataPagesList>::BuildMetadataList(list);
-            reflection_ = new ContainerMetadataImpl(TypeNameFactory<Name>::name(), list, Name::Code, &CreateContainer);
+            reflection_ = new ContainerMetadataImpl(TypeNameFactory<Name>::name(), list, Name::Code + salt, &CreateContainer);
         }
         return reflection_->Hash();
     }
@@ -234,11 +234,11 @@ public:
 
     typedef typename Base::NodeBase                                        		NodeBase;
 
-    Ctr(Allocator &allocator, BigInt name, bool create = false):
+    Ctr(Allocator &allocator, BigInt name, bool create = false, const char* mname = NULL):
         Base(*this),
         me_(*this),
         allocator_(allocator), name_(name),
-        model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
+        model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         logger_(model_type_name_, Logger::DERIVED, &class_logger_)
     {
     	if (create)
@@ -252,11 +252,11 @@ public:
     	}
     }
 
-    Ctr(Allocator &allocator, const ID& root_id):
+    Ctr(Allocator &allocator, const ID& root_id, const char* mname = NULL):
             Base(*this),
             me_(*this),
             allocator_(allocator), name_(-1),
-            model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
+            model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
             logger_(model_type_name_, Logger::DERIVED, &class_logger_)
     {
     	me_.init_root(root_id);

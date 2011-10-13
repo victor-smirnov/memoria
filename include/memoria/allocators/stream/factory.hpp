@@ -62,7 +62,7 @@ typedef memoria::StreamAllocator<StreamProfile<>, BasicContainerCollectionCfg<St
 typedef ContainerTypesCollection<StreamProfile<> > StreamContainerTypesCollection;
 typedef Checker<StreamContainerTypesCollection, DefaultStreamAllocator> StreamContainersChecker;
 
-
+/*
 MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Root)
 
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::ToolsName)
@@ -86,7 +86,7 @@ MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorAPIName)
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorMultiskipName)
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorContainerAPIName)
-
+*/
 
 MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::IdxMap)
 
