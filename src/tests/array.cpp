@@ -18,11 +18,16 @@ using namespace memoria::vapi;
 using namespace std;
 
 const Int SIZE = 1000;
+const Int ArrayName = 1;
+const Int MAX_BUFFER_SIZE = 4096*10;
 
-typedef StreamContainerTypesCollection::Factory<Array>::Type ByteArray;
+
+typedef StreamContainerTypesCollection::Factory<Array>::Type 	ByteArray;
+typedef ByteArray::Iterator										BAIterator;
+typedef DefaultStreamAllocator 									SAllocator;
 
 
-void Dump(DefaultStreamAllocator& allocator)
+void Dump(SAllocator& allocator)
 {
 	FileOutputStreamHandler* out = FileOutputStreamHandler::create("array.dump");
 	allocator.store(out);
@@ -38,20 +43,104 @@ void Fill(char* buf, int size, char value)
 	}
 }
 
+ArrayData CreateBuffer(Int size)
+{
+	char* buf = (char*)malloc(size);
+	UByte cnt = 0;
+
+	for (Int c = 0;c < size; c++)
+	{
+		buf[c] = cnt++;
+	}
+
+	return ArrayData(size, buf);
+}
+
+Int GetNonZeroRandom(Int size)
+{
+	Int value = get_random(size);
+	return value != 0 ? value : GetNonZeroRandom(size);
+}
+
+ArrayData CreateRandomBuffer()
+{
+	return CreateBuffer(GetNonZeroRandom(MAX_BUFFER_SIZE));
+}
+
+
+
+
+BigInt GetRandomPosition(ByteArray& array)
+{
+	return get_random(array.Size());
+}
+
+void DeleteBuffer(ArrayData& data)
+{
+	::free(data.data());
+}
+
+bool CheckAllocator(SAllocator &allocator)
+{
+	memoria::StreamContainersChecker checker(allocator);
+	return checker.CheckAll();
+}
+
+bool CompareBuffer(BAIterator& iter, ArrayData& data)
+{
+	for (Int c = 0; c < data.size(); c++)
+	{
+
+	}
+
+	return true;
+}
+
+void Build(SAllocator& allocator, ByteArray& array)
+{
+	if (array.Size() == 0)
+	{
+		//Insert buffer into an empty array
+		auto iter = array.Seek(0);
+		ArrayData data = CreateRandomBuffer();
+		iter.Insert(data, 0, data.size());
+
+		auto iter1 = array.Seek(0);
+
+		CompareBuffer(iter1, data);
+
+		if (CheckAllocator(allocator))
+		{
+			cout<<"Insertion into an empty array failed. See the dump for details."<<endl;
+			Dump(allocator);
+		}
+	}
+	else {
+		SAllocator copy(allocator);
+		ByteArray copyArray(copy, ArrayName);
+
+		int op = get_random(3);
+
+		if (op == 0)
+		{
+			//Insert at the start of the array
+			auto iter = array.Seek(0);
+
+		}
+	}
+}
 
 int main(int argc, const char** argv, const char **envp) {
 
 	long long t0 = getTime();
 
 	try {
-		InitTypeSystem(argc, argv, envp, false);
-
 		logger.level() = Logger::NONE;
 
 		ContainerTypesCollection<StreamProfile<> >::Init();
 		StreamContainerTypesCollection::Init();
 
-		DefaultStreamAllocator allocator;
+		SAllocator allocator;
 		allocator.GetLogger()->level() = Logger::NONE;
 
 		ByteArray* dv = new ByteArray(allocator, 1, true);
@@ -64,7 +153,7 @@ int main(int argc, const char** argv, const char **envp) {
 		char* buf = (char*)malloc(size);
 		Fill(buf, size, 0xBB);
 
-		Iterator iter = dv->Seek(0);
+		auto iter = dv->Seek(0);
 		iter.DumpState("empty array");
 
 		ArrayData data(size, buf);

@@ -68,6 +68,19 @@ public:
 		type_name_("StreamAllocator"), allocs_(0), roots_(this), root_map_(*this, 0, true)
 	{}
 
+	StreamAllocator(const StreamAllocator& other) :
+			logger_(other.logger_),
+			counter_(other.counter_), metadata_(other.metadata_), root_(other.root_), me_(*this),
+			type_name_("StreamAllocator"), allocs_(other.allocs_), roots_(this), root_map_(*this, 0, false)
+	{
+		for (auto i = other.pages_.begin(); i != other.pages_.end(); i++)
+		{
+			char* buffer = (char*) malloc(PAGE_SIZE);
+			CopyBuffer(i->second, buffer, PAGE_SIZE);
+			pages_[i->first] = T2T<Page*>(buffer);
+		}
+	}
+
 	virtual ~StreamAllocator() throw ()
 	{
 		try {
@@ -117,8 +130,8 @@ public:
 	virtual Page* create_new1()
 	{
 		allocs_++;
-		char * buf = (char*) malloc(4096);
-		for (int c = 0; c < 4096; c++)
+		char * buf = (char*) malloc(PAGE_SIZE);
+		for (int c = 0; c < PAGE_SIZE; c++)
 		{
 			buf[c] = 0;
 		}

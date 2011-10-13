@@ -92,9 +92,10 @@ public:
 	enum {DERIVED = 0, TRACE = 10000, DEBUG = 20000, ERROR = 30000, WARNING = 40000, INFO = 50000, FATAL = 60000, NONE = 70000};
 
 	Logger(const char* category, int level = DERIVED, Logger* parent = &memoria::vapi::logger):category_(category), level_(level), parent_(parent), handler_(NULL)
-	{
-		//std::cout<<"Logger: "<<category_<<std::endl;
-	}
+	{}
+
+	Logger(const Logger& other):category_(other.category_), level_(other.level_), parent_(other.parent_), handler_(other.handler_)
+	{}
 
 	const char* category() const {
 		return category_;

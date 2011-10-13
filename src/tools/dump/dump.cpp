@@ -288,7 +288,6 @@ int main(int argc, const char** argv, const char** envp)
 {
 
 	try {
-		//InitTypeSystem(argc, argv, envp, false);
 		StreamContainerTypesCollection::Init();
 
 		logger.level() = Logger::TRACE;

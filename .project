@@ -27,7 +27,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
-					<value>${workspace_loc:/memoria}-build/${BUILD_COMMAND}</value>
+					<value>${workspace_loc:/memoria}-build/${BUILD_TARGET}/${BUILD_COMMAND}</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>

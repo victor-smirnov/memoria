@@ -11,6 +11,7 @@
 
 
 #include <memoria/core/tools/config.hpp>
+#include <memoria/core/types/types.hpp>
 
 #include <vector>
 
@@ -73,7 +74,7 @@ class ArrayData {
 	Int length_;
 	UByte* data_;
 public:
-	ArrayData(Int length, void* data):length_(length), data_(static_cast<UByte*>(data)) {}
+	ArrayData(Int length, void* data):length_(length), data_(T2T<UByte*>(data)) {}
 
 	Int size() const {
 		return length_;
