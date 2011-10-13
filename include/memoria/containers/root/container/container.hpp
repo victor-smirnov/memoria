@@ -35,8 +35,8 @@ public:
 
 
 	Ctr(Allocator &allocator, BigInt name, bool create = false): map_(allocator, name, create, "memoria::Root") {}
-	Ctr(Allocator &allocator, const ID& root_id): map_(allocator, root_id, "memoria::Root") {}
 
+	Ctr(Allocator &allocator, const ID& root_id): map_(allocator, root_id, "memoria::Root") {}
 	//Public API goes here
 
 	Iterator Begin() {
