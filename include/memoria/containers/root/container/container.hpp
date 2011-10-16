@@ -95,7 +95,33 @@ public:
 };
 
 
-}
+/*
+1.
 
+Here are some structs for type selecting (by Alexandrescu).
+Have we got something like this to just include here or I should use this code?
+
+template <bool flag, typename T1, typename T2>
+struct Select
+{
+	typedef T1 Result;
+};
+
+template <typename T1, typename T2>
+struct Select<false, T1, T2>
+{
+	typedef T2 Result;
+};
+
+}
+*/
+
+
+
+/*
+2.
+
+I think, we should encode source files in UTF-8. Are there any troubles?
+ */
 
 #endif
