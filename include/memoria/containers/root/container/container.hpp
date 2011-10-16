@@ -124,4 +124,12 @@ struct Select<false, T1, T2>
 I think, we should encode source files in UTF-8. Are there any troubles?
  */
 
+
+/*
+3.
+
+Which types I have for selecting and what is the best way to calculate the condition?
+*/
+
+
 #endif
