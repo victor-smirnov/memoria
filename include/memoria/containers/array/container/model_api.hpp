@@ -100,8 +100,8 @@ typename M_TYPE::Iterator M_TYPE::Seek(BigInt pos)
 		Key keys[Indexes] = {0};
 		me_.AddKeysToMap(iter.page(), keys);
 
-		iter.SetEof(true);
-		iter.SetBof(true);
+		iter.SetEnd(true);
+		iter.SetStart(true);
 
 		MEMORIA_TRACE(me_, "Create new datapage", iter.data()->id(), iter.page()->id(), iter.key_idx());
 	}

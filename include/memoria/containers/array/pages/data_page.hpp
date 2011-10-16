@@ -20,13 +20,16 @@ template <Int Size>
 class DynVectorData
 {
     Short size_;
-    Byte value_[Size - sizeof(Size)];
+
+    //FIXME see max_size().
+    // May be Size - sizeof(size_))
+    Byte value_[Size - sizeof(size_)];
 
 public:
     DynVectorData() {}
 
     static Int max_size() {
-        return Size;
+        return Size - sizeof(size_);
     }
 
     Int reindex() {return 0;}

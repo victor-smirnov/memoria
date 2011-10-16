@@ -16,7 +16,6 @@
 
 namespace memoria    {
 
-using memoria::TL;
 
 template <typename Types> class Ctr;
 template <typename Types> class Iter;
@@ -66,7 +65,7 @@ public:
 
     typedef Iter<TypesType>															MyType;
 
-    enum {_EOF = 1, BOF = 2, EMPTY = 4, START = 8};
+    enum {END = 1, START = 2, EMPTY = 3};
     
 private:
     MyType& me_;
@@ -129,8 +128,8 @@ public:
         return state_;
     }
 
-    bool IsEof() const {
-        return (state() & _EOF) != 0;
+    bool IsEnd() const {
+        return (state() & END) != 0;
     }
 
     void SetStateBit(int flag, bool bit) {
@@ -142,49 +141,38 @@ public:
         }
     }
 
-    void SetEof(bool eof) {
-        SetStateBit(_EOF, eof);
-    }
-
-    bool IsBof() const {
-        return (state_ & BOF) != 0;
-    }
-
-    void SetBof(bool bof) {
-        SetStateBit(BOF, bof);
-    }
-
-    bool IsEmpty() const {
-        return (state_ & EMPTY) != 0;
-    }
-
-    bool IsNotEmpty() const {
-        return (state_ & EMPTY) == 0;
-    }
-
-    void SetEmpty(bool empty) {
-        SetStateBit(EMPTY, empty);
+    void SetEnd(bool eof) {
+        SetStateBit(END, eof);
     }
 
     bool IsStart() const {
         return (state_ & START) != 0;
     }
 
-    void SetStart(bool start) {
-        SetStateBit(START, start);
+    void SetStart(bool bof) {
+        SetStateBit(START, bof);
     }
+
+
+    bool IsEmpty() const {
+        return (state_ & EMPTY) == END + START;
+    }
+
+    bool IsNotEmpty() const {
+        return (state_ & EMPTY) != 0;
+    }
+
+//    void SetEmpty(bool empty) {
+//    	SetStateBit(EMPTY, END + START);
+//    }
 
     bool is_log(Int level)
     {
-//        return level >= logger().GetLogLevel();
-    	//return me_.model().logger().IsLogEnabled(level);
-
     	return logger_.IsLogEnabled(level);
     }
 
     memoria::vapi::Logger& logger()
     {
-      //  return me_.model().logger();
     	  return logger_;
     }
 

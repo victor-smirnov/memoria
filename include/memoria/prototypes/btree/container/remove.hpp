@@ -697,7 +697,7 @@ void M_TYPE::RemovePage(NodeBase *node)
  */
 M_PARAMS
 bool M_TYPE::RemoveEntry(Iterator iter) {
-	if (iter.IsNotEmpty() || !iter.IsEof()) {
+	if (iter.IsNotEmpty() || !iter.IsEnd()) {
 		NodeBase *node = iter.page();
 		Int idx = iter.key_idx();
 
@@ -727,7 +727,7 @@ bool M_TYPE::RemoveEntry(Iterator iter) {
 
 M_PARAMS
 bool M_TYPE::RemoveEntries(Iterator from, Iterator to) {
-	if (from.IsEmpty() || from.IsEof()) {
+	if (from.IsEmpty() || from.IsEnd()) {
 		return false;
 	}
 

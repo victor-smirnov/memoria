@@ -58,9 +58,8 @@ public:
     
     Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(*this), kind_(kind), model_(model) {
         Base::state() = 0;
-        Base::SetEof(true);
-        Base::SetBof(true); // does it necessary here?
-        Base::SetEmpty(true);
+        Base::SetEnd(true);
+        Base::SetStart(true); // does it necessary here?
     }
     
     Iter(NodeBase* node, Int idx, Container &model): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {

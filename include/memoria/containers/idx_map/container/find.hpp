@@ -137,7 +137,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::FindName)
 
     bool IsFound(Iterator &iter, Key key, Int i)
     {
-        if (!(iter.IsEof() || iter.IsEmpty()))
+        if (!(iter.IsEnd() || iter.IsEmpty()))
         {
             if (iter.GetKey(i) == key)
             {

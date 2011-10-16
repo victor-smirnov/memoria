@@ -34,6 +34,7 @@ class Checker {
 public:
 	Checker(AllocatorType& allocator): allocator_(allocator) {}
 
+	// return true in case of errors;
 	bool CheckAll()
 	{
 		ID root = allocator_.root();

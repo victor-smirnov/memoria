@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include <math.h>
 
 using namespace std;
 using namespace memoria;
@@ -47,6 +48,10 @@ int main(void) {
 	else {
 		cout<<"The machine code is NOT broken via strict aliasing rule"<<endl;
 	}
+
+	double val = -sqrt((sqrt(5.0) - 1.0)/2.0);
+
+	cout<<(val*val*val*val + val*val)<<" "<<val<<endl;
 
 	return 0;
 }

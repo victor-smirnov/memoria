@@ -66,7 +66,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::models::idx_map::IteratorToolsName)
 
     bool NextKey() {
         //MEMORIA_TRACE(me_, "NextKey");
-        if (!me_.IsEof()) {
+        if (!me_.IsEnd()) {
             for (Int c = 0; c < Indexes; c++) {
                 prefix_[c] += GetRawKey(c);
             }

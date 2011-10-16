@@ -134,7 +134,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         			index 	= me_.GetParent(index);
         		}
         		else {
-        			// BOF
+        			// START
         			idx 	= -1;
         			break;
         		}
@@ -165,7 +165,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         	}
         }
         else {
-        	// BOF
+        	// START
         	idx = 0;
         	while (true)
         	{

@@ -102,6 +102,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dynvector::IteratorAPIName)
     	}
     }
 
+    DataPage *GetNextDataPage()
+    {
+    	return me_.GetNextDataPage(me_.page(), me_.data());
+    }
+
     DataPage *GetPrevDataPage(NodeBase* page, DataPage* data)
     {
     	Int parent_idx = data->parent_idx();
@@ -121,6 +126,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dynvector::IteratorAPIName)
     			return NULL;
     		}
     	}
+    }
+
+    DataPage *GetPrevDataPage()
+    {
+    	return me_.GetPrevDataPage(me_.page(), me_.data());
     }
 
 MEMORIA_ITERATOR_PART_END

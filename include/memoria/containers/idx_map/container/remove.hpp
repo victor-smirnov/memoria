@@ -57,7 +57,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::RemoveName)
 
             MEMORIA_TRACE(me_, "RemoveAllEntries", from, to, type, ito.page()->id());
 
-            if (!(ifrom.IsEmpty() || ifrom.IsEof())) {
+            if (!(ifrom.IsEmpty() || ifrom.IsEnd())) {
                 me_.RemoveEntries(ifrom, ito);
             }
         }

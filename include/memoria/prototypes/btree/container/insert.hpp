@@ -289,7 +289,7 @@ typename M_TYPE::NodeBase* M_TYPE::SplitBTreeNode(NodeBase *page, Int count_leaf
 M_PARAMS
 void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 {
-	MEMORIA_TRACE(me_, "InsertEntry", iter.page(), iter.key_idx(), iter.IsEof(), iter.IsEmpty(), keys[0]);
+	MEMORIA_TRACE(me_, "InsertEntry", iter.page(), iter.key_idx(), iter.IsEnd(), iter.IsEmpty(), keys[0]);
 
 	if (iter.IsNotEmpty())
 	{

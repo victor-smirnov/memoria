@@ -283,6 +283,10 @@ public:
         return logger_;
     }
 
+    static memoria::vapi::Logger& class_logger() {
+    	return class_logger_;
+    }
+
     const Allocator& allocator() const {
         return allocator_;
     }

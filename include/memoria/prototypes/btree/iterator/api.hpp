@@ -41,12 +41,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
     NodeBase *GetNextNode(NodeBase* page);
 
+    NodeBase *GetNextNode()
+    {
+    	return me_.GetNextNode(me_.page());
+    }
+
     NodeBase *GetPrevNode(NodeBase* page);
+    NodeBase *GetPrevNode()
+    {
+    	return me_.GetPrevNode(me_.page());
+    }
 
     void Init() {}
 
     bool IsFound() {
-        return (!me_.IsEof()) && me_.IsNotEmpty();
+        return (!me_.IsEnd()) && me_.IsNotEmpty();
     }
 
 
@@ -69,7 +78,7 @@ M_PARAMS
 bool M_TYPE::NextKey()
 {
 	MEMORIA_TRACE(me_, "NextKey");
-	if (!me_.IsEof())
+	if (!me_.IsEnd())
 	{
 		if (me_.key_idx() < me_.GetChildrenCount(me_.page()) - 1)
 		{
@@ -84,7 +93,7 @@ bool M_TYPE::NextKey()
 				me_.key_idx() = me_.page() != NULL ? me_.model().GetChildrenCount(me_.page()) : 0;
 			}
 
-			me_.SetEof(!val);
+			me_.SetEnd(!val);
 
 			me_.ReHash();
 			return val;
@@ -112,7 +121,7 @@ bool M_TYPE::PrevKey()
 			me_.key_idx() = -1;
 		}
 
-		me_.SetEof(!val);
+		me_.SetEnd(!val);
 
 		me_.ReHash();
 		return val;

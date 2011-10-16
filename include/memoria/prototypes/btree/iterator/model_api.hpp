@@ -78,9 +78,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
 
     bool IsFlag(Int flag) {
         switch (flag) {
-            case memoria::vapi::Iterator::ITER_EOF:    return me_.IsEof();
+            case memoria::vapi::Iterator::ITEREND:    return me_.IsEnd();
             case memoria::vapi::Iterator::ITER_EMPTY:  return me_.IsEmpty();
-            case memoria::vapi::Iterator::ITER_BOF:    return me_.IsBof();
+            case memoria::vapi::Iterator::ITER_START:    return me_.IsStart();
             default:                throw MemoriaException(MEMORIA_SOURCE, "Invalig flag name", flag);
         }
 

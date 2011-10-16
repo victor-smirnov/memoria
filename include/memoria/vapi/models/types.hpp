@@ -49,7 +49,7 @@ struct ConvertFromHelper<IDType, IDType> {
 
 
 struct MEMORIA_API Iterator {
-    enum {ITER_EOF, ITER_EMPTY, ITER_BOF};
+    enum {ITEREND, ITER_EMPTY, ITER_START};
 };
 
 
@@ -73,8 +73,29 @@ struct MEMORIA_API Data {
 class ArrayData {
 	Int length_;
 	UByte* data_;
+	bool owner_;
 public:
-	ArrayData(Int length, void* data):length_(length), data_(T2T<UByte*>(data)) {}
+	ArrayData(Int length, void* data, bool owner = false):length_(length), data_(T2T<UByte*>(data)), owner_(owner) {}
+	ArrayData(Int length):length_(length), data_(T2T<UByte*>(::malloc(length))), owner_(true) {}
+
+	ArrayData(ArrayData&& other):length_(other.length_), data_(other.data_), owner_(other.owner_)
+	{
+		other.data_ = nullptr;
+	}
+
+	ArrayData(const ArrayData& other, bool clone = true):length_(other.length_), owner_(true)
+	{
+		data_ = (UByte*) ::malloc(length_);
+
+		if (clone)
+		{
+			CopyBuffer(other.data(), data_, length_);
+		}
+	}
+
+	~ArrayData() {
+		if (owner_) ::free(data_);
+	}
 
 	Int size() const {
 		return length_;

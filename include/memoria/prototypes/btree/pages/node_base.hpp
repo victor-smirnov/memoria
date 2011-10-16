@@ -198,7 +198,7 @@ memoria::vapi::LogHandler* LogIt(memoria::vapi::LogHandler* log, const BTreeCoun
     log->log(value.page_count());
     log->log("; key_count=");
     log->log(value.key_count());
-    log->log("]");
+    log->log("] ");
     return log;
 }
 

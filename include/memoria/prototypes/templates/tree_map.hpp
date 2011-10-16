@@ -47,7 +47,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     BigInt KeyIndex(Key key, Int c) {
         Iterator i = me_.FindLE(key, c, false);
-        if (!i.IsEof()) {
+        if (!i.IsEnd()) {
             NodeBase* page = i.page();
             BigInt keys = i.key_idx();
 
@@ -114,7 +114,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     virtual bool Get(BigInt index, BigInt& key, BigInt& value) {
     	Iterator i = me_.GetByIndex(index);
-    	if (i.IsEof()) {
+    	if (i.IsEnd()) {
     		return false;
     	}
     	else {
