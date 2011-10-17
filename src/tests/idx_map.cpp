@@ -31,19 +31,12 @@ typedef Ctr<StreamContainerTypesCollection::Types<memoria::IdxMap>::Type::CtrTyp
 
 void checkIterator(IdxMapType* map, IDPairVector& pairs)
 {
-	typedef IdxMapType::Iterator IteratorType;
-	IteratorType iter = map->Begin();
-	IteratorType end = map->End();
-
 	UInt idx = 0;
-	for (; iter != end; )
+	for (auto iter = map->Begin(); !iter.IsEnd(); iter.Next(), idx++)
 	{
 		BigInt  key 	= iter.GetKey(0);
 
 		if (pairs[idx].key_ != key) cout<<"key "<<idx<<endl;
-	    
-	    iter.Next();
-	    idx++;
 	}
 	
 	if (idx != pairs.size()) cout<<"size "<<idx<<" "<<pairs.size()<<endl;
