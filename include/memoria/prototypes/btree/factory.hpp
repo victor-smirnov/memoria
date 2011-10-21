@@ -116,6 +116,7 @@ public:
     
     typedef typename ContainerTypes::Allocator::Page::ID                        	ID;
 
+    //TAGS: #IF_THEN_ELSE_EXAMPLE
     typedef typename memoria::IfThenElse<
                 IfTypesEqual<
                 	typename ContainerTypes::Value,

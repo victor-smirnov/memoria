@@ -113,7 +113,9 @@ struct Select<false, T1, T2>
 	typedef T2 Result;
 };
 
-}
+
+A: see memoria/core/types/algo/select.hpp#IfThenElse
+
 */
 
 
@@ -122,13 +124,17 @@ struct Select<false, T1, T2>
 2.
 
 I think, we should encode source files in UTF-8. Are there any troubles?
- */
+
+A: It is likely that we will face some troubles in this case. I will check it.
+*/
 
 
 /*
 3.
 
 Which types I have for selecting and what is the best way to calculate the condition?
+
+A: Search for tag: #IF_THEN_ELSE_EXAMPLE
 */
 
 
