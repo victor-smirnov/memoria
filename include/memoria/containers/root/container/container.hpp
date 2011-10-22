@@ -96,45 +96,19 @@ public:
 
 
 /*
-1.
-
-Here are some structs for type selecting (by Alexandrescu).
-Have we got something like this to just include here or I should use this code?
-
-template <bool flag, typename T1, typename T2>
-struct Select
-{
-	typedef T1 Result;
-};
-
-template <typename T1, typename T2>
-struct Select<false, T1, T2>
-{
-	typedef T2 Result;
-};
-
-
-A: see memoria/core/types/algo/select.hpp#IfThenElse
-
-*/
-
-
-
-/*
-2.
-
-I think, we should encode source files in UTF-8. Are there any troubles?
-
-A: It is likely that we will face some troubles in this case. I will check it.
-*/
-
-
-/*
 3.
 
 Which types I have for selecting and what is the best way to calculate the condition?
 
 A: Search for tag: #IF_THEN_ELSE_EXAMPLE
+
+-
+> A: Search for tag: #IF_THEN_ELSE_EXAMPLE
+
+I understand it :) I meaned what I must use as template params for this case:
+Select<what_condition, which_type_1, which_type_2> ...
+To perform container selection.
+
 */
 
 
