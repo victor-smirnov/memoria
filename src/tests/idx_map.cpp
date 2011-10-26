@@ -31,15 +31,17 @@ typedef Ctr<StreamContainerTypesCollection::Types<memoria::IdxMap>::Type::CtrTyp
 
 void checkIterator(IdxMapType* map, IDPairVector& pairs)
 {
-	UInt idx = 0;
-	for (auto iter = map->Begin(); !iter.IsEnd(); iter.Next(), idx++)
+	if (pairs.size() > 0)
 	{
-		BigInt  key 	= iter.GetKey(0);
+		UInt idx = 0;
+		for (auto iter = map->Begin(); !iter.IsEnd(); iter.Next(), idx++)
+		{
+			BigInt  key 	= iter.GetKey(0);
+			if (pairs[idx].key_ != key) cout<<"key "<<idx<<endl;
+		}
 
-		if (pairs[idx].key_ != key) cout<<"key "<<idx<<endl;
+		if (idx != pairs.size()) cout<<"size "<<idx<<" "<<pairs.size()<<endl;
 	}
-	
-	if (idx != pairs.size()) cout<<"size "<<idx<<" "<<pairs.size()<<endl;
 }
 
 set<long long> randoms;
@@ -96,22 +98,25 @@ int main(int argc, const char **argv, const char** envp)
 				map->Put(pairs[c].key_, 0);
 			}
 
-			UInt from, to, cc = x;
-			if (cc == 0) {
-				from = 0;
-				to = SIZE - 1;
+			UInt from, to;
+			if (x == 0)
+			{
+				from 	= 0;
+				to 		= SIZE - 1;
 			}
-			else if (cc == 1) {
-				from = 0;
-				to = SIZE/2;
+			else if (x == 1)
+			{
+				from 	= 0;
+				to 		= SIZE/2;
 			}
-			else if (cc == 2) {
-				from = SIZE/2;
-				to = SIZE - 1;
+			else if (x == 2)
+			{
+				from 	= SIZE/2;
+				to 		= SIZE - 1;
 			}
 			else {
-				from = get_random(SIZE/2 - 1);
-				to = SIZE/2 + get_random(SIZE/2);
+				from 	= get_random(SIZE/2 - 1);
+				to 		= get_random(SIZE/2) + SIZE/2;
 			}
 
 			IDPairVector result;
@@ -124,6 +129,8 @@ int main(int argc, const char **argv, const char** envp)
 			BigInt to_key   = pairs_sorted[to].key_ + 1;
 
 			map->Remove(from_key, to_key);
+
+//			cout<<"Size after remove: "<<map->GetSize()<<endl;
 
 			long size = SIZE - (to - from + 1);
 			if (size != map->GetSize()) cout<<"Remove.size "<<x<<endl;

@@ -105,8 +105,12 @@ public:
 
                     i_.SetEnd(false);
 
-
                     i_.Init();
+
+                    if (idx_ == 0)
+                    {
+                    	i_.SetStart(i_.GetPrevNode() == nullptr);
+                    }
 
                     rtn_            = true;
                 }
@@ -126,6 +130,8 @@ public:
                     cmp_.SetupIterator(i_);
 
                     i_.SetEnd(true);
+
+                    i_.SetStart(false);
 
                     i_.Init();
                     rtn_            = true;

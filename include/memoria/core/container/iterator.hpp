@@ -159,7 +159,7 @@ public:
     }
 
     bool IsNotEmpty() const {
-        return (state_ & EMPTY) != 0;
+        return (state_ & EMPTY) != END + START;
     }
 
 //    void SetEmpty(bool empty) {

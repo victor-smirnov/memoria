@@ -727,11 +727,13 @@ bool M_TYPE::RemoveEntry(Iterator iter) {
 
 M_PARAMS
 bool M_TYPE::RemoveEntries(Iterator from, Iterator to) {
-	if (from.IsEmpty() || from.IsEnd()) {
+	if (from.IsEmpty() || from.IsEnd())
+	{
 		return false;
 	}
 
-	if (to.IsEmpty()) {
+	if (to.IsEmpty())
+	{
 		return false;
 	}
 
