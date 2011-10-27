@@ -310,7 +310,6 @@ void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 		}
 		else if (idx < me_.GetChildrenCount(node))
 		{
-//			NodeBase *new_node =
 			SplitBTreeNode(node, idx, 0);
 			InsertSpace(node, idx, 1);
 		}

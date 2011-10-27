@@ -120,7 +120,7 @@ M_PARAMS
 void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescriptor &descriptor)
 {
 	NodeBase*& 	page 				= iter.page();
-	bool 		eof	 				= iter.IsEnd();
+//	bool 		eof	 				= iter.IsEnd();
 	BigInt 		max_datapage_size 	= DataPage::get_max_size();
 
 	MEMORIA_TRACE(me_, "iterator is not empty", block.size(), page, me_.root());
@@ -216,8 +216,8 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 	}
 
 
-	iter.SetStart(false);
-	iter.SetEnd(eof);
+//	iter.SetStart(false);
+//	iter.SetEnd(eof);
 	//iter.data() 	= me_.GetDataPage(iter.page(), iter.key_idx());
 }
 

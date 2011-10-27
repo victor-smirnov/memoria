@@ -66,6 +66,27 @@ public:
         return page_;
     }
 
+    bool IsStart()
+    {
+    	return key_idx() < 0;
+    }
+
+    bool IsEnd()
+    {
+    	return page() != nullptr ? key_idx() >= me_.model().GetChildrenCount(page()) : true;
+    }
+
+    bool IsEmpty()
+    {
+    	return page() == nullptr || me_.model().GetChildrenCount(page()) == 0;
+    }
+
+    bool IsNotEmpty()
+    {
+    	return !IsEmpty();
+    }
+
+
 //    const NodeBase* &page() const {
 //        return page_;
 //    }

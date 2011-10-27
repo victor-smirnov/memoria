@@ -167,7 +167,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 					if (next == NULL)
 					{
 						me_.idx() = data_size;
-						me_.SetEnd(true);
+//						me_.SetEnd(true);
 					}
 					else {
 						me_.page() 		= next;
@@ -176,7 +176,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 
 						me_.data()		= me_.model().GetDataPage(me_.page(), me_.key_idx());
 
-						me_.SetEnd(false);
+//						me_.SetEnd(false);
 					}
 				}
 				else {
@@ -197,8 +197,8 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			me_.data() 	= me_.model().GetDataPage(me_.page(), me_.key_idx());
 
 			//FIXME: START
-			me_.SetEnd(end);
-			me_.SetStart(false);
+//			me_.SetEnd(end);
+//			me_.SetStart(false);
 
 			if (end)
 			{
@@ -240,7 +240,7 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 			if (me_.key_idx() == 0 && distance == idx)
 			{
 				NodeBase* prev = me_.GetPrevNode(me_.page());
-				me_.SetStart(prev == NULL);
+//				me_.SetStart(prev == NULL);
 			}
 
 			me_.idx() 	-= distance;
@@ -255,8 +255,8 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 			me_.data() 	= me_.model().GetDataPage(me_.page(), me_.key_idx());
 
 			//FIXME: EOF
-			me_.SetEnd(false);
-			me_.SetStart(end);
+//			me_.SetEnd(false);
+//			me_.SetStart(end);
 
 			if (end)
 			{

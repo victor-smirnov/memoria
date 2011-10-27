@@ -30,11 +30,8 @@ void checkIteratorFw(KVMapType* map, PairVector& pairs)
 
 	map->End().update();
 
-	IteratorType iter = map->Begin();
-	IteratorType end = map->End();
-
-	UInt idx = 0;
-	while (iter != end)
+	Int idx = 0;
+	for (auto iter = map->Begin(); !iter.IsEnd(); )
 	{
 	    BigInt  key 	= iter.GetKey(0);
 	    BigInt  value 	= iter.GetData();
@@ -46,7 +43,23 @@ void checkIteratorFw(KVMapType* map, PairVector& pairs)
 	    idx++;
 	}
 	
-	if (idx != pairs.size()) cout<<"iterator.size "<<idx<<" "<<pairs.size()<<endl;
+	if (idx != (Int)pairs.size()) cout<<"fw iterator.size "<<idx<<" "<<pairs.size()<<endl;
+
+	idx = (Int)pairs.size() - 1;
+	for (auto iter = map->RBegin(); !iter.IsStart(); )
+	{
+		BigInt  key 	= iter.GetKey(0);
+		BigInt  value 	= iter.GetData();
+
+		if (pairs[idx].key_ != key) cout<<"key "<<idx<<" "<<pairs[idx].key_<<" "<<key<<endl;
+		if (pairs[idx].value_ != value) cout<<"value "<<idx<<" "<<pairs[idx].value_<<" "<<value<<endl;
+
+		iter.Prev();
+
+		idx--;
+	}
+
+	if (idx != -1) cout<<"bw iterator.size "<<idx<<" "<<pairs.size()<<endl;
 }
 
 
@@ -54,11 +67,12 @@ void checkIteratorBw(KVMapType* map, PairVector& pairs)
 {
 	typedef KVMapType::Iterator IteratorType;
 
-	IteratorType iter = map->RBegin();
-	IteratorType end = map->REnd();
+//	IteratorType iter = map->RBegin();
+//	IteratorType end = map->REnd();
 
 	Int idx = pairs.size() - 1;
-	while (iter!=end)
+//	while (iter!=end)
+	for (auto iter = map->RBegin(); !iter.IsStart(); )
 	{
 		BigInt  key 	= iter.GetKey(0);
 		BigInt  value 	= iter.GetData();
@@ -208,6 +222,12 @@ int main(int argc, const char** argv, const char **envp) {
 			}
 
 			checkIteratorFw(map, pairs_sorted);
+
+			if (c == SIZE - 1) {
+				int a = 0;
+				a++;
+			}
+
 			checkIteratorBw(map, pairs_sorted);
 			if (c < SIZE - 1) {
 				checkMultistepForwardIterator(map);

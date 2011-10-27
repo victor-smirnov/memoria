@@ -33,14 +33,23 @@ void checkIterator(IdxMapType* map, IDPairVector& pairs)
 {
 	if (pairs.size() > 0)
 	{
-		UInt idx = 0;
+		Int idx = 0;
 		for (auto iter = map->Begin(); !iter.IsEnd(); iter.Next(), idx++)
 		{
 			BigInt  key 	= iter.GetKey(0);
-			if (pairs[idx].key_ != key) cout<<"key "<<idx<<endl;
+			if (pairs[idx].key_ != key) cout<<"fw key "<<idx<<endl;
 		}
 
-		if (idx != pairs.size()) cout<<"size "<<idx<<" "<<pairs.size()<<endl;
+		if (idx != (int)pairs.size()) cout<<"fw size "<<idx<<" "<<pairs.size()<<endl;
+
+		idx = (Int)pairs.size() - 1;
+		for (auto iter = map->RBegin(); !iter.IsStart(); iter.Prev(), idx--)
+		{
+			BigInt  key 	= iter.GetKey(0);
+			if (pairs[idx].key_ != key) cout<<"bw key "<<idx<<" "<<key<<" "<<pairs[idx].key_<<endl;
+		}
+
+		if (idx != -1) cout<<"bw size "<<idx<<" "<<pairs.size()<<endl;
 	}
 }
 

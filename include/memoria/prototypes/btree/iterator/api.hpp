@@ -88,12 +88,12 @@ bool M_TYPE::NextKey()
 		}
 		else {
 			bool val = me_.NextLeaf();
-
-			if (!val) {
-				me_.key_idx() = me_.page() != NULL ? me_.model().GetChildrenCount(me_.page()) : 0;
+			if (val) {
+				me_.key_idx() = 0;
 			}
-
-			me_.SetEnd(!val);
+			else {
+				me_.key_idx() = me_.GetChildrenCount(me_.page());
+			}
 
 			me_.ReHash();
 			return val;
@@ -117,22 +117,26 @@ bool M_TYPE::PrevKey()
 	else {
 		bool val = me_.PrevLeaf();
 
-		if (!val) {
+		if (val) {
+			me_.key_idx() = me_.GetChildrenCount(me_.page()) - 1;
+		}
+		else {
 			me_.key_idx() = -1;
 		}
-
-		me_.SetEnd(!val);
 
 		me_.ReHash();
 		return val;
 	}
 }
 
+//FIXME: Should NextLeaf/PreveLeaf set to End/Start if move fails?
 M_PARAMS
-bool M_TYPE::NextLeaf() {
+bool M_TYPE::NextLeaf()
+{
 	MEMORIA_TRACE(me_, "NextLeaf");
 	NodeBase* node = me_.GetNextNode(me_.page());
-	if (node != NULL) {
+	if (node != NULL)
+	{
 		me_.key_idx() = 0;
 		me_.page() = node;
 		return true;
@@ -141,10 +145,12 @@ bool M_TYPE::NextLeaf() {
 }
 
 M_PARAMS
-bool M_TYPE::PrevLeaf() {
+bool M_TYPE::PrevLeaf()
+{
 	MEMORIA_TRACE(me_, "PrevLeaf");
 	NodeBase* node = me_.GetPrevNode(me_.page());
-	if (node != NULL) {
+	if (node != NULL)
+	{
 		me_.page() = node;
 		me_.key_idx() = me_.GetChildrenCount(me_.page()) - 1;
 		return true;
@@ -153,7 +159,8 @@ bool M_TYPE::PrevLeaf() {
 }
 
 M_PARAMS
-typename M_TYPE::NodeBase *M_TYPE::GetNextNode(NodeBase* page) {
+typename M_TYPE::NodeBase *M_TYPE::GetNextNode(NodeBase* page)
+{
 	if (page->is_root()) {
 		return NULL;
 	}
@@ -169,7 +176,8 @@ typename M_TYPE::NodeBase *M_TYPE::GetNextNode(NodeBase* page) {
 }
 
 M_PARAMS
-typename M_TYPE::NodeBase *M_TYPE::GetPrevNode(NodeBase* page) {
+typename M_TYPE::NodeBase *M_TYPE::GetPrevNode(NodeBase* page)
+{
 	if (page->is_root()) {
 		return NULL;
 	}

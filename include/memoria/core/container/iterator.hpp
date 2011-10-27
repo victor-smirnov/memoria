@@ -128,9 +128,7 @@ public:
         return state_;
     }
 
-    bool IsEnd() const {
-        return (state() & END) != 0;
-    }
+
 
     void SetStateBit(int flag, bool bit) {
         if (bit) {
@@ -141,26 +139,30 @@ public:
         }
     }
 
-    void SetEnd(bool eof) {
-        SetStateBit(END, eof);
-    }
-
-    bool IsStart() const {
-        return (state_ & START) != 0;
-    }
-
-    void SetStart(bool bof) {
-        SetStateBit(START, bof);
-    }
-
-
-    bool IsEmpty() const {
-        return (state_ & EMPTY) == END + START;
-    }
-
-    bool IsNotEmpty() const {
-        return (state_ & EMPTY) != END + START;
-    }
+//    bool IsEnd() const {
+//    	return (state() & END) != 0;
+//    }
+//
+//    void SetEnd(bool eof) {
+//        SetStateBit(END, eof);
+//    }
+//
+//    bool IsStart() const {
+//        return (state_ & START) != 0;
+//    }
+//
+//    void SetStart(bool bof) {
+//        SetStateBit(START, bof);
+//    }
+//
+//
+//    bool IsEmpty() const {
+//        return (state_ & EMPTY) == END + START;
+//    }
+//
+//    bool IsNotEmpty() const {
+//        return (state_ & EMPTY) != END + START;
+//    }
 
 //    void SetEmpty(bool empty) {
 //    	SetStateBit(EMPTY, END + START);

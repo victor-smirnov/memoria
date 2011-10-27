@@ -103,14 +103,7 @@ public:
                     i_.key_idx()    = idx_;
                     cmp_.SetupIterator(i_);
 
-                    i_.SetEnd(false);
-
-                    i_.Init();
-
-                    if (idx_ == 0)
-                    {
-                    	i_.SetStart(i_.GetPrevNode() == nullptr);
-                    }
+//                    i_.Init();
 
                     rtn_            = true;
                 }
@@ -129,11 +122,7 @@ public:
                     i_.key_idx()    = node->map().size();
                     cmp_.SetupIterator(i_);
 
-                    i_.SetEnd(true);
-
-                    i_.SetStart(false);
-
-                    i_.Init();
+//                    i_.Init();
                     rtn_            = true;
                 }
             }
@@ -144,9 +133,6 @@ public:
                 i_.state()      = 0;
                 cmp_.SetupIterator(i_);
                 
-                i_.SetEnd(true);
-                i_.SetStart(true);
-
                 i_.Init();
                 rtn_ = true;
             }
@@ -233,14 +219,7 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 
 			if (fn.rtn_)
 			{
-				Iterator& i = fn.i_;
-
-				if ((!i.IsStart()) && i.key_idx() == 0)
-				{
-					i.SetStart(i.GetPrevNode() == nullptr);
-				}
-
-				return i;
+				return fn.i_;
 			}
 			else {
 				node = fn.node();
@@ -303,7 +282,7 @@ const typename M_TYPE::Iterator M_TYPE::FindEnd() const
 			node = me_.GetLastChild(node);
 		}
 
-		return Iterator(node, me_.GetChildrenCount(node), me_);
+		return Iterator(node, me_.GetChildrenCount(node), me_, true);
 	}
 	else {
 		return Iterator(me_);
@@ -322,7 +301,7 @@ typename M_TYPE::Iterator M_TYPE::FindRStart()
 			node = me_.GetLastChild(node);
 		}
 
-		return Iterator(node, me_.GetChildrenCount(node) - 1, me_);
+		return Iterator(node, me_.GetChildrenCount(node) - 1, me_, true);
 	}
 	else {
 		return Iterator(me_);
