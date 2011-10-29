@@ -88,22 +88,7 @@ typename M_TYPE::Iterator M_TYPE::Seek(BigInt pos)
 	MEMORIA_TRACE(me_, "Begin", pos);
 	Iterator iter = me_.Find(pos, 0);
 
-	//FIXME: IsEmpty means an empty data structure without any page
-	//Should mean a data structure without any application data
-	if (iter.data() == NULL && !iter.IsEmpty())
-	{
-		//FIXME: this data page should be created
-		//when the component is created
-
-		iter.data() = me_.create_datapage(iter.page(), iter.key_idx());
-
-		Key keys[Indexes] = {0};
-		me_.AddKeysToMap(iter.page(), keys);
-
-		MEMORIA_TRACE(me_, "Create new datapage", iter.data()->id(), iter.page()->id(), iter.key_idx());
-	}
-
-	//    	iter.DumpState("Seek");
+	iter.DumpState("Seek");
 
 	return iter;
 }

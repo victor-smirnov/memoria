@@ -54,7 +54,6 @@ class BTreeIteratorBaseClassName: public IteratorBase<                   				\
     MyType&             me_;
 
 
-
         
 #define MEMORIA_BTREE_ITERATOR_BASE_CLASS_BEGIN(BTreeIteratorBaseClassName)      \
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)      \

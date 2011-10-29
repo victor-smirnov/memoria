@@ -18,14 +18,14 @@ template <typename T, Int n = sizeof(T)> struct PtrToHash;
 template <typename T>
 struct PtrToHash<T, sizeof(Int)> {
 	static Int hash(T value) {
-		return reinterpret_cast<Int>(value);
+		return T2T<Int>(value);
 	}
 };
 
 template <typename T>
 struct PtrToHash<T, sizeof(BigInt)> {
 	static Int hash(T value) {
-		BigInt v = reinterpret_cast<BigInt>(value);
+		BigInt v = T2T<BigInt>(value);
 		Int v0 = v;
 		Int v1 = v >> (sizeof(Int) * 8);
 

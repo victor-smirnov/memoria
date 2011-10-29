@@ -9,17 +9,12 @@
 #define	_MEMORIA_MODELS_VECTOR_MODEL_FIND_HPP
 
 
-#include <memoria/prototypes/btree/pages/tools.hpp>
-#include <memoria/containers/idx_map/names.hpp>
+#include <memoria/prototypes/itree/names.hpp>
 #include <memoria/core/container/container.hpp>
-
-
 
 namespace memoria    {
 
-using namespace memoria::btree;
-
-MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::FindName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                              Allocator;

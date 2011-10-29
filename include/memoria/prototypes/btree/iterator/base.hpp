@@ -58,7 +58,7 @@ public:
         return key_idx_;
     }
 
-    const Int &key_idx() const {
+    const Int key_idx() const {
         return key_idx_;
     }
 

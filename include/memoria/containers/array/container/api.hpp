@@ -94,12 +94,19 @@ M_PARAMS
 typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 {
 	Iterator iter = me_.FindLT(pos, key_number, true);
-	if (!(iter.IsEnd() && iter.IsStart()))
+	if (iter.IsNotEmpty())
 	{
+		if (iter.IsEnd())
+		{
+			iter.PrevKey();
+		}
+
 		iter.data() 	= me_.GetDataPage(iter.page(), iter.key_idx());
-		BigInt offset 	= iter.GetIndexValue(key_number);
+		BigInt offset 	= iter.GetKey(key_number);
 		iter.idx() 		= pos - offset;
 	}
+
+
 	return iter;
 }
 
