@@ -12,11 +12,13 @@
 namespace memoria    {
 namespace itree      {
 
-class ITree 		{};
 class FindName 		{};
 class ToolsName 	{};
 
-class BTreeIteratorBase		{};
+template <Int Indexes>
+class IndexPagePrefixName 	{};
+
+
 
 class IteratorToolsName 	{};
 

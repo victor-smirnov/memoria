@@ -24,8 +24,8 @@ using namespace memoria::btree;
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
 
-    typedef typename Base::NodeBase                                             NodeBase;
-//    typedef memoria::vapi::Map                                                    	Map;
+    typedef typename Base::NodeBase                                             	NodeBase;
+
 
     typedef typename Base::Container::ApiKeyType                                    ApiKeyType;
     typedef typename Base::Container::ApiValueType                                  ApiValueType;
@@ -38,9 +38,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
 
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
-//    virtual memoria::vapi::Container* GetContainer() {
-//        return &me_.model();
-//    }
 
     bool Next() {
     	return me_.NextKey();

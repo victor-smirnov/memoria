@@ -71,14 +71,7 @@ public:
 
     NodeBase* GetDataParent(DataPage *node)
     {
-//    	MEMORIA_TRACE(me_, "DATA", node->id(), node->parent_id());
     	NodeBase* parent = static_cast<NodeBase*>(me_.allocator().GetPage(node->parent_id()));
-    	if (parent == NULL) {
-//    		MEMORIA_TRACE(me_, "DATA: parent is null but id is", node->parent_id());
-    	}
-    	else {
-//    		MEMORIA_TRACE(me_, "DATA: parent is", parent->id());
-    	}
     	return parent;
     }
 

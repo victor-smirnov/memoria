@@ -46,10 +46,6 @@ public:
     	return page_ == other.page_ && key_idx_ == other.key_idx_ && Base::operator==(other);
     }
 
-//    bool operator!=(const MyType& other) const {
-//    	return page_ != other.page_ || key_idx != other.key_idx_ || Base::operator !=(other);
-//    }
-
     Int BuildHash() const {
     	return Base::BuildHash() ^ PtrToHash<NodeBase*>::hash(page_) ^ key_idx_;
     }
@@ -86,10 +82,6 @@ public:
     	return !IsEmpty();
     }
 
-
-//    const NodeBase* &page() const {
-//        return page_;
-//    }
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END
 

@@ -17,6 +17,7 @@
 #include <memoria/prototypes/itree/iterator/base.hpp>
 #include <memoria/prototypes/itree/iterator/tools.hpp>
 
+#include <memoria/prototypes/itree/names.hpp>
 #include <memoria/prototypes/itree/macros.hpp>
 
 namespace memoria    {

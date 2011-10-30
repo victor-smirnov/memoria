@@ -6,8 +6,8 @@
 
 
 
-#ifndef __MEMORIA_PROTOTYPES_ITREE_ITERATOR_BASE_H
-#define __MEMORIA_PROTOTYPES_ITREE_ITERATOR_BASE_H
+#ifndef __MEMORIA_PROTOTYPES_BTREE_ITERATOR_BASE_H
+#define __MEMORIA_PROTOTYPES_BTREE_ITERATOR_BASE_H
 
 #include <iostream>
 
@@ -25,17 +25,17 @@ using namespace memoria::itree;
 MEMORIA_ITREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(ITreeIteratorBase)
 public:
 
-	typedef typename Base::Container::Key                                        	 	Key;
-    typedef typename Base::Container::NodeBase											NodeBase;
+	typedef typename Base::Container::Key                                        	  Key;
+    typedef typename Base::Container::NodeBase                                        NodeBase;
 
 private:
 
-    static const Int Indexes = Base::Container::Indexes;
+    static const Int Indexes = Container::Indexes;
 
     Key prefix_[Indexes];
 
 public:
-    ITreeIteratorBase(MyType &me): Base(me), me_(me)
+    ITreeIteratorBase(MyType &me): Base(me)
     {
     	for (Int c = 0; c < Indexes; c++)
     	{

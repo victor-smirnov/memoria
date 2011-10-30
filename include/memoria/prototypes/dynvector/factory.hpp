@@ -10,7 +10,7 @@
 #define	_MEMORIA_PROTOTYPES_DYNVECTOR_FACTORY_HPP
 
 
-#include <memoria/prototypes/btree/btree.hpp>
+#include <memoria/prototypes/itree/factory.hpp>
 
 #include <memoria/prototypes/dynvector/names.hpp>
 #include <memoria/prototypes/dynvector/pages/data_page.hpp>
@@ -20,8 +20,6 @@
 #include <memoria/prototypes/dynvector/container/tools.hpp>
 
 #include <memoria/prototypes/dynvector/iterator/api.hpp>
-#include <memoria/prototypes/dynvector/iterator/model_api.hpp>
-#include <memoria/prototypes/dynvector/iterator/tools.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -58,10 +56,10 @@ struct DynVectorContainerTypes: public Base {
 
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memoria::BTree> {
+struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memoria::ITree> {
 
 	typedef IDType																Value;
-    typedef BTreeTypes<Profile, memoria::BTree> 								Base;
+    typedef BTreeTypes<Profile, memoria::ITree> 								Base;
 
     typedef NullType                                                            DataPagePartsList;
 
@@ -100,15 +98,13 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
 
 
 
-
-
 template <
         typename Profile,
         typename ContainerTypeName
 >
-class CtrTF<Profile, memoria::DynVector, ContainerTypeName>: public CtrTF<Profile, memoria::BTree, ContainerTypeName> {
+class CtrTF<Profile, memoria::DynVector, ContainerTypeName>: public CtrTF<Profile, memoria::ITree, ContainerTypeName> {
 
-    typedef CtrTF<Profile, memoria::BTree, ContainerTypeName>   					Base1;
+    typedef CtrTF<Profile, memoria::ITree, ContainerTypeName>   					Base1;
 
 public:
 

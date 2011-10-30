@@ -17,7 +17,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::ToolsName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::ToolsName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                              Allocator;
@@ -105,19 +105,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::ToolsName)
 
     template <typename Node1, typename Node2>
     bool CheckNodeWithParentContent(Node1 *node, Node2 *parent);
-    
-    Iterator GetByIndex(BigInt index)
-    {
-        Iterator i = Base::GetByIndex(index);
-        i.ComputeBase();
-        return i;
-    }
+
+    //
+//    Iterator GetByIndex(BigInt index)
+//    {
+//        Iterator i = Base::GetByIndex(index);
+//        i.ComputeBase();
+//        return i;
+//    }
 
 MEMORIA_CONTAINER_PART_END
 
 
 
-#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::models::idx_map::ToolsName)
+#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::itree::ToolsName)
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

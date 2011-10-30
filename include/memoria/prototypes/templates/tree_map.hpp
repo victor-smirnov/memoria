@@ -17,7 +17,7 @@ namespace memoria    {
 MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                              Allocator;
+    typedef typename Base::Allocator                                            Allocator;
 
     typedef typename Base::Page                                                 Page;
     typedef typename Base::ID                                                   ID;
@@ -45,17 +45,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     static const Int Indexes                                                    = Base::Indexes;
 
-    BigInt KeyIndex(Key key, Int c) {
+    BigInt KeyIndex(Key key, Int c)
+    {
         Iterator i = me_.FindLE(key, c, false);
-        if (!i.IsEnd()) {
+        if (!i.IsEnd())
+        {
             NodeBase* page = i.page();
             BigInt keys = i.key_idx();
 
-            while (!page->is_root()) {
+            while (!page->is_root())
+            {
                 Int pidx = page->parent_idx();
                 page = me_.GetParent(page);
 
-                for (Int c = 0; c < pidx; c++) {
+                for (Int c = 0; c < pidx; c++)
+                {
                     NodeBase* child = me_.GetChild(page, c);
                     keys += child->counters().key_count();
                 }
@@ -68,9 +72,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
         }
     }
 
-    Iterator GetByIndex(BigInt index) {
+    Iterator GetByIndex(BigInt index)
+    {
         NodeBase *node = me_.GetRoot();
-        if (node != NULL) {
+        if (node != NULL)
+        {
             BigInt keys = 0;
             while (!node->is_leaf())
             {
@@ -78,11 +84,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
                 Int idx = -1;
 
-                for (Int c = 0; c < size; c++) {
+                for (Int c = 0; c < size; c++)
+                {
                     NodeBase* child = me_.GetChild(node, c);
                     BigInt count = child->counters().key_count();
 
-                    if (index < keys + count) {
+                    if (index < keys + count)
+                    {
                         idx = c;
                         break;
                     }
@@ -91,7 +99,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
                     }
                 }
 
-                if (idx < 0) {
+                if (idx < 0)
+                {
                     return Iterator(me_);
                 }
                 else {
@@ -99,22 +108,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
                 }
             }
 
-            return Iterator(node, index - keys, me_);
+            return Iterator(node, index - keys, me_, true);
         }
         else {
             return Iterator(me_);
         }
     }
     
-    virtual BigInt GetKeyIndex(BigInt key, Int i = 0) {
+    virtual BigInt GetKeyIndex(BigInt key, Int i = 0)
+    {
     	return me_.KeyIndex(key, i);
     }
 
 
 
-    virtual bool Get(BigInt index, BigInt& key, BigInt& value) {
+    virtual bool Get(BigInt index, BigInt& key, BigInt& value)
+    {
     	Iterator i = me_.GetByIndex(index);
-    	if (i.IsEnd()) {
+    	if (i.IsEnd())
+    	{
     		return false;
     	}
     	else {

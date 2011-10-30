@@ -21,7 +21,7 @@
 namespace memoria    {
 
 
-MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::models::idx_map::IteratorToolsName)
+MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::Container                                                Container;

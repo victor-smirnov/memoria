@@ -25,10 +25,9 @@ namespace memoria    {
 using namespace memoria::btree;
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::models::idx_map::IteratorContainerAPIName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::models::idx_map::ItrAPIName)
 
-    typedef typename Base::NodeBase                                             NodeBase;
-//    typedef memoria::vapi::Map                                                    Map;
+    typedef typename Base::NodeBase                                             	NodeBase;
 
     typedef typename Base::Container::ApiKeyType                                    ApiKeyType;
     typedef typename Base::Container::ApiValueType                                  ApiValueType;

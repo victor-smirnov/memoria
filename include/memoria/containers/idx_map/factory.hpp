@@ -13,27 +13,24 @@
 #include <memoria/prototypes/templates/tree_map.hpp>
 
 
-#include <memoria/containers/idx_map/container/find.hpp>
 #include <memoria/containers/idx_map/container/insert.hpp>
 #include <memoria/containers/idx_map/container/remove.hpp>
 #include <memoria/containers/idx_map/container/model_api.hpp>
-#include <memoria/containers/idx_map/container/tools.hpp>
 
-#include <memoria/containers/idx_map/pages/parts.hpp>
+//#include <memoria/containers/idx_map/pages/parts.hpp>
 
-#include <memoria/containers/idx_map/iterator/tools.hpp>
 #include <memoria/containers/idx_map/iterator/model_api.hpp>
 
-#include <memoria/prototypes/btree/btree.hpp>
+#include <memoria/prototypes/itree/factory.hpp>
 
 namespace memoria    {
 
-using namespace memoria::btree;
 
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::IdxMap>: public BTreeTypes<Profile, memoria::BTree> {
-	typedef BTreeTypes<Profile, memoria::BTree> 							Base;
+struct BTreeTypes<Profile, memoria::IdxMap>:
+		public BTreeTypes<Profile, memoria::ITree> {
+	typedef BTreeTypes<Profile, memoria::ITree> 							Base;
 
 	typedef BigInt															Value;
 
@@ -42,29 +39,26 @@ struct BTreeTypes<Profile, memoria::IdxMap>: public BTreeTypes<Profile, memoria:
 	typedef typename AppendTool<
 			typename Base::ContainerPartsList,
 			typename TLTool<
-			memoria::models::idx_map::RemoveName,
-			memoria::models::idx_map::ToolsName,
-			memoria::models::idx_map::InsertName,
-			memoria::models::idx_map::FindName,
-			memoria::models::idx_map::ContainerApiName,
+				memoria::models::idx_map::RemoveName,
+				memoria::models::idx_map::InsertName,
+				memoria::models::idx_map::ContainerApiName,
 
-			memoria::models::TreeMapName,
-			memoria::models::MapName
+				memoria::models::TreeMapName,
+				memoria::models::MapName
 			>::List
 	>::Result                                                               ContainerPartsList;
 
 	typedef typename AppendTool<
 			typename Base::IteratorPartsList,
 			typename TLTool<
-			memoria::models::idx_map::IteratorToolsName,
-			memoria::models::idx_map::IteratorContainerAPIName
+				memoria::models::idx_map::ItrAPIName
 			>::List
 	>::Result                                                               IteratorPartsList;
 
 };
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::IdxMap, T>: public CtrTF<Profile, memoria::BTree, T> {
+class CtrTF<Profile, memoria::IdxMap, T>: public CtrTF<Profile, memoria::ITree, T> {
 };
 
 }
