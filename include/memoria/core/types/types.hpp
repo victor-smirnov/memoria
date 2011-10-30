@@ -9,8 +9,6 @@
 #ifndef _MEMORIA_VAPI_TYPES_HPP12
 #define	_MEMORIA_VAPI_TYPES_HPP12
 
-#include <memoria/core/types/types.hpp>
-
 #include <string>
 #include <sstream>
 
