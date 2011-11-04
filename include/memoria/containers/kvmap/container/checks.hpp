@@ -52,7 +52,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
         Key k0 = 0;
         bool first = true;
 
-        while (!i.IsEof())
+        while (!i.IsEnd())
         {
             Key key = i.GetKey();
             if (!first)

@@ -103,18 +103,13 @@ public:
                     i_.key_idx()    = idx_;
                     cmp_.SetupIterator(i_);
 
-                    i_.SetEof(false);
-                    i_.SetEmpty(false);
-
-                    i_.Init();
+//                    i_.Init();
 
                     rtn_            = true;
-                    MEMORIA_TRACE(model_, "HERE1", i_.IsEmpty(), i_.IsEof(), i_.IsFound(), i_.state());
                 }
             }
             else if (cmp_.for_insert_ && cmp_.CompareMax(key_, node->map().max_key(c_)))
             {
-            	MEMORIA_TRACE(model_, "HERE2");
             	if (!node->is_leaf())
                 {
                     idx_     = node->map().size() - 1;
@@ -127,24 +122,17 @@ public:
                     i_.key_idx()    = node->map().size();
                     cmp_.SetupIterator(i_);
 
-                    i_.SetEmpty(false);
-                    i_.SetEof(true);
-
-                    i_.Init();
+//                    i_.Init();
                     rtn_            = true;
                 }
             }
             else {
-                MEMORIA_TRACE(model_, "EMPTY Iterator");
                 node_           = NULL;
                 i_.page()       = NULL;
                 i_.key_idx()    = -1;
                 i_.state()      = 0;
                 cmp_.SetupIterator(i_);
                 
-                i_.SetEof(true);
-                i_.SetEmpty(true);
-
                 i_.Init();
                 rtn_ = true;
             }
@@ -166,15 +154,6 @@ public:
 
     template <typename Comparator>
     const Iterator _find(Key key, Int c, bool for_insert);
-
-//    const Iterator FindLE(Key key, Int i, bool for_insert) {
-//        MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED();
-//    }
-//
-//    const Iterator FindLT(Key key, Int i, bool for_insert) {
-//        MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED();
-//    }
-
 
     Iterator FindStart();
 
@@ -303,7 +282,7 @@ const typename M_TYPE::Iterator M_TYPE::FindEnd() const
 			node = me_.GetLastChild(node);
 		}
 
-		return Iterator(node, me_.GetChildrenCount(node), me_);
+		return Iterator(node, me_.GetChildrenCount(node), me_, true);
 	}
 	else {
 		return Iterator(me_);
@@ -322,7 +301,7 @@ typename M_TYPE::Iterator M_TYPE::FindRStart()
 			node = me_.GetLastChild(node);
 		}
 
-		return Iterator(node, me_.GetChildrenCount(node) - 1, me_);
+		return Iterator(node, me_.GetChildrenCount(node) - 1, me_, true);
 	}
 	else {
 		return Iterator(me_);

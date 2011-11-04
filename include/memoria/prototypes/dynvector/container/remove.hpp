@@ -62,7 +62,7 @@ public:
 
     bool RemoveDataBlock(Iterator& start, Iterator& stop)
     {
-    	if (!start.IsEof())
+    	if (!start.IsEnd())
     	{
     		Int start_key_idx, stop_key_idx = 0;
 
@@ -76,7 +76,7 @@ public:
     		}
 
 
-    		if (!stop.IsEof())
+    		if (!stop.IsEnd())
     		{
     			if (stop.idx() > 0)
     			{

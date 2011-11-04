@@ -34,6 +34,7 @@ class Checker {
 public:
 	Checker(AllocatorType& allocator): allocator_(allocator) {}
 
+	// return true in case of errors;
 	bool CheckAll()
 	{
 		ID root = allocator_.root();
@@ -47,10 +48,10 @@ public:
 			else {
 				bool result = false;
 
-				RootMapIterator iter = allocator_.roots()->Begin();
-				RootMapIterator end = allocator_.roots()->End();
+//				RootMapIterator iter = allocator_.roots()->Begin();
+//				RootMapIterator end = allocator_.roots()->End();
 
-				while (iter != end)
+				for (RootMapIterator iter = allocator_.roots()->Begin(); !iter.IsEnd(); )
 				{
 					Page* page = allocator_.GetPage(iter.GetData());
 					result = dispatch(page) || result;

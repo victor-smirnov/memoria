@@ -356,21 +356,13 @@ public:
 
     NodeBase* GetParent(NodeBase *node)
     {
-//        MEMORIA_TRACE(me_, "GetParent", node->id(), node->is_root());
         if (node->is_root())
         {
-//            MEMORIA_TRACE(me_, "GetParent", node->id(), "Root having id of", node->id());
             return NULL;
         }
         else
         {
             NodeBase* parent = static_cast<NodeBase*>(me_.allocator().GetPage(node->parent_id()));
-            if (parent == NULL) {
-//                MEMORIA_TRACE(me_, "GetParent: parent is null but id is", node->parent_id());
-            }
-            else {
-//                MEMORIA_TRACE(me_, "GetParent: parent is", parent->id());
-            }
             return parent;
         }
     }

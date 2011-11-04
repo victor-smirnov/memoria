@@ -21,7 +21,7 @@
 namespace memoria    {
 
 
-MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::models::idx_map::IteratorToolsName)
+MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::Container                                                Container;
@@ -61,13 +61,15 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::models::idx_map::IteratorToolsName)
     }
 
     Key GetKey(Int i) {
-        return GetRawKey(i) + prefix_[i];
+        return me_.GetRawKey(i) + prefix_[i];
     }
 
-    bool NextKey() {
-        //MEMORIA_TRACE(me_, "NextKey");
-        if (!me_.IsEof()) {
-            for (Int c = 0; c < Indexes; c++) {
+    bool NextKey()
+    {
+        if (!me_.IsEnd())
+        {
+            for (Int c = 0; c < Indexes; c++)
+            {
                 prefix_[c] += GetRawKey(c);
             }
             return Base::NextKey();
@@ -77,12 +79,51 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::models::idx_map::IteratorToolsName)
         }
     }
 
+    bool PrevKey()
+    {
+    	if (!me_.IsStart())
+    	{
+    		bool result = Base::PrevKey();
 
-    void ComputeBase() {
-        if (!me_.IsEmpty()) {
+    		if (result)
+    		{
+    			for (Int c = 0; c < Indexes; c++)
+    			{
+    				prefix_[c] -= GetRawKey(c);
+    			}
+    		}
+    		else
+    		{
+    			//FIXME: this might hide errors
+    			for (Int c = 0; c < Indexes; c++)
+    			{
+    				prefix_[c] = 0;
+    			}
+    		}
+
+    		return result;
+    	}
+    	else {
+    		return false;
+    	}
+    }
+
+
+    void ComputeBase()
+    {
+        if (!me_.IsEmpty())
+        {
+        	for (Int c = 0; c < Indexes; c++)
+        	{
+        		prefix_[c] = 0;
+        	}
             compute_base(prefix_, me_.page(), me_.key_idx());
         }
     }
+
+
+    //FIXME: NextLeaf/PrevLeaf don't work properly for this container (prefixes)
+
 //
 //    bool NextLeaf() {
 //        if(Base::NextLeaf()) {
@@ -101,7 +142,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::models::idx_map::IteratorToolsName)
 //    }
 
     void Init() {
-        //ComputeBase();
+        ComputeBase();
     }
 
 private:

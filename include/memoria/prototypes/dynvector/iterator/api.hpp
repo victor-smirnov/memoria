@@ -23,7 +23,7 @@ using namespace memoria::btree;
 using namespace memoria::dynvector;
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::dynvector::IteratorAPIName)
+MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     typedef typename Base::NodeBase                                             	NodeBase;
 	typedef typename Base::Container                                                Container;
@@ -35,6 +35,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dynvector::IteratorAPIName)
     typedef typename Container::ID                                            		ID;
 
     typedef typename Container::Types::DataPage                                 	DataPage;
+
+    static const Int Indexes = Container::Indexes;
+
+    BigInt          idx_;
+    DataPage*   	data_;
 
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
@@ -66,6 +71,46 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dynvector::IteratorAPIName)
     		}
     	}
     };
+
+    IterPart(MyType &me): Base(me), me_(me), idx_(0), data_(NULL)
+    {
+
+    }
+
+    bool IsEof()
+    {
+    	return me_.data() != nullptr ? me_.idx() >= me_.data()->data().size() : true;
+    }
+
+    DataPage*& data() {
+    	return data_;
+    }
+
+    const DataPage* data() const {
+    	return data_;
+    }
+
+    BigInt &idx() {
+    	return idx_;
+    }
+
+    const BigInt idx() const {
+    	return idx_;
+    }
+
+    BigInt pos()
+    {
+    	return me_.prefix(0) + idx();
+    }
+
+    void setup(const MyType &other)
+    {
+    	Base::setup(other);
+
+    	idx_    = other.idx_;
+    	data_   = other.data_;
+    }
+
 
     BigInt GetIndexValue(Int idx_number)
     {
@@ -102,6 +147,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dynvector::IteratorAPIName)
     	}
     }
 
+    DataPage *GetNextDataPage()
+    {
+    	return me_.GetNextDataPage(me_.page(), me_.data());
+    }
+
     DataPage *GetPrevDataPage(NodeBase* page, DataPage* data)
     {
     	Int parent_idx = data->parent_idx();
@@ -121,6 +171,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dynvector::IteratorAPIName)
     			return NULL;
     		}
     	}
+    }
+
+    DataPage *GetPrevDataPage()
+    {
+    	return me_.GetPrevDataPage(me_.page(), me_.data());
     }
 
 MEMORIA_ITERATOR_PART_END

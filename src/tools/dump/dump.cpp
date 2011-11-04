@@ -342,7 +342,7 @@ int main(int argc, const char** argv, const char** envp)
 		VStreamAllocator::RootMapType* root = manager->roots();
 		auto iter = root->Begin();
 
-		while (!iter.IsFlag(memoria::vapi::Iterator::ITER_EOF))
+		while (!iter.IsFlag(memoria::vapi::Iterator::ITEREND))
 		{
 			BigInt  name 	= iter.GetKey(0);
 			//FIXME

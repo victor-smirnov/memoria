@@ -9,17 +9,12 @@
 #define	_MEMORIA_MODELS_VECTOR_MODEL_FIND_HPP
 
 
-#include <memoria/prototypes/btree/pages/tools.hpp>
-#include <memoria/containers/idx_map/names.hpp>
+#include <memoria/prototypes/itree/names.hpp>
 #include <memoria/core/container/container.hpp>
-
-
 
 namespace memoria    {
 
-using namespace memoria::btree;
-
-MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::FindName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                              Allocator;
@@ -83,7 +78,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::FindName)
 
             if (CompareBase::type_ == CompareBase::LT)
             {
-                idx = node->map().FindLTS(c, key, current_prefix);
+                node->map().Dump(std::cout);
+            	idx = node->map().FindLTS(c, key, current_prefix);
             }
             else {
                 idx = node->map().FindLES(c, key, current_prefix);
@@ -137,7 +133,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::FindName)
 
     bool IsFound(Iterator &iter, Key key, Int i)
     {
-        if (!(iter.IsEof() || iter.IsEmpty()))
+        if (!(iter.IsEnd() || iter.IsEmpty()))
         {
             if (iter.GetKey(i) == key)
             {

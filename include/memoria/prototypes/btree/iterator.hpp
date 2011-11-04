@@ -58,15 +58,15 @@ public:
     
     Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(*this), kind_(kind), model_(model) {
         Base::state() = 0;
-        Base::SetEof(true);
-        Base::SetBof(true); // does it necessary here?
-        Base::SetEmpty(true);
+        Base::page() = nullptr;
+        Base::key_idx() = -1;
     }
     
-    Iter(NodeBase* node, Int idx, Container &model): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
+    Iter(NodeBase* node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
         Base::page() = node;
         Base::key_idx() = idx;
         Base::state() = 0;
+        if (do_init) Base::Init();
         Base::ReHash();
     }
 

@@ -124,7 +124,7 @@ void M_TYPE::Insert(Key* keys, const Value& value, Int idx)
 		MEMORIA_TRACE(me_, "Insert into empty map", keys[0]);
 	}
 
-	if (i.IsEof() || i.IsEmpty()) {
+	if (i.IsEnd() || i.IsEmpty()) {
 		me_.InsertEntry(i, keys, value);
 	}
 	else if (keys[0] == i.GetKey(0)) {

@@ -46,10 +46,6 @@ public:
     	return page_ == other.page_ && key_idx_ == other.key_idx_ && Base::operator==(other);
     }
 
-//    bool operator!=(const MyType& other) const {
-//    	return page_ != other.page_ || key_idx != other.key_idx_ || Base::operator !=(other);
-//    }
-
     Int BuildHash() const {
     	return Base::BuildHash() ^ PtrToHash<NodeBase*>::hash(page_) ^ key_idx_;
     }
@@ -58,7 +54,7 @@ public:
         return key_idx_;
     }
 
-    const Int &key_idx() const {
+    const Int key_idx() const {
         return key_idx_;
     }
 
@@ -66,9 +62,26 @@ public:
         return page_;
     }
 
-//    const NodeBase* &page() const {
-//        return page_;
-//    }
+    bool IsStart()
+    {
+    	return key_idx() < 0;
+    }
+
+    bool IsEnd()
+    {
+    	return page() != nullptr ? key_idx() >= me_.model().GetChildrenCount(page()) : true;
+    }
+
+    bool IsEmpty()
+    {
+    	return page() == nullptr || me_.model().GetChildrenCount(page()) == 0;
+    }
+
+    bool IsNotEmpty()
+    {
+    	return !IsEmpty();
+    }
+
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END
 

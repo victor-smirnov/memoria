@@ -90,7 +90,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     			if (!index->is_leaf())
     			{
     				index = me_.GetChild(index, fn.result());
-    				idx = 0;
+    				idx = 0; // FIXME: check this
     			}
     			else {
     				idx = fn.result();
@@ -99,7 +99,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     		}
     	}
     	else {
-    		// EOF
+    		// END
     		while (true)
     		{
     			if (!index->is_leaf())
@@ -134,7 +134,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         			index 	= me_.GetParent(index);
         		}
         		else {
-        			// BOF
+        			// START
         			idx 	= -1;
         			break;
         		}
@@ -165,7 +165,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         	}
         }
         else {
-        	// BOF
+        	// START
         	idx = 0;
         	while (true)
         	{

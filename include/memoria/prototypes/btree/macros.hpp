@@ -50,9 +50,9 @@ class BTreeIteratorBaseClassName: public IteratorBase<                   				\
         TypesType>                                                    					\
 {																						\
 	typedef IteratorBase<TypesType> 											Base;	\
-	typedef typename Base::MyType												MyType; \
+public:																					\
+	typedef Iter<TypesType>														MyType; \
     MyType&             me_;
-
 
 
         

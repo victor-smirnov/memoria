@@ -120,14 +120,20 @@ M_PARAMS
 void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescriptor &descriptor)
 {
 	NodeBase*& 	page 				= iter.page();
-	bool 		eof	 				= iter.IsEof();
 	BigInt 		max_datapage_size 	= DataPage::get_max_size();
 
 	MEMORIA_TRACE(me_, "iterator is not empty", block.size(), page, me_.root());
 
 	BigInt& data_idx = iter.idx();
 
-	BigInt usage = me_.GetKey(page, 0, iter.data()->parent_idx());
+	if (iter.IsEmpty())
+	{
+		iter.key_idx() 	= 0;
+		iter.idx()		= 0;
+		iter.data() 	= me_.InsertDataPage(page, iter.key_idx());
+	}
+
+	BigInt usage = iter.data() != nullptr ? me_.GetKey(page, 0, iter.data()->parent_idx()) : 0;
 
 	if (usage + descriptor.length() <= max_datapage_size)
 	{
@@ -135,7 +141,7 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 		import_small_block(iter.page(), iter.data()->parent_idx(), data_idx, block, descriptor);
 		data_idx += descriptor.length();
 	}
-	else if (!iter.IsEof())
+	else if (!iter.IsEnd())
 	{
 		if (data_idx > 0 && data_idx < usage)
 		{
@@ -216,8 +222,8 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 	}
 
 
-	iter.SetBof(false);
-	iter.SetEof(eof);
+//	iter.SetStart(false);
+//	iter.SetEnd(eof);
 	//iter.data() 	= me_.GetDataPage(iter.page(), iter.key_idx());
 }
 
@@ -262,14 +268,6 @@ void M_TYPE::import_pages(
 
 	DataPage* suffix_data_page;
 
-	for (Int c = 0; c < me_.GetChildrenCount(node); c++)
-	{
-		DataPage* data = me_.GetDataPage(node, c);
-		MEMORIA_TRACE(me_, "c=", c, "pidx=", data->parent_idx(), data->id());
-	}
-
-	MEMORIA_TRACE(me_, "[node.id, key_idx, data_pos, block.size, descr.start, descr.length, page0.id]", node->id(), key_idx, data_pos, block.size(), descriptor.start(), descriptor.length());
-
 	BigInt length  = descriptor.length();
 
 	BigInt max_datapage_size = DataPage::get_max_size();
@@ -291,8 +289,6 @@ void M_TYPE::import_pages(
 		data_prefix = 0;
 		suffix_data_page = iter.data();
 	}
-
-	MEMORIA_TRACE(me_, "size_prefix calculate [data_prefix, target_datapage_capacity, max_datapage_size]", data_prefix, target_datapage_capacity, max_datapage_size);
 
 	if (data_prefix > 0)
 	{
@@ -488,6 +484,9 @@ void M_TYPE::import_pages(
 		iter.data() 	= me_.GetDataPage(node, iter.key_idx());
 		iter.idx() 		= iter.data()->data().size();
 	}
+
+	//FIXME: this operation is too expensive for small blocks
+	iter.Init();
 }
 
 M_PARAMS

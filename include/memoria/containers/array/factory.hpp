@@ -38,8 +38,7 @@ struct BTreeTypes<Profile, memoria::Array>: public BTreeTypes<Profile, memoria::
 			typename Base::ContainerPartsList,
 			typename TLTool<
 				memoria::models::array::ApiName,
-				memoria::models::array::ContainerApiName,
-				memoria::models::idx_map::FindName
+				memoria::models::array::ContainerApiName
 			>::List
 	>::Result                                                               		ContainerPartsList;
 
@@ -47,8 +46,7 @@ struct BTreeTypes<Profile, memoria::Array>: public BTreeTypes<Profile, memoria::
 			typename Base::IteratorPartsList,
 			typename TLTool<
 				memoria::models::array::IteratorToolsName,
-				memoria::models::array::IteratorContainerAPIName,
-				memoria::models::idx_map::IteratorToolsName
+				memoria::models::array::IteratorContainerAPIName
 			>::List
 	>::Result                                                               		IteratorPartsList;
 

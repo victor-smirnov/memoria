@@ -172,7 +172,6 @@ ContainerMetadata* ContainerBase<TypesType>::reflection_ = NULL;
 template <int Idx, typename Types>
 class CtrHelper: public CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> {
 	typedef Ctr<Types> MyType;
-	//typedef CtrHelper<Idx, Types> ThisType;
 	typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> BaseType;
 
 public:
@@ -182,8 +181,6 @@ public:
 template <typename Types>
 class CtrHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
 	typedef Ctr<Types> MyType;
-	//typedef CtrHelper<-1, Types> ThisType;
-
 	typedef typename Types::template BaseFactory<Types>::Type BaseType;
 
 public:
@@ -281,6 +278,10 @@ public:
 
     memoria::vapi::Logger& logger() {
         return logger_;
+    }
+
+    static memoria::vapi::Logger& class_logger() {
+    	return class_logger_;
     }
 
     const Allocator& allocator() const {

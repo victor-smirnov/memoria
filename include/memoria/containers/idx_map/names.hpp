@@ -19,14 +19,8 @@ class ContainerApiName  {};
 class InsertName    {};
 class RemoveName    {};
 
-class IteratorToolsName    {};
-class IteratorContainerAPIName {};
-
-
-template <Int Indexes>
-class IndexPagePrefixName {};
-
-
+class ItrToolsName    {};
+class ItrAPIName {};
 
 }
 }

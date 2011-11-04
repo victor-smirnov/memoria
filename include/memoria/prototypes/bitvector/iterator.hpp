@@ -298,8 +298,8 @@ public:
 template <typename IdxType>
 class iterator {
 
-    static const int _EOF   = 1;
-    static const int BOF    = 2;
+    static const int END   = 1;
+    static const int START    = 2;
     static const int EMPTY  = 4;
     static const int START  = 8;
 
@@ -346,7 +346,7 @@ public:
     }
 
     bool isEof() {
-        return (state & _EOF) != 0;
+        return (state & END) != 0;
     }
 
     void setStateBit(int flag, bool bit) {
@@ -359,15 +359,15 @@ public:
     }
 
     void setEof(bool eof) {
-        setStateBit(_EOF, eof);
+        setStateBit(END, eof);
     }
 
     bool isBof() {
-        return (state & BOF) != 0;
+        return (state & START) != 0;
     }
 
     void setBof(bool bof) {
-        setStateBit(BOF, bof);
+        setStateBit(START, bof);
     }
 
     bool isEmpty() {

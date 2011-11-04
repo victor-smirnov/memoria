@@ -24,8 +24,8 @@ using namespace memoria::btree;
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
 
-    typedef typename Base::NodeBase                                             NodeBase;
-//    typedef memoria::vapi::Map                                                    	Map;
+    typedef typename Base::NodeBase                                             	NodeBase;
+
 
     typedef typename Base::Container::ApiKeyType                                    ApiKeyType;
     typedef typename Base::Container::ApiValueType                                  ApiValueType;
@@ -38,9 +38,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
 
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
-//    virtual memoria::vapi::Container* GetContainer() {
-//        return &me_.model();
-//    }
 
     bool Next() {
     	return me_.NextKey();
@@ -78,9 +75,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
 
     bool IsFlag(Int flag) {
         switch (flag) {
-            case memoria::vapi::Iterator::ITER_EOF:    return me_.IsEof();
+            case memoria::vapi::Iterator::ITEREND:    return me_.IsEnd();
             case memoria::vapi::Iterator::ITER_EMPTY:  return me_.IsEmpty();
-            case memoria::vapi::Iterator::ITER_BOF:    return me_.IsBof();
+            case memoria::vapi::Iterator::ITER_START:    return me_.IsStart();
             default:                throw MemoriaException(MEMORIA_SOURCE, "Invalig flag name", flag);
         }
 

@@ -57,7 +57,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::MapName)
 
     bool GetValue(Key key, Int c, Value &value) {
         Iterator i = me_.FindLE(key, c, false);
-        if (i.IsEof()) {
+        if (i.IsEnd()) {
             return false;
         }
         else {

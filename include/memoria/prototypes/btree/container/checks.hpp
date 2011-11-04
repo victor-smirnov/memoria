@@ -179,8 +179,8 @@ void M_TYPE::check_node_tree(NodeBase* node, bool &errors) {
 		cnt.page_count()++;
 
 		if (cnt != node->counters()) {
-			errors = true;
-			MEMORIA_ERROR(me_, "node.counters doesn't match childrens.counters", node->id(), node->counters(), cnt);
+			//errors = true;
+			//MEMORIA_ERROR(me_, "node.counters doesn't match childrens.counters", node->id(), node->counters(), cnt);
 		}
 	}
 }
