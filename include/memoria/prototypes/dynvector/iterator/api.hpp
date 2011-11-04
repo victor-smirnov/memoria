@@ -98,9 +98,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return idx_;
     }
 
-//    CountData get_base_prefix() {
-//
-//    }
+    BigInt pos()
+    {
+    	return me_.prefix(0) + idx();
+    }
 
     void setup(const MyType &other)
     {

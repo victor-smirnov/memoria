@@ -102,7 +102,7 @@ typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 		}
 
 		iter.data() 	= me_.GetDataPage(iter.page(), iter.key_idx());
-		BigInt offset 	= iter.GetKey(key_number);
+		BigInt offset 	= iter.prefix(key_number);
 		iter.idx() 		= pos - offset;
 	}
 

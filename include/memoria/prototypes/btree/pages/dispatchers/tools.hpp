@@ -16,7 +16,7 @@
 
 
 namespace memoria    {
-namespace btree     {
+namespace btree      {
 
 
 using memoria::TL;

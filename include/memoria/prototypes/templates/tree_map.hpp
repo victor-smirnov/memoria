@@ -122,6 +122,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
 
 
+    // FIXME: value transfer is not yet implemented
     virtual bool Get(BigInt index, BigInt& key, BigInt& value)
     {
     	Iterator i = me_.GetByIndex(index);
@@ -130,7 +131,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     		return false;
     	}
     	else {
-    		//i.GetValue(value);
+
     		value = ConvertToHelper<Value, ID>::cvt(i.GetData());
     		key = i.GetKey(0);
 

@@ -132,7 +132,7 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 		CheckAllocator(allocator, "Insertion into an empty array failed. See the dump for details.");
 
 		auto iter1 = array.Seek(0);
-		CompareBuffer(iter1, data);
+		CheckBufferWritten(iter1, data, "AAA");
 	}
 	else {
 		int op = get_random(3);
@@ -199,14 +199,22 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 
 			iter.Skip(-postfix.size());
 
+
+			cout<<"insert "<<data.size()<<" bytes of data at "<<iter.pos()<<endl;
 			iter.Insert(data);
+			cout<<"after insert "<<iter.pos()<<endl;
 
 			CheckAllocator(allocator, "Insertion at the middle of the array failed. See the dump for details.");
 
 			iter.Skip(data.size() - prefix_len);
 
+			cout<<"after skip "<<iter.pos()<<endl;
+
+
 			CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array");
+			cout<<"after skip "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array");
+			cout<<"after skip "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array");
 		}
 	}

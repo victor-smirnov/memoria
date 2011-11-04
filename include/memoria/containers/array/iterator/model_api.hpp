@@ -104,10 +104,8 @@ BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
 		sum 	+= to_read;
 		start 	+= to_read;
 
-
-		if (me_.IsEnd())
+		if (me_.IsEof())
 		{
-			//FIXME: How to handle EOF?
 			break;
 		}
 	}

@@ -484,6 +484,9 @@ void M_TYPE::import_pages(
 		iter.data() 	= me_.GetDataPage(node, iter.key_idx());
 		iter.idx() 		= iter.data()->data().size();
 	}
+
+	//FIXME: this operation is too expensive for small blocks
+	iter.Init();
 }
 
 M_PARAMS
