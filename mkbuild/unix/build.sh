@@ -1,3 +1,4 @@
 #!/bin/sh
 
-make
+make 2> build_log.txt
+
