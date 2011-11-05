@@ -79,7 +79,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     bool IsEof()
     {
-    	return me_.data() != nullptr ? me_.idx() >= me_.data()->data().size() : true;
+    	return me_.data() != NULL ? me_.idx() >= me_.data()->data().size() : true;
     }
 
     DataPage*& data() {

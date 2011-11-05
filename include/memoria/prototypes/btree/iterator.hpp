@@ -58,7 +58,7 @@ public:
     
     Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(*this), kind_(kind), model_(model) {
         Base::state() = 0;
-        Base::page() = nullptr;
+        Base::page() = NULL;
         Base::key_idx() = -1;
     }
     

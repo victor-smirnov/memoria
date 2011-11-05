@@ -72,7 +72,7 @@ if (NOT DEFINED CHECK_SYNTAX_ONLY)
     set (CHECK_SYNTAX_ONLY false)
 endif()
 
-if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER)
+if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -std=c++0x -Wall -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -Wcomment -Wunused-variable")
     
     if (CHECK_SYNTAX_ONLY)

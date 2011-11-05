@@ -133,7 +133,7 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 		iter.data() 	= me_.InsertDataPage(page, iter.key_idx());
 	}
 
-	BigInt usage = iter.data() != nullptr ? me_.GetKey(page, 0, iter.data()->parent_idx()) : 0;
+	BigInt usage = iter.data() != NULL ? me_.GetKey(page, 0, iter.data()->parent_idx()) : 0;
 
 	if (usage + descriptor.length() <= max_datapage_size)
 	{

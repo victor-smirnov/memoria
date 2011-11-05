@@ -69,12 +69,12 @@ public:
 
     bool IsEnd()
     {
-    	return page() != nullptr ? key_idx() >= me_.model().GetChildrenCount(page()) : true;
+    	return page() != NULL ? key_idx() >= me_.model().GetChildrenCount(page()) : true;
     }
 
     bool IsEmpty()
     {
-    	return page() == nullptr || me_.model().GetChildrenCount(page()) == 0;
+    	return page() == NULL || me_.model().GetChildrenCount(page()) == 0;
     }
 
     bool IsNotEmpty()

@@ -15,6 +15,8 @@
 
 #include <vector>
 
+#include <malloc.h>
+
 namespace memoria    {
 namespace vapi       {
 
@@ -80,7 +82,7 @@ public:
 
 	ArrayData(ArrayData&& other):length_(other.length_), data_(other.data_), owner_(other.owner_)
 	{
-		other.data_ = nullptr;
+		other.data_ = NULL;
 	}
 
 	ArrayData(const ArrayData& other, bool clone = true):length_(other.length_), owner_(true)
