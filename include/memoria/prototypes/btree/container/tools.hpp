@@ -13,6 +13,7 @@
 
 #include <memoria/prototypes/btree/pages/pages.hpp>
 
+#include <memoria/metadata/tools.hpp>
 
 
 namespace memoria    {
@@ -603,6 +604,19 @@ public:
     void SetLeafData(NodeBase *node, Int idx, const Value &val) {
         MEMORIA_TRACE(me_, node->id(), idx, val);
         memoria::btree::SetData<LeafDispatcher>(node, idx, &val);
+    }
+
+    void Dump(Page* page, std::ostream& out)
+    {
+    	if (page != nullptr)
+    	{
+    		PageWrapper<Page, Allocator::PAGE_SIZE> pw(page);
+    		PageMetadata* meta = me_.reflection()->GetPageMetadata(pw.GetPageTypeHash());
+    		memoria::vapi::DumpPage(meta, &pw, out);
+    	}
+    	else {
+    		out<<"NULL"<<std::endl;
+    	}
     }
 
 MEMORIA_CONTAINER_PART_END

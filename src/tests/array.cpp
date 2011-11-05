@@ -109,7 +109,7 @@ bool CompareBuffer(BAIterator& iter, ArrayData& data)
 	return true;
 }
 
-void CheckBufferWritten(BAIterator iter, ArrayData& data, const char* err_msg)
+void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg)
 {
 	if (!CompareBuffer(iter, data))
 	{
@@ -206,7 +206,7 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 
 			CheckAllocator(allocator, "Insertion at the middle of the array failed. See the dump for details.");
 
-			iter.Skip(data.size() - prefix_len);
+			iter.Skip(- data.size() - prefix_len);
 
 			cout<<"after skip "<<iter.pos()<<endl;
 
@@ -236,8 +236,9 @@ int main(int argc, const char** argv, const char **envp) {
 		dv.SetMaxChildrenPerNode(3);
 
 		try {
-			for (Int c = 0; c < 2; c++)
+			for (Int c = 0; c < 4; c++)
 			{
+				cout<<"C="<<c<<endl;
 				Build(allocator, dv, c + 1);
 			}
 

@@ -191,13 +191,14 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			if (end)
 			{
 				me_.idx() 	= me_.data()->data().size();
+				me_.Init();
 				return walker.sum() - idx;
 			}
 			else {
 				me_.idx() 	= walker.remainder();
 			}
 		}
-
+		me_.Init();
 
 		//FIXME: return true distance
 		return distance;
@@ -238,6 +239,7 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 			if (end)
 			{
 				me_.idx() 	= 0;
+				me_.Init();
 				return walker.sum() - to_add;
 			}
 			else {
@@ -245,6 +247,7 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 			}
 		}
 
+		me_.Init();
 		return distance;
 	}
 	else {

@@ -108,6 +108,8 @@ public:
 	UByte* data() {
 		return data_;
 	}
+
+	void Dump(std::ostream& out);
 };
 
 

@@ -78,8 +78,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
 
             if (CompareBase::type_ == CompareBase::LT)
             {
-                node->map().Dump(std::cout);
-            	idx = node->map().FindLTS(c, key, current_prefix);
+                idx = node->map().FindLTS(c, key, current_prefix);
             }
             else {
                 idx = node->map().FindLES(c, key, current_prefix);

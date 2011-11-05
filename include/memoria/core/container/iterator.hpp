@@ -185,6 +185,8 @@ public:
     void ReHash() {
     	hash_ = me_.BuildHash();
     }
+
+    void Init() {}
 };
 
 

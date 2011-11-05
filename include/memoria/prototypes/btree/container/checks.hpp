@@ -137,7 +137,7 @@ bool M_TYPE::CheckTree()
 
 M_PARAMS
 void M_TYPE::check_node_tree(NodeBase* node, bool &errors) {
-	MEMORIA_TRACE(me_);
+	//MEMORIA_TRACE(me_);
 
 	errors = me_.check_node_content(node) || errors;
 	Int children = me_.GetChildrenCount(node);
@@ -178,6 +178,7 @@ void M_TYPE::check_node_tree(NodeBase* node, bool &errors) {
 
 		cnt.page_count()++;
 
+		//FIXME: check counters
 		if (cnt != node->counters()) {
 			//errors = true;
 			//MEMORIA_ERROR(me_, "node.counters doesn't match childrens.counters", node->id(), node->counters(), cnt);
@@ -189,9 +190,11 @@ M_PARAMS
 template <typename Node1, typename Node2>
 bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent) {
 	bool errors = false;
-	for (Int c = 0; c < Indexes; c++) {
-		if (node->map().max_key(c) != parent->map().key(c, node->parent_idx())) {
-			MEMORIA_TRACE(me_, "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, node->parent_idx()), "for", node->id(), parent->id(), node->parent_idx());
+	for (Int c = 0; c < Indexes; c++)
+	{
+		if (node->map().max_key(c) != parent->map().key(c, node->parent_idx()))
+		{
+			MEMORIA_TRACE(me_, "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, node->parent_idx()), "for node.id=", node->id(), "parent.id=", parent->id(), "node.parent_idx",node->parent_idx());
 			errors = true;
 		}
 	}

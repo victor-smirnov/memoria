@@ -18,10 +18,7 @@ struct MEMORIA_API ContainerMetadata: public MetadataGroup {
     virtual Int Hash() const									= 0;
     virtual Int Code() const 									= 0;
 
-//    virtual ContainerFactoryFn Factory() const						= 0;
     virtual PageMetadata* GetPageMetadata(Int hashCode) const 	= 0;
-
-    
 };
 
 

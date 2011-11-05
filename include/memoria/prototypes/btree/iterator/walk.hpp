@@ -49,6 +49,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     	// Walk up
     	while (true)
     	{
+    		cout<<"Walk FW UP: "<<index<<" "<<idx<<endl;
+
     		WalkHelperFn<Walker> fn(walker, idx);
     		NodeDispatcher::Dispatch(index, fn);
 
