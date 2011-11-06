@@ -1,7 +1,33 @@
-@call env.bat
+@ECHO OFF
+CALL env.bat
 
-powershell -Command "&{Get-Date}" >build_time.txt
+SET start_time=%time%
+ECHO Build started: %date%%start_time% > build_time.txt
+SET start_secs=%start_time:~6,2%
+SET start_mins=%start_time:~3,2%
+SET start_hour=%start_time:~0,2%
+SET /a start_time=(%start_hour%*60*60)+(%start_mins%*60)+(%start_secs%)
 
-nmake >build_log.txt
+nmake 2>build_log.txt
 
-powershell -Command "&{Get-Date}" >>build_time.txt
+SET end_time=%time%
+ECHO Build finished: %date%%end_time% >> build_time.txt
+SET end_secs=%end_time:~6,2%
+SET end_mins=%end_time:~3,2%
+SET end_hour=%end_time:~0,2%
+IF %end_hour% LSS %start_hour% SET /a end_hour+=24
+SET /a end_time=(%end_hour%*60*60)+(%end_mins%*60)+(%end_secs%)
+
+SET /a duration=(%end_time%-%start_time%)
+SET /a duration_hours=(%duration%)/3600
+SET /a duration=(%duration%)%%3600
+SET /a duration_mins=(%duration%)/60
+SET /a duration_secs=(%duration%)%%60
+
+IF %duration_secs% LSS 10 SET duration_secs=0%duration_secs%
+IF %duration_mins% LSS 10 SET duration_mins=0%duration_mins%
+
+SET duration=%duration_hours%:%duration_mins%:%duration_secs%
+
+ECHO Duration: %duration%>> build_time.txt
+ECHO Build duration: %duration%
