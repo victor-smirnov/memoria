@@ -1,2 +1,3 @@
-@echo off
-set PATH=%PATH%;d:\mingw64-tdm\bin
+@ECHO OFF
+
+SET PATH=%PATH%;d:\mingw64-tdm\bin

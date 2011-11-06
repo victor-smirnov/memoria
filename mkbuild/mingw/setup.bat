@@ -1,6 +1,8 @@
-set BUILD=..\..\..\memoria-build\mingw
+@ECHO OFF
 
-mkdir %BUILD%
+SET BUILD=..\..\..\memoria-build\mingw
 
-copy /-Y *.bat %BUILD%
-del %BUILD%\setup.bat
+MKDIR %BUILD%
+
+COPY /-Y *.bat %BUILD%
+DEL %BUILD%\setup.bat

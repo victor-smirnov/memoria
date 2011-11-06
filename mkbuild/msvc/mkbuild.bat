@@ -1,9 +1,10 @@
-@echo off
-mkdir lib
-set PWD=%cd%
+@ECHO OFF
 
-call env.bat
+MKDIR lib
+SET PWD=%cd%
 
-rem set PATH=d:\cmake28\bin
+CALL env.bat
+
+REM SET PATH=d:\cmake28\bin
 
 cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release ..\..\memoria

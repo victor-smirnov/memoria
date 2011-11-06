@@ -1,6 +1,8 @@
-set BUILD=..\..\..\memoria-build\intelc
+@ECHO OFF
 
-mkdir %BUILD%
+SET BUILD=..\..\..\memoria-build\intelc
 
-copy /-Y *.bat %BUILD%
-del %BUILD%\setup.bat
+MKDIR %BUILD%
+
+COPY /-Y *.bat %BUILD%
+DEL %BUILD%\setup.bat

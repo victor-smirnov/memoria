@@ -1,3 +1,3 @@
-@echo all
+@ECHO OFF
 
-call c:\msvs10\vc\vcvarsall.bat
+CALL c:\msvs10\vc\vcvarsall.bat

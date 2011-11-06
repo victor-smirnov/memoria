@@ -1,2 +1,4 @@
-@call env.bat
+@ECHO OFF
+
+CALL env.bat
 nmake clean
