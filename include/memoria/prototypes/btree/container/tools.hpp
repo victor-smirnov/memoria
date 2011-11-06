@@ -606,13 +606,15 @@ public:
         memoria::btree::SetData<LeafDispatcher>(node, idx, &val);
     }
 
-    void Dump(Page* page, std::ostream& out)
+    void Dump(Page* page, std::ostream& out = std::cout)
     {
     	if (page != nullptr)
     	{
     		PageWrapper<Page, Allocator::PAGE_SIZE> pw(page);
     		PageMetadata* meta = me_.reflection()->GetPageMetadata(pw.GetPageTypeHash());
     		memoria::vapi::DumpPage(meta, &pw, out);
+    		out<<endl;
+    		out<<endl;
     	}
     	else {
     		out<<"NULL"<<std::endl;

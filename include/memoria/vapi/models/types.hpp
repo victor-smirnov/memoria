@@ -63,8 +63,6 @@ struct MEMORIA_API IdxMap {
 
 struct MEMORIA_API Data {
 	virtual Int GetByteSize() const = 0;
-
-	
 };
 
 

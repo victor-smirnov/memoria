@@ -334,7 +334,8 @@ void M_TYPE::import_pages(
 			// split indexpage if it's capacity is not
 			// enough to store total_full_datapages data pages
 			MEMORIA_TRACE(me_, "split target indexpage");
-			me_.SplitBTreeNode(node, key_idx);
+
+			NodeBase* old_node = me_.SplitBTreeNode(node, key_idx);
 
 			target_indexpage_capacity = me_.GetCapacity(node);
 			index_prefix = target_indexpage_capacity >= total_full_datapages ? total_full_datapages : target_indexpage_capacity;

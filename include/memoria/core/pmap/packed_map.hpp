@@ -266,7 +266,8 @@ public:
         }
     }
 
-    void Reindex(Int index_num) {
+    void Reindex(Int index_num)
+    {
         Int _size = size();
         if (_size > 0)
         {
@@ -275,9 +276,11 @@ public:
 
             Accumulator acc;
             Int idx;
-            for (idx = 0; idx < (_size - _size % children); idx += children) {
+            for (idx = 0; idx < (_size - _size % children); idx += children)
+            {
 
-                for (Int i = idx; i < idx + children; i++) {
+                for (Int i = idx; i < idx + children; i++)
+                {
                     acc(key(index_num, i));
                 }
 
@@ -285,8 +288,10 @@ public:
                 acc.Reset();
             }
 
-            if ((_size % children) != 0) {
-                for (Int i = idx; i < _size; i++) {
+            if ((_size % children) != 0)
+            {
+                for (Int i = idx; i < _size; i++)
+                {
                     acc(key(index_num, i));
                 }
 
@@ -296,12 +301,15 @@ public:
             Int i_base = isize - size0;
             _size = size0;
 
-            while (size0 > 1) {
+            while (size0 > 1)
+            {
                 size0 = get_parent_nodes_for(_size);
                 Accumulator acc1;
 
-                for (idx = 0; idx < (_size - _size % children); idx += children) {
-                    for (Int i = idx + i_base; i < idx + children + i_base; i++) {
+                for (idx = 0; idx < (_size - _size % children); idx += children)
+                {
+                    for (Int i = idx + i_base; i < idx + children + i_base; i++)
+                    {
                         acc1(index(index_num, i));
                     }
                     
@@ -309,8 +317,10 @@ public:
                     acc1.Reset();
                 }
 
-                if ((_size % children) != 0) {
-                    for (Int i = idx + i_base; i < _size + i_base; i++) {
+                if ((_size % children) != 0)
+                {
+                    for (Int i = idx + i_base; i < _size + i_base; i++)
+                    {
                         acc1(index(index_num, i));
                     }
 
@@ -320,6 +330,12 @@ public:
                 i_base -= size0;
                 _size = size0;
             }
+        }
+        else {
+        	for (Int c = 0; c < index_size(); c++)
+        	{
+        		index(index_num, c) = 0;
+        	}
         }
     }
 
@@ -456,25 +472,31 @@ public:
         os<<std::endl;
     }
 
-    void MoveData(Int dest, Int src, Int count, const Key& k, const Value &value) {
+    void MoveData(Int dest, Int src, Int count, const Key& k, const Value &value)
+    {
         Int c;
-        if (src < dest) {
+        if (src < dest)
+        {
             --src;
             --dest;
-            for(c = count; c > 0 ; c--) {
+            for(c = count; c > 0 ; c--)
+            {
                 key(dest + c) = key(src + c);
                 key(src + c) = k;
-                if (value_size > 0) {
+                if (value_size > 0)
+                {
                     data(dest + c) = data(src + c);
                     data(src + c)  = value;
                 }
             }
         }
         else {
-            for(c = 0; c < count ; c++) {
+            for(c = 0; c < count ; c++)
+            {
                 key(dest + c) = key(src + c);
                 key(src + c) = k;
-                if (value_size > 0) {
+                if (value_size > 0)
+                {
                     data(dest + c) = data(src + c);
                     data(src + c)  = value;
                 }
@@ -482,9 +504,11 @@ public:
         }
     }
 
-    void MoveData(Int dest, Int src, Int count) {
+    void MoveData(Int dest, Int src, Int count)
+    {
         Int c;
-        if (src < dest) {
+        if (src < dest)
+        {
             --src;
             --dest;
             for(c = count; c > 0 ; c--) {
@@ -498,8 +522,10 @@ public:
             }
         }
         else {
-            for(c = 0; c < count ; c++) {
-                for (Int j = 0; j < Indexes; j++) {
+            for(c = 0; c < count ; c++)
+            {
+                for (Int j = 0; j < Indexes; j++)
+                {
                     key(j, dest + c) = key(j, src + c);
                 }
 
@@ -510,13 +536,17 @@ public:
         }
     }
 
-    void CopyData(Int from, Int count, Me &other, Int to) const {
-        for(Int c = from; c < from + count ; c++) {
-            for (Int j = 0; j < Indexes; j++) {
+    void CopyData(Int from, Int count, Me &other, Int to) const
+    {
+        for(Int c = from; c < from + count ; c++)
+        {
+            for (Int j = 0; j < Indexes; j++)
+            {
                 other.key(j, to + c - from) = key(j, c);
             }
 
-            if (value_size > 0) {
+            if (value_size > 0)
+            {
                 other.data(to + c - from) = data(c);
             }
         }
@@ -527,12 +557,14 @@ public:
 //    }
 
     //TODO: needs testing
-    void Remove(Int idx, Int count) {
+    void Remove(Int idx, Int count)
+    {
         const Int size0 = size();
         MoveData(idx, idx + count, size0 - idx - count);
         size() -= count;
 
-        for (Int c = size(); c < size0; c++) {
+        for (Int c = size(); c < size0; c++)
+        {
             key(c) = 0;
         }
     }
@@ -541,18 +573,21 @@ public:
         return get_levels_for_size(size());
     }
 
-    Int get_elements_on_level(Int level) const {
+    Int get_elements_on_level(Int level) const
+    {
         Int _size = size();
         Int levels = get_levels_for_size(_size);
 
-        for (Int nlevels = levels - 1; nlevels >= level; nlevels--) {
+        for (Int nlevels = levels - 1; nlevels >= level; nlevels--)
+        {
             _size = ((_size % children) == 0) ? (_size / children) : (_size / children) + 1;
         }
 
         return _size;
     }
 
-    void MoveTo(Me &target, Int from) {
+    void MoveTo(Me &target, Int from)
+    {
         Int count = size() - from;
 
         if (target.size() > 0) {
@@ -620,7 +655,8 @@ Int PackedMap<Types>::max_size_       = 0;
 
 
 template   <typename Types>
-bool PackedMap<Types>::Init() {
+bool PackedMap<Types>::Init()
+{
     Int block_size = Constants::BLOCK_SIZE - sizeof(Int);
     Int item_size = sizeof(Key)*Indexes + value_size;
     
@@ -654,12 +690,6 @@ bool PackedMap<Types>::Init() {
     index_size_ = get_index_size(max_size_);
 
     data_offset_ = sizeof(Int) + index_size_ * sizeof(IndexKey) * Indexes;
-
-    //cout<<"Init: index_size="<<index_size_<<" children="<<children<<" soik="<<sizeof(IndexKey)<<endl;
-
-    //if (data_offset_ % 4 != 0) data_offset_ += (data_offset_ % 4);
-
-//    cout<<"data_offset: "<<data_offset_<<" "<<(data_offset_%4)<<endl;
 
     initialized = true;
 

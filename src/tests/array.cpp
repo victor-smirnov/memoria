@@ -148,7 +148,14 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 			ArrayData postfix(len);
 			iter.Read(postfix);
 
+//			postfix.Dump(cout);
+
 			iter.Skip(-len);
+
+			cout<<"after skip "<<iter.pos()<<endl;
+
+//			iter.DumpState(cout);
+
 			iter.Insert(data);
 
 			CheckAllocator(allocator, "Insertion at the start of the array failed. See the dump for details.");
@@ -236,9 +243,15 @@ int main(int argc, const char** argv, const char **envp) {
 		dv.SetMaxChildrenPerNode(3);
 
 		try {
-			for (Int c = 0; c < 4; c++)
+			for (Int c = 0; c < 100; c++)
 			{
 				cout<<"C="<<c<<endl;
+
+				if (c == 66) {
+					int a = 0;
+					a++;
+				}
+
 				Build(allocator, dv, c + 1);
 			}
 
