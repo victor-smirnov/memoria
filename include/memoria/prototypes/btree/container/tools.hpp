@@ -241,17 +241,17 @@ public:
             UpdateBTreeKeysFn2<MyType, Key> fn2(me_, idx, tkeys, add_mode);
             NodeDispatcher::Dispatch(node, fn2);
             
-            UpdateBTreeKeysFn3<MyType, Key> fn3(me_, fn2.idx(), tkeys);
-            NodeDispatcher::Dispatch(fn2.node(), fn3);
+//            UpdateBTreeKeysFn3<MyType, Key> fn3(me_, fn2.idx(), tkeys);
+//            NodeDispatcher::Dispatch(fn2.node(), fn3);
             
-            if (fn3.retn())
-            {
-                return;
-            }
-            else {
+//            if (fn3.retn())
+//            {
+//                return;
+//            }
+//            else {
                 idx = fn2.idx();
                 node = fn2.node();
-            }
+//            }
         }
 
         UpdateBTreeKeysFn4<MyType, Key> fn4(me_, idx, tkeys, add_mode);

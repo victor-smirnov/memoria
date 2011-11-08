@@ -81,10 +81,10 @@ void CheckAllocator(SAllocator &allocator, const char* err_msg)
 
 	memoria::StreamContainersChecker checker(allocator);
 
-	if (checker.CheckAll())
-	{
-		throw MemoriaException(MEMORIA_SOURCE, err_msg);
-	}
+//	if (checker.CheckAll())
+//	{
+//		throw MemoriaException(MEMORIA_SOURCE, err_msg);
+//	}
 
 	ByteArray::class_logger().level() = src_level;
 }
@@ -136,6 +136,8 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 	}
 	else {
 		int op = get_random(3);
+
+//		if (op == 0) op = 1;
 
 		if (op == 0)
 		{
@@ -240,22 +242,24 @@ int main(int argc, const char** argv, const char **envp) {
 		allocator.GetLogger()->level() = Logger::NONE;
 
 		ByteArray dv(allocator, ArrayName, true);
-		dv.SetMaxChildrenPerNode(3);
+		dv.SetMaxChildrenPerNode(100);
 
 		try {
-			for (Int c = 0; c < 100; c++)
+			for (Int c = 0; c < 10000; c++)
 			{
 				cout<<"C="<<c<<endl;
 
-				if (c == 66) {
-					int a = 0;
-					a++;
+				if (c == 71) {
+					dv.debug() = true;
+				}
+				else {
+					dv.debug() = false;
 				}
 
 				Build(allocator, dv, c + 1);
 			}
 
-			Dump(allocator);
+//			Dump(allocator);
 		}
 		catch (MemoriaException ex)
 		{
