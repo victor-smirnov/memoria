@@ -55,7 +55,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     void Insert(ArrayData& data)
     {
-    	cout<<"Insert "<<data.size()<<" bytes at "<<me_.pos()<<endl;
+    	//cout<<"Insert "<<data.size()<<" bytes at "<<me_.pos()<<endl;
     	Insert(data, 0, data.size());
     }
 
