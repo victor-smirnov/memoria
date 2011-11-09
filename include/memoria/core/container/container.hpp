@@ -98,7 +98,6 @@ public:
     void init_root(const PageId &root)
     {
     	Page* page = me_.allocator().GetPage(root);
-        MEMORIA_TRACE(me_, page);
         if (page == NULL) {
             throw NullPointerException(MEMORIA_SOURCE, "Requested page is not available");
         }

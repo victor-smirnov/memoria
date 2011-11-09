@@ -81,10 +81,10 @@ void CheckAllocator(SAllocator &allocator, const char* err_msg)
 
 	memoria::StreamContainersChecker checker(allocator);
 
-//	if (checker.CheckAll())
-//	{
-//		throw MemoriaException(MEMORIA_SOURCE, err_msg);
-//	}
+	if (checker.CheckAll())
+	{
+		throw MemoriaException(MEMORIA_SOURCE, err_msg);
+	}
 
 	ByteArray::class_logger().level() = src_level;
 }
@@ -124,7 +124,6 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 	if (array.Size() == 0)
 	{
 		//Insert buffer into an empty array
-		cout<<"Insert "<<data.size()<<" bytes into an empty array"<<endl;
 		auto iter = array.Seek(0);
 
 		iter.Insert(data);
@@ -137,8 +136,6 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 	else {
 		int op = get_random(3);
 
-//		if (op == 0) op = 1;
-
 		if (op == 0)
 		{
 			//Insert at the start of the array
@@ -150,13 +147,7 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 			ArrayData postfix(len);
 			iter.Read(postfix);
 
-//			postfix.Dump(cout);
-
 			iter.Skip(-len);
-
-			cout<<"after skip "<<iter.pos()<<endl;
-
-//			iter.DumpState(cout);
 
 			iter.Insert(data);
 
@@ -194,6 +185,17 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 			Int pos = GetRandomPosition(array);
 			auto iter = array.Seek(pos);
 
+			if (get_random(2) == 0)
+			{
+				iter.Skip(-iter.idx());
+				pos = iter.pos();
+				//cout<<"Skip to the page start: "<<iter.idx()<<endl;
+			}
+			else {
+				//cout<<"Don't skip to the page start: "<<iter.idx()<<endl;
+			}
+
+
 			BigInt prefix_len = pos;
 			if (prefix_len > 100) prefix_len = 100;
 
@@ -208,22 +210,14 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 
 			iter.Skip(-postfix.size());
 
-
-			cout<<"insert "<<data.size()<<" bytes of data at "<<iter.pos()<<endl;
 			iter.Insert(data);
-			cout<<"after insert "<<iter.pos()<<endl;
 
 			CheckAllocator(allocator, "Insertion at the middle of the array failed. See the dump for details.");
 
 			iter.Skip(- data.size() - prefix_len);
 
-			cout<<"after skip "<<iter.pos()<<endl;
-
-
 			CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array");
-			cout<<"after skip "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array");
-			cout<<"after skip "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array");
 		}
 	}
@@ -242,24 +236,16 @@ int main(int argc, const char** argv, const char **envp) {
 		allocator.GetLogger()->level() = Logger::NONE;
 
 		ByteArray dv(allocator, ArrayName, true);
-		dv.SetMaxChildrenPerNode(100);
+		dv.SetMaxChildrenPerNode(5);
+
 
 		try {
 			for (Int c = 0; c < 10000; c++)
 			{
-				cout<<"C="<<c<<endl;
-
-				if (c == 71) {
-					dv.debug() = true;
-				}
-				else {
-					dv.debug() = false;
-				}
-
 				Build(allocator, dv, c + 1);
 			}
 
-//			Dump(allocator);
+			Dump(allocator);
 		}
 		catch (MemoriaException ex)
 		{
@@ -283,5 +269,5 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Unrecognized exception"<<endl;
 	}
 
-	cout<<"TREE MAP time: "<<(getTime()- t0)<<endl;
+	cout<<"ARRAY INSERT TEST time: "<<(getTime()- t0)<<endl;
 }

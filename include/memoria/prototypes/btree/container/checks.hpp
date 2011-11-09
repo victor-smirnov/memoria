@@ -136,9 +136,8 @@ bool M_TYPE::CheckTree()
 
 
 M_PARAMS
-void M_TYPE::check_node_tree(NodeBase* node, bool &errors) {
-	//MEMORIA_TRACE(me_);
-
+void M_TYPE::check_node_tree(NodeBase* node, bool &errors)
+{
 	errors = me_.check_node_content(node) || errors;
 	Int children = me_.GetChildrenCount(node);
 
