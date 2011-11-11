@@ -106,6 +106,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
         }
     };
 
+
+    struct DataRemoveHandlerFn {
+
+    	Int idx_, count_;
+    	MyType& me_;
+
+    	DataRemoveHandlerFn(Int idx, Int count, MyType& me): idx_(idx), count_(count), me_(me) {}
+
+    	template <typename Node>
+    	void operator()(Node* node) {}
+    };
+
     /**
      * Remove 'count' elements from tree node starting from 'from' element.
      *
@@ -161,9 +173,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 
     void MergeNodes(NodeBase *page1, NodeBase *page2, bool fix_parent = true);
 
+
     bool MergeBTreeNodes(NodeBase *page1, NodeBase *page2);
 
+
     bool RemovePages(NodeBase *start, Int start_idx, NodeBase *stop, Int stop_idx, Key* keys);
+
 
     bool MergeWithSiblings(NodeBase *node);
 
@@ -259,6 +274,9 @@ bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool 
 	else {
 		node->counters().key_count() -= count;
 		counters.key_count() = count;
+
+		typename MyType::DataRemoveHandlerFn data_remove_handler_fn(from, count, me_);
+		LeafDispatcher::Dispatch(node, data_remove_handler_fn);
 	}
 
 	me_.MoveChildrenLeft(node, from, count);
@@ -752,6 +770,7 @@ bool M_TYPE::RemoveEntries(Iterator from, Iterator to) {
 	}
 
 	Key keys[Indexes] = {0};
+	//FIXME: parametrize DefaultDataRemoveHandlerFn for DynamicArray
 	return me_.RemovePages(from.page(), from.key_idx() - 1, stop, stop_idx, keys);
 }
 

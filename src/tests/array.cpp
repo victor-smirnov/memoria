@@ -109,7 +109,7 @@ bool CompareBuffer(BAIterator& iter, ArrayData& data)
 	return true;
 }
 
-void CheckBufferWritten(BAIterator iter, ArrayData& data, const char* err_msg)
+void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg)
 {
 	if (!CompareBuffer(iter, data))
 	{
@@ -124,7 +124,6 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 	if (array.Size() == 0)
 	{
 		//Insert buffer into an empty array
-		cout<<"Insert "<<data.size()<<" bytes into an empty array"<<endl;
 		auto iter = array.Seek(0);
 
 		iter.Insert(data);
@@ -149,6 +148,7 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 			iter.Read(postfix);
 
 			iter.Skip(-len);
+
 			iter.Insert(data);
 
 			CheckAllocator(allocator, "Insertion at the start of the array failed. See the dump for details.");
@@ -185,6 +185,13 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 			Int pos = GetRandomPosition(array);
 			auto iter = array.Seek(pos);
 
+			if (get_random(2) == 0)
+			{
+				iter.Skip(-iter.idx());
+				pos = iter.pos();
+			}
+
+
 			BigInt prefix_len = pos;
 			if (prefix_len > 100) prefix_len = 100;
 
@@ -194,31 +201,114 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 			ArrayData prefix(prefix_len);
 			ArrayData postfix(postfix_len);
 
+			iter.Skip(-prefix_len);
+
 			iter.Read(prefix);
 			iter.Read(postfix);
 
 			iter.Skip(-postfix.size());
 
-
-			cout<<"insert "<<data.size()<<" bytes of data at "<<iter.pos()<<endl;
 			iter.Insert(data);
-			cout<<"after insert "<<iter.pos()<<endl;
 
 			CheckAllocator(allocator, "Insertion at the middle of the array failed. See the dump for details.");
 
-			iter.Skip(data.size() - prefix_len);
-
-			cout<<"after skip "<<iter.pos()<<endl;
-
+			iter.Skip(- data.size() - prefix_len);
 
 			CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array");
-			cout<<"after skip "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array");
-			cout<<"after skip "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array");
 		}
 	}
 }
+
+bool Remove(SAllocator& allocator, ByteArray& array)
+{
+	BigInt size = get_random(array.Size() < 40000 ? array.Size() : 40000);
+	int op = get_random(3);
+
+	if (op == 0)
+	{
+		//Remove at the start of the array
+		auto iter = array.Seek(0);
+
+		BigInt len = array.Size() - size;
+		if (len > 100) len = 100;
+
+		ArrayData postfix(len);
+		iter.Read(postfix);
+
+		iter.Skip(-len);
+
+		iter.Remove(size);
+
+		CheckAllocator(allocator, "Removing region at the start of the array failed. See the dump for details.");
+
+		CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array");
+	}
+	else if (op == 1)
+	{
+		//Remove at the end of the array
+		auto iter = array.Seek(array.Size() - size);
+
+		BigInt len = array.Size() - iter.pos();
+		if (len > 100) len = 100;
+
+		ArrayData prefix(len);
+		iter.Skip(-len);
+		iter.Read(prefix);
+
+		iter.Remove(size);
+
+		CheckAllocator(allocator, "Removing region at the end of the array failed. See the dump for details.");
+
+		iter.Skip(-len);
+
+		CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array");
+	}
+	else {
+		//Remove at the middle of the array
+
+		Int pos = get_random(array.Size() - size);
+		auto iter = array.Seek(pos);
+
+		if (get_random(2) == 0)
+		{
+			iter.Skip(-iter.idx());
+			pos = iter.pos();
+		}
+
+		BigInt prefix_len = pos;
+		if (prefix_len > 100) prefix_len = 100;
+
+		BigInt postfix_len = array.Size() - pos;
+		if (postfix_len > 100) postfix_len = 100;
+
+		ArrayData prefix(prefix_len);
+		ArrayData postfix(postfix_len);
+
+		iter.Skip(-prefix_len);
+
+		iter.Read(prefix);
+
+		iter.Skip(size);
+
+		iter.Read(postfix);
+
+		iter.Skip(-postfix.size() - size);
+
+		iter.Remove(size);
+
+		CheckAllocator(allocator, "Removing region at the middle of the array failed. See the dump for details.");
+
+		iter.Skip(-prefix_len);
+
+		CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array");
+		CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array");
+	}
+
+	return array.Size() > 0;
+}
+
 
 int main(int argc, const char** argv, const char **envp) {
 
@@ -233,13 +323,19 @@ int main(int argc, const char** argv, const char **envp) {
 		allocator.GetLogger()->level() = Logger::NONE;
 
 		ByteArray dv(allocator, ArrayName, true);
-		dv.SetMaxChildrenPerNode(3);
+		dv.SetMaxChildrenPerNode(5);
+
 
 		try {
-			for (Int c = 0; c < 2; c++)
+			for (Int c = 0; c < 1000; c++)
 			{
 				Build(allocator, dv, c + 1);
 			}
+
+//			while (Remove(allocator, dv))
+//			{
+//
+//			}
 
 			Dump(allocator);
 		}
@@ -265,5 +361,5 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Unrecognized exception"<<endl;
 	}
 
-	cout<<"TREE MAP time: "<<(getTime()- t0)<<endl;
+	cout<<"ARRAY INSERT TEST time: "<<(getTime()- t0)<<endl;
 }

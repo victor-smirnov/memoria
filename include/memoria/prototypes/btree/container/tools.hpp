@@ -13,6 +13,7 @@
 
 #include <memoria/prototypes/btree/pages/pages.hpp>
 
+#include <memoria/metadata/tools.hpp>
 
 
 namespace memoria    {
@@ -240,17 +241,17 @@ public:
             UpdateBTreeKeysFn2<MyType, Key> fn2(me_, idx, tkeys, add_mode);
             NodeDispatcher::Dispatch(node, fn2);
             
-            UpdateBTreeKeysFn3<MyType, Key> fn3(me_, fn2.idx(), tkeys);
-            NodeDispatcher::Dispatch(fn2.node(), fn3);
+//            UpdateBTreeKeysFn3<MyType, Key> fn3(me_, fn2.idx(), tkeys);
+//            NodeDispatcher::Dispatch(fn2.node(), fn3);
             
-            if (fn3.retn())
-            {
-                return;
-            }
-            else {
+//            if (fn3.retn())
+//            {
+//                return;
+//            }
+//            else {
                 idx = fn2.idx();
                 node = fn2.node();
-            }
+//            }
         }
 
         UpdateBTreeKeysFn4<MyType, Key> fn4(me_, idx, tkeys, add_mode);
@@ -603,6 +604,21 @@ public:
     void SetLeafData(NodeBase *node, Int idx, const Value &val) {
         MEMORIA_TRACE(me_, node->id(), idx, val);
         memoria::btree::SetData<LeafDispatcher>(node, idx, &val);
+    }
+
+    void Dump(Page* page, std::ostream& out = std::cout)
+    {
+    	if (page != nullptr)
+    	{
+    		PageWrapper<Page, Allocator::PAGE_SIZE> pw(page);
+    		PageMetadata* meta = me_.reflection()->GetPageMetadata(pw.GetPageTypeHash());
+    		memoria::vapi::DumpPage(meta, &pw, out);
+    		out<<endl;
+    		out<<endl;
+    	}
+    	else {
+    		out<<"NULL"<<std::endl;
+    	}
     }
 
 MEMORIA_CONTAINER_PART_END

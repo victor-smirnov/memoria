@@ -65,15 +65,16 @@ public:
     }
 
     static Int hash() {
-        return reflection_->Hash();
+        return reflection()->Hash();
     }
 
     static bool is_abi_compatible() {
-        return reflection_->IsAbiCompatible();
+        return reflection()->IsAbiCompatible();
     }
 
-    static PageMetadata *reflection() {
-        return reflection_;
+    static PageMetadata *reflection()
+    {
+    	return reflection_;
     }
 
     void Reindex()
@@ -106,8 +107,8 @@ public:
         return me->data_size();
     }
 
-    static Int Init() {
-
+    static Int Init()
+    {
         if (reflection_ == NULL)
         {
             Long abi_ptr = 0;
@@ -124,17 +125,6 @@ public:
 
         return reflection_->Hash();
     }
-
-//    void *operator new(size_t size, Allocator &allocator)
-//    {
-//    	Me* me = static_cast<Me*>(allocator.create_new());
-//
-//    	cout<<"datapage.new: "<<me->id().value()<<endl;
-//
-//    	return me;
-//    }
-//
-//    void operator delete(void *buf, size_t size) {}
 };
 
 

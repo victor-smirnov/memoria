@@ -61,7 +61,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
      * count_leaf - is a number of nodes to leave in the 'old' page (count_leaf == 'split_start')
      * shift is an empty 'window' (i.e. space to invert new keys/datas to) in the new leaf page
      *
-     * returns new leaf page that is right after old leaf page in the index tree
+     * returns new leaf page that goes right after old leaf page in the index tree
      */
     NodeBase* SplitBTreeNode(NodeBase *page, Int count_leaf, Int shift = 0);
 

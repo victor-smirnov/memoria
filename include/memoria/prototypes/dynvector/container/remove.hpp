@@ -59,6 +59,24 @@ public:
 
     static const Int Indexes                                                    = Types::Indexes;
 
+    struct DataRemoveHandlerFn {
+
+    	Int idx_, count_;
+    	MyType& me_;
+
+    	DataRemoveHandlerFn(Int idx, Int count, MyType& me): idx_(idx), count_(count), me_(me) {}
+
+    	template <typename Node>
+    	void operator()(Node* node)
+    	{
+    		for (Int c = idx_; c <= idx_ + count_; c++)
+    		{
+    			ID id = node->map().data(c);
+    			me_.allocator().RemovePage(id);
+    		}
+    	}
+    };
+
 
     bool RemoveDataBlock(Iterator& start, Iterator& stop)
     {

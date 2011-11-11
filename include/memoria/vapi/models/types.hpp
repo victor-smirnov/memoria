@@ -65,8 +65,6 @@ struct MEMORIA_API IdxMap {
 
 struct MEMORIA_API Data {
 	virtual Int GetByteSize() const = 0;
-
-	
 };
 
 
@@ -110,6 +108,8 @@ public:
 	UByte* data() {
 		return data_;
 	}
+
+	void Dump(std::ostream& out);
 };
 
 

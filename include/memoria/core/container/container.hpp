@@ -98,7 +98,6 @@ public:
     void init_root(const PageId &root)
     {
     	Page* page = me_.allocator().GetPage(root);
-        MEMORIA_TRACE(me_, page);
         if (page == NULL) {
             throw NullPointerException(MEMORIA_SOURCE, "Requested page is not available");
         }
@@ -227,6 +226,8 @@ private:
     Logger logger_;
     static Logger class_logger_;
 
+    bool debug_;
+
 public:
 
     typedef typename Base::NodeBase                                        		NodeBase;
@@ -236,7 +237,8 @@ public:
         me_(*this),
         allocator_(allocator), name_(name),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
-        logger_(model_type_name_, Logger::DERIVED, &class_logger_)
+        logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+        debug_(false)
     {
     	if (create)
     	{
@@ -254,13 +256,22 @@ public:
             me_(*this),
             allocator_(allocator), name_(-1),
             model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
-            logger_(model_type_name_, Logger::DERIVED, &class_logger_)
+            logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+            debug_(false)
     {
     	me_.init_root(root_id);
     }
 
 
     virtual ~Ctr() throw() {
+    }
+
+    bool& debug() {
+    	return debug_;
+    }
+
+    const bool& debug() const {
+    	return debug_;
     }
 
     Allocator& allocator() {

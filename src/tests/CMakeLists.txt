@@ -4,7 +4,7 @@ set_target_properties(MemoriaTestsTools PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FL
 
 
 if (NOT DEFINED MEMORIA_TESTS)
-    set(MEMORIA_TESTS if_then_else idx_map tree_map aliasing array)
+    set(MEMORIA_TESTS if_then_else idx_map tree_map aliasing array array_ins array_rd vector_ins vector_rd)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_TESTS})

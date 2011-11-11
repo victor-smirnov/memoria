@@ -59,7 +59,7 @@ struct MEMORIA_API Metadata: public Typed {
 struct MEMORIA_API Page: public Typed {
 
     virtual IDValue GetId() const                    = 0;
-    virtual Int GetContainerHash() const                 = 0;
+    virtual Int GetContainerHash() const             = 0;
     virtual Int GetPageTypeHash() const              = 0;
     virtual BigInt GetFlags() const                  = 0;
     virtual const void* Ptr() const                  = 0;
@@ -70,8 +70,6 @@ struct MEMORIA_API Page: public Typed {
     virtual Int Size() const                         = 0;
     virtual Int GetByte(Int idx) const               = 0;
     virtual void SetByte(Int idx, Int value)    	 = 0;
-
-    
 };
 
 

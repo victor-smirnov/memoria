@@ -36,7 +36,7 @@ struct IAbstractAllocator {
 	virtual ID 	  GetRootID(BigInt name)								= 0;
 	virtual void  SetRoot(BigInt name, const ID& root) 					= 0;
 
-	virtual Logger& logger()										= 0;
+	virtual Logger& logger()											= 0;
 };
 
 

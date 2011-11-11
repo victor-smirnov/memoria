@@ -276,6 +276,7 @@ void M_TYPE::import_pages(
 	// the size of data block that fits into the target data page
 	BigInt data_prefix;
 
+
 	if (data_pos == iter.data()->data().size() || (data_pos == 0 && iter.data()->data().size() == 0))
 	{
 		data_prefix = target_datapage_capacity >= length ? length : target_datapage_capacity;
@@ -334,6 +335,7 @@ void M_TYPE::import_pages(
 			// split indexpage if it's capacity is not
 			// enough to store total_full_datapages data pages
 			MEMORIA_TRACE(me_, "split target indexpage");
+
 			me_.SplitBTreeNode(node, key_idx);
 
 			target_indexpage_capacity = me_.GetCapacity(node);
@@ -346,7 +348,9 @@ void M_TYPE::import_pages(
 
 			// Assign increase_children_count = false for InsertSpace() because
 			// import_several_pages() increases node children count
+
 			me_.InsertSpace(node, key_idx, total_full_datapages, false);
+
 			index_prefix = total_full_datapages;
 		}
 		else
@@ -378,7 +382,9 @@ void M_TYPE::import_pages(
 	for (BigInt c = 0; c < total_full_indexpages; c++)
 	{
 		node = me_.SplitBTreeNode(node, me_.GetChildrenCount(node), 0);
+
 		import_several_pages(node, 0, block, descriptor, max_indexpage_size);
+
 		key_idx = me_.GetChildrenCount(node);
 	}
 
@@ -411,6 +417,8 @@ void M_TYPE::import_pages(
 		key_idx = index_suffix;
 	}
 
+
+
 	Int out_pos = 0;
 	if (data_suffix > 0)
 	{
@@ -425,11 +433,11 @@ void M_TYPE::import_pages(
 
 			MEMORIA_TRACE(me_, "DATA_SUFFIX page [node.id, suffix_data_page.id, suffix_data_page.parent_id, key_idx, suffix_data.free, node.id, node.capacity]", node->id(), suffix_data_page->id(), suffix_data_page->parent_id(), key_idx, suffix_free, node->id(), me_.GetCapacity(node));
 
-			for (Int c = 0; c < me_.GetChildrenCount(node); c++)
-			{
-				DataPage* data = me_.GetDataPage(node, c);
-				MEMORIA_TRACE(me_, "c=", c, "pidx=", data->parent_idx(), data->id());
-			}
+//			for (Int c = 0; c < me_.GetChildrenCount(node); c++)
+//			{
+//				DataPage* data = me_.GetDataPage(node, c);
+//				MEMORIA_TRACE(me_, "c=", c, "pidx=", data->parent_idx(), data->id());
+//			}
 
 			if (data_suffix <= suffix_free)
 			{
@@ -439,10 +447,11 @@ void M_TYPE::import_pages(
 			else if (me_.GetCapacity(node) > 0)
 			{
 				me_.InsertDataPage(node, key_idx);
+
 			}
 			else if (key_idx < me_.GetMaxCapacity(node) - 1)
 			{
-				me_.SplitBTreeNode(node, key_idx);
+				NodeBase* node_right = me_.SplitBTreeNode(node, key_idx);
 				me_.InsertDataPage(node, key_idx);
 			}
 			else {
@@ -531,6 +540,7 @@ void M_TYPE::import_several_pages(
 	{
 		me_.UpdateBTreeKeys(parent, node->parent_idx(), total_indexes, true);
 	}
+
 	MEMORIA_TRACE(me_, "DONE");
 }
 

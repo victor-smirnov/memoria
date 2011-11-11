@@ -52,7 +52,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	return me_.GetPrevNode(me_.page());
     }
 
-    void Init() {}
+    void Init() {
+    	Base::Init();
+    }
 
     bool IsFound() {
         return (!me_.IsEnd()) && me_.IsNotEmpty();
