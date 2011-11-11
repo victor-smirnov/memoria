@@ -124,12 +124,12 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 
 	MEMORIA_TRACE(me_, "iterator is not empty", block.size(), page, me_.root());
 
-	BigInt& data_idx = iter.idx();
+	BigInt& data_idx = iter.data_pos();
 
 	if (iter.IsEmpty())
 	{
 		iter.key_idx() 	= 0;
-		iter.idx()		= 0;
+		iter.data_pos()		= 0;
 		iter.data() 	= me_.InsertDataPage(page, iter.key_idx());
 	}
 
@@ -264,7 +264,7 @@ void M_TYPE::import_pages(
 {
 	NodeBase *node = iter.page();
 	BigInt key_idx = iter.key_idx();
-	BigInt data_pos = iter.idx();
+	BigInt data_pos = iter.data_pos();
 
 	DataPage* suffix_data_page;
 
@@ -484,14 +484,14 @@ void M_TYPE::import_pages(
 		iter.page() 	= me_.GetDataParent(suffix_data_page);
 		iter.key_idx() 	= suffix_data_page->parent_idx();
 		iter.data() 	= suffix_data_page;
-		iter.idx() 		= out_pos;
+		iter.data_pos() 		= out_pos;
 	}
 	else {
 
 		iter.page() 	= node;
 		iter.key_idx() 	= me_.GetChildrenCount(node) - 1;
 		iter.data() 	= me_.GetDataPage(node, iter.key_idx());
-		iter.idx() 		= iter.data()->data().size();
+		iter.data_pos() 		= iter.data()->data().size();
 	}
 
 	//FIXME: this operation is too expensive for small blocks

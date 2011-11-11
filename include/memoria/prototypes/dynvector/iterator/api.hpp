@@ -38,7 +38,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     static const Int Indexes = Container::Indexes;
 
-    BigInt          idx_;
+    BigInt          local_pos_;
     DataPage*   	data_;
 
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
@@ -72,14 +72,14 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	}
     };
 
-    IterPart(MyType &me): Base(me), me_(me), idx_(0), data_(NULL)
+    IterPart(MyType &me): Base(me), me_(me), local_pos_(0), data_(NULL)
     {
 
     }
 
     bool IsEof()
     {
-    	return me_.data() != nullptr ? me_.idx() >= me_.data()->data().size() : true;
+    	return me_.data() != nullptr ? me_.data_pos() >= me_.data()->data().size() : true;
     }
 
     DataPage*& data() {
@@ -90,25 +90,25 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return data_;
     }
 
-    BigInt &idx() {
-    	return idx_;
+    BigInt &data_pos() {
+    	return local_pos_;
     }
 
-    const BigInt idx() const {
-    	return idx_;
+    const BigInt data_pos() const {
+    	return local_pos_;
     }
 
     BigInt pos()
     {
-    	return me_.prefix(0) + idx();
+    	return me_.prefix(0) + me_.data_pos();
     }
 
     void setup(const MyType &other)
     {
     	Base::setup(other);
 
-    	idx_    = other.idx_;
-    	data_   = other.data_;
+    	local_pos_    	= other.local_pos_;
+    	data_   		= other.data_;
     }
 
 

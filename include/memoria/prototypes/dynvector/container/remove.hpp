@@ -84,9 +84,9 @@ public:
     	{
     		Int start_key_idx, stop_key_idx = 0;
 
-    		if (start.idx() > 0)
+    		if (start.data_pos() > 0)
     		{
-    			me_.RemoveData(start.page(), start.data(), start.idx(), start.data()->data().size());
+    			me_.RemoveData(start.page(), start.data(), start.data_pos(), start.data()->data().size());
     			start_key_idx = start.key_idx() + 1;
     		}
     		else {
@@ -96,11 +96,11 @@ public:
 
     		if (!stop.IsEnd())
     		{
-    			if (stop.idx() > 0)
+    			if (stop.data_pos() > 0)
     			{
-    				if (stop.idx() < stop.data()->data().size())
+    				if (stop.data_pos() < stop.data()->data().size())
     				{
-    					me_.RemoveData(stop.page(), stop.data(), 0, start.idx());
+    					me_.RemoveData(stop.page(), stop.data(), 0, start.data_pos());
     					//FIXME stop_key_idx = ?????
     				}
     				else {
