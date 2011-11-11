@@ -77,8 +77,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     void DumpState(const char* str)
     {
-    	BigInt offset = me_.GetIndexValue(0) + me_.idx();
-    	MEMORIA_INFO(me_.model(), str, "[node_id key_idx data_id page_offset offset bof eof empty]", (me_.page() != NULL ? me_.page()->id() : ID(0)), me_.key_idx(), (me_.data() != NULL ? me_.data()->id() : ID(0)), me_.idx(), offset, me_.IsStart(), me_.IsEnd(), me_.IsEmpty());
+    	BigInt offset = me_.GetIndexValue(0) + me_.data_pos();
+    	MEMORIA_INFO(me_.model(), str, "[node_id key_idx data_id page_offset offset bof eof empty]", (me_.page() != NULL ? me_.page()->id() : ID(0)), me_.key_idx(), (me_.data() != NULL ? me_.data()->id() : ID(0)), me_.data_pos(), offset, me_.IsStart(), me_.IsEnd(), me_.IsEmpty());
     }
 
     BigInt GetBlobId() {return 0;}
@@ -96,11 +96,11 @@ BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
 
 	while (len > 0)
 	{
-		Int to_read = me_.data()->data().size() - me_.idx();
+		Int to_read = me_.data()->data().size() - me_.data_pos();
 
 		if (to_read > len) to_read = len;
 
-		CopyBuffer(me_.data()->data().value_addr(me_.idx()), data.data() + start, to_read);
+		CopyBuffer(me_.data()->data().value_addr(me_.data_pos()), data.data() + start, to_read);
 
 		len 	-= to_read;
 		me_.Skip(to_read);
@@ -149,7 +149,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 	if (me_.IsNotEmpty())
 	{
 		Int data_size = me_.data()->data().size();
-		Int idx = me_.idx();
+		Int idx = me_.data_pos();
 
 		if (distance + idx <= data_size)
 		{
@@ -165,24 +165,24 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 					NodeBase* next = me_.GetNextNode();
 					if (next == NULL)
 					{
-						me_.idx() = data_size;
+						me_.data_pos() = data_size;
 					}
 					else {
 						me_.page() 		= next;
 						me_.key_idx()	= 0;
-						me_.idx() 		= 0;
+						me_.data_pos() 		= 0;
 
 						me_.data()		= me_.model().GetDataPage(me_.page(), me_.key_idx());
 					}
 				}
 				else {
 					me_.key_idx()++;
-					me_.idx() 	= 0;
+					me_.data_pos() 	= 0;
 					me_.data() 	= me_.model().GetDataPage(me_.page(), me_.key_idx());
 				}
 			}
 			else {
-				me_.idx() += distance;
+				me_.data_pos() += distance;
 			}
 		}
 		else
@@ -194,12 +194,12 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 
 			if (end)
 			{
-				me_.idx() 	= me_.data()->data().size();
+				me_.data_pos() 	= me_.data()->data().size();
 				me_.Init();
 				return walker.sum() - idx;
 			}
 			else {
-				me_.idx() 	= walker.remainder();
+				me_.data_pos() 	= walker.remainder();
 			}
 		}
 		me_.Init();
@@ -221,14 +221,14 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 	//FIXME: handle EOF properly
 	if (me_.IsNotEmpty())
 	{
-		Int idx = me_.idx();
+		Int idx = me_.data_pos();
 
 		if (distance <= idx)
 		{
 			// A trivial case when the offset is within current data page
 			// we need to check for START if a data page
 			// is the fist in the index node
-			me_.idx() 	-= distance;
+			me_.data_pos() 	-= distance;
 		}
 		else
 		{
@@ -242,12 +242,12 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 
 			if (end)
 			{
-				me_.idx() 	= 0;
+				me_.data_pos() 	= 0;
 				me_.Init();
 				return walker.sum() - to_add;
 			}
 			else {
-				me_.idx()	= me_.data()->data().size() - walker.remainder();
+				me_.data_pos()	= me_.data()->data().size() - walker.remainder();
 			}
 		}
 

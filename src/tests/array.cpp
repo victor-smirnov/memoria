@@ -187,7 +187,7 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 
 			if (get_random(2) == 0)
 			{
-				iter.Skip(-iter.idx());
+				iter.Skip(-iter.data_pos());
 				pos = iter.pos();
 			}
 
@@ -273,7 +273,7 @@ bool Remove(SAllocator& allocator, ByteArray& array)
 
 		if (get_random(2) == 0)
 		{
-			iter.Skip(-iter.idx());
+			iter.Skip(-iter.data_pos());
 			pos = iter.pos();
 		}
 
