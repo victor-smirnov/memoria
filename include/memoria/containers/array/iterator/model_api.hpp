@@ -55,7 +55,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     void Insert(ArrayData& data)
     {
-    	//cout<<"Insert "<<data.size()<<" bytes at "<<me_.pos()<<endl;
     	Insert(data, 0, data.size());
     }
 
@@ -67,6 +66,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	me_.model().RemoveDataBlock(me_, to);
     }
 
+    void Remove(MyType& to)
+    {
+    	me_.model().RemoveDataBlock(me_, to);
+    }
 
     BigInt Skip(BigInt distance);
     BigInt SkipFw(BigInt distance);

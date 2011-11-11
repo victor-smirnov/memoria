@@ -66,12 +66,12 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
     static const bool MapType                                                   = MapTypes::Index;
 
     typedef typename AppendTool<
-                    typename Base::ContainerPartsList,
                     typename TLTool<
                         memoria::dynvector::ToolsName,
                         memoria::dynvector::RemoveName,
                         memoria::dynvector::InsertName
-                    >::List
+                    >::List,
+                    typename Base::ContainerPartsList
     >::Result                                                                   ContainerPartsList;
 
     typedef typename AppendTool<
