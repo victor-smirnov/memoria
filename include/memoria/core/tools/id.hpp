@@ -130,7 +130,7 @@ private:
        		'8', '9', 'a', 'b',
        		'c', 'd', 'e', 'f'};
     	if (value >= 0 && value <= 15) {
-    		return chars[value];
+    		return chars[(int)value];
     	}
         return 'X';
     }
