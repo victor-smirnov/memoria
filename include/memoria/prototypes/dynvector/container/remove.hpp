@@ -109,16 +109,6 @@ public:
     				start_key_idx = start.key_idx() - 1;
     			}
 
-//    			else if (start.key_idx() == 0 && start.PrevLeaf())
-//    			{
-//    				// start has been changed
-//    				start_key_idx = start.key_idx() + 1;
-//    			}
-//    			else {
-//    				start_key_idx = start.key_idx() - 1;
-//    			}
-
-
     			if (!stop.IsEof())
     			{
     				if (stop.data_pos() > 0)
@@ -138,11 +128,6 @@ public:
     			Iterator i = me_.Seek(pos);
 
     			start = stop = i;
-
-//    			BigInt ssize = me_.Size();
-//    			Int ds = start.data()->data().size();
-//    			bool eof = start.IsEof();
-//    			bool eofi = i.IsEof();
 
     			return removed;
     		}

@@ -229,6 +229,7 @@ bool Remove(SAllocator& allocator, ByteArray& array)
 		iter.Remove(array.Size());
 
 		CheckAllocator(allocator, "Remove ByteArray");
+		return array.Size() > 0;
 	}
 	else {
 		BigInt size = get_random(array.Size() < 40000 ? array.Size() : 40000);
@@ -319,31 +320,7 @@ bool Remove(SAllocator& allocator, ByteArray& array)
 }
 
 
-//class C1 {};
-//class C2 {};
-//class C3 {};
-//class C4 {};
-//class C5 {};
-//class C6 {};
-//class C7 {};
-//class C8 {};
-
 int main(int argc, const char** argv, const char **envp) {
-
-//	typedef TLTool<C1,C2>::List ListA;
-//	typedef TLTool<C3,C4>::List ListB;
-//	typedef TLTool<C5,C6>::List ListC;
-//	typedef TLTool<C7,C8>::List ListD;
-//
-//	typedef AppendLists<ListA, ListB>::Result List1;
-//	typedef AppendLists<List1, ListC>::Result List2;
-//	typedef AppendLists<List2, ListD>::Result List3;
-//
-//
-//	cout<<TypeNameFactory<List3>::name()<<endl;
-//
-//	if (true) return 0;
-
 
 	long long t0 = getTime();
 
