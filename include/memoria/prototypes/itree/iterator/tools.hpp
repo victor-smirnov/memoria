@@ -30,38 +30,21 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
     static const Int Indexes = Container::Indexes;
 
-    Key prefix_[Indexes];
+
 
     IterPart(MyType &me): Base(me), me_(me)
     {
-        for (Int c = 0; c < Indexes; c++) {
-            prefix_[c] = 0;
-        }
+
     }
 
-    void setup(const MyType &other)
+    Key GetRawKey(Int i)
     {
-        for (Int c = 0; c < Indexes; c++) {
-            prefix_[c] = other.prefix_[c];
-        }
-
-        Base::setup(other);
-    }
-
-    Key& prefix(Int i) {
-        return prefix_[i];
-    }
-
-    const Key& prefix(Int i) const {
-        return prefix_[i];
-    }
-
-    Key GetRawKey(Int i) {
         return Base::GetKey(i);
     }
 
-    Key GetKey(Int i) {
-        return me_.GetRawKey(i) + prefix_[i];
+    Key GetKey(Int i)
+    {
+        return me_.GetRawKey(i) + me_.prefix(i);
     }
 
     bool NextKey()
@@ -70,7 +53,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
         {
             for (Int c = 0; c < Indexes; c++)
             {
-                prefix_[c] += GetRawKey(c);
+                me_.prefix(c) += me_.GetRawKey(c);
             }
             return Base::NextKey();
         }
@@ -89,7 +72,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
     		{
     			for (Int c = 0; c < Indexes; c++)
     			{
-    				prefix_[c] -= GetRawKey(c);
+    				me_.prefix(c) -= me_.GetRawKey(c);
     			}
     		}
     		else
@@ -97,7 +80,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
     			//FIXME: this might hide errors
     			for (Int c = 0; c < Indexes; c++)
     			{
-    				prefix_[c] = 0;
+    				me_.prefix(c) = 0;
     			}
     		}
 
@@ -115,9 +98,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
         {
         	for (Int c = 0; c < Indexes; c++)
         	{
-        		prefix_[c] = 0;
+        		me_.prefix(c) = 0;
         	}
-            compute_base(prefix_, me_.page(), me_.key_idx());
+            compute_base(&me_.prefix(0), me_.page(), me_.key_idx());
         }
     }
 
@@ -143,6 +126,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
     void Init() {
         ComputeBase();
+        Base::Init();
     }
 
 private:

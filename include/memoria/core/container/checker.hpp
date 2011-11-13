@@ -48,9 +48,6 @@ public:
 			else {
 				bool result = false;
 
-//				RootMapIterator iter = allocator_.roots()->Begin();
-//				RootMapIterator end = allocator_.roots()->End();
-
 				for (RootMapIterator iter = allocator_.roots()->Begin(); !iter.IsEnd(); )
 				{
 					Page* page = allocator_.GetPage(iter.GetData());

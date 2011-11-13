@@ -18,6 +18,7 @@
 #include <memoria/prototypes/dynvector/container/insert.hpp>
 #include <memoria/prototypes/dynvector/container/remove.hpp>
 #include <memoria/prototypes/dynvector/container/tools.hpp>
+#include <memoria/prototypes/dynvector/container/checks.hpp>
 
 #include <memoria/prototypes/dynvector/iterator/api.hpp>
 
@@ -41,11 +42,11 @@ template <
 >
 struct DynVectorContainerTypes: public Base {
 
-    typedef typename AppendTool<
-                    typename Base::DataPagesList,
+    typedef typename AppendLists<
                     typename TLTool<
                         DataPage_
-                    >::List
+                    >::List,
+                    typename Base::DataPagesList
     >::Result                                                                   DataPagesList;
 
     typedef DataPage_                                                       	DataPage;
@@ -65,20 +66,21 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
 
     static const bool MapType                                                   = MapTypes::Index;
 
-    typedef typename AppendTool<
+    typedef typename AppendLists<
+    		        typename Base::ContainerPartsList,
                     typename TLTool<
                         memoria::dynvector::ToolsName,
                         memoria::dynvector::RemoveName,
-                        memoria::dynvector::InsertName
-                    >::List,
-                    typename Base::ContainerPartsList
+                        memoria::dynvector::InsertName,
+                        memoria::dynvector::ChecksName
+                    >::List
     >::Result                                                                   ContainerPartsList;
 
-    typedef typename AppendTool<
-                        typename Base::IteratorPartsList,
-                        typename TLTool<
-                        	memoria::dynvector::IteratorAPIName
-                        >::List
+    typedef typename AppendLists<
+    				typename Base::IteratorPartsList,
+                    typename TLTool<
+                       memoria::dynvector::IteratorAPIName
+                    >::List
     >::Result                                                                   IteratorPartsList;
 
 

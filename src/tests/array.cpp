@@ -18,9 +18,9 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE = 1000;
-const Int ArrayName = 1;
-const Int MAX_BUFFER_SIZE = 4096 * 10;
+const Int SIZE 				= 1000;
+const Int ArrayName 		= 1;
+const Int MAX_BUFFER_SIZE 	= 4096 * 10;
 
 
 typedef StreamContainerTypesCollection::Factory<Array>::Type 	ByteArray;
@@ -223,94 +223,127 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 
 bool Remove(SAllocator& allocator, ByteArray& array)
 {
-	BigInt size = get_random(array.Size() < 40000 ? array.Size() : 40000);
-	int op = get_random(3);
-
-	if (op == 0)
+	if (array.Size() < 20000)
 	{
-		//Remove at the start of the array
 		auto iter = array.Seek(0);
+		iter.Remove(array.Size());
 
-		BigInt len = array.Size() - size;
-		if (len > 100) len = 100;
-
-		ArrayData postfix(len);
-		iter.Read(postfix);
-
-		iter.Skip(-len);
-
-		iter.Remove(size);
-
-		CheckAllocator(allocator, "Removing region at the start of the array failed. See the dump for details.");
-
-		CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array");
-	}
-	else if (op == 1)
-	{
-		//Remove at the end of the array
-		auto iter = array.Seek(array.Size() - size);
-
-		BigInt len = array.Size() - iter.pos();
-		if (len > 100) len = 100;
-
-		ArrayData prefix(len);
-		iter.Skip(-len);
-		iter.Read(prefix);
-
-		iter.Remove(size);
-
-		CheckAllocator(allocator, "Removing region at the end of the array failed. See the dump for details.");
-
-		iter.Skip(-len);
-
-		CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array");
+		CheckAllocator(allocator, "Remove ByteArray");
 	}
 	else {
-		//Remove at the middle of the array
+		BigInt size = get_random(array.Size() < 40000 ? array.Size() : 40000);
+		int op = get_random(3);
 
-		Int pos = get_random(array.Size() - size);
-		auto iter = array.Seek(pos);
-
-		if (get_random(2) == 0)
+		if (op == 0)
 		{
-			iter.Skip(-iter.data_pos());
-			pos = iter.pos();
+			//Remove at the start of the array
+			auto iter = array.Seek(0);
+
+			BigInt len = array.Size() - size;
+			if (len > 100) len = 100;
+
+			ArrayData postfix(len);
+			iter.Skip(size);
+			iter.Read(postfix);
+			iter.Skip(-len - size);
+
+			iter.Remove(size);
+
+			CheckAllocator(allocator, "Removing region at the start of the array failed. See the dump for details.");
+
+			CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array");
+		}
+		else if (op == 1)
+		{
+			//Remove at the end of the array
+			auto iter = array.Seek(array.Size() - size);
+
+			BigInt len = iter.pos();
+			if (len > 100) len = 100;
+
+			ArrayData prefix(len);
+			iter.Skip(-len);
+			iter.Read(prefix);
+
+			iter.Remove(size);
+
+			CheckAllocator(allocator, "Removing region at the end of the array failed. See the dump for details.");
+
+			iter.Skip(-len);
+
+			CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array");
+		}
+		else {
+			//Remove at the middle of the array
+
+			Int pos = get_random(array.Size() - size);
+			auto iter = array.Seek(pos);
+
+			if (get_random(2) == 0)
+			{
+				iter.Skip(-iter.data_pos());
+				pos = iter.pos();
+			}
+
+			BigInt prefix_len = pos;
+			if (prefix_len > 100) prefix_len = 100;
+
+			BigInt postfix_len = array.Size() - (pos + size);
+			if (postfix_len > 100) postfix_len = 100;
+
+			ArrayData prefix(prefix_len);
+			ArrayData postfix(postfix_len);
+
+			iter.Skip(-prefix_len);
+
+			iter.Read(prefix);
+
+			iter.Skip(size);
+
+			iter.Read(postfix);
+
+			iter.Skip(-postfix.size() - size);
+
+			iter.Remove(size);
+
+			CheckAllocator(allocator, "Removing region at the middle of the array failed. See the dump for details.");
+
+			iter.Skip(-prefix_len);
+
+			CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array");
+			CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array");
 		}
 
-		BigInt prefix_len = pos;
-		if (prefix_len > 100) prefix_len = 100;
-
-		BigInt postfix_len = array.Size() - pos;
-		if (postfix_len > 100) postfix_len = 100;
-
-		ArrayData prefix(prefix_len);
-		ArrayData postfix(postfix_len);
-
-		iter.Skip(-prefix_len);
-
-		iter.Read(prefix);
-
-		iter.Skip(size);
-
-		iter.Read(postfix);
-
-		iter.Skip(-postfix.size() - size);
-
-		iter.Remove(size);
-
-		CheckAllocator(allocator, "Removing region at the middle of the array failed. See the dump for details.");
-
-		iter.Skip(-prefix_len);
-
-		CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array");
-		CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array");
+		return array.Size() > 0;
 	}
-
-	return array.Size() > 0;
 }
 
 
+//class C1 {};
+//class C2 {};
+//class C3 {};
+//class C4 {};
+//class C5 {};
+//class C6 {};
+//class C7 {};
+//class C8 {};
+
 int main(int argc, const char** argv, const char **envp) {
+
+//	typedef TLTool<C1,C2>::List ListA;
+//	typedef TLTool<C3,C4>::List ListB;
+//	typedef TLTool<C5,C6>::List ListC;
+//	typedef TLTool<C7,C8>::List ListD;
+//
+//	typedef AppendLists<ListA, ListB>::Result List1;
+//	typedef AppendLists<List1, ListC>::Result List2;
+//	typedef AppendLists<List2, ListD>::Result List3;
+//
+//
+//	cout<<TypeNameFactory<List3>::name()<<endl;
+//
+//	if (true) return 0;
+
 
 	long long t0 = getTime();
 
@@ -332,10 +365,24 @@ int main(int argc, const char** argv, const char **envp) {
 				Build(allocator, dv, c + 1);
 			}
 
-//			while (Remove(allocator, dv))
-//			{
-//
-//			}
+			cout<<"Remove data"<<endl;
+
+			for (Int c = 0; ; c++)
+			{
+				cout<<"C="<<c<<endl;
+				if (c == 82)
+				{
+					dv.debug() = true;
+				}
+				else {
+					dv.debug() = false;
+				}
+
+				if (!Remove(allocator, dv))
+				{
+					break;
+				}
+			}
 
 			Dump(allocator);
 		}

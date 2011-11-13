@@ -12,7 +12,7 @@
 #include <string>
 #include <sstream>
 
-#ifdef __GNUC1__
+#ifdef __GNUC__
 #include <cxxabi.h>
 #else
 #endif
@@ -23,7 +23,7 @@
 namespace memoria    {
 namespace vapi       {
 
-#ifdef __GNUC1__
+#ifdef __GNUC__
 template<typename T, int BufferSize = 40960>
 struct TypeNameFactory
 {

@@ -50,7 +50,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
         return me_.model().GetLeafData(me_.page(), me_.key_idx());
     }
 
-    Key GetKey(Int keyNum = 0) {
+    Key GetKey(Int keyNum) {
         return Container::GetKey(me_.page(), keyNum, me_.key_idx());
     }
 

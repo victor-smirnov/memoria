@@ -54,7 +54,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
 
         while (!i.IsEnd())
         {
-            Key key = i.GetKey();
+            Key key = i.GetKey(0);
             if (!first)
             {
                 if (k0 >= key)

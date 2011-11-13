@@ -36,7 +36,7 @@ struct BTreeTypes<Profile, memoria::IdxMap>:
 
 	static const bool MapType                                               = MapTypes::Index;
 
-	typedef typename AppendTool<
+	typedef typename AppendLists<
 			typename Base::ContainerPartsList,
 			typename TLTool<
 				memoria::models::idx_map::RemoveName,

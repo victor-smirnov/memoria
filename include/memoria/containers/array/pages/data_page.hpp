@@ -62,7 +62,11 @@ public:
         return size_ + sizeof(size_);
     }
 
-    void shift(BigInt pos, BigInt length) {
+    void shift(BigInt pos, BigInt length)
+    {
+//    	copy_buffer<Byte>(value_ + pos, value_ + pos + length, size_ - pos);
+
+    	//FIXME: implement left shift properly
     	MoveBuffer(value_, pos, pos + length, size_ - pos);
     }
 

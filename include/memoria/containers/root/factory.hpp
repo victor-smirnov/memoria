@@ -31,17 +31,17 @@ struct BTreeTypes<Profile, memoria::Root>: public BTreeTypes<Profile, memoria::B
 	typedef BTreeTypes<Profile, memoria::BTree> 								Base;
 	typedef memoria::btree::IDType 												Value;
 
-	typedef typename AppendTool<
+	typedef typename AppendLists<
 			typename Base::ContainerPartsList,
 			typename TLTool<
-			memoria::models::kvmap::MapApiName,
-			memoria::models::kvmap::FindName,
-			memoria::models::kvmap::ChecksName,
-			memoria::models::kvmap::InsertName,
-			memoria::models::kvmap::RemoveName,
+				memoria::models::TreeMapName,
+				memoria::models::MapName,
 
-			memoria::models::TreeMapName,
-			memoria::models::MapName
+				memoria::models::kvmap::MapApiName,
+				memoria::models::kvmap::FindName,
+				memoria::models::kvmap::ChecksName,
+				memoria::models::kvmap::InsertName,
+				memoria::models::kvmap::RemoveName
 			>::List
 	>::Result                                                               	ContainerPartsList;
 };
