@@ -81,10 +81,10 @@ void CheckAllocator(SAllocator &allocator, const char* err_msg)
 
 	memoria::StreamContainersChecker checker(allocator);
 
-	if (checker.CheckAll())
-	{
-		throw MemoriaException(MEMORIA_SOURCE, err_msg);
-	}
+//	if (checker.CheckAll())
+//	{
+//		throw MemoriaException(MEMORIA_SOURCE, err_msg);
+//	}
 
 	ByteArray::class_logger().level() = src_level;
 }
@@ -322,7 +322,7 @@ bool Remove(SAllocator& allocator, ByteArray& array)
 
 int main(int argc, const char** argv, const char **envp) {
 
-	long long t0 = getTime();
+	long long t0 = getTime(), t1;
 
 	try {
 		logger.level() = Logger::NONE;
@@ -333,27 +333,32 @@ int main(int argc, const char** argv, const char **envp) {
 		allocator.GetLogger()->level() = Logger::NONE;
 
 		ByteArray dv(allocator, ArrayName, true);
-		dv.SetMaxChildrenPerNode(5);
+//		dv.SetMaxChildrenPerNode(100);
 
 
 		try {
-			for (Int c = 0; c < 1000; c++)
+			cout<<"Insert data"<<endl;
+
+			for (Int c = 0; c < 17762; c++)
 			{
+//				cout<<"C="<<c<<endl;
 				Build(allocator, dv, c + 1);
 			}
 
-			cout<<"Remove data"<<endl;
+			t1 = getTime();
+
+			cout<<"Remove data. ByteArray contains "<<dv.Size()/1024/1024<<" Mbytes"<<endl;
 
 			for (Int c = 0; ; c++)
 			{
-				cout<<"C="<<c<<endl;
-				if (c == 82)
-				{
-					dv.debug() = true;
-				}
-				else {
-					dv.debug() = false;
-				}
+//				cout<<"C="<<c<<endl;
+//				if (c == 82)
+//				{
+//					dv.debug() = true;
+//				}
+//				else {
+//					dv.debug() = false;
+//				}
 
 				if (!Remove(allocator, dv))
 				{
@@ -385,5 +390,5 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Unrecognized exception"<<endl;
 	}
 
-	cout<<"ARRAY INSERT TEST time: "<<(getTime()- t0)<<endl;
+	cout<<"ARRAY TEST time: insert "<<(getTime()- t1)<<" remove "<<(t1 - t0)<<endl;
 }
