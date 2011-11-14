@@ -69,7 +69,7 @@ public:
     	template <typename Node>
     	void operator()(Node* node)
     	{
-    		for (Int c = idx_; c <= idx_ + count_; c++)
+    		for (Int c = idx_; c < idx_ + count_; c++)
     		{
     			ID id = node->map().data(c);
     			me_.allocator().RemovePage(id);
@@ -80,52 +80,88 @@ public:
 
     bool RemoveDataBlock(Iterator& start, Iterator& stop)
     {
-    	if (!start.IsEnd())
+    	BigInt pos = start.pos();
+
+    	if (me_.debug()) {
+    		int a = 0;
+    		a++;
+    	}
+
+
+    	if (!start.IsEof() && start.pos() < stop.pos())
     	{
-    		Int start_key_idx, stop_key_idx = 0;
-
-    		if (start.data_pos() > 0)
+    		if (start.data()->id() == stop.data()->id())
     		{
-    			me_.RemoveData(start.page(), start.data(), start.data_pos(), start.data()->data().size());
-    			start_key_idx = start.key_idx() + 1;
+    			return me_.RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
     		}
     		else {
-    			start_key_idx = start.key_idx();
-    		}
+    			Int start_key_idx, stop_key_idx = 0;
 
+    			bool removed = false;
 
-    		if (!stop.IsEnd())
-    		{
-    			if (stop.data_pos() > 0)
+    			if (start.data_pos() > 0)
     			{
-    				if (stop.data_pos() < stop.data()->data().size())
-    				{
-    					me_.RemoveData(stop.page(), stop.data(), 0, start.data_pos());
-    					//FIXME stop_key_idx = ?????
-    				}
-    				else {
-    					stop_key_idx = stop.key_idx();
-    				}
-    			}
-    			else{
-    				stop_key_idx = 0;
-    			}
-    		}
-    		else {
-    			stop_key_idx = stop.key_idx() + 1;
-    		}
+    				removed = me_.RemoveData(start.page(), start.data(), start.data_pos(), start.data()->data().size() - start.data_pos());
 
-    		Key keys[Indexes] = {0};
-    		return me_.RemovePages(start.page(), start_key_idx, stop.page(), stop_key_idx, keys);
+    				start_key_idx = start.key_idx();
+    			}
+    			else {
+    				start_key_idx = start.key_idx() - 1;
+    			}
+
+    			if (!stop.IsEof())
+    			{
+    				if (stop.data_pos() > 0)
+    				{
+    					removed = me_.RemoveData(stop.page(), stop.data(), 0, stop.data_pos()) || removed;
+    				}
+
+    				stop_key_idx = stop.key_idx();
+    			}
+    			else {
+    				stop_key_idx = stop.key_idx() + 1;
+    			}
+
+    			Key keys[Indexes] = {0,};
+    			removed = me_.RemovePages(start.page(), start_key_idx, stop.page(), stop_key_idx, keys, false) || removed;
+
+    			Iterator i = me_.Seek(pos);
+
+    			start = stop = i;
+
+    			return removed;
+    		}
     	}
     	else {
     		return false;
     	}
     }
 
-    void RemoveData(NodeBase* page, DataPage* data, Int start, Int stop)
+    bool RemoveData(NodeBase* page, DataPage* data, Int start, Int length)
     {
+    	if (me_.debug()) {
+    		int a = 0;
+    		a++;
+    	}
 
+    	Int pos = start + length;
+
+    	BigInt keys[Indexes] = {0,};
+
+//    	cout<<data->data().size()<<endl;
+
+    	if (pos < data->data().size())
+    	{
+    		data->data().shift(pos, -length);
+    	}
+
+    	keys[0] = -length;
+
+    	data->data().size() -= length;
+
+    	me_.UpdateBTreeKeys(page, data->parent_idx(), keys, true);
+
+    	return length > 0; // FIXME: it always true;
     }
 
 MEMORIA_CONTAINER_PART_END

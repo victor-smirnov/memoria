@@ -222,13 +222,18 @@ public:
     	typedef typename ContainerTypes::Allocator								Allocator;
     	typedef typename ContainerTypes::Metadata								Metadata;
 
-    	typedef typename ReverseTool<
-    			typename ContainerTypes::ContainerPartsList
-    	>::Result 																CtrList;
+//    	typedef typename ReverseTool<
+//    			typename ContainerTypes::ContainerPartsList
+//    	>::Result 																CtrList;
+//
+//    	typedef typename ReverseTool<
+//    			typename ContainerTypes::IteratorPartsList
+//    	>::Result																IterList;
 
-    	typedef typename ReverseTool<
-    			typename ContainerTypes::IteratorPartsList
-    	>::Result																IterList;
+
+    	typedef typename ContainerTypes::ContainerPartsList						CtrList;
+    	typedef typename ContainerTypes::IteratorPartsList						IterList;
+
 
     	typedef CtrTypesT<Types> 												CtrTypes;
     	typedef BTreeIterTypes<IterTypesT<Types> >								IterTypes;

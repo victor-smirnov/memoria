@@ -178,6 +178,24 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return me_.GetPrevDataPage(me_.page(), me_.data());
     }
 
+//    bool NextKey()
+//    {
+//    	bool result = Base::NextKey();
+//    	if (Next)
+//    }
+//
+//    bool PrevKey()
+//    {
+//    	bool result = Base::PrevKey();
+//    	if (result)
+//    	{
+//    		for (Int c = 0; c < Indexes; c++)
+//    		{
+//    			me_.prefix(c) -= me_.model().GetKey(me_.page(), c, me_.key_idx());
+//    		}
+//    	}
+//    }
+
 MEMORIA_ITERATOR_PART_END
 
 }

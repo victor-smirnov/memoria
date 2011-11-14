@@ -32,23 +32,23 @@ struct BTreeTypes<Profile, memoria::ITree>: public BTreeTypes<Profile, memoria::
 
 	static const bool MapType                                               = MapTypes::Index;
 
-	typedef typename AppendTool<
+	typedef typename AppendLists<
 			typename Base::ContainerPartsList,
 			typename TLTool<
-			memoria::itree::ToolsName,
-			memoria::itree::FindName
+				memoria::itree::ToolsName,
+				memoria::itree::FindName
 			>::List
 	>::Result                                                               ContainerPartsList;
 
-	typedef typename AppendTool<
+	typedef typename AppendLists<
 			typename Base::IteratorPartsList,
 			typename TLTool<
-			memoria::itree::IteratorToolsName
+				memoria::itree::IteratorToolsName
 			>::List
 	>::Result                                                               IteratorPartsList;
 
 	template <
-	typename Types_
+		typename Types_
 	>
 	struct IterBaseFactory {
 		typedef ITreeIteratorBase<Types_> 										Type;
