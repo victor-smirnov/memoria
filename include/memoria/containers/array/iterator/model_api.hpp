@@ -62,7 +62,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     void Remove(BigInt len)
     {
-    	MyType to = me_.model().Seek(len);
+    	MyType to = me_;
+
+    	if (me_.model().debug()) {
+    		int a = 0;
+    		a++;
+    	}
+
+    	to.Skip(len);
     	me_.model().RemoveDataBlock(me_, to);
     }
 
@@ -149,16 +156,16 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 	if (me_.IsNotEmpty())
 	{
 		Int data_size = me_.data()->data().size();
-		Int idx = me_.data_pos();
+		Int data_pos = me_.data_pos();
 
-		if (distance + idx <= data_size)
+		if (distance + data_pos <= data_size)
 		{
 			MEMORIA_TRACE(me_.model(), "Within the page");
 			// A trivial case when the offset is within current data page
 
 			// we need to check for EOF if a data page
 			// is the last one in the index node
-			if (distance + idx == data_size)
+			if (distance + data_pos == data_size)
 			{
 				if (me_.key_idx() == me_.model().GetChildrenCount(me_.page()) - 1)
 				{
@@ -187,7 +194,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 		}
 		else
 		{
-			NodeTreeWalker<Container, Key, true> walker(distance + idx, me_.model());
+			NodeTreeWalker<Container, Key, true> walker(distance + data_pos, me_.model());
 
 			bool end 	= me_.WalkFw(me_.page(), me_.key_idx(), walker);
 			me_.data() 	= me_.model().GetDataPage(me_.page(), me_.key_idx());
@@ -196,7 +203,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			{
 				me_.data_pos() 	= me_.data()->data().size();
 				me_.Init();
-				return walker.sum() - idx;
+				return walker.sum() - data_pos;
 			}
 			else {
 				me_.data_pos() 	= walker.remainder();

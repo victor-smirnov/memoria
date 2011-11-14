@@ -24,6 +24,7 @@ class InsertName            {};
 class RemoveName            {};
 class ToolsName             {};
 class SeekName             	{};
+class ChecksName            {};
 
 class IteratorContainerAPIName  {};
 class IteratorAPIName       {};

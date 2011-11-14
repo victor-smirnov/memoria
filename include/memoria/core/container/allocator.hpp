@@ -32,6 +32,8 @@ struct IAbstractAllocator {
 	virtual void  RemovePage(const ID& id)								= 0;
 	virtual Page* CreatePage(Int initial_size = MaxPageSize)			= 0;
 	virtual Page* ReallocPage(Page* page, Int new_size)					= 0;
+
+	// Allocator directory interface part
 	virtual Page* GetRoot(BigInt name)									= 0;
 	virtual ID 	  GetRootID(BigInt name)								= 0;
 	virtual void  SetRoot(BigInt name, const ID& root) 					= 0;

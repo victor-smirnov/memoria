@@ -196,7 +196,7 @@ int main(int argc, const char** argv, const char **envp) {
 		for (int c = 0; c < SIZE; c++)
 		{
 			BigInt value = 0;
-			map->Get(pairs[c].key_, value, 0);
+			map->Get1(pairs[c].key_, value);
 
 			if (pairs[c].value_ != value)
 			{

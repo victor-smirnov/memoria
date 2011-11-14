@@ -134,7 +134,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      */
 
     // FIXME: remove data pages for dynarray
-    bool RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool remove_children, Key* keys = NULL);
+    bool RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool remove_children, Key* keys = NULL, bool preserve_key_values = true);
 
     void RemoveNode(NodeBase *node);
 
@@ -177,7 +177,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     bool MergeBTreeNodes(NodeBase *page1, NodeBase *page2);
 
 
-    bool RemovePages(NodeBase *start, Int start_idx, NodeBase *stop, Int stop_idx, Key* keys);
+    /**
+     * For Index type BTree if we remove some entries we need to preserve absolute key values
+     * from the right. Removed values will be returned in 'keys' output parameter.
+     *
+     * For structures like DynVector if we remove range we have to substruct the values from the right index cell manually.
+     *
+     * FIXME: optimize. Add a flag for absolute key value preserving.
+     *
+     */
+    bool RemovePages(NodeBase* start, Int start_idx, NodeBase* stop, Int stop_idx, Key* keys, bool preserve_key_values = true);
 
 
     bool MergeWithSiblings(NodeBase *node);
@@ -223,17 +232,19 @@ void M_TYPE::MoveChildrenLeft(NodeBase *node, Int from, Int count) {
 }
 
 M_PARAMS
-bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool remove_children, Key* keys)
+bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool remove_children, Key* keys, bool preserve_key_values)
 {
 	MEMORIA_TRACE(me_, "RemoveSpace", node->id(), from, count, update, remove_children);
 
 	if (count  == 0) return false;
 
+	Key keys0[Indexes] = {0};
+
 	if (MapType == MapTypes::Index)
 	{
 		bool upd0;
-		if (keys == NULL) {
-			Key keys0[Indexes] = {0};
+		if (keys == NULL)
+		{
 			keys = keys0;
 			upd0 = true;
 		}
@@ -243,7 +254,7 @@ bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool 
 
 		me_.SumKeys(node, from, count, keys);
 
-		if (upd0)
+		if (upd0 && preserve_key_values)
 		{
 			Int size = me_.GetChildrenCount(node);
 			if (from + count < size)
@@ -297,16 +308,24 @@ bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool 
 M_PARAMS
 void M_TYPE::RemoveNode(NodeBase *node)
 {
+	const Int children_count = me_.GetChildrenCount(node);
+
+
 	if (!node->is_leaf())
 	{
-		for (Int c = 0; c < me_.GetChildrenCount(node); c++)
+		for (Int c = 0; c < children_count; c++)
 		{
 			NodeBase *child = me_.GetChild(node, c);
 			me_.RemoveNode(child);
 		}
 	}
+	else {
+		typename MyType::DataRemoveHandlerFn data_remove_handler_fn(0, children_count, me_);
+		LeafDispatcher::Dispatch(node, data_remove_handler_fn);
+	}
 
-	if (node->is_root()) {
+	if (node->is_root())
+	{
 		ID id;
 		id.set_null();
 		me_.set_root(id);
@@ -404,7 +423,7 @@ bool M_TYPE::MergeBTreeNodes(NodeBase *page1, NodeBase *page2)
 		{
 			NodeBase *parent1 = me_.GetParent(page1);
 			NodeBase *parent2 = me_.GetParent(page2);
-			if (MergeBTreeNodes(parent1, parent2))
+			if (me_.MergeBTreeNodes(parent1, parent2))
 			{
 				MergeNodes(page1, page2);
 				return true;
@@ -422,7 +441,7 @@ bool M_TYPE::MergeBTreeNodes(NodeBase *page1, NodeBase *page2)
 }
 
 M_PARAMS
-bool M_TYPE::RemovePages(NodeBase *start, Int start_idx, NodeBase *stop, Int stop_idx, Key* keys)
+bool M_TYPE::RemovePages(NodeBase* start, Int start_idx, NodeBase* stop, Int stop_idx, Key* keys, bool preserve_key_values)
 {
 	if (start == NULL || stop == NULL)
 	{
@@ -452,7 +471,7 @@ bool M_TYPE::RemovePages(NodeBase *start, Int start_idx, NodeBase *stop, Int sto
 
 				if (me_.GetChildrenCount(parent) > 1)
 				{
-					affected = me_.RemoveSpace(parent, parent_idx, 1, true, true, keys) || affected;
+					affected = me_.RemoveSpace(parent, parent_idx, 1, true, true, keys, preserve_key_values) || affected;
 					break;
 				}
 				else
@@ -467,7 +486,7 @@ bool M_TYPE::RemovePages(NodeBase *start, Int start_idx, NodeBase *stop, Int sto
 				affected = true;
 				me_.set_root(ID(0));
 			}
-			else if (MapType == MapTypes::Index && parent != NULL)
+			else if (MapType == MapTypes::Index && preserve_key_values && parent != NULL)
 			{
 				if (parent_idx < me_.GetChildrenCount(parent) - 1)
 				{
@@ -494,7 +513,7 @@ bool M_TYPE::RemovePages(NodeBase *start, Int start_idx, NodeBase *stop, Int sto
 		else if (stop_idx - start_idx > 1)
 		{
 			MEMORIA_TRACE(me_, "RemovePages: remove page part");
-			affected = me_.RemoveSpace(start, start_idx + 1, stop_idx - start_idx - 1, true, true, keys) || affected;
+			affected = me_.RemoveSpace(start, start_idx + 1, stop_idx - start_idx - 1, true, true, keys, preserve_key_values) || affected;
 
 			if (start_idx >= 0 && stop_idx < children_count)
 			{
@@ -530,30 +549,33 @@ bool M_TYPE::RemovePages(NodeBase *start, Int start_idx, NodeBase *stop, Int sto
 				}
 			}
 
-			if (MapType == MapTypes::Index && start_idx + 1 < me_.GetChildrenCount(start))
+			if (MapType == MapTypes::Index && preserve_key_values)
 			{
-				MEMORIA_TRACE(me_, "RemovePages: part within ranges", start_idx + 1, me_.GetChildrenCount(start));
-				me_.AddKeys(start, start_idx + 1, keys);
-				me_.UpdateBTreeKeys(start);
-			}
-			else {
-				MEMORIA_TRACE(me_, "RemovePages: out of ranges", me_.GetChildrenCount(start));
-
-				Iterator i(me_);
-				start = i.GetNextNode(start);
-				if (start != NULL)
+				if (start_idx + 1 < me_.GetChildrenCount(start))
 				{
-					me_.AddKeys(start, 0, keys);
+					MEMORIA_TRACE(me_, "RemovePages: part within ranges", start_idx + 1, me_.GetChildrenCount(start));
+					me_.AddKeys(start, start_idx + 1, keys);
 					me_.UpdateBTreeKeys(start);
 				}
 				else {
-					MEMORIA_TRACE(me_, "RemovePages: no right sibling for", start->id());
+					MEMORIA_TRACE(me_, "RemovePages: out of ranges", me_.GetChildrenCount(start));
+
+					Iterator i(me_);
+					start = i.GetNextNode(start);
+					if (start != NULL)
+					{
+						me_.AddKeys(start, 0, keys);
+						me_.UpdateBTreeKeys(start);
+					}
+					else {
+						MEMORIA_TRACE(me_, "RemovePages: no right sibling for", start->id());
+					}
 				}
 			}
 		}
 		else {
 			MEMORIA_TRACE(me_, "RemovePages: Update page keys");
-			if (MapType == MapTypes::Index && start_idx + 1 < me_.GetChildrenCount(start))
+			if (MapType == MapTypes::Index && preserve_key_values && start_idx + 1 < me_.GetChildrenCount(start))
 			{
 				MEMORIA_TRACE(me_, "RemovePages: part within ranges", start_idx + 1, me_.GetChildrenCount(start));
 				me_.AddKeys(start, start_idx + 1, keys);
@@ -580,7 +602,7 @@ bool M_TYPE::RemovePages(NodeBase *start, Int start_idx, NodeBase *stop, Int sto
 
 		if (start_idx >= 0)
 		{
-			affected = me_.RemoveSpace(start, start_idx + 1, me_.GetChildrenCount(start) - start_idx - 1, true, true, keys);
+			affected = me_.RemoveSpace(start, start_idx + 1, me_.GetChildrenCount(start) - start_idx - 1, true, true, keys, preserve_key_values);
 		}
 		else
 		{
@@ -589,14 +611,14 @@ bool M_TYPE::RemovePages(NodeBase *start, Int start_idx, NodeBase *stop, Int sto
 
 		if (stop_idx < me_.GetChildrenCount(stop))
 		{
-			affected = me_.RemoveSpace(stop, 0, stop_idx, true, true, keys) || affected;
+			affected = me_.RemoveSpace(stop, 0, stop_idx, true, true, keys, preserve_key_values) || affected;
 		}
 		else
 		{
 			stop_parent_idx++;
 		}
 
-		return RemovePages(start_parent, start_parent_idx, stop_parent, stop_parent_idx, keys) || affected;
+		return me_.RemovePages(start_parent, start_parent_idx, stop_parent, stop_parent_idx, keys, preserve_key_values) || affected;
 	}
 }
 
@@ -633,7 +655,7 @@ bool M_TYPE::MergeWithSiblings(NodeBase *node) {
 		NodeBase *prev = tmp.GetPrevNode(node);
 		if (prev != NULL)
 		{
-			merged = MergeBTreeNodes(prev, node);
+			merged = me_.MergeBTreeNodes(prev, node);
 			node = prev;
 		}
 		else {
@@ -743,6 +765,11 @@ bool M_TYPE::RemoveEntry(Iterator iter) {
 	}
 }
 
+/**
+ * FIXME: check for iterator correctness after the operation is completed.
+ *
+ */
+
 M_PARAMS
 bool M_TYPE::RemoveEntries(Iterator from, Iterator to) {
 	if (from.IsEmpty() || from.IsEnd())
@@ -770,8 +797,9 @@ bool M_TYPE::RemoveEntries(Iterator from, Iterator to) {
 	}
 
 	Key keys[Indexes] = {0};
-	//FIXME: parametrize DefaultDataRemoveHandlerFn for DynamicArray
-	return me_.RemovePages(from.page(), from.key_idx() - 1, stop, stop_idx, keys);
+
+	from.key_idx()--;
+	return me_.RemovePages(from.page(), from.key_idx(), stop, stop_idx, keys);
 }
 
 M_PARAMS

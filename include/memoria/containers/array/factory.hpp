@@ -34,15 +34,15 @@ struct BTreeTypes<Profile, memoria::Array>: public BTreeTypes<Profile, memoria::
 
 	typedef BTreeTypes<Profile, memoria::DynVector> 								Base;
 
-	typedef typename AppendTool<
+	typedef typename AppendLists<
+			typename Base::ContainerPartsList,
 			typename TLTool<
 				memoria::models::array::ApiName,
 				memoria::models::array::ContainerApiName
-			>::List,
-			typename Base::ContainerPartsList
+			>::List
 	>::Result                                                               		ContainerPartsList;
 
-	typedef typename AppendTool<
+	typedef typename AppendLists<
 			typename Base::IteratorPartsList,
 			typename TLTool<
 				memoria::models::array::IteratorToolsName,

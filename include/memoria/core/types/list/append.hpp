@@ -22,7 +22,7 @@ struct AppendTool<Item, TL<Head, Tail> > {
 
 template<>
 struct AppendTool<NullType, NullType> {
-    typedef NullType                                                Result;
+    typedef NullType                                          Result;
 };
 
 template <typename Item>
@@ -34,6 +34,12 @@ template <typename Head, typename Tail>
 struct AppendTool<TL<Head, Tail>, NullType> {
     typedef TL<Head, Tail>                                    Result;
 };
+
+template <typename List, typename Item>
+struct AppendLists {
+	typedef typename AppendTool<Item, List>::Result			  Result;
+};
+
 
 }
 
