@@ -24,17 +24,19 @@ struct IAbstractAllocator {
 	typedef typename Page::ID											ID;
 	typedef EmptyType													Transaction;
 
+	typedef PageGuard<Page>												PageG;
+
 	typedef IAbstractAllocator<PageType, MaxPageSize>					AbstractAllocator;
 
 	static const Int PAGE_SIZE											= MaxPageSize;
 
-	virtual Page* GetPage(const ID& id)									= 0;
+	virtual PageG GetPage(const ID& id)									= 0;
 	virtual void  RemovePage(const ID& id)								= 0;
-	virtual Page* CreatePage(Int initial_size = MaxPageSize)			= 0;
-	virtual Page* ReallocPage(Page* page, Int new_size)					= 0;
+	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;
+	virtual PageG ReallocPage(Page* page, Int new_size)					= 0;
 
 	// Allocator directory interface part
-	virtual Page* GetRoot(BigInt name)									= 0;
+	virtual PageG GetRoot(BigInt name)									= 0;
 	virtual ID 	  GetRootID(BigInt name)								= 0;
 	virtual void  SetRoot(BigInt name, const ID& root) 					= 0;
 

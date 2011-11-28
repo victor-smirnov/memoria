@@ -119,7 +119,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescriptor &descriptor)
 {
-	NodeBase*& 	page 				= iter.page();
+	NodeBase*& 	page 				= iter.page().ref();
 	BigInt 		max_datapage_size 	= DataPage::get_max_size();
 
 	MEMORIA_TRACE(me_, "iterator is not empty", block.size(), page, me_.root());

@@ -17,6 +17,10 @@
 
 namespace memoria    {
 
+extern Int PageCtrCnt[10];
+extern Int PageDtrCnt[10];
+
+
 template <typename T, size_t Size = sizeof(T)>
 class AbstractPageID: public ValueBuffer<T, Size> {
 public:
@@ -190,6 +194,136 @@ public:
         this->page_type_hash()  = page->page_type_hash();
     }
 };
+
+
+template <typename Page>
+class PageGuard {
+	Page* page_;
+	int idx_;
+public:
+
+	typedef Page PageType;
+
+	PageGuard(): page_(NULL), idx_(0) {
+		PageCtrCnt[idx_]++;
+	}
+
+	template <typename PageT>
+	PageGuard(PageT* page): page_(static_cast<Page*>(page)), idx_(1)
+	{
+		PageCtrCnt[idx_]++;
+	}
+
+//	template <typename PageT>
+	PageGuard(const PageGuard<Page>& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
+	{
+		PageCtrCnt[idx_]++;
+	}
+
+	template <typename PageT>
+	PageGuard(PageGuard<PageT>&& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
+	{
+		 guard.idx_ 	= -1;
+		 guard.page_	= NULL;
+	}
+
+	~PageGuard()
+	{
+		if (idx_ != -1) PageDtrCnt[idx_]--;
+	}
+
+	template <typename PageT>
+	operator const PageT* () const {
+		return static_cast<const PageT*>(page_);
+	}
+
+	template <typename PageT>
+	operator PageT* () {
+		return static_cast<PageT*>(page_);
+	}
+
+//	template <typename PageT>
+//	operator const PageT*& () const {
+//		return static_cast<const PageT*>(page_);
+//	}
+//
+//	template <typename PageT>
+//	operator PageT*& () {
+//		return static_cast<PageT*>(page_);
+//	}
+
+
+	void operator=(Page* page)
+	{
+//		PageCtrCnt[2]++;
+		page_ = page;
+		//return page_;
+	}
+
+	template <typename P>
+	void operator=(const PageGuard<P>& guard)
+	{
+//		PageCtrCnt[3]++;
+		page_ = static_cast<Page*>(guard.page_);
+		//return *this;
+	}
+
+
+	bool operator==(const Page* page) const
+	{
+		return page_ == page;
+	}
+
+	bool operator!=(const Page* page) const
+	{
+		return page_ != page;
+	}
+
+	bool operator==(const PageGuard<Page>& page) const
+	{
+		return page_ == page.page_;
+	}
+
+	bool operator!=(const PageGuard<Page>& page) const
+	{
+		return page_ != page->page_;
+	}
+
+	const Page* page() const {
+		return page_;
+	}
+
+	Page* page() {
+		return page_;
+	}
+
+	const Page*& ref() const {
+		return page_;
+	}
+
+	Page*& ref() {
+		return page_;
+	}
+
+	const Page* operator->() const {
+		return page_;
+	}
+
+	Page* operator->() {
+		return page_;
+	}
+
+	template <typename PageT> friend class PageGuard;
+};
+
+
+template <typename T>
+LogHandler* LogIt(LogHandler* log, const PageGuard<T>& value) {
+    log->log(value.page());
+    log->log(" ");
+    return log;
+}
+
 
 }
 

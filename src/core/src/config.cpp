@@ -13,9 +13,13 @@
 using namespace std;
 using namespace memoria::vapi;
 
-namespace memoria {namespace vapi {
+namespace memoria {
+
+Int PageCtrCnt[10] = {0,0,0,0,0,0,0,0,0,0};
+Int PageDtrCnt[10] = {0,0,0,0,0,0,0,0,0,0};
 
 
+namespace vapi {
 
 
 MEMORIA_EXPORT void InitTypeSystem(int argc, const char** argv, const char** envp, bool read_config_files) {

@@ -32,6 +32,7 @@ public:
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Types::NodeBase::Base                                      TreeNodePage;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
@@ -344,27 +345,26 @@ public:
     }
 
 
-    NodeBase* GetChild(NodeBase *node, Int idx)
+    NodeBaseG GetChild(NodeBase *node, Int idx)
     {
-        return memoria::btree::GetChild<NonLeafDispatcher, NodeBase>(node, idx, me_.allocator());
+        return memoria::btree::GetChild<NonLeafDispatcher, NodeBaseG>(node, idx, me_.allocator());
     }
 
-    NodeBase* GetLastChild(NodeBase *node)
+    NodeBaseG GetLastChild(NodeBase *node)
     {
-        return memoria::btree::GetLastChild<NonLeafDispatcher, NodeBase>(node, me_.allocator());
+        return memoria::btree::GetLastChild<NonLeafDispatcher, NodeBaseG>(node, me_.allocator());
     }
 
 
-    NodeBase* GetParent(NodeBase *node)
+    NodeBaseG GetParent(NodeBase *node)
     {
         if (node->is_root())
         {
-            return NULL;
+            return NodeBaseG();
         }
         else
         {
-            NodeBase* parent = static_cast<NodeBase*>(me_.allocator().GetPage(node->parent_id()));
-            return parent;
+        	return me_.allocator().GetPage(node->parent_id()).page();
         }
     }
 
@@ -377,7 +377,8 @@ public:
         GetCapacityFn(Max max_node_capacity): max_node_capacity_(max_node_capacity) {}
 
         template <typename T>
-        void operator()(T *node) {
+        void operator()(T *node)
+        {
             if (max_node_capacity_ == -1)
             {
                 cap_ = (node->map().max_size() - node->map().size());

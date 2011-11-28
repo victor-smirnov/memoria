@@ -30,6 +30,8 @@ MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(memoria::btree::FindName)
     typedef typename Allocator::Transaction                                     Transaction;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Base::NodeBaseG                                            NodeBaseG;
+
     typedef typename Types::Counters                                            Counters;
     typedef Iter<typename Types::IterTypes>                            			Iterator;
 
@@ -72,7 +74,7 @@ public:
     struct FindFn {
         Iterator        i_;
         bool            rtn_;
-        NodeBase*       node_;
+        NodeBaseG       node_;
         Key             key_;
         Int             c_;
         MyType&         model_;
@@ -82,7 +84,7 @@ public:
 
     public:
         FindFn(Comparator& cmp, const Key& key, Int c, MyType &model):
-            i_(model), rtn_(false), node_(NULL),
+            i_(model), rtn_(false), node_(),
             key_(key), c_(c), model_(model),
             cmp_(cmp) {}
 
@@ -113,7 +115,7 @@ public:
             	if (!node->is_leaf())
                 {
                     idx_     = node->map().size() - 1;
-                    node_   = model_.GetChild(node, idx_);
+                    node_    = model_.GetChild(node, idx_);
                 }
                 else
                 {
@@ -146,7 +148,7 @@ public:
             return rtn_;
         }
 
-        NodeBase* node() {
+        NodeBaseG& node() {
             return node_;
         }
 

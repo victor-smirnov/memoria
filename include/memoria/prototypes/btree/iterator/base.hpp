@@ -25,14 +25,15 @@ using namespace memoria::btree;
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBase)
 public:
     typedef typename Base::Container::NodeBase                                        NodeBase;
+    typedef typename Base::Container::NodeBaseG                                        NodeBaseG;
 
 private:
 
-    NodeBase*           page_;
+    NodeBaseG           page_;
     Int                 key_idx_;
 
 public:
-    BTreeIteratorBase(MyType &me): Base(me), me_(me), page_(NULL), key_idx_(0) {}
+    BTreeIteratorBase(MyType &me): Base(me), me_(me), page_(), key_idx_(0) {}
 
     void setup(const MyType &other) {
         page_       = other.page_;
@@ -47,7 +48,7 @@ public:
     }
 
     Int BuildHash() const {
-    	return Base::BuildHash() ^ PtrToHash<NodeBase*>::hash(page_) ^ key_idx_;
+    	return Base::BuildHash() ^ PtrToHash<const NodeBase*>::hash(page_.page()) ^ key_idx_;
     }
 
     Int &key_idx() {
@@ -58,8 +59,12 @@ public:
         return key_idx_;
     }
 
-    NodeBase* &page() {
+    NodeBaseG &page() {
         return page_;
+    }
+
+    const NodeBaseG &page() const {
+    	return page_;
     }
 
     bool IsStart()

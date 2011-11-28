@@ -339,7 +339,7 @@ int main(int argc, const char** argv, const char **envp) {
 		try {
 			cout<<"Insert data"<<endl;
 
-			for (Int c = 0; c < 17762; c++)
+			for (Int c = 0; c < 100; c++)
 			{
 //				cout<<"C="<<c<<endl;
 				Build(allocator, dv, c + 1);
@@ -391,4 +391,14 @@ int main(int argc, const char** argv, const char **envp) {
 	}
 
 	cout<<"ARRAY TEST time: insert "<<(getTime()- t1)<<" remove "<<(t1 - t0)<<endl;
+
+	Int CtrTotal = 0, DtrTotal = 0;
+	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
+	{
+		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
+		CtrTotal += PageCtrCnt[c];
+		DtrTotal += PageDtrCnt[c];
+	}
+
+	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
 }

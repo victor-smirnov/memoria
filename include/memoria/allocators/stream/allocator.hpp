@@ -33,6 +33,7 @@ class StreamAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocato
 
 public:
 	typedef typename Base::Page 												Page;
+	typedef typename Base::PageG 												PageG;
 	typedef typename Page::ID 													ID;
 	static const Int PAGE_SIZE 													= 4096;
 
@@ -119,9 +120,9 @@ public:
 		return root_;
 	}
 
-	virtual Page* for_update(Page *page) {
-		return page;
-	}
+//	virtual Page* for_update(Page *page) {
+//		return page;
+//	}
 
 	/**
 	 * If a tree page is created using new (allocator) PageType call
@@ -235,23 +236,25 @@ public:
 		return PAGE_SIZE;
 	}
 
-	virtual Page* GetPage(const ID& id)	{
-		return get1(id);
+	virtual PageG GetPage(const ID& id)
+	{
+		return PageG(get1(id));
 	}
 
 	virtual void  RemovePage(const ID& id) {
 		free1(id);
 	}
 
-	virtual Page* CreatePage(Int initial_size = PAGE_SIZE) {
-		return this->create_new1();
+	virtual PageG CreatePage(Int initial_size = PAGE_SIZE)
+	{
+		return PageG(this->create_new1());
 	}
 
-	virtual Page* ReallocPage(Page* page, Int new_size) {
-		return page;
+	virtual PageG ReallocPage(Page* page, Int new_size) {
+		return PageG(page);
 	}
 
-	virtual Page* GetRoot(BigInt name) {
+	virtual PageG GetRoot(BigInt name) {
 		if (name == 0)
 		{
 			return GetPage(root_);

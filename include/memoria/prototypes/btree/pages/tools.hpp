@@ -500,26 +500,27 @@ Node *Root2Node(Node *node)
 
 template <typename Base, typename Idx, typename Mgr>
 class GetChildFn {
-    Base *node_;
+    Base node_;
     Idx idx_;
     Mgr &allocator_;
     
 public:
-    GetChildFn(Idx idx, Mgr &allocator): node_(NULL),
+    GetChildFn(Idx idx, Mgr &allocator): node_(),
             idx_(idx), allocator_(allocator) {}
 
     template <typename T>
     void operator()(T *node) {
-        node_ = static_cast<Base*>(allocator_.GetPage(node->map().data(idx_)));
+        //node_ = static_cast<Base*>(allocator_.GetPage(node->map().data(idx_)));
+    	node_ = allocator_.GetPage(node->map().data(idx_));
     }
 
-    Base* node() const {
+    Base& node() {
         return node_;
     }
 };
 
 template <typename Dispatcher, typename Base, typename Node, typename I, typename Allocator>
-Base* GetChild(Node *node, I idx, Allocator &allocator)
+Base GetChild(Node *node, I idx, Allocator &allocator)
 {
     GetChildFn<Base, I, Allocator> fn(idx, allocator);
     Dispatcher::Dispatch(node, fn);
@@ -533,24 +534,24 @@ Base* GetChild(Node *node, I idx, Allocator &allocator)
 
 template <typename Base, typename Mgr>
 class GetLastChildFn {
-    Base*   node_;
+    Base    node_;
     Mgr&    allocator_;
     
 public:
-    GetLastChildFn(Mgr &allocator): node_(NULL), allocator_(allocator) {}
+    GetLastChildFn(Mgr &allocator): node_(), allocator_(allocator) {}
 
     template <typename T>
     void operator()(T *node) {
-        node_ = static_cast<Base*>(allocator_.GetPage(node->map().data(node->map().size() - 1)));
+        node_ = allocator_.GetPage(node->map().data(node->map().size() - 1));
     }
 
-    Base* node() const {
+    Base& node() {
         return node_;
     }
 };
 
 template <typename Dispatcher, typename Base, typename Node, typename Allocator>
-static Base* GetLastChild(Node *node, Allocator &allocator)
+Base GetLastChild(Node *node, Allocator &allocator)
 {
     GetLastChildFn<Base, Allocator> fn(allocator);
     Dispatcher::Dispatch(node, fn);

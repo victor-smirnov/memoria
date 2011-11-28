@@ -217,19 +217,12 @@ public:
     	>::Type      															Counters;
 
     	typedef NodeContainerTypes                                              NodeBase;
+    	typedef PageGuard<NodeBase>												NodeBaseG;
+
     	typedef NullType                                      					EmbeddedContainersList;
 
     	typedef typename ContainerTypes::Allocator								Allocator;
     	typedef typename ContainerTypes::Metadata								Metadata;
-
-//    	typedef typename ReverseTool<
-//    			typename ContainerTypes::ContainerPartsList
-//    	>::Result 																CtrList;
-//
-//    	typedef typename ReverseTool<
-//    			typename ContainerTypes::IteratorPartsList
-//    	>::Result																IterList;
-
 
     	typedef typename ContainerTypes::ContainerPartsList						CtrList;
     	typedef typename ContainerTypes::IteratorPartsList						IterList;

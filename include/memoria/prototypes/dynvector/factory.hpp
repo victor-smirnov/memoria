@@ -50,6 +50,7 @@ struct DynVectorContainerTypes: public Base {
     >::Result                                                                   DataPagesList;
 
     typedef DataPage_                                                       	DataPage;
+    typedef PageGuard<DataPage>													DataPageG;
     typedef Buffer_                                                         	Buffer;
     typedef BufferContentDescriptor_                                        	BufferContentDescriptor;
     typedef CountData_                                                      	CountData;
