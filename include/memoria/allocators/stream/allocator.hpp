@@ -238,7 +238,7 @@ public:
 
 	virtual PageG GetPage(const ID& id)
 	{
-		return PageG(get1(id));
+		return PageG(0, get1(id));
 	}
 
 	virtual void  RemovePage(const ID& id) {
@@ -247,11 +247,11 @@ public:
 
 	virtual PageG CreatePage(Int initial_size = PAGE_SIZE)
 	{
-		return PageG(this->create_new1());
+		return PageG(0, this->create_new1());
 	}
 
 	virtual PageG ReallocPage(Page* page, Int new_size) {
-		return PageG(page);
+		return PageG(0, page);
 	}
 
 	virtual PageG GetRoot(BigInt name) {

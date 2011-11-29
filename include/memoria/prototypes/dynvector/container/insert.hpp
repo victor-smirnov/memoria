@@ -35,6 +35,7 @@ public:
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -262,7 +263,7 @@ void M_TYPE::import_pages(
 		BufferContentDescriptor &descriptor
 )
 {
-	NodeBase *node = iter.page();
+	NodeBase* node = iter.page();
 	BigInt key_idx = iter.key_idx();
 	BigInt data_pos = iter.data_pos();
 

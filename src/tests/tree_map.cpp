@@ -17,7 +17,7 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE = 1000;
+const Int SIZE = 10;
 
 const BigInt MAX_BIGINT_VALUE = 0x7fffffffffffffff;
 const Int MAX_INT_VALUE = 0x7fffffff;
@@ -254,4 +254,14 @@ int main(int argc, const char** argv, const char **envp) {
 	}
 
 	cout<<"TREE MAP time: "<<(getTime()- t0)<<endl;
+
+	Int CtrTotal = 0, DtrTotal = 0;
+	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
+	{
+		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
+		CtrTotal += PageCtrCnt[c];
+		DtrTotal += PageDtrCnt[c];
+	}
+
+	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
 }

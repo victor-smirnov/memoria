@@ -364,7 +364,7 @@ public:
         }
         else
         {
-        	return me_.allocator().GetPage(node->parent_id()).page();
+        	return me_.allocator().GetPage(node->parent_id());
         }
     }
 

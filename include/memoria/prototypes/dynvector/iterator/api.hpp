@@ -127,7 +127,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     }
 
 
-    DataPageG GetNextDataPage(NodeBase* page, DataPage* data)
+    DataPage* GetNextDataPage(NodeBase* page, DataPage* data)
     {
     	Int parent_idx = data->parent_idx();
     	Int children_count = me_.model().GetChildrenCount(page);
@@ -148,12 +148,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	}
     }
 
-    DataPageG GetNextDataPage()
+    DataPage* GetNextDataPage()
     {
     	return me_.GetNextDataPage(me_.page(), me_.data());
     }
 
-    DataPageG GetPrevDataPage(NodeBase* page, DataPage* data)
+    DataPage* GetPrevDataPage(NodeBase* page, DataPage* data)
     {
     	Int parent_idx = data->parent_idx();
 
@@ -174,7 +174,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	}
     }
 
-    DataPageG GetPrevDataPage()
+    DataPage* GetPrevDataPage()
     {
     	return me_.GetPrevDataPage(me_.page(), me_.data());
     }
