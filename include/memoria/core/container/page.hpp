@@ -217,8 +217,8 @@ public:
 		}
 	}
 
-//	template <typename PageT>
-	PageGuard(int i, Page* page): page_(static_cast<Page*>(page)), idx_(1)
+	template <typename PageT>
+	PageGuard(int i, PageT* page): page_(static_cast<Page*>(page)), idx_(1)
 	{
 		PageCtr++;
 		int j = i;
@@ -228,8 +228,8 @@ public:
 		}
 	}
 
-	template <typename PageT>
-	PageGuard(const PageGuard<PageT>& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
+//	template <typename PageT>
+	PageGuard(const PageGuard<Page>& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
 	{
 		PageCtr++;
 		PageCtrCnt[idx_]++;
@@ -238,8 +238,8 @@ public:
 		}
 	}
 
-	template <typename PageT>
-	PageGuard(PageGuard<PageT>&& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
+//	template <typename PageT>
+	PageGuard(PageGuard<Page>&& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
 	{
 		PageCtr++;
 		PageCtrCnt[idx_]++;
@@ -287,15 +287,24 @@ public:
 		//return page_;
 	}
 
-	template <typename P>
-	void operator=(const PageGuard<P>& guard)
+//	template <typename P>
+	void operator=(const PageGuard<Page>& guard)
 	{
-		PageCtrCnt[3]++;
+//		PageCtrCnt[3]++;
 		page_ = static_cast<Page*>(guard.page_);
 //		idx_ = guard.idx_;
 		//return *this;
 	}
 
+
+	template <typename P>
+	void operator=(const PageGuard<P>& guard)
+	{
+		PageCtrCnt[3]++;
+		page_ = static_cast<Page*>(guard.page_);
+		//		idx_ = guard.idx_;
+		//return *this;
+	}
 
 	bool operator==(const Page* page) const
 	{

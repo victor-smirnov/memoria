@@ -364,7 +364,7 @@ public:
         }
         else
         {
-        	return me_.allocator().GetPage(node->parent_id());
+        	return NodeBaseG(0, me_.allocator().GetPage(node->parent_id()).page());
         }
     }
 
@@ -566,9 +566,9 @@ public:
         return memoria::btree::GetMaxKey<NodeDispatcher, Key>(node, i);
     }
 
-    NodeBase* GetRoot() const
+    NodeBaseG GetRoot() const
     {
-        return static_cast<NodeBase *>(me_.allocator().GetPage(me_.root()));
+        return NodeBaseG(0, me_.allocator().GetPage(me_.root()).page());
     }
 
     void SetKeys(NodeBase *node, Int idx, const Key *keys) {

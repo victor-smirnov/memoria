@@ -45,7 +45,8 @@ class Iter<BTreeIterTypes<Types> >: public IterStart<BTreeIterTypes<Types> >
     typedef Ctr<typename Types::CtrTypes>                                       	ContainerType;
     typedef EmptyType																Txn;
 
-    typedef typename Base::NodeBase                                             	NodeBase;
+    typedef typename ContainerType::Types::NodeBase                                 NodeBase;
+    typedef typename ContainerType::Types::NodeBaseG                                NodeBaseG;
 
     Int kind_;
     ContainerType&      model_;
@@ -68,6 +69,14 @@ public:
         Base::state() = 0;
         if (do_init) Base::Init();
         Base::ReHash();
+    }
+
+    Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
+    	Base::page() = node;
+    	Base::key_idx() = idx;
+    	Base::state() = 0;
+    	if (do_init) Base::Init();
+    	Base::ReHash();
     }
 
     Iter(const MyType& other): Base(*this), kind_(other.kind_), model_(other.model_) {

@@ -71,11 +71,8 @@ public:
         return me_.allocator().GetPage(id);
     }
 
-    NodeBaseG GetDataParent(DataPage *node)
+    NodeBase* GetDataParent(DataPage *node)
     {
-//    	GlobalDebug() = true;
-    	int i = 0;
-    	i++;
     	return me_.allocator().GetPage(node->parent_id());
     }
 

@@ -240,7 +240,7 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindStart()
 {
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
@@ -248,6 +248,7 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 			node = me_.GetChild(node, 0);
 		}
 
+//		GlobalDebug = true;
 		return Iterator(node, 0, me_);
 	}
 	else {
@@ -258,7 +259,7 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 M_PARAMS
 const typename M_TYPE::Iterator M_TYPE::FindREnd() const
 {
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
@@ -276,7 +277,7 @@ const typename M_TYPE::Iterator M_TYPE::FindREnd() const
 M_PARAMS
 const typename M_TYPE::Iterator M_TYPE::FindEnd() const
 {
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
@@ -295,7 +296,7 @@ const typename M_TYPE::Iterator M_TYPE::FindEnd() const
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindRStart()
 {
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
