@@ -20,7 +20,10 @@ namespace memoria    {
 extern Int PageCtrCnt[10];
 extern Int PageDtrCnt[10];
 
-bool& GlobalDebug();
+extern Int PageCtr;
+extern Int PageDtr;
+
+extern bool GlobalDebug;
 
 template <typename T, size_t Size = sizeof(T)>
 class AbstractPageID: public ValueBuffer<T, Size> {
@@ -206,9 +209,10 @@ public:
 	typedef Page PageType;
 
 	PageGuard(): page_(NULL), idx_(0) {
+		PageCtr++;
 		PageCtrCnt[idx_]++;
 
-		if (GlobalDebug()) {
+		if (GlobalDebug) {
 			cout<<"Ctr1"<<endl;
 		}
 	}
@@ -216,9 +220,10 @@ public:
 //	template <typename PageT>
 	PageGuard(int i, Page* page): page_(static_cast<Page*>(page)), idx_(1)
 	{
+		PageCtr++;
 		int j = i;
 		PageCtrCnt[idx_ + j]++;
-		if (GlobalDebug()) {
+		if (GlobalDebug) {
 			cout<<"Ctr2 "<<idx_<<endl;
 		}
 	}
@@ -226,8 +231,9 @@ public:
 	template <typename PageT>
 	PageGuard(const PageGuard<PageT>& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
 	{
+		PageCtr++;
 		PageCtrCnt[idx_]++;
-		if (GlobalDebug()) {
+		if (GlobalDebug) {
 			cout<<"Ctr3 "<<idx_<<endl;
 		}
 	}
@@ -235,18 +241,20 @@ public:
 	template <typename PageT>
 	PageGuard(PageGuard<PageT>&& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
 	{
+		PageCtr++;
 		PageCtrCnt[idx_]++;
 		//		 guard.idx_ 	= -1;
 		 guard.page_	= NULL;
-		 if (GlobalDebug()) {
+		 if (GlobalDebug) {
 			 cout<<"Ctr4 "<<idx_<<endl;
 		 }
 	}
 
 	~PageGuard()
 	{
+		PageDtr--;
 		if (idx_ != -1) PageDtrCnt[idx_]--;
-		if (GlobalDebug()) {
+		if (GlobalDebug) {
 			cout<<"Dtr "<<idx_<<endl;
 		}
 	}

@@ -18,11 +18,11 @@ namespace memoria {
 Int PageCtrCnt[10] = {0,0,0,0,0,0,0,0,0,0};
 Int PageDtrCnt[10] = {0,0,0,0,0,0,0,0,0,0};
 
-bool GlobalDebug_ = false;
+Int PageCtr = 0;
+Int PageDtr = 0;
 
-bool& GlobalDebug() {
-	return GlobalDebug_;
-}
+bool GlobalDebug = false;
+
 
 namespace vapi {
 
