@@ -81,10 +81,10 @@ void CheckAllocator(SAllocator &allocator, const char* err_msg)
 
 	memoria::StreamContainersChecker checker(allocator);
 
-//	if (checker.CheckAll())
-//	{
-//		throw MemoriaException(MEMORIA_SOURCE, err_msg);
-//	}
+	if (checker.CheckAll())
+	{
+		throw MemoriaException(MEMORIA_SOURCE, err_msg);
+	}
 
 	ByteArray::class_logger().level() = src_level;
 }
@@ -339,7 +339,7 @@ int main(int argc, const char** argv, const char **envp) {
 		try {
 			cout<<"Insert data"<<endl;
 
-			for (Int c = 0; c < 1000; c++)
+			for (Int c = 0; c < SIZE; c++)
 			{
 //				cout<<"C="<<c<<endl;
 				Build(allocator, dv, c + 1);

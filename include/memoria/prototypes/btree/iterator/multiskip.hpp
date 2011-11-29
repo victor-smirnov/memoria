@@ -59,7 +59,7 @@ BigInt M_TYPE::SkipKeyFw(BigInt distance)
 	else {
 		KeyCounterWalker<Container, true> walker(distance, me_.model());
 
-		if (me_.WalkFw(me_.page().ref(), me_.key_idx(), walker))
+		if (me_.WalkFw(me_.page(), me_.key_idx(), walker))
 		{
 			me_.key_idx()++;
 			me_.ReHash();
@@ -88,7 +88,7 @@ BigInt M_TYPE::SkipKeyBw(BigInt distance)
 	else {
 		KeyCounterWalker<Container, false> walker(distance, me_.model());
 
-		if (me_.WalkBw(me_.page().ref(), me_.key_idx(), walker))
+		if (me_.WalkBw(me_.page(), me_.key_idx(), walker))
 		{
 			me_.key_idx() = -1;
 			me_.ReHash();

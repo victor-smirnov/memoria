@@ -207,7 +207,7 @@ template <typename Comparator>
 const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 {
 	MEMORIA_TRACE(me_, "begin", key, c, for_insert, me_.root());
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 
 	if (node != NULL)
 	{

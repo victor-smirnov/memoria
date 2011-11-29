@@ -45,7 +45,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
 
     template <typename Walker>
-    bool WalkFw(NodeBase*& index, Int &idx, Walker &walker)
+    bool WalkFw(NodeBaseG& index, Int &idx, Walker &walker)
     {
     	// Walk up
     	while (true)
@@ -119,7 +119,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
 
     template <typename Walker>
-    bool WalkBw(NodeBase*& index, Int &idx, Walker &walker)
+    bool WalkBw(NodeBaseG& index, Int &idx, Walker &walker)
     {
         // Walk up
         while (true)
@@ -182,7 +182,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     }
     
     template <typename Walker>
-    void walk_to_the_root(NodeBase* node, Int idx, Walker& walker)
+    void walk_to_the_root(NodeBaseG node, Int idx, Walker& walker)
     {
     	while(!node->is_root())
     	{

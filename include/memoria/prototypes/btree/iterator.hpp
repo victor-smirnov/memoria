@@ -63,13 +63,13 @@ public:
         Base::key_idx() = -1;
     }
     
-    Iter(NodeBase* node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
-        Base::page() = node;
-        Base::key_idx() = idx;
-        Base::state() = 0;
-        if (do_init) Base::Init();
-        Base::ReHash();
-    }
+//    Iter(NodeBase* node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
+//        Base::page() = node;
+//        Base::key_idx() = idx;
+//        Base::state() = 0;
+//        if (do_init) Base::Init();
+//        Base::ReHash();
+//    }
 
     Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
     	Base::page() = node;

@@ -17,7 +17,7 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE = 10;
+const Int SIZE = 1000;
 
 const BigInt MAX_BIGINT_VALUE = 0x7fffffffffffffff;
 const Int MAX_INT_VALUE = 0x7fffffff;
@@ -160,7 +160,7 @@ int main(int argc, const char** argv, const char **envp) {
 
 		DefaultStreamAllocator allocator;
 
-		allocator.GetLogger()->level() = Logger::TRACE;
+		allocator.GetLogger()->level() = Logger::NONE;
 
 		PairVector pairs;
 		PairVector pairs_sorted;

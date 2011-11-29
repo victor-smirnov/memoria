@@ -32,6 +32,7 @@ public:
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                            NodeBaseG;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -115,7 +116,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 bool M_TYPE::CheckTree()
 {
-	NodeBase* root = me_.GetRoot();
+	NodeBaseG root = me_.GetRoot();
 	if (root != NULL)
 	{
 		bool errors = false;
@@ -143,7 +144,8 @@ void M_TYPE::check_node_tree(NodeBase* node, bool &errors)
 
 	if (node->is_leaf())
 	{
-		if (node->counters().page_count() != 1) {
+		if (node->counters().page_count() != 1)
+		{
 			errors = true;
 			MEMORIA_ERROR(me_, "counters.page_count != 1 for leaf node", node->id(), node->counters().page_count());
 		}
@@ -157,7 +159,7 @@ void M_TYPE::check_node_tree(NodeBase* node, bool &errors)
 		Counters cnt;
 		for (Int c = 0; c < children; c++)
 		{
-			NodeBase* child = me_.GetChild(node, c);
+			NodeBaseG child = me_.GetChild(node, c);
 			cnt += child->counters();
 
 			me_.check_node_tree(child, errors);
@@ -178,7 +180,8 @@ void M_TYPE::check_node_tree(NodeBase* node, bool &errors)
 		cnt.page_count()++;
 
 		//FIXME: check counters
-		if (cnt != node->counters()) {
+		if (cnt != node->counters())
+		{
 			//errors = true;
 			//MEMORIA_ERROR(me_, "node.counters doesn't match childrens.counters", node->id(), node->counters(), cnt);
 		}
@@ -204,8 +207,10 @@ M_PARAMS
 bool M_TYPE::check_node_content(NodeBase* node)
 {
 	bool errors = false;
-	if (node->is_root()) {
-		if (!node->parent_id().is_null()) {
+	if (node->is_root())
+	{
+		if (!node->parent_id().is_null())
+		{
 			errors = true;
 			MEMORIA_ERROR(me_, "node.parent_id != NULL for root node", node->id(), node->parent_id());
 		}
@@ -225,7 +230,7 @@ bool M_TYPE::check_node_content(NodeBase* node)
 			MEMORIA_ERROR(me_, "node.parent_id == NULL for root node", node->id(), node->parent_id());
 		}
 
-		NodeBase* parent = me_.GetParent(node);
+		NodeBaseG parent = me_.GetParent(node);
 		if (parent == NULL) {
 			MEMORIA_ERROR(me_, "node", node->id(), "has no parent");
 		}

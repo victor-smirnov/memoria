@@ -196,7 +196,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 		{
 			NodeTreeWalker<Container, Key, true> walker(distance + data_pos, me_.model());
 
-			bool end 	= me_.WalkFw(me_.page().ref(), me_.key_idx(), walker);
+			bool end 	= me_.WalkFw(me_.page(), me_.key_idx(), walker);
 			me_.data() 	= me_.model().GetDataPage(me_.page(), me_.key_idx());
 
 			if (end)
@@ -244,7 +244,7 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 			NodeTreeWalker<Container, Key, false> walker(distance + to_add, me_.model());
 
 			//FIXME: does 'end' means the same as for StepFw()?
-			bool end 	= me_.WalkBw(me_.page().ref(), me_.key_idx(), walker);
+			bool end 	= me_.WalkBw(me_.page(), me_.key_idx(), walker);
 			me_.data() 	= me_.model().GetDataPage(me_.page(), me_.key_idx());
 
 			if (end)
