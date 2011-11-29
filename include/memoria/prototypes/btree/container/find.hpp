@@ -312,8 +312,9 @@ typename M_TYPE::Iterator M_TYPE::FindRStart()
 }
 
 M_PARAMS
-BigInt M_TYPE::GetTotalKeyCount() {
-	NodeBase *node = me_.GetRoot();
+BigInt M_TYPE::GetTotalKeyCount()
+{
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL) {
 		return node->counters().key_count();
 	}

@@ -21,7 +21,8 @@ using namespace memoria::btree;
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
-    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Base::NodeBase                                             	NodeBase;
+	typedef typename Base::NodeBaseG                                             	NodeBaseG;
     typedef typename Base::Container::NodeDispatcher                                NodeDispatcher;
 
     template <typename Walker>
@@ -189,6 +190,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     		idx  = node->parent_idx();
     		node = me_.GetParent(node);
     	}
+
     	walker(node, idx);
     }
 

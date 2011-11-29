@@ -32,7 +32,7 @@ public:
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Types::NodeBase::Base                                      TreeNodePage;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
@@ -78,11 +78,11 @@ public:
     template <typename Map, typename NodeBase>
     class UpdateBTreeKeysFn1 {
         Map &map_;
-        NodeBase *parent_;
+        NodeBaseG parent_;
         bool add_mode_;
     public:
 
-        UpdateBTreeKeysFn1(Map &map, NodeBase *parent, bool add_mode) :
+        UpdateBTreeKeysFn1(Map &map, NodeBaseG parent, bool add_mode) :
                     map_(map), parent_(parent),
                     add_mode_(add_mode)
                     {}
@@ -102,9 +102,9 @@ public:
         }
     };
 
-    void UpdateBTreeKeys(NodeBase *node, bool add_mode = false)
+    void UpdateBTreeKeys(NodeBaseG node, bool add_mode = false)
     {
-        NodeBase* parent = me_.GetParent(node);
+        NodeBaseG parent = me_.GetParent(node);
         if (parent != NULL)
         {
             UpdateBTreeKeysFn1<MyType, NodeBase> fn(me_, parent, add_mode);
@@ -116,7 +116,7 @@ public:
     template <typename Map, typename Keys>
     class UpdateBTreeKeysFn2 {
         bool retn_;
-        NodeBase *node_;
+        NodeBaseG node_;
         Keys* keys_;
         Int idx_;
 
@@ -124,7 +124,7 @@ public:
         bool add_mode_;
     public:
         UpdateBTreeKeysFn2(Map &map, Int idx, Keys *keys, bool add_mode):
-                            retn_(false), node_(NULL), keys_(keys),
+                            retn_(false), node_(), keys_(keys),
                             idx_(idx), map_(map),
                             add_mode_(add_mode)
         {}
@@ -160,7 +160,7 @@ public:
 
         
 
-        NodeBase *node() const {
+        NodeBaseG& node() {
             return node_;
         }
 
@@ -230,7 +230,7 @@ public:
         }
     };
 
-    void UpdateBTreeKeys(NodeBase *node, Int idx, const Key *keys, bool add_mode = false)
+    void UpdateBTreeKeys(NodeBaseG node, Int idx, const Key *keys, bool add_mode = false)
     {
     	MEMORIA_TRACE(me_, "[node.id, idx, keys[0]", node->id(), idx, keys[0], add_mode);
 
@@ -241,18 +241,9 @@ public:
         {
             UpdateBTreeKeysFn2<MyType, Key> fn2(me_, idx, tkeys, add_mode);
             NodeDispatcher::Dispatch(node, fn2);
-            
-//            UpdateBTreeKeysFn3<MyType, Key> fn3(me_, fn2.idx(), tkeys);
-//            NodeDispatcher::Dispatch(fn2.node(), fn3);
-            
-//            if (fn3.retn())
-//            {
-//                return;
-//            }
-//            else {
-                idx = fn2.idx();
-                node = fn2.node();
-//            }
+
+            idx = fn2.idx();
+            node = fn2.node();
         }
 
         UpdateBTreeKeysFn4<MyType, Key> fn4(me_, idx, tkeys, add_mode);
@@ -260,7 +251,8 @@ public:
     }
 
 
-    void UpdateBTreeCounters(NodeBase *node, const Counters &counters) {
+    void UpdateBTreeCounters(NodeBaseG node, const Counters &counters)
+    {
         while (!node->is_root())
         {
             node->counters().page_count() += counters.page_count();

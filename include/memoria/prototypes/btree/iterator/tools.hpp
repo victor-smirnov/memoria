@@ -22,12 +22,15 @@ using namespace memoria::btree;
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
 
-    typedef typename Base::NodeBase                                             NodeBase;
+
     typedef typename Base::Container                                                Container;
+	typedef typename Container::Types::NodeBase                                     NodeBase;
+	typedef typename Container::Types::NodeBaseG                                    NodeBaseG;
+
     typedef typename Container::Key                                                 Key;
     typedef typename Container::Value                                               Value;
 
-    NodeBase* GetParent(NodeBase *node)
+    NodeBaseG GetParent(NodeBase *node)
     {
         return me_.model().GetParent(node);
     }
@@ -37,11 +40,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
         return me_.model().GetChildrenCount(node);
     }
 
-    NodeBase *GetChild(NodeBase *node, Int idx) {
+    NodeBaseG GetChild(NodeBase *node, Int idx)
+    {
         return me_.model().GetChild(node, idx);
     }
 
-    NodeBase* GetLastChild(NodeBase *node)
+    NodeBaseG GetLastChild(NodeBase *node)
     {
         return me_.model().GetLastChild(node);
     }
