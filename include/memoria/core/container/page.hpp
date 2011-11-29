@@ -218,36 +218,44 @@ public:
 	}
 
 	template <typename PageT>
-	PageGuard(int i, PageT* page): page_(static_cast<Page*>(page)), idx_(1)
+	PageGuard(PageT* page): page_(static_cast<Page*>(page)), idx_(1)
 	{
 		PageCtr++;
-		int j = i;
-		PageCtrCnt[idx_ + j]++;
+		PageCtrCnt[idx_]++;
 		if (GlobalDebug) {
 			cout<<"Ctr2 "<<idx_<<endl;
 		}
 	}
 
-//	template <typename PageT>
 	PageGuard(const PageGuard<Page>& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
 	{
 		PageCtr++;
 		PageCtrCnt[idx_]++;
 		if (GlobalDebug) {
-			cout<<"Ctr3 "<<idx_<<endl;
+			cout<<"Ctr3.1 "<<idx_<<endl;
 		}
 	}
 
-//	template <typename PageT>
-	PageGuard(PageGuard<Page>&& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
+	template <typename PageT>
+	PageGuard(const PageGuard<PageT>& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
+	{
+		PageCtr++;
+		PageCtrCnt[idx_]++;
+		if (GlobalDebug) {
+			cout<<"Ctr3.2 "<<idx_<<endl;
+		}
+	}
+
+	template <typename PageT>
+	PageGuard(PageGuard<PageT>&& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
 	{
 		PageCtr++;
 		PageCtrCnt[idx_]++;
 		//		 guard.idx_ 	= -1;
-		 guard.page_	= NULL;
-		 if (GlobalDebug) {
-			 cout<<"Ctr4 "<<idx_<<endl;
-		 }
+		guard.page_	= NULL;
+		if (GlobalDebug) {
+			cout<<"Ctr4 "<<idx_<<endl;
+		}
 	}
 
 	~PageGuard()

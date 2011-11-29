@@ -223,14 +223,6 @@ public:
 
 	// End RootMapInterface
 
-
-
-
-
-//	virtual void sync(const ID &page_id) {
-//
-//	}
-
 	Int get_page_size()
 	{
 		return PAGE_SIZE;
@@ -238,7 +230,7 @@ public:
 
 	virtual PageG GetPage(const ID& id)
 	{
-		return PageG(0, get1(id));
+		return PageG(get1(id));
 	}
 
 	virtual void  RemovePage(const ID& id) {
@@ -247,11 +239,12 @@ public:
 
 	virtual PageG CreatePage(Int initial_size = PAGE_SIZE)
 	{
-		return PageG(0, this->create_new1());
+		return PageG(this->create_new1());
 	}
 
-	virtual PageG ReallocPage(Page* page, Int new_size) {
-		return PageG(0, page);
+	virtual PageG ReallocPage(Page* page, Int new_size)
+	{
+		return PageG(page);
 	}
 
 	virtual PageG GetRoot(BigInt name) {

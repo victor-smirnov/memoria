@@ -364,7 +364,7 @@ public:
         }
         else
         {
-        	return NodeBaseG(0, me_.allocator().GetPage(node->parent_id()).page());
+        	return me_.allocator().GetPage(node->parent_id());
         }
     }
 
@@ -534,9 +534,9 @@ public:
 
 
 
-    NodeBase* GetNode(ID &id)
+    NodeBaseG GetNode(ID &id)
     {
-        return static_cast<NodeBase*>(me_.allocator().GetPage(id));
+        return me_.allocator().GetPage(id);
     }
 
 
@@ -568,7 +568,7 @@ public:
 
     NodeBaseG GetRoot() const
     {
-        return NodeBaseG(0, me_.allocator().GetPage(me_.root()).page());
+        return me_.allocator().GetPage(me_.root());
     }
 
     void SetKeys(NodeBase *node, Int idx, const Key *keys) {
