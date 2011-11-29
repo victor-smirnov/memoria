@@ -277,42 +277,49 @@ public:
 		return static_cast<PageT*>(page_);
 	}
 
-//	template <typename PageT>
-//	operator const PageT*& () const {
-//		return static_cast<const PageT*>(page_);
-//	}
-//
-//	template <typename PageT>
-//	operator PageT*& () {
-//		return static_cast<PageT*>(page_);
-//	}
-
-
 	void operator=(Page* page)
 	{
-//		PageCtrCnt[2]++;
 		page_ = page;
-		//return page_;
 	}
 
-//	template <typename P>
-	void operator=(const PageGuard<Page>& guard)
+	PageGuard<Page>& operator=(const PageGuard<Page>& guard)
 	{
-//		PageCtrCnt[3]++;
+		//PageCtrCnt[4]++;
 		page_ = static_cast<Page*>(guard.page_);
-//		idx_ = guard.idx_;
-		//return *this;
+		return *this;
 	}
 
 
 	template <typename P>
-	void operator=(const PageGuard<P>& guard)
+	PageGuard<Page>& operator=(const PageGuard<P>& guard)
 	{
-		PageCtrCnt[3]++;
+		//PageCtrCnt[3]++;
 		page_ = static_cast<Page*>(guard.page_);
-		//		idx_ = guard.idx_;
-		//return *this;
+		return *this;
 	}
+
+	PageGuard<Page>& operator=(PageGuard<Page>&& guard)
+	{
+		//PageCtrCnt[6]++;
+		page_ = static_cast<Page*>(guard.page_);
+
+		guard.page_ = NULL;
+
+		return *this;
+	}
+
+
+	template <typename P>
+	PageGuard<Page>& operator=(PageGuard<P>&& guard)
+	{
+//		PageCtrCnt[5]++;
+		page_ = static_cast<Page*>(guard.page_);
+
+		guard.page_ = NULL;
+
+		return *this;
+	}
+
 
 	bool operator==(const Page* page) const
 	{

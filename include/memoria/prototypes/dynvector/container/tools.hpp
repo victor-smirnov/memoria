@@ -65,18 +65,18 @@ public:
 
     
 
-    DataPage* GetDataPage(NodeBase *node, Int idx)
+    DataPageG GetDataPage(NodeBase *node, Int idx)
     {
         Value id = me_.GetLeafData(node, idx);
         return me_.allocator().GetPage(id);
     }
 
-    NodeBase* GetDataParent(DataPage *node)
+    NodeBaseG GetDataParent(DataPage *node)
     {
     	return me_.allocator().GetPage(node->parent_id());
     }
 
-    DataPage* InsertDataPage(NodeBase* node, Int key_idx)
+    DataPageG InsertDataPage(NodeBase* node, Int key_idx)
     {
     	me_.InsertSpace(node, key_idx, 1);
     	return me_.create_datapage(node, key_idx);

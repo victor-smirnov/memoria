@@ -66,6 +66,8 @@ class MoveChildrenFn {
     Int total_children_count_;
     Allocator&    allocator_;
     
+    typedef PageGuard<TreeNode> TreeNodeG;
+
 public:
     MoveChildrenFn(Int from, Int count, Int total_children_count, Allocator &allocator):
             from_(from), count_(count), total_children_count_(total_children_count), allocator_(allocator){}
@@ -74,7 +76,7 @@ public:
     void operator()(Node *node) {
         for (Int c = from_ + count_; c < total_children_count_; c++)
         {
-            TreeNode *child = static_cast<TreeNode*>(allocator_.GetPage(node->map().data(c)));
+            TreeNodeG child = allocator_.GetPage(node->map().data(c));
             child->parent_idx() += count_;
         }
     }
@@ -158,6 +160,8 @@ class AccumulateChildrenCountersFn {
     Int         count_;
     Allocator&    allocator_;
     
+    typedef PageGuard<BaseNode> BaseNodeG;
+
 public:
 
     AccumulateChildrenCountersFn(Int from, Int shift, Int count, Allocator &allocator):
@@ -167,7 +171,7 @@ public:
     void operator()(Node *two) {
         for (Int c = shift_; c < count_ + shift_; c++)
         {
-            BaseNode *child = static_cast<BaseNode*>(allocator_.GetPage(two->map().data(c)));
+            BaseNodeG child = allocator_.GetPage(two->map().data(c));
 
             child->parent_id() = two->id();
             child->parent_idx() -= from_;
@@ -202,6 +206,8 @@ struct UpdateChildrenParentIdxFn {
     Int         count_;
     Allocator&    allocator_;
     
+    typedef PageGuard<NodeBase> BaseNodeG;
+
 public:
 
     UpdateChildrenParentIdxFn(Int from, Int shift, Int count, Allocator &allocator):
@@ -211,7 +217,7 @@ public:
     void operator()(Node *two) {
         for (Int c = count_ + shift_; c < two->map().size(); c++)
         {
-            NodeBase *child = static_cast<NodeBase*>(allocator_.GetPage(two->map().data(c)));
+            BaseNodeG child = allocator_.GetPage(two->map().data(c));
             child->parent_idx() += count_ + shift_;
         }
     }
@@ -317,12 +323,14 @@ void RemoveElements(Node *node, Int from, Int count, bool reindex)
 }
 
 
-template <typename Base, typename Int, typename Allocator>
+template <typename BaseNode, typename Int, typename Allocator>
 class IncrementChildPidsFn {
     Int         from_;
     Int         count_;
     Allocator&    allocator_;
     
+    typedef PageGuard<BaseNode> BaseNodeG;
+
 public:
     IncrementChildPidsFn(Int from, Int count, Allocator &allocator):
                 from_(from), count_(count), allocator_(allocator) {}
@@ -331,7 +339,7 @@ public:
     void operator()(T *node) {
         for (Int c = from_; c < node->map().size(); c++)
         {
-            Base *child = static_cast<Base*>(allocator_.GetPage(node->map().data(c)));
+            BaseNodeG child = allocator_.GetPage(node->map().data(c));
             child->parent_idx() += count_;
         }
     }
@@ -350,6 +358,8 @@ class IncrementChildPidsAndReparentFn {
     Int         count_;
     Allocator&    allocator_;
     
+    typedef PageGuard<Base> NodeBaseG;
+
 public:
     IncrementChildPidsAndReparentFn(Int from, Int count, Allocator &allocator):
                 from_(from), count_(count), allocator_(allocator) {}
@@ -358,7 +368,7 @@ public:
     void operator()(T *node) {
         for (Int c = from_; c < node->map().size(); c++)
         {
-            Base *child = static_cast<Base*>(allocator_.GetPage(node->map().data(c)));
+        	NodeBaseG child = allocator_.GetPage(node->map().data(c));
             child->parent_id() = node->id();
             child->parent_idx() += count_;
         }
@@ -510,8 +520,7 @@ public:
 
     template <typename T>
     void operator()(T *node) {
-        //node_ = static_cast<Base*>(allocator_.GetPage(node->map().data(idx_)));
-    	node_ = allocator_.GetPage(node->map().data(idx_));
+        node_ = allocator_.GetPage(node->map().data(idx_));
     }
 
     Base& node() {

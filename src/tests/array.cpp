@@ -339,7 +339,7 @@ int main(int argc, const char** argv, const char **envp) {
 		try {
 			cout<<"Insert data"<<endl;
 
-			for (Int c = 0; c < 100; c++)
+			for (Int c = 0; c < 1000; c++)
 			{
 //				cout<<"C="<<c<<endl;
 				Build(allocator, dv, c + 1);
@@ -401,4 +401,5 @@ int main(int argc, const char** argv, const char **envp) {
 	}
 
 	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
+	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
 }

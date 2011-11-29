@@ -21,13 +21,14 @@ using namespace memoria::btree;
 MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
 
     typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                              Allocator;
+    typedef typename Base::Allocator                                            Allocator;
 
     typedef typename Base::Page                                                 Page;
     typedef typename Base::ID                                                   ID;
     
 
-    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::TreeNodePage                                     	TreeNodePage;
     typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
@@ -51,9 +52,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
 
 
     void create_new();
-    NodeBase *CreateNode(Short level, bool root, bool leaf);
-    void InsertSpace(NodeBase *node, Int from, Int count, bool increase_children_count = true);
-    NodeBase* SplitNode(NodeBase *one, NodeBase *parent, Int parent_idx, Int from, Int shift);
+    NodeBaseG CreateNode(Short level, bool root, bool leaf);
+    void InsertSpace(NodeBaseG node, Int from, Int count, bool increase_children_count = true);
+    NodeBaseG SplitNode(NodeBaseG one, NodeBaseG parent, Int parent_idx, Int from, Int shift);
 
 
     /**
@@ -63,7 +64,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
      *
      * returns new leaf page that goes right after old leaf page in the index tree
      */
-    NodeBase* SplitBTreeNode(NodeBase *page, Int count_leaf, Int shift = 0);
+    NodeBaseG SplitBTreeNode(NodeBaseG page, Int count_leaf, Int shift = 0);
 
 
     template <typename Keys, typename Data>
@@ -109,11 +110,9 @@ void M_TYPE::create_new() {
 }
 
 M_PARAMS
-typename M_TYPE::NodeBase *M_TYPE::CreateNode(Short level, bool root, bool leaf)
+typename M_TYPE::NodeBaseG M_TYPE::CreateNode(Short level, bool root, bool leaf)
 {
-	MEMORIA_TRACE(me_, "CreateNode:", level, root, leaf, me_.name());
-
-	NodeBase* node = NodeFactory::Create(me_.allocator(), level, root, leaf);
+	NodeBaseG node = NodeFactory::Create(me_.allocator(), level, root, leaf);
 
 	if (root) {
 		Metadata meta = me_.GetRootMetadata(node);
@@ -123,35 +122,33 @@ typename M_TYPE::NodeBase *M_TYPE::CreateNode(Short level, bool root, bool leaf)
 
 	node->model_hash() = me_.hash();
 
-	MEMORIA_TRACE(me_, "Node ID:", node, node->id(), node->id().value());
-
 	return node;
 }
 
 M_PARAMS
-void M_TYPE::InsertSpace(NodeBase *node, Int from, Int count, bool increase_children_count)
+void M_TYPE::InsertSpace(NodeBaseG node, Int from, Int count, bool increase_children_count)
 {
-	Int total_children_count = MoveElements<NodeDispatcher>(node, from, count, increase_children_count);
+	Int total_children_count = MoveElements<NodeDispatcher>(node.page(), from, count, increase_children_count);
 
 	if (!node->is_leaf())
 	{
-		MoveChildren<NonLeafDispatcher, TreeNodePage>(node, from, count, total_children_count, me_.allocator());
+		MoveChildren<NonLeafDispatcher, TreeNodePage>(node.page(), from, count, total_children_count, me_.allocator());
 	}
 	else if (me_.IsDynarray())
 	{
-		MoveChildren<LeafDispatcher, TreeNodePage>(node, from, count, total_children_count, me_.allocator());
+		MoveChildren<LeafDispatcher, TreeNodePage>(node.page(), from, count, total_children_count, me_.allocator());
 	}
 }
 
 
 M_PARAMS
-typename M_TYPE::NodeBase* M_TYPE::SplitNode(NodeBase *one, NodeBase *parent, Int parent_idx, Int from, Int shift)
+typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG one, NodeBaseG parent, Int parent_idx, Int from, Int shift)
 {
 	MEMORIA_TRACE(me_, "SplitNode", one->id(), one->parent_idx(), "parent", parent->id(), parent_idx, "at", from, "shift", shift);
 
-	NodeBase* two = me_.CreateNode(one->level(), false, one->is_leaf()); // one->is_root() was false here
+	NodeBaseG two = me_.CreateNode(one->level(), false, one->is_leaf()); // one->is_root() was false here
 
-	Int count = CopyElements<NodeDispatcher>(one, two, from, shift);
+	Int count = CopyElements<NodeDispatcher>(one.page(), two.page(), from, shift);
 
 	Counters counters;
 
@@ -159,9 +156,9 @@ typename M_TYPE::NodeBase* M_TYPE::SplitNode(NodeBase *one, NodeBase *parent, In
 	{
 		//FIXME: AccumulateChildrenCounters() does not only sums counters but makes children reparenting
 		// maybe CopyElemnts knows this secret
-		counters = AccumulateChildrenCounters<NonLeafDispatcher, Counters>(two, from, shift, count, me_.allocator());
+		counters = AccumulateChildrenCounters<NonLeafDispatcher, Counters>(two.page(), from, shift, count, me_.allocator());
 
-		UpdateChildrenParentIdx<NonLeafDispatcher, TreeNodePage>(two, from, shift, count, me_.allocator());
+		UpdateChildrenParentIdx<NonLeafDispatcher, TreeNodePage>(two.page(), from, shift, count, me_.allocator());
 
 		two->counters() += counters;
 		one->counters() -= counters;
@@ -170,8 +167,8 @@ typename M_TYPE::NodeBase* M_TYPE::SplitNode(NodeBase *one, NodeBase *parent, In
 	{
 		if (me_.IsDynarray())
 		{
-			ShiftAndReparentChildren<LeafDispatcher, TreeNodePage>(two, from, shift, count, me_.allocator());
-			UpdateChildrenParentIdx<LeafDispatcher, TreeNodePage>(two, from, shift, count, me_.allocator());
+			ShiftAndReparentChildren<LeafDispatcher, TreeNodePage>(two.page(), from, shift, count, me_.allocator());
+			UpdateChildrenParentIdx<LeafDispatcher, TreeNodePage>(two.page(), from, shift, count, me_.allocator());
 		}
 
 		counters.page_count()           = 0;
@@ -189,7 +186,7 @@ typename M_TYPE::NodeBase* M_TYPE::SplitNode(NodeBase *one, NodeBase *parent, In
 
 	me_.PostSplit(one, two, from);
 
-	NodeBase *one_parent = me_.GetParent(one);
+	NodeBaseG one_parent = me_.GetParent(one);
 
 	Key max[Indexes];
 	me_.GetMaxKeys(one, max);
@@ -215,12 +212,12 @@ typename M_TYPE::NodeBase* M_TYPE::SplitNode(NodeBase *one, NodeBase *parent, In
 
 
 M_PARAMS
-typename M_TYPE::NodeBase* M_TYPE::SplitBTreeNode(NodeBase *page, Int count_leaf, Int shift)
+typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf, Int shift)
 {
 	if (!page->is_root())
 	{
-		NodeBase *new_page;
-		NodeBase *parent = me_.GetParent(page);
+		NodeBaseG new_page;
+		NodeBaseG parent = me_.GetParent(page);
 
 		Int idx_in_parent = page->parent_idx();
 		if (me_.GetCapacity(parent) == 0)
@@ -230,7 +227,7 @@ typename M_TYPE::NodeBase* M_TYPE::SplitBTreeNode(NodeBase *page, Int count_leaf
 
 			if (idx_in_parent < me_.GetChildrenCount(parent) - 1)
 			{
-				NodeBase* tmp = me_.SplitBTreeNode(parent, idx_in_parent + 1, 1);
+				NodeBaseG tmp = me_.SplitBTreeNode(parent, idx_in_parent + 1, 1);
 				parent = tmp;
 				parent_idx = 0;
 			}
@@ -254,8 +251,8 @@ typename M_TYPE::NodeBase* M_TYPE::SplitBTreeNode(NodeBase *page, Int count_leaf
 	}
 	else
 	{
-		NodeBase* root 		= me_.GetRoot(); // page == root
-		NodeBase* new_root 	= me_.CreateNode(root->level() + 1, true, false);
+		NodeBaseG root 		= me_.GetRoot(); // page == root
+		NodeBaseG new_root 	= me_.CreateNode(root->level() + 1, true, false);
 
 		MEMORIA_TRACE(me_, "Split root", root->id(), "new root", new_root->id());
 
@@ -293,7 +290,7 @@ void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 
 	if (iter.IsNotEmpty())
 	{
-		NodeBase *node = iter.page();
+		NodeBaseG node = iter.page();
 		Int idx = iter.key_idx();
 		MEMORIA_TRACE(me_, "Insert value. idx =", idx);
 
@@ -333,7 +330,7 @@ void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 	}
 	else
 	{
-		NodeBase *node = CreateNode(0, true, true);
+		NodeBaseG node = CreateNode(0, true, true);
 
 		me_.set_root(node->id());
 		iter.page() = node;
