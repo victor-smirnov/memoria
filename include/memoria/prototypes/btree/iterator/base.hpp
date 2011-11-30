@@ -25,7 +25,8 @@ using namespace memoria::btree;
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBase)
 public:
     typedef typename Base::Container::NodeBase                                        NodeBase;
-    typedef typename Base::Container::NodeBaseG                                        NodeBaseG;
+    typedef typename Base::Container::NodeBaseG                                       NodeBaseG;
+    typedef typename Base::Container::Allocator										  Allocator;
 
 private:
 
@@ -33,7 +34,11 @@ private:
     Int                 key_idx_;
 
 public:
-    BTreeIteratorBase(MyType &me): Base(me), me_(me), page_(), key_idx_(0) {}
+    BTreeIteratorBase(MyType &me): Base(me), me_(me), page_(NULL), key_idx_(0) {}
+
+    void SetupAllocator(Allocator* allocator) {
+    	page_.set_allocator(allocator);
+    }
 
     void setup(const MyType &other) {
         page_       = other.page_;

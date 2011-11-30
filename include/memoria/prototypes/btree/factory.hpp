@@ -194,10 +194,12 @@ public:
 
 
     typedef NodePageContainerTypes													NodeContainerTypes;
+    typedef PageGuard<NodeContainerTypes, typename ContainerTypes::Allocator>		NodeContainerTypesG;
 
     struct DispatcherTypes {
     	typedef NodeTypesList 								NodeList;
     	typedef NodeContainerTypes 							NodeBase;
+    	typedef NodeContainerTypesG 						NodeBaseG;
     	typedef typename ContainerTypes::Allocator			Allocator;
     };
 
@@ -216,13 +218,16 @@ public:
     			BTreeCountersFactory<ContainerTypeName_>
     	>::Type      															Counters;
 
+    	typedef typename ContainerTypes::Allocator								Allocator;
+    	typedef typename ContainerTypes::Metadata								Metadata;
+
     	typedef NodeContainerTypes                                              NodeBase;
-    	typedef PageGuard<NodeBase>												NodeBaseG;
+    	typedef NodeContainerTypesG                                             NodeBaseG;
+
 
     	typedef NullType                                      					EmbeddedContainersList;
 
-    	typedef typename ContainerTypes::Allocator								Allocator;
-    	typedef typename ContainerTypes::Metadata								Metadata;
+
 
     	typedef typename ContainerTypes::ContainerPartsList						CtrList;
     	typedef typename ContainerTypes::IteratorPartsList						IterList;

@@ -216,7 +216,7 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf
 {
 	if (!page->is_root())
 	{
-		NodeBaseG new_page;
+		NodeBaseG new_page(&me_.allocator());
 		NodeBaseG parent = me_.GetParent(page);
 
 		Int idx_in_parent = page->parent_idx();

@@ -69,7 +69,7 @@ public:
 
 
 //PROTECTED API:
-    DataPageG create_datapage(NodeBase* node, Int idx);
+    DataPageG create_datapage(NodeBaseG& node, Int idx);
 
 
 private:
@@ -81,7 +81,7 @@ private:
     );
 
     void import_several_pages(
-            NodeBase *node,
+            NodeBaseG& node,
             BigInt key_idx,
             const Buffer &block,
             BufferContentDescriptor &descriptor,
@@ -90,7 +90,7 @@ private:
 
     // FIXME: check: make a room for inserted data if necessary
     void import_small_block(
-            NodeBase *node,
+            NodeBaseG& node,
             BigInt idx,
             BigInt pos,
             const Buffer &block,
@@ -99,7 +99,7 @@ private:
 
 
     void import_data(
-                DataPage *page,
+                DataPageG& page,
                 BigInt idx,
                 BigInt pos,
                 const Buffer &data,
@@ -107,11 +107,11 @@ private:
 
     void move_data_in_page_create(Iterator &iter, BigInt local_idx, CountData &prefix);
 
-    void move_data_in_page_create(DataPage *from, NodeBase *node, BigInt idx, BigInt local_idx, CountData &prefix);
+    void move_data_in_page_create(DataPageG& from, NodeBaseG& node, BigInt idx, BigInt local_idx, CountData &prefix);
 
     void move_data_in_page(Iterator &iter, BigInt local_idx, CountData &prefix);
 
-    void move_data_in_page(DataPage *from, DataPage *to, BigInt local_idx, CountData &prefix);
+    void move_data_in_page(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -225,7 +225,7 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 
 //PROTECTED API:
 M_PARAMS
-typename M_TYPE::DataPageG M_TYPE::create_datapage(NodeBase* node, Int idx)
+typename M_TYPE::DataPageG M_TYPE::create_datapage(NodeBaseG& node, Int idx)
 {
 	DataPageG data      	= me_.allocator().CreatePage();
 	data->init();
@@ -254,7 +254,7 @@ void M_TYPE::import_pages(
 	BigInt key_idx = iter.key_idx();
 	BigInt data_pos = iter.data_pos();
 
-	DataPageG suffix_data_page;
+	DataPageG suffix_data_page(&me_.allocator());
 
 	BigInt length  = descriptor.length();
 
@@ -488,7 +488,7 @@ void M_TYPE::import_pages(
 
 M_PARAMS
 void M_TYPE::import_several_pages(
-		NodeBase *node,
+		NodeBaseG& node,
 		BigInt key_idx,
 		const Buffer &block,
 		BufferContentDescriptor &descriptor,
@@ -500,8 +500,9 @@ void M_TYPE::import_several_pages(
 
 	for (BigInt c = key_idx; c < key_idx + page_count; c++)
 	{
+		DataPageG data = me_.create_datapage(node, c);
 		me_.import_data(
-				me_.create_datapage(node, c),
+				data,
 				c,
 				0,
 				block,
@@ -534,7 +535,7 @@ void M_TYPE::import_several_pages(
 // FIXME: check: make a room for inserted data if necessary
 M_PARAMS
 void M_TYPE::import_small_block(
-		NodeBase *node,
+		NodeBaseG& node,
 		BigInt idx,
 		BigInt pos,
 		const Buffer &block,
@@ -555,7 +556,7 @@ void M_TYPE::import_small_block(
 
 M_PARAMS
 void M_TYPE::import_data(
-		DataPage *page,
+		DataPageG& page,
 		BigInt idx,
 		BigInt pos,
 		const Buffer &data,
@@ -590,7 +591,7 @@ void M_TYPE::move_data_in_page_create(Iterator &iter, BigInt local_idx, CountDat
 }
 
 M_PARAMS
-void M_TYPE::move_data_in_page_create(DataPage *from, NodeBase *node, BigInt idx, BigInt local_idx, CountData &prefix)
+void M_TYPE::move_data_in_page_create(DataPageG& from, NodeBaseG& node, BigInt idx, BigInt local_idx, CountData &prefix)
 {
 	DataPageG to = me_.create_datapage(node, idx);
 	//FIXME from-> has incorrect type for this expression
@@ -608,7 +609,7 @@ void M_TYPE::move_data_in_page(Iterator &iter, BigInt local_idx, CountData &pref
 }
 
 M_PARAMS
-void M_TYPE::move_data_in_page(DataPage *from, DataPage *to, BigInt local_idx, CountData &prefix)
+void M_TYPE::move_data_in_page(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix)
 {
 	//TODO: does it better to update indexes and sizes here?
 	BigInt keys[Indexes];

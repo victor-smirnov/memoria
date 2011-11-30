@@ -278,7 +278,11 @@ public:
         return allocator_;
     }
 
-    const char* type_name() {
+    Allocator& allocator() const {
+    	return allocator_;
+    }
+
+    const char* type_name() const {
         return model_type_name_;
     }
 
@@ -293,10 +297,6 @@ public:
 
     static memoria::vapi::Logger& class_logger() {
     	return class_logger_;
-    }
-
-    const Allocator& allocator() const {
-        return allocator_;
     }
 
     const BigInt& name() const {

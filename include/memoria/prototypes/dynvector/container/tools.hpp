@@ -76,7 +76,7 @@ public:
     	return me_.allocator().GetPage(node->parent_id());
     }
 
-    DataPageG InsertDataPage(NodeBase* node, Int key_idx)
+    DataPageG InsertDataPage(NodeBaseG node, Int key_idx)
     {
     	me_.InsertSpace(node, key_idx, 1);
     	return me_.create_datapage(node, key_idx);

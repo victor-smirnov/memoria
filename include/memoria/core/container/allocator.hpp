@@ -20,11 +20,13 @@ namespace memoria    {
 template <typename PageType, int MaxPageSize = 4096>
 struct IAbstractAllocator {
 
+	typedef IAbstractAllocator<PageType, MaxPageSize>					MyType;
+
 	typedef PageType													Page;
 	typedef typename Page::ID											ID;
 	typedef EmptyType													Transaction;
 
-	typedef PageGuard<Page>												PageG;
+	typedef PageGuard<Page, MyType>										PageG;
 
 	typedef IAbstractAllocator<PageType, MaxPageSize>					AbstractAllocator;
 

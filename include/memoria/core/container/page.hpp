@@ -200,177 +200,158 @@ public:
 };
 
 
-template <typename Page>
+template <typename PageT, typename AllocatorT>
 class PageGuard {
-	Page* page_;
-	int idx_;
+	PageT* 		page_;
+	AllocatorT*	allocator_;
 public:
 
-	typedef Page PageType;
+	typedef PageGuard<PageT, AllocatorT> 								MyType;
+	typedef PageT														Page;
+	typedef AllocatorT 													Allocator;
 
-	PageGuard(): page_(NULL), idx_(0) {
-		PageCtr++;
-		PageCtrCnt[idx_]++;
+//	PageGuard(): page_(NULL), allocator_(NULL) {
+//	}
 
-		if (GlobalDebug) {
-			cout<<"Ctr1"<<endl;
-		}
+	template <typename Page>
+	PageGuard(Page* page, Allocator* allocator): page_(static_cast<PageT*>(page)), allocator_(allocator)
+	{
 	}
 
-	template <typename PageT>
-	PageGuard(PageT* page): page_(static_cast<Page*>(page)), idx_(1)
+
+	PageGuard(Allocator* allocator): page_(NULL), allocator_(allocator) {}
+
+	PageGuard(const MyType& guard): page_(guard.page_), allocator_(guard.allocator_)
 	{
-		PageCtr++;
-		PageCtrCnt[idx_]++;
-		if (GlobalDebug) {
-			cout<<"Ctr2 "<<idx_<<endl;
-		}
+		check();
 	}
 
-	PageGuard(const PageGuard<Page>& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
+	template <typename Page>
+	PageGuard(const PageGuard<Page, AllocatorT>& guard): page_(static_cast<Page*>(guard.page_)), allocator_(guard.allocator_)
 	{
-		PageCtr++;
-		PageCtrCnt[idx_]++;
-		if (GlobalDebug) {
-			cout<<"Ctr3.1 "<<idx_<<endl;
-		}
+		check();
 	}
 
-	template <typename PageT>
-	PageGuard(const PageGuard<PageT>& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
+	template <typename Page>
+	PageGuard(PageGuard<Page, AllocatorT>&& guard): page_(static_cast<PageT*>(guard.page_)), allocator_(guard.allocator_)
 	{
-		PageCtr++;
-		PageCtrCnt[idx_]++;
-		if (GlobalDebug) {
-			cout<<"Ctr3.2 "<<idx_<<endl;
-		}
-	}
-
-	template <typename PageT>
-	PageGuard(PageGuard<PageT>&& guard): page_(static_cast<Page*>(guard.page_)), idx_(guard.idx_)
-	{
-		PageCtr++;
-		PageCtrCnt[idx_]++;
-		//		 guard.idx_ 	= -1;
 		guard.page_	= NULL;
-		if (GlobalDebug) {
-			cout<<"Ctr4 "<<idx_<<endl;
-		}
+		check();
 	}
 
 	~PageGuard()
 	{
-		PageDtr--;
-		if (idx_ != -1) PageDtrCnt[idx_]--;
-		if (GlobalDebug) {
-			cout<<"Dtr "<<idx_<<endl;
-		}
 	}
 
-	template <typename PageT>
-	operator const PageT* () const {
-		return static_cast<const PageT*>(page_);
+	template <typename Page>
+	operator const Page* () const {
+		return static_cast<const Page*>(page_);
 	}
 
-	template <typename PageT>
-	operator PageT* () {
-		return static_cast<PageT*>(page_);
+	template <typename Page>
+	operator Page* () {
+		return static_cast<Page*>(page_);
 	}
 
-	void operator=(Page* page)
+	void operator=(PageT* page)
 	{
 		page_ = page;
+		check();
 	}
 
-	PageGuard<Page>& operator=(const PageGuard<Page>& guard)
+	void check() {
+//		if (allocator_ == NULL)
+//		{
+//			cout<<"Allocator is NULL"<<endl;
+//		}
+	}
+
+	const MyType& operator=(const MyType& guard)
 	{
-		//PageCtrCnt[4]++;
 		page_ = static_cast<Page*>(guard.page_);
+		check();
 		return *this;
 	}
 
 
 	template <typename P>
-	PageGuard<Page>& operator=(const PageGuard<P>& guard)
+	const MyType& operator=(const PageGuard<P, AllocatorT>& guard)
 	{
-		//PageCtrCnt[3]++;
 		page_ = static_cast<Page*>(guard.page_);
+		check();
 		return *this;
 	}
 
-	PageGuard<Page>& operator=(PageGuard<Page>&& guard)
+	const MyType& operator=(MyType&& guard)
 	{
-		//PageCtrCnt[6]++;
-		page_ = static_cast<Page*>(guard.page_);
-
+		page_ = static_cast<PageT*>(guard.page_);
 		guard.page_ = NULL;
-
+		check();
 		return *this;
 	}
 
 
 	template <typename P>
-	PageGuard<Page>& operator=(PageGuard<P>&& guard)
+	const MyType& operator=(PageGuard<P, AllocatorT>&& guard)
 	{
-//		PageCtrCnt[5]++;
 		page_ = static_cast<Page*>(guard.page_);
-
 		guard.page_ = NULL;
-
+		check();
 		return *this;
 	}
 
 
-	bool operator==(const Page* page) const
+	bool operator==(const PageT* page) const
 	{
 		return page_ == page;
 	}
 
-	bool operator!=(const Page* page) const
+	bool operator!=(const PageT* page) const
 	{
 		return page_ != page;
 	}
 
-	bool operator==(const PageGuard<Page>& page) const
+	bool operator==(const MyType& page) const
 	{
 		return page_ == page.page_;
 	}
 
-	bool operator!=(const PageGuard<Page>& page) const
+	bool operator!=(const MyType& page) const
 	{
 		return page_ != page->page_;
 	}
 
-	const Page* page() const {
+	const PageT* page() const {
 		return page_;
 	}
 
-	Page* page() {
+	PageT* page() {
 		return page_;
 	}
 
-	const Page*& ref() const {
+	const PageT* operator->() const {
 		return page_;
 	}
 
-	Page*& ref() {
+	PageT* operator->() {
 		return page_;
 	}
 
-	const Page* operator->() const {
-		return page_;
+	AllocatorT* allocator() {
+		return allocator_;
 	}
 
-	Page* operator->() {
-		return page_;
+	void set_allocator(AllocatorT* allocator)
+	{
+		allocator_ = allocator;
 	}
 
-	template <typename PageT> friend class PageGuard;
+	template <typename Page, typename Allocator> friend class PageGuard;
 };
 
 
-template <typename T>
-LogHandler* LogIt(LogHandler* log, const PageGuard<T>& value) {
+template <typename T, typename A>
+LogHandler* LogIt(LogHandler* log, const PageGuard<T, A>& value) {
     log->log(value.page());
     log->log(" ");
     return log;

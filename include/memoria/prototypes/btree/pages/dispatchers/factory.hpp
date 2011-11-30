@@ -41,34 +41,32 @@ class NodeFactoryHelper<NullType, Types> {
 	typedef typename Types::Node 				Node;
 
 	typedef typename Types::NodeBase 			NodeBase;
+	typedef typename Types::NodeBaseG 			NodeBaseG;
 	typedef typename Types::Allocator 			Allocator;
 
 public:
-    static NodeBase *Create(Allocator &allocator, Int level, bool root, bool leaf) {
-    	NodeBase* node;
+    static NodeBaseG Create(Allocator &allocator, Int level, bool root, bool leaf)
+    {
+    	NodeBaseG node = allocator.CreatePage();
+    	node->init();
+
         if (!root && !leaf) {
-            node = (Node*) allocator.CreatePage();
-        	node->init();
             node->page_type_hash() = Node::hash();
         }
         else if (!root && leaf) {
-            node = (LeafNode*) allocator.CreatePage();
-        	node->init();
             node->page_type_hash() = LeafNode::hash();
         }
         else if (root && !leaf) {
-            node = (RootNode*) allocator.CreatePage();
-        	node->init();
             node->page_type_hash() = RootNode::hash();
         }
         else {
-            node = (RootLeafNode*) allocator.CreatePage();
-        	node->init();
             node->page_type_hash() = RootLeafNode::hash();
         }
+
         node->level() = level;
         node->set_root(root);
         node->set_leaf(leaf);
+
         return node;
     }
 };
@@ -82,6 +80,7 @@ template <
 class NodeFactoryHelper<TL<Head, Tail>, Types> {
 
 	typedef typename Types::NodeBase 			NodeBase;
+	typedef typename Types::NodeBaseG 			NodeBaseG;
 	typedef typename Types::Allocator 			Allocator;
 
     static const Int Level = Head::Value;
@@ -112,33 +111,27 @@ class NodeFactoryHelper<TL<Head, Tail>, Types> {
     typedef typename ListBuilder<true, true>::Type                              RootLeafNode;
 
 public:
-    static NodeBase *Create(Allocator &allocator, Int level, bool root, bool leaf) {
+    static NodeBaseG Create(Allocator &allocator, Int level, bool root, bool leaf)
+    {
         if (Level == level)
         {
-            NodeBase* node;
+            NodeBaseG node = allocator.CreatePage();
+            node->init();
 
             if (!root && !leaf)
             {
-                node = (Node*) allocator.CreatePage();
-				node->init();
                 node->page_type_hash() = Node::hash();
             }
             else if (!root && leaf)
             {
-            	node = (LeafNode*) allocator.CreatePage();
-            	node->init();
-                node->page_type_hash() = LeafNode::hash();
+            	node->page_type_hash() = LeafNode::hash();
             }
             else if (root && !leaf)
             {
-            	node = (RootNode*) allocator.CreatePage();
-            	node->init();
-                node->page_type_hash() = RootNode::hash();
+            	node->page_type_hash() = RootNode::hash();
             }
             else
             {
-                node = (RootLeafNode*) allocator.CreatePage();
-            	node->init();
                 node->page_type_hash() = RootLeafNode::hash();
             }
 

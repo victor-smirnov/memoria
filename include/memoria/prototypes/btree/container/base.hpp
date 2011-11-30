@@ -33,7 +33,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     typedef typename Base::Iterator                                             Iterator;
     
     typedef typename Types::NodeBase                                            NodeBase;
-    typedef PageGuard<NodeBase>                                            		NodeBaseG;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Types::NodeBase::BasePageType                              TreeNodePage;
     typedef typename Types::Counters                                            Counters;
 

@@ -92,7 +92,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
                 //decrement node.page_count for child's value
                 //and remove child if requested
 
-                NodeBase *child = map_.GetChild(node, c);
+                NodeBaseG child = map_.GetChild(node, c);
                 counters_ += child->counters();
 
                 if (remove_children_)
@@ -135,7 +135,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      */
 
     // FIXME: remove data pages for dynarray
-    bool RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool remove_children, Key* keys = NULL, bool preserve_key_values = true);
+    bool RemoveSpace(NodeBaseG node, Int from, Int count, bool update, bool remove_children, Key* keys = NULL, bool preserve_key_values = true);
 
     void RemoveNode(NodeBaseG node);
 
@@ -233,7 +233,7 @@ void M_TYPE::MoveChildrenLeft(NodeBase *node, Int from, Int count) {
 }
 
 M_PARAMS
-bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool remove_children, Key* keys, bool preserve_key_values)
+bool M_TYPE::RemoveSpace(NodeBaseG node, Int from, Int count, bool update, bool remove_children, Key* keys, bool preserve_key_values)
 {
 	MEMORIA_TRACE(me_, "RemoveSpace", node->id(), from, count, update, remove_children);
 
@@ -455,7 +455,7 @@ bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int sto
 		{
 			MEMORIA_TRACE(me_, "RemovePages: full page");
 
-			NodeBaseG parent;
+			NodeBaseG parent(&me_.allocator());
 			Int parent_idx = start->parent_idx();
 
 			while (!start->is_root())
@@ -804,7 +804,7 @@ M_PARAMS
 void M_TYPE::Drop(ContainerCollection* container) {
 	if (container == NULL) throw NullPointerException(MEMORIA_SOURCE, "Container must not be null");
 
-	NodeBase* root = me_.GetRoot();
+	NodeBaseG root = me_.GetRoot();
 
 	if (root != NULL) {
 		me_.RemovePage(root);

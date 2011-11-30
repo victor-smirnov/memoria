@@ -27,6 +27,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::ToolsName)
     typedef typename Allocator::Transaction                                       Transaction;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -97,7 +98,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::ToolsName)
 
 
 
-    void SetLeafDataAndReindex(NodeBase *node, Int idx, const Key *keys, const Value &val);
+    void SetLeafDataAndReindex(NodeBaseG node, Int idx, const Key *keys, const Value &val);
 
     template <typename Node>
     bool CheckNodeContent(Node *node);
@@ -122,8 +123,8 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-void M_TYPE::SetLeafDataAndReindex(NodeBase *node, Int idx, const Key *keys, const Value &val) {
-	MEMORIA_TRACE(me_, "SetLeafDataAndReindex", node->id(), idx, keys[0]);
+void M_TYPE::SetLeafDataAndReindex(NodeBaseG node, Int idx, const Key *keys, const Value &val)
+{
 	SetAndReindexFn1 fn1(idx, keys, val);
 	LeafDispatcher::Dispatch(node, fn1);
 

@@ -36,6 +36,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     typedef typename Container::Types::DataPage                                 	DataPage;
     typedef typename Container::Types::DataPageG                                 	DataPageG;
+    typedef typename Base::Container::Allocator										Allocator;
 
     static const Int Indexes = Container::Indexes;
 
@@ -73,9 +74,14 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	}
     };
 
-    IterPart(MyType &me): Base(me), me_(me), local_pos_(0), data_()
+    IterPart(MyType &me): Base(me), me_(me), local_pos_(0), data_(NULL)
     {
 
+    }
+
+    void SetupAllocator(Allocator* allocator) {
+    	data_.set_allocator(allocator);
+    	Base::SetupAllocator(allocator);
     }
 
     bool IsEof()
@@ -143,7 +149,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     			return me_.model().GetDataPage(page, 0);
     		}
     		else {
-    			return DataPageG();
+    			return DataPageG(&me_.model().allocator());
     		}
     	}
     }
@@ -169,7 +175,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     			return me_.model().GetDataPage(page, children_count - 1);
     		}
     		else {
-    			return DataPageG();
+    			return DataPageG(&me_.model().allocator());
     		}
     	}
     }

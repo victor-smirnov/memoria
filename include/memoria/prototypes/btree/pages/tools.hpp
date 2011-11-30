@@ -66,7 +66,7 @@ class MoveChildrenFn {
     Int total_children_count_;
     Allocator&    allocator_;
     
-    typedef PageGuard<TreeNode> TreeNodeG;
+    typedef PageGuard<TreeNode, Allocator> TreeNodeG;
 
 public:
     MoveChildrenFn(Int from, Int count, Int total_children_count, Allocator &allocator):
@@ -160,7 +160,7 @@ class AccumulateChildrenCountersFn {
     Int         count_;
     Allocator&    allocator_;
     
-    typedef PageGuard<BaseNode> BaseNodeG;
+    typedef PageGuard<BaseNode, Allocator> BaseNodeG;
 
 public:
 
@@ -206,7 +206,7 @@ struct UpdateChildrenParentIdxFn {
     Int         count_;
     Allocator&    allocator_;
     
-    typedef PageGuard<NodeBase> BaseNodeG;
+    typedef PageGuard<NodeBase, Allocator> BaseNodeG;
 
 public:
 
@@ -329,7 +329,7 @@ class IncrementChildPidsFn {
     Int         count_;
     Allocator&    allocator_;
     
-    typedef PageGuard<BaseNode> BaseNodeG;
+    typedef PageGuard<BaseNode, Allocator> BaseNodeG;
 
 public:
     IncrementChildPidsFn(Int from, Int count, Allocator &allocator):
@@ -358,7 +358,7 @@ class IncrementChildPidsAndReparentFn {
     Int         count_;
     Allocator&    allocator_;
     
-    typedef PageGuard<Base> NodeBaseG;
+    typedef PageGuard<Base, Allocator> NodeBaseG;
 
 public:
     IncrementChildPidsAndReparentFn(Int from, Int count, Allocator &allocator):
@@ -515,7 +515,7 @@ class GetChildFn {
     Mgr &allocator_;
     
 public:
-    GetChildFn(Idx idx, Mgr &allocator): node_(),
+    GetChildFn(Idx idx, Mgr &allocator): node_(&allocator),
             idx_(idx), allocator_(allocator) {}
 
     template <typename T>
@@ -547,7 +547,7 @@ class GetLastChildFn {
     Mgr&    allocator_;
     
 public:
-    GetLastChildFn(Mgr &allocator): node_(), allocator_(allocator) {}
+    GetLastChildFn(Mgr &allocator): node_(&allocator), allocator_(allocator) {}
 
     template <typename T>
     void operator()(T *node) {

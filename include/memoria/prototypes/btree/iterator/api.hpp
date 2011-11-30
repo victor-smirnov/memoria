@@ -166,7 +166,7 @@ typename M_TYPE::NodeBaseG M_TYPE::GetNextNode(NodeBase* page)
 {
 	if (page->is_root())
 	{
-		return NodeBaseG();
+		return NodeBaseG(&me_.model().allocator());
 	}
 	else {
 		Int parent_idx = page->parent_idx();
@@ -183,7 +183,7 @@ M_PARAMS
 typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(NodeBase* page)
 {
 	if (page->is_root()) {
-		return NodeBaseG();
+		return NodeBaseG(&me_.model().allocator());
 	}
 	else {
 		Int parent_idx = page->parent_idx();
@@ -223,7 +223,7 @@ typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBase* page, Int &idx1, In
 		}
 	}
 
-	return NodeBaseG();
+	return NodeBaseG(&me_.model().allocator());
 }
 
 M_PARAMS
@@ -249,7 +249,7 @@ typename M_TYPE::NodeBaseG M_TYPE::__get_prev_node(NodeBase* page, Int &idx1, In
 		}
 	}
 
-	return NodeBaseG();
+	return NodeBaseG(&me_.model().allocator());
 }
 
 

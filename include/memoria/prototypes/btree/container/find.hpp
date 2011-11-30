@@ -84,7 +84,7 @@ public:
 
     public:
         FindFn(Comparator& cmp, const Key& key, Int c, MyType &model):
-            i_(model), rtn_(false), node_(),
+            i_(model), rtn_(false), node_(&model.allocator()),
             key_(key), c_(c), model_(model),
             cmp_(cmp) {}
 
@@ -248,7 +248,6 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 			node = me_.GetChild(node, 0);
 		}
 
-//		GlobalDebug = true;
 		return Iterator(node, 0, me_);
 	}
 	else {

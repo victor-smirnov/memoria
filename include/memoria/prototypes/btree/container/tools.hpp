@@ -124,7 +124,7 @@ public:
         bool add_mode_;
     public:
         UpdateBTreeKeysFn2(Map &map, Int idx, Keys *keys, bool add_mode):
-                            retn_(false), node_(), keys_(keys),
+                            retn_(false), node_(&map.allocator()), keys_(keys),
                             idx_(idx), map_(map),
                             add_mode_(add_mode)
         {}
@@ -352,7 +352,7 @@ public:
     {
         if (node->is_root())
         {
-            return NodeBaseG();
+            return NodeBaseG(&me_.allocator());
         }
         else
         {

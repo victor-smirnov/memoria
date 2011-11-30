@@ -23,7 +23,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     typedef typename Base::ID                                                   ID;
 
 
-    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -74,7 +75,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     Iterator GetByIndex(BigInt index)
     {
-        NodeBase *node = me_.GetRoot();
+        NodeBaseG node = me_.GetRoot();
         if (node != NULL)
         {
             BigInt keys = 0;
