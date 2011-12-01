@@ -39,14 +39,13 @@ struct BTreeTypes<Profile, KVMap<Key, Value_> >: public BTreeTypes<Profile, BTre
 	typedef typename AppendLists<
 			typename Base::ContainerPartsList,
 			typename TLTool<
+				memoria::models::TreeMapName,
+				memoria::models::MapName,
 				memoria::models::kvmap::FindName,
 				memoria::models::kvmap::ChecksName,
 				memoria::models::kvmap::InsertName,
 				memoria::models::kvmap::RemoveName,
-				memoria::models::kvmap::MapApiName,
-
-				memoria::models::TreeMapName,
-				memoria::models::MapName
+				memoria::models::kvmap::MapApiName
 			>::List
 	>::Result                                                               	ContainerPartsList;
 };
