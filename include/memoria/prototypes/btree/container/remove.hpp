@@ -27,7 +27,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     typedef typename Base::ID                                                   ID;
 
 
-    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::TreeNodePage                                     	TreeNodePage;
     typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
@@ -91,7 +92,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
                 //decrement node.page_count for child's value
                 //and remove child if requested
 
-                NodeBase *child = map_.GetChild(node, c);
+                NodeBaseG child = map_.GetChild(node, c);
                 counters_ += child->counters();
 
                 if (remove_children_)
@@ -134,9 +135,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      */
 
     // FIXME: remove data pages for dynarray
-    bool RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool remove_children, Key* keys = NULL, bool preserve_key_values = true);
+    bool RemoveSpace(NodeBaseG node, Int from, Int count, bool update, bool remove_children, Key* keys = NULL, bool preserve_key_values = true);
 
-    void RemoveNode(NodeBase *node);
+    void RemoveNode(NodeBaseG node);
 
     bool CanMerge(NodeBase *page1, NodeBase *page2)
     {
@@ -171,10 +172,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
         }
     };
 
-    void MergeNodes(NodeBase *page1, NodeBase *page2, bool fix_parent = true);
+    void MergeNodes(NodeBaseG page1, NodeBaseG page2, bool fix_parent = true);
 
 
-    bool MergeBTreeNodes(NodeBase *page1, NodeBase *page2);
+    bool MergeBTreeNodes(NodeBaseG page1, NodeBaseG page2);
 
 
     /**
@@ -186,10 +187,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      * FIXME: optimize. Add a flag for absolute key value preserving.
      *
      */
-    bool RemovePages(NodeBase* start, Int start_idx, NodeBase* stop, Int stop_idx, Key* keys, bool preserve_key_values = true);
+    bool RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int stop_idx, Key* keys, bool preserve_key_values = true);
 
 
-    bool MergeWithSiblings(NodeBase *node);
+    bool MergeWithSiblings(NodeBaseG node);
 
     /**
      * Remove a page from the btree. Do recursive removing if page's parent
@@ -199,7 +200,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      * merge it with siblings.
      */
 
-    void RemovePage(NodeBase *node);
+    void RemovePage(NodeBaseG node);
 
     /**
      * Remove key and data pointed by iterator 'iter' form the map.
@@ -232,7 +233,7 @@ void M_TYPE::MoveChildrenLeft(NodeBase *node, Int from, Int count) {
 }
 
 M_PARAMS
-bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool remove_children, Key* keys, bool preserve_key_values)
+bool M_TYPE::RemoveSpace(NodeBaseG node, Int from, Int count, bool update, bool remove_children, Key* keys, bool preserve_key_values)
 {
 	MEMORIA_TRACE(me_, "RemoveSpace", node->id(), from, count, update, remove_children);
 
@@ -263,8 +264,9 @@ bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool 
 			}
 			else {
 				Iterator tmp(me_);
-				NodeBase* next = tmp.GetNextNode(node);
-				if (next != NULL) {
+				NodeBaseG next = tmp.GetNextNode(node);
+				if (next != NULL)
+				{
 					me_.AddKeys(next, 0, keys);
 					me_.UpdateBTreeKeys(next);
 				}
@@ -296,7 +298,7 @@ bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool 
 	{
 		me_.UpdateBTreeKeys(node);
 
-		NodeBase *parent = me_.GetParent(node);
+		NodeBaseG parent = me_.GetParent(node);
 		if (parent != NULL) {
 			me_.UpdateBTreeCounters(parent, -counters);
 		}
@@ -306,7 +308,7 @@ bool M_TYPE::RemoveSpace(NodeBase *node, Int from, Int count, bool update, bool 
 }
 
 M_PARAMS
-void M_TYPE::RemoveNode(NodeBase *node)
+void M_TYPE::RemoveNode(NodeBaseG node)
 {
 	const Int children_count = me_.GetChildrenCount(node);
 
@@ -315,7 +317,7 @@ void M_TYPE::RemoveNode(NodeBase *node)
 	{
 		for (Int c = 0; c < children_count; c++)
 		{
-			NodeBase *child = me_.GetChild(node, c);
+			NodeBaseG child = me_.GetChild(node, c);
 			me_.RemoveNode(child);
 		}
 	}
@@ -334,18 +336,11 @@ void M_TYPE::RemoveNode(NodeBase *node)
 	me_.allocator().RemovePage(node->id());
 }
 
-//struct ReindexFn0 {
-//    template <typename T>
-//    void operator()(T *node) {
-//        node->map().Reindex();
-//    }
-//};
 
 M_PARAMS
-void M_TYPE::MergeNodes(NodeBase *page1, NodeBase *page2, bool fix_parent)
+void M_TYPE::MergeNodes(NodeBaseG page1, NodeBaseG page2, bool fix_parent)
 {
 	MEMORIA_TRACE(me_, "MergeNodes", page1->id(), page2->id(), fix_parent);
-	//me_.PreMerge(page1, page2);
 
 	MergeNodesFn fn;
 	NodeDispatcher::Dispatch(page1, page2, fn);
@@ -353,12 +348,13 @@ void M_TYPE::MergeNodes(NodeBase *page1, NodeBase *page2, bool fix_parent)
 
 	if (!page1->is_leaf())
 	{
-		NodeBase *page11 = page1;
-		IncrementChildPidsAndReparent<NonLeafDispatcher, TreeNodePage>(page11, fn_start, fn_start, me_.allocator());
+		NodeBaseG page11 = page1;
+		IncrementChildPidsAndReparent<NonLeafDispatcher, TreeNodePage>(page11.page(), fn_start, fn_start, me_.allocator());
 	}
-	else if (me_.IsDynarray()) {
-		NodeBase *page11 = page1;
-		IncrementChildPidsAndReparent<LeafDispatcher, TreeNodePage>(page11, fn_start, fn_start, me_.allocator());
+	else if (me_.IsDynarray())
+	{
+		NodeBaseG page11 = page1;
+		IncrementChildPidsAndReparent<LeafDispatcher, TreeNodePage>(page11.page(), fn_start, fn_start, me_.allocator());
 	}
 
 	page1->counters() += page2->counters();
@@ -366,7 +362,7 @@ void M_TYPE::MergeNodes(NodeBase *page1, NodeBase *page2, bool fix_parent)
 
 	if (fix_parent)
 	{
-		NodeBase *parent = me_.GetParent(page1);
+		NodeBaseG parent = me_.GetParent(page1);
 		Int parent_idx = page2->parent_idx();
 
 		Key keys[Indexes];
@@ -387,15 +383,13 @@ void M_TYPE::MergeNodes(NodeBase *page1, NodeBase *page2, bool fix_parent)
 
 		ReindexFn fn;
 		NodeDispatcher::Dispatch(parent, fn);
-
-		//Reindex<NodeDispatcher>(parent);
 	}
 
 	me_.allocator().RemovePage(page2->id());
 }
 
 M_PARAMS
-bool M_TYPE::MergeBTreeNodes(NodeBase *page1, NodeBase *page2)
+bool M_TYPE::MergeBTreeNodes(NodeBaseG page1, NodeBaseG page2)
 {
 	if (CanMerge(page1, page2))
 	{
@@ -404,7 +398,7 @@ bool M_TYPE::MergeBTreeNodes(NodeBase *page1, NodeBase *page2)
 			MEMORIA_TRACE(me_,"MergeBTReeNodes with the same parent");
 			me_.MergeNodes(page1, page2);
 
-			NodeBase *parent = me_.GetParent(page1);
+			NodeBaseG parent = me_.GetParent(page1);
 			if (parent->is_root() && me_.GetChildrenCount(parent) == 1 && me_.CanConvertToRoot(page1))
 			{
 				page1 = me_.Node2Root(page1);
@@ -421,8 +415,8 @@ bool M_TYPE::MergeBTreeNodes(NodeBase *page1, NodeBase *page2)
 		}
 		else
 		{
-			NodeBase *parent1 = me_.GetParent(page1);
-			NodeBase *parent2 = me_.GetParent(page2);
+			NodeBaseG parent1 = me_.GetParent(page1);
+			NodeBaseG parent2 = me_.GetParent(page2);
 			if (me_.MergeBTreeNodes(parent1, parent2))
 			{
 				MergeNodes(page1, page2);
@@ -441,7 +435,7 @@ bool M_TYPE::MergeBTreeNodes(NodeBase *page1, NodeBase *page2)
 }
 
 M_PARAMS
-bool M_TYPE::RemovePages(NodeBase* start, Int start_idx, NodeBase* stop, Int stop_idx, Key* keys, bool preserve_key_values)
+bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int stop_idx, Key* keys, bool preserve_key_values)
 {
 	if (start == NULL || stop == NULL)
 	{
@@ -461,7 +455,7 @@ bool M_TYPE::RemovePages(NodeBase* start, Int start_idx, NodeBase* stop, Int sto
 		{
 			MEMORIA_TRACE(me_, "RemovePages: full page");
 
-			NodeBase* parent = NULL;
+			NodeBaseG parent(&me_.allocator());
 			Int parent_idx = start->parent_idx();
 
 			while (!start->is_root())
@@ -519,8 +513,8 @@ bool M_TYPE::RemovePages(NodeBase* start, Int start_idx, NodeBase* stop, Int sto
 			{
 				while (!start->is_leaf())
 				{
-					NodeBase* child0 = me_.GetChild(start, start_idx);
-					NodeBase* child1 = me_.GetChild(start, start_idx + 1);
+					NodeBaseG child0 = me_.GetChild(start, start_idx);
+					NodeBaseG child1 = me_.GetChild(start, start_idx + 1);
 
 					if (me_.CanMerge(child0, child1))
 					{
@@ -593,8 +587,8 @@ bool M_TYPE::RemovePages(NodeBase* start, Int start_idx, NodeBase* stop, Int sto
 	}
 	else
 	{
-		NodeBase *start_parent  = me_.GetParent(start);
-		NodeBase *stop_parent   = me_.GetParent(stop);
+		NodeBaseG start_parent  = me_.GetParent(start);
+		NodeBaseG stop_parent   = me_.GetParent(stop);
 		Int start_parent_idx = start->parent_idx();
 		Int stop_parent_idx  = stop->parent_idx();
 
@@ -623,20 +617,20 @@ bool M_TYPE::RemovePages(NodeBase* start, Int start_idx, NodeBase* stop, Int sto
 }
 
 M_PARAMS
-bool M_TYPE::MergeWithSiblings(NodeBase *node) {
+bool M_TYPE::MergeWithSiblings(NodeBaseG node) {
 	MEMORIA_TRACE(me_, "MergeWithSiblings", node->id());
 
 	Iterator tmp(me_);
 
 	bool merged = false;
 
-	NodeBase *next = tmp.GetNextNode(node);
+	NodeBaseG next = tmp.GetNextNode(node);
 
 	if (next != NULL)
 	{
 		if (!me_.MergeBTreeNodes(node, next))
 		{
-			NodeBase *prev = tmp.GetPrevNode(node);
+			NodeBaseG prev = tmp.GetPrevNode(node);
 			if (prev != NULL)
 			{
 				merged = me_.MergeBTreeNodes(prev, node);
@@ -652,7 +646,7 @@ bool M_TYPE::MergeWithSiblings(NodeBase *node) {
 	}
 	else
 	{
-		NodeBase *prev = tmp.GetPrevNode(node);
+		NodeBaseG prev = tmp.GetPrevNode(node);
 		if (prev != NULL)
 		{
 			merged = me_.MergeBTreeNodes(prev, node);
@@ -665,7 +659,7 @@ bool M_TYPE::MergeWithSiblings(NodeBase *node) {
 
 	if (!node->is_root())
 	{
-		NodeBase *parent = me_.GetParent(node);
+		NodeBaseG parent = me_.GetParent(node);
 		if (parent->is_root() && me_.GetChildrenCount(parent) == 1 && me_.CanConvertToRoot(node))
 		{
 			NodeBase *new_root = me_.Node2Root(node);
@@ -674,8 +668,9 @@ bool M_TYPE::MergeWithSiblings(NodeBase *node) {
 		}
 	}
 	else {
-		while (me_.GetChildrenCount(node) == 1 && !node->is_leaf()) {
-			NodeBase *child = me_.GetChild(node, 0);
+		while (me_.GetChildrenCount(node) == 1 && !node->is_leaf())
+		{
+			NodeBaseG child = me_.GetChild(node, 0);
 			if (me_.GetChildrenCount(child) == 1)
 			{
 				NodeBase *new_root = me_.Node2Root(child);
@@ -699,11 +694,11 @@ bool M_TYPE::MergeWithSiblings(NodeBase *node) {
  */
 
 M_PARAMS
-void M_TYPE::RemovePage(NodeBase *node)
+void M_TYPE::RemovePage(NodeBaseG node)
 {
 	if (!node->is_root())
 	{
-		NodeBase *parent = me_.GetParent(node);
+		NodeBaseG parent = me_.GetParent(node);
 
 		//recursively remove parent if has only one child.
 
@@ -736,9 +731,11 @@ void M_TYPE::RemovePage(NodeBase *node)
  *
  */
 M_PARAMS
-bool M_TYPE::RemoveEntry(Iterator iter) {
-	if (iter.IsNotEmpty() || !iter.IsEnd()) {
-		NodeBase *node = iter.page();
+bool M_TYPE::RemoveEntry(Iterator iter)
+{
+	if (iter.IsNotEmpty() || !iter.IsEnd())
+	{
+		NodeBaseG node = iter.page();
 		Int idx = iter.key_idx();
 
 		//if leaf page has more than 1 key do regular remove
@@ -771,7 +768,8 @@ bool M_TYPE::RemoveEntry(Iterator iter) {
  */
 
 M_PARAMS
-bool M_TYPE::RemoveEntries(Iterator from, Iterator to) {
+bool M_TYPE::RemoveEntries(Iterator from, Iterator to)
+{
 	if (from.IsEmpty() || from.IsEnd())
 	{
 		return false;
@@ -782,7 +780,7 @@ bool M_TYPE::RemoveEntries(Iterator from, Iterator to) {
 		return false;
 	}
 
-	NodeBase *stop  = to.page();
+	NodeBaseG stop  = to.page();
 	Int    stop_idx = to.key_idx();
 
 	if (to.key_idx() == 0 && to.PrevLeaf())
@@ -806,7 +804,7 @@ M_PARAMS
 void M_TYPE::Drop(ContainerCollection* container) {
 	if (container == NULL) throw NullPointerException(MEMORIA_SOURCE, "Container must not be null");
 
-	NodeBase* root = me_.GetRoot();
+	NodeBaseG root = me_.GetRoot();
 
 	if (root != NULL) {
 		me_.RemovePage(root);

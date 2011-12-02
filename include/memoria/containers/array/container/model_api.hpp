@@ -25,7 +25,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
     typedef typename Base::ID                                                   ID;
 
 
-    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -55,7 +56,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
     	AddKeysToMapFn(Key* keys): keys_(keys) {}
 
     	template <typename Node>
-    	void operator()(Node *node) {
+    	void operator()(Node *node)
+    	{
     		for (Int c = 0; c < Indexes; c++) {
     			node->map().key(c, node->map().size()) = keys_[c];
     		}
@@ -64,8 +66,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
     	}
     };
 
-    void AddKeysToMap(NodeBase *node, Key* keys) {
-    	MEMORIA_TRACE(me_, keys[0], "to", node->id());
+    void AddKeysToMap(NodeBase *node, Key* keys)
+    {
     	AddKeysToMapFn fn(keys);
     	NodeDispatcher::Dispatch(node, fn);
     }
@@ -85,26 +87,19 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::Seek(BigInt pos)
 {
-	MEMORIA_TRACE(me_, "Begin", pos);
-	Iterator iter = me_.Find(pos, 0);
-
-	iter.DumpState("Seek");
-
-	return iter;
+	return me_.Find(pos, 0);
 }
 
 M_PARAMS
 BigInt M_TYPE::Size()
 {
-	MEMORIA_TRACE(me_, "BEGIN");
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 
 	if (node != NULL)
 	{
 		return me_.GetMaxKey(node, 0);
 	}
 	else {
-		MEMORIA_TRACE(me_, "No Root for Container");
 		return 0;
 	}
 }

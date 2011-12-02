@@ -112,7 +112,7 @@ public:
     }
 
     template <typename PageType>
-    void CopyFrom(PageType* page)
+    void CopyFrom(const PageType* page)
     {
         Base::CopyFrom(page);
 

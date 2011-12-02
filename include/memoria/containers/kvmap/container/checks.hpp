@@ -45,7 +45,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
 
     
 
-    bool check_keys() {
+    bool check_keys()
+    {
     	MEMORIA_TRACE(me_);
         Iterator i = me_.FindStart();
 
@@ -75,17 +76,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
         return false;
     }
 
-    bool check_node_content(NodeBase* node) {
-    	MEMORIA_TRACE(me_);
-        bool errors = Base::check_node_content(node);
+    bool check_node_content(NodeBase* node)
+    {
+    	bool errors = Base::check_node_content(node);
 
         Int children = me_.GetChildrenCount(node);
 
         Key k0;
-        for (Int c = 0; c < children; c++) {
+        for (Int c = 0; c < children; c++)
+        {
             Key key = me_.GetKey(node, 0, c);
-            if (c > 0) {
-                if (k0 >= key) {
+            if (c > 0)
+            {
+                if (k0 >= key)
+                {
                     MEMORIA_ERROR(me_, "check_node_content: key0 >= key1", k0, key, "page.id =", node->id());
                     errors = true;
                 }

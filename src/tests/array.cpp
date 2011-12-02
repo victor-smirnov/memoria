@@ -18,7 +18,7 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE 				= 1000;
+const Int SIZE 				= 10;
 const Int ArrayName 		= 1;
 const Int MAX_BUFFER_SIZE 	= 4096 * 10;
 
@@ -81,10 +81,10 @@ void CheckAllocator(SAllocator &allocator, const char* err_msg)
 
 	memoria::StreamContainersChecker checker(allocator);
 
-//	if (checker.CheckAll())
-//	{
-//		throw MemoriaException(MEMORIA_SOURCE, err_msg);
-//	}
+	if (checker.CheckAll())
+	{
+		throw MemoriaException(MEMORIA_SOURCE, err_msg);
+	}
 
 	ByteArray::class_logger().level() = src_level;
 }
@@ -339,7 +339,7 @@ int main(int argc, const char** argv, const char **envp) {
 		try {
 			cout<<"Insert data"<<endl;
 
-			for (Int c = 0; c < 17762; c++)
+			for (Int c = 0; c < SIZE; c++)
 			{
 //				cout<<"C="<<c<<endl;
 				Build(allocator, dv, c + 1);
@@ -390,5 +390,16 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Unrecognized exception"<<endl;
 	}
 
-	cout<<"ARRAY TEST time: insert "<<(getTime()- t1)<<" remove "<<(t1 - t0)<<endl;
+	cout<<"ARRAY TEST time: remove "<<(getTime()- t1)<<" insert "<<(t1 - t0)<<endl;
+
+	Int CtrTotal = 0, DtrTotal = 0;
+	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
+	{
+		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
+		CtrTotal += PageCtrCnt[c];
+		DtrTotal += PageDtrCnt[c];
+	}
+
+	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
+	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
 }

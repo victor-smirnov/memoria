@@ -105,7 +105,7 @@ int main(int argc, const char** argv, const char** envp)
 	try {
 		StreamContainerTypesCollection::Init();
 
-		logger.level() = Logger::TRACE;
+		logger.level() = Logger::NONE;
 
 		if (argc != 3) {
 			cerr<<"Usage: dump file.dump /path/to/folder/to/dump/in"<<endl;
@@ -161,7 +161,7 @@ int main(int argc, const char** argv, const char** envp)
 		{
 			BigInt  name 	= iter.GetKey(0);
 			//FIXME
-			BigInt  value 	= 0;//iter.GetData().value();
+			BigInt  value 	= iter.GetData();
 			IDValue id(value);
 
 			cout<<"Dumping name="<<name<<" root="<<id<<endl;

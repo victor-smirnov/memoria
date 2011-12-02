@@ -17,6 +17,14 @@
 
 namespace memoria    {
 
+extern Int PageCtrCnt[10];
+extern Int PageDtrCnt[10];
+
+extern Int PageCtr;
+extern Int PageDtr;
+
+extern bool GlobalDebug;
+
 template <typename T, size_t Size = sizeof(T)>
 class AbstractPageID: public ValueBuffer<T, Size> {
 public:
@@ -108,6 +116,8 @@ class AbstractPage {
     Int         crc_;
     Int         model_hash_;
     Int         page_type_hash_;
+    Int 		references_;
+    Int 		deleted_;
 
 public:
     typedef PageIdType      ID;
@@ -158,6 +168,30 @@ public:
         return page_type_hash_;
     }
 
+    Int &references() {
+        return references_;
+    }
+
+    const Int references() const {
+        return references_;
+    }
+
+    Int &deleted() {
+    	return deleted_;
+    }
+
+    const Int deleted() const {
+    	return deleted_;
+    }
+
+    Int ref() {
+    	return ++references_;
+    }
+
+    Int unref() {
+    	return --references_;
+    }
+
     Int data_size() const {
         return sizeof(Me);
     }
@@ -178,18 +212,236 @@ public:
         FieldFactory<Int>::create(list,  crc(),             "CRC",              abi_ptr);
         FieldFactory<Int>::create(list,  model_hash(),      "MODEL_HASH",       abi_ptr);
         FieldFactory<Int>::create(list,  page_type_hash(),  "PAGE_TYPE_HASH",   abi_ptr);
+        FieldFactory<Int>::create(list,  references_,  		"REFERENCES",   	abi_ptr);
+        FieldFactory<Int>::create(list,  deleted_,  		"DELETED",   		abi_ptr);
     }
 
     template <typename PageType>
-    void CopyFrom(PageType* page)
+    void CopyFrom(const PageType* page)
     {
         this->id()              = page->id();
         this->flags()           = page->flags();
         this->crc()             = page->crc();
         this->model_hash()      = page->model_hash();
         this->page_type_hash()  = page->page_type_hash();
+        this->references()		= page->references();
+        this->deleted()			= page->deleted();
     }
 };
+
+
+template <typename PageT, typename AllocatorT>
+class PageGuard {
+	PageT* 		page_;
+	AllocatorT*	allocator_;
+public:
+
+	typedef PageGuard<PageT, AllocatorT> 								MyType;
+	typedef PageT														Page;
+	typedef AllocatorT 													Allocator;
+
+	template <typename Page>
+	PageGuard(Page* page, Allocator* allocator): page_(static_cast<PageT*>(page)), allocator_(allocator)
+	{
+		inc();
+		ref();
+	}
+
+
+	PageGuard(Allocator* allocator): page_(NULL), allocator_(allocator) {inc();}
+
+	PageGuard(const MyType& guard): page_(guard.page_), allocator_(guard.allocator_)
+	{
+		ref();
+		check();
+		inc();
+	}
+
+	template <typename Page>
+	PageGuard(const PageGuard<Page, AllocatorT>& guard): page_(static_cast<Page*>(guard.page_)), allocator_(guard.allocator_)
+	{
+		ref();
+		check();
+		inc();
+	}
+
+	template <typename Page>
+	PageGuard(PageGuard<Page, AllocatorT>&& guard): page_(static_cast<PageT*>(guard.page_)), allocator_(guard.allocator_)
+	{
+		guard.page_	= NULL;
+		check();
+		inc();
+	}
+
+	~PageGuard()
+	{
+		dec();
+		unref();
+	}
+
+	template <typename Page>
+	operator const Page* () const
+	{
+		return static_cast<const Page*>(page_);
+	}
+
+	template <typename Page>
+	operator Page* ()
+	{
+		return static_cast<Page*>(page_);
+	}
+
+	void operator=(PageT* page)
+	{
+		unref();
+		page_ = page;
+		check();
+		ref();
+	}
+
+	void check() {
+	}
+
+	void inc() {
+		PageCtr++;
+	}
+
+	void dec() {
+		PageDtr--;
+	}
+
+	void ref()
+	{
+		if (page_ != NULL)
+		{
+//			cout<<"Ctr "<<page_->id()<<" "<<page_->ref()<<endl;
+//			if (page_->id().value() == 103)
+//			{
+//				int a = 0; a++;
+//			}
+			page_->ref();
+		}
+	}
+
+	void unref()
+	{
+		//FIXME it should be: page_->unref() == 0
+		if (page_ != NULL && page_->unref() <= 0 && page_->deleted())
+		{
+			allocator_->ReleasePage(page_);
+		}
+	}
+
+	const MyType& operator=(const MyType& guard)
+	{
+		unref();
+		page_ = static_cast<Page*>(guard.page_);
+		check();
+		ref();
+		return *this;
+	}
+
+
+	template <typename P>
+	const MyType& operator=(const PageGuard<P, AllocatorT>& guard)
+	{
+		unref();
+		page_ = static_cast<Page*>(guard.page_);
+		check();
+		ref();
+		return *this;
+	}
+
+	const MyType& operator=(MyType&& guard)
+	{
+		unref();
+		page_ = static_cast<PageT*>(guard.page_);
+		guard.page_ = NULL;
+		check();
+		return *this;
+	}
+
+
+	template <typename P>
+	const MyType& operator=(PageGuard<P, AllocatorT>&& guard)
+	{
+		unref();
+		page_ = static_cast<Page*>(guard.page_);
+		guard.page_ = NULL;
+		check();
+		return *this;
+	}
+
+
+	bool operator==(const PageT* page) const
+	{
+		return page_ == page;
+	}
+
+	bool operator!=(const PageT* page) const
+	{
+		return page_ != page;
+	}
+
+	bool operator==(const MyType& page) const
+	{
+		return page_ == page.page_;
+	}
+
+	bool operator!=(const MyType& page) const
+	{
+		return page_ != page->page_;
+	}
+
+	const PageT* page() const {
+		return page_;
+	}
+
+	PageT* page() {
+		return page_;
+	}
+
+	const PageT* operator->() const {
+		return page_;
+	}
+
+	PageT* operator->() {
+		return page_;
+	}
+
+	AllocatorT* allocator() {
+		return allocator_;
+	}
+
+	void set_allocator(AllocatorT* allocator)
+	{
+		allocator_ = allocator;
+	}
+
+	template <typename Page, typename Allocator> friend class PageGuard;
+};
+
+
+template <typename T, typename A>
+LogHandler* LogIt(LogHandler* log, const PageGuard<T, A>& value) {
+    log->log(value.page());
+    log->log(" ");
+    return log;
+}
+
+
+}
+
+namespace std {
+
+using namespace memoria;
+
+template <typename T, size_t Size>
+ostream& operator<<(ostream& out, const AbstractPageID<T, Size>& id)
+{
+	out<<id.value();
+	return out;
+}
 
 }
 

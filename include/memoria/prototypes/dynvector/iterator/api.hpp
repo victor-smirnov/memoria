@@ -35,11 +35,13 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     typedef typename Container::ID                                            		ID;
 
     typedef typename Container::Types::DataPage                                 	DataPage;
+    typedef typename Container::Types::DataPageG                                 	DataPageG;
+    typedef typename Base::Container::Allocator										Allocator;
 
     static const Int Indexes = Container::Indexes;
 
     BigInt          local_pos_;
-    DataPage*   	data_;
+    DataPageG   	data_;
 
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
@@ -77,16 +79,21 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     }
 
+    void SetupAllocator(Allocator* allocator) {
+    	data_.set_allocator(allocator);
+    	Base::SetupAllocator(allocator);
+    }
+
     bool IsEof()
     {
     	return me_.data() != NULL ? me_.data_pos() >= me_.data()->data().size() : true;
     }
 
-    DataPage*& data() {
+    DataPageG& data() {
     	return data_;
     }
 
-    const DataPage* data() const {
+    const DataPageG& data() const {
     	return data_;
     }
 
@@ -126,11 +133,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     }
 
 
-    DataPage *GetNextDataPage(NodeBase* page, DataPage* data)
+    DataPageG GetNextDataPage(NodeBase* page, DataPage* data)
     {
     	Int parent_idx = data->parent_idx();
     	Int children_count = me_.model().GetChildrenCount(page);
-    	MEMORIA_TRACE(me_.model(), page->id(), data->id(), parent_idx, children_count);
+
     	if (parent_idx < children_count - 1)
     	{
     		return me_.model().GetDataPage(page, parent_idx + 1);
@@ -142,17 +149,17 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     			return me_.model().GetDataPage(page, 0);
     		}
     		else {
-    			return NULL;
+    			return DataPageG(&me_.model().allocator());
     		}
     	}
     }
 
-    DataPage *GetNextDataPage()
+    DataPageG GetNextDataPage()
     {
     	return me_.GetNextDataPage(me_.page(), me_.data());
     }
 
-    DataPage *GetPrevDataPage(NodeBase* page, DataPage* data)
+    DataPageG GetPrevDataPage(NodeBase* page, DataPage* data)
     {
     	Int parent_idx = data->parent_idx();
 
@@ -168,12 +175,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     			return me_.model().GetDataPage(page, children_count - 1);
     		}
     		else {
-    			return NULL;
+    			return DataPageG(&me_.model().allocator());
     		}
     	}
     }
 
-    DataPage *GetPrevDataPage()
+    DataPageG GetPrevDataPage()
     {
     	return me_.GetPrevDataPage(me_.page(), me_.data());
     }

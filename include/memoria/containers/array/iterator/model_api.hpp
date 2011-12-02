@@ -25,6 +25,7 @@ using namespace memoria::btree;
 MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     typedef typename Base::NodeBase                                             	NodeBase;
+	typedef typename Base::NodeBaseG                                             	NodeBaseG;
     typedef typename Base::Container                                                Container;
 
     typedef typename Base::Container::ApiKeyType                                    ApiKeyType;
@@ -35,6 +36,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     typedef typename Base::Container::ID                                            ID;
 
     typedef typename Container::Types::DataPage                                		DataPage;
+    typedef typename Container::Types::DataPageG                                	DataPageG;
     typedef typename Container::Types::Buffer                                   	Buffer;
     typedef typename Container::Types::BufferContentDescriptor                  	BufferContentDescriptor;
     typedef typename Container::Types::CountData                               	 	CountData;
@@ -169,7 +171,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			{
 				if (me_.key_idx() == me_.model().GetChildrenCount(me_.page()) - 1)
 				{
-					NodeBase* next = me_.GetNextNode();
+					NodeBaseG next = me_.GetNextNode();
 					if (next == NULL)
 					{
 						me_.data_pos() = data_size;

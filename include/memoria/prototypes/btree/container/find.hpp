@@ -30,6 +30,8 @@ MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(memoria::btree::FindName)
     typedef typename Allocator::Transaction                                     Transaction;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Base::NodeBaseG                                            NodeBaseG;
+
     typedef typename Types::Counters                                            Counters;
     typedef Iter<typename Types::IterTypes>                            			Iterator;
 
@@ -72,7 +74,7 @@ public:
     struct FindFn {
         Iterator        i_;
         bool            rtn_;
-        NodeBase*       node_;
+        NodeBaseG       node_;
         Key             key_;
         Int             c_;
         MyType&         model_;
@@ -82,7 +84,7 @@ public:
 
     public:
         FindFn(Comparator& cmp, const Key& key, Int c, MyType &model):
-            i_(model), rtn_(false), node_(NULL),
+            i_(model), rtn_(false), node_(&model.allocator()),
             key_(key), c_(c), model_(model),
             cmp_(cmp) {}
 
@@ -113,7 +115,7 @@ public:
             	if (!node->is_leaf())
                 {
                     idx_     = node->map().size() - 1;
-                    node_   = model_.GetChild(node, idx_);
+                    node_    = model_.GetChild(node, idx_);
                 }
                 else
                 {
@@ -146,7 +148,7 @@ public:
             return rtn_;
         }
 
-        NodeBase* node() {
+        NodeBaseG& node() {
             return node_;
         }
 
@@ -205,7 +207,7 @@ template <typename Comparator>
 const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 {
 	MEMORIA_TRACE(me_, "begin", key, c, for_insert, me_.root());
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 
 	if (node != NULL)
 	{
@@ -238,7 +240,7 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindStart()
 {
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
@@ -256,7 +258,7 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 M_PARAMS
 const typename M_TYPE::Iterator M_TYPE::FindREnd() const
 {
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
@@ -274,7 +276,7 @@ const typename M_TYPE::Iterator M_TYPE::FindREnd() const
 M_PARAMS
 const typename M_TYPE::Iterator M_TYPE::FindEnd() const
 {
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
@@ -293,7 +295,7 @@ const typename M_TYPE::Iterator M_TYPE::FindEnd() const
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindRStart()
 {
-	NodeBase *node = me_.GetRoot();
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
@@ -309,8 +311,9 @@ typename M_TYPE::Iterator M_TYPE::FindRStart()
 }
 
 M_PARAMS
-BigInt M_TYPE::GetTotalKeyCount() {
-	NodeBase *node = me_.GetRoot();
+BigInt M_TYPE::GetTotalKeyCount()
+{
+	NodeBaseG node = me_.GetRoot();
 	if (node != NULL) {
 		return node->counters().key_count();
 	}

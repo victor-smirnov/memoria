@@ -160,7 +160,7 @@ int main(int argc, const char** argv, const char **envp) {
 
 		DefaultStreamAllocator allocator;
 
-		allocator.GetLogger()->level() = Logger::TRACE;
+		allocator.GetLogger()->level() = Logger::NONE;
 
 		PairVector pairs;
 		PairVector pairs_sorted;
@@ -254,4 +254,15 @@ int main(int argc, const char** argv, const char **envp) {
 	}
 
 	cout<<"TREE MAP time: "<<(getTime()- t0)<<endl;
+
+	Int CtrTotal = 0, DtrTotal = 0;
+	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
+	{
+		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
+		CtrTotal += PageCtrCnt[c];
+		DtrTotal += PageDtrCnt[c];
+	}
+
+	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
+	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
 }

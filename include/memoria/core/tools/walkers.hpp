@@ -75,8 +75,9 @@ public:
 template <typename Container, bool Forward = true, typename CountType = BigInt>
 class KeyCounterWalker {
 
-	typedef typename Container::ID ID;
-	typedef typename Container::NodeBase NodeBase;
+	typedef typename Container::ID 			ID;
+	typedef typename Container::NodeBase 	NodeBase;
+	typedef typename Container::NodeBaseG 	NodeBaseG;
 
 public:
 	CountType sum_;
@@ -119,7 +120,7 @@ public:
 			else {
 				for (Int c = idx; c < node->map().size(); c++)
 				{
-					NodeBase* child = static_cast<NodeBase*>(me_.allocator().GetPage(node->map().data(c)));
+					NodeBaseG child = me_.allocator().GetPage(node->map().data(c));
 
 					CountType count = child->counters().key_count();
 					if (count + sum_ <= target_)
@@ -151,7 +152,7 @@ public:
 			else {
 				for (Int c = idx; c >= 0; c--)
 				{
-					NodeBase* child = static_cast<NodeBase*>(me_.allocator().GetPage(node->map().data(c)));
+					NodeBaseG child = me_.allocator().GetPage(node->map().data(c));
 
 					CountType count = child->counters().key_count();
 					if (count + sum_ < target_)

@@ -33,6 +33,7 @@ class StreamAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocato
 
 public:
 	typedef typename Base::Page 												Page;
+	typedef typename Base::PageG 												PageG;
 	typedef typename Page::ID 													ID;
 	static const Int PAGE_SIZE 													= 4096;
 
@@ -119,9 +120,9 @@ public:
 		return root_;
 	}
 
-	virtual Page* for_update(Page *page) {
-		return page;
-	}
+//	virtual Page* for_update(Page *page) {
+//		return page;
+//	}
 
 	/**
 	 * If a tree page is created using new (allocator) PageType call
@@ -146,6 +147,15 @@ public:
 		return p;
 	}
 
+	virtual void ReleasePage(Page* page)
+	{
+		if (page->deleted())
+		{
+			char* buf = (char*) page;
+			::free(buf);
+			allocs_--;
+		}
+	}
 
 
 	virtual void free1(const ID &id)
@@ -155,9 +165,15 @@ public:
 		{
 			pages_.erase(id);
 			MEMORIA_TRACE(me_, "Remove pages with id", id, "size=", pages_.size());
-			char* buf = (char*) page;
-			::free(buf);
-			allocs_--;
+			if (page->references() == 0)
+			{
+				char* buf = (char*) page;
+				::free(buf);
+				allocs_--;
+			}
+			else {
+				page->deleted() = true;
+			}
 		}
 		else {
 			MEMORIA_ERROR(me_, "There is no page with id", id, "size=", pages_.size());
@@ -222,36 +238,31 @@ public:
 
 	// End RootMapInterface
 
-
-
-
-
-//	virtual void sync(const ID &page_id) {
-//
-//	}
-
 	Int get_page_size()
 	{
 		return PAGE_SIZE;
 	}
 
-	virtual Page* GetPage(const ID& id)	{
-		return get1(id);
+	virtual PageG GetPage(const ID& id)
+	{
+		return PageG(get1(id), this);
 	}
 
 	virtual void  RemovePage(const ID& id) {
 		free1(id);
 	}
 
-	virtual Page* CreatePage(Int initial_size = PAGE_SIZE) {
-		return this->create_new1();
+	virtual PageG CreatePage(Int initial_size = PAGE_SIZE)
+	{
+		return PageG(this->create_new1(), this);
 	}
 
-	virtual Page* ReallocPage(Page* page, Int new_size) {
-		return page;
+	virtual PageG ReallocPage(Page* page, Int new_size)
+	{
+		return PageG(page, this);
 	}
 
-	virtual Page* GetRoot(BigInt name) {
+	virtual PageG GetRoot(BigInt name) {
 		if (name == 0)
 		{
 			return GetPage(root_);
@@ -362,6 +373,7 @@ public:
 
 	virtual void store(OutputStreamHandler *output)
 	{
+		cout<<"Allocations: "<<allocs_<<endl;
 		char signature[12] = "MEMORIA";
 		for (UInt c = 7; c < sizeof(signature); c++) signature[c] = 0;
 
@@ -389,6 +401,8 @@ public:
 	void dump_page(OutputStreamHandler *output, char* buf, Page *page) {
 		if (page->page_type_hash() != 0)
 		{
+			if (page->references() > 0) {cout<<"Dump "<<page->id()<<" "<<page->references()<<endl;}
+
 			MEMORIA_TRACE(me_, "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
 			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
 
@@ -477,7 +491,11 @@ public:
 		if (page == NULL)
 			throw NullPointerException(MEMORIA_SOURCE, "page must not be null");
 
-		page->SetPtr(this->get1(idValue));
+		Page* page0 =  this->get1(idValue);
+
+		//cout<<"Refs: "<<page0->id()<<" "<<page0->references()<<endl;
+
+		page->SetPtr(page0);
 	}
 
 

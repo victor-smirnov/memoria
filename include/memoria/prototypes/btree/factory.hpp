@@ -194,10 +194,12 @@ public:
 
 
     typedef NodePageContainerTypes													NodeContainerTypes;
+    typedef PageGuard<NodeContainerTypes, typename ContainerTypes::Allocator>		NodeContainerTypesG;
 
     struct DispatcherTypes {
     	typedef NodeTypesList 								NodeList;
     	typedef NodeContainerTypes 							NodeBase;
+    	typedef NodeContainerTypesG 						NodeBaseG;
     	typedef typename ContainerTypes::Allocator			Allocator;
     };
 
@@ -216,19 +218,15 @@ public:
     			BTreeCountersFactory<ContainerTypeName_>
     	>::Type      															Counters;
 
-    	typedef NodeContainerTypes                                              NodeBase;
-    	typedef NullType                                      					EmbeddedContainersList;
-
     	typedef typename ContainerTypes::Allocator								Allocator;
     	typedef typename ContainerTypes::Metadata								Metadata;
 
-//    	typedef typename ReverseTool<
-//    			typename ContainerTypes::ContainerPartsList
-//    	>::Result 																CtrList;
-//
-//    	typedef typename ReverseTool<
-//    			typename ContainerTypes::IteratorPartsList
-//    	>::Result																IterList;
+    	typedef NodeContainerTypes                                              NodeBase;
+    	typedef NodeContainerTypesG                                             NodeBaseG;
+
+
+    	typedef NullType                                      					EmbeddedContainersList;
+
 
 
     	typedef typename ContainerTypes::ContainerPartsList						CtrList;

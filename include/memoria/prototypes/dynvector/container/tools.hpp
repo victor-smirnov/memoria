@@ -40,6 +40,7 @@ public:
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -58,24 +59,24 @@ public:
     typedef typename Base::Value                                                Value;
 
     typedef typename Base::Types::DataPage                                  	DataPage;
+    typedef typename Base::Types::DataPageG                                  	DataPageG;
 
     static const Int Indexes                                                    = Types::Indexes;
 
     
 
-    DataPage* GetDataPage(NodeBase *node, Int idx)
+    DataPageG GetDataPage(NodeBase *node, Int idx)
     {
         Value id = me_.GetLeafData(node, idx);
-        return static_cast<DataPage*>(me_.allocator().GetPage(id));
+        return me_.allocator().GetPage(id);
     }
 
-    NodeBase* GetDataParent(DataPage *node)
+    NodeBaseG GetDataParent(DataPage *node)
     {
-    	NodeBase* parent = static_cast<NodeBase*>(me_.allocator().GetPage(node->parent_id()));
-    	return parent;
+    	return me_.allocator().GetPage(node->parent_id());
     }
 
-    DataPage* InsertDataPage(NodeBase* node, Int key_idx)
+    DataPageG InsertDataPage(NodeBaseG node, Int key_idx)
     {
     	me_.InsertSpace(node, key_idx, 1);
     	return me_.create_datapage(node, key_idx);

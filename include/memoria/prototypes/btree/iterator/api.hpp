@@ -29,6 +29,7 @@ using namespace memoria::btree;
 MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
     typedef typename Base::NodeBase                                             NodeBase;
+	typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     bool NextKey();
 
@@ -39,15 +40,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     bool PrevLeaf() ;
 
 
-    NodeBase *GetNextNode(NodeBase* page);
+    NodeBaseG GetNextNode(NodeBase* page);
 
-    NodeBase *GetNextNode()
+    NodeBaseG GetNextNode()
     {
     	return me_.GetNextNode(me_.page());
     }
 
-    NodeBase *GetPrevNode(NodeBase* page);
-    NodeBase *GetPrevNode()
+    NodeBaseG GetPrevNode(NodeBase* page);
+    NodeBaseG GetPrevNode()
     {
     	return me_.GetPrevNode(me_.page());
     }
@@ -64,9 +65,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
 private:
 
-    NodeBase *__get_next_node(NodeBase* page, Int &idx1, Int level);
+    NodeBaseG __get_next_node(NodeBase* page, Int &idx1, Int level);
 
-    NodeBase *__get_prev_node(NodeBase* page, Int &idx1, Int level);
+    NodeBaseG __get_prev_node(NodeBase* page, Int &idx1, Int level);
 
 MEMORIA_ITERATOR_PART_END
 
@@ -136,7 +137,7 @@ M_PARAMS
 bool M_TYPE::NextLeaf()
 {
 	MEMORIA_TRACE(me_, "NextLeaf");
-	NodeBase* node = me_.GetNextNode(me_.page());
+	NodeBaseG node = me_.GetNextNode(me_.page());
 	if (node != NULL)
 	{
 		me_.key_idx() = 0;
@@ -150,7 +151,7 @@ M_PARAMS
 bool M_TYPE::PrevLeaf()
 {
 	MEMORIA_TRACE(me_, "PrevLeaf");
-	NodeBase* node = me_.GetPrevNode(me_.page());
+	NodeBaseG node = me_.GetPrevNode(me_.page());
 	if (node != NULL)
 	{
 		me_.page() = node;
@@ -161,16 +162,17 @@ bool M_TYPE::PrevLeaf()
 }
 
 M_PARAMS
-typename M_TYPE::NodeBase *M_TYPE::GetNextNode(NodeBase* page)
+typename M_TYPE::NodeBaseG M_TYPE::GetNextNode(NodeBase* page)
 {
-	if (page->is_root()) {
-		return NULL;
+	if (page->is_root())
+	{
+		return NodeBaseG(&me_.model().allocator());
 	}
 	else {
 		Int parent_idx = page->parent_idx();
-		NodeBase* parent = me_.GetParent(page);
-		if (parent == NULL) {
-			MEMORIA_ERROR(me_, "GetParent for", page, page->parent_id());
+		NodeBaseG parent = me_.GetParent(page);
+		if (parent == NULL)
+		{
 			throw NullPointerException(MEMORIA_SOURCE, "Parent must not be null");
 		}
 		return me_.__get_next_node(parent, parent_idx, page->level());
@@ -178,14 +180,14 @@ typename M_TYPE::NodeBase *M_TYPE::GetNextNode(NodeBase* page)
 }
 
 M_PARAMS
-typename M_TYPE::NodeBase *M_TYPE::GetPrevNode(NodeBase* page)
+typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(NodeBase* page)
 {
 	if (page->is_root()) {
-		return NULL;
+		return NodeBaseG(&me_.model().allocator());
 	}
 	else {
 		Int parent_idx = page->parent_idx();
-		NodeBase* parent = me_.GetParent(page);
+		NodeBaseG parent = me_.GetParent(page);
 		if (parent == NULL) throw NullPointerException(MEMORIA_SOURCE, "Parent must not be null");
 		return me_.__get_prev_node(parent, parent_idx, page->level());
 	}
@@ -198,11 +200,14 @@ typename M_TYPE::NodeBase *M_TYPE::GetPrevNode(NodeBase* page)
 // ------------------------------------ PRIVATE API --------------------------------
 
 M_PARAMS
-typename M_TYPE::NodeBase *M_TYPE::__get_next_node(NodeBase* page, Int &idx1, Int level) {
-	if (idx1 < me_.GetChildrenCount(page) - 1) {
-		NodeBase *page0 = me_.GetChild(page, idx1 + 1);
+typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBase* page, Int &idx1, Int level)
+{
+	if (idx1 < me_.GetChildrenCount(page) - 1)
+	{
+		NodeBaseG page0 = me_.GetChild(page, idx1 + 1);
 
-		while (page0->level() != level) {
+		while (page0->level() != level)
+		{
 			page0 = me_.GetChild(page0, 0);
 		}
 
@@ -210,20 +215,23 @@ typename M_TYPE::NodeBase *M_TYPE::__get_next_node(NodeBase* page, Int &idx1, In
 		return page0;
 	}
 	else {
-		if (!page->is_root()) {
-			NodeBase *parent = me_.GetParent(page);
+		if (!page->is_root())
+		{
+			NodeBaseG parent = me_.GetParent(page);
 			Int idx0 = page->parent_idx();
 			return __get_next_node(parent, idx0, level);
 		}
 	}
 
-	return NULL;
+	return NodeBaseG(&me_.model().allocator());
 }
 
 M_PARAMS
-typename M_TYPE::NodeBase *M_TYPE::__get_prev_node(NodeBase* page, Int &idx1, Int level) {
-	if (idx1 > 0) {
-		NodeBase *page0 = me_.GetChild(page, idx1 - 1);
+typename M_TYPE::NodeBaseG M_TYPE::__get_prev_node(NodeBase* page, Int &idx1, Int level)
+{
+	if (idx1 > 0)
+	{
+		NodeBaseG page0 = me_.GetChild(page, idx1 - 1);
 
 		while (page0->level() != level) {
 			page0 = me_.GetLastChild(page0);
@@ -233,14 +241,15 @@ typename M_TYPE::NodeBase *M_TYPE::__get_prev_node(NodeBase* page, Int &idx1, In
 		return page0;
 	}
 	else {
-		if (!page->is_root()) {
-			NodeBase *parent = me_.GetParent(page);
+		if (!page->is_root())
+		{
+			NodeBaseG parent = me_.GetParent(page);
 			Int idx0 = page->parent_idx();
 			return __get_prev_node(parent, idx0, level);
 		}
 	}
 
-	return NULL;
+	return NodeBaseG(&me_.model().allocator());
 }
 
 

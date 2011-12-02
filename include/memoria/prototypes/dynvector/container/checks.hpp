@@ -53,6 +53,7 @@ public:
     typedef typename Base::Value                                                Value;
 
     typedef typename Types::DataPage                                        	DataPage;
+    typedef typename Types::DataPageG                                        	DataPageG;
     typedef typename Types::Buffer                                         	 	Buffer;
     typedef typename Types::BufferContentDescriptor                         	BufferContentDescriptor;
     typedef typename Types::CountData                                       	CountData;
@@ -73,7 +74,7 @@ M_PARAMS
 bool M_TYPE::check_leaf_value(NodeBase* leaf, Int idx)
 {
 	Int key			= me_.GetKey(leaf, 0, idx);
-	DataPage* data 	= me_.GetDataPage(leaf, idx);
+	DataPageG data 	= me_.GetDataPage(leaf, idx);
 
 	if (data != NULL)
 	{

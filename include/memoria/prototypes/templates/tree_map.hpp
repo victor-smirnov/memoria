@@ -23,7 +23,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     typedef typename Base::ID                                                   ID;
 
 
-    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -50,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
         Iterator i = me_.FindLE(key, c, false);
         if (!i.IsEnd())
         {
-            NodeBase* page = i.page();
+            NodeBaseG page = i.page();
             BigInt keys = i.key_idx();
 
             while (!page->is_root())
@@ -60,7 +61,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
                 for (Int c = 0; c < pidx; c++)
                 {
-                    NodeBase* child = me_.GetChild(page, c);
+                    NodeBaseG child = me_.GetChild(page, c);
                     keys += child->counters().key_count();
                 }
             }
@@ -74,7 +75,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     Iterator GetByIndex(BigInt index)
     {
-        NodeBase *node = me_.GetRoot();
+        NodeBaseG node = me_.GetRoot();
         if (node != NULL)
         {
             BigInt keys = 0;
@@ -86,7 +87,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
                 for (Int c = 0; c < size; c++)
                 {
-                    NodeBase* child = me_.GetChild(node, c);
+                    NodeBaseG child = me_.GetChild(node, c);
                     BigInt count = child->counters().key_count();
 
                     if (index < keys + count)

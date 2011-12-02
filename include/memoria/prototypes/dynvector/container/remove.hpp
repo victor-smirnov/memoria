@@ -38,6 +38,7 @@ public:
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -56,6 +57,7 @@ public:
     typedef typename Base::Value                                                Value;
 
     typedef typename Base::Types::DataPage                                  	DataPage;
+    typedef typename Base::Types::DataPageG                                  	DataPageG;
 
     static const Int Indexes                                                    = Types::Indexes;
 
@@ -137,7 +139,7 @@ public:
     	}
     }
 
-    bool RemoveData(NodeBase* page, DataPage* data, Int start, Int length)
+    bool RemoveData(NodeBaseG page, DataPageG data, Int start, Int length)
     {
     	if (me_.debug()) {
     		int a = 0;
@@ -147,8 +149,6 @@ public:
     	Int pos = start + length;
 
     	BigInt keys[Indexes] = {0,};
-
-//    	cout<<data->data().size()<<endl;
 
     	if (pos < data->data().size())
     	{

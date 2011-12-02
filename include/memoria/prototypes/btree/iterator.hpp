@@ -45,7 +45,8 @@ class Iter<BTreeIterTypes<Types> >: public IterStart<BTreeIterTypes<Types> >
     typedef Ctr<typename Types::CtrTypes>                                       	ContainerType;
     typedef EmptyType																Txn;
 
-    typedef typename Base::NodeBase                                             	NodeBase;
+    typedef typename ContainerType::Types::NodeBase                                 NodeBase;
+    typedef typename ContainerType::Types::NodeBaseG                                NodeBaseG;
 
     Int kind_;
     ContainerType&      model_;
@@ -57,20 +58,31 @@ public:
     typedef ContainerType                                                           Container;
     
     Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(*this), kind_(kind), model_(model) {
-        Base::state() = 0;
+    	Base::SetupAllocator(&model.allocator());
+    	Base::state() = 0;
         Base::page() = NULL;
         Base::key_idx() = -1;
     }
     
-    Iter(NodeBase* node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
-        Base::page() = node;
-        Base::key_idx() = idx;
-        Base::state() = 0;
-        if (do_init) Base::Init();
-        Base::ReHash();
+//    Iter(NodeBase* node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
+//        Base::page() = node;
+//        Base::key_idx() = idx;
+//        Base::state() = 0;
+//        if (do_init) Base::Init();
+//        Base::ReHash();
+//    }
+
+    Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
+    	Base::SetupAllocator(&model.allocator());
+    	Base::page() = node;
+    	Base::key_idx() = idx;
+    	Base::state() = 0;
+    	if (do_init) Base::Init();
+    	Base::ReHash();
     }
 
     Iter(const MyType& other): Base(*this), kind_(other.kind_), model_(other.model_) {
+    	Base::SetupAllocator(&other.model().allocator());
         setup(other);
     }
 

@@ -35,6 +35,7 @@ public:
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -53,6 +54,7 @@ public:
     typedef typename Base::Value                                                Value;
 
     typedef typename Types::DataPage                                        	DataPage;
+    typedef typename Types::DataPageG                                        	DataPageG;
     typedef typename Types::Buffer                                         	 	Buffer;
     typedef typename Types::BufferContentDescriptor                         	BufferContentDescriptor;
     typedef typename Types::CountData                                       	CountData;
@@ -67,7 +69,7 @@ public:
 
 
 //PROTECTED API:
-    DataPage* create_datapage(NodeBase* node, Int idx);
+    DataPageG create_datapage(NodeBaseG& node, Int idx);
 
 
 private:
@@ -79,7 +81,7 @@ private:
     );
 
     void import_several_pages(
-            NodeBase *node,
+            NodeBaseG& node,
             BigInt key_idx,
             const Buffer &block,
             BufferContentDescriptor &descriptor,
@@ -88,7 +90,7 @@ private:
 
     // FIXME: check: make a room for inserted data if necessary
     void import_small_block(
-            NodeBase *node,
+            NodeBaseG& node,
             BigInt idx,
             BigInt pos,
             const Buffer &block,
@@ -97,7 +99,7 @@ private:
 
 
     void import_data(
-                DataPage *page,
+                DataPageG& page,
                 BigInt idx,
                 BigInt pos,
                 const Buffer &data,
@@ -105,11 +107,11 @@ private:
 
     void move_data_in_page_create(Iterator &iter, BigInt local_idx, CountData &prefix);
 
-    void move_data_in_page_create(DataPage *from, NodeBase *node, BigInt idx, BigInt local_idx, CountData &prefix);
+    void move_data_in_page_create(DataPageG& from, NodeBaseG& node, BigInt idx, BigInt local_idx, CountData &prefix);
 
     void move_data_in_page(Iterator &iter, BigInt local_idx, CountData &prefix);
 
-    void move_data_in_page(DataPage *from, DataPage *to, BigInt local_idx, CountData &prefix);
+    void move_data_in_page(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -119,7 +121,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescriptor &descriptor)
 {
-	NodeBase*& 	page 				= iter.page();
+	NodeBaseG& 	page 				= iter.page();
 	BigInt 		max_datapage_size 	= DataPage::get_max_size();
 
 	MEMORIA_TRACE(me_, "iterator is not empty", block.size(), page, me_.root());
@@ -129,7 +131,7 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 	if (iter.IsEmpty())
 	{
 		iter.key_idx() 	= 0;
-		iter.data_pos()		= 0;
+		iter.data_pos()	= 0;
 		iter.data() 	= me_.InsertDataPage(page, iter.key_idx());
 	}
 
@@ -154,7 +156,7 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 			// by moving data into the next datapage if it has free space.
 			// Or create a new datapage otherwise.
 
-			DataPage* next_data = iter.GetNextDataPage(page, iter.data());
+			DataPageG next_data = iter.GetNextDataPage(page, iter.data());
 
 			if (next_data != NULL)
 			{
@@ -173,7 +175,7 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 
 					BigInt next_key_idx = iter.key_idx() + 1;
 
-					NodeBase* next_page = page;
+					NodeBaseG next_page = page;
 					if (me_.GetCapacity(page) == 0)
 					{
 						if (next_key_idx < me_.GetMaxCapacity(page))
@@ -186,15 +188,7 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 						}
 					}
 
-					for (Int c = 0; c < me_.GetChildrenCount(next_page); c++)
-					{
-						DataPage* data = me_.GetDataPage(next_page, c);
-						MEMORIA_TRACE(me_, "xc=", c, "pidx=", data->parent_idx(), data->id());
-					}
-
 					next_data = me_.InsertDataPage(next_page, next_key_idx);
-
-					//        				return;
 				}
 			}
 			else if (me_.GetCapacity(page) > 0)
@@ -204,7 +198,7 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 			}
 			else
 			{
-				NodeBase* new_node = me_.SplitBTreeNode(page, iter.key_idx() + 1);
+				NodeBaseG new_node = me_.SplitBTreeNode(page, iter.key_idx() + 1);
 				next_data = me_.InsertDataPage(new_node, 0);
 			}
 
@@ -231,13 +225,9 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 
 //PROTECTED API:
 M_PARAMS
-typename M_TYPE::DataPage* M_TYPE::create_datapage(NodeBase* node, Int idx)
+typename M_TYPE::DataPageG M_TYPE::create_datapage(NodeBaseG& node, Int idx)
 {
-	MEMORIA_TRACE(me_, "[node.id, idx]", node->id(), idx);
-
-	//        DataPage *data      = new (me_.allocator()) DataPage;
-
-	DataPage *data      = static_cast<DataPage*>(me_.allocator().CreatePage());
+	DataPageG data      	= me_.allocator().CreatePage();
 	data->init();
 
 	data->parent_idx()      = idx;
@@ -247,8 +237,6 @@ typename M_TYPE::DataPage* M_TYPE::create_datapage(NodeBase* node, Int idx)
 	data->page_type_hash()  = DataPage::hash();
 
 	me_.SetLeafData(node, idx, data->id());
-
-	MEMORIA_TRACE(me_, "[data.id]", data->id());
 
 	return data;
 }
@@ -262,11 +250,11 @@ void M_TYPE::import_pages(
 		BufferContentDescriptor &descriptor
 )
 {
-	NodeBase *node = iter.page();
+	NodeBaseG node = iter.page();
 	BigInt key_idx = iter.key_idx();
 	BigInt data_pos = iter.data_pos();
 
-	DataPage* suffix_data_page;
+	DataPageG suffix_data_page(&me_.allocator());
 
 	BigInt length  = descriptor.length();
 
@@ -393,7 +381,7 @@ void M_TYPE::import_pages(
 
 	if (index_suffix > 0)
 	{
-		NodeBase* suffix_node = iter.GetNextNode(node);
+		NodeBaseG suffix_node = iter.GetNextNode(node);
 		MEMORIA_TRACE(me_, "index_suffix [index_suffix, suffix_node.id]", index_suffix, suffix_node != NULL ? suffix_node->id() : ID(0));
 
 		if (suffix_node != NULL && me_.GetCapacity(suffix_node) >= index_suffix)
@@ -451,7 +439,7 @@ void M_TYPE::import_pages(
 			}
 			else if (key_idx < me_.GetMaxCapacity(node) - 1)
 			{
-				NodeBase* node_right = me_.SplitBTreeNode(node, key_idx);
+				NodeBaseG node_right = me_.SplitBTreeNode(node, key_idx);
 				me_.InsertDataPage(node, key_idx);
 			}
 			else {
@@ -500,7 +488,7 @@ void M_TYPE::import_pages(
 
 M_PARAMS
 void M_TYPE::import_several_pages(
-		NodeBase *node,
+		NodeBaseG& node,
 		BigInt key_idx,
 		const Buffer &block,
 		BufferContentDescriptor &descriptor,
@@ -512,8 +500,9 @@ void M_TYPE::import_several_pages(
 
 	for (BigInt c = key_idx; c < key_idx + page_count; c++)
 	{
+		DataPageG data = me_.create_datapage(node, c);
 		me_.import_data(
-				me_.create_datapage(node, c),
+				data,
 				c,
 				0,
 				block,
@@ -533,15 +522,12 @@ void M_TYPE::import_several_pages(
 
 	me_.Reindex(node);
 
-	NodeBase* parent = me_.GetParent(node);
+	NodeBaseG parent = me_.GetParent(node);
 
-	MEMORIA_TRACE(me_, "KEYS", total_indexes[0]);
 	if (parent != NULL)
 	{
 		me_.UpdateBTreeKeys(parent, node->parent_idx(), total_indexes, true);
 	}
-
-	MEMORIA_TRACE(me_, "DONE");
 }
 
 
@@ -549,16 +535,14 @@ void M_TYPE::import_several_pages(
 // FIXME: check: make a room for inserted data if necessary
 M_PARAMS
 void M_TYPE::import_small_block(
-		NodeBase *node,
+		NodeBaseG& node,
 		BigInt idx,
 		BigInt pos,
 		const Buffer &block,
 		BufferContentDescriptor &descriptor
 )
 {
-	MEMORIA_TRACE(me_, "[node.id, idx, pos, descr.length]", node->id(), idx, pos, descriptor.length());
-
-	DataPage* data_page = me_.GetDataPage(node, idx);
+	DataPageG data_page = me_.GetDataPage(node, idx);
 	if (data_page == NULL)
 	{
 		data_page = me_.create_datapage(node, idx);
@@ -566,15 +550,13 @@ void M_TYPE::import_small_block(
 
 	me_.import_data(data_page, idx, pos, block, descriptor);
 
-	MEMORIA_TRACE(me_, "KEYS", descriptor.indexes()[0]);
-
 	me_.UpdateBTreeKeys(node, idx, descriptor.indexes(), true); //FIXME: add or replace ?
 }
 
 
 M_PARAMS
 void M_TYPE::import_data(
-		DataPage *page,
+		DataPageG& page,
 		BigInt idx,
 		BigInt pos,
 		const Buffer &data,
@@ -582,7 +564,6 @@ void M_TYPE::import_data(
 {
 	BigInt start    = descriptor.start();
 	BigInt length   = descriptor.length();
-	MEMORIA_TRACE(me_, "[data.id, idx, pos, start, length, descr.indexes[0]]", page->id(), idx, pos, start, length, descriptor.indexes()[0]);
 
 	BigInt usage 	= page->data().size();
 
@@ -591,7 +572,6 @@ void M_TYPE::import_data(
 		page->data().shift(pos, length);
 	}
 
-	MEMORIA_TRACE(me_, "CopyData", page->id(), start, pos, length);
 	me_.copy_data(data, page, start, pos, length);
 
 	usage += length;
@@ -601,22 +581,19 @@ void M_TYPE::import_data(
 	descriptor.indexes()[0] = length;
 
 	descriptor.start() += length;
-	MEMORIA_TRACE(me_, "Usage", descriptor.indexes()[0]);
 }
 
 M_PARAMS
 void M_TYPE::move_data_in_page_create(Iterator &iter, BigInt local_idx, CountData &prefix)
 {
-	MEMORIA_TRACE(me_, "BEGIN1");
-	DataPage* to = me_.create_datapage(iter.page(), iter.data()->parent_idx() + 1);
+	DataPageG to = me_.create_datapage(iter.page(), iter.data()->parent_idx() + 1);
 	me_.move_data_in_page(iter.data(), to, local_idx, prefix);
 }
 
 M_PARAMS
-void M_TYPE::move_data_in_page_create(DataPage *from, NodeBase *node, BigInt idx, BigInt local_idx, CountData &prefix)
+void M_TYPE::move_data_in_page_create(DataPageG& from, NodeBaseG& node, BigInt idx, BigInt local_idx, CountData &prefix)
 {
-	MEMORIA_TRACE(me_, "BEGIN2");
-	DataPage* to = me_.create_datapage(node, idx);
+	DataPageG to = me_.create_datapage(node, idx);
 	//FIXME from-> has incorrect type for this expression
 	move_data_in_page(from, to, local_idx, from->
 			data()->
@@ -627,33 +604,28 @@ M_PARAMS
 void M_TYPE::move_data_in_page(Iterator &iter, BigInt local_idx, CountData &prefix)
 {
 	Int idx = iter.data()->parent_idx() + 1;
-	DataPage *to = me_.GetDataPage(iter.page(), idx);
+	DataPageG to = me_.GetDataPage(iter.page(), idx);
 	me_.move_data_in_page(iter.data(), to, local_idx, prefix);
 }
 
 M_PARAMS
-void M_TYPE::move_data_in_page(DataPage *from, DataPage *to, BigInt local_idx, CountData &prefix)
+void M_TYPE::move_data_in_page(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix)
 {
-	MEMORIA_TRACE(me_, "BEGIN", from->id(), to->id(), local_idx);
-
 	//TODO: does it better to update indexes and sizes here?
 	BigInt keys[Indexes];
 	me_.move_data(from, to, local_idx, prefix, keys);
 
-	NodeBase *from_node = me_.GetDataParent(from);
+	NodeBaseG from_node = me_.GetDataParent(from);
 	me_.UpdateBTreeKeys(from_node, from->parent_idx(), keys, true);
 
 	for (Int c = 0; c < Indexes; c++) keys[c] = -keys[c];
 
-	NodeBase *to_node = me_.GetDataParent(to);
+	NodeBaseG to_node = me_.GetDataParent(to);
 	me_.UpdateBTreeKeys(to_node, to->parent_idx(), keys, true);
 }
 
-
-
 #undef M_TYPE
 #undef M_PARAMS
-
 
 }
 
