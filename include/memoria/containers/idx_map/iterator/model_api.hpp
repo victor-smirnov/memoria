@@ -38,7 +38,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::idx_map::ItrAPIName)
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
     virtual BigInt GetBase(Int i) {
-        return me_.prefix(i);
+        return me()->prefix(i);
     }
     
 

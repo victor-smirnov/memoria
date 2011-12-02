@@ -40,11 +40,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
 
 
     bool Next() {
-    	return me_.NextKey();
+    	return me()->NextKey();
     }
 
     bool Prev() {
-    	return me_.PrevKey();
+    	return me()->PrevKey();
     }
     
     void GetValue(BigInt& holder)
@@ -56,13 +56,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
 //    {
 //    	MEMORIA_TRACER(MyType, me_);
 //
-//        key   = me_.GetKey(0);
-//        value = me_.GetData();
+//        key   = me()->GetKey(0);
+//        value = me()->GetData();
 //    }
 
     memoria::vapi::Page* GetPage() {
-        if (me_.page() != NULL) {
-            return new PageWrapper<PageType, PAGE_SIZE>(me_.page());
+        if (me()->page() != NULL) {
+            return new PageWrapper<PageType, PAGE_SIZE>(me()->page());
         }
         else {
             return NULL;
@@ -70,14 +70,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
     }
 
     Int GetIndex() {
-        return me_.key_idx();
+        return me()->key_idx();
     }
 
     bool IsFlag(Int flag) {
         switch (flag) {
-            case memoria::vapi::Iterator::ITEREND:    return me_.IsEnd();
-            case memoria::vapi::Iterator::ITER_EMPTY:  return me_.IsEmpty();
-            case memoria::vapi::Iterator::ITER_START:    return me_.IsStart();
+            case memoria::vapi::Iterator::ITEREND:    return me()->IsEnd();
+            case memoria::vapi::Iterator::ITER_EMPTY:  return me()->IsEmpty();
+            case memoria::vapi::Iterator::ITER_START:    return me()->IsStart();
             default:                throw MemoriaException(MEMORIA_SOURCE, "Invalig flag name", flag);
         }
 

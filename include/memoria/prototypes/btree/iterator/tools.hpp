@@ -32,30 +32,30 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
 
     NodeBaseG GetParent(NodeBase *node)
     {
-        return me_.model().GetParent(node);
+        return me()->model().GetParent(node);
     }
 
     Int GetChildrenCount(NodeBase *node)
     {
-        return me_.model().GetChildrenCount(node);
+        return me()->model().GetChildrenCount(node);
     }
 
     NodeBaseG GetChild(NodeBase *node, Int idx)
     {
-        return me_.model().GetChild(node, idx);
+        return me()->model().GetChild(node, idx);
     }
 
     NodeBaseG GetLastChild(NodeBase *node)
     {
-        return me_.model().GetLastChild(node);
+        return me()->model().GetLastChild(node);
     }
 
     Value GetData() {
-        return me_.model().GetLeafData(me_.page(), me_.key_idx());
+        return me()->model().GetLeafData(me()->page(), me()->key_idx());
     }
 
     Key GetKey(Int keyNum) {
-        return Container::GetKey(me_.page(), keyNum, me_.key_idx());
+        return Container::GetKey(me()->page(), keyNum, me()->key_idx());
     }
 
 MEMORIA_ITERATOR_PART_END

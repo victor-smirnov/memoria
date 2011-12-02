@@ -45,58 +45,56 @@ MEMORIA_ITERATOR_PART_END
 M_PARAMS
 BigInt M_TYPE::SkipKeyFw(BigInt distance)
 {
-	MEMORIA_TRACE(me_.model(), "Begin", distance);
-
-	if (me_.page() == NULL)
+	if (me()->page() == NULL)
 	{
-		me_.ReHash();
+		me()->ReHash();
 		return 0;
 	}
-	else if (me_.key_idx() + distance < me_.model().GetChildrenCount(me_.page()))
+	else if (me()->key_idx() + distance < me()->model().GetChildrenCount(me()->page()))
 	{
-		me_.key_idx() += distance;
+		me()->key_idx() += distance;
 	}
 	else {
-		KeyCounterWalker<Container, true> walker(distance, me_.model());
+		KeyCounterWalker<Container, true> walker(distance, me()->model());
 
-		if (me_.WalkFw(me_.page(), me_.key_idx(), walker))
+		if (me()->WalkFw(me()->page(), me()->key_idx(), walker))
 		{
-			me_.key_idx()++;
-			me_.ReHash();
+			me()->key_idx()++;
+			me()->ReHash();
 			return walker.sum();
 		}
 	}
 
-	me_.ReHash();
+	me()->ReHash();
 	return distance;
 }
 
 M_PARAMS
 BigInt M_TYPE::SkipKeyBw(BigInt distance)
 {
-	MEMORIA_TRACE(me_.model(), "Begin", distance);
+	MEMORIA_TRACE(me()->model(), "Begin", distance);
 
-	if (me_.page() == NULL)
+	if (me()->page() == NULL)
 	{
-		me_.ReHash();
+		me()->ReHash();
 		return 0;
 	}
-	else if (me_.key_idx() - distance >= 0)
+	else if (me()->key_idx() - distance >= 0)
 	{
-		me_.key_idx() -= distance;
+		me()->key_idx() -= distance;
 	}
 	else {
-		KeyCounterWalker<Container, false> walker(distance, me_.model());
+		KeyCounterWalker<Container, false> walker(distance, me()->model());
 
-		if (me_.WalkBw(me_.page(), me_.key_idx(), walker))
+		if (me()->WalkBw(me()->page(), me()->key_idx(), walker))
 		{
-			me_.key_idx() = -1;
-			me_.ReHash();
+			me()->key_idx() = -1;
+			me()->ReHash();
 			return walker.sum();
 		}
 	}
 
-	me_.ReHash();
+	me()->ReHash();
 	return distance;
 }
 

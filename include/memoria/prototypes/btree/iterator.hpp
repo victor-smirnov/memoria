@@ -57,7 +57,7 @@ public:
 
     typedef ContainerType                                                           Container;
     
-    Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(*this), kind_(kind), model_(model) {
+    Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(), kind_(kind), model_(model) {
     	Base::SetupAllocator(&model.allocator());
     	Base::state() = 0;
         Base::page() = NULL;
@@ -72,7 +72,7 @@ public:
 //        Base::ReHash();
 //    }
 
-    Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
+    Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(), kind_(GENERIC_ITERATOR), model_(model) {
     	Base::SetupAllocator(&model.allocator());
     	Base::page() = node;
     	Base::key_idx() = idx;
@@ -81,7 +81,7 @@ public:
     	Base::ReHash();
     }
 
-    Iter(const MyType& other): Base(*this), kind_(other.kind_), model_(other.model_) {
+    Iter(const MyType& other): Base(), kind_(other.kind_), model_(other.model_) {
     	Base::SetupAllocator(&other.model().allocator());
         setup(other);
     }

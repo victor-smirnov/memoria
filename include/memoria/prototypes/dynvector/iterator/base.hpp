@@ -35,7 +35,7 @@ private:
     Key prefix_[Indexes];
 
 public:
-    ITreeIteratorBase(MyType &me): Base(me)
+    ITreeIteratorBase(): Base()
     {
     	for (Int c = 0; c < Indexes; c++)
     	{

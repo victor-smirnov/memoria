@@ -60,7 +60,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     				// The case when index->parent_idx() == parent.size
     				// should be handled correctly in the walker
     				idx 	= index->parent_idx() + 1;
-    				index 	= me_.GetParent(index);
+    				index 	= me()->GetParent(index);
     			}
     			else {
     				// EOF
@@ -90,7 +90,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
     			if (!index->is_leaf())
     			{
-    				index = me_.GetChild(index, fn.result());
+    				index = me()->GetChild(index, fn.result());
     				idx = 0; // FIXME: check this
     			}
     			else {
@@ -105,11 +105,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     		{
     			if (!index->is_leaf())
     			{
-    				index = me_.model().GetLastChild(index);
+    				index = me()->model().GetLastChild(index);
     			}
     			else {
     				//FIXME: remove '-1'
-    				idx = me_.model().GetChildrenCount(index) - 1;
+    				idx = me()->model().GetChildrenCount(index) - 1;
     				return true;
     			}
     		}
@@ -132,7 +132,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         		if (!index->is_root())
         		{
         			idx 	= index->parent_idx() - 1;
-        			index 	= me_.GetParent(index);
+        			index 	= me()->GetParent(index);
         		}
         		else {
         			// START
@@ -156,8 +156,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
         		if (!index->is_leaf())
         		{
-        			index = me_.GetChild(index, fn.result());
-        			idx = me_.model().GetChildrenCount(index) - 1;
+        			index = me()->GetChild(index, fn.result());
+        			idx = me()->model().GetChildrenCount(index) - 1;
         		}
         		else {
         			idx = fn.result();
@@ -172,7 +172,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         	{
         		if (!index->is_leaf())
         		{
-        			index = me_.GetChild(index, 0);
+        			index = me()->GetChild(index, 0);
         		}
         		else {
         			return true;
@@ -188,7 +188,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     	{
     		walker(node, idx);
     		idx  = node->parent_idx();
-    		node = me_.GetParent(node);
+    		node = me()->GetParent(node);
     	}
 
     	walker(node, idx);

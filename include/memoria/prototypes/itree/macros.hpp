@@ -19,8 +19,7 @@ class IteratorBaseClassName: public memoria::BTreeIteratorBase<                 
         TypesType>                                                    					\
 {																						\
 	typedef memoria::BTreeIteratorBase<TypesType> 								Base;	\
-	typedef typename Base::MyType												MyType; \
-    MyType&             me_;
+	typedef typename Base::MyType												MyType;
 
 
         

@@ -29,7 +29,7 @@ class IterHelper: public IterPart<typename SelectByIndexTool<Idx, typename Types
 	typedef IterPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, IterHelper<Idx - 1, Types>, Types> BaseType;
 
 public:
-	IterHelper(MyType& me): BaseType(me) {}
+	IterHelper(): BaseType() {}
 };
 
 template <typename Types>
@@ -40,7 +40,7 @@ class IterHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
 	typedef typename Types::template BaseFactory<Types>::Type BaseType;
 
 public:
-	IterHelper(MyType& me): BaseType(me) {}
+	IterHelper(): BaseType() {}
 };
 
 template <typename Types>
@@ -49,7 +49,7 @@ class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Ty
 
 	typedef IterHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
 public:
-	IterStart(MyType& me): Base(me) {}
+	IterStart(): Base() {}
 };
 
 
@@ -68,7 +68,6 @@ public:
     enum {END = 1, START = 2, EMPTY = 3};
     
 private:
-    MyType& me_;
     Int     state_;
     
     Int hash_;
@@ -76,9 +75,9 @@ private:
     Logger logger_;
 
 public:
-    IteratorBase(MyType &me):
-    	me_(me), state_(0), hash_(0),
-    	logger_("Iterator", Logger::DERIVED, &memoria::vapi::logger) //&me_.model().logger()
+    IteratorBase():
+    	state_(0), hash_(0),
+    	logger_("Iterator", Logger::DERIVED, &memoria::vapi::logger)
     {}
 
     bool operator==(const MyType& other) const {
@@ -98,12 +97,12 @@ public:
     	return 0;
     }
 
-    MyType &me() {
-        return me_;
+    MyType* me() {
+    	return static_cast<MyType*>(this);
     }
 
-    const MyType &me() const {
-        return me_;
+    const MyType* me() const {
+    	return static_cast<const MyType*>(this);
     }
 
     void setup(const MyType &other)
@@ -128,9 +127,8 @@ public:
         return state_;
     }
 
-
-
-    void SetStateBit(int flag, bool bit) {
+    void SetStateBit(int flag, bool bit)
+    {
         if (bit) {
             state_ |= flag;
         }
@@ -138,35 +136,6 @@ public:
             state_ &= ~flag;
         }
     }
-
-//    bool IsEnd() const {
-//    	return (state() & END) != 0;
-//    }
-//
-//    void SetEnd(bool eof) {
-//        SetStateBit(END, eof);
-//    }
-//
-//    bool IsStart() const {
-//        return (state_ & START) != 0;
-//    }
-//
-//    void SetStart(bool bof) {
-//        SetStateBit(START, bof);
-//    }
-//
-//
-//    bool IsEmpty() const {
-//        return (state_ & EMPTY) == END + START;
-//    }
-//
-//    bool IsNotEmpty() const {
-//        return (state_ & EMPTY) != END + START;
-//    }
-
-//    void SetEmpty(bool empty) {
-//    	SetStateBit(EMPTY, END + START);
-//    }
 
     bool is_log(Int level)
     {
@@ -179,11 +148,11 @@ public:
     }
 
     const char* type_name() const {
-        return me_.model().type_name();
+        return me()->model().type_name();
     }
 
     void ReHash() {
-    	hash_ = me_.BuildHash();
+    	hash_ = me()->BuildHash();
     }
 
     void Init() {}
@@ -212,7 +181,15 @@ protected:
     ContainerType&      model_;
 public:
     
-    Iter(MyType &me, ContainerType &model): Base(me), /*me_(me),*/ model_(model) {}
+    Iter(ContainerType &model): model_(model) {}
+
+    MyType* me() {
+    	return this;
+    }
+
+    const MyType* me() const {
+    	return this;
+    }
 
     ContainerType& model() {
         return model_;

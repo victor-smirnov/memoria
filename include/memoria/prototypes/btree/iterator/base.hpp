@@ -34,7 +34,7 @@ private:
     Int                 key_idx_;
 
 public:
-    BTreeIteratorBase(MyType &me): Base(me), me_(me), page_(NULL), key_idx_(0) {}
+    BTreeIteratorBase(): Base(), page_(NULL), key_idx_(0) {}
 
     void SetupAllocator(Allocator* allocator) {
     	page_.set_allocator(allocator);
@@ -79,19 +79,18 @@ public:
 
     bool IsEnd()
     {
-    	return page() != NULL ? key_idx() >= me_.model().GetChildrenCount(page()) : true;
+    	return page() != NULL ? key_idx() >= me()->model().GetChildrenCount(page()) : true;
     }
 
     bool IsEmpty()
     {
-    	return page() == NULL || me_.model().GetChildrenCount(page()) == 0;
+    	return page() == NULL || me()->model().GetChildrenCount(page()) == 0;
     }
 
     bool IsNotEmpty()
     {
     	return !IsEmpty();
     }
-
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END
 

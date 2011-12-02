@@ -51,16 +51,24 @@ class BTreeIteratorBaseClassName: public IteratorBase<                   				\
 {																						\
 	typedef IteratorBase<TypesType> 											Base;	\
 public:																					\
-	typedef Iter<TypesType>														MyType; \
-    MyType&             me_;
+	typedef Iter<TypesType>														MyType;
+
 
 
         
 #define MEMORIA_BTREE_ITERATOR_BASE_CLASS_BEGIN(BTreeIteratorBaseClassName)      \
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)      \
-    BTreeIteratorBaseClassName(MyType &me): Base(me), me_(me) {}
+    BTreeIteratorBaseClassName(): Base() {}
 
 
-#define MEMORIA_BTREE_ITERATOR_BASE_CLASS_END };
+#define MEMORIA_BTREE_ITERATOR_BASE_CLASS_END											\
+	MyType* me() {																		\
+    	return static_cast<MyType*>(this);												\
+    }																					\
+    																					\
+    const MyType* me() const {															\
+    	return static_cast<const MyType*>(this);										\
+    }																					\
+};
 
 #endif

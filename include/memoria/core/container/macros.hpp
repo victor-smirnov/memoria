@@ -138,7 +138,7 @@ class IterPart<PartName, Base1, Types>: public Base1 { 							\
 	typedef IterPart<PartName, Base1, Types> ThisPartType;						\
 	typedef Base1 Base;															\
 	typedef Iter<Types> MyType;													\
-    MyType& me_;                                                                \
+                                                                    			\
 public:																			\
 	const ThisPartType& operator=(const ThisPartType&){return *this;}
 
@@ -146,11 +146,19 @@ public:																			\
 
 #define MEMORIA_ITERATOR_PART_BEGIN(PartName)                       			\
     MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(PartName)                   			\
-    IterPart(MyType &me): Base(me), me_(me) {}
+    IterPart(): Base() {}
 
 
 
-#define MEMORIA_ITERATOR_PART_END };
+#define MEMORIA_ITERATOR_PART_END												\
+	MyType* me() {																\
+    	return static_cast<MyType*>(this);										\
+    }																			\
+    																			\
+    const MyType* me() const {													\
+    	return static_cast<const MyType*>(this);								\
+    }																			\
+};
 
 
 #define MEMORIA_ITERATOR_TYPE(PartName)											\

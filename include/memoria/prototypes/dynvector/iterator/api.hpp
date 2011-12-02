@@ -74,7 +74,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	}
     };
 
-    IterPart(MyType &me): Base(me), me_(me), local_pos_(0), data_(NULL)
+    IterPart(): Base(), local_pos_(0), data_(NULL)
     {
 
     }
@@ -86,7 +86,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     bool IsEof()
     {
-    	return me_.data() != NULL ? me_.data_pos() >= me_.data()->data().size() : true;
+    	return me()->data() != NULL ? me()->data_pos() >= me()->data()->data().size() : true;
     }
 
     DataPageG& data() {
@@ -107,7 +107,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     BigInt pos()
     {
-    	return me_.prefix(0) + me_.data_pos();
+    	return me()->prefix(0) + me()->data_pos();
     }
 
     void setup(const MyType &other)
@@ -121,10 +121,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     BigInt GetIndexValue(Int idx_number)
     {
-    	if (me_.page() != NULL)
+    	if (me()->page() != NULL)
     	{
-    		SumWalker walker(idx_number, me_);
-    		me_.walk_to_the_root(me_.page(), me_.key_idx(), walker);
+    		SumWalker walker(idx_number, *me());
+    		me()->walk_to_the_root(me()->page(), me()->key_idx(), walker);
     		return walker.sum();
     	}
     	else {
@@ -136,27 +136,27 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     DataPageG GetNextDataPage(NodeBase* page, DataPage* data)
     {
     	Int parent_idx = data->parent_idx();
-    	Int children_count = me_.model().GetChildrenCount(page);
+    	Int children_count = me()->model().GetChildrenCount(page);
 
     	if (parent_idx < children_count - 1)
     	{
-    		return me_.model().GetDataPage(page, parent_idx + 1);
+    		return me()->model().GetDataPage(page, parent_idx + 1);
     	}
     	else {
-    		page = me_.GetNextNode(page);
+    		page = me()->GetNextNode(page);
     		if (page != NULL)
     		{
-    			return me_.model().GetDataPage(page, 0);
+    			return me()->model().GetDataPage(page, 0);
     		}
     		else {
-    			return DataPageG(&me_.model().allocator());
+    			return DataPageG(&me()->model().allocator());
     		}
     	}
     }
 
     DataPageG GetNextDataPage()
     {
-    	return me_.GetNextDataPage(me_.page(), me_.data());
+    	return me()->GetNextDataPage(me()->page(), me()->data());
     }
 
     DataPageG GetPrevDataPage(NodeBase* page, DataPage* data)
@@ -165,24 +165,24 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     	if (parent_idx > 0)
     	{
-    		return me_.model().GetDataPage(page, parent_idx - 1);
+    		return me()->model().GetDataPage(page, parent_idx - 1);
     	}
     	else {
-    		page = me_.GetPrevNode(page);
+    		page = me()->GetPrevNode(page);
     		if (page != NULL)
     		{
-    			Int children_count = me_.model().GetChildrenCount(page);
-    			return me_.model().GetDataPage(page, children_count - 1);
+    			Int children_count = me()->model().GetChildrenCount(page);
+    			return me()->model().GetDataPage(page, children_count - 1);
     		}
     		else {
-    			return DataPageG(&me_.model().allocator());
+    			return DataPageG(&me()->model().allocator());
     		}
     	}
     }
 
     DataPageG GetPrevDataPage()
     {
-    	return me_.GetPrevDataPage(me_.page(), me_.data());
+    	return me()->GetPrevDataPage(me()->page(), me()->data());
     }
 
 //    bool NextKey()
@@ -198,7 +198,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 //    	{
 //    		for (Int c = 0; c < Indexes; c++)
 //    		{
-//    			me_.prefix(c) -= me_.model().GetKey(me_.page(), c, me_.key_idx());
+//    			me()->prefix(c) -= me()->model().GetKey(me()->page(), c, me()->key_idx());
 //    		}
 //    	}
 //    }

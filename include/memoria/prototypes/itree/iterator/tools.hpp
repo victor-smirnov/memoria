@@ -33,7 +33,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
 
 
-    IterPart(MyType &me): Base(me), me_(me)
+    IterPart(): Base()
     {
 
     }
@@ -45,16 +45,16 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
     Key GetKey(Int i)
     {
-        return me_.GetRawKey(i) + me_.prefix(i);
+        return me()->GetRawKey(i) + me()->prefix(i);
     }
 
     bool NextKey()
     {
-        if (!me_.IsEnd())
+        if (!me()->IsEnd())
         {
             for (Int c = 0; c < Indexes; c++)
             {
-                me_.prefix(c) += me_.GetRawKey(c);
+                me()->prefix(c) += me()->GetRawKey(c);
             }
             return Base::NextKey();
         }
@@ -65,7 +65,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
     bool PrevKey()
     {
-    	if (!me_.IsStart())
+    	if (!me()->IsStart())
     	{
     		bool result = Base::PrevKey();
 
@@ -73,7 +73,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
     		{
     			for (Int c = 0; c < Indexes; c++)
     			{
-    				me_.prefix(c) -= me_.GetRawKey(c);
+    				me()->prefix(c) -= me()->GetRawKey(c);
     			}
     		}
     		else
@@ -81,7 +81,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
     			//FIXME: this might hide errors
     			for (Int c = 0; c < Indexes; c++)
     			{
-    				me_.prefix(c) = 0;
+    				me()->prefix(c) = 0;
     			}
     		}
 
@@ -95,13 +95,13 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
     void ComputeBase()
     {
-        if (!me_.IsEmpty())
+        if (!me()->IsEmpty())
         {
         	for (Int c = 0; c < Indexes; c++)
         	{
-        		me_.prefix(c) = 0;
+        		me()->prefix(c) = 0;
         	}
-            compute_base(&me_.prefix(0), me_.page(), me_.key_idx());
+            compute_base(&me()->prefix(0), me()->page(), me()->key_idx());
         }
     }
 
@@ -135,13 +135,13 @@ private:
     void compute_base(Key* values, NodeBaseG& page, Int idx)
     {
         if (idx > 0) {
-            me_.model().SumKeys(page, 0, idx, values);
+            me()->model().SumKeys(page, 0, idx, values);
         }
         
         if (!page->is_root())
         {
             Int parent_idx = page->parent_idx();
-            NodeBaseG parent = me_.model().GetParent(page);
+            NodeBaseG parent = me()->model().GetParent(page);
             compute_base(values, parent, parent_idx);
         }
     }
