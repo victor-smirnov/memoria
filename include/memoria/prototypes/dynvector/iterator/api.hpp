@@ -74,12 +74,30 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	}
     };
 
-    IterPart(): Base(), local_pos_(0), data_(NULL)
-    {
+    IterPart(): Base(), local_pos_(0), data_(NULL) {}
 
+    IterPart(ThisPartType&& other): Base(std::move(other)), local_pos_(other.local_pos_), data_(std::move(other.data_)) {}
+
+    IterPart(const ThisPartType& other): Base(other), local_pos_(other.local_pos_), data_(other.data_) {}
+
+    void operator=(const MyType& other)
+    {
+    	Base::operator=(other);
+
+    	local_pos_    	= other.local_pos_;
+    	data_   		= other.data_;
     }
 
-    void SetupAllocator(Allocator* allocator) {
+    void operator=(MyType&& other)
+    {
+    	Base::operator=(std::move(other));
+
+    	local_pos_    	= other.local_pos_;
+    	data_   		= std::move(other.data_);
+    }
+
+    void SetupAllocator(Allocator* allocator)
+    {
     	data_.set_allocator(allocator);
     	Base::SetupAllocator(allocator);
     }
@@ -110,13 +128,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return me()->prefix(0) + me()->data_pos();
     }
 
-    void setup(const MyType &other)
-    {
-    	Base::setup(other);
 
-    	local_pos_    	= other.local_pos_;
-    	data_   		= other.data_;
-    }
 
 
     BigInt GetIndexValue(Int idx_number)

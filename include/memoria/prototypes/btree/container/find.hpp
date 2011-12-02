@@ -159,9 +159,9 @@ public:
 
     Iterator FindStart();
 
-    const Iterator FindREnd() const;
+    Iterator FindREnd() const;
 
-    const Iterator FindEnd() const;
+    Iterator FindEnd() const;
 
     Iterator FindRStart();
 
@@ -256,7 +256,7 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 }
 
 M_PARAMS
-const typename M_TYPE::Iterator M_TYPE::FindREnd() const
+typename M_TYPE::Iterator M_TYPE::FindREnd() const
 {
 	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)
@@ -274,7 +274,7 @@ const typename M_TYPE::Iterator M_TYPE::FindREnd() const
 }
 
 M_PARAMS
-const typename M_TYPE::Iterator M_TYPE::FindEnd() const
+typename M_TYPE::Iterator M_TYPE::FindEnd() const
 {
 	NodeBaseG node = me_.GetRoot();
 	if (node != NULL)

@@ -50,6 +50,7 @@ class BTreeIteratorBaseClassName: public IteratorBase<                   				\
         TypesType>                                                    					\
 {																						\
 	typedef IteratorBase<TypesType> 											Base;	\
+	typedef BTreeIteratorBaseClassName<TypesType>								ThisType;\
 public:																					\
 	typedef Iter<TypesType>														MyType;
 

@@ -11,6 +11,7 @@
 
 #include <string>
 #include <sstream>
+#include <cassert>
 
 #ifdef _INTEL_COMPILER
 #pragma warning (disable : 2586)

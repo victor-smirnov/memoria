@@ -24,32 +24,51 @@ template <typename Name, typename Base, typename Types> class IterPart;
 
 template <int Idx, typename Types>
 class IterHelper: public IterPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, IterHelper<Idx - 1, Types>, Types> {
-	typedef Iter<Types> MyType;
-	typedef IterHelper<Idx, Types> ThisType;
+	typedef Iter<Types> 				MyType;
+	typedef IterHelper<Idx, Types> 		ThisType;
 	typedef IterPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, IterHelper<Idx - 1, Types>, Types> BaseType;
 
 public:
 	IterHelper(): BaseType() {}
+	IterHelper(ThisType&& other): BaseType(std::move(other)) {}
+	IterHelper(const ThisType& other): BaseType(other) {}
+
+	void operator=(const ThisType& other) {
+		BaseType::operator=(other);
+	}
 };
 
 template <typename Types>
 class IterHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
-	typedef Iter<Types> MyType;
-	typedef IterHelper<-1, Types> ThisType;
+	typedef Iter<Types> 				MyType;
+	typedef IterHelper<-1, Types> 		ThisType;
 
 	typedef typename Types::template BaseFactory<Types>::Type BaseType;
 
 public:
 	IterHelper(): BaseType() {}
+	IterHelper(ThisType&& other): BaseType(std::move(other)) {}
+	IterHelper(const ThisType& other): BaseType(other) {}
+
+	void operator=(const ThisType& other) {
+		BaseType::operator=(other);
+	}
 };
 
 template <typename Types>
 class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Types> {
-	typedef Iter<Types> MyType;
+	typedef Iter<Types> 				MyType;
+	typedef IterStart<Types> 			ThisType;
 
 	typedef IterHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
 public:
 	IterStart(): Base() {}
+	IterStart(ThisType&& other): Base(std::move(other)) {}
+	IterStart(const ThisType& other): Base(other) {}
+
+	void operator=(const ThisType& other) {
+		Base::operator=(other);
+	}
 };
 
 
@@ -57,6 +76,8 @@ template <
 	typename TypesType
 >
 class IteratorBase: public TypesType::IteratorInterface {
+	typedef IteratorBase<TypesType>													ThisType;
+
 public:
 
 	typedef Ctr<typename TypesType::CtrTypes>                                       Container;
@@ -69,10 +90,8 @@ public:
     
 private:
     Int     state_;
-    
-    Int hash_;
-
-    Logger logger_;
+    Int 	hash_;
+    Logger 	logger_;
 
 public:
     IteratorBase():
@@ -80,12 +99,29 @@ public:
     	logger_("Iterator", Logger::DERIVED, &memoria::vapi::logger)
     {}
 
+    IteratorBase(ThisType&& other): state_(other.state_), hash_(other.hash_), logger_(other.logger_) {}
+    IteratorBase(const ThisType& other): state_(other.state_), hash_(other.hash_), logger_(other.logger_) {}
+
     bool operator==(const MyType& other) const {
     	return true;//state_ == other.state_;
     }
 
     bool operator!=(const MyType& other) const {
     	return state_ != other.state_;
+    }
+
+    void operator=(const ThisType& other)
+    {
+    	state_ 	= other.state_;
+    	hash_ 	= other.hash_;
+    	logger_ = other.logger_;
+    }
+
+    void operator=(ThisType&& other)
+    {
+    	state_ 	= other.state_;
+    	hash_ 	= other.hash_;
+    	logger_ = other.logger_;
     }
 
     Int hash() const {
@@ -103,12 +139,6 @@ public:
 
     const MyType* me() const {
     	return static_cast<const MyType*>(this);
-    }
-
-    void setup(const MyType &other)
-    {
-        state_   	= other.state();
-        hash_ 		= other.hash();
     }
 
     Int &state() {
@@ -199,10 +229,6 @@ public:
         return model_;
     }
 
-    void setup(const MyType &other) {
-        Base::setup(other);
-    }
-
     bool operator==(const MyType& other) const
     {
     	if (Base::hash() == other.hash())
@@ -218,9 +244,9 @@ public:
     	return !operator==(other);
     }
 
-    const ThisIteratorType& operator=(const ThisIteratorType& other)
+    ThisIteratorType& operator=(ThisIteratorType&& other)
     {
-    	setup(other);
+    	Base::operator=(std::move(other));
     	Base::ReHash();
     	return *this;
     }

@@ -314,11 +314,6 @@ public:
 	{
 		if (page_ != NULL)
 		{
-//			cout<<"Ctr "<<page_->id()<<" "<<page_->ref()<<endl;
-//			if (page_->id().value() == 103)
-//			{
-//				int a = 0; a++;
-//			}
 			page_->ref();
 		}
 	}
@@ -326,7 +321,7 @@ public:
 	void unref()
 	{
 		//FIXME it should be: page_->unref() == 0
-		if (page_ != NULL && page_->unref() <= 0 && page_->deleted())
+		if (page_ != NULL && page_->unref() == 0 && page_->deleted())
 		{
 			allocator_->ReleasePage(page_);
 		}

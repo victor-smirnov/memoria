@@ -21,7 +21,7 @@
 namespace memoria    {
 
 
-MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::itree::IteratorToolsName)
 
     typedef typename Base::NodeBase                                             	NodeBase;
 	typedef typename Base::NodeBaseG                                             	NodeBaseG;
@@ -31,12 +31,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
     static const Int Indexes = Container::Indexes;
 
-
-
-    IterPart(): Base()
-    {
-
-    }
 
     Key GetRawKey(Int i)
     {

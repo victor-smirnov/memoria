@@ -36,15 +36,28 @@ private:
 public:
     BTreeIteratorBase(): Base(), page_(NULL), key_idx_(0) {}
 
+    BTreeIteratorBase(ThisType&& other): Base(std::move(other)), page_(std::move(other.page_)), key_idx_(other.key_idx_) {}
+
+    BTreeIteratorBase(const ThisType& other): Base(other), page_(other.page_), key_idx_(other.key_idx_) {}
+
     void SetupAllocator(Allocator* allocator) {
     	page_.set_allocator(allocator);
     }
 
-    void setup(const MyType &other) {
+    void operator=(ThisType&& other)
+    {
         page_       = other.page_;
         key_idx_    = other.key_idx_;
 
-        Base::setup(other);
+        Base::operator=(std::move(other));
+    }
+
+    void operator=(const ThisType& other)
+    {
+    	page_       = other.page_;
+    	key_idx_    = other.key_idx_;
+
+    	Base::operator=(other);
     }
 
     bool operator==(const MyType& other) const

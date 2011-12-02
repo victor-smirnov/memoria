@@ -139,14 +139,18 @@ class IterPart<PartName, Base1, Types>: public Base1 { 							\
 	typedef Base1 Base;															\
 	typedef Iter<Types> MyType;													\
                                                                     			\
-public:																			\
-	const ThisPartType& operator=(const ThisPartType&){return *this;}
+public:
 
 
 
 #define MEMORIA_ITERATOR_PART_BEGIN(PartName)                       			\
     MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(PartName)                   			\
-    IterPart(): Base() {}
+    IterPart(): Base() {}														\
+	IterPart(ThisPartType&& other): Base(std::move(other)) {}					\
+	IterPart(const ThisPartType& other): Base(other) {}							\
+	void operator=(const ThisPartType& other) {									\
+		Base::operator=(other);													\
+	}
 
 
 

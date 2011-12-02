@@ -43,15 +43,34 @@ public:
     	}
     }
 
-    void setup(const MyType &other) {
+    ITreeIteratorBase(ThisType&& other): Base(std::move(other))
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		prefix_[c] = other.prefix_[c];
+    	}
+    }
 
+
+    ITreeIteratorBase(const ThisType& other): Base(other)
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		prefix_[c] = other.prefix_[c];
+    	}
+    }
+
+
+    void operator=(const ThisType& other)
+    {
     	for (Int c = 0; c < Indexes; c++)
     	{
     		prefix_[c] = other.prefix_[c];
     	}
 
-        Base::setup(other);
+    	Base::operator=(other);
     }
+
 
     bool operator==(const MyType& other) const
     {

@@ -14,11 +14,9 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/prototypes/btree/names.hpp>
 
-
 namespace memoria    {
 
 using namespace memoria::btree;
-
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
 

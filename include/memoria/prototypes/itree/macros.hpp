@@ -18,6 +18,7 @@ template <                                                                      
 class IteratorBaseClassName: public memoria::BTreeIteratorBase<                   		\
         TypesType>                                                    					\
 {																						\
+	typedef IteratorBaseClassName<TypesType>									ThisType;\
 	typedef memoria::BTreeIteratorBase<TypesType> 								Base;	\
 	typedef typename Base::MyType												MyType;
 
@@ -25,9 +26,20 @@ class IteratorBaseClassName: public memoria::BTreeIteratorBase<                 
         
 #define MEMORIA_ITREE_ITERATOR_BASE_CLASS_BEGIN(IteratorBaseClassName)      			\
 MEMORIA_ITREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(IteratorBaseClassName)      			\
-    IteratorBaseClassName(MyType &me): Base(me), me_(me) {}
+    IteratorBaseClassName(): Base() {}													\
+    IteratorBaseClassName(ThisType&& other): Base(other) {}								\
 
 
-#define MEMORIA_ITREE_ITERATOR_BASE_CLASS_END };
+
+#define MEMORIA_ITREE_ITERATOR_BASE_CLASS_END									\
+	MyType* me() {																\
+    	return static_cast<MyType*>(this);										\
+    }																			\
+    																			\
+    const MyType* me() const {													\
+    	return static_cast<const MyType*>(this);								\
+    }																			\
+};
+
 
 #endif

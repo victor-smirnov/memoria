@@ -57,34 +57,26 @@ public:
 
     typedef ContainerType                                                           Container;
     
-    Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(), kind_(kind), model_(model) {
+    Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(), kind_(kind), model_(model)
+    {
     	Base::SetupAllocator(&model.allocator());
-    	Base::state() = 0;
-        Base::page() = NULL;
-        Base::key_idx() = -1;
+    	Base::state() 		= 0;
+        Base::page() 		= NULL;
+        Base::key_idx() 	= -1;
     }
     
-//    Iter(NodeBase* node, Int idx, Container &model, bool do_init = false): Base(*this), kind_(GENERIC_ITERATOR), model_(model) {
-//        Base::page() = node;
-//        Base::key_idx() = idx;
-//        Base::state() = 0;
-//        if (do_init) Base::Init();
-//        Base::ReHash();
-//    }
-
-    Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(), kind_(GENERIC_ITERATOR), model_(model) {
+    Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(), kind_(GENERIC_ITERATOR), model_(model)
+    {
     	Base::SetupAllocator(&model.allocator());
-    	Base::page() = node;
-    	Base::key_idx() = idx;
-    	Base::state() = 0;
+    	Base::page() 		= node;
+    	Base::key_idx() 	= idx;
+    	Base::state() 		= 0;
+
     	if (do_init) Base::Init();
     	Base::ReHash();
     }
 
-    Iter(const MyType& other): Base(), kind_(other.kind_), model_(other.model_) {
-    	Base::SetupAllocator(&other.model().allocator());
-        setup(other);
-    }
+    Iter(const MyType& other): Base(other), kind_(other.kind_), model_(other.model_) {}
 
     ContainerType& model() {
     	return model_;
@@ -94,9 +86,16 @@ public:
     	return model_;
     }
 
-    const MyType& operator=(const MyType& other)
+    MyType& operator=(MyType&& other)
     {
-    	setup(other);
+    	Base::operator=(std::move(other));
+    	Base::ReHash();
+    	return *this;
+    }
+
+    MyType& operator=(const MyType& other)
+    {
+    	Base::operator=(other);
     	Base::ReHash();
     	return *this;
     }
@@ -115,10 +114,6 @@ public:
 
     		default:; // do nothing
     	};
-    }
-
-    void setup(const MyType &other) {
-    	Base::setup(other);
     }
 
     bool operator==(const MyType& other) const
