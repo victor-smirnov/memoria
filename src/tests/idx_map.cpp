@@ -100,7 +100,7 @@ int main(int argc, const char **argv, const char** envp)
 
 			IdxMapType* map = new IdxMapType(allocator, 1, true);
 
-//			map->SetMaxChildrenPerNode(5);
+//			map->SetMaxChildrenPerNode(50);
 
 			for (int c = 0; c < SIZE; c++)
 			{

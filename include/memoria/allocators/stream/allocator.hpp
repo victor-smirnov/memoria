@@ -147,6 +147,15 @@ public:
 		return p;
 	}
 
+	virtual void ReleasePage(Page* page)
+	{
+		if (page->deleted())
+		{
+			char* buf = (char*) page;
+			::free(buf);
+			allocs_--;
+		}
+	}
 
 
 	virtual void free1(const ID &id)
@@ -156,9 +165,15 @@ public:
 		{
 			pages_.erase(id);
 			MEMORIA_TRACE(me_, "Remove pages with id", id, "size=", pages_.size());
-			char* buf = (char*) page;
-//			::free(buf);
-			allocs_--;
+			if (page->references() == 0)
+			{
+				char* buf = (char*) page;
+				::free(buf);
+				allocs_--;
+			}
+			else {
+				page->deleted() = true;
+			}
 		}
 		else {
 			MEMORIA_ERROR(me_, "There is no page with id", id, "size=", pages_.size());
@@ -358,6 +373,7 @@ public:
 
 	virtual void store(OutputStreamHandler *output)
 	{
+		cout<<"Allocations: "<<allocs_<<endl;
 		char signature[12] = "MEMORIA";
 		for (UInt c = 7; c < sizeof(signature); c++) signature[c] = 0;
 
@@ -477,7 +493,7 @@ public:
 
 		Page* page0 =  this->get1(idValue);
 
-		cout<<"Refs: "<<page0->id()<<" "<<page0->references()<<endl;
+		//cout<<"Refs: "<<page0->id()<<" "<<page0->references()<<endl;
 
 		page->SetPtr(page0);
 	}

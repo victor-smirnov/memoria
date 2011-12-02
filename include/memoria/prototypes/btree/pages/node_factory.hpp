@@ -36,7 +36,8 @@ public:
 
 private:
 
-    static const int BLOCK_SIZE = Allocator::PAGE_SIZE - sizeof(Base);
+    //FIXME: Need more accurate allocation
+    static const int BLOCK_SIZE = Allocator::PAGE_SIZE - sizeof(Base) - 100;
     typedef PackedMapMetadata<BLOCK_SIZE> MapConstants;
 
 
@@ -115,7 +116,7 @@ public:
     }
 
     template <typename PageType>
-    void CopyFrom(PageType* page)
+    void CopyFrom(const PageType* page)
     {
         Base::CopyFrom(page);
 

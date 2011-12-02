@@ -18,7 +18,7 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE 				= 1000;
+const Int SIZE 				= 10;
 const Int ArrayName 		= 1;
 const Int MAX_BUFFER_SIZE 	= 4096 * 10;
 
@@ -349,22 +349,22 @@ int main(int argc, const char** argv, const char **envp) {
 
 			cout<<"Remove data. ByteArray contains "<<dv.Size()/1024/1024<<" Mbytes"<<endl;
 
-//			for (Int c = 0; ; c++)
-//			{
-////				cout<<"C="<<c<<endl;
-////				if (c == 82)
-////				{
-////					dv.debug() = true;
-////				}
-////				else {
-////					dv.debug() = false;
-////				}
-//
-//				if (!Remove(allocator, dv))
+			for (Int c = 0; ; c++)
+			{
+//				cout<<"C="<<c<<endl;
+//				if (c == 82)
 //				{
-//					break;
+//					dv.debug() = true;
 //				}
-//			}
+//				else {
+//					dv.debug() = false;
+//				}
+
+				if (!Remove(allocator, dv))
+				{
+					break;
+				}
+			}
 
 			Dump(allocator);
 		}

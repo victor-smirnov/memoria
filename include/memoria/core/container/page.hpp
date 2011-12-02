@@ -172,7 +172,7 @@ public:
         return references_;
     }
 
-    const Int &references() const {
+    const Int references() const {
         return references_;
     }
 
@@ -180,7 +180,7 @@ public:
     	return deleted_;
     }
 
-    const Int &deleted() const {
+    const Int deleted() const {
     	return deleted_;
     }
 
@@ -212,12 +212,12 @@ public:
         FieldFactory<Int>::create(list,  crc(),             "CRC",              abi_ptr);
         FieldFactory<Int>::create(list,  model_hash(),      "MODEL_HASH",       abi_ptr);
         FieldFactory<Int>::create(list,  page_type_hash(),  "PAGE_TYPE_HASH",   abi_ptr);
-        FieldFactory<Int>::create(list,  references(),  	"REFERENCES",   	abi_ptr);
-        FieldFactory<Int>::create(list,  deleted(),  		"DELETED",   		abi_ptr);
+        FieldFactory<Int>::create(list,  references_,  		"REFERENCES",   	abi_ptr);
+        FieldFactory<Int>::create(list,  deleted_,  		"DELETED",   		abi_ptr);
     }
 
     template <typename PageType>
-    void CopyFrom(PageType* page)
+    void CopyFrom(const PageType* page)
     {
         this->id()              = page->id();
         this->flags()           = page->flags();
@@ -225,6 +225,7 @@ public:
         this->model_hash()      = page->model_hash();
         this->page_type_hash()  = page->page_type_hash();
         this->references()		= page->references();
+        this->deleted()			= page->deleted();
     }
 };
 
@@ -324,10 +325,10 @@ public:
 
 	void unref()
 	{
-		if (page_ != NULL)
+		//FIXME it should be: page_->unref() == 0
+		if (page_ != NULL && page_->unref() <= 0 && page_->deleted())
 		{
-//			cout<<"Dtr "<<page_->id()<<" "<<page_->unref()<<endl;
-			page_->unref();
+			allocator_->ReleasePage(page_);
 		}
 	}
 
