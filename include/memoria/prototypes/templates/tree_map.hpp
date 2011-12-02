@@ -51,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
         Iterator i = me_.FindLE(key, c, false);
         if (!i.IsEnd())
         {
-            NodeBase* page = i.page();
+            NodeBaseG page = i.page();
             BigInt keys = i.key_idx();
 
             while (!page->is_root())
@@ -61,7 +61,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
                 for (Int c = 0; c < pidx; c++)
                 {
-                    NodeBase* child = me_.GetChild(page, c);
+                    NodeBaseG child = me_.GetChild(page, c);
                     keys += child->counters().key_count();
                 }
             }
@@ -87,7 +87,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
                 for (Int c = 0; c < size; c++)
                 {
-                    NodeBase* child = me_.GetChild(node, c);
+                    NodeBaseG child = me_.GetChild(node, c);
                     BigInt count = child->counters().key_count();
 
                     if (index < keys + count)

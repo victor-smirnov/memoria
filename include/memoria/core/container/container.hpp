@@ -50,6 +50,7 @@ public:
     typedef typename Types::Allocator											Allocator;
     typedef typename Allocator::Transaction                                     Txn;
     typedef typename Allocator::Page                                            Page;
+    typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::Page::ID                                        PageId;
     typedef typename Types::NodeBase                                        	NodeBase;
     typedef typename Types::Metadata                                        	Metadata;
@@ -97,7 +98,7 @@ public:
 
     void init_root(const PageId &root)
     {
-    	Page* page = me_.allocator().GetPage(root);
+    	PageG page = me_.allocator().GetPage(root);
         if (page == NULL) {
             throw NullPointerException(MEMORIA_SOURCE, "Requested page is not available");
         }
@@ -108,7 +109,7 @@ public:
 
         root_ = root;
 
-        Metadata meta = me_.GetRootMetadata((NodeBase*)page);
+        Metadata meta = me_.GetRootMetadata(page); //(NodeBase*)
         me_.name() = meta.model_name();
     }
 

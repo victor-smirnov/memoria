@@ -104,7 +104,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::create_new() {
 	MEMORIA_TRACE(me_, "BEGIN");
-	NodeBase *node = me_.CreateNode(0, true, true);
+	NodeBaseG node = me_.CreateNode(0, true, true);
 	MEMORIA_TRACE(me_, "Set Root", node->id());
 	me_.set_root(node->id());
 }

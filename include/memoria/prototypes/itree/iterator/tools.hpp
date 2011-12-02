@@ -23,7 +23,8 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
-    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Base::NodeBase                                             	NodeBase;
+	typedef typename Base::NodeBaseG                                             	NodeBaseG;
     typedef typename Base::Container                                                Container;
     typedef typename Container::Key                                                 Key;
     typedef typename Container::Value                                               Value;
@@ -131,7 +132,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::itree::IteratorToolsName)
 
 private:
     
-    void compute_base(Key* values, NodeBase* page, Int idx) {
+    void compute_base(Key* values, NodeBaseG& page, Int idx)
+    {
         if (idx > 0) {
             me_.model().SumKeys(page, 0, idx, values);
         }
@@ -139,7 +141,7 @@ private:
         if (!page->is_root())
         {
             Int parent_idx = page->parent_idx();
-            NodeBase *parent = me_.model().GetParent(page);
+            NodeBaseG parent = me_.model().GetParent(page);
             compute_base(values, parent, parent_idx);
         }
     }

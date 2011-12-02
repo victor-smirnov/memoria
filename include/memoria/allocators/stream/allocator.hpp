@@ -157,7 +157,7 @@ public:
 			pages_.erase(id);
 			MEMORIA_TRACE(me_, "Remove pages with id", id, "size=", pages_.size());
 			char* buf = (char*) page;
-			::free(buf);
+//			::free(buf);
 			allocs_--;
 		}
 		else {
@@ -385,6 +385,8 @@ public:
 	void dump_page(OutputStreamHandler *output, char* buf, Page *page) {
 		if (page->page_type_hash() != 0)
 		{
+			if (page->references() > 0) {cout<<"Dump "<<page->id()<<" "<<page->references()<<endl;}
+
 			MEMORIA_TRACE(me_, "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
 			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
 
@@ -473,7 +475,11 @@ public:
 		if (page == NULL)
 			throw NullPointerException(MEMORIA_SOURCE, "page must not be null");
 
-		page->SetPtr(this->get1(idValue));
+		Page* page0 =  this->get1(idValue);
+
+		cout<<"Refs: "<<page0->id()<<" "<<page0->references()<<endl;
+
+		page->SetPtr(page0);
 	}
 
 

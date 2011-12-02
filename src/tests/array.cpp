@@ -349,22 +349,22 @@ int main(int argc, const char** argv, const char **envp) {
 
 			cout<<"Remove data. ByteArray contains "<<dv.Size()/1024/1024<<" Mbytes"<<endl;
 
-			for (Int c = 0; ; c++)
-			{
-//				cout<<"C="<<c<<endl;
-//				if (c == 82)
+//			for (Int c = 0; ; c++)
+//			{
+////				cout<<"C="<<c<<endl;
+////				if (c == 82)
+////				{
+////					dv.debug() = true;
+////				}
+////				else {
+////					dv.debug() = false;
+////				}
+//
+//				if (!Remove(allocator, dv))
 //				{
-//					dv.debug() = true;
+//					break;
 //				}
-//				else {
-//					dv.debug() = false;
-//				}
-
-				if (!Remove(allocator, dv))
-				{
-					break;
-				}
-			}
+//			}
 
 			Dump(allocator);
 		}
@@ -390,7 +390,7 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Unrecognized exception"<<endl;
 	}
 
-	cout<<"ARRAY TEST time: insert "<<(getTime()- t1)<<" remove "<<(t1 - t0)<<endl;
+	cout<<"ARRAY TEST time: remove "<<(getTime()- t1)<<" insert "<<(t1 - t0)<<endl;
 
 	Int CtrTotal = 0, DtrTotal = 0;
 	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
