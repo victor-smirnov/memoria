@@ -101,7 +101,7 @@ typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 			iter.PrevKey();
 		}
 
-		iter.data() 	= me()->GetDataPage(iter.page(), iter.key_idx());
+		iter.data() 	= me()->GetDataPage(iter.page(), iter.key_idx(), Allocator::READ);
 		BigInt offset 	= iter.prefix(key_number);
 		iter.data_pos() = pos - offset;
 	}

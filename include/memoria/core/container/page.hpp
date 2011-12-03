@@ -413,6 +413,14 @@ public:
 		allocator_ = allocator;
 	}
 
+	void update()
+	{
+		if (!page_->is_updated())
+		{
+			operator=(allocator->UpdatePage(page_));
+		}
+	}
+
 	template <typename Page, typename Allocator> friend class PageGuard;
 };
 

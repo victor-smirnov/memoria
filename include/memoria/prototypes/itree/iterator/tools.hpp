@@ -28,6 +28,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::itree::IteratorToolsName)
     typedef typename Base::Container                                                Container;
     typedef typename Container::Key                                                 Key;
     typedef typename Container::Value                                               Value;
+    typedef typename Container::Allocator											Allocator;
 
     static const Int Indexes = Container::Indexes;
 
@@ -135,7 +136,7 @@ private:
         if (!page->is_root())
         {
             Int parent_idx = page->parent_idx();
-            NodeBaseG parent = me()->model().GetParent(page);
+            NodeBaseG parent = me()->model().GetParent(page, Allocator::READ);
             compute_base(values, parent, parent_idx);
         }
     }

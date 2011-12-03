@@ -28,6 +28,7 @@ using namespace memoria::btree;
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
+	typedef typename Base::Allocator											Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
 	typedef typename Base::NodeBaseG                                            NodeBaseG;
 
@@ -166,7 +167,7 @@ typename M_TYPE::NodeBaseG M_TYPE::GetNextNode(NodeBase* page)
 	}
 	else {
 		Int parent_idx = page->parent_idx();
-		NodeBaseG parent = me()->GetParent(page);
+		NodeBaseG parent = me()->GetParent(page, Allocator::READ);
 		if (parent == NULL)
 		{
 			throw NullPointerException(MEMORIA_SOURCE, "Parent must not be null");
@@ -183,7 +184,7 @@ typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(NodeBase* page)
 	}
 	else {
 		Int parent_idx = page->parent_idx();
-		NodeBaseG parent = me()->GetParent(page);
+		NodeBaseG parent = me()->GetParent(page, Allocator::READ);
 		if (parent == NULL) throw NullPointerException(MEMORIA_SOURCE, "Parent must not be null");
 		return me()->__get_prev_node(parent, parent_idx, page->level());
 	}
@@ -200,11 +201,11 @@ typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBase* page, Int &idx1, In
 {
 	if (idx1 < me()->GetChildrenCount(page) - 1)
 	{
-		NodeBaseG page0 = me()->GetChild(page, idx1 + 1);
+		NodeBaseG page0 = me()->GetChild(page, idx1 + 1, Allocator::READ);
 
 		while (page0->level() != level)
 		{
-			page0 = me()->GetChild(page0, 0);
+			page0 = me()->GetChild(page0, 0, Allocator::READ);
 		}
 
 		idx1++;
@@ -213,7 +214,7 @@ typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBase* page, Int &idx1, In
 	else {
 		if (!page->is_root())
 		{
-			NodeBaseG parent = me()->GetParent(page);
+			NodeBaseG parent = me()->GetParent(page, Allocator::READ);
 			Int idx0 = page->parent_idx();
 			return __get_next_node(parent, idx0, level);
 		}
@@ -227,10 +228,10 @@ typename M_TYPE::NodeBaseG M_TYPE::__get_prev_node(NodeBase* page, Int &idx1, In
 {
 	if (idx1 > 0)
 	{
-		NodeBaseG page0 = me()->GetChild(page, idx1 - 1);
+		NodeBaseG page0 = me()->GetChild(page, idx1 - 1, Allocator::READ);
 
 		while (page0->level() != level) {
-			page0 = me()->GetLastChild(page0);
+			page0 = me()->GetLastChild(page0, Allocator::READ);
 		}
 
 		--idx1;
@@ -239,7 +240,7 @@ typename M_TYPE::NodeBaseG M_TYPE::__get_prev_node(NodeBase* page, Int &idx1, In
 	else {
 		if (!page->is_root())
 		{
-			NodeBaseG parent = me()->GetParent(page);
+			NodeBaseG parent = me()->GetParent(page, Allocator::READ);
 			Int idx0 = page->parent_idx();
 			return __get_prev_node(parent, idx0, level);
 		}

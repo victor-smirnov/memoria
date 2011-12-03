@@ -93,7 +93,7 @@ typename M_TYPE::Iterator M_TYPE::Seek(BigInt pos)
 M_PARAMS
 BigInt M_TYPE::Size()
 {
-	NodeBaseG node = me()->GetRoot();
+	NodeBaseG node = me()->GetRoot(Allocator::READ);
 
 	if (node != NULL)
 	{

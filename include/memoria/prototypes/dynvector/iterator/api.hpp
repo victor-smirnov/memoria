@@ -152,13 +152,13 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     	if (parent_idx < children_count - 1)
     	{
-    		return me()->model().GetDataPage(page, parent_idx + 1);
+    		return me()->model().GetDataPage(page, parent_idx + 1, Allocator::READ);
     	}
     	else {
     		page = me()->GetNextNode(page);
     		if (page != NULL)
     		{
-    			return me()->model().GetDataPage(page, 0);
+    			return me()->model().GetDataPage(page, 0, Allocator::READ);
     		}
     		else {
     			return DataPageG(&me()->model().allocator());
@@ -177,14 +177,14 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     	if (parent_idx > 0)
     	{
-    		return me()->model().GetDataPage(page, parent_idx - 1);
+    		return me()->model().GetDataPage(page, parent_idx - 1, Allocator::READ);
     	}
     	else {
     		page = me()->GetPrevNode(page);
     		if (page != NULL)
     		{
     			Int children_count = me()->model().GetChildrenCount(page);
-    			return me()->model().GetDataPage(page, children_count - 1);
+    			return me()->model().GetDataPage(page, children_count - 1, Allocator::READ);
     		}
     		else {
     			return DataPageG(&me()->model().allocator());

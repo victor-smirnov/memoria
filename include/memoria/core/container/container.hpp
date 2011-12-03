@@ -108,7 +108,7 @@ public:
 
     void init_root(const PageId &root)
     {
-    	PageG page = me()->allocator().GetPage(root);
+    	PageG page = me()->allocator().GetPage(root, Allocator::READ);
         if (page == NULL) {
             throw NullPointerException(MEMORIA_SOURCE, "Requested page is not available");
         }

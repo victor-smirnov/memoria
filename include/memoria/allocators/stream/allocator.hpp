@@ -243,9 +243,13 @@ public:
 		return PAGE_SIZE;
 	}
 
-	virtual PageG GetPage(const ID& id)
+	virtual PageG GetPage(const ID& id, Int flags)
 	{
 		return PageG(get1(id), this);
+	}
+
+	virtual PageG UpdatePage(Page* page) {
+		return PageG(page, this);
 	}
 
 	virtual void  RemovePage(const ID& id) {
@@ -262,13 +266,13 @@ public:
 		return PageG(page, this);
 	}
 
-	virtual PageG GetRoot(BigInt name) {
+	virtual PageG GetRoot(BigInt name, Int flags) {
 		if (name == 0)
 		{
-			return GetPage(root_);
+			return GetPage(root_, flags);
 		}
 		else {
-			return GetPage(roots_->get_value_for_key(name));
+			return GetPage(roots_->get_value_for_key(name), flags);
 		}
 	}
 

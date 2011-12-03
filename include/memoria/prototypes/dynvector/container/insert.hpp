@@ -415,7 +415,7 @@ void M_TYPE::import_pages(
 			// FIXME: when the suffix_data_page was moved during split/insert
 			// it wasn't properly reparented
 			//
-			node = me()->GetDataParent(suffix_data_page);
+			node = me()->GetDataParent(suffix_data_page, Allocator::UPDATE);
 			key_idx = suffix_data_page->parent_idx();
 			Int suffix_free = max_datapage_size - suffix_data_page->data().size();
 
@@ -469,7 +469,7 @@ void M_TYPE::import_pages(
 
 	if (suffix_data_page != NULL)
 	{
-		iter.page() 	= me()->GetDataParent(suffix_data_page);
+		iter.page() 	= me()->GetDataParent(suffix_data_page, Allocator::READ);
 		iter.key_idx() 	= suffix_data_page->parent_idx();
 		iter.data() 	= suffix_data_page;
 		iter.data_pos() 		= out_pos;
@@ -478,8 +478,8 @@ void M_TYPE::import_pages(
 
 		iter.page() 	= node;
 		iter.key_idx() 	= me()->GetChildrenCount(node) - 1;
-		iter.data() 	= me()->GetDataPage(node, iter.key_idx());
-		iter.data_pos() 		= iter.data()->data().size();
+		iter.data() 	= me()->GetDataPage(node, iter.key_idx(), Allocator::READ);
+		iter.data_pos() = iter.data()->data().size();
 	}
 
 	//FIXME: this operation is too expensive for small blocks
@@ -522,7 +522,7 @@ void M_TYPE::import_several_pages(
 
 	me()->Reindex(node);
 
-	NodeBaseG parent = me()->GetParent(node);
+	NodeBaseG parent = me()->GetParent(node, Allocator::UPDATE);
 
 	if (parent != NULL)
 	{
@@ -542,7 +542,7 @@ void M_TYPE::import_small_block(
 		BufferContentDescriptor &descriptor
 )
 {
-	DataPageG data_page = me()->GetDataPage(node, idx);
+	DataPageG data_page = me()->GetDataPage(node, idx, Allocator::UPDATE);
 	if (data_page == NULL)
 	{
 		data_page = me()->create_datapage(node, idx);
@@ -583,28 +583,26 @@ void M_TYPE::import_data(
 	descriptor.start() += length;
 }
 
-M_PARAMS
-void M_TYPE::move_data_in_page_create(Iterator &iter, BigInt local_idx, CountData &prefix)
-{
-	DataPageG to = me()->create_datapage(iter.page(), iter.data()->parent_idx() + 1);
-	me()->move_data_in_page(iter.data(), to, local_idx, prefix);
-}
+//M_PARAMS
+//void M_TYPE::move_data_in_page_create(Iterator &iter, BigInt local_idx, CountData &prefix)
+//{
+//	DataPageG to = me()->create_datapage(iter.page(), iter.data()->parent_idx() + 1);
+//	me()->move_data_in_page(iter.data(), to, local_idx, prefix);
+//}
 
-M_PARAMS
-void M_TYPE::move_data_in_page_create(DataPageG& from, NodeBaseG& node, BigInt idx, BigInt local_idx, CountData &prefix)
-{
-	DataPageG to = me()->create_datapage(node, idx);
-	//FIXME from-> has incorrect type for this expression
-	move_data_in_page(from, to, local_idx, from->
-			data()->
-			header().get_size(), prefix);
-}
+//M_PARAMS
+//void M_TYPE::move_data_in_page_create(DataPageG& from, NodeBaseG& node, BigInt idx, BigInt local_idx, CountData &prefix)
+//{
+//	DataPageG to = me()->create_datapage(node, idx);
+//	//FIXME from-> has incorrect type for this expression
+//	move_data_in_page(from, to, local_idx, from->data().header().get_size(), prefix);
+//}
 
 M_PARAMS
 void M_TYPE::move_data_in_page(Iterator &iter, BigInt local_idx, CountData &prefix)
 {
 	Int idx = iter.data()->parent_idx() + 1;
-	DataPageG to = me()->GetDataPage(iter.page(), idx);
+	DataPageG to = me()->GetDataPage(iter.page(), idx, Allocator::UPDATE);
 	me()->move_data_in_page(iter.data(), to, local_idx, prefix);
 }
 
@@ -615,12 +613,12 @@ void M_TYPE::move_data_in_page(DataPageG& from, DataPageG& to, BigInt local_idx,
 	BigInt keys[Indexes];
 	me()->move_data(from, to, local_idx, prefix, keys);
 
-	NodeBaseG from_node = me()->GetDataParent(from);
+	NodeBaseG from_node = me()->GetDataParent(from, Allocator::UPDATE);
 	me()->UpdateBTreeKeys(from_node, from->parent_idx(), keys, true);
 
 	for (Int c = 0; c < Indexes; c++) keys[c] = -keys[c];
 
-	NodeBaseG to_node = me()->GetDataParent(to);
+	NodeBaseG to_node = me()->GetDataParent(to, Allocator::UPDATE);
 	me()->UpdateBTreeKeys(to_node, to->parent_idx(), keys, true);
 }
 

@@ -116,7 +116,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 bool M_TYPE::CheckTree()
 {
-	NodeBaseG root = me()->GetRoot();
+	NodeBaseG root = me()->GetRoot(Allocator::READ);
 	if (root != NULL)
 	{
 		bool errors = false;
@@ -159,7 +159,7 @@ void M_TYPE::check_node_tree(NodeBase* node, bool &errors)
 		Counters cnt;
 		for (Int c = 0; c < children; c++)
 		{
-			NodeBaseG child = me()->GetChild(node, c);
+			NodeBaseG child = me()->GetChild(node, c, Allocator::READ);
 			cnt += child->counters();
 
 			me()->check_node_tree(child, errors);
@@ -230,7 +230,7 @@ bool M_TYPE::check_node_content(NodeBase* node)
 			MEMORIA_ERROR(me(), "node.parent_id == NULL for root node", node->id(), node->parent_id());
 		}
 
-		NodeBaseG parent = me()->GetParent(node);
+		NodeBaseG parent = me()->GetParent(node, Allocator::READ);
 		if (parent == NULL) {
 			MEMORIA_ERROR(me(), "node", node->id(), "has no parent");
 		}

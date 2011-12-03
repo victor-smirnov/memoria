@@ -40,7 +40,7 @@ public:
 		ID root = allocator_.root();
 		if (root.is_not_null())
 		{
-			Page* root_page = allocator_.GetPage(root);
+			Page* root_page = allocator_.GetPage(root, AllocatorType::READ);
 			if (false && dispatch(root_page))
 			{
 				return true;
@@ -50,7 +50,7 @@ public:
 
 				for (RootMapIterator iter = allocator_.roots()->Begin(); !iter.IsEnd(); )
 				{
-					Page* page = allocator_.GetPage(iter.GetData());
+					Page* page = allocator_.GetPage(iter.GetData(), AllocatorType::READ);
 					result = dispatch(page) || result;
 					iter.Next();
 				}

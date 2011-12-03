@@ -120,7 +120,7 @@ public:
 			else {
 				for (Int c = idx; c < node->map().size(); c++)
 				{
-					NodeBaseG child = me_.allocator().GetPage(node->map().data(c));
+					NodeBaseG child = me_.allocator().GetPage(node->map().data(c), Container::Allocator::READ);
 
 					CountType count = child->counters().key_count();
 					if (count + sum_ <= target_)
@@ -152,7 +152,7 @@ public:
 			else {
 				for (Int c = idx; c >= 0; c--)
 				{
-					NodeBaseG child = me_.allocator().GetPage(node->map().data(c));
+					NodeBaseG child = me_.allocator().GetPage(node->map().data(c), Container::Allocator::READ);
 
 					CountType count = child->counters().key_count();
 					if (count + sum_ < target_)

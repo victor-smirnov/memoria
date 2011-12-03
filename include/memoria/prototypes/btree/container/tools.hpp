@@ -116,7 +116,7 @@ public:
 
     void UpdateBTreeKeys(NodeBaseG node, bool add_mode = false)
     {
-        NodeBaseG parent = me()->GetParent(node);
+        NodeBaseG parent = me()->GetParent(node, Allocator::UPDATE);
         if (parent != NULL)
         {
             UpdateBTreeKeysFn1<MyType, NodeBase> fn(*me(), parent, add_mode);
@@ -167,7 +167,7 @@ public:
             	}
             }
 
-            node_ = map_.GetParent(node);
+            node_ = map_.GetParent(node, Allocator::UPDATE);
         }
 
         
@@ -270,7 +270,7 @@ public:
             node->counters().page_count() += counters.page_count();
             node->counters().key_count() += counters.key_count();
 
-            node = me()->GetParent(node);
+            node = me()->GetParent(node, Allocator::UPDATE);
         }
 
         node->counters().page_count() += counters.page_count();
@@ -349,18 +349,18 @@ public:
     }
 
 
-    NodeBaseG GetChild(NodeBase *node, Int idx)
+    NodeBaseG GetChild(NodeBase *node, Int idx, Int flags)
     {
-        return memoria::btree::GetChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator());
+        return memoria::btree::GetChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator(), flags);
     }
 
-    NodeBaseG GetLastChild(NodeBase *node)
+    NodeBaseG GetLastChild(NodeBase *node, Int flags)
     {
-        return memoria::btree::GetLastChild<NonLeafDispatcher, NodeBaseG>(node, me()->allocator());
+        return memoria::btree::GetLastChild<NonLeafDispatcher, NodeBaseG>(node, me()->allocator(), flags);
     }
 
 
-    NodeBaseG GetParent(NodeBase *node)
+    NodeBaseG GetParent(NodeBase *node, Int flags)
     {
         if (node->is_root())
         {
@@ -368,7 +368,7 @@ public:
         }
         else
         {
-        	return me()->allocator().GetPage(node->parent_id());
+        	return me()->allocator().GetPage(node->parent_id(), flags);
         }
     }
 
@@ -530,7 +530,7 @@ public:
 
         if (deep && !node->is_leaf())
         {
-            AddKeys(me()->GetChild(node, idx), 0, keys);
+            AddKeys(me()->GetChild(node, idx, Allocator::UPDATE), 0, keys);
         }
     }
 
@@ -538,9 +538,9 @@ public:
 
 
 
-    NodeBaseG GetNode(ID &id)
+    NodeBaseG GetNode(ID &id, Int flags)
     {
-        return me()->allocator().GetPage(id);
+        return me()->allocator().GetPage(id, flags);
     }
 
 
@@ -570,9 +570,9 @@ public:
         return memoria::btree::GetMaxKey<NodeDispatcher, Key>(node, i);
     }
 
-    NodeBaseG GetRoot() const
+    NodeBaseG GetRoot(Int flags) const
     {
-        return me()->allocator().GetPage(me()->root());
+        return me()->allocator().GetPage(me()->root(), flags);
     }
 
     void SetKeys(NodeBase *node, Int idx, const Key *keys)
