@@ -72,7 +72,7 @@ BigInt M_TYPE::SkipKeyFw(BigInt distance)
 M_PARAMS
 BigInt M_TYPE::SkipKeyBw(BigInt distance)
 {
-	MEMORIA_TRACE(me()->model(), "Begin", distance);
+	MEMORIA_TRACE(me(), "Begin", distance);
 
 	if (me()->page() == NULL)
 	{

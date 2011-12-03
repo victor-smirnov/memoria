@@ -88,13 +88,13 @@ public:
 			Int npages = 0;
 			for (typename IDPageMap::iterator i = pages_.begin(); i!= pages_.end(); i++)
 			{
-				MEMORIA_ERROR(me_, "Free Page", i->second);
+				MEMORIA_TRACE(me(), "Free Page", i->second);
 				::free(i->second);
 				npages++;
 			}
 
 			if (allocs_ - npages > 0) {
-				MEMORIA_ERROR(me_, "Page leak detected:", npages, allocs_, (allocs_ - npages));
+				MEMORIA_ERROR(me(), "Page leak detected:", npages, allocs_, (allocs_ - npages));
 			}
 		} catch (...) {
 		}
@@ -143,7 +143,7 @@ public:
 
 		pages_[id] = p;
 
-		MEMORIA_TRACE(me_, "Page:", p, &p->id() , p->id().value());
+		MEMORIA_TRACE(me(), "Page:", p, &p->id() , p->id().value());
 		return p;
 	}
 
@@ -164,7 +164,7 @@ public:
 		if (page != NULL)
 		{
 			pages_.erase(id);
-			MEMORIA_TRACE(me_, "Remove pages with id", id, "size=", pages_.size());
+			MEMORIA_TRACE(me(), "Remove pages with id", id, "size=", pages_.size());
 			if (page->references() == 0)
 			{
 				char* buf = (char*) page;
@@ -176,7 +176,7 @@ public:
 			}
 		}
 		else {
-			MEMORIA_ERROR(me_, "There is no page with id", id, "size=", pages_.size());
+			MEMORIA_ERROR(me(), "There is no page with id", id, "size=", pages_.size());
 		}
 	}
 
@@ -291,9 +291,9 @@ public:
 	{
 		char signature[12];
 
-		MEMORIA_TRACE(me_,"Read header from:", input->pos());
+		MEMORIA_TRACE(me(),"Read header from:", input->pos());
 		input->read(signature, sizeof(signature));
-		MEMORIA_TRACE(me_,"Current:", input->pos());
+		MEMORIA_TRACE(me(),"Current:", input->pos());
 
 		if (!(signature[0] == 'M' && signature[1] == 'E' && signature[2] == 'M' && signature[3] == 'O' && signature[4] == 'R' && signature[5] == 'I' && signature[6] == 'A'))
 		{
@@ -320,15 +320,15 @@ public:
 
 			Int page_hash;
 
-			MEMORIA_TRACE(me_,"File pos before reading page hash:", input->pos());
+			MEMORIA_TRACE(me(),"File pos before reading page hash:", input->pos());
 			input->read(page_hash);
 
-			MEMORIA_TRACE(me_,"Page size", size, "from", input->pos(), "page_hash=", page_hash);
+			MEMORIA_TRACE(me(),"Page size", size, "from", input->pos(), "page_hash=", page_hash);
 			input->read(buf, 0, size);
 
 			Page* page = T2T<Page*>(buf);
 
-			MEMORIA_TRACE(me_, "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id(), &page->id());
+			MEMORIA_TRACE(me(), "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id(), &page->id());
 
 			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page_hash);
 
@@ -347,7 +347,7 @@ public:
 
 			pages_[page->id()] = page;
 
-			MEMORIA_TRACE(me_, "Register page", page, page->id());
+			MEMORIA_TRACE(me(), "Register page", page, page->id());
 
 			if (first)
 			{
@@ -403,7 +403,7 @@ public:
 		{
 			if (page->references() > 0) {cout<<"Dump "<<page->id()<<" "<<page->references()<<endl;}
 
-			MEMORIA_TRACE(me_, "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
+			MEMORIA_TRACE(me(), "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
 			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
 
 			for (Int c = 0; c < PAGE_SIZE; c++)
@@ -421,11 +421,11 @@ public:
 			output->write(size);
 			output->write(page->page_type_hash());
 
-			MEMORIA_TRACE(me_, "Page size", size, "at", output->pos(), page->page_type_hash());
+			MEMORIA_TRACE(me(), "Page size", size, "at", output->pos(), page->page_type_hash());
 			output->write(buf, 0, size);
 		}
 		else {
-			MEMORIA_TRACE(me_, "hash for page", page->id(), "is not specified");
+			MEMORIA_TRACE(me(), "hash for page", page->id(), "is not specified");
 		}
 	}
 
@@ -450,7 +450,7 @@ public:
 	}
 
 	virtual void new_root(BigInt name, const ID &page_id) {
-		MEMORIA_TRACE(me_, "Register new root", page_id, "for", name);
+		MEMORIA_TRACE(me(), "Register new root", page_id, "for", name);
 
 		if (page_id.is_null())
 		{
@@ -522,6 +522,14 @@ public:
 		else {
 			throw MemoriaException(MEMORIA_SOURCE, "Root page has been already created");
 		}
+	}
+
+	MyType* me() {
+		return static_cast<MyType*>(this);
+	}
+
+	const MyType* me() const {
+		return static_cast<const MyType*>(this);
 	}
 };
 

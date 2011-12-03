@@ -25,7 +25,7 @@
 
 
 
-#define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() throw MemoriaException(MEMORIA_SOURCE, std::string("Method is not implemented for " + String(me_.type_name())))
+#define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() throw MemoriaException(MEMORIA_SOURCE, std::string("Method is not implemented for " + String(me()->type_name())))
 
 namespace memoria    {
 
@@ -41,6 +41,7 @@ template <typename TypesType>
 class ContainerBase: public TypesType::ContainerInterface {
 public:
 
+	typedef ContainerBase<TypesType>											ThisType;
 	typedef Ctr<TypesType> 														MyType;
 
 	typedef typename TypesType::ContainerTypeName                               ContainerTypeName;
@@ -69,27 +70,28 @@ public:
     static const bool kCompositeContainer = !ListSize<typename Types::EmbeddedContainersList>::Value;
 
 private:
-    MyType&                     me_;
     PageId                      root_;
     
 protected:
     static ContainerMetadata*   reflection_;
 
 public:
-    ContainerBase(MyType &me): me_(me), root_(0)
-    {
+    ContainerBase(): root_(0){}
+
+    ContainerBase(const ThisType& other): root_(other.root_){}
+
+    ContainerBase(ThisType&& other): root_(other.root_){}
+
+    MyType* me() {
+    	return static_cast<MyType*>(this);
+    }
+
+    const MyType* me() const {
+    	return static_cast<const MyType*>(this);
     }
 
     BigInt IGetRawSize() {
         return -1;
-    }
-
-    MyType &me() {
-        return me_;
-    }
-
-    const MyType &me() const {
-        return me_;
     }
 
     static Int hash() {
@@ -98,23 +100,23 @@ public:
 
     void init_root(const PageId &root)
     {
-    	PageG page = me_.allocator().GetPage(root);
+    	PageG page = me()->allocator().GetPage(root);
         if (page == NULL) {
             throw NullPointerException(MEMORIA_SOURCE, "Requested page is not available");
         }
 
-        if (page->model_hash() != me_.hash()) {
+        if (page->model_hash() != me()->hash()) {
             throw MemoriaException(MEMORIA_SOURCE, "Invalid page type for this model");
         }
 
         root_ = root;
 
-        Metadata meta = me_.GetRootMetadata(page); //(NodeBase*)
-        me_.name() = meta.model_name();
+        Metadata meta = me()->GetRootMetadata(page); //(NodeBase*)
+        me()->name() = meta.model_name();
     }
 
     void set_root(const PageId &root) {
-        me_.allocator().SetRoot(me_.name(), root);
+        me()->allocator().SetRoot(me()->name(), root);
         root_ = root;
     }
 
@@ -171,30 +173,40 @@ ContainerMetadata* ContainerBase<TypesType>::reflection_ = NULL;
 
 template <int Idx, typename Types>
 class CtrHelper: public CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> {
-	typedef Ctr<Types> MyType;
+	typedef CtrHelper<Idx, Types> 								ThisType;
+	typedef Ctr<Types> 											MyType;
 	typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> BaseType;
 
 public:
-	CtrHelper(MyType& me): BaseType(me) {}
+	CtrHelper(): BaseType() {}
+	CtrHelper(const ThisType& other): BaseType(other) {}
+	CtrHelper(ThisType&& other): BaseType(std::move(other)) {}
 };
 
 template <typename Types>
 class CtrHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
-	typedef Ctr<Types> MyType;
-	typedef typename Types::template BaseFactory<Types>::Type BaseType;
+	typedef CtrHelper<-1, Types> 								ThisType;
+	typedef Ctr<Types> 											MyType;
+	typedef typename Types::template BaseFactory<Types>::Type 	BaseType;
 
 public:
-	CtrHelper(MyType& me): BaseType(me) {}
+	CtrHelper(): BaseType() {}
+	CtrHelper(const ThisType& other): BaseType(other) {}
+	CtrHelper(ThisType&& other): BaseType(std::move(other)) {}
 };
 
 
 template <typename Types>
 class CtrStart: public CtrHelper<ListSize<typename Types::List>::Value - 1, Types> {
-	typedef Ctr<Types> MyType;
+
+	typedef CtrStart<Types>			ThisType;
+	typedef Ctr<Types> 				MyType;
 
 	typedef CtrHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
 public:
-	CtrStart(MyType& me): Base(me) {}
+	CtrStart(): Base() {}
+	CtrStart(const ThisType& other): Base(other) {}
+	CtrStart(ThisType&& other): Base(std::move(other)) {}
 };
 
 
@@ -218,8 +230,6 @@ public:
 
 private:
 
-    MyType& 	me_;
-
     Allocator&	allocator_;
     BigInt      name_;
     const char* model_type_name_;
@@ -234,8 +244,7 @@ public:
     typedef typename Base::NodeBase                                        		NodeBase;
 
     Ctr(Allocator &allocator, BigInt name, bool create = false, const char* mname = NULL):
-        Base(*this),
-        me_(*this),
+        Base(),
         allocator_(allocator), name_(name),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         logger_(model_type_name_, Logger::DERIVED, &class_logger_),
@@ -243,25 +252,26 @@ public:
     {
     	if (create)
     	{
-    		me_.create_new();
+    		me()->create_new();
     	}
     	else {
-    		MEMORIA_TRACE(me_, "Open Existing Container", name);
-    		ID root_id = me_.allocator().GetRootID(me_.name());
-    		me_.init_root(root_id);
+    		ID root_id = me()->allocator().GetRootID(me()->name());
+    		me()->init_root(root_id);
     	}
     }
 
     Ctr(Allocator &allocator, const ID& root_id, const char* mname = NULL):
-            Base(*this),
-            me_(*this),
+            Base(),
             allocator_(allocator), name_(-1),
             model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
             logger_(model_type_name_, Logger::DERIVED, &class_logger_),
             debug_(false)
     {
-    	me_.init_root(root_id);
+    	me()->init_root(root_id);
     }
+
+    Ctr(const MyType& other): Base(other), allocator_(other.allocator_), name_(other.name_), model_type_name_(other.model_type_name_), logger_(other.logger_), debug_(other.debug_) {}
+    Ctr(MyType&& other): Base(std::move(other)), allocator_(other.allocator_), name_(other.name_), model_type_name_(other.model_type_name_), logger_(other.logger_), debug_(other.debug_) {}
 
 
     virtual ~Ctr() throw() {
@@ -310,6 +320,16 @@ public:
 
     virtual BigInt ContainerName() {
         return name();
+    }
+
+    MyType* me()
+    {
+    	return this;
+    }
+
+    const MyType* me() const
+    {
+    	return this;
     }
 };
 

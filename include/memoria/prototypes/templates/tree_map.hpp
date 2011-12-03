@@ -48,7 +48,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     BigInt KeyIndex(Key key, Int c)
     {
-        Iterator i = me_.FindLE(key, c, false);
+        Iterator i = me()->FindLE(key, c, false);
         if (!i.IsEnd())
         {
             NodeBaseG page = i.page();
@@ -57,11 +57,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
             while (!page->is_root())
             {
                 Int pidx = page->parent_idx();
-                page = me_.GetParent(page);
+                page = me()->GetParent(page);
 
                 for (Int c = 0; c < pidx; c++)
                 {
-                    NodeBaseG child = me_.GetChild(page, c);
+                    NodeBaseG child = me()->GetChild(page, c);
                     keys += child->counters().key_count();
                 }
             }
@@ -75,19 +75,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     Iterator GetByIndex(BigInt index)
     {
-        NodeBaseG node = me_.GetRoot();
+        NodeBaseG node = me()->GetRoot();
         if (node != NULL)
         {
             BigInt keys = 0;
             while (!node->is_leaf())
             {
-                Int size = me_.GetChildrenCount(node);
+                Int size = me()->GetChildrenCount(node);
 
                 Int idx = -1;
 
                 for (Int c = 0; c < size; c++)
                 {
-                    NodeBaseG child = me_.GetChild(node, c);
+                    NodeBaseG child = me()->GetChild(node, c);
                     BigInt count = child->counters().key_count();
 
                     if (index < keys + count)
@@ -102,23 +102,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
                 if (idx < 0)
                 {
-                    return Iterator(me_);
+                    return Iterator(*me());
                 }
                 else {
-                    node = me_.GetChild(node, idx);
+                    node = me()->GetChild(node, idx);
                 }
             }
 
-            return Iterator(node, index - keys, me_, true);
+            return Iterator(node, index - keys, *me(), true);
         }
         else {
-            return Iterator(me_);
+            return Iterator(*me());
         }
     }
     
     virtual BigInt GetKeyIndex(BigInt key, Int i = 0)
     {
-    	return me_.KeyIndex(key, i);
+    	return me()->KeyIndex(key, i);
     }
 
 
@@ -126,7 +126,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     // FIXME: value transfer is not yet implemented
     virtual bool Get(BigInt index, BigInt& key, BigInt& value)
     {
-    	Iterator i = me_.GetByIndex(index);
+    	Iterator i = me()->GetByIndex(index);
     	if (i.IsEnd())
     	{
     		return false;

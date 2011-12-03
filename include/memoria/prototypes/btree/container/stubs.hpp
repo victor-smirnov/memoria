@@ -45,11 +45,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::StubsName)
 
 
     void PostSplit(NodeBase *one, NodeBase *two, Int from) {
-//        MEMORIA_TRACE(me_, "Default PostSplit", one, two, from);
+//        MEMORIA_TRACE(me(), "Default PostSplit", one, two, from);
     }
 
     void PreMerge(NodeBase *one, NodeBase *two) {
-//        MEMORIA_TRACE(me_, "Default PreMerge", one, two);
+//        MEMORIA_TRACE(me(), "Default PreMerge", one, two);
     }
 
 //    template <typename Node>

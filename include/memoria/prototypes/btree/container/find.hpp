@@ -55,18 +55,8 @@ private:
 
 public:
 
-    CtrPart(MyType &me):
-    	Base(me),
-    	me_(me)
-    {}
-
-    virtual ~CtrPart() {
-
-    }
-
-    MyType &me() {
-    	return me_;
-    }
+    CtrPart():Base(){}
+    virtual ~CtrPart() {}
 
     template <
             typename Comparator
@@ -159,40 +149,32 @@ public:
 
     Iterator FindStart();
 
-    Iterator FindREnd() const;
+    Iterator FindREnd();
 
-    Iterator FindEnd() const;
+    Iterator FindEnd();
 
     Iterator FindRStart();
 
     BigInt GetTotalKeyCount();
 
     BigInt GetSize() {
-    	return me_.GetTotalKeyCount();
+    	return me()->GetTotalKeyCount();
     }
 
     Iterator Begin() {
-    	return me_.FindStart();
-    }
-
-    const Iterator RBegin() const {
-    	return me_.FindRStart();
+    	return me()->FindStart();
     }
 
     Iterator RBegin() {
-    	return me_.FindRStart();
-    }
-
-    const Iterator End() const {
-    	return me_.FindEnd();
+    	return me()->FindRStart();
     }
 
     Iterator End() {
-    	return me_.FindEnd();
+    	return me()->FindEnd();
     }
 
     Iterator REnd() {
-    	return me_.FindREnd();
+    	return me()->FindREnd();
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -206,16 +188,16 @@ M_PARAMS
 template <typename Comparator>
 const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 {
-	MEMORIA_TRACE(me_, "begin", key, c, for_insert, me_.root());
-	NodeBaseG node = me_.GetRoot();
+	MEMORIA_TRACE(me(), "begin", key, c, for_insert, me()->root());
+	NodeBaseG node = me()->GetRoot();
 
 	if (node != NULL)
 	{
-		MEMORIA_TRACE(me_, "Init search, start from", node->id());
+		MEMORIA_TRACE(me(), "Init search, start from", node->id());
 		Comparator cmp(for_insert);
 		while(1)
 		{
-			FindFn<Comparator> fn(cmp, key, c, me_);
+			FindFn<Comparator> fn(cmp, key, c, *me());
 
 			NodeDispatcher::Dispatch(node, fn);
 
@@ -230,8 +212,8 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 		}
 	}
 	else {
-		MEMORIA_TRACE(me_, "No Root for Container");
-		return Iterator(me_);
+		MEMORIA_TRACE(me(), "No Root for Container");
+		return Iterator(*me());
 	}
 }
 
@@ -240,54 +222,54 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindStart()
 {
-	NodeBaseG node = me_.GetRoot();
+	NodeBaseG node = me()->GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
 		{
-			node = me_.GetChild(node, 0);
+			node = me()->GetChild(node, 0);
 		}
 
-		return Iterator(node, 0, me_);
+		return Iterator(node, 0, *me());
 	}
 	else {
-		return Iterator(me_);
+		return Iterator(*me());
 	}
 }
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindREnd() const
+typename M_TYPE::Iterator M_TYPE::FindREnd()
 {
-	NodeBaseG node = me_.GetRoot();
+	NodeBaseG node = me()->GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
 		{
-			node = me_.GetChild(node, 0);
+			node = me()->GetChild(node, 0);
 		}
 
-		return Iterator(node, -1, me_);
+		return Iterator(node, -1, *me());
 	}
 	else {
-		return Iterator(me_);
+		return Iterator(*me());
 	}
 }
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindEnd() const
+typename M_TYPE::Iterator M_TYPE::FindEnd()
 {
-	NodeBaseG node = me_.GetRoot();
+	NodeBaseG node = me()->GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
 		{
-			node = me_.GetLastChild(node);
+			node = me()->GetLastChild(node);
 		}
 
-		return Iterator(node, me_.GetChildrenCount(node), me_, true);
+		return Iterator(node, me()->GetChildrenCount(node), *me(), true);
 	}
 	else {
-		return Iterator(me_);
+		return Iterator(*me());
 	}
 }
 
@@ -295,25 +277,25 @@ typename M_TYPE::Iterator M_TYPE::FindEnd() const
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindRStart()
 {
-	NodeBaseG node = me_.GetRoot();
+	NodeBaseG node = me()->GetRoot();
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
 		{
-			node = me_.GetLastChild(node);
+			node = me()->GetLastChild(node);
 		}
 
-		return Iterator(node, me_.GetChildrenCount(node) - 1, me_, true);
+		return Iterator(node, me()->GetChildrenCount(node) - 1, *me(), true);
 	}
 	else {
-		return Iterator(me_);
+		return Iterator(*me());
 	}
 }
 
 M_PARAMS
 BigInt M_TYPE::GetTotalKeyCount()
 {
-	NodeBaseG node = me_.GetRoot();
+	NodeBaseG node = me()->GetRoot();
 	if (node != NULL) {
 		return node->counters().key_count();
 	}

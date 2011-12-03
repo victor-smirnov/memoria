@@ -14,8 +14,8 @@
 #include <iomanip>
 
 #define MEMORIA_LOG(logger_, level, ...)                                         \
-    if (logger_.is_log(level))                                                    \
-        memoria::vapi::log(logger_.logger(), level, MEMORIA_SOURCE, logger_.type_name(), ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
+    if (logger_->is_log(level))                                                    \
+        memoria::vapi::log(logger_->logger(), level, MEMORIA_SOURCE, logger_->type_name(), ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
 
 #define MEMORIA_DEBUG(logger_, ...)                                              \
     MEMORIA_LOG(logger_, memoria::vapi::Logger::DEBUG, ##__VA_ARGS__)

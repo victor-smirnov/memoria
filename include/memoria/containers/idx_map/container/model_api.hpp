@@ -54,13 +54,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::ContainerApiName)
 
     bool Remove(Key index, Int idx = 0)
     {
-        Iterator i = me_.FindLE(index, idx, false);
-        return me_.RemoveEntry(i);
+        Iterator i = me()->FindLE(index, idx, false);
+        return me()->RemoveEntry(i);
     }
 
     bool Remove(Key from_idx, Key to_idx, Int idx = 0)
     {
-        return me_.RemoveAllEntries(from_idx, to_idx, idx, memoria::vapi::IdxMap::LE);
+        return me()->RemoveAllEntries(from_idx, to_idx, idx, memoria::vapi::IdxMap::LE);
     }
 
 private:
@@ -106,32 +106,32 @@ void M_TYPE::Put(Key key, const Value& value)
 		keys[c] = 0;
 	}
 
-	me_.Insert(keys, value, 0);
+	me()->Insert(keys, value, 0);
 }
 
 
 M_PARAMS
 void M_TYPE::Insert(Key* keys, const Value& value, Int idx)
 {
-	Iterator i = me_.FindLE(keys[idx], idx, true);
+	Iterator i = me()->FindLE(keys[idx], idx, true);
 
 	for (Int c = 0; c < Indexes; c++) keys[c] -= i.prefix(c);
 
 	if (!i.IsEmpty()) {
-		MEMORIA_TRACE(me_, "Insert into", i.page()->id(), "at", i.key_idx(), "key", keys[0], "prefix", i.prefix(0));
+		MEMORIA_TRACE(me(), "Insert into", i.page()->id(), "at", i.key_idx(), "key", keys[0], "prefix", i.prefix(0));
 	}
 	else {
-		MEMORIA_TRACE(me_, "Insert into empty map", keys[0]);
+		MEMORIA_TRACE(me(), "Insert into empty map", keys[0]);
 	}
 
 	if (i.IsEnd() || i.IsEmpty()) {
-		me_.InsertEntry(i, keys, value);
+		me()->InsertEntry(i, keys, value);
 	}
 	else if (keys[0] == i.GetKey(0)) {
-		me_.SetLeafData(i.page(), i.key_idx(), value);
+		me()->SetLeafData(i.page(), i.key_idx(), value);
 	}
 	else {
-		me_.InsertEntry(i, keys, value);
+		me()->InsertEntry(i, keys, value);
 	}
 }
 
@@ -146,7 +146,7 @@ void M_TYPE::Insert(Key* keys, const Value& value, Int idx)
 M_PARAMS
 bool M_TYPE::find_le(BigInt index, Int c, Value& value)
 {
-	Iterator i = me_.FindLE(index, c, false);
+	Iterator i = me()->FindLE(index, c, false);
 
 	if (!i.IsFound()) {
 		return false;
@@ -160,7 +160,7 @@ bool M_TYPE::find_le(BigInt index, Int c, Value& value)
 M_PARAMS
 bool M_TYPE::find_lt(Key index, Int c, Value& value)
 {
-	Iterator i = me_.FindLT(index, c, false);
+	Iterator i = me()->FindLT(index, c, false);
 
 	if (!i.IsFound()) {
 		return false;

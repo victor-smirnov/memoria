@@ -57,35 +57,35 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::SetValueForKey(Key key, const Value& value)
 {
-	Iterator i = me_.FindLE(key, 0, true);
+	Iterator i = me()->FindLE(key, 0, true);
 
 	if (i.IsFound())
 	{
-		MEMORIA_TRACE(me_, "Key Is found", key, i.GetKey(0));
+		MEMORIA_TRACE(me(), "Key Is found", key, i.GetKey(0));
 		if (i.GetKey(0) == key)
 		{
-			me_.SetLeafData(i.page(), i.key_idx(), value);
+			me()->SetLeafData(i.page(), i.key_idx(), value);
 		}
 		else {
-			MEMORIA_TRACE(me_, "Insert a new entry for key");
-			me_.InsertEntry(i, key, value);
+			MEMORIA_TRACE(me(), "Insert a new entry for key");
+			me()->InsertEntry(i, key, value);
 		}
 	}
 	else {
-		MEMORIA_TRACE(me_, "Key is not found", key);
-		me_.InsertEntry(i, key, value);
+		MEMORIA_TRACE(me(), "Key is not found", key);
+		me()->InsertEntry(i, key, value);
 	}
 }
 
 M_PARAMS
 bool M_TYPE::RemoveByKey(Key key)
 {
-	Iterator i = me_.FindLE(key, 0, false);
+	Iterator i = me()->FindLE(key, 0, false);
 	if (i.IsFound())
 	{
 		if (i.GetKey(0) == key)
 		{
-			me_.RemoveEntry(i);
+			me()->RemoveEntry(i);
 			return true;
 		}
 	}

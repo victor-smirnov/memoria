@@ -84,7 +84,7 @@ public:
     {
     	BigInt pos = start.pos();
 
-    	if (me_.debug()) {
+    	if (me()->debug()) {
     		int a = 0;
     		a++;
     	}
@@ -94,7 +94,7 @@ public:
     	{
     		if (start.data()->id() == stop.data()->id())
     		{
-    			return me_.RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
+    			return me()->RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
     		}
     		else {
     			Int start_key_idx, stop_key_idx = 0;
@@ -103,7 +103,7 @@ public:
 
     			if (start.data_pos() > 0)
     			{
-    				removed = me_.RemoveData(start.page(), start.data(), start.data_pos(), start.data()->data().size() - start.data_pos());
+    				removed = me()->RemoveData(start.page(), start.data(), start.data_pos(), start.data()->data().size() - start.data_pos());
 
     				start_key_idx = start.key_idx();
     			}
@@ -115,7 +115,7 @@ public:
     			{
     				if (stop.data_pos() > 0)
     				{
-    					removed = me_.RemoveData(stop.page(), stop.data(), 0, stop.data_pos()) || removed;
+    					removed = me()->RemoveData(stop.page(), stop.data(), 0, stop.data_pos()) || removed;
     				}
 
     				stop_key_idx = stop.key_idx();
@@ -125,9 +125,9 @@ public:
     			}
 
     			Key keys[Indexes] = {0,};
-    			removed = me_.RemovePages(start.page(), start_key_idx, stop.page(), stop_key_idx, keys, false) || removed;
+    			removed = me()->RemovePages(start.page(), start_key_idx, stop.page(), stop_key_idx, keys, false) || removed;
 
-    			Iterator i = me_.Seek(pos);
+    			Iterator i = me()->Seek(pos);
 
     			start = stop = i;
 
@@ -141,7 +141,7 @@ public:
 
     bool RemoveData(NodeBaseG page, DataPageG data, Int start, Int length)
     {
-    	if (me_.debug()) {
+    	if (me()->debug()) {
     		int a = 0;
     		a++;
     	}
@@ -159,7 +159,7 @@ public:
 
     	data->data().size() -= length;
 
-    	me_.UpdateBTreeKeys(page, data->parent_idx(), keys, true);
+    	me()->UpdateBTreeKeys(page, data->parent_idx(), keys, true);
 
     	return length > 0; // FIXME: it always true;
     }

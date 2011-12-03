@@ -54,9 +54,9 @@ public:
     static const Int Indexes                                                    = Types::Indexes;
     static const bool MapType                                                   = Types::MapType;
 
-    CtrPart(MyType &me): Base(me), me_(me) {
-        max_node_capacity_ = -1;
-    }
+    CtrPart(): Base(), max_node_capacity_(-1) {}
+    CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) {}
+    CtrPart(ThisType&& other): Base(std::move(other)), max_node_capacity_(other.max_node_capacity_) {}
 
     virtual void SetMaxChildrenPerNode(Int count) {
         max_node_capacity_ = count;
@@ -104,10 +104,10 @@ public:
 
     void UpdateBTreeKeys(NodeBaseG node, bool add_mode = false)
     {
-        NodeBaseG parent = me_.GetParent(node);
+        NodeBaseG parent = me()->GetParent(node);
         if (parent != NULL)
         {
-            UpdateBTreeKeysFn1<MyType, NodeBase> fn(me_, parent, add_mode);
+            UpdateBTreeKeysFn1<MyType, NodeBase> fn(*me(), parent, add_mode);
             NodeDispatcher::Dispatch(node, fn);
         }
     }
@@ -232,21 +232,21 @@ public:
 
     void UpdateBTreeKeys(NodeBaseG node, Int idx, const Key *keys, bool add_mode = false)
     {
-    	MEMORIA_TRACE(me_, "[node.id, idx, keys[0]", node->id(), idx, keys[0], add_mode);
+    	MEMORIA_TRACE(me(), "[node.id, idx, keys[0]", node->id(), idx, keys[0], add_mode);
 
         Key tkeys[Indexes];
         for (Int c = 0; c < Indexes; c++) tkeys[c] = keys[c];
 
         while (!node->is_root())
         {
-            UpdateBTreeKeysFn2<MyType, Key> fn2(me_, idx, tkeys, add_mode);
+            UpdateBTreeKeysFn2<MyType, Key> fn2(*me(), idx, tkeys, add_mode);
             NodeDispatcher::Dispatch(node, fn2);
 
             idx = fn2.idx();
             node = fn2.node();
         }
 
-        UpdateBTreeKeysFn4<MyType, Key> fn4(me_, idx, tkeys, add_mode);
+        UpdateBTreeKeysFn4<MyType, Key> fn4(*me(), idx, tkeys, add_mode);
         NodeDispatcher::Dispatch(node, fn4);
     }
 
@@ -258,7 +258,7 @@ public:
             node->counters().page_count() += counters.page_count();
             node->counters().key_count() += counters.key_count();
 
-            node = me_.GetParent(node);
+            node = me()->GetParent(node);
         }
 
         node->counters().page_count() += counters.page_count();
@@ -277,9 +277,9 @@ public:
         root->parent_id().Clear();
         root->parent_idx() = 0;
 
-        Metadata meta = me_.GetRootMetadata(node);
-        meta.model_name() = me_.name();
-        me_.SetRootMetadata(node, meta);
+        Metadata meta = me()->GetRootMetadata(node);
+        meta.model_name() = me()->name();
+        me()->SetRootMetadata(node, meta);
         
         return root;
     }
@@ -339,12 +339,12 @@ public:
 
     NodeBaseG GetChild(NodeBase *node, Int idx)
     {
-        return memoria::btree::GetChild<NonLeafDispatcher, NodeBaseG>(node, idx, me_.allocator());
+        return memoria::btree::GetChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator());
     }
 
     NodeBaseG GetLastChild(NodeBase *node)
     {
-        return memoria::btree::GetLastChild<NonLeafDispatcher, NodeBaseG>(node, me_.allocator());
+        return memoria::btree::GetLastChild<NonLeafDispatcher, NodeBaseG>(node, me()->allocator());
     }
 
 
@@ -352,11 +352,11 @@ public:
     {
         if (node->is_root())
         {
-            return NodeBaseG(&me_.allocator());
+            return NodeBaseG(&me()->allocator());
         }
         else
         {
-        	return me_.allocator().GetPage(node->parent_id());
+        	return me()->allocator().GetPage(node->parent_id());
         }
     }
 
@@ -389,7 +389,7 @@ public:
 
     Int GetCapacity(NodeBase *node)
     {
-        GetCapacityFn<Int> fn(me_.max_node_capacity());
+        GetCapacityFn<Int> fn(me()->max_node_capacity());
         NodeDispatcher::Dispatch(node, fn);
         return fn.cap();
     }
@@ -420,7 +420,7 @@ public:
 
     Int GetMaxCapacity(NodeBase *node) const
     {
-        GetMaxCapacityFn<Int> fn(me_.max_node_capacity());
+        GetMaxCapacityFn<Int> fn(me()->max_node_capacity());
         NodeDispatcher::Dispatch(node, fn);
         return fn.cap();
     }
@@ -512,13 +512,13 @@ public:
     };
 
     void AddKeys(NodeBase *node, int idx, Key* keys, bool deep = true) {
-        MEMORIA_TRACE(me_, "add_keys: add values of", keys[0], "to", node->id(), "at", idx);
+        MEMORIA_TRACE(me(), "add_keys: add values of", keys[0], "to", node->id(), "at", idx);
         AddKeysFn fn(idx, keys);
         NodeDispatcher::Dispatch(node, fn);
 
         if (deep && !node->is_leaf())
         {
-            AddKeys(me_.GetChild(node, idx), 0, keys);
+            AddKeys(me()->GetChild(node, idx), 0, keys);
         }
     }
 
@@ -528,7 +528,7 @@ public:
 
     NodeBaseG GetNode(ID &id)
     {
-        return me_.allocator().GetPage(id);
+        return me()->allocator().GetPage(id);
     }
 
 
@@ -560,42 +560,46 @@ public:
 
     NodeBaseG GetRoot() const
     {
-        return me_.allocator().GetPage(me_.root());
+        return me()->allocator().GetPage(me()->root());
     }
 
-    void SetKeys(NodeBase *node, Int idx, const Key *keys) {
-    	MEMORIA_TRACE(me_, node->id(), idx, keys[0]);
-        memoria::btree::SetKeys<NodeDispatcher>(node, idx, keys);
+    void SetKeys(NodeBase *node, Int idx, const Key *keys)
+    {
+    	memoria::btree::SetKeys<NodeDispatcher>(node, idx, keys);
     }
 
-    void SetChildrenCount(NodeBase *node, Int count) {
+    void SetChildrenCount(NodeBase *node, Int count)
+    {
         memoria::btree::SetChildrenCount<NodeDispatcher>(node, count);
     }
 
-    void AddChildrenCount(NodeBase *node, Int count) {
+    void AddChildrenCount(NodeBase *node, Int count)
+    {
     	memoria::btree::AddChildrenCount<NodeDispatcher>(node, count);
     }
 
-    void SetINodeData(NodeBase *node, Int idx, const ID *id) {
-    	MEMORIA_TRACE(me_, node->id(), idx, *id);
-        memoria::btree::SetData<NonLeafDispatcher>(node, idx, id);
+    void SetINodeData(NodeBase *node, Int idx, const ID *id)
+    {
+    	memoria::btree::SetData<NonLeafDispatcher>(node, idx, id);
     }
 
-    void Reindex(NodeBase *node) {
+    void Reindex(NodeBase *node)
+    {
         memoria::btree::Reindex<NodeDispatcher>(node);
     }
 
-    void SetLeafDataAndReindex(NodeBase *node, Int idx, const Key *keys, const Value &val) {
-    	MEMORIA_TRACE(me_, node->id(), idx, keys[0], val);
+    void SetLeafDataAndReindex(NodeBase *node, Int idx, const Key *keys, const Value &val)
+    {
         memoria::btree::SetKeyDataAndReindex<LeafDispatcher>(node, idx, keys, &val);
     }
     
-    static Value GetLeafData(NodeBase *node, Int idx) {
+    static Value GetLeafData(NodeBase *node, Int idx)
+    {
         return *memoria::btree::GetData<LeafDispatcher, Value>(node, idx);
     }
 
-    void SetLeafData(NodeBase *node, Int idx, const Value &val) {
-        MEMORIA_TRACE(me_, node->id(), idx, val);
+    void SetLeafData(NodeBase *node, Int idx, const Value &val)
+    {
         memoria::btree::SetData<LeafDispatcher>(node, idx, &val);
     }
 
@@ -604,7 +608,7 @@ public:
     	if (page != nullptr)
     	{
     		PageWrapper<Page, Allocator::PAGE_SIZE> pw(page);
-    		PageMetadata* meta = me_.reflection()->GetPageMetadata(pw.GetPageTypeHash());
+    		PageMetadata* meta = me()->reflection()->GetPageMetadata(pw.GetPageTypeHash());
     		memoria::vapi::DumpPage(meta, &pw, out);
     		out<<endl;
     		out<<endl;

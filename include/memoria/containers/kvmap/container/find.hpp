@@ -66,8 +66,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::FindName)
     };
 
     const Iterator FindLE(Key key, int i, bool for_insert) {
-        MEMORIA_TRACE(me_, "FindLE", key, i, for_insert);
-        return me_.template _find<CompareLE>(key, i, for_insert);
+        MEMORIA_TRACE(me(), "FindLE", key, i, for_insert);
+        return me()->template _find<CompareLE>(key, i, for_insert);
     }
 
 MEMORIA_CONTAINER_PART_END

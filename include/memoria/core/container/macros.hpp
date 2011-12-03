@@ -102,23 +102,28 @@ public:                                                                         
 template <typename Base1, typename TypesType>        							\
 class CtrPart<PartName, Base1, TypesType>: public Base1 {						\
 	typedef Base1 Base;															\
+	typedef CtrPart<PartName, Base1, TypesType> ThisType;						\
 	typedef Ctr<TypesType> MyType;												\
-    MyType& me_;                                                                \
 public:
 
 
 #define MEMORIA_CONTAINER_PART_BEGIN(PartName)                          		\
     MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(PartName)                       		\
-    CtrPart(MyType &me): Base(me), me_(me)  {}                            		\
-    MyType &me() {                                                              \
-        return me_;                                                             \
-    }                                                                           \
-                                                                                \
-    const MyType &me() const {                                                  \
-        return me_;                                                             \
-    }                                                                           \
+    CtrPart(): Base()  {}                            							\
+    CtrPart(const MyType& other): Base(other)  {}                            	\
+    CtrPart(MyType&& other): Base(std::move(other))  {}                         \
 
-#define MEMORIA_CONTAINER_PART_END };
+
+#define MEMORIA_CONTAINER_PART_END 												\
+	MyType* me() {																\
+    	return static_cast<MyType*>(this);										\
+    }																			\
+    																			\
+    const MyType* me() const {													\
+    	return static_cast<const MyType*>(this);								\
+    }																			\
+};
+
 
 
 

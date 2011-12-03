@@ -52,13 +52,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::RemoveName)
     bool RemoveAllEntries(Key from, Key to, Int i, Int type) {
         if (to >= from)
         {
-            Iterator ifrom  = type == memoria::vapi::IdxMap::LE ? me_.FindLE(from, i, true)  : me_.FindLT(from, i, false);
-            Iterator ito    = type == memoria::vapi::IdxMap::LE ? me_.FindLE(to, i, true)    : me_.FindLT(to, i, false);
+            Iterator ifrom  = type == memoria::vapi::IdxMap::LE ? me()->FindLE(from, i, true)  : me()->FindLT(from, i, false);
+            Iterator ito    = type == memoria::vapi::IdxMap::LE ? me()->FindLE(to, i, true)    : me()->FindLT(to, i, false);
 
-            MEMORIA_TRACE(me_, "RemoveAllEntries", from, to, type, ito.page()->id());
+            MEMORIA_TRACE(me(), "RemoveAllEntries", from, to, type, ito.page()->id());
 
             if (!(ifrom.IsEmpty() || ifrom.IsEnd())) {
-                me_.RemoveEntries(ifrom, ito);
+                me()->RemoveEntries(ifrom, ito);
             }
         }
         return false;

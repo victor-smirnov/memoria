@@ -67,19 +67,19 @@ public:
 
     DataPageG GetDataPage(NodeBase *node, Int idx)
     {
-        Value id = me_.GetLeafData(node, idx);
-        return me_.allocator().GetPage(id);
+        Value id = me()->GetLeafData(node, idx);
+        return me()->allocator().GetPage(id);
     }
 
     NodeBaseG GetDataParent(DataPage *node)
     {
-    	return me_.allocator().GetPage(node->parent_id());
+    	return me()->allocator().GetPage(node->parent_id());
     }
 
     DataPageG InsertDataPage(NodeBaseG node, Int key_idx)
     {
-    	me_.InsertSpace(node, key_idx, 1);
-    	return me_.create_datapage(node, key_idx);
+    	me()->InsertSpace(node, key_idx, 1);
+    	return me()->create_datapage(node, key_idx);
     }
 
     bool IsDynarray() {

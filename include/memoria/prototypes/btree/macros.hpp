@@ -13,32 +13,31 @@
 template <                                                                              \
         typename TypesType																\
 >                                                         								\
-class BTreeContainerBaseClassName: public ContainerBase<                                \
-                                        TypesType> {                            		\
+class BTreeContainerBaseClassName: public ContainerBase<TypesType> {                    \
                                                                                         \
+    typedef BTreeContainerBaseClassName<TypesType>								ThisType;\
     typedef ContainerBase<TypesType>                							Base;   \
     typedef Ctr<TypesType>														MyType; \
-                                                                                        \
-    MyType& me_;                                     									\
                                                                                         \
 public:
 
 #define MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBaseClassName)               \
     MEMORIA_BTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeContainerBaseClassName)           \
                                                                                         \
-    BTreeContainerBaseClassName(MyType &me): Base(me), me_(me) {}                       \
-                                                                                        \
-    MyType &me() {                                                                      \
-        return me_;                                                                     \
-    }                                                                                   \
-                                                                                        \
-    const MyType &me() const {                                                          \
-        return me_;                                                                     \
-    }
+    BTreeContainerBaseClassName(): Base() {}                       						\
+    BTreeContainerBaseClassName(const ThisType& other): Base(other) {}                  \
+    BTreeContainerBaseClassName(ThisType&& other): Base(std::move(other)) {}            \
 
 
-#define MEMORIA_BTREE_MODEL_BASE_CLASS_END };
-
+#define MEMORIA_BTREE_MODEL_BASE_CLASS_END												\
+	MyType* me() {																		\
+    	return static_cast<MyType*>(this);												\
+    }																					\
+    																					\
+    const MyType* me() const {															\
+    	return static_cast<const MyType*>(this);										\
+    }																					\
+};
 
 
 

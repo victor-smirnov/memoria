@@ -122,12 +122,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
 
     Iterator FindLT(Key key, Int c, bool for_insert)
     {
-        return me_.template _find<CompareLT>(key, c, for_insert);
+        return me()->template _find<CompareLT>(key, c, for_insert);
     }
 
     Iterator FindLE(Key key, Int c, bool for_insert)
     {
-        return me_.template _find<CompareLE>(key, c, for_insert);
+        return me()->template _find<CompareLE>(key, c, for_insert);
     }
 
     bool IsFound(Iterator &iter, Key key, Int i)

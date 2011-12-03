@@ -47,8 +47,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
 
     bool check_keys()
     {
-    	MEMORIA_TRACE(me_);
-        Iterator i = me_.FindStart();
+    	MEMORIA_TRACE(me());
+        Iterator i = me()->FindStart();
 
         Key k0 = 0;
         bool first = true;
@@ -61,7 +61,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
                 if (k0 >= key)
                 {
                 	cout<<TypeNameFactory<typename Base::Name>::name()<<endl;
-                    MEMORIA_ERROR(me_, "check_keys: key0 >= key1", k0, key, "page.id =", i.page()->id(), "page.idx =", i.key_idx());
+                    MEMORIA_ERROR(me(), "check_keys: key0 >= key1", k0, key, "page.id =", i.page()->id(), "page.idx =", i.key_idx());
                 }
             }
             else {
@@ -80,17 +80,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
     {
     	bool errors = Base::check_node_content(node);
 
-        Int children = me_.GetChildrenCount(node);
+        Int children = me()->GetChildrenCount(node);
 
         Key k0;
         for (Int c = 0; c < children; c++)
         {
-            Key key = me_.GetKey(node, 0, c);
+            Key key = me()->GetKey(node, 0, c);
             if (c > 0)
             {
                 if (k0 >= key)
                 {
-                    MEMORIA_ERROR(me_, "check_node_content: key0 >= key1", k0, key, "page.id =", node->id());
+                    MEMORIA_ERROR(me(), "check_node_content: key0 >= key1", k0, key, "page.id =", node->id());
                     errors = true;
                 }
             }

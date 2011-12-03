@@ -152,8 +152,6 @@ BigInt M_TYPE::Skip(BigInt distance)
 M_PARAMS
 BigInt M_TYPE::SkipFw(BigInt distance)
 {
-	MEMORIA_TRACE(me()->model(), "Begin", distance);
-
 	//FIXME: handle START properly
 	if (me()->IsNotEmpty())
 	{
@@ -162,7 +160,6 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 
 		if (distance + data_pos <= data_size)
 		{
-			MEMORIA_TRACE(me()->model(), "Within the page");
 			// A trivial case when the offset is within current data page
 
 			// we need to check for EOF if a data page
@@ -225,8 +222,6 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 M_PARAMS
 BigInt M_TYPE::SkipBw(BigInt distance)
 {
-	MEMORIA_TRACE(me()->model(), "Begin", distance);
-
 	//FIXME: handle EOF properly
 	if (me()->IsNotEmpty())
 	{

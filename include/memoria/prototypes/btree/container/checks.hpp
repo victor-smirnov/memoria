@@ -60,7 +60,7 @@ public:
     bool CheckTree();
 
     bool Check(void *data) {
-    	return me_.CheckTree();
+    	return me()->CheckTree();
     }
 
 //PRIVATE API:
@@ -116,12 +116,12 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 bool M_TYPE::CheckTree()
 {
-	NodeBaseG root = me_.GetRoot();
+	NodeBaseG root = me()->GetRoot();
 	if (root != NULL)
 	{
 		bool errors = false;
-		me_.check_node_tree(root, errors);
-		return me_.check_keys() || errors;
+		me()->check_node_tree(root, errors);
+		return me()->check_keys() || errors;
 	}
 	else {
 		return false;
@@ -139,41 +139,41 @@ bool M_TYPE::CheckTree()
 M_PARAMS
 void M_TYPE::check_node_tree(NodeBase* node, bool &errors)
 {
-	errors = me_.check_node_content(node) || errors;
-	Int children = me_.GetChildrenCount(node);
+	errors = me()->check_node_content(node) || errors;
+	Int children = me()->GetChildrenCount(node);
 
 	if (node->is_leaf())
 	{
 		if (node->counters().page_count() != 1)
 		{
 			errors = true;
-			MEMORIA_ERROR(me_, "counters.page_count != 1 for leaf node", node->id(), node->counters().page_count());
+			MEMORIA_ERROR(me(), "counters.page_count != 1 for leaf node", node->id(), node->counters().page_count());
 		}
 
 		for (Int c = 0; c < children; c++)
 		{
-			errors = me_.check_leaf_value(node, c) || errors;
+			errors = me()->check_leaf_value(node, c) || errors;
 		}
 	}
 	else {
 		Counters cnt;
 		for (Int c = 0; c < children; c++)
 		{
-			NodeBaseG child = me_.GetChild(node, c);
+			NodeBaseG child = me()->GetChild(node, c);
 			cnt += child->counters();
 
-			me_.check_node_tree(child, errors);
+			me()->check_node_tree(child, errors);
 
 			if (!(child->parent_id() == node->id()))
 			{
 				errors = true;
-				MEMORIA_ERROR(me_, "child.parent_id != parent.id", child->id(), child->parent_id(), node->id());
+				MEMORIA_ERROR(me(), "child.parent_id != parent.id", child->id(), child->parent_id(), node->id());
 			}
 
 			if (child->parent_idx() != c)
 			{
 				errors = true;
-				MEMORIA_ERROR(me_, "child.parent_idx != parent.child.idx", child->id(), child->parent_idx(), c);
+				MEMORIA_ERROR(me(), "child.parent_idx != parent.child.idx", child->id(), child->parent_idx(), c);
 			}
 		}
 
@@ -196,7 +196,7 @@ bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent) {
 	{
 		if (node->map().max_key(c) != parent->map().key(c, node->parent_idx()))
 		{
-			MEMORIA_TRACE(me_, "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, node->parent_idx()), "for node.id=", node->id(), "parent.id=", parent->id(), "node.parent_idx",node->parent_idx());
+			MEMORIA_TRACE(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, node->parent_idx()), "for node.id=", node->id(), "parent.id=", parent->id(), "node.parent_idx",node->parent_idx());
 			errors = true;
 		}
 	}
@@ -212,30 +212,30 @@ bool M_TYPE::check_node_content(NodeBase* node)
 		if (!node->parent_id().is_null())
 		{
 			errors = true;
-			MEMORIA_ERROR(me_, "node.parent_id != NULL for root node", node->id(), node->parent_id());
+			MEMORIA_ERROR(me(), "node.parent_id != NULL for root node", node->id(), node->parent_id());
 		}
 
 		if (node->parent_idx() != 0) {
 			errors = true;
-			MEMORIA_ERROR(me_, "node.parent_id != 0 for root node", node->id(), node->parent_idx());
+			MEMORIA_ERROR(me(), "node.parent_id != 0 for root node", node->id(), node->parent_idx());
 		}
 
-		CheckNodeContentFn1 fn1(me_);
+		CheckNodeContentFn1 fn1(*me());
 		RootDispatcher::Dispatch(node, fn1);
 		errors = fn1.rtn_ || errors;
 	}
 	else {
 		if (node->parent_id().is_null()) {
 			errors = true;
-			MEMORIA_ERROR(me_, "node.parent_id == NULL for root node", node->id(), node->parent_id());
+			MEMORIA_ERROR(me(), "node.parent_id == NULL for root node", node->id(), node->parent_id());
 		}
 
-		NodeBaseG parent = me_.GetParent(node);
+		NodeBaseG parent = me()->GetParent(node);
 		if (parent == NULL) {
-			MEMORIA_ERROR(me_, "node", node->id(), "has no parent");
+			MEMORIA_ERROR(me(), "node", node->id(), "has no parent");
 		}
 		else {
-			CheckNodeContentFn2 fn2(me_);
+			CheckNodeContentFn2 fn2(*me());
 			NodeDispatcher::DoubleDispatch(node, parent, fn2);
 			errors = fn2.rtn_ || errors;
 		}

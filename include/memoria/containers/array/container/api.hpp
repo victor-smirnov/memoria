@@ -69,14 +69,14 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::copy_data(const Buffer& data, DataPage* page, BigInt start, BigInt pos, BigInt length)
 {
-	MEMORIA_TRACE(me_, "[data.id, start, pos, length]", page->id(), start, pos, length);
+	MEMORIA_TRACE(me(), "[data.id, start, pos, length]", page->id(), start, pos, length);
 	memoria::CopyBuffer(data.data() + start, page->data().value_addr(pos), length);
 }
 
 M_PARAMS
 void M_TYPE::move_data(DataPage *from, DataPage *to, BigInt local_idx, CountData &prefix, BigInt* keys)
 {
-	MEMORIA_TRACE(me_, "[from.id, to.id, locla_idx]", from->id(), to->id(), local_idx);
+	MEMORIA_TRACE(me(), "[from.id, to.id, locla_idx]", from->id(), to->id(), local_idx);
 
 	BigInt length = from->data().size() - local_idx;
 
@@ -93,7 +93,7 @@ void M_TYPE::move_data(DataPage *from, DataPage *to, BigInt local_idx, CountData
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 {
-	Iterator iter = me_.FindLT(pos, key_number, true);
+	Iterator iter = me()->FindLT(pos, key_number, true);
 	if (iter.IsNotEmpty())
 	{
 		if (iter.IsEnd())
@@ -101,7 +101,7 @@ typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 			iter.PrevKey();
 		}
 
-		iter.data() 	= me_.GetDataPage(iter.page(), iter.key_idx());
+		iter.data() 	= me()->GetDataPage(iter.page(), iter.key_idx());
 		BigInt offset 	= iter.prefix(key_number);
 		iter.data_pos() = pos - offset;
 	}

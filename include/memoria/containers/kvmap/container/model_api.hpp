@@ -67,22 +67,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::MapApiName)
 
     bool Get(Key key, Value& value, Int idx = 0)
     {
-    	return me_.GetValue(key, idx, value);
+    	return me()->GetValue(key, idx, value);
     }
 
     bool Get1(Key key, Value& value)
     {
-    	return me_.GetValue(key, 0, value);
+    	return me()->GetValue(key, 0, value);
     }
 
     void Put(Key key, const Value& value)
     {
-        me_.SetValueForKey(key, value);
+        me()->SetValueForKey(key, value);
     }
 
     bool Remove(Key key)
     {
-        return me_.RemoveByKey(key);
+        return me()->RemoveByKey(key);
     }
 
 MEMORIA_CONTAINER_PART_END

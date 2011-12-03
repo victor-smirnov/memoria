@@ -87,17 +87,17 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::Seek(BigInt pos)
 {
-	return me_.Find(pos, 0);
+	return me()->Find(pos, 0);
 }
 
 M_PARAMS
 BigInt M_TYPE::Size()
 {
-	NodeBaseG node = me_.GetRoot();
+	NodeBaseG node = me()->GetRoot();
 
 	if (node != NULL)
 	{
-		return me_.GetMaxKey(node, 0);
+		return me()->GetMaxKey(node, 0);
 	}
 	else {
 		return 0;

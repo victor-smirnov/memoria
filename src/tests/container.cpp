@@ -114,10 +114,10 @@ public:
 
 	void boo1() {
 		cout<<"Boo1"<<endl;
-		me_.boo2();
-		me_.boo3();
+		me()->boo2();
+		me()->boo3();
 
-		me_.boo4();
+		me()->boo4();
 	}
 };
 

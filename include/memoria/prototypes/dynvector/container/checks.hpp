@@ -73,8 +73,8 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 bool M_TYPE::check_leaf_value(NodeBase* leaf, Int idx)
 {
-	Int key			= me_.GetKey(leaf, 0, idx);
-	DataPageG data 	= me_.GetDataPage(leaf, idx);
+	Int key			= me()->GetKey(leaf, 0, idx);
+	DataPageG data 	= me()->GetDataPage(leaf, idx);
 
 	if (data != NULL)
 	{
@@ -82,20 +82,20 @@ bool M_TYPE::check_leaf_value(NodeBase* leaf, Int idx)
 
 		if (key != data->data().size())
 		{
-			MEMORIA_TRACE(me_, "Invalid data page size", leaf->id(), idx, key, data->data().size());
+			MEMORIA_TRACE(me(), "Invalid data page size", leaf->id(), idx, key, data->data().size());
 			error = true;
 		}
 
 		if (key == 0)
 		{
-			MEMORIA_TRACE(me_, "Zero data page size", leaf->id(), idx, key, data->data().size());
+			MEMORIA_TRACE(me(), "Zero data page size", leaf->id(), idx, key, data->data().size());
 			error = true;
 		}
 
 		return error;
 	}
 	else {
-		MEMORIA_TRACE(me_, "No DataPage exists", leaf->id(), idx, key);
+		MEMORIA_TRACE(me(), "No DataPage exists", leaf->id(), idx, key);
 		return true;
 	}
 }

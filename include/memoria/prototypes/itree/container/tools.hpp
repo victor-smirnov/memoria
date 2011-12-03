@@ -129,19 +129,19 @@ void M_TYPE::SetLeafDataAndReindex(NodeBaseG node, Int idx, const Key *keys, con
 	LeafDispatcher::Dispatch(node, fn1);
 
 	if (!fn1.fixed_) {
-		Iterator i(node, idx, me_);
+		Iterator i(node, idx, *me());
 		if (i.NextKey())
 		{
-			MEMORIA_TRACE(me_, "Try to fix next key", i.page()->id(), idx, -keys[0]);
+			MEMORIA_TRACE(me(), "Try to fix next key", i.page()->id(), idx, -keys[0]);
 			SetAndReindexFn2 fn2(i.key_idx(), keys);
 			LeafDispatcher::Dispatch(i.page(), fn2);
 
 			if (MapType == MapTypes::Index)
 			{
-				me_.UpdateBTreeKeys(i.page());
+				me()->UpdateBTreeKeys(i.page());
 			}
-			else if (i.key_idx() >= me_.GetChildrenCount(i.page()) -1) {
-				me_.UpdateBTreeKeys(i.page());
+			else if (i.key_idx() >= me()->GetChildrenCount(i.page()) -1) {
+				me()->UpdateBTreeKeys(i.page());
 			}
 		}
 	}
@@ -160,7 +160,7 @@ bool M_TYPE::CheckNodeContent(Node *node) {
 		}
 
 		if (key != node->map().max_key(i)) {
-			MEMORIA_ERROR(me_, "Sum of keys doen't match max_key for key", i, key, node->map().max_key(i));
+			MEMORIA_ERROR(me(), "Sum of keys doen't match max_key for key", i, key, node->map().max_key(i));
 			errors = true;
 		}
 	}
@@ -170,11 +170,14 @@ bool M_TYPE::CheckNodeContent(Node *node) {
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent) {
+bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent)
+{
 	bool errors = false;
-	for (Int c = 0; c < Indexes; c++) {
-		if (node->map().max_key(c) != parent->map().key(c, node->parent_idx())) {
-			MEMORIA_ERROR(me_, "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, node->parent_idx()), "for", node->id(), parent->id(), node->parent_idx());
+	for (Int c = 0; c < Indexes; c++)
+	{
+		if (node->map().max_key(c) != parent->map().key(c, node->parent_idx()))
+		{
+			MEMORIA_ERROR(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, node->parent_idx()), "for", node->id(), parent->id(), node->parent_idx());
 			errors = true;
 		}
 	}

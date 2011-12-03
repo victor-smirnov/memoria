@@ -92,7 +92,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
     void InsertEntry(Iterator &iter, Key key, const Value &value);
 
     Iterator EmptyIterator() {
-        return Iterator(me_);
+        return Iterator(*me());
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -102,25 +102,24 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-void M_TYPE::create_new() {
-	MEMORIA_TRACE(me_, "BEGIN");
-	NodeBaseG node = me_.CreateNode(0, true, true);
-	MEMORIA_TRACE(me_, "Set Root", node->id());
-	me_.set_root(node->id());
+void M_TYPE::create_new()
+{
+	NodeBaseG node = me()->CreateNode(0, true, true);
+	me()->set_root(node->id());
 }
 
 M_PARAMS
 typename M_TYPE::NodeBaseG M_TYPE::CreateNode(Short level, bool root, bool leaf)
 {
-	NodeBaseG node = NodeFactory::Create(me_.allocator(), level, root, leaf);
+	NodeBaseG node = NodeFactory::Create(me()->allocator(), level, root, leaf);
 
 	if (root) {
-		Metadata meta = me_.GetRootMetadata(node);
-		meta.model_name() = me_.name();
-		me_.SetRootMetadata(node, meta);
+		Metadata meta = me()->GetRootMetadata(node);
+		meta.model_name() = me()->name();
+		me()->SetRootMetadata(node, meta);
 	}
 
-	node->model_hash() = me_.hash();
+	node->model_hash() = me()->hash();
 
 	return node;
 }
@@ -132,11 +131,11 @@ void M_TYPE::InsertSpace(NodeBaseG node, Int from, Int count, bool increase_chil
 
 	if (!node->is_leaf())
 	{
-		MoveChildren<NonLeafDispatcher, TreeNodePage>(node.page(), from, count, total_children_count, me_.allocator());
+		MoveChildren<NonLeafDispatcher, TreeNodePage>(node.page(), from, count, total_children_count, me()->allocator());
 	}
-	else if (me_.IsDynarray())
+	else if (me()->IsDynarray())
 	{
-		MoveChildren<LeafDispatcher, TreeNodePage>(node.page(), from, count, total_children_count, me_.allocator());
+		MoveChildren<LeafDispatcher, TreeNodePage>(node.page(), from, count, total_children_count, me()->allocator());
 	}
 }
 
@@ -144,9 +143,7 @@ void M_TYPE::InsertSpace(NodeBaseG node, Int from, Int count, bool increase_chil
 M_PARAMS
 typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG one, NodeBaseG parent, Int parent_idx, Int from, Int shift)
 {
-	MEMORIA_TRACE(me_, "SplitNode", one->id(), one->parent_idx(), "parent", parent->id(), parent_idx, "at", from, "shift", shift);
-
-	NodeBaseG two = me_.CreateNode(one->level(), false, one->is_leaf()); // one->is_root() was false here
+	NodeBaseG two = me()->CreateNode(one->level(), false, one->is_leaf()); // one->is_root() was false here
 
 	Int count = CopyElements<NodeDispatcher>(one.page(), two.page(), from, shift);
 
@@ -156,54 +153,54 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG one, NodeBaseG parent, In
 	{
 		//FIXME: AccumulateChildrenCounters() does not only sums counters but makes children reparenting
 		// maybe CopyElemnts knows this secret
-		counters = AccumulateChildrenCounters<NonLeafDispatcher, Counters>(two.page(), from, shift, count, me_.allocator());
+		counters = AccumulateChildrenCounters<NonLeafDispatcher, Counters>(two.page(), from, shift, count, me()->allocator());
 
-		UpdateChildrenParentIdx<NonLeafDispatcher, TreeNodePage>(two.page(), from, shift, count, me_.allocator());
+		UpdateChildrenParentIdx<NonLeafDispatcher, TreeNodePage>(two.page(), from, shift, count, me()->allocator());
 
 		two->counters() += counters;
 		one->counters() -= counters;
 	}
 	else
 	{
-		if (me_.IsDynarray())
+		if (me()->IsDynarray())
 		{
-			ShiftAndReparentChildren<LeafDispatcher, TreeNodePage>(two.page(), from, shift, count, me_.allocator());
-			UpdateChildrenParentIdx<LeafDispatcher, TreeNodePage>(two.page(), from, shift, count, me_.allocator());
+			ShiftAndReparentChildren<LeafDispatcher, TreeNodePage>(two.page(), from, shift, count, me()->allocator());
+			UpdateChildrenParentIdx<LeafDispatcher, TreeNodePage>(two.page(), from, shift, count, me()->allocator());
 		}
 
 		counters.page_count()           = 0;
 		two->counters().page_count()    = 1;
 
-		Int one_children_count = me_.GetChildrenCount(one);
+		Int one_children_count = me()->GetChildrenCount(one);
 		counters.key_count() = one->counters().key_count() - one_children_count;
 		one->counters().key_count() = one_children_count;
 
-		two->counters().key_count() = me_.GetChildrenCount(two);
+		two->counters().key_count() = me()->GetChildrenCount(two);
 	}
 
 	two->parent_idx() = parent_idx;
 	two->parent_id()  = parent->id();
 
-	me_.PostSplit(one, two, from);
+	me()->PostSplit(one, two, from);
 
-	NodeBaseG one_parent = me_.GetParent(one);
+	NodeBaseG one_parent = me()->GetParent(one);
 
 	Key max[Indexes];
-	me_.GetMaxKeys(one, max);
+	me()->GetMaxKeys(one, max);
 
-	me_.UpdateBTreeKeys(one_parent, one->parent_idx(), max);
-	me_.SetINodeData(parent, parent_idx, &two->id());
+	me()->UpdateBTreeKeys(one_parent, one->parent_idx(), max);
+	me()->SetINodeData(parent, parent_idx, &two->id());
 
-	me_.GetMaxKeys(two, max);
-	me_.UpdateBTreeKeys(parent, parent_idx, max);
+	me()->GetMaxKeys(two, max);
+	me()->UpdateBTreeKeys(parent, parent_idx, max);
 
 	if (!(one_parent->id() == parent->id()))
 	{
-		me_.UpdateBTreeCounters(one_parent, -counters);
-		me_.UpdateBTreeCounters(parent, Counters(counters.page_count() + 1, counters.key_count()));
+		me()->UpdateBTreeCounters(one_parent, -counters);
+		me()->UpdateBTreeCounters(parent, Counters(counters.page_count() + 1, counters.key_count()));
 	}
 	else {
-		me_.UpdateBTreeCounters(parent, Counters(1, 0));
+		me()->UpdateBTreeCounters(parent, Counters(1, 0));
 	}
 
 	return two;
@@ -216,49 +213,49 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf
 {
 	if (!page->is_root())
 	{
-		NodeBaseG new_page(&me_.allocator());
-		NodeBaseG parent = me_.GetParent(page);
+		NodeBaseG new_page(&me()->allocator());
+		NodeBaseG parent = me()->GetParent(page);
 
 		Int idx_in_parent = page->parent_idx();
-		if (me_.GetCapacity(parent) == 0)
+		if (me()->GetCapacity(parent) == 0)
 		{
-			MEMORIA_TRACE(me_, "Parent", parent->id(), "is full", idx_in_parent, me_.GetChildrenCount(parent));
+			MEMORIA_TRACE(me(), "Parent", parent->id(), "is full", idx_in_parent, me()->GetChildrenCount(parent));
 			Int parent_idx;
 
-			if (idx_in_parent < me_.GetChildrenCount(parent) - 1)
+			if (idx_in_parent < me()->GetChildrenCount(parent) - 1)
 			{
-				NodeBaseG tmp = me_.SplitBTreeNode(parent, idx_in_parent + 1, 1);
+				NodeBaseG tmp = me()->SplitBTreeNode(parent, idx_in_parent + 1, 1);
 				parent = tmp;
 				parent_idx = 0;
 			}
 			else
 			{
-				parent = SplitBTreeNode(parent, me_.GetChildrenCount(parent) / 2, 0);
-				parent_idx = me_.GetChildrenCount(parent);
-				me_.InsertSpace(parent, parent_idx, 1);
+				parent = SplitBTreeNode(parent, me()->GetChildrenCount(parent) / 2, 0);
+				parent_idx = me()->GetChildrenCount(parent);
+				me()->InsertSpace(parent, parent_idx, 1);
 			}
 
-			new_page = me_.SplitNode(page, parent, parent_idx, count_leaf, shift);
+			new_page = me()->SplitNode(page, parent, parent_idx, count_leaf, shift);
 		}
 		else
 		{
-			MEMORIA_TRACE(me_, "Make room in parent", parent->id(), "at", idx_in_parent + 1);
+			MEMORIA_TRACE(me(), "Make room in parent", parent->id(), "at", idx_in_parent + 1);
 			InsertSpace(parent, idx_in_parent + 1, 1);
-			new_page = me_.SplitNode(page, parent, idx_in_parent + 1, count_leaf, shift);
+			new_page = me()->SplitNode(page, parent, idx_in_parent + 1, count_leaf, shift);
 		}
 
 		return new_page;
 	}
 	else
 	{
-		NodeBaseG root 		= me_.GetRoot(); // page == root
-		NodeBaseG new_root 	= me_.CreateNode(root->level() + 1, true, false);
+		NodeBaseG root 		= me()->GetRoot(); // page == root
+		NodeBaseG new_root 	= me()->CreateNode(root->level() + 1, true, false);
 
-		MEMORIA_TRACE(me_, "Split root", root->id(), "new root", new_root->id());
+		MEMORIA_TRACE(me(), "Split root", root->id(), "new root", new_root->id());
 
-		me_.CopyRootMetadata(root, new_root);
+		me()->CopyRootMetadata(root, new_root);
 
-		root = me_.Root2Node(root);
+		root = me()->Root2Node(root);
 
 		new_root->parent_id() 	= root->parent_id();
 		new_root->parent_idx() 	= 0;
@@ -269,77 +266,77 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf
 		Key keys[Indexes];
 		for (Int c = 0; c <Indexes; c++) keys[c] = 0;
 
-		me_.GetMaxKeys(root, keys);
-		me_.SetKeys(new_root, 0, keys);
-		me_.SetINodeData(new_root, 0, &root->id());
-		me_.SetChildrenCount(new_root, 2);
+		me()->GetMaxKeys(root, keys);
+		me()->SetKeys(new_root, 0, keys);
+		me()->SetINodeData(new_root, 0, &root->id());
+		me()->SetChildrenCount(new_root, 2);
 
 		new_root->counters() 	= root->counters();
 		new_root->counters().page_count() += 1;
 
-		me_.set_root(new_root->id());
+		me()->set_root(new_root->id());
 
-		return me_.SplitNode(page, new_root, 1, count_leaf, shift);
+		return me()->SplitNode(page, new_root, 1, count_leaf, shift);
 	}
 }
 
 M_PARAMS
 void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 {
-	MEMORIA_TRACE(me_, "InsertEntry", iter.page(), iter.key_idx(), iter.IsEnd(), iter.IsEmpty(), keys[0]);
+	MEMORIA_TRACE(me(), "InsertEntry", iter.page(), iter.key_idx(), iter.IsEnd(), iter.IsEmpty(), keys[0]);
 
 	if (iter.IsNotEmpty())
 	{
 		NodeBaseG node = iter.page();
 		Int idx = iter.key_idx();
-		MEMORIA_TRACE(me_, "Insert value. idx =", idx);
+		MEMORIA_TRACE(me(), "Insert value. idx =", idx);
 
-		if (me_.GetCapacity(node) > 0)
+		if (me()->GetCapacity(node) > 0)
 		{
-			MEMORIA_TRACE(me_, "Node", node, "has enough capacity");
+			MEMORIA_TRACE(me(), "Node", node, "has enough capacity");
 			InsertSpace(node, idx, 1);
 		}
 		else if (idx == 0)
 		{
-			SplitBTreeNode(node, me_.GetChildrenCount(node) / 2, 0);
+			SplitBTreeNode(node, me()->GetChildrenCount(node) / 2, 0);
 			idx = 0;
 			InsertSpace(node, idx, 1);
 		}
-		else if (idx < me_.GetChildrenCount(node))
+		else if (idx < me()->GetChildrenCount(node))
 		{
 			SplitBTreeNode(node, idx, 0);
 			InsertSpace(node, idx, 1);
 		}
 		else {
-			node = SplitBTreeNode(node, me_.GetChildrenCount(node) / 2, 0);
+			node = SplitBTreeNode(node, me()->GetChildrenCount(node) / 2, 0);
 
-			idx = me_.GetChildrenCount(node);
+			idx = me()->GetChildrenCount(node);
 			InsertSpace(node, idx, 1);
 
 			iter.page() = node;
 			iter.key_idx() = idx;
 		}
 
-		me_.SetLeafDataAndReindex(node, idx, keys, value);
+		me()->SetLeafDataAndReindex(node, idx, keys, value);
 
-		if (idx >= me_.GetChildrenCount(node) - 1) {
-			me_.UpdateBTreeKeys(node);
+		if (idx >= me()->GetChildrenCount(node) - 1) {
+			me()->UpdateBTreeKeys(node);
 		}
 
-		me_.UpdateBTreeCounters(node, Counters(0, 1));
+		me()->UpdateBTreeCounters(node, Counters(0, 1));
 	}
 	else
 	{
 		NodeBaseG node = CreateNode(0, true, true);
 
-		me_.set_root(node->id());
+		me()->set_root(node->id());
 		iter.page() = node;
 		iter.key_idx() = 0;
 
 		InsertFn<Key, Value> fn(keys, &value);
 		LeafDispatcher::Dispatch(node, fn);
 
-		me_.UpdateBTreeCounters(node, Counters(0, 1));
+		me()->UpdateBTreeCounters(node, Counters(0, 1));
 	}
 
 	iter.reset_state();
