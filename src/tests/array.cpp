@@ -335,13 +335,15 @@ int main(int argc, const char** argv, const char **envp) {
 		ByteArray dv(allocator, ArrayName, true);
 //		dv.SetMaxChildrenPerNode(100);
 
+		ByteArray dv1 = dv;
+
+		dv = dv1;
 
 		try {
 			cout<<"Insert data"<<endl;
 
 			for (Int c = 0; c < SIZE; c++)
 			{
-//				cout<<"C="<<c<<endl;
 				Build(allocator, dv, c + 1);
 			}
 
@@ -351,15 +353,6 @@ int main(int argc, const char** argv, const char **envp) {
 
 			for (Int c = 0; ; c++)
 			{
-//				cout<<"C="<<c<<endl;
-//				if (c == 82)
-//				{
-//					dv.debug() = true;
-//				}
-//				else {
-//					dv.debug() = false;
-//				}
-
 				if (!Remove(allocator, dv))
 				{
 					break;
@@ -392,14 +385,14 @@ int main(int argc, const char** argv, const char **envp) {
 
 	cout<<"ARRAY TEST time: remove "<<(getTime()- t1)<<" insert "<<(t1 - t0)<<endl;
 
-	Int CtrTotal = 0, DtrTotal = 0;
-	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
-	{
-		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
-		CtrTotal += PageCtrCnt[c];
-		DtrTotal += PageDtrCnt[c];
-	}
-
-	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
-	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
+//	Int CtrTotal = 0, DtrTotal = 0;
+//	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
+//	{
+//		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
+//		CtrTotal += PageCtrCnt[c];
+//		DtrTotal += PageDtrCnt[c];
+//	}
+//
+//	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
+//	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
 }

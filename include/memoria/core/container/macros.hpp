@@ -112,6 +112,12 @@ public:
     CtrPart(): Base()  {}                            							\
     CtrPart(const MyType& other): Base(other)  {}                            	\
     CtrPart(MyType&& other): Base(std::move(other))  {}                         \
+    void operator=(ThisType&& other) {											\
+		Base::operator=(std::move(other));										\
+	}																			\
+	void operator=(const ThisType& other) {										\
+		Base::operator=(other);													\
+	}
 
 
 #define MEMORIA_CONTAINER_PART_END 												\

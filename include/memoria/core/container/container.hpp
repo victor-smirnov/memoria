@@ -82,6 +82,14 @@ public:
 
     ContainerBase(ThisType&& other): root_(other.root_){}
 
+    void operator=(ThisType&& other) {
+    	this->root_ = other.root_;
+    }
+
+    void operator=(const ThisType& other) {
+    	this->root_ = other.root_;
+    }
+
     MyType* me() {
     	return static_cast<MyType*>(this);
     }
@@ -175,24 +183,40 @@ template <int Idx, typename Types>
 class CtrHelper: public CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> {
 	typedef CtrHelper<Idx, Types> 								ThisType;
 	typedef Ctr<Types> 											MyType;
-	typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> BaseType;
+	typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> Base;
 
 public:
-	CtrHelper(): BaseType() {}
-	CtrHelper(const ThisType& other): BaseType(other) {}
-	CtrHelper(ThisType&& other): BaseType(std::move(other)) {}
+	CtrHelper(): Base() {}
+	CtrHelper(const ThisType& other): Base(other) {}
+	CtrHelper(ThisType&& other): Base(std::move(other)) {}
+
+	void operator=(ThisType&& other) {
+		Base::operator=(std::move(other));
+	}
+
+	void operator=(const ThisType& other) {
+		Base::operator=(other);
+	}
 };
 
 template <typename Types>
 class CtrHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
 	typedef CtrHelper<-1, Types> 								ThisType;
 	typedef Ctr<Types> 											MyType;
-	typedef typename Types::template BaseFactory<Types>::Type 	BaseType;
+	typedef typename Types::template BaseFactory<Types>::Type 	Base;
 
 public:
-	CtrHelper(): BaseType() {}
-	CtrHelper(const ThisType& other): BaseType(other) {}
-	CtrHelper(ThisType&& other): BaseType(std::move(other)) {}
+	CtrHelper(): Base() {}
+	CtrHelper(const ThisType& other): Base(other) {}
+	CtrHelper(ThisType&& other): Base(std::move(other)) {}
+
+	void operator=(ThisType&& other) {
+		Base::operator=(std::move(other));
+	}
+
+	void operator=(const ThisType& other) {
+		Base::operator=(other);
+	}
 };
 
 
@@ -207,6 +231,14 @@ public:
 	CtrStart(): Base() {}
 	CtrStart(const ThisType& other): Base(other) {}
 	CtrStart(ThisType&& other): Base(std::move(other)) {}
+
+	void operator=(ThisType&& other) {
+		Base::operator=(std::move(other));
+	}
+
+	void operator=(const ThisType& other) {
+		Base::operator=(other);
+	}
 };
 
 
@@ -330,6 +362,26 @@ public:
     const MyType* me() const
     {
     	return this;
+    }
+
+    MyType& operator=(const MyType& other)
+    {
+    	name_ 				= other.name_;
+    	model_type_name_	= other.model_type_name_;
+    	logger_				= other.logger_;
+    	debug_				= other.debug_;
+    	Base::operator =(other);
+    	return *this;
+    }
+
+    MyType& operator=(MyType&& other)
+    {
+    	name_ 				= other.name_;
+    	model_type_name_	= other.model_type_name_;
+    	logger_				= other.logger_;
+    	debug_				= other.debug_;
+    	Base::operator=(std::move(other));
+    	return *this;
     }
 };
 

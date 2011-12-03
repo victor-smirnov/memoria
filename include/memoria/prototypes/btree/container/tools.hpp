@@ -26,9 +26,9 @@ private:
 public:
 
     typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                              Allocator;
+    typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Allocator::Page                                              Page;
+    typedef typename Allocator::Page                                            Page;
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
@@ -57,6 +57,18 @@ public:
     CtrPart(): Base(), max_node_capacity_(-1) {}
     CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) {}
     CtrPart(ThisType&& other): Base(std::move(other)), max_node_capacity_(other.max_node_capacity_) {}
+
+    void operator=(ThisType&& other)
+    {
+    	this->max_node_capacity_ = other.max_node_capacity_;
+    	Base::operator=(std::move(other));
+    }
+
+    void operator=(const ThisType& other)
+    {
+    	this->max_node_capacity_ = other.max_node_capacity_;
+    	Base::operator=(other);
+    }
 
     virtual void SetMaxChildrenPerNode(Int count) {
         max_node_capacity_ = count;
