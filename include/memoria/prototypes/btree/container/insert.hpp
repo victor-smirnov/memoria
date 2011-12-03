@@ -254,7 +254,7 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf
 
 		me()->CopyRootMetadata(root, new_root);
 
-		root = me()->Root2Node(root);
+		me()->Root2Node(root);
 
 		new_root->parent_id() 	= root->parent_id();
 		new_root->parent_idx() 	= 0;

@@ -196,6 +196,14 @@ public:
         return sizeof(Me);
     }
 
+    bool is_updated() {
+    	return flags_.is_bit(0);
+    }
+
+    void set_updated(bool updated) {
+    	return flags_.set_bit(0, updated);
+    }
+
     void *operator new(size_t size, void *page) {
         return page;
     }
@@ -396,6 +404,18 @@ public:
 		return page_;
 	}
 
+	void set_page(PageT* page)
+	{
+		page_ = page;
+	}
+
+	template <typename Page>
+	void set_page(PageGuard<Page, Allocator>&& other)
+	{
+		page_ = static_cast<PageT*>(other.page_);
+		other.page_ = NULL;
+	}
+
 	const PageT* operator->() const {
 		return page_;
 	}
@@ -417,7 +437,7 @@ public:
 	{
 		if (!page_->is_updated())
 		{
-			operator=(allocator->UpdatePage(page_));
+			set_page(allocator_->UpdatePage(page_));
 		}
 	}
 

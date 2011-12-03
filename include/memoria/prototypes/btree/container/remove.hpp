@@ -401,7 +401,7 @@ bool M_TYPE::MergeBTreeNodes(NodeBaseG page1, NodeBaseG page2)
 			NodeBaseG parent = me()->GetParent(page1, Allocator::READ);
 			if (parent->is_root() && me()->GetChildrenCount(parent) == 1 && me()->CanConvertToRoot(page1))
 			{
-				page1 = me()->Node2Root(page1);
+				me()->Node2Root(page1);
 
 				me()->CopyRootMetadata(parent, page1);
 
@@ -523,7 +523,7 @@ bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int sto
 
 						if (start->is_root() && me()->GetChildrenCount(start) == 1 && me()->CanConvertToRoot(child0))
 						{
-							child0 = me()->Node2Root(child0);
+							me()->Node2Root(child0);
 
 							me()->CopyRootMetadata(start, child0);
 
@@ -662,9 +662,9 @@ bool M_TYPE::MergeWithSiblings(NodeBaseG node) {
 		NodeBaseG parent = me()->GetParent(node, Allocator::READ);
 		if (parent->is_root() && me()->GetChildrenCount(parent) == 1 && me()->CanConvertToRoot(node))
 		{
-			NodeBase *new_root = me()->Node2Root(node);
+			me()->Node2Root(node);
 			me()->allocator().RemovePage(parent->id());
-			me()->set_root(new_root->id());
+			me()->set_root(node->id());
 		}
 	}
 	else {
@@ -673,9 +673,9 @@ bool M_TYPE::MergeWithSiblings(NodeBaseG node) {
 			NodeBaseG child = me()->GetChild(node, 0, Allocator::UPDATE);
 			if (me()->GetChildrenCount(child) == 1)
 			{
-				NodeBase *new_root = me()->Node2Root(child);
+				me()->Node2Root(child);
 				me()->allocator().RemovePage(node->id());
-				me()->set_root(new_root->id());
+				me()->set_root(child->id());
 			}
 
 			node = child;

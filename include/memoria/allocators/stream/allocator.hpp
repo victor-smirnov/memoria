@@ -248,7 +248,9 @@ public:
 		return PageG(get1(id), this);
 	}
 
-	virtual PageG UpdatePage(Page* page) {
+	virtual PageG UpdatePage(Page* page)
+	{
+		page->set_updated(true);
 		return PageG(page, this);
 	}
 
