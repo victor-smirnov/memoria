@@ -66,7 +66,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
     	}
     };
 
-    void AddKeysToMap(NodeBase *node, Key* keys)
+    void AddKeysToMap(NodeBaseG& node, Key* keys)
     {
     	AddKeysToMapFn fn(keys);
     	NodeDispatcher::Dispatch(node, fn);

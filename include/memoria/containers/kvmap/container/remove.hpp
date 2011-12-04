@@ -48,9 +48,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::RemoveName)
         return RemoveByKey(key, 0);
     }
 
-    bool RemoveByKey(Key key, Int c) {
+    bool RemoveByKey(Key key, Int c)
+    {
         Iterator i = me()->FindLE(key, c, false);
-        if (i.IsFound()) {
+        if (i.IsFound())
+        {
             if (i.GetKey(c) == key) {
                 me()->RemoveEntry(i);
                 return true;

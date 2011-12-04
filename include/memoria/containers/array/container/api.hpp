@@ -49,15 +49,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
     typedef typename Base::ApiValueType                                         ApiValueType;
 
     typedef typename Types::DataPage                                        	DataPage;
+    typedef typename Types::DataPageG                                        	DataPageG;
     typedef typename Types::Buffer                                          	Buffer;
     typedef typename Types::BufferContentDescriptor                         	BufferContentDescriptor;
     typedef typename Types::CountData                                       	CountData;
 
     static const Int Indexes                                                    = Base::Indexes;
 
-    void copy_data(const Buffer& data, DataPage* page, BigInt start, BigInt pos, BigInt length);
+    void copy_data(const Buffer& data, DataPageG& page, BigInt start, BigInt pos, BigInt length);
 
-    void move_data(DataPage *from, DataPage *to, BigInt local_idx, CountData &prefix, BigInt* keys);
+    void move_data(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix, BigInt* keys);
     
     Iterator Find(BigInt pos, Int key_number);
 
@@ -67,16 +68,17 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-void M_TYPE::copy_data(const Buffer& data, DataPage* page, BigInt start, BigInt pos, BigInt length)
+void M_TYPE::copy_data(const Buffer& data, DataPageG& page, BigInt start, BigInt pos, BigInt length)
 {
-	MEMORIA_TRACE(me(), "[data.id, start, pos, length]", page->id(), start, pos, length);
+	page.update();
 	memoria::CopyBuffer(data.data() + start, page->data().value_addr(pos), length);
 }
 
 M_PARAMS
-void M_TYPE::move_data(DataPage *from, DataPage *to, BigInt local_idx, CountData &prefix, BigInt* keys)
+void M_TYPE::move_data(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix, BigInt* keys)
 {
-	MEMORIA_TRACE(me(), "[from.id, to.id, locla_idx]", from->id(), to->id(), local_idx);
+	from.update();
+	to.update();
 
 	BigInt length = from->data().size() - local_idx;
 

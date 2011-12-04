@@ -64,9 +64,9 @@ public:
     }
 
 //PRIVATE API:
-    void check_node_tree(NodeBase* node, bool &errors);
+    void check_node_tree(NodeBaseG& node, bool &errors);
 
-    bool check_leaf_value(NodeBase* leaf, Int idx) {
+    bool check_leaf_value(NodeBaseG& leaf, Int idx) {
         return false;
     }
 
@@ -137,7 +137,7 @@ bool M_TYPE::CheckTree()
 
 
 M_PARAMS
-void M_TYPE::check_node_tree(NodeBase* node, bool &errors)
+void M_TYPE::check_node_tree(NodeBaseG& node, bool &errors)
 {
 	errors = me()->check_node_content(node) || errors;
 	Int children = me()->GetChildrenCount(node);

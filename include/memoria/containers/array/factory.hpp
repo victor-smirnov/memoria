@@ -15,7 +15,6 @@
 #include <memoria/containers/idx_map/factory.hpp>
 
 #include <memoria/containers/array/iterator/model_api.hpp>
-#include <memoria/containers/array/iterator/tools.hpp>
 
 #include <memoria/containers/array/pages/data_page.hpp>
 
@@ -45,7 +44,6 @@ struct BTreeTypes<Profile, memoria::Array>: public BTreeTypes<Profile, memoria::
 	typedef typename AppendLists<
 			typename Base::IteratorPartsList,
 			typename TLTool<
-				memoria::models::array::IteratorToolsName,
 				memoria::models::array::IteratorContainerAPIName
 			>::List
 	>::Result                                                               		IteratorPartsList;

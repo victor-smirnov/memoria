@@ -63,8 +63,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::MapApiName)
 
     static const Int Indexes                                                    = Base::Indexes;
 
-//    typedef Map::Pair Pair;
-
     bool Get(Key key, Value& value, Int idx = 0)
     {
     	return me()->GetValue(key, idx, value);
