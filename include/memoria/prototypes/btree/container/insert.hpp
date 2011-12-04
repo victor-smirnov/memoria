@@ -53,8 +53,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
 
     void create_new();
     NodeBaseG CreateNode(Short level, bool root, bool leaf);
-    void InsertSpace(NodeBaseG node, Int from, Int count, bool increase_children_count = true);
-    NodeBaseG SplitNode(NodeBaseG one, NodeBaseG parent, Int parent_idx, Int from, Int shift);
+    void InsertSpace(NodeBaseG& node, Int from, Int count, bool increase_children_count = true);
+    NodeBaseG SplitNode(NodeBaseG& one, NodeBaseG& parent, Int parent_idx, Int from, Int shift);
 
 
     /**
@@ -64,7 +64,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
      *
      * returns new leaf page that goes right after old leaf page in the index tree
      */
-    NodeBaseG SplitBTreeNode(NodeBaseG page, Int count_leaf, Int shift = 0);
+    NodeBaseG SplitBTreeNode(NodeBaseG& page, Int count_leaf, Int shift = 0);
 
 
     template <typename Keys, typename Data>
@@ -125,8 +125,9 @@ typename M_TYPE::NodeBaseG M_TYPE::CreateNode(Short level, bool root, bool leaf)
 }
 
 M_PARAMS
-void M_TYPE::InsertSpace(NodeBaseG node, Int from, Int count, bool increase_children_count)
+void M_TYPE::InsertSpace(NodeBaseG& node, Int from, Int count, bool increase_children_count)
 {
+	node.update();
 	Int total_children_count = MoveElements<NodeDispatcher>(node.page(), from, count, increase_children_count);
 
 	if (!node->is_leaf())
@@ -141,8 +142,11 @@ void M_TYPE::InsertSpace(NodeBaseG node, Int from, Int count, bool increase_chil
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG one, NodeBaseG parent, Int parent_idx, Int from, Int shift)
+typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG& one, NodeBaseG& parent, Int parent_idx, Int from, Int shift)
 {
+	one.update();
+	parent.update();
+
 	NodeBaseG two = me()->CreateNode(one->level(), false, one->is_leaf()); // one->is_root() was false here
 
 	Int count = CopyElements<NodeDispatcher>(one.page(), two.page(), from, shift);
@@ -209,8 +213,9 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG one, NodeBaseG parent, In
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf, Int shift)
+typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG& page, Int count_leaf, Int shift)
 {
+	page.update();
 	if (!page->is_root())
 	{
 		NodeBaseG new_page(&me()->allocator());

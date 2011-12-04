@@ -76,7 +76,7 @@ public:
     	return me()->allocator().GetPage(node->parent_id(), flags);
     }
 
-    DataPageG InsertDataPage(NodeBaseG node, Int key_idx)
+    DataPageG InsertDataPage(NodeBaseG& node, Int key_idx)
     {
     	me()->InsertSpace(node, key_idx, 1);
     	return me()->create_datapage(node, key_idx);
