@@ -26,6 +26,7 @@ using namespace memoria::dynvector;
 MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     typedef typename Base::NodeBase                                             	NodeBase;
+	typedef typename Base::NodeBaseG                                             	NodeBaseG;
 	typedef typename Base::Container                                                Container;
 
     typedef typename Container::ApiKeyType                                    		ApiKeyType;
@@ -145,7 +146,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     }
 
 
-    DataPageG GetNextDataPage(NodeBase* page, DataPage* data)
+    DataPageG GetNextDataPage(NodeBaseG page, DataPageG& data)
     {
     	Int parent_idx = data->parent_idx();
     	Int children_count = me()->model().GetChildrenCount(page);

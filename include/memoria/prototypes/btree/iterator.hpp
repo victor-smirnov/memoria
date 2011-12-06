@@ -61,7 +61,6 @@ public:
     {
     	Base::SetupAllocator(&model.allocator());
     	Base::state() 		= 0;
-        Base::page() 		= NULL;
         Base::key_idx() 	= -1;
     }
     

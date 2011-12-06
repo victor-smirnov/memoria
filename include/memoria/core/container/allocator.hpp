@@ -29,6 +29,7 @@ struct IAbstractAllocator {
 	typedef EmptyType													Transaction;
 
 	typedef PageGuard<Page, MyType>										PageG;
+	typedef typename PageG::Shared										Shared;
 
 	typedef IAbstractAllocator<PageType, MaxPageSize>					AbstractAllocator;
 
@@ -39,7 +40,7 @@ struct IAbstractAllocator {
 	virtual void  RemovePage(const ID& id)								= 0;
 	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;
 //	virtual PageG ReallocPage(Page* page, Int new_size)					= 0;
-	virtual void  ReleasePage(Page* page)								= 0;
+	virtual void  ReleasePage(Shared* shared)							= 0;
 
 	// Allocator directory interface part
 	virtual PageG GetRoot(BigInt name, Int flags)						= 0;

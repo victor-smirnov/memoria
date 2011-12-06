@@ -96,6 +96,10 @@ public:
     	return CompareBuffers(Buffer_, other.Buffer_, Size);
     }
 
+    bool operator!=(const Me&other) const {
+    	return !CompareBuffers(Buffer_, other.Buffer_, Size);
+    }
+
     const char *ptr() const {
         return Buffer_;
     }

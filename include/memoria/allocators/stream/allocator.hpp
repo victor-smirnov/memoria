@@ -16,6 +16,8 @@
 
 #include <memoria/core/container/collection.hpp>
 
+#include <memoria/core/tools/pool.hpp>
+
 #include <malloc.h>
 
 
@@ -34,6 +36,7 @@ class StreamAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocato
 public:
 	typedef typename Base::Page 												Page;
 	typedef typename Base::PageG 												PageG;
+	typedef typename Base::PageG::Shared 										Shared;
 	typedef typename Page::ID 													ID;
 	static const Int PAGE_SIZE 													= 4096;
 
@@ -46,7 +49,7 @@ private:
 
 	struct PageOp
 	{
-		enum {NONE, UPDATE, DELETE};
+		enum {UPDATE = Shared::UPDATE, DELETE = Shared::DELETE, NONE};
 		ID id_;
 		Page* page_;
 		Int op_;
@@ -73,7 +76,7 @@ private:
 	Me* 				roots_;
 	RootMapType 		root_map_;
 
-
+	StaticPool<ID, typename PageG::Shared>	pool_;
 
 
 public:
@@ -86,7 +89,8 @@ public:
 	StreamAllocator(const StreamAllocator& other) :
 			logger_(other.logger_),
 			counter_(other.counter_), metadata_(other.metadata_), root_(other.root_), me_(*this),
-			type_name_("StreamAllocator"), allocs_(other.allocs_), roots_(this), root_map_(*this, 0, false)
+			type_name_("StreamAllocator"), allocs_(other.allocs_), roots_(this), root_map_(*this, 0, false),
+			pool_(other.pool_)
 	{
 		for (auto i = other.pages_.begin(); i != other.pages_.end(); i++)
 		{
@@ -136,60 +140,41 @@ public:
 	}
 
 
-	/**
-	 * If a tree page is created using new (allocator) PageType call
-	 * than Page() constructor is invoked twice with undefined results
-	 */
-	Page* create_new1()
+	virtual void ReleasePage(Shared* shared)
 	{
-		allocs_++;
-		char* buf = (char*) malloc(PAGE_SIZE);
-		for (int c = 0; c < PAGE_SIZE; c++)
+		Page* page = *shared;
+
+		if (shared->deleted())
 		{
-			buf[c] = 0;
-		}
-
-		ID id = counter_++;
-
-		Page* p = new (buf) Page(id);
-
-		pages_log_[id] = p;
-
-		return p;
-	}
-
-	virtual void ReleasePage(Page* page)
-	{
-		if (page->deleted())
-		{
-			char* buf = (char*) page;
-			::free(buf);
+			::free(page);
 			allocs_--;
 		}
+
+		pool_.Release(page->id());
 	}
 
 
-	virtual void free1(const ID &id)
-	{
-		Page* page = get1(id);
-		if (page != NULL)
-		{
-			pages_.erase(id);
-			MEMORIA_TRACE(me(), "Remove pages with id", id, "size=", pages_.size());
-			if (page->references() == 0)
-			{
-				char* buf = (char*) page;
-				::free(buf);
-				allocs_--;
-			}
-			else {
-				page->deleted() = true;
-			}
-		}
-		else {
-			MEMORIA_ERROR(me(), "There is no page with id", id, "size=", pages_.size());
-		}
-	}
+//	virtual void free1(const ID &id)
+//	{
+//		Page* page = get1(id);
+//		if (page != NULL)
+//		{
+//			pages_.erase(id);
+//			MEMORIA_TRACE(me(), "Remove pages with id", id, "size=", pages_.size());
+//			if (page->references() == 0)
+//			{
+//				char* buf = (char*) page;
+//				::free(buf);
+//				allocs_--;
+//			}
+//			else {
+//				page->deleted() = true;
+//			}
+//		}
+//		else {
+//			MEMORIA_ERROR(me(), "There is no page with id", id, "size=", pages_.size());
+//		}
+//	}
 
 	PageOp get_in_log(const ID &page_id)
 	{
@@ -263,6 +248,21 @@ public:
 		return PAGE_SIZE;
 	}
 
+	Shared* get_shared(Page* page, Int op)
+	{
+		Shared* shared = pool_.Get(page->id());
+
+		if (shared == NULL)
+		{
+			shared = pool_.Allocate(page->id());
+			shared->state() = op;
+			shared->set_page(page);
+		}
+
+		return shared;
+	}
+
+
 	virtual PageG GetPage(const ID& id, Int flags)
 	{
 		PageOp op = get_in_log(id);
@@ -271,10 +271,14 @@ public:
 		{
 			if (op.op_ != PageOp::NONE)
 			{
-				return PageG(op.page_, this);
+				Shared* shared = get_shared(op.page_, op.op_);
+				return PageG(shared, this);
 			}
-			else {
-				return PageG(get1(id), this);
+			else
+			{
+				Page* 	page = get0(id);
+				Shared* shared = get_shared(page, Shared::READ);
+				return PageG(shared, this);
 			}
 		}
 		else {
@@ -286,45 +290,91 @@ public:
 				CopyBuffer(page, buffer, PAGE_SIZE);
 				Page* page2 = T2T<Page*>(buffer);
 
-				page2->set_updated(true);
 				pages_log_[id] = page2;
-				return PageG(page2, this);
+
+				Shared* shared = pool_.Get(id);
+
+				if (shared == NULL)
+				{
+					shared = pool_.Allocate(id);
+				}
+
+				shared->set_page(page2);
+				shared->state() = Shared::UPDATE;
+
+				return PageG(shared, this);
 			}
 			else
 			{
-				return PageG(op.page_, this);
+				return PageG(get_shared(op.page_, op.op_), this);
 			}
 		}
 	}
 
 	virtual PageG UpdatePage(Page* page)
 	{
-		if (page->is_updated())
+		Shared* shared = pool_.Get(page->id());
+
+		if (shared->state() == Shared::READ)
 		{
-			return PageG(page, this);
-		}
-		else {
 			char* buffer = (char*) malloc(PAGE_SIZE);
+
 			CopyBuffer(page, buffer, PAGE_SIZE);
 			Page* page0 = T2T<Page*>(buffer);
-			page0->set_updated(true);
+
 			pages_log_[page->id()] = page0;
-			return PageG(page0, this);
+
+			shared->set_page(page0);
+			shared->state() = Shared::UPDATE;
+
+			return PageG(shared, this);
 		}
+
+		return PageG(shared, this);
 	}
 
-	virtual void  RemovePage(const ID& id) {
+	virtual void  RemovePage(const ID& id)
+	{
+		Shared* shared = pool_.Get(id);
+
+		if (shared != NULL)
+		{
+			shared->state() = Shared::DELETE;
+		}
+
 		pages_log_[id] = PageOp(id);
 	}
 
+
+	/**
+	 * If a tree page is created using new (allocator) PageType call
+	 * than Page() constructor is invoked twice with undefined results
+	 */
 	virtual PageG CreatePage(Int initial_size = PAGE_SIZE)
 	{
-		return PageG(this->create_new1(), this);
+		allocs_++;
+		char* buf = (char*) malloc(PAGE_SIZE);
+		for (int c = 0; c < PAGE_SIZE; c++)
+		{
+			buf[c] = 0;
+		}
+
+		ID id = counter_++;
+
+		Page* p = new (buf) Page(id);
+
+		pages_log_[id] = p;
+
+		Shared* shared = pool_.Allocate(id);
+		shared->set_page(p);
+		shared->state() = Shared::UPDATE;
+
+		return PageG(shared, this);
 	}
 
 	void commit()
 	{
-		cout<<"Commit"<<endl;
+//		cout<<"Commit"<<endl;
 		for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
 		{
 			PageOp op = i->second;
@@ -333,11 +383,11 @@ public:
 			{
 				op.page_->set_updated(false);
 				pages_[op.id_] = op.page_;
-				cout<<"Update "<<op.id_<<endl;
+				///cout<<"Update "<<op.id_<<endl;
 			}
 			else {
 				pages_.erase(op.id_);
-				cout<<"Erase "<<op.id_<<endl;
+				///cout<<"Erase "<<op.id_<<endl;
 			}
 		}
 

@@ -101,6 +101,8 @@ public:
     void set_bit(int index, int bit) {
         SetBit(*this, index + RESERVED_BITSIZE, bit);
     }
+
+
 };
 
 template <typename PageIdType, Int FlagsCount = 32>
@@ -238,35 +240,111 @@ public:
 };
 
 
+template <typename PageT>
+class PageShared {
+
+	PageT* page_;
+	Int references_;
+	Int state_;
+
+public:
+
+	enum {READ, UPDATE, DELETE};
+
+	template <typename Page>
+	const Page* page() const {
+		return static_cast<const Page*>(page_);
+	}
+
+	template <typename Page>
+	Page* page() {
+		return static_cast<Page*>(page_);
+	}
+
+	template <typename Page>
+	operator Page* () {
+		return page<Page>();
+	}
+
+	template <typename Page>
+	operator const Page* () {
+		return page<Page>();
+	}
+
+	Int references() const {
+		return references_;
+	}
+
+	Int& references() {
+		return references_;
+	}
+
+	Int state() const {
+		return state_;
+	}
+
+	Int& state() {
+		return state_;
+	}
+
+	template <typename Page>
+	void set_page(Page* page)
+	{
+		this->page_ = static_cast<PageT*>(page);
+	}
+
+	Int ref() {
+		return ++references_;
+	}
+
+	Int unref() {
+		return --references_;
+	}
+
+	bool deleted() const
+	{
+		return state_ == DELETE;
+	}
+
+	bool updated() const
+	{
+		return state_ != READ;
+	}
+
+	void init()
+	{
+		references_ = 0;
+		state_		= READ;
+		page_		= NULL;
+	}
+};
+
 template <typename PageT, typename AllocatorT>
 class PageGuard {
-	PageT* 		page_;
-	AllocatorT*	allocator_;
+
 public:
 
 	typedef PageGuard<PageT, AllocatorT> 								MyType;
 	typedef PageT														Page;
 	typedef AllocatorT 													Allocator;
+	typedef PageShared<typename AllocatorT::Page>						Shared;
 
-	template <typename Page>
-	PageGuard(Page* page, Allocator* allocator): page_(static_cast<PageT*>(page)), allocator_(allocator)
+private:
+	Shared* 	shared_;
+	AllocatorT*	allocator_;
+public:
+
+
+	PageGuard(Shared* shared, Allocator* allocator): shared_(shared), allocator_(allocator)
 	{
 		inc();
 		ref();
 	}
 
 
-	PageGuard(Allocator* allocator): page_(NULL), allocator_(allocator) {inc();}
+	PageGuard(Allocator* allocator): shared_(NULL), allocator_(allocator) {inc();}
 
-	PageGuard(const MyType& guard): page_(guard.page_), allocator_(guard.allocator_)
-	{
-		ref();
-		check();
-		inc();
-	}
-
-	template <typename Page>
-	PageGuard(const PageGuard<Page, AllocatorT>& guard): page_(static_cast<Page*>(guard.page_)), allocator_(guard.allocator_)
+	PageGuard(const MyType& guard): shared_(guard.shared_), allocator_(guard.allocator_)
 	{
 		ref();
 		check();
@@ -274,9 +352,17 @@ public:
 	}
 
 	template <typename Page>
-	PageGuard(PageGuard<Page, AllocatorT>&& guard): page_(static_cast<PageT*>(guard.page_)), allocator_(guard.allocator_)
+	PageGuard(const PageGuard<Page, AllocatorT>& guard): shared_(guard.shared_), allocator_(guard.allocator_)
 	{
-		guard.page_	= NULL;
+		ref();
+		check();
+		inc();
+	}
+
+	template <typename Page>
+	PageGuard(PageGuard<Page, AllocatorT>&& guard): shared_(guard.shared_), allocator_(guard.allocator_)
+	{
+		guard.shared_	= NULL;
 		check();
 		inc();
 	}
@@ -290,21 +376,13 @@ public:
 	template <typename Page>
 	operator const Page* () const
 	{
-		return static_cast<const Page*>(page_);
+		return static_cast<const Page*>(*shared_);
 	}
 
 	template <typename Page>
 	operator Page* ()
 	{
-		return static_cast<Page*>(page_);
-	}
-
-	void operator=(PageT* page)
-	{
-		unref();
-		page_ = page;
-		check();
-		ref();
+		return static_cast<Page*>(*shared_);
 	}
 
 	void check() {
@@ -312,33 +390,34 @@ public:
 
 	void inc() {
 		PageCtr++;
+		if (PageCtr > PageDtr) PageDtr = PageCtr;
 	}
 
 	void dec() {
-		PageDtr--;
+		PageCtr--;
 	}
 
 	void ref()
 	{
-		if (page_ != NULL)
+		if (shared_ != NULL)
 		{
-			page_->ref();
+			shared_->ref();
 		}
 	}
 
 	void unref()
 	{
 		//FIXME it should be: page_->unref() == 0
-		if (page_ != NULL && page_->unref() == 0 && page_->deleted())
+		if (shared_ != NULL && shared_->unref() == 0)
 		{
-			allocator_->ReleasePage(page_);
+			allocator_->ReleasePage(shared_);
 		}
 	}
 
 	const MyType& operator=(const MyType& guard)
 	{
 		unref();
-		page_ = static_cast<Page*>(guard.page_);
+		shared_ = guard.shared_;
 		check();
 		ref();
 		return *this;
@@ -349,7 +428,7 @@ public:
 	const MyType& operator=(const PageGuard<P, AllocatorT>& guard)
 	{
 		unref();
-		page_ = static_cast<Page*>(guard.page_);
+		shared_ = guard.page_;
 		check();
 		ref();
 		return *this;
@@ -358,8 +437,8 @@ public:
 	const MyType& operator=(MyType&& guard)
 	{
 		unref();
-		page_ = static_cast<PageT*>(guard.page_);
-		guard.page_ = NULL;
+		shared_ = guard.shared_;
+		guard.shared_ = NULL;
 		check();
 		return *this;
 	}
@@ -369,8 +448,8 @@ public:
 	const MyType& operator=(PageGuard<P, AllocatorT>&& guard)
 	{
 		unref();
-		page_ = static_cast<Page*>(guard.page_);
-		guard.page_ = NULL;
+		shared_ = guard.shared_;
+		guard.shared_ = NULL;
 		check();
 		return *this;
 	}
@@ -378,50 +457,43 @@ public:
 
 	bool operator==(const PageT* page) const
 	{
-		return page_ == page;
+		return shared_ != NULL ? *shared_ == page : (char*)shared_ == (char*)page;
 	}
 
 	bool operator!=(const PageT* page) const
 	{
-		return page_ != page;
+		return shared_ != NULL ? *shared_ != page : (char*)shared_ != (char*)page;
 	}
 
-	bool operator==(const MyType& page) const
+	bool operator==(const MyType& other) const
 	{
-		return page_ == page.page_;
+		return shared_ == other.shared_;
 	}
 
-	bool operator!=(const MyType& page) const
+	bool operator!=(const MyType& other) const
 	{
-		return page_ != page->page_;
+		return shared_ != other->shared_;
 	}
 
 	const PageT* page() const {
-		return page_;
+		return *shared_;
 	}
 
 	PageT* page() {
-		return page_;
+		return *shared_;
 	}
 
 	void set_page(PageT* page)
 	{
-		page_ = page;
-	}
-
-	template <typename Page>
-	void set_page(PageGuard<Page, Allocator>&& other)
-	{
-		page_ = static_cast<PageT*>(other.page_);
-		other.page_ = NULL;
+		shared_->set_page(page);
 	}
 
 	const PageT* operator->() const {
-		return page_;
+		return *shared_;
 	}
 
 	PageT* operator->() {
-		return page_;
+		return *shared_;
 	}
 
 	AllocatorT* allocator() {
@@ -435,13 +507,21 @@ public:
 
 	void update()
 	{
-		if (page_ != NULL && !page_->is_updated())
+		if (shared_ != NULL && !shared_->updated())
 		{
-			set_page(allocator_->UpdatePage(page_));
+			set_page(allocator_->UpdatePage(*shared_));
 		}
 	}
 
 	template <typename Page, typename Allocator> friend class PageGuard;
+
+private:
+	template <typename Page>
+	void set_page(PageGuard<Page, Allocator>&& other)
+	{
+		shared_ = other.shared_;
+		other.shared_ = NULL;
+	}
 };
 
 

@@ -18,7 +18,7 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE 				= 3;
+const Int SIZE 				= 2;
 const Int ArrayName 		= 1;
 const Int MAX_BUFFER_SIZE 	= 4096 * 10;
 
@@ -121,7 +121,7 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 {
 	ArrayData data = CreateRandomBuffer(value);
 
-	cout<<"Insert "<<data.size()<<" Bytes"<<endl;
+//	cout<<"Insert "<<data.size()<<" Bytes"<<endl;
 
 	if (array.Size() == 0)
 	{
@@ -211,9 +211,9 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 			iter.Skip(-postfix.size());
 
 			array.debug() = true;
-			cout<<"Insert At: "<<iter.pos()<<endl;
+//			cout<<"Insert At: "<<iter.pos()<<endl;
 			iter.Insert(data);
-			cout<<"After Insert: "<<iter.pos()<<endl;
+//			cout<<"After Insert: "<<iter.pos()<<endl;
 
 //			allocator.commit();
 //			Dump(allocator, "array.dump");
@@ -222,12 +222,12 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 
 			iter.Skip(- data.size() - prefix_len);
 
-			cout<<"Pos "<<iter.pos()<<endl;
+//			cout<<"Pos "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array");
-			cout<<"Pos "<<iter.pos()<<endl;
+//			cout<<"Pos "<<iter.pos()<<endl;
 //
 			CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array");
-			cout<<"Pos "<<iter.pos()<<endl;
+//			cout<<"Pos "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array");
 		}
 	}
@@ -408,5 +408,5 @@ int main(int argc, const char** argv, const char **envp) {
 //	}
 //
 //	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
-//	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
+	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
 }

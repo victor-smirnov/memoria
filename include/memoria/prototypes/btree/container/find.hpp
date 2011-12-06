@@ -90,8 +90,8 @@ public:
                     node_ = model_.GetChild(node, idx_, Allocator::READ);
                 }
                 else {
-                	node_           = node;
-                    i_.page()       = node;
+                	node_           = model_.allocator().GetPage(node->id(), Allocator::READ);
+                    i_.page()       = node_;
                     i_.key_idx()    = idx_;
                     cmp_.SetupIterator(i_);
 
@@ -109,8 +109,8 @@ public:
                 }
                 else
                 {
-                    node_           = node;
-                    i_.page()       = node;
+                    node_           = model_.allocator().GetPage(node->id(), Allocator::READ);
+                    i_.page()       = node_;
                     i_.key_idx()    = node->map().size();
                     cmp_.SetupIterator(i_);
 
