@@ -20,7 +20,7 @@ namespace memoria    {
 template <typename PageType, int MaxPageSize = 4096>
 struct IAbstractAllocator {
 
-	enum {NONE, READ, UPDATE};
+	enum {READ, UPDATE};
 
 	typedef IAbstractAllocator<PageType, MaxPageSize>					MyType;
 
@@ -38,7 +38,7 @@ struct IAbstractAllocator {
 	virtual PageG UpdatePage(Page* page)								= 0;
 	virtual void  RemovePage(const ID& id)								= 0;
 	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;
-	virtual PageG ReallocPage(Page* page, Int new_size)					= 0;
+//	virtual PageG ReallocPage(Page* page, Int new_size)					= 0;
 	virtual void  ReleasePage(Page* page)								= 0;
 
 	// Allocator directory interface part

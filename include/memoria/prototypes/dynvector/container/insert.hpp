@@ -269,6 +269,7 @@ void M_TYPE::import_pages(
 	{
 		data_prefix = target_datapage_capacity >= length ? length : target_datapage_capacity;
 		suffix_data_page = iter.GetNextDataPage(iter.page(), iter.data());
+		suffix_data_page.update();
 	}
 	else
 	{
@@ -277,6 +278,7 @@ void M_TYPE::import_pages(
 		// Create a new one instead
 		data_prefix = 0;
 		suffix_data_page = iter.data();
+		suffix_data_page.update();
 	}
 
 	if (data_prefix > 0)
@@ -472,7 +474,7 @@ void M_TYPE::import_pages(
 		iter.page() 	= me()->GetDataParent(suffix_data_page, Allocator::READ);
 		iter.key_idx() 	= suffix_data_page->parent_idx();
 		iter.data() 	= suffix_data_page;
-		iter.data_pos() 		= out_pos;
+		iter.data_pos() = out_pos;
 	}
 	else {
 

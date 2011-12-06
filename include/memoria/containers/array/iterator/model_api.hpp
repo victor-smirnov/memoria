@@ -112,6 +112,11 @@ BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
 
 		CopyBuffer(me()->data()->data().value_addr(me()->data_pos()), data.data() + start, to_read);
 
+//		if (me()->model().debug())
+//		{
+//			me()->model().Dump(me()->data());
+//		}
+
 		len 	-= to_read;
 		me()->Skip(to_read);
 

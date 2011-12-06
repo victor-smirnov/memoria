@@ -435,7 +435,7 @@ public:
 
 	void update()
 	{
-		if (!page_->is_updated())
+		if (page_ != NULL && !page_->is_updated())
 		{
 			set_page(allocator_->UpdatePage(page_));
 		}
