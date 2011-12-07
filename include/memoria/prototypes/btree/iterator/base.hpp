@@ -41,7 +41,7 @@ public:
     BTreeIteratorBase(const ThisType& other): Base(other), page_(other.page_), key_idx_(other.key_idx_) {}
 
     void SetupAllocator(Allocator* allocator) {
-    	page_.set_allocator(allocator);
+    	//page_.set_allocator(allocator);
     }
 
     void operator=(ThisType&& other)

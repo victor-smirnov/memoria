@@ -77,12 +77,36 @@ public:
 			if (ids_[c] == id)
 			{
 				ids_[c] = ID(0);
-				cout<<c<<endl;
 				return;
 			}
 		}
 
 		throw new MemoriaException(MEMORIA_SOURCE, "ID is not known in this StaticPool");
+	}
+
+	Int GetUsage() {
+		return Size - GetCapacity();
+	}
+
+	Int GetCapacity()
+	{
+		Int cnt = 0;
+		for (Int c = 0; c < Size; c++)
+		{
+			if (ids_[c] == ID(0))
+			{
+				cnt++;
+			}
+		}
+
+		return cnt;
+	}
+
+	void Clear() {
+		for (Int c = 0; c < Size; c++)
+		{
+			ids_[c] = ID(0);
+		}
 	}
 
 private:

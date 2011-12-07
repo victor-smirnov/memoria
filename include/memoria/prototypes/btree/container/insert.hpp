@@ -218,7 +218,7 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG& page, Int count_lea
 	page.update();
 	if (!page->is_root())
 	{
-		NodeBaseG new_page(&me()->allocator());
+		NodeBaseG new_page;
 		NodeBaseG parent = me()->GetParent(page, Allocator::UPDATE);
 
 		Int idx_in_parent = page->parent_idx();

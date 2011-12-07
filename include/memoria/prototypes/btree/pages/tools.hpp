@@ -518,7 +518,7 @@ class GetChildFn {
     Int flags_;
     
 public:
-    GetChildFn(Idx idx, Mgr &allocator, Int flags): node_(&allocator),
+    GetChildFn(Idx idx, Mgr &allocator, Int flags): node_(),
             idx_(idx), allocator_(allocator), flags_(flags) {}
 
     template <typename T>
@@ -551,7 +551,7 @@ class GetLastChildFn {
     Int 	flags_;
     
 public:
-    GetLastChildFn(Mgr &allocator, Int flags): node_(&allocator), allocator_(allocator), flags_(flags) {}
+    GetLastChildFn(Mgr &allocator, Int flags): node_(), allocator_(allocator), flags_(flags) {}
 
     template <typename T>
     void operator()(T *node) {

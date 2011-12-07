@@ -50,6 +50,33 @@ public:
     void set_null() {
         Clean(Base::ptr(), Size);
     }
+
+    ValueType& operator=(const ValueType& other)
+	{
+    	Base::value() = other.value();
+    	return *this;
+	}
+
+    ValueType& operator=(const T& other)
+    {
+    	Base::value() = other;
+    	return *this;
+    }
+
+    bool operator==(const ValueType& other) const
+    {
+    	return Base::value() == other.value();
+    }
+
+    bool operator!=(const ValueType& other) const
+    {
+    	return Base::value() != other.value();
+    }
+
+    bool operator<(const ValueType& other) const
+    {
+    	return Base::value() < other.value();
+    }
 };
 
 template <typename T, size_t Size>
@@ -240,12 +267,16 @@ public:
 };
 
 
-template <typename PageT>
+template <typename AllocatorT>
 class PageShared {
+
+	typedef typename AllocatorT::Page PageT;
 
 	PageT* page_;
 	Int references_;
 	Int state_;
+
+	AllocatorT*	allocator_;
 
 public:
 
@@ -259,6 +290,14 @@ public:
 	template <typename Page>
 	Page* page() {
 		return static_cast<Page*>(page_);
+	}
+
+	PageT* get() {
+		return page_;
+	}
+
+	const PageT* get() const {
+		return page_;
 	}
 
 	template <typename Page>
@@ -311,11 +350,21 @@ public:
 		return state_ != READ;
 	}
 
+	AllocatorT* allocator() {
+		return allocator_;
+	}
+
+	void set_allocator(AllocatorT* allocator)
+	{
+		allocator_ = allocator;
+	}
+
 	void init()
 	{
 		references_ = 0;
 		state_		= READ;
 		page_		= NULL;
+		allocator_	= NULL;
 	}
 };
 
@@ -326,33 +375,29 @@ public:
 
 	typedef PageGuard<PageT, AllocatorT> 								MyType;
 	typedef PageT														Page;
-	typedef AllocatorT 													Allocator;
-	typedef PageShared<typename AllocatorT::Page>						Shared;
+//	typedef AllocatorT 													Allocator;
+	typedef PageShared<AllocatorT>										Shared;
 
 private:
 	Shared* 	shared_;
-	AllocatorT*	allocator_;
+
+	Int 		idx_;
 public:
 
 
-	PageGuard(Shared* shared, Allocator* allocator): shared_(shared), allocator_(allocator)
+	PageGuard(Shared* shared): shared_(shared), idx_(0)
 	{
 		inc();
 		ref();
 	}
 
 
-	PageGuard(Allocator* allocator): shared_(NULL), allocator_(allocator) {inc();}
-
-	PageGuard(const MyType& guard): shared_(guard.shared_), allocator_(guard.allocator_)
+	PageGuard(): shared_(NULL), idx_(1)
 	{
-		ref();
-		check();
 		inc();
 	}
 
-	template <typename Page>
-	PageGuard(const PageGuard<Page, AllocatorT>& guard): shared_(guard.shared_), allocator_(guard.allocator_)
+	PageGuard(const MyType& guard): shared_(guard.shared_), idx_(2)
 	{
 		ref();
 		check();
@@ -360,7 +405,15 @@ public:
 	}
 
 	template <typename Page>
-	PageGuard(PageGuard<Page, AllocatorT>&& guard): shared_(guard.shared_), allocator_(guard.allocator_)
+	PageGuard(const PageGuard<Page, AllocatorT>& guard): shared_(guard.shared_), idx_(3)
+	{
+		ref();
+		check();
+		inc();
+	}
+
+	template <typename Page>
+	PageGuard(PageGuard<Page, AllocatorT>&& guard): shared_(guard.shared_), idx_(4)
 	{
 		guard.shared_	= NULL;
 		check();
@@ -390,54 +443,72 @@ public:
 
 	void inc() {
 		PageCtr++;
-		if (PageCtr > PageDtr) PageDtr = PageCtr;
+		//if (PageCtr > PageDtr) PageDtr = PageCtr;
 	}
 
 	void dec() {
-		PageCtr--;
+		PageDtr--;
 	}
 
 	void ref()
 	{
+		//PageCtrCnt[9]++;
+
 		if (shared_ != NULL)
 		{
+			PageCtrCnt[idx_]++;
 			shared_->ref();
 		}
 	}
 
 	void unref()
 	{
-		//FIXME it should be: page_->unref() == 0
-		if (shared_ != NULL && shared_->unref() == 0)
+		//PageDtrCnt[9]--;
+
+		if (shared_ != NULL)
 		{
-			allocator_->ReleasePage(shared_);
+			PageDtrCnt[idx_]--;
+
+			if (shared_->unref() == 0)
+			{
+				shared_->allocator()->ReleasePage(shared_);
+			}
 		}
 	}
 
 	const MyType& operator=(const MyType& guard)
 	{
-		unref();
-		shared_ = guard.shared_;
-		check();
-		ref();
+		if (shared_ != guard.shared_)
+		{
+			unref();
+			shared_ = guard.shared_;
+			check();
+			ref();
+		}
+
 		return *this;
 	}
 
 
 	template <typename P>
-	const MyType& operator=(const PageGuard<P, AllocatorT>& guard)
+	MyType& operator=(const PageGuard<P, AllocatorT>& guard)
 	{
 		unref();
-		shared_ = guard.page_;
+		shared_ = guard.shared_;
 		check();
 		ref();
 		return *this;
 	}
 
-	const MyType& operator=(MyType&& guard)
+	MyType& operator=(MyType&& guard)
 	{
-		unref();
-		shared_ = guard.shared_;
+		//if (shared_ != guard.shared_)
+		{
+			unref();
+			shared_ = guard.shared_;
+		}
+
+
 		guard.shared_ = NULL;
 		check();
 		return *this;
@@ -445,10 +516,14 @@ public:
 
 
 	template <typename P>
-	const MyType& operator=(PageGuard<P, AllocatorT>&& guard)
+	MyType& operator=(PageGuard<P, AllocatorT>&& guard)
 	{
-		unref();
-		shared_ = guard.shared_;
+//		if (shared_ != guard.shared_)
+		{
+			unref();
+			shared_ = guard.shared_;
+		}
+
 		guard.shared_ = NULL;
 		check();
 		return *this;
@@ -496,32 +571,15 @@ public:
 		return *shared_;
 	}
 
-	AllocatorT* allocator() {
-		return allocator_;
-	}
-
-	void set_allocator(AllocatorT* allocator)
-	{
-		allocator_ = allocator;
-	}
-
 	void update()
 	{
 		if (shared_ != NULL && !shared_->updated())
 		{
-			set_page(allocator_->UpdatePage(*shared_));
+			shared_->allocator()->UpdatePage(shared_);
 		}
 	}
 
 	template <typename Page, typename Allocator> friend class PageGuard;
-
-private:
-	template <typename Page>
-	void set_page(PageGuard<Page, Allocator>&& other)
-	{
-		shared_ = other.shared_;
-		other.shared_ = NULL;
-	}
 };
 
 

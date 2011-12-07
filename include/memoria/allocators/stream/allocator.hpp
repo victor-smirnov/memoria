@@ -257,6 +257,7 @@ public:
 			shared = pool_.Allocate(page->id());
 			shared->state() = op;
 			shared->set_page(page);
+			shared->set_allocator(this);
 		}
 
 		return shared;
@@ -272,13 +273,13 @@ public:
 			if (op.op_ != PageOp::NONE)
 			{
 				Shared* shared = get_shared(op.page_, op.op_);
-				return PageG(shared, this);
+				return PageG(shared);
 			}
 			else
 			{
 				Page* 	page = get0(id);
 				Shared* shared = get_shared(page, Shared::READ);
-				return PageG(shared, this);
+				return PageG(shared);
 			}
 		}
 		else {
@@ -297,40 +298,35 @@ public:
 				if (shared == NULL)
 				{
 					shared = pool_.Allocate(id);
+					shared->set_allocator(this);
 				}
 
 				shared->set_page(page2);
 				shared->state() = Shared::UPDATE;
 
-				return PageG(shared, this);
+				return PageG(shared);
 			}
 			else
 			{
-				return PageG(get_shared(op.page_, op.op_), this);
+				return PageG(get_shared(op.page_, op.op_));
 			}
 		}
 	}
 
-	virtual PageG UpdatePage(Page* page)
+	virtual void UpdatePage(Shared* shared)
 	{
-		Shared* shared = pool_.Get(page->id());
-
 		if (shared->state() == Shared::READ)
 		{
 			char* buffer = (char*) malloc(PAGE_SIZE);
 
-			CopyBuffer(page, buffer, PAGE_SIZE);
+			CopyBuffer(shared->get(), buffer, PAGE_SIZE);
 			Page* page0 = T2T<Page*>(buffer);
 
-			pages_log_[page->id()] = page0;
+			pages_log_[page0->id()] = page0;
 
 			shared->set_page(page0);
 			shared->state() = Shared::UPDATE;
-
-			return PageG(shared, this);
 		}
-
-		return PageG(shared, this);
 	}
 
 	virtual void  RemovePage(const ID& id)
@@ -368,8 +364,9 @@ public:
 		Shared* shared = pool_.Allocate(id);
 		shared->set_page(p);
 		shared->state() = Shared::UPDATE;
+		shared->set_allocator(this);
 
-		return PageG(shared, this);
+		return PageG(shared);
 	}
 
 	void commit()
@@ -391,7 +388,9 @@ public:
 			}
 		}
 
+		cout<<pool_.GetUsage()<<endl;
 		pages_log_.clear();
+//		pool_.Clear();
 	}
 
 

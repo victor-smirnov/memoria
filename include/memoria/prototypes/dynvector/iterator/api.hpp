@@ -99,7 +99,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     void SetupAllocator(Allocator* allocator)
     {
-    	data_.set_allocator(allocator);
+    	//data_.set_allocator(allocator);
     	Base::SetupAllocator(allocator);
     }
 
@@ -162,7 +162,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     			return me()->model().GetDataPage(page, 0, Allocator::READ);
     		}
     		else {
-    			return DataPageG(&me()->model().allocator());
+    			return DataPageG();
     		}
     	}
     }
@@ -188,7 +188,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     			return me()->model().GetDataPage(page, children_count - 1, Allocator::READ);
     		}
     		else {
-    			return DataPageG(&me()->model().allocator());
+    			return DataPageG();
     		}
     	}
     }

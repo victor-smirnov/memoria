@@ -74,7 +74,7 @@ public:
 
     public:
         FindFn(Comparator& cmp, const Key& key, Int c, MyType &model):
-            i_(model), rtn_(false), node_(&model.allocator()),
+            i_(model), rtn_(false), node_(),
             key_(key), c_(c), model_(model),
             cmp_(cmp) {}
 

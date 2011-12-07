@@ -18,7 +18,7 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE 				= 2;
+const Int SIZE 				= 1000;
 const Int ArrayName 		= 1;
 const Int MAX_BUFFER_SIZE 	= 4096 * 10;
 
@@ -358,7 +358,7 @@ int main(int argc, const char** argv, const char **envp) {
 			{
 				Build(allocator, dv, c + 1);
 				allocator.commit();
-				CheckAllocator(allocator, "After Commit");
+//				CheckAllocator(allocator, "After Commit");
 			}
 
 			t1 = getTime();
@@ -371,7 +371,10 @@ int main(int argc, const char** argv, const char **envp) {
 //				{
 //					break;
 //				}
+//				allocator.commit();
 //			}
+//
+//			allocator.commit();
 
 			Dump(allocator);
 		}
@@ -399,14 +402,14 @@ int main(int argc, const char** argv, const char **envp) {
 
 	cout<<"ARRAY TEST time: remove "<<(getTime()- t1)<<" insert "<<(t1 - t0)<<endl;
 
-//	Int CtrTotal = 0, DtrTotal = 0;
-//	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
-//	{
-//		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
-//		CtrTotal += PageCtrCnt[c];
-//		DtrTotal += PageDtrCnt[c];
-//	}
+	Int CtrTotal = 0, DtrTotal = 0;
+	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
+	{
+		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
+		CtrTotal += PageCtrCnt[c];
+		DtrTotal += PageDtrCnt[c];
+	}
 //
-//	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
+	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
 	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
 }

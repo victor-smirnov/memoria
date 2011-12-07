@@ -254,7 +254,7 @@ void M_TYPE::import_pages(
 	BigInt key_idx = iter.key_idx();
 	BigInt data_pos = iter.data_pos();
 
-	DataPageG suffix_data_page(&me()->allocator());
+	DataPageG suffix_data_page;
 
 	BigInt length  = descriptor.length();
 
@@ -284,7 +284,6 @@ void M_TYPE::import_pages(
 	if (data_prefix > 0)
 	{
 		// Import size_prefix part of data block into the target datapage
-		MEMORIA_TRACE(me(), "data_prefix > 0");
 		descriptor.length() = data_prefix;
 		import_small_block(node, key_idx, data_pos, block, descriptor);
 		key_idx++;
@@ -301,22 +300,17 @@ void M_TYPE::import_pages(
 	BigInt target_indexpage_max_capacity = me()->GetMaxCapacity(node);
 	BigInt target_indexpage_capacity = me()->GetCapacity(node);
 
-	MEMORIA_TRACE(me(), "values [total_full_datapages, data_suffix]", total_full_datapages, data_suffix);
-	MEMORIA_TRACE(me(), "values [key_idx, target_indexpage_max_capacity, target_indexpage_capacity]", key_idx, target_indexpage_max_capacity, target_indexpage_capacity);
-
 	BigInt index_prefix;
 
 	if (key_idx == target_indexpage_max_capacity)
 	{
 		// target indexpage is full and we are at it's end
 		index_prefix = 0;
-		MEMORIA_TRACE(me(), "The target index page is full");
 	}
 	else if (key_idx == me()->GetChildrenCount(node))
 	{
 		// target indexpage is not full but we are at it's end
 		index_prefix = target_indexpage_capacity >= total_full_datapages ? total_full_datapages : target_indexpage_capacity;
-		MEMORIA_TRACE(me(), "End of target indexpage", key_idx, index_prefix);
 	}
 	else {
 		// insert into the body of target indexpage
@@ -324,7 +318,6 @@ void M_TYPE::import_pages(
 		{
 			// split indexpage if it's capacity is not
 			// enough to store total_full_datapages data pages
-			MEMORIA_TRACE(me(), "split target indexpage");
 
 			me()->SplitBTreeNode(node, key_idx);
 
@@ -334,8 +327,6 @@ void M_TYPE::import_pages(
 		else if (total_full_datapages > 0)
 		{
 			// make a room in the target indexpage
-			MEMORIA_TRACE(me(), "insert space for index_prefix");
-
 			// Assign increase_children_count = false for InsertSpace() because
 			// import_several_pages() increases node children count
 
@@ -356,8 +347,6 @@ void M_TYPE::import_pages(
 	{
 		import_several_pages(node, key_idx, block, descriptor, index_prefix);
 		key_idx += index_prefix;
-
-		MEMORIA_TRACE(me(), "index_prefix: node size: ", me()->GetChildrenCount(node));
 	}
 
 	// FIXME: me()->GetMaxCapacity(node) may be different
@@ -365,8 +354,6 @@ void M_TYPE::import_pages(
 	// Use the smallest MaxCapacity value for all btree node types.
 	BigInt max_indexpage_size = me()->GetMaxCapacity(node);
 	BigInt total_full_indexpages = (total_full_datapages - index_prefix) / max_indexpage_size;
-
-	MEMORIA_TRACE(me(), "total pages [total_full_indexpages, index_prefix]", total_full_indexpages, index_prefix);
 
 	// Import several full indexpages into the btree
 	for (BigInt c = 0; c < total_full_indexpages; c++)
@@ -384,7 +371,6 @@ void M_TYPE::import_pages(
 	if (index_suffix > 0)
 	{
 		NodeBaseG suffix_node = iter.GetNextNode(node);
-		MEMORIA_TRACE(me(), "index_suffix [index_suffix, suffix_node.id]", index_suffix, suffix_node != NULL ? suffix_node->id() : ID(0));
 
 		if (suffix_node != NULL && me()->GetCapacity(suffix_node) >= index_suffix)
 		{
@@ -395,7 +381,6 @@ void M_TYPE::import_pages(
 		else
 		{
 			Int split_at = me()->GetChildrenCount(node);
-			MEMORIA_TRACE(me(), "split the suffix indexpage at", split_at);
 
 			//FIXME: If me()->GetChildrenCount(node) is valid here?!
 			//Note this case in SplitBTreeNode() docs if so
@@ -421,14 +406,6 @@ void M_TYPE::import_pages(
 			key_idx = suffix_data_page->parent_idx();
 			Int suffix_free = max_datapage_size - suffix_data_page->data().size();
 
-			MEMORIA_TRACE(me(), "DATA_SUFFIX page [node.id, suffix_data_page.id, suffix_data_page.parent_id, key_idx, suffix_data.free, node.id, node.capacity]", node->id(), suffix_data_page->id(), suffix_data_page->parent_id(), key_idx, suffix_free, node->id(), me()->GetCapacity(node));
-
-//			for (Int c = 0; c < me()->GetChildrenCount(node); c++)
-//			{
-//				DataPage* data = me()->GetDataPage(node, c);
-//				MEMORIA_TRACE(me(), "c=", c, "pidx=", data->parent_idx(), data->id());
-//			}
-
 			if (data_suffix <= suffix_free)
 			{
 				// import data suffix into suffix_data_page
@@ -453,7 +430,7 @@ void M_TYPE::import_pages(
 		else {
 			// EOF
 			Int max_capacity = me()->GetMaxCapacity(node);
-			MEMORIA_TRACE(me(), "DATA_SUFFIX EOF [node.id, node.capacity, node.max_capacity, key_idx]", node->id(), me()->GetCapacity(node), max_capacity, key_idx);
+
 			if (key_idx >= max_capacity)
 			{
 				node = me()->SplitBTreeNode(node, max_capacity);

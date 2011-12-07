@@ -457,7 +457,7 @@ bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int sto
 		{
 			MEMORIA_TRACE(me(), "RemovePages: full page");
 
-			NodeBaseG parent(&me()->allocator());
+			NodeBaseG parent;
 			Int parent_idx = start->parent_idx();
 
 			while (!start->is_root())
