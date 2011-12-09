@@ -179,6 +179,8 @@ int main(int argc, const char** argv, const char **envp) {
 			map->Put(pairs[c].key_, pairs[c].value_);
 			map->GetSize();
 
+			allocator.commit();
+
 			if(check(allocator))
 			{
 				throw MemoriaException("", "Check failed. c=" + ToString(c));
@@ -207,6 +209,8 @@ int main(int argc, const char** argv, const char **envp) {
 		for (int c = 0; c < SIZE; c++)
 		{
 			map->Remove(pairs[c].key_);
+
+			allocator.commit();
 
 			BigInt size = SIZE - c - 1;
 			if (size != map->GetSize()) cout<<"Remove.size "<<c<<" "<<map->GetSize()<<endl;

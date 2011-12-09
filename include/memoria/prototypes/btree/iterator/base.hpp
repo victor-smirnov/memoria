@@ -66,7 +66,8 @@ public:
     }
 
     Int BuildHash() const {
-    	return Base::BuildHash() ^ PtrToHash<const NodeBase*>::hash(page_.page()) ^ key_idx_;
+    	const NodeBase* page = page_ != NULL ? page_.page() : NULL;
+    	return Base::BuildHash() ^ PtrToHash<const NodeBase*>::hash(page) ^ key_idx_;
     }
 
     Int &key_idx() {

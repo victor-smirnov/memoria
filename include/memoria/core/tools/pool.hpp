@@ -115,7 +115,7 @@ private:
 		const ID EMPTY(0);
 		for (Int c = 0; c < Size; c++)
 		{
-			if (ids_[c] == EMPTY)
+			if (ids_[c] == 0)
 			{
 				return c;
 			}

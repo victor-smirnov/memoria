@@ -17,6 +17,8 @@
 
 namespace memoria    {
 
+
+
 template <typename PageType, int MaxPageSize = 4096>
 struct IAbstractAllocator {
 
@@ -33,13 +35,17 @@ struct IAbstractAllocator {
 
 	typedef IAbstractAllocator<PageType, MaxPageSize>					AbstractAllocator;
 
+	struct CtrShared {
+
+	};
+
 	static const Int PAGE_SIZE											= MaxPageSize;
 
 	virtual PageG GetPage(const ID& id, Int flags)						= 0;
-	virtual void UpdatePage(Shared* shared)								= 0;
+	virtual void  UpdatePage(Shared* shared)							= 0;
 	virtual void  RemovePage(const ID& id)								= 0;
 	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;
-//	virtual PageG ReallocPage(Page* page, Int new_size)					= 0;
+	virtual void  ResizePage(Shared* page, Int new_size)				= 0;
 	virtual void  ReleasePage(Shared* shared)							= 0;
 
 	// Allocator directory interface part

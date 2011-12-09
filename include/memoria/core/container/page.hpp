@@ -270,11 +270,14 @@ public:
 template <typename AllocatorT>
 class PageShared {
 
-	typedef typename AllocatorT::Page PageT;
+	typedef typename AllocatorT::Page 		PageT;
+	typedef typename AllocatorT::Page::ID 	ID;
 
-	PageT* page_;
-	Int references_;
-	Int state_;
+
+	ID		id_;
+	PageT* 	page_;
+	Int 	references_;
+	Int 	state_;
 
 	AllocatorT*	allocator_;
 
@@ -324,6 +327,14 @@ public:
 
 	Int& state() {
 		return state_;
+	}
+
+	const ID& id() const {
+		return id_;
+	}
+
+	ID& id() {
+		return id_;
 	}
 
 	template <typename Page>
@@ -381,31 +392,23 @@ public:
 private:
 	Shared* 	shared_;
 
-	Int 		idx_;
+	//Int 		idx_;
 public:
 
 
-	PageGuard(Shared* shared): shared_(shared), idx_(0)
+	PageGuard(Shared* shared): shared_(shared)//, idx_(0)
 	{
 		inc();
 		ref();
 	}
 
 
-	PageGuard(): shared_(NULL), idx_(1)
+	PageGuard(): shared_(NULL)//, idx_(1)
 	{
 		inc();
 	}
 
-	PageGuard(const MyType& guard): shared_(guard.shared_), idx_(2)
-	{
-		ref();
-		check();
-		inc();
-	}
-
-	template <typename Page>
-	PageGuard(const PageGuard<Page, AllocatorT>& guard): shared_(guard.shared_), idx_(3)
+	PageGuard(const MyType& guard): shared_(guard.shared_)//, idx_(2)
 	{
 		ref();
 		check();
@@ -413,7 +416,15 @@ public:
 	}
 
 	template <typename Page>
-	PageGuard(PageGuard<Page, AllocatorT>&& guard): shared_(guard.shared_), idx_(4)
+	PageGuard(const PageGuard<Page, AllocatorT>& guard): shared_(guard.shared_)//, idx_(3)
+	{
+		ref();
+		check();
+		inc();
+	}
+
+	template <typename Page>
+	PageGuard(PageGuard<Page, AllocatorT>&& guard): shared_(guard.shared_)//, idx_(4)
 	{
 		guard.shared_	= NULL;
 		check();
@@ -442,12 +453,12 @@ public:
 	}
 
 	void inc() {
-		PageCtr++;
+//		PageCtr++;
 		//if (PageCtr > PageDtr) PageDtr = PageCtr;
 	}
 
 	void dec() {
-		PageDtr--;
+//		PageDtr--;
 	}
 
 	void ref()
@@ -456,7 +467,7 @@ public:
 
 		if (shared_ != NULL)
 		{
-			PageCtrCnt[idx_]++;
+			//PageCtrCnt[idx_]++;
 			shared_->ref();
 		}
 	}
@@ -467,7 +478,7 @@ public:
 
 		if (shared_ != NULL)
 		{
-			PageDtrCnt[idx_]--;
+			//PageDtrCnt[idx_]--;
 
 			if (shared_->unref() == 0)
 			{
