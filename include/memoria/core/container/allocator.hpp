@@ -36,7 +36,21 @@ struct IAbstractAllocator {
 	typedef IAbstractAllocator<PageType, MaxPageSize>					AbstractAllocator;
 
 	struct CtrShared {
+		Int		references;
+		BigInt 	name;
+		ID		root;
+		ID		root_log;
+		bool 	updated;
 
+		CtrShared(BigInt name0): references(0), name(name0), root(0), root_log(0), updated(false) {}
+
+		Int ref() {
+			return ++references;
+		}
+
+		Int unref() {
+			return --references;
+		}
 	};
 
 	static const Int PAGE_SIZE											= MaxPageSize;
@@ -47,6 +61,9 @@ struct IAbstractAllocator {
 	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;
 	virtual void  ResizePage(Shared* page, Int new_size)				= 0;
 	virtual void  ReleasePage(Shared* shared)							= 0;
+
+	virtual CtrShared* GetCtrShared(BigInt name, bool create)			= 0;
+	virtual void ReleaseCtrShared(CtrShared* shared)					= 0;
 
 	// Allocator directory interface part
 	virtual PageG GetRoot(BigInt name, Int flags)						= 0;

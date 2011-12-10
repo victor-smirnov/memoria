@@ -18,7 +18,7 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE 				= 2;
+const Int SIZE 				= 1000;
 const Int ArrayName 		= 1;
 const Int MAX_BUFFER_SIZE 	= 4096 * 10;
 
@@ -334,7 +334,7 @@ bool Remove(SAllocator& allocator, ByteArray& array)
 
 int main(int argc, const char** argv, const char **envp) {
 
-	long long t0 = getTime(), t1;
+	long long t0 = getTime(), t1 = t0;
 
 	try {
 		logger.level() = Logger::NONE;
@@ -347,40 +347,39 @@ int main(int argc, const char** argv, const char **envp) {
 		ByteArray dv(allocator, ArrayName, true);
 //		dv.SetMaxChildrenPerNode(100);
 
-		ByteArray dv1 = dv;
-
-		dv = dv1;
-
 		try {
 			cout<<"Insert data"<<endl;
 
 			for (Int c = 0; c < SIZE; c++)
 			{
 				Build(allocator, dv, c + 1);
-				allocator.commit();
-//				CheckAllocator(allocator, "After Commit");
+//				allocator.commit();
 			}
 
 			t1 = getTime();
 
-			cout<<"Remove data. ByteArray contains "<<dv.Size()/1024/1024<<" Mbytes"<<endl;
+			cout<<"Remove data. ByteArray contains "<<dv.Size()<<" Mbytes"<<endl;
 
-			for (Int c = 0; ; c++)
-			{
-				if (!Remove(allocator, dv))
-				{
-					break;
-				}
-				allocator.commit();
-			}
+			allocator.rollback();
+
+			cout<<"Remove data. ByteArray contains "<<dv.Size()<<" Mbytes"<<endl;
+
+//			for (Int c = 0; ; c++)
+//			{
+//				if (!Remove(allocator, dv))
+//				{
+//					break;
+//				}
+//				allocator.commit();
+//			}
 //
-			allocator.commit();
+//			allocator.commit();
 
 			Dump(allocator);
 		}
 		catch (MemoriaException ex)
 		{
-//			Dump(allocator);
+			Dump(allocator);
 			throw;
 		}
 	}

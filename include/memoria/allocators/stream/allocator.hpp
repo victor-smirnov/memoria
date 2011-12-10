@@ -36,13 +36,14 @@ class StreamAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocato
 public:
 	typedef typename Base::Page 												Page;
 	typedef typename Base::PageG 												PageG;
-	typedef typename Base::PageG::Shared 										Shared;
+	typedef typename Base::Shared 												Shared;
+	typedef typename Base::CtrShared 											CtrShared;
 	typedef typename Page::ID 													ID;
 	static const Int PAGE_SIZE 													= 4096;
 
 	typedef Base 																AbstractAllocator;
 
-	typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>		RootMapType;
+	typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>						RootMapType;
 
 private:
 	typedef StreamAllocator<Profile, PageType, TxnType> 						MyType;
@@ -61,15 +62,21 @@ private:
 
 	typedef std::map<ID, Page*> 												IDPageMap;
 	typedef std::map<ID, PageOp> 												IDPageOpMap;
+	typedef std::map<BigInt, CtrShared*> 										CtrSharedMap;
 
 
 	IDPageMap 			pages_;
 	IDPageOpMap 		pages_log_;
+	CtrSharedMap		ctr_shared_;
 
-	Logger logger_;
+	Logger 				logger_;
 	Int 				counter_;
 	ContainerCollectionMetadata* 	metadata_;
+
 	ID 					root_;
+	ID 					root_log_;
+	bool				updated_;
+
 	MyType& 			me_;
 	const char* 		type_name_;
 	BigInt 				allocs1_;
@@ -77,19 +84,19 @@ private:
 	Me* 				roots_;
 	RootMapType 		root_map_;
 
-	StaticPool<ID, typename PageG::Shared>	pool_;
+	StaticPool<ID, Shared>	pool_;
 
 
 public:
 	StreamAllocator() :
 		logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
-		counter_(100), metadata_(ContainerTypesCollection<Profile>::metadata()), root_(0), me_(*this),
+		counter_(100), metadata_(ContainerTypesCollection<Profile>::metadata()), root_(0), root_log_(0), updated_(false), me_(*this),
 		type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this), root_map_(*this, 0, true)
 	{}
 
 	StreamAllocator(const StreamAllocator& other) :
 			logger_(other.logger_),
-			counter_(other.counter_), metadata_(other.metadata_), root_(other.root_), me_(*this),
+			counter_(other.counter_), metadata_(other.metadata_), root_(other.root_), root_log_(0), updated_(false), me_(*this),
 			type_name_("StreamAllocator"), allocs1_(other.allocs1_), allocs2_(other.allocs2_), roots_(this), root_map_(*this, 0, false),
 			pool_(other.pool_)
 	{
@@ -105,14 +112,18 @@ public:
 	{
 		try {
 			Int npages = 0;
-			for (typename IDPageMap::iterator i = pages_.begin(); i!= pages_.end(); i++)
+			for (auto i = pages_.begin(); i != pages_.end(); i++)
 			{
 				MEMORIA_TRACE(me(), "Free Page", i->second);
 				::free(i->second);
 				npages++;
 			}
 
-			if (allocs1_ - npages > 0) {
+			//FIXME: clear pages_log_
+			//FIXME: clear ctr_shared_
+
+			if (allocs1_ - npages > 0)
+			{
 				MEMORIA_ERROR(me(), "Page leak detected:", npages, allocs1_, (allocs1_ - npages));
 			}
 		}
@@ -136,8 +147,15 @@ public:
 		return &root_map_;
 	}
 
-	const ID &root() const {
-		return root_;
+	const ID &root() const
+	{
+		if (updated_)
+		{
+			return root_log_;
+		}
+		else {
+			return root_;
+		}
 	}
 
 
@@ -277,6 +295,7 @@ public:
 				if (shared == NULL)
 				{
 					shared = pool_.Allocate(id);
+
 					shared->set_allocator(this);
 					shared->id() = id;
 				}
@@ -405,6 +424,24 @@ public:
 			}
 		}
 
+		for (auto i = ctr_shared_.begin(); i != ctr_shared_.end(); i++)
+		{
+			CtrShared* shared = i->second;
+			if (shared->updated)
+			{
+				shared->root 		= shared->root_log;
+				shared->root_log 	= 0;
+				shared->updated 	= false;
+			}
+		}
+
+		if (updated_)
+		{
+			root_ = root_log_;
+			root_log_ = 0;
+			updated_ = false;
+		}
+
 		pages_log_.clear();
 	}
 
@@ -413,16 +450,24 @@ public:
 		for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
 		{
 			PageOp op = i->second;
+			::free(op.page_);
+		}
 
-			Shared* page = pool_.Get(op.id_);
-			if (page != NULL)
+		for (auto i = ctr_shared_.begin(); i != ctr_shared_.end(); i++)
+		{
+			CtrShared* shared = i->second;
+
+			if (shared->updated)
 			{
-				auto j = pages_.find(op.id_);
-				if (j != pages_.end())
-				{
-					page->set_page(j->second);
-				}
+				shared->root_log = 0;
+				shared->updated = false;
 			}
+		}
+
+		if (updated_)
+		{
+			updated_ 	= false;
+			root_log_ 	= 0;
 		}
 
 		pages_log_.clear();
@@ -437,7 +482,7 @@ public:
 	{
 		if (name == 0)
 		{
-			return GetPage(root_, flags);
+			return GetPage(root(), flags);
 		}
 		else {
 			return GetPage(roots_->get_value_for_key(name), flags);
@@ -448,7 +493,7 @@ public:
 	{
 		if (name == 0)
 		{
-			return root_;
+			return root();
 		}
 		else {
 			return roots_->get_value_for_key(name);
@@ -458,6 +503,42 @@ public:
 	virtual void SetRoot(BigInt name, const ID& root)
 	{
 		new_root(name, root);
+	}
+
+	virtual CtrShared* GetCtrShared(BigInt name, bool create)
+	{
+		auto i = ctr_shared_.find(name);
+
+		if (i != ctr_shared_.end())
+		{
+			return i->second;
+		}
+		else
+		{
+			CtrShared* shared = new CtrShared(name);
+
+			if (!create)
+			{
+				if (name > 0)
+				{
+					shared->root = GetRootID(name);
+				}
+				else {
+					shared->root = root();
+				}
+			}
+
+			ctr_shared_[name] = shared;
+			return shared;
+		}
+	}
+
+//	virtual CtrShared* GetCtrShared(const ID& root)						= 0;
+
+	virtual void ReleaseCtrShared(CtrShared* shared)
+	{
+		ctr_shared_.erase(shared->name);
+		delete shared;
 	}
 
 
@@ -609,7 +690,8 @@ public:
 	{
 		if (name == 0)
 		{
-			root_ = page_id;
+			root_log_ = page_id;
+			updated_ = true;
 		}
 		else {
 			roots_->set_value_for_key(name, page_id);
@@ -620,7 +702,8 @@ public:
 	{
 		if (name == 0)
 		{
-			root_.Clear();
+			root_log_.Clear();
+			updated_ = true;
 		}
 		else {
 			roots_->remove_by_key(name);
@@ -668,40 +751,15 @@ public:
 	virtual void GetPage(memoria::vapi::Page* page, const IDValue& idValue)
 	{
 		if (page == NULL)
+		{
 			throw NullPointerException(MEMORIA_SOURCE, "page must not be null");
+		}
 
 		Page* page0 =  this->get1(idValue);
-
-		//cout<<"Refs: "<<page0->id()<<" "<<page0->references()<<endl;
-
 		page->SetPtr(page0);
 	}
 
 
-//	virtual void RemovePage(const IDValue& idValue)
-//	{
-//		this->free1(ID(idValue));
-//	}
-
-//	virtual void CreateNewPage(int flags, memoria::vapi::Page* page)
-//	{
-//		if (page == NULL)
-//			throw NullPointerException(MEMORIA_SOURCE, "page must not be null");
-//
-//		if ((flags && Allocator::ROOT) == 0)
-//		{
-//			page->SetPtr(this->create_new1());
-//		}
-//		else if (root_.is_null())
-//		{
-//			Page* page0 = this->create_new1();
-//			page->SetPtr(page0);
-//			root_ = page0->id();
-//		}
-//		else {
-//			throw MemoriaException(MEMORIA_SOURCE, "Root page has been already created");
-//		}
-//	}
 
 	MyType* me() {
 		return static_cast<MyType*>(this);

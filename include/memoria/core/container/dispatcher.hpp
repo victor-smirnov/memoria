@@ -116,33 +116,33 @@ class ContainerDispatcher<Profile, Allocator, NullType, List2, List3, List4> {
 public:
     template <typename Handler>
     static void dispatch(Allocator *allocator, Page* root, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
     static void BuildMetadataList(MetadataList &list) {}
     static void DestroyMetadata() {}
@@ -166,33 +166,33 @@ class ContainerDispatcher<Profile, Allocator, List1, NullType, List3, List4> {
 public:
     template <typename Handler>
     static void dispatch(Allocator *allocator, Page *root, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
     static void BuildMetadataList(MetadataList &list) {}
     static void DestroyMetadata() {}
@@ -216,33 +216,33 @@ class ContainerDispatcher<Profile, Allocator, List1, List2, NullType, List4> {
 public:
     template <typename Handler>
     static void dispatch(Allocator *allocator, Page *root, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
     static void BuildMetadataList(MetadataList &list) {}
     static void DestroyMetadata() {}
@@ -265,33 +265,33 @@ class ContainerDispatcher<Profile, Allocator, List1, List2, List3, NullType> {
 public:
     template <typename Handler>
     static void dispatch(Allocator *allocator, Page *root, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
     static void BuildMetadataList(MetadataList &list) {}
     static void DestroyMetadata() {}
@@ -310,33 +310,33 @@ class ContainerDispatcher<Profile, Allocator, NullType, NullType, NullType, Null
 public:
     template <typename Handler>
     static void dispatch(Allocator *allocator, Page *root, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
-
-    template <typename Handler>
-    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch2_2(Allocator *allocator, Page *root1, Page *root2, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch3_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_2(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_3(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
+//
+//    template <typename Handler>
+//    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
     static void BuildMetadataList(MetadataList &list) {}
 
