@@ -1,0 +1,13 @@
+if (NOT DEFINED MEMORIA_BENCHMARKS)
+    set(MEMORIA_TESTS array_ins array_rd vector_ins vector_rd)
+endif()
+
+FOREACH(MEMORIA_TARGET ${MEMORIA_TESTS})
+ 	add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_STATIC")
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/benchmarks")
+    if (NOT CHECK_SYNTAX_ONLY)
+        target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
+    endif()
+ENDFOREACH(MEMORIA_TARGET)
