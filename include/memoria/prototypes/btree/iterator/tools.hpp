@@ -28,9 +28,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
     typedef typename Container::Key                                                 Key;
     typedef typename Container::Value                                               Value;
 
-    NodeBaseG GetParent(NodeBase *node)
+    NodeBaseG GetParent(NodeBase *node, Int flags)
     {
-        return me()->model().GetParent(node);
+        return me()->model().GetParent(node, flags);
     }
 
     Int GetChildrenCount(NodeBase *node)
@@ -38,14 +38,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
         return me()->model().GetChildrenCount(node);
     }
 
-    NodeBaseG GetChild(NodeBase *node, Int idx)
+    NodeBaseG GetChild(NodeBase *node, Int idx, Int flags)
     {
-        return me()->model().GetChild(node, idx);
+        return me()->model().GetChild(node, idx, flags);
     }
 
-    NodeBaseG GetLastChild(NodeBase *node)
+    NodeBaseG GetLastChild(NodeBase *node, Int flags)
     {
-        return me()->model().GetLastChild(node);
+        return me()->model().GetLastChild(node, flags);
     }
 
     Value GetData() {

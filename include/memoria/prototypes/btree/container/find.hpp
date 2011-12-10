@@ -74,7 +74,7 @@ public:
 
     public:
         FindFn(Comparator& cmp, const Key& key, Int c, MyType &model):
-            i_(model), rtn_(false), node_(&model.allocator()),
+            i_(model), rtn_(false), node_(),
             key_(key), c_(c), model_(model),
             cmp_(cmp) {}
 
@@ -87,11 +87,11 @@ public:
             if (idx_ >= 0)
             {
                 if (!node->is_leaf()) {
-                    node_ = model_.GetChild(node, idx_);
+                    node_ = model_.GetChild(node, idx_, Allocator::READ);
                 }
                 else {
-                	node_           = node;
-                    i_.page()       = node;
+                	node_           = model_.allocator().GetPage(node->id(), Allocator::READ);
+                    i_.page()       = node_;
                     i_.key_idx()    = idx_;
                     cmp_.SetupIterator(i_);
 
@@ -105,12 +105,12 @@ public:
             	if (!node->is_leaf())
                 {
                     idx_     = node->map().size() - 1;
-                    node_    = model_.GetChild(node, idx_);
+                    node_    = model_.GetChild(node, idx_, Allocator::READ);
                 }
                 else
                 {
-                    node_           = node;
-                    i_.page()       = node;
+                    node_           = model_.allocator().GetPage(node->id(), Allocator::READ);
+                    i_.page()       = node_;
                     i_.key_idx()    = node->map().size();
                     cmp_.SetupIterator(i_);
 
@@ -189,7 +189,7 @@ template <typename Comparator>
 const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 {
 	MEMORIA_TRACE(me(), "begin", key, c, for_insert, me()->root());
-	NodeBaseG node = me()->GetRoot();
+	NodeBaseG node = me()->GetRoot(Allocator::READ);
 
 	if (node != NULL)
 	{
@@ -222,12 +222,12 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindStart()
 {
-	NodeBaseG node = me()->GetRoot();
+	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
 		{
-			node = me()->GetChild(node, 0);
+			node = me()->GetChild(node, 0, Allocator::READ);
 		}
 
 		return Iterator(node, 0, *me());
@@ -240,12 +240,12 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindREnd()
 {
-	NodeBaseG node = me()->GetRoot();
+	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
 		{
-			node = me()->GetChild(node, 0);
+			node = me()->GetChild(node, 0, Allocator::READ);
 		}
 
 		return Iterator(node, -1, *me());
@@ -258,12 +258,12 @@ typename M_TYPE::Iterator M_TYPE::FindREnd()
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindEnd()
 {
-	NodeBaseG node = me()->GetRoot();
+	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
 		{
-			node = me()->GetLastChild(node);
+			node = me()->GetLastChild(node, Allocator::READ);
 		}
 
 		return Iterator(node, me()->GetChildrenCount(node), *me(), true);
@@ -277,12 +277,12 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindRStart()
 {
-	NodeBaseG node = me()->GetRoot();
+	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node != NULL)
 	{
 		while(!node->is_leaf())
 		{
-			node = me()->GetLastChild(node);
+			node = me()->GetLastChild(node, Allocator::READ);
 		}
 
 		return Iterator(node, me()->GetChildrenCount(node) - 1, *me(), true);
@@ -295,7 +295,7 @@ typename M_TYPE::Iterator M_TYPE::FindRStart()
 M_PARAMS
 BigInt M_TYPE::GetTotalKeyCount()
 {
-	NodeBaseG node = me()->GetRoot();
+	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node != NULL) {
 		return node->counters().key_count();
 	}

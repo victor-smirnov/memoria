@@ -53,8 +53,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
 
     void create_new();
     NodeBaseG CreateNode(Short level, bool root, bool leaf);
-    void InsertSpace(NodeBaseG node, Int from, Int count, bool increase_children_count = true);
-    NodeBaseG SplitNode(NodeBaseG one, NodeBaseG parent, Int parent_idx, Int from, Int shift);
+    void InsertSpace(NodeBaseG& node, Int from, Int count, bool increase_children_count = true);
+    NodeBaseG SplitNode(NodeBaseG& one, NodeBaseG& parent, Int parent_idx, Int from, Int shift);
 
 
     /**
@@ -64,7 +64,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
      *
      * returns new leaf page that goes right after old leaf page in the index tree
      */
-    NodeBaseG SplitBTreeNode(NodeBaseG page, Int count_leaf, Int shift = 0);
+    NodeBaseG SplitBTreeNode(NodeBaseG& page, Int count_leaf, Int shift = 0);
 
 
     template <typename Keys, typename Data>
@@ -125,8 +125,9 @@ typename M_TYPE::NodeBaseG M_TYPE::CreateNode(Short level, bool root, bool leaf)
 }
 
 M_PARAMS
-void M_TYPE::InsertSpace(NodeBaseG node, Int from, Int count, bool increase_children_count)
+void M_TYPE::InsertSpace(NodeBaseG& node, Int from, Int count, bool increase_children_count)
 {
+	node.update();
 	Int total_children_count = MoveElements<NodeDispatcher>(node.page(), from, count, increase_children_count);
 
 	if (!node->is_leaf())
@@ -141,8 +142,11 @@ void M_TYPE::InsertSpace(NodeBaseG node, Int from, Int count, bool increase_chil
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG one, NodeBaseG parent, Int parent_idx, Int from, Int shift)
+typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG& one, NodeBaseG& parent, Int parent_idx, Int from, Int shift)
 {
+	one.update();
+	parent.update();
+
 	NodeBaseG two = me()->CreateNode(one->level(), false, one->is_leaf()); // one->is_root() was false here
 
 	Int count = CopyElements<NodeDispatcher>(one.page(), two.page(), from, shift);
@@ -183,7 +187,7 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG one, NodeBaseG parent, In
 
 	me()->PostSplit(one, two, from);
 
-	NodeBaseG one_parent = me()->GetParent(one);
+	NodeBaseG one_parent = me()->GetParent(one, Allocator::UPDATE);
 
 	Key max[Indexes];
 	me()->GetMaxKeys(one, max);
@@ -209,12 +213,13 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG one, NodeBaseG parent, In
 
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf, Int shift)
+typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG& page, Int count_leaf, Int shift)
 {
+	page.update();
 	if (!page->is_root())
 	{
-		NodeBaseG new_page(&me()->allocator());
-		NodeBaseG parent = me()->GetParent(page);
+		NodeBaseG new_page;
+		NodeBaseG parent = me()->GetParent(page, Allocator::UPDATE);
 
 		Int idx_in_parent = page->parent_idx();
 		if (me()->GetCapacity(parent) == 0)
@@ -224,8 +229,7 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf
 
 			if (idx_in_parent < me()->GetChildrenCount(parent) - 1)
 			{
-				NodeBaseG tmp = me()->SplitBTreeNode(parent, idx_in_parent + 1, 1);
-				parent = tmp;
+				parent = me()->SplitBTreeNode(parent, idx_in_parent + 1, 1);
 				parent_idx = 0;
 			}
 			else
@@ -248,14 +252,14 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf
 	}
 	else
 	{
-		NodeBaseG root 		= me()->GetRoot(); // page == root
+		NodeBaseG root 		= me()->GetRoot(Allocator::UPDATE); // page == root
 		NodeBaseG new_root 	= me()->CreateNode(root->level() + 1, true, false);
 
 		MEMORIA_TRACE(me(), "Split root", root->id(), "new root", new_root->id());
 
 		me()->CopyRootMetadata(root, new_root);
 
-		root = me()->Root2Node(root);
+		me()->Root2Node(root);
 
 		new_root->parent_id() 	= root->parent_id();
 		new_root->parent_idx() 	= 0;
@@ -283,17 +287,13 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG page, Int count_leaf
 M_PARAMS
 void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 {
-	MEMORIA_TRACE(me(), "InsertEntry", iter.page(), iter.key_idx(), iter.IsEnd(), iter.IsEmpty(), keys[0]);
-
 	if (iter.IsNotEmpty())
 	{
 		NodeBaseG node = iter.page();
 		Int idx = iter.key_idx();
-		MEMORIA_TRACE(me(), "Insert value. idx =", idx);
 
 		if (me()->GetCapacity(node) > 0)
 		{
-			MEMORIA_TRACE(me(), "Node", node, "has enough capacity");
 			InsertSpace(node, idx, 1);
 		}
 		else if (idx == 0)
@@ -364,4 +364,4 @@ void M_TYPE::InsertEntry(Iterator &iter, Key key, const Value &value) {
 
 
 
-#endif	/* _MEMORIA_PROTOTYPES_BTREE_MODEL_INSERT_HPP */
+#endif

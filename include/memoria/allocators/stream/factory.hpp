@@ -157,7 +157,7 @@ MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::dynvector::RemoveName)
 
 //FIXME CtrPart
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::dynvector::InsertName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::dynvector::InsertName)
 
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::IteratorToolsName)
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::IteratorWalkName)

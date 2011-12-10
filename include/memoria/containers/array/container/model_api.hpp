@@ -66,7 +66,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
     	}
     };
 
-    void AddKeysToMap(NodeBase *node, Key* keys)
+    void AddKeysToMap(NodeBaseG& node, Key* keys)
     {
     	AddKeysToMapFn fn(keys);
     	NodeDispatcher::Dispatch(node, fn);
@@ -93,7 +93,7 @@ typename M_TYPE::Iterator M_TYPE::Seek(BigInt pos)
 M_PARAMS
 BigInt M_TYPE::Size()
 {
-	NodeBaseG node = me()->GetRoot();
+	NodeBaseG node = me()->GetRoot(Allocator::READ);
 
 	if (node != NULL)
 	{

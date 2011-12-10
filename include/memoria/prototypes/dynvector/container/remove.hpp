@@ -129,7 +129,8 @@ public:
 
     			Iterator i = me()->Seek(pos);
 
-    			start = stop = i;
+    			start = i;
+    			stop  = i;
 
     			return removed;
     		}
@@ -139,7 +140,7 @@ public:
     	}
     }
 
-    bool RemoveData(NodeBaseG page, DataPageG data, Int start, Int length)
+    bool RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length)
     {
     	if (me()->debug()) {
     		int a = 0;

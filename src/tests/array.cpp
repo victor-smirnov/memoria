@@ -121,6 +121,8 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 {
 	ArrayData data = CreateRandomBuffer(value);
 
+//	cout<<"Insert "<<data.size()<<" Bytes"<<endl;
+
 	if (array.Size() == 0)
 	{
 		//Insert buffer into an empty array
@@ -208,14 +210,24 @@ void Build(SAllocator& allocator, ByteArray& array, UByte value)
 
 			iter.Skip(-postfix.size());
 
+			array.debug() = true;
+//			cout<<"Insert At: "<<iter.pos()<<endl;
 			iter.Insert(data);
+//			cout<<"After Insert: "<<iter.pos()<<endl;
+
+//			allocator.commit();
+//			Dump(allocator, "array.dump");
 
 			CheckAllocator(allocator, "Insertion at the middle of the array failed. See the dump for details.");
 
 			iter.Skip(- data.size() - prefix_len);
 
+//			cout<<"Pos "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array");
+//			cout<<"Pos "<<iter.pos()<<endl;
+//
 			CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array");
+//			cout<<"Pos "<<iter.pos()<<endl;
 			CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array");
 		}
 	}
@@ -322,7 +334,7 @@ bool Remove(SAllocator& allocator, ByteArray& array)
 
 int main(int argc, const char** argv, const char **envp) {
 
-	long long t0 = getTime(), t1;
+	long long t0 = getTime(), t1 = t0;
 
 	try {
 		logger.level() = Logger::NONE;
@@ -335,21 +347,23 @@ int main(int argc, const char** argv, const char **envp) {
 		ByteArray dv(allocator, ArrayName, true);
 //		dv.SetMaxChildrenPerNode(100);
 
-		ByteArray dv1 = dv;
-
-		dv = dv1;
-
 		try {
 			cout<<"Insert data"<<endl;
 
 			for (Int c = 0; c < SIZE; c++)
 			{
 				Build(allocator, dv, c + 1);
+//				allocator.commit();
 			}
 
 			t1 = getTime();
 
-			cout<<"Remove data. ByteArray contains "<<dv.Size()/1024/1024<<" Mbytes"<<endl;
+			cout<<"Remove data. ByteArray contains "<<dv.Size()<<" Mbytes"<<endl;
+
+//			allocator.rollback();
+			allocator.commit();
+
+
 
 			for (Int c = 0; ; c++)
 			{
@@ -357,7 +371,14 @@ int main(int argc, const char** argv, const char **envp) {
 				{
 					break;
 				}
+//				allocator.commit();
 			}
+
+			cout<<"Remove data. ByteArray contains "<<dv.Size()<<" Mbytes"<<endl;
+
+			allocator.rollback();
+
+			cout<<"Remove data. ByteArray contains "<<dv.Size()<<" Mbytes"<<endl;
 
 			Dump(allocator);
 		}
@@ -385,14 +406,14 @@ int main(int argc, const char** argv, const char **envp) {
 
 	cout<<"ARRAY TEST time: remove "<<(getTime()- t1)<<" insert "<<(t1 - t0)<<endl;
 
-//	Int CtrTotal = 0, DtrTotal = 0;
-//	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
-//	{
-//		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
-//		CtrTotal += PageCtrCnt[c];
-//		DtrTotal += PageDtrCnt[c];
-//	}
+	Int CtrTotal = 0, DtrTotal = 0;
+	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
+	{
+		cout<<c<<" "<<PageCtrCnt[c]<<" "<<PageDtrCnt[c]<<" "<<(PageCtrCnt[c] + PageDtrCnt[c])<<endl;
+		CtrTotal += PageCtrCnt[c];
+		DtrTotal += PageDtrCnt[c];
+	}
 //
-//	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
-//	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
+	cout<<"Total: "<<CtrTotal<<" "<<DtrTotal<<" "<<(CtrTotal + DtrTotal)<<endl;
+	cout<<"Total: "<<PageCtr<<" "<<PageDtr<<" "<<(PageCtr + PageDtr)<<endl;
 }

@@ -41,7 +41,7 @@ public:
     BTreeIteratorBase(const ThisType& other): Base(other), page_(other.page_), key_idx_(other.key_idx_) {}
 
     void SetupAllocator(Allocator* allocator) {
-    	page_.set_allocator(allocator);
+    	//page_.set_allocator(allocator);
     }
 
     void operator=(ThisType&& other)
@@ -66,7 +66,8 @@ public:
     }
 
     Int BuildHash() const {
-    	return Base::BuildHash() ^ PtrToHash<const NodeBase*>::hash(page_.page()) ^ key_idx_;
+    	const NodeBase* page = page_ != NULL ? page_.page() : NULL;
+    	return Base::BuildHash() ^ PtrToHash<const NodeBase*>::hash(page) ^ key_idx_;
     }
 
     Int &key_idx() {

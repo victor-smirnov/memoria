@@ -18,13 +18,14 @@ namespace memoria    {
 MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
 
     typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                              Allocator;
+    typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Allocator::Page                                              Page;
+    typedef typename Allocator::Page                                            Page;
     typedef typename Page::ID                                                   ID;
-    typedef typename Allocator::Transaction                                       Transaction;
+    typedef typename Allocator::Transaction                                     Transaction;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                            NodeBaseG;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -47,8 +48,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
 
     bool check_keys()
     {
-    	MEMORIA_TRACE(me());
-        Iterator i = me()->FindStart();
+    	Iterator i = me()->FindStart();
 
         Key k0 = 0;
         bool first = true;
@@ -76,7 +76,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
         return false;
     }
 
-    bool check_node_content(NodeBase* node)
+    bool check_node_content(NodeBaseG& node)
     {
     	bool errors = Base::check_node_content(node);
 

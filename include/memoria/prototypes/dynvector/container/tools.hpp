@@ -65,18 +65,18 @@ public:
 
     
 
-    DataPageG GetDataPage(NodeBase *node, Int idx)
+    DataPageG GetDataPage(NodeBase *node, Int idx, Int flags)
     {
         Value id = me()->GetLeafData(node, idx);
-        return me()->allocator().GetPage(id);
+        return me()->allocator().GetPage(id, flags);
     }
 
-    NodeBaseG GetDataParent(DataPage *node)
+    NodeBaseG GetDataParent(DataPage *node, Int flags)
     {
-    	return me()->allocator().GetPage(node->parent_id());
+    	return me()->allocator().GetPage(node->parent_id(), flags);
     }
 
-    DataPageG InsertDataPage(NodeBaseG node, Int key_idx)
+    DataPageG InsertDataPage(NodeBaseG& node, Int key_idx)
     {
     	me()->InsertSpace(node, key_idx, 1);
     	return me()->create_datapage(node, key_idx);

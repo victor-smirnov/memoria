@@ -107,6 +107,8 @@ int main(int argc, const char **argv, const char** envp)
 				map->Put(pairs[c].key_, 0);
 			}
 
+			allocator.commit();
+
 			UInt from, to;
 			if (x == 0)
 			{
@@ -138,6 +140,8 @@ int main(int argc, const char **argv, const char** envp)
 			BigInt to_key   = pairs_sorted[to].key_ + 1;
 
 			map->Remove(from_key, to_key);
+
+			allocator.commit();
 
 //			cout<<"Size after remove: "<<map->GetSize()<<endl;
 

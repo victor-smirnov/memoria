@@ -35,6 +35,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     typedef typename Base::Container::Page                                          PageType;
     typedef typename Base::Container::ID                                            ID;
 
+    typedef typename Container::Types::Allocator                                	Allocator;
     typedef typename Container::Types::DataPage                                		DataPage;
     typedef typename Container::Types::DataPageG                                	DataPageG;
     typedef typename Container::Types::Buffer                                   	Buffer;
@@ -111,6 +112,11 @@ BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
 
 		CopyBuffer(me()->data()->data().value_addr(me()->data_pos()), data.data() + start, to_read);
 
+//		if (me()->model().debug())
+//		{
+//			me()->model().Dump(me()->data());
+//		}
+
 		len 	-= to_read;
 		me()->Skip(to_read);
 
@@ -175,16 +181,16 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 					}
 					else {
 						me()->page() 		= next;
-						me()->key_idx()	= 0;
-						me()->data_pos() 		= 0;
+						me()->key_idx()		= 0;
+						me()->data_pos() 	= 0;
 
-						me()->data()		= me()->model().GetDataPage(me()->page(), me()->key_idx());
+						me()->data()		= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
 					}
 				}
 				else {
 					me()->key_idx()++;
-					me()->data_pos() 	= 0;
-					me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx());
+					me()->data_pos() 		= 0;
+					me()->data() 			= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
 				}
 			}
 			else {
@@ -196,7 +202,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			NodeTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
 
 			bool end 	= me()->WalkFw(me()->page(), me()->key_idx(), walker);
-			me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx());
+			me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
 
 			if (end)
 			{
@@ -241,8 +247,8 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 			NodeTreeWalker<Container, Key, false> walker(distance + to_add, me()->model());
 
 			//FIXME: does 'end' means the same as for StepFw()?
-			bool end 	= me()->WalkBw(me()->page(), me()->key_idx(), walker);
-			me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx());
+			bool end 		= me()->WalkBw(me()->page(), me()->key_idx(), walker);
+			me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
 
 			if (end)
 			{

@@ -76,7 +76,7 @@ public:
     void operator()(Node *node) {
         for (Int c = from_ + count_; c < total_children_count_; c++)
         {
-            TreeNodeG child = allocator_.GetPage(node->map().data(c));
+            TreeNodeG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
             child->parent_idx() += count_;
         }
     }
@@ -171,7 +171,7 @@ public:
     void operator()(Node *two) {
         for (Int c = shift_; c < count_ + shift_; c++)
         {
-            BaseNodeG child = allocator_.GetPage(two->map().data(c));
+            BaseNodeG child = allocator_.GetPage(two->map().data(c), Allocator::UPDATE);
 
             child->parent_id() = two->id();
             child->parent_idx() -= from_;
@@ -217,7 +217,7 @@ public:
     void operator()(Node *two) {
         for (Int c = count_ + shift_; c < two->map().size(); c++)
         {
-            BaseNodeG child = allocator_.GetPage(two->map().data(c));
+            BaseNodeG child = allocator_.GetPage(two->map().data(c), Allocator::UPDATE);
             child->parent_idx() += count_ + shift_;
         }
     }
@@ -244,6 +244,8 @@ class ShiftAndReparentChildrenFn {
     Int         count_;
     Allocator&    allocator_;
 
+    typedef PageGuard<BaseNode, Allocator> BaseNodeG;
+
 public:
 
     ShiftAndReparentChildrenFn(Int from, Int shift, Int count, Allocator &allocator):
@@ -253,7 +255,7 @@ public:
     void operator()(Node *two) {
         for (Int c = shift_; c < count_ + shift_; c++)
         {
-            BaseNode *child = static_cast<BaseNode*>(allocator_.GetPage(two->map().data(c)));
+            BaseNodeG child = allocator_.GetPage(two->map().data(c), Allocator::UPDATE);
 
             child->parent_id() = two->id();
             child->parent_idx() -= from_;
@@ -339,7 +341,7 @@ public:
     void operator()(T *node) {
         for (Int c = from_; c < node->map().size(); c++)
         {
-            BaseNodeG child = allocator_.GetPage(node->map().data(c));
+            BaseNodeG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
             child->parent_idx() += count_;
         }
     }
@@ -368,7 +370,7 @@ public:
     void operator()(T *node) {
         for (Int c = from_; c < node->map().size(); c++)
         {
-        	NodeBaseG child = allocator_.GetPage(node->map().data(c));
+        	NodeBaseG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
             child->parent_id() = node->id();
             child->parent_idx() += count_;
         }
@@ -513,14 +515,15 @@ class GetChildFn {
     Base node_;
     Idx idx_;
     Mgr &allocator_;
+    Int flags_;
     
 public:
-    GetChildFn(Idx idx, Mgr &allocator): node_(&allocator),
-            idx_(idx), allocator_(allocator) {}
+    GetChildFn(Idx idx, Mgr &allocator, Int flags): node_(),
+            idx_(idx), allocator_(allocator), flags_(flags) {}
 
     template <typename T>
     void operator()(T *node) {
-        node_ = allocator_.GetPage(node->map().data(idx_));
+        node_ = allocator_.GetPage(node->map().data(idx_), flags_);
     }
 
     Base& node() {
@@ -529,9 +532,9 @@ public:
 };
 
 template <typename Dispatcher, typename Base, typename Node, typename I, typename Allocator>
-Base GetChild(Node *node, I idx, Allocator &allocator)
+Base GetChild(Node *node, I idx, Allocator &allocator, Int flags)
 {
-    GetChildFn<Base, I, Allocator> fn(idx, allocator);
+    GetChildFn<Base, I, Allocator> fn(idx, allocator, flags);
     Dispatcher::Dispatch(node, fn);
     if (fn.node() != NULL) {
         return fn.node();
@@ -545,13 +548,14 @@ template <typename Base, typename Mgr>
 class GetLastChildFn {
     Base    node_;
     Mgr&    allocator_;
+    Int 	flags_;
     
 public:
-    GetLastChildFn(Mgr &allocator): node_(&allocator), allocator_(allocator) {}
+    GetLastChildFn(Mgr &allocator, Int flags): node_(), allocator_(allocator), flags_(flags) {}
 
     template <typename T>
     void operator()(T *node) {
-        node_ = allocator_.GetPage(node->map().data(node->map().size() - 1));
+        node_ = allocator_.GetPage(node->map().data(node->map().size() - 1), flags_);
     }
 
     Base& node() {
@@ -560,9 +564,9 @@ public:
 };
 
 template <typename Dispatcher, typename Base, typename Node, typename Allocator>
-Base GetLastChild(Node *node, Allocator &allocator)
+Base GetLastChild(Node *node, Allocator &allocator, Int flags)
 {
-    GetLastChildFn<Base, Allocator> fn(allocator);
+    GetLastChildFn<Base, Allocator> fn(allocator, flags);
     Dispatcher::Dispatch(node, fn);
     return fn.node();
 }

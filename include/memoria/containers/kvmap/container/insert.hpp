@@ -61,18 +61,15 @@ void M_TYPE::SetValueForKey(Key key, const Value& value)
 
 	if (i.IsFound())
 	{
-		MEMORIA_TRACE(me(), "Key Is found", key, i.GetKey(0));
 		if (i.GetKey(0) == key)
 		{
 			me()->SetLeafData(i.page(), i.key_idx(), value);
 		}
 		else {
-			MEMORIA_TRACE(me(), "Insert a new entry for key");
 			me()->InsertEntry(i, key, value);
 		}
 	}
 	else {
-		MEMORIA_TRACE(me(), "Key is not found", key);
 		me()->InsertEntry(i, key, value);
 	}
 }

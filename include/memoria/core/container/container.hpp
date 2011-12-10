@@ -53,6 +53,7 @@ public:
     typedef typename Allocator::Page                                            Page;
     typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::Page::ID                                        PageId;
+    typedef typename Allocator::CtrShared                                       CtrShared;
     typedef typename Types::NodeBase                                        	NodeBase;
     typedef typename Types::Metadata                                        	Metadata;
 
@@ -70,24 +71,27 @@ public:
     static const bool kCompositeContainer = !ListSize<typename Types::EmbeddedContainersList>::Value;
 
 private:
-    PageId                      root_;
+//    PageId                      root_;
     
 protected:
     static ContainerMetadata*   reflection_;
 
 public:
-    ContainerBase(): root_(0){}
+    ContainerBase()//: root_(0)
+    {}
 
-    ContainerBase(const ThisType& other): root_(other.root_){}
+    ContainerBase(const ThisType& other)//: root_(other.root_)
+    {}
 
-    ContainerBase(ThisType&& other): root_(other.root_){}
+    ContainerBase(ThisType&& other)//: root_(other.root_)
+    {}
 
     void operator=(ThisType&& other) {
-    	this->root_ = other.root_;
+    	//this->root_ = other.root_;
     }
 
     void operator=(const ThisType& other) {
-    	this->root_ = other.root_;
+    	//this->root_ = other.root_;
     }
 
     MyType* me() {
@@ -106,30 +110,24 @@ public:
         return reflection_->Hash();
     }
 
-    void init_root(const PageId &root)
+    void set_root(const PageId &root)
     {
-    	PageG page = me()->allocator().GetPage(root);
-        if (page == NULL) {
-            throw NullPointerException(MEMORIA_SOURCE, "Requested page is not available");
-        }
-
-        if (page->model_hash() != me()->hash()) {
-            throw MemoriaException(MEMORIA_SOURCE, "Invalid page type for this model");
-        }
-
-        root_ = root;
-
-        Metadata meta = me()->GetRootMetadata(page); //(NodeBase*)
-        me()->name() = meta.model_name();
-    }
-
-    void set_root(const PageId &root) {
         me()->allocator().SetRoot(me()->name(), root);
-        root_ = root;
+        me()->shared()->root_log 	= root;
+        me()->shared()->updated 	= true;
     }
 
-    const PageId &root() const {
-        return root_;
+    const PageId &root() const
+    {
+        const CtrShared* shared = me()->shared();
+
+        if (shared->updated)
+        {
+        	return me()->shared()->root_log;
+        }
+        else {
+        	return me()->shared()->root;
+        }
     }
 
     const bool IsComposite() {
@@ -138,15 +136,6 @@ public:
 
     static ContainerMetadata * reflection() {
         return reflection_;
-    }
-
-    virtual IDValue GetRootID() {
-        if (!root_.is_null()) {
-        	return IDValue(&root_);
-        }
-        else {
-            return IDValue();
-        }
     }
     
     // To be removed
@@ -250,10 +239,14 @@ class Ctr: public CtrStart<Types> {
 public:
 	typedef Ctr<Types>            												MyType;
 
-
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Page													Page;
+    typedef typename Types::Allocator                                           Allocator;
+    typedef typename Types::Allocator::CtrShared                                CtrShared;
+    typedef typename Types::Allocator::Page										Page;
     typedef typename Page::ID													ID;
+
+    typedef typename Types::NodeBase                                           	NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Types::Metadata                                        	Metadata;
 
 public:
 
@@ -269,27 +262,36 @@ private:
     Logger logger_;
     static Logger class_logger_;
 
-    bool debug_;
+    CtrShared*	shared_;
+
+    bool 		debug_;
 
 public:
 
-    typedef typename Base::NodeBase                                        		NodeBase;
 
     Ctr(Allocator &allocator, BigInt name, bool create = false, const char* mname = NULL):
         Base(),
-        allocator_(allocator), name_(name),
+        allocator_(allocator),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         logger_(model_type_name_, Logger::DERIVED, &class_logger_),
         debug_(false)
     {
     	if (create)
     	{
-    		me()->create_new();
+    		shared_ = allocator.GetCtrShared(name, true);
+
+    		NodeBaseG node 		= me()->CreateNode(0, true, true);
+
+    		allocator.SetRoot(name, node->id());
+
+    		shared_->root_log 	= node->id();
+    		shared_->updated 	= true;
     	}
     	else {
-    		ID root_id = me()->allocator().GetRootID(me()->name());
-    		me()->init_root(root_id);
+    		shared_ = allocator.GetCtrShared(name, false);
     	}
+
+    	ref();
     }
 
     Ctr(Allocator &allocator, const ID& root_id, const char* mname = NULL):
@@ -299,14 +301,38 @@ public:
             logger_(model_type_name_, Logger::DERIVED, &class_logger_),
             debug_(false)
     {
-    	me()->init_root(root_id);
+    	NodeBaseG root 	= allocator.GetPage(root_id, Allocator::READ);
+    	Metadata  meta 	= me()->GetRootMetadata(root);
+    	shared_ = allocator_.GetCtrShared(meta.model_name(), false);
+    	ref();
     }
 
-    Ctr(const MyType& other): Base(other), allocator_(other.allocator_), name_(other.name_), model_type_name_(other.model_type_name_), logger_(other.logger_), debug_(other.debug_) {}
-    Ctr(MyType&& other): Base(std::move(other)), allocator_(other.allocator_), name_(other.name_), model_type_name_(other.model_type_name_), logger_(other.logger_), debug_(other.debug_) {}
+    Ctr(const MyType& other):
+    	Base(other),
+    	allocator_(other.allocator_),
+    	model_type_name_(other.model_type_name_),
+    	logger_(other.logger_),
+    	shared_(other.shared_),
+    	debug_(other.debug_)
+    {
+    	ref();
+    }
+
+    Ctr(MyType&& other):
+    	Base(std::move(other)),
+    	allocator_(other.allocator_),
+    	model_type_name_(other.model_type_name_),
+    	logger_(other.logger_),
+    	shared_(other.shared_),
+    	debug_(other.debug_)
+    {
+    	other.shared_ = NULL;
+    }
 
 
-    virtual ~Ctr() throw() {
+    ~Ctr() throw()
+    {
+    	unref();
     }
 
     bool& debug() {
@@ -343,15 +369,11 @@ public:
     }
 
     const BigInt& name() const {
-        return name_;
+        return shared_->name;
     }
 
     BigInt& name() {
-    	return name_;
-    }
-
-    virtual BigInt ContainerName() {
-        return name();
+    	return shared_->name;
     }
 
     MyType* me()
@@ -371,6 +393,11 @@ public:
     	logger_				= other.logger_;
     	debug_				= other.debug_;
     	Base::operator =(other);
+
+    	unref();
+    	shared_				= other.shared_;
+    	ref();
+
     	return *this;
     }
 
@@ -381,7 +408,38 @@ public:
     	logger_				= other.logger_;
     	debug_				= other.debug_;
     	Base::operator=(std::move(other));
+
+    	unref();
+    	shared_				= other.shared_;
+
+    	other.shared_		= NULL;
+
     	return *this;
+    }
+
+    const CtrShared* shared() const {
+    	return shared_;
+    }
+
+    CtrShared* shared() {
+    	return shared_;
+    }
+
+private:
+    void ref()
+    {
+    	if (shared_ != NULL)
+    	{
+    		shared_->ref();
+    	}
+    }
+
+    void unref()
+    {
+    	if (shared_ != NULL && shared_->unref() == 0)
+    	{
+    		allocator_.ReleaseCtrShared(shared_);
+    	}
     }
 };
 

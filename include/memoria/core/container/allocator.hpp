@@ -17,8 +17,12 @@
 
 namespace memoria    {
 
+
+
 template <typename PageType, int MaxPageSize = 4096>
 struct IAbstractAllocator {
+
+	enum {READ, UPDATE};
 
 	typedef IAbstractAllocator<PageType, MaxPageSize>					MyType;
 
@@ -27,19 +31,42 @@ struct IAbstractAllocator {
 	typedef EmptyType													Transaction;
 
 	typedef PageGuard<Page, MyType>										PageG;
+	typedef typename PageG::Shared										Shared;
 
 	typedef IAbstractAllocator<PageType, MaxPageSize>					AbstractAllocator;
 
+	struct CtrShared {
+		Int		references;
+		BigInt 	name;
+		ID		root;
+		ID		root_log;
+		bool 	updated;
+
+		CtrShared(BigInt name0): references(0), name(name0), root(0), root_log(0), updated(false) {}
+
+		Int ref() {
+			return ++references;
+		}
+
+		Int unref() {
+			return --references;
+		}
+	};
+
 	static const Int PAGE_SIZE											= MaxPageSize;
 
-	virtual PageG GetPage(const ID& id)									= 0;
+	virtual PageG GetPage(const ID& id, Int flags)						= 0;
+	virtual void  UpdatePage(Shared* shared)							= 0;
 	virtual void  RemovePage(const ID& id)								= 0;
 	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;
-	virtual PageG ReallocPage(Page* page, Int new_size)					= 0;
-	virtual void  ReleasePage(Page* page)								= 0;
+	virtual void  ResizePage(Shared* page, Int new_size)				= 0;
+	virtual void  ReleasePage(Shared* shared)							= 0;
+
+	virtual CtrShared* GetCtrShared(BigInt name, bool create)			= 0;
+	virtual void ReleaseCtrShared(CtrShared* shared)					= 0;
 
 	// Allocator directory interface part
-	virtual PageG GetRoot(BigInt name)									= 0;
+	virtual PageG GetRoot(BigInt name, Int flags)						= 0;
 	virtual ID 	  GetRootID(BigInt name)								= 0;
 	virtual void  SetRoot(BigInt name, const ID& root) 					= 0;
 

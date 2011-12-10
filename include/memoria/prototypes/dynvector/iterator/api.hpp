@@ -26,6 +26,7 @@ using namespace memoria::dynvector;
 MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     typedef typename Base::NodeBase                                             	NodeBase;
+	typedef typename Base::NodeBaseG                                             	NodeBaseG;
 	typedef typename Base::Container                                                Container;
 
     typedef typename Container::ApiKeyType                                    		ApiKeyType;
@@ -98,7 +99,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     void SetupAllocator(Allocator* allocator)
     {
-    	data_.set_allocator(allocator);
+    	//data_.set_allocator(allocator);
     	Base::SetupAllocator(allocator);
     }
 
@@ -145,23 +146,23 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     }
 
 
-    DataPageG GetNextDataPage(NodeBase* page, DataPage* data)
+    DataPageG GetNextDataPage(NodeBaseG page, DataPageG& data)
     {
     	Int parent_idx = data->parent_idx();
     	Int children_count = me()->model().GetChildrenCount(page);
 
     	if (parent_idx < children_count - 1)
     	{
-    		return me()->model().GetDataPage(page, parent_idx + 1);
+    		return me()->model().GetDataPage(page, parent_idx + 1, Allocator::READ);
     	}
     	else {
     		page = me()->GetNextNode(page);
     		if (page != NULL)
     		{
-    			return me()->model().GetDataPage(page, 0);
+    			return me()->model().GetDataPage(page, 0, Allocator::READ);
     		}
     		else {
-    			return DataPageG(&me()->model().allocator());
+    			return DataPageG();
     		}
     	}
     }
@@ -177,17 +178,17 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     	if (parent_idx > 0)
     	{
-    		return me()->model().GetDataPage(page, parent_idx - 1);
+    		return me()->model().GetDataPage(page, parent_idx - 1, Allocator::READ);
     	}
     	else {
     		page = me()->GetPrevNode(page);
     		if (page != NULL)
     		{
     			Int children_count = me()->model().GetChildrenCount(page);
-    			return me()->model().GetDataPage(page, children_count - 1);
+    			return me()->model().GetDataPage(page, children_count - 1, Allocator::READ);
     		}
     		else {
-    			return DataPageG(&me()->model().allocator());
+    			return DataPageG();
     		}
     	}
     }

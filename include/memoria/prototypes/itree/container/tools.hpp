@@ -98,7 +98,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::ToolsName)
 
 
 
-    void SetLeafDataAndReindex(NodeBaseG node, Int idx, const Key *keys, const Value &val);
+    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val);
 
     template <typename Node>
     bool CheckNodeContent(Node *node);
@@ -123,16 +123,17 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-void M_TYPE::SetLeafDataAndReindex(NodeBaseG node, Int idx, const Key *keys, const Value &val)
+void M_TYPE::SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val)
 {
+	node.update();
 	SetAndReindexFn1 fn1(idx, keys, val);
 	LeafDispatcher::Dispatch(node, fn1);
 
-	if (!fn1.fixed_) {
+	if (!fn1.fixed_)
+	{
 		Iterator i(node, idx, *me());
 		if (i.NextKey())
 		{
-			MEMORIA_TRACE(me(), "Try to fix next key", i.page()->id(), idx, -keys[0]);
 			SetAndReindexFn2 fn2(i.key_idx(), keys);
 			LeafDispatcher::Dispatch(i.page(), fn2);
 
@@ -140,7 +141,8 @@ void M_TYPE::SetLeafDataAndReindex(NodeBaseG node, Int idx, const Key *keys, con
 			{
 				me()->UpdateBTreeKeys(i.page());
 			}
-			else if (i.key_idx() >= me()->GetChildrenCount(i.page()) -1) {
+			else if (i.key_idx() >= me()->GetChildrenCount(i.page()) -1)
+			{
 				me()->UpdateBTreeKeys(i.page());
 			}
 		}
