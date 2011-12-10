@@ -360,20 +360,25 @@ int main(int argc, const char** argv, const char **envp) {
 
 			cout<<"Remove data. ByteArray contains "<<dv.Size()<<" Mbytes"<<endl;
 
-			allocator.rollback();
+//			allocator.rollback();
+			allocator.commit();
+
+
+
+			for (Int c = 0; ; c++)
+			{
+				if (!Remove(allocator, dv))
+				{
+					break;
+				}
+//				allocator.commit();
+			}
 
 			cout<<"Remove data. ByteArray contains "<<dv.Size()<<" Mbytes"<<endl;
 
-//			for (Int c = 0; ; c++)
-//			{
-//				if (!Remove(allocator, dv))
-//				{
-//					break;
-//				}
-//				allocator.commit();
-//			}
-//
-//			allocator.commit();
+			allocator.rollback();
+
+			cout<<"Remove data. ByteArray contains "<<dv.Size()<<" Mbytes"<<endl;
 
 			Dump(allocator);
 		}
