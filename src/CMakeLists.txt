@@ -27,10 +27,22 @@ if (NOT DEFINED BUILD_TESTS)
     set(BUILD_TESTS true)
 endif()
 
+if (NOT DEFINED BUILD_BENCHMARKS)
+    set(BUILD_BENCHMARKS true)
+endif()
+
 if (BUILD_TOOLS) 
     add_subdirectory(tools)
 endif()
 
 if (BUILD_TESTS) 
     add_subdirectory(tests)
+endif()
+
+if (BUILD_BENCHMARKS) 
+    add_subdirectory(benchmarks)
+endif()
+
+if (BUILD_SANDBOX) 
+    add_subdirectory(sandbox)
 endif()

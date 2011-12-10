@@ -5,15 +5,10 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-#include "mtools.hpp"
-
 #include <memoria/allocators/stream/factory.hpp>
 #include <memoria/core/tools/bm_tools.hpp>
 
 #include <vector>
-
-#include <stdlib.h>
 
 using namespace memoria;
 using namespace memoria::vapi;
@@ -40,48 +35,39 @@ void Fill(char* buf, int size, char value)
 
 
 
-void Read(ByteArray& array, ArrayData& data)
+void Insert(ByteArray& array, ArrayData& data)
 {
 	BigInt size = array.size();
 
 	Int data_len = data.size();
-	BigInt pos = size != 0 ? (random() % (size / data_len)) * data_len : 0;
+	BigInt pos = size != 0 ? get_random(size / data_len) * data_len : 0;
 
-//	cout<<"pos="<<pos<<endl;
 
-	//array.insert(array.begin() + pos, data.size(), 0);
+	array.insert(array.begin() + pos, data.size(), 0);
 
 	for (int c = 0; c < data.size(); c++)
 	{
-		*(data.data() + c) = array[pos + c];
+		array[pos + c] = *(data.data() + c);
 	}
 
 }
 
 int main(int argc, const char** argv, const char **envp) {
 
-	Int SIZE = 300000000;
-
-	long long t0;
+	long long t0 = getTime();
 
 	try {
 		ByteArray dv;
 
-		for (int c = 0; c < SIZE; c++) dv.push_back(0);
-
-		cout<<"Size: "<<dv.size()<<" bytes"<<endl;
-
-
-		t0 =  getTime();
 		ArrayData data(4);
 
 		try {
 			for (Int c = 0; c < 1000000; c++)
 			{
-				Read(dv, data);
+				Insert(dv, data);
 			}
 
-
+			cout<<"Size: "<<dv.size()<<" bytes"<<endl;
 		}
 		catch (MemoriaException ex)
 		{

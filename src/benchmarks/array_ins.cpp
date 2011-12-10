@@ -5,9 +5,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-#include "mtools.hpp"
-
 #include <memoria/allocators/stream/factory.hpp>
 #include <memoria/core/tools/bm_tools.hpp>
 
@@ -117,7 +114,7 @@ void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg)
 	}
 }
 
-void Read(SAllocator& allocator, ByteArray& array, ArrayData& data)
+void Insert(SAllocator& allocator, ByteArray& array, ArrayData& data)
 {
 	BigInt size = array.Size();
 
@@ -125,12 +122,12 @@ void Read(SAllocator& allocator, ByteArray& array, ArrayData& data)
 	BigInt pos = size != 0 ? get_random(size / data_len) * data_len : 0;
 
 	auto iter = array.Seek(pos);
-	iter.Read(data);
+	iter.Insert(data);
 }
 
 int main(int argc, const char** argv, const char **envp) {
 
-	long long t0 = 0;
+	long long t0 = getTime();
 
 	try {
 		logger.level() = Logger::NONE;
@@ -143,24 +140,14 @@ int main(int argc, const char** argv, const char **envp) {
 		ByteArray dv(allocator, ArrayName, true);
 		//dv.SetMaxChildrenPerNode(100);
 
-		ArrayData data0(4058);
-		auto iter = dv.Seek(0);
-
-		for (Int c = 0; c < 300000000/data0.size(); c++)
-		{
-			iter.Insert(data0);
-		}
-
-		CheckAllocator(allocator, "Invalid allocator");
-
-		t0 = getTime();
-
 		ArrayData data(4);
 
 		try {
 			for (Int c = 0; c < 1000000; c++)
 			{
-				Read(allocator, dv, data);
+				//cout<<"C="<<c<<endl;
+
+				Insert(allocator, dv, data);
 			}
 
 			cout<<"Size: "<<dv.Size()<<" bytes"<<endl;
