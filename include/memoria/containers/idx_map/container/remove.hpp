@@ -49,15 +49,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::RemoveName)
     static const Int Indexes                                                    = Types::Indexes;
 
 
-    bool RemoveAllEntries(Key from, Key to, Int i, Int type) {
+    bool RemoveAllEntries(Key from, Key to, Int key_num, Int type)
+    {
         if (to >= from)
         {
-            Iterator ifrom  = type == memoria::vapi::IdxMap::LE ? me()->FindLE(from, i, true)  : me()->FindLT(from, i, false);
-            Iterator ito    = type == memoria::vapi::IdxMap::LE ? me()->FindLE(to, i, true)    : me()->FindLT(to, i, false);
+            Iterator ifrom  = type == memoria::vapi::IdxMap::LE ? me()->FindLE(from, key_num, true)  : me()->FindLT(from, key_num, false);
+            Iterator ito    = type == memoria::vapi::IdxMap::LE ? me()->FindLE(to, key_num, true)    : me()->FindLT(to, key_num, false);
 
-            MEMORIA_TRACE(me(), "RemoveAllEntries", from, to, type, ito.page()->id());
-
-            if (!(ifrom.IsEmpty() || ifrom.IsEnd())) {
+            if (!(ifrom.IsEmpty() || ifrom.IsEnd()))
+            {
                 me()->RemoveEntries(ifrom, ito);
             }
         }

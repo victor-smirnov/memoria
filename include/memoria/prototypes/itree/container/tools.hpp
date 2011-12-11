@@ -107,13 +107,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::ToolsName)
     template <typename Node1, typename Node2>
     bool CheckNodeWithParentContent(Node1 *node, Node2 *parent);
 
-    //
-//    Iterator GetByIndex(BigInt index)
-//    {
-//        Iterator i = Base::GetByIndex(index);
-//        i.ComputeBase();
-//        return i;
-//    }
 
 MEMORIA_CONTAINER_PART_END
 

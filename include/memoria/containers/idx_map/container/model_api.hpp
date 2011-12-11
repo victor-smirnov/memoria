@@ -52,15 +52,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::ContainerApiName)
     void Put(Key key, const Value& value = ID(0));
     void Insert(Key* keys, const Value& value, Int idx);
 
-    bool Remove(Key index, Int idx = 0)
+    bool Remove(Key index, Int key_num = 0)
     {
-        Iterator i = me()->FindLE(index, idx, false);
+        Iterator i = me()->FindLE(index, key_num, false);
         return me()->RemoveEntry(i);
     }
 
-    bool Remove(Key from_idx, Key to_idx, Int idx = 0)
+    bool Remove(Key from_idx, Key to_idx, Int key_num = 0)
     {
-        return me()->RemoveAllEntries(from_idx, to_idx, idx, memoria::vapi::IdxMap::LE);
+        return me()->RemoveAllEntries(from_idx, to_idx, key_num, memoria::vapi::IdxMap::LE);
     }
 
 private:

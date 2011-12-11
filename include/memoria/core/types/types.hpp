@@ -103,11 +103,21 @@ struct KVMap:       public CodeValue<2> {};
 
 typedef KVMap<BigInt, BigInt> DefKVMap;
 
-struct IdxMap:      public CodeValue<3> {};
-struct DFUDS:       public CodeValue<4> {};
-struct LOUDS:       public CodeValue<5> {};
-struct BlobMap:     public CodeValue<6> {};
-struct Array:   	public CodeValue<7> {};
+template <Int Indexes>
+struct IdxMap:      public CodeValue<3 + Indexes * 256> {};
+
+typedef IdxMap<1> IdxMap1;
+
+template <Int Indexes>
+struct IdxSet:      public CodeValue<4 + Indexes * 256> {};
+
+typedef IdxSet<1> IdxSet1;
+typedef IdxSet<2> IdxSet2;
+
+struct DFUDS:       public CodeValue<5> {};
+struct LOUDS:       public CodeValue<6> {};
+struct BlobMap:     public CodeValue<7> {};
+struct Array:   	public CodeValue<8> {};
 
 
 
@@ -224,7 +234,19 @@ const DstType& P2CR(const SrcType value) {
 	return *buf.dst;
 }
 
+class EmptyValue {
+public:
+	EmptyValue() {}
+	EmptyValue(const BigInt) {}
+	EmptyValue(const EmptyValue& other) {}
+	EmptyValue& operator=(const EmptyValue& other) {
+		return *this;
+	}
 
+	operator BigInt () {
+		return 0;
+	}
+};
 
 }
 

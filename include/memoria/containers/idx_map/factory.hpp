@@ -27,12 +27,14 @@ namespace memoria    {
 
 
 
-template <typename Profile>
-struct BTreeTypes<Profile, memoria::IdxMap>:
+template <typename Profile, Int Indexes_>
+struct BTreeTypes<Profile, memoria::IdxMap<Indexes_> >:
 		public BTreeTypes<Profile, memoria::ITree> {
 	typedef BTreeTypes<Profile, memoria::ITree> 							Base;
 
 	typedef BigInt															Value;
+
+	static const Int Indexes                                                = Indexes_;
 
 	static const bool MapType                                               = MapTypes::Index;
 
@@ -57,8 +59,8 @@ struct BTreeTypes<Profile, memoria::IdxMap>:
 
 };
 
-template <typename Profile, typename T>
-class CtrTF<Profile, memoria::IdxMap, T>: public CtrTF<Profile, memoria::ITree, T> {
+template <typename Profile, typename T, Int Indexes>
+class CtrTF<Profile, memoria::IdxMap<Indexes>, T>: public CtrTF<Profile, memoria::ITree, T> {
 };
 
 }

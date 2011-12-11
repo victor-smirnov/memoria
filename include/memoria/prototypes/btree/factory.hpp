@@ -19,7 +19,7 @@
 #include <memoria/prototypes/btree/container/init.hpp>
 #include <memoria/prototypes/btree/container/insert.hpp>
 #include <memoria/prototypes/btree/container/remove.hpp>
-#include <memoria/prototypes/btree/container/model_api.hpp>
+#include <memoria/prototypes/btree/container/api.hpp>
 #include <memoria/prototypes/btree/container/stubs.hpp>
 #include <memoria/prototypes/btree/container/find.hpp>
 

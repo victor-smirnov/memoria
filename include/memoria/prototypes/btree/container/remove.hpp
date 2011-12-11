@@ -53,6 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 
     void move() {}
 
+    void PreMerge(NodeBaseG& one, NodeBase& two) {}
     
     void MoveChildrenLeft(NodeBaseG& node, Int from, Int count);
 

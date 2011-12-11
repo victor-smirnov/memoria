@@ -44,24 +44,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::StubsName)
     static const Int Indexes                                                    = Types::Indexes;
 
 
-    void PostSplit(NodeBase *one, NodeBase *two, Int from) {
-//        MEMORIA_TRACE(me(), "Default PostSplit", one, two, from);
-    }
-
-    void PreMerge(NodeBase *one, NodeBase *two) {
-//        MEMORIA_TRACE(me(), "Default PreMerge", one, two);
-    }
-
-//    template <typename Node>
-//    void SetupKeysFromChild(Node *node, Int idx, const Key* keys) {
-//        for (Int c = 0; c < Indexes; c++)
-//        {
-//            node->map().key(c, idx) = keys[c];
-//        }
-//    }
-
-    
-//    void ShiftKeysFromChild(NodeBase *node, Key* keys) {}
 
 MEMORIA_CONTAINER_PART_END
 

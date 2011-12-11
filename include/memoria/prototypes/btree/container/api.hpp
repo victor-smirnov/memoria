@@ -15,7 +15,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::MapApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ApiName)
 
     typedef typename Base::Name                                                 Name;
     typedef typename Base::Types                                                Types;
@@ -26,6 +26,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::MapApiName)
 
 
     typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Base::NodeBaseG                                             NodeBaseG;
     typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -48,6 +49,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::MapApiName)
     static const Int Indexes                                                    = Base::Indexes;
 
 MEMORIA_CONTAINER_PART_END
+
+
+#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::btree::ApiName)
+#define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
+#undef M_TYPE
+#undef M_PARAMS
 
 }
 

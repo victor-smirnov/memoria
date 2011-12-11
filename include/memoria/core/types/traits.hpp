@@ -66,7 +66,12 @@ MEMORIA_VALUE_TRAITS(UInt,   0, 0xFFFFFFFF);
 //MEMORIA_VALUE_TRAITS(ULong,  ULongMin, ULongMax);
 //MEMORIA_VALUE_TRAITS(UBigInt,0ull, 0xFFFFFFFFFFFFFFFFull);
 
-
+template <>
+struct ValueTraits<EmptyValue> {
+    static const Long Size = 0;
+    typedef EmptyValue Type;
+    static const bool IsPrimitive = false;
+};
 
 
 #undef MEMORIA_VALUE_TRAITS

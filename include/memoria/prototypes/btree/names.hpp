@@ -70,7 +70,7 @@ class ToolsName             {};
 class FindName              {};
 class InsertName            {};
 class RemoveName            {};
-class MapApiName            {};
+class ApiName            	{};
 class ChecksName            {};
 class StubsName             {};
 

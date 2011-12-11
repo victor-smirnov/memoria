@@ -91,6 +91,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
     void InsertEntry(Iterator &iter, const Key *keys, const Value &value);
     void InsertEntry(Iterator &iter, Key key, const Value &value);
 
+    void PostSplit(NodeBaseG& one, NodeBaseG& two, Int from) {}
+
     Iterator EmptyIterator() {
         return Iterator(*me());
     }

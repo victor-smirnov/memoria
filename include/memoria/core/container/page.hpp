@@ -77,6 +77,10 @@ public:
     {
     	return Base::value() < other.value();
     }
+
+    operator BigInt () {
+    	return Base::value();
+    }
 };
 
 template <typename T, size_t Size>

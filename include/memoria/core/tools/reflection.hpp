@@ -43,6 +43,13 @@ struct FieldFactory<BitField<Type> > {
     }
 };
 
+template <>
+struct FieldFactory<EmptyValue> {
+	static void create(MetadataList &list, const EmptyValue &field, const string &name, Long &abi_ptr) {
+	}
+};
+
+
 
 #define MEMORIA_TYPED_FIELD(Type)                                                \
 template <> struct FieldFactory<Type> {                                         \

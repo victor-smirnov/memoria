@@ -39,7 +39,8 @@ struct BasicContainerCollectionCfg {
 	typedef ProxyAllocator<Profile, Page>  										AllocatorType;
 
     typedef memoria::TLTool<
-                        memoria::IdxMap,
+                        memoria::IdxMap1,
+                        memoria::IdxSet1,
                         memoria::Root,
     					memoria::KVMap<BigInt, BigInt>,
     					memoria::Array

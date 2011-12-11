@@ -27,7 +27,7 @@ const Int SIZE = 4000;
 const BigInt MAX_VALUE = 0x7fffffffffffffff;
 
 typedef StreamContainerTypesCollection::Factory<DefKVMap>::Type KVMapType;
-typedef Ctr<StreamContainerTypesCollection::Types<memoria::IdxMap>::Type::CtrTypes> IdxMapType;
+typedef Ctr<StreamContainerTypesCollection::Types<memoria::IdxMap1>::Type::CtrTypes> IdxMapType;
 
 void checkIterator(IdxMapType* map, IDPairVector& pairs)
 {

@@ -68,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
         Compare(bool for_insert, Int type): CompareBase(for_insert, type) {}
 
         template <typename Node>
-        Int Find(Node* node, Int c, Key key)
+        Int Find(Node* node, Int key_num, Key key)
         {
             Key& prefix = CompareBase::prefix_;
             Key& current_prefix = CompareBase::current_prefix_;
@@ -78,10 +78,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
 
             if (CompareBase::type_ == CompareBase::LT)
             {
-                idx = node->map().FindLTS(c, key, current_prefix);
+                idx = node->map().FindLTS(key_num, key, current_prefix);
             }
             else {
-                idx = node->map().FindLES(c, key, current_prefix);
+                idx = node->map().FindLES(key_num, key, current_prefix);
             }
             
             if (idx == -1 && node->map().size() > 0)
@@ -90,10 +90,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
                 
                 if (node->is_leaf())
                 {
-                    tmp = node->map().max_key(c);
+                    tmp = node->map().max_key(key_num);
                 }
                 else {
-                    tmp = node->map().max_key(c) - node->map().key(c, node->map().size() - 1);
+                    tmp = node->map().max_key(key_num) - node->map().key(key_num, node->map().size() - 1);
                 }
 
                 current_prefix += tmp;
@@ -120,25 +120,26 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
         CompareLE(bool for_insert): Compare(for_insert, CompareBase::LE) {}
     };
 
-    Iterator FindLT(Key key, Int c, bool for_insert)
+    Iterator FindLT(Key key, Int key_num, bool for_insert)
     {
-        return me()->template _find<CompareLT>(key, c, for_insert);
+        return me()->template _find<CompareLT>(key, key_num, for_insert);
     }
 
-    Iterator FindLE(Key key, Int c, bool for_insert)
+    Iterator FindLE(Key key, Int key_num, bool for_insert)
     {
-        return me()->template _find<CompareLE>(key, c, for_insert);
+        return me()->template _find<CompareLE>(key, key_num, for_insert);
     }
 
-    bool IsFound(Iterator &iter, Key key, Int i)
+    bool IsFound(Iterator &iter, Key key, Int key_num)
     {
         if (!(iter.IsEnd() || iter.IsEmpty()))
         {
-            if (iter.GetKey(i) == key)
+            if (iter.GetKey(key_num) == key)
             {
                 return true;
             }
         }
+
         return false;
     }
 
