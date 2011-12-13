@@ -36,9 +36,24 @@ template <typename Name, typename Base, typename Types> class CtrPart;
 template <typename Types> class Ctr;
 template <typename Types> class Iter;
 
+template <typename Allocator>
+struct IParentCtrInterface
+{
+	typedef typename Allocator::PageG			PageG;
+	typedef typename Allocator::CtrShared		CtrShared;
+	typedef typename PageG::Page::ID 			ID;
+
+	virtual PageG GetRootPage(BigInt name, Int flags)					= 0;
+	virtual ID 	  GetRootID(BigInt name)								= 0;
+	virtual void  SetRoot(BigInt name, const ID& root) 					= 0;
+
+	virtual Allocator& GetAllocator()									= 0;
+	virtual CtrShared* GetShared()										= 0;
+};
+
 
 template <typename TypesType>
-class ContainerBase: public TypesType::ContainerInterface {
+class ContainerBase: public IParentCtrInterface<typename TypesType::Allocator> {
 public:
 
 	typedef ContainerBase<TypesType>											ThisType;
@@ -85,6 +100,8 @@ public:
 
     ContainerBase(ThisType&& other)//: root_(other.root_)
     {}
+
+
 
     void operator=(ThisType&& other) {
     	//this->root_ = other.root_;
@@ -231,7 +248,35 @@ public:
 };
 
 
-
+//template <typename CtrType>
+//class DefaultRootIDProvider: public RootIDProviderInterface<typename CtrType::Allocator::PageG> {
+//
+//	typedef typename CtrType::ID 				ID;
+//	typedef typename CtrType::Allocator::PageG 	PageG;
+//	CtrType* ctr_;
+//
+//public:
+//
+//	virtual PageG GetRoot(Int flags)
+//	{
+//		return ctr_->allocator().GetRoot(ctr_->name(), flags);
+//	}
+//
+//	virtual ID GetRootID()
+//	{
+//		return ctr_->allocator().GetRootID(ctr_->name());
+//	}
+//
+//	virtual void  SetRoot(const ID& root)
+//	{
+//		return ctr_->allocator().SetRoot(ctr_->name(), root);
+//	}
+//
+//	void set(CtrType* ctr)
+//	{
+//		this->ctr_ = ctr;
+//	}
+//};
 
 template <typename Types>
 class Ctr: public CtrStart<Types> {
@@ -241,8 +286,8 @@ public:
 
     typedef typename Types::Allocator                                           Allocator;
     typedef typename Types::Allocator::CtrShared                                CtrShared;
-    typedef typename Types::Allocator::Page										Page;
-    typedef typename Page::ID													ID;
+    typedef typename Types::Allocator::PageG									PageG;
+    typedef typename PageG::Page::ID											ID;
 
     typedef typename Types::NodeBase                                           	NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
@@ -251,6 +296,7 @@ public:
 public:
 
     typedef typename Types::ContainerTypeName									ContainerTypeName;
+    typedef IParentCtrInterface<Allocator>										ParentCtrInterface;
     typedef ContainerTypeName                                                   Name;
 
 private:
@@ -266,6 +312,8 @@ private:
 
     bool 		debug_;
 
+    ParentCtrInterface* parent_ctr_;
+
 public:
 
 
@@ -274,7 +322,8 @@ public:
         allocator_(allocator),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         logger_(model_type_name_, Logger::DERIVED, &class_logger_),
-        debug_(false)
+        debug_(false),
+        parent_ctr_(NULL)
     {
     	if (create)
     	{
@@ -294,16 +343,43 @@ public:
     	ref();
     }
 
+    Ctr(ParentCtrInterface* parent, BigInt name, bool create, const char* mname):
+        Base(),
+        allocator_(parent->GetAllocator()),
+        name_(name),
+        model_type_name_(mname),
+        logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+        shared_(parent->GetShared()),
+        debug_(false),
+        parent_ctr_(parent)
+    {
+
+    	if (create)
+    	{
+    		NodeBaseG node = me()->CreateNode(0, true, true);
+    		this->SetRoot(name, node->id());
+    	}
+    	else {
+    		shared_ = parent->GetShared();
+    	}
+
+    	ref();
+    }
+
     Ctr(Allocator &allocator, const ID& root_id, const char* mname = NULL):
             Base(),
-            allocator_(allocator), name_(-1),
+            allocator_(allocator),
+            name_(-1),
             model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
             logger_(model_type_name_, Logger::DERIVED, &class_logger_),
-            debug_(false)
+            debug_(false),
+            parent_ctr_(NULL)
     {
     	NodeBaseG root 	= allocator.GetPage(root_id, Allocator::READ);
     	Metadata  meta 	= me()->GetRootMetadata(root);
-    	shared_ = allocator_.GetCtrShared(meta.model_name(), false);
+    	name_			= meta.model_name();
+    	shared_ 		= allocator_.GetCtrShared(name_, false);
+
     	ref();
     }
 
@@ -313,7 +389,8 @@ public:
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
     	shared_(other.shared_),
-    	debug_(other.debug_)
+    	debug_(other.debug_),
+    	parent_ctr_(NULL)
     {
     	ref();
     }
@@ -324,15 +401,56 @@ public:
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
     	shared_(other.shared_),
-    	debug_(other.debug_)
+    	debug_(other.debug_),
+    	parent_ctr_(NULL)
     {
     	other.shared_ = NULL;
     }
 
-
     ~Ctr() throw()
     {
     	unref();
+    }
+
+    virtual PageG GetRootPage(BigInt name, Int flags)
+    {
+    	if (parent_ctr_ != NULL)
+    	{
+    		return parent_ctr_->GetRootPage(name, flags);
+    	}
+    	else {
+    		return me()->allocator().GetRoot(name, flags);
+    	}
+    }
+
+    virtual ID GetRootID(BigInt name)
+    {
+    	if (parent_ctr_ != NULL)
+    	{
+    		return parent_ctr_->GetRootID(name);
+    	}
+    	else {
+    		return me()->allocator().GetRootID(name);
+    	}
+    }
+
+    virtual void SetRoot(BigInt name, const ID& root)
+    {
+    	if (parent_ctr_ != NULL)
+    	{
+    		parent_ctr_->SetRoot(name, root);
+    	}
+    	else {
+    		me()->allocator().SetRoot(name, root);
+    	}
+    }
+
+    virtual Allocator& GetAllocator() {
+    	return allocator();
+    }
+
+    virtual CtrShared* GetShared() {
+    	return shared_;
     }
 
     bool& debug() {
