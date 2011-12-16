@@ -24,12 +24,16 @@ namespace memoria {
 template <typename ID, typename Object, Int Size = 64>
 class StaticPool {
 	typedef StaticPool<ID, Object, Size> MyType;
+	typedef ID T;
 
-	ID 		ids_[Size];
+	T 		ids_[Size];
 	Object 	objects_[Size];
+	UByte	idxs_[Size];
+	Int 	size_;
+	Int 	Max;
 
 public:
-	StaticPool()
+	StaticPool(): size_(0), Max(0)
 	{
 		for (Int c = 0; c < Size; c++)
 		{
@@ -45,9 +49,11 @@ public:
 
 	Object* Get(const ID& id)
 	{
-		for (Int c = 0; c < Size; c++)
+		const T idv = id.value();
+
+		for (Int c = 0; c < Max; c++)
 		{
-			if (ids_[c] == id)
+			if (ids_[c] == idv)
 			{
 				return &objects_[c];
 			}
@@ -61,6 +67,10 @@ public:
 		Int idx = SelectFirst0Idx();
 		if (idx < Size)
 		{
+			size_++;
+
+			if (size_ > Max && Max < Size) Max = size_;
+
 			ids_[idx] = id;
 			objects_[idx].init();
 			return &objects_[idx];
@@ -76,12 +86,17 @@ public:
 		{
 			if (ids_[c] == id)
 			{
-				ids_[c] = ID(0);
+				size_--;
+				ids_[c] = 0;
 				return;
 			}
 		}
 
 		throw new MemoriaException(MEMORIA_SOURCE, "ID is not known in this StaticPool");
+	}
+
+	Int GetMax() {
+		return Max;
 	}
 
 	Int GetUsage() {
@@ -93,7 +108,7 @@ public:
 		Int cnt = 0;
 		for (Int c = 0; c < Size; c++)
 		{
-			if (ids_[c] == ID(0))
+			if (ids_[c] == 0)
 			{
 				cnt++;
 			}
