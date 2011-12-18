@@ -427,11 +427,11 @@ public:
 		for (auto i = ctr_shared_.begin(); i != ctr_shared_.end(); i++)
 		{
 			CtrShared* shared = i->second;
-			if (shared->updated)
+			if (shared->updated())
 			{
-				shared->root 		= shared->root_log;
-				shared->root_log 	= 0;
-				shared->updated 	= false;
+				shared->root() 		= shared->root_log();
+				shared->root_log() 	= 0;
+				shared->updated() 	= false;
 			}
 		}
 
@@ -457,10 +457,10 @@ public:
 		{
 			CtrShared* shared = i->second;
 
-			if (shared->updated)
+			if (shared->updated())
 			{
-				shared->root_log = 0;
-				shared->updated = false;
+				shared->root_log() = 0;
+				shared->updated() = false;
 			}
 		}
 
@@ -521,10 +521,10 @@ public:
 			{
 				if (name > 0)
 				{
-					shared->root = GetRootID(name);
+					shared->root() = GetRootID(name);
 				}
 				else {
-					shared->root = root();
+					shared->root() = root();
 				}
 			}
 
@@ -537,13 +537,17 @@ public:
 
 	virtual void ReleaseCtrShared(CtrShared* shared)
 	{
-		ctr_shared_.erase(shared->name);
+		ctr_shared_.erase(shared->name());
 		delete shared;
 	}
 
 
 	virtual void load(InputStreamHandler *input)
 	{
+		//FIXME: clear allocator
+		commit();
+		//clear();
+
 		char signature[12];
 
 		MEMORIA_TRACE(me(),"Read header from:", input->pos());
@@ -582,8 +586,8 @@ public:
 			input->read(buf, 0, size);
 
 			Page* page = T2T<Page*>(buf);
-
-			MEMORIA_TRACE(me(), "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id(), &page->id());
+//
+//			MEMORIA_TRACE(me(), "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id(), &page->id());
 
 			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page_hash);
 
@@ -604,6 +608,11 @@ public:
 
 			MEMORIA_TRACE(me(), "Register page", page, page->id());
 
+//			PageWrapper<Page, PAGE_SIZE> pw(page);
+//			memoria::vapi::DumpPage(pageMetadata, &pw, cout);
+//			    		cout<<endl;
+//			    		cout<<endl;
+
 			if (first)
 			{
 				root_ = page->id();
@@ -612,7 +621,7 @@ public:
 		}
 
 		Int maxId = -1;
-		for (typename IDPageMap::iterator i = pages_.begin(); i != pages_.end(); i++)
+		for (auto i = pages_.begin(); i != pages_.end(); i++)
 		{
 			Int idValue = i->second->id().value();
 			if (idValue > maxId)
@@ -621,7 +630,7 @@ public:
 			}
 		}
 
-		roots_->set_root(root_);
+//		roots_->set_root(root_);
 
 		counter_ = maxId + 1;
 	}
@@ -767,6 +776,21 @@ public:
 
 	const MyType* me() const {
 		return static_cast<const MyType*>(this);
+	}
+
+
+	void DumpPages(ostream& out = cout)
+	{
+		for (auto i = pages_.begin(); i != pages_.end(); i++)
+		{
+			Page* page = i->second;
+			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
+
+			PageWrapper<Page, PAGE_SIZE> pw(page);
+			memoria::vapi::DumpPage(pageMetadata, &pw, out);
+			out<<endl;
+			out<<endl;
+		}
 	}
 };
 

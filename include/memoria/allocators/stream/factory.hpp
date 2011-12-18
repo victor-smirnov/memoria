@@ -17,7 +17,7 @@
 #include <memoria/containers/idx_map/factory.hpp>
 #include <memoria/containers/idx_set/factory.hpp>
 #include <memoria/containers/array/factory.hpp>
-
+#include <memoria/containers/blob_map/factory.hpp>
 
 #include "names.hpp"
 #include "allocator.hpp"

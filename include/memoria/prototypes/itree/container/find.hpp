@@ -80,7 +80,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
             {
                 idx = node->map().FindLTS(key_num, key, current_prefix);
             }
-            else {
+            else
+            {
                 idx = node->map().FindLES(key_num, key, current_prefix);
             }
             

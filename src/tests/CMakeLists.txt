@@ -1,5 +1,5 @@
 if (NOT DEFINED MEMORIA_TESTS)
-    set(MEMORIA_TESTS idx_map tree_map array)
+    set(MEMORIA_TESTS idx_map tree_map array blob_map)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_TESTS})

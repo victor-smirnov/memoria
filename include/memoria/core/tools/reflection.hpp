@@ -17,7 +17,7 @@ namespace memoria    {
 using namespace memoria::vapi;
 
 inline BigInt PtrToLong(const void *ptr) {
-    return (BigInt)ptr;
+    return T2T<BigInt>(ptr);
 }
 
 template <typename T> struct FieldFactory;

@@ -243,6 +243,11 @@ public:
 		return *this;
 	}
 
+	template <typename T>
+	operator T () {
+		return 0;
+	}
+
 	operator BigInt () {
 		return 0;
 	}

@@ -289,7 +289,7 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG& page, Int count_lea
 M_PARAMS
 void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 {
-	if (iter.IsNotEmpty())
+	if (iter.IsNotEmpty() || iter.page() != NULL)
 	{
 		NodeBaseG node = iter.page();
 		Int idx = iter.key_idx();

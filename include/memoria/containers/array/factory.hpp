@@ -17,6 +17,7 @@
 #include <memoria/containers/array/iterator/model_api.hpp>
 
 #include <memoria/containers/array/pages/data_page.hpp>
+#include <memoria/containers/array/pages/parts.hpp>
 
 #include <memoria/containers/array/container/api.hpp>
 #include <memoria/containers/array/container/model_api.hpp>

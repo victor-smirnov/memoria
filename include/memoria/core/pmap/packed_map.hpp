@@ -435,6 +435,21 @@ public:
         return Find(i, k, le, eq);
     }
 
+    Int FindEQS(Int i, const Key& k, Key& sum) const
+    {
+    	CmpLE le;
+    	CmpEQ eq;
+
+    	Int idx = Find(i, k, le, eq);
+
+    	if (idx >= 0)
+    	{
+    		sum += le.get() - (size() > 0 ? key(i, idx) : 0);
+    	}
+
+    	return idx;
+    }
+
     Key Prefix(Int i, Int idx, const Key& sum) const {
         return sum - key(i, idx);
     }

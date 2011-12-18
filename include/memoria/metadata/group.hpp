@@ -15,9 +15,10 @@ namespace memoria    {
 namespace vapi       {
 
 struct MEMORIA_API MetadataGroup: public Metadata {
-    virtual Int Size() const   = 0;
-    virtual Metadata* GetItem(Int idx) const  = 0;
+    virtual Int Size() const   											= 0;
+    virtual Metadata* GetItem(Int idx) const  							= 0;
     virtual Metadata* FindFirst(const char* name, bool throwEx = false) = 0;
+    virtual void PutAll(MetadataList& target) const						= 0;
 
     
 };

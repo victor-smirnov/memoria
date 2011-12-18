@@ -77,6 +77,14 @@ public:
 		}
 	}
 
+	virtual void PutAll(MetadataList& target) const
+	{
+		for (auto i = content_.begin(); i != content_.end(); i++)
+		{
+			target.push_back(*i);
+		}
+	}
+
 private:
     MetadataList content_;
 };

@@ -25,10 +25,11 @@ typedef DefaultStreamAllocator VStreamAllocator;
 VStreamAllocator* manager;
 set<IDValue> processed;
 
-void LoadFile(VStreamAllocator *allocator, const char* file)
+void LoadFile(VStreamAllocator& allocator, const char* file)
 {
+//	allocator->logger().level() = Logger::TRACE;
 	FileInputStreamHandler* in = FileInputStreamHandler::create(file);
-	allocator->load(in);
+	allocator.load(in);
 	delete in;
 }
 
@@ -141,7 +142,8 @@ int main(int argc, const char** argv, const char** envp)
 		}
 
 
-		manager = new VStreamAllocator();
+		VStreamAllocator allocator;
+		manager = &allocator;
 
 		cout<<"Load file: "+file.GetPath()<<endl;
 
@@ -150,7 +152,7 @@ int main(int argc, const char** argv, const char** envp)
 //
 //		cout<<"CWD: "<<cwd_buf<<endl;
 
-		LoadFile(manager, file.GetPath().c_str());
+		LoadFile(allocator, file.GetPath().c_str());
 
 
 
@@ -160,9 +162,11 @@ int main(int argc, const char** argv, const char** envp)
 		while (!iter.IsFlag(memoria::vapi::Iterator::ITEREND))
 		{
 			BigInt  name 	= iter.GetKey(0);
-			//FIXME
+
 			BigInt  value 	= iter.GetData();
 			IDValue id(value);
+
+//			iter.model().Dump(iter.page());
 
 			cout<<"Dumping name="<<name<<" root="<<id<<endl;
 
@@ -186,8 +190,6 @@ int main(int argc, const char** argv, const char** envp)
 
 			iter.Next();
 		}
-
-		delete manager;
 	}
 	catch (MemoriaException ex) {
 		cout<<"MemoriaException "<<ex.source()<<" "<<ex.message()<<endl;
