@@ -128,9 +128,9 @@ public:
 	BigInt Read(ArrayData& data, BigInt start, BigInt length)
 	{
 		BigInt current_pos 	= pos();
-		BigInt current_size = length;
+		BigInt current_size = size();
 
-		BigInt len = data.size() + current_pos <= current_size ? data.size() : current_size - current_pos;
+		BigInt len = ((length + current_pos) <= current_size) ? length : current_size - current_pos;
 
 		ba_iter_.Read(data, start, len);
 
@@ -165,6 +165,17 @@ public:
 
 	BigInt pos() {
 		return ba_iter_.pos() - is_iter_.prefix(1);
+	}
+
+	bool IsNotEnd()
+	{
+		return !is_iter_.IsEnd();
+	}
+
+	bool Next()
+	{
+		ba_iter_.Skip(size());
+		return is_iter_.Next();
 	}
 };
 

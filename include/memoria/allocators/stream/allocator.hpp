@@ -9,6 +9,7 @@
 #define		_MEMORIA_MODULES_CONTAINERS_STREAM_POSIX_MANAGER_HPP
 
 #include <map>
+#include <unordered_map>
 #include <string>
 
 #include <memoria/vapi.hpp>
@@ -24,6 +25,18 @@
 
 namespace memoria {
 
+
+typedef struct
+{
+	template <typename T, size_t S>
+	long operator() (const AbstractPageID<T,S> &k) const { return k.value(); }
+} IDKeyHash;
+
+typedef struct
+{
+	template <typename T, size_t S>
+	bool operator() (const AbstractPageID<T,S> &x, const AbstractPageID<T,S> &y) const { return x == y; }
+} IDKeyEq;
 
 using namespace memoria::vapi;
 
@@ -60,9 +73,13 @@ private:
 		PageOp(): id_(), page_(NULL), op_(NONE) 						{}
 	};
 
-	typedef std::map<ID, Page*> 												IDPageMap;
-	typedef std::map<ID, PageOp> 												IDPageOpMap;
-	typedef std::map<BigInt, CtrShared*> 										CtrSharedMap;
+//	typedef std::map<ID, Page*> 												IDPageMap;
+//	typedef std::map<ID, PageOp> 												IDPageOpMap;
+//	typedef std::map<BigInt, CtrShared*> 										CtrSharedMap;
+
+	typedef std::unordered_map<ID, Page*, IDKeyHash, IDKeyEq> 					IDPageMap;
+	typedef std::unordered_map<ID, PageOp, IDKeyHash, IDKeyEq> 					IDPageOpMap;
+	typedef std::unordered_map<BigInt, CtrShared*> 								CtrSharedMap;
 
 
 	IDPageMap 			pages_;
@@ -310,6 +327,23 @@ public:
 				return PageG(get_shared(op.page_, op.op_));
 			}
 		}
+	}
+
+	virtual PageG GetPageG(Page* page)
+	{
+//		Shared* shared = pool_.Get(id);
+//		if (shared == NULL)
+//		{
+//			shared = pool_.Allocate(id);
+//
+//			shared->set_allocator(this);
+//			shared->id() = id;
+//		}
+//		else {
+//			return PageG(shared);
+//		}
+
+		return GetPage(page->id(), Base::READ);
 	}
 
 	virtual void UpdatePage(Shared* shared)

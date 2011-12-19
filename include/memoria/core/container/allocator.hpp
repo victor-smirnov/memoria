@@ -40,6 +40,7 @@ struct IAbstractAllocator {
 	static const Int PAGE_SIZE											= MaxPageSize;
 
 	virtual PageG GetPage(const ID& id, Int flags)						= 0;
+	virtual PageG GetPageG(Page* page)									= 0;
 	virtual void  UpdatePage(Shared* shared)							= 0;
 	virtual void  RemovePage(const ID& id)								= 0;
 	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;

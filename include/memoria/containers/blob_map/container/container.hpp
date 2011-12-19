@@ -147,7 +147,7 @@ public:
 	Iterator Find(BigInt lob_id)
 	{
 		auto is_iter = set_.FindLT(lob_id, 0, false);
-		auto ba_iter = array_.Seek(is_iter.prefix(0));
+		auto ba_iter = array_.Seek(is_iter.prefix(1));
 		return Iterator(*me(), is_iter, ba_iter);
 	}
 
@@ -168,6 +168,20 @@ public:
 
 		auto ba_iter = array_.Seek(is_iter.prefix(1));
 		return Iterator(*me(), is_iter, ba_iter);
+	}
+
+
+	void RemoveByIndex(BigInt blob_index)
+	{
+		auto is_iter 	= set_.GetByIndex(blob_index);
+
+		BigInt pos 		= is_iter.prefix(1);
+		BigInt size 	= is_iter.GetRawKey(1);
+
+		auto ba_iter 	= array_.Seek(pos);
+
+		ba_iter.Remove(size);
+		set_.RemoveEntry(is_iter);
 	}
 
 	static Int Init()

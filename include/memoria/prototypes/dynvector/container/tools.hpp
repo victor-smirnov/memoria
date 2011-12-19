@@ -86,6 +86,20 @@ public:
     	return true;
     }
 
+	Iterator FindStart()
+	{
+		Iterator i = Base::FindStart();
+
+		if (i.page() != NULL)
+		{
+			i.data() = me()->GetDataPage(i.page(), i.key_idx(), Allocator::READ);
+			i.data_pos() = 0;
+		}
+
+		return i;
+	}
+
+
 MEMORIA_CONTAINER_PART_END
 
 

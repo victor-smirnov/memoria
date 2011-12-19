@@ -18,7 +18,7 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE 				= 10;
+const Int SIZE 				= 10000;
 const Int ArrayName 		= 1;
 const Int MAX_BUFFER_SIZE 	= 1024;
 
@@ -76,17 +76,17 @@ ArrayData CreateRandomBuffer(UByte fill_value)
 
 void CheckAllocator(SAllocator &allocator, const char* err_msg)
 {
-	Int src_level = BlobMap0::class_logger().level();
-	BlobMap0::class_logger().level() = Logger::TRACE;
+//	Int src_level = BlobMap0::class_logger().level();
+//	BlobMap0::class_logger().level() = Logger::TRACE;
 
-	memoria::StreamContainersChecker checker(allocator);
+//	memoria::StreamContainersChecker checker(allocator);
 
-	if (checker.CheckAll())
-	{
-		throw MemoriaException(MEMORIA_SOURCE, err_msg);
-	}
+//	if (checker.CheckAll())
+//	{
+//		throw MemoriaException(MEMORIA_SOURCE, err_msg);
+//	}
 
-	BlobMap0::class_logger().level() = src_level;
+//	BlobMap0::class_logger().level() = src_level;
 }
 
 bool CompareBuffer(BMIterator& iter, ArrayData& data)
@@ -121,20 +121,31 @@ void Build(SAllocator& allocator, BlobMap0& array, UByte value)
 {
 	BMIterator i = array.Create();
 	ArrayData data = CreateRandomBuffer(value);
-	cerr<<"Size "<<data.size()<<endl;
+//	cerr<<"Size "<<data.size()<<endl;
 	i.Insert(data);
 	CheckAllocator(allocator, "Insert new LOB");
 }
 
 bool Remove(SAllocator& allocator, BlobMap0& array)
 {
-	return false;
+	Int size 	= array.set().GetSize();
+
+	if (size > 0)
+	{
+		Int idx = get_random(size);
+		array.RemoveByIndex(idx);
+
+		return size > 1;
+	}
+	else {
+		return false;
+	}
 }
 
 
 int main(int argc, const char** argv, const char **envp) {
 
-	long long t0 = getTime(), t1 = t0;
+	long long t0 = getTime(), t1 = t0, t2 = t0, t3 = t0, t4 = t0;
 
 	try {
 		logger.level() = Logger::NONE;
@@ -151,35 +162,64 @@ int main(int argc, const char** argv, const char **envp) {
 
 		try {
 			cout<<"Insert data"<<endl;
+			t0 = getTime();
 
 			for (Int c = 0; c < SIZE; c++)
 			{
 				Build(allocator, dv, c + 1);
+				if (c % 100 == 0) allocator.commit();
 			}
+			allocator.commit();
 
 			t1 = getTime();
 
-			cout<<"Remove data. ByteArray contains "<<dv.array().Size()<<" Mbytes"<<endl;
+			cout<<"Read data sequentially. ByteArray contains "<<dv.array().Size()/1024/1024<<" Mbytes"<<endl;
+
+			ArrayData data(MAX_BUFFER_SIZE);
+
+//			for (auto i = dv.Begin(); i.IsNotEnd(); i.Next())
+//			{
+//				i.Read(data);
+//			}
+
+			t2 = getTime();
+
+			cout<<"Read data randomly"<<endl;
+
+//			for (Int c = 0; c < SIZE; c++)
+//			{
+//				Int key = get_random(SIZE);
+//
+//				auto i = dv.Find(key);
+//
+//				i.Read(data);
+//			}
+
+			t3 = getTime();
+
+			cout<<"Remove data"<<endl;
+
+			for (Int c = 0; ;c++)
+			{
+				if (!Remove(allocator, dv))
+				{
+					break;
+				}
+
+				if (c % 100 == 0) allocator.commit();
+			}
 
 			allocator.commit();
 
+			t4 = getTime();
+
+
+
+//
+
+//			Dump(allocator);
+
 //			allocator.DumpPages();
-
-//			for (Int c = 0; ; c++)
-//			{
-//				if (!Remove(allocator, dv))
-//				{
-//					break;
-//				}
-//			}
-
-			cout<<"Remove data. ByteArray contains "<<dv.array().Size()<<" Mbytes"<<endl;
-
-//			allocator.commit();
-
-			Dump(allocator);
-
-			allocator.DumpPages();
 		}
 		catch (MemoriaException ex)
 		{
@@ -203,7 +243,7 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Unrecognized exception"<<endl;
 	}
 
-	cout<<"ARRAY TEST time: remove "<<(getTime()- t1)<<" insert "<<(t1 - t0)<<endl;
+	cout<<"ARRAY TEST times: RND Remove: "<<(t4 - t3)<<" RND Read: "<<(t3 - t2)<<" LNR Read: "<<(t2-t1)<<" Insert: "<<(t1 - t0)<<endl;
 
 //	Int CtrTotal = 0, DtrTotal = 0;
 //	for (Int c = 0; c < (Int)(sizeof(PageCtrCnt)/sizeof(Int)); c++)
