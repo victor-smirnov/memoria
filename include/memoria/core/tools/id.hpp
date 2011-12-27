@@ -11,7 +11,8 @@
 
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/core/tools/config.hpp>
+#include <memoria/core/types/type2type.hpp>
+
 
 namespace memoria    {
 namespace vapi       {

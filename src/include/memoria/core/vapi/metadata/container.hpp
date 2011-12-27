@@ -15,6 +15,8 @@
 #include <memoria/core/vapi/metadata/page.hpp>
 #include <memoria/core/vapi/metadata/model.hpp>
 
+#include <memoria/core/tools/strings.hpp>
+
 #include <string>
 
 
@@ -46,6 +48,8 @@ private:
     Int                 hash_;
     PageMetadataMap     page_map_;
     ContainerMetadataMap    model_map_;
+
+    void process_model(ContainerMetadata* model);
 };
 
 
@@ -63,21 +67,37 @@ ContainerCollectionMetadataImplT<Interface>::ContainerCollectionMetadataImplT(St
         if (content[c]->GetTypeCode() == Metadata::MODEL)
         {
             ContainerMetadata *model = static_cast<ContainerMetadata*> (content[c]);
-            hash_ = hash_ + model->Hash();
-
-            model_map_[model->Hash()] = model;
-
-
-            for (Int d = 0; d < model->Size(); d++)
-            {
-                PageMetadata *page = static_cast<PageMetadata*> (model->GetItem(d));
-                page_map_[page->Hash()] = page;
-            }
+            process_model(model);
         }
         else {
             //exception;
         }
     }
+}
+template <typename Interface>
+void ContainerCollectionMetadataImplT<Interface>::process_model(ContainerMetadata* model)
+{
+	hash_ = hash_ + model->Hash();
+
+	model_map_[model->Hash()] = model;
+
+
+	for (Int d = 0; d < model->Size(); d++)
+	{
+		Metadata* item = model->GetItem(d);
+		if (item->GetTypeCode() == Metadata::PAGE)
+		{
+			PageMetadata *page = static_cast<PageMetadata*> (item);
+			page_map_[page->Hash()] = page;
+		}
+		else if (item->GetTypeCode() == Metadata::MODEL)
+		{
+			process_model(static_cast<ContainerMetadata*> (item));
+		}
+		else {
+			//exception
+		}
+	}
 }
 
 template <typename Interface>

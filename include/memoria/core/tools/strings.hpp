@@ -27,6 +27,17 @@ MEMORIA_API bool IsEmpty(StringRef str, String::size_type start, String::size_ty
 //MEMORIA_API bool IsStartsWith(StringRef str, StringRef start);
 //MEMORIA_API Long StrToL(StringRef str);
 
+// FIXME: move it into the string library
+template <typename T>
+String ToString(const T& value, bool hex = false)
+{
+	std::stringstream str;
+	if (hex) {
+		str<<hex;
+	}
+	str<<value;
+	return str.str();
+}
 
 
 }}

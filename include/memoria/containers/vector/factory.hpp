@@ -14,22 +14,23 @@
 
 #include <memoria/containers/idx_map/factory.hpp>
 
-#include <memoria/containers/array/iterator/model_api.hpp>
+#include <memoria/containers/vector/iterator/model_api.hpp>
 
-#include <memoria/containers/array/pages/data_page.hpp>
+#include <memoria/containers/vector/pages/data_page.hpp>
+#include <memoria/containers/vector/pages/parts.hpp>
 
-#include <memoria/containers/array/container/api.hpp>
-#include <memoria/containers/array/container/model_api.hpp>
+#include <memoria/containers/vector/container/api.hpp>
+#include <memoria/containers/vector/container/model_api.hpp>
 
-#include <memoria/containers/array/names.hpp>
-#include <memoria/containers/array/tools.hpp>
+#include <memoria/containers/vector/names.hpp>
+#include <memoria/containers/vector/tools.hpp>
 
 #include <memoria/prototypes/dynvector/dynvector.hpp>
 
 namespace memoria {
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::Array>: public BTreeTypes<Profile, memoria::DynVector>  {
+struct BTreeTypes<Profile, memoria::Vector>: public BTreeTypes<Profile, memoria::DynVector>  {
 
 	typedef BTreeTypes<Profile, memoria::DynVector> 								Base;
 
@@ -61,7 +62,7 @@ struct BTreeTypes<Profile, memoria::Array>: public BTreeTypes<Profile, memoria::
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::Array, T>: public CtrTF<Profile, memoria::DynVector, T> {
+class CtrTF<Profile, memoria::Vector, T>: public CtrTF<Profile, memoria::DynVector, T> {
 
 };
 

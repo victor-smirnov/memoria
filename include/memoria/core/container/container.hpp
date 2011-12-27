@@ -20,6 +20,7 @@
 #include <memoria/core/container/dispatcher.hpp>
 #include <memoria/core/container/defaults.hpp>
 #include <memoria/core/container/macros.hpp>
+#include <memoria/core/container/init.hpp>
 
 #include <string>
 
@@ -36,9 +37,22 @@ template <typename Name, typename Base, typename Types> class CtrPart;
 template <typename Types> class Ctr;
 template <typename Types> class Iter;
 
+template <typename Allocator>
+struct IParentCtrInterface
+{
+	typedef typename Allocator::CtrShared					CtrShared;
+	typedef typename Allocator::Page::ID 			ID;
+
+	virtual ID 	  GetRootID(void* caller, BigInt name)					= 0;
+	virtual void  SetRootID(void* caller, BigInt name, const ID& root) 	= 0;
+
+	virtual Allocator& GetAllocator()									= 0;
+	virtual CtrShared* GetShared()										= 0;
+};
+
 
 template <typename TypesType>
-class ContainerBase: public TypesType::ContainerInterface {
+class ContainerBase: public IParentCtrInterface<typename TypesType::Allocator> {
 public:
 
 	typedef ContainerBase<TypesType>											ThisType;
@@ -86,6 +100,8 @@ public:
     ContainerBase(ThisType&& other)//: root_(other.root_)
     {}
 
+
+
     void operator=(ThisType&& other) {
     	//this->root_ = other.root_;
     }
@@ -113,20 +129,20 @@ public:
     void set_root(const PageId &root)
     {
         me()->allocator().SetRoot(me()->name(), root);
-        me()->shared()->root_log 	= root;
-        me()->shared()->updated 	= true;
+        me()->shared()->root_log() 	= root;
+        me()->shared()->updated() 	= true;
     }
 
     const PageId &root() const
     {
         const CtrShared* shared = me()->shared();
 
-        if (shared->updated)
+        if (shared->updated())
         {
-        	return me()->shared()->root_log;
+        	return me()->shared()->root_log();
         }
         else {
-        	return me()->shared()->root;
+        	return me()->shared()->root();
         }
     }
 
@@ -232,7 +248,6 @@ public:
 
 
 
-
 template <typename Types>
 class Ctr: public CtrStart<Types> {
 	typedef CtrStart<Types> 													Base;
@@ -241,8 +256,8 @@ public:
 
     typedef typename Types::Allocator                                           Allocator;
     typedef typename Types::Allocator::CtrShared                                CtrShared;
-    typedef typename Types::Allocator::Page										Page;
-    typedef typename Page::ID													ID;
+    typedef typename Types::Allocator::PageG									PageG;
+    typedef typename PageG::Page::ID											ID;
 
     typedef typename Types::NodeBase                                           	NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
@@ -251,6 +266,7 @@ public:
 public:
 
     typedef typename Types::ContainerTypeName									ContainerTypeName;
+    typedef IParentCtrInterface<Allocator>										ParentCtrInterface;
     typedef ContainerTypeName                                                   Name;
 
 private:
@@ -266,6 +282,8 @@ private:
 
     bool 		debug_;
 
+    ParentCtrInterface* parent_ctr_;
+
 public:
 
 
@@ -274,7 +292,8 @@ public:
         allocator_(allocator),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         logger_(model_type_name_, Logger::DERIVED, &class_logger_),
-        debug_(false)
+        debug_(false),
+        parent_ctr_(NULL)
     {
     	if (create)
     	{
@@ -284,8 +303,8 @@ public:
 
     		allocator.SetRoot(name, node->id());
 
-    		shared_->root_log 	= node->id();
-    		shared_->updated 	= true;
+    		shared_->root_log() = node->id();
+    		shared_->updated() 	= true;
     	}
     	else {
     		shared_ = allocator.GetCtrShared(name, false);
@@ -294,16 +313,63 @@ public:
     	ref();
     }
 
+    Ctr(ParentCtrInterface* parent, BigInt name, bool create, const char* mname):
+        Base(),
+        allocator_(parent->GetAllocator()),
+        name_(name),
+        model_type_name_(mname),
+        logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+        shared_(parent->GetShared()->Get(name, create)),
+        debug_(false),
+        parent_ctr_(parent)
+    {
+
+    	if (create)
+    	{
+    		NodeBaseG node = me()->CreateNode(0, true, true);
+//    		me()->set_root(node->id());
+    		shared_->root_log() = node->id();
+    		shared_->updated() 	= true;
+    		this->SetRootID(this, name, node->id());
+    	}
+    	else {
+    		shared_ = parent->GetShared();
+    	}
+
+    	ref();
+    }
+
     Ctr(Allocator &allocator, const ID& root_id, const char* mname = NULL):
             Base(),
-            allocator_(allocator), name_(-1),
+            allocator_(allocator),
+            name_(-1),
             model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
             logger_(model_type_name_, Logger::DERIVED, &class_logger_),
-            debug_(false)
+            debug_(false),
+            parent_ctr_(NULL)
     {
     	NodeBaseG root 	= allocator.GetPage(root_id, Allocator::READ);
     	Metadata  meta 	= me()->GetRootMetadata(root);
-    	shared_ = allocator_.GetCtrShared(meta.model_name(), false);
+    	name_			= meta.model_name();
+    	shared_ 		= allocator_.GetCtrShared(name_, false);
+
+    	ref();
+    }
+
+    Ctr(ParentCtrInterface* parent, const ID& root_id, const char* mname):
+    	Base(),
+    	allocator_(parent->GetAllocator()),
+    	name_(-1),
+    	model_type_name_(mname),
+    	logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+    	debug_(false),
+    	parent_ctr_(parent)
+    {
+    	NodeBaseG root 	= allocator_.GetPage(root_id, Allocator::READ);
+    	Metadata  meta 	= me()->GetRootMetadata(root);
+    	name_			= meta.model_name();
+    	shared_ 		= parent->GetShared()->Get(name_, true);
+
     	ref();
     }
 
@@ -313,7 +379,8 @@ public:
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
     	shared_(other.shared_),
-    	debug_(other.debug_)
+    	debug_(other.debug_),
+    	parent_ctr_(NULL)
     {
     	ref();
     }
@@ -324,15 +391,69 @@ public:
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
     	shared_(other.shared_),
-    	debug_(other.debug_)
+    	debug_(other.debug_),
+    	parent_ctr_(NULL)
     {
     	other.shared_ = NULL;
     }
 
+    Ctr(MyType&& other, ParentCtrInterface* parent):
+    	Base(std::move(other)),
+    	allocator_(other.allocator_),
+    	model_type_name_(other.model_type_name_),
+    	logger_(other.logger_),
+    	shared_(other.shared_),
+    	debug_(other.debug_),
+    	parent_ctr_(parent)
+    {
+    	other.shared_ = NULL;
+    }
 
     ~Ctr() throw()
     {
     	unref();
+    }
+
+    virtual ID GetRootID(void* caller, BigInt name)
+    {
+    	if (caller == this)
+    	{
+    		if (parent_ctr_ == NULL)
+    		{
+    			return me()->allocator().GetRootID(name);
+    		}
+    		else {
+    			return parent_ctr_->GetRootID(this, name);
+    		}
+    	}
+    	else {
+    		return get_child_root(name);
+    	}
+    }
+
+    virtual void SetRootID(void* caller, BigInt name, const ID& root)
+    {
+    	if (caller == this)
+    	{
+    		if (parent_ctr_ == NULL)
+    		{
+    			me()->allocator().SetRoot(name, root);
+    		}
+    		else {
+    			parent_ctr_->SetRootID(this, name, root);
+    		}
+    	}
+    	else {
+    		set_child_root(name, root);
+    	}
+    }
+
+    virtual Allocator& GetAllocator() {
+    	return allocator();
+    }
+
+    virtual CtrShared* GetShared() {
+    	return shared_;
     }
 
     bool& debug() {
@@ -368,12 +489,12 @@ public:
     	return class_logger_;
     }
 
-    const BigInt& name() const {
-        return shared_->name;
+    BigInt name() const {
+        return shared_->name();
     }
 
     BigInt& name() {
-    	return shared_->name;
+    	return shared_->name();
     }
 
     MyType* me()
@@ -425,6 +546,10 @@ public:
     	return shared_;
     }
 
+    void clear_shared() {
+    	shared_ = NULL;
+    }
+
 private:
     void ref()
     {
@@ -438,8 +563,29 @@ private:
     {
     	if (shared_ != NULL && shared_->unref() == 0)
     	{
-    		allocator_.ReleaseCtrShared(shared_);
+    		if (shared_->parent() == NULL)
+    		{
+    			allocator_.ReleaseCtrShared(shared_);
+    		}
+    		else {
+    			shared_->parent()->RemoveChild(shared_);
+    		}
     	}
+    }
+
+    void set_child_root(BigInt name, const ID& root_id)
+    {
+    	NodeBaseG root 	= allocator_.GetPage(me()->root(), Allocator::READ);
+    	Metadata  meta 	= MyType::GetRootMetadata(root);
+    	meta.roots(name) = root_id;
+    	MyType::SetRootMetadata(root, meta);
+    }
+
+    ID get_child_root(BigInt name)
+    {
+    	NodeBaseG root 	= allocator_.GetPage(me()->root(), Allocator::READ);
+    	Metadata  meta 	= MyType::GetRootMetadata(root);
+    	return meta.roots(name);
     }
 };
 

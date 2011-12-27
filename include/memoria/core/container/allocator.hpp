@@ -10,8 +10,8 @@
 #define	_MEMORIA_CORE_CONTAINER_ALLOCATOR_HPP
 
 #include <memoria/core/container/names.hpp>
+#include <memoria/core/container/ctr_shared.hpp>
 
-#include <memoria/vapi/models/allocator.hpp>
 
 
 
@@ -35,27 +35,12 @@ struct IAbstractAllocator {
 
 	typedef IAbstractAllocator<PageType, MaxPageSize>					AbstractAllocator;
 
-	struct CtrShared {
-		Int		references;
-		BigInt 	name;
-		ID		root;
-		ID		root_log;
-		bool 	updated;
-
-		CtrShared(BigInt name0): references(0), name(name0), root(0), root_log(0), updated(false) {}
-
-		Int ref() {
-			return ++references;
-		}
-
-		Int unref() {
-			return --references;
-		}
-	};
+	typedef ContainerShared<ID>											CtrShared;
 
 	static const Int PAGE_SIZE											= MaxPageSize;
 
 	virtual PageG GetPage(const ID& id, Int flags)						= 0;
+	virtual PageG GetPageG(Page* page)									= 0;
 	virtual void  UpdatePage(Shared* shared)							= 0;
 	virtual void  RemovePage(const ID& id)								= 0;
 	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;
@@ -71,6 +56,8 @@ struct IAbstractAllocator {
 	virtual void  SetRoot(BigInt name, const ID& root) 					= 0;
 
 	virtual Logger& logger()											= 0;
+
+
 };
 
 
@@ -80,66 +67,6 @@ public:
 	typedef IAbstractAllocator<PageType, MaxPageSize>					Type;
 };
 
-
-template <typename Profile, typename PageType, int MaxPageSize = 4096>
-class ProxyAllocator : public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType, MaxPageSize> >::Type {
-
-	typedef typename AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType, MaxPageSize> >::Type Base;
-
-	typedef typename Base::ID 										ID;
-
-	Base* target_;
-
-public:
-
-	ProxyAllocator(): target_(NULL) {}
-
-	Base* target() {
-		return target_;
-	}
-
-	const Base* target() const {
-		return target_;
-	}
-
-	virtual Page* GetPage(const ID& id) {
-		checkTarget();
-		return target_->GetPage(id);
-	}
-
-	virtual void  RemovePage(const ID& id) {
-		checkTarget();
-		target_->RemovePage(id);
-	}
-
-	virtual Page* CreatePage(Int initial_size = MaxPageSize) {
-		checkTarget();
-		return target_->CreatePage(initial_size);
-	}
-
-	virtual Page* ReallocPage(Page* page, Int new_size) {
-		checkTarget();
-		return target_->ReallocPage(page, new_size);
-	}
-
-	virtual Page* GetRoot(BigInt name) {
-		checkTarget();
-		return target_->GetRoot(name);
-	}
-
-	virtual void  SetRoot(BigInt name, const ID& root) {
-		checkTarget();
-		target_->SetRoot(name, root);
-	}
-
-	virtual Logger& logger() {
-		checkTarget();
-		return target_->logger();
-	}
-
-private:
-	void checkTarget(){}
-};
 
 }
 

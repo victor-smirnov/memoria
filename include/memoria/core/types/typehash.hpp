@@ -75,17 +75,10 @@ public:
 };
 
 template <>
-class TypeHash<Long> {
-public:
-    static const UInt Value = 4;
-};
-
-template <>
 class TypeHash<BigInt> {
 public:
     static const UInt Value = 5;
 };
-
 
 template <>
 class TypeHash<UByte> {

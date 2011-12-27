@@ -27,8 +27,12 @@ class TreePage: public Allocator_::Page {
     typedef BitBuffer<32>                   TreeFlagsType;
 
     TreeFlagsType                           tree_flags_;
-    typename Allocator_::Page::ID             parent_id_;
+    typename Allocator_::Page::ID           parent_id_;
     Int                                     parent_idx_;
+
+    Int root_;
+    Int leaf_;
+    Int bitmap_;
 
 public:
 
@@ -47,13 +51,13 @@ public:
     TreePage(): Base() {}
 
     // for access from getters
-    const TreeFlagsType& tree_flags() const {
-        return tree_flags_;
-    }
-
-    TreeFlagsType& tree_flags() {
-        return tree_flags_;
-    }
+//    const TreeFlagsType& tree_flags() const {
+//        return tree_flags_;
+//    }
+//
+//    TreeFlagsType& tree_flags() {
+//        return tree_flags_;
+//    }
 
 
     const ID& parent_id() const {
@@ -74,38 +78,50 @@ public:
 
 
     inline bool is_root() const {
-        return tree_flags().is_bit(ROOT);
+        //return tree_flags().is_bit(ROOT);
+    	return root_;
     }
 
     void set_root(bool root) {
-        return tree_flags().set_bit(ROOT, root);
+        //return tree_flags().set_bit(ROOT, root);
+    	root_ = root;
     }
 
     inline bool is_leaf() const {
-        return tree_flags().is_bit(LEAF);
+        //return tree_flags().is_bit(LEAF);
+    	return leaf_;
     }
 
     void set_leaf(bool leaf) {
-        return tree_flags().set_bit(LEAF, leaf);
+        //return tree_flags().set_bit(LEAF, leaf);
+    	leaf_ = leaf;
     }
 
     inline bool is_bitmap() const {
-        return tree_flags().is_bit(BITMAP);
+        //return tree_flags().is_bit(BITMAP);
+    	return bitmap_;
     }
 
     void set_bitmap(bool bitmap) {
-        return tree_flags().set_bit(BITMAP, bitmap);
+        //return tree_flags().set_bit(BITMAP, bitmap);
+    	bitmap_ = bitmap;
     }
 
     template <template <typename> class FieldFactory>
     void BuildFieldsList(MetadataList &list, Long &abi_ptr) const {
         Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
 
-        FieldFactory<BitField<TreeFlagsType> >::create(list, tree_flags(), "LEAF",   LEAF,   abi_ptr);
-        FieldFactory<BitField<TreeFlagsType> >::create(list, tree_flags(), "ROOT",   ROOT,   abi_ptr);
-        FieldFactory<BitField<TreeFlagsType> >::create(list, tree_flags(), "BITMAP", BITMAP, abi_ptr);
+//        FieldFactory<BitField<TreeFlagsType> >::create(list, tree_flags(), "LEAF",   LEAF,   abi_ptr);
+//        FieldFactory<BitField<TreeFlagsType> >::create(list, tree_flags(), "ROOT",   ROOT,   abi_ptr);
+//        FieldFactory<BitField<TreeFlagsType> >::create(list, tree_flags(), "BITMAP", BITMAP, abi_ptr);
+
+
 
         abi_ptr += ValueTraits<TreeFlagsType>::Size;
+
+        FieldFactory<Int>::create(list, root_, 		"ROOT", abi_ptr);
+        FieldFactory<Int>::create(list, leaf_, 		"LEAF", abi_ptr);
+        FieldFactory<Int>::create(list, bitmap_, 	"BITMAP", abi_ptr);
 
         FieldFactory<ID>::create(list,  parent_id(),  "PARENT_ID",  abi_ptr);
         FieldFactory<Int>::create(list, parent_idx(), "PARENT_IDX", abi_ptr);
@@ -116,7 +132,12 @@ public:
     {
         Base::CopyFrom(page);
 
-        this->tree_flags()  = page->tree_flags();
+//        this->tree_flags()  = page->tree_flags();
+
+        this->set_root(page->is_root());
+        this->set_leaf(page->is_leaf());
+        this->set_bitmap(page->is_bitmap());
+
         this->parent_id()   = page->parent_id();
         this->parent_idx()  = page->parent_idx();
     }

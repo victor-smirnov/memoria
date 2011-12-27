@@ -50,7 +50,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::ContainerApiName)
 
     bool Find(BigInt index, Int c, Int search_type, Value& v);
     void Put(Key key, const Value& value = ID(0));
-    void Insert(Key* keys, const Value& value, Int idx);
+    Iterator Insert(Key* keys, const Value& value, Int idx);
 
     bool Remove(Key index, Int key_num = 0)
     {
@@ -64,8 +64,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::ContainerApiName)
     }
 
 private:
-    bool find_lt(Key index, Int c, Value& value);
-    bool find_le(BigInt index, Int c, Value& value);
+    bool find_le(BigInt index, Int key_num, Value& value);
+    bool find_lt(Key index, Int key_num, Value& value);
+
    
 MEMORIA_CONTAINER_PART_END
 
@@ -81,13 +82,13 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-bool M_TYPE::Find(BigInt index, Int c, Int search_type, Value& v)
+bool M_TYPE::Find(BigInt index, Int key_num, Int search_type, Value& v)
 {
 	if (search_type == memoria::vapi::IdxMap::LT) {
-		return find_lt(index, c, v);
+		return find_lt(index, key_num, v);
 	}
 	else if (search_type == memoria::vapi::IdxMap::LE) {
-		return find_le(index, c, v);
+		return find_le(index, key_num, v);
 	}
 	else {
 		throw MemoriaException(MEMORIA_SOURCE, "Invalid search_type value", search_type);
@@ -111,28 +112,27 @@ void M_TYPE::Put(Key key, const Value& value)
 
 
 M_PARAMS
-void M_TYPE::Insert(Key* keys, const Value& value, Int idx)
+typename M_TYPE::Iterator M_TYPE::Insert(Key* keys, const Value& value, Int key_num)
 {
-	Iterator i = me()->FindLE(keys[idx], idx, true);
+	Iterator i = me()->FindLE(keys[key_num], key_num, true);
 
-	for (Int c = 0; c < Indexes; c++) keys[c] -= i.prefix(c);
-
-	if (!i.IsEmpty()) {
-		MEMORIA_TRACE(me(), "Insert into", i.page()->id(), "at", i.key_idx(), "key", keys[0], "prefix", i.prefix(0));
-	}
-	else {
-		MEMORIA_TRACE(me(), "Insert into empty map", keys[0]);
+	for (Int c = 0; c < Indexes; c++) {
+		keys[c] -= i.prefix(c);
 	}
 
-	if (i.IsEnd() || i.IsEmpty()) {
+	if (i.IsEnd() || i.IsEmpty())
+	{
 		me()->InsertEntry(i, keys, value);
 	}
-	else if (keys[0] == i.GetKey(0)) {
+	else if (keys[key_num] == i.GetRawKey(key_num))
+	{
 		me()->SetLeafData(i.page(), i.key_idx(), value);
 	}
 	else {
 		me()->InsertEntry(i, keys, value);
 	}
+
+	return i;
 }
 
 
@@ -144,9 +144,9 @@ void M_TYPE::Insert(Key* keys, const Value& value, Int idx)
 
 
 M_PARAMS
-bool M_TYPE::find_le(BigInt index, Int c, Value& value)
+bool M_TYPE::find_le(BigInt index, Int key_num, Value& value)
 {
-	Iterator i = me()->FindLE(index, c, false);
+	Iterator i = me()->FindLE(index, key_num, false);
 
 	if (!i.IsFound()) {
 		return false;
@@ -158,9 +158,9 @@ bool M_TYPE::find_le(BigInt index, Int c, Value& value)
 }
 
 M_PARAMS
-bool M_TYPE::find_lt(Key index, Int c, Value& value)
+bool M_TYPE::find_lt(Key index, Int key_num, Value& value)
 {
-	Iterator i = me()->FindLT(index, c, false);
+	Iterator i = me()->FindLT(index, key_num, false);
 
 	if (!i.IsFound()) {
 		return false;
@@ -170,7 +170,6 @@ bool M_TYPE::find_lt(Key index, Int c, Value& value)
 		return true;
 	}
 }
-
 
 
 #undef M_TYPE

@@ -12,6 +12,22 @@
 #include <memoria/core/tools/file.hpp>
 #include <memoria/allocators/stream/factory.hpp>
 
+namespace memoria {
+
+MEMORIA_DECLARE_PROFILE(StreamProfile<>, 0);
+
+
+MEMORIA_DECLARE_ROOT_CTR(Root, 			10);
+MEMORIA_DECLARE_ROOT_CTR(VectorMap, 	20);
+
+MEMORIA_DECLARE_ROOT_CTR(DefKVMap, 		30);
+MEMORIA_DECLARE_ROOT_CTR(IdxSet1, 		40);
+MEMORIA_DECLARE_ROOT_CTR(IdxMap1, 		50);
+MEMORIA_DECLARE_ROOT_CTR(Vector, 		60);
+
+
+}
+
 #endif
 
 

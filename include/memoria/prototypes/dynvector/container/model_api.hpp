@@ -53,6 +53,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::ContainerApiName)
 
 
 
+
+
 //		virtual DataIterator *Seek(BigInt pos) {
 //			return NULL;
 //		}

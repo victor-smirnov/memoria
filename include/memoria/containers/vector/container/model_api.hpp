@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_MODELS_ARRAY_MODEL_MODEL_API_HPP
 #define _MEMORIA_MODELS_ARRAY_MODEL_MODEL_API_HPP
 
-#include <memoria/containers/array/names.hpp>
+#include <memoria/containers/vector/names.hpp>
 #include <memoria/core/container/container.hpp>
 
 

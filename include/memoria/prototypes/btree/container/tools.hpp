@@ -647,6 +647,18 @@ public:
     	}
     }
 
+    BigInt GetPageCount()
+    {
+    	NodeBaseG root = me()->GetRoot(Allocator::READ);
+    	return root->counters().page_count();
+    }
+
+    BigInt GetKeyCount()
+    {
+    	NodeBaseG root = me()->GetRoot(Allocator::READ);
+    	return root->counters().key_count();
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 }

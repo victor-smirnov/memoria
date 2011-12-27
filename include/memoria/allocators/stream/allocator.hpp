@@ -9,6 +9,7 @@
 #define		_MEMORIA_MODULES_CONTAINERS_STREAM_POSIX_MANAGER_HPP
 
 #include <map>
+#include <unordered_map>
 #include <string>
 
 #include <memoria/vapi.hpp>
@@ -24,6 +25,18 @@
 
 namespace memoria {
 
+
+typedef struct
+{
+	template <typename T, size_t S>
+	long operator() (const AbstractPageID<T,S> &k) const { return k.value(); }
+} IDKeyHash;
+
+typedef struct
+{
+	template <typename T, size_t S>
+	bool operator() (const AbstractPageID<T,S> &x, const AbstractPageID<T,S> &y) const { return x == y; }
+} IDKeyEq;
 
 using namespace memoria::vapi;
 
@@ -60,9 +73,13 @@ private:
 		PageOp(): id_(), page_(NULL), op_(NONE) 						{}
 	};
 
-	typedef std::map<ID, Page*> 												IDPageMap;
-	typedef std::map<ID, PageOp> 												IDPageOpMap;
-	typedef std::map<BigInt, CtrShared*> 										CtrSharedMap;
+//	typedef std::map<ID, Page*> 												IDPageMap;
+//	typedef std::map<ID, PageOp> 												IDPageOpMap;
+//	typedef std::map<BigInt, CtrShared*> 										CtrSharedMap;
+
+	typedef std::unordered_map<ID, Page*, IDKeyHash, IDKeyEq> 					IDPageMap;
+	typedef std::unordered_map<ID, PageOp, IDKeyHash, IDKeyEq> 					IDPageOpMap;
+	typedef std::unordered_map<BigInt, CtrShared*> 								CtrSharedMap;
 
 
 	IDPageMap 			pages_;
@@ -312,6 +329,23 @@ public:
 		}
 	}
 
+	virtual PageG GetPageG(Page* page)
+	{
+//		Shared* shared = pool_.Get(id);
+//		if (shared == NULL)
+//		{
+//			shared = pool_.Allocate(id);
+//
+//			shared->set_allocator(this);
+//			shared->id() = id;
+//		}
+//		else {
+//			return PageG(shared);
+//		}
+
+		return GetPage(page->id(), Base::READ);
+	}
+
 	virtual void UpdatePage(Shared* shared)
 	{
 		if (shared->state() == Shared::READ)
@@ -357,6 +391,8 @@ public:
 	{
 		allocs1_++;
 		char* buf = (char*) malloc(PAGE_SIZE);
+//		Clean(buf, PAGE_SIZE);
+
 		for (int c = 0; c < PAGE_SIZE; c++)
 		{
 			buf[c] = 0;
@@ -377,6 +413,10 @@ public:
 		shared->set_allocator(this);
 
 		return PageG(shared);
+	}
+
+	void stat() {
+		cout<<allocs1_<<" "<<allocs2_<<" "<<pages_.size()<<endl;
 	}
 
 	void commit()
@@ -427,11 +467,11 @@ public:
 		for (auto i = ctr_shared_.begin(); i != ctr_shared_.end(); i++)
 		{
 			CtrShared* shared = i->second;
-			if (shared->updated)
+			if (shared->updated())
 			{
-				shared->root 		= shared->root_log;
-				shared->root_log 	= 0;
-				shared->updated 	= false;
+				shared->root() 		= shared->root_log();
+				shared->root_log() 	= 0;
+				shared->updated() 	= false;
 			}
 		}
 
@@ -457,10 +497,10 @@ public:
 		{
 			CtrShared* shared = i->second;
 
-			if (shared->updated)
+			if (shared->updated())
 			{
-				shared->root_log = 0;
-				shared->updated = false;
+				shared->root_log() = 0;
+				shared->updated() = false;
 			}
 		}
 
@@ -521,10 +561,10 @@ public:
 			{
 				if (name > 0)
 				{
-					shared->root = GetRootID(name);
+					shared->root() = GetRootID(name);
 				}
 				else {
-					shared->root = root();
+					shared->root() = root();
 				}
 			}
 
@@ -537,13 +577,17 @@ public:
 
 	virtual void ReleaseCtrShared(CtrShared* shared)
 	{
-		ctr_shared_.erase(shared->name);
+		ctr_shared_.erase(shared->name());
 		delete shared;
 	}
 
 
 	virtual void load(InputStreamHandler *input)
 	{
+		//FIXME: clear allocator
+		commit();
+		//clear();
+
 		char signature[12];
 
 		MEMORIA_TRACE(me(),"Read header from:", input->pos());
@@ -582,8 +626,8 @@ public:
 			input->read(buf, 0, size);
 
 			Page* page = T2T<Page*>(buf);
-
-			MEMORIA_TRACE(me(), "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id(), &page->id());
+//
+//			MEMORIA_TRACE(me(), "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id(), &page->id());
 
 			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page_hash);
 
@@ -604,6 +648,11 @@ public:
 
 			MEMORIA_TRACE(me(), "Register page", page, page->id());
 
+//			PageWrapper<Page, PAGE_SIZE> pw(page);
+//			memoria::vapi::DumpPage(pageMetadata, &pw, cout);
+//			    		cout<<endl;
+//			    		cout<<endl;
+
 			if (first)
 			{
 				root_ = page->id();
@@ -612,7 +661,7 @@ public:
 		}
 
 		Int maxId = -1;
-		for (typename IDPageMap::iterator i = pages_.begin(); i != pages_.end(); i++)
+		for (auto i = pages_.begin(); i != pages_.end(); i++)
 		{
 			Int idValue = i->second->id().value();
 			if (idValue > maxId)
@@ -621,7 +670,7 @@ public:
 			}
 		}
 
-		roots_->set_root(root_);
+//		roots_->set_root(root_);
 
 		counter_ = maxId + 1;
 	}
@@ -767,6 +816,21 @@ public:
 
 	const MyType* me() const {
 		return static_cast<const MyType*>(this);
+	}
+
+
+	void DumpPages(ostream& out = cout)
+	{
+		for (auto i = pages_.begin(); i != pages_.end(); i++)
+		{
+			Page* page = i->second;
+			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
+
+			PageWrapper<Page, PAGE_SIZE> pw(page);
+			memoria::vapi::DumpPage(pageMetadata, &pw, out);
+			out<<endl;
+			out<<endl;
+		}
 	}
 };
 

@@ -16,8 +16,8 @@
 #include <memoria/containers/kvmap/factory.hpp>
 #include <memoria/containers/idx_map/factory.hpp>
 #include <memoria/containers/idx_set/factory.hpp>
-#include <memoria/containers/array/factory.hpp>
-
+#include <memoria/containers/vector/factory.hpp>
+#include <memoria/containers/vector_map/factory.hpp>
 
 #include "names.hpp"
 #include "allocator.hpp"
@@ -49,15 +49,15 @@ public:
 };
 
 
-template <typename Profile>
-struct ContainerTypesHelper {
-		typedef typename ContainerCollectionCfg<Profile>::Types						ContainerTypesType;
-
-	    typedef typename ContainerName2TypeMapBuilder<
-								Profile,
-								typename ContainerTypesType::RootNamesList
-						 >::Result   												Name2TypeMapList;
-};
+//template <typename Profile>
+//struct ContainerTypesHelper {
+//		typedef typename ContainerCollectionCfg<Profile>::Types						ContainerTypesType;
+//
+//	    typedef typename ContainerName2TypeMapBuilder<
+//								Profile,
+//								typename ContainerTypesType::RootNamesList
+//						 >::Result   												Name2TypeMapList;
+//};
 
 typedef memoria::StreamAllocator<StreamProfile<>, BasicContainerCollectionCfg<StreamProfile<> >::Page, EmptyType> DefaultStreamAllocator;
 typedef ContainerTypesCollection<StreamProfile<> > StreamContainerTypesCollection;
@@ -145,28 +145,28 @@ MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, mem
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::IteratorMultiskipName)
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::IteratorContainerAPIName)
 
-MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Array)
+MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Vector)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::StubsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::InsertName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::FindName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::StubsName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::InsertName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::FindName)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::dynvector::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::dynvector::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::RemoveName)
 
 //FIXME CtrPart
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::dynvector::InsertName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::InsertName)
 
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::IteratorToolsName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::IteratorWalkName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::IteratorAPIName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::IteratorMultiskipName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::btree::IteratorContainerAPIName)
+MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorToolsName)
+MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorWalkName)
+MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorAPIName)
+MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorMultiskipName)
+MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorContainerAPIName)
 
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Array, memoria::dynvector::IteratorAPIName)
+MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::IteratorAPIName)
 
 /**/
 
@@ -174,7 +174,7 @@ MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Array, memori
 #if !defined(MEMORIA_DLL) && !defined(MEMORIA_MAIN)
 
 // This is a workaroud. GCC 4.5.1 can't build models without this builder.
-extern template class ContainerTypesHelper<StreamProfile<> >;
+//extern template class ContainerTypesHelper<StreamProfile<> >;
 
 extern template class memoria::StreamAllocator<StreamProfile<>, BasicContainerCollectionCfg<StreamProfile<> >::Page, EmptyType>;
 extern template class ContainerTypesCollection<StreamProfile<> >;

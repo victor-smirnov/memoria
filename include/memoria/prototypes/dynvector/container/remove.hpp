@@ -147,6 +147,8 @@ public:
     		a++;
     	}
 
+    	data.update();
+
     	Int pos = start + length;
 
     	BigInt keys[Indexes] = {0,};

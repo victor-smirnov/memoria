@@ -41,7 +41,7 @@ typedef std::map<Int, FieldMetadata*>   PtrMap;
 typedef Container* (*ContainerFactoryFn) (const IDValue& rootId, ContainerCollection *container, BigInt name);
 typedef Int (*PageSizeProviderFn)(const void *page);
 
-struct MEMORIA_API Metadata: public Typed {
+struct MEMORIA_API Metadata {
     enum   {BYTE,   UBYTE,  SHORT,   USHORT, INT,    UINT,
             BIGINT, ID,     BITMAP,  FLAG,   GROUP,  PAGE,
             MODEL,  CONTAINER};
@@ -56,7 +56,7 @@ struct MEMORIA_API Metadata: public Typed {
 };
 
 
-struct MEMORIA_API Page: public Typed {
+struct MEMORIA_API Page {
 
     virtual IDValue GetId() const                    = 0;
     virtual Int GetContainerHash() const             = 0;
@@ -71,11 +71,6 @@ struct MEMORIA_API Page: public Typed {
     virtual Int GetByte(Int idx) const               = 0;
     virtual void SetByte(Int idx, Int value)    	 = 0;
 };
-
-
-
-void InitMetadataTypes();
-void DestroyMetadataTypes();
 
 }}
 

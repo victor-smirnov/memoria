@@ -145,6 +145,7 @@ void checkMultistepBackwardIterator(KVMapType* map)
 }
 
 
+MEMORIA_INIT();
 
 int main(int argc, const char** argv, const char **envp) {
 
@@ -154,9 +155,6 @@ int main(int argc, const char** argv, const char **envp) {
 		InitTypeSystem(argc, argv, envp, false);
 
 		logger.level() = Logger::NONE;
-
-		ContainerTypesCollection<StreamProfile<> >::Init();
-		StreamContainerTypesCollection::Init();
 
 		DefaultStreamAllocator allocator;
 

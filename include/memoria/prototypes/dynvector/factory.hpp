@@ -21,6 +21,7 @@
 #include <memoria/prototypes/dynvector/container/checks.hpp>
 
 #include <memoria/prototypes/dynvector/iterator/api.hpp>
+#include <memoria/prototypes/dynvector/iterator.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>

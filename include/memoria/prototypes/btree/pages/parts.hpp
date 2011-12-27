@@ -24,7 +24,11 @@ using namespace memoria::btree;
 template <typename Allocator>
 class BTreeMetadata
 {
+	 typedef typename Allocator::Page::ID	ID;
+
     BigInt model_name_;
+
+    ID roots_[2];
 
 public:
     BTreeMetadata() {}
@@ -40,7 +44,23 @@ public:
     MetadataList GetFields(Long &abi_ptr) const {
         MetadataList list;
         FieldFactory<BigInt>::create(list, model_name_, "MODEL_NAME", abi_ptr);
+
+        MetadataList rootsList;
+        for (Int c = 0; c < 2; c++)
+        {
+        	FieldFactory<ID>::create(rootsList, roots(c), "ROOT", abi_ptr);
+        }
+        list.push_back(new MetadataGroupImpl("ROOTS", rootsList));
+
         return list;
+    }
+
+    const ID& roots(Int idx) const {
+    	return roots_[idx];
+    }
+
+    ID& roots(Int idx) {
+    	return roots_[idx];
     }
 };
 

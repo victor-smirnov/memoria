@@ -22,6 +22,14 @@ namespace memoria        {
 
 using memoria::vapi::MetadataList;
 
+struct GlobalConstants {
+    //defaults:
+    static const int KIND = 0;
+
+    //values:
+    static const int CACHE_LINE_WIDTH = 64;
+};
+
 template <
 	size_t BlockSize,
 	Int kind = 0,
@@ -433,6 +441,21 @@ public:
         CmpLE le;
         CmpEQ eq;
         return Find(i, k, le, eq);
+    }
+
+    Int FindEQS(Int i, const Key& k, Key& sum) const
+    {
+    	CmpLE le;
+    	CmpEQ eq;
+
+    	Int idx = Find(i, k, le, eq);
+
+    	if (idx >= 0)
+    	{
+    		sum += le.get() - (size() > 0 ? key(i, idx) : 0);
+    	}
+
+    	return idx;
     }
 
     Key Prefix(Int i, Int idx, const Key& sum) const {
