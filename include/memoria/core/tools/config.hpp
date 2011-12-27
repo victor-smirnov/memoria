@@ -5,8 +5,8 @@
  *      Author: Victor
  */
 
-#ifndef _MEMORIA_CORE_TOOLS_CONFIG_HPP2_
-#define _MEMORIA_CORE_TOOLS_CONFIG_HPP2_
+#ifndef _MEMORIA_CORE_TOOLS_CONFIG_HPP12_
+#define _MEMORIA_CORE_TOOLS_CONFIG_HPP12_
 
 #ifdef _INTEL_COMPILER
 #pragma warning (disable : 2586)

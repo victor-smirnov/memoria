@@ -391,6 +391,8 @@ public:
 	{
 		allocs1_++;
 		char* buf = (char*) malloc(PAGE_SIZE);
+//		Clean(buf, PAGE_SIZE);
+
 		for (int c = 0; c < PAGE_SIZE; c++)
 		{
 			buf[c] = 0;
@@ -411,6 +413,10 @@ public:
 		shared->set_allocator(this);
 
 		return PageG(shared);
+	}
+
+	void stat() {
+		cout<<allocs1_<<" "<<allocs2_<<" "<<pages_.size()<<endl;
 	}
 
 	void commit()

@@ -67,6 +67,7 @@ public:
 
     void InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescriptor &descriptor);
 
+    int datapages;
 
 //PROTECTED API:
     DataPageG create_datapage(NodeBaseG& node, Int idx);
@@ -142,9 +143,14 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 		// The target datapage has enough free space to inset to
 		import_small_block(iter.page(), iter.data()->parent_idx(), data_idx, block, descriptor);
 		data_idx += descriptor.length();
+		me()->datapages = 0;
 	}
 	else if (!iter.IsEnd())
 	{
+		if (me()->datapages == 1) {
+			int a; a++;
+		}
+
 		if (data_idx > 0 && data_idx < usage)
 		{
 			// import_data() doesn't move data in the datapage.
@@ -208,10 +214,10 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 		}
 
 		import_pages(iter, block, descriptor);
+		me()->datapages = 1;
 	}
 	else
 	{
-		MEMORIA_TRACE(me(), "EOF");
 		import_pages(iter, block, descriptor);
 	}
 
@@ -235,6 +241,8 @@ typename M_TYPE::DataPageG M_TYPE::create_datapage(NodeBaseG& node, Int idx)
 
 	data->model_hash()      = me()->hash();
 	data->page_type_hash()  = DataPage::hash();
+
+//	ID id = me()->GetLeafData(node, idx);
 
 	me()->SetLeafData(node, idx, data->id());
 
@@ -473,8 +481,6 @@ void M_TYPE::import_several_pages(
 		BufferContentDescriptor &descriptor,
 		BigInt page_count)
 {
-	MEMORIA_TRACE(me(), "[node.id, key_idx, length, page_count]", node->id(), key_idx, page_count);
-
 	BigInt total_indexes[Indexes] = {0};
 
 	for (BigInt c = key_idx; c < key_idx + page_count; c++)

@@ -106,7 +106,7 @@ public:
 
 	void Insert(ArrayData& data)
 	{
-		ba_iter_.Insert(data);
+//		ba_iter_.Insert(data);
 
 		Key keys[ContainerType::IS_Indexes];
 

@@ -8,7 +8,7 @@
 
 #include "mtools.hpp"
 
-#include <memoria/allocators/stream/factory.hpp>
+#include <memoria/memoria.hpp>
 #include <memoria/core/tools/bm_tools.hpp>
 
 using namespace memoria;
@@ -22,8 +22,9 @@ const Int SIZE 				= 10000;
 const Int ArrayName 		= 1;
 const Int MAX_BUFFER_SIZE 	= 1024;
 
+Int rnd_bufs = 0;
 
-typedef StreamContainerTypesCollection::Factory<BlobMap>::Type 	BlobMap0;
+typedef StreamContainerTypesCollection::Factory<VectorMap>::Type 	BlobMap0;
 typedef BlobMap0::Iterator										BMIterator;
 typedef DefaultStreamAllocator 									SAllocator;
 
@@ -66,6 +67,7 @@ Int GetNonZeroRandom(Int size)
 
 ArrayData CreateRandomBuffer(UByte fill_value)
 {
+	rnd_bufs++;
 	return CreateBuffer(GetNonZeroRandom(MAX_BUFFER_SIZE), fill_value);
 }
 
@@ -74,20 +76,20 @@ ArrayData CreateRandomBuffer(UByte fill_value)
 //	return get_random(array.Size());
 //}
 
-void CheckAllocator(SAllocator &allocator, const char* err_msg)
-{
-//	Int src_level = BlobMap0::class_logger().level();
-//	BlobMap0::class_logger().level() = Logger::TRACE;
-
-//	memoria::StreamContainersChecker checker(allocator);
-
-//	if (checker.CheckAll())
-//	{
-//		throw MemoriaException(MEMORIA_SOURCE, err_msg);
-//	}
-
-//	BlobMap0::class_logger().level() = src_level;
-}
+//void CheckAllocator(SAllocator &allocator, const char* err_msg)
+//{
+////	Int src_level = BlobMap0::class_logger().level();
+////	BlobMap0::class_logger().level() = Logger::TRACE;
+//
+////	memoria::StreamContainersChecker checker(allocator);
+//
+////	if (checker.CheckAll())
+////	{
+////		throw MemoriaException(MEMORIA_SOURCE, err_msg);
+////	}
+//
+////	BlobMap0::class_logger().level() = src_level;
+//}
 
 bool CompareBuffer(BMIterator& iter, ArrayData& data)
 {
@@ -117,13 +119,15 @@ void CheckBufferWritten(BMIterator& iter, ArrayData& data, const char* err_msg)
 	}
 }
 
+ArrayData data(128);
+
 void Build(SAllocator& allocator, BlobMap0& array, UByte value)
 {
 	BMIterator i = array.Create();
-	ArrayData data = CreateRandomBuffer(value);
+	// = CreateRandomBuffer(value);
 //	cerr<<"Size "<<data.size()<<endl;
 	i.Insert(data);
-	CheckAllocator(allocator, "Insert new LOB");
+//	CheckAllocator(allocator, "Insert new LOB");
 }
 
 bool Remove(SAllocator& allocator, BlobMap0& array)
@@ -143,14 +147,18 @@ bool Remove(SAllocator& allocator, BlobMap0& array)
 }
 
 
+MEMORIA_INIT();
+
 int main(int argc, const char** argv, const char **envp) {
+
+
 
 	long long t0 = getTime(), t1 = t0, t2 = t0, t3 = t0, t4 = t0;
 
 	try {
 		logger.level() = Logger::NONE;
 
-		StreamContainerTypesCollection::Init();
+//		StreamContainerTypesCollection::Init();
 
 		SAllocator allocator;
 		allocator.commit();
@@ -160,6 +168,8 @@ int main(int argc, const char** argv, const char **envp) {
 		BlobMap0 dv(allocator, ArrayName, true);
 //		dv.SetMaxChildrenPerNode(100);
 
+		dv.array().datapages = 0;
+
 		try {
 			cout<<"Insert data"<<endl;
 			t0 = getTime();
@@ -167,13 +177,14 @@ int main(int argc, const char** argv, const char **envp) {
 			for (Int c = 0; c < SIZE; c++)
 			{
 				Build(allocator, dv, c + 1);
-				if (c % 100 == 0) allocator.commit();
+//				if (c % 100 == 0) allocator.commit();
+//				allocator.commit();
 			}
 			allocator.commit();
 
 			t1 = getTime();
 
-			cout<<"Read data sequentially. ByteArray contains "<<dv.array().Size()/1024/1024<<" Mbytes"<<endl;
+			cout<<"Read data sequentially. ByteArray contains "<<dv.array().Size()/1024<<" Mbytes"<<endl;
 
 			ArrayData data(MAX_BUFFER_SIZE);
 
@@ -197,19 +208,19 @@ int main(int argc, const char** argv, const char **envp) {
 
 			t3 = getTime();
 
-			cout<<"Remove data"<<endl;
-
-			for (Int c = 0; ;c++)
-			{
-				if (!Remove(allocator, dv))
-				{
-					break;
-				}
-
-				if (c % 100 == 0) allocator.commit();
-			}
-
-			allocator.commit();
+//			cout<<"Remove data"<<endl;
+//
+//			for (Int c = 0; ;c++)
+//			{
+//				if (!Remove(allocator, dv))
+//				{
+//					break;
+//				}
+////				allocator.commit();
+//				if (c % 100 == 0) allocator.commit();
+//			}
+//
+//			allocator.commit();
 
 			t4 = getTime();
 
@@ -217,9 +228,13 @@ int main(int argc, const char** argv, const char **envp) {
 
 //
 
-//			Dump(allocator);
+			Dump(allocator);
 
 //			allocator.DumpPages();
+
+			allocator.stat();
+			cout<<"RndBufs:   "<<rnd_bufs<<endl;
+			cout<<"DataPages: "<<dv.array().datapages<<endl;
 		}
 		catch (MemoriaException ex)
 		{

@@ -13,17 +13,7 @@
 #include <sstream>
 #include <cassert>
 
-#ifdef _INTEL_COMPILER
-#pragma warning (disable : 2586)
-#pragma warning (disable : 1125)
-#pragma warning (disable : 869)
-#elif defined(_MSC_VER)
-#pragma warning (disable : 4503)
-#pragma warning (disable : 4355)
-#pragma warning (disable : 4244)
-#pragma warning (disable : 4231)
-#pragma warning (disable : 4800)
-#endif
+#include <memoria/core/tools/config.hpp>
 
 namespace memoria    {
 
@@ -38,8 +28,6 @@ struct GlobalConstants {
 
 typedef long long           BigInt;
 typedef unsigned long long  UBigInt;
-typedef long                Long;
-typedef unsigned long       ULong;
 typedef int                 Int;
 typedef unsigned int        UInt;
 typedef short               Short;
@@ -51,22 +39,30 @@ template <int size> struct PlatformLongHelper;
 
 template <>
 struct PlatformLongHelper<4> {
-	typedef Int 			PlatformLongType;
-	typedef UInt 			PlatformULongType;
+	typedef Int 			LongType;
+	typedef UInt 			ULongType;
 };
 
 template <>
 struct PlatformLongHelper<8> {
-	typedef BigInt 			PlatformLongType;
-	typedef UBigInt 		PlatformULongType;
+	typedef BigInt 			LongType;
+	typedef UBigInt 		ULongType;
 };
 
-typedef PlatformLongHelper<sizeof(void*)>::PlatformLongType 					PlatformLong;
-typedef PlatformLongHelper<sizeof(void*)>::PlatformULongType 					PlatformULong;
+
+/**
+ * Please note that Long/ULong types are not intended to be used for data page properties.
+ * Use types with known size instead.
+ */
+
+typedef PlatformLongHelper<sizeof(void*)>::LongType 							Long;
+typedef PlatformLongHelper<sizeof(void*)>::ULongType 							ULong;
 
 typedef std::string                                                             String;
 typedef const String&                                                      		StringRef;
 
+
+// FIXME: move it into the string library
 template <typename T>
 String ToString(const T& value, bool hex = false)
 {
@@ -78,8 +74,6 @@ String ToString(const T& value, bool hex = false)
 	return str.str();
 }
 
-//const bool VALUE_MAP                    = true;
-//const bool INDEX_MAP                    = false;
 
 template <Int Value>
 struct CodeValue {
@@ -116,8 +110,8 @@ typedef IdxSet<2> IdxSet2;
 
 struct DFUDS:       public CodeValue<5> {};
 struct LOUDS:       public CodeValue<6> {};
-struct BlobMap:     public CodeValue<7> {};
-struct Array:   	public CodeValue<8> {};
+struct VectorMap:   public CodeValue<7> {};
+struct Vector:   	public CodeValue<8> {};
 
 
 
@@ -139,13 +133,6 @@ template <typename FirstType, typename SecondType>
 struct Pair {
     typedef FirstType   First;
     typedef SecondType  Second;
-};
-
-template <typename First, typename Second, typename Fird>
-struct Tripple {
-    typedef First   first;
-    typedef Second  second;
-    typedef Fird    fird;
 };
 
 template <BigInt Code>
@@ -177,62 +164,9 @@ struct ValueWrapper {
     static const Type Value     = V;
 };
 
-template <typename Type_>
-struct TypeWrapper {
-    typedef Type_               Type;
-};
-
-template <typename T = void>
-class Remover {
-    const T* ptr_;
-public:
-    Remover(const T* ptr): ptr_(ptr) {}
-    virtual ~Remover() {
-        delete ptr_;
-    }
-};
-
 struct Typed {
 	 virtual ~Typed() throw () {}
 };
-
-template <typename SrcType, typename DstType>
-union T2TBuf {
-	SrcType 	src;
-	DstType		dst;
-	T2TBuf(SrcType src0): src(src0) {}
-};
-
-
-template <typename DstType, typename SrcType>
-DstType T2T(SrcType value) {
-	T2TBuf<SrcType, DstType> buf(value);
-	return buf.dst;
-}
-
-template <typename DstType, typename SrcType>
-DstType P2V(SrcType value) {
-	T2TBuf<SrcType, DstType*> buf(value);
-	return *buf.dst;
-}
-
-template <typename DstType, typename SrcType>
-const DstType* CP2CP(const SrcType* value) {
-	T2TBuf<const SrcType*, const DstType*> buf(value);
-	return buf.dst;
-}
-
-template <typename DstType, typename SrcType>
-DstType& P2R(SrcType value) {
-	T2TBuf<SrcType, DstType*> buf(value);
-	return *buf.dst;
-}
-
-template <typename DstType, typename SrcType>
-const DstType& P2CR(const SrcType value) {
-	T2TBuf<const SrcType, const DstType*> buf(value);
-	return *buf.dst;
-}
 
 class EmptyValue {
 public:
@@ -255,7 +189,4 @@ public:
 
 }
 
-#endif	/* _MEMORIA_VAPI_TYPES_HPP */
-
-
-
+#endif

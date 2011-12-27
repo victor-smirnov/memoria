@@ -53,7 +53,7 @@ struct MEMORIA_API LogHandler: public Typed {
     virtual void log(const UShort value)      = 0;
     virtual void log(const Int value)         = 0;
     virtual void log(const UInt value)        = 0;
-    virtual void log(const ULong value)       = 0;
+//    virtual void log(const ULong value)       = 0;
     virtual void log(const BigInt value)      = 0;
     virtual void log(const UBigInt value) 	  = 0;
     virtual void log(const float value)       = 0;
@@ -72,8 +72,6 @@ struct MEMORIA_API LogHandler: public Typed {
 
 class Logger;
 extern Logger logger;
-
-void InitContainers();
 
 class Logger {
 
@@ -181,7 +179,7 @@ public:
     virtual void log(const UShort value)      {preprocess(); std::cout<<value; postprocess();}
     virtual void log(const Int value)         {preprocess(); std::cout<<value; postprocess();}
     virtual void log(const UInt value)        {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const ULong value)        {preprocess(); std::cout<<value; postprocess();}
+//    virtual void log(const ULong value)        {preprocess(); std::cout<<value; postprocess();}
     virtual void log(const BigInt value)      {preprocess(); std::cout<<value; postprocess();}
     virtual void log(const UBigInt value) 	{preprocess(); std::cout<<value; postprocess();}
     virtual void log(const float value)       {preprocess(); std::cout<<value; postprocess();}

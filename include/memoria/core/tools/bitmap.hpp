@@ -16,6 +16,7 @@
 #define _MEMORIA_CORE_TOOLS_BITMAP_H
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/types/type2type.hpp>
 
 #include <iostream>
 

@@ -42,7 +42,7 @@ public:
 
 
 template <typename Profile>
-class BTreeRootMetadataTypeFactory<Profile, BTreeRootMetadataFactory<memoria::Array> > {
+class BTreeRootMetadataTypeFactory<Profile, BTreeRootMetadataFactory<memoria::Vector> > {
     typedef typename ContainerCollectionCfg<Profile>::Types::AllocatorType        Allocator;
 
 public:

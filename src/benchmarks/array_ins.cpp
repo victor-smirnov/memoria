@@ -20,7 +20,7 @@ const Int ArrayName = 1;
 const Int MAX_BUFFER_SIZE = 4096 * 10;
 
 
-typedef StreamContainerTypesCollection::Factory<Array>::Type 	ByteArray;
+typedef StreamContainerTypesCollection::Factory<Vector>::Type 	ByteArray;
 typedef ByteArray::Iterator										BAIterator;
 typedef DefaultStreamAllocator 									SAllocator;
 

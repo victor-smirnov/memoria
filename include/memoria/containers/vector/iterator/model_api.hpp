@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-#include <memoria/containers/array/names.hpp>
+#include <memoria/containers/vector/names.hpp>
 #include <memoria/core/container/iterator.hpp>
 
 #include <memoria/core/tools/walkers.hpp>

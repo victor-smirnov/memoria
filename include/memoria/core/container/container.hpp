@@ -20,6 +20,7 @@
 #include <memoria/core/container/dispatcher.hpp>
 #include <memoria/core/container/defaults.hpp>
 #include <memoria/core/container/macros.hpp>
+#include <memoria/core/container/init.hpp>
 
 #include <string>
 

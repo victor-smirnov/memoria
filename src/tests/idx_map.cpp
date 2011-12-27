@@ -67,7 +67,7 @@ long long getLongRandom() {
 	return rnd;
 }
 
-
+MEMORIA_INIT();
 
 int main(int argc, const char **argv, const char** envp)
 {
@@ -77,8 +77,6 @@ int main(int argc, const char **argv, const char** envp)
 		InitTypeSystem(argc, argv, envp, false);
 
 		logger.level() = Logger::NONE;
-
-		StreamContainerTypesCollection::Init();
 
 		IDPairVector pairs;
 		IDPairVector pairs_sorted;

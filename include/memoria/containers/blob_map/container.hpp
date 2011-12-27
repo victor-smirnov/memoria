@@ -32,7 +32,7 @@ public:
 	typedef IParentCtrInterface<typename Types::Allocator>		ParentCtrInterface;
 
 	typedef typename CtrTF<Profile, IdxSet2, IdxSet2>::Type		IdxSet;
-	typedef typename CtrTF<Profile, Array,	 Array>::Type		ByteArray;
+	typedef typename CtrTF<Profile, Vector,	 Vector>::Type		ByteArray;
 
 	static const Int IS_Indexes									= IdxSet::Indexes;
 	static const Int BA_Indexes									= ByteArray::Indexes;
@@ -166,7 +166,7 @@ public:
 
 		set_.InsertEntry(is_iter, keys, ISValue());
 
-		auto ba_iter = array_.Seek(is_iter.prefix(1));
+		auto ba_iter = array_.End();
 		return Iterator(*me(), is_iter, ba_iter);
 	}
 
@@ -196,7 +196,7 @@ public:
 			IdxSet::reflection()->PutAll(list);
 			ByteArray::reflection()->PutAll(list);
 
-			reflection_ = new ContainerMetadataImpl("memoria::BlobMap", list, BlobMap::Code + salt, &CreateContainer);
+			reflection_ = new ContainerMetadataImpl("memoria::VectorMap", list, VectorMap::Code + salt, &CreateContainer);
 		}
 
 		return hash;

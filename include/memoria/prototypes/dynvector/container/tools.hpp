@@ -99,6 +99,21 @@ public:
 		return i;
 	}
 
+	Iterator FindEnd()
+	{
+		Iterator i = Base::FindEnd();
+
+		if (i.page() != NULL)
+		{
+			if (i.Prev()) {
+				i.data() = me()->GetDataPage(i.page(), i.key_idx(), Allocator::READ);
+				i.data_pos() = i.data()->data().size();
+			}
+		}
+
+		return i;
+	}
+
 
 MEMORIA_CONTAINER_PART_END
 

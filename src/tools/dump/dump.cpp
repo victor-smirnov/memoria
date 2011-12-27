@@ -98,13 +98,13 @@ void DumpTree(const IDValue& id, const File& folder, int& idx)
 	delete page;
 }
 
-
+MEMORIA_INIT();
 
 int main(int argc, const char** argv, const char** envp)
 {
 
 	try {
-		StreamContainerTypesCollection::Init();
+//		StreamContainerTypesCollection::Init();
 
 		logger.level() = Logger::NONE;
 
