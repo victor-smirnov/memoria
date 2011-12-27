@@ -18,13 +18,6 @@
 namespace memoria    {
 
 
-struct GlobalConstants {
-    //defaults:
-    static const int KIND = 0;
-
-    //values:
-    static const int CACHE_LINE_WIDTH = 64;
-};
 
 typedef long long           BigInt;
 typedef unsigned long long  UBigInt;
@@ -60,19 +53,6 @@ typedef PlatformLongHelper<sizeof(void*)>::ULongType 							ULong;
 
 typedef std::string                                                             String;
 typedef const String&                                                      		StringRef;
-
-
-// FIXME: move it into the string library
-template <typename T>
-String ToString(const T& value, bool hex = false)
-{
-	std::stringstream str;
-	if (hex) {
-		str<<hex;
-	}
-	str<<value;
-	return str.str();
-}
 
 
 template <Int Value>
@@ -162,10 +142,6 @@ template <typename Type_, Type_ V>
 struct ValueWrapper {
     typedef Type_               Type;
     static const Type Value     = V;
-};
-
-struct Typed {
-	 virtual ~Typed() throw () {}
 };
 
 class EmptyValue {

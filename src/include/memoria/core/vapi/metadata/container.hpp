@@ -15,6 +15,8 @@
 #include <memoria/core/vapi/metadata/page.hpp>
 #include <memoria/core/vapi/metadata/model.hpp>
 
+#include <memoria/core/tools/strings.hpp>
+
 #include <string>
 
 

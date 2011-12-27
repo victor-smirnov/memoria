@@ -58,7 +58,7 @@ struct MEMORIA_API FieldMetadata: public Metadata {
     virtual void SetBits(void *mem, BigInt bits, Int idx, Int nbits) const		= 0;
     virtual void SetBitsAbi(void *mem, BigInt bits, Int idx, Int nbits) const	= 0;
 
-    virtual Typed* CreateValueHolder()										= 0;
+    virtual void* CreateValueHolder()										= 0;
     
 };
 

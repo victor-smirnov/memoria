@@ -14,14 +14,14 @@
 
 namespace memoria {
 
-template <typename Types> struct BlobMapCtrTypes;
-template <typename Types> struct BlobMapIterTypes;
+template <typename Types> struct VectorMapCtrTypes;
+template <typename Types> struct VectorMapIterTypes;
 
 template <typename Types>
-class Ctr<BlobMapCtrTypes<Types> >
+class Ctr<VectorMapCtrTypes<Types> >
 {
 public:
-	typedef Ctr<BlobMapCtrTypes<Types> >						MyType;
+	typedef Ctr<VectorMapCtrTypes<Types> >						MyType;
 	typedef typename Types::Profile								Profile;
 	typedef typename Types::Allocator 							Allocator;
 	typedef typename Types::Allocator::CtrShared 				CtrShared;
@@ -59,7 +59,7 @@ private:
 	static ContainerMetadata* 	reflection_;
 
 public:
-	typedef Iter<BlobMapIterTypes<Types> >						Iterator;
+	typedef Iter<VectorMapIterTypes<Types> >						Iterator;
 
 
 	Ctr(Allocator &allocator, BigInt name, bool create = false):
@@ -302,12 +302,12 @@ private:
 template<
         typename Types
 >
-Logger Ctr<BlobMapCtrTypes<Types> >::class_logger_("memoria::BlobMap", Logger::DERIVED, &memoria::vapi::logger);
+Logger Ctr<VectorMapCtrTypes<Types> >::class_logger_("memoria::BlobMap", Logger::DERIVED, &memoria::vapi::logger);
 
 template<
         typename Types
 >
-ContainerMetadata* Ctr<BlobMapCtrTypes<Types> >::reflection_ = NULL;
+ContainerMetadata* Ctr<VectorMapCtrTypes<Types> >::reflection_ = NULL;
 
 }
 

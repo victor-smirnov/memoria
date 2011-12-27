@@ -147,10 +147,6 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 	}
 	else if (!iter.IsEnd())
 	{
-		if (me()->datapages == 1) {
-			int a; a++;
-		}
-
 		if (data_idx > 0 && data_idx < usage)
 		{
 			// import_data() doesn't move data in the datapage.

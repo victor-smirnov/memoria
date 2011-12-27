@@ -22,6 +22,14 @@ namespace memoria        {
 
 using memoria::vapi::MetadataList;
 
+struct GlobalConstants {
+    //defaults:
+    static const int KIND = 0;
+
+    //values:
+    static const int CACHE_LINE_WIDTH = 64;
+};
+
 template <
 	size_t BlockSize,
 	Int kind = 0,

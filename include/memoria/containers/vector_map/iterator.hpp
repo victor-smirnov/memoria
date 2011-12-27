@@ -13,13 +13,13 @@
 
 namespace memoria {
 
-template <typename Types> struct BlobMapIterTypes;
+template <typename Types> struct VectorMapIterTypes;
 
 template <typename Types>
-class Iter<BlobMapIterTypes<Types> >
+class Iter<VectorMapIterTypes<Types> >
 {
-	typedef Iter<BlobMapIterTypes<Types> >						MyType;
-	typedef Ctr<BlobMapCtrTypes<Types> >						ContainerType;
+	typedef Iter<VectorMapIterTypes<Types> >						MyType;
+	typedef Ctr<VectorMapCtrTypes<Types> >						ContainerType;
 
 	typedef typename ContainerType::IdxSet::Iterator			IdxSetIterator;
 	typedef typename ContainerType::ByteArray::Iterator			ByteArrayIterator;

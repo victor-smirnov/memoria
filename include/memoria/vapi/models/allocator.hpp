@@ -22,7 +22,7 @@ struct MEMORIA_API Allocator {
 	enum {NONE = 0, ROOT = 1};
 };
 
-struct MEMORIA_API InputStreamHandler: public Typed {
+struct MEMORIA_API InputStreamHandler {
     virtual Int available() 							= 0;
     virtual void close() 								= 0;
     virtual Int buffer_size() 							= 0;
@@ -39,7 +39,7 @@ struct MEMORIA_API InputStreamHandler: public Typed {
 
 
 
-struct MEMORIA_API OutputStreamHandler: public Typed {
+struct MEMORIA_API OutputStreamHandler {
 
     virtual Int buffer_size() = 0;
     virtual void flush() = 0;

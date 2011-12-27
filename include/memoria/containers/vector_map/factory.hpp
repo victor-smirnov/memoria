@@ -10,16 +10,16 @@
 #define _MEMORIA_MODELS_BLOB_MAP_FACTORY_HPP
 
 
-#include <memoria/containers/blob_map/container.hpp>
-#include <memoria/containers/blob_map/iterator.hpp>
+#include <memoria/containers/vector_map/container.hpp>
+#include <memoria/containers/vector_map/iterator.hpp>
 
 namespace memoria {
 
 template <typename Types>
-struct BlobMapCtrTypes: Types {};
+struct VectorMapCtrTypes: Types {};
 
 template <typename Types>
-struct BlobMapIterTypes: Types {};
+struct VectorMapIterTypes: Types {};
 
 template <typename Profile_, typename T>
 class CtrTF<Profile_, VectorMap, T> {
@@ -31,11 +31,11 @@ class CtrTF<Profile_, VectorMap, T> {
 public:
 
 	struct Types {
-		typedef Profile_					Profile;
-		typedef MyType::Allocator			Allocator;
+		typedef Profile_						Profile;
+		typedef MyType::Allocator				Allocator;
 
-		typedef BlobMapCtrTypes<Types>		CtrTypes;
-		typedef BlobMapIterTypes<Types>		IterTypes;
+		typedef VectorMapCtrTypes<Types>		CtrTypes;
+		typedef VectorMapIterTypes<Types>		IterTypes;
 	};
 
 	typedef typename Types::CtrTypes 											CtrTypes;

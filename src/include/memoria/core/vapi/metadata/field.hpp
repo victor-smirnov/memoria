@@ -131,7 +131,7 @@ public:
 		SetBits(mem, bits, idx, nbits, abi_ptr_);
 	}
 
-	virtual Typed* CreateValueHolder();
+	virtual void* CreateValueHolder();
 
 
 private:
@@ -215,49 +215,14 @@ void FieldMetadataImplT<Interface>::SetBits(void *mem, BigInt bits, Int idx, Int
 }
 
 
-
-struct CreateValueHolderFn {
-    Typed* value_;
-
-    template <typename T>
-    void operator()(T* dummy) {
-        //value_ = new typename TypedWrapperFactory<T>::Type();
-    }
-};
-
 template <typename Interface>
-Typed* FieldMetadataImplT<Interface>::CreateValueHolder() {
-//    CreateValueHolderFn fn;
-//
-//    TypeDispatcher<Code2TypeMap>::Dispatch(Base::GetTypeCode(), (void*)NULL, fn);
-//
-//    return fn.value_;
-
+void* FieldMetadataImplT<Interface>::CreateValueHolder() {
 	throw MemoriaException(MEMORIA_SOURCE, "The method's implementation is broken");
 }
 
 
-//struct SetupValueTypeFn {
-//    Type* valueType_;
-//
-//    template <typename T>
-//    void operator()(T* dummy) {
-////        valueType_ = TypeFactory<typename TypedWrapperFactory<T>::Type>::type();
-////        cout<<"SetupValueType: "<<valueType_<<" "<<typeid(T).name()<<endl;
-//    }
-//};
-
 template <typename Interface>
 void FieldMetadataImplT<Interface>::SetupValueType() {
-//    SetupValueTypeFn fn;
-//
-//    Int type_code = Base::GetTypeCode();
-//
-//    if (type_code >= 0 && type_code < 8) {
-//        TypeDispatcher<Code2TypeMap>::Dispatch(type_code, (void*)NULL, fn);
-//    }
-//
-//    this->valueType_ = fn.valueType_;
 }
 
 }}
