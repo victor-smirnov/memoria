@@ -17,15 +17,15 @@
 namespace memoria { namespace vapi {
 
 
-//MEMORIA_API String TrimString(StringRef str);
+MEMORIA_API String TrimString(StringRef str);
 //MEMORIA_API String ReplaceFirst(StringRef str, StringRef txt);
 //MEMORIA_API String ReplaceLast(StringRef str, StringRef txt);
 //MEMORIA_API String ReplaceAll(StringRef str, StringRef txt);
 MEMORIA_API bool IsEmpty(StringRef str);
 MEMORIA_API bool IsEmpty(StringRef str, String::size_type start, String::size_type end, StringRef sep);
-//MEMORIA_API bool IsEndsWith(StringRef str, StringRef end);
-//MEMORIA_API bool IsStartsWith(StringRef str, StringRef start);
-//MEMORIA_API Long StrToL(StringRef str);
+MEMORIA_API bool IsEndsWith(StringRef str, StringRef end);
+MEMORIA_API bool IsStartsWith(StringRef str, StringRef start);
+MEMORIA_API Long StrToL(StringRef str);
 
 // FIXME: move it into the string library
 template <typename T>
