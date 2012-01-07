@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/allocators/stream/factory.hpp>
+#include <memoria/memoria.hpp>
 #include <memoria/core/tools/bm_tools.hpp>
 
 using namespace memoria;
@@ -125,14 +125,14 @@ void Read(SAllocator& allocator, ByteArray& array, ArrayData& data)
 	iter.Read(data);
 }
 
+MEMORIA_INIT();
+
 int main(int argc, const char** argv, const char **envp) {
 
 	long long t0 = 0;
 
 	try {
 		logger.level() = Logger::NONE;
-
-		StreamContainerTypesCollection::Init();
 
 		SAllocator allocator;
 		allocator.GetLogger()->level() = Logger::NONE;

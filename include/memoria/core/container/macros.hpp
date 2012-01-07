@@ -110,8 +110,8 @@ public:
 #define MEMORIA_CONTAINER_PART_BEGIN(PartName)                          		\
     MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(PartName)                       		\
     CtrPart(): Base()  {}                            							\
-    CtrPart(const MyType& other): Base(other)  {}                            	\
-    CtrPart(MyType&& other): Base(std::move(other))  {}                         \
+    CtrPart(const ThisType& other): Base(other)  {}                            	\
+    CtrPart(ThisType&& other): Base(std::move(other))  {}                       \
     void operator=(ThisType&& other) {											\
 		Base::operator=(std::move(other));										\
 	}																			\
@@ -161,6 +161,9 @@ public:
 	IterPart(const ThisPartType& other): Base(other) {}							\
 	void operator=(const ThisPartType& other) {									\
 		Base::operator=(other);													\
+	}																			\
+	void operator=(ThisPartType&& other) {										\
+		Base::operator=(std::move(other));										\
 	}
 
 

@@ -18,7 +18,7 @@ using namespace memoria::vapi;
 
 using namespace std;
 
-const Int SIZE 				= 10000;
+const Int SIZE 				= 100000;
 const Int ArrayName 		= 1;
 const Int MAX_BUFFER_SIZE 	= 1024;
 

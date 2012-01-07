@@ -178,7 +178,7 @@ public:
 
 
 #define MEMORIA_INIT()													\
-const int MEMORIA_INITIALIZED = Memoria<								\
+const int MEMORIA_INITIALIZED = ::memoria::Memoria<						\
 	::memoria::ProfileListBuilder<>::Type,								\
 	::memoria::RootCtrListBuilder<>::Type								\
 >::Init()

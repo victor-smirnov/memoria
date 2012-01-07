@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/allocators/stream/factory.hpp>
+#include <memoria/memoria.hpp>
 #include <memoria/core/tools/bm_tools.hpp>
 
 #include <vector>

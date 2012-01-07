@@ -8,7 +8,7 @@
 #include "tools.hpp"
 #include "mtools.hpp"
 
-#include <memoria/allocators/stream/factory.hpp>
+#include <memoria/memoria.hpp>
 #include <memoria/core/tools/bm_tools.hpp>
 
 using namespace memoria;
@@ -144,16 +144,16 @@ void checkMultistepBackwardIterator(KVMapType* map)
 	}
 }
 
-
 MEMORIA_INIT();
 
+
 int main(int argc, const char** argv, const char **envp) {
+
+
 
 	long long t0 = getTime();
 
 	try {
-		InitTypeSystem(argc, argv, envp, false);
-
 		logger.level() = Logger::NONE;
 
 		DefaultStreamAllocator allocator;

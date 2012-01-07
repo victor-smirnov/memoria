@@ -8,7 +8,7 @@
 #include "tools.hpp"
 #include "mtools.hpp"
 
-#include <memoria/allocators/stream/factory.hpp>
+#include <memoria/memoria.hpp>
 #include <memoria/core/tools/bm_tools.hpp>
 
 #include <iostream>

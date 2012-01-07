@@ -81,7 +81,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     IterPart(const ThisPartType& other): Base(other), local_pos_(other.local_pos_), data_(other.data_) {}
 
-    void operator=(const MyType& other)
+    void operator=(const ThisPartType& other)
     {
     	Base::operator=(other);
 
@@ -89,7 +89,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	data_   		= other.data_;
     }
 
-    void operator=(MyType&& other)
+    void operator=(ThisPartType&& other)
     {
     	Base::operator=(std::move(other));
 

@@ -98,6 +98,12 @@ public:
     static const UInt Value = 13;
 };
 
+template <>
+class TypeHash<EmptyValue> {
+public:
+    static const UInt Value = 14;
+};
+
 
 }
 

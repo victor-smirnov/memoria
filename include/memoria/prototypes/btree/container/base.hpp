@@ -63,6 +63,14 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	return false;
     }
 
+    void operator=(ThisType&& other) {
+    	Base::operator=(std::move(other));
+    }
+
+    void operator=(const ThisType& other) {
+    	Base::operator=(other);
+    }
+
 MEMORIA_BTREE_MODEL_BASE_CLASS_END
 
 
