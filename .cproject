@@ -27,7 +27,8 @@
 							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.667784978" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1940000880" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/core/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
 								</option>
@@ -36,7 +37,8 @@
 							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.924975240" name="UPC" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.912560337" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/core/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
 								</option>
@@ -45,7 +47,8 @@
 							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.1061691064" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.797022439" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/core/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
 								</option>
@@ -54,7 +57,8 @@
 							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.1694871730" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.680423812" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/core/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
 								</option>

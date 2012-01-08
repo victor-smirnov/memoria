@@ -1,0 +1,31 @@
+include_directories(include)
+
+
+file(GLOB TOOLS_LIB_SRC lib/*.cpp)
+add_library(MemoriaTools STATIC ${TOOLS_LIB_SRC})
+SET_TARGET_PROPERTIES(MemoriaTools PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_MAIN -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+SET_TARGET_PROPERTIES(MemoriaTools PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+
+if (NOT DEFINED BUILD_TESTS)
+    set(BUILD_TESTS true)
+endif()
+
+if (NOT DEFINED BUILD_BENCHMARKS)
+    set(BUILD_BENCHMARKS true)
+endif()
+
+if (NOT DEFINED BUILD_DUMP)
+    set(BUILD_DUMP true)
+endif()
+
+if (BUILD_TESTS) 
+    add_subdirectory(tests)
+endif()
+
+if (BUILD_BENCHMARKS) 
+    add_subdirectory(benchmarks)
+endif()
+
+if (BUILD_DUMP) 
+    add_subdirectory(dump)
+endif()

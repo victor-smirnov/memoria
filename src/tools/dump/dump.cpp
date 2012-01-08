@@ -11,9 +11,8 @@
 #include <memoria/allocators/stream/factory.hpp>
 #include <memoria/core/tools/file.hpp>
 
-#include "tools.hpp"
-
 #include <iostream>
+#include <set>
 
 
 using namespace memoria;
