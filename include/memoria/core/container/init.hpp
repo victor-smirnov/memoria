@@ -61,36 +61,6 @@ class ContainerTypesCollectionMetadataInit;
 
 
 
-//template <typename List>
-//struct CollectionListInit {
-//	static void Init()
-//	{
-//		ContainerTypesCollectionMetadataInit<typename List::Head>::Init();
-//		CollectionListInit<typename List::Tail>::Init();
-//	}
-//};
-
-//template <>
-//struct CollectionListInit<NullType> {
-//	static void Init(){}
-//};
-
-
-//#define MEMORIA_INIT()													\
-//template <typename T = void>											\
-//class Memoria {															\
-//	typedef typename ::memoria::ProfileListBuilder<>::Type List;		\
-//public:																	\
-//	static Int Init() {													\
-//		CollectionListInit<List>::Init();								\
-//		return 1;														\
-//	}																	\
-//};																		\
-//const int MEMORIA_INITIALIZED = Memoria<>::Init();						\
-//template <typename T>													\
-//struct RootCtrListProvider {											\
-//	typedef RootCtrListBuilder<>::Type							Type;	\
-//}
 
 template <typename Profile>
 class ContainerCollectionCfg;

@@ -33,7 +33,7 @@ using namespace std;
 
 File::FileListType::~FileListType() throw() {
 	try {
-		for (Int c = 0; c < size(); c++) {
+		for (UInt c = 0; c < size(); c++) {
 			delete operator [](c);
 		}
 	}
@@ -173,7 +173,7 @@ bool rm(const File &file)
 		File::FileListType* list = File::ReadDir(file);
 
 		bool result = true;
-		for (Int c = 0; c < list->size(); c++)
+		for (UInt c = 0; c < list->size(); c++)
 		{
 			File* entry = list->operator[](c);
 			result = rm(*entry) && result;

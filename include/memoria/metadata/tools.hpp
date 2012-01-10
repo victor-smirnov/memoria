@@ -21,7 +21,7 @@
 namespace memoria    {
 namespace vapi       {
 
-struct MEMORIA_API Page;
+struct Page;
 
 void Expand(std::ostream& os, Int level);
 

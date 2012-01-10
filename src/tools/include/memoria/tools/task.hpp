@@ -9,25 +9,53 @@
 #define	_MEMORIA_TOOLS_TASK_HPP
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/tools/params.hpp>
 
 #include <vector>
+#include <ostream>
 
 namespace memoria {
-
-class TaskParameter;
 
 using namespace std;
 
 class Task {
-	String 	name_;
-	bool 	run_by_default_;
-	vector<TaskParameter*> parameters_;
+	TaskParametersSet*	parameters_;
+	bool 				enabled_;
+
 public:
-	Task(StringRef name, bool run_by_default): name_(name), run_by_default_(run_by_default) {}
+	Task(TaskParametersSet* parameters): parameters_(parameters) {}
 
 	virtual ~Task() throw ();
 
-	virtual void run() = 0;
+	TaskParametersSet* GetParameters() {
+		return parameters_;
+	}
+
+	bool IsRunByDefault() const
+	{
+		return parameters_->IsEnabled();
+	}
+
+	virtual void Run(ostream& out) = 0;
+};
+
+class TaskRunner {
+
+	vector<Task*> 	tasks_;
+
+public:
+	TaskRunner() {}
+
+	~TaskRunner();
+
+	void RegisterTask(Task* task) {
+		tasks_.push_back(task);
+	}
+
+	void Configure(Configurator* cfg);
+
+	void DumpProperties(ostream& os);
+	void Run(ostream& out);
 };
 
 }
