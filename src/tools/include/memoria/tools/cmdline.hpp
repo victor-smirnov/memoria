@@ -35,8 +35,17 @@ class CmdLine {
 	Configurator	cfg_file_;
 	Configurator	cfg_cmdline_;
 
+	int 			operations_;
+
+	Configurator	replay_file_;
+	bool			replay_;
+	String			dump_file_name_;
+
 public:
-	CmdLine(int argc, const char** argv, const char** envp, StringRef cfg_file_name):
+
+	enum {REPLAY = 1};
+
+	CmdLine(int argc, const char** argv, const char** envp, StringRef cfg_file_name, int operations = 0):
 		argc_(argc),
 		argv_(argv),
 		envp_(envp),
@@ -45,7 +54,9 @@ public:
 		image_name_(GetImageName(argv[0])),
 		cfg_file_name_(cfg_file_name),
 		cfg_file_(),
-		cfg_cmdline_(&cfg_file_)
+		cfg_cmdline_(&cfg_file_),
+		operations_(operations),
+		replay_(false)
 	{
 		Process();
 	};
@@ -60,6 +71,11 @@ public:
 		return image_name_;
 	}
 
+	StringRef GetDumpFileName() const
+	{
+		return dump_file_name_;
+	}
+
 	bool IsHelp()
 	{
 		return help_;
@@ -69,8 +85,18 @@ public:
 		return dump_;
 	}
 
-	Configurator& GetConfigurator() {
+	bool IsReplay() {
+		return replay_;
+	}
+
+	Configurator& GetConfigurator()
+	{
 		return cfg_cmdline_;
+	}
+
+	Configurator& GetReplayOperationConfigurator()
+	{
+		return replay_file_;
 	}
 
 	void Process();

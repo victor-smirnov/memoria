@@ -21,24 +21,26 @@ Task::~Task() throw () {
 
 TaskRunner::~TaskRunner()
 {
-	for (Task* t: tasks_)
+	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
 	{
-		delete t;
+		delete i->second;
 	}
 }
 
 void TaskRunner::Configure(Configurator* cfg)
 {
-	for (Task* t: tasks_)
+	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
 	{
-		t->GetParameters()->SetCfg(cfg);
+		i->second->GetParameters()->SetCfg(cfg);
 	}
 }
 
 void TaskRunner::Run(ostream& out)
 {
-	for (Task* t: tasks_)
+	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
 	{
+		Task* t = i->second;
+
 		if (t->GetParameters()->IsEnabled())
 		{
 			t->Run(out);
@@ -48,9 +50,9 @@ void TaskRunner::Run(ostream& out)
 
 void TaskRunner::DumpProperties(ostream& out)
 {
-	for (Task* t: tasks_)
+	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
 	{
-		t->GetParameters()->DumpProperties(out);
+		i->second->GetParameters()->DumpProperties(out);
 	}
 }
 

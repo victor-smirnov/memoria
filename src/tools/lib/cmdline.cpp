@@ -54,6 +54,25 @@ void CmdLine::Process()
 				throw MemoriaException(MEMORIA_SOURCE, "Properties file is not specified for the --config option");
 			}
 		}
+		else if (arg == "--replay" && (operations_ & REPLAY))
+		{
+			if (c < argc_ - 2)
+			{
+				if (!replay_)
+				{
+					Configurator::Parse(argv_[c+1], &replay_file_);
+					replay_ = true;
+					dump_file_name_ = argv_[c + 2];
+					c += 2;
+				}
+				else {
+					throw MemoriaException(MEMORIA_SOURCE, "Replay operation has been already specified");
+				}
+			}
+			else {
+				throw MemoriaException(MEMORIA_SOURCE, "Incorrect --replay parameters number");
+			}
+		}
 		else {
 			throw MemoriaException(MEMORIA_SOURCE, "Unknown command line option is specified: "+arg);
 		}

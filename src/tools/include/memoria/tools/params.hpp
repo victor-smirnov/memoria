@@ -192,9 +192,19 @@ public:
 		this->Process();
 	}
 
+	const Configurator* GetCfg() const
+	{
+		return cfg_;
+	}
+
 	Configurator* GetCfg()
 	{
 		return cfg_;
+	}
+
+	StringRef GetName() const
+	{
+		return name_;
 	}
 
 	template <typename T>

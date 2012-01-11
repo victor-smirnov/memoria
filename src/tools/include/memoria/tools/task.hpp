@@ -20,7 +20,6 @@ using namespace std;
 
 class Task {
 	TaskParametersSet*	parameters_;
-	bool 				enabled_;
 
 public:
 	Task(TaskParametersSet* parameters): parameters_(parameters) {}
@@ -39,9 +38,12 @@ public:
 	virtual void Run(ostream& out) = 0;
 };
 
+
+
+
 class TaskRunner {
 
-	vector<Task*> 	tasks_;
+	map<String, Task*> 	tasks_;
 
 public:
 	TaskRunner() {}
@@ -49,13 +51,26 @@ public:
 	~TaskRunner();
 
 	void RegisterTask(Task* task) {
-		tasks_.push_back(task);
+		tasks_[task->GetParameters()->GetName()] = task;
 	}
 
 	void Configure(Configurator* cfg);
 
 	void DumpProperties(ostream& os);
 	void Run(ostream& out);
+
+	template <typename T>
+	T GetTask(StringRef name)
+	{
+		auto i = tasks_.find(name);
+		if (i != tasks_.end())
+		{
+			return static_cast<T>(i->second);
+		}
+		else {
+			throw MemoriaException(MEMORIA_SOURCE, "Task "+name+" is not registered");
+		}
+	}
 };
 
 }

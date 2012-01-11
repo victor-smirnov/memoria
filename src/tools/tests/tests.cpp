@@ -1,6 +1,6 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/cmdline.hpp>
-#include <memoria/tools/task.hpp>
+#include <memoria/tools/tests.hpp>
 
 #include <iostream>
 
@@ -15,9 +15,9 @@ const char* CFG_FILE	= "tests.properties";
 int main(int argc, const char** argv, const char** envp)
 {
 	try {
-		CmdLine cmd_line(argc, argv, envp, CFG_FILE);
+		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
-		TaskRunner runner;
+		TestRunner runner;
 
 		// add tasks to the runner;
 
@@ -28,13 +28,18 @@ int main(int argc, const char** argv, const char** envp)
 			cout<<endl;
 			cout<<"Description: "<<DESCRIPTION<<endl;
 			cout<<"Usage: "<<cmd_line.GetImageName()<<" [--help] [--dump] [--config <file.properties>]"<<endl;
-			cout<<"    --help                     Display this help"<<endl;
+			cout<<"    --help                     Display this help and exit"<<endl;
 			cout<<"    --config <file.properties> Use the specified config file"<<endl;
-			cout<<"    --dump                     Dump available tasks and their configuration properties"<<endl;
+			cout<<"    --dump                     Dump available tasks and their configuration properties and exit"<<endl;
+			cout<<"    --replay <update_op.properties> <dump-file> Replay the failed update operation on the allocator dump"<<endl;
 		}
 		else if (cmd_line.IsDump())
 		{
 			runner.DumpProperties(cout);
+		}
+		else if (cmd_line.IsReplay())
+		{
+			runner.Replay(&cmd_line.GetReplayOperationConfigurator(), cmd_line.GetDumpFileName());
 		}
 		else {
 			runner.Run(cout);
