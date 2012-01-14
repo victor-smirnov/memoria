@@ -12,8 +12,11 @@
 #include <stdlib.h>
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/tools/strings.hpp>
+
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/tools/configuration.hpp>
+
 
 
 namespace memoria {
@@ -21,44 +24,6 @@ namespace memoria {
 using namespace std;
 using namespace memoria::vapi;
 
-long int ConvertToLongInt(StringRef str);
-long long ConvertToLongLong(StringRef str);
-double ConvertToDouble(StringRef str);
-long double ConvertToLongDouble(StringRef str);
-
-template <typename T> struct FromString;
-
-template <>
-struct FromString<Int> {
-	static Int convert(StringRef str)
-	{
-		return ConvertToLongInt(str);
-	}
-};
-
-template <>
-struct FromString<BigInt> {
-	static BigInt convert(StringRef str)
-	{
-		return ConvertToLongLong(str);
-	}
-};
-
-template <>
-struct FromString<double> {
-	static double convert(StringRef str)
-	{
-		return ConvertToDouble(str);
-	}
-};
-
-template <>
-struct FromString<bool> {
-	static bool convert(StringRef str)
-	{
-		return ConvertToLongInt(str);
-	}
-};
 
 
 class AbstractParamDescriptor {
@@ -75,16 +40,16 @@ template <typename T>
 class ParamDescriptor: public AbstractParamDescriptor {
 	TaskParametersSet* 	cfg_;
 	StringRef 			set_name_;
-	String 			name_;
+	String 				name_;
 
-	T& 				value_;
+	T& 					value_;
 
-	T				default_value_;
-	T 				min_value_;
-	T 				max_value_;
+	T					default_value_;
+	T 					min_value_;
+	T 					max_value_;
 
-	bool			default_value_specified_;
-	bool			ranges_specified_;
+	bool				default_value_specified_;
+	bool				ranges_specified_;
 public:
 	ParamDescriptor(TaskParametersSet* cfg, StringRef set_name, String name, T& value):
 		cfg_(cfg),
@@ -101,6 +66,7 @@ public:
 		name_(name),
 		value_(value),
 		default_value_(default_value),
+		default_value_specified_(true),
 		ranges_specified_(false)
 	{}
 

@@ -143,6 +143,105 @@ String ReplaceAll(StringRef str, StringRef txt) {
 	return str;
 }
 
+
+
+
+
+Int GetValueMultiplier(const char* chars, const char* ptr)
+{
+	if (*ptr == 0) {
+		return 1;
+	}
+	else if (*ptr == 'K') {
+		return 1024;
+	}
+	else if (*ptr == 'M') {
+		return 1024*1024;
+	}
+	else if (*ptr == 'G') {
+		return 1024*1024*1024;
+	}
+	else if (*ptr == 'k') {
+		return 1000;
+	}
+	else if (*ptr == 'm') {
+		return 1000*1000;
+	}
+	else if (*ptr == 'g') {
+		return 1000*1000*1000;
+	}
+	else {
+		throw ::memoria::vapi::MemoriaException(MEMORIA_SOURCE, "Invalid number format: "+String(chars));
+	}
+}
+
+void CheckError(const char* chars, const char* ptr)
+{
+	if (*ptr != 0) {
+		throw ::memoria::vapi::MemoriaException(MEMORIA_SOURCE, "Invalid number format: "+String(chars));
+	}
+}
+
+
+long int ConvertToLongInt(StringRef str)
+{
+	const char* chars = str.c_str();
+	char* endptr;
+
+	long int value = strtol(chars, &endptr, 0);
+
+	return value * GetValueMultiplier(chars, endptr);
+}
+
+long long ConvertToLongLong(StringRef str)
+{
+	const char* chars = str.c_str();
+	char* endptr;
+
+	long int value = strtoll(chars, &endptr, 0);
+
+	return value * GetValueMultiplier(chars, endptr);
+}
+
+double ConvertToDouble(StringRef str)
+{
+	const char* chars = str.c_str();
+	char* endptr;
+
+	double value = strtod(chars, &endptr);
+
+	CheckError(chars, endptr);
+
+	return value;
+}
+
+long double ConvertToLongDouble(StringRef str)
+{
+	const char* chars = str.c_str();
+	char* endptr;
+
+	long double value = strtold(chars, &endptr);
+
+	CheckError(chars, endptr);
+
+	return value;
+}
+
+bool ConvertToBool(StringRef str)
+{
+	if (str == "true" || str == "True" || str == "Yes" || str == "yes" || str == "1")
+	{
+		return true;
+	}
+	else if (str == "false" || str == "False" || str == "No" || str == "no" || str == "0")
+	{
+		return false;
+	}
+	else {
+		throw ::memoria::vapi::MemoriaException(MEMORIA_SOURCE, "Invalid boolean format: "+str);
+	}
+}
+
 }}
 
 

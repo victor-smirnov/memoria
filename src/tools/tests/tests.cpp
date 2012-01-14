@@ -1,6 +1,13 @@
-#include <memoria/memoria.hpp>
+
+// Copyright Victor Smirnov 2012.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+
+#include "tree_map.hpp"
+
 #include <memoria/tools/cmdline.hpp>
-#include <memoria/tools/tests.hpp>
 
 #include <iostream>
 
@@ -20,6 +27,8 @@ int main(int argc, const char** argv, const char** envp)
 		TestRunner runner;
 
 		// add tasks to the runner;
+
+		runner.RegisterTask(new TreeMapTestTask());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
@@ -48,6 +57,6 @@ int main(int argc, const char** argv, const char** envp)
 	}
 	catch (MemoriaException e)
 	{
-		cerr<<"ERROR: "<<e.message()<<endl;
+		cerr<<e.source()<<" ERROR: "<<e.message()<<endl;
 	}
 }

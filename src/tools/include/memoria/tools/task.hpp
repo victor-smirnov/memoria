@@ -30,6 +30,15 @@ public:
 		return parameters_;
 	}
 
+	const TaskParametersSet* GetParameters() const {
+		return parameters_;
+	}
+
+	StringRef GetTaskName() const
+	{
+		return parameters_->GetName();
+	}
+
 	bool IsRunByDefault() const
 	{
 		return parameters_->IsEnabled();

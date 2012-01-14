@@ -39,6 +39,46 @@ String ToString(const T& value, bool hex = false)
 	return str.str();
 }
 
+long int ConvertToLongInt(StringRef str);
+long long ConvertToLongLong(StringRef str);
+double ConvertToDouble(StringRef str);
+long double ConvertToLongDouble(StringRef str);
+bool ConvertToBool(StringRef str);
+
+template <typename T> struct FromString;
+
+template <>
+struct FromString<Int> {
+	static Int convert(StringRef str)
+	{
+		return ConvertToLongInt(str);
+	}
+};
+
+template <>
+struct FromString<BigInt> {
+	static BigInt convert(StringRef str)
+	{
+		return ConvertToLongLong(str);
+	}
+};
+
+template <>
+struct FromString<double> {
+	static double convert(StringRef str)
+	{
+		return ConvertToDouble(str);
+	}
+};
+
+template <>
+struct FromString<bool> {
+	static bool convert(StringRef str)
+	{
+		return ConvertToBool(str);
+	}
+};
+
 
 }}
 
