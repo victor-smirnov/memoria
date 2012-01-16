@@ -19,18 +19,18 @@ namespace memoria {
 using namespace std;
 
 class Task {
-	TaskParametersSet*	parameters_;
+	ParametersSet*	parameters_;
 
 public:
-	Task(TaskParametersSet* parameters): parameters_(parameters) {}
+	Task(ParametersSet* parameters): parameters_(parameters) {}
 
 	virtual ~Task() throw ();
 
-	TaskParametersSet* GetParameters() {
+	ParametersSet* GetParameters() {
 		return parameters_;
 	}
 
-	const TaskParametersSet* GetParameters() const {
+	const ParametersSet* GetParameters() const {
 		return parameters_;
 	}
 

@@ -39,6 +39,39 @@ String ToString(const T& value, bool hex = false)
 	return str.str();
 }
 
+template <typename T>
+struct AsString {
+	static String convert(const T& value, bool hex = false)
+	{
+		std::stringstream str;
+		if (hex) {
+			str<<hex;
+		}
+		str<<value;
+		return str.str();
+	}
+};
+
+template <>
+struct AsString<bool> {
+	static String convert(const bool& value)
+	{
+		std::stringstream str;
+
+		if (value)
+		{
+			str<<"True";
+		}
+		else
+		{
+			str<<"False";
+		}
+
+		return str.str();
+	}
+};
+
+
 long int ConvertToLongInt(StringRef str);
 long long ConvertToLongLong(StringRef str);
 double ConvertToDouble(StringRef str);

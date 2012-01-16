@@ -26,19 +26,21 @@ using namespace memoria::vapi;
 
 
 
+
+
 class AbstractParamDescriptor {
 public:
-	virtual void Process() 				= 0;
-	virtual String GetPropertyName() 	= 0;
-	virtual void Dump(std::ostream& os) = 0;
+	virtual void Process(Configurator* cfg) 	= 0;
+	virtual String GetPropertyName() 			= 0;
+	virtual void Dump(std::ostream& os) 		= 0;
 };
 
 
-class TaskParametersSet;
+class ParametersSet;
 
 template <typename T>
 class ParamDescriptor: public AbstractParamDescriptor {
-	TaskParametersSet* 	cfg_;
+	ParametersSet* 		cfg_;
 	StringRef 			set_name_;
 	String 				name_;
 
@@ -51,7 +53,7 @@ class ParamDescriptor: public AbstractParamDescriptor {
 	bool				default_value_specified_;
 	bool				ranges_specified_;
 public:
-	ParamDescriptor(TaskParametersSet* cfg, StringRef set_name, String name, T& value):
+	ParamDescriptor(ParametersSet* cfg, StringRef set_name, String name, T& value):
 		cfg_(cfg),
 		set_name_(set_name),
 		name_(name),
@@ -60,7 +62,7 @@ public:
 		ranges_specified_(false)
 	{}
 
-	ParamDescriptor(TaskParametersSet* cfg, StringRef set_name, String name, T& value, const T& default_value):
+	ParamDescriptor(ParametersSet* cfg, StringRef set_name, String name, T& value, const T& default_value):
 		cfg_(cfg),
 		set_name_(set_name),
 		name_(name),
@@ -70,7 +72,7 @@ public:
 		ranges_specified_(false)
 	{}
 
-	ParamDescriptor(TaskParametersSet* cfg, StringRef set_name, String name, T& value, const T& default_value, const T& max_value):
+	ParamDescriptor(ParametersSet* cfg, StringRef set_name, String name, T& value, const T& default_value, const T& max_value):
 		cfg_(cfg),
 		set_name_(set_name),
 		name_(name),
@@ -82,7 +84,7 @@ public:
 		ranges_specified_(true)
 	{}
 
-	ParamDescriptor(TaskParametersSet* cfg, StringRef set_name, String name, T& value, const T& default_value, const T& min_value, const T& max_value):
+	ParamDescriptor(ParametersSet* cfg, StringRef set_name, String name, T& value, const T& default_value, const T& min_value, const T& max_value):
 		cfg_(cfg),
 		set_name_(set_name),
 		name_(name),
@@ -95,9 +97,9 @@ public:
 	{}
 
 
-	virtual void Process()
+	virtual void Process(Configurator* cfg)
 	{
-		value_ = GetValue();
+		value_ = GetValue(cfg);
 		if (ranges_specified_)
 		{
 			if (!(value_ >= min_value_ && value_ <= max_value_))
@@ -114,27 +116,42 @@ public:
 
 	virtual void Dump(std::ostream& os)
 	{
-		if (default_value_specified_ || ranges_specified_) {
+		bool doc = default_value_specified_ || ranges_specified_;
+
+		if (doc)
+		{
 			os<<"#";
 		}
 
 		if (default_value_specified_)
 		{
-			os<<"default: "<<default_value_<<" ";
+			os<<"default: "<<AsString<T>::convert(default_value_)<<" ";
 		}
 
 		if (ranges_specified_)
 		{
-			os<<"Range from: "<<min_value_<<" to "<<max_value_;
+			os<<"Range from: "<<AsString<T>::convert(min_value_)<<" to "<<AsString<T>::convert(max_value_);
+		}
+
+		if (doc)
+		{
+			os<<endl;
+		}
+
+		os<<GetPropertyName()<<"="<<AsString<T>::convert(value_)<<endl;
+
+		if (doc)
+		{
+			os<<endl;
 		}
 	}
 
 protected:
-	T GetValue();
+	T GetValue(Configurator* cfg);
 };
 
 
-class TaskParametersSet {
+class ParametersSet {
 	String 			name_;
 	Configurator* 	cfg_;
 	bool			enabled_;
@@ -142,7 +159,7 @@ class TaskParametersSet {
 	vector<AbstractParamDescriptor*> descriptors_;
 
 public:
-	TaskParametersSet(String name): name_(name)
+	ParametersSet(String name): name_(name)
 	{
 		Add("enabled", enabled_, true);
 	}
@@ -150,12 +167,6 @@ public:
 	bool IsEnabled() const
 	{
 		return enabled_;
-	}
-
-	void SetCfg(Configurator* cfg)
-	{
-		cfg_ = cfg;
-		this->Process();
 	}
 
 	const Configurator* GetCfg() const
@@ -198,16 +209,16 @@ public:
 	}
 
 	void DumpProperties(std::ostream& os);
-	void Process();
+
+	void Process(Configurator* cfg);
+
 };
 
 
 
 template <typename T>
-T ParamDescriptor<T>::GetValue()
+T ParamDescriptor<T>::GetValue(Configurator* cfg)
 {
-	Configurator* cfg = cfg_->GetCfg();
-
 	String ext_name = set_name_ + "." + name_;
 	if (cfg->IsPropertyDefined(ext_name))
 	{

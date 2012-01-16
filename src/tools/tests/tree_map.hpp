@@ -14,18 +14,43 @@
 
 namespace memoria {
 
+class CreateKVMapUpdateOp: public SPUpdateOp {
 
-class TreeMapTestTaskParametersSet: public TaskParametersSet {
+	Int param_;
+
+public:
+	CreateKVMapUpdateOp(): SPUpdateOp("CreateKVMap"), param_(0) {InitProperties();}
+	CreateKVMapUpdateOp(Int param):SPUpdateOp("CreateKVMap"), param_(param) {InitProperties();}
+
+	virtual ~CreateKVMapUpdateOp() throw () {};
+
+	virtual void Run()
+	{
+		cout<<"Execute UpdateOp: "<<GetName()<<endl;
+
+		throw MemoriaException(MEMORIA_SOURCE, "Fake!");
+	}
+private:
+
+	void InitProperties()
+	{
+		Add("param", param_);
+	}
+};
+
+
+class TreeMapTestTaskParametersSet: public ParametersSet {
 
 	Int size_;
 
 public:
-	TreeMapTestTaskParametersSet(): TaskParametersSet("TreeMap")
+	TreeMapTestTaskParametersSet(): ParametersSet("TreeMap")
 	{
 		Add("size", size_, 1024);
 	}
 
-	Int GetSize() const {
+	Int GetSize() const
+	{
 		return size_;
 	}
 };
@@ -37,7 +62,10 @@ class TreeMapTestTask: public SPTestTask {
 
 public:
 
-	TreeMapTestTask(): SPTestTask(new TreeMapTestTaskParametersSet()){}
+	TreeMapTestTask(): SPTestTask(new TreeMapTestTaskParametersSet())
+	{
+		RegisterUpdateOp(new CreateKVMapUpdateOp());
+	}
 
 	virtual Allocator& GetAllocator()
 	{
@@ -50,6 +78,10 @@ public:
 
 		out<<"size="<<params->GetSize()<<endl;
 		out<<"Task "<<GetTaskName()<<" has been executed"<<endl;
+
+		CreateKVMapUpdateOp op;
+
+		RunOp(&op);
 	}
 };
 

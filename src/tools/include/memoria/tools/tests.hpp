@@ -19,20 +19,12 @@ namespace memoria {
 
 using namespace std;
 
-class UpdateOp {
-
-	String name_;
-
+class UpdateOp: public ParametersSet {
 public:
-	UpdateOp() {}
+	UpdateOp(StringRef name): ParametersSet(name) {}
 	virtual ~UpdateOp() throw () {}
 
-
-	StringRef GetName() const {
-		return name_;
-	}
-
-	virtual void Configure(Configurator* cfg) = 0;
+	virtual void Run() = 0;
 };
 
 
@@ -40,7 +32,7 @@ class TestTask: public Task {
 	map<String, UpdateOp*> operations_;
 
 public:
-	TestTask(TaskParametersSet* parameters): Task(parameters) {}
+	TestTask(ParametersSet* parameters): Task(parameters) {}
 	virtual ~TestTask() throw ();
 
 	void RegisterUpdateOp(UpdateOp* op);
@@ -53,18 +45,38 @@ public:
 
 	virtual void Prepare() {}
 	virtual void DumpAllocator() = 0;
+			void RunOp(UpdateOp* op);
 	virtual void Finish() {}
 	virtual void ExecuteTask(ostream& out) = 0;
+public:
+
+	String GetFileName(StringRef name);
 };
 
 
-template <typename Profile, typename Allocator>
+template <typename Profile_, typename Allocator_>
 class ProfileUpdateOp: public UpdateOp {
+
+	Allocator_* allocator_;
+
 public:
-	ProfileUpdateOp() {}
+	typedef Profile_ 								Profile;
+	typedef Allocator_ 								Allocator;
+
+	ProfileUpdateOp(StringRef name): UpdateOp(name) {}
 	virtual ~ProfileUpdateOp() throw () {}
 
-	virtual void Execute(Allocator& allocator) = 0;
+	Allocator* GetAllocator()
+	{
+		return allocator_;
+	}
+
+	void SetAllocator(Allocator* allocator)
+	{
+		this->allocator_ = allocator;
+	}
+
+	virtual void Run() = 0;
 };
 
 template <typename Profile_, typename Allocator_>
@@ -72,27 +84,33 @@ class ProfileTestTask: public TestTask {
 
 	typedef ProfileUpdateOp<Profile_, Allocator_> 	BasicUpdateOp;
 
+	Allocator_ allocator_;
+
 public:
 
 	typedef Profile_ 								Profile;
 	typedef Allocator_ 								Allocator;
 
 
-	ProfileTestTask(TaskParametersSet* parameters): TestTask(parameters) {}
+	ProfileTestTask(ParametersSet* parameters): TestTask(parameters) {}
 	virtual ~ProfileTestTask() throw () {};
 
-	virtual Allocator& GetAllocator() 		= 0;
+	virtual Allocator& GetAllocator()
+	{
+		return allocator_;
+	}
+
 	virtual void ExecuteTask(ostream& out) 	= 0;
 
 	virtual void ExecuteUpdateOp(UpdateOp* op, StringRef dump_file_name)
 	{
-		Allocator allocator;
 		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(dump_file_name.c_str()));
-		allocator.load(in.get());
+		allocator_.load(in.get());
 
 		BasicUpdateOp* profileOp = static_cast<BasicUpdateOp*>(op);
 
-		profileOp->Execute(allocator);
+		profileOp->SetAllocator(&allocator_);
+		profileOp->Run();
 	}
 
 	virtual void DumpAllocator()
@@ -114,9 +132,14 @@ public:
 
 
 class SPUpdateOp: public ProfileUpdateOp<StreamProfile<>, DefaultStreamAllocator > {
+
+	typedef ProfileUpdateOp<StreamProfile<>, DefaultStreamAllocator > Base;
+
 public:
-	SPUpdateOp() {}
-	virtual ~SPUpdateOp() throw () {}
+	SPUpdateOp(String name): Base(name)  		{}
+	virtual ~SPUpdateOp() throw () 				{}
+
+	virtual void Run() = 0;
 };
 
 
@@ -125,7 +148,7 @@ class SPTestTask: public ProfileTestTask<StreamProfile<>, DefaultStreamAllocator
 	typedef ProfileTestTask<StreamProfile<>, DefaultStreamAllocator> Base;
 
 public:
-	SPTestTask(TaskParametersSet* parameters): Base(parameters) {}
+	SPTestTask(ParametersSet* parameters): Base(parameters) {}
 	virtual ~SPTestTask() throw () {};
 };
 

@@ -11,15 +11,15 @@ namespace memoria {
 
 
 
-void TaskParametersSet::Process()
+void ParametersSet::Process(Configurator* cfg)
 {
 	for (AbstractParamDescriptor* d: descriptors_)
 	{
-		d->Process();
+		d->Process(cfg);
 	}
 }
 
-void TaskParametersSet::DumpProperties(std::ostream& os)
+void ParametersSet::DumpProperties(std::ostream& os)
 {
 	for (AbstractParamDescriptor* d: descriptors_)
 	{

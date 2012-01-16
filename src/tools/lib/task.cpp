@@ -31,7 +31,7 @@ void TaskRunner::Configure(Configurator* cfg)
 {
 	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
 	{
-		i->second->GetParameters()->SetCfg(cfg);
+		i->second->GetParameters()->Process(cfg);
 	}
 }
 

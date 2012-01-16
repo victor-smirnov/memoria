@@ -57,15 +57,15 @@ UpdateOp* TestTask::GetUpdateOp(StringRef name) const
 
 void TestTask::Replay(Configurator* cfg, StringRef dump_file_name)
 {
-	if (cfg->IsPropertyDefined("op.name"))
+	if (cfg->IsPropertyDefined("name"))
 	{
-		String op_name = cfg->GetProperty("op.name");
+		String op_name = cfg->GetProperty("name");
 		UpdateOp* op = GetUpdateOp(op_name);
-		op->Configure(cfg);
+		op->Process(cfg);
 		ExecuteUpdateOp(op, dump_file_name);
 	}
 	else {
-		throw MemoriaException(MEMORIA_SOURCE, "Property op.name is not specified");
+		throw MemoriaException(MEMORIA_SOURCE, "Property name is not specified");
 	}
 }
 
@@ -82,5 +82,35 @@ void TestTask::Run(ostream& out)
 	Finish();
 }
 
+
+void TestTask::RunOp(UpdateOp* op)
+{
+	try {
+		op->Run();
+	}
+	catch (...) {
+		String file_name_base = GetTaskName()+"."+op->GetName();
+		String file_name = GetFileName(file_name_base);
+
+		fstream file;
+		file.open(file_name.c_str(), fstream::out);
+
+		op->DumpProperties(file);
+
+		file.close();
+
+		throw;
+	}
+
+//	String file_name = GetTaskName()+"."
+
+
+}
+
+
+String TestTask::GetFileName(StringRef name)
+{
+	return name + ".properties";
+}
 
 }
