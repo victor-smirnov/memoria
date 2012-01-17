@@ -1,5 +1,0 @@
-Engineering the LOUDS Succinct Tree Representation.pdf
-http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.106.4250
-
-Space-efficient Static Trees and Graphs.pdf
-www.cs.cmu.edu/afs/cs/project/aladdin/wwwlocal/compression/00063533.pdf
