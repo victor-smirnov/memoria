@@ -71,6 +71,14 @@ struct AsString<bool> {
 	}
 };
 
+template <>
+struct AsString<String> {
+	static String convert(StringRef value)
+	{
+		return value;
+	}
+};
+
 
 long int ConvertToLongInt(StringRef str);
 long long ConvertToLongLong(StringRef str);
@@ -112,6 +120,13 @@ struct FromString<bool> {
 	}
 };
 
+template <>
+struct FromString<String> {
+	static String convert(StringRef str)
+	{
+		return str;
+	}
+};
 
 }}
 

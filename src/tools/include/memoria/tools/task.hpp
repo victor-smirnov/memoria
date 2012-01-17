@@ -18,25 +18,49 @@ namespace memoria {
 
 using namespace std;
 
+
+class TaskParametersSet: public ParametersSet {
+	bool enabled_;
+public:
+
+	TaskParametersSet(StringRef name): ParametersSet(name)
+	{
+		Add("enabled", enabled_, true);
+	}
+
+	bool IsEnabled() const
+	{
+		return enabled_;
+	}
+
+	void SetEnabled(bool enabled)
+	{
+		enabled_ = enabled;
+	}
+};
+
+
 class Task {
-	ParametersSet*	parameters_;
+	TaskParametersSet*	parameters_;
 
 public:
-	Task(ParametersSet* parameters): parameters_(parameters) {}
+	Task(TaskParametersSet* parameters): parameters_(parameters) {}
 
 	virtual ~Task() throw ();
 
-	ParametersSet* GetParameters() {
-		return parameters_;
+	template <typename T = TaskParametersSet>
+	T* GetParameters() {
+		return static_cast<T*>(parameters_);
 	}
 
-	const ParametersSet* GetParameters() const {
-		return parameters_;
+	template <typename T = TaskParametersSet>
+	const T* GetParameters() const {
+		return static_cast<const T*>(parameters_);
 	}
 
 	StringRef GetTaskName() const
 	{
-		return parameters_->GetName();
+		return parameters_->GetPrefix();
 	}
 
 	bool IsRunByDefault() const
@@ -44,7 +68,7 @@ public:
 		return parameters_->IsEnabled();
 	}
 
-	virtual void Run(ostream& out) = 0;
+	virtual void Run(ostream& out, Configurator* cfg) = 0;
 };
 
 
@@ -59,14 +83,15 @@ public:
 
 	~TaskRunner();
 
-	void RegisterTask(Task* task) {
-		tasks_[task->GetParameters()->GetName()] = task;
+	void RegisterTask(Task* task)
+	{
+		tasks_[task->GetParameters<>()->GetPrefix()] = task;
 	}
 
 	void Configure(Configurator* cfg);
 
 	void DumpProperties(ostream& os);
-	void Run(ostream& out);
+	void Run(ostream& out, Configurator* cfg = NULL);
 
 	template <typename T>
 	T GetTask(StringRef name)

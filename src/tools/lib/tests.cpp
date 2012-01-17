@@ -13,104 +13,24 @@ namespace memoria {
 using namespace std;
 using namespace memoria::vapi;
 
-void TestRunner::Replay(Configurator* cfg, StringRef dump_file_name)
+void TestTask::Run(ostream& out, Configurator* cfg)
 {
-	if (cfg->IsPropertyDefined("task.name"))
-	{
-		String task_name = cfg->GetProperty("task.name");
-		TestTask* task = TestRunner::GetTask<TestTask*>(task_name);
-		cout<<"Replay "<<dump_file_name<<endl;
-		task->Replay(cfg, dump_file_name);
-	}
-	else {
-		throw MemoriaException(MEMORIA_SOURCE, "Property task.name is not specified");
-	}
+	TestStepParams* params = cfg != NULL ? ReadTestStep(cfg) : NULL;
+	Run(out, params);
 }
-
-
-TestTask::~TestTask() throw ()
-{
-	for (auto i = operations_.begin(); i != operations_.end(); i++)
-	{
-		delete i->second;
-	}
-}
-
-
-void TestTask::RegisterUpdateOp(UpdateOp* op)
-{
-	operations_[op->GetName()] = op;
-}
-
-
-UpdateOp* TestTask::GetUpdateOp(StringRef name) const
-{
-	auto i = operations_.find(name);
-	if (i != operations_.end())
-	{
-		return i->second;
-	}
-	else {
-		throw MemoriaException(MEMORIA_SOURCE, "Unknown update operation "+name+" for task "+GetTaskName());
-	}
-}
-
-void TestTask::Replay(Configurator* cfg, StringRef dump_file_name)
-{
-	if (cfg->IsPropertyDefined("name"))
-	{
-		String op_name = cfg->GetProperty("name");
-		UpdateOp* op = GetUpdateOp(op_name);
-		op->Process(cfg);
-		ExecuteUpdateOp(op, dump_file_name);
-	}
-	else {
-		throw MemoriaException(MEMORIA_SOURCE, "Property name is not specified");
-	}
-}
-
-void TestTask::Run(ostream& out)
-{
-	Prepare();
-	try {
-		ExecuteTask(out);
-	}
-	catch (...) {
-		DumpAllocator();
-		Finish();
-	}
-	Finish();
-}
-
-
-void TestTask::RunOp(UpdateOp* op)
-{
-	try {
-		op->Run();
-	}
-	catch (...) {
-		String file_name_base = GetTaskName()+"."+op->GetName();
-		String file_name = GetFileName(file_name_base);
-
-		fstream file;
-		file.open(file_name.c_str(), fstream::out);
-
-		op->DumpProperties(file);
-
-		file.close();
-
-		throw;
-	}
-
-//	String file_name = GetTaskName()+"."
-
-
-}
-
 
 String TestTask::GetFileName(StringRef name)
 {
 	return name + ".properties";
+}
+
+TestStepParams* TestTask::ReadTestStep(Configurator* cfg)
+{
+	String name = cfg->GetProperty("name");
+	TestStepParams* params = CreateTestStep(name);
+	params->Process(cfg);
+
+	return params;
 }
 
 }

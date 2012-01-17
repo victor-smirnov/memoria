@@ -41,7 +41,8 @@ class ParametersSet;
 template <typename T>
 class ParamDescriptor: public AbstractParamDescriptor {
 	ParametersSet* 		cfg_;
-	StringRef 			set_name_;
+
+	String 				prefix_;
 	String 				name_;
 
 	T& 					value_;
@@ -53,18 +54,18 @@ class ParamDescriptor: public AbstractParamDescriptor {
 	bool				default_value_specified_;
 	bool				ranges_specified_;
 public:
-	ParamDescriptor(ParametersSet* cfg, StringRef set_name, String name, T& value):
+	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value):
 		cfg_(cfg),
-		set_name_(set_name),
+		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_specified_(false),
 		ranges_specified_(false)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, StringRef set_name, String name, T& value, const T& default_value):
+	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value, const T& default_value):
 		cfg_(cfg),
-		set_name_(set_name),
+		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_(default_value),
@@ -72,9 +73,9 @@ public:
 		ranges_specified_(false)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, StringRef set_name, String name, T& value, const T& default_value, const T& max_value):
+	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value, const T& default_value, const T& max_value):
 		cfg_(cfg),
-		set_name_(set_name),
+		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_(default_value),
@@ -84,9 +85,9 @@ public:
 		ranges_specified_(true)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, StringRef set_name, String name, T& value, const T& default_value, const T& min_value, const T& max_value):
+	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value, const T& default_value, const T& min_value, const T& max_value):
 		cfg_(cfg),
-		set_name_(set_name),
+		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_(default_value),
@@ -100,18 +101,25 @@ public:
 	virtual void Process(Configurator* cfg)
 	{
 		value_ = GetValue(cfg);
+
 		if (ranges_specified_)
 		{
 			if (!(value_ >= min_value_ && value_ <= max_value_))
 			{
-				throw MemoriaException(MEMORIA_SOURCE, "Range checking failure for the property: "+set_name_+"."+name_);
+				throw MemoriaException(MEMORIA_SOURCE, "Range checking failure for the property: "+prefix_+"."+name_);
 			}
 		}
 	}
 
 	virtual String GetPropertyName()
 	{
-		return set_name_+"."+name_;
+		if (IsEmpty(prefix_))
+		{
+			return name_;
+		}
+		else {
+			return prefix_+"."+name_;
+		}
 	}
 
 	virtual void Dump(std::ostream& os)
@@ -152,66 +160,46 @@ protected:
 
 
 class ParametersSet {
-	String 			name_;
-	Configurator* 	cfg_;
-	bool			enabled_;
+
+	String 			prefix_;
 
 	vector<AbstractParamDescriptor*> descriptors_;
 
 public:
-	ParametersSet(String name): name_(name)
-	{
-		Add("enabled", enabled_, true);
-	}
+	ParametersSet(StringRef prefix): prefix_(prefix) {}
 
-	bool IsEnabled() const
+	StringRef GetPrefix() const
 	{
-		return enabled_;
-	}
-
-	const Configurator* GetCfg() const
-	{
-		return cfg_;
-	}
-
-	Configurator* GetCfg()
-	{
-		return cfg_;
-	}
-
-	StringRef GetName() const
-	{
-		return name_;
+		return prefix_;
 	}
 
 	template <typename T>
 	void Add(StringRef name, T& property)
 	{
-		descriptors_.push_back(new ParamDescriptor<T>(this, name_, name, property));
+		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property));
 	}
 
 	template <typename T>
 	void Add(StringRef name, T& property, const T& default_value)
 	{
-		descriptors_.push_back(new ParamDescriptor<T>(this, name_, name, property, default_value));
+		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property, default_value));
 	}
 
 	template <typename T>
 	void Add(StringRef name, T& property, const T& default_value, const T& max_value)
 	{
-		descriptors_.push_back(new ParamDescriptor<T>(this, name_, name, property, default_value, max_value));
+		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property, default_value, max_value));
 	}
 
 	template <typename T>
 	void Add(StringRef name, T& property, const T& default_value, const T& min_value, const T& max_value)
 	{
-		descriptors_.push_back(new ParamDescriptor<T>(this, name_, name, property, default_value, min_value, max_value));
+		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property, default_value, min_value, max_value));
 	}
 
 	void DumpProperties(std::ostream& os);
 
 	void Process(Configurator* cfg);
-
 };
 
 
@@ -219,7 +207,7 @@ public:
 template <typename T>
 T ParamDescriptor<T>::GetValue(Configurator* cfg)
 {
-	String ext_name = set_name_ + "." + name_;
+	String ext_name = GetPropertyName();
 	if (cfg->IsPropertyDefined(ext_name))
 	{
 		return FromString<T>::convert(cfg->GetProperty(ext_name));

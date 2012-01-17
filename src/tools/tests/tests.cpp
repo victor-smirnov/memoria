@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include "tree_map.hpp"
+#include "kv_map/task.hpp"
 
 #include <memoria/tools/cmdline.hpp>
 
@@ -28,7 +28,7 @@ int main(int argc, const char** argv, const char** envp)
 
 		// add tasks to the runner;
 
-		runner.RegisterTask(new TreeMapTestTask());
+		runner.RegisterTask(new KVMapTestTask());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
@@ -40,7 +40,7 @@ int main(int argc, const char** argv, const char** envp)
 			cout<<"    --help                     Display this help and exit"<<endl;
 			cout<<"    --config <file.properties> Use the specified config file"<<endl;
 			cout<<"    --dump                     Dump available tasks and their configuration properties and exit"<<endl;
-			cout<<"    --replay <update_op.properties> <dump-file> Replay the failed update operation on the allocator dump"<<endl;
+			cout<<"    --replay <update_op.properties> Replay the failed update operation"<<endl;
 		}
 		else if (cmd_line.IsDump())
 		{
@@ -48,7 +48,7 @@ int main(int argc, const char** argv, const char** envp)
 		}
 		else if (cmd_line.IsReplay())
 		{
-			runner.Replay(&cmd_line.GetReplayOperationConfigurator(), cmd_line.GetDumpFileName());
+			runner.Run(cout, &cmd_line.GetReplayOperationConfigurator());
 		}
 		else {
 			runner.Run(cout);

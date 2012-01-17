@@ -56,14 +56,13 @@ void CmdLine::Process()
 		}
 		else if (arg == "--replay" && (operations_ & REPLAY))
 		{
-			if (c < argc_ - 2)
+			if (c < argc_ - 1)
 			{
 				if (!replay_)
 				{
-					Configurator::Parse(argv_[c+1], &replay_file_);
+					Configurator::Parse(argv_[c + 1], &replay_file_);
 					replay_ = true;
-					dump_file_name_ = argv_[c + 2];
-					c += 2;
+					c += 1;
 				}
 				else {
 					throw MemoriaException(MEMORIA_SOURCE, "Replay operation has been already specified");

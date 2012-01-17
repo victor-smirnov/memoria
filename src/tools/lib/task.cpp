@@ -35,16 +35,25 @@ void TaskRunner::Configure(Configurator* cfg)
 	}
 }
 
-void TaskRunner::Run(ostream& out)
+void TaskRunner::Run(ostream& out, Configurator* cfg)
 {
-	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
+	if (cfg == NULL)
 	{
-		Task* t = i->second;
-
-		if (t->GetParameters()->IsEnabled())
+		for (auto i = tasks_.begin(); i != tasks_.end(); i++)
 		{
-			t->Run(out);
+			Task* t = i->second;
+
+			if (t->GetParameters()->IsEnabled())
+			{
+				t->Run(out, NULL);
+			}
 		}
+	}
+	else
+	{
+		String name = cfg->GetProperty("task");
+		Task* task = GetTask<Task*>(name);
+		task->Run(out, cfg);
 	}
 }
 

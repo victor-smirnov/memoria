@@ -19,35 +19,53 @@ namespace memoria {
 
 using namespace std;
 
-class UpdateOp: public ParametersSet {
-public:
-	UpdateOp(StringRef name): ParametersSet(name) {}
-	virtual ~UpdateOp() throw () {}
+class TestStepParams: public ParametersSet {
 
-	virtual void Run() = 0;
+	String name_;
+	String task_;
+
+public:
+	TestStepParams():ParametersSet("")
+	{
+		Add("name", name_);
+		Add("task", task_);
+	}
+
+	virtual ~TestStepParams() {}
+
+	StringRef GetName() const
+	{
+		return name_;
+	}
+
+	void SetName(StringRef name)
+	{
+		name_ = name;
+	}
+
+	StringRef GetTask() const
+	{
+		return task_;
+	}
+
+	void SetTask(StringRef task)
+	{
+		task_ = task;
+	}
 };
 
-
 class TestTask: public Task {
-	map<String, UpdateOp*> operations_;
 
 public:
-	TestTask(ParametersSet* parameters): Task(parameters) {}
-	virtual ~TestTask() throw ();
+	TestTask(TaskParametersSet* parameters): Task(parameters) {}
+	virtual ~TestTask() throw () {}
 
-	void RegisterUpdateOp(UpdateOp* op);
-	void Replay(Configurator* cfg, StringRef dump_file_name);
-	UpdateOp* GetUpdateOp(StringRef name) const;
+	virtual TestStepParams* ReadTestStep(Configurator* cfg);
+	virtual void 			Run(ostream& out, Configurator* cfg);
 
-	virtual void ExecuteUpdateOp(UpdateOp* op, StringRef dump_file_name) = 0;
+	virtual TestStepParams* CreateTestStep(StringRef name)								= 0;
+	virtual void 			Run(ostream& out, TestStepParams* step_params)				= 0;
 
-	virtual void Run(ostream& out);
-
-	virtual void Prepare() {}
-	virtual void DumpAllocator() = 0;
-			void RunOp(UpdateOp* op);
-	virtual void Finish() {}
-	virtual void ExecuteTask(ostream& out) = 0;
 public:
 
 	String GetFileName(StringRef name);
@@ -55,91 +73,36 @@ public:
 
 
 template <typename Profile_, typename Allocator_>
-class ProfileUpdateOp: public UpdateOp {
-
-	Allocator_* allocator_;
-
-public:
-	typedef Profile_ 								Profile;
-	typedef Allocator_ 								Allocator;
-
-	ProfileUpdateOp(StringRef name): UpdateOp(name) {}
-	virtual ~ProfileUpdateOp() throw () {}
-
-	Allocator* GetAllocator()
-	{
-		return allocator_;
-	}
-
-	void SetAllocator(Allocator* allocator)
-	{
-		this->allocator_ = allocator;
-	}
-
-	virtual void Run() = 0;
-};
-
-template <typename Profile_, typename Allocator_>
 class ProfileTestTask: public TestTask {
 
-	typedef ProfileUpdateOp<Profile_, Allocator_> 	BasicUpdateOp;
-
-	Allocator_ allocator_;
-
 public:
 
 	typedef Profile_ 								Profile;
 	typedef Allocator_ 								Allocator;
 
 
-	ProfileTestTask(ParametersSet* parameters): TestTask(parameters) {}
+	ProfileTestTask(TaskParametersSet* parameters): TestTask(parameters) {}
 	virtual ~ProfileTestTask() throw () {};
 
-	virtual Allocator& GetAllocator()
+	virtual TestStepParams* CreateTestStep(StringRef name)								= 0;
+	virtual void 			Run(ostream& out, TestStepParams* step_params)				= 0;
+
+	void LoadAllocator(Allocator& allocator, StringRef file_name)
 	{
-		return allocator_;
+		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
+		allocator.load(in.get());
 	}
 
-	virtual void ExecuteTask(ostream& out) 	= 0;
-
-	virtual void ExecuteUpdateOp(UpdateOp* op, StringRef dump_file_name)
+	void StoreAllocator(Allocator& allocator, StringRef file_name)
 	{
-		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(dump_file_name.c_str()));
-		allocator_.load(in.get());
-
-		BasicUpdateOp* profileOp = static_cast<BasicUpdateOp*>(op);
-
-		profileOp->SetAllocator(&allocator_);
-		profileOp->Run();
+		unique_ptr <FileInputStreamHandler> out(FileInputStreamHandler::create(file_name.c_str()));
+		allocator.load(out.get());
 	}
 
-	virtual void DumpAllocator()
+	String GetAllocatorFileName(const TestStepParams* params) const
 	{
-		Allocator& allocator = GetAllocator();
-
-		String name_before = GetTaskName() + ".before.dump";
-		unique_ptr <FileOutputStreamHandler> out1(FileOutputStreamHandler::create(name_before.c_str()));
-		allocator.store(out1.get());
-
-		allocator.commit();
-
-		String name_after = GetTaskName() + ".after.dump";
-		unique_ptr <FileOutputStreamHandler> out2(FileOutputStreamHandler::create(name_after.c_str()));
-		allocator.store(out2.get());
+		return GetTaskName()+"."+params->GetName()+".dump";
 	}
-};
-
-
-
-class SPUpdateOp: public ProfileUpdateOp<StreamProfile<>, DefaultStreamAllocator > {
-
-	typedef ProfileUpdateOp<StreamProfile<>, DefaultStreamAllocator > Base;
-
-public:
-	SPUpdateOp(String name): Base(name)  		{}
-	virtual ~SPUpdateOp() throw () 				{}
-
-	virtual void Run() = 0;
 };
 
 
@@ -148,20 +111,19 @@ class SPTestTask: public ProfileTestTask<StreamProfile<>, DefaultStreamAllocator
 	typedef ProfileTestTask<StreamProfile<>, DefaultStreamAllocator> Base;
 
 public:
-	SPTestTask(ParametersSet* parameters): Base(parameters) {}
+	SPTestTask(TaskParametersSet* parameters): Base(parameters) {}
 	virtual ~SPTestTask() throw () {};
+
+	virtual TestStepParams* CreateTestStep(StringRef name)								= 0;
+	virtual void 			Run(ostream& out, TestStepParams* step_params)				= 0;
 };
-
-
-
 
 
 
 class TestRunner: public TaskRunner {
 public:
-	TestRunner(): TaskRunner() {}
-
-	void Replay(Configurator* cfg, StringRef dump_file_name);
+	TestRunner(): TaskRunner() 	{}
+	virtual ~TestRunner() 		{}
 };
 
 

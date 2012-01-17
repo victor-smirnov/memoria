@@ -39,7 +39,6 @@ class CmdLine {
 
 	Configurator	replay_file_;
 	bool			replay_;
-	String			dump_file_name_;
 
 public:
 
@@ -69,11 +68,6 @@ public:
 	StringRef GetImageName() const
 	{
 		return image_name_;
-	}
-
-	StringRef GetDumpFileName() const
-	{
-		return dump_file_name_;
 	}
 
 	bool IsHelp()
