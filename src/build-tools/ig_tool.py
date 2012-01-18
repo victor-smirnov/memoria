@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 		
-## This file is part of the Memoria project.
-## Copyright (C) 2011 Ivan Yurchenko <ivanhoe12@gmail.com>
+## This file is a part of the Memoria project.
+## Copyright (C) 2011,2012 Ivan Yurchenko <ivanhoe12@gmail.com>
 ## Distributed under the Boost Software License, Version 1.0.
 ## (See accompanying file LICENSE_1_0.txt or copy at
 ## http://www.boost.org/LICENSE_1_0.txt)
@@ -39,26 +39,38 @@ def get_files_list(root_dir, ext_list):
 
 def extract_directive(line, which):
 	pattern = {
-		directives.ifndef: r"^(\s*)#ifndef(\s+)(?P<name>.*)$",
-		directives.define: r"^(\s*)#define(\s+)(?P<name>.*)$"}[which]
+		directives.ifndef: r"^(\s*)#ifndef(\s+)(?P<name>.*?)\s*(//.*)?$",
+		directives.define: r"^(\s*)#define(\s+)(?P<name>.*?)\s*(//.*)?$"}[which]
 	match = re.match(pattern, line.strip())
 	result = match.group("name") if match else None
 	return result
 
 	
 def get_ig(file_name):
-	#TODO block comments (it's good idea to delete all comments before processing)
+	#TODO make block comments more strict
 
 	ifndef_name = None
 	ifndef_line = None
 	define_name = None
 	define_line = None
 
+	is_block_comment = False
+
 	file = open(file_name, "r")
 	try:
 		for (line_num, line) in enumerate(file):
 			# skip empty and commented lines
 			if re.match(r"^\s*(//.*)?$", line): continue
+
+			# deal with block comments
+			if not is_block_comment:
+				if re.match(r"^\s*/\*", line):
+					is_block_comment = True
+					continue
+			else:
+				if re.match(r".*\*/", line):
+					is_block_comment = False
+				continue
 
 			# extract #ifndef
 			if not ifndef_name:
@@ -86,9 +98,13 @@ def get_all_igs(files):
 	return result
 
 	
-def build_ig(file_name):
-	path_elements = file_name.split(os.path.sep)
-	path_elements[0] = ''
+def build_ig(root_dir, file_name):
+
+	abs_file_name = os.path.abspath(file_name)
+	common_prefix = os.path.commonprefix( [abs_file_name, os.path.abspath(root_dir)] )
+	remainder = abs_file_name.replace(common_prefix, '', 1)
+
+	path_elements = remainder.split(os.path.sep)
 	path_elements = [ e.upper() for e in path_elements ]
 	# replace dot with "_" in filename
 	path_elements[-1] = path_elements[-1].replace('.', '_')
@@ -96,7 +112,7 @@ def build_ig(file_name):
 	return ig
 
 	
-def check(igs):
+def check(root_dir, igs):
 	result = {}
 	for key in igs:
 		(ifndef_name, ifndef_line, define_name, define_line) = igs[key]
@@ -107,13 +123,13 @@ def check(igs):
 			result[key] = ig_check_result.broken
 		if ifndef_name != define_name:
 			result[key] = ig_check_result.broken
-		if ifndef_name != build_ig(key):
+		if ifndef_name != build_ig(root_dir, key):
 			result[key] = ig_check_result.not_according
 	return result
 	
 
-def print_check(igs, is_abs_paths, is_sort):
-	checks = check(igs)
+def print_check(root_dir, igs, is_abs_paths, is_sort):
+	checks = check(root_dir, igs)
 	file_names = list(checks.keys())
 	if is_sort:
 		file_names.sort()
@@ -130,13 +146,13 @@ def print_check(igs, is_abs_paths, is_sort):
 			print('{0}:'.format(diplay_name))
 			print('Include guards is incorrect')
 			print('Current: "{0}"'.format(igs[file_name][0]))
-			print('Correct: "{0}"'.format(build_ig(file_name)))
+			print('Correct: "{0}"'.format(build_ig(root_dir, file_name)))
 
 		if c != ig_check_result.ok:
 			print('')
 
 
-def make_according(igs, is_verbose, is_abs_paths, is_sort):
+def make_according(root_dir, igs, is_verbose, is_abs_paths, is_sort):
 	checks = check(igs)
 	not_according = [ i for i in checks if checks[i] == ig_check_result.not_according ]
 	if is_sort:
@@ -145,7 +161,7 @@ def make_according(igs, is_verbose, is_abs_paths, is_sort):
 		f_read = open(file_name, 'r+U', newline='')
 		try:
 			old_ig = igs[file_name][0]
-			ig = build_ig(file_name)
+			ig = build_ig(root_dir, file_name)
 			ifndef_line = igs[file_name][1]
 			define_line = igs[file_name][3]
 
@@ -234,7 +250,7 @@ def main():
 	if is_repair:
 		make_according(igs, is_verbose, is_abs_paths, is_sort)
 	else:
-		print_check(igs, is_abs_paths, is_sort)
+		print_check(root_dir, igs, is_abs_paths, is_sort)
 
 #----
 if __name__ == "__main__":
