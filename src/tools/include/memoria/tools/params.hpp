@@ -31,8 +31,8 @@ using namespace memoria::vapi;
 class AbstractParamDescriptor {
 public:
 	virtual void Process(Configurator* cfg) 	= 0;
-	virtual String GetPropertyName() 			= 0;
-	virtual void Dump(std::ostream& os) 		= 0;
+	virtual String GetPropertyName() const		= 0;
+	virtual void Dump(std::ostream& os) const	= 0;
 };
 
 
@@ -53,14 +53,27 @@ class ParamDescriptor: public AbstractParamDescriptor {
 
 	bool				default_value_specified_;
 	bool				ranges_specified_;
+	bool 				ignore_;
+
 public:
+	ParamDescriptor(bool ignore, ParametersSet* cfg, StringRef prefix, String name, T& value):
+		cfg_(cfg),
+		prefix_(prefix),
+		name_(name),
+		value_(value),
+		default_value_specified_(false),
+		ranges_specified_(false),
+		ignore_(ignore)
+	{}
+
 	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value):
 		cfg_(cfg),
 		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_specified_(false),
-		ranges_specified_(false)
+		ranges_specified_(false),
+		ignore_(false)
 	{}
 
 	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value, const T& default_value):
@@ -70,7 +83,8 @@ public:
 		value_(value),
 		default_value_(default_value),
 		default_value_specified_(true),
-		ranges_specified_(false)
+		ranges_specified_(false),
+		ignore_(false)
 	{}
 
 	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value, const T& default_value, const T& max_value):
@@ -82,7 +96,8 @@ public:
 		min_value_(numeric_limits<T>::min()),
 		max_value_(max_value),
 		default_value_specified_(true),
-		ranges_specified_(true)
+		ranges_specified_(true),
+		ignore_(false)
 	{}
 
 	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value, const T& default_value, const T& min_value, const T& max_value):
@@ -94,13 +109,14 @@ public:
 		min_value_(min_value),
 		max_value_(max_value),
 		default_value_specified_(true),
-		ranges_specified_(true)
+		ranges_specified_(true),
+		ignore_(false)
 	{}
 
 
 	virtual void Process(Configurator* cfg)
 	{
-		value_ = GetValue(cfg);
+		SetValue(cfg, value_);
 
 		if (ranges_specified_)
 		{
@@ -111,7 +127,7 @@ public:
 		}
 	}
 
-	virtual String GetPropertyName()
+	virtual String GetPropertyName() const
 	{
 		if (IsEmpty(prefix_))
 		{
@@ -122,7 +138,7 @@ public:
 		}
 	}
 
-	virtual void Dump(std::ostream& os)
+	virtual void Dump(std::ostream& os) const
 	{
 		bool doc = default_value_specified_ || ranges_specified_;
 
@@ -155,7 +171,7 @@ public:
 	}
 
 protected:
-	T GetValue(Configurator* cfg);
+	void SetValue(Configurator* cfg, T& value);
 };
 
 
@@ -180,6 +196,12 @@ public:
 	}
 
 	template <typename T>
+	void Add(bool ignore, StringRef name, T& property)
+	{
+		descriptors_.push_back(new ParamDescriptor<T>(ignore, this, prefix_, name, property));
+	}
+
+	template <typename T>
 	void Add(StringRef name, T& property, const T& default_value)
 	{
 		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property, default_value));
@@ -197,7 +219,7 @@ public:
 		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property, default_value, min_value, max_value));
 	}
 
-	void DumpProperties(std::ostream& os);
+	void DumpProperties(std::ostream& os) const;
 
 	void Process(Configurator* cfg);
 };
@@ -205,22 +227,22 @@ public:
 
 
 template <typename T>
-T ParamDescriptor<T>::GetValue(Configurator* cfg)
+void ParamDescriptor<T>::SetValue(Configurator* cfg, T& value)
 {
 	String ext_name = GetPropertyName();
 	if (cfg->IsPropertyDefined(ext_name))
 	{
-		return FromString<T>::convert(cfg->GetProperty(ext_name));
+		value = FromString<T>::convert(cfg->GetProperty(ext_name));
 	}
 	else if (cfg->IsPropertyDefined(name_))
 	{
-		return FromString<T>::convert(cfg->GetProperty(name_));
+		value = FromString<T>::convert(cfg->GetProperty(name_));
 	}
 	else if (default_value_specified_)
 	{
-		return default_value_;
+		value = default_value_;
 	}
-	else {
+	else if (!ignore_) {
 		throw MemoriaException(MEMORIA_SOURCE, "Property "+ext_name+" has to be specified in the config file");
 	}
 }

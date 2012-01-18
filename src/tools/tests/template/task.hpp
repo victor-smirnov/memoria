@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_TREE_MAP_HPP_
-#define MEMORIA_TESTS_TREE_MAP_HPP_
+#ifndef MEMORIA_TESTS_TEMPLATE_TASK_HPP_
+#define MEMORIA_TESTS_TEMPLATE_TASK_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -16,17 +16,17 @@ namespace memoria {
 
 using namespace memoria::vapi;
 
-class KVMapTestStepParams: public TestStepParams {
+class TemplateTestStepParams: public TestStepParams {
 
 	Int param_;
 
 public:
-	KVMapTestStepParams(StringRef name = "KVMap"): TestStepParams(name), param_(0)
+	TemplateTestStepParams(StringRef name = "KVMap"): TestStepParams(name), param_(0)
 	{
 		Add("param", param_);
 	}
 
-	virtual ~KVMapTestStepParams() throw () {};
+	virtual ~TemplateTestStepParams() throw () {};
 
 	Int GetParam() const {
 		return param_;
@@ -41,14 +41,15 @@ private:
 };
 
 
-class KVMapTestTaskParams: public TaskParametersSet {
+class TemplateTestTaskParams: public TaskParametersSet {
 
 	Int size_;
 
 public:
-	KVMapTestTaskParams(): TaskParametersSet("KVMapTestTask")
+	TemplateTestTaskParams(): TaskParametersSet("TemplateTestTask")
 	{
 		Add("size", size_, 1024);
+		SetEnabled(false);
 	}
 
 	Int GetSize() const
@@ -58,17 +59,17 @@ public:
 };
 
 
-class KVMapTestTask: public SPTestTask {
+class TemplateTestTask: public SPTestTask {
 
 public:
 
-	KVMapTestTask(): SPTestTask(new KVMapTestTaskParams()) {}
+	TemplateTestTask(): SPTestTask(new TemplateTestTaskParams()) {}
 
-	virtual ~KVMapTestTask() throw() {}
+	virtual ~TemplateTestTask() throw() {}
 
 	virtual TestStepParams* CreateTestStep(StringRef name) const
 	{
-		return new KVMapTestStepParams(name);
+		return new TemplateTestStepParams(name);
 	}
 
 	virtual void Run(ostream& out, TestStepParams* step_params)
@@ -83,7 +84,7 @@ public:
 		}
 		else {
 			KVMapTestStepParams params;
-			out<<"KVMapTestTask: "<<"Do main things"<<endl;
+			out<<GetTaskName()<<": "<<"Do main things"<<endl;
 
 			Allocator allocator;
 

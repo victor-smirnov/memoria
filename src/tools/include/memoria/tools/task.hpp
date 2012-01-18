@@ -23,9 +23,9 @@ class TaskParametersSet: public ParametersSet {
 	bool enabled_;
 public:
 
-	TaskParametersSet(StringRef name): ParametersSet(name)
+	TaskParametersSet(StringRef name): ParametersSet(name), enabled_(true)
 	{
-		Add("enabled", enabled_, true);
+		Add(true, "enabled", enabled_);
 	}
 
 	bool IsEnabled() const

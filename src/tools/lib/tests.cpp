@@ -15,22 +15,30 @@ using namespace memoria::vapi;
 
 void TestTask::Run(ostream& out, Configurator* cfg)
 {
-	TestStepParams* params = cfg != NULL ? ReadTestStep(cfg) : NULL;
-	Run(out, params);
+	unique_ptr<TestStepParams> params(cfg != NULL ? ReadTestStep(cfg) : NULL);
+	Run(out, params.get());
 }
 
-String TestTask::GetFileName(StringRef name)
+String TestTask::GetFileName(StringRef name) const
 {
 	return name + ".properties";
 }
 
-TestStepParams* TestTask::ReadTestStep(Configurator* cfg)
+TestStepParams* TestTask::ReadTestStep(Configurator* cfg) const
 {
 	String name = cfg->GetProperty("name");
 	TestStepParams* params = CreateTestStep(name);
+	Configure(params);
+
 	params->Process(cfg);
 
 	return params;
+}
+
+void TestTask::Configure(TestStepParams* params) const
+{
+	params->SetTask(GetTaskName());
+	params->SetReplay(true);
 }
 
 }
