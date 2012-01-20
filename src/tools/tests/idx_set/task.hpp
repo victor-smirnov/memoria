@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_KV_MAP_TASK_HPP_
-#define MEMORIA_TESTS_KV_MAP_TASK_HPP_
+#ifndef MEMORIA_TESTS_IDX_SET_TASK_HPP_
+#define MEMORIA_TESTS_IDX_SET_TASK_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -18,27 +18,27 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <memory>
 
 namespace memoria {
 
-class KVMapTestTask: public SPTestTask {
+class IdxSetTestTask: public SPTestTask {
 public:
-	typedef KVPair<BigInt, BigInt> Pair;
 
 
 private:
-	typedef vector<Pair> PairVector;
-	typedef StreamContainerTypesCollection::Factory<DefKVMap>::Type KVMapType;
+	typedef vector<BigInt> PairVector;
+	typedef StreamContainerTypesCollection::Factory<IdxSet1>::Type IdxSetType;
 
 	PairVector pairs;
 	PairVector pairs_sorted;
 
 public:
 
-	KVMapTestTask(): SPTestTask(new KVMapTestTaskParams()) {}
-	virtual ~KVMapTestTask() throw() {}
+	IdxSetTestTask(): SPTestTask(new IdxSetTestTaskParams()) {}
+	virtual ~IdxSetTestTask() throw() {}
 
-	void CheckIteratorFw(KVMapType* map, PairVector& pairs)
+	void CheckIteratorFw(IdxSetType* map, PairVector& pairs)
 	{
 		map->End().update();
 		Int pairs_size = (Int)pairs.size();
@@ -47,10 +47,8 @@ public:
 		for (auto iter = map->Begin(); !iter.IsEnd(); )
 		{
 		    BigInt  key 	= iter.GetKey(0);
-		    BigInt  value 	= iter.GetData();
 
-		    MEMORIA_TEST_ASSERT1(pairs[idx].key_,   !=, key, idx);
-		    MEMORIA_TEST_ASSERT1(pairs[idx].value_, !=, value, idx);
+		    MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
 
 		    iter.Next();
 		    idx++;
@@ -62,10 +60,8 @@ public:
 		for (auto iter = map->RBegin(); !iter.IsStart(); )
 		{
 			BigInt  key 	= iter.GetKey(0);
-			BigInt  value 	= iter.GetData();
 
-			MEMORIA_TEST_ASSERT1(pairs[idx].key_,   !=, key, idx);
-			MEMORIA_TEST_ASSERT1(pairs[idx].value_, !=, value, idx);
+			MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
 
 			iter.Prev();
 
@@ -76,7 +72,7 @@ public:
 	}
 
 
-	void CheckIteratorBw(KVMapType* map, PairVector& pairs)
+	void CheckIteratorBw(IdxSetType* map, PairVector& pairs)
 	{
 		Int pairs_size = (Int)pairs.size();
 		Int idx = pairs_size - 1;
@@ -84,10 +80,8 @@ public:
 		for (auto iter = map->RBegin(); !iter.IsStart(); )
 		{
 			BigInt  key 	= iter.GetKey(0);
-			BigInt  value 	= iter.GetData();
 
-			MEMORIA_TEST_ASSERT(pairs[idx].key_,   !=, key);
-			MEMORIA_TEST_ASSERT(pairs[idx].value_, !=, value);
+			MEMORIA_TEST_ASSERT(pairs[idx],   !=, key);
 
 		    iter.Prev();
 		    idx--;
@@ -97,16 +91,14 @@ public:
 	}
 
 
-	void CheckMultistepForwardIterator(KVMapType* map)
+	void CheckMultistepForwardIterator(IdxSetType* map)
 	{
-		typedef KVMapType::Iterator IteratorType;
-
 		BigInt max = map->GetSize();
 
 		for (Int c = 0; c < 100; c++)
 		{
-			IteratorType iter1 = map->Begin();
-			IteratorType iter2 = iter1;
+			auto iter1 = map->Begin();
+			auto iter2 = iter1;
 
 			BigInt rnd = max > 0 ? GetRandom(max) : 0;
 
@@ -121,16 +113,14 @@ public:
 		}
 	}
 
-	void CheckMultistepBackwardIterator(KVMapType* map)
+	void CheckMultistepBackwardIterator(IdxSetType* map)
 	{
-		typedef KVMapType::Iterator IteratorType;
-
 		BigInt max = map->GetSize();
 
 		for (Int c = 0; c < 100; c++)
 		{
-			IteratorType iter1 = map->REnd();
-			IteratorType iter2 = iter1;
+			auto iter1 = map->REnd();
+			auto iter2 = iter1;
 
 			BigInt rnd = max > 0 ? GetRandom(max) : 0;
 
@@ -150,14 +140,14 @@ public:
 
 	virtual TestStepParams* CreateTestStep(StringRef name) const
 	{
-		return new KVMapTestStepParams(name);
+		return new IdxSetTestStepParams(name);
 	}
 
 	virtual void Run(ostream& out, TestStepParams* step_params)
 	{
 		if (step_params != NULL)
 		{
-			KVMapTestStepParams* params = static_cast<KVMapTestStepParams*>(step_params);
+			IdxSetTestStepParams* params = static_cast<IdxSetTestStepParams*>(step_params);
 
 			LoadVector(pairs, params->GetPairsDataFile());
 			LoadVector(pairs_sorted, params->GetPairsSortedDataFile());
@@ -168,19 +158,19 @@ public:
 			DoTestStep(out, allocator, params);
 		}
 		else {
-			Int SIZE = GetParameters<KVMapTestTaskParams>()->GetSize();
+			Int SIZE = GetParameters<IdxSetTestTaskParams>()->GetSize();
 
 			for (Int c = 0; c < SIZE; c++)
 			{
-				pairs.push_back(Pair(GetBIRandom(), GetBIRandom()));
+				pairs.push_back(GetBIRandom());
 			}
 
-			KVMapTestStepParams params;
+			IdxSetTestStepParams params;
 
 			params.SetSize(SIZE);
 
 			Allocator allocator;
-			KVMapType map(allocator, 1, true);
+			IdxSetType map(allocator, 1, true);
 
 			for (Int step = 0; step < 3; step++)
 			{
@@ -207,7 +197,7 @@ public:
 		}
 	}
 
-	void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, KVMapTestStepParams& params)
+	void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, IdxSetTestStepParams& params)
 	{
 		String basic_name = GetTaskName()+ "." + params.GetName();
 
@@ -235,15 +225,15 @@ public:
 		allocator.GetLogger()->level() = level;
 	}
 
-	void DoTestStep(ostream& out, Allocator& allocator, const KVMapTestStepParams* params)
+	void DoTestStep(ostream& out, Allocator& allocator, const IdxSetTestStepParams* params)
 	{
-		KVMapType* map = new KVMapType(allocator, 1);
+		IdxSetType* map = new IdxSetType(allocator, 1);
 
 		Int c = params->GetVectorIdx();
 
 		if (params->GetStep() == 0)
 		{
-			map->Put(pairs[c].key_, pairs[c].value_);
+			map->Put(pairs[c], 0);
 
 			Check(allocator);
 
@@ -258,13 +248,13 @@ public:
 		}
 		else if (params->GetStep() == 1)
 		{
-			BigInt value = 0;
-			map->Get1(pairs[c].key_, value);
-
-			MEMORIA_TEST_ASSERT(pairs[c].value_, !=, value);
+//			BigInt value = 0;
+//			bool contains = map->Contains(pairs[c]);
+//
+//			MEMORIA_TEST_ASSERT1(contains, ==, true, pairs[c]);
 		}
 		else {
-			map->Remove(pairs[c].key_);
+			map->Remove(pairs[c]);
 
 			Check(allocator);
 
@@ -274,7 +264,7 @@ public:
 
 			for (UInt x = 0; x < pairs_sorted.size(); x++)
 			{
-				if (pairs_sorted[x].key_ == pairs[c].key_)
+				if (pairs_sorted[x] == pairs[c])
 				{
 					pairs_sorted.erase(pairs_sorted.begin() + x);
 				}

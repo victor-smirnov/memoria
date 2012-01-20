@@ -6,6 +6,7 @@
 
 
 #include "kv_map/task.hpp"
+#include "idx_set/task.hpp"
 #include "template/task.hpp"
 
 #include <memoria/tools/cmdline.hpp>
@@ -30,6 +31,7 @@ int main(int argc, const char** argv, const char** envp)
 		// add tasks to the runner;
 
 		runner.RegisterTask(new KVMapTestTask());
+//		runner.RegisterTask(new IdxSetTestTask());
 		runner.RegisterTask(new TemplateTestTask());
 
 		runner.Configure(&cmd_line.GetConfigurator());
