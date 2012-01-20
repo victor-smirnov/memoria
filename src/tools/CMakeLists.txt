@@ -27,6 +27,6 @@ if (BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
 
-if (BUILD_DUMP) 
+if (BUILD_DUMP)
     add_subdirectory(dump)
 endif()

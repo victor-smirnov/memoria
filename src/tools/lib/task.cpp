@@ -60,7 +60,7 @@ void TaskRunner::Run(ostream& out, Configurator* cfg)
 				{
 					out<<"FAILED"<<endl;
 				}
-				out<<"Execution time: "<<(GetTimeInMillis() - start)<<" ms"<<endl;
+				out<<"Execution time: "<<(FormatTime(GetTimeInMillis() - start))<<endl;
 			}
 		}
 	}

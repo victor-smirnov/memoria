@@ -67,4 +67,68 @@ BigInt	GetTimeInMillis()
 	return tm.time * 1000 + tm.millitm;
 }
 
+String GetMillisPart(BigInt millis) {
+	return millis < 100 ? "0"+ToString(millis) : ToString(millis);
+}
+
+String GetTwoDigitsPart(BigInt value) {
+	return value < 10 ? "0"+ToString(value) : ToString(value);
+}
+
+String FormatTime(BigInt millis)
+{
+	if (millis < 1000)
+	{
+		return "0." + GetMillisPart(millis);
+	}
+	else if (millis < 60000)
+	{
+		BigInt seconds 	= millis / 1000;
+		millis = millis % 1000;
+
+		return ToString(seconds) +"." + GetMillisPart(millis);
+	}
+	else if (millis < 60000 * 60)
+	{
+		BigInt minutes 	= millis / 60000;
+
+		millis -= minutes * 60000;
+
+		BigInt seconds 	= millis / 1000;
+		millis = millis % 1000;
+
+		return ToString(minutes) +":" + GetTwoDigitsPart(seconds) +"." + GetMillisPart(millis);
+	}
+	else if (millis < 60000 * 60 * 24)
+	{
+		BigInt hours 	= millis / (60000 * 60);
+		millis -= hours * 60000 * 60;
+
+		BigInt minutes 	= millis / 60000;
+
+		millis -= minutes * 60000;
+
+		BigInt seconds 	= millis / 1000;
+		millis = millis % 1000;
+
+		return ToString(hours) + ":" + GetTwoDigitsPart(minutes) +":" + GetTwoDigitsPart(seconds) +"." + GetMillisPart(millis);
+	}
+	else
+	{
+		BigInt days 	= millis / (60000 * 60 * 24);
+		millis -= days * 60000 * 60 * 24;
+
+		BigInt hours 	= millis / (60000 * 60);
+		millis -= hours * 60000 * 60;
+
+		BigInt minutes 	= millis / 60000;
+		millis -= minutes * 60000;
+
+		BigInt seconds 	= millis / 1000;
+		millis = millis % 1000;
+
+		return ToString(days) + (days == 1? "day " : "days ") + GetTwoDigitsPart(hours) + ":" + GetTwoDigitsPart(minutes) +":" + GetTwoDigitsPart(seconds) +"." + GetMillisPart(millis);
+	}
+}
+
 } //memoria

@@ -144,7 +144,7 @@ void 	SeedBI(BigInt value);
 
 BigInt	GetTimeInMillis();
 
-
+String FormatTime(BigInt millis);
 
 
 #define MEMORIA_TEST_ASSERT(op1, operator_, op2) MEMORIA_TEST_ASSERT_EXPR(op1 operator_ op2, op1, op2)
