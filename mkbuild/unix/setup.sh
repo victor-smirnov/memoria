@@ -1,3 +1,5 @@
+#!/bin/sh
+
 BUILD=../../../memoria-build/unix
 
 mkdir -p $BUILD
