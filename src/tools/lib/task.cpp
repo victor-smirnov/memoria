@@ -5,6 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #include <memoria/tools/task.hpp>
+#include <memoria/tools/tools.hpp>
 
 namespace memoria {
 
@@ -45,7 +46,21 @@ void TaskRunner::Run(ostream& out, Configurator* cfg)
 
 			if (t->GetParameters()->IsEnabled())
 			{
-				t->Run(out, NULL);
+				BigInt start = GetTimeInMillis();
+				try {
+					out<<"Task: "<<t->GetTaskName()<<endl;
+					t->Run(out, NULL);
+					out<<"PASSED"<<endl;
+				}
+				catch (MemoriaException e)
+				{
+					out<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
+				}
+				catch (...)
+				{
+					out<<"FAILED"<<endl;
+				}
+				out<<"Execution time: "<<(GetTimeInMillis() - start)<<" ms"<<endl;
 			}
 		}
 	}
@@ -53,7 +68,19 @@ void TaskRunner::Run(ostream& out, Configurator* cfg)
 	{
 		String name = cfg->GetProperty("task");
 		Task* task = GetTask<Task*>(name);
-		task->Run(out, cfg);
+		try {
+			out<<"Task: "<<task->GetTaskName()<<endl;
+			task->Run(out, cfg);
+			out<<"PASSED"<<endl;
+		}
+		catch (MemoriaException e)
+		{
+			out<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
+		}
+		catch (...)
+		{
+			out<<"FAILED"<<endl;
+		}
 	}
 }
 

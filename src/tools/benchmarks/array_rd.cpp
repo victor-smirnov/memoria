@@ -6,7 +6,7 @@
 
 
 #include <memoria/memoria.hpp>
-#include <memoria/core/tools/bm_tools.hpp>
+#include <memoria/tools/tools.hpp>
 
 using namespace memoria;
 using namespace memoria::vapi;
@@ -57,7 +57,7 @@ ArrayData CreateBuffer(Int size, UByte value)
 
 Int GetNonZeroRandom(Int size)
 {
-	Int value = get_random(size);
+	Int value = GetRandom(size);
 	return value != 0 ? value : GetNonZeroRandom(size);
 }
 
@@ -68,7 +68,7 @@ ArrayData CreateRandomBuffer(UByte fill_value)
 
 BigInt GetRandomPosition(ByteArray& array)
 {
-	return get_random(array.Size());
+	return GetRandom(array.Size());
 }
 
 void CheckAllocator(SAllocator &allocator, const char* err_msg)
@@ -119,7 +119,7 @@ void Read(SAllocator& allocator, ByteArray& array, ArrayData& data)
 	BigInt size = array.Size();
 
 	Int data_len = data.size();
-	BigInt pos = size != 0 ? get_random(size / data_len) * data_len : 0;
+	BigInt pos = size != 0 ? GetRandom(size / data_len) * data_len : 0;
 
 	auto iter = array.Seek(pos);
 	iter.Read(data);
@@ -150,7 +150,7 @@ int main(int argc, const char** argv, const char **envp) {
 
 		CheckAllocator(allocator, "Invalid allocator");
 
-		t0 = getTime();
+		t0 = GetTimeInMillis();
 
 		ArrayData data(4);
 
@@ -186,5 +186,5 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Unrecognized exception"<<endl;
 	}
 
-	cout<<"TREE MAP time: "<<(getTime()- t0)<<endl;
+	cout<<"TREE MAP time: "<<(GetTimeInMillis()- t0)<<endl;
 }

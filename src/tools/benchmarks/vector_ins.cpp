@@ -6,7 +6,7 @@
 
 
 #include <memoria/memoria.hpp>
-#include <memoria/core/tools/bm_tools.hpp>
+#include <memoria/tools/tools.hpp>
 
 #include <vector>
 
@@ -40,7 +40,7 @@ void Insert(ByteArray& array, ArrayData& data)
 	BigInt size = array.size();
 
 	Int data_len = data.size();
-	BigInt pos = size != 0 ? get_random(size / data_len) * data_len : 0;
+	BigInt pos = size != 0 ? GetRandom(size / data_len) * data_len : 0;
 
 
 	array.insert(array.begin() + pos, data.size(), 0);
@@ -54,7 +54,7 @@ void Insert(ByteArray& array, ArrayData& data)
 
 int main(int argc, const char** argv, const char **envp) {
 
-	long long t0 = getTime();
+	long long t0 = GetTimeInMillis();
 
 	try {
 		ByteArray dv;
@@ -90,5 +90,5 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Unrecognized exception"<<endl;
 	}
 
-	cout<<"TREE MAP time: "<<(getTime()- t0)<<endl;
+	cout<<"TREE MAP time: "<<(GetTimeInMillis()- t0)<<endl;
 }

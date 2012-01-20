@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #include <memoria/memoria.hpp>
-#include <memoria/core/tools/bm_tools.hpp>
+#include <memoria/tools/tools.hpp>
 
 #include <vector>
 
@@ -68,7 +68,7 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Size: "<<dv.size()<<" bytes"<<endl;
 
 
-		t0 =  getTime();
+		t0 =  GetTimeInMillis();
 		ArrayData data(4);
 
 		try {
@@ -100,5 +100,5 @@ int main(int argc, const char** argv, const char **envp) {
 		cout<<"Unrecognized exception"<<endl;
 	}
 
-	cout<<"TREE MAP time: "<<(getTime()- t0)<<endl;
+	cout<<"TREE MAP time: "<<(GetTimeInMillis()- t0)<<endl;
 }
