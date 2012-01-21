@@ -10,7 +10,7 @@
 #define	_MEMORIA_MODELS_IDX_MAP_MODEL_TOOLS_HPP
 
 
-#include <memoria/prototypes/itree/names.hpp>
+#include <memoria/prototypes/bstree/names.hpp>
 #include <memoria/core/container/container.hpp>
 
 

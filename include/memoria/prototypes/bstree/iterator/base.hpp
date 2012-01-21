@@ -12,8 +12,8 @@
 #include <iostream>
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/prototypes/itree/names.hpp>
-#include <memoria/prototypes/itree/macros.hpp>
+#include <memoria/prototypes/bstree/names.hpp>
+#include <memoria/prototypes/bstree/macros.hpp>
 
 #include <memoria/core/tools/hash.hpp>
 
@@ -22,7 +22,7 @@ namespace memoria    {
 using namespace memoria::itree;
 
 
-MEMORIA_ITREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(ITreeIteratorBase)
+MEMORIA_SUMTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(ITreeIteratorBase)
 public:
 
 	typedef typename Base::Container::Key                                        	 	Key;
@@ -97,7 +97,7 @@ public:
     	return prefix_[i];
     }
 
-MEMORIA_ITREE_ITERATOR_BASE_CLASS_END
+MEMORIA_SUMTREE_ITERATOR_BASE_CLASS_END
 
 } //memoria
 

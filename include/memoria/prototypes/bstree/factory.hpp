@@ -11,21 +11,21 @@
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/prototypes/itree/container/find.hpp>
-#include <memoria/prototypes/itree/container/tools.hpp>
+#include <memoria/prototypes/bstree/container/find.hpp>
+#include <memoria/prototypes/bstree/container/tools.hpp>
 
-#include <memoria/prototypes/itree/iterator/base.hpp>
-#include <memoria/prototypes/itree/iterator/tools.hpp>
+#include <memoria/prototypes/bstree/iterator/base.hpp>
+#include <memoria/prototypes/bstree/iterator/tools.hpp>
 
-#include <memoria/prototypes/itree/names.hpp>
-#include <memoria/prototypes/itree/macros.hpp>
+#include <memoria/prototypes/bstree/names.hpp>
+#include <memoria/prototypes/bstree/macros.hpp>
 
 namespace memoria    {
 
 
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::ITree>: public BTreeTypes<Profile, memoria::BTree> {
+struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria::BTree> {
 	typedef BTreeTypes<Profile, memoria::BTree> 							Base;
 
 	typedef BigInt															Value;
@@ -57,7 +57,7 @@ struct BTreeTypes<Profile, memoria::ITree>: public BTreeTypes<Profile, memoria::
 };
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::ITree, T>: public CtrTF<Profile, memoria::BTree, T> {};
+class CtrTF<Profile, memoria::BSTree, T>: public CtrTF<Profile, memoria::BTree, T> {};
 
 
 }

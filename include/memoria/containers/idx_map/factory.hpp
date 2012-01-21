@@ -21,7 +21,7 @@
 
 #include <memoria/containers/idx_map/iterator/model_api.hpp>
 
-#include <memoria/prototypes/itree/factory.hpp>
+#include <memoria/prototypes/bstree/factory.hpp>
 
 namespace memoria    {
 
@@ -29,8 +29,9 @@ namespace memoria    {
 
 template <typename Profile, Int Indexes_>
 struct BTreeTypes<Profile, memoria::IdxMap<Indexes_> >:
-		public BTreeTypes<Profile, memoria::ITree> {
-	typedef BTreeTypes<Profile, memoria::ITree> 							Base;
+		public BTreeTypes<Profile, memoria::BSTree> {
+
+	typedef BTreeTypes<Profile, memoria::BSTree> 							Base;
 
 	typedef BigInt															Value;
 
@@ -60,7 +61,7 @@ struct BTreeTypes<Profile, memoria::IdxMap<Indexes_> >:
 };
 
 template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::IdxMap<Indexes>, T>: public CtrTF<Profile, memoria::ITree, T> {
+class CtrTF<Profile, memoria::IdxMap<Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
 };
 
 }

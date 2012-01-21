@@ -9,7 +9,7 @@
 #define	_MEMORIA_MODELS_VECTOR_MODEL_FIND_HPP
 
 
-#include <memoria/prototypes/itree/names.hpp>
+#include <memoria/prototypes/bstree/names.hpp>
 #include <memoria/core/container/container.hpp>
 
 namespace memoria    {

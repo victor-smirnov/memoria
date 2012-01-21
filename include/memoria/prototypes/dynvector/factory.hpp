@@ -10,7 +10,7 @@
 #define	_MEMORIA_PROTOTYPES_DYNVECTOR_FACTORY_HPP
 
 
-#include <memoria/prototypes/itree/factory.hpp>
+#include <memoria/prototypes/bstree/factory.hpp>
 
 #include <memoria/prototypes/dynvector/names.hpp>
 #include <memoria/prototypes/dynvector/pages/data_page.hpp>
@@ -59,10 +59,10 @@ struct DynVectorContainerTypes: public Base {
 
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memoria::ITree> {
+struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memoria::BSTree> {
 
 	typedef IDType																Value;
-    typedef BTreeTypes<Profile, memoria::ITree> 								Base;
+    typedef BTreeTypes<Profile, memoria::BSTree> 								Base;
 
     typedef NullType                                                            DataPagePartsList;
 
@@ -106,9 +106,9 @@ template <
         typename Profile,
         typename ContainerTypeName
 >
-class CtrTF<Profile, memoria::DynVector, ContainerTypeName>: public CtrTF<Profile, memoria::ITree, ContainerTypeName> {
+class CtrTF<Profile, memoria::DynVector, ContainerTypeName>: public CtrTF<Profile, memoria::BSTree, ContainerTypeName> {
 
-    typedef CtrTF<Profile, memoria::ITree, ContainerTypeName>   					Base1;
+    typedef CtrTF<Profile, memoria::BSTree, ContainerTypeName>   					Base1;
 
 public:
 

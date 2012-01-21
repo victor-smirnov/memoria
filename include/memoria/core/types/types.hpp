@@ -66,7 +66,7 @@ struct CV {
 };
 
 struct BTree {};
-struct ITree {};
+struct BSTree {};
 struct DynVector {};
 
 struct Superblock:  public CodeValue<0> {};

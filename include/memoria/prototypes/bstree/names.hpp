@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_ITREE_NAMES_HPP
-#define	_MEMORIA_PROTOTYPES_ITREE_NAMES_HPP
+#ifndef _MEMORIA_PROTOTYPES_SUMTREE_NAMES_HPP
+#define	_MEMORIA_PROTOTYPES_SUMTREE_NAMES_HPP
 
 namespace memoria    {
 namespace itree      {
