@@ -78,15 +78,15 @@ struct KVMap:       public CodeValue<2> {};
 typedef KVMap<BigInt, BigInt> DefKVMap;
 
 template <Int Indexes>
-struct IdxMap:      public CodeValue<3 + Indexes * 256> {};
+struct SumMap:      public CodeValue<3 + Indexes * 256> {};
 
-typedef IdxMap<1> IdxMap1;
+typedef SumMap<1> SumMap1;
 
 template <Int Indexes>
-struct IdxSet:      public CodeValue<4 + Indexes * 256> {};
+struct SumSet:      public CodeValue<4 + Indexes * 256> {};
 
-typedef IdxSet<1> IdxSet1;
-typedef IdxSet<2> IdxSet2;
+typedef SumSet<1> SumSet1;
+typedef SumSet<2> SumSet2;
 
 struct DFUDS:       public CodeValue<5> {};
 struct LOUDS:       public CodeValue<6> {};

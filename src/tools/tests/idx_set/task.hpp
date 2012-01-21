@@ -28,7 +28,7 @@ public:
 
 private:
 	typedef vector<BigInt> PairVector;
-	typedef StreamContainerTypesCollection::Factory<IdxSet1>::Type IdxSetType;
+	typedef StreamContainerTypesCollection::Factory<SumSet1>::Type IdxSetType;
 
 	PairVector pairs;
 	PairVector pairs_sorted;

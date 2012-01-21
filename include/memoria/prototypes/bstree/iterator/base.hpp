@@ -22,7 +22,7 @@ namespace memoria    {
 using namespace memoria::itree;
 
 
-MEMORIA_SUMTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(ITreeIteratorBase)
+MEMORIA_BSTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(ITreeIteratorBase)
 public:
 
 	typedef typename Base::Container::Key                                        	 	Key;
@@ -97,7 +97,7 @@ public:
     	return prefix_[i];
     }
 
-MEMORIA_SUMTREE_ITERATOR_BASE_CLASS_END
+MEMORIA_BSTREE_ITERATOR_BASE_CLASS_END
 
 } //memoria
 

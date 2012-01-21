@@ -31,7 +31,7 @@ public:
 
 	typedef IParentCtrInterface<typename Types::Allocator>		ParentCtrInterface;
 
-	typedef typename CtrTF<Profile, IdxSet2, IdxSet2>::Type		IdxSet;
+	typedef typename CtrTF<Profile, SumSet2, SumSet2>::Type		IdxSet;
 	typedef typename CtrTF<Profile, Vector,	 Vector>::Type		ByteArray;
 
 	static const Int IS_Indexes									= IdxSet::Indexes;

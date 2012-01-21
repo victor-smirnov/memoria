@@ -11,7 +11,7 @@
 
 #include <memoria/prototypes/btree/iterator/base.hpp>
 
-#define MEMORIA_SUMTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(IteratorBaseClassName)			\
+#define MEMORIA_BSTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(IteratorBaseClassName)			\
 template <                                                                      		\
         typename TypesType																\
 >                                                                               		\
@@ -24,14 +24,14 @@ class IteratorBaseClassName: public memoria::BTreeIteratorBase<                 
 
 
         
-#define MEMORIA_SUMTREE_ITERATOR_BASE_CLASS_BEGIN(IteratorBaseClassName)      			\
-MEMORIA_SUMTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(IteratorBaseClassName)      			\
+#define MEMORIA_BSTREE_ITERATOR_BASE_CLASS_BEGIN(IteratorBaseClassName)      			\
+MEMORIA_BSTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(IteratorBaseClassName)      			\
     IteratorBaseClassName(): Base() {}													\
     IteratorBaseClassName(ThisType&& other): Base(other) {}								\
 
 
 
-#define MEMORIA_SUMTREE_ITERATOR_BASE_CLASS_END									\
+#define MEMORIA_BSTREE_ITERATOR_BASE_CLASS_END									\
 	MyType* me() {																\
     	return static_cast<MyType*>(this);										\
     }																			\

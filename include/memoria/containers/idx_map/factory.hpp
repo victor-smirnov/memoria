@@ -28,7 +28,7 @@ namespace memoria    {
 
 
 template <typename Profile, Int Indexes_>
-struct BTreeTypes<Profile, memoria::IdxMap<Indexes_> >:
+struct BTreeTypes<Profile, memoria::SumMap<Indexes_> >:
 		public BTreeTypes<Profile, memoria::BSTree> {
 
 	typedef BTreeTypes<Profile, memoria::BSTree> 							Base;
@@ -61,7 +61,7 @@ struct BTreeTypes<Profile, memoria::IdxMap<Indexes_> >:
 };
 
 template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::IdxMap<Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
+class CtrTF<Profile, memoria::SumMap<Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
 };
 
 }
