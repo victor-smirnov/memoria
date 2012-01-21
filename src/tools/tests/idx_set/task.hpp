@@ -91,6 +91,8 @@ public:
 	}
 
 
+	// FIXME: SkipKeyFw/SkipKeyBw are not properly implemented for the IdxSet
+
 	void CheckMultistepForwardIterator(IdxSetType* map)
 	{
 //		BigInt max = map->GetSize();
@@ -100,14 +102,22 @@ public:
 //			auto iter1 = map->Begin();
 //			auto iter2 = iter1;
 //
+//			cout<<"Iter1.1="<<iter1.prefix(0)<<endl;
+//			cout<<"Iter2.1="<<iter2.prefix(0)<<endl;
+//
 //			BigInt rnd = max > 0 ? GetRandom(max) : 0;
 //
-//			if (rnd > 0) iter1.SkipKeyFw(rnd);
+//			if (rnd > 0) {
+//				iter1.SkipKeyFw(rnd);
+//			}
 //
 //			for (BigInt d = 0; d < rnd; d++)
 //			{
 //				iter2.NextKey();
 //			}
+//
+//			cout<<"Iter1.2="<<iter1.prefix(0)<<endl;
+//			cout<<"Iter2.2="<<iter2.prefix(0)<<endl;
 //
 //			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
 //		}
@@ -119,22 +129,21 @@ public:
 //
 //		for (Int c = 0; c < 100; c++)
 //		{
-//			auto iter1 = map->REnd();
+//			auto iter1 = map->RBegin();
 //			auto iter2 = iter1;
 //
 //			BigInt rnd = max > 0 ? GetRandom(max) : 0;
 //
-//			if (rnd > 0) iter1.SkipKeyBw(rnd);
+//			if (rnd > 0) {
+//				iter1.SkipKeyBw(rnd);
+//			}
 //
 //			for (BigInt d = 0; d < rnd; d++)
 //			{
 //				iter2.PrevKey();
 //			}
 //
-//			if (iter1 != iter2)
-//			{
-//				MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
-//			}
+//			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
 //		}
 	}
 
@@ -182,14 +191,12 @@ public:
 
 		params.SetSize(SIZE);
 
-
-
 		{
+			//Isolate the scope of this allocator
 			Allocator allocator;
-			//Isolate the scope of this container
 			IdxSetType map(allocator, 1, true);
 
-			for (Int step = 0; step < 3; step++)
+			for (Int step = 0; step < 2; step++)
 			{
 				params.SetStep(step);
 
@@ -214,7 +221,7 @@ public:
 
 		Allocator allocator;
 
-		params.SetStep(3);
+		params.SetStep(2);
 
 		for (Int x = 0; x < 4; x++)
 		{
@@ -336,13 +343,6 @@ public:
 			CheckMultistepBackwardIterator(map.get());
 
 			allocator.commit();
-		}
-		else if (params->GetStep() == 1)
-		{
-//			BigInt value = 0;
-//			bool contains = map->Contains(pairs[c]);
-//
-//			MEMORIA_TEST_ASSERT1(contains, ==, true, pairs[c]);
 		}
 		else {
 			map->Remove(pairs[c]);
