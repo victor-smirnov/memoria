@@ -13,10 +13,10 @@ namespace memoria {
 using namespace std;
 using namespace memoria::vapi;
 
-void TestTask::Run(ostream& out, Configurator* cfg)
+void TestTask::Replay(ostream& out, Configurator* cfg)
 {
 	unique_ptr<TestStepParams> params(cfg != NULL ? ReadTestStep(cfg) : NULL);
-	Run(out, params.get());
+	Replay(out, params.get());
 }
 
 String TestTask::GetFileName(StringRef name) const

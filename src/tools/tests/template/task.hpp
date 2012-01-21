@@ -72,28 +72,27 @@ public:
 		return new TemplateTestStepParams(name);
 	}
 
-	virtual void Run(ostream& out, TestStepParams* step_params)
+	virtual void Replay(ostream& out, TestStepParams* step_params)
 	{
-		if (step_params != NULL)
-		{
-			KVMapTestStepParams* params = static_cast<KVMapTestStepParams*>(step_params);
-			Allocator allocator;
-			LoadAllocator(allocator, params);
+		KVMapTestStepParams* params = static_cast<KVMapTestStepParams*>(step_params);
+		Allocator allocator;
+		LoadAllocator(allocator, params);
 
-			DoTestStep(out, allocator, params);
+		DoTestStep(out, allocator, params);
+	}
+
+	virtual void Run(ostream& out)
+	{
+		KVMapTestStepParams params;
+		out<<GetTaskName()<<": "<<"Do main things"<<endl;
+
+		Allocator allocator;
+
+		try {
+			DoTestStep(out, allocator, &params);
 		}
-		else {
-			KVMapTestStepParams params;
-			out<<GetTaskName()<<": "<<"Do main things"<<endl;
-
-			Allocator allocator;
-
-			try {
-				DoTestStep(out, allocator, &params);
-			}
-			catch (...) {
-				Store(allocator, &params);
-			}
+		catch (...) {
+			Store(allocator, &params);
 		}
 	}
 

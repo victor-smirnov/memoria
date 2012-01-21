@@ -18,6 +18,7 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <memory>
 
 namespace memoria {
 
@@ -153,55 +154,53 @@ public:
 		return new KVMapTestStepParams(name);
 	}
 
-	virtual void Run(ostream& out, TestStepParams* step_params)
+	virtual void Replay(ostream& out, TestStepParams* step_params)
 	{
-		if (step_params != NULL)
+		KVMapTestStepParams* params = static_cast<KVMapTestStepParams*>(step_params);
+
+		LoadVector(pairs, params->GetPairsDataFile());
+		LoadVector(pairs_sorted, params->GetPairsSortedDataFile());
+
+		Allocator allocator;
+		LoadAllocator(allocator, params);
+
+		DoTestStep(out, allocator, params);
+	}
+
+	virtual void Run(ostream& out)
+	{
+		Int SIZE = GetParameters<KVMapTestTaskParams>()->GetSize();
+
+		for (Int c = 0; c < SIZE; c++)
 		{
-			KVMapTestStepParams* params = static_cast<KVMapTestStepParams*>(step_params);
-
-			LoadVector(pairs, params->GetPairsDataFile());
-			LoadVector(pairs_sorted, params->GetPairsSortedDataFile());
-
-			Allocator allocator;
-			LoadAllocator(allocator, params);
-
-			DoTestStep(out, allocator, params);
+			pairs.push_back(Pair(GetBIRandom(), GetBIRandom()));
 		}
-		else {
-			Int SIZE = GetParameters<KVMapTestTaskParams>()->GetSize();
+
+		KVMapTestStepParams params;
+
+		params.SetSize(SIZE);
+
+		Allocator allocator;
+		KVMapType map(allocator, 1, true);
+
+		for (Int step = 0; step < 3; step++)
+		{
+			params.SetStep(step);
 
 			for (Int c = 0; c < SIZE; c++)
 			{
-				pairs.push_back(Pair(GetBIRandom(), GetBIRandom()));
-			}
+				PairVector pairs_sorted_tmp = pairs_sorted;
 
-			KVMapTestStepParams params;
+				try {
+					params.SetVectorIdx(c);
 
-			params.SetSize(SIZE);
-
-			Allocator allocator;
-			KVMapType map(allocator, 1, true);
-
-			for (Int step = 0; step < 3; step++)
-			{
-				params.SetStep(step);
-
-				for (Int c = 0; c < SIZE; c++)
+					DoTestStep(out, allocator, &params);
+				}
+				catch (...)
 				{
-					PairVector pairs_tmp = pairs;
-					PairVector pairs_sorted_tmp = pairs_sorted;
-
-					try {
-						params.SetVectorIdx(c);
-
-						DoTestStep(out, allocator, &params);
-					}
-					catch (...)
-					{
-						StorePairs(pairs_tmp, pairs_sorted_tmp, params);
-						Store(allocator, &params);
-						throw;
-					}
+					StorePairs(pairs, pairs_sorted_tmp, params);
+					Store(allocator, &params);
+					throw;
 				}
 			}
 		}
@@ -237,7 +236,7 @@ public:
 
 	void DoTestStep(ostream& out, Allocator& allocator, const KVMapTestStepParams* params)
 	{
-		KVMapType* map = new KVMapType(allocator, 1);
+		unique_ptr<KVMapType> map(new KVMapType(allocator, 1));
 
 		Int c = params->GetVectorIdx();
 
@@ -249,10 +248,10 @@ public:
 
 			AppendToSortedVector(pairs_sorted, pairs[c]);
 
-			CheckIteratorFw(map, pairs_sorted);
-			CheckIteratorBw(map, pairs_sorted);
-			CheckMultistepForwardIterator(map);
-			CheckMultistepBackwardIterator(map);
+			CheckIteratorFw(map.get(), pairs_sorted);
+			CheckIteratorBw(map.get(), pairs_sorted);
+			CheckMultistepForwardIterator(map.get());
+			CheckMultistepBackwardIterator(map.get());
 
 			allocator.commit();
 		}
@@ -280,14 +279,14 @@ public:
 				}
 			}
 
-			CheckIteratorFw(map, pairs_sorted);
-			CheckIteratorBw(map, pairs_sorted);
+			CheckIteratorFw(map.get(), pairs_sorted);
+			CheckIteratorBw(map.get(), pairs_sorted);
 
 
 			if (c < params->GetSize() - 1)
 			{
-				CheckMultistepForwardIterator(map);
-				CheckMultistepBackwardIterator(map);
+				CheckMultistepForwardIterator(map.get());
+				CheckMultistepBackwardIterator(map.get());
 			}
 
 			allocator.commit();

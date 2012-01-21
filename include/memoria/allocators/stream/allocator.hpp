@@ -419,6 +419,20 @@ public:
 		cout<<allocs1_<<" "<<allocs2_<<" "<<pages_.size()<<endl;
 	}
 
+	void clear()
+	{
+		pages_.clear();
+		pages_log_.clear();
+		ctr_shared_.clear();
+
+		pool_.Clear();
+
+
+		root_ 		= 0;
+		root_log_ 	= 0;
+		counter_ 	= 100;
+	}
+
 	void commit()
 	{
 		for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)

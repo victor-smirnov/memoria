@@ -68,7 +68,8 @@ public:
 		return parameters_->IsEnabled();
 	}
 
-	virtual void Run(ostream& out, Configurator* cfg) = 0;
+	virtual void Run(ostream& out) 							= 0;
+	virtual void Replay(ostream& out, Configurator* cfg) 	= 0;
 };
 
 
@@ -89,9 +90,10 @@ public:
 	}
 
 	void Configure(Configurator* cfg);
-
 	void DumpProperties(ostream& os);
-	void Run(ostream& out, Configurator* cfg = NULL);
+
+	void Run(ostream& out);
+	void Replay(ostream& out, Configurator* cfg = NULL);
 
 	template <typename T>
 	T GetTask(StringRef name)

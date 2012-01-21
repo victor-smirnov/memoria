@@ -36,52 +36,54 @@ void TaskRunner::Configure(Configurator* cfg)
 	}
 }
 
-void TaskRunner::Run(ostream& out, Configurator* cfg)
+void TaskRunner::Replay(ostream& out, Configurator* cfg)
 {
-	if (cfg == NULL)
+	String name = cfg->GetProperty("task");
+	Task* task = GetTask<Task*>(name);
+	try {
+		out<<"Task: "<<task->GetTaskName()<<endl;
+		task->Replay(out, cfg);
+		out<<"PASSED"<<endl;
+	}
+	catch (MemoriaException e)
 	{
-		for (auto i = tasks_.begin(); i != tasks_.end(); i++)
-		{
-			Task* t = i->second;
+		out<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
+	}
+	catch (...)
+	{
+		out<<"FAILED"<<endl;
+	}
+}
 
-			if (t->GetParameters()->IsEnabled())
-			{
-				BigInt start = GetTimeInMillis();
-				try {
-					out<<"Task: "<<t->GetTaskName()<<endl;
-					t->Run(out, NULL);
-					out<<"PASSED"<<endl;
-				}
-				catch (MemoriaException e)
-				{
-					out<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
-				}
-				catch (...)
-				{
-					out<<"FAILED"<<endl;
-				}
-				out<<"Execution time: "<<(FormatTime(GetTimeInMillis() - start))<<endl;
-			}
-		}
-	}
-	else
+void TaskRunner::Run(ostream& out)
+{
+	BigInt total_start = GetTimeInMillis();
+
+	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
 	{
-		String name = cfg->GetProperty("task");
-		Task* task = GetTask<Task*>(name);
-		try {
-			out<<"Task: "<<task->GetTaskName()<<endl;
-			task->Run(out, cfg);
-			out<<"PASSED"<<endl;
-		}
-		catch (MemoriaException e)
+		Task* t = i->second;
+
+		if (t->GetParameters()->IsEnabled())
 		{
-			out<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
-		}
-		catch (...)
-		{
-			out<<"FAILED"<<endl;
+			BigInt start = GetTimeInMillis();
+			try {
+				out<<"Task: "<<t->GetTaskName()<<endl;
+				t->Run(out);
+				out<<"PASSED"<<endl;
+			}
+			catch (MemoriaException e)
+			{
+				out<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
+			}
+			catch (...)
+			{
+				out<<"FAILED"<<endl;
+			}
+			out<<"Execution time: "<<(FormatTime(GetTimeInMillis() - start))<<endl;
 		}
 	}
+
+	out<<"Total execution time: "<<(FormatTime(GetTimeInMillis() - total_start))<<endl;
 }
 
 void TaskRunner::DumpProperties(ostream& out)

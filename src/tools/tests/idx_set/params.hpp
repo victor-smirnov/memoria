@@ -26,12 +26,18 @@ class IdxSetTestStepParams: public TestStepParams {
 	String pairs_data_file_;
 	String pairs_sorted_data_file_;
 
+	Int from_;
+	Int to_;
+
 public:
-	IdxSetTestStepParams(StringRef name = "IdxSet"): TestStepParams(name), step_(0), vector_idx_(0), size_(0)
+	IdxSetTestStepParams(StringRef name = "IdxSet"): TestStepParams(name), step_(0), vector_idx_(0), size_(0), from_(0), to_(0)
 	{
 		Add("step", step_);
 		Add("vectorIdx", vector_idx_);
 		Add("size", size_);
+		Add("from", from_);
+		Add("to", 	to_);
+
 		Add("pairsDataFile", pairs_data_file_);
 		Add("pairsSortedDataFile", pairs_sorted_data_file_);
 	}
@@ -87,6 +93,26 @@ public:
 	void SetPairsSortedDataFile(StringRef file)
 	{
 		this->pairs_sorted_data_file_ = file;
+	}
+
+	Int GetFrom() const
+	{
+		return from_;
+	}
+
+	void SetFrom(Int from)
+	{
+		this->from_ = from;
+	}
+
+	Int GetTo() const
+	{
+		return to_;
+	}
+
+	void SetTo(Int to)
+	{
+		this->to_ = to;
 	}
 };
 

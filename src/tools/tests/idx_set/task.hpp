@@ -93,49 +93,49 @@ public:
 
 	void CheckMultistepForwardIterator(IdxSetType* map)
 	{
-		BigInt max = map->GetSize();
-
-		for (Int c = 0; c < 100; c++)
-		{
-			auto iter1 = map->Begin();
-			auto iter2 = iter1;
-
-			BigInt rnd = max > 0 ? GetRandom(max) : 0;
-
-			if (rnd > 0) iter1.SkipKeyFw(rnd);
-
-			for (BigInt d = 0; d < rnd; d++)
-			{
-				iter2.NextKey();
-			}
-
-			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
-		}
+//		BigInt max = map->GetSize();
+//
+//		for (Int c = 0; c < 100; c++)
+//		{
+//			auto iter1 = map->Begin();
+//			auto iter2 = iter1;
+//
+//			BigInt rnd = max > 0 ? GetRandom(max) : 0;
+//
+//			if (rnd > 0) iter1.SkipKeyFw(rnd);
+//
+//			for (BigInt d = 0; d < rnd; d++)
+//			{
+//				iter2.NextKey();
+//			}
+//
+//			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+//		}
 	}
 
 	void CheckMultistepBackwardIterator(IdxSetType* map)
 	{
-		BigInt max = map->GetSize();
-
-		for (Int c = 0; c < 100; c++)
-		{
-			auto iter1 = map->REnd();
-			auto iter2 = iter1;
-
-			BigInt rnd = max > 0 ? GetRandom(max) : 0;
-
-			if (rnd > 0) iter1.SkipKeyBw(rnd);
-
-			for (BigInt d = 0; d < rnd; d++)
-			{
-				iter2.PrevKey();
-			}
-
-			if (iter1 != iter2)
-			{
-				MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
-			}
-		}
+//		BigInt max = map->GetSize();
+//
+//		for (Int c = 0; c < 100; c++)
+//		{
+//			auto iter1 = map->REnd();
+//			auto iter2 = iter1;
+//
+//			BigInt rnd = max > 0 ? GetRandom(max) : 0;
+//
+//			if (rnd > 0) iter1.SkipKeyBw(rnd);
+//
+//			for (BigInt d = 0; d < rnd; d++)
+//			{
+//				iter2.PrevKey();
+//			}
+//
+//			if (iter1 != iter2)
+//			{
+//				MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+//			}
+//		}
 	}
 
 	virtual TestStepParams* CreateTestStep(StringRef name) const
@@ -143,33 +143,50 @@ public:
 		return new IdxSetTestStepParams(name);
 	}
 
-	virtual void Run(ostream& out, TestStepParams* step_params)
+	virtual void Replay(ostream& out, TestStepParams* step_params)
 	{
-		if (step_params != NULL)
+		IdxSetTestStepParams* params = static_cast<IdxSetTestStepParams*>(step_params);
+
+		LoadVector(pairs, params->GetPairsDataFile());
+		LoadVector(pairs_sorted, params->GetPairsSortedDataFile());
+
+		Allocator allocator;
+		LoadAllocator(allocator, params);
+
+		if (params->GetStep() < 3)
 		{
-			IdxSetTestStepParams* params = static_cast<IdxSetTestStepParams*>(step_params);
-
-			LoadVector(pairs, params->GetPairsDataFile());
-			LoadVector(pairs_sorted, params->GetPairsSortedDataFile());
-
-			Allocator allocator;
-			LoadAllocator(allocator, params);
-
 			DoTestStep(out, allocator, params);
 		}
 		else {
-			Int SIZE = GetParameters<IdxSetTestTaskParams>()->GetSize();
+			BigInt from = params->GetFrom();
+			BigInt to 	= params->GetTo();
 
-			for (Int c = 0; c < SIZE; c++)
-			{
-				pairs.push_back(GetBIRandom());
-			}
+			BigInt from_key = pairs_sorted[from];
+			BigInt to_key   = pairs_sorted[to] + 1;
 
-			IdxSetTestStepParams params;
+			IdxSetType map(allocator, 1);
+			map.Remove(from_key, to_key);
+		}
+	}
 
-			params.SetSize(SIZE);
+	virtual void Run(ostream& out)
+	{
+		Int SIZE = GetParameters<IdxSetTestTaskParams>()->GetSize();
 
+		for (Int c = 0; c < SIZE; c++)
+		{
+			pairs.push_back(GetBIRandom());
+		}
+
+		IdxSetTestStepParams params;
+
+		params.SetSize(SIZE);
+
+
+
+		{
 			Allocator allocator;
+			//Isolate the scope of this container
 			IdxSetType map(allocator, 1, true);
 
 			for (Int step = 0; step < 3; step++)
@@ -178,7 +195,6 @@ public:
 
 				for (Int c = 0; c < SIZE; c++)
 				{
-					PairVector pairs_tmp = pairs;
 					PairVector pairs_sorted_tmp = pairs_sorted;
 
 					try {
@@ -188,10 +204,85 @@ public:
 					}
 					catch (...)
 					{
-						StorePairs(pairs_tmp, pairs_sorted_tmp, params);
+						StorePairs(pairs, pairs_sorted_tmp, params);
 						Store(allocator, &params);
 						throw;
 					}
+				}
+			}
+		}
+
+		Allocator allocator;
+
+		params.SetStep(3);
+
+		for (Int x = 0; x < 4; x++)
+		{
+			IdxSetType map(allocator, 1, true);
+			for (Int c = 0; c < SIZE; c++)
+			{
+				map.Put(pairs[c], 0);
+			}
+			allocator.commit();
+
+			pairs_sorted = pairs;
+			std::sort(pairs_sorted.begin(), pairs_sorted.end());
+
+			while (map.GetSize() > 0)
+			{
+				BigInt size = map.GetSize();
+
+				UInt from, to;
+				if (x == 0)
+				{
+					from 	= 0;
+					to 		= size - 1;
+				}
+				else if (x == 1)
+				{
+					from 	= 0;
+					to 		= size/2;
+				}
+				else if (x == 2)
+				{
+					from 	= size/2;
+					to 		= size - 1;
+				}
+				else if(size > 3) {
+					from 	= GetRandom(size/2 - 1);
+					to 		= GetRandom(size/2) + size/2;
+				}
+				else {
+					from 	= 0;
+					to 		= size - 1;
+				}
+
+				params.SetFrom(from);
+				params.SetTo(to);
+
+				BigInt from_key = pairs_sorted[from];
+				BigInt to_key   = pairs_sorted[to] + 1;
+
+				PairVector pairs_sorted_tmp = pairs_sorted;
+				pairs_sorted.erase(pairs_sorted.begin() + from, pairs_sorted.begin() + to + 1);
+
+				map.Remove(from_key, to_key);
+
+				try {
+					MEMORIA_TEST_ASSERT1(pairs_sorted.size(), !=, (UInt)map.GetSize(), x);
+
+					Check(allocator);
+					CheckIteratorFw(&map, pairs_sorted);
+					CheckIteratorBw(&map, pairs_sorted);
+
+					allocator.commit();
+				}
+				catch (...)
+				{
+					StorePairs(pairs, pairs_sorted_tmp, params);
+					Store(allocator, &params);
+
+					throw;
 				}
 			}
 		}
@@ -227,7 +318,7 @@ public:
 
 	void DoTestStep(ostream& out, Allocator& allocator, const IdxSetTestStepParams* params)
 	{
-		IdxSetType* map = new IdxSetType(allocator, 1);
+		unique_ptr<IdxSetType> map(new IdxSetType(allocator, 1));
 
 		Int c = params->GetVectorIdx();
 
@@ -239,10 +330,10 @@ public:
 
 			AppendToSortedVector(pairs_sorted, pairs[c]);
 
-			CheckIteratorFw(map, pairs_sorted);
-			CheckIteratorBw(map, pairs_sorted);
-			CheckMultistepForwardIterator(map);
-			CheckMultistepBackwardIterator(map);
+			CheckIteratorFw(map.get(), pairs_sorted);
+			CheckIteratorBw(map.get(), pairs_sorted);
+			CheckMultistepForwardIterator(map.get());
+			CheckMultistepBackwardIterator(map.get());
 
 			allocator.commit();
 		}
@@ -270,14 +361,14 @@ public:
 				}
 			}
 
-			CheckIteratorFw(map, pairs_sorted);
-			CheckIteratorBw(map, pairs_sorted);
+			CheckIteratorFw(map.get(), pairs_sorted);
+			CheckIteratorBw(map.get(), pairs_sorted);
 
 
 			if (c < params->GetSize() - 1)
 			{
-				CheckMultistepForwardIterator(map);
-				CheckMultistepBackwardIterator(map);
+				CheckMultistepForwardIterator(map.get());
+				CheckMultistepBackwardIterator(map.get());
 			}
 
 			allocator.commit();

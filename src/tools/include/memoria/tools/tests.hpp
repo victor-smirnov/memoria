@@ -87,12 +87,14 @@ public:
 	virtual ~TestTask() throw () {}
 
 	virtual TestStepParams* ReadTestStep(Configurator* cfg) const;
-	virtual void 			Run(ostream& out, Configurator* cfg);
+
+	virtual void 			Replay(ostream& out, Configurator* cfg);
 	virtual void 			Configure(TestStepParams* params) const;
 
 
 	virtual TestStepParams* CreateTestStep(StringRef name) const						= 0;
-	virtual void 			Run(ostream& out, TestStepParams* step_params)				= 0;
+	virtual void 			Run(ostream& out)											= 0;
+	virtual void 			Replay(ostream& out, TestStepParams* step_params)			= 0;
 
 public:
 
@@ -113,7 +115,8 @@ public:
 	virtual ~ProfileTestTask() throw () {};
 
 	virtual TestStepParams* CreateTestStep(StringRef name) const						= 0;
-	virtual void 			Run(ostream& out, TestStepParams* step_params)				= 0;
+	virtual void 			Run(ostream& out)											= 0;
+	virtual void 			Replay(ostream& out, TestStepParams* step_params)			= 0;
 
 	virtual void LoadAllocator(Allocator& allocator, StringRef file_name) const
 	{
@@ -180,7 +183,8 @@ public:
 	virtual ~SPTestTask() throw () {};
 
 	virtual TestStepParams* CreateTestStep(StringRef name) const						= 0;
-	virtual void 			Run(ostream& out, TestStepParams* step_params)				= 0;
+	virtual void 			Run(ostream& out)											= 0;
+	virtual void 			Replay(ostream& out, TestStepParams* step_params)			= 0;
 };
 
 
