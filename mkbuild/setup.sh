@@ -11,6 +11,7 @@ print_usage()
 C_COMPILER="gcc"
 CXX_COMPILER="g++"
 BUILD_DIR="unix"
+ADDITIONAL_CMAKE_PARAMS=""
 
 if [ $# -eq 0 ] ; then : # do nothig
 elif [ $# -eq 1 ]; then
@@ -21,6 +22,8 @@ elif [ $# -eq 1 ]; then
             C_COMPILER="clang"
             CXX_COMPILER="clang++"
             BUILD_DIR="clang"
+            ADDITIONAL_CMAKE_PARAMS="-DMEMORIA_LINK_FLAGS=\"-lpthread -L/usr/local/lib\" -DBUILD_TOOLS=true -DMEMORIA_LIBS=libc++.a"
+           
             ;;
         *)
             print_usage
@@ -30,6 +33,11 @@ elif [ $# -eq 1 ]; then
 else
     print_usage
     exit 1
+fi
+
+# escaping ADDITIONAL_CMAKE_PARAMS
+if [ -n "$ADDITIONAL_CMAKE_PARAMS" ] ; then
+    ADDITIONAL_CMAKE_PARAMS=$(echo "$ADDITIONAL_CMAKE_PARAMS" | sed -e 's/[][\.*^$/]/\\&/g')
 fi
 
 BASE_DIR=$(dirname $0)
@@ -43,5 +51,6 @@ cp -i $COMMON_DIR/clean.sh.tpl $BUILD_DIR/clean.sh
 
 sed -e "s/@@C_COMPILER_PLACEHOLDER@@/${C_COMPILER}/" \
     -e "s/@@CXX_COMPILER_PLACEHOLDER@@/${CXX_COMPILER}/" \
+    -e "s/@@ADDITIONAL_CMAKE_PARAMS_PLACEHOLDER@@/${ADDITIONAL_CMAKE_PARAMS}/" \
      $COMMON_DIR/mkbuild.sh.tpl > $BUILD_DIR/mkbuild.sh
 chmod +x $BUILD_DIR/mkbuild.sh
