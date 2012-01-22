@@ -36,12 +36,13 @@ class VectorTestTaskParams: public TaskParametersSet {
 
 public:
 	Int size_;
-
+	Int max_block_size_;
 
 public:
 	VectorTestTaskParams(): TaskParametersSet("VectorTestTask")
 	{
 		Add("size", size_, 1024*1024*16);
+		Add("maxBlockSize", max_block_size_, 1024*40);
 	}
 };
 

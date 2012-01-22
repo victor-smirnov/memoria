@@ -60,16 +60,14 @@ public:
 			out<<"Insert data"<<endl;
 
 			Int c = 0;
-			while (dv.GetSize() < task_params->size_)
+			while (dv.Size() < task_params->size_)
 			{
 				Build(allocator, dv, c + 1, GetRandom(3));
 				allocator.commit();
 				c++;
-
-				out<<dv.GetSize()<<endl;
 			}
 
-			out<<"Remove data. ByteVector contains "<<dv.Size()<<" Mbytes"<<endl;
+			out<<"Remove data. ByteVector contains "<<(dv.Size()/1024)<<" Kbytes"<<endl;
 
 			for (Int c = 0; ; c++)
 			{
@@ -94,7 +92,9 @@ public:
 
 	void Build(Allocator& allocator, ByteVector& array, UByte value, Int step)
 	{
-		ArrayData data = CreateRandomBuffer(value, 40*1024);
+		VectorTestTaskParams* task_params = GetParameters<VectorTestTaskParams>();
+
+		ArrayData data = CreateRandomBuffer(value, task_params->max_block_size_);
 
 		if (array.Size() == 0)
 		{
