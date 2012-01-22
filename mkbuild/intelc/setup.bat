@@ -1,7 +1,7 @@
 @ECHO OFF
 
 SET BASE_DIR=%~dp0
-SET BASE_DIR=%BASE_DIR:~0,-`%
+SET BASE_DIR=%BASE_DIR:~0,-1%
 SET BUILD_DIR=%BASE_DIR%\..\..\..\memoria-build\intelc
 
 MKDIR %BUILD_DIR%
