@@ -30,6 +30,7 @@ public:
 		Add("data", data_);
 		Add("insert", insert_);
 		Add("dataSize", data_size_);
+		SetEnabled(false);
 	}
 
 	virtual ~VectorTestStepParams() throw () {};

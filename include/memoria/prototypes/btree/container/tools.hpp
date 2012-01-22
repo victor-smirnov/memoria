@@ -634,7 +634,7 @@ public:
 
     void Dump(Page* page, std::ostream& out = std::cout)
     {
-    	if (page != nullptr)
+    	if (page != NULL)
     	{
     		PageWrapper<Page, Allocator::PAGE_SIZE> pw(page);
     		PageMetadata* meta = me()->reflection()->GetPageMetadata(pw.GetPageTypeHash());

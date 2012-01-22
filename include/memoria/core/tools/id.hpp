@@ -65,9 +65,9 @@ public:
         return data_;
     }
 
-    const char* cptr() const {
-        return data_;
-    }
+//    const char* cptr() const {
+//        return data_;
+//    }
 
     virtual const String str() const
     {

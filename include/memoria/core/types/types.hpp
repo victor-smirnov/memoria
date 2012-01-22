@@ -1,4 +1,5 @@
 
+
 // Copyright Victor Smirnov 2011.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
@@ -12,6 +13,7 @@
 #include <string>
 #include <sstream>
 #include <cassert>
+#include <stdint.h>
 
 #include <memoria/core/tools/config.hpp>
 
@@ -19,14 +21,14 @@ namespace memoria    {
 
 
 
-typedef long long           BigInt;
-typedef unsigned long long  UBigInt;
-typedef int                 Int;
-typedef unsigned int        UInt;
-typedef short               Short;
-typedef unsigned short      UShort;
-typedef char                Byte;
-typedef unsigned char       UByte;
+typedef int64_t           	BigInt;
+typedef uint64_t  			UBigInt;
+typedef int32_t             Int;
+typedef uint32_t        	UInt;
+typedef int16_t             Short;
+typedef uint16_t      		UShort;
+typedef int8_t              Byte;
+typedef uint8_t       		UByte;
 
 template <int size> struct PlatformLongHelper;
 

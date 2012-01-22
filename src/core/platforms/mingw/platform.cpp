@@ -20,5 +20,9 @@ String Platform::GetLineSeparator() {
 	return "\r\n";
 }
 
+String Platform::GetFilePathSeparator() {
+	return "/";
+}
+
 }
 
