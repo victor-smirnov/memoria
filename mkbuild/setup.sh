@@ -34,7 +34,7 @@ fi
 
 BASE_DIR=$(dirname $0)
 BUILD_DIR=$BASE_DIR/../../memoria-build/$BUILD_DIR
-COMMON_DIR=$BASE_DIR/_common
+COMMON_DIR=$BASE_DIR/common
 
 mkdir -p $BUILD_DIR
 
