@@ -35,9 +35,9 @@ cmake -G "Unix Makefiles" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER=$C_COMPILER \
     -DCMAKE_CXX_COMPILER=$CXX_COMPILER \
-    -DMEMORIA_LINK_FLAGS="-lpthread -L/usr/local/lib" \
-    -DBUILD_TOOLS=true \
-    -DMEMORIA_LIBS=libc++.a \
     ../../$SOURCE_DIR
+#    -DMEMORIA_LINK_FLAGS="-lpthread -L/usr/local/lib" \
+#    -DBUILD_TOOLS=true \
+#    -DMEMORIA_LIBS=libc++.a \
 
 cd $CURRENT_DIR
