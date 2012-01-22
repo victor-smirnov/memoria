@@ -90,7 +90,9 @@ void TaskRunner::DumpProperties(ostream& out)
 {
 	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
 	{
+		out<<"#task: "<<i->second->GetTaskName()<<endl;
 		i->second->GetParameters()->DumpProperties(out);
+		out<<endl<<endl;
 	}
 }
 

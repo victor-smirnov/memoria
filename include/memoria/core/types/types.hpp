@@ -1,5 +1,4 @@
 
-
 // Copyright Victor Smirnov 2011.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
@@ -18,8 +17,6 @@
 #include <memoria/core/tools/config.hpp>
 
 namespace memoria    {
-
-
 
 typedef int64_t           	BigInt;
 typedef uint64_t  			UBigInt;

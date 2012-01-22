@@ -36,40 +36,50 @@ void CmdLine::Process()
 		{
 			help_ = true;
 		}
+		else if (arg == "--dump")
+		{
+			dump_ = true;
+		}
 		else if (arg == "--config")
 		{
-			if (c < argc_ - 1)
+			if (!dump_)
 			{
-				if (!cfg_cpecified)
+				if (c < argc_ - 1)
 				{
-					c++;
-					Configurator::Parse(argv_[c], &cfg_file_);
-					cfg_cpecified = true;
+					if (!cfg_cpecified)
+					{
+						c++;
+						Configurator::Parse(argv_[c], &cfg_file_);
+						cfg_cpecified = true;
+					}
+					else {
+						throw MemoriaException(MEMORIA_SOURCE, "Config file has been already specified");
+					}
 				}
 				else {
-					throw MemoriaException(MEMORIA_SOURCE, "Config file has been already specified");
+					throw MemoriaException(MEMORIA_SOURCE, "Properties file is not specified for the --config option");
 				}
-			}
-			else {
-				throw MemoriaException(MEMORIA_SOURCE, "Properties file is not specified for the --config option");
 			}
 		}
 		else if (arg == "--replay" && (operations_ & REPLAY))
 		{
-			if (c < argc_ - 1)
+			if (!dump_)
 			{
-				if (!replay_)
+				if (c < argc_ - 1)
 				{
-					Configurator::Parse(argv_[c + 1], &replay_file_);
-					replay_ = true;
-					c += 1;
+					if (!replay_)
+					{
+						Configurator::Parse(argv_[c + 1], &replay_file_);
+						replay_ = true;
+						c += 1;
+					}
+					else {
+						throw MemoriaException(MEMORIA_SOURCE, "Replay operation has been already specified");
+					}
 				}
 				else {
-					throw MemoriaException(MEMORIA_SOURCE, "Replay operation has been already specified");
+					throw MemoriaException(MEMORIA_SOURCE, "Incorrect --replay parameters number");
 				}
-			}
-			else {
-				throw MemoriaException(MEMORIA_SOURCE, "Incorrect --replay parameters number");
 			}
 		}
 		else {
@@ -77,7 +87,7 @@ void CmdLine::Process()
 		}
 	}
 
-	if (!cfg_cpecified)
+	if (!cfg_cpecified &!dump_)
 	{
 		File f0(cfg_file_name_);
 
