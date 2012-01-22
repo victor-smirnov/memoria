@@ -33,39 +33,6 @@ void Dump(SAllocator& allocator, const char* name = "array.dump")
 }
 
 
-//void Fill(char* buf, int size, char value)
-//{
-//	for (int c 	= 0; c < size; c++)
-//	{
-//		buf[c] = value;
-//	}
-//}
-
-//ArrayData CreateBuffer(Int size, UByte value)
-//{
-//	char* buf = (char*)malloc(size);
-//
-//	for (Int c = 0;c < size; c++)
-//	{
-//		buf[c] = value;
-//	}
-//
-//	return ArrayData(size, buf, true);
-//}
-
-
-
-//Int GetNonZeroRandom(Int size)
-//{
-//	Int value = GetRandom(size);
-//	return value != 0 ? value : size/2;//GetNonZeroRandom(size);
-//}
-
-//ArrayData CreateRandomBuffer(UByte fill_value)
-//{
-//	return CreateBuffer(GetNonZeroRandom(MAX_BUFFER_SIZE), fill_value);
-//}
-
 BigInt GetRandomPosition(ByteArray& array)
 {
 	return GetRandom(array.Size());

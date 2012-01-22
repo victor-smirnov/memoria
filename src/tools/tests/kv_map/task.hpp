@@ -125,35 +125,35 @@ public:
 	//FIXME: SkipKeyBw is broken
 	void CheckMultistepBackwardIterator(KVMapType* map)
 	{
-//		typedef KVMapType::Iterator IteratorType;
-//
-//		BigInt max = map->GetSize();
-//
-//		for (Int c = 0; c < 100; c++)
-//		{
-//			IteratorType iter1 = map->RBegin();
-//			IteratorType iter2 = iter1;
-//
-//			BigInt rnd = max > 0 ? GetRandom(max) : 0;
-//
-//			auto iter3 = iter1;
-//
-//			if (rnd > 0) {
-//				iter1.SkipKeyBw(rnd);
-//			}
-//
-//			for (BigInt d = 0; d < rnd; d++)
-//			{
-//				iter2.PrevKey();
-//			}
-//
+		typedef KVMapType::Iterator IteratorType;
+
+		BigInt max = map->GetSize();
+
+		for (Int c = 0; c < 100; c++)
+		{
+			IteratorType iter1 = map->RBegin();
+			IteratorType iter2 = iter1;
+
+			BigInt rnd = max > 0 ? GetRandom(max) : 0;
+
+			auto iter3 = iter1;
+
+			if (rnd > 0) {
+				iter1.SkipKeyBw(rnd);
+			}
+
+			for (BigInt d = 0; d < rnd; d++)
+			{
+				iter2.PrevKey();
+			}
+
 //			if (iter1 != iter2)
 //			{
 //				iter3.SkipKeyBw(rnd);
 //			}
-//
-//			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
-//		}
+
+			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+		}
 	}
 
 	virtual TestStepParams* CreateTestStep(StringRef name) const

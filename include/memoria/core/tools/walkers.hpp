@@ -140,7 +140,7 @@ public:
 				for (Int c = idx; c >= 0; c--)
 				{
 					CountType count = 1;
-					if (count + sum_ < target_)
+					if (count + sum_ <= target_)
 					{
 						sum_ = sum_ + count;
 					}
@@ -155,7 +155,7 @@ public:
 					NodeBaseG child = me_.allocator().GetPage(node->map().data(c), Container::Allocator::READ);
 
 					CountType count = child->counters().key_count();
-					if (count + sum_ < target_)
+					if (count + sum_ <= target_)
 					{
 						sum_ = sum_ + count;
 					}
