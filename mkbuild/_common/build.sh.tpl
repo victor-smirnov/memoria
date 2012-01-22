@@ -42,5 +42,5 @@ if [ $RAW -ne 1 ]; then
     echo "Build duration: $duration"
     echo "Build log file: $BUILD_LOG_FILE"
 else
-    make
+    make --no-print-directory -C $BASE_DIR
 fi
