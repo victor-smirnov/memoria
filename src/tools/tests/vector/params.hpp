@@ -18,12 +18,18 @@ using namespace memoria::vapi;
 
 class VectorTestStepParams: public TestStepParams {
 public:
-	Int step_;
+	Int 	step_;
+	Int 	data_;
+	bool 	insert_;
+	Int		data_size_;
 
 public:
-	VectorTestStepParams(StringRef name = "Vector"): TestStepParams(name), step_(0)
+	VectorTestStepParams(StringRef name = "Vector"): TestStepParams(name), step_(0), data_(0), insert_(true), data_size_(0)
 	{
 		Add("step", step_);
+		Add("data", data_);
+		Add("insert", insert_);
+		Add("dataSize", data_size_);
 	}
 
 	virtual ~VectorTestStepParams() throw () {};

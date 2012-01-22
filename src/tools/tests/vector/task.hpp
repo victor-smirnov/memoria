@@ -44,8 +44,15 @@ public:
 		VectorTestStepParams* params = static_cast<VectorTestStepParams*>(step_params);
 		Allocator allocator;
 		LoadAllocator(allocator, params);
+		ByteVector dv(allocator, 1);
 
-//		DoTestStep(out, allocator, params);
+		if (params->insert_)
+		{
+			Build(allocator, dv, params);
+		}
+		else {
+			Remove(allocator, dv, params);
+		}
 	}
 
 	virtual void Run(ostream& out)
@@ -58,23 +65,32 @@ public:
 
 		try {
 			out<<"Insert data"<<endl;
+			params.insert_ = true;
 
-			Int c = 0;
+			params.data_ = 0;
 			while (dv.Size() < task_params->size_)
 			{
-				Build(allocator, dv, c + 1, GetRandom(3));
+				params.step_ 		= GetRandom(3);
+				params.data_size_ 	= GetRandom(task_params->max_block_size_);
+
+				Build(allocator, dv, &params);
 				allocator.commit();
-				c++;
+				params.data_++;
 			}
 
 			out<<"Remove data. ByteVector contains "<<(dv.Size()/1024)<<" Kbytes"<<endl;
+			params.insert_ = false;
 
 			for (Int c = 0; ; c++)
 			{
-				if (!Remove(allocator, dv, GetRandom(3)))
+				params.step_ = GetRandom(3);
+				params.data_size_ = (Int)GetBIRandom(dv.Size() < 40000 ? dv.Size() : 40000);
+
+				if (!Remove(allocator, dv, &params))
 				{
 					break;
 				}
+
 				allocator.commit();
 			}
 
@@ -90,11 +106,12 @@ public:
 
 
 
-	void Build(Allocator& allocator, ByteVector& array, UByte value, Int step)
+	void Build(Allocator& allocator, ByteVector& array, VectorTestStepParams *params)
 	{
-		VectorTestTaskParams* task_params = GetParameters<VectorTestTaskParams>();
+		UByte value = params->data_;
+		Int step 	= params->step_;
 
-		ArrayData data = CreateRandomBuffer(value, task_params->max_block_size_);
+		ArrayData data = CreateBuffer(params->data_size_, value);
 
 		if (array.Size() == 0)
 		{
@@ -197,8 +214,10 @@ public:
 		}
 	}
 
-	bool Remove(Allocator& allocator, ByteVector& array, Int step)
+	bool Remove(Allocator& allocator, ByteVector& array, VectorTestStepParams* params)
 	{
+		Int step = params->step_;
+
 		if (array.Size() < 20000)
 		{
 			auto iter = array.Seek(0);
@@ -208,7 +227,9 @@ public:
 			return array.Size() > 0;
 		}
 		else {
-			BigInt size = GetBIRandom(array.Size() < 40000 ? array.Size() : 40000);
+//			BigInt size = GetBIRandom(array.Size() < 40000 ? array.Size() : 40000);
+			BigInt size = params->data_size_;
+
 
 			if (step == 0)
 			{

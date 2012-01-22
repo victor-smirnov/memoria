@@ -26,7 +26,6 @@ set<IDValue> processed;
 
 void LoadFile(VStreamAllocator& allocator, const char* file)
 {
-//	allocator->logger().level() = Logger::TRACE;
 	FileInputStreamHandler* in = FileInputStreamHandler::create(file);
 	allocator.load(in);
 	delete in;
@@ -97,18 +96,32 @@ void DumpTree(const IDValue& id, const File& folder, int& idx)
 	delete page;
 }
 
+
+String GetPath(String dump_name)
+{
+	if (IsEndsWith(dump_name, ".dump"))
+	{
+		auto idx = dump_name.find_last_of(".");
+		String name = dump_name.substr(0, idx);
+		return name;
+	}
+	else {
+		return dump_name+".data";
+	}
+}
+
+
 MEMORIA_INIT();
 
 int main(int argc, const char** argv, const char** envp)
 {
 
 	try {
-//		StreamContainerTypesCollection::Init();
-
 		logger.level() = Logger::NONE;
 
-		if (argc != 3) {
-			cerr<<"Usage: dump file.dump /path/to/folder/to/dump/in"<<endl;
+		if (argc != 3 && argc != 2)
+		{
+			cerr<<"Usage: dump file.dump [/path/to/folder/to/dump/into]"<<endl;
 			return 1;
 		}
 
@@ -124,7 +137,7 @@ int main(int argc, const char** argv, const char** envp)
 			return 1;
 		}
 
-		File path(argv[2]);
+		File path(argc == 3 ? String(argv[2]) : GetPath(argv[1]));
 		if (path.IsExists() && !path.IsDirectory())
 		{
 			cerr<<"ERROR: "<<path.GetPath()<<" is not a directory"<<endl;
@@ -146,14 +159,7 @@ int main(int argc, const char** argv, const char** envp)
 
 		cout<<"Load file: "+file.GetPath()<<endl;
 
-//		char cwd_buf[16384];
-//		::getcwd(cwd_buf, 16384);
-//
-//		cout<<"CWD: "<<cwd_buf<<endl;
-
 		LoadFile(allocator, file.GetPath().c_str());
-
-
 
 		VStreamAllocator::RootMapType* root = manager->roots();
 		auto iter = root->Begin();
@@ -164,8 +170,6 @@ int main(int argc, const char** argv, const char** envp)
 
 			BigInt  value 	= iter.GetData();
 			IDValue id(value);
-
-//			iter.model().Dump(iter.page());
 
 			cout<<"Dumping name="<<name<<" root="<<id<<endl;
 
