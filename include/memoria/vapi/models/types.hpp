@@ -11,7 +11,10 @@
 
 
 #include <memoria/core/tools/config.hpp>
+#include <memoria/core/tools/bitmap.hpp>
+
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/types/type2type.hpp>
 
 #include <vector>
 

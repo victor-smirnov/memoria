@@ -14,8 +14,7 @@
 
 namespace memoria {
 
-template <typename ChildType = void>
-class StreamProfile {};
+
 
 }
 

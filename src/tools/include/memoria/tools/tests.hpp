@@ -10,6 +10,7 @@
 
 
 #include <memoria/tools/task.hpp>
+#include <memoria/tools/tools.hpp>
 #include <memoria/memoria.hpp>
 
 #include <map>
@@ -185,6 +186,16 @@ public:
 	virtual TestStepParams* CreateTestStep(StringRef name) const						= 0;
 	virtual void 			Run(ostream& out)											= 0;
 	virtual void 			Replay(ostream& out, TestStepParams* step_params)			= 0;
+
+	void Check(Allocator& allocator, const char* source)
+	{
+		::memoria::Check<Allocator, ::memoria::StreamContainersChecker>(allocator, "Allocator check failed", source);
+	}
+
+	void Check(Allocator& allocator, const char* message, const char* source)
+	{
+		::memoria::Check<Allocator, ::memoria::StreamContainersChecker>(allocator, message, source);
+	}
 };
 
 

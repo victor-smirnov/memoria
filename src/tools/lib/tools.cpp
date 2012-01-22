@@ -11,9 +11,11 @@
 #include <sys/timeb.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <malloc.h>
 
 #include <random>
 #include <functional>
+
 
 namespace memoria {
 
@@ -130,5 +132,46 @@ String FormatTime(BigInt millis)
 		return ToString(days) + (days == 1? "day " : "days ") + GetTwoDigitsPart(hours) + ":" + GetTwoDigitsPart(minutes) +":" + GetTwoDigitsPart(seconds) +"." + GetMillisPart(millis);
 	}
 }
+
+
+
+void Fill(char* buf, int size, char value)
+{
+	for (int c 	= 0; c < size; c++)
+	{
+		buf[c] = value;
+	}
+}
+
+ArrayData CreateBuffer(Int size, UByte value)
+{
+	char* buf = (char*)malloc(size);
+
+	for (Int c = 0;c < size; c++)
+	{
+		buf[c] = value;
+	}
+
+	return ArrayData(size, buf, true);
+}
+
+
+Int GetNonZeroRandom(Int size)
+{
+	Int value = GetRandom(size);
+	return value != 0 ? value : GetNonZeroRandom(size);
+}
+
+ArrayData CreateRandomBuffer(UByte fill_value, Int max_size)
+{
+	return CreateBuffer(GetNonZeroRandom(max_size), fill_value);
+}
+
+
+
+
+
+
+
 
 } //memoria

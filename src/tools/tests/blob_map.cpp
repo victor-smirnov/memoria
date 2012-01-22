@@ -9,7 +9,7 @@
 #include "mtools.hpp"
 
 #include <memoria/memoria.hpp>
-#include <memoria/core/tools/bm_tools.hpp>
+#include <memoria/tools/tools.hpp>
 
 using namespace memoria;
 using namespace memoria::vapi;

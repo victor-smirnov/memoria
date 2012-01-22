@@ -9,15 +9,15 @@
 #ifndef _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
 
-#include <memoria/core/container/checker.hpp>
-#include <memoria/core/container/collection.hpp>
-
 #include <memoria/containers/root/factory.hpp>
 #include <memoria/containers/kvmap/factory.hpp>
 #include <memoria/containers/idx_map/factory.hpp>
 #include <memoria/containers/idx_set/factory.hpp>
 #include <memoria/containers/vector/factory.hpp>
 #include <memoria/containers/vector_map/factory.hpp>
+
+#include <memoria/core/container/checker.hpp>
+#include <memoria/core/container/collection.hpp>
 
 #include "names.hpp"
 #include "allocator.hpp"
@@ -49,19 +49,11 @@ public:
 };
 
 
-//template <typename Profile>
-//struct ContainerTypesHelper {
-//		typedef typename ContainerCollectionCfg<Profile>::Types						ContainerTypesType;
-//
-//	    typedef typename ContainerName2TypeMapBuilder<
-//								Profile,
-//								typename ContainerTypesType::RootNamesList
-//						 >::Result   												Name2TypeMapList;
-//};
-
 typedef memoria::StreamAllocator<StreamProfile<>, BasicContainerCollectionCfg<StreamProfile<> >::Page, EmptyType> DefaultStreamAllocator;
 typedef ContainerTypesCollection<StreamProfile<> > StreamContainerTypesCollection;
 typedef Checker<StreamContainerTypesCollection, DefaultStreamAllocator> StreamContainersChecker;
+
+MEMORIA_TEMPLATE_EXTERN template class ContainerTypesCollection<StreamProfile<> >;
 
 /*
 MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Root)

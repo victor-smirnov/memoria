@@ -161,7 +161,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         			idx = me()->model().GetChildrenCount(index) - 1;
         		}
         		else {
-        			idx = fn.result() - 1;
+        			idx = fn.result();
         			return false;
         		}
         	}

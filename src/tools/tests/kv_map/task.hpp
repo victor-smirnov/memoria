@@ -226,20 +226,7 @@ public:
 		params.SetPairsSortedDataFile(pairs_sorted_name);
 	}
 
-	void Check(Allocator& allocator)
-	{
-		Int level = allocator.GetLogger()->level();
 
-		allocator.GetLogger()->level() = Logger::ERROR;
-
-		memoria::StreamContainersChecker checker(allocator);
-		if (checker.CheckAll())
-		{
-			throw TestException(MEMORIA_SOURCE, "Allocator check failed");
-		}
-
-		allocator.GetLogger()->level() = level;
-	}
 
 	void DoTestStep(ostream& out, Allocator& allocator, const KVMapTestStepParams* params)
 	{
@@ -251,7 +238,7 @@ public:
 		{
 			map->Put(pairs[c].key_, pairs[c].value_);
 
-			Check(allocator);
+			Check(allocator, MEMORIA_SOURCE);
 
 			AppendToSortedVector(pairs_sorted, pairs[c]);
 
@@ -272,7 +259,7 @@ public:
 		else {
 			map->Remove(pairs[c].key_);
 
-			Check(allocator);
+			Check(allocator, MEMORIA_SOURCE);
 
 			BigInt size = params->GetSize() - c - 1;
 

@@ -21,10 +21,10 @@ namespace memoria    {
 template <typename ContainerCollectionType, typename AllocatorType>
 class Checker {
 
-	typedef typename AllocatorType::Page		Page;
-	typedef typename AllocatorType::Page::ID	ID;
-	typedef typename AllocatorType::RootMapType RootMap;
-	typedef typename RootMap::Iterator			RootMapIterator;
+	typedef typename AllocatorType::PageG				PageG;
+	typedef typename AllocatorType::PageG::Page::ID		ID;
+	typedef typename AllocatorType::RootMapType 		RootMap;
+	typedef typename RootMap::Iterator					RootMapIterator;
 
 	typedef typename ContainerCollectionType::ContainerDispatcherType ContainerDispatcher;
 
@@ -40,7 +40,7 @@ public:
 		ID root = allocator_.root();
 		if (root.is_not_null())
 		{
-			Page* root_page = allocator_.GetPage(root, AllocatorType::READ);
+			PageG root_page = allocator_.GetPage(root, AllocatorType::READ);
 			if (false && dispatch(root_page))
 			{
 				return true;
@@ -50,7 +50,7 @@ public:
 
 				for (RootMapIterator iter = allocator_.roots()->Begin(); !iter.IsEnd(); )
 				{
-					Page* page = allocator_.GetPage(iter.GetData(), AllocatorType::READ);
+					PageG page = allocator_.GetPage(iter.GetData(), AllocatorType::READ);
 					result = dispatch(page) || result;
 					iter.Next();
 				}
@@ -62,7 +62,7 @@ public:
 		return false;
 	}
 
-	bool dispatch(Page* page) {
+	bool dispatch(PageG& page) {
 		result_ = false;
 		ContainerDispatcher::dispatch(&allocator_, page, *this);
 		return result_;

@@ -11,6 +11,8 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/strings.hpp>
+#include <memoria/vapi/models/types.hpp>
+#include <memoria/vapi/models/logs.hpp>
 
 #include <vector>
 #include <fstream>
@@ -146,8 +148,61 @@ BigInt	GetTimeInMillis();
 
 String FormatTime(BigInt millis);
 
+void Fill(char* buf, int size, char value);
+ArrayData CreateBuffer(Int size, UByte value);
+Int GetNonZeroRandom(Int size);
+ArrayData CreateRandomBuffer(UByte fill_value, Int max_size);
 
-#define MEMORIA_TEST_ASSERT(op1, operator_, op2) MEMORIA_TEST_ASSERT_EXPR(op1 operator_ op2, op1, op2)
+
+template <typename Allocator, typename Checker>
+void Check(Allocator& allocator, const char* message,  const char* source)
+{
+	Int level = allocator.GetLogger()->level();
+
+	allocator.GetLogger()->level() = Logger::ERROR;
+
+	Checker checker(allocator);
+	if (checker.CheckAll())
+	{
+		throw TestException(source, message);
+	}
+
+	allocator.GetLogger()->level() = level;
+}
+
+
+template <typename BAIterator>
+bool CompareBuffer(BAIterator& iter, ArrayData& data)
+{
+	ArrayData buf(data.size());
+
+	iter.Read(buf, 0, buf.size());
+
+	const UByte* buf0 = buf.data();
+	const UByte* buf1 = data.data();
+
+	for (Int c = 0; c < data.size(); c++)
+	{
+		if (buf0[c] != buf1[c])
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+template <typename BAIterator >
+void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg, const char* source)
+{
+	if (!CompareBuffer(iter, data))
+	{
+		throw TestException(source, err_msg);
+	}
+}
+
+
+#define MEMORIA_TEST_ASSERT(op1, operator_, op2) 		MEMORIA_TEST_ASSERT_EXPR(op1 operator_ op2, op1, op2)
 #define MEMORIA_TEST_ASSERT1(op1, operator_, op2, arg1) MEMORIA_TEST_ASSERT_EXPR1(op1 operator_ op2, op1, op2, arg1)
 
 #define MEMORIA_TEST_ASSERT_EXPR(expr, op1, op2) 																						\

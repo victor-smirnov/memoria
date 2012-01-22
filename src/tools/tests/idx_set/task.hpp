@@ -278,7 +278,7 @@ public:
 				try {
 					MEMORIA_TEST_ASSERT1(pairs_sorted.size(), !=, (UInt)map.GetSize(), x);
 
-					Check(allocator);
+					Check(allocator, MEMORIA_SOURCE);
 					CheckIteratorFw(&map, pairs_sorted);
 					CheckIteratorBw(&map, pairs_sorted);
 
@@ -308,20 +308,6 @@ public:
 		params.SetPairsSortedDataFile(pairs_sorted_name);
 	}
 
-	void Check(Allocator& allocator)
-	{
-		Int level = allocator.GetLogger()->level();
-
-		allocator.GetLogger()->level() = Logger::ERROR;
-
-		memoria::StreamContainersChecker checker(allocator);
-		if (checker.CheckAll())
-		{
-			throw TestException(MEMORIA_SOURCE, "Allocator check failed");
-		}
-
-		allocator.GetLogger()->level() = level;
-	}
 
 	void DoTestStep(ostream& out, Allocator& allocator, const IdxSetTestStepParams* params)
 	{
@@ -333,7 +319,7 @@ public:
 		{
 			map->Put(pairs[c], 0);
 
-			Check(allocator);
+			Check(allocator, MEMORIA_SOURCE);
 
 			AppendToSortedVector(pairs_sorted, pairs[c]);
 
@@ -347,7 +333,7 @@ public:
 		else {
 			map->Remove(pairs[c]);
 
-			Check(allocator);
+			Check(allocator, MEMORIA_SOURCE);
 
 			BigInt size = params->GetSize() - c - 1;
 

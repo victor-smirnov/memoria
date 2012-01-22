@@ -65,6 +65,12 @@ struct CV {
     static const Int Code = Value;
 };
 
+
+/*
+ * Container type names & profiles
+ */
+
+
 struct BTree {};
 struct BSTree {};
 struct DynVector {};
@@ -92,6 +98,14 @@ struct DFUDS:       public CodeValue<5> {};
 struct LOUDS:       public CodeValue<6> {};
 struct VectorMap:   public CodeValue<7> {};
 struct Vector:   	public CodeValue<8> {};
+
+
+template <typename ChildType = void>
+class StreamProfile {};
+
+/*
+ * End of container type names and profiles
+ */
 
 
 
