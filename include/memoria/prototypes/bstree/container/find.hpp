@@ -14,7 +14,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::itree::FindName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                              Allocator;

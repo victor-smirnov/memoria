@@ -19,7 +19,7 @@
 
 namespace memoria    {
 
-using namespace memoria::itree;
+using namespace memoria::bstree;
 
 
 MEMORIA_BSTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(ITreeIteratorBase)

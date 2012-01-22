@@ -10,7 +10,7 @@
 #define	_MEMORIA_PROTOTYPES_SUMTREE_NAMES_HPP
 
 namespace memoria    {
-namespace itree      {
+namespace bstree      {
 
 class FindName 		{};
 class ToolsName 	{};
@@ -21,6 +21,7 @@ class IndexPagePrefixName 	{};
 
 
 class IteratorToolsName 	{};
+class IteratorMultiskipName {};
 
 
 }

@@ -40,13 +40,26 @@ public:
 
 	void CheckIteratorFw(IdxSetType* map, PairVector& pairs)
 	{
-		map->End().update();
+//		map->End().update();
 		Int pairs_size = (Int)pairs.size();
 
 		Int idx = 0;
+
 		for (auto iter = map->Begin(); !iter.IsEnd(); )
 		{
 		    BigInt  key 	= iter.GetKey(0);
+
+		    if (pairs[idx] != key)
+		    {
+		    	int a = 0;
+		    	a++;
+
+		    	BigInt size0 = map->GetSize();
+
+		    	auto ii = map->Begin();
+
+		    	BigInt k0 = ii.GetKey(0);
+		    }
 
 		    MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
 
@@ -95,56 +108,76 @@ public:
 
 	void CheckMultistepForwardIterator(IdxSetType* map)
 	{
-//		BigInt max = map->GetSize();
-//
-//		for (Int c = 0; c < 100; c++)
-//		{
-//			auto iter1 = map->Begin();
-//			auto iter2 = iter1;
+		BigInt max = map->GetSize();
+
+		for (Int c = 0; c < 100; c++)
+		{
+			auto iter1 = map->Begin();
+			auto iter2 = iter1;
+			auto iter3 = iter1;
 //
 //			cout<<"Iter1.1="<<iter1.prefix(0)<<endl;
 //			cout<<"Iter2.1="<<iter2.prefix(0)<<endl;
-//
-//			BigInt rnd = max > 0 ? GetRandom(max) : 0;
-//
-//			if (rnd > 0) {
-//				iter1.SkipKeyFw(rnd);
-//			}
-//
-//			for (BigInt d = 0; d < rnd; d++)
-//			{
-//				iter2.NextKey();
-//			}
-//
-//			cout<<"Iter1.2="<<iter1.prefix(0)<<endl;
-//			cout<<"Iter2.2="<<iter2.prefix(0)<<endl;
-//
-//			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
-//		}
+
+			BigInt rnd = max > 0 ? GetRandom(max) : 0;
+
+
+
+			if (rnd > 0) {
+				iter1.SkipKeyFw(rnd);
+			}
+
+			for (BigInt d = 0; d < rnd; d++)
+			{
+				iter2.NextKey();
+			}
+
+			if (iter1 != iter2)
+			{
+				iter3.SkipKeyFw(rnd);
+
+				cout<<"Iter1.2="<<iter2.prefix(0)<<endl;
+				cout<<"Iter2.2="<<iter3.prefix(0)<<endl;
+			}
+
+			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+		}
 	}
 
 	void CheckMultistepBackwardIterator(IdxSetType* map)
 	{
-//		BigInt max = map->GetSize();
-//
-//		for (Int c = 0; c < 100; c++)
-//		{
-//			auto iter1 = map->RBegin();
-//			auto iter2 = iter1;
-//
-//			BigInt rnd = max > 0 ? GetRandom(max) : 0;
-//
-//			if (rnd > 0) {
-//				iter1.SkipKeyBw(rnd);
-//			}
-//
-//			for (BigInt d = 0; d < rnd; d++)
-//			{
-//				iter2.PrevKey();
-//			}
-//
-//			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
-//		}
+		BigInt max = map->GetSize();
+
+		for (Int c = 0; c < 100; c++)
+		{
+			auto iter1 = map->RBegin();
+			auto iter2 = iter1;
+			auto iter3 = iter1;
+			auto iter4 = iter1;
+
+			BigInt rnd = max > 0 ? GetRandom(max) : 0;
+
+			if (rnd > 0) {
+				iter1.SkipKeyBw(rnd);
+			}
+
+			for (BigInt d = 0; d < rnd; d++)
+			{
+				iter2.PrevKey();
+			}
+
+			if (iter1 != iter2)
+			{
+				cout<<"Iter3.1="<<iter3.prefix(0)<<endl;
+				iter3.SkipKeyBw(rnd);
+
+				cout<<"Iter4.2="<<iter4.prefix(0)<<endl;
+				cout<<"Iter2.2="<<iter2.prefix(0)<<endl;
+				cout<<"Iter3.2="<<iter3.prefix(0)<<endl;
+			}
+
+			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+		}
 	}
 
 	virtual TestStepParams* CreateTestStep(StringRef name) const
@@ -162,7 +195,7 @@ public:
 		Allocator allocator;
 		LoadAllocator(allocator, params);
 
-		if (params->GetStep() < 3)
+		if (params->GetStep() < 2)
 		{
 			DoTestStep(out, allocator, params);
 		}
@@ -175,6 +208,12 @@ public:
 
 			IdxSetType map(allocator, 1);
 			map.Remove(from_key, to_key);
+
+			Check(allocator, MEMORIA_SOURCE);
+
+			pairs_sorted.erase(pairs_sorted.begin() + from, pairs_sorted.begin() + to + 1);
+			CheckIteratorFw(&map, pairs_sorted);
+			CheckIteratorBw(&map, pairs_sorted);
 		}
 	}
 
@@ -184,7 +223,7 @@ public:
 
 		for (Int c = 0; c < SIZE; c++)
 		{
-			pairs.push_back(GetBIRandom());
+			pairs.push_back(GetRandom());
 		}
 
 		IdxSetTestStepParams params;
@@ -314,7 +353,7 @@ public:
 		unique_ptr<IdxSetType> map(new IdxSetType(allocator, 1));
 
 		Int c = params->GetVectorIdx();
-
+		out<<c<<endl;
 		if (params->GetStep() == 0)
 		{
 			map->Put(pairs[c], 0);

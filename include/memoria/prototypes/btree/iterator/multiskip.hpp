@@ -45,55 +45,15 @@ MEMORIA_ITERATOR_PART_END
 M_PARAMS
 BigInt M_TYPE::SkipKeyFw(BigInt distance)
 {
-	if (me()->page() == NULL)
-	{
-		me()->ReHash();
-		return 0;
-	}
-	else if (me()->key_idx() + distance < me()->model().GetChildrenCount(me()->page()))
-	{
-		me()->key_idx() += distance;
-	}
-	else {
-		KeyCounterWalker<Container, true> walker(distance, me()->model());
-
-		if (me()->WalkFw(me()->page(), me()->key_idx(), walker))
-		{
-			me()->key_idx()++;
-			me()->ReHash();
-			return walker.sum();
-		}
-	}
-
-	me()->ReHash();
-	return distance;
+	typedef KeyCounterWalker<Container, true> Walker;
+	return me()->template skip_keys_fw<Walker>(distance);
 }
 
 M_PARAMS
 BigInt M_TYPE::SkipKeyBw(BigInt distance)
 {
-	if (me()->page() == NULL)
-	{
-		me()->ReHash();
-		return 0;
-	}
-	else if (me()->key_idx() - distance >= 0)
-	{
-		me()->key_idx() -= distance;
-	}
-	else {
-		KeyCounterWalker<Container, false> walker(distance, me()->model());
-
-		if (me()->WalkBw(me()->page(), me()->key_idx(), walker))
-		{
-			me()->key_idx() = -1;
-			me()->ReHash();
-			return walker.sum();
-		}
-	}
-
-	me()->ReHash();
-	return distance;
+	typedef KeyCounterWalker<Container, false> Walker;
+	return me()->template skip_keys_bw<Walker>(distance);
 }
 
 

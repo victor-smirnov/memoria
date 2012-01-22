@@ -94,9 +94,9 @@ MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memor
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::FindName)
 
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::idx_map::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::itree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::bstree::ToolsName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::idx_map::InsertName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::itree::FindName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::bstree::FindName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::idx_map::ContainerApiName)
 
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::TreeMapName)
@@ -108,7 +108,7 @@ MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memo
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::IteratorMultiskipName)
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::IteratorContainerAPIName)
 
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::itree::IteratorToolsName)
+MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::bstree::IteratorToolsName)
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::idx_map::ItrAPIName)
 
 

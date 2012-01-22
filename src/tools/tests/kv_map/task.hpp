@@ -100,14 +100,12 @@ public:
 
 	void CheckMultistepForwardIterator(KVMapType* map)
 	{
-		typedef KVMapType::Iterator IteratorType;
-
 		BigInt max = map->GetSize();
 
 		for (Int c = 0; c < 100; c++)
 		{
-			IteratorType iter1 = map->Begin();
-			IteratorType iter2 = iter1;
+			auto iter1 = map->Begin();
+			auto iter2 = iter1;
 
 			BigInt rnd = max > 0 ? GetRandom(max) : 0;
 
@@ -125,14 +123,12 @@ public:
 	//FIXME: SkipKeyBw is broken
 	void CheckMultistepBackwardIterator(KVMapType* map)
 	{
-		typedef KVMapType::Iterator IteratorType;
-
 		BigInt max = map->GetSize();
 
 		for (Int c = 0; c < 100; c++)
 		{
-			IteratorType iter1 = map->RBegin();
-			IteratorType iter2 = iter1;
+			auto iter1 = map->RBegin();
+			auto iter2 = iter1;
 
 			BigInt rnd = max > 0 ? GetRandom(max) : 0;
 

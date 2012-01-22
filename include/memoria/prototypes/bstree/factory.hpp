@@ -16,6 +16,7 @@
 
 #include <memoria/prototypes/bstree/iterator/base.hpp>
 #include <memoria/prototypes/bstree/iterator/tools.hpp>
+#include <memoria/prototypes/bstree/iterator/multiskip.hpp>
 
 #include <memoria/prototypes/bstree/names.hpp>
 #include <memoria/prototypes/bstree/macros.hpp>
@@ -35,15 +36,16 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
 	typedef typename AppendLists<
 			typename Base::ContainerPartsList,
 			typename TLTool<
-				memoria::itree::ToolsName,
-				memoria::itree::FindName
+				memoria::bstree::ToolsName,
+				memoria::bstree::FindName
 			>::List
 	>::Result                                                               ContainerPartsList;
 
 	typedef typename AppendLists<
 			typename Base::IteratorPartsList,
 			typename TLTool<
-				memoria::itree::IteratorToolsName
+				memoria::bstree::IteratorToolsName,
+				memoria::bstree::IteratorMultiskipName
 			>::List
 	>::Result                                                               IteratorPartsList;
 

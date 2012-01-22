@@ -44,6 +44,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     	}
     };
 
+    /**
+     * returns true if EOF, else false
+     *
+     */
 
     template <typename Walker>
     bool WalkFw(NodeBaseG& index, Int &idx, Walker &walker)
@@ -118,6 +122,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
     }
 
+    /**
+     * returns true if BOF else false
+     *
+     */
 
     template <typename Walker>
     bool WalkBw(NodeBaseG& index, Int &idx, Walker &walker)
@@ -193,6 +201,59 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     	}
 
     	walker(node, idx);
+    }
+
+    template <typename Walker>
+    BigInt skip_keys_fw(BigInt distance)
+    {
+    	if (me()->page() == NULL)
+    	{
+    		return 0;
+    	}
+    	else if (me()->key_idx() + distance < me()->model().GetChildrenCount(me()->page()))
+    	{
+    		me()->key_idx() += distance;
+    	}
+    	else {
+    		Walker walker(distance, me()->model());
+
+    		if (me()->WalkFw(me()->page(), me()->key_idx(), walker))
+    		{
+    			me()->key_idx()++;
+    			me()->ReHash();
+    			return walker.sum();
+    		}
+    	}
+
+    	me()->ReHash();
+    	return distance;
+    }
+
+
+    template <typename Walker>
+    BigInt skip_keys_bw(BigInt distance)
+    {
+    	if (me()->page() == NULL)
+    	{
+    		return 0;
+    	}
+    	else if (me()->key_idx() - distance >= 0)
+    	{
+    		me()->key_idx() -= distance;
+    	}
+    	else {
+    		Walker walker(distance, me()->model());
+
+    		if (me()->WalkBw(me()->page(), me()->key_idx(), walker))
+    		{
+    			me()->key_idx() = -1;
+    			me()->ReHash();
+    			return walker.sum();
+    		}
+    	}
+
+    	me()->ReHash();
+    	return distance;
     }
 
 MEMORIA_ITERATOR_PART_END
