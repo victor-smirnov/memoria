@@ -30,7 +30,6 @@ public:
 		Add("data", data_);
 		Add("insert", insert_);
 		Add("dataSize", data_size_);
-		SetEnabled(false);
 	}
 
 	virtual ~VectorTestStepParams() throw () {};
@@ -50,6 +49,7 @@ public:
 	{
 		Add("size", size_, 1024*1024*16);
 		Add("maxBlockSize", max_block_size_, 1024*40);
+		SetEnabled(false);
 	}
 };
 
