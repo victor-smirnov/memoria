@@ -6,8 +6,6 @@ print_usage()
     echo "USAGE: $SCRIPT_NAME [--dir DIRECTORY_NAME]"
 }
 
-BASE_DIR=$(dirname $0)
-
 if [ $# -eq 0 ] ; then
     SOURCE_DIR="memoria" # default dir
 elif [ $# -eq 2 ] ; then
@@ -22,8 +20,17 @@ else
     exit 1
 fi
 
+BASE_DIR=$(dirname $0)
+CURRENT_DIR=`pwd`
+
+# if you know a better way to specify out-of-source output directory,
+# please email me on ivanhoe12@gmail.com <Ivan>
+cd $BASE_DIR
+
 cmake -G "Unix Makefiles" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER=/usr/bin/gcc \
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
-    $BASE_DIR/../../$SOURCE_DIR
+    ../../$SOURCE_DIR
+
+cd $CURRENT_DIR

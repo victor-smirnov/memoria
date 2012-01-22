@@ -24,18 +24,20 @@ fi
 if [ $RAW -ne 1 ]; then
     BUILD_TIME_FILE="build_time.txt"
     BUILD_LOG_FILE="build_log.txt"
+    
+    BASE_DIR=$(dirname $0)
 
-    echo "Build started: `date`" > $BUILD_TIME_FILE
+    echo "Build started: `date`" > $BASE_DIR/$BUILD_TIME_FILE
 
-    time -f "%E" 2>&1 make 2>$BUILD_LOG_FILE
-    duration=`tail -n 1 $BUILD_LOG_FILE`
+    time -f "%E" 2>&1 make --no-print-directory -C $BASE_DIR 2>$BASE_DIR/$BUILD_LOG_FILE
+    duration=`tail -n 1 $BASE_DIR/$BUILD_LOG_FILE`
 
-    head -n -1 $BUILD_LOG_FILE > "$BUILD_LOG_FILE"_
-    rm $BUILD_LOG_FILE
-    mv "$BUILD_LOG_FILE"_ $BUILD_LOG_FILE
+    head -n -1 $BASE_DIR/$BUILD_LOG_FILE > "$BASE_DIR/$BUILD_LOG_FILE"_
+    rm $BASE_DIR/$BUILD_LOG_FILE
+    mv "$BASE_DIR/$BUILD_LOG_FILE"_ $BASE_DIR/$BUILD_LOG_FILE
 
-    echo "Build finished: `date`" >> $BUILD_TIME_FILE
-    echo "Duration: $duration" >> $BUILD_TIME_FILE
+    echo "Build finished: `date`" >> $BASE_DIR/$BUILD_TIME_FILE
+    echo "Duration: $duration" >> $BASE_DIR/$BUILD_TIME_FILE
 
     echo "Build duration: $duration"
     echo "Build log file: $BUILD_LOG_FILE"
