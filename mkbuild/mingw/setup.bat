@@ -1,8 +1,10 @@
 @ECHO OFF
 
-SET BUILD=..\..\..\memoria-build\mingw
+SET BASE_DIR=%~dp0
+SET BASE_DIR=%BASE_DIR:~0,-1%
+SET BUILD_DIR=%BASE_DIR%\..\..\..\memoria-build\mingw
 
-MKDIR %BUILD%
+MKDIR %BUILD_DIR%
 
-COPY /-Y *.bat %BUILD%
-DEL %BUILD%\setup.bat
+COPY /-Y %BASE_DIR%\*.bat %BUILD_DIR%
+DEL %BUILD_DIR%\setup.bat

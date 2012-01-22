@@ -1,9 +1,0 @@
-#!/bin/sh
-
-BUILD=../../../memoria-build/clang
-
-mkdir -p $BUILD
-
-cp -i build.sh 		$BUILD
-cp -i clean.sh 		$BUILD
-cp -i mkbuild.sh	$BUILD
