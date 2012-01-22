@@ -6,6 +6,8 @@ print_usage()
     echo "USAGE: $SCRIPT_NAME [--dir DIRECTORY_NAME]"
 }
 
+BASE_DIR=$(dirname $0)
+
 if [ $# -eq 0 ] ; then
     DIR="memoria" # default dir
 elif [ $# -eq 2 ] ; then
@@ -27,4 +29,4 @@ cmake -G "Unix Makefiles" \
     -DMEMORIA_LINK_FLAGS="-lpthread -L/usr/local/lib" \
     -DBUILD_TOOLS=true \
     -DMEMORIA_LIBS=libc++.a \
-	../../$DIR
+	$BASE_DIR/../../$DIR
