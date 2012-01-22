@@ -21,11 +21,11 @@ else
     exit 1
 fi
 
+BASE_DIR=$(dirname $0)
+
 if [ $RAW -ne 1 ]; then
     BUILD_TIME_FILE="build_time.txt"
     BUILD_LOG_FILE="build_log.txt"
-    
-    BASE_DIR=$(dirname $0)
 
     echo "Build started: `date`" > $BASE_DIR/$BUILD_TIME_FILE
 
