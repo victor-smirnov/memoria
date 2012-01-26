@@ -17,7 +17,7 @@
 namespace memoria {
 
 
-class SumSetReplay: public TestReplayParams {
+struct SumSetReplay: public TestReplayParams {
 
 	Int step_;
 	Int vector_idx_;
@@ -29,7 +29,7 @@ class SumSetReplay: public TestReplayParams {
 	Int from_;
 	Int to_;
 
-public:
+
 	SumSetReplay(StringRef name = "SumSetReplay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0), from_(0), to_(0)
 	{
 		Add("step", step_);
@@ -45,92 +45,21 @@ public:
 	virtual ~SumSetReplay() throw () {};
 
 
-	Int GetStep() const
-	{
-		return step_;
-	}
 
-	void SetStep(Int step)
-	{
-		this->step_ = step;
-	}
-
-	Int GetVectorIdx() const
-	{
-		return vector_idx_;
-	}
-
-	void SetVectorIdx(Int vector_idx)
-	{
-		this->vector_idx_ = vector_idx;
-	}
-
-	Int GetSize() const
-	{
-		return size_;
-	}
-
-	void SetSize(Int size)
-	{
-		this->size_ = size;
-	}
-
-	StringRef GetPairsDataFile() const
-	{
-		return pairs_data_file_;
-	}
-
-	void SetPairsDataFile(StringRef file)
-	{
-		this->pairs_data_file_ = file;
-	}
-
-	StringRef GetPairsSortedDataFile() const
-	{
-		return pairs_sorted_data_file_;
-	}
-
-	void SetPairsSortedDataFile(StringRef file)
-	{
-		this->pairs_sorted_data_file_ = file;
-	}
-
-	Int GetFrom() const
-	{
-		return from_;
-	}
-
-	void SetFrom(Int from)
-	{
-		this->from_ = from;
-	}
-
-	Int GetTo() const
-	{
-		return to_;
-	}
-
-	void SetTo(Int to)
-	{
-		this->to_ = to;
-	}
 };
 
 
-class SumSetParams: public TaskParametersSet {
+struct SumSetParams: public TaskParametersSet {
 
 	Int size_;
+	Int count_;
 
-public:
 	SumSetParams(): TaskParametersSet("SumSet")
 	{
 		Add("size", size_, 1024);
+		Add("count", count_, 1);
 	}
 
-	Int GetSize() const
-	{
-		return size_;
-	}
 };
 
 

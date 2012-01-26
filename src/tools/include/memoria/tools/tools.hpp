@@ -138,10 +138,12 @@ void AppendToSortedVector(vector<T, A>& vec, const T& value)
 Int 	GetRandom();
 Int 	GetRandom(Int max);
 void 	Seed(Int value);
+Int 	GetSeed();
 
 BigInt 	GetBIRandom();
 BigInt 	GetBIRandom(BigInt max);
 void 	SeedBI(BigInt value);
+BigInt 	GetSeedBI();
 
 
 BigInt	GetTimeInMillis();

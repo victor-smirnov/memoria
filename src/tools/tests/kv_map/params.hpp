@@ -17,7 +17,7 @@
 namespace memoria {
 
 
-class KVMapReplay: public TestReplayParams {
+struct KVMapReplay: public TestReplayParams {
 
 	Int step_;
 	Int vector_idx_;
@@ -26,7 +26,6 @@ class KVMapReplay: public TestReplayParams {
 	String pairs_data_file_;
 	String pairs_sorted_data_file_;
 
-public:
 	KVMapReplay(StringRef name = "KVMapReplay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0)
 	{
 		Add("step", step_);
@@ -38,72 +37,18 @@ public:
 
 	virtual ~KVMapReplay() throw () {};
 
-
-	Int GetStep() const
-	{
-		return step_;
-	}
-
-	void SetStep(Int step)
-	{
-		this->step_ = step;
-	}
-
-	Int GetVectorIdx() const
-	{
-		return vector_idx_;
-	}
-
-	void SetVectorIdx(Int vector_idx)
-	{
-		this->vector_idx_ = vector_idx;
-	}
-
-	Int GetSize() const
-	{
-		return size_;
-	}
-
-	void SetSize(Int size)
-	{
-		this->size_ = size;
-	}
-
-	StringRef GetPairsDataFile() const
-	{
-		return pairs_data_file_;
-	}
-
-	void SetPairsDataFile(StringRef file)
-	{
-		this->pairs_data_file_ = file;
-	}
-
-	StringRef GetPairsSortedDataFile() const
-	{
-		return pairs_sorted_data_file_;
-	}
-
-	void SetPairsSortedDataFile(StringRef file)
-	{
-		this->pairs_sorted_data_file_ = file;
-	}
 };
 
 
-class KVMapTestTaskParams: public TaskParametersSet {
+struct KVMapParams: public TaskParametersSet {
 
 	Int size_;
+	Int count_;
 
-public:
-	KVMapTestTaskParams(): TaskParametersSet("KVMap")
+	KVMapParams(): TaskParametersSet("KVMap")
 	{
 		Add("size", size_, 1024);
-	}
-
-	Int GetSize() const
-	{
-		return size_;
+		Add("count", count_, 1);
 	}
 };
 

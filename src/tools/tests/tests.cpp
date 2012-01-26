@@ -27,6 +27,9 @@ int main(int argc, const char** argv, const char** envp)
 	try {
 		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
+		Seed(GetTimeInMillis());
+		SeedBI(GetTimeInMillis());
+
 		TestRunner runner;
 
 		// add tasks to the runner;

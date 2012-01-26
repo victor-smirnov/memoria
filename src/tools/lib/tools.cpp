@@ -46,6 +46,9 @@ void Seed(Int value)
 	engine.seed(value);
 }
 
+Int GetSeed() {
+	return 0;
+}
 
 BigInt GetBIRandom()
 {
@@ -61,6 +64,11 @@ void SeedBI(BigInt value)
 {
 	engine_bi.seed(value);
 }
+
+BigInt GetSeedBI() {
+	return 0;
+}
+
 
 BigInt	GetTimeInMillis()
 {
