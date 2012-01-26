@@ -17,7 +17,7 @@
 namespace memoria {
 
 
-class IdxSetTestStepParams: public TestStepParams {
+class SumSetReplay: public TestReplayParams {
 
 	Int step_;
 	Int vector_idx_;
@@ -30,7 +30,7 @@ class IdxSetTestStepParams: public TestStepParams {
 	Int to_;
 
 public:
-	IdxSetTestStepParams(StringRef name = "IdxSet"): TestStepParams(name), step_(0), vector_idx_(0), size_(0), from_(0), to_(0)
+	SumSetReplay(StringRef name = "SumSetReplay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0), from_(0), to_(0)
 	{
 		Add("step", step_);
 		Add("vectorIdx", vector_idx_);
@@ -42,7 +42,7 @@ public:
 		Add("pairsSortedDataFile", pairs_sorted_data_file_);
 	}
 
-	virtual ~IdxSetTestStepParams() throw () {};
+	virtual ~SumSetReplay() throw () {};
 
 
 	Int GetStep() const
@@ -117,12 +117,12 @@ public:
 };
 
 
-class IdxSetTestTaskParams: public TaskParametersSet {
+class SumSetParams: public TaskParametersSet {
 
 	Int size_;
 
 public:
-	IdxSetTestTaskParams(): TaskParametersSet("IdxSetTestTask")
+	SumSetParams(): TaskParametersSet("SumSet")
 	{
 		Add("size", size_, 1024);
 	}

@@ -753,7 +753,7 @@ struct PackedIndexMapTypes: public PackedMapTypesBase <
 template <typename Types, int index> struct PackedMapTypes;
 
 template <typename Types>
-struct PackedMapTypes<Types, MapTypes::Index>: public PackedIndexMapTypes<Types> {};
+struct PackedMapTypes<Types, MapTypes::Sum>: public PackedIndexMapTypes<Types> {};
 
 template <typename Types>
 struct PackedMapTypes<Types, MapTypes::Value>: public PackedValueMapTypes<Types> {};

@@ -15,7 +15,7 @@ using namespace memoria::vapi;
 
 void TestTask::Replay(ostream& out, Configurator* cfg)
 {
-	unique_ptr<TestStepParams> params(cfg != NULL ? ReadTestStep(cfg) : NULL);
+	unique_ptr<TestReplayParams> params(cfg != NULL ? ReadTestStep(cfg) : NULL);
 	Replay(out, params.get());
 }
 
@@ -24,10 +24,10 @@ String TestTask::GetFileName(StringRef name) const
 	return name + ".properties";
 }
 
-TestStepParams* TestTask::ReadTestStep(Configurator* cfg) const
+TestReplayParams* TestTask::ReadTestStep(Configurator* cfg) const
 {
 	String name = cfg->GetProperty("name");
-	TestStepParams* params = CreateTestStep(name);
+	TestReplayParams* params = CreateTestStep(name);
 	Configure(params);
 
 	params->Process(cfg);
@@ -35,7 +35,7 @@ TestStepParams* TestTask::ReadTestStep(Configurator* cfg) const
 	return params;
 }
 
-void TestTask::Configure(TestStepParams* params) const
+void TestTask::Configure(TestReplayParams* params) const
 {
 	params->SetTask(GetTaskName());
 	params->SetReplay(true);

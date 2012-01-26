@@ -22,7 +22,7 @@
 
 namespace memoria {
 
-class IdxSetTestTask: public SPTestTask {
+class SumSetTestTask: public SPTestTask {
 public:
 
 
@@ -35,8 +35,8 @@ private:
 
 public:
 
-	IdxSetTestTask(): SPTestTask(new IdxSetTestTaskParams()) {}
-	virtual ~IdxSetTestTask() throw() {}
+	SumSetTestTask(): SPTestTask(new SumSetParams()) {}
+	virtual ~SumSetTestTask() throw() {}
 
 	void CheckIteratorFw(IdxSetType* map, PairVector& pairs)
 	{
@@ -48,18 +48,6 @@ public:
 		for (auto iter = map->Begin(); !iter.IsEnd(); )
 		{
 		    BigInt  key 	= iter.GetKey(0);
-
-		    if (pairs[idx] != key)
-		    {
-		    	int a = 0;
-		    	a++;
-
-		    	BigInt size0 = map->GetSize();
-
-		    	auto ii = map->Begin();
-
-		    	BigInt k0 = ii.GetKey(0);
-		    }
 
 		    MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
 
@@ -114,14 +102,8 @@ public:
 		{
 			auto iter1 = map->Begin();
 			auto iter2 = iter1;
-			auto iter3 = iter1;
-//
-//			cout<<"Iter1.1="<<iter1.prefix(0)<<endl;
-//			cout<<"Iter2.1="<<iter2.prefix(0)<<endl;
 
 			BigInt rnd = max > 0 ? GetRandom(max) : 0;
-
-
 
 			if (rnd > 0) {
 				iter1.SkipKeyFw(rnd);
@@ -130,14 +112,6 @@ public:
 			for (BigInt d = 0; d < rnd; d++)
 			{
 				iter2.NextKey();
-			}
-
-			if (iter1 != iter2)
-			{
-				iter3.SkipKeyFw(rnd);
-
-				cout<<"Iter1.2="<<iter2.prefix(0)<<endl;
-				cout<<"Iter2.2="<<iter3.prefix(0)<<endl;
 			}
 
 			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
@@ -152,8 +126,6 @@ public:
 		{
 			auto iter1 = map->RBegin();
 			auto iter2 = iter1;
-			auto iter3 = iter1;
-			auto iter4 = iter1;
 
 			BigInt rnd = max > 0 ? GetRandom(max) : 0;
 
@@ -166,28 +138,18 @@ public:
 				iter2.PrevKey();
 			}
 
-			if (iter1 != iter2)
-			{
-				cout<<"Iter3.1="<<iter3.prefix(0)<<endl;
-				iter3.SkipKeyBw(rnd);
-
-				cout<<"Iter4.2="<<iter4.prefix(0)<<endl;
-				cout<<"Iter2.2="<<iter2.prefix(0)<<endl;
-				cout<<"Iter3.2="<<iter3.prefix(0)<<endl;
-			}
-
 			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
 		}
 	}
 
-	virtual TestStepParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new IdxSetTestStepParams(name);
+		return new SumSetReplay(name);
 	}
 
-	virtual void Replay(ostream& out, TestStepParams* step_params)
+	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
-		IdxSetTestStepParams* params = static_cast<IdxSetTestStepParams*>(step_params);
+		SumSetReplay* params = static_cast<SumSetReplay*>(step_params);
 
 		LoadVector(pairs, params->GetPairsDataFile());
 		LoadVector(pairs_sorted, params->GetPairsSortedDataFile());
@@ -207,7 +169,12 @@ public:
 			BigInt to_key   = pairs_sorted[to] + 1;
 
 			IdxSetType map(allocator, 1);
+
+			out<<map.GetSize()<<endl;
+
 			map.Remove(from_key, to_key);
+
+			out<<map.GetSize()<<endl;
 
 			Check(allocator, MEMORIA_SOURCE);
 
@@ -219,14 +186,14 @@ public:
 
 	virtual void Run(ostream& out)
 	{
-		Int SIZE = GetParameters<IdxSetTestTaskParams>()->GetSize();
+		Int SIZE = GetParameters<SumSetParams>()->GetSize();
 
 		for (Int c = 0; c < SIZE; c++)
 		{
 			pairs.push_back(GetRandom());
 		}
 
-		IdxSetTestStepParams params;
+		SumSetReplay params;
 
 		params.SetSize(SIZE);
 
@@ -258,12 +225,16 @@ public:
 			}
 		}
 
-		Allocator allocator;
+
 
 		params.SetStep(2);
 
+
+
 		for (Int x = 0; x < 4; x++)
 		{
+			Allocator allocator;
+
 			IdxSetType map(allocator, 1, true);
 			for (Int c = 0; c < SIZE; c++)
 			{
@@ -325,7 +296,7 @@ public:
 				}
 				catch (...)
 				{
-					StorePairs(pairs, pairs_sorted_tmp, params);
+					StorePairs(pairs_sorted, pairs_sorted_tmp, params);
 					Store(allocator, &params);
 
 					throw;
@@ -334,7 +305,7 @@ public:
 		}
 	}
 
-	void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, IdxSetTestStepParams& params)
+	void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, SumSetReplay& params)
 	{
 		String basic_name = GetTaskName()+ "." + params.GetName();
 
@@ -348,12 +319,12 @@ public:
 	}
 
 
-	void DoTestStep(ostream& out, Allocator& allocator, const IdxSetTestStepParams* params)
+	void DoTestStep(ostream& out, Allocator& allocator, const SumSetReplay* params)
 	{
 		unique_ptr<IdxSetType> map(new IdxSetType(allocator, 1));
 
 		Int c = params->GetVectorIdx();
-		out<<c<<endl;
+//		out<<c<<endl;
 		if (params->GetStep() == 0)
 		{
 			map->Put(pairs[c], 0);

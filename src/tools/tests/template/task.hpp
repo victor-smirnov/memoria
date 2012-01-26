@@ -16,17 +16,17 @@ namespace memoria {
 
 using namespace memoria::vapi;
 
-class TemplateTestStepParams: public TestStepParams {
+class TemplateReplay: public TestReplayParams {
 
 	Int param_;
 
 public:
-	TemplateTestStepParams(StringRef name = "KVMap"): TestStepParams(name), param_(0)
+	TemplateReplay(StringRef name = "TemplateReplay"): TestReplayParams(name), param_(0)
 	{
 		Add("param", param_);
 	}
 
-	virtual ~TemplateTestStepParams() throw () {};
+	virtual ~TemplateReplay() throw () {};
 
 	Int GetParam() const {
 		return param_;
@@ -41,12 +41,12 @@ private:
 };
 
 
-class TemplateTestTaskParams: public TaskParametersSet {
+class TemplateParams: public TaskParametersSet {
 
 	Int size_;
 
 public:
-	TemplateTestTaskParams(): TaskParametersSet("TemplateTestTask")
+	TemplateParams(): TaskParametersSet("Template")
 	{
 		Add("size", size_, 1024);
 		SetEnabled(false);
@@ -63,18 +63,18 @@ class TemplateTestTask: public SPTestTask {
 
 public:
 
-	TemplateTestTask(): SPTestTask(new TemplateTestTaskParams()) {}
+	TemplateTestTask(): SPTestTask(new TemplateParams()) {}
 
 	virtual ~TemplateTestTask() throw() {}
 
-	virtual TestStepParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new TemplateTestStepParams(name);
+		return new TemplateReplay(name);
 	}
 
-	virtual void Replay(ostream& out, TestStepParams* step_params)
+	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
-		KVMapTestStepParams* params = static_cast<KVMapTestStepParams*>(step_params);
+		TemplateReplay* params = static_cast<TemplateReplay*>(step_params);
 		Allocator allocator;
 		LoadAllocator(allocator, params);
 
@@ -83,7 +83,7 @@ public:
 
 	virtual void Run(ostream& out)
 	{
-		KVMapTestStepParams params;
+		TemplateReplay params;
 		out<<GetTaskName()<<": "<<"Do main things"<<endl;
 
 		Allocator allocator;
@@ -96,7 +96,7 @@ public:
 		}
 	}
 
-	void DoTestStep(ostream& out, Allocator& allocator, const KVMapTestStepParams* params)
+	void DoTestStep(ostream& out, Allocator& allocator, const TemplateReplay* params)
 	{
 		if (!params->IsReplay()) {
 			throw MemoriaException(MEMORIA_SOURCE, "Test Exception");

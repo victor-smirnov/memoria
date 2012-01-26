@@ -130,7 +130,7 @@ void M_TYPE::SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, co
 			SetAndReindexFn2 fn2(i.key_idx(), keys);
 			LeafDispatcher::Dispatch(i.page(), fn2);
 
-			if (MapType == MapTypes::Index)
+			if (MapType == MapTypes::Sum)
 			{
 				me()->UpdateBTreeKeys(i.page());
 			}

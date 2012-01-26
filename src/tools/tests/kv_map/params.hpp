@@ -17,7 +17,7 @@
 namespace memoria {
 
 
-class KVMapTestStepParams: public TestStepParams {
+class KVMapReplay: public TestReplayParams {
 
 	Int step_;
 	Int vector_idx_;
@@ -27,7 +27,7 @@ class KVMapTestStepParams: public TestStepParams {
 	String pairs_sorted_data_file_;
 
 public:
-	KVMapTestStepParams(StringRef name = "KVMap"): TestStepParams(name), step_(0), vector_idx_(0), size_(0)
+	KVMapReplay(StringRef name = "KVMapReplay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0)
 	{
 		Add("step", step_);
 		Add("vectorIdx", vector_idx_);
@@ -36,7 +36,7 @@ public:
 		Add("pairsSortedDataFile", pairs_sorted_data_file_);
 	}
 
-	virtual ~KVMapTestStepParams() throw () {};
+	virtual ~KVMapReplay() throw () {};
 
 
 	Int GetStep() const
@@ -96,7 +96,7 @@ class KVMapTestTaskParams: public TaskParametersSet {
 	Int size_;
 
 public:
-	KVMapTestTaskParams(): TaskParametersSet("KVMapTestTask")
+	KVMapTestTaskParams(): TaskParametersSet("KVMap")
 	{
 		Add("size", size_, 1024);
 	}

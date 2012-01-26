@@ -16,7 +16,7 @@ namespace memoria {
 
 using namespace memoria::vapi;
 
-class VectorTestStepParams: public TestStepParams {
+class VectorTestStepParams: public TestReplayParams {
 public:
 	Int 	step_;
 	Int 	data_;
@@ -24,7 +24,7 @@ public:
 	Int		data_size_;
 
 public:
-	VectorTestStepParams(StringRef name = "Vector"): TestStepParams(name), step_(0), data_(0), insert_(true), data_size_(0)
+	VectorTestStepParams(StringRef name = "Vector"): TestReplayParams(name), step_(0), data_(0), insert_(true), data_size_(0)
 	{
 		Add("step", step_);
 		Add("data", data_);

@@ -66,7 +66,7 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
 
     typedef NullType                                                            DataPagePartsList;
 
-    static const bool MapType                                                   = MapTypes::Index;
+    static const bool MapType                                                   = MapTypes::Sum;
 
     typedef typename AppendLists<
     		        typename Base::ContainerPartsList,

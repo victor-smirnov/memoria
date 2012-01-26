@@ -75,24 +75,32 @@ void DumpTree(const IDValue& id, const File& folder, int& idx)
 	Page* page = manager->CreatePageWrapper();
 
 //	FIXME: IDValue
-	manager->GetPage(page, id);
 
-	ofstream pagebin((folder.GetPath() + "/page.bin").c_str());
-	for (Int c = 0; c < page->Size(); c++)
-	{
-		pagebin<<(Byte)page->GetByte(c);
+	try {
+		manager->GetPage(page, id);
+
+		ofstream pagebin((folder.GetPath() + "/page.bin").c_str());
+		for (Int c = 0; c < page->Size(); c++)
+		{
+			pagebin<<(Byte)page->GetByte(c);
+		}
+		pagebin.close();
+
+		ofstream pagetxt((folder.GetPath() + "/page.txt").c_str());
+
+		PageMetadata* meta = manager->GetMetadata()->GetPageMetadata(page->GetPageTypeHash());
+		pagetxt<<meta->Name()<<endl;
+
+		DumpGroup(meta, page, pagetxt, 0, 0);
+		DumpTree(meta, page, folder, idx);
+
+		pagetxt.close();
 	}
-	pagebin.close();
+	catch (NullPointerException e)
+	{
+		cout<<"NullPointerException: "<<e.message()<<" at "<<e.source()<<endl;
+	}
 
-	ofstream pagetxt((folder.GetPath() + "/page.txt").c_str());
-
-	PageMetadata* meta = manager->GetMetadata()->GetPageMetadata(page->GetPageTypeHash());
-	pagetxt<<meta->Name()<<endl;
-
-	DumpGroup(meta, page, pagetxt, 0, 0);
-	DumpTree(meta, page, folder, idx);
-
-	pagetxt.close();
 	delete page;
 }
 

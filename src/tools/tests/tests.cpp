@@ -32,7 +32,7 @@ int main(int argc, const char** argv, const char** envp)
 		// add tasks to the runner;
 
 		runner.RegisterTask(new KVMapTestTask());
-		runner.RegisterTask(new IdxSetTestTask());
+		runner.RegisterTask(new SumSetTestTask());
 		runner.RegisterTask(new VectorTestTask());
 		runner.RegisterTask(new TemplateTestTask());
 

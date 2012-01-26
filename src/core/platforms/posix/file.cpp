@@ -58,7 +58,7 @@ bool is_directory(StringRef name, bool throw_ex) {
 		return S_ISDIR(buf.st_mode);
 	}
 	else if (throw_ex) {
-		throw FileException(MEMORIA_SOURCE, "Can't get file stats:" + String(strerror(errno)), name);
+		throw FileException(MEMORIA_SOURCE, "Can't get file stats: " + String(strerror(errno)), name);
 	}
 	else {
 		return false;

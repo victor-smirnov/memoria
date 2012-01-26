@@ -21,7 +21,7 @@ namespace memoria {
 
 using namespace std;
 
-class TestStepParams: public ParametersSet {
+class TestReplayParams: public ParametersSet {
 
 	String name_;
 	String task_;
@@ -31,14 +31,14 @@ class TestStepParams: public ParametersSet {
 	bool replay_;
 
 public:
-	TestStepParams(StringRef name = "", StringRef task = "", StringRef prefix = ""):ParametersSet(prefix), name_(name), task_(task), replay_(false)
+	TestReplayParams(StringRef name = "", StringRef task = "", StringRef prefix = ""):ParametersSet(prefix), name_(name), task_(task), replay_(false)
 	{
 		Add("name", name_);
 		Add("task", task_);
 		Add("dumpName", dump_name_);
 	}
 
-	virtual ~TestStepParams() {}
+	virtual ~TestReplayParams() {}
 
 	StringRef GetName() const
 	{
@@ -87,15 +87,15 @@ public:
 	TestTask(TaskParametersSet* parameters): Task(parameters) {}
 	virtual ~TestTask() throw () {}
 
-	virtual TestStepParams* ReadTestStep(Configurator* cfg) const;
+	virtual TestReplayParams* ReadTestStep(Configurator* cfg) const;
 
 	virtual void 			Replay(ostream& out, Configurator* cfg);
-	virtual void 			Configure(TestStepParams* params) const;
+	virtual void 			Configure(TestReplayParams* params) const;
 
 
-	virtual TestStepParams* CreateTestStep(StringRef name) const						= 0;
+	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
 	virtual void 			Run(ostream& out)											= 0;
-	virtual void 			Replay(ostream& out, TestStepParams* step_params)			= 0;
+	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
 
 public:
 
@@ -115,9 +115,9 @@ public:
 	ProfileTestTask(TaskParametersSet* parameters): TestTask(parameters) {}
 	virtual ~ProfileTestTask() throw () {};
 
-	virtual TestStepParams* CreateTestStep(StringRef name) const						= 0;
+	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
 	virtual void 			Run(ostream& out)											= 0;
-	virtual void 			Replay(ostream& out, TestStepParams* step_params)			= 0;
+	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
 
 	virtual void LoadAllocator(Allocator& allocator, StringRef file_name) const
 	{
@@ -125,7 +125,7 @@ public:
 		allocator.load(in.get());
 	}
 
-	virtual void LoadAllocator(Allocator& allocator, const TestStepParams* params) const
+	virtual void LoadAllocator(Allocator& allocator, const TestReplayParams* params) const
 	{
 		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(params->GetDumpName().c_str()));
 		allocator.load(in.get());
@@ -137,7 +137,7 @@ public:
 		allocator.store(out.get());
 	}
 
-	virtual void StoreProperties(const TestStepParams* params, StringRef file_name) const
+	virtual void StoreProperties(const TestReplayParams* params, StringRef file_name) const
 	{
 		fstream file;
 		file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
@@ -147,7 +147,7 @@ public:
 		file.close();
 	}
 
-	virtual void Store(Allocator& allocator, TestStepParams* params) const
+	virtual void Store(Allocator& allocator, TestReplayParams* params) const
 	{
 		Configure(params);
 
@@ -163,12 +163,12 @@ public:
 		StoreProperties(params, props_name);
 	}
 
-	virtual String GetAllocatorFileName(const TestStepParams* params, StringRef infix = "") const
+	virtual String GetAllocatorFileName(const TestReplayParams* params, StringRef infix = "") const
 	{
 		return GetTaskName()+"."+params->GetName()+infix+".dump";
 	}
 
-	virtual String GetPropertiesFileName(const TestStepParams* params, StringRef infix = "") const
+	virtual String GetPropertiesFileName(const TestReplayParams* params, StringRef infix = "") const
 	{
 		return GetTaskName()+"."+params->GetName()+infix+".properties";
 	}
@@ -183,9 +183,9 @@ public:
 	SPTestTask(TaskParametersSet* parameters): Base(parameters) {}
 	virtual ~SPTestTask() throw () {};
 
-	virtual TestStepParams* CreateTestStep(StringRef name) const						= 0;
+	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
 	virtual void 			Run(ostream& out)											= 0;
-	virtual void 			Replay(ostream& out, TestStepParams* step_params)			= 0;
+	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
 
 	void Check(Allocator& allocator, const char* source)
 	{

@@ -58,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::RemoveName)
 
             if (!(ifrom.IsEmpty() || ifrom.IsEnd()))
             {
-                me()->RemoveEntries(ifrom, ito);
+                return me()->RemoveEntries(ifrom, ito);
             }
         }
         return false;

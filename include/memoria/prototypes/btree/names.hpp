@@ -27,7 +27,7 @@ struct BTree0 {
 };
 
 struct MapTypes {
-    enum {Value, Index};
+    enum {Value, Sum};
 };
 
 class IDType {};

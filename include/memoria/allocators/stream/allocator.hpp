@@ -425,7 +425,7 @@ public:
 		pages_log_.clear();
 		ctr_shared_.clear();
 
-		pool_.Clear();
+		//pool_.Clear();
 
 
 		root_ 		= 0;
@@ -691,7 +691,7 @@ public:
 
 	virtual void store(OutputStreamHandler *output)
 	{
-		cout<<"Allocations: "<<allocs1_<<" "<<allocs2_<<endl;
+//		cout<<"Allocations: "<<allocs1_<<" "<<allocs2_<<endl;
 
 		char signature[12] = "MEMORIA";
 		for (UInt c = 7; c < sizeof(signature); c++) signature[c] = 0;
@@ -807,11 +807,11 @@ public:
 		id = IDValue(&root_);
 	}
 
-	virtual BigInt GetPageCount() {
+	BigInt GetPageCount() {
 		return pages_.size();
 	}
 
-	virtual void GetPage(memoria::vapi::Page* page, const IDValue& idValue)
+	void GetPage(memoria::vapi::Page* page, const IDValue& idValue)
 	{
 		if (page == NULL)
 		{

@@ -143,23 +143,18 @@ public:
 				iter2.PrevKey();
 			}
 
-//			if (iter1 != iter2)
-//			{
-//				iter3.SkipKeyBw(rnd);
-//			}
-
 			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
 		}
 	}
 
-	virtual TestStepParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new KVMapTestStepParams(name);
+		return new KVMapReplay(name);
 	}
 
-	virtual void Replay(ostream& out, TestStepParams* step_params)
+	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
-		KVMapTestStepParams* params = static_cast<KVMapTestStepParams*>(step_params);
+		KVMapReplay* params = static_cast<KVMapReplay*>(step_params);
 
 		LoadVector(pairs, params->GetPairsDataFile());
 		LoadVector(pairs_sorted, params->GetPairsSortedDataFile());
@@ -179,7 +174,7 @@ public:
 			pairs.push_back(Pair(GetBIRandom(), GetBIRandom()));
 		}
 
-		KVMapTestStepParams params;
+		KVMapReplay params;
 
 		params.SetSize(SIZE);
 
@@ -209,7 +204,7 @@ public:
 		}
 	}
 
-	void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, KVMapTestStepParams& params)
+	void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, KVMapReplay& params)
 	{
 		String basic_name = GetTaskName()+ "." + params.GetName();
 
@@ -224,7 +219,7 @@ public:
 
 
 
-	void DoTestStep(ostream& out, Allocator& allocator, const KVMapTestStepParams* params)
+	void DoTestStep(ostream& out, Allocator& allocator, const KVMapReplay* params)
 	{
 		unique_ptr<KVMapType> map(new KVMapType(allocator, 1));
 

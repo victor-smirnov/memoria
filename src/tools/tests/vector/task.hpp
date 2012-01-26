@@ -34,12 +34,12 @@ public:
 		return GetBIRandom(array.Size());
 	}
 
-	virtual TestStepParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
 		return new VectorTestStepParams(name);
 	}
 
-	virtual void Replay(ostream& out, TestStepParams* step_params)
+	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
 		VectorTestStepParams* params = static_cast<VectorTestStepParams*>(step_params);
 		Allocator allocator;

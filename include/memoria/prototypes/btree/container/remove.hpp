@@ -76,7 +76,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
         template <typename T>
         void operator()(T *node) {
 
-            if (MapType == MapTypes::Index)
+            if (MapType == MapTypes::Sum)
             {
                 for (Int d = 0; d < Indexes; d++)
                 {
@@ -245,7 +245,7 @@ bool M_TYPE::RemoveSpace(NodeBaseG& node, Int from, Int count, bool update, bool
 
 	node.update();
 
-	if (MapType == MapTypes::Index)
+	if (MapType == MapTypes::Sum)
 	{
 		bool upd0;
 		if (keys == NULL)
@@ -483,12 +483,12 @@ bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int sto
 				affected = true;
 				me()->set_root(ID(0));
 			}
-			else if (MapType == MapTypes::Index && preserve_key_values && parent != NULL)
+			else if (MapType == MapTypes::Sum && preserve_key_values && parent != NULL)
 			{
-				if (parent_idx < me()->GetChildrenCount(parent) - 1)
+				if (parent_idx <= me()->GetChildrenCount(parent) - 1)
 				{
 					MEMORIA_TRACE(me(), "RemovePages: within ranges", parent_idx, me()->GetChildrenCount(parent));
-					me()->AddKeys(parent, parent_idx + 1, keys);
+					me()->AddKeys(parent, parent_idx, keys);
 					me()->UpdateBTreeKeys(parent);
 				}
 				else {
@@ -545,7 +545,7 @@ bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int sto
 				}
 			}
 
-			if (MapType == MapTypes::Index && preserve_key_values)
+			if (MapType == MapTypes::Sum && preserve_key_values)
 			{
 				if (start_idx + 1 < me()->GetChildrenCount(start))
 				{
@@ -571,7 +571,7 @@ bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int sto
 		}
 		else {
 			MEMORIA_TRACE(me(), "RemovePages: Update page keys");
-			if (MapType == MapTypes::Index && preserve_key_values && start_idx + 1 < me()->GetChildrenCount(start))
+			if (MapType == MapTypes::Sum && preserve_key_values && start_idx + 1 < me()->GetChildrenCount(start))
 			{
 				MEMORIA_TRACE(me(), "RemovePages: part within ranges", start_idx + 1, me()->GetChildrenCount(start));
 				me()->AddKeys(start, start_idx + 1, keys);
