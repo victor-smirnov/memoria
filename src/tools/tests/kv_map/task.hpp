@@ -181,7 +181,7 @@ public:
 
 			for (Int c = 0; c < SIZE; c++)
 			{
-				pairs.push_back(Pair(GetBIRandom(), GetBIRandom()));
+				pairs.push_back(Pair(GetUniqueBIRandom(pairs), GetBIRandom()));
 			}
 
 			KVMapReplay params;

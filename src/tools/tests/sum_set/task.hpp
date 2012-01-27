@@ -196,7 +196,7 @@ public:
 
 			for (Int c = 0; c < SIZE; c++)
 			{
-				pairs.push_back(GetRandom());
+				pairs.push_back(GetUniqueRandom(pairs));
 			}
 
 			SumSetReplay params;

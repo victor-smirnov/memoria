@@ -40,6 +40,10 @@ struct KVPair {
 	bool operator<(const KVPair<K, V>& pair) const {
 		return key_ < pair.key_;
 	}
+
+	bool operator==(const K& key) const {
+		return key_ == key;
+	}
 };
 
 template <typename K, typename V>
@@ -201,6 +205,39 @@ void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg, 
 	{
 		throw TestException(source, err_msg);
 	}
+}
+
+template <typename T, typename A>
+Int GetUniqueRandom(const vector<T, A> &vec)
+{
+	Int value = GetRandom();
+
+	for (const T& item: vec)
+	{
+		if (item == value)
+		{
+			return GetUniqueRandom(vec);
+		}
+	}
+
+	return value;
+}
+
+
+template <typename T, typename A>
+BigInt GetUniqueBIRandom(const vector<T, A> &vec)
+{
+	Int value = GetBIRandom();
+
+	for (const T& item: vec)
+	{
+		if (item == value)
+		{
+			return GetUniqueBIRandom(vec);
+		}
+	}
+
+	return value;
 }
 
 
