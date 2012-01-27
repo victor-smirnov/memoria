@@ -325,8 +325,6 @@ public:
 
 		Int c = params->vector_idx_;
 
-		if (c == 50) throw MemoriaException(MEMORIA_SOURCE, "Fake");
-
 		if (params->step_ == 0)
 		{
 			map->Put(pairs[c], 0);
