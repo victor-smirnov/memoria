@@ -429,7 +429,12 @@ public:
     Int FindLES(Int i, const Key& k, Key &sum) const {
         CmpLE le0, le1;
         Int idx = Find(i, k, le0, le1);
-        sum += le1.get() - (size() > 0 ? key(i, idx) : 0);
+
+        if (idx >= 0)
+        {
+        	//FIXME: what does it mean here "size() > 0 ? key(i, idx) : 0" ???
+        	sum += le1.get() - (size() > 0 ? key(i, idx) : 0);
+        }
         return idx;
     }
 

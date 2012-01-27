@@ -20,6 +20,7 @@
 #include <sstream>
 #include <memory>
 
+
 namespace memoria {
 
 class SumSetTest: public SPTestTask {
@@ -333,7 +334,21 @@ public:
 
 			AppendToSortedVector(pairs_sorted, pairs[c]);
 
-			CheckIteratorFw(map.get(), pairs_sorted);
+			//try {
+				CheckIteratorFw(map.get(), pairs_sorted);
+//			}
+//			catch (...)
+//			{
+//				StoreAllocator(allocator, "allocator1.dump");
+//				allocator.commit();
+//				StoreAllocator(allocator, "allocator2.dump");
+////				for (auto i = map->Begin(); !i.IsEnd(); i.Next())
+////				{
+////					out<<i.GetKey(0)<<endl;
+////				}
+//				throw;
+//			}
+
 			CheckIteratorBw(map.get(), pairs_sorted);
 			CheckMultistepForwardIterator(map.get());
 			CheckMultistepBackwardIterator(map.get());
