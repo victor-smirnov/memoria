@@ -28,15 +28,28 @@ int main(int argc, const char** argv, const char** envp)
 		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
 		//FIXME: C++11 RNG seed doesn't work
-		Seed(GetTimeInMillis());
-		SeedBI(GetTimeInMillis());
+//		Seed(GetTimeInMillis());
+//		SeedBI(GetTimeInMillis());
+
+		Int default_seed = GetTimeInMillis() % 10000;
+
+		Int seed = cmd_line.GetConfigurator().GetValue<Int>("seed", default_seed);
+
+		// Emulate seed;
+		for (Int c = 0; c < seed; c++)
+		{
+			GetRandom();
+			GetBIRandom();
+		}
 
 		TestRunner runner;
 
+		runner.SetRunCount(cmd_line.GetCount());
+
 		// add tasks to the runner;
 
-		runner.RegisterTask(new KVMapTestTask());
-		runner.RegisterTask(new SumSetTestTask());
+		runner.RegisterTask(new KVMapTest());
+		runner.RegisterTask(new SumSetTest());
 		runner.RegisterTask(new VectorTestTask());
 		runner.RegisterTask(new TemplateTestTask());
 
@@ -46,21 +59,49 @@ int main(int argc, const char** argv, const char** envp)
 		{
 			cout<<endl;
 			cout<<"Description: "<<DESCRIPTION<<endl;
-			cout<<"Usage: "<<cmd_line.GetImageName()<<" [--help] [--dump] [--config <file.properties>]"<<endl;
+			cout<<"Usage: "<<cmd_line.GetImageName()<<" [options]"<<endl;
 			cout<<"    --help                     Display this help and exit"<<endl;
+			cout<<"    --count N 		   		  Run all tests N times"<<endl;
 			cout<<"    --config <file.properties> Use the specified config file"<<endl;
-			cout<<"    --dump                     Dump available tasks and their configuration properties and exit"<<endl;
+			cout<<"    --list                     List available tasks and their configuration properties and exit"<<endl;
 			cout<<"    --replay <update_op.properties> Replay the failed update operation"<<endl;
+			cout<<"    --out <output folder> 		   Path where tests output will be put. (It will be recreated if already exists)"<<endl;
 		}
-		else if (cmd_line.IsDump())
+		else if (cmd_line.IsList())
 		{
 			runner.DumpProperties(cout);
 		}
 		else if (cmd_line.IsReplay())
 		{
-			runner.Replay(cout, &cmd_line.GetReplayOperationConfigurator());
+			runner.Replay(cout, cmd_line.GetReplayFile());
 		}
 		else {
+			cout<<"Seed: "<<seed<<endl;
+
+			String default_output_folder = cmd_line.GetImageName()+".out";
+
+			const char* output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder.c_str();
+
+			File outf(output_folder);
+			if (outf.IsExists())
+			{
+				if (outf.IsDirectory())
+				{
+					if (!outf.DelTree())
+					{
+						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
+					}
+				}
+				else if (!outf.Delete())
+				{
+					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
+				}
+			}
+
+			outf.MkDirs();
+
+			runner.SetOutput(output_folder);
+
 			runner.Run(cout);
 			cout<<"Done..."<<endl;
 		}

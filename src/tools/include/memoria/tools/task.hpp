@@ -42,11 +42,52 @@ public:
 
 class Task {
 	TaskParametersSet*	parameters_;
+	Int 				iteration_;
+	BigInt				duration_;
+	String				output_folder_;
 
 public:
-	Task(TaskParametersSet* parameters): parameters_(parameters) {}
+	Task(TaskParametersSet* parameters): parameters_(parameters), iteration_(0), duration_(0) {}
 
 	virtual ~Task() throw ();
+
+	void SetIteration(Int iteration)
+	{
+		iteration_ = iteration;
+	}
+
+	Int GetIteration() const
+	{
+		return iteration_;
+	}
+
+	BigInt GetDuration() const {
+		return duration_;
+	}
+
+	void SetDuration(BigInt duration) {
+		duration_ = duration;
+	}
+
+	String GetIterationAsString() const
+	{
+		return ToString(iteration_);
+	}
+
+	StringRef GetOutputFolder() const
+	{
+		return output_folder_;
+	}
+
+	void SetOutputFolder(StringRef folder)
+	{
+		output_folder_ = folder;
+	}
+
+	String GetResourcePath(StringRef name) const
+	{
+		return output_folder_ + Platform::GetFilePathSeparator() + name;
+	}
 
 	template <typename T = TaskParametersSet>
 	T* GetParameters() {
@@ -78,9 +119,11 @@ public:
 class TaskRunner {
 
 	map<String, Task*> 	tasks_;
+	Int 				run_count_;
+	String				output_;
 
 public:
-	TaskRunner() {}
+	TaskRunner(): run_count_(1) {}
 
 	~TaskRunner();
 
@@ -93,7 +136,38 @@ public:
 	void DumpProperties(ostream& os);
 
 	void Run(ostream& out);
-	void Replay(ostream& out, Configurator* cfg = NULL);
+	void Replay(ostream& out, StringRef replay_file);
+
+	StringRef GetOutput() const
+	{
+		return output_;
+	}
+
+	virtual String GetTaskOutputFolder(String task_name, Int run) const
+	{
+		if (IsEmpty(output_))
+		{
+			return task_name +"-" + ToString(run);
+		}
+		else {
+			return output_ + Platform::GetFilePathSeparator() + task_name +"-" + ToString(run);
+		}
+	}
+
+	void SetOutput(StringRef out)
+	{
+		output_ = out;
+	}
+
+	Int GetRunCount() const
+	{
+		return run_count_;
+	}
+
+	void SetRunCount(Int count)
+	{
+		run_count_ = count;
+	}
 
 	template <typename T>
 	T GetTask(StringRef name)

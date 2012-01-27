@@ -165,12 +165,12 @@ public:
 
 	virtual String GetAllocatorFileName(const TestReplayParams* params, StringRef infix = "") const
 	{
-		return GetTaskName()+"."+params->GetName()+infix+".dump";
+		return GetResourcePath(params->GetName()+infix+".dump");
 	}
 
 	virtual String GetPropertiesFileName(const TestReplayParams* params, StringRef infix = "") const
 	{
-		return GetTaskName()+"."+params->GetName()+infix+".properties";
+		return GetResourcePath("Replay"+infix+".properties");
 	}
 };
 

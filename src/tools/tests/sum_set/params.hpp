@@ -30,7 +30,7 @@ struct SumSetReplay: public TestReplayParams {
 	Int to_;
 
 
-	SumSetReplay(StringRef name = "SumSetReplay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0), from_(0), to_(0)
+	SumSetReplay(StringRef name = "Replay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0), from_(0), to_(0)
 	{
 		Add("step", step_);
 		Add("vectorIdx", vector_idx_);
@@ -52,12 +52,10 @@ struct SumSetReplay: public TestReplayParams {
 struct SumSetParams: public TaskParametersSet {
 
 	Int size_;
-	Int count_;
 
 	SumSetParams(): TaskParametersSet("SumSet")
 	{
 		Add("size", size_, 1024);
-		Add("count", count_, 1);
 	}
 
 };

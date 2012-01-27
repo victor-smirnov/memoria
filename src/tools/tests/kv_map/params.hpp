@@ -26,7 +26,7 @@ struct KVMapReplay: public TestReplayParams {
 	String pairs_data_file_;
 	String pairs_sorted_data_file_;
 
-	KVMapReplay(StringRef name = "KVMapReplay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0)
+	KVMapReplay(StringRef name = "Replay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0)
 	{
 		Add("step", step_);
 		Add("vectorIdx", vector_idx_);
@@ -43,12 +43,10 @@ struct KVMapReplay: public TestReplayParams {
 struct KVMapParams: public TaskParametersSet {
 
 	Int size_;
-	Int count_;
 
 	KVMapParams(): TaskParametersSet("KVMap")
 	{
 		Add("size", size_, 1024);
-		Add("count", count_, 1);
 	}
 };
 

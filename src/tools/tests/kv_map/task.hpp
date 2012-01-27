@@ -22,7 +22,7 @@
 
 namespace memoria {
 
-class KVMapTestTask: public SPTestTask {
+class KVMapTest: public SPTestTask {
 public:
 	typedef KVPair<BigInt, BigInt> Pair;
 
@@ -36,8 +36,8 @@ private:
 
 public:
 
-	KVMapTestTask(): SPTestTask(new KVMapParams()) {}
-	virtual ~KVMapTestTask() throw() {}
+	KVMapTest(): SPTestTask(new KVMapParams()) {}
+	virtual ~KVMapTest() throw() {}
 
 	void CheckIteratorFw(KVMapType* map, PairVector& pairs)
 	{
@@ -167,49 +167,43 @@ public:
 
 	virtual void Run(ostream& out)
 	{
-		KVMapParams* params = GetParameters<KVMapParams>();
+		KVMapParams* task_params = GetParameters<KVMapParams>();
 
-		Int SIZE 	= params->size_;
-		Int count 	= params->count_;
+		Int SIZE 	= task_params->size_;
 
-		for (Int d = 0; d < count; d++)
+		pairs.clear();
+		pairs_sorted.clear();
+
+		for (Int c = 0; c < SIZE; c++)
 		{
-			out<<"Pass: "<<(d + 1)<<" of "<<(count)<<endl;
+			pairs.push_back(Pair(GetUniqueBIRandom(pairs), GetBIRandom()));
+		}
 
-			pairs.clear();
-			pairs_sorted.clear();
+		KVMapReplay params;
+
+		params.size_ = SIZE;
+
+		Allocator allocator;
+		KVMapType map(allocator, 1, true);
+
+		for (Int step = 0; step < 3; step++)
+		{
+			params.step_ = step;
 
 			for (Int c = 0; c < SIZE; c++)
 			{
-				pairs.push_back(Pair(GetUniqueBIRandom(pairs), GetBIRandom()));
-			}
+				PairVector pairs_sorted_tmp = pairs_sorted;
 
-			KVMapReplay params;
+				try {
+					params.vector_idx_ = c;
 
-			params.size_ = SIZE;
-
-			Allocator allocator;
-			KVMapType map(allocator, 1, true);
-
-			for (Int step = 0; step < 3; step++)
-			{
-				params.step_ = step;
-
-				for (Int c = 0; c < SIZE; c++)
+					DoTestStep(out, allocator, &params);
+				}
+				catch (...)
 				{
-					PairVector pairs_sorted_tmp = pairs_sorted;
-
-					try {
-						params.vector_idx_ = c;
-
-						DoTestStep(out, allocator, &params);
-					}
-					catch (...)
-					{
-						StorePairs(pairs, pairs_sorted_tmp, params);
-						Store(allocator, &params);
-						throw;
-					}
+					StorePairs(pairs, pairs_sorted_tmp, params);
+					Store(allocator, &params);
+					throw;
 				}
 			}
 		}
@@ -217,15 +211,17 @@ public:
 
 	void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, KVMapReplay& params)
 	{
-		String basic_name = GetTaskName()+ "." + params.GetName();
+		String basic_name =  "Data." + params.GetName();
 
-		String pairs_name = basic_name + ".pairs.txt";
-		StoreVector(pairs, pairs_name);
+		String pairs_name 		= basic_name + ".pairs.txt";
 		params.pairs_data_file_ = pairs_name;
 
-		String pairs_sorted_name = basic_name + ".pairs_sorted.txt";
+		StoreVector(pairs, pairs_name);
+
+		String pairs_sorted_name 		= basic_name + ".pairs_sorted.txt";
+		params.pairs_sorted_data_file_ 	= pairs_sorted_name;
+
 		StoreVector(pairs_sorted, pairs_sorted_name);
-		params.pairs_sorted_data_file_ = pairs_sorted_name;
 	}
 
 

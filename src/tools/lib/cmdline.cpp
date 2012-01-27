@@ -38,11 +38,11 @@ void CmdLine::Process()
 		}
 		else if (arg == "--dump")
 		{
-			dump_ = true;
+			list_ = true;
 		}
 		else if (arg == "--config")
 		{
-			if (!dump_)
+			if (!list_)
 			{
 				if (c < argc_ - 1)
 				{
@@ -61,15 +61,43 @@ void CmdLine::Process()
 				}
 			}
 		}
+		else if (arg == "--out")
+		{
+			if (c < argc_ - 1)
+			{
+				if (!out_folder_)
+				{
+					out_folder_ = argv_[c + 1];
+					c += 1;
+				}
+				else {
+					throw MemoriaException(MEMORIA_SOURCE, "Output folder has been already specified");
+				}
+			}
+			else {
+				throw MemoriaException(MEMORIA_SOURCE, "Incorrect --out parameters number");
+			}
+		}
+		else if (arg == "--count")
+		{
+			if (c < argc_ - 1)
+			{
+				count_ = FromString<Int>::convert(argv_[c + 1]);
+				c += 1;
+			}
+			else {
+				throw MemoriaException(MEMORIA_SOURCE, "Incorrect --out parameters number");
+			}
+		}
 		else if (arg == "--replay" && (operations_ & REPLAY))
 		{
-			if (!dump_)
+			if (!list_)
 			{
 				if (c < argc_ - 1)
 				{
 					if (!replay_)
 					{
-						Configurator::Parse(argv_[c + 1], &replay_file_);
+						replay_file_ = argv_[c + 1];
 						replay_ = true;
 						c += 1;
 					}
@@ -87,7 +115,7 @@ void CmdLine::Process()
 		}
 	}
 
-	if (!cfg_cpecified &!dump_)
+	if (!cfg_cpecified &!list_)
 	{
 		File f0(cfg_file_name_);
 

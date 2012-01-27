@@ -21,7 +21,7 @@ class TemplateReplay: public TestReplayParams {
 	Int param_;
 
 public:
-	TemplateReplay(StringRef name = "TemplateReplay"): TestReplayParams(name), param_(0)
+	TemplateReplay(StringRef name = "Replay"): TestReplayParams(name), param_(0)
 	{
 		Add("param", param_);
 	}
