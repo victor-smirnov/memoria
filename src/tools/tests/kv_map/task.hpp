@@ -149,7 +149,7 @@ public:
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new KVMapReplay(name);
+		return new KVMapReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)

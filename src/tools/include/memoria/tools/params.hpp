@@ -31,6 +31,7 @@ using namespace memoria::vapi;
 class AbstractParamDescriptor {
 public:
 	virtual void Process(Configurator* cfg) 	= 0;
+	virtual StringRef GetName() const			= 0;
 	virtual String GetPropertyName() const		= 0;
 	virtual void Dump(std::ostream& os) const	= 0;
 };
@@ -127,6 +128,11 @@ public:
 		}
 	}
 
+	virtual StringRef GetName() const
+	{
+		return name_;
+	}
+
 	virtual String GetPropertyName() const
 	{
 		if (IsEmpty(prefix_))
@@ -189,34 +195,36 @@ public:
 		return prefix_;
 	}
 
+	virtual void Put(AbstractParamDescriptor* descr);
+
 	template <typename T>
 	void Add(StringRef name, T& property)
 	{
-		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property));
+		Put(new ParamDescriptor<T>(this, prefix_, name, property));
 	}
 
 	template <typename T>
 	void Add(bool ignore, StringRef name, T& property)
 	{
-		descriptors_.push_back(new ParamDescriptor<T>(ignore, this, prefix_, name, property));
+		Put(new ParamDescriptor<T>(ignore, this, prefix_, name, property));
 	}
 
 	template <typename T>
 	void Add(StringRef name, T& property, const T& default_value)
 	{
-		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property, default_value));
+		Put(new ParamDescriptor<T>(this, prefix_, name, property, default_value));
 	}
 
 	template <typename T>
 	void Add(StringRef name, T& property, const T& default_value, const T& max_value)
 	{
-		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property, default_value, max_value));
+		Put(new ParamDescriptor<T>(this, prefix_, name, property, default_value, max_value));
 	}
 
 	template <typename T>
 	void Add(StringRef name, T& property, const T& default_value, const T& min_value, const T& max_value)
 	{
-		descriptors_.push_back(new ParamDescriptor<T>(this, prefix_, name, property, default_value, min_value, max_value));
+		Put(new ParamDescriptor<T>(this, prefix_, name, property, default_value, min_value, max_value));
 	}
 
 	void DumpProperties(std::ostream& os) const;

@@ -141,7 +141,7 @@ public:
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new SumSetReplay(name);
+		return new SumSetReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)

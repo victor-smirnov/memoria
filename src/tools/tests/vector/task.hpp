@@ -36,7 +36,7 @@ public:
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new VectorReplay(name);
+		return new VectorReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)

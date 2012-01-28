@@ -41,7 +41,7 @@ public:
 		}
 	}
 
-	StaticPool(const MyType& other) {}
+	StaticPool(const MyType& other): size_(0), Max(0) {}
 
 	MyType& operator=(const MyType& other) {
 		return *this;

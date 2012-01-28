@@ -28,7 +28,20 @@ void ParametersSet::DumpProperties(std::ostream& os) const
 }
 
 
+void ParametersSet::Put(AbstractParamDescriptor* descr)
+{
+	for (UInt c = 0; c < descriptors_.size(); c++)
+	{
+		if (descriptors_[c]->GetName() == descr->GetName())
+		{
+			delete descriptors_[c];
+			descriptors_[c] = descr;
+			return;
+		}
+	}
 
+	descriptors_.push_back(descr);
+}
 
 
 
