@@ -199,12 +199,6 @@ public:
 
 		map.SetMaxChildrenPerNode(params.btree_airity_);
 
-		map.logger().GetHandler()->begin(Logger::FATAL);
-		map.logger().GetHandler()->log(MEMORIA_SOURCE);
-		map.logger().GetHandler()->log("Hello, World");
-		map.logger().GetHandler()->log(123456);
-		map.logger().GetHandler()->end();
-
 		for (Int step = 0; step < 3; step++)
 		{
 			params.step_ = step;
