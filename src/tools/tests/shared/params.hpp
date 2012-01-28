@@ -55,6 +55,7 @@ struct TestTaskParams: public TaskParametersSet {
 	Int 	btree_airity_;
 	bool 	btree_random_airity_;
 
+
 	TestTaskParams(StringRef name): TaskParametersSet(name)
 	{
 		Add("size", size_, 1024);

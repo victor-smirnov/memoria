@@ -59,8 +59,6 @@ public:
 
 	virtual void Run(ostream& out)
 	{
-		DefaultLogHandlerImpl logHandler(out);
-
 		VectorReplay params;
 		VectorParams* task_params = GetParameters<VectorParams>();
 
@@ -70,7 +68,23 @@ public:
 			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
 		}
 
-		params.btree_airity_ = task_params->btree_airity_;
+		params.size_			= task_params->size_;
+		params.btree_airity_ 	= task_params->btree_airity_;
+
+		for (Int step = 0; step < 3; step++)
+		{
+			params.step_ = step;
+			Run(out, params, task_params, false);
+		}
+
+		// Run() will use different step for each ByteArray update operation
+		Run(out, params, task_params, true);
+	}
+
+
+	void Run(ostream& out, VectorReplay& params, VectorParams* task_params, bool step)
+	{
+		DefaultLogHandlerImpl logHandler(out);
 
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
@@ -83,9 +97,13 @@ public:
 			params.insert_ = true;
 
 			params.data_ = 1;
-			while (dv.Size() < task_params->size_)
+			while (dv.Size() < params.size_)
 			{
-				params.step_ 		= GetRandom(3);
+				if (step)
+				{
+					params.step_ 		= GetRandom(3);
+				}
+
 				params.data_size_ 	= GetRandom(task_params->max_block_size_);
 
 				Build(allocator, dv, &params);
@@ -93,12 +111,18 @@ public:
 				params.data_++;
 			}
 
+//			StoreAllocator(allocator, "allocator.dump");
+
 			out<<"Remove data. ByteVector contains "<<(dv.Size()/1024)<<"K bytes"<<endl;
 			params.insert_ = false;
 
 			for (Int c = 0; ; c++)
 			{
-				params.step_ = GetRandom(3);
+				if (step)
+				{
+					params.step_ = GetRandom(3);
+				}
+
 				params.data_size_ = (Int)GetBIRandom(dv.Size() < 40000 ? dv.Size() : 40000);
 
 				if (!Remove(allocator, dv, &params))
@@ -119,8 +143,6 @@ public:
 			throw;
 		}
 	}
-
-
 
 
 	void Build(Allocator& allocator, ByteVector& array, VectorReplay *params)

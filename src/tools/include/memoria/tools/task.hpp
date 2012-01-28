@@ -20,12 +20,14 @@ using namespace std;
 
 
 class TaskParametersSet: public ParametersSet {
-	bool enabled_;
+	bool 	enabled_;
+	Int		check_step_;
 public:
 
 	TaskParametersSet(StringRef name): ParametersSet(name), enabled_(true)
 	{
 		Add(true, "enabled", enabled_);
+		Add("checkStep", check_step_, 1);
 	}
 
 	bool IsEnabled() const
@@ -36,6 +38,11 @@ public:
 	void SetEnabled(bool enabled)
 	{
 		enabled_ = enabled;
+	}
+
+	Int	GetCheckStep() const
+	{
+		return check_step_;
 	}
 };
 

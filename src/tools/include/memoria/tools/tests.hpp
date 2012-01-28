@@ -179,8 +179,10 @@ class SPTestTask: public ProfileTestTask<StreamProfile<>, DefaultStreamAllocator
 
 	typedef ProfileTestTask<StreamProfile<>, DefaultStreamAllocator> Base;
 
+	Int check_count_;
+
 public:
-	SPTestTask(TaskParametersSet* parameters): Base(parameters) {}
+	SPTestTask(TaskParametersSet* parameters): Base(parameters), check_count_(0) {}
 	virtual ~SPTestTask() throw () {};
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
@@ -189,12 +191,24 @@ public:
 
 	void Check(Allocator& allocator, const char* source)
 	{
-		::memoria::Check<Allocator, ::memoria::StreamContainersChecker>(allocator, "Allocator check failed", source);
+		Int step_count = GetParameters<>()->GetCheckStep();
+
+		if (check_count_ % step_count == 0)
+		{
+			::memoria::Check<Allocator, ::memoria::StreamContainersChecker>(allocator, "Allocator check failed", source);
+		}
+		check_count_++;
 	}
 
 	void Check(Allocator& allocator, const char* message, const char* source)
 	{
-		::memoria::Check<Allocator, ::memoria::StreamContainersChecker>(allocator, message, source);
+		Int step_count = GetParameters<>()->GetCheckStep();
+
+		if (check_count_ % step_count == 0)
+		{
+			::memoria::Check<Allocator, ::memoria::StreamContainersChecker>(allocator, message, source);
+		}
+		check_count_++;
 	}
 };
 
