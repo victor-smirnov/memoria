@@ -19,6 +19,7 @@
 #include <memoria/core/types/type2type.hpp>
 
 #include <iostream>
+#include <string.h>
 
 namespace memoria    {
 
@@ -586,26 +587,28 @@ void copy_buffer(const char *src, char *dst, long size)
 
 static inline void CopyBuffer(const void *src, void *dst, long size)
 {
-    typedef long LongType;
+	memmove(dst, src, size);
 
-	const LongType *isrc = CP2CP<LongType>(src);
-	LongType *idst = T2T<LongType*>(dst);
-
-    unsigned long l;
-    for (l = 0; l < size / sizeof(LongType); l++)
-    {
-        idst[l] = isrc[l];
-    }
-
-    if (size % sizeof(LongType) != 0)
-    {
-        const char* csrc = ((const char*) src) + l * sizeof(LongType);
-        char* cdst = ((char*) dst) + l * sizeof(LongType);
-
-        for (l = 0; l < size % sizeof(LongType); l++) {
-            cdst[l] = csrc[l];
-        }
-    }
+//    typedef long LongType;
+//
+//	const LongType *isrc = CP2CP<LongType>(src);
+//	LongType *idst = T2T<LongType*>(dst);
+//
+//    unsigned long l;
+//    for (l = 0; l < size / sizeof(LongType); l++)
+//    {
+//        idst[l] = isrc[l];
+//    }
+//
+//    if (size % sizeof(LongType) != 0)
+//    {
+//        const char* csrc = ((const char*) src) + l * sizeof(LongType);
+//        char* cdst = ((char*) dst) + l * sizeof(LongType);
+//
+//        for (l = 0; l < size % sizeof(LongType); l++) {
+//            cdst[l] = csrc[l];
+//        }
+//    }
 }
 
 

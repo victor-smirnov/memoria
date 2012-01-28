@@ -22,21 +22,21 @@ struct SumSetReplay: public TestReplayParams {
 	Int step_;
 	Int vector_idx_;
 	Int size_;
+	Int from_;
+	Int to_;
+	Int btree_airity_;
 
 	String pairs_data_file_;
 	String pairs_sorted_data_file_;
 
-	Int from_;
-	Int to_;
-
-
-	SumSetReplay(StringRef name = "Replay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0), from_(0), to_(0)
+	SumSetReplay(StringRef name = "Replay"): TestReplayParams(name), step_(0), vector_idx_(0), size_(0), from_(0), to_(0), btree_airity_(0)
 	{
 		Add("step", step_);
 		Add("vectorIdx", vector_idx_);
 		Add("size", size_);
 		Add("from", from_);
 		Add("to", 	to_);
+		Add("btreeAirity", btree_airity_);
 
 		Add("pairsDataFile", pairs_data_file_);
 		Add("pairsSortedDataFile", pairs_sorted_data_file_);
@@ -51,11 +51,15 @@ struct SumSetReplay: public TestReplayParams {
 
 struct SumSetParams: public TaskParametersSet {
 
-	Int size_;
+	Int 	size_;
+	Int 	btree_airity_;
+	bool 	btree_random_airity_;
 
 	SumSetParams(): TaskParametersSet("SumSet")
 	{
 		Add("size", size_, 1024);
+		Add("btreeAirity", btree_airity_, -1);
+		Add("btreeRandomAirity", btree_random_airity_, true);
 	}
 
 };

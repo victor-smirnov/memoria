@@ -167,6 +167,8 @@ public:
 
 			IdxSetType map(allocator, 1);
 
+			map.SetMaxChildrenPerNode(params->btree_airity_);
+
 			out<<map.GetSize()<<endl;
 
 			map.Remove(from_key, to_key);
@@ -183,7 +185,16 @@ public:
 
 	virtual void Run(ostream& out)
 	{
+		DefaultLogHandlerImpl logHandler(out);
+
 		SumSetParams* task_params = GetParameters<SumSetParams>();
+
+		if (task_params->btree_random_airity_)
+		{
+			task_params->btree_airity_ = 8 + GetRandom(100);
+			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
+		}
+
 		Int SIZE 	= task_params->size_;
 
 		pairs.clear();
@@ -197,10 +208,14 @@ public:
 		SumSetReplay params;
 
 		params.size_ = SIZE;
+		params.btree_airity_ = task_params->btree_airity_;
+
 
 		{
 			//Isolate the scope of this allocator
 			Allocator allocator;
+			allocator.GetLogger()->SetHandler(&logHandler);
+
 			IdxSetType map(allocator, 1, true);
 
 			for (Int step = 0; step < 2; step++)
@@ -231,8 +246,11 @@ public:
 		for (Int x = 0; x < 4; x++)
 		{
 			Allocator allocator;
+			allocator.GetLogger()->SetHandler(&logHandler);
 
 			IdxSetType map(allocator, 1, true);
+			map.SetMaxChildrenPerNode(params.btree_airity_);
+
 			for (Int c = 0; c < SIZE; c++)
 			{
 				map.Put(pairs[c], 0);
@@ -324,6 +342,8 @@ public:
 	{
 		unique_ptr<IdxSetType> map(new IdxSetType(allocator, 1));
 
+		map->SetMaxChildrenPerNode(params->btree_airity_);
+
 		Int c = params->vector_idx_;
 
 		if (params->step_ == 0)
@@ -334,20 +354,7 @@ public:
 
 			AppendToSortedVector(pairs_sorted, pairs[c]);
 
-			//try {
-				CheckIteratorFw(map.get(), pairs_sorted);
-//			}
-//			catch (...)
-//			{
-//				StoreAllocator(allocator, "allocator1.dump");
-//				allocator.commit();
-//				StoreAllocator(allocator, "allocator2.dump");
-////				for (auto i = map->Begin(); !i.IsEnd(); i.Next())
-////				{
-////					out<<i.GetKey(0)<<endl;
-////				}
-//				throw;
-//			}
+			CheckIteratorFw(map.get(), pairs_sorted);
 
 			CheckIteratorBw(map.get(), pairs_sorted);
 			CheckMultistepForwardIterator(map.get());

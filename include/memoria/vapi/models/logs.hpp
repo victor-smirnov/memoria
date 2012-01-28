@@ -156,57 +156,62 @@ class DefaultLogHandlerImpl: public LogHandler {
 
 	Int cnt_;
 
+	std::ostream& out_;
+
 public:
+
+	DefaultLogHandlerImpl(): out_(std::cout) {}
+	DefaultLogHandlerImpl(std::ostream& out): out_(out) {}
 
     virtual void begin(Int level) {
     	cnt_ = 0;
     	preprocess();
-        if (level <= Logger::TRACE)         std::cout<<"TRACE";
-        else if (level <= Logger::DEBUG)    std::cout<<"DEBUG";
-        else if (level <= Logger::INFO)     std::cout<<"INFO";
-        else if (level <= Logger::WARNING)  std::cout<<"WARNING";
-        else if (level <= Logger::ERROR)    std::cout<<"ERROR";
-        else std::cout<<"FATAL";
-        std::cout<<" ";
+        if (level <= Logger::TRACE)         out_<<"TRACE";
+        else if (level <= Logger::DEBUG)    out_<<"DEBUG";
+        else if (level <= Logger::INFO)     out_<<"INFO";
+        else if (level <= Logger::WARNING)  out_<<"WARNING";
+        else if (level <= Logger::ERROR)    out_<<"ERROR";
+        else out_<<"FATAL";
+        out_<<" ";
         postprocess();
     }
 
-    virtual void log(const bool value)        {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const Byte value)        {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const UByte value)       {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const Short value)       {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const UShort value)      {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const Int value)         {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const UInt value)        {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const BigInt value)      {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const UBigInt value) 	{preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const float value)       {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const double value)      {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const IDValue& value)     {preprocess(); std::cout<<value.str(); postprocess();}
-    virtual void log(StringRef value)   {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const char* value) {preprocess(); std::cout<<value; postprocess();}
-    virtual void log(const void* value) {preprocess(); std::cout<<value; postprocess();}
+    virtual void log(const bool value)      {preprocess(); out_<<value; postprocess();}
+    virtual void log(const Byte value)      {preprocess(); out_<<value; postprocess();}
+    virtual void log(const UByte value)     {preprocess(); out_<<value; postprocess();}
+    virtual void log(const Short value)     {preprocess(); out_<<value; postprocess();}
+    virtual void log(const UShort value)    {preprocess(); out_<<value; postprocess();}
+    virtual void log(const Int value)       {preprocess(); out_<<value; postprocess();}
+    virtual void log(const UInt value)      {preprocess(); out_<<value; postprocess();}
+    virtual void log(const BigInt value)    {preprocess(); out_<<value; postprocess();}
+    virtual void log(const UBigInt value) 	{preprocess(); out_<<value; postprocess();}
+    virtual void log(const float value)     {preprocess(); out_<<value; postprocess();}
+    virtual void log(const double value)    {preprocess(); out_<<value; postprocess();}
+    virtual void log(const IDValue& value)  {preprocess(); out_<<value.str(); postprocess();}
+    virtual void log(StringRef value)       {preprocess(); out_<<value; postprocess();}
+    virtual void log(const char* value) 	{preprocess(); out_<<value; postprocess();}
+    virtual void log(const void* value) 	{preprocess(); out_<<value; postprocess();}
 
-    virtual void log(...) {preprocess(); std::cout<<"DEFAULT"; postprocess();}
+    virtual void log(...) 					{preprocess(); out_<<"DEFAULT"; postprocess();}
 
     virtual void end() {
-        std::cout<<std::endl;
+        out_<<std::endl;
     }
 
     void preprocess()
     {
     	using namespace std;
     	if (cnt_ == 0) {
-    		cout<<left<<setw(7);
+    		out_<<left<<setw(7);
     	}
     	else if (cnt_ == 1) {
-    		cout<<left<<setw(75);
+    		out_<<left<<setw(75);
     	}
     	else if (cnt_ == 3) {
-    		cout<<left<<setw(25);
+    		out_<<left<<setw(25);
     	}
     	else if (cnt_ == 5) {
-    		cout<<left<<setw(22);
+    		out_<<left<<setw(22);
     	}
     }
 

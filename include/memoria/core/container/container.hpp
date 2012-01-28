@@ -291,7 +291,7 @@ public:
         Base(),
         allocator_(allocator),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
-        logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+        logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
         debug_(false),
         parent_ctr_(NULL)
     {
@@ -318,7 +318,7 @@ public:
         allocator_(parent->GetAllocator()),
         name_(name),
         model_type_name_(mname),
-        logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+        logger_(model_type_name_, Logger::DERIVED, &allocator_.logger()),
         shared_(parent->GetShared()->Get(name, create)),
         debug_(false),
         parent_ctr_(parent)
@@ -344,7 +344,7 @@ public:
             allocator_(allocator),
             name_(-1),
             model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
-            logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+            logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
             debug_(false),
             parent_ctr_(NULL)
     {
@@ -361,7 +361,7 @@ public:
     	allocator_(parent->GetAllocator()),
     	name_(-1),
     	model_type_name_(mname),
-    	logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+    	logger_(model_type_name_, Logger::DERIVED, &allocator_.logger()),
     	debug_(false),
     	parent_ctr_(parent)
     {

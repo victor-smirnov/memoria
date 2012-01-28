@@ -50,7 +50,7 @@ int main(int argc, const char** argv, const char** envp)
 
 		runner.RegisterTask(new KVMapTest());
 		runner.RegisterTask(new SumSetTest());
-		runner.RegisterTask(new VectorTestTask());
+		runner.RegisterTask(new VectorTest());
 		runner.RegisterTask(new TemplateTestTask());
 
 		runner.Configure(&cmd_line.GetConfigurator());

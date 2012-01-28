@@ -167,7 +167,15 @@ public:
 
 	virtual void Run(ostream& out)
 	{
+		DefaultLogHandlerImpl logHandler(out);
+
 		KVMapParams* task_params = GetParameters<KVMapParams>();
+
+		if (task_params->btree_random_airity_)
+		{
+			task_params->btree_airity_ = 8 + GetRandom(100);
+			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
+		}
 
 		Int SIZE 	= task_params->size_;
 
@@ -182,9 +190,20 @@ public:
 		KVMapReplay params;
 
 		params.size_ = SIZE;
+		params.btree_airity_ = task_params->btree_airity_;
 
 		Allocator allocator;
+		allocator.GetLogger()->SetHandler(&logHandler);
+
 		KVMapType map(allocator, 1, true);
+
+		map.SetMaxChildrenPerNode(params.btree_airity_);
+
+		map.logger().GetHandler()->begin(Logger::FATAL);
+		map.logger().GetHandler()->log(MEMORIA_SOURCE);
+		map.logger().GetHandler()->log("Hello, World");
+		map.logger().GetHandler()->log(123456);
+		map.logger().GetHandler()->end();
 
 		for (Int step = 0; step < 3; step++)
 		{
@@ -229,6 +248,8 @@ public:
 	void DoTestStep(ostream& out, Allocator& allocator, const KVMapReplay* params)
 	{
 		unique_ptr<KVMapType> map(new KVMapType(allocator, 1));
+
+		map->SetMaxChildrenPerNode(params->btree_airity_);
 
 		Int c = params->vector_idx_;
 

@@ -17,16 +17,16 @@ namespace memoria {
 
 using namespace memoria::vapi;
 
-class VectorTestTask: public SPTestTask {
+class VectorTest: public SPTestTask {
 
 	typedef StreamContainerTypesCollection::Factory<Vector>::Type 	ByteVector;
 	typedef ByteVector::Iterator									BVIterator;
 
 public:
 
-	VectorTestTask(): SPTestTask(new VectorTestTaskParams()) {} //
+	VectorTest(): SPTestTask(new VectorParams()) {} //
 
-	virtual ~VectorTestTask() throw() {}
+	virtual ~VectorTest() throw() {}
 
 
 	BigInt GetRandomPosition(ByteVector& array)
@@ -36,15 +36,17 @@ public:
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new VectorTestStepParams(name);
+		return new VectorReplay(name);
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
-		VectorTestStepParams* params = static_cast<VectorTestStepParams*>(step_params);
+		VectorReplay* params = static_cast<VectorReplay*>(step_params);
 		Allocator allocator;
 		LoadAllocator(allocator, params);
 		ByteVector dv(allocator, 1);
+
+		dv.SetMaxChildrenPerNode(params->btree_airity_);
 
 		if (params->insert_)
 		{
@@ -57,17 +59,30 @@ public:
 
 	virtual void Run(ostream& out)
 	{
-		VectorTestStepParams params;
-		VectorTestTaskParams* task_params = GetParameters<VectorTestTaskParams>();
+		DefaultLogHandlerImpl logHandler(out);
+
+		VectorReplay params;
+		VectorParams* task_params = GetParameters<VectorParams>();
+
+		if (task_params->btree_random_airity_)
+		{
+			task_params->btree_airity_ = 8 + GetRandom(100);
+			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
+		}
+
+		params.btree_airity_ = task_params->btree_airity_;
 
 		Allocator allocator;
+		allocator.GetLogger()->SetHandler(&logHandler);
 		ByteVector dv(allocator, 1, true);
+
+		dv.SetMaxChildrenPerNode(params.btree_airity_);
 
 		try {
 			out<<"Insert data"<<endl;
 			params.insert_ = true;
 
-			params.data_ = 0;
+			params.data_ = 1;
 			while (dv.Size() < task_params->size_)
 			{
 				params.step_ 		= GetRandom(3);
@@ -78,7 +93,7 @@ public:
 				params.data_++;
 			}
 
-			out<<"Remove data. ByteVector contains "<<(dv.Size()/1024)<<" Kbytes"<<endl;
+			out<<"Remove data. ByteVector contains "<<(dv.Size()/1024)<<"K bytes"<<endl;
 			params.insert_ = false;
 
 			for (Int c = 0; ; c++)
@@ -94,6 +109,8 @@ public:
 				allocator.commit();
 			}
 
+			out<<"Vector.size = "<<(dv.Size() / 1024)<<"K bytes"<<endl;
+
 			allocator.commit();
 		}
 		catch (...)
@@ -106,14 +123,16 @@ public:
 
 
 
-	void Build(Allocator& allocator, ByteVector& array, VectorTestStepParams *params)
+	void Build(Allocator& allocator, ByteVector& array, VectorReplay *params)
 	{
 		UByte value = params->data_;
 		Int step 	= params->step_;
 
 		ArrayData data = CreateBuffer(params->data_size_, value);
 
-		if (array.Size() == 0)
+		BigInt size = array.Size();
+
+		if (size)
 		{
 			//Insert buffer into an empty array
 			auto iter = array.Seek(0);
@@ -214,7 +233,7 @@ public:
 		}
 	}
 
-	bool Remove(Allocator& allocator, ByteVector& array, VectorTestStepParams* params)
+	bool Remove(Allocator& allocator, ByteVector& array, VectorReplay* params)
 	{
 		Int step = params->step_;
 

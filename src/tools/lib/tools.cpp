@@ -38,7 +38,7 @@ Int GetRandom()
 
 Int GetRandom(Int max)
 {
-	return generator() % max;
+	return max > 0 ? generator() % max : 0;
 }
 
 void Seed(Int value)
@@ -57,7 +57,7 @@ BigInt GetBIRandom()
 
 BigInt GetBIRandom(BigInt max)
 {
-	return generator_bi() % max;
+	return max > 0 ? generator_bi() % max : 0;
 }
 
 void SeedBI(BigInt value)
