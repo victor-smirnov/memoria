@@ -76,6 +76,9 @@ void TaskRunner::Run(ostream& out)
 {
 	BigInt total_start = GetTimeInMillis();
 
+	Int passed = 0;
+	Int failed = 0;
+
 	for (Int c = 0; c < GetRunCount(); c++)
 	{
 		out<<"Pass "<<(c + 1)<<" of "<<GetRunCount()<<endl;
@@ -112,20 +115,24 @@ void TaskRunner::Run(ostream& out)
 						t->SetIteration(c);
 						t->Run(out_file);
 
+						passed++;
 						out<<"PASSED ";
 						out_file<<"PASSED"<<endl;
 					}
 					catch (MemoriaException e)
 					{
+						failed++;
 						out<<"FAILED ";
 						out_file<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
 					}
 					catch (ifstream::failure e)
 					{
+						failed++;
 						throw;
 					}
 					catch (...)
 					{
+						failed++;
 						out<<"FAILED ";
 						out_file<<"FAILED"<<endl;
 					}
@@ -147,7 +154,7 @@ void TaskRunner::Run(ostream& out)
 				}
 			}
 		}
-		cout<<endl;
+		out<<endl;
 	}
 
 	out<<"----------------------------------------------"<<endl;
@@ -160,6 +167,8 @@ void TaskRunner::Run(ostream& out)
 		}
 	}
 
+	out<<"Passed: "<<passed<<endl;
+	out<<"Failed: "<<failed<<endl;
 	out<<"Total execution time: "<<(FormatTime(GetTimeInMillis() - total_start))<<endl;
 }
 

@@ -268,9 +268,7 @@ public:
 			return array.Size() > 0;
 		}
 		else {
-//			BigInt size = GetBIRandom(array.Size() < 40000 ? array.Size() : 40000);
 			BigInt size = params->data_size_;
-
 
 			if (step == 0)
 			{
