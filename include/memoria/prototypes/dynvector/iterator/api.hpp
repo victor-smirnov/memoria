@@ -198,6 +198,29 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return me()->GetPrevDataPage(me()->page(), me()->data());
     }
 
+////FIXME: dont't forget prefixes
+//    bool NextData()
+//    {
+//    	if (me()->NextKey())
+//    	{
+//    		me()->data() = me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+//    		me()->data_pos() = me()->data()->data().size();
+//    		return true;
+//    	}
+//    	return false;
+//    }
+//
+//    bool PrevData()
+//    {
+//    	if (me()->PrevKey())
+//    	{
+//    		me()->data() = me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+//    		me()->data_pos() = me()->data()->data().size();
+//    		return true;
+//    	}
+//    	return false;
+//    }
+
 //    bool NextKey()
 //    {
 //    	bool result = Base::NextKey();

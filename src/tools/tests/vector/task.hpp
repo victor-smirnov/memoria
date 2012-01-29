@@ -79,6 +79,9 @@ public:
 
 		// Run() will use different step for each ByteArray update operation
 		Run(out, params, task_params, true);
+
+//		params.step_ = 2;
+//		Run(out, params, task_params, false);
 	}
 
 
@@ -104,14 +107,14 @@ public:
 					params.step_ 		= GetRandom(3);
 				}
 
-				params.data_size_ 	= GetRandom(task_params->max_block_size_);
+				params.data_size_ 	= 1 + GetRandom(task_params->max_block_size_);
 
 				Build(allocator, dv, &params);
 				allocator.commit();
 				params.data_++;
 			}
 
-//			StoreAllocator(allocator, "allocator.dump");
+			//StoreAllocator(allocator, "allocator.dump");
 
 			out<<"Remove data. ByteVector contains "<<(dv.Size()/1024)<<"K bytes"<<endl;
 			params.insert_ = false;
@@ -123,7 +126,7 @@ public:
 					params.step_ = GetRandom(3);
 				}
 
-				params.data_size_ = (Int)GetBIRandom(dv.Size() < 40000 ? dv.Size() : 40000);
+				params.data_size_ = 1 + (Int)GetBIRandom(dv.Size() < 40000 ? dv.Size() : 40000);
 
 				if (!Remove(allocator, dv, &params))
 				{
@@ -154,7 +157,7 @@ public:
 
 		BigInt size = array.Size();
 
-		if (size)
+		if (size == 0)
 		{
 			//Insert buffer into an empty array
 			auto iter = array.Seek(0);

@@ -136,7 +136,8 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 		iter.data() 	= me()->InsertDataPage(page, iter.key_idx());
 	}
 
-	BigInt usage = iter.data() != NULL ? me()->GetKey(page, 0, iter.data()->parent_idx()) : 0;
+	//BigInt usage = iter.data() != NULL ? me()->GetKey(page, 0, iter.data()->parent_idx()) : 0;
+	BigInt usage = iter.data() != NULL ? iter.data()->data().size() : 0;
 
 	if (usage + descriptor.length() <= max_datapage_size)
 	{
@@ -145,7 +146,7 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 		data_idx += descriptor.length();
 		me()->datapages = 0;
 	}
-	else if (!iter.IsEnd())
+	else if (!iter.IsEof())
 	{
 		if (data_idx > 0 && data_idx < usage)
 		{
@@ -210,7 +211,6 @@ void M_TYPE::InsertDataBlock(Iterator &iter, Buffer &block, BufferContentDescrip
 		}
 
 		import_pages(iter, block, descriptor);
-		me()->datapages = 1;
 	}
 	else
 	{
@@ -238,8 +238,6 @@ typename M_TYPE::DataPageG M_TYPE::create_datapage(NodeBaseG& node, Int idx)
 	data->model_hash()      = me()->hash();
 	data->page_type_hash()  = DataPage::hash();
 
-//	ID id = me()->GetLeafData(node, idx);
-
 	me()->SetLeafData(node, idx, data->id());
 
 	return data;
@@ -254,6 +252,24 @@ void M_TYPE::import_pages(
 		BufferContentDescriptor &descriptor
 )
 {
+	if (iter.data()->data().size() > 0 && iter.data_pos() == 0)
+	{
+		if (iter.PrevKey())
+		{
+			iter.data() 	= me()->GetDataPage(iter.page(), iter.key_idx(), Allocator::READ);
+			iter.data_pos() = iter.data()->data().size();
+		}
+		else {
+			me()->InsertDataPage(iter.page(), 0);
+
+			iter.data()		= me()->GetDataPage(iter.page(), 0, Allocator::READ);
+			iter.data_pos() = 0;
+			iter.key_idx()	= 0;
+		}
+	}
+
+
+
 	NodeBaseG node = iter.page();
 	BigInt key_idx = iter.key_idx();
 	BigInt data_pos = iter.data_pos();
@@ -266,32 +282,18 @@ void M_TYPE::import_pages(
 	BigInt target_datapage_capacity = max_datapage_size - iter.data()->data().size();
 
 	// the size of data block that fits into the target data page
-	BigInt data_prefix;
+	BigInt data_prefix = target_datapage_capacity >= length ? length : target_datapage_capacity;
 
-
-	if (data_pos == iter.data()->data().size() || (data_pos == 0 && iter.data()->data().size() == 0))
-	{
-		data_prefix = target_datapage_capacity >= length ? length : target_datapage_capacity;
-		suffix_data_page = iter.GetNextDataPage(iter.page(), iter.data());
-		suffix_data_page.update();
-	}
-	else
-	{
-		// data_pos == 0
-				// Don't import anything into the target datapage
-		// Create a new one instead
-		data_prefix = 0;
-		suffix_data_page = iter.data();
-		suffix_data_page.update();
-	}
+	suffix_data_page = iter.GetNextDataPage(iter.page(), iter.data());
 
 	if (data_prefix > 0)
 	{
 		// Import size_prefix part of data block into the target datapage
 		descriptor.length() = data_prefix;
 		import_small_block(node, key_idx, data_pos, block, descriptor);
-		key_idx++;
 	}
+
+	key_idx++;
 
 	// key_idx points to the the btree node to start insert into
 
@@ -345,7 +347,7 @@ void M_TYPE::import_pages(
 		}
 	}
 
-	descriptor.length() = max_datapage_size;
+	descriptor.length() = max_datapage_size; //What is this????
 
 	if (index_prefix > 0)
 	{

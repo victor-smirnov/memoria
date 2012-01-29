@@ -86,11 +86,11 @@ bool M_TYPE::check_leaf_value(NodeBase* leaf, Int idx)
 			error = true;
 		}
 
-		if (key == 0)
-		{
-			MEMORIA_TRACE(me(), "Zero data page size", leaf->id(), idx, key, data->data().size());
-			error = true;
-		}
+//		if (key == 0)
+//		{
+//			MEMORIA_TRACE(me(), "Zero data page size", leaf->id(), idx, key, data->data().size());
+//			error = true;
+//		}
 
 		return error;
 	}

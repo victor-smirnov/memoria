@@ -319,21 +319,30 @@ public:
         name_(name),
         model_type_name_(mname),
         logger_(model_type_name_, Logger::DERIVED, &allocator_.logger()),
-        shared_(parent->GetShared()->Get(name, create)),
+        shared_(NULL),
         debug_(false),
         parent_ctr_(parent)
     {
 
     	if (create)
     	{
+    		shared_ = parent->GetShared()->Get(name, create);
+
     		NodeBaseG node = me()->CreateNode(0, true, true);
-//    		me()->set_root(node->id());
+
     		shared_->root_log() = node->id();
     		shared_->updated() 	= true;
+
     		this->SetRootID(this, name, node->id());
     	}
     	else {
-    		shared_ = parent->GetShared();
+    		ID root_id = parent->GetRootID(this, name);
+
+    		shared_ = parent->GetShared()->Get(name, true);
+
+    		shared_->root() 	= root_id;
+    		shared_->root_log() = 0;
+    		shared_->updated() 	= false;
     	}
 
     	ref();

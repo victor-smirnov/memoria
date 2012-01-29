@@ -93,6 +93,7 @@ public:
 		}
 		catch (...) {
 			Store(allocator, &params);
+			throw;
 		}
 	}
 

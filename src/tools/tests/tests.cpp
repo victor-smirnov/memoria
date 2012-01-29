@@ -8,6 +8,8 @@
 #include "kv_map/task.hpp"
 #include "sum_set/task.hpp"
 #include "vector/task.hpp"
+#include "vector_map/task.hpp"
+
 #include "template/task.hpp"
 
 #include <memoria/tools/cmdline.hpp>
@@ -28,8 +30,8 @@ int main(int argc, const char** argv, const char** envp)
 		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
 		//FIXME: C++11 RNG seed doesn't work
-//		Seed(GetTimeInMillis());
-//		SeedBI(GetTimeInMillis());
+		//Seed(GetTimeInMillis());
+		//SeedBI(GetTimeInMillis());
 
 		Int default_seed = GetTimeInMillis() % 10000;
 
@@ -51,6 +53,7 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterTask(new KVMapTest());
 		runner.RegisterTask(new SumSetTest());
 		runner.RegisterTask(new VectorTest());
+		runner.RegisterTask(new VectorMapTest());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 

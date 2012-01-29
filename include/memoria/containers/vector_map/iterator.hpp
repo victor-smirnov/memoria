@@ -104,9 +104,29 @@ public:
 		return *this;
 	}
 
+	ByteArrayIterator& ba_iter()
+	{
+		return ba_iter_;
+	}
+
+	const ByteArrayIterator& ba_iter() const
+	{
+		return ba_iter_;
+	}
+
+	IdxSetIterator& is_iter()
+	{
+		return is_iter_;
+	}
+
+	const IdxSetIterator& is_iter() const
+	{
+		return is_iter_;
+	}
+
 	void Insert(ArrayData& data)
 	{
-//		ba_iter_.Insert(data);
+		ba_iter_.Insert(data);
 
 		Key keys[ContainerType::IS_Indexes];
 

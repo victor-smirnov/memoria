@@ -65,7 +65,7 @@ public:
 	Ctr(Allocator &allocator, BigInt name, bool create = false):
 		allocator_(allocator),
 		model_type_name_("memoria::BlobMap"),
-		logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+		logger_(model_type_name_, Logger::DERIVED, &allocator_.logger()),
 		debug_(false),
 		parent_ctr_(NULL),
 		array_(allocator, name, create, "memoria::ByteArray"),
@@ -75,7 +75,7 @@ public:
 	Ctr(Allocator &allocator, const ID& root_id):
 		allocator_(allocator),
 		model_type_name_("memoria::BlobMap"),
-		logger_(model_type_name_, Logger::DERIVED, &class_logger_),
+		logger_(model_type_name_, Logger::DERIVED, &allocator_.logger()),
 		debug_(false),
 		parent_ctr_(NULL),
 		array_(allocator, root_id, "memoria::ByteArray"),
