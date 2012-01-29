@@ -134,6 +134,8 @@ public:
 				}
 
 				allocator.commit();
+
+				out<<"DV.size="<<dv.Size()<<endl;
 			}
 
 			out<<"Vector.size = "<<(dv.Size() / 1024)<<"K bytes"<<endl;
