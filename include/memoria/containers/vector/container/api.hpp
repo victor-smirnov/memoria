@@ -106,6 +106,10 @@ typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 		iter.data() 	= me()->GetDataPage(iter.page(), iter.key_idx(), Allocator::READ);
 		BigInt offset 	= iter.prefix(key_number);
 		iter.data_pos() = pos - offset;
+		if (iter.data_pos() > iter.data()->data().size())
+		{
+			iter.data_pos() = iter.data()->data().size();
+		}
 	}
 
 

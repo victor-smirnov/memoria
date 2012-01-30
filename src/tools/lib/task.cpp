@@ -119,6 +119,13 @@ void TaskRunner::Run(ostream& out)
 						out<<"PASSED ";
 						out_file<<"PASSED"<<endl;
 					}
+					catch (MemoriaSigSegv e)
+					{
+						failed++;
+						out<<"SigSegv ";
+						out_file<<"FAILED: SigSegv: "<<e.source()<<" "<<e.message()<<endl;
+						exit(1);
+					}
 					catch (MemoriaException e)
 					{
 						failed++;

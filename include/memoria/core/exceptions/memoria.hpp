@@ -50,6 +50,32 @@ public:
     }
 };
 
+class MEMORIA_API MemoriaSigSegv {
+    BigInt data_;
+    string source_;
+    string message_;
+public:
+    MemoriaSigSegv(const string &source, const string &message): data_(0), source_(source), message_(message){
+    	//abort();
+    }
+
+    MemoriaSigSegv(const string &source, const string &message, BigInt data): data_(data), source_(source), message_(message) {
+    	//abort();
+    }
+
+    BigInt data() const {
+        return data_;
+    }
+
+    const string &source() const {
+        return source_;
+    }
+
+    const string &message() const {
+        return message_;
+    }
+};
+
 
 MEMORIA_API const char* ExtractMemoriaPath(const char* path);
 

@@ -218,15 +218,19 @@ public:
 			else {
 				//Insert at the middle of the array
 
-				Int pos = GetRandomPosition(array);
+				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
+
+				Int pos = params->pos_;
+
 				auto iter = array.Seek(pos);
 
-				if (GetRandom(2) == 0)
+				if (params->page_step_ == -1) params->page_step_ = GetRandom(2);
+
+				if (params->page_step_ == 0)
 				{
 					iter.Skip(-iter.data_pos());
 					pos = iter.pos();
 				}
-
 
 				BigInt prefix_len = pos;
 				if (prefix_len > 100) prefix_len = 100;

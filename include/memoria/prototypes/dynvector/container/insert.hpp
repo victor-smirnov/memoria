@@ -440,8 +440,8 @@ void M_TYPE::import_pages(
 			if (key_idx >= max_capacity)
 			{
 				node = me()->SplitBTreeNode(node, max_capacity);
-				me()->InsertDataPage(node, 0);
-				key_idx = 0;
+				me()->InsertDataPage(node, key_idx - max_capacity);
+				key_idx = key_idx - max_capacity;
 			}
 			else {
 				me()->InsertDataPage(node, key_idx);

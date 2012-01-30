@@ -22,12 +22,18 @@ public:
 	bool 	insert_;
 	Int		data_size_;
 
+	Int		page_step_;
+
+	BigInt 	pos_;
+
 public:
-	VectorReplay(): ReplayParams(), data_(0), insert_(true), data_size_(0)
+	VectorReplay(): ReplayParams(), data_(0), insert_(true), data_size_(0), page_step_(-1), pos_(-1)
 	{
-		Add("data", data_);
-		Add("insert", insert_);
+		Add("data", 	data_);
+		Add("insert", 	insert_);
 		Add("dataSize", data_size_);
+		Add("pageStep", page_step_);
+		Add("pos", 		pos_);
 	}
 };
 
