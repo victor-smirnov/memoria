@@ -144,11 +144,19 @@ public:
 		}
 	}
 
-	Iterator Find(BigInt lob_id)
+	Iterator Find(BigInt key)
 	{
-		auto is_iter = set_.FindLT(lob_id, 0, false);
-		auto ba_iter = array_.Seek(is_iter.prefix(1));
-		return Iterator(*me(), is_iter, ba_iter);
+		auto is_iter = set_.FindLE(key, 0, false);
+
+		is_iter.Init();
+
+		BigInt 	data_pos 	= is_iter.prefix(1);
+		bool	end			= is_iter.IsEnd();
+		bool 	exists 		= end ? false : (is_iter.GetKey(0) == key);
+
+		auto ba_iter = array_.Seek(data_pos);
+
+		return Iterator(*me(), is_iter, ba_iter, exists);
 	}
 
 	Iterator Create()
@@ -168,6 +176,44 @@ public:
 
 		auto ba_iter = array_.End();
 		return Iterator(*me(), is_iter, ba_iter);
+	}
+
+	Iterator Create(BigInt key)
+	{
+		auto is_iter = set_.FindLT(key, 0, true);
+
+		is_iter.Init();
+
+		BigInt 	data_pos 	= is_iter.prefix(1);
+		bool	end			= is_iter.IsEnd();
+		bool 	exists 		= end ? false : (is_iter.GetKey(0) == key);
+
+		auto ba_iter = array_.Seek(data_pos);
+
+		if (exists)
+		{
+			return Iterator(*me(), is_iter, ba_iter, true);
+		}
+		else {
+			BigInt delta = key - is_iter.prefix(0);
+
+			Key keys[IS_Indexes];
+
+			keys[0]	= delta;
+			keys[1]	= 0;
+
+			set_.InsertEntry(is_iter, keys, ISValue());
+
+			if (is_iter.IsNotEnd())
+			{
+				is_iter.NextKey();
+				is_iter.AddKey(0, -delta);
+				is_iter.PrevKey();
+			}
+
+			auto ba_iter = array_.Seek(data_pos);
+			return Iterator(*me(), is_iter, ba_iter, false);
+		}
 	}
 
 

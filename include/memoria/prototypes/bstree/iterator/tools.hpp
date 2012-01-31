@@ -43,6 +43,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
         return me()->GetRawKey(i) + me()->prefix(i);
     }
 
+    void AddKey(Int key_num, const Key& key)
+    {
+    	Key keys[Indexes];
+
+    	for (Key& k: keys) k = 0;
+
+    	keys[key_num] = key;
+
+    	me()->model().AddKeys(me()->page(), me()->key_idx(), keys, false);
+    }
+
     bool NextKey()
     {
         if (!me()->IsEnd())

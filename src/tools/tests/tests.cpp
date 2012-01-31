@@ -116,12 +116,15 @@ int main(int argc, const char** argv, const char** envp)
 
 			runner.SetOutput(output_folder);
 
-			runner.Run(cout);
+			Int failed = runner.Run(cout);
 			cout<<"Done..."<<endl;
+			return failed;
 		}
 	}
 	catch (MemoriaException e)
 	{
 		cerr<<e.source()<<" ERROR: "<<e.message()<<endl;
 	}
+
+	return 1;
 }

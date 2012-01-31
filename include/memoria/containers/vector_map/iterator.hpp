@@ -37,18 +37,19 @@ class Iter<VectorMapIterTypes<Types> >
 
 	ByteArrayIterator	ba_iter_;
 	IdxSetIterator		is_iter_;
+	bool				exists_;
 
 public:
 
-	Iter(ContainerType &model): model_(model), ba_iter_(model.array()), is_iter_(model.set()) {}
+	Iter(ContainerType &model): model_(model), ba_iter_(model.array()), is_iter_(model.set()), exists_(false) {}
 
-	Iter(const MyType& other): model_(other.model_), ba_iter_(other.ba_iter_), is_iter_(other.is_iter_) {}
+	Iter(const MyType& other): model_(other.model_), ba_iter_(other.ba_iter_), is_iter_(other.is_iter_), exists_(other.exists_) {}
 
-	Iter(ContainerType &model, const IdxSetIterator& is_iter, const ByteArrayIterator& ba_iter): model_(model), ba_iter_(ba_iter), is_iter_(is_iter) {}
+	Iter(ContainerType &model, const IdxSetIterator& is_iter, const ByteArrayIterator& ba_iter, bool exists = false): model_(model), ba_iter_(ba_iter), is_iter_(is_iter), exists_(exists) {}
 
-	Iter(ContainerType &model, const IdxSetIterator& is_iter): model_(model), ba_iter_(model), is_iter_(is_iter) {}
+	Iter(ContainerType &model, const IdxSetIterator& is_iter, bool exists = false): model_(model), ba_iter_(model), is_iter_(is_iter), exists_(exists) {}
 
-	Iter(ContainerType &model, const ByteArrayIterator& ba_iter): model_(model), ba_iter_(ba_iter), is_iter_(model) {}
+	Iter(ContainerType &model, const ByteArrayIterator& ba_iter, bool exists = false): model_(model), ba_iter_(ba_iter), is_iter_(model), exists_(exists) {}
 
 	//We have no move constructors for iterator
 	//Iter(MyType&& other): model_(other.model_), ba_iter_(std::move(other.ba_iter_)), is_iter_(std::move(other.is_iter_)) {}
@@ -124,6 +125,11 @@ public:
 		return is_iter_;
 	}
 
+	bool exists() const
+	{
+		return exists_;
+	}
+
 	void Insert(ArrayData& data)
 	{
 		ba_iter_.Insert(data);
@@ -180,16 +186,20 @@ public:
 	}
 
 	BigInt size() {
-		return is_iter_.GetKey(1);
+		return is_iter_.GetRawKey(1);
 	}
 
 	BigInt pos() {
 		return ba_iter_.pos() - is_iter_.prefix(1);
 	}
 
+	BigInt GetKey() {
+		return is_iter_.GetKey(0);
+	}
+
 	bool IsNotEnd()
 	{
-		return !is_iter_.IsEnd();
+		return is_iter_.IsNotEnd();
 	}
 
 	bool Next()

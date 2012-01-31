@@ -72,7 +72,7 @@ void TaskRunner::Replay(ostream& out, StringRef replay_file)
 	}
 }
 
-void TaskRunner::Run(ostream& out)
+Int TaskRunner::Run(ostream& out)
 {
 	BigInt total_start = GetTimeInMillis();
 
@@ -177,6 +177,7 @@ void TaskRunner::Run(ostream& out)
 	out<<"Passed: "<<passed<<endl;
 	out<<"Failed: "<<failed<<endl;
 	out<<"Total execution time: "<<(FormatTime(GetTimeInMillis() - total_start))<<endl;
+	return failed;
 }
 
 void TaskRunner::DumpProperties(ostream& out)

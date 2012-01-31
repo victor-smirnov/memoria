@@ -142,7 +142,7 @@ public:
 	void Configure(Configurator* cfg);
 	void DumpProperties(ostream& os);
 
-	void Run(ostream& out);
+	Int  Run(ostream& out);
 	void Replay(ostream& out, StringRef replay_file);
 
 	StringRef GetOutput() const

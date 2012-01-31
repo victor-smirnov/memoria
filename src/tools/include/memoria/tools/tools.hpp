@@ -182,7 +182,7 @@ bool CompareBuffer(BAIterator& iter, ArrayData& data)
 {
 	ArrayData buf(data.size());
 
-	iter.Read(buf, 0, buf.size());
+	iter.Read(buf);
 
 	const UByte* buf0 = buf.data();
 	const UByte* buf1 = data.data();

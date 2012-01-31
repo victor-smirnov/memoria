@@ -96,6 +96,11 @@ public:
     	return page() != NULL ? key_idx() >= me()->model().GetChildrenCount(page()) : true;
     }
 
+    bool IsNotEnd()
+    {
+    	return !IsEnd();
+    }
+
     bool IsEmpty()
     {
     	return page() == NULL || me()->model().GetChildrenCount(page()) == 0;

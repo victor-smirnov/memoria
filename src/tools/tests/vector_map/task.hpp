@@ -117,14 +117,26 @@ public:
 			{
 				auto iter = map.Create();
 				params.data_size_ = GetRandom(task_params->max_block_size_);
-				total_size += params.data_size_;
 
-				ArrayData data = CreateBuffer(params.data_size_, value);
+				ArrayData data = CreateBuffer(params.data_size_, c % 256);
 				iter.Insert(data);
+
+				MEMORIA_TEST_ASSERT(iter.size(), 	!= , data.size());
+				MEMORIA_TEST_ASSERT(iter.GetKey(), 	!= , c + 1);
+
+				total_size += iter.size();
 
 				Check(allocator, "Insertion failed.", 	MEMORIA_SOURCE);
 
 				MEMORIA_TEST_ASSERT(map.array().Size(), != , total_size);
+
+				auto iter2 = map.Find(iter.GetKey());
+
+				MEMORIA_TEST_ASSERT(iter2.exists(), != , true);
+				MEMORIA_TEST_ASSERT(iter2.size(), 	!= , data.size());
+				MEMORIA_TEST_ASSERT(iter2.GetKey(), != , iter.GetKey());
+
+				CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
 				allocator.commit();
 			}
