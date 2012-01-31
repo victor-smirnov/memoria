@@ -220,12 +220,7 @@ public:
 			else {
 				//Insert at the middle of the array
 
-				out<<"Size: "<<array.Size()<<endl;
-
-
 				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
-
-				out<<"Pos:  "<<params->pos_<<" "<<endl;
 
 				Int pos = params->pos_;
 

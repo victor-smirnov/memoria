@@ -19,9 +19,9 @@ namespace memoria {
 
 struct ReplayParams: public TestReplayParams {
 
-	Int step_;
-	Int size_;
-	Int btree_airity_;
+	Int 	step_;
+	BigInt 	size_;
+	Int 	btree_airity_;
 
 	ReplayParams(StringRef name = "Replay"): TestReplayParams(name), step_(0), size_(0), btree_airity_(0)
 	{

@@ -260,6 +260,15 @@ void M_TYPE::import_pages(
 			iter.data_pos() = iter.data()->data().size();
 		}
 		else {
+
+			NodeBaseG& node = iter.page();
+
+			if (me()->GetCapacity(node) == 0)
+			{
+				Int max_capacity = me()->GetMaxCapacity(node);
+				me()->SplitBTreeNode(node, max_capacity / 2);
+			}
+
 			me()->InsertDataPage(iter.page(), 0);
 
 			iter.data()		= me()->GetDataPage(iter.page(), 0, Allocator::READ);

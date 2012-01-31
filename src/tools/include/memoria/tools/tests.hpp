@@ -193,10 +193,11 @@ public:
 	{
 		Int step_count = GetParameters<>()->GetCheckStep();
 
-		if (check_count_ % step_count == 0)
+		if (step_count > 0 && (check_count_ % step_count == 0))
 		{
 			::memoria::Check<Allocator, ::memoria::StreamContainersChecker>(allocator, "Allocator check failed", source);
 		}
+
 		check_count_++;
 	}
 
