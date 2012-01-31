@@ -130,7 +130,10 @@ public:
 					params.step_ = GetRandom(3);
 				}
 
-				params.data_size_ = 1 + (Int)GetBIRandom(dv.Size() < 40000 ? dv.Size() : 40000);
+				BigInt size = dv.Size();
+				BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
+
+				params.data_size_ = 1 + GetBIRandom(max_size);
 
 				if (!Remove(allocator, dv, &params))
 				{
@@ -171,7 +174,7 @@ public:
 			Check(allocator, "Insertion into an empty array failed. See the dump for details.", MEMORIA_SOURCE);
 
 			auto iter1 = array.Seek(0);
-			CheckBufferWritten(iter1, data, "AAA", MEMORIA_SOURCE);
+			CheckBufferWritten(iter1, data, "Failed to read and compare buffer from array", MEMORIA_SOURCE);
 		}
 		else {
 			if (step == 0)
