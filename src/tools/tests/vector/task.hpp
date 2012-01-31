@@ -31,7 +31,8 @@ public:
 
 	BigInt GetRandomPosition(ByteVector& array)
 	{
-		return GetBIRandom(array.Size());
+		BigInt size = array.Size();
+		return GetBIRandom(size);
 	}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
@@ -50,7 +51,7 @@ public:
 
 		if (params->insert_)
 		{
-			Build(allocator, dv, params);
+			Build(out, allocator, dv, params);
 		}
 		else {
 			Remove(allocator, dv, params);
@@ -109,9 +110,12 @@ public:
 
 				params.data_size_ 	= 1 + GetRandom(task_params->max_block_size_);
 
-				Build(allocator, dv, &params);
+				Build(out, allocator, dv, &params);
 				allocator.commit();
 				params.data_++;
+
+				params.pos_ 		= -1;
+				params.page_step_ 	= -1;
 			}
 
 			//StoreAllocator(allocator, "allocator.dump");
@@ -134,8 +138,6 @@ public:
 				}
 
 				allocator.commit();
-
-				out<<"DV.size="<<dv.Size()<<endl;
 			}
 
 			out<<"Vector.size = "<<(dv.Size() / 1024)<<"K bytes"<<endl;
@@ -150,7 +152,7 @@ public:
 	}
 
 
-	void Build(Allocator& allocator, ByteVector& array, VectorReplay *params)
+	void Build(ostream& out, Allocator& allocator, ByteVector& array, VectorReplay *params)
 	{
 		UByte value = params->data_;
 		Int step 	= params->step_;
@@ -218,7 +220,12 @@ public:
 			else {
 				//Insert at the middle of the array
 
+				out<<"Size: "<<array.Size()<<endl;
+
+
 				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
+
+				out<<"Pos:  "<<params->pos_<<" "<<endl;
 
 				Int pos = params->pos_;
 
