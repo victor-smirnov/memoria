@@ -19,8 +19,8 @@ using namespace memoria::vapi;
 
 class VectorTest: public SPTestTask {
 
-	typedef StreamContainerTypesCollection::Factory<Vector>::Type 	ByteVector;
-	typedef ByteVector::Iterator									BVIterator;
+	typedef StreamContainerTypesCollection::Factory<Vector>::Type 	ByteVectorCtr;
+	typedef ByteVectorCtr::Iterator									BVIterator;
 
 public:
 
@@ -29,7 +29,7 @@ public:
 	virtual ~VectorTest() throw() {}
 
 
-	BigInt GetRandomPosition(ByteVector& array)
+	BigInt GetRandomPosition(ByteVectorCtr& array)
 	{
 		BigInt size = array.Size();
 		return GetBIRandom(size);
@@ -45,7 +45,7 @@ public:
 		VectorReplay* params = static_cast<VectorReplay*>(step_params);
 		Allocator allocator;
 		LoadAllocator(allocator, params);
-		ByteVector dv(allocator, 1);
+		ByteVectorCtr dv(allocator, 1);
 
 		dv.SetMaxChildrenPerNode(params->btree_airity_);
 
@@ -92,7 +92,7 @@ public:
 
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
-		ByteVector dv(allocator, 1, true);
+		ByteVectorCtr dv(allocator, 1, true);
 
 		dv.SetMaxChildrenPerNode(params.btree_airity_);
 
@@ -155,7 +155,7 @@ public:
 	}
 
 
-	void Build(ostream& out, Allocator& allocator, ByteVector& array, VectorReplay *params)
+	void Build(ostream& out, Allocator& allocator, ByteVectorCtr& array, VectorReplay *params)
 	{
 		UByte value = params->data_;
 		Int step 	= params->step_;
@@ -269,7 +269,7 @@ public:
 		}
 	}
 
-	bool Remove(Allocator& allocator, ByteVector& array, VectorReplay* params)
+	bool Remove(Allocator& allocator, ByteVectorCtr& array, VectorReplay* params)
 	{
 		Int step = params->step_;
 

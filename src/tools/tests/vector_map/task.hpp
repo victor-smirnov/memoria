@@ -14,20 +14,31 @@
 
 #include "../shared/params.hpp"
 
+
+#include <vector>
+
 namespace memoria {
 
 using namespace memoria::vapi;
+using namespace std;
 
 struct VectorMapReplay: public ReplayParams {
 	Int 	data_;
 	Int		data_size_;
 
+	String	pairs_data_file_;
+	BigInt	key_;
+	BigInt 	key_num_;
+
 	VectorMapReplay(): ReplayParams()
 	{
 		Add("data", data_);
 		Add("dataSize", data_size_);
-	}
 
+		Add("pairsFile", pairs_data_file_);
+		Add("key", key_);
+		Add("keyNum", key_num_);
+	}
 };
 
 
@@ -38,7 +49,6 @@ struct VectorMapParams: public TestTaskParams {
 public:
 	VectorMapParams(): TestTaskParams("VectorMap")
 	{
-		//Add("size", size_, 1024*100);
 		Add("maxBlockSize", max_block_size_, 1024*40);
 	}
 };
@@ -46,8 +56,12 @@ public:
 
 class VectorMapTest: public SPTestTask {
 
+	typedef KVPair<BigInt, BigInt> 										Pair;
+	typedef vector<Pair>												PairVector;
 	typedef StreamContainerTypesCollection::Factory<VectorMap>::Type 	VectorMapCtr;
 	typedef VectorMapCtr::Iterator										VMIterator;
+
+	PairVector pairs_;
 
 public:
 
@@ -60,8 +74,42 @@ public:
 		return new VectorMapReplay();
 	}
 
+	void StorePairs(const PairVector& pairs, VectorMapReplay* params)
+	{
+		String basic_name = GetResourcePath("Data." + params->GetName());
+
+		String pairs_name 		= basic_name + ".pairs.txt";
+		params->pairs_data_file_ = pairs_name;
+
+		StoreVector(pairs, pairs_name);
+	}
+
+	void CheckIteratorFw(VectorMapCtr& ctr)
+	{
+		MEMORIA_TEST_ASSERT(ctr.Count(), != , (BigInt)pairs_.size());
+
+		auto iter = ctr.Begin();
+
+		for (Pair& pair: pairs_)
+		{
+			MEMORIA_TEST_ASSERT(iter.GetKey(), != , pair.key_);
+			MEMORIA_TEST_ASSERT(iter.size(),   != , pair.value_);
+			MEMORIA_TEST_ASSERT(iter.pos(),    != , 0);
+
+			UByte value = pair.key_ & 0xFF;
+
+			ArrayData data = CreateBuffer(pair.value_, value);
+
+			CheckBufferWritten(iter, data, "Buffer written does not match", MEMORIA_SOURCE);
+
+			iter.Next();
+		}
+	}
+
 	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
+		pairs_.clear();
+
 		DefaultLogHandlerImpl logHandler(out);
 
 		VectorMapReplay* params = static_cast<VectorMapReplay*>(step_params);
@@ -73,15 +121,57 @@ public:
 
 		VectorMapCtr map(allocator, 1);
 
-		ArrayData data = CreateBuffer(451, 0x55);
 
-		auto iter = map.Create();
 
-		iter.Insert(data);
+		if (params->step_ == 0)
+		{
 
-		allocator.commit();
+		}
+		else if (params->step_ == 1)
+		{
+			LoadVector(pairs_, params->pairs_data_file_);
 
-		StoreAllocator(allocator, "allocator1.dump");
+			BigInt key = params->key_;
+
+			auto iter = map.Create(key);
+
+			CheckCtr(map, "Insertion failed 1", MEMORIA_SOURCE);
+
+			ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
+
+			iter.Insert(data);
+
+			AppendToSortedVector(pairs_, Pair(key, params->data_size_));
+
+			CheckCtr(map, "Insertion failed 2", MEMORIA_SOURCE);
+
+			MEMORIA_TEST_ASSERT(iter.size(), 	!= , data.size());
+			MEMORIA_TEST_ASSERT(iter.GetKey(), 	!= , key);
+
+			auto iter2 = map.Find(iter.GetKey());
+
+			MEMORIA_TEST_ASSERT(iter2.exists(), != , true);
+			MEMORIA_TEST_ASSERT(iter2.size(), 	!= , data.size());
+			MEMORIA_TEST_ASSERT(iter2.GetKey(), != , iter.GetKey());
+
+			CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
+
+			CheckIteratorFw(map);
+		}
+		else {
+			Int idx		= params->key_num_;
+			BigInt key  = params->key_;
+
+			bool removed 		= map.Remove(key);
+
+			MEMORIA_TEST_ASSERT(removed, != , true);
+
+			CheckCtr(map, "Remove failed.", 	MEMORIA_SOURCE);
+
+			pairs_.erase(pairs_.begin() + idx);
+
+			CheckIteratorFw(map);
+		}
 	}
 
 	virtual void Run(ostream& out)
@@ -97,7 +187,16 @@ public:
 			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
 		}
 
+		pairs_.clear();
 
+//		TestOrderedCreation(out, &params);
+//		TestRandomCreation(out, &params);
+		TestRandomDeletion(out, &params);
+	}
+
+	void TestOrderedCreation(ostream& out, VectorMapReplay* params)
+	{
+		VectorMapParams* task_params = GetParameters<VectorMapParams>();
 		DefaultLogHandlerImpl logHandler(out);
 
 		Allocator allocator;
@@ -107,18 +206,18 @@ public:
 
 		try {
 
-			params.step_ = 0;
+			params->step_ = 0;
 
 			UByte value = 0;
 
 			Int total_size = 0;
 
-			for (Int c = 0; c < params.size_; c++, value++)
+			for (Int c = 0; c < params->size_; c++, value++)
 			{
 				auto iter = map.Create();
-				params.data_size_ = GetRandom(task_params->max_block_size_);
+				params->data_size_ = GetRandom(task_params->max_block_size_);
 
-				ArrayData data = CreateBuffer(params.data_size_, c % 256);
+				ArrayData data = CreateBuffer(params->data_size_, c % 256);
 				iter.Insert(data);
 
 				MEMORIA_TEST_ASSERT(iter.size(), 	!= , data.size());
@@ -126,7 +225,7 @@ public:
 
 				total_size += iter.size();
 
-				Check(allocator, "Insertion failed.", 	MEMORIA_SOURCE);
+				CheckCtr(map, "Insertion failed.", 	MEMORIA_SOURCE);
 
 				MEMORIA_TEST_ASSERT(map.array().Size(), != , total_size);
 
@@ -142,19 +241,146 @@ public:
 			}
 
 			StoreAllocator(allocator, "allocator.dump");
-			Store(allocator, &params);
+			Store(allocator, params);
 		}
 		catch (...) {
-			Store(allocator, &params);
+			Store(allocator, params);
 			throw;
 		}
 	}
 
-	void DoTestStep(ostream& out, Allocator& allocator, const VectorMapReplay* params)
+
+	void TestRandomCreation(ostream& out, VectorMapReplay* params)
 	{
+		VectorMapParams* task_params = GetParameters<VectorMapParams>();
+		DefaultLogHandlerImpl logHandler(out);
+
+		Allocator allocator;
+		allocator.GetLogger()->SetHandler(&logHandler);
+
+		VectorMapCtr map(allocator, 1, true);
+
+		PairVector pairs_tmp;
+
+		pairs_.clear();
+
+		try {
+			params->step_ = 1;
+
+			Int total_size = 0;
+
+			for (Int c = 0; c < params->size_; c++)
+			{
+				BigInt key = GetUniqueRandom(pairs_);
+
+				params->key_ 		= key;
+
+				auto iter = map.Create(key);
+				params->data_size_ = GetRandom(task_params->max_block_size_);
+
+				ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
+				iter.Insert(data);
+
+				CheckCtr(map, "Insertion failed.", 	MEMORIA_SOURCE);
+
+				params->key_num_ = AppendToSortedVector(pairs_, Pair(key, params->data_size_));
+
+				MEMORIA_TEST_ASSERT(iter.size(), 	!= , data.size());
+				MEMORIA_TEST_ASSERT(iter.GetKey(), 	!= , key);
+
+				total_size += iter.size();
+
+				MEMORIA_TEST_ASSERT(map.array().Size(), != , total_size);
+
+				auto iter2 = map.Find(iter.GetKey());
+
+				MEMORIA_TEST_ASSERT(iter2.exists(), != , true);
+				MEMORIA_TEST_ASSERT(iter2.size(), 	!= , data.size());
+				MEMORIA_TEST_ASSERT(iter2.GetKey(), != , iter.GetKey());
+
+				CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
+
+				CheckIteratorFw(map);
+
+				allocator.commit();
+
+				AppendToSortedVector(pairs_tmp, Pair(key, params->data_size_));
+			}
+
+			MEMORIA_TEST_ASSERT(map.Count(), != , (BigInt)pairs_.size());
+		}
+		catch (...)
+		{
+			StorePairs(pairs_tmp, params);
+			Store(allocator, params);
+
+			throw;
+		}
+	}
 
 
+	void TestRandomDeletion(ostream& out, VectorMapReplay* params)
+	{
+		VectorMapParams* task_params = GetParameters<VectorMapParams>();
+		DefaultLogHandlerImpl logHandler(out);
 
+		Allocator allocator;
+		allocator.GetLogger()->SetHandler(&logHandler);
+
+		VectorMapCtr map(allocator, 1, true);
+
+		PairVector pairs_tmp;
+
+		pairs_.clear();
+
+		try {
+			params->step_ = 2;
+
+			for (Int c = 0; c < params->size_; c++)
+			{
+				BigInt key = GetUniqueRandom(pairs_);
+
+				params->key_ 		= key;
+
+				auto iter = map.Create(key);
+				params->data_size_ = GetRandom(task_params->max_block_size_);
+
+				ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
+				iter.Insert(data);
+
+				AppendToSortedVector(pairs_, Pair(key, params->data_size_));
+			}
+
+			allocator.commit();
+
+			while (map.Count() > 0)
+			{
+				pairs_tmp = pairs_;
+
+				Int idx = GetRandom(map.Count());
+
+				params->key_num_ 	= idx;
+				params->key_		= pairs_[idx].key_;
+
+				bool removed = map.Remove(pairs_[idx].key_);
+
+				MEMORIA_TEST_ASSERT(removed, != , true);
+
+				CheckCtr(map, "Remove failed.", 	MEMORIA_SOURCE);
+
+				pairs_.erase(pairs_.begin() + idx);
+
+				CheckIteratorFw(map);
+				allocator.commit();
+			}
+
+		}
+		catch (...)
+		{
+			StorePairs(pairs_tmp, params);
+			Store(allocator, params);
+			throw;
+		}
 	}
 };
 
@@ -163,3 +389,4 @@ public:
 
 
 #endif
+

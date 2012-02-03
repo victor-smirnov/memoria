@@ -143,7 +143,7 @@ public:
 
 		keys[1] = data.size();
 
-		model_.set().AddKeys(is_iter_.page(), is_iter_.key_idx(), keys, false);
+		model_.set().AddKeysUp(is_iter_.page(), is_iter_.key_idx(), keys);
 	}
 
 	BigInt Read(ArrayData& data)
@@ -156,7 +156,7 @@ public:
 		BigInt current_pos 	= pos();
 		BigInt current_size = size();
 
-		BigInt len = ((length + current_pos) <= current_size) ? length : current_size - current_pos;
+		BigInt len = ((length + current_pos) <= current_size) ? length : (current_size - current_pos);
 
 		ba_iter_.Read(data, start, len);
 
@@ -185,6 +185,13 @@ public:
 		return ba_iter_.Skip(length);
 	}
 
+	void Remove()
+	{
+		BigInt data_size = size();
+		model_.set().RemoveEntry(is_iter);
+		ba_iter.Remove(data_size);
+	}
+
 	BigInt size() {
 		return is_iter_.GetRawKey(1);
 	}
@@ -204,9 +211,23 @@ public:
 
 	bool Next()
 	{
-		ba_iter_.Skip(size());
+		ba_iter_.Skip(size() - pos());
 		return is_iter_.Next();
 	}
+
+//	BigInt Next(Int count)
+//	{
+//		BigInt skip = is_iter_.SkipKeyFw(count);
+//
+//		if (skip)
+//		{
+//
+//			ba_iter_.Skip(size());
+//		}
+//
+//
+//		return is_iter_.Next();
+//	}
 };
 
 }

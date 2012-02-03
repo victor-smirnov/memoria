@@ -75,10 +75,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
     Iterator Seek(BigInt pos);
     virtual BigInt Size();
 
-    virtual BigInt GetBlobSize(BigInt BlobId) {return 0;}
-    virtual BigInt GetBlobsCount()            {return 0;}
-    virtual bool RemoveBlob(BigInt BlobId)    {return 0;}
-
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::models::array::ContainerApiName)

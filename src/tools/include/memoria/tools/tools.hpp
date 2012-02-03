@@ -124,18 +124,20 @@ void StoreVector(const vector<T, A>& vec, StringRef file_name)
 
 
 template <typename T, typename A>
-void AppendToSortedVector(vector<T, A>& vec, const T& value)
+size_t AppendToSortedVector(vector<T, A>& vec, const T& value)
 {
-	for (auto i = vec.begin(); i != vec.end(); i++)
+	size_t cnt = 0;
+	for (auto i = vec.begin(); i != vec.end(); i++, cnt++)
 	{
 		if (value < *i)
 		{
 			vec.insert(i, value);
-			return;
+			return cnt;
 		}
 	}
 
 	vec.push_back(value);
+	return vec.size();
 }
 
 
@@ -170,15 +172,32 @@ void Check(Allocator& allocator, const char* message,  const char* source)
 	Checker checker(allocator);
 	if (checker.CheckAll())
 	{
+		allocator.GetLogger()->level() = level;
 		throw TestException(source, message);
 	}
 
 	allocator.GetLogger()->level() = level;
 }
 
+template <typename Ctr>
+void CheckCtr(Ctr& ctr, const char* message,  const char* source)
+{
+	Int level = ctr.logger().level();
+
+	ctr.logger().level() = Logger::ERROR;
+
+	if (ctr.Check(NULL))
+	{
+		ctr.logger().level() = level;
+		throw TestException(source, message);
+	}
+
+	ctr.logger().level() = level;
+}
+
 
 template <typename BAIterator>
-bool CompareBuffer(BAIterator& iter, ArrayData& data)
+bool CompareBuffer(BAIterator& iter, ArrayData& data, Int& c)
 {
 	ArrayData buf(data.size());
 
@@ -187,7 +206,7 @@ bool CompareBuffer(BAIterator& iter, ArrayData& data)
 	const UByte* buf0 = buf.data();
 	const UByte* buf1 = data.data();
 
-	for (Int c = 0; c < data.size(); c++)
+	for (c = 0; c < data.size(); c++)
 	{
 		if (buf0[c] != buf1[c])
 		{
@@ -201,9 +220,10 @@ bool CompareBuffer(BAIterator& iter, ArrayData& data)
 template <typename BAIterator >
 void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg, const char* source)
 {
-	if (!CompareBuffer(iter, data))
+	Int pos = 0;
+	if (!CompareBuffer(iter, data, pos))
 	{
-		throw TestException(source, err_msg);
+		throw TestException(source, String(err_msg) + ": pos=" + ToString(pos));
 	}
 }
 

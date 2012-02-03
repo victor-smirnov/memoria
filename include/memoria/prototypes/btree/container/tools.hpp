@@ -520,20 +520,21 @@ public:
 
     struct AddKeysFn {
         Int idx_;
-        Key *keys_;
+        const Key *keys_;
 
-        AddKeysFn(Int idx, Key* keys): idx_(idx), keys_(keys) {}
+        AddKeysFn(Int idx, const Key* keys): idx_(idx), keys_(keys) {}
 
         template <typename Node>
         void operator()(Node *node) {
-            for (Int c = 0; c < Indexes; c++) {
+            for (Int c = 0; c < Indexes; c++)
+            {
                 node->map().key(c, idx_) += keys_[c];
             }
             node->map().Reindex();
         }
     };
 
-    void AddKeys(NodeBaseG& node, int idx, Key* keys, bool deep = true)
+    void AddKeys(NodeBaseG& node, int idx, const Key* keys, bool deep = true)
     {
         node.update();
 
@@ -545,6 +546,19 @@ public:
         	NodeBaseG child = me()->GetChild(node, idx, Allocator::UPDATE);
             AddKeys(child, 0, keys);
         }
+    }
+
+    void AddKeysUp(NodeBaseG& node, int idx, const Key* keys)
+    {
+    	AddKeys(node, idx, keys, false);
+
+    	if (!node->is_root())
+    	{
+    		NodeBaseG parent = me()->GetParent(node, Allocator::UPDATE);
+    		Int parent_idx = node->parent_idx();
+
+    		AddKeysUp(parent, parent_idx, keys);
+    	}
     }
 
 

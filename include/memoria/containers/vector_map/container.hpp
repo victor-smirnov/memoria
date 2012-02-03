@@ -182,6 +182,7 @@ public:
 	{
 		auto is_iter = set_.FindLT(key, 0, true);
 
+		//FIXME: set_.FindLT() have to return properly initialized iterator
 		is_iter.Init();
 
 		BigInt 	data_pos 	= is_iter.prefix(1);
@@ -204,16 +205,53 @@ public:
 
 			set_.InsertEntry(is_iter, keys, ISValue());
 
-			if (is_iter.IsNotEnd())
-			{
-				is_iter.NextKey();
-				is_iter.AddKey(0, -delta);
-				is_iter.PrevKey();
-			}
-
 			auto ba_iter = array_.Seek(data_pos);
 			return Iterator(*me(), is_iter, ba_iter, false);
 		}
+	}
+
+	bool Remove(BigInt key)
+	{
+		auto is_iter = set_.FindLE(key, 0, true);
+
+		//FIXME: set_.FindLT() have to return properly initialized iterator
+		is_iter.Init();
+
+		bool	end			= is_iter.IsEnd();
+		bool 	exists 		= end ? false : (is_iter.GetKey(0) == key);
+
+		if (exists)
+		{
+			BigInt 	data_pos 	= is_iter.prefix(1);
+			BigInt 	size		= is_iter.GetRawKey(1);
+
+			set_.RemoveEntry(is_iter);
+
+			int checkIt = set_.Check(NULL);
+
+			if (!is_iter.IsEnd())
+			{
+				Key keys[IS_Indexes];
+
+				for (Key& k: keys)
+				{
+					k = 0;
+				}
+
+				keys[1] = -size;
+
+				set_.AddKeysUp(is_iter.page(), is_iter.key_idx(), keys);
+			}
+
+			auto 	ba_iter 	= array_.Seek(data_pos);
+			ba_iter.Remove(size);
+
+			return true;
+		}
+		else {
+			return false;
+		}
+
 	}
 
 
@@ -228,6 +266,16 @@ public:
 
 		ba_iter.Remove(size);
 		set_.RemoveEntry(is_iter);
+	}
+
+	BigInt Count()
+	{
+		return set_.GetSize();
+	}
+
+	BigInt Size()
+	{
+		return array_.Size();
 	}
 
 	static Int Init()
@@ -258,14 +306,12 @@ public:
 	}
 
 
-	bool Check(void* ptr)
+	bool Check(void* ptr = NULL)
 	{
 		bool r0 = array_.Check(ptr);
 		bool r1 = set_.Check(ptr);
-		return r1 && r0;
+		return r1 || r0;
 	}
-
-
 
 	bool& debug() {
 		return debug_;

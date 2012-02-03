@@ -128,9 +128,11 @@ public:
 
     void set_root(const PageId &root)
     {
-        me()->allocator().SetRoot(me()->name(), root);
+//        me()->allocator().SetRoot(me()->name(), root);
         me()->shared()->root_log() 	= root;
         me()->shared()->updated() 	= true;
+
+        me()->SetRootID(this, me()->name(), root);
     }
 
     const PageId &root() const

@@ -51,7 +51,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
 
     	keys[key_num] = key;
 
-    	me()->model().AddKeys(me()->page(), me()->key_idx(), keys, false);
+    	me()->model().AddKeysUp(me()->page(), me()->key_idx(), keys);
     }
 
     bool NextKey()

@@ -88,6 +88,7 @@ int main(int argc, const char** argv, const char** envp)
 		else if (cmd_line.IsReplay())
 		{
 			runner.Replay(cout, cmd_line.GetReplayFile());
+			return 0;
 		}
 		else {
 			cout<<"Seed: "<<seed<<endl;

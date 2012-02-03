@@ -211,6 +211,25 @@ public:
 		}
 		check_count_++;
 	}
+
+	template <typename CtrType>
+	void CheckCtr(CtrType& ctr, const char* message, const char* source)
+	{
+		Int step_count = GetParameters<>()->GetCheckStep();
+
+		if (step_count > 0 && (check_count_ % step_count == 0))
+		{
+			::memoria::CheckCtr<CtrType>(ctr, message, source);
+		}
+
+		check_count_++;
+	}
+
+	template <typename CtrType>
+	void CheckCtr(CtrType& ctr, const char* source)
+	{
+		CheckCtr(ctr, "Container check failed", source);
+	}
 };
 
 

@@ -306,6 +306,7 @@ void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 		}
 		else if (idx < me()->GetChildrenCount(node))
 		{
+			//FIXME: does it necessary to split the page at the middle ???
 			SplitBTreeNode(node, idx, 0);
 			InsertSpace(node, idx, 1);
 		}
