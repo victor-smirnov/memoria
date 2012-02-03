@@ -193,13 +193,15 @@ public:
 
 		pairs_.clear();
 
-//		TestOrderedCreation(out, &params);
-//		TestRandomCreation(out, &params);
+		TestOrderedCreation(out, &params);
+		TestRandomCreation(out, &params);
 		TestRandomDeletion(out, &params);
 	}
 
 	void TestOrderedCreation(ostream& out, VectorMapReplay* params)
 	{
+		out<<"OrderedCreation Test"<<endl;
+
 		VectorMapParams* task_params = GetParameters<VectorMapParams>();
 		DefaultLogHandlerImpl logHandler(out);
 
@@ -243,9 +245,6 @@ public:
 
 				allocator.commit();
 			}
-
-			StoreAllocator(allocator, "allocator.dump");
-			Store(allocator, params);
 		}
 		catch (...) {
 			Store(allocator, params);
@@ -256,6 +255,8 @@ public:
 
 	void TestRandomCreation(ostream& out, VectorMapReplay* params)
 	{
+		out<<"RandomCreation test"<<endl;
+
 		VectorMapParams* task_params = GetParameters<VectorMapParams>();
 		DefaultLogHandlerImpl logHandler(out);
 
@@ -325,6 +326,8 @@ public:
 
 	void TestRandomDeletion(ostream& out, VectorMapReplay* params)
 	{
+		out<<"RandomDeletion Test"<<endl;
+
 		VectorMapParams* task_params = GetParameters<VectorMapParams>();
 		DefaultLogHandlerImpl logHandler(out);
 
