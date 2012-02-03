@@ -191,7 +191,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     bool RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int stop_idx, Key* keys, bool preserve_key_values = true);
 
 
-    bool MergeWithSiblings(NodeBaseG& node);
+    bool MergeWithSiblings(NodeBaseG& node, Int& key_idx);
 
     /**
      * Remove a page from the btree. Do recursive removing if page's parent
@@ -207,7 +207,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      * Remove key and data pointed by iterator 'iter' form the map.
      *
      */
-    bool RemoveEntry(Iterator iter) ;
+    bool RemoveEntry(Iterator& iter) ;
 
     bool RemoveEntries(Iterator from, Iterator to);
 
@@ -619,7 +619,7 @@ bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int sto
 }
 
 M_PARAMS
-bool M_TYPE::MergeWithSiblings(NodeBaseG& node)
+bool M_TYPE::MergeWithSiblings(NodeBaseG& node, Int& key_idx)
 {
 	Iterator tmp(*me());
 
@@ -634,8 +634,15 @@ bool M_TYPE::MergeWithSiblings(NodeBaseG& node)
 			NodeBaseG prev = tmp.GetPrevNode(node);
 			if (prev != NULL)
 			{
+				Int size = me()->GetChildrenCount(prev);
+
 				merged = me()->MergeBTreeNodes(prev, node);
-				node = prev;
+
+				if (merged)
+				{
+					node = prev;
+					key_idx += size;
+				}
 			}
 			else {
 				merged = false;
@@ -650,8 +657,15 @@ bool M_TYPE::MergeWithSiblings(NodeBaseG& node)
 		NodeBaseG prev = tmp.GetPrevNode(node);
 		if (prev != NULL)
 		{
+			Int size = me()->GetChildrenCount(prev);
+
 			merged = me()->MergeBTreeNodes(prev, node);
-			node = prev;
+
+			if (merged)
+			{
+				key_idx += size;
+				node = prev;
+			}
 		}
 		else {
 			merged = false;
@@ -718,7 +732,8 @@ void M_TYPE::RemovePage(NodeBaseG node)
 			//merge it with it's siblings if possible
 			if (me()->GetChildrenCount(parent) < me()->GetMaxCapacity(parent) / 2)
 			{
-				me()->MergeWithSiblings(parent);
+				Int idx = 0;
+				me()->MergeWithSiblings(parent, idx);
 			}
 		}
 	}
@@ -732,15 +747,17 @@ void M_TYPE::RemovePage(NodeBaseG node)
  *
  */
 M_PARAMS
-bool M_TYPE::RemoveEntry(Iterator iter)
+bool M_TYPE::RemoveEntry(Iterator& iter)
 {
-	if (iter.IsNotEmpty() || !iter.IsEnd())
+	if (iter.IsNotEmpty() || iter.IsNotEnd())
 	{
 		NodeBaseG& node = iter.page();
-		Int idx = iter.key_idx();
+		Int& idx = iter.key_idx();
+
+		Int children_count = me()->GetChildrenCount(node);
 
 		//if leaf page has more than 1 key do regular remove
-		if (me()->GetChildrenCount(node) > 1) {
+		if (children_count > 1) {
 			//remove 1 element rom the leaf, update parent and
 			//do not try to remove children (it's a leaf)
 
@@ -748,12 +765,25 @@ bool M_TYPE::RemoveEntry(Iterator iter)
 
 			//try merging this leaf with previous of following
 			//leaf if filled by half of it's capacity.
-			if (me()->GetChildrenCount(node) > me()->GetMaxCapacity(node) / 2) {
-				me()->MergeWithSiblings(node);
+			if (me()->GetChildrenCount(node) > me()->GetMaxCapacity(node) / 2)
+			{
+				me()->MergeWithSiblings(node, idx);
 			}
+
+			if (idx == me()->GetChildrenCount(node))
+			{
+				NodeBaseG next = iter.GetNextNode(node);
+				if (next != NULL)
+				{
+					node 	= next;
+					idx 	= 0;
+				}
+			}
+
 		}
 		else {
 			//otherwise remove the leaf page.
+			//FIXME: preserve key values?
 			me()->RemovePage(node);
 		}
 		return true;

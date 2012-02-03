@@ -227,8 +227,6 @@ public:
 
 			set_.RemoveEntry(is_iter);
 
-			int checkIt = set_.Check(NULL);
-
 			if (!is_iter.IsEnd())
 			{
 				Key keys[IS_Indexes];

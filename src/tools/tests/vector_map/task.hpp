@@ -90,10 +90,11 @@ public:
 
 		auto iter = ctr.Begin();
 
+		Int c = 0;
 		for (Pair& pair: pairs_)
 		{
 			MEMORIA_TEST_ASSERT(iter.GetKey(), != , pair.key_);
-			MEMORIA_TEST_ASSERT(iter.size(),   != , pair.value_);
+			MEMORIA_TEST_ASSERT1(iter.size(),   != , pair.value_, c);
 			MEMORIA_TEST_ASSERT(iter.pos(),    != , 0);
 
 			UByte value = pair.key_ & 0xFF;
@@ -103,6 +104,7 @@ public:
 			CheckBufferWritten(iter, data, "Buffer written does not match", MEMORIA_SOURCE);
 
 			iter.Next();
+			c++;
 		}
 	}
 
@@ -120,8 +122,6 @@ public:
 		LoadAllocator(allocator, params);
 
 		VectorMapCtr map(allocator, 1);
-
-
 
 		if (params->step_ == 0)
 		{
@@ -159,6 +159,10 @@ public:
 			CheckIteratorFw(map);
 		}
 		else {
+			LoadVector(pairs_, params->pairs_data_file_);
+
+			MEMORIA_TEST_ASSERT(map.Count(), != , (BigInt)pairs_.size());
+
 			Int idx		= params->key_num_;
 			BigInt key  = params->key_;
 
