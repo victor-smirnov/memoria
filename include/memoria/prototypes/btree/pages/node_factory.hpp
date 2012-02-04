@@ -104,9 +104,23 @@ public:
 
     Int data_size() const
     {
-        Int size = map().size();
+        //FIXME: use c++11 offsetof
+
+    	Int size = map().size();
         Me* me = NULL;
         return (Int)(BigInt)&me->map().key(size);
+    }
+
+    void set_size(Int map_size)
+    {
+    	Base::size() 	= map_size;
+    	map_.size() 	= map_size;
+    }
+
+    void inc_size(Int count)
+    {
+    	Base::size() 	+= count;
+    	map_.size() 	+= count;
     }
 
     template <template <typename> class FieldFactory>
@@ -120,7 +134,8 @@ public:
     {
         Base::CopyFrom(page);
 
-        map().size()   = page->map().size();
+        //FIXME: use page->size()
+        set_size(page->map().size());
 
         for (Int c = 0; c < page->map().size(); c++)
         {
@@ -128,6 +143,7 @@ public:
             {
                 map().key(d, c) = page->map().key(d, c);
             }
+
             map().data(c) = page->map().data(c);
         }
 
@@ -137,6 +153,7 @@ public:
             {
                 map().key(d, c) = 0;
             }
+
             map().data(c) = 0;
         }
     }

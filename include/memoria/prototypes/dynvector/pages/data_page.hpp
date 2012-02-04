@@ -87,6 +87,7 @@ public:
     {
         Me* me = NULL;
         //FIXME: strict alias ?????????
+        //Use c++11 offsetof
         return ((Int)(BigInt)&me->data_) + data_.byte_size();
     }
 

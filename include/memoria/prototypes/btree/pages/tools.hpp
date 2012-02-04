@@ -29,19 +29,23 @@ public:
     	from_(from), count_(count), increase_children_count_(increase_children_count) {}
 
     template <typename Node>
-    void operator()(Node *node) {
+    void operator()(Node *node)
+    {
         node->map().MoveData(from_ + count_, from_, node->map().size() - from_);
 
-        for (Int c = from_; c < from_ + count_; c++) {
+        for (Int c = from_; c < from_ + count_; c++)
+        {
             node->map().key(c)  = 0;
             node->map().data(c) = 0;
         }
 
-        if (increase_children_count_) {
-        	node->map().size() += count_;
+        if (increase_children_count_)
+        {
+        	node->inc_size(count_);
         	total_children_count_ = node->map().size();
         }
-        else {
+        else
+        {
         	total_children_count_ = node->map().size() + count_;
         }
     }
@@ -122,8 +126,8 @@ public:
             one->map().data(c) = 0;
         }
 
-        one->map().size() -= count_;
-        two->map().size() += count_ + shift_;
+        one->inc_size(-count_);
+        two->inc_size(count_ + shift_);
 
         for (Int c = 0; c < shift_; c++)
         {
@@ -158,7 +162,7 @@ class AccumulateChildrenCountersFn {
     Int         from_;
     Int         shift_;
     Int         count_;
-    Allocator&    allocator_;
+    Allocator&  allocator_;
     
     typedef PageGuard<BaseNode, Allocator> BaseNodeG;
 
@@ -173,7 +177,7 @@ public:
         {
             BaseNodeG child = allocator_.GetPage(two->map().data(c), Allocator::UPDATE);
 
-            child->parent_id() = two->id();
+            child->parent_id()  = two->id();
             child->parent_idx() -= from_;
             child->parent_idx() += shift_;
 
@@ -204,7 +208,7 @@ struct UpdateChildrenParentIdxFn {
     Int         from_;
     Int         shift_;
     Int         count_;
-    Allocator&    allocator_;
+    Allocator&  allocator_;
     
     typedef PageGuard<NodeBase, Allocator> BaseNodeG;
 
@@ -294,7 +298,8 @@ public:
             from_(from), count_(count), reindex_(reindex) {}
 
     template <typename Node>
-    void operator()(Node *node) {
+    void operator()(Node *node)
+    {
         if (from_ + count_ < node->map().size())
         {
             node->map().MoveData(from_, from_ + count_, node->map().size() - (from_ + count_));
@@ -309,9 +314,10 @@ public:
             node->map().data(c) = 0;
         }
 
-        node->map().size() -= count_;
+        node->inc_size(-count_);
 
-        if (reindex_) {
+        if (reindex_)
+        {
             node->map().Reindex();
         }
     }
@@ -412,6 +418,9 @@ static NodePage2 *Node2Node(NodePage1 *src, bool root)
 
     tgt->page_type_hash()   = NodePage2::hash();
 //    tgt->model_hash()       = src->model_hash();
+
+    // FIXME: why we don't set tgt->map.size() here?
+    // check it!!!
 
     for (Int c = 0; c < src->map().size(); c++)
     {
@@ -602,15 +611,17 @@ public:
     SetChildrenCountFn(Int count): count_(count) {}
 
     template <typename T>
-    void operator()(T *node) {
-        node->map().size() = count_;
+    void operator()(T *node)
+    {
+        node->set_size(count_);
     }
 };
 
 
 
 template <typename Dispatcher, typename Node, typename Int>
-void SetChildrenCount(Node *node, Int count) {
+void SetChildrenCount(Node *node, Int count)
+{
     SetChildrenCountFn<Int> fn(count);
     Dispatcher::Dispatch(node, fn);
 }
@@ -622,14 +633,16 @@ public:
     AddChildrenCountFn(Int count): count_(count) {}
 
     template <typename T>
-    void operator()(T *node) {
-        node->map().size() += count_;
+    void operator()(T *node)
+    {
+        node->inc_size(count_);
     }
 };
 
 
 template <typename Dispatcher, typename Node, typename Int>
-void AddChildrenCount(Node *node, Int count) {
+void AddChildrenCount(Node *node, Int count)
+{
     AddChildrenCountFn<Int> fn(count);
     Dispatcher::Dispatch(node, fn);
 }

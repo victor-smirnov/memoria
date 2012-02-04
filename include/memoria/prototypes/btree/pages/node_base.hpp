@@ -34,6 +34,8 @@ class TreePage: public Allocator_::Page {
     Int leaf_;
     Int bitmap_;
 
+    Int size_;
+
 public:
 
     enum {
@@ -107,6 +109,18 @@ public:
     	bitmap_ = bitmap;
     }
 
+    Int size() const
+    {
+    	return size_;
+    }
+
+protected:
+    Int& size()
+    {
+    	return size_;
+    }
+public:
+
     template <template <typename> class FieldFactory>
     void BuildFieldsList(MetadataList &list, Long &abi_ptr) const {
         Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
@@ -125,6 +139,8 @@ public:
 
         FieldFactory<ID>::create(list,  parent_id(),  "PARENT_ID",  abi_ptr);
         FieldFactory<Int>::create(list, parent_idx(), "PARENT_IDX", abi_ptr);
+
+        FieldFactory<Int>::create(list, size_, "SIZE", abi_ptr);
     }
 
     template <typename PageType>

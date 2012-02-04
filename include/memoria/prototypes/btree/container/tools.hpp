@@ -568,9 +568,9 @@ public:
     }
 
 
-    static Int GetChildrenCount(NodeBase *node)
+    static Int GetChildrenCount(const NodeBase *node)
     {
-        return memoria::btree::GetChildrenCount<NodeDispatcher>(node);
+        return node->size();
     }
 
     static Key GetKey(NodeBase *node, Int i, Int idx)

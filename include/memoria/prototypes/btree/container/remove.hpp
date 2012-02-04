@@ -160,11 +160,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
         Int start_;
     public:
         template <typename T1, typename T2>
-        void operator()(T1 *page1, T2 *page2) {
+        void operator()(T1 *page1, T2 *page2)
+        {
             start_ = page1->map().size();
 
             page2->map().CopyData(0, page2->map().size(), page1->map(), page1->map().size());
-            page1->map().size() += page2->map().size();
+            page1->inc_size(page2->map().size());
             page1->map().Reindex();
         }
 
@@ -188,7 +189,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      * FIXME: optimize. Add a flag for absolute key value preserving.
      *
      */
-    bool RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int stop_idx, Key* keys, bool preserve_key_values = true);
+    bool RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int& stop_idx, Key* keys, bool preserve_key_values = true);
 
 
     bool MergeWithSiblings(NodeBaseG& node, Int& key_idx);
@@ -209,7 +210,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      */
     bool RemoveEntry(Iterator& iter) ;
 
-    bool RemoveEntries(Iterator from, Iterator to);
+    bool RemoveEntries(Iterator& from, Iterator& to);
 
     void Drop();
 
@@ -438,29 +439,26 @@ bool M_TYPE::MergeBTreeNodes(NodeBaseG& page1, NodeBaseG& page2)
 }
 
 M_PARAMS
-bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int stop_idx, Key* keys, bool preserve_key_values)
+bool M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int& stop_idx, Key* keys, bool preserve_key_values)
 {
-	if (start == NULL || stop == NULL)
-	{
-		MEMORIA_TRACE(me(), "RemovePages", start, stop);
-		return false;
-	}
-
-	MEMORIA_TRACE(me(), "RemovePages", start->id(), start_idx, stop->id(), stop_idx);
-
 	if (start->id() == stop->id())
 	{
+		// Removal within the same BTree node
+
 		bool affected = false;
 
 		Int children_count = me()->GetChildrenCount(start);
 
 		if (start_idx == -1 && stop_idx == children_count)
 		{
-			MEMORIA_TRACE(me(), "RemovePages: full page");
-
+			// Remove the whole node
 			NodeBaseG parent;
 			Int parent_idx = start->parent_idx();
 
+			// Go toward the root until a node with more
+			// than one child is found
+
+			//FIXME: start/stop indexes for iterators?
 			while (!start->is_root())
 			{
 				parent      = me()->GetParent(start, Allocator::UPDATE);
@@ -477,38 +475,43 @@ bool M_TYPE::RemovePages(NodeBaseG start, Int start_idx, NodeBaseG stop, Int sto
 				}
 			}
 
+			// Remove the root node if we have reach it
+			// The Ctr is empty since this time.
 			if (start->is_root())
 			{
 				me()->RemoveNode(start);
 				affected = true;
 				me()->set_root(ID(0));
+
+				start_idx = stop_idx = 0;
 			}
 			else if (MapType == MapTypes::Sum && preserve_key_values && parent != NULL)
 			{
+				// For PartialSum containers we have to calculate values of removed sums
+				// and add them to the 'next' keyset (the first one after removed
+				// region) - if exists.
+
 				if (parent_idx <= me()->GetChildrenCount(parent) - 1)
 				{
-					MEMORIA_TRACE(me(), "RemovePages: within ranges", parent_idx, me()->GetChildrenCount(parent));
+					// FIXME: refactoring
 					me()->AddKeys(parent, parent_idx, keys);
 					me()->UpdateBTreeKeys(parent);
 				}
 				else {
-					MEMORIA_TRACE(me(), "RemovePages: out of ranges", parent_idx, me()->GetChildrenCount(parent));
-
 					parent = Iterator(*me()).GetNextNode(parent);
 					if (parent != NULL)
 					{
+						// FIXME: refactoring
 						me()->AddKeys(parent, 0, keys);
 						me()->UpdateBTreeKeys(parent);
-					}
-					else {
-						MEMORIA_TRACE(me(), "RemovePages: no right sibling for", parent->id());
 					}
 				}
 			}
 		}
 		else if (stop_idx - start_idx > 1)
 		{
-			MEMORIA_TRACE(me(), "RemovePages: remove page part");
+			//Remove some space within the node
+
 			affected = me()->RemoveSpace(start, start_idx + 1, stop_idx - start_idx - 1, true, true, keys, preserve_key_values) || affected;
 
 			if (start_idx >= 0 && stop_idx < children_count)
@@ -799,7 +802,7 @@ bool M_TYPE::RemoveEntry(Iterator& iter)
  */
 
 M_PARAMS
-bool M_TYPE::RemoveEntries(Iterator from, Iterator to)
+bool M_TYPE::RemoveEntries(Iterator& from, Iterator& to)
 {
 	if (from.IsEmpty() || from.IsEnd())
 	{
@@ -815,18 +818,22 @@ bool M_TYPE::RemoveEntries(Iterator from, Iterator to)
 
 	if (to.key_idx() == 0 && to.PrevLeaf())
 	{
-		stop_idx    = me()->GetChildrenCount(to.page());
+		stop_idx = me()->GetChildrenCount(to.page());
 	}
 	else
 	{
-		stop_idx    = to.key_idx();
+		stop_idx = to.key_idx();
 	}
 
 
 	Key keys[Indexes] = {0};
 
 	from.key_idx()--;
-	return me()->RemovePages(from.page(), from.key_idx(), to.page(), stop_idx, keys);
+	bool result = me()->RemovePages(from.page(), from.key_idx(), to.page(), stop_idx, keys);
+
+
+
+	return result;
 }
 
 M_PARAMS
