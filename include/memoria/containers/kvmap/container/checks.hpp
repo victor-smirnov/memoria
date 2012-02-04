@@ -80,7 +80,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
     {
     	bool errors = Base::check_node_content(node);
 
-        Int children = me()->GetChildrenCount(node);
+        Int children = node->children_count();
 
         Key k0;
         for (Int c = 0; c < children; c++)

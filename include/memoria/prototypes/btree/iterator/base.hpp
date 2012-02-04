@@ -93,7 +93,7 @@ public:
 
     bool IsEnd()
     {
-    	return page() != NULL ? key_idx() >= me()->model().GetChildrenCount(page()) : true;
+    	return page() != NULL ? key_idx() >= page()->children_count() : true;
     }
 
     bool IsNotEnd()
@@ -103,7 +103,7 @@ public:
 
     bool IsEmpty()
     {
-    	return page() == NULL || me()->model().GetChildrenCount(page()) == 0;
+    	return page() == NULL || page()->children_count() == 0;
     }
 
     bool IsNotEmpty()

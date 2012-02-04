@@ -991,7 +991,7 @@ protected:
 
     node_base* get_last_child(node_base *node) {
         BV_NODE_CAST2(node,
-            return static_cast<node_base*>(_allocator.get(_txn, __node->map().data(__node->map().size() - 1)))
+            return static_cast<node_base*>(_allocator.get(_txn, __node->map().data(__node->children_count() - 1)))
         );
     }
 
@@ -1000,7 +1000,7 @@ protected:
     }
 
     static index_t get_children_count(node_base *page) {
-        BV_NODE_CAST2(page, return __page->map().size());
+        BV_NODE_CAST2(page, return __page->children_count());
     }
 
     static csize_t get_key(node_base *page, index_t i, index_t idx) {

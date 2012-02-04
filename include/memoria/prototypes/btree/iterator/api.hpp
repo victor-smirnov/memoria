@@ -83,7 +83,7 @@ bool M_TYPE::NextKey()
 {
 	if (!me()->IsEnd())
 	{
-		if (me()->key_idx() < me()->GetChildrenCount(me()->page()) - 1)
+		if (me()->key_idx() < me()->page()->children_count() - 1)
 		{
 			me()->key_idx()++;
 			me()->ReHash();
@@ -95,7 +95,7 @@ bool M_TYPE::NextKey()
 				me()->key_idx() = 0;
 			}
 			else {
-				me()->key_idx() = me()->GetChildrenCount(me()->page());
+				me()->key_idx() = me()->page()->children_count();
 			}
 
 			me()->ReHash();
@@ -120,7 +120,7 @@ bool M_TYPE::PrevKey()
 		bool val = me()->PrevLeaf();
 
 		if (val) {
-			me()->key_idx() = me()->GetChildrenCount(me()->page()) - 1;
+			me()->key_idx() = me()->page()->children_count() - 1;
 		}
 		else {
 			me()->key_idx() = -1;
@@ -152,7 +152,7 @@ bool M_TYPE::PrevLeaf()
 	if (node != NULL)
 	{
 		me()->page() = node;
-		me()->key_idx() = me()->GetChildrenCount(me()->page()) - 1;
+		me()->key_idx() = me()->page()->children_count() - 1;
 		return true;
 	}
 	return false;
@@ -199,7 +199,7 @@ typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(NodeBase* page)
 M_PARAMS
 typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBase* page, Int &idx1, Int level)
 {
-	if (idx1 < me()->GetChildrenCount(page) - 1)
+	if (idx1 < page->children_count() - 1)
 	{
 		NodeBaseG page0 = me()->GetChild(page, idx1 + 1, Allocator::READ);
 

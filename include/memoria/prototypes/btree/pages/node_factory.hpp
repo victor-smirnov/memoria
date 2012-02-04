@@ -104,9 +104,23 @@ public:
 
     Int data_size() const
     {
-        Int size = map().size();
+        //FIXME: use c++11 offsetof
+
+    	Int size = this->children_count();
         Me* me = NULL;
         return (Int)(BigInt)&me->map().key(size);
+    }
+
+    void set_children_count(Int map_size)
+    {
+    	Base::map_size() = map_size;
+    	map_.size() 	 = map_size;
+    }
+
+    void inc_size(Int count)
+    {
+    	Base::map_size() += count;
+    	map_.size() 	 += count;
     }
 
     template <template <typename> class FieldFactory>
@@ -120,28 +134,32 @@ public:
     {
         Base::CopyFrom(page);
 
-        map().size()   = page->map().size();
+        //FIXME: use page->size()
+        set_children_count(page->children_count());
 
-        for (Int c = 0; c < page->map().size(); c++)
+        for (Int c = 0; c < page->children_count(); c++)
         {
             for (Int d = 0; d < INDEXES; d++)
             {
-                map().key(d, c) = page->map().key(d, c);
+                map_.key(d, c) = page->map().key(d, c);
             }
-            map().data(c) = page->map().data(c);
+
+            map_.data(c) = page->map().data(c);
         }
 
-        for (Int c = map().size(); c < map().max_size(); c++)
+        for (Int c = this->children_count(); c < map_.max_size(); c++)
         {
             for (Int d = 0; d < INDEXES; d++)
             {
-                map().key(d, c) = 0;
+                map_.key(d, c) = 0;
             }
+
             map().data(c) = 0;
         }
     }
 
-    static Int get_page_size(const void* buf) {
+    static Int get_page_size(const void* buf)
+    {
         const Me* me = static_cast<const Me*>(buf);
         return me->data_size();
     }

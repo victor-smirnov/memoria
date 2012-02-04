@@ -64,7 +64,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
 
             node->map().data(i_) = data_;
 
-            if (i_ < node->map().size() - 1) {
+            if (i_ < node->children_count() - 1) {
                 for (Int c = 0; c < Indexes; c++) {
                     node->map().key(c, i_ + 1) -= keys_[c];
                 }
@@ -134,7 +134,7 @@ void M_TYPE::SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, co
 			{
 				me()->UpdateBTreeKeys(i.page());
 			}
-			else if (i.key_idx() >= me()->GetChildrenCount(i.page()) -1)
+			else if (i.key_idx() >= i.page()->children_count() - 1)
 			{
 				me()->UpdateBTreeKeys(i.page());
 			}
@@ -150,7 +150,7 @@ bool M_TYPE::CheckNodeContent(Node *node) {
 	for (Int i = 0; i < Indexes; i++) {
 		Key key = 0;
 
-		for (Int c = 0; c < node->map().size(); c++) {
+		for (Int c = 0; c < node->children_count(); c++) {
 			key += node->map().key(i, c);
 		}
 

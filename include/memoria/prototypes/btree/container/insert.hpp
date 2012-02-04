@@ -75,10 +75,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
         InsertFn(const Keys *keys, const Data *data): keys_(keys), data_(data) {}
 
         template <typename Node>
-        void operator()(Node *node) {
-            node->map().size() = 1;
+        void operator()(Node *node)
+        {
+            node->set_children_count(1);
 
-            for (Int c = 0; c < Node::INDEXES; c++) {
+            for (Int c = 0; c < Node::INDEXES; c++)
+            {
                 node->map().key(c, 0) = keys_[c];
             }
 
@@ -177,11 +179,11 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG& one, NodeBaseG& parent, 
 		counters.page_count()           = 0;
 		two->counters().page_count()    = 1;
 
-		Int one_children_count = me()->GetChildrenCount(one);
+		Int one_children_count = one->children_count();
 		counters.key_count() = one->counters().key_count() - one_children_count;
 		one->counters().key_count() = one_children_count;
 
-		two->counters().key_count() = me()->GetChildrenCount(two);
+		two->counters().key_count() = two->children_count();
 	}
 
 	two->parent_idx() = parent_idx;
@@ -226,18 +228,17 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitBTreeNode(NodeBaseG& page, Int count_lea
 		Int idx_in_parent = page->parent_idx();
 		if (me()->GetCapacity(parent) == 0)
 		{
-			MEMORIA_TRACE(me(), "Parent", parent->id(), "is full", idx_in_parent, me()->GetChildrenCount(parent));
 			Int parent_idx;
 
-			if (idx_in_parent < me()->GetChildrenCount(parent) - 1)
+			if (idx_in_parent < parent->children_count() - 1)
 			{
 				parent = me()->SplitBTreeNode(parent, idx_in_parent + 1, 1);
 				parent_idx = 0;
 			}
 			else
 			{
-				parent = SplitBTreeNode(parent, me()->GetChildrenCount(parent) / 2, 0);
-				parent_idx = me()->GetChildrenCount(parent);
+				parent = SplitBTreeNode(parent, parent->children_count() / 2, 0);
+				parent_idx = parent->children_count();
 				me()->InsertSpace(parent, parent_idx, 1);
 			}
 
@@ -300,20 +301,20 @@ void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 		}
 		else if (idx == 0)
 		{
-			SplitBTreeNode(node, me()->GetChildrenCount(node) / 2, 0);
+			SplitBTreeNode(node, node->children_count() / 2, 0);
 			idx = 0;
 			InsertSpace(node, idx, 1);
 		}
-		else if (idx < me()->GetChildrenCount(node))
+		else if (idx < node->children_count())
 		{
 			//FIXME: does it necessary to split the page at the middle ???
 			SplitBTreeNode(node, idx, 0);
 			InsertSpace(node, idx, 1);
 		}
 		else {
-			node = SplitBTreeNode(node, me()->GetChildrenCount(node) / 2, 0);
+			node = SplitBTreeNode(node, node->children_count() / 2, 0);
 
-			idx = me()->GetChildrenCount(node);
+			idx = node->children_count();
 			InsertSpace(node, idx, 1);
 
 			iter.page() = node;
@@ -322,7 +323,7 @@ void M_TYPE::InsertEntry(Iterator &iter, const Key *keys, const Value &value)
 
 		me()->SetLeafDataAndReindex(node, idx, keys, value);
 
-		if (idx >= me()->GetChildrenCount(node) - 1) {
+		if (idx >= node->children_count() - 1) {
 			me()->UpdateBTreeKeys(node);
 		}
 

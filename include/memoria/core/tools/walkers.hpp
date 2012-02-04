@@ -38,7 +38,7 @@ public:
 	{
 		if (Forward)
 		{
-			for (Int c = idx; c < node->map().size(); c++)
+			for (Int c = idx; c < node->children_count(); c++)
 			{
 				Key key = node->map().key(key_num_, c);
 				if (key + sum_ <= target_)
@@ -105,7 +105,7 @@ public:
 		{
 			if (node->is_leaf())
 			{
-				for (Int c = idx; c < node->map().size(); c++)
+				for (Int c = idx; c < node->children_count(); c++)
 				{
 					CountType count = 1;
 					if (count + sum_ <= target_)
@@ -118,7 +118,7 @@ public:
 				}
 			}
 			else {
-				for (Int c = idx; c < node->map().size(); c++)
+				for (Int c = idx; c < node->children_count(); c++)
 				{
 					NodeBaseG child = me_.allocator().GetPage(node->map().data(c), Container::Allocator::READ);
 
@@ -218,7 +218,7 @@ public:
 		{
 			if (node->is_leaf())
 			{
-				for (Int c = idx; c < node->map().size(); c++)
+				for (Int c = idx; c < node->children_count(); c++)
 				{
 					CountType count = 1;
 					if (count + sum_ <= target_)
@@ -235,7 +235,7 @@ public:
 				}
 			}
 			else {
-				for (Int c = idx; c < node->map().size(); c++)
+				for (Int c = idx; c < node->children_count(); c++)
 				{
 					NodeBaseG child = me_.allocator().GetPage(node->map().data(c), Container::Allocator::READ);
 

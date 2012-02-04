@@ -81,7 +81,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
             BigInt keys = 0;
             while (!node->is_leaf())
             {
-                Int size = me()->GetChildrenCount(node);
+                Int size = node->children_count();
 
                 Int idx = -1;
 

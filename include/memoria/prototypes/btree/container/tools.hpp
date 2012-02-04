@@ -317,7 +317,7 @@ public:
         template <typename T>
         void operator()(T *node) {
             typedef typename memoria::Type2TypeMap<T, TypeMap, void>::Result RootType;
-            can_ = node->map().size() <= RootType::Map::max_size();
+            can_ = node->children_count() <= RootType::Map::max_size();
         }
 
         bool can() const {
@@ -393,11 +393,11 @@ public:
         {
             if (max_node_capacity_ == -1)
             {
-                cap_ = (node->map().max_size() - node->map().size());
+                cap_ = (node->map().max_size() - node->children_count());
             }
             else
             {
-                Int capacity = max_node_capacity_ - node->map().size();
+                Int capacity = max_node_capacity_ - node->children_count();
                 cap_ = capacity > 0 ? capacity : 0;
             }
         }
@@ -565,12 +565,6 @@ public:
     NodeBaseG GetNode(ID &id, Int flags)
     {
         return me()->allocator().GetPage(id, flags);
-    }
-
-
-    static Int GetChildrenCount(NodeBase *node)
-    {
-        return memoria::btree::GetChildrenCount<NodeDispatcher>(node);
     }
 
     static Key GetKey(NodeBase *node, Int i, Int idx)

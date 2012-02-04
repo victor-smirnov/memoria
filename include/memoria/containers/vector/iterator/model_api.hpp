@@ -172,7 +172,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			// is the last one in the index node
 			if (distance + data_pos == data_size)
 			{
-				if (me()->key_idx() == me()->model().GetChildrenCount(me()->page()) - 1)
+				if (me()->key_idx() == me()->page()->children_count() - 1)
 				{
 					NodeBaseG next = me()->GetNextNode();
 					if (next == NULL)

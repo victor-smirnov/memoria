@@ -322,7 +322,7 @@ void M_TYPE::import_pages(
 		// target indexpage is full and we are at it's end
 		index_prefix = 0;
 	}
-	else if (key_idx == me()->GetChildrenCount(node))
+	else if (key_idx == node->children_count())
 	{
 		// target indexpage is not full but we are at it's end
 		index_prefix = target_indexpage_capacity >= total_full_datapages ? total_full_datapages : target_indexpage_capacity;
@@ -373,11 +373,11 @@ void M_TYPE::import_pages(
 	// Import several full indexpages into the btree
 	for (BigInt c = 0; c < total_full_indexpages; c++)
 	{
-		node = me()->SplitBTreeNode(node, me()->GetChildrenCount(node), 0);
+		node = me()->SplitBTreeNode(node, node->children_count(), 0);
 
 		import_several_pages(node, 0, block, descriptor, max_indexpage_size);
 
-		key_idx = me()->GetChildrenCount(node);
+		key_idx = node->children_count();
 	}
 
 
@@ -395,9 +395,9 @@ void M_TYPE::import_pages(
 		}
 		else
 		{
-			Int split_at = me()->GetChildrenCount(node);
+			Int split_at = node->children_count();
 
-			//FIXME: If me()->GetChildrenCount(node) is valid here?!
+			//FIXME: If node->children_count() is valid here?!
 			//Note this case in SplitBTreeNode() docs if so
 			node = me()->SplitBTreeNode(node, split_at);
 		}
@@ -471,7 +471,7 @@ void M_TYPE::import_pages(
 	else {
 
 		iter.page() 	= node;
-		iter.key_idx() 	= me()->GetChildrenCount(node) - 1;
+		iter.key_idx() 	= node->children_count() - 1;
 		iter.data() 	= me()->GetDataPage(node, iter.key_idx(), Allocator::READ);
 		iter.data_pos() = iter.data()->data().size();
 	}
