@@ -87,9 +87,9 @@ bitmap_node* create_bitmap(node_base* node, index_t idx, txn_t &txn)
 
                   __node->map().data(idx) = bitmap->id();
 
-                  if (idx >= __node->map().size())
+                  if (idx >= __node->children_count())
     {
-    __node->map().size() += idx - __node->map().size() + 1;
+    __node->children_count() += idx - __node->children_count() + 1;
     }
                  );
     return bitmap;
@@ -175,7 +175,7 @@ void insert_space(node_base *node, index_t from, index_t count, txn_t &txn)
             __node->inserted_idx() += count;
         }
 
-        __node->map().move_data(from + count, from, __node->map().size() - from);
+        __node->map().move_data(from + count, from, __node->children_count() - from);
 
         for (index_t c = from; c < from + count; c++)
         {
@@ -186,9 +186,9 @@ void insert_space(node_base *node, index_t from, index_t count, txn_t &txn)
             __node->map().data(c) = 0;
         }
 
-        __node->map().size() += count;
+        __node->children_count() += count;
 
-        for (index_t c = from + count; c < __node->map().size(); c++)
+        for (index_t c = from + count; c < __node->children_count(); c++)
         {
             tree_node *child = static_cast<tree_node*>(allocator().get(txn, __node->map().data(c)));
             child->parent_idx() += count;
@@ -257,12 +257,12 @@ void remove_space(node_base *node, index_t from, index_t count, bool update, boo
             }
         }
 
-        if (from + count < __node->map().size())
+        if (from + count < __node->children_count())
         {
-            __node->map().move_data(from, from + count, __node->map().size() - (from + count));
+            __node->map().move_data(from, from + count, __node->children_count() - (from + count));
         }
 
-        for (index_t c = __node->map().size() - count; c < __node->map().size(); c++)
+        for (index_t c = __node->children_count() - count; c < __node->children_count(); c++)
         {
             for (index_t d = 0; d < __node->INDEXES; d++)
             {
@@ -270,9 +270,9 @@ void remove_space(node_base *node, index_t from, index_t count, bool update, boo
             }
             __node->map().data(c) = 0;
         }
-        __node->map().size() -= count;
+        __node->children_count() -= count;
 
-        for (index_t c = from; c < __node->map().size(); c++)
+        for (index_t c = from; c < __node->children_count(); c++)
         {
             tree_node *child = static_cast<tree_node*>(allocator().get(txn, __node->map().data(c)));
             child->parent_idx() -= count;
@@ -287,7 +287,7 @@ void remove_node(node_base *node, txn_t &txn)
     if (node->is_leaf())
     {
         BV_NODE_CAST2(node,
-            for (index_t c = 0; c < __node->map().size(); c++)
+            for (index_t c = 0; c < __node->children_count(); c++)
             {
                 _allocator.free(txn, __node->map().data(c));
             }
@@ -314,11 +314,11 @@ node_base* split_node(node_base *one, node_base *parent, index_t parent_idx, ind
         __two->level() = __one->level();
         __two->set_leaf(__one->is_leaf());
 
-        count = __one->map().size() - from;
+        count = __one->children_count() - from;
 
-        if (__two->map().size() > 0)
+        if (__two->children_count() > 0)
         {
-            __two->map().move_data(count + shift, 0, __two->map().size());
+            __two->map().move_data(count + shift, 0, __two->children_count());
         }
 
         __one->map().copy_data(from, count, __two->map(), shift);
@@ -332,8 +332,8 @@ node_base* split_node(node_base *one, node_base *parent, index_t parent_idx, ind
             __one->map().data(c) = 0;
         }
 
-        __one->map().size() -= count;
-        __two->map().size() += count + shift;
+        __one->children_count() -= count;
+        __two->children_count() += count + shift;
 
         for (index_t c = 0; c < shift; c++)
         {
@@ -367,7 +367,7 @@ node_base* split_node(node_base *one, node_base *parent, index_t parent_idx, ind
             }
         }
 
-        for (index_t c = count + shift; c < __two->map().size(); c++)
+        for (index_t c = count + shift; c < __two->children_count(); c++)
         {
             tree_node *child = static_cast<tree_node*>(allocator().get(txn, __two->map().data(c)));
             child->parent_idx() += count + shift;
@@ -399,9 +399,9 @@ node_base* split_node(node_base *one, node_base *parent, index_t parent_idx, ind
 
     BV_NODE_CAST2(two,
         BV_NODE_CAST2(parent,
-            if (parent_idx == __parent->map().size())
+            if (parent_idx == __parent->children_count())
             {
-                __parent->map().size()++;
+                __parent->children_count()++;
             }
 
             __parent->map().data(parent_idx) = __two->id();

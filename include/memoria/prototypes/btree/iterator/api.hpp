@@ -83,7 +83,7 @@ bool M_TYPE::NextKey()
 {
 	if (!me()->IsEnd())
 	{
-		if (me()->key_idx() < me()->GetChildrenCount(me()->page()) - 1)
+		if (me()->key_idx() < me()->page()->children_count() - 1)
 		{
 			me()->key_idx()++;
 			me()->ReHash();

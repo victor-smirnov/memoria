@@ -85,7 +85,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
                 idx = node->map().FindLES(key_num, key, current_prefix);
             }
             
-            if (idx == -1 && node->map().size() > 0)
+            if (idx == -1 && node->children_count() > 0)
             {
                 Key tmp;
                 
@@ -94,7 +94,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
                     tmp = node->map().max_key(key_num);
                 }
                 else {
-                    tmp = node->map().max_key(key_num) - node->map().key(key_num, node->map().size() - 1);
+                    tmp = node->map().max_key(key_num) - node->map().key(key_num, node->children_count() - 1);
                 }
 
                 current_prefix += tmp;

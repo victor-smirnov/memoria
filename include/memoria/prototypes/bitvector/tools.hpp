@@ -22,7 +22,7 @@ node_base *node2node(NodePage1 *src, bool root)
 
     tgt->set_root(root);
 
-    for (index_t c = 0; c < src->map().size(); c++)
+    for (index_t c = 0; c < src->children_count(); c++)
     {
         for (index_t d = 0; d < src->INDEXES; d++)
         {
@@ -30,9 +30,9 @@ node_base *node2node(NodePage1 *src, bool root)
         }
         tgt->map().data(c) = src->map().data(c);
     }
-    tgt->map().size() = src->map().size();
+    tgt->children_count() = src->children_count();
 
-    for (index_t c = tgt->map().size(); c < tgt->map().max_size(); c++)
+    for (index_t c = tgt->children_count(); c < tgt->map().max_size(); c++)
     {
         for (index_t d = 0; d < src->INDEXES; d++)
         {
@@ -91,7 +91,7 @@ bool can_convert_to_root(node_base *node)
     }
 
     //TODO Why ROOT_CAST ?
-    BV_ROOT_CAST2(node, return __node->map().size() <= node_max_size);
+    BV_ROOT_CAST2(node, return __node->children_count() <= node_max_size);
 }
 
 
@@ -149,7 +149,7 @@ static bitmap_node* get_bitmap(node_base *node, index_t idx, Allocator &allocato
 static node_base* get_last_child(node_base *node, Allocator &allocator, txn_t &txn)
 {
     BV_NODE_CAST2(node,
-        return static_cast<node_base*>(allocator.get(txn, __node->map().data(__node->map().size() - 1)))
+        return static_cast<node_base*>(allocator.get(txn, __node->map().data(__node->children_count() - 1)))
     );
 }
 
@@ -180,11 +180,11 @@ index_t get_capacity(node_base *node)
     BV_NODE_CAST2(node,
         if (_max_node_capacity == -1)
         {
-            return (__node->map().max_size() - __node->map().size());
+            return (__node->map().max_size() - __node->children_count());
         }
         else
         {
-            index_t capacity = _max_node_capacity - __node->map().size();
+            index_t capacity = _max_node_capacity - __node->children_count();
             return capacity > 0 ? capacity : 0;
         }
     );
@@ -221,7 +221,7 @@ static node_base* get_parent(node_base *node, Allocator &allocator, txn_t &txn)
 
 static index_t get_children_count(node_base *page)
 {
-    BV_NODE_CAST2(page, return __page->map().size());
+    BV_NODE_CAST2(page, return __page->children_count());
 }
 
 static csize_t get_key(node_base *page, index_t i, index_t idx)

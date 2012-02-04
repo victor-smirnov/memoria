@@ -104,14 +104,14 @@ public:
             {
             	if (!node->is_leaf())
                 {
-                    idx_     = node->map().size() - 1;
+                    idx_     = node->children_count() - 1;
                     node_    = model_.GetChild(node, idx_, Allocator::READ);
                 }
                 else
                 {
                     node_           = model_.allocator().GetPageG(node);
                     i_.page()       = node_;
-                    i_.key_idx()    = node->map().size();
+                    i_.key_idx()    = node->children_count();
                     cmp_.SetupIterator(i_);
 
 //                    i_.Init();
@@ -266,7 +266,7 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 			node = me()->GetLastChild(node, Allocator::READ);
 		}
 
-		return Iterator(node, me()->GetChildrenCount(node), *me(), true);
+		return Iterator(node, node->children_count(), *me(), true);
 	}
 	else {
 		return Iterator(*me());
@@ -285,7 +285,7 @@ typename M_TYPE::Iterator M_TYPE::FindRStart()
 			node = me()->GetLastChild(node, Allocator::READ);
 		}
 
-		return Iterator(node, me()->GetChildrenCount(node) - 1, *me(), true);
+		return Iterator(node, node->children_count() - 1, *me(), true);
 	}
 	else {
 		return Iterator(*me());

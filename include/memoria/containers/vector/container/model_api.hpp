@@ -58,9 +58,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
     	template <typename Node>
     	void operator()(Node *node)
     	{
-    		for (Int c = 0; c < Indexes; c++)
+    		for (Int idx_num = 0; idx_num < Indexes; idx_num++)
     		{
-    			node->map().key(c, node->map().size()) = keys_[c];
+    			node->map().key(idx_num, node->size()) = keys_[idx_num];
     		}
 
     		node->inc_size(1);

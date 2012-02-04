@@ -114,8 +114,13 @@ public:
     	return size_;
     }
 
+    Int children_count() const
+    {
+    	return size_;
+    }
+
 protected:
-    Int& size()
+    Int& map_size()
     {
     	return size_;
     }

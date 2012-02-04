@@ -9,7 +9,7 @@
 bool can_merge(node_base *page1, node_base *page2)
 {
     BV_NODE_CAST2(page2,
-        return __page2->map().size() <= get_capacity(page1)
+        return __page2->children_count() <= get_capacity(page1)
     );
 }
 
@@ -21,16 +21,16 @@ static bool is_same_parent(node_base *page1, node_base *page2)
 void merge_nodes(node_base *page1, node_base *page2, txn_t txn, bool fix_parent = true)
 {
     BV_NODE_CAST3(page1, page2, {
-        index_t start = __page1->map().size();
+        index_t start = __page1->children_count();
 
-        __page2->map().copy_data(0, __page2->map().size(), __page1->map(), __page1->map().size());
+        __page2->map().copy_data(0, __page2->children_count(), __page1->map(), __page1->children_count());
 
-        __page1->map().size() += __page2->map().size();
+        __page1->children_count() += __page2->children_count();
         __page1->page_count() += __page2->page_count();
 
         __page1->map().reindex();
 
-        for (index_t c = start; c < __page1->map().size(); c++)
+        for (index_t c = start; c < __page1->children_count(); c++)
         {
             tree_node *child = static_cast<tree_node*>(allocator().get(txn, __page1->map().data(c)));
             child->parent_id() = __page1->id();

@@ -140,7 +140,7 @@ M_PARAMS
 void M_TYPE::check_node_tree(NodeBaseG& node, bool &errors)
 {
 	errors = me()->check_node_content(node) || errors;
-	Int children = me()->GetChildrenCount(node);
+	Int children = node->children_count();
 
 	if (node->is_leaf())
 	{

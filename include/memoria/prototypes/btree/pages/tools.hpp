@@ -31,7 +31,7 @@ public:
     template <typename Node>
     void operator()(Node *node)
     {
-        node->map().MoveData(from_ + count_, from_, node->map().size() - from_);
+        node->map().MoveData(from_ + count_, from_, node->children_count() - from_);
 
         for (Int c = from_; c < from_ + count_; c++)
         {
@@ -42,11 +42,11 @@ public:
         if (increase_children_count_)
         {
         	node->inc_size(count_);
-        	total_children_count_ = node->map().size();
+        	total_children_count_ = node->children_count();
         }
         else
         {
-        	total_children_count_ = node->map().size() + count_;
+        	total_children_count_ = node->children_count() + count_;
         }
     }
 
@@ -106,13 +106,13 @@ public:
     template <typename Node1,typename Node2>
     void operator()(Node1 *one, Node2 *two)
     {
-        count_ = one->map().size() - from_;
+        count_ = one->children_count() - from_;
 
         Int Indexes = Node1::INDEXES;
 
-        if (two->map().size() > 0)
+        if (two->children_count() > 0)
         {
-            two->map().MoveData(count_ + shift_, 0, two->map().size());
+            two->map().MoveData(count_ + shift_, 0, two->children_count());
         }
 
         one->map().CopyData(from_, count_, two->map(), shift_);
@@ -219,7 +219,7 @@ public:
 
     template <typename Node>
     void operator()(Node *two) {
-        for (Int c = count_ + shift_; c < two->map().size(); c++)
+        for (Int c = count_ + shift_; c < two->children_count(); c++)
         {
             BaseNodeG child = allocator_.GetPage(two->map().data(c), Allocator::UPDATE);
             child->parent_idx() += count_ + shift_;
@@ -300,12 +300,12 @@ public:
     template <typename Node>
     void operator()(Node *node)
     {
-        if (from_ + count_ < node->map().size())
+        if (from_ + count_ < node->children_count())
         {
-            node->map().MoveData(from_, from_ + count_, node->map().size() - (from_ + count_));
+            node->map().MoveData(from_, from_ + count_, node->children_count() - (from_ + count_));
         }
 
-        for (Int c = node->map().size() - count_; c < node->map().size(); c++)
+        for (Int c = node->children_count() - count_; c < node->children_count(); c++)
         {
             for (Int d = 0; d < Node::Map::INDEXES; d++)
             {
@@ -345,7 +345,7 @@ public:
 
     template <typename T>
     void operator()(T *node) {
-        for (Int c = from_; c < node->map().size(); c++)
+        for (Int c = from_; c < node->children_count(); c++)
         {
             BaseNodeG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
             child->parent_idx() += count_;
@@ -374,7 +374,7 @@ public:
 
     template <typename T>
     void operator()(T *node) {
-        for (Int c = from_; c < node->map().size(); c++)
+        for (Int c = from_; c < node->children_count(); c++)
         {
         	NodeBaseG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
             child->parent_id() = node->id();
@@ -414,7 +414,7 @@ static NodePage2 *Node2Node(NodePage1 *src, bool root)
 //    tgt->counters()     = src->counters();
 //
 //    tgt->set_root(root);
-//    tgt->map().size()   = src->map().size();
+//    tgt->children_count()   = src->children_count();
 
     tgt->page_type_hash()   = NodePage2::hash();
 //    tgt->model_hash()       = src->model_hash();
@@ -422,7 +422,7 @@ static NodePage2 *Node2Node(NodePage1 *src, bool root)
     // FIXME: why we don't set tgt->map.size() here?
     // check it!!!
 
-    for (Int c = 0; c < src->map().size(); c++)
+    for (Int c = 0; c < src->children_count(); c++)
     {
         for (Int d = 0; d < NodePage1::INDEXES; d++)
         {
@@ -431,7 +431,7 @@ static NodePage2 *Node2Node(NodePage1 *src, bool root)
         tgt->map().data(c) = src->map().data(c);
     }
 
-    for (Int c = tgt->map().size(); c < tgt->map().max_size(); c++)
+    for (Int c = tgt->children_count(); c < tgt->map().max_size(); c++)
     {
         for (Int d = 0; d < NodePage2::INDEXES; d++)
         {
@@ -564,7 +564,7 @@ public:
 
     template <typename T>
     void operator()(T *node) {
-        node_ = allocator_.GetPage(node->map().data(node->map().size() - 1), flags_);
+        node_ = allocator_.GetPage(node->map().data(node->children_count() - 1), flags_);
     }
 
     Base& node() {
@@ -588,7 +588,7 @@ public:
     
     template <typename T>
     void operator()(T *node) {
-        cnt_ = node->map().size();
+        cnt_ = node->children_count();
     }
 
     Int cnt() {
@@ -613,7 +613,7 @@ public:
     template <typename T>
     void operator()(T *node)
     {
-        node->set_size(count_);
+        node->set_children_count(count_);
     }
 };
 
