@@ -586,17 +586,26 @@ private:
 
     void set_child_root(BigInt name, const ID& root_id)
     {
-    	NodeBaseG root 	= allocator_.GetPage(me()->root(), Allocator::READ);
-    	Metadata  meta 	= MyType::GetRootMetadata(root);
-    	meta.roots(name) = root_id;
-    	MyType::SetRootMetadata(root, meta);
+    	if (!root_id.is_null())
+    	{
+    		NodeBaseG root 	= allocator_.GetPage(me()->root(), Allocator::READ);
+    		Metadata  meta 	= MyType::GetRootMetadata(root);
+    		meta.roots(name) = root_id;
+    		MyType::SetRootMetadata(root, meta);
+    	}
     }
 
     ID get_child_root(BigInt name)
     {
-    	NodeBaseG root 	= allocator_.GetPage(me()->root(), Allocator::READ);
-    	Metadata  meta 	= MyType::GetRootMetadata(root);
-    	return meta.roots(name);
+    	if (!me()->root().is_null())
+    	{
+    		NodeBaseG root 	= allocator_.GetPage(me()->root(), Allocator::READ);
+    		Metadata  meta 	= MyType::GetRootMetadata(root);
+    		return meta.roots(name);
+    	}
+    	else {
+    		return ID(0);
+    	}
     }
 };
 
