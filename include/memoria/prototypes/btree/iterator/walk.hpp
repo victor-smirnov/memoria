@@ -114,7 +114,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     			}
     			else {
     				//FIXME: remove '-1'
-    				idx = me()->model().GetChildrenCount(index) - 1;
+    				idx = index->children_count() - 1;
     				return true;
     			}
     		}
@@ -166,7 +166,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         		if (!index->is_leaf())
         		{
         			index = me()->GetChild(index, fn.result(), Allocator::READ);
-        			idx = me()->model().GetChildrenCount(index) - 1;
+        			idx = index->children_count() - 1;
         		}
         		else {
         			idx = fn.result();
@@ -210,7 +210,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     	{
     		return 0;
     	}
-    	else if (me()->key_idx() + distance < me()->model().GetChildrenCount(me()->page()))
+    	else if (me()->key_idx() + distance < me()->page()->children_count())
     	{
     		me()->key_idx() += distance;
     	}

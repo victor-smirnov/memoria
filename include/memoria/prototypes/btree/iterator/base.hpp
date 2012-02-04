@@ -103,7 +103,7 @@ public:
 
     bool IsEmpty()
     {
-    	return page() == NULL || me()->model().GetChildrenCount(page()) == 0;
+    	return page() == NULL || page()->children_count() == 0;
     }
 
     bool IsNotEmpty()

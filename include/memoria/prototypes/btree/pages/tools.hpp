@@ -581,29 +581,6 @@ Base GetLastChild(Node *node, Allocator &allocator, Int flags)
 }
 
 
-class GetChildrenCountFn {
-    Int cnt_;
-public:
-    GetChildrenCountFn(): cnt_(0) {}
-    
-    template <typename T>
-    void operator()(T *node) {
-        cnt_ = node->children_count();
-    }
-
-    Int cnt() {
-        return cnt_;
-    }
-};
-
-template <typename Dispatcher, typename Node>
-Int GetChildrenCount(Node *node) {
-    if (node == NULL) throw NullPointerException(MEMORIA_SOURCE, "Argument must not be NULL");
-    GetChildrenCountFn fn;
-    Dispatcher::Dispatch(node, fn);
-    return fn.cnt();
-}
-
 template <typename Int>
 class SetChildrenCountFn {
     Int count_;

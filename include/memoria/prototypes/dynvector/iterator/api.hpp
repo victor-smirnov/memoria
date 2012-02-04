@@ -149,7 +149,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     DataPageG GetNextDataPage(NodeBaseG page, DataPageG& data)
     {
     	Int parent_idx = data->parent_idx();
-    	Int children_count = me()->model().GetChildrenCount(page);
+    	Int children_count = page->children_count();
 
     	if (parent_idx < children_count - 1)
     	{
@@ -184,7 +184,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     		page = me()->GetPrevNode(page);
     		if (page != NULL)
     		{
-    			Int children_count = me()->model().GetChildrenCount(page);
+    			Int children_count = page->children_count();
     			return me()->model().GetDataPage(page, children_count - 1, Allocator::READ);
     		}
     		else {

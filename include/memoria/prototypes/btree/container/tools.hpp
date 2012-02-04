@@ -567,12 +567,6 @@ public:
         return me()->allocator().GetPage(id, flags);
     }
 
-
-    static Int GetChildrenCount(const NodeBase *node)
-    {
-        return node->size();
-    }
-
     static Key GetKey(NodeBase *node, Int i, Int idx)
     {
         return memoria::btree::GetKey<NodeDispatcher, Key>(node, i, idx);
