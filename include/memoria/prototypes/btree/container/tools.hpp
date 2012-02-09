@@ -27,12 +27,14 @@ public:
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Allocator::PageG                                     PageG;
 
     typedef typename Allocator::Page                                            Page;
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
+
     typedef typename Types::NodeBase::Base                                      TreeNodePage;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
@@ -57,6 +59,32 @@ public:
     CtrPart(): Base(), max_node_capacity_(-1) {}
     CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) {}
     CtrPart(ThisType&& other): Base(std::move(other)), max_node_capacity_(other.max_node_capacity_) {}
+
+    void ClearKeys(Key* keys) const {
+    	for (Int c = 0; c < Indexes; c++) keys[c] = 0;
+    }
+
+    void NegateKeys(Key* keys) const {
+    	NegateKeys(keys, keys);
+    }
+
+    void NegateKeys(Key* result, Key* keys) const {
+    	for (Int c = 0; c < Indexes; c++) result[c] = -keys[c];
+    }
+
+    void AddKeys(Key* sum, Key* keys) const {
+    	for (Int c = 0; c < Indexes; c++) sum[c] += keys[c];
+    }
+
+    void Dump(Key* keys, ostream& out = cout) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		out << keys[c] <<endl;
+    	}
+    	out<<endl;
+    }
+
 
     void operator=(ThisType&& other)
     {
@@ -289,7 +317,9 @@ public:
     	node.set_page(memoria::btree::Root2Node<RootDispatcher, Root2NodeMap, Allocator>(node.page()));
     }
 
-    void Node2Root(NodeBaseG& node)
+    //
+
+    void Node2Root(NodeBaseG& node, Metadata& meta)
     {
     	node.update();
 
@@ -298,8 +328,9 @@ public:
         node->parent_id().Clear();
         node->parent_idx() = 0;
 
-        Metadata meta = me()->GetRootMetadata(node);
-        meta.model_name() = me()->name();
+//        Metadata meta = me()->GetRootMetadata(node);
+//        meta.model_name() = me()->name();
+
         me()->SetRootMetadata(node, meta);
     }
 
@@ -443,6 +474,16 @@ public:
         GetMaxCapacityFn<Int> fn(me()->max_node_capacity());
         NodeDispatcher::Dispatch(node, fn);
         return fn.cap();
+    }
+
+    bool ShouldMerge(NodeBase* node) const
+    {
+    	return node->children_count() <= me()->GetMaxCapacity(node) / 2;
+    }
+
+    bool ShouldSplit(NodeBase* node) const
+    {
+    	return node->children_count() > me()->GetMaxCapacity(node) / 2;
     }
 
     template <bool IsGet>
@@ -640,7 +681,7 @@ public:
     	memoria::btree::SetData<LeafDispatcher>(node.page(), idx, &val);
     }
 
-    void Dump(Page* page, std::ostream& out = std::cout)
+    void Dump(PageG page, std::ostream& out = std::cout)
     {
     	if (page != NULL)
     	{

@@ -111,6 +111,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
         }
     }
 
+    void Dump(ostream& out = cout)
+    {
+    	out<<"SumSet Iterator state"<<endl;
+    	out<<"KeyIdx: 	   "<<me()->key_idx()<<endl;
+    	out<<"Prefixes: "<<me()->prefix(0)<<endl;
+
+    	me()->model().Dump(me()->page(), out);
+    }
+
 
     //FIXME: NextLeaf/PrevLeaf don't work properly for this container (prefixes)
 

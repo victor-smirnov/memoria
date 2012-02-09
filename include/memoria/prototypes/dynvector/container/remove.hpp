@@ -84,25 +84,28 @@ public:
     {
     	BigInt pos = start.pos();
 
-    	if (me()->debug()) {
-    		int a = 0;
-    		a++;
-    	}
-
-
-    	if (!start.IsEof() && start.pos() < stop.pos())
+    	if (!start.IsEof() && pos < stop.pos())
     	{
     		if (start.data()->id() == stop.data()->id())
     		{
-    			return me()->RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
+    			// Withing the same data node
+    			// FIXME: Merge with siblings
+    			bool result = me()->RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
+
+    			stop.data_pos() = start.data_pos();
+
+    			return result;
     		}
     		else {
+    			// Removed region crosses data node boundary
+
     			Int start_key_idx, stop_key_idx = 0;
 
     			bool removed = false;
 
     			if (start.data_pos() > 0)
     			{
+    				// Remove a region in current data node starting from data_pos till the end
     				removed = me()->RemoveData(start.page(), start.data(), start.data_pos(), start.data()->data().size() - start.data_pos());
 
     				start_key_idx = start.key_idx();
@@ -124,11 +127,13 @@ public:
     				stop_key_idx = stop.key_idx() + 1;
     			}
 
-    			Key keys[Indexes] = {0,};
-    			removed = me()->RemovePages(start.page(), start_key_idx, stop.page(), stop_key_idx, keys, false) || removed;
+    			Key keys[Indexes];
+    			for (Int c = 0; c < Indexes; c++) keys[c] = 0;
 
+    			removed = me()->RemovePages(start.page(), start_key_idx, stop.page(), stop_key_idx, keys) || removed;
+
+    			//FIXME: preserve iterator states directly, don't use Seek()
     			Iterator i = me()->Seek(pos);
-
     			start = i;
     			stop  = i;
 
@@ -142,29 +147,24 @@ public:
 
     bool RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length)
     {
-    	if (me()->debug()) {
-    		int a = 0;
-    		a++;
-    	}
-
     	data.update();
 
     	Int pos = start + length;
-
-    	BigInt keys[Indexes] = {0,};
 
     	if (pos < data->data().size())
     	{
     		data->data().shift(pos, -length);
     	}
 
-    	keys[0] = -length;
-
     	data->data().size() -= length;
+
+    	BigInt keys[Indexes];
+    	for (Int c = 1; c < Indexes; c++) keys[c] = 0;
+    	keys[0] = -length;
 
     	me()->UpdateBTreeKeys(page, data->parent_idx(), keys, true);
 
-    	return length > 0; // FIXME: it always true;
+    	return length > 0; // FIXME: it's always true;
     }
 
 MEMORIA_CONTAINER_PART_END

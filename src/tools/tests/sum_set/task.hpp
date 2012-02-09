@@ -24,12 +24,13 @@
 namespace memoria {
 
 class SumSetTest: public SPTestTask {
-public:
-
 
 private:
 	typedef vector<BigInt> PairVector;
 	typedef StreamContainerTypesCollection::Factory<SumSet1>::Type IdxSetType;
+
+	static const Int Indexes = IdxSetType::Indexes;
+	typedef typename IdxSetType::Key Key;
 
 	PairVector pairs;
 	PairVector pairs_sorted;
@@ -209,6 +210,42 @@ public:
 
 		params.size_ = SIZE;
 		params.btree_airity_ = task_params->btree_airity_;
+
+//		Allocator allocator;
+//		allocator.GetLogger()->SetHandler(&logHandler);
+//		IdxSetType map(allocator, 1, true);
+//		map.SetMaxChildrenPerNode(params.btree_airity_);
+//
+//		typedef typename IdxSetType::Iterator CtrIterator;
+//
+//		//CtrIterator iter(map);
+//
+//
+//		BigInt sum = 0;
+//		for (Int c = 0; c < SIZE; c++, sum+=c)
+//		{
+//			map.Put(sum, 0);
+//			out<<(c)<<" "<<sum<<endl;
+//		}
+//
+//		allocator.commit();
+//
+//		StoreAllocator(allocator, "allocator1.dump");
+//
+//		auto i1 = map.FindLE(136, 0, true);
+//		auto i2 = map.FindLE(5778, 0, true);
+//
+//		map.RemoveEntries(i1, i2);
+//
+//		cout<<"Iterator1"<<endl;
+//		i1.Dump(out);
+//
+//		cout<<"Iterator2"<<endl;
+//		i2.Dump(out);
+//
+//		allocator.commit();
+//
+//		StoreAllocator(allocator, "allocator2.dump");
 
 
 		{
