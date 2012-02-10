@@ -146,7 +146,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     }
 
 
-    DataPageG GetNextDataPage(NodeBaseG page, DataPageG& data)
+    DataPageG GetNextDataPage(NodeBaseG& page, DataPageG& data)
     {
     	Int parent_idx = data->parent_idx();
     	Int children_count = page->children_count();
@@ -156,10 +156,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     		return me()->model().GetDataPage(page, parent_idx + 1, Allocator::READ);
     	}
     	else {
-    		page = me()->GetNextNode(page);
-    		if (page != NULL)
+    		NodeBaseG next_node = me()->GetNextNode(page);
+    		if (next_node.is_set())
     		{
-    			return me()->model().GetDataPage(page, 0, Allocator::READ);
+    			return me()->model().GetDataPage(next_node, 0, Allocator::READ);
     		}
     		else {
     			return DataPageG();
@@ -172,7 +172,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return me()->GetNextDataPage(me()->page(), me()->data());
     }
 
-    DataPageG GetPrevDataPage(NodeBase* page, DataPage* data)
+    DataPageG GetPrevDataPage(NodeBaseG& page, DataPageG& data)
     {
     	Int parent_idx = data->parent_idx();
 
@@ -181,11 +181,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     		return me()->model().GetDataPage(page, parent_idx - 1, Allocator::READ);
     	}
     	else {
-    		page = me()->GetPrevNode(page);
-    		if (page != NULL)
+    		NodeBaseG prev_node = me()->GetPrevNode(page);
+    		if (prev_node.is_set())
     		{
-    			Int children_count = page->children_count();
-    			return me()->model().GetDataPage(page, children_count - 1, Allocator::READ);
+    			Int children_count = prev_node->children_count();
+    			return me()->model().GetDataPage(prev_node, children_count - 1, Allocator::READ);
     		}
     		else {
     			return DataPageG();

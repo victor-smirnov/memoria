@@ -90,7 +90,7 @@ public:
     		{
     			// Withing the same data node
     			// FIXME: Merge with siblings
-    			BigInt result = me()->RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
+    			BigInt result = RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
 
     			stop.data_pos() = start.data_pos();
 
@@ -101,57 +101,75 @@ public:
 
     			BigInt removed = 0;
 
-    			if (start.data_pos() > 0)
-    			{
-    				// Remove a region in current data node starting from data_pos till the end
-    				removed = me()->RemoveData(start.page(), start.data(), start.data_pos(), start.data()->data().size() - start.data_pos());
-    				start.NextKey();
-    			}
+    			DataPageG start_data;
+    			DataPageG stop_data;
+
 
     			if (!stop.IsEof())
     			{
     				if (stop.data_pos() > 0)
     				{
-    					removed += me()->RemoveData(stop.page(), stop.data(), 0, stop.data_pos());
+    					removed += RemoveData(stop.page(), stop.data(), 0, stop.data_pos());
+    					stop.data_pos() = 0;
     				}
+
+    				stop_data = stop.data();
     			}
     			else {
     				stop.NextKey();
     			}
 
-    			Key keys_left[Indexes];
-    			me()->ClearKeys(keys_left);
 
-    			Key keys_right[Indexes];
-    			me()->ClearKeys(keys_right);
+    			Key prefixes[Indexes];
 
-    			me()->RemovePages(start.page(), start.key_idx(), stop.page(), stop.key_idx(), keys_left, keys_right, removed);
+    			for (Int c = 0; c < Indexes; c++)
+    			{
+    				prefixes[c] = start.prefix(c);
+    			}
+
+    			if (start.data_pos() > 0)
+    			{
+    				// Remove a region in current data node starting from data_pos till the end
+    				Int length = start.data()->data().size() - start.data_pos();
+    				removed += RemoveData(start.page(), start.data(), start.data_pos(), length);
+
+    				start_data 	= start.data();
+
+    				prefixes[0] += length;
+
+    				start.NextKey();
+    			}
+    			else if (stop_data.is_empty())
+    			{
+    				start_data 	= start.GetPrevDataPage();
+    			}
+
+    			BigInt keys[Indexes];
+    			me()->ClearKeys(keys);
+
+    			me()->RemoveEntries(start, stop, keys);
+
+    			removed += keys[0];
 
     			start = stop = me()->Seek(pos);
 
-//    			if (start.page() != NULL && stop.page() == NULL)
+//    			if (stop_data.is_set())
 //    			{
-//    				stop.data_pos() = 0;
-//    				stop 			= start;
-//    			}
-//    			else if (start.page() == NULL && stop.page() != NULL)
-//    			{
-//    				stop.data_pos() = 0;
-//    				start 			= stop;
-//    			}
-//    			else if (start.page() != NULL && stop.page() == NULL)
-//    			{
-//    				if (start.PrevKey())
-//    				{
-//    					start.data_pos() 	= start.data()->data().size();
-//    					stop 				= start;
-//    				}
-//    				else {
-//    					throw MemoriaException(MEMORIA_SOURCE, "Remove failed");
-//    				}
+//    				stop.data() 		= stop_data;
+//    				stop.data_pos()		= 0;
+//
+//    				start 				= stop;
 //    			}
 //    			else {
-//    				start.data_pos() = stop.data_pos() = 0;
+//    				start.data() 		= start_data;
+//    				start.data_pos() 	= start_data->data().size();
+//
+//    				stop 				= start;
+//    			}
+//
+//    			for (Int c = 0; c < Indexes; c++)
+//    			{
+//    				stop.prefix(c) = prefixes[c];
 //    			}
 
     			//FIXME: merge with siblings
@@ -164,6 +182,7 @@ public:
     	}
     }
 
+private:
     BigInt RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length)
     {
     	data.update();
