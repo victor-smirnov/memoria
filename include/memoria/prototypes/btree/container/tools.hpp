@@ -76,6 +76,10 @@ public:
     	for (Int c = 0; c < Indexes; c++) sum[c] += keys[c];
     }
 
+    void SetKeys(Key* target, Key* keys) const {
+    	for (Int c = 0; c < Indexes; c++) target[c] = keys[c];
+    }
+
     void Dump(Key* keys, ostream& out = cout) const
     {
     	for (Int c = 0; c < Indexes; c++)

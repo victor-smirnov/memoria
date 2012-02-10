@@ -31,7 +31,17 @@ struct SumSetReplay: public BTreeReplayParams {
 
 
 struct SumSetParams: public TestTaskParams {
-	SumSetParams(): TestTaskParams("SumSet") {}
+
+	bool step0_;
+	bool step1_;
+	bool step2_;
+
+	SumSetParams(): TestTaskParams("SumSet")
+	{
+		Add("step0", step0_, true);
+		Add("step1", step1_, true);
+		Add("step2", step2_, true);
+	}
 };
 
 

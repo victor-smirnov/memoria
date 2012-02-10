@@ -164,7 +164,7 @@ public:
 			BigInt to 	= params->to_;
 
 			BigInt from_key = pairs_sorted[from];
-			BigInt to_key   = pairs_sorted[to] + 1;
+			BigInt to_key   = to < (BigInt)pairs_sorted.size() ? pairs_sorted[to] : pairs_sorted[to - 1] + 1;
 
 			IdxSetType map(allocator, 1);
 
@@ -176,9 +176,15 @@ public:
 
 			out<<map.GetSize()<<endl;
 
+			allocator.commit();
+
+//			allocator.DumpPages();
+
+			StoreAllocator(allocator, "alloc1.dump");
+
 			Check(allocator, MEMORIA_SOURCE);
 
-			pairs_sorted.erase(pairs_sorted.begin() + from, pairs_sorted.begin() + to + 1);
+			pairs_sorted.erase(pairs_sorted.begin() + from, pairs_sorted.begin() + to);
 			CheckIteratorFw(&map, pairs_sorted);
 			CheckIteratorBw(&map, pairs_sorted);
 		}
@@ -201,9 +207,11 @@ public:
 		pairs.clear();
 		pairs_sorted.clear();
 
-		for (Int c = 0; c < SIZE; c++)
+		Int sum = 0;
+		for (Int c = 0; c < SIZE; c++, sum +=c)
 		{
-			pairs.push_back(GetUniqueRandom(pairs));
+			//pairs.push_back(GetUniqueRandom(pairs));
+			pairs.push_back(sum);
 		}
 
 		SumSetReplay params;
@@ -259,20 +267,23 @@ public:
 			{
 				params.step_ = step;
 
-				for (Int c = 0; c < SIZE; c++)
+				if ((step == 0 && task_params->step0_) || (step == 1 && task_params->step1_))
 				{
-					PairVector pairs_sorted_tmp = pairs_sorted;
-
-					try {
-						params.vector_idx_ = c;
-
-						DoTestStep(out, allocator, &params);
-					}
-					catch (...)
+					for (Int c = 0; c < SIZE; c++)
 					{
-						StorePairs(pairs, pairs_sorted_tmp, params);
-						Store(allocator, &params);
-						throw;
+						PairVector pairs_sorted_tmp = pairs_sorted;
+
+						try {
+							params.vector_idx_ = c;
+
+							DoTestStep(out, allocator, &params);
+						}
+						catch (...)
+						{
+							StorePairs(pairs, pairs_sorted_tmp, params);
+							Store(allocator, &params);
+							throw;
+						}
 					}
 				}
 			}
@@ -280,82 +291,94 @@ public:
 
 		params.step_ = 2;
 
-		for (Int x = 0; x < 4; x++)
+		if (task_params->step2_)
 		{
-			Allocator allocator;
-			allocator.GetLogger()->SetHandler(&logHandler);
-
-			IdxSetType map(allocator, 1, true);
-			map.SetMaxChildrenPerNode(params.btree_airity_);
-
-			for (Int c = 0; c < SIZE; c++)
+			for (Int x = 3; x < 4; x++)
 			{
-				map.Put(pairs[c], 0);
-			}
-			allocator.commit();
+				Allocator allocator;
+				allocator.GetLogger()->SetHandler(&logHandler);
 
-			pairs_sorted = pairs;
-			std::sort(pairs_sorted.begin(), pairs_sorted.end());
+				IdxSetType map(allocator, 1, true);
+				map.SetMaxChildrenPerNode(params.btree_airity_);
 
-			while (map.GetSize() > 0)
-			{
-				BigInt size = map.GetSize();
-
-				UInt from, to;
-				if (x == 0)
+				for (Int c = 0; c < SIZE; c++)
 				{
-					from 	= 0;
-					to 		= size - 1;
+					map.Put(pairs[c], 0);
 				}
-				else if (x == 1)
+				allocator.commit();
+
+				pairs_sorted = pairs;
+				std::sort(pairs_sorted.begin(), pairs_sorted.end());
+
+				BigInt t0 = GetTimeInMillis();
+
+				Int cnt = 0;
+
+				while (map.GetSize() > 0)
 				{
-					from 	= 0;
-					to 		= size/2;
+					BigInt size = map.GetSize();
+
+					UInt from, to;
+					if (x == 0)
+					{
+						from 	= 0;
+						to 		= size;
+					}
+					else if (x == 1)
+					{
+						from 	= 0;
+						to 		= size/2 != 0 ? size/2 : size;
+					}
+					else if (x == 2)
+					{
+						from 	= size/2;
+						to 		= size;
+					}
+					else if(size > 3)
+					{
+						from 	= GetRandom(size/2 - 1);
+						to 		= GetRandom(size/2) + size/2;
+					}
+					else {
+						from 	= 0;
+						to 		= size;
+					}
+
+					params.from_ 	= from;
+					params.to_ 		= to;
+
+					BigInt from_key = pairs_sorted[from];
+					BigInt to_key   = to < pairs_sorted.size() ? pairs_sorted[to] : pairs_sorted[to - 1] + 1;
+
+					PairVector pairs_sorted_tmp = pairs_sorted;
+
+					pairs_sorted.erase(pairs_sorted.begin() + from, pairs_sorted.begin() + to);
+
+					map.Remove(from_key, to_key);
+					cnt++;
+
+					try {
+						MEMORIA_TEST_ASSERT1(pairs_sorted.size(), !=, (UInt)map.GetSize(), x);
+
+
+						Check(allocator, MEMORIA_SOURCE);
+						CheckIteratorFw(&map, pairs_sorted);
+						CheckIteratorBw(&map, pairs_sorted);
+
+						allocator.commit();
+					}
+					catch (...)
+					{
+						StorePairs(pairs_sorted, pairs_sorted_tmp, params);
+						Store(allocator, &params);
+
+						throw;
+					}
 				}
-				else if (x == 2)
-				{
-					from 	= size/2;
-					to 		= size - 1;
-				}
-				else if(size > 3) {
-					from 	= GetRandom(size/2 - 1);
-					to 		= GetRandom(size/2) + size/2;
-				}
-				else {
-					from 	= 0;
-					to 		= size - 1;
-				}
 
-				params.from_ 	= from;
-				params.to_ 		= to;
-
-				BigInt from_key = pairs_sorted[from];
-				BigInt to_key   = pairs_sorted[to] + 1;
-
-				PairVector pairs_sorted_tmp = pairs_sorted;
-				pairs_sorted.erase(pairs_sorted.begin() + from, pairs_sorted.begin() + to + 1);
-
-				map.Remove(from_key, to_key);
-
-				try {
-					MEMORIA_TEST_ASSERT1(pairs_sorted.size(), !=, (UInt)map.GetSize(), x);
-
-					Check(allocator, MEMORIA_SOURCE);
-					CheckIteratorFw(&map, pairs_sorted);
-					CheckIteratorBw(&map, pairs_sorted);
-
-					allocator.commit();
-				}
-				catch (...)
-				{
-					StorePairs(pairs_sorted, pairs_sorted_tmp, params);
-					Store(allocator, &params);
-
-					throw;
-				}
+				out<<"Time: "<<(GetTimeInMillis() - t0)<<" cnt: "<<cnt<<endl;
 			}
 		}
-
 	}
 
 	void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, SumSetReplay& params)

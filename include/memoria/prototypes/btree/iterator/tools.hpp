@@ -51,6 +51,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
         return Container::GetKey(me()->page(), keyNum, me()->key_idx());
     }
 
+    void Dump(ostream& out = cout)
+    {
+    	out<<"SumSet Iterator state"<<endl;
+    	out<<"KeyIdx: 	   "<<me()->key_idx()<<endl;
+
+    	me()->model().Dump(me()->page(), out);
+    }
+
+
 MEMORIA_ITERATOR_PART_END
 
 }
