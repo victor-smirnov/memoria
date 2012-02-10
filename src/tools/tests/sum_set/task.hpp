@@ -295,7 +295,9 @@ public:
 
 		if (task_params->step2_)
 		{
-			for (Int x = 3; x < 4; x++)
+			params.idx_ = 0;
+
+			for (Int x = 0; x < 4; x++)
 			{
 				Allocator allocator;
 				allocator.GetLogger()->SetHandler(&logHandler);
@@ -376,6 +378,8 @@ public:
 
 						throw;
 					}
+
+					params.idx_++;
 				}
 
 				out<<"Time: "<<(GetTimeInMillis() - t0)<<" cnt: "<<cnt<<endl;

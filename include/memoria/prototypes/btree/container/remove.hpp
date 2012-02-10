@@ -372,11 +372,34 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
 	{
 		// The root node of removed subtree
 
-		if (stop_idx - start_idx >= 0)
+		me()->AddKeys(keys_left, keys_right);
+
+		if (start_idx == 0 && stop_idx == stop->children_count())
+		{
+			// Special case for the most right leaf in the tree.
+
+			Iterator i(*me());
+			NodeBaseG prev = i.GetPrevNode(start);
+
+
+
+			me()->RemovePage(start);
+
+			stop = NULL;
+			stop_idx = 0;
+
+			start = prev;
+
+
+
+			start_idx = start.is_set() ? start->children_count() : 0;
+
+		}
+		else if (stop_idx - start_idx >= 0)
 		{
 			//Remove some space within the node
 
-			me()->AddKeys(keys_left, keys_right);
+
 
 			removed_key_count += RemoveSpace(start, start_idx, stop_idx - start_idx, UpdateType::FULL, true, keys_left);
 
@@ -391,7 +414,7 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
 			stop_idx = start_idx;
 		}
 		else {
-			me()->AddKeys(keys_left, keys_right);
+
 			me()->SetKeys(keys_right, keys_left);
 		}
 	}
@@ -504,6 +527,23 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
 			else if (start.is_empty() && stop.is_set())
 			{
 				ChangeRootIfSingular(stop_parent, stop);
+			}
+		}
+		else if (start.is_empty() && stop.is_empty())
+		{
+			if (me()->root().is_set())
+			{
+				NodeBaseG root = me()->GetRoot(Allocator::UPDATE);
+
+				removed_key_count = root->counters().key_count();
+
+				me()->GetMaxKeys(root, keys_left);
+				me()->SetKeys(keys_right, keys_left);
+
+				me()->RemoveNode(root);
+			}
+			else {
+				// the container is empty
 			}
 		}
 	}
@@ -988,8 +1028,9 @@ void M_TYPE::Drop()
 {
 	NodeBaseG root = me()->GetRoot(Allocator::READ);
 
-	if (root != NULL) {
-		me()->RemovePage(root);
+	if (root.is_set())
+	{
+		me()->RemoveNode(root);
 	}
 }
 

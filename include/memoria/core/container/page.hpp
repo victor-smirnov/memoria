@@ -43,8 +43,16 @@ public:
         return IsClean(Base::ptr(), Size);
     }
 
+    bool is_empty() const {
+    	return Base::value() == 0;
+    }
+
     bool is_not_null() const {
     	return !is_null();
+    }
+
+    bool is_set() const {
+    	return Base::value() != 0;
     }
 
     void set_null() {

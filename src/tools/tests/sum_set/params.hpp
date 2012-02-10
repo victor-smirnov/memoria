@@ -22,10 +22,13 @@ struct SumSetReplay: public BTreeReplayParams {
 	Int from_;
 	Int to_;
 
+	Int idx_;
+
 	SumSetReplay(): BTreeReplayParams()
 	{
 		Add("from", from_);
 		Add("to", 	to_);
+		Add("idx", 	idx_);
 	}
 };
 
