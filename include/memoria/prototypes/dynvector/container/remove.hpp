@@ -80,7 +80,7 @@ public:
     };
 
 
-    bool RemoveDataBlock(Iterator& start, Iterator& stop)
+    BigInt RemoveDataBlock(Iterator& start, Iterator& stop)
     {
     	BigInt pos = start.pos();
 
@@ -90,7 +90,7 @@ public:
     		{
     			// Withing the same data node
     			// FIXME: Merge with siblings
-    			bool result = me()->RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
+    			BigInt result = me()->RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
 
     			stop.data_pos() = start.data_pos();
 
@@ -99,53 +99,72 @@ public:
     		else {
     			// Removed region crosses data node boundary
 
-    			Int start_key_idx, stop_key_idx = 0;
-
-    			bool removed = false;
+    			BigInt removed = 0;
 
     			if (start.data_pos() > 0)
     			{
     				// Remove a region in current data node starting from data_pos till the end
     				removed = me()->RemoveData(start.page(), start.data(), start.data_pos(), start.data()->data().size() - start.data_pos());
-
-    				start_key_idx = start.key_idx();
-    			}
-    			else {
-    				start_key_idx = start.key_idx() - 1;
+    				start.NextKey();
     			}
 
     			if (!stop.IsEof())
     			{
     				if (stop.data_pos() > 0)
     				{
-    					removed = me()->RemoveData(stop.page(), stop.data(), 0, stop.data_pos()) || removed;
+    					removed += me()->RemoveData(stop.page(), stop.data(), 0, stop.data_pos());
     				}
-
-    				stop_key_idx = stop.key_idx();
     			}
     			else {
-    				stop_key_idx = stop.key_idx() + 1;
+    				stop.NextKey();
     			}
 
-    			Key keys[Indexes];
-    			for (Int c = 0; c < Indexes; c++) keys[c] = 0;
+    			Key keys_left[Indexes];
+    			me()->ClearKeys(keys_left);
 
-    			removed = me()->RemovePages(start.page(), start_key_idx, stop.page(), stop_key_idx, keys) || removed;
+    			Key keys_right[Indexes];
+    			me()->ClearKeys(keys_right);
 
-    			//FIXME: preserve iterator states directly, don't use Seek()
-    			Iterator i = me()->Seek(pos);
-    			start = i;
-    			stop  = i;
+    			me()->RemovePages(start.page(), start.key_idx(), stop.page(), stop.key_idx(), keys_left, keys_right, removed);
+
+    			start = stop = me()->Seek(pos);
+
+//    			if (start.page() != NULL && stop.page() == NULL)
+//    			{
+//    				stop.data_pos() = 0;
+//    				stop 			= start;
+//    			}
+//    			else if (start.page() == NULL && stop.page() != NULL)
+//    			{
+//    				stop.data_pos() = 0;
+//    				start 			= stop;
+//    			}
+//    			else if (start.page() != NULL && stop.page() == NULL)
+//    			{
+//    				if (start.PrevKey())
+//    				{
+//    					start.data_pos() 	= start.data()->data().size();
+//    					stop 				= start;
+//    				}
+//    				else {
+//    					throw MemoriaException(MEMORIA_SOURCE, "Remove failed");
+//    				}
+//    			}
+//    			else {
+//    				start.data_pos() = stop.data_pos() = 0;
+//    			}
+
+    			//FIXME: merge with siblings
 
     			return removed;
     		}
     	}
     	else {
-    		return false;
+    		return 0;
     	}
     }
 
-    bool RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length)
+    BigInt RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length)
     {
     	data.update();
 
@@ -164,7 +183,7 @@ public:
 
     	me()->UpdateBTreeKeys(page, data->parent_idx(), keys, true);
 
-    	return length > 0; // FIXME: it's always true;
+    	return length;
     }
 
 MEMORIA_CONTAINER_PART_END

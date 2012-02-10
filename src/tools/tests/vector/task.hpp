@@ -134,11 +134,15 @@ public:
 				BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
 
 				params.data_size_ = 1 + GetBIRandom(max_size);
+				params.page_step_ 	= GetRandom(3);
 
 				if (!Remove(allocator, dv, &params))
 				{
 					break;
 				}
+
+				params.pos_ 		= -1;
+				params.page_step_ 	= -1;
 
 				allocator.commit();
 			}
@@ -326,10 +330,15 @@ public:
 			else {
 				//Remove at the middle of the array
 
-				Int pos = GetRandom(array.Size() - size);
+				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
+
+				Int pos = params->pos_;
+
 				auto iter = array.Seek(pos);
 
-				if (GetRandom(2) == 0)
+				if (params->page_step_ == -1) params->page_step_ = GetRandom(2);
+
+				if (params->page_step_ == 0)
 				{
 					iter.Skip(-iter.data_pos());
 					pos = iter.pos();

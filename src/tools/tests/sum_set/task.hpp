@@ -155,6 +155,8 @@ public:
 		Allocator allocator;
 		LoadAllocator(allocator, params);
 
+		Check(allocator, MEMORIA_SOURCE);
+
 		if (params->step_ < 2)
 		{
 			DoTestStep(out, allocator, params);

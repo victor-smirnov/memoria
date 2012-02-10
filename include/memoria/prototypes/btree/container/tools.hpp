@@ -60,24 +60,34 @@ public:
     CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) {}
     CtrPart(ThisType&& other): Base(std::move(other)), max_node_capacity_(other.max_node_capacity_) {}
 
-    void ClearKeys(Key* keys) const {
+    void ClearKeys(Key* keys) const
+    {
     	for (Int c = 0; c < Indexes; c++) keys[c] = 0;
     }
 
-    void NegateKeys(Key* keys) const {
+    void NegateKeys(Key* keys) const
+    {
     	NegateKeys(keys, keys);
     }
 
-    void NegateKeys(Key* result, Key* keys) const {
+    void NegateKeys(Key* result, Key* keys) const
+    {
     	for (Int c = 0; c < Indexes; c++) result[c] = -keys[c];
     }
 
-    void AddKeys(Key* sum, Key* keys) const {
+    void AddKeys(Key* sum, Key* keys) const
+    {
     	for (Int c = 0; c < Indexes; c++) sum[c] += keys[c];
     }
 
-    void SetKeys(Key* target, Key* keys) const {
+    void SetKeys(Key* target, Key* keys) const
+    {
     	for (Int c = 0; c < Indexes; c++) target[c] = keys[c];
+    }
+
+    bool IsTheSameNode(NodeBaseG& node1, NodeBaseG& node2) const
+    {
+    	return node1->id() == node2->id();
     }
 
     void Dump(Key* keys, ostream& out = cout) const
