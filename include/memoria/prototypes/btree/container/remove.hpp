@@ -191,7 +191,7 @@ private:
      * merge it with siblings.
      */
 
-    void RemovePage(NodeBaseG node, typename UpdateType::Enum update_type = UpdateType::FULL);
+    void RemovePage(NodeBaseG& node, typename UpdateType::Enum update_type = UpdateType::FULL);
 
 
     /**
@@ -562,7 +562,7 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
  */
 
 M_PARAMS
-void M_TYPE::RemovePage(NodeBaseG node, typename UpdateType::Enum update_type)
+void M_TYPE::RemovePage(NodeBaseG& node, typename UpdateType::Enum update_type)
 {
 	if (!node->is_root())
 	{
@@ -579,6 +579,7 @@ void M_TYPE::RemovePage(NodeBaseG node, typename UpdateType::Enum update_type)
 			//This node (it is a child there) will be removed automatically
 			//and all parents chain will be updated.
 			Key keys[Indexes];
+			me()->ClearKeys(keys);
 			me()->RemoveSpace(parent, node->parent_idx(), 1, update_type, true, keys);
 
 			//if after removing parent is less than half filled than

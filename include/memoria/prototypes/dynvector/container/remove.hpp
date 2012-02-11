@@ -151,26 +151,24 @@ public:
 
     			removed += keys[0];
 
-    			start = stop = me()->Seek(pos);
+    			if (stop_data.is_set())
+    			{
+    				stop.data() 		= stop_data;
+    				stop.data_pos()		= 0;
 
-//    			if (stop_data.is_set())
-//    			{
-//    				stop.data() 		= stop_data;
-//    				stop.data_pos()		= 0;
-//
-//    				start 				= stop;
-//    			}
-//    			else {
-//    				start.data() 		= start_data;
-//    				start.data_pos() 	= start_data->data().size();
-//
-//    				stop 				= start;
-//    			}
-//
-//    			for (Int c = 0; c < Indexes; c++)
-//    			{
-//    				stop.prefix(c) = prefixes[c];
-//    			}
+    				start 				= stop;
+    			}
+    			else {
+    				start.data() 		= start_data;
+    				start.data_pos() 	= start_data.is_set() ? start_data->data().size() : 0;
+
+    				stop 				= start;
+    			}
+
+    			for (Int c = 0; c < Indexes; c++)
+    			{
+    				stop.prefix(c) = prefixes[c];
+    			}
 
     			//FIXME: merge with siblings
 
