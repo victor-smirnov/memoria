@@ -22,16 +22,29 @@ struct SumSetReplay: public BTreeReplayParams {
 	Int from_;
 	Int to_;
 
+	Int idx_;
+
 	SumSetReplay(): BTreeReplayParams()
 	{
 		Add("from", from_);
 		Add("to", 	to_);
+		Add("idx", 	idx_);
 	}
 };
 
 
 struct SumSetParams: public TestTaskParams {
-	SumSetParams(): TestTaskParams("SumSet") {}
+
+	bool step0_;
+	bool step1_;
+	bool step2_;
+
+	SumSetParams(): TestTaskParams("SumSet")
+	{
+		Add("step0", step0_, true);
+		Add("step1", step1_, true);
+		Add("step2", step2_, true);
+	}
 };
 
 

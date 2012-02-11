@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_TEMPLATE_TASK_HPP_
-#define MEMORIA_TESTS_TEMPLATE_TASK_HPP_
+#ifndef MEMORIA_TESTS_VECTOR_MAP_TASK_HPP_
+#define MEMORIA_TESTS_VECTOR_MAP_TASK_HPP_
 
 #include <memoria/memoria.hpp>
 

@@ -43,8 +43,16 @@ public:
         return IsClean(Base::ptr(), Size);
     }
 
+    bool is_empty() const {
+    	return Base::value() == 0;
+    }
+
     bool is_not_null() const {
     	return !is_null();
+    }
+
+    bool is_set() const {
+    	return Base::value() != 0;
     }
 
     void set_null() {
@@ -390,37 +398,28 @@ public:
 
 	typedef PageGuard<PageT, AllocatorT> 								MyType;
 	typedef PageT														Page;
-//	typedef AllocatorT 													Allocator;
+	typedef AllocatorT 													Allocator;
 	typedef PageShared<AllocatorT>										Shared;
 
 private:
 	Shared* 	shared_;
 
-	//Int 		idx_;
 public:
 
 
-	PageGuard(Shared* shared): shared_(shared)//, idx_(0)
+	PageGuard(Shared* shared): shared_(shared)
 	{
 		inc();
 		ref();
 	}
 
 
-	PageGuard(): shared_(NULL)//, idx_(1)
+	PageGuard(): shared_(NULL)
 	{
 		inc();
 	}
 
-	PageGuard(const MyType& guard): shared_(guard.shared_)//, idx_(2)
-	{
-		ref();
-		check();
-		inc();
-	}
-
-	template <typename Page>
-	PageGuard(const PageGuard<Page, AllocatorT>& guard): shared_(guard.shared_)//, idx_(3)
+	PageGuard(const MyType& guard): shared_(guard.shared_)
 	{
 		ref();
 		check();
@@ -428,7 +427,15 @@ public:
 	}
 
 	template <typename Page>
-	PageGuard(PageGuard<Page, AllocatorT>&& guard): shared_(guard.shared_)//, idx_(4)
+	PageGuard(const PageGuard<Page, AllocatorT>& guard): shared_(guard.shared_)
+	{
+		ref();
+		check();
+		inc();
+	}
+
+	template <typename Page>
+	PageGuard(PageGuard<Page, AllocatorT>&& guard): shared_(guard.shared_)
 	{
 		guard.shared_	= NULL;
 		check();
@@ -509,6 +516,14 @@ public:
 	bool operator!=(const PageT* page) const
 	{
 		return shared_ != NULL ? *shared_ != page : (char*)shared_ != (char*)page;
+	}
+
+	bool is_empty() const {
+		return shared_ == NULL || shared_->get() == NULL;
+	}
+
+	bool is_set() const {
+		return shared_ != NULL && shared_->get() != NULL;
 	}
 
 	bool operator==(const MyType& other) const

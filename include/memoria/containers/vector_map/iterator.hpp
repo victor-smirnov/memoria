@@ -189,7 +189,7 @@ public:
 	{
 		BigInt data_size = size();
 		model_.set().RemoveEntry(is_iter);
-		ba_iter.Remove(data_size);
+		ba_iter_.Remove(data_size);
 	}
 
 	BigInt size() {

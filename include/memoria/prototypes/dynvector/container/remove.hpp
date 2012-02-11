@@ -80,91 +80,127 @@ public:
     };
 
 
-    bool RemoveDataBlock(Iterator& start, Iterator& stop)
+    BigInt RemoveDataBlock(Iterator& start, Iterator& stop)
     {
     	BigInt pos = start.pos();
 
-    	if (me()->debug()) {
-    		int a = 0;
-    		a++;
-    	}
-
-
-    	if (!start.IsEof() && start.pos() < stop.pos())
+    	if (!start.IsEof() && pos < stop.pos())
     	{
     		if (start.data()->id() == stop.data()->id())
     		{
-    			return me()->RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
+    			// Withing the same data node
+    			// FIXME: Merge with siblings
+    			BigInt result = RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
+
+    			stop.data_pos() = start.data_pos();
+
+    			return result;
     		}
     		else {
-    			Int start_key_idx, stop_key_idx = 0;
+    			// Removed region crosses data node boundary
 
-    			bool removed = false;
+    			BigInt removed = 0;
 
-    			if (start.data_pos() > 0)
-    			{
-    				removed = me()->RemoveData(start.page(), start.data(), start.data_pos(), start.data()->data().size() - start.data_pos());
+    			DataPageG start_data;
+    			DataPageG stop_data;
 
-    				start_key_idx = start.key_idx();
-    			}
-    			else {
-    				start_key_idx = start.key_idx() - 1;
-    			}
 
     			if (!stop.IsEof())
     			{
     				if (stop.data_pos() > 0)
     				{
-    					removed = me()->RemoveData(stop.page(), stop.data(), 0, stop.data_pos()) || removed;
+    					removed += RemoveData(stop.page(), stop.data(), 0, stop.data_pos());
+    					stop.data_pos() = 0;
     				}
 
-    				stop_key_idx = stop.key_idx();
+    				stop_data = stop.data();
     			}
     			else {
-    				stop_key_idx = stop.key_idx() + 1;
+    				stop.NextKey();
     			}
 
-    			Key keys[Indexes] = {0,};
-    			removed = me()->RemovePages(start.page(), start_key_idx, stop.page(), stop_key_idx, keys, false) || removed;
 
-    			Iterator i = me()->Seek(pos);
+    			Key prefixes[Indexes];
 
-    			start = i;
-    			stop  = i;
+    			for (Int c = 0; c < Indexes; c++)
+    			{
+    				prefixes[c] = start.prefix(c);
+    			}
+
+    			if (start.data_pos() > 0)
+    			{
+    				// Remove a region in current data node starting from data_pos till the end
+    				Int length = start.data()->data().size() - start.data_pos();
+    				removed += RemoveData(start.page(), start.data(), start.data_pos(), length);
+
+    				start_data 	= start.data();
+
+    				prefixes[0] += length;
+
+    				start.NextKey();
+    			}
+    			else if (stop_data.is_empty())
+    			{
+    				start_data 	= start.GetPrevDataPage();
+    			}
+
+    			BigInt keys[Indexes];
+    			me()->ClearKeys(keys);
+
+    			me()->RemoveEntries(start, stop, keys);
+
+    			removed += keys[0];
+
+    			if (stop_data.is_set())
+    			{
+    				stop.data() 		= stop_data;
+    				stop.data_pos()		= 0;
+
+    				start 				= stop;
+    			}
+    			else {
+    				start.data() 		= start_data;
+    				start.data_pos() 	= start_data.is_set() ? start_data->data().size() : 0;
+
+    				stop 				= start;
+    			}
+
+    			for (Int c = 0; c < Indexes; c++)
+    			{
+    				stop.prefix(c) = prefixes[c];
+    			}
+
+    			//FIXME: merge with siblings
 
     			return removed;
     		}
     	}
     	else {
-    		return false;
+    		return 0;
     	}
     }
 
-    bool RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length)
+private:
+    BigInt RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length)
     {
-    	if (me()->debug()) {
-    		int a = 0;
-    		a++;
-    	}
-
     	data.update();
 
     	Int pos = start + length;
-
-    	BigInt keys[Indexes] = {0,};
 
     	if (pos < data->data().size())
     	{
     		data->data().shift(pos, -length);
     	}
 
-    	keys[0] = -length;
-
     	data->data().size() -= length;
+
+    	BigInt keys[Indexes];
+    	for (Int c = 1; c < Indexes; c++) keys[c] = 0;
+    	keys[0] = -length;
 
     	me()->UpdateBTreeKeys(page, data->parent_idx(), keys, true);
 
-    	return length > 0; // FIXME: it always true;
+    	return length;
     }
 
 MEMORIA_CONTAINER_PART_END

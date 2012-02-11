@@ -66,12 +66,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     void Remove(BigInt len)
     {
     	MyType to = *me();
-
-    	if (me()->model().debug()) {
-    		int a = 0;
-    		a++;
-    	}
-
     	to.Skip(len);
     	me()->model().RemoveDataBlock(*me(), to);
     }
@@ -85,10 +79,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     BigInt SkipFw(BigInt distance);
     BigInt SkipBw(BigInt distance);
 
-    void DumpState(const char* str)
+    void DumpState(ostream& out = cout)
     {
-    	BigInt offset = me()->GetIndexValue(0) + me()->data_pos();
-    	MEMORIA_INFO(me()->model(), str, "[node_id key_idx data_id page_offset offset bof eof empty]", (me()->page() != NULL ? me()->page()->id() : ID(0)), me()->key_idx(), (me()->data() != NULL ? me()->data()->id() : ID(0)), me()->data_pos(), offset, me()->IsStart(), me()->IsEnd(), me()->IsEmpty());
+    	out<<"Vector iterator state"<<endl;
+    	out<<"Pos: 	   "<<me()->pos()<<endl;
+    	out<<"DataPos: "<<me()->data_pos()<<endl;
+    	me()->model().Dump(me()->page(), out);
+    	me()->model().Dump(me()->data(), out);
     }
 
     BigInt GetBlobId() {return 0;}
@@ -111,11 +108,6 @@ BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
 		if (to_read > len) to_read = len;
 
 		CopyBuffer(me()->data()->data().value_addr(me()->data_pos()), data.data() + start, to_read);
-
-//		if (me()->model().debug())
-//		{
-//			me()->model().Dump(me()->data());
-//		}
 
 		len 	-= to_read;
 		me()->Skip(to_read);
