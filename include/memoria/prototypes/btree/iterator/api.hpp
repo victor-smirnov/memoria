@@ -66,9 +66,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
 private:
 
-    NodeBaseG __get_next_node(NodeBase* page, Int &idx1, Int level);
+    NodeBaseG __get_next_node(NodeBaseG& page, Int &idx1, Int level);
 
-    NodeBaseG __get_prev_node(NodeBase* page, Int &idx1, Int level);
+    NodeBaseG __get_prev_node(NodeBaseG& page, Int &idx1, Int level);
 
 MEMORIA_ITERATOR_PART_END
 
@@ -197,7 +197,7 @@ typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(NodeBase* page)
 // ------------------------------------ PRIVATE API --------------------------------
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBase* page, Int &idx1, Int level)
+typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBaseG& page, Int &idx1, Int level)
 {
 	if (idx1 < page->children_count() - 1)
 	{
@@ -224,7 +224,7 @@ typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBase* page, Int &idx1, In
 }
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::__get_prev_node(NodeBase* page, Int &idx1, Int level)
+typename M_TYPE::NodeBaseG M_TYPE::__get_prev_node(NodeBaseG& page, Int &idx1, Int level)
 {
 	if (idx1 > 0)
 	{

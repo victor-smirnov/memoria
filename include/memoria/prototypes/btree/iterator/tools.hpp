@@ -33,7 +33,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
         return me()->model().GetParent(node, flags);
     }
 
-    NodeBaseG GetChild(NodeBase *node, Int idx, Int flags)
+    NodeBaseG GetChild(NodeBaseG& node, Int idx, Int flags)
     {
         return me()->model().GetChild(node, idx, flags);
     }

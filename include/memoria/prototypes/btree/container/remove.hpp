@@ -318,7 +318,7 @@ BigInt M_TYPE::RemoveSpace(NodeBaseG& node, Int from, Int count, typename Update
 			}
 			else if (update_type == UpdateType::PARENT_ONLY)
 			{
-				me()->AddKeys(parent, node->parent_idx(), keys0, false);
+				me()->AddKeys(parent, node->parent_idx(), keys0);
 			}
 		}
 	}
@@ -960,7 +960,7 @@ void M_TYPE::MergeNodes(NodeBaseG& page1, NodeBaseG& page2, bool fix_parent)
 			me()->SetKeys(parent, parent_idx - 1, keys);
 		}
 		else {
-			me()->AddKeys(parent, parent_idx - 1, keys, false);
+			me()->AddKeys(parent, parent_idx - 1, keys);
 		}
 
 		MoveChildrenLeft(parent, parent_idx, 1);

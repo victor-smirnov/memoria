@@ -342,9 +342,6 @@ public:
         node->parent_id().Clear();
         node->parent_idx() = 0;
 
-//        Metadata meta = me()->GetRootMetadata(node);
-//        meta.model_name() = me()->name();
-
         me()->SetRootMetadata(node, meta);
     }
 
@@ -370,7 +367,7 @@ public:
         };
     };
 
-    bool CanConvertToRoot(NodeBase *node) const
+    bool CanConvertToRoot(NodeBase* node) const
     {
         CanConvertToRootFn<Node2RootMap> fn;
         NonRootDispatcher::Dispatch(node, fn);
@@ -379,7 +376,7 @@ public:
 
     template <typename Idx>
     class GetPageIdFn {
-        ID *id_;
+        const ID *id_;
         Idx idx_;
     public:
         GetPageIdFn(Idx idx): idx_(idx) {}
@@ -389,25 +386,25 @@ public:
             id_ = &node->map().data(idx_);
         }
 
-        ID *id() const {
+        const ID *id() const {
             return id_;
         };
     };
 
-    ID& GetPageId(NodeBase *node, Int idx)
+    ID GetPageId(const NodeBaseG& node, Int idx) const
     {
         GetPageIdFn<Int> fn(idx);
-        NonLeafDispatcher::Dispatch(node, fn);
+        NonLeafDispatcher::DispatchConst(node, fn);
         return *fn.id();
     }
 
 
-    NodeBaseG GetChild(NodeBase *node, Int idx, Int flags)
+    NodeBaseG GetChild(const NodeBase *node, Int idx, Int flags)
     {
         return memoria::btree::GetChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator(), flags);
     }
 
-    NodeBaseG GetLastChild(NodeBase *node, Int flags)
+    NodeBaseG GetLastChild(const NodeBase *node, Int flags)
     {
         return memoria::btree::GetLastChild<NonLeafDispatcher, NodeBaseG>(node, me()->allocator(), flags);
     }
@@ -483,19 +480,19 @@ public:
         }
     };
 
-    Int GetMaxCapacity(NodeBase *node) const
+    Int GetMaxCapacity(const NodeBaseG& node) const
     {
         GetMaxCapacityFn<Int> fn(me()->max_node_capacity());
-        NodeDispatcher::Dispatch(node, fn);
+        NodeDispatcher::DispatchConst(node, fn);
         return fn.cap();
     }
 
-    bool ShouldMerge(NodeBase* node) const
+    bool ShouldMerge(const NodeBaseG& node) const
     {
     	return node->children_count() <= me()->GetMaxCapacity(node) / 2;
     }
 
-    bool ShouldSplit(NodeBase* node) const
+    bool ShouldSplit(const NodeBaseG& node) const
     {
     	return node->children_count() > me()->GetMaxCapacity(node) / 2;
     }
@@ -589,23 +586,17 @@ public:
         }
     };
 
-    void AddKeys(NodeBaseG& node, int idx, const Key* keys, bool deep = true)
+    void AddKeys(NodeBaseG& node, int idx, const Key* keys)
     {
         node.update();
 
         AddKeysFn fn(idx, keys);
         NodeDispatcher::Dispatch(node, fn);
-
-        if (deep && !node->is_leaf())
-        {
-        	NodeBaseG child = me()->GetChild(node, idx, Allocator::UPDATE);
-            AddKeys(child, 0, keys);
-        }
     }
 
     void AddKeysUp(NodeBaseG& node, int idx, const Key* keys)
     {
-    	AddKeys(node, idx, keys, false);
+    	me()->AddKeys(node, idx, keys);
 
     	if (!node->is_root())
     	{
@@ -622,23 +613,25 @@ public:
         return me()->allocator().GetPage(id, flags);
     }
 
-    static Key GetKey(NodeBase *node, Int i, Int idx)
+    // FIXME: GCC compiler dislikes NodeBaseG& here
+
+    static Key GetKey(const NodeBase* node, Int i, Int idx)
     {
         return memoria::btree::GetKey<NodeDispatcher, Key>(node, i, idx);
     }
 
 
-    static void GetKeys(NodeBase *node, Int idx, Key* keys)
+    static void GetKeys(const NodeBase* node, Int idx, Key* keys)
     {
         memoria::btree::GetKeys<NodeDispatcher, Indexes, Key>(node, idx, keys);
     }
 
-    static void GetMaxKeys(NodeBase *node, Key* keys)
+    static void GetMaxKeys(const NodeBase* node, Key* keys)
     {
         memoria::btree::GetMaxKeys<NodeDispatcher, Indexes, Key>(node, keys);
     }
 
-    static Key GetMaxKey(NodeBase *node, Int i)
+    static Key GetMaxKey(const NodeBase* node, Int i)
     {
         return memoria::btree::GetMaxKey<NodeDispatcher, Key>(node, i);
     }
@@ -684,7 +677,7 @@ public:
     	memoria::btree::SetKeyDataAndReindex<LeafDispatcher>(node.page(), idx, keys, &val);
     }
     
-    static Value GetLeafData(NodeBase *node, Int idx)
+    static Value GetLeafData(const NodeBase* node, Int idx)
     {
         return *memoria::btree::GetData<LeafDispatcher, Value>(node, idx);
     }

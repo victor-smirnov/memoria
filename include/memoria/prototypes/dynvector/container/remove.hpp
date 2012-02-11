@@ -79,132 +79,189 @@ public:
     	}
     };
 
+    /**
+     * Remove the data block between positions pointed with iterators.
+     *
+     * start - remove from (inclusive)
+     *
+     * stop  - remove up to (exclusive)
+     *
+     */
 
-    BigInt RemoveDataBlock(Iterator& start, Iterator& stop)
+    BigInt RemoveDataBlock(Iterator& start, Iterator& stop);
+
+    bool MergeDataWithSiblings(NodeBaseG& node, DataPageG& data, Int& key_idx, BigInt& data_pos);
+    bool MergeDataWithSiblings(Iterator& iter);
+
+    bool ShouldMergeData(const DataPageG& data) const
     {
-    	BigInt pos = start.pos();
-
-    	if (!start.IsEof() && pos < stop.pos())
-    	{
-    		if (start.data()->id() == stop.data()->id())
-    		{
-    			// Withing the same data node
-    			// FIXME: Merge with siblings
-    			BigInt result = RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
-
-    			stop.data_pos() = start.data_pos();
-
-    			return result;
-    		}
-    		else {
-    			// Removed region crosses data node boundary
-
-    			BigInt removed = 0;
-
-    			DataPageG start_data;
-    			DataPageG stop_data;
-
-
-    			if (!stop.IsEof())
-    			{
-    				if (stop.data_pos() > 0)
-    				{
-    					removed += RemoveData(stop.page(), stop.data(), 0, stop.data_pos());
-    					stop.data_pos() = 0;
-    				}
-
-    				stop_data = stop.data();
-    			}
-    			else {
-    				stop.NextKey();
-    			}
-
-
-    			Key prefixes[Indexes];
-
-    			for (Int c = 0; c < Indexes; c++)
-    			{
-    				prefixes[c] = start.prefix(c);
-    			}
-
-    			if (start.data_pos() > 0)
-    			{
-    				// Remove a region in current data node starting from data_pos till the end
-    				Int length = start.data()->data().size() - start.data_pos();
-    				removed += RemoveData(start.page(), start.data(), start.data_pos(), length);
-
-    				start_data 	= start.data();
-
-    				prefixes[0] += length;
-
-    				start.NextKey();
-    			}
-    			else if (stop_data.is_empty())
-    			{
-    				start_data 	= start.GetPrevDataPage();
-    			}
-
-    			BigInt keys[Indexes];
-    			me()->ClearKeys(keys);
-
-    			me()->RemoveEntries(start, stop, keys);
-
-    			removed += keys[0];
-
-    			if (stop_data.is_set())
-    			{
-    				stop.data() 		= stop_data;
-    				stop.data_pos()		= 0;
-
-    				start 				= stop;
-    			}
-    			else {
-    				start.data() 		= start_data;
-    				start.data_pos() 	= start_data.is_set() ? start_data->data().size() : 0;
-
-    				stop 				= start;
-    			}
-
-    			for (Int c = 0; c < Indexes; c++)
-    			{
-    				stop.prefix(c) = prefixes[c];
-    			}
-
-    			//FIXME: merge with siblings
-
-    			return removed;
-    		}
-    	}
-    	else {
-    		return 0;
-    	}
+    	return data->data().size() <= DataPage::get_max_size();
     }
 
 private:
-    BigInt RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length)
-    {
-    	data.update();
 
-    	Int pos = start + length;
 
-    	if (pos < data->data().size())
-    	{
-    		data->data().shift(pos, -length);
-    	}
+    BigInt RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length);
 
-    	data->data().size() -= length;
 
-    	BigInt keys[Indexes];
-    	for (Int c = 1; c < Indexes; c++) keys[c] = 0;
-    	keys[0] = -length;
-
-    	me()->UpdateBTreeKeys(page, data->parent_idx(), keys, true);
-
-    	return length;
-    }
 
 MEMORIA_CONTAINER_PART_END
 
+
+#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::RemoveName)
+#define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+M_PARAMS
+BigInt M_TYPE::RemoveDataBlock(Iterator& start, Iterator& stop)
+   {
+   	BigInt pos = start.pos();
+
+   	if (!start.IsEof() && pos < stop.pos())
+   	{
+   		if (start.data()->id() == stop.data()->id())
+   		{
+   			// Withing the same data node
+   			// FIXME: Merge with siblings
+   			BigInt result = RemoveData(start.page(), start.data(), start.data_pos(), stop.data_pos() - start.data_pos());
+
+   			stop.data_pos() = start.data_pos();
+
+   			me()->MergeDataWithSiblings(stop);
+
+   			return result;
+   		}
+   		else {
+   			// Removed region crosses data node boundary
+
+   			BigInt removed = 0;
+
+   			DataPageG start_data;
+   			DataPageG stop_data;
+
+
+   			if (!stop.IsEof())
+   			{
+   				if (stop.data_pos() > 0)
+   				{
+   					removed += RemoveData(stop.page(), stop.data(), 0, stop.data_pos());
+   					stop.data_pos() = 0;
+   				}
+
+   				stop_data = stop.data();
+   			}
+   			else {
+   				stop.NextKey();
+   			}
+
+
+   			Key prefixes[Indexes];
+
+   			for (Int c = 0; c < Indexes; c++)
+   			{
+   				prefixes[c] = start.prefix(c);
+   			}
+
+   			if (start.data_pos() > 0)
+   			{
+   				// Remove a region in current data node starting from data_pos till the end
+   				Int length = start.data()->data().size() - start.data_pos();
+   				removed += RemoveData(start.page(), start.data(), start.data_pos(), length);
+
+   				start_data 	= start.data();
+
+   				prefixes[0] += length;
+
+   				start.NextKey();
+   			}
+   			else if (stop_data.is_empty())
+   			{
+   				start_data 	= start.GetPrevDataPage();
+   			}
+
+   			BigInt keys[Indexes];
+   			me()->ClearKeys(keys);
+
+   			me()->RemoveEntries(start, stop, keys);
+
+   			removed += keys[0];
+
+   			if (stop_data.is_set())
+   			{
+   				stop.data() 		= stop_data;
+   				stop.data_pos()		= 0;
+
+   				start 				= stop;
+   			}
+   			else {
+   				start.data() 		= start_data;
+   				start.data_pos() 	= start_data.is_set() ? start_data->data().size() : 0;
+
+   				stop 				= start;
+   			}
+
+   			for (Int c = 0; c < Indexes; c++)
+   			{
+   				stop.prefix(c) = prefixes[c];
+   			}
+
+
+   			me()->MergeDataWithSiblings(stop);
+
+   			//FIXME: merge with siblings
+
+   			return removed;
+   		}
+   	}
+   	else {
+   		return 0;
+   	}
+}
+
+M_PARAMS
+bool M_TYPE::MergeDataWithSiblings(NodeBaseG& node, DataPageG& data, Int& key_idx, BigInt& data_pos)
+{
+	if (ShouldMergeData(data))
+	{
+
+	}
+
+	return true;
+}
+
+M_PARAMS
+bool M_TYPE::MergeDataWithSiblings(Iterator& iter)
+{
+	return me()->MergeDataWithSiblings(iter.page(), iter.data(), iter.key_idx(), iter.data_pos());
+}
+
+
+
+M_PARAMS
+BigInt M_TYPE::RemoveData(NodeBaseG& page, DataPageG& data, Int start, Int length)
+{
+	data.update();
+
+	Int pos = start + length;
+
+	if (pos < data->data().size())
+	{
+		data->data().shift(pos, -length);
+	}
+
+	data->data().size() -= length;
+
+	BigInt keys[Indexes];
+	for (Int c = 1; c < Indexes; c++) keys[c] = 0;
+	keys[0] = -length;
+
+	me()->UpdateBTreeKeys(page, data->parent_idx(), keys, true);
+
+	return length;
+}
+
+
+#undef M_TYPE
+#undef M_PARAMS
 
 
 }
