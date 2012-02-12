@@ -80,7 +80,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      * FIXME: optimize. Add a flag for absolute key value preserving.
      *
      */
-    BigInt RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int& stop_idx, Key* keys);
+    BigInt RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int& stop_idx, Key* keys, bool merge = true);
 
     void RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int& stop_idx, Key* keys_left, Key* keys_right, BigInt& removed_key_count);
 
@@ -92,8 +92,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     }
 
     bool MergeWithLeftSibling(NodeBaseG& node, Int& key_idx);
-    bool MergeWithRightSibling(NodeBaseG& node, Int& key_idx);
-
+    bool MergeWithRightSibling(NodeBaseG& node);
     bool MergeWithSiblings(NodeBaseG& node, Int& key_idx);
 
     /**
@@ -205,8 +204,9 @@ private:
 
     bool CanMerge(NodeBaseG& page1, NodeBaseG& page2)
     {
-    	return IsTheSameParent(page1, page2) && page2->children_count() <= me()->GetCapacity(page1);
+    	return page2->children_count() <= me()->GetCapacity(page1);
     }
+
 
     static bool IsTheSameParent(NodeBaseG& page1, NodeBaseG& page2)
     {
@@ -344,7 +344,7 @@ BigInt M_TYPE::RemoveSpace(NodeBaseG& node, Int from, Int count, typename Update
 
 
 M_PARAMS
-BigInt M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int& stop_idx, Key* keys)
+BigInt M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int& stop_idx, Key* keys, bool merge)
 {
 	Key keys_right[Indexes];
 	me()->ClearKeys(keys_right);
@@ -354,16 +354,28 @@ BigInt M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, In
 
 	if (start.is_set() && stop.is_empty())
 	{
+		me()->MergeWithLeftSibling(start, start_idx);
+
 		stop 		= start;
 		stop_idx 	= start_idx;
 	}
-	else
+	else if (start.is_empty() && stop.is_set())
 	{
+		me()->MergeWithRightSibling(stop);
+
 		start 		= stop;
 		start_idx 	= stop_idx;
 	}
+	else if (start.is_set() && stop.is_set())
+	{
+		me()->MergeWithSiblings(stop, stop_idx);
 
-
+		start 		= stop;
+		start_idx 	= stop_idx;
+	}
+	else {
+		start_idx 	= stop_idx = 0;
+	}
 
 	return removed_key_count;
 }
@@ -851,7 +863,7 @@ void M_TYPE::RemoveSingularNodeChain(NodeBaseG& node, Int key_idx)
 M_PARAMS
 bool M_TYPE::MergeWithSiblings(NodeBaseG& node, Int& key_idx)
 {
-	if (me()->MergeWithRightSibling(node, key_idx))
+	if (me()->MergeWithRightSibling(node))
 	{
 		return true;
 	}
@@ -865,25 +877,29 @@ bool M_TYPE::MergeWithSiblings(NodeBaseG& node, Int& key_idx)
 M_PARAMS
 bool M_TYPE::MergeWithLeftSibling(NodeBaseG& node, Int& key_idx)
 {
-	Iterator tmp(*me());
-
 	bool merged = false;
 
-	NodeBaseG prev = tmp.GetPrevNode(node);
-	if (prev != NULL)
+	if (me()->ShouldMergeNode(node))
 	{
-		Int size = prev->children_count();
+		Iterator tmp(*me());
 
-		merged = MergeBTreeNodes(prev, node);
-
-		if (merged)
+		NodeBaseG prev = tmp.GetPrevNode(node);
+		if (prev.is_set())
 		{
-			key_idx += size;
-			node = prev;
+			Int size = prev->children_count();
+
+			merged = MergeBTreeNodes(prev, node);
+
+			if (merged)
+			{
+				key_idx += size;
+				node = prev;
+			}
 		}
-	}
-	else {
-		merged = false;
+		else {
+			merged = false;
+		}
+
 	}
 
 	return merged;
@@ -891,37 +907,19 @@ bool M_TYPE::MergeWithLeftSibling(NodeBaseG& node, Int& key_idx)
 
 
 M_PARAMS
-bool M_TYPE::MergeWithRightSibling(NodeBaseG& node, Int& key_idx)
+bool M_TYPE::MergeWithRightSibling(NodeBaseG& node)
 {
-	Iterator tmp(*me());
-
 	bool merged = false;
 
-	NodeBaseG next = tmp.GetNextNode(node);
-
-	if (next != NULL)
+	if (me()->ShouldMergeNode(node))
 	{
-		if (!MergeBTreeNodes(node, next))
+		Iterator tmp(*me());
+
+		NodeBaseG next = tmp.GetNextNode(node);
+
+		if (next.is_set())
 		{
-			NodeBaseG prev = tmp.GetPrevNode(node);
-			if (prev != NULL)
-			{
-				Int size = prev->children_count();
-
-				merged = MergeBTreeNodes(prev, node);
-
-				if (merged)
-				{
-					node = prev;
-					key_idx += size;
-				}
-			}
-			else {
-				merged = false;
-			}
-		}
-		else {
-			merged = true;
+			merged = MergeBTreeNodes(node, next);
 		}
 	}
 
@@ -992,25 +990,17 @@ bool M_TYPE::MergeBTreeNodes(NodeBaseG& page1, NodeBaseG& page2)
 			me()->MergeNodes(page1, page2);
 
 			NodeBaseG parent = me()->GetParent(page1, Allocator::READ);
-			if (parent->is_root() && parent->children_count() == 1 && me()->CanConvertToRoot(page1))
-			{
-				Metadata meta = me()->GetRootMetadata(parent);
 
-				me()->Node2Root(page1, meta);
-
-				me()->set_root(page1->id());
-				page1->parent_idx() = 0;
-
-				me()->allocator().RemovePage(parent->id());
-			}
+			me()->RemoveRedundantRoot(parent, page1);
 
 			return true;
 		}
 		else
 		{
 			//FIXME Use more clever logic for the update flag
-			NodeBaseG parent1 = me()->GetParent(page1, Allocator::UPDATE);
-			NodeBaseG parent2 = me()->GetParent(page2, Allocator::UPDATE);
+			NodeBaseG parent1 = me()->GetParent(page1, Allocator::READ);
+			NodeBaseG parent2 = me()->GetParent(page2, Allocator::READ);
+
 			if (me()->MergeBTreeNodes(parent1, parent2))
 			{
 				MergeNodes(page1, page2);
