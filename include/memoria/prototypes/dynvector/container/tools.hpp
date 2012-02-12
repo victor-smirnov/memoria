@@ -65,13 +65,13 @@ public:
 
     
 
-    DataPageG GetDataPage(NodeBase *node, Int idx, Int flags)
+    DataPageG GetDataPage(const NodeBase *node, Int idx, Int flags) const
     {
         Value id = me()->GetLeafData(node, idx);
         return me()->allocator().GetPage(id, flags);
     }
 
-    NodeBaseG GetDataParent(DataPage *node, Int flags)
+    NodeBaseG GetDataParent(const DataPage *node, Int flags) const
     {
     	return me()->allocator().GetPage(node->parent_id(), flags);
     }

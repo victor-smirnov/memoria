@@ -24,7 +24,7 @@ class VectorTest: public SPTestTask {
 
 public:
 
-	VectorTest(): SPTestTask(new VectorParams()) {} //
+	VectorTest(): SPTestTask(new VectorParams()) {}
 
 	virtual ~VectorTest() throw() {}
 
@@ -276,6 +276,8 @@ public:
 	bool Remove(Allocator& allocator, ByteVectorCtr& array, VectorReplay* params)
 	{
 		Int step = params->step_;
+
+		params->cnt_++;
 
 		if (array.Size() < 20000)
 		{

@@ -601,7 +601,7 @@ void M_TYPE::move_data_in_page(Iterator &iter, BigInt local_idx, CountData &pref
 M_PARAMS
 void M_TYPE::move_data_in_page(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix)
 {
-	//TODO: does it better to update indexes and sizes here?
+	//TODO: Is it better to update indexes and sizes here?
 	BigInt keys[Indexes];
 	me()->move_data(from, to, local_idx, prefix, keys);
 

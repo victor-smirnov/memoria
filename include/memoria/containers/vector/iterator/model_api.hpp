@@ -79,9 +79,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     BigInt SkipFw(BigInt distance);
     BigInt SkipBw(BigInt distance);
 
-    void DumpState(ostream& out = cout)
+    void Dump(ostream& out = cout, const char* msg = NULL)
     {
-    	out<<"Vector iterator state"<<endl;
+    	out<<"Vector iterator state: "<<(msg != NULL ? msg : "")<<endl;
     	out<<"Pos: 	   "<<me()->pos()<<endl;
     	out<<"DataPos: "<<me()->data_pos()<<endl;
     	me()->model().Dump(me()->page(), out);

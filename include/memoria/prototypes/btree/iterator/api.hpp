@@ -41,14 +41,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     bool PrevLeaf() ;
 
 
-    NodeBaseG GetNextNode(NodeBase* page);
+    NodeBaseG GetNextNode(const NodeBaseG& page);
 
     NodeBaseG GetNextNode()
     {
     	return me()->GetNextNode(me()->page());
     }
 
-    NodeBaseG GetPrevNode(NodeBase* page);
+    NodeBaseG GetPrevNode(const NodeBaseG& page);
     NodeBaseG GetPrevNode()
     {
     	return me()->GetPrevNode(me()->page());
@@ -66,9 +66,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
 private:
 
-    NodeBaseG __get_next_node(NodeBase* page, Int &idx1, Int level);
+    NodeBaseG __get_next_node(const NodeBaseG& page, Int &idx1, Int level);
 
-    NodeBaseG __get_prev_node(NodeBase* page, Int &idx1, Int level);
+    NodeBaseG __get_prev_node(const NodeBaseG& page, Int &idx1, Int level);
 
 MEMORIA_ITERATOR_PART_END
 
@@ -159,7 +159,7 @@ bool M_TYPE::PrevLeaf()
 }
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::GetNextNode(NodeBase* page)
+typename M_TYPE::NodeBaseG M_TYPE::GetNextNode(const NodeBaseG& page)
 {
 	if (page->is_root())
 	{
@@ -177,7 +177,7 @@ typename M_TYPE::NodeBaseG M_TYPE::GetNextNode(NodeBase* page)
 }
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(NodeBase* page)
+typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(const NodeBaseG& page)
 {
 	if (page->is_root()) {
 		return NodeBaseG();
@@ -197,7 +197,7 @@ typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(NodeBase* page)
 // ------------------------------------ PRIVATE API --------------------------------
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBase* page, Int &idx1, Int level)
+typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(const NodeBaseG& page, Int &idx1, Int level)
 {
 	if (idx1 < page->children_count() - 1)
 	{
@@ -224,7 +224,7 @@ typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(NodeBase* page, Int &idx1, In
 }
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::__get_prev_node(NodeBase* page, Int &idx1, Int level)
+typename M_TYPE::NodeBaseG M_TYPE::__get_prev_node(const NodeBaseG& page, Int &idx1, Int level)
 {
 	if (idx1 > 0)
 	{

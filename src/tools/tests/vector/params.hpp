@@ -26,14 +26,17 @@ public:
 
 	BigInt 	pos_;
 
+	Int 	cnt_;
+
 public:
-	VectorReplay(): ReplayParams(), data_(0), insert_(true), data_size_(0), page_step_(-1), pos_(-1)
+	VectorReplay(): ReplayParams(), data_(0), insert_(true), data_size_(0), page_step_(-1), pos_(-1), cnt_(0)
 	{
 		Add("data", 	data_);
 		Add("insert", 	insert_);
 		Add("dataSize", data_size_);
 		Add("pageStep", page_step_);
 		Add("pos", 		pos_);
+		Add("cnt", 		cnt_);
 	}
 };
 

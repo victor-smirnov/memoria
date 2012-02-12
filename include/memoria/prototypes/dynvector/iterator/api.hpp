@@ -172,7 +172,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return me()->GetNextDataPage(me()->page(), me()->data());
     }
 
-    DataPageG GetPrevDataPage(NodeBaseG& page, DataPageG& data)
+    DataPageG GetPrevDataPage(const NodeBaseG& page, const DataPageG& data)
     {
     	Int parent_idx = data->parent_idx();
 

@@ -56,6 +56,10 @@ public:
     	Base::init();
     }
 
+    Short size() const {
+    	return data_.size();
+    }
+
     const PageData& data() const {
         return data_;
     }

@@ -78,11 +78,11 @@ public:
         return key_idx_;
     }
 
-    NodeBaseG &page() {
+    NodeBaseG& page() {
         return page_;
     }
 
-    const NodeBaseG &page() const {
+    const NodeBaseG& page() const {
     	return page_;
     }
 
