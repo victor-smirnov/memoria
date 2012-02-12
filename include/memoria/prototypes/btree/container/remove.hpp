@@ -100,7 +100,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      * Remove key and data pointed by iterator 'iter' form the map.
      *
      */
-    bool RemoveEntry(Iterator& iter) ;
+    bool RemoveEntry(Iterator& iter, bool preserve_key_values = true);
+
+    void RemoveEntry(NodeBaseG& node, Int& idx, Key* keys);
 
     BigInt RemoveEntries(Iterator& from, Iterator& to);
     BigInt RemoveEntries(Iterator& from, Iterator& to, Key* keys);
@@ -181,7 +183,7 @@ private:
      */
 
     // FIXME: remove data pages for dynarray
-    BigInt RemoveSpace(NodeBaseG& node, Int from, Int count, typename UpdateType::Enum update_type, bool remove_children, Key* keys = NULL);
+    BigInt RemoveSpace(NodeBaseG& node, Int from, Int count, typename UpdateType::Enum update_type, Key* keys = NULL, bool remove_children = true);
 
     /**
      * Remove a page from the btree. Do recursive removing if page's parent
@@ -203,7 +205,7 @@ private:
 
     bool CanMerge(NodeBaseG& page1, NodeBaseG& page2)
     {
-    	return page2->children_count() <= me()->GetCapacity(page1);
+    	return IsTheSameParent(page1, page2) && page2->children_count() <= me()->GetCapacity(page1);
     }
 
     static bool IsTheSameParent(NodeBaseG& page1, NodeBaseG& page2)
@@ -266,9 +268,9 @@ void M_TYPE::MoveChildrenLeft(NodeBaseG& node, Int from, Int count)
 }
 
 M_PARAMS
-BigInt M_TYPE::RemoveSpace(NodeBaseG& node, Int from, Int count, typename UpdateType::Enum update_type, bool remove_children, Key* keys)
+BigInt M_TYPE::RemoveSpace(NodeBaseG& node, Int from, Int count, typename UpdateType::Enum update_type, Key* keys, bool remove_children)
 {
-//	if (count  == 0) return false;
+	//FIXME: optimize for the case when count == 0
 
 	node.update();
 
@@ -350,7 +352,7 @@ BigInt M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, In
 	BigInt removed_key_count = 0;
 	RemovePages(start, start_idx, stop, stop_idx, keys, keys_right, removed_key_count);
 
-	if (start != NULL && stop == NULL)
+	if (start.is_set() && stop.is_empty())
 	{
 		stop 		= start;
 		stop_idx 	= start_idx;
@@ -360,6 +362,8 @@ BigInt M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, In
 		start 		= stop;
 		start_idx 	= stop_idx;
 	}
+
+
 
 	return removed_key_count;
 }
@@ -401,7 +405,7 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
 
 
 
-			removed_key_count += RemoveSpace(start, start_idx, stop_idx - start_idx, UpdateType::FULL, true, keys_left);
+			removed_key_count += RemoveSpace(start, start_idx, stop_idx - start_idx, UpdateType::FULL, keys_left);
 
 			me()->SetKeys(keys_right, keys_left);
 
@@ -436,14 +440,14 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
 		{
 			if (start->is_root())
 			{
-				removed_key_count += RemoveSpace(start, start_idx, start->children_count() - start_idx, UpdateType::NONE, true, keys_left);
+				removed_key_count += RemoveSpace(start, start_idx, start->children_count() - start_idx, UpdateType::NONE, keys_left);
 				me()->SetKeys(keys_right, keys_left);
 			}
 			else
 			{
 				if (start_idx > 0)
 				{
-					removed_key_count 	+= RemoveSpace(start, start_idx, start->children_count() - start_idx, UpdateType::PARENT_ONLY, true, keys_left);
+					removed_key_count 	+= RemoveSpace(start, start_idx, start->children_count() - start_idx, UpdateType::PARENT_ONLY, keys_left);
 
 					start_parent 		= me()->GetParent(start, Allocator::UPDATE);
 					start_parent_idx 	= start->parent_idx() + 1;
@@ -470,16 +474,16 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
 		{
 			if (stop->is_root())
 			{
-				removed_key_count += RemoveSpace(stop, 0, stop_idx, UpdateType::NONE, true, keys_right);
+				removed_key_count += RemoveSpace(stop, 0, stop_idx, UpdateType::NONE, keys_right);
 				me()->SetKeys(keys_left, keys_right);
 			}
 			else
 			{
 				if (stop_idx < stop->children_count())
 				{
-					removed_key_count 	+= RemoveSpace(stop, 0, stop_idx, UpdateType::PARENT_ONLY, true, keys_right);
+					removed_key_count 	+= RemoveSpace(stop, 0, stop_idx, UpdateType::PARENT_ONLY, keys_right);
 
-					stop_parent 		= me()->GetParent(stop, Allocator::UPDATE);
+					stop_parent 		= me()->GetNodeParent(stop, start_parent, Allocator::UPDATE);
 					stop_parent_idx 	= stop->parent_idx();
 				}
 				else
@@ -488,7 +492,7 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
 
 					if (stop.is_set())
 					{
-						stop_parent 		= me()->GetParent(stop, Allocator::UPDATE);
+						stop_parent 		= me()->GetNodeParent(stop, start_parent, Allocator::UPDATE);
 						stop_parent_idx 	= stop->parent_idx();
 					}
 				}
@@ -580,11 +584,11 @@ void M_TYPE::RemovePage(NodeBaseG& node, typename UpdateType::Enum update_type)
 			//and all parents chain will be updated.
 			Key keys[Indexes];
 			me()->ClearKeys(keys);
-			me()->RemoveSpace(parent, node->parent_idx(), 1, update_type, true, keys);
+			me()->RemoveSpace(parent, node->parent_idx(), 1, update_type, keys);
 
 			//if after removing parent is less than half filled than
 			//merge it with it's siblings if possible
-			if (me()->ShouldMerge(parent))
+			if (me()->ShouldMergeNode(parent))
 			{
 				me()->MergeWithSiblings(parent);
 			}
@@ -651,81 +655,20 @@ bool M_TYPE::ChangeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
  * Remove key and data pointed by iterator 'iter' form the map.
  *
  */
+
 M_PARAMS
-bool M_TYPE::RemoveEntry(Iterator& iter)
+bool M_TYPE::RemoveEntry(Iterator& iter, bool preserve_key_values)
 {
-	if (iter.IsNotEmpty() || iter.IsNotEnd())
+	if (iter.IsNotEnd())
 	{
-		NodeBaseG& node = iter.page();
-		Int& idx = iter.key_idx();
-
-		Int children_count = node->children_count();
-
-		//if leaf page has more than 1 key do regular remove
-
 		Key keys[Indexes];
+		me()->ClearKeys(keys);
 
-		if (children_count > 1)
-		{
-			//remove 1 element rom the leaf, update parent and
-			//do not try to remove children (it's a leaf)
-			me()->ClearKeys(keys);
-			me()->RemoveSpace(node, idx, 1, UpdateType::FULL, false, keys);
-
-			//try merging this leaf with previous of following
-			//leaf if filled by half of it's capacity.
-			if (node->children_count() > me()->GetMaxCapacity(node) / 2)
-			{
-				me()->MergeWithSiblings(node, idx);
-			}
-
-			if (idx == node->children_count())
-			{
-				NodeBaseG next = iter.GetNextNode(node);
-				if (next != NULL)
-				{
-					node 	= next;
-					idx 	= 0;
-				}
-			}
-		}
-		else {
-			//otherwise remove the leaf page.
-			//FIXME: preserve key values?
-
-			me()->GetKeys(node, 0, keys);
-
-			Iterator i(*me());
-
-			Int		  new_idx;
-
-			NodeBaseG new_node = i.GetNextNode(node);
-
-			if (new_node != NULL)
-			{
-				new_idx = 0;
-			}
-			else
-			{
-				new_node = i.GetPrevNode(node);
-				if (new_node != NULL)
-				{
-					new_idx = new_node->children_count();
-				}
-				else {
-					new_idx = 0;
-				}
-			}
-
-			me()->RemovePage(node);
-
-			node 	= new_node;
-			idx		= new_idx;
-		}
+		RemoveEntry(iter.page(), iter.key_idx(), keys);
 
 		if (MapType == MapTypes::Sum && iter.IsNotEnd())
 		{
-			me()->AddKeysUp(node, idx, keys);
+			me()->AddKeysUp(iter.page(), iter.key_idx(), keys);
 		}
 
 		return true;
@@ -735,22 +678,85 @@ bool M_TYPE::RemoveEntry(Iterator& iter)
 	}
 }
 
+
+
+M_PARAMS
+void M_TYPE::RemoveEntry(NodeBaseG& node, Int& idx, Key* keys)
+{
+	Int children_count = node->children_count();
+
+	//if leaf page has more than 1 key do regular remove
+
+	if (children_count > 1)
+	{
+		//remove 1 element rom the leaf, update parent and
+
+		me()->RemoveSpace(node, idx, 1, UpdateType::FULL, keys);
+
+		//try merging this leaf with previous of following
+		//leaf if filled by half of it's capacity.
+		if (node->children_count() > me()->GetMaxCapacity(node) / 2)
+		{
+			me()->MergeWithSiblings(node, idx);
+		}
+
+		if (idx == node->children_count())
+		{
+			Iterator i(*me());
+			NodeBaseG next = i.GetNextNode(node);
+			if (next != NULL)
+			{
+				node 	= next;
+				idx 	= 0;
+			}
+		}
+	}
+	else {
+		//otherwise remove the leaf page.
+		//FIXME: preserve key values?
+
+		me()->GetKeys(node, 0, keys);
+
+		Iterator i(*me());
+
+		Int		  new_idx;
+
+		NodeBaseG new_node = i.GetNextNode(node);
+
+		if (new_node != NULL)
+		{
+			new_idx = 0;
+		}
+		else
+		{
+			new_node = i.GetPrevNode(node);
+			if (new_node != NULL)
+			{
+				new_idx = new_node->children_count();
+			}
+			else {
+				new_idx = 0;
+			}
+		}
+
+		me()->RemovePage(node);
+
+		node 	= new_node;
+		idx		= new_idx;
+	}
+}
+
 M_PARAMS
 BigInt M_TYPE::RemoveEntries(Iterator& from, Iterator& to)
 {
 	Key keys[Indexes];
 	me()->ClearKeys(keys);
 
-//	from.Dump();
-//	to.Dump();
-
 	BigInt removed = me()->RemoveEntries(from, to, keys);
 
 	if (to.IsNotEnd())
 	{
-		//to.Dump();
 		me()->AddKeysUp(to.page(), to.key_idx(), keys);
-		//to.Dump();
 	}
 
 	return removed;
@@ -801,11 +807,11 @@ bool M_TYPE::RemoveRedundantRoot(NodeBaseG& node, NodeBaseG& child)
 		{
 			if (node->children_count() == 1)
 			{
-				Metadata root_metadata = me()->GetRootMetadata(parent);
+				Metadata root_metadata = me()->GetRootMetadata(node);
 
-				me()->Node2Root(node, root_metadata);
-				me()->allocator().RemovePage(parent->id());
-				me()->set_root(node->id());
+				me()->Node2Root(child, root_metadata);
+				me()->allocator().RemovePage(node->id());
+				me()->set_root(child->id());
 
 				return true;
 			}
@@ -827,7 +833,7 @@ void M_TYPE::RemoveSingularNodeChain(NodeBaseG& node, Int key_idx)
 	{
 		Key keys[Indexes];
 		me()->ClearKeys(keys);
-		RemoveSpace(node, key_idx, 1, UpdateType::FULL, true, keys);
+		RemoveSpace(node, key_idx, 1, UpdateType::FULL, keys);
 	}
 	else if (node->is_root())
 	{

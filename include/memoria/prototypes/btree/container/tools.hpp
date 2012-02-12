@@ -80,9 +80,19 @@ public:
     	for (Int c = 0; c < Indexes; c++) sum[c] += keys[c];
     }
 
-    void SetKeys(Key* target, Key* keys) const
+    void SetKeys(Key* target, const Key* keys) const
     {
     	for (Int c = 0; c < Indexes; c++) target[c] = keys[c];
+    }
+
+    bool IsAnyKeyNonZero(const Key* keys) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (keys[c] != 0) return true;
+    	}
+
+    	return false;
     }
 
     bool IsTheSameNode(NodeBaseG& node1, NodeBaseG& node2) const
@@ -410,7 +420,7 @@ public:
     }
 
 
-    NodeBaseG GetParent(NodeBase *node, Int flags)
+    NodeBaseG GetParent(const NodeBase* node, Int flags)
     {
         if (node->is_root())
         {
@@ -420,6 +430,22 @@ public:
         {
         	return me()->allocator().GetPage(node->parent_id(), flags);
         }
+    }
+
+    NodeBaseG GetNodeParent(const NodeBase* node, const NodeBaseG& other_parent, Int flags) const
+    {
+    	if (other_parent.is_set() && node->parent_id() == other_parent->id())
+    	{
+    		return other_parent;
+    	}
+    	else if (node->is_root())
+    	{
+    		return NodeBaseG();
+    	}
+    	else
+    	{
+    		return me()->allocator().GetPage(node->parent_id(), flags);
+    	}
     }
 
 
@@ -449,10 +475,10 @@ public:
         }
     };
 
-    Int GetCapacity(NodeBase *node)
+    Int GetCapacity(const NodeBaseG& node) const
     {
         GetCapacityFn<Int> fn(me()->max_node_capacity());
-        NodeDispatcher::Dispatch(node, fn);
+        NodeDispatcher::DispatchConst(node, fn);
         return fn.cap();
     }
 
@@ -487,14 +513,14 @@ public:
         return fn.cap();
     }
 
-    bool ShouldMerge(const NodeBaseG& node) const
+    bool ShouldMergeNode(const NodeBaseG& node) const
     {
     	return node->children_count() <= me()->GetMaxCapacity(node) / 2;
     }
 
-    bool ShouldSplit(const NodeBaseG& node) const
+    bool ShouldSplitNode(const NodeBaseG& node) const
     {
-    	return node->children_count() > me()->GetMaxCapacity(node) / 2;
+    	return me()->GetCapacity(node) == 0;
     }
 
     template <bool IsGet>
@@ -596,19 +622,58 @@ public:
 
     void AddKeysUp(NodeBaseG& node, int idx, const Key* keys)
     {
-    	me()->AddKeys(node, idx, keys);
-
-    	if (!node->is_root())
+    	// Don't do anyting if all keys are zero;
+    	if (me()->IsAnyKeyNonZero(keys))
     	{
-    		NodeBaseG parent = me()->GetParent(node, Allocator::UPDATE);
-    		Int parent_idx = node->parent_idx();
+    		me()->AddKeys(node, idx, keys);
 
-    		AddKeysUp(parent, parent_idx, keys);
+    		if (!node->is_root())
+    		{
+    			NodeBaseG parent = me()->GetParent(node, Allocator::UPDATE);
+    			Int parent_idx = node->parent_idx();
+
+    			AddKeysUp(parent, parent_idx, keys);
+    		}
     	}
     }
 
 
-    NodeBaseG GetNode(ID &id, Int flags)
+    struct AddAndSubtractKeysFn {
+    	Int add_idx_;
+    	Int sub_idx_;
+    	const Key *keys_;
+
+    	AddAndSubtractKeysFn(Int add_idx, Int sub_idx, const Key* keys): add_idx_(add_idx), sub_idx_(sub_idx), keys_(keys) {}
+
+    	template <typename Node>
+    	void operator()(Node *node)
+    	{
+    		for (Int c = 0; c < Indexes; c++)
+    		{
+    			node->map().key(c, add_idx_) += keys_[c];
+    		}
+
+    		for (Int c = 0; c < Indexes; c++)
+    		{
+    			node->map().key(c, sub_idx_) -= keys_[c];
+    		}
+
+    		node->map().Reindex();
+    	}
+    };
+
+    void AddAndSubtractKeys(NodeBaseG& node, Int add_idx, Int sub_idx, const Key* keys)
+    {
+    	node.update();
+
+    	AddAndSubtractKeysFn fn(add_idx, sub_idx, keys);
+    	NodeDispatcher::Dispatch(node, fn);
+    }
+
+
+
+
+    NodeBaseG GetNode(const ID &id, Int flags)
     {
         return me()->allocator().GetPage(id, flags);
     }

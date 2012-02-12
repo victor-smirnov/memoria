@@ -277,6 +277,8 @@ public:
 	{
 		Int step = params->step_;
 
+		params->cnt_++;
+
 		if (array.Size() < 20000)
 		{
 			auto iter = array.Seek(0);
@@ -302,6 +304,9 @@ public:
 				iter.Skip(-len - size);
 
 				iter.Remove(size);
+
+//				allocator.commit();
+//				StoreAllocator(allocator, "alloc1.dump");
 
 				Check(allocator, "Removing region at the start of the array failed. See the dump for details.", MEMORIA_SOURCE);
 
