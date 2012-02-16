@@ -7,6 +7,7 @@
 
 #include "kv_map/task.hpp"
 #include "sum_set/task.hpp"
+#include "sum_set/batch_tests.hpp"
 #include "vector/task.hpp"
 #include "vector_map/task.hpp"
 
@@ -64,6 +65,7 @@ int main(int argc, const char** argv, const char** envp)
 
 		runner.RegisterTask(new KVMapTest());
 		runner.RegisterTask(new SumSetTest());
+		runner.RegisterTask(new SumSetBatchTest());
 		runner.RegisterTask(new VectorTest());
 		runner.RegisterTask(new VectorMapTest());
 

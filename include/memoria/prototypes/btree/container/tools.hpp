@@ -60,6 +60,40 @@ public:
     CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) {}
     CtrPart(ThisType&& other): Base(std::move(other)), max_node_capacity_(other.max_node_capacity_) {}
 
+    struct BTreeNodeTraits {
+    	typedef enum {MAX_CHILDREN} Enum;
+    };
+
+
+    struct GetNodeTraintsFn {
+    	typename BTreeNodeTraits::Enum trait_;
+    	Int value_;
+
+    	GetNodeTraintsFn(typename BTreeNodeTraits::Enum trait): trait_(trait) {}
+
+    	template <typename Node>
+    	void operator()()
+    	{
+    		switch (trait_) {
+    		case BTreeNodeTraits::MAX_CHILDREN: value_ = Node::Map::max_size(); break;
+
+    		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait_);
+    		}
+    	};
+    };
+
+    Int GetNodeTraitInt(typename BTreeNodeTraits::Enum trait, bool root, bool leaf, Int level) const
+    {
+    	GetNodeTraintsFn fn(trait);
+    	NodeDispatcher::DispatchStatic(root, leaf, level, fn);
+    	return fn.value_;
+    }
+
+    Int GetMaxKeyCountForNode(bool root, bool leaf, Int level) const
+    {
+    	return GetNodeTraitInt(BTreeNodeTraits::MAX_CHILDREN, root, leaf, level);
+    }
+
     void ClearKeys(Key* keys) const
     {
     	for (Int c = 0; c < Indexes; c++) keys[c] = 0;
@@ -122,11 +156,11 @@ public:
     	Base::operator=(other);
     }
 
-    virtual void SetMaxChildrenPerNode(Int count) {
+    void SetMaxChildrenPerNode(Int count) {
         max_node_capacity_ = count;
     }
 
-    virtual Int GetMaxChildrenPerNode() {
+    Int GetMaxChildrenPerNode() {
         return max_node_capacity_;
     }
 
