@@ -59,7 +59,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     static const Int  Indexes                                                   = Types::Indexes;
     static const bool MapType                                                   = Types::MapType;
 
-    bool IsDynarray() {
+    bool IsDynarray() const {
     	return false;
     }
 

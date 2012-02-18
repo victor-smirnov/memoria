@@ -53,7 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertName)
 
     void create_new();
     NodeBaseG CreateNode(Short level, bool root, bool leaf);
-    void InsertSpace(NodeBaseG& node, Int from, Int count, bool increase_children_count = true);
+    void InsertSpace(NodeBaseG& node, Int from, Int count, bool increase_children_count = true) const;
     NodeBaseG SplitNode(NodeBaseG& one, NodeBaseG& parent, Int parent_idx, Int from, Int shift);
 
 
@@ -129,7 +129,7 @@ typename M_TYPE::NodeBaseG M_TYPE::CreateNode(Short level, bool root, bool leaf)
 }
 
 M_PARAMS
-void M_TYPE::InsertSpace(NodeBaseG& node, Int from, Int count, bool increase_children_count)
+void M_TYPE::InsertSpace(NodeBaseG& node, Int from, Int count, bool increase_children_count) const
 {
 	node.update();
 	Int total_children_count = MoveElements<NodeDispatcher>(node.page(), from, count, increase_children_count);

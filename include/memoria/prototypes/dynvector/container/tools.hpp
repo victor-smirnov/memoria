@@ -82,7 +82,7 @@ public:
     	return me()->create_datapage(node, key_idx);
     }
 
-    bool IsDynarray() {
+    bool IsDynarray() const {
     	return true;
     }
 

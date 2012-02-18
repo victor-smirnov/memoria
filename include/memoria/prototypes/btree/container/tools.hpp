@@ -91,7 +91,10 @@ public:
 
     Int GetMaxKeyCountForNode(bool root, bool leaf, Int level) const
     {
-    	return GetNodeTraitInt(BTreeNodeTraits::MAX_CHILDREN, root, leaf, level);
+    	Int key_count = GetNodeTraitInt(BTreeNodeTraits::MAX_CHILDREN, root, leaf, level);
+    	Int max_count = me()->GetMaxChildrenPerNode();
+
+    	return key_count < max_count? key_count : max_count;
     }
 
     void ClearKeys(Key* keys) const
@@ -160,7 +163,7 @@ public:
         max_node_capacity_ = count;
     }
 
-    Int GetMaxChildrenPerNode() {
+    Int GetMaxChildrenPerNode() const {
         return max_node_capacity_;
     }
 
@@ -443,7 +446,7 @@ public:
     }
 
 
-    NodeBaseG GetChild(const NodeBase *node, Int idx, Int flags)
+    NodeBaseG GetChild(const NodeBase *node, Int idx, Int flags) const
     {
         return memoria::btree::GetChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator(), flags);
     }
@@ -624,10 +627,10 @@ public:
         }
     };
 
-    void SumKeys(NodeBase *node, Int from, Int count, Key* keys)
+    void SumKeys(const NodeBase *node, Int from, Int count, Key* keys) const
     {
         SumKeysFn fn(from, count, keys);
-        NodeDispatcher::Dispatch(node, fn);
+        NodeDispatcher::DispatchConst(node, fn);
     }
 
     struct AddKeysFn {
@@ -646,7 +649,7 @@ public:
         }
     };
 
-    void AddKeys(NodeBaseG& node, int idx, const Key* keys)
+    void AddKeys(NodeBaseG& node, int idx, const Key* keys) const
     {
         node.update();
 
@@ -764,13 +767,13 @@ public:
     	memoria::btree::SetData<NonLeafDispatcher>(node.page(), idx, id);
     }
 
-    void Reindex(NodeBaseG& node)
+    void Reindex(NodeBaseG& node) const
     {
         node.update();
     	memoria::btree::Reindex<NodeDispatcher>(node.page());
     }
 
-    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val)
+    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val) const
     {
         node.update();
     	memoria::btree::SetKeyDataAndReindex<LeafDispatcher>(node.page(), idx, keys, &val);
@@ -781,7 +784,7 @@ public:
         return *memoria::btree::GetData<LeafDispatcher, Value>(node, idx);
     }
 
-    void SetLeafData(NodeBaseG& node, Int idx, const Value &val)
+    void SetLeafData(NodeBaseG& node, Int idx, const Value &val) const
     {
         node.update();
     	memoria::btree::SetData<LeafDispatcher>(node.page(), idx, &val);

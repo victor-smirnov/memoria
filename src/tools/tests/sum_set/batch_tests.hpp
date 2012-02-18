@@ -32,9 +32,11 @@ private:
 	static const Int Indexes = SumSetCtr::Indexes;
 	typedef typename SumSetCtr::Key Key;
 
-
+	typedef typename SumSetCtr::Counters 					Counters;
 	typedef typename SumSetCtr::NodeBaseG 					NodeBaseG;
 	typedef typename SumSetCtr::NodeDispatcher 				NodeDispatcher;
+	typedef typename SumSetCtr::NonLeafDispatcher 			NonLeafDispatcher;
+	typedef typename SumSetCtr::LeafDispatcher 				LeafDispatcher;
 	typedef typename SumSetCtr::ID 							ID;
 	typedef typename SumSetCtr::LeafNodeKeyValuePair 		LeafNodeKeyValuePair;
 	typedef typename SumSetCtr::NonLeafNodeKeyValuePair 	NonLeafNodeKeyValuePair;
@@ -44,7 +46,7 @@ private:
 
 	class SubtreeProvider: public SumSetCtr::ISubtreeProvider {
 
-		typedef SumSetCtr::ISubtreeProvider::Enum Enum;
+		typedef SumSetCtr::ISubtreeProvider::Enum Direction;
 
 		BigInt total_;
 
@@ -52,85 +54,76 @@ private:
 
 		SubtreeProvider(BigInt total): total_(total) {}
 
-		virtual NonLeafNodeKeyValuePair GetKVPair(SumSetCtr& ctr, Enum direction, BigInt begin, BigInt count, Int level)
+		virtual NonLeafNodeKeyValuePair GetKVPair(SumSetCtr& ctr, Direction direction, BigInt begin, BigInt total, Int level)
+		{
+			BigInt local_count = 0;
+			return BuildTree(ctr, direction, local_count, total, level - 1);
+		}
+
+
+
+		NonLeafNodeKeyValuePair BuildTree(SumSetCtr& ctr, Direction direction, BigInt& count, const BigInt total, Int level)
 		{
 			NonLeafNodeKeyValuePair pair;
+			pair.key_count = 0;
+
+			Int max_keys = ctr.GetMaxKeyCountForNode(false, level == 0, level);
+
+			if (level > 0)
+			{
+				NonLeafNodeKeyValuePair children[1000];
+
+				Int local = 0;
+				for (Int c = 0; c < max_keys && count < total; c++, local++)
+				{
+					children[c] 	=  BuildTree(ctr, direction, count, total, level - 1);
+					pair.key_count 	+= children[c].key_count;
+				}
+
+				if (direction == Direction::BACKWARD)
+				{
+					SwapVector(children, total);
+				}
+
+				NodeBaseG node = ctr.CreateNode(level, false, false);
+
+				SetINodeData(children, node, local);
+				ctr.UpdateParentLinksAndCounters(node);
+
+				ctr.GetMaxKeys(node, pair.keys);
+				pair.value = node->id();
+			}
+			else
+			{
+				LeafNodeKeyValuePair children[1000];
+
+				Int local = 0;
+				for (Int c = 0; c < max_keys && count < total; c++, local++, count++)
+				{
+					children[c] 	=  this->GetLeafKVPair(ctr, direction, count);
+				}
+
+				if (direction == Direction::BACKWARD)
+				{
+					SwapVector(children, total);
+				}
+
+				NodeBaseG node = ctr.CreateNode(level, false, true);
+
+				SetLeafNodeData(children, node, local);
+				ctr.GetMaxKeys(node, pair.keys);
+
+				node->counters().key_count() = local;
+
+				pair.value 		=  node->id();
+				pair.key_count 	+= total;
+			}
 
 			return pair;
 		}
 
-		template <typename PairType, typename ParentPairType>
-		struct SetNodeValuesFn
-		{
-			PairType* 		pairs_;
-			Int 			from_;
-			Int 			count_;
 
-			ParentPairType	total_;
-
-			SetNodeValuesFn(PairType* pairs, Int from, Int count): pairs_(pairs), from_(from), count_(count) {}
-
-			template <typename Node>
-			void operator()(Node* node)
-			{
-				for (Int c = from_; c < from_ + count_; c++)
-				{
-					for (Int d = 0; d < Indexes; d++)
-					{
-						node->map().keys(d, c) = pairs_[c].keys[d];
-					}
-
-					node->map().data(c) = pairs_[c].value;
-				}
-
-				node->map().Reindex();
-
-				for (Int d = 0; d < Indexes; d++)
-				{
-					total_.keys[d] = node->map().max_keys(d);
-				}
-
-				total_.value = node->id();
-			}
-		};
-
-		template <typename PairType>
-		NonLeafNodeKeyValuePair SetNodeData(PairType* data, NodeBaseG& node, Int from, Int count)
-		{
-			SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, from, count);
-			NodeDispatcher::Dispatch(node, fn);
-			return fn.total_;
-		}
-
-		NonLeafNodeKeyValuePair BuildLeftTree(SumSetCtr& ctr, Int level, BigInt& count)
-		{
-			NonLeafNodeKeyValuePair pair;
-
-			Int max_keys = ctr.GetMaxKeyCountForNode(false, false, level);
-
-			NonLeafNodeKeyValuePair children[1000];
-
-			Int total = 0;
-			for (Int c = 0; c < max_keys; c++, total++)
-			{
-				children[c] = BuildLeftTree(ctr, level - 1, count);
-				if (count == 0)
-				{
-					break;
-				}
-			}
-
-			NodeBaseG node = ctr.CreateNode(level, false, level == 0);
-
-			SetNodeData(children, node, 0, total);
-
-			//FIXME: leafs
-			//FIXME: parent links
-
-			return pair;
-		}
-
-		virtual LeafNodeKeyValuePair GetLeafKVPair(SumSetCtr& ctr, Enum direction, BigInt begin)
+		virtual LeafNodeKeyValuePair GetLeafKVPair(SumSetCtr& ctr, Direction direction, BigInt begin)
 		{
 			LeafNodeKeyValuePair pair;
 
@@ -141,6 +134,73 @@ private:
 
 		virtual BigInt 	GetTotalKeyCount() {
 			return total_;
+		}
+
+
+		template <typename PairType, typename ParentPairType>
+		struct SetNodeValuesFn
+		{
+			PairType* 		pairs_;
+			Int 			count_;
+
+			ParentPairType	total_;
+
+			SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
+
+			template <typename Node>
+			void operator()(Node* node)
+			{
+				for (Int c = 0; c < count_; c++)
+				{
+					for (Int d = 0; d < Indexes; d++)
+					{
+						node->map().key(d, c) = pairs_[c].keys[d];
+					}
+
+					node->map().data(c) = pairs_[c].value;
+				}
+
+				node->set_children_count(count_);
+
+				node->map().Reindex();
+
+				for (Int d = 0; d < Indexes; d++)
+				{
+					total_.keys[d] = node->map().max_key(d);
+				}
+
+				total_.value = node->id();
+			}
+		};
+
+		template <typename PairType>
+		NonLeafNodeKeyValuePair SetINodeData(PairType* data, NodeBaseG& node, Int count)
+		{
+			SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
+			NonLeafDispatcher::Dispatch(node, fn);
+			return fn.total_;
+		}
+
+		template <typename PairType>
+		NonLeafNodeKeyValuePair SetLeafNodeData(PairType* data, NodeBaseG& node, Int count)
+		{
+			SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
+			LeafDispatcher::Dispatch(node, fn);
+			return fn.total_;
+		}
+
+
+
+
+		template <typename PairType>
+		void SwapVector(PairType* data, Int total)
+		{
+			for (Int c = 0; c < total; c++)
+			{
+				PairType tmp 			= data[c];
+				data[c] 				= data[total - c  - 1];
+				data[total - c  - 1] 	= tmp;
+			}
 		}
 
 	};
@@ -206,11 +266,12 @@ public:
 
 		StoreAllocator(allocator, "allocator1.dump");
 
-		auto i1 = map.FindLE(1, 0, true);
-		auto i2 = map.FindLE(10, 0, true);
+		auto i1 = map.FindLE(2, 0, true);
+//		auto i2 = map.FindLE(10, 0, true);
 
+		SubtreeProvider provider(1024);
 
-
+		map.InsertSubtree(i1, provider);
 
 		allocator.commit();
 
