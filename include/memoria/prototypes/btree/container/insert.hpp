@@ -179,11 +179,11 @@ typename M_TYPE::NodeBaseG M_TYPE::SplitNode(NodeBaseG& one, NodeBaseG& parent, 
 		counters.page_count()           = 0;
 		two->counters().page_count()    = 1;
 
-		Int one_children_count = one->children_count();
-		counters.key_count() = one->counters().key_count() - one_children_count;
-		one->counters().key_count() = one_children_count;
+		Int one_children_count 			= one->children_count();
+		counters.key_count() 			= one->counters().key_count() - one_children_count;
+		one->counters().key_count() 	= one_children_count;
 
-		two->counters().key_count() = two->children_count();
+		two->counters().key_count() 	= two->children_count();
 	}
 
 	two->parent_idx() = parent_idx;

@@ -94,7 +94,13 @@ public:
     	Int key_count = GetNodeTraitInt(BTreeNodeTraits::MAX_CHILDREN, root, leaf, level);
     	Int max_count = me()->GetMaxChildrenPerNode();
 
-    	return key_count < max_count? key_count : max_count;
+    	if (max_count == -1)
+    	{
+    		return key_count;
+    	}
+    	else {
+    		return key_count < max_count? key_count : max_count;
+    	}
     }
 
     void ClearKeys(Key* keys) const

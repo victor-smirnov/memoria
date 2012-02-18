@@ -44,172 +44,47 @@ private:
 	PairVector pairs;
 	PairVector pairs_sorted;
 
-	class SubtreeProvider: public SumSetCtr::ISubtreeProvider {
+	class SubtreeProvider2: public SumSetCtr::DefaultSubtreeProviderBase
+	{
+		typedef SumSetCtr::DefaultSubtreeProviderBase Base;
 
-		typedef SumSetCtr::ISubtreeProvider::Enum Direction;
+		const LeafNodeKeyValuePair* pairs_;
+	public:
+		SubtreeProvider2(SumSetCtr& ctr, BigInt total, const LeafNodeKeyValuePair* pairs): Base(ctr, total), pairs_(pairs) {}
 
-		BigInt total_;
+		virtual LeafNodeKeyValuePair GetLeafKVPair(Direction direction, BigInt begin)
+		{
+			if (direction == Direction::FORWARD)
+			{
+				return pairs_[begin];
+			}
+			else {
+				return pairs_[Base::GetTotalKeyCount() - begin - 1];
+			}
+		}
+	};
+
+	class SubtreeProvider: public SumSetCtr::DefaultSubtreeProviderBase
+	{
+		typedef SumSetCtr::DefaultSubtreeProviderBase Base;
 
 	public:
+		SubtreeProvider(SumSetCtr& ctr, BigInt total): Base(ctr, total) {}
 
-		SubtreeProvider(BigInt total): total_(total) {}
-
-		virtual NonLeafNodeKeyValuePair GetKVPair(SumSetCtr& ctr, Direction direction, BigInt begin, BigInt total, Int level)
-		{
-			BigInt local_count = 0;
-			return BuildTree(ctr, direction, local_count, total, level - 1);
-		}
-
-
-
-		NonLeafNodeKeyValuePair BuildTree(SumSetCtr& ctr, Direction direction, BigInt& count, const BigInt total, Int level)
-		{
-			NonLeafNodeKeyValuePair pair;
-			pair.key_count = 0;
-
-			Int max_keys = ctr.GetMaxKeyCountForNode(false, level == 0, level);
-
-			if (level > 0)
-			{
-				NonLeafNodeKeyValuePair children[1000];
-
-				Int local = 0;
-				for (Int c = 0; c < max_keys && count < total; c++, local++)
-				{
-					children[c] 	=  BuildTree(ctr, direction, count, total, level - 1);
-					pair.key_count 	+= children[c].key_count;
-				}
-
-				if (direction == Direction::BACKWARD)
-				{
-					SwapVector(children, total);
-				}
-
-				NodeBaseG node = ctr.CreateNode(level, false, false);
-
-				SetINodeData(children, node, local);
-				ctr.UpdateParentLinksAndCounters(node);
-
-				ctr.GetMaxKeys(node, pair.keys);
-				pair.value = node->id();
-			}
-			else
-			{
-				LeafNodeKeyValuePair children[1000];
-
-				Int local = 0;
-				for (Int c = 0; c < max_keys && count < total; c++, local++, count++)
-				{
-					children[c] 	=  this->GetLeafKVPair(ctr, direction, count);
-				}
-
-				if (direction == Direction::BACKWARD)
-				{
-					SwapVector(children, total);
-				}
-
-				NodeBaseG node = ctr.CreateNode(level, false, true);
-
-				SetLeafNodeData(children, node, local);
-				ctr.GetMaxKeys(node, pair.keys);
-
-				node->counters().key_count() = local;
-
-				pair.value 		=  node->id();
-				pair.key_count 	+= total;
-			}
-
-			return pair;
-		}
-
-
-		virtual LeafNodeKeyValuePair GetLeafKVPair(SumSetCtr& ctr, Direction direction, BigInt begin)
+		virtual LeafNodeKeyValuePair GetLeafKVPair(Direction direction, BigInt begin)
 		{
 			LeafNodeKeyValuePair pair;
 
-			for (Int c = 0; c < Indexes; c++) pair.keys[c] = 1;
+			for (Int c = 0; c < Indexes; c++) pair.keys[c] = 2;
 
 			return pair;
 		}
-
-		virtual BigInt 	GetTotalKeyCount() {
-			return total_;
-		}
-
-
-		template <typename PairType, typename ParentPairType>
-		struct SetNodeValuesFn
-		{
-			PairType* 		pairs_;
-			Int 			count_;
-
-			ParentPairType	total_;
-
-			SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
-
-			template <typename Node>
-			void operator()(Node* node)
-			{
-				for (Int c = 0; c < count_; c++)
-				{
-					for (Int d = 0; d < Indexes; d++)
-					{
-						node->map().key(d, c) = pairs_[c].keys[d];
-					}
-
-					node->map().data(c) = pairs_[c].value;
-				}
-
-				node->set_children_count(count_);
-
-				node->map().Reindex();
-
-				for (Int d = 0; d < Indexes; d++)
-				{
-					total_.keys[d] = node->map().max_key(d);
-				}
-
-				total_.value = node->id();
-			}
-		};
-
-		template <typename PairType>
-		NonLeafNodeKeyValuePair SetINodeData(PairType* data, NodeBaseG& node, Int count)
-		{
-			SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
-			NonLeafDispatcher::Dispatch(node, fn);
-			return fn.total_;
-		}
-
-		template <typename PairType>
-		NonLeafNodeKeyValuePair SetLeafNodeData(PairType* data, NodeBaseG& node, Int count)
-		{
-			SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
-			LeafDispatcher::Dispatch(node, fn);
-			return fn.total_;
-		}
-
-
-
-
-		template <typename PairType>
-		void SwapVector(PairType* data, Int total)
-		{
-			for (Int c = 0; c < total; c++)
-			{
-				PairType tmp 			= data[c];
-				data[c] 				= data[total - c  - 1];
-				data[total - c  - 1] 	= tmp;
-			}
-		}
-
 	};
-
 
 public:
 
 	SumSetBatchTest(): SPTestTask(new SumSetParams("SumSetBatch")) 	{}
-	virtual ~SumSetBatchTest() throw() 					{}
+	virtual ~SumSetBatchTest() throw() 								{}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
@@ -241,7 +116,6 @@ public:
 		Int sum = 0;
 		for (Int c = 0; c < SIZE; c++, sum +=c)
 		{
-			//pairs.push_back(GetUniqueRandom(pairs));
 			pairs.push_back(sum);
 		}
 
@@ -266,16 +140,26 @@ public:
 
 		StoreAllocator(allocator, "allocator1.dump");
 
-		auto i1 = map.FindLE(2, 0, true);
-//		auto i2 = map.FindLE(10, 0, true);
+		auto i1 = map.FindLE(0, 0, true);
 
-		SubtreeProvider provider(1024);
+		LeafNodeKeyValuePair pairs[2000];
+
+		for (Int c = 0; c < 2000; c++)
+		{
+			pairs[c].keys[0] = 4;
+		}
+
+		SubtreeProvider2 provider(map, 1000, pairs);
 
 		map.InsertSubtree(i1, provider);
+
+		//
 
 		allocator.commit();
 
 		StoreAllocator(allocator, "allocator2.dump");
+
+		Check(allocator, MEMORIA_SOURCE);
 	}
 };
 
@@ -284,3 +168,4 @@ public:
 
 
 #endif
+
