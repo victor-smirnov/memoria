@@ -40,46 +40,11 @@ private:
 	typedef typename SumSetCtr::ID 							ID;
 	typedef typename SumSetCtr::LeafNodeKeyValuePair 		LeafNodeKeyValuePair;
 	typedef typename SumSetCtr::NonLeafNodeKeyValuePair 	NonLeafNodeKeyValuePair;
+	typedef typename SumSetCtr::LeafPairsVector				LeafPairsVector;
 
 	PairVector pairs;
 	PairVector pairs_sorted;
 
-	class SubtreeProvider2: public SumSetCtr::DefaultSubtreeProviderBase
-	{
-		typedef SumSetCtr::DefaultSubtreeProviderBase Base;
-
-		const LeafNodeKeyValuePair* pairs_;
-	public:
-		SubtreeProvider2(SumSetCtr& ctr, BigInt total, const LeafNodeKeyValuePair* pairs): Base(ctr, total), pairs_(pairs) {}
-
-		virtual LeafNodeKeyValuePair GetLeafKVPair(Direction direction, BigInt begin)
-		{
-			if (direction == Direction::FORWARD)
-			{
-				return pairs_[begin];
-			}
-			else {
-				return pairs_[Base::GetTotalKeyCount() - begin - 1];
-			}
-		}
-	};
-
-	class SubtreeProvider: public SumSetCtr::DefaultSubtreeProviderBase
-	{
-		typedef SumSetCtr::DefaultSubtreeProviderBase Base;
-
-	public:
-		SubtreeProvider(SumSetCtr& ctr, BigInt total): Base(ctr, total) {}
-
-		virtual LeafNodeKeyValuePair GetLeafKVPair(Direction direction, BigInt begin)
-		{
-			LeafNodeKeyValuePair pair;
-
-			for (Int c = 0; c < Indexes; c++) pair.keys[c] = 2;
-
-			return pair;
-		}
-	};
 
 public:
 
@@ -140,20 +105,24 @@ public:
 
 		StoreAllocator(allocator, "allocator1.dump");
 
-		auto i1 = map.FindLE(0, 0, true);
+		auto i1 = map.FindLE(2, 0, true);
 
-		LeafNodeKeyValuePair pairs[2000];
+		LeafPairsVector pairs;
+		pairs.reserve(2000000);
 
-		for (Int c = 0; c < 2000; c++)
+		for (Int c = 0; c < 2000000; c++)
 		{
-			pairs[c].keys[0] = 4;
+			LeafNodeKeyValuePair pair;
+
+			pair.keys[0] = 2;
+
+			pairs.push_back(pair);
 		}
 
-		SubtreeProvider2 provider(map, 1000, pairs);
 
-		map.InsertSubtree(i1, provider);
+		map.InsertBatch(i1, pairs);
+//		map.InsertBatch(i1, pairs);
 
-		//
 
 		allocator.commit();
 
