@@ -86,17 +86,21 @@ bool M_TYPE::NextKey()
 		if (me()->key_idx() < me()->page()->children_count() - 1)
 		{
 			me()->key_idx()++;
+			me()->KeyNum()++;
 			me()->ReHash();
 			return true;
 		}
 		else {
 			bool val = me()->NextLeaf();
-			if (val) {
+			if (val)
+			{
 				me()->key_idx() = 0;
 			}
 			else {
 				me()->key_idx() = me()->page()->children_count();
 			}
+
+			me()->KeyNum()++;
 
 			me()->ReHash();
 			return val;
@@ -113,6 +117,7 @@ bool M_TYPE::PrevKey()
 	if (me()->key_idx() > 0)
 	{
 		me()->key_idx()--;
+		me()->KeyNum()--;
 		me()->ReHash();
 		return true;
 	}
@@ -121,6 +126,7 @@ bool M_TYPE::PrevKey()
 
 		if (val) {
 			me()->key_idx() = me()->page()->children_count() - 1;
+			me()->KeyNum()--;
 		}
 		else {
 			me()->key_idx() = -1;
@@ -138,6 +144,8 @@ bool M_TYPE::NextLeaf()
 	NodeBaseG node = me()->GetNextNode(me()->page());
 	if (node != NULL)
 	{
+//		me()->KeyNum() += me()->page()->children_count() - me()->key_idx();
+
 		me()->key_idx() = 0;
 		me()->page() = node;
 		return true;
@@ -151,6 +159,8 @@ bool M_TYPE::PrevLeaf()
 	NodeBaseG node = me()->GetPrevNode(me()->page());
 	if (node != NULL)
 	{
+//		me()->KeyNum() -= me()->key_idx();
+
 		me()->page() = node;
 		me()->key_idx() = me()->page()->children_count() - 1;
 		return true;
@@ -190,6 +200,26 @@ typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(const NodeBaseG& page)
 	}
 }
 
+
+//M_PARAMS
+//BigInt M_TYPE::KeyNum()
+//{
+//	BigInt prefix = 0;
+//
+//	NodeBaseG node = me()->page();
+//
+//	while (!node->is_root())
+//	{
+//		Int idx = node->parent_idx();
+//		node = me()->model().GetParent(node, Allocator::READ);
+//
+//		typename Base::Container::Accumulator accumulator = me()->model().GetCounters(node, 0, idx);
+//
+//		prefix += accumulator.counters().key_count();
+//	}
+//
+//	return prefix + me()->key_idx();
+//}
 
 
 

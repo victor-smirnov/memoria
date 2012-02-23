@@ -47,19 +47,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
     	return me()->PrevKey();
     }
     
-    void GetValue(BigInt& holder)
-    {
-
-    }
-
-//    void GetValue(Key& key, Value& value)
-//    {
-//    	MEMORIA_TRACER(MyType, me_);
-//
-//        key   = me()->GetKey(0);
-//        value = me()->GetData();
-//    }
-
     memoria::vapi::Page* GetPage() {
         if (me()->page() != NULL) {
             return new PageWrapper<PageType, PAGE_SIZE>(me()->page());

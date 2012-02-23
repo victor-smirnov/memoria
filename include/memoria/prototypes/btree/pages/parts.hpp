@@ -27,6 +27,7 @@ class BTreeMetadata
 	 typedef typename Allocator::Page::ID	ID;
 
     BigInt model_name_;
+    BigInt key_count_;
 
     ID roots_[2];
 
@@ -41,9 +42,19 @@ public:
         return model_name_;
     }
 
-    MetadataList GetFields(Long &abi_ptr) const {
+    BigInt &key_count() {
+        return key_count_;
+    }
+
+    const BigInt &key_count() const {
+        return key_count_;
+    }
+
+    MetadataList GetFields(Long &abi_ptr) const
+    {
         MetadataList list;
         FieldFactory<BigInt>::create(list, model_name_, "MODEL_NAME", abi_ptr);
+        FieldFactory<BigInt>::create(list, key_count_,  "KEY_COUNT",  abi_ptr);
 
         MetadataList rootsList;
         for (Int c = 0; c < 2; c++)

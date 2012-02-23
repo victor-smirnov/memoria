@@ -157,6 +157,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     Accumulator InsertSubtree(Iterator& iter, ISubtreeProvider& provider)
     {
+    	iter.KeyNum() += provider.GetTotalKeyCount();
     	return me()->InsertSubtree(iter.page(), iter.key_idx(), provider);
     }
 
@@ -340,7 +341,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     	me()->InsertSubtree(iter, provider);
     }
 
-    void InsertBatch(Iterator& iter, LeafPairsVector& pairs)
+    void InsertBatch(Iterator& iter, const LeafPairsVector& pairs)
     {
     	ArraySubtreeProvider provider(*me(), pairs.size(), &pairs.at(0));
 
@@ -385,6 +386,7 @@ private:
     {
     	NodeBaseG left_node = node;
     	InsertSubtreeInTheMiddle(left_node, idx, node, idx, data);
+    	me()->AddTotalKeyCount(data.provider.GetTotalKeyCount());
     }
 
 
@@ -411,6 +413,7 @@ private:
     		{
     			ID id 				= node->map().data(c);
     			NodeBaseG child 	= ctr_.allocator().GetPage(id, Allocator::UPDATE);
+
     			child->parent_id() 	= node_->id();
     			child->parent_idx() = c;
 
@@ -479,6 +482,7 @@ typename M_TYPE::Accumulator M_TYPE::InsertSubtree(NodeBaseG& node, Int &idx, IS
 		if (prev.is_set())
 		{
 			InsertSubtreeInTheMiddle(prev, prev->children_count(), node, idx, data);
+			me()->AddTotalKeyCount(data.provider.GetTotalKeyCount());
 		}
 		else
 		{
@@ -529,7 +533,7 @@ void M_TYPE::InsertSubtreeInTheMiddle(NodeBaseG& left_node, Int left_idx, NodeBa
 			// We have enough free space for all subtrees in the current node
 			BigInt total 	= Divide(key_count, subtree_size);
 
-			MakeRoom(left_node, left_idx, total);
+//			MakeRoom(left_node, left_idx, total);
 
 			FillNodeLeft(left_node, left_idx, total, data);
 
@@ -539,11 +543,11 @@ void M_TYPE::InsertSubtreeInTheMiddle(NodeBaseG& left_node, Int left_idx, NodeBa
 		{
 			// There is no enough free space in current node for all subtrees
 			// Split the node and proceed
-			NodeBaseG new_left_node 	= left_node;
-			NodeBaseG new_right_node 	= me()->SplitBTreeNode(new_left_node, left_idx, 0);
 
-			right_idx = 0;
-			InsertSubtreeInTheMiddle(new_left_node, left_idx, new_right_node, right_idx, data);
+			right_node = me()->SplitBTreeNode(left_node, left_idx, 0);
+			right_idx  = 0;
+
+			InsertSubtreeInTheMiddle(left_node, left_idx, right_node, right_idx, data);
 		}
 	}
 	else {
@@ -556,16 +560,6 @@ void M_TYPE::InsertSubtreeInTheMiddle(NodeBaseG& left_node, Int left_idx, NodeBa
 
 		if (key_count <= max_key_count)
 		{
-			// If there are more keys than these nodes can store,
-			// fill nodes fully
-
-			FillNodeLeft(left_node,   left_idx,  start_capacity,  data);
-			FillNodeRight(right_node, right_idx, end_capacity, data);
-
-			right_idx += end_capacity;
-		}
-		else
-		{
 			// Otherwise fill nodes 'equally'. Each node will have almost
 			// equal free space after processing.
 
@@ -573,29 +567,42 @@ void M_TYPE::InsertSubtreeInTheMiddle(NodeBaseG& left_node, Int left_idx, NodeBa
 			BigInt total_keys_in_node 	= total_keys > total_capacity ? total_capacity : total_keys;
 
 
-			Int free_space 	= total_capacity - total_keys_in_node;
-			Int delta		= free_space / 2;
+//			Int free_space 	= total_capacity - total_keys_in_node;
+//			Int delta		= free_space / 2;
+//
+//			Int left_count	= start_capacity > delta ? start_capacity - delta : 0;
+//			Int right_count	= total_keys_in_node - left_count;
 
-			Int left_count	= start_capacity > delta ? start_capacity - delta : 0;
+			Int left_count	= start_capacity > total_keys_in_node ? total_keys_in_node : start_capacity;
 			Int right_count	= total_keys_in_node - left_count;
-
-			MakeRoom(left_node,  left_idx, left_count);
-			MakeRoom(right_node, right_idx, right_count);
 
 			FillNodeLeft(left_node,   left_idx,  left_count,  data);
 			FillNodeRight(right_node, right_idx, right_count, data);
 
 			right_idx = right_count;
 
+
+		}
+		else
+		{
+			// If there are more keys than these nodes can store,
+			// fill nodes fully
+
+			FillNodeLeft(left_node,   left_idx,  start_capacity,  data);
+			FillNodeRight(right_node, right_idx, end_capacity, data);
+
+			right_idx += end_capacity;
+
 			NodeBaseG left_node_parent 	= me()->GetParent(left_node, 	Allocator::UPDATE);
 			NodeBaseG right_node_parent = me()->GetParent(right_node, 	Allocator::UPDATE);
 
 			// There is something more to insert.
-			Int parent_right_idx = left_node_parent == right_node_parent ? left_node_parent->parent_idx() + 1: 0;
+//			Int parent_right_idx = left_node_parent == right_node_parent ? left_node_parent->parent_idx() + 1: 0;
+			Int parent_right_idx = right_node->parent_idx();
 			InsertSubtreeInTheMiddle
 			(
 					left_node_parent,
-					left_node_parent->parent_idx() + 1,
+					left_node->parent_idx() + 1,
 					right_node_parent,
 					parent_right_idx,
 					data
@@ -614,6 +621,8 @@ void M_TYPE::FillNodeLeft(NodeBaseG& node, Int from, Int count, InsertSharedData
 {
 	Int level = node->level();
 	BigInt subtree_size = me()->GetSubtreeSize(level);
+
+	MakeRoom(node, from, count);
 
 	if (level > 0)
 	{
@@ -658,12 +667,14 @@ void M_TYPE::FillNodeRight(NodeBaseG& node, Int from, Int count, InsertSharedDat
 	Int level = node->level();
 	BigInt subtree_size = me()->GetSubtreeSize(level);
 
+	MakeRoom(node, from, count);
+
 	if (level > 0)
 	{
 		for (Int c = count - 1; c >= 0; c--)
 		{
 			BigInt requested_size = data.remains >= subtree_size ? subtree_size : data.remains;
-			NonLeafNodeKeyValuePair pair = data.provider.GetKVPair(ISubtreeProvider::BACKWARD, data.end, requested_size, level - 1);
+			NonLeafNodeKeyValuePair pair = data.provider.GetKVPair(ISubtreeProvider::BACKWARD, data.end, requested_size, level);
 
 			me()->SetKeys(node, c, pair.keys);
 			me()->SetINodeData(node, c, &pair.value);

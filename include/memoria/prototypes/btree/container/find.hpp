@@ -48,7 +48,10 @@ MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(memoria::btree::FindName)
     typedef typename Base::Key                                                  Key;
     typedef typename Types::Value                                               Value;
 
+    typedef typename Base::Metadata												Metadata;
+
     static const Int Indexes                                                    = Types::Indexes;
+
 
 private:
 
@@ -156,6 +159,8 @@ public:
     Iterator FindRStart();
 
     BigInt GetTotalKeyCount();
+    void SetTotalKeyCount(BigInt value);
+    void AddTotalKeyCount(BigInt value);
 
     BigInt GetSize() {
     	return me()->GetTotalKeyCount();
@@ -296,13 +301,49 @@ M_PARAMS
 BigInt M_TYPE::GetTotalKeyCount()
 {
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
-	if (node != NULL) {
-		return node->counters().key_count();
+
+	if (node != NULL)
+	{
+		Metadata meta = me()->GetRootMetadata(node);
+		return meta.key_count();
 	}
 	else {
 		return 0;
 	}
 }
+
+M_PARAMS
+void M_TYPE::SetTotalKeyCount(BigInt value)
+{
+	NodeBaseG node = me()->GetRoot(Allocator::UPDATE);
+	if (node.is_set())
+	{
+		Metadata meta = me()->GetRootMetadata(node);
+		meta.key_count() = value;
+
+		me()->SetRootMetadata(node, meta);
+	}
+	else {
+		throw MemoriaException(MEMORIA_SOURCE, String("Root node is not set for this container: ") + me()->type_name());
+	}
+}
+
+M_PARAMS
+void M_TYPE::AddTotalKeyCount(BigInt value)
+{
+	NodeBaseG node = me()->GetRoot(Allocator::UPDATE);
+	if (node.is_set())
+	{
+		Metadata meta = me()->GetRootMetadata(node);
+		meta.key_count() += value;
+
+		me()->SetRootMetadata(node, meta);
+	}
+	else {
+		throw MemoriaException(MEMORIA_SOURCE, String("Root node is not set for this container: ") + me()->type_name());
+	}
+}
+
 
 #undef M_TYPE
 #undef M_PARAMS

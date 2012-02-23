@@ -7,7 +7,7 @@
 
 #include "kv_map/task.hpp"
 #include "sum_set/task.hpp"
-#include "sum_set/batch_tests.hpp"
+#include "sum_set_batch/task.hpp"
 #include "vector/task.hpp"
 #include "vector_map/task.hpp"
 

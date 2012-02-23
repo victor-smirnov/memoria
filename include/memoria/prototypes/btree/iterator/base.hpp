@@ -32,13 +32,14 @@ private:
 
     NodeBaseG           page_;
     Int                 key_idx_;
+    BigInt				key_num_;
 
 public:
-    BTreeIteratorBase(): Base(), page_(NULL), key_idx_(0) {}
+    BTreeIteratorBase(): Base(), page_(NULL), key_idx_(0), key_num_(0) {}
 
-    BTreeIteratorBase(ThisType&& other): Base(std::move(other)), page_(std::move(other.page_)), key_idx_(other.key_idx_) {}
+    BTreeIteratorBase(ThisType&& other): Base(std::move(other)), page_(std::move(other.page_)), key_idx_(other.key_idx_), key_num_(other.key_num_) {}
 
-    BTreeIteratorBase(const ThisType& other): Base(other), page_(other.page_), key_idx_(other.key_idx_) {}
+    BTreeIteratorBase(const ThisType& other): Base(other), page_(other.page_), key_idx_(other.key_idx_), key_num_(other.key_num_) {}
 
     void SetupAllocator(Allocator* allocator) {
     	//page_.set_allocator(allocator);
@@ -48,6 +49,7 @@ public:
     {
         page_       = other.page_;
         key_idx_    = other.key_idx_;
+        key_num_	= other.key_num_;
 
         Base::operator=(std::move(other));
     }
@@ -56,6 +58,7 @@ public:
     {
     	page_       = other.page_;
     	key_idx_    = other.key_idx_;
+    	key_num_	= other.key_num_;
 
     	Base::operator=(other);
     }
@@ -109,6 +112,16 @@ public:
     bool IsNotEmpty()
     {
     	return !IsEmpty();
+    }
+
+    BigInt KeyNum() const
+    {
+    	return key_num_;
+    }
+
+    BigInt& KeyNum()
+    {
+    	return key_num_;
     }
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END

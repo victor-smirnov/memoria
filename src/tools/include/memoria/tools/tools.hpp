@@ -227,6 +227,37 @@ void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg, 
 	}
 }
 
+
+template <typename Iterator, typename Item>
+bool CompareBuffer(Iterator& iter, const vector<Item>& data, Int& c)
+{
+	c = 0;
+	for (auto i = data.begin(); i != data.end(); i++, iter.Next(), c++)
+	{
+		for (Int d = 0; d < Iterator::Indexes; d++)
+		{
+			auto value = iter.GetRawKey(d);
+
+			if (value != data[c].keys[d])
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+template <typename Iterator, typename Item>
+void CheckBufferWritten(Iterator& iter, const vector<Item>& data, const char* err_msg, const char* source)
+{
+	Int pos = 0;
+	if (!CompareBuffer(iter, data, pos))
+	{
+		throw TestException(source, String(err_msg) + ": pos=" + ToString(pos));
+	}
+}
+
 template <typename T, typename A>
 Int GetUniqueRandom(const vector<T, A> &vec)
 {
