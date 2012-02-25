@@ -142,6 +142,12 @@ void M_TYPE::check_node_tree(NodeBaseG& node, bool &errors)
 	errors = me()->check_node_content(node) || errors;
 	Int children = node->children_count();
 
+	if (children == 0 && !node->is_root())
+	{
+		errors = true;
+		MEMORIA_ERROR(me(), "children == 0 for non-root node", node->id());
+	}
+
 	if (node->is_leaf())
 	{
 		if (node->counters().page_count() != 1)

@@ -116,6 +116,7 @@ public:
 
 				params.pos_ 		= -1;
 				params.page_step_ 	= -1;
+				params.cnt_++;
 			}
 
 			//StoreAllocator(allocator, "allocator.dump");
@@ -167,6 +168,11 @@ public:
 		ArrayData data = CreateBuffer(params->data_size_, value);
 
 		BigInt size = array.Size();
+
+//		if (params->cnt_ == 148)
+//		{
+//			int a; a++;
+//		}
 
 		if (size == 0)
 		{
@@ -257,14 +263,15 @@ public:
 
 				iter.Skip(-postfix.size());
 
-				array.debug() = true;
-
 				iter.Insert(data);
+
+				allocator.commit();
+
+				StoreAllocator(allocator, "alloc1.dump");
 
 				Check(allocator, "Insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
 				iter.Skip(- data.size() - prefix_len);
-
 
 				CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 	MEMORIA_SOURCE);
 				CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array", 		MEMORIA_SOURCE);

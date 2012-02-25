@@ -185,6 +185,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     		return total_;
     	}
 
+    	MyType& ctr() {
+    		return ctr_;
+    	}
+
+    	const MyType& ctr() const {
+    		return ctr_;
+    	}
+
 
     private:
     	NonLeafNodeKeyValuePair BuildTree(Direction direction, BigInt start, BigInt& count, const BigInt total, Int level)
@@ -238,7 +246,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     			SetLeafNodeData(children, node, local);
     			ctr_.GetMaxKeys(node, pair.keys);
 
-    			node->counters().key_count() = local;
+    			ctr_.UpdateParentLinksAndCounters(node);
 
     			pair.value 		=  node->id();
     			pair.key_count 	+= local;
@@ -348,6 +356,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     	me()->InsertSubtree(iter, provider);
     }
 
+    void UpdateParentLinksAndCounters(NodeBaseG& node) const
+    {
+    	node.update();
+    	if (node->is_leaf())
+    	{
+    		node->counters().page_count() 	= 1;
+    		node->counters().key_count()	= node->children_count();
+    	}
+    	else {
+    		UpdateParentLinksFn fn(*me(), node);
+    		NonLeafDispatcher::Dispatch(node, fn);
+    	}
+    }
+
 private:
 
     struct InsertSharedData
@@ -425,19 +447,7 @@ private:
     	}
     };
 
-    void UpdateParentLinksAndCounters(NodeBaseG& node) const
-    {
-    	node.update();
-    	if (node->is_leaf())
-    	{
-    		node->counters().page_count() 	= 1;
-    		node->counters().key_count()	= node->children_count();
-    	}
-    	else {
-    		UpdateParentLinksFn fn(*me(), node);
-    		NonLeafDispatcher::Dispatch(node, fn);
-    	}
-    }
+
 
 
     void ReindexAndUpdateCounters(NodeBaseG& node) const
@@ -454,7 +464,7 @@ private:
     void UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters) const
     {
     	// FIXME: type/node-specific counters application
-
+    	node.update();
     	node->counters() += counters.counters();
     	me()->AddKeys(node, idx, counters.keys());
     }

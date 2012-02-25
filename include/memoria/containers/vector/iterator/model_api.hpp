@@ -54,9 +54,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     }
 
     
-    void Insert(ArrayData& data, BigInt start, BigInt len);
+    void Insert(const ArrayData& data, BigInt start, BigInt len);
 
-    void Insert(ArrayData& data)
+    void Insert(const ArrayData& data)
     {
     	Insert(data, 0, data.size());
     }
@@ -84,6 +84,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	out<<"Vector iterator state: "<<(msg != NULL ? msg : "")<<endl;
     	out<<"Pos: 	   "<<me()->pos()<<endl;
     	out<<"DataPos: "<<me()->data_pos()<<endl;
+    	out<<"KeyIdx: "<<me()->key_idx()<<endl;
     	me()->model().Dump(me()->page(), out);
     	me()->model().Dump(me()->data(), out);
     }
@@ -125,14 +126,16 @@ BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
 }
 
 M_PARAMS
-void M_TYPE::Insert(ArrayData& data, BigInt start, BigInt len)
+void M_TYPE::Insert(const ArrayData& data, BigInt start, BigInt len)
 {
-	BufferContentDescriptor descriptor;
+//	BufferContentDescriptor descriptor;
+//
+//	descriptor.start() = start;
+//	descriptor.length() = len;
+//
+//	me()->model().InsertDataBlock(*me(), data, descriptor);
 
-	descriptor.start() = start;
-	descriptor.length() = len;
-
-	me()->model().InsertDataBlock(*me(), data, descriptor);
+	me()->model().InsertData(*me(), data);
 }
 
 M_PARAMS

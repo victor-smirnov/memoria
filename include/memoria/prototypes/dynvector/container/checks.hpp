@@ -76,13 +76,13 @@ bool M_TYPE::check_leaf_value(NodeBase* leaf, Int idx)
 	Int key			= me()->GetKey(leaf, 0, idx);
 	DataPageG data 	= me()->GetDataPage(leaf, idx, Allocator::READ);
 
-	if (data != NULL)
+	if (data.is_set())
 	{
 		bool error = false;
 
 		if (key != data->data().size())
 		{
-			MEMORIA_TRACE(me(), "Invalid data page size", leaf->id(), idx, key, data->data().size());
+			MEMORIA_ERROR(me(), "Invalid data page size", leaf->id(), idx, key, data->data().size());
 			error = true;
 		}
 
@@ -95,7 +95,7 @@ bool M_TYPE::check_leaf_value(NodeBase* leaf, Int idx)
 		return error;
 	}
 	else {
-		MEMORIA_TRACE(me(), "No DataPage exists", leaf->id(), idx, key);
+		MEMORIA_ERROR(me(), "No DataPage exists", leaf->id(), idx, key);
 		return true;
 	}
 }

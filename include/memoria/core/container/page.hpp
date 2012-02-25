@@ -40,7 +40,7 @@ public:
     }
 
     bool is_null() const {
-        return IsClean(Base::ptr(), Size);
+        return is_empty();
     }
 
     bool is_empty() const {
@@ -56,7 +56,7 @@ public:
     }
 
     void set_null() {
-        Clean(Base::ptr(), Size);
+        Base::Clear();
     }
 
     ValueType& operator=(const ValueType& other)

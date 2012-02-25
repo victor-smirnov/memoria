@@ -199,27 +199,31 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     }
 
 ////FIXME: dont't forget prefixes
-//    bool NextData()
-//    {
-//    	if (me()->NextKey())
-//    	{
-//    		me()->data() = me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
-//    		me()->data_pos() = me()->data()->data().size();
-//    		return true;
-//    	}
-//    	return false;
-//    }
-//
-//    bool PrevData()
-//    {
-//    	if (me()->PrevKey())
-//    	{
-//    		me()->data() = me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
-//    		me()->data_pos() = me()->data()->data().size();
-//    		return true;
-//    	}
-//    	return false;
-//    }
+    bool NextData()
+    {
+    	if (me()->NextKey())
+    	{
+    		me()->data() 		= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+    		me()->data_pos() 	= 0;
+
+    		return true;
+    	}
+
+    	return false;
+    }
+
+    bool PrevData()
+    {
+    	if (me()->PrevKey())
+    	{
+    		me()->data() 		= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+    		me()->data_pos() 	= 0;
+
+    		return true;
+    	}
+
+    	return false;
+    }
 
 //    bool NextKey()
 //    {

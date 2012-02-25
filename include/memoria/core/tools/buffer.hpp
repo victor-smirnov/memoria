@@ -145,25 +145,42 @@ public:
 
 
 template <typename Object, size_t Size = sizeof(Object)>
-class ValueBuffer: public Buffer<Size> {
-    typedef Buffer<Size>                        Base;
+class ValueBuffer /*: public Buffer<Size> */{
+//    typedef Buffer<Size>                        Base;
     typedef ValueBuffer<Object, Size>           Me;
+    Object value_;
 
 public:
+
+    static const BigInt     SIZE 	= Size;                 //in bytes;
+    static const BigInt     BITSIZE = SIZE * 8;          	//in bits;
+
     typedef Object                              ValueType;
 
-    ValueBuffer(): Base() {}
+    ValueBuffer() {}
 
-    ValueBuffer(const Object &obj): Base() {
+    ValueBuffer(const Object &obj) {
         value() = obj;
     }
 
+    void Clear() {
+    	value_ = 0;
+    }
+
+    void CopyTo(void *mem) const {
+    	CopyBuffer(&value_, mem, Size);
+    }
+
+    void CopyFrom(const void *mem) {
+    	CopyBuffer(mem, &value_, Size);
+    }
+
     const Object &value() const {
-        return P2CR<Object>(Base::ptr());
+        return value_;//P2CR<Object>(Base::ptr());
     }
 
     Object &value() {
-        return P2R<Object>(Base::ptr());
+        return value_;//P2R<Object>(Base::ptr());
     }
 
 
@@ -172,7 +189,7 @@ public:
     }
 
     Int GetHashCode() {
-        return CShr(Base::GetHashCode(), 3) /*^ memoria::tools::types::TypeHash<Int>::Value*/;
+        return CShr(PtrToInt(&value_), 3) /*^ memoria::tools::types::TypeHash<Int>::Value*/;
     }
 };
 
