@@ -199,7 +199,8 @@ public:
     typedef NodePageContainerTypes													NodeContainerTypes;
     typedef PageGuard<NodeContainerTypes, typename ContainerTypes::Allocator>		NodeContainerTypesG;
 
-    struct DispatcherTypes {
+    struct DispatcherTypes
+    {
     	typedef NodeTypesList 								NodeList;
     	typedef NodeContainerTypes 							NodeBase;
     	typedef NodeContainerTypesG 						NodeBaseG;

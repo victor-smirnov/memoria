@@ -13,26 +13,39 @@
 namespace memoria    	{
 namespace btree 		{
 
-struct NodeRoomDescr {
-	Int left_;
-	Int right_;
-
-	NodeRoomDescr(): left_(0), right_(0) {}
-	NodeRoomDescr(Int left, Int right): left_(left), right_(right) {}
-};
+//struct NodeRoomDescr {
+//	Int left_;
+//	Int right_;
+//
+//	NodeRoomDescr(): left_(0), right_(0) {}
+//	NodeRoomDescr(Int left, Int right): left_(left), right_(right) {}
+//};
 
 
 
 template <typename Node>
 class TreePathItem {
 	typedef TreePathItem<Node> MyType;
+	typedef typename Node::Page Page;
 
 	Node node_;
 	Int parent_idx_;
 public:
-	TreePathItem() {}
+
+	TreePathItem(): node_(), parent_idx_(0) {}
 	TreePathItem(const MyType& other): node_(other.node_), parent_idx_(other.parent_idx_) {}
 	TreePathItem(MyType&& other): node_(std::move(other.node_)), parent_idx_(other.parent_idx_) {}
+
+	Page* operator->()
+	{
+		return node_.operator->();
+	}
+
+	const Page* operator->() const
+	{
+		return node_.operator->();
+	}
+
 
 	MyType& operator=(const MyType& other)
 	{
@@ -48,6 +61,18 @@ public:
 		parent_idx_	= other.parent_idx_;
 
 		return *this;
+	}
+
+	operator Node& () {
+		return node_;
+	}
+
+	operator const Node& () const {
+		return node_;
+	}
+
+	operator Node () const {
+		return node_;
 	}
 
 	const Node& node() const {
@@ -71,6 +96,8 @@ public:
 		parent_idx_ = 0;
 	}
 };
+
+
 
 template <typename Node>
 class NodePair {

@@ -97,11 +97,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	data_   		= std::move(other.data_);
     }
 
-    void SetupAllocator(Allocator* allocator)
-    {
-    	//data_.set_allocator(allocator);
-    	Base::SetupAllocator(allocator);
-    }
+//    void SetupAllocator(Allocator* allocator)
+//    {
+//    	//data_.set_allocator(allocator);
+//    	Base::SetupAllocator(allocator);
+//    }
 
     bool IsEof()
     {
@@ -137,7 +137,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	if (me()->page() != NULL)
     	{
     		SumWalker walker(idx_number, *me());
-    		me()->walk_to_the_root(me()->page(), me()->key_idx(), walker);
+    		me()->walk_to_the_root(me()->path(), me()->key_idx(), walker);
     		return walker.sum();
     	}
     	else {

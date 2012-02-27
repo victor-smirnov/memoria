@@ -55,7 +55,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef FixedVector<NodeRoomDescr>											NodeRoomVector;
+//    typedef FixedVector<NodeRoomDescr>											NodeRoomVector;
 
     typedef Accumulators<Key, Counters, Indexes>								Accumulator;
 
@@ -514,12 +514,6 @@ typename M_TYPE::Accumulator M_TYPE::InsertSubtree(NodeBaseG& node, Int &idx, IS
 
 
 
-
-
-
-
-
-
 //// ----------------------  PRIVATE API ------------------------- ////
 
 
@@ -542,8 +536,6 @@ void M_TYPE::InsertSubtreeInTheMiddle(NodeBaseG& left_node, Int left_idx, NodeBa
 		{
 			// We have enough free space for all subtrees in the current node
 			BigInt total 	= Divide(key_count, subtree_size);
-
-//			MakeRoom(left_node, left_idx, total);
 
 			FillNodeLeft(left_node, left_idx, total, data);
 
@@ -576,13 +568,6 @@ void M_TYPE::InsertSubtreeInTheMiddle(NodeBaseG& left_node, Int left_idx, NodeBa
 			BigInt total_keys 			= Divide(key_count, subtree_size);
 			BigInt total_keys_in_node 	= total_keys > total_capacity ? total_capacity : total_keys;
 
-
-//			Int free_space 	= total_capacity - total_keys_in_node;
-//			Int delta		= free_space / 2;
-//
-//			Int left_count	= start_capacity > delta ? start_capacity - delta : 0;
-//			Int right_count	= total_keys_in_node - left_count;
-
 			Int left_count	= start_capacity > total_keys_in_node ? total_keys_in_node : start_capacity;
 			Int right_count	= total_keys_in_node - left_count;
 
@@ -590,8 +575,6 @@ void M_TYPE::InsertSubtreeInTheMiddle(NodeBaseG& left_node, Int left_idx, NodeBa
 			FillNodeRight(right_node, right_idx, right_count, data);
 
 			right_idx = right_count;
-
-
 		}
 		else
 		{
@@ -607,7 +590,6 @@ void M_TYPE::InsertSubtreeInTheMiddle(NodeBaseG& left_node, Int left_idx, NodeBa
 			NodeBaseG right_node_parent = me()->GetParent(right_node, 	Allocator::UPDATE);
 
 			// There is something more to insert.
-//			Int parent_right_idx = left_node_parent == right_node_parent ? left_node_parent->parent_idx() + 1: 0;
 			Int parent_right_idx = right_node->parent_idx();
 			InsertSubtreeInTheMiddle
 			(

@@ -381,6 +381,7 @@ BigInt M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, In
 }
 
 
+
 M_PARAMS
 void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int& stop_idx, Key* keys_left, Key* keys_right, BigInt& removed_key_count)
 {
@@ -397,16 +398,12 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
 			Iterator i(*me());
 			NodeBaseG prev = i.GetPrevNode(start);
 
-
-
 			me()->RemovePage(start);
 
-			stop = NULL;
-			stop_idx = 0;
+			stop 		= NULL;
+			stop_idx 	= 0;
 
 			start = prev;
-
-
 
 			start_idx = start.is_set() ? start->children_count() : 0;
 
@@ -414,9 +411,6 @@ void M_TYPE::RemovePages(NodeBaseG& start, Int& start_idx, NodeBaseG& stop, Int&
 		else if (stop_idx - start_idx >= 0)
 		{
 			//Remove some space within the node
-
-
-
 			removed_key_count += RemoveSpace(start, start_idx, stop_idx - start_idx, UpdateType::FULL, keys_left);
 
 			me()->SetKeys(keys_right, keys_left);

@@ -13,6 +13,8 @@
 #include <memoria/core/container/names.hpp>
 #include <memoria/prototypes/btree/macros.hpp>
 #include <memoria/core/types/algo.hpp>
+#include <memoria/core/tools/fixed_vector.hpp>
+
 
 #include <iostream>
 
@@ -56,8 +58,19 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     typedef typename Types::Metadata 											Metadata;
 
+
+    typedef memoria::btree::TreePathItem<NodeBaseG>								TreePathItem;
+
+    typedef memoria::core::FixedVector<
+    		TreePathItem, 16, ValueClearing
+    >																			TreePath;
+
+
+
     static const Int  Indexes                                                   = Types::Indexes;
     static const bool MapType                                                   = Types::MapType;
+
+
 
     bool IsDynarray() const {
     	return false;

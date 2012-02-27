@@ -122,24 +122,24 @@ void M_TYPE::SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, co
 	SetAndReindexFn1 fn1(idx, keys, val);
 	LeafDispatcher::Dispatch(node, fn1);
 
-	if (!fn1.fixed_)
-	{
-		Iterator i(node, idx, *me());
-		if (i.NextKey())
-		{
-			SetAndReindexFn2 fn2(i.key_idx(), keys);
-			LeafDispatcher::Dispatch(i.page(), fn2);
-
-			if (MapType == MapTypes::Sum)
-			{
-				me()->UpdateBTreeKeys(i.page());
-			}
-			else if (i.key_idx() >= i.page()->children_count() - 1)
-			{
-				me()->UpdateBTreeKeys(i.page());
-			}
-		}
-	}
+//	if (!fn1.fixed_)
+//	{
+//		Iterator i(node, idx, *me());
+//		if (i.NextKey())
+//		{
+//			SetAndReindexFn2 fn2(i.key_idx(), keys);
+//			LeafDispatcher::Dispatch(i.page(), fn2);
+//
+//			if (MapType == MapTypes::Sum)
+//			{
+//				me()->UpdateBTreeKeys(i.page());
+//			}
+//			else if (i.key_idx() >= i.page()->children_count() - 1)
+//			{
+//				me()->UpdateBTreeKeys(i.page());
+//			}
+//		}
+//	}
 }
 
 M_PARAMS

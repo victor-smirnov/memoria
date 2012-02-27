@@ -52,12 +52,12 @@ void KVMapConcept() {
 	iter2.NextKey();
 	iter2.PrevKey();
 
-	IteratorType iter3 = map->RBegin();
-	IteratorType iter4 = map->REnd();
+//	IteratorType iter3 = map->RBegin();
+//	IteratorType iter4 = map->REnd();
 
 	IteratorType iter5 = map->End();
 
-	if (iter1 != iter2 && iter3 == iter4 && iter4 == iter5)
+	if (iter1 != iter2 && iter2 == iter5)
 	{
 		cout<<"HERE"<<endl;
 	}

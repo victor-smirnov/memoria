@@ -58,38 +58,38 @@ public:
 
 		MEMORIA_TEST_ASSERT(idx, !=, pairs_size);
 
-		idx = pairs_size - 1;
-		for (auto iter = map->RBegin(); !iter.IsStart(); )
-		{
-			BigInt  key 	= iter.GetKey(0);
-
-			MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
-
-			iter.Prev();
-
-			idx--;
-		}
-
-		MEMORIA_TEST_ASSERT_EXPR(idx != -1, idx, pairs_size);
+//		idx = pairs_size - 1;
+//		for (auto iter = map->RBegin(); !iter.IsStart(); )
+//		{
+//			BigInt  key 	= iter.GetKey(0);
+//
+//			MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
+//
+//			iter.Prev();
+//
+//			idx--;
+//		}
+//
+//		MEMORIA_TEST_ASSERT_EXPR(idx != -1, idx, pairs_size);
 	}
 
 
 	void CheckIteratorBw(IdxSetType* map, PairVector& pairs)
 	{
-		Int pairs_size = (Int)pairs.size();
-		Int idx = pairs_size - 1;
+//		Int pairs_size = (Int)pairs.size();
+//		Int idx = pairs_size - 1;
 
-		for (auto iter = map->RBegin(); !iter.IsStart(); )
-		{
-			BigInt  key 	= iter.GetKey(0);
-
-			MEMORIA_TEST_ASSERT(pairs[idx],   !=, key);
-
-		    iter.Prev();
-		    idx--;
-		}
-
-		MEMORIA_TEST_ASSERT_EXPR(idx != -1, idx, pairs_size);
+//		for (auto iter = map->RBegin(); !iter.IsStart(); )
+//		{
+//			BigInt  key 	= iter.GetKey(0);
+//
+//			MEMORIA_TEST_ASSERT(pairs[idx],   !=, key);
+//
+//		    iter.Prev();
+//		    idx--;
+//		}
+//
+//		MEMORIA_TEST_ASSERT_EXPR(idx != -1, idx, pairs_size);
 	}
 
 	void CheckMultistepForwardIterator(IdxSetType* map)
@@ -118,26 +118,26 @@ public:
 
 	void CheckMultistepBackwardIterator(IdxSetType* map)
 	{
-		BigInt max = map->GetSize();
-
-		for (Int c = 0; c < 100; c++)
-		{
-			auto iter1 = map->RBegin();
-			auto iter2 = iter1;
-
-			BigInt rnd = max > 0 ? GetRandom(max) : 0;
-
-			if (rnd > 0) {
-				iter1.SkipKeyBw(rnd);
-			}
-
-			for (BigInt d = 0; d < rnd; d++)
-			{
-				iter2.PrevKey();
-			}
-
-			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
-		}
+//		BigInt max = map->GetSize();
+//
+//		for (Int c = 0; c < 100; c++)
+//		{
+//			auto iter1 = map->RBegin();
+//			auto iter2 = iter1;
+//
+//			BigInt rnd = max > 0 ? GetRandom(max) : 0;
+//
+//			if (rnd > 0) {
+//				iter1.SkipKeyBw(rnd);
+//			}
+//
+//			for (BigInt d = 0; d < rnd; d++)
+//			{
+//				iter2.PrevKey();
+//			}
+//
+//			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+//		}
 	}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const

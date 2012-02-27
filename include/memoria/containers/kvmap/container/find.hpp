@@ -46,9 +46,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::FindName)
     static const Int Indexes                                                    = Types::Indexes;
 
     struct CompareLE {
-        bool for_insert_;
+    	typename MyType::SearchModeDefault::Enum search_mode_;
         Key prefix_;
-        CompareLE(bool for_insert): for_insert_(for_insert), prefix_(0) {}
+        CompareLE(typename MyType::SearchModeDefault::Enum search_mode): search_mode_(search_mode), prefix_(0) {}
 
         template <typename Node>
         Int Find(Node* node, Int c, Key key) {
@@ -63,6 +63,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::FindName)
         void SetupIterator(IteratorType &iter) {}
 
         void AdjustKey(Key& key) {}
+
+        typename MyType::SearchModeDefault::Enum search_mode() const {
+        	return search_mode_;
+        }
     };
 
     Iterator FindLE(Key key, int i, bool for_insert)

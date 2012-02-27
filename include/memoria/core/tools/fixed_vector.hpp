@@ -34,10 +34,14 @@ class FixedVector {
 	Value 	values_[Size];
 
 public:
+	typedef Value Element;
+
 	FixedVector(): size_(0) {}
 
 	FixedVector(const MyType& other)
 	{
+		size_ = other.size_;
+
 		for (Int c = 0; c < Size; c++)
 		{
 			values_[c] = other.values_[c];
@@ -46,6 +50,8 @@ public:
 
 	FixedVector(MyType&& other)
 	{
+		size_ = other.size_;
+
 		for (Int c = 0; c < Size; c++)
 		{
 			values_[c] = std::move(other.values_[c]);
@@ -100,6 +106,11 @@ public:
 
 	Int GetSize() const {
 		return size_;
+	}
+
+	void Resize(Int size)
+	{
+		size_ = size;
 	}
 
 	static Int GetMaxSize() {

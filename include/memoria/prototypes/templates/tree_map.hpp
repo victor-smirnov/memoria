@@ -57,7 +57,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
             while (!page->is_root())
             {
                 Int pidx = page->parent_idx();
-                page = me()->GetParent(page, Allocator::READ);
+                page = me()->GetParent(i.path(), page);
 
                 for (Int c = 0; c < pidx; c++)
                 {
@@ -76,9 +76,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     Iterator GetByIndex(BigInt index)
     {
         NodeBaseG node = me()->GetRoot(Allocator::READ);
-        if (node != NULL)
+        if (node.is_set())
         {
-            BigInt keys = 0;
+        	Iterator iter(*me(), node->level());
+
+        	BigInt keys = 0;
             while (!node->is_leaf())
             {
                 Int size = node->children_count();
@@ -109,7 +111,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
                 }
             }
 
-            return Iterator(node, index - keys, *me(), true);
+            iter.Init();
+
+            return iter;
         }
         else {
             return Iterator(*me());

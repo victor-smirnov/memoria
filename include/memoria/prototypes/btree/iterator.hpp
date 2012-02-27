@@ -48,7 +48,6 @@ class Iter<BTreeIterTypes<Types> >: public IterStart<BTreeIterTypes<Types> >
     typedef typename ContainerType::Types::NodeBase                                 NodeBase;
     typedef typename ContainerType::Types::NodeBaseG                                NodeBaseG;
 
-    Int kind_;
     ContainerType&      model_;
 
 public:
@@ -57,25 +56,15 @@ public:
 
     typedef ContainerType                                                           Container;
     
-    Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(), kind_(kind), model_(model)
+    Iter(Container &model, Int levels = 0): Base(), model_(model)
     {
-    	Base::SetupAllocator(&model.allocator());
     	Base::state() 		= 0;
         Base::key_idx() 	= -1;
+
+        Base::path().Resize(levels);
     }
     
-    Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(), kind_(GENERIC_ITERATOR), model_(model)
-    {
-    	Base::SetupAllocator(&model.allocator());
-    	Base::page() 		= node;
-    	Base::key_idx() 	= idx;
-    	Base::state() 		= 0;
-
-    	if (do_init) Base::Init();
-    	Base::ReHash();
-    }
-
-    Iter(const MyType& other): Base(other), kind_(other.kind_), model_(other.model_) {}
+    Iter(const MyType& other): Base(other), model_(other.model_) {}
 
     ContainerType& model() {
     	return model_;
@@ -99,20 +88,18 @@ public:
     	return *this;
     }
 
-    const Int kind() const {
-    	return kind_;
-    }
+
 
     void update() {
-    	switch (kind_) {
-    		case BEGIN_ITERATOR: 	(*this) = model().FindStart(); break;
-    		case END_ITERATOR: 		(*this) = model().FindEnd(); break;
-
-    		case REVERSE_BEGIN_ITERATOR: 	(*this) = model().FindRStart(); break;
-    		case REVERSE_END_ITERATOR: 		(*this) = model().FindREnd(); break;
-
-    		default:; // do nothing
-    	};
+//    	switch (kind_) {
+//    		case BEGIN_ITERATOR: 	(*this) = model().FindStart(); break;
+//    		case END_ITERATOR: 		(*this) = model().FindEnd(); break;
+//
+//    		case REVERSE_BEGIN_ITERATOR: 	(*this) = model().FindRStart(); break;
+//    		case REVERSE_END_ITERATOR: 		(*this) = model().FindREnd(); break;
+//
+//    		default:; // do nothing
+//    	};
     }
 
     bool operator==(const MyType& other) const

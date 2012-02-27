@@ -24,30 +24,28 @@ using namespace memoria::btree;
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBase)
 public:
+	typedef typename Base::Container::TreePath                                        TreePath;
+	typedef typename Base::Container::TreePath::Element                               TreePathItem;
     typedef typename Base::Container::NodeBase                                        NodeBase;
     typedef typename Base::Container::NodeBaseG                                       NodeBaseG;
     typedef typename Base::Container::Allocator										  Allocator;
 
 private:
 
-    NodeBaseG           page_;
+    TreePath           	path_;
     Int                 key_idx_;
     BigInt				key_num_;
 
 public:
-    BTreeIteratorBase(): Base(), page_(NULL), key_idx_(0), key_num_(0) {}
+    BTreeIteratorBase(): Base(), path_(), key_idx_(0), key_num_(0) {}
 
-    BTreeIteratorBase(ThisType&& other): Base(std::move(other)), page_(std::move(other.page_)), key_idx_(other.key_idx_), key_num_(other.key_num_) {}
+    BTreeIteratorBase(ThisType&& other): Base(std::move(other)), path_(std::move(other.path_)), key_idx_(other.key_idx_), key_num_(other.key_num_) {}
 
-    BTreeIteratorBase(const ThisType& other): Base(other), page_(other.page_), key_idx_(other.key_idx_), key_num_(other.key_num_) {}
-
-    void SetupAllocator(Allocator* allocator) {
-    	//page_.set_allocator(allocator);
-    }
+    BTreeIteratorBase(const ThisType& other): Base(other), path_(other.path_), key_idx_(other.key_idx_), key_num_(other.key_num_) {}
 
     void operator=(ThisType&& other)
     {
-        page_       = other.page_;
+        path_       = other.path_;
         key_idx_    = other.key_idx_;
         key_num_	= other.key_num_;
 
@@ -56,7 +54,7 @@ public:
 
     void operator=(const ThisType& other)
     {
-    	page_       = other.page_;
+    	path_       = other.path_;
     	key_idx_    = other.key_idx_;
     	key_num_	= other.key_num_;
 
@@ -65,29 +63,70 @@ public:
 
     bool operator==(const MyType& other) const
     {
-    	return page_ == other.page_ && key_idx_ == other.key_idx_ && Base::operator==(other);
+    	return page() == other.page() && key_idx_ == other.key_idx_ && Base::operator==(other);
     }
 
-    Int BuildHash() const {
-    	const NodeBase* page = page_ != NULL ? page_.page() : NULL;
-    	return Base::BuildHash() ^ PtrToHash<const NodeBase*>::hash(page) ^ key_idx_;
+    Int BuildHash() const
+    {
+    	const NodeBase* page0;
+
+    	if (path_.GetSize() > 0)
+    	{
+    		page0 = path_[0].node().is_set() ? path_[0].node().page() : NULL;
+    	}
+    	else {
+    		page0 = NULL;
+    	}
+
+    	return Base::BuildHash() ^ PtrToHash<const NodeBase*>::hash(page0) ^ key_idx_;
     }
 
-    Int &key_idx() {
+    void SetNode(NodeBaseG& node, Int parent_idx)
+    {
+    	path_[node->level()].node() 		= node;
+    	path_[node->level()].parent_idx() 	= parent_idx;
+    }
+
+    Int &key_idx()
+    {
         return key_idx_;
     }
 
-    const Int key_idx() const {
+    const Int key_idx() const
+    {
         return key_idx_;
     }
 
-    NodeBaseG& page() {
-        return page_;
+    NodeBaseG& page()
+    {
+        return path_[0];
     }
 
-    const NodeBaseG& page() const {
-    	return page_;
+    const NodeBaseG& page() const
+    {
+    	return path_[0];
     }
+
+    TreePathItem& leaf()
+    {
+    	return path_[0];
+    }
+
+    const TreePathItem& leaf() const
+    {
+    	return path_[0];
+    }
+
+    TreePath& path()
+    {
+    	return path_;
+    }
+
+    const TreePath& path() const
+    {
+    	return path_;
+    }
+
 
     bool IsStart()
     {
@@ -96,7 +135,7 @@ public:
 
     bool IsEnd()
     {
-    	return page() != NULL ? key_idx() >= page()->children_count() : true;
+    	return page().is_set() ? key_idx() >= page()->children_count() : true;
     }
 
     bool IsNotEnd()
@@ -106,7 +145,7 @@ public:
 
     bool IsEmpty()
     {
-    	return page() == NULL || page()->children_count() == 0;
+    	return page().is_empty() || page()->children_count() == 0;
     }
 
     bool IsNotEmpty()

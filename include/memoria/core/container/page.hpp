@@ -565,6 +565,9 @@ public:
 		}
 	}
 
+	void Clear() {
+		*this = NULL;
+	}
 
 	template <typename Page, typename Allocator> friend class PageGuard;
 
@@ -586,9 +589,12 @@ private:
 
 	void unref()
 	{
-		if (shared_ != NULL && shared_->unref() == 0)
+		if (shared_ != NULL)
 		{
-			shared_->allocator()->ReleasePage(shared_);
+			if (shared_->unref() == 0)
+			{
+				shared_->allocator()->ReleasePage(shared_);
+			}
 		}
 	}
 

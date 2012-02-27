@@ -53,6 +53,9 @@ public:
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
 
+    typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::TreePathItem                                         TreePathItem;
+
     static const Int Indexes                                                    = Types::Indexes;
     static const bool MapType                                                   = Types::MapType;
 
@@ -475,6 +478,11 @@ public:
         }
     }
 
+    TreePathItem& GetParent(TreePath& path, const NodeBaseG& node) const
+    {
+    	return path[node->level()];
+    }
+
     NodeBaseG GetNodeParent(const NodeBase* node, const NodeBaseG& other_parent, Int flags) const
     {
     	if (other_parent.is_set() && node->parent_id() == other_parent->id())
@@ -811,21 +819,99 @@ public:
     	}
     }
 
-    BigInt GetPageCount()
+    BigInt GetPageCount() const
     {
     	NodeBaseG root = me()->GetRoot(Allocator::READ);
     	return root->counters().page_count();
     }
 
-    BigInt GetKeyCount()
+    BigInt GetKeyCount() const
     {
     	NodeBaseG root = me()->GetRoot(Allocator::READ);
     	return root->counters().key_count();
     }
 
+
+    bool GetNextNode(TreePath& path, Int level = 0) const
+    {
+    	Int idx = path[level].node()->children_count();
+    	return GetNextNode(path, level, idx, level);
+    }
+
+    bool GetPrevNode(TreePath& path, Int level = 0) const
+    {
+    	return GetPrevNode(path, level, 0, level);
+    }
+
+private:
+
+    bool GetNextNode(TreePath& path, Int level, Int idx, Int target_level) const;
+    bool GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) const;
+
 MEMORIA_CONTAINER_PART_END
+
+#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::btree::ToolsName)
+#define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+M_PARAMS
+bool M_TYPE::GetNextNode(TreePath& path, Int level, Int idx, Int target_level) const
+{
+	NodeBaseG& page = path[level].node();
+
+	if (idx < page->children_count())
+	{
+		for(; level != target_level; level--)
+		{
+			path[level - 1].node() 			= me()->GetChild(path[level].node(), idx, Allocator::READ);
+			path[level - 1].parent_idx() 	= idx;
+
+			idx = 0;
+		}
+
+		return true;
+	}
+	else {
+		if (!page->is_root())
+		{
+			return GetNextNode(path, level + 1, path[level].parent_idx() + 1, target_level);
+		}
+	}
+
+	return false;
+}
+
+M_PARAMS
+bool M_TYPE::GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) const
+{
+	NodeBaseG& page = path[level].node();
+
+	if (idx >= 0)
+	{
+		for(; level != target_level; level--)
+		{
+			path[level - 1].node() 			= me()->GetChild(path[level].node(), idx, Allocator::READ);
+			path[level - 1].parent_idx() 	= idx;
+
+			idx = path[level - 1].node()->children_count() - 1;
+		}
+
+		return true;
+	}
+	else {
+		if (!page->is_root())
+		{
+			return GetNextNode(path, level + 1, path[level].parent_idx() - 1, target_level);
+		}
+	}
+
+	return false;
+}
+
+
+#undef M_TYPE
+#undef M_PARAMS
 
 }
 
 
-#endif	/* _MEMORIA_PROTOTYPES_BTREE_MODEL_TOOLS_HPP */
+#endif

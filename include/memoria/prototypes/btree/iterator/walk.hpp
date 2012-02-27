@@ -26,19 +26,24 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     typedef typename Base::Container::NodeDispatcher                                NodeDispatcher;
     typedef typename Base::Container::Allocator                                		Allocator;
 
+    typedef typename Base::Container::TreePath                                		TreePath;
+    typedef typename Base::Container::TreePathItem                                	TreePathItem;
+
     template <typename Walker>
     class WalkHelperFn
     {
-    	Int result_;
+    	Int 	result_;
     	Walker& walker_;
-    	Int idx_;
+    	Int 	idx_;
     public:
     	WalkHelperFn(Walker& walker, Int idx): walker_(walker), idx_(idx) {}
+
     	template <typename Node>
     	void operator()(Node* node)
     	{
     		result_ = walker_(node, idx_);
     	}
+
     	Int result() const {
     		return result_;
     	}
@@ -50,8 +55,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
      */
 
     template <typename Walker>
-    bool WalkFw(NodeBaseG& index, Int &idx, Walker &walker)
+    bool WalkFw(TreePath& path, Int &idx, Walker &walker)
     {
+    	NodeBaseG index = path[0].node();
+
     	// Walk up
     	while (true)
     	{
@@ -64,8 +71,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     			{
     				// The case when index->parent_idx() == parent.size
     				// should be handled correctly in the walker
-    				idx 	= index->parent_idx() + 1;
-    				index 	= me()->GetParent(index, Allocator::READ);
+    				idx 	= path[index->level()].parent_idx() + 1;
+    				index 	= me()->model().GetParent(path, index);
     			}
     			else {
     				// EOF
@@ -96,6 +103,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     			if (!index->is_leaf())
     			{
     				index = me()->GetChild(index, fn.result(), Allocator::READ);
+
+    				path[index->level()].node() 		= index;
+    				path[index->level()].parent_idx() 	= fn.result();
+
     				idx = 0; // FIXME: check this
     			}
     			else {
@@ -110,7 +121,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     		{
     			if (!index->is_leaf())
     			{
+    				Int parent_idx = index->children_count() - 1;
     				index = me()->model().GetLastChild(index, Allocator::READ);
+
+    				path[index->level()].node() 		= index;
+    				path[index->level()].parent_idx() 	= parent_idx;
     			}
     			else {
     				//FIXME: remove '-1'
@@ -119,7 +134,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     			}
     		}
     	}
-
     }
 
     /**
@@ -128,9 +142,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
      */
 
     template <typename Walker>
-    bool WalkBw(NodeBaseG& index, Int &idx, Walker &walker)
+    bool WalkBw(TreePath& path, Int &idx, Walker &walker)
     {
-        // Walk up
+    	NodeBaseG index = path[0].node();
+
+    	// Walk up
         while (true)
         {
         	WalkHelperFn<Walker> fn(walker, idx);
@@ -141,7 +157,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         		if (!index->is_root())
         		{
         			idx 	= index->parent_idx() - 1;
-        			index 	= me()->GetParent(index, Allocator::READ);
+        			index 	= me()->model().GetParent(path, index);
         		}
         		else {
         			// START
@@ -165,8 +181,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
         		if (!index->is_leaf())
         		{
-        			index = me()->GetChild(index, fn.result(), Allocator::READ);
-        			idx = index->children_count() - 1;
+        			index 	= me()->GetChild(index, fn.result(), Allocator::READ);
+
+        			path[index->level()].node() 		= index;
+        			path[index->level()].parent_idx() 	= fn.result();
+
+        			idx 	= index->children_count() - 1;
         		}
         		else {
         			idx = fn.result();
@@ -182,6 +202,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         		if (!index->is_leaf())
         		{
         			index = me()->GetChild(index, 0, Allocator::READ);
+
+        			path[index->level()].node() 		= index;
+        			path[index->level()].parent_idx() 	= 0;
         		}
         		else {
         			return true;
@@ -191,22 +214,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     }
     
     template <typename Walker>
-    void walk_to_the_root(NodeBaseG node, Int idx, Walker& walker)
+    void walk_to_the_root(TreePath& path, Int idx, Walker& walker, Int level = 0)
     {
-    	while(!node->is_root())
+    	for (Int c = level; c < path.GetSize(); c++)
     	{
-    		walker(node, idx);
-    		idx  = node->parent_idx();
-    		node = me()->GetParent(node, Allocator::READ);
-    	}
+    		walker(path[c].node(), idx);
 
-    	walker(node, idx);
+    		idx = path[c].parent_idx();
+    	}
     }
 
     template <typename Walker>
     BigInt skip_keys_fw(BigInt distance)
     {
-    	if (me()->page() == NULL)
+    	if (me()->page().is_empty())
     	{
     		return 0;
     	}
@@ -217,7 +238,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     	else {
     		Walker walker(distance, me()->model());
 
-    		if (me()->WalkFw(me()->page(), me()->key_idx(), walker))
+    		if (me()->WalkFw(me()->path(), me()->key_idx(), walker))
     		{
     			me()->key_idx()++;
     			me()->ReHash();
@@ -244,7 +265,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     	else {
     		Walker walker(distance, me()->model());
 
-    		if (me()->WalkBw(me()->page(), me()->key_idx(), walker))
+    		if (me()->WalkBw(me()->path(), me()->key_idx(), walker))
     		{
     			me()->key_idx() = -1;
     			me()->ReHash();
