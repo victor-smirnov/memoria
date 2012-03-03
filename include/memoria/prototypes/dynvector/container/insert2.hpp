@@ -58,14 +58,14 @@ typedef typename Base::LeafNodeKeyValuePair									LeafNodeKeyValuePair;
 
 
 static const Int Indexes                                                    = Types::Indexes;
-typedef Accumulators<Key, Counters, Indexes>								Accumulator;
+typedef Accumulators<Key, Indexes>											Accumulator;
 
 
 void InsertData(Iterator& iter, const ArrayData& data);
 DataPageG SplitDataPage(Iterator& iter);
 
 
-void UpdateParentLinksAndCounters(NodeBaseG& node) const;
+
 
 
 
@@ -255,19 +255,6 @@ typename M_TYPE::DataPageG M_TYPE::SplitDataPage(Iterator& iter)
 	return target_data;
 }
 
-M_PARAMS
-void M_TYPE::UpdateParentLinksAndCounters(NodeBaseG& node) const
-{
-	if (node->is_leaf())
-	{
-		UpdateLeafParentLinksFn fn(*me(), node);
-		LeafDispatcher::Dispatch(node, fn);
-	}
-	else {
-		Base::UpdateParentLinksAndCounters(node);
-	}
-}
-
 
 //// ========================= PRIVATE API =============================== ////
 
@@ -298,7 +285,7 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer)
 
 	accum.keys()[0] = buffer.size();
 
-	me()->UpdateUp(iter.page(), data->parent_idx(), accum);
+	me()->UpdateUp(iter.path(), 0, data->parent_idx(), accum);
 }
 
 M_PARAMS
@@ -368,10 +355,12 @@ void M_TYPE::MoveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, Nod
 	tgt_data->data().size() += amount_to_topy;
 
 	accum.keys()[0] = -amount_to_topy;
-	me()->UpdateUp(src_node, src_data->parent_idx(), accum);
+	//FIXME: path
+	//me()->UpdateUp(src_node, src_data->parent_idx(), accum);
 
 	accum.keys()[0] = amount_to_topy;
-	me()->UpdateUp(tgt_node, tgt_data->parent_idx(), accum);
+	//FIXME: path
+	//me()->UpdateUp(tgt_node, tgt_data->parent_idx(), accum);
 }
 
 #undef M_PARAMS

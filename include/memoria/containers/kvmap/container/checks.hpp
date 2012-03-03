@@ -76,9 +76,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::ChecksName)
         return false;
     }
 
-    bool check_node_content(NodeBaseG& node)
+    bool check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node)
     {
-    	bool errors = Base::check_node_content(node);
+    	bool errors = Base::check_node_content(parent, parent_idx, node);
 
         Int children = node->children_count();
 

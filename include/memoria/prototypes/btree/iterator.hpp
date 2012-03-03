@@ -59,7 +59,7 @@ public:
     Iter(Container &model, Int levels = 0): Base(), model_(model)
     {
     	Base::state() 		= 0;
-        Base::key_idx() 	= -1;
+        Base::key_idx() 	= 0;
 
         Base::path().Resize(levels);
     }

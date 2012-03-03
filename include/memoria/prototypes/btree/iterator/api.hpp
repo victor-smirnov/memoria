@@ -157,7 +157,7 @@ bool M_TYPE::NextLeaf()
 M_PARAMS
 bool M_TYPE::PrevLeaf()
 {
-	if (me()->model().GetNextNode(me()->path()))
+	if (me()->model().GetPrevNode(me()->path()))
 	{
 		// FIXME: KeyNum
 

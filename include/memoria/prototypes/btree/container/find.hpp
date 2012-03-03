@@ -86,7 +86,7 @@ public:
             end_(false),
         	level_(root->level())
         {
-        	i_.path().Resize(level_);
+        	i_.path().Resize(level_ + 1);
 
         	i_.SetNode(root, 0);
         }
@@ -236,7 +236,7 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node.is_set())
 	{
-		Iterator i(*me(), node->level());
+		Iterator i(*me(), node->level() + 1);
 
 		i.SetNode(node, 0);
 
@@ -292,7 +292,7 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node.is_set())
 	{
-		Iterator i(*me(), node->level());
+		Iterator i(*me(), node->level() + 1);
 
 		i.SetNode(node, 0);
 
@@ -304,6 +304,8 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 
 			i.SetNode(node, parent_idx);
 		}
+
+		i.key_idx() = i.page()->children_count();
 
 		return i;
 	}

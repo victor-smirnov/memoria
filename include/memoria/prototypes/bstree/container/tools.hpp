@@ -105,7 +105,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
 
 
     template <typename Node1, typename Node2>
-    bool CheckNodeWithParentContent(Node1 *node, Node2 *parent);
+    bool CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
 
 
 MEMORIA_CONTAINER_PART_END
@@ -165,14 +165,14 @@ bool M_TYPE::CheckNodeContent(Node *node) {
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent)
+bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx)
 {
 	bool errors = false;
 	for (Int c = 0; c < Indexes; c++)
 	{
-		if (node->map().max_key(c) != parent->map().key(c, node->parent_idx()))
+		if (node->map().max_key(c) != parent->map().key(c, parent_idx))
 		{
-			MEMORIA_ERROR(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, node->parent_idx()), "for", node->id(), parent->id(), node->parent_idx());
+			MEMORIA_ERROR(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, parent_idx), "for", node->id(), parent->id(), parent_idx);
 			errors = true;
 		}
 	}

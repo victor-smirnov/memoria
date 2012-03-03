@@ -17,7 +17,7 @@
 
 
 namespace memoria    {
-namespace btree     {
+namespace btree      {
 
 template <typename Int>
 class MoveElementsFn {
@@ -147,7 +147,7 @@ public:
     }
 };
 
-template <typename Dispatcher, typename Node, typename Int>
+template <typename Dispatcher, typename Node>
 Int CopyElements(Node *one, Node *two, Int from, Int shift) {
     CopyElementsFn<Int> fn(from, shift);
     Dispatcher::Dispatch(one, two, fn);
@@ -646,12 +646,12 @@ void SetData(Node *node, I idx, Data *data) {
 }
 
 
-template <typename I, typename Data>
+template <typename Data>
 class GetDataItemFn {
-    I i_;
+    Int i_;
     const Data *data_;
 public:
-    GetDataItemFn(I i): i_(i), data_(NULL) {}
+    GetDataItemFn(Int i): i_(i), data_(NULL) {}
 
     template <typename T>
     void operator()(T *node) {
@@ -663,9 +663,9 @@ public:
     }
 };
 
-template <typename Dispatcher, typename Data, typename Node, typename I>
-const Data* GetData(Node *node, I idx) {
-    GetDataItemFn<I, Data> fn(idx);
+template <typename Dispatcher, typename Data, typename Node>
+const Data* GetData(Node *node, Int idx) {
+    GetDataItemFn<Data> fn(idx);
     Dispatcher::DispatchConst(node, fn);
     return fn.data();
 }

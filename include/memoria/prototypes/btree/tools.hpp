@@ -13,15 +13,6 @@
 namespace memoria    	{
 namespace btree 		{
 
-//struct NodeRoomDescr {
-//	Int left_;
-//	Int right_;
-//
-//	NodeRoomDescr(): left_(0), right_(0) {}
-//	NodeRoomDescr(Int left, Int right): left_(left), right_(right) {}
-//};
-
-
 
 template <typename Node>
 class TreePathItem {
@@ -33,6 +24,9 @@ class TreePathItem {
 public:
 
 	TreePathItem(): node_(), parent_idx_(0) {}
+
+	TreePathItem(Node& node, Int parent_idx = 0): node_(node), parent_idx_(parent_idx) {}
+
 	TreePathItem(const MyType& other): node_(other.node_), parent_idx_(other.parent_idx_) {}
 	TreePathItem(MyType&& other): node_(std::move(other.node_)), parent_idx_(other.parent_idx_) {}
 
@@ -166,12 +160,11 @@ struct ValueClearing {
 };
 
 
-template <typename Key, typename Counters, Int Indexes>
+template <typename Key, Int Indexes>
 class Accumulators
 {
-	typedef Accumulators<Key, Counters, Indexes> MyType;
+	typedef Accumulators<Key, Indexes> MyType;
 
-	Counters 	counters_;
 	Key 		keys_[Indexes];
 
 public:
@@ -184,7 +177,7 @@ public:
 		}
 	}
 
-	Accumulators(const MyType& other): counters_(other.counters_)
+	Accumulators(const MyType& other)
 	{
 		for (Int c = 0; c < Indexes; c++)
 		{
@@ -200,14 +193,6 @@ public:
 		return keys_;
 	}
 
-	const Counters& counters() const {
-		return counters_;
-	}
-
-	Counters& counters() {
-		return counters_;
-	}
-
 	bool operator==(const MyType& other) const
 	{
 		for (Int c = 0; c < Indexes; c++)
@@ -217,7 +202,7 @@ public:
 			}
 		}
 
-		return counters_ == other.counters_;
+		return true;
 	}
 
 	MyType& operator=(const MyType& other)
@@ -226,8 +211,6 @@ public:
 		{
 			keys_[c] = other.keys_[c];
 		}
-
-		counters_ = other.counters_;
 
 		return *this;
 	}
@@ -239,49 +222,41 @@ public:
 			keys_[c] += other.keys_[c];
 		}
 
-		counters_ += other.counters_;
-
 		return *this;
 	}
 
 	MyType operator+(const MyType& other) const
 	{
-		Counters result = this;
+		MyType result = *this;
 
 		for (Int c = 0; c < Indexes; c++)
 		{
 			result.keys_[c] += other.keys_[c];
 		}
 
-		result.counters_ += other.counters_;
-
 		return result;
 	}
 
 	MyType operator-(const MyType& other) const
 	{
-		Counters result = this;
+		MyType result = *this;
 
 		for (Int c = 0; c < Indexes; c++)
 		{
 			result.keys_[c] -= other.keys_[c];
 		}
 
-		result.counters_ -= other.counters_;
-
 		return result;
 	}
 
 	MyType operator-() const
 	{
-		Counters result = this;
+		MyType result = *this;
 
 		for (Int c = 0; c < Indexes; c++)
 		{
 			result.keys_[c] = -keys_[c];
 		}
-
-		result.counters_ = -counters_;
 
 		return result;
 	}
@@ -294,13 +269,8 @@ public:
 			keys_[c] += other.keys_[c];
 		}
 
-		counters_ += other.counters_;
-
 		return *this;
 	}
-
-
-
 };
 
 }

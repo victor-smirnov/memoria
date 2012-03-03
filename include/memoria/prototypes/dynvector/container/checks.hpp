@@ -35,6 +35,7 @@ public:
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
@@ -62,7 +63,7 @@ public:
     static const Int Indexes                                                    = Types::Indexes;
 
 
-    bool check_leaf_value(NodeBase* leaf, Int idx);
+    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx);
 
 
 MEMORIA_CONTAINER_PART_END
@@ -71,7 +72,7 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::check_leaf_value(NodeBase* leaf, Int idx)
+bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx)
 {
 	Int key			= me()->GetKey(leaf, 0, idx);
 	DataPageG data 	= me()->GetDataPage(leaf, idx, Allocator::READ);

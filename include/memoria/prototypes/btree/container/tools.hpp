@@ -77,10 +77,11 @@ public:
     	template <typename Node>
     	void operator()()
     	{
-    		switch (trait_) {
-    		case BTreeNodeTraits::MAX_CHILDREN: value_ = Node::Map::max_size(); break;
+    		switch (trait_)
+    		{
+    			case BTreeNodeTraits::MAX_CHILDREN: value_ = Node::Map::max_size(); break;
 
-    		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait_);
+    			default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait_);
     		}
     	};
     };
@@ -775,6 +776,11 @@ public:
     	memoria::btree::AddChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
+    ID GetINodeData(const NodeBase* node, Int idx)
+    {
+    	return *memoria::btree::GetData<NonLeafDispatcher, ID>(node, idx);
+    }
+
     void SetINodeData(NodeBaseG& node, Int idx, const ID *id)
     {
     	node.update();
@@ -840,7 +846,7 @@ public:
 
     bool GetPrevNode(TreePath& path, Int level = 0) const
     {
-    	return GetPrevNode(path, level, 0, level);
+    	return GetPrevNode(path, level, -1, level);
     }
 
 private:
@@ -860,7 +866,7 @@ bool M_TYPE::GetNextNode(TreePath& path, Int level, Int idx, Int target_level) c
 
 	if (idx < page->children_count())
 	{
-		for(; level != target_level; level--)
+		for(; level != target_level && level > 0; level--)
 		{
 			path[level - 1].node() 			= me()->GetChild(path[level].node(), idx, Allocator::READ);
 			path[level - 1].parent_idx() 	= idx;
@@ -887,7 +893,7 @@ bool M_TYPE::GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 
 	if (idx >= 0)
 	{
-		for(; level != target_level; level--)
+		for(; level != target_level && level > 0; level--)
 		{
 			path[level - 1].node() 			= me()->GetChild(path[level].node(), idx, Allocator::READ);
 			path[level - 1].parent_idx() 	= idx;
@@ -900,7 +906,7 @@ bool M_TYPE::GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 	else {
 		if (!page->is_root())
 		{
-			return GetNextNode(path, level + 1, path[level].parent_idx() - 1, target_level);
+			return GetPrevNode(path, level + 1, path[level].parent_idx() - 1, target_level);
 		}
 	}
 

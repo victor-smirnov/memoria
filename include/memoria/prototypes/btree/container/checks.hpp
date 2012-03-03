@@ -64,9 +64,9 @@ public:
     }
 
 //PRIVATE API:
-    void check_node_tree(NodeBaseG& node, bool &errors);
+    void check_node_tree(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors);
 
-    bool check_leaf_value(NodeBaseG& leaf, Int idx) {
+    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) {
         return false;
     }
 
@@ -76,7 +76,7 @@ public:
     }
 
     template <typename Node1, typename Node2>
-    bool CheckNodeWithParentContent(Node1 *node, Node2 *parent);
+    bool CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
 
     struct CheckNodeContentFn1 {
         MyType& map_;
@@ -92,16 +92,17 @@ public:
     struct CheckNodeContentFn2 {
         MyType& map_;
         bool rtn_;
+        Int parent_idx_;
 
-        CheckNodeContentFn2(MyType& map): map_(map) {}
+        CheckNodeContentFn2(MyType& map, Int parent_idx): map_(map), parent_idx_(parent_idx) {}
 
         template <typename Node1, typename Node2>
         void operator()(Node1* node, Node2* parent) {
-            rtn_ = map_.CheckNodeWithParentContent(node, parent);
+            rtn_ = map_.CheckNodeWithParentContent(node, parent, parent_idx_);
         }
     };
 
-    bool check_node_content(NodeBase* node);
+    bool check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node);
 
     bool check_keys() {
         return false;
@@ -120,7 +121,7 @@ bool M_TYPE::CheckTree()
 	if (root != NULL)
 	{
 		bool errors = false;
-		me()->check_node_tree(root, errors);
+		me()->check_node_tree(NodeBaseG(), 0, root, errors);
 		return me()->check_keys() || errors;
 	}
 	else {
@@ -137,9 +138,10 @@ bool M_TYPE::CheckTree()
 
 
 M_PARAMS
-void M_TYPE::check_node_tree(NodeBaseG& node, bool &errors)
+void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors)
 {
-	errors = me()->check_node_content(node) || errors;
+	errors = me()->check_node_content(parent, parent_idx, node) || errors;
+
 	Int children = node->children_count();
 
 	if (children == 0 && !node->is_root())
@@ -150,101 +152,66 @@ void M_TYPE::check_node_tree(NodeBaseG& node, bool &errors)
 
 	if (node->is_leaf())
 	{
-		if (node->counters().page_count() != 1)
-		{
-			errors = true;
-			MEMORIA_ERROR(me(), "counters.page_count != 1 for leaf node", node->id(), node->counters().page_count());
-		}
-
 		for (Int c = 0; c < children; c++)
 		{
-			errors = me()->check_leaf_value(node, c) || errors;
+			errors = me()->check_leaf_value(parent, parent_idx, node, c) || errors;
 		}
 	}
 	else {
 		Counters cnt;
 		for (Int c = 0; c < children; c++)
 		{
+			ID child_id	= me()->GetINodeData(node, c);
+
 			NodeBaseG child = me()->GetChild(node, c, Allocator::READ);
 			cnt += child->counters();
 
-			me()->check_node_tree(child, errors);
-
-			if (!(child->parent_id() == node->id()))
+			if (child->id() != child_id)
 			{
 				errors = true;
-				MEMORIA_ERROR(me(), "child.parent_id != parent.id", child->id(), child->parent_id(), node->id());
+				MEMORIA_ERROR(me(), "child.id != child_id", child->id(), child->id(), child_id);
 			}
 
-			if (child->parent_idx() != c)
-			{
-				errors = true;
-				MEMORIA_ERROR(me(), "child.parent_idx != parent.child.idx", child->id(), child->parent_idx(), c);
-			}
+			me()->check_node_tree(node, c, child, errors);
 		}
 
 		cnt.page_count()++;
-
-		//FIXME: check counters
-		if (cnt != node->counters())
-		{
-			//errors = true;
-			//MEMORIA_ERROR(me_, "node.counters doesn't match childrens.counters", node->id(), node->counters(), cnt);
-		}
 	}
 }
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent) {
+bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx) {
 	bool errors = false;
 	for (Int c = 0; c < Indexes; c++)
 	{
-		if (node->map().max_key(c) != parent->map().key(c, node->parent_idx()))
+		if (node->map().max_key(c) != parent->map().key(c, parent_idx))
 		{
-			MEMORIA_TRACE(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, node->parent_idx()), "for node.id=", node->id(), "parent.id=", parent->id(), "node.parent_idx",node->parent_idx());
+			MEMORIA_TRACE(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, parent_idx), "for node.id=", node->id(), "parent.id=", parent->id(), "parent_idx", parent_idx);
 			errors = true;
 		}
 	}
 	return errors;
 }
 
+
 M_PARAMS
-bool M_TYPE::check_node_content(NodeBase* node)
+bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node)
 {
 	bool errors = false;
-	if (node->is_root())
+
+	if (parent.is_set())
 	{
-		if (!node->parent_id().is_null())
-		{
-			errors = true;
-			MEMORIA_ERROR(me(), "node.parent_id != NULL for root node", node->id(), node->parent_id());
-		}
-
-		if (node->parent_idx() != 0) {
-			errors = true;
-			MEMORIA_ERROR(me(), "node.parent_id != 0 for root node", node->id(), node->parent_idx());
-		}
-
-		CheckNodeContentFn1 fn1(*me());
-		RootDispatcher::Dispatch(node, fn1);
-		errors = fn1.rtn_ || errors;
+		CheckNodeContentFn2 fn2(*me(), parent_idx);
+		NodeDispatcher::DoubleDispatchConst(node, parent, fn2);
+		errors = fn2.rtn_ || errors;
 	}
 	else {
-		if (node->parent_id().is_null()) {
-			errors = true;
-			MEMORIA_ERROR(me(), "node.parent_id == NULL for root node", node->id(), node->parent_id());
-		}
 
-		NodeBaseG parent = me()->GetParent(node, Allocator::READ);
-		if (parent == NULL) {
-			MEMORIA_ERROR(me(), "node", node->id(), "has no parent");
-		}
-		else {
-			CheckNodeContentFn2 fn2(*me());
-			NodeDispatcher::DoubleDispatch(node, parent, fn2);
-			errors = fn2.rtn_ || errors;
-		}
+		CheckNodeContentFn1 fn1(*me());
+		RootDispatcher::DispatchConst(node, fn1);
+		errors = fn1.rtn_ || errors;
+
 	}
 
 	return errors;

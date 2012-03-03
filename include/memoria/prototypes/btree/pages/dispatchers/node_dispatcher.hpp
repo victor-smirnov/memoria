@@ -243,7 +243,7 @@ public:
     	bool level1EQ = Level == ANY_LEVEL ? true : Level == node1->level();
     	if (level1EQ && Root == node1->is_root() && Leaf == node1->is_leaf())
     	{
-    		NDT1<Types, ListSize<typename Types::List>::Value - 1>::Dispatch(
+    		NDT1<Types, ListSize<typename Types::List>::Value - 1>::DispatchConst(
     				static_cast<const Head*>(node1),
     				node2,
     				functor
