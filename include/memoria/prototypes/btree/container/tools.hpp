@@ -59,6 +59,7 @@ public:
     static const Int Indexes                                                    = Types::Indexes;
     static const bool MapType                                                   = Types::MapType;
 
+
     CtrPart(): Base(), max_node_capacity_(-1) {}
     CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) {}
     CtrPart(ThisType&& other): Base(std::move(other)), max_node_capacity_(other.max_node_capacity_) {}
@@ -142,9 +143,9 @@ public:
     	return false;
     }
 
-    bool IsTheSameNode(NodeBaseG& node1, NodeBaseG& node2) const
+    bool IsTheSameNode(const TreePath& path1, const TreePath& path2, int level) const
     {
-    	return node1->id() == node2->id();
+    	return path1[level].node()->id() == path1[level].node()->id();
     }
 
     void Dump(Key* keys, ostream& out = cout) const
@@ -572,6 +573,18 @@ public:
 
     bool ShouldSplitNode(const NodeBaseG& node) const
     {
+    	return me()->GetCapacity(node) == 0;
+    }
+
+    bool ShouldMergeNode(const TreePath& path, Int level) const
+    {
+    	const NodeBaseG& node = path[level].node();
+    	return node->children_count() <= me()->GetMaxCapacity(node) / 2;
+    }
+
+    bool ShouldSplitNode(const TreePath& path, Int level) const
+    {
+    	const NodeBaseG& node = path[level].node();
     	return me()->GetCapacity(node) == 0;
     }
 

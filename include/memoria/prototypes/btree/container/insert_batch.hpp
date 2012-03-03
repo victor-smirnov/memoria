@@ -94,64 +94,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     	return (op1 / op2) + ((op1 % op2 == 0) ?  0 : 1);
     }
 
-    BigInt GetSubtreeSize(Int level)
-    {
-    	BigInt result = 1;
-
-    	for (int c = 0; c < level; c++)
-    	{
-    		BigInt children_at_level = me()->GetMaxKeyCountForNode(false, c == 0, c);
-
-    		result *= children_at_level;
-    	}
-
-    	return result;
-    }
+    BigInt GetSubtreeSize(Int level) const;
 
 
-
-
-    Accumulator GetCounters(const NodeBaseG& node, Int from, Int count) const
-    {
-    	Accumulator counters;
-
-    	me()->SumKeys(node, from, count, counters.keys());
-
-    	return counters;
-    }
-
-
-    void UpdateUp(TreePath& path, Int level, Int idx, const Accumulator& counters)
-    {
-    	for (Int c = level; c < path.GetSize(); c++)
-    	{
-    		if (UpdateCounters(path[c].node(), idx, counters))
-    		{
-    			break;
-    		}
-    		else {
-    			idx = path[c].parent_idx();
-    		}
-    	}
-    }
-
-    void UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
-    {
-    	if (level < path.GetSize() - 1)
-    	{
-    		me()->UpdateUp(path, level + 1, path[level].parent_idx(), counters);
-    	}
-    }
-
-//    Accumulator InsertSubtree(TreePath& path, Int &idx, ISubtreeProvider& provider);
-
+    Accumulator GetCounters(const NodeBaseG& node, Int from, Int count) const;
+    void UpdateUp(TreePath& path, Int level, Int idx, const Accumulator& counters);
+    void UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
     Accumulator InsertSubtree(Iterator& iter, ISubtreeProvider& provider);
-//    {
-//    	iter.KeyNum() += provider.GetTotalKeyCount();
-//    	return me()->InsertSubtree(iter.path(), iter.key_idx(), provider);
-//    }
+
+    void InsertEntry1(Iterator &iter, const Key *keys, const Value &value);
+    void InsertEntry1(Iterator &iter, Key key, const Value &value);
+
+    void InsertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size);
+    void InsertBatch(Iterator& iter, const LeafPairsVector& pairs);
 
 
+    TreePathItem SplitPath(TreePath& path, Int level, Int idx);
+    void 		 SplitPath(TreePath& left, TreePath& right, Int level, Int idx);
+    void		 NewRoot(TreePath& path);
 
 
     class DefaultSubtreeProviderBase: public ISubtreeProvider {
@@ -330,24 +290,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     };
 
 
-    void InsertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
-    {
-    	ArraySubtreeProvider provider(*me(), size, pairs);
-
-    	me()->InsertSubtree(iter, provider);
-    }
-
-    void InsertBatch(Iterator& iter, const LeafPairsVector& pairs)
-    {
-    	ArraySubtreeProvider provider(*me(), pairs.size(), &pairs.at(0));
-
-    	me()->InsertSubtree(iter, provider);
-    }
-
-
-    TreePathItem SplitPath(TreePath& path, Int level, Int idx);
-    void 		 SplitPath(TreePath& left, TreePath& right, Int level, Int idx);
-    void		 NewRoot(TreePath& path);
 
 
 
@@ -368,22 +310,6 @@ private:
     	InsertSharedData(ISubtreeProvider& provider_): provider(provider_), start(0), end(0), total(provider_.GetTotalKeyCount()), remains(total) {}
     };
 
-//    //FIXME Implement it
-//    void InsertSubtreeIntoEmptyCtr(TreePath& path, Int& idx, InsertSharedData& data)
-//    {
-//    	//Create empty root+leaf node
-//    	//InsertSubtreeInTheMiddle(node, idx, data);
-//    }
-//
-//    void InsertSubtreeAtStart(TreePath& path, Int& idx, InsertSharedData& data)
-//    {
-//    	InsertSubtreeInTheMiddle(path, idx, data);
-//    }
-//
-//    void InsertSubtreeAtEnd(TreePath& path, Int& idx, InsertSharedData& data)
-//    {
-//    	InsertSubtreeInTheMiddle(path, idx, data);
-//    }
 
     void InsertSubtree(TreePath& path, Int &idx, InsertSharedData& data)
     {
@@ -392,7 +318,6 @@ private:
 
     	me()->AddTotalKeyCount(data.provider.GetTotalKeyCount());
     }
-
 
 
     void InsertSubtree(TreePath& left_path, Int left_idx, TreePath& right_path, Int& right_idx, Int level, InsertSharedData& data);
@@ -431,6 +356,8 @@ private:
             node->inc_size(count_);
         }
     };
+
+
 
     class MoveElementsFn
     {
@@ -598,6 +525,134 @@ void M_TYPE::SplitPath(TreePath& left, TreePath& right, Int level, Int idx)
 }
 
 
+M_PARAMS
+void M_TYPE::InsertEntry1(Iterator &iter, const Key *keys, const Value &value)
+{
+	TreePath& 	path 	= iter.path();
+	NodeBaseG& 	node 	= path[0].node();
+	Int& 		idx 	= iter.key_idx();
+
+	if (me()->GetCapacity(node) > 0)
+	{
+		MakeRoom(path, 0, idx, 1);
+	}
+	else if (idx == 0)
+	{
+		SplitPath(path, 0, node->children_count() / 2);
+		idx = 0;
+		MakeRoom(path, 0, idx, 1);
+	}
+	else if (idx < node->children_count())
+	{
+		//FIXME: does it necessary to split the page at the middle ???
+		SplitPath(path, 0, idx);
+		MakeRoom(path, 0, idx, 1);
+	}
+	else {
+		TreePathItem right = SplitPath(path, 0, node->children_count() / 2);
+		path[0] = right;
+
+		idx = node->children_count();
+		MakeRoom(path, 0, idx, 1);
+
+		iter.page() = node;
+		iter.key_idx() = idx;
+	}
+
+	me()->SetLeafDataAndReindex(node, idx, keys, value);
+
+	Accumulator accum;
+
+	for (Int c = 0; c < Indexes; c++) accum.keys()[c] = keys[c];
+
+	UpdateUp(path, 0, idx, accum);
+}
+
+
+
+M_PARAMS
+void M_TYPE::InsertEntry1(Iterator &iter, Key key, const Value &value) {
+	Key keys[Indexes];
+
+	for (Int c = 0; c < Indexes; c++)
+	{
+		keys[c] = key;
+	}
+
+	InsertEntry(iter, keys, value);
+}
+
+M_PARAMS
+void M_TYPE::InsertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
+{
+	ArraySubtreeProvider provider(*me(), size, pairs);
+
+	me()->InsertSubtree(iter, provider);
+}
+
+M_PARAMS
+void M_TYPE::InsertBatch(Iterator& iter, const LeafPairsVector& pairs)
+{
+	ArraySubtreeProvider provider(*me(), pairs.size(), &pairs.at(0));
+
+	me()->InsertSubtree(iter, provider);
+}
+
+
+M_PARAMS
+BigInt M_TYPE::GetSubtreeSize(Int level) const
+{
+	BigInt result = 1;
+
+	for (int c = 0; c < level; c++)
+	{
+		BigInt children_at_level = me()->GetMaxKeyCountForNode(false, c == 0, c);
+
+		result *= children_at_level;
+	}
+
+	return result;
+}
+
+
+
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::GetCounters(const NodeBaseG& node, Int from, Int count) const
+{
+	Accumulator counters;
+
+	me()->SumKeys(node, from, count, counters.keys());
+
+	return counters;
+}
+
+
+
+M_PARAMS
+void M_TYPE::UpdateUp(TreePath& path, Int level, Int idx, const Accumulator& counters)
+{
+	for (Int c = level; c < path.GetSize(); c++)
+	{
+		if (UpdateCounters(path[c].node(), idx, counters))
+		{
+			break;
+		}
+		else {
+			idx = path[c].parent_idx();
+		}
+	}
+}
+
+M_PARAMS
+void M_TYPE::UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
+{
+	if (level < path.GetSize() - 1)
+	{
+		me()->UpdateUp(path, level + 1, path[level].parent_idx(), counters);
+	}
+}
+
+
 
 
 //// ----------------------  PRIVATE API ------------------------- ////
@@ -679,9 +734,6 @@ void M_TYPE::InsertSubtree(TreePath& left_path, Int left_idx, TreePath& right_pa
 			FillNodeRight(right_path, level, right_idx, end_capacity, data);
 
 			right_idx += end_capacity;
-
-			NodeBaseG left_node_parent 	= me()->GetParent(left_node, 	Allocator::UPDATE);
-			NodeBaseG right_node_parent = me()->GetParent(right_node, 	Allocator::UPDATE);
 
 			// There is something more to insert.
 			Int parent_right_idx = right_path[level].parent_idx();

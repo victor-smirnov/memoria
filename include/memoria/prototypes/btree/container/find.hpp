@@ -275,20 +275,6 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindEnd()
 {
-//	NodeBaseG node = me()->GetRoot(Allocator::READ);
-//	if (node != NULL)
-//	{
-//		while(!node->is_leaf())
-//		{
-//			node = me()->GetLastChild(node, Allocator::READ);
-//		}
-//
-//		return Iterator(node, node->children_count(), *me(), true);
-//	}
-//	else {
-//		return Iterator(*me());
-//	}
-
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node.is_set())
 	{

@@ -140,8 +140,16 @@ public:
 			values_[c] = values_[c + 1];
 		}
 
-		ClearingFunctor functor(values_[size_]);
+		ClearingFunctor functor;
+
 		size_--;
+
+		functor(values_[size_]);
+	}
+
+	void RemoveLast()
+	{
+		Remove(GetSize() - 1);
 	}
 };
 

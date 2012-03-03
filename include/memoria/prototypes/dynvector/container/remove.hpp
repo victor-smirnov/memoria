@@ -215,7 +215,7 @@ BigInt M_TYPE::RemoveDataBlock(Iterator& start, Iterator& stop)
    			BigInt keys[Indexes];
    			me()->ClearKeys(keys);
 
-   			me()->RemoveEntries(start, stop, keys);
+//   			me()->RemoveEntries(start, stop, keys);
 
    			removed 			+= keys[0];
 

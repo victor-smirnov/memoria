@@ -83,61 +83,6 @@ public:
 	}
 
 
-//	virtual void Run(ostream& out)
-//	{
-//		SumSetBatchReplay params;
-//		SumSetBatchParams* task_params = GetParameters<SumSetBatchParams>();
-//
-//		if (task_params->btree_random_airity_)
-//		{
-//			task_params->btree_airity_ = 8 + GetRandom(100);
-//			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
-//		}
-//
-//		params.size_			= task_params->size_;
-//		params.btree_airity_ 	= task_params->btree_airity_;
-//
-//
-//		DefaultLogHandlerImpl logHandler(out);
-//
-//		Allocator allocator;
-//		allocator.GetLogger()->SetHandler(&logHandler);
-//		SumSetCtr array(allocator, 1, true);
-//		array.SetMaxChildrenPerNode(params.btree_airity_);
-//
-//		allocator.commit();
-//
-//		try {
-//			auto iter = Seek(array, 0);
-//
-//			LeafPairsVector data = CreateBuffer(31, 2);
-//
-//			Insert(iter, data);
-//			Check(allocator, "Insertion into an empty array failed. See the dump for details.", MEMORIA_SOURCE);
-//
-//			allocator.commit();
-////
-//			StoreAllocator(allocator, "alloc1.dump");
-//
-//			iter.Dump(out);
-//
-//			LeafPairsVector data2 = CreateBuffer(42, 3);
-//
-//			Insert(iter, data2);
-//			Check(allocator, "Insertion into an empty array failed. See the dump for details.", MEMORIA_SOURCE);
-//
-//			allocator.commit();
-////
-//			StoreAllocator(allocator, "alloc2.dump");
-//
-//		}
-//		catch (...)
-//		{
-//			Store(allocator, &params);
-//			throw;
-//		}
-//	}
-
 	virtual void Run(ostream& out)
 	{
 		SumSetBatchReplay params;
