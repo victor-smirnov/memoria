@@ -145,7 +145,7 @@ public:
 
     bool IsTheSameNode(const TreePath& path1, const TreePath& path2, int level) const
     {
-    	return path1[level].node()->id() == path1[level].node()->id();
+    	return path1[level].node()->id() == path2[level].node()->id();
     }
 
     void Dump(Key* keys, ostream& out = cout) const

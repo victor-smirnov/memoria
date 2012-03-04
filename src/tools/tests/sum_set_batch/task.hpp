@@ -120,10 +120,10 @@ public:
 			StoreAllocator(allocator, "alloc1.dump");
 
 			auto iter1 = dv.Begin();
-			auto iter2 = dv.End();
+			auto iter2 = dv.Begin();
 
-			Skip(iter1, 1000 - 999);
-
+			Skip(iter1, 30);
+			Skip(iter2, 972);
 
 			dv.RemoveEntries(iter1, iter2);
 

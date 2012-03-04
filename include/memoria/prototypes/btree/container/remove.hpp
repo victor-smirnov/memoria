@@ -125,7 +125,7 @@ private:
     void RemoveRedundantRoot(TreePath& path, Int level);
     void RemoveRedundantRoot(TreePath& start, TreePath& stop, Int level);
 
-    void RemoveSingularNodeChain(NodeBaseG& node, Int key_idx);
+//    void RemoveSingularNodeChain(NodeBaseG& node, Int key_idx);
 
 
 
@@ -221,7 +221,7 @@ private:
 
     bool CanMerge(TreePath& tgt, TreePath& src, Int level)
     {
-    	return src[level].node()->children_count() <= me()->GetCapacity(src[level].node());
+    	return src[level].node()->children_count() <= me()->GetCapacity(tgt[level].node());
     }
 
 
@@ -279,23 +279,24 @@ BigInt M_TYPE::RemoveRoom(TreePath& path, Int level, Int from, Int count, Accumu
 		NodeBaseG& node = path[level].node();
 		node.update();
 
-
-
 		Accumulator tmp_accum;
 
-		if (!node->is_leaf())
+		if (remove_children)
 		{
-			for (Int c = from; c < from + count; c++)
+			if (!node->is_leaf())
 			{
-				NodeBaseG child = 	me()->GetChild(node, c, Allocator::READ);
-				key_count 		+=	me()->RemoveNode(child);
+				for (Int c = from; c < from + count; c++)
+				{
+					NodeBaseG child = 	me()->GetChild(node, c, Allocator::READ);
+					key_count 		+=	me()->RemoveNode(child);
+				}
 			}
-		}
-		else {
-			key_count = count;
+			else {
+				key_count = count;
 
-			typename MyType::DataRemoveHandlerFn data_remove_handler_fn(from, count, *me());
-			LeafDispatcher::Dispatch(node, data_remove_handler_fn);
+				typename MyType::DataRemoveHandlerFn data_remove_handler_fn(from, count, *me());
+				LeafDispatcher::Dispatch(node, data_remove_handler_fn);
+			}
 		}
 
 		RemoveElementsFn fn(from, count, tmp_accum);
@@ -305,9 +306,9 @@ BigInt M_TYPE::RemoveRoom(TreePath& path, Int level, Int from, Int count, Accumu
 
 		if (level > 0)
 		{
-			if (from >= path[level - 1].parent_idx())
+			if (path[level - 1].parent_idx() >= from)
 			{
-				path[level - 1].parent_idx() -= from;
+				path[level - 1].parent_idx() -= count;
 			}
 		}
 
@@ -467,16 +468,17 @@ void M_TYPE::RemovePages(TreePath& start, Int start_idx, TreePath& stop, Int& st
 
 		RemovePages(start, start_parent_idx, stop, stop[level].parent_idx(), level + 1, accum, removed_key_count);
 
-		if(start[level + 1].node() == stop[level + 1].node())
+		if (IsTheSameParent(start, stop, level))
 		{
 			if (CanMerge(start, stop, level))
 			{
+
 				MergeNodes(start, stop, level);
 
-				stop 	 = start;
 				stop_idx = start_idx;
 
 				RemoveRedundantRoot(start, stop, level);
+
 			}
 		}
 	}
@@ -712,25 +714,25 @@ void M_TYPE::RemoveRedundantRoot(TreePath& start, TreePath& stop, Int level)
 
 
 
-M_PARAMS
-void M_TYPE::RemoveSingularNodeChain(NodeBaseG& node, Int key_idx)
-{
-//	if (node->children_count() > 1)
-//	{
-//		Key keys[Indexes];
-//		me()->ClearKeys(keys);
-//		RemoveSpace(node, key_idx, 1, UpdateType::FULL, keys);
-//	}
-//	else if (node->is_root())
-//	{
-//		me()->RemoveNode(node);
-//	}
-//	else
-//	{
-//		NodeBaseG parent = me()->GetParent(node, Allocator::READ);
-//		RemoveSingularNodeChain(parent, node->parent_idx());
-//	}
-}
+//M_PARAMS
+//void M_TYPE::RemoveSingularNodeChain(NodeBaseG& node, Int key_idx)
+//{
+////	if (node->children_count() > 1)
+////	{
+////		Key keys[Indexes];
+////		me()->ClearKeys(keys);
+////		RemoveSpace(node, key_idx, 1, UpdateType::FULL, keys);
+////	}
+////	else if (node->is_root())
+////	{
+////		me()->RemoveNode(node);
+////	}
+////	else
+////	{
+////		NodeBaseG parent = me()->GetParent(node, Allocator::READ);
+////		RemoveSingularNodeChain(parent, node->parent_idx());
+////	}
+//}
 
 
 
@@ -819,17 +821,19 @@ void M_TYPE::MergeNodes(TreePath& tgt, TreePath& src, Int level)
 
 	Accumulator accum;
 
-	me()->GetKeys(parent, parent_idx + 1, accum.keys());
+	me()->GetKeys(parent, parent_idx, accum.keys());
 
-	me()->AddKeys(parent, parent_idx, accum.keys());
+	me()->AddKeys(parent, parent_idx - 1, accum.keys());
 
-	RemoveRoom(src, level + 1, parent_idx + 1, 1, accum);
+	RemoveRoom(src, level + 1, parent_idx, 1, accum, false);
+
+	me()->allocator().RemovePage(page2->id());
 
 	src[level] = tgt[level];
 
 	if (level > 0)
 	{
-		tgt[level - 1].parent_idx() += tgt_children_count;
+		src[level - 1].parent_idx() += tgt_children_count;
 	}
 
 	me()->Reindex(parent);
@@ -853,6 +857,9 @@ bool M_TYPE::MergeBTreeNodes(TreePath& tgt, TreePath& src, Int level)
 			if (me()->MergeBTreeNodes(tgt, src, level + 1))
 			{
 				MergeNodes(tgt, src, level);
+
+				RemoveRedundantRoot(tgt, src, level);
+
 				return true;
 			}
 			else
