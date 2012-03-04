@@ -50,6 +50,9 @@ MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(memoria::btree::FindName)
 
     typedef typename Base::Metadata												Metadata;
 
+    typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::TreePathItem                                         TreePathItem;
+
     static const Int Indexes                                                    = Types::Indexes;
 
     struct SearchModeDefault {
@@ -166,6 +169,7 @@ public:
     BigInt GetTotalKeyCount();
     void SetTotalKeyCount(BigInt value);
     void AddTotalKeyCount(BigInt value);
+    void AddTotalKeyCount(TreePath& path, BigInt value);
 
     BigInt GetSize() {
     	return me()->GetTotalKeyCount();
@@ -364,6 +368,19 @@ void M_TYPE::AddTotalKeyCount(BigInt value)
 	else {
 		throw MemoriaException(MEMORIA_SOURCE, String("Root node is not set for this container: ") + me()->type_name());
 	}
+}
+
+
+M_PARAMS
+void M_TYPE::AddTotalKeyCount(TreePath& path, BigInt value)
+{
+	NodeBaseG& node = path[path.GetSize() - 1].node();
+
+	Metadata meta = me()->GetRootMetadata(node);
+
+	meta.key_count() += value;
+
+	me()->SetRootMetadata(node, meta);
 }
 
 

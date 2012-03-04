@@ -97,15 +97,70 @@ public:
 		params.size_			= task_params->size_;
 		params.btree_airity_ 	= task_params->btree_airity_;
 
-		for (Int step = 0; step < 2; step++)
-		{
-			params.step_ = step;
-			Run(out, params, task_params, false);
-		}
 
-		// Run() will use different step for each ByteArray update operation
-		Run(out, params, task_params, true);
+		DefaultLogHandlerImpl logHandler(out);
+
+		Allocator allocator;
+		allocator.GetLogger()->SetHandler(&logHandler);
+		SumSetCtr dv(allocator, 1, true);
+
+		allocator.commit();
+
+		dv.SetMaxChildrenPerNode(params.btree_airity_);
+
+		try {
+
+			LeafPairsVector data = CreateBuffer(1000, 1);
+
+			auto iter = dv.Begin();
+
+			Insert(iter, data);
+
+			allocator.commit();
+			StoreAllocator(allocator, "alloc1.dump");
+
+			auto iter1 = dv.Begin();
+			auto iter2 = dv.End();
+
+			Skip(iter1, 1000 - 999);
+
+
+			dv.RemoveEntries(iter1, iter2);
+
+			allocator.commit();
+			StoreAllocator(allocator, "alloc2.dump");
+		}
+		catch (...)
+		{
+			Store(allocator, &params);
+			throw;
+		}
 	}
+
+
+//	virtual void Run(ostream& out)
+//	{
+//		SumSetBatchReplay params;
+//		SumSetBatchParams* task_params = GetParameters<SumSetBatchParams>();
+//
+//		if (task_params->btree_random_airity_)
+//		{
+//			task_params->btree_airity_ = 8 + GetRandom(100);
+//			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
+//		}
+//
+//		params.size_			= task_params->size_;
+//		params.btree_airity_ 	= task_params->btree_airity_;
+//
+//		for (Int step = 0; step < 2; step++)
+//		{
+//			params.step_ = step;
+//			Run(out, params, task_params, false);
+//		}
+//
+//		// Run() will use different step for each ByteArray update operation
+//		Run(out, params, task_params, true);
+//	}
 
 	void Run(ostream& out, SumSetBatchReplay& params, SumSetBatchParams* task_params, bool step)
 	{
