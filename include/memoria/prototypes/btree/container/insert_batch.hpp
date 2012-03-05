@@ -330,6 +330,19 @@ private:
     }
 
 
+    void MakeRoom(TreePath& path, Int level, Int start, Int count) const;
+    Accumulator MoveElements(NodeBaseG& srt, NodeBaseG& tgt, Int from, Int tgt_shift = 0) const;
+
+    bool UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters) const;
+
+    void FillNodeLeft(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
+    void FillNodeRight(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
+
+
+    TreePathItem Split(TreePath& path, Int level, Int idx);
+    void		 Split(TreePath& left, TreePath& right, Int level, Int idx);
+
+
     class MakeRoomFn {
         Int from_, count_;
 
@@ -416,17 +429,7 @@ private:
     	}
     };
 
-    void MakeRoom(TreePath& path, Int level, Int start, Int count) const;
-    Accumulator MoveElements(NodeBaseG& srt, NodeBaseG& tgt, Int from, Int tgt_shift = 0) const;
 
-    bool UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters) const;
-
-    void FillNodeLeft(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
-    void FillNodeRight(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
-
-
-    TreePathItem Split(TreePath& path, Int level, Int idx);
-    void		 Split(TreePath& left, TreePath& right, Int level, Int idx);
 
 MEMORIA_CONTAINER_PART_END
 
