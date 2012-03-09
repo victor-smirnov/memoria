@@ -16,7 +16,7 @@
 
 #include <memoria/prototypes/bstree/iterator/base.hpp>
 #include <memoria/prototypes/bstree/iterator/tools.hpp>
-#include <memoria/prototypes/bstree/iterator/multiskip.hpp>
+#include <memoria/prototypes/templates/iterator/multiskip.hpp>
 
 #include <memoria/prototypes/bstree/names.hpp>
 #include <memoria/prototypes/bstree/macros.hpp>

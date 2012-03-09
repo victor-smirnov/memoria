@@ -124,29 +124,29 @@ public:
 			out<<"Remove data. ByteVector contains "<<(dv.Size()/1024)<<"K bytes"<<endl;
 			params.insert_ = false;
 
-			for (Int c = 0; ; c++)
-			{
-				if (step)
-				{
-					params.step_ = GetRandom(3);
-				}
-
-				BigInt size = dv.Size();
-				BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
-
-				params.data_size_ = 1 + GetBIRandom(max_size);
-				params.page_step_ 	= GetRandom(3);
-
-				if (!Remove(allocator, dv, &params))
-				{
-					break;
-				}
-
-				params.pos_ 		= -1;
-				params.page_step_ 	= -1;
-
-				allocator.commit();
-			}
+//			for (Int c = 0; ; c++)
+//			{
+//				if (step)
+//				{
+//					params.step_ = GetRandom(3);
+//				}
+//
+//				BigInt size = dv.Size();
+//				BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
+//
+//				params.data_size_ = 1 + GetBIRandom(max_size);
+//				params.page_step_ 	= GetRandom(3);
+//
+//				if (!Remove(allocator, dv, &params))
+//				{
+//					break;
+//				}
+//
+//				params.pos_ 		= -1;
+//				params.page_step_ 	= -1;
+//
+//				allocator.commit();
+//			}
 
 			out<<"Vector.size = "<<(dv.Size() / 1024)<<"K bytes"<<endl;
 
@@ -159,6 +159,17 @@ public:
 		}
 	}
 
+	void CheckIterator(BVIterator& iter)
+	{
+		if (iter.IsEnd())
+		{
+			MEMORIA_TEST_ASSERT(iter.data().is_set(), ==, true);
+		}
+		else {
+			MEMORIA_TEST_ASSERT(iter.data().is_set(), !=, true);
+			MEMORIA_TEST_ASSERT(iter.path().data().parent_idx(), !=, iter.key_idx());
+		}
+	}
 
 	void Build(ostream& out, Allocator& allocator, ByteVectorCtr& array, VectorReplay *params)
 	{
@@ -207,6 +218,7 @@ public:
 				iter.Skip(-data.size());
 
 				CheckBufferWritten(iter, data, "Failed to read and compare buffer from array", 				MEMORIA_SOURCE);
+
 				CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array", 	MEMORIA_SOURCE);
 			}
 			else if (step == 1)
@@ -257,23 +269,29 @@ public:
 				ArrayData postfix(postfix_len);
 
 				iter.Skip(-prefix_len);
+				CheckIterator(iter);
 
 				iter.Read(prefix);
+				CheckIterator(iter);
+
 				iter.Read(postfix);
+				CheckIterator(iter);
 
 				iter.Skip(-postfix.size());
+				CheckIterator(iter);
 
 				iter.Insert(data);
 
-				allocator.commit();
-
-				StoreAllocator(allocator, "alloc1.dump");
-
 				Check(allocator, "Insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
+				CheckIterator(iter);
 
 				iter.Skip(- data.size() - prefix_len);
+				CheckIterator(iter);
 
 				CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 	MEMORIA_SOURCE);
+
+				CheckIterator(iter);
+
 				CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array", 		MEMORIA_SOURCE);
 				CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array", MEMORIA_SOURCE);
 			}

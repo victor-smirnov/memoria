@@ -54,6 +54,10 @@ typedef typename Types::Buffer                                          	Buffer;
 typedef typename Types::BufferContentDescriptor                         	BufferContentDescriptor;
 typedef typename Types::CountData                                       	CountData;
 
+typedef typename Types::TreePath                                       		TreePath;
+typedef typename Types::TreePathItem                                       	TreePathItem;
+typedef typename Types::DataPathItem                                       	DataPathItem;
+
 typedef typename Base::LeafNodeKeyValuePair									LeafNodeKeyValuePair;
 
 
@@ -62,7 +66,7 @@ typedef Accumulators<Key, Indexes>											Accumulator;
 
 
 void InsertData(Iterator& iter, const ArrayData& data);
-DataPageG SplitDataPage(Iterator& iter);
+DataPathItem SplitDataPage(Iterator& iter);
 
 
 
@@ -123,43 +127,24 @@ public:
 
 };
 
-struct UpdateLeafParentLinksFn
-{
-	const MyType&	ctr_;
-	NodeBaseG&		node_;
-
-	typedef PageGuard<TreePage<Allocator>, Allocator> TreeNodeG;
-
-	UpdateLeafParentLinksFn(const MyType& ctr, NodeBaseG& node):
-		ctr_(ctr),
-		node_(node)
-	{}
-
-	template <typename Node>
-	void operator()(Node* node)
-	{
-		for (Int c = 0; c < node->children_count(); c++)
-		{
-			ID id 				= node->map().data(c);
-			TreeNodeG child 	= ctr_.allocator().GetPage(id, Allocator::UPDATE);
-
-			child->parent_id() 	= node_->id();
-			child->parent_idx() = c;
-		}
-
-		node->counters().key_count()	= node->children_count();
-		node->counters().page_count() 	= 1;
-	}
-};
-
-
 void ImportPages(Iterator& iter, const ArrayData& buffer);
 
-DataPageG CreateDataPage(NodeBaseG& node, Int idx);
+void CreateDataPage(TreePath& path, Int idx);
+DataPathItem CreateDataPage(NodeBaseG& node, Int idx);
 
-void MoveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& target_node, DataPageG& target_data);
+void MoveData(TreePath& src, Int src_idx, TreePath& tgt);
+void MoveData(TreePath& src, Int src_idx, DataPathItem& tgt);
+
+Accumulator MoveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& tgt_node, DataPageG& tgt_data);
+
 
 MEMORIA_CONTAINER_PART_END
+
+
+
+
+
+
 
 
 #define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::Insert2Name)
@@ -185,7 +170,7 @@ void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
 		if (iter.data_pos() > 0)
 		{
 			SplitDataPage(iter);
-			iter.NextData();
+			iter.NextKey();
 		}
 
 		ImportPages(iter, buffer);
@@ -204,69 +189,64 @@ void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
 
 		ImportPages(iter, buffer);
 
-		iter.PrevData();
-		iter.data_pos() = iter.data()->size();
+		iter.PrevKey();
+		iter.data_pos() = iter.data()->size(); //???????  may be 0?
 	}
 }
 
 
 M_PARAMS
-typename M_TYPE::DataPageG M_TYPE::SplitDataPage(Iterator& iter)
+typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 {
-	NodeBaseG& node = iter.page();
-	DataPageG& data	= iter.data();
+	TreePath& path	= iter.path();
+
 	Int data_pos	= iter.data_pos();
+	Int idx 		= path.data().parent_idx() + 1;
 
-	Int idx = data->parent_idx() + 1;
-
-	NodeBaseG target_node;
-
-	if (me()->GetCapacity(node) == 0)
+	if (me()->GetCapacity(path[0].node()) == 0)
 	{
-		Int split_idx = node->children_count() / 2;
-		if (idx < split_idx)
-		{
-			me()->SplitBTreeNode(node, split_idx, 0);
-			target_node = node;
-		}
-		else if (idx  == split_idx)
-		{
-			target_node = me()->SplitBTreeNode(node, split_idx, 0);
-			idx = 0;
-		}
-		else
-		{
-			target_node = me()->SplitBTreeNode(node, split_idx, 0);
-			idx -= split_idx;
+		TreePath  right = path;
+		TreePath& left  = path;
 
-			node = target_node;
-			iter.key_idx() = idx - 1;
-		}
+		me()->SplitPath(left, right, 0, idx);
+
+		me()->MakeRoom(right, 0, 0, 1);
+
+		me()->CreateDataPage(right, 0);
+
+		MoveData(left, data_pos, right);
+
+		return right.data();
 	}
 	else {
-		target_node = node;
+		me()->MakeRoom(path, 0, idx, 1);
+
+		DataPathItem target_data = me()->CreateDataPage(path[0].node(), idx);
+
+		MoveData(path, data_pos, target_data);
+
+		return target_data;
 	}
-
-	me()->InsertSpace(target_node, idx, 1);
-	DataPageG target_data = me()->CreateDataPage(target_node, idx);
-
-	MoveData(node, data, data_pos, target_node, target_data);
-
-	return target_data;
 }
 
 
-//// ========================= PRIVATE API =============================== ////
+
+
+
+
+
+
+//// ====================================================== PRIVATE API ============================================================= ////
 
 M_PARAMS
 void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer)
 {
-
 	DataPageG& data	= iter.data();
 
+	//FIXME: should data page be NULL for empty containers?
 	if (data.is_empty())
 	{
-		me()->InsertSpace(iter.page(), iter.key_idx(), 1);
+		me()->MakeRoom(iter.path(), 0, iter.key_idx(), 1);
 
 		data 			= CreateDataPage(iter.page(), iter.key_idx());
 		iter.data_pos() = 0;
@@ -285,31 +265,16 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer)
 
 	accum.keys()[0] = buffer.size();
 
-	me()->UpdateUp(iter.path(), 0, data->parent_idx(), accum);
+	me()->UpdateUp(iter.path(), 0, iter.key_idx(), accum);
 }
+
+
+
+
 
 M_PARAMS
 void M_TYPE::ImportPages(Iterator& iter, const ArrayData& buffer)
 {
-//	DataPageG& data = iter.data();
-
-//	if (iter.data_pos() == 0)
-//	{
-//		 if (iter.PrevKey())
-//		 {
-//			 iter.data_pos() = iter.data()->size();
-//		 }
-//	}
-//	else {
-//		me()->SplitDataPage(iter);
-//	}
-
-//	if (iter.data_pos() > 0)
-//	{
-//		me()->SplitDataPage(iter);
-//		iter.NextData();
-//	}
-
 	BigInt	length		= buffer.size();
 	BigInt 	key_count 	= me()->Divide(length, DataPage::get_max_size());
 	Int 	start 		= 0;
@@ -317,28 +282,71 @@ void M_TYPE::ImportPages(Iterator& iter, const ArrayData& buffer)
 	ArrayDataSubtreeProvider provider(*me(), key_count, buffer, start, length);
 
 	me()->InsertSubtree(iter, provider);
+
+	iter.path().data().parent_idx() = iter.key_idx();
+}
+
+
+
+
+
+M_PARAMS
+void M_TYPE::CreateDataPage(TreePath& path, Int idx)
+{
+	path.data() = CreateDataPage(path[0].node(), idx);
 }
 
 M_PARAMS
-typename M_TYPE::DataPageG M_TYPE::CreateDataPage(NodeBaseG& node, Int idx)
+typename M_TYPE::DataPathItem M_TYPE::CreateDataPage(NodeBaseG& node, Int idx)
 {
 	DataPageG data      	= me()->allocator().CreatePage();
 	data->init();
-
-	data->parent_idx()      = idx;
-	data->parent_id()       = node->id();
 
 	data->model_hash()      = me()->hash();
 	data->page_type_hash()  = DataPage::hash();
 
 	me()->SetLeafData(node, idx, data->id());
 
-	return data;
+	return DataPathItem(data, idx);
 }
 
 
 M_PARAMS
-void M_TYPE::MoveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& tgt_node, DataPageG& tgt_data)
+void M_TYPE::MoveData(TreePath& src, Int src_idx, TreePath& tgt)
+{
+	NodeBaseG& src_node = src[0].node();
+	NodeBaseG& tgt_node = tgt[0].node();
+
+	DataPageG& src_data = src.data().node();
+	DataPageG& tgt_data = tgt.data().node();
+
+	Accumulator accum = MoveData(src_node, src_data, src_idx, tgt_node, tgt_data);
+
+	me()->UpdateUp(src, 0, src.data().parent_idx(), -accum);
+	me()->UpdateUp(tgt, 0, tgt.data().parent_idx(),  accum);
+}
+
+
+
+M_PARAMS
+void M_TYPE::MoveData(TreePath& src, Int src_idx, DataPathItem& tgt)
+{
+	NodeBaseG& src_node = src[0].node();
+	NodeBaseG& tgt_node = src[0].node();
+
+	DataPageG& src_data = src.data().node();
+	DataPageG& tgt_data = tgt.node();
+
+	Accumulator accum = MoveData(src_node, src_data, src_idx, tgt_node, tgt_data);
+
+	me()->UpdateUp(src, 0, src.data().parent_idx(), -accum);
+	me()->UpdateUp(src, 0, tgt.parent_idx(), 		 accum);
+}
+
+
+
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::MoveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& tgt_node, DataPageG& tgt_data)
 {
 	src_data.update();
 	tgt_data.update();
@@ -349,19 +357,17 @@ void M_TYPE::MoveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, Nod
 	tgt_data->data().shift(0, amount_to_topy);
 	memoria::CopyBuffer(src_data->data().value_addr(src_idx), tgt_data->data().value_addr(0), amount_to_topy);
 
-	Accumulator accum;
-
 	src_data->data().size() -= amount_to_topy;
 	tgt_data->data().size() += amount_to_topy;
 
-	accum.keys()[0] = -amount_to_topy;
-	//FIXME: path
-	//me()->UpdateUp(src_node, src_data->parent_idx(), accum);
+	Accumulator accum;
 
 	accum.keys()[0] = amount_to_topy;
-	//FIXME: path
-	//me()->UpdateUp(tgt_node, tgt_data->parent_idx(), accum);
+
+	return accum;
 }
+
+
 
 #undef M_PARAMS
 #undef M_TYPE

@@ -15,6 +15,8 @@
 #include <memoria/prototypes/dynvector/names.hpp>
 #include <memoria/prototypes/dynvector/pages/data_page.hpp>
 
+#include <memoria/prototypes/dynvector/tools.hpp>
+
 //#include <memoria/prototypes/dynvector/container/insert.hpp>
 #include <memoria/prototypes/dynvector/container/insert2.hpp>
 #include <memoria/prototypes/dynvector/container/remove.hpp>
@@ -74,7 +76,6 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
                     typename TLTool<
                         memoria::dynvector::ToolsName,
                         memoria::dynvector::RemoveName,
-                        //memoria::dynvector::InsertName,
                         memoria::dynvector::Insert2Name,
                         memoria::dynvector::ChecksName
                     >::List
@@ -126,6 +127,8 @@ public:
                 memoria::btree::TreePage<typename ContainerTypes::Allocator>
     >                                                                           	DataPage;
 
+
+
     struct Types: DynVectorContainerTypes<
                 DataPage,
                 typename ContainerTypes::Buffer,
@@ -148,6 +151,13 @@ public:
 
     	typedef CtrTypesT<Types> 													CtrTypes;
     	typedef BTreeIterTypes<IterTypesT<Types> >									IterTypes;
+
+    	typedef DataPath<
+    			typename Base0::NodeBaseG,
+    			typename Base0::DataPageG
+    	>																			TreePath;
+
+    	typedef TreePathItem<typename Base0::DataPageG>								DataPathItem;
     };
 
     typedef typename Types::CtrTypes												CtrTypes;

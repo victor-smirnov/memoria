@@ -22,33 +22,30 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
 
 
     typedef typename Base::Container                                                Container;
+	typedef typename Container::Accumulator                                  		Accumulator;
 	typedef typename Container::Types::NodeBase                                     NodeBase;
 	typedef typename Container::Types::NodeBaseG                                    NodeBaseG;
 
     typedef typename Container::Key                                                 Key;
     typedef typename Container::Value                                               Value;
 
-    NodeBaseG GetParent(const NodeBaseG& node, Int flags)
-    {
-        return me()->model().GetParent(node, flags);
-    }
 
-    NodeBaseG GetChild(const NodeBaseG& node, Int idx, Int flags)
-    {
-        return me()->model().GetChild(node, idx, flags);
-    }
 
-    NodeBaseG GetLastChild(const NodeBaseG& node, Int flags)
+    Value GetData() const
     {
-        return me()->model().GetLastChild(node, flags);
-    }
-
-    Value GetData() {
         return me()->model().GetLeafData(me()->page(), me()->key_idx());
     }
 
-    Key GetKey(Int keyNum) {
+    Key GetKey(Int keyNum) const
+    {
         return Container::GetKey(me()->page(), keyNum, me()->key_idx());
+    }
+
+    Accumulator GetKeys() const
+    {
+    	Accumulator accum;
+    	Container::GetKeys(me()->page(), me()->key_idx(), accum);
+    	return accum;
     }
 
     void Dump(ostream& out = cout)

@@ -10,7 +10,7 @@
 #define _MEMORIA_MODELS_MAP_NAMES_HPP
 
 namespace memoria    {
-namespace models    {
+namespace models     {
 
 
 class MapName {};
@@ -18,6 +18,14 @@ class TreeMapName {};
 
 
 }
+
+
+namespace bstree {
+
+class IteratorMultiskipName {};
+
+}
+
 }
 
 #endif

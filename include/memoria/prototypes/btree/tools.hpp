@@ -185,19 +185,43 @@ public:
 		}
 	}
 
-	const Key* keys() const {
+	const Key* keys() const
+	{
 		return keys_;
 	}
 
-	Key* keys() {
+	Key* keys()
+	{
 		return keys_;
+	}
+
+	void Clear()
+	{
+		for (Int c = 0; c < Indexes; c++)
+		{
+			keys_[c] = 0;
+		}
 	}
 
 	bool operator==(const MyType& other) const
 	{
 		for (Int c = 0; c < Indexes; c++)
 		{
-			if (keys_[c] != other.keys_[c]) {
+			if (keys_[c] != other.keys_[c])
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool operator!=(const MyType& other) const
+	{
+		for (Int c = 0; c < Indexes; c++)
+		{
+			if (keys_[c] == other.keys_[c])
+			{
 				return false;
 			}
 		}

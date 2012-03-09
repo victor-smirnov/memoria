@@ -9,8 +9,8 @@
 #ifndef _MEMORIA_MODELS_IDX_MAP_FACTORY_HPP
 #define _MEMORIA_MODELS_IDX_MAP_FACTORY_HPP
 
-#include <memoria/prototypes/templates/map.hpp>
-#include <memoria/prototypes/templates/tree_map.hpp>
+#include <memoria/prototypes/templates/container/map.hpp>
+#include <memoria/prototypes/templates/container/tree_map.hpp>
 
 
 #include <memoria/containers/idx_map/container/insert.hpp>

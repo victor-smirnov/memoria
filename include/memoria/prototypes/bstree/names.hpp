@@ -21,7 +21,7 @@ class IndexPagePrefixName 	{};
 
 
 class IteratorToolsName 	{};
-class IteratorMultiskipName {};
+//class IteratorMultiskipName {};
 
 
 }

@@ -108,13 +108,15 @@ public:
 
     NodeBaseG GetDataParent0(const DataPageG& data, const NodeBaseG& other_parent, Int flags) const
     {
-    	if (data->parent_id() == other_parent->id())
-    	{
-    		return other_parent;
-    	}
-    	else {
-    		return me()->GetDataParent(data, flags);
-    	}
+//    	if (data->parent_id() == other_parent->id())
+//    	{
+//    		return other_parent;
+//    	}
+//    	else {
+//    		return me()->GetDataParent(data, flags);
+//    	}
+
+    	return NodeBaseG();
     }
 
     void AddAndSubtractKeyValues(NodeBaseG& start, Int add_idx, NodeBaseG& stop, Int sub_idx, const Key* keys);
@@ -188,7 +190,7 @@ BigInt M_TYPE::RemoveDataBlock(Iterator& start, Iterator& stop)
    			}
    			else
    			{
-   				start_data 				=  start.GetPrevDataPage();
+   				//FIXME start_data 				=  start.GetPrevDataPage();
 
    				if (start_data.is_set())
    				{
@@ -276,7 +278,7 @@ bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 {
 	DataPageG& data = iter.data();
 
-	DataPageG next_data = iter.GetNextDataPage();
+	DataPageG next_data;// FIXME = iter.GetNextDataPage();
 	if (next_data.is_set() && me()->CanMergeData(data, next_data))
 	{
 		//merge next_data to data and remove next_data
@@ -302,7 +304,7 @@ M_PARAMS
 bool M_TYPE::MergeDataWithLeftSibling(Iterator& iter)
 {
 	DataPageG& data = iter.data();
-	DataPageG prev_data = iter.GetPrevDataPage();
+	DataPageG prev_data; //FIXME = iter.GetPrevDataPage();
 
 	if (prev_data.is_set() && me()->CanMergeData(prev_data, data))
 	{

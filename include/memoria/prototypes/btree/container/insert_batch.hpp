@@ -98,6 +98,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
 
     Accumulator GetCounters(const NodeBaseG& node, Int from, Int count) const;
+    void MakeRoom(TreePath& path, Int level, Int start, Int count) const;
     void UpdateUp(TreePath& path, Int level, Int idx, const Accumulator& counters);
     void UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
     Accumulator InsertSubtree(Iterator& iter, ISubtreeProvider& provider);
@@ -330,7 +331,7 @@ private:
     }
 
 
-    void MakeRoom(TreePath& path, Int level, Int start, Int count) const;
+
     Accumulator MoveElements(NodeBaseG& srt, NodeBaseG& tgt, Int from, Int tgt_shift = 0) const;
 
     bool UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters) const;
@@ -863,6 +864,7 @@ void M_TYPE::MakeRoom(TreePath& path, Int level, Int start, Int count) const
 	if (level > 0)
 	{
 		Int& parent_idx = path[level - 1].parent_idx();
+
 		if (parent_idx >=  (start + count))
 		{
 			parent_idx += count;

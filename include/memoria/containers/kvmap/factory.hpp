@@ -11,8 +11,8 @@
 
 #include <memoria/core/types/types.hpp>
 
-#include <memoria/prototypes/templates/map.hpp>
-#include <memoria/prototypes/templates/tree_map.hpp>
+#include <memoria/prototypes/templates/container/map.hpp>
+#include <memoria/prototypes/templates/container/tree_map.hpp>
 
 #include <memoria/prototypes/btree/btree.hpp>
 

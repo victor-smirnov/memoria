@@ -59,11 +59,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     typedef typename Types::Metadata 											Metadata;
 
 
-    typedef memoria::btree::TreePathItem<NodeBaseG>								TreePathItem;
-
-    typedef memoria::core::FixedVector<
-    		TreePathItem, 16, ValueClearing
-    >																			TreePath;
+    typedef typename Types::TreePathItem										TreePathItem;
+    typedef typename Types::TreePath											TreePath;
 
 
 

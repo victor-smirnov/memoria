@@ -166,12 +166,12 @@ public:
 
     Iterator FindRStart();
 
-    BigInt GetTotalKeyCount();
+    BigInt GetTotalKeyCount() const;
     void SetTotalKeyCount(BigInt value);
     void AddTotalKeyCount(BigInt value);
     void AddTotalKeyCount(TreePath& path, BigInt value);
 
-    BigInt GetSize() {
+    BigInt GetSize() const {
     	return me()->GetTotalKeyCount();
     }
 
@@ -324,7 +324,7 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 //}
 
 M_PARAMS
-BigInt M_TYPE::GetTotalKeyCount()
+BigInt M_TYPE::GetTotalKeyCount() const
 {
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
 

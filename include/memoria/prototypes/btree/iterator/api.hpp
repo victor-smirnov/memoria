@@ -40,25 +40,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
     bool PrevLeaf() ;
 
-    NodeBaseG GetPrevNode(const NodeBaseG& node) const
-    {
-    	return NodeBaseG();
-    }
-
-    NodeBaseG GetNextNode(const NodeBaseG& node) const
-    {
-    	return NodeBaseG();
-    }
-
-    NodeBaseG GetPrevNode() const
-    {
-    	return NodeBaseG();
-    }
-
-    NodeBaseG GetNextNode() const
-    {
-    	return NodeBaseG();
-    }
 
     void Init() {
     	Base::Init();

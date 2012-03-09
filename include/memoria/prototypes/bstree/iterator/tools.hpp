@@ -26,42 +26,42 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
     typedef typename Base::NodeBase                                             	NodeBase;
 	typedef typename Base::NodeBaseG                                             	NodeBaseG;
     typedef typename Base::Container                                                Container;
+
     typedef typename Container::Key                                                 Key;
     typedef typename Container::Value                                               Value;
     typedef typename Container::Allocator											Allocator;
+    typedef typename Container::Accumulator											Accumulator;
+    typedef typename Container::TreePath											TreePath;
 
-    static const Int Indexes = Container::Indexes;
+//    static const Int Indexes = Container::Indexes;
 
 
-    Key GetRawKey(Int i)
+    Key GetRawKey(Int i) const
     {
         return Base::GetKey(i);
     }
 
-    Key GetKey(Int i)
+    Accumulator GetRawKeys() const
+    {
+    	return Base::GetKeys();
+    }
+
+    Key GetKey(Int i) const
     {
         return me()->GetRawKey(i) + me()->prefix(i);
     }
 
-    void AddKey(Int key_num, const Key& key)
+    Accumulator GetKeys() const
     {
-    	Key keys[Indexes];
-
-    	for (Key& k: keys) k = 0;
-
-    	keys[key_num] = key;
-
-    	me()->model().AddKeysUp(me()->page(), me()->key_idx(), keys);
+    	return me()->GetRawKeys() + me()->prefix();
     }
 
     bool NextKey()
     {
         if (!me()->IsEnd())
         {
-            for (Int c = 0; c < Indexes; c++)
-            {
-                me()->prefix(c) += me()->GetRawKey(c);
-            }
+        	me()->prefix() += me()->GetRawKeys();
+
             return Base::NextKey();
         }
         else {
@@ -77,18 +77,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
 
     		if (result)
     		{
-    			for (Int c = 0; c < Indexes; c++)
-    			{
-    				me()->prefix(c) -= me()->GetRawKey(c);
-    			}
+    			me()->prefix() -= me()->GetRawKeys();
     		}
     		else
     		{
-    			//FIXME: this might hide errors
-    			for (Int c = 0; c < Indexes; c++)
-    			{
-    				me()->prefix(c) = 0;
-    			}
+    			me()->prefix().Clear();
     		}
 
     		return result;
@@ -103,11 +96,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
     {
         if (!me()->IsEmpty())
         {
-        	for (Int c = 0; c < Indexes; c++)
-        	{
-        		me()->prefix(c) = 0;
-        	}
-            compute_base(&me()->prefix(0), me()->page(), me()->key_idx());
+        	me()->prefix().Clear();
+
+            compute_base(me()->prefix());
         }
     }
 
@@ -121,25 +112,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
     }
 
 
-    //FIXME: NextLeaf/PrevLeaf don't work properly for this container (prefixes)
-
-//
-//    bool NextLeaf() {
-//        if(Base::NextLeaf()) {
-//            ComputeBase();
-//            return true;
-//        }
-//        return false;
-//    }
-//
-//    bool PrevLeaf() {
-//        if(Base::PrevLeaf()) {
-//            ComputeBase();
-//            return true;
-//        }
-//        return false;
-//    }
-
     void Init() {
         ComputeBase();
         Base::Init();
@@ -147,17 +119,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
 
 private:
     
-    void compute_base(Key* values, NodeBaseG& page, Int idx)
+    void compute_base(Accumulator& accum)
     {
-        if (idx > 0) {
-            me()->model().SumKeys(page, 0, idx, values);
-        }
-        
-        if (!page->is_root())
+    	TreePath& path0 = me()->path();
+    	Int idx = me()->key_idx();
+
+        for (Int c = 0; c < path0.GetSize(); c++)
         {
-            Int parent_idx = page->parent_idx();
-            NodeBaseG parent = me()->model().GetParent(page, Allocator::READ);
-            compute_base(values, parent, parent_idx);
+        	me()->model().SumKeys(path0[c].node(), 0, idx, accum.keys());
+        	idx = path0[c].parent_idx();
         }
     }
 

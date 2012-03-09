@@ -59,6 +59,7 @@ public:
     static const Int Indexes                                                    = Types::Indexes;
     static const bool MapType                                                   = Types::MapType;
 
+    typedef Accumulators<Key, Indexes>											Accumulator;
 
     CtrPart(): Base(), max_node_capacity_(-1) {}
     CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) {}
@@ -482,7 +483,7 @@ public:
 
     TreePathItem& GetParent(TreePath& path, const NodeBaseG& node) const
     {
-    	return path[node->level()];
+    	return path[node->level() + 1];
     }
 
     NodeBaseG GetNodeParent(const NodeBase* node, const NodeBaseG& other_parent, Int flags) const
@@ -756,6 +757,11 @@ public:
         memoria::btree::GetKeys<NodeDispatcher, Indexes, Key>(node, idx, keys);
     }
 
+    static void GetKeys(const NodeBase* node, Int idx, Accumulator& keys)
+    {
+    	memoria::btree::GetKeys<NodeDispatcher, Indexes, Key>(node, idx, keys.keys());
+    }
+
     static void GetMaxKeys(const NodeBase* node, Key* keys)
     {
         memoria::btree::GetMaxKeys<NodeDispatcher, Indexes, Key>(node, keys);
@@ -775,6 +781,11 @@ public:
     {
     	node.update();
     	memoria::btree::SetKeys<NodeDispatcher>(node.page(), idx, keys);
+    }
+
+    void SetKeys(NodeBaseG& node, Int idx, const Accumulator& keys)
+    {
+    	SetKeys(node, idx, keys.keys());
     }
 
     void SetChildrenCount(NodeBaseG& node, Int count)

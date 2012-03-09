@@ -46,19 +46,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
     bool Prev() {
     	return me()->PrevKey();
     }
-    
-    memoria::vapi::Page* GetPage() {
-        if (me()->page() != NULL) {
-            return new PageWrapper<PageType, PAGE_SIZE>(me()->page());
-        }
-        else {
-            return NULL;
-        }
-    }
-
-    Int GetIndex() {
-        return me()->key_idx();
-    }
 
     bool IsFlag(Int flag) {
         switch (flag) {
@@ -67,7 +54,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
             case memoria::vapi::Iterator::ITER_START:    return me()->IsStart();
             default:                throw MemoriaException(MEMORIA_SOURCE, "Invalig flag name", flag);
         }
-
     }
     
 MEMORIA_ITERATOR_PART_END

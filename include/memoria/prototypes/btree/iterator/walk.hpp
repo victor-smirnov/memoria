@@ -102,7 +102,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
     			if (!index->is_leaf())
     			{
-    				index = me()->GetChild(index, fn.result(), Allocator::READ);
+    				index = me()->model().GetChild(index, fn.result(), Allocator::READ);
 
     				path[index->level()].node() 		= index;
     				path[index->level()].parent_idx() 	= fn.result();
@@ -156,7 +156,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         	{
         		if (!index->is_root())
         		{
-        			idx 	= index->parent_idx() - 1;
+
+        			idx 	= path[index->level()].parent_idx() - 1;
         			index 	= me()->model().GetParent(path, index);
         		}
         		else {
@@ -181,7 +182,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
         		if (!index->is_leaf())
         		{
-        			index 	= me()->GetChild(index, fn.result(), Allocator::READ);
+        			index 	= me()->model().GetChild(index, fn.result(), Allocator::READ);
 
         			path[index->level()].node() 		= index;
         			path[index->level()].parent_idx() 	= fn.result();
@@ -201,7 +202,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         	{
         		if (!index->is_leaf())
         		{
-        			index = me()->GetChild(index, 0, Allocator::READ);
+        			index = me()->model().GetChild(index, 0, Allocator::READ);
 
         			path[index->level()].node() 		= index;
         			path[index->level()].parent_idx() 	= 0;

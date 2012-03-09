@@ -239,6 +239,14 @@ public:
 
     	typedef CtrTypesT<Types> 												CtrTypes;
     	typedef BTreeIterTypes<IterTypesT<Types> >								IterTypes;
+
+
+    	typedef memoria::btree::TreePathItem<NodeBaseG>							TreePathItem;
+
+    	typedef memoria::core::FixedVector<
+    			TreePathItem, 16, ValueClearing
+    			>																TreePath;
+
     };
 
 

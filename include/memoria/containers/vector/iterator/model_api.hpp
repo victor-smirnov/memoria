@@ -85,6 +85,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	out<<"Pos: 	   "<<me()->pos()<<endl;
     	out<<"DataPos: "<<me()->data_pos()<<endl;
     	out<<"KeyIdx: "<<me()->key_idx()<<endl;
+    	out<<"Data.parent_idx: "<<me()->path().data().parent_idx()<<endl;
     	me()->model().Dump(me()->page(), out);
     	me()->model().Dump(me()->data(), out);
     }
@@ -156,8 +157,8 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 	//FIXME: handle START properly
 	if (me()->IsNotEmpty())
 	{
-		Int data_size = me()->data()->data().size();
-		Int data_pos = me()->data_pos();
+		Int data_size 	= me()->data()->size();
+		Int data_pos 	= me()->data_pos();
 
 		if (distance + data_pos <= data_size)
 		{
@@ -169,23 +170,23 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			{
 				if (me()->key_idx() == me()->page()->children_count() - 1)
 				{
-					NodeBaseG next = me()->GetNextNode();
-					if (next == NULL)
+					if (me()->NextKey())
 					{
-						me()->data_pos() = data_size;
+						me()->data_pos() 					= 0;
+
+						me()->path().data().node()  		= me()->model().GetDataPage(me()->page(), 0, Allocator::READ);
+						me()->path().data().parent_idx()  	= 0;
 					}
 					else {
-						me()->page() 		= next;
-						me()->key_idx()		= 0;
-						me()->data_pos() 	= 0;
-
-						me()->data()		= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+						me()->PrevKey();
+						me()->data_pos() = me()->data()->size();
 					}
 				}
 				else {
 					me()->key_idx()++;
 					me()->data_pos() 		= 0;
-					me()->data() 			= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+					me()->path().data().node() 			= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+					me()->path().data().parent_idx()	= me()->key_idx();
 				}
 			}
 			else {
@@ -196,12 +197,12 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 		{
 			NodeTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
 
-			bool end 	= me()->WalkFw(me()->path(), me()->key_idx(), walker);
+			bool end 		= me()->WalkFw(me()->path(), me()->key_idx(), walker);
 			me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
 
 			if (end)
 			{
-				me()->data_pos() 	= me()->data()->data().size();
+				me()->data_pos() 	= me()->data()->size();
 				me()->Init();
 				return walker.sum() - data_pos;
 			}
@@ -237,13 +238,15 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 		}
 		else
 		{
-			Int data_size = me()->data()->data().size();
-			Int to_add = data_size - idx;
+			Int data_size 	= me()->data()->size();
+			Int to_add 		= data_size - idx;
 			NodeTreeWalker<Container, Key, false> walker(distance + to_add, me()->model());
 
 			//FIXME: does 'end' means the same as for StepFw()?
 			bool end 		= me()->WalkBw(me()->path(), me()->key_idx(), walker);
-			me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+
+			me()->path().data().node() 			= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+			me()->path().data().parent_idx() 	= me()->key_idx();
 
 			if (end)
 			{
@@ -252,7 +255,7 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 				return walker.sum() - to_add;
 			}
 			else {
-				me()->data_pos()	= me()->data()->data().size() - walker.remainder();
+				me()->data_pos()	= me()->data()->size() - walker.remainder();
 			}
 		}
 
