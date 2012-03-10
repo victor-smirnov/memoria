@@ -111,6 +111,7 @@ public:
     }
 
 
+
     void AddAndSubtractKeyValues(TreePath& start, Int add_idx, TreePath& stop, Int sub_idx, const Accumulator& keys, Int level = 0);
 
 private:
@@ -133,6 +134,20 @@ private:
     		typename MergeType::Enum merge_type
     );
 
+    void MergeDataPagesAndRemoveSource(
+    		TreePath& 		target,
+    		DataPathItem&	target_data,
+    		TreePath& 		source,
+    		DataPathItem&	source_data,
+    		typename MergeType::Enum merge_type
+    );
+
+    void MergeDataPagesAndRemoveSource(
+    		DataPathItem& 	target,
+    		TreePath& 		source,
+    		typename MergeType::Enum merge_type
+    );
+
 MEMORIA_CONTAINER_PART_END
 
 
@@ -150,7 +165,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 	{
 		bool at_end 	= stop.IsEof();
 
-		bool from_start = start.data_pos() == 0 && start.HasPrevKey();
+		bool from_start = start.data_pos() == 0 && !start.HasPrevKey();
 
 		if (from_start)
 		{
@@ -159,14 +174,18 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 				return RemoveAllData(start, stop);
 			}
 			else {
-				return RemoveDataBlockFromStart(stop);
+				auto result = RemoveDataBlockFromStart(stop);
+				start = stop;
+				return result;
 			}
 		}
 		else
 		{
 			if (at_end)
 			{
-				return RemoveDataBlockAtEnd(stop);
+				auto result = RemoveDataBlockAtEnd(stop);
+				start = stop;
+				return result;
 			}
 			else {
 				return RemoveDataBlockInMiddle(start, stop);
@@ -183,22 +202,43 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 M_PARAMS
 bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 {
-	Iterator next = iter;
-
-	if (next.NextKey() && me()->CanMergeData(next.path(), iter.path()))
+	if (iter.key_idx() < iter.page()->children_count() - 1)
 	{
-		Int data_pos = iter.data_pos();
+		BigInt source_size = me()->GetKey(iter.page(), 0, iter.key_idx());
+		BigInt target_size = me()->GetKey(iter.page(), 0, iter.key_idx() + 1);
+		if (source_size + target_size <= DataPage::get_max_size()) //iter.data()->size()
+		{
+			DataPathItem target_data_item(me()->GetDataPage(iter.page(), iter.key_idx() + 1, Allocator::READ), iter.key_idx() + 1);
 
-		MergeDataPagesAndRemoveSource(next.path(), iter.path(), MergeType::RIGHT);
+			MergeDataPagesAndRemoveSource(target_data_item, iter.path(), MergeType::RIGHT);
 
-		iter = next;
-
-		iter.data_pos() = data_pos;
-
-		return true;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
-	else {
-		return false;
+	else
+	{
+		Iterator next = iter;
+
+		if (next.NextKey() && me()->CanMergeData(next.path(), iter.path()))
+		{
+			Int data_pos = iter.data_pos();
+
+			MergeDataPagesAndRemoveSource(next.path(), iter.path(), MergeType::RIGHT);
+
+			iter = next;
+
+			iter.data_pos() = data_pos;
+
+			return true;
+		}
+		else {
+			return false;
+		}
+
 	}
 }
 
@@ -272,9 +312,6 @@ void M_TYPE::AddAndSubtractKeyValues(TreePath& start, Int add_idx, TreePath& sto
 
 
 
-
-
-
 /////  ------------------------------------------ PRIVATE FUNCTIONS -----------------------
 
 M_PARAMS
@@ -340,6 +377,11 @@ typename M_TYPE::Accumulator M_TYPE::RemoveAllData(Iterator& start, Iterator& st
 	BigInt count = 0;
 	me()->RemoveAllPages(start.path(), stop.path(), removed, count);
 
+	start.path().data().node().Clear();
+	start.path().data().parent_idx() = 0;
+
+	stop = start;
+
 	return removed;
 }
 
@@ -353,7 +395,12 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 		// Within the same data node
 		Accumulator result = RemoveData(stop.path(), start.data_pos(), stop.data_pos() - start.data_pos());
 
-		me()->MergeDataWithSiblings(stop);
+		stop.data_pos() = start.data_pos();
+
+		if (me()->MergeDataWithSiblings(start))
+		{
+			stop = start;
+		}
 
 		return result;
 	}
@@ -388,6 +435,8 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 		me()->MergeDataWithSiblings(stop);
 
+		start = stop;
+
 		return removed;
 	}
 }
@@ -421,15 +470,17 @@ typename M_TYPE::Accumulator M_TYPE::RemoveData(TreePath& path, Int start, Int l
 
 M_PARAMS
 void M_TYPE::MergeDataPagesAndRemoveSource(
-		TreePath& target,
-		TreePath& source,
+		TreePath& 		target,
+		DataPathItem&	target_data_item,
+		TreePath& 		source,
+		DataPathItem&	source_data_item,
 		typename MergeType::Enum merge_type
 )
 {
 	NodeBaseG& target_parent = target[0].node();
-	DataPageG& target_data	 = target.data().node();
+	DataPageG& target_data	 = target_data_item.node();
 	NodeBaseG& source_parent = source[0].node();
-	DataPageG& source_data	 = source.data().node();
+	DataPageG& source_data	 = source_data_item.node();
 
 	source_parent.update();
 	target_parent.update();
@@ -448,7 +499,7 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 	{
 		memoria::CopyBuffer(source_data->data().value_addr(0), target_data->data().value_addr(tgt_size), src_size);
 
-		me()->AddAndSubtractKeyValues(target, target.data().parent_idx(), source, source.data().parent_idx(), keys);
+		me()->AddAndSubtractKeyValues(target, target_data_item.parent_idx(), source, source_data_item.parent_idx(), keys);
 	}
 	else {
 		// make a room for source data in the target data page
@@ -458,7 +509,7 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 		// copy page content from source to target
 		memoria::CopyBuffer(source_data->data().value_addr(0), target_data->data().value_addr(0), src_size);
 
-		me()->AddAndSubtractKeyValues(source, source.data().parent_idx(), target, target.data().parent_idx(), -keys);
+		me()->AddAndSubtractKeyValues(source, source_data_item.parent_idx(), target, target_data_item.parent_idx(), -keys);
 	}
 
 	target_data->data().size() += src_size;
@@ -466,14 +517,52 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 	source_data->data().size() -= src_size;
 
 	keys.Clear();
+}
+
+
+
+
+M_PARAMS
+void M_TYPE::MergeDataPagesAndRemoveSource(
+		TreePath& target,
+		TreePath& source,
+		typename MergeType::Enum merge_type
+)
+{
+	MergeDataPagesAndRemoveSource(
+			target,
+			target.data(),
+			source,
+			source.data(),
+			merge_type
+	);
 
 	Int source_parent_idx = source.data().parent_idx();
 
+	Accumulator keys;
 	me()->RemoveEntry(source, source_parent_idx, keys);
+}
 
 
-	//FIXME: Does it necessary to fix target here ?
-//	target_parent = me()->GetDataParent0(target_data, target_parent, Allocator::READ);//????????????????
+M_PARAMS
+void M_TYPE::MergeDataPagesAndRemoveSource(
+		DataPathItem& 	target_data,
+		TreePath& 		source,
+		typename MergeType::Enum merge_type
+)
+{
+	MergeDataPagesAndRemoveSource(
+			source,
+			target_data,
+			source,
+			source.data(),
+			merge_type
+	);
+
+	Int source_parent_idx = source.data().parent_idx();
+
+	Accumulator keys;
+	me()->RemoveEntry(source, source_parent_idx, keys);
 }
 
 

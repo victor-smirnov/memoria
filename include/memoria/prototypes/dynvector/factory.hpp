@@ -157,7 +157,7 @@ public:
     			typename Base0::DataPageG
     	>																			TreePath;
 
-    	typedef TreePathItem<typename Base0::DataPageG>								DataPathItem;
+    	typedef typename TreePath::DataItem											DataPathItem;
     };
 
     typedef typename Types::CtrTypes												CtrTypes;

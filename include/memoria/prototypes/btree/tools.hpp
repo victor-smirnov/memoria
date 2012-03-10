@@ -13,6 +13,7 @@
 namespace memoria    	{
 namespace btree 		{
 
+using namespace memoria::core;
 
 template <typename Node>
 class TreePathItem {
@@ -57,6 +58,11 @@ public:
 		return *this;
 	}
 
+	bool operator==(const MyType& other) const
+	{
+		return node_ == other.node_;
+	}
+
 	operator Node& () {
 		return node_;
 	}
@@ -86,7 +92,7 @@ public:
 	}
 
 	void Clear() {
-		node_ 		= NULL;
+		node_.Clear();
 		parent_idx_ = 0;
 	}
 };
@@ -296,6 +302,75 @@ public:
 		return *this;
 	}
 };
+
+
+
+
+template <
+	typename NodePage,
+	Int Size = 16>
+class NodePath: public FixedVector<TreePathItem<NodePage>, Size, ValueClearing> {
+
+	typedef FixedVector<TreePathItem<NodePage>, Size, ValueClearing> 	Base;
+	typedef NodePath<NodePage, Size> 									MyType;
+
+public:
+
+	typedef TreePathItem<NodePage>										PathItem;
+
+	NodePath(): Base() {}
+
+	NodePath(const MyType& other): Base(other) {}
+
+	NodePath(MyType&& other): Base(std::move(other)) {}
+
+	MyType& operator=(const MyType& other)
+	{
+		Base::operator=(other);
+		return *this;
+	}
+
+	MyType& operator=(MyType&& other)
+	{
+		Base::operator=(std::move(other));
+		return *this;
+	}
+
+	void MoveRight(Int level, Int from, Int count)
+	{
+		if (level >= 0)
+		{
+			PathItem& item = Base::operator[](level);
+			if (item.parent_idx() >= from)
+			{
+				item.parent_idx() += count;
+			}
+		}
+	}
+
+	void MoveLeft(Int level, Int from, Int count)
+	{
+		if (level >= 0)
+		{
+			PathItem& item = Base::operator[](level);
+
+			if (item.parent_idx() >= from)
+			{
+				item.parent_idx() -= count;
+			}
+			else if (item.parent_idx() >= from)
+			{
+				for (Int c = level; c >= 0; c--)
+				{
+					Base::operator[](c).Clear();
+				}
+			}
+		}
+	}
+};
+
+
+
 
 }
 }

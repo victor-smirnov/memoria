@@ -168,25 +168,14 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			// is the last one in the index node
 			if (distance + data_pos == data_size)
 			{
-				if (me()->key_idx() == me()->page()->children_count() - 1)
+				if (me()->NextKey())
 				{
-					if (me()->NextKey())
-					{
-						me()->data_pos() 					= 0;
-
-						me()->path().data().node()  		= me()->model().GetDataPage(me()->page(), 0, Allocator::READ);
-						me()->path().data().parent_idx()  	= 0;
-					}
-					else {
-						me()->PrevKey();
-						me()->data_pos() = me()->data()->size();
-					}
+					// do nothing
 				}
 				else {
-					me()->key_idx()++;
-					me()->data_pos() 		= 0;
-					me()->path().data().node() 			= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
-					me()->path().data().parent_idx()	= me()->key_idx();
+					// Eof
+					me()->PrevKey();
+					me()->data_pos() = me()->data()->size();
 				}
 			}
 			else {
@@ -198,7 +187,8 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			NodeTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
 
 			bool end 		= me()->WalkFw(me()->path(), me()->key_idx(), walker);
-			me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+
+			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
 			if (end)
 			{
@@ -245,8 +235,7 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 			//FIXME: does 'end' means the same as for StepFw()?
 			bool end 		= me()->WalkBw(me()->path(), me()->key_idx(), walker);
 
-			me()->path().data().node() 			= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
-			me()->path().data().parent_idx() 	= me()->key_idx();
+			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
 			if (end)
 			{

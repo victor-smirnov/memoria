@@ -113,6 +113,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     void RemovePagesAtEnd(TreePath& start, Int start_idx, Accumulator& accum, BigInt& removed_key_count);
     void RemovePages(TreePath& start, Int start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count);
 
+    /**
+         * Remove 'count' elements from tree node starting from 'from' element.
+         *
+         * For all _counters_ (page_count, key_count, ...)
+         * Sum child._counter_ of all removed children and decrement current
+         * node._counter_
+         *
+         * Remove children if 'remove_children' is TRUE
+         *
+         * Collapse elemnt's window in the node by shifting rest of elements
+         * (keys & data) to the 'from' position.
+         *
+         * For all shifted children update child.parent_id
+         */
+
+        // FIXME: remove data pages for dynarray
+    BigInt RemoveRoom(TreePath& path, Int level, Int from, Int count, Accumulator& accumulator, bool remove_children = true);
+
+
 private:
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
 
@@ -123,23 +142,6 @@ private:
 
 
 
-    /**
-     * Remove 'count' elements from tree node starting from 'from' element.
-     *
-     * For all _counters_ (page_count, key_count, ...)
-     * Sum child._counter_ of all removed children and decrement current
-     * node._counter_
-     *
-     * Remove children if 'remove_children' is TRUE
-     *
-     * Collapse elemnt's window in the node by shifting rest of elements
-     * (keys & data) to the 'from' position.
-     *
-     * For all shifted children update child.parent_id
-     */
-
-    // FIXME: remove data pages for dynarray
-    BigInt RemoveRoom(TreePath& path, Int level, Int from, Int count, Accumulator& accumulator, bool remove_children = true);
 
     /**
      * Remove a page from the btree. Do recursive removing if page's parent
@@ -300,13 +302,7 @@ BigInt M_TYPE::RemoveRoom(TreePath& path, Int level, Int from, Int count, Accumu
 
 		me()->UpdateParentIfExists(path, level, -tmp_accum);
 
-		if (level > 0)
-		{
-			if (path[level - 1].parent_idx() >= from)
-			{
-				path[level - 1].parent_idx() -= count;
-			}
-		}
+		path.MoveLeft(level - 1, from, count);
 
 		accumulator += tmp_accum;
 	}
@@ -331,10 +327,10 @@ BigInt M_TYPE::RemoveEntries(Iterator& from, Iterator& to, Accumulator& keys, bo
 	BigInt removed_key_count = 0;
 
 	TreePath& start 	= from.path();
-	Int& 	 start_idx	= from.key_idx();
+	Int& 	  start_idx	= from.key_idx();
 
 	TreePath& stop 		= to.path();
-	Int& 	 stop_idx	= to.key_idx();
+	Int& 	  stop_idx	= to.key_idx();
 
 	bool at_end = stop_idx >= stop[0].node()->children_count();
 
@@ -467,11 +463,7 @@ void M_TYPE::RemovePages(TreePath& start, Int start_idx, TreePath& stop, Int& st
 			Int count = stop_idx - start_idx;
 			removed_key_count += RemoveRoom(start, level, start_idx, count, accum);
 
-			if (level > 0)
-			{
-				stop[level - 1].parent_idx() -= count;
-			}
-
+			stop.MoveLeft(level - 1, 0, count);
 
 			if (!start[level]->is_root())
 			{
@@ -501,13 +493,11 @@ void M_TYPE::RemovePages(TreePath& start, Int start_idx, TreePath& stop, Int& st
 		{
 			if (CanMerge(start, stop, level))
 			{
-
 				MergeNodes(start, stop, level);
 
 				stop_idx = start_idx;
 
 				RemoveRedundantRoot(start, stop, level);
-
 			}
 		}
 	}
@@ -665,6 +655,8 @@ void M_TYPE::RemoveEntry(TreePath& path, Int& idx, Accumulator& keys)
 
 	me()->RemoveEntries(from, next, keys);
 
+	path = from.path();
+	idx  = from.key_idx();
 }
 
 M_PARAMS
@@ -830,10 +822,6 @@ void M_TYPE::MergeNodes(TreePath& tgt, TreePath& src, Int level)
 
 	Accumulator accum;
 
-//	me()->GetKeys(parent, parent_idx, accum.keys());
-//
-//	me()->AddKeys(parent, parent_idx - 1, accum.keys());
-
 	RemoveRoom(src, level + 1, parent_idx, 1, accum, false);
 
 	me()->UpdateUp(src, level + 1, parent_idx - 1, accum);
@@ -842,10 +830,7 @@ void M_TYPE::MergeNodes(TreePath& tgt, TreePath& src, Int level)
 
 	src[level] = tgt[level];
 
-	if (level > 0)
-	{
-		src[level - 1].parent_idx() += tgt_children_count;
-	}
+	src.MoveRight(level - 1, 0, tgt_children_count);
 
 	me()->Reindex(parent);
 }

@@ -241,11 +241,13 @@ public:
     	typedef BTreeIterTypes<IterTypesT<Types> >								IterTypes;
 
 
-    	typedef memoria::btree::TreePathItem<NodeBaseG>							TreePathItem;
+//    	typedef memoria::btree::TreePathItem<NodeBaseG>							TreePathItem;
 
-    	typedef memoria::core::FixedVector<
-    			TreePathItem, 16, ValueClearing
-    			>																TreePath;
+    	typedef NodePath<
+    			NodeBaseG, 16
+    	>																		TreePath;
+
+    	typedef typename TreePath::PathItem										TreePathItem;
 
     };
 

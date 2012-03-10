@@ -96,18 +96,20 @@ M_PARAMS
 typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 {
 	Iterator iter = me()->FindLT(pos, key_number, true);
+
 	if (iter.IsNotEmpty())
 	{
 		if (iter.IsEnd())
 		{
 			iter.PrevKey();
 		}
-
-		iter.data() 			 		= me()->GetDataPage(iter.page(), iter.key_idx(), Allocator::READ);
-		iter.path().data().parent_idx() = iter.key_idx();
+		else {
+			me()->FinishPathStep(iter.path(), iter.key_idx());
+		}
 
 		BigInt offset 	= iter.prefix(key_number);
 		iter.data_pos() = pos - offset;
+
 		if (iter.data_pos() > iter.data()->data().size())
 		{
 			iter.data_pos() = iter.data()->data().size();

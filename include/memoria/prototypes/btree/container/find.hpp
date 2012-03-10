@@ -125,15 +125,24 @@ public:
         			path_item.parent_idx()	= idx_;
         			path_item.node() 		= model_.GetChild(node, idx_, Allocator::READ);
             	}
-        		else {
+        		else
+        		{
         			idx_ = 0;
         			end_ = true;
         		}
         	}
-        	else {
+        	else
+        	{
         		if (idx_ < 0)
         		{
-        			idx_ = 0;
+        			if (cmp_.search_mode() == SearchModeDefault::LAST)
+        			{
+        				idx_ = node->children_count();
+        			}
+        			else
+        			{
+        				idx_ = -1;
+        			}
         		}
 
         		end_ = true;

@@ -686,9 +686,7 @@ void M_TYPE::InsertSubtree(TreePath& left_path, Int left_idx, TreePath& right_pa
 
 			FillNodeLeft(left_path, level, left_idx, total, data);
 
-			if (level > 0) {
-				right_path[level-1].parent_idx() += total;
-			}
+			right_path.MoveRight(level - 1, 0, total);
 
 			right_idx 		+= total;
 		}
@@ -840,9 +838,11 @@ void M_TYPE::FillNodeRight(TreePath& path, Int level, Int from, Int count, Inser
 		}
 	}
 
-	if (level > 0) {
-		path[level-1].parent_idx() += count;
-	}
+
+// FIXME: ??????? why is this here?
+//	if (level > 0) {
+//		path[level-1].parent_idx() += count;
+//	}
 
 	ReindexAndUpdateCounters(node);
 
@@ -861,15 +861,17 @@ void M_TYPE::MakeRoom(TreePath& path, Int level, Int start, Int count) const
 	MakeRoomFn fn(start, count);
 	NodeDispatcher::Dispatch(path[level].node(), fn);
 
-	if (level > 0)
-	{
-		Int& parent_idx = path[level - 1].parent_idx();
+	path.MoveRight(level - 1, start + count, count);
 
-		if (parent_idx >=  (start + count))
-		{
-			parent_idx += count;
-		}
-	}
+//	if (level > 0)
+//	{
+//		Int& parent_idx = path[level - 1].parent_idx();
+//
+//		if (parent_idx >=  (start + count))
+//		{
+//			parent_idx += count;
+//		}
+//	}
 }
 
 M_PARAMS
@@ -926,10 +928,10 @@ typename M_TYPE::TreePathItem M_TYPE::Split(TreePath& path, Int level, Int idx)
 
 			TreePathItem item = path[level];
 
-			path[level  ].node() 		= other;
-			path[level  ].parent_idx()++;
+			path[level    ].node() 			= other;
+			path[level    ].parent_idx()++;
 
-			path[level-1].parent_idx() -= idx;
+			path[level - 1].parent_idx() 	-= idx;
 
 			return item;
 		}
@@ -980,10 +982,12 @@ void M_TYPE::Split(TreePath& left, TreePath& right, Int level, Int idx)
 		right[level].parent_idx() 	= 0;
 	}
 
-	if (level > 0)
-	{
-		right[level-1].parent_idx() -= idx;
-	}
+	right.MoveLeft(level - 1, 0, idx);
+
+//	if (level > 0)
+//	{
+//		right[level-1].parent_idx() -= idx;
+//	}
 }
 
 M_PARAMS

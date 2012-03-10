@@ -226,12 +226,20 @@ public:
 				//Insert at the end of the array
 				auto iter = array.Seek(array.Size());
 
+				CheckIterator(iter);
+
 				BigInt len = array.Size();
 				if (len > 100) len = 100;
 
 				ArrayData prefix(len);
 				iter.Skip(-len);
+				CheckIterator(iter);
+
+
 				iter.Read(prefix);
+				CheckIterator(iter);
+
+				CheckIterator(iter);
 
 				iter.Insert(data);
 
@@ -319,18 +327,26 @@ public:
 			{
 				//Remove at the start of the array
 				auto iter = array.Seek(0);
+				CheckIterator(iter);
 
 				BigInt len = array.Size() - size;
 				if (len > 100) len = 100;
 
 				ArrayData postfix(len);
 				iter.Skip(size);
+				CheckIterator(iter);
+
 				iter.Read(postfix);
+				CheckIterator(iter);
+
 				iter.Skip(-len - size);
+				CheckIterator(iter);
 
 				iter.Remove(size);
 
 				Check(allocator, "Removing region at the start of the array failed. See the dump for details.", MEMORIA_SOURCE);
+
+				CheckIterator(iter);
 
 				CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array", 		MEMORIA_SOURCE);
 			}
@@ -338,19 +354,26 @@ public:
 			{
 				//Remove at the end of the array
 				auto iter = array.Seek(array.Size() - size);
+				CheckIterator(iter);
 
 				BigInt len = iter.pos();
 				if (len > 100) len = 100;
 
 				ArrayData prefix(len);
 				iter.Skip(-len);
+				CheckIterator(iter);
+
 				iter.Read(prefix);
+				CheckIterator(iter);
 
 				iter.Remove(size);
 
 				Check(allocator, "Removing region at the end of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
+				CheckIterator(iter);
+
 				iter.Skip(-len);
+				CheckIterator(iter);
 
 				CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", 		MEMORIA_SOURCE);
 			}

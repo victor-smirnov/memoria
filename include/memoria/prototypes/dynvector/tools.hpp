@@ -16,9 +16,9 @@ namespace btree 		{
 using namespace memoria::core;
 
 template <typename NodePage, typename DataPage, Int Size = 16>
-class DataPath: public FixedVector<TreePathItem<NodePage>, Size, ValueClearing> {
+class DataPath: public NodePath<NodePage, Size> {
 
-	typedef FixedVector<TreePathItem<NodePage>, Size, ValueClearing> 	Base;
+	typedef NodePath<NodePage, Size> 									Base;
 	typedef DataPath<NodePage, DataPage, Size> 							MyType;
 
 public:
@@ -54,6 +54,8 @@ public:
 	{
 		Base::operator=(std::move(other));
 
+		data_ = std::move(other.data_);
+
 		return *this;
 	}
 
@@ -65,6 +67,52 @@ public:
 	const DataItem& data() const
 	{
 		return data_;
+	}
+
+	void MoveRight(Int level, Int from, Int count)
+	{
+		if (level >= 0)
+		{
+			typename Base::PathItem& item = Base::operator[](level);
+			if (item.parent_idx() >= from)
+			{
+				item.parent_idx() += count;
+			}
+		}
+		else if (data_.parent_idx() >= from)
+		{
+			data_.parent_idx() += count;
+		}
+	}
+
+	void MoveLeft(Int level, Int from, Int count)
+	{
+		if (level >= 0)
+		{
+			typename Base::PathItem& item = Base::operator[](level);
+
+			if (item.parent_idx() >= from)
+			{
+				item.parent_idx() -= count;
+			}
+			else if (item.parent_idx() >= from)
+			{
+				for (Int c = level - 1; c >= 0; c--)
+				{
+					Base::operator[](c).Clear();
+				}
+
+				data_.Clear();
+			}
+		}
+		else if (data_.parent_idx() >= from)
+		{
+			data_.parent_idx() -= count;
+		}
+		else if (data_.parent_idx() >= from)
+		{
+			data_.Clear();
+		}
 	}
 };
 

@@ -180,13 +180,13 @@ void M_TYPE::FinishPathStep(TreePath& path, Int key_idx) const
 	if (key_idx >= 0 && key_idx < path[0]->children_count())
 	{
 		path.data().node() 			= me()->GetDataPage(path[0].node(), key_idx, Allocator::READ);
+
+		path.data().parent_idx()	= key_idx;
 	}
 	else
 	{
 		path.data().node().Clear();
 	}
-
-	path.data().parent_idx()		= key_idx;
 }
 
 #undef M_PARAMS
