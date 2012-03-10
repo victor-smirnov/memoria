@@ -99,24 +99,28 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 
     void RemoveEntry(NodeBaseG& node, Int& idx, Key* keys);
 
+    void RemoveEntry(TreePath& path, Int& idx, Accumulator& keys);
+
     BigInt RemoveEntries(Iterator& from, Iterator& to);
     BigInt RemoveEntries(Iterator& from, Iterator& to, Accumulator& accum, bool merge = true);
 
     void Drop();
 
+// PROTECTED API:
+
+    void RemoveAllPages(TreePath& start, TreePath& stop, Accumulator& accum, BigInt& removed_key_count);
+    void RemovePagesFromStart(TreePath& stop, Int& stop_idx, Accumulator& accum, BigInt& removed_key_count);
+    void RemovePagesAtEnd(TreePath& start, Int start_idx, Accumulator& accum, BigInt& removed_key_count);
+    void RemovePages(TreePath& start, Int start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count);
+
 private:
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
 
-    void RemoveAllPages(TreePath& start, TreePath& stop, Accumulator& accum, BigInt& removed_key_count);
-
-    void RemovePagesFromStart(TreePath& stop, Int& stop_idx, Accumulator& accum, BigInt& removed_key_count);
-    void RemovePagesAtEnd(TreePath& start, Int start_idx, Accumulator& accum, BigInt& removed_key_count);
 
 
     void RemoveRedundantRoot(TreePath& path, Int level);
     void RemoveRedundantRoot(TreePath& start, TreePath& stop, Int level);
 
-    void RemovePages(TreePath& start, Int start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count);
 
 
     /**
@@ -644,6 +648,22 @@ bool M_TYPE::RemoveEntry(Iterator& iter, bool preserve_key_values)
 M_PARAMS
 void M_TYPE::RemoveEntry(NodeBaseG& path, Int& idx, Key* keys)
 {
+
+}
+
+M_PARAMS
+void M_TYPE::RemoveEntry(TreePath& path, Int& idx, Accumulator& keys)
+{
+	Iterator from(*me());
+
+	from.path() 	= path;
+	from.key_idx()	= idx;
+
+	Iterator next = from;
+
+	next.NextKey();
+
+	me()->RemoveEntries(from, next, keys);
 
 }
 

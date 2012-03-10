@@ -126,32 +126,16 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     bool NextKey()
     {
-    	if (Base::NextKey())
-    	{
-    		me()->path().data().node() 			= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
-    		me()->path().data().parent_idx() 	= me()->key_idx();
+    	me()->data_pos() 	= 0;
 
-    		me()->data_pos() 	= 0;
-
-    		return true;
-    	}
-
-    	return false;
+    	return Base::NextKey();
     }
 
     bool PrevKey()
     {
-    	if (Base::PrevKey())
-    	{
-    		me()->data() 						= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
-    		me()->path().data().parent_idx() 	= me()->key_idx();
+    	me()->data_pos() 	= 0;
 
-    		me()->data_pos() 	= 0;
-
-    		return true;
-    	}
-
-    	return false;
+    	return Base::PrevKey();
     }
 
 MEMORIA_ITERATOR_PART_END

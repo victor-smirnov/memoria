@@ -31,14 +31,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 	typedef typename Base::Allocator											Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
 	typedef typename Base::NodeBaseG                                            NodeBaseG;
+	typedef typename Base::TreePath                                             TreePath;
 
     bool NextKey();
+    bool HasNextKey();
 
     bool PrevKey();
 
-    bool NextLeaf();
+    bool HasPrevKey();
 
-    bool PrevLeaf() ;
+    bool NextLeaf();
+    bool HasNextLeaf();
+
+    bool PrevLeaf();
+    bool HasPrevLeaf();
 
 
     void Init() {
@@ -66,25 +72,30 @@ bool M_TYPE::NextKey()
 		{
 			me()->key_idx()++;
 			me()->KeyNum()++;
+
+			me()->model().FinishPathStep(me()->path(), me()->key_idx());
+
 			me()->ReHash();
 
 			return true;
 		}
 		else {
-			bool val = me()->NextLeaf();
-			if (val)
+			bool has_next_leaf = me()->NextLeaf();
+			if (has_next_leaf)
 			{
 				me()->key_idx() = 0;
 			}
 			else {
 				me()->key_idx() = me()->page()->children_count();
+
+				me()->model().FinishPathStep(me()->path(), me()->key_idx());
 			}
 
 			me()->KeyNum()++;
 
 			me()->ReHash();
 
-			return val;
+			return has_next_leaf;
 		}
 	}
 	else {
@@ -93,32 +104,73 @@ bool M_TYPE::NextKey()
 }
 
 M_PARAMS
+bool M_TYPE::HasNextKey()
+{
+	if (!me()->IsEnd())
+	{
+		if (me()->key_idx() < me()->page()->children_count() - 1)
+		{
+			return true;
+		}
+		else {
+			return me()->HasNextLeaf();
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+
+
+M_PARAMS
 bool M_TYPE::PrevKey()
 {
 	if (me()->key_idx() > 0)
 	{
 		me()->key_idx()--;
 		me()->KeyNum()--;
+
+		me()->model().FinishPathStep(me()->path(), me()->key_idx());
+
 		me()->ReHash();
 
 		return true;
 	}
 	else {
-		bool val = me()->PrevLeaf();
+		bool has_prev_leaf = me()->PrevLeaf();
 
-		if (val) {
+		if (has_prev_leaf)
+		{
 			me()->key_idx() = me()->page()->children_count() - 1;
 			me()->KeyNum()--;
 		}
 		else {
 			me()->key_idx() = -1;
+
+			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 		}
 
 		me()->ReHash();
 
-		return val;
+		return has_prev_leaf;
 	}
 }
+
+
+M_PARAMS
+bool M_TYPE::HasPrevKey()
+{
+	if (me()->key_idx() > 0)
+	{
+		return true;
+	}
+	else {
+		return me()->HasPrevLeaf();
+	}
+}
+
+
 
 //FIXME: Should NextLeaf/PreveLeaf set to End/Start if move fails?
 M_PARAMS
@@ -126,14 +178,24 @@ bool M_TYPE::NextLeaf()
 {
 	if (me()->model().GetNextNode(me()->path()))
 	{
-		// FIXME: KeyNum
+		// FIXME: KeyNum ?
 
 		me()->key_idx() = 0;
 
 		return true;
 	}
+
 	return false;
 }
+
+
+M_PARAMS
+bool M_TYPE::HasNextLeaf()
+{
+	TreePath path = me()->path();
+	return me()->model().GetNextNode(path);
+}
+
 
 M_PARAMS
 bool M_TYPE::PrevLeaf()
@@ -148,6 +210,14 @@ bool M_TYPE::PrevLeaf()
 	}
 	return false;
 }
+
+M_PARAMS
+bool M_TYPE::HasPrevLeaf()
+{
+	TreePath path = me()->path();
+	return me()->model().GetPrevNode(path);
+}
+
 
 
 #undef M_TYPE

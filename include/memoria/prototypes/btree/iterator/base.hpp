@@ -128,7 +128,7 @@ public:
     }
 
 
-    bool IsStart()
+    bool IsBegin()
     {
     	return key_idx() < 0;
     }

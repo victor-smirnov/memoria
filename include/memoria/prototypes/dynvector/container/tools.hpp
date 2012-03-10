@@ -85,12 +85,14 @@ public:
     }
 
 
-	bool GetNextData(TreePath& path, Int& idx) const;
-	bool GetPrevData(TreePath& path, Int& idx) const;
+//	bool GetNextData(TreePath& path, Int& idx) const;
+//	bool GetPrevData(TreePath& path, Int& idx) const;
 
 	Iterator FindStart();
 	Iterator FindEnd();
 
+
+    void FinishPathStep(TreePath& path, Int key_idx) const;
 
 MEMORIA_CONTAINER_PART_END
 
@@ -99,47 +101,47 @@ MEMORIA_CONTAINER_PART_END
 
 
 
-M_PARAMS
-bool M_TYPE::GetNextData(TreePath& path, Int& idx) const
-{
-	if (idx < path[0]->children_count() - 1)
-	{
-		idx++;
-	}
-	else if (me()->GetNextNode(path))
-	{
-		idx = 0;
-	}
-	else {
-		return false;
-	}
+//M_PARAMS
+//bool M_TYPE::GetNextData(TreePath& path, Int& idx) const
+//{
+//	if (idx < path[0]->children_count() - 1)
+//	{
+//		idx++;
+//	}
+//	else if (me()->GetNextNode(path))
+//	{
+//		idx = 0;
+//	}
+//	else {
+//		return false;
+//	}
+//
+//	path.data() = GetDataPage(path[0].node(), idx, Allocator::READ);
+//
+//	return true;
+//}
 
-	path.data() = GetDataPage(path[0].node(), idx, Allocator::READ);
-
-	return true;
-}
 
 
-
-M_PARAMS
-bool M_TYPE::GetPrevData(TreePath& path, Int& idx) const
-{
-	if (idx > 0)
-	{
-		idx--;
-	}
-	else if (me()->GetPrevNode(path))
-	{
-		idx = path[0].node()->children_count() - 1;
-	}
-	else {
-		return false;
-	}
-
-	path.data() = GetDataPage(path[0].node(), idx, Allocator::READ);
-
-	return true;
-}
+//M_PARAMS
+//bool M_TYPE::GetPrevData(TreePath& path, Int& idx) const
+//{
+//	if (idx > 0)
+//	{
+//		idx--;
+//	}
+//	else if (me()->GetPrevNode(path))
+//	{
+//		idx = path[0].node()->children_count() - 1;
+//	}
+//	else {
+//		return false;
+//	}
+//
+//	path.data() = me()->GetDataPage(path[0].node(), idx, Allocator::READ);
+//
+//	return true;
+//}
 
 
 M_PARAMS
@@ -149,7 +151,8 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 
 	if (i.path()[0]->children_count() > 0)
 	{
-		i.data() 		= me()->GetDataPage(i.path()[0].node(), i.key_idx(), Allocator::READ);
+		me()->FinishPathStep(i.path(), i.key_idx());
+
 		i.data_pos() 	= 0;
 	}
 
@@ -162,13 +165,28 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 {
 	Iterator i = Base::FindEnd();
 
-	if (i.Prev())
+	if (i.PrevKey())
 	{
-		i.data() 	 = me()->GetDataPage(i.path()[0].node(), i.key_idx(), Allocator::READ);
 		i.data_pos() = i.data()->data().size();
 	}
 
 	return i;
+}
+
+
+M_PARAMS
+void M_TYPE::FinishPathStep(TreePath& path, Int key_idx) const
+{
+	if (key_idx >= 0 && key_idx < path[0]->children_count())
+	{
+		path.data().node() 			= me()->GetDataPage(path[0].node(), key_idx, Allocator::READ);
+	}
+	else
+	{
+		path.data().node().Clear();
+	}
+
+	path.data().parent_idx()		= key_idx;
 }
 
 #undef M_PARAMS

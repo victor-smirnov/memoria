@@ -51,7 +51,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorContainerAPIName)
         switch (flag) {
             case memoria::vapi::Iterator::ITEREND:    return me()->IsEnd();
             case memoria::vapi::Iterator::ITER_EMPTY:  return me()->IsEmpty();
-            case memoria::vapi::Iterator::ITER_START:    return me()->IsStart();
+            case memoria::vapi::Iterator::ITER_START:    return me()->IsBegin();
             default:                throw MemoriaException(MEMORIA_SOURCE, "Invalig flag name", flag);
         }
     }

@@ -71,7 +71,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
 
     bool PrevKey()
     {
-    	if (!me()->IsStart())
+    	if (!me()->IsBegin())
     	{
     		bool result = Base::PrevKey();
 

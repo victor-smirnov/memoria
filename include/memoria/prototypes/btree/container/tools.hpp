@@ -728,12 +728,12 @@ public:
     	}
     };
 
-    void AddAndSubtractKeys(NodeBaseG& node, Int add_idx, Int sub_idx, const Key* keys)
+    void AddAndSubtractKeys(TreePath& path, Int level, Int add_idx, Int sub_idx, const Accumulator& keys)
     {
-    	node.update();
+    	path[level].node().update();
 
-    	AddAndSubtractKeysFn fn(add_idx, sub_idx, keys);
-    	NodeDispatcher::Dispatch(node, fn);
+    	AddAndSubtractKeysFn fn(add_idx, sub_idx, keys.keys());
+    	NodeDispatcher::Dispatch(path[level].node(), fn);
     }
 
 
@@ -873,6 +873,8 @@ public:
     	return GetPrevNode(path, level, -1, level);
     }
 
+    void FinishPathStep(TreePath& path, Int key_idx) const {}
+
 private:
 
     bool GetNextNode(TreePath& path, Int level, Int idx, Int target_level) const;
@@ -898,6 +900,7 @@ bool M_TYPE::GetNextNode(TreePath& path, Int level, Int idx, Int target_level) c
 			idx = 0;
 		}
 
+		me()->FinishPathStep(path, idx);
 		return true;
 	}
 	else {
@@ -924,6 +927,8 @@ bool M_TYPE::GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 
 			idx = path[level - 1].node()->children_count() - 1;
 		}
+
+		me()->FinishPathStep(path, idx);
 
 		return true;
 	}
