@@ -183,8 +183,8 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 		{
 			if (at_end)
 			{
-				auto result = RemoveDataBlockAtEnd(stop);
-				start = stop;
+				auto result = RemoveDataBlockAtEnd(start);
+				stop = start;
 				return result;
 			}
 			else {
@@ -246,22 +246,48 @@ bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 M_PARAMS
 bool M_TYPE::MergeDataWithLeftSibling(Iterator& iter)
 {
-	Iterator prev = iter;
-
-	if (prev.PrevKey() && me()->CanMergeData(prev.path(), iter.path()))
+	if (iter.key_idx() > 0)
 	{
-		Int data_pos = iter.data_pos();
+		BigInt source_size = me()->GetKey(iter.page(), 0, iter.key_idx());
+		BigInt target_size = me()->GetKey(iter.page(), 0, iter.key_idx() - 1);
+		if (source_size + target_size <= DataPage::get_max_size()) //iter.data()->size()
+		{
+			DataPathItem target_data_item(me()->GetDataPage(iter.page(), iter.key_idx() - 1, Allocator::READ), iter.key_idx() - 1);
 
-		MergeDataPagesAndRemoveSource(prev.path(), iter.path(), MergeType::LEFT);
+			MergeDataPagesAndRemoveSource(target_data_item, iter.path(), MergeType::LEFT);
 
-		iter = prev;
+			if (iter.IsEnd())
+			{
+				iter.PrevKey();
+				iter.data_pos() = iter.data()->size();
+			}
 
-		iter.data_pos() = iter.data()->size() + data_pos;
-
-		return true;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
-	else {
-		return false;
+	else
+	{
+		Iterator prev = iter;
+
+		if (prev.PrevKey() && me()->CanMergeData(prev.path(), iter.path()))
+		{
+			Int data_pos = iter.data_pos();
+
+			MergeDataPagesAndRemoveSource(prev.path(), iter.path(), MergeType::LEFT);
+
+			iter = prev;
+
+			iter.data_pos() = iter.data()->size() + data_pos;
+
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 }
 
@@ -344,13 +370,12 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockAtEnd(Iterator& start)
 {
 	Accumulator removed;
 
-	TreePath data_path = start.path();
-
 	if (start.data_pos() > 0)
 	{
-		removed 			+= RemoveData(start.path(), 0, start.data_pos());
+		removed 			+= RemoveData(start.path(), start.data_pos(), start.data()->size() - start.data_pos());
 		start.data_pos()	=  start.data()->size();
 
+		//FIXME: optimize, don't jump to the next leaf
 		start.NextKey();
 	}
 
@@ -359,6 +384,9 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockAtEnd(Iterator& start)
 		BigInt removed_key_count = 0;
 		me()->RemovePagesAtEnd(start.path(), start.key_idx(), removed, removed_key_count);
 	}
+
+	start.PrevKey();
+	start.data_pos() = start.data()->size();
 
 	if (me()->ShouldMergeData(start.path()))
 	{
@@ -397,10 +425,10 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 		stop.data_pos() = start.data_pos();
 
-		if (me()->MergeDataWithSiblings(start))
-		{
-			stop = start;
-		}
+//		if (me()->MergeDataWithSiblings(start))
+//		{
+//			stop = start;
+//		}
 
 		return result;
 	}
@@ -433,7 +461,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 		stop.prefix() = start.prefix() + start_delta;
 
-		me()->MergeDataWithSiblings(stop);
+		//me()->MergeDataWithSiblings(stop);
 
 		start = stop;
 

@@ -75,7 +75,7 @@ DataPathItem SplitDataPage(Iterator& iter);
 
 private:
 
-void InsertIntoDataPage(Iterator& iter, const ArrayData& buffer);
+void InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int start, Int length);
 
 class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
 
@@ -162,7 +162,7 @@ void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
 	if (usage + buffer.size() <= max_datapage_size)
 	{
 		// The target datapage has enough free space to insert into
-		InsertIntoDataPage(iter, buffer);
+		InsertIntoDataPage(iter, buffer, 0, buffer.size());
 		data_idx += buffer.size();
 	}
 	else if (!iter.IsEof())
@@ -170,27 +170,13 @@ void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
 		if (iter.data_pos() > 0)
 		{
 			SplitDataPage(iter);
-			iter.NextKey();
 		}
 
 		ImportPages(iter, buffer);
 	}
-	else if (iter.IsEnd())
-	{
-		ImportPages(iter, buffer);
-	}
 	else
 	{
-		//EOF
-		iter.key_idx()++;
-
-		iter.data() 	= NULL;
-		iter.data_pos() = 0;
-
 		ImportPages(iter, buffer);
-
-		iter.PrevKey();
-		iter.data_pos() = iter.data()->size(); //???????  may be 0?
 	}
 }
 
@@ -239,9 +225,9 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 //// ====================================================== PRIVATE API ============================================================= ////
 
 M_PARAMS
-void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer)
+void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int start, Int length)
 {
-	DataPageG& data	= iter.data();
+	DataPageG& data	= iter.path().data().node();
 
 	//FIXME: should data page be NULL for empty containers?
 	if (data.is_empty())
@@ -255,15 +241,15 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer)
 
 	Int data_pos	= iter.data_pos();
 
-	data->data().shift(data_pos, buffer.size());
+	data->data().shift(data_pos, length);
 
-	memoria::CopyBuffer(buffer.data(), data->data().value_addr(data_pos), buffer.size());
+	memoria::CopyBuffer(buffer.data() + start, data->data().value_addr(data_pos), length);
 
-	data->data().size() += buffer.size();
+	data->data().size() += length;
 
 	Accumulator accum;
 
-	accum.keys()[0] = buffer.size();
+	accum.keys()[0] = length;
 
 	me()->UpdateUp(iter.path(), 0, iter.key_idx(), accum);
 }
@@ -276,14 +262,65 @@ M_PARAMS
 void M_TYPE::ImportPages(Iterator& iter, const ArrayData& buffer)
 {
 	BigInt	length		= buffer.size();
-	BigInt 	key_count 	= me()->Divide(length, DataPage::get_max_size());
-	Int 	start 		= 0;
+	BigInt 	start;
 
-	ArrayDataSubtreeProvider provider(*me(), key_count, buffer, start, length);
+	if (iter.data_pos() > 0)
+	{
+		Int start_page_capacity = DataPage::get_max_size() - iter.data()->size();
 
-	me()->InsertSubtree(iter, provider);
+		start = length > start_page_capacity ? start_page_capacity : length;
 
-	iter.path().data().parent_idx() = iter.key_idx();
+		InsertIntoDataPage(iter, buffer, 0, start);
+
+		iter.NextKey();
+	}
+	else {
+		start = 0;
+	}
+
+
+	BigInt end 			= (length - start) % DataPage::get_max_size();
+
+	length -= start + end;
+
+	BigInt key_count	= length / DataPage::get_max_size();
+
+	if (key_count > 0)
+	{
+		ArrayDataSubtreeProvider provider(*me(), key_count, buffer, start, length);
+		me()->InsertSubtree(iter, provider);
+	}
+
+	if (end > 0)
+	{
+		if (!iter.IsEnd())
+		{
+			Int end_page_capacity = DataPage::get_max_size() - iter.data()->size();
+
+			if (end <= end_page_capacity)
+			{
+				InsertIntoDataPage(iter, buffer, start + length, end);
+				iter.data_pos() = end;
+			}
+			else {
+				ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
+				me()->InsertSubtree(iter, provider);
+				iter.data_pos() = 0;
+			}
+		}
+		else
+		{
+			ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
+			me()->InsertSubtree(iter, provider);
+			iter.PrevKey();
+			iter.data_pos() = iter.data()->size();
+		}
+	}
+	else if (iter.IsEnd())
+	{
+		iter.PrevKey();
+		iter.data_pos() = iter.data()->size();
+	}
 }
 
 

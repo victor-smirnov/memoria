@@ -110,8 +110,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 
     void RemoveAllPages(TreePath& start, TreePath& stop, Accumulator& accum, BigInt& removed_key_count);
     void RemovePagesFromStart(TreePath& stop, Int& stop_idx, Accumulator& accum, BigInt& removed_key_count);
-    void RemovePagesAtEnd(TreePath& start, Int start_idx, Accumulator& accum, BigInt& removed_key_count);
-    void RemovePages(TreePath& start, Int start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count);
+    void RemovePagesAtEnd(TreePath& start, Int& start_idx, Accumulator& accum, BigInt& removed_key_count);
+    void RemovePages(TreePath& start, Int& start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count);
 
     /**
          * Remove 'count' elements from tree node starting from 'from' element.
@@ -135,7 +135,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 private:
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
 
-
+    void RemovePagesInternal(TreePath& start, Int& start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count);
 
     void RemoveRedundantRoot(TreePath& path, Int level);
     void RemoveRedundantRoot(TreePath& start, TreePath& stop, Int level);
@@ -434,24 +434,49 @@ void M_TYPE::RemovePagesFromStart(TreePath& stop, Int& stop_idx, Accumulator& ac
 
 
 M_PARAMS
-void M_TYPE::RemovePagesAtEnd(TreePath& start, Int start_idx, Accumulator& accum, BigInt& removed_key_count)
+void M_TYPE::RemovePagesAtEnd(TreePath& start, Int& start_idx, Accumulator& accum, BigInt& removed_key_count)
 {
+	if (start_idx == 0)
+	{
+		me()->GetPrevNode(start);
+		start_idx = start[0]->children_count();
+	}
+
+	Int idx = start_idx;
 
 	for (Int c = 0; c < start.GetSize(); c++)
 	{
-		removed_key_count += RemoveRoom(start, c, start_idx, start[c]->children_count() - start_idx, accum);
-		start_idx = start[c].parent_idx() + 1;
+		if (idx > 0)
+		{
+			removed_key_count += RemoveRoom(start, c, idx, start[c]->children_count() - idx, accum);
+			idx = start[c].parent_idx() + 1;
+		}
+		else {
+			idx = start[c].parent_idx();
+		}
 	}
 
 	RemoveRedundantRoot(start, 0);
+
+	me()->FinishPathStep(start, start_idx);
 }
 
 
+M_PARAMS
+void M_TYPE::RemovePages(TreePath& start, Int& start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count)
+{
+	if (start_idx == 0)
+	{
+		me()->GetPrevNode(start);
+		start_idx = start[0]->children_count();
+	}
 
+	RemovePagesInternal(start, start_idx, stop, stop_idx, level, accum, removed_key_count);
+}
 
 
 M_PARAMS
-void M_TYPE::RemovePages(TreePath& start, Int start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count)
+void M_TYPE::RemovePagesInternal(TreePath& start, Int& start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count)
 {
 	if (me()->IsTheSameNode(start, stop, level))
 	{
@@ -487,6 +512,7 @@ void M_TYPE::RemovePages(TreePath& start, Int start_idx, TreePath& stop, Int& st
 
 		Int start_parent_idx = start[level].parent_idx() + 1;
 
+		// FIXME: stop[level].parent_idx() - can be updated elsewhere in MakeRoom() - check it
 		RemovePages(start, start_parent_idx, stop, stop[level].parent_idx(), level + 1, accum, removed_key_count);
 
 		if (IsTheSameParent(start, stop, level))
@@ -653,7 +679,7 @@ void M_TYPE::RemoveEntry(TreePath& path, Int& idx, Accumulator& keys)
 
 	next.NextKey();
 
-	me()->RemoveEntries(from, next, keys);
+	me()->RemoveEntries(from, next, keys, false);
 
 	path = from.path();
 	idx  = from.key_idx();
@@ -832,7 +858,7 @@ void M_TYPE::MergeNodes(TreePath& tgt, TreePath& src, Int level)
 
 	src.MoveRight(level - 1, 0, tgt_children_count);
 
-	me()->Reindex(parent);
+	me()->Reindex(parent); //FIXME: does it necessary?
 }
 
 M_PARAMS

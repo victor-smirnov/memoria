@@ -22,6 +22,9 @@ class VectorTest: public SPTestTask {
 	typedef StreamContainerTypesCollection::Factory<Vector>::Type 	ByteVectorCtr;
 	typedef ByteVectorCtr::Iterator									BVIterator;
 
+	typedef typename ByteVectorCtr::ID								ID;
+	typedef typename ByteVectorCtr::Value							Value;
+
 public:
 
 	VectorTest(): SPTestTask(new VectorParams()) {}
@@ -54,7 +57,7 @@ public:
 			Build(out, allocator, dv, params);
 		}
 		else {
-			Remove(allocator, dv, params);
+			Remove(out, allocator, dv, params);
 		}
 	}
 
@@ -124,29 +127,29 @@ public:
 			out<<"Remove data. ByteVector contains "<<(dv.Size()/1024)<<"K bytes"<<endl;
 			params.insert_ = false;
 
-//			for (Int c = 0; ; c++)
-//			{
-//				if (step)
-//				{
-//					params.step_ = GetRandom(3);
-//				}
-//
-//				BigInt size = dv.Size();
-//				BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
-//
-//				params.data_size_ = 1 + GetBIRandom(max_size);
-//				params.page_step_ 	= GetRandom(3);
-//
-//				if (!Remove(allocator, dv, &params))
-//				{
-//					break;
-//				}
-//
-//				params.pos_ 		= -1;
-//				params.page_step_ 	= -1;
-//
-//				allocator.commit();
-//			}
+			for (Int c = 0; ; c++)
+			{
+				if (step)
+				{
+					params.step_ = GetRandom(3);
+				}
+
+				BigInt size = dv.Size();
+				BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
+
+				params.data_size_ = 1 + GetBIRandom(max_size);
+				params.page_step_ 	= GetRandom(3);
+
+				if (!Remove(out, allocator, dv, &params))
+				{
+					break;
+				}
+
+				params.pos_ 		= -1;
+				params.page_step_ 	= -1;
+
+				allocator.commit();
+			}
 
 			out<<"Vector.size = "<<(dv.Size() / 1024)<<"K bytes"<<endl;
 
@@ -159,15 +162,61 @@ public:
 		}
 	}
 
-	void CheckIterator(BVIterator& iter)
+	void CheckIterator(ostream& out, BVIterator& iter, const char* source)
 	{
+		auto& path = iter.path();
+		for (Int level = path.GetSize() - 1; level > 0; level--)
+		{
+			for (Int idx = 0; idx < path[level]->children_count(); idx++)
+			{
+				ID id = iter.model().GetINodeData(path[level].node(), idx);
+				if (id == path[level - 1]->id() && path[level - 1].parent_idx() != idx)
+				{
+					iter.Dump(out);
+					throw TestException(source, "Invalid parent-child relationship for node:" + ToString(IDValue(path[level]->id())) + " child: "+ToString(IDValue(path[level - 1]->id()))+" idx="+ToString(idx)+" parent_idx="+ToString(path[level-1].parent_idx()));
+				}
+			}
+		}
+
+		if (path.data().node().is_set())
+		{
+			if (iter.data_pos() < 0)
+			{
+				throw TestException(source, "iter.data_pos() is negative: "+ToString(iter.data_pos()));
+			}
+
+			for (Int idx = 0; idx < path[0]->children_count(); idx++)
+			{
+				ID id = iter.model().GetLeafData(path[0].node(), idx);
+				if (id == path.data()->id() && path.data().parent_idx() != idx)
+				{
+					iter.Dump(out);
+					throw TestException(source, "Invalid parent-child relationship for node:"+ToString(IDValue(path[0]->id()))+" DATA: "+ToString(IDValue(path.data()->id()))+" idx="+ToString(idx)+" parent_idx="+ToString(path.data().parent_idx()));
+				}
+			}
+		}
+
+
 		if (iter.IsEnd())
 		{
-			MEMORIA_TEST_ASSERT(iter.data().is_set(), ==, true);
+			if (iter.data().is_set())
+			{
+				iter.Dump(out);
+				throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
+			}
 		}
 		else {
-			MEMORIA_TEST_ASSERT(iter.data().is_set(), !=, true);
-			MEMORIA_TEST_ASSERT(iter.path().data().parent_idx(), !=, iter.key_idx());
+			if (iter.data().is_empty())
+			{
+				iter.Dump(out);
+				throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
+			}
+
+			if (iter.path().data().parent_idx() != iter.key_idx())
+			{
+				iter.Dump(out);
+				throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
+			}
 		}
 	}
 
@@ -179,11 +228,6 @@ public:
 		ArrayData data = CreateBuffer(params->data_size_, value);
 
 		BigInt size = array.Size();
-
-//		if (params->cnt_ == 148)
-//		{
-//			int a; a++;
-//		}
 
 		if (size == 0)
 		{
@@ -226,20 +270,17 @@ public:
 				//Insert at the end of the array
 				auto iter = array.Seek(array.Size());
 
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				BigInt len = array.Size();
 				if (len > 100) len = 100;
 
 				ArrayData prefix(len);
 				iter.Skip(-len);
-				CheckIterator(iter);
-
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Read(prefix);
-				CheckIterator(iter);
-
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Insert(data);
 
@@ -277,28 +318,29 @@ public:
 				ArrayData postfix(postfix_len);
 
 				iter.Skip(-prefix_len);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Read(prefix);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Read(postfix);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Skip(-postfix.size());
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Insert(data);
 
 				Check(allocator, "Insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
-				CheckIterator(iter);
+
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Skip(- data.size() - prefix_len);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 	MEMORIA_SOURCE);
 
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array", 		MEMORIA_SOURCE);
 				CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array", MEMORIA_SOURCE);
@@ -306,7 +348,7 @@ public:
 		}
 	}
 
-	bool Remove(Allocator& allocator, ByteVectorCtr& array, VectorReplay* params)
+	bool Remove(ostream& out, Allocator& allocator, ByteVectorCtr& array, VectorReplay* params)
 	{
 		Int step = params->step_;
 
@@ -327,26 +369,26 @@ public:
 			{
 				//Remove at the start of the array
 				auto iter = array.Seek(0);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				BigInt len = array.Size() - size;
 				if (len > 100) len = 100;
 
 				ArrayData postfix(len);
 				iter.Skip(size);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Read(postfix);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Skip(-len - size);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Remove(size);
 
 				Check(allocator, "Removing region at the start of the array failed. See the dump for details.", MEMORIA_SOURCE);
 
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array", 		MEMORIA_SOURCE);
 			}
@@ -354,26 +396,26 @@ public:
 			{
 				//Remove at the end of the array
 				auto iter = array.Seek(array.Size() - size);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				BigInt len = iter.pos();
 				if (len > 100) len = 100;
 
 				ArrayData prefix(len);
 				iter.Skip(-len);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Read(prefix);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Remove(size);
 
 				Check(allocator, "Removing region at the end of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Skip(-len);
-				CheckIterator(iter);
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", 		MEMORIA_SOURCE);
 			}
@@ -416,6 +458,8 @@ public:
 				iter.Remove(size);
 
 				Check(allocator, "Removing region at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
+
+				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				iter.Skip(-prefix_len);
 

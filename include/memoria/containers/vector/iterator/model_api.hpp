@@ -43,6 +43,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     typedef typename Container::Types::CountData                               	 	CountData;
     typedef typename Container::Types::Pages::NodeDispatcher                        NodeDispatcher;
 
+    typedef typename Base::TreePath                                             	TreePath;
 
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
@@ -86,6 +87,23 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	out<<"DataPos: "<<me()->data_pos()<<endl;
     	out<<"KeyIdx: "<<me()->key_idx()<<endl;
     	out<<"Data.parent_idx: "<<me()->path().data().parent_idx()<<endl;
+
+    	out<<"Path:"<<endl;
+
+    	TreePath& path = me()->path();
+    	for (int c = me()->path().GetSize() - 1; c >= 0; c--)
+    	{
+    		out<<"Root("<<c<<"): "<<IDValue(path[c]->id())<<" idx="<<(c > 0 ? path[c - 1].parent_idx() : path.data().parent_idx())<<endl;
+    	}
+
+    	if (me()->data().is_set())
+    	{
+    		out<<"Data:    "<<IDValue(me()->data()->id())<<endl;
+    	}
+    	else {
+    		out<<"No Data page"<<endl;
+    	}
+
     	me()->model().Dump(me()->page(), out);
     	me()->model().Dump(me()->data(), out);
     }

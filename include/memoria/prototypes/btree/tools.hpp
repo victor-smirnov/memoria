@@ -296,7 +296,7 @@ public:
 	{
 		for (Int c = 0; c < Indexes; c++)
 		{
-			keys_[c] += other.keys_[c];
+			keys_[c] -= other.keys_[c];
 		}
 
 		return *this;

@@ -83,7 +83,10 @@ bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const Nod
 
 		if (key != data->data().size())
 		{
-			MEMORIA_ERROR(me(), "Invalid data page size", leaf->id(), idx, key, data->data().size());
+			me()->Dump(leaf);
+			me()->Dump(data);
+
+			MEMORIA_ERROR(me(), "Invalid data page size", data->id(), leaf->id(), idx, key, data->data().size());
 			error = true;
 		}
 

@@ -861,7 +861,7 @@ void M_TYPE::MakeRoom(TreePath& path, Int level, Int start, Int count) const
 	MakeRoomFn fn(start, count);
 	NodeDispatcher::Dispatch(path[level].node(), fn);
 
-	path.MoveRight(level - 1, start + count, count);
+	path.MoveRight(level - 1, start, count);
 
 //	if (level > 0)
 //	{

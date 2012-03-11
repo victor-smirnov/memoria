@@ -88,7 +88,7 @@ struct SumMap:      public CodeValue<3 + Indexes * 256> {};
 typedef SumMap<1> SumMap1;
 
 template <Int Indexes>
-struct SumSet:      public CodeValue<4 + Indexes * 256> {};
+struct SumSet:      public CodeValue<0x5c421d + Indexes * 256> {};
 
 typedef SumSet<1> SumSet1;
 typedef SumSet<2> SumSet2;
