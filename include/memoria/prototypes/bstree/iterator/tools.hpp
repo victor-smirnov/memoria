@@ -33,9 +33,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
     typedef typename Container::Accumulator											Accumulator;
     typedef typename Container::TreePath											TreePath;
 
-//    static const Int Indexes = Container::Indexes;
-
-
     Key GetRawKey(Int i) const
     {
         return Base::GetKey(i);
@@ -60,9 +57,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
     {
         if (!me()->IsEnd())
         {
-        	me()->prefix() += me()->GetRawKeys();
+        	Accumulator keys = me()->GetRawKeys();
+        	me()->prefix() 	 += keys;
 
-            return Base::NextKey();
+        	bool 		has_next 	= Base::NextKey();
+
+            return has_next;
         }
         else {
             return false;
@@ -77,7 +77,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
 
     		if (result)
     		{
-    			me()->prefix() -= me()->GetRawKeys();
+    			Accumulator keys = me()->GetRawKeys();
+    			me()->prefix() -= keys;
     		}
     		else
     		{
@@ -91,6 +92,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
     	}
     }
 
+    void ComputePrefix(Accumulator& pfx)
+    {
+    	compute_base(pfx);
+    }
+
 
     void ComputeBase()
     {
@@ -102,17 +108,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
         }
     }
 
-    void Dump(ostream& out = cout)
+    void DumpKeys(ostream& out)
     {
-    	out<<"SumSet Iterator state"<<endl;
-    	out<<"KeyIdx: 	   "<<me()->key_idx()<<endl;
-    	out<<"Prefixes: "<<me()->prefix(0)<<endl;
+    	Base::DumpKeys(out);
 
-    	me()->model().Dump(me()->page(), out);
+    	out<<"Prefix:  "<<me()->prefix()<<endl;
     }
 
 
-    void Init() {
+    void Init()
+    {
         ComputeBase();
         Base::Init();
     }
@@ -121,8 +126,8 @@ private:
     
     void compute_base(Accumulator& accum)
     {
-    	TreePath& path0 = me()->path();
-    	Int idx = me()->key_idx();
+    	TreePath& 	path0 = me()->path();
+    	Int 		idx   = me()->key_idx();
 
         for (Int c = 0; c < path0.GetSize(); c++)
         {

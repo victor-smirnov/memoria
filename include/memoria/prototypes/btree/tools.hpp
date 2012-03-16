@@ -10,6 +10,8 @@
 
 #include <memoria/core/tools/fixed_vector.hpp>
 
+#include <ostream>
+
 namespace memoria    	{
 namespace btree 		{
 
@@ -103,65 +105,6 @@ public:
 };
 
 
-
-//template <typename Node>
-//class NodePair {
-//	typedef NodePair<Node> 		MyType;
-//	typedef TreePathItem<Node> 	Item;
-//
-//
-//	TreePathItem<Node> left_;
-//	TreePathItem<Node> right_;
-//
-//public:
-//	NodePair() {}
-//	NodePair(const MyType& other): left_(other.left_), right_(other.right_) {}
-//	NodePair(MyType&& other): left_(std::move(other.left_)), right_(std::move(other.right_)) {}
-//
-//	MyType& operator=(const MyType& other)
-//	{
-//		left_		= other.left_;
-//		right_		= other.right_;
-//
-//		return *this;
-//	}
-//
-//	MyType& operator=(MyType&& other)
-//	{
-//		left_		= other.left_;
-//		right_		= other.right_;
-//
-//		return *this;
-//	}
-//
-//	const Item& left() const
-//	{
-//		return left_;
-//	}
-//
-//	Item& left()
-//	{
-//		return left_;
-//	}
-//
-//	const Item& right() const
-//	{
-//		return right_;
-//	}
-//
-//	Item& right()
-//	{
-//		return right_;
-//	}
-//
-//	void Clear()
-//	{
-//		left_.Clear();
-//		right_.Clear();
-//	}
-//};
-
-
 struct ValueClearing {
 	template <typename Value>
 	void operator()(Value& value)
@@ -204,6 +147,16 @@ public:
 	Key* keys()
 	{
 		return keys_;
+	}
+
+	const Key& key(Int idx) const
+	{
+		return keys_[idx];
+	}
+
+	Key& key(Int idx)
+	{
+		return keys_[idx];
 	}
 
 	void Clear()
@@ -388,6 +341,32 @@ public:
 
 
 }
+}
+
+namespace std {
+
+using namespace memoria::btree;
+
+template <typename Key, Int Indexes>
+ostream& operator<<(ostream& out, const Accumulators<Key, Indexes>& accum)
+{
+	out<<"[";
+
+	for (Int c = 0; c < Indexes; c++)
+	{
+		out<<accum.keys()[c];
+
+		if (c < Indexes - 1)
+		{
+			out<<", ";
+		}
+	}
+
+	out<<"]";
+
+	return out;
+}
+
 }
 
 

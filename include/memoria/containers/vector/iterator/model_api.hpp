@@ -80,35 +80,32 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     BigInt SkipFw(BigInt distance);
     BigInt SkipBw(BigInt distance);
 
-    void Dump(ostream& out = cout, const char* msg = NULL)
+    void DumpKeys(ostream& out)
     {
-    	out<<"Vector iterator state: "<<(msg != NULL ? msg : "")<<endl;
-    	out<<"Pos: 	   "<<me()->pos()<<endl;
+    	Base::DumpKeys(out);
+
+    	out<<"Pos:     "<<me()->pos()<<endl;
     	out<<"DataPos: "<<me()->data_pos()<<endl;
-    	out<<"KeyIdx: "<<me()->key_idx()<<endl;
-    	out<<"Data.parent_idx: "<<me()->path().data().parent_idx()<<endl;
+    }
 
-    	out<<"Path:"<<endl;
-
-    	TreePath& path = me()->path();
-    	for (int c = me()->path().GetSize() - 1; c >= 0; c--)
-    	{
-    		out<<"Root("<<c<<"): "<<IDValue(path[c]->id())<<" idx="<<(c > 0 ? path[c - 1].parent_idx() : path.data().parent_idx())<<endl;
-    	}
-
-    	if (me()->data().is_set())
-    	{
-    		out<<"Data:    "<<IDValue(me()->data()->id())<<endl;
-    	}
-    	else {
-    		out<<"No Data page"<<endl;
-    	}
-
-    	me()->model().Dump(me()->page(), out);
+    void DumpPages(ostream& out)
+    {
+    	Base::DumpPages(out);
     	me()->model().Dump(me()->data(), out);
     }
 
-    BigInt GetBlobId() {return 0;}
+    void DumpPath(ostream& out)
+    {
+    	Base::DumpPath(out);
+
+    	if (me()->data().is_set())
+    	{
+    		out<<"Data:    "<<IDValue(me()->data()->id())<<" at "<<me()->path().data().parent_idx()<<endl;
+    	}
+    	else {
+    		out<<"No Data page is set"<<endl;
+    	}
+    }
 
 MEMORIA_ITERATOR_PART_END
 

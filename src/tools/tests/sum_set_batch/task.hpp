@@ -164,6 +164,9 @@ public:
 		Run(out, params, task_params, true);
 	}
 
+
+
+
 	void Run(ostream& out, SumSetBatchReplay& params, SumSetBatchParams* task_params, bool step)
 	{
 		DefaultLogHandlerImpl logHandler(out);

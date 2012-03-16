@@ -306,51 +306,6 @@ bool M_TYPE::MergeDataWithLeftSibling(Iterator& iter)
 	else {
 		return false;
 	}
-
-
-//	if (iter.key_idx() > 0)
-//	{
-//		BigInt source_size = me()->GetKey(iter.page(), 0, iter.key_idx());
-//		BigInt target_size = me()->GetKey(iter.page(), 0, iter.key_idx() - 1);
-//		if (source_size + target_size <= DataPage::get_max_size()) //iter.data()->size()
-//		{
-//			DataPathItem target_data_item(me()->GetDataPage(iter.page(), iter.key_idx() - 1, Allocator::READ), iter.key_idx() - 1);
-//
-//			MergeDataPagesAndRemoveSource(target_data_item, iter.path(), MergeType::LEFT);
-//
-//			if (iter.IsEnd())
-//			{
-//				iter.PrevKey();
-//				iter.data_pos() = iter.data()->size();
-//			}
-//
-//			return true;
-//		}
-//		else
-//		{
-//			return false;
-//		}
-//	}
-//	else
-//	{
-//		Iterator prev = iter;
-//
-//		if (prev.PrevKey() && me()->CanMergeData(prev.path(), iter.path()))
-//		{
-//			Int data_pos = iter.data_pos();
-//
-//			MergeDataPagesAndRemoveSource(prev.path(), iter.path(), MergeType::LEFT);
-//
-//			iter = prev;
-//
-//			iter.data_pos() = iter.data()->size() + data_pos;
-//
-//			return true;
-//		}
-//		else {
-//			return false;
-//		}
-//	}
 }
 
 
@@ -499,7 +454,8 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 		// Removed region crosses data node boundary
 
 		Accumulator removed;
-		Accumulator start_delta;
+
+		Accumulator prefix;
 
 		if (start.data_pos() > 0)
 		{
@@ -508,9 +464,13 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 			removed     += RemoveData(start.path(), start.data_pos(), length);
 
-			start_delta.keys()[0] = start.data_pos();
-
 			start.NextKey();
+
+			prefix = start.prefix();
+		}
+		else {
+			prefix 			= start.prefix();
+			prefix.key(0) 	+= start.data_pos();
 		}
 
 		if (stop.data_pos() > 0)
@@ -522,7 +482,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 		BigInt removed_key_count = 0;
 		me()->RemovePages(start.path(), start.key_idx(), stop.path(), stop.key_idx(), 0, removed, removed_key_count);
 
-		stop.prefix() = start.prefix() + start_delta;
+		stop.prefix() = prefix;
 
 		me()->MergeDataWithSiblings(stop);
 

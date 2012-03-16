@@ -20,6 +20,8 @@ using namespace memoria::vapi;
 class VectorTest: public SPTestTask {
 
 	typedef StreamContainerTypesCollection::Factory<Vector>::Type 	ByteVectorCtr;
+
+	typedef typename ByteVectorCtr::Accumulator						Accumulator;
 	typedef ByteVectorCtr::Iterator									BVIterator;
 
 	typedef typename ByteVectorCtr::ID								ID;
@@ -166,6 +168,17 @@ public:
 
 	void CheckIterator(ostream& out, BVIterator& iter, const char* source)
 	{
+		Accumulator prefix;
+
+		iter.ComputePrefix(prefix);
+
+		if (iter.prefix(0) != prefix.key(0))
+		{
+			iter.Dump(out);
+			throw TestException(source, "Invalid prefix value. Iterator: "+ToString(iter.prefix())+" Actual: "+ToString(prefix));
+		}
+
+
 		auto& path = iter.path();
 		for (Int level = path.GetSize() - 1; level > 0; level--)
 		{
