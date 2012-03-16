@@ -34,6 +34,8 @@ public:
 	typedef typename CtrTF<Profile, SumSet2, SumSet2>::Type		IdxSet;
 	typedef typename CtrTF<Profile, Vector,	 Vector>::Type		ByteArray;
 
+	typedef typename IdxSet::Accumulator                        IdxSetAccumulator;
+
 	static const Int IS_Indexes									= IdxSet::Indexes;
 	static const Int BA_Indexes									= ByteArray::Indexes;
 
@@ -225,7 +227,8 @@ public:
 			BigInt 	data_pos 	= is_iter.prefix(1);
 			BigInt 	size		= is_iter.GetRawKey(1);
 
-			set_.RemoveEntry(is_iter);
+			IdxSetAccumulator accum;
+			set_.RemoveEntry(is_iter, accum);
 
 			if (!is_iter.IsEnd())
 			{

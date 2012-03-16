@@ -46,6 +46,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::ContainerApiName)
     typedef typename Base::ApiKeyType                                           ApiKeyType;
     typedef typename Base::ApiValueType                                         ApiValueType;
 
+    typedef typename Base::Accumulator                                          Accumulator;
+
     static const Int Indexes                                                    = Base::Indexes;
 
     bool Find(BigInt index, Int c, Int search_type, Value& v);
@@ -55,7 +57,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::ContainerApiName)
     bool Remove(Key index, Int key_num = 0)
     {
         Iterator i = me()->FindLE(index, key_num, false);
-        return me()->RemoveEntry(i);
+        Accumulator accum;
+        return me()->RemoveEntry(i, accum);
     }
 
     bool Remove(Key from_idx, Key to_idx, Int key_num = 0)

@@ -63,6 +63,11 @@ public:
 		return node_ == other.node_;
 	}
 
+	bool operator!=(const MyType& other) const
+	{
+		return node_ != other.node_;
+	}
+
 	operator Node& () {
 		return node_;
 	}
@@ -99,62 +104,62 @@ public:
 
 
 
-template <typename Node>
-class NodePair {
-	typedef NodePair<Node> 		MyType;
-	typedef TreePathItem<Node> 	Item;
-
-
-	TreePathItem<Node> left_;
-	TreePathItem<Node> right_;
-
-public:
-	NodePair() {}
-	NodePair(const MyType& other): left_(other.left_), right_(other.right_) {}
-	NodePair(MyType&& other): left_(std::move(other.left_)), right_(std::move(other.right_)) {}
-
-	MyType& operator=(const MyType& other)
-	{
-		left_		= other.left_;
-		right_		= other.right_;
-
-		return *this;
-	}
-
-	MyType& operator=(MyType&& other)
-	{
-		left_		= other.left_;
-		right_		= other.right_;
-
-		return *this;
-	}
-
-	const Item& left() const
-	{
-		return left_;
-	}
-
-	Item& left()
-	{
-		return left_;
-	}
-
-	const Item& right() const
-	{
-		return right_;
-	}
-
-	Item& right()
-	{
-		return right_;
-	}
-
-	void Clear()
-	{
-		left_.Clear();
-		right_.Clear();
-	}
-};
+//template <typename Node>
+//class NodePair {
+//	typedef NodePair<Node> 		MyType;
+//	typedef TreePathItem<Node> 	Item;
+//
+//
+//	TreePathItem<Node> left_;
+//	TreePathItem<Node> right_;
+//
+//public:
+//	NodePair() {}
+//	NodePair(const MyType& other): left_(other.left_), right_(other.right_) {}
+//	NodePair(MyType&& other): left_(std::move(other.left_)), right_(std::move(other.right_)) {}
+//
+//	MyType& operator=(const MyType& other)
+//	{
+//		left_		= other.left_;
+//		right_		= other.right_;
+//
+//		return *this;
+//	}
+//
+//	MyType& operator=(MyType&& other)
+//	{
+//		left_		= other.left_;
+//		right_		= other.right_;
+//
+//		return *this;
+//	}
+//
+//	const Item& left() const
+//	{
+//		return left_;
+//	}
+//
+//	Item& left()
+//	{
+//		return left_;
+//	}
+//
+//	const Item& right() const
+//	{
+//		return right_;
+//	}
+//
+//	Item& right()
+//	{
+//		return right_;
+//	}
+//
+//	void Clear()
+//	{
+//		left_.Clear();
+//		right_.Clear();
+//	}
+//};
 
 
 struct ValueClearing {
@@ -366,6 +371,16 @@ public:
 				}
 			}
 		}
+	}
+
+	PathItem& leaf()
+	{
+		return this->operator[](0);
+	}
+
+	const PathItem& leaf() const
+	{
+		return this->operator[](0);
 	}
 };
 

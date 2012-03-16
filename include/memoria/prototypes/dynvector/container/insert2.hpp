@@ -228,6 +228,7 @@ M_PARAMS
 void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int start, Int length)
 {
 	DataPageG& data	= iter.path().data().node();
+	data.update();
 
 	//FIXME: should data page be NULL for empty containers?
 	if (data.is_empty())

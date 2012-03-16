@@ -717,10 +717,28 @@ void M_TYPE::InsertSubtree(TreePath& left_path, Int left_idx, TreePath& right_pa
 			// equal free space after processing.
 
 			BigInt total_keys 			= Divide(key_count, subtree_size);
-			BigInt total_keys_in_node 	= total_keys > total_capacity ? total_capacity : total_keys;
 
-			Int left_count	= start_capacity > total_keys_in_node ? total_keys_in_node : start_capacity;
-			Int right_count	= total_keys_in_node - left_count;
+			Int left_count, right_count;
+
+			if (total_keys <= total_capacity)
+			{
+				Int left_usage 	= left_path[level]->children_count();
+				Int right_usage = right_path[level]->children_count();
+
+				if (left_usage < right_usage)
+				{
+					left_count 	= start_capacity > total_keys ? total_keys : start_capacity;
+					right_count = total_keys - left_count;
+				}
+				else {
+					right_count	= end_capacity > total_keys ? total_keys : end_capacity;
+					left_count	= total_keys - right_count;
+				}
+			}
+			else {
+				left_count 	= start_capacity;
+				right_count = end_capacity;
+			}
 
 			FillNodeLeft(left_path, level,   left_idx,  left_count,  data);
 			FillNodeRight(right_path, level, right_idx, right_count, data);

@@ -533,7 +533,7 @@ public:
 
 	bool operator!=(const MyType& other) const
 	{
-		return shared_ != other->shared_;
+		return shared_ != NULL && other.shared_ != NULL && shared_->id() != other.shared_->id();
 	}
 
 	const PageT* page() const {

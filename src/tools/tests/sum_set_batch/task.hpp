@@ -30,6 +30,8 @@ private:
 	typedef StreamContainerTypesCollection::Factory<SumSet1>::Type 	SumSetCtr;
 	typedef SumSetCtr::Iterator										Iterator;
 
+	typedef typename SumSetCtr::Accumulator							SumSetCtrAccumulator;
+
 	static const Int Indexes = SumSetCtr::Indexes;
 	typedef typename SumSetCtr::Key Key;
 
@@ -316,11 +318,8 @@ public:
 	{
 		auto iter2 = iter;
 		Skip(iter2, size);
-//
-//		iter.Dump();
-//		iter2.Dump();
-
-		iter.model().RemoveEntries(iter, iter2);
+		SumSetCtrAccumulator keys;
+		iter.model().RemoveEntries(iter, iter2, keys);
 	}
 
 

@@ -41,7 +41,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::InsertName)
     typedef typename Types::Pages::NodeFactory                                  NodeFactory;
 
     typedef typename Base::Key                                                  Key;
-    typedef typename Types::Value                                                Value;
+    typedef typename Types::Value                                               Value;
+
+    typedef typename Base::Accumulator                                          Accumulator;
 
     static const Int Indexes                                                    = Types::Indexes;
 
@@ -82,7 +84,8 @@ bool M_TYPE::RemoveByKey(Key key)
 	{
 		if (i.GetKey(0) == key)
 		{
-			me()->RemoveEntry(i);
+			Accumulator accum;
+			me()->RemoveEntry(i, accum);
 			return true;
 		}
 	}

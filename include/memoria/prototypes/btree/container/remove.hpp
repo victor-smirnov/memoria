@@ -52,7 +52,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     typedef typename Base::Metadata                                             Metadata;
 
 
-    typedef Accumulators<Key, Indexes>											Accumulator;
+    typedef typename Base::Accumulator											Accumulator;
 
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
@@ -91,17 +91,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     bool MergeWithRightSibling(TreePath& path, Int level);
     bool MergeWithSiblings(TreePath& path, Int level, Int& key_idx);
 
+    bool MergePaths(TreePath& tgt, TreePath& src, Int level = 0);
+
     /**
      * Remove key and data pointed by iterator 'iter' form the map.
      *
      */
-    bool RemoveEntry(Iterator& iter, bool preserve_key_values = true);
+    bool RemoveEntry(Iterator& iter, Accumulator& keys);
 
-    void RemoveEntry(NodeBaseG& node, Int& idx, Key* keys);
+//    void RemoveEntry(NodeBaseG& node, Int& idx, Key* keys);
 
-    void RemoveEntry(TreePath& path, Int& idx, Accumulator& keys);
+    void RemoveEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge = true);
 
-    BigInt RemoveEntries(Iterator& from, Iterator& to);
+
+
+//    BigInt RemoveEntries(Iterator& from, Iterator& to);
     BigInt RemoveEntries(Iterator& from, Iterator& to, Accumulator& accum, bool merge = true);
 
     void Drop();
@@ -151,7 +155,7 @@ private:
      * merge it with siblings.
      */
 
-    void RemovePage(TreePath& path, Int level, typename UpdateType::Enum update_type = UpdateType::FULL);
+    void RemovePage(TreePath& path);
 
 
     /**
@@ -539,38 +543,24 @@ void M_TYPE::RemovePagesInternal(TreePath& start, Int& start_idx, TreePath& stop
  *
  * If after removing the parent is less than half filled than
  * merge it with siblings.
+ *
  */
 
 M_PARAMS
-void M_TYPE::RemovePage(TreePath& path, Int level, typename UpdateType::Enum update_type)
+void M_TYPE::RemovePage(TreePath& path)
 {
-	if (level < path.GetSize() - 1)
+	for (Int c = 1; c < path.GetSize(); c++)
 	{
-		NodeBaseG& parent = path[level + 1].node();
-
-		//recursively remove parent if has only one child.
-
-		if (parent->children_count() == 1)
+		if (path[c]->children_count() > 1)
 		{
-			me()->RemovePage(path, level + 1, update_type);
-		}
-		else {
-			//Remove element from parent ponting tho this node.
-			//This node (it is a child there) will be removed automatically
-			//and all parents chain will be updated.
 			Accumulator accum;
-			me()->RemoveRoom(path, level + 1, path[level]->parent_idx(), 1, accum);
-
-			//if after removing parent is less than half filled than
-			//merge it with it's siblings if possible
-			if (me()->ShouldMergeNode(path, level + 1))
-			{
-				me()->MergeWithSiblings(path, level + 1);
-			}
+			me()->RemoveRoom(path, c, path[c - 1].parent_idx(), 1, accum);
+			break;
 		}
-	}
-	else {
-		me()->RemoveNode(path[level].node());
+		else if (path[c]->is_root())
+		{
+			me()->RemoveNode(path[c].node());
+		}
 	}
 }
 
@@ -638,19 +628,11 @@ bool M_TYPE::ChangeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
  */
 
 M_PARAMS
-bool M_TYPE::RemoveEntry(Iterator& iter, bool preserve_key_values)
+bool M_TYPE::RemoveEntry(Iterator& iter, Accumulator& keys)
 {
-	if (iter.IsNotEnd())
+	if (iter.IsNotEmpty() || iter.IsNotEnd())
 	{
-		Key keys[Indexes];
-		me()->ClearKeys(keys);
-
-		RemoveEntry(iter.page(), iter.key_idx(), keys);
-
-		if (MapType == MapTypes::Sum && iter.IsNotEnd())
-		{
-			me()->AddKeysUp(iter.page(), iter.key_idx(), keys);
-		}
+		RemoveEntry(iter.path(), iter.key_idx(), keys);
 
 		return true;
 	}
@@ -660,46 +642,50 @@ bool M_TYPE::RemoveEntry(Iterator& iter, bool preserve_key_values)
 }
 
 
-
 M_PARAMS
-void M_TYPE::RemoveEntry(NodeBaseG& path, Int& idx, Key* keys)
+void M_TYPE::RemoveEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge)
 {
+	Int children_count 	= path.leaf()->children_count();
 
+	//if leaf page has more than 1 key do regular remove
+
+	if (children_count > 1)
+	{
+		//remove 1 element rom the leaf, update parent and
+		//do not try to remove children (it's a leaf)
+
+		RemoveRoom(path, 0, idx, 1, keys);
+
+		//try merging this leaf with previous of following
+		//leaf if filled by half of it's capacity.
+		if (merge && me()->ShouldMergeNode(path, 0))
+		{
+			me()->MergeWithSiblings(path, 0, idx);
+		}
+
+		me()->FinishPathStep(path, idx);
+	}
+	else {
+		TreePath next = path;
+		bool has_next = me()->GetNextNode(next);
+
+		me()->GetKeys(path.leaf().node(), idx, keys);
+
+		me()->RemovePage(path);
+
+		if (has_next)
+		{
+			path 	= next;
+			idx 	= 0;
+		}
+		else {
+			Iterator iter = me()->FindEnd();
+
+			path 	= iter.path();
+			idx 	= iter.key_idx();
+		}
+	}
 }
-
-M_PARAMS
-void M_TYPE::RemoveEntry(TreePath& path, Int& idx, Accumulator& keys)
-{
-	Iterator from(*me());
-
-	from.path() 	= path;
-	from.key_idx()	= idx;
-
-	Iterator next = from;
-
-	next.NextKey();
-
-	me()->RemoveEntries(from, next, keys, false);
-
-	path = from.path();
-	idx  = from.key_idx();
-}
-
-M_PARAMS
-BigInt M_TYPE::RemoveEntries(Iterator& from, Iterator& to)
-{
-	Accumulator accum;
-
-	BigInt removed = me()->RemoveEntries(from, to, accum);
-
-//	if (to.IsNotEnd())
-//	{
-//		me()->AddKeysUp(to.page(), to.key_idx(), accum.keys());
-//	}
-
-	return removed;
-}
-
 
 
 
@@ -827,6 +813,34 @@ bool M_TYPE::MergeWithRightSibling(TreePath& path, Int level)
 }
 
 
+
+M_PARAMS
+bool M_TYPE::MergePaths(TreePath& tgt, TreePath& src, Int level)
+{
+	bool merged_at_level = false;
+
+	for (Int c = tgt.GetSize() - 1; c >= level; c--)
+	{
+		if (CanMerge(tgt, src, c))
+		{
+			if (tgt[c] != src[c])
+			{
+				MergeNodes(tgt, src, c);
+
+				src[c] = tgt[c];
+
+				merged_at_level = c == level;
+			}
+		}
+		else {
+			break;
+		}
+	}
+
+	RemoveRedundantRoot(tgt, src, level);
+
+	return merged_at_level;
+}
 
 
 M_PARAMS

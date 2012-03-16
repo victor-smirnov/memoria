@@ -46,6 +46,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::RemoveName)
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
 
+    typedef typename Base::Accumulator											Accumulator;
+
     static const Int Indexes                                                    = Types::Indexes;
 
 
@@ -58,7 +60,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::RemoveName)
 
             if (!(ifrom.IsEmpty() || ifrom.IsEnd()))
             {
-                return me()->RemoveEntries(ifrom, ito);
+            	Accumulator keys;
+                return me()->RemoveEntries(ifrom, ito, keys);
             }
         }
         return false;

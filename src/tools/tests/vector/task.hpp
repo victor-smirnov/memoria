@@ -48,6 +48,8 @@ public:
 		VectorReplay* params = static_cast<VectorReplay*>(step_params);
 		Allocator allocator;
 		LoadAllocator(allocator, params);
+		Check(allocator, "Allocator check failed", MEMORIA_SOURCE);
+
 		ByteVectorCtr dv(allocator, 1);
 
 		dv.SetMaxChildrenPerNode(params->btree_airity_);
@@ -167,14 +169,29 @@ public:
 		auto& path = iter.path();
 		for (Int level = path.GetSize() - 1; level > 0; level--)
 		{
+			bool found = false;
+
 			for (Int idx = 0; idx < path[level]->children_count(); idx++)
 			{
 				ID id = iter.model().GetINodeData(path[level].node(), idx);
-				if (id == path[level - 1]->id() && path[level - 1].parent_idx() != idx)
+				if (id == path[level - 1]->id())
 				{
-					iter.Dump(out);
-					throw TestException(source, "Invalid parent-child relationship for node:" + ToString(IDValue(path[level]->id())) + " child: "+ToString(IDValue(path[level - 1]->id()))+" idx="+ToString(idx)+" parent_idx="+ToString(path[level-1].parent_idx()));
+					if (path[level - 1].parent_idx() != idx)
+					{
+						iter.Dump(out);
+						throw TestException(source, "Invalid parent-child relationship for node:" + ToString(IDValue(path[level]->id())) + " child: "+ToString(IDValue(path[level - 1]->id()))+" idx="+ToString(idx)+" parent_idx="+ToString(path[level-1].parent_idx()));
+					}
+					else {
+						found = true;
+						break;
+					}
 				}
+			}
+
+			if (!found)
+			{
+				iter.Dump(out);
+				throw TestException(source, "Child: " + ToString(IDValue(path[level - 1]->id())) + " is not fount is it's parent, parent_idx="+ToString(path[level - 1].parent_idx()));
 			}
 		}
 
@@ -185,14 +202,28 @@ public:
 				throw TestException(source, "iter.data_pos() is negative: "+ToString(iter.data_pos()));
 			}
 
+			bool found = false;
 			for (Int idx = 0; idx < path[0]->children_count(); idx++)
 			{
 				ID id = iter.model().GetLeafData(path[0].node(), idx);
-				if (id == path.data()->id() && path.data().parent_idx() != idx)
+				if (id == path.data()->id())
 				{
-					iter.Dump(out);
-					throw TestException(source, "Invalid parent-child relationship for node:"+ToString(IDValue(path[0]->id()))+" DATA: "+ToString(IDValue(path.data()->id()))+" idx="+ToString(idx)+" parent_idx="+ToString(path.data().parent_idx()));
+					if (path.data().parent_idx() != idx)
+					{
+						iter.Dump(out);
+						throw TestException(source, "Invalid parent-child relationship for node:"+ToString(IDValue(path[0]->id()))+" DATA: "+ToString(IDValue(path.data()->id()))+" idx="+ToString(idx)+" parent_idx="+ToString(path.data().parent_idx()));
+					}
+					else {
+						found = true;
+						break;
+					}
 				}
+			}
+
+			if (!found)
+			{
+				iter.Dump(out);
+				throw TestException(source, "Data: " + ToString(IDValue(path.data()->id())) + " is not fount is it's parent, parent_idx="+ToString(path.data().parent_idx()));
 			}
 		}
 
@@ -215,7 +246,7 @@ public:
 			if (iter.path().data().parent_idx() != iter.key_idx())
 			{
 				iter.Dump(out);
-				throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
+				throw TestException(MEMORIA_SOURCE, "Iterator data.parent_idx mismatch");
 			}
 		}
 	}
@@ -270,6 +301,8 @@ public:
 				//Insert at the end of the array
 				auto iter = array.Seek(array.Size());
 
+				//iter.Dump();
+
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				BigInt len = array.Size();
@@ -281,6 +314,8 @@ public:
 
 				iter.Read(prefix);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
+
+				//iter.Dump();
 
 				iter.Insert(data);
 

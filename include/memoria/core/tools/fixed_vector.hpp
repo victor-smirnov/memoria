@@ -151,6 +151,18 @@ public:
 	{
 		Remove(GetSize() - 1);
 	}
+
+	void Clear()
+	{
+		ClearingFunctor functor;
+
+		for (Int c = 0; c < size_; c++)
+		{
+			functor(values_[c]);
+		}
+
+		size_ = 0;
+	}
 };
 
 }

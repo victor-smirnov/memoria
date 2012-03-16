@@ -100,6 +100,8 @@ public:
     bool MergeDataWithRightSibling(Iterator& iter);
     bool MergeDataWithLeftSibling(Iterator& iter);
 
+
+
     bool ShouldMergeData(const TreePath& path) const
     {
     	return path.data()->size() <= DataPage::get_max_size() / 2;
@@ -110,9 +112,15 @@ public:
     	return data1[0]->id() == data2[0]->id()  &&  (data1.data()->size() + data2.data()->size() <= DataPage::get_max_size());
     }
 
+    bool CanMergeData2(const TreePath& data1, const TreePath& data2) const
+    {
+    	return data1.data()->size() + data2.data()->size() <= DataPage::get_max_size();
+    }
 
 
     void AddAndSubtractKeyValues(TreePath& start, Int add_idx, TreePath& stop, Int sub_idx, const Accumulator& keys, Int level = 0);
+
+
 
 private:
 
@@ -202,15 +210,43 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 M_PARAMS
 bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 {
+//	Iterator next = iter;
+//
+//	if (next.NextKey() && CanMergeData2(next.path(), iter.path()))
+//	{
+//		Int data_pos = iter.data_pos();
+//
+//		Int source_node_size = iter.path().leaf()->children_count();
+//
+//		MergeDataPagesAndRemoveSource(next.path(), iter.path(), MergeType::RIGHT);
+//
+//		if (source_node_size > 1 && me()->ShouldMergeNode(iter.path(), 0))
+//		{
+//			me()->MergePaths(next.path(), iter.path());
+//		}
+//
+//		iter = next;
+//
+//		iter.data_pos() = data_pos;
+//
+//		return true;
+//	}
+//	else {
+//		return false;
+//	}
+
+
 	if (iter.key_idx() < iter.page()->children_count() - 1)
 	{
-		BigInt source_size = me()->GetKey(iter.page(), 0, iter.key_idx());
+		BigInt source_size = iter.data()->size();
 		BigInt target_size = me()->GetKey(iter.page(), 0, iter.key_idx() + 1);
-		if (source_size + target_size <= DataPage::get_max_size()) //iter.data()->size()
+		if (source_size + target_size <= DataPage::get_max_size())
 		{
-			DataPathItem target_data_item(me()->GetDataPage(iter.page(), iter.key_idx() + 1, Allocator::READ), iter.key_idx() + 1);
+			DataPathItem target_data_item(me()->GetDataPage(iter.page(), iter.key_idx() + 1, Allocator::UPDATE), iter.key_idx() + 1);
 
 			MergeDataPagesAndRemoveSource(target_data_item, iter.path(), MergeType::RIGHT);
+
+
 
 			return true;
 		}
@@ -246,49 +282,75 @@ bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 M_PARAMS
 bool M_TYPE::MergeDataWithLeftSibling(Iterator& iter)
 {
-	if (iter.key_idx() > 0)
+	Iterator prev = iter;
+
+	if (prev.PrevKey() && CanMergeData2(prev.path(), iter.path()))
 	{
-		BigInt source_size = me()->GetKey(iter.page(), 0, iter.key_idx());
-		BigInt target_size = me()->GetKey(iter.page(), 0, iter.key_idx() - 1);
-		if (source_size + target_size <= DataPage::get_max_size()) //iter.data()->size()
+		Int data_pos = iter.data_pos();
+		Int target_data_size = prev.data()->size();
+
+		Int source_node_size = iter.path().leaf()->children_count();
+
+		MergeDataPagesAndRemoveSource(prev.path(), iter.path(), MergeType::LEFT);
+
+		if (source_node_size > 1 && me()->ShouldMergeNode(iter.path(), 0))
 		{
-			DataPathItem target_data_item(me()->GetDataPage(iter.page(), iter.key_idx() - 1, Allocator::READ), iter.key_idx() - 1);
-
-			MergeDataPagesAndRemoveSource(target_data_item, iter.path(), MergeType::LEFT);
-
-			if (iter.IsEnd())
-			{
-				iter.PrevKey();
-				iter.data_pos() = iter.data()->size();
-			}
-
-			return true;
+			me()->MergePaths(prev.path(), iter.path());
 		}
-		else
-		{
-			return false;
-		}
+
+		iter = prev;
+		iter.data_pos() = target_data_size + data_pos;
+
+		return true;
 	}
-	else
-	{
-		Iterator prev = iter;
-
-		if (prev.PrevKey() && me()->CanMergeData(prev.path(), iter.path()))
-		{
-			Int data_pos = iter.data_pos();
-
-			MergeDataPagesAndRemoveSource(prev.path(), iter.path(), MergeType::LEFT);
-
-			iter = prev;
-
-			iter.data_pos() = iter.data()->size() + data_pos;
-
-			return true;
-		}
-		else {
-			return false;
-		}
+	else {
+		return false;
 	}
+
+
+//	if (iter.key_idx() > 0)
+//	{
+//		BigInt source_size = me()->GetKey(iter.page(), 0, iter.key_idx());
+//		BigInt target_size = me()->GetKey(iter.page(), 0, iter.key_idx() - 1);
+//		if (source_size + target_size <= DataPage::get_max_size()) //iter.data()->size()
+//		{
+//			DataPathItem target_data_item(me()->GetDataPage(iter.page(), iter.key_idx() - 1, Allocator::READ), iter.key_idx() - 1);
+//
+//			MergeDataPagesAndRemoveSource(target_data_item, iter.path(), MergeType::LEFT);
+//
+//			if (iter.IsEnd())
+//			{
+//				iter.PrevKey();
+//				iter.data_pos() = iter.data()->size();
+//			}
+//
+//			return true;
+//		}
+//		else
+//		{
+//			return false;
+//		}
+//	}
+//	else
+//	{
+//		Iterator prev = iter;
+//
+//		if (prev.PrevKey() && me()->CanMergeData(prev.path(), iter.path()))
+//		{
+//			Int data_pos = iter.data_pos();
+//
+//			MergeDataPagesAndRemoveSource(prev.path(), iter.path(), MergeType::LEFT);
+//
+//			iter = prev;
+//
+//			iter.data_pos() = iter.data()->size() + data_pos;
+//
+//			return true;
+//		}
+//		else {
+//			return false;
+//		}
+//	}
 }
 
 
@@ -321,6 +383,7 @@ bool M_TYPE::MergeDataWithSiblings(Iterator& iter)
 		return false;
 	}
 }
+
 
 M_PARAMS
 void M_TYPE::AddAndSubtractKeyValues(TreePath& start, Int add_idx, TreePath& stop, Int sub_idx, const Accumulator& keys, Int level)
@@ -425,10 +488,10 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 		stop.data_pos() = start.data_pos();
 
-//		if (me()->MergeDataWithSiblings(start))
-//		{
-//			stop = start;
-//		}
+		if(me()->MergeDataWithSiblings(stop))
+		{
+			start = stop;
+		}
 
 		return result;
 	}
@@ -461,7 +524,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 		stop.prefix() = start.prefix() + start_delta;
 
-		//me()->MergeDataWithSiblings(stop);
+		me()->MergeDataWithSiblings(stop);
 
 		start = stop;
 
@@ -487,9 +550,9 @@ typename M_TYPE::Accumulator M_TYPE::RemoveData(TreePath& path, Int start, Int l
 	data->data().size() -= length;
 
 	Accumulator accum;
-	accum.keys()[0] = -length;
+	accum.keys()[0] = length;
 
-	me()->UpdateUp(path, 0, path.data().parent_idx(), accum);
+	me()->UpdateUp(path, 0, path.data().parent_idx(), -accum);
 
 	return accum;
 }
@@ -527,7 +590,10 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 	{
 		memoria::CopyBuffer(source_data->data().value_addr(0), target_data->data().value_addr(tgt_size), src_size);
 
-		me()->AddAndSubtractKeyValues(target, target_data_item.parent_idx(), source, source_data_item.parent_idx(), keys);
+		//me()->AddAndSubtractKeyValues(target, target_data_item.parent_idx(), source, source_data_item.parent_idx(), keys);
+
+		me()->UpdateUp(target, 0, target_data_item.parent_idx(), keys);
+		me()->UpdateUp(source, 0, source_data_item.parent_idx(), -keys);
 	}
 	else {
 		// make a room for source data in the target data page
@@ -537,7 +603,8 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 		// copy page content from source to target
 		memoria::CopyBuffer(source_data->data().value_addr(0), target_data->data().value_addr(0), src_size);
 
-		me()->AddAndSubtractKeyValues(source, source_data_item.parent_idx(), target, target_data_item.parent_idx(), -keys);
+		me()->UpdateUp(target, 0, target_data_item.parent_idx(), keys);
+		me()->UpdateUp(source, 0, source_data_item.parent_idx(), -keys);
 	}
 
 	target_data->data().size() += src_size;
@@ -568,7 +635,7 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 	Int source_parent_idx = source.data().parent_idx();
 
 	Accumulator keys;
-	me()->RemoveEntry(source, source_parent_idx, keys);
+	me()->RemoveEntry(source, source_parent_idx, keys, false);
 }
 
 
@@ -590,7 +657,10 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 	Int source_parent_idx = source.data().parent_idx();
 
 	Accumulator keys;
-	me()->RemoveEntry(source, source_parent_idx, keys);
+	me()->RemoveEntry(source, source_parent_idx, keys, false);
+
+	source.data().parent_idx() 	= source_parent_idx;
+	source.data().node() 		= target_data.node();
 }
 
 

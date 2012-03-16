@@ -41,6 +41,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::RemoveName)
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
+    typedef typename Base::Accumulator                                          Accumulator;
 
     static const Int Indexes                                                    = Types::Indexes;
 
@@ -54,7 +55,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::kvmap::RemoveName)
         if (i.IsFound())
         {
             if (i.GetKey(c) == key) {
-                me()->RemoveEntry(i);
+            	Accumulator accum;
+                me()->RemoveEntry(i, accum);
                 return true;
             }
         }
