@@ -20,7 +20,7 @@ class VectorReplay: public ReplayParams {
 public:
 	Int 	data_;
 	bool 	insert_;
-	Int		data_size_;
+	Int		block_size_;
 
 	Int		page_step_;
 
@@ -29,11 +29,11 @@ public:
 	Int 	cnt_;
 
 public:
-	VectorReplay(): ReplayParams(), data_(0), insert_(true), data_size_(0), page_step_(-1), pos_(-1), cnt_(0)
+	VectorReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
 	{
 		Add("data", 	data_);
 		Add("insert", 	insert_);
-		Add("dataSize", data_size_);
+		Add("dataSize", block_size_);
 		Add("pageStep", page_step_);
 		Add("pos", 		pos_);
 		Add("cnt", 		cnt_);

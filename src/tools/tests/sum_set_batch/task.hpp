@@ -12,7 +12,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-
+#include "../shared/btree_test_base.hpp"
 #include "params.hpp"
 
 #include <vector>
@@ -23,249 +23,37 @@
 
 namespace memoria {
 
-class SumSetBatchTest: public SPTestTask {
+typedef StreamContainerTypesCollection::Factory<SumSet1>::Type SumSet1Ctr;
 
-private:
-	typedef vector<BigInt> PairVector;
-	typedef StreamContainerTypesCollection::Factory<SumSet1>::Type 	SumSetCtr;
-	typedef SumSetCtr::Iterator										Iterator;
 
-	typedef typename SumSetCtr::Accumulator							SumSetCtrAccumulator;
+class SumSetBatchTest: public BTreeBatchTestBase<
+	SumSet1,
+	typename SumSet1Ctr::LeafPairsVector,
+	SumSetBatchParams,
+	SumSetBatchReplay
+>
+{
+	typedef BTreeBatchTestBase<
+			SumSet1,
+			typename SumSet1Ctr::LeafPairsVector,
+			SumSetBatchParams,
+			SumSetBatchReplay
+	>																Base;
 
-	static const Int Indexes = SumSetCtr::Indexes;
-	typedef typename SumSetCtr::Key Key;
+	typedef typename Base::Ctr 										Ctr;
+	typedef typename Base::Accumulator 								Accumulator;
+	typedef typename SumSet1Ctr::LeafPairsVector 					ArrayData;
 
-	typedef typename SumSetCtr::Counters 					Counters;
-	typedef typename SumSetCtr::NodeBaseG 					NodeBaseG;
-	typedef typename SumSetCtr::NodeDispatcher 				NodeDispatcher;
-	typedef typename SumSetCtr::NonLeafDispatcher 			NonLeafDispatcher;
-	typedef typename SumSetCtr::LeafDispatcher 				LeafDispatcher;
-	typedef typename SumSetCtr::ID 							ID;
-	typedef typename SumSetCtr::LeafNodeKeyValuePair 		LeafNodeKeyValuePair;
-	typedef typename SumSetCtr::NonLeafNodeKeyValuePair 	NonLeafNodeKeyValuePair;
-	typedef typename SumSetCtr::LeafPairsVector				LeafPairsVector;
-//	typedef typename SumSetCtr::LeafPairsVector				ArrayData;
-
-	PairVector pairs;
-	PairVector pairs_sorted;
-
+	static const Int Indexes 										= Ctr::Indexes;
 
 public:
+	SumSetBatchTest(): Base() {}
 
-	SumSetBatchTest(): SPTestTask(new SumSetBatchParams()) 	{}
-	virtual ~SumSetBatchTest() throw() 						{}
-
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual ArrayData CreateBuffer(Int size, UByte value)
 	{
-		return new SumSetBatchReplay();
-	}
+		ArrayData array(size);
 
-	virtual void Replay(ostream& out, TestReplayParams* step_params)
-	{
-		SumSetBatchReplay* params = static_cast<SumSetBatchReplay*>(step_params);
-		Allocator allocator;
-		LoadAllocator(allocator, params);
-		SumSetCtr dv(allocator, 1);
-
-		dv.SetMaxChildrenPerNode(params->btree_airity_);
-
-		if (params->insert_)
-		{
-			Build(out, allocator, dv, params);
-		}
-		else {
-			Remove(allocator, dv, params);
-		}
-	}
-
-	BigInt GetRandomPosition(SumSetCtr& array)
-	{
-		BigInt size = array.GetSize();
-		return GetBIRandom(size);
-	}
-
-
-//	virtual void Run(ostream& out)
-//	{
-//		SumSetBatchReplay params;
-//		SumSetBatchParams* task_params = GetParameters<SumSetBatchParams>();
-//
-//		if (task_params->btree_random_airity_)
-//		{
-//			task_params->btree_airity_ = 8 + GetRandom(100);
-//			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
-//		}
-//
-//		params.size_			= task_params->size_;
-//		params.btree_airity_ 	= task_params->btree_airity_;
-//
-//
-//		DefaultLogHandlerImpl logHandler(out);
-//
-//		Allocator allocator;
-//		allocator.GetLogger()->SetHandler(&logHandler);
-//		SumSetCtr dv(allocator, 1, true);
-//
-//		allocator.commit();
-//
-//		dv.SetMaxChildrenPerNode(params.btree_airity_);
-//
-//		try {
-//
-//			LeafPairsVector data = CreateBuffer(1000, 1);
-//
-//			auto iter = dv.Begin();
-//
-//			Insert(iter, data);
-//
-//			allocator.commit();
-//			StoreAllocator(allocator, "alloc1.dump");
-//
-//			auto iter1 = dv.Begin();
-//			auto iter2 = dv.Begin();
-//
-//			Skip(iter1, 0);
-//			Skip(iter2, 1000);
-//
-//			dv.RemoveEntries(iter1, iter2);
-//
-//			allocator.commit();
-//			StoreAllocator(allocator, "alloc2.dump");
-//		}
-//		catch (...)
-//		{
-//			Store(allocator, &params);
-//			throw;
-//		}
-//	}
-
-
-	virtual void Run(ostream& out)
-	{
-		SumSetBatchReplay params;
-		SumSetBatchParams* task_params = GetParameters<SumSetBatchParams>();
-
-		if (task_params->btree_random_airity_)
-		{
-			task_params->btree_airity_ = 8 + GetRandom(100);
-			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
-		}
-
-		params.size_			= task_params->size_;
-		params.btree_airity_ 	= task_params->btree_airity_;
-
-		for (Int step = 0; step < 2; step++)
-		{
-			params.step_ = step;
-			Run(out, params, task_params, false);
-		}
-
-		// Run() will use different step for each ByteArray update operation
-		Run(out, params, task_params, true);
-	}
-
-
-
-
-	void Run(ostream& out, SumSetBatchReplay& params, SumSetBatchParams* task_params, bool step)
-	{
-		DefaultLogHandlerImpl logHandler(out);
-
-		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
-		SumSetCtr dv(allocator, 1, true);
-
-		allocator.commit();
-
-		dv.SetMaxChildrenPerNode(params.btree_airity_);
-
-		try {
-			out<<"Insert data"<<endl;
-			params.insert_ = true;
-
-
-//			Int cnt = 0;
-
-			params.data_ = 1;
-//			while (dv.GetSize() < params.size_)
-//			{
-//				if (step)
-//				{
-//					params.step_ 		= GetRandom(3);
-//				}
-//
-//				params.data_size_ 	= 1 + GetRandom(task_params->max_block_size_);
-//
-//				Build(out, allocator, dv, &params);
-//
-//				allocator.commit();
-//
-////				StoreAllocator(allocator, "alloc" + ToString(cnt++)+".dump");
-//
-//				params.data_++;
-//
-//				params.pos_ 		= -1;
-//				params.page_step_ 	= -1;
-//			}
-
-			LeafPairsVector data(params.size_);
-
-			for (UInt c = 0; c < data.size(); c++) {
-				data[c].keys[0] = GetRandom(255);
-			}
-
-			auto iter = dv.Begin();
-			dv.InsertBatch(iter, data);
-
-			allocator.commit();
-
-			StoreAllocator(allocator, "allocator.dump");
-
-			out<<"Remove data. SumSet contains "<<(dv.GetSize()/1024)<<"K keys"<<endl;
-			params.insert_ = false;
-
-			for (Int c = 0; ; c++)
-			{
-				if (step)
-				{
-					params.step_ = GetRandom(3);
-				}
-
-				BigInt size = dv.GetSize();
-				BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
-
-
-
-				params.block_size_ = 1 + GetBIRandom(max_size);
-				params.page_step_ 	= GetRandom(3);
-
-				if (!Remove(allocator, dv, &params))
-				{
-					break;
-				}
-
-				params.pos_ 		= -1;
-				params.page_step_ 	= -1;
-
-				allocator.commit();
-			}
-
-			out<<"SumSet.size = "<<(dv.GetSize() / 1024)<<"K keys"<<endl;
-
-			allocator.commit();
-		}
-		catch (...)
-		{
-			Store(allocator, &params);
-			throw;
-		}
-	}
-
-	LeafPairsVector CreateBuffer(Int size, UByte value)
-	{
-		LeafPairsVector array(size);
-
-		for (LeafNodeKeyValuePair& pair: array)
+		for (auto& pair: array)
 		{
 			pair.keys[0] = value;
 		}
@@ -273,7 +61,7 @@ public:
 		return array;
 	}
 
-	Iterator Seek(SumSetCtr& array, BigInt pos)
+	virtual Iterator Seek(Ctr& array, BigInt pos)
 	{
 		Iterator i = array.Begin();
 
@@ -290,7 +78,7 @@ public:
 		return i;
 	}
 
-	void Insert(Iterator& iter, const LeafPairsVector& data)
+	virtual void Insert(Iterator& iter, const ArrayData& data)
 	{
 		BigInt size = iter.model().GetSize();
 
@@ -301,9 +89,9 @@ public:
 		CheckSize(iter.model());
 	}
 
-	void Read(Iterator& iter, LeafPairsVector& data)
+	virtual void Read(Iterator& iter, ArrayData& data)
 	{
-		for (LeafNodeKeyValuePair& value: data)
+		for (auto& value: data)
 		{
 			for (Int c = 0; c < Indexes; c++)
 			{
@@ -317,16 +105,15 @@ public:
 		}
 	}
 
-	void Remove(Iterator& iter, BigInt size)
+	virtual void Remove(Iterator& iter, BigInt size)
 	{
 		auto iter2 = iter;
 		Skip(iter2, size);
-		SumSetCtrAccumulator keys;
+		Accumulator keys;
 		iter.model().RemoveEntries(iter, iter2, keys);
 	}
 
-
-	void Skip(Iterator& iter, BigInt offset)
+	virtual void Skip(Iterator& iter, BigInt offset)
 	{
 		if (offset > 0)
 		{
@@ -343,7 +130,17 @@ public:
 		}
 	}
 
-	void CheckSize(SumSetCtr& array)
+	virtual BigInt GetPosition(Iterator& iter)
+	{
+		return iter.KeyNum();
+	}
+
+	virtual BigInt GetSize(Ctr& array)
+	{
+		return array.GetSize();
+	}
+
+	void CheckSize(Ctr& array)
 	{
 		BigInt cnt = 0;
 
@@ -355,241 +152,9 @@ public:
 		MEMORIA_TEST_ASSERT(cnt, !=, array.GetSize());
 	}
 
-
-	void Build(ostream& out, Allocator& allocator, SumSetCtr& array, SumSetBatchReplay *params)
-	{
-		UByte value = params->data_;
-		Int step 	= params->step_;
-
-		LeafPairsVector data = CreateBuffer(params->block_size_, value);
-
-		BigInt size = array.GetSize();
-
-		if (size == 0)
-		{
-			//Insert buffer into an empty array
-			auto iter = Seek(array, 0);
-
-			Insert(iter, data);
-
-			Check(allocator, "Insertion into an empty array failed. See the dump for details.", MEMORIA_SOURCE);
-
-			auto iter1 = Seek(array, 0);
-			CheckBufferWritten(iter1, data, "Failed to read and compare buffer from array", MEMORIA_SOURCE);
-		}
-		else {
-			if (step == 0)
-			{
-				//Insert at the start of the array
-				auto iter = Seek(array, 0);
-
-				BigInt len = array.GetSize();
-				if (len > 100) len = 100;
-
-				LeafPairsVector postfix(len);
-
-				Read(iter, postfix);
-
-				Skip(iter, -len);
-
-				Insert(iter, data);
-
-				Check(allocator, "Insertion at the start of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
-
-				Skip(iter, -data.size());
-
-				CheckBufferWritten(iter, data, "Failed to read and compare buffer from array", 				MEMORIA_SOURCE);
-				CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array", 	MEMORIA_SOURCE);
-			}
-			else if (step == 1)
-			{
-				//Insert at the end of the array
-				auto iter = array.End();
-
-				BigInt len = array.GetSize();
-				if (len > 100) len = 100;
-
-				LeafPairsVector prefix(len);
-				Skip(iter, -len);
-
-				Read(iter, prefix);
-
-				Insert(iter, data);
-
-				Check(allocator, "Insertion at the end of the array failed. See the dump for details.", MEMORIA_SOURCE);
-
-				Skip(iter, -data.size() - len);
-
-				CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", MEMORIA_SOURCE);
-				CheckBufferWritten(iter, data, "Failed to read and compare buffer from array", 			MEMORIA_SOURCE);
-			}
-			else {
-				//Insert in the middle of the array
-
-				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
-
-				Int pos = params->pos_;
-
-				auto iter = Seek(array, pos);
-
-				if (params->page_step_ == -1) params->page_step_ = GetRandom(2);
-
-				if (params->page_step_ == 0)
-				{
-					Skip(iter, -iter.key_idx());
-					pos = iter.KeyNum();
-				}
-
-				BigInt prefix_len = pos;
-				if (prefix_len > 100) prefix_len = 100;
-
-				BigInt postfix_len = array.GetSize() - pos;
-				if (postfix_len > 100) postfix_len = 100;
-
-				LeafPairsVector prefix(prefix_len);
-				LeafPairsVector postfix(postfix_len);
-
-				Skip(iter, -prefix_len);
-
-				Read(iter, prefix);
-				Read(iter, postfix);
-
-				Skip(iter, -postfix.size());
-
-				Insert(iter, data);
-
-				Check(allocator, "Insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
-
-				Skip(iter, - data.size() - prefix_len);
-
-				CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 	MEMORIA_SOURCE);
-				CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array", 		MEMORIA_SOURCE);
-				CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array", MEMORIA_SOURCE);
-			}
-		}
-	}
-
-	bool Remove(Allocator& allocator, SumSetCtr& array, SumSetBatchReplay* params)
-	{
-		Int step = params->step_;
-
-		params->cnt_++;
-
-		if (array.GetSize() < 200)
-		{
-			auto iter = array.Begin();
-			Remove(iter, array.GetSize());
-
-			Check(allocator, "Remove ByteArray", MEMORIA_SOURCE);
-			return array.GetSize() > 0;
-		}
-		else {
-			BigInt size = params->block_size_;
-
-			if (step == 0)
-			{
-				//Remove at the start of the array
-				auto iter = Seek(array, 0);
-
-				BigInt len = array.GetSize() - size;
-				if (len > 100) len = 100;
-
-				LeafPairsVector postfix(len);
-				Skip(iter, size);
-
-				Read(iter, postfix);
-
-				Skip(iter, -len - size);
-
-				Remove(iter, size);
-
-				Check(allocator, "Removing region at the start of the array failed. See the dump for details.", MEMORIA_SOURCE);
-
-				CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array", 		MEMORIA_SOURCE);
-			}
-			else if (step == 1)
-			{
-				//Remove at the end of the array
-				auto iter = Seek(array, array.GetSize() - size);
-
-				BigInt len = iter.KeyNum();
-				if (len > 100) len = 100;
-
-				LeafPairsVector prefix(len);
-				Skip(iter, -len);
-				Read(iter, prefix);
-
-				Remove(iter, size);
-
-				Check(allocator, "Removing region at the end of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
-
-				Skip(iter, -len);
-
-				CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", 		MEMORIA_SOURCE);
-			}
-			else {
-				//Remove at the middle of the array
-
-				if (params->cnt_ == 65) {
-					int a = 0; a++;
-				}
-
-				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
-
-				Int pos = params->pos_;
-
-				auto iter = Seek(array, pos);
-
-				if (params->page_step_ == -1) params->page_step_ = GetRandom(2);
-
-				if (params->page_step_ == 0)
-				{
-					Skip(iter, -iter.key_idx());
-					pos = iter.KeyNum();
-				}
-
-				if (pos + size > array.GetSize())
-				{
-					size = array.GetSize() - pos - 1;
-				}
-
-				BigInt prefix_len = pos;
-				if (prefix_len > 100) prefix_len = 100;
-
-				BigInt postfix_len = array.GetSize() - (pos + size);
-				if (postfix_len > 100) postfix_len = 100;
-
-				LeafPairsVector prefix(prefix_len);
-				LeafPairsVector postfix(postfix_len);
-
-				Skip(iter, -prefix_len);
-
-				Read(iter, prefix);
-
-				Skip(iter, size);
-
-				Read(iter, postfix);
-
-				Skip(iter, -postfix.size() - size);
-
-				Remove(iter, size);
-
-				Check(allocator, "Removing region at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
-
-				Skip(iter, -prefix_len);
-
-				CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 			MEMORIA_SOURCE);
-				CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array", 		MEMORIA_SOURCE);
-			}
-
-			return array.GetSize() > 0;
-		}
-
-		return false;
-	}
+	virtual void CheckIteratorPrefix(ostream& out, Iterator& iter, const char* source) {}
 
 };
-
 
 }
 
