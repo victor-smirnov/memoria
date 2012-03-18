@@ -158,13 +158,11 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
 		}
 	}
 	else {
-		Counters cnt;
 		for (Int c = 0; c < children; c++)
 		{
 			ID child_id	= me()->GetINodeData(node, c);
 
 			NodeBaseG child = me()->GetChild(node, c, Allocator::READ);
-			cnt += child->counters();
 
 			if (child->id() != child_id)
 			{
@@ -174,8 +172,6 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
 
 			me()->check_node_tree(node, c, child, errors);
 		}
-
-		cnt.page_count()++;
 	}
 }
 

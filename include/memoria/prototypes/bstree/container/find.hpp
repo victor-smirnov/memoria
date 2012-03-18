@@ -53,7 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         Key current_prefix_;
         int type_;
 
-        CompareBase(typename MyType::SearchModeDefault::Enum search_mode, Int type = LT): search_mode_(search_mode), prefix_(0), type_(type) {}
+        CompareBase(typename MyType::SearchModeDefault::Enum search_mode, Int type = LT): search_mode_(search_mode), prefix_(0), current_prefix_(0) , type_(type){}
 
         template <typename IteratorType>
         void SetupIterator(IteratorType &iter)
@@ -138,18 +138,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         return me()->template _find<CompareLE>(key, key_num, for_insert ? MyType::SearchModeDefault::LAST : MyType::SearchModeDefault::NONE);
     }
 
-//    bool IsFound(Iterator &iter, Key key, Int key_num)
-//    {
-//        if (!(iter.IsEnd() || iter.IsEmpty()))
-//        {
-//            if (iter.GetKey(key_num) == key)
-//            {
-//                return true;
-//            }
-//        }
-//
-//        return false;
-//    }
 
 MEMORIA_CONTAINER_PART_END
 

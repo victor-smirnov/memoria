@@ -406,10 +406,16 @@ public:
         return FindLTS(0, k, sum);
     }
 
-    Int FindLTS(Int i, const Key& k, Key &sum) const {
+    Int FindLTS(Int i, const Key& k, Key &sum) const
+    {
         CmpLT lt0, lt1;
         Int idx = Find(i, k, lt0, lt1);
-        sum += lt1.get() - (size() > 0 ? key(i, idx) : 0);
+
+        if (idx >= 0)
+        {
+        	sum += lt1.get() - (size() > 0 ? key(i, idx) : 0);
+        }
+
         return idx;
     }
 

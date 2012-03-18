@@ -55,42 +55,42 @@ public:
     }
 };
 
-template <typename Dispatcher, typename Node, typename T>
-Int MoveElements(Node *node, const T &from, const T &count, bool increase_children_count) {
-    MoveElementsFn<T> fn(from, count, increase_children_count);
-    Dispatcher::Dispatch(node, fn);
-    return fn.total_children_count();
-}
-
-template <typename TreeNode, typename Allocator, typename Int>
-class MoveChildrenFn {
-
-    Int         from_;
-    Int         count_;
-    Int total_children_count_;
-    Allocator&    allocator_;
-    
-    typedef PageGuard<TreeNode, Allocator> TreeNodeG;
-
-public:
-    MoveChildrenFn(Int from, Int count, Int total_children_count, Allocator &allocator):
-            from_(from), count_(count), total_children_count_(total_children_count), allocator_(allocator){}
-
-    template <typename Node>
-    void operator()(Node *node) {
-        for (Int c = from_ + count_; c < total_children_count_; c++)
-        {
-            TreeNodeG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
-            child->parent_idx() += count_;
-        }
-    }
-};
-
-template <typename Dispatcher, typename TreeNodeBase, typename Node, typename Allocator, typename Int>
-void MoveChildren(Node *node, Int from, Int count, Int total_children_count, Allocator &allocator) {
-    MoveChildrenFn<TreeNodeBase, Allocator, Int> fn(from, count, total_children_count, allocator);
-    Dispatcher::Dispatch(node, fn);
-}
+//template <typename Dispatcher, typename Node, typename T>
+//Int MoveElements(Node *node, const T &from, const T &count, bool increase_children_count) {
+//    MoveElementsFn<T> fn(from, count, increase_children_count);
+//    Dispatcher::Dispatch(node, fn);
+//    return fn.total_children_count();
+//}
+//
+//template <typename TreeNode, typename Allocator, typename Int>
+//class MoveChildrenFn {
+//
+//    Int         from_;
+//    Int         count_;
+//    Int total_children_count_;
+//    Allocator&    allocator_;
+//
+//    typedef PageGuard<TreeNode, Allocator> TreeNodeG;
+//
+//public:
+//    MoveChildrenFn(Int from, Int count, Int total_children_count, Allocator &allocator):
+//            from_(from), count_(count), total_children_count_(total_children_count), allocator_(allocator){}
+//
+//    template <typename Node>
+//    void operator()(Node *node) {
+//        for (Int c = from_ + count_; c < total_children_count_; c++)
+//        {
+//            TreeNodeG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
+//            child->parent_idx() += count_;
+//        }
+//    }
+//};
+//
+//template <typename Dispatcher, typename TreeNodeBase, typename Node, typename Allocator, typename Int>
+//void MoveChildren(Node *node, Int from, Int count, Int total_children_count, Allocator &allocator) {
+//    MoveChildrenFn<TreeNodeBase, Allocator, Int> fn(from, count, total_children_count, allocator);
+//    Dispatcher::Dispatch(node, fn);
+//}
 
 
 

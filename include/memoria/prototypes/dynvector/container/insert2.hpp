@@ -236,6 +236,8 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int sta
 		me()->MakeRoom(iter.path(), 0, iter.key_idx(), 1);
 
 		data 			= CreateDataPage(iter.page(), iter.key_idx());
+
+		iter.path().data().parent_idx() = iter.key_idx();
 		iter.data_pos() = 0;
 	}
 

@@ -24,11 +24,9 @@ using memoria::BitBuffer;
 template <typename Allocator_>
 class TreePage: public Allocator_::Page {
     
-    typedef BitBuffer<32>                   TreeFlagsType;
-
-    TreeFlagsType                           tree_flags_;
-    typename Allocator_::Page::ID           parent_id_;
-    Int                                     parent_idx_;
+//    typedef BitBuffer<32>                   TreeFlagsType;
+//
+//    TreeFlagsType                           tree_flags_;
 
     Int root_;
     Int leaf_;
@@ -48,65 +46,32 @@ public:
 
     typedef TreePage<Allocator>               Me;
     typedef typename Allocator::Page          Base;
-    typedef typename Base::ID               ID;
+    typedef typename Base::ID                 ID;
 
     TreePage(): Base() {}
 
-    // for access from getters
-//    const TreeFlagsType& tree_flags() const {
-//        return tree_flags_;
-//    }
-//
-//    TreeFlagsType& tree_flags() {
-//        return tree_flags_;
-//    }
-
-
-    const ID& parent_id() const {
-        return parent_id_;
-    }
-
-    ID& parent_id() {
-        return parent_id_;
-    }
-
-    const Int &parent_idx() const {
-        return parent_idx_;
-    }
-
-    Int &parent_idx() {
-        return parent_idx_;
-    }
-
-
     inline bool is_root() const {
-        //return tree_flags().is_bit(ROOT);
-    	return root_;
+        return root_;
     }
 
     void set_root(bool root) {
-        //return tree_flags().set_bit(ROOT, root);
-    	root_ = root;
+        root_ = root;
     }
 
     inline bool is_leaf() const {
-        //return tree_flags().is_bit(LEAF);
-    	return leaf_;
+        return leaf_;
     }
 
     void set_leaf(bool leaf) {
-        //return tree_flags().set_bit(LEAF, leaf);
-    	leaf_ = leaf;
+        leaf_ = leaf;
     }
 
     inline bool is_bitmap() const {
-        //return tree_flags().is_bit(BITMAP);
-    	return bitmap_;
+        return bitmap_;
     }
 
     void set_bitmap(bool bitmap) {
-        //return tree_flags().set_bit(BITMAP, bitmap);
-    	bitmap_ = bitmap;
+        bitmap_ = bitmap;
     }
 
     Int size() const
@@ -130,20 +95,11 @@ public:
     void BuildFieldsList(MetadataList &list, Long &abi_ptr) const {
         Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
 
-//        FieldFactory<BitField<TreeFlagsType> >::create(list, tree_flags(), "LEAF",   LEAF,   abi_ptr);
-//        FieldFactory<BitField<TreeFlagsType> >::create(list, tree_flags(), "ROOT",   ROOT,   abi_ptr);
-//        FieldFactory<BitField<TreeFlagsType> >::create(list, tree_flags(), "BITMAP", BITMAP, abi_ptr);
-
-
-
-        abi_ptr += ValueTraits<TreeFlagsType>::Size;
+//        abi_ptr += ValueTraits<TreeFlagsType>::Size;
 
         FieldFactory<Int>::create(list, root_, 		"ROOT", abi_ptr);
         FieldFactory<Int>::create(list, leaf_, 		"LEAF", abi_ptr);
         FieldFactory<Int>::create(list, bitmap_, 	"BITMAP", abi_ptr);
-
-        FieldFactory<ID>::create(list,  parent_id(),  "PARENT_ID",  abi_ptr);
-        FieldFactory<Int>::create(list, parent_idx(), "PARENT_IDX", abi_ptr);
 
         FieldFactory<Int>::create(list, size_, "SIZE", abi_ptr);
     }
@@ -153,19 +109,15 @@ public:
     {
         Base::CopyFrom(page);
 
-//        this->tree_flags()  = page->tree_flags();
-
         this->set_root(page->is_root());
         this->set_leaf(page->is_leaf());
         this->set_bitmap(page->is_bitmap());
-
-        this->parent_id()   = page->parent_id();
-        this->parent_idx()  = page->parent_idx();
     }
 };
 
 template <typename CountType>
 class BTreeCountersBase {
+
     CountType page_count_;
     CountType key_count_;
 
@@ -252,32 +204,32 @@ template <
 class NodePageBase: public BaseType0
 {
     Short           level_;
-    CountersType    counters_;
+    //CountersType    counters_;
 
 public:
     typedef BaseType0                                                            Base;
     typedef BaseType0                                                            BasePageType;
     typedef CountersType                                                        Counters;
 
-    NodePageBase(): BaseType0(), level_(0), counters_()
+    NodePageBase(): BaseType0(), level_(0)
     {
         init();
     }
 
     void init() {
     	Base::init();
-    	counters().page_count() = 1;
+//    	counters().page_count() = 1;
     }
 
-    const Counters &counters() const
-    {
-        return counters_;
-    }
-
-    Counters &counters()
-    {
-        return counters_;
-    }
+//    const Counters &counters() const
+//    {
+//        return counters_;
+//    }
+//
+//    Counters &counters()
+//    {
+//        return counters_;
+//    }
 
     const Short &level() const
     {
@@ -294,7 +246,7 @@ public:
         Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
 
         FieldFactory<Short>::create(list, level(), "LEVEL", abi_ptr);
-        FieldFactory<Counters>::create(list, counters(), "COUNTERS", abi_ptr);
+//        FieldFactory<Counters>::create(list, counters(), "COUNTERS", abi_ptr);
     }
 
     template <typename PageType>
@@ -303,7 +255,7 @@ public:
         Base::CopyFrom(page);
 
         this->level()       = page->level();
-        this->counters()    = page->counters();
+//        this->counters()    = page->counters();
     }
 };
 

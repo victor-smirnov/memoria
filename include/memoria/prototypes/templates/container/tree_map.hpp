@@ -48,76 +48,79 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     BigInt KeyIndex(Key key, Int c)
     {
-        Iterator i = me()->FindLE(key, c, false);
-        if (!i.IsEnd())
-        {
-            NodeBaseG page = i.page();
-            BigInt keys = i.key_idx();
-
-            while (!page->is_root())
-            {
-                Int pidx = page->parent_idx();
-                page = me()->GetParent(i.path(), page);
-
-                for (Int c = 0; c < pidx; c++)
-                {
-                    NodeBaseG child = me()->GetChild(page, c, Allocator::READ);
-                    keys += child->counters().key_count();
-                }
-            }
-
-            return keys;
-        }
-        else {
-            return -1;
-        }
+//        Iterator i = me()->FindLE(key, c, false);
+//        if (!i.IsEnd())
+//        {
+//            NodeBaseG page = i.page();
+//            BigInt keys = i.key_idx();
+//
+//            while (!page->is_root())
+//            {
+//                Int pidx = page->parent_idx();
+//                page = me()->GetParent(i.path(), page);
+//
+//                for (Int c = 0; c < pidx; c++)
+//                {
+//                    NodeBaseG child = me()->GetChild(page, c, Allocator::READ);
+//                    keys += child->counters().key_count();
+//                }
+//            }
+//
+//            return keys;
+//        }
+//        else {
+//            return -1;
+//        }
+    	return 0;
     }
 
     Iterator GetByIndex(BigInt index)
     {
-        NodeBaseG node = me()->GetRoot(Allocator::READ);
-        if (node.is_set())
-        {
-        	Iterator iter(*me(), node->level());
+//        NodeBaseG node = me()->GetRoot(Allocator::READ);
+//        if (node.is_set())
+//        {
+//        	Iterator iter(*me(), node->level());
+//
+//        	BigInt keys = 0;
+//            while (!node->is_leaf())
+//            {
+//                Int size = node->children_count();
+//
+//                Int idx = -1;
+//
+//                for (Int c = 0; c < size; c++)
+//                {
+//                    NodeBaseG child = me()->GetChild(node, c, Allocator::READ);
+//                    BigInt count = child->counters().key_count();
+//
+//                    if (index < keys + count)
+//                    {
+//                        idx = c;
+//                        break;
+//                    }
+//                    else {
+//                        keys += count;
+//                    }
+//                }
+//
+//                if (idx < 0)
+//                {
+//                    return Iterator(*me());
+//                }
+//                else {
+//                    node = me()->GetChild(node, idx, Allocator::READ);
+//                }
+//            }
+//
+//            iter.Init();
+//
+//            return iter;
+//        }
+//        else {
+//            return Iterator(*me());
+//        }
 
-        	BigInt keys = 0;
-            while (!node->is_leaf())
-            {
-                Int size = node->children_count();
-
-                Int idx = -1;
-
-                for (Int c = 0; c < size; c++)
-                {
-                    NodeBaseG child = me()->GetChild(node, c, Allocator::READ);
-                    BigInt count = child->counters().key_count();
-
-                    if (index < keys + count)
-                    {
-                        idx = c;
-                        break;
-                    }
-                    else {
-                        keys += count;
-                    }
-                }
-
-                if (idx < 0)
-                {
-                    return Iterator(*me());
-                }
-                else {
-                    node = me()->GetChild(node, idx, Allocator::READ);
-                }
-            }
-
-            iter.Init();
-
-            return iter;
-        }
-        else {
-            return Iterator(*me());
-        }
+    	return Iterator(*me());
     }
     
     virtual BigInt GetKeyIndex(BigInt key, Int i = 0)

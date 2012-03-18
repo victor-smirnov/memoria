@@ -85,12 +85,8 @@ public:
     }
 
 
-//	bool GetNextData(TreePath& path, Int& idx) const;
-//	bool GetPrevData(TreePath& path, Int& idx) const;
-
-	Iterator FindStart();
-	Iterator FindEnd();
-
+	Iterator FindStart(bool reverse = false);
+	Iterator FindEnd  (bool reverse = false);
 
     void FinishPathStep(TreePath& path, Int key_idx) const;
 
@@ -101,85 +97,45 @@ MEMORIA_CONTAINER_PART_END
 
 
 
-//M_PARAMS
-//bool M_TYPE::GetNextData(TreePath& path, Int& idx) const
-//{
-//	if (idx < path[0]->children_count() - 1)
-//	{
-//		idx++;
-//	}
-//	else if (me()->GetNextNode(path))
-//	{
-//		idx = 0;
-//	}
-//	else {
-//		return false;
-//	}
-//
-//	path.data() = GetDataPage(path[0].node(), idx, Allocator::READ);
-//
-//	return true;
-//}
-
-
-
-//M_PARAMS
-//bool M_TYPE::GetPrevData(TreePath& path, Int& idx) const
-//{
-//	if (idx > 0)
-//	{
-//		idx--;
-//	}
-//	else if (me()->GetPrevNode(path))
-//	{
-//		idx = path[0].node()->children_count() - 1;
-//	}
-//	else {
-//		return false;
-//	}
-//
-//	path.data() = me()->GetDataPage(path[0].node(), idx, Allocator::READ);
-//
-//	return true;
-//}
-
-
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindStart()
+typename M_TYPE::Iterator M_TYPE::FindStart(bool reverse)
 {
-	Iterator i = Base::FindStart();
+	Iterator i = Base::FindStart(false);
 
-	if (i.path()[0]->children_count() > 0)
+	if (i.leaf()->children_count() > 0)
 	{
 		me()->FinishPathStep(i.path(), i.key_idx());
 
-		i.data_pos() 	= 0;
+		i.data_pos() = reverse ? -1 : 0;
 	}
 
 	return i;
 }
+
 
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindEnd()
+typename M_TYPE::Iterator M_TYPE::FindEnd(bool reverse)
 {
-	Iterator i = Base::FindEnd();
+	Iterator i = Base::FindEnd(false);
 
 	if (i.leaf()->children_count() > 0 && i.PrevKey())
 	{
-		i.data_pos() = i.data()->data().size();
+		i.data_pos() = i.data()->data().size() + (reverse ? -1 : 0);
 	}
 
 	return i;
 }
+
+
 
 
 M_PARAMS
 void M_TYPE::FinishPathStep(TreePath& path, Int key_idx) const
 {
-	if (key_idx >= 0 && key_idx < path[0]->children_count())
+	if (key_idx >= 0 && key_idx < path.leaf()->children_count())
 	{
-		path.data().node() 			= me()->GetDataPage(path[0].node(), key_idx, Allocator::READ);
+		path.data().node() 			= me()->GetDataPage(path.leaf().node(), key_idx, Allocator::READ);
 
 		path.data().parent_idx()	= key_idx;
 	}

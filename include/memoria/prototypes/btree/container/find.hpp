@@ -167,38 +167,37 @@ public:
     template <typename Comparator>
     const Iterator _find(Key key, Int c, bool for_insert);
 
-    Iterator FindStart();
-
-    Iterator FindREnd();
-
-    Iterator FindEnd();
-
-    Iterator FindRStart();
+    Iterator FindStart(bool reverse = false);
+    Iterator FindEnd  (bool reverse = false);
 
     BigInt GetTotalKeyCount() const;
     void SetTotalKeyCount(BigInt value);
     void AddTotalKeyCount(BigInt value);
     void AddTotalKeyCount(TreePath& path, BigInt value);
 
-    BigInt GetSize() const {
+    BigInt GetSize() const
+    {
     	return me()->GetTotalKeyCount();
     }
 
-    Iterator Begin() {
-    	return me()->FindStart();
+    Iterator Begin()
+    {
+    	return me()->FindStart(false);
     }
 
-//    Iterator RBegin() {
-//    	return me()->FindRStart();
-//    }
-
-    Iterator End() {
-    	return me()->FindEnd();
+    Iterator RBegin()
+    {
+    	return me()->FindEnd(true);
     }
 
-//    Iterator REnd() {
-//    	return me()->FindREnd();
-//    }
+    Iterator End()
+    {
+    	return me()->FindEnd(false);
+    }
+
+    Iterator REnd() {
+    	return me()->FindStart(true);
+    }
 
 MEMORIA_CONTAINER_PART_END
 
@@ -225,6 +224,8 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 
 			if (fn.end_)
 			{
+				me()->FinishPathStep(fn.i_.path(), fn.i_.key_idx());
+//				fn.i_.Init();
 				return fn.i_;
 			}
 			else
@@ -244,7 +245,7 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindStart()
+typename M_TYPE::Iterator M_TYPE::FindStart(bool reverse)
 {
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node.is_set())
@@ -260,6 +261,10 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 			i.SetNode(node, 0);
 		}
 
+		i.key_idx() = reverse ? -1 : 0;
+
+		i.Init();
+
 		return i;
 	}
 	else {
@@ -267,26 +272,9 @@ typename M_TYPE::Iterator M_TYPE::FindStart()
 	}
 }
 
-//M_PARAMS
-//typename M_TYPE::Iterator M_TYPE::FindREnd()
-//{
-//	NodeBaseG node = me()->GetRoot(Allocator::READ);
-//	if (node.is_set())
-//	{
-//		while(!node->is_leaf())
-//		{
-//			node = me()->GetChild(node, 0, Allocator::READ);
-//		}
-//
-//		return Iterator(node, -1, *me());
-//	}
-//	else {
-//		return Iterator(*me());
-//	}
-//}
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindEnd()
+typename M_TYPE::Iterator M_TYPE::FindEnd(bool reverse)
 {
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
 	if (node.is_set())
@@ -304,7 +292,7 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 			i.SetNode(node, parent_idx);
 		}
 
-		i.key_idx() = i.page()->children_count();
+		i.key_idx() = i.page()->children_count() + (reverse ? -1 : 0);
 
 		i.Init();
 
@@ -315,24 +303,6 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 	}
 }
 
-
-//M_PARAMS
-//typename M_TYPE::Iterator M_TYPE::FindRStart()
-//{
-//	NodeBaseG node = me()->GetRoot(Allocator::READ);
-//	if (node != NULL)
-//	{
-//		while(!node->is_leaf())
-//		{
-//			node = me()->GetLastChild(node, Allocator::READ);
-//		}
-//
-//		return Iterator(node, node->children_count() - 1, *me(), true);
-//	}
-//	else {
-//		return Iterator(*me());
-//	}
-//}
 
 M_PARAMS
 BigInt M_TYPE::GetTotalKeyCount() const
