@@ -306,6 +306,8 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 
 		i.key_idx() = i.page()->children_count();
 
+		i.Init();
+
 		return i;
 	}
 	else {

@@ -149,12 +149,24 @@ public:
 		return keys_;
 	}
 
+
+
 	const Key& key(Int idx) const
 	{
 		return keys_[idx];
 	}
 
 	Key& key(Int idx)
+	{
+		return keys_[idx];
+	}
+
+	const Key& operator[](Int idx) const
+	{
+		return keys_[idx];
+	}
+
+	Key& operator[](Int idx)
 	{
 		return keys_[idx];
 	}

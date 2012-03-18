@@ -292,16 +292,16 @@ BigInt GetUniqueBIRandom(const vector<T, A> &vec)
 }
 
 
-#define MEMORIA_TEST_ASSERT(op1, operator_, op2) 		MEMORIA_TEST_ASSERT_EXPR(op1 operator_ op2, op1, op2)
-#define MEMORIA_TEST_ASSERT1(op1, operator_, op2, arg1) MEMORIA_TEST_ASSERT_EXPR1(op1 operator_ op2, op1, op2, arg1)
+#define MEMORIA_TEST_THROW_IF(op1, operator_, op2) 		MEMORIA_TEST_THROW_IF_EXPR(op1 operator_ op2, op1, op2)
+#define MEMORIA_TEST_THROW_IF_1(op1, operator_, op2, arg1) MEMORIA_TEST_THROW_IF_EXPR1(op1 operator_ op2, op1, op2, arg1)
 
-#define MEMORIA_TEST_ASSERT_EXPR(expr, op1, op2) 																						\
+#define MEMORIA_TEST_THROW_IF_EXPR(expr, op1, op2) 																						\
 	if (expr) {																															\
 		throw TestException(MEMORIA_SOURCE, String("ASSERT FAILURE: ")+#expr+"; "+#op1+"="+ToString(op1)+", "+#op2+"="+ToString(op2));	\
 	}
 
 
-#define MEMORIA_TEST_ASSERT_EXPR1(expr, op1, op2, arg1) 																												\
+#define MEMORIA_TEST_THROW_IF_EXPR1(expr, op1, op2, arg1) 																												\
 	if (expr) {																																							\
 		throw TestException(MEMORIA_SOURCE, String("ASSERT FAILURE: ")+#expr+"; "+#op1+"="+ToString(op1)+", "+#op2+"="+ToString(op2)+", "+#arg1+"="+ToString(arg1));	\
 	}

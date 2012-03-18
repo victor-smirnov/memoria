@@ -482,6 +482,8 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 		BigInt removed_key_count = 0;
 		me()->RemovePages(start.path(), start.key_idx(), stop.path(), stop.key_idx(), 0, removed, removed_key_count);
 
+		me()->AddTotalKeyCount(-removed_key_count);
+
 		stop.prefix() = prefix;
 
 		me()->MergeDataWithSiblings(stop);

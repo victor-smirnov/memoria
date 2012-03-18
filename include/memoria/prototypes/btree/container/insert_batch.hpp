@@ -103,7 +103,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     void UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
     Accumulator InsertSubtree(Iterator& iter, ISubtreeProvider& provider);
 
-    void InsertEntry1(Iterator &iter, const Key *keys, const Value &value);
+    void InsertEntry1(Iterator &iter, const Accumulator& keys, const Value &value);
     void InsertEntry1(Iterator &iter, Key key, const Value &value);
 
     void InsertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size);
@@ -317,6 +317,8 @@ private:
     	TreePath left_path = path;
     	InsertSubtree(left_path, idx, path, idx, 0, data);
 
+    	me()->FinishPathStep(path, idx);
+
     	me()->AddTotalKeyCount(data.provider.GetTotalKeyCount());
     }
 
@@ -458,6 +460,8 @@ typename M_TYPE::Accumulator M_TYPE::InsertSubtree(Iterator& iter, ISubtreeProvi
 			//FIXME arguments
 			InsertSubtree(left, left[0].node()->children_count(), path, idx, 0, data);
 
+			me()->FinishPathStep(path, idx);
+
 			me()->AddTotalKeyCount(data.provider.GetTotalKeyCount());
 		}
 		else
@@ -530,7 +534,7 @@ void M_TYPE::SplitPath(TreePath& left, TreePath& right, Int level, Int idx)
 
 
 M_PARAMS
-void M_TYPE::InsertEntry1(Iterator &iter, const Key *keys, const Value &value)
+void M_TYPE::InsertEntry1(Iterator &iter, const Accumulator& keys, const Value &value)
 {
 	TreePath& 	path 	= iter.path();
 	NodeBaseG& 	node 	= path[0].node();
@@ -563,27 +567,22 @@ void M_TYPE::InsertEntry1(Iterator &iter, const Key *keys, const Value &value)
 		iter.key_idx() = idx;
 	}
 
-	me()->SetLeafDataAndReindex(node, idx, keys, value);
+	me()->SetLeafDataAndReindex(node, idx, keys.keys(), value);
 
-	Accumulator accum;
+	me()->UpdateParentIfExists(path, 0, keys);
 
-	for (Int c = 0; c < Indexes; c++) accum.keys()[c] = keys[c];
-
-	UpdateUp(path, 0, idx, accum);
+	me()->AddTotalKeyCount(1);
 }
 
 
 
 M_PARAMS
 void M_TYPE::InsertEntry1(Iterator &iter, Key key, const Value &value) {
-	Key keys[Indexes];
+	Accumulator keys;
 
-	for (Int c = 0; c < Indexes; c++)
-	{
-		keys[c] = key;
-	}
+	keys.key(0) = key;
 
-	InsertEntry(iter, keys, value);
+	InsertEntry1(iter, keys, value);
 }
 
 M_PARAMS

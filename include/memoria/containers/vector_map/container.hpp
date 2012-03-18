@@ -165,16 +165,11 @@ public:
 	{
 		auto is_iter = set_.End();
 
-		Key keys[IS_Indexes];
+		IdxSetAccumulator keys;
 
-		for (Key& k: keys)
-		{
-			k = 0;
-		}
+		keys.key(0) = 1;
 
-		keys[0] = 1;
-
-		set_.InsertEntry(is_iter, keys, ISValue());
+		set_.InsertEntry1(is_iter, keys, ISValue());
 
 		auto ba_iter = array_.End();
 		return Iterator(*me(), is_iter, ba_iter);
@@ -200,12 +195,21 @@ public:
 		else {
 			BigInt delta = key - is_iter.prefix(0);
 
-			Key keys[IS_Indexes];
 
-			keys[0]	= delta;
-			keys[1]	= 0;
+			IdxSetAccumulator keys;
+			keys.key(0) = delta;
 
-			set_.InsertEntry(is_iter, keys, ISValue());
+
+			if (is_iter.IsNotEnd())
+			{
+				set_.UpdateUp(is_iter.path(), 0, is_iter.key_idx(), -keys);
+			}
+
+//			is_iter.Dump();
+
+			set_.InsertEntry1(is_iter, keys, ISValue());
+
+//			is_iter.Dump();
 
 			auto ba_iter = array_.Seek(data_pos);
 			return Iterator(*me(), is_iter, ba_iter, false);
@@ -228,24 +232,21 @@ public:
 			BigInt 	size		= is_iter.GetRawKey(1);
 
 			IdxSetAccumulator accum;
+
 			set_.RemoveEntry(is_iter, accum);
+
+//			is_iter.Dump();
 
 			if (!is_iter.IsEnd())
 			{
-				Key keys[IS_Indexes];
-
-				for (Key& k: keys)
-				{
-					k = 0;
-				}
-
-				keys[1] = -size;
-
-				set_.AddKeysUp(is_iter.page(), is_iter.key_idx(), keys);
+				accum[1] = 0;
+				set_.UpdateUp(is_iter.path(), 0, is_iter.key_idx(), accum);
 			}
 
 			auto 	ba_iter 	= array_.Seek(data_pos);
 			ba_iter.Remove(size);
+
+//			ba_iter.Dump();
 
 			return true;
 		}

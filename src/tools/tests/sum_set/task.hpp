@@ -50,27 +50,27 @@ public:
 		{
 		    BigInt  key 	= iter.GetKey(0);
 
-		    MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
+		    MEMORIA_TEST_THROW_IF_1(pairs[idx],   !=, key, idx);
 
 		    iter.Next();
 		    idx++;
 		}
 
-		MEMORIA_TEST_ASSERT(idx, !=, pairs_size);
+		MEMORIA_TEST_THROW_IF(idx, !=, pairs_size);
 
 //		idx = pairs_size - 1;
 //		for (auto iter = map->RBegin(); !iter.IsStart(); )
 //		{
 //			BigInt  key 	= iter.GetKey(0);
 //
-//			MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
+//			MEMORIA_TEST_THROW_IF_1(pairs[idx],   !=, key, idx);
 //
 //			iter.Prev();
 //
 //			idx--;
 //		}
 //
-//		MEMORIA_TEST_ASSERT_EXPR(idx != -1, idx, pairs_size);
+//		MEMORIA_TEST_THROW_IF_EXPR(idx != -1, idx, pairs_size);
 	}
 
 
@@ -83,13 +83,13 @@ public:
 //		{
 //			BigInt  key 	= iter.GetKey(0);
 //
-//			MEMORIA_TEST_ASSERT(pairs[idx],   !=, key);
+//			MEMORIA_TEST_THROW_IF(pairs[idx],   !=, key);
 //
 //		    iter.Prev();
 //		    idx--;
 //		}
 //
-//		MEMORIA_TEST_ASSERT_EXPR(idx != -1, idx, pairs_size);
+//		MEMORIA_TEST_THROW_IF_EXPR(idx != -1, idx, pairs_size);
 	}
 
 	void CheckMultistepForwardIterator(IdxSetType* map)
@@ -112,7 +112,7 @@ public:
 				iter2.NextKey();
 			}
 
-			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+			MEMORIA_TEST_THROW_IF_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
 		}
 	}
 
@@ -136,7 +136,7 @@ public:
 //				iter2.PrevKey();
 //			}
 //
-//			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+//			MEMORIA_TEST_THROW_IF_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
 //		}
 	}
 
@@ -362,7 +362,7 @@ public:
 					cnt++;
 
 					try {
-						MEMORIA_TEST_ASSERT1(pairs_sorted.size(), !=, (UInt)map.GetSize(), x);
+						MEMORIA_TEST_THROW_IF_1(pairs_sorted.size(), !=, (UInt)map.GetSize(), x);
 
 
 						Check(allocator, MEMORIA_SOURCE);
@@ -435,7 +435,7 @@ public:
 
 			BigInt size = params->size_ - c - 1;
 
-			MEMORIA_TEST_ASSERT(size, !=, map->GetSize());
+			MEMORIA_TEST_THROW_IF(size, !=, map->GetSize());
 
 			for (UInt x = 0; x < pairs_sorted.size(); x++)
 			{

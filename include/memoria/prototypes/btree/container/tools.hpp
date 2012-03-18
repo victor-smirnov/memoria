@@ -672,7 +672,9 @@ public:
         void operator()(Node *node) {
             for (Int c = 0; c < Indexes; c++)
             {
-                node->map().key(c, idx_) += keys_[c];
+//                cout<<node->map().key(c, idx_)<<endl;
+            	node->map().key(c, idx_) += keys_[c];
+//            	cout<<node->map().key(c, idx_)<<endl;
             }
             node->map().Reindex();
         }

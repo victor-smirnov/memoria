@@ -64,14 +64,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
 
             node->map().data(i_) = data_;
 
-            if (i_ < node->children_count() - 1) {
-                for (Int c = 0; c < Indexes; c++) {
-                    node->map().key(c, i_ + 1) -= keys_[c];
-                }
-            }
-            else {
-                fixed_ = false;
-            }
+//            if (i_ < node->children_count() - 1) {
+//                for (Int c = 0; c < Indexes; c++) {
+//                    node->map().key(c, i_ + 1) -= keys_[c];
+//                }
+//            }
+//            else {
+//                fixed_ = false;
+//            }
 
             node->map().Reindex();
         }

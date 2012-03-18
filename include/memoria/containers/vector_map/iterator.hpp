@@ -24,6 +24,8 @@ class Iter<VectorMapIterTypes<Types> >
 	typedef typename ContainerType::IdxSet::Iterator			IdxSetIterator;
 	typedef typename ContainerType::ByteArray::Iterator			ByteArrayIterator;
 
+	typedef typename ContainerType::IdxSet::Accumulator			IdxSetAccumulator;
+
 	typedef typename Types::Profile								Profile;
 	typedef typename Types::Allocator 							Allocator;
 	typedef typename Types::Allocator::CtrShared 				CtrShared;
@@ -134,16 +136,11 @@ public:
 	{
 		ba_iter_.Insert(data);
 
-		Key keys[ContainerType::IS_Indexes];
+		IdxSetAccumulator keys;
 
-		for (Key& k: keys)
-		{
-			k = 0;
-		}
+		keys.key(1) = data.size();
 
-		keys[1] = data.size();
-
-		model_.set().AddKeysUp(is_iter_.page(), is_iter_.key_idx(), keys);
+		model_.set().UpdateUp(is_iter_.path(), 0, is_iter_.key_idx(), keys);
 	}
 
 	BigInt Read(ArrayData& data)
@@ -192,16 +189,28 @@ public:
 		ba_iter_.Remove(data_size);
 	}
 
-	BigInt size() {
+	BigInt size()
+	{
 		return is_iter_.GetRawKey(1);
 	}
 
-	BigInt pos() {
+	BigInt pos()
+	{
 		return ba_iter_.pos() - is_iter_.prefix(1);
 	}
 
-	BigInt GetKey() {
+	BigInt GetKey()
+	{
 		return is_iter_.GetKey(0);
+	}
+
+	IdxSetAccumulator GetKeys()
+	{
+		IdxSetAccumulator keys = is_iter_.GetRawKeys();
+
+		keys.key(0) += is_iter_.prefix(0);
+
+		return keys;
 	}
 
 	bool IsNotEnd()

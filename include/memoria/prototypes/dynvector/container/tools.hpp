@@ -165,7 +165,7 @@ typename M_TYPE::Iterator M_TYPE::FindEnd()
 {
 	Iterator i = Base::FindEnd();
 
-	if (i.PrevKey())
+	if (i.leaf()->children_count() > 0 && i.PrevKey())
 	{
 		i.data_pos() = i.data()->data().size();
 	}

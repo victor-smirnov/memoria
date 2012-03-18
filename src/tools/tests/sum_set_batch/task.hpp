@@ -73,7 +73,7 @@ public:
 			}
 		}
 
-		MEMORIA_TEST_ASSERT(pos, !=, i.KeyNum());
+		MEMORIA_TEST_THROW_IF(pos, !=, i.KeyNum());
 
 		return i;
 	}
@@ -84,7 +84,7 @@ public:
 
 		iter.model().InsertBatch(iter, data);
 
-		MEMORIA_TEST_ASSERT(size, ==, iter.model().GetSize());
+		MEMORIA_TEST_THROW_IF(size, ==, iter.model().GetSize());
 
 		CheckSize(iter.model());
 	}
@@ -149,7 +149,7 @@ public:
 			cnt++;
 		}
 
-		MEMORIA_TEST_ASSERT(cnt, !=, array.GetSize());
+		MEMORIA_TEST_THROW_IF(cnt, !=, array.GetSize());
 	}
 
 	virtual void CheckIteratorPrefix(ostream& out, Iterator& iter, const char* source) {}
