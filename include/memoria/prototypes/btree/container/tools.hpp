@@ -109,55 +109,10 @@ public:
     	}
     }
 
-    void ClearKeys(Key* keys) const
-    {
-    	for (Int c = 0; c < Indexes; c++) keys[c] = 0;
-    }
-
-    void NegateKeys(Key* keys) const
-    {
-    	NegateKeys(keys, keys);
-    }
-
-    void NegateKeys(Key* result, Key* keys) const
-    {
-    	for (Int c = 0; c < Indexes; c++) result[c] = -keys[c];
-    }
-
-    void AddKeys(Key* sum, Key* keys) const
-    {
-    	for (Int c = 0; c < Indexes; c++) sum[c] += keys[c];
-    }
-
-    void SetKeys(Key* target, const Key* keys) const
-    {
-    	for (Int c = 0; c < Indexes; c++) target[c] = keys[c];
-    }
-
-    bool IsAnyKeyNonZero(const Key* keys) const
-    {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		if (keys[c] != 0) return true;
-    	}
-
-    	return false;
-    }
-
     bool IsTheSameNode(const TreePath& path1, const TreePath& path2, int level) const
     {
     	return path1[level].node()->id() == path2[level].node()->id();
     }
-
-    void Dump(Key* keys, ostream& out = cout) const
-    {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		out << keys[c] <<endl;
-    	}
-    	out<<endl;
-    }
-
 
     void operator=(ThisType&& other)
     {
@@ -187,210 +142,11 @@ public:
         return max_node_capacity_;
     }
 
-
-//    template <typename Map, typename NodeBase>
-//    class UpdateBTreeKeysFn1 {
-//        Map &map_;
-//        NodeBaseG parent_;
-//        bool add_mode_;
-//    public:
-//
-//        UpdateBTreeKeysFn1(Map &map, NodeBaseG parent, bool add_mode) :
-//                    map_(map), parent_(parent),
-//                    add_mode_(add_mode)
-//                    {}
-//
-//        template<typename T>
-//        void operator()(T *node)
-//        {
-//            Key keys[Indexes];
-//            for (Int c = 0; c < Indexes; c++) keys[c] = node->map().max_key(c);
-//
-//            map_.UpdateBTreeKeys(
-//                    parent_,
-//                    node->parent_idx(),
-//                    keys,
-//                    add_mode_
-//            );
-//        }
-//    };
-
-//    void UpdateBTreeKeys(NodeBaseG node, bool add_mode = false)
-//    {
-//        NodeBaseG parent = me()->GetParent(node, Allocator::UPDATE);
-//        if (parent != NULL)
-//        {
-//            UpdateBTreeKeysFn1<MyType, NodeBase> fn(*me(), parent, add_mode);
-//            NodeDispatcher::Dispatch(node, fn);
-//        }
-//    }
-
-
-//    template <typename Map, typename Keys>
-//    class UpdateBTreeKeysFn2 {
-//        bool retn_;
-//        NodeBaseG node_;
-//        Keys* keys_;
-//        Int idx_;
-//
-//        Map &map_;
-//        bool add_mode_;
-//    public:
-//        UpdateBTreeKeysFn2(Map &map, Int idx, Keys *keys, bool add_mode):
-//                            retn_(false), node_(NULL), keys_(keys),
-//                            idx_(idx), map_(map),
-//                            add_mode_(add_mode)
-//        {}
-//
-//        template<typename T>
-//        void operator()(T *node)
-//        {
-//            for (Int c = 0; c < Indexes; c++)
-//            {
-//                if (add_mode_)
-//                {
-//                	node->map().key(c, idx_) += keys_[c];
-//                }
-//                else {
-//                	node->map().key(c, idx_) = keys_[c];
-//                }
-//            }
-//
-//            node->Reindex();
-//
-//            idx_  = node->parent_idx();
-//
-//            if (!add_mode_)
-//            {
-//            	for (Int c = 0; c < Indexes; c++)
-//            	{
-//            		keys_[c] = node->map().max_key(c);
-//            	}
-//            }
-//
-//            node_ = map_.GetParent(node, Allocator::UPDATE);
-//        }
-//
-//
-//
-//        NodeBaseG& node() {
-//            return node_;
-//        }
-//
-//        Int idx() const {
-//            return idx_;
-//        }
-//
-//        bool retn() const {
-//            return retn_;
-//        }
-//    };
-//
-//    template <typename Map, typename Keys>
-//    class UpdateBTreeKeysFn3 {
-//        bool retn_;
-//        Map& map_;
-//        Int idx_;
-//        const Keys *keys_;
-//    public:
-//        UpdateBTreeKeysFn3(Map& map, Int idx, const Keys *keys): map_(map), idx_(idx), keys_(keys) {}
-//
-//        template<typename T>
-//        void operator()(T *node)
-//        {
-//            for (Int c = 0; c < Indexes; c++)
-//            {
-//                if (node->map().key(c, idx_) != keys_[c])
-//                {
-//                    retn_ = false;
-//                    return;
-//                }
-//            }
-//            retn_ = true;
-//        }
-//
-//        bool retn() const
-//        {
-//            return retn_;
-//        }
-//    };
-//
-//
-//    template <typename Map, typename Keys>
-//    class UpdateBTreeKeysFn4 {
-//        Map& map_;
-//        Int idx_;
-//        const Keys *keys_;
-//        bool add_mode_;
-//    public:
-//        UpdateBTreeKeysFn4(Map& map, Int idx, const Keys *keys, bool add_mode):
-//        	map_(map), idx_(idx), keys_(keys),
-//        	add_mode_(add_mode)
-//        {}
-//
-//        template<typename T>
-//        void operator()(T *node) {
-//            for (Int c = 0; c < Indexes; c++)
-//            {
-//                if (add_mode_) {
-//                	node->map().key(c, idx_) += keys_[c];
-//                }
-//                else {
-//                	node->map().key(c, idx_) = keys_[c];
-//                }
-//            }
-//            node->Reindex();
-//        }
-//    };
-//
-//    void UpdateBTreeKeys(NodeBaseG& node0, Int idx, const Key *keys, bool add_mode = false)
-//    {
-//        Key tkeys[Indexes];
-//        for (Int c = 0; c < Indexes; c++) tkeys[c] = keys[c];
-//
-//        node0.update();
-//        NodeBaseG node = node0;
-//
-//        while (!node->is_root())
-//        {
-//            node.update();
-//        	UpdateBTreeKeysFn2<MyType, Key> fn2(*me(), idx, tkeys, add_mode);
-//            NodeDispatcher::Dispatch(node, fn2);
-//
-//            idx = fn2.idx();
-//            node = fn2.node();
-//        }
-//
-//        UpdateBTreeKeysFn4<MyType, Key> fn4(*me(), idx, tkeys, add_mode);
-//        NodeDispatcher::Dispatch(node, fn4);
-//    }
-//
-//
-//    void UpdateBTreeCounters(NodeBaseG& node0, const Counters &counters)
-//    {
-//    	node0.update();
-//    	NodeBaseG node = node0;
-//
-//    	while (!node->is_root())
-//        {
-//            node->counters().page_count() += counters.page_count();
-//            node->counters().key_count() += counters.key_count();
-//
-//            node = me()->GetParent(node, Allocator::UPDATE);
-//        }
-//
-//        node->counters().page_count() += counters.page_count();
-//        node->counters().key_count() += counters.key_count();
-//    }
-
-
     void Root2Node(NodeBaseG& node)
     {
         node.update();
     	node.set_page(memoria::btree::Root2Node<RootDispatcher, Root2NodeMap, Allocator>(node.page()));
     }
-
-    //
 
     void Node2Root(NodeBaseG& node, Metadata& meta)
     {
@@ -413,7 +169,8 @@ public:
 
     public:
         template <typename T>
-        void operator()(T *node) {
+        void operator()(T *node)
+        {
             typedef typename memoria::Type2TypeMap<T, TypeMap, void>::Result RootType;
             can_ = node->children_count() <= RootType::Map::max_size();
         }
@@ -535,16 +292,6 @@ public:
         return fn.cap();
     }
 
-    bool ShouldMergeNode(const NodeBaseG& node) const
-    {
-    	return node->children_count() <= me()->GetMaxCapacity(node) / 2;
-    }
-
-    bool ShouldSplitNode(const NodeBaseG& node) const
-    {
-    	return me()->GetCapacity(node) == 0;
-    }
-
     bool ShouldMergeNode(const TreePath& path, Int level) const
     {
     	const NodeBaseG& node = path[level].node();
@@ -637,11 +384,13 @@ public:
         AddKeysFn(Int idx, const Key* keys): idx_(idx), keys_(keys) {}
 
         template <typename Node>
-        void operator()(Node *node) {
+        void operator()(Node *node)
+        {
             for (Int c = 0; c < Indexes; c++)
             {
             	node->map().key(c, idx_) += keys_[c];
             }
+
             node->map().Reindex();
         }
     };
@@ -654,90 +403,26 @@ public:
         NodeDispatcher::Dispatch(node, fn);
     }
 
-//    void AddKeysUp(NodeBaseG& node, int idx, const Key* keys)
-//    {
-//    	// Don't do anyting if all keys are zero;
-//    	if (me()->IsAnyKeyNonZero(keys))
-//    	{
-//    		me()->AddKeys(node, idx, keys);
-//
-//    		if (!node->is_root())
-//    		{
-//    			NodeBaseG parent = me()->GetParent(node, Allocator::UPDATE);
-//    			Int parent_idx = node->parent_idx();
-//
-//    			AddKeysUp(parent, parent_idx, keys);
-//    		}
-//    	}
-//    }
-
-
-    struct AddAndSubtractKeysFn {
-    	Int add_idx_;
-    	Int sub_idx_;
-    	const Key *keys_;
-
-    	AddAndSubtractKeysFn(Int add_idx, Int sub_idx, const Key* keys): add_idx_(add_idx), sub_idx_(sub_idx), keys_(keys) {}
-
-    	template <typename Node>
-    	void operator()(Node *node)
-    	{
-    		for (Int c = 0; c < Indexes; c++)
-    		{
-    			node->map().key(c, add_idx_) += keys_[c];
-    		}
-
-    		for (Int c = 0; c < Indexes; c++)
-    		{
-    			node->map().key(c, sub_idx_) -= keys_[c];
-    		}
-
-    		node->map().Reindex();
-    	}
-    };
-
-    void AddAndSubtractKeys(TreePath& path, Int level, Int add_idx, Int sub_idx, const Accumulator& keys)
-    {
-    	path[level].node().update();
-
-    	AddAndSubtractKeysFn fn(add_idx, sub_idx, keys.keys());
-    	NodeDispatcher::Dispatch(path[level].node(), fn);
-    }
-
-
-
-
-    NodeBaseG GetNode(const ID &id, Int flags)
-    {
-        return me()->allocator().GetPage(id, flags);
-    }
-
     // FIXME: GCC compiler dislikes NodeBaseG& here
 
-    static Key GetKey(const NodeBase* node, Int i, Int idx)
+    static Key GetKey(const NodeBaseG& node, Int i, Int idx)
     {
-        return memoria::btree::GetKey<NodeDispatcher, Key>(node, i, idx);
+        return memoria::btree::GetKey<NodeDispatcher, Key>(node.page(), i, idx);
     }
 
 
-    static void GetKeys(const NodeBase* node, Int idx, Key* keys)
+    Accumulator GetKeys(const NodeBaseG& node, Int idx) const
     {
-        memoria::btree::GetKeys<NodeDispatcher, Indexes, Key>(node, idx, keys);
+        Accumulator keys;
+    	memoria::btree::GetKeys<NodeDispatcher, Indexes, Key>(node.page(), idx, keys.keys());
+    	return keys;
     }
 
-    static void GetKeys(const NodeBase* node, Int idx, Accumulator& keys)
+    Accumulator GetMaxKeys(const NodeBaseG& node) const
     {
-    	memoria::btree::GetKeys<NodeDispatcher, Indexes, Key>(node, idx, keys.keys());
-    }
-
-    static void GetMaxKeys(const NodeBase* node, Key* keys)
-    {
-        memoria::btree::GetMaxKeys<NodeDispatcher, Indexes, Key>(node, keys);
-    }
-
-    static Key GetMaxKey(const NodeBase* node, Int i)
-    {
-        return memoria::btree::GetMaxKey<NodeDispatcher, Key>(node, i);
+    	Accumulator keys;
+    	memoria::btree::GetMaxKeys<NodeDispatcher, Indexes, Key>(node.page(), keys.keys());
+    	return keys;
     }
 
     NodeBaseG GetRoot(Int flags) const
@@ -768,9 +453,9 @@ public:
     	memoria::btree::AddChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
-    ID GetINodeData(const NodeBase* node, Int idx)
+    ID GetINodeData(const NodeBaseG& node, Int idx)
     {
-    	return *memoria::btree::GetData<NonLeafDispatcher, ID>(node, idx);
+    	return *memoria::btree::GetData<NonLeafDispatcher, ID>(node.page(), idx);
     }
 
     void SetINodeData(NodeBaseG& node, Int idx, const ID *id)
@@ -785,15 +470,15 @@ public:
     	memoria::btree::Reindex<NodeDispatcher>(node.page());
     }
 
-    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val) const
+    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key* keys, const Value &val) const
     {
         node.update();
     	memoria::btree::SetKeyDataAndReindex<LeafDispatcher>(node.page(), idx, keys, &val);
     }
     
-    static Value GetLeafData(const NodeBase* node, Int idx)
+    static Value GetLeafData(const NodeBaseG& node, Int idx)
     {
-        return *memoria::btree::GetData<LeafDispatcher, Value>(node, idx);
+        return *memoria::btree::GetData<LeafDispatcher, Value>(node.page(), idx);
     }
 
     void SetLeafData(NodeBaseG& node, Int idx, const Value &val) const
@@ -817,18 +502,10 @@ public:
     	}
     }
 
-//    BigInt GetPageCount() const
-//    {
-//    	NodeBaseG root = me()->GetRoot(Allocator::READ);
-//    	return root->counters().page_count();
-//    }
-//
-//    BigInt GetKeyCount() const
-//    {
-//    	NodeBaseG root = me()->GetRoot(Allocator::READ);
-//    	return root->counters().key_count();
-//    }
-
+    BigInt GetTotalKeyCount() const;
+    void SetTotalKeyCount(BigInt value);
+    void AddTotalKeyCount(BigInt value);
+    void AddTotalKeyCount(TreePath& path, BigInt value);
 
     bool GetNextNode(TreePath& path, Int level = 0) const
     {
@@ -852,6 +529,72 @@ MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::btree::ToolsName)
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
+
+M_PARAMS
+BigInt M_TYPE::GetTotalKeyCount() const
+{
+	NodeBaseG node = me()->GetRoot(Allocator::READ);
+
+	if (node.is_set())
+	{
+		Metadata meta = me()->GetRootMetadata(node);
+		return meta.key_count();
+	}
+	else {
+		return 0;
+	}
+}
+
+M_PARAMS
+void M_TYPE::SetTotalKeyCount(BigInt value)
+{
+	NodeBaseG node = me()->GetRoot(Allocator::UPDATE);
+	if (node.is_set())
+	{
+		Metadata meta = me()->GetRootMetadata(node);
+		meta.key_count() = value;
+
+		me()->SetRootMetadata(node, meta);
+	}
+	else {
+		throw MemoriaException(MEMORIA_SOURCE, String("Root node is not set for this container: ") + me()->type_name());
+	}
+}
+
+M_PARAMS
+void M_TYPE::AddTotalKeyCount(BigInt value)
+{
+	NodeBaseG node = me()->GetRoot(Allocator::UPDATE);
+	if (node.is_set())
+	{
+		Metadata meta = me()->GetRootMetadata(node);
+		meta.key_count() += value;
+
+		me()->SetRootMetadata(node, meta);
+	}
+	else {
+		throw MemoriaException(MEMORIA_SOURCE, String("Root node is not set for this container: ") + me()->type_name());
+	}
+}
+
+
+M_PARAMS
+void M_TYPE::AddTotalKeyCount(TreePath& path, BigInt value)
+{
+	NodeBaseG& node = path[path.GetSize() - 1].node();
+
+	Metadata meta = me()->GetRootMetadata(node);
+
+	meta.key_count() += value;
+
+	me()->SetRootMetadata(node, meta);
+}
+
+
+
+
 
 M_PARAMS
 bool M_TYPE::GetNextNode(TreePath& path, Int level, Int idx, Int target_level) const
@@ -910,6 +653,9 @@ bool M_TYPE::GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 
 	return false;
 }
+
+
+
 
 
 #undef M_TYPE

@@ -17,7 +17,6 @@
 
 #include <memoria/prototypes/dynvector/tools.hpp>
 
-//#include <memoria/prototypes/dynvector/container/insert.hpp>
 #include <memoria/prototypes/dynvector/container/insert2.hpp>
 #include <memoria/prototypes/dynvector/container/remove.hpp>
 #include <memoria/prototypes/dynvector/container/tools.hpp>

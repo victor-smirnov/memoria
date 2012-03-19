@@ -44,9 +44,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorToolsName)
 
     Accumulator GetKeys() const
     {
-    	Accumulator accum;
-    	Container::GetKeys(me()->page(), me()->key_idx(), accum);
-    	return accum;
+    	return me()->model().GetKeys(me()->page(), me()->key_idx());
     }
 
     void Dump(ostream& out = cout, const char* header = NULL)

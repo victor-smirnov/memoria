@@ -64,39 +64,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
 
             node->map().data(i_) = data_;
 
-//            if (i_ < node->children_count() - 1) {
-//                for (Int c = 0; c < Indexes; c++) {
-//                    node->map().key(c, i_ + 1) -= keys_[c];
-//                }
-//            }
-//            else {
-//                fixed_ = false;
-//            }
-
             node->map().Reindex();
         }
     };
-
-
-    struct SetAndReindexFn2 {
-        Int             i_;
-        const Key*      keys_;
-
-    public:
-        SetAndReindexFn2(Int i, const Key *keys): i_(i), keys_(keys) {}
-
-        template <typename T>
-        void operator()(T *node)
-        {
-            for (Int c = 0; c < Indexes; c++) {
-                node->map().key(c, i_) -= keys_[c];
-            }
-
-            node->map().Reindex();
-        }
-    };
-
-
 
     void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val);
 
@@ -121,25 +91,6 @@ void M_TYPE::SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, co
 	node.update();
 	SetAndReindexFn1 fn1(idx, keys, val);
 	LeafDispatcher::Dispatch(node, fn1);
-
-//	if (!fn1.fixed_)
-//	{
-//		Iterator i(node, idx, *me());
-//		if (i.NextKey())
-//		{
-//			SetAndReindexFn2 fn2(i.key_idx(), keys);
-//			LeafDispatcher::Dispatch(i.page(), fn2);
-//
-//			if (MapType == MapTypes::Sum)
-//			{
-//				me()->UpdateBTreeKeys(i.page());
-//			}
-//			else if (i.key_idx() >= i.page()->children_count() - 1)
-//			{
-//				me()->UpdateBTreeKeys(i.page());
-//			}
-//		}
-//	}
 }
 
 M_PARAMS

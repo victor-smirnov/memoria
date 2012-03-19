@@ -545,23 +545,23 @@ Int CreateUDS(Buffer &buf, Int start, Int *ds, Int ds_size, Int node_bits) {
 //    }
 //}
 
-template <typename T>
-void copy_buffer(const char *src, char *dst, long size)
-{
-    const T *isrc = CP2CP<T>(src);
-    T *idst = T2T<T*>(dst);
-
-    if (dst < src) {
-        for (UInt l = 0; l < size / sizeof(T); l++) {
-            idst[l] = isrc[l];
-        }
-    }
-    else {
-        for (UInt l = size / sizeof(T) - 1; l >= 0; l--) {
-            idst[l] = isrc[l];
-        }
-    }
-}
+//template <typename T>
+//void copy_buffer(const char *src, char *dst, long size)
+//{
+//    const T *isrc = CP2CP<T>(src);
+//    T *idst = T2T<T*>(dst);
+//
+//    if (dst < src) {
+//        for (UInt l = 0; l < size / sizeof(T); l++) {
+//            idst[l] = isrc[l];
+//        }
+//    }
+//    else {
+//        for (UInt l = size / sizeof(T) - 1; l >= 0; l--) {
+//            idst[l] = isrc[l];
+//        }
+//    }
+//}
 
 
 

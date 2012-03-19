@@ -170,11 +170,6 @@ public:
     Iterator FindStart(bool reverse = false);
     Iterator FindEnd  (bool reverse = false);
 
-    BigInt GetTotalKeyCount() const;
-    void SetTotalKeyCount(BigInt value);
-    void AddTotalKeyCount(BigInt value);
-    void AddTotalKeyCount(TreePath& path, BigInt value);
-
     BigInt GetSize() const
     {
     	return me()->GetTotalKeyCount();
@@ -225,7 +220,6 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 			if (fn.end_)
 			{
 				me()->FinishPathStep(fn.i_.path(), fn.i_.key_idx());
-//				fn.i_.Init();
 				return fn.i_;
 			}
 			else
@@ -304,65 +298,6 @@ typename M_TYPE::Iterator M_TYPE::FindEnd(bool reverse)
 }
 
 
-M_PARAMS
-BigInt M_TYPE::GetTotalKeyCount() const
-{
-	NodeBaseG node = me()->GetRoot(Allocator::READ);
-
-	if (node.is_set())
-	{
-		Metadata meta = me()->GetRootMetadata(node);
-		return meta.key_count();
-	}
-	else {
-		return 0;
-	}
-}
-
-M_PARAMS
-void M_TYPE::SetTotalKeyCount(BigInt value)
-{
-	NodeBaseG node = me()->GetRoot(Allocator::UPDATE);
-	if (node.is_set())
-	{
-		Metadata meta = me()->GetRootMetadata(node);
-		meta.key_count() = value;
-
-		me()->SetRootMetadata(node, meta);
-	}
-	else {
-		throw MemoriaException(MEMORIA_SOURCE, String("Root node is not set for this container: ") + me()->type_name());
-	}
-}
-
-M_PARAMS
-void M_TYPE::AddTotalKeyCount(BigInt value)
-{
-	NodeBaseG node = me()->GetRoot(Allocator::UPDATE);
-	if (node.is_set())
-	{
-		Metadata meta = me()->GetRootMetadata(node);
-		meta.key_count() += value;
-
-		me()->SetRootMetadata(node, meta);
-	}
-	else {
-		throw MemoriaException(MEMORIA_SOURCE, String("Root node is not set for this container: ") + me()->type_name());
-	}
-}
-
-
-M_PARAMS
-void M_TYPE::AddTotalKeyCount(TreePath& path, BigInt value)
-{
-	NodeBaseG& node = path[path.GetSize() - 1].node();
-
-	Metadata meta = me()->GetRootMetadata(node);
-
-	meta.key_count() += value;
-
-	me()->SetRootMetadata(node, meta);
-}
 
 
 #undef M_TYPE

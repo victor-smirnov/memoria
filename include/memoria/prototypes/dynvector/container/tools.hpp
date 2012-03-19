@@ -68,7 +68,7 @@ public:
     typedef typename Base::Types::DataPathItem                                  DataPathItem;
     
 
-    DataPathItem GetDataPage(const NodeBase *node, Int idx, Int flags) const
+    DataPathItem GetDataPage(const NodeBaseG& node, Int idx, Int flags) const
     {
         Value id = me()->GetLeafData(node, idx);
 

@@ -95,7 +95,7 @@ BigInt M_TYPE::Size()
 
 	if (node != NULL)
 	{
-		return me()->GetMaxKey(node, 0);
+		return me()->GetMaxKeys(node).key(0);
 	}
 	else {
 		return 0;

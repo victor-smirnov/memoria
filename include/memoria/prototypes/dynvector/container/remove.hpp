@@ -118,10 +118,6 @@ public:
     }
 
 
-    void AddAndSubtractKeyValues(TreePath& start, Int add_idx, TreePath& stop, Int sub_idx, const Accumulator& keys, Int level = 0);
-
-
-
 private:
 
     Accumulator RemoveDataBlockFromStart(Iterator& stop);
@@ -340,19 +336,19 @@ bool M_TYPE::MergeDataWithSiblings(Iterator& iter)
 }
 
 
-M_PARAMS
-void M_TYPE::AddAndSubtractKeyValues(TreePath& start, Int add_idx, TreePath& stop, Int sub_idx, const Accumulator& keys, Int level)
-{
-	if (start[level]->id() == stop[level]->id())
-	{
-		// We have reached the root of subtree
-		me()->AddAndSubtractKeys(start, level, add_idx, sub_idx, keys);
-	}
-	else
-	{
-		AddAndSubtractKeyValues(start, start[level].parent_idx(), stop, stop[level].parent_idx(), keys, level + 1);
-	}
-}
+//M_PARAMS
+//void M_TYPE::AddAndSubtractKeyValues(TreePath& start, Int add_idx, TreePath& stop, Int sub_idx, const Accumulator& keys, Int level)
+//{
+//	if (start[level]->id() == stop[level]->id())
+//	{
+//		// We have reached the root of subtree
+//		me()->AddAndSubtractKeys(start, level, add_idx, sub_idx, keys);
+//	}
+//	else
+//	{
+//		AddAndSubtractKeyValues(start, start[level].parent_idx(), stop, stop[level].parent_idx(), keys, level + 1);
+//	}
+//}
 
 
 

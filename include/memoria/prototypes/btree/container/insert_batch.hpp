@@ -64,17 +64,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     struct LeafNodeKeyValuePair
     {
-    	Key 	keys[Indexes];
-    	Value	value;
+    	Accumulator keys;
+    	Value		value;
     };
 
     typedef vector<LeafNodeKeyValuePair>										LeafPairsVector;
 
     struct NonLeafNodeKeyValuePair
     {
-    	Key 	keys[Indexes];
-    	ID		value;
-    	BigInt	key_count;
+    	Accumulator keys;
+    	ID			value;
+    	BigInt		key_count;
     };
 
     struct ISubtreeProvider
@@ -114,6 +114,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     void 		 SplitPath(TreePath& left, TreePath& right, Int level, Int idx);
     void		 NewRoot(TreePath& path);
 
+
+    NodeBaseG CreateNode(Short level, bool root, bool leaf);
+
+    void InsertEntry(Iterator &iter, const Key *keys, const Value &value) {}
+    void InsertEntry(Iterator &iter, Key key, const Value &value) {}
 
     class DefaultSubtreeProviderBase: public ISubtreeProvider {
 
@@ -174,7 +179,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     			SetINodeData(children, node, local);
 
 
-    			ctr_.GetMaxKeys(node, pair.keys);
+    			pair.keys = ctr_.GetMaxKeys(node);
     			pair.value = node->id();
     		}
     		else
@@ -195,7 +200,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     			NodeBaseG node = ctr_.CreateNode(level, false, true);
 
     			SetLeafNodeData(children, node, local);
-    			ctr_.GetMaxKeys(node, pair.keys);
+    			pair.keys = ctr_.GetMaxKeys(node);
 
     			pair.value 		=  node->id();
     			pair.key_count 	+= local;
@@ -656,9 +661,24 @@ void M_TYPE::UpdateParentIfExists(TreePath& path, Int level, const Accumulator& 
 }
 
 
+M_PARAMS
+typename M_TYPE::NodeBaseG M_TYPE::CreateNode(Short level, bool root, bool leaf)
+{
+	NodeBaseG node = NodeFactory::Create(me()->allocator(), level, root, leaf);
+
+	if (root) {
+		Metadata meta = me()->GetRootMetadata(node);
+		meta.model_name() = me()->name();
+		me()->SetRootMetadata(node, meta);
+	}
+
+	node->model_hash() = me()->hash();
+
+	return node;
+}
 
 
-//// ----------------------  PRIVATE API ------------------------- ////
+//// ======================================================  PRIVATE API ====================================================== ////
 
 
 
@@ -1019,10 +1039,7 @@ void M_TYPE::NewRoot(TreePath& path)
 
 	me()->Root2Node(root);
 
-	Key keys[Indexes];
-	me()->ClearKeys(keys);
-
-	me()->GetMaxKeys(root, keys);
+	Accumulator keys = me()->GetMaxKeys(root);
 	me()->SetKeys(new_root, 0, keys);
 	me()->SetINodeData(new_root, 0, &root->id());
 	me()->SetChildrenCount(new_root, 1);

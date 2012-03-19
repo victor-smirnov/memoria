@@ -120,7 +120,6 @@ MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memor
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::StubsName)
 
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::InsertName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::InsertBatchName)
 
 
@@ -152,7 +151,6 @@ MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::DefKVMap
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::ToolsName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::StubsName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::InsertName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::InsertBatchName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::RemoveName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::FindName)
@@ -177,7 +175,6 @@ MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Vector)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::ToolsName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::StubsName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::InsertName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::InsertBatchName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::RemoveName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::FindName)

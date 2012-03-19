@@ -699,7 +699,7 @@ void M_TYPE::RemoveEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
 		TreePath next = path;
 		bool has_next = me()->GetNextNode(next);
 
-		me()->GetKeys(path.leaf().node(), idx, keys);
+		keys = me()->GetKeys(path.leaf().node(), idx);
 
 		me()->RemovePage(path);
 

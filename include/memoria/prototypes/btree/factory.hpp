@@ -18,7 +18,6 @@
 #include <memoria/prototypes/btree/container/tools.hpp>
 #include <memoria/prototypes/btree/container/checks.hpp>
 #include <memoria/prototypes/btree/container/init.hpp>
-#include <memoria/prototypes/btree/container/insert.hpp>
 #include <memoria/prototypes/btree/container/insert_batch.hpp>
 #include <memoria/prototypes/btree/container/remove.hpp>
 #include <memoria/prototypes/btree/container/api.hpp>
@@ -48,7 +47,6 @@ struct BTreeTypes {
     		memoria::btree::ToolsName,
     		memoria::btree::StubsName,
     		memoria::btree::ChecksName,
-    		memoria::btree::InsertName,
     		memoria::btree::InsertBatchName,
     		memoria::btree::RemoveName,
     		memoria::btree::FindName
