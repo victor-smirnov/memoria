@@ -6,14 +6,14 @@
 
 
 
-#ifndef _MEMORIA_MODELS_IDX_MAP_ITERATOR_TOOLS_HPP
-#define _MEMORIA_MODELS_IDX_MAP_ITERATOR_TOOLS_HPP
+#ifndef _MEMORIA_MODELS_IDX_MAP_ITERATOR_API1_HPP
+#define _MEMORIA_MODELS_IDX_MAP_ITERATOR_API1_HPP
 
 #include <iostream>
 
 #include <memoria/core/types/types.hpp>
 
-#include <memoria/containers/idx_map/names.hpp>
+#include <memoria/containers/map/names.hpp>
 #include <memoria/core/container/iterator.hpp>
 
 
@@ -21,7 +21,7 @@
 namespace memoria    {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorToolsName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 
     typedef typename Base::NodeBase                                             	NodeBase;
 	typedef typename Base::NodeBaseG                                             	NodeBaseG;

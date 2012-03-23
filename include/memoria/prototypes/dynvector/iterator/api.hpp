@@ -29,9 +29,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 	typedef typename Base::NodeBaseG                                             	NodeBaseG;
 	typedef typename Base::Container                                                Container;
 
-    typedef typename Container::ApiKeyType                                    		ApiKeyType;
-    typedef typename Container::ApiValueType                                  		ApiValueType;
-
     typedef typename Container::Page                                          		PageType;
     typedef typename Container::ID                                            		ID;
 

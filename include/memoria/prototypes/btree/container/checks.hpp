@@ -26,29 +26,15 @@ private:
 public:
 
     typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                              Allocator;
+    typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Allocator::Page                                              Page;
-    typedef typename Page::ID                                                   ID;
+    typedef typename Allocator::Page::ID                                        ID;
 
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                            NodeBaseG;
-    typedef typename Types::Counters                                            Counters;
-    typedef typename Base::Iterator                                             Iterator;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
 
     typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
     typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
-    typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
-    typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
-    typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
 
-    typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-    typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
 
     static const Int Indexes                                                    = Types::Indexes;
 
@@ -207,7 +193,6 @@ bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const N
 		CheckNodeContentFn1 fn1(*me());
 		RootDispatcher::DispatchConst(node, fn1);
 		errors = fn1.rtn_ || errors;
-
 	}
 
 	return errors;

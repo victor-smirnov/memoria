@@ -43,9 +43,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
 
-    typedef typename Base::ApiKeyType                                           ApiKeyType;
-    typedef typename Base::ApiValueType                                         ApiValueType;
-
     static const Int Indexes                                                    = Base::Indexes;
 
 

@@ -30,36 +30,33 @@ public:
     typedef typename Base::Allocator::PageG                                     PageG;
 
     typedef typename Allocator::Page                                            Page;
-    typedef typename Page::ID                                                   ID;
+    typedef typename Allocator::Page::ID                                        ID;
 
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Base::NodeBase                                            	NodeBase;
+    typedef typename Base::NodeBaseG                                           	NodeBaseG;
 
-    typedef typename Types::NodeBase::Base                                      TreeNodePage;
-    typedef typename Types::Counters                                            Counters;
-    typedef typename Base::Iterator                                             Iterator;
+    typedef typename Base::NodeBase::Base                                      	TreeNodePage;
 
-    typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
-    typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
-    typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
-    typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
+    typedef typename Base::NodeDispatcher                              			NodeDispatcher;
+    typedef typename Base::RootDispatcher                               		RootDispatcher;
+    typedef typename Base::LeafDispatcher                               		LeafDispatcher;
+    typedef typename Base::NonLeafDispatcher                            		NonLeafDispatcher;
+    typedef typename Base::NonRootDispatcher                            		NonRootDispatcher;
 
-    typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-    typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
+    typedef typename Base::Node2RootMap                                 		Node2RootMap;
+    typedef typename Base::Root2NodeMap                                		 	Root2NodeMap;
 
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
+    typedef typename Base::Element                                              Element;
+    typedef typename Base::Accumulator											Accumulator;
 
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
     static const Int Indexes                                                    = Types::Indexes;
-    static const bool MapType                                                   = Types::MapType;
-
-    typedef Accumulators<Key, Indexes>											Accumulator;
 
     CtrPart(): Base(), max_node_capacity_(-1) {}
     CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) {}
@@ -304,49 +301,47 @@ public:
     	return me()->GetCapacity(node) == 0;
     }
 
-    template <bool IsGet>
-    struct MetadataFn {
+    struct GetMetadataFn {
         Metadata metadata_;
     
-        MetadataFn() {}
-        MetadataFn(const Metadata& metadata): metadata_(metadata) {}
+        GetMetadataFn() {}
 
         template <typename T>
         void operator()(T *node) {
-            if (IsGet) {
-                metadata_ = node->metadata();
-            }
-            else {
-                node->metadata() = metadata_;
-            }
+            metadata_ = node->metadata();
         }
     };
 
-    static const Metadata GetRootMetadata(NodeBase *node)
+
+    struct SetMetadataFn {
+    	Metadata metadata_;
+
+    	SetMetadataFn(const Metadata& metadata): metadata_(metadata) {}
+
+    	template <typename T>
+    	void operator()(T *node) {
+    		node->metadata() = metadata_;
+    	}
+    };
+
+    static const Metadata GetRootMetadata(const NodeBaseG& node)
     {
-        MetadataFn<true> fn;
-        RootDispatcher::Dispatch(node, fn);
+        GetMetadataFn fn;
+        RootDispatcher::DispatchConst(node, fn);
         return fn.metadata_;
     }
 
     static void SetRootMetadata(NodeBaseG& node, const Metadata& metadata)
     {
         node.update();
-    	MetadataFn<false> fn(metadata);
+    	SetMetadataFn fn(metadata);
         RootDispatcher::Dispatch(node, fn);
     }
 
-    static BigInt GetContainerName(NodeBase *node)
+    static BigInt GetContainerName(const NodeBaseG& node)
     {
         return GetRootMetadata(node).model_name();
     }
-
-    static BigInt GetContainerNameFormPage(Page* page)
-    {
-        NodeBase* node = static_cast<NodeBase*>(page);
-        return GetRootMetadata(node).model_name();
-    }
-
 
     struct SumKeysFn {
 
@@ -395,21 +390,18 @@ public:
         }
     };
 
-    void AddKeys(NodeBaseG& node, int idx, const Key* keys) const
+    void AddKeys(NodeBaseG& node, int idx, const Accumulator& keys) const
     {
         node.update();
 
-        AddKeysFn fn(idx, keys);
+        AddKeysFn fn(idx, keys.keys());
         NodeDispatcher::Dispatch(node, fn);
     }
 
-    // FIXME: GCC compiler dislikes NodeBaseG& here
-
-    static Key GetKey(const NodeBaseG& node, Int i, Int idx)
+    Key GetKey(const NodeBaseG& node, Int i, Int idx) const
     {
         return memoria::btree::GetKey<NodeDispatcher, Key>(node.page(), i, idx);
     }
-
 
     Accumulator GetKeys(const NodeBaseG& node, Int idx) const
     {
@@ -430,35 +422,30 @@ public:
         return me()->allocator().GetPage(me()->root(), flags);
     }
 
-    void SetKeys(NodeBaseG& node, Int idx, const Key *keys)
+    void SetKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
     	node.update();
-    	memoria::btree::SetKeys<NodeDispatcher>(node.page(), idx, keys);
+    	memoria::btree::SetKeys<NodeDispatcher>(node.page(), idx, keys.keys());
     }
 
-    void SetKeys(NodeBaseG& node, Int idx, const Accumulator& keys)
-    {
-    	SetKeys(node, idx, keys.keys());
-    }
-
-    void SetChildrenCount(NodeBaseG& node, Int count)
+    void SetChildrenCount(NodeBaseG& node, Int count) const
     {
         node.update();
     	memoria::btree::SetChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
-    void AddChildrenCount(NodeBaseG& node, Int count)
+    void AddChildrenCount(NodeBaseG& node, Int count) const
     {
     	node.update();
     	memoria::btree::AddChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
-    ID GetINodeData(const NodeBaseG& node, Int idx)
+    ID GetINodeData(const NodeBaseG& node, Int idx) const
     {
     	return *memoria::btree::GetData<NonLeafDispatcher, ID>(node.page(), idx);
     }
 
-    void SetINodeData(NodeBaseG& node, Int idx, const ID *id)
+    void SetINodeData(NodeBaseG& node, Int idx, const ID *id) const
     {
     	node.update();
     	memoria::btree::SetData<NonLeafDispatcher>(node.page(), idx, id);
@@ -470,13 +457,41 @@ public:
     	memoria::btree::Reindex<NodeDispatcher>(node.page());
     }
 
-    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key* keys, const Value &val) const
+
+    class SetAndReindexFn {
+        Int       		i_;
+        const Element& 	element_;
+        const MyType* 	map_;
+    public:
+        SetAndReindexFn(Int i, const Element& element, const MyType* map): i_(i), element_(element), map_(map) {}
+
+        template <typename T>
+        void operator()(T *node)
+        {
+            map_->SetNodeKeyValue(node, i_, element_);
+        	node->map().Reindex();
+        }
+    };
+
+    template <typename Node>
+    void SetNodeKeyValue(Node* node, Int idx, const Element& element) const
+    {
+        for (Int c = 0; c < MyType::Indexes; c++)
+        {
+            node->map().key(c, idx) = element.first[c];
+        }
+
+        node->map().data(idx) = element.second;
+    }
+
+    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Element& element) const
     {
         node.update();
-    	memoria::btree::SetKeyDataAndReindex<LeafDispatcher>(node.page(), idx, keys, &val);
+    	SetAndReindexFn fn(idx, element, me());
+    	LeafDispatcher::Dispatch(node.page(), fn);
     }
     
-    static Value GetLeafData(const NodeBaseG& node, Int idx)
+    Value GetLeafData(const NodeBaseG& node, Int idx) const
     {
         return *memoria::btree::GetData<LeafDispatcher, Value>(node.page(), idx);
     }
@@ -487,7 +502,7 @@ public:
     	memoria::btree::SetData<LeafDispatcher>(node.page(), idx, &val);
     }
 
-    void Dump(PageG page, std::ostream& out = std::cout)
+    void Dump(PageG page, std::ostream& out = std::cout) const
     {
     	if (page != NULL)
     	{

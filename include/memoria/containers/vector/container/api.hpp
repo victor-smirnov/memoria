@@ -45,9 +45,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
 
-    typedef typename Base::ApiKeyType                                           ApiKeyType;
-    typedef typename Base::ApiValueType                                         ApiValueType;
-
     typedef typename Types::DataPage                                        	DataPage;
     typedef typename Types::DataPageG                                        	DataPageG;
     typedef typename Types::Buffer                                          	Buffer;

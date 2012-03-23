@@ -11,7 +11,7 @@
 
 #include <memoria/core/container/container.hpp>
 
-#include <memoria/containers/kvmap/factory.hpp>
+#include <memoria/containers/map/factory.hpp>
 
 
 namespace memoria {
@@ -26,9 +26,13 @@ class Ctr<RootCtrTypes<Types> >
 	typedef typename Allocator::Page		Page;
 	typedef typename Page::ID				ID;
 
-	typedef typename CtrTF<Profile, DefKVMap, DefKVMap>::Type	KeyValueMap;
+	typedef typename CtrTF<Profile, Map1, Map1>::Type	KeyValueMap;
+
+
 
 	KeyValueMap		map_;
+
+	typedef typename KeyValueMap::Value						Value;
 
 public:
 	typedef typename KeyValueMap::Iterator					Iterator;
@@ -63,27 +67,28 @@ public:
 
 	bool GetValue(BigInt name, Int key_idx, ID& id)
 	{
-		typename KeyValueMap::Value v;
-		bool result = map_.GetValue(name, key_idx, v);
+		Iterator iter = map_.Find(name);
 
-		if (result)
+		if (!iter.IsEnd())
 		{
-			id = ID(v);
+			id = ID(iter.GetData());
+			return true;
 		}
-
-		return result;
+		else {
+			return false;
+		}
 	}
 
 
 	void SetValueForKey(BigInt name, const ID& id)
 	{
-		map_.SetValueForKey(name, id.value());
+		map_[name].SetData(id.value());
 	}
 
 
 	void RemoveByKey(BigInt name)
 	{
-		map_.RemoveByKey(name);
+		map_.Remove(name);
 	}
 
 

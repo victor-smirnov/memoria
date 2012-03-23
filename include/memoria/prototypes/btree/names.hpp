@@ -65,7 +65,6 @@ template <typename ContainerName>
 class InternalPagePartsListFactory  {};
 
 
-class InitName              {};
 class ToolsName             {};
 class FindName              {};
 class InsertName            {};
@@ -73,7 +72,7 @@ class InsertBatchName       {};
 class RemoveName            {};
 class ApiName            	{};
 class ChecksName            {};
-class StubsName             {};
+class WalkName      		{};
 
 
 template <typename MyType, typename TypesType, typename ContainerTypeName>
@@ -83,7 +82,6 @@ template <typename ContainerType, typename ContainerTypeName>
 class BTreeIteratorFactoryName      {};
 
 class IteratorToolsName     {};
-class IteratorWalkName      {};
 class IteratorAPIName       {};
 class IteratorMultiskipName {};
 class IteratorContainerAPIName  {};

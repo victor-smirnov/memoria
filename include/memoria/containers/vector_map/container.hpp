@@ -31,7 +31,7 @@ public:
 
 	typedef IParentCtrInterface<typename Types::Allocator>		ParentCtrInterface;
 
-	typedef typename CtrTF<Profile, SumSet2, SumSet2>::Type		IdxSet;
+	typedef typename CtrTF<Profile, Set2, Set2>::Type		IdxSet;
 	typedef typename CtrTF<Profile, Vector,	 Vector>::Type		ByteArray;
 
 	typedef typename IdxSet::Accumulator                        IdxSetAccumulator;
@@ -169,7 +169,7 @@ public:
 
 		keys.key(0) = 1;
 
-		set_.InsertEntry1(is_iter, keys, ISValue());
+		set_.InsertEntry(is_iter, keys);
 
 		auto ba_iter = array_.End();
 		return Iterator(*me(), is_iter, ba_iter);
@@ -205,11 +205,7 @@ public:
 				set_.UpdateUp(is_iter.path(), 0, is_iter.key_idx(), -keys);
 			}
 
-//			is_iter.Dump();
-
-			set_.InsertEntry1(is_iter, keys, ISValue());
-
-//			is_iter.Dump();
+			set_.InsertEntry(is_iter, keys);
 
 			auto ba_iter = array_.Seek(data_pos);
 			return Iterator(*me(), is_iter, ba_iter, false);

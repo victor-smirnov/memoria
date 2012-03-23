@@ -13,6 +13,9 @@
 #include <ostream>
 
 namespace memoria    	{
+
+
+
 namespace btree 		{
 
 using namespace memoria::core;
@@ -139,6 +142,14 @@ public:
 		}
 	}
 
+	Accumulators(const Key* keys)
+	{
+		for (Int c = 0; c < Indexes; c++)
+		{
+			keys_[c] = keys[c];
+		}
+	}
+
 	const Key* keys() const
 	{
 		return keys_;
@@ -210,6 +221,16 @@ public:
 		for (Int c = 0; c < Indexes; c++)
 		{
 			keys_[c] = other.keys_[c];
+		}
+
+		return *this;
+	}
+
+	MyType& operator=(const Key* keys)
+	{
+		for (Int c = 0; c < Indexes; c++)
+		{
+			keys_[c] = keys[c];
 		}
 
 		return *this;

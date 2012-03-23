@@ -6,18 +6,15 @@
 
 
 
-#ifndef _MEMORIA_MODELS_KVMAP_NAMES_HPP
-#define _MEMORIA_MODELS_KVMAP_NAMES_HPP
+#ifndef _MEMORIA_MODELS_IDX_MAP_NAMES_HPP
+#define _MEMORIA_MODELS_IDX_MAP_NAMES_HPP
 
 namespace memoria    {
 namespace models    {
-namespace kvmap     {
+namespace idx_map   {
 
-class FindName          {};
-class ChecksName        {};
-class InsertName        {};
-class RemoveName        {};
-class MapApiName        {};
+class CtrApiName {};
+class ItrApiName {};
 
 }
 }

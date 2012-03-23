@@ -13,21 +13,24 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/prototypes/btree/names.hpp>
+#include <memoria/prototypes/btree/pages/pages.hpp>
+#include <memoria/metadata/tools.hpp>
+
 
 namespace memoria    {
 
 using namespace memoria::btree;
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
 
     typedef typename Base::NodeBase                                             	NodeBase;
 	typedef typename Base::NodeBaseG                                             	NodeBaseG;
-    typedef typename Base::Container::NodeDispatcher                                NodeDispatcher;
-    typedef typename Base::Container::Allocator                                		Allocator;
+    typedef typename Base::NodeDispatcher                                			NodeDispatcher;
+    typedef typename Base::Allocator                                				Allocator;
 
-    typedef typename Base::Container::TreePath                                		TreePath;
-    typedef typename Base::Container::TreePathItem                                	TreePathItem;
+    typedef typename Base::TreePath                                					TreePath;
+    typedef typename Base::TreePathItem                                				TreePathItem;
 
     template <typename Walker>
     class WalkHelperFn
@@ -72,7 +75,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     				// The case when index->parent_idx() == parent.size
     				// should be handled correctly in the walker
     				idx 	= path[index->level()].parent_idx() + 1;
-    				index 	= me()->model().GetParent(path, index);
+    				index 	= me()->GetParent(path, index);
     			}
     			else {
     				// EOF
@@ -102,7 +105,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
     			if (!index->is_leaf())
     			{
-    				index = me()->model().GetChild(index, fn.result(), Allocator::READ);
+    				index = me()->GetChild(index, fn.result(), Allocator::READ);
 
     				path[index->level()].node() 		= index;
     				path[index->level()].parent_idx() 	= fn.result();
@@ -122,7 +125,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     			if (!index->is_leaf())
     			{
     				Int parent_idx = index->children_count() - 1;
-    				index = me()->model().GetLastChild(index, Allocator::READ);
+    				index = me()->GetLastChild(index, Allocator::READ);
 
     				path[index->level()].node() 		= index;
     				path[index->level()].parent_idx() 	= parent_idx;
@@ -158,7 +161,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         		{
 
         			idx 	= path[index->level()].parent_idx() - 1;
-        			index 	= me()->model().GetParent(path, index);
+        			index 	= me()->GetParent(path, index);
         		}
         		else {
         			// START
@@ -182,7 +185,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
 
         		if (!index->is_leaf())
         		{
-        			index 	= me()->model().GetChild(index, fn.result(), Allocator::READ);
+        			index 	= me()->GetChild(index, fn.result(), Allocator::READ);
 
         			path[index->level()].node() 		= index;
         			path[index->level()].parent_idx() 	= fn.result();
@@ -202,7 +205,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
         	{
         		if (!index->is_leaf())
         		{
-        			index = me()->model().GetChild(index, 0, Allocator::READ);
+        			index = me()->GetChild(index, 0, Allocator::READ);
 
         			path[index->level()].node() 		= index;
         			path[index->level()].parent_idx() 	= 0;
@@ -225,60 +228,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorWalkName)
     	}
     }
 
-    template <typename Walker>
-    BigInt skip_keys_fw(BigInt distance)
-    {
-    	if (me()->page().is_empty())
-    	{
-    		return 0;
-    	}
-    	else if (me()->key_idx() + distance < me()->page()->children_count())
-    	{
-    		me()->key_idx() += distance;
-    	}
-    	else {
-    		Walker walker(distance, me()->model());
-
-    		if (me()->WalkFw(me()->path(), me()->key_idx(), walker))
-    		{
-    			me()->key_idx()++;
-    			me()->ReHash();
-    			return walker.sum();
-    		}
-    	}
-
-    	me()->ReHash();
-    	return distance;
-    }
 
 
-    template <typename Walker>
-    BigInt skip_keys_bw(BigInt distance)
-    {
-    	if (me()->page() == NULL)
-    	{
-    		return 0;
-    	}
-    	else if (me()->key_idx() - distance >= 0)
-    	{
-    		me()->key_idx() -= distance;
-    	}
-    	else {
-    		Walker walker(distance, me()->model());
-
-    		if (me()->WalkBw(me()->path(), me()->key_idx(), walker))
-    		{
-    			me()->key_idx() = -1;
-    			me()->ReHash();
-    			return walker.sum();
-    		}
-    	}
-
-    	me()->ReHash();
-    	return distance;
-    }
-
-MEMORIA_ITERATOR_PART_END
+MEMORIA_CONTAINER_PART_END
 
 }
 

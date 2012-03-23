@@ -434,31 +434,6 @@ const Data* GetData(Node *node, Int idx) {
     return fn.data();
 }
 
-template <typename I, typename Keys, typename Data>
-class SetAndReindexFn {
-    I       i_;
-    Keys*   keys_;
-    Data*   data_;
-public:
-    SetAndReindexFn(I i, Keys *keys, Data *data): i_(i), keys_(keys), data_(data) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        for (Int c = 0; c < T::Map::INDEXES; c++) {
-            node->map().key(c, i_) = keys_[c];
-        }
-
-        node->map().data(i_) = *data_;
-        node->map().Reindex();
-    }
-};
-
-template <typename Dispatcher, typename Node, typename I, typename Keys, typename Data>
-void SetKeyDataAndReindex(Node *node, I idx, Keys *keys, Data *val) {
-    SetAndReindexFn<I, Keys, Data> fn(idx, keys, val);
-    Dispatcher::Dispatch(node, fn);
-}
-
 struct ReindexFn {
     template <typename T>
     void operator()(T *node) {

@@ -12,13 +12,7 @@
 
 
 #include <memoria/prototypes/btree/iterator/api.hpp>
-#include <memoria/prototypes/btree/iterator/multiskip.hpp>
-#include <memoria/prototypes/btree/iterator/model_api.hpp>
-#include <memoria/prototypes/btree/iterator/walk.hpp>
-#include <memoria/prototypes/btree/iterator/tools.hpp>
-
 #include <memoria/prototypes/btree/iterator/base.hpp>
-
 #include <memoria/prototypes/btree/names.hpp>
 
 namespace memoria    {

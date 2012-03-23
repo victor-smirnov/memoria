@@ -27,7 +27,7 @@ class SumSetTest: public SPTestTask {
 
 private:
 	typedef vector<BigInt> PairVector;
-	typedef StreamContainerTypesCollection::Factory<SumSet1>::Type IdxSetType;
+	typedef StreamContainerTypesCollection::Factory<Set1>::Type IdxSetType;
 
 	static const Int Indexes = IdxSetType::Indexes;
 	typedef typename IdxSetType::Key Key;

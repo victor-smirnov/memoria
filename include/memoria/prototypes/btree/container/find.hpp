@@ -24,36 +24,12 @@ MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(memoria::btree::FindName)
 
     typedef TypesType                                                			Types;
     typedef typename Types::Allocator                                           Allocator;
-
-    typedef typename Allocator::Page                                            Page;
-    typedef typename Page::ID                                                   ID;
-    typedef typename Allocator::Transaction                                     Transaction;
-
-    typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
-
-    typedef typename Types::Counters                                            Counters;
-    typedef Iter<typename Types::IterTypes>                            			Iterator;
-
-    typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
-    typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
-    typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
-
-    typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-    typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
-
-    typedef typename Types::Pages::NodeFactory                                  NodeFactory;
-
+    typedef typename Base::Iterator                            					Iterator;
+    typedef typename Base::NodeDispatcher                               		NodeDispatcher;
     typedef typename Base::Key                                                  Key;
-    typedef typename Types::Value                                               Value;
-
-    typedef typename Base::Metadata												Metadata;
-
     typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
 
-    static const Int Indexes                                                    = Types::Indexes;
 
     struct SearchModeDefault {
     	typedef enum {NONE, FIRST, LAST} Enum;

@@ -33,6 +33,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 	typedef typename Base::NodeBaseG                                            NodeBaseG;
 	typedef typename Base::TreePath                                             TreePath;
 
+	typedef typename Base::Container::Value                                     Value;
+	typedef typename Base::Container::Key                                       Key;
+	typedef typename Base::Container::Element                                   Element;
+	typedef typename Base::Container::Accumulator                               Accumulator;
+	typedef typename Base::Container                                            Container;
+
     bool NextKey();
     bool HasNextKey();
 
@@ -46,6 +52,96 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     bool PrevLeaf();
     bool HasPrevLeaf();
 
+    bool Next() {
+    	return me()->NextKey();
+    }
+
+    bool Prev() {
+    	return me()->PrevKey();
+    }
+
+    BigInt SkipFw(BigInt amount);
+    BigInt SkipBw(BigInt amount);
+    BigInt Skip(BigInt amount);
+
+    bool operator++() {
+    	return me()->NextKey();
+    }
+
+    bool operator--() {
+    	return me()->PrevKey();
+    }
+
+    BigInt operator+=(BigInt size)
+    {
+    	return me()->SkipFw(size);
+    }
+
+    BigInt operator-=(BigInt size)
+    {
+    	return me()->SkipBw(size);
+    }
+
+
+    operator const Key () const
+    {
+    	return me()->GetKey(0);
+    }
+
+    operator Accumulator () const
+    {
+    	return me()->GetKeys();
+    }
+
+    MyType& operator<<(const Element& element)
+    {
+    	me()->model().Insert(*me(), element);
+    	return *me();
+    }
+
+    MyType& operator=(const Value& value)
+    {
+    	if (!me()->IsEnd())
+    	{
+    		me()->model().SetLeafData(me()->leaf().node(), me()->key_idx(), value);
+    		return *me();
+    	}
+    	else {
+    		throw MemoriaException(MEMORIA_SOURCE, "Insertion after the end of iterator");
+    	}
+    }
+
+
+    void Remove()
+    {
+    	Accumulator keys;
+    	me()->model().RemoveEntry(*me(), keys);
+    }
+
+    Value GetData() const
+    {
+    	return me()->model().GetLeafData(me()->page(), me()->key_idx());
+    }
+
+    void SetData(const Value& data)
+    {
+    	me()->model().SetLeafData(me()->leaf().node(), me()->key_idx(), data);
+    }
+
+    Key GetKey(Int keyNum) const
+    {
+    	return me()->model().GetKey(me()->page(), keyNum, me()->key_idx());
+    }
+
+    Accumulator GetKeys() const
+    {
+    	return me()->model().GetKeys(me()->page(), me()->key_idx());
+    }
+
+    void UpdateUp(const Accumulator& keys)
+    {
+    	me()->model().UpdateUp(me()->path(), 0, me()->key_idx(), keys);
+    }
 
     void Init() {
     	Base::Init();
@@ -55,6 +151,59 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
         return (!me()->IsEnd()) && me()->IsNotEmpty();
     }
 
+    template <typename Walker>
+    BigInt skip_keys_fw(BigInt distance)
+    {
+    	if (me()->page().is_empty())
+    	{
+    		return 0;
+    	}
+    	else if (me()->key_idx() + distance < me()->page()->children_count())
+    	{
+    		me()->key_idx() += distance;
+    	}
+    	else {
+    		Walker walker(distance, me()->model());
+
+    		if (me()->model().WalkFw(me()->path(), me()->key_idx(), walker))
+    		{
+    			me()->key_idx()++;
+    			me()->ReHash();
+    			return walker.sum();
+    		}
+    	}
+
+    	me()->ReHash();
+    	return distance;
+    }
+
+
+    template <typename Walker>
+    BigInt skip_keys_bw(BigInt distance)
+    {
+    	if (me()->page() == NULL)
+    	{
+    		return 0;
+    	}
+    	else if (me()->key_idx() - distance >= 0)
+    	{
+    		me()->key_idx() -= distance;
+    	}
+    	else {
+    		Walker walker(distance, me()->model());
+
+    		if (me()->model().WalkBw(me()->path(), me()->key_idx(), walker))
+    		{
+    			me()->key_idx() = -1;
+    			me()->ReHash();
+    			return walker.sum();
+    		}
+    	}
+
+    	me()->ReHash();
+    	return distance;
+    }
+
 MEMORIA_ITERATOR_PART_END
 
 
@@ -62,6 +211,54 @@ MEMORIA_ITERATOR_PART_END
 #define M_PARAMS 	MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 // --------------------- PUBLIC API --------------------------------------
+
+
+M_PARAMS
+BigInt M_TYPE::SkipFw(BigInt amount)
+{
+	BigInt cnt = 0;
+
+	for (BigInt c = 0; c < amount; c++, cnt++)
+	{
+		if (!me()->NextKey())
+		{
+			break;
+		}
+	}
+
+	return cnt;
+}
+
+
+M_PARAMS
+BigInt M_TYPE::SkipBw(BigInt amount)
+{
+	BigInt cnt = 0;
+
+	for (BigInt c = 0; c < amount; c++, cnt++)
+	{
+		if (!me()->PrevKey())
+		{
+			break;
+		}
+	}
+
+	return cnt;
+}
+
+
+M_PARAMS
+BigInt M_TYPE::Skip(BigInt amount)
+{
+	if (amount >= 0)
+	{
+		return me()->SkipFw(amount);
+	}
+	else {
+		return me()->SkipBw(-amount);
+	}
+}
+
 
 M_PARAMS
 bool M_TYPE::NextKey()

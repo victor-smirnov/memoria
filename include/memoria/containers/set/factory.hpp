@@ -10,16 +10,16 @@
 #define _MEMORIA_MODELS_IDX_SET_FACTORY_HPP
 
 
-#include <memoria/containers/idx_map/factory.hpp>
+#include <memoria/containers/map/factory.hpp>
 
 namespace memoria    {
 
 
 
 template <typename Profile, Int Indexes>
-struct BTreeTypes<Profile, memoria::SumSet<Indexes> >: public BTreeTypes<Profile, memoria::SumMap<Indexes> > {
+struct BTreeTypes<Profile, memoria::Set<Indexes> >: public BTreeTypes<Profile, memoria::Map<Indexes> > {
 
-	typedef BTreeTypes<Profile, memoria::SumSet<Indexes> > 					Base;
+	typedef BTreeTypes<Profile, memoria::Set<Indexes> > 					Base;
 
 	typedef EmptyValue														Value;
 
@@ -27,7 +27,7 @@ struct BTreeTypes<Profile, memoria::SumSet<Indexes> >: public BTreeTypes<Profile
 };
 
 template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::SumSet<Indexes>, T>: public CtrTF<Profile, memoria::SumMap<Indexes>, T> {
+class CtrTF<Profile, memoria::Set<Indexes>, T>: public CtrTF<Profile, memoria::Map<Indexes>, T> {
 };
 
 }

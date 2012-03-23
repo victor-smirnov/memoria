@@ -20,47 +20,24 @@ using namespace memoria::btree;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                              Allocator;
 
-    typedef typename Base::Page                                                 Page;
+    typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::ID                                                   ID;
-
-
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::TreeNodePage                                     	TreeNodePage;
-    typedef typename Base::Counters                                             Counters;
+    typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
-
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
-
-    typedef typename Base::Node2RootMap                                         Node2RootMap;
-    typedef typename Base::Root2NodeMap                                         Root2NodeMap;
-
-    typedef typename Base::NodeFactory                                          NodeFactory;
-
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
-
-    static const Int  Indexes                                                   = Base::Indexes;
-    static const bool MapType                                                   = Types::MapType;
+    typedef typename Base::Accumulator											Accumulator;
 
     typedef typename Base::Metadata                                             Metadata;
-
-
-    typedef typename Base::Accumulator											Accumulator;
 
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
+    static const Int  Indexes                                                   = Base::Indexes;
 
-
-    void PreMerge(NodeBaseG& one, NodeBase& two) {}
     
+
     struct DataRemoveHandlerFn {
 
     	Int idx_, count_;
@@ -99,13 +76,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
      */
     bool RemoveEntry(Iterator& iter, Accumulator& keys);
 
-//    void RemoveEntry(NodeBaseG& node, Int& idx, Key* keys);
-
     void RemoveEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge = true);
 
-
-
-//    BigInt RemoveEntries(Iterator& from, Iterator& to);
     BigInt RemoveEntries(Iterator& from, Iterator& to, Accumulator& accum, bool merge = true);
 
     void Drop();

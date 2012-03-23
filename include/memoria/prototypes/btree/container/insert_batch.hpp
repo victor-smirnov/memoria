@@ -28,14 +28,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Base::Page                                                 Page;
     typedef typename Base::ID                                                   ID;
     
-
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::TreeNodePage                                     	TreeNodePage;
-    typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
@@ -43,24 +40,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
-    typedef typename Base::Node2RootMap                                         Node2RootMap;
-    typedef typename Base::Root2NodeMap                                         Root2NodeMap;
-
-    typedef typename Base::NodeFactory                                          NodeFactory;
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
-
-    static const Int Indexes                                                    = Base::Indexes;
+    typedef typename Base::Element                                              Element;
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef Accumulators<Key, Indexes>											Accumulator;
+    typedef typename Base::Accumulator											Accumulator;
 
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
-
+    static const Int Indexes                                                    = Base::Indexes;
 
     struct LeafNodeKeyValuePair
     {
@@ -103,8 +95,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     void UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
     Accumulator InsertSubtree(Iterator& iter, ISubtreeProvider& provider);
 
-    void InsertEntry1(Iterator &iter, const Accumulator& keys, const Value &value);
-    void InsertEntry1(Iterator &iter, Key key, const Value &value);
+    void InsertEntry(Iterator& iter, const Element&);
+
+    bool Insert(Iterator& iter, const Element& element)
+    {
+    	InsertEntry(iter, element);
+    	return iter.NextKey();
+    }
 
     void InsertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size);
     void InsertBatch(Iterator& iter, const LeafPairsVector& pairs);
@@ -116,9 +113,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
 
     NodeBaseG CreateNode(Short level, bool root, bool leaf);
-
-    void InsertEntry(Iterator &iter, const Key *keys, const Value &value) {}
-    void InsertEntry(Iterator &iter, Key key, const Value &value) {}
 
     class DefaultSubtreeProviderBase: public ISubtreeProvider {
 
@@ -539,7 +533,7 @@ void M_TYPE::SplitPath(TreePath& left, TreePath& right, Int level, Int idx)
 
 
 M_PARAMS
-void M_TYPE::InsertEntry1(Iterator &iter, const Accumulator& keys, const Value &value)
+void M_TYPE::InsertEntry(Iterator &iter, const Element& element)
 {
 	TreePath& 	path 	= iter.path();
 	NodeBaseG& 	node 	= path[0].node();
@@ -572,23 +566,23 @@ void M_TYPE::InsertEntry1(Iterator &iter, const Accumulator& keys, const Value &
 		iter.key_idx() = idx;
 	}
 
-	me()->SetLeafDataAndReindex(node, idx, keys.keys(), value);
+	me()->SetLeafDataAndReindex(node, idx, element);
 
-	me()->UpdateParentIfExists(path, 0, keys);
+	me()->UpdateParentIfExists(path, 0, element.first);
 
 	me()->AddTotalKeyCount(1);
 }
 
 
 
-M_PARAMS
-void M_TYPE::InsertEntry1(Iterator &iter, Key key, const Value &value) {
-	Accumulator keys;
-
-	keys.key(0) = key;
-
-	InsertEntry1(iter, keys, value);
-}
+//M_PARAMS
+//void M_TYPE::InsertEntry(Iterator &iter, Key key, const Value &value) {
+//	Accumulator keys;
+//
+//	keys.key(0) = key;
+//
+//	InsertEntry(iter, keys, value);
+//}
 
 M_PARAMS
 void M_TYPE::InsertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
@@ -664,7 +658,7 @@ void M_TYPE::UpdateParentIfExists(TreePath& path, Int level, const Accumulator& 
 M_PARAMS
 typename M_TYPE::NodeBaseG M_TYPE::CreateNode(Short level, bool root, bool leaf)
 {
-	NodeBaseG node = NodeFactory::Create(me()->allocator(), level, root, leaf);
+	NodeBaseG node = Base::NodeFactory::Create(me()->allocator(), level, root, leaf);
 
 	if (root) {
 		Metadata meta = me()->GetRootMetadata(node);

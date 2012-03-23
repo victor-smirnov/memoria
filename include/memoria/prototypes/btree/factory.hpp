@@ -17,11 +17,9 @@
 #include <memoria/prototypes/btree/container/base.hpp>
 #include <memoria/prototypes/btree/container/tools.hpp>
 #include <memoria/prototypes/btree/container/checks.hpp>
-#include <memoria/prototypes/btree/container/init.hpp>
 #include <memoria/prototypes/btree/container/insert_batch.hpp>
 #include <memoria/prototypes/btree/container/remove.hpp>
-#include <memoria/prototypes/btree/container/api.hpp>
-#include <memoria/prototypes/btree/container/stubs.hpp>
+#include <memoria/prototypes/btree/container/walk.hpp>
 #include <memoria/prototypes/btree/container/find.hpp>
 
 #include <memoria/prototypes/btree/iterator.hpp>
@@ -45,11 +43,11 @@ struct BTreeTypes {
 
     typedef typename TLTool<
     		memoria::btree::ToolsName,
-    		memoria::btree::StubsName,
     		memoria::btree::ChecksName,
     		memoria::btree::InsertBatchName,
     		memoria::btree::RemoveName,
-    		memoria::btree::FindName
+    		memoria::btree::FindName,
+    		memoria::btree::WalkName
     >::List                                                                     ContainerPartsList;
 
     typedef NullType                                                            BasePagePartsList;
@@ -63,11 +61,7 @@ struct BTreeTypes {
     typedef NullType                                                            DataPagesList;
 
     typedef typename TLTool<
-    		memoria::btree::IteratorToolsName,
-    		memoria::btree::IteratorWalkName,
-    		memoria::btree::IteratorAPIName,
-    		memoria::btree::IteratorMultiskipName,
-    		memoria::btree::IteratorContainerAPIName
+    		memoria::btree::IteratorAPIName
     >::List                                                                     IteratorPartsList;
 
     typedef EmptyType                                            				ContainerInterface;
@@ -93,6 +87,10 @@ struct BTreeTypes {
     struct IterBaseFactory {
     	typedef BTreeIteratorBase<Types_> 										Type;
     };
+
+
+
+
 };
 
 
@@ -239,14 +237,20 @@ public:
     	typedef BTreeIterTypes<IterTypesT<Types> >								IterTypes;
 
 
-//    	typedef memoria::btree::TreePathItem<NodeBaseG>							TreePathItem;
-
     	typedef NodePath<
     			NodeBaseG, 16
     	>																		TreePath;
 
     	typedef typename TreePath::PathItem										TreePathItem;
 
+    	typedef typename MaxElement<
+    			typename ContainerTypes::KeysList, TypeSizeValueProvider
+    	>::Result    															Key;
+
+    	typedef Accumulators<Key, ContainerTypes::Indexes>						Accumulator;
+
+
+    	typedef ValuePair<Accumulator, Value>									Element;
     };
 
 

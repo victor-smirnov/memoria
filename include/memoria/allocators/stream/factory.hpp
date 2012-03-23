@@ -10,9 +10,8 @@
 #define _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
 
 #include <memoria/containers/root/factory.hpp>
-#include <memoria/containers/kvmap/factory.hpp>
-#include <memoria/containers/idx_map/factory.hpp>
-#include <memoria/containers/idx_set/factory.hpp>
+#include <memoria/containers/map/factory.hpp>
+#include <memoria/containers/set/factory.hpp>
 #include <memoria/containers/vector/factory.hpp>
 #include <memoria/containers/vector_map/factory.hpp>
 
@@ -55,31 +54,30 @@ typedef Checker<StreamContainerTypesCollection, DefaultStreamAllocator> StreamCo
 
 MEMORIA_TEMPLATE_EXTERN template class ContainerTypesCollection<StreamProfile<> >;
 
-/*
-MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Root)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::StubsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::InsertName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::FindName)
+//MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Root)
+//
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::ToolsName)
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::ChecksName)
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::InsertName)
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::RemoveName)
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::FindName)
+//
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::MapApiName)
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::FindName)
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::ChecksName)
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::InsertName)
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::RemoveName)
+//
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::TreeMapName)
+//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::MapName)
+//
+//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorToolsName)
+//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorWalkName)
+//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorAPIName)
+//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorMultiskipName)
+//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorContainerAPIName)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::MapApiName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::FindName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::InsertName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::RemoveName)
-
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::TreeMapName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::MapName)
-
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorToolsName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorWalkName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorAPIName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorMultiskipName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorContainerAPIName)
-*/
 
 //MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::SumMap1)
 //
@@ -114,66 +112,26 @@ MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria
 
 
 
-MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::SumSet1)
+MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Set1)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::StubsName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::InsertBatchName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::FindName)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::InsertBatchName)
-
-
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::FindName)
-
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::models::idx_map::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::bstree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::models::idx_map::InsertName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::bstree::FindName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::models::idx_map::ContainerApiName)
-
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::models::TreeMapName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::models::MapName)
-
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::IteratorToolsName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::IteratorWalkName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::IteratorAPIName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::IteratorMultiskipName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::btree::IteratorContainerAPIName)
-
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::bstree::IteratorToolsName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumSet1, memoria::models::idx_map::ItrAPIName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::models::idx_map::CtrApiName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::bstree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::bstree::FindName)
+MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::IteratorAPIName)
 
 
+MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::models::idx_map::ItrApiName)
 
-MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::DefKVMap)
-
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::StubsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::InsertBatchName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::FindName)
-
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::models::kvmap::FindName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::models::kvmap::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::models::kvmap::InsertName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::models::kvmap::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::models::kvmap::MapApiName)
-
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::models::TreeMapName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::models::MapName)
-
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::IteratorToolsName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::IteratorWalkName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::IteratorAPIName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::IteratorMultiskipName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::DefKVMap, memoria::btree::IteratorContainerAPIName)
 
 MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Vector)
 
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::StubsName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::ChecksName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::InsertBatchName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::RemoveName)
@@ -183,15 +141,9 @@ MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memori
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::RemoveName)
 
 //FIXME CtrPart
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::InsertName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::Insert2Name)
 
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorToolsName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorWalkName)
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorAPIName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorMultiskipName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorContainerAPIName)
-
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::IteratorAPIName)
 
 /**/

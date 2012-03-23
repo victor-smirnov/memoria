@@ -14,7 +14,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/vapi/models/logs.hpp>
 
-#include <memoria/prototypes/btree/names.hpp>
+#include <memoria/prototypes/templates/names.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/core/tools/walkers.hpp>

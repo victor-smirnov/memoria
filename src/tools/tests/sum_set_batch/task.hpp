@@ -23,18 +23,18 @@
 
 namespace memoria {
 
-typedef StreamContainerTypesCollection::Factory<SumSet1>::Type SumSet1Ctr;
+typedef StreamContainerTypesCollection::Factory<Set1>::Type SumSet1Ctr;
 
 
 class SumSetBatchTest: public BTreeBatchTestBase<
-	SumSet1,
+	Set1,
 	typename SumSet1Ctr::LeafPairsVector,
 	SumSetBatchParams,
 	SumSetBatchReplay
 >
 {
 	typedef BTreeBatchTestBase<
-			SumSet1,
+			Set1,
 			typename SumSet1Ctr::LeafPairsVector,
 			SumSetBatchParams,
 			SumSetBatchReplay

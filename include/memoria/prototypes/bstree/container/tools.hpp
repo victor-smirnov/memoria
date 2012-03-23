@@ -20,11 +20,11 @@ namespace memoria    {
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
 
     typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                              Allocator;
+    typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Allocator::Page                                              Page;
+    typedef typename Allocator::Page                                            Page;
     typedef typename Page::ID                                                   ID;
-    typedef typename Allocator::Transaction                                       Transaction;
+    typedef typename Allocator::Transaction                                     Transaction;
 
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
@@ -43,32 +43,33 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
+    typedef typename Base::Element                                              Element;
 
     static const Int Indexes                                                    = Types::Indexes;
-    static const Int MapType                                                    = Types::MapType;
+
     
-    struct SetAndReindexFn1 {
-        Int             i_;
-        const Key*      keys_;
-        const Value&    data_;
-        bool            fixed_;
-    public:
-        SetAndReindexFn1(Int i, const Key *keys, const Value& data): i_(i), keys_(keys), data_(data), fixed_(true) {}
-
-        template <typename T>
-        void operator()(T *node)
-        {
-            for (Int c = 0; c < Indexes; c++) {
-                node->map().key(c, i_) = keys_[c];
-            }
-
-            node->map().data(i_) = data_;
-
-            node->map().Reindex();
-        }
-    };
-
-    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val);
+//    struct SetAndReindexFn1 {
+//        Int             i_;
+//        const Key*      keys_;
+//        const Value&    data_;
+//        bool            fixed_;
+//    public:
+//        SetAndReindexFn1(Int i, const Key *keys, const Value& data): i_(i), keys_(keys), data_(data), fixed_(true) {}
+//
+//        template <typename T>
+//        void operator()(T *node)
+//        {
+//            for (Int c = 0; c < Indexes; c++) {
+//                node->map().key(c, i_) = keys_[c];
+//            }
+//
+//            node->map().data(i_) = data_;
+//
+//            node->map().Reindex();
+//        }
+//    };
+//
+//    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val);
 
     template <typename Node>
     bool CheckNodeContent(Node *node);
@@ -85,13 +86,13 @@ MEMORIA_CONTAINER_PART_END
 #define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::bstree::ToolsName)
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
-M_PARAMS
-void M_TYPE::SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val)
-{
-	node.update();
-	SetAndReindexFn1 fn1(idx, keys, val);
-	LeafDispatcher::Dispatch(node, fn1);
-}
+//M_PARAMS
+//void M_TYPE::SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val)
+//{
+//	node.update();
+//	SetAndReindexFn1 fn1(idx, keys, val);
+//	LeafDispatcher::Dispatch(node, fn1);
+//}
 
 M_PARAMS
 template <typename Node>

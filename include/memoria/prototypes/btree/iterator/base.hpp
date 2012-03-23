@@ -24,11 +24,13 @@ using namespace memoria::btree;
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBase)
 public:
-	typedef typename Base::Container::TreePath                                        TreePath;
-	typedef typename Base::Container::TreePath::Element                               TreePathItem;
-    typedef typename Base::Container::NodeBase                                        NodeBase;
-    typedef typename Base::Container::NodeBaseG                                       NodeBaseG;
-    typedef typename Base::Container::Allocator										  Allocator;
+	typedef typename Base::Container::TreePath                                        	TreePath;
+	typedef typename Base::Container::TreePath::Element                               	TreePathItem;
+    typedef typename Base::Container::NodeBase                                        	NodeBase;
+    typedef typename Base::Container::NodeBaseG                                       	NodeBaseG;
+    typedef typename Base::Container::Allocator										  	Allocator;
+
+    static const Int Indexes															= Base::Container::Indexes;
 
 private:
 
@@ -162,6 +164,50 @@ public:
     {
     	return key_num_;
     }
+
+
+    void Dump(ostream& out = cout, const char* header = NULL)
+    {
+    	out<<(header != NULL ? header : me()->GetDumpHeader())<<endl;
+
+    	me()->DumpKeys(out);
+
+    	me()->DumpBeforePath(out);
+    	me()->DumpPath(out);
+
+    	me()->DumpBeforePages(out);
+    	me()->DumpPages(out);
+    }
+
+    String GetDumpHeader()
+    {
+    	return String(me()->model().type_name()) + " Iterator State";
+    }
+
+    void DumpPath(ostream& out)
+    {
+    	out<<"Path:"<<endl;
+
+    	TreePath& path0 = me()->path();
+    	for (int c = me()->path().GetSize() - 1; c >= 0; c--)
+    	{
+    		out<<"Node("<<c<<"): "<<IDValue(path0[c]->id())<<" idx="<<(c > 0 ? ToString(path0[c - 1].parent_idx()) : "")<<endl;
+    	}
+    }
+
+    void DumpKeys(ostream& out)
+    {
+    	out<<"KeyIdx:  "<<me()->key_idx()<<endl;
+    }
+
+    void DumpBeforePath(ostream& out){}
+    void DumpBeforePages(ostream& out){}
+
+    void DumpPages(ostream& out)
+    {
+    	me()->model().Dump(me()->leaf().node(), out);
+    }
+
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END
 
