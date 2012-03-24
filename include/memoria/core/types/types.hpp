@@ -78,7 +78,7 @@ struct Superblock:  public CodeValue<0> {};
 struct Root:        public CodeValue<1> {};
 
 template <Int Indexes>
-struct Map:      	public CodeValue<3 + Indexes * 256> {};
+struct Map:      	public CodeValue<0x618a2f + Indexes * 256> {};
 
 typedef Map<1> 		Map1;
 

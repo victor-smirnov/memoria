@@ -106,7 +106,9 @@ bool M_TYPE::CheckNodeContent(Node *node) {
 			key += node->map().key(i, c);
 		}
 
-		if (key != node->map().max_key(i)) {
+		if (key != node->map().max_key(i))
+		{
+			//me()->Dump(node);
 			MEMORIA_ERROR(me(), "Sum of keys doen't match max_key for key", i, key, node->map().max_key(i));
 			errors = true;
 		}
@@ -124,6 +126,8 @@ bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_i
 	{
 		if (node->map().max_key(c) != parent->map().key(c, parent_idx))
 		{
+//			me()->Dump(node);
+//			me()->Dump(parent);
 			MEMORIA_ERROR(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, parent_idx), "for", node->id(), parent->id(), parent_idx);
 			errors = true;
 		}

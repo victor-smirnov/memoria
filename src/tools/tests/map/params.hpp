@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_KV_MAP_PARAMS_HPP_
-#define MEMORIA_TESTS_KV_MAP_PARAMS_HPP_
+#ifndef MEMORIA_TESTS_MAP_PARAMS_HPP_
+#define MEMORIA_TESTS_MAP_PARAMS_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -17,14 +17,14 @@
 namespace memoria {
 
 
-struct KVMapReplay: public BTreeReplayParams {
-	KVMapReplay(): BTreeReplayParams(){}
+struct MapReplay: public BTreeReplayParams {
+	MapReplay(): BTreeReplayParams(){}
 };
 
 
-struct KVMapParams: public TestTaskParams {
+struct MapParams: public TestTaskParams {
 
-	KVMapParams(): TestTaskParams("KVMap") {}
+	MapParams(): TestTaskParams("Map") {}
 };
 
 

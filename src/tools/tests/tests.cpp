@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-//#include "kv_map/task.hpp"
+#include "map/task.hpp"
 //#include "sum_set/task.hpp"
 #include "sum_set_batch/task.hpp"
 #include "vector/task.hpp"
@@ -63,7 +63,7 @@ int main(int argc, const char** argv, const char** envp)
 
 		// add tasks to the runner;
 
-//		runner.RegisterTask(new KVMapTest());
+		runner.RegisterTask(new MapTest());
 //		runner.RegisterTask(new SumSetTest());
 		runner.RegisterTask(new SumSetBatchTest());
 		runner.RegisterTask(new VectorTest());

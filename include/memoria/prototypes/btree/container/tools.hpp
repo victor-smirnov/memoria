@@ -522,15 +522,15 @@ public:
     void AddTotalKeyCount(BigInt value);
     void AddTotalKeyCount(TreePath& path, BigInt value);
 
-    bool GetNextNode(TreePath& path, Int level = 0) const
+    bool GetNextNode(TreePath& path, Int level = 0, bool down = false) const
     {
     	Int idx = path[level].node()->children_count();
-    	return GetNextNode(path, level, idx, level);
+    	return GetNextNode(path, level, idx, down ? 0 : level );
     }
 
-    bool GetPrevNode(TreePath& path, Int level = 0) const
+    bool GetPrevNode(TreePath& path, Int level = 0, bool down = false) const
     {
-    	return GetPrevNode(path, level, -1, level);
+    	return GetPrevNode(path, level, -1, down ? 0 : level);
     }
 
     void FinishPathStep(TreePath& path, Int key_idx) const {}
@@ -626,7 +626,10 @@ bool M_TYPE::GetNextNode(TreePath& path, Int level, Int idx, Int target_level) c
 			idx = 0;
 		}
 
-		me()->FinishPathStep(path, idx);
+		if (level == 0)
+		{
+			me()->FinishPathStep(path, idx);
+		}
 		return true;
 	}
 	else {
@@ -655,7 +658,10 @@ bool M_TYPE::GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 			idx = path[level - 1].node()->children_count() - 1;
 		}
 
-		me()->FinishPathStep(path, idx);
+		if (level == 0)
+		{
+			me()->FinishPathStep(path, idx);
+		}
 
 		return true;
 	}

@@ -107,7 +107,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     void InsertBatch(Iterator& iter, const LeafPairsVector& pairs);
 
 
-    TreePathItem SplitPath(TreePath& path, Int level, Int idx);
+//    TreePathItem SplitPath(TreePath& path, Int level, Int idx);
     void 		 SplitPath(TreePath& left, TreePath& right, Int level, Int idx);
     void		 NewRoot(TreePath& path);
 
@@ -480,29 +480,29 @@ typename M_TYPE::Accumulator M_TYPE::InsertSubtree(Iterator& iter, ISubtreeProvi
 
 
 
-M_PARAMS
-typename M_TYPE::TreePathItem M_TYPE::SplitPath(TreePath& path, Int level, Int idx)
-{
-	if (level < path.GetSize() - 1)
-	{
-		NodeBaseG& parent = path[level + 1].node();
-
-		if (me()->GetCapacity(parent) == 0)
-		{
-			Int idx_in_parent = path[level].parent_idx();
-
-			SplitPath(path, level + 1, idx_in_parent + 1);
-		}
-
-		return Split(path, level, idx);
-	}
-	else
-	{
-		NewRoot(path);
-
-		return Split(path, level, idx);
-	}
-}
+//M_PARAMS
+//typename M_TYPE::TreePathItem M_TYPE::SplitPath(TreePath& path, Int level, Int idx)
+//{
+//	if (level < path.GetSize() - 1)
+//	{
+//		NodeBaseG& parent = path[level + 1].node();
+//
+//		if (me()->GetCapacity(parent) == 0)
+//		{
+//			Int idx_in_parent = path[level].parent_idx();
+//
+//			SplitPath(path, level + 1, idx_in_parent + 1);
+//		}
+//
+//		return Split(path, level, idx);
+//	}
+//	else
+//	{
+//		NewRoot(path);
+//
+//		return Split(path, level, idx);
+//	}
+//}
 
 
 M_PARAMS
@@ -536,7 +536,7 @@ M_PARAMS
 void M_TYPE::InsertEntry(Iterator &iter, const Element& element)
 {
 	TreePath& 	path 	= iter.path();
-	NodeBaseG& 	node 	= path[0].node();
+	NodeBaseG& 	node 	= path.leaf().node();
 	Int& 		idx 	= iter.key_idx();
 
 	if (me()->GetCapacity(node) > 0)
@@ -545,25 +545,29 @@ void M_TYPE::InsertEntry(Iterator &iter, const Element& element)
 	}
 	else if (idx == 0)
 	{
-		SplitPath(path, 0, node->children_count() / 2);
+		TreePath next = path;
+		SplitPath(path, next, 0, node->children_count() / 2);
 		idx = 0;
 		MakeRoom(path, 0, idx, 1);
 	}
 	else if (idx < node->children_count())
 	{
 		//FIXME: does it necessary to split the page at the middle ???
-		SplitPath(path, 0, idx);
+		TreePath next = path;
+		SplitPath(path, next, 0, idx);
 		MakeRoom(path, 0, idx, 1);
 	}
 	else {
-		TreePathItem right = SplitPath(path, 0, node->children_count() / 2);
-		path[0] = right;
+		TreePath next = path;
+
+		SplitPath(path, next, 0, node->children_count() / 2);
+
+		path = next;
 
 		idx = node->children_count();
 		MakeRoom(path, 0, idx, 1);
 
-		iter.page() = node;
-		iter.key_idx() = idx;
+		iter.key_idx() 	= idx;
 	}
 
 	me()->SetLeafDataAndReindex(node, idx, element);

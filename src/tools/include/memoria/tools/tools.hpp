@@ -276,15 +276,15 @@ Int GetUniqueRandom(const vector<T, A> &vec)
 
 
 template <typename T, typename A>
-BigInt GetUniqueBIRandom(const vector<T, A> &vec)
+BigInt GetUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
 {
-	Int value = GetBIRandom();
+	Int value = GetBIRandom(limit);
 
 	for (const T& item: vec)
 	{
 		if (item == value)
 		{
-			return GetUniqueBIRandom(vec);
+			return GetUniqueBIRandom(vec, limit);
 		}
 	}
 

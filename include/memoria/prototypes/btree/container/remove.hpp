@@ -127,7 +127,7 @@ private:
      * merge it with siblings.
      */
 
-    void RemovePage(TreePath& path);
+    void RemovePage(TreePath& path, Int& idx);
 
 
     /**
@@ -526,39 +526,83 @@ void M_TYPE::RemovePagesInternal(TreePath& start, Int& start_idx, TreePath& stop
  */
 
 M_PARAMS
-void M_TYPE::RemovePage(TreePath& path)
+void M_TYPE::RemovePage(TreePath& path, Int& key_idx)
 {
 	for (Int c = 1; c < path.GetSize(); c++)
 	{
 		if (path[c]->children_count() > 1)
 		{
 			Accumulator accum;
-			me()->RemoveRoom(path, c, path[c - 1].parent_idx(), 1, accum);
-			break;
+
+			Int idx = path[c - 1].parent_idx();
+			me()->RemoveRoom(path, c, idx, 1, accum);
+
+			if (idx == path[c]->children_count())
+			{
+				if (me()->GetNextNode(path, c, true))
+				{
+					key_idx = 0;
+				}
+				else
+				{
+					for (Int d = c - 1; d >= 0; d--)
+					{
+						path[d].node() 			= me()->GetLastChild(path[d + 1].node(), Allocator::READ);
+						path[d].parent_idx() 	= path[d + 1]->children_count() - 1;
+					}
+
+					key_idx = path.leaf()->children_count();
+
+					me()->FinishPathStep(path, key_idx);
+				}
+			}
+			else
+			{
+				for (Int d = c - 1; d >= 0; d--)
+				{
+					path[d].node() 			= me()->GetChild(path[d + 1].node(), idx, Allocator::READ);
+					path[d].parent_idx() 	= idx;
+
+					idx = 0;
+				}
+
+				me()->FinishPathStep(path, 0);
+				key_idx = 0;
+			}
+
+			return;
 		}
 		else if (path[c]->is_root())
 		{
+			Metadata meta = me()->GetRootMetadata(path[c].node());
 			me()->RemoveNode(path[c].node());
+			NodeBaseG node = me()->CreateNode(0, true, true);
+
+			me()->SetRootMetadata(node, meta);
+
+			me()->set_root(node->id());
+			path.Clear();
+			path.Append(TreePathItem(node, 0));
+
+			key_idx = 0;
+
+			return;
 		}
 	}
 
-	if (path.leaf()->is_root())
-	{
-		Metadata meta = me()->GetRootMetadata(path.leaf().node());
+	Metadata meta = me()->GetRootMetadata(path.leaf().node());
 
-		me()->RemoveNode(path.leaf().node());
+	me()->RemoveNode(path.leaf().node());
 
-		NodeBaseG node = me()->CreateNode(0, true, true);
+	NodeBaseG node = me()->CreateNode(0, true, true);
 
-		me()->SetRootMetadata(node, meta);
+	me()->SetRootMetadata(node, meta);
 
-		me()->set_root(node->id());
-		path.Clear();
-		path.Append(TreePathItem(node, 0));
-	}
-	else {
-		me()->RemoveNode(path.leaf().node());
-	}
+	me()->set_root(node->id());
+	path.Clear();
+	path.Append(TreePathItem(node, 0));
+
+	key_idx = 0;
 }
 
 
@@ -668,24 +712,8 @@ void M_TYPE::RemoveEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
 		me()->FinishPathStep(path, idx);
 	}
 	else {
-		TreePath next = path;
-		bool has_next = me()->GetNextNode(next);
-
 		keys = me()->GetKeys(path.leaf().node(), idx);
-
-		me()->RemovePage(path);
-
-		if (has_next)
-		{
-			path 	= next;
-			idx 	= 0;
-		}
-		else {
-			Iterator iter = me()->FindEnd();
-
-			path 	= iter.path();
-			idx 	= iter.key_idx();
-		}
+		RemovePage(path, idx);
 	}
 
 	me()->AddTotalKeyCount(-1);

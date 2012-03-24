@@ -55,7 +55,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	{
     		Accumulator keys;
     		keys[0] = key;
-    		me()->InsertEntry(iter, keys);
+    		me()->Insert(iter, keys);
+    		iter.PrevKey();
     	}
 
     	return iter;
@@ -64,6 +65,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     bool Remove(Key key)
     {
     	Iterator iter = me()->FindLE(key, 0, true);
+
     	if (key == iter)
     	{
     		iter.Remove();
@@ -71,6 +73,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	}
     	else {
     		return false;
+    	}
+    }
+
+    void Remove(Iterator& from, Iterator& to)
+    {
+    	Accumulator keys;
+    	me()->RemoveEntries(from, to, keys);
+
+    	if (!to.IsEnd())
+    	{
+    		to.UpdateUp(keys);
     	}
     }
 
@@ -84,6 +97,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	{
     		iter.UpdateUp(-delta);
     	}
+    }
+
+    bool Contains(Key key)
+    {
+    	return !me()->Find(key).IsEnd();
+    }
+
+    bool RemoveEntry(Iterator& iter, Accumulator& keys)
+    {
+    	bool result = Base::RemoveEntry(iter, keys);
+
+//    	iter.Dump();
+
+    	if (!iter.IsEnd())
+    	{
+    		iter.UpdateUp(keys);
+    	}
+
+    	return result;
     }
 
 MEMORIA_CONTAINER_PART_END
