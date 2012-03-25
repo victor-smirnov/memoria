@@ -10,7 +10,7 @@
 #define _MEMORIA_CONTAINERS_BLOB_MAP_CONTAINER_CONTAINER_HPP
 
 #include <memoria/core/container/container.hpp>
-
+#include <memoria/containers/vector_map/names.hpp>
 
 namespace memoria {
 
@@ -31,7 +31,7 @@ public:
 
 	typedef IParentCtrInterface<typename Types::Allocator>		ParentCtrInterface;
 
-	typedef typename CtrTF<Profile, Set2, Set2>::Type		IdxSet;
+	typedef typename CtrTF<Profile, VMSet<2>, VMSet<2> >::Type  IdxSet;
 	typedef typename CtrTF<Profile, Vector,	 Vector>::Type		ByteArray;
 
 	typedef typename IdxSet::Accumulator                        IdxSetAccumulator;
@@ -231,18 +231,14 @@ public:
 
 			set_.RemoveEntry(is_iter, accum);
 
-//			is_iter.Dump();
-
 			if (!is_iter.IsEnd())
 			{
 				accum[1] = 0;
-				set_.UpdateUp(is_iter.path(), 0, is_iter.key_idx(), accum);
+				is_iter.UpdateUp(accum);
 			}
 
 			auto 	ba_iter 	= array_.Seek(data_pos);
 			ba_iter.Remove(size);
-
-//			ba_iter.Dump();
 
 			return true;
 		}
@@ -276,6 +272,26 @@ public:
 		return array_.Size();
 	}
 
+
+	struct CtrInterfaceImpl: public ContainerInterface {
+
+		virtual bool Check(const void* id, void* allocator) const
+		{
+			Allocator* alloc = T2T<Allocator*>(allocator);
+			ID* root_id = T2T<ID*>(id);
+
+			MyType ctr(*alloc, *root_id);
+			return ctr.Check(NULL);
+		}
+	};
+
+
+	static ContainerInterface* GetContainerInterface()
+	{
+		return new CtrInterfaceImpl();
+	}
+
+
 	static Int Init()
 	{
 		Int salt = 123456;
@@ -288,13 +304,14 @@ public:
 			IdxSet::reflection()->PutAll(list);
 			ByteArray::reflection()->PutAll(list);
 
-			reflection_ = new ContainerMetadataImpl("memoria::VectorMap", list, VectorMap::Code + salt, &CreateContainer);
+			reflection_ = new ContainerMetadataImpl("memoria::VectorMap", list, VectorMap::Code + salt, MyType::GetContainerInterface());
 		}
 
 		return hash;
 	}
 
-	static ContainerMetadata* reflection() {
+	static ContainerMetadata* reflection()
+	{
 		return reflection_;
 	}
 

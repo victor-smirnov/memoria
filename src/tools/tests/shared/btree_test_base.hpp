@@ -25,7 +25,7 @@ template <
 class BTreeBatchTestBase: public SPTestTask {
 
 protected:
-	typedef typename StreamContainerTypesCollection::Factory<ContainerTypeName>::Type 	Ctr;
+	typedef typename SmallCtrTypeFactory::Factory<ContainerTypeName>::Type 	Ctr;
 	typedef typename Ctr::Iterator														Iterator;
 	typedef typename Ctr::Accumulator													Accumulator;
 	typedef typename Ctr::ID															ID;

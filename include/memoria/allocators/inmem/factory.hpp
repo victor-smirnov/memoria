@@ -15,7 +15,7 @@
 #include <memoria/containers/vector/factory.hpp>
 #include <memoria/containers/vector_map/factory.hpp>
 
-#include <memoria/core/container/collection.hpp>
+#include <memoria/core/container/metadata_repository.hpp>
 
 #include "names.hpp"
 #include "allocator.hpp"
@@ -30,25 +30,13 @@ class ContainerCollectionCfg;
 
 template <typename T>
 class ContainerCollectionCfg<SmallProfile<T> > {
-
-    struct StreamContainerCollectionCfg: public BasicContainerCollectionCfg<SmallProfile<T> > {
-        typedef BasicContainerCollectionCfg<SmallProfile<T> > Base;
-
-        typedef memoria::StreamAllocator<
-        		SmallProfile<T>,
-					typename Base::Page,
-					typename Base::Transaction
-				>  	 															AllocatorType;
-    };
-
 public:
-    typedef StreamContainerCollectionCfg                      							Types;
-
+    typedef BasicContainerCollectionCfg<SmallProfile<T> >                      			Types;
 };
 
 
-typedef memoria::StreamAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType> DefaultStreamAllocator;
-typedef CtrTypeFactory<SmallProfile<> > StreamContainerTypesCollection;
+typedef memoria::InMemAllocator<SmallProfile<>, ContainerCollectionCfg<SmallProfile<> >::Types::Page, EmptyType> SmallInMemAllocator;
+typedef CtrTypeFactory<SmallProfile<> > SmallCtrTypeFactory;
 MEMORIA_TEMPLATE_EXTERN template class MetadataRepository<SmallProfile<> >;
 
 
@@ -109,45 +97,45 @@ MEMORIA_TEMPLATE_EXTERN template class MetadataRepository<SmallProfile<> >;
 
 
 
-MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Set1)
+MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Set1)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::InsertBatchName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::FindName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::InsertBatchName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::FindName)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::models::idx_map::CtrApiName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::bstree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::bstree::FindName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::btree::IteratorAPIName)
-
-
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Set1, memoria::models::idx_map::ItrApiName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::models::idx_map::CtrApiName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::bstree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::bstree::FindName)
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::IteratorAPIName)
 
 
-MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Vector)
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::models::idx_map::ItrApiName)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::InsertBatchName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::FindName)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::RemoveName)
+MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Vector)
 
-MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::Insert2Name)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::InsertBatchName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::FindName)
 
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorAPIName)
-MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::IteratorAPIName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::dynvector::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::dynvector::RemoveName)
+
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::dynvector::Insert2Name)
+
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::IteratorAPIName)
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::dynvector::IteratorAPIName)
 
 /* */
 
 
-#if !defined(MEMORIA_DLL) && !defined(MEMORIA_MAIN)
-extern template class memoria::StreamAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType>;
-#endif
+
+MEMORIA_TEMPLATE_EXTERN template class memoria::InMemAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType>;
+
 
 }
 

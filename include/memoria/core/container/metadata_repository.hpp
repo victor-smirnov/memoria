@@ -70,6 +70,10 @@ public:
 	}
 };
 
+template <typename Profile>
+ContainerCollectionMetadata* MetadataRepository<Profile>::metadata_ = NULL;
+
+
 template <typename ProfileList = ::memoria::ProfileListBuilder<>::Type >
 class Memoria {
 public:
@@ -94,8 +98,7 @@ const int MEMORIA_INITIALIZED = ::memoria::Memoria<>::Init()
 
 
 
-template <typename Profile>
-ContainerCollectionMetadata* MetadataRepository<Profile>::metadata_ = NULL;
+
 
 
 }

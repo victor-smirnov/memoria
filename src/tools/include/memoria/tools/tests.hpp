@@ -175,9 +175,9 @@ public:
 };
 
 
-class SPTestTask: public ProfileTestTask<SmallProfile<>, DefaultStreamAllocator> {
+class SPTestTask: public ProfileTestTask<SmallProfile<>, SmallInMemAllocator> {
 
-	typedef ProfileTestTask<SmallProfile<>, DefaultStreamAllocator> Base;
+	typedef ProfileTestTask<SmallProfile<>, SmallInMemAllocator> Base;
 
 	Int check_count_;
 

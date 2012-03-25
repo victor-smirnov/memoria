@@ -58,14 +58,18 @@ class VectorMapTest: public SPTestTask {
 
 	typedef KVPair<BigInt, BigInt> 										Pair;
 	typedef vector<Pair>												PairVector;
-	typedef StreamContainerTypesCollection::Factory<VectorMap>::Type 	VectorMapCtr;
+	typedef SmallCtrTypeFactory::Factory<VectorMap>::Type 				VectorMapCtr;
 	typedef VectorMapCtr::Iterator										VMIterator;
 
 	PairVector pairs_;
 
 public:
 
-	VectorMapTest(): SPTestTask(new VectorMapParams()) {}
+	VectorMapTest(): SPTestTask(new VectorMapParams())
+	{
+		SmallCtrTypeFactory::Factory<Root>::Type::Init();
+		VectorMapCtr::Init();
+	}
 
 	virtual ~VectorMapTest() throw() {}
 

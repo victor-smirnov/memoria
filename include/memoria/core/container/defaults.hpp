@@ -36,18 +36,7 @@ struct BasicContainerCollectionCfg {
 
 	typedef IAbstractAllocator<Page, 4096>										AbstractAllocator;
 
-	typedef NullType  															AllocatorType;
-
-//    typedef memoria::TLTool<
-//                        memoria::IdxMap1,
-//                        memoria::IdxSet1,
-//                        memoria::Root,
-//    					memoria::KVMap<BigInt, BigInt>,
-//    					memoria::Array,
-//    					memoria::BlobMap
-//    		>::List																RootNamesList;
-
-//	typedef typename RootCtrListProvider<int>::Type								RootNamesList;
+	typedef AbstractAllocator  													AllocatorType;
 };
 
 

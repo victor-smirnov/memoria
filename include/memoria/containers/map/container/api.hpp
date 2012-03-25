@@ -108,8 +108,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     {
     	bool result = Base::RemoveEntry(iter, keys);
 
-//    	iter.Dump();
-
     	if (!iter.IsEnd())
     	{
     		iter.UpdateUp(keys);

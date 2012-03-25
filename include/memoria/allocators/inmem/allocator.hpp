@@ -15,7 +15,7 @@
 #include <memoria/vapi.hpp>
 #include <memoria/vapi/models/logs.hpp>
 
-#include <memoria/core/container/collection.hpp>
+#include <memoria/core/container/metadata_repository.hpp>
 
 #include <memoria/core/tools/pool.hpp>
 
@@ -41,10 +41,10 @@ typedef struct
 using namespace memoria::vapi;
 
 template <typename Profile, typename PageType, typename TxnType>
-class StreamAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType, 4096> >::Type {
+class InMemAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType, 4096> >::Type {
 
 	typedef IAbstractAllocator<PageType>										Base;
-	typedef StreamAllocator<Profile, PageType, TxnType>							Me;
+	typedef InMemAllocator<Profile, PageType, TxnType>							Me;
 
 public:
 	typedef typename Base::Page 												Page;
@@ -59,7 +59,7 @@ public:
 	typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>						RootMapType;
 
 private:
-	typedef StreamAllocator<Profile, PageType, TxnType> 						MyType;
+	typedef InMemAllocator<Profile, PageType, TxnType> 						MyType;
 
 	struct PageOp
 	{
@@ -101,7 +101,7 @@ private:
 
 
 public:
-	StreamAllocator() :
+	InMemAllocator() :
 		logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
 		counter_(100), metadata_(MetadataRepository<Profile>::GetMetadata()), root_(0), root_log_(0), updated_(false), me_(*this),
 		type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this)//, root_map_(*this, 0, true)
@@ -109,7 +109,7 @@ public:
 		root_map_ = new RootMapType(*this, 0, true);
 	}
 
-	StreamAllocator(const StreamAllocator& other):
+	InMemAllocator(const InMemAllocator& other):
 			logger_(other.logger_),
 			counter_(other.counter_), metadata_(other.metadata_), root_(other.root_), root_log_(0), updated_(false), me_(*this),
 			type_name_("StreamAllocator"), allocs1_(other.allocs1_), allocs2_(other.allocs2_), roots_(this), //root_map_(*this, 0, false),
@@ -125,7 +125,7 @@ public:
 		delete root_map_;
 	}
 
-	virtual ~StreamAllocator() throw ()
+	virtual ~InMemAllocator() throw ()
 	{
 		try {
 			Int npages = 0;

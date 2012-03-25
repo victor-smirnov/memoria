@@ -8,7 +8,7 @@
 
 
 
-#include <memoria/allocators/stream/factory.hpp>
+#include <memoria/allocators/inmem/factory.hpp>
 
 #include <iostream>
 
@@ -18,8 +18,7 @@ using namespace memoria;
 
 namespace memoria {
 
-template class ::memoria::StreamAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType>;
-//template class Checker<StreamContainerTypesCollection, DefaultStreamAllocator>;
+//template class ::memoria::InMemAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType>;
 
 }
 

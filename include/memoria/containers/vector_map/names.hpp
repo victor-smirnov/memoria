@@ -6,18 +6,17 @@
 
 
 
-#ifndef _MEMORIA_MODELS_ROOT_NAMES_HPP
-#define _MEMORIA_MODELS_ROOT_NAMES_HPP
+#ifndef _MEMORIA_MODELS_VECTOR_MAP_NAMES_HPP
+#define _MEMORIA_MODELS_VECTOR_MAP_NAMES_HPP
 
 
 namespace memoria    {
-namespace models     {
-namespace blob_map   {
 
+template <Int Indexes>
+struct VMSet {
+	static const Int Code = 56721;
+};
 
-
-}
-}
 }
 
 #endif

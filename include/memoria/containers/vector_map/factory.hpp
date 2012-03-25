@@ -21,6 +21,27 @@ struct VectorMapCtrTypes: Types {};
 template <typename Types>
 struct VectorMapIterTypes: Types {};
 
+
+
+
+template <typename Profile, Int Indexes_>
+struct BTreeTypes<Profile, memoria::VMSet<Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
+
+	typedef BTreeTypes<Profile, memoria::BSTree > 							Base;
+
+	typedef EmptyValue														Value;
+
+	static const Int Indexes												= Indexes_;
+};
+
+
+template <typename Profile, typename T, Int Indexes>
+class CtrTF<Profile, memoria::VMSet<Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
+};
+
+
+
+
 template <typename Profile_, typename T>
 class CtrTF<Profile_, VectorMap, T> {
 

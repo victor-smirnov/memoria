@@ -8,7 +8,7 @@
 
 
 
-#include <memoria/allocators/stream/factory.hpp>
+#include <memoria/allocators/inmem/factory.hpp>
 #include <memoria/core/tools/file.hpp>
 
 #include <iostream>
@@ -19,7 +19,7 @@ using namespace memoria;
 
 using namespace std;
 
-typedef DefaultStreamAllocator VStreamAllocator;
+typedef SmallInMemAllocator VStreamAllocator;
 
 VStreamAllocator* manager;
 set<IDValue> processed;

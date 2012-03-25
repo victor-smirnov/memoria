@@ -37,7 +37,10 @@ class VectorTest: public BTreeBatchTestBase<
 	typedef typename Base::Ctr 										Ctr;
 
 public:
-	VectorTest(): Base() {}
+	VectorTest(): Base() {
+		SmallCtrTypeFactory::Factory<Root>::Type::Init();
+		Ctr::Init();
+	}
 
 	virtual ArrayData CreateBuffer(Int size, UByte value)
 	{

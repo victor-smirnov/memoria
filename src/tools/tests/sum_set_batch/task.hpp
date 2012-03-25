@@ -23,7 +23,7 @@
 
 namespace memoria {
 
-typedef StreamContainerTypesCollection::Factory<Set1>::Type SumSet1Ctr;
+typedef SmallCtrTypeFactory::Factory<Set1>::Type SumSet1Ctr;
 
 
 class SumSetBatchTest: public BTreeBatchTestBase<
@@ -47,7 +47,10 @@ class SumSetBatchTest: public BTreeBatchTestBase<
 	static const Int Indexes 										= Ctr::Indexes;
 
 public:
-	SumSetBatchTest(): Base() {}
+	SumSetBatchTest(): Base() {
+		SmallCtrTypeFactory::Factory<Root>::Type::Init();
+		Ctr::Init();
+	}
 
 	virtual ArrayData CreateBuffer(Int size, UByte value)
 	{

@@ -26,7 +26,7 @@ public:
 
 private:
 	typedef vector<Pair> PairVector;
-	typedef StreamContainerTypesCollection::Factory<Map1>::Type 	MapCtr;
+	typedef SmallCtrTypeFactory::Factory<Map1>::Type 	MapCtr;
 	typedef typename MapCtr::Iterator								Iterator;
 	typedef typename MapCtr::ID										ID;
 	typedef typename MapCtr::Accumulator							Accumulator;
@@ -39,8 +39,8 @@ public:
 	MapTest() :
 		SPTestTask(new MapParams())
 	{
-		StreamContainerTypesCollection::Factory<Root>::Type::Init();
-		StreamContainerTypesCollection::Factory<Map1>::Type::Init();
+		SmallCtrTypeFactory::Factory<Root>::Type::Init();
+		SmallCtrTypeFactory::Factory<Map1>::Type::Init();
 	}
 
 	virtual ~MapTest() throw () {

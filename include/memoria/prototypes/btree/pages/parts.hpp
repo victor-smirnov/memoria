@@ -24,7 +24,7 @@ using namespace memoria::btree;
 template <typename Allocator>
 class BTreeMetadata
 {
-	 typedef typename Allocator::Page::ID	ID;
+	 typedef typename Allocator::ID	ID;
 
     BigInt model_name_;
     BigInt key_count_;
