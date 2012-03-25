@@ -162,17 +162,17 @@ Int GetNonZeroRandom(Int size);
 ArrayData CreateRandomBuffer(UByte fill_value, Int max_size);
 
 
-template <typename Allocator, typename Checker>
+template <typename Allocator>
 void Check(Allocator& allocator, const char* message,  const char* source)
 {
 	Int level = allocator.GetLogger()->level();
 
 	allocator.GetLogger()->level() = Logger::ERROR;
 
-	Checker checker(allocator);
-	if (checker.CheckAll())
+	if (allocator.Check())
 	{
 		allocator.GetLogger()->level() = level;
+
 		throw TestException(source, message);
 	}
 

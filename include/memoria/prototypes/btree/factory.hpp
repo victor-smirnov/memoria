@@ -32,8 +32,10 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-template <typename Profile, typename ContainerTypeSelector>
+template <typename Profile_, typename ContainerTypeSelector>
 struct BTreeTypes {
+
+	typedef Profile_															Profile;
 
     typedef TL<BigInt>                                                    		KeysList;
 
@@ -67,9 +69,9 @@ struct BTreeTypes {
     typedef EmptyType                                            				ContainerInterface;
     typedef EmptyType                                    						IteratorInterface;
 
-    typedef typename ContainerCollectionCfg<Profile>::Types::AbstractAllocator	Allocator;
+    typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator	Allocator;
     typedef typename BTreeRootMetadataTypeFactory<
-    			Profile,
+    			Profile_,
     			BTreeRootMetadataFactory<ContainerTypeSelector>
     >::Type 																	Metadata;
 

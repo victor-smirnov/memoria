@@ -23,7 +23,12 @@ class ContainerMetadataImplT: public MetadataGroupImplT<Interface> {
 	typedef MetadataGroupImplT<Interface> 		Base;
 public:
 
-	ContainerMetadataImplT(StringRef name, const MetadataList &content, Int code, ContainerFactoryFn factory): Base(name, content), code_(code), factory_(factory), hash_(code_) {
+	ContainerMetadataImplT(StringRef name, const MetadataList &content, Int code, ContainerInterface* container_interface):
+		Base(name, content),
+		container_interface_(container_interface),
+		code_(code),
+		hash_(code_)
+	{
 		Base::set_type() = Interface::MODEL;
 		for (UInt c = 0; c < content.size(); c++)
 	    {
@@ -49,11 +54,8 @@ public:
 		return code_;
 	}
 
-//	virtual ContainerFactoryFn Factory() const {
-//		return factory_;
-//	}
-
-	virtual PageMetadata* GetPageMetadata(Int hashCode) const {
+	virtual PageMetadata* GetPageMetadata(Int hashCode) const
+	{
 		PageMetadataMap::const_iterator i = page_map_.find(hashCode);
 		if (i != page_map_.end()) {
 			return i->second;
@@ -63,13 +65,18 @@ public:
 		}
 	}
 
+	virtual ContainerInterface* GetCtrInterface() const
+	{
+		return container_interface_;
+	}
+
 private:
 
-    PageMetadataMap     page_map_;
+    PageMetadataMap     	page_map_;
+    ContainerInterface* 	container_interface_;
 
-    Int code_;
-    ContainerFactoryFn 		factory_;
-    Int hash_;
+    Int 					code_;
+    Int 					hash_;
 };
 
 

@@ -15,12 +15,13 @@ namespace memoria    {
 namespace vapi       {
 
 struct MEMORIA_API ContainerCollectionMetadata: public MetadataGroup {
-    virtual Int Hash() const										= 0;
+    virtual Int Hash() const												= 0;
 
-    virtual PageMetadata* GetPageMetadata(Int hashCode) const 		= 0;
+    virtual PageMetadata* GetPageMetadata(Int hashCode) const 				= 0;
     virtual ContainerMetadata* GetContainerMetadata(Int hashCode) const 	= 0;
 
-    
+    virtual void Register(ContainerMetadata* metadata)						= 0;
+    virtual void Unregister(ContainerMetadata* metadata)					= 0;
 };
 
 }}

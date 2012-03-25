@@ -37,6 +37,8 @@ template <typename Name, typename Base, typename Types> class CtrPart;
 template <typename Types> class Ctr;
 template <typename Types> class Iter;
 
+template <typename Profile> class MetadataRepository;
+
 template <typename Allocator>
 struct IParentCtrInterface
 {
@@ -63,6 +65,7 @@ public:
     typedef TypesType                                                           Types;
 
     typedef typename Types::Allocator											Allocator;
+    typedef typename Allocator::ID												ID;
     typedef typename Allocator::Transaction                                     Txn;
     typedef typename Allocator::Page                                            Page;
     typedef typename Allocator::PageG                                           PageG;
@@ -128,7 +131,6 @@ public:
 
     void set_root(const PageId &root)
     {
-//        me()->allocator().SetRoot(me()->name(), root);
         me()->shared()->root_log() 	= root;
         me()->shared()->updated() 	= true;
 
@@ -152,31 +154,58 @@ public:
         return kCompositeContainer;
     }
 
-    static ContainerMetadata * reflection() {
+    static ContainerMetadata * reflection()
+    {
         return reflection_;
     }
     
-    // To be removed
-    static Container* CreateContainer(const IDValue& rootID, memoria::vapi::ContainerCollection* container, BigInt name) {
-    	return NULL;
-    }
-
-    static void Destroy() {
+    static void Destroy()
+    {
     	if (reflection_ != NULL)
     	{
-    		cout<<"Delete model "<<reflection_<<endl;
+    		delete reflection_->GetCtrInterface();
+
+    		MetadataRepository<typename Types::Profile>::Unregister(reflection_);
+
     		delete reflection_;
     		reflection_ = NULL;
     	}
     }
 
-    static Int Init(Int salt = 0) {
-        if (reflection_ == NULL) {
+
+    struct CtrInterfaceImpl: public ContainerInterface {
+
+    	virtual bool Check(const void* id, void* allocator) const
+    	{
+    		Allocator* alloc = T2T<Allocator*>(allocator);
+    		ID* root_id = T2T<ID*>(id);
+
+    		MyType ctr(*alloc, *root_id);
+    		return ctr.Check(NULL);
+    	}
+    };
+
+
+    static ContainerInterface* GetContainerInterface()
+    {
+    	return new CtrInterfaceImpl();
+    }
+
+    static Int Init(Int salt = 0)
+    {
+        if (reflection_ == NULL)
+        {
             MetadataList list;
+
             Types::Pages::NodeDispatcher::BuildMetadataList(list);
+
             PageInitDispatcher<typename Types::DataPagesList>::BuildMetadataList(list);
-            reflection_ = new ContainerMetadataImpl(TypeNameFactory<Name>::name(), list, Name::Code + salt, &CreateContainer);
+
+            reflection_ = new ContainerMetadataImpl(TypeNameFactory<Name>::name(), list, Name::Code + salt, MyType::GetContainerInterface());
+
+            MetadataRepository<typename Types::Profile>::Register(reflection_);
         }
+
         return reflection_->Hash();
     }
 };

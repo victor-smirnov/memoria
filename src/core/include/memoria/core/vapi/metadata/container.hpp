@@ -41,12 +41,17 @@ public:
 	ContainerMetadata* GetContainerMetadata(Int hashCode) const;
 
 
+	virtual void Register(ContainerMetadata* metadata)
+	{
+		process_model(metadata);
+	}
 
+	virtual void Unregister(ContainerMetadata* metadata) {}
 
 
 private:
-    Int                 hash_;
-    PageMetadataMap     page_map_;
+    Int                 	hash_;
+    PageMetadataMap     	page_map_;
     ContainerMetadataMap    model_map_;
 
     void process_model(ContainerMetadata* model);
@@ -77,25 +82,27 @@ ContainerCollectionMetadataImplT<Interface>::ContainerCollectionMetadataImplT(St
 template <typename Interface>
 void ContainerCollectionMetadataImplT<Interface>::process_model(ContainerMetadata* model)
 {
-	hash_ = hash_ + model->Hash();
-
-	model_map_[model->Hash()] = model;
-
-
-	for (Int d = 0; d < model->Size(); d++)
+	if (model_map_.find(model->Hash()) == model_map_.end())
 	{
-		Metadata* item = model->GetItem(d);
-		if (item->GetTypeCode() == Metadata::PAGE)
+		hash_ = hash_ + model->Hash();
+
+		model_map_[model->Hash()] = model;
+
+		for (Int d = 0; d < model->Size(); d++)
 		{
-			PageMetadata *page = static_cast<PageMetadata*> (item);
-			page_map_[page->Hash()] = page;
-		}
-		else if (item->GetTypeCode() == Metadata::MODEL)
-		{
-			process_model(static_cast<ContainerMetadata*> (item));
-		}
-		else {
-			//exception
+			Metadata* item = model->GetItem(d);
+			if (item->GetTypeCode() == Metadata::PAGE)
+			{
+				PageMetadata *page = static_cast<PageMetadata*> (item);
+				page_map_[page->Hash()] = page;
+			}
+			else if (item->GetTypeCode() == Metadata::MODEL)
+			{
+				process_model(static_cast<ContainerMetadata*> (item));
+			}
+			else {
+				//exception
+			}
 		}
 	}
 }
@@ -123,7 +130,6 @@ ContainerMetadata* ContainerCollectionMetadataImplT<Interface>::GetContainerMeta
     	throw MemoriaException(MEMORIA_SOURCE, "Unknown model hash code " + ToString(hashCode));
     }
 }
-
 
 
 }}

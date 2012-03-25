@@ -15,7 +15,6 @@
 #include <memoria/containers/vector/factory.hpp>
 #include <memoria/containers/vector_map/factory.hpp>
 
-#include <memoria/core/container/checker.hpp>
 #include <memoria/core/container/collection.hpp>
 
 #include "names.hpp"
@@ -30,13 +29,13 @@ template <typename Profile>
 class ContainerCollectionCfg;
 
 template <typename T>
-class ContainerCollectionCfg<StreamProfile<T> > {
+class ContainerCollectionCfg<SmallProfile<T> > {
 
-    struct StreamContainerCollectionCfg: public BasicContainerCollectionCfg<StreamProfile<T> > {
-        typedef BasicContainerCollectionCfg<StreamProfile<T> > Base;
+    struct StreamContainerCollectionCfg: public BasicContainerCollectionCfg<SmallProfile<T> > {
+        typedef BasicContainerCollectionCfg<SmallProfile<T> > Base;
 
         typedef memoria::StreamAllocator<
-        		StreamProfile<T>,
+        		SmallProfile<T>,
 					typename Base::Page,
 					typename Base::Transaction
 				>  	 															AllocatorType;
@@ -48,11 +47,9 @@ public:
 };
 
 
-typedef memoria::StreamAllocator<StreamProfile<>, BasicContainerCollectionCfg<StreamProfile<> >::Page, EmptyType> DefaultStreamAllocator;
-typedef ContainerTypesCollection<StreamProfile<> > StreamContainerTypesCollection;
-typedef Checker<StreamContainerTypesCollection, DefaultStreamAllocator> StreamContainersChecker;
-
-MEMORIA_TEMPLATE_EXTERN template class ContainerTypesCollection<StreamProfile<> >;
+typedef memoria::StreamAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType> DefaultStreamAllocator;
+typedef CtrTypeFactory<SmallProfile<> > StreamContainerTypesCollection;
+MEMORIA_TEMPLATE_EXTERN template class MetadataRepository<SmallProfile<> >;
 
 
 //MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Root)
@@ -140,24 +137,16 @@ MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memori
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::ToolsName)
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::RemoveName)
 
-//FIXME CtrPart
 MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::Insert2Name)
 
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::btree::IteratorAPIName)
 MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Vector, memoria::dynvector::IteratorAPIName)
 
-/**/
+/* */
 
 
 #if !defined(MEMORIA_DLL) && !defined(MEMORIA_MAIN)
-
-// This is a workaroud. GCC 4.5.1 can't build models without this builder.
-//extern template class ContainerTypesHelper<StreamProfile<> >;
-
-extern template class memoria::StreamAllocator<StreamProfile<>, BasicContainerCollectionCfg<StreamProfile<> >::Page, EmptyType>;
-extern template class ContainerTypesCollection<StreamProfile<> >;
-extern template class Checker<StreamContainerTypesCollection, DefaultStreamAllocator>;
-
+extern template class memoria::StreamAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType>;
 #endif
 
 }

@@ -37,7 +37,10 @@ private:
 public:
 
 	MapTest() :
-		SPTestTask(new MapParams()) {
+		SPTestTask(new MapParams())
+	{
+		StreamContainerTypesCollection::Factory<Root>::Type::Init();
+		StreamContainerTypesCollection::Factory<Map1>::Type::Init();
 	}
 
 	virtual ~MapTest() throw () {

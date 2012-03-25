@@ -18,8 +18,8 @@ using namespace memoria;
 
 namespace memoria {
 
-template class ::memoria::StreamAllocator<StreamProfile<>, BasicContainerCollectionCfg<StreamProfile<> >::Page, EmptyType>;
-template class Checker<StreamContainerTypesCollection, DefaultStreamAllocator>;
+template class ::memoria::StreamAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType>;
+//template class Checker<StreamContainerTypesCollection, DefaultStreamAllocator>;
 
 }
 

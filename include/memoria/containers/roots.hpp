@@ -13,7 +13,7 @@
 
 namespace memoria {
 
-MEMORIA_DECLARE_PROFILE(StreamProfile<>, 0);
+MEMORIA_DECLARE_PROFILE(SmallProfile<>, 0);
 
 MEMORIA_DECLARE_ROOT_CTR(Map1, 			10);
 MEMORIA_DECLARE_ROOT_CTR(Root, 			20);

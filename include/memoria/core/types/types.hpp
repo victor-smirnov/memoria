@@ -59,12 +59,6 @@ struct CodeValue {
     static const Int Code = Value;
 };
 
-//template <Int Value = -1>
-//struct CV {
-//    static const Int Code = Value;
-//};
-
-
 /*
  * Container type names & profiles
  */
@@ -95,7 +89,7 @@ struct Vector:   	public CodeValue<8> {};
 
 
 template <typename ChildType = void>
-class StreamProfile {};
+class SmallProfile {};
 
 /*
  * End of container type names and profiles

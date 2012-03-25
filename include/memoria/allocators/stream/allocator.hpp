@@ -8,7 +8,7 @@
 #ifndef		_MEMORIA_MODULES_CONTAINERS_STREAM_POSIX_MANAGER_HPP
 #define		_MEMORIA_MODULES_CONTAINERS_STREAM_POSIX_MANAGER_HPP
 
-#include <map>
+//#include <map>
 #include <unordered_map>
 #include <string>
 
@@ -73,10 +73,6 @@ private:
 		PageOp(): id_(), page_(NULL), op_(NONE) 						{}
 	};
 
-//	typedef std::map<ID, Page*> 												IDPageMap;
-//	typedef std::map<ID, PageOp> 												IDPageOpMap;
-//	typedef std::map<BigInt, CtrShared*> 										CtrSharedMap;
-
 	typedef std::unordered_map<ID, Page*, IDKeyHash, IDKeyEq> 					IDPageMap;
 	typedef std::unordered_map<ID, PageOp, IDKeyHash, IDKeyEq> 					IDPageOpMap;
 	typedef std::unordered_map<BigInt, CtrShared*> 								CtrSharedMap;
@@ -99,7 +95,7 @@ private:
 	BigInt 				allocs1_;
 	BigInt 				allocs2_;
 	Me* 				roots_;
-	RootMapType 		root_map_;
+	RootMapType* 		root_map_;
 
 	StaticPool<ID, Shared>	pool_;
 
@@ -107,14 +103,16 @@ private:
 public:
 	StreamAllocator() :
 		logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
-		counter_(100), metadata_(ContainerTypesCollection<Profile>::metadata()), root_(0), root_log_(0), updated_(false), me_(*this),
-		type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this), root_map_(*this, 0, true)
-	{}
+		counter_(100), metadata_(MetadataRepository<Profile>::GetMetadata()), root_(0), root_log_(0), updated_(false), me_(*this),
+		type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this)//, root_map_(*this, 0, true)
+	{
+		root_map_ = new RootMapType(*this, 0, true);
+	}
 
-	StreamAllocator(const StreamAllocator& other) :
+	StreamAllocator(const StreamAllocator& other):
 			logger_(other.logger_),
 			counter_(other.counter_), metadata_(other.metadata_), root_(other.root_), root_log_(0), updated_(false), me_(*this),
-			type_name_("StreamAllocator"), allocs1_(other.allocs1_), allocs2_(other.allocs2_), roots_(this), root_map_(*this, 0, false),
+			type_name_("StreamAllocator"), allocs1_(other.allocs1_), allocs2_(other.allocs2_), roots_(this), //root_map_(*this, 0, false),
 			pool_(other.pool_)
 	{
 		for (auto i = other.pages_.begin(); i != other.pages_.end(); i++)
@@ -123,6 +121,8 @@ public:
 			CopyBuffer(i->second, buffer, PAGE_SIZE);
 			pages_[i->first] = T2T<Page*>(buffer);
 		}
+
+		delete root_map_;
 	}
 
 	virtual ~StreamAllocator() throw ()
@@ -161,7 +161,7 @@ public:
 	}
 
 	RootMapType* roots() {
-		return &root_map_;
+		return root_map_;
 	}
 
 	const ID &root() const
@@ -223,21 +223,22 @@ public:
 	// Begin RootMapInterface
 
 	void set_root(const ID& id) {
-		root_map_.set_root(id);
+		root_map_->set_root(id);
 	}
 
 	void remove_by_key(BigInt name) {
-		root_map_.RemoveByKey(name);
+		root_map_->RemoveByKey(name);
 	}
 
 	void set_value_for_key(BigInt name, const ID& page_id) {
-		root_map_.SetValueForKey(name, page_id);
+		root_map_->SetValueForKey(name, page_id);
 	}
 
 	ID get_value_for_key(BigInt name)
 	{
 		ID page_id;
-		if (root_map_.GetValue(name, 0, page_id)) {
+		if (root_map_->GetValue(name, 0, page_id))
+		{
 			return page_id;
 		}
 		else {
@@ -845,6 +846,24 @@ public:
 			out<<endl;
 			out<<endl;
 		}
+	}
+
+	bool Check()
+	{
+		bool result = false;
+
+		for (auto iter = this->roots()->Begin(); !iter.IsEnd(); )
+		{
+			PageG page = this->GetPage(iter.GetData(), Base::READ);
+
+			ContainerMetadata* ctr_meta = metadata_->GetContainerMetadata(page->model_hash());
+
+			result = ctr_meta->GetCtrInterface()->Check(&page->id(), this) || result;
+
+			iter.Next();
+		}
+
+		return result;
 	}
 };
 
