@@ -24,7 +24,8 @@ template <typename T> struct FieldFactory;
 
 template <typename Type>
 struct FieldFactory {
-    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
+    {
         list.push_back(new MetadataGroupImpl(name, field.GetFields(abi_ptr)));
     }
 };
@@ -34,24 +35,26 @@ class BitField{};
 
 template <typename Type>
 struct FieldFactory<BitField<Type> > {
-    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long &abi_ptr)
+    {
         list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset));
     }
 
-    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long count, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long count, Long &abi_ptr)
+    {
         list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset, count));
     }
 };
 
 template <>
 struct FieldFactory<EmptyValue> {
-	static void create(MetadataList &list, const EmptyValue &field, const string &name, Long &abi_ptr) {
-	}
+	static void create(MetadataList &list, const EmptyValue &field, const string &name, Long &abi_ptr)
+	{}
 };
 
 
 
-#define MEMORIA_TYPED_FIELD(Type)                                                \
+#define MEMORIA_TYPED_FIELD(Type)                                               \
 template <> struct FieldFactory<Type> {                                         \
     static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr) {\
         list.push_back(new TypedFieldImpl<Type>((Int)PtrToLong(&field), abi_ptr, name)); \

@@ -21,7 +21,7 @@ namespace memoria    {
 
 using memoria::dynvector::IndexPagePrefixName;
 
-#pragma pack(1)
+//#pragma pack(1)
 
 
 MEMORIA_PAGE_PART_BEGIN2(RootProfile, IndexPagePrefixName<Indexes>, Int Indexes)
@@ -58,7 +58,7 @@ MEMORIA_PAGE_PART_BEGIN2(RootProfile, IndexPagePrefixName<Indexes>, Int Indexes)
 MEMORIA_PAGE_PART_END
 
 
-#pragma pack()
+//#pragma pack()
 
 }
 

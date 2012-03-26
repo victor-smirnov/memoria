@@ -19,10 +19,8 @@ namespace array      {
 template <Int Size>
 class DynVectorData
 {
-    Short size_;
+    Int size_;
 
-    //FIXME see max_size().
-    // May be Size - sizeof(size_))
     Byte value_[Size - sizeof(size_)];
 
 public:
@@ -34,11 +32,11 @@ public:
 
     Int reindex() {return 0;}
 
-    const Short &size() const {
+    const Int &size() const {
         return size_;
     }
 
-    Short &size() {
+    Int &size() {
         return size_;
     }
 
@@ -73,8 +71,8 @@ public:
     MetadataList GetFields(Long &abi_ptr) const
     {
         MetadataList list;
-        FieldFactory<Short>::create(list, size_,  "SIZE", abi_ptr);
-        FieldFactory<Byte>::create(list, value_[0], "VALUE", Size, abi_ptr);
+        FieldFactory<Int>::create(list,  size_,     "SIZE", abi_ptr);
+        FieldFactory<Byte>::create(list, value_[0], "VALUE", sizeof(value_), abi_ptr);
         return list;
     }
 

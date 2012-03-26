@@ -14,9 +14,116 @@
 #include <memoria/core/vapi/metadata/field.hpp>
 #include <memoria/core/vapi/metadata/page_wrapper.hpp>
 
+#include <memoria/core/exceptions/memoria.hpp>
+#include <memoria/core/tools/strings.hpp>
 
+#include <vector>
+#include <strings.h>
+
+#include <iostream>
 
 namespace memoria { namespace vapi {
+
+using namespace std;
+
+struct Mem2AbiMapItem {
+	Int mem_idx;
+	Int abi_idx;
+	Int size;
+	Int count;
+	Int difference;
+	Int total_size;
+
+
+	Mem2AbiMapItem(Int mem_idx_, Int abi_idx_, Int size_, Int count_):
+		mem_idx(mem_idx_),
+		abi_idx(abi_idx_),
+		size(size_),
+		count(count_),
+		difference(mem_idx_ - abi_idx),
+		total_size(size_*count_)
+	{}
+};
+
+class Mem2AbiMap {
+	std::vector<Mem2AbiMapItem> 	map_;
+	MetadataGroup* 					last_group_;
+	Int								last_group_start_;
+public:
+
+	Mem2AbiMap(): last_group_(NULL), last_group_start_(0) {}
+
+	Int GetMemIdx(Int abi_idx) const
+	{
+		for (const Mem2AbiMapItem& item: map_)
+		{
+			if (abi_idx >= item.abi_idx && abi_idx < item.abi_idx + item.total_size)
+			{
+				Int offset = abi_idx - item.abi_idx;
+				return offset - item.difference;
+			}
+		}
+
+		throw MemoriaException(MEMORIA_SOURCE, "ABI Index out range: "+ToString(abi_idx));
+	}
+
+	Int GetAbiIdx(Int mem_idx) const
+	{
+		for (const Mem2AbiMapItem& item: map_)
+		{
+			if (mem_idx >= item.mem_idx && mem_idx < item.mem_idx + item.total_size)
+			{
+				Int offset = mem_idx - item.mem_idx;
+				return offset + item.difference;
+			}
+		}
+
+		throw MemoriaException(MEMORIA_SOURCE, "MEM Index out range: "+ToString(mem_idx));
+	}
+
+	void MemToAbi(const char* mem, char* abi) const
+	{
+		for (const Mem2AbiMapItem& item: map_)
+		{
+			memmove(abi + item.abi_idx, mem + item.mem_idx, item.total_size);
+		}
+	}
+
+	void AbiToMem(const char* abi, char* mem) const
+	{
+		for (const Mem2AbiMapItem& item: map_)
+		{
+			memmove(mem + item.mem_idx, abi + item.abi_idx, item.total_size);
+		}
+	}
+
+	void operator()(const MetadataGroup* group)
+	{
+		const FieldMetadata *field = group->FindFirstField();
+		Int size = group->GetBlockSize();
+		Mem2AbiMapItem item(field->Ptr(), field->AbiPtr(), size, 1);
+		map_.push_back(item);
+	}
+
+	void operator()(const MetadataGroup* group, const FieldMetadata *field)
+	{
+		Mem2AbiMapItem item(field->Ptr(), field->AbiPtr(), field->Size(), field->Count());
+		map_.push_back(item);
+	}
+
+	void Dump() const
+	{
+		cout<<"Mem2AbiMap.size="<<map_.size()<<endl;
+		for (const Mem2AbiMapItem& item: map_)
+		{
+			cout<<"Item: "<<item.mem_idx<<" "<<item.abi_idx<<" "<<item.total_size<<endl;
+		}
+		cout<<endl;
+	}
+};
+
+
+
 
 
 template <typename Interface>
@@ -74,6 +181,8 @@ private:
     PtrMap ptr_map_;
     PtrMap abi_map_;
 
+    Mem2AbiMap mem_abi_map_;
+
     FieldMetadata* last_field_;
 };
 
@@ -86,15 +195,17 @@ class ComputeHashFn {
     bool abi_compatible_;
 public:
 
-    ComputeHashFn(Int hash, bool abi_compatible) : hash_(hash), abi_compatible_(abi_compatible) {
-    }
+    ComputeHashFn(Int hash, bool abi_compatible) : hash_(hash), abi_compatible_(abi_compatible) {}
 
-    void operator()(FieldMetadata *field) {
-        if (field->GetTypeCode() != Metadata::BITMAP) {
+    void operator()(const MetadataGroup *group, FieldMetadata *field)
+    {
+        if (field->GetTypeCode() != Metadata::BITMAP)
+        {
             hash_ = (field->AbiPtr() * 1211) ^ CShr(hash_, 3) ^ (field->GetTypeCode() + 16 * field->Count() + field->Offset() * 256 + field->Limit() * 65536);
         }
 
-        if (abi_compatible_) {
+        if (abi_compatible_)
+        {
             abi_compatible_ = field->AbiPtr() == field->Ptr();
         }
     }
@@ -115,12 +226,28 @@ public:
 
     BuildPtrMapFn(PtrMap& ptr_map, PtrMap& abi_map): ptr_map_(ptr_map), abi_map_(abi_map)  {}
 
-    void operator()(FieldMetadata *field)
+    void operator()(const MetadataGroup *group, FieldMetadata *field)
     {
         ptr_map_[(Int)field->Ptr()] = field;
         abi_map_[(Int)field->AbiPtr()] = field;
     }
 };
+
+
+class BuildAbiMemMapFn {
+    PtrMap& ptr_map_;
+    PtrMap& abi_map_;
+public:
+
+    BuildAbiMemMapFn(PtrMap& ptr_map, PtrMap& abi_map): ptr_map_(ptr_map), abi_map_(abi_map)  {}
+
+    void operator()(const MetadataGroup *group, FieldMetadata *field)
+    {
+        ptr_map_[(Int)field->Ptr()] = field;
+        abi_map_[(Int)field->AbiPtr()] = field;
+    }
+};
+
 
 template <bool Internalize_>
 class InternalizeExternalizeFn {
@@ -132,7 +259,7 @@ public:
     InternalizeExternalizeFn(const void *src, void *tgt) :
         src_(src), tgt_(tgt) {}
 
-    void operator()(FieldMetadata *field)
+    void operator()(const MetadataGroup *group, FieldMetadata *field)
     {
         if (Internalize_)
         {
@@ -184,7 +311,7 @@ public:
 		return field_;
 	}
 
-    void operator()(FieldMetadata *field)
+    void operator()(const MetadataGroup *group, FieldMetadata *field)
     {
         if (field_ == NULL || field->Ptr() >= field_->Ptr())
         {
@@ -196,18 +323,23 @@ public:
 
 
 template <typename Functor>
-bool ForAllFields(const MetadataGroup *group, Functor &functor, Int limit) {
-    for (Int c = 0; c < group->Size(); c++) {
-        if (group->GetItem(c)->GetTypeCode() == Metadata::GROUP) {
-            if (ForAllFields(static_cast<const MetadataGroup*> (group->GetItem(c)), functor, limit)) {
+bool ForAllFields(const MetadataGroup *group, Functor &functor, Int limit)
+{
+    for (Int c = 0; c < group->Size(); c++)
+    {
+        if (group->GetItem(c)->GetTypeCode() == Metadata::GROUP)
+        {
+            if (ForAllFields(static_cast<const MetadataGroup*> (group->GetItem(c)), functor, limit))
+            {
                 return true;
             }
         }
         else {
             FieldMetadata* field = static_cast<FieldMetadata*> (group->GetItem(c));
 
-            if (field->Ptr() < limit) {
-                functor(field);
+            if (field->Ptr() < limit)
+            {
+                functor(group, field);
             }
             else return true; // limit is reached
         }
@@ -215,6 +347,52 @@ bool ForAllFields(const MetadataGroup *group, Functor &functor, Int limit) {
 
     return false;
 }
+
+
+template <typename Functor>
+bool ForAllFieldsAndFiledGroups(const MetadataGroup *group, Functor &functor, Int limit)
+{
+	cout<<group->Name()<<endl;
+
+	if (group->GetBlockSize() > 0)
+	{
+		const FieldMetadata* field = group->FindFirstField();
+		if (field != NULL)
+		{
+			functor(group);
+			return field->Ptr() + group->GetBlockSize() >= limit;
+		}
+		else {
+			// Empty group. This shouldn't happen
+			return false;
+		}
+	}
+	else {
+		for (Int c = 0; c < group->Size(); c++)
+		{
+			if (group->GetItem(c)->GetTypeCode() == Metadata::GROUP)
+			{
+				const MetadataGroup* child_group = static_cast<const MetadataGroup*>((group->GetItem(c)));
+				if (ForAllFieldsAndFiledGroups(child_group, functor, limit))
+				{
+					return true;
+				}
+			}
+			else {
+				FieldMetadata* field = static_cast<FieldMetadata*> (group->GetItem(c));
+
+				if (field->Ptr() < limit)
+				{
+					functor(group, field);
+				}
+				else return true; // limit is reached
+			}
+		}
+	}
+
+    return false;
+}
+
 
 template <typename Interface>
 PageMetadataImplT<Interface>::PageMetadataImplT(StringRef name, const MetadataList &content, Int attributes, Int hash0, PageSizeProviderFn page_size_provider, Int page_size):
@@ -243,21 +421,31 @@ PageMetadataImplT<Interface>::PageMetadataImplT(StringRef name, const MetadataLi
 
     FindMaxFieldFn findMax_fn;
     ForAllFields(this, findMax_fn, page_size);
+
+    ForAllFieldsAndFiledGroups(this, mem_abi_map_, page_size);
+
+    mem_abi_map_.Dump();
 }
 
 
 template <typename Interface>
-void PageMetadataImplT<Interface>::Externalize(const void *mem, void *buf) const {
-    Int ptr = GetDataBlockSize(mem);
-    InternalizeExternalizeFn < false > fn(mem, buf);
-    ForAllFields(this, fn, ptr);
+void PageMetadataImplT<Interface>::Externalize(const void *mem, void *buf) const
+{
+//    Int ptr = GetDataBlockSize(mem);
+//    InternalizeExternalizeFn < false > fn(mem, buf);
+//    ForAllFields(this, fn, ptr);
+
+	mem_abi_map_.MemToAbi(T2T<const char*>(mem), T2T<char*>(buf));
 }
 
 template <typename Interface>
-void PageMetadataImplT<Interface>::Internalize(const void *buf, void *mem, Int size) const {
-    if (size == -1) size = GetPageSize();
-    InternalizeExternalizeFn < true > fn(buf, mem);
-    ForAllFields(this, fn, size);
+void PageMetadataImplT<Interface>::Internalize(const void *buf, void *mem, Int size) const
+{
+//    if (size == -1) size = GetPageSize();
+//    InternalizeExternalizeFn < true > fn(buf, mem);
+//    ForAllFields(this, fn, size);
+
+	mem_abi_map_.AbiToMem(T2T<const char*>(buf), T2T<char*>(mem));
 }
 
 

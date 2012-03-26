@@ -8,7 +8,7 @@
 
 #ifndef _MEMORIA_CORE_TOOLS_PACKED_MAP_H
 #define _MEMORIA_CORE_TOOLS_PACKED_MAP_H
-//dummy
+
 #include <memoria/core/tools/buffer.hpp>
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/pmap/packed_map_intrnl.hpp>
@@ -131,21 +131,25 @@ public:
         {
         	FieldFactory<IndexKey>::create(indexList, index(c), "INDEX", Indexes, abi_ptr);
         }
-        list.push_back(new MetadataGroupImpl("INDEXES", indexList));
+        list.push_back(new MetadataGroupImpl("INDEXES", indexList, index_size_ * sizeof(IndexKey) * Indexes));
 
         MetadataList dataList;
-        for (Int c = 0; c < max_size(); c++)
+        Int max = max_size();
+        for (Int c = 0; c < max; c++)
         {
             MetadataList itemList;
             FieldFactory<Key>::create(itemList, key(c), "KEYS", Indexes, abi_ptr);
 
-            if (value_size > 0) {
+            if (value_size > 0)
+            {
                 FieldFactory<Value>::create(itemList, data(c), "DATA", abi_ptr);
             }
 
             dataList.push_back(new MetadataGroupImpl("ITEM", itemList));
         }
-        list.push_back(new MetadataGroupImpl("ITEMS", dataList));
+
+        Int item_size = sizeof(Key)*Indexes + value_size;
+        list.push_back(new MetadataGroupImpl("ITEMS", dataList, max_size() * item_size));
 
         return list;
     }
@@ -711,15 +715,19 @@ bool PackedMap<Types>::Init()
         }
     }
 
-    if (get_block_size(last) <= block_size) {
+    if (get_block_size(last) <= block_size)
+    {
         max_size_ = last;
     }
-    else if (get_block_size((first + last) / 2) <= block_size) {
+    else if (get_block_size((first + last) / 2) <= block_size)
+    {
         max_size_ = (first + last) / 2;
     }
     else {
         max_size_ = first;
     }
+
+    cout<<"BlockSize "<<block_size<<" "<<max_size_<<" "<<item_size<<endl;
 
     index_size_ = get_index_size(max_size_);
 

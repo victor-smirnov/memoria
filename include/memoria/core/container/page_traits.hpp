@@ -29,7 +29,8 @@ private:
     typedef memoria::AbstractPageID<T, Size>                                             Type;
 
 public:
-    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
+    {
         list.push_back(new TypedIDFieldImpl<Type>(PtrToLong(&field), abi_ptr, name));
         abi_ptr += ValueTraits<Type>::Size;
     }
@@ -40,7 +41,8 @@ template <Int Size>
 struct FieldFactory<memoria::BitBuffer<Size> > {
     typedef memoria::BitBuffer<Size>                                                     Type;
 
-    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
+    {
         list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, 0, Size));
         abi_ptr += ValueTraits<Type>::Size;
     }
