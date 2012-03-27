@@ -233,11 +233,12 @@ public:
 };
 
 
-
 class TestRunner: public TaskRunner {
 public:
-	TestRunner(): TaskRunner() 	{}
-	virtual ~TestRunner() 		{}
+	TestRunner(): TaskRunner() 		{}
+	virtual ~TestRunner() 			{}
+
+	void Replay(ostream& out, StringRef replay_file);
 };
 
 

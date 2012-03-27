@@ -123,6 +123,9 @@ MEMORIA_INIT();
 
 int main(int argc, const char** argv, const char** envp)
 {
+	SmallCtrTypeFactory::Factory<Root>::Type::Init();
+	SmallCtrTypeFactory::Factory<Map1>::Type::Init();
+
 
 	try {
 		logger.level() = Logger::NONE;

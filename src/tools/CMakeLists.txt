@@ -19,6 +19,10 @@ if (NOT DEFINED BUILD_DUMP)
     set(BUILD_DUMP true)
 endif()
 
+if (NOT DEFINED BUILD_EXAMPLES)
+    set(BUILD_EXAMPLES true)
+endif()
+
 if (BUILD_TESTS) 
     add_subdirectory(tests)
 endif()
@@ -29,4 +33,8 @@ endif()
 
 if (BUILD_DUMP)
     add_subdirectory(dump)
+endif()
+
+if (BUILD_EXAMPLES)
+    add_subdirectory(examples)
 endif()

@@ -5,15 +5,13 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include "map/task.hpp"
-#include "sum_set_batch/task.hpp"
-#include "vector/task.hpp"
-#include "vector_map/task.hpp"
-#include "create_ctr/task.hpp"
+#include "create_ctr.hpp"
 
-#include "template/task.hpp"
+#include <memoria/tools/examples.hpp>
 
 #include <memoria/tools/cmdline.hpp>
+
+#include <memoria/memoria.hpp>
 
 #include <iostream>
 
@@ -26,8 +24,8 @@ using namespace memoria;
 
 MEMORIA_INIT();
 
-const char* DESCRIPTION = "Run Memoria regression tests with specified configuration";
-const char* CFG_FILE	= "tests.properties";
+const char* DESCRIPTION = "Run Memoria examples with specified configuration";
+const char* CFG_FILE	= "examples.properties";
 
 void sighandler(int signum)
 {
@@ -57,17 +55,14 @@ int main(int argc, const char** argv, const char** envp)
 			GetBIRandom();
 		}
 
-		TestRunner runner;
+		ExampleRunner runner;
 
 		runner.SetRunCount(cmd_line.GetCount());
 
 		// add tasks to the runner;
 
-		runner.RegisterTask(new MapTest());
-		runner.RegisterTask(new CreateCtrTest());
-		runner.RegisterTask(new SumSetBatchTest());
-		runner.RegisterTask(new VectorTest());
-		runner.RegisterTask(new VectorMapTest());
+		runner.RegisterTask(new CreateCtrExample());
+
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
@@ -80,17 +75,11 @@ int main(int argc, const char** argv, const char** envp)
 			cout<<"    --count N 		   		  Run all tests N times"<<endl;
 			cout<<"    --config <file.properties> Use the specified config file"<<endl;
 			cout<<"    --list                     List available tasks and their configuration properties and exit"<<endl;
-			cout<<"    --replay <update_op.properties> Replay the failed update operation"<<endl;
 			cout<<"    --out <output folder> 		   Path where tests output will be put. (It will be recreated if already exists)"<<endl;
 		}
 		else if (cmd_line.IsList())
 		{
 			runner.DumpProperties(cout);
-		}
-		else if (cmd_line.IsReplay())
-		{
-			runner.Replay(cout, cmd_line.GetReplayFile());
-			return 0;
 		}
 		else {
 			cout<<"Seed: "<<seed<<endl;
