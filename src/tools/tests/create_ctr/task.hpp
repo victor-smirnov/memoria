@@ -63,7 +63,7 @@ public:
 	CreateCtrTest(): SPTestTask(new CreateCtrParams())
 	{
 		SmallCtrTypeFactory::Factory<Root>::Type::Init();
-		VectorMapCtr::Init();
+//		VectorMapCtr::Init();
 		MapCtr::Init();
 	}
 
@@ -112,18 +112,23 @@ public:
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
 
-//		VectorMapCtr map(allocator, 1);
-
 		MapCtr map(allocator, 1, true);
+
+		BigInt t00 = GetTimeInMillis();
 
 		for (Int c = 0; c < task_params->map_size_; c++)
 		{
 			Int key = GetRandom();
 			map[key].SetData(GetRandom());
-//			map[c].SetData(c);
 		}
 
 		allocator.commit();
+
+
+//		for (auto iter = map.Begin(); iter.NextLeaf(); )
+//		{
+//			map.Dump(iter.path().leaf().node());
+//		}
 
 		BigInt t0 = GetTimeInMillis();
 
@@ -146,11 +151,18 @@ public:
 
 		auto new_iter = new_map.Begin();
 
-		for (auto iter = new_map.Begin(); !iter.IsEnd(); iter.NextKey(), new_iter.NextKey())
+		for (auto iter = map.Begin(); !iter.IsEnd(); iter.NextKey(), new_iter.NextKey())
 		{
 			MEMORIA_TEST_THROW_IF(iter.GetKey(0), !=, new_iter.GetKey(0));
 			MEMORIA_TEST_THROW_IF(iter.GetData(), !=, new_iter.GetData());
 		}
+
+
+
+		BigInt t22 = GetTimeInMillis();
+
+		out<<"Create Time: "<<FormatTime(t0 - t00)<<endl;
+		out<<"Check Time:  "<<FormatTime(t22 - t2)<<endl;
 	}
 
 

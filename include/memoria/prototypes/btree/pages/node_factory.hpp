@@ -105,10 +105,14 @@ public:
     Int data_size() const
     {
         //FIXME: use c++11 offsetof
-
     	Int size = this->children_count();
-        Me* me = NULL;
-        return (Int)(BigInt)&me->map().key(size);
+
+    	const char* ptr0 = T2T<const char*>(this);
+    	const char* ptr1 = T2T<const char*>(&this->map().key(size));
+
+    	size_t diff = T2T<size_t>(ptr1 - ptr0);
+
+    	return (Int)diff;
     }
 
     void set_children_count(Int map_size)
@@ -160,7 +164,7 @@ public:
 
     static Int get_page_size(const void* buf)
     {
-        const Me* me = static_cast<const Me*>(buf);
+        const Me* me = T2T<const Me*>(buf);
         return me->data_size();
     }
 
@@ -174,7 +178,7 @@ public:
             MetadataList list;
             me->BuildFieldsList<FieldFactory>(list, abi_ptr);
 
-            Int hash0 = 1234567 + Descriptor::Root + 2 * Descriptor::Leaf + 4 * Descriptor::Level + 8 * Types::Indexes + 16 * Types::PackedMapType;
+            Int hash0 = 1234567 + Descriptor::Root + 2 * Descriptor::Leaf + 4 * Descriptor::Level + 8 * Types::Indexes + 16 * Types::Name::Code;
 
             Int attrs = BTREE + Descriptor::Root * ROOT + Descriptor::Leaf * LEAF;
 
@@ -184,14 +188,6 @@ public:
 
         return reflection_->Hash();
     }
-
-    void *operator new(size_t size, Allocator &allocator) {
-    	typename Allocator::Page *adr = allocator.create_new();
-    	cout<<"NodeFactory: "<<adr<<" "<<adr->id().value()<<endl;
-        return adr;
-    }
-
-    void operator delete(void *buf, size_t size) {}
 };
 
 

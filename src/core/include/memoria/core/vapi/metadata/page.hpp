@@ -201,7 +201,7 @@ public:
     {
         if (field->GetTypeCode() != Metadata::BITMAP)
         {
-            hash_ = (field->AbiPtr() * 1211) ^ CShr(hash_, 3) ^ (field->GetTypeCode() + 16 * field->Count() + field->Offset() * 256 + field->Limit() * 65536);
+            hash_ = (field->AbiPtr() * 1211) ^ CShr(hash_, 3);// ^ (field->GetTypeCode() + 16 * field->Count() + field->Offset() * 256 + field->Limit() * 65536);
         }
 
         if (abi_compatible_)
@@ -352,8 +352,6 @@ bool ForAllFields(const MetadataGroup *group, Functor &functor, Int limit)
 template <typename Functor>
 bool ForAllFieldsAndFiledGroups(const MetadataGroup *group, Functor &functor, Int limit)
 {
-	cout<<group->Name()<<endl;
-
 	if (group->GetBlockSize() > 0)
 	{
 		const FieldMetadata* field = group->FindFirstField();
@@ -398,13 +396,14 @@ template <typename Interface>
 PageMetadataImplT<Interface>::PageMetadataImplT(StringRef name, const MetadataList &content, Int attributes, Int hash0, PageSizeProviderFn page_size_provider, Int page_size):
     Base(name, content), attributes_(attributes), last_field_(NULL)
 {
-    Base::set_type() = Metadata::PAGE;
+	Base::set_type() = Metadata::PAGE;
     abi_compatible_ = true;
     hash_ = hash0;
     page_size_provider_ = page_size_provider;
     page_size_ = page_size;
 
-    if (page_size_provider_ == NULL) {
+    if (page_size_provider_ == NULL)
+    {
         throw NullPointerException(MEMORIA_SOURCE, "Page size provider is not specified");
     }
 
@@ -423,29 +422,27 @@ PageMetadataImplT<Interface>::PageMetadataImplT(StringRef name, const MetadataLi
     ForAllFields(this, findMax_fn, page_size);
 
     ForAllFieldsAndFiledGroups(this, mem_abi_map_, page_size);
-
-    mem_abi_map_.Dump();
 }
 
 
 template <typename Interface>
 void PageMetadataImplT<Interface>::Externalize(const void *mem, void *buf) const
 {
-//    Int ptr = GetDataBlockSize(mem);
-//    InternalizeExternalizeFn < false > fn(mem, buf);
-//    ForAllFields(this, fn, ptr);
+    Int ptr = GetDataBlockSize(mem);
+    InternalizeExternalizeFn < false > fn(mem, buf);
+    ForAllFields(this, fn, ptr);
 
-	mem_abi_map_.MemToAbi(T2T<const char*>(mem), T2T<char*>(buf));
+//	mem_abi_map_.MemToAbi(T2T<const char*>(mem), T2T<char*>(buf));
 }
 
 template <typename Interface>
 void PageMetadataImplT<Interface>::Internalize(const void *buf, void *mem, Int size) const
 {
-//    if (size == -1) size = GetPageSize();
-//    InternalizeExternalizeFn < true > fn(buf, mem);
-//    ForAllFields(this, fn, size);
+    if (size == -1) size = GetPageSize();
+    InternalizeExternalizeFn < true > fn(buf, mem);
+    ForAllFields(this, fn, size);
 
-	mem_abi_map_.AbiToMem(T2T<const char*>(buf), T2T<char*>(mem));
+//	mem_abi_map_.AbiToMem(T2T<const char*>(buf), T2T<char*>(mem));
 }
 
 

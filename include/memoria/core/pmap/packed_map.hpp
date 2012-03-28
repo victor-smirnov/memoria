@@ -727,8 +727,6 @@ bool PackedMap<Types>::Init()
         max_size_ = first;
     }
 
-    cout<<"BlockSize "<<block_size<<" "<<max_size_<<" "<<item_size<<endl;
-
     index_size_ = get_index_size(max_size_);
 
     data_offset_ = sizeof(Int) + index_size_ * sizeof(IndexKey) * Indexes;
