@@ -84,7 +84,7 @@ private:
 
 	Logger 				logger_;
 	Int 				counter_;
-	ContainerCollectionMetadata* 	metadata_;
+	ContainerMetadataRepository* 	metadata_;
 
 	ID 					root_;
 	ID 					root_log_;
@@ -148,7 +148,7 @@ public:
 		}
 	}
 
-	ContainerCollectionMetadata* GetMetadata() const {
+	ContainerMetadataRepository* GetMetadata() const {
 		return metadata_;
 	}
 
@@ -226,20 +226,23 @@ public:
 		root_map_->set_root(id);
 	}
 
-	void remove_by_key(BigInt name) {
-		root_map_->RemoveByKey(name);
+	void remove_by_key(BigInt name)
+	{
+		root_map_->Remove(name);
 	}
 
-	void set_value_for_key(BigInt name, const ID& page_id) {
-		root_map_->SetValueForKey(name, page_id);
+	void set_value_for_key(BigInt name, const ID& page_id)
+	{
+		root_map_->operator[](name).SetData(page_id);
 	}
 
 	ID get_value_for_key(BigInt name)
 	{
-		ID page_id;
-		if (root_map_->GetValue(name, 0, page_id))
+		auto iter = root_map_->Find(name);
+
+		if (!iter.IsEnd())
 		{
-			return page_id;
+			return iter.GetData();
 		}
 		else {
 			return ID(0);
@@ -588,8 +591,6 @@ public:
 		}
 	}
 
-//	virtual CtrShared* GetCtrShared(const ID& root)						= 0;
-
 	virtual void ReleaseCtrShared(CtrShared* shared)
 	{
 		ctr_shared_.erase(shared->name());
@@ -641,8 +642,6 @@ public:
 			input->read(buf, 0, size);
 
 			Page* page = T2T<Page*>(buf);
-//
-//			MEMORIA_TRACE(me(), "Read page with hashes", page->page_type_hash(), page->model_hash(), "of size", size, "id", page->id(), &page->id());
 
 			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page_hash);
 
@@ -652,21 +651,13 @@ public:
 				mem[c] = 0;
 			}
 
-			const FieldMetadata* last_field = pageMetadata->GetField(size, true);
-			Int limit = last_field != NULL ? last_field->Ptr() : PAGE_SIZE;
-
-			pageMetadata->Internalize(page, mem, limit);
+			pageMetadata->GetPageOperations()->Deserialize(page, size, mem);
 
 			page = T2T<Page*>(mem);
 
 			pages_[page->id()] = page;
 
 			MEMORIA_TRACE(me(), "Register page", page, page->id());
-
-//			PageWrapper<Page, PAGE_SIZE> pw(page);
-//			memoria::vapi::DumpPage(pageMetadata, &pw, cout);
-//			    		cout<<endl;
-//			    		cout<<endl;
 
 			if (first)
 			{
@@ -685,15 +676,11 @@ public:
 			}
 		}
 
-//		roots_->set_root(root_);
-
 		counter_ = maxId + 1;
 	}
 
 	virtual void store(OutputStreamHandler *output)
 	{
-//		cout<<"Allocations: "<<allocs1_<<" "<<allocs2_<<endl;
-
 		char signature[12] = "MEMORIA";
 		for (UInt c = 7; c < sizeof(signature); c++) signature[c] = 0;
 
@@ -725,6 +712,7 @@ public:
 			if (page->references() > 0) {cout<<"Dump "<<page->id()<<" "<<page->references()<<endl;}
 
 			MEMORIA_TRACE(me(), "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
+
 			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
 
 			for (Int c = 0; c < PAGE_SIZE; c++)
@@ -732,12 +720,13 @@ public:
 				buf[c] = 0;
 			}
 
-			pageMetadata->Externalize(page, buf);
+			const IPageOperations* operations = pageMetadata->GetPageOperations();
 
-			Int ptr = pageMetadata->GetDataBlockSize(page);
-			const FieldMetadata* last_field = pageMetadata->GetField(ptr, false);
+			operations->Serialize(page, buf);
 
-			Short size = last_field != NULL ? last_field->AbiPtr() : PAGE_SIZE;
+			Int ptr = operations->GetPageSize(page);
+
+			Short size = ptr;
 
 			output->write(size);
 			output->write(page->page_type_hash());

@@ -24,7 +24,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
     typedef typename Allocator::Transaction                                       Transaction;
 
     typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;

@@ -125,6 +125,9 @@ int main(int argc, const char** argv, const char** envp)
 {
 	SmallCtrTypeFactory::Factory<Root>::Type::Init();
 	SmallCtrTypeFactory::Factory<Map1>::Type::Init();
+	SmallCtrTypeFactory::Factory<Vector>::Type::Init();
+	SmallCtrTypeFactory::Factory<VectorMap>::Type::Init();
+	SmallCtrTypeFactory::Factory<Set1>::Type::Init();
 
 
 	try {

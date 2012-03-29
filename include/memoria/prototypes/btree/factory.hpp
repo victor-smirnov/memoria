@@ -9,6 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BTREE_FACTORY_HPP
 #define	_MEMORIA_PROTOTYPES_BTREE_FACTORY_HPP
 
+#include <memoria/core/types/type2type.hpp>
 #include <memoria/prototypes/btree/names.hpp>
 #include <memoria/prototypes/btree/tools.hpp>
 
@@ -70,6 +71,8 @@ struct BTreeTypes {
     typedef EmptyType                                    						IteratorInterface;
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator	Allocator;
+    typedef typename Allocator::ID												ID;
+
     typedef typename BTreeRootMetadataTypeFactory<
     			Profile_,
     			BTreeRootMetadataFactory<ContainerTypeSelector>
@@ -128,15 +131,13 @@ public:
     >::Result                                                                   	Value;
 
 
-    typedef BTreeCountersBase<BigInt>                                               BTreeCounters;
-
     struct BasePartsTypes{
     	typedef TreePage<typename ContainerTypes::Allocator> 				NodePageBase;
     	typedef typename ContainerTypes::BasePagePartsList 					List;
     };
 
     typedef PageStart<BasePartsTypes>												BasePageParts;
-    typedef NodePageBase<BTreeCounters,  BasePageParts>                				NodePageBase0;
+    typedef NodePageBase<BasePageParts>                								NodePageBase0;
 
     struct NodePageContainerTypes: public NodePageBase0 {};
 
@@ -214,11 +215,6 @@ public:
     	typedef ContainerTypeName_ 												ContainerTypeName;
     	typedef typename MyType::Value                                      	Value;
     	typedef typename MyType::PageDispatchers                                Pages;
-
-    	typedef typename BTreeCountersTypeFactory<
-    			Profile,
-    			BTreeCountersFactory<ContainerTypeName_>
-    	>::Type      															Counters;
 
     	typedef typename ContainerTypes::Allocator								Allocator;
     	typedef typename ContainerTypes::Metadata								Metadata;

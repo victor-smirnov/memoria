@@ -294,8 +294,7 @@ public:
 
 	static Int Init()
 	{
-		Int salt = 123456;
-		Int hash = IdxSet::Init(salt) + ByteArray::Init(salt);
+		Int hash = IdxSet::Init() + ByteArray::Init();
 
 		if (reflection_ == NULL)
 		{
@@ -304,7 +303,7 @@ public:
 			IdxSet::reflection()->PutAll(list);
 			ByteArray::reflection()->PutAll(list);
 
-			reflection_ = new ContainerMetadataImpl("memoria::VectorMap", list, VectorMap::Code + salt, MyType::GetContainerInterface());
+			reflection_ = new ContainerMetadataImpl("memoria::VectorMap", list, VectorMap::Code, MyType::GetContainerInterface());
 		}
 
 		return hash;

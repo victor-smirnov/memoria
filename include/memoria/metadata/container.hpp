@@ -14,7 +14,7 @@
 namespace memoria    {
 namespace vapi       {
 
-struct MEMORIA_API ContainerCollectionMetadata: public MetadataGroup {
+struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
     virtual Int Hash() const												= 0;
 
     virtual PageMetadata* GetPageMetadata(Int hashCode) const 				= 0;

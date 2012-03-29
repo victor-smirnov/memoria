@@ -23,10 +23,6 @@ using memoria::BitBuffer;
 
 template <typename Allocator_>
 class TreePage: public Allocator_::Page {
-    
-//    typedef BitBuffer<32>                   TreeFlagsType;
-//
-//    TreeFlagsType                           tree_flags_;
 
     Int root_;
     Int leaf_;
@@ -92,10 +88,9 @@ protected:
 public:
 
     template <template <typename> class FieldFactory>
-    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const {
+    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const
+    {
         Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
-
-//        abi_ptr += ValueTraits<TreeFlagsType>::Size;
 
         FieldFactory<Int>::create(list, root_, 		"ROOT", abi_ptr);
         FieldFactory<Int>::create(list, leaf_, 		"LEAF", abi_ptr);
@@ -103,6 +98,31 @@ public:
 
         FieldFactory<Int>::create(list, size_, "SIZE", abi_ptr);
     }
+
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
+    {
+    	Base::template Serialize<FieldFactory>(buf);
+
+    	FieldFactory<Int>::serialize(buf, root_);
+    	FieldFactory<Int>::serialize(buf, leaf_);
+    	FieldFactory<Int>::serialize(buf, bitmap_);
+
+    	FieldFactory<Int>::serialize(buf, size_);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	Base::template Deserialize<FieldFactory>(buf);
+
+    	FieldFactory<Int>::deserialize(buf, root_);
+    	FieldFactory<Int>::deserialize(buf, leaf_);
+    	FieldFactory<Int>::deserialize(buf, bitmap_);
+
+    	FieldFactory<Int>::deserialize(buf, size_);
+    }
+
 
     template <typename PageType>
     void CopyFrom(const PageType* page)
@@ -115,121 +135,27 @@ public:
     }
 };
 
-template <typename CountType>
-class BTreeCountersBase {
-
-    CountType page_count_;
-    CountType key_count_;
-
-public:
-    BTreeCountersBase(): page_count_(0), key_count_(0) {}
-
-    BTreeCountersBase(CountType pc, CountType kc): page_count_(pc), key_count_(kc) {}
-
-    const CountType &page_count() const
-    {
-        return page_count_;
-    }
-
-    CountType &page_count()
-    {
-        return page_count_;
-    }
-
-    const CountType &key_count() const
-    {
-        return key_count_;
-    }
-
-    CountType &key_count()
-    {
-        return key_count_;
-    }
-
-    BTreeCountersBase operator-() const {
-        return BTreeCountersBase(-page_count(), -key_count());
-    }
-
-    BTreeCountersBase operator-(const BTreeCountersBase &other) const {
-        return BTreeCountersBase(page_count() - other.page_count(), key_count() - other.key_count());
-    }
-
-    void operator-=(const BTreeCountersBase &other) {
-        page_count() -= other.page_count();
-        key_count() -= other.key_count();
-    }
-
-    BTreeCountersBase operator+(const BTreeCountersBase &other) const {
-        return BTreeCountersBase(page_count() + other.page_count(), key_count() + other.key_count());
-    }
-
-    void operator+=(const BTreeCountersBase &other) {
-        page_count() += other.page_count();
-        key_count() += other.key_count();
-    }
-
-    bool operator==(const BTreeCountersBase &other) {
-        return  page_count() == other.page_count() &&
-                key_count() == other.key_count();
-    }
-
-    bool operator!=(const BTreeCountersBase &other) {
-        return !operator==(other);
-    }
-
-    MetadataList GetFields(Long &abi_ptr) const {
-        MetadataList list;
-        FieldFactory<CountType>::create(list, page_count(), "PAGE_COUNT", abi_ptr);
-        FieldFactory<CountType>::create(list, key_count(), "KEY_COUNT", abi_ptr);
-        return list;
-    }
-};
-
-template <typename T>
-memoria::vapi::LogHandler* LogIt(memoria::vapi::LogHandler* log, const BTreeCountersBase<T>& value) {
-    log->log("Counters[");
-    log->log("page_count=");
-    log->log(value.page_count());
-    log->log("; key_count=");
-    log->log(value.key_count());
-    log->log("] ");
-    return log;
-}
-
 
 template <
-		typename CountersType,
-        typename BaseType0
+		typename BaseType0
 >
 class NodePageBase: public BaseType0
 {
     Short           level_;
-    //CountersType    counters_;
 
 public:
     typedef BaseType0                                                            Base;
     typedef BaseType0                                                            BasePageType;
-    typedef CountersType                                                        Counters;
 
     NodePageBase(): BaseType0(), level_(0)
     {
         init();
     }
 
-    void init() {
+    void init()
+    {
     	Base::init();
-//    	counters().page_count() = 1;
     }
-
-//    const Counters &counters() const
-//    {
-//        return counters_;
-//    }
-//
-//    Counters &counters()
-//    {
-//        return counters_;
-//    }
 
     const Short &level() const
     {
@@ -242,39 +168,43 @@ public:
     }
 
     template <template <typename> class FieldFactory>
-    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const {
+    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const
+    {
         Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
 
         FieldFactory<Short>::create(list, level(), "LEVEL", abi_ptr);
-//        FieldFactory<Counters>::create(list, counters(), "COUNTERS", abi_ptr);
     }
+
+
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
+    {
+    	Base::template Serialize<FieldFactory>(buf);
+
+    	FieldFactory<Short>::serialize(buf, level_);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	Base::template Deserialize<FieldFactory>(buf);
+
+    	FieldFactory<Short>::deserialize(buf, level_);
+    }
+
 
     template <typename PageType>
     void CopyFrom(PageType* page)
     {
         Base::CopyFrom(page);
 
-        this->level()       = page->level();
-//        this->counters()    = page->counters();
+        this->level() = page->level();
     }
 };
 
 #pragma pack()
 
 }
-
-
-
-
-using namespace memoria::btree;
-
-template <typename Profile, typename Name>
-class BTreeCountersTypeFactory<Profile, BTreeCountersFactory<Name> > {
-public:
-    typedef BTreeCountersBase<BigInt>                                           Type;
-};
-
-
 }
 
 

@@ -27,7 +27,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
 
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;

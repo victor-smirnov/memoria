@@ -13,7 +13,6 @@ namespace memoria    {
 
 
 template <typename Profile, typename Params> class BTreeRootMetadataTypeFactory;
-template <typename Profile, typename Params> class BTreeCountersTypeFactory;
 template <typename Profile> class ContainerCollectionCfg;
 
 
@@ -34,9 +33,6 @@ class IDType {};
 
 template <typename ContainerName, typename BasePagesPartsList>
 class NodeBaseFactory               {};
-
-template <typename ContainerTypeName>
-class BTreeCountersFactory          {};
 
 template <typename ContainerTypeName>
 class BTreeRootMetadataFactory      {

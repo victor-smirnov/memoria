@@ -154,6 +154,33 @@ public:
         return list;
     }
 
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
+    {
+    	FieldFactory<Int>::serialize(buf, size());
+    	FieldFactory<IndexKey>::serialize(buf, index(0), Indexes * index_size());
+
+    	const Byte* data_block = T2T<const Byte*>(Base::ptr() + data_offset_);
+
+    	Int data_size = size() * (sizeof(Key)*Indexes + value_size);
+
+    	FieldFactory<Byte>::serialize(buf, data_block[0], data_size);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	FieldFactory<Int>::deserialize(buf, size());
+    	FieldFactory<IndexKey>::deserialize(buf, index(0), Indexes * index_size());
+
+    	Byte* data_block = T2T<Byte*>(Base::ptr() + data_offset_);
+
+    	Int data_size = size() * (sizeof(Key)*Indexes + value_size);
+
+    	FieldFactory<Byte>::deserialize(buf, data_block[0], data_size);
+    }
+
+
     static int kind() {
         return Constants::KIND;
     }

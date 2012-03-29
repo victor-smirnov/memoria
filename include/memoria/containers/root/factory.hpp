@@ -9,34 +9,21 @@
 #ifndef _MEMORIA_MODELS_ROOT_FACTORY_HPP
 #define _MEMORIA_MODELS_ROOT_FACTORY_HPP
 
-
-#include <memoria/containers/root/container/container.hpp>
+#include <memoria/containers/map/factory.hpp>
 
 namespace memoria {
 
-template <typename Types>
-struct RootCtrTypes: Types {};
+template <typename Profile>
+struct BTreeTypes<Profile, memoria::Root>: public BTreeTypes<Profile, memoria::Map<1> > {
 
-template <typename Profile_, typename T>
-class CtrTF<Profile_, Root, T> {
+	typedef BTreeTypes<Profile, memoria::Map<1> > 							Base;
 
-	typedef CtrTF<Profile_, Root, T> 											MyType;
-
-	typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator	Allocator;
-
-public:
-
-	struct Types {
-		typedef Profile_					Profile;
-		typedef MyType::Allocator			Allocator;
-
-		typedef RootCtrTypes<Types>		    CtrTypes;
-	};
-
-	typedef typename Types::CtrTypes 											CtrTypes;
-	typedef Ctr<CtrTypes>														Type;
+	typedef typename Base::ID												Value;
 };
 
+template <typename Profile, typename T>
+class CtrTF<Profile, memoria::Root, T>: public CtrTF<Profile, memoria::Map<1>, T> {
+};
 
 }
 

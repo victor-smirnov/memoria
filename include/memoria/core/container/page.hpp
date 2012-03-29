@@ -144,6 +144,8 @@ public:
 
 };
 
+
+
 template <typename PageIdType, Int FlagsCount = 32>
 class AbstractPage {
 
@@ -275,6 +277,30 @@ public:
         this->page_type_hash()  = page->page_type_hash();
         this->references()		= page->references();
         this->deleted()			= page->deleted();
+    }
+
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
+    {
+    	FieldFactory<PageIdType>::serialize(buf, id());
+    	FieldFactory<FlagsType>::serialize(buf, flags());
+    	FieldFactory<Int>::serialize(buf, crc());
+    	FieldFactory<Int>::serialize(buf, model_hash());
+    	FieldFactory<Int>::serialize(buf, page_type_hash());
+    	FieldFactory<Int>::serialize(buf, references_);
+    	FieldFactory<Int>::serialize(buf, deleted_);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	FieldFactory<PageIdType>::deserialize(buf, id());
+    	FieldFactory<FlagsType>::deserialize(buf, flags());
+    	FieldFactory<Int>::deserialize(buf, crc());
+    	FieldFactory<Int>::deserialize(buf, model_hash());
+    	FieldFactory<Int>::deserialize(buf, page_type_hash());
+    	FieldFactory<Int>::deserialize(buf, references_);
+    	FieldFactory<Int>::deserialize(buf, deleted_);
     }
 };
 

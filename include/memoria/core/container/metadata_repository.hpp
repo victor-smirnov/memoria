@@ -17,7 +17,7 @@
 
 namespace memoria {
 
-using memoria::vapi::ContainerCollectionMetadata;
+using memoria::vapi::ContainerMetadataRepository;
 
 template <typename Profile, typename SelectorType, typename ContainerTypeName = SelectorType> class CtrTF;
 
@@ -43,10 +43,10 @@ struct CtrTypeFactory {
 
 template <typename Profile>
 class MetadataRepository {
-	static ContainerCollectionMetadata* metadata_;
+	static ContainerMetadataRepository* metadata_;
 public:
 
-	static ContainerCollectionMetadata* GetMetadata()
+	static ContainerMetadataRepository* GetMetadata()
 	{
 		return metadata_;
 	}
@@ -71,7 +71,7 @@ public:
 };
 
 template <typename Profile>
-ContainerCollectionMetadata* MetadataRepository<Profile>::metadata_ = NULL;
+ContainerMetadataRepository* MetadataRepository<Profile>::metadata_ = NULL;
 
 
 template <typename ProfileList = ::memoria::ProfileListBuilder<>::Type >

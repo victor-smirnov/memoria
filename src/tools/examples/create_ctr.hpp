@@ -79,7 +79,12 @@ public:
 		}
 
 		allocator.commit();
-		StoreAllocator(allocator, "alloc1.dump");
+
+		BigInt t0 = GetTimeInMillis();
+		StoreAllocator(allocator, "/dev/null");
+		BigInt t1 = GetTimeInMillis();
+
+		out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
 	}
 };
 

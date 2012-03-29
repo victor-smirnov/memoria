@@ -26,7 +26,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::MapName)
 
 
     typedef typename Base::NodeBase                                             NodeBase;
-    typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;

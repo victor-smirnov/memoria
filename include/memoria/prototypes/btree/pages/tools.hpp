@@ -12,12 +12,14 @@
 #include <iostream>
 #include <memoria/core/types/typemap.hpp>
 #include <memoria/core/exceptions/npe.hpp>
-
+#include <memoria/core/types/type2type.hpp>
 
 
 
 namespace memoria    {
 namespace btree      {
+
+using namespace memoria::vapi;
 
 template <typename Int>
 class MoveElementsFn {

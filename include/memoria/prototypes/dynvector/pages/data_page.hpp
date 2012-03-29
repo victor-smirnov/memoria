@@ -106,11 +106,52 @@ public:
         FieldFactory<PageData>::create(list, data(), "DATA", abi_ptr);
     }
 
-    static Int get_page_size(const void* buf)
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
     {
-        const Me* me = static_cast<const Me*>(buf);
-        return me->data_size();
+    	Base::template Serialize<FieldFactory>(buf);
+
+    	FieldFactory<PageData>::serialize(buf, data_);
     }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	Base::template Deserialize<FieldFactory>(buf);
+
+    	FieldFactory<PageData>::deserialize(buf, data_);
+    }
+
+
+    class PageOperations: public IPageOperations
+    {
+    	virtual Int Serialize(const void* page, void* buf) const
+    	{
+    		const Me* me = T2T<const Me*>(page);
+
+    		SerializationData data;
+    		data.buf = T2T<char*>(buf);
+
+    		me->template Serialize<FieldFactory>(data);
+
+    		return data.total;
+    	}
+
+    	virtual void Deserialize(const void* buf, Int buf_size, void* page) const
+    	{
+    		Me* me = T2T<Me*>(page);
+
+    		DeserializationData data;
+    		data.buf = T2T<const char*>(buf);
+
+    		me->template Deserialize<FieldFactory>(data);
+    	}
+
+    	virtual Int GetPageSize(const void *page) const	{
+    		const Me* me = T2T<const Me*>(page);
+    		return me->data_size();
+    	}
+    };
 
     static Int Init()
     {
@@ -124,7 +165,7 @@ public:
             Int hash0 = 1234567;
             Int attrs = BITMAP;
 
-            reflection_ = new PageMetadataImpl("DATA_PAGE", list, attrs, hash0, &get_page_size, Allocator::PAGE_SIZE);
+            reflection_ = new PageMetadataImpl("DATA_PAGE", list, attrs, hash0, new PageOperations(), Allocator::PAGE_SIZE);
         }
         else {}
 

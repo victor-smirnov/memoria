@@ -31,7 +31,6 @@ typedef typename Page::ID                                                   ID;
 
 typedef typename Types::NodeBase                                            NodeBase;
 typedef typename Types::NodeBaseG                                           NodeBaseG;
-typedef typename Types::Counters                                            Counters;
 typedef typename Base::Iterator                                             Iterator;
 
 typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;

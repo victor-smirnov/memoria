@@ -175,6 +175,14 @@ struct ValuePair {
 	ValuePair(const First& f): first(f) {}
 };
 
+struct SerializationData {
+	char* buf;
+	Int total;
+};
+
+struct DeserializationData {
+	const char* buf;
+};
 
 }
 

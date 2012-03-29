@@ -24,7 +24,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::ContainerApiName)
 		typedef typename Page::ID                                                   ID;
 
 		typedef typename Types::NodeBase                                            NodeBase;
-		typedef typename Types::Counters                                            Counters;
 		typedef typename Base::Iterator                                             Iterator;
 
 		typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
@@ -48,16 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::ContainerApiName)
 
 
 		static const Int Indexes                                                    = Types::Indexes;
-
-
-
-
-
-
-
-//		virtual DataIterator *Seek(BigInt pos) {
-//			return NULL;
-//		}
 
 MEMORIA_CONTAINER_PART_END
 

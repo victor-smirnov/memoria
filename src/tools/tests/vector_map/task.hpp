@@ -97,12 +97,6 @@ public:
 		Int c = 0;
 		for (Pair& pair: pairs_)
 		{
-			if (c == 72) {
-				int a = 0; a++;
-			}
-
-//			cout<<iter.GetKeys()<<endl;
-
 			MEMORIA_TEST_THROW_IF_1(iter.GetKey(), != , pair.key_, c);
 			MEMORIA_TEST_THROW_IF_1(iter.size(),   != , pair.value_, c);
 			MEMORIA_TEST_THROW_IF_1(iter.pos(),    != , 0, c);

@@ -63,7 +63,7 @@ public:
 	CreateCtrTest(): SPTestTask(new CreateCtrParams())
 	{
 		SmallCtrTypeFactory::Factory<Root>::Type::Init();
-//		VectorMapCtr::Init();
+		VectorMapCtr::Init();
 		MapCtr::Init();
 	}
 
@@ -77,18 +77,18 @@ public:
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
-		pairs_.clear();
-
-		DefaultLogHandlerImpl logHandler(out);
-
-		CreateCtrReplay* params = static_cast<CreateCtrReplay*>(step_params);
-
-		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
-
-		LoadAllocator(allocator, params);
-
-//		VectorMapCtr map(allocator, 1);
+//		pairs_.clear();
+//
+//		DefaultLogHandlerImpl logHandler(out);
+//
+//		CreateCtrReplay* params = static_cast<CreateCtrReplay*>(step_params);
+//
+//		Allocator allocator;
+//		allocator.GetLogger()->SetHandler(&logHandler);
+//
+//		LoadAllocator(allocator, params);
+//
+////		VectorMapCtr map(allocator, 1);
 
 
 
@@ -122,13 +122,18 @@ public:
 			map[key].SetData(GetRandom());
 		}
 
+		VectorMapCtr vector_map(allocator, 2, true);
+
+		for (Int c = 0; c < task_params->vector_map_size_; c++)
+		{
+			Int key = GetRandom();
+			auto iter = vector_map.Create(key);
+
+			ArrayData data = CreateBuffer(GetRandom(task_params->block_size_), GetRandom(256));
+			iter.Insert(data);
+		}
+
 		allocator.commit();
-
-
-//		for (auto iter = map.Begin(); iter.NextLeaf(); )
-//		{
-//			map.Dump(iter.path().leaf().node());
-//		}
 
 		BigInt t0 = GetTimeInMillis();
 
@@ -157,12 +162,27 @@ public:
 			MEMORIA_TEST_THROW_IF(iter.GetData(), !=, new_iter.GetData());
 		}
 
-
-
 		BigInt t22 = GetTimeInMillis();
+
+		VectorMapCtr new_vector_map(new_alloc, 2);
+
+		auto new_vm_iter = new_vector_map.Begin();
+
+		for (auto iter = vector_map.Begin(); iter.IsNotEnd(); iter.Next(), new_vm_iter.Next())
+		{
+			MEMORIA_TEST_THROW_IF(iter.size(), !=, new_vm_iter.size());
+
+			ArrayData data = CreateBuffer(iter.size(), 0);
+			iter.Read(data);
+
+			CheckBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
+		}
+
+		BigInt t33 = GetTimeInMillis();
 
 		out<<"Create Time: "<<FormatTime(t0 - t00)<<endl;
 		out<<"Check Time:  "<<FormatTime(t22 - t2)<<endl;
+		out<<"Check Time:  "<<FormatTime(t33 - t22)<<endl;
 	}
 
 
