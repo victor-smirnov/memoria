@@ -69,6 +69,7 @@ class RemoveName            {};
 class ApiName            	{};
 class ChecksName            {};
 class WalkName      		{};
+class AllocatorName      	{};
 
 
 template <typename MyType, typename TypesType, typename ContainerTypeName>

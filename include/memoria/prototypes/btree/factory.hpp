@@ -22,6 +22,7 @@
 #include <memoria/prototypes/btree/container/remove.hpp>
 #include <memoria/prototypes/btree/container/walk.hpp>
 #include <memoria/prototypes/btree/container/find.hpp>
+#include <memoria/prototypes/btree/container/allocator.hpp>
 
 #include <memoria/prototypes/btree/iterator.hpp>
 
@@ -45,6 +46,7 @@ struct BTreeTypes {
     static const bool MapType                                                   = MapTypes::Value;
 
     typedef typename TLTool<
+    		memoria::btree::AllocatorName,
     		memoria::btree::ToolsName,
     		memoria::btree::ChecksName,
     		memoria::btree::InsertBatchName,

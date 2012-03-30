@@ -563,7 +563,7 @@ public:
 		new_root(name, root);
 	}
 
-	virtual CtrShared* GetCtrShared(BigInt name, bool create)
+	virtual CtrShared* GetCtrShared(BigInt name)
 	{
 		auto i = ctr_shared_.find(name);
 
@@ -573,30 +573,39 @@ public:
 		}
 		else
 		{
-			CtrShared* shared = new CtrShared(name);
-
-			if (!create)
-			{
-				if (name > 0)
-				{
-					shared->root() = GetRootID(name);
-				}
-				else {
-					shared->root() = root();
-				}
-			}
-
-			ctr_shared_[name] = shared;
-			return shared;
+			throw MemoriaException(MEMORIA_SOURCE, "Unknown CtrShared requested for name "+ToString(name));
 		}
 	}
 
-	virtual void ReleaseCtrShared(CtrShared* shared)
+	virtual void RegisterCtrShared(CtrShared* shared)
 	{
-		ctr_shared_.erase(shared->name());
-		delete shared;
+		BigInt name = shared->name();
+
+		auto i = ctr_shared_.find(name);
+
+		if (i == ctr_shared_.end())
+		{
+			ctr_shared_[name] = shared;
+		}
+		else if (i->second == NULL)
+		{
+			i->second = shared;
+		}
+		else
+		{
+			throw MemoriaException(MEMORIA_SOURCE, "CtrShared for name "+ToString(name)+" is already registered");
+		}
 	}
 
+	virtual void UnregisterCtrShared(CtrShared* shared)
+	{
+		ctr_shared_.erase(shared->name());
+	}
+
+	virtual bool IsCtrSharedRegistered(BigInt name)
+	{
+		return ctr_shared_.find(name) != ctr_shared_.end();
+	}
 
 	virtual void load(InputStreamHandler *input)
 	{
@@ -854,6 +863,18 @@ public:
 
 		return result;
 	}
+
+
+	virtual void* AllocateMemory(size_t size)
+	{
+		return malloc(size);
+	}
+
+	virtual void FreeMemory(void* ptr)
+	{
+		free(ptr);
+	}
+
 };
 
 }

@@ -584,6 +584,11 @@ public:
 		return *shared_;
 	}
 
+	bool is_updated() const
+	{
+		return shared_->updated();
+	}
+
 	void update()
 	{
 		if (shared_ != NULL && !shared_->updated())

@@ -25,6 +25,16 @@ struct EmptyValueFunctor {
 	void operator()(Value&) {}
 };
 
+
+struct NullPtrFunctor {
+
+	template <typename Value>
+	void operator()(Value& val)
+	{
+		val = NULL;
+	}
+};
+
 template <typename Value, Int Size = 16, typename ClearingFunctor = EmptyValueFunctor>
 class FixedVector {
 
@@ -37,6 +47,14 @@ public:
 	typedef Value Element;
 
 	FixedVector(): size_(0) {}
+
+	FixedVector(Int size): size_(size)
+	{
+		for (Int c = 0; c < Size; c++)
+		{
+			functor(values_[c]);
+		}
+	}
 
 	FixedVector(const MyType& other)
 	{

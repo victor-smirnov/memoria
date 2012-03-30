@@ -77,21 +77,6 @@ public:
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
-//		pairs_.clear();
-//
-//		DefaultLogHandlerImpl logHandler(out);
-//
-//		CreateCtrReplay* params = static_cast<CreateCtrReplay*>(step_params);
-//
-//		Allocator allocator;
-//		allocator.GetLogger()->SetHandler(&logHandler);
-//
-//		LoadAllocator(allocator, params);
-//
-////		VectorMapCtr map(allocator, 1);
-
-
-
 	}
 
 	virtual void Run(ostream& out)

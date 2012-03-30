@@ -9,16 +9,18 @@
 #ifndef _MEMORIA_CORE_CONTAINER_CTR_SHRED_HPP
 #define	_MEMORIA_CORE_CONTAINER_CTR_SHARED_HPP
 
-#include <vector>
+#include <memoria/core/tools/fixed_vector.hpp>
 
 namespace memoria    {
 
+using namespace memoria::core;
 using namespace std;
 
 template <typename ID>
 class ContainerShared {
 public:
-	typedef ContainerShared<ID> CtrShared;
+
+	typedef ContainerShared<ID> 	CtrShared;
 private:
 
 	Int		references_;
@@ -28,41 +30,43 @@ private:
 	bool updated_;
 	bool deleted_;
 
-	vector<CtrShared*>* children_;
+	FixedVector<CtrShared*, 4, NullPtrFunctor> children_;
 
 	CtrShared* parent_;
 
 public:
 
-	ContainerShared(BigInt name0): references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(NULL), parent_(NULL) {}
+	ContainerShared(BigInt name0): references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(NULL) {}
 	ContainerShared(BigInt name0, CtrShared* parent): references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(NULL), parent_(parent) {}
 
-	~ContainerShared()
+	~ContainerShared() throw ()
 	{
-		if (children_ != NULL)
+		for (Int c = 0; c < children_.GetSize(); c++)
 		{
-			if (children_->size() > 0)
+			if (children_[c] != NULL)
 			{
-				cout<<"Delete CtrShared with children at "<<MEMORIA_SOURCE<<endl;
+				cout<<"Child CtrShared is not null for name="<<c<<endl;
 			}
-
-			delete children_;
 		}
 	}
 
-	Int		references() const {
+	Int	references() const
+	{
 		return references_;
 	}
 
-	Int& 	references() {
+	Int& references()
+	{
 		return references_;
 	}
 
-	BigInt 	name() const {
+	BigInt name() const
+	{
 		return name_;
 	}
 
-	BigInt& name() {
+	BigInt& name()
+	{
 		return name_;
 	}
 
@@ -90,54 +94,56 @@ public:
 		return updated_;
 	}
 
-	CtrShared* parent() const {
+	CtrShared* parent() const
+	{
 		return parent_;
 	}
 
-	CtrShared* parent() {
+	CtrShared* parent()
+	{
 		return parent_;
 	}
 
-	CtrShared* CreateChild(BigInt name)
+	void RegisterChild(CtrShared* child)
 	{
-		CtrShared* shared = new CtrShared(name, this);
-		if (this->children_ == NULL)
+		if (children_.GetSize() < child->name())
 		{
-			this->children_ = new vector<CtrShared*>();
-		}
-
-		this->children_->push_back(shared);
-
-		return shared;
-	}
-
-	void RemoveChild(CtrShared* shared)
-	{
-		for (auto i = children_->begin(); i != children_->end(); i++)
-		{
-			if ((*i) == shared)
+			for (Int c = children_.GetSize(); c < child->name(); c++)
 			{
-				children_->erase(i);
-				break;
-			}
-		}
-	}
-
-	CtrShared* Get(BigInt name, bool create = false)
-	{
-		if (children_ != NULL)
-		{
-			for (auto i = children_->begin(); i!= children_->end(); i++)
-			{
-				if ((*i)->name() == name)
-				{
-					return *i;
-				}
+				children_.Append(NULL);
 			}
 		}
 
-		if (create) {
-			return CreateChild(name);
+		children_[child->name()] = child;
+	}
+
+	void UnregisterChild(CtrShared* shared)
+	{
+		children_[shared->name()] = NULL;
+	}
+
+	bool IsChildRegistered(BigInt name)
+	{
+		if (name < children_.GetSize())
+		{
+			return children_[name] != NULL;
+		}
+
+		return false;
+	}
+
+	CtrShared* Get(BigInt name)
+	{
+		CtrShared* child;
+
+		if (name < children_.GetSize())
+		{
+			child = children_[name];
+		}
+
+		if (child != NULL)
+		{
+			return child;
 		}
 		else {
 			throw new MemoriaException(MEMORIA_SOURCE, "No child CtrShared is registered for the name", name);
@@ -151,6 +157,18 @@ public:
 
 	Int unref() {
 		return --references_;
+	}
+
+	template <typename Allocator>
+	void* operator new (size_t size, Allocator* allocator)
+	{
+		return allocator->AllocateMemory(size);
+	}
+
+	template <typename Allocator>
+	void operator delete (void *ptr, Allocator* allocator)
+	{
+		allocator->FreeMemory(ptr);
 	}
 };
 

@@ -18,7 +18,7 @@ template <typename Types> struct VectorMapCtrTypes;
 template <typename Types> struct VectorMapIterTypes;
 
 template <typename Types>
-class Ctr<VectorMapCtrTypes<Types> >
+class Ctr<VectorMapCtrTypes<Types> >//: public Types::Allocator
 {
 public:
 	typedef Ctr<VectorMapCtrTypes<Types> >						MyType;
@@ -28,8 +28,6 @@ public:
 	typedef typename Types::Allocator::PageG 					PageG;
 	typedef typename Allocator::Page							Page;
 	typedef typename Page::ID									ID;
-
-	typedef IParentCtrInterface<typename Types::Allocator>		ParentCtrInterface;
 
 	typedef typename CtrTF<Profile, VMSet<2>, VMSet<2> >::Type  IdxSet;
 	typedef typename CtrTF<Profile, Vector,	 Vector>::Type		ByteArray;
@@ -53,8 +51,6 @@ private:
 
 	bool 		debug_;
 
-	ParentCtrInterface* parent_ctr_;
-
 	ByteArray	array_;
 	IdxSet		set_;
 
@@ -69,9 +65,8 @@ public:
 		model_type_name_("memoria::BlobMap"),
 		logger_(model_type_name_, Logger::DERIVED, &allocator_.logger()),
 		debug_(false),
-		parent_ctr_(NULL),
 		array_(allocator, name, create, "memoria::ByteArray"),
-		set_(&array_, 0, create, "memoria::IdxSet")
+		set_(array_, 0, create, "memoria::IdxSet")
 	{ }
 
 	Ctr(Allocator &allocator, const ID& root_id):
@@ -79,9 +74,8 @@ public:
 		model_type_name_("memoria::BlobMap"),
 		logger_(model_type_name_, Logger::DERIVED, &allocator_.logger()),
 		debug_(false),
-		parent_ctr_(NULL),
 		array_(allocator, root_id, "memoria::ByteArray"),
-		set_(&array_, get_ctr_root(allocator, root_id, 0), "memoria::IdxSet")
+		set_(array_, get_ctr_root(allocator, root_id, 0), "memoria::IdxSet")
 	{ }
 
 	Ctr(const MyType& other):
@@ -89,30 +83,18 @@ public:
 		model_type_name_("memoria::BlobMap"),
 		logger_(other.logger_),
 		debug_(other.debug_),
-		parent_ctr_(other.parent_ctr_),
 		array_(allocator_, other.array_.root(), "memoria::ByteArray"),
-		set_(&array_, other.set_.root(), "memoria::IdxSet")
+		set_(array_, other.set_.root(), "memoria::IdxSet")
 	{}
 
-	Ctr(MyType&& other):
-		allocator_(other.allocator_),
-		model_type_name_(other.model_type_name_),
-		logger_(other.logger_),
-		debug_(other.debug_),
-		parent_ctr_(other.parent_ctr_),
-		array_(std::move(other.array_), NULL),
-		set_(std::move(other.set_), &array_)
-	{ }
-
-	Ctr(MyType&& other, ParentCtrInterface* parent):
-		allocator_(other.allocator_),
-		model_type_name_(other.model_type_name_),
-		logger_(other.logger_),
-		debug_(other.debug_),
-		parent_ctr_(other.parent_ctr_),
-		array_(std::move(other.array_), parent),
-		set_(std::move(other.set_), &array_)
-	{ }
+//	Ctr(MyType&& other):
+//		allocator_(other.allocator_),
+//		model_type_name_(other.model_type_name_),
+//		logger_(other.logger_),
+//		debug_(other.debug_),
+//		array_(std::move(other.array_), NULL),
+//		set_(std::move(other.set_), &array_)
+//	{ }
 
 	//Public API goes here
 
