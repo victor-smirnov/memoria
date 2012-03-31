@@ -69,7 +69,7 @@ public:
         return list;
     }
 
-    template <template <typename> class FieldFactory>
+//    template <template <typename> class FieldFactory>
     void Serialize(SerializationData& buf) const
     {
     	FieldFactory<BigInt>::serialize(buf, model_name_);
@@ -81,7 +81,7 @@ public:
     	}
     }
 
-    template <template <typename> class FieldFactory>
+//    template <template <typename> class FieldFactory>
     void Deserialize(DeserializationData& buf)
     {
     	FieldFactory<BigInt>::deserialize(buf, model_name_);

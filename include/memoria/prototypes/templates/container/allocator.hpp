@@ -36,9 +36,6 @@ public:
     typedef typename Allocator::Shared                                        	Shared;
     typedef typename Allocator::CtrShared                                       CtrShared;
 
-    static const Int Indexes                                                    = Types::Indexes;
-
-
 
     void set_root(const ID &root)
     {

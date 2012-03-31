@@ -32,12 +32,12 @@ struct FieldFactory {
 
     static void serialize(SerializationData& data, const Type& field)
     {
-    	field.template Serialize<FieldFactory>(data);
+    	field.Serialize(data);
     }
 
     static void deserialize(DeserializationData& data, Type& field)
     {
-    	field.template Deserialize<FieldFactory>(data);
+    	field.Deserialize(data);
     }
 };
 

@@ -154,7 +154,7 @@ public:
         return list;
     }
 
-    template <template <typename> class FieldFactory>
+    //template <template <typename> class FieldFactory>
     void Serialize(SerializationData& buf) const
     {
     	FieldFactory<Int>::serialize(buf, size());
@@ -167,7 +167,7 @@ public:
     	FieldFactory<Byte>::serialize(buf, data_block[0], data_size);
     }
 
-    template <template <typename> class FieldFactory>
+    //template <template <typename> class FieldFactory>
     void Deserialize(DeserializationData& buf)
     {
     	FieldFactory<Int>::deserialize(buf, size());

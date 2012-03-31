@@ -390,7 +390,7 @@ public:
     }
 
     Ctr(const MyType& other):
-    	Base(other),
+    	Base(other, *other.allocator_),
     	allocator_(other.allocator_),
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
@@ -421,7 +421,7 @@ public:
     {}
 
     Ctr(MyType&& other, Allocator& allocator):
-    	Base(std::move(other)),
+    	Base(std::move(other), allocator),
     	allocator_(&allocator),
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),

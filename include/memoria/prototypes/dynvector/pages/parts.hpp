@@ -12,6 +12,8 @@
 
 #include <memoria/core/tools/reflection.hpp>
 
+#include <memoria/core/container/macros.hpp>
+
 #include <memoria/prototypes/btree/pages/node_base.hpp>
 #include <memoria/prototypes/btree/names.hpp>
 
@@ -20,8 +22,6 @@
 namespace memoria    {
 
 using memoria::dynvector::IndexPagePrefixName;
-
-//#pragma pack(1)
 
 
 MEMORIA_PAGE_PART_BEGIN2(RootProfile, IndexPagePrefixName<Indexes>, Int Indexes)

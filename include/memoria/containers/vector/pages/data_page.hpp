@@ -76,14 +76,14 @@ public:
         return list;
     }
 
-    template <template <typename> class FieldFactory>
+    //template <template <typename> class FieldFactory>
     void Serialize(SerializationData& buf) const
     {
     	FieldFactory<Int>::serialize(buf, size_);
     	FieldFactory<Byte>::serialize(buf, value_[0], sizeof(value_));
     }
 
-    template <template <typename> class FieldFactory>
+    //template <template <typename> class FieldFactory>
     void Deserialize(DeserializationData& buf)
     {
     	FieldFactory<Int>::deserialize(buf, size_);

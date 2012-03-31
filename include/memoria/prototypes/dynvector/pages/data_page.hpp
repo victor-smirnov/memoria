@@ -72,10 +72,6 @@ public:
         return reflection()->Hash();
     }
 
-    static bool is_abi_compatible() {
-        return reflection()->IsAbiCompatible();
-    }
-
     static PageMetadata *reflection()
     {
     	return reflection_;

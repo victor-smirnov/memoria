@@ -62,6 +62,19 @@ public:
 		set_(std::move(other.set_), array_)
 	{}
 
+	//broken constructor
+	VectorMapContainerBase(const ThisType& other):
+		Base(other),
+		array_(NoParamCtr()),
+		set_(NoParamCtr())
+	{}
+
+	VectorMapContainerBase(ThisType&& other):
+		Base(std::move(other)),
+		array_(NoParamCtr()),
+		set_(NoParamCtr())
+	{}
+
 	IdxSet& set() {
 		return set_;
 	}

@@ -108,7 +108,7 @@ private:
     		const Metadata* item = group->GetItem(c);
     		if (item->IsField())
     		{
-    			return static_cast<const FieldMetadata*>(item);
+    			return T2T<const FieldMetadata*>(item);
     		}
     		else if (item->IsGroup())
     		{
