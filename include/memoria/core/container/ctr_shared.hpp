@@ -134,7 +134,7 @@ public:
 
 	CtrShared* Get(BigInt name)
 	{
-		CtrShared* child;
+		CtrShared* child = NULL;
 
 		if (name < children_.GetSize())
 		{

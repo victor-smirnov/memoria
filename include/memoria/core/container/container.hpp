@@ -54,7 +54,7 @@ struct IParentCtrInterface
 
 
 template <typename TypesType>
-class ContainerBase: public TypesType::Allocator { //IParentCtrInterface<typename TypesType::Allocator>
+class ContainerBase: public TypesType::Allocator {
 public:
 
 	typedef ContainerBase<TypesType>											ThisType;
@@ -66,43 +66,54 @@ public:
 
     typedef typename Types::Allocator											Allocator;
     typedef typename Allocator::ID												ID;
-    typedef typename Allocator::Transaction                                     Txn;
     typedef typename Allocator::Page                                            Page;
     typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::Page::ID                                        PageId;
     typedef typename Allocator::CtrShared                                       CtrShared;
-    typedef typename Types::NodeBase                                        	NodeBase;
-    typedef typename Types::Metadata                                        	Metadata;
 
 
     typedef Iter<typename Types::IterTypes>										Iterator;
-
-    template <typename Name>
-    struct Containers {
-        typedef typename Type2TypeMap<
-                    Name,
-                    typename Types::EmbeddedContainersList
-        >::Result                                                               ContainersType;
-    };
-
-    static const bool kCompositeContainer = !ListSize<typename Types::EmbeddedContainersList>::Value;
     
 protected:
     static ContainerMetadata*   reflection_;
+
+    CtrShared* shared_;
 
 public:
     ContainerBase()
     {}
 
-    ContainerBase(const ThisType& other)
+    ContainerBase(const ThisType& other):
+    	shared_(other.shared_)
     {}
 
-    ContainerBase(ThisType&& other)
+    ContainerBase(const ThisType& other, Allocator& allocator):
+    	shared_(other.shared_)
     {}
 
-    void operator=(ThisType&& other) {}
+    //shared_ is configured in move constructors of subclasses.
+    ContainerBase(ThisType&& other):
+    	shared_(other.shared_)
+    {
+    	other.shared_ = NULL;
+    }
 
-    void operator=(const ThisType& other) {}
+    ContainerBase(ThisType&& other, Allocator& allocator):
+    	shared_(other.shared_)
+    {
+    	other.shared_ = NULL;
+    }
+
+    void operator=(ThisType&& other)
+    {
+    	shared_ = other.shared_;
+    	other.shared_ = NULL;
+    }
+
+    void operator=(const ThisType& other)
+    {
+    	shared_ = other.shared_;
+    }
 
     MyType* me() {
     	return static_cast<MyType*>(this);
@@ -172,15 +183,73 @@ public:
         return reflection_->Hash();
     }
 
+    PageG CreateRoot() {
+    	return PageG();
+    }
+
+    BigInt GetModelName(ID root_id)
+    {
+    	return -1;
+    }
+
     CtrShared* CreateCtrShared(BigInt name)
     {
     	return new (&me()->allocator()) CtrShared(name);
+    }
+
+    CtrShared* GetOrCreateCtrShared(BigInt name)
+    {
+    	if (me()->allocator().IsCtrSharedRegistered(name))
+    	{
+    		return me()->allocator().GetCtrShared(name);
+    	}
+    	else {
+    		CtrShared* shared = me()->CreateCtrShared(name);
+    		me()->allocator().RegisterCtrShared(shared);
+
+    		PageG node = me()->allocator().GetRoot(name, Allocator::READ);
+
+    		if (node.is_updated())
+    		{
+    			shared->root_log() = node->id();
+    			shared->updated() = true;
+    		}
+    		else {
+    			shared->root() = node->id();
+    			shared->updated() = false;
+    		}
+
+    		return shared;
+    	}
     }
 
     void RemoveCtrShared(CtrShared* shared)
     {
     	shared->~CtrShared();
     	me()->allocator().FreeMemory(shared);
+    }
+
+    const CtrShared* shared() const {
+    	return shared_;
+    }
+
+    CtrShared* shared() {
+    	return shared_;
+    }
+
+    void InitCtr(bool create) {}
+    void InitCtr(const ID& root_id) {}
+
+protected:
+
+    static void SetMetadata(ContainerMetadata* metadata)
+    {
+    	reflection_ = metadata;
+    }
+
+    void SetCtrShared(CtrShared* shared)
+    {
+    	this->shared_ = shared;
     }
 };
 
@@ -195,10 +264,14 @@ class CtrHelper: public CtrPart<typename SelectByIndexTool<Idx, typename Types::
 	typedef Ctr<Types> 											MyType;
 	typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> Base;
 
+	typedef typename Types::Allocator Allocator0;
+
 public:
 	CtrHelper(): Base() {}
 	CtrHelper(const ThisType& other): Base(other) {}
 	CtrHelper(ThisType&& other): Base(std::move(other)) {}
+	CtrHelper(ThisType&& other, Allocator0& allocator): Base(std::move(other), allocator) {}
+	CtrHelper(const ThisType& other, Allocator0& allocator): Base(other, allocator) 		 {}
 
 	void operator=(ThisType&& other) {
 		Base::operator=(std::move(other));
@@ -216,9 +289,14 @@ class CtrHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
 	typedef typename Types::template BaseFactory<Types>::Type 	Base;
 
 public:
+
+	typedef typename Types::Allocator 							Allocator0;
+
 	CtrHelper(): Base() {}
 	CtrHelper(const ThisType& other): Base(other) {}
 	CtrHelper(ThisType&& other): Base(std::move(other)) {}
+	CtrHelper(ThisType&& other, Allocator0& allocator): Base(std::move(other), allocator) {}
+	CtrHelper(const ThisType& other, Allocator0& allocator): Base(other, allocator) 		 {}
 
 	void operator=(ThisType&& other) {
 		Base::operator=(std::move(other));
@@ -237,10 +315,15 @@ class CtrStart: public CtrHelper<ListSize<typename Types::List>::Value - 1, Type
 	typedef Ctr<Types> 				MyType;
 
 	typedef CtrHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
+
+	typedef typename Types::Allocator 									Allocator0;
+
 public:
 	CtrStart(): Base() {}
 	CtrStart(const ThisType& other): Base(other) {}
 	CtrStart(ThisType&& other): Base(std::move(other)) {}
+	CtrStart(ThisType&& other, Allocator0& allocator): Base(std::move(other), allocator) {}
+	CtrStart(const ThisType& other, Allocator0& allocator): Base(other, allocator) 		{}
 
 	void operator=(ThisType&& other) {
 		Base::operator=(std::move(other));
@@ -251,6 +334,9 @@ public:
 	}
 };
 
+
+extern Int CtrRefCounters;
+extern Int CtrUnrefCounters;
 
 
 template <typename Types>
@@ -264,10 +350,6 @@ public:
     typedef typename Types::Allocator::PageG									PageG;
     typedef typename PageG::Page::ID											ID;
 
-    typedef typename Types::NodeBase                                           	NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Types::Metadata                                        	Metadata;
-
 public:
 
     typedef typename Types::ContainerTypeName									ContainerTypeName;
@@ -279,10 +361,8 @@ private:
     BigInt      name_;
     const char* model_type_name_;
 
-    Logger logger_;
-    static Logger class_logger_;
-
-    CtrShared*	shared_;
+    Logger 			logger_;
+    static Logger 	class_logger_;
 
     bool 		debug_;
 
@@ -295,42 +375,7 @@ public:
         logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
         debug_(false)
     {
-    	if (create)
-    	{
-    		shared_ = me()->CreateCtrShared(name);
-    		allocator.RegisterCtrShared(shared_);
-
-    		NodeBaseG node 		= me()->CreateNode(0, true, true);
-
-    		allocator.SetRoot(name, node->id());
-
-    		shared_->root_log() = node->id();
-    		shared_->updated() 	= true;
-    	}
-    	else {
-    		if (allocator.IsCtrSharedRegistered(name))
-    		{
-    			shared_ = allocator.GetCtrShared(name);
-    		}
-    		else {
-    			shared_ = me()->CreateCtrShared(name);
-    			allocator.RegisterCtrShared(shared_);
-
-    			NodeBaseG node 	= allocator.GetRoot(name, Allocator::READ);
-
-    			if (node.is_updated())
-    			{
-    				shared_->root_log() = node->id();
-    				shared_->updated() = true;
-    			}
-    			else {
-    				shared_->root() = node->id();
-    				shared_->updated() = false;
-    			}
-    		}
-    	}
-
-    	ref();
+    	InitCtr(allocator, name, create, mname);
     }
 
     Ctr(Allocator &allocator, const ID& root_id, const char* mname = NULL):
@@ -341,13 +386,7 @@ public:
     	logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
     	debug_(false)
     {
-
-    	NodeBaseG root 	= allocator.GetPage(root_id, Allocator::READ);
-    	Metadata  meta 	= me()->GetRootMetadata(root);
-    	name_			= meta.model_name();
-    	shared_ 		= allocator.GetCtrShared(name_);
-
-    	ref();
+    	InitCtr(allocator, root_id, mname);
     }
 
     Ctr(const MyType& other):
@@ -355,26 +394,77 @@ public:
     	allocator_(other.allocator_),
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
-    	shared_(other.shared_),
     	debug_(other.debug_)
     {
+    	Base::SetCtrShared(other.shared_);
     	ref();
     }
 
+    Ctr(const MyType& other, Allocator& allocator):
+    	Base(other, allocator),
+    	allocator_(&allocator),
+    	model_type_name_(other.model_type_name_),
+    	logger_(other.logger_),
+    	debug_(other.debug_)
+    {
+    	Base::SetCtrShared(other.shared_);
+    	ref();
+    }
+
+
     Ctr(MyType&& other):
-    	Base(std::move(other)),
+    	Base(std::move(other), *other.allocator_),
     	allocator_(other.allocator_),
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
-    	shared_(other.shared_),
     	debug_(other.debug_)
+    {}
+
+    Ctr(MyType&& other, Allocator& allocator):
+    	Base(std::move(other)),
+    	allocator_(&allocator),
+    	model_type_name_(other.model_type_name_),
+    	logger_(other.logger_),
+    	debug_(other.debug_)
+    {}
+
+    Ctr(const NoParamCtr&):
+    	Base(),
+    	allocator_(NULL),
+    	model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
+    	logger_(model_type_name_, Logger::DERIVED, NULL),
+    	debug_(false)
     {
-    	other.shared_ = NULL;
+    	Base::SetCtrShared(NULL);
     }
 
     ~Ctr() throw()
     {
     	unref();
+    }
+
+    void InitCtr(Allocator &allocator, BigInt name, bool create = false, const char* mname = NULL)
+    {
+    	allocator_ 			= &allocator;
+    	name_ 				= name;
+    	model_type_name_	= mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
+    	//FIXME: Init logger correctly
+
+    	Base::InitCtr(create);
+
+    	ref();
+    }
+
+    void InitCtr(Allocator &allocator, const ID& root_id, const char* mname = NULL)
+    {
+    	allocator_ 			= &allocator;
+    	model_type_name_	= mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
+    	name_				= me()->GetModelName(root_id);
+    	//FIXME: Init logger correctly
+
+    	Base::InitCtr(root_id);
+
+    	ref();
     }
 
 
@@ -412,11 +502,11 @@ public:
     }
 
     BigInt name() const {
-        return shared_->name();
+    	return name_;
     }
 
     BigInt& name() {
-    	return shared_->name();
+    	return name_;
     }
 
     MyType* me()
@@ -431,62 +521,72 @@ public:
 
     MyType& operator=(const MyType& other)
     {
-    	name_ 				= other.name_;
-    	model_type_name_	= other.model_type_name_;
-    	logger_				= other.logger_;
-    	debug_				= other.debug_;
-    	Base::operator =(other);
+    	if (this != &other)
+    	{
+    		name_ 				= other.name_;
+    		model_type_name_	= other.model_type_name_;
+    		logger_				= other.logger_;
+    		debug_				= other.debug_;
 
-    	unref();
-    	shared_				= other.shared_;
-    	ref();
+    		unref();
+
+    		Base::operator=(other);
+
+    		ref();
+    	}
 
     	return *this;
     }
 
     MyType& operator=(MyType&& other)
     {
-    	name_ 				= other.name_;
-    	model_type_name_	= other.model_type_name_;
-    	logger_				= other.logger_;
-    	debug_				= other.debug_;
-    	Base::operator=(std::move(other));
+    	if (this != &other)
+    	{
+    		name_ 				= other.name_;
+    		model_type_name_	= other.model_type_name_;
+    		logger_				= other.logger_;
+    		debug_				= other.debug_;
 
-    	unref();
-    	shared_				= other.shared_;
+    		unref();
 
-    	other.shared_		= NULL;
+    		Base::operator=(std::move(other));
+    	}
 
     	return *this;
     }
 
-    const CtrShared* shared() const {
-    	return shared_;
+    void inc () {
+    	CtrRefCounters++;
     }
 
-    CtrShared* shared() {
-    	return shared_;
+    void dec() {
+    	CtrUnrefCounters--;
     }
 
-    void clear_shared() {
-    	shared_ = NULL;
-    }
 
 private:
     void ref()
     {
-    	if (shared_ != NULL)
+    	if (me()->shared() != NULL)
     	{
-    		shared_->ref();
+    		inc();
+    		me()->shared()->ref();
     	}
     }
 
     void unref()
     {
-    	if (shared_ != NULL && shared_->unref() == 0)
+    	CtrShared* shared = me()->shared();
+    	if (shared != NULL)
     	{
-    		allocator_->UnregisterCtrShared(shared_);
-    		me()->RemoveCtrShared(shared_);
+    		dec();
+    		if (shared->unref() == 0)
+    		{
+    			allocator_->UnregisterCtrShared(shared);
+    			me()->RemoveCtrShared(shared);
+
+    			Base::SetCtrShared(NULL);
+    		}
     	}
     }
 };
@@ -495,30 +595,6 @@ template<
         typename Types
 >
 Logger Ctr<Types>::class_logger_(typeid(typename Types::ContainerTypeName).name(), Logger::DERIVED, &memoria::vapi::logger);
-
-
-
-
-template <typename Types>  struct CtrTypesT: Types {
-
-	typedef Types 						Base;
-	typedef typename Types::CtrList 	List;
-
-	template <typename Types_> struct BaseFactory {
-		typedef typename Types::template CtrBaseFactory<Types_>::Type Type;
-	};
-};
-
-template <typename Types>  struct IterTypesT: Types {
-
-	typedef Types 						Base;
-	typedef typename Types::IterList 	List;
-
-	template <typename Types_> struct BaseFactory {
-		typedef typename Types::template IterBaseFactory<Types_>::Type Type;
-	};
-};
-
 
 
 }

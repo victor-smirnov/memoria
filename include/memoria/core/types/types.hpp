@@ -67,6 +67,7 @@ struct CodeValue {
 struct BTree {};
 struct BSTree {};
 struct DynVector {};
+struct Composite {};
 
 struct Superblock:  public CodeValue<0> {};
 struct Root:        public CodeValue<1> {};
@@ -174,6 +175,8 @@ struct ValuePair {
 	ValuePair(const First& f, const Second& s): first(f), second(s) {}
 	ValuePair(const First& f): first(f) {}
 };
+
+struct NoParamCtr {};
 
 struct SerializationData {
 	char* buf;

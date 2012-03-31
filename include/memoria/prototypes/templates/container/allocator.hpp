@@ -16,6 +16,7 @@
 
 #include <memoria/prototypes/btree/names.hpp>
 
+#include <memoria/core/container/macros.hpp>
 
 namespace memoria    {
 
@@ -35,12 +36,6 @@ public:
     typedef typename Allocator::Shared                                        	Shared;
     typedef typename Allocator::CtrShared                                       CtrShared;
 
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-
-    typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
-
-
     static const Int Indexes                                                    = Types::Indexes;
 
 
@@ -59,10 +54,10 @@ public:
 
     	if (shared->updated())
     	{
-    		return me()->shared()->root_log();
+    		return shared->root_log();
     	}
     	else {
-    		return me()->shared()->root();
+    		return shared->root();
     	}
     }
 
@@ -90,57 +85,15 @@ public:
     }
 
 
-
     // Allocator directory interface part
     virtual PageG GetRoot(BigInt name, Int flags)
     {
-    	return me()->allocator().GetPage(GetRootID(name), flags);
-    }
-
-    struct GetRootIDFn {
-    	BigInt 	name_;
-    	ID		root_;
-
-    	GetRootIDFn(BigInt name): name_(name) {}
-
-    	template <typename Node>
-    	void operator()(const Node* node)
-    	{
-    		root_ = node->metadata().roots(name_);
-    	}
-    };
-
-    virtual ID GetRootID(BigInt name)
-    {
-    	NodeBaseG root = me()->allocator().GetPage(me()->root(), Allocator::READ);
-
-    	GetRootIDFn fn(name);
-    	RootDispatcher::DispatchConst(root.page(), fn);
-
-    	return fn.root_;
+    	return me()->allocator().GetPage(me()->GetRootID(name), flags);
     }
 
 
-    struct SetRootIDFn {
-    	BigInt 	name_;
-    	ID		root_;
 
-    	SetRootIDFn(BigInt name, const ID& root): name_(name), root_(root) {}
 
-    	template <typename Node>
-    	void operator()(Node* node)
-    	{
-    		node->metadata().roots(name_) = root_;
-    	}
-    };
-
-    virtual void  SetRoot(BigInt name, const ID& root_id)
-    {
-    	NodeBaseG root 	= me()->allocator().GetPage(me()->root(), Allocator::UPDATE);
-
-    	SetRootIDFn fn(name, root_id);
-    	RootDispatcher::Dispatch(root.page(), fn);
-    }
 
 
     virtual PageG GetPage(const ID& id, Int flags);

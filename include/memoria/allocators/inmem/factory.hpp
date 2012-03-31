@@ -130,6 +130,8 @@ MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::dynvecto
 MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::IteratorAPIName)
 MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::dynvector::IteratorAPIName)
 
+
+
 /* */
 
 

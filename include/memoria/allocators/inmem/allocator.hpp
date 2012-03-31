@@ -122,12 +122,14 @@ public:
 			pages_[i->first] = T2T<Page*>(buffer);
 		}
 
-		delete root_map_;
+		root_map_ = new RootMapType(*this, 0);
 	}
 
 	virtual ~InMemAllocator() throw ()
 	{
 		try {
+			delete root_map_;
+
 			Int npages = 0;
 			for (auto i = pages_.begin(); i != pages_.end(); i++)
 			{

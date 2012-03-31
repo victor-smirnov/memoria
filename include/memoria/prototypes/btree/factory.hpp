@@ -22,7 +22,8 @@
 #include <memoria/prototypes/btree/container/remove.hpp>
 #include <memoria/prototypes/btree/container/walk.hpp>
 #include <memoria/prototypes/btree/container/find.hpp>
-#include <memoria/prototypes/btree/container/allocator.hpp>
+
+#include <memoria/prototypes/templates/container/allocator.hpp>
 
 #include <memoria/prototypes/btree/iterator.hpp>
 
@@ -42,8 +43,6 @@ struct BTreeTypes {
     typedef TL<BigInt>                                                    		KeysList;
 
     static const Int Indexes                                                    = 1;
-
-    static const bool MapType                                                   = MapTypes::Value;
 
     typedef typename TLTool<
     		memoria::btree::AllocatorName,
@@ -71,6 +70,8 @@ struct BTreeTypes {
 
     typedef EmptyType                                            				ContainerInterface;
     typedef EmptyType                                    						IteratorInterface;
+    typedef EmptyType															IteratorData;
+
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator	Allocator;
     typedef typename Allocator::ID												ID;

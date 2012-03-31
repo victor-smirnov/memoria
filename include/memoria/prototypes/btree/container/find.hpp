@@ -20,7 +20,7 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(memoria::btree::FindName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::FindName)
 
     typedef TypesType                                                			Types;
     typedef typename Types::Allocator                                           Allocator;
@@ -39,9 +39,6 @@ private:
 
 
 public:
-
-    CtrPart():Base(){}
-    virtual ~CtrPart() {}
 
     template <typename Comparator>
     struct FindFn {

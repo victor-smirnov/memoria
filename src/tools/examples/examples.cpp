@@ -6,6 +6,7 @@
 
 
 #include "create_ctr.hpp"
+#include "copy_ctr.hpp"
 
 #include <memoria/tools/examples.hpp>
 
@@ -37,6 +38,8 @@ int main(int argc, const char** argv, const char** envp)
 {
 	signal(SIGSEGV, sighandler);
 
+	SmallCtrTypeFactory::Factory<Root>::Type::Init();
+
 	try {
 		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
@@ -62,6 +65,7 @@ int main(int argc, const char** argv, const char** envp)
 		// add tasks to the runner;
 
 		runner.RegisterTask(new CreateCtrExample());
+		runner.RegisterTask(new CopyCtrExample());
 
 
 		runner.Configure(&cmd_line.GetConfigurator());

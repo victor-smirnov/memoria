@@ -11,7 +11,12 @@
 #include <memoria/metadata/tools.hpp>
 #include <memoria/vapi/models/types.hpp>
 
-namespace memoria { namespace vapi {
+namespace memoria {
+
+Int CtrRefCounters = 0;
+Int CtrUnrefCounters = 0;
+
+namespace vapi {
 
 LogHandler* Logger::default_handler_ = new DefaultLogHandlerImpl();
 Logger logger("Memoria", Logger::INFO, NULL);

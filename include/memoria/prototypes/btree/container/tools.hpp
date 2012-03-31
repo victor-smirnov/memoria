@@ -59,8 +59,13 @@ public:
     static const Int Indexes                                                    = Types::Indexes;
 
     CtrPart(): Base(), max_node_capacity_(-1) {}
-    CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) {}
+    CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) 		{}
     CtrPart(ThisType&& other): Base(std::move(other)), max_node_capacity_(other.max_node_capacity_) {}
+
+
+    CtrPart(ThisType&& other, Allocator& allocator): Base(std::move(other), allocator)  {}
+    CtrPart(const ThisType& other, Allocator& allocator): Base(other, allocator)  		{}
+
 
     struct BTreeNodeTraits {
     	typedef enum {MAX_CHILDREN} Enum;
@@ -419,7 +424,7 @@ public:
 
     NodeBaseG GetRoot(Int flags) const
     {
-        return me()->allocator().GetPage(me()->root(), flags);
+    	return me()->allocator().GetPage(me()->root(), flags);
     }
 
     void SetKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const

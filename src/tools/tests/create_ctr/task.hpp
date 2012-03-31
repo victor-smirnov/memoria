@@ -109,6 +109,10 @@ public:
 
 		VectorMapCtr vector_map(allocator, 2, true);
 
+		free(NULL);
+		FILE* fd = fopen("/dev/null", "wb");
+		fclose(fd);
+
 		for (Int c = 0; c < task_params->vector_map_size_; c++)
 		{
 			Int key = GetRandom();

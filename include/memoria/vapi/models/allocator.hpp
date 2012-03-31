@@ -18,10 +18,6 @@
 namespace memoria    {
 namespace vapi       {
 
-struct MEMORIA_API Allocator {
-	enum {NONE = 0, ROOT = 1};
-};
-
 struct MEMORIA_API InputStreamHandler {
     virtual Int available() 							= 0;
     virtual void close() 								= 0;
