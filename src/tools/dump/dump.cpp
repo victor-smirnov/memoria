@@ -8,7 +8,7 @@
 
 
 
-#include <memoria/allocators/stream/factory.hpp>
+#include <memoria/allocators/inmem/factory.hpp>
 #include <memoria/core/tools/file.hpp>
 
 #include <iostream>
@@ -19,7 +19,7 @@ using namespace memoria;
 
 using namespace std;
 
-typedef DefaultStreamAllocator VStreamAllocator;
+typedef SmallInMemAllocator VStreamAllocator;
 
 VStreamAllocator* manager;
 set<IDValue> processed;
@@ -123,6 +123,12 @@ MEMORIA_INIT();
 
 int main(int argc, const char** argv, const char** envp)
 {
+	SmallCtrTypeFactory::Factory<Root>::Type::Init();
+	SmallCtrTypeFactory::Factory<Map1>::Type::Init();
+	SmallCtrTypeFactory::Factory<Vector>::Type::Init();
+	SmallCtrTypeFactory::Factory<VectorMap>::Type::Init();
+	SmallCtrTypeFactory::Factory<Set1>::Type::Init();
+
 
 	try {
 		logger.level() = Logger::NONE;
@@ -172,7 +178,7 @@ int main(int argc, const char** argv, const char** envp)
 		VStreamAllocator::RootMapType* root = manager->roots();
 		auto iter = root->Begin();
 
-		while (!iter.IsFlag(memoria::vapi::Iterator::ITEREND))
+		while (!iter.IsEnd())
 		{
 			BigInt  name 	= iter.GetKey(0);
 

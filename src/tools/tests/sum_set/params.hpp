@@ -39,7 +39,7 @@ struct SumSetParams: public TestTaskParams {
 	bool step1_;
 	bool step2_;
 
-	SumSetParams(): TestTaskParams("SumSet")
+	SumSetParams(StringRef name = "SumSet"): TestTaskParams(name)
 	{
 		Add("step0", step0_, true);
 		Add("step1", step1_, true);

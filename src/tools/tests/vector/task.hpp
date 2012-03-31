@@ -11,375 +11,139 @@
 
 #include <memoria/tools/tests.hpp>
 
+#include "../shared/btree_test_base.hpp"
+
 #include "params.hpp"
 
 namespace memoria {
 
 using namespace memoria::vapi;
 
-class VectorTest: public SPTestTask {
 
-	typedef StreamContainerTypesCollection::Factory<Vector>::Type 	ByteVectorCtr;
-	typedef ByteVectorCtr::Iterator									BVIterator;
+class VectorTest: public BTreeBatchTestBase<
+	Vector,
+	ArrayData,
+	VectorParams,
+	VectorReplay
+>
+{
+	typedef BTreeBatchTestBase<
+			Vector,
+			ArrayData,
+			VectorParams,
+			VectorReplay
+	>																Base;
+
+	typedef typename Base::Ctr 										Ctr;
 
 public:
-
-	VectorTest(): SPTestTask(new VectorParams()) {}
-
-	virtual ~VectorTest() throw() {}
-
-
-	BigInt GetRandomPosition(ByteVectorCtr& array)
-	{
-		BigInt size = array.Size();
-		return GetBIRandom(size);
+	VectorTest(): Base() {
+		SmallCtrTypeFactory::Factory<Root>::Type::Init();
+		Ctr::Init();
 	}
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual ArrayData CreateBuffer(Int size, UByte value)
 	{
-		return new VectorReplay();
+		return memoria::CreateBuffer(size, value);
 	}
 
-	virtual void Replay(ostream& out, TestReplayParams* step_params)
+	virtual Iterator Seek(Ctr& array, BigInt pos)
 	{
-		VectorReplay* params = static_cast<VectorReplay*>(step_params);
-		Allocator allocator;
-		LoadAllocator(allocator, params);
-		ByteVectorCtr dv(allocator, 1);
+		return array.Seek(pos);
+	}
 
-		dv.SetMaxChildrenPerNode(params->btree_airity_);
+	virtual void Insert(Iterator& iter, const ArrayData& data)
+	{
+		iter.Insert(data);
+	}
 
-		if (params->insert_)
+	virtual void Read(Iterator& iter, ArrayData& data)
+	{
+		iter.Read(data);
+	}
+
+	virtual void Remove(Iterator& iter, BigInt size) {
+		iter.Remove(size);
+	}
+
+	virtual void Skip(Iterator& iter, BigInt offset)
+	{
+		iter.Skip(offset);
+	}
+
+	virtual BigInt GetPosition(Iterator& iter)
+	{
+		return iter.pos();
+	}
+
+	virtual BigInt GetSize(Ctr& array)
+	{
+		return array.Size();
+	}
+
+	void CheckIterator(ostream& out, Iterator& iter, const char* source)
+	{
+		Base::CheckIterator(out, iter, source);
+
+		auto& path = iter.path();
+
+		if (path.data().node().is_set())
 		{
-			Build(out, allocator, dv, params);
+			if (iter.data_pos() < 0)
+			{
+				throw TestException(source, "iter.data_pos() is negative: "+ToString(iter.data_pos()));
+			}
+
+			bool found = false;
+			for (Int idx = 0; idx < path[0]->children_count(); idx++)
+			{
+				ID id = iter.model().GetLeafData(path[0].node(), idx);
+				if (id == path.data()->id())
+				{
+					if (path.data().parent_idx() != idx)
+					{
+						iter.Dump(out);
+						throw TestException(source, "Invalid parent-child relationship for node:"+ToString(IDValue(path[0]->id()))+" DATA: "+ToString(IDValue(path.data()->id()))+" idx="+ToString(idx)+" parent_idx="+ToString(path.data().parent_idx()));
+					}
+					else {
+						found = true;
+						break;
+					}
+				}
+			}
+
+			if (!found)
+			{
+				iter.Dump(out);
+				throw TestException(source, "Data: " + ToString(IDValue(path.data()->id())) + " is not fount is it's parent, parent_idx="+ToString(path.data().parent_idx()));
+			}
+		}
+
+
+		if (iter.IsEnd())
+		{
+			if (iter.data().is_set())
+			{
+				iter.Dump(out);
+				throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
+			}
 		}
 		else {
-			Remove(allocator, dv, params);
-		}
-	}
-
-	virtual void Run(ostream& out)
-	{
-		VectorReplay params;
-		VectorParams* task_params = GetParameters<VectorParams>();
-
-		if (task_params->btree_random_airity_)
-		{
-			task_params->btree_airity_ = 8 + GetRandom(100);
-			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
-		}
-
-		params.size_			= task_params->size_;
-		params.btree_airity_ 	= task_params->btree_airity_;
-
-		for (Int step = 0; step < 3; step++)
-		{
-			params.step_ = step;
-			Run(out, params, task_params, false);
-		}
-
-		// Run() will use different step for each ByteArray update operation
-		Run(out, params, task_params, true);
-
-//		params.step_ = 2;
-//		Run(out, params, task_params, false);
-	}
-
-
-	void Run(ostream& out, VectorReplay& params, VectorParams* task_params, bool step)
-	{
-		DefaultLogHandlerImpl logHandler(out);
-
-		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
-		ByteVectorCtr dv(allocator, 1, true);
-
-		dv.SetMaxChildrenPerNode(params.btree_airity_);
-
-		try {
-			out<<"Insert data"<<endl;
-			params.insert_ = true;
-
-			params.data_ = 1;
-			while (dv.Size() < params.size_)
+			if (iter.data().is_empty())
 			{
-				if (step)
-				{
-					params.step_ 		= GetRandom(3);
-				}
-
-				params.data_size_ 	= 1 + GetRandom(task_params->max_block_size_);
-
-				Build(out, allocator, dv, &params);
-				allocator.commit();
-				params.data_++;
-
-				params.pos_ 		= -1;
-				params.page_step_ 	= -1;
+				iter.Dump(out);
+				throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
 			}
 
-			//StoreAllocator(allocator, "allocator.dump");
-
-			out<<"Remove data. ByteVector contains "<<(dv.Size()/1024)<<"K bytes"<<endl;
-			params.insert_ = false;
-
-			for (Int c = 0; ; c++)
+			if (iter.path().data().parent_idx() != iter.key_idx())
 			{
-				if (step)
-				{
-					params.step_ = GetRandom(3);
-				}
-
-				BigInt size = dv.Size();
-				BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
-
-				params.data_size_ = 1 + GetBIRandom(max_size);
-				params.page_step_ 	= GetRandom(3);
-
-				if (!Remove(allocator, dv, &params))
-				{
-					break;
-				}
-
-				params.pos_ 		= -1;
-				params.page_step_ 	= -1;
-
-				allocator.commit();
-			}
-
-			out<<"Vector.size = "<<(dv.Size() / 1024)<<"K bytes"<<endl;
-
-			allocator.commit();
-		}
-		catch (...)
-		{
-			Store(allocator, &params);
-			throw;
-		}
-	}
-
-
-	void Build(ostream& out, Allocator& allocator, ByteVectorCtr& array, VectorReplay *params)
-	{
-		UByte value = params->data_;
-		Int step 	= params->step_;
-
-		ArrayData data = CreateBuffer(params->data_size_, value);
-
-		BigInt size = array.Size();
-
-		if (size == 0)
-		{
-			//Insert buffer into an empty array
-			auto iter = array.Seek(0);
-
-			iter.Insert(data);
-
-			Check(allocator, "Insertion into an empty array failed. See the dump for details.", MEMORIA_SOURCE);
-
-			auto iter1 = array.Seek(0);
-			CheckBufferWritten(iter1, data, "Failed to read and compare buffer from array", MEMORIA_SOURCE);
-		}
-		else {
-			if (step == 0)
-			{
-				//Insert at the start of the array
-				auto iter = array.Seek(0);
-
-				BigInt len = array.Size();
-				if (len > 100) len = 100;
-
-				ArrayData postfix(len);
-				iter.Read(postfix);
-
-				iter.Skip(-len);
-
-				iter.Insert(data);
-
-				Check(allocator, "Insertion at the start of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
-
-				iter.Skip(-data.size());
-
-				CheckBufferWritten(iter, data, "Failed to read and compare buffer from array", 				MEMORIA_SOURCE);
-				CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array", 	MEMORIA_SOURCE);
-			}
-			else if (step == 1)
-			{
-				//Insert at the end of the array
-				auto iter = array.Seek(array.Size());
-
-				BigInt len = array.Size();
-				if (len > 100) len = 100;
-
-				ArrayData prefix(len);
-				iter.Skip(-len);
-				iter.Read(prefix);
-
-				iter.Insert(data);
-
-				Check(allocator, "Insertion at the end of the array failed. See the dump for details.", MEMORIA_SOURCE);
-
-				iter.Skip(-data.size() - len);
-
-				CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", MEMORIA_SOURCE);
-				CheckBufferWritten(iter, data, "Failed to read and compare buffer from array", 			MEMORIA_SOURCE);
-			}
-			else {
-				//Insert at the middle of the array
-
-				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
-
-				Int pos = params->pos_;
-
-				auto iter = array.Seek(pos);
-
-				if (params->page_step_ == -1) params->page_step_ = GetRandom(2);
-
-				if (params->page_step_ == 0)
-				{
-					iter.Skip(-iter.data_pos());
-					pos = iter.pos();
-				}
-
-				BigInt prefix_len = pos;
-				if (prefix_len > 100) prefix_len = 100;
-
-				BigInt postfix_len = array.Size() - pos;
-				if (postfix_len > 100) postfix_len = 100;
-
-				ArrayData prefix(prefix_len);
-				ArrayData postfix(postfix_len);
-
-				iter.Skip(-prefix_len);
-
-				iter.Read(prefix);
-				iter.Read(postfix);
-
-				iter.Skip(-postfix.size());
-
-				array.debug() = true;
-
-				iter.Insert(data);
-
-				Check(allocator, "Insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
-
-				iter.Skip(- data.size() - prefix_len);
-
-
-				CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 	MEMORIA_SOURCE);
-				CheckBufferWritten(iter, data, 		"Failed to read and compare buffer from array", 		MEMORIA_SOURCE);
-				CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array", MEMORIA_SOURCE);
+				iter.Dump(out);
+				throw TestException(MEMORIA_SOURCE, "Iterator data.parent_idx mismatch");
 			}
 		}
 	}
-
-	bool Remove(Allocator& allocator, ByteVectorCtr& array, VectorReplay* params)
-	{
-		Int step = params->step_;
-
-		params->cnt_++;
-
-		if (array.Size() < 20000)
-		{
-			auto iter = array.Seek(0);
-			iter.Remove(array.Size());
-
-			Check(allocator, "Remove ByteArray", MEMORIA_SOURCE);
-			return array.Size() > 0;
-		}
-		else {
-			BigInt size = params->data_size_;
-
-			if (step == 0)
-			{
-				//Remove at the start of the array
-				auto iter = array.Seek(0);
-
-				BigInt len = array.Size() - size;
-				if (len > 100) len = 100;
-
-				ArrayData postfix(len);
-				iter.Skip(size);
-				iter.Read(postfix);
-				iter.Skip(-len - size);
-
-				iter.Remove(size);
-
-				Check(allocator, "Removing region at the start of the array failed. See the dump for details.", MEMORIA_SOURCE);
-
-				CheckBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array", 		MEMORIA_SOURCE);
-			}
-			else if (step == 1)
-			{
-				//Remove at the end of the array
-				auto iter = array.Seek(array.Size() - size);
-
-				BigInt len = iter.pos();
-				if (len > 100) len = 100;
-
-				ArrayData prefix(len);
-				iter.Skip(-len);
-				iter.Read(prefix);
-
-				iter.Remove(size);
-
-				Check(allocator, "Removing region at the end of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
-
-				iter.Skip(-len);
-
-				CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", 		MEMORIA_SOURCE);
-			}
-			else {
-				//Remove at the middle of the array
-
-				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
-
-				Int pos = params->pos_;
-
-				auto iter = array.Seek(pos);
-
-				if (params->page_step_ == -1) params->page_step_ = GetRandom(2);
-
-				if (params->page_step_ == 0)
-				{
-					iter.Skip(-iter.data_pos());
-					pos = iter.pos();
-				}
-
-				BigInt prefix_len = pos;
-				if (prefix_len > 100) prefix_len = 100;
-
-				BigInt postfix_len = array.Size() - (pos + size);
-				if (postfix_len > 100) postfix_len = 100;
-
-				ArrayData prefix(prefix_len);
-				ArrayData postfix(postfix_len);
-
-				iter.Skip(-prefix_len);
-
-				iter.Read(prefix);
-
-				iter.Skip(size);
-
-				iter.Read(postfix);
-
-				iter.Skip(-postfix.size() - size);
-
-				iter.Remove(size);
-
-				Check(allocator, "Removing region at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
-
-				iter.Skip(-prefix_len);
-
-				CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 			MEMORIA_SOURCE);
-				CheckBufferWritten(iter, postfix, 	"Failed to read and compare buffer postfix from array", 		MEMORIA_SOURCE);
-			}
-
-			return array.Size() > 0;
-		}
-	}
-
 };
+
 
 
 }

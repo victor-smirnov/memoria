@@ -31,27 +31,116 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 	typedef typename Base::Allocator											Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
 	typedef typename Base::NodeBaseG                                            NodeBaseG;
+	typedef typename Base::TreePath                                             TreePath;
+
+	typedef typename Base::Container::Value                                     Value;
+	typedef typename Base::Container::Key                                       Key;
+	typedef typename Base::Container::Element                                   Element;
+	typedef typename Base::Container::Accumulator                               Accumulator;
+	typedef typename Base::Container                                            Container;
 
     bool NextKey();
+    bool HasNextKey();
 
     bool PrevKey();
 
+    bool HasPrevKey();
+
     bool NextLeaf();
+    bool HasNextLeaf();
 
-    bool PrevLeaf() ;
+    bool PrevLeaf();
+    bool HasPrevLeaf();
 
-
-    NodeBaseG GetNextNode(const NodeBaseG& page);
-
-    NodeBaseG GetNextNode()
-    {
-    	return me()->GetNextNode(me()->page());
+    bool Next() {
+    	return me()->NextKey();
     }
 
-    NodeBaseG GetPrevNode(const NodeBaseG& page);
-    NodeBaseG GetPrevNode()
+    bool Prev() {
+    	return me()->PrevKey();
+    }
+
+    BigInt SkipFw(BigInt amount);
+    BigInt SkipBw(BigInt amount);
+    BigInt Skip(BigInt amount);
+
+    bool operator++() {
+    	return me()->NextKey();
+    }
+
+    bool operator--() {
+    	return me()->PrevKey();
+    }
+
+    BigInt operator+=(BigInt size)
     {
-    	return me()->GetPrevNode(me()->page());
+    	return me()->SkipFw(size);
+    }
+
+    BigInt operator-=(BigInt size)
+    {
+    	return me()->SkipBw(size);
+    }
+
+
+    operator const Key () const
+    {
+    	return me()->GetKey(0);
+    }
+
+    operator Accumulator () const
+    {
+    	return me()->GetKeys();
+    }
+
+    MyType& operator<<(const Element& element)
+    {
+    	me()->model().Insert(*me(), element);
+    	return *me();
+    }
+
+    MyType& operator=(const Value& value)
+    {
+    	if (!me()->IsEnd())
+    	{
+    		me()->model().SetLeafData(me()->leaf().node(), me()->key_idx(), value);
+    		return *me();
+    	}
+    	else {
+    		throw MemoriaException(MEMORIA_SOURCE, "Insertion after the end of iterator");
+    	}
+    }
+
+
+    void Remove()
+    {
+    	Accumulator keys;
+    	me()->model().RemoveEntry(*me(), keys);
+    }
+
+    Value GetData() const
+    {
+    	return me()->model().GetLeafData(me()->page(), me()->key_idx());
+    }
+
+    void SetData(const Value& data)
+    {
+    	me()->model().SetLeafData(me()->leaf().node(), me()->key_idx(), data);
+    }
+
+    Key GetKey(Int keyNum) const
+    {
+    	return me()->model().GetKey(me()->page(), keyNum, me()->key_idx());
+    }
+
+    Accumulator GetKeys() const
+    {
+    	return me()->model().GetKeys(me()->page(), me()->key_idx());
+    }
+
+    void UpdateUp(const Accumulator& keys)
+    {
+    	me()->model().UpdateUp(me()->path(), 0, me()->key_idx(), keys);
     }
 
     void Init() {
@@ -62,13 +151,58 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
         return (!me()->IsEnd()) && me()->IsNotEmpty();
     }
 
+    template <typename Walker>
+    BigInt skip_keys_fw(BigInt distance)
+    {
+    	if (me()->page().is_empty())
+    	{
+    		return 0;
+    	}
+    	else if (me()->key_idx() + distance < me()->page()->children_count())
+    	{
+    		me()->key_idx() += distance;
+    	}
+    	else {
+    		Walker walker(distance, me()->model());
+
+    		if (me()->model().WalkFw(me()->path(), me()->key_idx(), walker))
+    		{
+    			me()->key_idx()++;
+    			me()->ReHash();
+    			return walker.sum();
+    		}
+    	}
+
+    	me()->ReHash();
+    	return distance;
+    }
 
 
-private:
+    template <typename Walker>
+    BigInt skip_keys_bw(BigInt distance)
+    {
+    	if (me()->page() == NULL)
+    	{
+    		return 0;
+    	}
+    	else if (me()->key_idx() - distance >= 0)
+    	{
+    		me()->key_idx() -= distance;
+    	}
+    	else {
+    		Walker walker(distance, me()->model());
 
-    NodeBaseG __get_next_node(const NodeBaseG& page, Int &idx1, Int level);
+    		if (me()->model().WalkBw(me()->path(), me()->key_idx(), walker))
+    		{
+    			me()->key_idx() = -1;
+    			me()->ReHash();
+    			return walker.sum();
+    		}
+    	}
 
-    NodeBaseG __get_prev_node(const NodeBaseG& page, Int &idx1, Int level);
+    	me()->ReHash();
+    	return distance;
+    }
 
 MEMORIA_ITERATOR_PART_END
 
@@ -78,6 +212,54 @@ MEMORIA_ITERATOR_PART_END
 
 // --------------------- PUBLIC API --------------------------------------
 
+
+M_PARAMS
+BigInt M_TYPE::SkipFw(BigInt amount)
+{
+	BigInt cnt = 0;
+
+	for (BigInt c = 0; c < amount; c++, cnt++)
+	{
+		if (!me()->NextKey())
+		{
+			break;
+		}
+	}
+
+	return cnt;
+}
+
+
+M_PARAMS
+BigInt M_TYPE::SkipBw(BigInt amount)
+{
+	BigInt cnt = 0;
+
+	for (BigInt c = 0; c < amount; c++, cnt++)
+	{
+		if (!me()->PrevKey())
+		{
+			break;
+		}
+	}
+
+	return cnt;
+}
+
+
+M_PARAMS
+BigInt M_TYPE::Skip(BigInt amount)
+{
+	if (amount >= 0)
+	{
+		return me()->SkipFw(amount);
+	}
+	else {
+		return me()->SkipBw(-amount);
+	}
+}
+
+
 M_PARAMS
 bool M_TYPE::NextKey()
 {
@@ -86,20 +268,31 @@ bool M_TYPE::NextKey()
 		if (me()->key_idx() < me()->page()->children_count() - 1)
 		{
 			me()->key_idx()++;
+			me()->KeyNum()++;
+
+			me()->model().FinishPathStep(me()->path(), me()->key_idx());
+
 			me()->ReHash();
+
 			return true;
 		}
 		else {
-			bool val = me()->NextLeaf();
-			if (val) {
+			bool has_next_leaf = me()->NextLeaf();
+			if (has_next_leaf)
+			{
 				me()->key_idx() = 0;
 			}
 			else {
 				me()->key_idx() = me()->page()->children_count();
+
+				me()->model().FinishPathStep(me()->path(), me()->key_idx());
 			}
 
+			me()->KeyNum()++;
+
 			me()->ReHash();
-			return val;
+
+			return has_next_leaf;
 		}
 	}
 	else {
@@ -108,145 +301,118 @@ bool M_TYPE::NextKey()
 }
 
 M_PARAMS
+bool M_TYPE::HasNextKey()
+{
+	if (!me()->IsEnd())
+	{
+		if (me()->key_idx() < me()->page()->children_count() - 1)
+		{
+			return true;
+		}
+		else {
+			return me()->HasNextLeaf();
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+
+
+M_PARAMS
 bool M_TYPE::PrevKey()
 {
 	if (me()->key_idx() > 0)
 	{
 		me()->key_idx()--;
+		me()->KeyNum()--;
+
+		me()->model().FinishPathStep(me()->path(), me()->key_idx());
+
 		me()->ReHash();
+
 		return true;
 	}
 	else {
-		bool val = me()->PrevLeaf();
+		bool has_prev_leaf = me()->PrevLeaf();
 
-		if (val) {
+		if (has_prev_leaf)
+		{
 			me()->key_idx() = me()->page()->children_count() - 1;
+			me()->KeyNum()--;
 		}
 		else {
 			me()->key_idx() = -1;
+
+			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 		}
 
 		me()->ReHash();
-		return val;
+
+		return has_prev_leaf;
 	}
 }
+
+
+M_PARAMS
+bool M_TYPE::HasPrevKey()
+{
+	if (me()->key_idx() > 0)
+	{
+		return true;
+	}
+	else {
+		return me()->HasPrevLeaf();
+	}
+}
+
+
 
 //FIXME: Should NextLeaf/PreveLeaf set to End/Start if move fails?
 M_PARAMS
 bool M_TYPE::NextLeaf()
 {
-	NodeBaseG node = me()->GetNextNode(me()->page());
-	if (node != NULL)
+	if (me()->model().GetNextNode(me()->path()))
 	{
+		// FIXME: KeyNum ?
+
 		me()->key_idx() = 0;
-		me()->page() = node;
+
 		return true;
 	}
+
 	return false;
 }
+
+
+M_PARAMS
+bool M_TYPE::HasNextLeaf()
+{
+	TreePath path = me()->path();
+	return me()->model().GetNextNode(path);
+}
+
 
 M_PARAMS
 bool M_TYPE::PrevLeaf()
 {
-	NodeBaseG node = me()->GetPrevNode(me()->page());
-	if (node != NULL)
+	if (me()->model().GetPrevNode(me()->path()))
 	{
-		me()->page() = node;
+		// FIXME: KeyNum
+
 		me()->key_idx() = me()->page()->children_count() - 1;
+
 		return true;
 	}
 	return false;
 }
 
 M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::GetNextNode(const NodeBaseG& page)
+bool M_TYPE::HasPrevLeaf()
 {
-	if (page->is_root())
-	{
-		return NodeBaseG();
-	}
-	else {
-		Int parent_idx = page->parent_idx();
-		NodeBaseG parent = me()->GetParent(page, Allocator::READ);
-		if (parent == NULL)
-		{
-			throw NullPointerException(MEMORIA_SOURCE, "Parent must not be null");
-		}
-		return me()->__get_next_node(parent, parent_idx, page->level());
-	}
-}
-
-M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::GetPrevNode(const NodeBaseG& page)
-{
-	if (page->is_root()) {
-		return NodeBaseG();
-	}
-	else {
-		Int parent_idx = page->parent_idx();
-		NodeBaseG parent = me()->GetParent(page, Allocator::READ);
-		if (parent == NULL) throw NullPointerException(MEMORIA_SOURCE, "Parent must not be null");
-		return me()->__get_prev_node(parent, parent_idx, page->level());
-	}
-}
-
-
-
-
-
-// ------------------------------------ PRIVATE API --------------------------------
-
-M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::__get_next_node(const NodeBaseG& page, Int &idx1, Int level)
-{
-	if (idx1 < page->children_count() - 1)
-	{
-		NodeBaseG page0 = me()->GetChild(page, idx1 + 1, Allocator::READ);
-
-		while (page0->level() != level)
-		{
-			page0 = me()->GetChild(page0, 0, Allocator::READ);
-		}
-
-		idx1++;
-		return page0;
-	}
-	else {
-		if (!page->is_root())
-		{
-			NodeBaseG parent = me()->GetParent(page, Allocator::READ);
-			Int idx0 = page->parent_idx();
-			return __get_next_node(parent, idx0, level);
-		}
-	}
-
-	return NodeBaseG();
-}
-
-M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::__get_prev_node(const NodeBaseG& page, Int &idx1, Int level)
-{
-	if (idx1 > 0)
-	{
-		NodeBaseG page0 = me()->GetChild(page, idx1 - 1, Allocator::READ);
-
-		while (page0->level() != level) {
-			page0 = me()->GetLastChild(page0, Allocator::READ);
-		}
-
-		--idx1;
-		return page0;
-	}
-	else {
-		if (!page->is_root())
-		{
-			NodeBaseG parent = me()->GetParent(page, Allocator::READ);
-			Int idx0 = page->parent_idx();
-			return __get_prev_node(parent, idx0, level);
-		}
-	}
-
-	return NodeBaseG();
+	TreePath path = me()->path();
+	return me()->model().GetPrevNode(path);
 }
 
 

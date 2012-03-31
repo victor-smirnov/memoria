@@ -17,7 +17,7 @@
 
 #include <memoria/core/tools/hash.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 using namespace memoria::bstree;
 
@@ -27,46 +27,25 @@ public:
 
 	typedef typename Base::Container::Key                                        	 	Key;
     typedef typename Base::Container::NodeBase											NodeBase;
+    typedef typename Base::Container::Accumulator										Accumulator;
 
 private:
 
-    static const Int Indexes = Base::Container::Indexes;
-
-    Key prefix_[Indexes];
+    Accumulator prefix_;
 
 public:
-    ITreeIteratorBase(): Base()
-    {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		prefix_[c] = 0;
-    	}
-    }
+    ITreeIteratorBase(): Base() {}
 
-    ITreeIteratorBase(ThisType&& other): Base(std::move(other))
-    {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		prefix_[c] = other.prefix_[c];
-    	}
-    }
+    ITreeIteratorBase(ThisType&& other): Base(std::move(other)), prefix_(std::move(other.prefix_))
+    {}
 
-
-    ITreeIteratorBase(const ThisType& other): Base(other)
-    {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		prefix_[c] = other.prefix_[c];
-    	}
-    }
+    ITreeIteratorBase(const ThisType& other): Base(other), prefix_(other.prefix_)
+    {}
 
 
     void operator=(const ThisType& other)
     {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		prefix_[c] = other.prefix_[c];
-    	}
+    	prefix_ = other.prefix_;
 
     	Base::operator=(other);
     }
@@ -74,32 +53,42 @@ public:
 
     bool operator==(const MyType& other) const
     {
-    	for (Int c = 0; c < Indexes; c++)
+    	if (prefix_ != other.prefix_)
     	{
-    		if (prefix_[c] != other.prefix_[c])
-    		{
-    			return false;
-    		}
+    		return false;
     	}
 
     	return Base::operator==(other);
     }
 
-    Int BuildHash() const {
+    Int BuildHash() const
+    {
     	return Base::BuildHash();
     }
 
-    Key& prefix(Int i) {
-    	return prefix_[i];
+    Key& prefix(Int i)
+    {
+    	return prefix_.keys()[i];
     }
 
-    const Key prefix(Int i) const {
-    	return prefix_[i];
+    const Key prefix(Int i) const
+    {
+    	return prefix_.keys()[i];
+    }
+
+    Accumulator& prefix()
+    {
+    	return prefix_;
+    }
+
+    const Accumulator& prefix() const
+    {
+    	return prefix_;
     }
 
 MEMORIA_BSTREE_ITERATOR_BASE_CLASS_END
 
-} //memoria
+}
 
 
 

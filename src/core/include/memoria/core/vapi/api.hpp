@@ -9,12 +9,12 @@
 #define	_MEMORIA_CORE_API_API_HPP
 
 #include <memoria/core/vapi/metadata/metadata.hpp>
-#include <memoria/core/vapi/metadata/container.hpp>
+#include <memoria/core/vapi/metadata/metadata_repository.hpp>
 #include <memoria/core/vapi/metadata/field.hpp>
 #include <memoria/core/vapi/metadata/flag.hpp>
 #include <memoria/core/vapi/metadata/group.hpp>
 #include <memoria/core/vapi/metadata/id.hpp>
-#include <memoria/core/vapi/metadata/model.hpp>
+#include <memoria/core/vapi/metadata/container.hpp>
 #include <memoria/core/vapi/metadata/number.hpp>
 #include <memoria/core/vapi/metadata/page_wrapper.hpp>
 #include <memoria/core/vapi/metadata/page.hpp>

@@ -79,10 +79,6 @@ public:
         return reflection_->Hash();
     }
 
-    static bool is_abi_compatible() {
-        return reflection_->IsAbiCompatible();
-    }
-
     static PageMetadata *reflection() {
         return reflection_;
     }
@@ -105,10 +101,14 @@ public:
     Int data_size() const
     {
         //FIXME: use c++11 offsetof
-
     	Int size = this->children_count();
-        Me* me = NULL;
-        return (Int)(BigInt)&me->map().key(size);
+
+    	const char* ptr0 = T2T<const char*>(this);
+    	const char* ptr1 = T2T<const char*>(&this->map().key(size));
+
+    	size_t diff = T2T<size_t>(ptr1 - ptr0);
+
+    	return (Int)diff;
     }
 
     void set_children_count(Int map_size)
@@ -124,9 +124,26 @@ public:
     }
 
     template <template <typename> class FieldFactory>
-    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const {
+    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const
+    {
         Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
         FieldFactory<Map>::create(list, map(), "MAP", abi_ptr);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
+    {
+    	Base::template Serialize<FieldFactory>(buf);
+
+    	FieldFactory<Map>::serialize(buf, map_);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	Base::template Deserialize<FieldFactory>(buf);
+
+    	FieldFactory<Map>::deserialize(buf, map_);
     }
 
     template <typename PageType>
@@ -158,13 +175,41 @@ public:
         }
     }
 
-    static Int get_page_size(const void* buf)
-    {
-        const Me* me = static_cast<const Me*>(buf);
-        return me->data_size();
-    }
 
-    static Int Init() {
+
+    class PageOperations: public IPageOperations
+    {
+    	virtual Int Serialize(const void* page, void* buf) const
+    	{
+    		const Me* me = T2T<const Me*>(page);
+
+    		SerializationData data;
+    		data.buf = T2T<char*>(buf);
+
+    		me->template Serialize<FieldFactory>(data);
+
+    		return data.total;
+    	}
+
+    	virtual void Deserialize(const void* buf, Int buf_size, void* page) const
+    	{
+    		Me* me = T2T<Me*>(page);
+
+    		DeserializationData data;
+    		data.buf = T2T<const char*>(buf);
+
+    		me->template Deserialize<FieldFactory>(data);
+    	}
+
+    	virtual Int GetPageSize(const void *page) const
+    	{
+    		const Me* me = T2T<const Me*>(page);
+    		return me->data_size();
+    	}
+    };
+
+    static Int Init()
+    {
         if (reflection_ == NULL)
         {
             Map::Init();
@@ -174,24 +219,16 @@ public:
             MetadataList list;
             me->BuildFieldsList<FieldFactory>(list, abi_ptr);
 
-            Int hash0 = 1234567 + Descriptor::Root + 2 * Descriptor::Leaf + 4 * Descriptor::Level + 8 * Types::Indexes + 16 * Types::PackedMapType;
+            Int hash0 = 1234567 + Descriptor::Root + 2 * Descriptor::Leaf + 4 * Descriptor::Level + 8 * Types::Indexes + 16 * Types::Name::Code;
 
             Int attrs = BTREE + Descriptor::Root * ROOT + Descriptor::Leaf * LEAF;
 
-            reflection_ = new PageMetadataImpl("BTREE_PAGE", list, attrs, hash0, &get_page_size, Allocator::PAGE_SIZE);
+            reflection_ = new PageMetadataImpl("BTREE_PAGE", list, attrs, hash0, new PageOperations(), Allocator::PAGE_SIZE);
         }
         else {}
 
         return reflection_->Hash();
     }
-
-    void *operator new(size_t size, Allocator &allocator) {
-    	typename Allocator::Page *adr = allocator.create_new();
-    	cout<<"NodeFactory: "<<adr<<" "<<adr->id().value()<<endl;
-        return adr;
-    }
-
-    void operator delete(void *buf, size_t size) {}
 };
 
 

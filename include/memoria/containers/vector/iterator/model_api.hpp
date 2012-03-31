@@ -28,8 +28,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 	typedef typename Base::NodeBaseG                                             	NodeBaseG;
     typedef typename Base::Container                                                Container;
 
-    typedef typename Base::Container::ApiKeyType                                    ApiKeyType;
-    typedef typename Base::Container::ApiValueType                                  ApiValueType;
     typedef typename Container::Key                                                 Key;
 
     typedef typename Base::Container::Page                                          PageType;
@@ -43,6 +41,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     typedef typename Container::Types::CountData                               	 	CountData;
     typedef typename Container::Types::Pages::NodeDispatcher                        NodeDispatcher;
 
+    typedef typename Base::TreePath                                             	TreePath;
 
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
@@ -54,9 +53,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     }
 
     
-    void Insert(ArrayData& data, BigInt start, BigInt len);
+    void Insert(const ArrayData& data, BigInt start, BigInt len);
 
-    void Insert(ArrayData& data)
+    void Insert(const ArrayData& data)
     {
     	Insert(data, 0, data.size());
     }
@@ -79,16 +78,32 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     BigInt SkipFw(BigInt distance);
     BigInt SkipBw(BigInt distance);
 
-    void Dump(ostream& out = cout, const char* msg = NULL)
+    void DumpKeys(ostream& out)
     {
-    	out<<"Vector iterator state: "<<(msg != NULL ? msg : "")<<endl;
-    	out<<"Pos: 	   "<<me()->pos()<<endl;
+    	Base::DumpKeys(out);
+
+    	out<<"Pos:     "<<me()->pos()<<endl;
     	out<<"DataPos: "<<me()->data_pos()<<endl;
-    	me()->model().Dump(me()->page(), out);
+    }
+
+    void DumpPages(ostream& out)
+    {
+    	Base::DumpPages(out);
     	me()->model().Dump(me()->data(), out);
     }
 
-    BigInt GetBlobId() {return 0;}
+    void DumpPath(ostream& out)
+    {
+    	Base::DumpPath(out);
+
+    	if (me()->data().is_set())
+    	{
+    		out<<"Data:    "<<IDValue(me()->data()->id())<<" at "<<me()->path().data().parent_idx()<<endl;
+    	}
+    	else {
+    		out<<"No Data page is set"<<endl;
+    	}
+    }
 
 MEMORIA_ITERATOR_PART_END
 
@@ -125,14 +140,16 @@ BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
 }
 
 M_PARAMS
-void M_TYPE::Insert(ArrayData& data, BigInt start, BigInt len)
+void M_TYPE::Insert(const ArrayData& data, BigInt start, BigInt len)
 {
-	BufferContentDescriptor descriptor;
+//	BufferContentDescriptor descriptor;
+//
+//	descriptor.start() = start;
+//	descriptor.length() = len;
+//
+//	me()->model().InsertDataBlock(*me(), data, descriptor);
 
-	descriptor.start() = start;
-	descriptor.length() = len;
-
-	me()->model().InsertDataBlock(*me(), data, descriptor);
+	me()->model().InsertData(*me(), data);
 }
 
 M_PARAMS
@@ -153,8 +170,8 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 	//FIXME: handle START properly
 	if (me()->IsNotEmpty())
 	{
-		Int data_size = me()->data()->data().size();
-		Int data_pos = me()->data_pos();
+		Int data_size 	= me()->data()->size();
+		Int data_pos 	= me()->data_pos();
 
 		if (distance + data_pos <= data_size)
 		{
@@ -164,25 +181,14 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			// is the last one in the index node
 			if (distance + data_pos == data_size)
 			{
-				if (me()->key_idx() == me()->page()->children_count() - 1)
+				if (me()->NextKey())
 				{
-					NodeBaseG next = me()->GetNextNode();
-					if (next == NULL)
-					{
-						me()->data_pos() = data_size;
-					}
-					else {
-						me()->page() 		= next;
-						me()->key_idx()		= 0;
-						me()->data_pos() 	= 0;
-
-						me()->data()		= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
-					}
+					// do nothing
 				}
 				else {
-					me()->key_idx()++;
-					me()->data_pos() 		= 0;
-					me()->data() 			= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+					// Eof
+					me()->PrevKey();
+					me()->data_pos() = me()->data()->size();
 				}
 			}
 			else {
@@ -193,12 +199,13 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 		{
 			NodeTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
 
-			bool end 	= me()->WalkFw(me()->page(), me()->key_idx(), walker);
-			me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+			bool end 		= me()->model().WalkFw(me()->path(), me()->key_idx(), walker);
+
+			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
 			if (end)
 			{
-				me()->data_pos() 	= me()->data()->data().size();
+				me()->data_pos() 	= me()->data()->size();
 				me()->Init();
 				return walker.sum() - data_pos;
 			}
@@ -234,13 +241,14 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 		}
 		else
 		{
-			Int data_size = me()->data()->data().size();
-			Int to_add = data_size - idx;
+			Int data_size 	= me()->data()->size();
+			Int to_add 		= data_size - idx;
 			NodeTreeWalker<Container, Key, false> walker(distance + to_add, me()->model());
 
 			//FIXME: does 'end' means the same as for StepFw()?
-			bool end 		= me()->WalkBw(me()->page(), me()->key_idx(), walker);
-			me()->data() 	= me()->model().GetDataPage(me()->page(), me()->key_idx(), Allocator::READ);
+			bool end 		= me()->model().WalkBw(me()->path(), me()->key_idx(), walker);
+
+			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
 			if (end)
 			{
@@ -249,7 +257,7 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 				return walker.sum() - to_add;
 			}
 			else {
-				me()->data_pos()	= me()->data()->data().size() - walker.remainder();
+				me()->data_pos()	= me()->data()->size() - walker.remainder();
 			}
 		}
 

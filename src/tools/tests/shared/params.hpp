@@ -36,12 +36,14 @@ struct BTreeReplayParams: public ReplayParams {
 	Int 	vector_idx_;
 	String 	pairs_data_file_;
 	String 	pairs_sorted_data_file_;
+	Int 	iteration_;
 
-	BTreeReplayParams(StringRef name = "Replay"): ReplayParams(name), vector_idx_(0)
+	BTreeReplayParams(StringRef name = "Replay"): ReplayParams(name), vector_idx_(0), iteration_(0)
 	{
 		Add("vectorIdx", vector_idx_);
 		Add("pairsDataFile", pairs_data_file_);
 		Add("pairsSortedDataFile", pairs_sorted_data_file_);
+		Add("iteration", iteration_);
 	}
 
 	virtual ~BTreeReplayParams() throw () {};

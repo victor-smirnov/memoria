@@ -12,7 +12,7 @@
 
 
 
-#include <memoria/containers/idx_map/factory.hpp>
+#include <memoria/containers/map/factory.hpp>
 
 #include <memoria/containers/vector/iterator/model_api.hpp>
 

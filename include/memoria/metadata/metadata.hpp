@@ -20,6 +20,7 @@
 #include <memoria/core/tools/config.hpp>
 
 #include <vector>
+#include <unordered_map>
 #include <map>
 #include <string>
 
@@ -33,10 +34,10 @@ struct FieldMetadata;
 struct ContainerCollection;
 struct Container;
 
-typedef std::vector<Metadata*>          MetadataList;
-typedef std::map<Int, PageMetadata*>    PageMetadataMap;
-typedef std::map<Int, ContainerMetadata*>   ContainerMetadataMap;
-typedef std::map<Int, FieldMetadata*>   PtrMap;
+typedef std::vector<Metadata*>          				MetadataList;
+typedef std::map<Int, PageMetadata*>    				PageMetadataMap;
+typedef std::map<Int, ContainerMetadata*>   			ContainerMetadataMap;
+typedef std::map<Int, FieldMetadata*>   				PtrMap;
 
 typedef Container* (*ContainerFactoryFn) (const IDValue& rootId, ContainerCollection *container, BigInt name);
 typedef Int (*PageSizeProviderFn)(const void *page);

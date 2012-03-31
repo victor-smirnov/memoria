@@ -19,10 +19,7 @@ template <Int Indexes>
 class IndexPagePrefixName 	{};
 
 
-
-class IteratorToolsName 	{};
-class IteratorMultiskipName {};
-
+class ItrApiName {};
 
 }
 }

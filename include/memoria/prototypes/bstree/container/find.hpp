@@ -24,7 +24,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
     typedef typename Allocator::Transaction                                       Transaction;
 
     typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
@@ -40,32 +39,39 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
 
+
+
     static const Int Indexes                                                    = Types::Indexes;
 
     struct CompareBase {
 
         enum {LT, LE};
 
-        bool for_insert_;
+        typename MyType::SearchModeDefault::Enum search_mode_;
         Key prefix_;
         Key current_prefix_;
         int type_;
 
-        CompareBase(bool for_insert, Int type = LT): for_insert_(for_insert), prefix_(0), type_(type) {}
+        CompareBase(typename MyType::SearchModeDefault::Enum search_mode, Int type = LT): search_mode_(search_mode), prefix_(0), current_prefix_(0) , type_(type){}
 
         template <typename IteratorType>
-        void SetupIterator(IteratorType &iter) {
+        void SetupIterator(IteratorType &iter)
+        {
             iter.prefix(0) = prefix_;
         }
 
         void AdjustKey(Key& key) {
             key -= current_prefix_;
         }
+
+        typename MyType::SearchModeDefault::Enum search_mode() const {
+        	return search_mode_;
+        }
     };
 
     struct Compare: public CompareBase {
 
-        Compare(bool for_insert, Int type): CompareBase(for_insert, type) {}
+        Compare(typename MyType::SearchModeDefault::Enum search_mode, Int type): CompareBase(search_mode, type) {}
 
         template <typename Node>
         Int Find(Node* node, Int key_num, Key key)
@@ -113,36 +119,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
 
     struct CompareLT: public Compare
     {
-        CompareLT(bool for_insert): Compare(for_insert, CompareBase::LT) {}
+        CompareLT(typename MyType::SearchModeDefault::Enum search_mode): Compare(search_mode, CompareBase::LT) {}
     };
 
     struct CompareLE: public Compare
     {
-        CompareLE(bool for_insert): Compare(for_insert, CompareBase::LE) {}
+        CompareLE(typename MyType::SearchModeDefault::Enum search_mode): Compare(search_mode, CompareBase::LE) {}
     };
 
     Iterator FindLT(Key key, Int key_num, bool for_insert)
     {
-        return me()->template _find<CompareLT>(key, key_num, for_insert);
+        return me()->template _find<CompareLT>(key, key_num, for_insert ? MyType::SearchModeDefault::LAST : MyType::SearchModeDefault::NONE);
     }
 
     Iterator FindLE(Key key, Int key_num, bool for_insert)
     {
-        return me()->template _find<CompareLE>(key, key_num, for_insert);
+        return me()->template _find<CompareLE>(key, key_num, for_insert ? MyType::SearchModeDefault::LAST : MyType::SearchModeDefault::NONE);
     }
 
-    bool IsFound(Iterator &iter, Key key, Int key_num)
-    {
-        if (!(iter.IsEnd() || iter.IsEmpty()))
-        {
-            if (iter.GetKey(key_num) == key)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
 MEMORIA_CONTAINER_PART_END
 

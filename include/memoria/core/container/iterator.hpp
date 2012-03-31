@@ -205,13 +205,28 @@ public:
 
 
     typedef Ctr<typename Types::CtrTypes>                                       ContainerType;
-    typedef EmptyType															Txn;
+
+    typedef typename Types::IteratorData										IteratorData;
+
 
 protected:
     ContainerType&      model_;
+
+    IteratorData		iter_data_;
+
 public:
     
-    Iter(ContainerType &model): model_(model) {}
+    Iter(ContainerType &model, const IteratorData& iter_data): model_(model), iter_data_(iter_data) {}
+
+    IteratorData& iter_data()
+    {
+    	return iter_data_;
+    }
+
+    const IteratorData& iter_data() const
+    {
+    	return iter_data_;
+    }
 
     MyType* me() {
     	return this;

@@ -11,6 +11,7 @@
 
 
 #include <memoria/core/vapi/api.hpp>
+#include <strings.h>
 
 namespace memoria    {
 
@@ -24,8 +25,19 @@ template <typename T> struct FieldFactory;
 
 template <typename Type>
 struct FieldFactory {
-    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
+    {
         list.push_back(new MetadataGroupImpl(name, field.GetFields(abi_ptr)));
+    }
+
+    static void serialize(SerializationData& data, const Type& field)
+    {
+    	field.template Serialize<FieldFactory>(data);
+    }
+
+    static void deserialize(DeserializationData& data, Type& field)
+    {
+    	field.template Deserialize<FieldFactory>(data);
     }
 };
 
@@ -34,24 +46,40 @@ class BitField{};
 
 template <typename Type>
 struct FieldFactory<BitField<Type> > {
-    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long &abi_ptr)
+    {
         list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset));
     }
 
-    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long count, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long count, Long &abi_ptr)
+    {
         list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset, count));
+    }
+
+    static void serialize(SerializationData& data, const Type& field)
+    {
+    	field.template Serialize<FieldFactory>(data);
+    }
+
+    static void deserialize(DeserializationData& data, Type& field)
+    {
+    	field.template Deserialize<FieldFactory>(data);
     }
 };
 
 template <>
 struct FieldFactory<EmptyValue> {
-	static void create(MetadataList &list, const EmptyValue &field, const string &name, Long &abi_ptr) {
-	}
+	static void create(MetadataList &list, const EmptyValue &field, const string &name, Long &abi_ptr)
+	{}
+
+	static void serialize(SerializationData& data, const EmptyValue& field) {}
+
+	static void deserialize(DeserializationData& data, EmptyValue& field) {}
 };
 
 
 
-#define MEMORIA_TYPED_FIELD(Type)                                                \
+#define MEMORIA_TYPED_FIELD(Type)                                               \
 template <> struct FieldFactory<Type> {                                         \
     static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr) {\
         list.push_back(new TypedFieldImpl<Type>((Int)PtrToLong(&field), abi_ptr, name)); \
@@ -62,6 +90,23 @@ template <> struct FieldFactory<Type> {                                         
         list.push_back(new TypedFieldImpl<Type>((Int)PtrToLong(&field), abi_ptr, name, size)); \
         abi_ptr += size * (Long)sizeof(Type);                                   \
     }                                                                           \
+    static void serialize(SerializationData& data, const Type& field) {			\
+    	memmove(data.buf, &field, sizeof(Type));								\
+    	data.buf += sizeof(Type);												\
+	}																			\
+	static void deserialize(DeserializationData& data, Type& field) {			\
+		memmove(&field, data.buf, sizeof(Type));								\
+		data.buf += sizeof(Type);												\
+	}																			\
+																				\
+	static void serialize(SerializationData& data, const Type& field, Int count) {\
+		memmove(data.buf, &field, count*sizeof(Type));							\
+		data.buf += count*sizeof(Type);											\
+	}																			\
+	static void deserialize(DeserializationData& data, Type& field, Int count) {\
+		memmove(&field, data.buf, count*sizeof(Type));							\
+		data.buf += count*sizeof(Type);											\
+	}																			\
 }
 
 

@@ -27,7 +27,7 @@ class SumSetTest: public SPTestTask {
 
 private:
 	typedef vector<BigInt> PairVector;
-	typedef StreamContainerTypesCollection::Factory<SumSet1>::Type IdxSetType;
+	typedef StreamContainerTypesCollection::Factory<Set1>::Type IdxSetType;
 
 	static const Int Indexes = IdxSetType::Indexes;
 	typedef typename IdxSetType::Key Key;
@@ -50,46 +50,46 @@ public:
 		{
 		    BigInt  key 	= iter.GetKey(0);
 
-		    MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
+		    MEMORIA_TEST_THROW_IF_1(pairs[idx],   !=, key, idx);
 
 		    iter.Next();
 		    idx++;
 		}
 
-		MEMORIA_TEST_ASSERT(idx, !=, pairs_size);
+		MEMORIA_TEST_THROW_IF(idx, !=, pairs_size);
 
-		idx = pairs_size - 1;
-		for (auto iter = map->RBegin(); !iter.IsStart(); )
-		{
-			BigInt  key 	= iter.GetKey(0);
-
-			MEMORIA_TEST_ASSERT1(pairs[idx],   !=, key, idx);
-
-			iter.Prev();
-
-			idx--;
-		}
-
-		MEMORIA_TEST_ASSERT_EXPR(idx != -1, idx, pairs_size);
+//		idx = pairs_size - 1;
+//		for (auto iter = map->RBegin(); !iter.IsStart(); )
+//		{
+//			BigInt  key 	= iter.GetKey(0);
+//
+//			MEMORIA_TEST_THROW_IF_1(pairs[idx],   !=, key, idx);
+//
+//			iter.Prev();
+//
+//			idx--;
+//		}
+//
+//		MEMORIA_TEST_THROW_IF_EXPR(idx != -1, idx, pairs_size);
 	}
 
 
 	void CheckIteratorBw(IdxSetType* map, PairVector& pairs)
 	{
-		Int pairs_size = (Int)pairs.size();
-		Int idx = pairs_size - 1;
+//		Int pairs_size = (Int)pairs.size();
+//		Int idx = pairs_size - 1;
 
-		for (auto iter = map->RBegin(); !iter.IsStart(); )
-		{
-			BigInt  key 	= iter.GetKey(0);
-
-			MEMORIA_TEST_ASSERT(pairs[idx],   !=, key);
-
-		    iter.Prev();
-		    idx--;
-		}
-
-		MEMORIA_TEST_ASSERT_EXPR(idx != -1, idx, pairs_size);
+//		for (auto iter = map->RBegin(); !iter.IsStart(); )
+//		{
+//			BigInt  key 	= iter.GetKey(0);
+//
+//			MEMORIA_TEST_THROW_IF(pairs[idx],   !=, key);
+//
+//		    iter.Prev();
+//		    idx--;
+//		}
+//
+//		MEMORIA_TEST_THROW_IF_EXPR(idx != -1, idx, pairs_size);
 	}
 
 	void CheckMultistepForwardIterator(IdxSetType* map)
@@ -112,32 +112,32 @@ public:
 				iter2.NextKey();
 			}
 
-			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+			MEMORIA_TEST_THROW_IF_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
 		}
 	}
 
 	void CheckMultistepBackwardIterator(IdxSetType* map)
 	{
-		BigInt max = map->GetSize();
-
-		for (Int c = 0; c < 100; c++)
-		{
-			auto iter1 = map->RBegin();
-			auto iter2 = iter1;
-
-			BigInt rnd = max > 0 ? GetRandom(max) : 0;
-
-			if (rnd > 0) {
-				iter1.SkipKeyBw(rnd);
-			}
-
-			for (BigInt d = 0; d < rnd; d++)
-			{
-				iter2.PrevKey();
-			}
-
-			MEMORIA_TEST_ASSERT_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
-		}
+//		BigInt max = map->GetSize();
+//
+//		for (Int c = 0; c < 100; c++)
+//		{
+//			auto iter1 = map->RBegin();
+//			auto iter2 = iter1;
+//
+//			BigInt rnd = max > 0 ? GetRandom(max) : 0;
+//
+//			if (rnd > 0) {
+//				iter1.SkipKeyBw(rnd);
+//			}
+//
+//			for (BigInt d = 0; d < rnd; d++)
+//			{
+//				iter2.PrevKey();
+//			}
+//
+//			MEMORIA_TEST_THROW_IF_EXPR(iter1 != iter2, iter1.key_idx(), iter2.key_idx());
+//		}
 	}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
@@ -362,7 +362,7 @@ public:
 					cnt++;
 
 					try {
-						MEMORIA_TEST_ASSERT1(pairs_sorted.size(), !=, (UInt)map.GetSize(), x);
+						MEMORIA_TEST_THROW_IF_1(pairs_sorted.size(), !=, (UInt)map.GetSize(), x);
 
 
 						Check(allocator, MEMORIA_SOURCE);
@@ -435,7 +435,7 @@ public:
 
 			BigInt size = params->size_ - c - 1;
 
-			MEMORIA_TEST_ASSERT(size, !=, map->GetSize());
+			MEMORIA_TEST_THROW_IF(size, !=, map->GetSize());
 
 			for (UInt x = 0; x < pairs_sorted.size(); x++)
 			{

@@ -9,19 +9,21 @@
 #ifndef _MEMORIA_PROTOTYPES_BTREE_FACTORY_HPP
 #define	_MEMORIA_PROTOTYPES_BTREE_FACTORY_HPP
 
+#include <memoria/core/types/type2type.hpp>
 #include <memoria/prototypes/btree/names.hpp>
+#include <memoria/prototypes/btree/tools.hpp>
 
 #include <memoria/prototypes/btree/pages/pages.hpp>
 
 #include <memoria/prototypes/btree/container/base.hpp>
 #include <memoria/prototypes/btree/container/tools.hpp>
 #include <memoria/prototypes/btree/container/checks.hpp>
-#include <memoria/prototypes/btree/container/init.hpp>
-#include <memoria/prototypes/btree/container/insert.hpp>
+#include <memoria/prototypes/btree/container/insert_batch.hpp>
 #include <memoria/prototypes/btree/container/remove.hpp>
-#include <memoria/prototypes/btree/container/api.hpp>
-#include <memoria/prototypes/btree/container/stubs.hpp>
+#include <memoria/prototypes/btree/container/walk.hpp>
 #include <memoria/prototypes/btree/container/find.hpp>
+
+#include <memoria/prototypes/templates/container/allocator.hpp>
 
 #include <memoria/prototypes/btree/iterator.hpp>
 
@@ -33,22 +35,23 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-template <typename Profile, typename ContainerTypeSelector>
+template <typename Profile_, typename ContainerTypeSelector>
 struct BTreeTypes {
+
+	typedef Profile_															Profile;
 
     typedef TL<BigInt>                                                    		KeysList;
 
     static const Int Indexes                                                    = 1;
 
-    static const bool MapType                                                   = MapTypes::Value;
-
     typedef typename TLTool<
+    		memoria::btree::AllocatorName,
     		memoria::btree::ToolsName,
-    		memoria::btree::StubsName,
     		memoria::btree::ChecksName,
-    		memoria::btree::InsertName,
+    		memoria::btree::InsertBatchName,
     		memoria::btree::RemoveName,
-    		memoria::btree::FindName
+    		memoria::btree::FindName,
+    		memoria::btree::WalkName
     >::List                                                                     ContainerPartsList;
 
     typedef NullType                                                            BasePagePartsList;
@@ -62,19 +65,19 @@ struct BTreeTypes {
     typedef NullType                                                            DataPagesList;
 
     typedef typename TLTool<
-    		memoria::btree::IteratorToolsName,
-    		memoria::btree::IteratorWalkName,
-    		memoria::btree::IteratorAPIName,
-    		memoria::btree::IteratorMultiskipName,
-    		memoria::btree::IteratorContainerAPIName
+    		memoria::btree::IteratorAPIName
     >::List                                                                     IteratorPartsList;
 
     typedef EmptyType                                            				ContainerInterface;
     typedef EmptyType                                    						IteratorInterface;
+    typedef EmptyType															IteratorData;
 
-    typedef typename ContainerCollectionCfg<Profile>::Types::AbstractAllocator	Allocator;
+
+    typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator	Allocator;
+    typedef typename Allocator::ID												ID;
+
     typedef typename BTreeRootMetadataTypeFactory<
-    			Profile,
+    			Profile_,
     			BTreeRootMetadataFactory<ContainerTypeSelector>
     >::Type 																	Metadata;
 
@@ -92,6 +95,10 @@ struct BTreeTypes {
     struct IterBaseFactory {
     	typedef BTreeIteratorBase<Types_> 										Type;
     };
+
+
+
+
 };
 
 
@@ -127,15 +134,13 @@ public:
     >::Result                                                                   	Value;
 
 
-    typedef BTreeCountersBase<BigInt>                                               BTreeCounters;
-
     struct BasePartsTypes{
     	typedef TreePage<typename ContainerTypes::Allocator> 				NodePageBase;
     	typedef typename ContainerTypes::BasePagePartsList 					List;
     };
 
     typedef PageStart<BasePartsTypes>												BasePageParts;
-    typedef NodePageBase<BTreeCounters,  BasePageParts>                				NodePageBase0;
+    typedef NodePageBase<BasePageParts>                								NodePageBase0;
 
     struct NodePageContainerTypes: public NodePageBase0 {};
 
@@ -196,7 +201,8 @@ public:
     typedef NodePageContainerTypes													NodeContainerTypes;
     typedef PageGuard<NodeContainerTypes, typename ContainerTypes::Allocator>		NodeContainerTypesG;
 
-    struct DispatcherTypes {
+    struct DispatcherTypes
+    {
     	typedef NodeTypesList 								NodeList;
     	typedef NodeContainerTypes 							NodeBase;
     	typedef NodeContainerTypesG 						NodeBaseG;
@@ -212,11 +218,6 @@ public:
     	typedef ContainerTypeName_ 												ContainerTypeName;
     	typedef typename MyType::Value                                      	Value;
     	typedef typename MyType::PageDispatchers                                Pages;
-
-    	typedef typename BTreeCountersTypeFactory<
-    			Profile,
-    			BTreeCountersFactory<ContainerTypeName_>
-    	>::Type      															Counters;
 
     	typedef typename ContainerTypes::Allocator								Allocator;
     	typedef typename ContainerTypes::Metadata								Metadata;
@@ -235,6 +236,22 @@ public:
 
     	typedef CtrTypesT<Types> 												CtrTypes;
     	typedef BTreeIterTypes<IterTypesT<Types> >								IterTypes;
+
+
+    	typedef NodePath<
+    			NodeBaseG, 16
+    	>																		TreePath;
+
+    	typedef typename TreePath::PathItem										TreePathItem;
+
+    	typedef typename MaxElement<
+    			typename ContainerTypes::KeysList, TypeSizeValueProvider
+    	>::Result    															Key;
+
+    	typedef Accumulators<Key, ContainerTypes::Indexes>						Accumulator;
+
+
+    	typedef ValuePair<Accumulator, Value>									Element;
     };
 
 

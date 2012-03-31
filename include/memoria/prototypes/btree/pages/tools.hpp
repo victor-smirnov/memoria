@@ -12,12 +12,14 @@
 #include <iostream>
 #include <memoria/core/types/typemap.hpp>
 #include <memoria/core/exceptions/npe.hpp>
-
+#include <memoria/core/types/type2type.hpp>
 
 
 
 namespace memoria    {
-namespace btree     {
+namespace btree      {
+
+using namespace memoria::vapi;
 
 template <typename Int>
 class MoveElementsFn {
@@ -54,44 +56,6 @@ public:
     	return total_children_count_;
     }
 };
-
-template <typename Dispatcher, typename Node, typename T>
-Int MoveElements(Node *node, const T &from, const T &count, bool increase_children_count) {
-    MoveElementsFn<T> fn(from, count, increase_children_count);
-    Dispatcher::Dispatch(node, fn);
-    return fn.total_children_count();
-}
-
-template <typename TreeNode, typename Allocator, typename Int>
-class MoveChildrenFn {
-
-    Int         from_;
-    Int         count_;
-    Int total_children_count_;
-    Allocator&    allocator_;
-    
-    typedef PageGuard<TreeNode, Allocator> TreeNodeG;
-
-public:
-    MoveChildrenFn(Int from, Int count, Int total_children_count, Allocator &allocator):
-            from_(from), count_(count), total_children_count_(total_children_count), allocator_(allocator){}
-
-    template <typename Node>
-    void operator()(Node *node) {
-        for (Int c = from_ + count_; c < total_children_count_; c++)
-        {
-            TreeNodeG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
-            child->parent_idx() += count_;
-        }
-    }
-};
-
-template <typename Dispatcher, typename TreeNodeBase, typename Node, typename Allocator, typename Int>
-void MoveChildren(Node *node, Int from, Int count, Int total_children_count, Allocator &allocator) {
-    MoveChildrenFn<TreeNodeBase, Allocator, Int> fn(from, count, total_children_count, allocator);
-    Dispatcher::Dispatch(node, fn);
-}
-
 
 
 template <typename Int>
@@ -147,140 +111,12 @@ public:
     }
 };
 
-template <typename Dispatcher, typename Node, typename Int>
+template <typename Dispatcher, typename Node>
 Int CopyElements(Node *one, Node *two, Int from, Int shift) {
     CopyElementsFn<Int> fn(from, shift);
     Dispatcher::Dispatch(one, two, fn);
     return fn.count();
 }
-
-
-template <typename Counters, typename BaseNode, typename Int, typename Allocator>
-class AccumulateChildrenCountersFn {
-    Counters counters_;
-
-    Int         from_;
-    Int         shift_;
-    Int         count_;
-    Allocator&  allocator_;
-    
-    typedef PageGuard<BaseNode, Allocator> BaseNodeG;
-
-public:
-
-    AccumulateChildrenCountersFn(Int from, Int shift, Int count, Allocator &allocator):
-            counters_(), from_(from), shift_(shift), count_(count), allocator_(allocator) {}
-
-    template <typename Node>
-    void operator()(Node *two) {
-        for (Int c = shift_; c < count_ + shift_; c++)
-        {
-            BaseNodeG child = allocator_.GetPage(two->map().data(c), Allocator::UPDATE);
-
-            child->parent_id()  = two->id();
-            child->parent_idx() -= from_;
-            child->parent_idx() += shift_;
-
-            counters_ += child->counters();
-        }
-    }
-
-    Counters counters() {
-        return counters_;
-    }
-};
-
-template <
-        typename Dispatcher,
-        typename Counters,
-        typename NodeBase,
-        typename Int,
-        typename Allocator        
->
-Counters AccumulateChildrenCounters(NodeBase *node, Int from, Int shift, Int count, Allocator &allocator) {
-    AccumulateChildrenCountersFn<Counters, NodeBase, Int, Allocator> fn(from, shift, count, allocator);
-    Dispatcher::Dispatch(node, fn);
-    return fn.counters();
-}
-
-template <typename NodeBase, typename Int, typename Allocator>
-struct UpdateChildrenParentIdxFn {
-    Int         from_;
-    Int         shift_;
-    Int         count_;
-    Allocator&  allocator_;
-    
-    typedef PageGuard<NodeBase, Allocator> BaseNodeG;
-
-public:
-
-    UpdateChildrenParentIdxFn(Int from, Int shift, Int count, Allocator &allocator):
-            from_(from), shift_(shift), count_(count), allocator_(allocator)     {}
-
-    template <typename Node>
-    void operator()(Node *two) {
-        for (Int c = count_ + shift_; c < two->children_count(); c++)
-        {
-            BaseNodeG child = allocator_.GetPage(two->map().data(c), Allocator::UPDATE);
-            child->parent_idx() += count_ + shift_;
-        }
-    }
-};
-
-
-template <
-        typename Dispatcher,
-        typename TreeNodeBase,
-        typename NodeBase,
-        typename Int,
-        typename Allocator
->
-void UpdateChildrenParentIdx(NodeBase *node, Int from, Int shift, Int count, Allocator &allocator) {
-    UpdateChildrenParentIdxFn<TreeNodeBase, Int, Allocator> fn(from, shift, count, allocator);
-    Dispatcher::Dispatch(node, fn);
-}
-
-
-template <typename BaseNode, typename Int, typename Allocator>
-class ShiftAndReparentChildrenFn {
-    Int         from_;
-    Int         shift_;
-    Int         count_;
-    Allocator&    allocator_;
-
-    typedef PageGuard<BaseNode, Allocator> BaseNodeG;
-
-public:
-
-    ShiftAndReparentChildrenFn(Int from, Int shift, Int count, Allocator &allocator):
-            from_(from), shift_(shift), count_(count), allocator_(allocator) {}
-
-    template <typename Node>
-    void operator()(Node *two) {
-        for (Int c = shift_; c < count_ + shift_; c++)
-        {
-            BaseNodeG child = allocator_.GetPage(two->map().data(c), Allocator::UPDATE);
-
-            child->parent_id() = two->id();
-            child->parent_idx() -= from_;
-            child->parent_idx() += shift_;
-        }
-    }
-};
-
-template <
-        typename Dispatcher,
-        typename NodeBase,
-        typename Node,
-        typename Int,
-        typename Allocator
->
-void ShiftAndReparentChildren(Node *node, Int from, Int shift, Int count, Allocator &allocator) {
-	ShiftAndReparentChildrenFn<NodeBase, Int, Allocator> fn(from, shift, count, allocator);
-    Dispatcher::Dispatch(node, fn);
-}
-
-
 
 
 
@@ -331,64 +167,6 @@ void RemoveElements(Node *node, Int from, Int count, bool reindex)
 }
 
 
-template <typename BaseNode, typename Int, typename Allocator>
-class IncrementChildPidsFn {
-    Int         from_;
-    Int         count_;
-    Allocator&    allocator_;
-    
-    typedef PageGuard<BaseNode, Allocator> BaseNodeG;
-
-public:
-    IncrementChildPidsFn(Int from, Int count, Allocator &allocator):
-                from_(from), count_(count), allocator_(allocator) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        for (Int c = from_; c < node->children_count(); c++)
-        {
-            BaseNodeG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
-            child->parent_idx() += count_;
-        }
-    }
-};
-
-template <typename Dispatcher, typename Base, typename NodeBase, typename Int, typename Allocator>
-void IncrementChildPids(NodeBase *node, Int from, Int count, Allocator &allocator)
-{
-    IncrementChildPidsFn<Base, Int, Allocator> fn(from, count, allocator);
-    Dispatcher::Dispatch(node, fn);
-}
-
-template <typename Base, typename Int, typename Allocator>
-class IncrementChildPidsAndReparentFn {
-    Int         from_;
-    Int         count_;
-    Allocator&    allocator_;
-    
-    typedef PageGuard<Base, Allocator> NodeBaseG;
-
-public:
-    IncrementChildPidsAndReparentFn(Int from, Int count, Allocator &allocator):
-                from_(from), count_(count), allocator_(allocator) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        for (Int c = from_; c < node->children_count(); c++)
-        {
-        	NodeBaseG child = allocator_.GetPage(node->map().data(c), Allocator::UPDATE);
-            child->parent_id() = node->id();
-            child->parent_idx() += count_;
-        }
-    }
-};
-
-template <typename Dispatcher, typename TreeNodePage, typename Node, typename Int, typename Allocator>
-void IncrementChildPidsAndReparent(Node *node, Int from, Int count, Allocator &allocator)
-{
-    IncrementChildPidsAndReparentFn<TreeNodePage, Int, Allocator> fn(from, count, allocator);
-    Dispatcher::Dispatch(node, fn);
-}
 
 template <typename NodePage1, typename NodePage2, typename Allocator>
 static NodePage2 *Node2Node(NodePage1 *src, bool root)
@@ -399,22 +177,10 @@ static NodePage2 *Node2Node(NodePage1 *src, bool root)
 
     //FIXME type pruning
     NodePage2 *tgt = T2T<NodePage2*>(&buffer);
-//    NodePage2 *tgt = (NodePage2*)&buffer;
 
     tgt->CopyFrom(src);
     tgt->set_root(root);
 
-//    tgt->flags()        = src->flags();
-//    tgt->tree_flags()   = src->tree_flags();
-//    tgt->id()           = src->id();
-//    tgt->parent_id()    = src->parent_id();
-//    tgt->parent_idx()   = src->parent_idx();
-//
-//    tgt->level()        = src->level();
-//    tgt->counters()     = src->counters();
-//
-//    tgt->set_root(root);
-//    tgt->children_count()   = src->children_count();
 
     tgt->page_type_hash()   = NodePage2::hash();
 //    tgt->model_hash()       = src->model_hash();
@@ -646,12 +412,12 @@ void SetData(Node *node, I idx, Data *data) {
 }
 
 
-template <typename I, typename Data>
+template <typename Data>
 class GetDataItemFn {
-    I i_;
+    Int i_;
     const Data *data_;
 public:
-    GetDataItemFn(I i): i_(i), data_(NULL) {}
+    GetDataItemFn(Int i): i_(i), data_(NULL) {}
 
     template <typename T>
     void operator()(T *node) {
@@ -663,36 +429,11 @@ public:
     }
 };
 
-template <typename Dispatcher, typename Data, typename Node, typename I>
-const Data* GetData(Node *node, I idx) {
-    GetDataItemFn<I, Data> fn(idx);
+template <typename Dispatcher, typename Data, typename Node>
+const Data* GetData(Node *node, Int idx) {
+    GetDataItemFn<Data> fn(idx);
     Dispatcher::DispatchConst(node, fn);
     return fn.data();
-}
-
-template <typename I, typename Keys, typename Data>
-class SetAndReindexFn {
-    I       i_;
-    Keys*   keys_;
-    Data*   data_;
-public:
-    SetAndReindexFn(I i, Keys *keys, Data *data): i_(i), keys_(keys), data_(data) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        for (Int c = 0; c < T::Map::INDEXES; c++) {
-            node->map().key(c, i_) = keys_[c];
-        }
-
-        node->map().data(i_) = *data_;
-        node->map().Reindex();
-    }
-};
-
-template <typename Dispatcher, typename Node, typename I, typename Keys, typename Data>
-void SetKeyDataAndReindex(Node *node, I idx, Keys *keys, Data *val) {
-    SetAndReindexFn<I, Keys, Data> fn(idx, keys, val);
-    Dispatcher::Dispatch(node, fn);
 }
 
 struct ReindexFn {

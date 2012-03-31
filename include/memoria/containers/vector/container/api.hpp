@@ -29,7 +29,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
 
 
     typedef typename Base::NodeBase                                             NodeBase;
-    typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
@@ -44,9 +43,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
-
-    typedef typename Base::ApiKeyType                                           ApiKeyType;
-    typedef typename Base::ApiValueType                                         ApiValueType;
 
     typedef typename Types::DataPage                                        	DataPage;
     typedef typename Types::DataPageG                                        	DataPageG;
@@ -96,16 +92,20 @@ M_PARAMS
 typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 {
 	Iterator iter = me()->FindLT(pos, key_number, true);
+
 	if (iter.IsNotEmpty())
 	{
 		if (iter.IsEnd())
 		{
 			iter.PrevKey();
 		}
+		else {
+			me()->FinishPathStep(iter.path(), iter.key_idx());
+		}
 
-		iter.data() 	= me()->GetDataPage(iter.page(), iter.key_idx(), Allocator::READ);
 		BigInt offset 	= iter.prefix(key_number);
 		iter.data_pos() = pos - offset;
+
 		if (iter.data_pos() > iter.data()->data().size())
 		{
 			iter.data_pos() = iter.data()->data().size();

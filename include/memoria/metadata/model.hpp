@@ -14,11 +14,17 @@
 namespace memoria    {
 namespace vapi       {
 
+struct ContainerInterface {
+	virtual bool Check(const void* id, void* allocator) const	= 0;
+};
+
 struct MEMORIA_API ContainerMetadata: public MetadataGroup {
     virtual Int Hash() const									= 0;
     virtual Int Code() const 									= 0;
 
     virtual PageMetadata* GetPageMetadata(Int hashCode) const 	= 0;
+
+    virtual ContainerInterface* GetCtrInterface() const			= 0;
 };
 
 

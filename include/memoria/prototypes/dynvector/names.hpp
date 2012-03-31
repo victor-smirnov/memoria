@@ -21,6 +21,7 @@ template <typename ContainerName>
 class DataPagePartsListFactory      {};
 
 class InsertName            {};
+class Insert2Name           {};
 class RemoveName            {};
 class ToolsName             {};
 class SeekName             	{};

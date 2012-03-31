@@ -23,7 +23,8 @@ class MetadataGroupImplT: public MetadataImplT<Interface> {
 	typedef MetadataImplT<Interface> 			Base;
 public:
 
-	MetadataGroupImplT(StringRef name, const MetadataList &content): Base(name, Metadata::GROUP), content_(content.size()) {
+	MetadataGroupImplT(StringRef name, const MetadataList &content, Int block_size = 0): Base(name, Metadata::GROUP), content_(content.size()), block_size_(block_size)
+	{
 		for (UInt c = 0; c < content.size(); c++) {
 			content_[c] = content[c];
 		}
@@ -77,6 +78,12 @@ public:
 		}
 	}
 
+
+	virtual const FieldMetadata* FindFirstField() const
+	{
+		return FindFirstField(this);
+	}
+
 	virtual void PutAll(MetadataList& target) const
 	{
 		for (auto i = content_.begin(); i != content_.end(); i++)
@@ -85,8 +92,32 @@ public:
 		}
 	}
 
+	virtual Int GetBlockSize() const
+	{
+		return block_size_;
+	}
+
 private:
-    MetadataList content_;
+    MetadataList 	content_;
+    Int 			block_size_;
+
+    const FieldMetadata* FindFirstField(const MetadataGroup* group) const
+    {
+    	for (Int c = 0; c < Size(); c++)
+    	{
+    		const Metadata* item = group->GetItem(c);
+    		if (item->IsField())
+    		{
+    			return static_cast<const FieldMetadata*>(item);
+    		}
+    		else if (item->IsGroup())
+    		{
+    			return FindFirstField(static_cast<const MetadataGroup*>(item));
+    		}
+    	}
+
+    	return NULL;
+    }
 };
 
 

@@ -59,12 +59,6 @@ struct CodeValue {
     static const Int Code = Value;
 };
 
-template <Int Value = -1>
-struct CV {
-    static const Int Code = Value;
-};
-
-
 /*
  * Container type names & profiles
  */
@@ -73,25 +67,21 @@ struct CV {
 struct BTree {};
 struct BSTree {};
 struct DynVector {};
+struct Composite {};
 
 struct Superblock:  public CodeValue<0> {};
 struct Root:        public CodeValue<1> {};
 
-template <typename Key, typename Value>
-struct KVMap:       public CodeValue<2> {};
+template <Int Indexes>
+struct Map:      	public CodeValue<0x618a2f + Indexes * 256> {};
 
-typedef KVMap<BigInt, BigInt> DefKVMap;
+typedef Map<1> 		Map1;
 
 template <Int Indexes>
-struct SumMap:      public CodeValue<3 + Indexes * 256> {};
+struct Set:      	public CodeValue<0x5c421d + Indexes * 256> {};
 
-typedef SumMap<1> SumMap1;
-
-template <Int Indexes>
-struct SumSet:      public CodeValue<4 + Indexes * 256> {};
-
-typedef SumSet<1> SumSet1;
-typedef SumSet<2> SumSet2;
+typedef Set<1> 		Set1;
+typedef Set<2> 		Set2;
 
 struct DFUDS:       public CodeValue<5> {};
 struct LOUDS:       public CodeValue<6> {};
@@ -100,7 +90,7 @@ struct Vector:   	public CodeValue<8> {};
 
 
 template <typename ChildType = void>
-class StreamProfile {};
+class SmallProfile {};
 
 /*
  * End of container type names and profiles
@@ -174,6 +164,27 @@ public:
 	operator BigInt () {
 		return 0;
 	}
+};
+
+template <typename First, typename Second>
+struct ValuePair {
+
+	First 	first;
+	Second	second;
+
+	ValuePair(const First& f, const Second& s): first(f), second(s) {}
+	ValuePair(const First& f): first(f) {}
+};
+
+struct NoParamCtr {};
+
+struct SerializationData {
+	char* buf;
+	Int total;
+};
+
+struct DeserializationData {
+	const char* buf;
 };
 
 }

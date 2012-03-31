@@ -37,40 +37,7 @@ void TaskRunner::Configure(Configurator* cfg)
 	}
 }
 
-void TaskRunner::Replay(ostream& out, StringRef replay_file)
-{
-	File file(replay_file);
 
-	String file_name;
-
-	if (file.IsDirectory())
-	{
-		file_name = replay_file + Platform::GetFilePathSeparator() + "Replay.properties";
-	}
-	else if (!file.IsExists())
-	{
-		throw MemoriaException(MEMORIA_SOURCE, "File "+replay_file +" does not exists");
-	}
-
-	Configurator cfg;
-	Configurator::Parse(file_name.c_str(), &cfg);
-
-	String name = cfg.GetProperty("task");
-	Task* task = GetTask<Task*>(name);
-	try {
-		out<<"Task: "<<task->GetTaskName()<<endl;
-		task->Replay(out, &cfg);
-		out<<"PASSED"<<endl;
-	}
-	catch (MemoriaException e)
-	{
-		out<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
-	}
-	catch (...)
-	{
-		out<<"FAILED"<<endl;
-	}
-}
 
 Int TaskRunner::Run(ostream& out)
 {

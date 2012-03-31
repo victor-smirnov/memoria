@@ -35,7 +35,7 @@ public:
     typedef typename Page::ID                                                   ID;
 
     typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::Counters                                            Counters;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
@@ -62,7 +62,7 @@ public:
     static const Int Indexes                                                    = Types::Indexes;
 
 
-    bool check_leaf_value(NodeBase* leaf, Int idx);
+    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx);
 
 
 MEMORIA_CONTAINER_PART_END
@@ -71,18 +71,21 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::check_leaf_value(NodeBase* leaf, Int idx)
+bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx)
 {
 	Int key			= me()->GetKey(leaf, 0, idx);
 	DataPageG data 	= me()->GetDataPage(leaf, idx, Allocator::READ);
 
-	if (data != NULL)
+	if (data.is_set())
 	{
 		bool error = false;
 
 		if (key != data->data().size())
 		{
-			MEMORIA_TRACE(me(), "Invalid data page size", leaf->id(), idx, key, data->data().size());
+			me()->Dump(leaf);
+			me()->Dump(data);
+
+			MEMORIA_ERROR(me(), "Invalid data page size", data->id(), leaf->id(), idx, key, data->data().size());
 			error = true;
 		}
 
@@ -95,7 +98,7 @@ bool M_TYPE::check_leaf_value(NodeBase* leaf, Int idx)
 		return error;
 	}
 	else {
-		MEMORIA_TRACE(me(), "No DataPage exists", leaf->id(), idx, key);
+		MEMORIA_ERROR(me(), "No DataPage exists", leaf->id(), idx, key);
 		return true;
 	}
 }

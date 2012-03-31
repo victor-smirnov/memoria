@@ -24,9 +24,12 @@ using namespace memoria::btree;
 template <typename Allocator>
 class BTreeMetadata
 {
-	 typedef typename Allocator::Page::ID	ID;
+	static const Int ROOTS = 2;
+
+	typedef typename Allocator::ID	ID;
 
     BigInt model_name_;
+    BigInt key_count_;
 
     ID roots_[2];
 
@@ -41,18 +44,53 @@ public:
         return model_name_;
     }
 
-    MetadataList GetFields(Long &abi_ptr) const {
+    BigInt &key_count() {
+        return key_count_;
+    }
+
+    const BigInt &key_count() const {
+        return key_count_;
+    }
+
+
+    MetadataList GetFields(Long &abi_ptr) const
+    {
         MetadataList list;
         FieldFactory<BigInt>::create(list, model_name_, "MODEL_NAME", abi_ptr);
+        FieldFactory<BigInt>::create(list, key_count_,  "KEY_COUNT",  abi_ptr);
 
         MetadataList rootsList;
-        for (Int c = 0; c < 2; c++)
+        for (Int c = 0; c < ROOTS; c++)
         {
         	FieldFactory<ID>::create(rootsList, roots(c), "ROOT", abi_ptr);
         }
         list.push_back(new MetadataGroupImpl("ROOTS", rootsList));
 
         return list;
+    }
+
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
+    {
+    	FieldFactory<BigInt>::serialize(buf, model_name_);
+    	FieldFactory<BigInt>::serialize(buf, key_count_);
+
+    	for (Int c = 0; c < ROOTS; c++)
+    	{
+    		FieldFactory<ID>::serialize(buf, roots(c));
+    	}
+    }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	FieldFactory<BigInt>::deserialize(buf, model_name_);
+    	FieldFactory<BigInt>::deserialize(buf, key_count_);
+
+    	for (Int c = 0; c < ROOTS; c++)
+    	{
+    		FieldFactory<ID>::deserialize(buf, roots(c));
+    	}
     }
 
     const ID& roots(Int idx) const {
@@ -108,6 +146,22 @@ public:
     {
         Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
         FieldFactory<Metadata>::create(list,  metadata(), "ROOT_METADATA", abi_ptr);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
+    {
+    	Base::template Serialize<FieldFactory>(buf);
+
+    	FieldFactory<Metadata>::serialize(buf, metadata_);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	Base::template Deserialize<FieldFactory>(buf);
+
+    	FieldFactory<Metadata>::deserialize(buf, metadata_);
     }
 
     //This part must not contain CopyFrom method because it is

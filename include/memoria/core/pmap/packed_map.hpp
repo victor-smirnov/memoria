@@ -8,7 +8,7 @@
 
 #ifndef _MEMORIA_CORE_TOOLS_PACKED_MAP_H
 #define _MEMORIA_CORE_TOOLS_PACKED_MAP_H
-//dummy
+
 #include <memoria/core/tools/buffer.hpp>
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/pmap/packed_map_intrnl.hpp>
@@ -131,24 +131,55 @@ public:
         {
         	FieldFactory<IndexKey>::create(indexList, index(c), "INDEX", Indexes, abi_ptr);
         }
-        list.push_back(new MetadataGroupImpl("INDEXES", indexList));
+        list.push_back(new MetadataGroupImpl("INDEXES", indexList, index_size_ * sizeof(IndexKey) * Indexes));
 
         MetadataList dataList;
-        for (Int c = 0; c < max_size(); c++)
+        Int max = max_size();
+        for (Int c = 0; c < max; c++)
         {
             MetadataList itemList;
             FieldFactory<Key>::create(itemList, key(c), "KEYS", Indexes, abi_ptr);
 
-            if (value_size > 0) {
+            if (value_size > 0)
+            {
                 FieldFactory<Value>::create(itemList, data(c), "DATA", abi_ptr);
             }
 
             dataList.push_back(new MetadataGroupImpl("ITEM", itemList));
         }
-        list.push_back(new MetadataGroupImpl("ITEMS", dataList));
+
+        Int item_size = sizeof(Key)*Indexes + value_size;
+        list.push_back(new MetadataGroupImpl("ITEMS", dataList, max_size() * item_size));
 
         return list;
     }
+
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
+    {
+    	FieldFactory<Int>::serialize(buf, size());
+    	FieldFactory<IndexKey>::serialize(buf, index(0), Indexes * index_size());
+
+    	const Byte* data_block = T2T<const Byte*>(Base::ptr() + data_offset_);
+
+    	Int data_size = size() * (sizeof(Key)*Indexes + value_size);
+
+    	FieldFactory<Byte>::serialize(buf, data_block[0], data_size);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	FieldFactory<Int>::deserialize(buf, size());
+    	FieldFactory<IndexKey>::deserialize(buf, index(0), Indexes * index_size());
+
+    	Byte* data_block = T2T<Byte*>(Base::ptr() + data_offset_);
+
+    	Int data_size = size() * (sizeof(Key)*Indexes + value_size);
+
+    	FieldFactory<Byte>::deserialize(buf, data_block[0], data_size);
+    }
+
 
     static int kind() {
         return Constants::KIND;
@@ -406,10 +437,16 @@ public:
         return FindLTS(0, k, sum);
     }
 
-    Int FindLTS(Int i, const Key& k, Key &sum) const {
+    Int FindLTS(Int i, const Key& k, Key &sum) const
+    {
         CmpLT lt0, lt1;
         Int idx = Find(i, k, lt0, lt1);
-        sum += lt1.get() - (size() > 0 ? key(i, idx) : 0);
+
+        if (idx >= 0)
+        {
+        	sum += lt1.get() - (size() > 0 ? key(i, idx) : 0);
+        }
+
         return idx;
     }
 
@@ -705,10 +742,12 @@ bool PackedMap<Types>::Init()
         }
     }
 
-    if (get_block_size(last) <= block_size) {
+    if (get_block_size(last) <= block_size)
+    {
         max_size_ = last;
     }
-    else if (get_block_size((first + last) / 2) <= block_size) {
+    else if (get_block_size((first + last) / 2) <= block_size)
+    {
         max_size_ = (first + last) / 2;
     }
     else {

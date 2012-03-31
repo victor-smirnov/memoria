@@ -10,19 +10,22 @@
 #define _MEMORIA_CONTAINERS_BLOB_MAP_ITERATOR_ITERATOR_HPP
 
 #include <memoria/core/container/container.hpp>
+#include <memoria/containers/vector_map/names.hpp>
 
 namespace memoria {
 
-template <typename Types> struct VectorMapIterTypes;
+using namespace memoria::vector_map;
 
 template <typename Types>
-class Iter<VectorMapIterTypes<Types> >
+class Iter<VectorMapIterTypes<Types> >: public IterStart<VectorMapIterTypes<Types> >
 {
-	typedef Iter<VectorMapIterTypes<Types> >						MyType;
+	typedef Iter<VectorMapIterTypes<Types> >					MyType;
 	typedef Ctr<VectorMapCtrTypes<Types> >						ContainerType;
 
 	typedef typename ContainerType::IdxSet::Iterator			IdxSetIterator;
 	typedef typename ContainerType::ByteArray::Iterator			ByteArrayIterator;
+
+	typedef typename ContainerType::IdxSet::Accumulator			IdxSetAccumulator;
 
 	typedef typename Types::Profile								Profile;
 	typedef typename Types::Allocator 							Allocator;
@@ -75,7 +78,8 @@ public:
 		return is_iter_ == other.is_iter_ && ba_iter_ == other.ba_iter_;
 	}
 
-	bool operator!=(const MyType& other) const {
+	bool operator!=(const MyType& other) const
+	{
 		return !operator==(other);
 	}
 
@@ -130,104 +134,7 @@ public:
 		return exists_;
 	}
 
-	void Insert(ArrayData& data)
-	{
-		ba_iter_.Insert(data);
 
-		Key keys[ContainerType::IS_Indexes];
-
-		for (Key& k: keys)
-		{
-			k = 0;
-		}
-
-		keys[1] = data.size();
-
-		model_.set().AddKeysUp(is_iter_.page(), is_iter_.key_idx(), keys);
-	}
-
-	BigInt Read(ArrayData& data)
-	{
-		return Read(data, 0, data.size());
-	}
-
-	BigInt Read(ArrayData& data, BigInt start, BigInt length)
-	{
-		BigInt current_pos 	= pos();
-		BigInt current_size = size();
-
-		BigInt len = ((length + current_pos) <= current_size) ? length : (current_size - current_pos);
-
-		ba_iter_.Read(data, start, len);
-
-		return len;
-	}
-
-	BigInt Skip(BigInt length)
-	{
-		BigInt current 	= pos();
-
-		if (length > 0)
-		{
-			BigInt current_size = size();
-			if (length + current > current_size)
-			{
-				length = current_size - current;
-			}
-		}
-		else {
-			if (length + current < 0)
-			{
-				length = -current;
-			}
-		}
-
-		return ba_iter_.Skip(length);
-	}
-
-	void Remove()
-	{
-		BigInt data_size = size();
-		model_.set().RemoveEntry(is_iter);
-		ba_iter_.Remove(data_size);
-	}
-
-	BigInt size() {
-		return is_iter_.GetRawKey(1);
-	}
-
-	BigInt pos() {
-		return ba_iter_.pos() - is_iter_.prefix(1);
-	}
-
-	BigInt GetKey() {
-		return is_iter_.GetKey(0);
-	}
-
-	bool IsNotEnd()
-	{
-		return is_iter_.IsNotEnd();
-	}
-
-	bool Next()
-	{
-		ba_iter_.Skip(size() - pos());
-		return is_iter_.Next();
-	}
-
-//	BigInt Next(Int count)
-//	{
-//		BigInt skip = is_iter_.SkipKeyFw(count);
-//
-//		if (skip)
-//		{
-//
-//			ba_iter_.Skip(size());
-//		}
-//
-//
-//		return is_iter_.Next();
-//	}
 };
 
 }

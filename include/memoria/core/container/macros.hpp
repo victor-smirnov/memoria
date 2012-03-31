@@ -27,9 +27,9 @@ MEMORIA_TEMPLATE_EXTERN template class BaseName<CollectionName::Types<CtrName>::
 #define MEMORIA_EXTERN_CONTAINER(CollectionName,  CtrName, CtrBaseName, IterBaseName)	\
 MEMORIA_EXTERN_CTR(CollectionName,  CtrName)											\
 MEMORIA_EXTERN_ITER(CollectionName,  CtrName)											\
-MEMORIA_EXTERN_CTR_BASE(CollectionName,  CtrName, memoria::ContainerBase)			\
+MEMORIA_EXTERN_CTR_BASE(CollectionName,  CtrName, memoria::ContainerBase)				\
 MEMORIA_EXTERN_CTR_BASE(CollectionName,  CtrName, CtrBaseName)							\
-MEMORIA_EXTERN_ITER_BASE(CollectionName,  CtrName, memoria::IteratorBase)			\
+MEMORIA_EXTERN_ITER_BASE(CollectionName,  CtrName, memoria::IteratorBase)				\
 MEMORIA_EXTERN_ITER_BASE(CollectionName,  CtrName, IterBaseName)						\
 MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, RootTypes, ANY_LEVEL)					\
 MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, RootLeafTypes, ANY_LEVEL)				\
@@ -112,6 +112,8 @@ public:
     CtrPart(): Base()  {}                            							\
     CtrPart(const ThisType& other): Base(other)  {}                            	\
     CtrPart(ThisType&& other): Base(std::move(other))  {}                       \
+    CtrPart(ThisType&& other, typename TypesType::Allocator& allocator): Base(std::move(other), allocator)  {} 	\
+    CtrPart(const ThisType& other, typename TypesType::Allocator& allocator): Base(other, allocator)  {} 		\
     void operator=(ThisType&& other) {											\
 		Base::operator=(std::move(other));										\
 	}																			\

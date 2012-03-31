@@ -40,7 +40,7 @@ public:
     }
 
     bool is_null() const {
-        return IsClean(Base::ptr(), Size);
+        return is_empty();
     }
 
     bool is_empty() const {
@@ -56,7 +56,7 @@ public:
     }
 
     void set_null() {
-        Clean(Base::ptr(), Size);
+        Base::Clear();
     }
 
     ValueType& operator=(const ValueType& other)
@@ -143,6 +143,8 @@ public:
 
 
 };
+
+
 
 template <typename PageIdType, Int FlagsCount = 32>
 class AbstractPage {
@@ -275,6 +277,30 @@ public:
         this->page_type_hash()  = page->page_type_hash();
         this->references()		= page->references();
         this->deleted()			= page->deleted();
+    }
+
+    template <template <typename> class FieldFactory>
+    void Serialize(SerializationData& buf) const
+    {
+    	FieldFactory<PageIdType>::serialize(buf, id());
+    	FieldFactory<FlagsType>::serialize(buf, flags());
+    	FieldFactory<Int>::serialize(buf, crc());
+    	FieldFactory<Int>::serialize(buf, model_hash());
+    	FieldFactory<Int>::serialize(buf, page_type_hash());
+    	FieldFactory<Int>::serialize(buf, references_);
+    	FieldFactory<Int>::serialize(buf, deleted_);
+    }
+
+    template <template <typename> class FieldFactory>
+    void Deserialize(DeserializationData& buf)
+    {
+    	FieldFactory<PageIdType>::deserialize(buf, id());
+    	FieldFactory<FlagsType>::deserialize(buf, flags());
+    	FieldFactory<Int>::deserialize(buf, crc());
+    	FieldFactory<Int>::deserialize(buf, model_hash());
+    	FieldFactory<Int>::deserialize(buf, page_type_hash());
+    	FieldFactory<Int>::deserialize(buf, references_);
+    	FieldFactory<Int>::deserialize(buf, deleted_);
     }
 };
 
@@ -484,6 +510,7 @@ public:
 		return *this;
 	}
 
+#ifndef __clang__
 	MyType& operator=(MyType&& guard)
 	{
 		unref();
@@ -493,7 +520,7 @@ public:
 		check();
 		return *this;
 	}
-
+#endif
 
 	template <typename P>
 	MyType& operator=(PageGuard<P, AllocatorT>&& guard)
@@ -528,12 +555,12 @@ public:
 
 	bool operator==(const MyType& other) const
 	{
-		return shared_ == other.shared_;
+		return shared_ != NULL && other.shared_ != NULL && shared_->id() == other.shared_->id();
 	}
 
 	bool operator!=(const MyType& other) const
 	{
-		return shared_ != other->shared_;
+		return shared_ != NULL && other.shared_ != NULL && shared_->id() != other.shared_->id();
 	}
 
 	const PageT* page() const {
@@ -557,6 +584,11 @@ public:
 		return *shared_;
 	}
 
+	bool is_updated() const
+	{
+		return shared_->updated();
+	}
+
 	void update()
 	{
 		if (shared_ != NULL && !shared_->updated())
@@ -565,6 +597,9 @@ public:
 		}
 	}
 
+	void Clear() {
+		*this = NULL;
+	}
 
 	template <typename Page, typename Allocator> friend class PageGuard;
 
@@ -586,9 +621,12 @@ private:
 
 	void unref()
 	{
-		if (shared_ != NULL && shared_->unref() == 0)
+		if (shared_ != NULL)
 		{
-			shared_->allocator()->ReleasePage(shared_);
+			if (shared_->unref() == 0)
+			{
+				shared_->allocator()->ReleasePage(shared_);
+			}
 		}
 	}
 

@@ -122,7 +122,7 @@ public:
 				{
 					NodeBaseG child = me_.allocator().GetPage(node->map().data(c), Container::Allocator::READ);
 
-					CountType count = child->counters().key_count();
+					CountType count = 1;//child->counters().key_count();
 					if (count + sum_ <= target_)
 					{
 						sum_ = sum_ + count;
@@ -154,7 +154,7 @@ public:
 				{
 					NodeBaseG child = me_.allocator().GetPage(node->map().data(c), Container::Allocator::READ);
 
-					CountType count = child->counters().key_count();
+					CountType count = 1;//child->counters().key_count();
 					if (count + sum_ <= target_)
 					{
 						sum_ = sum_ + count;
@@ -239,7 +239,7 @@ public:
 				{
 					NodeBaseG child = me_.allocator().GetPage(node->map().data(c), Container::Allocator::READ);
 
-					CountType count = child->counters().key_count();
+					CountType count = 1;//child->counters().key_count();
 					if (count + sum_ <= target_)
 					{
 						sum_ = sum_ + count;
@@ -279,7 +279,7 @@ public:
 				{
 					NodeBaseG child = me_.allocator().GetPage(node->map().data(c), Container::Allocator::READ);
 
-					CountType count = child->counters().key_count();
+					CountType count = 1;//child->counters().key_count();
 					if (count + sum_ <= target_)
 					{
 						sum_ = sum_ + count;

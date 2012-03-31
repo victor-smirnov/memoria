@@ -175,9 +175,9 @@ public:
 };
 
 
-class SPTestTask: public ProfileTestTask<StreamProfile<>, DefaultStreamAllocator> {
+class SPTestTask: public ProfileTestTask<SmallProfile<>, SmallInMemAllocator> {
 
-	typedef ProfileTestTask<StreamProfile<>, DefaultStreamAllocator> Base;
+	typedef ProfileTestTask<SmallProfile<>, SmallInMemAllocator> Base;
 
 	Int check_count_;
 
@@ -195,7 +195,7 @@ public:
 
 		if (step_count > 0 && (check_count_ % step_count == 0))
 		{
-			::memoria::Check<Allocator, ::memoria::StreamContainersChecker>(allocator, "Allocator check failed", source);
+			::memoria::Check<Allocator>(allocator, "Allocator check failed", source);
 		}
 
 		check_count_++;
@@ -207,7 +207,7 @@ public:
 
 		if (check_count_ % step_count == 0)
 		{
-			::memoria::Check<Allocator, ::memoria::StreamContainersChecker>(allocator, message, source);
+			::memoria::Check<Allocator>(allocator, message, source);
 		}
 		check_count_++;
 	}
@@ -233,11 +233,12 @@ public:
 };
 
 
-
 class TestRunner: public TaskRunner {
 public:
-	TestRunner(): TaskRunner() 	{}
-	virtual ~TestRunner() 		{}
+	TestRunner(): TaskRunner() 		{}
+	virtual ~TestRunner() 			{}
+
+	void Replay(ostream& out, StringRef replay_file);
 };
 
 

@@ -20,15 +20,14 @@ namespace memoria    {
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
 
     typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                              Allocator;
+    typedef typename Base::Allocator                                            Allocator;
 
-    typedef typename Allocator::Page                                              Page;
+    typedef typename Allocator::Page                                            Page;
     typedef typename Page::ID                                                   ID;
-    typedef typename Allocator::Transaction                                       Transaction;
+    typedef typename Allocator::Transaction                                     Transaction;
 
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Types::Counters                                            Counters;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
@@ -43,69 +42,40 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
+    typedef typename Base::Element                                              Element;
 
     static const Int Indexes                                                    = Types::Indexes;
-    static const Int MapType                                                    = Types::MapType;
+
     
-    struct SetAndReindexFn1 {
-        Int             i_;
-        const Key*      keys_;
-        const Value&    data_;
-        bool            fixed_;
-    public:
-        SetAndReindexFn1(Int i, const Key *keys, const Value& data): i_(i), keys_(keys), data_(data), fixed_(true) {}
-
-        template <typename T>
-        void operator()(T *node)
-        {
-            for (Int c = 0; c < Indexes; c++) {
-                node->map().key(c, i_) = keys_[c];
-            }
-
-            node->map().data(i_) = data_;
-
-            if (i_ < node->children_count() - 1) {
-                for (Int c = 0; c < Indexes; c++) {
-                    node->map().key(c, i_ + 1) -= keys_[c];
-                }
-            }
-            else {
-                fixed_ = false;
-            }
-
-            node->map().Reindex();
-        }
-    };
-
-
-    struct SetAndReindexFn2 {
-        Int             i_;
-        const Key*      keys_;
-
-    public:
-        SetAndReindexFn2(Int i, const Key *keys): i_(i), keys_(keys) {}
-
-        template <typename T>
-        void operator()(T *node)
-        {
-            for (Int c = 0; c < Indexes; c++) {
-                node->map().key(c, i_) -= keys_[c];
-            }
-
-            node->map().Reindex();
-        }
-    };
-
-
-
-    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val);
+//    struct SetAndReindexFn1 {
+//        Int             i_;
+//        const Key*      keys_;
+//        const Value&    data_;
+//        bool            fixed_;
+//    public:
+//        SetAndReindexFn1(Int i, const Key *keys, const Value& data): i_(i), keys_(keys), data_(data), fixed_(true) {}
+//
+//        template <typename T>
+//        void operator()(T *node)
+//        {
+//            for (Int c = 0; c < Indexes; c++) {
+//                node->map().key(c, i_) = keys_[c];
+//            }
+//
+//            node->map().data(i_) = data_;
+//
+//            node->map().Reindex();
+//        }
+//    };
+//
+//    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val);
 
     template <typename Node>
     bool CheckNodeContent(Node *node);
 
 
     template <typename Node1, typename Node2>
-    bool CheckNodeWithParentContent(Node1 *node, Node2 *parent);
+    bool CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
 
 
 MEMORIA_CONTAINER_PART_END
@@ -115,32 +85,13 @@ MEMORIA_CONTAINER_PART_END
 #define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::bstree::ToolsName)
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
-M_PARAMS
-void M_TYPE::SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val)
-{
-	node.update();
-	SetAndReindexFn1 fn1(idx, keys, val);
-	LeafDispatcher::Dispatch(node, fn1);
-
-	if (!fn1.fixed_)
-	{
-		Iterator i(node, idx, *me());
-		if (i.NextKey())
-		{
-			SetAndReindexFn2 fn2(i.key_idx(), keys);
-			LeafDispatcher::Dispatch(i.page(), fn2);
-
-			if (MapType == MapTypes::Sum)
-			{
-				me()->UpdateBTreeKeys(i.page());
-			}
-			else if (i.key_idx() >= i.page()->children_count() - 1)
-			{
-				me()->UpdateBTreeKeys(i.page());
-			}
-		}
-	}
-}
+//M_PARAMS
+//void M_TYPE::SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Key *keys, const Value &val)
+//{
+//	node.update();
+//	SetAndReindexFn1 fn1(idx, keys, val);
+//	LeafDispatcher::Dispatch(node, fn1);
+//}
 
 M_PARAMS
 template <typename Node>
@@ -154,7 +105,9 @@ bool M_TYPE::CheckNodeContent(Node *node) {
 			key += node->map().key(i, c);
 		}
 
-		if (key != node->map().max_key(i)) {
+		if (key != node->map().max_key(i))
+		{
+			//me()->Dump(node);
 			MEMORIA_ERROR(me(), "Sum of keys doen't match max_key for key", i, key, node->map().max_key(i));
 			errors = true;
 		}
@@ -165,14 +118,16 @@ bool M_TYPE::CheckNodeContent(Node *node) {
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent)
+bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx)
 {
 	bool errors = false;
 	for (Int c = 0; c < Indexes; c++)
 	{
-		if (node->map().max_key(c) != parent->map().key(c, node->parent_idx()))
+		if (node->map().max_key(c) != parent->map().key(c, parent_idx))
 		{
-			MEMORIA_ERROR(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, node->parent_idx()), "for", node->id(), parent->id(), node->parent_idx());
+//			me()->Dump(node);
+//			me()->Dump(parent);
+			MEMORIA_ERROR(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, parent_idx), "for", node->id(), parent->id(), parent_idx);
 			errors = true;
 		}
 	}

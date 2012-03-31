@@ -27,7 +27,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
 
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Counters                                             Counters;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
@@ -42,9 +41,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ContainerApiName)
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
-
-    typedef typename Base::ApiKeyType                                           ApiKeyType;
-    typedef typename Base::ApiValueType                                         ApiValueType;
 
     static const Int Indexes                                                    = Base::Indexes;
 
@@ -95,7 +91,7 @@ BigInt M_TYPE::Size()
 
 	if (node != NULL)
 	{
-		return me()->GetMaxKey(node, 0);
+		return me()->GetMaxKeys(node).key(0);
 	}
 	else {
 		return 0;

@@ -6,123 +6,81 @@
 
 
 
-#ifndef _MEMORIA_CORE_API_METADATA_CONTAINER_HPP
-#define _MEMORIA_CORE_API_METADATA_CONTAINER_HPP
+#ifndef _MEMORIA_CORE_API_METADATA_MODEL_HPP
+#define _MEMORIA_CORE_API_METADATA_MODEL_HPP
 
-#include <memoria/metadata/container.hpp>
+#include <memoria/metadata/model.hpp>
+#include <memoria/metadata/page.hpp>
 #include <memoria/core/vapi/metadata/group.hpp>
-
-#include <memoria/core/vapi/metadata/page.hpp>
-#include <memoria/core/vapi/metadata/model.hpp>
-
-#include <memoria/core/tools/strings.hpp>
-
-#include <string>
 
 
 
 namespace memoria { namespace vapi {
 
 template <typename Interface>
-class ContainerCollectionMetadataImplT: public MetadataGroupImplT<Interface> {
-	typedef ContainerCollectionMetadataImplT<Interface> 		Me;
-	typedef MetadataGroupImplT<Interface> 			Base;
+class ContainerMetadataImplT: public MetadataGroupImplT<Interface> {
+	typedef ContainerMetadataImplT<Interface> 		Me;
+	typedef MetadataGroupImplT<Interface> 		Base;
 public:
 
-	ContainerCollectionMetadataImplT(StringRef name, const MetadataList &content);
+	ContainerMetadataImplT(StringRef name, const MetadataList &content, Int code, ContainerInterface* container_interface):
+		Base(name, content),
+		container_interface_(container_interface),
+		code_(code),
+		hash_(code_)
+	{
+		Base::set_type() = Interface::MODEL;
+		for (UInt c = 0; c < content.size(); c++)
+	    {
+	        if (content[c]->GetTypeCode() == Metadata::PAGE)
+	        {
+	            PageMetadata *page = static_cast<PageMetadata*> (content[c]);
+	            page_map_[page->Hash()] = page;
+	            hash_ += page->Hash() + code;
+	        }
+	        else {
+	            //exception;
+	        }
+	    }
+	}
 
-	virtual ~ContainerCollectionMetadataImplT() throw () {}
+	virtual ~ContainerMetadataImplT() throw () {}
 
 	virtual Int Hash() const {
 		return hash_;
 	}
 
-	PageMetadata* GetPageMetadata(Int hashCode) const;
-	ContainerMetadata* GetContainerMetadata(Int hashCode) const;
+	virtual Int Code() const {
+		return code_;
+	}
 
+	virtual PageMetadata* GetPageMetadata(Int hashCode) const
+	{
+		PageMetadataMap::const_iterator i = page_map_.find(hashCode);
+		if (i != page_map_.end()) {
+			return i->second;
+		}
+		else {
+			throw MemoriaException(MEMORIA_SOURCE, "Unknown page type hash code");
+		}
+	}
 
-
-
+	virtual ContainerInterface* GetCtrInterface() const
+	{
+		return container_interface_;
+	}
 
 private:
-    Int                 hash_;
-    PageMetadataMap     page_map_;
-    ContainerMetadataMap    model_map_;
 
-    void process_model(ContainerMetadata* model);
+    PageMetadataMap     	page_map_;
+    ContainerInterface* 	container_interface_;
+
+    Int 					code_;
+    Int 					hash_;
 };
 
 
-
-typedef ContainerCollectionMetadataImplT<ContainerCollectionMetadata> 					ContainerCollectionMetadataImpl;
-
-
-
-template <typename Interface>
-ContainerCollectionMetadataImplT<Interface>::ContainerCollectionMetadataImplT(StringRef name, const MetadataList &content) : Base(name, content), hash_(0) {
-    Base::set_type() = Metadata::MODEL;
-
-    for (UInt c = 0; c < content.size(); c++)
-    {
-        if (content[c]->GetTypeCode() == Metadata::MODEL)
-        {
-            ContainerMetadata *model = static_cast<ContainerMetadata*> (content[c]);
-            process_model(model);
-        }
-        else {
-            //exception;
-        }
-    }
-}
-template <typename Interface>
-void ContainerCollectionMetadataImplT<Interface>::process_model(ContainerMetadata* model)
-{
-	hash_ = hash_ + model->Hash();
-
-	model_map_[model->Hash()] = model;
-
-
-	for (Int d = 0; d < model->Size(); d++)
-	{
-		Metadata* item = model->GetItem(d);
-		if (item->GetTypeCode() == Metadata::PAGE)
-		{
-			PageMetadata *page = static_cast<PageMetadata*> (item);
-			page_map_[page->Hash()] = page;
-		}
-		else if (item->GetTypeCode() == Metadata::MODEL)
-		{
-			process_model(static_cast<ContainerMetadata*> (item));
-		}
-		else {
-			//exception
-		}
-	}
-}
-
-template <typename Interface>
-PageMetadata* ContainerCollectionMetadataImplT<Interface>::GetPageMetadata(Int hashCode) const {
-    PageMetadataMap::const_iterator i = page_map_.find(hashCode);
-    if (i != page_map_.end())
-    {
-        return i->second;
-    }
-    else {
-    	throw MemoriaException(MEMORIA_SOURCE, "Unknown page type hash code "+ToString(hashCode));
-    }
-}
-
-template <typename Interface>
-ContainerMetadata* ContainerCollectionMetadataImplT<Interface>::GetContainerMetadata(Int hashCode) const {
-    ContainerMetadataMap::const_iterator i = model_map_.find(hashCode);
-    if (i != model_map_.end())
-    {
-        return i->second;
-    }
-    else {
-    	throw MemoriaException(MEMORIA_SOURCE, "Unknown model hash code " + ToString(hashCode));
-    }
-}
+typedef ContainerMetadataImplT<ContainerMetadata> 					ContainerMetadataImpl;
 
 
 

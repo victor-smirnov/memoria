@@ -29,9 +29,22 @@ private:
     typedef memoria::AbstractPageID<T, Size>                                             Type;
 
 public:
-    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
+    {
         list.push_back(new TypedIDFieldImpl<Type>(PtrToLong(&field), abi_ptr, name));
         abi_ptr += ValueTraits<Type>::Size;
+    }
+
+    static void serialize(SerializationData& data, const Type& field)
+    {
+    	memmove(data.buf, &field, sizeof(Type));
+    	data.buf += sizeof(Type);
+    }
+
+    static void deserialize(DeserializationData& data, Type& field)
+    {
+    	memmove(&field, data.buf, sizeof(Type));
+    	data.buf += sizeof(Type);
     }
 };
 
@@ -40,9 +53,22 @@ template <Int Size>
 struct FieldFactory<memoria::BitBuffer<Size> > {
     typedef memoria::BitBuffer<Size>                                                     Type;
 
-    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr) {
+    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
+    {
         list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, 0, Size));
         abi_ptr += ValueTraits<Type>::Size;
+    }
+
+    static void serialize(SerializationData& data, const Type& field)
+    {
+    	memmove(data.buf, &field, sizeof(Type));
+    	data.buf += sizeof(Type);
+    }
+
+    static void deserialize(DeserializationData& data, Type& field)
+    {
+    	memmove(&field, data.buf, sizeof(Type));
+    	data.buf += sizeof(Type);
     }
 };
 

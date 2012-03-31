@@ -117,7 +117,7 @@ public:
 	}
 
 	virtual void Run(ostream& out) 							= 0;
-	virtual void Replay(ostream& out, Configurator* cfg) 	= 0;
+
 };
 
 
@@ -143,7 +143,7 @@ public:
 	void DumpProperties(ostream& os);
 
 	Int  Run(ostream& out);
-	void Replay(ostream& out, StringRef replay_file);
+
 
 	StringRef GetOutput() const
 	{

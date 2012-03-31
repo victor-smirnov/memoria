@@ -53,9 +53,9 @@ struct ConvertFromHelper<IDType, IDType> {
 
 
 
-struct MEMORIA_API Iterator {
-    enum {ITEREND, ITER_EMPTY, ITER_START};
-};
+//struct MEMORIA_API Iterator {
+//    enum {ITEREND, ITER_EMPTY, ITER_START};
+//};
 
 
 struct MEMORIA_API IdxMap {

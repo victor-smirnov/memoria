@@ -162,17 +162,17 @@ Int GetNonZeroRandom(Int size);
 ArrayData CreateRandomBuffer(UByte fill_value, Int max_size);
 
 
-template <typename Allocator, typename Checker>
+template <typename Allocator>
 void Check(Allocator& allocator, const char* message,  const char* source)
 {
 	Int level = allocator.GetLogger()->level();
 
 	allocator.GetLogger()->level() = Logger::ERROR;
 
-	Checker checker(allocator);
-	if (checker.CheckAll())
+	if (allocator.Check())
 	{
 		allocator.GetLogger()->level() = level;
+
 		throw TestException(source, message);
 	}
 
@@ -227,6 +227,37 @@ void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg, 
 	}
 }
 
+
+template <typename Iterator, typename Item>
+bool CompareBuffer(Iterator& iter, const vector<Item>& data, Int& c)
+{
+	c = 0;
+	for (auto i = data.begin(); i != data.end(); i++, iter.Next(), c++)
+	{
+		for (Int d = 0; d < Iterator::Indexes; d++)
+		{
+			auto value = iter.GetRawKey(d);
+
+			if (value != data[c].keys[d])
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+template <typename Iterator, typename Item>
+void CheckBufferWritten(Iterator& iter, const vector<Item>& data, const char* err_msg, const char* source)
+{
+	Int pos = 0;
+	if (!CompareBuffer(iter, data, pos))
+	{
+		throw TestException(source, String(err_msg) + ": pos=" + ToString(pos));
+	}
+}
+
 template <typename T, typename A>
 Int GetUniqueRandom(const vector<T, A> &vec)
 {
@@ -245,15 +276,15 @@ Int GetUniqueRandom(const vector<T, A> &vec)
 
 
 template <typename T, typename A>
-BigInt GetUniqueBIRandom(const vector<T, A> &vec)
+BigInt GetUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
 {
-	Int value = GetBIRandom();
+	Int value = GetBIRandom(limit);
 
 	for (const T& item: vec)
 	{
 		if (item == value)
 		{
-			return GetUniqueBIRandom(vec);
+			return GetUniqueBIRandom(vec, limit);
 		}
 	}
 
@@ -261,16 +292,16 @@ BigInt GetUniqueBIRandom(const vector<T, A> &vec)
 }
 
 
-#define MEMORIA_TEST_ASSERT(op1, operator_, op2) 		MEMORIA_TEST_ASSERT_EXPR(op1 operator_ op2, op1, op2)
-#define MEMORIA_TEST_ASSERT1(op1, operator_, op2, arg1) MEMORIA_TEST_ASSERT_EXPR1(op1 operator_ op2, op1, op2, arg1)
+#define MEMORIA_TEST_THROW_IF(op1, operator_, op2) 		MEMORIA_TEST_THROW_IF_EXPR(op1 operator_ op2, op1, op2)
+#define MEMORIA_TEST_THROW_IF_1(op1, operator_, op2, arg1) MEMORIA_TEST_THROW_IF_EXPR1(op1 operator_ op2, op1, op2, arg1)
 
-#define MEMORIA_TEST_ASSERT_EXPR(expr, op1, op2) 																						\
+#define MEMORIA_TEST_THROW_IF_EXPR(expr, op1, op2) 																						\
 	if (expr) {																															\
 		throw TestException(MEMORIA_SOURCE, String("ASSERT FAILURE: ")+#expr+"; "+#op1+"="+ToString(op1)+", "+#op2+"="+ToString(op2));	\
 	}
 
 
-#define MEMORIA_TEST_ASSERT_EXPR1(expr, op1, op2, arg1) 																												\
+#define MEMORIA_TEST_THROW_IF_EXPR1(expr, op1, op2, arg1) 																												\
 	if (expr) {																																							\
 		throw TestException(MEMORIA_SOURCE, String("ASSERT FAILURE: ")+#expr+"; "+#op1+"="+ToString(op1)+", "+#op2+"="+ToString(op2)+", "+#arg1+"="+ToString(arg1));	\
 	}
