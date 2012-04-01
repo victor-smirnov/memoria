@@ -30,14 +30,17 @@ struct VectorMapReplay: public ReplayParams {
 	BigInt	key_;
 	BigInt 	key_num_;
 
+	BigInt	ctr_name_;
+
 	VectorMapReplay(): ReplayParams()
 	{
 		Add("data", data_);
-		Add("dataSize", data_size_);
+		Add("data_size", data_size_);
 
-		Add("pairsFile", pairs_data_file_);
+		Add("pairs_file", pairs_data_file_);
 		Add("key", key_);
-		Add("keyNum", key_num_);
+		Add("key_num", key_num_);
+		Add("ctr_name", ctr_name_);
 	}
 };
 
@@ -125,7 +128,7 @@ public:
 
 		LoadAllocator(allocator, params);
 
-		VectorMapCtr map(allocator, 1);
+		VectorMapCtr map(allocator, params->ctr_name_);
 
 		if (params->step_ == 0)
 		{
@@ -212,7 +215,9 @@ public:
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
 
-		VectorMapCtr map(allocator, 1, true);
+		VectorMapCtr map(allocator);
+
+		params->ctr_name_ = map.name();
 
 		allocator.commit();
 
@@ -227,18 +232,12 @@ public:
 			for (Int c = 0; c < params->size_; c++, value++)
 			{
 				auto iter = map.Create();
-//				iter.ba_iter().Dump();
-//				iter.is_iter().Dump();
-
 
 				params->data_size_ = GetRandom(task_params->max_block_size_);
 
 				ArrayData data = CreateBuffer(params->data_size_, c % 256);
 
 				iter.Insert(data);
-
-//				iter.ba_iter().Dump();
-//				iter.is_iter().Dump();
 
 				MEMORIA_TEST_THROW_IF(iter.size(), 	 != , data.size());
 				MEMORIA_TEST_THROW_IF(iter.GetKey(), != , c + 1);
@@ -277,7 +276,9 @@ public:
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
 
-		VectorMapCtr map(allocator, 1, true);
+		VectorMapCtr map(allocator);
+
+		params->ctr_name_ = map.name();
 
 		PairVector pairs_tmp;
 
@@ -348,7 +349,9 @@ public:
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
 
-		VectorMapCtr map(allocator, 1, true);
+		VectorMapCtr map(allocator);
+
+		params->ctr_name_ = map.name();
 
 		PairVector pairs_tmp;
 

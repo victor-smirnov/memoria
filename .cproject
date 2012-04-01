@@ -71,7 +71,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="examples|composite|include/memoria/containers/vector_map/iterator|container|params.cpp|iterator" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="composite|include/memoria/containers/root/pages|container|params.cpp|iterator|examples|include/memoria/containers/vector_map/iterator|pages" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

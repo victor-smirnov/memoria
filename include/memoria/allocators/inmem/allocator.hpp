@@ -57,9 +57,10 @@ public:
 	typedef Base 																AbstractAllocator;
 
 	typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>						RootMapType;
+	typedef typename RootMapType::Metadata										RootMetatata;
 
 private:
-	typedef InMemAllocator<Profile, PageType, TxnType> 						MyType;
+	typedef InMemAllocator<Profile, PageType, TxnType> 							MyType;
 
 	struct PageOp
 	{
@@ -99,6 +100,7 @@ private:
 
 	StaticPool<ID, Shared>	pool_;
 
+	RootMetatata 		root_metadata_;
 
 public:
 	InMemAllocator() :
@@ -106,14 +108,16 @@ public:
 		counter_(100), metadata_(MetadataRepository<Profile>::GetMetadata()), root_(0), root_log_(0), updated_(false), me_(*this),
 		type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this)//, root_map_(*this, 0, true)
 	{
-		root_map_ = new RootMapType(*this, 0, true);
+		root_map_ 		= new RootMapType(*this, 0, true);
+		root_metadata_ 	= root_map_->GetRootMetadata();
 	}
 
 	InMemAllocator(const InMemAllocator& other):
 			logger_(other.logger_),
 			counter_(other.counter_), metadata_(other.metadata_), root_(other.root_), root_log_(0), updated_(false), me_(*this),
 			type_name_("StreamAllocator"), allocs1_(other.allocs1_), allocs2_(other.allocs2_), roots_(this), //root_map_(*this, 0, false),
-			pool_(other.pool_)
+			pool_(other.pool_),
+			root_metadata_(other.root_metadata_)
 	{
 		for (auto i = other.pages_.begin(); i != other.pages_.end(); i++)
 		{
@@ -441,6 +445,8 @@ public:
 
 	void commit()
 	{
+		root_map_->SetRootMetadata(root_metadata_);
+
 		for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
 		{
 			PageOp op = i->second;
@@ -688,6 +694,11 @@ public:
 		}
 
 		counter_ = maxId + 1;
+
+		//FIXME: does it safe?
+		root_map_->InitCtr(*this, root_);
+
+		root_metadata_ = root_map_->GetRootMetadata();
 	}
 
 	virtual void store(OutputStreamHandler *output)
@@ -877,6 +888,10 @@ public:
 		free(ptr);
 	}
 
+	virtual BigInt CreateCtrName()
+	{
+		return ++root_metadata_.model_name_counter();
+	}
 };
 
 }

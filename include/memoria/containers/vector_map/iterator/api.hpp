@@ -89,6 +89,17 @@ void Update(const ArrayData& data)
 }
 
 
+ArrayData Read()
+{
+	me()->ba_iter().Skip(-me()->pos());
+
+	ArrayData data(me()->size());
+	me()->Read(data, 0, data.size());
+
+	return data;
+}
+
+
 BigInt Read(ArrayData& data)
 {
 	return Read(data, 0, data.size());
@@ -224,6 +235,11 @@ void SetValue(StringRef value)
 {
 	ArrayData data(value.size(), T2T<UByte*>(value.c_str()));
 	me()->Update(data);
+}
+
+void SetValue(const ArrayData& value)
+{
+	me()->Update(value);
 }
 
 operator ArrayData()

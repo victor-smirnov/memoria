@@ -88,7 +88,7 @@ public:
 
 			for (auto& val: map)
 			{
-				out<<val.key()<<" => "<<(String)iter<<endl;
+				out<<val.key()<<" => "<<(String)val<<endl;
 			}
 
 			BigInt sum = 0;

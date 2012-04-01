@@ -24,10 +24,13 @@ using namespace std;
 
 struct CreateCtrReplay: public ReplayParams {
 
+	BigInt map_name_;
+	BigInt vector_map_name_;
 
 	CreateCtrReplay(): ReplayParams()
 	{
-
+		Add("map_name", map_name_);
+		Add("vector_map_name", vector_map_name_);
 	}
 };
 
@@ -97,29 +100,24 @@ public:
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
 
-		MapCtr map(allocator, 1, true);
+		MapCtr map(allocator);
+
+		params.map_name_ = map.name();
 
 		BigInt t00 = GetTimeInMillis();
 
 		for (Int c = 0; c < task_params->map_size_; c++)
 		{
-			Int key = GetRandom();
-			map[key].SetData(GetRandom());
+			map[GetRandom()] = GetRandom();
 		}
 
-		VectorMapCtr vector_map(allocator, 2, true);
+		VectorMapCtr vector_map(allocator);
 
-		free(NULL);
-		FILE* fd = fopen("/dev/null", "wb");
-		fclose(fd);
+		params.vector_map_name_ = vector_map.name();
 
 		for (Int c = 0; c < task_params->vector_map_size_; c++)
 		{
-			Int key = GetRandom();
-			auto iter = vector_map.Create(key);
-
-			ArrayData data = CreateBuffer(GetRandom(task_params->block_size_), GetRandom(256));
-			iter.Insert(data);
+			vector_map[GetRandom()] = CreateBuffer(GetRandom(task_params->block_size_), GetRandom(256));
 		}
 
 		allocator.commit();
@@ -139,7 +137,7 @@ public:
 		out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
 		out<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
 
-		MapCtr new_map(new_alloc, 1);
+		MapCtr new_map(new_alloc, map.name());
 
 		MEMORIA_TEST_THROW_IF(map.GetSize(), !=, new_map.GetSize());
 
@@ -153,7 +151,7 @@ public:
 
 		BigInt t22 = GetTimeInMillis();
 
-		VectorMapCtr new_vector_map(new_alloc, 2);
+		VectorMapCtr new_vector_map(new_alloc, vector_map.name());
 
 		auto new_vm_iter = new_vector_map.Begin();
 
@@ -161,8 +159,7 @@ public:
 		{
 			MEMORIA_TEST_THROW_IF(iter.size(), !=, new_vm_iter.size());
 
-			ArrayData data = CreateBuffer(iter.size(), 0);
-			iter.Read(data);
+			ArrayData data = iter.Read();
 
 			CheckBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
 		}

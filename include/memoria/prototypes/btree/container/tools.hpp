@@ -329,21 +329,40 @@ public:
     	}
     };
 
-    static const Metadata GetRootMetadata(const NodeBaseG& node)
+    static Metadata GetCtrRootMetadata(const NodeBaseG& node)
     {
-        GetMetadataFn fn;
-        RootDispatcher::DispatchConst(node, fn);
-        return fn.metadata_;
+    	GetMetadataFn fn;
+    	RootDispatcher::DispatchConst(node, fn);
+    	return fn.metadata_;
     }
 
-    static void SetRootMetadata(NodeBaseG& node, const Metadata& metadata)
+    Metadata GetRootMetadata(const NodeBaseG& node) const
     {
-        node.update();
+    	return GetCtrRootMetadata(node);
+    }
+
+
+
+    Metadata GetRootMetadata() const
+    {
+    	NodeBaseG root = me()->GetRoot(Allocator::READ);
+    	return me()->GetRootMetadata(root);
+    }
+
+    void SetRootMetadata(const Metadata& metadata)
+    {
+    	NodeBaseG root = me()->GetRoot(Allocator::UPDATE);
+    	me()->SetRootMetadata(root, metadata);
+    }
+
+    void SetRootMetadata(NodeBaseG& node, const Metadata& metadata)
+    {
+    	node.update();
     	SetMetadataFn fn(metadata);
-        RootDispatcher::Dispatch(node, fn);
+    	RootDispatcher::Dispatch(node, fn);
     }
 
-    static BigInt GetContainerName(const NodeBaseG& node)
+    BigInt GetContainerName(const NodeBaseG& node) const
     {
         return GetRootMetadata(node).model_name();
     }

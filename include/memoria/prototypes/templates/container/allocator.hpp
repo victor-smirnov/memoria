@@ -113,6 +113,11 @@ public:
 
     virtual void FreeMemory(void* ptr);
 
+    virtual BigInt CreateCtrName()
+    {
+    	return me()->allocator().CreateCtrName();
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 

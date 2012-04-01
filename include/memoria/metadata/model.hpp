@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -16,6 +16,8 @@ namespace vapi       {
 
 struct ContainerInterface {
 	virtual bool Check(const void* id, void* allocator) const	= 0;
+
+	virtual ~ContainerInterface() {}
 };
 
 struct MEMORIA_API ContainerMetadata: public MetadataGroup {

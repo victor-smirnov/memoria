@@ -368,6 +368,17 @@ private:
 
 public:
 
+    Ctr(Allocator &allocator):
+    	Base(),
+    	allocator_(&allocator),
+    	model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
+    	logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
+    	debug_(false)
+    {
+    	InitCtr(allocator, allocator.CreateCtrName(), true, model_type_name_);
+    }
+
+
     Ctr(Allocator &allocator, BigInt name, bool create = false, const char* mname = NULL):
         Base(),
         allocator_(&allocator),

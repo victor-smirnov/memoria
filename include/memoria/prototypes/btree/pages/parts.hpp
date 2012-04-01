@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -21,12 +21,10 @@ using namespace memoria::btree;
 
 #pragma pack(1)
 
-template <typename Allocator>
+template <typename ID>
 class BTreeMetadata
 {
 	static const Int ROOTS = 2;
-
-	typedef typename Allocator::ID	ID;
 
     BigInt model_name_;
     BigInt key_count_;
@@ -69,7 +67,6 @@ public:
         return list;
     }
 
-//    template <template <typename> class FieldFactory>
     void Serialize(SerializationData& buf) const
     {
     	FieldFactory<BigInt>::serialize(buf, model_name_);
@@ -81,7 +78,6 @@ public:
     	}
     }
 
-//    template <template <typename> class FieldFactory>
     void Deserialize(DeserializationData& buf)
     {
     	FieldFactory<BigInt>::deserialize(buf, model_name_);
@@ -103,14 +99,14 @@ public:
 };
 
 
-template <typename Profile, typename TheContainerName>
-class BTreeRootMetadataTypeFactory<Profile, BTreeRootMetadataFactory<TheContainerName> > {
-    typedef typename ContainerCollectionCfg<Profile>::Types::AllocatorType        Allocator;
-
-public:
-    typedef BTreeMetadata<Allocator>                                              Type;
-};
-
+//template <typename Profile, typename TheContainerName>
+//class BTreeRootMetadataTypeFactory<Profile, BTreeRootMetadataFactory<TheContainerName> > {
+//    typedef typename ContainerCollectionCfg<Profile>::Types::AllocatorType        Allocator;
+//
+//public:
+//    typedef BTreeMetadata<typename Allocator::ID>                                 Type;
+//};
+//
 
 
 MEMORIA_PAGE_PART_BEGIN1(RootNodeMetadataName, TheContainerName)

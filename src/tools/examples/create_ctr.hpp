@@ -68,14 +68,13 @@ public:
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
 
-		MapCtr map(allocator, 1, true);
+		MapCtr map(allocator);
 
 		map.SetMaxChildrenPerNode(task_params->btree_airity_);
 
-
 		for (Int c = 0; c < SIZE; c++)
 		{
-			map[c].SetData(c);
+			map[c] = c;
 		}
 
 		allocator.commit();

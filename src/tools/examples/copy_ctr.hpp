@@ -58,13 +58,7 @@ public:
 	{
 		MapCtr map = CreateCtr(allocator, name);
 
-//		map[1].SetData(555);
-
-		auto iter = map.Create(123456);
-
-		Int a = 10;
-
-		iter.Insert(ArrayData(sizeof(a), &a));
+		map[123456] = 10;
 
 		return map;
 	}
@@ -102,13 +96,9 @@ public:
 
 			cout<<"Map2 has been reinitialized"<<endl;
 
-			for (Int c = 0; c < 10; c++)
+			for (Int c = 1; c <= 10; c++)
 			{
-				auto iter = map2.Create(c);
-				ArrayData data(sizeof(Int), &c);
-				iter.Insert(data);
-
-//				map[c].SetData(c + 1);
+				map[c] = c;
 			}
 
 			allocator.commit();

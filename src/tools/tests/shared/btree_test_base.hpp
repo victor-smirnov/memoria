@@ -57,7 +57,7 @@ public:
 
 		Check(allocator, "Allocator Check failed", 	MEMORIA_SOURCE);
 
-		Ctr dv(allocator, 1);
+		Ctr dv(allocator, params->ctr_name_);
 
 		dv.SetMaxChildrenPerNode(params->btree_airity_);
 
@@ -110,7 +110,9 @@ public:
 
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
-		Ctr dv(allocator, 1, true);
+
+		Ctr dv(allocator);
+		params.ctr_name_ = dv.name();
 
 		allocator.commit();
 

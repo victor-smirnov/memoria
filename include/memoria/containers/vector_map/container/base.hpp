@@ -178,7 +178,7 @@ private:
     	typedef typename ByteArray::Metadata 	Metadata;
 
     	NodeBaseG root 	= allocator.GetPage(root_id, Allocator::READ);
-    	Metadata  meta 	= ByteArray::GetRootMetadata(root);
+    	Metadata  meta 	= ByteArray::GetCtrRootMetadata(root);
 
     	return meta.roots(name);
     }

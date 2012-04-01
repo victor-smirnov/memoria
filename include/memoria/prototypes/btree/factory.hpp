@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -76,10 +76,7 @@ struct BTreeTypes {
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator	Allocator;
     typedef typename Allocator::ID												ID;
 
-    typedef typename BTreeRootMetadataTypeFactory<
-    			Profile_,
-    			BTreeRootMetadataFactory<ContainerTypeSelector>
-    >::Type 																	Metadata;
+    typedef BTreeMetadata<ID> 													Metadata;
 
 
     template <

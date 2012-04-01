@@ -63,6 +63,7 @@ struct IAbstractAllocator {
 	virtual void* AllocateMemory(size_t size)							= 0;
 	virtual void  FreeMemory(void* ptr)									= 0;
 
+	virtual BigInt CreateCtrName()										= 0;
 
 	virtual Logger& logger()											= 0;
 

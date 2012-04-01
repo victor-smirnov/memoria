@@ -38,7 +38,6 @@ class VectorTest: public BTreeBatchTestBase<
 
 public:
 	VectorTest(): Base() {
-		SmallCtrTypeFactory::Factory<Root>::Type::Init();
 		Ctr::Init();
 	}
 

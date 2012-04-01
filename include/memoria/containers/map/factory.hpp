@@ -28,8 +28,6 @@ struct BTreeTypes<Profile, memoria::Map<Indexes_> >:
 
 	static const Int Indexes                                                = Indexes_;
 
-	static const bool MapType                                               = MapTypes::Sum;
-
 	typedef typename AppendLists<
 			typename Base::ContainerPartsList,
 			typename TLTool<

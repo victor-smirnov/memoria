@@ -29,14 +29,17 @@ struct SumSetBatchReplay: public ReplayParams {
 
 	Int 	cnt_;
 
+	BigInt  ctr_name_;
+
 	SumSetBatchReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
 	{
-		Add("data", 	data_);
-		Add("insert", 	insert_);
-		Add("blockSize", block_size_);
-		Add("pageStep", page_step_);
-		Add("pos", 		pos_);
-		Add("cnt", 		cnt_);
+		Add("data", 		data_);
+		Add("insert", 		insert_);
+		Add("block_size", 	block_size_);
+		Add("page_step", 	page_step_);
+		Add("pos", 			pos_);
+		Add("cnt", 			cnt_);
+		Add("ctr_name", 	ctr_name_);
 	}
 };
 

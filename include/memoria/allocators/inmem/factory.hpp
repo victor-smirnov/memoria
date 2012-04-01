@@ -40,60 +40,34 @@ typedef CtrTypeFactory<SmallProfile<> > SmallCtrTypeFactory;
 MEMORIA_TEMPLATE_EXTERN template class MetadataRepository<SmallProfile<> >;
 
 
-//MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::Root)
-//
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::ToolsName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::ChecksName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::InsertName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::RemoveName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::FindName)
-//
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::MapApiName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::FindName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::ChecksName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::InsertName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::kvmap::RemoveName)
-//
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::TreeMapName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::models::MapName)
-//
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorToolsName)
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorWalkName)
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorAPIName)
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorMultiskipName)
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::Root, memoria::btree::IteratorContainerAPIName)
+MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Root)
+
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::InsertBatchName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::FindName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::models::idx_map::CtrApiName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::bstree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::bstree::FindName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::models::root::CtrApiName)
+
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::IteratorAPIName)
 
 
-//MEMORIA_EXTERN_BASIC_CONTAINER(StreamContainerTypesCollection, memoria::SumMap1)
-//
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::ToolsName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::StubsName)
-//
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::ChecksName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::InsertName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::InsertBatchName)
-//
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::RemoveName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::FindName)
-//
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::idx_map::RemoveName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::bstree::ToolsName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::idx_map::InsertName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::bstree::FindName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::idx_map::ContainerApiName)
-//
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::TreeMapName)
-//MEMORIA_EXTERN_CTR_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::MapName)
-//
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::IteratorToolsName)
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::IteratorWalkName)
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::IteratorAPIName)
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::IteratorMultiskipName)
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::btree::IteratorContainerAPIName)
-//
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::bstree::IteratorToolsName)
-//MEMORIA_EXTERN_ITER_PAPRT(StreamContainerTypesCollection, memoria::SumMap1, memoria::models::idx_map::ItrAPIName)
 
+MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Map1)
+
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::InsertBatchName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::FindName)
+
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::models::idx_map::CtrApiName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::bstree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::bstree::FindName)
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::IteratorAPIName)
 
 
 
