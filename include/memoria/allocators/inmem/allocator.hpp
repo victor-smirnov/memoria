@@ -244,7 +244,7 @@ public:
 
 		if (!iter.IsEnd())
 		{
-			return iter.GetData();
+			return iter.GetValue();
 		}
 		else {
 			return ID(0);
@@ -854,7 +854,7 @@ public:
 
 		for (auto iter = this->roots()->Begin(); !iter.IsEnd(); )
 		{
-			PageG page = this->GetPage(iter.GetData(), Base::READ);
+			PageG page = this->GetPage(iter.GetValue(), Base::READ);
 
 			ContainerMetadata* ctr_meta = metadata_->GetContainerMetadata(page->model_hash());
 

@@ -237,7 +237,7 @@ bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 		BigInt target_size = me()->GetKey(iter.page(), 0, iter.key_idx() + 1);
 		if (source_size + target_size <= DataPage::get_max_size())
 		{
-			DataPathItem target_data_item(me()->GetDataPage(iter.page(), iter.key_idx() + 1, Allocator::UPDATE), iter.key_idx() + 1);
+			DataPathItem target_data_item(me()->GetValuePage(iter.page(), iter.key_idx() + 1, Allocator::UPDATE), iter.key_idx() + 1);
 
 			MergeDataPagesAndRemoveSource(target_data_item, iter.path(), MergeType::RIGHT);
 

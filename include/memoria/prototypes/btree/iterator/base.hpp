@@ -45,42 +45,32 @@ public:
 
     BTreeIteratorBase(const ThisType& other): Base(other), path_(other.path_), key_idx_(other.key_idx_), key_num_(other.key_num_) {}
 
-    void operator=(ThisType&& other)
+    void Assign(ThisType&& other)
     {
         path_       = other.path_;
         key_idx_    = other.key_idx_;
         key_num_	= other.key_num_;
 
-        Base::operator=(std::move(other));
+        Base::Assign(std::move(other));
     }
 
-    void operator=(const ThisType& other)
+    void Assign(const ThisType& other)
     {
     	path_       = other.path_;
     	key_idx_    = other.key_idx_;
     	key_num_	= other.key_num_;
 
-    	Base::operator=(other);
+    	Base::Assign(other);
     }
 
-    bool operator==(const MyType& other) const
+    bool IsEqual(const ThisType& other) const
     {
-    	return page() == other.page() && key_idx_ == other.key_idx_ && Base::operator==(other);
+    	return page() == other.page() && key_idx_ == other.key_idx_ && Base::IsEqual(other);
     }
 
-    Int BuildHash() const
+    bool IsNotEqual(const ThisType& other) const
     {
-    	const NodeBase* page0;
-
-    	if (path_.GetSize() > 0)
-    	{
-    		page0 = path_[0].node().is_set() ? path_[0].node().page() : NULL;
-    	}
-    	else {
-    		page0 = NULL;
-    	}
-
-    	return Base::BuildHash() ^ PtrToHash<const NodeBase*>::hash(page0) ^ key_idx_;
+    	return page() != other.page() || key_idx_ != other.key_idx_ || Base::IsNotEqual(other);
     }
 
     void SetNode(NodeBaseG& node, Int parent_idx)
@@ -101,22 +91,22 @@ public:
 
     NodeBaseG& page()
     {
-        return path_[0];
+        return path_.leaf().node();
     }
 
     const NodeBaseG& page() const
     {
-    	return path_[0];
+    	return path_.leaf().node();
     }
 
     TreePathItem& leaf()
     {
-    	return path_[0];
+    	return path_.leaf();
     }
 
     const TreePathItem& leaf() const
     {
-    	return path_[0];
+    	return path_.leaf();
     }
 
     TreePath& path()
@@ -130,27 +120,27 @@ public:
     }
 
 
-    bool IsBegin()
+    bool IsBegin() const
     {
     	return key_idx() < 0;
     }
 
-    bool IsEnd()
+    bool IsEnd() const
     {
     	return page().is_set() ? key_idx() >= page()->children_count() : true;
     }
 
-    bool IsNotEnd()
+    bool IsNotEnd() const
     {
     	return !IsEnd();
     }
 
-    bool IsEmpty()
+    bool IsEmpty() const
     {
     	return page().is_empty() || page()->children_count() == 0;
     }
 
-    bool IsNotEmpty()
+    bool IsNotEmpty() const
     {
     	return !IsEmpty();
     }

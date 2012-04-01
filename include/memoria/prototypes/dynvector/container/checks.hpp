@@ -74,7 +74,7 @@ M_PARAMS
 bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx)
 {
 	Int key			= me()->GetKey(leaf, 0, idx);
-	DataPageG data 	= me()->GetDataPage(leaf, idx, Allocator::READ);
+	DataPageG data 	= me()->GetValuePage(leaf, idx, Allocator::READ);
 
 	if (data.is_set())
 	{

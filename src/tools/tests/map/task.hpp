@@ -48,14 +48,13 @@ public:
 
 	void CheckContainerData(MapCtr& map, PairVector& pairs)
 	{
-		map.End().update();
 		Int pairs_size = (Int) pairs.size();
 
 		Int idx = 0;
 		for (auto iter = map.Begin(); !iter.IsEnd();)
 		{
 			BigInt key   = iter.GetKey(0);
-			BigInt value = iter.GetData();
+			BigInt value = iter.GetValue();
 
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].key_,   !=, key, idx);
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].value_, !=, value, idx);
@@ -70,7 +69,7 @@ public:
 		for (auto iter = map.RBegin(); !iter.IsBegin(); )
 		{
 			BigInt  key 	= iter.GetKey(0);
-			BigInt  value 	= iter.GetData();
+			BigInt  value 	= iter.GetValue();
 
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].key_,   !=, key, idx);
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].value_, !=, value, idx);
@@ -202,7 +201,7 @@ public:
 		}
 		else if (params->step_ == 1)
 		{
-			BigInt value = map[pairs[c].key_].GetData();
+			BigInt value = map[pairs[c].key_].GetValue();
 
 			MEMORIA_TEST_THROW_IF(pairs[c].value_, !=, value);
 		}

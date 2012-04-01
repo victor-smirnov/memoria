@@ -34,7 +34,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     	if (!iter.IsEnd())
     	{
-    		if (key == iter)
+    		if (key == iter.GetKey(0))
     		{
     			return iter;
     		}
@@ -51,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     {
     	Iterator iter = me()->FindLE(key, 0, true);
 
-    	if (key != iter)
+    	if (iter.IsEnd() || key != iter.GetKey(0))
     	{
     		Accumulator keys;
     		keys[0] = key;
@@ -66,7 +66,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     {
     	Iterator iter = me()->FindLE(key, 0, true);
 
-    	if (key == iter)
+    	if (key == iter.GetKey(0))
     	{
     		iter.Remove();
     		return true;

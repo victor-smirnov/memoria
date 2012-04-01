@@ -65,6 +65,8 @@ typedef Accumulators<Key, Indexes>											Accumulator;
 
 
 void InsertData(Iterator& iter, const ArrayData& data);
+BigInt UpdateData(Iterator& iter, const ArrayData& data, BigInt start, BigInt len);
+
 DataPathItem SplitDataPage(Iterator& iter);
 
 
@@ -178,6 +180,36 @@ void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
 		ImportPages(iter, buffer);
 	}
 }
+
+M_PARAMS
+BigInt M_TYPE::UpdateData(Iterator& iter, const ArrayData& data, BigInt start, BigInt len)
+{
+	BigInt sum = 0;
+
+	while (len > 0)
+	{
+		Int to_read = iter.data()->size() - iter.data_pos();
+
+		if (to_read > len) to_read = len;
+
+		CopyBuffer(data.data() + start, iter.data()->data().value_addr(iter.data_pos()), to_read);
+
+		len 	-= to_read;
+		iter.Skip(to_read);
+
+		sum 	+= to_read;
+		start 	+= to_read;
+
+		if (iter.IsEof())
+		{
+			break;
+		}
+	}
+
+	return sum;
+}
+
+
 
 
 M_PARAMS

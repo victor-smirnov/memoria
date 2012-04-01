@@ -32,6 +32,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		return Iterator(*me(), me()->set().Begin(), me()->array().Begin());
 	}
 
+	Iterator begin()
+	{
+		return Iterator(*me(), me()->set().Begin(), me()->array().Begin());
+	}
 
 	Iterator End()
 	{
@@ -49,6 +53,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		}
 	}
 
+	Iterator end()
+	{
+		Iterator iter(*me());
+		iter.type() = Iterator::END;
+		return iter;
+	}
+
+	IterEndMark endm()
+	{
+		return IterEndMark();
+	}
+
 	Iterator Find(BigInt key)
 	{
 		auto is_iter = me()->set().FindLE(key, 0, false);
@@ -62,6 +78,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		auto ba_iter = me()->array().Seek(data_pos);
 
 		return Iterator(*me(), is_iter, ba_iter, exists);
+	}
+
+	Iterator operator[](BigInt key)
+	{
+		Iterator iter = Find(key);
+
+		if (iter.exists())
+		{
+			return iter;
+		}
+		else {
+			return me()->Create(key);
+		}
 	}
 
 	Iterator Create()

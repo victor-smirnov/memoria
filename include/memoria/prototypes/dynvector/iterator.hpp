@@ -66,7 +66,7 @@ namespace memoria    {
 //    {
 //    	Base::SetupAllocator(&model.allocator());
 //    	Base::page() 		= node;
-//    	Base::data()		= model.GetDataPage(node, idx, ContainerType::Allocator::READ);
+//    	Base::data()		= model.GetValuePage(node, idx, ContainerType::Allocator::READ);
 //    	Base::key_idx() 	= idx;
 //    	Base::state() 		= 0;
 //

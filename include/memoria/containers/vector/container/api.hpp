@@ -52,9 +52,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
 
     static const Int Indexes                                                    = Base::Indexes;
 
-    void copy_data(const Buffer& data, DataPageG& page, BigInt start, BigInt pos, BigInt length);
-
-    void move_data(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix, BigInt* keys);
+//    void copy_data(const Buffer& data, DataPageG& page, BigInt start, BigInt pos, BigInt length);
+//
+//    void move_data(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix, BigInt* keys);
     
     Iterator Find(BigInt pos, Int key_number);
 
@@ -63,30 +63,30 @@ MEMORIA_CONTAINER_PART_END
 #define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::models::array::ApiName)
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
-M_PARAMS
-void M_TYPE::copy_data(const Buffer& data, DataPageG& page, BigInt start, BigInt pos, BigInt length)
-{
-	page.update();
-	memoria::CopyBuffer(data.data() + start, page->data().value_addr(pos), length);
-}
-
-M_PARAMS
-void M_TYPE::move_data(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix, BigInt* keys)
-{
-	from.update();
-	to.update();
-
-	BigInt length = from->data().size() - local_idx;
-
-	keys[0] = -length;
-
-	memoria::CopyBuffer(to->data().value_addr(0), to->data().value_addr(length), to->data().size());
-
-	memoria::CopyBuffer(from->data().value_addr(local_idx), to->data().value_addr(0), length);
-
-	from->data().size() -= length;
-	to->data().size() 	+= length;
-}
+//M_PARAMS
+//void M_TYPE::copy_data(const Buffer& data, DataPageG& page, BigInt start, BigInt pos, BigInt length)
+//{
+//	page.update();
+//	memoria::CopyBuffer(data.data() + start, page->data().value_addr(pos), length);
+//}
+//
+//M_PARAMS
+//void M_TYPE::move_data(DataPageG& from, DataPageG& to, BigInt local_idx, CountData &prefix, BigInt* keys)
+//{
+//	from.update();
+//	to.update();
+//
+//	BigInt length = from->data().size() - local_idx;
+//
+//	keys[0] = -length;
+//
+//	memoria::CopyBuffer(to->data().value_addr(0), to->data().value_addr(length), to->data().size());
+//
+//	memoria::CopyBuffer(from->data().value_addr(local_idx), to->data().value_addr(0), length);
+//
+//	from->data().size() -= length;
+//	to->data().size() 	+= length;
+//}
 
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)

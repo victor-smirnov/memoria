@@ -52,8 +52,7 @@ public:
     
     Iter(Container &model, Int levels = 0): Base(), model_(model)
     {
-    	Base::state() 		= 0;
-        Base::key_idx() 	= 0;
+    	Base::key_idx() 	= 0;
 
         Base::path().Resize(levels);
     }
@@ -70,48 +69,94 @@ public:
 
     MyType& operator=(MyType&& other)
     {
-    	Base::operator=(std::move(other));
-    	Base::ReHash();
+    	if (this != &other)
+    	{
+    		Base::Assign(std::move(other));
+    	}
+
     	return *this;
     }
 
     MyType& operator=(const MyType& other)
     {
-    	Base::operator=(other);
-    	Base::ReHash();
+    	if (this != &other)
+    	{
+    		Base::Assign(other);
+    	}
+
     	return *this;
     }
 
-
-
-    void update() {
-//    	switch (kind_) {
-//    		case BEGIN_ITERATOR: 	(*this) = model().FindStart(); break;
-//    		case END_ITERATOR: 		(*this) = model().FindEnd(); break;
-//
-//    		case REVERSE_BEGIN_ITERATOR: 	(*this) = model().FindRStart(); break;
-//    		case REVERSE_END_ITERATOR: 		(*this) = model().FindREnd(); break;
-//
-//    		default:; // do nothing
-//    	};
-    }
-
     bool operator==(const MyType& other) const
+	{
+    	return IsEqual(other);
+	}
+
+    bool IsEqual(const MyType& other) const
     {
-    	if (Base::hash() == other.hash())
+    	if (other.type() == Base::NORMAL)
     	{
-    		return Base::operator==(other);
+    		return Base::IsEqual(other);
     	}
-    	else {
-    		return false;
+    	else if (other.type() == Base::END)
+    	{
+    		return Base::IsEnd();
+    	}
+    	else if (other.type() == Base::START)
+    	{
+    		return Base::IsBegin();
+    	}
+    	else
+    	{
+    		return Base::IsEmpty();
     	}
     }
 
-    bool operator!=(const MyType& other) const {
-    	return !operator==(other);
+    bool operator!=(const MyType& other) const
+    {
+    	return IsNotEqual(other);
     }
 
+    bool IsNotEqual(const MyType& other) const
+    {
+    	if (other.type() == Base::NORMAL)
+    	{
+    		return Base::IsNotEqual(other);
+    	}
+    	else if (other.type() == Base::END)
+    	{
+    		return Base::IsNotEnd();
+    	}
+    	else if (other.type() == Base::START)
+    	{
+    		return !Base::IsBegin();
+    	}
+    	else
+    	{
+    		return !Base::IsEmpty();
+    	}
+    }
+
+    template <typename T>
+    MyType& operator=(const T& value)
+    {
+    	this->SetData(value);
+    	return *this;
+    }
 };
+
+template <typename Types>
+bool operator==(const Iter<BTreeIterTypes<Types> >& iter, const IterEndMark& mark)
+{
+	return iter.IsEnd();
+}
+
+template <typename Types>
+bool operator!=(const Iter<BTreeIterTypes<Types> >& iter, const IterEndMark& mark)
+{
+	return iter.IsNotEnd();
+}
+
 
 }
 

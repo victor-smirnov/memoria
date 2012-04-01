@@ -62,7 +62,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::MapName)
         else {
             Key k = i.GetKey(c);
             if (k == key) {
-                value = i.GetData();
+                value = i.GetValue();
                 return true;
             }
             else {

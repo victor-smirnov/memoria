@@ -19,6 +19,7 @@ using namespace memoria::vector_map;
 template <typename Types>
 class Iter<VectorMapIterTypes<Types> >: public IterStart<VectorMapIterTypes<Types> >
 {
+	typedef IterStart<VectorMapIterTypes<Types> >				Base;
 	typedef Iter<VectorMapIterTypes<Types> >					MyType;
 	typedef Ctr<VectorMapCtrTypes<Types> >						ContainerType;
 
@@ -73,27 +74,29 @@ public:
 		return model_;
 	}
 
-	bool operator==(const MyType& other) const
-	{
-		return is_iter_ == other.is_iter_ && ba_iter_ == other.ba_iter_;
-	}
-
-	bool operator!=(const MyType& other) const
-	{
-		return !operator==(other);
-	}
-
 	MyType& operator=(MyType&& other)
 	{
-		ba_iter_ = std::move(other.ba_iter_);
-		is_iter_ = std::move(other.is_iter_);
+		if (this != &other)
+		{
+			ba_iter_ = std::move(other.ba_iter_);
+			is_iter_ = std::move(other.is_iter_);
+
+			Base::Assign(other);
+		}
+
 		return *this;
 	}
 
 	MyType& operator=(const MyType& other)
 	{
-		ba_iter_ = other.ba_iter_;
-		is_iter_ = other.is_iter_;
+		if (this != &other)
+		{
+			ba_iter_ = other.ba_iter_;
+			is_iter_ = other.is_iter_;
+
+			Base::Assign(std::move(other));
+		}
+
 		return *this;
 	}
 
@@ -135,7 +138,78 @@ public:
 	}
 
 
+	bool operator==(const MyType& other) const
+	{
+		return IsEqual(other);
+	}
+
+	bool IsEqual(const MyType& other) const
+	{
+		if (other.type() == Base::NORMAL)
+		{
+			return is_iter_ == other.is_iter_ && ba_iter_ == other.ba_iter_ && Base::IsEqual(other);
+		}
+		else if (other.type() == Base::END)
+		{
+			return Base::IsEnd();
+		}
+		else if (other.type() == Base::START)
+		{
+			return Base::IsBegin();
+		}
+		else
+		{
+			return Base::IsEmpty();
+		}
+	}
+
+	bool operator!=(const MyType& other) const
+	{
+		return IsNotEqual(other);
+	}
+
+	bool IsNotEqual(const MyType& other) const
+	{
+		if (other.type() == Base::NORMAL)
+		{
+			return is_iter_ != other.is_iter_ || ba_iter_ != other.ba_iter_ || Base::IsNotEqual(other);
+		}
+		else if (other.type() == Base::END)
+		{
+			return Base::IsNotEnd();
+		}
+		else if (other.type() == Base::START)
+		{
+			return !Base::IsBegin();
+		}
+		else
+		{
+			return !Base::IsEmpty();
+		}
+	}
+
+
+
+	template <typename T>
+	MyType& operator=(const T& value)
+	{
+		this->SetValue(value);
+		return *this;
+	}
 };
+
+
+template <typename Types>
+bool operator==(const Iter<VectorMapIterTypes<Types> >& iter, const IterEndMark& mark)
+{
+	return iter.IsEnd();
+}
+
+template <typename Types>
+bool operator!=(const Iter<VectorMapIterTypes<Types> >& iter, const IterEndMark& mark)
+{
+	return iter.IsNotEnd();
+}
 
 }
 

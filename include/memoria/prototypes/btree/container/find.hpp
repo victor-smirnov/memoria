@@ -153,6 +153,11 @@ public:
     	return me()->FindStart(false);
     }
 
+    Iterator begin()
+    {
+    	return me()->FindStart(false);
+    }
+
     Iterator RBegin()
     {
     	return me()->FindEnd(true);
@@ -161,6 +166,18 @@ public:
     Iterator End()
     {
     	return me()->FindEnd(false);
+    }
+
+    Iterator end()
+    {
+    	Iterator iter(*me());
+    	iter.type() = Iterator::END;
+    	return iter;
+    }
+
+    IterEndMark endm()
+    {
+    	return IterEndMark();
     }
 
     Iterator REnd() {

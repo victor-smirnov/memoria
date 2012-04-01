@@ -43,37 +43,39 @@ public:
     {}
 
 
-    void operator=(const ThisType& other)
+    void Assign(const ThisType& other)
     {
     	prefix_ = other.prefix_;
 
-    	Base::operator=(other);
+    	Base::Assign(other);
+    }
+
+    void Assign(ThisType&& other)
+    {
+    	prefix_ = other.prefix_;
+
+    	Base::Assign(std::move(other));
     }
 
 
-    bool operator==(const MyType& other) const
+    bool IsEqual(const ThisType& other) const
     {
-    	if (prefix_ != other.prefix_)
-    	{
-    		return false;
-    	}
-
-    	return Base::operator==(other);
+    	return prefix_ == other.prefix_ && Base::IsEqual(other);
     }
 
-    Int BuildHash() const
+    bool IsNotEqual(const ThisType& other) const
     {
-    	return Base::BuildHash();
+    	return prefix_ != other.prefix_ || Base::IsNotEqual(other);
     }
 
     Key& prefix(Int i)
     {
-    	return prefix_.keys()[i];
+    	return prefix_[i];
     }
 
     const Key prefix(Int i) const
     {
-    	return prefix_.keys()[i];
+    	return prefix_[i];
     }
 
     Accumulator& prefix()

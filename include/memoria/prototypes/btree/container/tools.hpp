@@ -447,7 +447,7 @@ public:
 
     ID GetINodeData(const NodeBaseG& node, Int idx) const
     {
-    	return *memoria::btree::GetData<NonLeafDispatcher, ID>(node.page(), idx);
+    	return *memoria::btree::GetValue<NonLeafDispatcher, ID>(node.page(), idx);
     }
 
     void SetINodeData(NodeBaseG& node, Int idx, const ID *id) const
@@ -498,7 +498,7 @@ public:
     
     Value GetLeafData(const NodeBaseG& node, Int idx) const
     {
-        return *memoria::btree::GetData<LeafDispatcher, Value>(node.page(), idx);
+        return *memoria::btree::GetValue<LeafDispatcher, Value>(node.page(), idx);
     }
 
     void SetLeafData(NodeBaseG& node, Int idx, const Value &val) const

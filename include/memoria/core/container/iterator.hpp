@@ -33,9 +33,9 @@ public:
 	IterHelper(ThisType&& other): BaseType(std::move(other)) {}
 	IterHelper(const ThisType& other): BaseType(other) {}
 
-	void operator=(const ThisType& other) {
-		BaseType::operator=(other);
-	}
+//	void operator=(const ThisType& other) {
+//		BaseType::operator=(other);
+//	}
 };
 
 template <typename Types>
@@ -50,9 +50,9 @@ public:
 	IterHelper(ThisType&& other): BaseType(std::move(other)) {}
 	IterHelper(const ThisType& other): BaseType(other) {}
 
-	void operator=(const ThisType& other) {
-		BaseType::operator=(other);
-	}
+//	void operator=(const ThisType& other) {
+//		BaseType::operator=(other);
+//	}
 };
 
 template <typename Types>
@@ -66,9 +66,9 @@ public:
 	IterStart(ThisType&& other): Base(std::move(other)) {}
 	IterStart(const ThisType& other): Base(other) {}
 
-	void operator=(const ThisType& other) {
-		Base::operator=(other);
-	}
+//	void operator=(const ThisType& other) {
+//		Base::operator=(other);
+//	}
 };
 
 
@@ -86,51 +86,50 @@ public:
 
     typedef Iter<TypesType>															MyType;
 
-    enum {END = 1, START = 2, EMPTY = 3};
+    enum {NORMAL = 0, END = 1, START = 2, EMPTY = 3};
     
 private:
-    Int     state_;
-    Int 	hash_;
     Logger 	logger_;
+
+    Int type_;
 
 public:
     IteratorBase():
-    	state_(0), hash_(0),
-    	logger_("Iterator", Logger::DERIVED, &memoria::vapi::logger)
+    	logger_("Iterator", Logger::DERIVED, &memoria::vapi::logger),
+    	type_(NORMAL)
     {}
 
-    IteratorBase(ThisType&& other): state_(other.state_), hash_(other.hash_), logger_(other.logger_) {}
-    IteratorBase(const ThisType& other): state_(other.state_), hash_(other.hash_), logger_(other.logger_) {}
+    IteratorBase(ThisType&& other): logger_(std::move(other.logger_)), type_(other.type_) {}
+    IteratorBase(const ThisType& other): logger_(other.logger_), type_(other.type_) 	  {}
 
-    bool operator==(const MyType& other) const {
-    	return true;//state_ == other.state_;
+    const Int& type() const {
+    	return type_;
     }
 
-    bool operator!=(const MyType& other) const {
-    	return state_ != other.state_;
+    Int& type() {
+    	return type_;
     }
 
-    void operator=(const ThisType& other)
+    bool IsEqual(const ThisType& other) const
     {
-    	state_ 	= other.state_;
-    	hash_ 	= other.hash_;
-    	logger_ = other.logger_;
+    	return true;
     }
 
-    void operator=(ThisType&& other)
+    bool IsNotEqual(const ThisType& other) const
     {
-    	state_ 	= other.state_;
-    	hash_ 	= other.hash_;
+    	return false;
+    }
+
+    void Assign(const ThisType& other)
+    {
     	logger_ = other.logger_;
+    	type_	= other.type_;
     }
 
-    Int hash() const {
-    	return hash_;
-    }
-
-    Int BuildHash() const {
-    	// threre is no meaningful fields in this class for hash;
-    	return 0;
+    void Assing(ThisType&& other)
+    {
+    	logger_ = std::move(other.logger_);
+    	type_	= other.type_;
     }
 
     MyType* me() {
@@ -141,31 +140,6 @@ public:
     	return static_cast<const MyType*>(this);
     }
 
-    Int &state() {
-        return state_;
-    }
-
-    void set_state(Int state) {
-        state_ = state;
-    }
-
-    void reset_state() {
-        state_ = 0;
-    }
-
-    const Int& state() const {
-        return state_;
-    }
-
-    void SetStateBit(int flag, bool bit)
-    {
-        if (bit) {
-            state_ |= flag;
-        }
-        else {
-            state_ &= ~flag;
-        }
-    }
 
     bool is_log(Int level)
     {
@@ -181,9 +155,6 @@ public:
         return me()->model().type_name();
     }
 
-    void ReHash() {
-    	hash_ = me()->BuildHash();
-    }
 
     void Init() {}
 };
@@ -206,27 +177,13 @@ public:
 
     typedef Ctr<typename Types::CtrTypes>                                       ContainerType;
 
-    typedef typename Types::IteratorData										IteratorData;
-
 
 protected:
     ContainerType&      model_;
 
-    IteratorData		iter_data_;
-
 public:
     
-    Iter(ContainerType &model, const IteratorData& iter_data): model_(model), iter_data_(iter_data) {}
-
-    IteratorData& iter_data()
-    {
-    	return iter_data_;
-    }
-
-    const IteratorData& iter_data() const
-    {
-    	return iter_data_;
-    }
+    Iter(ContainerType &model): model_(model) {}
 
     MyType* me() {
     	return this;
@@ -246,13 +203,7 @@ public:
 
     bool operator==(const MyType& other) const
     {
-    	if (Base::hash() == other.hash())
-    	{
-    		return Base::operator==(other);
-    	}
-    	else {
-    		return false;
-    	}
+    	return Base::operator==(other);
     }
 
     bool operator!=(const MyType& other) const {
@@ -261,8 +212,11 @@ public:
 
     ThisIteratorType& operator=(ThisIteratorType&& other)
     {
-    	Base::operator=(std::move(other));
-    	Base::ReHash();
+    	if (this != &other)
+    	{
+    		Base::operator=(std::move(other));
+    	}
+
     	return *this;
     }
 };

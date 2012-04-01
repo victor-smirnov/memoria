@@ -47,8 +47,7 @@ public:
 template <                                                                      		\
         typename TypesType																\
 >                                                                               		\
-class BTreeIteratorBaseClassName: public IteratorBase<                   				\
-        TypesType>                                                    					\
+class BTreeIteratorBaseClassName: public IteratorBase<TypesType>                        \
 {																						\
 	typedef IteratorBase<TypesType> 											Base;	\
 	typedef BTreeIteratorBaseClassName<TypesType>								ThisType;\

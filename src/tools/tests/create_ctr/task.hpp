@@ -148,7 +148,7 @@ public:
 		for (auto iter = map.Begin(); !iter.IsEnd(); iter.NextKey(), new_iter.NextKey())
 		{
 			MEMORIA_TEST_THROW_IF(iter.GetKey(0), !=, new_iter.GetKey(0));
-			MEMORIA_TEST_THROW_IF(iter.GetData(), !=, new_iter.GetData());
+			MEMORIA_TEST_THROW_IF(iter.GetValue(), !=, new_iter.GetValue());
 		}
 
 		BigInt t22 = GetTimeInMillis();

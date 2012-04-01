@@ -43,34 +43,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
-//    class SumWalker {
-//    	Int idx_;
-//    	Int key_;
-//    	BigInt sum_;
-//    	MyType& me_;
-//
-//    public:
-//    	SumWalker(Int key, MyType& me): key_(key), sum_(0), me_(me) {}
-//
-//    	BigInt sum() const {
-//    		return sum_;
-//    	}
-//
-//    	void operator()(NodeBase* node, Int idx)
-//    	{
-//    		idx_ = idx;
-//    		Base::Container::NodeDispatcher::Dispatch(node, *this);
-//    	}
-//
-//    	template <typename Node>
-//    	void operator()(Node* node)
-//    	{
-//    		for (Int c = 0; c < idx_; c++)
-//    		{
-//    			sum_ += node->map().key(key_, c);
-//    		}
-//    	}
-//    };
 
     IterPart(): Base(), local_pos_(0) {}
 
@@ -78,21 +50,31 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     IterPart(const ThisPartType& other): Base(other), local_pos_(other.local_pos_) {}
 
-    void operator=(const ThisPartType& other)
+    void Assign(const ThisPartType& other)
     {
-    	Base::operator=(other);
+    	Base::Assign(other);
 
     	local_pos_    	= other.local_pos_;
     }
 
-    void operator=(ThisPartType&& other)
+    void Assign(ThisPartType&& other)
     {
-    	Base::operator=(std::move(other));
+    	Base::Assign(std::move(other));
 
     	local_pos_    	= other.local_pos_;
     }
 
-    bool IsEof()
+    bool IsEqual(const ThisPartType& other) const
+    {
+    	return local_pos_  == other.local_pos_ && Base::IsEqual(other);
+    }
+
+    bool IsNotEqual(const ThisPartType& other) const
+    {
+    	return local_pos_  != other.local_pos_ || Base::IsNotEqual(other);
+    }
+
+    bool IsEof() const
     {
     	return me()->data().is_set() ? me()->data_pos() >= me()->data()->size() : true;
     }
@@ -115,7 +97,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return local_pos_;
     }
 
-    BigInt pos()
+    BigInt pos() const
     {
     	return me()->prefix(0) + me()->data_pos();
     }

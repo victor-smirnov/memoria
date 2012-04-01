@@ -413,11 +413,11 @@ void SetData(Node *node, I idx, Data *data) {
 
 
 template <typename Data>
-class GetDataItemFn {
+class GetValueItemFn {
     Int i_;
     const Data *data_;
 public:
-    GetDataItemFn(Int i): i_(i), data_(NULL) {}
+    GetValueItemFn(Int i): i_(i), data_(NULL) {}
 
     template <typename T>
     void operator()(T *node) {
@@ -430,8 +430,8 @@ public:
 };
 
 template <typename Dispatcher, typename Data, typename Node>
-const Data* GetData(Node *node, Int idx) {
-    GetDataItemFn<Data> fn(idx);
+const Data* GetValue(Node *node, Int idx) {
+    GetValueItemFn<Data> fn(idx);
     Dispatcher::DispatchConst(node, fn);
     return fn.data();
 }

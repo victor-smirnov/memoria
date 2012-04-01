@@ -156,17 +156,12 @@ public:
 
 
 
-#define MEMORIA_ITERATOR_PART_BEGIN(PartName)                       			\
+#define MEMORIA_ITERATOR_PART_BEGIN(PartName)                  					\
     MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(PartName)                   			\
     IterPart(): Base() {}														\
 	IterPart(ThisPartType&& other): Base(std::move(other)) {}					\
-	IterPart(const ThisPartType& other): Base(other) {}							\
-	void operator=(const ThisPartType& other) {									\
-		Base::operator=(other);													\
-	}																			\
-	void operator=(ThisPartType&& other) {										\
-		Base::operator=(std::move(other));										\
-	}
+	IterPart(const ThisPartType& other): Base(other) {}
+
 
 
 

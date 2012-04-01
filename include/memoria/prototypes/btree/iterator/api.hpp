@@ -72,6 +72,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	return me()->PrevKey();
     }
 
+    bool operator++(int) {
+    	return me()->NextKey();
+    }
+
+    bool operator--(int) {
+    	return me()->PrevKey();
+    }
+
     BigInt operator+=(BigInt size)
     {
     	return me()->SkipFw(size);
@@ -82,15 +90,29 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	return me()->SkipBw(size);
     }
 
+    operator Value () const
+    {
+    	return me()->GetValue();
+    }
 
-    operator const Key () const
+    Value value() const
+    {
+    	return me()->GetValue();
+    }
+
+    Accumulator keys() const
+    {
+    	return me()->GetKeys();
+    }
+
+    Key key() const
     {
     	return me()->GetKey(0);
     }
 
-    operator Accumulator () const
+    Key key(Int key_num) const
     {
-    	return me()->GetKeys();
+    	return me()->GetKey(key_num);
     }
 
     MyType& operator<<(const Element& element)
@@ -99,18 +121,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	return *me();
     }
 
-    MyType& operator=(const Value& value)
+    MyType& operator*()
     {
-    	if (!me()->IsEnd())
-    	{
-    		me()->model().SetLeafData(me()->leaf().node(), me()->key_idx(), value);
-    		return *me();
-    	}
-    	else {
-    		throw MemoriaException(MEMORIA_SOURCE, "Insertion after the end of iterator");
-    	}
+    	return *me();
     }
-
 
     void Remove()
     {
@@ -118,14 +132,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	me()->model().RemoveEntry(*me(), keys);
     }
 
-    Value GetData() const
+    Value GetValue() const
     {
     	return me()->model().GetLeafData(me()->page(), me()->key_idx());
     }
 
     void SetData(const Value& data)
     {
-    	me()->model().SetLeafData(me()->leaf().node(), me()->key_idx(), data);
+    	if (!me()->IsEnd())
+    	{
+    		me()->model().SetLeafData(me()->leaf().node(), me()->key_idx(), data);
+    	}
+    	else {
+    		throw MemoriaException(MEMORIA_SOURCE, "Insertion after the end of iterator");
+    	}
     }
 
     Key GetKey(Int keyNum) const
@@ -272,8 +292,6 @@ bool M_TYPE::NextKey()
 
 			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
-			me()->ReHash();
-
 			return true;
 		}
 		else {
@@ -289,8 +307,6 @@ bool M_TYPE::NextKey()
 			}
 
 			me()->KeyNum()++;
-
-			me()->ReHash();
 
 			return has_next_leaf;
 		}
@@ -330,8 +346,6 @@ bool M_TYPE::PrevKey()
 
 		me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
-		me()->ReHash();
-
 		return true;
 	}
 	else {
@@ -347,8 +361,6 @@ bool M_TYPE::PrevKey()
 
 			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 		}
-
-		me()->ReHash();
 
 		return has_prev_leaf;
 	}

@@ -54,13 +54,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     
     void Insert(const ArrayData& data, BigInt start, BigInt len);
+    void Insert(const ArrayData& data);
 
-    void Insert(const ArrayData& data)
-    {
-    	Insert(data, 0, data.size());
-    }
 
-    void Update(ArrayData& data, BigInt start, BigInt len) {}
+    void Update(const ArrayData& data, BigInt start, BigInt len);
+    void Update(const ArrayData& data);
 
     void Remove(BigInt len)
     {
@@ -142,15 +140,31 @@ BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
 M_PARAMS
 void M_TYPE::Insert(const ArrayData& data, BigInt start, BigInt len)
 {
-//	BufferContentDescriptor descriptor;
-//
-//	descriptor.start() = start;
-//	descriptor.length() = len;
-//
-//	me()->model().InsertDataBlock(*me(), data, descriptor);
+	const ArrayData data1(len, data.data() + start);
+	me()->model().InsertData(*me(), data1);
+}
 
+M_PARAMS
+void M_TYPE::Insert(const ArrayData& data)
+{
 	me()->model().InsertData(*me(), data);
 }
+
+
+
+M_PARAMS
+void M_TYPE::Update(const ArrayData& data, BigInt start, BigInt len)
+{
+	me()->model().UpdateData(*me(), data, start, len);
+}
+
+M_PARAMS
+void M_TYPE::Update(const ArrayData& data)
+{
+	me()->model().UpdateData(*me(), data, 0, data.size());
+}
+
+
 
 M_PARAMS
 BigInt M_TYPE::Skip(BigInt distance)

@@ -182,7 +182,7 @@ int main(int argc, const char** argv, const char** envp)
 		{
 			BigInt  name 	= iter.GetKey(0);
 
-			BigInt  value 	= iter.GetData();
+			BigInt  value 	= iter.GetValue();
 			IDValue id(value);
 
 			cout<<"Dumping name="<<name<<" root="<<id<<endl;

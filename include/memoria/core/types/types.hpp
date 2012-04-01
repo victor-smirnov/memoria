@@ -177,6 +177,7 @@ struct ValuePair {
 };
 
 struct NoParamCtr {};
+struct IterEndMark {};
 
 struct SerializationData {
 	char* buf;

@@ -52,6 +52,42 @@ void Insert(const ArrayData& data)
 	me()->is_iter().UpdateUp(keys);
 }
 
+void Update(const ArrayData& data)
+{
+	BigInt sz = me()->size();
+
+	if (sz > 0)
+	{
+		BigInt difference = sz - data.size();
+
+		if (difference < 0)
+		{
+			me()->ba_iter().Update(data);
+			me()->ba_iter().Remove(difference);
+		}
+		else if (difference > 0)
+		{
+			me()->ba_iter().Update(data, 0, sz);
+			me()->ba_iter().Insert(data, sz, difference);
+		}
+		else {
+			me()->ba_iter().Update(data);
+		}
+
+		if (difference != 0)
+		{
+			IdxSetAccumulator keys;
+			keys.key(1) = difference;
+			me()->is_iter().UpdateUp(keys);
+		}
+	}
+	else {
+		me()->Insert(data);
+	}
+
+	me()->ba_iter().Skip(-data.size());
+}
+
 
 BigInt Read(ArrayData& data)
 {
@@ -100,22 +136,22 @@ void Remove()
 	me()->ba_iter().Remove(data_size);
 }
 
-BigInt size()
+BigInt size() const
 {
 	return me()->is_iter().GetRawKey(1);
 }
 
-BigInt pos()
+BigInt pos() const
 {
 	return me()->ba_iter().pos() - me()->is_iter().prefix(1);
 }
 
-BigInt GetKey()
+BigInt GetKey() const
 {
 	return me()->is_iter().GetKey(0);
 }
 
-IdxSetAccumulator GetKeys()
+IdxSetAccumulator GetKeys() const
 {
 	IdxSetAccumulator keys = me()->is_iter().GetRawKeys();
 
@@ -124,22 +160,87 @@ IdxSetAccumulator GetKeys()
 	return keys;
 }
 
-bool IsNotEnd()
+bool IsNotEnd() const
 {
 	return me()->is_iter().IsNotEnd();
 }
 
-bool IsEnd()
+bool IsEnd() const
 {
 	return me()->is_iter().IsEnd();
 }
 
-bool Next()
+bool IsBegin() const
+{
+	return me()->is_iter().IsBegin();
+}
+
+bool IsEmpty() const
+{
+	return me()->is_iter().IsEmpty();
+}
+
+bool Next() {
+	return me()->NextKey();
+}
+
+bool NextKey()
 {
 	me()->ba_iter().Skip(size() - pos());
 	return me()->is_iter().Next();
 }
 
+void SetValue(BigInt value)
+{
+	ArrayData data(sizeof(value), &value);
+	me()->Update(data);
+}
+
+bool operator++() {
+	return me()->NextKey();
+}
+
+bool operator--() {
+	return me()->PrevKey();
+}
+
+bool operator++(int) {
+	return me()->NextKey();
+}
+
+bool operator--(int) {
+	return me()->PrevKey();
+}
+
+BigInt key() const {
+	return me()->is_iter().key();
+}
+
+MyType& operator*() {
+	return *me();
+}
+
+void SetValue(StringRef value)
+{
+	ArrayData data(value.size(), T2T<UByte*>(value.c_str()));
+	me()->Update(data);
+}
+
+operator ArrayData()
+{
+	ArrayData data(me()->size());
+	BigInt len = me()->Read(data);
+	me()->Skip(-len);
+	return data;
+}
+
+operator String ()
+{
+	ArrayData data(me()->size());
+	BigInt len = me()->Read(data);
+	me()->Skip(-len);
+	return String(T2T<char*>(data.data()), data.size());
+}
 
 MEMORIA_ITERATOR_PART_END
 

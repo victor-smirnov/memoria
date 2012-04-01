@@ -7,6 +7,8 @@
 
 #include "create_ctr.hpp"
 #include "copy_ctr.hpp"
+#include "map.hpp"
+#include "vector_map.hpp"
 
 #include <memoria/tools/examples.hpp>
 
@@ -66,6 +68,8 @@ int main(int argc, const char** argv, const char** envp)
 
 		runner.RegisterTask(new CreateCtrExample());
 		runner.RegisterTask(new CopyCtrExample());
+		runner.RegisterTask(new MapExample());
+		runner.RegisterTask(new VectorMapExample());
 
 
 		runner.Configure(&cmd_line.GetConfigurator());

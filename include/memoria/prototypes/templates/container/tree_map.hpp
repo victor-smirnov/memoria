@@ -139,7 +139,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     	}
     	else {
 
-    		value = ConvertToHelper<Value, ID>::cvt(i.GetData());
+    		value = ConvertToHelper<Value, ID>::cvt(i.GetValue());
     		key = i.GetKey(0);
 
     		return true;
