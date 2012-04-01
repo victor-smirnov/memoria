@@ -383,12 +383,10 @@ void M_TYPE::RemoveAllPages(TreePath& start, TreePath& stop, Accumulator& accum,
 
 	removed_key_count += RemoveRoom(start, level, 0, count, accum);
 
-	Metadata meta = me()->GetRootMetadata(start[level].node());
+
 	me()->RemoveNode(start[level].node());
 
-	NodeBaseG node = me()->CreateNode(0, true, true);
-
-	me()->SetRootMetadata(node, meta);
+	NodeBaseG node = me()->CreateRootNode(0, true, me()->GetRootMetadata());
 
 	me()->set_root(node->id());
 
@@ -574,11 +572,9 @@ void M_TYPE::RemovePage(TreePath& path, Int& key_idx)
 		}
 		else if (path[c]->is_root())
 		{
-			Metadata meta = me()->GetRootMetadata(path[c].node());
 			me()->RemoveNode(path[c].node());
-			NodeBaseG node = me()->CreateNode(0, true, true);
 
-			me()->SetRootMetadata(node, meta);
+			NodeBaseG node = me()->CreateRootNode(0, true, me()->GetRootMetadata());
 
 			me()->set_root(node->id());
 			path.Clear();
@@ -590,13 +586,9 @@ void M_TYPE::RemovePage(TreePath& path, Int& key_idx)
 		}
 	}
 
-	Metadata meta = me()->GetRootMetadata(path.leaf().node());
-
 	me()->RemoveNode(path.leaf().node());
 
-	NodeBaseG node = me()->CreateNode(0, true, true);
-
-	me()->SetRootMetadata(node, meta);
+	NodeBaseG node = me()->CreateRootNode(0, true, me()->GetRootMetadata());
 
 	me()->set_root(node->id());
 	path.Clear();
@@ -646,7 +638,7 @@ bool M_TYPE::ChangeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
 {
 	if (parent.is_set() && parent->is_root() && parent->children_count() == 1)
 	{
-		Metadata meta = me()->GetRootMetadata(parent);
+		Metadata meta = me()->GetRootMetadata();
 
 		me()->Node2Root(node, meta);
 
@@ -731,7 +723,7 @@ void M_TYPE::RemoveRedundantRoot(TreePath& path, Int level)
 
 		if (node->children_count() == 1)
 		{
-			Metadata root_metadata = me()->GetRootMetadata(node);
+			Metadata root_metadata = me()->GetRootMetadata();
 
 			NodeBaseG& child = path[c - 1].node();
 
@@ -759,7 +751,7 @@ void M_TYPE::RemoveRedundantRoot(TreePath& start, TreePath& stop, Int level)
 
 		if (node->children_count() == 1)
 		{
-			Metadata root_metadata = me()->GetRootMetadata(node);
+			Metadata root_metadata = me()->GetRootMetadata();
 
 			NodeBaseG& child = start[c - 1].node();
 

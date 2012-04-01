@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -58,6 +58,7 @@ public:
 
 	typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>						RootMapType;
 	typedef typename RootMapType::Metadata										RootMetatata;
+	typedef typename RootMapType::BTreeCtrShared								RootCtrShared;
 
 private:
 	typedef InMemAllocator<Profile, PageType, TxnType> 							MyType;
@@ -87,37 +88,31 @@ private:
 	Int 				counter_;
 	ContainerMetadataRepository* 	metadata_;
 
-	ID 					root_;
-	ID 					root_log_;
-	bool				updated_;
-
 	MyType& 			me_;
 	const char* 		type_name_;
 	BigInt 				allocs1_;
 	BigInt 				allocs2_;
+
 	Me* 				roots_;
+
 	RootMapType* 		root_map_;
 
 	StaticPool<ID, Shared>	pool_;
 
-	RootMetatata 		root_metadata_;
-
 public:
 	InMemAllocator() :
 		logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
-		counter_(100), metadata_(MetadataRepository<Profile>::GetMetadata()), root_(0), root_log_(0), updated_(false), me_(*this),
-		type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this)//, root_map_(*this, 0, true)
+		counter_(100), metadata_(MetadataRepository<Profile>::GetMetadata()), me_(*this),
+		type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this)
 	{
-		root_map_ 		= new RootMapType(*this, 0, true);
-		root_metadata_ 	= root_map_->GetRootMetadata();
+		root_map_ = new RootMapType(*this, 0, true);
 	}
 
 	InMemAllocator(const InMemAllocator& other):
 			logger_(other.logger_),
-			counter_(other.counter_), metadata_(other.metadata_), root_(other.root_), root_log_(0), updated_(false), me_(*this),
+			counter_(other.counter_), metadata_(other.metadata_), me_(*this),
 			type_name_("StreamAllocator"), allocs1_(other.allocs1_), allocs2_(other.allocs2_), roots_(this), //root_map_(*this, 0, false),
-			pool_(other.pool_),
-			root_metadata_(other.root_metadata_)
+			pool_(other.pool_)
 	{
 		for (auto i = other.pages_.begin(); i != other.pages_.end(); i++)
 		{
@@ -172,13 +167,7 @@ public:
 
 	const ID &root() const
 	{
-		if (updated_)
-		{
-			return root_log_;
-		}
-		else {
-			return root_;
-		}
+		return root_map_->root();
 	}
 
 
@@ -341,18 +330,6 @@ public:
 
 	virtual PageG GetPageG(Page* page)
 	{
-//		Shared* shared = pool_.Get(id);
-//		if (shared == NULL)
-//		{
-//			shared = pool_.Allocate(id);
-//
-//			shared->set_allocator(this);
-//			shared->id() = id;
-//		}
-//		else {
-//			return PageG(shared);
-//		}
-
 		return GetPage(page->id(), Base::READ);
 	}
 
@@ -429,23 +406,23 @@ public:
 		cout<<allocs1_<<" "<<allocs2_<<" "<<pages_.size()<<endl;
 	}
 
-	void clear()
-	{
-		pages_.clear();
-		pages_log_.clear();
-		ctr_shared_.clear();
-
-		//pool_.Clear();
-
-
-		root_ 		= 0;
-		root_log_ 	= 0;
-		counter_ 	= 100;
-	}
+//// FIXME: allocator clearing doesn't work
+//	void clear()
+//	{
+//		pages_.clear();
+//		pages_log_.clear();
+//		ctr_shared_.clear();
+//
+//		//pool_.Clear();
+//
+//		root_map_shared_.Clear();
+//
+//		counter_ 	= 100;
+//	}
 
 	void commit()
 	{
-		root_map_->SetRootMetadata(root_metadata_);
+		//root_map_->SetRootMetadata(root_metadata_);
 
 		for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
 		{
@@ -492,21 +469,17 @@ public:
 
 		for (auto i = ctr_shared_.begin(); i != ctr_shared_.end(); i++)
 		{
-			CtrShared* shared = i->second;
-			if (shared->updated())
-			{
-				shared->root() 		= shared->root_log();
-				shared->root_log() 	= 0;
-				shared->updated() 	= false;
-			}
+			i->second->commit();
 		}
 
-		if (updated_)
-		{
-			root_ = root_log_;
-			root_log_ = 0;
-			updated_ = false;
-		}
+//		if (updated_)
+//		{
+//			root_ = root_log_;
+//			root_log_ = 0;
+//			updated_ = false;
+//		}
+
+//		root_map_shared_->commit();
 
 		pages_log_.clear();
 	}
@@ -521,20 +494,14 @@ public:
 
 		for (auto i = ctr_shared_.begin(); i != ctr_shared_.end(); i++)
 		{
-			CtrShared* shared = i->second;
-
-			if (shared->updated())
-			{
-				shared->root_log() = 0;
-				shared->updated() = false;
-			}
+			i->second->rollback();
 		}
 
-		if (updated_)
-		{
-			updated_ 	= false;
-			root_log_ 	= 0;
-		}
+//		if (updated_)
+//		{
+//			updated_ 	= false;
+//			root_log_ 	= 0;
+//		}
 
 		pages_log_.clear();
 	}
@@ -642,6 +609,8 @@ public:
 			throw MemoriaException(MEMORIA_SOURCE, "This is not a stream container");
 		}
 
+		ID root(0);
+
 		bool first = true;
 		Short size;
 		while (input->read(size))
@@ -678,7 +647,7 @@ public:
 
 			if (first)
 			{
-				root_ = page->id();
+				root = page->id();
 				first = false;
 			}
 		}
@@ -695,10 +664,8 @@ public:
 
 		counter_ = maxId + 1;
 
-		//FIXME: does it safe?
-		root_map_->InitCtr(*this, root_);
-
-		root_metadata_ = root_map_->GetRootMetadata();
+		//FIXME: Is it safe?
+		root_map_->InitCtr(*this, root);
 	}
 
 	virtual void store(OutputStreamHandler *output)
@@ -710,14 +677,16 @@ public:
 
 		char buf[PAGE_SIZE];
 
-		if (!root_.is_null())
+		ID root = root_map_->shared()->root();
+
+		if (!root.is_null())
 		{
-			dump_page(output, buf, pages_[root_]);
+			dump_page(output, buf, pages_[root]);
 
 			for (typename IDPageMap::iterator i = pages_.begin(); i!= pages_.end(); i++)
 			{
 				Page *page = i->second;
-				if (page != NULL && !(page->id() == root_))
+				if (page != NULL && !(page->id() == root))
 				{
 					dump_page(output, buf, page);
 				}
@@ -765,8 +734,8 @@ public:
 	{
 		if (name == 0)
 		{
-			root_log_ = page_id;
-			updated_ = true;
+//			root_log_ = page_id;
+//			updated_ = true;
 		}
 		else {
 			roots_->set_value_for_key(name, page_id);
@@ -777,8 +746,8 @@ public:
 	{
 		if (name == 0)
 		{
-			root_log_.Clear();
-			updated_ = true;
+//			root_log_.Clear();
+//			updated_ = true;
 		}
 		else {
 			roots_->remove_by_key(name);
@@ -816,7 +785,7 @@ public:
 
 	virtual void GetRootPageId(IDValue& id)
 	{
-		id = IDValue(&root_);
+		id = IDValue(&root_map_->root());
 	}
 
 	BigInt GetPageCount() {
@@ -890,7 +859,13 @@ public:
 
 	virtual BigInt CreateCtrName()
 	{
-		return ++root_metadata_.model_name_counter();
+		RootMetatata meta = root_map_->GetRootMetadata();
+
+		BigInt new_name = ++meta.model_name_counter();
+
+		root_map_->SetRootMetadata(meta);
+
+		return new_name;
 	}
 };
 

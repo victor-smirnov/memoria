@@ -26,29 +26,46 @@ class BTreeMetadata
 {
 	static const Int ROOTS = 2;
 
-    BigInt model_name_;
-    BigInt key_count_;
+    BigInt 	model_name_;
+    BigInt 	key_count_;
 
-    ID roots_[2];
+    Int		tree_airity_;
+
+    ID 		roots_[2];
 
 public:
     BTreeMetadata() {}
 
-    BigInt &model_name() {
+    BigInt &model_name()
+    {
         return model_name_;
     }
 
-    const BigInt &model_name() const {
+    const BigInt &model_name() const
+    {
         return model_name_;
     }
 
-    BigInt &key_count() {
+    BigInt &key_count()
+    {
         return key_count_;
     }
 
-    const BigInt &key_count() const {
+    const BigInt &key_count() const
+    {
         return key_count_;
     }
+
+    BigInt &tree_airity()
+    {
+    	return tree_airity_;
+    }
+
+    const BigInt &tree_airity() const
+    {
+    	return tree_airity_;
+    }
+
 
 
     MetadataList GetFields(Long &abi_ptr) const
@@ -56,6 +73,7 @@ public:
         MetadataList list;
         FieldFactory<BigInt>::create(list, model_name_, "MODEL_NAME", abi_ptr);
         FieldFactory<BigInt>::create(list, key_count_,  "KEY_COUNT",  abi_ptr);
+        FieldFactory<Int>::create(list, tree_airity_,"TREE_AIRITY",  abi_ptr);
 
         MetadataList rootsList;
         for (Int c = 0; c < ROOTS; c++)
@@ -71,6 +89,7 @@ public:
     {
     	FieldFactory<BigInt>::serialize(buf, model_name_);
     	FieldFactory<BigInt>::serialize(buf, key_count_);
+    	FieldFactory<Int>::serialize(buf, tree_airity_);
 
     	for (Int c = 0; c < ROOTS; c++)
     	{
@@ -82,6 +101,7 @@ public:
     {
     	FieldFactory<BigInt>::deserialize(buf, model_name_);
     	FieldFactory<BigInt>::deserialize(buf, key_count_);
+    	FieldFactory<Int>::deserialize(buf, tree_airity_);
 
     	for (Int c = 0; c < ROOTS; c++)
     	{
@@ -97,16 +117,6 @@ public:
     	return roots_[idx];
     }
 };
-
-
-//template <typename Profile, typename TheContainerName>
-//class BTreeRootMetadataTypeFactory<Profile, BTreeRootMetadataFactory<TheContainerName> > {
-//    typedef typename ContainerCollectionCfg<Profile>::Types::AllocatorType        Allocator;
-//
-//public:
-//    typedef BTreeMetadata<typename Allocator::ID>                                 Type;
-//};
-//
 
 
 MEMORIA_PAGE_PART_BEGIN1(RootNodeMetadataName, TheContainerName)

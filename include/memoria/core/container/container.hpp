@@ -219,9 +219,13 @@ public:
     			shared->updated() = false;
     		}
 
+    		me()->ConfigureNewCtrShared(shared, node);
+
     		return shared;
     	}
     }
+
+    void ConfigureNewCtrShared(CtrShared* shared, PageG root) const {}
 
     void RemoveCtrShared(CtrShared* shared)
     {

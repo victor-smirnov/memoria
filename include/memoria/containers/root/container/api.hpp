@@ -32,21 +32,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::root::CtrApiName)
 
     BigInt GetModelNameCounter() const
     {
-    	Metadata meta = me()->GetRootMetadata();
+    	const Metadata& meta = me()->GetRootMetadata();
     	return meta.model_name_counter();
     }
 
     void SetModelNameCounter(BigInt value)
     {
     	Metadata meta = me()->GetRootMetadata();
+
     	meta.model_name_counter() = value;
+
     	me()->SetRootMetadata(meta);
     }
 
     void AddModelNameCounter(BigInt value)
     {
     	Metadata meta = me()->GetRootMetadata();
+
     	meta.model_name_counter() += value;
+
     	me()->SetRootMetadata(meta);
     }
 

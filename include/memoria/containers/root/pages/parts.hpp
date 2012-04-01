@@ -61,16 +61,6 @@ public:
 };
 
 
-template <typename Profile>
-class BTreeRootMetadataTypeFactory<Profile, BTreeRootMetadataFactory<Root> > {
-    typedef typename ContainerCollectionCfg<Profile>::Types::AllocatorType        Allocator;
-
-public:
-    typedef RootCtrMetadata<typename Allocator::ID>                               Type;
-};
-
-
-
 }
 
 #endif

@@ -37,8 +37,9 @@ private:
 public:
 
 	ContainerShared(BigInt name0): references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(NULL) {}
-	ContainerShared(BigInt name0, CtrShared* parent): references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(NULL), parent_(parent) {}
+	ContainerShared(BigInt name0, CtrShared* parent): references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(parent) {}
 
+	//FIXME virtual destructor
 	~ContainerShared() throw ()
 	{
 		for (Int c = 0; c < children_.GetSize(); c++)
@@ -169,6 +170,41 @@ public:
 	void operator delete (void *ptr, Allocator* allocator)
 	{
 		allocator->FreeMemory(ptr);
+	}
+
+	virtual void commit()
+	{
+		if (updated())
+		{
+			root() 		= root_log();
+			root_log() 	= 0;
+			updated() 	= false;
+		}
+
+		for (Int c = 0; c < children_.GetSize(); c++)
+		{
+			if (children_[c] != NULL)
+			{
+				children_[c]->commit();
+			}
+		}
+	}
+
+	virtual void rollback()
+	{
+		if (updated())
+		{
+			root_log() 	= 0;
+			updated() 	= false;
+		}
+
+		for (Int c = 0; c < children_.GetSize(); c++)
+		{
+			if (children_[c] != NULL)
+			{
+				children_[c]->rollback();
+			}
+		}
 	}
 };
 

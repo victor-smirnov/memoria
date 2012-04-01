@@ -306,67 +306,6 @@ public:
     	return me()->GetCapacity(node) == 0;
     }
 
-    struct GetMetadataFn {
-        Metadata metadata_;
-    
-        GetMetadataFn() {}
-
-        template <typename T>
-        void operator()(T *node) {
-            metadata_ = node->metadata();
-        }
-    };
-
-
-    struct SetMetadataFn {
-    	Metadata metadata_;
-
-    	SetMetadataFn(const Metadata& metadata): metadata_(metadata) {}
-
-    	template <typename T>
-    	void operator()(T *node) {
-    		node->metadata() = metadata_;
-    	}
-    };
-
-    static Metadata GetCtrRootMetadata(const NodeBaseG& node)
-    {
-    	GetMetadataFn fn;
-    	RootDispatcher::DispatchConst(node, fn);
-    	return fn.metadata_;
-    }
-
-    Metadata GetRootMetadata(const NodeBaseG& node) const
-    {
-    	return GetCtrRootMetadata(node);
-    }
-
-
-
-    Metadata GetRootMetadata() const
-    {
-    	NodeBaseG root = me()->GetRoot(Allocator::READ);
-    	return me()->GetRootMetadata(root);
-    }
-
-    void SetRootMetadata(const Metadata& metadata)
-    {
-    	NodeBaseG root = me()->GetRoot(Allocator::UPDATE);
-    	me()->SetRootMetadata(root, metadata);
-    }
-
-    void SetRootMetadata(NodeBaseG& node, const Metadata& metadata)
-    {
-    	node.update();
-    	SetMetadataFn fn(metadata);
-    	RootDispatcher::Dispatch(node, fn);
-    }
-
-    BigInt GetContainerName(const NodeBaseG& node) const
-    {
-        return GetRootMetadata(node).model_name();
-    }
-
     struct SumKeysFn {
 
         Int         from_;
@@ -574,59 +513,35 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 BigInt M_TYPE::GetTotalKeyCount() const
 {
-	NodeBaseG node = me()->GetRoot(Allocator::READ);
-
-	if (node.is_set())
-	{
-		Metadata meta = me()->GetRootMetadata(node);
-		return meta.key_count();
-	}
-	else {
-		return 0;
-	}
+	return me()->GetRootMetadata().key_count();
 }
 
 M_PARAMS
 void M_TYPE::SetTotalKeyCount(BigInt value)
 {
-	NodeBaseG node = me()->GetRoot(Allocator::UPDATE);
-	if (node.is_set())
-	{
-		Metadata meta = me()->GetRootMetadata(node);
-		meta.key_count() = value;
+	Metadata meta = me()->GetRootMetadata();
+	meta.key_count() = value;
 
-		me()->SetRootMetadata(node, meta);
-	}
-	else {
-		throw MemoriaException(MEMORIA_SOURCE, String("Root node is not set for this container: ") + me()->type_name());
-	}
+	me()->SetRootMetadata(meta);
 }
 
 M_PARAMS
 void M_TYPE::AddTotalKeyCount(BigInt value)
 {
-	NodeBaseG node = me()->GetRoot(Allocator::UPDATE);
-	if (node.is_set())
-	{
-		Metadata meta = me()->GetRootMetadata(node);
-		meta.key_count() += value;
+	Metadata meta 		= me()->GetRootMetadata();
+	meta.key_count() 	+= value;
 
-		me()->SetRootMetadata(node, meta);
-	}
-	else {
-		throw MemoriaException(MEMORIA_SOURCE, String("Root node is not set for this container: ") + me()->type_name());
-	}
+	me()->SetRootMetadata(meta);
 }
 
 
 M_PARAMS
 void M_TYPE::AddTotalKeyCount(TreePath& path, BigInt value)
 {
-	NodeBaseG& node = path[path.GetSize() - 1].node();
+	NodeBaseG& node 	= path[path.GetSize() - 1].node();
 
-	Metadata meta = me()->GetRootMetadata(node);
-
-	meta.key_count() += value;
+	Metadata meta 		= me()->GetRootMetadata();
+	meta.key_count() 	+= value;
 
 	me()->SetRootMetadata(node, meta);
 }

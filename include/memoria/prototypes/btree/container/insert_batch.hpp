@@ -112,8 +112,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     void		 NewRoot(TreePath& path);
 
 
-    NodeBaseG CreateNode(Short level, bool root, bool leaf);
-
     class DefaultSubtreeProviderBase: public ISubtreeProvider {
 
     	BigInt 	total_;
@@ -659,21 +657,7 @@ void M_TYPE::UpdateParentIfExists(TreePath& path, Int level, const Accumulator& 
 }
 
 
-M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::CreateNode(Short level, bool root, bool leaf)
-{
-	NodeBaseG node = Base::NodeFactory::Create(me()->allocator(), level, root, leaf);
 
-	if (root) {
-		Metadata meta = me()->GetRootMetadata(node);
-		meta.model_name() = me()->name();
-		me()->SetRootMetadata(node, meta);
-	}
-
-	node->model_hash() = me()->hash();
-
-	return node;
-}
 
 
 //// ======================================================  PRIVATE API ====================================================== ////
