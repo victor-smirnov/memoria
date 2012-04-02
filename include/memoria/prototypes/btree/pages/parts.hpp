@@ -29,7 +29,7 @@ class BTreeMetadata
     BigInt 	model_name_;
     BigInt 	key_count_;
 
-    Int		tree_airity_;
+    Int		branching_factor_;
 
     ID 		roots_[2];
 
@@ -56,14 +56,14 @@ public:
         return key_count_;
     }
 
-    BigInt &tree_airity()
+    Int &branching_factor()
     {
-    	return tree_airity_;
+    	return branching_factor_;
     }
 
-    const BigInt &tree_airity() const
+    const Int &branching_factor() const
     {
-    	return tree_airity_;
+    	return branching_factor_;
     }
 
 
@@ -73,7 +73,7 @@ public:
         MetadataList list;
         FieldFactory<BigInt>::create(list, model_name_, "MODEL_NAME", abi_ptr);
         FieldFactory<BigInt>::create(list, key_count_,  "KEY_COUNT",  abi_ptr);
-        FieldFactory<Int>::create(list, tree_airity_,"TREE_AIRITY",  abi_ptr);
+        FieldFactory<Int>::create(list, branching_factor_,"BRANCHING_FACTOR",abi_ptr);
 
         MetadataList rootsList;
         for (Int c = 0; c < ROOTS; c++)
@@ -89,7 +89,7 @@ public:
     {
     	FieldFactory<BigInt>::serialize(buf, model_name_);
     	FieldFactory<BigInt>::serialize(buf, key_count_);
-    	FieldFactory<Int>::serialize(buf, tree_airity_);
+    	FieldFactory<Int>::serialize(buf,    branching_factor_);
 
     	for (Int c = 0; c < ROOTS; c++)
     	{
@@ -101,7 +101,7 @@ public:
     {
     	FieldFactory<BigInt>::deserialize(buf, model_name_);
     	FieldFactory<BigInt>::deserialize(buf, key_count_);
-    	FieldFactory<Int>::deserialize(buf, tree_airity_);
+    	FieldFactory<Int>::deserialize(buf,    branching_factor_);
 
     	for (Int c = 0; c < ROOTS; c++)
     	{

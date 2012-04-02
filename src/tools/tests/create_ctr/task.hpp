@@ -91,16 +91,18 @@ public:
 		CreateCtrReplay params;
 
 		params.size_ = task_params->size_;
-		if (task_params->btree_random_airity_)
+		if (task_params->btree_random_branching_)
 		{
-			task_params->btree_airity_ = 8 + GetRandom(100);
-			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
+			task_params->btree_branching_ = 8 + GetRandom(100);
+			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 		}
 
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
 
 		MapCtr map(allocator);
+
+		map.SetBranchingFactor(100);
 
 		params.map_name_ = map.name();
 
@@ -112,6 +114,8 @@ public:
 		}
 
 		VectorMapCtr vector_map(allocator);
+
+		vector_map.SetBranchingFactor(100);
 
 		params.vector_map_name_ = vector_map.name();
 
@@ -139,6 +143,8 @@ public:
 
 		MapCtr new_map(new_alloc, map.name());
 
+		MEMORIA_TEST_THROW_IF(map.GetBranchingFactor(), !=, new_map.GetBranchingFactor());
+
 		MEMORIA_TEST_THROW_IF(map.GetSize(), !=, new_map.GetSize());
 
 		auto new_iter = new_map.Begin();
@@ -152,6 +158,8 @@ public:
 		BigInt t22 = GetTimeInMillis();
 
 		VectorMapCtr new_vector_map(new_alloc, vector_map.name());
+
+		MEMORIA_TEST_THROW_IF(vector_map.GetBranchingFactor(), !=, new_vector_map.GetBranchingFactor());
 
 		auto new_vm_iter = new_vector_map.Begin();
 

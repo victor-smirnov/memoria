@@ -29,8 +29,6 @@ struct SumSetBatchReplay: public ReplayParams {
 
 	Int 	cnt_;
 
-	BigInt  ctr_name_;
-
 	SumSetBatchReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
 	{
 		Add("data", 		data_);
@@ -39,7 +37,6 @@ struct SumSetBatchReplay: public ReplayParams {
 		Add("page_step", 	page_step_);
 		Add("pos", 			pos_);
 		Add("cnt", 			cnt_);
-		Add("ctr_name", 	ctr_name_);
 	}
 };
 
@@ -51,7 +48,7 @@ struct SumSetBatchParams: public TestTaskParams {
 	SumSetBatchParams(StringRef name = "SumSetBatch"): TestTaskParams(name)
 	{
 		Add("size", size_, 1024*1024*16);
-		Add("maxBlockSize", max_block_size_, 1024*40);
+		Add("max_block_size", max_block_size_, 1024*40);
 	}
 };
 

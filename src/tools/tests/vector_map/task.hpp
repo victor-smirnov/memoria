@@ -30,8 +30,6 @@ struct VectorMapReplay: public ReplayParams {
 	BigInt	key_;
 	BigInt 	key_num_;
 
-	BigInt	ctr_name_;
-
 	VectorMapReplay(): ReplayParams()
 	{
 		Add("data", data_);
@@ -40,7 +38,6 @@ struct VectorMapReplay: public ReplayParams {
 		Add("pairs_file", pairs_data_file_);
 		Add("key", key_);
 		Add("key_num", key_num_);
-		Add("ctr_name", ctr_name_);
 	}
 };
 
@@ -192,10 +189,10 @@ public:
 		VectorMapReplay params;
 
 		params.size_ = task_params->size_;
-		if (task_params->btree_random_airity_)
+		if (task_params->btree_random_branching_)
 		{
-			task_params->btree_airity_ = 8 + GetRandom(100);
-			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
+			task_params->btree_branching_ = 8 + GetRandom(100);
+			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 		}
 
 		pairs_.clear();

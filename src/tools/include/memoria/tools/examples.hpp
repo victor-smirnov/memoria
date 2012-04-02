@@ -110,13 +110,13 @@ public:
 struct ExampleTaskParams: public TaskParametersSet {
 
 	Int 	size_;
-	Int 	btree_airity_;
+	Int 	btree_branching_;
 	bool 	btree_random_airity_;
 
 	ExampleTaskParams(StringRef name): TaskParametersSet(name)
 	{
 		Add("size", size_, 1024);
-		Add("btreeAirity", btree_airity_, -1);
+		Add("btreeAirity", btree_branching_, 0);
 		Add("btreeRandomAirity", btree_random_airity_, true);
 	}
 };

@@ -110,10 +110,10 @@ public:
 
 		MapParams* task_params = GetParameters<MapParams>();
 
-		if (task_params->btree_random_airity_)
+		if (task_params->btree_random_branching_)
 		{
-			task_params->btree_airity_ = 8 + GetRandom(100);
-			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
+			task_params->btree_branching_ = 8 + GetRandom(100);
+			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 		}
 
 		Int SIZE = task_params->size_;
@@ -129,14 +129,15 @@ public:
 		MapReplay params;
 
 		params.size_ = SIZE;
-		params.btree_airity_ = task_params->btree_airity_;
 
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
 
-		MapCtr map(allocator, 1, true);
+		MapCtr map(allocator);
 
-		map.SetMaxChildrenPerNode(params.btree_airity_);
+		params.ctr_name_ = map.name();
+
+		map.SetBranchingFactor(task_params->btree_branching_);
 
 		for (Int step = 0; step < 3; step++)
 		{
@@ -178,9 +179,7 @@ public:
 
 	void DoTestStep(ostream& out, Allocator& allocator, const MapReplay* params)
 	{
-		MapCtr map(allocator, 1);
-
-		map.SetMaxChildrenPerNode(params->btree_airity_);
+		MapCtr map(allocator, params->ctr_name_);
 
 		Int c = params->vector_idx_;
 

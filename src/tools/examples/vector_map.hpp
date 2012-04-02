@@ -51,8 +51,8 @@ public:
 		{
 			if (task_params->btree_random_airity_)
 			{
-				task_params->btree_airity_ = 8 + GetRandom(100);
-				out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
+				task_params->btree_branching_ = 8 + GetRandom(100);
+				out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 			}
 
 			Allocator allocator;

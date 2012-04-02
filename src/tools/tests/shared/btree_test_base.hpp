@@ -59,8 +59,6 @@ public:
 
 		Ctr dv(allocator, params->ctr_name_);
 
-		dv.SetMaxChildrenPerNode(params->btree_airity_);
-
 		if (params->insert_)
 		{
 			Build(out, allocator, dv, params);
@@ -82,29 +80,28 @@ public:
 		ReplayParamType params;
 		ParamType* task_params = GetParameters<ParamType>();
 
-		if (task_params->btree_random_airity_)
+		if (task_params->btree_random_branching_)
 		{
-			task_params->btree_airity_ = 8 + GetRandom(100);
-			out<<"BTree Airity: "<<task_params->btree_airity_<<endl;
+			task_params->btree_branching_ = 8 + GetRandom(100);
+			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 		}
 
-		params.size_			= task_params->size_;
-		params.btree_airity_ 	= task_params->btree_airity_;
+		params.size_				= task_params->size_;
 
 		for (Int step = 0; step < 2; step++)
 		{
 			params.step_ = step;
-			Run(out, params, task_params, false);
+			Run(out, params, task_params, false, task_params->btree_branching_);
 		}
 
 		// Run() will use different step for each ByteArray update operation
-		Run(out, params, task_params, true);
+		Run(out, params, task_params, true, task_params->btree_branching_);
 	}
 
 
 
 
-	virtual void Run(ostream& out, ReplayParamType& params, ParamType* task_params, bool step)
+	virtual void Run(ostream& out, ReplayParamType& params, ParamType* task_params, bool step, Int branching)
 	{
 		DefaultLogHandlerImpl logHandler(out);
 
@@ -116,7 +113,7 @@ public:
 
 		allocator.commit();
 
-		dv.SetMaxChildrenPerNode(params.btree_airity_);
+		dv.SetBranchingFactor(branching);
 
 		try {
 			out<<"Insert data"<<endl;

@@ -106,7 +106,7 @@ int main(int argc, const char** argv, const char **envp) {
 		allocator.GetLogger()->level() = Logger::NONE;
 
 		ByteArray dv(allocator, ArrayName, true);
-		//dv.SetMaxChildrenPerNode(100);
+		//dv.SetBranchingFactor(100);
 
 		ArrayData data0(4058);
 		auto iter = dv.Seek(0);

@@ -170,6 +170,23 @@ public:
     	return array_.shared();
     }
 
+
+    void SetBranchingFactor(Int count)
+    {
+    	typename IdxSet::Metadata set_meta = set_.GetRootMetadata();
+    	set_meta.branching_factor() = count;
+    	set_.SetRootMetadata(set_meta);
+
+    	typename ByteArray::Metadata array_meta = array_.GetRootMetadata();
+    	array_meta.branching_factor() = count;
+    	array_.SetRootMetadata(array_meta);
+    }
+
+    Int GetBranchingFactor() const
+    {
+    	return set_.GetRootMetadata().branching_factor();
+    }
+
 private:
 
     static ID get_ctr_root(Allocator& allocator, const ID& root_id, BigInt name)

@@ -21,13 +21,13 @@ struct ReplayParams: public TestReplayParams {
 
 	Int 	step_;
 	BigInt 	size_;
-	Int 	btree_airity_;
+	BigInt	ctr_name_;
 
-	ReplayParams(StringRef name = "Replay"): TestReplayParams(name), step_(0), size_(0), btree_airity_(0)
+	ReplayParams(StringRef name = "Replay"): TestReplayParams(name), step_(0), size_(0), ctr_name_(1)
 	{
 		Add("step", step_);
 		Add("size", size_);
-		Add("btreeAirity", btree_airity_);
+		Add("ctr_name", ctr_name_);
 	}
 };
 
@@ -37,6 +37,7 @@ struct BTreeReplayParams: public ReplayParams {
 	String 	pairs_data_file_;
 	String 	pairs_sorted_data_file_;
 	Int 	iteration_;
+
 
 	BTreeReplayParams(StringRef name = "Replay"): ReplayParams(name), vector_idx_(0), iteration_(0)
 	{
@@ -54,15 +55,15 @@ struct BTreeReplayParams: public ReplayParams {
 struct TestTaskParams: public TaskParametersSet {
 
 	Int 	size_;
-	Int 	btree_airity_;
-	bool 	btree_random_airity_;
+	Int 	btree_branching_;
+	bool 	btree_random_branching_;
 
 
 	TestTaskParams(StringRef name): TaskParametersSet(name)
 	{
 		Add("size", size_, 1024);
-		Add("btreeAirity", btree_airity_, -1);
-		Add("btreeRandomAirity", btree_random_airity_, true);
+		Add("btree_branching", btree_branching_, 0);
+		Add("btree_random_branching", btree_random_branching_, true);
 	}
 };
 

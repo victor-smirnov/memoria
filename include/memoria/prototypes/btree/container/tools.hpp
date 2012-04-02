@@ -20,10 +20,9 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(memoria::btree::ToolsName)
-private:
-    Int max_node_capacity_;
-public:
+MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
+
+
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -57,14 +56,6 @@ public:
     typedef typename Base::TreePathItem                                         TreePathItem;
 
     static const Int Indexes                                                    = Types::Indexes;
-
-    CtrPart(): Base(), max_node_capacity_(-1) {}
-    CtrPart(const ThisType& other): Base(other), max_node_capacity_(other.max_node_capacity_) 		{}
-    CtrPart(ThisType&& other): Base(std::move(other)), max_node_capacity_(other.max_node_capacity_) {}
-
-
-    CtrPart(ThisType&& other, Allocator& allocator): Base(std::move(other), allocator)  {}
-    CtrPart(const ThisType& other, Allocator& allocator): Base(other, allocator)  		{}
 
 
     struct BTreeNodeTraits {
@@ -100,9 +91,9 @@ public:
     Int GetMaxKeyCountForNode(bool root, bool leaf, Int level) const
     {
     	Int key_count = GetNodeTraitInt(BTreeNodeTraits::MAX_CHILDREN, root, leaf, level);
-    	Int max_count = me()->GetMaxChildrenPerNode();
+    	Int max_count = me()->GetBranchingFactor();
 
-    	if (max_count == -1)
+    	if (max_count == 0)
     	{
     		return key_count;
     	}
@@ -116,32 +107,23 @@ public:
     	return path1[level].node()->id() == path2[level].node()->id();
     }
 
-    void operator=(ThisType&& other)
+    void SetBranchingFactor(Int count)
     {
-    	this->max_node_capacity_ = other.max_node_capacity_;
-    	Base::operator=(std::move(other));
+        if (count == 0 || count > 2)
+        {
+        	Metadata meta 			= me()->GetRootMetadata();
+        	meta.branching_factor() = count;
+
+    		me()->SetRootMetadata(meta);
+        }
+        else {
+        	throw MemoriaException(MEMORIA_SOURCE, "Incorrect SetBranchingFactor value: "+ToString(count)+". It must be 0 or > 2");
+        }
     }
 
-    void operator=(const ThisType& other)
+    Int GetBranchingFactor() const
     {
-    	this->max_node_capacity_ = other.max_node_capacity_;
-    	Base::operator=(other);
-    }
-
-    void SetMaxChildrenPerNode(Int count) {
-        max_node_capacity_ = count;
-    }
-
-    Int GetMaxChildrenPerNode() const {
-        return max_node_capacity_;
-    }
-
-    Int &max_node_capacity() {
-        return max_node_capacity_;
-    }
-
-    const Int &max_node_capacity() const {
-        return max_node_capacity_;
+        return me()->GetRootMetadata().branching_factor();
     }
 
     void Root2Node(NodeBaseG& node)
@@ -240,7 +222,7 @@ public:
         template <typename T>
         void operator()(T *node)
         {
-            if (max_node_capacity_ == -1)
+            if (max_node_capacity_ == 0)
             {
                 cap_ = (node->map().max_size() - node->children_count());
             }
@@ -258,7 +240,7 @@ public:
 
     Int GetCapacity(const NodeBaseG& node) const
     {
-        GetCapacityFn<Int> fn(me()->max_node_capacity());
+        GetCapacityFn<Int> fn(me()->GetBranchingFactor());
         NodeDispatcher::DispatchConst(node, fn);
         return fn.cap();
     }
@@ -272,7 +254,7 @@ public:
 
         template <typename T>
         void operator()(T *node) {
-            if (max_node_capacity_ == -1)
+            if (max_node_capacity_ == 0)
             {
                 cap_ = node->map().max_size();
             }
@@ -289,7 +271,7 @@ public:
 
     Int GetMaxCapacity(const NodeBaseG& node) const
     {
-        GetMaxCapacityFn<Int> fn(me()->max_node_capacity());
+        GetMaxCapacityFn<Int> fn(me()->GetBranchingFactor());
         NodeDispatcher::DispatchConst(node, fn);
         return fn.cap();
     }
