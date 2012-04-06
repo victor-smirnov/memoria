@@ -13,9 +13,6 @@
 #include <ostream>
 
 namespace memoria    	{
-
-
-
 namespace btree 		{
 
 using namespace memoria::core;

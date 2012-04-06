@@ -11,6 +11,8 @@
 #include "vector_map/task.hpp"
 #include "create_ctr/task.hpp"
 
+#include "pmap/pmap_data.hpp"
+
 #include "template/task.hpp"
 
 #include <memoria/tools/cmdline.hpp>
@@ -68,6 +70,7 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterTask(new SumSetBatchTest());
 		runner.RegisterTask(new VectorTest());
 		runner.RegisterTask(new VectorMapTest());
+		runner.RegisterTask(new PMapDataTest());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
