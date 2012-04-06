@@ -52,7 +52,9 @@ public:
 		Ctr::Init();
 	}
 
-	virtual ArrayData CreateBuffer(Int size, UByte value)
+
+
+	virtual ArrayData CreateBuffer(Ctr& ctr, Int size, UByte value)
 	{
 		ArrayData array(size);
 
@@ -136,6 +138,11 @@ public:
 	virtual BigInt GetPosition(Iterator& iter)
 	{
 		return iter.KeyNum();
+	}
+
+	virtual BigInt GetLocalPosition(Iterator& iter)
+	{
+		return iter.key_idx();
 	}
 
 	virtual BigInt GetSize(Ctr& array)

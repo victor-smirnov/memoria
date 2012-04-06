@@ -28,7 +28,7 @@ public:
 
 	Int 	cnt_;
 
-	BigInt ctr_name_;
+	BigInt 	ctr_name_;
 
 public:
 	VectorReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
@@ -48,12 +48,14 @@ class VectorParams: public TestTaskParams {
 
 public:
 	Int 	max_block_size_;
+	Int 	element_size_;
 
 public:
 	VectorParams(): TestTaskParams("Vector")
 	{
-		Add("size", size_, 1024*1024*16);
-		Add("maxBlockSize", max_block_size_, 1024*40);
+		Add("size", size_, 						1024*1024*16);
+		Add("maxBlockSize", max_block_size_, 	1024*40);
+		Add("element_size", element_size_,		1);
 	}
 };
 

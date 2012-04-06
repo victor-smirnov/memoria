@@ -46,6 +46,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
 
+    Int GetElementSize() const
+    {
+    	return me()->model().GetElementSize();
+    }
+
+
     BigInt Read(ArrayData& data, BigInt start, BigInt len);
     BigInt Read(ArrayData& data)
     {
@@ -103,6 +109,38 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	}
     }
 
+
+    bool operator++()
+    {
+    	Int size = me()->GetElementSize();
+    	return me()->Skip(size) = size;
+    }
+
+    bool operator++(int)
+    {
+    	return me()->Skip(1) = 1;
+    }
+
+    bool operator+=(Int count)
+    {
+    	return me()->Skip(count) = count;
+    }
+
+    bool operator--()
+    {
+    	return me()->Skip(1);
+    }
+
+    bool operator--(int)
+    {
+    	return me()->Skip(-1) = 1;
+    }
+
+    bool operator-=(Int count)
+	{
+    	return me()->Skip(-count) = count;
+	}
+
 MEMORIA_ITERATOR_PART_END
 
 
@@ -123,7 +161,7 @@ BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
 		CopyBuffer(me()->data()->data().value_addr(me()->data_pos()), data.data() + start, to_read);
 
 		len 	-= to_read;
-		me()->Skip(to_read);
+		me()->Skip(to_read / me()->GetElementSize());
 
 		sum 	+= to_read;
 		start 	+= to_read;
@@ -179,8 +217,12 @@ BigInt M_TYPE::Skip(BigInt distance)
 }
 
 M_PARAMS
-BigInt M_TYPE::SkipFw(BigInt distance)
+BigInt M_TYPE::SkipFw(BigInt count)
 {
+	Int element_size = me()->GetElementSize();
+
+	BigInt distance = count * element_size;
+
 	//FIXME: handle START properly
 	if (me()->IsNotEmpty())
 	{
@@ -221,7 +263,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 			{
 				me()->data_pos() 	= me()->data()->size();
 				me()->Init();
-				return walker.sum() - data_pos;
+				return (walker.sum() - data_pos) / element_size;
 			}
 			else {
 				me()->data_pos() 	= walker.remainder();
@@ -230,7 +272,7 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 		me()->Init();
 
 		//FIXME: return true distance
-		return distance;
+		return count;
 	}
 	else {
 		return 0;
@@ -239,8 +281,13 @@ BigInt M_TYPE::SkipFw(BigInt distance)
 
 
 M_PARAMS
-BigInt M_TYPE::SkipBw(BigInt distance)
+BigInt M_TYPE::SkipBw(BigInt count)
 {
+	Int element_size = me()->GetElementSize();
+
+	BigInt distance = count * element_size;
+
+
 	//FIXME: handle EOF properly
 	if (me()->IsNotEmpty())
 	{
@@ -250,7 +297,7 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 		{
 			// A trivial case when the offset is within current data page
 			// we need to check for START if a data page
-			// is the fist in the index node
+			// is the first in the index node
 			me()->data_pos() 	-= distance;
 		}
 		else
@@ -268,7 +315,7 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 			{
 				me()->data_pos() 	= 0;
 				me()->Init();
-				return walker.sum() - to_add;
+				return (walker.sum() - to_add) / element_size;
 			}
 			else {
 				me()->data_pos()	= me()->data()->size() - walker.remainder();
@@ -276,7 +323,8 @@ BigInt M_TYPE::SkipBw(BigInt distance)
 		}
 
 		me()->Init();
-		return distance;
+
+		return count;
 	}
 	else {
 		return 0;

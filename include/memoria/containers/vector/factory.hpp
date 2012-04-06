@@ -14,13 +14,12 @@
 
 #include <memoria/containers/map/factory.hpp>
 
-#include <memoria/containers/vector/iterator/model_api.hpp>
+#include <memoria/containers/vector/iterator/api.hpp>
 
 #include <memoria/containers/vector/pages/data_page.hpp>
-#include <memoria/containers/vector/pages/parts.hpp>
+#include <memoria/containers/vector/pages/metadata.hpp>
 
 #include <memoria/containers/vector/container/api.hpp>
-#include <memoria/containers/vector/container/model_api.hpp>
 
 #include <memoria/containers/vector/names.hpp>
 #include <memoria/containers/vector/tools.hpp>
@@ -37,8 +36,7 @@ struct BTreeTypes<Profile, memoria::Vector>: public BTreeTypes<Profile, memoria:
 	typedef typename AppendLists<
 			typename Base::ContainerPartsList,
 			typename TLTool<
-				memoria::models::array::ApiName,
-				memoria::models::array::ContainerApiName
+				memoria::models::array::ApiName
 			>::List
 	>::Result                                                               		ContainerPartsList;
 
@@ -49,15 +47,14 @@ struct BTreeTypes<Profile, memoria::Vector>: public BTreeTypes<Profile, memoria:
 			>::List
 	>::Result                                                               		IteratorPartsList;
 
-	typedef memoria::models::array::CountData                             			CountData;
-	typedef memoria::models::array::BufferContentDescriptor<CountData>          	BufferContentDescriptor;
-
 	typedef ArrayData                                                     			Buffer;
 
 	template <Int Size>
 	struct DataBlockTypeFactory {
 		typedef memoria::array::DynVectorData<Size>                       			Type;
 	};
+
+	typedef VectorMetadata<typename Base::ID> 										Metadata;
 };
 
 

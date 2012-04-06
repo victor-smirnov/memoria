@@ -30,19 +30,28 @@ protected:
 	typedef typename Ctr::Accumulator													Accumulator;
 	typedef typename Ctr::ID															ID;
 
+
+
 public:
 
 	BTreeBatchTestBase(): SPTestTask(new ParamType()) {}
 	virtual ~BTreeBatchTestBase() throw() {}
 
-	virtual ArrayData CreateBuffer(Int size, UByte value) 				= 0;
+	virtual ArrayData CreateBuffer(Ctr& array, Int size, UByte value) 	= 0;
 	virtual Iterator Seek(Ctr& array, BigInt pos) 						= 0;
 	virtual void Insert(Iterator& iter, const ArrayData& data) 			= 0;
 	virtual void Read(Iterator& iter, ArrayData& data) 					= 0;
 	virtual void Remove(Iterator& iter, BigInt size) 					= 0;
 	virtual void Skip(Iterator& iter, BigInt offset) 					= 0;
 	virtual BigInt GetPosition(Iterator& iter)							= 0;
+	virtual BigInt GetLocalPosition(Iterator& iter)						= 0;
 	virtual BigInt GetSize(Ctr& array)									= 0;
+
+	virtual Int GetElementSize(Ctr& array) {
+		return 1;
+	}
+
+	virtual void SetElementSize(Ctr& array, ParamType* task_params) {}
 
 	virtual ReplayParamType* CreateTestStep(StringRef name) const
 	{
@@ -109,6 +118,9 @@ public:
 		allocator.GetLogger()->SetHandler(&logHandler);
 
 		Ctr dv(allocator);
+
+		SetElementSize(dv, task_params);
+
 		params.ctr_name_ = dv.name();
 
 		allocator.commit();
@@ -139,6 +151,7 @@ public:
 				params.page_step_ 	= -1;
 			}
 
+			StoreAllocator(allocator, "vector.dump");
 
 			out<<"Remove data. SumSet contains "<<(GetSize(dv)/1024)<<"K keys"<<endl;
 			params.insert_ = false;
@@ -185,7 +198,7 @@ public:
 		UByte value = params->data_;
 		Int step 	= params->step_;
 
-		ArrayData data = CreateBuffer(params->block_size_, value);
+		ArrayData data = CreateBuffer(array, params->block_size_, value);
 
 		BigInt size = GetSize(array);
 
@@ -213,9 +226,10 @@ public:
 				BigInt len = GetSize(array);
 				if (len > 100) len = 100;
 
-				ArrayData postfix(len);
+				ArrayData postfix = CreateBuffer(array, len, 0);
 
 				Read(iter, postfix);
+
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				Skip(iter, -len);
@@ -226,7 +240,7 @@ public:
 
 				Check(allocator, "Insertion at the start of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
-				Skip(iter, -data.size());
+				Skip(iter, -data.size()/GetElementSize(array));
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, data, "Failed to read and compare buffer from array", 				MEMORIA_SOURCE);
@@ -245,7 +259,7 @@ public:
 
 				if (len > 100) len = 100;
 
-				ArrayData prefix(len);
+				ArrayData prefix = CreateBuffer(array, len, 0);
 				Skip(iter, -len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
@@ -257,7 +271,7 @@ public:
 
 				Check(allocator, "Insertion at the end of the array failed. See the dump for details.", MEMORIA_SOURCE);
 
-				Skip(iter, -data.size() - len);
+				Skip(iter, -data.size()/GetElementSize(array) - len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", MEMORIA_SOURCE);
@@ -280,7 +294,7 @@ public:
 
 				if (params->page_step_ == 0)
 				{
-					Skip(iter, -iter.key_idx());
+					Skip(iter, -GetLocalPosition(iter));
 					CheckIterator(out, iter, MEMORIA_SOURCE);
 					pos = GetPosition(iter);
 				}
@@ -291,8 +305,8 @@ public:
 				BigInt postfix_len = GetSize(array) - pos;
 				if (postfix_len > 100) postfix_len = 100;
 
-				ArrayData prefix(prefix_len);
-				ArrayData postfix(postfix_len);
+				ArrayData prefix	= CreateBuffer(array, prefix_len, 0);
+				ArrayData postfix	= CreateBuffer(array, postfix_len, 0);
 
 				Skip(iter, -prefix_len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
@@ -303,7 +317,7 @@ public:
 				Read(iter, postfix);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
-				Skip(iter, -postfix.size());
+				Skip(iter, -postfix_len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				Insert(iter, data);
@@ -311,7 +325,7 @@ public:
 
 				Check(allocator, "Insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
-				Skip(iter, - data.size() - prefix_len);
+				Skip(iter, - data.size()/GetElementSize(array) - prefix_len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 	MEMORIA_SOURCE);
@@ -355,7 +369,7 @@ public:
 				BigInt len = GetSize(array) - size;
 				if (len > 100) len = 100;
 
-				ArrayData postfix(len);
+				ArrayData postfix(len * GetElementSize(array));
 				Skip(iter, size);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
@@ -382,7 +396,7 @@ public:
 				BigInt len = GetPosition(iter);
 				if (len > 100) len = 100;
 
-				ArrayData prefix(len);
+				ArrayData prefix(len * GetElementSize(array));
 				Skip(iter, -len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
@@ -402,11 +416,6 @@ public:
 			}
 			else {
 				//Remove at the middle of the array
-
-				if (params->cnt_ == 65) {
-					int a = 0; a++;
-				}
-
 				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
 
 				Int pos = params->pos_;
@@ -417,7 +426,7 @@ public:
 
 				if (params->page_step_ == 0)
 				{
-					Skip(iter, -iter.key_idx());
+					Skip(iter, -GetLocalPosition(iter));
 					CheckIterator(out, iter, MEMORIA_SOURCE);
 
 					pos = GetPosition(iter);
@@ -434,8 +443,8 @@ public:
 				BigInt postfix_len = GetSize(array) - (pos + size);
 				if (postfix_len > 100) postfix_len = 100;
 
-				ArrayData prefix(prefix_len);
-				ArrayData postfix(postfix_len);
+				ArrayData prefix(prefix_len * GetElementSize(array));
+				ArrayData postfix(postfix_len * GetElementSize(array));
 
 				Skip(iter, -prefix_len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
@@ -449,7 +458,7 @@ public:
 				Read(iter, postfix);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
-				Skip(iter, -postfix.size() - size);
+				Skip(iter, -postfix_len - size);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				Remove(iter, size);

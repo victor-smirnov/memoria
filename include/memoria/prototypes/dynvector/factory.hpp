@@ -21,6 +21,7 @@
 #include <memoria/prototypes/dynvector/container/remove.hpp>
 #include <memoria/prototypes/dynvector/container/tools.hpp>
 #include <memoria/prototypes/dynvector/container/checks.hpp>
+#include <memoria/prototypes/dynvector/container/find.hpp>
 
 #include <memoria/prototypes/dynvector/iterator/api.hpp>
 #include <memoria/prototypes/dynvector/iterator.hpp>
@@ -76,7 +77,8 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
                         memoria::dynvector::ToolsName,
                         memoria::dynvector::RemoveName,
                         memoria::dynvector::Insert2Name,
-                        memoria::dynvector::ChecksName
+                        memoria::dynvector::ChecksName,
+                        memoria::dynvector::SeekName
                     >::List
     >::Result                                                                   ContainerPartsList;
 

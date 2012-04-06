@@ -36,14 +36,28 @@ class VectorTest: public BTreeBatchTestBase<
 
 	typedef typename Base::Ctr 										Ctr;
 
+	typedef VectorParams											ParamType;
+
 public:
 	VectorTest(): Base() {
 		Ctr::Init();
 	}
 
-	virtual ArrayData CreateBuffer(Int size, UByte value)
+	virtual ArrayData CreateBuffer(Ctr& array, Int size, UByte value)
 	{
-		return memoria::CreateBuffer(size, value);
+		ArrayData data(size * array.GetElementSize());
+
+		for (Int c = 0; c < size; c++)
+		{
+			*(data.data() + c * array.GetElementSize()) = value;
+
+			for (Int d = 1; d < array.GetElementSize(); d++)
+			{
+				*(data.data() + c * array.GetElementSize() + d) = value == 1 ? 0 : 1;
+			}
+		}
+
+		return data;
 	}
 
 	virtual Iterator Seek(Ctr& array, BigInt pos)
@@ -75,9 +89,23 @@ public:
 		return iter.pos();
 	}
 
+	virtual BigInt GetLocalPosition(Iterator& iter)
+	{
+		return iter.data_pos() / iter.GetElementSize();
+	}
+
 	virtual BigInt GetSize(Ctr& array)
 	{
 		return array.Size();
+	}
+
+	virtual void SetElementSize(Ctr& array, ParamType* task_params)
+	{
+		array.SetElementSize(task_params->element_size_);
+	};
+
+	virtual Int GetElementSize(Ctr& array) {
+		return array.GetElementSize();
 	}
 
 	void CheckIterator(ostream& out, Iterator& iter, const char* source)
