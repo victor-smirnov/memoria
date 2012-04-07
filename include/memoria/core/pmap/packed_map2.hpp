@@ -196,12 +196,8 @@ public:
 		return sizeof(Value);
 	}
 
-	void Enlarge(Byte* target_memory_block, Int number)
+	void Enlarge(Byte* target_memory_block, Int new_keys_size, Int new_index_size)
 	{
-		Int new_keys_size	= max_size_ + number;
-
-		Int new_index_size 	= GetIndexSize(new_keys_size);
-
 		Int value_size = GetValueSize();
 
 		if (value_size > 0)
@@ -231,21 +227,22 @@ public:
 
 	void EnlargeBlock(Int block_size)
 	{
-		Int max_size = GetMaxSize(block_size);
+		Int max_size 	= GetMaxSize(block_size);
+		Int index_size	= GetIndexSize(max_size);
 
-		Enlarge(memory_block_, max_size - max_size_);
+		Enlarge(memory_block_, max_size, index_size);
 
-		max_size_ 	= max_size;
-		index_size_	= GetIndexSize(max_size_);
+		max_size_ 	 	= max_size;
+		index_size_	 	= index_size;
 	}
 
-
-	void Shrink(Byte* target_memory_block, Int number)
+	void EnlargeTo(MyType* other)
 	{
-		Int new_keys_size	= max_size_ - number;
+		Enlarge(other->memory_block_, other->max_size_, other->index_size_);
+	}
 
-		Int new_index_size 	= GetIndexSize(new_keys_size);
-
+	void Shrink(Byte* target_memory_block, Int new_keys_size, Int new_index_size)
+	{
 		Int value_size = GetValueSize();
 
 		for (Int c = 0; c < Blocks; c++)
@@ -276,14 +273,19 @@ public:
 
 	void ShrinkBlock(Int block_size)
 	{
-		Int max_size = GetMaxSize(block_size);
+		Int max_size 	= GetMaxSize(block_size);
+		Int index_size	= GetIndexSize(max_size);
 
-		Shrink(memory_block_, max_size_ - max_size);
+		Shrink(memory_block_, max_size, index_size);
 
-		max_size_ 	= max_size;
-		index_size_	= GetIndexSize(max_size_);
+		max_size_ 	 	= max_size;
+		index_size_	 	= index_size;
 	}
 
+	void ShrinkTo(MyType* other)
+	{
+		Shrink(other->memory_block_, other->max_size_, other->index_size_);
+	}
 
 	void InsertSpace(Int room_start, Int room_length)
 	{
@@ -332,7 +334,16 @@ public:
 		Reindex(block_num, 0, size());
 	}
 
+	void ReindexAll(Int start, Int end)
+	{
+		for (Int c = 0; c < Blocks; c++)
+		{
+			Reindex(c, start, end);
+		}
+	}
+
 	void Reindex(Int block_num, Int start, Int end) {}
+
 
 	void Insert(const Accumulator& keys, const Value& val, Int at)
 	{

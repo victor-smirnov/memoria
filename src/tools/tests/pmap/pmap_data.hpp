@@ -14,9 +14,11 @@
 
 #include <memoria/core/pmap/packed_map2.hpp>
 
+#include <memory>
+
 namespace memoria {
 
-
+using namespace std;
 
 
 struct PMapReplay: public TestReplayParams {
@@ -69,9 +71,7 @@ public:
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)
-	{
-		//PMapReplay* params = static_cast<PMapReplay*>(step_params);
-	}
+	{}
 
 	void FillMap(Map* map)
 	{
@@ -99,6 +99,27 @@ public:
 	void CopyMap(Map* src, Map* dst)
 	{
 		memmove(dst, src, src->GetObjectSize());
+	}
+
+	void ClearMap(Map* src)
+	{
+		for (Int c = 0; c < src->size(); c++)
+		{
+			for (Int d = 0; d < Blocks; d++)
+			{
+				src->key(d, c) = 0;
+			}
+
+			src->value(c) = 0;
+		}
+
+		for (Int c = 0; c < src->index_size(); c++)
+		{
+			for (Int d = 0; d < Blocks; d++)
+			{
+				src->index(d, c) = 0;
+			}
+		}
 	}
 
 	void CompareAfterInsert(Map* src, Map* dst, Int room_start, Int room_length)
@@ -229,14 +250,18 @@ public:
 	{
 		Int buffer_size 	= 1024*16;
 
-		Byte* buffer1 		= new Byte[buffer_size];
+		unique_ptr<Byte[]>	buffer1_ptr(new Byte[buffer_size]);
+		Byte* buffer1 		= buffer1_ptr.get();
+
+
 		Map* map1 			= T2T<Map*>(buffer1);
 
 		map1->InitByBlock(buffer_size / 2);
 
 		FillMap(map1);
 
-		Byte* buffer2 		= new Byte[buffer_size];
+		unique_ptr<Byte[]>	buffer2_ptr(new Byte[buffer_size]);
+		Byte* buffer2 		= buffer2_ptr.get();
 		Map* map2 			= T2T<Map*>(buffer2);
 
 		CopyMap(map1, map2);
@@ -276,6 +301,20 @@ public:
 		map2->ShrinkBlock(buffer_size / 2);
 
 		CompareEqual(map1, map2, false);
+
+		ClearMap(map2);
+
+		map2->EnlargeBlock(buffer_size);
+
+		map1->EnlargeTo(map2);
+
+		CompareAfterEnlarge(map1, map2);
+
+		ClearMap(map1);
+
+		map2->ShrinkTo(map1);
+
+		CompareAfterShrink(map1, map2);
 	}
 };
 
