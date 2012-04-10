@@ -12,6 +12,7 @@
 #include "create_ctr/task.hpp"
 
 #include "pmap/pmap_data.hpp"
+#include "pmap/pmap_reindex.hpp"
 
 #include "template/task.hpp"
 
@@ -71,6 +72,7 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterTask(new VectorTest());
 		runner.RegisterTask(new VectorMapTest());
 		runner.RegisterTask(new PMapDataTest());
+		runner.RegisterTask(new PMapIndexTest());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 

@@ -21,13 +21,13 @@ namespace memoria {
 using namespace std;
 
 
-struct PMapReplay: public TestReplayParams {
-	PMapReplay(): TestReplayParams(){}
+struct PMapDataReplay: public TestReplayParams {
+	PMapDataReplay(): TestReplayParams() {}
 };
 
 
-struct PMapParams: public TestTaskParams {
-	PMapParams(): TestTaskParams("PMap") {}
+struct PMapDataParams: public TestTaskParams {
+	PMapDataParams(): TestTaskParams("PMap.Data") {}
 };
 
 
@@ -49,7 +49,7 @@ struct PMapTypes {
 
 class PMapDataTest: public TestTask {
 
-	typedef PMapTypes<Int, Int, 3> 	Types;
+	typedef PMapTypes<Int, Int, 3> 			Types;
 
 	typedef typename Types::Accumulator		Accumulator;
 	typedef typename Types::Key				Key;
@@ -61,13 +61,13 @@ class PMapDataTest: public TestTask {
 
 public:
 
-	PMapDataTest(): TestTask(new PMapParams()) {}
+	PMapDataTest(): TestTask(new PMapDataParams()) {}
 
 	virtual ~PMapDataTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new PMapReplay();
+		return new PMapDataReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)

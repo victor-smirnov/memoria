@@ -181,6 +181,16 @@ public:
 		return block_item<Key>(GetKeyBlockOffset(block_num), key_num);
 	}
 
+	IndexKey& max_key(Int block_num)
+	{
+		return index(block_num, 0);
+	}
+
+	const IndexKey& max_key(Int block_num) const
+	{
+		return index(block_num, 0);
+	}
+
 	Value& value(Int value_num)
 	{
 		return block_item<Value>(GetValueBlockOffset(), value_num, GetValueSize());
@@ -342,7 +352,82 @@ public:
 		}
 	}
 
-	void Reindex(Int block_num, Int start, Int end) {}
+	void Reindex(Int block_num, Int start, Int end)
+	{
+		Int block_start = GetBlockStart(start);
+		Int block_end 	= GetBlockEnd(end);
+
+		Int index_block_offset 	= GetIndexKeyBlockOffset(block_num);
+		Int key_block_offset 	= GetKeyBlockOffset(block_num);
+
+		Int index_level_size	= GetIndexCellsNumberFor(max_size_);
+		Int index_level_start 	= index_size_ - index_level_size;
+
+		Int level_max = size_;
+
+		for (Int c = block_start; c < block_end; c += BranchingFactor)
+		{
+			IndexKey sum = 0;
+			Int max 	 = c + BranchingFactor <= level_max ? c + BranchingFactor : level_max;
+
+			for (Int d = c; d < max; d++)
+			{
+				sum += keyb(key_block_offset, d);
+			}
+
+			Int idx = c / BranchingFactor + index_level_start;
+			indexb(index_block_offset, idx) = sum;
+		}
+
+		while (index_level_start > 0)
+		{
+			level_max 		= GetIndexCellsNumberFor(level_max);
+			block_start 	= GetBlockStart(block_start / BranchingFactor);
+			block_end 		= GetBlockEnd(block_end / BranchingFactor);
+
+			Int index_parent_size 	= GetIndexCellsNumberFor(index_level_size);
+			Int index_parent_start	= index_level_start - index_parent_size;
+
+			for (Int c = block_start; c < end; c += BranchingFactor)
+			{
+				IndexKey sum = 0;
+				Int max 	 = (c + BranchingFactor <= level_max ? c + BranchingFactor : level_max) + index_level_start;
+
+				for (Int d = c + index_level_start; d < max; d++)
+				{
+					sum += indexb(index_block_offset, d);
+				}
+
+				Int idx = c / BranchingFactor + index_parent_start;
+				indexb(index_block_offset, idx) = sum;
+			}
+
+			index_level_size 	= index_parent_size;
+			index_level_start 	-= index_parent_size;
+		}
+	}
+
+	void Add(Int block_num, Int idx, const Key& value)
+	{
+		key(block_num, idx) += value;
+
+		Int index_block_offset 	= GetIndexKeyBlockOffset(block_num);
+
+		Int index_level_size	= GetIndexCellsNumberFor(max_size_);
+		Int index_level_start 	= index_size_ - index_level_size;
+
+		while (index_level_start >= 0)
+		{
+			idx /= BranchingFactor;
+
+			indexb(index_block_offset, idx + index_level_start) += value;
+
+			Int index_parent_size 	= GetIndexCellsNumberFor(index_level_size);
+
+			index_level_size 		= index_parent_size;
+			index_level_start 		-= index_parent_size;
+		}
+	}
 
 
 	void Insert(const Accumulator& keys, const Value& val, Int at)
@@ -360,7 +445,27 @@ public:
 		value(at) = val;
 	}
 
+	template <typename Functor>
+	Int Find() {return 0;}
+
 private:
+
+
+
+	static Int GetBlockStart(Int i)
+	{
+		return (i / BranchingFactor) * BranchingFactor;
+	}
+
+	static Int GetBlockEnd(Int i)
+	{
+		return (i / BranchingFactor + ((i % BranchingFactor) ? 1 : 0)) * BranchingFactor;
+	}
+
+	static Int GetIndexCellsNumberFor(Int i)
+	{
+		return i / BranchingFactor + ((i % BranchingFactor) ? 1 : 0);
+	}
 
 	void CopyData(Byte* target_memory_block, Int offset, Int new_offset, Int item_size)
 	{
@@ -389,14 +494,15 @@ private:
 		CopyBuffer(src, dst, (size_ - room_start) * item_size);
 	}
 
-	Int GetBlockSize(Int item_count)
+	static Int GetBlockSize(Int item_count)
 	{
 		Int key_size  = sizeof(IndexKey) * Blocks;
-		Int item_size = sizeof(Key)*Blocks + GetValueSize();
+		Int item_size = sizeof(Key) * Blocks + GetValueSize();
+
 		return GetIndexSize(item_count) * key_size + item_count * item_size;
 	}
 
-	Int GetIndexSize(Int csize)
+	static Int GetIndexSize(Int csize)
 	{
 		if (csize == 1)
 		{
@@ -413,14 +519,33 @@ private:
 		}
 	}
 
-	Int GetMaxSize(Int block_size)
+	static Int GetLevelsForSize(Int csize)
+	{
+		Int nlevels;
+		for (nlevels = 0; csize > 1; nlevels++)
+		{
+			Int idx = csize / BranchingFactor;
+
+			csize = ((csize % BranchingFactor) == 0) ? idx : idx + 1;
+		}
+
+		return nlevels;
+	}
+
+	static Int GetParentNodesFor(Int n)
+	{
+		Int idx = n / BranchingFactor;
+
+		return (n % BranchingFactor) == 0 ? idx : idx + 1;
+	}
+
+
+	static Int GetMaxSize(Int block_size)
 	{
 		Int item_size 	= sizeof(Key) * Blocks + GetValueSize();
 
 		Int first 		= 1;
 		Int last  		= block_size / item_size;
-
-
 
 		while (first < last - 1)
 		{
