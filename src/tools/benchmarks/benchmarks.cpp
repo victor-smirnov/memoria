@@ -12,6 +12,7 @@
 
 #include "pset_find.hpp"
 #include "stlset_find.hpp"
+#include "stluset_find.hpp"
 
 #include <iostream>
 
@@ -75,14 +76,23 @@ int main(int argc, const char** argv, const char** envp)
 
 		runner.BeginGroup(new BenchmarkGroup("PSetStlMem", "Performance of slt::set and Packed Set within the same memory, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
 		runner.RegisterBenchmark(new PSetBenchmark<2>());
-		runner.RegisterBenchmark(new PSetBenchmark<8>());
 		runner.RegisterBenchmark(new PSetBenchmark<32>());
 		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::MEMORY));
+		runner.EndGroup();
+
+		runner.BeginGroup(new BenchmarkGroup("PUSetStlMem", "Performance of slt::unordered_set and Packed Set within the same memory, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
+		runner.RegisterBenchmark(new PSetBenchmark<32>());
+		runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::MEMORY));
 		runner.EndGroup();
 
 		runner.BeginGroup(new BenchmarkGroup("PSetStlCnt", "Performance of stl::set and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements, Kb", "Execution Time, ms", 10));
 		runner.RegisterBenchmark(new PSetBenchmark<32>(true));
 		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
+		runner.EndGroup();
+
+		runner.BeginGroup(new BenchmarkGroup("PUSetStlCnt", "Performance of stl::unordered_set and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements, Kb", "Execution Time, ms", 10));
+		runner.RegisterBenchmark(new PSetBenchmark<32>(true));
+		runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::COUNT));
 		runner.EndGroup();
 
 		runner.Configure(&cmd_line.GetConfigurator());

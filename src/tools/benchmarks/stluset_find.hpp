@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BENCHMARKS_PMAP_STLSET_FIND_HPP_
-#define MEMORIA_BENCHMARKS_PMAP_STLSET_FIND_HPP_
+#ifndef MEMORIA_BENCHMARKS_PMAP_STLUSET_FIND_HPP_
+#define MEMORIA_BENCHMARKS_PMAP_STLUSET_FIND_HPP_
 
 #include <memoria/tools/benchmarks.hpp>
 #include <memoria/tools/tools.hpp>
@@ -18,36 +18,34 @@
 
 #include <malloc.h>
 #include <memory>
-#include <set>
-
-
+#include <unordered_set>
 
 namespace memoria {
 
 using namespace std;
 
-
-
-
-
-
-struct StlSetFindParams: public BenchmarkParams {
+struct StlUSetFindParams: public BenchmarkParams {
 	Int iterations;
 
-	StlSetFindParams(Int kind): BenchmarkParams(String("StlFind")+(kind == 2? "Cnt" : "Mem"))
+	StlUSetFindParams(Int kind): BenchmarkParams(String("UStlFind")+(kind == 2? "Cnt" : "Mem"))
 	{
 		Add("iterations", iterations, 1*1024*1024);
 	}
 };
 
 
-class StlSetBenchmark: public BenchmarkTask {
+class StlUSetBenchmark: public BenchmarkTask {
 public:
 	enum SetType {MEMORY = 1, COUNT = 2};
 private:
 
 	typedef Int		 Key;
-	typedef set<Key, less<Key>, CustomAllocator<Key> > Map;
+	typedef unordered_set<
+				Key,
+            	hash<Key>,
+            	std::equal_to<Key>,
+            	CustomAllocator<Key>
+	> Map;
 
 	Map* 			map_;
 	volatile Int 	result_;
@@ -56,9 +54,9 @@ private:
 
 public:
 
-	StlSetBenchmark(SetType set_type): BenchmarkTask(new StlSetFindParams(set_type)), set_type_(set_type) {}
+	StlUSetBenchmark(SetType set_type): BenchmarkTask(new StlUSetFindParams(set_type)), set_type_(set_type) {}
 
-	virtual ~StlSetBenchmark() throw() {}
+	virtual ~StlUSetBenchmark() throw() {}
 
 	Int GetBufferSize() const
 	{
@@ -135,7 +133,7 @@ public:
 
 	virtual String GetGraphName()
 	{
-		return "stl::set<int> (2 children)";
+		return "stl::unordered_set<int>";
 	}
 };
 
