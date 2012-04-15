@@ -46,7 +46,7 @@ class CmdLine {
 
 public:
 
-	enum {REPLAY = 1};
+	enum {NONE = 0, REPLAY = 1};
 
 	CmdLine(int argc, const char** argv, const char** envp, StringRef cfg_file_name, int operations = 0):
 		argc_(argc),

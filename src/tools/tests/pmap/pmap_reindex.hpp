@@ -27,12 +27,12 @@ struct PMapIndexReplay: public TestReplayParams {
 
 
 struct PMapIndexParams: public TestTaskParams {
-	PMapIndexParams(): TestTaskParams("PMap.Index") {}
+	PMapIndexParams(): TestTaskParams("PMap.Reindex") {}
 };
 
 
 template <typename Key_, typename Value_, Int Blocks_ = 3>
-struct PMapIndexTypes {
+struct PMapReindexTypes {
 	typedef Key_ 						Key;
 	typedef Key_ 						IndexKey;
 	typedef Value_						Value;
@@ -47,9 +47,9 @@ struct PMapIndexTypes {
 
 
 
-class PMapIndexTest: public TestTask {
+class PMapReindexTest: public TestTask {
 
-	typedef PMapIndexTypes<Int, Int, 1> 	Types;
+	typedef PMapReindexTypes<Int, Int, 1> 	Types;
 
 	typedef typename Types::Accumulator		Accumulator;
 	typedef typename Types::Key				Key;
@@ -61,9 +61,9 @@ class PMapIndexTest: public TestTask {
 
 public:
 
-	PMapIndexTest(): TestTask(new PMapIndexParams()) {}
+	PMapReindexTest(): TestTask(new PMapIndexParams()) {}
 
-	virtual ~PMapIndexTest() throw() {}
+	virtual ~PMapReindexTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{

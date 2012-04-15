@@ -10,8 +10,10 @@
 
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/types/type2type.hpp>
+#include <memoria/core/types/traits.hpp>
 
+#include <memoria/core/tools/bitmap.hpp>
 
 
 namespace memoria {
@@ -31,7 +33,97 @@ public:
 	static const Int Blocks					= Types::Blocks;
 	static const Int BranchingFactor		= Types::BranchingFactor;
 
+	class ComparatorBase {
+	protected:
+		IndexKey sum_;
+	public:
+		ComparatorBase(): sum_(0) {}
+
+		void Sub(const Key& k)
+		{
+			sum_ -= k;
+		}
+
+		IndexKey sum() const {
+			return sum_;
+		}
+	};
+
+	class LESumComparator: public ComparatorBase {
+
+	public:
+		LESumComparator():ComparatorBase() {}
+
+		bool TestMax(const Key& k, const IndexKey& max) const
+		{
+			return k > max;
+		}
+
+		bool CompareIndex(const Key& k, const IndexKey& index)
+		{
+			ComparatorBase::sum_ += index;
+			return k <= ComparatorBase::sum_;
+		}
+
+		bool CompareKey(const Key& k, const Key& index)
+		{
+			ComparatorBase::sum_ += index;
+			return k <= ComparatorBase::sum_;
+		}
+	};
+
+	class LTSumComparator: public ComparatorBase {
+	public:
+		LTSumComparator():ComparatorBase() {}
+
+		bool TestMax(const Key& k, const IndexKey& max) const
+		{
+			return k >= max;
+		}
+
+		bool CompareIndex(const Key& k, const IndexKey& index)
+		{
+			ComparatorBase::sum_ += index;
+			return k < ComparatorBase::sum_;
+		}
+
+
+		bool CompareKey(const Key& k, const Key& index)
+		{
+			ComparatorBase::sum_ += index;
+			return k < ComparatorBase::sum_;
+		}
+	};
+
+
+	class EQSumComparator: public ComparatorBase {
+
+	public:
+		EQSumComparator():ComparatorBase() {}
+
+		bool TestMax(const Key& k, const IndexKey& max) const
+		{
+			return k > max;
+		}
+
+		bool CompareIndex(const Key& k, const IndexKey& index)
+		{
+			ComparatorBase::sum_ += index;
+			return k <= ComparatorBase::sum_;
+		}
+
+
+		bool CompareKey(const Key& k, const Key& index)
+		{
+			ComparatorBase::sum_ += index;
+			return k == ComparatorBase::sum_;
+		}
+	};
+
 private:
+
+	static const Int LEVELS_MAX				= 32;
+
 	Int 	size_;
 	Int 	max_size_;
 	Int		index_size_;
@@ -191,6 +283,11 @@ public:
 		return index(block_num, 0);
 	}
 
+	const IndexKey& max_keyb(Int block_offset) const
+	{
+		return indexb(block_offset, 0);
+	}
+
 	Value& value(Int value_num)
 	{
 		return block_item<Value>(GetValueBlockOffset(), value_num, GetValueSize());
@@ -203,7 +300,7 @@ public:
 
 	static Int GetValueSize()
 	{
-		return sizeof(Value);
+		return ValueTraits<Value>::Size;
 	}
 
 	void Enlarge(Byte* target_memory_block, Int new_keys_size, Int new_index_size)
@@ -388,7 +485,7 @@ public:
 			Int index_parent_size 	= GetIndexCellsNumberFor(index_level_size);
 			Int index_parent_start	= index_level_start - index_parent_size;
 
-			for (Int c = block_start; c < end; c += BranchingFactor)
+			for (Int c = block_start; c < block_end; c += BranchingFactor)
 			{
 				IndexKey sum = 0;
 				Int max 	 = (c + BranchingFactor <= level_max ? c + BranchingFactor : level_max) + index_level_start;
@@ -445,8 +542,80 @@ public:
 		value(at) = val;
 	}
 
-	template <typename Functor>
-	Int Find() {return 0;}
+	template <typename Comparator>
+	Int Find(Int block_num, const Key& k, Comparator &comparator) const
+	{
+		Int key_block_offset 	= GetKeyBlockOffset(block_num);
+		Int index_block_offset 	= GetIndexKeyBlockOffset(block_num);
+
+		if (comparator.TestMax(k, max_keyb(index_block_offset)))
+		{
+			return -1;
+		}
+
+		Int levels = 0;
+		Int level_sizes[LEVELS_MAX];
+
+		Int level_size = max_size_;
+
+		do
+		{
+			level_size = GetIndexCellsNumberFor(level_size);
+			level_sizes[levels++] = level_size;
+		}
+		while (level_size > 1);
+
+		Int base = 1, start = 0;
+
+		for (Int level = levels - 2; level >= 0; level--)
+		{
+			Int level_size 	= level_sizes[level];
+			Int end 		= start + BranchingFactor < level_size ? start + BranchingFactor : level_size;
+
+			for (Int idx = start; idx < end; idx++)
+			{
+				const IndexKey& key0 = indexb(index_block_offset, base + idx);
+				if (comparator.CompareIndex(k, key0))
+				{
+					start = idx * BranchingFactor;
+					comparator.Sub(key0);
+					break;
+				}
+			}
+
+			base += level_size;
+		}
+
+		Int stop = (start + BranchingFactor) > size_ ? size_ : start + BranchingFactor;
+
+		for (Int idx = start; idx < stop; idx++)
+		{
+			if (comparator.CompareKey(k, keyb(key_block_offset, idx)))
+			{
+				return idx;
+			}
+		}
+
+		return -1;
+	}
+
+	Int FindLE(Int block_num, const Key& k) const
+	{
+		LESumComparator cmp;
+		return Find(block_num, k, cmp);
+	}
+
+	Int FindLT(Int block_num, const Key& k) const
+	{
+		LTSumComparator cmp;
+		return Find(block_num, k, cmp);
+	}
+
+	Int FindEQ(Int block_num, const Key& k) const
+	{
+		EQSumComparator cmp;
+		return Find(block_num, k, cmp);
+	}
 
 private:
 

@@ -116,7 +116,10 @@ public:
 		return parameters_->IsEnabled();
 	}
 
-	virtual void Run(ostream& out) 							= 0;
+
+	virtual void Prepare(ostream& out) {}
+	virtual void Run(ostream& out) 	= 0;
+	virtual void Release(ostream& out) {}
 
 };
 
@@ -124,7 +127,7 @@ public:
 
 
 class TaskRunner {
-
+protected:
 	map<String, Task*> 	tasks_;
 	Int 				run_count_;
 	String				output_;
@@ -134,12 +137,12 @@ public:
 
 	~TaskRunner();
 
-	void RegisterTask(Task* task)
+	virtual void RegisterTask(Task* task)
 	{
 		tasks_[task->GetParameters<>()->GetPrefix()] = task;
 	}
 
-	void Configure(Configurator* cfg);
+	virtual void Configure(Configurator* cfg);
 	void DumpProperties(ostream& os);
 
 	Int  Run(ostream& out);
@@ -188,7 +191,11 @@ public:
 			throw MemoriaException(MEMORIA_SOURCE, "Task "+name+" is not registered");
 		}
 	}
+
+protected:
+	virtual bool Run(Task* task, StringRef out_file_name, ostream& out, Int c);
 };
+
 
 }
 #endif

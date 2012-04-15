@@ -26,7 +26,8 @@ using namespace std;
 StringList::StringList(StringRef list, StringRef separators)
 {
         String::size_type pos = 0;
-        while (pos != String::npos && pos < list.length()) {
+        while (pos != String::npos && pos < list.length())
+        {
                 String::size_type idx = list.find_first_of(separators, pos);
                 if (idx != String::npos)
                 {

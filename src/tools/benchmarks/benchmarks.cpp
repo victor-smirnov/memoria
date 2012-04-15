@@ -5,19 +5,14 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include "map/task.hpp"
-#include "sum_set_batch/task.hpp"
-#include "vector/task.hpp"
-#include "vector_map/task.hpp"
-#include "create_ctr/task.hpp"
-
-#include "pmap/pmap_data.hpp"
-#include "pmap/pmap_reindex.hpp"
-#include "pmap/pmap_find.hpp"
-
-#include "template/task.hpp"
-
+#include <memoria/tools/benchmarks.hpp>
 #include <memoria/tools/cmdline.hpp>
+#include <memoria/memoria.hpp>
+
+
+#include "pmap_find.hpp"
+#include "pmap1_find.hpp"
+#include "stlset_find.hpp"
 
 #include <iostream>
 
@@ -30,8 +25,8 @@ using namespace memoria;
 
 MEMORIA_INIT();
 
-const char* DESCRIPTION = "Run Memoria regression tests with specified configuration";
-const char* CFG_FILE	= "tests.properties";
+const char* DESCRIPTION = "Run Memoria benchmarks with specified configuration";
+const char* CFG_FILE	= "benchmarks.properties";
 
 void sighandler(int signum)
 {
@@ -43,8 +38,10 @@ int main(int argc, const char** argv, const char** envp)
 {
 	signal(SIGSEGV, sighandler);
 
+	SmallCtrTypeFactory::Factory<Root>::Type::Init();
+
 	try {
-		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
+		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::NONE);
 
 		//FIXME: C++11 RNG seed doesn't work
 		//Seed(GetTimeInMillis());
@@ -61,20 +58,33 @@ int main(int argc, const char** argv, const char** envp)
 			GetBIRandom();
 		}
 
-		TestRunner runner;
+		BenchmarkRunner runner;
 
 		runner.SetRunCount(cmd_line.GetCount());
 
 		// add tasks to the runner;
 
-		runner.RegisterTask(new MapTest());
-		runner.RegisterTask(new CreateCtrTest());
-		runner.RegisterTask(new SumSetBatchTest());
-		runner.RegisterTask(new VectorTest());
-		runner.RegisterTask(new VectorMapTest());
-		runner.RegisterTask(new PMapDataTest());
-		runner.RegisterTask(new PMapReindexTest());
-		runner.RegisterTask(new PMapFindTest());
+		runner.BeginGroup(new BenchmarkGroup("PMap","Packed set performance", "Array Size, Kb", "Execution Time, ms"));
+		runner.RegisterBenchmark(new PMapBenchmark<2>());
+		runner.RegisterBenchmark(new PMapBenchmark<4>());
+		runner.RegisterBenchmark(new PMapBenchmark<8>());
+		runner.RegisterBenchmark(new PMapBenchmark<16>());
+		runner.RegisterBenchmark(new PMapBenchmark<32>());
+		runner.RegisterBenchmark(new PMapBenchmark<64>());
+		runner.EndGroup();
+
+
+		runner.BeginGroup(new BenchmarkGroup("PStlMapMem", "slt::set performance in the same memory", "Array Size, Kb", "Execution Time, ms"));
+		runner.RegisterBenchmark(new PMapBenchmark<8>());
+		runner.RegisterBenchmark(new PMapBenchmark<32>());
+		runner.RegisterBenchmark(new PMapBenchmark<2>());
+		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::MEMORY));
+		runner.EndGroup();
+
+		runner.BeginGroup(new BenchmarkGroup("PStlMapCnt", "slt::set performance with the same number of elements", "Number Of Elements, Kb", "Execution Time, ms"));
+		runner.RegisterBenchmark(new PMapBenchmark<8>(true));
+		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
+		runner.EndGroup();
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
@@ -84,20 +94,14 @@ int main(int argc, const char** argv, const char** envp)
 			cout<<"Description: "<<DESCRIPTION<<endl;
 			cout<<"Usage: "<<cmd_line.GetImageName()<<" [options]"<<endl;
 			cout<<"    --help                     Display this help and exit"<<endl;
-			cout<<"    --count N 		   		  Run all tests N times"<<endl;
+			cout<<"    --count N                  Run all tests N times"<<endl;
 			cout<<"    --config <file.properties> Use the specified config file"<<endl;
 			cout<<"    --list                     List available tasks and their configuration properties and exit"<<endl;
-			cout<<"    --replay <update_op.properties> Replay the failed update operation"<<endl;
-			cout<<"    --out <output folder> 		   Path where tests output will be put. (It will be recreated if already exists)"<<endl;
+			cout<<"    --out <output folder>      Path where tests output will be put. (It will be recreated if already exists)"<<endl;
 		}
 		else if (cmd_line.IsList())
 		{
 			runner.DumpProperties(cout);
-		}
-		else if (cmd_line.IsReplay())
-		{
-			runner.Replay(cout, cmd_line.GetReplayFile());
-			return 0;
 		}
 		else {
 			cout<<"Seed: "<<seed<<endl;

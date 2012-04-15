@@ -37,13 +37,70 @@ public:
 };
 
 
-class ParametersSet;
+template <typename T> class ParamDescriptor;
+
+class ParametersSet {
+
+	String 			prefix_;
+
+	vector<AbstractParamDescriptor*> descriptors_;
+
+public:
+	ParametersSet(StringRef prefix): prefix_(prefix) {}
+	ParametersSet(const ParametersSet&) = delete;
+
+	StringRef GetPrefix() const
+	{
+		return prefix_;
+	}
+
+	void SetPrefix(StringRef prefix)
+	{
+		prefix_ = prefix;
+	}
+
+	virtual void Put(AbstractParamDescriptor* descr);
+
+	template <typename T>
+	void Add(StringRef name, T& property)
+	{
+		Put(new ParamDescriptor<T>(this, name, property));
+	}
+
+	template <typename T>
+	void Add(bool ignore, StringRef name, T& property)
+	{
+		Put(new ParamDescriptor<T>(ignore, this, name, property));
+	}
+
+	template <typename T>
+	void Add(StringRef name, T& property, const T& default_value)
+	{
+		Put(new ParamDescriptor<T>(this, name, property, default_value));
+	}
+
+	template <typename T>
+	void Add(StringRef name, T& property, const T& default_value, const T& max_value)
+	{
+		Put(new ParamDescriptor<T>(this, name, property, default_value, max_value));
+	}
+
+	template <typename T>
+	void Add(StringRef name, T& property, const T& default_value, const T& min_value, const T& max_value)
+	{
+		Put(new ParamDescriptor<T>(this, name, property, default_value, min_value, max_value));
+	}
+
+	void DumpProperties(std::ostream& os) const;
+
+	void Process(Configurator* cfg);
+};
+
 
 template <typename T>
 class ParamDescriptor: public AbstractParamDescriptor {
 	ParametersSet* 		cfg_;
 
-	String 				prefix_;
 	String 				name_;
 
 	T& 					value_;
@@ -57,9 +114,8 @@ class ParamDescriptor: public AbstractParamDescriptor {
 	bool 				ignore_;
 
 public:
-	ParamDescriptor(bool ignore, ParametersSet* cfg, StringRef prefix, String name, T& value):
+	ParamDescriptor(bool ignore, ParametersSet* cfg, String name, T& value):
 		cfg_(cfg),
-		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_specified_(false),
@@ -67,9 +123,8 @@ public:
 		ignore_(ignore)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value):
+	ParamDescriptor(ParametersSet* cfg, String name, T& value):
 		cfg_(cfg),
-		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_specified_(false),
@@ -77,9 +132,8 @@ public:
 		ignore_(false)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value, const T& default_value):
+	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& default_value):
 		cfg_(cfg),
-		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_(default_value),
@@ -88,9 +142,8 @@ public:
 		ignore_(false)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value, const T& default_value, const T& max_value):
+	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& default_value, const T& max_value):
 		cfg_(cfg),
-		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_(default_value),
@@ -101,9 +154,8 @@ public:
 		ignore_(false)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, StringRef prefix, String name, T& value, const T& default_value, const T& min_value, const T& max_value):
+	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& default_value, const T& min_value, const T& max_value):
 		cfg_(cfg),
-		prefix_(prefix),
 		name_(name),
 		value_(value),
 		default_value_(default_value),
@@ -123,7 +175,7 @@ public:
 		{
 			if (!(value_ >= min_value_ && value_ <= max_value_))
 			{
-				throw MemoriaException(MEMORIA_SOURCE, "Range checking failure for the property: "+prefix_+"."+name_);
+				throw MemoriaException(MEMORIA_SOURCE, "Range checking failure for the property: "+prefix()+"."+name_);
 			}
 		}
 	}
@@ -135,12 +187,12 @@ public:
 
 	virtual String GetPropertyName() const
 	{
-		if (IsEmpty(prefix_))
+		if (IsEmpty(prefix()))
 		{
 			return name_;
 		}
 		else {
-			return prefix_+"."+name_;
+			return prefix()+"."+name_;
 		}
 	}
 
@@ -176,82 +228,58 @@ public:
 		}
 	}
 
+	StringRef prefix() const
+	{
+		return cfg_->GetPrefix();
+	}
+
 protected:
 	void SetValue(Configurator* cfg, T& value);
 };
 
 
-class ParametersSet {
-
-	String 			prefix_;
-
-	vector<AbstractParamDescriptor*> descriptors_;
-
-public:
-	ParametersSet(StringRef prefix): prefix_(prefix) {}
-
-	StringRef GetPrefix() const
-	{
-		return prefix_;
-	}
-
-	virtual void Put(AbstractParamDescriptor* descr);
-
-	template <typename T>
-	void Add(StringRef name, T& property)
-	{
-		Put(new ParamDescriptor<T>(this, prefix_, name, property));
-	}
-
-	template <typename T>
-	void Add(bool ignore, StringRef name, T& property)
-	{
-		Put(new ParamDescriptor<T>(ignore, this, prefix_, name, property));
-	}
-
-	template <typename T>
-	void Add(StringRef name, T& property, const T& default_value)
-	{
-		Put(new ParamDescriptor<T>(this, prefix_, name, property, default_value));
-	}
-
-	template <typename T>
-	void Add(StringRef name, T& property, const T& default_value, const T& max_value)
-	{
-		Put(new ParamDescriptor<T>(this, prefix_, name, property, default_value, max_value));
-	}
-
-	template <typename T>
-	void Add(StringRef name, T& property, const T& default_value, const T& min_value, const T& max_value)
-	{
-		Put(new ParamDescriptor<T>(this, prefix_, name, property, default_value, min_value, max_value));
-	}
-
-	void DumpProperties(std::ostream& os) const;
-
-	void Process(Configurator* cfg);
-};
 
 
 
 template <typename T>
 void ParamDescriptor<T>::SetValue(Configurator* cfg, T& value)
 {
-	String ext_name = GetPropertyName();
-	if (cfg->IsPropertyDefined(ext_name))
+	StringRef prefix1 = prefix();
+
+	auto pos = prefix1.length();
+
+	while (true)
 	{
-		value = FromString<T>::convert(cfg->GetProperty(ext_name));
+		String name = prefix().substr(0, pos) + "." + name_;
+
+		if (cfg->IsPropertyDefined(name))
+		{
+			value = FromString<T>::convert(cfg->GetProperty(name));
+			return;
+		}
+		else {
+			pos = prefix().find_last_of(".", pos - 1);
+
+			if (pos == String::npos)
+			{
+				break;
+			}
+		}
 	}
-	else if (cfg->IsPropertyDefined(name_))
+
+	if (cfg->IsPropertyDefined(name_))
 	{
 		value = FromString<T>::convert(cfg->GetProperty(name_));
+		return;
 	}
-	else if (default_value_specified_)
+
+	if (default_value_specified_)
 	{
 		value = default_value_;
 	}
-	else if (!ignore_) {
-		throw MemoriaException(MEMORIA_SOURCE, "Property "+ext_name+" has to be specified in the config file");
+	else if (!ignore_)
+	{
+		throw MemoriaException(MEMORIA_SOURCE, "Property "+GetPropertyName()+" has to be specified in the config file");
 	}
 }
 
