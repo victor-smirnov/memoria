@@ -118,17 +118,26 @@ private:
 	String 	xtitle_;
 	String 	ytitle_;
 
+	String 	resolution_;
+	String  agenda_location_;
+
 	bool time_;
+	Int logscale_;
 
 public:
-	BenchmarkGroup(StringRef name, StringRef title = "Benchmark", StringRef xtitle = "X", StringRef ytitle = "Y", bool time = true):
+	BenchmarkGroup(StringRef name, StringRef title = "Benchmark", StringRef xtitle = "X", StringRef ytitle = "Y", Int logscale = 2, bool time = true):
 		TaskParametersSet(name),
 		duration_(0),
 		title_(title),
 		xtitle_(xtitle),
 		ytitle_(ytitle),
 		time_(time)
-	{}
+	{
+		Add("time", time_, time);
+		Add("resolution", resolution_, String("800,600"));
+		Add("agenda_location", agenda_location_, String("top left"));
+		Add("logscale", logscale_, logscale);
+	}
 
 	StringRef title() const {
 		return title_;
@@ -180,6 +189,30 @@ public:
 
 	bool time() const {
 		return time_;
+	}
+
+	StringRef resolution() const {
+		return resolution_;
+	}
+
+	String& resolution() {
+		return resolution_;
+	}
+
+	StringRef& agenda_location() const {
+		return agenda_location_;
+	}
+
+	String& agenda_location() {
+		return agenda_location_;
+	}
+
+	Int& logscale() {
+		return logscale_;
+	}
+
+	const Int& logscale() const {
+		return logscale_;
 	}
 };
 
@@ -311,9 +344,10 @@ public:
 
 	virtual void Configure(Configurator* cfg);
 
-	void BeginGroup(BenchmarkGroup* group)
+	BenchmarkGroup* BeginGroup(BenchmarkGroup* group)
 	{
 		groups_.push_back(group);
+		return group;
 	}
 
 	void EndGroup() {}

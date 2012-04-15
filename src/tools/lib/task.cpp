@@ -377,21 +377,25 @@ Int BenchmarkRunner::Run(ostream& out)
 
 void BenchmarkRunner::BuildGnuplotScript(BenchmarkGroup* group, StringRef file_name)
 {
-	typedef vector<BenchmarkResult> Results;
+	typedef vector<BenchmarkResult> 		Results;
+	typedef pair<String, Results>			GraphPair;
 
-	map<String, Results> graphs;
+	vector<GraphPair> graphs;
 
-	for (auto& result: group->results())
+	for (BenchmarkTask* task: group->tasks())
 	{
-		if (graphs.find(result.name()) == graphs.end())
+		Results results;
+		String name = task->GetGraphName();
+
+		for (BenchmarkResult& result: group->results())
 		{
-			Results r;
-			r.push_back(result);
-			graphs[result.name()] = r;
+			if (result.name() == name)
+			{
+				results.push_back(result);
+			}
 		}
-		else {
-			graphs[result.name()].push_back(result);
-		}
+
+		graphs.push_back(GraphPair(name, results));
 	}
 
 	for (auto& graph: graphs)
@@ -399,21 +403,19 @@ void BenchmarkRunner::BuildGnuplotScript(BenchmarkGroup* group, StringRef file_n
 		std::sort(graph.second.begin(), graph.second.end());
 	}
 
-
-
 	fstream out_file;
 	out_file.exceptions ( fstream::failbit | fstream::badbit );
 	out_file.open(file_name, fstream::out);
 
-	out_file<<"set terminal png size 1024,768"<<endl;
+	out_file<<"set terminal png size "<<group->resolution()<<endl;
 	out_file<<"set output '"+group->name()+".png'"<<endl;
-	out_file<<"set title '"+group->title()+"'"<<endl;
-	out_file<<"set xlabel '"+group->xtitle()+"'"<<endl;
-	out_file<<"set ylabel '"+group->ytitle()+"'"<<endl;
-	out_file<<"set logscale x 2"<<endl;
+	out_file<<"set title \""+group->title()+"\""<<endl;
+	out_file<<"set xlabel \""+group->xtitle()+"\""<<endl;
+	out_file<<"set ylabel \""+group->ytitle()+"\""<<endl;
+	out_file<<"set logscale x "<<group->logscale()<<endl;
+	out_file<<"set key "<<group->agenda_location()<<endl;
 
 	out_file<<"plot ";
-
 
 	Int cnt = 0;
 	for (auto& graph: graphs)

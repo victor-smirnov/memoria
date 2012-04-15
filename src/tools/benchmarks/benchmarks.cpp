@@ -10,8 +10,7 @@
 #include <memoria/memoria.hpp>
 
 
-#include "pmap_find.hpp"
-#include "pmap1_find.hpp"
+#include "pset_find.hpp"
 #include "stlset_find.hpp"
 
 #include <iostream>
@@ -64,25 +63,25 @@ int main(int argc, const char** argv, const char** envp)
 
 		// add tasks to the runner;
 
-		runner.BeginGroup(new BenchmarkGroup("PMap","Packed set performance", "Array Size, Kb", "Execution Time, ms"));
-		runner.RegisterBenchmark(new PMapBenchmark<2>());
-		runner.RegisterBenchmark(new PMapBenchmark<4>());
-		runner.RegisterBenchmark(new PMapBenchmark<8>());
-		runner.RegisterBenchmark(new PMapBenchmark<16>());
-		runner.RegisterBenchmark(new PMapBenchmark<32>());
-		runner.RegisterBenchmark(new PMapBenchmark<64>());
+		runner.BeginGroup(new BenchmarkGroup("PSet","Packed Set performance, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
+		runner.RegisterBenchmark(new PSetBenchmark<2>());
+		runner.RegisterBenchmark(new PSetBenchmark<4>());
+		runner.RegisterBenchmark(new PSetBenchmark<8>());
+		runner.RegisterBenchmark(new PSetBenchmark<16>());
+		runner.RegisterBenchmark(new PSetBenchmark<32>());
+		runner.RegisterBenchmark(new PSetBenchmark<64>());
 		runner.EndGroup();
 
 
-		runner.BeginGroup(new BenchmarkGroup("PStlMapMem", "slt::set performance in the same memory", "Array Size, Kb", "Execution Time, ms"));
-		runner.RegisterBenchmark(new PMapBenchmark<8>());
-		runner.RegisterBenchmark(new PMapBenchmark<32>());
-		runner.RegisterBenchmark(new PMapBenchmark<2>());
+		runner.BeginGroup(new BenchmarkGroup("PSetStlMem", "Performance of slt::set and Packed Set within the same memory, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
+		runner.RegisterBenchmark(new PSetBenchmark<2>());
+		runner.RegisterBenchmark(new PSetBenchmark<8>());
+		runner.RegisterBenchmark(new PSetBenchmark<32>());
 		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::MEMORY));
 		runner.EndGroup();
 
-		runner.BeginGroup(new BenchmarkGroup("PStlMapCnt", "slt::set performance with the same number of elements", "Number Of Elements, Kb", "Execution Time, ms"));
-		runner.RegisterBenchmark(new PMapBenchmark<8>(true));
+		runner.BeginGroup(new BenchmarkGroup("PSetStlCnt", "Performance of stl::set and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements, Kb", "Execution Time, ms", 10));
+		runner.RegisterBenchmark(new PSetBenchmark<32>(true));
 		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
 		runner.EndGroup();
 

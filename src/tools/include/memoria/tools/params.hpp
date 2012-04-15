@@ -80,6 +80,12 @@ public:
 	}
 
 	template <typename T>
+	void AddS(StringRef name, T& property, const T& default_value)
+	{
+		Put(new ParamDescriptor<T>(this, name, property, default_value));
+	}
+
+	template <typename T>
 	void Add(StringRef name, T& property, const T& default_value, const T& max_value)
 	{
 		Put(new ParamDescriptor<T>(this, name, property, default_value, max_value));

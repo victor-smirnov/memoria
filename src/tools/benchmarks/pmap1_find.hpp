@@ -110,7 +110,7 @@ public:
 
 	virtual void Benchmark(BenchmarkResult& result, ostream& out)
 	{
-		PMapFindParams* params = GetParameters<PMapFindParams>();
+		PSetFindParams* params = GetParameters<PSetFindParams>();
 
 		Int max = map_->size();
 

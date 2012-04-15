@@ -22,9 +22,9 @@ namespace memoria {
 using namespace std;
 
 
-struct PMapFindParams: public BenchmarkParams {
+struct PSetFindParams: public BenchmarkParams {
 	Int iterations;
-	PMapFindParams(Int BranchingFactor): BenchmarkParams("PSetFind."+ToString(BranchingFactor))
+	PSetFindParams(Int BranchingFactor): BenchmarkParams("PSetFind."+ToString(BranchingFactor))
 	{
 		Add("iterations", iterations, 1*1024*1024);
 	}
@@ -48,7 +48,7 @@ template <typename List> class ListExecutor;
 
 
 template <Int BranchingFactor>
-class PMapBenchmark: public BenchmarkTask {
+class PSetBenchmark: public BenchmarkTask {
 
 	typedef PMapFindTypes<Int, EmptyValue, 1, BranchingFactor> 	Types;
 
@@ -70,9 +70,9 @@ class PMapBenchmark: public BenchmarkTask {
 
 public:
 
-	PMapBenchmark(bool dump_element_count = false): BenchmarkTask(new PMapFindParams(BranchingFactor)), dump_element_count_(dump_element_count) {}
+	PSetBenchmark(bool dump_element_count = false): BenchmarkTask(new PSetFindParams(BranchingFactor)), dump_element_count_(dump_element_count) {}
 
-	virtual ~PMapBenchmark() throw() {}
+	virtual ~PSetBenchmark() throw() {}
 
 	void FillPMap(Map* map, Int size)
 	{
@@ -94,7 +94,7 @@ public:
 
 	virtual void Prepare(ostream& out)
 	{
-		PMapFindParams* params = GetParameters<PMapFindParams>();
+		PSetFindParams* params = GetParameters<PSetFindParams>();
 
 		Int buffer_size 	= GetBufferSize();
 
@@ -124,7 +124,7 @@ public:
 
 	virtual void Benchmark(BenchmarkResult& result, ostream& out)
 	{
-		PMapFindParams* params = GetParameters<PMapFindParams>();
+		PSetFindParams* params = GetParameters<PSetFindParams>();
 
 		for (Int c = 0; c < params->iterations; c++)
 		{
@@ -144,7 +144,7 @@ public:
 
 	virtual String GetGraphName()
 	{
-		return "Packed Set, "+ToString(BranchingFactor)+" children";
+		return "PackedSet<Int>, "+ToString(BranchingFactor)+" children";
 	}
 };
 
