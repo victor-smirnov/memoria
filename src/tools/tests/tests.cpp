@@ -15,6 +15,7 @@
 #include "pmap/pmap_reindex.hpp"
 #include "pmap/pmap_find.hpp"
 #include "pmap/pmap_sum.hpp"
+#include "pmap/pmap_walk.hpp"
 
 #include "template/task.hpp"
 
@@ -83,6 +84,17 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterTask(new PMapSumTest<16>());
 		runner.RegisterTask(new PMapSumTest<32>());
 		runner.RegisterTask(new PMapSumTest<64>());
+
+		runner.RegisterTask(new PMapWalkTest<2>());
+		runner.RegisterTask(new PMapWalkTest<4>());
+		runner.RegisterTask(new PMapWalkTest<8>());
+		runner.RegisterTask(new PMapWalkTest<16>());
+		runner.RegisterTask(new PMapWalkTest<32>());
+		runner.RegisterTask(new PMapWalkTest<64>());
+		runner.RegisterTask(new PMapWalkTest<5>());
+		runner.RegisterTask(new PMapWalkTest<13>());
+		runner.RegisterTask(new PMapWalkTest<22>());
+
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
