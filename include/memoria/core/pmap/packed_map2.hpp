@@ -899,7 +899,7 @@ public:
 
 		Int block_end 	= GetBlockStartEndBw(start);
 
-		if (block_end >= -1)
+		if (block_end == -1)
 		{
 			return walker.WalkKeys(keys_offsets, start, -1);
 		}
@@ -923,9 +923,7 @@ public:
 
 				Int last_start_end = GetBlockStartEndBw(last_start);
 
-				Int last_end = last_start_end <= size()? last_start_end : size();
-
-				return walker.WalkKeys(keys_offsets, last_start, last_end);
+				return walker.WalkKeys(keys_offsets, last_start, last_start_end);
 			}
 		}
 	}
@@ -1003,16 +1001,16 @@ private:
 	{
 		Int block_start_end 	= GetBlockStartEndBw(start);
 
-		if (block_start_end >= level_size)
+		if (block_start_end == -1)
 		{
-			return (walker.WalkIndex(index_offsets, start + level_offet, level_size + level_offet) - level_offet) * BranchingFactor;
+			return (walker.WalkIndex(index_offsets, start + level_offet, level_offet - 1) - level_offet + 1) * BranchingFactor - 1;
 		}
 		else
 		{
-			Int limit = walker.WalkIndex(index_offsets, start + level_offet, block_start_end + level_offet) - level_offet;
-			if (limit > block_start_end)
+			Int idx = walker.WalkIndex(index_offsets, start + level_offet, block_start_end + level_offet) - level_offet;
+			if (idx > block_start_end)
 			{
-				return limit * BranchingFactor;
+				return (idx + 1) * BranchingFactor - 1;
 			}
 			else {
 				Int level_size0 = GetIndexCellsNumberFor(level_size);
@@ -1020,9 +1018,7 @@ private:
 
 				Int last_start_end = GetBlockStartEndBw(last_start);
 
-				Int last_end = last_start_end <= level_size ? last_start_end : level_size;
-
-				return (walker.WalkIndex(index_offsets, last_start + level_offet, last_end + level_offet) - level_offet) * BranchingFactor;
+				return (walker.WalkIndex(index_offsets, last_start + level_offet, last_start_end + level_offet) - level_offet + 1) * BranchingFactor - 1;
 			}
 		}
 	}
