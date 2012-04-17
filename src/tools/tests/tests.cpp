@@ -15,7 +15,8 @@
 #include "pmap/pmap_reindex.hpp"
 #include "pmap/pmap_find.hpp"
 #include "pmap/pmap_sum.hpp"
-#include "pmap/pmap_walk.hpp"
+#include "pmap/pmap_walk_fw.hpp"
+#include "pmap/pmap_walk_bw.hpp"
 
 #include "template/task.hpp"
 
@@ -85,16 +86,25 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterTask(new PMapSumTest<32>());
 		runner.RegisterTask(new PMapSumTest<64>());
 
-		runner.RegisterTask(new PMapWalkTest<2>());
-		runner.RegisterTask(new PMapWalkTest<4>());
-		runner.RegisterTask(new PMapWalkTest<8>());
-		runner.RegisterTask(new PMapWalkTest<16>());
-		runner.RegisterTask(new PMapWalkTest<32>());
-		runner.RegisterTask(new PMapWalkTest<64>());
-		runner.RegisterTask(new PMapWalkTest<5>());
-		runner.RegisterTask(new PMapWalkTest<13>());
-		runner.RegisterTask(new PMapWalkTest<22>());
+		runner.RegisterTask(new PMapWalkFwTest<2>());
+		runner.RegisterTask(new PMapWalkFwTest<4>());
+		runner.RegisterTask(new PMapWalkFwTest<8>());
+		runner.RegisterTask(new PMapWalkFwTest<16>());
+		runner.RegisterTask(new PMapWalkFwTest<32>());
+		runner.RegisterTask(new PMapWalkFwTest<64>());
+		runner.RegisterTask(new PMapWalkFwTest<5>());
+		runner.RegisterTask(new PMapWalkFwTest<13>());
+		runner.RegisterTask(new PMapWalkFwTest<22>());
 
+		runner.RegisterTask(new PMapWalkBwTest<2>());
+		runner.RegisterTask(new PMapWalkBwTest<4>());
+		runner.RegisterTask(new PMapWalkBwTest<8>());
+		runner.RegisterTask(new PMapWalkBwTest<16>());
+		runner.RegisterTask(new PMapWalkBwTest<32>());
+		runner.RegisterTask(new PMapWalkBwTest<64>());
+		runner.RegisterTask(new PMapWalkBwTest<5>());
+		runner.RegisterTask(new PMapWalkBwTest<13>());
+		runner.RegisterTask(new PMapWalkBwTest<22>());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
