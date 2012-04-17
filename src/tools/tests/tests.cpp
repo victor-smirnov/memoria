@@ -82,7 +82,7 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterTask(new PMapSumTest<8>());
 		runner.RegisterTask(new PMapSumTest<16>());
 		runner.RegisterTask(new PMapSumTest<32>());
-		runner.RegisterTask(new PMapSumTest<14>());
+		runner.RegisterTask(new PMapSumTest<64>());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 

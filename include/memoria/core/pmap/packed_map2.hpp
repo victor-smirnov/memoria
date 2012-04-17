@@ -125,14 +125,26 @@ private:
 	class SumWalker
 	{
 		BigInt sum_;
+		const MyType& me_;
 	public:
-		SumWalker(): sum_(0) {}
+		SumWalker(const MyType& me): sum_(0), me_(me) {}
 
-		template <typename K>
-		void operator()(const K& value)
+		void WalkKeys(Int offsets[Blocks], Int start, Int end)
 		{
-			sum_ += value;
+			for (Int c = start; c < end; c++)
+			{
+				sum_ += me_.keyb(offsets[0], c);
+			}
 		}
+
+		void WalkIndex(Int offsets[Blocks], Int start, Int end)
+		{
+			for (Int c = start; c < end; c++)
+			{
+				sum_ += me_.indexb(offsets[0], c);
+			}
+		}
+
 
 		BigInt sum() const {
 			return sum_;
@@ -667,37 +679,37 @@ public:
 	template <typename Functor>
 	void Walk(Int block_num, Int start, Int end, Functor& walker) const
 	{
-		Int key_block_offset 	= GetKeyBlockOffset(block_num);
-		Int index_block_offset 	= GetIndexKeyBlockOffset(block_num);
+		Int keys_offsets[Blocks];
 
-		Int block_start_start 	= GetBlockStart(start);
-		Int block_start_end 	= GetBlockStartEnd(start);
-		Int block_end_start 	= GetBlockStart(end);
-
-		if (block_start_start < block_end_start)
+		for (Int c = 0; c < Blocks; c++)
 		{
-			for (Int c = start; c < block_start_end; c++)
-			{
-				walker(keyb(key_block_offset, c));
-			}
+			keys_offsets[c] = GetKeyBlockOffset(block_num);
+		}
+
+		if (end - start <= BranchingFactor * 2)
+		{
+			walker.WalkKeys(keys_offsets, start, end);
+		}
+		else {
+			Int block_start_end 	= GetBlockStartEnd(start);
+			Int block_end_start 	= GetBlockStart(end);
+
+			walker.WalkKeys(keys_offsets, start, block_start_end);
 
 			if (block_start_end < block_end_start)
 			{
+				Int index_offsets[Blocks];
+
+				for (Int c = 0; c < Blocks; c++)
+				{
+					index_offsets[c] = GetIndexKeyBlockOffset(block_num);
+				}
+
 				Int level_size = GetIndexCellsNumberFor(max_size_);
-				WalkIndex(index_block_offset, start/BranchingFactor + 1, end/BranchingFactor, walker, index_size_ - level_size, level_size);
+				WalkIndex(index_offsets, start/BranchingFactor + 1, end/BranchingFactor, walker, index_size_ - level_size, level_size);
 			}
 
-			for (Int c = block_end_start; c < end; c++)
-			{
-				walker(keyb(key_block_offset, c));
-			}
-		}
-		else
-		{
-			for (Int c = start; c < end; c++)
-			{
-				walker(keyb(key_block_offset, c));
-			}
+			walker.WalkKeys(keys_offsets, block_end_start, end);
 		}
 	}
 
@@ -705,46 +717,33 @@ public:
 
 	void Sum(Int block_num, Int start, Int end, Accumulator& accum) const
 	{
-		SumWalker walker;
+		SumWalker walker(*this);
 		Walk(block_num, start, end, walker);
 		accum[block_num] += walker.sum();
 	}
 
 private:
 
-
-
 	template <typename Functor>
-	void WalkIndex(Int block_offset, Int start, Int end, Functor& walker, Int level_offet, Int level_size) const
+	void WalkIndex(Int index_offsets[Blocks], Int start, Int end, Functor& walker, Int level_offet, Int level_size) const
 	{
-		Int block_start_start 	= GetBlockStart(start);
-		Int block_start_end 	= GetBlockStartEnd(start);
-		Int block_end_start 	= GetBlockStart(end);
-
-		if (block_start_start < block_end_start)
+		if (end - start <= BranchingFactor*2)
 		{
-			for (Int c = start; c < block_start_end; c++)
-			{
-				walker(indexb(block_offset, c + level_offet));
-			}
+			walker.WalkIndex(index_offsets, start + level_offet, end + level_offet);
+		}
+		else {
+			Int block_start_end 	= GetBlockStartEnd(start);
+			Int block_end_start 	= GetBlockStart(end);
+
+			walker.WalkIndex(index_offsets, start + level_offet, block_start_end + level_offet);
 
 			if (block_start_end < block_end_start)
 			{
 				Int level_size0 = GetIndexCellsNumberFor(level_size);
-				WalkIndex(block_offset, start/BranchingFactor + 1, end/BranchingFactor, walker, level_offet - level_size0, level_size0);
+				WalkIndex(index_offsets, start/BranchingFactor + 1, end/BranchingFactor, walker, level_offet - level_size0, level_size0);
 			}
 
-			for (Int c = block_end_start; c < end; c++)
-			{
-				walker(indexb(block_offset, c + level_offet));
-			}
-		}
-		else
-		{
-			for (Int c = start; c < end; c++)
-			{
-				walker(indexb(block_offset, c + level_offet));
-			}
+			walker.WalkIndex(index_offsets, block_end_start + level_offet, end + level_offet);
 		}
 	}
 

@@ -26,12 +26,14 @@ struct PMapSumReplay: public TestReplayParams {
 	Int start;
 	Int end;
 	Int block_size;
+	Int max_size;
 
 	PMapSumReplay(): TestReplayParams()
 	{
 		Add("start", 		start);
 		Add("end", 			end);
 		Add("block_size",	block_size);
+		Add("max_size", 	max_size);
 	}
 };
 
@@ -39,10 +41,12 @@ struct PMapSumReplay: public TestReplayParams {
 struct PMapSumParams: public TestTaskParams {
 
 	Int block_size;
+	Int max_size;
 
 	PMapSumParams(Int BranchingFactor): TestTaskParams("PMap.Sum."+ToString(BranchingFactor))
 	{
 		Add("block_size", block_size, 16384);
+		Add("max_size", max_size, 0);
 	}
 };
 
@@ -62,7 +66,7 @@ struct PMapSumTypes {
 template <Int BranchingFactor>
 class PMapSumTest: public TestTask {
 
-	typedef PMapSumTypes<Int, EmptyValue, BranchingFactor> 	Types;
+	typedef PMapSumTypes<BigInt, EmptyValue, BranchingFactor> 	Types;
 
 	typedef typename Types::Accumulator		Accumulator;
 	typedef typename Types::Key				Key;
@@ -87,8 +91,9 @@ public:
 	{
 		PMapSumReplay* params = T2T<PMapSumReplay*>(step_params);
 
-		Int start 	= params->start;
-		Int end 	= params->end;
+		Int start 		= params->start;
+		Int end 		= params->end;
+		Int max_size	= params->max_size;
 
 		Int buffer_size 	= params->block_size;
 
@@ -100,7 +105,7 @@ public:
 
 		map->InitByBlock(buffer_size - sizeof(Map));
 
-		FillMap(map, map->max_size());
+		FillMap(map, max_size != 0 ? max_size : map->max_size());
 
 		Accumulator acc;
 		map->Sum(0, start, end, acc);
@@ -139,6 +144,7 @@ public:
 	virtual void Run(ostream& out)
 	{
 		Int buffer_size 	= GetParameters<PMapSumParams>()->block_size;
+		Int max_size 		= GetParameters<PMapSumParams>()->max_size;
 
 		unique_ptr<Byte[]>	buffer_ptr(new Byte[buffer_size]);
 		Byte* buffer 		= buffer_ptr.get();
@@ -148,7 +154,7 @@ public:
 
 		map->InitByBlock(buffer_size - sizeof(Map));
 
-		FillMap(map, map->max_size());
+		FillMap(map, max_size != 0 ? max_size : map->max_size());
 
 		PMapSumReplay replay;
 		replay.block_size = buffer_size;
