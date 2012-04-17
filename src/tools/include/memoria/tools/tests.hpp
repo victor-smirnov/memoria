@@ -97,6 +97,29 @@ public:
 	virtual void 			Run(ostream& out)											= 0;
 	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
 
+	virtual void StoreProperties(const TestReplayParams* params, StringRef file_name) const
+	{
+		fstream file;
+		file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
+
+		params->DumpProperties(file);
+
+		file.close();
+	}
+
+	virtual void Store(TestReplayParams* params) const
+	{
+		Configure(params);
+
+		String props_name = GetPropertiesFileName(params);
+		StoreProperties(params, props_name);
+	}
+
+	virtual String GetPropertiesFileName(const TestReplayParams* params, StringRef infix = "") const
+	{
+		return GetResourcePath("Replay"+infix+".properties");
+	}
+
 public:
 
 	String GetFileName(StringRef name) const;
@@ -137,15 +160,7 @@ public:
 		allocator.store(out.get());
 	}
 
-	virtual void StoreProperties(const TestReplayParams* params, StringRef file_name) const
-	{
-		fstream file;
-		file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
 
-		params->DumpProperties(file);
-
-		file.close();
-	}
 
 	virtual void Store(Allocator& allocator, TestReplayParams* params) const
 	{
@@ -163,15 +178,14 @@ public:
 		StoreProperties(params, props_name);
 	}
 
+
+
 	virtual String GetAllocatorFileName(const TestReplayParams* params, StringRef infix = "") const
 	{
 		return GetResourcePath(params->GetName()+infix+".dump");
 	}
 
-	virtual String GetPropertiesFileName(const TestReplayParams* params, StringRef infix = "") const
-	{
-		return GetResourcePath("Replay"+infix+".properties");
-	}
+
 };
 
 

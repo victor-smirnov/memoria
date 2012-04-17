@@ -21,7 +21,6 @@ namespace memoria {
 
 using namespace std;
 
-
 struct PSetFindParams: public BenchmarkParams {
 	Int iterations;
 	PSetFindParams(Int BranchingFactor): BenchmarkParams("PSetFind."+ToString(BranchingFactor))
@@ -66,11 +65,16 @@ class PSetBenchmark: public BenchmarkTask {
 
 	volatile Int result_;
 
+	Byte* buffer_;
 	bool dump_element_count_;
 
 public:
 
-	PSetBenchmark(bool dump_element_count = false): BenchmarkTask(new PSetFindParams(BranchingFactor)), dump_element_count_(dump_element_count) {}
+	PSetBenchmark(Byte* buffer = NULL, bool dump_element_count = false):
+		BenchmarkTask(new PSetFindParams(BranchingFactor)),
+		buffer_(buffer),
+		dump_element_count_(dump_element_count)
+	{}
 
 	virtual ~PSetBenchmark() throw() {}
 
@@ -98,7 +102,15 @@ public:
 
 		Int buffer_size 	= GetBufferSize();
 
-		Byte* buffer 		= T2T<Byte*>(malloc(buffer_size));
+		Byte* buffer;
+
+		if (buffer_ == NULL)
+		{
+			buffer 		= T2T<Byte*>(malloc(buffer_size));
+		}
+		else {
+			buffer 		= buffer_;
+		}
 
 		memset(buffer, buffer_size, 0);
 
@@ -117,7 +129,10 @@ public:
 
 	virtual void Release(ostream& out)
 	{
-		free(map_);
+		if (buffer_ == NULL)
+		{
+			free(map_);
+		}
 
 		delete[] rd_array_;
 	}

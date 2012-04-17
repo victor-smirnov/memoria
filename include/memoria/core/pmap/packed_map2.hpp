@@ -33,6 +33,8 @@ public:
 	static const Int Blocks					= Types::Blocks;
 	static const Int BranchingFactor		= Types::BranchingFactor;
 
+private:
+
 	class ComparatorBase {
 	protected:
 		IndexKey sum_;
@@ -117,6 +119,23 @@ public:
 		{
 			ComparatorBase::sum_ += index;
 			return k == ComparatorBase::sum_;
+		}
+	};
+
+	class SumWalker
+	{
+		BigInt sum_;
+	public:
+		SumWalker(): sum_(0) {}
+
+		template <typename K>
+		void operator()(const K& value)
+		{
+			sum_ += value;
+		}
+
+		BigInt sum() const {
+			return sum_;
 		}
 	};
 
@@ -605,11 +624,31 @@ public:
 		return Find(block_num, k, cmp);
 	}
 
+	Int FindLE(Int block_num, const Key& k, Accumulator& acc) const
+	{
+		LESumComparator cmp;
+		Int result = Find(block_num, k, cmp);
+		acc[block_num] += cmp.sum();
+		return result;
+	}
+
+
+
 	Int FindLT(Int block_num, const Key& k) const
 	{
 		LTSumComparator cmp;
 		return Find(block_num, k, cmp);
 	}
+
+	Int FindLT(Int block_num, const Key& k, Accumulator& acc) const
+	{
+		LTSumComparator cmp;
+		Int result = Find(block_num, k, cmp);
+		acc[block_num] += cmp.sum();
+		return result;
+	}
+
+
 
 	Int FindEQ(Int block_num, const Key& k) const
 	{
@@ -617,13 +656,106 @@ public:
 		return Find(block_num, k, cmp);
 	}
 
+	Int FindEQ(Int block_num, const Key& k, Accumulator& acc) const
+	{
+		EQSumComparator cmp;
+		Int result = Find(block_num, k, cmp);
+		acc[block_num] += cmp.sum();
+		return result;
+	}
+
+	template <typename Functor>
+	void Walk(Int block_num, Int start, Int end, Functor& walker) const
+	{
+		Int key_block_offset 	= GetKeyBlockOffset(block_num);
+		Int index_block_offset 	= GetIndexKeyBlockOffset(block_num);
+
+		Int block_start_start 	= GetBlockStart(start);
+		Int block_start_end 	= GetBlockStartEnd(start);
+		Int block_end_start 	= GetBlockStart(end);
+
+		if (block_start_start < block_end_start)
+		{
+			for (Int c = start; c < block_start_end; c++)
+			{
+				walker(keyb(key_block_offset, c));
+			}
+
+			if (block_start_end < block_end_start)
+			{
+				Int level_size = GetIndexCellsNumberFor(max_size_);
+				WalkIndex(index_block_offset, start/BranchingFactor + 1, end/BranchingFactor, walker, index_size_ - level_size, level_size);
+			}
+
+			for (Int c = block_end_start; c < end; c++)
+			{
+				walker(keyb(key_block_offset, c));
+			}
+		}
+		else
+		{
+			for (Int c = start; c < end; c++)
+			{
+				walker(keyb(key_block_offset, c));
+			}
+		}
+	}
+
+
+
+	void Sum(Int block_num, Int start, Int end, Accumulator& accum) const
+	{
+		SumWalker walker;
+		Walk(block_num, start, end, walker);
+		accum[block_num] += walker.sum();
+	}
+
 private:
 
+
+
+	template <typename Functor>
+	void WalkIndex(Int block_offset, Int start, Int end, Functor& walker, Int level_offet, Int level_size) const
+	{
+		Int block_start_start 	= GetBlockStart(start);
+		Int block_start_end 	= GetBlockStartEnd(start);
+		Int block_end_start 	= GetBlockStart(end);
+
+		if (block_start_start < block_end_start)
+		{
+			for (Int c = start; c < block_start_end; c++)
+			{
+				walker(indexb(block_offset, c + level_offet));
+			}
+
+			if (block_start_end < block_end_start)
+			{
+				Int level_size0 = GetIndexCellsNumberFor(level_size);
+				WalkIndex(block_offset, start/BranchingFactor + 1, end/BranchingFactor, walker, level_offet - level_size0, level_size0);
+			}
+
+			for (Int c = block_end_start; c < end; c++)
+			{
+				walker(indexb(block_offset, c + level_offet));
+			}
+		}
+		else
+		{
+			for (Int c = start; c < end; c++)
+			{
+				walker(indexb(block_offset, c + level_offet));
+			}
+		}
+	}
 
 
 	static Int GetBlockStart(Int i)
 	{
 		return (i / BranchingFactor) * BranchingFactor;
+	}
+	static Int GetBlockStartEnd(Int i)
+	{
+		return (i / BranchingFactor + 1) * BranchingFactor;
 	}
 
 	static Int GetBlockEnd(Int i)

@@ -20,6 +20,11 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdlib.h>
+
 using namespace std;
 using namespace memoria;
 
@@ -34,11 +39,28 @@ void sighandler(int signum)
 	throw MemoriaSigSegv(MEMORIA_SOURCE, "Segment violation");
 }
 
+
+
+
 int main(int argc, const char** argv, const char** envp)
 {
 	signal(SIGSEGV, sighandler);
 
 	SmallCtrTypeFactory::Factory<Root>::Type::Init();
+
+//	Int segment_id = shmget(IPC_PRIVATE, 1024*1024*1024, SHM_HUGETLB | IPC_CREAT | SHM_R | SHM_W);
+//	perror("SHM");
+//
+//	Byte* buffer = T2T<Byte*>(shmat(segment_id, 0, 0));
+//	if (buffer == T2T<Byte*>(-1))
+//	{
+//		cout<<"SHM attaching failure"<<endl;
+//		perror("SHM");
+//		buffer = NULL;
+//	}
+
+
+	Byte* buffer = NULL;
 
 	try {
 		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::NONE);
@@ -65,33 +87,33 @@ int main(int argc, const char** argv, const char** envp)
 		// add tasks to the runner;
 
 		runner.BeginGroup(new BenchmarkGroup("PSet","Packed Set performance, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
-		runner.RegisterBenchmark(new PSetBenchmark<2>());
-		runner.RegisterBenchmark(new PSetBenchmark<4>());
-		runner.RegisterBenchmark(new PSetBenchmark<8>());
-		runner.RegisterBenchmark(new PSetBenchmark<16>());
-		runner.RegisterBenchmark(new PSetBenchmark<32>());
-		runner.RegisterBenchmark(new PSetBenchmark<64>());
+		runner.RegisterBenchmark(new PSetBenchmark<2>(buffer));
+		runner.RegisterBenchmark(new PSetBenchmark<4>(buffer));
+		runner.RegisterBenchmark(new PSetBenchmark<8>(buffer));
+		runner.RegisterBenchmark(new PSetBenchmark<16>(buffer));
+		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer));
+		runner.RegisterBenchmark(new PSetBenchmark<64>(buffer));
 		runner.EndGroup();
 
 
 		runner.BeginGroup(new BenchmarkGroup("PSetStlMem", "Performance of slt::set and Packed Set within the same memory, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
-		runner.RegisterBenchmark(new PSetBenchmark<2>());
-		runner.RegisterBenchmark(new PSetBenchmark<32>());
+		runner.RegisterBenchmark(new PSetBenchmark<2>(buffer));
+		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer));
 		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::MEMORY));
 		runner.EndGroup();
 
 		runner.BeginGroup(new BenchmarkGroup("PUSetStlMem", "Performance of slt::unordered_set and Packed Set within the same memory, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
-		runner.RegisterBenchmark(new PSetBenchmark<32>());
-		runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::MEMORY));
+		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer));
+		//runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::MEMORY));
 		runner.EndGroup();
 
 		runner.BeginGroup(new BenchmarkGroup("PSetStlCnt", "Performance of stl::set and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements, Kb", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new PSetBenchmark<32>(true));
+		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer, true));
 		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
 		runner.EndGroup();
 
 		runner.BeginGroup(new BenchmarkGroup("PUSetStlCnt", "Performance of stl::unordered_set and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements, Kb", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new PSetBenchmark<32>(true));
+		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer, true));
 		runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::COUNT));
 		runner.EndGroup();
 
@@ -141,6 +163,10 @@ int main(int argc, const char** argv, const char** envp)
 
 			Int failed = runner.Run(cout);
 			cout<<"Done..."<<endl;
+
+//			shmctl(segment_id, IPC_RMID, NULL);
+//			perror("SHM");
+
 			return failed;
 		}
 	}
@@ -148,6 +174,9 @@ int main(int argc, const char** argv, const char** envp)
 	{
 		cerr<<e.source()<<" ERROR: "<<e.message()<<endl;
 	}
+
+//	shmctl(segment_id, IPC_RMID, NULL);
+//	perror("SHM");
 
 	return 1;
 }
