@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/pmap/packed_map2.hpp>
+#include <memoria/core/pmap/packed_tree.hpp>
 
 #include <malloc.h>
 #include <memory>
@@ -57,7 +57,7 @@ class PSetBenchmark: public BenchmarkTask {
 
 	static const Int Blocks					= Types::Blocks;
 
-	typedef PackedMap2<Types> 				Map;
+	typedef PackedTree<Types> 				Map;
 
 	Map* map_;
 

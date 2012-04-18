@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/pmap/packed_map2.hpp>
+#include <memoria/core/pmap/packed_tree.hpp>
 
 #include <memory>
 
@@ -74,7 +74,7 @@ class PMapSumTest: public TestTask {
 
 	static const Int Blocks					= Types::Blocks;
 
-	typedef PackedMap2<Types> 				Map;
+	typedef PackedTree<Types> 				Map;
 
 public:
 

@@ -19,9 +19,9 @@
 namespace memoria {
 
 template <typename Types>
-class PackedMap2 {
+class PackedTree {
 
-	typedef PackedMap2<Types>				MyType;
+	typedef PackedTree<Types>				MyType;
 
 public:
 
@@ -282,7 +282,7 @@ private:
 	Byte 	memory_block_[];
 
 public:
-	PackedMap2() {}
+	PackedTree() {}
 
 	void InitByBlock(Int block_size)
 	{
