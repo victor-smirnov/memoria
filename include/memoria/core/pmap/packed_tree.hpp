@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CORE_PMAP_PACKED_MAP2_HPP_
-#define MEMORIA_CORE_PMAP_PACKED_MAP2_HPP_
+#ifndef MEMORIA_CORE_PMAP_PACKED_TREE_HPP_
+#define MEMORIA_CORE_PMAP_PACKED_TREE_HPP_
 
 
 #include <memoria/core/types/types.hpp>
@@ -15,6 +15,7 @@
 
 #include <memoria/core/tools/bitmap.hpp>
 
+#include <memoria/core/pmap/tree_walkers.hpp>
 
 namespace memoria {
 
@@ -32,245 +33,6 @@ public:
 
 	static const Int Blocks					= Types::Blocks;
 	static const Int BranchingFactor		= Types::BranchingFactor;
-
-private:
-
-	class ComparatorBase {
-	protected:
-		IndexKey sum_;
-	public:
-		ComparatorBase(): sum_(0) {}
-
-		void Sub(const Key& k)
-		{
-			sum_ -= k;
-		}
-
-		IndexKey sum() const {
-			return sum_;
-		}
-	};
-
-	class LESumComparator: public ComparatorBase {
-
-	public:
-		LESumComparator():ComparatorBase() {}
-
-		bool TestMax(const Key& k, const IndexKey& max) const
-		{
-			return k > max;
-		}
-
-		bool CompareIndex(const Key& k, const IndexKey& index)
-		{
-			ComparatorBase::sum_ += index;
-			return k <= ComparatorBase::sum_;
-		}
-
-		bool CompareKey(const Key& k, const Key& index)
-		{
-			ComparatorBase::sum_ += index;
-			return k <= ComparatorBase::sum_;
-		}
-	};
-
-	class LTSumComparator: public ComparatorBase {
-	public:
-		LTSumComparator():ComparatorBase() {}
-
-		bool TestMax(const Key& k, const IndexKey& max) const
-		{
-			return k >= max;
-		}
-
-		bool CompareIndex(const Key& k, const IndexKey& index)
-		{
-			ComparatorBase::sum_ += index;
-			return k < ComparatorBase::sum_;
-		}
-
-
-		bool CompareKey(const Key& k, const Key& index)
-		{
-			ComparatorBase::sum_ += index;
-			return k < ComparatorBase::sum_;
-		}
-	};
-
-
-	class EQSumComparator: public ComparatorBase {
-
-	public:
-		EQSumComparator():ComparatorBase() {}
-
-		bool TestMax(const Key& k, const IndexKey& max) const
-		{
-			return k > max;
-		}
-
-		bool CompareIndex(const Key& k, const IndexKey& index)
-		{
-			ComparatorBase::sum_ += index;
-			return k <= ComparatorBase::sum_;
-		}
-
-
-		bool CompareKey(const Key& k, const Key& index)
-		{
-			ComparatorBase::sum_ += index;
-			return k == ComparatorBase::sum_;
-		}
-	};
-
-	class SumWalker
-	{
-		IndexKey sum_;
-		const MyType& me_;
-	public:
-		SumWalker(const MyType& me): sum_(0), me_(me) {}
-
-		//FIXME: move offsets[] to constructor
-		void WalkKeys(Int offsets[Blocks], Int start, Int end)
-		{
-			for (Int c = start; c < end; c++)
-			{
-				sum_ += me_.keyb(offsets[0], c);
-			}
-		}
-
-		void WalkIndex(Int offsets[Blocks], Int start, Int end)
-		{
-			for (Int c = start; c < end; c++)
-			{
-				sum_ += me_.indexb(offsets[0], c);
-			}
-		}
-
-
-		IndexKey sum() const {
-			return sum_;
-		}
-	};
-
-
-	class FindSumPositionFwFn
-	{
-		IndexKey sum_;
-		const MyType& me_;
-		Int block_num_;
-		BigInt limit_;
-
-	public:
-		FindSumPositionFwFn(const MyType& me, Int block_num, BigInt limit):
-			sum_(0),
-			me_(me),
-			block_num_(block_num),
-			limit_(limit)
-		{}
-
-		//FIXME: move offsets[] to constructor
-		Int WalkKeys(Int offsets[Blocks], Int start, Int end)
-		{
-			for (Int c = start; c < end; c++)
-			{
-				IndexKey key = me_.keyb(offsets[0], c);
-				IndexKey sum = sum_ + key;
-
-				if (sum <= limit_)
-				{
-					sum_ = sum;
-				}
-				else {
-					return c;
-				}
-			}
-
-			return end;
-		}
-
-		Int WalkIndex(Int offsets[Blocks], Int start, Int end)
-		{
-			for (Int c = start; c < end; c++)
-			{
-				IndexKey sum = sum_ + me_.indexb(offsets[0], c);
-
-				if (sum <= limit_)
-				{
-					sum_ = sum;
-				}
-				else {
-					return c;
-				}
-			}
-
-			return end;
-		}
-
-
-		IndexKey sum() const {
-			return sum_;
-		}
-	};
-
-
-	class FindSumPositionBwFn
-	{
-		IndexKey sum_;
-		const MyType& me_;
-		Int block_num_;
-		BigInt limit_;
-
-	public:
-		FindSumPositionBwFn(const MyType& me, Int block_num, BigInt limit):
-			sum_(0),
-			me_(me),
-			block_num_(block_num),
-			limit_(limit)
-		{}
-
-		//FIXME: move offsets[] to constructor
-		Int WalkKeys(Int offsets[Blocks], Int start, Int end)
-		{
-			for (Int c = start; c > end; c--)
-			{
-				IndexKey key = me_.keyb(offsets[0], c);
-				IndexKey sum = sum_ + key;
-
-				if (sum <= limit_)
-				{
-					sum_ = sum;
-				}
-				else {
-					return c;
-				}
-			}
-
-			return end;
-		}
-
-		Int WalkIndex(Int offsets[Blocks], Int start, Int end)
-		{
-			for (Int c = start; c > end; c--)
-			{
-				IndexKey sum = sum_ + me_.indexb(offsets[0], c);
-
-				if (sum <= limit_)
-				{
-					sum_ = sum;
-				}
-				else {
-					return c;
-				}
-			}
-
-			return end;
-		}
-
-
-		IndexKey sum() const {
-			return sum_;
-		}
-	};
 
 private:
 
@@ -753,13 +515,13 @@ public:
 
 	Int FindLE(Int block_num, const Key& k) const
 	{
-		LESumComparator cmp;
+		LESumComparator<Key, IndexKey> cmp;
 		return Find(block_num, k, cmp);
 	}
 
 	Int FindLE(Int block_num, const Key& k, Accumulator& acc) const
 	{
-		LESumComparator cmp;
+		LESumComparator<Key, IndexKey> cmp;
 		Int result = Find(block_num, k, cmp);
 		acc[block_num] += cmp.sum();
 		return result;
@@ -769,13 +531,13 @@ public:
 
 	Int FindLT(Int block_num, const Key& k) const
 	{
-		LTSumComparator cmp;
+		LTSumComparator<Key, IndexKey> cmp;
 		return Find(block_num, k, cmp);
 	}
 
 	Int FindLT(Int block_num, const Key& k, Accumulator& acc) const
 	{
-		LTSumComparator cmp;
+		LTSumComparator<Key, IndexKey> cmp;
 		Int result = Find(block_num, k, cmp);
 		acc[block_num] += cmp.sum();
 		return result;
@@ -785,52 +547,39 @@ public:
 
 	Int FindEQ(Int block_num, const Key& k) const
 	{
-		EQSumComparator cmp;
+		EQSumComparator<Key, IndexKey> cmp;
 		return Find(block_num, k, cmp);
 	}
 
 	Int FindEQ(Int block_num, const Key& k, Accumulator& acc) const
 	{
-		EQSumComparator cmp;
+		EQSumComparator<Key, IndexKey> cmp;
 		Int result = Find(block_num, k, cmp);
 		acc[block_num] += cmp.sum();
 		return result;
 	}
 
 	template <typename Functor>
-	void Walk(Int block_num, Int start, Int end, Functor& walker) const
+	void WalkRange(Int start, Int end, Functor& walker) const
 	{
-		Int keys_offsets[Blocks];
-
-		for (Int c = 0; c < Blocks; c++)
-		{
-			keys_offsets[c] = GetKeyBlockOffset(block_num);
-		}
-
 		if (end - start <= BranchingFactor * 2)
 		{
-			walker.WalkKeys(keys_offsets, start, end);
+			walker.WalkKeys(start, end);
 		}
 		else {
 			Int block_start_end 	= GetBlockStartEnd(start);
 			Int block_end_start 	= GetBlockStart(end);
 
-			walker.WalkKeys(keys_offsets, start, block_start_end);
+			walker.WalkKeys(start, block_start_end);
 
 			if (block_start_end < block_end_start)
 			{
-				Int index_offsets[Blocks];
-
-				for (Int c = 0; c < Blocks; c++)
-				{
-					index_offsets[c] = GetIndexKeyBlockOffset(block_num);
-				}
-
 				Int level_size = GetIndexCellsNumberFor(max_size_);
-				WalkIndex(index_offsets, start/BranchingFactor + 1, end/BranchingFactor, walker, index_size_ - level_size, level_size);
+				walker.PrepareIndex();
+				WalkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, index_size_ - level_size, level_size);
 			}
 
-			walker.WalkKeys(keys_offsets, block_end_start, end);
+			walker.WalkKeys(block_end_start, end);
 		}
 	}
 
@@ -838,50 +587,38 @@ public:
 
 	void Sum(Int block_num, Int start, Int end, Accumulator& accum) const
 	{
-		SumWalker walker(*this);
-		Walk(block_num, start, end, walker);
+		SumWalker<MyType, Key, IndexKey, Blocks> walker(*this, block_num);
+		WalkRange(start, end, walker);
 		accum[block_num] += walker.sum();
 	}
 
 	template <typename Walker>
 	Int WalkFw(Int start, Walker& walker) const
 	{
-		Int keys_offsets[Blocks];
-
-		for (Int c = 0; c < Blocks; c++)
-		{
-			keys_offsets[c] = GetKeyBlockOffset(c);
-		}
-
 		Int block_limit 	= GetBlockStartEnd(start);
 
 		if (block_limit >= size())
 		{
-			return walker.WalkKeys(keys_offsets, start, size());
+			return walker.WalkKeys(start, size());
 		}
 		else
 		{
-			Int limit = walker.WalkKeys(keys_offsets, start, block_limit);
+			Int limit = walker.WalkKeys(start, block_limit);
 			if (limit < block_limit)
 			{
 				return limit;
 			}
 			else {
-				Int index_offsets[Blocks];
-
-				for (Int c = 0; c < Blocks; c++)
-				{
-					index_offsets[c] = GetIndexKeyBlockOffset(c);
-				}
+				walker.PrepareIndex();
 
 				Int level_size = GetIndexCellsNumberFor(max_size_);
-				Int last_start = WalkIndexFw(index_offsets, block_limit/BranchingFactor, walker, index_size_ - level_size, level_size);
+				Int last_start = WalkIndexFw(block_limit/BranchingFactor, walker, index_size_ - level_size, level_size);
 
 				Int last_start_end = GetBlockStartEnd(last_start);
 
 				Int last_end = last_start_end <= size()? last_start_end : size();
 
-				return walker.WalkKeys(keys_offsets, last_start, last_end);
+				return walker.WalkKeys(last_start, last_end);
 			}
 		}
 	}
@@ -890,40 +627,28 @@ public:
 	template <typename Walker>
 	Int WalkBw(Int start, Walker& walker) const
 	{
-		Int keys_offsets[Blocks];
-
-		for (Int c = 0; c < Blocks; c++)
-		{
-			keys_offsets[c] = GetKeyBlockOffset(c);
-		}
-
 		Int block_end 	= GetBlockStartEndBw(start);
 
 		if (block_end == -1)
 		{
-			return walker.WalkKeys(keys_offsets, start, -1);
+			return walker.WalkKeys(start, -1);
 		}
 		else
 		{
-			Int limit = walker.WalkKeys(keys_offsets, start, block_end);
+			Int limit = walker.WalkKeys(start, block_end);
 			if (limit > block_end)
 			{
 				return limit;
 			}
 			else {
-				Int index_offsets[Blocks];
-
-				for (Int c = 0; c < Blocks; c++)
-				{
-					index_offsets[c] = GetIndexKeyBlockOffset(c);
-				}
+				walker.PrepareIndex();
 
 				Int level_size = GetIndexCellsNumberFor(max_size_);
-				Int last_start = WalkIndexBw(index_offsets, block_end/BranchingFactor, walker, index_size_ - level_size, level_size);
+				Int last_start = WalkIndexBw(block_end/BranchingFactor, walker, index_size_ - level_size, level_size);
 
 				Int last_start_end = GetBlockStartEndBw(last_start);
 
-				return walker.WalkKeys(keys_offsets, last_start, last_start_end);
+				return walker.WalkKeys(last_start, last_start_end);
 			}
 		}
 	}
@@ -931,94 +656,94 @@ public:
 
 	Int FindSumPositionFw(Int block_num, Int start, Key key, Accumulator& acc) const
 	{
-		FindSumPositionFwFn walker(*this, block_num, key);
+		FindSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 		return WalkFw(start, walker);
 	}
 
 	Int FindSumPositionBw(Int block_num, Int start, Key key, Accumulator& acc) const
 	{
-		FindSumPositionBwFn walker(*this, block_num, key);
+		FindSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 		return WalkBw(start, walker);
 	}
 
 private:
 
 	template <typename Functor>
-	void WalkIndex(Int index_offsets[Blocks], Int start, Int end, Functor& walker, Int level_offet, Int level_size) const
+	void WalkIndexRange(Int start, Int end, Functor& walker, Int level_offet, Int level_size) const
 	{
 		if (end - start <= BranchingFactor*2)
 		{
-			walker.WalkIndex(index_offsets, start + level_offet, end + level_offet);
+			walker.WalkIndex(start + level_offet, end + level_offet);
 		}
 		else {
 			Int block_start_end 	= GetBlockStartEnd(start);
 			Int block_end_start 	= GetBlockStart(end);
 
-			walker.WalkIndex(index_offsets, start + level_offet, block_start_end + level_offet);
+			walker.WalkIndex(start + level_offet, block_start_end + level_offet);
 
 			if (block_start_end < block_end_start)
 			{
 				Int level_size0 = GetIndexCellsNumberFor(level_size);
-				WalkIndex(index_offsets, start/BranchingFactor + 1, end/BranchingFactor, walker, level_offet - level_size0, level_size0);
+				WalkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, level_offet - level_size0, level_size0);
 			}
 
-			walker.WalkIndex(index_offsets, block_end_start + level_offet, end + level_offet);
+			walker.WalkIndex(block_end_start + level_offet, end + level_offet);
 		}
 	}
 
 
 	template <typename Walker>
-	Int WalkIndexFw(Int index_offsets[Blocks], Int start, Walker& walker, Int level_offet, Int level_size) const
+	Int WalkIndexFw(Int start, Walker& walker, Int level_offet, Int level_size) const
 	{
 		Int block_start_end 	= GetBlockStartEnd(start);
 
 		if (block_start_end >= level_size)
 		{
-			return (walker.WalkIndex(index_offsets, start + level_offet, level_size + level_offet) - level_offet) * BranchingFactor;
+			return (walker.WalkIndex(start + level_offet, level_size + level_offet) - level_offet) * BranchingFactor;
 		}
 		else
 		{
-			Int limit = walker.WalkIndex(index_offsets, start + level_offet, block_start_end + level_offet) - level_offet;
+			Int limit = walker.WalkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
 			if (limit < block_start_end)
 			{
 				return limit * BranchingFactor;
 			}
 			else {
 				Int level_size0 = GetIndexCellsNumberFor(level_size);
-				Int last_start  = WalkIndexFw(index_offsets, block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0);
+				Int last_start  = WalkIndexFw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0);
 
 				Int last_start_end = GetBlockStartEnd(last_start);
 
 				Int last_end = last_start_end <= level_size ? last_start_end : level_size;
 
-				return (walker.WalkIndex(index_offsets, last_start + level_offet, last_end + level_offet) - level_offet) * BranchingFactor;
+				return (walker.WalkIndex(last_start + level_offet, last_end + level_offet) - level_offet) * BranchingFactor;
 			}
 		}
 	}
 
 	template <typename Walker>
-	Int WalkIndexBw(Int index_offsets[Blocks], Int start, Walker& walker, Int level_offet, Int level_size) const
+	Int WalkIndexBw(Int start, Walker& walker, Int level_offet, Int level_size) const
 	{
 		Int block_start_end 	= GetBlockStartEndBw(start);
 
 		if (block_start_end == -1)
 		{
-			return (walker.WalkIndex(index_offsets, start + level_offet, level_offet - 1) - level_offet + 1) * BranchingFactor - 1;
+			return (walker.WalkIndex(start + level_offet, level_offet - 1) - level_offet + 1) * BranchingFactor - 1;
 		}
 		else
 		{
-			Int idx = walker.WalkIndex(index_offsets, start + level_offet, block_start_end + level_offet) - level_offet;
+			Int idx = walker.WalkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
 			if (idx > block_start_end)
 			{
 				return (idx + 1) * BranchingFactor - 1;
 			}
 			else {
 				Int level_size0 = GetIndexCellsNumberFor(level_size);
-				Int last_start  = WalkIndexBw(index_offsets, block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0);
+				Int last_start  = WalkIndexBw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0);
 
 				Int last_start_end = GetBlockStartEndBw(last_start);
 
-				return (walker.WalkIndex(index_offsets, last_start + level_offet, last_start_end + level_offet) - level_offet + 1) * BranchingFactor - 1;
+				return (walker.WalkIndex(last_start + level_offet, last_start_end + level_offet) - level_offet + 1) * BranchingFactor - 1;
 			}
 		}
 	}
