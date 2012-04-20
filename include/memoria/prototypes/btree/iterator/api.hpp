@@ -12,7 +12,6 @@
 #include <iostream>
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/vapi/logs.hpp>
 
 #include <memoria/prototypes/btree/names.hpp>
 #include <memoria/core/container/macros.hpp>

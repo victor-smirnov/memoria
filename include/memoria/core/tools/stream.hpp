@@ -6,13 +6,12 @@
 
 
 
-#ifndef _MEMORIA_VAPI_COLLECTIONS_MANAGER_HPP
-#define	_MEMORIA_VAPI_COLLECTIONS_MANAGER_HPP
+#ifndef _MEMORIA_CORE_TOOLS_STREAM_HPP
+#define	_MEMORIA_CORE_TOOLS_STREAM_HPP
 
 #include <memoria/metadata/metadata.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/strings.hpp>
-#include <memoria/vapi/logs.hpp>
 
 #include <fstream>
 

@@ -12,8 +12,7 @@
 #include <unordered_map>
 #include <string>
 
-#include <memoria/vapi/logs.hpp>
-#include <memoria/vapi/allocator.hpp>
+#include <memoria/core/tools/stream.hpp>
 
 #include <memoria/core/container/metadata_repository.hpp>
 

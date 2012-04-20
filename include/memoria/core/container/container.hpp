@@ -10,12 +10,13 @@
 #define	_MEMORIA_CORE_CONTAINER_MODEL_HPP
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/vapi/logs.hpp>
+
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/metadata/model.hpp>
 
+#include <memoria/core/container/logs.hpp>
 #include <memoria/core/container/names.hpp>
 #include <memoria/core/container/builder.hpp>
 #include <memoria/core/container/iterator.hpp>

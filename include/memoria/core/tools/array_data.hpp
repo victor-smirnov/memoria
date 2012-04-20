@@ -1,13 +1,13 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#ifndef _MEMORIA_VAPI_MODELS_TYPES_HPP
-#define	_MEMORIA_VAPI_MODELS_TYPES_HPP
+#ifndef _MEMORIA_CORE_TOOLS_ARRAY_DATA_HPP
+#define	_MEMORIA_CORE_TOOLS_ARRAY_DATA_HPP
 
 
 #include <memoria/core/tools/config.hpp>
@@ -22,55 +22,6 @@
 
 namespace memoria    {
 namespace vapi       {
-
-template <typename TargetType, typename IDType>
-struct ConvertToHelper {
-	static BigInt cvt(TargetType type) {
-		return (BigInt)type;
-	}
-};
-
-template <typename IDType>
-struct ConvertToHelper<IDType, IDType> {
-	static BigInt cvt(IDType type) {
-		return (BigInt)type.value();
-	}
-};
-
-template <typename TargetType, typename IDType>
-struct ConvertFromHelper {
-	static TargetType cvt(BigInt type) {
-		return type;
-	}
-};
-
-template <typename IDType>
-struct ConvertFromHelper<IDType, IDType> {
-	static IDType cvt(BigInt type) {
-		return IDType(type);
-	}
-};
-
-
-
-//struct MEMORIA_API Iterator {
-//    enum {ITEREND, ITER_EMPTY, ITER_START};
-//};
-
-
-struct MEMORIA_API IdxMap {
-	enum {LT, LE};
-};
-
-
-
-
-
-struct MEMORIA_API Data {
-	virtual Int GetByteSize() const = 0;
-};
-
-
 
 
 class ArrayData {

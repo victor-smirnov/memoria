@@ -16,7 +16,7 @@
 
 #include <memoria/core/tools/walkers.hpp>
 
-#include <memoria/vapi/types.hpp>
+#include <memoria/core/tools/array_data.hpp>
 
 namespace memoria    {
 

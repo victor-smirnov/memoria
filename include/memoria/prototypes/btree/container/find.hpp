@@ -9,8 +9,6 @@
 #ifndef _MEMORIA_PROTOTYPES_BTREE_MODEL_FIND_HPP
 #define	_MEMORIA_PROTOTYPES_BTREE_MODEL_FIND_HPP
 
-#include <memoria/vapi/logs.hpp>
-
 #include <memoria/prototypes/btree/pages/tools.hpp>
 #include <memoria/prototypes/btree/names.hpp>
 

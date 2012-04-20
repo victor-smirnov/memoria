@@ -11,7 +11,7 @@
 
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/container/page.hpp>
-#include <memoria/vapi/logs.hpp>
+#include <memoria/core/container/logs.hpp>
 
 
 namespace memoria    {

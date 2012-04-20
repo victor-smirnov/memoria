@@ -13,7 +13,6 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/prototypes/dynvector/names.hpp>
-#include <memoria/vapi/logs.hpp>
 
 
 

@@ -29,7 +29,7 @@
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
 
-#include <memoria/vapi/types.hpp>
+
 
 namespace memoria    {
 
@@ -90,7 +90,7 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
     >::Result                                                                   IteratorPartsList;
 
 
-    typedef memoria::vapi::Data                                                 Buffer;
+    typedef NullType                                                 			Buffer;
     typedef NullType                                                            BufferContentDescriptor;
     typedef NullType                                                            CountData;
 

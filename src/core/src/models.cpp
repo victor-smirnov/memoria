@@ -7,7 +7,7 @@
 
 
 #include <memoria/metadata/tools.hpp>
-#include <memoria/vapi/types.hpp>
+#include <memoria/core/tools/array_data.hpp>
 
 namespace memoria {
 

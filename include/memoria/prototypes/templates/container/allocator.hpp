@@ -12,8 +12,6 @@
 #include <iostream>
 
 #include <memoria/prototypes/btree/pages/pages.hpp>
-#include <memoria/vapi/logs.hpp>
-
 #include <memoria/prototypes/btree/names.hpp>
 
 #include <memoria/core/container/macros.hpp>

@@ -6,7 +6,7 @@
 
 
 
-#include <memoria/vapi/allocator.hpp>
+#include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/strings.hpp>
 
 
