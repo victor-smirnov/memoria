@@ -21,8 +21,6 @@
 #include <signal.h>
 
 #include <stdio.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
 #include <stdlib.h>
 
 using namespace std;
@@ -47,17 +45,6 @@ int main(int argc, const char** argv, const char** envp)
 	signal(SIGSEGV, sighandler);
 
 	SmallCtrTypeFactory::Factory<Root>::Type::Init();
-
-//	Int segment_id = shmget(IPC_PRIVATE, 1024*1024*1024, SHM_HUGETLB | IPC_CREAT | SHM_R | SHM_W);
-//	perror("SHM");
-//
-//	Byte* buffer = T2T<Byte*>(shmat(segment_id, 0, 0));
-//	if (buffer == T2T<Byte*>(-1))
-//	{
-//		cout<<"SHM attaching failure"<<endl;
-//		perror("SHM");
-//		buffer = NULL;
-//	}
 
 
 	Byte* buffer = NULL;
@@ -164,9 +151,6 @@ int main(int argc, const char** argv, const char** envp)
 			Int failed = runner.Run(cout);
 			cout<<"Done..."<<endl;
 
-//			shmctl(segment_id, IPC_RMID, NULL);
-//			perror("SHM");
-
 			return failed;
 		}
 	}
@@ -174,9 +158,6 @@ int main(int argc, const char** argv, const char** envp)
 	{
 		cerr<<e.source()<<" ERROR: "<<e.message()<<endl;
 	}
-
-//	shmctl(segment_id, IPC_RMID, NULL);
-//	perror("SHM");
 
 	return 1;
 }
