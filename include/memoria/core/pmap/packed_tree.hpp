@@ -8,16 +8,57 @@
 #ifndef MEMORIA_CORE_PMAP_PACKED_TREE_HPP_
 #define MEMORIA_CORE_PMAP_PACKED_TREE_HPP_
 
-
+#include <memoria/core/container/page_traits.hpp>
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/types/traits.hpp>
+#include <memoria/core/tools/buffer.hpp>
+#include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
 
+#include <memoria/core/tools/reflection.hpp>
 
 
 namespace memoria {
+
+
+namespace intrnl0 {
+
+template <typename T>
+struct ValueHelper {
+	static void setup(IPageDataEventHandler* handler, const T& value)
+	{
+		handler->Value("VALUE", &value);
+	}
+};
+
+template <typename T, size_t Size>
+struct ValueHelper<AbstractPageID<T, Size> > {
+	typedef AbstractPageID<T, Size> Type;
+
+	static void setup(IPageDataEventHandler* handler, const Type& value)
+	{
+		IDValue id(&value);
+		handler->Value("VALUE", &id);
+	}
+};
+
+template <>
+struct ValueHelper<EmptyValue> {
+	typedef EmptyValue Type;
+
+	static void setup(IPageDataEventHandler* handler, const Type& value)
+	{
+		BigInt val = 0;
+		handler->Value("VALUE", &val);
+	}
+};
+
+
+}
+
+
 
 template <typename Types>
 class PackedTree {
@@ -34,6 +75,8 @@ public:
 	static const Int Blocks					= Types::Blocks;
 	static const Int BranchingFactor		= Types::BranchingFactor;
 
+	template <typename T> friend class PackedTree;
+
 private:
 
 	static const Int LEVELS_MAX				= 32;
@@ -45,6 +88,98 @@ private:
 
 public:
 	PackedTree() {}
+
+
+	void GenerateDataEvents(IPageDataEventHandler* handler) const
+	{
+		handler->StartGroup("PACKED_TREE");
+
+		handler->Value("SIZE", 			&size_);
+		handler->Value("MAX_SIZE", 		&max_size_);
+		handler->Value("INDEX_SIZE", 	&index_size_);
+
+		handler->StartGroup("INDEXES", index_size_);
+
+		for (Int idx = 0; idx < index_size_; idx++)
+		{
+			IndexKey indexes[Blocks];
+			for (Int block = 0; block < Blocks; block++)
+			{
+				indexes[block] = index(block, idx);
+			}
+
+			handler->Value("INDEX", indexes, Blocks);
+		}
+
+		handler->EndGroup();
+
+		handler->StartGroup("DATA", size_);
+
+		for (Int idx = 0; idx < size_; idx++)
+		{
+			handler->StartLine("ENTRY");
+
+			Key keys[Blocks];
+			for (Int block = 0; block < Blocks; block++)
+			{
+				keys[block] = key(block, idx);
+			}
+
+			handler->Value(Blocks == 1 ? "KEY" : "KEYS", keys, Blocks);
+
+			if (GetValueSize() > 0)
+			{
+				intrnl0::ValueHelper<Value>::setup(handler, value(idx));
+			}
+
+			handler->EndLine();
+		}
+
+		handler->EndGroup();
+
+		handler->EndGroup();
+	}
+
+	void Serialize(SerializationData& buf) const
+	{
+		FieldFactory<Int>::serialize(buf, size());
+		FieldFactory<Int>::serialize(buf, max_size_);
+		FieldFactory<Int>::serialize(buf, index_size_);
+
+		FieldFactory<IndexKey>::serialize(buf, index(0, 0), Blocks * index_size());
+
+		for (Int c = 0; c < Blocks; c++)
+		{
+			FieldFactory<Key>::serialize(buf, key(c, 0), size());
+		}
+
+		if (GetValueSize() > 0)
+		{
+			FieldFactory<Value>::serialize(buf, value(0), size());
+		}
+	}
+
+	void Deserialize(DeserializationData& buf)
+	{
+		FieldFactory<Int>::deserialize(buf, size());
+		FieldFactory<Int>::deserialize(buf, max_size_);
+		FieldFactory<Int>::deserialize(buf, index_size_);
+
+		FieldFactory<IndexKey>::deserialize(buf, index(0, 0), Blocks * index_size());
+
+		for (Int c = 0; c < Blocks; c++)
+		{
+			FieldFactory<Key>::deserialize(buf, key(c, 0), size());
+		}
+
+		if (GetValueSize() > 0)
+		{
+			FieldFactory<Value>::deserialize(buf, value(0), size());
+		}
+	}
+
+
+
 
 	void InitByBlock(Int block_size)
 	{
@@ -72,9 +207,15 @@ public:
 		return sizeof(size_) + sizeof(max_size_) + sizeof(index_size_) + GetBlockSize();
 	}
 
+
 	Int GetBlockSize() const
 	{
 		return (index_size_ * sizeof(IndexKey) + max_size_ * sizeof(Key)) * Blocks + max_size_ * GetValueSize();
+	}
+
+	Int GetDataSize() const
+	{
+		return (index_size_ * sizeof(IndexKey) + size_ * sizeof(Key)) * Blocks + size_ * GetValueSize();
 	}
 
 	Int& size() {
@@ -94,6 +235,11 @@ public:
 	Int max_size() const
 	{
 		return max_size_;
+	}
+
+	static Int max_size_for(Int block_size)
+	{
+		return GetMaxSize(block_size);
 	}
 
 	Byte* memory_block() {
@@ -204,17 +350,68 @@ public:
 
 	Value& value(Int value_num)
 	{
-		return block_item<Value>(GetValueBlockOffset(), value_num, GetValueSize());
+		return valueb(GetValueBlockOffset(), value_num);
 	}
 
 	const Value& value(Int value_num) const
 	{
-		return block_item<Value>(GetValueBlockOffset(), value_num, GetValueSize());
+		return valueb(GetValueBlockOffset(), value_num);
+	}
+
+	Value& valueb(Int block_offset, Int value_num)
+	{
+		return block_item<Value>(block_offset, value_num, GetValueSize());
+	}
+
+	const Value& valueb(Int block_offset, Int value_num) const
+	{
+		return block_item<Value>(block_offset, value_num, GetValueSize());
 	}
 
 	static Int GetValueSize()
 	{
 		return ValueTraits<Value>::Size;
+	}
+
+	void CopyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
+	{
+		for (Int c = 0; c < Blocks; c++)
+		{
+			Int src_block_offset = this->GetKeyBlockOffset(c)  + copy_from * sizeof(Key);
+			Int tgt_block_offset = other->GetKeyBlockOffset(c) + copy_to * sizeof(Key);
+
+			CopyBuffer(memory_block_ + src_block_offset, other->memory_block_ + tgt_block_offset, count * sizeof(Key));
+		}
+
+		if (this->GetValueSize() > 0)
+		{
+			Int src_block_offset = this->GetValueBlockOffset()  + copy_from * GetValueSize();
+			Int tgt_block_offset = other->GetValueBlockOffset() + copy_to * GetValueSize();
+
+			CopyBuffer(memory_block_ + src_block_offset, other->memory_block_ + tgt_block_offset, count * GetValueSize());
+		}
+	}
+
+	void Clear(Int from, Int to)
+	{
+		for (Int c = 0; c < Blocks; c++)
+		{
+			Int block_offset = this->GetKeyBlockOffset(c);
+
+			for (Int idx = from; idx < to; idx++)
+			{
+				keyb(block_offset, idx) = 0;
+			}
+		}
+
+		if (this->GetValueSize() > 0)
+		{
+			Int block_offset = this->GetValueBlockOffset();
+			for (Int idx = from; idx < to; idx++)
+			{
+				valueb(block_offset, idx) = 0;
+			}
+		}
 	}
 
 	void Enlarge(Byte* target_memory_block, Int new_keys_size, Int new_index_size)
@@ -237,13 +434,13 @@ public:
 			CopyData(target_memory_block, offset, new_offset, sizeof(Key));
 		}
 
-		for (Int c = Blocks - 1; c >= 0; c--)
-		{
-			Int offset		= GetIndexKeyBlockOffset(c);
-			Int new_offset	= GetIndexKeyBlockOffset(new_index_size, c);
-
-			CopyIndex(target_memory_block, offset, new_offset, sizeof(IndexKey));
-		}
+//		for (Int c = Blocks - 1; c >= 0; c--)
+//		{
+//			Int offset		= GetIndexKeyBlockOffset(c);
+//			Int new_offset	= GetIndexKeyBlockOffset(new_index_size, c);
+//
+//			CopyIndex(target_memory_block, offset, new_offset, sizeof(IndexKey));
+//		}
 	}
 
 	void EnlargeBlock(Int block_size)
@@ -262,17 +459,17 @@ public:
 		Enlarge(other->memory_block_, other->max_size_, other->index_size_);
 	}
 
-	void Shrink(Byte* target_memory_block, Int new_keys_size, Int new_index_size)
+	void Shrink(Byte* target_memory_block, Int new_keys_size, Int new_index_size) const
 	{
 		Int value_size = GetValueSize();
 
-		for (Int c = 0; c < Blocks; c++)
-		{
-			Int offset		= GetIndexKeyBlockOffset(c);
-			Int new_offset	= GetIndexKeyBlockOffset(new_index_size, c);
-
-			CopyIndex(target_memory_block, offset, new_offset, sizeof(IndexKey));
-		}
+//		for (Int c = 0; c < Blocks; c++)
+//		{
+//			Int offset		= GetIndexKeyBlockOffset(c);
+//			Int new_offset	= GetIndexKeyBlockOffset(new_index_size, c);
+//
+//			CopyIndex(target_memory_block, offset, new_offset, sizeof(IndexKey));
+//		}
 
 		for (Int c = 0; c < Blocks; c++)
 		{
@@ -308,6 +505,39 @@ public:
 		Shrink(other->memory_block_, other->max_size_, other->index_size_);
 	}
 
+	template <typename TreeType>
+	void TransferTo(TreeType* other) const
+	{
+		if (sizeof(Key) == sizeof(typename TreeType::Key) && GetValueSize() == TreeType::GetValueSize())
+		{
+			Shrink(other->memory_block_, other->max_size_, other->index_size_);
+		}
+		else {
+
+			for (Int block = 0; block < Blocks; block++)
+			{
+				Int src_block_offset = this->GetKeyBlockOffset(block);
+				Int tgt_block_offset = other->GetKeyBlockOffset(block);
+
+				for (Int idx = 0; idx < size(); idx++)
+				{
+					other->keyb(tgt_block_offset, idx) = keyb(src_block_offset, idx);
+				}
+			}
+
+			if (GetValueSize() > 0)
+			{
+				Int src_block_offset = this->GetValueBlockOffset();
+				Int tgt_block_offset = other->GetValueBlockOffset();
+
+				for (Int idx = 0; idx < size(); idx++)
+				{
+					other->valueb(tgt_block_offset, idx) = valueb(src_block_offset, idx);
+				}
+			}
+		}
+	}
+
 	void InsertSpace(Int room_start, Int room_length)
 	{
 		Int value_size = GetValueSize();
@@ -337,14 +567,14 @@ public:
 		{
 			Int offset = GetKeyBlockOffset(c);
 
-			CopyData(offset, room_start, -room_length, sizeof(Key));
+			CopyData(offset, room_start + room_length, -room_length, sizeof(Key));
 		}
 
 		if (value_size > 0)
 		{
 			Int offset = GetValueBlockOffset();
 
-			CopyData(offset, room_start, -room_length, value_size);
+			CopyData(offset, room_start + room_length, -room_length, value_size);
 		}
 
 		size_ -= room_length;
@@ -648,7 +878,7 @@ protected:
 
 private:
 
-	void CopyData(Byte* target_memory_block, Int offset, Int new_offset, Int item_size)
+	void CopyData(Byte* target_memory_block, Int offset, Int new_offset, Int item_size) const
 	{
 		CopyBuffer(
 				memory_block_ 		+ offset,
@@ -657,7 +887,7 @@ private:
 		);
 	}
 
-	void CopyIndex(Byte* target_memory_block, Int offset, Int new_offset, Int item_size)
+	void CopyIndex(Byte* target_memory_block, Int offset, Int new_offset, Int item_size) const
 	{
 		CopyBuffer(
 				memory_block_ 		+ offset,

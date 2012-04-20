@@ -87,16 +87,14 @@ protected:
     }
 public:
 
-    template <template <typename> class FieldFactory>
-    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
+    	Base::GenerateDataEvents(handler);
 
-        FieldFactory<Int>::create(list, root_, 		"ROOT", abi_ptr);
-        FieldFactory<Int>::create(list, leaf_, 		"LEAF", abi_ptr);
-        FieldFactory<Int>::create(list, bitmap_, 	"BITMAP", abi_ptr);
-
-        FieldFactory<Int>::create(list, size_, "SIZE", abi_ptr);
+    	handler->Value("ROOT", &root_);
+    	handler->Value("LEAF", &leaf_);
+    	handler->Value("BITMAP", &bitmap_);
+    	handler->Value("SIZE", &size_);
     }
 
     template <template <typename> class FieldFactory>
@@ -167,12 +165,10 @@ public:
         return level_;
     }
 
-    template <template <typename> class FieldFactory>
-    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
-
-        FieldFactory<Short>::create(list, level(), "LEVEL", abi_ptr);
+    	Base::GenerateDataEvents(handler);
+    	handler->Value("LEVEL", &level_);
     }
 
 

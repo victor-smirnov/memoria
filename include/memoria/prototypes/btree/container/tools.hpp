@@ -74,7 +74,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	{
     		switch (trait_)
     		{
-    			case BTreeNodeTraits::MAX_CHILDREN: value_ = Node::Map::max_size(); break;
+    			case BTreeNodeTraits::MAX_CHILDREN: value_ = Node::Map::max_size_for(Allocator::PAGE_SIZE - sizeof(Node)); break;
 
     			default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait_);
     		}
@@ -129,16 +129,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     void Root2Node(NodeBaseG& node)
     {
         node.update();
-    	node.set_page(memoria::btree::Root2Node<RootDispatcher, Root2NodeMap, Allocator>(node.page()));
+
+        Root2NodeFn<Root2NodeMap, Allocator> fn;
+        RootDispatcher::Dispatch(node, fn);
     }
 
     void Node2Root(NodeBaseG& node, Metadata& meta)
     {
     	node.update();
 
-        node.set_page(memoria::btree::Node2Root<NonRootDispatcher, Node2RootMap, Allocator>(node.page()));
-
-        me()->SetRootMetadata(node, meta);
+    	Node2RootFn<Node2RootMap, Allocator, Metadata> fn(meta);
+    	NonRootDispatcher::Dispatch(node, fn);
     }
 
     void CopyRootMetadata(NodeBaseG& src, NodeBaseG& tgt)
@@ -156,7 +157,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         void operator()(T *node)
         {
             typedef typename memoria::Type2TypeMap<T, TypeMap, void>::Result RootType;
-            can_ = node->children_count() <= RootType::Map::max_size();
+            can_ = node->children_count() <= RootType::Map::max_size_for(Allocator::PAGE_SIZE - sizeof(RootType));
         }
 
         bool can() const {

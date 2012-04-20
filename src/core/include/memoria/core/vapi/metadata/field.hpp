@@ -134,6 +134,13 @@ public:
 	virtual void* CreateValueHolder();
 
 
+	virtual void Configure(Int ptr, Int abi_ptr)
+	{
+		this->ptr_ 		= ptr;
+		this->abi_ptr_	= abi_ptr;
+	}
+
+
 private:
 
     void SetBits(void *mem, BigInt bits, Int idx, Int nbits, Int ptr) const;
@@ -160,8 +167,8 @@ private:
 
     void SetupValueType();
 
-    const Int  ptr_;
-    const Int  abi_ptr_;
+    Int  ptr_;
+    Int  abi_ptr_;
     const Int  offset_;
     const Int  limit_;
     const Int  item_size_;

@@ -15,6 +15,7 @@
 #include <memoria/metadata/number.hpp>
 #include <memoria/metadata/group.hpp>
 #include <memoria/metadata/page.hpp>
+#include <memoria/metadata/map.hpp>
 
 #include <iostream>
 
@@ -25,10 +26,10 @@ struct Page;
 
 void Expand(std::ostream& os, Int level);
 
-void DumpField(FieldMetadata* field, Page* page, std::ostream &out, Int level, Int idx);
-void DumpMap(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx);
-void DumpData(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx);
-void DumpGroup(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx, Int size = -1);
+//void DumpField(FieldMetadata* field, Page* page, std::ostream &out, Int level, Int idx);
+//void DumpMap(MapMetadata* group, Page* page, std::ostream &out, Int level, Int idx);
+//void DumpData(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx);
+//void DumpGroup(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx, Int size = -1);
 
 void DumpPage(PageMetadata* meta, Page* page, std::ostream& out);
 

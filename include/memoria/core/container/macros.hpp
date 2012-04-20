@@ -47,7 +47,8 @@ MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, InternalTypes, ANY_LEVEL)
 MEMORIA_TEMPLATE_EXTERN template class CtrPart<PartName, CtrHelper<IndexOfTool<PartName, CollectionName::Types<CtrName>::Type::CtrTypes::CtrList>::Value - 1, CollectionName::Types<CtrName>::Type::CtrTypes>, CollectionName::Types<CtrName>::Type::CtrTypes>;
 
 #define MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, PageType, Level) \
-MEMORIA_TEMPLATE_EXTERN template class PackedMap<NodePage<CollectionName::Factory0<CtrName>::Type::PageType<Level> >::MapTypes>;
+MEMORIA_TEMPLATE_EXTERN template class PackedSumTree<NodePage<CollectionName::Factory0<CtrName>::Type::PageType<Level> >::MapTypes>; \
+MEMORIA_TEMPLATE_EXTERN template class PackedTree<NodePage<CollectionName::Factory0<CtrName>::Type::PageType<Level> >::MapTypes>;
 
 
 #define MEMORIA_EXTERN_ITER_PAPRT(CollectionName,  CtrName, PartName) \

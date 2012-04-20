@@ -15,6 +15,9 @@
 
 
 namespace memoria    {
+
+template <typename T, size_t Size> class AbstractPageID;
+
 namespace vapi       {
 
 class MEMORIA_API IDValue {
@@ -39,6 +42,22 @@ public:
     	BigInt* data_ptr = T2T<BigInt*>(data_);
     	*data_ptr = id;
     }
+
+    template <typename T, Int Size>
+    IDValue(const AbstractPageID<T,Size>& id)
+    {
+    	clear();
+    	id.CopyTo(ptr());
+    }
+
+    template <typename T, Int Size>
+    IDValue& operator=(const AbstractPageID<T,Size>& id)
+    {
+    	clear();
+    	id.CopyTo(ptr());
+    	return *this;
+    }
+
 
     void clear() {
         for (unsigned c = 0; c < sizeof(data_); c++) {
@@ -136,6 +155,10 @@ private:
         return 'X';
     }
 };
+
+
+
+
 
 }
 }

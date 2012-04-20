@@ -23,7 +23,7 @@ class MetadataGroupImplT: public MetadataImplT<Interface> {
 	typedef MetadataImplT<Interface> 			Base;
 public:
 
-	MetadataGroupImplT(StringRef name, const MetadataList &content, Int block_size = 0): Base(name, Metadata::GROUP), content_(content.size()), block_size_(block_size)
+	MetadataGroupImplT(StringRef name, const MetadataList &content, Int block_size = 0, Int type = Metadata::GROUP): Base(name, type), content_(content.size()), block_size_(block_size)
 	{
 		for (UInt c = 0; c < content.size(); c++) {
 			content_[c] = content[c];

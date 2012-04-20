@@ -10,12 +10,14 @@
 #define	_MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_FACTORY_HPP
 
 
-#include <memoria/core/pmap/packed_map.hpp>
+#include <memoria/core/pmap/packed_sum_tree.hpp>
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/prototypes/btree/pages/node_base.hpp>
 
+#include <memoria/prototypes/btree/tools.hpp>
+
 namespace memoria    {
-namespace btree     {
+namespace btree      {
 
 
 #pragma pack(1)
@@ -37,26 +39,38 @@ public:
 private:
 
     //FIXME: Need more accurate allocation
-    static const int BLOCK_SIZE = Allocator::PAGE_SIZE - sizeof(Base) - 100;
-    typedef PackedMapMetadata<BLOCK_SIZE> MapConstants;
+//    static const int BLOCK_SIZE = Allocator::PAGE_SIZE - sizeof(Base) - 100;
+//    typedef PackedMapMetadata<BLOCK_SIZE> MapConstants;
 
 
 
 public:
 
-    struct MapMetadataTypes {
+//    struct MapMetadataTypes {
+//    	typedef typename Types::Key 	Key;
+//    	typedef typename Types::Value 	Value;
+//    	typedef typename Types::Key 	IndexKey;
+//
+//    	static const long Indexes = Types::Indexes;
+//    	static const int BlockSize = BLOCK_SIZE;
+//    	static const int Children = 16;
+//    };
+//
+//    typedef PackedMapTypes<MapMetadataTypes, Types::PackedMapType> 				MapTypes;
+
+
+    struct MapTypes {
     	typedef typename Types::Key 	Key;
     	typedef typename Types::Value 	Value;
     	typedef typename Types::Key 	IndexKey;
 
-    	static const long Indexes = Types::Indexes;
-    	static const int BlockSize = BLOCK_SIZE;
-    	static const int Children = 16;
+    	static const Int Blocks 			= Types::Indexes;
+    	static const Int BranchingFactor	= 32;
+
+    	typedef Accumulators<Key, Blocks> 	Accumulator;
     };
 
-    typedef PackedMapTypes<MapMetadataTypes, Types::PackedMapType> 				MapTypes;
-
-    typedef PackedMap<MapTypes>													Map;
+    typedef PackedSumTree<MapTypes>												Map;
 
     typedef typename Types::Descriptor                                      	Descriptor;
 
@@ -100,15 +114,7 @@ public:
 
     Int data_size() const
     {
-        //FIXME: use c++11 offsetof
-    	Int size = this->children_count();
-
-    	const char* ptr0 = T2T<const char*>(this);
-    	const char* ptr1 = T2T<const char*>(&this->map().key(size));
-
-    	size_t diff = T2T<size_t>(ptr1 - ptr0);
-
-    	return (Int)diff;
+    	return sizeof(Me) + map_.GetDataSize();
     }
 
     void set_children_count(Int map_size)
@@ -123,11 +129,10 @@ public:
     	map_.size() 	 += count;
     }
 
-    template <template <typename> class FieldFactory>
-    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
-        FieldFactory<Map>::create(list, map(), "MAP", abi_ptr);
+    	Base::GenerateDataEvents(handler);
+    	map_.GenerateDataEvents(handler);
     }
 
     template <template <typename> class FieldFactory>
@@ -152,6 +157,7 @@ public:
         Base::CopyFrom(page);
 
         //FIXME: use page->size()
+        //FIXME: use PackedTree facilities to copy data or memcpy()
         set_children_count(page->children_count());
 
         for (Int c = 0; c < page->children_count(); c++)
@@ -206,18 +212,29 @@ public:
     		const Me* me = T2T<const Me*>(page);
     		return me->data_size();
     	}
+
+    	virtual void GenerateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const
+    	{
+    		const Me* me = T2T<const Me*>(page);
+    		handler->StartPage("BTREE_NODE");
+    		me->GenerateDataEvents(handler);
+    		handler->EndPage();
+    	}
+
+    	virtual void GenerateLayoutEvents(const void* page, const LayoutEventsParams& params, IPageLayoutEventHandler* handler) const
+    	{
+    		const Me* me = T2T<const Me*>(page);
+    		handler->StartPage("BTREE_NODE");
+    		me->GenerateLayoutEvents(handler);
+    		handler->EndPage();
+    	}
     };
 
     static Int Init()
     {
         if (reflection_ == NULL)
         {
-            Map::Init();
-
-            Long abi_ptr = 0;
-            Me* me = 0;
             MetadataList list;
-            me->BuildFieldsList<FieldFactory>(list, abi_ptr);
 
             Int hash0 = 1234567 + Descriptor::Root + 2 * Descriptor::Leaf + 4 * Descriptor::Level + 8 * Types::Indexes + 16 * Types::Name::Code;
 

@@ -52,17 +52,10 @@ public:
 		id->CopyFrom(idValue.ptr());
 	}
 
-//	static void Init() {
-//	    AbstractType *type = new AbstractType(TypeNameFactory<Interface>::name(), IDField::MyType());
-//	    type_ = type;
-//	}
-//
-//    MEMORIA_DECLARE_REFLECTION;
+
 };
 
 
-//template <typename IDType, typename Interface>
-//Type* TypedIDFieldImplT<IDType, Interface>::type_ 		= NULL;
 
 template <typename IDType>
 class TypedIDFieldImpl: public TypedIDFieldImplT<IDType, IDField> {

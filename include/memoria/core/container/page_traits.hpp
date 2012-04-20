@@ -6,16 +6,18 @@
 
 
 
-#ifndef _MEMORIA_CORE_CONTAINER_PAGES_TRAITS_HPP
-#define	_MEMORIA_CORE_CONTAINER_PAGES_TRAITS_HPP
+#ifndef _MEMORIA_CORE_CONTAINER_PAGES_TRAITS11_HPP
+#define	_MEMORIA_CORE_CONTAINER_PAGES_TRAITS11_HPP
 
 #include <memoria/core/types/typehash.hpp>
-#include <memoria/core/tools/reflection.hpp>
+//#include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/container/page.hpp>
 
 
 namespace memoria    {
 
+template <typename T> struct FieldFactory;
+template <typename T> struct TypeHash;
 
 template <typename Object, size_t Size_>
 class TypeHash<memoria::AbstractPageID<Object, Size_> > {
@@ -35,16 +37,16 @@ public:
         abi_ptr += ValueTraits<Type>::Size;
     }
 
-    static void serialize(SerializationData& data, const Type& field)
+    static void serialize(SerializationData& data, const Type& field, Int count = 1)
     {
-    	memmove(data.buf, &field, sizeof(Type));
-    	data.buf += sizeof(Type);
+    	memmove(data.buf, &field, sizeof(Type) * count);
+    	data.buf += sizeof(Type) * count;
     }
 
-    static void deserialize(DeserializationData& data, Type& field)
+    static void deserialize(DeserializationData& data, Type& field, Int count = 1)
     {
-    	memmove(&field, data.buf, sizeof(Type));
-    	data.buf += sizeof(Type);
+    	memmove(&field, data.buf, sizeof(Type) * count);
+    	data.buf += sizeof(Type) * count;
     }
 };
 

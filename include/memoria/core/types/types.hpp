@@ -161,7 +161,7 @@ public:
 		return 0;
 	}
 
-	operator BigInt () {
+	operator BigInt () const {
 		return 0;
 	}
 };

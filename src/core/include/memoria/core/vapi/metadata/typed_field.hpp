@@ -20,6 +20,7 @@ namespace memoria { namespace vapi {
 
 template <typename FieldType, typename Interface>
 class TypedFieldImplT: public NumberFieldImplT<Interface> {
+
 	typedef TypedFieldImplT<FieldType, Interface> 	Me;
 	typedef NumberFieldImplT<Interface> 			Base;
 

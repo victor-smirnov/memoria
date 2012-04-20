@@ -24,11 +24,9 @@ class VectorMetadata: public BTreeMetadata<ID>
 public:
 	VectorMetadata() {}
 
-    MetadataList GetFields(Long &abi_ptr) const
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
-    	MetadataList list = Base::GetFields(abi_ptr);
-    	FieldFactory<Int>::create(list, element_size_, "ELEMENT_SIZE", abi_ptr);
-        return list;
+    	handler->Value("ELEMENT_SIZE", &element_size_);
     }
 
     Int& element_size() {

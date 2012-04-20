@@ -60,6 +60,8 @@ struct MEMORIA_API FieldMetadata: public Metadata {
 
     virtual void* CreateValueHolder()										= 0;
     
+    virtual void Configure(Int ptr, Int abi_ptr)							= 0;
+
 };
 
 

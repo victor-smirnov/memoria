@@ -151,7 +151,7 @@ public:
 				params.page_step_ 	= -1;
 			}
 
-			StoreAllocator(allocator, "vector.dump");
+//			StoreAllocator(allocator, "vector.dump");
 
 			out<<"Remove data. SumSet contains "<<(GetSize(dv)/1024)<<"K keys"<<endl;
 			params.insert_ = false;

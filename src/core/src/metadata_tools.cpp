@@ -20,188 +20,241 @@ void Expand(ostream& os, Int level)
 	for (Int c = 0; c < level; c++) os<<" ";
 }
 
-void DumpField(FieldMetadata* field, Page* page, ostream &out, Int level, Int idx)
-{
-	stringstream str;
-	Expand(str, level);
-	str<<"FIELD: ";
-	str<<idx<<" "<<field->Name()<<" "<<field->Ptr();
+class TextPageDumper: public IPageDataEventHandler {
+	std::ostream& out_;
 
-	if (field->Count() > 1) {
-		str<<" "<<field->Count();
+	Int level_;
+	Int cnt_;
+
+	bool line_;
+
+public:
+	TextPageDumper(std::ostream& out): out_(out), level_(0), cnt_(0), line_(false) {}
+	virtual ~TextPageDumper() {}
+
+	virtual void StartPage(const char* name)
+	{
+		out_<<name<<endl;
+		level_++;
 	}
 
-	int size = str.str().size();
-	Expand(str, 30 - size);
-	out<<str.str();
-
-	if (field->GetTypeCode() == FieldMetadata::ID)
+	virtual void EndPage()
 	{
+		out_<<endl;
+		level_--;
+	}
 
-		IDField* idField = (IDField*) field;
+	virtual void StartGroup(const char* name, Int elements = -1)
+	{
+		cnt_ = 0;
+		Expand(out_, level_++);
 
-		Expand(out,12);
-		for (Int c = 0; c < field->Count(); c++)
+		out_<<name;
+
+		if (elements >= 0)
 		{
-			IDValue id;
-			idField->GetValue(page, c, id, false);
-			out<<id<<" ";
+			out_<<": "<<elements;
+		}
+
+		out_<<endl;
+	};
+
+	virtual void EndGroup()
+	{
+		level_--;
+	}
+
+
+	virtual void StartLine(const char* name, Int size = -1)
+	{
+		DumpLineHeader(out_, level_, cnt_++, name);
+		line_ = true;
+	}
+
+	virtual void EndLine()
+	{
+		line_ = false;
+		out_<<endl;
+	}
+
+
+
+	virtual void Value(const char* name, const Byte* value, Int count = 1, Int kind = 0)
+	{
+		if (kind == BYTE_ARRAY)
+		{
+			DumpByteArray("DATA", value, count);
+		}
+		else {
+			OutNumber(name, value, count, kind);
 		}
 	}
-	else if (field->GetTypeCode() == FieldMetadata::BITMAP || field->GetTypeCode() == FieldMetadata::FLAG)
-	{
-		BitmapField* bitField = (BitmapField*) field;
-		Expand(out,12);
-		for (Int c = 0; c < field->Count(); c++)
-		{
-			out<<bitField->GetBits(page, c, 1, false);
-		}
-	}
-	else
-	{
-		NumberField* number = static_cast<NumberField*>(field);
 
-		for (Int c = 0; c < field->Count(); c++)
-		{
-			BigInt val = number->GetValue(page, c, false);
-			out.width(12);
-			out<<val;
-			out<<" (";
-			out<<hex;
-			out.width(12);
-			out<<val;
-			out<<dec;
-			out<<") ";
-		}
+	virtual void Value(const char* name, const UByte* value, Int count = 1, Int kind = 0)
+	{
+		OutNumber(name, value, count, kind);
 	}
 
-	out<<endl;
-}
-
-
-void DumpGroup(MetadataGroup* group, Page* page, ostream &out, Int level, Int idx, Int size)
-{
-	Expand(out, level);
-	out<<group->Name()<<": "<<idx;
-
-	Int size0 = size >= 0 ? size : group->Size();
-
-	out<<" "<<size0<<endl;
-
-	for (Int c = 0;c < size0; c++)
+	virtual void Value(const char* name, const Short* value, Int count = 1, Int kind = 0)
 	{
-		Metadata* item = group->GetItem(c);
-		if (item->IsGroup())
+		OutNumber(name, value, count, kind);
+	}
+
+
+	virtual void Value(const char* name, const UShort* value, Int count = 1, Int kind = 0)
+	{
+		OutNumber(name, value, count, kind);
+	}
+
+	virtual void Value(const char* name, const Int* value, Int count = 1, Int kind = 0)
+	{
+		OutNumber(name, value, count, kind);
+	}
+
+
+	virtual void Value(const char* name, const UInt* value, Int count = 1, Int kind = 0)
+	{
+		OutNumber(name, value, count, kind);
+	}
+
+	virtual void Value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)
+	{
+		OutNumber(name, value, count, kind);
+	}
+
+	virtual void Value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)
+	{
+		OutNumber(name, value, count, kind);
+	}
+
+
+
+	virtual void Value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)
+	{
+		if (!line_)
 		{
-			if (item->Name() == "MAP")
+			DumpFieldHeader(out_, level_, cnt_++, name);
+		}
+		else {
+			out_<<"    "<<name<<" ";
+		}
+
+		for (Int c = 0; c < count; c++)
+		{
+			out_<<*value;
+
+			if (c < count - 1)
 			{
-				DumpMap((MetadataGroup*)item, page, out, level + 1, c);
-			}
-			else if (item->Name() == "DATA")
-			{
-				DumpData((MetadataGroup*)item, page, out, level + 1, c);
-			}
-			else {
-				DumpGroup((MetadataGroup*)item, page, out, level + 1, c);
+				out_<<", ";
 			}
 		}
-		else if (item->IsField())
+
+		if (!line_)
 		{
-			DumpField((FieldMetadata*)item, page, out, level + 1, c);
+			out_<<endl;
 		}
 	}
-}
+
+private:
 
 
 
-void DumpMap(MetadataGroup* group, Page* page, ostream &out, Int level, Int idx)
-{
-	Expand(out, level);
-	out<<group->Name()<<endl;
-
-	NumberField* size = static_cast<NumberField*>(group->FindFirst("SIZE", true));
-
-	Int size0 = size->GetValue(page, 0, false);
-
-	for (Int c = 0;c < group->Size(); c++)
+	void DumpFieldHeader(ostream &out, Int level, Int idx, StringRef name)
 	{
-		Metadata* item = group->GetItem(c);
-		if (item->IsGroup())
-		{
-			if (item->Name() == "ITEMS")
-			{
-				DumpGroup((MetadataGroup*)item, page, out, level + 1, c, size0);
-			}
-			else {
-				DumpGroup((MetadataGroup*)item, page, out, level + 1, c);
-			}
-		}
-		else if (item->IsField())
-		{
-			DumpField((FieldMetadata*)item, page, out, level + 1, c);
-		}
+		stringstream str;
+		Expand(str, level);
+		str<<"FIELD: ";
+		str<<idx<<" "<<name;
+
+		int size = str.str().size();
+		Expand(str, 30 - size);
+		out<<str.str();
 	}
-}
 
-void DumpData(MetadataGroup* group, Page* page, ostream &out, Int level, Int idx)
-{
-	Expand(out, level);
-	out<<group->Name()<<endl;
-
-	NumberField* size = static_cast<NumberField*>(group->FindFirst("SIZE", true));
-	Int size0 = size->GetValue(page, 0, false);
-
-	for (Int c = 0;c < group->Size(); c++)
+	void DumpLineHeader(ostream &out, Int level, Int idx, StringRef name)
 	{
-		Metadata* item = group->GetItem(c);
-		if (item->IsField())
+		stringstream str;
+		Expand(str, level);
+		str<<name<<": ";
+		str<<idx<<" ";
+
+		int size = str.str().size();
+		Expand(str, 15 - size);
+		out<<str.str();
+	}
+
+
+	void DumpByteArray(const char* name, const Byte* data, Int count)
+	{
+		out_<<endl;
+		Expand(out_, 24);
+		for (int c = 0; c < 32; c++)
 		{
-			FieldMetadata* field = (FieldMetadata*)item;
-			if (item->Name() == "VALUE" && item->IsNumber())
+			out_.width(3);
+			out_<<hex<<c;
+		}
+		out_<<endl;
+
+		for (Int c = 0; c < count; c+= 32)
+		{
+			Expand(out_, 12);
+			out_<<" ";
+			out_.width(4);
+			out_<<dec<<c<<" "<<hex;
+			out_.width(4);
+			out_<<c<<": ";
+
+			for (Int d = 0; d < 32 && c + d < count; d++)
 			{
-				NumberField* number = (NumberField*)field;
-
-				out<<endl;
-				Expand(out, 24);
-				for (int c = 0; c < 32; c++)
-				{
-					out.width(3);
-					out<<hex<<c;
-				}
-				out<<endl;
-
-				for (Int c = 0; c < size0; c+= 32)
-				{
-					Expand(out, 12);
-					out<<" ";
-					out.width(4);
-					out<<dec<<c<<" "<<hex;
-					out.width(4);
-					out<<c<<": ";
-
-					for (Int d = 0; d < 32 && c + d < size0; d++)
-					{
-						UByte data = number->GetValue(page, c + d, false);
-						out<<hex;
-						out.width(3);
-						out<<(Int)data;
-					}
-
-					out<<dec<<endl;
-				}
+				UByte udata = data[c + d];
+				out_<<hex;
+				out_.width(3);
+				out_<<(Int)udata;
 			}
-			else {
-				DumpField((FieldMetadata*)item, page, out, level + 1, c);
-			}
+
+			out_<<dec<<endl;
 		}
 	}
-}
+
+
+	template <typename T>
+	void OutNumber(const char* name, const T* value, Int count, Int kind)
+	{
+		if (!line_)
+		{
+			DumpFieldHeader(out_, level_, cnt_++, name);
+		}
+		else {
+			out_<<"    "<<name<<" ";
+		}
+
+		for (Int c = 0; c < count; c++)
+		{
+			out_.width(12);
+			out_<<*value;
+
+			if (c < count - 1)
+			{
+				out_<<",";
+			}
+
+			out_<<" ";
+		}
+
+		if (!line_)
+		{
+			out_<<endl;
+		}
+	}
+};
 
 
 
 void DumpPage(PageMetadata* meta, Page* page, std::ostream& out)
 {
-	DumpGroup(meta, page, out, 0, 0);
+	TextPageDumper dumper(out);
+
+	meta->GetPageOperations()->GenerateDataEvents(page->Ptr(), DataEventsParams(), &dumper);
 }
 
 

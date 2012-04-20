@@ -341,6 +341,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     	node->model_hash() = me()->hash();
 
+    	InitNodeSize(node, Allocator::PAGE_SIZE);
+
     	return node;
     }
 
@@ -352,6 +354,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     	node->model_hash() = me()->hash();
 
+    	InitNodeSize(node, Allocator::PAGE_SIZE);
+
     	return node;
     }
 
@@ -359,6 +363,32 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     void ConfigureRootMetadata(Metadata& metadata) const
     {
     	metadata.model_name() = me()->name();
+    }
+
+    template <typename Node>
+    void InitNode(Node* node, Int block_size) const
+    {
+    	node->map().InitByBlock(block_size - sizeof(Node));
+    }
+
+ private:
+
+    struct InitNodeFn {
+    	const MyType& me_;
+    	Int block_size_;
+    	InitNodeFn(const MyType& me, Int block_size): me_(me), block_size_(block_size) {}
+
+    	template <typename NodeT>
+    	void operator()(NodeT* node) const
+    	{
+    		me_.InitNode(node, block_size_);
+    	}
+    };
+
+    void InitNodeSize(NodeBaseG& node, Int block_size) const
+    {
+    	InitNodeFn fn(*me(), block_size);
+    	NodeDispatcher::Dispatch(node.page(), fn);
     }
 
 MEMORIA_BTREE_MODEL_BASE_CLASS_END

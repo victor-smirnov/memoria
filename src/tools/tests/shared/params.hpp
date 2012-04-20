@@ -61,7 +61,7 @@ struct TestTaskParams: public TaskParametersSet {
 
 	TestTaskParams(StringRef name): TaskParametersSet(name)
 	{
-		Add("size", size_, 1024);
+		Add("size", size_, 200);
 		Add("btree_branching", btree_branching_, 0);
 		Add("btree_random_branching", btree_random_branching_, true);
 	}

@@ -20,6 +20,7 @@
 #include <memoria/core/vapi/metadata/page.hpp>
 #include <memoria/core/vapi/metadata/typed_field.hpp>
 #include <memoria/core/vapi/metadata/typed_id.hpp>
+#include <memoria/core/vapi/metadata/map.hpp>
 
 #include <memoria/core/vapi/models/allocator.hpp>
 #include <memoria/vapi/models/logs.hpp>

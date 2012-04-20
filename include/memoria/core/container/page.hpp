@@ -89,7 +89,15 @@ public:
     operator BigInt () {
     	return Base::value();
     }
+
+    operator BigInt () const {
+    	return Base::value();
+    }
 };
+
+
+
+
 
 template <typename T, size_t Size>
 static LogHandler& operator<<(LogHandler &log, const AbstractPageID<T, Size>& value)
@@ -177,9 +185,9 @@ public:
         return id_;
     }
 
-    const FlagsType &flags() const {
-        return flags_;
-    };
+//    const FlagsType &flags() const {
+//        return flags_;
+//    };
 
     void init() {}
 
@@ -256,22 +264,23 @@ public:
     //Rebuild page content such indexes using provided data.
     void Rebiuild(){}
 
-    template <template <typename> class FieldFactory>
-    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const {
-        FieldFactory<PageIdType>::create(list, id(),        "ID",               abi_ptr);
-        FieldFactory<FlagsType>::create(list,  flags(),     "FLAGS",            abi_ptr);
-        FieldFactory<Int>::create(list,  crc(),             "CRC",              abi_ptr);
-        FieldFactory<Int>::create(list,  model_hash(),      "MODEL_HASH",       abi_ptr);
-        FieldFactory<Int>::create(list,  page_type_hash(),  "PAGE_TYPE_HASH",   abi_ptr);
-        FieldFactory<Int>::create(list,  references_,  		"REFERENCES",   	abi_ptr);
-        FieldFactory<Int>::create(list,  deleted_,  		"DELETED",   		abi_ptr);
+    void GenerateLayoutEvents(IPageLayoutEventHandler* handler) const {}
+
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    {
+    	IDValue id(&id_);
+    	handler->Value("ID",				&id);
+    	handler->Value("CRC", 				&crc_);
+    	handler->Value("MODEL_HASH", 		&model_hash_);
+    	handler->Value("PAGE_TYPE_HASH", 	&page_type_hash_);
+    	handler->Value("REFERENCES", 		&references_);
+    	handler->Value("DELETED", 			&deleted_);
     }
 
     template <typename PageType>
     void CopyFrom(const PageType* page)
     {
         this->id()              = page->id();
-        this->flags()           = page->flags();
         this->crc()             = page->crc();
         this->model_hash()      = page->model_hash();
         this->page_type_hash()  = page->page_type_hash();
@@ -283,7 +292,6 @@ public:
     void Serialize(SerializationData& buf) const
     {
     	FieldFactory<PageIdType>::serialize(buf, id());
-    	FieldFactory<FlagsType>::serialize(buf, flags());
     	FieldFactory<Int>::serialize(buf, crc());
     	FieldFactory<Int>::serialize(buf, model_hash());
     	FieldFactory<Int>::serialize(buf, page_type_hash());
@@ -295,7 +303,6 @@ public:
     void Deserialize(DeserializationData& buf)
     {
     	FieldFactory<PageIdType>::deserialize(buf, id());
-    	FieldFactory<FlagsType>::deserialize(buf, flags());
     	FieldFactory<Int>::deserialize(buf, crc());
     	FieldFactory<Int>::deserialize(buf, model_hash());
     	FieldFactory<Int>::deserialize(buf, page_type_hash());
@@ -599,6 +606,14 @@ public:
 
 	void Clear() {
 		*this = NULL;
+	}
+
+	const Shared* shared() const {
+		return shared_;
+	}
+
+	Shared* shared() {
+		return shared_;
 	}
 
 	template <typename Page, typename Allocator> friend class PageGuard;

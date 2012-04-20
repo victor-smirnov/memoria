@@ -98,7 +98,7 @@ bool ForAllFields(const MetadataGroup *group, Functor &functor, Int limit)
 {
     for (Int c = 0; c < group->Size(); c++)
     {
-        if (group->GetItem(c)->GetTypeCode() == Metadata::GROUP)
+        if (group->GetItem(c)->GetTypeCode() == Metadata::GROUP || group->GetItem(c)->GetTypeCode() == Metadata::MAP)
         {
             if (ForAllFields(static_cast<const MetadataGroup*> (group->GetItem(c)), functor, limit))
             {

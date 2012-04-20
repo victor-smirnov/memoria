@@ -53,6 +53,7 @@ public:
     	if (this->GetTypeCode() == Metadata::GROUP ||
     		this->GetTypeCode() == Metadata::PAGE  ||
     		this->GetTypeCode() == Metadata::MODEL ||
+    		this->GetTypeCode() == Metadata::MAP   ||
     		this->GetTypeCode() == Metadata::CONTAINER)
     	{
     		return true;

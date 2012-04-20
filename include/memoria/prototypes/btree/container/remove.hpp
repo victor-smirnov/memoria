@@ -179,22 +179,14 @@ private:
         	}
 
 
-            if (from_ + count_ < node->children_count())
+            if (from_ + count_ <= node->children_count())
             {
-                node->map().MoveData(from_, from_ + count_, node->children_count() - (from_ + count_));
+                node->map().RemoveSpace(from_, count_);
             }
 
-            for (Int c = node->children_count() - count_; c < node->children_count(); c++)
-            {
-                for (Int d = 0; d < Indexes; d++)
-                {
-                    node->map().key(d, c) = 0;
-                }
+            node->map().Clear(node->children_count() - count_, node->children_count());
 
-                node->map().data(c) = 0;
-            }
-
-            node->inc_size(-count_);
+            node->set_children_count(node->map().size());
 
             if (reindex_)
             {
@@ -219,7 +211,7 @@ private:
     	{
     		start_ = page1->children_count();
 
-    		page2->map().CopyData(0, page2->children_count(), page1->map(), page1->children_count());
+    		page2->map().CopyTo(&page1->map(), 0, page2->children_count(), page1->children_count());
     		page1->inc_size(page2->children_count());
     		page1->map().Reindex();
     	}
@@ -762,6 +754,7 @@ void M_TYPE::RemoveRedundantRoot(TreePath& start, TreePath& stop, Int level)
 			me()->set_root(child->id());
 
 			start.RemoveLast();
+
 			stop.RemoveLast();
 		}
 		else {

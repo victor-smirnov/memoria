@@ -354,7 +354,7 @@ private:
         template <typename Node>
         void operator()(Node *node)
         {
-            node->map().MoveData(from_ + count_, from_, node->children_count() - from_);
+            node->map().InsertSpace(from_, count_);
 
             for (Int c = from_; c < from_ + count_; c++)
             {
@@ -366,7 +366,7 @@ private:
                 node->map().data(c) = 0;
             }
 
-            node->inc_size(count_);
+            node->set_children_count(node->map().size());
         }
     };
 
@@ -395,37 +395,19 @@ private:
 
     		if (tgt->children_count() > 0)
     		{
-    			tgt->map().MoveData(count + shift_, 0, tgt->children_count());
+    			tgt->map().InsertSpace(0, count + shift_);
     		}
 
-    		src->map().CopyData(from_, count, tgt->map(), shift_);
-
-    		for (Int c = from_; c < from_ + count; c++)
-    		{
-    			for (Int d = 0; d < Indexes; d++)
-    			{
-    				src->map().key(d, c) = 0;
-    			}
-    			src->map().data(c) = 0;
-    		}
+    		src->map().CopyTo(&tgt->map(), from_, count, shift_);
+    		src->map().Clear(from_, from_ + count);
 
     		src->inc_size(-count);
     		tgt->inc_size(count + shift_);
 
-    		for (Int c = 0; c < shift_; c++)
-    		{
-    			for (Int d = 0; d < Indexes; d++)
-    			{
-    				tgt->map().key(d, c) = 0;
-    			}
-
-    			tgt->map().data(c) = 0;
-    		}
+    		tgt->map().Clear(0, shift_);
 
     		src->Reindex();
     		tgt->Reindex();
-
-
     	}
     };
 

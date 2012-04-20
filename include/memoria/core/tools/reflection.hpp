@@ -72,9 +72,9 @@ struct FieldFactory<EmptyValue> {
 	static void create(MetadataList &list, const EmptyValue &field, const string &name, Long &abi_ptr)
 	{}
 
-	static void serialize(SerializationData& data, const EmptyValue& field) {}
+	static void serialize(SerializationData& data, const EmptyValue& field, Int count = 1) {}
 
-	static void deserialize(DeserializationData& data, EmptyValue& field) {}
+	static void deserialize(DeserializationData& data, EmptyValue& field, Int count = 1) {}
 };
 
 

@@ -44,8 +44,8 @@ struct CreateCtrParams: public TestTaskParams {
 public:
 	CreateCtrParams(): TestTaskParams("CreateCtr")
 	{
-		Add("MapSize", map_size_, 1024*1024*10);
-		Add("VectorMapSize", vector_map_size_, 1024*1024*100);
+		Add("MapSize", map_size_, 1024*256);
+		Add("VectorMapSize", vector_map_size_, 200);
 		Add("BlockSize", block_size_, 1024);
 	}
 };

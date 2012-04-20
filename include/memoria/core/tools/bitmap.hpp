@@ -529,86 +529,10 @@ Int CreateUDS(Buffer &buf, Int start, Int *ds, Int ds_size, Int node_bits) {
     return start;
 }
 
-//template <typename T>
-//void copy_buffer(const char *src, char *dst, long size) {
-//    const T *isrc = reinterpret_cast<const T*>(src);
-//    T *idst = reinterpret_cast<T*>(dst);
-//    if (dst < src) {
-//        for (UInt l = 0; l < size / sizeof(T); l++) {
-//            idst[l] = isrc[l];
-//        }
-//    }
-//    else {
-//        for (UInt l = size / sizeof(T) - 1; l >= 0; l--) {
-//            idst[l] = isrc[l];
-//        }
-//    }
-//}
-
-//template <typename T>
-//void copy_buffer(const char *src, char *dst, long size)
-//{
-//    const T *isrc = CP2CP<T>(src);
-//    T *idst = T2T<T*>(dst);
-//
-//    if (dst < src) {
-//        for (UInt l = 0; l < size / sizeof(T); l++) {
-//            idst[l] = isrc[l];
-//        }
-//    }
-//    else {
-//        for (UInt l = size / sizeof(T) - 1; l >= 0; l--) {
-//            idst[l] = isrc[l];
-//        }
-//    }
-//}
-
-
-
-//static inline void CopyBuffer(const void *src, void *dst, long size) {
-//	cout<<"CopyBuffer: "<<src<<" "<<dst<<" "<<size<<endl;
-//
-//    const char* csrc = (const char*) src;
-//    char*       cdst = (char*) dst;
-//
-//    const unsigned long long isrc = (const unsigned long long) src;
-//
-//    long prefix = isrc % sizeof (unsigned long) == 0 ? 0 : sizeof (unsigned long) - isrc % sizeof (unsigned long);
-//    long suffix = (isrc + size) % sizeof (unsigned long);
-//    long body = (size - prefix - suffix);
-//
-//    cout<<"buff: "<<prefix<<" "<<suffix<<" "<<body<<endl;
-//
-//    if (prefix > 0) copy_buffer<char>(csrc, cdst, prefix);
-//    if (body   > 0) copy_buffer<long>(csrc + prefix, cdst + prefix, body);
-//    if (suffix > 0) copy_buffer<char>(csrc + prefix + body, cdst + prefix + body, suffix);
-//}
-
 
 static inline void CopyBuffer(const void *src, void *dst, long size)
 {
 	memmove(dst, src, size);
-
-//    typedef long LongType;
-//
-//	const LongType *isrc = CP2CP<LongType>(src);
-//	LongType *idst = T2T<LongType*>(dst);
-//
-//    unsigned long l;
-//    for (l = 0; l < size / sizeof(LongType); l++)
-//    {
-//        idst[l] = isrc[l];
-//    }
-//
-//    if (size % sizeof(LongType) != 0)
-//    {
-//        const char* csrc = ((const char*) src) + l * sizeof(LongType);
-//        char* cdst = ((char*) dst) + l * sizeof(LongType);
-//
-//        for (l = 0; l < size % sizeof(LongType); l++) {
-//            cdst[l] = csrc[l];
-//        }
-//    }
 }
 
 

@@ -15,6 +15,7 @@
 #include <memoria/core/types/type2type.hpp>
 
 
+#include <string.h>
 
 namespace memoria    {
 namespace btree      {
@@ -168,54 +169,32 @@ void RemoveElements(Node *node, Int from, Int count, bool reindex)
 
 
 
-template <typename NodePage1, typename NodePage2, typename Allocator>
-static NodePage2 *Node2Node(NodePage1 *src, bool root)
-{
-    long buffer[Allocator::PAGE_SIZE/sizeof(long)];
-
-    for (UInt c = 0; c < sizeof(buffer)/sizeof(long); c++) buffer[c] = 0;
-
-    //FIXME type pruning
-    NodePage2 *tgt = T2T<NodePage2*>(&buffer);
-
-    tgt->CopyFrom(src);
-    tgt->set_root(root);
-
-
-    tgt->page_type_hash()   = NodePage2::hash();
-//    tgt->model_hash()       = src->model_hash();
-
-    // FIXME: why we don't set tgt->map.size() here?
-    // check it!!!
-
-    for (Int c = 0; c < src->children_count(); c++)
-    {
-        for (Int d = 0; d < NodePage1::INDEXES; d++)
-        {
-            tgt->map().key(d, c) = src->map().key(d, c);
-        }
-        tgt->map().data(c) = src->map().data(c);
-    }
-
-    for (Int c = tgt->children_count(); c < tgt->map().max_size(); c++)
-    {
-        for (Int d = 0; d < NodePage2::INDEXES; d++)
-        {
-            tgt->map().key(d, c) = 0;
-        }
-        tgt->map().data(c) = 0;
-    }
-
-    tgt->map().Reindex();
-
-    long* psrc = (long*)src;
-    for (Int c = 0; c < Allocator::PAGE_SIZE/(long)sizeof(long); c++)
-    {
-        psrc[c] = buffer[c];
-    }
-
-    return (NodePage2*)psrc;
-}
+//template <typename NodePage1, typename NodePage2, typename Allocator>
+//void Node2Node(NodePage1 *src, bool root)
+//{
+//	Byte buffer[Allocator::PAGE_SIZE];
+//
+//	memset(buffer, 0, sizeof(buffer));
+//
+//    //FIXME type pruning
+//    NodePage2 *tgt = T2T<NodePage2*>(buffer);
+//
+//    tgt->map().InitByBlock(Allocator::PAGE_SIZE - sizeof(NodePage2));
+//
+//    tgt->CopyFrom(src);
+//
+//    tgt->set_root(root);
+//
+//    tgt->page_type_hash()   = NodePage2::hash();
+//
+//    src->map().TransferTo(&tgt->map());
+//
+//    tgt->set_children_count(src->children_count());
+//
+//    tgt->map().Reindex();
+//
+//    CopyBuffer(buffer, src, Allocator::PAGE_SIZE);
+//}
 
 
 struct CopyRootMetadataFn {
@@ -233,56 +212,80 @@ void CopyRootMetadata(Node *src, Node *tgt)
 }
 
 
-template <typename TypeMap, typename Base, typename Allocator>
+template <typename TypeMap, typename Allocator, typename Metadata>
 class Node2RootFn {
-    Base *node_;
+	const Metadata& metadata_;
 
 public:
-    Node2RootFn() {}
+    Node2RootFn(const Metadata& metadata): metadata_(metadata) {}
 
     template <typename T>
-    void operator()(T *node) {
+    void operator()(T *src)
+    {
         typedef typename memoria::Type2TypeMap<T, TypeMap>::Result RootType;
-        node_ = Node2Node<T, RootType, Allocator>(node, true);
-    }
 
-    Base *node() {
-        return node_;
+        Byte buffer[Allocator::PAGE_SIZE];
+        memset(buffer, 0, sizeof(buffer));
+
+        //FIXME type pruning
+        RootType *tgt = T2T<RootType*>(buffer);
+
+        tgt->map().InitByBlock(Allocator::PAGE_SIZE - sizeof(RootType));
+
+        tgt->CopyFrom(src);
+        tgt->metadata() = metadata_;
+
+        tgt->set_root(true);
+
+        tgt->page_type_hash()   = RootType::hash();
+
+        src->map().TransferTo(&tgt->map());
+
+        tgt->set_children_count(src->children_count());
+
+        tgt->map().Reindex();
+
+        CopyBuffer(buffer, src, Allocator::PAGE_SIZE);
     }
 };
 
-template <typename Dispatcher, typename TypeMap, typename Allocator, typename Node>
-Node *Node2Root(Node *node)
-{
-    Node2RootFn<TypeMap, Node, Allocator> fn;
-    Dispatcher::Dispatch(node, fn);
-    return fn.node();
-}
 
-template <typename TypeMap, typename Base, typename Allocator>
+
+template <typename TypeMap, typename Allocator>
 class Root2NodeFn {
-    Base *node_;
 public:
-    Root2NodeFn(): node_(NULL) {}
+    Root2NodeFn() {}
 
     template <typename T>
-    void operator()(T *node) {
-        typedef typename memoria::Type2TypeMap<T, TypeMap>::Result Type;
-        node_ = Node2Node<T, Type, Allocator>(node, false);
-    }
+    void operator()(T *src)
+    {
+        typedef typename memoria::Type2TypeMap<T, TypeMap>::Result NonRootNode;
 
-    Base *node() {
-        return node_;
+        Byte buffer[Allocator::PAGE_SIZE];
+
+        memset(buffer, 0, sizeof(buffer));
+
+        //FIXME type pruning
+        NonRootNode *tgt = T2T<NonRootNode*>(buffer);
+
+        tgt->map().InitByBlock(Allocator::PAGE_SIZE - sizeof(NonRootNode));
+
+        tgt->CopyFrom(src);
+
+        tgt->set_root(false);
+
+        tgt->page_type_hash()   = NonRootNode::hash();
+
+        src->map().TransferTo(&tgt->map());
+
+        tgt->set_children_count(src->children_count());
+
+        tgt->map().Reindex();
+
+        CopyBuffer(buffer, src, Allocator::PAGE_SIZE);
     }
 };
 
-template <typename Dispatcher, typename TypeMap, typename Allocator, typename Node>
-Node *Root2Node(Node *node)
-{
-    Root2NodeFn<TypeMap, Node, Allocator> fn;
-    Dispatcher::Dispatch(node, fn);
-    return fn.node();
-}
 
 
 template <typename Base, typename Idx, typename Mgr>
@@ -459,7 +462,7 @@ public:
 
     template <typename T>
     void operator()(T *node) {
-        for (Int c = 0; c < T::Map::INDEXES; c++) {
+        for (Int c = 0; c < T::Map::Blocks; c++) {
             node->map().key(c, i_) = keys_[c];
         }
     }

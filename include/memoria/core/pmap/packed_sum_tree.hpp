@@ -42,7 +42,21 @@ private:
 public:
 	PackedSumTree(): Base() {}
 
+	Value& data(Int idx) {
+		return Base::value(idx);
+	}
 
+	const Value& data(Int idx) const {
+		return Base::value(idx);
+	}
+
+	void Reindex()
+	{
+		for (Int c = 0; c < Blocks; c++)
+		{
+			Reindex(c, 0, Base::size());
+		}
+	}
 
 
 	void Reindex(Int block_num)
@@ -120,6 +134,22 @@ public:
 		return Base::Find(block_num, k, cmp);
 	}
 
+	//FIXME: Refactor it
+	Int FindLES(Int block_num, const Key& k, Key& sum) const
+	{
+		LESumComparator<Key, IndexKey> cmp;
+		Int idx = Base::Find(block_num, k, cmp);
+
+		if (idx >= 0)
+		{
+			//FIXME: what does it mean here "size() > 0 ? key(i, idx) : 0" ???
+			sum += cmp.sum() - (Base::size() > 0 ? Base::key(block_num, idx) : 0);
+		}
+
+		return idx;
+	}
+
+
 	Int FindLE(Int block_num, const Key& k, Accumulator& acc) const
 	{
 		LESumComparator<Key, IndexKey> cmp;
@@ -132,6 +162,21 @@ public:
 	{
 		LTSumComparator<Key, IndexKey> cmp;
 		return Base::Find(block_num, k, cmp);
+	}
+
+	//FIXME: Refactor it
+	Int FindLTS(Int block_num, const Key& k, Key& sum) const
+	{
+		LTSumComparator<Key, IndexKey> cmp;
+		Int idx = Base::Find(block_num, k, cmp);
+
+		if (idx >= 0)
+		{
+			//FIXME: what does it mean here "size() > 0 ? key(i, idx) : 0" ???
+			sum += cmp.sum() - (Base::size() > 0 ? Base::key(block_num, idx) : 0);
+		}
+
+		return idx;
 	}
 
 	Int FindLT(Int block_num, const Key& k, Accumulator& acc) const

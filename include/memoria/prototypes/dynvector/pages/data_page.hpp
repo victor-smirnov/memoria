@@ -95,11 +95,10 @@ public:
         return PageData::max_size();
     }
 
-    template <template <typename> class FieldFactory>
-    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
-        FieldFactory<PageData>::create(list, data(), "DATA", abi_ptr);
+    	Base::GenerateDataEvents(handler);
+    	data_.GenerateDataEvents(handler);
     }
 
     template <template <typename> class FieldFactory>
@@ -147,16 +146,27 @@ public:
     		const Me* me = T2T<const Me*>(page);
     		return me->data_size();
     	}
+
+    	virtual void GenerateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const
+    	{
+    		const Me* me = T2T<const Me*>(page);
+    		handler->StartPage("DATA_PAGE");
+    		me->GenerateDataEvents(handler);
+    		handler->StartPage("DATA_PAGE");
+    	}
+
+    	virtual void GenerateLayoutEvents(const void* page, const LayoutEventsParams& params, IPageLayoutEventHandler* handler) const
+    	{
+    		const Me* me = T2T<const Me*>(page);
+    		me->GenerateLayoutEvents(handler);
+    	}
     };
 
     static Int Init()
     {
         if (reflection_ == NULL)
         {
-            Long abi_ptr = 0;
-            Me* me = 0;
             MetadataList list;
-            me->BuildFieldsList<FieldFactory>(list, abi_ptr);
 
             Int hash0 = 1234567;
             Int attrs = BITMAP;

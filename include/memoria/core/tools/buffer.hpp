@@ -145,8 +145,7 @@ public:
 
 
 template <typename Object, size_t Size = sizeof(Object)>
-class ValueBuffer /*: public Buffer<Size> */{
-//    typedef Buffer<Size>                        Base;
+class ValueBuffer {
     typedef ValueBuffer<Object, Size>           Me;
     Object value_;
 

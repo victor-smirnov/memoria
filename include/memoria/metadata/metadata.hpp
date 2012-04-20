@@ -45,7 +45,7 @@ typedef Int (*PageSizeProviderFn)(const void *page);
 struct MEMORIA_API Metadata {
     enum   {BYTE,   UBYTE,  SHORT,   USHORT, INT,    UINT,
             BIGINT, ID,     BITMAP,  FLAG,   GROUP,  PAGE,
-            MODEL,  CONTAINER};
+            MODEL,  CONTAINER, MAP};
 
     virtual StringRef Name() const  = 0;
     virtual Int GetTypeCode() const = 0;

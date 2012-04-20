@@ -10,6 +10,7 @@
 
 #include <memoria/allocators/inmem/factory.hpp>
 #include <memoria/core/tools/file.hpp>
+#include <memoria/core/tools/platform.hpp>
 
 #include <iostream>
 #include <set>
@@ -31,45 +32,139 @@ void LoadFile(VStreamAllocator& allocator, const char* file)
 	delete in;
 }
 
-void DumpTree(const IDValue& id, const File& folder, int& idx);
+struct NamedIDValue {
+	const char*  	name;
+	Int 			index;
+	Int 			count;
+	IDValue			id[10];
+};
 
-void DumpTree(MetadataGroup* group, Page* page, const File& folder, Int& cnt)
-{
-	for (int c = 0; c < group->Size(); c++)
+typedef vector<NamedIDValue> IDValueVector;
+
+class IDSelector: public IPageDataEventHandler {
+	IDValueVector values_;
+
+	Int idx_;
+	const char* name_;
+	bool line_;
+
+public:
+	IDSelector():idx_(0), line_(false) {}
+
+	virtual ~IDSelector() {}
+
+	virtual void StartPage(const char* name) {}
+	virtual void EndPage() {}
+
+	virtual void StartLine(const char* name, Int size = -1)
 	{
-		Metadata* item = group->GetItem(c);
+		line_ = true;
+		name_ = name;
+	}
 
-		if (item->GetTypeCode() == Metadata::GROUP)
+	virtual void EndLine() {
+		line_ = false;
+		idx_++;
+	}
+
+	virtual void StartGroup(const char* name, Int elements = -1)
+	{
+		name_ = name;
+		idx_ = 0;
+	}
+
+	virtual void EndGroup() {}
+
+	virtual void Value(const char* name, const Byte* value, Int count = 1, Int kind = 0) 		{}
+	virtual void Value(const char* name, const UByte* value, Int count = 1, Int kind = 0) 		{}
+	virtual void Value(const char* name, const Short* value, Int count = 1, Int kind = 0)		{}
+	virtual void Value(const char* name, const UShort* value, Int count = 1, Int kind = 0)		{}
+	virtual void Value(const char* name, const Int* value, Int count = 1, Int kind = 0)			{}
+	virtual void Value(const char* name, const UInt* value, Int count = 1, Int kind = 0)		{}
+	virtual void Value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)		{}
+	virtual void Value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)		{}
+
+	virtual void Value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)
+	{
+		NamedIDValue entry;
+
+		entry.count = count;
+		entry.name 	= name_;
+		entry.index	= idx_;
+
+		for (Int c = 0; c < count; c++)
 		{
-			DumpTree((MetadataGroup*)item, page, folder, cnt);
+			entry.id[c] = *value;
 		}
-		else if (item->GetTypeCode() == Metadata::ID)
-		{
-			IDValue id;
-			IDField* idField = (IDField*) item;
 
-			//FIXME: IDValue
-			idField->GetValue(page, 0, id, false);
+		values_.push_back(entry);
+
+		if (!line_)
+		{
+			idx_++;
+		}
+	}
+
+	const IDValueVector& values() const
+	{
+		return values_;
+	}
+};
+
+
+void DumpTree(const IDValue& id, const File& folder);
+
+void DumpTree(PageMetadata* group, Page* page, const File& folder)
+{
+	IDSelector selector;
+
+	group->GetPageOperations()->GenerateDataEvents(page->Ptr(), DataEventsParams(), &selector);
+
+	for (const NamedIDValue& entry: selector.values())
+	{
+		for (Int c = 0; c < entry.count; c++)
+		{
+			const IDValue& id = entry.id[c];
 
 			IDValue idv = id;
 			if ((!idv.IsNull()) && processed.find(id) == processed.end())
 			{
 				stringstream str;
-				str<<cnt<<"___";
-				str<<id;
 
-				File folder2(folder.GetPath() + "/" + str.str());
+				str<<entry.name<<"-"<<entry.index;
+
+				if (entry.count > 1)
+				{
+					str<<"."<<c;
+				}
+
+				str<<"___"<<id;
+
+				File folder2(folder.GetPath() + Platform::GetFilePathSeparator() + str.str());
 				folder2.MkDirs();
 
-				int cnt0 = 0;
-				DumpTree(id, folder2, cnt0);
-				cnt++;
+				DumpTree(id, folder2);
 			}
 		}
 	}
+
+
+//	for (int c = 0; c < group->Size(); c++)
+//	{
+//		Metadata* item = group->GetItem(c);
+//
+//		if (item->GetTypeCode() == Metadata::GROUP)
+//		{
+//			DumpTree((MetadataGroup*)item, page, folder, cnt);
+//		}
+//		else if (item->GetTypeCode() == Metadata::ID)
+//		{
+//
+//		}
+//	}
 }
 
-void DumpTree(const IDValue& id, const File& folder, int& idx)
+void DumpTree(const IDValue& id, const File& folder)
 {
 	processed.insert(id);
 	Page* page = manager->CreatePageWrapper();
@@ -79,20 +174,20 @@ void DumpTree(const IDValue& id, const File& folder, int& idx)
 	try {
 		manager->GetPage(page, id);
 
-		ofstream pagebin((folder.GetPath() + "/page.bin").c_str());
+		ofstream pagebin((folder.GetPath() + Platform::GetFilePathSeparator() + "page.bin").c_str());
 		for (Int c = 0; c < page->Size(); c++)
 		{
 			pagebin<<(Byte)page->GetByte(c);
 		}
 		pagebin.close();
 
-		ofstream pagetxt((folder.GetPath() + "/page.txt").c_str());
+		ofstream pagetxt((folder.GetPath() + Platform::GetFilePathSeparator() + "page.txt").c_str());
 
 		PageMetadata* meta = manager->GetMetadata()->GetPageMetadata(page->GetPageTypeHash());
-		pagetxt<<meta->Name()<<endl;
 
-		DumpGroup(meta, page, pagetxt, 0, 0);
-		DumpTree(meta, page, folder, idx);
+		DumpPage(meta, page, pagetxt);
+
+		DumpTree(meta, page, folder);
 
 		pagetxt.close();
 	}
@@ -202,8 +297,7 @@ int main(int argc, const char** argv, const char** envp)
 
 			folder.MkDirs();
 
-			int idx = 0;
-			DumpTree(id, folder, idx);
+			DumpTree(id, folder);
 
 			iter.Next();
 		}

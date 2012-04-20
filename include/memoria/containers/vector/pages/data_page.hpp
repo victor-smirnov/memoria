@@ -68,12 +68,14 @@ public:
     	MoveBuffer(value_, pos, pos + length, size_ - pos);
     }
 
-    MetadataList GetFields(Long &abi_ptr) const
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
-        MetadataList list;
-        FieldFactory<Int>::create(list,  size_,     "SIZE", abi_ptr);
-        FieldFactory<Byte>::create(list, value_[0], "VALUE", sizeof(value_), abi_ptr);
-        return list;
+    	handler->StartGroup("DATA");
+
+    	handler->Value("SIZE", &size_);
+    	handler->Value("VALUE", value_, size_, IPageDataEventHandler::BYTE_ARRAY);
+
+    	handler->EndGroup();
     }
 
     //template <template <typename> class FieldFactory>

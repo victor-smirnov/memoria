@@ -68,21 +68,25 @@ public:
 
 
 
-    MetadataList GetFields(Long &abi_ptr) const
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
-        MetadataList list;
-        FieldFactory<BigInt>::create(list, model_name_, "MODEL_NAME", abi_ptr);
-        FieldFactory<BigInt>::create(list, key_count_,  "KEY_COUNT",  abi_ptr);
-        FieldFactory<Int>::create(list, branching_factor_,"BRANCHING_FACTOR",abi_ptr);
+    	handler->StartGroup("ROOT_METADATA");
 
-        MetadataList rootsList;
+    	handler->Value("MODEL_NAME", 		&model_name_);
+    	handler->Value("KEY_COUNT", 		&key_count_);
+    	handler->Value("BRANCHING_FACTOR", 	&branching_factor_);
+
+        handler->StartGroup("ROOTS", ROOTS);
+
         for (Int c = 0; c < ROOTS; c++)
         {
-        	FieldFactory<ID>::create(rootsList, roots(c), "ROOT", abi_ptr);
+        	IDValue id(roots_[c]);
+        	handler->Value("ROOT", 	&id);
         }
-        list.push_back(new MetadataGroupImpl("ROOTS", rootsList));
 
-        return list;
+        handler->EndGroup();
+
+        handler->EndGroup();
     }
 
     void Serialize(SerializationData& buf) const
@@ -147,11 +151,10 @@ public:
         return metadata_;
     }
 
-    template <template <typename> class FieldFactory>
-    void BuildFieldsList(MetadataList &list, Long &abi_ptr) const
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::template BuildFieldsList<FieldFactory>(list, abi_ptr);
-        FieldFactory<Metadata>::create(list,  metadata(), "ROOT_METADATA", abi_ptr);
+    	Base::GenerateDataEvents(handler);
+    	metadata_.GenerateDataEvents(handler);
     }
 
     template <template <typename> class FieldFactory>
