@@ -11,8 +11,8 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/strings.hpp>
-#include <memoria/vapi/models/types.hpp>
-#include <memoria/vapi/models/logs.hpp>
+#include <memoria/vapi/types.hpp>
+#include <memoria/vapi/logs.hpp>
 
 #include <vector>
 #include <fstream>

@@ -10,7 +10,7 @@
 #define	_MEMORIA_CORE_TOOLS_REFLECTION_HPP
 
 
-#include <memoria/core/vapi/api.hpp>
+
 #include <strings.h>
 
 namespace memoria    {
@@ -25,10 +25,6 @@ template <typename T> struct FieldFactory;
 
 template <typename Type>
 struct FieldFactory {
-//    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
-//    {
-//        list.push_back(new MetadataGroupImpl(name, field.GetFields(abi_ptr)));
-//    }
 
     static void serialize(SerializationData& data, const Type& field)
     {
@@ -46,16 +42,6 @@ class BitField{};
 
 template <typename Type>
 struct FieldFactory<BitField<Type> > {
-//    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long &abi_ptr)
-//    {
-//        list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset));
-//    }
-//
-//    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long count, Long &abi_ptr)
-//    {
-//        list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset, count));
-//    }
-
     static void serialize(SerializationData& data, const Type& field)
     {
     	field.template Serialize<FieldFactory>(data);
@@ -69,9 +55,6 @@ struct FieldFactory<BitField<Type> > {
 
 template <>
 struct FieldFactory<EmptyValue> {
-//	static void create(MetadataList &list, const EmptyValue &field, const string &name, Long &abi_ptr)
-//	{}
-
 	static void serialize(SerializationData& data, const EmptyValue& field, Int count = 1) {}
 
 	static void deserialize(DeserializationData& data, EmptyValue& field, Int count = 1) {}

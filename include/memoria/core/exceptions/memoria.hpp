@@ -15,10 +15,6 @@
 
 #include <stdlib.h>
 
-//#include <stdio.h>
-//#include <signal.h>
-//#include <execinfo.h>
-
 namespace memoria    {
 namespace vapi       {
 

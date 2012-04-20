@@ -11,6 +11,7 @@
 
 #include <memoria/metadata/group.hpp>
 #include <memoria/metadata/page.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 
 namespace memoria    {
 namespace vapi       {

@@ -8,7 +8,6 @@
 #ifndef _MEMORIA_HPP
 #define	_MEMORIA_HPP
 
-#include <memoria/vapi.hpp>
 #include <memoria/core/tools/file.hpp>
 #include <memoria/allocators/inmem/factory.hpp>
 

@@ -10,7 +10,7 @@
 #define	_MEMORIA_CORE_CONTAINER_MODEL_HPP
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/vapi/models/logs.hpp>
+#include <memoria/vapi/logs.hpp>
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/reflection.hpp>
 

@@ -13,7 +13,7 @@
 #include <memoria/metadata/page.hpp>
 
 #include <memoria/core/tools/buffer.hpp>
-#include <memoria/vapi/models/logs.hpp>
+#include <memoria/vapi/logs.hpp>
 
 namespace memoria    {
 

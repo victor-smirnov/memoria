@@ -6,10 +6,8 @@
 
 
 
-#include <memoria/core/vapi/api.hpp>
-
 #include <memoria/metadata/tools.hpp>
-#include <memoria/vapi/models/types.hpp>
+#include <memoria/vapi/types.hpp>
 
 namespace memoria {
 

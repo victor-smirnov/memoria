@@ -29,7 +29,7 @@
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
 
-#include <memoria/vapi/models/types.hpp>
+#include <memoria/vapi/types.hpp>
 
 namespace memoria    {
 
