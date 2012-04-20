@@ -171,7 +171,7 @@ public:
             Int hash0 = 1234567;
             Int attrs = BITMAP;
 
-            reflection_ = new PageMetadataImpl("DATA_PAGE", list, attrs, hash0, new PageOperations(), Allocator::PAGE_SIZE);
+            reflection_ = new PageMetadata("DATA_PAGE", list, attrs, hash0, new PageOperations(), Allocator::PAGE_SIZE);
         }
         else {}
 

@@ -30,48 +30,76 @@ namespace vapi       {
 struct Metadata;
 struct PageMetadata;
 struct ContainerMetadata;
-struct FieldMetadata;
 struct ContainerCollection;
 struct Container;
 
 typedef std::vector<Metadata*>          				MetadataList;
 typedef std::map<Int, PageMetadata*>    				PageMetadataMap;
 typedef std::map<Int, ContainerMetadata*>   			ContainerMetadataMap;
-typedef std::map<Int, FieldMetadata*>   				PtrMap;
 
-typedef Container* (*ContainerFactoryFn) (const IDValue& rootId, ContainerCollection *container, BigInt name);
-typedef Int (*PageSizeProviderFn)(const void *page);
 
-struct MEMORIA_API Metadata {
-    enum   {BYTE,   UBYTE,  SHORT,   USHORT, INT,    UINT,
-            BIGINT, ID,     BITMAP,  FLAG,   GROUP,  PAGE,
-            MODEL,  CONTAINER, MAP};
+//typedef Container* (*ContainerFactoryFn) (const IDValue& rootId, ContainerCollection *container, BigInt name);
+//typedef Int (*PageSizeProviderFn)(const void *page);
 
-    virtual StringRef Name() const  = 0;
-    virtual Int GetTypeCode() const = 0;
-    virtual bool IsGroup() const    = 0;
-    virtual bool IsField() const    = 0;
-    virtual bool IsNumber() const    = 0;
+class MEMORIA_API Metadata {
 
-    virtual ~Metadata() {}
+public:
+	enum   {BYTE,   UBYTE,  SHORT,   USHORT, INT,    UINT,
+		BIGINT, ID,     BITMAP,  FLAG,   GROUP,  PAGE,
+		MODEL,  CONTAINER, MAP};
+
+	typedef Metadata			Me;
+
+public:
+
+	Metadata(StringRef name, Byte type): name_(name), typeCode_(type) {}
+	virtual ~Metadata() throw () {}
+
+	StringRef Name() const {
+		return name_;
+	}
+
+	virtual Int GetTypeCode() const {
+		return typeCode_;
+	}
+
+	virtual bool IsGroup() const
+	{
+		if (this->GetTypeCode() == Metadata::GROUP ||
+				this->GetTypeCode() == Metadata::PAGE  ||
+				this->GetTypeCode() == Metadata::MODEL ||
+				this->GetTypeCode() == Metadata::MAP   ||
+				this->GetTypeCode() == Metadata::CONTAINER)
+		{
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	virtual bool IsField() const {
+		return !IsGroup();
+	}
+
+	virtual bool IsNumber() const {
+		return (!IsGroup()) && this->GetTypeCode() != Metadata::ID && this->GetTypeCode() != Metadata::BIGINT && this->GetTypeCode() != Metadata::FLAG;
+	}
+
+
+
+protected:
+
+	Int &set_type() {
+		return typeCode_;
+	}
+
+private:
+	const String    name_;
+	Int             typeCode_;
 };
 
 
-struct MEMORIA_API Page {
-
-    virtual IDValue GetId() const                    = 0;
-    virtual Int GetContainerHash() const             = 0;
-    virtual Int GetPageTypeHash() const              = 0;
-    virtual BigInt GetFlags() const                  = 0;
-    virtual const void* Ptr() const                  = 0;
-    virtual void* Ptr()                  		 	 = 0;
-    virtual void SetPtr(void* ptr)              	 = 0;
-    virtual bool IsNull() const						 = 0;
-
-    virtual Int Size() const                         = 0;
-    virtual Int GetByte(Int idx) const               = 0;
-    virtual void SetByte(Int idx, Int value)    	 = 0;
-};
 
 }}
 

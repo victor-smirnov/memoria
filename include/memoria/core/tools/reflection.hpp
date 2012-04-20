@@ -25,10 +25,10 @@ template <typename T> struct FieldFactory;
 
 template <typename Type>
 struct FieldFactory {
-    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
-    {
-        list.push_back(new MetadataGroupImpl(name, field.GetFields(abi_ptr)));
-    }
+//    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
+//    {
+//        list.push_back(new MetadataGroupImpl(name, field.GetFields(abi_ptr)));
+//    }
 
     static void serialize(SerializationData& data, const Type& field)
     {
@@ -46,15 +46,15 @@ class BitField{};
 
 template <typename Type>
 struct FieldFactory<BitField<Type> > {
-    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long &abi_ptr)
-    {
-        list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset));
-    }
-
-    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long count, Long &abi_ptr)
-    {
-        list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset, count));
-    }
+//    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long &abi_ptr)
+//    {
+//        list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset));
+//    }
+//
+//    static void create(MetadataList &list, const Type &field, const string &name, Long offset, Long count, Long &abi_ptr)
+//    {
+//        list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, offset, count));
+//    }
 
     static void serialize(SerializationData& data, const Type& field)
     {
@@ -69,8 +69,8 @@ struct FieldFactory<BitField<Type> > {
 
 template <>
 struct FieldFactory<EmptyValue> {
-	static void create(MetadataList &list, const EmptyValue &field, const string &name, Long &abi_ptr)
-	{}
+//	static void create(MetadataList &list, const EmptyValue &field, const string &name, Long &abi_ptr)
+//	{}
 
 	static void serialize(SerializationData& data, const EmptyValue& field, Int count = 1) {}
 
@@ -81,15 +81,7 @@ struct FieldFactory<EmptyValue> {
 
 #define MEMORIA_TYPED_FIELD(Type)                                               \
 template <> struct FieldFactory<Type> {                                         \
-    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr) {\
-        list.push_back(new TypedFieldImpl<Type>((Int)PtrToLong(&field), abi_ptr, name)); \
-        abi_ptr += (Long)sizeof(Type);                                          \
-    }                                                                           \
                                                                                 \
-    static void create(MetadataList &list, const Type &field, const string &name, Long size, Long &abi_ptr) {\
-        list.push_back(new TypedFieldImpl<Type>((Int)PtrToLong(&field), abi_ptr, name, size)); \
-        abi_ptr += size * (Long)sizeof(Type);                                   \
-    }                                                                           \
     static void serialize(SerializationData& data, const Type& field) {			\
     	memmove(data.buf, &field, sizeof(Type));								\
     	data.buf += sizeof(Type);												\

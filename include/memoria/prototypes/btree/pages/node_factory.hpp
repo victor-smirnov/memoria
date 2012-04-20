@@ -240,7 +240,7 @@ public:
 
             Int attrs = BTREE + Descriptor::Root * ROOT + Descriptor::Leaf * LEAF;
 
-            reflection_ = new PageMetadataImpl("BTREE_PAGE", list, attrs, hash0, new PageOperations(), Allocator::PAGE_SIZE);
+            reflection_ = new PageMetadata("BTREE_PAGE", list, attrs, hash0, new PageOperations(), Allocator::PAGE_SIZE);
         }
         else {}
 

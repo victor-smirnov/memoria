@@ -14,6 +14,7 @@
 #include <memoria/prototypes/btree/pages/pages.hpp>
 
 #include <memoria/metadata/tools.hpp>
+#include <memoria/core/tools/strings.hpp>
 
 
 namespace memoria    {

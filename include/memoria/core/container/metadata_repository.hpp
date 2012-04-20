@@ -65,7 +65,7 @@ public:
 	{
 		if (metadata_ == NULL)
 		{
-			metadata_ = new ContainerCollectionMetadataImpl(TypeNameFactory<Profile>::name(), MetadataList());
+			metadata_ = new ContainerMetadataRepository(TypeNameFactory<Profile>::name(), MetadataList());
 		}
 	}
 };

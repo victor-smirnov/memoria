@@ -27,9 +27,26 @@ namespace memoria    {
 
 using memoria::TL;
 
+struct MEMORIA_API Page {
+
+    virtual IDValue GetId() const                    = 0;
+    virtual Int GetContainerHash() const             = 0;
+    virtual Int GetPageTypeHash() const              = 0;
+    virtual BigInt GetFlags() const                  = 0;
+    virtual const void* Ptr() const                  = 0;
+    virtual void* Ptr()                  		 	 = 0;
+    virtual void SetPtr(void* ptr)              	 = 0;
+    virtual bool IsNull() const						 = 0;
+
+    virtual Int Size() const                         = 0;
+    virtual Int GetByte(Int idx) const               = 0;
+    virtual void SetByte(Int idx, Int value)    	 = 0;
+};
+
+
 
 template <typename PageType, Int PageSize>
-class PageWrapper: public memoria::vapi::PageImpl {
+class PageWrapper: public Page {
     PageType *page_;
 public:
     PageWrapper(PageType* page): page_(page) {}

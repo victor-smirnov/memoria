@@ -14,6 +14,8 @@
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
+#include <memoria/metadata/model.hpp>
+
 #include <memoria/core/container/names.hpp>
 #include <memoria/core/container/builder.hpp>
 #include <memoria/core/container/iterator.hpp>
@@ -175,7 +177,7 @@ public:
 
             PageInitDispatcher<typename Types::DataPagesList>::BuildMetadataList(list);
 
-            reflection_ = new ContainerMetadataImpl(TypeNameFactory<Name>::name(), list, Name::Code + salt, MyType::GetContainerInterface());
+            reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(), list, Name::Code + salt, MyType::GetContainerInterface());
 
             MetadataRepository<typename Types::Profile>::Register(reflection_);
         }

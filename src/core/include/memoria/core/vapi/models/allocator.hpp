@@ -10,7 +10,7 @@
 #define	_MEMORIA_CORE_API_COLLECTIONS_MANAGER_HPP
 
 #include <memoria/vapi/models/allocator.hpp>
-#include <memoria/core/vapi/metadata/page.hpp>
+#include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/vapi/models/logs.hpp>
 
 

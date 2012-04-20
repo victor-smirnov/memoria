@@ -10,12 +10,14 @@
 #define	_MEMORIA_CORE_CONTAINER_PAGE_HPP
 
 #include <memoria/metadata/metadata.hpp>
-
+#include <memoria/metadata/page.hpp>
 
 #include <memoria/core/tools/buffer.hpp>
 #include <memoria/vapi/models/logs.hpp>
 
 namespace memoria    {
+
+
 
 extern Int PageCtrCnt[10];
 extern Int PageDtrCnt[10];

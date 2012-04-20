@@ -7,6 +7,7 @@
 
 
 #include <memoria/vapi/models/allocator.hpp>
+#include <memoria/core/tools/strings.hpp>
 #include <memoria/core/vapi/api.hpp>
 
 #ifdef __GNUC__

@@ -36,13 +36,11 @@ public:
         return model_name_counter_;
     }
 
-    MetadataList GetFields(Long &abi_ptr) const
+    void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
-    	MetadataList list = Base::GetFields(abi_ptr);
+    	Base::GenerateDataEvents(handler);
 
-    	FieldFactory<BigInt>::create(list, model_name_counter_, "MODEL_NAME_COUNTER", abi_ptr);
-
-        return list;
+    	handler->Value("MODEL_NAME_COUNTER", 		&model_name_counter_);
     }
 
     void Serialize(SerializationData& buf) const

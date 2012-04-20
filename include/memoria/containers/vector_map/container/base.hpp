@@ -135,7 +135,7 @@ public:
     		IdxSet::reflection()->PutAll(list);
     		ByteArray::reflection()->PutAll(list);
 
-    		Base::SetMetadata(new ContainerMetadataImpl("memoria::VectorMap", list, VectorMap::Code, Base::GetContainerInterface()));
+    		Base::SetMetadata(new ContainerMetadata("memoria::VectorMap", list, VectorMap::Code, Base::GetContainerInterface()));
     	}
 
     	return hash;

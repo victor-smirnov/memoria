@@ -70,8 +70,24 @@ struct IPageOperations
 
 struct MEMORIA_API PageMetadata: public MetadataGroup
 {
-    virtual Int Hash() const												= 0;
-    virtual const IPageOperations* GetPageOperations() const 				= 0;
+	PageMetadata(StringRef name, const MetadataList &content, Int attributes, Int hash0, const IPageOperations* page_operations, Int page_size);
+	virtual ~PageMetadata() throw () {}
+
+	virtual Int Hash() const {
+		return hash_;
+	}
+
+
+	virtual const IPageOperations* GetPageOperations() const {
+		return page_operations_;
+	}
+
+private:
+	Int  hash_;
+	bool attributes_;
+	Int page_size_;
+
+	const IPageOperations* page_operations_;
 };
 
 

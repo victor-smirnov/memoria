@@ -9,20 +9,15 @@
 #ifndef _MEMORIA_VAPI_METADATA_TOOLS_HPP
 #define _MEMORIA_VAPI_METADATA_TOOLS_HPP
 
-#include <memoria/metadata/field.hpp>
-#include <memoria/metadata/id.hpp>
-#include <memoria/metadata/bitmap.hpp>
-#include <memoria/metadata/number.hpp>
+
 #include <memoria/metadata/group.hpp>
 #include <memoria/metadata/page.hpp>
-#include <memoria/metadata/map.hpp>
+#include <memoria/core/container/pages.hpp>
 
 #include <iostream>
 
 namespace memoria    {
 namespace vapi       {
-
-struct Page;
 
 void Expand(std::ostream& os, Int level);
 
