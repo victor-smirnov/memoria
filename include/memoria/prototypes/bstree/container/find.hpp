@@ -55,10 +55,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         CompareBase(typename MyType::SearchModeDefault::Enum search_mode, Int type = LT): search_mode_(search_mode), prefix_(0), current_prefix_(0) , type_(type){}
 
         template <typename IteratorType>
-        void SetupIterator(IteratorType &iter)
-        {
-            iter.prefix(0) = prefix_;
-        }
+        void SetupIterator(IteratorType &iter){}
 
         void AdjustKey(Key& key) {
             key -= current_prefix_;

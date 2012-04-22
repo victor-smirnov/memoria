@@ -332,8 +332,6 @@ void M_TYPE::ImportPages(Iterator& iter, const ArrayData& buffer)
 	{
 		ArrayDataSubtreeProvider provider(*me(), key_count, buffer, start, length);
 		me()->InsertSubtree(iter, provider);
-
-		iter.prefix(0) += length;
 	}
 
 	if (end > 0)
@@ -351,14 +349,12 @@ void M_TYPE::ImportPages(Iterator& iter, const ArrayData& buffer)
 				ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
 				me()->InsertSubtree(iter, provider);
 				iter.data_pos() = 0;
-				iter.prefix(0) += end;
 			}
 		}
 		else
 		{
 			ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
 			me()->InsertSubtree(iter, provider);
-			iter.prefix(0) += end;
 
 			iter.PrevKey();
 			iter.data_pos() = iter.data()->size();

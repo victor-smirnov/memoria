@@ -22,70 +22,56 @@ namespace memoria {
 using namespace memoria::bstree;
 
 
-MEMORIA_BSTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(ITreeIteratorBase)
+MEMORIA_BSTREE_ITERATOR_BASE_CLASS_BEGIN(ITreeIteratorBase)
 public:
 
 	typedef typename Base::Container::Key                                        	 	Key;
     typedef typename Base::Container::NodeBase											NodeBase;
     typedef typename Base::Container::Accumulator										Accumulator;
-
-private:
-
-    Accumulator prefix_;
-
-public:
-    ITreeIteratorBase(): Base() {}
-
-    ITreeIteratorBase(ThisType&& other): Base(std::move(other)), prefix_(std::move(other.prefix_))
-    {}
-
-    ITreeIteratorBase(const ThisType& other): Base(other), prefix_(other.prefix_)
-    {}
-
-
-    void Assign(const ThisType& other)
-    {
-    	prefix_ = other.prefix_;
-
-    	Base::Assign(other);
-    }
-
-    void Assign(ThisType&& other)
-    {
-    	prefix_ = other.prefix_;
-
-    	Base::Assign(std::move(other));
-    }
-
-
-    bool IsEqual(const ThisType& other) const
-    {
-    	return prefix_ == other.prefix_ && Base::IsEqual(other);
-    }
-
-    bool IsNotEqual(const ThisType& other) const
-    {
-    	return prefix_ != other.prefix_ || Base::IsNotEqual(other);
-    }
-
-    Key& prefix(Int i)
-    {
-    	return prefix_[i];
-    }
+    typedef typename Base::Container::TreePath											TreePath;
 
     const Key prefix(Int i) const
     {
-    	return prefix_[i];
+    	return get_prefix(i);
     }
 
-    Accumulator& prefix()
+    const Accumulator prefix() const
     {
-    	return prefix_;
+    	return get_prefixes();
     }
 
-    const Accumulator& prefix() const
+private:
+
+    Accumulator get_prefixes() const
     {
-    	return prefix_;
+    	Accumulator accum;
+
+    	const TreePath& path0 = me()->path();
+    	Int 			idx   = me()->key_idx();
+
+    	for (Int c = 0; c < path0.GetSize(); c++)
+    	{
+    		me()->model().SumKeys(path0[c].node(), 0, idx, accum);
+    		idx = path0[c].parent_idx();
+    	}
+
+    	return accum;
+    }
+
+    Key get_prefix(Int block_num) const
+    {
+    	Key accum = 0;
+
+    	const TreePath& path0 = me()->path();
+    	Int 			idx   = me()->key_idx();
+
+    	for (Int c = 0; c < path0.GetSize(); c++)
+    	{
+    		me()->model().SumKeys(path0[c].node(), block_num, 0, idx, accum);
+    		idx = path0[c].parent_idx();
+    	}
+
+    	return accum;
     }
 
 MEMORIA_BSTREE_ITERATOR_BASE_CLASS_END

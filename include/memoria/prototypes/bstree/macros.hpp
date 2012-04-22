@@ -26,8 +26,10 @@ class IteratorBaseClassName: public memoria::BTreeIteratorBase<                 
         
 #define MEMORIA_BSTREE_ITERATOR_BASE_CLASS_BEGIN(IteratorBaseClassName)      			\
 MEMORIA_BSTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(IteratorBaseClassName)      			\
+public:																					\
     IteratorBaseClassName(): Base() {}													\
-    IteratorBaseClassName(ThisType&& other): Base(other) {}								\
+    ITreeIteratorBase(const ThisType& other): Base(other) {}							\
+    IteratorBaseClassName(ThisType&& other): Base(std::move(other)) {}					\
 
 
 

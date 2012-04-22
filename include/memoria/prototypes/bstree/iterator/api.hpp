@@ -53,44 +53,44 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
     	return me()->GetRawKeys() + me()->prefix();
     }
 
-    bool NextKey()
-    {
-        if (!me()->IsEnd())
-        {
-        	Accumulator keys = me()->GetRawKeys();
-        	me()->prefix() 	 += keys;
-
-        	bool 		has_next 	= Base::NextKey();
-
-            return has_next;
-        }
-        else {
-            return false;
-        }
-    }
-
-    bool PrevKey()
-    {
-    	if (!me()->IsBegin())
-    	{
-    		bool result = Base::PrevKey();
-
-    		if (result)
-    		{
-    			Accumulator keys = me()->GetRawKeys();
-    			me()->prefix() -= keys;
-    		}
-    		else
-    		{
-    			me()->prefix().Clear();
-    		}
-
-    		return result;
-    	}
-    	else {
-    		return false;
-    	}
-    }
+//    bool NextKey()
+//    {
+//        if (!me()->IsEnd())
+//        {
+//        	Accumulator keys = me()->GetRawKeys();
+//        	me()->prefix() 	 += keys;
+//
+//        	bool 		has_next 	= Base::NextKey();
+//
+//            return has_next;
+//        }
+//        else {
+//            return false;
+//        }
+//    }
+//
+//    bool PrevKey()
+//    {
+//    	if (!me()->IsBegin())
+//    	{
+//    		bool result = Base::PrevKey();
+//
+//    		if (result)
+//    		{
+//    			Accumulator keys = me()->GetRawKeys();
+//    			me()->prefix() -= keys;
+//    		}
+//    		else
+//    		{
+//    			me()->prefix().Clear();
+//    		}
+//
+//    		return result;
+//    	}
+//    	else {
+//    		return false;
+//    	}
+//    }
 
     void ComputePrefix(Accumulator& pfx)
     {
@@ -100,12 +100,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 
     void ComputeBase()
     {
-        if (!me()->IsEmpty())
-        {
-        	me()->prefix().Clear();
-
-            compute_base(me()->prefix());
-        }
+//        if (!me()->IsEmpty())
+//        {
+//        	me()->prefix().Clear();
+//
+//            compute_base(me()->prefix());
+//        }
     }
 
     void DumpKeys(ostream& out)

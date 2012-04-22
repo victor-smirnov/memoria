@@ -367,7 +367,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockFromStart(Iterator& stop)
 	BigInt removed_key_count = 0;
 	me()->RemovePagesFromStart(stop.path(), stop.key_idx(), removed, removed_key_count);
 
-	stop.prefix().Clear();
+//	stop.prefix().Clear();
 
 	if (me()->ShouldMergeData(stop.path()))
 	{
@@ -450,7 +450,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 		Accumulator removed;
 
-		Accumulator prefix;
+//		Accumulator prefix;
 
 		if (start.data_pos() > 0)
 		{
@@ -461,11 +461,11 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 			start.NextKey();
 
-			prefix = start.prefix();
+//			prefix = start.prefix();
 		}
 		else {
-			prefix 			= start.prefix();
-			prefix.key(0) 	+= start.data_pos();
+//			prefix 			= start.prefix();
+//			prefix.key(0) 	+= start.data_pos();
 		}
 
 		if (stop.data_pos() > 0)
@@ -479,7 +479,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 		me()->AddTotalKeyCount(-removed_key_count);
 
-		stop.prefix() = prefix;
+//		stop.prefix() = prefix;
 
 		me()->MergeDataWithSiblings(stop);
 
