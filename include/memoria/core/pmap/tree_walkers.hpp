@@ -306,6 +306,80 @@ public:
 	}
 };
 
+
+template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
+class FindSumPositionBwLTFn
+{
+	IndexKey sum_;
+	const TreeType& me_;
+	Int block_num_;
+	BigInt limit_;
+
+	Int key_block_offsets_[Blocks];
+	Int index_block_offsets_[Blocks];
+
+public:
+	FindSumPositionBwLTFn(const TreeType& me, Int block_num, BigInt limit):
+		sum_(0),
+		me_(me),
+		block_num_(block_num),
+		limit_(limit)
+	{
+		for (Int c = 0; c < Blocks; c++)
+		{
+			key_block_offsets_[c] 	= me.GetKeyBlockOffset(c);
+			index_block_offsets_[c] = me.GetIndexKeyBlockOffset(c);
+		}
+	}
+
+	void PrepareIndex() {}
+
+	//FIXME: move offsets[] to constructor
+	Int WalkKeys(Int start, Int end)
+	{
+		for (Int c = start; c > end; c--)
+		{
+			IndexKey key = me_.keyb(key_block_offsets_[block_num_], c);
+			IndexKey sum = sum_ + key;
+
+			if (sum < limit_)
+			{
+				sum_ = sum;
+			}
+			else {
+				return c;
+			}
+		}
+
+		return end;
+	}
+
+	Int WalkIndex(Int start, Int end)
+	{
+		for (Int c = start; c > end; c--)
+		{
+			IndexKey sum = sum_ + me_.indexb(index_block_offsets_[block_num_], c);
+
+			if (sum < limit_)
+			{
+				sum_ = sum;
+			}
+			else {
+				return c;
+			}
+		}
+
+		return end;
+	}
+
+
+	IndexKey sum() const {
+		return sum_;
+	}
+};
+
+
+
 }
 
 

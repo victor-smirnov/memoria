@@ -1,4 +1,4 @@
-#include <memoria/vapi/logs.hpp>
+#include <memoria/core/container/logs.hpp>
 
 namespace memoria {
 namespace vapi {

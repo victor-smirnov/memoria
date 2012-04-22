@@ -11,6 +11,9 @@
 
 namespace memoria {
 
+
+BigInt DebugCounter = 0;
+
 Int CtrRefCounters = 0;
 Int CtrUnrefCounters = 0;
 

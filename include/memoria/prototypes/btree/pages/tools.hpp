@@ -224,6 +224,8 @@ public:
     {
         typedef typename memoria::Type2TypeMap<T, TypeMap>::Result RootType;
 
+        DebugCounter++;
+
         Byte buffer[Allocator::PAGE_SIZE];
         memset(buffer, 0, sizeof(buffer));
 
@@ -238,6 +240,10 @@ public:
         tgt->set_root(true);
 
         tgt->page_type_hash()   = RootType::hash();
+
+        if (DebugCounter == 3) {
+        	int a = 0; a++;
+        }
 
         src->map().TransferTo(&tgt->map());
 

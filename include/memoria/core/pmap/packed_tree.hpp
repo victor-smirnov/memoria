@@ -463,14 +463,6 @@ public:
 	{
 		Int value_size = GetValueSize();
 
-//		for (Int c = 0; c < Blocks; c++)
-//		{
-//			Int offset		= GetIndexKeyBlockOffset(c);
-//			Int new_offset	= GetIndexKeyBlockOffset(new_index_size, c);
-//
-//			CopyIndex(target_memory_block, offset, new_offset, sizeof(IndexKey));
-//		}
-
 		for (Int c = 0; c < Blocks; c++)
 		{
 			Int offset		= GetKeyBlockOffset(c);
@@ -723,10 +715,11 @@ public:
 			else {
 				walker.PrepareIndex();
 
-				Int level_size = GetIndexCellsNumberFor(max_size_);
-				Int last_start = WalkIndexFw(block_limit/BranchingFactor, walker, index_size_ - level_size, level_size);
+				Int level_size 		= GetIndexCellsNumberFor(max_size_);
+				Int level_limit 	= GetIndexCellsNumberFor(size_);
+				Int last_start 		= WalkIndexFw(block_limit/BranchingFactor, walker, index_size_ - level_size, level_size, level_limit);
 
-				Int last_start_end = GetBlockStartEnd(last_start);
+				Int last_start_end 	= GetBlockStartEnd(last_start);
 
 				Int last_end = last_start_end <= size()? last_start_end : size();
 
@@ -793,13 +786,13 @@ private:
 
 
 	template <typename Walker>
-	Int WalkIndexFw(Int start, Walker& walker, Int level_offet, Int level_size) const
+	Int WalkIndexFw(Int start, Walker& walker, Int level_offet, Int level_size, Int level_limit) const
 	{
 		Int block_start_end 	= GetBlockStartEnd(start);
 
-		if (block_start_end >= level_size)
+		if (block_start_end >= level_limit)
 		{
-			return (walker.WalkIndex(start + level_offet, level_size + level_offet) - level_offet) * BranchingFactor;
+			return (walker.WalkIndex(start + level_offet, level_limit + level_offet) - level_offet) * BranchingFactor;
 		}
 		else
 		{
@@ -809,12 +802,14 @@ private:
 				return limit * BranchingFactor;
 			}
 			else {
-				Int level_size0 = GetIndexCellsNumberFor(level_size);
-				Int last_start  = WalkIndexFw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0);
+				Int level_size0 	= GetIndexCellsNumberFor(level_size);
+				Int level_limit0 	= GetIndexCellsNumberFor(level_limit);
 
-				Int last_start_end = GetBlockStartEnd(last_start);
+				Int last_start  	= WalkIndexFw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0, level_limit0);
 
-				Int last_end = last_start_end <= level_size ? last_start_end : level_size;
+				Int last_start_end 	= GetBlockStartEnd(last_start);
+
+				Int last_end = last_start_end <= level_limit ? last_start_end : level_limit;
 
 				return (walker.WalkIndex(last_start + level_offet, last_end + level_offet) - level_offet) * BranchingFactor;
 			}
@@ -883,7 +878,7 @@ private:
 		CopyBuffer(
 				memory_block_ 		+ offset,
 				target_memory_block + new_offset,
-				max_size_ * item_size
+				size_ * item_size
 		);
 	}
 

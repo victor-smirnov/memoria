@@ -72,6 +72,26 @@ public:
 		}
 	}
 
+	void UpdateUp(Int block_num, Int idx, IndexKey key_value)
+	{
+		Base::key(block_num, idx) += key_value;
+
+		Int level_size 		= Base::max_size();
+		Int level_start 	= Base::index_size();
+
+		Int block_offset 	= Base::GetIndexKeyBlockOffset(block_num);
+
+		do {
+			level_size 		= Base::GetIndexCellsNumberFor(level_size);
+			level_start		-= level_size;
+
+			idx /= BranchingFactor;
+
+			Base::indexb(block_offset, idx + level_start) += key_value;
+		}
+		while (level_start > 0);
+	}
+
 	void Reindex(Int block_num, Int start, Int end)
 	{
 		Int block_start = Base::GetBlockStart(start);
@@ -220,6 +240,40 @@ public:
 	{
 		FindSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 		return Base::WalkBw(start, walker);
+	}
+
+
+	Int FindSumPositionFw(Int block_num, Int start, Key key, IndexKey& acc) const
+	{
+		FindSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+
+		Int position = Base::WalkFw(start, walker);
+
+		acc += walker.sum();
+
+		return position;
+	}
+
+	Int FindSumPositionBw(Int block_num, Int start, Key key, IndexKey& acc) const
+	{
+		FindSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+
+		Int position = Base::WalkBw(start, walker);
+
+		acc += walker.sum();
+
+		return position;
+	}
+
+	Int FindSumPositionBwLT(Int block_num, Int start, Key key, IndexKey& acc) const
+	{
+		FindSumPositionBwLTFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+
+		Int position = Base::WalkBw(start, walker);
+
+		acc += walker.sum();
+
+		return position;
 	}
 
 };

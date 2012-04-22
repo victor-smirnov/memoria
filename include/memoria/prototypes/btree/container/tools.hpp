@@ -322,26 +322,29 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     struct AddKeysFn {
         Int idx_;
         const Key *keys_;
+        bool reindex_fully_;
 
-        AddKeysFn(Int idx, const Key* keys): idx_(idx), keys_(keys) {}
+        AddKeysFn(Int idx, const Key* keys, bool reindex_fully): idx_(idx), keys_(keys), reindex_fully_(reindex_fully) {}
 
         template <typename Node>
         void operator()(Node *node)
         {
-            for (Int c = 0; c < Indexes; c++)
-            {
-            	node->map().key(c, idx_) += keys_[c];
-            }
+        	for (Int c = 0; c < Indexes; c++)
+        	{
+        		node->map().UpdateUp(c, idx_, keys_[c]);
 
-            node->map().Reindex();
+        		if (reindex_fully_) {
+        			node->map().Reindex(c);
+        		}
+        	}
         }
     };
 
-    void AddKeys(NodeBaseG& node, int idx, const Accumulator& keys) const
+    void AddKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
     {
         node.update();
 
-        AddKeysFn fn(idx, keys.keys());
+        AddKeysFn fn(idx, keys.keys(), reindex_fully);
         NodeDispatcher::Dispatch(node, fn);
     }
 

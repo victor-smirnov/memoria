@@ -41,7 +41,7 @@ typedef std::map<Int, ContainerMetadata*>   			ContainerMetadataMap;
 //typedef Container* (*ContainerFactoryFn) (const IDValue& rootId, ContainerCollection *container, BigInt name);
 //typedef Int (*PageSizeProviderFn)(const void *page);
 
-class MEMORIA_API Metadata {
+struct MEMORIA_API Metadata {
 
 public:
 	enum   {BYTE,   UBYTE,  SHORT,   USHORT, INT,    UINT,

@@ -15,6 +15,7 @@
 #include <memoria/core/container/iterator.hpp>
 
 #include <memoria/core/tools/walkers.hpp>
+#include <memoria/core/tools/sum_walker.hpp>
 
 #include <memoria/core/tools/array_data.hpp>
 
@@ -254,7 +255,7 @@ BigInt M_TYPE::SkipFw(BigInt count)
 		}
 		else
 		{
-			NodeTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
+			SumTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
 
 			bool end 		= me()->model().WalkFw(me()->path(), me()->key_idx(), walker);
 
@@ -305,7 +306,7 @@ BigInt M_TYPE::SkipBw(BigInt count)
 		{
 			Int data_size 	= me()->data()->size();
 			Int to_add 		= data_size - idx;
-			NodeTreeWalker<Container, Key, false> walker(distance + to_add, me()->model());
+			SumTreeWalker<Container, Key, false> walker(distance + to_add, me()->model());
 
 			//FIXME: does 'end' means the same as for StepFw()?
 			bool end 		= me()->model().WalkBw(me()->path(), me()->key_idx(), walker);

@@ -17,7 +17,7 @@
 namespace memoria    {
 
 template <typename T> struct FieldFactory;
-template <typename T> struct TypeHash;
+template <typename T> class  TypeHash;
 
 template <typename Object, size_t Size_>
 class TypeHash<memoria::AbstractPageID<Object, Size_> > {
@@ -31,12 +31,6 @@ private:
     typedef memoria::AbstractPageID<T, Size>                                             Type;
 
 public:
-//    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
-//    {
-//        list.push_back(new TypedIDFieldImpl<Type>(PtrToLong(&field), abi_ptr, name));
-//        abi_ptr += ValueTraits<Type>::Size;
-//    }
-
     static void serialize(SerializationData& data, const Type& field, Int count = 1)
     {
     	memmove(data.buf, &field, sizeof(Type) * count);
@@ -54,12 +48,6 @@ public:
 template <Int Size>
 struct FieldFactory<memoria::BitBuffer<Size> > {
     typedef memoria::BitBuffer<Size>                                                     Type;
-
-//    static void create(MetadataList &list, const Type &field, const string &name, Long &abi_ptr)
-//    {
-//        list.push_back(new FlagFieldImpl(PtrToLong(&field), abi_ptr, name, 0, Size));
-//        abi_ptr += ValueTraits<Type>::Size;
-//    }
 
     static void serialize(SerializationData& data, const Type& field)
     {

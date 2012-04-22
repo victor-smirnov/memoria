@@ -234,6 +234,8 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 
 		me()->CreateDataPage(right, 0);
 
+		me()->Reindex(right.leaf());
+
 		MoveData(left, data_pos, right);
 
 		return right.data();
@@ -242,6 +244,8 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 		me()->MakeRoom(path, 0, idx, 1);
 
 		DataPathItem target_data = me()->CreateDataPage(path[0].node(), idx);
+
+		me()->Reindex(path.leaf());
 
 		MoveData(path, data_pos, target_data);
 
@@ -288,7 +292,7 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int sta
 
 	accum.keys()[0] = length;
 
-	me()->UpdateUp(iter.path(), 0, iter.key_idx(), accum);
+	me()->UpdateUp(iter.path(), 0, iter.key_idx(), accum, true);
 }
 
 

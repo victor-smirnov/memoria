@@ -188,6 +188,8 @@ struct DeserializationData {
 	const char* buf;
 };
 
+extern BigInt DebugCounter;
+
 }
 
 #endif
