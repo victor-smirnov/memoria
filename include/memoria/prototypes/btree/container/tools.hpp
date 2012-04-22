@@ -290,63 +290,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	return me()->GetCapacity(node) == 0;
     }
 
-    struct SumKeysFn {
 
-        Int         from_;
-        Int         count_;
-        Key*        keys_;
-
-    public:
-        SumKeysFn(Int from, Int count, Key* keys):
-                            from_(from), count_(count), keys_(keys) {}
-
-        template <typename T>
-        void operator()(T *node)
-        {
-            for (Int d = 0; d < Indexes; d++)
-            {
-                for (Int c = from_; c < from_ + count_; c++)
-                {
-                    keys_[d] += node->map().key(d, c);
-                }
-            }
-        }
-    };
-
-    void SumKeys(const NodeBase *node, Int from, Int count, Key* keys) const
-    {
-        SumKeysFn fn(from, count, keys);
-        NodeDispatcher::DispatchConst(node, fn);
-    }
-
-    struct AddKeysFn {
-        Int idx_;
-        const Key *keys_;
-        bool reindex_fully_;
-
-        AddKeysFn(Int idx, const Key* keys, bool reindex_fully): idx_(idx), keys_(keys), reindex_fully_(reindex_fully) {}
-
-        template <typename Node>
-        void operator()(Node *node)
-        {
-        	for (Int c = 0; c < Indexes; c++)
-        	{
-        		node->map().UpdateUp(c, idx_, keys_[c]);
-
-        		if (reindex_fully_) {
-        			node->map().Reindex(c);
-        		}
-        	}
-        }
-    };
-
-    void AddKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
-    {
-        node.update();
-
-        AddKeysFn fn(idx, keys.keys(), reindex_fully);
-        NodeDispatcher::Dispatch(node, fn);
-    }
 
     Key GetKey(const NodeBaseG& node, Int i, Int idx) const
     {

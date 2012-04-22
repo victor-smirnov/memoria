@@ -65,7 +65,7 @@ public:
     	typedef typename Types::Key 	IndexKey;
 
     	static const Int Blocks 			= Types::Indexes;
-    	static const Int BranchingFactor	= 4;
+    	static const Int BranchingFactor	= 32;
 
     	typedef Accumulators<Key, Blocks> 	Accumulator;
     };

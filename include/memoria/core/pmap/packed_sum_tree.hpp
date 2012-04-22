@@ -223,11 +223,16 @@ public:
 	}
 
 
-	void Sum(Int block_num, Int start, Int end, Accumulator& accum) const
+	void Sum(Int block_num, Int start, Int end, IndexKey& sum) const
 	{
-		SumWalker<MyType, Key, IndexKey, Blocks> walker(*this, block_num);
+		SumWalker<MyType, Key, IndexKey, Blocks> walker(*this, block_num, sum);
 		Base::WalkRange(start, end, walker);
-		accum[block_num] += walker.sum();
+	}
+
+	void Sum(Int start, Int end, Accumulator& accum) const
+	{
+		SumsWalker<MyType, Key, IndexKey, Accumulator> walker(*this, accum);
+		Base::WalkRange(start, end, walker);
 	}
 
 	Int FindSumPositionFw(Int block_num, Int start, Key key, Accumulator& acc) const

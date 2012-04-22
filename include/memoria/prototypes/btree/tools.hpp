@@ -114,14 +114,16 @@ struct ValueClearing {
 };
 
 
-template <typename Key, Int Indexes>
+template <typename Key, Int Indexes_>
 class Accumulators
 {
-	typedef Accumulators<Key, Indexes> MyType;
+	typedef Accumulators<Key, Indexes_> MyType;
 
-	Key 		keys_[Indexes];
+	Key 		keys_[Indexes_];
 
 public:
+
+	static const Int Indexes = Indexes_;
 
 	Accumulators()
 	{

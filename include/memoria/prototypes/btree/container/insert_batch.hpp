@@ -89,7 +89,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     Accumulator GetCounters(const NodeBaseG& node, Int from, Int count) const;
     void MakeRoom(TreePath& path, Int level, Int start, Int count) const;
+
     void UpdateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
+    bool UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const {
+    	return true;
+    };
+
     void UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
     Accumulator InsertSubtree(Iterator& iter, ISubtreeProvider& provider);
 
@@ -331,7 +336,7 @@ private:
 
     Accumulator MoveElements(NodeBaseG& srt, NodeBaseG& tgt, Int from, Int tgt_shift = 0) const;
 
-    bool UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
+
 
     void FillNodeLeft(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
     void FillNodeRight(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
@@ -388,7 +393,7 @@ private:
     	{
     		Int count = src->children_count() - from_;
 
-    		typename MyType::SumKeysFn sum_fn(from_, count, result_.keys());
+    		typename MyType::SumKeysFn sum_fn(from_, count, result_);
     		sum_fn(src);
 
     		if (tgt->children_count() > 0)
@@ -605,7 +610,7 @@ typename M_TYPE::Accumulator M_TYPE::GetCounters(const NodeBaseG& node, Int from
 {
 	Accumulator counters;
 
-	me()->SumKeys(node, from, count, counters.keys());
+	me()->SumKeys(node, from, count, counters);
 
 	return counters;
 }
@@ -617,7 +622,7 @@ void M_TYPE::UpdateUp(TreePath& path, Int level, Int idx, const Accumulator& cou
 {
 	for (Int c = level; c < path.GetSize(); c++)
 	{
-		if (UpdateCounters(path[c].node(), idx, counters, reindex_fully))
+		if (me()->UpdateCounters(path[c].node(), idx, counters, reindex_fully))
 		{
 			break;
 		}
@@ -883,14 +888,7 @@ typename M_TYPE::Accumulator M_TYPE::MoveElements(NodeBaseG& src, NodeBaseG& tgt
 }
 
 
-M_PARAMS
-bool M_TYPE::UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
-{
-	node.update();
-	me()->AddKeys(node, idx, counters.keys(), reindex_fully);
 
-	return false; //proceed further unconditionally
-}
 
 
 M_PARAMS
@@ -914,8 +912,8 @@ typename M_TYPE::TreePathItem M_TYPE::Split(TreePath& path, Int level, Int idx)
 	me()->SetINodeData(parent, parent_idx + 1, &other->id());
 
 	//FIXME: Should we proceed up to the root here in general case?
-	UpdateCounters(parent, parent_idx, 	  -keys);
-	UpdateCounters(parent, parent_idx + 1, keys, true);
+	me()->UpdateCounters(parent, parent_idx, 	  -keys);
+	me()->UpdateCounters(parent, parent_idx + 1, keys, true);
 
 	if (level > 0)
 	{
@@ -964,8 +962,8 @@ void M_TYPE::Split(TreePath& left, TreePath& right, Int level, Int idx)
 		me()->SetINodeData(left_parent, parent_idx + 1, &other->id());
 
 		//FIXME: should we proceed up to the root?
-		UpdateCounters(left_parent, parent_idx,    -keys);
-		UpdateCounters(left_parent, parent_idx + 1, keys, true);
+		me()->UpdateCounters(left_parent, parent_idx,    -keys);
+		me()->UpdateCounters(left_parent, parent_idx + 1, keys, true);
 
 		right[level].node() 		= other;
 		right[level].parent_idx() 	= parent_idx + 1;

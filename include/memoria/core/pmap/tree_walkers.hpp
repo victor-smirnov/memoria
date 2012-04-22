@@ -117,18 +117,62 @@ public:
 template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
 class SumWalker
 {
-	IndexKey sum_;
+	IndexKey& sum_;
 	const TreeType& me_;
+
+	Int key_block_offsets_;
+	Int index_block_offsets_;
+
+public:
+	SumWalker(const TreeType& me, Int block_num, IndexKey& sum):
+		sum_(sum),
+		me_(me)
+	{
+		key_block_offsets_ 		= me.GetKeyBlockOffset(block_num);
+		index_block_offsets_ 	= me.GetIndexKeyBlockOffset(block_num);
+	}
+
+	void PrepareIndex() {}
+
+	//FIXME: move offsets[] to constructor
+	void WalkKeys(Int start, Int end)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			sum_ += me_.keyb(key_block_offsets_, c);
+		}
+	}
+
+	void WalkIndex(Int start, Int end)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			sum_ += me_.indexb(index_block_offsets_, c);
+		}
+	}
+
+	IndexKey sum() const {
+		return sum_;
+	}
+};
+
+
+template <typename TreeType, typename Key, typename IndexKey, typename Accumulator>
+class SumsWalker
+{
+	Accumulator& sum_;
+	const TreeType& me_;
+
+	static const Int Blocks = Accumulator::Indexes;
 
 	Int key_block_offsets_[Blocks];
 	Int index_block_offsets_[Blocks];
-	Int block_num_;
+
 
 public:
-	SumWalker(const TreeType& me, Int block_num):
-		sum_(0),
-		me_(me),
-		block_num_(block_num)
+	SumsWalker(const TreeType& me, Accumulator& sum):
+		sum_(sum),
+		me_(me)
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
@@ -142,25 +186,34 @@ public:
 	//FIXME: move offsets[] to constructor
 	void WalkKeys(Int start, Int end)
 	{
-		for (Int c = start; c < end; c++)
+		for (Int block = 0; block < Blocks; block++)
 		{
-			sum_ += me_.keyb(key_block_offsets_[block_num_], c);
+			for (Int c = start; c < end; c++)
+			{
+				sum_[block] += me_.keyb(key_block_offsets_[block], c);
+			}
 		}
 	}
 
 	void WalkIndex(Int start, Int end)
 	{
-		for (Int c = start; c < end; c++)
+		for (Int block = 0; block < Blocks; block++)
 		{
-			sum_ += me_.indexb(index_block_offsets_[block_num_], c);
+			for (Int c = start; c < end; c++)
+			{
+				sum_[block] += me_.indexb(index_block_offsets_[block], c);
+			}
 		}
 	}
 
-	IndexKey sum() const {
+	const Accumulator& sum() const {
+		return sum_;
+	}
+
+	Accumulator& sum() {
 		return sum_;
 	}
 };
-
 
 
 template <typename TreeType, typename Key, typename IndexKey, Int Blocks>

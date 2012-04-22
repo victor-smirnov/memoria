@@ -131,7 +131,7 @@ private:
 
         for (Int c = 0; c < path0.GetSize(); c++)
         {
-        	me()->model().SumKeys(path0[c].node(), 0, idx, accum.keys());
+        	me()->model().SumKeys(path0[c].node(), 0, idx, accum);
         	idx = path0[c].parent_idx();
         }
     }

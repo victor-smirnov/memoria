@@ -108,7 +108,7 @@ public:
 		FillMap(map, max_size != 0 ? max_size : map->max_size());
 
 		Accumulator acc;
-		map->Sum(0, start, end, acc);
+		map->Sum(start, end, acc);
 
 		BigInt sum = Sum(map, start, end);
 
@@ -170,7 +170,7 @@ public:
 					replay.end		= end;
 
 					Accumulator acc;
-					map->Sum(0, start, end, acc);
+					map->Sum(start, end, acc);
 
 					BigInt sum = Sum(map, start, end);
 
