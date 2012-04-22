@@ -30,7 +30,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     Iterator Find(Key key)
     {
-    	Iterator iter = me()->FindLE(key, 0, true);
+    	Iterator iter = me()->FindLE(key, 0);
 
     	if (!iter.IsEnd())
     	{
@@ -49,7 +49,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     Iterator operator[](Key key)
     {
-    	Iterator iter = me()->FindLE(key, 0, true);
+    	Iterator iter = me()->FindLE(key, 0);
 
     	if (iter.IsEnd() || key != iter.GetKey(0))
     	{
@@ -64,7 +64,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     bool Remove(Key key)
     {
-    	Iterator iter = me()->FindLE(key, 0, true);
+    	Iterator iter = me()->FindLE(key, 0);
 
     	if (key == iter.GetKey(0))
     	{

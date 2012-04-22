@@ -41,52 +41,35 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
 
 
 
+
+
     static const Int Indexes                                                    = Types::Indexes;
 
+    template <typename CmpType>
     struct CompareBase {
 
-        enum {LT, LE};
-
-        typename MyType::SearchModeDefault::Enum search_mode_;
         Key prefix_;
         Key current_prefix_;
-        int type_;
 
-        CompareBase(typename MyType::SearchModeDefault::Enum search_mode, Int type = LT): search_mode_(search_mode), prefix_(0), current_prefix_(0) , type_(type){}
+        CompareBase():
+        	prefix_(0),
+        	current_prefix_(0)
+        {}
 
         template <typename IteratorType>
         void SetupIterator(IteratorType &iter){}
 
-        void AdjustKey(Key& key) {
+        void AdjustKey(Key& key)
+        {
             key -= current_prefix_;
         }
-
-        typename MyType::SearchModeDefault::Enum search_mode() const {
-        	return search_mode_;
-        }
-    };
-
-    struct Compare: public CompareBase {
-
-        Compare(typename MyType::SearchModeDefault::Enum search_mode, Int type): CompareBase(search_mode, type) {}
 
         template <typename Node>
         Int Find(Node* node, Int key_num, Key key)
         {
-            Key& prefix = CompareBase::prefix_;
-            Key& current_prefix = CompareBase::current_prefix_;
-            current_prefix = 0;
+            current_prefix_ = 0;
 
-            Int idx;
-
-            if (CompareBase::type_ == CompareBase::LT)
-            {
-                idx = node->map().FindLTS(key_num, key, current_prefix);
-            }
-            else
-            {
-                idx = node->map().FindLES(key_num, key, current_prefix);
-            }
+            Int idx = me()->FindInMap(node, key_num, key, current_prefix_);
             
             if (idx == -1 && node->children_count() > 0)
             {
@@ -100,10 +83,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
                     tmp = node->map().max_key(key_num) - node->map().key(key_num, node->children_count() - 1);
                 }
 
-                current_prefix += tmp;
+                current_prefix_ += tmp;
             }
 
-            prefix += current_prefix;
+            prefix_ += current_prefix_;
 
             return idx;
         }
@@ -112,26 +95,58 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         {
             return key >= max_key;
         }
+
+        const CmpType* me() const {
+        	return static_cast<const CmpType*>(this);
+        }
+
+        CmpType* me() {
+        	return static_cast<CmpType*>(this);
+        }
     };
 
-    struct CompareLT: public Compare
+    struct CompareLT: public CompareBase<CompareLT>
     {
-        CompareLT(typename MyType::SearchModeDefault::Enum search_mode): Compare(search_mode, CompareBase::LT) {}
+    	CompareLT(): CompareBase<CompareLT>() {}
+
+    	template<typename Node>
+    	Int FindInMap(Node* node, Int key_num, Key key, Key& prefix)
+    	{
+    		return node->map().FindLTS(key_num, key, prefix);
+    	}
+
+    	template <typename Node>
+    	bool IsKeyWithinRange(Node* node, Int block_num, Key key) const
+    	{
+    		return key < node->map().max_key(block_num);
+    	}
     };
 
-    struct CompareLE: public Compare
+    struct CompareLE: public CompareBase<CompareLE>
     {
-        CompareLE(typename MyType::SearchModeDefault::Enum search_mode): Compare(search_mode, CompareBase::LE) {}
+        CompareLE(): CompareBase<CompareLE>() {}
+
+        template<typename Node>
+        Int FindInMap(Node* node, Int key_num, Key key, Key& prefix)
+        {
+        	return node->map().FindLES(key_num, key, prefix);
+        }
+
+        template <typename Node>
+        bool IsKeyWithinRange(Node* node, Int block_num, Key key) const
+        {
+        	return key <= node->map().max_key(block_num);
+        }
     };
 
-    Iterator FindLT(Key key, Int key_num, bool for_insert)
+    Iterator FindLT(Key key, Int key_num)
     {
-        return me()->template _find<CompareLT>(key, key_num, for_insert ? MyType::SearchModeDefault::LAST : MyType::SearchModeDefault::NONE);
+        return me()->template _find<CompareLT>(key, key_num);
     }
 
-    Iterator FindLE(Key key, Int key_num, bool for_insert)
+    Iterator FindLE(Key key, Int key_num)
     {
-        return me()->template _find<CompareLE>(key, key_num, for_insert ? MyType::SearchModeDefault::LAST : MyType::SearchModeDefault::NONE);
+        return me()->template _find<CompareLE>(key, key_num);
     }
 
 

@@ -55,7 +55,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 {
-	Iterator iter = me()->FindLT(pos * me()->GetElementSize(), key_number, true);
+	Iterator iter = me()->FindLT(pos * me()->GetElementSize(), key_number);
 
 	if (iter.IsNotEmpty())
 	{
@@ -70,9 +70,9 @@ typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 		BigInt offset 	= iter.prefix(key_number);
 		iter.data_pos() = pos * me()->GetElementSize() - offset;
 
-		if (iter.data_pos() > iter.data()->data().size())
+		if (iter.data_pos() > iter.data()->size())
 		{
-			iter.data_pos() = iter.data()->data().size();
+			iter.data_pos() = iter.data()->size();
 		}
 	}
 

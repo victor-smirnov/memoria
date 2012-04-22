@@ -332,7 +332,9 @@ BigInt M_TYPE::RemoveEntries(Iterator& from, Iterator& to, Accumulator& keys, bo
 	{
 		RemovePagesFromStart(stop, stop_idx, keys, removed_key_count);
 
-		if (merge) me()->MergeWithRightSibling(stop, 0);
+		if (merge) {
+			me()->MergeWithRightSibling(stop, 0);
+		}
 
 		to.KeyNum() -= removed_key_count;
 
@@ -747,15 +749,21 @@ void M_TYPE::RemoveRedundantRoot(TreePath& start, TreePath& stop, Int level)
 
 			NodeBaseG& child = start[c - 1].node();
 
-			me()->Node2Root(child, root_metadata);
+			if (me()->CanConvertToRoot(child))
+			{
+				me()->Node2Root(child, root_metadata);
 
-			me()->allocator().RemovePage(node->id());
+				me()->allocator().RemovePage(node->id());
 
-			me()->set_root(child->id());
+				me()->set_root(child->id());
 
-			start.RemoveLast();
+				start.RemoveLast();
 
-			stop.RemoveLast();
+				stop.RemoveLast();
+			}
+			else {
+				break;
+			}
 		}
 		else {
 			break;

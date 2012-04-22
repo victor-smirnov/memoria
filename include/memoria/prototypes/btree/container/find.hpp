@@ -49,6 +49,7 @@ public:
         Int             idx_;
         bool			end_;
         Int				level_;
+        bool			found_;
 
     public:
         FindFn(Comparator& cmp, Key& key, Int key_num, NodeBaseG& root, MyType &model):
@@ -58,7 +59,8 @@ public:
             model_(model),
             cmp_(cmp),
             end_(false),
-        	level_(root->level())
+        	level_(root->level()),
+        	found_(true)
         {
         	i_.path().Resize(level_ + 1);
 
@@ -78,54 +80,24 @@ public:
 
         			path_item.parent_idx()	= idx_;
         			path_item.node() 		= model_.GetChild(node, idx_, Allocator::READ);
+
+        			level_--;
         		}
-        		else if (cmp_.search_mode_ != SearchModeDefault::NONE)
-            	{
-        			//FIXME: key_idx() == END for leaf
-
-        			if (cmp_.search_mode() == SearchModeDefault::LAST)
-        			{
-        				idx_ = node->children_count() - 1;
-        			}
-        			else {
-        				idx_ = 0;
-        			}
-
-        			auto& path_item 		= i_.path()[node->level() - 1];
-
-        			path_item.parent_idx()	= idx_;
-        			path_item.node() 		= model_.GetChild(node, idx_, Allocator::READ);
-            	}
         		else
         		{
-        			idx_ = 0;
-        			end_ = true;
+        			idx_ 	= 0;
+        			found_ 	= false;
+        			end_ 	= true;
         		}
         	}
         	else
         	{
         		if (idx_ < 0)
         		{
-        			if (cmp_.search_mode() == SearchModeDefault::LAST)
-        			{
-        				idx_ = node->children_count();
-        			}
-        			else
-        			{
-        				idx_ = -1;
-        			}
+        			found_ 	= false;
         		}
 
         		end_ = true;
-        	}
-
-        	if (end_)
-        	{
-        		i_.key_idx() = idx_;
-        		cmp_.SetupIterator(i_);
-        	}
-        	else {
-        		level_--;
         	}
         }
 
@@ -135,8 +107,35 @@ public:
         }
     };
 
+
     template <typename Comparator>
-    const Iterator _find(Key key, Int c, bool for_insert);
+    class CheckBoundsFn {
+    	Key&            key_;
+    	Int             key_num_;
+    	Comparator&     cmp_;
+
+    	bool 			within_ranges_;
+
+    public:
+    	CheckBoundsFn(Comparator& cmp, Key& key, Int key_num):
+    		key_(key),
+    		key_num_(key_num),
+    		cmp_(cmp)
+    	{}
+
+    	template <typename Node>
+    	void operator()(Node *node)
+    	{
+    		within_ranges_ = cmp_.IsKeyWithinRange(node, key_num_, key_);
+    	}
+
+    	bool within_ranges() const {
+    		return within_ranges_;
+    	}
+    };
+
+    template <typename Comparator>
+    const Iterator _find(Key key, Int c);
 
     Iterator FindStart(bool reverse = false);
     Iterator FindEnd  (bool reverse = false);
@@ -191,14 +190,17 @@ MEMORIA_CONTAINER_PART_END
 
 M_PARAMS
 template <typename Comparator>
-const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
+const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c)
 {
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
 
-	if (node.is_set())
-	{
-		Comparator cmp(for_insert ? SearchModeDefault::LAST : SearchModeDefault::NONE);
+	Comparator cmp;
 
+	CheckBoundsFn<Comparator> bounds_fn(cmp, key, c);
+	NodeDispatcher::DispatchConst(node, bounds_fn);
+
+	if (bounds_fn.within_ranges())
+	{
 		FindFn<Comparator> fn(cmp, key, c, node, *me());
 
 		while(1)
@@ -207,20 +209,30 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c, bool for_insert)
 
 			if (fn.end_)
 			{
-				me()->FinishPathStep(fn.i_.path(), fn.i_.key_idx());
-				return fn.i_;
+				if (fn.found_)
+				{
+					fn.i_.key_idx() = fn.idx_;
+
+					cmp.SetupIterator(fn.i_);
+
+					me()->FinishPathStep(fn.i_.path(), fn.i_.key_idx());
+
+					return fn.i_;
+				}
+				else
+				{
+					throw MemoriaException(MEMORIA_SOURCE, "Can't find key: "+ToString(key));
+				}
 			}
 			else
 			{
 				node = fn.node();
-
 				cmp.AdjustKey(key);
 			}
 		}
 	}
 	else {
-		MEMORIA_TRACE(me(), "No Root for Container");
-		return Iterator(*me());
+		return me()->End();
 	}
 }
 

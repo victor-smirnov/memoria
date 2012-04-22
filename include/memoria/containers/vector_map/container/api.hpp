@@ -67,7 +67,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	Iterator Find(BigInt key)
 	{
-		auto is_iter = me()->set().FindLE(key, 0, false);
+		auto is_iter = me()->set().FindLE(key, 0);  // FIXME Check for bounds (for_insert)
 
 		is_iter.Init();
 
@@ -109,7 +109,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	Iterator Create(BigInt key)
 	{
-		auto is_iter = me()->set().FindLT(key, 0, true);
+		auto is_iter = me()->set().FindLT(key, 0);
 
 		//FIXME: set_.FindLT() have to return properly initialized iterator
 		is_iter.Init();
@@ -146,7 +146,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	bool Remove(BigInt key)
 	{
-		auto is_iter = me()->set().FindLE(key, 0, true);
+		auto is_iter = me()->set().FindLE(key, 0);
 
 		//FIXME: set_.FindLT() have to return properly initialized iterator
 		is_iter.Init();

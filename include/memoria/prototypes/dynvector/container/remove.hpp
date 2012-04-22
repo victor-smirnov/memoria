@@ -450,8 +450,6 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 		Accumulator removed;
 
-//		Accumulator prefix;
-
 		if (start.data_pos() > 0)
 		{
 			// Remove a region in current data node starting from data_pos till the end
@@ -460,12 +458,6 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 			removed     += RemoveData(start.path(), start.data_pos(), length);
 
 			start.NextKey();
-
-//			prefix = start.prefix();
-		}
-		else {
-//			prefix 			= start.prefix();
-//			prefix.key(0) 	+= start.data_pos();
 		}
 
 		if (stop.data_pos() > 0)
@@ -478,8 +470,6 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 		me()->RemovePages(start.path(), start.key_idx(), stop.path(), stop.key_idx(), 0, removed, removed_key_count);
 
 		me()->AddTotalKeyCount(-removed_key_count);
-
-//		stop.prefix() = prefix;
 
 		me()->MergeDataWithSiblings(stop);
 
