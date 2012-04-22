@@ -40,6 +40,8 @@ public:
     	return get_prefixes();
     }
 
+    void SetupPrefix(Key prefix) {}
+
 private:
 
     Accumulator get_prefixes() const

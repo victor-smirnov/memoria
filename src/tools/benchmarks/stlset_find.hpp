@@ -46,7 +46,7 @@ public:
 	enum SetType {MEMORY = 1, COUNT = 2};
 private:
 
-	typedef Int		 Key;
+	typedef BigInt		 Key;
 	typedef set<Key, less<Key>, CustomAllocator<Key> > Map;
 
 	Map* 			map_;

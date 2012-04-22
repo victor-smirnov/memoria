@@ -49,7 +49,7 @@ template <typename List> class ListExecutor;
 template <Int BranchingFactor>
 class PSetBenchmark: public BenchmarkTask {
 
-	typedef PMapFindTypes<Int, EmptyValue, 1, BranchingFactor> 	Types;
+	typedef PMapFindTypes<BigInt, EmptyValue, 1, BranchingFactor> 	Types;
 
 	typedef typename Types::Accumulator		Accumulator;
 	typedef typename Types::Key				Key;

@@ -57,7 +57,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         {}
 
         template <typename IteratorType>
-        void SetupIterator(IteratorType &iter){}
+        void SetupIterator(IteratorType &iter)
+        {
+        	iter.SetupPrefix(prefix_);
+        }
 
         void AdjustKey(Key& key)
         {

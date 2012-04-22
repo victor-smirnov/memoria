@@ -38,6 +38,8 @@ private:
     Int                 key_idx_;
     BigInt				key_num_;
 
+    bool				found_;
+
 public:
     BTreeIteratorBase(): Base(), path_(), key_idx_(0), key_num_(0) {}
 
@@ -50,6 +52,7 @@ public:
         path_       = other.path_;
         key_idx_    = other.key_idx_;
         key_num_	= other.key_num_;
+        found_		= other.found_;
 
         Base::Assign(std::move(other));
     }
@@ -59,8 +62,18 @@ public:
     	path_       = other.path_;
     	key_idx_    = other.key_idx_;
     	key_num_	= other.key_num_;
+    	found_		= other.found_;
 
     	Base::Assign(other);
+    }
+
+    bool IsFound() const {
+    	return found_;
+    }
+
+    void SetFound(bool found)
+    {
+    	found_ = found;
     }
 
     bool IsEqual(const ThisType& other) const

@@ -39,13 +39,13 @@ public:
 	enum SetType {MEMORY = 1, COUNT = 2};
 private:
 
-	typedef Int		 Key;
+	typedef BigInt							Key;
 	typedef unordered_set<
 				Key,
             	hash<Key>,
             	std::equal_to<Key>,
             	CustomAllocator<Key>
-	> Map;
+	> 										Map;
 
 	Map* 			map_;
 	volatile Int 	result_;

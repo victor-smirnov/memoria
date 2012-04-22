@@ -28,6 +28,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::idx_map::ItrApiName)
 	typedef typename Base::Container::Key                                    	Key;
 	typedef typename Base::Container::Value                                  	Value;
 
+//	Key prefix_;
+//
+//	Key GetKey1() const {
+//		return prefix_ + me()->GetRawKey(0);
+//	}
+//
+//	void SetupPrefix(Key prefix) {
+//		prefix_ = prefix;
+//	}
 
 MEMORIA_ITERATOR_PART_END
 

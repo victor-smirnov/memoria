@@ -305,8 +305,6 @@ public:
 	SPBenchmarkTask(BenchmarkParams* parameters): Base(parameters) {}
 	virtual ~SPBenchmarkTask() throw () {};
 
-	virtual void Run(ostream& out)											= 0;
-
 	void Check(Allocator& allocator, const char* source)
 	{
 		::memoria::Check<Allocator>(allocator, "Allocator check failed", source);
