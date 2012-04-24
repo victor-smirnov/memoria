@@ -370,6 +370,38 @@ public:
 };
 
 
+template <typename Iterator>
+class IteratorCacheBase {
+	Iterator* iter_;
+public:
+	IteratorCacheBase() {}
+
+	void Init(Iterator* i)
+	{
+		iter_ = i;
+	}
+};
+
+
+template <typename Iterator>
+class BTreeIteratorCache: public IteratorCacheBase<Iterator> {
+	typedef IteratorCacheBase<Iterator> Base;
+
+	BigInt key_num_;
+public:
+
+	BTreeIteratorCache(): Base(), key_num_(0) {}
+
+	BigInt& key_num()
+	{
+		return key_num_;
+	}
+
+	const BigInt& key_num() const
+	{
+		return key_num_;
+	}
+};
 
 
 }

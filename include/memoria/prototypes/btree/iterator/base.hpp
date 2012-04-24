@@ -24,11 +24,14 @@ using namespace memoria::btree;
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBase)
 public:
+	typedef typename Base::Container::Types                                        		Types;
 	typedef typename Base::Container::TreePath                                        	TreePath;
 	typedef typename Base::Container::TreePath::Element                               	TreePathItem;
     typedef typename Base::Container::NodeBase                                        	NodeBase;
     typedef typename Base::Container::NodeBaseG                                       	NodeBaseG;
     typedef typename Base::Container::Allocator										  	Allocator;
+
+    typedef typename Types::template IteratorCacheFactory<MyType>::Type					IteratorCache;
 
     static const Int Indexes															= Base::Container::Indexes;
 
@@ -36,23 +39,33 @@ private:
 
     TreePath           	path_;
     Int                 key_idx_;
-    BigInt				key_num_;
 
     bool				found_;
 
+    IteratorCache 		cache_;
+
 public:
-    BTreeIteratorBase(): Base(), path_(), key_idx_(0), key_num_(0) {}
+    BTreeIteratorBase(): Base(), path_(), key_idx_(0) {}
 
-    BTreeIteratorBase(ThisType&& other): Base(std::move(other)), path_(std::move(other.path_)), key_idx_(other.key_idx_), key_num_(other.key_num_) {}
+    BTreeIteratorBase(ThisType&& other): Base(std::move(other)), path_(std::move(other.path_)), key_idx_(other.key_idx_), cache_(std::move(other.cache_))
+    {
+    	cache_.Init(me());
+    }
 
-    BTreeIteratorBase(const ThisType& other): Base(other), path_(other.path_), key_idx_(other.key_idx_), key_num_(other.key_num_) {}
+    BTreeIteratorBase(const ThisType& other): Base(other), path_(other.path_), key_idx_(other.key_idx_), cache_(other.cache_)
+    {
+    	cache_.Init(me());
+    }
 
     void Assign(ThisType&& other)
     {
         path_       = other.path_;
         key_idx_    = other.key_idx_;
-        key_num_	= other.key_num_;
         found_		= other.found_;
+
+        cache_		= other.cache_;
+
+        cache_.Init(me());
 
         Base::Assign(std::move(other));
     }
@@ -61,8 +74,11 @@ public:
     {
     	path_       = other.path_;
     	key_idx_    = other.key_idx_;
-    	key_num_	= other.key_num_;
     	found_		= other.found_;
+
+    	cache_		= other.cache_;
+
+    	cache_.Init(me());
 
     	Base::Assign(other);
     }
@@ -132,6 +148,14 @@ public:
     	return path_;
     }
 
+    IteratorCache& cache() {
+    	return cache_;
+    }
+
+    const IteratorCache& cache() const {
+    	return cache_;
+    }
+
 
     bool IsBegin() const
     {
@@ -160,12 +184,12 @@ public:
 
     BigInt KeyNum() const
     {
-    	return key_num_;
+    	return cache_.key_num();
     }
 
     BigInt& KeyNum()
     {
-    	return key_num_;
+    	return cache_.key_num();
     }
 
 
