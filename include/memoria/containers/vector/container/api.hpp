@@ -53,6 +53,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
     	me()->SetRootMetadata(meta);
     }
 
+    Iterator operator[](BigInt pos) {
+    	return Seek(pos);
+    }
+
+    template <typename T>
+    void Append(const T& value)
+    {
+    	Iterator i = me()->Seek(me()->Size());
+    	i.Insert(ArrayData(value));
+    }
+
     Iterator Seek(BigInt pos);
     BigInt Size();
 

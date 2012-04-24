@@ -269,6 +269,7 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int sta
 	data.update();
 
 	//FIXME: should data page be NULL for empty containers?
+	bool reindex_fully = false;
 	if (data.is_empty())
 	{
 		me()->MakeRoom(iter.path(), 0, iter.key_idx(), 1);
@@ -277,6 +278,7 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int sta
 
 		iter.path().data().parent_idx() = iter.key_idx();
 		iter.data_pos() = 0;
+		reindex_fully = true;
 	}
 
 
@@ -292,7 +294,7 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int sta
 
 	accum.keys()[0] = length;
 
-	me()->UpdateUp(iter.path(), 0, iter.key_idx(), accum, true);
+	me()->UpdateUp(iter.path(), 0, iter.key_idx(), accum, reindex_fully);
 }
 
 

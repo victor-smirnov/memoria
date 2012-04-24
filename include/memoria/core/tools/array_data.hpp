@@ -29,6 +29,14 @@ class ArrayData {
 	UByte* data_;
 	bool owner_;
 public:
+
+	template <typename T>
+	ArrayData(T& value):
+		length_(sizeof(T)),
+		data_(T2T<UByte*>(&value)),
+		owner_(false)
+	{}
+
 	ArrayData(Int length, void* data, bool owner = false):length_(length), data_(T2T<UByte*>(data)), owner_(owner) {}
 	ArrayData(Int length):length_(length), data_(T2T<UByte*>(::malloc(length))), owner_(true) {}
 

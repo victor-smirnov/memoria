@@ -19,7 +19,7 @@ namespace memoria    {
 
 
 
-template <typename PageType, int MaxPageSize = 4096>
+template <typename PageType, int MaxPageSize = MAX_BLOCK_SIZE>
 struct IAbstractAllocator {
 
 	enum {READ, UPDATE};

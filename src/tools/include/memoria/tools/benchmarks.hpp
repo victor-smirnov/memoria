@@ -261,6 +261,7 @@ public:
 		return GetParameters<BenchmarkParams>()->times_;
 	}
 
+
 public:
 
 	String GetFileName(StringRef name) const;
@@ -294,6 +295,18 @@ public:
 		allocator.store(out.get());
 	}
 
+
+	virtual void LoadResource(Allocator& allocator, StringRef file_name) const
+	{
+		String path = GetResourcePath(file_name);
+		LoadAllocator(allocator, path);
+	}
+
+	virtual void StoreResource(Allocator& allocator, StringRef file_name) const
+	{
+		String path = GetResourcePath(file_name);
+		StoreAllocator(allocator, path);
+	}
 };
 
 

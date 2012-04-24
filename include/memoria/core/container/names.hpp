@@ -14,7 +14,7 @@ namespace memoria    {
 
 class ContainerCollectionCfgName                    	{};
 
-template <typename PageType, int MaxPageSize = 4096>
+template <typename PageType, int MaxPageSize = MAX_BLOCK_SIZE>
 struct AbstractAllocatorName {};
 
 template <typename Profile, typename Params> class AbstractAllocatorFactory;

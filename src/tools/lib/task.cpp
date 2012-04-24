@@ -321,6 +321,8 @@ Int BenchmarkRunner::Run(ostream& out)
 
 					String out_file_name = group_folder + Platform::GetFilePathSeparator() + task->GetTaskName()+"-output.txt";
 
+					task->SetOutputFolder(group_folder);
+
 					try {
 
 						File folder(group_folder);

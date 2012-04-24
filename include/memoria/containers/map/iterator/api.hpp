@@ -22,21 +22,40 @@ namespace memoria    {
 using namespace memoria::btree;
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::models::idx_map::ItrApiName)
+MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::models::idx_map::ItrApiName)
 
 
 	typedef typename Base::Container::Key                                    	Key;
 	typedef typename Base::Container::Value                                  	Value;
 
-//	Key prefix_;
-//
-//	Key GetKey1() const {
-//		return prefix_ + me()->GetRawKey(0);
-//	}
-//
-//	void SetupPrefix(Key prefix) {
-//		prefix_ = prefix;
-//	}
+    IterPart(): Base(), prefix_(0) {}
+	IterPart(ThisPartType&& other): Base(std::move(other)), prefix_(other.prefix_) {}
+	IterPart(const ThisPartType& other): Base(other), prefix_(other.prefix_) {}
+
+	Key prefix_;
+
+
+	void Assign(ThisPartType&& other)
+	{
+		prefix_     = other.prefix_;
+		Base::Assign(std::move(other));
+	}
+
+	void Assign(const ThisPartType& other)
+	{
+		prefix_     = other.prefix_;
+		Base::Assign(other);
+	}
+
+
+	Key GetKey1() const {
+		return prefix_ + me()->GetRawKey(0);
+	}
+
+	void SetupPrefix(Key prefix)
+	{
+		prefix_ = prefix;
+	}
 
 MEMORIA_ITERATOR_PART_END
 

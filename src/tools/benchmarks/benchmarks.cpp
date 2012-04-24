@@ -14,7 +14,18 @@
 #include "stlset_find.hpp"
 #include "stluset_find.hpp"
 
+#include "vector/vector_read.hpp"
+#include "vector/stl_vector_read.hpp"
+
+#include "vector/vector_write.hpp"
+#include "vector/stl_vector_write.hpp"
+
+#include "misc/memmove.hpp"
+
 #include "set_find.hpp"
+
+#include "vector_map/vector_map_random_read.hpp"
+#include "vector_map/vector_map_sequential_read.hpp"
 
 #include <iostream>
 
@@ -109,8 +120,32 @@ int main(int argc, const char** argv, const char** envp)
 
 		runner.BeginGroup(new BenchmarkGroup("Set", "Performance of memoria::set<BigInt> and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements", "Execution Time, ms", 10));
 		runner.RegisterBenchmark(new SetBenchmark(true));
+		runner.RegisterBenchmark(new SetBenchmark(false));
 		runner.RegisterBenchmark(new PSetBenchmark<16>(buffer, true));
-//		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
+		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
+		runner.EndGroup();
+
+		runner.BeginGroup(new BenchmarkGroup("Vector.Read", "Performance of memoria::Vector<BigInt> and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements", "Execution Time, ms", 10));
+		runner.RegisterBenchmark(new VectorReadBenchmark());
+		runner.RegisterBenchmark(new SetBenchmark(true));
+		//runner.RegisterBenchmark(new StlVectorReadBenchmark());
+		//runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::COUNT));
+		runner.EndGroup();
+
+		runner.BeginGroup(new BenchmarkGroup("Vector.Write", "Performance of memoria::Vector<BigInt> and Packed Set with the same number of elements,\\n1 million writes", "Number of Elements", "Execution Time, ms", 10));
+		runner.RegisterBenchmark(new VectorWriteBenchmark());
+//		runner.RegisterBenchmark(new StlVectorWriteBenchmark());
+		runner.EndGroup();
+
+
+		runner.BeginGroup(new BenchmarkGroup("Memmove", "Performance of memmove(), 1 million moves", "Block Size, Kb", "Execution Time, ms", 10));
+		runner.RegisterBenchmark(new MemmoveBenchmark());
+		runner.EndGroup();
+
+
+		runner.BeginGroup(new BenchmarkGroup("VectorMap", "Performance of VectorMap, 1 million reads", "Number Of Elements", "Execution Time, ms", 10));
+//		runner.RegisterBenchmark(new VectorMapRandomReadBenchmark());
+		runner.RegisterBenchmark(new VectorMapSequentialReadBenchmark());
 		runner.EndGroup();
 
 		runner.Configure(&cmd_line.GetConfigurator());
@@ -137,8 +172,10 @@ int main(int argc, const char** argv, const char** envp)
 
 			const char* output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder.c_str();
 
+			bool clear = cmd_line.GetConfigurator().GetValue<bool>("clear", true);
+
 			File outf(output_folder);
-			if (outf.IsExists())
+			if (outf.IsExists() && clear)
 			{
 				if (outf.IsDirectory())
 				{

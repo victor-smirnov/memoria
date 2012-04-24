@@ -24,7 +24,7 @@ using namespace std;
 struct SetFindParams: public BenchmarkParams {
 	Int iterations;
 
-	SetFindParams(): BenchmarkParams("SetFind")
+	SetFindParams(bool fast): BenchmarkParams(String("SetFind")+(fast? ".Fast":""))
 	{
 		Add("iterations", iterations, 1*1024*1024);
 	}
@@ -54,15 +54,15 @@ class SetBenchmark: public SPBenchmarkTask {
 
 	volatile Int result_;
 
-	bool dump_element_count_;
+	bool fast_;
 
 	Int* rd_array_;
 
 public:
 
-	SetBenchmark(bool dump_element_count = true):
-		SPBenchmarkTask(new SetFindParams()),
-		dump_element_count_(dump_element_count)
+	SetBenchmark(bool fast):
+		SPBenchmarkTask(new SetFindParams(fast)),
+		fast_(fast)
 	{
 		RootCtr::Init();
 		MapCtr::Init();
@@ -73,7 +73,7 @@ public:
 	Int GetSetSize() const
 	{
 		Int time = this->GetIteration();
-		return (1024 * (1 << time))/8;
+		return (1024 * ((1) << time))/8;
 	}
 
 	Key key(Int c) const
@@ -89,18 +89,31 @@ public:
 
 		Int size = GetSetSize();
 
-		map_ = new MapCtr(*allocator_);
+		String resource_name = "allocator."+ToString(size)+".dump";
 
-		Iterator i = map_->End();
-
-		for (Int c = 0; c < size; c++)
+		if (IsResourceExists(resource_name))
 		{
-			Accumulator keys;
-			keys[0] = key(c);
+			LoadResource(*allocator_, resource_name);
 
-			map_->Insert(i, keys);
+			map_ = new MapCtr(*allocator_, 1);
+		}
+		else {
+			map_ = new MapCtr(*allocator_, 1, true);
 
-			i++;
+			Iterator i = map_->End();
+
+			for (Int c = 0; c < size; c++)
+			{
+				Accumulator keys;
+				keys[0] = key(c);
+
+				map_->Insert(i, keys);
+
+				i++;
+			}
+
+			allocator_->commit();
+			StoreResource(*allocator_, resource_name);
 		}
 
 		rd_array_ = new Int[params->iterations];
@@ -121,37 +134,35 @@ public:
 	{
 		PSetFindParams* params = GetParameters<PSetFindParams>();
 
-		for (Int c = 0; c < params->iterations; c++)
+		if (fast_)
 		{
-			Iterator i = map_->Find(rd_array_[c]);
-			if (i.IsEnd())
+			for (Int c = 0; c < params->iterations; c++)
 			{
-				cout<<"MISS!!!"<<endl; // this should't happen
+				if (!map_->Contains1(rd_array_[c]))
+				{
+					cout<<"MISS!!!"<<endl; // this should't happen
+				}
 			}
-
-
-//			if (!map_->Contains(rd_array_[c]))
-//			{
-//				cout<<"MISS!!!"<<endl; // this should't happen
-//			}
+		}
+		else
+		{
+			for (Int c = 0; c < params->iterations; c++)
+			{
+				if (!map_->Contains(rd_array_[c]))
+				{
+					cout<<"MISS!!!"<<endl; // this should't happen
+				}
+			}
 		}
 
 		result.x() 			= map_->GetSize();
-
-//		if (dump_element_count_)
-//		{
-//			result.x() 			= map_->GetSize();
-//		}
-//		else {
-//			result.x() 			= GetBufferSize()/1024;
-//		}
 
 		result.operations() = params->iterations;
 	}
 
 	virtual String GetGraphName()
 	{
-		return "Memoria Set<BigInt>";
+		return String("Memoria Set<BigInt>") + (fast_ ? " (fast)" : "");
 	}
 };
 

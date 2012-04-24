@@ -18,6 +18,8 @@
 
 namespace memoria    {
 
+static const int MAX_BLOCK_SIZE = 4096;
+
 typedef int64_t           	BigInt;
 typedef uint64_t  			UBigInt;
 typedef int32_t             Int;

@@ -10,6 +10,7 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/tools/params.hpp>
+#include <memoria/core/tools/file.hpp>
 
 #include <vector>
 #include <ostream>
@@ -94,6 +95,13 @@ public:
 	String GetResourcePath(StringRef name) const
 	{
 		return output_folder_ + Platform::GetFilePathSeparator() + name;
+	}
+
+	bool IsResourceExists(StringRef name) const
+	{
+		String path = GetResourcePath(name);
+		File file(path);
+		return file.IsExists();
 	}
 
 	template <typename T = TaskParametersSet>

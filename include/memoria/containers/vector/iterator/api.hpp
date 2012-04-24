@@ -64,6 +64,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     void Insert(const ArrayData& data, BigInt start, BigInt len);
     void Insert(const ArrayData& data);
 
+    template <typename T>
+    void Insert(const T& value)
+    {
+    	me()->Insert(ArrayData(value));
+    }
 
     void Update(const ArrayData& data, BigInt start, BigInt len);
     void Update(const ArrayData& data);
@@ -142,6 +147,24 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 	{
     	return me()->Skip(-count) = count;
 	}
+
+
+    void Assing(const ArrayData& data)
+    {
+    	Update(data);
+    }
+
+    template <typename T>
+    operator T()
+    {
+    	T value;
+
+    	ArrayData data(value);
+
+    	me()->Read(data);
+
+    	return value;
+    }
 
 MEMORIA_ITERATOR_PART_END
 

@@ -47,6 +47,26 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	}
     }
 
+    Iterator Find1(Key key)
+    {
+    	Iterator iter = me()->FindLE(key, 0);
+
+    	if (!iter.IsEnd())
+    	{
+    		if (key == iter.GetKey1())
+    		{
+    			return iter;
+    		}
+    		else {
+    			return me()->End();
+    		}
+    	}
+    	else {
+    		return iter;
+    	}
+    }
+
+
     Iterator operator[](Key key)
     {
     	Iterator iter = me()->FindLE(key, 0);
@@ -102,6 +122,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     bool Contains(Key key)
     {
     	return !me()->Find(key).IsEnd();
+    }
+
+    bool Contains1(Key key)
+    {
+    	return !me()->Find1(key).IsEnd();
     }
 
     bool RemoveEntry(Iterator& iter, Accumulator& keys)

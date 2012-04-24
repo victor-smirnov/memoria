@@ -40,7 +40,7 @@ typedef struct
 using namespace memoria::vapi;
 
 template <typename Profile, typename PageType, typename TxnType>
-class InMemAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType, 4096> >::Type {
+class InMemAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType, MAX_BLOCK_SIZE> >::Type {
 
 	typedef IAbstractAllocator<PageType>										Base;
 	typedef InMemAllocator<Profile, PageType, TxnType>							Me;
@@ -51,7 +51,7 @@ public:
 	typedef typename Base::Shared 												Shared;
 	typedef typename Base::CtrShared 											CtrShared;
 	typedef typename Page::ID 													ID;
-	static const Int PAGE_SIZE 													= 4096;
+	static const Int PAGE_SIZE 													= MAX_BLOCK_SIZE;
 
 	typedef Base 																AbstractAllocator;
 
