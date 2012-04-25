@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BENCHMARKS_VECTOR_VECTOR_WRITE_HPP_
-#define MEMORIA_BENCHMARKS_VECTOR_VECTOR_WRITE_HPP_
+#ifndef MEMORIA_BENCHMARKS_VECTOR_VECTOR_SEQUENTIAL_READ_HPP_
+#define MEMORIA_BENCHMARKS_VECTOR_VECTOR_SEQUENTIAL_READ_HPP_
 
 #include <memoria/tools/benchmarks.hpp>
 #include <memoria/tools/tools.hpp>
@@ -23,11 +23,12 @@ using namespace std;
 
 
 
-class VectorWriteBenchmark: public SPBenchmarkTask {
+class VectorSequentialReadBenchmark: public SPBenchmarkTask {
 
 	struct Params: public BenchmarkParams {
-		Params(): BenchmarkParams("VectorWrite"){}
+		Params(): BenchmarkParams("VectorSequentialRead") {}
 	};
+
 
 
 	typedef SPBenchmarkTask Base;
@@ -44,24 +45,28 @@ class VectorWriteBenchmark: public SPBenchmarkTask {
 
 	typedef typename VectorCtr::Key									Key;
 
+
+
 	Allocator* allocator_;
 	VectorCtr* ctr_;
 
+	volatile Int result_;
+
 public:
 
-	VectorWriteBenchmark():
+	VectorSequentialReadBenchmark():
 		SPBenchmarkTask(new Params())
 	{
 		RootCtr::Init();
 		VectorCtr::Init();
 	}
 
-	virtual ~VectorWriteBenchmark() throw() {}
+	virtual ~VectorSequentialReadBenchmark() throw() {}
 
 	Int GetSetSize() const
 	{
 		Int time = this->GetIteration();
-		return (1024 * (1 << time))/8;
+		return (1024 * (1 << time));
 	}
 
 	virtual void Prepare(ostream& out)
@@ -70,34 +75,20 @@ public:
 
 		Int size = GetSetSize();
 
+		ctr_ = new VectorCtr(*allocator_);
 
-		String resource_name = "allocator."+ToString(size)+".dump";
+		Iterator i = ctr_->Seek(0);
 
-		if (IsResourceExists(resource_name))
+		Byte array[1024];
+
+		for (Int c = 0; c < size/(Int)sizeof(array); c++)
 		{
-			LoadResource(*allocator_, resource_name);
-
-			ctr_ = new VectorCtr(*allocator_, 1);
-			ctr_->SetElementSize(8);
-		}
-		else {
-			ctr_ = new VectorCtr(*allocator_, 1, true);
-
-			Iterator i = ctr_->Seek(0);
-
-			for (Int c = 0; c < size/128; c++)
+			for (Int d = 0; d < (Int)sizeof(array); d++)
 			{
-				BigInt array[128];
-				for (Int d = 0; d < 128; d++)
-				{
-					array[d] = GetRandom(10000);
-				}
-
-				i.Insert(ArrayData(sizeof(array), array));
+				array[d] = GetRandom(256);
 			}
 
-			allocator_->commit();
-			StoreResource(*allocator_, resource_name);
+			i.Insert(ArrayData(sizeof(array), array));
 		}
 	}
 
@@ -111,28 +102,29 @@ public:
 	{
 		Params* params = GetParameters<Params>();
 
-		result.x() = ctr_->Size();
+		Byte array[4096];
+		BigInt total = 0;
 
-		for (Int c = 0; c < params->iterations; c++)
+		for (Int c = 0; c < params->iterations;)
 		{
-			BigInt idx = GetRandom(ctr_->Size());
-			Iterator i = ctr_->Seek(idx);
-
-			if ((idx & 1) == 0)
+			int a = 0; a++;
+			for (Iterator i = ctr_->Seek(0); !i.IsEof() && c < params->iterations; c++)
 			{
-				i.Insert(idx);
-			}
-			else {
-				i.Remove(1);
+				ArrayData data(GetRandom(128), array);
+				total += i.Read(data);
 			}
 		}
+
+		cout<<"Total: "<<total/1024<<endl;
+
+		result.x() 			= ctr_->Size();
 
 		result.operations() = params->iterations;
 	}
 
 	virtual String GetGraphName()
 	{
-		return "Memoria Vector<BigInt>";
+		return "Memoria Vector<BigInt> Sequential Read";
 	}
 };
 

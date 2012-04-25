@@ -21,17 +21,14 @@ namespace memoria {
 
 using namespace std;
 
-struct VectorReadParams: public BenchmarkParams {
-	Int iterations;
-
-	VectorReadParams(): BenchmarkParams("VectorRead")
-	{
-		Add("iterations", iterations, 1*1024*1024);
-	}
-};
 
 
 class VectorReadBenchmark: public SPBenchmarkTask {
+
+	struct Params: public BenchmarkParams {
+		Params(): BenchmarkParams("VectorRead") {}
+	};
+
 
 	typedef SPBenchmarkTask Base;
 
@@ -59,7 +56,7 @@ class VectorReadBenchmark: public SPBenchmarkTask {
 public:
 
 	VectorReadBenchmark():
-		SPBenchmarkTask(new VectorReadParams())
+		SPBenchmarkTask(new Params())
 	{
 		RootCtr::Init();
 		VectorCtr::Init();
@@ -75,7 +72,7 @@ public:
 
 	virtual void Prepare(ostream& out)
 	{
-		VectorReadParams* params = GetParameters<VectorReadParams>();
+		Params* params = GetParameters<Params>();
 
 		allocator_ = new Allocator();
 
@@ -114,7 +111,7 @@ public:
 
 	virtual void Benchmark(BenchmarkResult& result, ostream& out)
 	{
-		VectorReadParams* params = GetParameters<VectorReadParams>();
+		Params* params = GetParameters<Params>();
 
 		for (Int c = 0; c < params->iterations; c++)
 		{

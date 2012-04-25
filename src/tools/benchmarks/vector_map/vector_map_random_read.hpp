@@ -21,17 +21,14 @@ namespace memoria {
 
 using namespace std;
 
-struct VectorMapRandomReadParams: public BenchmarkParams {
-	Int iterations;
 
-	VectorMapRandomReadParams(): BenchmarkParams("RandomRead")
-	{
-		Add("iterations", iterations, 1*1024*1024);
-	}
-};
 
 
 class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
+
+	struct Params: public BenchmarkParams {
+		Params(): BenchmarkParams("RandomRead"){}
+	};
 
 	typedef SPBenchmarkTask Base;
 
@@ -54,7 +51,7 @@ class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
 public:
 
 	VectorMapRandomReadBenchmark():
-		SPBenchmarkTask(new VectorMapRandomReadParams())
+		SPBenchmarkTask(new Params())
 	{
 		RootCtr::Init();
 		Ctr::Init();
@@ -70,7 +67,7 @@ public:
 
 	virtual void Prepare(ostream& out)
 	{
-		VectorMapRandomReadParams* params = GetParameters<VectorMapRandomReadParams>();
+		Params* params = GetParameters<Params>();
 
 		allocator_ = new Allocator();
 
@@ -121,7 +118,7 @@ public:
 
 	virtual void Benchmark(BenchmarkResult& result, ostream& out)
 	{
-		VectorMapRandomReadParams* params = GetParameters<VectorMapRandomReadParams>();
+		Params* params = GetParameters<Params>();
 
 		Byte array[MAX_DATA_SIZE];
 		ArrayData data(sizeof(array), array);

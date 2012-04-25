@@ -21,17 +21,14 @@ namespace memoria {
 
 using namespace std;
 
-struct SetFindParams: public BenchmarkParams {
-	Int iterations;
-
-	SetFindParams(bool fast): BenchmarkParams(String("SetFind")+(fast? ".Fast":""))
-	{
-		Add("iterations", iterations, 1*1024*1024);
-	}
-};
 
 
 class SetBenchmark: public SPBenchmarkTask {
+
+	struct Params: public BenchmarkParams {
+		Params(bool fast): BenchmarkParams(String("SetFind")+(fast? ".Fast":"")) {}
+	};
+
 
 	typedef SPBenchmarkTask Base;
 
@@ -61,7 +58,7 @@ class SetBenchmark: public SPBenchmarkTask {
 public:
 
 	SetBenchmark(bool fast):
-		SPBenchmarkTask(new SetFindParams(fast)),
+		SPBenchmarkTask(new Params(fast)),
 		fast_(fast)
 	{
 		RootCtr::Init();
@@ -83,7 +80,7 @@ public:
 
 	virtual void Prepare(ostream& out)
 	{
-		SetFindParams* params = GetParameters<SetFindParams>();
+		Params* params = GetParameters<Params>();
 
 		allocator_ = new Allocator();
 
@@ -132,7 +129,7 @@ public:
 
 	virtual void Benchmark(BenchmarkResult& result, ostream& out)
 	{
-		PSetFindParams* params = GetParameters<PSetFindParams>();
+		Params* params = GetParameters<Params>();
 
 		if (fast_)
 		{

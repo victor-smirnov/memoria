@@ -21,13 +21,6 @@ namespace memoria {
 
 using namespace std;
 
-struct PSetFindParams: public BenchmarkParams {
-	Int iterations;
-	PSetFindParams(Int BranchingFactor): BenchmarkParams("PSetFind."+ToString(BranchingFactor))
-	{
-		Add("iterations", iterations, 1*1024*1024);
-	}
-};
 
 
 template <typename Key_, typename Value_, Int Blocks_, Int BranchingFactor_>
@@ -43,11 +36,14 @@ struct PMapFindTypes {
 };
 
 
-template <typename List> class ListExecutor;
-
-
 template <Int BranchingFactor>
 class PSetBenchmark: public BenchmarkTask {
+
+
+	struct Params: public BenchmarkParams {
+		Params(Int BranchingFactor_): BenchmarkParams("PSetFind."+ToString(BranchingFactor_)){}
+	};
+
 
 	typedef PMapFindTypes<BigInt, EmptyValue, 1, BranchingFactor> 	Types;
 
@@ -71,7 +67,7 @@ class PSetBenchmark: public BenchmarkTask {
 public:
 
 	PSetBenchmark(Byte* buffer = NULL, bool dump_element_count = false):
-		BenchmarkTask(new PSetFindParams(BranchingFactor)),
+		BenchmarkTask(new Params(BranchingFactor)),
 		buffer_(buffer),
 		dump_element_count_(dump_element_count)
 	{}
@@ -98,7 +94,7 @@ public:
 
 	virtual void Prepare(ostream& out)
 	{
-		PSetFindParams* params = GetParameters<PSetFindParams>();
+		Params* params = GetParameters<Params>();
 
 		Int buffer_size 	= GetBufferSize();
 
@@ -139,7 +135,7 @@ public:
 
 	virtual void Benchmark(BenchmarkResult& result, ostream& out)
 	{
-		PSetFindParams* params = GetParameters<PSetFindParams>();
+		Params* params = GetParameters<Params>();
 
 		for (Int c = 0; c < params->iterations; c++)
 		{

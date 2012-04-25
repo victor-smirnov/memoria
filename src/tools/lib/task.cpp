@@ -266,11 +266,11 @@ void BenchmarkTask::Run(ostream& out)
 
 	BenchmarkResult sum(this->GetGraphName());
 
-	sum.runs() = params->count_;
+	sum.runs() = params->count;
 
 	BigInt start = GetTimeInMillis();
 
-	for (Int c = 0; c < params->count_; c++)
+	for (Int c = 0; c < params->count; c++)
 	{
 		BenchmarkResult result(sum.name());
 		this->Benchmark(result, out);

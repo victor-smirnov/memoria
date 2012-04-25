@@ -219,15 +219,19 @@ public:
 
 struct BenchmarkParams: public TaskParametersSet {
 
-	Int count_;
-	Int times_;
+	Int count;
+	Int times;
+	Int iterations;
 
 	BenchmarkParams(StringRef name): TaskParametersSet(name)
 	{
-		Add("count", count_, 1);
-		Add("times", times_, 1);
+		Add("count", count, 1);
+		Add("times", times, 1);
+		Add("iterations", iterations, 1024*1024);
 	}
 };
+
+
 
 
 class BenchmarkTask: public Task {
@@ -258,7 +262,7 @@ public:
 
 	virtual Int times() const
 	{
-		return GetParameters<BenchmarkParams>()->times_;
+		return GetParameters<BenchmarkParams>()->times;
 	}
 
 

@@ -21,19 +21,16 @@ namespace memoria {
 
 using namespace std;
 
-struct StlVectorReadParams: public BenchmarkParams {
-	Int iterations;
-
-	StlVectorReadParams(): BenchmarkParams("StlVectorRead")
-	{
-		Add("iterations", iterations, 1*1024*1024);
-	}
-};
 
 
 class StlVectorReadBenchmark: public BenchmarkTask {
 
 	typedef BenchmarkTask Base;
+
+	struct Params: public BenchmarkParams {
+		Params(): BenchmarkParams("StlVectorRead") {}
+	};
+
 
 
 	typedef std::vector<BigInt> VectorCtr;
@@ -47,7 +44,7 @@ class StlVectorReadBenchmark: public BenchmarkTask {
 public:
 
 	StlVectorReadBenchmark():
-		BenchmarkTask(new StlVectorReadParams())
+		BenchmarkTask(new Params())
 	{
 	}
 
@@ -61,7 +58,7 @@ public:
 
 	virtual void Prepare(ostream& out)
 	{
-		StlVectorReadParams* params = GetParameters<StlVectorReadParams>();
+		Params* params = GetParameters<Params>();
 
 		Int size = GetSetSize();
 
@@ -88,7 +85,7 @@ public:
 
 	virtual void Benchmark(BenchmarkResult& result, ostream& out)
 	{
-		StlVectorReadParams* params = GetParameters<StlVectorReadParams>();
+		Params* params = GetParameters<Params>();
 
 		for (Int c = 0; c < params->iterations; c++)
 		{

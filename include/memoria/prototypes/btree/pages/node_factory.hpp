@@ -14,7 +14,7 @@
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/prototypes/btree/pages/node_base.hpp>
 
-#include <memoria/prototypes/btree/tools.hpp>
+#include <memoria/prototypes/bstree/tools.hpp>
 
 namespace memoria    {
 namespace btree      {

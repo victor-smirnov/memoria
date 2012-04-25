@@ -10,11 +10,14 @@
 #include <memoria/memoria.hpp>
 
 
-#include "pset_find.hpp"
-#include "stlset_find.hpp"
-#include "stluset_find.hpp"
+#include "packed_tree/pset_find.hpp"
+
+#include "stl/stlset_find.hpp"
+#include "stl/stlset_scan.hpp"
+#include "stl/stluset_find.hpp"
 
 #include "vector/vector_read.hpp"
+#include "vector/vector_sequential_read.hpp"
 #include "vector/stl_vector_read.hpp"
 
 #include "vector/vector_write.hpp"
@@ -22,7 +25,8 @@
 
 #include "misc/memmove.hpp"
 
-#include "set_find.hpp"
+#include "map/set_find.hpp"
+#include "map/set_scan.hpp"
 
 #include "vector_map/vector_map_random_read.hpp"
 #include "vector_map/vector_map_sequential_read.hpp"
@@ -125,9 +129,22 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
 		runner.EndGroup();
 
+
+		runner.BeginGroup(new BenchmarkGroup("SetScan", "Performance of memoria::Set<BigInt> Linear Scan, 1 million reads", "Number of Elements", "Execution Time, ms", 10));
+		runner.RegisterBenchmark(new SetScanBenchmark(true));
+		runner.RegisterBenchmark(new StlSetScanBenchmark(StlSetScanBenchmark::COUNT));
+		//runner.RegisterBenchmark(new SetScanBenchmark(false));
+		runner.EndGroup();
+
+//		runner.BeginGroup(new BenchmarkGroup("StlSetScan", "Performance of std::set<BigInt> Linear Scan, 1 million reads", "Number of Elements", "Execution Time, ms", 10));
+//		runner.RegisterBenchmark(new StlSetScanBenchmark(StlSetScanBenchmark::COUNT));
+//		runner.EndGroup();
+
+
 		runner.BeginGroup(new BenchmarkGroup("Vector.Read", "Performance of memoria::Vector<BigInt> and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new VectorReadBenchmark());
-		runner.RegisterBenchmark(new SetBenchmark(true));
+		//runner.RegisterBenchmark(new VectorReadBenchmark());
+		runner.RegisterBenchmark(new VectorSequentialReadBenchmark());
+		//runner.RegisterBenchmark(new SetBenchmark(true));
 		//runner.RegisterBenchmark(new StlVectorReadBenchmark());
 		//runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::COUNT));
 		runner.EndGroup();

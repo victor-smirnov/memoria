@@ -21,17 +21,14 @@ namespace memoria {
 
 using namespace std;
 
-struct MemmoveParams: public BenchmarkParams {
-	Int iterations;
-
-	MemmoveParams(): BenchmarkParams("MemMove")
-	{
-		Add("iterations", iterations, 1*1024*1024);
-	}
-};
 
 
 class MemmoveBenchmark: public BenchmarkTask {
+
+	struct Params: public BenchmarkParams {
+		Params(): BenchmarkParams("MemMove"){}
+	};
+
 
 	typedef BenchmarkTask Base;
 
@@ -42,7 +39,7 @@ class MemmoveBenchmark: public BenchmarkTask {
 public:
 
 	MemmoveBenchmark():
-		BenchmarkTask(new MemmoveParams())
+		BenchmarkTask(new Params())
 	{
 	}
 
@@ -60,7 +57,7 @@ public:
 
 		array_ = T2T<Byte*>(malloc(size_));
 
-		MemmoveParams* params = GetParameters<MemmoveParams>();
+		Params* params = GetParameters<Params>();
 
 		rd_array_ = new Int[params->iterations];
 		for (Int c = 0; c < params->iterations; c++)
@@ -84,7 +81,7 @@ public:
 
 	virtual void Benchmark(BenchmarkResult& result, ostream& out)
 	{
-		StlVectorWriteParams* params = GetParameters<StlVectorWriteParams>();
+		Params* params = GetParameters<Params>();
 
 		result.x() 			= size_/1024;
 

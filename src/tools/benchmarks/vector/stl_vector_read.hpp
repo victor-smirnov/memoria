@@ -21,19 +21,16 @@ namespace memoria {
 
 using namespace std;
 
-struct StlVectorWriteParams: public BenchmarkParams {
-	Int iterations;
 
-	StlVectorWriteParams(): BenchmarkParams("StlVectorRead")
-	{
-		Add("iterations", iterations, 1*1024*1024);
-	}
-};
 
 
 class StlVectorWriteBenchmark: public BenchmarkTask {
 
 	typedef BenchmarkTask Base;
+
+	struct Params: public BenchmarkParams {
+		Params(): BenchmarkParams("StlVectorWrite"){}
+	};
 
 
 	typedef std::vector<BigInt> VectorCtr;
@@ -45,7 +42,7 @@ class StlVectorWriteBenchmark: public BenchmarkTask {
 public:
 
 	StlVectorWriteBenchmark():
-		BenchmarkTask(new StlVectorWriteParams())
+		BenchmarkTask(new Params())
 	{
 	}
 
@@ -59,7 +56,7 @@ public:
 
 	virtual void Prepare(ostream& out)
 	{
-		StlVectorWriteParams* params = GetParameters<StlVectorWriteParams>();
+		Params* params = GetParameters<Params>();
 
 		Int size = GetSetSize();
 
@@ -86,7 +83,7 @@ public:
 
 	virtual void Benchmark(BenchmarkResult& result, ostream& out)
 	{
-		StlVectorWriteParams* params = GetParameters<StlVectorWriteParams>();
+		Params* params = GetParameters<Params>();
 
 		result.x() 			= ctr_->size();
 

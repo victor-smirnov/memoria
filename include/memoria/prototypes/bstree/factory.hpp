@@ -10,6 +10,7 @@
 #define	_MEMORIA_PROTOTYPES_ITREE_FACTORY_HPP
 
 #include <memoria/prototypes/btree/btree.hpp>
+#include <memoria/prototypes/bstree/tools.hpp>
 
 #include <memoria/prototypes/bstree/container/find.hpp>
 #include <memoria/prototypes/bstree/container/tools.hpp>
