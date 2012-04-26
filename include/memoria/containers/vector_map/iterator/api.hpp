@@ -154,7 +154,7 @@ BigInt size() const
 
 BigInt pos() const
 {
-	return me()->ba_iter().pos() - me()->is_iter().prefix(1);
+	return me()->ba_iter().pos() - me()->is_iter().prefixes()[1];
 }
 
 BigInt GetKey() const
@@ -166,7 +166,7 @@ IdxSetAccumulator GetKeys() const
 {
 	IdxSetAccumulator keys = me()->is_iter().GetRawKeys();
 
-	keys.key(0) += me()->is_iter().prefix(0);
+	keys[0] += me()->is_iter().prefix();
 
 	return keys;
 }

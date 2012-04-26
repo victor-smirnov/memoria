@@ -50,16 +50,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
 
         Key prefix_;
         Key current_prefix_;
+        Int key_num_;
 
-        CompareBase():
+        CompareBase(Int key_num):
         	prefix_(0),
-        	current_prefix_(0)
+        	current_prefix_(0),
+        	key_num_(key_num)
         {}
 
         template <typename IteratorType>
         void SetupIterator(IteratorType &iter)
         {
-        	iter.SetupPrefix(prefix_);
+        	iter.SetupPrefix(prefix_, key_num_);
         }
 
         void AdjustKey(Key& key)
@@ -68,11 +70,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         }
 
         template <typename Node>
-        Int Find(Node* node, Int key_num, Key key)
+        Int Find(Node* node, Key key)
         {
             current_prefix_ = 0;
 
-            Int idx = me()->FindInMap(node, key_num, key, current_prefix_);
+            Int idx = me()->FindInMap(node, key, current_prefix_);
             
             if (idx == -1 && node->children_count() > 0)
             {
@@ -80,10 +82,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
                 
                 if (node->is_leaf())
                 {
-                    tmp = node->map().max_key(key_num);
+                    tmp = node->map().max_key(key_num_);
                 }
                 else {
-                    tmp = node->map().max_key(key_num) - node->map().key(key_num, node->children_count() - 1);
+                    tmp = node->map().max_key(key_num_) - node->map().key(key_num_, node->children_count() - 1);
                 }
 
                 current_prefix_ += tmp;
@@ -106,39 +108,47 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         CmpType* me() {
         	return static_cast<CmpType*>(this);
         }
+
+        Int key_num() const {
+        	return key_num_;
+        }
     };
 
     struct CompareLT: public CompareBase<CompareLT>
     {
-    	CompareLT(): CompareBase<CompareLT>() {}
+    	typedef CompareBase<CompareLT> Base;
+
+    	CompareLT(Int key_num): Base(key_num) {}
 
     	template<typename Node>
-    	Int FindInMap(Node* node, Int key_num, Key key, Key& prefix)
+    	Int FindInMap(Node* node, Key key, Key& prefix)
     	{
-    		return node->map().FindLTS(key_num, key, prefix);
+    		return node->map().FindLTS(Base::key_num(), key, prefix);
     	}
 
     	template <typename Node>
-    	bool IsKeyWithinRange(Node* node, Int block_num, Key key) const
+    	bool IsKeyWithinRange(Node* node, Key key) const
     	{
-    		return key < node->map().max_key(block_num);
+    		return key < node->map().max_key(Base::key_num());
     	}
     };
 
     struct CompareLE: public CompareBase<CompareLE>
     {
-        CompareLE(): CompareBase<CompareLE>() {}
+    	typedef CompareBase<CompareLE> Base;
+
+        CompareLE(Int key_num): Base(key_num) {}
 
         template<typename Node>
-        Int FindInMap(Node* node, Int key_num, Key key, Key& prefix)
+        Int FindInMap(Node* node, Key key, Key& prefix)
         {
-        	return node->map().FindLES(key_num, key, prefix);
+        	return node->map().FindLES(Base::key_num(), key, prefix);
         }
 
         template <typename Node>
-        bool IsKeyWithinRange(Node* node, Int block_num, Key key) const
+        bool IsKeyWithinRange(Node* node, Key key) const
         {
-        	return key <= node->map().max_key(block_num);
+        	return key <= node->map().max_key(Base::key_num());
         }
     };
 

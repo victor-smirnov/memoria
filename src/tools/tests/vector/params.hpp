@@ -54,7 +54,7 @@ public:
 	VectorParams(): TestTaskParams("Vector")
 	{
 		Add("size", size_, 						1024*1024*16);
-		Add("maxBlockSize", max_block_size_, 	1024*40);
+		Add("max_block_size", max_block_size_, 	1024*40);
 		Add("element_size", element_size_,		1);
 	}
 };

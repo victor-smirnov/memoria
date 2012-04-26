@@ -200,31 +200,80 @@ public:
 
 
 
-template <typename Iterator>
-class BTreeIteratorScalarPrefixCache: public BTreeIteratorCache<Iterator> {
-	typedef BTreeIteratorCache<Iterator> Base;
+template <typename Iterator, typename Container>
+class BTreeIteratorScalarPrefixCache: public BTreeIteratorCache<Iterator, Container> {
+	typedef BTreeIteratorCache<Iterator, Container> Base;
+	typedef typename Container::Accumulator 	Accumulator;
 
 	BigInt prefix_;
+	BigInt current_;
+
 
 public:
 
-	BTreeIteratorScalarPrefixCache(): Base(), prefix_(0) {}
+	BTreeIteratorScalarPrefixCache(): Base(), prefix_(0), current_(0) {}
 
-	BigInt& prefix()
+	const BigInt& prefix(int num = 0) const
 	{
 		return prefix_;
 	}
 
-	const BigInt& prefix() const
+	Accumulator prefixes() const
 	{
-		return prefix_;
+		Accumulator a;
+		a[0] = prefix_;
+		return a;
+	}
+
+
+
+	void NextKey(bool end)
+	{
+		prefix_ 	+= current_;
+		current_	= 0;
+	};
+
+	void PrevKey(bool start)
+	{
+		prefix_ 	-= current_;
+		current_	= 0;
+	};
+
+	void Prepare()
+	{
+		current_ = Base::iterator().GetRawKey(0);
+	}
+
+	void Setup(BigInt prefix, Int key_num)
+	{
+		prefix_ = prefix;
+	}
+
+	void InitState()
+	{
+		typedef typename Iterator::Container::TreePath TreePath;
+
+		BigInt accum = 0;
+
+		const TreePath& path = Base::iterator().path();
+		Int 			idx  = Base::iterator().key_idx();
+
+		Int block_num = 0;
+
+		for (Int c = 0; c < path.GetSize(); c++)
+		{
+			Base::iterator().model().SumKeys(path[c].node(), block_num, 0, idx, accum);
+			idx = path[c].parent_idx();
+		}
+
+		prefix_ = accum;
 	}
 };
 
-template <typename Iterator>
-class BTreeIteratorPrefixCache: public BTreeIteratorCache<Iterator> {
-	typedef BTreeIteratorCache<Iterator> 				Base;
-	typedef typename Iterator::Container::Accumulator 	Accumulator;
+template <typename Iterator, typename Container>
+class BTreeIteratorPrefixCache: public BTreeIteratorCache<Iterator, Container> {
+	typedef BTreeIteratorCache<Iterator, Container> 				Base;
+	typedef typename Container::Accumulator 	Accumulator;
 
 	Accumulator prefix_;
 
@@ -232,14 +281,29 @@ public:
 
 	BTreeIteratorPrefixCache(): Base(), prefix_() {}
 
-	BigInt& prefix()
+	BigInt& prefix(Int num = 0)
+	{
+		return prefix_[num];
+	}
+
+	const BigInt& prefix(Int num = 0) const
+	{
+		return prefix_[num];
+	}
+
+	BigInt& prefixes()
 	{
 		return prefix_;
 	}
 
-	const BigInt& prefix() const
+	const BigInt& prefixes() const
 	{
 		return prefix_;
+	}
+
+	void Setup(BigInt prefix, Int key_num)
+	{
+
 	}
 };
 

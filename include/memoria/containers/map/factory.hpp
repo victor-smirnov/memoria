@@ -19,8 +19,7 @@ namespace memoria    {
 
 
 template <typename Profile, Int Indexes_>
-struct BTreeTypes<Profile, memoria::Map<Indexes_> >:
-		public BTreeTypes<Profile, memoria::BSTree> {
+struct BTreeTypes<Profile, memoria::Map<Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
 
 	typedef BTreeTypes<Profile, memoria::BSTree> 							Base;
 
@@ -41,6 +40,8 @@ struct BTreeTypes<Profile, memoria::Map<Indexes_> >:
 				memoria::models::idx_map::ItrApiName
 			>::List
 	>::Result                                                               IteratorPartsList;
+
+
 
 };
 

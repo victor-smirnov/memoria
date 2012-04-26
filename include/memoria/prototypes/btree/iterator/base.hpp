@@ -31,7 +31,10 @@ public:
     typedef typename Base::Container::NodeBaseG                                       	NodeBaseG;
     typedef typename Base::Container::Allocator										  	Allocator;
 
-    typedef typename Types::template IteratorCacheFactory<MyType>::Type					IteratorCache;
+    typedef typename Types::template IteratorCacheFactory<
+    		MyType,
+    		typename Base::Container
+    >::Type																				IteratorCache;
 
     static const Int Indexes															= Base::Container::Indexes;
 
@@ -45,7 +48,10 @@ private:
     IteratorCache 		cache_;
 
 public:
-    BTreeIteratorBase(): Base(), path_(), key_idx_(0) {}
+    BTreeIteratorBase(): Base(), path_(), key_idx_(0)
+    {
+    	cache_.Init(me());
+    }
 
     BTreeIteratorBase(ThisType&& other): Base(std::move(other)), path_(std::move(other.path_)), key_idx_(other.key_idx_), cache_(std::move(other.cache_))
     {
@@ -235,6 +241,11 @@ public:
     	me()->model().Dump(me()->leaf().node(), out);
     }
 
+    void Init()
+    {
+    	Base::Init();
+    	cache_.InitState();
+    }
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END
 

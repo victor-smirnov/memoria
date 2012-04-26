@@ -55,6 +55,11 @@ struct BTreeTypes<Profile, memoria::Vector>: public BTreeTypes<Profile, memoria:
 	};
 
 	typedef VectorMetadata<typename Base::ID> 										Metadata;
+
+	template <typename Iterator, typename Container>
+	struct IteratorCacheFactory {
+		typedef BTreeIteratorScalarPrefixCache<Iterator, Container> 					Type;
+	};
 };
 
 

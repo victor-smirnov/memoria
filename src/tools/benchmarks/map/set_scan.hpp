@@ -129,7 +129,7 @@ public:
 			{
 				for (auto i = map_->begin(); !i.IsEnd() && c < params->iterations; i++, c++)
 				{
-					total += i.GetKey1();
+					total += i.key();
 				}
 			}
 		}

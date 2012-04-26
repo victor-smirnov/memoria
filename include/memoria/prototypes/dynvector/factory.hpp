@@ -99,6 +99,11 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
     struct DataBlockTypeFactory {
         typedef NullType                                                        Type;
     };
+
+    template <typename Iterator, typename Container>
+    struct IteratorCacheFactory {
+    	typedef BTreeIteratorScalarPrefixCache<Iterator, Container> 			Type;
+    };
 };
 
 

@@ -21,6 +21,18 @@
 namespace memoria {
 
 class MapTest: public SPTestTask {
+
+	struct MapReplay: public BTreeReplayParams {
+		MapReplay(): BTreeReplayParams(){}
+	};
+
+
+	struct MapParams: public TestTaskParams {
+
+		MapParams(): TestTaskParams("Map") {}
+	};
+
+
 public:
 	typedef KVPair<BigInt, BigInt> Pair;
 
@@ -272,7 +284,7 @@ public:
 
 		iter.ComputePrefix(prefix);
 
-		if (iter.prefix(0) != prefix.key(0))
+		if (iter.prefix() != prefix.key(0))
 		{
 			iter.Dump(out);
 			throw TestException(source, "Invalid prefix value. Iterator: "+ToString(iter.prefix())+" Actual: "+ToString(prefix));

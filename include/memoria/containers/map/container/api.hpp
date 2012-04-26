@@ -34,7 +34,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     	if (!iter.IsEnd())
     	{
-    		if (key == iter.GetKey(0))
+    		if (key == iter.key())
     		{
     			return iter;
     		}
@@ -53,7 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     	if (!iter.IsEnd())
     	{
-    		if (key == iter.GetKey1())
+    		if (key == iter.key())
     		{
     			return iter;
     		}
@@ -71,7 +71,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     {
     	Iterator iter = me()->FindLE(key, 0);
 
-    	if (iter.IsEnd() || key != iter.GetKey(0))
+    	if (iter.IsEnd() || key != iter.key())
     	{
     		Accumulator keys;
     		keys[0] = key;
@@ -86,7 +86,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     {
     	Iterator iter = me()->FindLE(key, 0);
 
-    	if (key == iter.GetKey(0))
+    	if (key == iter.key(0))
     	{
     		iter.Remove();
     		return true;
@@ -105,11 +105,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	{
     		to.UpdateUp(keys);
     	}
+
+    	to.cache().InitState();
     }
 
     void Insert(Iterator& iter, const Element& element)
     {
-    	Accumulator delta = element.first - iter.prefix();
+    	Accumulator delta = element.first - iter.prefixes();
 
     	Element e(delta, element.second);
 

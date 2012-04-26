@@ -17,15 +17,7 @@
 namespace memoria {
 
 
-struct MapReplay: public BTreeReplayParams {
-	MapReplay(): BTreeReplayParams(){}
-};
 
-
-struct MapParams: public TestTaskParams {
-
-	MapParams(): TestTaskParams("Map") {}
-};
 
 
 }

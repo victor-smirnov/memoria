@@ -94,9 +94,9 @@ struct BTreeTypes {
     };
 
 
-    template <typename Iterator>
+    template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-    	typedef BTreeIteratorCache<Iterator> 									Type;
+    	typedef BTreeIteratorCache<Iterator, Container> 						Type;
     };
 
 };

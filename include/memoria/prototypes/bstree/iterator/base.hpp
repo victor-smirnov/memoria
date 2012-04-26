@@ -30,19 +30,21 @@ public:
     typedef typename Base::Container::Accumulator										Accumulator;
     typedef typename Base::Container::TreePath											TreePath;
 
-    const Key prefix(Int i) const
+    const BigInt prefix(Int num = 0) const
     {
-    	return get_prefix(i);
+    	return me()->cache().prefix(num);
     }
 
-    const Accumulator prefix() const
+    const Accumulator prefixes() const
     {
-    	return get_prefixes();
+    	return me()->cache().prefixes();
     }
 
-    void SetupPrefix(Key prefix) {}
+    void SetupPrefix(Key prefix, Int key_num)
+    {
+    	me()->cache().Setup(prefix, key_num);
+    }
 
-private:
 
     Accumulator get_prefixes() const
     {

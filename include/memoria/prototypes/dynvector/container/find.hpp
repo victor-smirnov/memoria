@@ -67,7 +67,7 @@ typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
 			me()->FinishPathStep(iter.path(), iter.key_idx());
 		}
 
-		BigInt offset 	= iter.prefix(key_number);
+		BigInt offset 	= iter.prefix(); //FIXME: key_number
 		iter.data_pos() = pos * me()->GetElementSize() - offset;
 
 		if (iter.data_pos() > iter.data()->size())

@@ -163,6 +163,8 @@ void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
 
 	BigInt usage = iter.data() != NULL ? iter.data()->size() : 0;
 
+	BigInt pos = iter.pos();
+
 	if (usage + buffer.size() <= max_datapage_size)
 	{
 		// The target datapage has enough free space to insert into
@@ -177,10 +179,14 @@ void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
 		}
 
 		ImportPages(iter, buffer);
+
+		iter.cache().Setup(pos + buffer.size() - iter.data_pos(), 0);
 	}
 	else
 	{
 		ImportPages(iter, buffer);
+
+		iter.cache().Setup(pos + buffer.size() - iter.data_pos(), 0);
 	}
 }
 
@@ -367,6 +373,8 @@ void M_TYPE::ImportPages(Iterator& iter, const ArrayData& buffer)
 		iter.PrevKey();
 		iter.data_pos() = iter.data()->size();
 	}
+
+//	iter.Init();
 }
 
 

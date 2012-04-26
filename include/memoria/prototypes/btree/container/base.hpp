@@ -56,7 +56,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     typedef typename Types::TreePathItem										TreePathItem;
     typedef typename Types::TreePath											TreePath;
 
-    typedef typename Types::template IteratorCacheFactory<Iter<Types>>			IteratorCache;
+//    typedef typename Types::template IteratorCacheFactory<Iter<Types>, MyType>	IteratorCache;
 
 
     class BTreeCtrShared: public CtrShared {

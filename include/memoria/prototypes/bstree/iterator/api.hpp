@@ -45,12 +45,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 
     Key GetKey(Int i) const
     {
-        return me()->GetRawKey(i) + me()->prefix(i);
+        return me()->GetRawKey(i) + me()->prefixes()[i];
     }
 
     Accumulator GetKeys() const
     {
-    	return me()->GetRawKeys() + me()->prefix();
+    	return me()->GetRawKeys() + me()->prefixes();
     }
 
 //    bool NextKey()

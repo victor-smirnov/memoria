@@ -43,7 +43,6 @@ public:
 
         Iterator        i_;
         Key&            key_;
-        Int             key_num_;
         MyType&         model_;
         Comparator&     cmp_;
         Int             idx_;
@@ -52,10 +51,9 @@ public:
         bool			found_;
 
     public:
-        FindFn(Comparator& cmp, Key& key, Int key_num, NodeBaseG& root, MyType &model):
+        FindFn(Comparator& cmp, Key& key, NodeBaseG& root, MyType &model):
             i_(model),
             key_(key),
-            key_num_(key_num),
             model_(model),
             cmp_(cmp),
             end_(false),
@@ -70,7 +68,7 @@ public:
         template <typename Node>
         void operator()(Node *node)
         {
-        	idx_ = cmp_.Find(node, key_num_, key_);
+        	idx_ = cmp_.Find(node, key_);
 
         	if (!node->is_leaf())
         	{
@@ -111,22 +109,20 @@ public:
     template <typename Comparator>
     class CheckBoundsFn {
     	Key&            key_;
-    	Int             key_num_;
     	Comparator&     cmp_;
 
     	bool 			within_ranges_;
 
     public:
-    	CheckBoundsFn(Comparator& cmp, Key& key, Int key_num):
+    	CheckBoundsFn(Comparator& cmp, Key& key):
     		key_(key),
-    		key_num_(key_num),
     		cmp_(cmp)
     	{}
 
     	template <typename Node>
     	void operator()(Node *node)
     	{
-    		within_ranges_ = cmp_.IsKeyWithinRange(node, key_num_, key_);
+    		within_ranges_ = cmp_.IsKeyWithinRange(node, key_);
     	}
 
     	bool within_ranges() const {
@@ -190,18 +186,18 @@ MEMORIA_CONTAINER_PART_END
 
 M_PARAMS
 template <typename Comparator>
-const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c)
+const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 {
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
 
-	Comparator cmp;
+	Comparator cmp(block_num);
 
-	CheckBoundsFn<Comparator> bounds_fn(cmp, key, c);
+	CheckBoundsFn<Comparator> bounds_fn(cmp, key);
 	NodeDispatcher::DispatchConst(node, bounds_fn);
 
 	if (bounds_fn.within_ranges())
 	{
-		FindFn<Comparator> fn(cmp, key, c, node, *me());
+		FindFn<Comparator> fn(cmp, key, node, *me());
 
 		while(1)
 		{
@@ -213,9 +209,9 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int c)
 				{
 					fn.i_.key_idx() = fn.idx_;
 
-					cmp.SetupIterator(fn.i_);
-
 					me()->FinishPathStep(fn.i_.path(), fn.i_.key_idx());
+
+					cmp.SetupIterator(fn.i_);
 
 					return fn.i_;
 				}

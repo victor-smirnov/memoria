@@ -99,7 +99,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 		IdxSetAccumulator keys;
 
-		keys.key(0) = 1;
+		keys[0] = 1;
 
 		me()->set().InsertEntry(is_iter, keys);
 

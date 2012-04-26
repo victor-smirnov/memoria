@@ -202,10 +202,27 @@ public:
 	{
 		iter_ = i;
 	}
+
+	void InitState() {}
+
+
+	void Prepare() 				{}
+	void NextKey(bool end) 		{}
+	void PrevKey(bool start) 	{}
+
+	const Iterator& iterator() const {
+		return *iter_;
+	}
+
+	Iterator& iterator() {
+		return *iter_;
+	}
+
+	void Setup(BigInt, Int) {}
 };
 
 
-template <typename Iterator>
+template <typename Iterator, typename Container>
 class BTreeIteratorCache: public IteratorCacheBase<Iterator> {
 	typedef IteratorCacheBase<Iterator> Base;
 

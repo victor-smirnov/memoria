@@ -75,9 +75,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     void Remove(BigInt len)
     {
-    	MyType to = *me();
-    	to.Skip(len);
-    	me()->model().RemoveDataBlock(*me(), to);
+    	me()->model().RemoveDataBlock(*me(), len);
     }
 
     void Remove(MyType& to)
@@ -251,8 +249,9 @@ BigInt M_TYPE::SkipFw(BigInt count)
 	//FIXME: handle START properly
 	if (me()->IsNotEmpty())
 	{
-		Int data_size 	= me()->data()->size();
-		Int data_pos 	= me()->data_pos();
+		Int 	data_size 	= me()->data()->size();
+		Int 	data_pos 	= me()->data_pos();
+		BigInt 	pos 		= me()->pos();
 
 		if (distance + data_pos <= data_size)
 		{
@@ -280,21 +279,25 @@ BigInt M_TYPE::SkipFw(BigInt count)
 		{
 			SumTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
 
-			bool end 		= me()->model().WalkFw(me()->path(), me()->key_idx(), walker);
+			bool end = me()->model().WalkFw(me()->path(), me()->key_idx(), walker);
 
 			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
 			if (end)
 			{
 				me()->data_pos() 	= me()->data()->size();
-				me()->Init();
+
+				me()->cache().Setup(pos + (walker.sum() - data_pos) - me()->data_pos(), 0);
+
 				return (walker.sum() - data_pos) / element_size;
 			}
 			else {
+
 				me()->data_pos() 	= walker.remainder();
+
+				me()->cache().Setup(pos + distance - me()->data_pos(), 0);
 			}
 		}
-		me()->Init();
 
 		//FIXME: return true distance
 		return count;
@@ -316,6 +319,8 @@ BigInt M_TYPE::SkipBw(BigInt count)
 	//FIXME: handle EOF properly
 	if (me()->IsNotEmpty())
 	{
+		BigInt pos = me()->pos();
+
 		Int idx = me()->data_pos();
 
 		if (distance <= idx)
@@ -339,15 +344,17 @@ BigInt M_TYPE::SkipBw(BigInt count)
 			if (end)
 			{
 				me()->data_pos() 	= 0;
-				me()->Init();
+
+				me()->cache().Setup(0, 0);
+
 				return (walker.sum() - to_add) / element_size;
 			}
 			else {
-				me()->data_pos()	= me()->data()->size() - walker.remainder();
+				me()->data_pos()		= me()->data()->size() - walker.remainder();
+
+				me()->cache().Setup((pos - distance) - me()->data_pos(), 0);
 			}
 		}
-
-		me()->Init();
 
 		return count;
 	}

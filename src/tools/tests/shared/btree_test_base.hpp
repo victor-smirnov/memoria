@@ -95,6 +95,8 @@ public:
 			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 		}
 
+		out<<"Max Block Size: "<<task_params->max_block_size_<<endl;
+
 		params.size_				= task_params->size_;
 
 		for (Int step = 0; step < 2; step++)

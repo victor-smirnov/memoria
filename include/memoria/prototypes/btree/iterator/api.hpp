@@ -286,23 +286,34 @@ bool M_TYPE::NextKey()
 	{
 		if (me()->key_idx() < me()->page()->children_count() - 1)
 		{
+			me()->cache().Prepare();
+
 			me()->key_idx()++;
+
 			me()->KeyNum()++;
 
 			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
+			me()->cache().NextKey(false);
+
 			return true;
 		}
 		else {
+			me()->cache().Prepare();
+
 			bool has_next_leaf = me()->NextLeaf();
 			if (has_next_leaf)
 			{
 				me()->key_idx() = 0;
+
+				me()->cache().NextKey(false);
 			}
 			else {
 				me()->key_idx() = me()->page()->children_count();
 
 				me()->model().FinishPathStep(me()->path(), me()->key_idx());
+
+				me()->cache().NextKey(true);
 			}
 
 			me()->KeyNum()++;
@@ -345,6 +356,9 @@ bool M_TYPE::PrevKey()
 
 		me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
+		me()->cache().Prepare();
+		me()->cache().PrevKey(false);
+
 		return true;
 	}
 	else {
@@ -354,11 +368,17 @@ bool M_TYPE::PrevKey()
 		{
 			me()->key_idx() = me()->page()->children_count() - 1;
 			me()->KeyNum()--;
+
+			me()->cache().Prepare();
+			me()->cache().PrevKey(false);
 		}
 		else {
 			me()->key_idx() = -1;
 
 			me()->model().FinishPathStep(me()->path(), me()->key_idx());
+
+			me()->cache().Prepare();
+			me()->cache().PrevKey(true);
 		}
 
 		return has_prev_leaf;
