@@ -121,9 +121,11 @@ public:
 
 		result.x() 			= ctr_->Count();
 
+		Iterator iter = ctr_->begin();
+
 		for (Int c = 0; c < params->iterations;)
 		{
-			for (auto i = ctr_->begin(); i != ctr_->end(); i++, c++)
+			for (auto i = iter; !ctr_->IsEnd() && c < params->iterations; i++, c++)
 			{
 				i.Read(data);
 			}
@@ -134,7 +136,7 @@ public:
 
 	virtual String GetGraphName()
 	{
-		return "Memoria Vector<BigInt>";
+		return "Memoria VectorMap Sequential";
 	}
 };
 

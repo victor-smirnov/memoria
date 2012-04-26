@@ -188,6 +188,13 @@ public:
 		}
 	}
 
+	bool IsEnd() const {
+		return is_iter_.IsEnd();
+	}
+
+	bool IsNotEnd() const {
+		return is_iter_.IsNotEnd();
+	}
 
 
 	template <typename T>

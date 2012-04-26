@@ -26,6 +26,7 @@ public:
 
     void GenerateDataEvents(IPageDataEventHandler* handler) const
     {
+    	Base::GenerateDataEvents(handler);
     	handler->Value("ELEMENT_SIZE", &element_size_);
     }
 

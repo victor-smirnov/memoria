@@ -58,7 +58,7 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
 
 	template <typename Iterator, typename Container>
 	struct IteratorCacheFactory {
-		typedef BTreeIteratorScalarPrefixCache<Iterator, Container> 			Type;
+		typedef BTreeIteratorPrefixCache<Iterator, Container> 					Type;
 	};
 
 };

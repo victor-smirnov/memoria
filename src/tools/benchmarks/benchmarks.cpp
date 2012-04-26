@@ -142,7 +142,7 @@ int main(int argc, const char** argv, const char** envp)
 
 
 		runner.BeginGroup(new BenchmarkGroup("Vector.Read", "Performance of memoria::Vector<BigInt> and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements", "Execution Time, ms", 10));
-		//runner.RegisterBenchmark(new VectorReadBenchmark());
+//		runner.RegisterBenchmark(new VectorReadBenchmark());
 		runner.RegisterBenchmark(new VectorSequentialReadBenchmark());
 		//runner.RegisterBenchmark(new SetBenchmark(true));
 		//runner.RegisterBenchmark(new StlVectorReadBenchmark());

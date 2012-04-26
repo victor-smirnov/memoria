@@ -270,43 +270,108 @@ public:
 	}
 };
 
+
+
+
 template <typename Iterator, typename Container>
 class BTreeIteratorPrefixCache: public BTreeIteratorCache<Iterator, Container> {
-	typedef BTreeIteratorCache<Iterator, Container> 				Base;
+	typedef BTreeIteratorCache<Iterator, Container> Base;
 	typedef typename Container::Accumulator 	Accumulator;
 
 	Accumulator prefix_;
+	Accumulator current_;
+
+	static const Int Indexes = Accumulator::Indexes;
 
 public:
 
-	BTreeIteratorPrefixCache(): Base(), prefix_() {}
+	BTreeIteratorPrefixCache(): Base(), prefix_(), current_() {}
 
-	BigInt& prefix(Int num = 0)
+	const BigInt& prefix(int num = 0) const
 	{
 		return prefix_[num];
 	}
 
-	const BigInt& prefix(Int num = 0) const
-	{
-		return prefix_[num];
-	}
-
-	BigInt& prefixes()
+	const Accumulator& prefixes() const
 	{
 		return prefix_;
 	}
 
-	const BigInt& prefixes() const
+	void NextKey(bool end)
 	{
-		return prefix_;
+		prefix_ 	+= current_;
+
+		current_.Clear();
+	};
+
+	void PrevKey(bool start)
+	{
+		prefix_ 	-= current_;
+
+		current_.Clear();
+	};
+
+	void Prepare()
+	{
+		current_ = Base::iterator().GetRawKeys();
 	}
 
 	void Setup(BigInt prefix, Int key_num)
 	{
+		prefix_[key_num] = prefix;
 
+		Init_(key_num);
 	}
-};
 
+	void Setup(Accumulator prefix)
+	{
+		prefix_ = prefix;
+	}
+
+	void InitState()
+	{
+		typedef typename Iterator::Container::TreePath TreePath;
+
+		prefix_.Clear();
+
+		const TreePath& path = Base::iterator().path();
+		Int 			idx  = Base::iterator().key_idx();
+
+		for (Int c = 0; c < path.GetSize(); c++)
+		{
+			Base::iterator().model().SumKeys(path[c].node(), 0, idx, prefix_);
+			idx = path[c].parent_idx();
+		}
+	}
+
+private:
+
+	void Init_(Int skip_num)
+	{
+		typedef typename Iterator::Container::TreePath TreePath;
+
+		const TreePath& path = Base::iterator().path();
+		Int 			idx  = Base::iterator().key_idx();
+
+		for (Int c = 0; c < Indexes; c++) {
+			if (c != skip_num) prefix_[c] = 0;
+		}
+
+		for (Int c = 0; c < path.GetSize(); c++)
+		{
+			for (Int block_num = 0; block_num < Indexes; block_num++)
+			{
+				if (block_num != skip_num)
+				{
+					Base::iterator().model().SumKeys(path[c].node(), block_num, 0, idx, prefix_[block_num]);
+				}
+			}
+
+			idx = path[c].parent_idx();
+		}
+	}
+
+};
 
 
 

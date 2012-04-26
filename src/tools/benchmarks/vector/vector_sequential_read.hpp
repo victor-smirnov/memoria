@@ -110,7 +110,7 @@ public:
 			int a = 0; a++;
 			for (Iterator i = ctr_->Seek(0); !i.IsEof() && c < params->iterations; c++)
 			{
-				ArrayData data(GetRandom(128), array);
+				ArrayData data(GetRandom(256), array);
 				total += i.Read(data);
 			}
 		}

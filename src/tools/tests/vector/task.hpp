@@ -47,13 +47,15 @@ public:
 	{
 		ArrayData data(size * array.GetElementSize());
 
+		Int esize = array.GetElementSize();
+
 		for (Int c = 0; c < size; c++)
 		{
-			*(data.data() + c * array.GetElementSize()) = value;
+			*(data.data() + c * esize) = value;
 
-			for (Int d = 1; d < array.GetElementSize(); d++)
+			for (Int d = 1; d < esize; d++)
 			{
-				*(data.data() + c * array.GetElementSize() + d) = value == 1 ? 0 : 1;
+				*(data.data() + c * esize + d) = value == 1 ? 0 : 1;
 			}
 		}
 

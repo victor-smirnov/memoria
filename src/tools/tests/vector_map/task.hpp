@@ -49,7 +49,7 @@ struct VectorMapParams: public TestTaskParams {
 public:
 	VectorMapParams(): TestTaskParams("VectorMap")
 	{
-		Add("maxBlockSize", max_block_size_, 1024*40);
+		Add("max_block_size", max_block_size_, 1024*40);
 	}
 };
 
@@ -248,7 +248,7 @@ public:
 				auto iter2 = map.Find(iter.GetKey());
 
 				MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
-				MEMORIA_TEST_THROW_IF(iter2.size(), 	!= , data.size());
+				MEMORIA_TEST_THROW_IF(iter2.size(),   != , data.size());
 				MEMORIA_TEST_THROW_IF(iter2.GetKey(), != , iter.GetKey());
 
 				CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);

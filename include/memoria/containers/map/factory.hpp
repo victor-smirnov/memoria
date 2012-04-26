@@ -42,6 +42,11 @@ struct BTreeTypes<Profile, memoria::Map<Indexes_> >: public BTreeTypes<Profile, 
 	>::Result                                                               IteratorPartsList;
 
 
+	template <typename Iterator, typename Container>
+	struct IteratorCacheFactory {
+		typedef BTreeIteratorPrefixCache<Iterator, Container> 				Type;
+	};
+
 
 };
 

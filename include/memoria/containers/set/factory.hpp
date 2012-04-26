@@ -23,7 +23,6 @@ struct BTreeTypes<Profile, memoria::Set<Indexes> >: public BTreeTypes<Profile, m
 
 	typedef EmptyValue														Value;
 
-	static const bool MapType                                               = MapTypes::Sum;
 };
 
 template <typename Profile, typename T, Int Indexes>
