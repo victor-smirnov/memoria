@@ -56,6 +56,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     {
     	Accumulator keys;
     	Value		value;
+
+    	LeafNodeKeyValuePair() {}
+    	LeafNodeKeyValuePair(Accumulator k, Value v): keys(k), value(v) {}
     };
 
     typedef vector<LeafNodeKeyValuePair>										LeafPairsVector;
@@ -327,9 +330,15 @@ private:
 
 
 
-    void ReindexAndUpdateCounters(NodeBaseG& node) const
+    void ReindexAndUpdateCounters(NodeBaseG& node, Int from, Int count) const
     {
-    	me()->Reindex(node);
+    	if (from + count == node->children_count())
+    	{
+    		me()->ReindexRegion(node, from, from + count);
+    	}
+    	else {
+    		me()->Reindex(node);
+    	}
     }
 
 
@@ -797,7 +806,7 @@ void M_TYPE::FillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
 		}
 	}
 
-	ReindexAndUpdateCounters(node);
+	ReindexAndUpdateCounters(node, from, count);
 
 	Accumulator accumulator = me()->GetCounters(node, from, count);
 
@@ -848,7 +857,7 @@ void M_TYPE::FillNodeRight(TreePath& path, Int level, Int from, Int count, Inser
 //		path[level-1].parent_idx() += count;
 //	}
 
-	ReindexAndUpdateCounters(node);
+	ReindexAndUpdateCounters(node, from, count);
 
 	Accumulator accumulator = me()->GetCounters(node, from, count);
 

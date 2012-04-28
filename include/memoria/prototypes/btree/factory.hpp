@@ -239,7 +239,7 @@ public:
 
 
     	typedef NodePath<
-    			NodeBaseG, 16
+    			NodeBaseG, 8
     	>																		TreePath;
 
     	typedef typename TreePath::PathItem										TreePathItem;

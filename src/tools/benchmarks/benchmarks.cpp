@@ -21,15 +21,24 @@
 #include "vector/stl_vector_read.hpp"
 
 #include "vector/vector_write.hpp"
+#include "vector/vector_insert_batch.hpp"
+#include "vector/vector_append.hpp"
 #include "vector/stl_vector_write.hpp"
 
 #include "misc/memmove.hpp"
 
 #include "map/set_find.hpp"
 #include "map/set_scan.hpp"
+#include "map/set_append.hpp"
+#include "map/set_create_batch.hpp"
+#include "map/set_insert.hpp"
+#include "map/set_insert_batch.hpp"
 
 #include "vector_map/vector_map_random_read.hpp"
+#include "vector_map/vector_map_random_insert.hpp"
 #include "vector_map/vector_map_sequential_read.hpp"
+#include "vector_map/vector_map_append.hpp"
+
 
 #include <iostream>
 
@@ -124,9 +133,18 @@ int main(int argc, const char** argv, const char** envp)
 
 		runner.BeginGroup(new BenchmarkGroup("Set", "Performance of memoria::set<BigInt> and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements", "Execution Time, ms", 10));
 		runner.RegisterBenchmark(new SetBenchmark(true));
-		runner.RegisterBenchmark(new SetBenchmark(false));
-		runner.RegisterBenchmark(new PSetBenchmark<16>(buffer, true));
-		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
+//		runner.RegisterBenchmark(new SetBenchmark(false));
+//		runner.RegisterBenchmark(new PSetBenchmark<16>(buffer, true));
+//		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
+		runner.EndGroup();
+
+		runner.BeginGroup(new BenchmarkGroup("Set.Append", "Performance of memoria::Set<BigInt>,\\n1 million appends", "Number of Elements", "Execution Time, ms", 10));
+		runner.RegisterBenchmark(new SetAppendBenchmark());
+//		runner.RegisterBenchmark(new SetAppendBatchBenchmark());
+		runner.EndGroup();
+
+		runner.BeginGroup(new BenchmarkGroup("Set.Insert", "Performance of memoria::Set<BigInt>,\\n1 million insertions", "Number of Elements", "Execution Time, ms", 10));
+		runner.RegisterBenchmark(new SetInsertBatchBenchmark());
 		runner.EndGroup();
 
 
@@ -150,8 +168,10 @@ int main(int argc, const char** argv, const char** envp)
 		runner.EndGroup();
 
 		runner.BeginGroup(new BenchmarkGroup("Vector.Write", "Performance of memoria::Vector<BigInt> and Packed Set with the same number of elements,\\n1 million writes", "Number of Elements", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new VectorWriteBenchmark());
+//		runner.RegisterBenchmark(new VectorWriteBenchmark());
+//		runner.RegisterBenchmark(new VectorAppendBenchmark());
 //		runner.RegisterBenchmark(new StlVectorWriteBenchmark());
+		runner.RegisterBenchmark(new VectorInsertBatchBenchmark());
 		runner.EndGroup();
 
 
@@ -160,9 +180,14 @@ int main(int argc, const char** argv, const char** envp)
 		runner.EndGroup();
 
 
-		runner.BeginGroup(new BenchmarkGroup("VectorMap", "Performance of VectorMap, 1 million reads", "Number Of Elements", "Execution Time, ms", 10));
+		runner.BeginGroup(new BenchmarkGroup("VectorMap.Read", "Performance of VectorMap, 1 million reads", "Number Of Elements", "Execution Time, ms", 10));
 //		runner.RegisterBenchmark(new VectorMapRandomReadBenchmark());
 		runner.RegisterBenchmark(new VectorMapSequentialReadBenchmark());
+		runner.EndGroup();
+
+		runner.BeginGroup(new BenchmarkGroup("VectorMap.Update", "Performance of VectorMap, 1 million writes", "Number Of Elements", "Execution Time, ms", 10));
+//		runner.RegisterBenchmark(new VectorMapAppendBenchmark());
+		runner.RegisterBenchmark(new VectorMapRandomInsertBenchmark());
 		runner.EndGroup();
 
 		runner.Configure(&cmd_line.GetConfigurator());

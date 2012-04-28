@@ -446,16 +446,20 @@ const Data* GetValue(Node *node, Int idx) {
 }
 
 struct ReindexFn {
+	Int from_, to_;
+
+	ReindexFn(Int from, Int to): from_(from), to_(to) {}
+
     template <typename T>
     void operator()(T *node) {
-        node->map().Reindex();
+        node->map().ReindexAll(from_, to_);
     }
 };
 
 template <typename Dispatcher, typename Node>
-void Reindex(Node *node)
+void Reindex(Node *node, Int from, Int to)
 {
-    ReindexFn fn;
+    ReindexFn fn(from, to);
     Dispatcher::Dispatch(node, fn);
 }
 

@@ -125,7 +125,7 @@ public:
 
 		for (Int c = 0; c < params->iterations;)
 		{
-			for (auto i = iter; !ctr_->IsEnd() && c < params->iterations; i++, c++)
+			for (auto i = iter; i != ctr_->end() && c < params->iterations; i++, c++)
 			{
 				i.Read(data);
 			}

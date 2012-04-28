@@ -120,7 +120,7 @@ struct ValueClearing {
 
 template <
 	typename NodePage,
-	Int Size = 16>
+	Int Size = 8>
 class NodePath: public FixedVector<TreePathItem<NodePage>, Size, ValueClearing> {
 
 	typedef FixedVector<TreePathItem<NodePage>, Size, ValueClearing> 	Base;

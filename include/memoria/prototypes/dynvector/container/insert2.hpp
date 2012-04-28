@@ -287,8 +287,9 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int sta
 		reindex_fully = true;
 	}
 
-
 	Int data_pos	= iter.data_pos();
+
+//	DataPage* data = data_g.page();
 
 	data->data().shift(data_pos, length);
 

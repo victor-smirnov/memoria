@@ -121,6 +121,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	}
     }
 
+    void InsertRaw(Iterator& iter, const Element& element)
+    {
+    	Base::Insert(iter, element);
+    }
+
     bool Contains(Key key)
     {
     	return !me()->Find(key).IsEnd();

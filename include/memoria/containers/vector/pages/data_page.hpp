@@ -62,10 +62,11 @@ public:
 
     void shift(BigInt pos, BigInt length)
     {
-//    	copy_buffer<Byte>(value_ + pos, value_ + pos + length, size_ - pos);
-
     	//FIXME: implement left shift properly
-    	MoveBuffer(value_, pos, pos + length, size_ - pos);
+    	if (pos < size_)
+    	{
+    		MoveBuffer(value_, pos, pos + length, size_ - pos);
+    	}
     }
 
     void GenerateDataEvents(IPageDataEventHandler* handler) const

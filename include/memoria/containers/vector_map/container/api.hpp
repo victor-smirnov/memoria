@@ -107,12 +107,26 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		return Iterator(*me(), is_iter, ba_iter);
 	}
 
+	void CreateNew(Iterator& iter)
+	{
+		IdxSetAccumulator keys;
+
+		keys[0] = 1;
+
+		me()->set().InsertEntry(iter.is_iter(), keys);
+
+		if (!iter.ba_iter().IsEof())
+		{
+			iter.ba_iter().Skip(me()->array().Size() - iter.ba_iter().pos());
+		}
+	}
+
 	Iterator Create(BigInt key)
 	{
 		auto is_iter = me()->set().FindLT(key, 0);
 
 		//FIXME: set_.FindLT() have to return properly initialized iterator
-		is_iter.Init();
+		//is_iter.Init();
 
 		BigInt 	data_pos 	= is_iter.prefix(1);
 		bool	end			= is_iter.IsEnd();
@@ -139,7 +153,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 			me()->set().InsertEntry(is_iter, keys);
 
-			auto ba_iter = me()->array().Seek(data_pos);
+//			auto ba_iter = me()->array().Seek(data_pos);
 			return Iterator(*me(), is_iter, ba_iter, false);
 		}
 	}
@@ -149,7 +163,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		auto is_iter = me()->set().FindLE(key, 0);
 
 		//FIXME: set_.FindLT() have to return properly initialized iterator
-		is_iter.Init();
+//		is_iter.Init();
 
 		bool	end			= is_iter.IsEnd();
 		bool 	exists 		= end ? false : (is_iter.GetKey(0) == key);

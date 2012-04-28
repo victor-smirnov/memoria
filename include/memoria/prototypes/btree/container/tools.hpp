@@ -348,7 +348,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     void Reindex(NodeBaseG& node) const
     {
         node.update();
-    	memoria::btree::Reindex<NodeDispatcher>(node.page());
+    	memoria::btree::Reindex<NodeDispatcher>(node.page(), 0, node->children_count());
+    }
+
+    void ReindexRegion(NodeBaseG& node, Int from, Int to) const
+    {
+    	node.update();
+    	memoria::btree::Reindex<NodeDispatcher>(node.page(), from, to);
     }
 
 
@@ -363,7 +369,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         void operator()(T *node)
         {
             map_->SetNodeKeyValue(node, i_, element_);
-        	node->map().Reindex();
+
+            if (i_ == node->children_count() - 1)
+            {
+            	node->map().ReindexAll(i_, i_ + 1);
+            }
+            else {
+            	node->map().ReindexAll(i_, node->children_count());
+            }
         }
     };
 
