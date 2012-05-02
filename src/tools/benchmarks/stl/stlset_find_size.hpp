@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BENCHMARKS_PMAP_STLSET_SCAN_HPP_
-#define MEMORIA_BENCHMARKS_PMAP_STLSET_SCAN_HPP_
+#ifndef MEMORIA_BENCHMARKS_PMAP_STLSET_FIND_SIZE_HPP_
+#define MEMORIA_BENCHMARKS_PMAP_STLSET_FIND_SIZE_HPP_
 
 #include "../benchmarks_inc.hpp"
 
@@ -23,53 +23,59 @@ using namespace std;
 
 
 
-class StlSetScanBenchmark: public BenchmarkTask {
+class StlSetSizeBenchmark: public BenchmarkTask {
+private:
 
 	typedef BigInt		 Key;
 	typedef set<Key, less<Key>, CustomAllocator<Key> > Map;
 
 	Map* 			map_;
-	BigInt 			result_;
+	Int 			result_;
+	Int* 			rd_array_;
 
 public:
 
-	StlSetScanBenchmark(): BenchmarkTask("StlSetScan") {}
+	StlSetSizeBenchmark(): BenchmarkTask("StlSetSize") {}
 
-	virtual ~StlSetScanBenchmark() throw() {}
-
-
+	virtual ~StlSetSizeBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		map_ = new Map();
 
-		BigInt sum = 0;
+		AllocatorBase<>::reset();
 
 		for (Int c = 0; c < params.x(); c++)
 		{
-			map_->insert(sum++);
+			map_->insert(c);
+		}
+
+		rd_array_ = new Int[params.operations()];
+		for (Int c = 0; c < params.operations(); c++)
+		{
+			rd_array_[c] = GetRandom(map_->size());
 		}
 	}
 
 	virtual void Release(ostream& out)
 	{
 		delete map_;
+		delete[] rd_array_;
 	}
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+
+
+	virtual void Benchmark(BenchmarkParameters& data, ostream& out)
 	{
-		for (Int c = 0; c < params.operations();)
+		for (Int c = 0; c < data.operations(); c++)
 		{
-			for (auto i = map_->begin(); i!= map_->end() && c < params.operations(); i++, c++)
-			{
-				result_ += *i;
-			}
+			result_ = (map_->find(rd_array_[c]) != map_->end());
 		}
 	}
 
 	virtual String GetGraphName()
 	{
-		return "std::set<BigInt> Scan";
+		return "std::set<BigInt> (2 children)";
 	}
 };
 

@@ -6,10 +6,7 @@
 #ifndef MEMORIA_EXAMPLES_COPY_CTR_HPP_
 #define MEMORIA_EXAMPLES_COPY_CTR_HPP_
 
-#include <memoria/memoria.hpp>
-
-#include <memoria/tools/examples.hpp>
-#include <memoria/tools/tools.hpp>
+#include "examples.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -17,12 +14,6 @@
 #include <memory>
 
 namespace memoria {
-
-struct CopyCtrParams: public ExampleTaskParams {
-
-	CopyCtrParams(): ExampleTaskParams("CopyCtr") {}
-};
-
 
 class CopyCtrExample: public SPExampleTask {
 public:
@@ -41,7 +32,7 @@ private:
 public:
 
 	CopyCtrExample() :
-		SPExampleTask(new CopyCtrParams())
+		SPExampleTask("CopyCtr")
 	{
 		MapCtr::Init();
 	}
@@ -68,14 +59,14 @@ public:
 	{
 		DefaultLogHandlerImpl logHandler(out);
 
-		CreateCtrParams* task_params = GetParameters<CreateCtrParams>();
+
 
 		{
 
-			if (task_params->btree_random_airity_)
+			if (this->btree_random_airity_)
 			{
-				task_params->btree_branching_ = 8 + GetRandom(100);
-				out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
+				this->btree_branching_ = 8 + GetRandom(100);
+				out<<"BTree Branching: "<<this->btree_branching_<<endl;
 			}
 
 			Allocator allocator;

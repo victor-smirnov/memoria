@@ -10,6 +10,8 @@
 #include "map.hpp"
 #include "vector_map.hpp"
 
+#include "empty_example.hpp"
+
 #include <memoria/tools/examples.hpp>
 
 #include <memoria/tools/cmdline.hpp>
@@ -60,19 +62,23 @@ int main(int argc, const char** argv, const char** envp)
 			GetBIRandom();
 		}
 
-		ExampleRunner runner;
-
-		runner.SetRunCount(cmd_line.GetCount());
+		MemoriaTaskRunner runner;
 
 		// add tasks to the runner;
 
-		runner.RegisterTask(new CreateCtrExample());
-		runner.RegisterTask(new CopyCtrExample());
-		runner.RegisterTask(new MapExample());
-		runner.RegisterTask(new VectorMapExample());
+		TaskGroup* examples = new TaskGroup("Examples");
 
+		examples->RegisterTask(new CreateCtrExample());
+		examples->RegisterTask(new CopyCtrExample());
+		examples->RegisterTask(new MapExample());
+		examples->RegisterTask(new VectorMapExample());
+		examples->RegisterTask(new EmptyExample());
+
+		runner.RegisterTask(examples);
 
 		runner.Configure(&cmd_line.GetConfigurator());
+
+		runner.SetRunCount(cmd_line.GetCount());
 
 		if (cmd_line.IsHelp())
 		{
@@ -94,29 +100,30 @@ int main(int argc, const char** argv, const char** envp)
 
 			String default_output_folder = cmd_line.GetImageName()+".out";
 
-			const char* output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder.c_str();
+			String output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder;
 
-			File outf(output_folder);
-			if (outf.IsExists())
-			{
-				if (outf.IsDirectory())
-				{
-					if (!outf.DelTree())
-					{
-						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
-					}
-				}
-				else if (!outf.Delete())
-				{
-					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
-				}
-			}
+//			File outf(output_folder);
+//			if (outf.IsExists())
+//			{
+//				if (outf.IsDirectory())
+//				{
+//					if (!outf.DelTree())
+//					{
+//						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
+//					}
+//				}
+//				else if (!outf.Delete())
+//				{
+//					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
+//				}
+//			}
 
-			outf.MkDirs();
+//			outf.MkDirs();
 
 			runner.SetOutput(output_folder);
 
-			Int failed = runner.Run(cout);
+			Int failed = 0;
+			runner.Run();
 			cout<<"Done..."<<endl;
 			return failed;
 		}

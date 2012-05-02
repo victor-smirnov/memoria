@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/types/type2type.hpp>
 #include <memoria/core/tools/strings.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
@@ -59,42 +60,24 @@ public:
 		prefix_ = prefix;
 	}
 
-	virtual void Put(AbstractParamDescriptor* descr);
+	virtual AbstractParamDescriptor* Put(AbstractParamDescriptor* descr);
 
 	template <typename T>
-	void Add(StringRef name, T& property)
+	ParamDescriptor<T>* Add(StringRef name, T& property)
 	{
-		Put(new ParamDescriptor<T>(this, name, property));
+		return T2T_S<ParamDescriptor<T>*>(Put(new ParamDescriptor<T>(this, name, property)));
 	}
 
 	template <typename T>
-	void Add(bool ignore, StringRef name, T& property)
+	ParamDescriptor<T>* Add(StringRef name, T& property, const T& max_value)
 	{
-		Put(new ParamDescriptor<T>(ignore, this, name, property));
+		return T2T_S<ParamDescriptor<T>*>(Put(new ParamDescriptor<T>(this, name, property, max_value)));
 	}
 
 	template <typename T>
-	void Add(StringRef name, T& property, const T& default_value)
+	ParamDescriptor<T>* Add(StringRef name, T& property, const T& min_value, const T& max_value)
 	{
-		Put(new ParamDescriptor<T>(this, name, property, default_value));
-	}
-
-	template <typename T>
-	void AddS(StringRef name, T& property, const T& default_value)
-	{
-		Put(new ParamDescriptor<T>(this, name, property, default_value));
-	}
-
-	template <typename T>
-	void Add(StringRef name, T& property, const T& default_value, const T& max_value)
-	{
-		Put(new ParamDescriptor<T>(this, name, property, default_value, max_value));
-	}
-
-	template <typename T>
-	void Add(StringRef name, T& property, const T& default_value, const T& min_value, const T& max_value)
-	{
-		Put(new ParamDescriptor<T>(this, name, property, default_value, min_value, max_value));
+		return T2T_S<ParamDescriptor<T>*>(Put(new ParamDescriptor<T>(this, name, property, min_value, max_value)));
 	}
 
 	void DumpProperties(std::ostream& os) const;
@@ -105,71 +88,50 @@ public:
 
 template <typename T>
 class ParamDescriptor: public AbstractParamDescriptor {
+
+	typedef ParamDescriptor<T> 						MyType;
+
 	ParametersSet* 		cfg_;
 
 	String 				name_;
 
 	T& 					value_;
 
-	T					default_value_;
 	T 					min_value_;
 	T 					max_value_;
 
-	bool				default_value_specified_;
 	bool				ranges_specified_;
-	bool 				ignore_;
+
+	bool				mandatory_;
 
 public:
-	ParamDescriptor(bool ignore, ParametersSet* cfg, String name, T& value):
-		cfg_(cfg),
-		name_(name),
-		value_(value),
-		default_value_specified_(false),
-		ranges_specified_(false),
-		ignore_(ignore)
-	{}
 
 	ParamDescriptor(ParametersSet* cfg, String name, T& value):
 		cfg_(cfg),
 		name_(name),
 		value_(value),
-		default_value_specified_(false),
 		ranges_specified_(false),
-		ignore_(false)
+		mandatory_(false)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& default_value):
+	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& max_value):
 		cfg_(cfg),
 		name_(name),
 		value_(value),
-		default_value_(default_value),
-		default_value_specified_(true),
-		ranges_specified_(false),
-		ignore_(false)
-	{}
-
-	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& default_value, const T& max_value):
-		cfg_(cfg),
-		name_(name),
-		value_(value),
-		default_value_(default_value),
 		min_value_(numeric_limits<T>::min()),
 		max_value_(max_value),
-		default_value_specified_(true),
 		ranges_specified_(true),
-		ignore_(false)
+		mandatory_(false)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& default_value, const T& min_value, const T& max_value):
+	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& min_value, const T& max_value):
 		cfg_(cfg),
 		name_(name),
 		value_(value),
-		default_value_(default_value),
 		min_value_(min_value),
 		max_value_(max_value),
-		default_value_specified_(true),
 		ranges_specified_(true),
-		ignore_(false)
+		mandatory_(false)
 	{}
 
 
@@ -184,6 +146,17 @@ public:
 				throw MemoriaException(MEMORIA_SOURCE, "Range checking failure for the property: "+prefix()+"."+name_);
 			}
 		}
+	}
+
+	virtual bool IsMandatory() const
+	{
+		return mandatory_;
+	}
+
+	MyType* SetMandatory(bool mandatory)
+	{
+		mandatory_ = mandatory;
+		return this;
 	}
 
 	virtual StringRef GetName() const
@@ -204,17 +177,15 @@ public:
 
 	virtual void Dump(std::ostream& os) const
 	{
-		bool doc = default_value_specified_ || ranges_specified_;
+		bool doc = ranges_specified_;
 
 		if (doc)
 		{
 			os<<"#";
 		}
 
-		if (default_value_specified_)
-		{
-			os<<"default: "<<AsString<T>::convert(default_value_)<<" ";
-		}
+		//FIXME: print default value in property dump
+		//os<<"default: "<<AsString<T>::convert(default_value_)<<" ";
 
 		if (ranges_specified_)
 		{
@@ -278,14 +249,9 @@ void ParamDescriptor<T>::SetValue(Configurator* cfg, T& value)
 		value = FromString<T>::convert(cfg->GetProperty(name_));
 		return;
 	}
-
-	if (default_value_specified_)
+	else if (mandatory_)
 	{
-		value = default_value_;
-	}
-	else if (!ignore_)
-	{
-		throw MemoriaException(MEMORIA_SOURCE, "Property "+GetPropertyName()+" has to be specified in the config file");
+		throw MemoriaException(MEMORIA_SOURCE, "Property "+name_+" is not defined in the program configuration");
 	}
 }
 

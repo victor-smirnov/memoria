@@ -59,11 +59,14 @@ struct TestTaskParams: public TaskParametersSet {
 	bool 	btree_random_branching_;
 
 
-	TestTaskParams(StringRef name): TaskParametersSet(name)
+	TestTaskParams(StringRef name): TaskParametersSet(name),
+			size_(200),
+			btree_branching_(0),
+			btree_random_branching_(true)
 	{
-		Add("size", size_, 200);
-		Add("btree_branching", btree_branching_, 0);
-		Add("btree_random_branching", btree_random_branching_, true);
+		Add("size", size_);
+		Add("btree_branching", btree_branching_);
+		Add("btree_random_branching", btree_random_branching_);
 	}
 };
 

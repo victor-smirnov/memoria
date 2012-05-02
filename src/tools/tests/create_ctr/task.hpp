@@ -42,11 +42,11 @@ struct CreateCtrParams: public TestTaskParams {
 	Int block_size_;
 
 public:
-	CreateCtrParams(): TestTaskParams("CreateCtr")
+	CreateCtrParams(): TestTaskParams("CreateCtr"), map_size_(1024*256), vector_map_size_(200), block_size_(1024)
 	{
-		Add("MapSize", map_size_, 1024*256);
-		Add("VectorMapSize", vector_map_size_, 200);
-		Add("BlockSize", block_size_, 1024);
+		Add("MapSize", map_size_);
+		Add("VectorMapSize", vector_map_size_);
+		Add("BlockSize", block_size_);
 	}
 };
 

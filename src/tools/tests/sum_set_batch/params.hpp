@@ -45,10 +45,12 @@ struct SumSetBatchParams: public TestTaskParams {
 
 	Int max_block_size_;
 
-	SumSetBatchParams(StringRef name = "SumSetBatch"): TestTaskParams(name)
+	SumSetBatchParams(StringRef name = "SumSetBatch"):
+		TestTaskParams(name),
+		max_block_size_(1024*40)
 	{
-		Add("size", size_, 1024*1024*16);
-		Add("max_block_size", max_block_size_, 1024*40);
+		size_ = 1024*1024*16;
+		Add("max_block_size", max_block_size_);
 	}
 };
 

@@ -44,10 +44,13 @@ struct PMapWalkFwParams: public TestTaskParams {
 	Int block_size;
 	Int max_size;
 
-	PMapWalkFwParams(Int BranchingFactor): TestTaskParams("PMap.WalkFw."+ToString(BranchingFactor))
+	PMapWalkFwParams(Int BranchingFactor):
+		TestTaskParams("PMap.WalkFw."+ToString(BranchingFactor)),
+		block_size(16384),
+		max_size(0)
 	{
-		Add("block_size", block_size, 16384);
-		Add("max_size",   max_size, 0);
+		Add("block_size", block_size);
+		Add("max_size",   max_size);
 	}
 };
 

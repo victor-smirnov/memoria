@@ -7,12 +7,7 @@
 #ifndef MEMORIA_BENCHMARKS_VECTOR_APPEND_HPP_
 #define MEMORIA_BENCHMARKS_VECTOR_APPEND_HPP_
 
-#include <memoria/tools/benchmarks.hpp>
-#include <memoria/tools/tools.hpp>
-
-#include <memoria/prototypes/btree/tools.hpp>
-
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include "../benchmarks_inc.hpp"
 
 #include <malloc.h>
 #include <memory>
@@ -24,14 +19,8 @@ using namespace std;
 
 
 class VectorAppendBenchmark: public SPBenchmarkTask {
+public:
 
-	struct Params: public BenchmarkParams {
-		Int max_size;
-
-		Params(): BenchmarkParams("Append") {
-			Add("max_size", max_size, 512*1024*1024);
-		}
-	};
 
 
 	typedef SPBenchmarkTask Base;
@@ -45,29 +34,26 @@ class VectorAppendBenchmark: public SPBenchmarkTask {
 	typedef typename MapCtr::ID										ID;
 
 
-	Allocator* allocator_;
-	MapCtr* map_;
+	Allocator* 	allocator_;
+	MapCtr* 	map_;
 
+	Int 		memory_size;
 
 
 public:
 
 	VectorAppendBenchmark():
-		SPBenchmarkTask(new Params())
+		SPBenchmarkTask("VectorAppend"), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		MapCtr::Init();
+
+		Add("memory_size", memory_size);
 	}
 
 	virtual ~VectorAppendBenchmark() throw() {}
 
-	Int GetSetSize() const
-	{
-		Int time = this->GetIteration();
-		return 1 << time;
-	}
-
-	virtual void Prepare(ostream& out)
+	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ 	= new Allocator();
 		map_ 		= new MapCtr(*allocator_, 1, true);
@@ -82,31 +68,29 @@ public:
 	}
 
 
-	virtual void Benchmark(BenchmarkResult& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Params* params = GetParameters<Params>();
-
-		Int size = GetSetSize();
+		Int size = params.x();
 
 		auto i = map_->End();
 
-		ArrayData data(size);
+		BigInt total = 0;
 
-		for (Int c = 0; c < params->max_size / size; c++)
+		ArrayData data(size, malloc(size), true);
+
+		while (total < memory_size)
 		{
 			i.Insert(data);
+
+			total += data.size();
 		}
-
-		result.x() 			= size;
-
-		result.operations() = params->max_size / size;
 
 		allocator_->rollback();
 	}
 
 	virtual String GetGraphName()
 	{
-		return String("Memoria VectorMap Append");
+		return "Memoria Vector Append";
 	}
 };
 

@@ -9,36 +9,7 @@
 #include <memoria/tools/cmdline.hpp>
 #include <memoria/memoria.hpp>
 
-
-#include "packed_tree/pset_find.hpp"
-
-#include "stl/stlset_find.hpp"
-#include "stl/stlset_scan.hpp"
-#include "stl/stluset_find.hpp"
-
-#include "vector/vector_read.hpp"
-#include "vector/vector_sequential_read.hpp"
-#include "vector/stl_vector_read.hpp"
-
-#include "vector/vector_write.hpp"
-#include "vector/vector_insert_batch.hpp"
-#include "vector/vector_append.hpp"
-#include "vector/stl_vector_write.hpp"
-
-#include "misc/memmove.hpp"
-
-#include "map/set_find.hpp"
-#include "map/set_scan.hpp"
-#include "map/set_append.hpp"
-#include "map/set_create_batch.hpp"
-#include "map/set_insert.hpp"
-#include "map/set_insert_batch.hpp"
-
-#include "vector_map/vector_map_random_read.hpp"
-#include "vector_map/vector_map_random_insert.hpp"
-#include "vector_map/vector_map_sequential_read.hpp"
-#include "vector_map/vector_map_append.hpp"
-
+#include "benchmark_groups.hpp"
 
 #include <iostream>
 
@@ -72,9 +43,6 @@ int main(int argc, const char** argv, const char** envp)
 
 	SmallCtrTypeFactory::Factory<Root>::Type::Init();
 
-
-	Byte* buffer = NULL;
-
 	try {
 		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::NONE);
 
@@ -93,102 +61,21 @@ int main(int argc, const char** argv, const char** envp)
 			GetBIRandom();
 		}
 
-		BenchmarkRunner runner;
+		MemoriaTaskRunner runner;
 
 		runner.SetRunCount(cmd_line.GetCount());
 
 		// add tasks to the runner;
 
-		runner.BeginGroup(new BenchmarkGroup("PSet","Packed Set performance, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
-		runner.RegisterBenchmark(new PSetBenchmark<2>(buffer));
-		runner.RegisterBenchmark(new PSetBenchmark<4>(buffer));
-		runner.RegisterBenchmark(new PSetBenchmark<8>(buffer));
-		runner.RegisterBenchmark(new PSetBenchmark<16>(buffer));
-		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer));
-		runner.RegisterBenchmark(new PSetBenchmark<64>(buffer));
-		runner.EndGroup();
 
-
-		runner.BeginGroup(new BenchmarkGroup("PSetStlMem", "Performance of slt::set and Packed Set within the same memory, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
-		runner.RegisterBenchmark(new PSetBenchmark<2>(buffer));
-		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer));
-		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::MEMORY));
-		runner.EndGroup();
-
-		runner.BeginGroup(new BenchmarkGroup("PUSetStlMem", "Performance of slt::unordered_set and Packed Set within the same memory, 1 million reads", "Memory Size, Kb", "Execution Time, ms"));
-		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer));
-		//runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::MEMORY));
-		runner.EndGroup();
-
-		runner.BeginGroup(new BenchmarkGroup("PSetStlCnt", "Performance of stl::set and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer, true));
-		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
-		runner.EndGroup();
-
-		runner.BeginGroup(new BenchmarkGroup("PUSetStlCnt", "Performance of stl::unordered_set and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new PSetBenchmark<32>(buffer, true));
-		runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::COUNT));
-		runner.EndGroup();
-
-
-		runner.BeginGroup(new BenchmarkGroup("Set", "Performance of memoria::set<BigInt> and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new SetBenchmark(true));
-//		runner.RegisterBenchmark(new SetBenchmark(false));
-//		runner.RegisterBenchmark(new PSetBenchmark<16>(buffer, true));
-//		runner.RegisterBenchmark(new StlSetBenchmark(StlSetBenchmark::COUNT));
-		runner.EndGroup();
-
-		runner.BeginGroup(new BenchmarkGroup("Set.Append", "Performance of memoria::Set<BigInt>,\\n1 million appends", "Number of Elements", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new SetAppendBenchmark());
-//		runner.RegisterBenchmark(new SetAppendBatchBenchmark());
-		runner.EndGroup();
-
-		runner.BeginGroup(new BenchmarkGroup("Set.Insert", "Performance of memoria::Set<BigInt>,\\n1 million insertions", "Number of Elements", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new SetInsertBatchBenchmark());
-		runner.EndGroup();
-
-
-		runner.BeginGroup(new BenchmarkGroup("SetScan", "Performance of memoria::Set<BigInt> Linear Scan, 1 million reads", "Number of Elements", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new SetScanBenchmark(true));
-		runner.RegisterBenchmark(new StlSetScanBenchmark(StlSetScanBenchmark::COUNT));
-		//runner.RegisterBenchmark(new SetScanBenchmark(false));
-		runner.EndGroup();
-
-//		runner.BeginGroup(new BenchmarkGroup("StlSetScan", "Performance of std::set<BigInt> Linear Scan, 1 million reads", "Number of Elements", "Execution Time, ms", 10));
-//		runner.RegisterBenchmark(new StlSetScanBenchmark(StlSetScanBenchmark::COUNT));
-//		runner.EndGroup();
-
-
-		runner.BeginGroup(new BenchmarkGroup("Vector.Read", "Performance of memoria::Vector<BigInt> and Packed Set with the same number of elements,\\n1 million reads", "Number of Elements", "Execution Time, ms", 10));
-//		runner.RegisterBenchmark(new VectorReadBenchmark());
-		runner.RegisterBenchmark(new VectorSequentialReadBenchmark());
-		//runner.RegisterBenchmark(new SetBenchmark(true));
-		//runner.RegisterBenchmark(new StlVectorReadBenchmark());
-		//runner.RegisterBenchmark(new StlUSetBenchmark(StlUSetBenchmark::COUNT));
-		runner.EndGroup();
-
-		runner.BeginGroup(new BenchmarkGroup("Vector.Write", "Performance of memoria::Vector<BigInt> and Packed Set with the same number of elements,\\n1 million writes", "Number of Elements", "Execution Time, ms", 10));
-//		runner.RegisterBenchmark(new VectorWriteBenchmark());
-//		runner.RegisterBenchmark(new VectorAppendBenchmark());
-//		runner.RegisterBenchmark(new StlVectorWriteBenchmark());
-		runner.RegisterBenchmark(new VectorInsertBatchBenchmark());
-		runner.EndGroup();
-
-
-		runner.BeginGroup(new BenchmarkGroup("Memmove", "Performance of memmove(), 1 million moves", "Block Size, Kb", "Execution Time, ms", 10));
-		runner.RegisterBenchmark(new MemmoveBenchmark());
-		runner.EndGroup();
-
-
-		runner.BeginGroup(new BenchmarkGroup("VectorMap.Read", "Performance of VectorMap, 1 million reads", "Number Of Elements", "Execution Time, ms", 10));
-//		runner.RegisterBenchmark(new VectorMapRandomReadBenchmark());
-		runner.RegisterBenchmark(new VectorMapSequentialReadBenchmark());
-		runner.EndGroup();
-
-		runner.BeginGroup(new BenchmarkGroup("VectorMap.Update", "Performance of VectorMap, 1 million writes", "Number Of Elements", "Execution Time, ms", 10));
-//		runner.RegisterBenchmark(new VectorMapAppendBenchmark());
-		runner.RegisterBenchmark(new VectorMapRandomInsertBenchmark());
-		runner.EndGroup();
+		runner.RegisterTask(new PackedSetMemGraph());
+		runner.RegisterTask(new PackedSetSizeGraph());
+		runner.RegisterTask(new PackedSetStlSetMemGraph());
+		runner.RegisterTask(new PackedSetStlSetSizeGraph());
+		runner.RegisterTask(new PackedSetStlUSetSizeGraph());
+		runner.RegisterTask(new ScanSpeedGraph());
+		runner.RegisterTask(new MemmoveGraph());
+		runner.RegisterTask(new TestGraph());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
@@ -212,34 +99,34 @@ int main(int argc, const char** argv, const char** envp)
 
 			String default_output_folder = cmd_line.GetImageName()+".out";
 
-			const char* output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder.c_str();
+			String output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder;
 
-			bool clear = cmd_line.GetConfigurator().GetValue<bool>("clear", true);
+//			bool clear = cmd_line.GetConfigurator().GetValue<bool>("clear", true);
 
-			File outf(output_folder);
-			if (outf.IsExists() && clear)
-			{
-				if (outf.IsDirectory())
-				{
-					if (!outf.DelTree())
-					{
-						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
-					}
-				}
-				else if (!outf.Delete())
-				{
-					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
-				}
-			}
-
-			outf.MkDirs();
+//			File outf(output_folder);
+//			if (outf.IsExists() && clear)
+//			{
+//				if (outf.IsDirectory())
+//				{
+//					if (!outf.DelTree())
+//					{
+//						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
+//					}
+//				}
+//				else if (!outf.Delete())
+//				{
+//					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
+//				}
+//			}
+//
+//			outf.MkDirs();
 
 			runner.SetOutput(output_folder);
 
-			Int failed = runner.Run(cout);
+			runner.Run();
 			cout<<"Done..."<<endl;
 
-			return failed;
+			return 0;
 		}
 	}
 	catch (MemoriaException e)

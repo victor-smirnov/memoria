@@ -7,12 +7,7 @@
 #ifndef MEMORIA_BENCHMARKS_VECTOR_MAP_VECTOR_MAP_SEQUENTIAL_READ_HPP_
 #define MEMORIA_BENCHMARKS_VECTOR_MAP_VECTOR_MAP_SEQUENTIAL_READ_HPP_
 
-#include <memoria/tools/benchmarks.hpp>
-#include <memoria/tools/tools.hpp>
-
-#include <memoria/prototypes/btree/tools.hpp>
-
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include "../benchmarks_inc.hpp"
 
 #include <malloc.h>
 #include <memory>
@@ -25,16 +20,6 @@ using namespace std;
 
 
 class VectorMapSequentialReadBenchmark: public SPBenchmarkTask {
-
-
-	struct Params: public BenchmarkParams {
-		Int iterations;
-
-		Params(): BenchmarkParams("SequentialRead")
-		{
-			Add("iterations", iterations, 1*1024*1024);
-		}
-	};
 
 
 	typedef SPBenchmarkTask Base;
@@ -51,12 +36,12 @@ class VectorMapSequentialReadBenchmark: public SPBenchmarkTask {
 	Allocator* allocator_;
 	Ctr* ctr_;
 
-	volatile Int result_;
+	Int result_;
 
 public:
 
 	VectorMapSequentialReadBenchmark():
-		SPBenchmarkTask(new Params())
+		SPBenchmarkTask("SequentialRead")
 	{
 		RootCtr::Init();
 		Ctr::Init();
@@ -64,17 +49,11 @@ public:
 
 	virtual ~VectorMapSequentialReadBenchmark() throw() {}
 
-	Int GetSetSize() const
-	{
-		Int time = this->GetIteration();
-		return (1024 * (1 << time))/8;
-	}
-
-	virtual void Prepare(ostream& out)
+	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ = new Allocator();
 
-		Int size = GetSetSize();
+		Int size = params.x();
 
 		String resource_name = "VectorMap."+ToString(size)+".dump";
 
@@ -112,26 +91,20 @@ public:
 		delete allocator_;
 	}
 
-	virtual void Benchmark(BenchmarkResult& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Params* params = GetParameters<Params>();
-
 		Byte array[MAX_DATA_SIZE];
 		ArrayData data(sizeof(array), array);
 
-		result.x() 			= ctr_->Count();
-
 		Iterator iter = ctr_->begin();
 
-		for (Int c = 0; c < params->iterations;)
+		for (Int c = 0; c < params.operations();)
 		{
-			for (auto i = iter; i != ctr_->end() && c < params->iterations; i++, c++)
+			for (auto i = iter; i != ctr_->end() && c < params.operations(); i++, c++)
 			{
 				i.Read(data);
 			}
 		}
-
-		result.operations() = params->iterations;
 	}
 
 	virtual String GetGraphName()

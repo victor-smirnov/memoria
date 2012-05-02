@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BENCHMARKS_VECTOR_MAP_VECTOR_MAP_RANDOM_READ_HPP_
-#define MEMORIA_BENCHMARKS_VECTOR_MAP_VECTOR_MAP_RANDOM_READ_HPP_
+#ifndef MEMORIA_BENCHMARKS_SET_FIND_HPP_
+#define MEMORIA_BENCHMARKS_SET_FIND_HPP_
 
 #include "../benchmarks_inc.hpp"
 
@@ -18,8 +18,8 @@ using namespace std;
 
 
 
+class SetBenchmark: public SPBenchmarkTask {
 
-class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -27,13 +27,18 @@ class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
 	typedef typename Base::Profile 		Profile;
 
 	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<VectorMap>::Type 	Ctr;
-	typedef typename Ctr::Iterator									Iterator;
+	typedef typename SmallCtrTypeFactory::Factory<Set1>::Type 		SetCtr;
+	typedef typename SetCtr::Iterator								Iterator;
+	typedef typename SetCtr::ID										ID;
+	typedef typename SetCtr::Accumulator							Accumulator;
 
-	static const Int MAX_DATA_SIZE									= 256;
+
+	typedef typename SetCtr::Key									Key;
+	typedef typename SetCtr::Value									Value;
+
 
 	Allocator* allocator_;
-	Ctr* ctr_;
+	SetCtr* set_;
 
 	Int result_;
 
@@ -41,14 +46,19 @@ class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorMapRandomReadBenchmark():
-		SPBenchmarkTask("RandomRead")
+	SetBenchmark():
+		SPBenchmarkTask("FindRandom")
 	{
 		RootCtr::Init();
-		Ctr::Init();
+		SetCtr::Init();
 	}
 
-	virtual ~VectorMapRandomReadBenchmark() throw() {}
+	virtual ~SetBenchmark() throw() {}
+
+	Key key(Int c) const
+	{
+		return c * 2 + 1;
+	}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -56,29 +66,27 @@ public:
 
 		Int size = params.x();
 
-		String resource_name = "VectorMap."+ToString(size)+".dump";
+		String resource_name = "allocator."+ToString(size)+".dump";
 
 		if (IsResourceExists(resource_name))
 		{
 			LoadResource(*allocator_, resource_name);
 
-			ctr_ = new Ctr(*allocator_, 1);
+			set_ = new SetCtr(*allocator_, 1);
 		}
 		else {
-			ctr_ = new Ctr(*allocator_, 1, true);
+			set_ = new SetCtr(*allocator_, 1, true);
 
-			Byte array[MAX_DATA_SIZE];
+			Iterator i = set_->End();
 
 			for (Int c = 0; c < size; c++)
 			{
-				for (Int d = 0; d < 128; d++)
-				{
-					array[d] = GetRandom(256);
-				}
+				Accumulator keys;
+				keys[0] = key(c);
 
-				Iterator i = ctr_->Create();
+				set_->Insert(i, keys);
 
-				i = ArrayData(GetRandom(sizeof(array)), array);
+				i++;
 			}
 
 			allocator_->commit();
@@ -88,31 +96,31 @@ public:
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			rd_array_[c] = GetRandom(size - 1) + 1;
+			rd_array_[c] = key(GetRandom(size));
 		}
 	}
 
 	virtual void Release(ostream& out)
 	{
-		delete ctr_;
+		delete set_;
 		delete allocator_;
 		delete[] rd_array_;
 	}
 
 	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Byte array[MAX_DATA_SIZE];
-		ArrayData data(sizeof(array), array);
-
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			ctr_->Find(rd_array_[c]).Read(data);
+			if (!set_->Contains(rd_array_[c]))
+			{
+				cout<<"MISS!!!"<<endl; // this should't happen
+			}
 		}
 	}
 
 	virtual String GetGraphName()
 	{
-		return "Memoria Vector<BigInt>";
+		return "Memoria Set<BigInt>";
 	}
 };
 

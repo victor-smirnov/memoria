@@ -47,9 +47,11 @@ struct VectorMapParams: public TestTaskParams {
 	Int max_block_size_;
 
 public:
-	VectorMapParams(): TestTaskParams("VectorMap")
+	VectorMapParams():
+		TestTaskParams("VectorMap"),
+		max_block_size_(1024*40)
 	{
-		Add("max_block_size", max_block_size_, 1024*40);
+		Add("max_block_size", max_block_size_);
 	}
 };
 

@@ -7,12 +7,7 @@
 #ifndef MEMORIA_BENCHMARKS_VECTOR_INSERT_BATCH_HPP_
 #define MEMORIA_BENCHMARKS_VECTOR_INSERT_BATCH_HPP_
 
-#include <memoria/tools/benchmarks.hpp>
-#include <memoria/tools/tools.hpp>
-
-#include <memoria/prototypes/btree/tools.hpp>
-
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include "../benchmarks_inc.hpp"
 
 #include <malloc.h>
 #include <memory>
@@ -22,14 +17,9 @@ namespace memoria {
 using namespace std;
 
 class VectorInsertBatchBenchmark: public SPBenchmarkTask {
+public:
 
-	struct Params: public BenchmarkParams {
-		Int max_size;
-
-		Params(): BenchmarkParams("InsertBatch") {
-			Add("max_size", max_size, 256*1024*1024);
-		}
-	};
+	Int max_size;
 
 
 	typedef SPBenchmarkTask Base;
@@ -51,21 +41,17 @@ class VectorInsertBatchBenchmark: public SPBenchmarkTask {
 public:
 
 	VectorInsertBatchBenchmark():
-		SPBenchmarkTask(new Params())
+		SPBenchmarkTask("InsertBatch"), max_size(256*1024*1024)
 	{
 		RootCtr::Init();
 		MapCtr::Init();
+
+		Add("max_size", max_size);
 	}
 
 	virtual ~VectorInsertBatchBenchmark() throw() {}
 
-	Int GetSetSize() const
-	{
-		Int time = this->GetIteration();
-		return 1 << time;
-	}
-
-	virtual void Prepare(ostream& out)
+	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ 	= new Allocator();
 		map_ 		= new MapCtr(*allocator_, 1, true);
@@ -80,15 +66,13 @@ public:
 	}
 
 
-	virtual void Benchmark(BenchmarkResult& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Params* params = GetParameters<Params>();
+		Int size = params.x();
 
-		Int size = GetSetSize();
+		ArrayData data(size, malloc(size), true);
 
-		ArrayData data(size);
-
-		Int max = params->max_size / size;
+		Int max = this->max_size / size;
 
 		Int total = 0;
 
@@ -101,16 +85,12 @@ public:
 			total += size;
 		}
 
-		result.x() 			= size;
-
-		result.operations() = size;
-
 		allocator_->rollback();
 	}
 
 	virtual String GetGraphName()
 	{
-		return String("Memoria Vector InsertBatch");
+		return "Memoria Vector InsertBatch";
 	}
 };
 

@@ -21,109 +21,6 @@ namespace memoria {
 
 using namespace std;
 
-class TestReplayParams: public ParametersSet {
-
-	String name_;
-	String task_;
-
-	String dump_name_;
-
-	bool replay_;
-
-public:
-	TestReplayParams(StringRef name = "", StringRef task = "", StringRef prefix = ""):ParametersSet(prefix), name_(name), task_(task), replay_(false)
-	{
-		Add("name", name_);
-		Add("task", task_);
-		Add("dumpName", dump_name_);
-	}
-
-	virtual ~TestReplayParams() {}
-
-	StringRef GetName() const
-	{
-		return name_;
-	}
-
-	void SetName(StringRef name)
-	{
-		name_ = name;
-	}
-
-	StringRef GetTask() const
-	{
-		return task_;
-	}
-
-	void SetTask(StringRef task)
-	{
-		task_ = task;
-	}
-
-	StringRef GetDumpName() const
-	{
-		return dump_name_;
-	}
-
-	void SetDumpName(String file_name)
-	{
-		this->dump_name_ = file_name;
-	}
-
-	bool IsReplay() const
-	{
-		return replay_;
-	}
-
-	void SetReplay(bool replay)
-	{
-		replay_ = replay;
-	}
-};
-
-class TestTask: public Task {
-
-public:
-	TestTask(TaskParametersSet* parameters): Task(parameters) {}
-	virtual ~TestTask() throw () {}
-
-	virtual TestReplayParams* ReadTestStep(Configurator* cfg) const;
-
-	virtual void 			Replay(ostream& out, Configurator* cfg);
-	virtual void 			Configure(TestReplayParams* params) const;
-
-
-	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
-	virtual void 			Run(ostream& out)											= 0;
-	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
-
-	virtual void StoreProperties(const TestReplayParams* params, StringRef file_name) const
-	{
-		fstream file;
-		file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
-
-		params->DumpProperties(file);
-
-		file.close();
-	}
-
-	virtual void Store(TestReplayParams* params) const
-	{
-		Configure(params);
-
-		String props_name = GetPropertiesFileName(params);
-		StoreProperties(params, props_name);
-	}
-
-	virtual String GetPropertiesFileName(const TestReplayParams* params, StringRef infix = "") const
-	{
-		return GetResourcePath("Replay"+infix+".properties");
-	}
-
-public:
-
-	String GetFileName(StringRef name) const;
-};
 
 
 template <typename Profile_, typename Allocator_>
@@ -188,16 +85,16 @@ public:
 
 };
 
-
-class SPTestTask: public ProfileTestTask<SmallProfile<>, SmallInMemAllocator> {
+template <typename T = EmptyType>
+class SPTestTaskT: public ProfileTestTask<SmallProfile<>, SmallInMemAllocator> {
 
 	typedef ProfileTestTask<SmallProfile<>, SmallInMemAllocator> Base;
 
 	Int check_count_;
 
 public:
-	SPTestTask(TaskParametersSet* parameters): Base(parameters), check_count_(0) {}
-	virtual ~SPTestTask() throw () {};
+	SPTestTaskT(TaskParametersSet* parameters): Base(parameters), check_count_(0) {}
+	virtual ~SPTestTaskT() throw () {};
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
 	virtual void 			Run(ostream& out)											= 0;
@@ -246,14 +143,9 @@ public:
 	}
 };
 
+typedef SPTestTaskT<> SPTestTask;
 
-class TestRunner: public TaskRunner {
-public:
-	TestRunner(): TaskRunner() 		{}
-	virtual ~TestRunner() 			{}
 
-	void Replay(ostream& out, StringRef replay_file);
-};
 
 
 }

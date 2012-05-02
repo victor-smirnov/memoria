@@ -28,7 +28,7 @@ void ParametersSet::DumpProperties(std::ostream& os) const
 }
 
 
-void ParametersSet::Put(AbstractParamDescriptor* descr)
+AbstractParamDescriptor* ParametersSet::Put(AbstractParamDescriptor* descr)
 {
 	for (UInt c = 0; c < descriptors_.size(); c++)
 	{
@@ -36,11 +36,13 @@ void ParametersSet::Put(AbstractParamDescriptor* descr)
 		{
 			delete descriptors_[c];
 			descriptors_[c] = descr;
-			return;
+			return descr;
 		}
 	}
 
 	descriptors_.push_back(descr);
+
+	return descr;
 }
 
 

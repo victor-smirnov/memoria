@@ -51,11 +51,15 @@ public:
 	Int 	element_size_;
 
 public:
-	VectorParams(): TestTaskParams("Vector")
+	VectorParams():
+		TestTaskParams("Vector"),
+		max_block_size_(1024*40),
+		element_size_(1)
 	{
-		Add("size", size_, 						1024*1024*16);
-		Add("max_block_size", max_block_size_, 	1024*40);
-		Add("element_size", element_size_,		1);
+		size_ = 1024*1024*16;
+
+		Add("max_block_size", max_block_size_);
+		Add("element_size", element_size_);
 	}
 };
 

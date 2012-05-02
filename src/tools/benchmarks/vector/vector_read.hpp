@@ -7,12 +7,7 @@
 #ifndef MEMORIA_BENCHMARKS_VECTOR_VECTOR_READ_HPP_
 #define MEMORIA_BENCHMARKS_VECTOR_VECTOR_READ_HPP_
 
-#include <memoria/tools/benchmarks.hpp>
-#include <memoria/tools/tools.hpp>
-
-#include <memoria/prototypes/btree/tools.hpp>
-
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include "../benchmarks_inc.hpp"
 
 #include <malloc.h>
 #include <memory>
@@ -24,11 +19,6 @@ using namespace std;
 
 
 class VectorReadBenchmark: public SPBenchmarkTask {
-
-	struct Params: public BenchmarkParams {
-		Params(): BenchmarkParams("VectorRead") {}
-	};
-
 
 	typedef SPBenchmarkTask Base;
 
@@ -49,14 +39,14 @@ class VectorReadBenchmark: public SPBenchmarkTask {
 	Allocator* allocator_;
 	VectorCtr* ctr_;
 
-	volatile Int result_;
+	Int result_;
 
 	Int* rd_array_;
 
 public:
 
 	VectorReadBenchmark():
-		SPBenchmarkTask(new Params())
+		SPBenchmarkTask("Read")
 	{
 		RootCtr::Init();
 		VectorCtr::Init();
@@ -64,19 +54,11 @@ public:
 
 	virtual ~VectorReadBenchmark() throw() {}
 
-	Int GetSetSize() const
+	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
-		Int time = this->GetIteration();
-		return (1024 * (1 << time))/8;
-	}
-
-	virtual void Prepare(ostream& out)
-	{
-		Params* params = GetParameters<Params>();
-
 		allocator_ = new Allocator();
 
-		Int size = GetSetSize();
+		Int size = params.x();
 
 		ctr_ = new VectorCtr(*allocator_);
 
@@ -95,8 +77,8 @@ public:
 			i.Insert(ArrayData(sizeof(array), array));
 		}
 
-		rd_array_ = new Int[params->iterations];
-		for (Int c = 0; c < params->iterations; c++)
+		rd_array_ = new Int[params.operations()];
+		for (Int c = 0; c < params.operations(); c++)
 		{
 			rd_array_[c] = GetRandom(size);
 		}
@@ -109,23 +91,17 @@ public:
 		delete[] rd_array_;
 	}
 
-	virtual void Benchmark(BenchmarkResult& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Params* params = GetParameters<Params>();
-
-		for (Int c = 0; c < params->iterations; c++)
+		for (Int c = 0; c < params.operations(); c++)
 		{
 			ctr_->Seek(rd_array_[c]);
 		}
-
-		result.x() 			= ctr_->Size();
-
-		result.operations() = params->iterations;
 	}
 
 	virtual String GetGraphName()
 	{
-		return "Memoria Vector<BigInt>";
+		return "Memoria Vector<BigInt> random Seek()";
 	}
 };
 

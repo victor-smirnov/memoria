@@ -46,9 +46,9 @@ class TemplateParams: public TaskParametersSet {
 	Int size_;
 
 public:
-	TemplateParams(): TaskParametersSet("Template")
+	TemplateParams(): TaskParametersSet("Template"), size_(1024)
 	{
-		Add("size", size_, 1024);
+		Add("size", size_);
 		SetEnabled(false);
 	}
 

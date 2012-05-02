@@ -242,6 +242,12 @@ public:
 		return GetMaxSize(block_size);
 	}
 
+	static Int GetMemoryBlockSizeFor(Int max)
+	{
+		Int index_size = GetIndexSize(max);
+		return (index_size * sizeof(IndexKey) + max * sizeof(Key)) * Blocks + max * GetValueSize();
+	}
+
 	Byte* memory_block() {
 		return memory_block_;
 	}

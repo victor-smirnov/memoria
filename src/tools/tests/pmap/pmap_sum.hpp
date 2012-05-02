@@ -43,10 +43,13 @@ struct PMapSumParams: public TestTaskParams {
 	Int block_size;
 	Int max_size;
 
-	PMapSumParams(Int BranchingFactor): TestTaskParams("PMap.Sum."+ToString(BranchingFactor))
+	PMapSumParams(Int BranchingFactor):
+		TestTaskParams("PMap.Sum."+ToString(BranchingFactor)),
+		block_size(16384),
+		max_size(0)
 	{
-		Add("block_size", block_size, 16384);
-		Add("max_size", max_size, 0);
+		Add("block_size", block_size);
+		Add("max_size", max_size);
 	}
 };
 

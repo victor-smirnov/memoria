@@ -7,12 +7,7 @@
 #ifndef MEMORIA_BENCHMARKS_MISC_STL_MEMMOVE_HPP_
 #define MEMORIA_BENCHMARKS_MISC_STL_MEMMOVE_HPP_
 
-#include <memoria/tools/benchmarks.hpp>
-#include <memoria/tools/tools.hpp>
-
-#include <memoria/prototypes/btree/tools.hpp>
-
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include "../benchmarks_inc.hpp"
 
 #include <malloc.h>
 #include <memory>
@@ -25,44 +20,29 @@ using namespace std;
 
 class MemmoveBenchmark: public BenchmarkTask {
 
-	struct Params: public BenchmarkParams {
-		Params(): BenchmarkParams("MemMove"){}
-	};
-
-
-	typedef BenchmarkTask Base;
-
 	Byte* 	array_;
-	Int		size_;
 	Int* 	rd_array_;
 
 public:
 
 	MemmoveBenchmark():
-		BenchmarkTask(new Params())
+		BenchmarkTask("MemMove")
 	{
+		average	= 5;
 	}
 
 	virtual ~MemmoveBenchmark() throw() {}
 
-	Int GetSetSize() const
+	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
-		Int time = this->GetIteration();
-		return (1024 * (1 << time)) * 4;
-	}
+		Int size = params.x();
 
-	virtual void Prepare(ostream& out)
-	{
-		size_ = GetSetSize();
+		array_ = T2T<Byte*>(malloc(size));
 
-		array_ = T2T<Byte*>(malloc(size_));
-
-		Params* params = GetParameters<Params>();
-
-		rd_array_ = new Int[params->iterations];
-		for (Int c = 0; c < params->iterations; c++)
+		rd_array_ = new Int[params.operations()];
+		for (Int c = 0; c < params.operations(); c++)
 		{
-			Int addr = GetRandom(size_ - 16);
+			Int addr = GetRandom(size - 16);
 
 			if ((addr & 4095) > 4080)
 			{
@@ -79,32 +59,26 @@ public:
 		delete[] rd_array_;
 	}
 
-	virtual void Benchmark(BenchmarkResult& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Params* params = GetParameters<Params>();
+		BigInt 	total 	= 0;
 
-		result.x() 			= size_/1024;
-
-		BigInt total = 0;
-
-		for (Int c = 0; c < params->iterations; c++)
+		for (Int c = 0; c < params.operations(); c++)
 		{
 			Int addr = rd_array_[c];
-			Int size = 4096 - (addr & 0xFFF);
+			Int size = 4096 - (addr & 0xFFF) - 8;
 
 			CopyBuffer(array_ + addr, array_ + addr + 8, size);
 
 			total += size;
 		}
 
-		out<<"amount: "<<total/1024/1024<<endl;
-
-		result.operations() = params->iterations;
+		out<<"size: "<<params.x()/params.xunit()<<" amount: "<<total/1024/1024<<endl;
 	}
 
 	virtual String GetGraphName()
 	{
-		return "memmove()";
+		return "memmove() performance";
 	}
 };
 

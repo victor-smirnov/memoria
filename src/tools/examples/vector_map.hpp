@@ -6,10 +6,7 @@
 #ifndef MEMORIA_EXAMPLES_VECTOR_MAP_HPP_
 #define MEMORIA_EXAMPLES_VECTOR_MAP_HPP_
 
-#include <memoria/memoria.hpp>
-
-#include <memoria/tools/examples.hpp>
-#include <memoria/tools/tools.hpp>
+#include "examples.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -18,10 +15,6 @@
 
 namespace memoria {
 
-struct VectorMapParams: public ExampleTaskParams {
-
-	VectorMapParams(): ExampleTaskParams("VectorMap") {}
-};
 
 
 class VectorMapExample: public SPExampleTask {
@@ -34,7 +27,7 @@ private:
 public:
 
 	VectorMapExample() :
-		SPExampleTask(new VectorMapParams())
+		SPExampleTask("VectorMap")
 	{
 		MapCtr::Init();
 	}
@@ -47,12 +40,11 @@ public:
 	{
 		DefaultLogHandlerImpl logHandler(out);
 
-		CreateCtrParams* task_params = GetParameters<CreateCtrParams>();
 		{
-			if (task_params->btree_random_airity_)
+			if (this->btree_random_airity_)
 			{
-				task_params->btree_branching_ = 8 + GetRandom(100);
-				out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
+				this->btree_branching_ = 8 + GetRandom(100);
+				out<<"BTree Branching: "<<this->btree_branching_<<endl;
 			}
 
 			Allocator allocator;

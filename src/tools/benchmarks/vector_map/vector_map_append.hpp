@@ -7,12 +7,7 @@
 #ifndef MEMORIA_BENCHMARKS_VECTOR_MAP_APPEND_HPP_
 #define MEMORIA_BENCHMARKS_VECTOR_MAP_APPEND_HPP_
 
-#include <memoria/tools/benchmarks.hpp>
-#include <memoria/tools/tools.hpp>
-
-#include <memoria/prototypes/btree/tools.hpp>
-
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include "../benchmarks_inc.hpp"
 
 #include <malloc.h>
 #include <memory>
@@ -25,11 +20,6 @@ using namespace std;
 
 class VectorMapAppendBenchmark: public SPBenchmarkTask {
 
-	struct Params: public BenchmarkParams {
-		Params(): BenchmarkParams("Append") {}
-	};
-
-
 	typedef SPBenchmarkTask Base;
 
 	typedef typename Base::Allocator 	Allocator;
@@ -41,29 +31,26 @@ class VectorMapAppendBenchmark: public SPBenchmarkTask {
 	typedef typename MapCtr::ID										ID;
 
 
-	Allocator* allocator_;
-	MapCtr* map_;
+	Allocator* 	allocator_;
+	MapCtr* 	map_;
 
-
+	BigInt 		memory_size;
 
 public:
 
 	VectorMapAppendBenchmark():
-		SPBenchmarkTask(new Params())
+		SPBenchmarkTask("VectorMapAppend"), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		MapCtr::Init();
+
+		Add("memory_size", memory_size);
 	}
 
 	virtual ~VectorMapAppendBenchmark() throw() {}
 
-	Int GetSetSize() const
-	{
-		Int time = this->GetIteration();
-		return (1024 * ((1) << time));
-	}
 
-	virtual void Prepare(ostream& out)
+	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ = new Allocator();
 
@@ -77,31 +64,32 @@ public:
 	}
 
 
-	virtual void Benchmark(BenchmarkResult& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Params* params = GetParameters<Params>();
+		Int size = params.x();
 
-		Int size = GetSetSize();
+		ArrayData data(size, malloc(size), true);
 
-		Byte buffer[256];
+		BigInt total = 0;
 
 		auto i = map_->End();
 
-		for (Int c = 0; c < size; c++)
+		while (total < memory_size)
 		{
 			map_->CreateNew(i);
-			i.Insert(ArrayData(256, buffer));
+			i.Insert(data);
 			i++;
+
+			total += data.size();
 		}
 
-		result.x() 			= map_->set().GetSize();
+		allocator_->rollback();
 
-		result.operations() = params->iterations;
 	}
 
 	virtual String GetGraphName()
 	{
-		return String("Memoria VectorMap Append");
+		return "Memoria VectorMap Append";
 	}
 };
 

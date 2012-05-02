@@ -7,12 +7,7 @@
 #ifndef MEMORIA_BENCHMARKS_VECTOR_STL_VECTOR_WRITE_HPP_
 #define MEMORIA_BENCHMARKS_VECTOR_STL_VECTOR_WRITE_HPP_
 
-#include <memoria/tools/benchmarks.hpp>
-#include <memoria/tools/tools.hpp>
-
-#include <memoria/prototypes/btree/tools.hpp>
-
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include "../benchmarks_inc.hpp"
 
 #include <malloc.h>
 #include <memory>
@@ -22,16 +17,9 @@ namespace memoria {
 using namespace std;
 
 
-
-
 class StlVectorWriteBenchmark: public BenchmarkTask {
 
 	typedef BenchmarkTask Base;
-
-	struct Params: public BenchmarkParams {
-		Params(): BenchmarkParams("StlVectorWrite"){}
-	};
-
 
 	typedef std::vector<BigInt> VectorCtr;
 
@@ -42,23 +30,15 @@ class StlVectorWriteBenchmark: public BenchmarkTask {
 public:
 
 	StlVectorWriteBenchmark():
-		BenchmarkTask(new Params())
+		BenchmarkTask("StlVectorInsert")
 	{
 	}
 
 	virtual ~StlVectorWriteBenchmark() throw() {}
 
-	Int GetSetSize() const
+	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
-		Int time = this->GetIteration();
-		return (1024 * (1 << time))/8;
-	}
-
-	virtual void Prepare(ostream& out)
-	{
-		Params* params = GetParameters<Params>();
-
-		Int size = GetSetSize();
+		Int size = params.x();
 
 		ctr_ = new VectorCtr();
 
@@ -68,8 +48,8 @@ public:
 			ctr_->push_back(value);
 		}
 
-		rd_array_ = new Int[params->iterations];
-		for (Int c = 0; c < params->iterations; c++)
+		rd_array_ = new Int[params.operations()];
+		for (Int c = 0; c < params.operations(); c++)
 		{
 			rd_array_[c] = GetRandom(size);
 		}
@@ -81,23 +61,17 @@ public:
 		delete[] rd_array_;
 	}
 
-	virtual void Benchmark(BenchmarkResult& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Params* params = GetParameters<Params>();
-
-		result.x() 			= ctr_->size();
-
-		for (Int c = 0; c < params->iterations; c++)
+		for (Int c = 0; c < params.operations(); c++)
 		{
 			ctr_->insert(ctr_->begin() + rd_array_[c], rd_array_[c]);
 		}
-
-		result.operations() = params->iterations;
 	}
 
 	virtual String GetGraphName()
 	{
-		return "std::vector<BigInt>";
+		return "std::vector<BigInt> Insert";
 	}
 };
 

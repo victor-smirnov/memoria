@@ -5,40 +5,222 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #include <memoria/tools/task.hpp>
-#include <memoria/tools/examples.hpp>
-#include <memoria/tools/benchmarks.hpp>
-#include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 #include <memoria/core/tools/file.hpp>
 
 #include <algorithm>
+#include <memory>
 
 namespace memoria {
 
 using namespace std;
 
 Task::~Task() throw () {
-	try {
-		delete parameters_;
-	}
-	catch (...) {
 
+}
+
+
+void Task::Configure(Configurator* cfg)
+{
+	TaskParametersSet* params = GetParameters<>();
+
+	if (constext_name_ != "")
+	{
+		params->SetPrefix(constext_name_ + "." + params->GetPrefix());
+	}
+
+	params->Process(cfg);
+}
+
+
+void Task::BuildResources()
+{
+	File output_f(output_folder_);
+
+	bool own_folder = this->own_folder;
+
+	if (!output_f.IsExists())
+	{
+		output_f.MkDirs();
+	}
+
+	String out_file_name = output_folder_ + Platform::GetFilePathSeparator() + (own_folder ? "" : GetTaskName() + ".") + "output.txt";
+
+	out_ = new fstream();
+	out_->exceptions ( fstream::failbit | fstream::badbit );
+	out_->open(out_file_name, fstream::out);
+}
+
+void Task::ReleaseResources()
+{
+	out_->close();
+	delete out_;
+}
+
+
+Int Task::Run()
+{
+	BuildResources();
+
+	bool result;
+	try {
+		Run(*out_);
+
+		(*out_)<<"PASSED"<<endl;
+		cout<<GetFullName()<<" PASSED"<<endl;
+
+		result = true;
+	}
+	catch (...)
+	{
+		(*out_)<<"FAILED"<<endl;
+		cout<<GetFullName()<<" FAILED"<<endl;
+		result = false;
+	}
+
+	ReleaseResources();
+
+	return result;
+}
+
+
+
+TaskGroup::~TaskGroup() throw ()
+{
+	try {
+		for (auto t: tasks_)
+		{
+			delete t;
+		}
+	}
+	catch (...) {}
+}
+
+void TaskGroup::Run(ostream& out)
+{
+	for (auto t: tasks_)
+	{
+		String folder;
+
+		if (t->own_folder)
+		{
+			folder = output_folder_ + Platform::GetFilePathSeparator() + t->GetTaskName();
+		}
+		else {
+			folder = output_folder_;
+		}
+
+		t->SetOutputFolder(folder);
+		t->SetIteration(1);
+		t->Run();
 	}
 }
 
+void TaskGroup::RegisterTask(Task* task)
+{
+	for (auto t: tasks_)
+	{
+		if (t->GetTaskName() == task->GetTaskName())
+		{
+			throw MemoriaException(MEMORIA_SOURCE, "Task " + task->GetTaskName()+" is already registered");
+		}
+	}
+
+	tasks_.push_back(task);
+}
+
+void TaskGroup::Configure(Configurator* cfg)
+{
+	Task::Configure(cfg);
+
+	for (auto t: tasks_)
+	{
+		t->SetContextName(this->GetFullName());
+		t->Configure(cfg);
+	}
+}
+
+void TaskGroup::BuildResources()
+{
+	Task::BuildResources();
+}
+
+void TaskGroup::ReleaseResources()
+{
+	Task::ReleaseResources();
+}
+
+
+
+Int GroupRunner::Run()
+{
+	BuildResources();
+
+	Int counter = 0;
+
+	Int run_count = GetRunCount();
+
+	for (Int c = 1; c <= run_count; c++)
+	{
+		String task_folder;
+		if (run_count > 1)
+		{
+			String folder_name = "run-" + ToString(c);
+			task_folder = output_folder_ + Platform::GetFilePathSeparator() + folder_name;
+		}
+		else {
+			task_folder = output_folder_;
+		}
+
+		File folder(task_folder);
+		if (!folder.IsExists())
+		{
+			folder.MkDirs();
+		}
+
+		for (auto t: tasks_)
+		{
+			if (t->IsEnabled())
+			{
+				String folder;
+
+				if (t->own_folder)
+				{
+					folder = task_folder + Platform::GetFilePathSeparator() + t->GetTaskName();
+				}
+				else {
+					folder = task_folder;
+				}
+
+				t->SetOutputFolder(folder);
+				t->SetIteration(c);
+				counter += t->Run();
+			}
+		}
+	}
+
+	ReleaseResources();
+
+	return counter;
+}
+
+
+
+
+
 TaskRunner::~TaskRunner()
 {
-	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
+	for (auto task_p: tasks_)
 	{
-		delete i->second;
+		delete task_p.second;
 	}
 }
 
 void TaskRunner::Configure(Configurator* cfg)
 {
-	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
+	for (auto task_p: tasks_)
 	{
-		i->second->GetParameters()->Process(cfg);
+		task_p.second->Configure(cfg);
 	}
 }
 
@@ -260,201 +442,5 @@ void TestRunner::Replay(ostream& out, StringRef replay_file)
 
 
 
-void BenchmarkTask::Run(ostream& out)
-{
-	BenchmarkParams* params = this->GetParameters<BenchmarkParams>();
-
-	BenchmarkResult sum(this->GetGraphName());
-
-	sum.runs() = params->count;
-
-	BigInt start = GetTimeInMillis();
-
-	for (Int c = 0; c < params->count; c++)
-	{
-		BenchmarkResult result(sum.name());
-		this->Benchmark(result, out);
-
-		sum += result;
-
-		sum.x() = result.x();
-	}
-
-	sum.time() = GetTimeInMillis() - start;
-
-	if (this->group_->time())
-	{
-		sum.value() = sum.time();
-	}
-	else {
-		sum.value() = sum.operations();
-	}
-
-	this->group_->results().push_back(sum);
-}
-
-
-Int BenchmarkRunner::Run(ostream& out)
-{
-	BigInt total_start = GetTimeInMillis();
-
-	Int passed = 0;
-
-	for (Int c = 0; c < GetRunCount(); c++)
-	{
-		out<<"Pass "<<(c + 1)<<" of "<<GetRunCount()<<endl;
-
-		for (auto igroup = groups_.begin(); igroup != groups_.end(); igroup++)
-		{
-			BenchmarkGroup* group = *igroup;
-
-			if (group->IsEnabled())
-			{
-				String group_folder = GetTaskOutputFolder(group->name(), c + 1);
-				group->output_folder() = group_folder;
-
-				BigInt start = GetTimeInMillis();
-
-				for (auto itask = group->tasks().begin(); itask != group->tasks().end(); itask++)
-				{
-					BenchmarkTask* task = *itask;
-
-					String out_file_name = group_folder + Platform::GetFilePathSeparator() + task->GetTaskName()+"-output.txt";
-
-					task->SetOutputFolder(group_folder);
-
-					try {
-
-						File folder(group_folder);
-						if (!folder.MkDirs())
-						{
-							throw MemoriaException(MEMORIA_SOURCE, "Can't create folder: "+group_folder);
-						}
-
-						for (Int time = 0; time <task->times(); time++)
-						{
-							if (!TaskRunner::Run(task, out_file_name, out, time))
-							{
-								break;
-							}
-						}
-					}
-					catch (fstream::failure e)
-					{
-						out << "Exception opening/writing file: "+out_file_name;
-						break;
-					}
-				}
-
-				group->duration() = GetTimeInMillis() - start;
-
-				// build gnuplot script
-
-				String gnuplot_file_name = group_folder + Platform::GetFilePathSeparator() + "gnuplot.plot";
-
-				BuildGnuplotScript(group, gnuplot_file_name);
-
-				passed++;
-			}
-		}
-	}
-
-	out<<"----------------------------------------------"<<endl;
-	for (auto i = groups_.begin(); i != groups_.end(); i++)
-	{
-		BenchmarkGroup* group = *i;
-		if (group->IsEnabled())
-		{
-			out<<"Total Time for "<<group->name()<<": "<<FormatTime(group->duration())<<endl;
-		}
-	}
-
-	out<<"Done: "<<passed<<" of "<<groups_.size()<<endl;
-
-	out<<"Total execution time: "<<(FormatTime(GetTimeInMillis() - total_start))<<endl;
-
-	return passed;
-}
-
-
-void BenchmarkRunner::BuildGnuplotScript(BenchmarkGroup* group, StringRef file_name)
-{
-	typedef vector<BenchmarkResult> 		Results;
-	typedef pair<String, Results>			GraphPair;
-
-	vector<GraphPair> graphs;
-
-	for (BenchmarkTask* task: group->tasks())
-	{
-		Results results;
-		String name = task->GetGraphName();
-
-		for (BenchmarkResult& result: group->results())
-		{
-			if (result.name() == name)
-			{
-				results.push_back(result);
-			}
-		}
-
-		graphs.push_back(GraphPair(name, results));
-	}
-
-	for (auto& graph: graphs)
-	{
-		std::sort(graph.second.begin(), graph.second.end());
-	}
-
-	fstream out_file;
-	out_file.exceptions ( fstream::failbit | fstream::badbit );
-	out_file.open(file_name, fstream::out);
-
-	out_file<<"set terminal png size "<<group->resolution()<<endl;
-	out_file<<"set output '"+group->name()+".png'"<<endl;
-	out_file<<"set title \""+group->title()+"\""<<endl;
-	out_file<<"set xlabel \""+group->xtitle()+"\""<<endl;
-	out_file<<"set ylabel \""+group->ytitle()+"\""<<endl;
-	out_file<<"set logscale x "<<group->logscale()<<endl;
-	out_file<<"set key "<<group->agenda_location()<<endl;
-
-	out_file<<"plot ";
-
-	Int cnt = 0;
-	for (auto& graph: graphs)
-	{
-		out_file<<"'-' title '"+graph.first<<"' w l";
-
-		if (cnt++ < (Int)graphs.size() - 1)
-		{
-			out_file<<", ";
-		}
-	}
-
-	out_file<<endl;
-
-	for (auto& graph: graphs)
-	{
-		for (auto& result: graph.second)
-		{
-			out_file<<result.x()<<" "<<result.plot_value()<<endl;
-		}
-
-		out_file<<"e"<<endl;
-	}
-
-	out_file.close();
-}
-
-
-void BenchmarkRunner::Configure(Configurator* cfg)
-{
-	for (auto igroup = groups_.begin(); igroup != groups_.end(); igroup++)
-	{
-		BenchmarkGroup* group = *igroup;
-		group->Process(cfg);
-	}
-
-	TaskRunner::Configure(cfg);
-}
 
 }

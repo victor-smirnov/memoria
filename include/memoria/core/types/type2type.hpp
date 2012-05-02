@@ -28,6 +28,11 @@ DstType T2T(SrcType value) {
 }
 
 template <typename DstType, typename SrcType>
+DstType T2T_S(SrcType value) {
+	return static_cast<DstType>(value);
+}
+
+template <typename DstType, typename SrcType>
 DstType P2V(SrcType value) {
 	T2TBuf<SrcType, DstType*> buf(value);
 	return *buf.dst;
