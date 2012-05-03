@@ -43,6 +43,56 @@
 
 #include "misc/memmove.hpp"
 
+
+/**
+ * Memoria benchmark suite chart list:
+ *
+ * 1. PackedSet performance (branching factor, tree size)
+ * 		- random read 				(1.1)
+ * 		- linear read 				(1.1)
+ * 		- random read: packed + stl (1.2)
+ * 		- linear read: packed + stl (1.2)
+ *
+ * 2. Memoria Set
+ * 		- random read (tree size)	(2.1)
+ * 		- linear read 				(2.1)
+ * 		- random insert				(2.2)
+ * 		- linear insert				(2.2)
+ * 		- batch create (batch size)	(2.3)
+ * 		- batch random insert		(2.4)
+ * 		- batch linear insert		(2.4)
+ * 		- commit overhead random	(2.5)
+ * 		- commit overhead linear	(2.5)
+ * 		+ multicore ?
+ *
+ * 3. Memmove performance (multicore)							(3.1)
+ *
+ * 4. Vector
+ *		- random read (small block, vector size)				(4.1)
+ *		- random read (fixed vector size, by block size)		(4.2)
+ *		- linear read (fixed vector size, by block size)		(4.2)
+ *		- random insert (fixed vector size, by block size)		(4.3)
+ *		- linear insert (fixed vector size, by block size)		(4.3)
+ *		- random remove (fixed vector size, by block size)		(4.3)
+ *		+ multicore ?
+ *
+ * 5. VectorMap
+ * 		- random read (ctr size)								(5.1)
+ * 		- random read (value size)								(5.2)
+ * 		- linear read (value size)								(5.2)
+ * 		- random insert (value size)							(5.3)
+ * 		- linear insert											(5.3)
+ * 		- random batch insert									(5.4)
+ * 		- linear batch insert									(5.4)
+ * 		+ multicore ?
+ *
+ * 6.	Serialization test
+ * 		- Set 													(6.1)
+ * 		- Vector												(6.2)
+ * 		- VectorMap												(6.3)
+ */
+
+
 namespace memoria {
 
 class LogXScaleGnuplotGraph: public GnuplotGraph {
@@ -215,24 +265,30 @@ public:
 
 class TestGraph: public LogXScaleGnuplotGraph {
 public:
-	TestGraph(): LogXScaleGnuplotGraph("Test")
+	TestGraph(): LogXScaleGnuplotGraph("Test", 10)
 	{
 		title 	= "Something vs Something,\\n1 million operations";
 		xtitle 	= "Something";
 		ytitle	= "Execution Time, ms";
 
-		time_start 	= 8;
-		time_stop	= 1024*1024;
+		time_start 	= 1;
+		time_stop	= 100000;
 
 		xunit 		= 1;
 		yunit		= 1;
 
-		logscale	= 0;
+		logscale	= 10;
 
-		RegisterTask(new VectorMapAppendBenchmark());
-		RegisterTask(new VectorMapRandomInsertBenchmark());
-		RegisterTask(new VectorAppendBenchmark());
-		RegisterTask(new VectorRandomInsertBenchmark());
+		RegisterTask(new SetInsertBatchBenchmark());
+		RegisterTask(new SetAppendBatchBenchmark());
+
+//		RegisterTask(new SetCommitAppendBenchmark());
+//		RegisterTask(new SetCommitRandomBenchmark());
+
+//		RegisterTask(new VectorMapAppendBenchmark());
+//		RegisterTask(new VectorMapRandomInsertBenchmark());
+//		RegisterTask(new VectorAppendBenchmark());
+//		RegisterTask(new VectorRandomInsertBenchmark());
 	}
 };
 

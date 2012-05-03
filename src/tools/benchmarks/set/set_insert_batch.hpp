@@ -60,13 +60,13 @@ public:
 	};
 
 
-	Allocator* allocator_;
-	SetCtr* set_;
+	Allocator* 	allocator_;
+	SetCtr* 	set_;
 
 public:
 
 	SetInsertBatchBenchmark():
-		SPBenchmarkTask("InsertBatch"), max_size(32*1024*1024)
+		SPBenchmarkTask("SetInsertBatch"), max_size(32*1024*1024)
 	{
 		RootCtr::Init();
 		SetCtr::Init();

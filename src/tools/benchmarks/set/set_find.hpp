@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class SetBenchmark: public SPBenchmarkTask {
+class SetFindRandomBenchmark: public SPBenchmarkTask {
 
 
 	typedef SPBenchmarkTask Base;
@@ -46,14 +46,14 @@ class SetBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetBenchmark():
-		SPBenchmarkTask("FindRandom")
+	SetFindRandomBenchmark():
+		SPBenchmarkTask("SetFindRandom")
 	{
 		RootCtr::Init();
 		SetCtr::Init();
 	}
 
-	virtual ~SetBenchmark() throw() {}
+	virtual ~SetFindRandomBenchmark() throw() {}
 
 	Key key(Int c) const
 	{

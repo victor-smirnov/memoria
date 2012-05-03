@@ -48,7 +48,7 @@ public:
 public:
 
 	SetCommitRandomBenchmark():
-		SPBenchmarkTask("CommitRandom"), max_size(8*1024*1024)
+		SPBenchmarkTask("CommitRandom"), max_size(16*1024*1024)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
@@ -58,12 +58,7 @@ public:
 
 	virtual ~SetCommitRandomBenchmark() throw() {}
 
-	Key key(Int c) const
-	{
-		return c * 2 + 1;
-	}
-
-	virtual void Prepare(ostream& out)
+	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ = new Allocator();
 

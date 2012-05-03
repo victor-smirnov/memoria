@@ -63,7 +63,7 @@ class SetCreateBatchBenchmark: public SPBenchmarkTask {
 public:
 
 	SetCreateBatchBenchmark():
-		SPBenchmarkTask("CreateBatch")
+		SPBenchmarkTask("SetCreateBatch")
 	{
 		RootCtr::Init();
 		SetCtr::Init();

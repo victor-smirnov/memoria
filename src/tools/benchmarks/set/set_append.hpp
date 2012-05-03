@@ -19,7 +19,7 @@ using namespace std;
 
 
 
-class SetAppendBenchmark: public SPBenchmarkTask {
+class SetAppendBatchBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -37,21 +37,45 @@ class SetAppendBenchmark: public SPBenchmarkTask {
 	typedef typename SetCtr::Value									Value;
 
 
+	typedef typename SetCtr::ISubtreeProvider						ISubtreeProvider;
+	typedef typename SetCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
+	typedef typename SetCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
+	typedef typename SetCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
+
+
+	class SubtreeProvider: public DefaultSubtreeProviderBase
+	{
+		typedef DefaultSubtreeProviderBase 			Base;
+		typedef typename ISubtreeProvider::Enum 	Direction;
+	public:
+		SubtreeProvider(SetCtr* ctr, BigInt total): Base(*ctr, total) {}
+
+		virtual LeafNodeKeyValuePair GetLeafKVPair(Direction direction, BigInt begin)
+		{
+			Accumulator acc;
+			acc[0] = 1;
+			return LeafNodeKeyValuePair(acc, Value());
+		}
+	};
+
+
 	Allocator* 	allocator_;
 	SetCtr* 	set_;
 
-
+	Int 		max_size;
 
 public:
 
-	SetAppendBenchmark():
-		SPBenchmarkTask("Append")
+	SetAppendBatchBenchmark():
+		SPBenchmarkTask("SetAppendBatch"), max_size(16*1024*1024)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
+
+		Add("max_size", max_size);
 	}
 
-	virtual ~SetAppendBenchmark() throw() {}
+	virtual ~SetAppendBatchBenchmark() throw() {}
 
 	Key key(Int c) const
 	{
@@ -72,20 +96,21 @@ public:
 	}
 
 
-	virtual void Benchmark(BenchmarkParameters& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Int size = result.x();
+		Int size = params.x();
+
+		SubtreeProvider provider(set_, size);
+
+		Int map_size = 0;
 
 		Iterator i = set_->End();
 
-		for (Int c = 0; c < size; c++)
+		for (Int c = 0; c < this->max_size / size; c++)
 		{
-			Accumulator keys;
-			keys[0] = key(c);
+			set_->InsertSubtree(i, provider);
 
-			set_->Insert(i, keys);
-
-			i++;
+			map_size += size;
 		}
 
 		allocator_->rollback();
@@ -93,7 +118,7 @@ public:
 
 	virtual String GetGraphName()
 	{
-		return "Memoria Set<BigInt> Append";
+		return "Memoria Set<BigInt> Append Batch";
 	}
 };
 

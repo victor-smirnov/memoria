@@ -46,7 +46,7 @@ class SetCommitAppendBenchmark: public SPBenchmarkTask {
 public:
 
 	SetCommitAppendBenchmark():
-		SPBenchmarkTask("AppendCommit"), max_size(8*1024*1024)
+		SPBenchmarkTask("AppendCommit"), max_size(16*1024*1024)
 	{
 		Add("max_size", max_size);
 
@@ -56,13 +56,7 @@ public:
 
 	virtual ~SetCommitAppendBenchmark() throw() {}
 
-
-	Key key(Int c) const
-	{
-		return c * 2 + 1;
-	}
-
-	virtual void Prepare(ostream& out)
+	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ = new Allocator();
 
