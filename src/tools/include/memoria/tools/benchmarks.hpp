@@ -29,12 +29,14 @@ class BenchmarkParameters {
 	BigInt x_;
 	BigInt xunit_;
 	BigInt yunit_;
+	BigInt y2unit_;
 	BigInt operations_;
 	BigInt time_;
 	BigInt runs_;
+	BigInt memory_;
 
 public:
-	BenchmarkParameters(String name): name_(name), x_(0), xunit_(1), yunit_(1), operations_(0), time_(0), runs_(1) {}
+	BenchmarkParameters(String name): name_(name), x_(0), xunit_(1), yunit_(1), y2unit_(1), operations_(0), time_(0), runs_(1), memory_(0) {}
 
 
 	StringRef name() const {
@@ -53,6 +55,10 @@ public:
 		return xunit_;
 	}
 
+	BigInt& xunit() {
+		return xunit_;
+	}
+
 	BigInt& yunit() {
 		return yunit_;
 	}
@@ -61,8 +67,12 @@ public:
 		return yunit_;
 	}
 
-	BigInt& xunit() {
-		return xunit_;
+	BigInt& y2unit() {
+		return y2unit_;
+	}
+
+	const BigInt& y2unit() const {
+		return y2unit_;
 	}
 
 	const BigInt& runs() const {
@@ -81,6 +91,15 @@ public:
 		return operations_;
 	}
 
+
+	BigInt& memory() {
+		return memory_;
+	}
+
+	const BigInt& memory() const {
+		return memory_;
+	}
+
 	const BigInt& time() const {
 		return time_;
 	}
@@ -94,9 +113,13 @@ public:
 		return x_ < other.x_;
 	}
 
-	BigInt plot_value() const
+	BigInt performance() const
 	{
 		return operations_ * 1000 / time_ ;
+	}
+
+	BigInt throughput() const {
+		return (memory_ * 1000) / time_;
 	}
 };
 
@@ -107,13 +130,10 @@ public:
 
 	Int average;
 
-	String graph_name_;
-
 public:
-	BenchmarkTask(StringRef name, StringRef graph_name): Task(name), average(1), graph_name_(name)
+	BenchmarkTask(StringRef name): Task(name), average(1)
 	{
 		Add("average", average);
-		Add("graph_name", graph_name_);
 	}
 
 	virtual ~BenchmarkTask() throw () {}
@@ -147,10 +167,6 @@ public:
 
 	virtual void Release(ostream& out) {}
 
-	virtual StringRef GetGraphName() {
-		return graph_name_;
-	}
-
 public:
 
 	String GetFileName(StringRef name) const;
@@ -175,19 +191,22 @@ public:
 
 	BigInt xunit;
 	BigInt yunit;
+	BigInt y2unit;
 
 	BenchmarkTaskGroup(StringRef name):
 		TaskGroup(name),
 		time_start(0),
 		operations(1024*1024),
 		xunit(1),
-		yunit(1)
+		yunit(1),
+		y2unit(1024*1024)
 	{
 		Add("time_start", time_start);
 		Add("time_stop",  time_stop);
 		Add("operations", operations);
 		Add("xunit", 	  xunit);
 		Add("yunit", 	  yunit);
+		Add("y2unit", 	  y2unit);
 	}
 
 	virtual ~BenchmarkTaskGroup() throw ();
@@ -210,42 +229,68 @@ public:
 };
 
 
+struct GraphData {
+	String name1;
+	String name2;
+
+	GraphData() {}
+
+	GraphData(StringRef n1, StringRef n2): name1(n1), name2(n2) {}
+	GraphData(StringRef n): name1(n) {}
+};
+
+
 class GnuplotGraph: public BenchmarkTaskGroup
 {
 public:
 	String 	title;
 	String 	xtitle;
 	String 	ytitle;
+	String 	y2title;
+
+	String ytics_format;
+	String y2tics_format;
 
 	String 	resolution;
 	String  agenda_location;
 
-	bool 	time;
+	bool 	y2;
 	Int 	logscale;
 
-
+	vector<GraphData> graph_data_;
 
 	GnuplotGraph(String name):
 		BenchmarkTaskGroup(name),
 		title("Graph"),
 		xtitle("X Axis"),
-		ytitle("Y Axis"),
+		ytitle("Performance, operations/s"),
+		y2title("Memory Throughput, MiB/s"),
+		ytics_format("%1.0t*10^%L"),
+		y2tics_format("%g"),
 		resolution("800,600"),
-		agenda_location("top left"),
-		time(false),
+		agenda_location("top right"),
+		y2(false),
 		logscale(2)
 	{
-		Add("title", title);
-		Add("xtitle", xtitle);
-		Add("ytitle", ytitle);
-		Add("resolution", resolution);
-		Add("agenda_location", agenda_location);
-		Add("logscale", logscale);
+		Add("title", 			title);
+		Add("xtitle", 			xtitle);
+		Add("ytitle", 			ytitle);
+		Add("y2title", 			y2title);
+		Add("resolution", 		resolution);
+		Add("agenda_location", 	agenda_location);
+		Add("y2", 				y2);
+		Add("logscale", 		logscale);
 	}
 
 	virtual ~GnuplotGraph() throw () {}
 
 	virtual void Run(ostream& out);
+
+	virtual void AddGraph(BenchmarkTask* graph, const GraphData& data)
+	{
+		this->RegisterTask(graph);
+		this->graph_data_.push_back(data);
+	}
 
 protected:
 	void BuildGnuplotScript(StringRef file_name);

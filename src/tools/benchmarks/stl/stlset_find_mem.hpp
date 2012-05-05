@@ -37,7 +37,9 @@ private:
 
 public:
 
-	StlSetMemBenchmark(StringRef graph_name = "std::set<BigInt> (2 children)"): BenchmarkTask("StlSetMem", graph_name) {}
+	StlSetMemBenchmark(StringRef name): BenchmarkTask(name) {
+		average = 10;
+	}
 
 	virtual ~StlSetMemBenchmark() throw() {}
 

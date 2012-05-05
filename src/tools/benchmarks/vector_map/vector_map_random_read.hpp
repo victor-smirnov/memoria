@@ -39,8 +39,8 @@ class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorMapRandomReadBenchmark(StringRef graph_name = "Memoria VectorMap Random Read"):
-		SPBenchmarkTask("RandomRead", graph_name), memory_size(128*1024*1024)
+	VectorMapRandomReadBenchmark(StringRef name):
+		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		Ctr::Init();
@@ -89,6 +89,9 @@ public:
 		{
 			ctr_->Find(GetRandom(total)).Read(data);
 		}
+
+		params.operations() = ctr_->Count();
+		params.memory() 	= ctr_->Size() + ctr_->Count() * 16; //sizeof(BigInt) * 2
 	}
 };
 

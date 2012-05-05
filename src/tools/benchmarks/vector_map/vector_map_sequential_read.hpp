@@ -31,8 +31,6 @@ class VectorMapSequentialReadBenchmark: public SPBenchmarkTask {
 	typedef typename SmallCtrTypeFactory::Factory<VectorMap>::Type 	Ctr;
 	typedef typename Ctr::Iterator									Iterator;
 
-	static const Int MAX_DATA_SIZE									= 256;
-
 	Allocator* 	allocator_;
 	Ctr* 		ctr_;
 
@@ -40,13 +38,15 @@ class VectorMapSequentialReadBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorMapSequentialReadBenchmark(StringRef graph_name = "Memoria VectorMap Sequential Read"):
-		SPBenchmarkTask("VectorMapSequentialRead", graph_name), memory_size(128*1024*1024)
+	VectorMapSequentialReadBenchmark(StringRef name):
+		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		Ctr::Init();
 
 		Add("memory_size", memory_size);
+
+		average = 10;
 	}
 
 	virtual ~VectorMapSequentialReadBenchmark() throw() {}
@@ -82,14 +82,14 @@ public:
 	{
 		Int size = params.x();
 		ArrayData data(size, malloc(size), true);
-		Int total = ctr_->Count();
-
-		params.operations() = total;
 
 		for (auto i = ctr_->Begin(); !i.IsEnd(); i++)
 		{
 			i.Read(data);
 		}
+
+		params.operations() = ctr_->Count();
+		params.memory() 	= ctr_->Size() + ctr_->Count() * 16; //sizeof(BigInt) * 2
 	}
 };
 

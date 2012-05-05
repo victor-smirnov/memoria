@@ -46,11 +46,13 @@ class SetFindRandomBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetFindRandomBenchmark(StringRef graph_name = "Memoria Set<BigInt>"):
-		SPBenchmarkTask("SetFindRandom", graph_name)
+	SetFindRandomBenchmark(StringRef name):
+		SPBenchmarkTask(name)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
+
+		average = 10;
 	}
 
 	virtual ~SetFindRandomBenchmark() throw() {}

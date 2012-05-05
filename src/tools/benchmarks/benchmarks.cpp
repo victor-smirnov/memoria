@@ -69,15 +69,23 @@ int main(int argc, const char** argv, const char** envp)
 
 
 		runner.RegisterTask(new PackedSetMemGraph());
-		runner.RegisterTask(new PackedSetSizeGraph());
-		runner.RegisterTask(new PackedSetStlSetMemGraph());
-		runner.RegisterTask(new PackedSetStlSetSizeGraph());
-		runner.RegisterTask(new PackedSetStlUSetSizeGraph());
-		runner.RegisterTask(new ScanSpeedGraph());
+
+		runner.RegisterTask(new SetRandomReadGraph());
+		runner.RegisterTask(new SetLinearReadGraph());
+		runner.RegisterTask(new SetRandomInsertGraph());
+		runner.RegisterTask(new SetCommitRateGraph());
+
 		runner.RegisterTask(new MemmoveGraph());
-		runner.RegisterTask(new SetBatchUpdateGraph());
-		runner.RegisterTask(new VectorMapGraph());
-		runner.RegisterTask(new TestGraph());
+
+		runner.RegisterTask(new VectorRandomSmallReadGraph());
+		runner.RegisterTask(new VectorReadGraph());
+		runner.RegisterTask(new VectorInsertGraph());
+
+
+		runner.RegisterTask(new VectorMapRandomGraph());
+		runner.RegisterTask(new VectorMapLinearGraph());
+		runner.RegisterTask(new VectorMapReadOverheadGraph());
+
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
@@ -102,26 +110,6 @@ int main(int argc, const char** argv, const char** envp)
 			String default_output_folder = cmd_line.GetImageName()+".out";
 
 			String output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder;
-
-//			bool clear = cmd_line.GetConfigurator().GetValue<bool>("clear", true);
-
-//			File outf(output_folder);
-//			if (outf.IsExists() && clear)
-//			{
-//				if (outf.IsDirectory())
-//				{
-//					if (!outf.DelTree())
-//					{
-//						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
-//					}
-//				}
-//				else if (!outf.Delete())
-//				{
-//					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
-//				}
-//			}
-//
-//			outf.MkDirs();
 
 			runner.SetOutput(output_folder);
 

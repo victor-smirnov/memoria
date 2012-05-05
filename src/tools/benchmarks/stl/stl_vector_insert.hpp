@@ -29,8 +29,8 @@ class StlVectorWriteBenchmark: public BenchmarkTask {
 
 public:
 
-	StlVectorWriteBenchmark(StringRef graph_name = "std::vector<BigInt> Insert"):
-		BenchmarkTask("StlVectorInsert", graph_name)
+	StlVectorWriteBenchmark(StringRef name):
+		BenchmarkTask(name)
 	{
 	}
 

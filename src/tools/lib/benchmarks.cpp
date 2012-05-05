@@ -33,10 +33,14 @@ void BenchmarkTaskGroup::Run(ostream& out)
 
 			while (!IsEnd())
 			{
-				BenchmarkParameters result(task->GetGraphName());
+				BenchmarkParameters result(task->GetFullName());
+
 				result.x() 			= NextTime();
 				result.operations()	= this->operations;
 				result.xunit()		= this->xunit;
+
+				result.yunit()		= this->yunit;
+				result.y2unit()		= this->y2unit;
 
 				task->Prepare(result);
 
@@ -52,10 +56,11 @@ void BenchmarkTaskGroup::Run(ostream& out)
 				result.time() = (end - start) / task->GetAverage();
 
 				BigInt x 	= (result.x() / result.xunit());
-				BigInt y 	= (result.plot_value() / result.xunit());
+				BigInt y1 	= (result.performance() / result.yunit());
+				BigInt y2 	= (result.throughput() / result.y2unit());
 
-				out<<task->GetFullName()<<": "<<x<<" "<<y<<" ("<<result.time()<<")"<<endl;
-				cout<<task->GetFullName()<<": "<<x<<" "<<y<<" ("<<result.time()<<")"<<endl;
+				out<<task->GetFullName()<<": "<<x<<" "<<y1<<" "<<y2<<" ("<<result.time()<<")"<<endl;
+				cout<<task->GetFullName()<<": "<<x<<" "<<y1<<" "<<y2<<" ("<<result.time()<<")"<<endl;
 
 				results_.push_back(result);
 
@@ -75,14 +80,6 @@ void BenchmarkTaskGroup::Run(ostream& out)
 
 void BenchmarkTaskGroup::RegisterTask(BenchmarkTask* task)
 {
-	for (auto t: tasks_)
-	{
-		if (T2T_S<BenchmarkTask*>(t)->GetGraphName() == task->GetGraphName())
-		{
-			throw MemoriaException(MEMORIA_SOURCE, "Duplicate graph name" + task->GetGraphName());
-		}
-	}
-
 	TaskGroup::RegisterTask(task);
 }
 
@@ -100,16 +97,17 @@ void GnuplotGraph::Run(ostream& out)
 void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 {
 	typedef vector<BenchmarkParameters> 		Results;
-	typedef pair<String, Results>			GraphPair;
+	typedef pair<GraphData, Results>			GraphPair;
 
 	vector<GraphPair> graphs;
 
-	for (auto t: tasks_)
+	for (UInt c = 0; c < tasks_.size(); c++)
 	{
-		BenchmarkTask* task = T2T_S<BenchmarkTask*>(t);
+		BenchmarkTask* 	task 		= T2T_S<BenchmarkTask*>(tasks_[c]);
+		GraphData 		graph_data 	= graph_data_[c];
 
 		Results results;
-		String name = task->GetGraphName();
+		String name = task->GetFullName();
 
 		for (BenchmarkParameters& result: results_)
 		{
@@ -119,7 +117,7 @@ void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 			}
 		}
 
-		graphs.push_back(GraphPair(name, results));
+		graphs.push_back(GraphPair(graph_data, results));
 	}
 
 	for (auto& graph: graphs)
@@ -131,11 +129,20 @@ void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 	out_file.exceptions ( fstream::failbit | fstream::badbit );
 	out_file.open(file_name, fstream::out);
 
-	out_file<<"set terminal png size "<<this->resolution<<endl;
+	out_file<<"set terminal png size "<<this->resolution<<" medium"<<endl;
 	out_file<<"set output '"+this->GetTaskName()+".png'"<<endl;
 	out_file<<"set title \""+this->title+"\""<<endl;
 	out_file<<"set xlabel \""+this->xtitle+"\""<<endl;
 	out_file<<"set ylabel \""+this->ytitle+"\""<<endl;
+
+	out_file<<"set ytics format \""<<ytics_format<<"\""<<endl;
+
+	if (this->y2)
+	{
+		out_file<<"set y2label \""+this->y2title+"\""<<endl;
+		out_file<<"set y2tics"<<endl;
+		out_file<<"set y2tics format \""<<y2tics_format<<"\""<<endl;
+	}
 
 	if (this->logscale > 0)
 	{
@@ -147,14 +154,27 @@ void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 	out_file<<"plot ";
 
 	Int cnt = 0;
+	Int size_limit = graphs.size() - 1;
 	for (auto& graph: graphs)
 	{
-		out_file<<"'-' title '"+graph.first<<"' w l";
+		out_file<<"'-' title '"+graph.first.name1<<"' w lp";
 
-		if (cnt++ < (Int)graphs.size() - 1)
+		if (cnt < size_limit || (cnt == size_limit && this->y2))
 		{
 			out_file<<", ";
 		}
+
+		if (this->y2)
+		{
+			out_file<<"'-' title '"+graph.first.name2<<"' axis x1y2 w lp";
+
+			if (cnt < size_limit)
+			{
+				out_file<<", ";
+			}
+		}
+
+		cnt++;
 	}
 
 	out_file<<endl;
@@ -163,10 +183,26 @@ void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 	{
 		for (auto& result: graph.second)
 		{
-			out_file<<(result.x() / result.xunit())<<" "<<result.plot_value()<<endl;
+			BigInt x = result.x() 				/ result.xunit();
+			BigInt y1 = result.performance() 	/ result.yunit();
+
+			out_file<<x<<" "<<y1<<endl;
 		}
 
 		out_file<<"e"<<endl;
+
+		if (this->y2)
+		{
+			for (auto& result: graph.second)
+			{
+				BigInt x = result.x() 				/ result.xunit();
+				BigInt y2 = result.throughput() 	/ result.y2unit();
+
+				out_file<<x<<" "<<y2<<endl;
+			}
+
+			out_file<<"e"<<endl;
+		}
 	}
 
 	out_file.close();

@@ -45,8 +45,8 @@ class SetCommitAppendBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetCommitAppendBenchmark(StringRef graph_name = "Memoria Set<BigInt> Append Commit Rate"):
-		SPBenchmarkTask("AppendCommit", graph_name), max_size(16*1024*1024)
+	SetCommitAppendBenchmark(StringRef name):
+		SPBenchmarkTask(name), max_size(1*1024*1024)
 	{
 		Add("max_size", max_size);
 
@@ -90,6 +90,8 @@ public:
 				allocator_->commit();
 			}
 		}
+
+		allocator_->commit();
 	}
 };
 

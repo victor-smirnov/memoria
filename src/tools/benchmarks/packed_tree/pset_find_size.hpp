@@ -53,16 +53,20 @@ class PSetSizeBenchmark: public BenchmarkTask {
 public:
 
 	PSetSizeBenchmark():
-		BenchmarkTask("FindSize."+ToString(BranchingFactor_), "PackedSet<BigInt>, "+ToString(BranchingFactor_)+" children")
-	{}
+		BenchmarkTask("FindSize."+ToString(BranchingFactor_))
+	{
+		average = 10;
+	}
 
 	virtual ~PSetSizeBenchmark() throw() {}
 
 	void FillPMap(Map* map, Int size)
 	{
-		for (Int c = 0; c < size; c++)
+		map->key(0, 0) = 0;
+
+		for (Int c = 1; c < size; c++)
 		{
-			map->key(0, c) = 2;
+			map->key(0, c) = 1;
 		}
 
 		map->size() = size;
@@ -87,7 +91,7 @@ public:
 		rd_array_ = new Int[data.operations()];
 		for (Int c = 0; c < data.operations(); c++)
 		{
-			rd_array_[c] = (GetRandom(map_->size()) + 1)*2;
+			rd_array_[c] = GetRandom(map_->size());
 		}
 	}
 
@@ -101,7 +105,13 @@ public:
 	{
 		for (Int c = 0; c < data.operations(); c++)
 		{
-			map_->FindEQ(0, rd_array_[c]);
+			BigInt key = rd_array_[c];
+			if (map_->FindEQ(0, key) != key)
+			{
+				// this shouldn't happen
+				cout<<"MISS! "<<key<<endl;
+				out<<"MISS! "<<key<<endl;
+			}
 		}
 	}
 };

@@ -32,8 +32,8 @@ class StlVectorReadBenchmark: public BenchmarkTask {
 
 public:
 
-	StlVectorReadBenchmark(StringRef graph_name = "std::vector<BigInt> Read"):
-		BenchmarkTask("StlVectorRead", graph_name)
+	StlVectorReadBenchmark(StringRef name):
+		BenchmarkTask(name)
 	{
 	}
 

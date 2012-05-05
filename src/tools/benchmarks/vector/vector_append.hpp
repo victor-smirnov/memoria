@@ -42,8 +42,8 @@ public:
 
 public:
 
-	VectorAppendBenchmark(StringRef graph_name = "Memoria Vector Append"):
-		SPBenchmarkTask("VectorAppend", graph_name), memory_size(128*1024*1024)
+	VectorAppendBenchmark(StringRef name):
+		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		MapCtr::Init();
@@ -83,7 +83,11 @@ public:
 			i.Insert(data);
 
 			total += data.size();
+
+			params.operations()++;
 		}
+
+		params.memory() = total;
 
 		allocator_->rollback();
 	}

@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BENCHMARKS_VECTOR_VECTOR_WRITE_HPP_
-#define MEMORIA_BENCHMARKS_VECTOR_VECTOR_WRITE_HPP_
+#ifndef MEMORIA_BENCHMARKS_VECTOR_VECTOR_RANDOM_READ_HPP_
+#define MEMORIA_BENCHMARKS_VECTOR_VECTOR_RANDOM_READ_HPP_
 
 #include "../benchmarks_inc.hpp"
 
@@ -18,7 +18,8 @@ using namespace std;
 
 
 
-class VectorRandomInsertBenchmark: public SPBenchmarkTask {
+class VectorRandomReadBenchmark: public SPBenchmarkTask {
+
 
 	typedef SPBenchmarkTask Base;
 
@@ -34,28 +35,43 @@ class VectorRandomInsertBenchmark: public SPBenchmarkTask {
 
 	typedef typename VectorCtr::Key									Key;
 
-	Allocator* allocator_;
-	VectorCtr* ctr_;
 
-	BigInt memory_size;
+
+	Allocator* 	allocator_;
+	VectorCtr* 	ctr_;
+
+	BigInt		memory_size;
 
 public:
 
-	VectorRandomInsertBenchmark(StringRef name):
+	VectorRandomReadBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		VectorCtr::Init();
 
 		Add("memory_size", memory_size);
+
+		average = 10;
 	}
 
-	virtual ~VectorRandomInsertBenchmark() throw() {}
+	virtual ~VectorRandomReadBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
-		allocator_ 	= new Allocator();
-		ctr_ 		= new VectorCtr(*allocator_, 1, true);
+		allocator_ = new Allocator();
+
+		ctr_ = new VectorCtr(*allocator_);
+
+		BigInt size = 1024*1024;
+
+		ArrayData data(size, malloc(size), true);
+
+		Iterator i = ctr_->Seek(0);
+		for (Int c = 0; c < memory_size / size; c++)
+		{
+			i.Insert(data);
+		}
 
 		allocator_->commit();
 	}
@@ -68,27 +84,22 @@ public:
 
 	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
+		Int 	size 	= params.x();
+
+		ArrayData data(size, malloc(size), true);
+
 		BigInt total = 0;
-
-		ArrayData data(params.x(), malloc(params.x()), true);
-
-		Int cnt = 0;
+		BigInt operations = 0;
 
 		while (total < memory_size)
 		{
-			BigInt idx = GetRandom(total);
-			Iterator i = ctr_->Seek(idx);
-			i.Insert(data);
-			total += data.size();
-
-			cnt++;
-
-			params.operations()++;
+			auto i = ctr_->Seek(GetRandom(memory_size - size));
+			total += i.Read(data);
+			operations++;
 		}
 
-		params.memory() = total;
-
-		allocator_->rollback();
+		params.operations() = operations;
+		params.memory() 	= total;
 	}
 };
 

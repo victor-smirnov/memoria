@@ -33,6 +33,7 @@
 #include "vector/vector_append.hpp"
 #include "vector/vector_insert_batch.hpp"
 #include "vector/vector_read.hpp"
+#include "vector/vector_random_read.hpp"
 #include "vector/vector_sequential_read.hpp"
 #include "vector/vector_random_insert.hpp"
 
@@ -48,10 +49,7 @@
  * Memoria benchmark suite chart list:
  *
  * 1. PackedSet performance (branching factor, tree size)
- * 		- random read 				(1.1)
- * 		- linear read 				(1.1)
- * 		- random read: packed + stl (1.2)
- * 		- linear read: packed + stl (1.2)
+ * 		- random read + stl		 	(1.1)
  *
  * 2. Memoria Set
  * 		- random read (tree size)	(2.1)
@@ -77,12 +75,11 @@
  *		+ multicore ?
  *
  * 5. VectorMap
- * 		- random read (ctr size)								(5.1)
- * 		- random read (value size)								(5.2)
- * 		- linear read (value size)								(5.2)
- * 		- random insert (value size)							(5.3)
- * 		- linear insert											(5.3)
- * 		- random batch insert									(5.4)
+ * 		- random read (value size)								(5.1)
+ * 		- linear read (value size)								(5.1)
+ * 		- random insert (value size)							(5.2)
+ * 		- linear insert											(5.2)
+ * 		- random batch insert									(5.3)
  * 		- linear batch insert									(5.4)
  * 		+ multicore ?
  *
@@ -118,76 +115,32 @@ public:
 	{
 		title 	= "PackedTree random read performance,\\n1 million random reads";
 		xtitle 	= "Memory Block Size, Kb";
-		ytitle	= "Execution Time, ms";
+
+		agenda_location = "top right";
 
 		time_start 	= 1024;
 		time_stop	= 256*1024*1024;
 
 		xunit 		= 1024;
 
-		RegisterTask(new PSetMemBenchmark<2>());
-		RegisterTask(new PSetMemBenchmark<4>());
-		RegisterTask(new PSetMemBenchmark<8>());
-		RegisterTask(new PSetMemBenchmark<16>());
-		RegisterTask(new PSetMemBenchmark<32>());
-		RegisterTask(new PSetMemBenchmark<64>());
+		AddGraph(new PSetMemBenchmark<2>(), GraphData("PackedTree<BigInt>, 2 children"));
+		AddGraph(new PSetMemBenchmark<4>(), GraphData("PackedTree<BigInt>, 4 children"));
+		AddGraph(new PSetMemBenchmark<8>(), GraphData("PackedTree<BigInt>, 8 children"));
+		AddGraph(new PSetMemBenchmark<16>(), GraphData("PackedTree<BigInt>, 16 children"));
+		AddGraph(new PSetMemBenchmark<32>(), GraphData("PackedTree<BigInt>, 32 children"));
+		AddGraph(new PSetMemBenchmark<64>(), GraphData("PackedTree<BigInt>, 64 children"));
+
+		AddGraph(new StlSetMemBenchmark("StlSetMem"), GraphData("std::set, 2 children"));
 	}
 };
 
 
-class PackedSetSizeGraph: public LogXScaleGnuplotGraph {
+class SetRandomReadGraph: public LogXScaleGnuplotGraph {
 public:
-	PackedSetSizeGraph(): LogXScaleGnuplotGraph("PSetSize")
+	SetRandomReadGraph(): LogXScaleGnuplotGraph("SetRandomRead")
 	{
-		title 	= "PackedTree random read performance,\\n1 million random reads";
-		xtitle 	= "PackedTree Size, Elements";
-		ytitle	= "Execution Time, ms";
-
-		time_start 	= 128;
-		time_stop	= 16*1024*1024;
-
-		xunit 		= 1;
-
-		logscale	= 10;
-
-		RegisterTask(new PSetSizeBenchmark<2>());
-		RegisterTask(new PSetSizeBenchmark<4>());
-		RegisterTask(new PSetSizeBenchmark<8>());
-		RegisterTask(new PSetSizeBenchmark<16>());
-		RegisterTask(new PSetSizeBenchmark<32>());
-		RegisterTask(new PSetSizeBenchmark<64>());
-	}
-};
-
-
-class PackedSetStlSetMemGraph: public LogXScaleGnuplotGraph {
-public:
-	PackedSetStlSetMemGraph(): LogXScaleGnuplotGraph("PSetStlSetMem")
-	{
-		title 	= "PackedSet vs STL Set random read performance,\\n1 million random reads";
-		xtitle 	= "Memory Block Size, Kb";
-		ytitle	= "Execution Time, ms";
-
-		time_start 	= 1024;
-		time_stop	= 256*1024*1024;
-
-		xunit 		= 1024;
-
-		logscale	= 10;
-
-		RegisterTask(new PSetMemBenchmark<16>());
-		RegisterTask(new StlSetMemBenchmark());
-	}
-};
-
-
-class PackedSetStlSetSizeGraph: public LogXScaleGnuplotGraph {
-public:
-	PackedSetStlSetSizeGraph(): LogXScaleGnuplotGraph("PSetStlSetSize")
-	{
-		title 	= "PackedSet vs STL Set random read performance,\\n1 million random reads";
+		title 	= "PackedSet<BigInt> vs Set<BigInt> vs std::set<BigInt> Random Read Performance,\\n1 million reads";
 		xtitle 	= "Number of Elements";
-		ytitle	= "Execution Time, ms";
 
 		time_start 	= 128;
 		time_stop	= 16*1024*1024;
@@ -196,71 +149,76 @@ public:
 
 		logscale	= 10;
 
-		RegisterTask(new PSetSizeBenchmark<16>());
-		RegisterTask(new StlSetSizeBenchmark());
+		AddGraph(new PSetSizeBenchmark<16>(), GraphData("PackedSet"));
+		AddGraph(new SetFindRandomBenchmark("FindRandom"), GraphData("Memoria Set"));
+		AddGraph(new StlSetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
 	}
 };
 
 
-class PackedSetStlUSetSizeGraph: public LogXScaleGnuplotGraph {
+
+class SetLinearReadGraph: public LogXScaleGnuplotGraph {
 public:
-	PackedSetStlUSetSizeGraph(): LogXScaleGnuplotGraph("PSetStlUSetSize")
+	SetLinearReadGraph(): LogXScaleGnuplotGraph("SetLinearRead")
 	{
-		title 	= "PackedSet vs STL unordered_set random read performance,\\n1 million random reads";
+		title 	= "Memoria Set<BigInt> vs std::set<BigInt> Sequential Read Performance,\\n16 million reads";
 		xtitle 	= "Number of Elements";
-		ytitle	= "Execution Time, ms";
 
 		time_start 	= 128;
 		time_stop	= 16*1024*1024;
+
+		operations	= 16*1024*1024;
 
 		xunit 		= 1;
 
 		logscale	= 10;
 
-		RegisterTask(new PSetSizeBenchmark<16>());
-		RegisterTask(new StlUSetSizeBenchmark());
+		AddGraph(new SetScanBenchmark("SetScan"), GraphData("Memoria Set"));
+		AddGraph(new StlSetScanBenchmark("StlSetScan"), GraphData("std::set"));
 	}
 };
 
 
-class ScanSpeedGraph: public LogXScaleGnuplotGraph {
-public:
-	ScanSpeedGraph(): LogXScaleGnuplotGraph("ScanSpeed")
-	{
-		title 	= "Memoria Set vs STL set linear read performance,\\n1 million reads";
-		xtitle 	= "Number of Elements";
-		ytitle	= "Execution Time, ms";
 
-		time_start 	= 128;
-		time_stop	= 16*1024*1024;
+class SetRandomInsertGraph: public LogXScaleGnuplotGraph {
+public:
+	SetRandomInsertGraph(): LogXScaleGnuplotGraph("SetInsert")
+	{
+		title 	= "Set<BigInt> Insert Performance";
+		xtitle 	= "Batch size, Elements";
+
+		time_start 	= 1;
+		time_stop	= 100000;
 
 		xunit 		= 1;
 
 		logscale	= 10;
 
-		RegisterTask(new SetScanBenchmark());
-		RegisterTask(new StlSetScanBenchmark());
+		AddGraph(new SetInsertBatchBenchmark("InsertBatch"), GraphData("Random Insert"));
+		AddGraph(new SetAppendBatchBenchmark("AppendBatch"), GraphData("Sequential Append"));
 	}
 };
 
-class MemmoveGraph: public LogXScaleGnuplotGraph {
+
+class SetCommitRateGraph: public LogXScaleGnuplotGraph {
 public:
-	MemmoveGraph(): LogXScaleGnuplotGraph("MemMove")
+	SetCommitRateGraph(): LogXScaleGnuplotGraph("SetCommitRate", 10)
 	{
-		title 	= "Memmove performance,\\n1 million moves of size up to 4K bytes";
-		xtitle 	= "Memory Block Size, Kb";
-		ytitle	= "Execution Time, ms";
+		title 	= "Set<BigInt> Commit Performance,\nInsert/Append 1M keys";
+		xtitle 	= "Commit Batch size, Elements";
 
-		time_start 	= 4096;
-		time_stop	= 256*1024*1024;
+		time_start 	= 1;
+		time_stop	= 100000;
 
-		xunit 		= 1024;
+		xunit 		= 1;
 
 		logscale	= 10;
 
-		RegisterTask(new MemmoveBenchmark());
+		AddGraph(new SetCommitRandomBenchmark("Random"), GraphData("Random Insert"));
+		AddGraph(new SetCommitAppendBenchmark("Append"), GraphData("Sequential Append"));
 	}
 };
+
 
 class SetBatchUpdateGraph: public LogXScaleGnuplotGraph {
 public:
@@ -278,15 +236,105 @@ public:
 
 		logscale	= 10;
 
-		RegisterTask(new SetInsertBatchBenchmark());
-		RegisterTask(new SetAppendBatchBenchmark());
+		RegisterTask(new SetInsertBatchBenchmark("Insert"));
+		RegisterTask(new SetAppendBatchBenchmark("Append"));
 	}
 };
 
 
-class VectorMapGraph: public LogXScaleGnuplotGraph {
+class MemmoveGraph: public LogXScaleGnuplotGraph {
 public:
-	VectorMapGraph(): LogXScaleGnuplotGraph("VectorMap")
+	MemmoveGraph(): LogXScaleGnuplotGraph("MemMove")
+	{
+		title 	= "Memmove Performance,\\n1 million moves of size up to 4K bytes";
+		xtitle 	= "Memory Block Size, Kb";
+
+		y2 		= true;
+
+		time_start 	= 4096;
+		time_stop	= 256*1024*1024;
+
+		xunit 		= 1024;
+		y2unit		= 1024*1024;
+
+		logscale	= 10;
+
+		AddGraph(new MemmoveBenchmark("MemMove"), GraphData("memmove() Performance", "Memory Throughput"));
+	}
+};
+
+class VectorRandomSmallReadGraph: public LogXScaleGnuplotGraph {
+public:
+	VectorRandomSmallReadGraph(): LogXScaleGnuplotGraph("VectorRandomSmallRead")
+	{
+		title 	= "Memoria Vector<Byte> Read Performance, 8 Byte Blocks ,\\n1 million random reads";
+		xtitle 	= "Vector Size, Kb";
+
+		agenda_location = "top right";
+
+		time_start 	= 1024;
+		time_stop	= 256*1024*1024;
+
+		y2			= true;
+
+		xunit 		= 1024;
+		y2unit		= 1024*1024;
+
+		AddGraph(new VectorReadBenchmark("Read"), GraphData("Vector Performance", "Vector Throughput"));
+	}
+};
+
+
+class VectorReadGraph: public LogXScaleGnuplotGraph {
+public:
+	VectorReadGraph(): LogXScaleGnuplotGraph("VectorRead")
+	{
+		title 	= "Vector Read Performance";
+		xtitle 	= "Block Size, Bytes";
+		ytitle	= "Performance, operations/s";
+
+		time_start 	= 8;
+		time_stop	= 256*1024;
+
+		y2			= true;
+
+		y2unit		= 1024*1024;
+
+		AddGraph(new VectorRandomReadBenchmark("Random"), GraphData("Random Performance", "Random Throughput"));
+		AddGraph(new VectorSequentialReadBenchmark("Sequential"), GraphData("Sequential Performance", "Sequential Throughput"));
+	}
+};
+
+
+class VectorInsertGraph: public LogXScaleGnuplotGraph {
+public:
+	VectorInsertGraph(): LogXScaleGnuplotGraph("VectorInsert")
+	{
+		title 	= "Vector Insert Performance";
+		xtitle 	= "Block Size, Bytes";
+		ytitle	= "Performance, operations/s";
+
+		agenda_location = "top left";
+
+		y2tics_format	= "%g";
+
+		time_start 	= 8;
+		time_stop	= 256*1024;
+
+		y2			= true;
+
+		y2unit		= 1024*1024;
+
+		AddGraph(new VectorRandomInsertBenchmark("Random"), GraphData("Random Insert Performance", "Random Insert Throughput"));
+		AddGraph(new VectorAppendBenchmark("Sequential"), GraphData("Sequential Append Performance", "Sequential Append Throughput"));
+	}
+};
+
+
+
+class VectorMapRandomGraph: public LogXScaleGnuplotGraph {
+public:
+	VectorMapRandomGraph(): LogXScaleGnuplotGraph("VectorMapRandom")
 	{
 		title 	= "VectorMap Random Performance";
 		xtitle 	= "Value Size";
@@ -295,46 +343,84 @@ public:
 		time_start 	= 8;
 		time_stop	= 1024*1024;
 
-		xunit 		= 1;
-		yunit		= 1000;
+		logscale	= 2;
+
+		y2			= true;
+
+		AddGraph(new VectorMapRandomInsertBenchmark("Insert"), GraphData("Insert Performance", "Insert Throughput"));
+		AddGraph(new VectorMapRandomReadBenchmark("Read"), GraphData("Read Performance", "Read Throughput"));
+	}
+};
+
+class VectorMapLinearGraph: public LogXScaleGnuplotGraph {
+public:
+	VectorMapLinearGraph(): LogXScaleGnuplotGraph("VectorMapSequential")
+	{
+		title 	= "VectorMap Sequential Performance";
+		xtitle 	= "Value Size";
+		ytitle	= "Performance, operations/s";
+
+		time_start 	= 8;
+		time_stop	= 1024*1024;
 
 		logscale	= 2;
 
-		RegisterTask(new VectorMapRandomInsertBenchmark());
-		RegisterTask(new VectorMapRandomReadBenchmark());
+		y2			= true;
+
+		AddGraph(new VectorMapAppendBenchmark("Append"), GraphData("Append Performance", "Append Throughput"));
+		AddGraph(new VectorMapSequentialReadBenchmark("Read"), GraphData("Read Performance", "Read Throughput"));
 	}
 };
+
+class VectorMapReadOverheadGraph: public LogXScaleGnuplotGraph {
+public:
+	VectorMapReadOverheadGraph(): LogXScaleGnuplotGraph("VectorMapReadOverhead", 2)
+	{
+		title 	= "Memoria Vector/VectorMap Sequential Read Performance";
+		xtitle 	= "Value/Block size, Bytes";
+		ytitle	= "Performace, reads/s";
+		y2title	= "Throughput, MiB/s";
+
+		y2 		= true;
+
+		time_start 	= 8;
+		time_stop	= 256*1024;
+
+		xunit 		= 1;
+		yunit		= 1;
+		y2unit		= 1024*1024;
+
+		logscale	= 2;
+
+		AddGraph(new VectorSequentialReadBenchmark("Vector"), GraphData("Vector Performance", "Vector Throughput"));
+		AddGraph(new VectorMapSequentialReadBenchmark("VectorMap"), GraphData("VectorMap Performance", "VectorMap Throughput"));
+	}
+};
+
 
 
 class TestGraph: public LogXScaleGnuplotGraph {
 public:
 	TestGraph(): LogXScaleGnuplotGraph("Test", 2)
 	{
-		title 	= "Vector/VectorMap Linear Read Performance";
-		xtitle 	= "Value/Block size";
+		title 	= "Memoria Vector/VectorMap Sequential Read Performance";
+		xtitle 	= "Value/Block size, Bytes";
 		ytitle	= "Performace, reads/s";
+		y2title	= "Throughput, MiB/s";
+
+		y2 		= true;
 
 		time_start 	= 8;
-		time_stop	= 1024*1024;
+		time_stop	= 256*1024;
 
 		xunit 		= 1;
-		yunit		= 1000;
+		yunit		= 1;
+		y2unit		= 1024*1024;
 
 		logscale	= 2;
 
-		RegisterTask(new VectorSequentialReadBenchmark());
-		RegisterTask(new VectorMapSequentialReadBenchmark());
-
-//		RegisterTask(new SetInsertBatchBenchmark());
-//		RegisterTask(new SetAppendBatchBenchmark());
-
-//		RegisterTask(new SetCommitAppendBenchmark());
-//		RegisterTask(new SetCommitRandomBenchmark());
-
-//		RegisterTask(new VectorMapAppendBenchmark());
-//		RegisterTask(new VectorMapRandomInsertBenchmark());
-//		RegisterTask(new VectorAppendBenchmark());
-//		RegisterTask(new VectorRandomInsertBenchmark());
+		AddGraph(new VectorSequentialReadBenchmark("Vector"), GraphData("Vector Performance", "Vector Throughput"));
+		AddGraph(new VectorMapSequentialReadBenchmark("VectorMap"), GraphData("VectorMap Performance", "VectorMap Throughput"));
 	}
 };
 

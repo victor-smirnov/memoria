@@ -45,11 +45,13 @@ class VectorReadBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorReadBenchmark(StringRef graph_name = "Memoria Vector<BigInt> random Seek()"):
-		SPBenchmarkTask("Read", graph_name)
+	VectorReadBenchmark(StringRef name):
+		SPBenchmarkTask(name)
 	{
 		RootCtr::Init();
 		VectorCtr::Init();
+
+		average = 5;
 	}
 
 	virtual ~VectorReadBenchmark() throw() {}
@@ -93,10 +95,15 @@ public:
 
 	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
+		BigInt buffer;
+		ArrayData data(sizeof(buffer), &buffer);
+
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			ctr_->Seek(rd_array_[c]);
+			ctr_->Seek(rd_array_[c]).Read(data);
 		}
+
+		params.memory() = params.operations() * data.size();
 	}
 };
 

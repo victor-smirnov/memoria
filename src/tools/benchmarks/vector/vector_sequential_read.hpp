@@ -44,15 +44,15 @@ class VectorSequentialReadBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorSequentialReadBenchmark(StringRef graph_name = "Memoria Vector Sequential Read"):
-		SPBenchmarkTask("VectorSequentialRead", graph_name), memory_size(128*1024*1024)
+	VectorSequentialReadBenchmark(StringRef name):
+		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		VectorCtr::Init();
 
 		Add("memory_size", memory_size);
 
-		average = 5;
+		average = 10;
 	}
 
 	virtual ~VectorSequentialReadBenchmark() throw() {}
@@ -63,14 +63,17 @@ public:
 
 		ctr_ = new VectorCtr(*allocator_);
 
+		BigInt size = 1024*1024;
+
+		ArrayData data(size, malloc(size), true);
+
 		Iterator i = ctr_->Seek(0);
-
-		ArrayData data(1024*1024, malloc(1024*1024), true);
-
-		for (Int c = 0; c < memory_size / data.size(); c++)
+		for (Int c = 0; c < memory_size / size; c++)
 		{
 			i.Insert(data);
 		}
+
+		allocator_->commit();
 	}
 
 	virtual void Release(ostream& out)
@@ -91,6 +94,7 @@ public:
 		}
 
 		params.operations() = memory_size / size;
+		params.memory() 	= memory_size;
 	}
 };
 

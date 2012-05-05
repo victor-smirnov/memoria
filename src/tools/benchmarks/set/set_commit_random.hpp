@@ -47,8 +47,8 @@ public:
 
 public:
 
-	SetCommitRandomBenchmark(StringRef graph_name = "Memoria Set<BigInt> Random Commit Rate"):
-		SPBenchmarkTask("CommitRandom", graph_name), max_size(16*1024*1024)
+	SetCommitRandomBenchmark(StringRef name):
+		SPBenchmarkTask(name), max_size(1*1024*1024)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
@@ -100,6 +100,8 @@ public:
 				allocator_->commit();
 			}
 		}
+
+		allocator_->commit();
 	}
 };
 

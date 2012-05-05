@@ -35,7 +35,10 @@ private:
 
 public:
 
-	StlSetSizeBenchmark(StringRef graph_name = "std::set<BigInt> (2 children)"): BenchmarkTask("StlSetSize", graph_name) {}
+	StlSetSizeBenchmark(StringRef name): BenchmarkTask(name)
+	{
+		average = 10;
+	}
 
 	virtual ~StlSetSizeBenchmark() throw() {}
 

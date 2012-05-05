@@ -40,8 +40,8 @@ public:
 
 public:
 
-	VectorInsertBatchBenchmark(StringRef graph_name = "Memoria Vector InsertBatch"):
-		SPBenchmarkTask("InsertBatch", graph_name), max_size(256*1024*1024)
+	VectorInsertBatchBenchmark(StringRef name):
+		SPBenchmarkTask(name), max_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		MapCtr::Init();

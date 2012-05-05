@@ -62,8 +62,8 @@ class SetCreateBatchBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetCreateBatchBenchmark(StringRef graph_name = "Memoria Set<BigInt> Batch Create"):
-		SPBenchmarkTask("SetCreateBatch", graph_name)
+	SetCreateBatchBenchmark(StringRef name):
+		SPBenchmarkTask(name)
 	{
 		RootCtr::Init();
 		SetCtr::Init();

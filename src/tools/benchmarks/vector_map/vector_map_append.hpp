@@ -38,8 +38,8 @@ class VectorMapAppendBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorMapAppendBenchmark(StringRef graph_name = "Memoria VectorMap Append"):
-		SPBenchmarkTask("VectorMapAppend", graph_name), memory_size(128*1024*1024)
+	VectorMapAppendBenchmark(StringRef name):
+		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		MapCtr::Init();
@@ -85,7 +85,10 @@ public:
 			total += data.size();
 		}
 
-		allocator_->rollback();
+		params.operations() = map_->Count();
+		params.memory() 	= map_->Size() + map_->Count() * 16; //sizeof(BigInt) * 2
+
+		allocator_->commit();
 
 	}
 };

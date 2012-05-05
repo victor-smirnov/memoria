@@ -33,7 +33,7 @@ class StlSetScanBenchmark: public BenchmarkTask {
 
 public:
 
-	StlSetScanBenchmark(StringRef graph_name = "std::set<BigInt> Scan"): BenchmarkTask("StlSetScan", graph_name) {}
+	StlSetScanBenchmark(StringRef name): BenchmarkTask(name) {}
 
 	virtual ~StlSetScanBenchmark() throw() {}
 

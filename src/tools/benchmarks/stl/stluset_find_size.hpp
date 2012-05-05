@@ -39,7 +39,7 @@ class StlUSetSizeBenchmark: public BenchmarkTask {
 
 public:
 
-	StlUSetSizeBenchmark(StringRef graph_name = "std::unordered_set<BigInt>"): BenchmarkTask("StlUSetSize.Find", graph_name) {}
+	StlUSetSizeBenchmark(StringRef name): BenchmarkTask(name) {}
 
 	virtual ~StlUSetSizeBenchmark() throw() {}
 

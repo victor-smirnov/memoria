@@ -39,7 +39,7 @@ class StlUSetMemBenchmark: public BenchmarkTask {
 
 public:
 
-	StlUSetMemBenchmark(StringRef graph_name = "std::unordered_set<BigInt>"): BenchmarkTask("StlUSetMem.Find", graph_name) {}
+	StlUSetMemBenchmark(StringRef name): BenchmarkTask(name) {}
 
 	virtual ~StlUSetMemBenchmark() throw() {}
 

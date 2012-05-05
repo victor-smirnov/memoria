@@ -43,8 +43,8 @@ class SetInsertBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetInsertBenchmark(StringRef graph_name = "Memoria Set<BigInt> Random Insert"):
-		SPBenchmarkTask("InsertRandom", graph_name)
+	SetInsertBenchmark(StringRef name):
+		SPBenchmarkTask(name)
 	{
 		RootCtr::Init();
 		SetCtr::Init();

@@ -66,8 +66,8 @@ class SetAppendBatchBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetAppendBatchBenchmark(String graph_name = "Memoria Set<BigInt> Append Batch"):
-		SPBenchmarkTask("SetAppendBatch", graph_name), max_size(16*1024*1024)
+	SetAppendBatchBenchmark(StringRef name):
+		SPBenchmarkTask(name), max_size(16*1024*1024)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
