@@ -53,7 +53,7 @@ class PSetSizeBenchmark: public BenchmarkTask {
 public:
 
 	PSetSizeBenchmark():
-		BenchmarkTask("FindSize."+ToString(BranchingFactor_))
+		BenchmarkTask("FindSize."+ToString(BranchingFactor_), "PackedSet<BigInt>, "+ToString(BranchingFactor_)+" children")
 	{}
 
 	virtual ~PSetSizeBenchmark() throw() {}
@@ -103,11 +103,6 @@ public:
 		{
 			map_->FindEQ(0, rd_array_[c]);
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "PackedSet<BigInt>, "+ToString(BranchingFactor_)+" children";
 	}
 };
 

@@ -41,8 +41,8 @@ class VectorRandomInsertBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorRandomInsertBenchmark():
-		SPBenchmarkTask("VectorRandomInsert"), memory_size(128*1024*1024)
+	VectorRandomInsertBenchmark(StringRef graph_name = "Memoria Vector<Byte> Random Insert"):
+		SPBenchmarkTask("VectorRandomInsert", graph_name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		VectorCtr::Init();
@@ -82,14 +82,11 @@ public:
 			total += data.size();
 
 			cnt++;
+
+			params.operations()++;
 		}
 
 		allocator_->rollback();
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Vector<Byte> Random Insert";
 	}
 };
 

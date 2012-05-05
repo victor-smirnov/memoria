@@ -29,8 +29,8 @@ class StlVectorWriteBenchmark: public BenchmarkTask {
 
 public:
 
-	StlVectorWriteBenchmark():
-		BenchmarkTask("StlVectorInsert")
+	StlVectorWriteBenchmark(StringRef graph_name = "std::vector<BigInt> Insert"):
+		BenchmarkTask("StlVectorInsert", graph_name)
 	{
 	}
 
@@ -67,11 +67,6 @@ public:
 		{
 			ctr_->insert(ctr_->begin() + rd_array_[c], rd_array_[c]);
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "std::vector<BigInt> Insert";
 	}
 };
 

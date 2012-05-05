@@ -42,8 +42,8 @@ public:
 
 public:
 
-	VectorAppendBenchmark():
-		SPBenchmarkTask("VectorAppend"), memory_size(128*1024*1024)
+	VectorAppendBenchmark(StringRef graph_name = "Memoria Vector Append"):
+		SPBenchmarkTask("VectorAppend", graph_name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		MapCtr::Init();
@@ -86,11 +86,6 @@ public:
 		}
 
 		allocator_->rollback();
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Vector Append";
 	}
 };
 

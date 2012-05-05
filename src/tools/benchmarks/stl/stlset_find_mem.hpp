@@ -37,7 +37,7 @@ private:
 
 public:
 
-	StlSetMemBenchmark(): BenchmarkTask("StlSetMem") {}
+	StlSetMemBenchmark(StringRef graph_name = "std::set<BigInt> (2 children)"): BenchmarkTask("StlSetMem", graph_name) {}
 
 	virtual ~StlSetMemBenchmark() throw() {}
 
@@ -80,11 +80,6 @@ public:
 		{
 			result_ = (map_->find(rd_array_[c]) != map_->end());
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "std::set<BigInt> (2 children)";
 	}
 };
 

@@ -62,8 +62,8 @@ class SetCreateBatchBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetCreateBatchBenchmark():
-		SPBenchmarkTask("SetCreateBatch")
+	SetCreateBatchBenchmark(StringRef graph_name = "Memoria Set<BigInt> Batch Create"):
+		SPBenchmarkTask("SetCreateBatch", graph_name)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
@@ -86,9 +86,11 @@ public:
 	}
 
 
-	virtual void Benchmark(BenchmarkParameters& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Int size = result.x();
+		Int size = params.x();
+
+		params.operations() = size;
 
 		Iterator i = set_->End();
 
@@ -97,11 +99,6 @@ public:
 		set_->InsertSubtree(i, provider);
 
 		allocator_->commit();
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Set<BigInt> Batch Create";
 	}
 };
 

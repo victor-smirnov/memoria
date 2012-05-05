@@ -37,8 +37,8 @@ class VectorMapRandomInsertBenchmark: public SPBenchmarkTask {
 	BigInt 		memory_size;
 public:
 
-	VectorMapRandomInsertBenchmark():
-		SPBenchmarkTask("VectorMapRandomInsert"), memory_size(128*1024*1024)
+	VectorMapRandomInsertBenchmark(StringRef graph_name = "Memoria VectorMap Random Insert"):
+		SPBenchmarkTask("VectorMapRandomInsert", graph_name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		MapCtr::Init();
@@ -81,12 +81,9 @@ public:
 			total += data.size();
 		}
 
-		allocator_->rollback();
-	}
+		params.operations() = memory_size / size;
 
-	virtual String GetGraphName()
-	{
-		return "Memoria VectorMap Random Insert";
+		allocator_->rollback();
 	}
 };
 

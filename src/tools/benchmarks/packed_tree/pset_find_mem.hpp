@@ -55,7 +55,7 @@ class PSetMemBenchmark: public BenchmarkTask {
 public:
 
 	PSetMemBenchmark():
-		BenchmarkTask("FindMem."+ToString(BranchingFactor_))
+		BenchmarkTask("FindMem."+ToString(BranchingFactor_), "PackedSet<BigInt>, "+ToString(BranchingFactor_)+" children")
 	{}
 
 	virtual ~PSetMemBenchmark() throw() {}
@@ -105,11 +105,6 @@ public:
 		{
 			map_->FindEQ(0, rd_array_[c]);
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "PackedSet<BigInt>, "+ToString(BranchingFactor_)+" children";
 	}
 };
 

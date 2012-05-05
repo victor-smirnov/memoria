@@ -45,8 +45,8 @@ class VectorReadBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorReadBenchmark():
-		SPBenchmarkTask("Read")
+	VectorReadBenchmark(StringRef graph_name = "Memoria Vector<BigInt> random Seek()"):
+		SPBenchmarkTask("Read", graph_name)
 	{
 		RootCtr::Init();
 		VectorCtr::Init();
@@ -97,11 +97,6 @@ public:
 		{
 			ctr_->Seek(rd_array_[c]);
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Vector<BigInt> random Seek()";
 	}
 };
 

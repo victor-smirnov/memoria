@@ -32,20 +32,20 @@ class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
 
 	static const Int MAX_DATA_SIZE									= 256;
 
-	Allocator* allocator_;
-	Ctr* ctr_;
+	Allocator* 	allocator_;
+	Ctr* 		ctr_;
 
-	Int result_;
-
-	Int* rd_array_;
+	BigInt 		memory_size;
 
 public:
 
-	VectorMapRandomReadBenchmark():
-		SPBenchmarkTask("RandomRead")
+	VectorMapRandomReadBenchmark(StringRef graph_name = "Memoria VectorMap Random Read"):
+		SPBenchmarkTask("RandomRead", graph_name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		Ctr::Init();
+
+		Add("memory_size", memory_size);
 	}
 
 	virtual ~VectorMapRandomReadBenchmark() throw() {}
@@ -55,64 +55,40 @@ public:
 		allocator_ = new Allocator();
 
 		Int size = params.x();
+		ArrayData data(size, malloc(size), true);
 
-		String resource_name = "VectorMap."+ToString(size)+".dump";
+		BigInt total = 0;
 
-		if (IsResourceExists(resource_name))
+		ctr_ = new Ctr(*allocator_, 1, true);
+
+		while (total < memory_size)
 		{
-			LoadResource(*allocator_, resource_name);
-
-			ctr_ = new Ctr(*allocator_, 1);
-		}
-		else {
-			ctr_ = new Ctr(*allocator_, 1, true);
-
-			Byte array[MAX_DATA_SIZE];
-
-			for (Int c = 0; c < size; c++)
-			{
-				for (Int d = 0; d < 128; d++)
-				{
-					array[d] = GetRandom(256);
-				}
-
-				Iterator i = ctr_->Create();
-
-				i = ArrayData(GetRandom(sizeof(array)), array);
-			}
-
-			allocator_->commit();
-			StoreResource(*allocator_, resource_name);
+			auto i = ctr_->Create();
+			i.Insert(data);
+			total += data.size();
 		}
 
-		rd_array_ = new Int[params.operations()];
-		for (Int c = 0; c < params.operations(); c++)
-		{
-			rd_array_[c] = GetRandom(size - 1) + 1;
-		}
+		allocator_->commit();
 	}
 
 	virtual void Release(ostream& out)
 	{
 		delete ctr_;
 		delete allocator_;
-		delete[] rd_array_;
 	}
 
 	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Byte array[MAX_DATA_SIZE];
-		ArrayData data(sizeof(array), array);
+		Int size = params.x();
+		ArrayData data(size, malloc(size), true);
+		Int total = memory_size/size;
 
-		for (Int c = 0; c < params.operations(); c++)
+		params.operations() = total;
+
+		for (Int c = 0; c < total; c++)
 		{
-			ctr_->Find(rd_array_[c]).Read(data);
+			ctr_->Find(GetRandom(total)).Read(data);
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Vector<BigInt>";
 	}
 };
 

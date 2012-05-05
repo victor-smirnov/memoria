@@ -45,8 +45,8 @@ class SetCommitAppendBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetCommitAppendBenchmark():
-		SPBenchmarkTask("AppendCommit"), max_size(16*1024*1024)
+	SetCommitAppendBenchmark(StringRef graph_name = "Memoria Set<BigInt> Append Commit Rate"):
+		SPBenchmarkTask("AppendCommit", graph_name), max_size(16*1024*1024)
 	{
 		Add("max_size", max_size);
 
@@ -70,11 +70,13 @@ public:
 	}
 
 
-	virtual void Benchmark(BenchmarkParameters& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Int size = result.x();
+		Int size = params.x();
 
 		auto i = set_->End();
+
+		params.operations() = this->max_size;
 
 		for (Int c = 0; c < this->max_size; c++)
 		{
@@ -88,11 +90,6 @@ public:
 				allocator_->commit();
 			}
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Set<BigInt> Append Commit Rate";
 	}
 };
 

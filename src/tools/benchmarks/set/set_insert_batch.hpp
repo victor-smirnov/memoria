@@ -65,8 +65,8 @@ public:
 
 public:
 
-	SetInsertBatchBenchmark():
-		SPBenchmarkTask("SetInsertBatch"), max_size(32*1024*1024)
+	SetInsertBatchBenchmark(StringRef graph_name = "Memoria Set<BigInt> Insert Batch"):
+		SPBenchmarkTask("SetInsertBatch", graph_name), max_size(16*1024*1024)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
@@ -97,7 +97,9 @@ public:
 
 		Int map_size = 0;
 
-		for (Int c = 0; c < this->max_size / size; c++)
+		params.operations() = this->max_size;
+
+		for (Int c = 0; c < params.operations() / size; c++)
 		{
 			Int pos = GetRandom(map_size - 1) + 1;
 			auto i = map_size == 0? set_->End() : set_->Find(pos);
@@ -108,11 +110,6 @@ public:
 		}
 
 		allocator_->rollback();
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Set<BigInt> Insert Batch";
 	}
 };
 

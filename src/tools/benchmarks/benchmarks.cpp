@@ -75,6 +75,8 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterTask(new PackedSetStlUSetSizeGraph());
 		runner.RegisterTask(new ScanSpeedGraph());
 		runner.RegisterTask(new MemmoveGraph());
+		runner.RegisterTask(new SetBatchUpdateGraph());
+		runner.RegisterTask(new VectorMapGraph());
 		runner.RegisterTask(new TestGraph());
 
 		runner.Configure(&cmd_line.GetConfigurator());

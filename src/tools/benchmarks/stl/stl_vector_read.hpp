@@ -32,8 +32,8 @@ class StlVectorReadBenchmark: public BenchmarkTask {
 
 public:
 
-	StlVectorReadBenchmark():
-		BenchmarkTask("StlVectorRead")
+	StlVectorReadBenchmark(StringRef graph_name = "std::vector<BigInt> Read"):
+		BenchmarkTask("StlVectorRead", graph_name)
 	{
 	}
 
@@ -71,11 +71,6 @@ public:
 			BigInt value = ctr_->operator[](rd_array_[c]);
 			result_ += value;
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "std::vector<BigInt> Read";
 	}
 };
 

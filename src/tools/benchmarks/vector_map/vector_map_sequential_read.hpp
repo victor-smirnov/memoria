@@ -33,18 +33,20 @@ class VectorMapSequentialReadBenchmark: public SPBenchmarkTask {
 
 	static const Int MAX_DATA_SIZE									= 256;
 
-	Allocator* allocator_;
-	Ctr* ctr_;
+	Allocator* 	allocator_;
+	Ctr* 		ctr_;
 
-	Int result_;
+	BigInt 		memory_size;
 
 public:
 
-	VectorMapSequentialReadBenchmark():
-		SPBenchmarkTask("SequentialRead")
+	VectorMapSequentialReadBenchmark(StringRef graph_name = "Memoria VectorMap Sequential Read"):
+		SPBenchmarkTask("VectorMapSequentialRead", graph_name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		Ctr::Init();
+
+		Add("memory_size", memory_size);
 	}
 
 	virtual ~VectorMapSequentialReadBenchmark() throw() {}
@@ -54,35 +56,20 @@ public:
 		allocator_ = new Allocator();
 
 		Int size = params.x();
+		ArrayData data(size, malloc(size), true);
 
-		String resource_name = "VectorMap."+ToString(size)+".dump";
+		BigInt total = 0;
 
-		if (IsResourceExists(resource_name))
+		ctr_ = new Ctr(*allocator_, 1, true);
+
+		while (total < memory_size)
 		{
-			LoadResource(*allocator_, resource_name);
-
-			ctr_ = new Ctr(*allocator_, 1);
+			auto i = ctr_->Create();
+			i.Insert(data);
+			total += data.size();
 		}
-		else {
-			ctr_ = new Ctr(*allocator_, 1, true);
 
-			Byte array[MAX_DATA_SIZE];
-
-			for (Int c = 0; c < size; c++)
-			{
-				for (Int d = 0; d < 128; d++)
-				{
-					array[d] = GetRandom(256);
-				}
-
-				Iterator i = ctr_->Create();
-
-				i = ArrayData(GetRandom(sizeof(array)), array);
-			}
-
-			allocator_->commit();
-			StoreResource(*allocator_, resource_name);
-		}
+		allocator_->commit();
 	}
 
 	virtual void Release(ostream& out)
@@ -93,23 +80,16 @@ public:
 
 	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Byte array[MAX_DATA_SIZE];
-		ArrayData data(sizeof(array), array);
+		Int size = params.x();
+		ArrayData data(size, malloc(size), true);
+		Int total = ctr_->Count();
 
-		Iterator iter = ctr_->begin();
+		params.operations() = total;
 
-		for (Int c = 0; c < params.operations();)
+		for (auto i = ctr_->Begin(); !i.IsEnd(); i++)
 		{
-			for (auto i = iter; i != ctr_->end() && c < params.operations(); i++, c++)
-			{
-				i.Read(data);
-			}
+			i.Read(data);
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria VectorMap Sequential";
 	}
 };
 

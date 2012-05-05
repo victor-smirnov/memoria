@@ -25,8 +25,8 @@ class MemmoveBenchmark: public BenchmarkTask {
 
 public:
 
-	MemmoveBenchmark():
-		BenchmarkTask("MemMove")
+	MemmoveBenchmark(StringRef graph_name = "memmove() performance"):
+		BenchmarkTask("MemMove", graph_name)
 	{
 		average	= 5;
 	}
@@ -74,11 +74,6 @@ public:
 		}
 
 		out<<"size: "<<params.x()/params.xunit()<<" amount: "<<total/1024/1024<<endl;
-	}
-
-	virtual String GetGraphName()
-	{
-		return "memmove() performance";
 	}
 };
 

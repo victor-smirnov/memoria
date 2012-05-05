@@ -47,8 +47,8 @@ public:
 
 public:
 
-	SetCommitRandomBenchmark():
-		SPBenchmarkTask("CommitRandom"), max_size(16*1024*1024)
+	SetCommitRandomBenchmark(StringRef graph_name = "Memoria Set<BigInt> Random Commit Rate"):
+		SPBenchmarkTask("CommitRandom", graph_name), max_size(16*1024*1024)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
@@ -72,9 +72,11 @@ public:
 	}
 
 
-	virtual void Benchmark(BenchmarkParameters& result, ostream& out)
+	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Int size = result.x();
+		Int size = params.x();
+
+		params.operations() = this->max_size;
 
 		for (Int c = 0; c < this->max_size; c++)
 		{
@@ -98,11 +100,6 @@ public:
 				allocator_->commit();
 			}
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Set<BigInt> Random Commit Rate";
 	}
 };
 

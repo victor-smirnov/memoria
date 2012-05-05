@@ -39,7 +39,7 @@ class StlUSetMemBenchmark: public BenchmarkTask {
 
 public:
 
-	StlUSetMemBenchmark(): BenchmarkTask("StlUSetMem.Find") {}
+	StlUSetMemBenchmark(StringRef graph_name = "std::unordered_set<BigInt>"): BenchmarkTask("StlUSetMem.Find", graph_name) {}
 
 	virtual ~StlUSetMemBenchmark() throw() {}
 
@@ -74,11 +74,6 @@ public:
 		{
 			result_ = (map_->find(rd_array_[c]) != map_->end());
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "std::unordered_set<BigInt>";
 	}
 };
 

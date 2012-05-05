@@ -39,7 +39,7 @@ class StlUSetSizeBenchmark: public BenchmarkTask {
 
 public:
 
-	StlUSetSizeBenchmark(): BenchmarkTask("StlUSetSize.Find") {}
+	StlUSetSizeBenchmark(StringRef graph_name = "std::unordered_set<BigInt>"): BenchmarkTask("StlUSetSize.Find", graph_name) {}
 
 	virtual ~StlUSetSizeBenchmark() throw() {}
 
@@ -73,11 +73,6 @@ public:
 		{
 			result_ = (map_->find(rd_array_[c]) != map_->end());
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "std::unordered_set<BigInt>";
 	}
 };
 

@@ -46,8 +46,8 @@ class SetFindRandomBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetFindRandomBenchmark():
-		SPBenchmarkTask("SetFindRandom")
+	SetFindRandomBenchmark(StringRef graph_name = "Memoria Set<BigInt>"):
+		SPBenchmarkTask("SetFindRandom", graph_name)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
@@ -116,11 +116,6 @@ public:
 				cout<<"MISS!!!"<<endl; // this should't happen
 			}
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Set<BigInt>";
 	}
 };
 

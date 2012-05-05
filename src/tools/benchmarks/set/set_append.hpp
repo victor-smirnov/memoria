@@ -66,8 +66,8 @@ class SetAppendBatchBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetAppendBatchBenchmark():
-		SPBenchmarkTask("SetAppendBatch"), max_size(16*1024*1024)
+	SetAppendBatchBenchmark(String graph_name = "Memoria Set<BigInt> Append Batch"):
+		SPBenchmarkTask("SetAppendBatch", graph_name), max_size(16*1024*1024)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
@@ -106,7 +106,9 @@ public:
 
 		Iterator i = set_->End();
 
-		for (Int c = 0; c < this->max_size / size; c++)
+		params.operations() = this->max_size;
+
+		for (Int c = 0; c < params.operations() / size; c++)
 		{
 			set_->InsertSubtree(i, provider);
 
@@ -114,11 +116,6 @@ public:
 		}
 
 		allocator_->rollback();
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Set<BigInt> Append Batch";
 	}
 };
 

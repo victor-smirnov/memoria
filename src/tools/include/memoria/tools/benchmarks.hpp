@@ -94,14 +94,9 @@ public:
 		return x_ < other.x_;
 	}
 
-	double speed() const
+	BigInt plot_value() const
 	{
-		return this->operations_/runs_/(double)time_;
-	}
-
-	double plot_value() const
-	{
-		return time_ / (double)runs_;
+		return operations_ * 1000 / time_ ;
 	}
 };
 
@@ -112,10 +107,13 @@ public:
 
 	Int average;
 
+	String graph_name_;
+
 public:
-	BenchmarkTask(StringRef name): Task(name), average(1)
+	BenchmarkTask(StringRef name, StringRef graph_name): Task(name), average(1), graph_name_(name)
 	{
 		Add("average", average);
+		Add("graph_name", graph_name_);
 	}
 
 	virtual ~BenchmarkTask() throw () {}
@@ -149,8 +147,8 @@ public:
 
 	virtual void Release(ostream& out) {}
 
-	virtual String GetGraphName() {
-		return GetTaskName();
+	virtual StringRef GetGraphName() {
+		return graph_name_;
 	}
 
 public:

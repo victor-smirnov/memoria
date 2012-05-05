@@ -262,25 +262,71 @@ public:
 	}
 };
 
-
-class TestGraph: public LogXScaleGnuplotGraph {
+class SetBatchUpdateGraph: public LogXScaleGnuplotGraph {
 public:
-	TestGraph(): LogXScaleGnuplotGraph("Test", 10)
+	SetBatchUpdateGraph(): LogXScaleGnuplotGraph("SetBatchUpdate", 10)
 	{
-		title 	= "Something vs Something,\\n1 million operations";
-		xtitle 	= "Something";
-		ytitle	= "Execution Time, ms";
+		title 	= "Insert 16M keys into Memoria Set";
+		xtitle 	= "Batch size";
+		ytitle	= "Performance, insertions/s";
 
 		time_start 	= 1;
 		time_stop	= 100000;
 
 		xunit 		= 1;
-		yunit		= 1;
+		yunit		= 1000;
 
 		logscale	= 10;
 
 		RegisterTask(new SetInsertBatchBenchmark());
 		RegisterTask(new SetAppendBatchBenchmark());
+	}
+};
+
+
+class VectorMapGraph: public LogXScaleGnuplotGraph {
+public:
+	VectorMapGraph(): LogXScaleGnuplotGraph("VectorMap")
+	{
+		title 	= "VectorMap Random Performance";
+		xtitle 	= "Value Size";
+		ytitle	= "Performance, operations/s";
+
+		time_start 	= 8;
+		time_stop	= 1024*1024;
+
+		xunit 		= 1;
+		yunit		= 1000;
+
+		logscale	= 2;
+
+		RegisterTask(new VectorMapRandomInsertBenchmark());
+		RegisterTask(new VectorMapRandomReadBenchmark());
+	}
+};
+
+
+class TestGraph: public LogXScaleGnuplotGraph {
+public:
+	TestGraph(): LogXScaleGnuplotGraph("Test", 2)
+	{
+		title 	= "Vector/VectorMap Linear Read Performance";
+		xtitle 	= "Value/Block size";
+		ytitle	= "Performace, reads/s";
+
+		time_start 	= 8;
+		time_stop	= 1024*1024;
+
+		xunit 		= 1;
+		yunit		= 1000;
+
+		logscale	= 2;
+
+		RegisterTask(new VectorSequentialReadBenchmark());
+		RegisterTask(new VectorMapSequentialReadBenchmark());
+
+//		RegisterTask(new SetInsertBatchBenchmark());
+//		RegisterTask(new SetAppendBatchBenchmark());
 
 //		RegisterTask(new SetCommitAppendBenchmark());
 //		RegisterTask(new SetCommitRandomBenchmark());

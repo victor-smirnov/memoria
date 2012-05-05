@@ -37,18 +37,22 @@ class VectorSequentialReadBenchmark: public SPBenchmarkTask {
 
 
 
-	Allocator* allocator_;
-	VectorCtr* ctr_;
+	Allocator* 	allocator_;
+	VectorCtr* 	ctr_;
 
-	Int result_;
+	BigInt		memory_size;
 
 public:
 
-	VectorSequentialReadBenchmark():
-		SPBenchmarkTask("SequentialRead")
+	VectorSequentialReadBenchmark(StringRef graph_name = "Memoria Vector Sequential Read"):
+		SPBenchmarkTask("VectorSequentialRead", graph_name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
 		VectorCtr::Init();
+
+		Add("memory_size", memory_size);
+
+		average = 5;
 	}
 
 	virtual ~VectorSequentialReadBenchmark() throw() {}
@@ -57,22 +61,15 @@ public:
 	{
 		allocator_ = new Allocator();
 
-		Int size = params.x();
-
 		ctr_ = new VectorCtr(*allocator_);
 
 		Iterator i = ctr_->Seek(0);
 
-		Byte array[1024];
+		ArrayData data(1024*1024, malloc(1024*1024), true);
 
-		for (Int c = 0; c < size/(Int)sizeof(array); c++)
+		for (Int c = 0; c < memory_size / data.size(); c++)
 		{
-			for (Int d = 0; d < (Int)sizeof(array); d++)
-			{
-				array[d] = GetRandom(256);
-			}
-
-			i.Insert(ArrayData(sizeof(array), array));
+			i.Insert(data);
 		}
 	}
 
@@ -84,23 +81,16 @@ public:
 
 	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		Byte array[4096];
-		BigInt total = 0;
+		Int 	size 	= params.x();
 
-		for (Int c = 0; c < params.operations();)
+		ArrayData data(size, malloc(size), true);
+
+		for (Iterator i = ctr_->Seek(0); !i.IsEof();)
 		{
-			int a = 0; a++;
-			for (Iterator i = ctr_->Seek(0); !i.IsEof() && c < params.operations(); c++)
-			{
-				ArrayData data(GetRandom(256), array);
-				total += i.Read(data);
-			}
+			i.Read(data);
 		}
-	}
 
-	virtual String GetGraphName()
-	{
-		return "Memoria Vector<BigInt> Sequential Read";
+		params.operations() = memory_size / size;
 	}
 };
 

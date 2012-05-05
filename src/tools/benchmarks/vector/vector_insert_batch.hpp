@@ -40,8 +40,8 @@ public:
 
 public:
 
-	VectorInsertBatchBenchmark():
-		SPBenchmarkTask("InsertBatch"), max_size(256*1024*1024)
+	VectorInsertBatchBenchmark(StringRef graph_name = "Memoria Vector InsertBatch"):
+		SPBenchmarkTask("InsertBatch", graph_name), max_size(256*1024*1024)
 	{
 		RootCtr::Init();
 		MapCtr::Init();
@@ -76,6 +76,8 @@ public:
 
 		Int total = 0;
 
+		params.operations() = max;
+
 		for (Int c = 0; c < max; c++)
 		{
 			auto i = map_->Seek(GetRandom(total));
@@ -86,11 +88,6 @@ public:
 		}
 
 		allocator_->rollback();
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Vector InsertBatch";
 	}
 };
 

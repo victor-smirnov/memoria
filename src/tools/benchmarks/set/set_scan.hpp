@@ -43,8 +43,8 @@ class SetScanBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetScanBenchmark():
-		SPBenchmarkTask("SetScan")
+	SetScanBenchmark(StringRef graph_name = "Memoria Set<BigInt> Scan"):
+		SPBenchmarkTask("SetScan", graph_name)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
@@ -110,11 +110,6 @@ public:
 				total += i.GetKey(0);
 			}
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Set<BigInt> Scan";
 	}
 };
 

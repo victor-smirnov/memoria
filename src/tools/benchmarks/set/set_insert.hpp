@@ -43,19 +43,14 @@ class SetInsertBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetInsertBenchmark():
-		SPBenchmarkTask("InsertRandom")
+	SetInsertBenchmark(StringRef graph_name = "Memoria Set<BigInt> Random Insert"):
+		SPBenchmarkTask("InsertRandom", graph_name)
 	{
 		RootCtr::Init();
 		SetCtr::Init();
 	}
 
 	virtual ~SetInsertBenchmark() throw() {}
-
-	Key key(Int c) const
-	{
-		return c * 2 + 1;
-	}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -75,6 +70,8 @@ public:
 	{
 		Int size = params.x();
 
+		params.operations() = size;
+
 		for (Int c = 0; c < size; c++)
 		{
 			auto i = set_->Find(GetRandom(size));
@@ -92,11 +89,6 @@ public:
 				i.UpdateUp(keys);
 			}
 		}
-	}
-
-	virtual String GetGraphName()
-	{
-		return "Memoria Set<BigInt> Random Insert";
 	}
 };
 

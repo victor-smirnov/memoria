@@ -35,7 +35,7 @@ public:
 	typedef Allocator_ 								Allocator;
 
 
-	ProfileBenchmarkTask(StringRef names): BenchmarkTask(names) {}
+	ProfileBenchmarkTask(StringRef name, StringRef graph_name): BenchmarkTask(name, graph_name) {}
 	virtual ~ProfileBenchmarkTask() throw () {};
 
 
@@ -73,7 +73,7 @@ class SPBenchmarkTaskT: public ProfileBenchmarkTask<SmallProfile<>, SmallInMemAl
 	typedef ProfileBenchmarkTask<SmallProfile<>, SmallInMemAllocator> Base;
 
 public:
-	SPBenchmarkTaskT(StringRef name): Base(name) {}
+	SPBenchmarkTaskT(StringRef name, StringRef graph_name): Base(name, graph_name) {}
 	virtual ~SPBenchmarkTaskT() throw () {};
 
 	void Check(Allocator& allocator, const char* source)
