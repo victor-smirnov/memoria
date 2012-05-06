@@ -76,6 +76,8 @@ public:
 
 		BigInt total = 0;
 
+		params.operations() = 0;
+
 		ArrayData data(size, malloc(size), true);
 
 		while (total < memory_size)

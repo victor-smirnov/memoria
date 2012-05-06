@@ -98,12 +98,14 @@ public:
 		BigInt buffer;
 		ArrayData data(sizeof(buffer), &buffer);
 
+		BigInt total = 0;
+
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			ctr_->Seek(rd_array_[c]).Read(data);
+			total += ctr_->Seek(rd_array_[c]).Read(data);
 		}
 
-		params.memory() = params.operations() * data.size();
+		params.memory() = total;
 	}
 };
 

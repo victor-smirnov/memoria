@@ -129,13 +129,14 @@ void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 	out_file.exceptions ( fstream::failbit | fstream::badbit );
 	out_file.open(file_name, fstream::out);
 
-	out_file<<"set terminal png size "<<this->resolution<<" medium"<<endl;
+	out_file<<"reset"<<endl;
+	out_file<<"set terminal png size "<<this->resolution<<" large"<<endl;
 	out_file<<"set output '"+this->GetTaskName()+".png'"<<endl;
 	out_file<<"set title \""+this->title+"\""<<endl;
 	out_file<<"set xlabel \""+this->xtitle+"\""<<endl;
 	out_file<<"set ylabel \""+this->ytitle+"\""<<endl;
 
-	out_file<<"set ytics format \""<<ytics_format<<"\""<<endl;
+	out_file<<"set ytics format \""<<ytics_format<<"\""<<(this->y2 ? " nomirror" : "")<<endl;
 
 	if (this->y2)
 	{

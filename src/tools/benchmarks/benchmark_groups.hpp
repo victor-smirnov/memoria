@@ -38,6 +38,7 @@
 #include "vector/vector_random_insert.hpp"
 
 #include "vector_map/vector_map_append.hpp"
+#include "vector_map/vector_map_batch_insert.hpp"
 #include "vector_map/vector_map_random_insert.hpp"
 #include "vector_map/vector_map_random_read.hpp"
 #include "vector_map/vector_map_sequential_read.hpp"
@@ -184,7 +185,7 @@ class SetRandomInsertGraph: public LogXScaleGnuplotGraph {
 public:
 	SetRandomInsertGraph(): LogXScaleGnuplotGraph("SetInsert")
 	{
-		title 	= "Set<BigInt> Insert Performance";
+		title 	= "Set<BigInt> Batch Insert Performance";
 		xtitle 	= "Batch size, Elements";
 
 		time_start 	= 1;
@@ -204,7 +205,7 @@ class SetCommitRateGraph: public LogXScaleGnuplotGraph {
 public:
 	SetCommitRateGraph(): LogXScaleGnuplotGraph("SetCommitRate", 10)
 	{
-		title 	= "Set<BigInt> Commit Performance,\nInsert/Append 1M keys";
+		title 	= "Set<BigInt> Commit Performance,\\nInsert/Append 1M keys";
 		xtitle 	= "Commit Batch size, Elements";
 
 		time_start 	= 1;
@@ -226,7 +227,7 @@ public:
 	{
 		title 	= "Insert 16M keys into Memoria Set";
 		xtitle 	= "Batch size";
-		ytitle	= "Performance, insertions/s";
+		ytitle	= "Performance, Insertions/sec";
 
 		time_start 	= 1;
 		time_stop	= 100000;
@@ -257,7 +258,7 @@ public:
 		xunit 		= 1024;
 		y2unit		= 1024*1024;
 
-		logscale	= 10;
+		logscale	= 2;
 
 		AddGraph(new MemmoveBenchmark("MemMove"), GraphData("memmove() Performance", "Memory Throughput"));
 	}
@@ -275,6 +276,8 @@ public:
 		time_start 	= 1024;
 		time_stop	= 256*1024*1024;
 
+		operations = 32*1024*1024;
+
 		y2			= true;
 
 		xunit 		= 1024;
@@ -291,7 +294,6 @@ public:
 	{
 		title 	= "Vector Read Performance";
 		xtitle 	= "Block Size, Bytes";
-		ytitle	= "Performance, operations/s";
 
 		time_start 	= 8;
 		time_stop	= 256*1024;
@@ -299,6 +301,8 @@ public:
 		y2			= true;
 
 		y2unit		= 1024*1024;
+
+		agenda_location = "top left";
 
 		AddGraph(new VectorRandomReadBenchmark("Random"), GraphData("Random Performance", "Random Throughput"));
 		AddGraph(new VectorSequentialReadBenchmark("Sequential"), GraphData("Sequential Performance", "Sequential Throughput"));
@@ -312,7 +316,6 @@ public:
 	{
 		title 	= "Vector Insert Performance";
 		xtitle 	= "Block Size, Bytes";
-		ytitle	= "Performance, operations/s";
 
 		agenda_location = "top left";
 
@@ -338,7 +341,6 @@ public:
 	{
 		title 	= "VectorMap Random Performance";
 		xtitle 	= "Value Size";
-		ytitle	= "Performance, operations/s";
 
 		time_start 	= 8;
 		time_stop	= 1024*1024;
@@ -358,7 +360,6 @@ public:
 	{
 		title 	= "VectorMap Sequential Performance";
 		xtitle 	= "Value Size";
-		ytitle	= "Performance, operations/s";
 
 		time_start 	= 8;
 		time_stop	= 1024*1024;
@@ -378,8 +379,7 @@ public:
 	{
 		title 	= "Memoria Vector/VectorMap Sequential Read Performance";
 		xtitle 	= "Value/Block size, Bytes";
-		ytitle	= "Performace, reads/s";
-		y2title	= "Throughput, MiB/s";
+		ytitle	= "Performance, Reads/sec";
 
 		y2 		= true;
 
@@ -397,7 +397,27 @@ public:
 	}
 };
 
+class VectorMapBatchInsertGraph: public LogXScaleGnuplotGraph {
+public:
+	VectorMapBatchInsertGraph(): LogXScaleGnuplotGraph("VectorMapBatchInsert", 2)
+	{
+		title 	= "VectorMap Batch Insert Performance";
+		xtitle 	= "Batch Size, Elements";
+		ytitle	= "Performance, Insertions/sec";
+		y2title	= "Throughput, MiB/sec";
 
+		y2 		= true;
+
+		agenda_location = "top left";
+
+		time_start 	= 1;
+		time_stop	= 128*1024;
+
+		logscale	= 2;
+
+		AddGraph(new VectorMapBatchInsertBenchmark("Insert.128", 128), GraphData("VectorMap Performance, 128 bytes value", "VectorMap Throughput, 128 bytes value"));
+	}
+};
 
 class TestGraph: public LogXScaleGnuplotGraph {
 public:
@@ -405,8 +425,8 @@ public:
 	{
 		title 	= "Memoria Vector/VectorMap Sequential Read Performance";
 		xtitle 	= "Value/Block size, Bytes";
-		ytitle	= "Performace, reads/s";
-		y2title	= "Throughput, MiB/s";
+		ytitle	= "Performace, reads/sec";
+		y2title	= "Throughput, MiB/sec";
 
 		y2 		= true;
 

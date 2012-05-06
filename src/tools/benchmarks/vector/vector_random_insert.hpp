@@ -74,6 +74,8 @@ public:
 
 		Int cnt = 0;
 
+		params.operations() = 0;
+
 		while (total < memory_size)
 		{
 			BigInt idx = GetRandom(total);
