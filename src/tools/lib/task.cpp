@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <sstream>
 
 namespace memoria {
 
@@ -67,20 +68,18 @@ Int Task::Run()
 		Run(*out_);
 
 		(*out_)<<"PASSED"<<endl;
-		cout<<GetFullName()<<" PASSED"<<endl;
 
-		result = true;
+		result = false;
 	}
 	catch (...)
 	{
 		(*out_)<<"FAILED"<<endl;
-		cout<<GetFullName()<<" FAILED"<<endl;
 
 		String path = GetTaskParametersFilePath();
 
 		StoreProperties(this, path);
 
-		result = false;
+		result = true;
 	}
 
 	ReleaseResources();
@@ -117,8 +116,36 @@ void TaskGroup::Run(ostream& out)
 
 		t->SetOutputFolder(folder);
 		t->SetIteration(1);
-		t->Run();
+
+		if (t->Run())
+		{
+			failures_.push_back(FailureDescriptor(t->GetIteration(), t->GetTaskName()));
+		}
 	}
+
+	cout<<GetTaskName();
+
+	if (failures_.size() > 0)
+	{
+		cout<<" FAILED: ";
+
+		for (UInt c = 0; c < failures_.size(); c++)
+		{
+			out<<failures_[c].task_name;
+			cout<<failures_[c].task_name;
+
+			if (c < failures_.size() - 1) {
+				out<<", ";
+				cout<<", ";
+			}
+		}
+	}
+	else {
+		cout<<" PASSED";
+	}
+
+	out<<endl;
+	cout<<endl;
 }
 
 void TaskGroup::RegisterTask(Task* task)
@@ -199,183 +226,62 @@ Int GroupRunner::Run()
 
 				t->SetOutputFolder(folder);
 				t->SetIteration(c);
-				counter += t->Run();
+
+
+
+				if (Int failures = t->Run())
+				{
+					failures_.push_back(FailureDescriptor(t->GetIteration(), t->GetTaskName()));
+
+					counter += failures;
+				}
 			}
 		}
+	}
+
+	ostream& out = *out_;
+
+	if (failures_.size() > 0)
+	{
+		cout<<"FAILURES: "<<endl;
+		out<<"FAILURES: "<<endl;
+
+		map<String, vector<Int>> failures;
+
+		for (FailureDescriptor descr: failures_)
+		{
+			failures[descr.task_name].push_back(descr.run_number);
+		}
+
+		for (auto failure: failures)
+		{
+			stringstream list;
+
+			vector<Int>& numbers = failure.second;
+
+			for (UInt c = 0; c < numbers.size(); c++)
+			{
+				list<<numbers[c];
+
+				if (c < numbers.size() - 1)
+				{
+					list<<", ";
+				}
+			}
+
+			cout<<failure.first<<": "<<list.str()<<endl;
+			out<<failure.first<<": "<<list.str()<<endl;
+		}
+	}
+	else {
+		cout<<"PASSED: ALL"<<endl;
+		out<<"PASSED: ALL"<<endl;
 	}
 
 	ReleaseResources();
 
 	return counter;
 }
-
-
-
-
-//
-//TaskRunner::~TaskRunner()
-//{
-//	for (auto task_p: tasks_)
-//	{
-//		delete task_p.second;
-//	}
-//}
-//
-//void TaskRunner::Configure(Configurator* cfg)
-//{
-//	for (auto task_p: tasks_)
-//	{
-//		task_p.second->Configure(cfg);
-//	}
-//}
-//
-//
-//bool TaskRunner::Run(Task* task, StringRef out_file_name, ostream& out, Int c)
-//{
-//	fstream out_file;
-//
-//	bool passed = false;
-//
-//	try {
-//		out_file.exceptions ( fstream::failbit | fstream::badbit );
-//		out_file.open(out_file_name, fstream::out);
-//
-//		BigInt start = GetTimeInMillis();
-//		try {
-//			out<<"Task: "<<task->GetTaskName()<<" ";
-//			out_file<<"Task: "<<task->GetTaskName()<<endl;
-//
-//			task->SetIteration(c);
-//
-//			task->Prepare(out_file);
-//			task->Run(out_file);
-//			task->Release(out_file);
-//
-//			passed = true;
-//			out<<"PASSED ";
-//			out_file<<"PASSED"<<endl;
-//		}
-//		catch (MemoriaSigSegv e)
-//		{
-//			out<<"SigSegv ";
-//			out_file<<"FAILED: SigSegv: "<<e.source()<<" "<<e.message()<<endl;
-//			exit(1);
-//		}
-//		catch (MemoriaException e)
-//		{
-//			out<<"FAILED ";
-//			out_file<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
-//		}
-//		catch (ifstream::failure e)
-//		{
-//			throw;
-//		}
-//		catch (...)
-//		{
-//			out<<"FAILED ";
-//			out_file<<"FAILED"<<endl;
-//		}
-//
-//		BigInt stop = GetTimeInMillis();
-//
-//		task->SetDuration(task->GetDuration() + stop - start);
-//
-//		String total_task_time = FormatTime(stop - start);
-//
-//		out<<" Duration: "<<total_task_time<<endl;
-//		out_file<<"Duration: "<<total_task_time<<endl;
-//
-//		out_file.close();
-//	}
-//	catch (fstream::failure e)
-//	{
-//		out << "Exception opening/writing file: "+out_file_name;
-//	}
-//
-//	return passed;
-//}
-//
-//
-//
-//Int TaskRunner::Run(ostream& out)
-//{
-//	BigInt total_start = GetTimeInMillis();
-//
-//	Int passed = 0;
-//	Int failed = 0;
-//
-//	for (Int c = 0; c < GetRunCount(); c++)
-//	{
-//		out<<"Pass "<<(c + 1)<<" of "<<GetRunCount()<<endl;
-//
-//		for (auto i = tasks_.begin(); i != tasks_.end(); i++)
-//		{
-//			Task* t = i->second;
-//
-//			if (t->GetParameters()->IsEnabled())
-//			{
-//				String task_folder = GetTaskOutputFolder(t->GetTaskName(), c + 1);
-//				t->SetOutputFolder(task_folder);
-//
-//				String out_file_name = task_folder + Platform::GetFilePathSeparator() + "output.txt";
-//
-//				try {
-//					File folder(task_folder);
-//					if (!folder.MkDirs())
-//					{
-//						throw MemoriaException(MEMORIA_SOURCE, "Can't create folder: "+task_folder);
-//					}
-//
-//					if (Run(t, out_file_name, out, c))
-//					{
-//						passed++;
-//					}
-//					else {
-//						failed++;
-//					}
-//				}
-//				catch (fstream::failure e)
-//				{
-//					out << "Exception opening/writing file: "+out_file_name;
-//				}
-//			}
-//		}
-//		out<<endl;
-//	}
-//
-//	out<<"----------------------------------------------"<<endl;
-//	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
-//	{
-//		Task* t = i->second;
-//		if (t->GetParameters()->IsEnabled())
-//		{
-//			out<<"Total Time for "<<t->GetTaskName()<<": "<<FormatTime(t->GetDuration())<<endl;
-//		}
-//	}
-//
-//	out<<"Passed: "<<passed<<endl;
-//	out<<"Failed: "<<failed<<endl;
-//	out<<"Total execution time: "<<(FormatTime(GetTimeInMillis() - total_start))<<endl;
-//	return failed;
-//}
-//
-//void TaskRunner::DumpProperties(ostream& out)
-//{
-//	for (auto i = tasks_.begin(); i != tasks_.end(); i++)
-//	{
-//		out<<"#task: "<<i->second->GetTaskName()<<endl;
-//		i->second->GetParameters()->DumpProperties(out);
-//		out<<endl<<endl;
-//	}
-//}
-
-
-
-
-
-
-
-
 
 
 

@@ -4,16 +4,11 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_CREATE_CTR_TASK_HPP_
-#define MEMORIA_TESTS_CREATE_CTR_TASK_HPP_
-
-#include <memoria/memoria.hpp>
-
-#include <memoria/tools/tests.hpp>
-
+#ifndef MEMORIA_TESTS_CREATE_CTR_CREATE_CTR_TEST_HPP_
+#define MEMORIA_TESTS_CREATE_CTR_CREATE_CTR_TEST_HPP_
 
 #include "../shared/params.hpp"
-
+#include "../tests_inc.hpp"
 
 #include <vector>
 
@@ -22,33 +17,9 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-struct CreateCtrReplay: public ReplayParams {
-
-	BigInt map_name_;
-	BigInt vector_map_name_;
-
-	CreateCtrReplay(): ReplayParams()
-	{
-		Add("map_name", map_name_);
-		Add("vector_map_name", vector_map_name_);
-	}
-};
 
 
-struct CreateCtrParams: public TestTaskParams {
 
-	Int map_size_;
-	Int vector_map_size_;
-	Int block_size_;
-
-public:
-	CreateCtrParams(): TestTaskParams("CreateCtr"), map_size_(1024*256), vector_map_size_(200), block_size_(1024)
-	{
-		Add("MapSize", map_size_);
-		Add("VectorMapSize", vector_map_size_);
-		Add("BlockSize", block_size_);
-	}
-};
 
 
 class CreateCtrTest: public SPTestTask {
@@ -59,22 +30,44 @@ class CreateCtrTest: public SPTestTask {
 	typedef SmallCtrTypeFactory::Factory<Map1>::Type 					MapCtr;
 	typedef VectorMapCtr::Iterator										VMIterator;
 
+	struct TaskReplay: public ReplayParams {
+
+		BigInt map_name_;
+		BigInt vector_map_name_;
+
+		TaskReplay(): ReplayParams()
+		{
+			Add("map_name", map_name_);
+			Add("vector_map_name", vector_map_name_);
+		}
+	};
+
+
+
 	PairVector pairs_;
+
+	Int map_size_;
+	Int vector_map_size_;
+	Int block_size_;
 
 public:
 
-	CreateCtrTest(): SPTestTask(new CreateCtrParams())
+	CreateCtrTest(): SPTestTask("CreateCtr"), map_size_(1024*256), vector_map_size_(200), block_size_(1024)
 	{
 		SmallCtrTypeFactory::Factory<Root>::Type::Init();
 		VectorMapCtr::Init();
 		MapCtr::Init();
+
+		Add("MapSize", map_size_);
+		Add("VectorMapSize", vector_map_size_);
+		Add("BlockSize", block_size_);
 	}
 
 	virtual ~CreateCtrTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new CreateCtrReplay();
+		return new TaskReplay();
 	}
 
 
@@ -86,9 +79,9 @@ public:
 	{
 		DefaultLogHandlerImpl logHandler(out);
 
-		CreateCtrParams* task_params = GetParameters<CreateCtrParams>();
+		CreateCtrTest* task_params = this;
 
-		CreateCtrReplay params;
+		TaskReplay params;
 
 		params.size_ = task_params->size_;
 		if (task_params->btree_random_branching_)

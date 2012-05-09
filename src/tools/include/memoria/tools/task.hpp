@@ -231,6 +231,16 @@ public:
 protected:
 	Tasks	tasks_;
 
+	struct FailureDescriptor {
+		Int run_number;
+		String task_name;
+
+		FailureDescriptor()	{}
+		FailureDescriptor(Int number, StringRef name): run_number(number), task_name(name) {}
+	};
+
+	vector<FailureDescriptor> failures_;
+
 public:
 
 	TaskGroup(StringRef name): Task(name) {
@@ -250,6 +260,15 @@ public:
 
 	virtual void BuildResources();
 	virtual void ReleaseResources();
+
+	virtual void OnFailure(Task* task) {}
+
+	virtual Int Run()
+	{
+		Task::Run();
+
+		return failures_.size();
+	}
 
 	template <typename T>
 	T* GetTask(StringRef name)

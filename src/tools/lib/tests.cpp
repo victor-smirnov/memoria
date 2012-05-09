@@ -104,6 +104,11 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 }
 
 
+Int MemoriaTestRunner::Run()
+{
+	Int result = MemoriaTaskRunner::Run();
+	return result;
+}
 
 
 }

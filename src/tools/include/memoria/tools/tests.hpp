@@ -84,10 +84,23 @@ public:
 
 class TestTask: public Task {
 
+protected:
+	Int 	size_;
+	Int 	btree_branching_;
+	bool 	btree_random_branching_;
+
 public:
-	TestTask(StringRef name): Task(name)
+	TestTask(StringRef name):
+		Task(name),
+		size_(200),
+		btree_branching_(0),
+		btree_random_branching_(true)
 	{
 		own_folder = true;
+
+		Add("size", size_);
+		Add("btree_branching", btree_branching_);
+		Add("btree_random_branching", btree_random_branching_);
 	}
 
 	virtual ~TestTask() throw () 			{}
@@ -101,7 +114,6 @@ public:
 	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
 	virtual void 			Run(ostream& out)											= 0;
 	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
-
 
 
 	virtual void Store(TestReplayParams* params) const
@@ -125,9 +137,8 @@ public:
 		return "ReplayTask.properties";
 	}
 
-public:
-
 	String GetFileName(StringRef name) const;
+
 };
 
 
@@ -149,6 +160,8 @@ public:
 	virtual ~MemoriaTestRunner() throw ()			{}
 
 	void Replay(ostream& out, StringRef replay_file);
+
+	virtual Int Run();
 };
 
 

@@ -9,7 +9,7 @@
 //#include "sum_set_batch/task.hpp"
 //#include "vector/task.hpp"
 //#include "vector_map/task.hpp"
-//#include "create_ctr/task.hpp"
+#include "create_ctr/create_ctr_test.hpp"
 //
 //#include "pmap/pmap_data.hpp"
 //#include "pmap/pmap_reindex.hpp"
@@ -73,7 +73,8 @@ int main(int argc, const char** argv, const char** envp)
 
 
 
-		runner.RegisterTask(new TemplateTestSuite());
+//		runner.RegisterTask(new TemplateTestSuite());
+		runner.RegisterTask(new CreateCtrTest());
 
 /*
 		runner.RegisterTask(new MapTest());
@@ -142,24 +143,6 @@ int main(int argc, const char** argv, const char** envp)
 			String default_output_folder = cmd_line.GetImageName()+".out";
 
 			String output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder;
-
-//			File outf(output_folder);
-//			if (outf.IsExists())
-//			{
-//				if (outf.IsDirectory())
-//				{
-//					if (!outf.DelTree())
-//					{
-//						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
-//					}
-//				}
-//				else if (!outf.Delete())
-//				{
-//					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
-//				}
-//			}
-//
-//			outf.MkDirs();
 
 			runner.SetOutput(output_folder);
 
