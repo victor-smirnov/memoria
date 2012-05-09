@@ -88,6 +88,7 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterTask(new VectorMapReadOverheadGraph());
 		runner.RegisterTask(new VectorMapBatchInsertGraph());
 
+		runner.RegisterTask(new TestGraph());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 

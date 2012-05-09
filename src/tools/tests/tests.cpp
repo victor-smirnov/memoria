@@ -5,18 +5,18 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include "map/task.hpp"
-#include "sum_set_batch/task.hpp"
-#include "vector/task.hpp"
-#include "vector_map/task.hpp"
-#include "create_ctr/task.hpp"
-
-#include "pmap/pmap_data.hpp"
-#include "pmap/pmap_reindex.hpp"
-#include "pmap/pmap_find.hpp"
-#include "pmap/pmap_sum.hpp"
-#include "pmap/pmap_walk_fw.hpp"
-#include "pmap/pmap_walk_bw.hpp"
+//#include "map/task.hpp"
+//#include "sum_set_batch/task.hpp"
+//#include "vector/task.hpp"
+//#include "vector_map/task.hpp"
+//#include "create_ctr/task.hpp"
+//
+//#include "pmap/pmap_data.hpp"
+//#include "pmap/pmap_reindex.hpp"
+//#include "pmap/pmap_find.hpp"
+//#include "pmap/pmap_sum.hpp"
+//#include "pmap/pmap_walk_fw.hpp"
+//#include "pmap/pmap_walk_bw.hpp"
 
 #include "template/task.hpp"
 
@@ -64,12 +64,18 @@ int main(int argc, const char** argv, const char** envp)
 			GetBIRandom();
 		}
 
-		TestRunner runner;
+		MemoriaTestRunner runner;
 
 		runner.SetRunCount(cmd_line.GetCount());
 
 		// add tasks to the runner;
 
+
+
+
+		runner.RegisterTask(new TemplateTestSuite());
+
+/*
 		runner.RegisterTask(new MapTest());
 		runner.RegisterTask(new CreateCtrTest());
 		runner.RegisterTask(new SumSetBatchTest());
@@ -105,6 +111,7 @@ int main(int argc, const char** argv, const char** envp)
 		runner.RegisterTask(new PMapWalkBwTest<5>());
 		runner.RegisterTask(new PMapWalkBwTest<13>());
 		runner.RegisterTask(new PMapWalkBwTest<22>());
+		*/
 
 		runner.Configure(&cmd_line.GetConfigurator());
 
@@ -134,29 +141,29 @@ int main(int argc, const char** argv, const char** envp)
 
 			String default_output_folder = cmd_line.GetImageName()+".out";
 
-			const char* output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder.c_str();
+			String output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder;
 
-			File outf(output_folder);
-			if (outf.IsExists())
-			{
-				if (outf.IsDirectory())
-				{
-					if (!outf.DelTree())
-					{
-						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
-					}
-				}
-				else if (!outf.Delete())
-				{
-					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
-				}
-			}
-
-			outf.MkDirs();
+//			File outf(output_folder);
+//			if (outf.IsExists())
+//			{
+//				if (outf.IsDirectory())
+//				{
+//					if (!outf.DelTree())
+//					{
+//						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
+//					}
+//				}
+//				else if (!outf.Delete())
+//				{
+//					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
+//				}
+//			}
+//
+//			outf.MkDirs();
 
 			runner.SetOutput(output_folder);
 
-			Int failed = runner.Run(cout);
+			Int failed = runner.Run();
 			cout<<"Done..."<<endl;
 			return failed;
 		}

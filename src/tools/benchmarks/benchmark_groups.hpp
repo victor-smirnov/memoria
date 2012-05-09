@@ -439,8 +439,10 @@ public:
 
 		logscale	= 2;
 
-		AddGraph(new VectorSequentialReadBenchmark("Vector"), GraphData("Vector Performance", "Vector Throughput"));
-		AddGraph(new VectorMapSequentialReadBenchmark("VectorMap"), GraphData("VectorMap Performance", "VectorMap Throughput"));
+//		AddGraph(new VectorSequentialReadBenchmark("Vector"), GraphData("Vector Performance", "Vector Throughput"));
+//		AddGraph(new VectorMapSequentialReadBenchmark("VectorMap"), GraphData("VectorMap Performance", "VectorMap Throughput"));
+
+		AddGraph(new StlSetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
 	}
 };
 

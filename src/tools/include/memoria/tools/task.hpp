@@ -59,66 +59,6 @@ public:
 	}
 };
 
-class TestReplayParams: public ParametersSet {
-
-	String name_;
-	String task_;
-
-	String dump_name_;
-
-	bool replay_;
-
-public:
-	TestReplayParams(StringRef name = "", StringRef task = "", StringRef prefix = ""):ParametersSet(prefix), name_(name), task_(task), replay_(false)
-	{
-		Add("name", name_);
-		Add("task", task_);
-		Add("dump_name", dump_name_);
-	}
-
-	virtual ~TestReplayParams() {}
-
-	StringRef GetName() const
-	{
-		return name_;
-	}
-
-	void SetName(StringRef name)
-	{
-		name_ = name;
-	}
-
-	StringRef GetTask() const
-	{
-		return task_;
-	}
-
-	void SetTask(StringRef task)
-	{
-		task_ = task;
-	}
-
-	StringRef GetDumpName() const
-	{
-		return dump_name_;
-	}
-
-	void SetDumpName(String file_name)
-	{
-		this->dump_name_ = file_name;
-	}
-
-	bool IsReplay() const
-	{
-		return replay_;
-	}
-
-	void SetReplay(bool replay)
-	{
-		replay_ = replay;
-	}
-};
-
 
 struct ExampleTaskParams: public TaskParametersSet {
 
@@ -133,9 +73,6 @@ struct ExampleTaskParams: public TaskParametersSet {
 		Add("btree_random_airity", btree_random_airity_);
 	}
 };
-
-
-
 
 
 
@@ -253,6 +190,37 @@ public:
 	virtual void SetContextName(StringRef name) {
 		constext_name_ = name;
 	}
+
+	virtual String GetTaskPropertiesFileName() const {
+		return GetTaskName()+".properties";
+	}
+
+	virtual String GetTaskParametersFilePath() {
+		return GetOutputFolder() + Platform::GetFilePathSeparator() + GetTaskPropertiesFileName();
+	}
+
+	static void StoreProperties(const ParametersSet* params, StringRef file_name)
+	{
+		fstream file;
+		file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
+
+		params->DumpProperties(file);
+
+		file.close();
+	}
+
+	static void LoadProperties(ParametersSet* params, StringRef file_name)
+	{
+		fstream file;
+		file.open(file_name.c_str(), fstream::in | fstream::trunc | fstream::trunc);
+
+		Configurator cfg;
+		Configurator::Parse(file_name.c_str(), &cfg);
+
+		params->Process(&cfg);
+
+		file.close();
+	}
 };
 
 
@@ -282,6 +250,29 @@ public:
 
 	virtual void BuildResources();
 	virtual void ReleaseResources();
+
+	template <typename T>
+	T* GetTask(StringRef name)
+	{
+		for (auto t: tasks_)
+		{
+			if (t->GetFullName() == name)
+			{
+				return T2T_S<T*>(t);
+			}
+			else if (t->IsGroup())
+			{
+				TaskGroup* group = T2T_S<TaskGroup*>(t);
+				T* task = group->GetTask<T>(name);
+				if (task != NULL)
+				{
+					return task;
+				}
+			}
+		}
+
+		return NULL;
+	}
 };
 
 
@@ -340,136 +331,6 @@ public:
 	MemoriaTaskRunner(): GroupRunner("") 			{}
 	virtual ~MemoriaTaskRunner() throw ()			{}
 };
-
-
-
-class TestTask: public Task {
-
-public:
-	TestTask(TaskParametersSet* parameters): Task("") {}
-	virtual ~TestTask() throw () {}
-
-	virtual TestReplayParams* ReadTestStep(Configurator* cfg) const;
-
-	virtual void 			Replay(ostream& out, Configurator* cfg);
-	virtual void 			Configure(TestReplayParams* params) const;
-
-
-	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
-	virtual void 			Run(ostream& out)											= 0;
-	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
-
-	virtual void StoreProperties(const TestReplayParams* params, StringRef file_name) const
-	{
-		fstream file;
-		file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
-
-		params->DumpProperties(file);
-
-		file.close();
-	}
-
-	virtual void Store(TestReplayParams* params) const
-	{
-		Configure(params);
-
-		String props_name = GetPropertiesFileName(params);
-		StoreProperties(params, props_name);
-	}
-
-	virtual String GetPropertiesFileName(const TestReplayParams* params, StringRef infix = "") const
-	{
-		return GetResourcePath("Replay"+infix+".properties");
-	}
-
-public:
-
-	String GetFileName(StringRef name) const;
-};
-
-
-
-class TaskRunner {
-protected:
-	map<String, Task*> 	tasks_;
-	Int 				run_count_;
-	String				output_;
-
-public:
-	TaskRunner(): run_count_(1) {}
-
-	~TaskRunner();
-
-	virtual void RegisterTask(Task* task)
-	{
-		tasks_[task->GetParameters<>()->GetPrefix()] = task;
-	}
-
-	virtual void Configure(Configurator* cfg);
-	void DumpProperties(ostream& os);
-
-	Int  Run(ostream& out);
-
-
-	StringRef GetOutput() const
-	{
-		return output_;
-	}
-
-	virtual String GetTaskOutputFolder(String task_name, Int run) const
-	{
-		if (IsEmpty(output_))
-		{
-			return task_name +"-" + ToString(run);
-		}
-		else {
-			return output_ + Platform::GetFilePathSeparator() + task_name +"-" + ToString(run);
-		}
-	}
-
-	void SetOutput(StringRef out)
-	{
-		output_ = out;
-	}
-
-	Int GetRunCount() const
-	{
-		return run_count_;
-	}
-
-	void SetRunCount(Int count)
-	{
-		run_count_ = count;
-	}
-
-	template <typename T>
-	T GetTask(StringRef name)
-	{
-		auto i = tasks_.find(name);
-		if (i != tasks_.end())
-		{
-			return static_cast<T>(i->second);
-		}
-		else {
-			throw MemoriaException(MEMORIA_SOURCE, "Task "+name+" is not registered");
-		}
-	}
-
-protected:
-	virtual bool Run(Task* task, StringRef out_file_name, ostream& out, Int c);
-};
-
-
-class TestRunner: public TaskRunner {
-public:
-	TestRunner(): TaskRunner() 		{}
-	virtual ~TestRunner() 			{}
-
-	void Replay(ostream& out, StringRef replay_file);
-};
-
-
-
 
 
 

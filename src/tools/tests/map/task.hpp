@@ -38,7 +38,7 @@ public:
 
 private:
 	typedef vector<Pair> PairVector;
-	typedef SmallCtrTypeFactory::Factory<Map1>::Type 	MapCtr;
+	typedef SmallCtrTypeFactory::Factory<Map1>::Type 				MapCtr;
 	typedef typename MapCtr::Iterator								Iterator;
 	typedef typename MapCtr::ID										ID;
 	typedef typename MapCtr::Accumulator							Accumulator;

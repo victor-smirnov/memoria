@@ -53,6 +53,8 @@ public:
 			map_->insert(c);
 		}
 
+		out<<"Allocated: "<<AllocatorBase<>::count()<<endl;
+
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{

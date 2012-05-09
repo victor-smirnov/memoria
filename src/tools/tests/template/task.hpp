@@ -9,102 +9,81 @@
 
 #include <memoria/memoria.hpp>
 
-#include <memoria/tools/tests.hpp>
+#include "../tests_inc.hpp"
+
 
 
 namespace memoria {
 
 using namespace memoria::vapi;
 
-class TemplateReplay: public TestReplayParams {
 
-	Int param_;
-
-public:
-	TemplateReplay(StringRef name = "Replay"): TestReplayParams(name), param_(0)
-	{
-		Add("param", param_);
-	}
-
-	virtual ~TemplateReplay() throw () {};
-
-	Int GetParam() const {
-		return param_;
-	}
-
-	void SetParam(Int param)
-	{
-		param_ = param;
-	}
-
-private:
-};
-
-
-class TemplateParams: public TaskParametersSet {
-
-	Int size_;
-
-public:
-	TemplateParams(): TaskParametersSet("Template"), size_(1024)
-	{
-		Add("size", size_);
-		SetEnabled(false);
-	}
-
-	Int GetSize() const
-	{
-		return size_;
-	}
-};
 
 
 class TemplateTestTask: public SPTestTask {
 
+	Int param;
+
 public:
 
-	TemplateTestTask(): SPTestTask(new TemplateParams()) {}
+	struct TestReplay: public TestReplayParams
+	{
+		Int replay_param;
+
+		TestReplay(): TestReplayParams(), replay_param(0)
+		{
+			Add("replay_param", replay_param);
+		}
+	};
+
+
+
+	TemplateTestTask(): SPTestTask("Test"), param(1024)
+	{
+		Add("param", param);
+	}
 
 	virtual ~TemplateTestTask() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new TemplateReplay(name);
+		return new TestReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
-		TemplateReplay* params = static_cast<TemplateReplay*>(step_params);
+		TestReplay* params = static_cast<TestReplay*>(step_params);
 		Allocator allocator;
+
 		LoadAllocator(allocator, params);
 
-		DoTestStep(out, allocator, params);
+		//do something with allocator
 	}
 
 	virtual void Run(ostream& out)
 	{
-		TemplateReplay params;
+		TestReplay params;
 		out<<GetTaskName()<<": "<<"Do main things"<<endl;
 
 		Allocator allocator;
+		allocator.commit();
 
 		try {
-			DoTestStep(out, allocator, &params);
+			throw MemoriaException(MEMORIA_SOURCE, "Test Exception");
 		}
 		catch (...) {
 			Store(allocator, &params);
 			throw;
 		}
 	}
+};
 
-	void DoTestStep(ostream& out, Allocator& allocator, const TemplateReplay* params)
+class TemplateTestSuite: public TestSuite {
+public:
+
+	TemplateTestSuite(): TestSuite("Template")
 	{
-		if (!params->IsReplay()) {
-			throw MemoriaException(MEMORIA_SOURCE, "Test Exception");
-		}
-		else {
-			out<<"Replay is done"<<endl;
-		}
+		RegisterTask(new TemplateTestTask());
 	}
 };
 

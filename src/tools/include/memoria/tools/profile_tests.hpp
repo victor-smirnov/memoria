@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_TOOLS_TESTS_HPP
-#define	_MEMORIA_TOOLS_TESTS_HPP
+#ifndef _MEMORIA_TOOLS_PROFILE_TESTS_HPP
+#define	_MEMORIA_TOOLS_PROFILE_TESTS_HPP
 
 
-#include <memoria/tools/task.hpp>
+#include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 #include <memoria/memoria.hpp>
 
@@ -23,16 +23,27 @@ using namespace std;
 
 
 
+
+
 template <typename Profile_, typename Allocator_>
 class ProfileTestTask: public TestTask {
 
+	typedef Ctr<typename CtrTF<Profile_, Root>::CtrTypes>						RootMapType;
+
 public:
 
-	typedef Profile_ 								Profile;
-	typedef Allocator_ 								Allocator;
+	typedef Profile_ 															Profile;
+	typedef Allocator_ 															Allocator;
 
+	Int check_count;
 
-	ProfileTestTask(TaskParametersSet* parameters): TestTask(parameters) {}
+	ProfileTestTask(StringRef name): TestTask(name)
+	{
+		RootMapType::Init();
+
+		Add("check_count", check_count);
+	}
+
 	virtual ~ProfileTestTask() throw () {};
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
@@ -71,7 +82,7 @@ public:
 		allocator.commit();
 		StoreAllocator(allocator, file_name_invalid);
 
-		String props_name = GetPropertiesFileName(params);
+		String props_name = GetPropertiesFileName();
 		StoreProperties(params, props_name);
 	}
 
@@ -90,10 +101,8 @@ class SPTestTaskT: public ProfileTestTask<SmallProfile<>, SmallInMemAllocator> {
 
 	typedef ProfileTestTask<SmallProfile<>, SmallInMemAllocator> Base;
 
-	Int check_count_;
-
 public:
-	SPTestTaskT(TaskParametersSet* parameters): Base(parameters), check_count_(0) {}
+	SPTestTaskT(StringRef name): Base(name) {}
 	virtual ~SPTestTaskT() throw () {};
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
@@ -104,23 +113,23 @@ public:
 	{
 		Int step_count = GetParameters<>()->GetCheckStep();
 
-		if (step_count > 0 && (check_count_ % step_count == 0))
+		if (step_count > 0 && (check_count % step_count == 0))
 		{
 			::memoria::Check<Allocator>(allocator, "Allocator check failed", source);
 		}
 
-		check_count_++;
+		check_count++;
 	}
 
 	void Check(Allocator& allocator, const char* message, const char* source)
 	{
 		Int step_count = GetParameters<>()->GetCheckStep();
 
-		if (check_count_ % step_count == 0)
+		if (check_count % step_count == 0)
 		{
 			::memoria::Check<Allocator>(allocator, message, source);
 		}
-		check_count_++;
+		check_count++;
 	}
 
 	template <typename CtrType>
@@ -128,12 +137,12 @@ public:
 	{
 		Int step_count = GetParameters<>()->GetCheckStep();
 
-		if (step_count > 0 && (check_count_ % step_count == 0))
+		if (step_count > 0 && (check_count % step_count == 0))
 		{
 			::memoria::CheckCtr<CtrType>(ctr, message, source);
 		}
 
-		check_count_++;
+		check_count++;
 	}
 
 	template <typename CtrType>

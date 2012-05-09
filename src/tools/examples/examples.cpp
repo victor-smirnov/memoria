@@ -102,24 +102,6 @@ int main(int argc, const char** argv, const char** envp)
 
 			String output_folder = (cmd_line.GetOutFolder() != NULL) ? cmd_line.GetOutFolder() : default_output_folder;
 
-//			File outf(output_folder);
-//			if (outf.IsExists())
-//			{
-//				if (outf.IsDirectory())
-//				{
-//					if (!outf.DelTree())
-//					{
-//						throw MemoriaException(MEMORIA_SOURCE, "Can't remove folder: " + String(cmd_line.GetOutFolder()));
-//					}
-//				}
-//				else if (!outf.Delete())
-//				{
-//					throw MemoriaException(MEMORIA_SOURCE, "Can't remove file: " + String(cmd_line.GetOutFolder()));
-//				}
-//			}
-
-//			outf.MkDirs();
-
 			runner.SetOutput(output_folder);
 
 			Int failed = 0;
