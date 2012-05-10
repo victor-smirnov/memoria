@@ -190,41 +190,47 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 {
 	NodeBaseG node = me()->GetRoot(Allocator::READ);
 
-	Comparator cmp(block_num);
-
-	CheckBoundsFn<Comparator> bounds_fn(cmp, key);
-	NodeDispatcher::DispatchConst(node, bounds_fn);
-
-	if (bounds_fn.within_ranges())
+	if (node->children_count() > 0)
 	{
-		FindFn<Comparator> fn(cmp, key, node, *me());
+		Comparator cmp(block_num);
 
-		while(1)
+		CheckBoundsFn<Comparator> bounds_fn(cmp, key);
+		NodeDispatcher::DispatchConst(node, bounds_fn);
+
+		if (bounds_fn.within_ranges())
 		{
-			NodeDispatcher::Dispatch(node, fn);
+			FindFn<Comparator> fn(cmp, key, node, *me());
 
-			if (fn.end_)
+			while(1)
 			{
-				if (fn.found_)
+				NodeDispatcher::Dispatch(node, fn);
+
+				if (fn.end_)
 				{
-					fn.i_.key_idx() = fn.idx_;
+					if (fn.found_)
+					{
+						fn.i_.key_idx() = fn.idx_;
 
-					me()->FinishPathStep(fn.i_.path(), fn.i_.key_idx());
+						me()->FinishPathStep(fn.i_.path(), fn.i_.key_idx());
 
-					cmp.SetupIterator(fn.i_);
+						cmp.SetupIterator(fn.i_);
 
-					return fn.i_;
+						return fn.i_;
+					}
+					else
+					{
+						throw MemoriaException(MEMORIA_SOURCE, "Can't find key: "+ToString(key));
+					}
 				}
 				else
 				{
-					throw MemoriaException(MEMORIA_SOURCE, "Can't find key: "+ToString(key));
+					node = fn.node();
+					cmp.AdjustKey(key);
 				}
 			}
-			else
-			{
-				node = fn.node();
-				cmp.AdjustKey(key);
-			}
+		}
+		else {
+			return me()->End();
 		}
 	}
 	else {
