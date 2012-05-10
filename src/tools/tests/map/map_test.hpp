@@ -3,15 +3,14 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_KV_MAP_TASK_HPP_
-#define MEMORIA_TESTS_KV_MAP_TASK_HPP_
+#ifndef MEMORIA_TESTS_MAP_MAP_TEST_HPP_
+#define MEMORIA_TESTS_MAP_MAP_TEST_HPP_
 
 #include <memoria/memoria.hpp>
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "params.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -24,12 +23,6 @@ class MapTest: public SPTestTask {
 
 	struct MapReplay: public BTreeReplayParams {
 		MapReplay(): BTreeReplayParams(){}
-	};
-
-
-	struct MapParams: public TestTaskParams {
-
-		MapParams(): TestTaskParams("Map") {}
 	};
 
 
@@ -49,7 +42,7 @@ private:
 public:
 
 	MapTest() :
-		SPTestTask(new MapParams())
+		SPTestTask("Map")
 	{
 		SmallCtrTypeFactory::Factory<Root>::Type::Init();
 		SmallCtrTypeFactory::Factory<Map1>::Type::Init();
@@ -120,7 +113,7 @@ public:
 	{
 		DefaultLogHandlerImpl logHandler(out);
 
-		MapParams* task_params = GetParameters<MapParams>();
+		MapTest* task_params = this;
 
 		if (task_params->btree_random_branching_)
 		{

@@ -21,55 +21,40 @@ namespace memoria {
 using namespace std;
 
 
-struct PMapSumReplay: public TestReplayParams {
 
-	Int start;
-	Int end;
-	Int block_size;
-	Int max_size;
-
-	PMapSumReplay(): TestReplayParams()
-	{
-		Add("start", 		start);
-		Add("end", 			end);
-		Add("block_size",	block_size);
-		Add("max_size", 	max_size);
-	}
-};
-
-
-struct PMapSumParams: public TestTaskParams {
-
-	Int block_size;
-	Int max_size;
-
-	PMapSumParams(Int BranchingFactor):
-		TestTaskParams("PMap.Sum."+ToString(BranchingFactor)),
-		block_size(16384),
-		max_size(0)
-	{
-		Add("block_size", block_size);
-		Add("max_size", max_size);
-	}
-};
-
-
-template <typename Key_, typename Value_, Int BF>
-struct PMapSumTypes {
-	typedef Key_ 						Key;
-	typedef Key_ 						IndexKey;
-	typedef Value_						Value;
-
-	static const Int Blocks 			= 1;
-	static const Int BranchingFactor	= BF;
-
-	typedef Accumulators<Key, Blocks> 	Accumulator;
-};
-
-template <Int BranchingFactor>
+template <Int BranchingFactor_>
 class PMapSumTest: public TestTask {
 
-	typedef PMapSumTypes<BigInt, EmptyValue, BranchingFactor> 	Types;
+	template <typename Key_, typename Value_, Int BF>
+	struct PMapSumTypes {
+		typedef Key_ 						Key;
+		typedef Key_ 						IndexKey;
+		typedef Value_						Value;
+
+		static const Int Blocks 			= 1;
+		static const Int BranchingFactor	= BF;
+
+		typedef Accumulators<Key, Blocks> 	Accumulator;
+	};
+
+
+	struct TestReplay: public TestReplayParams {
+
+		Int start;
+		Int end;
+		Int block_size;
+		Int max_size;
+
+		TestReplay(): TestReplayParams()
+		{
+			Add("start", 		start);
+			Add("end", 			end);
+			Add("block_size",	block_size);
+			Add("max_size", 	max_size);
+		}
+	};
+
+	typedef PMapSumTypes<BigInt, EmptyValue, BranchingFactor_> 	Types;
 
 	typedef typename Types::Accumulator		Accumulator;
 	typedef typename Types::Key				Key;
@@ -79,20 +64,30 @@ class PMapSumTest: public TestTask {
 
 	typedef PackedSumTree<Types> 				Map;
 
+	Int block_size;
+	Int max_size;
+
 public:
 
-	PMapSumTest(): TestTask(new PMapSumParams(BranchingFactor)) {}
+	PMapSumTest():
+		TestTask("Sum."+ToString(BranchingFactor_)),
+		block_size(16384),
+		max_size(0)
+	{
+		Add("block_size", block_size);
+		Add("max_size", max_size);
+	}
 
 	virtual ~PMapSumTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new PMapSumReplay();
+		return new TestReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
-		PMapSumReplay* params = T2T<PMapSumReplay*>(step_params);
+		TestReplay* params = T2T<TestReplay*>(step_params);
 
 		Int start 		= params->start;
 		Int end 		= params->end;
@@ -146,8 +141,8 @@ public:
 
 	virtual void Run(ostream& out)
 	{
-		Int buffer_size 	= GetParameters<PMapSumParams>()->block_size;
-		Int max_size 		= GetParameters<PMapSumParams>()->max_size;
+		Int buffer_size 	= this->block_size;
+		Int max_size 		= this->max_size;
 
 		unique_ptr<Byte[]>	buffer_ptr(new Byte[buffer_size]);
 		Byte* buffer 		= buffer_ptr.get();
@@ -159,7 +154,7 @@ public:
 
 		FillMap(map, max_size != 0 ? max_size : map->max_size());
 
-		PMapSumReplay replay;
+		TestReplay replay;
 		replay.block_size = buffer_size;
 
 		try {

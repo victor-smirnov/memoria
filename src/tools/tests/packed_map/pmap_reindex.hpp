@@ -21,33 +21,25 @@ namespace memoria {
 using namespace std;
 
 
-struct PMapIndexReplay: public TestReplayParams {
-	PMapIndexReplay(): TestReplayParams() {}
-};
-
-
-struct PMapIndexParams: public TestTaskParams {
-	PMapIndexParams(): TestTaskParams("PMap.Reindex") {}
-};
-
-
-template <typename Key_, typename Value_, Int Blocks_ = 3>
-struct PMapReindexTypes {
-	typedef Key_ 						Key;
-	typedef Key_ 						IndexKey;
-	typedef Value_						Value;
-
-	static const Int Blocks 			= Blocks_;
-	static const Int BranchingFactor	= 4;
-
-	typedef Accumulators<Key, Blocks> 	Accumulator;
-};
-
-
-
-
-
 class PMapReindexTest: public TestTask {
+
+	template <typename Key_, typename Value_, Int Blocks_ = 3>
+	struct PMapReindexTypes {
+		typedef Key_ 						Key;
+		typedef Key_ 						IndexKey;
+		typedef Value_						Value;
+
+		static const Int Blocks 			= Blocks_;
+		static const Int BranchingFactor	= 4;
+
+		typedef Accumulators<Key, Blocks> 	Accumulator;
+	};
+
+	struct TestReplay: public TestReplayParams {
+		TestReplay(): TestReplayParams() {}
+	};
+
+
 
 	typedef PMapReindexTypes<Int, Int, 1> 	Types;
 
@@ -61,13 +53,13 @@ class PMapReindexTest: public TestTask {
 
 public:
 
-	PMapReindexTest(): TestTask(new PMapIndexParams()) {}
+	PMapReindexTest(): TestTask("Reindex") {}
 
 	virtual ~PMapReindexTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new PMapIndexReplay();
+		return new TestReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)

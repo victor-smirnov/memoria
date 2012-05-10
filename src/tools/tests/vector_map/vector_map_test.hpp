@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_VECTOR_MAP_TASK_HPP_
-#define MEMORIA_TESTS_VECTOR_MAP_TASK_HPP_
+#ifndef MEMORIA_TESTS_VECTOR_MAP_VECTOR_MAP_TEST_HPP_
+#define MEMORIA_TESTS_VECTOR_MAP_VECTOR_MAP_TEST_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -22,38 +22,7 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-struct VectorMapReplay: public ReplayParams {
-	Int 	data_;
-	Int		data_size_;
 
-	String	pairs_data_file_;
-	BigInt	key_;
-	BigInt 	key_num_;
-
-	VectorMapReplay(): ReplayParams()
-	{
-		Add("data", data_);
-		Add("data_size", data_size_);
-
-		Add("pairs_file", pairs_data_file_);
-		Add("key", key_);
-		Add("key_num", key_num_);
-	}
-};
-
-
-struct VectorMapParams: public TestTaskParams {
-
-	Int max_block_size_;
-
-public:
-	VectorMapParams():
-		TestTaskParams("VectorMap"),
-		max_block_size_(1024*40)
-	{
-		Add("max_block_size", max_block_size_);
-	}
-};
 
 
 class VectorMapTest: public SPTestTask {
@@ -63,24 +32,49 @@ class VectorMapTest: public SPTestTask {
 	typedef SmallCtrTypeFactory::Factory<VectorMap>::Type 				VectorMapCtr;
 	typedef VectorMapCtr::Iterator										VMIterator;
 
+	struct TestReplay: public ReplayParams {
+		Int 	data_;
+		Int		data_size_;
+
+		String	pairs_data_file_;
+		BigInt	key_;
+		BigInt 	key_num_;
+
+		TestReplay(): ReplayParams()
+		{
+			Add("data", data_);
+			Add("data_size", data_size_);
+
+			Add("pairs_file", pairs_data_file_);
+			Add("key", key_);
+			Add("key_num", key_num_);
+		}
+	};
+
+
 	PairVector pairs_;
+
+	Int max_block_size_;
 
 public:
 
-	VectorMapTest(): SPTestTask(new VectorMapParams())
+	VectorMapTest():
+		SPTestTask("VectorMap"),
+		max_block_size_(1024*40)
 	{
-		SmallCtrTypeFactory::Factory<Root>::Type::Init();
 		VectorMapCtr::Init();
+
+		Add("max_block_size", max_block_size_);
 	}
 
 	virtual ~VectorMapTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new VectorMapReplay();
+		return new TestReplay();
 	}
 
-	void StorePairs(const PairVector& pairs, VectorMapReplay* params)
+	void StorePairs(const PairVector& pairs, TestReplay* params)
 	{
 		String basic_name = GetResourcePath("Data." + params->GetName());
 
@@ -120,7 +114,7 @@ public:
 
 		DefaultLogHandlerImpl logHandler(out);
 
-		VectorMapReplay* params = static_cast<VectorMapReplay*>(step_params);
+		TestReplay* params = static_cast<TestReplay*>(step_params);
 
 		Allocator allocator;
 		allocator.GetLogger()->SetHandler(&logHandler);
@@ -186,9 +180,9 @@ public:
 
 	virtual void Run(ostream& out)
 	{
-		VectorMapParams* task_params = GetParameters<VectorMapParams>();
+		VectorMapTest* task_params = this;
 
-		VectorMapReplay params;
+		TestReplay params;
 
 		params.size_ = task_params->size_;
 		if (task_params->btree_random_branching_)
@@ -204,11 +198,11 @@ public:
 		TestRandomDeletion(out, &params);
 	}
 
-	void TestOrderedCreation(ostream& out, VectorMapReplay* params)
+	void TestOrderedCreation(ostream& out, TestReplay* params)
 	{
 		out<<"OrderedCreation Test"<<endl;
 
-		VectorMapParams* task_params = GetParameters<VectorMapParams>();
+		VectorMapTest* task_params = this;
 		DefaultLogHandlerImpl logHandler(out);
 
 		Allocator allocator;
@@ -265,11 +259,11 @@ public:
 	}
 
 
-	void TestRandomCreation(ostream& out, VectorMapReplay* params)
+	void TestRandomCreation(ostream& out, TestReplay* params)
 	{
 		out<<"RandomCreation test"<<endl;
 
-		VectorMapParams* task_params = GetParameters<VectorMapParams>();
+		VectorMapTest* task_params = this;
 		DefaultLogHandlerImpl logHandler(out);
 
 		Allocator allocator;
@@ -338,11 +332,11 @@ public:
 	}
 
 
-	void TestRandomDeletion(ostream& out, VectorMapReplay* params)
+	void TestRandomDeletion(ostream& out, TestReplay* params)
 	{
 		out<<"RandomDeletion Test"<<endl;
 
-		VectorMapParams* task_params = GetParameters<VectorMapParams>();
+		VectorMapTest* task_params = this;
 		DefaultLogHandlerImpl logHandler(out);
 
 		Allocator allocator;

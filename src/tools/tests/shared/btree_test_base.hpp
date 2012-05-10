@@ -19,10 +19,12 @@ namespace memoria {
 template <
 	typename ContainerTypeName,
 	typename ArrayData,
-	typename ParamType,
 	typename ReplayParamType
 >
 class BTreeBatchTestBase: public SPTestTask {
+
+	typedef BTreeBatchTestBase<ContainerTypeName, ArrayData, ReplayParamType> 			MyType;
+	typedef MyType 																		ParamType;
 
 protected:
 	typedef typename SmallCtrTypeFactory::Factory<ContainerTypeName>::Type 	Ctr;
@@ -30,11 +32,18 @@ protected:
 	typedef typename Ctr::Accumulator													Accumulator;
 	typedef typename Ctr::ID															ID;
 
-
+	Int max_block_size_;
 
 public:
 
-	BTreeBatchTestBase(): SPTestTask(new ParamType()) {}
+	BTreeBatchTestBase(StringRef name):
+		SPTestTask(name),
+		max_block_size_(1024*40)
+	{
+		size_ = 1024*1024*16;
+		Add("max_block_size", max_block_size_);
+	}
+
 	virtual ~BTreeBatchTestBase() throw() {}
 
 	virtual ArrayData CreateBuffer(Ctr& array, Int size, UByte value) 	= 0;

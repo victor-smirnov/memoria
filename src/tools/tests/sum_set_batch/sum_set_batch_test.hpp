@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_IDX_SET_BATCH_TESTS_HPP_
-#define MEMORIA_TESTS_IDX_SET_BATCH_TESTS_HPP_
+#ifndef MEMORIA_TESTS_SUM_SET_BATCH_SUM_SET_BATCH_TESTS_HPP_
+#define MEMORIA_TESTS_SUM_SET_BATCH_SUM_SET_BATCH_TESTS_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -25,18 +25,41 @@ namespace memoria {
 
 typedef SmallCtrTypeFactory::Factory<Set1>::Type SumSet1Ctr;
 
+struct SumSetBatchReplay: public ReplayParams {
+
+	Int 	data_;
+	bool 	insert_;
+	Int		block_size_;
+
+	Int		page_step_;
+
+	BigInt 	pos_;
+
+	Int 	cnt_;
+
+	SumSetBatchReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
+	{
+		Add("data", 		data_);
+		Add("insert", 		insert_);
+		Add("block_size", 	block_size_);
+		Add("page_step", 	page_step_);
+		Add("pos", 			pos_);
+		Add("cnt", 			cnt_);
+	}
+};
+
+
+
 
 class SumSetBatchTest: public BTreeBatchTestBase<
 	Set1,
 	typename SumSet1Ctr::LeafPairsVector,
-	SumSetBatchParams,
 	SumSetBatchReplay
 >
 {
 	typedef BTreeBatchTestBase<
 			Set1,
 			typename SumSet1Ctr::LeafPairsVector,
-			SumSetBatchParams,
 			SumSetBatchReplay
 	>																Base;
 
@@ -46,8 +69,14 @@ class SumSetBatchTest: public BTreeBatchTestBase<
 
 	static const Int Indexes 										= Ctr::Indexes;
 
+
+
 public:
-	SumSetBatchTest(): Base() {
+	SumSetBatchTest():
+		Base("SumSetBatch")
+	{
+		size_ = 1024*1024;
+
 		SmallCtrTypeFactory::Factory<Root>::Type::Init();
 		Ctr::Init();
 	}

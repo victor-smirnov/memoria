@@ -4,19 +4,17 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+#include "ctr/ctr_test_suite.hpp"
 
-//#include "map/task.hpp"
-//#include "sum_set_batch/task.hpp"
-//#include "vector/task.hpp"
-//#include "vector_map/task.hpp"
-#include "create_ctr/create_ctr_test.hpp"
-//
-//#include "pmap/pmap_data.hpp"
-//#include "pmap/pmap_reindex.hpp"
-//#include "pmap/pmap_find.hpp"
-//#include "pmap/pmap_sum.hpp"
-//#include "pmap/pmap_walk_fw.hpp"
-//#include "pmap/pmap_walk_bw.hpp"
+#include "map/map_test_suite.hpp"
+
+#include "packed_map/pmap_test_suite.hpp"
+
+#include "sum_set_batch/sum_tree_test_suite.hpp"
+
+#include "vector/vector_test_suite.hpp"
+
+#include "vector_map/vector_map_test_suite.hpp"
 
 #include "template/task.hpp"
 
@@ -68,51 +66,14 @@ int main(int argc, const char** argv, const char** envp)
 
 		runner.SetRunCount(cmd_line.GetCount());
 
-		// add tasks to the runner;
+		// add test suits to the runner;
 
-
-
-
-//		runner.RegisterTask(new TemplateTestSuite());
-		runner.RegisterTask(new CreateCtrTest());
-
-/*
-		runner.RegisterTask(new MapTest());
-		runner.RegisterTask(new CreateCtrTest());
-		runner.RegisterTask(new SumSetBatchTest());
-		runner.RegisterTask(new VectorTest());
-		runner.RegisterTask(new VectorMapTest());
-		runner.RegisterTask(new PMapDataTest());
-		runner.RegisterTask(new PMapReindexTest());
-		runner.RegisterTask(new PMapFindTest());
-
-		runner.RegisterTask(new PMapSumTest<2>());
-		runner.RegisterTask(new PMapSumTest<4>());
-		runner.RegisterTask(new PMapSumTest<8>());
-		runner.RegisterTask(new PMapSumTest<16>());
-		runner.RegisterTask(new PMapSumTest<32>());
-		runner.RegisterTask(new PMapSumTest<64>());
-
-		runner.RegisterTask(new PMapWalkFwTest<2>());
-		runner.RegisterTask(new PMapWalkFwTest<4>());
-		runner.RegisterTask(new PMapWalkFwTest<8>());
-		runner.RegisterTask(new PMapWalkFwTest<16>());
-		runner.RegisterTask(new PMapWalkFwTest<32>());
-		runner.RegisterTask(new PMapWalkFwTest<64>());
-		runner.RegisterTask(new PMapWalkFwTest<5>());
-		runner.RegisterTask(new PMapWalkFwTest<13>());
-		runner.RegisterTask(new PMapWalkFwTest<22>());
-
-		runner.RegisterTask(new PMapWalkBwTest<2>());
-		runner.RegisterTask(new PMapWalkBwTest<4>());
-		runner.RegisterTask(new PMapWalkBwTest<8>());
-		runner.RegisterTask(new PMapWalkBwTest<16>());
-		runner.RegisterTask(new PMapWalkBwTest<32>());
-		runner.RegisterTask(new PMapWalkBwTest<64>());
-		runner.RegisterTask(new PMapWalkBwTest<5>());
-		runner.RegisterTask(new PMapWalkBwTest<13>());
-		runner.RegisterTask(new PMapWalkBwTest<22>());
-		*/
+		runner.RegisterTask(new CtrTestSuite());
+		runner.RegisterTask(new MapTestSuite());
+		runner.RegisterTask(new PackedMapTestSuite());
+		runner.RegisterTask(new SumTreeTestSuite());
+		runner.RegisterTask(new VectorTestSuite());
+		runner.RegisterTask(new VectorMapTestSuite());
 
 		runner.Configure(&cmd_line.GetConfigurator());
 

@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_PMAP_PMAP_WALKFW_HPP_
-#define MEMORIA_TESTS_PMAP_PMAP_WALKFW_HPP_
+#ifndef MEMORIA_TESTS_PMAP_PMAP_WALKBW_HPP_
+#define MEMORIA_TESTS_PMAP_PMAP_WALKBW_HPP_
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
@@ -21,56 +21,41 @@ namespace memoria {
 using namespace std;
 
 
-struct PMapWalkFwReplay: public TestReplayParams {
-
-	Int start;
-	Int end;
-
-	Int block_size;
-	Int size;
-
-	PMapWalkFwReplay(): TestReplayParams()
-	{
-		Add("start", 		start);
-		Add("end", 			end);
-		Add("block_size",	block_size);
-		Add("size", 		size);
-	}
-};
 
 
-struct PMapWalkFwParams: public TestTaskParams {
+template <Int BranchingFactor_>
+class PMapWalkBwTest: public TestTask {
 
-	Int block_size;
-	Int max_size;
+	template <typename Key_, typename Value_, Int BF>
+	struct PMapWalkBwTypes {
+		typedef Key_ 						Key;
+		typedef Key_ 						IndexKey;
+		typedef Value_						Value;
 
-	PMapWalkFwParams(Int BranchingFactor):
-		TestTaskParams("PMap.WalkFw."+ToString(BranchingFactor)),
-		block_size(16384),
-		max_size(0)
-	{
-		Add("block_size", block_size);
-		Add("max_size",   max_size);
-	}
-};
+		static const Int Blocks 			= 1;
+		static const Int BranchingFactor	= BF;
 
+		typedef Accumulators<Key, Blocks> 	Accumulator;
+	};
 
-template <typename Key_, typename Value_, Int BF>
-struct PMapWalkFwTypes {
-	typedef Key_ 						Key;
-	typedef Key_ 						IndexKey;
-	typedef Value_						Value;
+	struct TestReplay: public TestReplayParams {
 
-	static const Int Blocks 			= 1;
-	static const Int BranchingFactor	= BF;
+		Int start;
+		Int end;
 
-	typedef Accumulators<Key, Blocks> 	Accumulator;
-};
+		Int block_size;
+		Int size;
 
-template <Int BranchingFactor>
-class PMapWalkFwTest: public TestTask {
+		TestReplay(): TestReplayParams()
+		{
+			Add("start", 		start);
+			Add("end", 			end);
+			Add("block_size",	block_size);
+			Add("size", 		size);
+		}
+	};
 
-	typedef PMapWalkFwTypes<Int, EmptyValue, BranchingFactor> 	Types;
+	typedef PMapWalkBwTypes<Int, EmptyValue, BranchingFactor_> 	Types;
 
 	typedef typename Types::Accumulator		Accumulator;
 	typedef typename Types::Key				Key;
@@ -80,20 +65,30 @@ class PMapWalkFwTest: public TestTask {
 
 	typedef PackedSumTree<Types> 				Map;
 
+	Int block_size;
+	Int max_size;
+
 public:
 
-	PMapWalkFwTest(): TestTask(new PMapWalkFwParams(BranchingFactor)) {}
+	PMapWalkBwTest():
+		TestTask("WalkBw."+ToString(BranchingFactor_)),
+		block_size(16384),
+		max_size(0)
+	{
+		Add("block_size", block_size);
+		Add("max_size",   max_size);
+	}
 
-	virtual ~PMapWalkFwTest() throw() {}
+	virtual ~PMapWalkBwTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new PMapWalkFwReplay();
+		return new TestReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)
 	{
-		PMapWalkFwReplay* params = T2T<PMapWalkFwReplay*>(step_params);
+		TestReplay* params = T2T<TestReplay*>(step_params);
 
 		Int start 		= params->start;
 		Int end 		= params->end;
@@ -114,7 +109,7 @@ public:
 		BigInt sum = Sum(map, start, end);
 
 		Accumulator acc;
-		Int idx = map->FindSumPositionFw(0, start, sum, acc);
+		Int idx = map->FindSumPositionBw(0, start, sum, acc);
 
 		MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
 	}
@@ -138,7 +133,7 @@ public:
 	BigInt Sum(Map* map, Int start, Int end) const
 	{
 		BigInt sum = 0;
-		for (Int c = start; c < end; c++)
+		for (Int c = start; c > end; c--)
 		{
 			sum += map->key(0, c);
 		}
@@ -147,8 +142,8 @@ public:
 
 	virtual void Run(ostream& out)
 	{
-		Int buffer_size 	= GetParameters<PMapSumParams>()->block_size;
-		Int max_size 		= GetParameters<PMapSumParams>()->max_size;
+		Int buffer_size 	= this->block_size;
+		Int max_size 		= this->max_size;
 
 		unique_ptr<Byte[]>	buffer_ptr(new Byte[buffer_size]);
 		Byte* buffer 		= buffer_ptr.get();
@@ -162,15 +157,15 @@ public:
 
 		FillMap(map, size);
 
-		PMapWalkFwReplay replay;
+		TestReplay replay;
 
 		replay.block_size 	= buffer_size;
 		replay.size			= size;
 
 		try {
-			for (Int end = 0; end < map->size(); end++)
+			for (Int end = map->size() - 1; end >= -1; end--)
 			{
-				for (Int start = 0; start < end; start++)
+				for (Int start = map->size() - 1; start > end; start--)
 				{
 					replay.start 	= start;
 					replay.end		= end;
@@ -178,7 +173,7 @@ public:
 					BigInt sum = Sum(map, start, end);
 
 					Accumulator acc;
-					Int idx = map->FindSumPositionFw(0, start, sum, acc);
+					Int idx = map->FindSumPositionBw(0, start, sum, acc);
 
 					MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
 				}

@@ -21,33 +21,29 @@ namespace memoria {
 using namespace std;
 
 
-struct PMapFindReplay: public TestReplayParams {
-	PMapFindReplay(): TestReplayParams() {}
-};
-
-
-struct PMapFindParams: public TestTaskParams {
-	PMapFindParams(): TestTaskParams("PMap.Find") {}
-};
-
-
-template <typename Key_, typename Value_, Int Blocks_ = 3>
-struct PMapFindTypes {
-	typedef Key_ 						Key;
-	typedef Key_ 						IndexKey;
-	typedef Value_						Value;
-
-	static const Int Blocks 			= Blocks_;
-	static const Int BranchingFactor	= 8;
-
-	typedef Accumulators<Key, Blocks> 	Accumulator;
-};
-
 
 
 
 
 class PMapFindTest: public TestTask {
+
+	template <typename Key_, typename Value_, Int Blocks_ = 3>
+	struct PMapFindTypes {
+		typedef Key_ 						Key;
+		typedef Key_ 						IndexKey;
+		typedef Value_						Value;
+
+		static const Int Blocks 			= Blocks_;
+		static const Int BranchingFactor	= 8;
+
+		typedef Accumulators<Key, Blocks> 	Accumulator;
+	};
+
+
+	struct TestReplay: public TestReplayParams {
+		TestReplay(): TestReplayParams() {}
+	};
+
 
 	typedef PMapFindTypes<Int, Int, 1> 		Types;
 
@@ -61,13 +57,13 @@ class PMapFindTest: public TestTask {
 
 public:
 
-	PMapFindTest(): TestTask(new PMapFindParams()) {}
+	PMapFindTest(): TestTask("Find") {}
 
 	virtual ~PMapFindTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new PMapFindReplay();
+		return new TestReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)

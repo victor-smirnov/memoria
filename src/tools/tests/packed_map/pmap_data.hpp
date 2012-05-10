@@ -21,33 +21,29 @@ namespace memoria {
 using namespace std;
 
 
-struct PMapDataReplay: public TestReplayParams {
-	PMapDataReplay(): TestReplayParams() {}
-};
 
 
-struct PMapDataParams: public TestTaskParams {
-	PMapDataParams(): TestTaskParams("PMap.Data") {}
-};
-
-
-template <typename Key_, typename Value_, Int Blocks_ = 3>
-struct PMapTypes {
-	typedef Key_ 						Key;
-	typedef Key_ 						IndexKey;
-	typedef Value_						Value;
-
-	static const Int Blocks 			= Blocks_;
-	static const Int BranchingFactor	= 64 / sizeof (Key);
-
-	typedef Accumulators<Key, Blocks> 	Accumulator;
-};
 
 
 
 
 
 class PMapDataTest: public TestTask {
+
+
+	template <typename Key_, typename Value_, Int Blocks_ = 3>
+	struct PMapTypes {
+		typedef Key_ 						Key;
+		typedef Key_ 						IndexKey;
+		typedef Value_						Value;
+
+		static const Int Blocks 			= Blocks_;
+		static const Int BranchingFactor	= 64 / sizeof (Key);
+
+		typedef Accumulators<Key, Blocks> 	Accumulator;
+	};
+
+
 
 	typedef PMapTypes<Int, Int, 3> 			Types;
 
@@ -59,15 +55,21 @@ class PMapDataTest: public TestTask {
 
 	typedef PackedTree<Types> 				Map;
 
+
+	struct TestReplay: public TestReplayParams {
+		TestReplay(): TestReplayParams() {}
+	};
+
+
 public:
 
-	PMapDataTest(): TestTask(new PMapDataParams()) {}
+	PMapDataTest(): TestTask("Data") {}
 
 	virtual ~PMapDataTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
-		return new PMapDataReplay();
+		return new TestReplay();
 	}
 
 	virtual void Replay(ostream& out, TestReplayParams* step_params)
