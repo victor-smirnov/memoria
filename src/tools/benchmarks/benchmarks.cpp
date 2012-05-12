@@ -68,6 +68,8 @@ int main(int argc, const char** argv, const char** envp)
 		// add tasks to the runner;
 
 
+		runner.RegisterTask(new MemoryThroughputGraph());
+
 		runner.RegisterTask(new PackedSetMemGraph());
 
 		runner.RegisterTask(new SetRandomReadGraph());

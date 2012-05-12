@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BENCHMARKS_VECTOR_STL_VECTOR_READ_HPP_
-#define MEMORIA_BENCHMARKS_VECTOR_STL_VECTOR_READ_HPP_
+#ifndef MEMORIA_BENCHMARKS_VECTOR_STL_VECTOR_LINEAR_READ_HPP_
+#define MEMORIA_BENCHMARKS_VECTOR_STL_VECTOR_LINEAR_READ_HPP_
 
 #include "../benchmarks_inc.hpp"
 
@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class StlVectorReadBenchmark: public BenchmarkTask {
+class StlVectorLinearReadBenchmark: public BenchmarkTask {
 
 	typedef BenchmarkTask Base;
 
@@ -28,20 +28,20 @@ class StlVectorReadBenchmark: public BenchmarkTask {
 
 	Int result_;
 
-	Int* rd_array_;
 
 public:
 
-	StlVectorReadBenchmark(StringRef name):
+	StlVectorLinearReadBenchmark(StringRef name):
 		BenchmarkTask(name)
 	{
+		average = 10;
 	}
 
-	virtual ~StlVectorReadBenchmark() throw() {}
+	virtual ~StlVectorLinearReadBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
-		Int size = params.x();
+		Int size = params.x() / sizeof(BigInt);
 
 		ctr_ = new VectorCtr();
 
@@ -50,27 +50,26 @@ public:
 			BigInt value = GetRandom(10000);
 			ctr_->push_back(value);
 		}
-
-		rd_array_ = new Int[params.operations()];
-		for (Int c = 0; c < params.operations(); c++)
-		{
-			rd_array_[c] = GetRandom(size);
-		}
 	}
 
 	virtual void Release(ostream& out)
 	{
 		delete ctr_;
-		delete[] rd_array_;
 	}
 
 	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
 	{
-		for (Int c = 0; c < params.operations(); c++)
+		for (Int c = 0; c < params.operations();)
 		{
-			BigInt value = ctr_->operator[](rd_array_[c]);
-			result_ += value;
+			for (auto i = ctr_->begin(); i != ctr_->end(); i++)
+			{
+				result_ += *i;
+			}
+
+			c += ctr_->size();
 		}
+
+		params.memory() = params.operations() * sizeof(BigInt);
 	}
 };
 

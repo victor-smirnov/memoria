@@ -13,7 +13,6 @@
 #include <memoria/tools/tools.hpp>
 
 #include "../shared/btree_test_base.hpp"
-#include "params.hpp"
 
 #include <vector>
 #include <algorithm>

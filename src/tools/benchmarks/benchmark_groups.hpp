@@ -17,7 +17,8 @@
 #include "stl/stlset_scan.hpp"
 #include "stl/stluset_find_mem.hpp"
 #include "stl/stluset_find_size.hpp"
-#include "stl/stl_vector_read.hpp"
+#include "stl/stl_vector_random_read.hpp"
+#include "stl/stl_vector_linear_read.hpp"
 #include "stl/stl_vector_insert.hpp"
 
 
@@ -106,6 +107,29 @@ public:
 		BigInt tmp = current_time;
 		current_time *= value_;
 		return tmp;
+	}
+};
+
+class MemoryThroughputGraph: public LogXScaleGnuplotGraph {
+public:
+	MemoryThroughputGraph(): LogXScaleGnuplotGraph("MemThroughput")
+	{
+		title 	= "Random/Ordered DRAM Memory Performance and Throughput,\n8 byte data";
+		xtitle 	= "Memory Block Size, Kb";
+
+		agenda_location = "top right";
+
+		time_start 	= 1024;
+		time_stop	= 128*1024*1024;
+
+		operations	= time_stop/8;
+
+		xunit 		= 1024;
+
+		y2 			= true;
+
+		AddGraph(new StlVectorRandomReadBenchmark("Random"), GraphData("Random access performance", "Random access throughput"));
+		AddGraph(new StlVectorLinearReadBenchmark("Sequential"), GraphData("Sequential access performance", "Sequential access throughput"));
 	}
 };
 

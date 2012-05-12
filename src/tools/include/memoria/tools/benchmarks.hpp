@@ -243,6 +243,10 @@ struct GraphData {
 class GnuplotGraph: public BenchmarkTaskGroup
 {
 public:
+
+	String output_format;
+
+
 	String 	title;
 	String 	xtitle;
 	String 	ytitle;
@@ -261,13 +265,14 @@ public:
 
 	GnuplotGraph(String name):
 		BenchmarkTaskGroup(name),
+		output_format("png"),
 		title("Graph"),
 		xtitle("X Axis"),
-		ytitle("Performance, operations/sec"),
-		y2title("Memory Throughput, MiB/sec"),
-		ytics_format("%1.0t*10^%L"),
+		ytitle("Performance, operations/sec\\n\\n"),
+		y2title("\\nMemory Throughput, MiB/sec"),
+		ytics_format("%g"),
 		y2tics_format("%g"),
-		resolution("960,720"),
+		resolution("880,660"),
 		agenda_location("top right"),
 		y2(false),
 		logscale(2)
