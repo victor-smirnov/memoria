@@ -52,11 +52,16 @@ public:
 			ctr_->push_back(value);
 		}
 
+//		Int last = 0;
+
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
 			rd_array_[c] = GetRandom(size);
+//			out<<(rd_array_[c] - last)<<" "<<size<<endl;
+//			last = rd_array_[c];
 		}
+		out<<endl;
 	}
 
 	virtual void Release(ostream& out)
@@ -69,7 +74,9 @@ public:
 	{
 		for (Int c = 0; c < params.operations(); c++)
 		{
+
 			BigInt value = ctr_->operator[](rd_array_[c]);
+//			BigInt value = ctr_->operator[](GetRandom(params.x()/128));
 			result_ += value;
 		}
 

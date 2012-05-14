@@ -23,7 +23,7 @@ using namespace std;
 
 
 std::uniform_int_distribution<int> 		distribution;
-std::mt19937 							engine;
+std::minstd_rand 							engine;
 auto 									generator 				= std::bind(distribution, engine);
 
 std::uniform_int_distribution<BigInt> 	distribution_bi;
