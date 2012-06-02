@@ -1,4 +1,5 @@
-set (SRCS examples.cpp)
+#examples.cpp 
+set (SRCS packed_tree.cpp)
 
 add_executable(examples ${SRCS})
 set_target_properties(examples PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")

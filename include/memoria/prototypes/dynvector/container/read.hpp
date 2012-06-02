@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_FIND_HPP
-#define	_MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_FIND_HPP
+#ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_READ_HPP
+#define	_MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_READ_HPP
 
 #include <memoria/prototypes/dynvector/names.hpp>
 
@@ -15,7 +15,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::SeekName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::ReadName)
 
 		typedef typename Base::Types                                                Types;
 		typedef typename Base::Allocator                                            Allocator;
@@ -41,43 +41,39 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::SeekName)
 
 		static const Int Indexes                                                    = Types::Indexes;
 
-		Int GetElementSize() const {
-			return 1;
-		}
-
-		Iterator Find(BigInt pos, Int key_number);
+		BigInt Read(Iterator& iter, IData& data, BigInt start, BigInt len);
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::SeekName)
+#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::ReadName)
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
+BigInt M_TYPE::Read(Iterator& iter, IData& data, BigInt start, BigInt len)
 {
-	Iterator iter = me()->FindLT(pos * me()->GetElementSize(), key_number);
+	BigInt sum = 0;
 
-	if (iter.IsNotEmpty())
+	while (len > 0)
 	{
-		if (iter.IsEnd())
-		{
-			iter.PrevKey();
-		}
-		else {
-			me()->FinishPathStep(iter.path(), iter.key_idx());
-		}
+		Int to_read = iter.data()->size() - iter.data_pos();
 
-		BigInt offset 	= iter.prefix(); //FIXME: key_number
-		iter.data_pos() = pos * me()->GetElementSize() - offset;
+		if (to_read > len) to_read = len;
 
-		if (iter.data_pos() > iter.data()->size())
+		data.Put(iter.data()->data().value_addr(iter.data_pos()), start, to_read);
+
+		len 	-= to_read;
+		iter.Skip(to_read / me()->GetElementSize());
+
+		sum 	+= to_read;
+		start 	+= to_read;
+
+		if (iter.IsEof())
 		{
-			iter.data_pos() = iter.data()->size();
+			break;
 		}
 	}
 
-
-	return iter;
+	return sum;
 }
 
 

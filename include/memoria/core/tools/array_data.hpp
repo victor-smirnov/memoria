@@ -23,8 +23,115 @@
 namespace memoria    {
 namespace vapi       {
 
+//struct IReferencable {
+//
+//	virtual ~IReferencable() throw() {}
+//
+//	virtual void Ref() 			= 0;
+//	virtual SizeT Unref() 		= 0;
+//
+//	virtual void Remove()		= 0;
+//};
+//
+//class ScopeHandler {
+//	IReferencable* ref_;
+//public:
+//	ScopeHandler(IReferenceble* ref): ref_(ref)
+//	{
+//		ref_->Ref();
+//	}
+//
+//	~ScopeHandler()
+//	{
+//		if (ref_->Unref() == 0)
+//		{
+//			ref_->Remove();
+//		}
+//	}
+//};
 
-class ArrayData {
+
+struct IData {
+
+	virtual ~IData() throw () {}
+
+	virtual SizeT GetSize() const										= 0;
+	virtual void SetSize(SizeT size) 									= 0;
+	virtual SizeT Put(const Byte* buffer, SizeT start, SizeT length) 	= 0;
+	virtual SizeT Get(Byte* buffer, SizeT start, SizeT length) const	= 0;
+};
+
+class DataProxy: IData {
+	IData&	data_;
+	SizeT 	start_;
+	SizeT	length_;
+public:
+
+	DataProxy(IData& data, SizeT start, SizeT length): data_(data), start_(start), length_(length) {}
+
+	virtual ~DataProxy() throw () {}
+
+	virtual SizeT GetSize() const
+	{
+		return length_;
+	}
+
+	virtual void SetSize(SizeT size) {
+		length_ = size;
+	}
+
+	virtual SizeT Put(const Byte* buffer, SizeT start, SizeT length)
+	{
+		return data_.Put(buffer, start + start_, length);
+	}
+
+	virtual SizeT Get(Byte* buffer, SizeT start, SizeT length) const
+	{
+		return data_.Get(buffer, start + start_, length);
+	}
+};
+
+
+class GetDataProxy: public IData {
+	const IData&	data_;
+	SizeT 			start_;
+	SizeT			length_;
+public:
+
+	GetDataProxy(const IData& data, SizeT start, SizeT length): data_(data), start_(start), length_(length) {}
+
+	virtual ~GetDataProxy() throw () {}
+
+	virtual SizeT GetSize() const
+	{
+		return length_;
+	}
+
+	virtual void SetSize(SizeT size) {}
+
+	virtual SizeT Put(const Byte* buffer, SizeT start, SizeT length)
+	{
+		return 0;
+	}
+
+	virtual SizeT Get(Byte* buffer, SizeT start, SizeT length) const
+	{
+		return data_.Get(buffer, start + start_, length);
+	}
+};
+
+
+
+//struct IDataFactory {
+//	virtual IData* Create(SizeT size) = 0;
+//};
+
+
+
+
+
+
+class ArrayData: public IData {
 	Int length_;
 	UByte* data_;
 	bool owner_;
@@ -55,7 +162,7 @@ public:
 		}
 	}
 
-	~ArrayData() {
+	~ArrayData() throw () {
 		if (owner_) ::free(data_);
 	}
 
@@ -67,9 +174,33 @@ public:
 		return data_;
 	}
 
-	UByte* data() {
+	UByte* data()
+	{
 		return data_;
 	}
+
+	virtual SizeT GetSize() const
+	{
+		return length_;
+	}
+
+	virtual void SetSize(SizeT size)
+	{
+		length_ = size;
+	}
+
+	virtual SizeT Put(const Byte* buffer, SizeT start, SizeT length)
+	{
+		CopyBuffer(buffer, data_ + start, length);
+		return length;
+	}
+
+	virtual SizeT Get(Byte* buffer, SizeT start, SizeT length) const
+	{
+		CopyBuffer(data_ + start, buffer, length);
+		return 0;
+	}
+
 
 	void Dump(std::ostream& out);
 };

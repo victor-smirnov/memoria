@@ -21,7 +21,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::Insert2Name)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::InsertName)
 
 typedef typename Base::Types                                                Types;
 typedef typename Base::Allocator                                            Allocator;
@@ -64,8 +64,11 @@ static const Int Indexes                                                    = Ty
 typedef Accumulators<Key, Indexes>											Accumulator;
 
 
-void InsertData(Iterator& iter, const ArrayData& data);
-BigInt UpdateData(Iterator& iter, const ArrayData& data, BigInt start, BigInt len);
+void InsertData(Iterator& iter, const IData& data);
+void InsertData(Iterator& iter, const IData& data, SizeT start, SizeT len);
+
+BigInt UpdateData(Iterator& iter, const IData& data, BigInt start, BigInt len);
+
 
 DataPathItem SplitDataPage(Iterator& iter);
 
@@ -79,21 +82,21 @@ Int GetMaxDataSize() const
 
 private:
 
-void InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int start, Int length);
+void InsertIntoDataPage(Iterator& iter, const IData& buffer, Int start, Int length);
 
 class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
 
 	typedef typename MyType::DefaultSubtreeProviderBase 	Base;
 	typedef typename Base::Direction 						Direction;
 
-	const ArrayData& 	data_;
+	const IData& 		data_;
 	BigInt				start_;
 	BigInt				length_;
 	Int 				suffix_;
 	Int					last_idx_;
 
 public:
-	ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, const ArrayData& data, BigInt start, BigInt length):
+	ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, const IData& data, BigInt start, BigInt length):
 		Base(ctr, key_count), data_(data), start_(start), length_(length)
 	{
 		Int data_size 	= Base::ctr().GetMaxDataSize();
@@ -119,7 +122,7 @@ public:
 		BigInt offset 			= start_ + data_size * idx0;
 		BigInt length 			= idx0 < last_idx_ ? data_size : suffix_;
 
-		CopyBuffer(data_.data() + offset, data->data().value_addr(0), length);
+		data_.Get(data->data().value_addr(0), offset, length);
 
 		data->data().size() = length;
 
@@ -131,7 +134,7 @@ public:
 
 };
 
-void ImportPages(Iterator& iter, const ArrayData& buffer);
+void ImportPages(Iterator& iter, const IData& buffer);
 
 void CreateDataPage(TreePath& path, Int idx);
 DataPathItem CreateDataPage(NodeBaseG& node, Int idx);
@@ -151,11 +154,18 @@ MEMORIA_CONTAINER_PART_END
 
 
 
-#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::Insert2Name)
+#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::InsertName)
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
+void M_TYPE::InsertData(Iterator& iter, const IData& data, SizeT start, SizeT length)
+{
+	me()->InsertData(iter, GetDataProxy(data, start, length));
+}
+
+
+M_PARAMS
+void M_TYPE::InsertData(Iterator& iter, const IData& buffer)
 {
 	BigInt 		max_datapage_size 	= me()->GetMaxDataSize();
 
@@ -165,11 +175,11 @@ void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
 
 	BigInt pos = iter.pos();
 
-	if (usage + buffer.size() <= max_datapage_size)
+	if (usage + (BigInt)buffer.GetSize() <= max_datapage_size)
 	{
 		// The target datapage has enough free space to insert into
-		InsertIntoDataPage(iter, buffer, 0, buffer.size());
-		data_idx += buffer.size();
+		InsertIntoDataPage(iter, buffer, 0, buffer.GetSize());
+		data_idx += buffer.GetSize();
 	}
 	else if (!iter.IsEof())
 	{
@@ -180,18 +190,18 @@ void M_TYPE::InsertData(Iterator& iter, const ArrayData& buffer)
 
 		ImportPages(iter, buffer);
 
-		iter.cache().Setup(pos + buffer.size() - iter.data_pos(), 0);
+		iter.cache().Setup(pos + buffer.GetSize() - iter.data_pos(), 0);
 	}
 	else
 	{
 		ImportPages(iter, buffer);
 
-		iter.cache().Setup(pos + buffer.size() - iter.data_pos(), 0);
+		iter.cache().Setup(pos + buffer.GetSize() - iter.data_pos(), 0);
 	}
 }
 
 M_PARAMS
-BigInt M_TYPE::UpdateData(Iterator& iter, const ArrayData& data, BigInt start, BigInt len)
+BigInt M_TYPE::UpdateData(Iterator& iter, const IData& data, BigInt start, BigInt len)
 {
 	BigInt sum = 0;
 
@@ -201,7 +211,7 @@ BigInt M_TYPE::UpdateData(Iterator& iter, const ArrayData& data, BigInt start, B
 
 		if (to_read > len) to_read = len;
 
-		CopyBuffer(data.data() + start, iter.data()->data().value_addr(iter.data_pos()), to_read);
+		data.Get(iter.data()->data().value_addr(iter.data_pos()), start, to_read);
 
 		len 	-= to_read;
 		iter.Skip(to_read);
@@ -269,7 +279,7 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 //// ====================================================== PRIVATE API ============================================================= ////
 
 M_PARAMS
-void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int start, Int length)
+void M_TYPE::InsertIntoDataPage(Iterator& iter, const IData& buffer, Int start, Int length)
 {
 	DataPageG& data	= iter.path().data().node();
 	data.update();
@@ -289,11 +299,9 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int sta
 
 	Int data_pos	= iter.data_pos();
 
-//	DataPage* data = data_g.page();
-
 	data->data().shift(data_pos, length);
 
-	memoria::CopyBuffer(buffer.data() + start, data->data().value_addr(data_pos), length);
+	buffer.Get(data->data().value_addr(data_pos), start, length);
 
 	data->data().size() += length;
 
@@ -309,9 +317,9 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const ArrayData& buffer, Int sta
 
 
 M_PARAMS
-void M_TYPE::ImportPages(Iterator& iter, const ArrayData& buffer)
+void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 {
-	BigInt	length		= buffer.size();
+	BigInt	length		= buffer.GetSize();
 	BigInt 	start;
 
 	Int max_size = me()->GetMaxDataSize();

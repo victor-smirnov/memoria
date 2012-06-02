@@ -28,6 +28,7 @@ typedef int16_t             Short;
 typedef uint16_t      		UShort;
 typedef int8_t              Byte;
 typedef uint8_t       		UByte;
+typedef size_t				SizeT;
 
 template <int size> struct PlatformLongHelper;
 

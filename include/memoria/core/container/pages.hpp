@@ -17,14 +17,18 @@
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
+#include <memoria/core/tools/id.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
 namespace memoria    {
 
+using namespace memoria::vapi;
+
 #pragma pack(1)
 
-using memoria::TL;
+
+
 
 struct MEMORIA_API Page {
 

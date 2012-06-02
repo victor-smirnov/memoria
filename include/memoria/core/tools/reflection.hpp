@@ -15,7 +15,7 @@
 
 namespace memoria    {
 
-using namespace memoria::vapi;
+//using namespace memoria::vapi;
 
 inline BigInt PtrToLong(const void *ptr) {
     return T2T<BigInt>(ptr);

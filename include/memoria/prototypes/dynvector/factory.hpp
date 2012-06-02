@@ -17,11 +17,12 @@
 
 #include <memoria/prototypes/dynvector/tools.hpp>
 
-#include <memoria/prototypes/dynvector/container/insert2.hpp>
+#include <memoria/prototypes/dynvector/container/insert.hpp>
 #include <memoria/prototypes/dynvector/container/remove.hpp>
 #include <memoria/prototypes/dynvector/container/tools.hpp>
 #include <memoria/prototypes/dynvector/container/checks.hpp>
 #include <memoria/prototypes/dynvector/container/find.hpp>
+#include <memoria/prototypes/dynvector/container/read.hpp>
 
 #include <memoria/prototypes/dynvector/iterator/api.hpp>
 #include <memoria/prototypes/dynvector/iterator.hpp>
@@ -76,8 +77,9 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
                     typename TLTool<
                         memoria::dynvector::ToolsName,
                         memoria::dynvector::RemoveName,
-                        memoria::dynvector::Insert2Name,
+                        memoria::dynvector::InsertName,
                         memoria::dynvector::ChecksName,
+                        memoria::dynvector::ReadName,
                         memoria::dynvector::SeekName
                     >::List
     >::Result                                                                   ContainerPartsList;

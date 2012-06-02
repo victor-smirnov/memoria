@@ -14,8 +14,11 @@
 
 #include <memoria/core/container/names.hpp>
 
+#include <memoria/core/container/logs.hpp>
+
 namespace memoria    {
 
+using namespace memoria::vapi;
 
 template <typename Types> class Ctr;
 template <typename Types> class Iter;

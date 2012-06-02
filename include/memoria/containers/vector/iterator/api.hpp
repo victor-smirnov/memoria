@@ -54,15 +54,23 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     }
 
 
-    BigInt Read(ArrayData& data, BigInt start, BigInt len);
-    BigInt Read(ArrayData& data)
+    BigInt Read(IData& data, BigInt start, BigInt length)
     {
-    	return Read(data, 0, data.size());
+    	return me()->model().Read(*me(), data, start, length);
+    }
+
+    BigInt Read(IData& data)
+    {
+    	return Read(data, 0, data.GetSize());
     }
 
     
-    void Insert(const ArrayData& data, BigInt start, BigInt len);
-    void Insert(const ArrayData& data);
+    void Insert(const IData& data, BigInt start, BigInt length);
+    void Insert(const IData& data);
+
+    void Insert(const ArrayData& data) {
+    	Insert((IData&)data);
+    }
 
     template <typename T>
     void Insert(const T& value)
@@ -70,12 +78,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	me()->Insert(ArrayData(value));
     }
 
-    void Update(const ArrayData& data, BigInt start, BigInt len);
-    void Update(const ArrayData& data);
+    void Update(const IData& data, BigInt start, BigInt length);
+    void Update(const IData& data);
 
-    void Remove(BigInt len)
+    void Remove(BigInt length)
     {
-    	me()->model().RemoveDataBlock(*me(), len);
+    	me()->model().RemoveDataBlock(*me(), length);
     }
 
     void Remove(MyType& to)
@@ -147,7 +155,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 	}
 
 
-    void Assing(const ArrayData& data)
+    void Assing(const IData& data)
     {
     	Update(data);
     }
@@ -170,43 +178,15 @@ MEMORIA_ITERATOR_PART_END
 #define M_TYPE 		MEMORIA_ITERATOR_TYPE(memoria::models::array::IteratorContainerAPIName)
 #define M_PARAMS 	MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
+
 M_PARAMS
-BigInt M_TYPE::Read(ArrayData& data, BigInt start, BigInt len)
+void M_TYPE::Insert(const IData& data, BigInt start, BigInt length)
 {
-	BigInt sum = 0;
-
-	while (len > 0)
-	{
-		Int to_read = me()->data()->data().size() - me()->data_pos();
-
-		if (to_read > len) to_read = len;
-
-		CopyBuffer(me()->data()->data().value_addr(me()->data_pos()), data.data() + start, to_read);
-
-		len 	-= to_read;
-		me()->Skip(to_read / me()->GetElementSize());
-
-		sum 	+= to_read;
-		start 	+= to_read;
-
-		if (me()->IsEof())
-		{
-			break;
-		}
-	}
-
-	return sum;
+	me()->model().InsertData(*me(), data, start, length);
 }
 
 M_PARAMS
-void M_TYPE::Insert(const ArrayData& data, BigInt start, BigInt len)
-{
-	const ArrayData data1(len, data.data() + start);
-	me()->model().InsertData(*me(), data1);
-}
-
-M_PARAMS
-void M_TYPE::Insert(const ArrayData& data)
+void M_TYPE::Insert(const IData& data)
 {
 	me()->model().InsertData(*me(), data);
 }
@@ -214,15 +194,15 @@ void M_TYPE::Insert(const ArrayData& data)
 
 
 M_PARAMS
-void M_TYPE::Update(const ArrayData& data, BigInt start, BigInt len)
+void M_TYPE::Update(const IData& data, BigInt start, BigInt len)
 {
 	me()->model().UpdateData(*me(), data, start, len);
 }
 
 M_PARAMS
-void M_TYPE::Update(const ArrayData& data)
+void M_TYPE::Update(const IData& data)
 {
-	me()->model().UpdateData(*me(), data, 0, data.size());
+	me()->model().UpdateData(*me(), data, 0, data.GetSize());
 }
 
 

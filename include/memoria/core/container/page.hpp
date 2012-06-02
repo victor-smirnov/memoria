@@ -13,11 +13,15 @@
 #include <memoria/metadata/page.hpp>
 
 #include <memoria/core/tools/buffer.hpp>
+#include <memoria/core/tools/id.hpp>
+
 #include <memoria/core/container/logs.hpp>
+
+
 
 namespace memoria    {
 
-
+using namespace memoria::vapi;
 
 extern Int PageCtrCnt[10];
 extern Int PageDtrCnt[10];
@@ -37,7 +41,7 @@ public:
 
     AbstractPageID(const T &t) : Base(t) {}
 
-    AbstractPageID(const IDValue& id): Base() {
+    AbstractPageID(const memoria::vapi::IDValue& id): Base() {
         Base::CopyFrom(id.ptr());
     }
 
