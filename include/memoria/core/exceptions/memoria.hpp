@@ -12,7 +12,7 @@
 #include <string>
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/config.hpp>
-
+#include <memoria/core/tools/string_buffer.hpp>
 #include <stdlib.h>
 
 namespace memoria    {
@@ -25,13 +25,11 @@ class MEMORIA_API MemoriaException {
     string source_;
     string message_;
 public:
-    MemoriaException(const string &source, const string &message): data_(0), source_(source), message_(message){
-    	//abort();
-    }
+    MemoriaException(const string &source, const string &message): data_(0), source_(source), message_(message) 	{}
+    MemoriaException(const string &source, const SBuf &message): data_(0), source_(source), message_(message.Str())	{}
 
-    MemoriaException(const string &source, const string &message, BigInt data): data_(data), source_(source), message_(message) {
-    	//abort();
-    }
+
+    MemoriaException(const string &source, const string &message, BigInt data): data_(data), source_(source), message_(message) {}
 
     BigInt data() const {
         return data_;

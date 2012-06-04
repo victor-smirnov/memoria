@@ -13,7 +13,7 @@
 
 #include <memoria/tools/profile_tests.hpp>
 
-
+#include <memoria/core/tools/string_buffer.hpp>
 
 
 #endif /* SHARED_HPP_ */
