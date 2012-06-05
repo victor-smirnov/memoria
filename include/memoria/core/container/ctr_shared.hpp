@@ -147,7 +147,7 @@ public:
 			return child;
 		}
 		else {
-			throw new MemoriaException(MEMORIA_SOURCE, "No child CtrShared is registered for the name", name);
+			throw new Exception(MEMORIA_SOURCE, SBuf()<<"No child CtrShared is registered for the name: "<<name);
 		}
 	}
 

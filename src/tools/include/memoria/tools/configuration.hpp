@@ -58,7 +58,7 @@ public:
         		return FromString<T>::convert(this->GetProperty(name));
         	}
         	else {
-        		throw MemoriaException(MEMORIA_SOURCE, "Property "+name+" is not specified");
+        		throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name<<" is not specified");
         	}
         }
 

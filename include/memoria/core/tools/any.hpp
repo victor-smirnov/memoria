@@ -19,25 +19,7 @@ const char* ExtractMemoriaPath(const char*);
 
 }
 
-class AnyCastException {
-	const char* source_;
-	const char* type_name_;
-	Int 		any_type_;
-public:
-	AnyCastException(const char* source, const char* name, Int any_type):source_(source), type_name_(name), any_type_(any_type) {}
 
-	const char* Source() const {
-		return source_;
-	}
-
-	const char* TypeName() const {
-		return type_name_;
-	}
-
-	Int AnyType() const {
-		return any_type_;
-	}
-};
 
 
 struct Any {
@@ -178,7 +160,7 @@ public:
 			return (T)value_;
 		}
 		else {
-			throw AnyCastException(MEMORIA_SOURCE, typeid(T).name(), type_);
+			throw Exception(MEMORIA_SOURCE, SBuf()<<typeid(T).name()<<" type="<<type_);
 		}
 	}
 

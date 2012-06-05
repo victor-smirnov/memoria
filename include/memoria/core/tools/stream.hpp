@@ -41,7 +41,7 @@ struct MEMORIA_API InputStreamHandler {
     		Int r = read(mem, ptr, size);
     		if (r < 0) {
     			if (size != size0) {
-    				throw MemoriaException(MEMORIA_SOURCE, "End Of File");
+    				throw Exception(MEMORIA_SOURCE, "End Of File");
     			}
     			else {
     				return false;
@@ -94,7 +94,7 @@ public:
 		fd_ = fopen(file, "wb");
 		if (fd_ == NULL)
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "Can't open file "+String(file));
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file "<<file);
 		}
 	}
 
@@ -132,7 +132,7 @@ public:
 
 		if (total_size != (size_t)length)
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "Can't write "+ToString(length)+" bytes to file");
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't write "<<length<<" bytes to file");
 		}
 	}
 };
@@ -149,7 +149,7 @@ public:
 		fd_ = fopen(file, "rb");
 		if (fd_ == NULL)
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "Can't open file "+String(file));
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file "<<file);
 		}
 	}
 

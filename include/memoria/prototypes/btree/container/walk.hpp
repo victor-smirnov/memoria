@@ -100,7 +100,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
     			if (fn.result() == -1)
     			{
     				// this should not happened here
-    				throw MemoriaException(MEMORIA_SOURCE, "WalkFw:Down: idx == -1");
+    				throw Exception(MEMORIA_SOURCE, "WalkFw:Down: idx == -1");
     			}
 
     			if (!index->is_leaf())

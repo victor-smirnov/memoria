@@ -69,7 +69,7 @@ public:
 		allocator.commit();
 
 		try {
-			throw MemoriaException(MEMORIA_SOURCE, "Test Exception");
+			throw Exception(MEMORIA_SOURCE, "Test Exception");
 		}
 		catch (...) {
 			Store(allocator, &params);

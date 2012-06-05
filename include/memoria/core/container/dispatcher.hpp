@@ -47,7 +47,7 @@ class PageDispatcher<Profile, PageType, memoria::NullType> {
 
 public:
     void dispatch(PageType *page) {
-        throw DispatchException(MEMORIA_SOURCE, "Invalid model hash code", page->model_hash());
+        throw DispatchException(MEMORIA_SOURCE, SBuf()<<"Invalid model hash code"<<page->model_hash());
     }
 };
 

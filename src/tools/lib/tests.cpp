@@ -61,7 +61,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 
 		if (!file.IsExists())
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "File " + replay_file_name +" does not exists");
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<replay_file_name<<" does not exists");
 		}
 
 		task_file_name = task_folder + Platform::GetFilePathSeparator() + "ReplayTask.properties";
@@ -69,11 +69,11 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 
 		if (!file.IsExists())
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "File " + task_file_name +" does not exists");
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<task_file_name<<" does not exists");
 		}
 	}
 	else {
-		throw MemoriaException(MEMORIA_SOURCE, "File " + task_folder + " does not exists");
+		throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<task_folder<<" does not exists");
 	}
 
 
@@ -89,9 +89,9 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 			task->Replay(out, &cfg);
 			out<<"PASSED"<<endl;
 		}
-		catch (MemoriaException e)
+		catch (MemoriaThrowable e)
 		{
-			out<<"FAILED: "<<e.source()<<" "<<e.message()<<endl;
+			out<<"FAILED: "<<e.source()<<" "<<e<<endl;
 		}
 		catch (...)
 		{

@@ -16,14 +16,17 @@ namespace vapi       {
 
 using namespace std;
 
-class MEMORIA_API NullPointerException: public MemoriaException {
+class MEMORIA_API NullPointerException: public Exception {
 
 public:
-    NullPointerException(const string &source, const string &message):
-                MemoriaException(source, message) {}
+    NullPointerException(const char* source, StringRef message):
+                Exception(source, message) {}
 
-    NullPointerException(const string &source):
-                MemoriaException(source, "NullPointerException"){}
+    NullPointerException(const char* source, const SBuf& message):
+                    Exception(source, message) {}
+
+    NullPointerException(const char* source):
+                Exception(source, "NullPointerException"){}
 
 };
 

@@ -157,7 +157,7 @@ public:
 		{
 			if (iter.data_pos() < 0)
 			{
-				throw TestException(source, "iter.data_pos() is negative: "+ToString(iter.data_pos()));
+				throw TestException(source, SBuf()<<"iter.data_pos() is negative: "<<iter.data_pos());
 			}
 
 			bool found = false;
@@ -169,7 +169,7 @@ public:
 					if (path.data().parent_idx() != idx)
 					{
 						iter.Dump(out);
-						throw TestException(source, "Invalid parent-child relationship for node:"+ToString(IDValue(path[0]->id()))+" DATA: "+ToString(IDValue(path.data()->id()))+" idx="+ToString(idx)+" parent_idx="+ToString(path.data().parent_idx()));
+						throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"<<path[0]->id()<<" DATA: "<<path.data()->id()<<" idx="<<idx<<" parent_idx="<<path.data().parent_idx());
 					}
 					else {
 						found = true;
@@ -181,7 +181,7 @@ public:
 			if (!found)
 			{
 				iter.Dump(out);
-				throw TestException(source, "Data: " + ToString(IDValue(path.data()->id())) + " is not fount is it's parent, parent_idx="+ToString(path.data().parent_idx()));
+				throw TestException(source, SBuf()<<"Data: "<<path.data()->id()<<" is not fount is it's parent, parent_idx="<<path.data().parent_idx());
 			}
 		}
 

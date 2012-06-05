@@ -143,7 +143,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     		me()->model().SetLeafData(me()->leaf().node(), me()->key_idx(), data);
     	}
     	else {
-    		throw MemoriaException(MEMORIA_SOURCE, "Insertion after the end of iterator");
+    		throw Exception(MEMORIA_SOURCE, "Insertion after the end of iterator");
     	}
     }
 

@@ -29,7 +29,7 @@
 
 
 
-#define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() throw MemoriaException(MEMORIA_SOURCE, std::string("Method is not implemented for " + String(me()->type_name())))
+#define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "<<me()->type_name())
 
 namespace memoria    {
 

@@ -20,54 +20,39 @@ namespace vapi       {
 
 using namespace std;
 
-class MEMORIA_API MemoriaException {
-    BigInt data_;
-    string source_;
-    string message_;
+class MemoriaThrowable {
+	const char* source_;
 public:
-    MemoriaException(const string &source, const string &message): data_(0), source_(source), message_(message) 	{}
-    MemoriaException(const string &source, const SBuf &message): data_(0), source_(source), message_(message.Str())	{}
+	MemoriaThrowable(const char* source): source_(source) {}
+
+	const char* source() const {
+		return source_;
+	}
+
+	virtual void Out(ostream& out) const {}
+};
 
 
-    MemoriaException(const string &source, const string &message, BigInt data): data_(data), source_(source), message_(message) {}
+class MEMORIA_API Exception: public MemoriaThrowable {
 
-    BigInt data() const {
-        return data_;
-    }
+    String message_;
+public:
+    Exception(const char* source, StringRef message): MemoriaThrowable(source), message_(message) 			{}
+    Exception(const char* source, const SBuf& message): MemoriaThrowable(source), message_(message.Str())	{}
 
-    const string &source() const {
-        return source_;
-    }
 
-    const string &message() const {
+    StringRef message() const {
         return message_;
+    }
+
+    virtual void Out(ostream& out) const {
+    	out<<message_;
     }
 };
 
-class MEMORIA_API MemoriaSigSegv {
-    BigInt data_;
-    string source_;
-    string message_;
+class MemoriaSigSegv: public Exception {
 public:
-    MemoriaSigSegv(const string &source, const string &message): data_(0), source_(source), message_(message){
-    	//abort();
-    }
-
-    MemoriaSigSegv(const string &source, const string &message, BigInt data): data_(data), source_(source), message_(message) {
-    	//abort();
-    }
-
-    BigInt data() const {
-        return data_;
-    }
-
-    const string &source() const {
-        return source_;
-    }
-
-    const string &message() const {
-        return message_;
-    }
+    MemoriaSigSegv(const char* source, StringRef message): Exception(source, message) {}
 };
 
 
@@ -75,4 +60,12 @@ MEMORIA_API const char* ExtractMemoriaPath(const char* path);
 
 }
 }
+
+namespace std {
+using namespace memoria::vapi;
+
+ostream& operator<<(ostream& out, MemoriaThrowable& t);
+
+}
+
 #endif

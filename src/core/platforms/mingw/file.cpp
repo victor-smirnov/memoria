@@ -48,7 +48,7 @@ BigInt File::Size() const {
 		return buf.st_size;
 	}
 	else {
-		throw FileException(MEMORIA_SOURCE, "Can't get file stats:" + String(strerror(errno)), path_);
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get file stats: "<<strerror(errno)<<" path="<<path_);
 	}
 }
 
@@ -59,7 +59,7 @@ bool is_directory(StringRef name, bool throw_ex) {
 		return S_ISDIR(buf.st_mode);
 	}
 	else if (throw_ex) {
-		throw FileException(MEMORIA_SOURCE, "Can't get file stats:" + String(strerror(errno)), name);
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get file stats: "<<strerror(errno)<<" path="<<name);
 	}
 	else {
 		return false;
@@ -92,7 +92,7 @@ String File::GetAbsolutePath() const {
 			return String(buf)+"/"+path_;
 		}
 		else {
-			throw FileException(MEMORIA_SOURCE, "Can't get absolute path:" + String(strerror(errno)), path_);
+			throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get absolute path: "<<strerror(errno)<<" path="<<path_);
 		}
 	}
 }
@@ -144,7 +144,7 @@ bool File::MkDirs() const {
 void File::Rename(StringRef new_name) {
 	if (rename(path_.c_str(), new_name.c_str()) != 0)
 	{
-		throw FileException(MEMORIA_SOURCE, "Can't rename file: " + String(strerror(errno)), new_name);
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't rename file: "<<strerror(errno)<<", new name = "<<new_name);
 	}
 	path_ = new_name;
 }
@@ -231,14 +231,14 @@ File::FileListType* File::ReadDir(const File& file)
 			closedir (dp);
 		}
 		else {
-			throw FileException(MEMORIA_SOURCE, "Can't open directory:", strerror(errno));
+			throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't open directory: "<<strerror(errno));
 		}
 
 		return list;
 	}
 	else
 	{
-		throw FileException(MEMORIA_SOURCE, "File is not a directory", file.GetPath());
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"File is not a directory: "<<file.GetPath());
 	}
 }
 
@@ -263,7 +263,7 @@ String File::NormalizePath(StringRef path)
 		return path;
 	}
 	else if (IsEmpty(path)) {
-		throw MemoriaException(MEMORIA_SOURCE, "Empty string is specified as a path");
+		throw Exception(MEMORIA_SOURCE, "Empty string is specified as a path");
 	}
 	else {
 		typedef String::size_type SizeT;

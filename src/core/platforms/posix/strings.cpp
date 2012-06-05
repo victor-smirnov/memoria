@@ -37,15 +37,15 @@ using namespace std;
 //				return v;
 //			}
 //			else {
-//				throw MemoriaException(MEMORIA_SOURCE, "Invalid integer value: " + value);
+//				throw Exception(MEMORIA_SOURCE, "Invalid integer value: " + value);
 //			}
 //		}
 //		else {
-//			throw MemoriaException(MEMORIA_SOURCE, "Invalid integer value: " + value);
+//			throw Exception(MEMORIA_SOURCE, "Invalid integer value: " + value);
 //		}
 //	}
 //	else {
-//		throw MemoriaException(MEMORIA_SOURCE, "Invalid integer value: " + value);
+//		throw Exception(MEMORIA_SOURCE, "Invalid integer value: " + value);
 //	}
 //}
 

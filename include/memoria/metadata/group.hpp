@@ -65,7 +65,7 @@ public:
 //
 //		if (throwEx)
 //		{
-//			throw new MemoriaException(MEMORIA_SOURCE, String("Can't find metadata filed: ") + name);
+//			throw new Exception(MEMORIA_SOURCE, String("Can't find metadata filed: ") + name);
 //		}
 //		else {
 //			return NULL;

@@ -16,29 +16,16 @@ namespace vapi       {
 
 using namespace std;
 
-class MEMORIA_API BoundsException: public MemoriaException {
-    BigInt index_;
-    BigInt index1_;
-    BigInt index2_;
+class MEMORIA_API BoundsException: public Exception {
 
 public:
-    BoundsException(const string &source, const string &message, BigInt index, BigInt index1, BigInt index2):
-                MemoriaException(source, message), index_(index), index1_(index1), index2_(index2) {}
+    BoundsException(const char* source, StringRef message):
+                Exception(source, message) {}
 
-    BoundsException(const string &source, BigInt index, BigInt index1, BigInt index2):
-                MemoriaException(source, "Index is out of bounds"), index_(index), index1_(index1), index2_(index2) {}
+    BoundsException(const char* source, const SBuf& message):
+                Exception(source, message) {}
 
-    BigInt index() const {
-        return index_;
-    }
 
-    BigInt index1() const {
-        return index1_;
-    }
-
-    BigInt index2() const {
-        return index2_;
-    }
 };
 
 

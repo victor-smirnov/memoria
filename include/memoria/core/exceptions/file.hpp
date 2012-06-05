@@ -17,16 +17,14 @@ namespace vapi       {
 
 using namespace std;
 
-class MEMORIA_API FileException: public MemoriaException {
-	String file_name_;
+class MEMORIA_API FileException: public Exception {
 
 public:
-    FileException(StringRef source, StringRef message, StringRef file_name):
-                MemoriaException(source, message), file_name_(file_name) {}
+    FileException(const char* source, StringRef message):
+                Exception(source, message) {}
 
-    StringRef FileName() const {
-        return file_name_;
-    }
+    FileException(const char* source, const SBuf& message):
+                    Exception(source, message.Str()) {}
 };
 
 

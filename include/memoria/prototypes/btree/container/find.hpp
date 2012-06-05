@@ -219,7 +219,7 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 					}
 					else
 					{
-						throw MemoriaException(MEMORIA_SOURCE, "Can't find key: "+ToString(key));
+						throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't find key: "<<key);
 					}
 				}
 				else

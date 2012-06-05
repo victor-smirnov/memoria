@@ -16,16 +16,16 @@ namespace vapi       {
 
 using namespace std;
 
-class MEMORIA_API DispatchException: public MemoriaException {
+class MEMORIA_API DispatchException: public Exception {
     Int code1_;
     Int code2_;
 public:
 
-    DispatchException(const string &source, const string &message, Int code1 = 0, Int code2 = 0):
-                MemoriaException(source, message), code1_(code1), code2_(code2) {}
+    DispatchException(const char* source, const string &message, Int code1 = 0, Int code2 = 0):
+                Exception(source, message), code1_(code1), code2_(code2) {}
 
-    DispatchException(const string &source, Int code1, Int code2 = -1):
-                MemoriaException(source, "Invalid dispatch"), code1_(code1), code2_(code2) {}
+    DispatchException(const char* source, Int code1, Int code2 = -1):
+                Exception(source, "Invalid dispatch"), code1_(code1), code2_(code2) {}
 
     Int code1() const {
         return code1_;

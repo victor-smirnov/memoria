@@ -121,7 +121,7 @@ public:
     			return ((UByte*)page_)[idx];
     		}
     		else {
-    			throw BoundsException(MEMORIA_SOURCE, "Invalid byte offset", idx, 0, PageSize);
+    			throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<PageSize);
     		}
 
     	}
@@ -138,7 +138,7 @@ public:
     			((UByte*)page_)[idx] = (UByte)value;
     		}
     		else {
-    			throw BoundsException(MEMORIA_SOURCE, "Invalid byte offset", idx, 0, PageSize);
+    			throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<PageSize);
     		}
     	}
     	else {

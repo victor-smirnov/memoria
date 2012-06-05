@@ -119,15 +119,15 @@ Long StrToL(StringRef value) {
 				return v;
 			}
 			else {
-				throw MemoriaException(MEMORIA_SOURCE, "Invalid integer value: " + value);
+				throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
 			}
 		}
 		else {
-			throw MemoriaException(MEMORIA_SOURCE, "Invalid integer value: " + value);
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
 		}
 	}
 	else {
-		throw MemoriaException(MEMORIA_SOURCE, "Invalid integer value: " + value);
+		throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
 	}
 }
 
@@ -171,14 +171,14 @@ Int GetValueMultiplier(const char* chars, const char* ptr)
 		return 1000*1000*1000;
 	}
 	else {
-		throw ::memoria::vapi::MemoriaException(MEMORIA_SOURCE, "Invalid number format: "+String(chars));
+		throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
 	}
 }
 
 void CheckError(const char* chars, const char* ptr)
 {
 	if (*ptr != 0) {
-		throw ::memoria::vapi::MemoriaException(MEMORIA_SOURCE, "Invalid number format: "+String(chars));
+		throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
 	}
 }
 
@@ -238,7 +238,7 @@ bool ConvertToBool(StringRef str)
 		return false;
 	}
 	else {
-		throw ::memoria::vapi::MemoriaException(MEMORIA_SOURCE, "Invalid boolean format: "+str);
+		throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid boolean format: "<<str);
 	}
 }
 

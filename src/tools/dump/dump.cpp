@@ -291,7 +291,7 @@ int main(int argc, const char** argv, const char** envp)
 			{
 				if (!folder.DelTree())
 				{
-					throw MemoriaException("dump.cpp", "can't remove file "+folder.GetPath());
+					throw Exception("dump.cpp", SBuf()<<"can't remove file "<<folder.GetPath());
 				}
 			}
 
@@ -302,11 +302,11 @@ int main(int argc, const char** argv, const char** envp)
 			iter.Next();
 		}
 	}
-	catch (MemoriaException ex) {
-		cout<<"MemoriaException "<<ex.source()<<" "<<ex.message()<<endl;
+	catch (MemoriaThrowable ex) {
+		cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
 	}
-	catch (MemoriaException *ex) {
-		cout<<"MemoriaException* "<<ex->source()<<" "<<ex->message()<<endl;
+	catch (MemoriaThrowable *ex) {
+		cout<<"Exception* "<<ex->source()<<" "<<*ex<<endl;
 	}
 	catch (int i) {
 		cout<<"IntegerEx: "<<i<<endl;

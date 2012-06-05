@@ -110,9 +110,9 @@ int main(int argc, const char** argv, const char** envp)
 			return failed;
 		}
 	}
-	catch (MemoriaException e)
+	catch (MemoriaThrowable e)
 	{
-		cerr<<e.source()<<" ERROR: "<<e.message()<<endl;
+		cerr<<e.source()<<" ERROR: "<<e<<endl;
 	}
 
 	return 1;

@@ -53,7 +53,7 @@ StringRef StringList::GetItem(Int idx) const
                 return list_[idx];
         }
         else {
-                throw BoundsException(MEMORIA_SOURCE, "Index is out of bounds in a StringList: ", idx, 0, list_.size());
+                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Index is out of bounds in a StringList: "<<idx<<" max="<<list_.size());
         }
 }
 
@@ -100,11 +100,11 @@ String Configurator::resolve_references(StringRef value, NameTree* names) const
                                         buf<<this->get_property(name, &names0, true);
                                 }
                                 else {
-                                        throw MemoriaException(MEMORIA_SOURCE, "Circular property reference: " + name);
+                                        throw Exception(MEMORIA_SOURCE, SBuf()<<"Circular property reference: "<<name);
                                 }
                         }
                         else {
-                                throw MemoriaException(MEMORIA_SOURCE, "Invalid property reference format: " + value);
+                                throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid property reference format: "<<value);
                         }
                         pos = idx2 + 1;
                 }
@@ -213,7 +213,7 @@ void add_line(Configurator *cfg, StringRef str, String::size_type start, String:
                         }
                 }
                 else {
-                        throw MemoriaException(MEMORIA_SOURCE, "There is no '=' in the string '"+TrimString(str.substr(start, end - start))+"'");
+                        throw Exception(MEMORIA_SOURCE, SBuf()<<"There is no '=' in the string '"<<TrimString(str.substr(start, end - start))<<"'");
                 }
         }
         else {
@@ -324,7 +324,7 @@ Configurator* Configurator::Parse(StringRef file_name, Configurator* cfg)
                 return cfg;
         }
         else {
-        	throw MemoriaException(MEMORIA_SOURCE, "Can't open file for reading: "+file_name);
+        	throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file for reading: "<<file_name);
         }
 }
 
@@ -410,9 +410,9 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
                                         }
                                 }
                         }
-                        catch (MemoriaException e)
+                        catch (MemoriaThrowable e)
                         {
-                                cout<<e.source()<<": "<<e.message()<<endl;
+                                cout<<e.source()<<": "<<e<<endl;
                         }
                 }
         }

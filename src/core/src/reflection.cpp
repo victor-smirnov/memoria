@@ -75,7 +75,7 @@ PageMetadata* ContainerMetadataRepository::GetPageMetadata(Int hashCode) const {
         return i->second;
     }
     else {
-    	throw MemoriaException(MEMORIA_SOURCE, "Unknown page type hash code "+ToString(hashCode));
+    	throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown page type hash code "<<hashCode);
     }
 }
 
@@ -87,7 +87,7 @@ ContainerMetadata* ContainerMetadataRepository::GetContainerMetadata(Int hashCod
         return i->second;
     }
     else {
-    	throw MemoriaException(MEMORIA_SOURCE, "Unknown model hash code " + ToString(hashCode));
+    	throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown model hash code "<<hashCode);
     }
 }
 

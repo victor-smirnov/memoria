@@ -79,7 +79,7 @@ BigInt File::Size() const
 		return (((BigInt)fileInfo.nFileSizeHigh) << 32) + fileInfo.nFileSizeLow;
 	}
 	else {
-		throw FileException(MEMORIA_SOURCE, "Can't get file stats:" + GetErrorMsg(), path_);
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get file stats: "<<GetErrorMsg()<<" path="<<path_);
 	}
 }
 
@@ -92,7 +92,7 @@ bool is_directory(StringRef name, bool throw_ex)
 		return (result & FILE_ATTRIBUTE_DIRECTORY) != 0;
 	}
 	else if (throw_ex) {
-		throw FileException(MEMORIA_SOURCE, "Can't get file attributes:" + GetErrorMsg(), name);
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get file attributes:"<<GetErrorMsg()<<" path="<<name);
 	}
 	else {
 		return false;
@@ -122,7 +122,7 @@ String File::GetAbsolutePath() const
 			return String(buf)+"/"+path_;
 		}
 		else {
-			throw FileException(MEMORIA_SOURCE, "Can't get absolute path:" + GetErrorMsg(), path_);
+			throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get absolute path: "<<GetErrorMsg()<<" path="<<path_);
 		}
 	}
 }
@@ -181,7 +181,7 @@ void File::Rename(StringRef new_name)
 {
 	if (!MoveFile(path_.c_str(), new_name.c_str()))
 	{
-		throw FileException(MEMORIA_SOURCE, "Can't rename file: " + GetErrorMsg(), new_name);
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't rename file: "<<GetErrorMsg()<<", new name = "<<new_name);
 	}
 	path_ = new_name;
 }
@@ -245,7 +245,7 @@ String File::GetName() const {
 
 
 void ThrowFE(const char* src, const File& file) {
-	throw FileException(src, "Can't read the directory: " + GetErrorMsg(), file.GetPath());
+	throw FileException(src, SBuf()<<"Can't read the directory: "<<GetErrorMsg()<<" path="<<file.GetPath());
 }
 
 File::FileListType* File::ReadDir(const File& file)
@@ -307,7 +307,7 @@ File::FileListType* File::ReadDir(const File& file)
 	}
 	else
 	{
-		throw FileException(MEMORIA_SOURCE, "File is not a directory", file.GetPath());
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"File is not a directory: "<<file.GetPath());
 	}
 }
 
@@ -332,7 +332,7 @@ String File::NormalizePath(StringRef path)
 		return path;
 	}
 	else if (IsEmpty(path)) {
-		throw MemoriaException(MEMORIA_SOURCE, "Empty string is specified as a path");
+		throw Exception(MEMORIA_SOURCE, "Empty string is specified as a path");
 	}
 	else {
 		typedef String::size_type SizeT;

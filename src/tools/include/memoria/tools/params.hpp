@@ -143,7 +143,7 @@ public:
 		{
 			if (!(value_ >= min_value_ && value_ <= max_value_))
 			{
-				throw MemoriaException(MEMORIA_SOURCE, "Range checking failure for the property: "+prefix()+"."+name_);
+				throw Exception(MEMORIA_SOURCE, SBuf()<<"Range checking failure for the property: "<<prefix()<<"."<<name_);
 			}
 		}
 	}
@@ -189,6 +189,7 @@ public:
 
 		if (ranges_specified_)
 		{
+			//FIXME: Is conversion to string is necessary here?
 			os<<"Range from: "<<AsString<T>::convert(min_value_)<<" to "<<AsString<T>::convert(max_value_);
 		}
 
@@ -251,7 +252,7 @@ void ParamDescriptor<T>::SetValue(Configurator* cfg, T& value)
 	}
 	else if (mandatory_)
 	{
-		throw MemoriaException(MEMORIA_SOURCE, "Property "+name_+" is not defined in the program configuration");
+		throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name_<<" is not defined in the program configuration");
 	}
 }
 

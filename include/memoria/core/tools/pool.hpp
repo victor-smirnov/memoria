@@ -76,7 +76,7 @@ public:
 			return &objects_[idx];
 		}
 		else {
-			throw new MemoriaException(MEMORIA_SOURCE, "StaticPool is full");
+			throw new Exception(MEMORIA_SOURCE, "StaticPool is full");
 		}
 	}
 
@@ -92,7 +92,7 @@ public:
 			}
 		}
 
-		throw new MemoriaException(MEMORIA_SOURCE, "ID is not known in this StaticPool");
+		throw new Exception(MEMORIA_SOURCE, "ID is not known in this StaticPool");
 	}
 
 	Int GetMax() {

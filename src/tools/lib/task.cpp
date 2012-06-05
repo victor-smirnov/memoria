@@ -71,8 +71,8 @@ Int Task::Run()
 
 		result = false;
 	}
-	catch (MemoriaException e) {
-		(*out_)<<"FAILED: "<<e.source()<<": "<<e.message()<<endl;
+	catch (MemoriaThrowable e) {
+		(*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;
 
 		String path = GetTaskParametersFilePath();
 
@@ -163,7 +163,7 @@ void TaskGroup::RegisterTask(Task* task)
 	{
 		if (t->GetTaskName() == task->GetTaskName())
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "Task " + task->GetTaskName()+" is already registered");
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"Task "<<task->GetTaskName()<<" is already registered");
 		}
 	}
 

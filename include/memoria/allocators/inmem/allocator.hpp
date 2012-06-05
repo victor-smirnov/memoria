@@ -199,7 +199,7 @@ public:
 			return i->second;
 		}
 		else {
-			throw NullPointerException(MEMORIA_SOURCE, "Can't find page for the specified page_id: " + ToString(page_id.value()));
+			throw NullPointerException(MEMORIA_SOURCE, SBuf()<<"Can't find page for the specified page_id: "<<IDValue(page_id));
 		}
 	}
 
@@ -240,7 +240,7 @@ public:
 		}
 		else {
 			return ID(0);
-			//throw new MemoriaException(MEMORIA_SOURCE, "Can't find Root ID for model " + ToString(name));
+			//throw new Exception(MEMORIA_SOURCE, "Can't find Root ID for model " + ToString(name));
 		}
 	}
 
@@ -547,7 +547,7 @@ public:
 		}
 		else
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "Unknown CtrShared requested for name "+ToString(name));
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown CtrShared requested for name "<<name);
 		}
 	}
 
@@ -567,7 +567,7 @@ public:
 		}
 		else
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "CtrShared for name "+ToString(name)+" is already registered");
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"CtrShared for name "<<name<<" is already registered");
 		}
 	}
 
@@ -595,17 +595,18 @@ public:
 
 		if (!(signature[0] == 'M' && signature[1] == 'E' && signature[2] == 'M' && signature[3] == 'O' && signature[4] == 'R' && signature[5] == 'I' && signature[6] == 'A'))
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "The stream does not start from MEMORIA signature: "+String(signature));
+			//FIXME: Is signature a 0-terminated string?
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"The stream does not start from MEMORIA signature: "<<signature);
 		}
 
 		if (!(signature[7] == 0 || signature[7] == 1))
 		{
-			throw BoundsException(MEMORIA_SOURCE, "Endiannes filed value is out of bounds", signature[7], 0, 1);
+			throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Endiannes filed value is out of bounds "<<signature[7]);
 		}
 
 		if (signature[8] != 0)
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "This is not a stream container");
+			throw Exception(MEMORIA_SOURCE, "This is not a stream container");
 		}
 
 		ID root(0);

@@ -23,3 +23,15 @@ const char* ExtractMemoriaPath(const char* path) {
 }
 
 }}
+
+
+namespace std {
+
+using namespace memoria::vapi;
+
+ostream& operator<<(ostream& out, MemoriaThrowable& t) {
+	t.Out(out);
+	return out;
+}
+
+}

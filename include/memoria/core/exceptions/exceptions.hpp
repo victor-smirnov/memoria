@@ -10,7 +10,6 @@
 #define	_MEMORIA_VAPI_EXCEPTIONS_HPP
 
 #include <memoria/core/exceptions/memoria.hpp>
-#include <memoria/core/exceptions/cast.hpp>
 #include <memoria/core/exceptions/dispatch.hpp>
 #include <memoria/core/exceptions/bounds.hpp>
 #include <memoria/core/exceptions/npe.hpp>

@@ -29,7 +29,7 @@ void CmdLine::Process()
 				cfg_cmdline_.AddProperty(arg.substr(2, pos - 2), arg.substr(pos + 1));
 			}
 			else {
-				throw MemoriaException(MEMORIA_SOURCE, "Invalid property format: "+arg);
+				throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid property format: "<<arg);
 			}
 		}
 		else if (arg == "--help")
@@ -53,11 +53,11 @@ void CmdLine::Process()
 						cfg_cpecified = true;
 					}
 					else {
-						throw MemoriaException(MEMORIA_SOURCE, "Config file has been already specified");
+						throw Exception(MEMORIA_SOURCE, "Config file has been already specified");
 					}
 				}
 				else {
-					throw MemoriaException(MEMORIA_SOURCE, "Properties file is not specified for the --config option");
+					throw Exception(MEMORIA_SOURCE, "Properties file is not specified for the --config option");
 				}
 			}
 		}
@@ -71,11 +71,11 @@ void CmdLine::Process()
 					c += 1;
 				}
 				else {
-					throw MemoriaException(MEMORIA_SOURCE, "Output folder has been already specified");
+					throw Exception(MEMORIA_SOURCE, "Output folder has been already specified");
 				}
 			}
 			else {
-				throw MemoriaException(MEMORIA_SOURCE, "Incorrect --out parameters number");
+				throw Exception(MEMORIA_SOURCE, "Incorrect --out parameters number");
 			}
 		}
 		else if (arg == "--count")
@@ -86,7 +86,7 @@ void CmdLine::Process()
 				c += 1;
 			}
 			else {
-				throw MemoriaException(MEMORIA_SOURCE, "Incorrect --out parameters number");
+				throw Exception(MEMORIA_SOURCE, "Incorrect --out parameters number");
 			}
 		}
 		else if (arg == "--replay" && (operations_ & REPLAY))
@@ -102,16 +102,16 @@ void CmdLine::Process()
 						c += 1;
 					}
 					else {
-						throw MemoriaException(MEMORIA_SOURCE, "Replay operation has been already specified");
+						throw Exception(MEMORIA_SOURCE, "Replay operation has been already specified");
 					}
 				}
 				else {
-					throw MemoriaException(MEMORIA_SOURCE, "Incorrect --replay parameters number");
+					throw Exception(MEMORIA_SOURCE, "Incorrect --replay parameters number");
 				}
 			}
 		}
 		else {
-			throw MemoriaException(MEMORIA_SOURCE, "Unknown command line option is specified: "+arg);
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown command line option is specified: "<<arg);
 		}
 	}
 

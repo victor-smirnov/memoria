@@ -23,9 +23,10 @@ using namespace memoria::vapi;
 using namespace std;
 
 
-class TestException: public MemoriaException {
+class TestException: public Exception {
 public:
-	TestException(StringRef source, StringRef message): MemoriaException(source, message) {}
+	TestException(const char* source, StringRef message): Exception(source, message) 		 {}
+	TestException(const char* source, const SBuf& message): Exception(source, message.Str()) {}
 };
 
 
@@ -86,7 +87,7 @@ istream& operator>>(istream& in, vector<T, A>& vec)
 		if (in.eof()) break;
 		if (in.bad())
 		{
-			throw MemoriaException(MEMORIA_SOURCE, "Invalid data record format");
+			throw Exception(MEMORIA_SOURCE, "Invalid data record format");
 		}
 
 		vec.push_back(value);
@@ -223,7 +224,7 @@ void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg, 
 	Int pos = 0;
 	if (!CompareBuffer(iter, data, pos))
 	{
-		throw TestException(source, String(err_msg) + ": pos=" + ToString(pos));
+		throw TestException(source, SBuf()<<err_msg<<": pos="<<pos);
 	}
 }
 
@@ -254,7 +255,7 @@ void CheckBufferWritten(Iterator& iter, const vector<Item>& data, const char* er
 	Int pos = 0;
 	if (!CompareBuffer(iter, data, pos))
 	{
-		throw TestException(source, String(err_msg) + ": pos=" + ToString(pos));
+		throw TestException(source, SBuf()<<err_msg<<": pos="<<pos);
 	}
 }
 
@@ -295,9 +296,9 @@ BigInt GetUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
 #define MEMORIA_TEST_THROW_IF(op1, operator_, op2) 		MEMORIA_TEST_THROW_IF_EXPR(op1 operator_ op2, op1, op2)
 #define MEMORIA_TEST_THROW_IF_1(op1, operator_, op2, arg1) MEMORIA_TEST_THROW_IF_EXPR1(op1 operator_ op2, op1, op2, arg1)
 
-#define MEMORIA_TEST_THROW_IF_EXPR(expr, op1, op2) 																						\
-	if (expr) {																															\
-		throw TestException(MEMORIA_SOURCE, String("ASSERT FAILURE: ")+#expr+"; "+#op1+"="+ToString(op1)+", "+#op2+"="+ToString(op2));	\
+#define MEMORIA_TEST_THROW_IF_EXPR(expr, op1, op2) 																				\
+	if (expr) {																													\
+		throw TestException(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#expr<<"; "<<#op1<<"="<<op1<<", "<<op2<<"="<<op2);		\
 	}
 
 

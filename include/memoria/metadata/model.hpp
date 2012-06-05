@@ -63,7 +63,7 @@ public:
 			return i->second;
 		}
 		else {
-			throw MemoriaException(MEMORIA_SOURCE, "Unknown page type hash code");
+			throw Exception(MEMORIA_SOURCE, "Unknown page type hash code");
 		}
 	}
 

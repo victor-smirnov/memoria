@@ -118,7 +118,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     		me()->SetRootMetadata(meta);
         }
         else {
-        	throw MemoriaException(MEMORIA_SOURCE, "Incorrect SetBranchingFactor value: "+ToString(count)+". It must be 0 or > 2");
+        	throw Exception(MEMORIA_SOURCE, SBuf()<<"Incorrect SetBranchingFactor value: "<<count<<". It must be 0 or > 2");
         }
     }
 
