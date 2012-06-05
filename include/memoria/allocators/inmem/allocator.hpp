@@ -199,7 +199,7 @@ public:
 			return i->second;
 		}
 		else {
-			throw NullPointerException(MEMORIA_SOURCE, SBuf()<<"Can't find page for the specified page_id: "<<IDValue(page_id));
+			throw NullPointerException(MEMORIA_SOURCE, SBuf()<<"Can't find page for the specified page_id: "<<page_id);
 		}
 	}
 
