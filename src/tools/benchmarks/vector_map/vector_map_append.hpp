@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class VectorMapAppendBenchmark: public SPBenchmarkTask {
+class VectorMapappendBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -38,7 +38,7 @@ class VectorMapAppendBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorMapAppendBenchmark(StringRef name):
+	VectorMapappendBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
@@ -47,7 +47,7 @@ public:
 		Add("memory_size", memory_size);
 	}
 
-	virtual ~VectorMapAppendBenchmark() throw() {}
+	virtual ~VectorMapappendBenchmark() throw() {}
 
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
@@ -79,7 +79,7 @@ public:
 		while (total < memory_size)
 		{
 			map_->CreateNew(i);
-			i.Insert(data);
+			i.insert(data);
 			i++;
 
 			total += data.size();

@@ -19,7 +19,7 @@ using namespace std;
 
 
 
-class setCommitAppendBenchmark: public SPBenchmarkTask {
+class setCommitappendBenchmark: public SPBenchmarkTask {
 
 	public:
 	Int max_size;
@@ -45,7 +45,7 @@ class setCommitAppendBenchmark: public SPBenchmarkTask {
 
 public:
 
-	setCommitAppendBenchmark(StringRef name):
+	setCommitappendBenchmark(StringRef name):
 		SPBenchmarkTask(name), max_size(1*1024*1024)
 	{
 		Add("max_size", max_size);
@@ -54,7 +54,7 @@ public:
 		setCtr::Init();
 	}
 
-	virtual ~setCommitAppendBenchmark() throw() {}
+	virtual ~setCommitappendBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -83,7 +83,7 @@ public:
 			Accumulator keys;
 			keys[0] = 1;
 
-			set_->InsertRaw(i, keys);
+			set_->insertRaw(i, keys);
 
 			if (c % size == 0)
 			{

@@ -35,9 +35,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
     static const Int Indexes                                                    = Base::Indexes;
     
 
-    void ConfigureRootMetadata(Metadata& metadata) const
+    void configureRootMetadata(Metadata& metadata) const
     {
-    	Base::ConfigureRootMetadata(metadata);
+    	Base::configureRootMetadata(metadata);
     	metadata.element_size() = 1;
     }
 
@@ -54,18 +54,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
     }
 
     Iterator operator[](BigInt pos) {
-    	return Seek(pos);
+    	return seek(pos);
     }
 
     template <typename T>
-    void Append(const T& value)
+    void append(const T& value)
     {
-    	Iterator i = me()->Seek(me()->Size());
-    	i.Insert(ArrayData(value));
+    	Iterator i = me()->seek(me()->Size());
+    	i.insert(ArrayData(value));
     }
 
-    Iterator Seek(BigInt pos);
-    BigInt Size();
+    Iterator seek(BigInt pos);
+    BigInt size();
 
 MEMORIA_CONTAINER_PART_END
 
@@ -73,13 +73,13 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::Seek(BigInt pos)
+typename M_TYPE::Iterator M_TYPE::seek(BigInt pos)
 {
 	return me()->find(pos, 0);
 }
 
 M_PARAMS
-BigInt M_TYPE::Size()
+BigInt M_TYPE::size()
 {
 	NodeBaseG node = me()->getRoot(Allocator::READ);
 

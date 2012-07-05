@@ -36,23 +36,23 @@ public:
         return model_name_counter_;
     }
 
-    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::GenerateDataEvents(handler);
+    	Base::generateDataEvents(handler);
 
     	handler->Value("MODEL_NAME_COUNTER", 		&model_name_counter_);
     }
 
-    void Serialize(SerializationData& buf) const
+    void serialize(SerializationData& buf) const
     {
-    	Base::Serialize(buf);
+    	Base::serialize(buf);
 
     	FieldFactory<BigInt>::serialize(buf, model_name_counter_);
     }
 
-    void Deserialize(DeserializationData& buf)
+    void deserialize(DeserializationData& buf)
     {
-    	Base::Deserialize(buf);
+    	Base::deserialize(buf);
 
     	FieldFactory<BigInt>::deserialize(buf, model_name_counter_);
     }

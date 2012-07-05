@@ -90,7 +90,7 @@ public:
 	PackedTree() {}
 
 
-	void GenerateDataEvents(IPageDataEventHandler* handler) const
+	void generateDataEvents(IPageDataEventHandler* handler) const
 	{
 		handler->StartGroup("PACKED_TREE");
 
@@ -140,7 +140,7 @@ public:
 		handler->EndGroup();
 	}
 
-	void Serialize(SerializationData& buf) const
+	void serialize(SerializationData& buf) const
 	{
 		FieldFactory<Int>::serialize(buf, size());
 		FieldFactory<Int>::serialize(buf, max_size_);
@@ -159,7 +159,7 @@ public:
 		}
 	}
 
-	void Deserialize(DeserializationData& buf)
+	void deserialize(DeserializationData& buf)
 	{
 		FieldFactory<Int>::deserialize(buf, size());
 		FieldFactory<Int>::deserialize(buf, max_size_);
@@ -536,7 +536,7 @@ public:
 		}
 	}
 
-	void InsertSpace(Int room_start, Int room_length)
+	void insertSpace(Int room_start, Int room_length)
 	{
 		Int value_size = getValueSize();
 
@@ -557,7 +557,7 @@ public:
 		size_ += room_length;
 	}
 
-	void RemoveSpace(Int room_start, Int room_length)
+	void removeSpace(Int room_start, Int room_length)
 	{
 		Int value_size = getValueSize();
 
@@ -601,11 +601,11 @@ public:
 	}
 
 
-	void Insert(const Accumulator& keys, const Value& val, Int at)
+	void insert(const Accumulator& keys, const Value& val, Int at)
 	{
 		if (at < size_ - 1)
 		{
-			InsertSpace(at, 1);
+			insertSpace(at, 1);
 		}
 
 		for (Int c = 0; c < Blocks; c++)

@@ -197,7 +197,7 @@ public:
 
 			check(allocator, MEMORIA_SOURCE);
 
-			AppendToSortedVector(pairs_sorted, pairs[c]);
+			appendToSortedVector(pairs_sorted, pairs[c]);
 
 			checkContainerData(map, pairs_sorted);
 
@@ -210,7 +210,7 @@ public:
 			MEMORIA_TEST_THROW_IF(pairs[c].value_, !=, value);
 		}
 		else {
-			bool result = map.Remove(pairs[c].key_);
+			bool result = map.remove(pairs[c].key_);
 
 			MEMORIA_TEST_THROW_IF(result, !=, true);
 

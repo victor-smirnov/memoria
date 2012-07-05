@@ -135,15 +135,15 @@ public:
 
 			auto iter = map.Create(key);
 
-			checkCtr(map, "Insertion failed 1", MEMORIA_SOURCE);
+			checkCtr(map, "insertion failed 1", MEMORIA_SOURCE);
 
 			ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
 
-			iter.Insert(data);
+			iter.insert(data);
 
-			AppendToSortedVector(pairs_, Pair(key, params->data_size_));
+			appendToSortedVector(pairs_, Pair(key, params->data_size_));
 
-			checkCtr(map, "Insertion failed 2", MEMORIA_SOURCE);
+			checkCtr(map, "insertion failed 2", MEMORIA_SOURCE);
 
 			MEMORIA_TEST_THROW_IF(iter.size(), 	!= , data.size());
 			MEMORIA_TEST_THROW_IF(iter.getKey(), 	!= , key);
@@ -166,11 +166,11 @@ public:
 			Int idx		= params->key_num_;
 			BigInt key  = params->key_;
 
-			bool removed 		= map.Remove(key);
+			bool removed 		= map.remove(key);
 
 			MEMORIA_TEST_THROW_IF(removed, != , true);
 
-			checkCtr(map, "Remove failed.", 	MEMORIA_SOURCE);
+			checkCtr(map, "remove failed.", 	MEMORIA_SOURCE);
 
 			pairs_.erase(pairs_.begin() + idx);
 
@@ -230,16 +230,16 @@ public:
 
 				ArrayData data = CreateBuffer(params->data_size_, c % 256);
 
-				iter.Insert(data);
+				iter.insert(data);
 
 				MEMORIA_TEST_THROW_IF(iter.size(), 	 != , data.size());
 				MEMORIA_TEST_THROW_IF(iter.getKey(), != , c + 1);
 
 				total_size += iter.size();
 
-				checkCtr(map, "Insertion failed.", 	MEMORIA_SOURCE);
+				checkCtr(map, "insertion failed.", 	MEMORIA_SOURCE);
 
-				MEMORIA_TEST_THROW_IF(map.array().Size(), != , total_size);
+				MEMORIA_TEST_THROW_IF(map.array().size(), != , total_size);
 
 				auto iter2 = map.find(iter.getKey());
 
@@ -292,18 +292,18 @@ public:
 				params->data_size_ = getRandom(task_params->max_block_size_);
 
 				ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
-				iter.Insert(data);
+				iter.insert(data);
 
-				checkCtr(map, "Insertion failed.", 	MEMORIA_SOURCE);
+				checkCtr(map, "insertion failed.", 	MEMORIA_SOURCE);
 
-				params->key_num_ = AppendToSortedVector(pairs_, Pair(key, params->data_size_));
+				params->key_num_ = appendToSortedVector(pairs_, Pair(key, params->data_size_));
 
 				MEMORIA_TEST_THROW_IF(iter.size(), 	!= , data.size());
 				MEMORIA_TEST_THROW_IF(iter.getKey(), 	!= , key);
 
 				total_size += iter.size();
 
-				MEMORIA_TEST_THROW_IF(map.array().Size(), != , total_size);
+				MEMORIA_TEST_THROW_IF(map.array().size(), != , total_size);
 
 				auto iter2 = map.find(iter.getKey());
 
@@ -317,7 +317,7 @@ public:
 
 				allocator.commit();
 
-				AppendToSortedVector(pairs_tmp, Pair(key, params->data_size_));
+				appendToSortedVector(pairs_tmp, Pair(key, params->data_size_));
 			}
 
 			MEMORIA_TEST_THROW_IF(map.Count(), != , (BigInt)pairs_.size());
@@ -363,9 +363,9 @@ public:
 				params->data_size_ = getRandom(task_params->max_block_size_);
 
 				ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
-				iter.Insert(data);
+				iter.insert(data);
 
-				AppendToSortedVector(pairs_, Pair(key, params->data_size_));
+				appendToSortedVector(pairs_, Pair(key, params->data_size_));
 			}
 
 			allocator.commit();
@@ -379,11 +379,11 @@ public:
 				params->key_num_ 	= idx;
 				params->key_		= pairs_[idx].key_;
 
-				bool removed = map.Remove(pairs_[idx].key_);
+				bool removed = map.remove(pairs_[idx].key_);
 
 				MEMORIA_TEST_THROW_IF(removed, != , true);
 
-				checkCtr(map, "Remove failed.", 	MEMORIA_SOURCE);
+				checkCtr(map, "remove failed.", 	MEMORIA_SOURCE);
 
 				pairs_.erase(pairs_.begin() + idx);
 

@@ -94,7 +94,7 @@ public:
 		return array;
 	}
 
-	virtual Iterator Seek(Ctr& array, BigInt pos)
+	virtual Iterator seek(Ctr& array, BigInt pos)
 	{
 		Iterator i = array.Begin();
 
@@ -111,11 +111,11 @@ public:
 		return i;
 	}
 
-	virtual void Insert(Iterator& iter, const ArrayData& data)
+	virtual void insert(Iterator& iter, const ArrayData& data)
 	{
 		BigInt size = iter.model().getSize();
 
-		iter.model().InsertBatch(iter, data);
+		iter.model().insertBatch(iter, data);
 
 		MEMORIA_TEST_THROW_IF(size, ==, iter.model().getSize());
 
@@ -138,12 +138,12 @@ public:
 		}
 	}
 
-	virtual void Remove(Iterator& iter, BigInt size)
+	virtual void remove(Iterator& iter, BigInt size)
 	{
 		auto iter2 = iter;
 		Skip(iter2, size);
 		Accumulator keys;
-		iter.model().RemoveEntries(iter, iter2, keys);
+		iter.model().removeEntries(iter, iter2, keys);
 	}
 
 	virtual void Skip(Iterator& iter, BigInt offset)

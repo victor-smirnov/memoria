@@ -37,7 +37,7 @@ public:
         virtual void setParent(Configurator* parent);
 
         virtual void AddProperty(StringRef name, StringRef value);
-        virtual void RemoveProperty(StringRef name);
+        virtual void removeProperty(StringRef name);
 
         virtual bool IsPropertyDefined(StringRef name) const;
         virtual String getProperty(StringRef name, bool resolve = true) const;
@@ -119,7 +119,7 @@ class StringList {
 public:
         StringList(StringRef list, StringRef separators = ",");
 
-        int Size() const;
+        int size() const;
         StringRef getItem(Int size) const;
 };
 

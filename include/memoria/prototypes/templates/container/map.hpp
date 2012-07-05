@@ -50,7 +50,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::MapName)
         MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED();
     }
     
-    bool RemoveByKey(Key key) {
+    bool removeByKey(Key key) {
         MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED();
     }
 

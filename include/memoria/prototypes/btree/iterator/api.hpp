@@ -116,7 +116,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
     MyType& operator<<(const Element& element)
     {
-    	me()->model().Insert(*me(), element);
+    	me()->model().insert(*me(), element);
     	return *me();
     }
 
@@ -125,10 +125,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	return *me();
     }
 
-    void Remove()
+    void remove()
     {
     	Accumulator keys;
-    	me()->model().RemoveEntry(*me(), keys);
+    	me()->model().removeEntry(*me(), keys);
     }
 
     Value getValue() const
@@ -143,7 +143,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     		me()->model().setLeafData(me()->leaf().node(), me()->key_idx(), data);
     	}
     	else {
-    		throw Exception(MEMORIA_SOURCE, "Insertion after the end of iterator");
+    		throw Exception(MEMORIA_SOURCE, "insertion after the end of iterator");
     	}
     }
 

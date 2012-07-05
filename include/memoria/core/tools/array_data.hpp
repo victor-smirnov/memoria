@@ -30,7 +30,7 @@ namespace vapi       {
 //	virtual void Ref() 			= 0;
 //	virtual SizeT Unref() 		= 0;
 //
-//	virtual void Remove()		= 0;
+//	virtual void remove()		= 0;
 //};
 //
 //class ScopeHandler {
@@ -45,7 +45,7 @@ namespace vapi       {
 //	{
 //		if (ref_->Unref() == 0)
 //		{
-//			ref_->Remove();
+//			ref_->remove();
 //		}
 //	}
 //};

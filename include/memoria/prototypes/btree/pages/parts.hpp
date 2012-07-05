@@ -68,7 +68,7 @@ public:
 
 
 
-    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
     	handler->StartGroup("ROOT_METADATA");
 
@@ -89,7 +89,7 @@ public:
         handler->EndGroup();
     }
 
-    void Serialize(SerializationData& buf) const
+    void serialize(SerializationData& buf) const
     {
     	FieldFactory<BigInt>::serialize(buf, model_name_);
     	FieldFactory<BigInt>::serialize(buf, key_count_);
@@ -101,7 +101,7 @@ public:
     	}
     }
 
-    void Deserialize(DeserializationData& buf)
+    void deserialize(DeserializationData& buf)
     {
     	FieldFactory<BigInt>::deserialize(buf, model_name_);
     	FieldFactory<BigInt>::deserialize(buf, key_count_);
@@ -151,24 +151,24 @@ public:
         return metadata_;
     }
 
-    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::GenerateDataEvents(handler);
-    	metadata_.GenerateDataEvents(handler);
+    	Base::generateDataEvents(handler);
+    	metadata_.generateDataEvents(handler);
     }
 
     template <template <typename> class FieldFactory>
-    void Serialize(SerializationData& buf) const
+    void serialize(SerializationData& buf) const
     {
-    	Base::template Serialize<FieldFactory>(buf);
+    	Base::template serialize<FieldFactory>(buf);
 
     	FieldFactory<Metadata>::serialize(buf, metadata_);
     }
 
     template <template <typename> class FieldFactory>
-    void Deserialize(DeserializationData& buf)
+    void deserialize(DeserializationData& buf)
     {
-    	Base::template Deserialize<FieldFactory>(buf);
+    	Base::template deserialize<FieldFactory>(buf);
 
     	FieldFactory<Metadata>::deserialize(buf, metadata_);
     }

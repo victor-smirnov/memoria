@@ -74,7 +74,7 @@ int main(int argc, const char** argv, const char** envp)
 
 		runner.RegisterTask(new SetRandomReadGraph());
 		runner.RegisterTask(new SetLinearReadGraph());
-		runner.RegisterTask(new SetRandomInsertGraph());
+		runner.RegisterTask(new SetRandominsertGraph());
 		runner.RegisterTask(new SetCommitRateGraph());
 
 
@@ -82,13 +82,13 @@ int main(int argc, const char** argv, const char** envp)
 
 		runner.RegisterTask(new VectorRandomSmallReadGraph());
 		runner.RegisterTask(new VectorReadGraph());
-		runner.RegisterTask(new VectorInsertGraph());
+		runner.RegisterTask(new VectorinsertGraph());
 
 
 		runner.RegisterTask(new VectorMapRandomGraph());
 		runner.RegisterTask(new VectorMapLinearGraph());
 		runner.RegisterTask(new VectorMapReadOverheadGraph());
-		runner.RegisterTask(new VectorMapBatchInsertGraph());
+		runner.RegisterTask(new VectorMapBatchinsertGraph());
 
 		runner.RegisterTask(new TestGraph());
 

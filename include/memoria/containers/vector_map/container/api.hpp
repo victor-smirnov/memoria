@@ -75,7 +75,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		bool	end			= is_iter.IsEnd();
 		bool 	exists 		= end ? false : (is_iter.getKey(0) == key);
 
-		auto ba_iter = me()->array().Seek(data_pos);
+		auto ba_iter = me()->array().seek(data_pos);
 
 		return Iterator(*me(), is_iter, ba_iter, exists);
 	}
@@ -101,7 +101,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 		keys[0] = 1;
 
-		me()->set().InsertEntry(is_iter, keys);
+		me()->set().insertEntry(is_iter, keys);
 
 		auto ba_iter = me()->array().End();
 		return Iterator(*me(), is_iter, ba_iter);
@@ -113,11 +113,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 		keys[0] = 1;
 
-		me()->set().InsertEntry(iter.is_iter(), keys);
+		me()->set().insertEntry(iter.is_iter(), keys);
 
 		if (!iter.ba_iter().IsEof())
 		{
-			iter.ba_iter().Skip(me()->array().Size() - iter.ba_iter().pos());
+			iter.ba_iter().Skip(me()->array().size() - iter.ba_iter().pos());
 		}
 	}
 
@@ -132,7 +132,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		bool	end			= is_iter.IsEnd();
 		bool 	exists 		= end ? false : (is_iter.getKey(0) == key);
 
-		auto ba_iter = me()->array().Seek(data_pos);
+		auto ba_iter = me()->array().seek(data_pos);
 
 		if (exists)
 		{
@@ -151,14 +151,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 				me()->set().UpdateUp(is_iter.path(), 0, is_iter.key_idx(), -keys);
 			}
 
-			me()->set().InsertEntry(is_iter, keys);
+			me()->set().insertEntry(is_iter, keys);
 
-//			auto ba_iter = me()->array().Seek(data_pos);
+//			auto ba_iter = me()->array().seek(data_pos);
 			return Iterator(*me(), is_iter, ba_iter, false);
 		}
 	}
 
-	bool Remove(BigInt key)
+	bool remove(BigInt key)
 	{
 		auto is_iter = me()->set().findLE(key, 0);
 
@@ -175,7 +175,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 			IdxsetAccumulator accum;
 
-			me()->set().RemoveEntry(is_iter, accum);
+			me()->set().removeEntry(is_iter, accum);
 
 			if (!is_iter.IsEnd())
 			{
@@ -183,8 +183,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 				is_iter.UpdateUp(accum);
 			}
 
-			auto 	ba_iter 	= me()->array().Seek(data_pos);
-			ba_iter.Remove(size);
+			auto 	ba_iter 	= me()->array().seek(data_pos);
+			ba_iter.remove(size);
 
 			return true;
 		}
@@ -193,17 +193,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		}
 	}
 
-	void RemoveByIndex(BigInt blob_index)
+	void removeByIndex(BigInt blob_index)
 	{
 		auto is_iter 	= me()->set().getByIndex(blob_index);
 
 		BigInt pos 		= is_iter.prefix(1);
 		BigInt size 	= is_iter.getRawKey(1);
 
-		auto ba_iter 	= me()->array().Seek(pos);
+		auto ba_iter 	= me()->array().seek(pos);
 
-		ba_iter.Remove(size);
-		me()->set().RemoveEntry(is_iter);
+		ba_iter.remove(size);
+		me()->set().removeEntry(is_iter);
 	}
 
 	BigInt Count()
@@ -213,7 +213,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	BigInt Size()
 	{
-		return me()->array().Size();
+		return me()->array().size();
 	}
 
 

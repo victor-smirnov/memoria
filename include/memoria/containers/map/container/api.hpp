@@ -75,20 +75,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	{
     		Accumulator keys;
     		keys[0] = key;
-    		me()->Insert(iter, keys);
+    		me()->insert(iter, keys);
     		iter.PrevKey();
     	}
 
     	return iter;
     }
 
-    bool Remove(Key key)
+    bool remove(Key key)
     {
     	Iterator iter = me()->findLE(key, 0);
 
     	if (key == iter.key(0))
     	{
-    		iter.Remove();
+    		iter.remove();
     		return true;
     	}
     	else {
@@ -96,10 +96,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	}
     }
 
-    void Remove(Iterator& from, Iterator& to)
+    void remove(Iterator& from, Iterator& to)
     {
     	Accumulator keys;
-    	me()->RemoveEntries(from, to, keys);
+    	me()->removeEntries(from, to, keys);
 
     	if (!to.IsEnd())
     	{
@@ -109,36 +109,36 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	to.cache().InitState();
     }
 
-    void Insert(Iterator& iter, const Element& element)
+    void insert(Iterator& iter, const Element& element)
     {
     	Accumulator delta = element.first - iter.prefixes();
 
     	Element e(delta, element.second);
 
-    	if (Base::Insert(iter, e))
+    	if (Base::insert(iter, e))
     	{
     		iter.UpdateUp(-delta);
     	}
     }
 
-    void InsertRaw(Iterator& iter, const Element& element)
+    void insertRaw(Iterator& iter, const Element& element)
     {
-    	Base::Insert(iter, element);
+    	Base::insert(iter, element);
     }
 
-    bool Contains(Key key)
+    bool contains(Key key)
     {
     	return !me()->find(key).IsEnd();
     }
 
-    bool Contains1(Key key)
+    bool contains1(Key key)
     {
     	return !me()->find1(key).IsEnd();
     }
 
-    bool RemoveEntry(Iterator& iter, Accumulator& keys)
+    bool removeEntry(Iterator& iter, Accumulator& keys)
     {
-    	bool result = Base::RemoveEntry(iter, keys);
+    	bool result = Base::removeEntry(iter, keys);
 
     	if (!iter.IsEnd())
     	{

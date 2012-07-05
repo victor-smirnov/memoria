@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class setInsertBenchmark: public SPBenchmarkTask {
+class setinsertBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -43,14 +43,14 @@ class setInsertBenchmark: public SPBenchmarkTask {
 
 public:
 
-	setInsertBenchmark(StringRef name):
+	setinsertBenchmark(StringRef name):
 		SPBenchmarkTask(name)
 	{
 		RootCtr::Init();
 		setCtr::Init();
 	}
 
-	virtual ~setInsertBenchmark() throw() {}
+	virtual ~setinsertBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -79,7 +79,7 @@ public:
 			Accumulator keys;
 			keys[0] = 1;
 
-			set_->InsertRaw(i, keys);
+			set_->insertRaw(i, keys);
 
 			keys[0] = 0;
 			i++;

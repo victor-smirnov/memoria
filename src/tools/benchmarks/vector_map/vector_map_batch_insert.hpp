@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
+class VectorMapBatchinsertBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -70,7 +70,7 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
 	Int 		data_size_;
 public:
 
-	VectorMapBatchInsertBenchmark(StringRef name, Int data_size):
+	VectorMapBatchinsertBenchmark(StringRef name, Int data_size):
 		SPBenchmarkTask(name), memory_size(128*1024*1024), data_size_(data_size)
 	{
 		RootCtr::Init();
@@ -79,7 +79,7 @@ public:
 		Add("memory_size", memory_size);
 	}
 
-	virtual ~VectorMapBatchInsertBenchmark() throw() {}
+	virtual ~VectorMapBatchinsertBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -114,9 +114,9 @@ public:
 		{
 			auto i = key_count == 0 ? map_->Begin() : map_->find(getRandom(key_count));
 
-			map_->set().InsertSubtree(i.is_iter(), provider);
+			map_->set().insertSubtree(i.is_iter(), provider);
 
-			i.ba_iter().Insert(data);
+			i.ba_iter().insert(data);
 
 			total += data.size();
 			key_count += size;

@@ -13,31 +13,31 @@
 
 namespace memoria {
 
-template <typename Item, typename List> struct AppendTool;
+template <typename Item, typename List> struct appendTool;
 
 template <typename Head, typename Tail, typename Item>
-struct AppendTool<Item, TL<Head, Tail> > {
-    typedef TL<Head, typename AppendTool<Item, Tail>::Result> Result;
+struct appendTool<Item, TL<Head, Tail> > {
+    typedef TL<Head, typename appendTool<Item, Tail>::Result> Result;
 };
 
 template<>
-struct AppendTool<NullType, NullType> {
+struct appendTool<NullType, NullType> {
     typedef NullType                                          Result;
 };
 
 template <typename Item>
-struct AppendTool<Item, NullType> {
+struct appendTool<Item, NullType> {
     typedef TL<Item, NullType>                                Result;
 };
 
 template <typename Head, typename Tail>
-struct AppendTool<TL<Head, Tail>, NullType> {
+struct appendTool<TL<Head, Tail>, NullType> {
     typedef TL<Head, Tail>                                    Result;
 };
 
 template <typename List, typename Item>
-struct AppendLists {
-	typedef typename AppendTool<Item, List>::Result			  Result;
+struct appendLists {
+	typedef typename appendTool<Item, List>::Result			  Result;
 };
 
 

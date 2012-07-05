@@ -67,10 +67,10 @@ public:
 
 		ArrayData data(size, malloc(size), true);
 
-		Iterator i = ctr_->Seek(0);
+		Iterator i = ctr_->seek(0);
 		for (Int c = 0; c < memory_size / size; c++)
 		{
-			i.Insert(data);
+			i.insert(data);
 		}
 
 		allocator_->commit();
@@ -93,7 +93,7 @@ public:
 
 		while (total < memory_size)
 		{
-			auto i = ctr_->Seek(getRandom(memory_size - size));
+			auto i = ctr_->seek(getRandom(memory_size - size));
 			total += i.Read(data);
 			operations++;
 		}

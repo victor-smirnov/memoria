@@ -87,9 +87,9 @@ protected:
     }
 public:
 
-    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::GenerateDataEvents(handler);
+    	Base::generateDataEvents(handler);
 
     	handler->Value("ROOT", &root_);
     	handler->Value("LEAF", &leaf_);
@@ -98,9 +98,9 @@ public:
     }
 
     template <template <typename> class FieldFactory>
-    void Serialize(SerializationData& buf) const
+    void serialize(SerializationData& buf) const
     {
-    	Base::template Serialize<FieldFactory>(buf);
+    	Base::template serialize<FieldFactory>(buf);
 
     	FieldFactory<Int>::serialize(buf, root_);
     	FieldFactory<Int>::serialize(buf, leaf_);
@@ -110,9 +110,9 @@ public:
     }
 
     template <template <typename> class FieldFactory>
-    void Deserialize(DeserializationData& buf)
+    void deserialize(DeserializationData& buf)
     {
-    	Base::template Deserialize<FieldFactory>(buf);
+    	Base::template deserialize<FieldFactory>(buf);
 
     	FieldFactory<Int>::deserialize(buf, root_);
     	FieldFactory<Int>::deserialize(buf, leaf_);
@@ -165,25 +165,25 @@ public:
         return level_;
     }
 
-    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::GenerateDataEvents(handler);
+    	Base::generateDataEvents(handler);
     	handler->Value("LEVEL", &level_);
     }
 
 
     template <template <typename> class FieldFactory>
-    void Serialize(SerializationData& buf) const
+    void serialize(SerializationData& buf) const
     {
-    	Base::template Serialize<FieldFactory>(buf);
+    	Base::template serialize<FieldFactory>(buf);
 
     	FieldFactory<Short>::serialize(buf, level_);
     }
 
     template <template <typename> class FieldFactory>
-    void Deserialize(DeserializationData& buf)
+    void deserialize(DeserializationData& buf)
     {
-    	Base::template Deserialize<FieldFactory>(buf);
+    	Base::template deserialize<FieldFactory>(buf);
 
     	FieldFactory<Short>::deserialize(buf, level_);
     }

@@ -65,7 +65,7 @@ public:
 		while (total < memory_size)
 		{
 			auto i = ctr_->Create();
-			i.Insert(data);
+			i.insert(data);
 			total += data.size();
 		}
 

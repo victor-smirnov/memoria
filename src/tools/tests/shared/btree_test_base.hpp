@@ -47,10 +47,10 @@ public:
 	virtual ~BTreeBatchTestBase() throw() {}
 
 	virtual ArrayData CreateBuffer(Ctr& array, Int size, UByte value) 	= 0;
-	virtual Iterator Seek(Ctr& array, BigInt pos) 						= 0;
-	virtual void Insert(Iterator& iter, const ArrayData& data) 			= 0;
+	virtual Iterator seek(Ctr& array, BigInt pos) 						= 0;
+	virtual void insert(Iterator& iter, const ArrayData& data) 			= 0;
 	virtual void Read(Iterator& iter, ArrayData& data) 					= 0;
-	virtual void Remove(Iterator& iter, BigInt size) 					= 0;
+	virtual void remove(Iterator& iter, BigInt size) 					= 0;
 	virtual void Skip(Iterator& iter, BigInt offset) 					= 0;
 	virtual BigInt getPosition(Iterator& iter)							= 0;
 	virtual BigInt getLocalPosition(Iterator& iter)						= 0;
@@ -82,7 +82,7 @@ public:
 			Build(out, allocator, dv, params);
 		}
 		else {
-			Remove(out, allocator, dv, params);
+			remove(out, allocator, dv, params);
 		}
 	}
 
@@ -139,7 +139,7 @@ public:
 		dv.setBranchingFactor(branching);
 
 		try {
-			out<<"Insert data"<<endl;
+			out<<"insert data"<<endl;
 			params.insert_ = true;
 
 			params.data_ = 1;
@@ -164,7 +164,7 @@ public:
 
 //			StoreAllocator(allocator, "vector.dump");
 
-			out<<"Remove data. Sumset contains "<<(getSize(dv)/1024)<<"K keys"<<endl;
+			out<<"remove data. Sumset contains "<<(getSize(dv)/1024)<<"K keys"<<endl;
 			params.insert_ = false;
 
 			for (Int c = 0; ; c++)
@@ -180,7 +180,7 @@ public:
 				params.block_size_  = 1 + getBIRandom(max_size);
 				params.page_step_ 	= getRandom(3);
 
-				if (!Remove(out, allocator, dv, &params))
+				if (!remove(out, allocator, dv, &params))
 				{
 					break;
 				}
@@ -215,23 +215,23 @@ public:
 
 		if (size == 0)
 		{
-			//Insert buffer into an empty array
-			auto iter = Seek(array, 0);
+			//insert buffer into an empty array
+			auto iter = seek(array, 0);
 			checkIterator(out, iter, MEMORIA_SOURCE);
 
-			Insert(iter, data);
+			insert(iter, data);
 			checkIterator(out, iter, MEMORIA_SOURCE);
 
-			check(allocator, "Insertion into an empty array failed. See the dump for details.", MEMORIA_SOURCE);
+			check(allocator, "insertion into an empty array failed. See the dump for details.", MEMORIA_SOURCE);
 
-			auto iter1 = Seek(array, 0);
+			auto iter1 = seek(array, 0);
 			checkBufferWritten(iter1, data, "Failed to read and compare buffer from array", MEMORIA_SOURCE);
 		}
 		else {
 			if (step == 0)
 			{
-				//Insert at the start of the array
-				auto iter = Seek(array, 0);
+				//insert at the start of the array
+				auto iter = seek(array, 0);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				BigInt len = getSize(array);
@@ -246,10 +246,10 @@ public:
 				Skip(iter, -len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Insert(iter, data);
+				insert(iter, data);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				check(allocator, "Insertion at the start of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
+				check(allocator, "insertion at the start of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
 				Skip(iter, -data.size()/getElementSize(array));
 				checkIterator(out, iter, MEMORIA_SOURCE);
@@ -262,10 +262,10 @@ public:
 			}
 			else if (step == 1)
 			{
-				//Insert at the end of the array
+				//insert at the end of the array
 				BigInt len = getSize(array);
 
-				auto iter = Seek(array, len);
+				auto iter = seek(array, len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				if (len > 100) len = 100;
@@ -277,10 +277,10 @@ public:
 				Read(iter, prefix);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Insert(iter, data);
+				insert(iter, data);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				check(allocator, "Insertion at the end of the array failed. See the dump for details.", MEMORIA_SOURCE);
+				check(allocator, "insertion at the end of the array failed. See the dump for details.", MEMORIA_SOURCE);
 
 				Skip(iter, -data.size()/getElementSize(array) - len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
@@ -292,13 +292,13 @@ public:
 				checkIterator(out, iter, MEMORIA_SOURCE);
 			}
 			else {
-				//Insert in the middle of the array
+				//insert in the middle of the array
 
 				if (params->pos_ == -1) params->pos_ = getRandomPosition(array);
 
 				Int pos = params->pos_;
 
-				auto iter = Seek(array, pos);
+				auto iter = seek(array, pos);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				if (params->page_step_ == -1) params->page_step_ = getRandom(2);
@@ -331,10 +331,10 @@ public:
 				Skip(iter, -postfix_len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Insert(iter, data);
+				insert(iter, data);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				check(allocator, "Insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
+				check(allocator, "insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
 				Skip(iter, - data.size()/getElementSize(array) - prefix_len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
@@ -351,7 +351,7 @@ public:
 		}
 	}
 
-	bool Remove(ostream& out, Allocator& allocator, Ctr& array, ReplayParamType* params)
+	bool remove(ostream& out, Allocator& allocator, Ctr& array, ReplayParamType* params)
 	{
 		Int step = params->step_;
 
@@ -362,10 +362,10 @@ public:
 			auto iter = array.Begin();
 			checkIterator(out, iter, MEMORIA_SOURCE);
 
-			Remove(iter, getSize(array));
+			remove(iter, getSize(array));
 			checkIterator(out, iter, MEMORIA_SOURCE);
 
-			check(allocator, "Remove ByteArray", MEMORIA_SOURCE);
+			check(allocator, "remove ByteArray", MEMORIA_SOURCE);
 			return getSize(array) > 0;
 		}
 		else {
@@ -373,8 +373,8 @@ public:
 
 			if (step == 0)
 			{
-				//Remove at the start of the array
-				auto iter = Seek(array, 0);
+				//remove at the start of the array
+				auto iter = seek(array, 0);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				BigInt len = getSize(array) - size;
@@ -390,7 +390,7 @@ public:
 				Skip(iter, -len - size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Remove(iter, size);
+				remove(iter, size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				check(allocator, "Removing region at the start of the array failed. See the dump for details.", MEMORIA_SOURCE);
@@ -400,8 +400,8 @@ public:
 			}
 			else if (step == 1)
 			{
-				//Remove at the end of the array
-				auto iter = Seek(array, getSize(array) - size);
+				//remove at the end of the array
+				auto iter = seek(array, getSize(array) - size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				BigInt len = getPosition(iter);
@@ -414,7 +414,7 @@ public:
 				Read(iter, prefix);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Remove(iter, size);
+				remove(iter, size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				check(allocator, "Removing region at the end of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
@@ -426,12 +426,12 @@ public:
 				checkIterator(out, iter, MEMORIA_SOURCE);
 			}
 			else {
-				//Remove at the middle of the array
+				//remove at the middle of the array
 				if (params->pos_ == -1) params->pos_ = getRandomPosition(array);
 
 				Int pos = params->pos_;
 
-				auto iter = Seek(array, pos);
+				auto iter = seek(array, pos);
 
 				if (params->page_step_ == -1) params->page_step_ = getRandom(2);
 
@@ -472,7 +472,7 @@ public:
 				Skip(iter, -postfix_len - size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Remove(iter, size);
+				remove(iter, size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				check(allocator, "Removing region at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);

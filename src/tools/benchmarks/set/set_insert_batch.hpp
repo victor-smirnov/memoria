@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class setInsertBatchBenchmark: public SPBenchmarkTask {
+class setinsertBatchBenchmark: public SPBenchmarkTask {
 public:
 
 	Int max_size;
@@ -65,7 +65,7 @@ public:
 
 public:
 
-	setInsertBatchBenchmark(StringRef name):
+	setinsertBatchBenchmark(StringRef name):
 		SPBenchmarkTask(name), max_size(16*1024*1024)
 	{
 		RootCtr::Init();
@@ -74,7 +74,7 @@ public:
 		Add("max_size", max_size);
 	}
 
-	virtual ~setInsertBatchBenchmark() throw() {}
+	virtual ~setinsertBatchBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -104,7 +104,7 @@ public:
 			Int pos = getRandom(map_size - 1) + 1;
 			auto i = map_size == 0? set_->End() : set_->find(pos);
 
-			set_->InsertSubtree(i, provider);
+			set_->insertSubtree(i, provider);
 
 			map_size += size;
 		}

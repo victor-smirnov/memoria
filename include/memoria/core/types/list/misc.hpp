@@ -36,26 +36,26 @@ template <
         typename T20    = NullType
 >
 class TLTool {
-    typedef typename AppendTool<T1, NullType>::Result    L1;
-    typedef typename AppendTool<T2, L1>::Result          L2;
-    typedef typename AppendTool<T3, L2>::Result          L3;
-    typedef typename AppendTool<T4, L3>::Result          L4;
-    typedef typename AppendTool<T5, L4>::Result          L5;
-    typedef typename AppendTool<T6, L5>::Result          L6;
-    typedef typename AppendTool<T7, L6>::Result          L7;
-    typedef typename AppendTool<T8, L7>::Result          L8;
-    typedef typename AppendTool<T9, L8>::Result          L9;
-    typedef typename AppendTool<T10, L9>::Result         L10;
-    typedef typename AppendTool<T11, L10>::Result        L11;
-    typedef typename AppendTool<T12, L11>::Result        L12;
-    typedef typename AppendTool<T13, L12>::Result        L13;
-    typedef typename AppendTool<T14, L13>::Result        L14;
-    typedef typename AppendTool<T15, L14>::Result        L15;
-    typedef typename AppendTool<T16, L15>::Result        L16;
-    typedef typename AppendTool<T17, L16>::Result        L17;
-    typedef typename AppendTool<T18, L17>::Result        L18;
-    typedef typename AppendTool<T19, L18>::Result        L19;
-    typedef typename AppendTool<T20, L19>::Result        L20;
+    typedef typename appendTool<T1, NullType>::Result    L1;
+    typedef typename appendTool<T2, L1>::Result          L2;
+    typedef typename appendTool<T3, L2>::Result          L3;
+    typedef typename appendTool<T4, L3>::Result          L4;
+    typedef typename appendTool<T5, L4>::Result          L5;
+    typedef typename appendTool<T6, L5>::Result          L6;
+    typedef typename appendTool<T7, L6>::Result          L7;
+    typedef typename appendTool<T8, L7>::Result          L8;
+    typedef typename appendTool<T9, L8>::Result          L9;
+    typedef typename appendTool<T10, L9>::Result         L10;
+    typedef typename appendTool<T11, L10>::Result        L11;
+    typedef typename appendTool<T12, L11>::Result        L12;
+    typedef typename appendTool<T13, L12>::Result        L13;
+    typedef typename appendTool<T14, L13>::Result        L14;
+    typedef typename appendTool<T15, L14>::Result        L15;
+    typedef typename appendTool<T16, L15>::Result        L16;
+    typedef typename appendTool<T17, L16>::Result        L17;
+    typedef typename appendTool<T18, L17>::Result        L18;
+    typedef typename appendTool<T19, L18>::Result        L19;
+    typedef typename appendTool<T20, L19>::Result        L20;
 
 public:
     typedef L20                                          List;

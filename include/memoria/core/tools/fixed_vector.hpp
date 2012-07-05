@@ -135,7 +135,7 @@ public:
 		return Size;
 	}
 
-	void Insert(Int idx, const Value& value)
+	void insert(Int idx, const Value& value)
 	{
 		for (Int c = size_; c > idx; c--)
 		{
@@ -146,12 +146,12 @@ public:
 		size_++;
 	}
 
-	void Append(const Value& value)
+	void append(const Value& value)
 	{
 		values_[size_++] = value;
 	}
 
-	void Remove(Int idx)
+	void remove(Int idx)
 	{
 		for (Int c = idx; c < size_; c++)
 		{
@@ -165,9 +165,9 @@ public:
 		functor(values_[size_]);
 	}
 
-	void RemoveLast()
+	void removeLast()
 	{
-		Remove(getSize() - 1);
+		remove(getSize() - 1);
 	}
 
 	void Clear()

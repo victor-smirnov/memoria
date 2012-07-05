@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class VectorMapRandomInsertBenchmark: public SPBenchmarkTask {
+class VectorMapRandominsertBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -37,7 +37,7 @@ class VectorMapRandomInsertBenchmark: public SPBenchmarkTask {
 	BigInt 		memory_size;
 public:
 
-	VectorMapRandomInsertBenchmark(StringRef name):
+	VectorMapRandominsertBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
@@ -46,7 +46,7 @@ public:
 		Add("memory_size", memory_size);
 	}
 
-	virtual ~VectorMapRandomInsertBenchmark() throw() {}
+	virtual ~VectorMapRandominsertBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -76,7 +76,7 @@ public:
 		while (total < memory_size)
 		{
 			auto i = map_->Create(getRandom());
-			i.Insert(data);
+			i.insert(data);
 
 			total += data.size();
 		}

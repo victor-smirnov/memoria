@@ -99,14 +99,14 @@ public:
 		return data;
 	}
 
-	virtual Iterator Seek(Ctr& array, BigInt pos)
+	virtual Iterator seek(Ctr& array, BigInt pos)
 	{
-		return array.Seek(pos);
+		return array.seek(pos);
 	}
 
-	virtual void Insert(Iterator& iter, const ArrayData& data)
+	virtual void insert(Iterator& iter, const ArrayData& data)
 	{
-		iter.Insert(data);
+		iter.insert(data);
 	}
 
 	virtual void Read(Iterator& iter, ArrayData& data)
@@ -114,8 +114,8 @@ public:
 		iter.Read(data);
 	}
 
-	virtual void Remove(Iterator& iter, BigInt size) {
-		iter.Remove(size);
+	virtual void remove(Iterator& iter, BigInt size) {
+		iter.remove(size);
 	}
 
 	virtual void Skip(Iterator& iter, BigInt offset)
@@ -135,7 +135,7 @@ public:
 
 	virtual BigInt getSize(Ctr& array)
 	{
-		return array.Size();
+		return array.size();
 	}
 
 	virtual void setElementSize(Ctr& array, ParamType* task_params)

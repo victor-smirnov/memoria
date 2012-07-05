@@ -45,7 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::root::CtrApiName)
     	me()->setRootMetadata(meta);
     }
 
-    void AddModelNameCounter(BigInt value)
+    void addModelNameCounter(BigInt value)
     {
     	Metadata meta = me()->getRootMetadata();
 

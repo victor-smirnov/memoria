@@ -33,7 +33,7 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
 
 	static const bool MapType                                               = MapTypes::Sum;
 
-	typedef typename AppendLists<
+	typedef typename appendLists<
 			typename Base::ContainerPartsList,
 			typename TLTool<
 				memoria::bstree::ToolsName,
@@ -41,7 +41,7 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
 			>::List
 	>::Result                                                               ContainerPartsList;
 
-	typedef typename AppendLists<
+	typedef typename appendLists<
 			typename Base::IteratorPartsList,
 			typename TLTool<
 				memoria::bstree::ItrApiName

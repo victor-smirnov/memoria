@@ -159,7 +159,7 @@ public:
     template <int Level> struct RootLeafTypes: NodeTypesBase {
     	typedef NodeKey 													Key;
     	typedef typename MyType::Value 										Value;
-    	typedef typename AppendTool<
+    	typedef typename appendTool<
     			RootPagePartsList,
     			typename ContainerTypes::LeafPagePartsList
     	>::Result 															List;
@@ -176,7 +176,7 @@ public:
     template <int Level> struct RootTypes: NodeTypesBase {
     	typedef NodeKey 													Key;
     	typedef ID 															Value;
-    	typedef typename AppendTool<
+    	typedef typename appendTool<
     			RootPagePartsList,
     			typename ContainerTypes::InternalPagePartsList
         >::Result 															List;

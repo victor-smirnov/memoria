@@ -47,7 +47,7 @@ template <
 >
 struct DynVectorContainerTypes: public Base {
 
-    typedef typename AppendLists<
+    typedef typename appendLists<
                     typename TLTool<
                         DataPage_
                     >::List,
@@ -72,7 +72,7 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
 
     static const bool MapType                                                   = MapTypes::Sum;
 
-    typedef typename AppendLists<
+    typedef typename appendLists<
     		        typename Base::ContainerPartsList,
                     typename TLTool<
                         memoria::dynvector::ToolsName,
@@ -84,7 +84,7 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
                     >::List
     >::Result                                                                   ContainerPartsList;
 
-    typedef typename AppendLists<
+    typedef typename appendLists<
     				typename Base::IteratorPartsList,
                     typename TLTool<
                        memoria::dynvector::IteratorAPIName

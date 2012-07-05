@@ -272,7 +272,7 @@ public:
 
     void GenerateLayoutEvents(IPageLayoutEventHandler* handler) const {}
 
-    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
     	IDValue id(&id_);
     	handler->Value("ID",				&id);
@@ -295,7 +295,7 @@ public:
     }
 
     template <template <typename> class FieldFactory>
-    void Serialize(SerializationData& buf) const
+    void serialize(SerializationData& buf) const
     {
     	FieldFactory<PageIdType>::serialize(buf, id());
     	FieldFactory<Int>::serialize(buf, crc());
@@ -306,7 +306,7 @@ public:
     }
 
     template <template <typename> class FieldFactory>
-    void Deserialize(DeserializationData& buf)
+    void deserialize(DeserializationData& buf)
     {
     	FieldFactory<PageIdType>::deserialize(buf, id());
     	FieldFactory<Int>::deserialize(buf, crc());

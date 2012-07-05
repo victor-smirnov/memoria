@@ -81,7 +81,7 @@ public:
     };
 
     /**
-     * Remove the data block between positions pointed with iterators.
+     * remove the data block between positions pointed with iterators.
      *
      * start - remove from (inclusive)
      *
@@ -89,8 +89,8 @@ public:
      *
      */
 
-    Accumulator RemoveDataBlock(Iterator& start, Iterator& stop);
-    Accumulator RemoveDataBlock(Iterator& start, BigInt size);
+    Accumulator removeDataBlock(Iterator& start, Iterator& stop);
+    Accumulator removeDataBlock(Iterator& start, BigInt size);
 
     bool MergeDataWithSiblings(Iterator& iter);
 
@@ -117,25 +117,25 @@ public:
 
 private:
 
-    Accumulator RemoveDataBlockFromStart(Iterator& stop);
-    Accumulator RemoveDataBlockAtEnd(Iterator& start);
-    Accumulator RemoveAllData(Iterator& start, Iterator& stop);
-    Accumulator RemoveDataBlockInMiddle(Iterator& start, Iterator& stop);
+    Accumulator removeDataBlockFromStart(Iterator& stop);
+    Accumulator removeDataBlockAtEnd(Iterator& start);
+    Accumulator removeAllData(Iterator& start, Iterator& stop);
+    Accumulator removeDataBlockInMiddle(Iterator& start, Iterator& stop);
 
 
-    Accumulator RemoveData(TreePath& path, Int start, Int length);
+    Accumulator removeData(TreePath& path, Int start, Int length);
 
     struct MergeType {
     	enum Enum {LEFT, RIGHT};
     };
 
-    void MergeDataPagesAndRemoveSource(
+    void MergeDataPagesAndremoveSource(
     		TreePath& target,
     		TreePath& source,
     		typename MergeType::Enum merge_type
     );
 
-    void MergeDataPagesAndRemoveSource(
+    void MergeDataPagesAndremoveSource(
     		TreePath& 		target,
     		DataPathItem&	target_data,
     		TreePath& 		source,
@@ -143,7 +143,7 @@ private:
     		typename MergeType::Enum merge_type
     );
 
-    void MergeDataPagesAndRemoveSource(
+    void MergeDataPagesAndremoveSource(
     		DataPathItem& 	target,
     		TreePath& 		source,
     		typename MergeType::Enum merge_type
@@ -157,12 +157,12 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, BigInt size)
+typename M_TYPE::Accumulator M_TYPE::removeDataBlock(Iterator& start, BigInt size)
 {
 	if (start.pos() + size < start.data()->size())
 	{
 		// Within the same data node
-		Accumulator result = RemoveData(start.path(), start.data_pos(), size);
+		Accumulator result = removeData(start.path(), start.data_pos(), size);
 
 		if (me()->MergeDataWithSiblings(start))
 		{
@@ -175,13 +175,13 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, BigInt siz
 	{
 		auto stop = start;
 		stop.Skip(size);
-		return me()->RemoveDataBlock(start, stop);
+		return me()->removeDataBlock(start, stop);
 	}
 }
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& stop)
+typename M_TYPE::Accumulator M_TYPE::removeDataBlock(Iterator& start, Iterator& stop)
 {
 	// FIXME: swap iterators if start is after stop
 
@@ -198,10 +198,10 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 		{
 			if (at_end)
 			{
-				return RemoveAllData(start, stop);
+				return removeAllData(start, stop);
 			}
 			else {
-				auto result = RemoveDataBlockFromStart(stop);
+				auto result = removeDataBlockFromStart(stop);
 
 				stop.cache().setup(0, 0);
 
@@ -213,7 +213,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 		{
 			if (at_end)
 			{
-				auto result = RemoveDataBlockAtEnd(start);
+				auto result = removeDataBlockAtEnd(start);
 
 				stop.cache().setup(start_pos - stop.data_pos(), 0);
 
@@ -222,7 +222,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 				return result;
 			}
 			else {
-				return RemoveDataBlockInMiddle(start, stop);
+				return removeDataBlockInMiddle(start, stop);
 			}
 		}
 
@@ -245,7 +245,7 @@ bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 		{
 			DataPathItem target_data_item(me()->getValuePage(iter.page(), iter.key_idx() + 1, Allocator::UPDATE), iter.key_idx() + 1);
 
-			MergeDataPagesAndRemoveSource(target_data_item, iter.path(), MergeType::RIGHT);
+			MergeDataPagesAndremoveSource(target_data_item, iter.path(), MergeType::RIGHT);
 
 			return true;
 		}
@@ -262,7 +262,7 @@ bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 		{
 			Int data_pos = iter.data_pos();
 
-			MergeDataPagesAndRemoveSource(next.path(), iter.path(), MergeType::RIGHT);
+			MergeDataPagesAndremoveSource(next.path(), iter.path(), MergeType::RIGHT);
 
 			iter = next;
 
@@ -290,7 +290,7 @@ bool M_TYPE::MergeDataWithLeftSibling(Iterator& iter)
 
 		Int source_node_size = iter.path().leaf()->children_count();
 
-		MergeDataPagesAndRemoveSource(prev.path(), iter.path(), MergeType::LEFT);
+		MergeDataPagesAndremoveSource(prev.path(), iter.path(), MergeType::LEFT);
 
 		if (source_node_size > 1 && me()->ShouldMergeNode(iter.path(), 0))
 		{
@@ -342,13 +342,13 @@ bool M_TYPE::MergeDataWithSiblings(Iterator& iter)
 /////  ------------------------------------------ PRIVATE FUNCTIONS -----------------------
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockFromStart(Iterator& stop)
+typename M_TYPE::Accumulator M_TYPE::removeDataBlockFromStart(Iterator& stop)
 {
 	Accumulator removed;
 
 	if (stop.data_pos() > 0)
 	{
-		removed 		+= RemoveData(stop.path(), 0, stop.data_pos());
+		removed 		+= removeData(stop.path(), 0, stop.data_pos());
 		stop.data_pos()	=  0;
 	}
 
@@ -365,13 +365,13 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockFromStart(Iterator& stop)
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockAtEnd(Iterator& start)
+typename M_TYPE::Accumulator M_TYPE::removeDataBlockAtEnd(Iterator& start)
 {
 	Accumulator removed;
 
 	if (start.data_pos() > 0)
 	{
-		removed 			+= RemoveData(start.path(), start.data_pos(), start.data()->size() - start.data_pos());
+		removed 			+= removeData(start.path(), start.data_pos(), start.data()->size() - start.data_pos());
 		start.data_pos()	=  start.data()->size();
 
 		//FIXME: optimize, don't jump to the next leaf
@@ -397,12 +397,12 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockAtEnd(Iterator& start)
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::RemoveAllData(Iterator& start, Iterator& stop)
+typename M_TYPE::Accumulator M_TYPE::removeAllData(Iterator& start, Iterator& stop)
 {
 	Accumulator removed;
 
 	BigInt count = 0;
-	me()->RemoveAllPages(start.path(), stop.path(), removed, count);
+	me()->removeAllPages(start.path(), stop.path(), removed, count);
 
 	start.path().data().node().Clear();
 	start.path().data().parent_idx() = 0;
@@ -416,14 +416,14 @@ typename M_TYPE::Accumulator M_TYPE::RemoveAllData(Iterator& start, Iterator& st
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, Iterator& stop)
+typename M_TYPE::Accumulator M_TYPE::removeDataBlockInMiddle(Iterator& start, Iterator& stop)
 {
 	BigInt start_pos = start.pos();
 
 	if (start.data()->id() == stop.data()->id())
 	{
 		// Within the same data node
-		Accumulator result = RemoveData(stop.path(), start.data_pos(), stop.data_pos() - start.data_pos());
+		Accumulator result = removeData(stop.path(), start.data_pos(), stop.data_pos() - start.data_pos());
 
 		stop.data_pos() = start.data_pos();
 
@@ -438,23 +438,23 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 		return result;
 	}
 	else {
-		// Removed region crosses data node boundary
+		// removed region crosses data node boundary
 
 		Accumulator removed;
 
 		if (start.data_pos() > 0)
 		{
-			// Remove a region in current data node starting from data_pos till the end
+			// remove a region in current data node starting from data_pos till the end
 			Int length 	=  start.data()->size() - start.data_pos();
 
-			removed     += RemoveData(start.path(), start.data_pos(), length);
+			removed     += removeData(start.path(), start.data_pos(), length);
 
 			start.NextKey();
 		}
 
 		if (stop.data_pos() > 0)
 		{
-			removed 		+= RemoveData(stop.path(), 0, stop.data_pos());
+			removed 		+= removeData(stop.path(), 0, stop.data_pos());
 			stop.data_pos()	=  0;
 		}
 
@@ -475,7 +475,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::RemoveData(TreePath& path, Int start, Int length)
+typename M_TYPE::Accumulator M_TYPE::removeData(TreePath& path, Int start, Int length)
 {
 	DataPageG& data = path.data().node();
 
@@ -501,7 +501,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveData(TreePath& path, Int start, Int l
 
 
 M_PARAMS
-void M_TYPE::MergeDataPagesAndRemoveSource(
+void M_TYPE::MergeDataPagesAndremoveSource(
 		TreePath& 		target,
 		DataPathItem&	target_data_item,
 		TreePath& 		source,
@@ -559,13 +559,13 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 
 
 M_PARAMS
-void M_TYPE::MergeDataPagesAndRemoveSource(
+void M_TYPE::MergeDataPagesAndremoveSource(
 		TreePath& target,
 		TreePath& source,
 		typename MergeType::Enum merge_type
 )
 {
-	MergeDataPagesAndRemoveSource(
+	MergeDataPagesAndremoveSource(
 			target,
 			target.data(),
 			source,
@@ -576,18 +576,18 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 	Int source_parent_idx = source.data().parent_idx();
 
 	Accumulator keys;
-	me()->RemoveEntry(source, source_parent_idx, keys, false);
+	me()->removeEntry(source, source_parent_idx, keys, false);
 }
 
 
 M_PARAMS
-void M_TYPE::MergeDataPagesAndRemoveSource(
+void M_TYPE::MergeDataPagesAndremoveSource(
 		DataPathItem& 	target_data,
 		TreePath& 		source,
 		typename MergeType::Enum merge_type
 )
 {
-	MergeDataPagesAndRemoveSource(
+	MergeDataPagesAndremoveSource(
 			source,
 			target_data,
 			source,
@@ -598,7 +598,7 @@ void M_TYPE::MergeDataPagesAndRemoveSource(
 	Int source_parent_idx = source.data().parent_idx();
 
 	Accumulator keys;
-	me()->RemoveEntry(source, source_parent_idx, keys, false);
+	me()->removeEntry(source, source_parent_idx, keys, false);
 
 	source.data().parent_idx() 	= source_parent_idx;
 	source.data().node() 		= target_data.node();

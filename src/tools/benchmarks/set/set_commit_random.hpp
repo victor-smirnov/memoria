@@ -85,7 +85,7 @@ public:
 			Accumulator keys;
 			keys[0] = 1;
 
-			set_->InsertRaw(i, keys);
+			set_->insertRaw(i, keys);
 
 			keys[0] = 0;
 			i++;

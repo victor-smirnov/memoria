@@ -118,7 +118,7 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 {
 	IDSelector selector;
 
-	group->getPageOperations()->GenerateDataEvents(page->Ptr(), DataEventsParams(), &selector);
+	group->getPageOperations()->generateDataEvents(page->Ptr(), DataEventsParams(), &selector);
 
 	for (const NamedIDValue& entry: selector.values())
 	{

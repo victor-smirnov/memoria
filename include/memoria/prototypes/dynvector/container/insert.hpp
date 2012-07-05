@@ -64,8 +64,8 @@ static const Int Indexes                                                    = Ty
 typedef Accumulators<Key, Indexes>											Accumulator;
 
 
-void InsertData(Iterator& iter, const IData& data);
-void InsertData(Iterator& iter, const IData& data, SizeT start, SizeT len);
+void insertData(Iterator& iter, const IData& data);
+void insertData(Iterator& iter, const IData& data, SizeT start, SizeT len);
 
 BigInt UpdateData(Iterator& iter, const IData& data, BigInt start, BigInt len);
 
@@ -82,7 +82,7 @@ Int getMaxDataSize() const
 
 private:
 
-void InsertIntoDataPage(Iterator& iter, const IData& buffer, Int start, Int length);
+void insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, Int length);
 
 class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
 
@@ -158,14 +158,14 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-void M_TYPE::InsertData(Iterator& iter, const IData& data, SizeT start, SizeT length)
+void M_TYPE::insertData(Iterator& iter, const IData& data, SizeT start, SizeT length)
 {
-	me()->InsertData(iter, getDataProxy(data, start, length));
+	me()->insertData(iter, getDataProxy(data, start, length));
 }
 
 
 M_PARAMS
-void M_TYPE::InsertData(Iterator& iter, const IData& buffer)
+void M_TYPE::insertData(Iterator& iter, const IData& buffer)
 {
 	BigInt 		max_datapage_size 	= me()->getMaxDataSize();
 
@@ -178,7 +178,7 @@ void M_TYPE::InsertData(Iterator& iter, const IData& buffer)
 	if (usage + (BigInt)buffer.getSize() <= max_datapage_size)
 	{
 		// The target datapage has enough free space to insert into
-		InsertIntoDataPage(iter, buffer, 0, buffer.getSize());
+		insertIntoDataPage(iter, buffer, 0, buffer.getSize());
 		data_idx += buffer.getSize();
 	}
 	else if (!iter.IsEof())
@@ -279,7 +279,7 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 //// ====================================================== PRIVATE API ============================================================= ////
 
 M_PARAMS
-void M_TYPE::InsertIntoDataPage(Iterator& iter, const IData& buffer, Int start, Int length)
+void M_TYPE::insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, Int length)
 {
 	DataPageG& data	= iter.path().data().node();
 	data.update();
@@ -330,7 +330,7 @@ void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 
 		start = length > start_page_capacity ? start_page_capacity : length;
 
-		InsertIntoDataPage(iter, buffer, 0, start);
+		insertIntoDataPage(iter, buffer, 0, start);
 
 		iter.NextKey();
 	}
@@ -348,7 +348,7 @@ void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 	if (key_count > 0)
 	{
 		ArrayDataSubtreeProvider provider(*me(), key_count, buffer, start, length);
-		me()->InsertSubtree(iter, provider);
+		me()->insertSubtree(iter, provider);
 	}
 
 	if (end > 0)
@@ -359,19 +359,19 @@ void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 
 			if (end <= end_page_capacity)
 			{
-				InsertIntoDataPage(iter, buffer, start + length, end);
+				insertIntoDataPage(iter, buffer, start + length, end);
 				iter.data_pos() = end;
 			}
 			else {
 				ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
-				me()->InsertSubtree(iter, provider);
+				me()->insertSubtree(iter, provider);
 				iter.data_pos() = 0;
 			}
 		}
 		else
 		{
 			ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
-			me()->InsertSubtree(iter, provider);
+			me()->insertSubtree(iter, provider);
 
 			iter.PrevKey();
 			iter.data_pos() = iter.data()->size();

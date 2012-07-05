@@ -22,7 +22,7 @@ using namespace memoria::tools::types::algo;
 using namespace memoria::tools::types::typelist;
 
 template <typename Item, typename List>
-class AddIfNotContains {
+class AddIfNotcontains {
     MEMORIA_STATIC_ASSERT(IsList<List>::Value);
 
 public:
@@ -77,14 +77,14 @@ template <Int Name, CompareOps Op, typename Type, Type ExValue, typename List>
 class NameListBuilder<ValueOp<Name, Op, Type, ExValue>, List> {
     MEMORIA_STATIC_ASSERT(IsList<List>::Value);
 public:
-    typedef typename AddIfNotContains<Name, List>::Result                       Result;
+    typedef typename AddIfNotcontains<Name, List>::Result                       Result;
 };
 
 template <Int Name, typename Type, typename List>
 class NameListBuilder<TypeOp<Name, Type>, List> {
     MEMORIA_STATIC_ASSERT(IsList<List>::Value);
 public:
-    typedef typename AddIfNotContains<Name, List>::Result                       Result;
+    typedef typename AddIfNotcontains<Name, List>::Result                       Result;
 };
 
 

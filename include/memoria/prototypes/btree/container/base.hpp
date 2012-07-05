@@ -336,7 +336,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	{
     		Metadata meta = MyType::getCtrRootMetadata(node);
 
-    		me()->ConfigureRootMetadata(meta);
+    		me()->configureRootMetadata(meta);
 
     		MyType::setCtrRootMetadata(node, meta);
     	}
@@ -362,7 +362,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     }
 
 
-    void ConfigureRootMetadata(Metadata& metadata) const
+    void configureRootMetadata(Metadata& metadata) const
     {
     	metadata.model_name() = me()->name();
     }

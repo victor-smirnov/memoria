@@ -81,7 +81,7 @@ public:
 				Accumulator keys;
 				keys[0] = key(c);
 
-				set_->Insert(i, keys);
+				set_->insert(i, keys);
 
 				i++;
 			}

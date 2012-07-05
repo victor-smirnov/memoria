@@ -95,24 +95,24 @@ public:
         return PageData::max_size();
     }
 
-    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::GenerateDataEvents(handler);
-    	data_.GenerateDataEvents(handler);
+    	Base::generateDataEvents(handler);
+    	data_.generateDataEvents(handler);
     }
 
     template <template <typename> class FieldFactory>
-    void Serialize(SerializationData& buf) const
+    void serialize(SerializationData& buf) const
     {
-    	Base::template Serialize<FieldFactory>(buf);
+    	Base::template serialize<FieldFactory>(buf);
 
     	FieldFactory<PageData>::serialize(buf, data_);
     }
 
     template <template <typename> class FieldFactory>
-    void Deserialize(DeserializationData& buf)
+    void deserialize(DeserializationData& buf)
     {
-    	Base::template Deserialize<FieldFactory>(buf);
+    	Base::template deserialize<FieldFactory>(buf);
 
     	FieldFactory<PageData>::deserialize(buf, data_);
     }
@@ -120,26 +120,26 @@ public:
 
     class PageOperations: public IPageOperations
     {
-    	virtual Int Serialize(const void* page, void* buf) const
+    	virtual Int serialize(const void* page, void* buf) const
     	{
     		const Me* me = T2T<const Me*>(page);
 
     		SerializationData data;
     		data.buf = T2T<char*>(buf);
 
-    		me->template Serialize<FieldFactory>(data);
+    		me->template serialize<FieldFactory>(data);
 
     		return data.total;
     	}
 
-    	virtual void Deserialize(const void* buf, Int buf_size, void* page) const
+    	virtual void deserialize(const void* buf, Int buf_size, void* page) const
     	{
     		Me* me = T2T<Me*>(page);
 
     		DeserializationData data;
     		data.buf = T2T<const char*>(buf);
 
-    		me->template Deserialize<FieldFactory>(data);
+    		me->template deserialize<FieldFactory>(data);
     	}
 
     	virtual Int getPageSize(const void *page) const	{
@@ -147,11 +147,11 @@ public:
     		return me->data_size();
     	}
 
-    	virtual void GenerateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const
+    	virtual void generateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const
     	{
     		const Me* me = T2T<const Me*>(page);
     		handler->StartPage("DATA_PAGE");
-    		me->GenerateDataEvents(handler);
+    		me->generateDataEvents(handler);
     		handler->StartPage("DATA_PAGE");
     	}
 

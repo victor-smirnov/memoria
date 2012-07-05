@@ -65,30 +65,30 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     }
 
     
-    void Insert(const IData& data, BigInt start, BigInt length);
-    void Insert(const IData& data);
+    void insert(const IData& data, BigInt start, BigInt length);
+    void insert(const IData& data);
 
-    void Insert(const ArrayData& data) {
-    	Insert((IData&)data);
+    void insert(const ArrayData& data) {
+    	insert((IData&)data);
     }
 
     template <typename T>
-    void Insert(const T& value)
+    void insert(const T& value)
     {
-    	me()->Insert(ArrayData(value));
+    	me()->insert(ArrayData(value));
     }
 
     void Update(const IData& data, BigInt start, BigInt length);
     void Update(const IData& data);
 
-    void Remove(BigInt length)
+    void remove(BigInt length)
     {
-    	me()->model().RemoveDataBlock(*me(), length);
+    	me()->model().removeDataBlock(*me(), length);
     }
 
-    void Remove(MyType& to)
+    void remove(MyType& to)
     {
-    	me()->model().RemoveDataBlock(*me(), to);
+    	me()->model().removeDataBlock(*me(), to);
     }
 
     BigInt Skip(BigInt distance);
@@ -180,15 +180,15 @@ MEMORIA_ITERATOR_PART_END
 
 
 M_PARAMS
-void M_TYPE::Insert(const IData& data, BigInt start, BigInt length)
+void M_TYPE::insert(const IData& data, BigInt start, BigInt length)
 {
-	me()->model().InsertData(*me(), data, start, length);
+	me()->model().insertData(*me(), data, start, length);
 }
 
 M_PARAMS
-void M_TYPE::Insert(const IData& data)
+void M_TYPE::insert(const IData& data)
 {
-	me()->model().InsertData(*me(), data);
+	me()->model().insertData(*me(), data);
 }
 
 

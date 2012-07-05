@@ -59,11 +59,11 @@ struct LayoutEventsParams {};
 
 struct IPageOperations
 {
-	virtual Int Serialize(const void* page, void* buf) const						= 0;
-	virtual void Deserialize(const void* buf, Int buf_size, void* page) const		= 0;
+	virtual Int serialize(const void* page, void* buf) const						= 0;
+	virtual void deserialize(const void* buf, Int buf_size, void* page) const		= 0;
 	virtual Int getPageSize(const void *page) const									= 0;
 
-	virtual void GenerateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const 		= 0;
+	virtual void generateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const 		= 0;
 	virtual void GenerateLayoutEvents(const void* page, const LayoutEventsParams& params, IPageLayoutEventHandler* handler) const 	= 0;
 };
 

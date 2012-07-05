@@ -41,9 +41,9 @@ typedef typename ContainerType::Key							Key;
 
 
 
-void Insert(const ArrayData& data)
+void insert(const ArrayData& data)
 {
-	me()->ba_iter().Insert(data);
+	me()->ba_iter().insert(data);
 
 	IdxsetAccumulator keys;
 
@@ -63,12 +63,12 @@ void Update(const ArrayData& data)
 		if (difference < 0)
 		{
 			me()->ba_iter().Update(data);
-			me()->ba_iter().Remove(difference);
+			me()->ba_iter().remove(difference);
 		}
 		else if (difference > 0)
 		{
 			me()->ba_iter().Update(data, 0, sz);
-			me()->ba_iter().Insert(data, sz, difference);
+			me()->ba_iter().insert(data, sz, difference);
 		}
 		else {
 			me()->ba_iter().Update(data);
@@ -82,7 +82,7 @@ void Update(const ArrayData& data)
 		}
 	}
 	else {
-		me()->Insert(data);
+		me()->insert(data);
 	}
 
 	me()->ba_iter().Skip(-data.size());
@@ -140,11 +140,11 @@ BigInt Skip(BigInt length)
 	return me()->ba_iter().Skip(length);
 }
 
-void Remove()
+void remove()
 {
 	BigInt data_size = me()->size();
-	me()->model().set().RemoveEntry(me()->is_iter());
-	me()->ba_iter().Remove(data_size);
+	me()->model().set().removeEntry(me()->is_iter());
+	me()->ba_iter().remove(data_size);
 }
 
 BigInt size() const

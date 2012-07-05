@@ -66,7 +66,7 @@ public:
 
 		ctr_->setElementSize(8);
 
-		Iterator i = ctr_->Seek(0);
+		Iterator i = ctr_->seek(0);
 
 		for (Int c = 0; c < size/128; c++)
 		{
@@ -76,7 +76,7 @@ public:
 				array[d] = getRandom(10000);
 			}
 
-			i.Insert(ArrayData(sizeof(array), array));
+			i.insert(ArrayData(sizeof(array), array));
 		}
 
 		rd_array_ = new Int[params.operations()];
@@ -102,7 +102,7 @@ public:
 
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			total += ctr_->Seek(rd_array_[c]).Read(data);
+			total += ctr_->seek(rd_array_[c]).Read(data);
 		}
 
 		params.memory() = total;

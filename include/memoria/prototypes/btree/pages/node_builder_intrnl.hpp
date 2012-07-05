@@ -39,7 +39,7 @@ class AddTypesQuadToList <
     static const BigInt Level = ANY_LEVEL;
 
 public:
-    typedef typename AppendTool<
+    typedef typename appendTool<
                         typename TLTool<
                         	NodePage<typename Types::template LeafTypes<Level> >,
                         	NodePage<typename Types::template RootLeafTypes<Level> >,
@@ -66,7 +66,7 @@ class AddTypesQuadToList<
 
 
 public:
-    typedef typename AppendTool<
+    typedef typename appendTool<
                         typename TLTool<
                         	NodePage<typename Types::template LeafTypes<Level> >,
                         	NodePage<typename Types::template RootLeafTypes<Level> >
@@ -84,7 +84,7 @@ template <
 class AddTypesQuadToList {
 
 public:
-    typedef typename AppendTool<
+    typedef typename appendTool<
                         typename TLTool<
                         	NodePage<typename Types::template RootTypes<Level> >,
                         	NodePage<typename Types::template InternalTypes<Level> >

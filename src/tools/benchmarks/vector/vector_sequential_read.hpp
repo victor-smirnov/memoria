@@ -67,10 +67,10 @@ public:
 
 		ArrayData data(size, malloc(size), true);
 
-		Iterator i = ctr_->Seek(0);
+		Iterator i = ctr_->seek(0);
 		for (Int c = 0; c < memory_size / size; c++)
 		{
-			i.Insert(data);
+			i.insert(data);
 		}
 
 		allocator_->commit();
@@ -88,7 +88,7 @@ public:
 
 		ArrayData data(size, malloc(size), true);
 
-		for (Iterator i = ctr_->Seek(0); !i.IsEof();)
+		for (Iterator i = ctr_->seek(0); !i.IsEof();)
 		{
 			i.Read(data);
 		}

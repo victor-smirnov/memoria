@@ -86,7 +86,7 @@ public:
 				Accumulator keys;
 				keys[0] = key(c);
 
-				set_->Insert(i, keys);
+				set_->insert(i, keys);
 
 				i++;
 			}
@@ -113,7 +113,7 @@ public:
 	{
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			if (!set_->Contains(rd_array_[c]))
+			if (!set_->contains(rd_array_[c]))
 			{
 				cout<<"MISS!!!"<<endl; // this should't happen
 			}

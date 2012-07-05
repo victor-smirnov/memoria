@@ -125,7 +125,7 @@ void StoreVector(const vector<T, A>& vec, StringRef file_name)
 
 
 template <typename T, typename A>
-size_t AppendToSortedVector(vector<T, A>& vec, const T& value)
+size_t appendToSortedVector(vector<T, A>& vec, const T& value)
 {
 	size_t cnt = 0;
 	for (auto i = vec.begin(); i != vec.end(); i++, cnt++)

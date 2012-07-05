@@ -19,7 +19,7 @@ using namespace std;
 
 
 
-class SetAppendBatchBenchmark: public SPBenchmarkTask {
+class SetappendBatchBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -66,7 +66,7 @@ class SetAppendBatchBenchmark: public SPBenchmarkTask {
 
 public:
 
-	SetAppendBatchBenchmark(StringRef name):
+	SetappendBatchBenchmark(StringRef name):
 		SPBenchmarkTask(name), max_size(16*1024*1024)
 	{
 		RootCtr::Init();
@@ -75,7 +75,7 @@ public:
 		Add("max_size", max_size);
 	}
 
-	virtual ~SetAppendBatchBenchmark() throw() {}
+	virtual ~SetappendBatchBenchmark() throw() {}
 
 	Key key(Int c) const
 	{
@@ -110,7 +110,7 @@ public:
 
 		for (Int c = 0; c < params.operations() / size; c++)
 		{
-			set_->InsertSubtree(i, provider);
+			set_->insertSubtree(i, provider);
 
 			map_size += size;
 		}

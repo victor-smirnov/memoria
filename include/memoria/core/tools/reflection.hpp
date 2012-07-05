@@ -28,12 +28,12 @@ struct FieldFactory {
 
     static void serialize(SerializationData& data, const Type& field)
     {
-    	field.Serialize(data);
+    	field.serialize(data);
     }
 
     static void deserialize(DeserializationData& data, Type& field)
     {
-    	field.Deserialize(data);
+    	field.deserialize(data);
     }
 };
 
@@ -44,12 +44,12 @@ template <typename Type>
 struct FieldFactory<BitField<Type> > {
     static void serialize(SerializationData& data, const Type& field)
     {
-    	field.template Serialize<FieldFactory>(data);
+    	field.template serialize<FieldFactory>(data);
     }
 
     static void deserialize(DeserializationData& data, Type& field)
     {
-    	field.template Deserialize<FieldFactory>(data);
+    	field.template deserialize<FieldFactory>(data);
     }
 };
 

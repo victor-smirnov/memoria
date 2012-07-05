@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class VectorRandomInsertBenchmark: public SPBenchmarkTask {
+class VectorRandominsertBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -41,7 +41,7 @@ class VectorRandomInsertBenchmark: public SPBenchmarkTask {
 
 public:
 
-	VectorRandomInsertBenchmark(StringRef name):
+	VectorRandominsertBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
@@ -50,7 +50,7 @@ public:
 		Add("memory_size", memory_size);
 	}
 
-	virtual ~VectorRandomInsertBenchmark() throw() {}
+	virtual ~VectorRandominsertBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -79,8 +79,8 @@ public:
 		while (total < memory_size)
 		{
 			BigInt idx = getRandom(total);
-			Iterator i = ctr_->Seek(idx);
-			i.Insert(data);
+			Iterator i = ctr_->seek(idx);
+			i.insert(data);
 			total += data.size();
 
 			cnt++;

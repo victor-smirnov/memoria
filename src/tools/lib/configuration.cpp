@@ -41,7 +41,7 @@ StringList::StringList(StringRef list, StringRef separators)
         }
 }
 
-int StringList::Size() const
+int StringList::size() const
 {
         return list_.size();
 }
@@ -74,7 +74,7 @@ void Configurator::AddProperty(StringRef name, StringRef value)
         properties_[name] = value;
 }
 
-void Configurator::RemoveProperty(StringRef name) {
+void Configurator::removeProperty(StringRef name) {
         properties_.erase(name);
 }
 
@@ -373,7 +373,7 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
         {
                 PathList list(platform->getProperty("config.search.path"));
 
-                for (Int c = 0; c < list.Size(); c++)
+                for (Int c = 0; c < list.size(); c++)
                 {
                         try {
                                 String dirPath = list.getItem(c);

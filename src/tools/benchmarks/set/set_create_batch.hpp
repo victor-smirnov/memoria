@@ -96,7 +96,7 @@ public:
 
 		SubtreeProvider provider(set_, size);
 
-		set_->InsertSubtree(i, provider);
+		set_->insertSubtree(i, provider);
 
 		allocator_->commit();
 	}

@@ -230,7 +230,7 @@ public:
 
     void ConfigureNewCtrShared(CtrShared* shared, PageG root) const {}
 
-    void RemoveCtrShared(CtrShared* shared)
+    void removeCtrShared(CtrShared* shared)
     {
     	shared->~CtrShared();
     	me()->allocator().freeMemory(shared);
@@ -601,7 +601,7 @@ private:
     		if (shared->unref() == 0)
     		{
     			allocator_->unregisterCtrShared(shared);
-    			me()->RemoveCtrShared(shared);
+    			me()->removeCtrShared(shared);
 
     			Base::setCtrShared(NULL);
     		}

@@ -69,7 +69,7 @@ public:
     	}
     }
 
-    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
     	handler->StartGroup("DATA");
 
@@ -80,14 +80,14 @@ public:
     }
 
     //template <template <typename> class FieldFactory>
-    void Serialize(SerializationData& buf) const
+    void serialize(SerializationData& buf) const
     {
     	FieldFactory<Int>::serialize(buf, size_);
     	FieldFactory<Byte>::serialize(buf, value_[0], sizeof(value_));
     }
 
     //template <template <typename> class FieldFactory>
-    void Deserialize(DeserializationData& buf)
+    void deserialize(DeserializationData& buf)
     {
     	FieldFactory<Int>::deserialize(buf, size_);
     	FieldFactory<Byte>::deserialize(buf, value_[0], sizeof(value_));

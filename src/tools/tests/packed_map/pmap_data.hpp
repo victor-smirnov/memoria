@@ -124,7 +124,7 @@ public:
 		}
 	}
 
-	void CompareAfterInsert(Map* src, Map* dst, Int room_start, Int room_length)
+	void CompareAfterinsert(Map* src, Map* dst, Int room_start, Int room_length)
 	{
 		MEMORIA_TEST_THROW_IF(src->size(), 			!=, dst->size() - room_length);
 		MEMORIA_TEST_THROW_IF(src->max_size(), 		!=, dst->max_size());
@@ -288,11 +288,11 @@ public:
 		Int room_start 	= map2->size() / 2;
 		Int room_length = 10;
 
-		map2->InsertSpace(room_start, room_length);
+		map2->insertSpace(room_start, room_length);
 
-		CompareAfterInsert(map1, map2, room_start, room_length);
+		CompareAfterinsert(map1, map2, room_start, room_length);
 
-		map2->RemoveSpace(room_start + room_length, room_length);
+		map2->removeSpace(room_start + room_length, room_length);
 
 		CompareEqual(map1, map2);
 

@@ -529,7 +529,7 @@ public:
 				mem[c] = 0;
 			}
 
-			pageMetadata->getPageOperations()->Deserialize(page, size, mem);
+			pageMetadata->getPageOperations()->deserialize(page, size, mem);
 
 			page = T2T<Page*>(mem);
 
@@ -712,7 +712,7 @@ private:
 
 			const IPageOperations* operations = pageMetadata->getPageOperations();
 
-			operations->Serialize(page, buf);
+			operations->serialize(page, buf);
 
 			Int ptr = operations->getPageSize(page);
 
@@ -805,7 +805,7 @@ private:
 
 	void remove_by_key(BigInt name)
 	{
-		root_map_->Remove(name);
+		root_map_->remove(name);
 	}
 
 	void set_value_for_key(BigInt name, const ID& page_id)

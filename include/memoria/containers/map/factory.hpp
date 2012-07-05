@@ -27,14 +27,14 @@ struct BTreeTypes<Profile, memoria::Map<Indexes_> >: public BTreeTypes<Profile, 
 
 	static const Int Indexes                                                = Indexes_;
 
-	typedef typename AppendLists<
+	typedef typename appendLists<
 			typename Base::ContainerPartsList,
 			typename TLTool<
 				memoria::models::idx_map::CtrApiName
 			>::List
 	>::Result                                                               ContainerPartsList;
 
-	typedef typename AppendTool<
+	typedef typename appendTool<
 			typename Base::IteratorPartsList,
 			typename TLTool<
 				memoria::models::idx_map::ItrApiName

@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class VectorAppendBenchmark: public SPBenchmarkTask {
+class VectorappendBenchmark: public SPBenchmarkTask {
 public:
 
 
@@ -42,7 +42,7 @@ public:
 
 public:
 
-	VectorAppendBenchmark(StringRef name):
+	VectorappendBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
 		RootCtr::Init();
@@ -51,7 +51,7 @@ public:
 		Add("memory_size", memory_size);
 	}
 
-	virtual ~VectorAppendBenchmark() throw() {}
+	virtual ~VectorappendBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -82,7 +82,7 @@ public:
 
 		while (total < memory_size)
 		{
-			i.Insert(data);
+			i.insert(data);
 
 			total += data.size();
 

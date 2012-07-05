@@ -190,7 +190,7 @@ bool File::Delete() const
 {
 	if (IsDirectory())
 	{
-		return RemoveDirectory(path_.c_str());
+		return removeDirectory(path_.c_str());
 	}
 	else {
 		return DeleteFile(path_.c_str());

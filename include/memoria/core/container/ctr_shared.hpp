@@ -111,7 +111,7 @@ public:
 		{
 			for (Int c = children_.getSize(); c < child->name(); c++)
 			{
-				children_.Append(NULL);
+				children_.append(NULL);
 			}
 		}
 

@@ -99,18 +99,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     };
 
     void UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
-    Accumulator InsertSubtree(Iterator& iter, ISubtreeProvider& provider);
+    Accumulator insertSubtree(Iterator& iter, ISubtreeProvider& provider);
 
-    void InsertEntry(Iterator& iter, const Element&);
+    void insertEntry(Iterator& iter, const Element&);
 
-    bool Insert(Iterator& iter, const Element& element)
+    bool insert(Iterator& iter, const Element& element)
     {
-    	InsertEntry(iter, element);
+    	insertEntry(iter, element);
     	return iter.NextKey();
     }
 
-    void InsertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size);
-    void InsertBatch(Iterator& iter, const LeafPairsVector& pairs);
+    void insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size);
+    void insertBatch(Iterator& iter, const LeafPairsVector& pairs);
 
 
 //    TreePathItem SplitPath(TreePath& path, Int level, Int idx);
@@ -208,14 +208,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     	}
 
     	template <typename PairType, typename ParentPairType>
-    	struct setNodeValuesFn
+    	struct SetNodeValuesFn
     	{
     		PairType* 		pairs_;
     		Int 			count_;
 
     		ParentPairType	total_;
 
-    		setNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
+    		SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
 
     		template <typename Node>
     		void operator()(Node* node)
@@ -246,7 +246,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     	template <typename PairType>
     	NonLeafNodeKeyValuePair setINodeData(PairType* data, NodeBaseG& node, Int count)
     	{
-    		setNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
+    		SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
     		NonLeafDispatcher::Dispatch(node, fn);
     		return fn.total_;
     	}
@@ -254,7 +254,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     	template <typename PairType>
     	NonLeafNodeKeyValuePair setLeafNodeData(PairType* data, NodeBaseG& node, Int count)
     	{
-    		setNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
+    		SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
     		LeafDispatcher::Dispatch(node, fn);
     		return fn.total_;
     	}
@@ -315,10 +315,10 @@ private:
     };
 
 
-    void InsertSubtree(TreePath& path, Int &idx, InsertSharedData& data)
+    void insertSubtree(TreePath& path, Int &idx, InsertSharedData& data)
     {
     	TreePath left_path = path;
-    	InsertSubtree(left_path, idx, path, idx, 0, data);
+    	insertSubtree(left_path, idx, path, idx, 0, data);
 
     	me()->FinishPathStep(path, idx);
 
@@ -326,7 +326,7 @@ private:
     }
 
 
-    void InsertSubtree(TreePath& left_path, Int left_idx, TreePath& right_path, Int& right_idx, Int level, InsertSharedData& data);
+    void insertSubtree(TreePath& left_path, Int left_idx, TreePath& right_path, Int& right_idx, Int level, InsertSharedData& data);
 
 
 
@@ -366,7 +366,7 @@ private:
         template <typename Node>
         void operator()(Node *node)
         {
-            node->map().InsertSpace(from_, count_);
+            node->map().insertSpace(from_, count_);
 
             for (Int c = from_; c < from_ + count_; c++)
             {
@@ -407,7 +407,7 @@ private:
 
     		if (tgt->children_count() > 0)
     		{
-    			tgt->map().InsertSpace(0, count + shift_);
+    			tgt->map().insertSpace(0, count + shift_);
     		}
 
     		src->map().CopyTo(&tgt->map(), from_, count, shift_);
@@ -433,7 +433,7 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::InsertSubtree(Iterator& iter, ISubtreeProvider& provider)
+typename M_TYPE::Accumulator M_TYPE::insertSubtree(Iterator& iter, ISubtreeProvider& provider)
 {
 	InsertSharedData data(provider);
 
@@ -449,7 +449,7 @@ typename M_TYPE::Accumulator M_TYPE::InsertSubtree(Iterator& iter, ISubtreeProvi
 		if (me()->getPrevNode(left))
 		{
 			//FIXME arguments
-			InsertSubtree(left, left[0].node()->children_count(), path, idx, 0, data);
+			insertSubtree(left, left[0].node()->children_count(), path, idx, 0, data);
 
 			me()->FinishPathStep(path, idx);
 
@@ -457,12 +457,12 @@ typename M_TYPE::Accumulator M_TYPE::InsertSubtree(Iterator& iter, ISubtreeProvi
 		}
 		else
 		{
-			InsertSubtree(path, idx, data);
+			insertSubtree(path, idx, data);
 		}
 	}
 	else
 	{
-		InsertSubtree(path, idx, data);
+		insertSubtree(path, idx, data);
 	}
 
 	iter.KeyNum() += provider.getTotalKeyCount();
@@ -525,7 +525,7 @@ void M_TYPE::SplitPath(TreePath& left, TreePath& right, Int level, Int idx)
 
 
 M_PARAMS
-void M_TYPE::InsertEntry(Iterator &iter, const Element& element)
+void M_TYPE::insertEntry(Iterator &iter, const Element& element)
 {
 	TreePath& 	path 	= iter.path();
 	NodeBaseG& 	node 	= path.leaf().node();
@@ -572,28 +572,28 @@ void M_TYPE::InsertEntry(Iterator &iter, const Element& element)
 
 
 //M_PARAMS
-//void M_TYPE::InsertEntry(Iterator &iter, Key key, const Value &value) {
+//void M_TYPE::insertEntry(Iterator &iter, Key key, const Value &value) {
 //	Accumulator keys;
 //
 //	keys.key(0) = key;
 //
-//	InsertEntry(iter, keys, value);
+//	insertEntry(iter, keys, value);
 //}
 
 M_PARAMS
-void M_TYPE::InsertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
+void M_TYPE::insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
 {
 	ArraySubtreeProvider provider(*me(), size, pairs);
 
-	me()->InsertSubtree(iter, provider);
+	me()->insertSubtree(iter, provider);
 }
 
 M_PARAMS
-void M_TYPE::InsertBatch(Iterator& iter, const LeafPairsVector& pairs)
+void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& pairs)
 {
 	ArraySubtreeProvider provider(*me(), pairs.size(), &pairs.at(0));
 
-	me()->InsertSubtree(iter, provider);
+	me()->insertSubtree(iter, provider);
 }
 
 
@@ -659,7 +659,7 @@ void M_TYPE::UpdateParentIfExists(TreePath& path, Int level, const Accumulator& 
 
 
 M_PARAMS
-void M_TYPE::InsertSubtree(TreePath& left_path, Int left_idx, TreePath& right_path, Int& right_idx, Int level, InsertSharedData& data)
+void M_TYPE::insertSubtree(TreePath& left_path, Int left_idx, TreePath& right_path, Int& right_idx, Int level, InsertSharedData& data)
 {
 	//FIXME: check node->level() after deletion;
 
@@ -695,7 +695,7 @@ void M_TYPE::InsertSubtree(TreePath& left_path, Int left_idx, TreePath& right_pa
 
 			right_idx  = 0;
 
-			InsertSubtree(left_path, left_idx, right_path, right_idx, level, data);
+			insertSubtree(left_path, left_idx, right_path, right_idx, level, data);
 		}
 	}
 	else {
@@ -752,7 +752,7 @@ void M_TYPE::InsertSubtree(TreePath& left_path, Int left_idx, TreePath& right_pa
 
 			// There is something more to insert.
 			Int parent_right_idx = right_path[level].parent_idx();
-			InsertSubtree
+			insertSubtree
 			(
 					left_path,
 					left_path[level].parent_idx() + 1,
@@ -1016,7 +1016,7 @@ void M_TYPE::NewRoot(TreePath& path)
 
 	me()->set_root(new_root->id());
 
-	path.Append(TreePathItem(new_root));
+	path.append(TreePathItem(new_root));
 
 	path[path.getSize() - 2].parent_idx() = 0;
 }

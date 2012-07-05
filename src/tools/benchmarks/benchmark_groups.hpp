@@ -205,11 +205,11 @@ public:
 
 
 
-class SetRandomInsertGraph: public LogXScaleGnuplotGraph {
+class SetRandominsertGraph: public LogXScaleGnuplotGraph {
 public:
-	SetRandomInsertGraph(): LogXScaleGnuplotGraph("setInsert")
+	SetRandominsertGraph(): LogXScaleGnuplotGraph("setinsert")
 	{
-		title 	= "set<BigInt> Batch Insert Performance";
+		title 	= "set<BigInt> Batch insert Performance";
 		xtitle 	= "Batch size, Elements";
 
 		time_start 	= 1;
@@ -219,8 +219,8 @@ public:
 
 		logscale	= 10;
 
-		AddGraph(new setInsertBatchBenchmark("InsertBatch"), GraphData("Random Insert"));
-		AddGraph(new SetAppendBatchBenchmark("AppendBatch"), GraphData("Sequential Append"));
+		AddGraph(new setinsertBatchBenchmark("insertBatch"), GraphData("Random insert"));
+		AddGraph(new SetappendBatchBenchmark("appendBatch"), GraphData("Sequential append"));
 	}
 };
 
@@ -229,7 +229,7 @@ class SetCommitRateGraph: public LogXScaleGnuplotGraph {
 public:
 	SetCommitRateGraph(): LogXScaleGnuplotGraph("setCommitRate", 10)
 	{
-		title 	= "set<BigInt> Commit Performance,\\nInsert/Append 1M keys";
+		title 	= "set<BigInt> Commit Performance,\\ninsert/append 1M keys";
 		xtitle 	= "Commit Batch size, Elements";
 
 		time_start 	= 1;
@@ -239,8 +239,8 @@ public:
 
 		logscale	= 10;
 
-		AddGraph(new setCommitRandomBenchmark("Random"), GraphData("Random Insert"));
-		AddGraph(new setCommitAppendBenchmark("Append"), GraphData("Sequential Append"));
+		AddGraph(new setCommitRandomBenchmark("Random"), GraphData("Random insert"));
+		AddGraph(new setCommitappendBenchmark("append"), GraphData("Sequential append"));
 	}
 };
 
@@ -249,9 +249,9 @@ class SetBatchUpdateGraph: public LogXScaleGnuplotGraph {
 public:
 	SetBatchUpdateGraph(): LogXScaleGnuplotGraph("setBatchUpdate", 10)
 	{
-		title 	= "Insert 16M keys into Memoria set";
+		title 	= "insert 16M keys into Memoria set";
 		xtitle 	= "Batch size";
-		ytitle	= "Performance, Insertions/sec";
+		ytitle	= "Performance, insertions/sec";
 
 		time_start 	= 1;
 		time_stop	= 100000;
@@ -261,8 +261,8 @@ public:
 
 		logscale	= 10;
 
-		RegisterTask(new setInsertBatchBenchmark("Insert"));
-		RegisterTask(new SetAppendBatchBenchmark("Append"));
+		RegisterTask(new setinsertBatchBenchmark("insert"));
+		RegisterTask(new SetappendBatchBenchmark("append"));
 	}
 };
 
@@ -334,11 +334,11 @@ public:
 };
 
 
-class VectorInsertGraph: public LogXScaleGnuplotGraph {
+class VectorinsertGraph: public LogXScaleGnuplotGraph {
 public:
-	VectorInsertGraph(): LogXScaleGnuplotGraph("VectorInsert")
+	VectorinsertGraph(): LogXScaleGnuplotGraph("Vectorinsert")
 	{
-		title 	= "Vector Insert Performance";
+		title 	= "Vector insert Performance";
 		xtitle 	= "Block Size, Bytes";
 
 		agenda_location = "top left";
@@ -352,8 +352,8 @@ public:
 
 		y2unit		= 1024*1024;
 
-		AddGraph(new VectorRandomInsertBenchmark("Random"), GraphData("Random Insert Performance", "Random Insert Throughput"));
-		AddGraph(new VectorAppendBenchmark("Sequential"), GraphData("Sequential Append Performance", "Sequential Append Throughput"));
+		AddGraph(new VectorRandominsertBenchmark("Random"), GraphData("Random insert Performance", "Random insert Throughput"));
+		AddGraph(new VectorappendBenchmark("Sequential"), GraphData("Sequential append Performance", "Sequential append Throughput"));
 	}
 };
 
@@ -373,7 +373,7 @@ public:
 
 		y2			= true;
 
-		AddGraph(new VectorMapRandomInsertBenchmark("Insert"), GraphData("Insert Performance", "Insert Throughput"));
+		AddGraph(new VectorMapRandominsertBenchmark("insert"), GraphData("insert Performance", "insert Throughput"));
 		AddGraph(new VectorMapRandomReadBenchmark("Read"), GraphData("Read Performance", "Read Throughput"));
 	}
 };
@@ -392,7 +392,7 @@ public:
 
 		y2			= true;
 
-		AddGraph(new VectorMapAppendBenchmark("Append"), GraphData("Append Performance", "Append Throughput"));
+		AddGraph(new VectorMapappendBenchmark("append"), GraphData("append Performance", "append Throughput"));
 		AddGraph(new VectorMapSequentialReadBenchmark("Read"), GraphData("Read Performance", "Read Throughput"));
 	}
 };
@@ -421,13 +421,13 @@ public:
 	}
 };
 
-class VectorMapBatchInsertGraph: public LogXScaleGnuplotGraph {
+class VectorMapBatchinsertGraph: public LogXScaleGnuplotGraph {
 public:
-	VectorMapBatchInsertGraph(): LogXScaleGnuplotGraph("VectorMapBatchInsert", 2)
+	VectorMapBatchinsertGraph(): LogXScaleGnuplotGraph("VectorMapBatchinsert", 2)
 	{
-		title 	= "VectorMap Batch Insert Performance";
+		title 	= "VectorMap Batch insert Performance";
 		xtitle 	= "Batch Size, Elements";
-		ytitle	= "Performance, Insertions/sec";
+		ytitle	= "Performance, insertions/sec";
 		y2title	= "Throughput, MiB/sec";
 
 		y2 		= true;
@@ -439,7 +439,7 @@ public:
 
 		logscale	= 2;
 
-		AddGraph(new VectorMapBatchInsertBenchmark("Insert.128", 128), GraphData("VectorMap Performance, 128 bytes value", "VectorMap Throughput, 128 bytes value"));
+		AddGraph(new VectorMapBatchinsertBenchmark("insert.128", 128), GraphData("VectorMap Performance, 128 bytes value", "VectorMap Throughput, 128 bytes value"));
 	}
 };
 

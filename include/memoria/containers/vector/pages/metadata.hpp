@@ -24,9 +24,9 @@ class VectorMetadata: public BTreeMetadata<ID>
 public:
 	VectorMetadata() {}
 
-    void GenerateDataEvents(IPageDataEventHandler* handler) const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::GenerateDataEvents(handler);
+    	Base::generateDataEvents(handler);
     	handler->Value("ELEMENT_SIZE", &element_size_);
     }
 
@@ -38,16 +38,16 @@ public:
     	return element_size_;
     }
 
-    void Serialize(SerializationData& buf) const
+    void serialize(SerializationData& buf) const
     {
-    	Base::Serialize(buf);
+    	Base::serialize(buf);
 
     	FieldFactory<Int>::serialize(buf, element_size_);
     }
 
-    void Deserialize(DeserializationData& buf)
+    void deserialize(DeserializationData& buf)
     {
-    	Base::Deserialize(buf);
+    	Base::deserialize(buf);
 
     	FieldFactory<Int>::deserialize(buf, element_size_);
     }
