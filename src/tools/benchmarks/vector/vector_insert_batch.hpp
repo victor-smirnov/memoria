@@ -80,7 +80,7 @@ public:
 
 		for (Int c = 0; c < max; c++)
 		{
-			auto i = map_->Seek(GetRandom(total));
+			auto i = map_->Seek(getRandom(total));
 
 			i.Insert(data);
 

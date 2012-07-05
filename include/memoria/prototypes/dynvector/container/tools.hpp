@@ -67,13 +67,13 @@ public:
     typedef typename Base::Types::DataPathItem                                  DataPathItem;
     
 
-    DataPathItem GetValuePage(const NodeBaseG& node, Int idx, Int flags) const
+    DataPathItem getValuePage(const NodeBaseG& node, Int idx, Int flags) const
     {
-        Value id = me()->GetLeafData(node, idx);
+        Value id = me()->getLeafData(node, idx);
 
         DataPathItem item;
 
-        item.node() 		= me()->allocator().GetPage(id, flags);
+        item.node() 		= me()->allocator().getPage(id, flags);
         item.parent_idx() 	= idx;
 
         return item;
@@ -134,7 +134,7 @@ void M_TYPE::FinishPathStep(TreePath& path, Int key_idx) const
 {
 	if (key_idx >= 0 && key_idx < path.leaf()->children_count())
 	{
-		path.data().node() 			= me()->GetValuePage(path.leaf().node(), key_idx, Allocator::READ);
+		path.data().node() 			= me()->getValuePage(path.leaf().node(), key_idx, Allocator::READ);
 
 		path.data().parent_idx()	= key_idx;
 	}

@@ -118,7 +118,7 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 {
 	IDSelector selector;
 
-	group->GetPageOperations()->GenerateDataEvents(page->Ptr(), DataEventsParams(), &selector);
+	group->getPageOperations()->GenerateDataEvents(page->Ptr(), DataEventsParams(), &selector);
 
 	for (const NamedIDValue& entry: selector.values())
 	{
@@ -140,7 +140,7 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 
 				str<<"___"<<id;
 
-				File folder2(folder.GetPath() + Platform::GetFilePathSeparator() + str.str());
+				File folder2(folder.getPath() + Platform::getFilePathSeparator() + str.str());
 				folder2.MkDirs();
 
 				DumpTree(id, folder2);
@@ -151,13 +151,13 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 
 //	for (int c = 0; c < group->Size(); c++)
 //	{
-//		Metadata* item = group->GetItem(c);
+//		Metadata* item = group->getItem(c);
 //
-//		if (item->GetTypeCode() == Metadata::GROUP)
+//		if (item->getTypeCode() == Metadata::GROUP)
 //		{
 //			DumpTree((MetadataGroup*)item, page, folder, cnt);
 //		}
-//		else if (item->GetTypeCode() == Metadata::ID)
+//		else if (item->getTypeCode() == Metadata::ID)
 //		{
 //
 //		}
@@ -172,18 +172,18 @@ void DumpTree(const IDValue& id, const File& folder)
 //	FIXME: IDValue
 
 	try {
-		manager->GetPage(page, id);
+		manager->getPage(page, id);
 
-		ofstream pagebin((folder.GetPath() + Platform::GetFilePathSeparator() + "page.bin").c_str());
+		ofstream pagebin((folder.getPath() + Platform::getFilePathSeparator() + "page.bin").c_str());
 		for (Int c = 0; c < page->Size(); c++)
 		{
-			pagebin<<(Byte)page->GetByte(c);
+			pagebin<<(Byte)page->getByte(c);
 		}
 		pagebin.close();
 
-		ofstream pagetxt((folder.GetPath() + Platform::GetFilePathSeparator() + "page.txt").c_str());
+		ofstream pagetxt((folder.getPath() + Platform::getFilePathSeparator() + "page.txt").c_str());
 
-		PageMetadata* meta = manager->GetMetadata()->GetPageMetadata(page->GetPageTypeHash());
+		PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->getPageTypeHash());
 
 		DumpPage(meta, page, pagetxt);
 
@@ -200,7 +200,7 @@ void DumpTree(const IDValue& id, const File& folder)
 }
 
 
-String GetPath(String dump_name)
+String getPath(String dump_name)
 {
 	if (IsEndsWith(dump_name, ".dump"))
 	{
@@ -222,7 +222,7 @@ int main(int argc, const char** argv, const char** envp)
 	SmallCtrTypeFactory::Factory<Map1>::Type::Init();
 	SmallCtrTypeFactory::Factory<Vector>::Type::Init();
 	SmallCtrTypeFactory::Factory<VectorMap>::Type::Init();
-	SmallCtrTypeFactory::Factory<Set1>::Type::Init();
+	SmallCtrTypeFactory::Factory<set1>::Type::Init();
 
 
 	try {
@@ -237,19 +237,19 @@ int main(int argc, const char** argv, const char** envp)
 		File file(argv[1]);
 		if (file.IsDirectory())
 		{
-			cerr<<"ERROR: "<<file.GetPath()<<" is a directory"<<endl;
+			cerr<<"ERROR: "<<file.getPath()<<" is a directory"<<endl;
 			return 1;
 		}
 		else if (!file.IsExists())
 		{
-			cerr<<"ERROR: "<<file.GetPath()<<" does not exists"<<endl;
+			cerr<<"ERROR: "<<file.getPath()<<" does not exists"<<endl;
 			return 1;
 		}
 
-		File path(argc == 3 ? String(argv[2]) : GetPath(argv[1]));
+		File path(argc == 3 ? String(argv[2]) : getPath(argv[1]));
 		if (path.IsExists() && !path.IsDirectory())
 		{
-			cerr<<"ERROR: "<<path.GetPath()<<" is not a directory"<<endl;
+			cerr<<"ERROR: "<<path.getPath()<<" is not a directory"<<endl;
 			return 1;
 		}
 
@@ -266,18 +266,18 @@ int main(int argc, const char** argv, const char** envp)
 		VStreamAllocator allocator;
 		manager = &allocator;
 
-		cout<<"Load file: "+file.GetPath()<<endl;
+		cout<<"Load file: "+file.getPath()<<endl;
 
-		LoadFile(allocator, file.GetPath().c_str());
+		LoadFile(allocator, file.getPath().c_str());
 
 		VStreamAllocator::RootMapType* root = manager->roots();
 		auto iter = root->Begin();
 
 		while (!iter.IsEnd())
 		{
-			BigInt  name 	= iter.GetKey(0);
+			BigInt  name 	= iter.getKey(0);
 
-			BigInt  value 	= iter.GetValue();
+			BigInt  value 	= iter.getValue();
 			IDValue id(value);
 
 			cout<<"Dumping name="<<name<<" root="<<id<<endl;
@@ -285,13 +285,13 @@ int main(int argc, const char** argv, const char** envp)
 			stringstream str;
 			str<<name<<"___"<<id;
 
-			File folder(path.GetPath() + "/" + str.str());
+			File folder(path.getPath() + "/" + str.str());
 
 			if (folder.IsExists())
 			{
 				if (!folder.DelTree())
 				{
-					throw Exception("dump.cpp", SBuf()<<"can't remove file "<<folder.GetPath());
+					throw Exception("dump.cpp", SBuf()<<"can't remove file "<<folder.getPath());
 				}
 			}
 

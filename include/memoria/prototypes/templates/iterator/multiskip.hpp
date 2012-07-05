@@ -85,7 +85,7 @@ BigInt M_TYPE::SkipKeyBw(BigInt distance)
 		Key keys[Indexes];
 		for (Int c = 0; c < Indexes; c++)
 		{
-			keys[c] = me()->GetRawKey(c);
+			keys[c] = me()->getRawKey(c);
 		}
 
 		if (me()->WalkBw(me()->path(), me()->key_idx(), walker))
@@ -96,7 +96,7 @@ BigInt M_TYPE::SkipKeyBw(BigInt distance)
 
 		for (Int c = 0; c < Indexes; c++)
 		{
-			me()->prefix(c) -= walker.keys(c) + me()->GetRawKey(c) - keys[c];
+			me()->prefix(c) -= walker.keys(c) + me()->getRawKey(c) - keys[c];
 		}
 
 

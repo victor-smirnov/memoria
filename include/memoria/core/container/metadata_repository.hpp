@@ -46,7 +46,7 @@ class MetadataRepository {
 	static ContainerMetadataRepository* metadata_;
 public:
 
-	static ContainerMetadataRepository* GetMetadata()
+	static ContainerMetadataRepository* getMetadata()
 	{
 		return metadata_;
 	}

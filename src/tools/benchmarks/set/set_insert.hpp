@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class SetInsertBenchmark: public SPBenchmarkTask {
+class setInsertBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -26,37 +26,37 @@ class SetInsertBenchmark: public SPBenchmarkTask {
 	typedef typename Base::Profile 		Profile;
 
 	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<Set1>::Type 		SetCtr;
-	typedef typename SetCtr::Iterator								Iterator;
-	typedef typename SetCtr::ID										ID;
-	typedef typename SetCtr::Accumulator							Accumulator;
+	typedef typename SmallCtrTypeFactory::Factory<set1>::Type 		setCtr;
+	typedef typename setCtr::Iterator								Iterator;
+	typedef typename setCtr::ID										ID;
+	typedef typename setCtr::Accumulator							Accumulator;
 
 
-	typedef typename SetCtr::Key									Key;
-	typedef typename SetCtr::Value									Value;
+	typedef typename setCtr::Key									Key;
+	typedef typename setCtr::Value									Value;
 
 
 	Allocator* 	allocator_;
-	SetCtr* 	set_;
+	setCtr* 	set_;
 
 
 
 public:
 
-	SetInsertBenchmark(StringRef name):
+	setInsertBenchmark(StringRef name):
 		SPBenchmarkTask(name)
 	{
 		RootCtr::Init();
-		SetCtr::Init();
+		setCtr::Init();
 	}
 
-	virtual ~SetInsertBenchmark() throw() {}
+	virtual ~setInsertBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ = new Allocator();
 
-		set_ = new SetCtr(*allocator_, 1, true);
+		set_ = new setCtr(*allocator_, 1, true);
 	}
 
 	virtual void Release(ostream& out)
@@ -74,7 +74,7 @@ public:
 
 		for (Int c = 0; c < size; c++)
 		{
-			auto i = set_->Find(GetRandom(size));
+			auto i = set_->Find(getRandom(size));
 
 			Accumulator keys;
 			keys[0] = 1;

@@ -124,8 +124,8 @@ void CmdLine::Process()
 			Configurator::Parse(cfg_file_name_, &cfg_file_);
 		}
 		else {
-			String image_path = GetImagePathPart(argv_[0]);
-			String cfg_file_name = image_path + Platform::GetFilePathSeparator()+cfg_file_name_;
+			String image_path = getImagePathPart(argv_[0]);
+			String cfg_file_name = image_path + Platform::getFilePathSeparator()+cfg_file_name_;
 
 			File f1(cfg_file_name);
 
@@ -137,33 +137,33 @@ void CmdLine::Process()
 	}
 }
 
-String CmdLine::GetImagePathPart(const char* str)
+String CmdLine::getImagePathPart(const char* str)
 {
 	File file(str);
-	String abs_path = file.GetAbsolutePath();
+	String abs_path = file.getAbsolutePath();
 
-	if (file.GetName() == abs_path)
+	if (file.getName() == abs_path)
 	{
-		return Platform::GetPathSeparator();
+		return Platform::getPathSeparator();
 	}
 	else {
-		auto pos = abs_path.find_last_of(Platform::GetFilePathSeparator());
+		auto pos = abs_path.find_last_of(Platform::getFilePathSeparator());
 
 		if (pos != String::npos)
 		{
 			return abs_path.substr(0, pos);
 		}
 		else {
-			return Platform::GetFilePathSeparator();
+			return Platform::getFilePathSeparator();
 		}
 	}
 }
 
-String CmdLine::GetImageName(const char* str)
+String CmdLine::getImageName(const char* str)
 {
 	String st(str);
 
-	auto pos = st.find_last_of(Platform::GetFilePathSeparator());
+	auto pos = st.find_last_of(Platform::getFilePathSeparator());
 
 	if (pos != String::npos)
 	{

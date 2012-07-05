@@ -126,20 +126,20 @@ public:
 		return result;
 	}
 
-	LogHandler* GetHandler() const
+	LogHandler* getHandler() const
 	{
 		if (handler_ != NULL) {
 			return handler_;
 		}
 		else if (parent_ != NULL) {
-			return parent_->GetHandler();
+			return parent_->getHandler();
 		}
 		else {
 			return default_handler_;
 		}
 	}
 
-	void SetHandler(LogHandler* handler)
+	void setHandler(LogHandler* handler)
 	{
 		handler_ = handler;
 	}
@@ -227,7 +227,7 @@ class Locker {
 	LogHandler* handler_;
 
 public:
-	Locker(Logger& logger, Int level): handler_(logger.GetHandler())
+	Locker(Logger& logger, Int level): handler_(logger.getHandler())
 	{
 		handler_->begin(level);
 	}
@@ -261,7 +261,7 @@ template <typename T0>
 bool log(Logger& log, Int level, const T0& v0) throw () {
     try {
         Locker lock(log, level);
-        LogHandler* handler = log.GetHandler();
+        LogHandler* handler = log.getHandler();
 
         LogIt(handler, v0);
 

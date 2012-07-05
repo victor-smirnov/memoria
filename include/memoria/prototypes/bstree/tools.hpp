@@ -241,10 +241,10 @@ public:
 
 	void Prepare()
 	{
-		current_ = Base::iterator().GetRawKey(0);
+		current_ = Base::iterator().getRawKey(0);
 	}
 
-	void Setup(BigInt prefix, Int key_num)
+	void setup(BigInt prefix, Int key_num)
 	{
 		prefix_ = prefix;
 	}
@@ -260,7 +260,7 @@ public:
 
 		Int block_num = 0;
 
-		for (Int c = 0; c < path.GetSize(); c++)
+		for (Int c = 0; c < path.getSize(); c++)
 		{
 			Base::iterator().model().SumKeys(path[c].node(), block_num, 0, idx, accum);
 			idx = path[c].parent_idx();
@@ -313,17 +313,17 @@ public:
 
 	void Prepare()
 	{
-		current_ = Base::iterator().GetRawKeys();
+		current_ = Base::iterator().getRawKeys();
 	}
 
-	void Setup(BigInt prefix, Int key_num)
+	void setup(BigInt prefix, Int key_num)
 	{
 		prefix_[key_num] = prefix;
 
 		Init_(key_num);
 	}
 
-	void Setup(Accumulator prefix)
+	void setup(Accumulator prefix)
 	{
 		prefix_ = prefix;
 	}
@@ -337,7 +337,7 @@ public:
 		const TreePath& path = Base::iterator().path();
 		Int 			idx  = Base::iterator().key_idx();
 
-		for (Int c = 0; c < path.GetSize(); c++)
+		for (Int c = 0; c < path.getSize(); c++)
 		{
 			Base::iterator().model().SumKeys(path[c].node(), 0, idx, prefix_);
 			idx = path[c].parent_idx();
@@ -357,7 +357,7 @@ private:
 			if (c != skip_num) prefix_[c] = 0;
 		}
 
-		for (Int c = 0; c < path.GetSize(); c++)
+		for (Int c = 0; c < path.getSize(); c++)
 		{
 			for (Int block_num = 0; block_num < Indexes; block_num++)
 			{

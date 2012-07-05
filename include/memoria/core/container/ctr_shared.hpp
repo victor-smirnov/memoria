@@ -42,7 +42,7 @@ public:
 	//FIXME virtual destructor
 	~ContainerShared() throw ()
 	{
-		for (Int c = 0; c < children_.GetSize(); c++)
+		for (Int c = 0; c < children_.getSize(); c++)
 		{
 			if (children_[c] != NULL)
 			{
@@ -107,9 +107,9 @@ public:
 
 	void RegisterChild(CtrShared* child)
 	{
-		if (children_.GetSize() < child->name())
+		if (children_.getSize() < child->name())
 		{
-			for (Int c = children_.GetSize(); c < child->name(); c++)
+			for (Int c = children_.getSize(); c < child->name(); c++)
 			{
 				children_.Append(NULL);
 			}
@@ -125,7 +125,7 @@ public:
 
 	bool IsChildRegistered(BigInt name)
 	{
-		if (name < children_.GetSize())
+		if (name < children_.getSize())
 		{
 			return children_[name] != NULL;
 		}
@@ -133,11 +133,11 @@ public:
 		return false;
 	}
 
-	CtrShared* Get(BigInt name)
+	CtrShared* get(BigInt name)
 	{
 		CtrShared* child = NULL;
 
-		if (name < children_.GetSize())
+		if (name < children_.getSize())
 		{
 			child = children_[name];
 		}
@@ -181,7 +181,7 @@ public:
 			updated() 	= false;
 		}
 
-		for (Int c = 0; c < children_.GetSize(); c++)
+		for (Int c = 0; c < children_.getSize(); c++)
 		{
 			if (children_[c] != NULL)
 			{
@@ -198,7 +198,7 @@ public:
 			updated() 	= false;
 		}
 
-		for (Int c = 0; c < children_.GetSize(); c++)
+		for (Int c = 0; c < children_.getSize(); c++)
 		{
 			if (children_[c] != NULL)
 			{

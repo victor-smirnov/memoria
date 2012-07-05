@@ -75,7 +75,7 @@ public:
 
 		while (total < memory_size)
 		{
-			auto i = map_->Create(GetRandom());
+			auto i = map_->Create(getRandom());
 			i.Insert(data);
 
 			total += data.size();

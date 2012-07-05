@@ -46,7 +46,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::MapName)
 
     static const Int Indexes                                                    = Base::Indexes;
 
-    void SetValueForKey(Key key, const Value &value) {
+    void setValueForKey(Key key, const Value &value) {
         MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED();
     }
     
@@ -54,15 +54,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::MapName)
         MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED();
     }
 
-    bool GetValue(Key key, Int c, Value &value) {
+    bool getValue(Key key, Int c, Value &value) {
         Iterator i = me()->FindLE(key, c, false);
         if (i.IsEnd()) {
             return false;
         }
         else {
-            Key k = i.GetKey(c);
+            Key k = i.getKey(c);
             if (k == key) {
-                value = i.GetValue();
+                value = i.getValue();
                 return true;
             }
             else {

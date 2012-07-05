@@ -139,7 +139,7 @@ private:
 
     bool CanMerge(TreePath& tgt, TreePath& src, Int level)
     {
-    	return src[level].node()->children_count() <= me()->GetCapacity(tgt[level].node());
+    	return src[level].node()->children_count() <= me()->getCapacity(tgt[level].node());
     }
 
 
@@ -253,7 +253,7 @@ BigInt M_TYPE::RemoveRoom(TreePath& path, Int level, Int from, Int count, Accumu
 			{
 				for (Int c = from; c < from + count; c++)
 				{
-					NodeBaseG child = 	me()->GetChild(node, c, Allocator::READ);
+					NodeBaseG child = 	me()->getChild(node, c, Allocator::READ);
 					key_count 		+=	me()->RemoveNode(child);
 				}
 			}
@@ -306,7 +306,7 @@ BigInt M_TYPE::RemoveEntries(Iterator& from, Iterator& to, Accumulator& keys, bo
 
 	if (start_idx == 0)
 	{
-		if (me()->GetPrevNode(start, 0))
+		if (me()->getPrevNode(start, 0))
 		{
 			start_idx = start[0].node()->children_count();
 
@@ -372,7 +372,7 @@ BigInt M_TYPE::RemoveEntries(Iterator& from, Iterator& to, Accumulator& keys, bo
 M_PARAMS
 void M_TYPE::RemoveAllPages(TreePath& start, TreePath& stop, Accumulator& accum, BigInt& removed_key_count)
 {
-	Int level = start.GetSize() - 1;
+	Int level = start.getSize() - 1;
 	Int count = start[level].node()->children_count();
 
 	removed_key_count += RemoveRoom(start, level, 0, count, accum);
@@ -380,7 +380,7 @@ void M_TYPE::RemoveAllPages(TreePath& start, TreePath& stop, Accumulator& accum,
 
 	me()->RemoveNode(start[level].node());
 
-	NodeBaseG node = me()->CreateRootNode(0, true, me()->GetRootMetadata());
+	NodeBaseG node = me()->CreateRootNode(0, true, me()->getRootMetadata());
 
 	me()->set_root(node->id());
 
@@ -396,7 +396,7 @@ M_PARAMS
 void M_TYPE::RemovePagesFromStart(TreePath& stop, Int& stop_idx, Accumulator& accum, BigInt& removed_key_count)
 {
 	Int idx = stop_idx;
-	for (Int c = 0; c < stop.GetSize(); c++)
+	for (Int c = 0; c < stop.getSize(); c++)
 	{
 		removed_key_count += RemoveRoom(stop, c, 0, idx, accum);
 		idx = stop[c].parent_idx();
@@ -413,13 +413,13 @@ void M_TYPE::RemovePagesAtEnd(TreePath& start, Int& start_idx, Accumulator& accu
 {
 	if (start_idx == 0)
 	{
-		me()->GetPrevNode(start);
+		me()->getPrevNode(start);
 		start_idx = start[0]->children_count();
 	}
 
 	Int idx = start_idx;
 
-	for (Int c = 0; c < start.GetSize(); c++)
+	for (Int c = 0; c < start.getSize(); c++)
 	{
 		if (idx > 0)
 		{
@@ -442,7 +442,7 @@ void M_TYPE::RemovePages(TreePath& start, Int& start_idx, TreePath& stop, Int& s
 {
 	if (start_idx == 0)
 	{
-		me()->GetPrevNode(start);
+		me()->getPrevNode(start);
 		start_idx = start[0]->children_count();
 	}
 
@@ -520,7 +520,7 @@ void M_TYPE::RemovePagesInternal(TreePath& start, Int& start_idx, TreePath& stop
 M_PARAMS
 void M_TYPE::RemovePage(TreePath& path, Int& key_idx)
 {
-	for (Int c = 1; c < path.GetSize(); c++)
+	for (Int c = 1; c < path.getSize(); c++)
 	{
 		if (path[c]->children_count() > 1)
 		{
@@ -531,7 +531,7 @@ void M_TYPE::RemovePage(TreePath& path, Int& key_idx)
 
 			if (idx == path[c]->children_count())
 			{
-				if (me()->GetNextNode(path, c, true))
+				if (me()->getNextNode(path, c, true))
 				{
 					key_idx = 0;
 				}
@@ -539,7 +539,7 @@ void M_TYPE::RemovePage(TreePath& path, Int& key_idx)
 				{
 					for (Int d = c - 1; d >= 0; d--)
 					{
-						path[d].node() 			= me()->GetLastChild(path[d + 1].node(), Allocator::READ);
+						path[d].node() 			= me()->getLastChild(path[d + 1].node(), Allocator::READ);
 						path[d].parent_idx() 	= path[d + 1]->children_count() - 1;
 					}
 
@@ -552,7 +552,7 @@ void M_TYPE::RemovePage(TreePath& path, Int& key_idx)
 			{
 				for (Int d = c - 1; d >= 0; d--)
 				{
-					path[d].node() 			= me()->GetChild(path[d + 1].node(), idx, Allocator::READ);
+					path[d].node() 			= me()->getChild(path[d + 1].node(), idx, Allocator::READ);
 					path[d].parent_idx() 	= idx;
 
 					idx = 0;
@@ -568,7 +568,7 @@ void M_TYPE::RemovePage(TreePath& path, Int& key_idx)
 		{
 			me()->RemoveNode(path[c].node());
 
-			NodeBaseG node = me()->CreateRootNode(0, true, me()->GetRootMetadata());
+			NodeBaseG node = me()->CreateRootNode(0, true, me()->getRootMetadata());
 
 			me()->set_root(node->id());
 			path.Clear();
@@ -582,7 +582,7 @@ void M_TYPE::RemovePage(TreePath& path, Int& key_idx)
 
 	me()->RemoveNode(path.leaf().node());
 
-	NodeBaseG node = me()->CreateRootNode(0, true, me()->GetRootMetadata());
+	NodeBaseG node = me()->CreateRootNode(0, true, me()->getRootMetadata());
 
 	me()->set_root(node->id());
 	path.Clear();
@@ -603,7 +603,7 @@ BigInt M_TYPE::RemoveNode(NodeBaseG node)
 	{
 		for (Int c = 0; c < children_count; c++)
 		{
-			NodeBaseG child = me()->GetChild(node, c, Allocator::READ);
+			NodeBaseG child = me()->getChild(node, c, Allocator::READ);
 			count += me()->RemoveNode(child);
 		}
 	}
@@ -632,7 +632,7 @@ bool M_TYPE::ChangeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
 {
 	if (parent.is_set() && parent->is_root() && parent->children_count() == 1)
 	{
-		Metadata meta = me()->GetRootMetadata();
+		Metadata meta = me()->getRootMetadata();
 
 		me()->Node2Root(node, meta);
 
@@ -698,7 +698,7 @@ void M_TYPE::RemoveEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
 		me()->FinishPathStep(path, idx);
 	}
 	else {
-		keys = me()->GetKeys(path.leaf().node(), idx);
+		keys = me()->getKeys(path.leaf().node(), idx);
 		RemovePage(path, idx);
 	}
 
@@ -711,13 +711,13 @@ void M_TYPE::RemoveEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
 M_PARAMS
 void M_TYPE::RemoveRedundantRoot(TreePath& path, Int level)
 {
-	for (Int c = path.GetSize() - 1; c > level; c--)
+	for (Int c = path.getSize() - 1; c > level; c--)
 	{
 		NodeBaseG& node = path[c].node();
 
 		if (node->children_count() == 1)
 		{
-			Metadata root_metadata = me()->GetRootMetadata();
+			Metadata root_metadata = me()->getRootMetadata();
 
 			NodeBaseG& child = path[c - 1].node();
 
@@ -739,13 +739,13 @@ void M_TYPE::RemoveRedundantRoot(TreePath& path, Int level)
 M_PARAMS
 void M_TYPE::RemoveRedundantRoot(TreePath& start, TreePath& stop, Int level)
 {
-	for (Int c = start.GetSize() - 1; c > level; c--)
+	for (Int c = start.getSize() - 1; c > level; c--)
 	{
 		NodeBaseG& node = start[c].node();
 
 		if (node->children_count() == 1)
 		{
-			Metadata root_metadata = me()->GetRootMetadata();
+			Metadata root_metadata = me()->getRootMetadata();
 
 			NodeBaseG& child = start[c - 1].node();
 
@@ -797,7 +797,7 @@ bool M_TYPE::MergeWithLeftSibling(TreePath& path, Int level, Int& key_idx)
 	{
 		TreePath prev = path;
 
-		if (me()->GetPrevNode(prev, level))
+		if (me()->getPrevNode(prev, level))
 		{
 			Int size = prev[level]->children_count();
 
@@ -828,7 +828,7 @@ bool M_TYPE::MergeWithRightSibling(TreePath& path, Int level)
 	{
 		TreePath next = path;
 
-		if (me()->GetNextNode(next))
+		if (me()->getNextNode(next))
 		{
 			merged = MergeBTreeNodes(path, next, level);
 		}
@@ -844,7 +844,7 @@ bool M_TYPE::MergePaths(TreePath& tgt, TreePath& src, Int level)
 {
 	bool merged_at_level = false;
 
-	for (Int c = tgt.GetSize() - 1; c >= level; c--)
+	for (Int c = tgt.getSize() - 1; c >= level; c--)
 	{
 		if (CanMerge(tgt, src, c))
 		{
@@ -940,7 +940,7 @@ bool M_TYPE::MergeBTreeNodes(TreePath& tgt, TreePath& src, Int level)
 M_PARAMS
 void M_TYPE::Drop()
 {
-	NodeBaseG root = me()->GetRoot(Allocator::READ);
+	NodeBaseG root = me()->getRoot(Allocator::READ);
 
 	if (root.is_set())
 	{

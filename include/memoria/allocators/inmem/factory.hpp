@@ -71,21 +71,21 @@ MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::It
 
 
 
-MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Set1)
+MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::set1)
 
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::ChecksName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::InsertBatchName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::FindName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::InsertBatchName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::FindName)
 
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::models::idx_map::CtrApiName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::bstree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::bstree::FindName)
-MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::IteratorAPIName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::models::idx_map::CtrApiName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::bstree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::bstree::FindName)
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::IteratorAPIName)
 
 
-MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::models::idx_map::ItrApiName)
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::models::idx_map::ItrApiName)
 
 
 MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Vector)

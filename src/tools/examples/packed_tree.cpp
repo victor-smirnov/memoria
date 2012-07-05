@@ -75,10 +75,10 @@ void Benchmark(Int size, Int average = 10)
 	Int* rd_array_ = new Int[operations];
 	for (Int c = 0; c < operations; c++)
 	{
-		rd_array_[c] = GetRandom(map_->size());
+		rd_array_[c] = getRandom(map_->size());
 	}
 
-	BigInt t0 = GetTimeInMillis();
+	BigInt t0 = getTimeInMillis();
 
 	for (Int d = 0; d < average; d++)
 	{
@@ -93,7 +93,7 @@ void Benchmark(Int size, Int average = 10)
 		}
 	}
 
-	BigInt t1 = GetTimeInMillis();
+	BigInt t1 = getTimeInMillis();
 
 	BigInt duration = (t1 / average - t0 / average);
 	BigInt speed	= operations*1000 / duration;

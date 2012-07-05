@@ -75,7 +75,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
     				// The case when index->parent_idx() == parent.size
     				// should be handled correctly in the walker
     				idx 	= path[index->level()].parent_idx() + 1;
-    				index 	= me()->GetParent(path, index);
+    				index 	= me()->getParent(path, index);
     			}
     			else {
     				// EOF
@@ -105,7 +105,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
 
     			if (!index->is_leaf())
     			{
-    				index = me()->GetChild(index, fn.result(), Allocator::READ);
+    				index = me()->getChild(index, fn.result(), Allocator::READ);
 
     				path[index->level()].node() 		= index;
     				path[index->level()].parent_idx() 	= fn.result();
@@ -125,7 +125,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
     			if (!index->is_leaf())
     			{
     				Int parent_idx = index->children_count() - 1;
-    				index = me()->GetLastChild(index, Allocator::READ);
+    				index = me()->getLastChild(index, Allocator::READ);
 
     				path[index->level()].node() 		= index;
     				path[index->level()].parent_idx() 	= parent_idx;
@@ -161,7 +161,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
         		{
 
         			idx 	= path[index->level()].parent_idx() - 1;
-        			index 	= me()->GetParent(path, index);
+        			index 	= me()->getParent(path, index);
         		}
         		else {
         			// START
@@ -185,7 +185,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
 
         		if (!index->is_leaf())
         		{
-        			index 	= me()->GetChild(index, fn.result(), Allocator::READ);
+        			index 	= me()->getChild(index, fn.result(), Allocator::READ);
 
         			path[index->level()].node() 		= index;
         			path[index->level()].parent_idx() 	= fn.result();
@@ -205,7 +205,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
         	{
         		if (!index->is_leaf())
         		{
-        			index = me()->GetChild(index, 0, Allocator::READ);
+        			index = me()->getChild(index, 0, Allocator::READ);
 
         			path[index->level()].node() 		= index;
         			path[index->level()].parent_idx() 	= 0;
@@ -220,7 +220,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
     template <typename Walker>
     void walk_to_the_root(TreePath& path, Int idx, Walker& walker, Int level = 0)
     {
-    	for (Int c = level; c < path.GetSize(); c++)
+    	for (Int c = level; c < path.getSize(); c++)
     	{
     		walker(path[c].node(), idx);
 

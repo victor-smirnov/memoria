@@ -23,7 +23,7 @@ using namespace std;
 
 
 
-class StlSetSizeBenchmark: public BenchmarkTask {
+class StlsetSizeBenchmark: public BenchmarkTask {
 private:
 
 	typedef BigInt		 Key;
@@ -35,12 +35,12 @@ private:
 
 public:
 
-	StlSetSizeBenchmark(StringRef name): BenchmarkTask(name)
+	StlsetSizeBenchmark(StringRef name): BenchmarkTask(name)
 	{
 		average = 10;
 	}
 
-	virtual ~StlSetSizeBenchmark() throw() {}
+	virtual ~StlsetSizeBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -58,7 +58,7 @@ public:
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			rd_array_[c] = GetRandom(map_->size());
+			rd_array_[c] = getRandom(map_->size());
 		}
 	}
 

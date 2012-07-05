@@ -128,8 +128,8 @@ public:
 		sum_(sum),
 		me_(me)
 	{
-		key_block_offsets_ 		= me.GetKeyBlockOffset(block_num);
-		index_block_offsets_ 	= me.GetIndexKeyBlockOffset(block_num);
+		key_block_offsets_ 		= me.getKeyBlockOffset(block_num);
+		index_block_offsets_ 	= me.getIndexKeyBlockOffset(block_num);
 	}
 
 	void PrepareIndex() {}
@@ -176,8 +176,8 @@ public:
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
-			key_block_offsets_[c] 	= me.GetKeyBlockOffset(c);
-			index_block_offsets_[c] 	= me.GetIndexKeyBlockOffset(c);
+			key_block_offsets_[c] 	= me.getKeyBlockOffset(c);
+			index_block_offsets_[c] 	= me.getIndexKeyBlockOffset(c);
 		}
 	}
 
@@ -236,8 +236,8 @@ public:
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
-			key_block_offsets_[c] 	= me.GetKeyBlockOffset(c);
-			index_block_offsets_[c] = me.GetIndexKeyBlockOffset(c);
+			key_block_offsets_[c] 	= me.getKeyBlockOffset(c);
+			index_block_offsets_[c] = me.getIndexKeyBlockOffset(c);
 		}
 	}
 
@@ -308,8 +308,8 @@ public:
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
-			key_block_offsets_[c] 	= me.GetKeyBlockOffset(c);
-			index_block_offsets_[c] = me.GetIndexKeyBlockOffset(c);
+			key_block_offsets_[c] 	= me.getKeyBlockOffset(c);
+			index_block_offsets_[c] = me.getIndexKeyBlockOffset(c);
 		}
 	}
 
@@ -380,8 +380,8 @@ public:
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
-			key_block_offsets_[c] 	= me.GetKeyBlockOffset(c);
-			index_block_offsets_[c] = me.GetIndexKeyBlockOffset(c);
+			key_block_offsets_[c] 	= me.getKeyBlockOffset(c);
+			index_block_offsets_[c] = me.getIndexKeyBlockOffset(c);
 		}
 	}
 

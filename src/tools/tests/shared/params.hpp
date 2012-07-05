@@ -52,14 +52,14 @@ struct BTreeReplayParams: public ReplayParams {
 };
 
 
-struct TestTaskParams: public TaskParametersSet {
+struct TestTaskParams: public TaskParametersset {
 
 	Int 	size_;
 	Int 	btree_branching_;
 	bool 	btree_random_branching_;
 
 
-	TestTaskParams(StringRef name): TaskParametersSet(name),
+	TestTaskParams(StringRef name): TaskParametersset(name),
 			size_(200),
 			btree_branching_(0),
 			btree_random_branching_(true)

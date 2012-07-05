@@ -27,8 +27,8 @@ struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
 			return hash_;
 		}
 
-		PageMetadata* GetPageMetadata(Int hashCode) const;
-		ContainerMetadata* GetContainerMetadata(Int hashCode) const;
+		PageMetadata* getPageMetadata(Int hashCode) const;
+		ContainerMetadata* getContainerMetadata(Int hashCode) const;
 
 
 		virtual void Register(ContainerMetadata* metadata)

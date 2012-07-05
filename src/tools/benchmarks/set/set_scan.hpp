@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class SetScanBenchmark: public SPBenchmarkTask {
+class setScanBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -26,31 +26,31 @@ class SetScanBenchmark: public SPBenchmarkTask {
 	typedef typename Base::Profile 		Profile;
 
 	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<Set1>::Type 		SetCtr;
-	typedef typename SetCtr::Iterator								Iterator;
-	typedef typename SetCtr::ID										ID;
-	typedef typename SetCtr::Accumulator							Accumulator;
+	typedef typename SmallCtrTypeFactory::Factory<set1>::Type 		setCtr;
+	typedef typename setCtr::Iterator								Iterator;
+	typedef typename setCtr::ID										ID;
+	typedef typename setCtr::Accumulator							Accumulator;
 
 
-	typedef typename SetCtr::Key									Key;
-	typedef typename SetCtr::Value									Value;
+	typedef typename setCtr::Key									Key;
+	typedef typename setCtr::Value									Value;
 
 
 	Allocator* 	allocator_;
-	SetCtr* 	set_;
+	setCtr* 	set_;
 
 	Int 		result_;
 
 public:
 
-	SetScanBenchmark(StringRef name):
+	setScanBenchmark(StringRef name):
 		SPBenchmarkTask(name)
 	{
 		RootCtr::Init();
-		SetCtr::Init();
+		setCtr::Init();
 	}
 
-	virtual ~SetScanBenchmark() throw() {}
+	virtual ~setScanBenchmark() throw() {}
 
 	Key key(Int c) const
 	{
@@ -69,10 +69,10 @@ public:
 		{
 			LoadResource(*allocator_, resource_name);
 
-			set_ = new SetCtr(*allocator_, 1);
+			set_ = new setCtr(*allocator_, 1);
 		}
 		else {
-			set_ = new SetCtr(*allocator_, 1, true);
+			set_ = new setCtr(*allocator_, 1, true);
 
 			Iterator i = set_->End();
 
@@ -107,7 +107,7 @@ public:
 		{
 			for (auto i = set_->begin(); !i.IsEnd() && c < params.operations(); i++, c++)
 			{
-				total += i.GetKey(0);
+				total += i.getKey(0);
 			}
 		}
 	}

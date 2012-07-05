@@ -82,9 +82,9 @@ public:
 
 	virtual ArrayData CreateBuffer(Ctr& array, Int size, UByte value)
 	{
-		ArrayData data(size * array.GetElementSize());
+		ArrayData data(size * array.getElementSize());
 
-		Int esize = array.GetElementSize();
+		Int esize = array.getElementSize();
 
 		for (Int c = 0; c < size; c++)
 		{
@@ -123,28 +123,28 @@ public:
 		iter.Skip(offset);
 	}
 
-	virtual BigInt GetPosition(Iterator& iter)
+	virtual BigInt getPosition(Iterator& iter)
 	{
 		return iter.pos();
 	}
 
-	virtual BigInt GetLocalPosition(Iterator& iter)
+	virtual BigInt getLocalPosition(Iterator& iter)
 	{
-		return iter.data_pos() / iter.GetElementSize();
+		return iter.data_pos() / iter.getElementSize();
 	}
 
-	virtual BigInt GetSize(Ctr& array)
+	virtual BigInt getSize(Ctr& array)
 	{
 		return array.Size();
 	}
 
-	virtual void SetElementSize(Ctr& array, ParamType* task_params)
+	virtual void setElementSize(Ctr& array, ParamType* task_params)
 	{
-		array.SetElementSize(task_params->element_size_);
+		array.setElementSize(task_params->element_size_);
 	};
 
-	virtual Int GetElementSize(Ctr& array) {
-		return array.GetElementSize();
+	virtual Int getElementSize(Ctr& array) {
+		return array.getElementSize();
 	}
 
 	void CheckIterator(ostream& out, Iterator& iter, const char* source)
@@ -163,7 +163,7 @@ public:
 			bool found = false;
 			for (Int idx = 0; idx < path[0]->children_count(); idx++)
 			{
-				ID id = iter.model().GetLeafData(path[0].node(), idx);
+				ID id = iter.model().getLeafData(path[0].node(), idx);
 				if (id == path.data()->id())
 				{
 					if (path.data().parent_idx() != idx)

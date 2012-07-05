@@ -59,17 +59,17 @@ public:
 		return name_;
 	}
 
-	virtual Int GetTypeCode() const {
+	virtual Int getTypeCode() const {
 		return typeCode_;
 	}
 
 	virtual bool IsGroup() const
 	{
-		if (this->GetTypeCode() == Metadata::GROUP ||
-				this->GetTypeCode() == Metadata::PAGE  ||
-				this->GetTypeCode() == Metadata::MODEL ||
-				this->GetTypeCode() == Metadata::MAP   ||
-				this->GetTypeCode() == Metadata::CONTAINER)
+		if (this->getTypeCode() == Metadata::GROUP ||
+				this->getTypeCode() == Metadata::PAGE  ||
+				this->getTypeCode() == Metadata::MODEL ||
+				this->getTypeCode() == Metadata::MAP   ||
+				this->getTypeCode() == Metadata::CONTAINER)
 		{
 			return true;
 		}
@@ -83,7 +83,7 @@ public:
 	}
 
 	virtual bool IsNumber() const {
-		return (!IsGroup()) && this->GetTypeCode() != Metadata::ID && this->GetTypeCode() != Metadata::BIGINT && this->GetTypeCode() != Metadata::FLAG;
+		return (!IsGroup()) && this->getTypeCode() != Metadata::ID && this->getTypeCode() != Metadata::BIGINT && this->getTypeCode() != Metadata::FLAG;
 	}
 
 

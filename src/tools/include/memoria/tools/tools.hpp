@@ -142,42 +142,42 @@ size_t AppendToSortedVector(vector<T, A>& vec, const T& value)
 }
 
 
-Int 	GetRandom();
-Int 	GetRandom(Int max);
+Int 	getRandom();
+Int 	getRandom(Int max);
 void 	Seed(Int value);
-Int 	GetSeed();
+Int 	getSeed();
 
-BigInt 	GetBIRandom();
-BigInt 	GetBIRandom(BigInt max);
+BigInt 	getBIRandom();
+BigInt 	getBIRandom(BigInt max);
 void 	SeedBI(BigInt value);
-BigInt 	GetSeedBI();
+BigInt 	getSeedBI();
 
 
-BigInt	GetTimeInMillis();
+BigInt	getTimeInMillis();
 
 String FormatTime(BigInt millis);
 
 void Fill(char* buf, int size, char value);
 ArrayData CreateBuffer(Int size, UByte value);
-Int GetNonZeroRandom(Int size);
+Int getNonZeroRandom(Int size);
 ArrayData CreateRandomBuffer(UByte fill_value, Int max_size);
 
 
 template <typename Allocator>
 void Check(Allocator& allocator, const char* message,  const char* source)
 {
-	Int level = allocator.GetLogger()->level();
+	Int level = allocator.getLogger()->level();
 
-	allocator.GetLogger()->level() = Logger::ERROR;
+	allocator.getLogger()->level() = Logger::ERROR;
 
 	if (allocator.Check())
 	{
-		allocator.GetLogger()->level() = level;
+		allocator.getLogger()->level() = level;
 
 		throw TestException(source, message);
 	}
 
-	allocator.GetLogger()->level() = level;
+	allocator.getLogger()->level() = level;
 }
 
 template <typename Ctr>
@@ -237,7 +237,7 @@ bool CompareBuffer(Iterator& iter, const vector<Item>& data, Int& c)
 	{
 		for (Int d = 0; d < Iterator::Indexes; d++)
 		{
-			auto value = iter.GetRawKey(d);
+			auto value = iter.getRawKey(d);
 
 			if (value != data[c].keys[d])
 			{
@@ -260,15 +260,15 @@ void CheckBufferWritten(Iterator& iter, const vector<Item>& data, const char* er
 }
 
 template <typename T, typename A>
-Int GetUniqueRandom(const vector<T, A> &vec)
+Int getUniqueRandom(const vector<T, A> &vec)
 {
-	Int value = GetRandom();
+	Int value = getRandom();
 
 	for (const T& item: vec)
 	{
 		if (item == value)
 		{
-			return GetUniqueRandom(vec);
+			return getUniqueRandom(vec);
 		}
 	}
 
@@ -277,15 +277,15 @@ Int GetUniqueRandom(const vector<T, A> &vec)
 
 
 template <typename T, typename A>
-BigInt GetUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
+BigInt getUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
 {
-	Int value = GetBIRandom(limit);
+	Int value = getBIRandom(limit);
 
 	for (const T& item: vec)
 	{
 		if (item == value)
 		{
-			return GetUniqueBIRandom(vec, limit);
+			return getUniqueBIRandom(vec, limit);
 		}
 	}
 

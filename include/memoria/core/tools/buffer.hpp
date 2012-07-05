@@ -138,7 +138,7 @@ public:
         Dump(os, *this, (Int)0, size);
     }
 
-    Int GetHashCode() {
+    Int getHashCode() {
         return PtrToInt(ptr());
     }
 };
@@ -187,7 +187,7 @@ public:
         return value() < other.value();
     }
 
-    Int GetHashCode() {
+    Int getHashCode() {
         return CShr(PtrToInt(&value_), 3) /*^ memoria::tools::types::TypeHash<Int>::Value*/;
     }
 };
@@ -212,7 +212,7 @@ public:
         return NULL;
     }
 
-    Int GetHashCode() {
+    Int getHashCode() {
         return 0;
     }
 };

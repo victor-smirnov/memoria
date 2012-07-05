@@ -46,7 +46,7 @@ int StringList::Size() const
         return list_.size();
 }
 
-StringRef StringList::GetItem(Int idx) const
+StringRef StringList::getItem(Int idx) const
 {
         if (idx >=0 && idx < (Int)list_.size())
         {
@@ -61,11 +61,11 @@ Configurator::Configurator(Configurator *parent): parent_(parent) {}
 
 Configurator::~Configurator() throw () {}
 
-Configurator* Configurator::GetParent() const {
+Configurator* Configurator::getParent() const {
         return parent_;
 }
 
-void Configurator::SetParent(Configurator* parent) {
+void Configurator::setParent(Configurator* parent) {
         parent_ = parent;
 }
 
@@ -143,7 +143,7 @@ String Configurator::get_property(StringRef name, NameTree* names, bool resolve)
         }
 }
 
-String Configurator::GetProperty(StringRef name, bool resolve) const
+String Configurator::getProperty(StringRef name, bool resolve) const
 {
         NameTree names(&name);
         return get_property(name, &names, resolve);
@@ -166,12 +166,12 @@ bool Configurator::IsPropertyDefined(StringRef name) const
 }
 
 
-const Configurator::StringMapType& Configurator::GetThisConfigurationProperties() const
+const Configurator::StringMapType& Configurator::getThisConfigurationProperties() const
 {
         return properties_;
 }
 
-Configurator::PropertyListType* Configurator::GetPropertyList() const
+Configurator::PropertyListType* Configurator::getPropertyList() const
 {
         const Configurator* cfg = this;
 
@@ -249,7 +249,7 @@ Configurator* Configurator::Parse(StringRef file_name, Configurator* cfg)
                 String text = buf.str();
                 typedef String::size_type SizeT;
 
-                String sep = Platform::GetLineSeparator();
+                String sep = Platform::getLineSeparator();
 
                 SizeT pos = text.find_first_not_of(sep+"\t ");
 
@@ -367,23 +367,23 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
 {
         Configurator* root = BuildRootConfigurator(envp);
         Configurator* platform = root;//BuildPlatformDefaultsConfigurator();
-//        platform->SetParent(root);
+//        platform->setParent(root);
 
         if (read_config_files)
         {
-                PathList list(platform->GetProperty("config.search.path"));
+                PathList list(platform->getProperty("config.search.path"));
 
                 for (Int c = 0; c < list.Size(); c++)
                 {
                         try {
-                                String dirPath = list.GetItem(c);
+                                String dirPath = list.getItem(c);
                                 File path(dirPath);
                                 if (path.IsExists())
                                 {
                                         if (!path.IsDirectory())
                                         {
-                                                Configurator* cfg = Configurator::Parse(path.GetPath());
-                                                cfg->SetParent(platform);
+                                                Configurator* cfg = Configurator::Parse(path.getPath());
+                                                cfg->setParent(platform);
                                                 platform = cfg;
                                         }
                                         else {
@@ -395,16 +395,16 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
                                                         File* file = *i;
                                                         if (!file->IsDirectory())
                                                         {
-                                                                if (IsEndsWith(file->GetName(), ".props"))
+                                                                if (IsEndsWith(file->getName(), ".props"))
                                                                 {
-                                                                        cfg = Configurator::Parse(file->GetPath(), cfg);
+                                                                        cfg = Configurator::Parse(file->getPath(), cfg);
                                                                 }
                                                         }
                                                 }
 
                                                 if (cfg != NULL)
                                                 {
-                                                        cfg->SetParent(platform);
+                                                        cfg->setParent(platform);
                                                         platform = cfg;
                                                 }
                                         }

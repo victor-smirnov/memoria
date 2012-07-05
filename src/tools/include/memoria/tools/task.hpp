@@ -22,7 +22,7 @@ namespace memoria {
 using namespace std;
 
 
-class TaskParametersSet: public ParametersSet {
+class TaskParametersset: public Parametersset {
 public:
 	bool 	enabled;
 	Int		check_step;
@@ -30,8 +30,8 @@ public:
 	bool	own_folder;
 public:
 
-	TaskParametersSet(StringRef name):
-		ParametersSet(name),
+	TaskParametersset(StringRef name):
+		Parametersset(name),
 		enabled(true),
 		check_step(1),
 		memory_limit(LLONG_MAX),
@@ -48,25 +48,25 @@ public:
 		return enabled;
 	}
 
-	void SetEnabled(bool enabled)
+	void setEnabled(bool enabled)
 	{
 		this->enabled = enabled;
 	}
 
-	Int	GetCheckStep() const
+	Int	getCheckStep() const
 	{
 		return check_step;
 	}
 };
 
 
-struct ExampleTaskParams: public TaskParametersSet {
+struct ExampleTaskParams: public TaskParametersset {
 
 	Int 	size_;
 	Int 	btree_branching_;
 	bool 	btree_random_airity_;
 
-	ExampleTaskParams(StringRef name): TaskParametersSet(name), size_(1024), btree_branching_(0), btree_random_airity_(true)
+	ExampleTaskParams(StringRef name): TaskParametersset(name), size_(1024), btree_branching_(0), btree_random_airity_(true)
 	{
 		Add("size", size_);
 		Add("btree_branching", btree_branching_);
@@ -76,7 +76,7 @@ struct ExampleTaskParams: public TaskParametersSet {
 
 
 
-class Task: public TaskParametersSet {
+class Task: public TaskParametersset {
 protected:
 	String				constext_name_;
 	Int 				iteration_;
@@ -89,7 +89,7 @@ protected:
 
 public:
 	Task(StringRef name):
-		TaskParametersSet(name),
+		TaskParametersset(name),
 		iteration_(0),
 		duration_(0),
 		task_name_(name),
@@ -102,69 +102,69 @@ public:
 		return false;
 	}
 
-	void SetIteration(Int iteration)
+	void setIteration(Int iteration)
 	{
 		iteration_ = iteration;
 	}
 
-	Int GetIteration() const
+	Int getIteration() const
 	{
 		return iteration_;
 	}
 
-	BigInt GetDuration() const {
+	BigInt getDuration() const {
 		return duration_;
 	}
 
-	void SetDuration(BigInt duration) {
+	void setDuration(BigInt duration) {
 		duration_ = duration;
 	}
 
-	String GetIterationAsString() const
+	String getIterationAsString() const
 	{
 		return ToString(iteration_);
 	}
 
-	StringRef GetOutputFolder() const
+	StringRef getOutputFolder() const
 	{
 		return output_folder_;
 	}
 
-	void SetOutputFolder(StringRef folder)
+	void setOutputFolder(StringRef folder)
 	{
 		output_folder_ = folder;
 	}
 
-	String GetResourcePath(StringRef name) const
+	String getResourcePath(StringRef name) const
 	{
-		return output_folder_ + Platform::GetFilePathSeparator() + name;
+		return output_folder_ + Platform::getFilePathSeparator() + name;
 	}
 
 	bool IsResourceExists(StringRef name) const
 	{
-		String path = GetResourcePath(name);
+		String path = getResourcePath(name);
 		File file(path);
 		return file.IsExists();
 	}
 
-	template <typename T = TaskParametersSet>
-	T* GetParameters() {
+	template <typename T = TaskParametersset>
+	T* getParameters() {
 		return static_cast<T*>(this);
 	}
 
-	template <typename T = TaskParametersSet>
-	const T* GetParameters() const {
+	template <typename T = TaskParametersset>
+	const T* getParameters() const {
 		return static_cast<const T*>(this);
 	}
 
-	virtual String GetTaskName() const
+	virtual String getTaskName() const
 	{
 		return task_name_;
 	}
 
-	virtual String GetFullName() const
+	virtual String getFullName() const
 	{
-		return GetPrefix();
+		return getPrefix();
 	}
 
 	virtual void BuildResources();
@@ -187,19 +187,19 @@ public:
 
 	virtual void Configure(Configurator* cfg);
 
-	virtual void SetContextName(StringRef name) {
+	virtual void setContextName(StringRef name) {
 		constext_name_ = name;
 	}
 
-	virtual String GetTaskPropertiesFileName() const {
-		return GetTaskName()+".properties";
+	virtual String getTaskPropertiesFileName() const {
+		return getTaskName()+".properties";
 	}
 
-	virtual String GetTaskParametersFilePath() {
-		return GetOutputFolder() + Platform::GetFilePathSeparator() + GetTaskPropertiesFileName();
+	virtual String getTaskParametersFilePath() {
+		return getOutputFolder() + Platform::getFilePathSeparator() + getTaskPropertiesFileName();
 	}
 
-	static void StoreProperties(const ParametersSet* params, StringRef file_name)
+	static void StoreProperties(const Parametersset* params, StringRef file_name)
 	{
 		fstream file;
 		file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
@@ -209,7 +209,7 @@ public:
 		file.close();
 	}
 
-	static void LoadProperties(ParametersSet* params, StringRef file_name)
+	static void LoadProperties(Parametersset* params, StringRef file_name)
 	{
 		fstream file;
 		file.open(file_name.c_str(), fstream::in | fstream::trunc | fstream::trunc);
@@ -271,18 +271,18 @@ public:
 	}
 
 	template <typename T>
-	T* GetTask(StringRef name)
+	T* getTask(StringRef name)
 	{
 		for (auto t: tasks_)
 		{
-			if (t->GetFullName() == name)
+			if (t->getFullName() == name)
 			{
 				return T2T_S<T*>(t);
 			}
 			else if (t->IsGroup())
 			{
 				TaskGroup* group = T2T_S<TaskGroup*>(t);
-				T* task = group->GetTask<T>(name);
+				T* task = group->getTask<T>(name);
 				if (task != NULL)
 				{
 					return task;
@@ -307,35 +307,35 @@ public:
 
 	virtual ~GroupRunner() throw() {}
 
-	StringRef GetOutput() const
+	StringRef getOutput() const
 	{
-		return GetOutputFolder();
+		return getOutputFolder();
 	}
 
-	virtual String GetTaskOutputFolder(String task_name, Int run) const
+	virtual String getTaskOutputFolder(String task_name, Int run) const
 	{
-		if (IsEmpty(GetOutput()))
+		if (IsEmpty(getOutput()))
 		{
 			return task_name +"-" + ToString(run);
 		}
 		else {
-			return GetOutput() + Platform::GetFilePathSeparator() + task_name +"-" + ToString(run);
+			return getOutput() + Platform::getFilePathSeparator() + task_name +"-" + ToString(run);
 		}
 	}
 
-	void SetOutput(StringRef out)
+	void setOutput(StringRef out)
 	{
-		SetOutputFolder(out);
+		setOutputFolder(out);
 	}
 
-	Int GetRunCount() const
+	Int getRunCount() const
 	{
-		return GetParameters<GroupRunner>()->run_count;
+		return getParameters<GroupRunner>()->run_count;
 	}
 
-	void SetRunCount(Int count)
+	void setRunCount(Int count)
 	{
-		GetParameters<GroupRunner>()->run_count = count;
+		getParameters<GroupRunner>()->run_count = count;
 	}
 
 

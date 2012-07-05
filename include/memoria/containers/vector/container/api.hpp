@@ -41,16 +41,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
     	metadata.element_size() = 1;
     }
 
-    Int GetElementSize() const {
-    	return me()->GetRootMetadata().element_size();
+    Int getElementSize() const {
+    	return me()->getRootMetadata().element_size();
     }
 
-    void SetElementSize(Int size)
+    void setElementSize(Int size)
     {
-    	Metadata meta 		= me()->GetRootMetadata();
+    	Metadata meta 		= me()->getRootMetadata();
     	meta.element_size() = size;
 
-    	me()->SetRootMetadata(meta);
+    	me()->setRootMetadata(meta);
     }
 
     Iterator operator[](BigInt pos) {
@@ -81,11 +81,11 @@ typename M_TYPE::Iterator M_TYPE::Seek(BigInt pos)
 M_PARAMS
 BigInt M_TYPE::Size()
 {
-	NodeBaseG node = me()->GetRoot(Allocator::READ);
+	NodeBaseG node = me()->getRoot(Allocator::READ);
 
 	if (node != NULL)
 	{
-		return me()->GetMaxKeys(node).key(0) / me()->GetElementSize();
+		return me()->getMaxKeys(node).key(0) / me()->getElementSize();
 	}
 	else {
 		return 0;

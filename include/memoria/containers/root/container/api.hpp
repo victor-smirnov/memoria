@@ -30,28 +30,28 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::root::CtrApiName)
 	typedef typename Base::NodeBaseG                                          	NodeBaseG;
 
 
-    BigInt GetModelNameCounter() const
+    BigInt getModelNameCounter() const
     {
-    	const Metadata& meta = me()->GetRootMetadata();
+    	const Metadata& meta = me()->getRootMetadata();
     	return meta.model_name_counter();
     }
 
-    void SetModelNameCounter(BigInt value)
+    void setModelNameCounter(BigInt value)
     {
-    	Metadata meta = me()->GetRootMetadata();
+    	Metadata meta = me()->getRootMetadata();
 
     	meta.model_name_counter() = value;
 
-    	me()->SetRootMetadata(meta);
+    	me()->setRootMetadata(meta);
     }
 
     void AddModelNameCounter(BigInt value)
     {
-    	Metadata meta = me()->GetRootMetadata();
+    	Metadata meta = me()->getRootMetadata();
 
     	meta.model_name_counter() += value;
 
-    	me()->SetRootMetadata(meta);
+    	me()->setRootMetadata(meta);
     }
 
 MEMORIA_CONTAINER_PART_END

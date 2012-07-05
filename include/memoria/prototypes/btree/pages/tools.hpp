@@ -307,7 +307,7 @@ public:
 
     template <typename T>
     void operator()(T *node) {
-        node_ = allocator_.GetPage(node->map().data(idx_), flags_);
+        node_ = allocator_.getPage(node->map().data(idx_), flags_);
     }
 
     Base& node() {
@@ -316,7 +316,7 @@ public:
 };
 
 template <typename Dispatcher, typename Base, typename Node, typename I, typename Allocator>
-Base GetChild(Node node, I idx, Allocator &allocator, Int flags)
+Base getChild(Node node, I idx, Allocator &allocator, Int flags)
 {
     GetChildFn<Base, I, Allocator> fn(idx, allocator, flags);
     Dispatcher::DispatchConst(node, fn);
@@ -340,7 +340,7 @@ public:
 
     template <typename T>
     void operator()(T *node) {
-        node_ = allocator_.GetPage(node->map().data(node->children_count() - 1), flags_);
+        node_ = allocator_.getPage(node->map().data(node->children_count() - 1), flags_);
     }
 
     Base& node() {
@@ -349,7 +349,7 @@ public:
 };
 
 template <typename Dispatcher, typename Base, typename Node, typename Allocator>
-Base GetLastChild(Node *node, Allocator &allocator, Int flags)
+Base getLastChild(Node *node, Allocator &allocator, Int flags)
 {
     GetLastChildFn<Base, Allocator> fn(allocator, flags);
     Dispatcher::DispatchConst(node, fn);
@@ -373,7 +373,7 @@ public:
 
 
 template <typename Dispatcher, typename Node, typename Int>
-void SetChildrenCount(Node *node, Int count)
+void setChildrenCount(Node *node, Int count)
 {
     SetChildrenCountFn<Int> fn(count);
     Dispatcher::Dispatch(node, fn);
@@ -415,7 +415,7 @@ public:
 };
 
 template <typename Dispatcher, typename Node, typename I, typename Data>
-void SetData(Node *node, I idx, Data *data) {
+void setData(Node *node, I idx, Data *data) {
     SetDataItemFn<I, Data> fn(idx, data);
     Dispatcher::Dispatch(node, fn);
 }
@@ -439,7 +439,7 @@ public:
 };
 
 template <typename Dispatcher, typename Data, typename Node>
-const Data* GetValue(Node *node, Int idx) {
+const Data* getValue(Node *node, Int idx) {
     GetValueItemFn<Data> fn(idx);
     Dispatcher::DispatchConst(node, fn);
     return fn.data();
@@ -479,7 +479,7 @@ public:
 };
 
 template <typename Dispatcher, typename Node, typename I, typename Keys>
-void SetKeys(Node *node, I idx, Keys *keys) {
+void setKeys(Node *node, I idx, Keys *keys) {
     SetKeysFn<I, Keys> fn(idx, keys);
     Dispatcher::Dispatch(node, fn);
 }
@@ -500,7 +500,7 @@ public:
 };
 
 template <typename Dispatcher, typename Node, typename I, typename Key>
-void SetKey(Node *node, I d, I idx, Key key) {
+void setKey(Node *node, I d, I idx, Key key) {
     SetKeyFn<I, Key> fn(d, idx, key);
     Dispatcher::Dispatch(node, fn);
 }
@@ -525,7 +525,7 @@ public:
 };
 
 template <typename Dispatcher, typename Key, typename Node, typename Idx>
-Key GetKey(const Node *node, Idx i, Idx idx)
+Key getKey(const Node *node, Idx i, Idx idx)
 {
     GetKeyFn<Key, Idx> fn(i, idx);
     Dispatcher::DispatchConst(node, fn);
@@ -551,7 +551,7 @@ public:
 
 
 template <typename Dispatcher, typename Key, typename Node, typename I>
-Key GetMaxKey(const Node *node, I i)
+Key getMaxKey(const Node *node, I i)
 {
     GetMaxKeyFn<Key, I> fn(i);
     Dispatcher::DispatchConst(node, fn);
@@ -573,7 +573,7 @@ public:
 };
 
 template <typename Dispatcher, Int Indexes, typename Key, typename Node>
-void GetMaxKeys(const Node *node, Key* keys)
+void getMaxKeys(const Node *node, Key* keys)
 {
     GetMaxKeysFn<Key, Indexes> fn(keys);
     Dispatcher::DispatchConst(node, fn);
@@ -595,7 +595,7 @@ public:
 };
 
 template <typename Dispatcher, Int Indexes, typename Key, typename Node>
-const void GetKeys(const Node *node, Int idx, Key* keys)
+const void getKeys(const Node *node, Int idx, Key* keys)
 {
     GetKeysFn<Key, Indexes> fn(idx, keys);
     Dispatcher::DispatchConst(node, fn);

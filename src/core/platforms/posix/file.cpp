@@ -87,7 +87,7 @@ bool File::IsExists() const {
 //	return 0;
 //}
 
-String File::GetAbsolutePath() const {
+String File::getAbsolutePath() const {
 	if (path_[0] == '/')
 	{
 		return path_;
@@ -197,11 +197,11 @@ bool File::DelTree() const {
 }
 
 
-StringRef File::GetPath() const {
+StringRef File::getPath() const {
 	return path_;
 }
 
-String File::GetName() const {
+String File::getName() const {
 	String::size_type idx = path_.find_last_of('/');
 	if (idx == String::npos)
 	{
@@ -224,7 +224,7 @@ File::FileListType* File::ReadDir(const File& file)
 		DIR *dp;
 		struct dirent *ep;
 
-		dp = opendir (file.GetPath().c_str());
+		dp = opendir (file.getPath().c_str());
 		if (dp != NULL)
 		{
 			while ((ep = readdir (dp)))
@@ -232,7 +232,7 @@ File::FileListType* File::ReadDir(const File& file)
 				String name(ep->d_name);
 				if (name != "." && name != "..")
 				{
-					list->push_back(new File(file.GetPath() + "/" + name));
+					list->push_back(new File(file.getPath() + "/" + name));
 				}
 			}
 
@@ -246,7 +246,7 @@ File::FileListType* File::ReadDir(const File& file)
 	}
 	else
 	{
-		throw FileException(MEMORIA_SOURCE, SBuf()<<"File is not a directory: "<<file.GetPath());
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"File is not a directory: "<<file.getPath());
 	}
 }
 

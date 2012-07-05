@@ -86,73 +86,73 @@ public:
 		params.size_ = task_params->size_;
 		if (task_params->btree_random_branching_)
 		{
-			task_params->btree_branching_ = 8 + GetRandom(100);
+			task_params->btree_branching_ = 8 + getRandom(100);
 			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 		}
 
 		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
+		allocator.getLogger()->setHandler(&logHandler);
 
 		MapCtr map(allocator);
 
-		map.SetBranchingFactor(100);
+		map.setBranchingFactor(100);
 
 		params.map_name_ = map.name();
 
-		BigInt t00 = GetTimeInMillis();
+		BigInt t00 = getTimeInMillis();
 
 		for (Int c = 0; c < task_params->map_size_; c++)
 		{
-			map[GetRandom()] = GetRandom();
+			map[getRandom()] = getRandom();
 		}
 
 		VectorMapCtr vector_map(allocator);
 
-		vector_map.SetBranchingFactor(100);
+		vector_map.setBranchingFactor(100);
 
 		params.vector_map_name_ = vector_map.name();
 
 		for (Int c = 0; c < task_params->vector_map_size_; c++)
 		{
-			vector_map[GetRandom()] = CreateBuffer(GetRandom(task_params->block_size_), GetRandom(256));
+			vector_map[getRandom()] = CreateBuffer(getRandom(task_params->block_size_), getRandom(256));
 		}
 
 		allocator.commit();
 
-		BigInt t0 = GetTimeInMillis();
+		BigInt t0 = getTimeInMillis();
 
 		StoreAllocator(allocator, "alloc1.dump");
 
-		BigInt t1 = GetTimeInMillis();
+		BigInt t1 = getTimeInMillis();
 
 		Allocator new_alloc;
 
 		LoadAllocator(new_alloc, "alloc1.dump");
 
-		BigInt t2 = GetTimeInMillis();
+		BigInt t2 = getTimeInMillis();
 
 		out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
 		out<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
 
 		MapCtr new_map(new_alloc, map.name());
 
-		MEMORIA_TEST_THROW_IF(map.GetBranchingFactor(), !=, new_map.GetBranchingFactor());
+		MEMORIA_TEST_THROW_IF(map.getBranchingFactor(), !=, new_map.getBranchingFactor());
 
-		MEMORIA_TEST_THROW_IF(map.GetSize(), !=, new_map.GetSize());
+		MEMORIA_TEST_THROW_IF(map.getSize(), !=, new_map.getSize());
 
 		auto new_iter = new_map.Begin();
 
 		for (auto iter = map.Begin(); !iter.IsEnd(); iter.NextKey(), new_iter.NextKey())
 		{
-			MEMORIA_TEST_THROW_IF(iter.GetKey(0), !=, new_iter.GetKey(0));
-			MEMORIA_TEST_THROW_IF(iter.GetValue(), !=, new_iter.GetValue());
+			MEMORIA_TEST_THROW_IF(iter.getKey(0), !=, new_iter.getKey(0));
+			MEMORIA_TEST_THROW_IF(iter.getValue(), !=, new_iter.getValue());
 		}
 
-		BigInt t22 = GetTimeInMillis();
+		BigInt t22 = getTimeInMillis();
 
 		VectorMapCtr new_vector_map(new_alloc, vector_map.name());
 
-		MEMORIA_TEST_THROW_IF(vector_map.GetBranchingFactor(), !=, new_vector_map.GetBranchingFactor());
+		MEMORIA_TEST_THROW_IF(vector_map.getBranchingFactor(), !=, new_vector_map.getBranchingFactor());
 
 		auto new_vm_iter = new_vector_map.Begin();
 
@@ -165,7 +165,7 @@ public:
 			CheckBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
 		}
 
-		BigInt t33 = GetTimeInMillis();
+		BigInt t33 = getTimeInMillis();
 
 		out<<"Create Time: "<<FormatTime(t0 - t00)<<endl;
 		out<<"Check Time:  "<<FormatTime(t22 - t2)<<endl;

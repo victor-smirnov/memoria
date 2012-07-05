@@ -57,16 +57,16 @@ namespace memoria    {
 //
 //    Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(), kind_(kind), model_(model)
 //    {
-//    	Base::SetupAllocator(&model.allocator());
+//    	Base::setupAllocator(&model.allocator());
 //    	Base::state() 		= 0;
 //        Base::key_idx() 	= -1;
 //    }
 //
 //    Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(), kind_(GENERIC_ITERATOR), model_(model)
 //    {
-//    	Base::SetupAllocator(&model.allocator());
+//    	Base::setupAllocator(&model.allocator());
 //    	Base::page() 		= node;
-//    	Base::data()		= model.GetValuePage(node, idx, ContainerType::Allocator::READ);
+//    	Base::data()		= model.getValuePage(node, idx, ContainerType::Allocator::READ);
 //    	Base::key_idx() 	= idx;
 //    	Base::state() 		= 0;
 //
@@ -76,7 +76,7 @@ namespace memoria    {
 //
 //    Iter(NodeBaseG node, Int idx, DataPageG data, Int data_pos, Container &model, bool do_init = false): Base(), kind_(GENERIC_ITERATOR), model_(model)
 //    {
-//    	Base::SetupAllocator(&model.allocator());
+//    	Base::setupAllocator(&model.allocator());
 //    	Base::page() 		= node;
 //    	Base::data() 		= data;
 //    	Base::data_pos()	= data_pos;

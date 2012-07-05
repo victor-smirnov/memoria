@@ -64,7 +64,7 @@ public:
 
 		ctr_ = new VectorCtr(*allocator_);
 
-		ctr_->SetElementSize(8);
+		ctr_->setElementSize(8);
 
 		Iterator i = ctr_->Seek(0);
 
@@ -73,7 +73,7 @@ public:
 			BigInt array[128];
 			for (Int d = 0; d < 128; d++)
 			{
-				array[d] = GetRandom(10000);
+				array[d] = getRandom(10000);
 			}
 
 			i.Insert(ArrayData(sizeof(array), array));
@@ -82,7 +82,7 @@ public:
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			rd_array_[c] = GetRandom(size);
+			rd_array_[c] = getRandom(size);
 		}
 	}
 

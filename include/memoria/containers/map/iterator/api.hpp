@@ -29,7 +29,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::idx_map::ItrApiName)
 	typedef typename Base::Container::Value                                  	Value;
 
 	Key key() const {
-		return me()->cache().prefix() + me()->GetRawKey(0);
+		return me()->cache().prefix() + me()->getRawKey(0);
 	}
 
 MEMORIA_ITERATOR_PART_END

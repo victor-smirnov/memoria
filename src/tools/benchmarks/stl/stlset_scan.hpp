@@ -23,7 +23,7 @@ using namespace std;
 
 
 
-class StlSetScanBenchmark: public BenchmarkTask {
+class StlsetScanBenchmark: public BenchmarkTask {
 
 	typedef BigInt		 Key;
 	typedef set<Key, less<Key>, CustomAllocator<Key> > Map;
@@ -33,9 +33,9 @@ class StlSetScanBenchmark: public BenchmarkTask {
 
 public:
 
-	StlSetScanBenchmark(StringRef name): BenchmarkTask(name) {}
+	StlsetScanBenchmark(StringRef name): BenchmarkTask(name) {}
 
-	virtual ~StlSetScanBenchmark() throw() {}
+	virtual ~StlsetScanBenchmark() throw() {}
 
 
 

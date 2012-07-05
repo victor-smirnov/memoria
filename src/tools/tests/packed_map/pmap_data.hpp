@@ -81,7 +81,7 @@ public:
 		{
 			for (Int d = 0; d < Blocks; d++)
 			{
-				map->index(d, c) = GetRandom(50000);
+				map->index(d, c) = getRandom(50000);
 			}
 		}
 
@@ -89,10 +89,10 @@ public:
 		{
 			for (Int d = 0; d < Blocks; d++)
 			{
-				map->key(d, c) = GetRandom(50000);
+				map->key(d, c) = getRandom(50000);
 			}
 
-			map->value(c) = GetRandom(50000);
+			map->value(c) = getRandom(50000);
 		}
 
 		map->size() = map->max_size() / 2;
@@ -100,7 +100,7 @@ public:
 
 	void CopyMap(Map* src, Map* dst)
 	{
-		memmove(dst, src, src->GetObjectSize());
+		memmove(dst, src, src->getObjectSize());
 	}
 
 	void ClearMap(Map* src)

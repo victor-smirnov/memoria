@@ -23,7 +23,7 @@ using namespace std;
 
 
 template <Int BranchingFactor_>
-class PSetMemBenchmark: public BenchmarkTask {
+class PsetMemBenchmark: public BenchmarkTask {
 
 	template <typename Key_, typename Value_, Int Blocks_>
 	struct PMapFindTypes {
@@ -54,13 +54,13 @@ class PSetMemBenchmark: public BenchmarkTask {
 
 public:
 
-	PSetMemBenchmark():
+	PsetMemBenchmark():
 		BenchmarkTask("FindMem."+ToString(BranchingFactor_))
 	{
 		average = 10;
 	}
 
-	virtual ~PSetMemBenchmark() throw() {}
+	virtual ~PsetMemBenchmark() throw() {}
 
 	void FillPMap(Map* map, Int size)
 	{
@@ -93,7 +93,7 @@ public:
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			rd_array_[c] = GetRandom(map_->size());
+			rd_array_[c] = getRandom(map_->size());
 		}
 	}
 

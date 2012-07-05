@@ -140,19 +140,19 @@ public:
     BitBuffer() : Base() {}
 
     bool is_bit(Index index) const {
-        return GetBit(*this, index + RESERVED_BITSIZE);
+        return getBit(*this, index + RESERVED_BITSIZE);
     }
 
     Bits get_bits(Index idx, Index count) const {
-        return GetBits(*this, idx, count);
+        return getBits(*this, idx, count);
     }
 
     void set_bits(Index idx, Bits bits, Index count) {
-        SetBits(*this, idx, bits, count);
+        setBits(*this, idx, bits, count);
     }
 
     void set_bit(int index, int bit) {
-        SetBit(*this, index + RESERVED_BITSIZE, bit);
+        setBit(*this, index + RESERVED_BITSIZE, bit);
     }
 
 

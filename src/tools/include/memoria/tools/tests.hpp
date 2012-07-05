@@ -19,7 +19,7 @@ namespace memoria {
 
 using namespace std;
 
-class TestReplayParams: public ParametersSet {
+class TestReplayParams: public Parametersset {
 
 	String name_;
 	String task_;
@@ -29,7 +29,7 @@ class TestReplayParams: public ParametersSet {
 	bool replay_;
 
 public:
-	TestReplayParams(StringRef name = "Replay", StringRef task = "", StringRef prefix = ""):ParametersSet(prefix), name_(name), task_(task), replay_(false)
+	TestReplayParams(StringRef name = "Replay", StringRef task = "", StringRef prefix = ""):Parametersset(prefix), name_(name), task_(task), replay_(false)
 	{
 		Add("name", name_);
 		Add("task", task_);
@@ -38,32 +38,32 @@ public:
 
 	virtual ~TestReplayParams() {}
 
-	StringRef GetName() const
+	StringRef getName() const
 	{
 		return name_;
 	}
 
-	void SetName(StringRef name)
+	void setName(StringRef name)
 	{
 		name_ = name;
 	}
 
-	StringRef GetTask() const
+	StringRef getTask() const
 	{
 		return task_;
 	}
 
-	void SetTask(StringRef task)
+	void setTask(StringRef task)
 	{
 		task_ = task;
 	}
 
-	StringRef GetDumpName() const
+	StringRef getDumpName() const
 	{
 		return dump_name_;
 	}
 
-	void SetDumpName(String file_name)
+	void setDumpName(String file_name)
 	{
 		this->dump_name_ = file_name;
 	}
@@ -73,7 +73,7 @@ public:
 		return replay_;
 	}
 
-	void SetReplay(bool replay)
+	void setReplay(bool replay)
 	{
 		replay_ = replay;
 	}
@@ -120,24 +120,24 @@ public:
 	{
 		Configure(params);
 
-		String props_name = GetPropertiesFileName();
+		String props_name = getPropertiesFileName();
 		StoreProperties(params, props_name);
 	}
 
-	virtual String GetPropertiesFileName(StringRef infix = "") const
+	virtual String getPropertiesFileName(StringRef infix = "") const
 	{
-		return GetResourcePath("Replay"+infix+".properties");
+		return getResourcePath("Replay"+infix+".properties");
 	}
 
-	virtual String GetParametersFilePath() {
-		return GetResourcePath("Task");
+	virtual String getParametersFilePath() {
+		return getResourcePath("Task");
 	}
 
-	virtual String GetTaskPropertiesFileName() const {
+	virtual String getTaskPropertiesFileName() const {
 		return "ReplayTask.properties";
 	}
 
-	String GetFileName(StringRef name) const;
+	String getFileName(StringRef name) const;
 
 };
 

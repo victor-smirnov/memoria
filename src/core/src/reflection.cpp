@@ -29,7 +29,7 @@ ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const M
 
     for (UInt c = 0; c < content_.size(); c++)
     {
-        if (content[c]->GetTypeCode() == Metadata::MODEL)
+        if (content[c]->getTypeCode() == Metadata::MODEL)
         {
             ContainerMetadata *model = static_cast<ContainerMetadata*> (content_[c]);
             process_model(model);
@@ -50,13 +50,13 @@ void ContainerMetadataRepository::process_model(ContainerMetadata* model)
 
 		for (Int d = 0; d < model->Size(); d++)
 		{
-			Metadata* item = model->GetItem(d);
-			if (item->GetTypeCode() == Metadata::PAGE)
+			Metadata* item = model->getItem(d);
+			if (item->getTypeCode() == Metadata::PAGE)
 			{
 				PageMetadata *page = static_cast<PageMetadata*> (item);
 				page_map_[page->Hash()] = page;
 			}
-			else if (item->GetTypeCode() == Metadata::MODEL)
+			else if (item->getTypeCode() == Metadata::MODEL)
 			{
 				process_model(static_cast<ContainerMetadata*> (item));
 			}
@@ -68,7 +68,7 @@ void ContainerMetadataRepository::process_model(ContainerMetadata* model)
 }
 
 
-PageMetadata* ContainerMetadataRepository::GetPageMetadata(Int hashCode) const {
+PageMetadata* ContainerMetadataRepository::getPageMetadata(Int hashCode) const {
     PageMetadataMap::const_iterator i = page_map_.find(hashCode);
     if (i != page_map_.end())
     {
@@ -80,7 +80,7 @@ PageMetadata* ContainerMetadataRepository::GetPageMetadata(Int hashCode) const {
 }
 
 
-ContainerMetadata* ContainerMetadataRepository::GetContainerMetadata(Int hashCode) const {
+ContainerMetadata* ContainerMetadataRepository::getContainerMetadata(Int hashCode) const {
     ContainerMetadataMap::const_iterator i = model_map_.find(hashCode);
     if (i != model_map_.end())
     {

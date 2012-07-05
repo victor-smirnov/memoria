@@ -55,10 +55,10 @@ struct IData {
 
 	virtual ~IData() throw () {}
 
-	virtual SizeT GetSize() const										= 0;
-	virtual void SetSize(SizeT size) 									= 0;
-	virtual SizeT Put(const Byte* buffer, SizeT start, SizeT length) 	= 0;
-	virtual SizeT Get(Byte* buffer, SizeT start, SizeT length) const	= 0;
+	virtual SizeT getSize() const										= 0;
+	virtual void setSize(SizeT size) 									= 0;
+	virtual SizeT put(const Byte* buffer, SizeT start, SizeT length) 	= 0;
+	virtual SizeT get(Byte* buffer, SizeT start, SizeT length) const	= 0;
 };
 
 class DataProxy: IData {
@@ -71,52 +71,52 @@ public:
 
 	virtual ~DataProxy() throw () {}
 
-	virtual SizeT GetSize() const
+	virtual SizeT getSize() const
 	{
 		return length_;
 	}
 
-	virtual void SetSize(SizeT size) {
+	virtual void setSize(SizeT size) {
 		length_ = size;
 	}
 
-	virtual SizeT Put(const Byte* buffer, SizeT start, SizeT length)
+	virtual SizeT put(const Byte* buffer, SizeT start, SizeT length)
 	{
-		return data_.Put(buffer, start + start_, length);
+		return data_.put(buffer, start + start_, length);
 	}
 
-	virtual SizeT Get(Byte* buffer, SizeT start, SizeT length) const
+	virtual SizeT get(Byte* buffer, SizeT start, SizeT length) const
 	{
-		return data_.Get(buffer, start + start_, length);
+		return data_.get(buffer, start + start_, length);
 	}
 };
 
 
-class GetDataProxy: public IData {
+class getDataProxy: public IData {
 	const IData&	data_;
 	SizeT 			start_;
 	SizeT			length_;
 public:
 
-	GetDataProxy(const IData& data, SizeT start, SizeT length): data_(data), start_(start), length_(length) {}
+	getDataProxy(const IData& data, SizeT start, SizeT length): data_(data), start_(start), length_(length) {}
 
-	virtual ~GetDataProxy() throw () {}
+	virtual ~getDataProxy() throw () {}
 
-	virtual SizeT GetSize() const
+	virtual SizeT getSize() const
 	{
 		return length_;
 	}
 
-	virtual void SetSize(SizeT size) {}
+	virtual void setSize(SizeT size) {}
 
-	virtual SizeT Put(const Byte* buffer, SizeT start, SizeT length)
+	virtual SizeT put(const Byte* buffer, SizeT start, SizeT length)
 	{
 		return 0;
 	}
 
-	virtual SizeT Get(Byte* buffer, SizeT start, SizeT length) const
+	virtual SizeT get(Byte* buffer, SizeT start, SizeT length) const
 	{
-		return data_.Get(buffer, start + start_, length);
+		return data_.get(buffer, start + start_, length);
 	}
 };
 
@@ -179,23 +179,23 @@ public:
 		return data_;
 	}
 
-	virtual SizeT GetSize() const
+	virtual SizeT getSize() const
 	{
 		return length_;
 	}
 
-	virtual void SetSize(SizeT size)
+	virtual void setSize(SizeT size)
 	{
 		length_ = size;
 	}
 
-	virtual SizeT Put(const Byte* buffer, SizeT start, SizeT length)
+	virtual SizeT put(const Byte* buffer, SizeT start, SizeT length)
 	{
 		CopyBuffer(buffer, data_ + start, length);
 		return length;
 	}
 
-	virtual SizeT Get(Byte* buffer, SizeT start, SizeT length) const
+	virtual SizeT get(Byte* buffer, SizeT start, SizeT length) const
 	{
 		CopyBuffer(data_ + start, buffer, length);
 		return 0;

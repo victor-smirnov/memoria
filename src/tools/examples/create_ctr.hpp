@@ -50,18 +50,18 @@ public:
 
 		if (this->btree_random_airity_)
 		{
-			this->btree_branching_ = 8 + GetRandom(100);
+			this->btree_branching_ = 8 + getRandom(100);
 			out<<"BTree Branching: "<<this->btree_branching_<<endl;
 		}
 
 		Int SIZE = this->size_;
 
 		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
+		allocator.getLogger()->setHandler(&logHandler);
 
 		MapCtr map(allocator);
 
-		map.SetBranchingFactor(this->btree_branching_);
+		map.setBranchingFactor(this->btree_branching_);
 
 		for (Int c = 0; c < SIZE; c++)
 		{
@@ -70,9 +70,9 @@ public:
 
 		allocator.commit();
 
-		BigInt t0 = GetTimeInMillis();
+		BigInt t0 = getTimeInMillis();
 		StoreAllocator(allocator, "/dev/null");
-		BigInt t1 = GetTimeInMillis();
+		BigInt t1 = getTimeInMillis();
 
 		out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
 	}

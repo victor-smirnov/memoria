@@ -152,9 +152,9 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	}
     };
 
-    BigInt GetModelName(ID root_id) const
+    BigInt getModelName(ID root_id) const
     {
-    	NodeBaseG root 		= me()->allocator().GetPage(root_id, Allocator::READ);
+    	NodeBaseG root 		= me()->allocator().getPage(root_id, Allocator::READ);
 
     	GetModelNameFn fn;
     	RootDispatcher::DispatchConst(root.page(), fn);
@@ -162,9 +162,9 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	return fn.name_;
     }
 
-    void SetModelName(BigInt name)
+    void setModelName(BigInt name)
     {
-    	NodeBaseG root 	= me()->GetRoot(Allocator::READ);
+    	NodeBaseG root 	= me()->getRoot(Allocator::READ);
 
     	SetModelNameFn fn(name);
     	RootDispatcher::Dispatch(root.page(), fn);
@@ -181,31 +181,31 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     		NodeBaseG node 		    = me()->CreateRoot();
 
-    		me()->allocator().SetRoot(me()->name(), node->id());
+    		me()->allocator().setRoot(me()->name(), node->id());
 
     		shared->root_log() 		= node->id();
     		shared->updated() 		= true;
 
     		me()->ConfigureNewCtrShared(shared, node);
 
-    		Base::SetCtrShared(shared);
+    		Base::setCtrShared(shared);
     	}
     	else {
-    		CtrShared* shared = me()->GetOrCreateCtrShared(me()->name());
+    		CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
 
-    		Base::SetCtrShared(shared);
+    		Base::setCtrShared(shared);
     	}
     }
 
     void InitCtr(const ID& root_id)
     {
-    	CtrShared* shared = me()->GetOrCreateCtrShared(me()->name());
-    	Base::SetCtrShared(shared);
+    	CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
+    	Base::setCtrShared(shared);
     }
 
     void ConfigureNewCtrShared(CtrShared* shared, PageG root) const
     {
-    	T2T<BTreeCtrShared*>(shared)->configure_metadata(MyType::GetCtrRootMetadata(root));
+    	T2T<BTreeCtrShared*>(shared)->configure_metadata(MyType::getCtrRootMetadata(root));
     }
 
     struct GetRootIDFn {
@@ -221,9 +221,9 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	}
     };
 
-    virtual ID GetRootID(BigInt name)
+    virtual ID getRootID(BigInt name)
     {
-    	NodeBaseG root = me()->allocator().GetPage(me()->root(), Allocator::READ);
+    	NodeBaseG root = me()->allocator().getPage(me()->root(), Allocator::READ);
 
     	GetRootIDFn fn(name);
     	RootDispatcher::DispatchConst(root.page(), fn);
@@ -248,9 +248,9 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	}
     };
 
-    virtual void  SetRoot(BigInt name, const ID& root_id)
+    virtual void  setRoot(BigInt name, const ID& root_id)
     {
-    	NodeBaseG root 	= me()->allocator().GetPage(me()->root(), Allocator::UPDATE);
+    	NodeBaseG root 	= me()->allocator().getPage(me()->root(), Allocator::UPDATE);
 
     	SetRootIDFn fn(name, root_id);
     	RootDispatcher::Dispatch(root.page(), fn);
@@ -289,42 +289,42 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	}
     };
 
-    static Metadata GetCtrRootMetadata(NodeBaseG node)
+    static Metadata getCtrRootMetadata(NodeBaseG node)
     {
     	GetMetadataFn fn;
     	RootDispatcher::DispatchConst(node, fn);
     	return fn.metadata_;
     }
 
-    static void SetCtrRootMetadata(NodeBaseG node, const Metadata& metadata)
+    static void setCtrRootMetadata(NodeBaseG node, const Metadata& metadata)
     {
     	node.update();
     	SetMetadataFn fn(metadata);
     	RootDispatcher::Dispatch(node, fn);
     }
 
-    const Metadata& GetRootMetadata() const
+    const Metadata& getRootMetadata() const
     {
     	return T2T<const BTreeCtrShared*>(me()->shared())->metadata();
     }
 
-    void SetRootMetadata(const Metadata& metadata) const
+    void setRootMetadata(const Metadata& metadata) const
     {
-    	NodeBaseG root = me()->GetRoot(Allocator::UPDATE);
-    	me()->SetRootMetadata(root, metadata);
+    	NodeBaseG root = me()->getRoot(Allocator::UPDATE);
+    	me()->setRootMetadata(root, metadata);
     }
 
-    void SetRootMetadata(NodeBaseG& node, const Metadata& metadata) const
+    void setRootMetadata(NodeBaseG& node, const Metadata& metadata) const
     {
-    	SetCtrRootMetadata(node, metadata);
+    	setCtrRootMetadata(node, metadata);
 
     	BTreeCtrShared* shared = T2T<BTreeCtrShared*>(me()->shared());
     	shared->update_metadata(metadata);
     }
 
-    BigInt GetContainerName() const
+    BigInt getContainerName() const
     {
-        return GetRootMetadata().model_name();
+        return getRootMetadata().model_name();
     }
 
 
@@ -334,11 +334,11 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     	if (root)
     	{
-    		Metadata meta = MyType::GetCtrRootMetadata(node);
+    		Metadata meta = MyType::getCtrRootMetadata(node);
 
     		me()->ConfigureRootMetadata(meta);
 
-    		MyType::SetCtrRootMetadata(node, meta);
+    		MyType::setCtrRootMetadata(node, meta);
     	}
 
     	node->model_hash() = me()->hash();
@@ -352,7 +352,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
     	NodeBaseG node = NodeFactory::Create(me()->allocator(), level, true, leaf);
 
-    	MyType::SetCtrRootMetadata(node, metadata);
+    	MyType::setCtrRootMetadata(node, metadata);
 
     	node->model_hash() = me()->hash();
 

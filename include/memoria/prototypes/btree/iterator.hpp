@@ -140,7 +140,7 @@ public:
     template <typename T>
     MyType& operator=(const T& value)
     {
-    	this->SetData(value);
+    	this->setData(value);
     	return *this;
     }
 };

@@ -23,11 +23,11 @@ Task::~Task() throw () {
 
 void Task::Configure(Configurator* cfg)
 {
-	TaskParametersSet* params = GetParameters<>();
+	TaskParametersset* params = getParameters<>();
 
 	if (constext_name_ != "")
 	{
-		params->SetPrefix(constext_name_ + "." + params->GetPrefix());
+		params->setPrefix(constext_name_ + "." + params->getPrefix());
 	}
 
 	params->Process(cfg);
@@ -45,7 +45,7 @@ void Task::BuildResources()
 		output_f.MkDirs();
 	}
 
-	String out_file_name = output_folder_ + Platform::GetFilePathSeparator() + (own_folder ? "" : GetTaskName() + ".") + "output.txt";
+	String out_file_name = output_folder_ + Platform::getFilePathSeparator() + (own_folder ? "" : getTaskName() + ".") + "output.txt";
 
 	out_ = new fstream();
 	out_->exceptions ( fstream::failbit | fstream::badbit );
@@ -74,7 +74,7 @@ Int Task::Run()
 	catch (MemoriaThrowable e) {
 		(*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;
 
-		String path = GetTaskParametersFilePath();
+		String path = getTaskParametersFilePath();
 
 		StoreProperties(this, path);
 
@@ -84,7 +84,7 @@ Int Task::Run()
 	{
 		(*out_)<<"FAILED"<<endl;
 
-		String path = GetTaskParametersFilePath();
+		String path = getTaskParametersFilePath();
 
 		StoreProperties(this, path);
 
@@ -117,22 +117,22 @@ void TaskGroup::Run(ostream& out)
 
 		if (t->own_folder)
 		{
-			folder = output_folder_ + Platform::GetFilePathSeparator() + t->GetTaskName();
+			folder = output_folder_ + Platform::getFilePathSeparator() + t->getTaskName();
 		}
 		else {
 			folder = output_folder_;
 		}
 
-		t->SetOutputFolder(folder);
-		t->SetIteration(1);
+		t->setOutputFolder(folder);
+		t->setIteration(1);
 
 		if (t->Run())
 		{
-			failures_.push_back(FailureDescriptor(t->GetIteration(), t->GetTaskName()));
+			failures_.push_back(FailureDescriptor(t->getIteration(), t->getTaskName()));
 		}
 	}
 
-	cout<<GetTaskName();
+	cout<<getTaskName();
 
 	if (failures_.size() > 0)
 	{
@@ -161,9 +161,9 @@ void TaskGroup::RegisterTask(Task* task)
 {
 	for (auto t: tasks_)
 	{
-		if (t->GetTaskName() == task->GetTaskName())
+		if (t->getTaskName() == task->getTaskName())
 		{
-			throw Exception(MEMORIA_SOURCE, SBuf()<<"Task "<<task->GetTaskName()<<" is already registered");
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"Task "<<task->getTaskName()<<" is already registered");
 		}
 	}
 
@@ -176,7 +176,7 @@ void TaskGroup::Configure(Configurator* cfg)
 
 	for (auto t: tasks_)
 	{
-		t->SetContextName(this->GetFullName());
+		t->setContextName(this->getFullName());
 		t->Configure(cfg);
 	}
 }
@@ -199,7 +199,7 @@ Int GroupRunner::Run()
 
 	Int counter = 0;
 
-	Int run_count = GetRunCount();
+	Int run_count = getRunCount();
 
 	for (Int c = 1; c <= run_count; c++)
 	{
@@ -207,7 +207,7 @@ Int GroupRunner::Run()
 		if (run_count > 1)
 		{
 			String folder_name = "run-" + ToString(c);
-			task_folder = output_folder_ + Platform::GetFilePathSeparator() + folder_name;
+			task_folder = output_folder_ + Platform::getFilePathSeparator() + folder_name;
 		}
 		else {
 			task_folder = output_folder_;
@@ -227,20 +227,20 @@ Int GroupRunner::Run()
 
 				if (t->own_folder)
 				{
-					folder = task_folder + Platform::GetFilePathSeparator() + t->GetTaskName();
+					folder = task_folder + Platform::getFilePathSeparator() + t->getTaskName();
 				}
 				else {
 					folder = task_folder;
 				}
 
-				t->SetOutputFolder(folder);
-				t->SetIteration(c);
+				t->setOutputFolder(folder);
+				t->setIteration(c);
 
 
 
 				if (Int failures = t->Run())
 				{
-					failures_.push_back(FailureDescriptor(t->GetIteration(), t->GetTaskName()));
+					failures_.push_back(FailureDescriptor(t->getIteration(), t->getTaskName()));
 
 					counter += failures;
 				}

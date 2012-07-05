@@ -23,9 +23,9 @@ using namespace std;
 
 
 
-class StlSetMemBenchmark: public BenchmarkTask {
+class StlsetMemBenchmark: public BenchmarkTask {
 public:
-	enum SetType {MEMORY = 1, COUNT = 2};
+	enum setType {MEMORY = 1, COUNT = 2};
 private:
 
 	typedef BigInt		 Key;
@@ -37,11 +37,11 @@ private:
 
 public:
 
-	StlSetMemBenchmark(StringRef name): BenchmarkTask(name) {
+	StlsetMemBenchmark(StringRef name): BenchmarkTask(name) {
 		average = 10;
 	}
 
-	virtual ~StlSetMemBenchmark() throw() {}
+	virtual ~StlsetMemBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -64,7 +64,7 @@ public:
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			rd_array_[c] = GetRandom(map_->size());
+			rd_array_[c] = getRandom(map_->size());
 		}
 	}
 

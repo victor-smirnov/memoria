@@ -76,7 +76,7 @@ public:
 
 	void StorePairs(const PairVector& pairs, TestReplay* params)
 	{
-		String basic_name = GetResourcePath("Data." + params->GetName());
+		String basic_name = getResourcePath("Data." + params->getName());
 
 		String pairs_name 		= basic_name + ".pairs.txt";
 		params->pairs_data_file_ = pairs_name;
@@ -93,7 +93,7 @@ public:
 		Int c = 0;
 		for (Pair& pair: pairs_)
 		{
-			MEMORIA_TEST_THROW_IF_1(iter.GetKey(), != , pair.key_, c);
+			MEMORIA_TEST_THROW_IF_1(iter.getKey(), != , pair.key_, c);
 			MEMORIA_TEST_THROW_IF_1(iter.size(),   != , pair.value_, c);
 			MEMORIA_TEST_THROW_IF_1(iter.pos(),    != , 0, c);
 
@@ -117,7 +117,7 @@ public:
 		TestReplay* params = static_cast<TestReplay*>(step_params);
 
 		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
+		allocator.getLogger()->setHandler(&logHandler);
 
 		LoadAllocator(allocator, params);
 
@@ -146,13 +146,13 @@ public:
 			CheckCtr(map, "Insertion failed 2", MEMORIA_SOURCE);
 
 			MEMORIA_TEST_THROW_IF(iter.size(), 	!= , data.size());
-			MEMORIA_TEST_THROW_IF(iter.GetKey(), 	!= , key);
+			MEMORIA_TEST_THROW_IF(iter.getKey(), 	!= , key);
 
-			auto iter2 = map.Find(iter.GetKey());
+			auto iter2 = map.Find(iter.getKey());
 
 			MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
 			MEMORIA_TEST_THROW_IF(iter2.size(), 	!= , data.size());
-			MEMORIA_TEST_THROW_IF(iter2.GetKey(), != , iter.GetKey());
+			MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
 			CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -187,7 +187,7 @@ public:
 		params.size_ = task_params->size_;
 		if (task_params->btree_random_branching_)
 		{
-			task_params->btree_branching_ = 8 + GetRandom(100);
+			task_params->btree_branching_ = 8 + getRandom(100);
 			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 		}
 
@@ -206,7 +206,7 @@ public:
 		DefaultLogHandlerImpl logHandler(out);
 
 		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
+		allocator.getLogger()->setHandler(&logHandler);
 
 		VectorMapCtr map(allocator);
 
@@ -226,14 +226,14 @@ public:
 			{
 				auto iter = map.Create();
 
-				params->data_size_ = GetRandom(task_params->max_block_size_);
+				params->data_size_ = getRandom(task_params->max_block_size_);
 
 				ArrayData data = CreateBuffer(params->data_size_, c % 256);
 
 				iter.Insert(data);
 
 				MEMORIA_TEST_THROW_IF(iter.size(), 	 != , data.size());
-				MEMORIA_TEST_THROW_IF(iter.GetKey(), != , c + 1);
+				MEMORIA_TEST_THROW_IF(iter.getKey(), != , c + 1);
 
 				total_size += iter.size();
 
@@ -241,11 +241,11 @@ public:
 
 				MEMORIA_TEST_THROW_IF(map.array().Size(), != , total_size);
 
-				auto iter2 = map.Find(iter.GetKey());
+				auto iter2 = map.Find(iter.getKey());
 
 				MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
 				MEMORIA_TEST_THROW_IF(iter2.size(),   != , data.size());
-				MEMORIA_TEST_THROW_IF(iter2.GetKey(), != , iter.GetKey());
+				MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
 				CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -267,7 +267,7 @@ public:
 		DefaultLogHandlerImpl logHandler(out);
 
 		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
+		allocator.getLogger()->setHandler(&logHandler);
 
 		VectorMapCtr map(allocator);
 
@@ -284,12 +284,12 @@ public:
 
 			for (Int c = 0; c < params->size_; c++)
 			{
-				BigInt key = GetUniqueRandom(pairs_);
+				BigInt key = getUniqueRandom(pairs_);
 
 				params->key_ 		= key;
 
 				auto iter = map.Create(key);
-				params->data_size_ = GetRandom(task_params->max_block_size_);
+				params->data_size_ = getRandom(task_params->max_block_size_);
 
 				ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
 				iter.Insert(data);
@@ -299,17 +299,17 @@ public:
 				params->key_num_ = AppendToSortedVector(pairs_, Pair(key, params->data_size_));
 
 				MEMORIA_TEST_THROW_IF(iter.size(), 	!= , data.size());
-				MEMORIA_TEST_THROW_IF(iter.GetKey(), 	!= , key);
+				MEMORIA_TEST_THROW_IF(iter.getKey(), 	!= , key);
 
 				total_size += iter.size();
 
 				MEMORIA_TEST_THROW_IF(map.array().Size(), != , total_size);
 
-				auto iter2 = map.Find(iter.GetKey());
+				auto iter2 = map.Find(iter.getKey());
 
 				MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
 				MEMORIA_TEST_THROW_IF(iter2.size(), 	!= , data.size());
-				MEMORIA_TEST_THROW_IF(iter2.GetKey(), != , iter.GetKey());
+				MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
 				CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -340,7 +340,7 @@ public:
 		DefaultLogHandlerImpl logHandler(out);
 
 		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
+		allocator.getLogger()->setHandler(&logHandler);
 
 		VectorMapCtr map(allocator);
 
@@ -355,12 +355,12 @@ public:
 
 			for (Int c = 0; c < params->size_; c++)
 			{
-				BigInt key = GetUniqueRandom(pairs_);
+				BigInt key = getUniqueRandom(pairs_);
 
 				params->key_ 		= key;
 
 				auto iter = map.Create(key);
-				params->data_size_ = GetRandom(task_params->max_block_size_);
+				params->data_size_ = getRandom(task_params->max_block_size_);
 
 				ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
 				iter.Insert(data);
@@ -374,7 +374,7 @@ public:
 			{
 				pairs_tmp = pairs_;
 
-				Int idx = GetRandom(map.Count());
+				Int idx = getRandom(map.Count());
 
 				params->key_num_ 	= idx;
 				params->key_		= pairs_[idx].key_;

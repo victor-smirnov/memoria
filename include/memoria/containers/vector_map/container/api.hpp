@@ -19,7 +19,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
     typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::IdxSetAccumulator                        			IdxSetAccumulator;
+	typedef typename Base::IdxsetAccumulator                        			IdxsetAccumulator;
 
 	typedef typename Base::Key													Key;
 	typedef typename Base::ISValue												ISValue;
@@ -44,7 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		{
 			auto ba_iter = me()->array().End();
 
-			ba_iter.Skip(-is_iter.GetRawKey(1));
+			ba_iter.Skip(-is_iter.getRawKey(1));
 
 			return Iterator(*me(), is_iter, ba_iter);
 		}
@@ -73,7 +73,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 		BigInt 	data_pos 	= is_iter.prefix(1);
 		bool	end			= is_iter.IsEnd();
-		bool 	exists 		= end ? false : (is_iter.GetKey(0) == key);
+		bool 	exists 		= end ? false : (is_iter.getKey(0) == key);
 
 		auto ba_iter = me()->array().Seek(data_pos);
 
@@ -97,7 +97,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 	{
 		auto is_iter = me()->set().End();
 
-		IdxSetAccumulator keys;
+		IdxsetAccumulator keys;
 
 		keys[0] = 1;
 
@@ -109,7 +109,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	void CreateNew(Iterator& iter)
 	{
-		IdxSetAccumulator keys;
+		IdxsetAccumulator keys;
 
 		keys[0] = 1;
 
@@ -130,7 +130,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 		BigInt 	data_pos 	= is_iter.prefix(1);
 		bool	end			= is_iter.IsEnd();
-		bool 	exists 		= end ? false : (is_iter.GetKey(0) == key);
+		bool 	exists 		= end ? false : (is_iter.getKey(0) == key);
 
 		auto ba_iter = me()->array().Seek(data_pos);
 
@@ -142,7 +142,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 			BigInt delta = key - is_iter.prefix(0);
 
 
-			IdxSetAccumulator keys;
+			IdxsetAccumulator keys;
 			keys.key(0) = delta;
 
 
@@ -166,14 +166,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 //		is_iter.Init();
 
 		bool	end			= is_iter.IsEnd();
-		bool 	exists 		= end ? false : (is_iter.GetKey(0) == key);
+		bool 	exists 		= end ? false : (is_iter.getKey(0) == key);
 
 		if (exists)
 		{
 			BigInt 	data_pos 	= is_iter.prefix(1);
-			BigInt 	size		= is_iter.GetRawKey(1);
+			BigInt 	size		= is_iter.getRawKey(1);
 
-			IdxSetAccumulator accum;
+			IdxsetAccumulator accum;
 
 			me()->set().RemoveEntry(is_iter, accum);
 
@@ -195,10 +195,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	void RemoveByIndex(BigInt blob_index)
 	{
-		auto is_iter 	= me()->set().GetByIndex(blob_index);
+		auto is_iter 	= me()->set().getByIndex(blob_index);
 
 		BigInt pos 		= is_iter.prefix(1);
-		BigInt size 	= is_iter.GetRawKey(1);
+		BigInt size 	= is_iter.getRawKey(1);
 
 		auto ba_iter 	= me()->array().Seek(pos);
 
@@ -208,7 +208,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	BigInt Count()
 	{
-		return me()->set().GetSize();
+		return me()->set().getSize();
 	}
 
 	BigInt Size()

@@ -63,7 +63,7 @@ public:
 	virtual void Run(ostream& out)
 	{
 		TestReplay params;
-		out<<GetTaskName()<<": "<<"Do main things"<<endl;
+		out<<getTaskName()<<": "<<"Do main things"<<endl;
 
 		Allocator allocator;
 		allocator.commit();

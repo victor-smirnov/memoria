@@ -32,18 +32,18 @@ using namespace memoria::vapi;
 
 struct MEMORIA_API Page {
 
-    virtual IDValue GetId() const                    = 0;
-    virtual Int GetContainerHash() const             = 0;
-    virtual Int GetPageTypeHash() const              = 0;
-    virtual BigInt GetFlags() const                  = 0;
+    virtual IDValue getId() const                    = 0;
+    virtual Int getContainerHash() const             = 0;
+    virtual Int getPageTypeHash() const              = 0;
+    virtual BigInt getFlags() const                  = 0;
     virtual const void* Ptr() const                  = 0;
     virtual void* Ptr()                  		 	 = 0;
-    virtual void SetPtr(void* ptr)              	 = 0;
+    virtual void setPtr(void* ptr)              	 = 0;
     virtual bool IsNull() const						 = 0;
 
     virtual Int Size() const                         = 0;
-    virtual Int GetByte(Int idx) const               = 0;
-    virtual void SetByte(Int idx, Int value)    	 = 0;
+    virtual Int getByte(Int idx) const               = 0;
+    virtual void setByte(Int idx, Int value)    	 = 0;
 };
 
 
@@ -59,7 +59,7 @@ public:
     	return page_ == NULL;
     }
 
-    virtual IDValue GetId() const
+    virtual IDValue getId() const
     {
     	if (page_ != NULL)
     	{
@@ -70,7 +70,7 @@ public:
     	}
     }
 
-    virtual Int GetContainerHash() const
+    virtual Int getContainerHash() const
     {
     	if (page_ != NULL)
     	{
@@ -81,7 +81,7 @@ public:
     	}
     }
 
-    virtual Int GetPageTypeHash() const
+    virtual Int getPageTypeHash() const
     {
     	if (page_ != NULL)
     	{
@@ -92,7 +92,7 @@ public:
     	}
     }
     
-    virtual BigInt GetFlags() const {
+    virtual BigInt getFlags() const {
         return 0;
     }
     
@@ -104,7 +104,7 @@ public:
         return page_;
     }
 
-    virtual void SetPtr(void* ptr)
+    virtual void setPtr(void* ptr)
     {
     	page_ = static_cast<PageType*>(ptr);
     }
@@ -113,7 +113,7 @@ public:
         return PageSize;
     }
 
-    virtual Int GetByte(Int idx) const
+    virtual Int getByte(Int idx) const
     {
     	if (page_ != NULL)
     	{
@@ -130,7 +130,7 @@ public:
     	}
     }
 
-    virtual void SetByte(Int idx, Int value)
+    virtual void setByte(Int idx, Int value)
     {
     	if (page_ != NULL)
     	{

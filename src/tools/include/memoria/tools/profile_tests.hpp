@@ -58,7 +58,7 @@ public:
 
 	virtual void LoadAllocator(Allocator& allocator, const TestReplayParams* params) const
 	{
-		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(params->GetDumpName().c_str()));
+		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(params->getDumpName().c_str()));
 		allocator.load(in.get());
 	}
 
@@ -74,23 +74,23 @@ public:
 	{
 		Configure(params);
 
-		String file_name = GetAllocatorFileName(params, ".valid");
+		String file_name = getAllocatorFileName(params, ".valid");
 		StoreAllocator(allocator, file_name);
-		params->SetDumpName(file_name);
+		params->setDumpName(file_name);
 
-		String file_name_invalid = GetAllocatorFileName(params, ".invalid");
+		String file_name_invalid = getAllocatorFileName(params, ".invalid");
 		allocator.commit();
 		StoreAllocator(allocator, file_name_invalid);
 
-		String props_name = GetPropertiesFileName();
+		String props_name = getPropertiesFileName();
 		StoreProperties(params, props_name);
 	}
 
 
 
-	virtual String GetAllocatorFileName(const TestReplayParams* params, StringRef infix = "") const
+	virtual String getAllocatorFileName(const TestReplayParams* params, StringRef infix = "") const
 	{
-		return GetResourcePath(params->GetName()+infix+".dump");
+		return getResourcePath(params->getName()+infix+".dump");
 	}
 
 
@@ -111,7 +111,7 @@ public:
 
 	void Check(Allocator& allocator, const char* source)
 	{
-		Int step_count = GetParameters<>()->GetCheckStep();
+		Int step_count = getParameters<>()->getCheckStep();
 
 		if (step_count > 0 && (check_count % step_count == 0))
 		{
@@ -123,7 +123,7 @@ public:
 
 	void Check(Allocator& allocator, const char* message, const char* source)
 	{
-		Int step_count = GetParameters<>()->GetCheckStep();
+		Int step_count = getParameters<>()->getCheckStep();
 
 		if (check_count % step_count == 0)
 		{
@@ -135,7 +135,7 @@ public:
 	template <typename CtrType>
 	void CheckCtr(CtrType& ctr, const char* message, const char* source)
 	{
-		Int step_count = GetParameters<>()->GetCheckStep();
+		Int step_count = getParameters<>()->getCheckStep();
 
 		if (step_count > 0 && (check_count % step_count == 0))
 		{

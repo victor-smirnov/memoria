@@ -103,7 +103,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 bool M_TYPE::CheckTree()
 {
-	NodeBaseG root = me()->GetRoot(Allocator::READ);
+	NodeBaseG root = me()->getRoot(Allocator::READ);
 	if (root != NULL)
 	{
 		bool errors = false;
@@ -146,9 +146,9 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
 	else {
 		for (Int c = 0; c < children; c++)
 		{
-			ID child_id	= me()->GetINodeData(node, c);
+			ID child_id	= me()->getINodeData(node, c);
 
-			NodeBaseG child = me()->GetChild(node, c, Allocator::READ);
+			NodeBaseG child = me()->getChild(node, c, Allocator::READ);
 
 			if (child->id() != child_id)
 			{

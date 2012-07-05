@@ -48,9 +48,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
 
-    Int GetElementSize() const
+    Int getElementSize() const
     {
-    	return me()->model().GetElementSize();
+    	return me()->model().getElementSize();
     }
 
 
@@ -61,7 +61,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     BigInt Read(IData& data)
     {
-    	return Read(data, 0, data.GetSize());
+    	return Read(data, 0, data.getSize());
     }
 
     
@@ -125,7 +125,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     bool operator++()
     {
-    	Int size = me()->GetElementSize();
+    	Int size = me()->getElementSize();
     	return me()->Skip(size) = size;
     }
 
@@ -202,7 +202,7 @@ void M_TYPE::Update(const IData& data, BigInt start, BigInt len)
 M_PARAMS
 void M_TYPE::Update(const IData& data)
 {
-	me()->model().UpdateData(*me(), data, 0, data.GetSize());
+	me()->model().UpdateData(*me(), data, 0, data.getSize());
 }
 
 
@@ -222,7 +222,7 @@ BigInt M_TYPE::Skip(BigInt distance)
 M_PARAMS
 BigInt M_TYPE::SkipFw(BigInt count)
 {
-	Int element_size = me()->GetElementSize();
+	Int element_size = me()->getElementSize();
 
 	BigInt distance = count * element_size;
 
@@ -267,7 +267,7 @@ BigInt M_TYPE::SkipFw(BigInt count)
 			{
 				me()->data_pos() 	= me()->data()->size();
 
-				me()->cache().Setup(pos + (walker.sum() - data_pos) - me()->data_pos(), 0);
+				me()->cache().setup(pos + (walker.sum() - data_pos) - me()->data_pos(), 0);
 
 				return (walker.sum() - data_pos) / element_size;
 			}
@@ -275,7 +275,7 @@ BigInt M_TYPE::SkipFw(BigInt count)
 
 				me()->data_pos() 	= walker.remainder();
 
-				me()->cache().Setup(pos + distance - me()->data_pos(), 0);
+				me()->cache().setup(pos + distance - me()->data_pos(), 0);
 			}
 		}
 
@@ -291,7 +291,7 @@ BigInt M_TYPE::SkipFw(BigInt count)
 M_PARAMS
 BigInt M_TYPE::SkipBw(BigInt count)
 {
-	Int element_size = me()->GetElementSize();
+	Int element_size = me()->getElementSize();
 
 	BigInt distance = count * element_size;
 
@@ -325,14 +325,14 @@ BigInt M_TYPE::SkipBw(BigInt count)
 			{
 				me()->data_pos() 	= 0;
 
-				me()->cache().Setup(0, 0);
+				me()->cache().setup(0, 0);
 
 				return (walker.sum() - to_add) / element_size;
 			}
 			else {
 				me()->data_pos()		= me()->data()->size() - walker.remainder();
 
-				me()->cache().Setup((pos - distance) - me()->data_pos(), 0);
+				me()->cache().setup((pos - distance) - me()->data_pos(), 0);
 			}
 		}
 

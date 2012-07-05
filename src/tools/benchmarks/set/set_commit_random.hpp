@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class SetCommitRandomBenchmark: public SPBenchmarkTask {
+class setCommitRandomBenchmark: public SPBenchmarkTask {
 public:
 
 	Int max_size;
@@ -30,39 +30,39 @@ public:
 	typedef typename Base::Profile 		Profile;
 
 	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<Set1>::Type 		SetCtr;
-	typedef typename SetCtr::Iterator								Iterator;
-	typedef typename SetCtr::ID										ID;
-	typedef typename SetCtr::Accumulator							Accumulator;
+	typedef typename SmallCtrTypeFactory::Factory<set1>::Type 		setCtr;
+	typedef typename setCtr::Iterator								Iterator;
+	typedef typename setCtr::ID										ID;
+	typedef typename setCtr::Accumulator							Accumulator;
 
 
-	typedef typename SetCtr::Key									Key;
-	typedef typename SetCtr::Value									Value;
+	typedef typename setCtr::Key									Key;
+	typedef typename setCtr::Value									Value;
 
 
 	Allocator* 	allocator_;
-	SetCtr* 	set_;
+	setCtr* 	set_;
 
 
 
 public:
 
-	SetCommitRandomBenchmark(StringRef name):
+	setCommitRandomBenchmark(StringRef name):
 		SPBenchmarkTask(name), max_size(1*1024*1024)
 	{
 		RootCtr::Init();
-		SetCtr::Init();
+		setCtr::Init();
 
 		Add("max_size", max_size);
 	}
 
-	virtual ~SetCommitRandomBenchmark() throw() {}
+	virtual ~setCommitRandomBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ = new Allocator();
 
-		set_ = new SetCtr(*allocator_, 1, true);
+		set_ = new setCtr(*allocator_, 1, true);
 	}
 
 	virtual void Release(ostream& out)
@@ -80,7 +80,7 @@ public:
 
 		for (Int c = 0; c < this->max_size; c++)
 		{
-			auto i = c == 0? set_->End() : set_->Find(GetRandom(c));
+			auto i = c == 0? set_->End() : set_->Find(getRandom(c));
 
 			Accumulator keys;
 			keys[0] = 1;

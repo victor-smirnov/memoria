@@ -52,15 +52,15 @@ public:
 	virtual void Read(Iterator& iter, ArrayData& data) 					= 0;
 	virtual void Remove(Iterator& iter, BigInt size) 					= 0;
 	virtual void Skip(Iterator& iter, BigInt offset) 					= 0;
-	virtual BigInt GetPosition(Iterator& iter)							= 0;
-	virtual BigInt GetLocalPosition(Iterator& iter)						= 0;
-	virtual BigInt GetSize(Ctr& array)									= 0;
+	virtual BigInt getPosition(Iterator& iter)							= 0;
+	virtual BigInt getLocalPosition(Iterator& iter)						= 0;
+	virtual BigInt getSize(Ctr& array)									= 0;
 
-	virtual Int GetElementSize(Ctr& array) {
+	virtual Int getElementSize(Ctr& array) {
 		return 1;
 	}
 
-	virtual void SetElementSize(Ctr& array, ParamType* task_params) {}
+	virtual void setElementSize(Ctr& array, ParamType* task_params) {}
 
 	virtual ReplayParamType* CreateTestStep(StringRef name) const
 	{
@@ -87,20 +87,20 @@ public:
 	}
 
 
-	virtual BigInt GetRandomPosition(Ctr& array)
+	virtual BigInt getRandomPosition(Ctr& array)
 	{
-		BigInt size = GetSize(array);
-		return GetBIRandom(size);
+		BigInt size = getSize(array);
+		return getBIRandom(size);
 	}
 
 	virtual void Run(ostream& out)
 	{
 		ReplayParamType params;
-		ParamType* task_params = GetParameters<ParamType>();
+		ParamType* task_params = getParameters<ParamType>();
 
 		if (task_params->btree_random_branching_)
 		{
-			task_params->btree_branching_ = 8 + GetRandom(100);
+			task_params->btree_branching_ = 8 + getRandom(100);
 			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 		}
 
@@ -126,31 +126,31 @@ public:
 		DefaultLogHandlerImpl logHandler(out);
 
 		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
+		allocator.getLogger()->setHandler(&logHandler);
 
 		Ctr dv(allocator);
 
-		SetElementSize(dv, task_params);
+		setElementSize(dv, task_params);
 
 		params.ctr_name_ = dv.name();
 
 		allocator.commit();
 
-		dv.SetBranchingFactor(branching);
+		dv.setBranchingFactor(branching);
 
 		try {
 			out<<"Insert data"<<endl;
 			params.insert_ = true;
 
 			params.data_ = 1;
-			while (GetSize(dv) < params.size_)
+			while (getSize(dv) < params.size_)
 			{
 				if (step)
 				{
-					params.step_ 		= GetRandom(3);
+					params.step_ 		= getRandom(3);
 				}
 
-				params.block_size_ 	= 1 + GetRandom(task_params->max_block_size_);
+				params.block_size_ 	= 1 + getRandom(task_params->max_block_size_);
 
 				Build(out, allocator, dv, &params);
 
@@ -164,21 +164,21 @@ public:
 
 //			StoreAllocator(allocator, "vector.dump");
 
-			out<<"Remove data. SumSet contains "<<(GetSize(dv)/1024)<<"K keys"<<endl;
+			out<<"Remove data. Sumset contains "<<(getSize(dv)/1024)<<"K keys"<<endl;
 			params.insert_ = false;
 
 			for (Int c = 0; ; c++)
 			{
 				if (step)
 				{
-					params.step_ = GetRandom(3);
+					params.step_ = getRandom(3);
 				}
 
-				BigInt size = GetSize(dv);
+				BigInt size = getSize(dv);
 				BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
 
-				params.block_size_  = 1 + GetBIRandom(max_size);
-				params.page_step_ 	= GetRandom(3);
+				params.block_size_  = 1 + getBIRandom(max_size);
+				params.page_step_ 	= getRandom(3);
 
 				if (!Remove(out, allocator, dv, &params))
 				{
@@ -191,7 +191,7 @@ public:
 				allocator.commit();
 			}
 
-			out<<"SumSet.size = "<<(GetSize(dv) / 1024)<<"K keys"<<endl;
+			out<<"Sumset.size = "<<(getSize(dv) / 1024)<<"K keys"<<endl;
 
 			allocator.commit();
 		}
@@ -211,7 +211,7 @@ public:
 
 		ArrayData data = CreateBuffer(array, params->block_size_, value);
 
-		BigInt size = GetSize(array);
+		BigInt size = getSize(array);
 
 		if (size == 0)
 		{
@@ -234,7 +234,7 @@ public:
 				auto iter = Seek(array, 0);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
-				BigInt len = GetSize(array);
+				BigInt len = getSize(array);
 				if (len > 100) len = 100;
 
 				ArrayData postfix = CreateBuffer(array, len, 0);
@@ -251,7 +251,7 @@ public:
 
 				Check(allocator, "Insertion at the start of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
-				Skip(iter, -data.size()/GetElementSize(array));
+				Skip(iter, -data.size()/getElementSize(array));
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, data, "Failed to read and compare buffer from array", 				MEMORIA_SOURCE);
@@ -263,7 +263,7 @@ public:
 			else if (step == 1)
 			{
 				//Insert at the end of the array
-				BigInt len = GetSize(array);
+				BigInt len = getSize(array);
 
 				auto iter = Seek(array, len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
@@ -282,7 +282,7 @@ public:
 
 				Check(allocator, "Insertion at the end of the array failed. See the dump for details.", MEMORIA_SOURCE);
 
-				Skip(iter, -data.size()/GetElementSize(array) - len);
+				Skip(iter, -data.size()/getElementSize(array) - len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", MEMORIA_SOURCE);
@@ -294,26 +294,26 @@ public:
 			else {
 				//Insert in the middle of the array
 
-				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
+				if (params->pos_ == -1) params->pos_ = getRandomPosition(array);
 
 				Int pos = params->pos_;
 
 				auto iter = Seek(array, pos);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
-				if (params->page_step_ == -1) params->page_step_ = GetRandom(2);
+				if (params->page_step_ == -1) params->page_step_ = getRandom(2);
 
 				if (params->page_step_ == 0)
 				{
-					Skip(iter, -GetLocalPosition(iter));
+					Skip(iter, -getLocalPosition(iter));
 					CheckIterator(out, iter, MEMORIA_SOURCE);
-					pos = GetPosition(iter);
+					pos = getPosition(iter);
 				}
 
 				BigInt prefix_len = pos;
 				if (prefix_len > 100) prefix_len = 100;
 
-				BigInt postfix_len = GetSize(array) - pos;
+				BigInt postfix_len = getSize(array) - pos;
 				if (postfix_len > 100) postfix_len = 100;
 
 				ArrayData prefix	= CreateBuffer(array, prefix_len, 0);
@@ -336,7 +336,7 @@ public:
 
 				Check(allocator, "Insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
-				Skip(iter, - data.size()/GetElementSize(array) - prefix_len);
+				Skip(iter, - data.size()/getElementSize(array) - prefix_len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
 				CheckBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 	MEMORIA_SOURCE);
@@ -357,16 +357,16 @@ public:
 
 		params->cnt_++;
 
-		if (GetSize(array) < 200)
+		if (getSize(array) < 200)
 		{
 			auto iter = array.Begin();
 			CheckIterator(out, iter, MEMORIA_SOURCE);
 
-			Remove(iter, GetSize(array));
+			Remove(iter, getSize(array));
 			CheckIterator(out, iter, MEMORIA_SOURCE);
 
 			Check(allocator, "Remove ByteArray", MEMORIA_SOURCE);
-			return GetSize(array) > 0;
+			return getSize(array) > 0;
 		}
 		else {
 			BigInt size = params->block_size_;
@@ -377,10 +377,10 @@ public:
 				auto iter = Seek(array, 0);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
-				BigInt len = GetSize(array) - size;
+				BigInt len = getSize(array) - size;
 				if (len > 100) len = 100;
 
-				ArrayData postfix(len * GetElementSize(array));
+				ArrayData postfix(len * getElementSize(array));
 				Skip(iter, size);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
@@ -401,13 +401,13 @@ public:
 			else if (step == 1)
 			{
 				//Remove at the end of the array
-				auto iter = Seek(array, GetSize(array) - size);
+				auto iter = Seek(array, getSize(array) - size);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
-				BigInt len = GetPosition(iter);
+				BigInt len = getPosition(iter);
 				if (len > 100) len = 100;
 
-				ArrayData prefix(len * GetElementSize(array));
+				ArrayData prefix(len * getElementSize(array));
 				Skip(iter, -len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 
@@ -427,35 +427,35 @@ public:
 			}
 			else {
 				//Remove at the middle of the array
-				if (params->pos_ == -1) params->pos_ = GetRandomPosition(array);
+				if (params->pos_ == -1) params->pos_ = getRandomPosition(array);
 
 				Int pos = params->pos_;
 
 				auto iter = Seek(array, pos);
 
-				if (params->page_step_ == -1) params->page_step_ = GetRandom(2);
+				if (params->page_step_ == -1) params->page_step_ = getRandom(2);
 
 				if (params->page_step_ == 0)
 				{
-					Skip(iter, -GetLocalPosition(iter));
+					Skip(iter, -getLocalPosition(iter));
 					CheckIterator(out, iter, MEMORIA_SOURCE);
 
-					pos = GetPosition(iter);
+					pos = getPosition(iter);
 				}
 
-				if (pos + size > GetSize(array))
+				if (pos + size > getSize(array))
 				{
-					size = GetSize(array) - pos - 1;
+					size = getSize(array) - pos - 1;
 				}
 
 				BigInt prefix_len = pos;
 				if (prefix_len > 100) prefix_len = 100;
 
-				BigInt postfix_len = GetSize(array) - (pos + size);
+				BigInt postfix_len = getSize(array) - (pos + size);
 				if (postfix_len > 100) postfix_len = 100;
 
-				ArrayData prefix(prefix_len * GetElementSize(array));
-				ArrayData postfix(postfix_len * GetElementSize(array));
+				ArrayData prefix(prefix_len * getElementSize(array));
+				ArrayData postfix(postfix_len * getElementSize(array));
 
 				Skip(iter, -prefix_len);
 				CheckIterator(out, iter, MEMORIA_SOURCE);
@@ -487,7 +487,7 @@ public:
 				CheckIterator(out, iter, MEMORIA_SOURCE);
 			}
 
-			return GetSize(array) > 0;
+			return getSize(array) > 0;
 		}
 
 		return false;
@@ -500,13 +500,13 @@ public:
 
 		auto& path = iter.path();
 
-		for (Int level = path.GetSize() - 1; level > 0; level--)
+		for (Int level = path.getSize() - 1; level > 0; level--)
 		{
 			bool found = false;
 
 			for (Int idx = 0; idx < path[level]->children_count(); idx++)
 			{
-				ID id = iter.model().GetINodeData(path[level].node(), idx);
+				ID id = iter.model().getINodeData(path[level].node(), idx);
 				if (id == path[level - 1]->id())
 				{
 					if (path[level - 1].parent_idx() != idx)

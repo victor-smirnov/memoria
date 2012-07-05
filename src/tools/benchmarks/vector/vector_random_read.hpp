@@ -93,7 +93,7 @@ public:
 
 		while (total < memory_size)
 		{
-			auto i = ctr_->Seek(GetRandom(memory_size - size));
+			auto i = ctr_->Seek(getRandom(memory_size - size));
 			total += i.Read(data);
 			operations++;
 		}

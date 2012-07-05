@@ -138,7 +138,7 @@ public:
 
 	virtual ~BenchmarkTask() throw () {}
 
-	virtual Int GetAverage() {
+	virtual Int getAverage() {
 		return average;
 	}
 
@@ -169,7 +169,7 @@ public:
 
 public:
 
-	String GetFileName(StringRef name) const;
+	String getFileName(StringRef name) const;
 };
 
 

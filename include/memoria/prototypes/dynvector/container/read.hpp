@@ -59,10 +59,10 @@ BigInt M_TYPE::Read(Iterator& iter, IData& data, BigInt start, BigInt len)
 
 		if (to_read > len) to_read = len;
 
-		data.Put(iter.data()->data().value_addr(iter.data_pos()), start, to_read);
+		data.put(iter.data()->data().value_addr(iter.data_pos()), start, to_read);
 
 		len 	-= to_read;
-		iter.Skip(to_read / me()->GetElementSize());
+		iter.Skip(to_read / me()->getElementSize());
 
 		sum 	+= to_read;
 		start 	+= to_read;

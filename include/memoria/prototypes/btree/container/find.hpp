@@ -62,7 +62,7 @@ public:
         {
         	i_.path().Resize(level_ + 1);
 
-        	i_.SetNode(root, 0);
+        	i_.setNode(root, 0);
         }
 
         template <typename Node>
@@ -77,7 +77,7 @@ public:
         			auto& path_item 		= i_.path()[node->level() - 1];
 
         			path_item.parent_idx()	= idx_;
-        			path_item.node() 		= model_.GetChild(node, idx_, Allocator::READ);
+        			path_item.node() 		= model_.getChild(node, idx_, Allocator::READ);
 
         			level_--;
         		}
@@ -136,9 +136,9 @@ public:
     Iterator FindStart(bool reverse = false);
     Iterator FindEnd  (bool reverse = false);
 
-    BigInt GetSize() const
+    BigInt getSize() const
     {
-    	return me()->GetTotalKeyCount();
+    	return me()->getTotalKeyCount();
     }
 
     Iterator Begin()
@@ -188,7 +188,7 @@ M_PARAMS
 template <typename Comparator>
 const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 {
-	NodeBaseG node = me()->GetRoot(Allocator::READ);
+	NodeBaseG node = me()->getRoot(Allocator::READ);
 
 	if (node->children_count() > 0)
 	{
@@ -213,7 +213,7 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 
 						me()->FinishPathStep(fn.i_.path(), fn.i_.key_idx());
 
-						cmp.SetupIterator(fn.i_);
+						cmp.setupIterator(fn.i_);
 
 						return fn.i_;
 					}
@@ -243,18 +243,18 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindStart(bool reverse)
 {
-	NodeBaseG node = me()->GetRoot(Allocator::READ);
+	NodeBaseG node = me()->getRoot(Allocator::READ);
 	if (node.is_set())
 	{
 		Iterator i(*me(), node->level() + 1);
 
-		i.SetNode(node, 0);
+		i.setNode(node, 0);
 
 		while(!node->is_leaf())
 		{
-			node = me()->GetChild(node, 0, Allocator::READ);
+			node = me()->getChild(node, 0, Allocator::READ);
 
-			i.SetNode(node, 0);
+			i.setNode(node, 0);
 		}
 
 		i.key_idx() = reverse ? -1 : 0;
@@ -272,20 +272,20 @@ typename M_TYPE::Iterator M_TYPE::FindStart(bool reverse)
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::FindEnd(bool reverse)
 {
-	NodeBaseG node = me()->GetRoot(Allocator::READ);
+	NodeBaseG node = me()->getRoot(Allocator::READ);
 	if (node.is_set())
 	{
 		Iterator i(*me(), node->level() + 1);
 
-		i.SetNode(node, 0);
+		i.setNode(node, 0);
 
 		while(!node->is_leaf())
 		{
 			Int parent_idx = node->children_count() - 1;
 
-			node = me()->GetLastChild(node, Allocator::READ);
+			node = me()->getLastChild(node, Allocator::READ);
 
-			i.SetNode(node, parent_idx);
+			i.setNode(node, parent_idx);
 		}
 
 		i.key_idx() = i.page()->children_count() + (reverse ? -1 : 0);

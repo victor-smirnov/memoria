@@ -31,12 +31,12 @@ public:
 
 	virtual ~File() throw();
 
-	virtual String GetName() const;
-	virtual StringRef GetPath() const;
+	virtual String getName() const;
+	virtual StringRef getPath() const;
 
 	virtual bool IsExists() const;
 	virtual bool IsDirectory() const;
-	String GetAbsolutePath() const;
+	String getAbsolutePath() const;
 
 	virtual bool MkDir() const;
 	virtual bool MkDirs() const;

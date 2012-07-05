@@ -7,7 +7,7 @@
 
 
 /**
- * Basic bitmap tools. Get/Set bit and bit groups. Copy/Shift bits in a Buffer.
+ * Basic bitmap tools. get/set bit and bit groups. Copy/Shift bits in a Buffer.
  *
  * Buffer must have Long type declarator and [] overloaded operator.
  */
@@ -47,7 +47,7 @@ public:
 		return *this;
 	}
 
-	Object* Get(const ID& id)
+	Object* get(const ID& id)
 	{
 		const T idv = id.value();
 
@@ -95,15 +95,15 @@ public:
 		throw new Exception(MEMORIA_SOURCE, "ID is not known in this StaticPool");
 	}
 
-	Int GetMax() {
+	Int getMax() {
 		return Max;
 	}
 
-	Int GetUsage() {
-		return Size - GetCapacity();
+	Int getUsage() {
+		return Size - getCapacity();
 	}
 
-	Int GetCapacity()
+	Int getCapacity()
 	{
 		Int cnt = 0;
 		for (Int c = 0; c < Size; c++)

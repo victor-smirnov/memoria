@@ -47,7 +47,7 @@ public:
 
 		for (Int c = 0; c < size; c++)
 		{
-			BigInt value = GetRandom(10000);
+			BigInt value = getRandom(10000);
 			ctr_->push_back(value);
 		}
 	}

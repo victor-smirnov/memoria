@@ -20,14 +20,14 @@ void TestTask::Replay(ostream& out, Configurator* cfg)
 	Replay(out, params.get());
 }
 
-String TestTask::GetFileName(StringRef name) const
+String TestTask::getFileName(StringRef name) const
 {
 	return name + ".properties";
 }
 
 TestReplayParams* TestTask::ReadTestStep(Configurator* cfg) const
 {
-	String name = cfg->GetProperty("name");
+	String name = cfg->getProperty("name");
 	TestReplayParams* params = CreateTestStep(name);
 	Configure(params);
 
@@ -38,8 +38,8 @@ TestReplayParams* TestTask::ReadTestStep(Configurator* cfg) const
 
 void TestTask::Configure(TestReplayParams* params) const
 {
-	params->SetTask(GetFullName());
-	params->SetReplay(true);
+	params->setTask(getFullName());
+	params->setReplay(true);
 }
 
 
@@ -56,7 +56,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 
 	if (folder.IsExists())
 	{
-		replay_file_name = task_folder + Platform::GetFilePathSeparator() + "Replay.properties";
+		replay_file_name = task_folder + Platform::getFilePathSeparator() + "Replay.properties";
 		File file(replay_file_name);
 
 		if (!file.IsExists())
@@ -64,7 +64,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 			throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<replay_file_name<<" does not exists");
 		}
 
-		task_file_name = task_folder + Platform::GetFilePathSeparator() + "ReplayTask.properties";
+		task_file_name = task_folder + Platform::getFilePathSeparator() + "ReplayTask.properties";
 		File task_file(task_file_name);
 
 		if (!file.IsExists())
@@ -79,12 +79,12 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 
 	Configurator::Parse(replay_file_name.c_str(), &cfg);
 
-	String name = cfg.GetProperty("task");
-	TestTask* task = GetTask<TestTask>(name);
+	String name = cfg.getProperty("task");
+	TestTask* task = getTask<TestTask>(name);
 	if (task != NULL)
 	{
 		try {
-			out<<"Task: "<<task->GetFullName()<<endl;
+			out<<"Task: "<<task->getFullName()<<endl;
 			task->LoadProperties(task, task_file_name);
 			task->Replay(out, &cfg);
 			out<<"PASSED"<<endl;

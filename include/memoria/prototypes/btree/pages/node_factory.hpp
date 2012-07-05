@@ -114,7 +114,7 @@ public:
 
     Int data_size() const
     {
-    	return sizeof(Me) + map_.GetDataSize();
+    	return sizeof(Me) + map_.getDataSize();
     }
 
     void set_children_count(Int map_size)
@@ -207,7 +207,7 @@ public:
     		me->template Deserialize<FieldFactory>(data);
     	}
 
-    	virtual Int GetPageSize(const void *page) const
+    	virtual Int getPageSize(const void *page) const
     	{
     		const Me* me = T2T<const Me*>(page);
     		return me->data_size();

@@ -254,7 +254,7 @@ void DumpPage(PageMetadata* meta, Page* page, std::ostream& out)
 {
 	TextPageDumper dumper(out);
 
-	meta->GetPageOperations()->GenerateDataEvents(page->Ptr(), DataEventsParams(), &dumper);
+	meta->getPageOperations()->GenerateDataEvents(page->Ptr(), DataEventsParams(), &dumper);
 }
 
 

@@ -21,7 +21,7 @@ using namespace std;
 
 
 template <Int BranchingFactor_>
-class PSetSizeBenchmark: public BenchmarkTask {
+class PsetSizeBenchmark: public BenchmarkTask {
 
 	template <typename Key_, typename Value_, Int Blocks_>
 	struct PMapFindTypes {
@@ -52,13 +52,13 @@ class PSetSizeBenchmark: public BenchmarkTask {
 
 public:
 
-	PSetSizeBenchmark():
+	PsetSizeBenchmark():
 		BenchmarkTask("FindSize."+ToString(BranchingFactor_))
 	{
 		average = 10;
 	}
 
-	virtual ~PSetSizeBenchmark() throw() {}
+	virtual ~PsetSizeBenchmark() throw() {}
 
 	void FillPMap(Map* map, Int size)
 	{
@@ -76,7 +76,7 @@ public:
 
 	virtual void Prepare(BenchmarkParameters& data, ostream& out)
 	{
-		Int buffer_size 	= sizeof(Map) + Map::GetMemoryBlockSizeFor(data.x());
+		Int buffer_size 	= sizeof(Map) + Map::getMemoryBlockSizeFor(data.x());
 
 		Byte* buffer 		= T2T<Byte*>(malloc(buffer_size));
 
@@ -91,7 +91,7 @@ public:
 		rd_array_ = new Int[data.operations()];
 		for (Int c = 0; c < data.operations(); c++)
 		{
-			rd_array_[c] = GetRandom(map_->size());
+			rd_array_[c] = getRandom(map_->size());
 		}
 	}
 

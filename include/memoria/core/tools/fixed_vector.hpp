@@ -122,7 +122,7 @@ public:
 		return values_[idx];
 	}
 
-	Int GetSize() const {
+	Int getSize() const {
 		return size_;
 	}
 
@@ -131,7 +131,7 @@ public:
 		size_ = size;
 	}
 
-	static Int GetMaxSize() {
+	static Int getMaxSize() {
 		return Size;
 	}
 
@@ -167,7 +167,7 @@ public:
 
 	void RemoveLast()
 	{
-		Remove(GetSize() - 1);
+		Remove(getSize() - 1);
 	}
 
 	void Clear()

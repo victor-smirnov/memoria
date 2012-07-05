@@ -127,7 +127,7 @@ public:
 
 			handler->Value(Blocks == 1 ? "KEY" : "KEYS", keys, Blocks);
 
-			if (GetValueSize() > 0)
+			if (getValueSize() > 0)
 			{
 				intrnl0::ValueHelper<Value>::setup(handler, value(idx));
 			}
@@ -153,7 +153,7 @@ public:
 			FieldFactory<Key>::serialize(buf, key(c, 0), size());
 		}
 
-		if (GetValueSize() > 0)
+		if (getValueSize() > 0)
 		{
 			FieldFactory<Value>::serialize(buf, value(0), size());
 		}
@@ -172,7 +172,7 @@ public:
 			FieldFactory<Key>::deserialize(buf, key(c, 0), size());
 		}
 
-		if (GetValueSize() > 0)
+		if (getValueSize() > 0)
 		{
 			FieldFactory<Value>::deserialize(buf, value(0), size());
 		}
@@ -185,8 +185,8 @@ public:
 	{
 		size_ = 0;
 
-		max_size_	= GetMaxSize(block_size);
-		index_size_ = GetIndexSize(max_size_);
+		max_size_	= getMaxSize(block_size);
+		index_size_ = getIndexSize(max_size_);
 	}
 
 
@@ -194,28 +194,28 @@ public:
 	{
 		size_		= 0;
 		max_size_	= max;
-		index_size_ = GetIndexSize(max_size_);
+		index_size_ = getIndexSize(max_size_);
 	}
 
-	Int GetObjectSize() const
+	Int getObjectSize() const
 	{
-		return sizeof(MyType) + GetBlockSize();
+		return sizeof(MyType) + getBlockSize();
 	}
 
-	Int GetObjectDataSize() const
+	Int getObjectDataSize() const
 	{
-		return sizeof(size_) + sizeof(max_size_) + sizeof(index_size_) + GetBlockSize();
+		return sizeof(size_) + sizeof(max_size_) + sizeof(index_size_) + getBlockSize();
 	}
 
 
-	Int GetBlockSize() const
+	Int getBlockSize() const
 	{
-		return (index_size_ * sizeof(IndexKey) + max_size_ * sizeof(Key)) * Blocks + max_size_ * GetValueSize();
+		return (index_size_ * sizeof(IndexKey) + max_size_ * sizeof(Key)) * Blocks + max_size_ * getValueSize();
 	}
 
-	Int GetDataSize() const
+	Int getDataSize() const
 	{
-		return (index_size_ * sizeof(IndexKey) + size_ * sizeof(Key)) * Blocks + size_ * GetValueSize();
+		return (index_size_ * sizeof(IndexKey) + size_ * sizeof(Key)) * Blocks + size_ * getValueSize();
 	}
 
 	Int& size() {
@@ -239,13 +239,13 @@ public:
 
 	static Int max_size_for(Int block_size)
 	{
-		return GetMaxSize(block_size);
+		return getMaxSize(block_size);
 	}
 
-	static Int GetMemoryBlockSizeFor(Int max)
+	static Int getMemoryBlockSizeFor(Int max)
 	{
-		Int index_size = GetIndexSize(max);
-		return (index_size * sizeof(IndexKey) + max * sizeof(Key)) * Blocks + max * GetValueSize();
+		Int index_size = getIndexSize(max);
+		return (index_size * sizeof(IndexKey) + max * sizeof(Key)) * Blocks + max * getValueSize();
 	}
 
 	Byte* memory_block() {
@@ -256,34 +256,34 @@ public:
 		return memory_block_;
 	}
 
-	Int GetIndexKeyBlockOffset(Int block_num) const
+	Int getIndexKeyBlockOffset(Int block_num) const
 	{
-		return GetIndexKeyBlockOffset(index_size_, block_num);
+		return getIndexKeyBlockOffset(index_size_, block_num);
 	}
 
-	Int GetIndexKeyBlockOffset(Int index_size, Int block_num) const
+	Int getIndexKeyBlockOffset(Int index_size, Int block_num) const
 	{
 		return sizeof(IndexKey) * index_size * block_num;
 	}
 
-	Int GetKeyBlockOffset(Int block_num) const
+	Int getKeyBlockOffset(Int block_num) const
 	{
-		return GetKeyBlockOffset(index_size_, max_size_, block_num);
+		return getKeyBlockOffset(index_size_, max_size_, block_num);
 	}
 
-	Int GetKeyBlockOffset(Int index_size, Int keys_size, Int block_num) const
+	Int getKeyBlockOffset(Int index_size, Int keys_size, Int block_num) const
 	{
-		return GetIndexKeyBlockOffset(index_size, Blocks) + sizeof(Key) * keys_size * block_num;
+		return getIndexKeyBlockOffset(index_size, Blocks) + sizeof(Key) * keys_size * block_num;
 	}
 
-	Int GetValueBlockOffset() const
+	Int getValueBlockOffset() const
 	{
-		return GetValueBlockOffset(index_size_, max_size_);
+		return getValueBlockOffset(index_size_, max_size_);
 	}
 
-	Int GetValueBlockOffset(Int index_size, Int keys_size) const
+	Int getValueBlockOffset(Int index_size, Int keys_size) const
 	{
-		return GetKeyBlockOffset(index_size, keys_size, Blocks);
+		return getKeyBlockOffset(index_size, keys_size, Blocks);
 	}
 
 	template <typename T>
@@ -310,12 +310,12 @@ public:
 
 	IndexKey& index(Int block_num, Int key_num)
 	{
-		return block_item<IndexKey>(GetIndexKeyBlockOffset(block_num), key_num);
+		return block_item<IndexKey>(getIndexKeyBlockOffset(block_num), key_num);
 	}
 
 	const IndexKey& index(Int block_num, Int key_num) const
 	{
-		return block_item<IndexKey>(GetIndexKeyBlockOffset(block_num), key_num);
+		return block_item<IndexKey>(getIndexKeyBlockOffset(block_num), key_num);
 	}
 
 
@@ -331,12 +331,12 @@ public:
 
 	Key& key(Int block_num, Int key_num)
 	{
-		return block_item<Key>(GetKeyBlockOffset(block_num), key_num);
+		return block_item<Key>(getKeyBlockOffset(block_num), key_num);
 	}
 
 	const Key& key(Int block_num, Int key_num) const
 	{
-		return block_item<Key>(GetKeyBlockOffset(block_num), key_num);
+		return block_item<Key>(getKeyBlockOffset(block_num), key_num);
 	}
 
 	IndexKey& max_key(Int block_num)
@@ -356,25 +356,25 @@ public:
 
 	Value& value(Int value_num)
 	{
-		return valueb(GetValueBlockOffset(), value_num);
+		return valueb(getValueBlockOffset(), value_num);
 	}
 
 	const Value& value(Int value_num) const
 	{
-		return valueb(GetValueBlockOffset(), value_num);
+		return valueb(getValueBlockOffset(), value_num);
 	}
 
 	Value& valueb(Int block_offset, Int value_num)
 	{
-		return block_item<Value>(block_offset, value_num, GetValueSize());
+		return block_item<Value>(block_offset, value_num, getValueSize());
 	}
 
 	const Value& valueb(Int block_offset, Int value_num) const
 	{
-		return block_item<Value>(block_offset, value_num, GetValueSize());
+		return block_item<Value>(block_offset, value_num, getValueSize());
 	}
 
-	static Int GetValueSize()
+	static Int getValueSize()
 	{
 		return ValueTraits<Value>::Size;
 	}
@@ -383,18 +383,18 @@ public:
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
-			Int src_block_offset = this->GetKeyBlockOffset(c)  + copy_from * sizeof(Key);
-			Int tgt_block_offset = other->GetKeyBlockOffset(c) + copy_to * sizeof(Key);
+			Int src_block_offset = this->getKeyBlockOffset(c)  + copy_from * sizeof(Key);
+			Int tgt_block_offset = other->getKeyBlockOffset(c) + copy_to * sizeof(Key);
 
 			CopyBuffer(memory_block_ + src_block_offset, other->memory_block_ + tgt_block_offset, count * sizeof(Key));
 		}
 
-		if (this->GetValueSize() > 0)
+		if (this->getValueSize() > 0)
 		{
-			Int src_block_offset = this->GetValueBlockOffset()  + copy_from * GetValueSize();
-			Int tgt_block_offset = other->GetValueBlockOffset() + copy_to * GetValueSize();
+			Int src_block_offset = this->getValueBlockOffset()  + copy_from * getValueSize();
+			Int tgt_block_offset = other->getValueBlockOffset() + copy_to * getValueSize();
 
-			CopyBuffer(memory_block_ + src_block_offset, other->memory_block_ + tgt_block_offset, count * GetValueSize());
+			CopyBuffer(memory_block_ + src_block_offset, other->memory_block_ + tgt_block_offset, count * getValueSize());
 		}
 	}
 
@@ -402,7 +402,7 @@ public:
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
-			Int block_offset = this->GetKeyBlockOffset(c);
+			Int block_offset = this->getKeyBlockOffset(c);
 
 			for (Int idx = from; idx < to; idx++)
 			{
@@ -410,9 +410,9 @@ public:
 			}
 		}
 
-		if (this->GetValueSize() > 0)
+		if (this->getValueSize() > 0)
 		{
-			Int block_offset = this->GetValueBlockOffset();
+			Int block_offset = this->getValueBlockOffset();
 			for (Int idx = from; idx < to; idx++)
 			{
 				valueb(block_offset, idx) = 0;
@@ -422,28 +422,28 @@ public:
 
 	void Enlarge(Byte* target_memory_block, Int new_keys_size, Int new_index_size)
 	{
-		Int value_size = GetValueSize();
+		Int value_size = getValueSize();
 
 		if (value_size > 0)
 		{
-			Int offset		= GetValueBlockOffset();
-			Int new_offset	= GetValueBlockOffset(new_index_size, new_keys_size);
+			Int offset		= getValueBlockOffset();
+			Int new_offset	= getValueBlockOffset(new_index_size, new_keys_size);
 
 			CopyData(target_memory_block, offset, new_offset, value_size);
 		}
 
 		for (Int c = Blocks - 1; c >= 0; c--)
 		{
-			Int offset		= GetKeyBlockOffset(c);
-			Int new_offset	= GetKeyBlockOffset(new_index_size, new_keys_size, c);
+			Int offset		= getKeyBlockOffset(c);
+			Int new_offset	= getKeyBlockOffset(new_index_size, new_keys_size, c);
 
 			CopyData(target_memory_block, offset, new_offset, sizeof(Key));
 		}
 
 //		for (Int c = Blocks - 1; c >= 0; c--)
 //		{
-//			Int offset		= GetIndexKeyBlockOffset(c);
-//			Int new_offset	= GetIndexKeyBlockOffset(new_index_size, c);
+//			Int offset		= getIndexKeyBlockOffset(c);
+//			Int new_offset	= getIndexKeyBlockOffset(new_index_size, c);
 //
 //			CopyIndex(target_memory_block, offset, new_offset, sizeof(IndexKey));
 //		}
@@ -451,8 +451,8 @@ public:
 
 	void EnlargeBlock(Int block_size)
 	{
-		Int max_size 	= GetMaxSize(block_size);
-		Int index_size	= GetIndexSize(max_size);
+		Int max_size 	= getMaxSize(block_size);
+		Int index_size	= getIndexSize(max_size);
 
 		Enlarge(memory_block_, max_size, index_size);
 
@@ -467,20 +467,20 @@ public:
 
 	void Shrink(Byte* target_memory_block, Int new_keys_size, Int new_index_size) const
 	{
-		Int value_size = GetValueSize();
+		Int value_size = getValueSize();
 
 		for (Int c = 0; c < Blocks; c++)
 		{
-			Int offset		= GetKeyBlockOffset(c);
-			Int new_offset	= GetKeyBlockOffset(new_index_size, new_keys_size, c);
+			Int offset		= getKeyBlockOffset(c);
+			Int new_offset	= getKeyBlockOffset(new_index_size, new_keys_size, c);
 
 			CopyData(target_memory_block, offset, new_offset, sizeof(Key));
 		}
 
 		if (value_size > 0)
 		{
-			Int offset		= GetValueBlockOffset();
-			Int new_offset	= GetValueBlockOffset(new_index_size, new_keys_size);
+			Int offset		= getValueBlockOffset();
+			Int new_offset	= getValueBlockOffset(new_index_size, new_keys_size);
 
 			CopyData(target_memory_block, offset, new_offset, value_size);
 		}
@@ -489,8 +489,8 @@ public:
 
 	void ShrinkBlock(Int block_size)
 	{
-		Int max_size 	= GetMaxSize(block_size);
-		Int index_size	= GetIndexSize(max_size);
+		Int max_size 	= getMaxSize(block_size);
+		Int index_size	= getIndexSize(max_size);
 
 		Shrink(memory_block_, max_size, index_size);
 
@@ -506,7 +506,7 @@ public:
 	template <typename TreeType>
 	void TransferTo(TreeType* other) const
 	{
-		if (sizeof(Key) == sizeof(typename TreeType::Key) && GetValueSize() == TreeType::GetValueSize())
+		if (sizeof(Key) == sizeof(typename TreeType::Key) && getValueSize() == TreeType::getValueSize())
 		{
 			Shrink(other->memory_block_, other->max_size_, other->index_size_);
 		}
@@ -514,8 +514,8 @@ public:
 
 			for (Int block = 0; block < Blocks; block++)
 			{
-				Int src_block_offset = this->GetKeyBlockOffset(block);
-				Int tgt_block_offset = other->GetKeyBlockOffset(block);
+				Int src_block_offset = this->getKeyBlockOffset(block);
+				Int tgt_block_offset = other->getKeyBlockOffset(block);
 
 				for (Int idx = 0; idx < size(); idx++)
 				{
@@ -523,10 +523,10 @@ public:
 				}
 			}
 
-			if (GetValueSize() > 0)
+			if (getValueSize() > 0)
 			{
-				Int src_block_offset = this->GetValueBlockOffset();
-				Int tgt_block_offset = other->GetValueBlockOffset();
+				Int src_block_offset = this->getValueBlockOffset();
+				Int tgt_block_offset = other->getValueBlockOffset();
 
 				for (Int idx = 0; idx < size(); idx++)
 				{
@@ -538,18 +538,18 @@ public:
 
 	void InsertSpace(Int room_start, Int room_length)
 	{
-		Int value_size = GetValueSize();
+		Int value_size = getValueSize();
 
 		if (value_size > 0)
 		{
-			Int offset = GetValueBlockOffset();
+			Int offset = getValueBlockOffset();
 
 			CopyData(offset, room_start, room_length, value_size);
 		}
 
 		for (Int c = Blocks - 1; c >= 0; c--)
 		{
-			Int offset = GetKeyBlockOffset(c);
+			Int offset = getKeyBlockOffset(c);
 
 			CopyData(offset, room_start, room_length, sizeof(Key));
 		}
@@ -559,18 +559,18 @@ public:
 
 	void RemoveSpace(Int room_start, Int room_length)
 	{
-		Int value_size = GetValueSize();
+		Int value_size = getValueSize();
 
 		for (Int c = 0; c < Blocks; c++)
 		{
-			Int offset = GetKeyBlockOffset(c);
+			Int offset = getKeyBlockOffset(c);
 
 			CopyData(offset, room_start + room_length, -room_length, sizeof(Key));
 		}
 
 		if (value_size > 0)
 		{
-			Int offset = GetValueBlockOffset();
+			Int offset = getValueBlockOffset();
 
 			CopyData(offset, room_start + room_length, -room_length, value_size);
 		}
@@ -582,9 +582,9 @@ public:
 	{
 		key(block_num, idx) += value;
 
-		Int index_block_offset 	= GetIndexKeyBlockOffset(block_num);
+		Int index_block_offset 	= getIndexKeyBlockOffset(block_num);
 
-		Int index_level_size	= GetIndexCellsNumberFor(max_size_);
+		Int index_level_size	= getIndexCellsNumberFor(max_size_);
 		Int index_level_start 	= index_size_ - index_level_size;
 
 		while (index_level_start >= 0)
@@ -593,7 +593,7 @@ public:
 
 			indexb(index_block_offset, idx + index_level_start) += value;
 
-			Int index_parent_size 	= GetIndexCellsNumberFor(index_level_size);
+			Int index_parent_size 	= getIndexCellsNumberFor(index_level_size);
 
 			index_level_size 		= index_parent_size;
 			index_level_start 		-= index_parent_size;
@@ -621,8 +621,8 @@ public:
 	template <typename Comparator>
 	Int Find(Int block_num, const Key& k, Comparator &comparator) const
 	{
-		Int key_block_offset 	= GetKeyBlockOffset(block_num);
-		Int index_block_offset 	= GetIndexKeyBlockOffset(block_num);
+		Int key_block_offset 	= getKeyBlockOffset(block_num);
+		Int index_block_offset 	= getIndexKeyBlockOffset(block_num);
 
 		if (comparator.TestMax(k, max_keyb(index_block_offset)))
 		{
@@ -636,7 +636,7 @@ public:
 
 		do
 		{
-			level_size = GetIndexCellsNumberFor(level_size);
+			level_size = getIndexCellsNumberFor(level_size);
 			level_sizes[levels++] = level_size;
 		}
 		while (level_size > 1);
@@ -683,14 +683,14 @@ public:
 			walker.WalkKeys(start, end);
 		}
 		else {
-			Int block_start_end 	= GetBlockStartEnd(start);
-			Int block_end_start 	= GetBlockStart(end);
+			Int block_start_end 	= getBlockStartEnd(start);
+			Int block_end_start 	= getBlockStart(end);
 
 			walker.WalkKeys(start, block_start_end);
 
 			if (block_start_end < block_end_start)
 			{
-				Int level_size = GetIndexCellsNumberFor(max_size_);
+				Int level_size = getIndexCellsNumberFor(max_size_);
 				walker.PrepareIndex();
 				WalkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, index_size_ - level_size, level_size);
 			}
@@ -705,7 +705,7 @@ public:
 	template <typename Walker>
 	Int WalkFw(Int start, Walker& walker) const
 	{
-		Int block_limit 	= GetBlockStartEnd(start);
+		Int block_limit 	= getBlockStartEnd(start);
 
 		if (block_limit >= size())
 		{
@@ -721,11 +721,11 @@ public:
 			else {
 				walker.PrepareIndex();
 
-				Int level_size 		= GetIndexCellsNumberFor(max_size_);
-				Int level_limit 	= GetIndexCellsNumberFor(size_);
+				Int level_size 		= getIndexCellsNumberFor(max_size_);
+				Int level_limit 	= getIndexCellsNumberFor(size_);
 				Int last_start 		= WalkIndexFw(block_limit/BranchingFactor, walker, index_size_ - level_size, level_size, level_limit);
 
-				Int last_start_end 	= GetBlockStartEnd(last_start);
+				Int last_start_end 	= getBlockStartEnd(last_start);
 
 				Int last_end = last_start_end <= size()? last_start_end : size();
 
@@ -738,7 +738,7 @@ public:
 	template <typename Walker>
 	Int WalkBw(Int start, Walker& walker) const
 	{
-		Int block_end 	= GetBlockStartEndBw(start);
+		Int block_end 	= getBlockStartEndBw(start);
 
 		if (block_end == -1)
 		{
@@ -754,10 +754,10 @@ public:
 			else {
 				walker.PrepareIndex();
 
-				Int level_size = GetIndexCellsNumberFor(max_size_);
+				Int level_size = getIndexCellsNumberFor(max_size_);
 				Int last_start = WalkIndexBw(block_end/BranchingFactor, walker, index_size_ - level_size, level_size);
 
-				Int last_start_end = GetBlockStartEndBw(last_start);
+				Int last_start_end = getBlockStartEndBw(last_start);
 
 				return walker.WalkKeys(last_start, last_start_end);
 			}
@@ -775,14 +775,14 @@ private:
 			walker.WalkIndex(start + level_offet, end + level_offet);
 		}
 		else {
-			Int block_start_end 	= GetBlockStartEnd(start);
-			Int block_end_start 	= GetBlockStart(end);
+			Int block_start_end 	= getBlockStartEnd(start);
+			Int block_end_start 	= getBlockStart(end);
 
 			walker.WalkIndex(start + level_offet, block_start_end + level_offet);
 
 			if (block_start_end < block_end_start)
 			{
-				Int level_size0 = GetIndexCellsNumberFor(level_size);
+				Int level_size0 = getIndexCellsNumberFor(level_size);
 				WalkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, level_offet - level_size0, level_size0);
 			}
 
@@ -794,7 +794,7 @@ private:
 	template <typename Walker>
 	Int WalkIndexFw(Int start, Walker& walker, Int level_offet, Int level_size, Int level_limit) const
 	{
-		Int block_start_end 	= GetBlockStartEnd(start);
+		Int block_start_end 	= getBlockStartEnd(start);
 
 		if (block_start_end >= level_limit)
 		{
@@ -808,12 +808,12 @@ private:
 				return limit * BranchingFactor;
 			}
 			else {
-				Int level_size0 	= GetIndexCellsNumberFor(level_size);
-				Int level_limit0 	= GetIndexCellsNumberFor(level_limit);
+				Int level_size0 	= getIndexCellsNumberFor(level_size);
+				Int level_limit0 	= getIndexCellsNumberFor(level_limit);
 
 				Int last_start  	= WalkIndexFw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0, level_limit0);
 
-				Int last_start_end 	= GetBlockStartEnd(last_start);
+				Int last_start_end 	= getBlockStartEnd(last_start);
 
 				Int last_end = last_start_end <= level_limit ? last_start_end : level_limit;
 
@@ -825,7 +825,7 @@ private:
 	template <typename Walker>
 	Int WalkIndexBw(Int start, Walker& walker, Int level_offet, Int level_size) const
 	{
-		Int block_start_end 	= GetBlockStartEndBw(start);
+		Int block_start_end 	= getBlockStartEndBw(start);
 
 		if (block_start_end == -1)
 		{
@@ -839,10 +839,10 @@ private:
 				return (idx + 1) * BranchingFactor - 1;
 			}
 			else {
-				Int level_size0 = GetIndexCellsNumberFor(level_size);
+				Int level_size0 = getIndexCellsNumberFor(level_size);
 				Int last_start  = WalkIndexBw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0);
 
-				Int last_start_end = GetBlockStartEndBw(last_start);
+				Int last_start_end = getBlockStartEndBw(last_start);
 
 				return (walker.WalkIndex(last_start + level_offet, last_start_end + level_offet) - level_offet + 1) * BranchingFactor - 1;
 			}
@@ -852,27 +852,27 @@ private:
 
 
 protected:
-	static Int GetBlockStart(Int i)
+	static Int getBlockStart(Int i)
 	{
 		return (i / BranchingFactor) * BranchingFactor;
 	}
 
-	static Int GetBlockStartEnd(Int i)
+	static Int getBlockStartEnd(Int i)
 	{
 		return (i / BranchingFactor + 1) * BranchingFactor;
 	}
 
-	static Int GetBlockStartEndBw(Int i)
+	static Int getBlockStartEndBw(Int i)
 	{
 		return (i / BranchingFactor) * BranchingFactor - 1;
 	}
 
-	static Int GetBlockEnd(Int i)
+	static Int getBlockEnd(Int i)
 	{
 		return (i / BranchingFactor + ((i % BranchingFactor) ? 1 : 0)) * BranchingFactor;
 	}
 
-	static Int GetIndexCellsNumberFor(Int i)
+	static Int getIndexCellsNumberFor(Int i)
 	{
 		return i / BranchingFactor + ((i % BranchingFactor) ? 1 : 0);
 	}
@@ -906,15 +906,15 @@ private:
 		CopyBuffer(src, dst, (size_ - room_start) * item_size);
 	}
 
-	static Int GetBlockSize(Int item_count)
+	static Int getBlockSize(Int item_count)
 	{
 		Int key_size  = sizeof(IndexKey) * Blocks;
-		Int item_size = sizeof(Key) * Blocks + GetValueSize();
+		Int item_size = sizeof(Key) * Blocks + getValueSize();
 
-		return GetIndexSize(item_count) * key_size + item_count * item_size;
+		return getIndexSize(item_count) * key_size + item_count * item_size;
 	}
 
-	static Int GetIndexSize(Int csize)
+	static Int getIndexSize(Int csize)
 	{
 		if (csize == 1)
 		{
@@ -931,7 +931,7 @@ private:
 		}
 	}
 
-	static Int GetLevelsForSize(Int csize)
+	static Int getLevelsForSize(Int csize)
 	{
 		Int nlevels;
 		for (nlevels = 0; csize > 1; nlevels++)
@@ -944,7 +944,7 @@ private:
 		return nlevels;
 	}
 
-	static Int GetParentNodesFor(Int n)
+	static Int getParentNodesFor(Int n)
 	{
 		Int idx = n / BranchingFactor;
 
@@ -952,9 +952,9 @@ private:
 	}
 
 
-	static Int GetMaxSize(Int block_size)
+	static Int getMaxSize(Int block_size)
 	{
-		Int item_size 	= sizeof(Key) * Blocks + GetValueSize();
+		Int item_size 	= sizeof(Key) * Blocks + getValueSize();
 
 		Int first 		= 1;
 		Int last  		= block_size / item_size;
@@ -963,7 +963,7 @@ private:
 		{
 			Int middle = (first + last) / 2;
 
-			Int size = GetBlockSize(middle);
+			Int size = getBlockSize(middle);
 			if (size < block_size)
 			{
 				first = middle;
@@ -979,11 +979,11 @@ private:
 
 		Int max_size;
 
-		if (GetBlockSize(last) <= block_size)
+		if (getBlockSize(last) <= block_size)
 		{
 			max_size = last;
 		}
-		else if (GetBlockSize((first + last) / 2) <= block_size)
+		else if (getBlockSize((first + last) / 2) <= block_size)
 		{
 			max_size = (first + last) / 2;
 		}

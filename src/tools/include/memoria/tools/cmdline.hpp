@@ -54,7 +54,7 @@ public:
 		envp_(envp),
 		help_(false),
 		list_(false),
-		image_name_(GetImageName(argv[0])),
+		image_name_(getImageName(argv[0])),
 		cfg_file_name_(cfg_file_name),
 		cfg_file_(),
 		cfg_cmdline_(&cfg_file_),
@@ -66,17 +66,17 @@ public:
 		Process();
 	};
 
-	StringRef GetConfigFileName() const
+	StringRef getConfigFileName() const
 	{
 		return cfg_file_name_;
 	}
 
-	StringRef GetImageName() const
+	StringRef getImageName() const
 	{
 		return image_name_;
 	}
 
-	const char* GetOutFolder() const
+	const char* getOutFolder() const
 	{
 		return out_folder_;
 	}
@@ -94,24 +94,24 @@ public:
 		return replay_;
 	}
 
-	Int GetCount() const {
+	Int getCount() const {
 		return count_;
 	}
 
-	Configurator& GetConfigurator()
+	Configurator& getConfigurator()
 	{
 		return cfg_cmdline_;
 	}
 
-	StringRef GetReplayFile()
+	StringRef getReplayFile()
 	{
 		return replay_file_;
 	}
 
 	void Process();
 protected:
-	static String GetImagePathPart(const char* str);
-	static String GetImageName(const char* str);
+	static String getImagePathPart(const char* str);
+	static String getImageName(const char* str);
 };
 
 

@@ -15,7 +15,7 @@ namespace memoria    {
 namespace vector_map {
 
 template <Int Indexes>
-struct VMSet {
+struct VMset {
 	static const Int Code = 56721;
 };
 

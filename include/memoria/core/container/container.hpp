@@ -48,11 +48,11 @@ struct IParentCtrInterface
 	typedef typename Allocator::CtrShared					CtrShared;
 	typedef typename Allocator::Page::ID 			ID;
 
-	virtual ID 	  GetRootID(void* caller, BigInt name)					= 0;
-	virtual void  SetRootID(void* caller, BigInt name, const ID& root) 	= 0;
+	virtual ID 	  getRootID(void* caller, BigInt name)					= 0;
+	virtual void  setRootID(void* caller, BigInt name, const ID& root) 	= 0;
 
-	virtual Allocator& GetAllocator()									= 0;
-	virtual CtrShared* GetShared()										= 0;
+	virtual Allocator& getAllocator()									= 0;
+	virtual CtrShared* getShared()										= 0;
 };
 
 
@@ -140,7 +140,7 @@ public:
     {
     	if (reflection_ != NULL)
     	{
-    		delete reflection_->GetCtrInterface();
+    		delete reflection_->getCtrInterface();
 
     		MetadataRepository<typename Types::Profile>::Unregister(reflection_);
 
@@ -163,7 +163,7 @@ public:
     };
 
 
-    static ContainerInterface* GetContainerInterface()
+    static ContainerInterface* getContainerInterface()
     {
     	return new CtrInterfaceImpl();
     }
@@ -178,7 +178,7 @@ public:
 
             PageInitDispatcher<typename Types::DataPagesList>::BuildMetadataList(list);
 
-            reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(), list, Name::Code + salt, MyType::GetContainerInterface());
+            reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(), list, Name::Code + salt, MyType::getContainerInterface());
 
             MetadataRepository<typename Types::Profile>::Register(reflection_);
         }
@@ -190,7 +190,7 @@ public:
     	return PageG();
     }
 
-    BigInt GetModelName(ID root_id)
+    BigInt getModelName(ID root_id)
     {
     	return -1;
     }
@@ -200,17 +200,17 @@ public:
     	return new (&me()->allocator()) CtrShared(name);
     }
 
-    CtrShared* GetOrCreateCtrShared(BigInt name)
+    CtrShared* getOrCreateCtrShared(BigInt name)
     {
     	if (me()->allocator().IsCtrSharedRegistered(name))
     	{
-    		return me()->allocator().GetCtrShared(name);
+    		return me()->allocator().getCtrShared(name);
     	}
     	else {
     		CtrShared* shared = me()->CreateCtrShared(name);
     		me()->allocator().RegisterCtrShared(shared);
 
-    		PageG node = me()->allocator().GetRoot(name, Allocator::READ);
+    		PageG node = me()->allocator().getRoot(name, Allocator::READ);
 
     		if (node.is_updated())
     		{
@@ -249,12 +249,12 @@ public:
 
 protected:
 
-    static void SetMetadata(ContainerMetadata* metadata)
+    static void setMetadata(ContainerMetadata* metadata)
     {
     	reflection_ = metadata;
     }
 
-    void SetCtrShared(CtrShared* shared)
+    void setCtrShared(CtrShared* shared)
     {
     	this->shared_ = shared;
     }
@@ -414,7 +414,7 @@ public:
     	logger_(other.logger_),
     	debug_(other.debug_)
     {
-    	Base::SetCtrShared(other.shared_);
+    	Base::setCtrShared(other.shared_);
     	ref();
     }
 
@@ -425,7 +425,7 @@ public:
     	logger_(other.logger_),
     	debug_(other.debug_)
     {
-    	Base::SetCtrShared(other.shared_);
+    	Base::setCtrShared(other.shared_);
     	ref();
     }
 
@@ -453,7 +453,7 @@ public:
     	logger_(model_type_name_, Logger::DERIVED, NULL),
     	debug_(false)
     {
-    	Base::SetCtrShared(NULL);
+    	Base::setCtrShared(NULL);
     }
 
     ~Ctr() throw()
@@ -477,7 +477,7 @@ public:
     {
     	allocator_ 			= &allocator;
     	model_type_name_	= mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
-    	name_				= me()->GetModelName(root_id);
+    	name_				= me()->getModelName(root_id);
     	//FIXME: Init logger correctly
 
     	Base::InitCtr(root_id);
@@ -603,7 +603,7 @@ private:
     			allocator_->UnregisterCtrShared(shared);
     			me()->RemoveCtrShared(shared);
 
-    			Base::SetCtrShared(NULL);
+    			Base::setCtrShared(NULL);
     		}
     	}
     }

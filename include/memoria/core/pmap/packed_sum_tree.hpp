@@ -79,10 +79,10 @@ public:
 		Int level_size 		= Base::max_size();
 		Int level_start 	= Base::index_size();
 
-		Int block_offset 	= Base::GetIndexKeyBlockOffset(block_num);
+		Int block_offset 	= Base::getIndexKeyBlockOffset(block_num);
 
 		do {
-			level_size 		= Base::GetIndexCellsNumberFor(level_size);
+			level_size 		= Base::getIndexCellsNumberFor(level_size);
 			level_start		-= level_size;
 
 			idx /= BranchingFactor;
@@ -94,13 +94,13 @@ public:
 
 	void Reindex(Int block_num, Int start, Int end)
 	{
-		Int block_start = Base::GetBlockStart(start);
-		Int block_end 	= Base::GetBlockEnd(end);
+		Int block_start = Base::getBlockStart(start);
+		Int block_end 	= Base::getBlockEnd(end);
 
-		Int index_block_offset 	= Base::GetIndexKeyBlockOffset(block_num);
-		Int key_block_offset 	= Base::GetKeyBlockOffset(block_num);
+		Int index_block_offset 	= Base::getIndexKeyBlockOffset(block_num);
+		Int key_block_offset 	= Base::getKeyBlockOffset(block_num);
 
-		Int index_level_size	= Base::GetIndexCellsNumberFor(Base::max_size());
+		Int index_level_size	= Base::getIndexCellsNumberFor(Base::max_size());
 		Int index_level_start 	= Base::index_size() - index_level_size;
 
 		Int level_max 			= Base::size();
@@ -121,11 +121,11 @@ public:
 
 		while (index_level_start > 0)
 		{
-			level_max 		= Base::GetIndexCellsNumberFor(level_max);
-			block_start 	= Base::GetBlockStart(block_start / BranchingFactor);
-			block_end 		= Base::GetBlockEnd(block_end / BranchingFactor);
+			level_max 		= Base::getIndexCellsNumberFor(level_max);
+			block_start 	= Base::getBlockStart(block_start / BranchingFactor);
+			block_end 		= Base::getBlockEnd(block_end / BranchingFactor);
 
-			Int index_parent_size 	= Base::GetIndexCellsNumberFor(index_level_size);
+			Int index_parent_size 	= Base::getIndexCellsNumberFor(index_level_size);
 			Int index_parent_start	= index_level_start - index_parent_size;
 
 			for (Int c = block_start; c < block_end; c += BranchingFactor)

@@ -12,15 +12,15 @@ namespace memoria {
 
 using namespace std;
 
-String Platform::GetPathSeparator() {
+String Platform::getPathSeparator() {
 	return ";";
 }
 
-String Platform::GetLineSeparator() {
+String Platform::getLineSeparator() {
 	return "\r\n";
 }
 
-String Platform::GetFilePathSeparator() {
+String Platform::getFilePathSeparator() {
 	return "/";
 }
 

@@ -218,7 +218,7 @@ public:
 		return *iter_;
 	}
 
-	void Setup(BigInt, Int) {}
+	void setup(BigInt, Int) {}
 };
 
 

@@ -29,9 +29,9 @@ public:
 		for (UInt c = 0; c < content_.size(); c++)
 		{
 
-			if (content_[c]->GetTypeCode() != Metadata::PAGE &&
-					content_[c]->GetTypeCode() != Metadata::MODEL &&
-					content_[c]->GetTypeCode() != Metadata::CONTAINER)
+			if (content_[c]->getTypeCode() != Metadata::PAGE &&
+					content_[c]->getTypeCode() != Metadata::MODEL &&
+					content_[c]->getTypeCode() != Metadata::CONTAINER)
 			{
 				delete content_[c];
 			}
@@ -43,7 +43,7 @@ public:
 		return content_.size();
 	}
 
-	virtual Metadata* GetItem(Int idx) const {
+	virtual Metadata* getItem(Int idx) const {
 		return content_[idx];
 	}
 
@@ -51,7 +51,7 @@ public:
 //	{
 //		for (Int c = 0; c < Size(); c++)
 //		{
-//			Metadata* item = GetItem(c);
+//			Metadata* item = getItem(c);
 //			if (item->Name() == name)
 //			{
 //				return item;
@@ -78,7 +78,7 @@ public:
 //		return FindFirstField(this);
 //	}
 
-	virtual void PutAll(MetadataList& target) const
+	virtual void putAll(MetadataList& target) const
 	{
 		for (auto i = content_.begin(); i != content_.end(); i++)
 		{
@@ -86,7 +86,7 @@ public:
 		}
 	}
 
-	virtual Int GetBlockSize() const
+	virtual Int getBlockSize() const
 	{
 		return block_size_;
 	}
@@ -99,7 +99,7 @@ protected:
 //	{
 //		for (Int c = 0; c < Size(); c++)
 //		{
-//			const Metadata* item = group->GetItem(c);
+//			const Metadata* item = group->getItem(c);
 //			if (item->IsField())
 //			{
 //				return T2T<const FieldMetadata*>(item);
@@ -118,7 +118,7 @@ protected:
 
 inline bool isGroup(Metadata *meta)
 {
-    Int type = meta->GetTypeCode();
+    Int type = meta->getTypeCode();
     return type == Metadata::GROUP || type == Metadata::CONTAINER || type == Metadata::MODEL ||
         type == Metadata::PAGE;
 }

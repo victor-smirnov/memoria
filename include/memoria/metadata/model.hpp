@@ -34,7 +34,7 @@ public:
 		MetadataGroup::set_type() = MetadataGroup::MODEL;
 		for (UInt c = 0; c < content.size(); c++)
 	    {
-	        if (content[c]->GetTypeCode() == Metadata::PAGE)
+	        if (content[c]->getTypeCode() == Metadata::PAGE)
 	        {
 	            PageMetadata *page = static_cast<PageMetadata*> (content[c]);
 	            page_map_[page->Hash()] = page;
@@ -56,7 +56,7 @@ public:
 		return code_;
 	}
 
-	virtual PageMetadata* GetPageMetadata(Int hashCode) const
+	virtual PageMetadata* getPageMetadata(Int hashCode) const
 	{
 		PageMetadataMap::const_iterator i = page_map_.find(hashCode);
 		if (i != page_map_.end()) {
@@ -67,7 +67,7 @@ public:
 		}
 	}
 
-	virtual ContainerInterface* GetCtrInterface() const
+	virtual ContainerInterface* getCtrInterface() const
 	{
 		return container_interface_;
 	}

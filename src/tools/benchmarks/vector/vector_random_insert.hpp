@@ -78,7 +78,7 @@ public:
 
 		while (total < memory_size)
 		{
-			BigInt idx = GetRandom(total);
+			BigInt idx = getRandom(total);
 			Iterator i = ctr_->Seek(idx);
 			i.Insert(data);
 			total += data.size();

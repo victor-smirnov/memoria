@@ -40,7 +40,7 @@ public:
     	me()->shared()->root_log() 	= root;
     	me()->shared()->updated() 	= true;
 
-    	me()->allocator().SetRoot(me()->name(), root);
+    	me()->allocator().setRoot(me()->name(), root);
     }
 
     const ID &root() const
@@ -59,9 +59,9 @@ public:
 
 
 
-    virtual CtrShared* GetCtrShared(BigInt name)
+    virtual CtrShared* getCtrShared(BigInt name)
     {
-    	return me()->shared()->Get(name);
+    	return me()->shared()->get(name);
     }
 
     virtual void UnregisterCtrShared(CtrShared* shared)
@@ -81,9 +81,9 @@ public:
 
 
     // Allocator directory interface part
-    virtual PageG GetRoot(BigInt name, Int flags)
+    virtual PageG getRoot(BigInt name, Int flags)
     {
-    	return me()->allocator().GetPage(me()->GetRootID(name), flags);
+    	return me()->allocator().getPage(me()->getRootID(name), flags);
     }
 
 
@@ -91,9 +91,9 @@ public:
 
 
 
-    virtual PageG GetPage(const ID& id, Int flags);
+    virtual PageG getPage(const ID& id, Int flags);
 
-    virtual PageG GetPageG(Page* page);
+    virtual PageG getPageG(Page* page);
 
     virtual void  UpdatePage(Shared* shared);
 
@@ -123,13 +123,13 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::GetPage(const ID& id, Int flags) {
-	return me()->allocator().GetPage(id, flags);
+typename M_TYPE::PageG M_TYPE::getPage(const ID& id, Int flags) {
+	return me()->allocator().getPage(id, flags);
 }
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::GetPageG(Page* page) {
-	return me()->allocator().GetPageG(page);
+typename M_TYPE::PageG M_TYPE::getPageG(Page* page) {
+	return me()->allocator().getPageG(page);
 }
 
 M_PARAMS

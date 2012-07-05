@@ -58,8 +58,8 @@ public:
 		Int idx = 0;
 		for (auto iter = map.Begin(); !iter.IsEnd();)
 		{
-			BigInt key   = iter.GetKey(0);
-			BigInt value = iter.GetValue();
+			BigInt key   = iter.getKey(0);
+			BigInt value = iter.getValue();
 
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].key_,   !=, key, idx);
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].value_, !=, value, idx);
@@ -73,8 +73,8 @@ public:
 		idx = pairs_size - 1;
 		for (auto iter = map.RBegin(); !iter.IsBegin(); )
 		{
-			BigInt  key 	= iter.GetKey(0);
-			BigInt  value 	= iter.GetValue();
+			BigInt  key 	= iter.getKey(0);
+			BigInt  value 	= iter.getValue();
 
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].key_,   !=, key, idx);
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].value_, !=, value, idx);
@@ -117,7 +117,7 @@ public:
 
 		if (task_params->btree_random_branching_)
 		{
-			task_params->btree_branching_ = 8 + GetRandom(100);
+			task_params->btree_branching_ = 8 + getRandom(100);
 			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
 		}
 
@@ -128,7 +128,7 @@ public:
 
 		for (Int c = 0; c < SIZE; c++)
 		{
-			pairs.push_back(Pair(GetUniqueBIRandom(pairs, 1000000), GetBIRandom(100000)));
+			pairs.push_back(Pair(getUniqueBIRandom(pairs, 1000000), getBIRandom(100000)));
 		}
 
 		MapReplay params;
@@ -136,13 +136,13 @@ public:
 		params.size_ = SIZE;
 
 		Allocator allocator;
-		allocator.GetLogger()->SetHandler(&logHandler);
+		allocator.getLogger()->setHandler(&logHandler);
 
 		MapCtr map(allocator);
 
 		params.ctr_name_ = map.name();
 
-		map.SetBranchingFactor(task_params->btree_branching_);
+		map.setBranchingFactor(task_params->btree_branching_);
 
 		for (Int step = 0; step < 3; step++)
 		{
@@ -169,15 +169,15 @@ public:
 
 	void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, MapReplay& params)
 	{
-		String basic_name = "Data." + params.GetName();
+		String basic_name = "Data." + params.getName();
 
 		String pairs_name = basic_name + ".pairs.txt";
-		params.pairs_data_file_ = GetResourcePath(pairs_name);
+		params.pairs_data_file_ = getResourcePath(pairs_name);
 
 		StoreVector(pairs, params.pairs_data_file_);
 
 		String pairs_sorted_name = basic_name + ".pairs_sorted.txt";
-		params.pairs_sorted_data_file_ = GetResourcePath(pairs_sorted_name);
+		params.pairs_sorted_data_file_ = getResourcePath(pairs_sorted_name);
 
 		StoreVector(pairs_sorted, params.pairs_sorted_data_file_);
 	}
@@ -191,7 +191,7 @@ public:
 		if (params->step_ == 0)
 		{
 			auto iter = map[pairs[c].key_];
-			iter.SetData(pairs[c].value_);
+			iter.setData(pairs[c].value_);
 
 			CheckIterator(out, iter, MEMORIA_SOURCE);
 
@@ -205,7 +205,7 @@ public:
 		}
 		else if (params->step_ == 1)
 		{
-			BigInt value = map[pairs[c].key_].GetValue();
+			BigInt value = map[pairs[c].key_].getValue();
 
 			MEMORIA_TEST_THROW_IF(pairs[c].value_, !=, value);
 		}
@@ -218,7 +218,7 @@ public:
 
 			BigInt size = params->size_ - c - 1;
 
-			MEMORIA_TEST_THROW_IF(size, !=, map.GetSize());
+			MEMORIA_TEST_THROW_IF(size, !=, map.getSize());
 
 			for (UInt x = 0; x < pairs_sorted.size(); x++)
 			{
@@ -240,13 +240,13 @@ public:
 
 		auto& path = iter.path();
 
-		for (Int level = path.GetSize() - 1; level > 0; level--)
+		for (Int level = path.getSize() - 1; level > 0; level--)
 		{
 			bool found = false;
 
 			for (Int idx = 0; idx < path[level]->children_count(); idx++)
 			{
-				ID id = iter.model().GetINodeData(path[level].node(), idx);
+				ID id = iter.model().getINodeData(path[level].node(), idx);
 				if (id == path[level - 1]->id())
 				{
 					if (path[level - 1].parent_idx() != idx)

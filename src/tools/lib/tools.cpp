@@ -31,12 +31,12 @@ std::mt19937_64 						engine_bi;
 auto 									generator_bi 			= std::bind(distribution_bi, engine_bi);
 
 
-Int GetRandom()
+Int getRandom()
 {
 	return generator();
 }
 
-Int GetRandom(Int max)
+Int getRandom(Int max)
 {
 	return max > 0 ? generator() % max : 0;
 }
@@ -46,16 +46,16 @@ void Seed(Int value)
 	engine.seed(value);
 }
 
-Int GetSeed() {
+Int getSeed() {
 	return 0;
 }
 
-BigInt GetBIRandom()
+BigInt getBIRandom()
 {
 	return generator_bi();
 }
 
-BigInt GetBIRandom(BigInt max)
+BigInt getBIRandom(BigInt max)
 {
 	return max > 0 ? generator_bi() % max : 0;
 }
@@ -65,23 +65,23 @@ void SeedBI(BigInt value)
 	engine_bi.seed(value);
 }
 
-BigInt GetSeedBI() {
+BigInt getSeedBI() {
 	return 0;
 }
 
 
-BigInt	GetTimeInMillis()
+BigInt	getTimeInMillis()
 {
 	struct timeb tm;
 	ftime(&tm);
 	return tm.time * 1000 + tm.millitm;
 }
 
-String GetMillisPart(BigInt millis) {
+String getMillisPart(BigInt millis) {
 	return millis < 100 ? "0"+ToString(millis) : ToString(millis);
 }
 
-String GetTwoDigitsPart(BigInt value) {
+String getTwoDigitsPart(BigInt value) {
 	return value < 10 ? "0"+ToString(value) : ToString(value);
 }
 
@@ -89,14 +89,14 @@ String FormatTime(BigInt millis)
 {
 	if (millis < 1000)
 	{
-		return "0." + GetMillisPart(millis);
+		return "0." + getMillisPart(millis);
 	}
 	else if (millis < 60000)
 	{
 		BigInt seconds 	= millis / 1000;
 		millis = millis % 1000;
 
-		return ToString(seconds) +"." + GetMillisPart(millis);
+		return ToString(seconds) +"." + getMillisPart(millis);
 	}
 	else if (millis < 60000 * 60)
 	{
@@ -107,7 +107,7 @@ String FormatTime(BigInt millis)
 		BigInt seconds 	= millis / 1000;
 		millis = millis % 1000;
 
-		return ToString(minutes) +":" + GetTwoDigitsPart(seconds) +"." + GetMillisPart(millis);
+		return ToString(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
 	}
 	else if (millis < 60000 * 60 * 24)
 	{
@@ -121,7 +121,7 @@ String FormatTime(BigInt millis)
 		BigInt seconds 	= millis / 1000;
 		millis = millis % 1000;
 
-		return ToString(hours) + ":" + GetTwoDigitsPart(minutes) +":" + GetTwoDigitsPart(seconds) +"." + GetMillisPart(millis);
+		return ToString(hours) + ":" + getTwoDigitsPart(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
 	}
 	else
 	{
@@ -137,7 +137,7 @@ String FormatTime(BigInt millis)
 		BigInt seconds 	= millis / 1000;
 		millis = millis % 1000;
 
-		return ToString(days) + (days == 1? "day " : "days ") + GetTwoDigitsPart(hours) + ":" + GetTwoDigitsPart(minutes) +":" + GetTwoDigitsPart(seconds) +"." + GetMillisPart(millis);
+		return ToString(days) + (days == 1? "day " : "days ") + getTwoDigitsPart(hours) + ":" + getTwoDigitsPart(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
 	}
 }
 
@@ -164,15 +164,15 @@ ArrayData CreateBuffer(Int size, UByte value)
 }
 
 
-Int GetNonZeroRandom(Int size)
+Int getNonZeroRandom(Int size)
 {
-	Int value = GetRandom(size);
-	return value != 0 ? value : GetNonZeroRandom(size);
+	Int value = getRandom(size);
+	return value != 0 ? value : getNonZeroRandom(size);
 }
 
 ArrayData CreateRandomBuffer(UByte fill_value, Int max_size)
 {
-	return CreateBuffer(GetNonZeroRandom(max_size), fill_value);
+	return CreateBuffer(getNonZeroRandom(max_size), fill_value);
 }
 
 

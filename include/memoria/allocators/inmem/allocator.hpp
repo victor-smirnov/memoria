@@ -101,7 +101,7 @@ private:
 public:
 	InMemAllocator() :
 		logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
-		counter_(100), metadata_(MetadataRepository<Profile>::GetMetadata()), me_(*this),
+		counter_(100), metadata_(MetadataRepository<Profile>::getMetadata()), me_(*this),
 		type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this)
 	{
 		root_map_ = new RootMapType(*this, 0, true);
@@ -148,7 +148,7 @@ public:
 		}
 	}
 
-	ContainerMetadataRepository* GetMetadata() const {
+	ContainerMetadataRepository* getMetadata() const {
 		return metadata_;
 	}
 
@@ -156,7 +156,7 @@ public:
 		return logger_;
 	}
 
-	virtual Logger* GetLogger() {
+	virtual Logger* getLogger() {
 		return &logger_;
 	}
 
@@ -178,7 +178,7 @@ public:
 
 
 
-	virtual PageG GetPage(const ID& id, Int flags)
+	virtual PageG getPage(const ID& id, Int flags)
 	{
 		if (id.is_null())
 		{
@@ -214,7 +214,7 @@ public:
 
 				pages_log_[id] = page2;
 
-				Shared* shared = pool_.Get(id);
+				Shared* shared = pool_.get(id);
 
 				if (shared == NULL)
 				{
@@ -236,9 +236,9 @@ public:
 		}
 	}
 
-	virtual PageG GetPageG(Page* page)
+	virtual PageG getPageG(Page* page)
 	{
-		return GetPage(page->id(), Base::READ);
+		return getPage(page->id(), Base::READ);
 	}
 
 	virtual void UpdatePage(Shared* shared)
@@ -260,7 +260,7 @@ public:
 
 	virtual void  RemovePage(const ID& id)
 	{
-		Shared* shared = pool_.Get(id);
+		Shared* shared = pool_.get(id);
 		if (shared != NULL)
 		{
 			// FIXME it doesn't really necessary to inform PageGuards that the page is deleted
@@ -347,7 +347,7 @@ public:
 
 				pages_[op.id_] = op.page_;
 
-				Shared* page = pool_.Get(op.id_);
+				Shared* page = pool_.get(op.id_);
 				if (page != NULL)
 				{
 					page->set_page(op.page_);
@@ -357,7 +357,7 @@ public:
 				auto j = pages_.find(op.id_);
 				if (j != pages_.end())
 				{
-					Shared* shared = pool_.Get(op.id_);
+					Shared* shared = pool_.get(op.id_);
 					if (shared != NULL)
 					{
 						::free(shared->get());
@@ -402,18 +402,18 @@ public:
 	{
 	}
 
-	virtual PageG GetRoot(BigInt name, Int flags)
+	virtual PageG getRoot(BigInt name, Int flags)
 	{
 		if (name == 0)
 		{
-			return GetPage(root(), flags);
+			return getPage(root(), flags);
 		}
 		else {
-			return GetPage(roots_->get_value_for_key(name), flags);
+			return getPage(roots_->get_value_for_key(name), flags);
 		}
 	}
 
-	virtual ID GetRootID(BigInt name)
+	virtual ID getRootID(BigInt name)
 	{
 		if (name == 0)
 		{
@@ -424,12 +424,12 @@ public:
 		}
 	}
 
-	virtual void SetRoot(BigInt name, const ID& root)
+	virtual void setRoot(BigInt name, const ID& root)
 	{
 		new_root(name, root);
 	}
 
-	virtual CtrShared* GetCtrShared(BigInt name)
+	virtual CtrShared* getCtrShared(BigInt name)
 	{
 		auto i = ctr_shared_.find(name);
 
@@ -521,7 +521,7 @@ public:
 
 			Page* page = T2T<Page*>(buf);
 
-			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page_hash);
+			PageMetadata* pageMetadata = metadata_->getPageMetadata(page_hash);
 
 			char* mem = new char[PAGE_SIZE];
 			for (Int c = 0; c < PAGE_SIZE; c++)
@@ -529,7 +529,7 @@ public:
 				mem[c] = 0;
 			}
 
-			pageMetadata->GetPageOperations()->Deserialize(page, size, mem);
+			pageMetadata->getPageOperations()->Deserialize(page, size, mem);
 
 			page = T2T<Page*>(mem);
 
@@ -608,16 +608,16 @@ public:
 		return new PageWrapper<Page, PAGE_SIZE>();
 	}
 
-	virtual void GetRootPageId(IDValue& id)
+	virtual void getRootPageId(IDValue& id)
 	{
 		id = IDValue(&root_map_->root());
 	}
 
-	BigInt GetPageCount() {
+	BigInt getPageCount() {
 		return pages_.size();
 	}
 
-	void GetPage(memoria::vapi::Page* page, const IDValue& idValue)
+	void getPage(memoria::vapi::Page* page, const IDValue& idValue)
 	{
 		if (page == NULL)
 		{
@@ -625,7 +625,7 @@ public:
 		}
 
 		Page* page0 =  this->get1(idValue);
-		page->SetPtr(page0);
+		page->setPtr(page0);
 	}
 
 
@@ -644,7 +644,7 @@ public:
 		for (auto i = pages_.begin(); i != pages_.end(); i++)
 		{
 			Page* page = i->second;
-			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
+			PageMetadata* pageMetadata = metadata_->getPageMetadata(page->page_type_hash());
 
 			PageWrapper<Page, PAGE_SIZE> pw(page);
 			memoria::vapi::DumpPage(pageMetadata, &pw, out);
@@ -659,11 +659,11 @@ public:
 
 		for (auto iter = this->roots()->Begin(); !iter.IsEnd(); )
 		{
-			PageG page = this->GetPage(iter.GetValue(), Base::READ);
+			PageG page = this->getPage(iter.getValue(), Base::READ);
 
-			ContainerMetadata* ctr_meta = metadata_->GetContainerMetadata(page->model_hash());
+			ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->model_hash());
 
-			result = ctr_meta->GetCtrInterface()->Check(&page->id(), this) || result;
+			result = ctr_meta->getCtrInterface()->Check(&page->id(), this) || result;
 
 			iter.Next();
 		}
@@ -684,11 +684,11 @@ public:
 
 	virtual BigInt CreateCtrName()
 	{
-		RootMetatata meta = root_map_->GetRootMetadata();
+		RootMetatata meta = root_map_->getRootMetadata();
 
 		BigInt new_name = ++meta.model_name_counter();
 
-		root_map_->SetRootMetadata(meta);
+		root_map_->setRootMetadata(meta);
 
 		return new_name;
 	}
@@ -703,18 +703,18 @@ private:
 
 			MEMORIA_TRACE(me(), "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
 
-			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
+			PageMetadata* pageMetadata = metadata_->getPageMetadata(page->page_type_hash());
 
 			for (Int c = 0; c < PAGE_SIZE; c++)
 			{
 				buf[c] = 0;
 			}
 
-			const IPageOperations* operations = pageMetadata->GetPageOperations();
+			const IPageOperations* operations = pageMetadata->getPageOperations();
 
 			operations->Serialize(page, buf);
 
-			Int ptr = operations->GetPageSize(page);
+			Int ptr = operations->getPageSize(page);
 
 			Short size = ptr;
 
@@ -810,7 +810,7 @@ private:
 
 	void set_value_for_key(BigInt name, const ID& page_id)
 	{
-		root_map_->operator[](name).SetData(page_id);
+		root_map_->operator[](name).setData(page_id);
 	}
 
 	ID get_value_for_key(BigInt name)
@@ -819,7 +819,7 @@ private:
 
 		if (!iter.IsEnd())
 		{
-			return iter.GetValue();
+			return iter.getValue();
 		}
 		else {
 			return ID(0);
@@ -830,7 +830,7 @@ private:
 
 	Shared* get_shared(Page* page, Int op)
 	{
-		Shared* shared = pool_.Get(page->id());
+		Shared* shared = pool_.get(page->id());
 
 		if (shared == NULL)
 		{

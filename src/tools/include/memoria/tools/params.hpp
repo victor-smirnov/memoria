@@ -32,52 +32,52 @@ using namespace memoria::vapi;
 class AbstractParamDescriptor {
 public:
 	virtual void Process(Configurator* cfg) 	= 0;
-	virtual StringRef GetName() const			= 0;
-	virtual String GetPropertyName() const		= 0;
+	virtual StringRef getName() const			= 0;
+	virtual String getPropertyName() const		= 0;
 	virtual void Dump(std::ostream& os) const	= 0;
 };
 
 
 template <typename T> class ParamDescriptor;
 
-class ParametersSet {
+class Parametersset {
 
 	String 			prefix_;
 
 	vector<AbstractParamDescriptor*> descriptors_;
 
 public:
-	ParametersSet(StringRef prefix): prefix_(prefix) {}
-	ParametersSet(const ParametersSet&) = delete;
+	Parametersset(StringRef prefix): prefix_(prefix) {}
+	Parametersset(const Parametersset&) = delete;
 
-	StringRef GetPrefix() const
+	StringRef getPrefix() const
 	{
 		return prefix_;
 	}
 
-	void SetPrefix(StringRef prefix)
+	void setPrefix(StringRef prefix)
 	{
 		prefix_ = prefix;
 	}
 
-	virtual AbstractParamDescriptor* Put(AbstractParamDescriptor* descr);
+	virtual AbstractParamDescriptor* put(AbstractParamDescriptor* descr);
 
 	template <typename T>
 	ParamDescriptor<T>* Add(StringRef name, T& property)
 	{
-		return T2T_S<ParamDescriptor<T>*>(Put(new ParamDescriptor<T>(this, name, property)));
+		return T2T_S<ParamDescriptor<T>*>(put(new ParamDescriptor<T>(this, name, property)));
 	}
 
 	template <typename T>
 	ParamDescriptor<T>* Add(StringRef name, T& property, const T& max_value)
 	{
-		return T2T_S<ParamDescriptor<T>*>(Put(new ParamDescriptor<T>(this, name, property, max_value)));
+		return T2T_S<ParamDescriptor<T>*>(put(new ParamDescriptor<T>(this, name, property, max_value)));
 	}
 
 	template <typename T>
 	ParamDescriptor<T>* Add(StringRef name, T& property, const T& min_value, const T& max_value)
 	{
-		return T2T_S<ParamDescriptor<T>*>(Put(new ParamDescriptor<T>(this, name, property, min_value, max_value)));
+		return T2T_S<ParamDescriptor<T>*>(put(new ParamDescriptor<T>(this, name, property, min_value, max_value)));
 	}
 
 	void DumpProperties(std::ostream& os) const;
@@ -91,7 +91,7 @@ class ParamDescriptor: public AbstractParamDescriptor {
 
 	typedef ParamDescriptor<T> 						MyType;
 
-	ParametersSet* 		cfg_;
+	Parametersset* 		cfg_;
 
 	String 				name_;
 
@@ -106,7 +106,7 @@ class ParamDescriptor: public AbstractParamDescriptor {
 
 public:
 
-	ParamDescriptor(ParametersSet* cfg, String name, T& value):
+	ParamDescriptor(Parametersset* cfg, String name, T& value):
 		cfg_(cfg),
 		name_(name),
 		value_(value),
@@ -114,7 +114,7 @@ public:
 		mandatory_(false)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& max_value):
+	ParamDescriptor(Parametersset* cfg, String name, T& value, const T& max_value):
 		cfg_(cfg),
 		name_(name),
 		value_(value),
@@ -124,7 +124,7 @@ public:
 		mandatory_(false)
 	{}
 
-	ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& min_value, const T& max_value):
+	ParamDescriptor(Parametersset* cfg, String name, T& value, const T& min_value, const T& max_value):
 		cfg_(cfg),
 		name_(name),
 		value_(value),
@@ -137,7 +137,7 @@ public:
 
 	virtual void Process(Configurator* cfg)
 	{
-		SetValue(cfg, value_);
+		setValue(cfg, value_);
 
 		if (ranges_specified_)
 		{
@@ -153,18 +153,18 @@ public:
 		return mandatory_;
 	}
 
-	MyType* SetMandatory(bool mandatory)
+	MyType* setMandatory(bool mandatory)
 	{
 		mandatory_ = mandatory;
 		return this;
 	}
 
-	virtual StringRef GetName() const
+	virtual StringRef getName() const
 	{
 		return name_;
 	}
 
-	virtual String GetPropertyName() const
+	virtual String getPropertyName() const
 	{
 		if (IsEmpty(prefix()))
 		{
@@ -198,7 +198,7 @@ public:
 			os<<endl;
 		}
 
-		os<<GetPropertyName()<<"="<<AsString<T>::convert(value_)<<endl;
+		os<<getPropertyName()<<"="<<AsString<T>::convert(value_)<<endl;
 
 		if (doc)
 		{
@@ -208,11 +208,11 @@ public:
 
 	StringRef prefix() const
 	{
-		return cfg_->GetPrefix();
+		return cfg_->getPrefix();
 	}
 
 protected:
-	void SetValue(Configurator* cfg, T& value);
+	void setValue(Configurator* cfg, T& value);
 };
 
 
@@ -220,7 +220,7 @@ protected:
 
 
 template <typename T>
-void ParamDescriptor<T>::SetValue(Configurator* cfg, T& value)
+void ParamDescriptor<T>::setValue(Configurator* cfg, T& value)
 {
 	StringRef prefix1 = prefix();
 
@@ -232,7 +232,7 @@ void ParamDescriptor<T>::SetValue(Configurator* cfg, T& value)
 
 		if (cfg->IsPropertyDefined(name))
 		{
-			value = FromString<T>::convert(cfg->GetProperty(name));
+			value = FromString<T>::convert(cfg->getProperty(name));
 			return;
 		}
 		else {
@@ -247,7 +247,7 @@ void ParamDescriptor<T>::SetValue(Configurator* cfg, T& value)
 
 	if (cfg->IsPropertyDefined(name_))
 	{
-		value = FromString<T>::convert(cfg->GetProperty(name_));
+		value = FromString<T>::convert(cfg->getProperty(name_));
 		return;
 	}
 	else if (mandatory_)

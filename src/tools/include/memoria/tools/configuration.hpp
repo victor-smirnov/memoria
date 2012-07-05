@@ -33,29 +33,29 @@ public:
         Configurator(Configurator *parent = NULL);
         virtual ~Configurator() throw ();
 
-        virtual Configurator* GetParent() const;
-        virtual void SetParent(Configurator* parent);
+        virtual Configurator* getParent() const;
+        virtual void setParent(Configurator* parent);
 
         virtual void AddProperty(StringRef name, StringRef value);
         virtual void RemoveProperty(StringRef name);
 
         virtual bool IsPropertyDefined(StringRef name) const;
-        virtual String GetProperty(StringRef name, bool resolve = true) const;
+        virtual String getProperty(StringRef name, bool resolve = true) const;
 
-        virtual const StringMapType& GetThisConfigurationProperties() const;
+        virtual const StringMapType& getThisConfigurationProperties() const;
 
-        virtual PropertyListType* GetPropertyList() const;
+        virtual PropertyListType* getPropertyList() const;
 
         static Configurator* Parse(StringRef fileName, Configurator* cfg = NULL);
 
         static Configurator* BuildChain(const char** envp, bool read_config_files = true);
 
         template <typename T>
-        T GetValue(StringRef name)
+        T getValue(StringRef name)
         {
         	if (this->IsPropertyDefined(name))
         	{
-        		return FromString<T>::convert(this->GetProperty(name));
+        		return FromString<T>::convert(this->getProperty(name));
         	}
         	else {
         		throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name<<" is not specified");
@@ -63,11 +63,11 @@ public:
         }
 
         template <typename T>
-        T GetValue(StringRef name, const T& default_value)
+        T getValue(StringRef name, const T& default_value)
         {
         	if (this->IsPropertyDefined(name))
         	{
-        		return FromString<T>::convert(this->GetProperty(name));
+        		return FromString<T>::convert(this->getProperty(name));
         	}
         	else
         	{
@@ -120,12 +120,12 @@ public:
         StringList(StringRef list, StringRef separators = ",");
 
         int Size() const;
-        StringRef GetItem(Int size) const;
+        StringRef getItem(Int size) const;
 };
 
 class PathList: public StringList {
 public:
-        PathList(StringRef list, StringRef separator = Platform::GetPathSeparator()): StringList(list, separator) {};
+        PathList(StringRef list, StringRef separator = Platform::getPathSeparator()): StringList(list, separator) {};
 };
 
 

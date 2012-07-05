@@ -203,7 +203,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 			else {
 				auto result = RemoveDataBlockFromStart(stop);
 
-				stop.cache().Setup(0, 0);
+				stop.cache().setup(0, 0);
 
 				start = stop;
 				return result;
@@ -215,7 +215,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlock(Iterator& start, Iterator& 
 			{
 				auto result = RemoveDataBlockAtEnd(start);
 
-				stop.cache().Setup(start_pos - stop.data_pos(), 0);
+				stop.cache().setup(start_pos - stop.data_pos(), 0);
 
 				stop = start;
 
@@ -239,11 +239,11 @@ bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 	if (iter.key_idx() < iter.page()->children_count() - 1)
 	{
 		BigInt source_size = iter.data()->size();
-		BigInt target_size = me()->GetKey(iter.page(), 0, iter.key_idx() + 1);
+		BigInt target_size = me()->getKey(iter.page(), 0, iter.key_idx() + 1);
 
 		if (source_size + target_size <= DataPage::get_max_size())
 		{
-			DataPathItem target_data_item(me()->GetValuePage(iter.page(), iter.key_idx() + 1, Allocator::UPDATE), iter.key_idx() + 1);
+			DataPathItem target_data_item(me()->getValuePage(iter.page(), iter.key_idx() + 1, Allocator::UPDATE), iter.key_idx() + 1);
 
 			MergeDataPagesAndRemoveSource(target_data_item, iter.path(), MergeType::RIGHT);
 
@@ -407,7 +407,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveAllData(Iterator& start, Iterator& st
 	start.path().data().node().Clear();
 	start.path().data().parent_idx() = 0;
 
-	start.cache().Setup(0, 0);
+	start.cache().setup(0, 0);
 	stop = start;
 
 	return removed;
@@ -430,7 +430,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 		//FIXME: check iterators identity after this block is completed
 		if(me()->MergeDataWithSiblings(stop))
 		{
-			stop.cache().Setup(start_pos - stop.data_pos(), 0);
+			stop.cache().setup(start_pos - stop.data_pos(), 0);
 
 			start = stop;
 		}
@@ -465,7 +465,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 
 		me()->MergeDataWithSiblings(stop);
 
-		stop.cache().Setup(start_pos - stop.data_pos(), 0);
+		stop.cache().setup(start_pos - stop.data_pos(), 0);
 
 		start = stop;
 

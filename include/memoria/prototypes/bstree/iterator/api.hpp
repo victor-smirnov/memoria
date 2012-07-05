@@ -33,31 +33,31 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
     typedef typename Container::Accumulator											Accumulator;
     typedef typename Container::TreePath											TreePath;
 
-    Key GetRawKey(Int i) const
+    Key getRawKey(Int i) const
     {
-        return Base::GetKey(i);
+        return Base::getKey(i);
     }
 
-    Accumulator GetRawKeys() const
+    Accumulator getRawKeys() const
     {
-    	return Base::GetKeys();
+    	return Base::getKeys();
     }
 
-    Key GetKey(Int i) const
+    Key getKey(Int i) const
     {
-        return me()->GetRawKey(i) + me()->prefixes()[i];
+        return me()->getRawKey(i) + me()->prefixes()[i];
     }
 
-    Accumulator GetKeys() const
+    Accumulator getKeys() const
     {
-    	return me()->GetRawKeys() + me()->prefixes();
+    	return me()->getRawKeys() + me()->prefixes();
     }
 
 //    bool NextKey()
 //    {
 //        if (!me()->IsEnd())
 //        {
-//        	Accumulator keys = me()->GetRawKeys();
+//        	Accumulator keys = me()->getRawKeys();
 //        	me()->prefix() 	 += keys;
 //
 //        	bool 		has_next 	= Base::NextKey();
@@ -77,7 +77,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 //
 //    		if (result)
 //    		{
-//    			Accumulator keys = me()->GetRawKeys();
+//    			Accumulator keys = me()->getRawKeys();
 //    			me()->prefix() -= keys;
 //    		}
 //    		else
@@ -129,7 +129,7 @@ private:
     	TreePath& 	path0 = me()->path();
     	Int 		idx   = me()->key_idx();
 
-        for (Int c = 0; c < path0.GetSize(); c++)
+        for (Int c = 0; c < path0.getSize(); c++)
         {
         	me()->model().SumKeys(path0[c].node(), 0, idx, accum);
         	idx = path0[c].parent_idx();

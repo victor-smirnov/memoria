@@ -40,9 +40,9 @@ public:
     	return me()->cache().prefixes();
     }
 
-    void SetupPrefix(Key prefix, Int key_num)
+    void setupPrefix(Key prefix, Int key_num)
     {
-    	me()->cache().Setup(prefix, key_num);
+    	me()->cache().setup(prefix, key_num);
     }
 
 
@@ -53,7 +53,7 @@ public:
     	const TreePath& path0 = me()->path();
     	Int 			idx   = me()->key_idx();
 
-    	for (Int c = 0; c < path0.GetSize(); c++)
+    	for (Int c = 0; c < path0.getSize(); c++)
     	{
     		me()->model().SumKeys(path0[c].node(), 0, idx, accum);
     		idx = path0[c].parent_idx();
@@ -69,7 +69,7 @@ public:
     	const TreePath& path0 = me()->path();
     	Int 			idx   = me()->key_idx();
 
-    	for (Int c = 0; c < path0.GetSize(); c++)
+    	for (Int c = 0; c < path0.getSize(); c++)
     	{
     		me()->model().SumKeys(path0[c].node(), block_num, 0, idx, accum);
     		idx = path0[c].parent_idx();

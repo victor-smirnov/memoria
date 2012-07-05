@@ -24,8 +24,8 @@ void BenchmarkTaskGroup::Run(ostream& out)
 		BenchmarkTask* task = T2T_S<BenchmarkTask*>(t);
 		try {
 
-			task->SetIteration(0);
-			task->SetOutputFolder(GetOutputFolder());
+			task->setIteration(0);
+			task->setOutputFolder(getOutputFolder());
 
 			task->BuildResources();
 
@@ -33,7 +33,7 @@ void BenchmarkTaskGroup::Run(ostream& out)
 
 			while (!IsEnd())
 			{
-				BenchmarkParameters result(task->GetFullName());
+				BenchmarkParameters result(task->getFullName());
 
 				result.x() 			= NextTime();
 				result.operations()	= this->operations;
@@ -44,23 +44,23 @@ void BenchmarkTaskGroup::Run(ostream& out)
 
 				task->Prepare(result);
 
-				BigInt start = GetTimeInMillis();
+				BigInt start = getTimeInMillis();
 
 				for (Int c = 0; c < task->average; c++)
 				{
 					task->Benchmark(result);
 				}
 
-				BigInt end = GetTimeInMillis();
+				BigInt end = getTimeInMillis();
 
-				result.time() = (end - start) / task->GetAverage();
+				result.time() = (end - start) / task->getAverage();
 
 				BigInt x 	= (result.x() / result.xunit());
 				BigInt y1 	= (result.performance() / result.yunit());
 				BigInt y2 	= (result.throughput() / result.y2unit());
 
-				out<<task->GetFullName()<<": "<<x<<" "<<y1<<" "<<y2<<" ("<<result.time()<<")"<<endl;
-				cout<<task->GetFullName()<<": "<<x<<" "<<y1<<" "<<y2<<" ("<<result.time()<<")"<<endl;
+				out<<task->getFullName()<<": "<<x<<" "<<y1<<" "<<y2<<" ("<<result.time()<<")"<<endl;
+				cout<<task->getFullName()<<": "<<x<<" "<<y1<<" "<<y2<<" ("<<result.time()<<")"<<endl;
 
 				results_.push_back(result);
 
@@ -91,7 +91,7 @@ void GnuplotGraph::Run(ostream& out)
 {
 	BenchmarkTaskGroup::Run(out);
 
-	BuildGnuplotScript(GetOutputFolder() + Platform::GetFilePathSeparator() + GetTaskName()+".plot");
+	BuildGnuplotScript(getOutputFolder() + Platform::getFilePathSeparator() + getTaskName()+".plot");
 }
 
 void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
@@ -107,7 +107,7 @@ void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 		GraphData 		graph_data 	= graph_data_[c];
 
 		Results results;
-		String name = task->GetFullName();
+		String name = task->getFullName();
 
 		for (BenchmarkParameters& result: results_)
 		{
@@ -131,7 +131,7 @@ void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 
 	out_file<<"reset"<<endl;
 	out_file<<"set terminal png size "<<this->resolution<<" large"<<endl;
-	out_file<<"set output '"+this->GetTaskName()+".png'"<<endl;
+	out_file<<"set output '"+this->getTaskName()+".png'"<<endl;
 	out_file<<"set title \""+this->title+"\""<<endl;
 	out_file<<"set xlabel \""+this->xtitle+"\""<<endl;
 	out_file<<"set ylabel \""+this->ytitle+"\""<<endl;

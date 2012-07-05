@@ -22,9 +22,9 @@
 
 namespace memoria {
 
-typedef SmallCtrTypeFactory::Factory<Set1>::Type SumSet1Ctr;
+typedef SmallCtrTypeFactory::Factory<set1>::Type Sumset1Ctr;
 
-struct SumSetBatchReplay: public ReplayParams {
+struct SumsetBatchReplay: public ReplayParams {
 
 	Int 	data_;
 	bool 	insert_;
@@ -36,7 +36,7 @@ struct SumSetBatchReplay: public ReplayParams {
 
 	Int 	cnt_;
 
-	SumSetBatchReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
+	SumsetBatchReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
 	{
 		Add("data", 		data_);
 		Add("insert", 		insert_);
@@ -50,29 +50,29 @@ struct SumSetBatchReplay: public ReplayParams {
 
 
 
-class SumSetBatchTest: public BTreeBatchTestBase<
-	Set1,
-	typename SumSet1Ctr::LeafPairsVector,
-	SumSetBatchReplay
+class SumsetBatchTest: public BTreeBatchTestBase<
+	set1,
+	typename Sumset1Ctr::LeafPairsVector,
+	SumsetBatchReplay
 >
 {
 	typedef BTreeBatchTestBase<
-			Set1,
-			typename SumSet1Ctr::LeafPairsVector,
-			SumSetBatchReplay
+			set1,
+			typename Sumset1Ctr::LeafPairsVector,
+			SumsetBatchReplay
 	>																Base;
 
 	typedef typename Base::Ctr 										Ctr;
 	typedef typename Base::Accumulator 								Accumulator;
-	typedef typename SumSet1Ctr::LeafPairsVector 					ArrayData;
+	typedef typename Sumset1Ctr::LeafPairsVector 					ArrayData;
 
 	static const Int Indexes 										= Ctr::Indexes;
 
 
 
 public:
-	SumSetBatchTest():
-		Base("SumSetBatch")
+	SumsetBatchTest():
+		Base("SumsetBatch")
 	{
 		size_ = 1024*1024;
 
@@ -113,11 +113,11 @@ public:
 
 	virtual void Insert(Iterator& iter, const ArrayData& data)
 	{
-		BigInt size = iter.model().GetSize();
+		BigInt size = iter.model().getSize();
 
 		iter.model().InsertBatch(iter, data);
 
-		MEMORIA_TEST_THROW_IF(size, ==, iter.model().GetSize());
+		MEMORIA_TEST_THROW_IF(size, ==, iter.model().getSize());
 
 		CheckSize(iter.model());
 	}
@@ -128,7 +128,7 @@ public:
 		{
 			for (Int c = 0; c < Indexes; c++)
 			{
-				value.keys[c] = iter.GetRawKey(c);
+				value.keys[c] = iter.getRawKey(c);
 			}
 
 			if (!iter.Next())
@@ -163,19 +163,19 @@ public:
 		}
 	}
 
-	virtual BigInt GetPosition(Iterator& iter)
+	virtual BigInt getPosition(Iterator& iter)
 	{
 		return iter.KeyNum();
 	}
 
-	virtual BigInt GetLocalPosition(Iterator& iter)
+	virtual BigInt getLocalPosition(Iterator& iter)
 	{
 		return iter.key_idx();
 	}
 
-	virtual BigInt GetSize(Ctr& array)
+	virtual BigInt getSize(Ctr& array)
 	{
-		return array.GetSize();
+		return array.getSize();
 	}
 
 	void CheckSize(Ctr& array)
@@ -187,7 +187,7 @@ public:
 			cnt++;
 		}
 
-		MEMORIA_TEST_THROW_IF(cnt, !=, array.GetSize());
+		MEMORIA_TEST_THROW_IF(cnt, !=, array.getSize());
 	}
 
 	virtual void CheckIteratorPrefix(ostream& out, Iterator& iter, const char* source) {}

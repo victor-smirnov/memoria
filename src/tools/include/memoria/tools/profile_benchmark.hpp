@@ -56,13 +56,13 @@ public:
 
 	virtual void LoadResource(Allocator& allocator, StringRef file_name) const
 	{
-		String path = GetResourcePath(file_name);
+		String path = getResourcePath(file_name);
 		LoadAllocator(allocator, path);
 	}
 
 	virtual void StoreResource(Allocator& allocator, StringRef file_name) const
 	{
-		String path = GetResourcePath(file_name);
+		String path = getResourcePath(file_name);
 		StoreAllocator(allocator, path);
 	}
 };

@@ -39,24 +39,24 @@ struct IAbstractAllocator {
 
 	static const Int PAGE_SIZE											= MaxPageSize;
 
-	virtual PageG GetPage(const ID& id, Int flags)						= 0;
-	virtual PageG GetPageG(Page* page)									= 0;
+	virtual PageG getPage(const ID& id, Int flags)						= 0;
+	virtual PageG getPageG(Page* page)									= 0;
 	virtual void  UpdatePage(Shared* shared)							= 0;
 	virtual void  RemovePage(const ID& id)								= 0;
 	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;
 	virtual void  ResizePage(Shared* page, Int new_size)				= 0;
 	virtual void  ReleasePage(Shared* shared)							= 0;
 
-	virtual CtrShared* GetCtrShared(BigInt name)						= 0;
+	virtual CtrShared* getCtrShared(BigInt name)						= 0;
 	virtual bool IsCtrSharedRegistered(BigInt name)						= 0;
 
 	virtual void UnregisterCtrShared(CtrShared* shared)					= 0;
 	virtual void RegisterCtrShared(CtrShared* shared)					= 0;
 
 	// Allocator directory interface part
-	virtual PageG GetRoot(BigInt name, Int flags)						= 0;
-	virtual ID 	  GetRootID(BigInt name)								= 0;
-	virtual void  SetRoot(BigInt name, const ID& root) 					= 0;
+	virtual PageG getRoot(BigInt name, Int flags)						= 0;
+	virtual ID 	  getRootID(BigInt name)								= 0;
+	virtual void  setRoot(BigInt name, const ID& root) 					= 0;
 
 	// memory pool allocator
 

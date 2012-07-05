@@ -42,7 +42,7 @@ public:
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			Int addr = GetRandom(size - 16);
+			Int addr = getRandom(size - 16);
 
 			if ((addr & 4095) > 4080)
 			{

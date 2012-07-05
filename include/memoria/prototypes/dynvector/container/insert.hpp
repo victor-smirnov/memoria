@@ -72,9 +72,9 @@ BigInt UpdateData(Iterator& iter, const IData& data, BigInt start, BigInt len);
 
 DataPathItem SplitDataPage(Iterator& iter);
 
-Int GetMaxDataSize() const
+Int getMaxDataSize() const
 {
-	return DataPage::get_max_size() - DataPage::get_max_size() % me()->GetElementSize();
+	return DataPage::get_max_size() - DataPage::get_max_size() % me()->getElementSize();
 }
 
 
@@ -99,13 +99,13 @@ public:
 	ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, const IData& data, BigInt start, BigInt length):
 		Base(ctr, key_count), data_(data), start_(start), length_(length)
 	{
-		Int data_size 	= Base::ctr().GetMaxDataSize();
+		Int data_size 	= Base::ctr().getMaxDataSize();
 
 		suffix_ 		= length % data_size == 0 ? data_size : length_ % data_size;
-		last_idx_ 		= Base::GetTotalKeyCount() - 1;
+		last_idx_ 		= Base::getTotalKeyCount() - 1;
 	}
 
-	virtual LeafNodeKeyValuePair GetLeafKVPair(Direction direction, BigInt idx)
+	virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt idx)
 	{
 		LeafNodeKeyValuePair pair;
 
@@ -117,12 +117,12 @@ public:
 
 		Int idx0 				= (direction == Direction::FORWARD) ? idx : last_idx_ - idx;
 
-		Int data_size 			= Base::ctr().GetMaxDataSize();
+		Int data_size 			= Base::ctr().getMaxDataSize();
 
 		BigInt offset 			= start_ + data_size * idx0;
 		BigInt length 			= idx0 < last_idx_ ? data_size : suffix_;
 
-		data_.Get(data->data().value_addr(0), offset, length);
+		data_.get(data->data().value_addr(0), offset, length);
 
 		data->data().size() = length;
 
@@ -160,14 +160,14 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::InsertData(Iterator& iter, const IData& data, SizeT start, SizeT length)
 {
-	me()->InsertData(iter, GetDataProxy(data, start, length));
+	me()->InsertData(iter, getDataProxy(data, start, length));
 }
 
 
 M_PARAMS
 void M_TYPE::InsertData(Iterator& iter, const IData& buffer)
 {
-	BigInt 		max_datapage_size 	= me()->GetMaxDataSize();
+	BigInt 		max_datapage_size 	= me()->getMaxDataSize();
 
 	BigInt& 	data_idx 			= iter.data_pos();
 
@@ -175,11 +175,11 @@ void M_TYPE::InsertData(Iterator& iter, const IData& buffer)
 
 	BigInt pos = iter.pos();
 
-	if (usage + (BigInt)buffer.GetSize() <= max_datapage_size)
+	if (usage + (BigInt)buffer.getSize() <= max_datapage_size)
 	{
 		// The target datapage has enough free space to insert into
-		InsertIntoDataPage(iter, buffer, 0, buffer.GetSize());
-		data_idx += buffer.GetSize();
+		InsertIntoDataPage(iter, buffer, 0, buffer.getSize());
+		data_idx += buffer.getSize();
 	}
 	else if (!iter.IsEof())
 	{
@@ -190,13 +190,13 @@ void M_TYPE::InsertData(Iterator& iter, const IData& buffer)
 
 		ImportPages(iter, buffer);
 
-		iter.cache().Setup(pos + buffer.GetSize() - iter.data_pos(), 0);
+		iter.cache().setup(pos + buffer.getSize() - iter.data_pos(), 0);
 	}
 	else
 	{
 		ImportPages(iter, buffer);
 
-		iter.cache().Setup(pos + buffer.GetSize() - iter.data_pos(), 0);
+		iter.cache().setup(pos + buffer.getSize() - iter.data_pos(), 0);
 	}
 }
 
@@ -211,7 +211,7 @@ BigInt M_TYPE::UpdateData(Iterator& iter, const IData& data, BigInt start, BigIn
 
 		if (to_read > len) to_read = len;
 
-		data.Get(iter.data()->data().value_addr(iter.data_pos()), start, to_read);
+		data.get(iter.data()->data().value_addr(iter.data_pos()), start, to_read);
 
 		len 	-= to_read;
 		iter.Skip(to_read);
@@ -239,7 +239,7 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 	Int data_pos	= iter.data_pos();
 	Int idx 		= path.data().parent_idx() + 1;
 
-	if (me()->GetCapacity(path[0].node()) == 0)
+	if (me()->getCapacity(path[0].node()) == 0)
 	{
 		TreePath  right = path;
 		TreePath& left  = path;
@@ -301,7 +301,7 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const IData& buffer, Int start, 
 
 	data->data().shift(data_pos, length);
 
-	buffer.Get(data->data().value_addr(data_pos), start, length);
+	buffer.get(data->data().value_addr(data_pos), start, length);
 
 	data->data().size() += length;
 
@@ -319,10 +319,10 @@ void M_TYPE::InsertIntoDataPage(Iterator& iter, const IData& buffer, Int start, 
 M_PARAMS
 void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 {
-	BigInt	length		= buffer.GetSize();
+	BigInt	length		= buffer.getSize();
 	BigInt 	start;
 
-	Int max_size = me()->GetMaxDataSize();
+	Int max_size = me()->getMaxDataSize();
 
 	if (iter.data_pos() > 0)
 	{
@@ -405,7 +405,7 @@ typename M_TYPE::DataPathItem M_TYPE::CreateDataPage(NodeBaseG& node, Int idx)
 	data->model_hash()      = me()->hash();
 	data->page_type_hash()  = DataPage::hash();
 
-	me()->SetLeafData(node, idx, data->id());
+	me()->setLeafData(node, idx, data->id());
 
 	return DataPathItem(data, idx);
 }

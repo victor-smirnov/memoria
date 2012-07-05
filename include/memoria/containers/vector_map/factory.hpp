@@ -36,7 +36,7 @@ using namespace memoria::vector_map;
 
 
 template <typename Profile, Int Indexes_>
-struct BTreeTypes<Profile, memoria::VMSet<Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
+struct BTreeTypes<Profile, memoria::VMset<Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
 
 	typedef BTreeTypes<Profile, memoria::BSTree > 							Base;
 
@@ -47,7 +47,7 @@ struct BTreeTypes<Profile, memoria::VMSet<Indexes_> >: public BTreeTypes<Profile
 
 
 template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::VMSet<Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
+class CtrTF<Profile, memoria::VMset<Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
 };
 
 

@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class SetCreateBatchBenchmark: public SPBenchmarkTask {
+class setCreateBatchBenchmark: public SPBenchmarkTask {
 
 	typedef SPBenchmarkTask Base;
 
@@ -26,19 +26,19 @@ class SetCreateBatchBenchmark: public SPBenchmarkTask {
 	typedef typename Base::Profile 		Profile;
 
 	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<Set1>::Type 		SetCtr;
-	typedef typename SetCtr::Iterator								Iterator;
-	typedef typename SetCtr::ID										ID;
-	typedef typename SetCtr::Accumulator							Accumulator;
+	typedef typename SmallCtrTypeFactory::Factory<set1>::Type 		setCtr;
+	typedef typename setCtr::Iterator								Iterator;
+	typedef typename setCtr::ID										ID;
+	typedef typename setCtr::Accumulator							Accumulator;
 
 
-	typedef typename SetCtr::Key									Key;
-	typedef typename SetCtr::Value									Value;
+	typedef typename setCtr::Key									Key;
+	typedef typename setCtr::Value									Value;
 
-	typedef typename SetCtr::ISubtreeProvider						ISubtreeProvider;
-	typedef typename SetCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
-	typedef typename SetCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
-	typedef typename SetCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
+	typedef typename setCtr::ISubtreeProvider						ISubtreeProvider;
+	typedef typename setCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
+	typedef typename setCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
+	typedef typename setCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
 
 
 	class SubtreeProvider: public DefaultSubtreeProviderBase
@@ -46,9 +46,9 @@ class SetCreateBatchBenchmark: public SPBenchmarkTask {
 		typedef DefaultSubtreeProviderBase 		Base;
 		typedef typename ISubtreeProvider::Enum Direction;
 	public:
-		SubtreeProvider(SetCtr* ctr, BigInt total): Base(*ctr, total) {}
+		SubtreeProvider(setCtr* ctr, BigInt total): Base(*ctr, total) {}
 
-		virtual LeafNodeKeyValuePair GetLeafKVPair(Direction direction, BigInt begin)
+		virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
 		{
 			Accumulator acc;
 			acc[0] = 1;
@@ -58,23 +58,23 @@ class SetCreateBatchBenchmark: public SPBenchmarkTask {
 
 
 	Allocator* 	allocator_;
-	SetCtr* 	set_;
+	setCtr* 	set_;
 
 public:
 
-	SetCreateBatchBenchmark(StringRef name):
+	setCreateBatchBenchmark(StringRef name):
 		SPBenchmarkTask(name)
 	{
 		RootCtr::Init();
-		SetCtr::Init();
+		setCtr::Init();
 	}
 
-	virtual ~SetCreateBatchBenchmark() throw() {}
+	virtual ~setCreateBatchBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ 	= new Allocator();
-		set_ 		= new SetCtr(*allocator_, 1, true);
+		set_ 		= new setCtr(*allocator_, 1, true);
 
 		allocator_->commit();
 	}

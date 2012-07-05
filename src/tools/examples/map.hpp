@@ -52,12 +52,12 @@ public:
 		{
 			if (this->btree_random_airity_)
 			{
-				this->btree_branching_ = 8 + GetRandom(100);
+				this->btree_branching_ = 8 + getRandom(100);
 				out<<"BTree Branching: "<<this->btree_branching_<<endl;
 			}
 
 			Allocator allocator;
-			allocator.GetLogger()->SetHandler(&logHandler);
+			allocator.getLogger()->setHandler(&logHandler);
 
 			MapCtr map(allocator, 1, true);
 

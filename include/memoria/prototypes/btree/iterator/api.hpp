@@ -91,27 +91,27 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
     operator Value () const
     {
-    	return me()->GetValue();
+    	return me()->getValue();
     }
 
     Value value() const
     {
-    	return me()->GetValue();
+    	return me()->getValue();
     }
 
     Accumulator keys() const
     {
-    	return me()->GetKeys();
+    	return me()->getKeys();
     }
 
     Key key() const
     {
-    	return me()->GetKey(0);
+    	return me()->getKey(0);
     }
 
     Key key(Int key_num) const
     {
-    	return me()->GetKey(key_num);
+    	return me()->getKey(key_num);
     }
 
     MyType& operator<<(const Element& element)
@@ -131,30 +131,30 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	me()->model().RemoveEntry(*me(), keys);
     }
 
-    Value GetValue() const
+    Value getValue() const
     {
-    	return me()->model().GetLeafData(me()->page(), me()->key_idx());
+    	return me()->model().getLeafData(me()->page(), me()->key_idx());
     }
 
-    void SetData(const Value& data)
+    void setData(const Value& data)
     {
     	if (!me()->IsEnd())
     	{
-    		me()->model().SetLeafData(me()->leaf().node(), me()->key_idx(), data);
+    		me()->model().setLeafData(me()->leaf().node(), me()->key_idx(), data);
     	}
     	else {
     		throw Exception(MEMORIA_SOURCE, "Insertion after the end of iterator");
     	}
     }
 
-    Key GetKey(Int keyNum) const
+    Key getKey(Int keyNum) const
     {
-    	return me()->model().GetKey(me()->page(), keyNum, me()->key_idx());
+    	return me()->model().getKey(me()->page(), keyNum, me()->key_idx());
     }
 
-    Accumulator GetKeys() const
+    Accumulator getKeys() const
     {
-    	return me()->model().GetKeys(me()->page(), me()->key_idx());
+    	return me()->model().getKeys(me()->page(), me()->key_idx());
     }
 
     void UpdateUp(const Accumulator& keys)
@@ -404,7 +404,7 @@ bool M_TYPE::HasPrevKey()
 M_PARAMS
 bool M_TYPE::NextLeaf()
 {
-	if (me()->model().GetNextNode(me()->path()))
+	if (me()->model().getNextNode(me()->path()))
 	{
 		// FIXME: KeyNum ?
 
@@ -421,14 +421,14 @@ M_PARAMS
 bool M_TYPE::HasNextLeaf()
 {
 	TreePath path = me()->path();
-	return me()->model().GetNextNode(path);
+	return me()->model().getNextNode(path);
 }
 
 
 M_PARAMS
 bool M_TYPE::PrevLeaf()
 {
-	if (me()->model().GetPrevNode(me()->path()))
+	if (me()->model().getPrevNode(me()->path()))
 	{
 		// FIXME: KeyNum
 
@@ -443,7 +443,7 @@ M_PARAMS
 bool M_TYPE::HasPrevLeaf()
 {
 	TreePath path = me()->path();
-	return me()->model().GetPrevNode(path);
+	return me()->model().getPrevNode(path);
 }
 
 

@@ -31,20 +31,20 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VectorMapContainerBase)
 	typedef typename Base::Allocator											Allocator;
 	typedef typename Base::CtrShared											CtrShared;
 
-	typedef typename CtrTF<Profile, VMSet<2>, VMSet<2> >::Type  				IdxSet;
+	typedef typename CtrTF<Profile, VMset<2>, VMset<2> >::Type  				Idxset;
 	typedef typename CtrTF<Profile, Vector,	 Vector>::Type						ByteArray;
 
-	typedef typename IdxSet::Accumulator                        				IdxSetAccumulator;
+	typedef typename Idxset::Accumulator                        				IdxsetAccumulator;
 
-	typedef typename IdxSet::Key												Key;
-	typedef typename IdxSet::Value												ISValue;
+	typedef typename Idxset::Key												Key;
+	typedef typename Idxset::Value												ISValue;
 
-	static const Int IS_Indexes													= IdxSet::Indexes;
+	static const Int IS_Indexes													= Idxset::Indexes;
 	static const Int BA_Indexes													= ByteArray::Indexes;
 
 private:
 	ByteArray	array_;
-	IdxSet 		set_;
+	Idxset 		set_;
 
 public:
 
@@ -75,7 +75,7 @@ public:
 		set_(NoParamCtr())
 	{}
 
-	IdxSet& set() {
+	Idxset& set() {
 		return set_;
 	}
 
@@ -83,7 +83,7 @@ public:
 		return array_;
 	}
 
-	const IdxSet& set() const {
+	const Idxset& set() const {
 		return set_;
 	}
 
@@ -112,7 +112,7 @@ public:
     	array_.InitCtr(me()->allocator(), me()->name(), create);
     	set_.  InitCtr(array_, 0, create);
 
-    	Base::SetCtrShared(NULL);
+    	Base::setCtrShared(NULL);
     }
 
     void InitCtr(const ID& root_id)
@@ -120,38 +120,38 @@ public:
     	array_.InitCtr(me()->allocator(), root_id);
     	set_.InitCtr(array_, get_ctr_root(me()->allocator(), root_id, 0));
 
-    	Base::SetCtrShared(NULL);
+    	Base::setCtrShared(NULL);
     }
 
 
     static Int Init()
     {
-    	Int hash = IdxSet::Init() + ByteArray::Init();
+    	Int hash = Idxset::Init() + ByteArray::Init();
 
     	if (Base::reflection() == NULL)
     	{
     		MetadataList list;
 
-    		IdxSet::reflection()->PutAll(list);
-    		ByteArray::reflection()->PutAll(list);
+    		Idxset::reflection()->putAll(list);
+    		ByteArray::reflection()->putAll(list);
 
-    		Base::SetMetadata(new ContainerMetadata("memoria::VectorMap", list, VectorMap::Code, Base::GetContainerInterface()));
+    		Base::setMetadata(new ContainerMetadata("memoria::VectorMap", list, VectorMap::Code, Base::getContainerInterface()));
     	}
 
     	return hash;
     }
 
-    virtual ID GetRootID(BigInt name)
+    virtual ID getRootID(BigInt name)
     {
-    	return me()->array().GetRootID(name);
+    	return me()->array().getRootID(name);
     }
 
 
 
 
-    virtual void SetRoot(BigInt name, const ID& root_id)
+    virtual void setRoot(BigInt name, const ID& root_id)
     {
-    	me()->array().SetRoot(name, root_id);
+    	me()->array().setRoot(name, root_id);
     }
 
     bool Check(void* ptr = NULL)
@@ -171,20 +171,20 @@ public:
     }
 
 
-    void SetBranchingFactor(Int count)
+    void setBranchingFactor(Int count)
     {
-    	typename IdxSet::Metadata set_meta = set_.GetRootMetadata();
+    	typename Idxset::Metadata set_meta = set_.getRootMetadata();
     	set_meta.branching_factor() = count;
-    	set_.SetRootMetadata(set_meta);
+    	set_.setRootMetadata(set_meta);
 
-    	typename ByteArray::Metadata array_meta = array_.GetRootMetadata();
+    	typename ByteArray::Metadata array_meta = array_.getRootMetadata();
     	array_meta.branching_factor() = count;
-    	array_.SetRootMetadata(array_meta);
+    	array_.setRootMetadata(array_meta);
     }
 
-    Int GetBranchingFactor() const
+    Int getBranchingFactor() const
     {
-    	return set_.GetRootMetadata().branching_factor();
+    	return set_.getRootMetadata().branching_factor();
     }
 
 private:
@@ -194,8 +194,8 @@ private:
     	typedef typename ByteArray::NodeBaseG 	NodeBaseG;
     	typedef typename ByteArray::Metadata 	Metadata;
 
-    	NodeBaseG root 	= allocator.GetPage(root_id, Allocator::READ);
-    	Metadata  meta 	= ByteArray::GetCtrRootMetadata(root);
+    	NodeBaseG root 	= allocator.getPage(root_id, Allocator::READ);
+    	Metadata  meta 	= ByteArray::getCtrRootMetadata(root);
 
     	return meta.roots(name);
     }

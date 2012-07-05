@@ -64,11 +64,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     };
 
 
-    struct GetNodeTraintsFn {
+    struct getNodeTraintsFn {
     	typename BTreeNodeTraits::Enum trait_;
     	Int value_;
 
-    	GetNodeTraintsFn(typename BTreeNodeTraits::Enum trait): trait_(trait) {}
+    	getNodeTraintsFn(typename BTreeNodeTraits::Enum trait): trait_(trait) {}
 
     	template <typename Node>
     	void operator()()
@@ -82,17 +82,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	};
     };
 
-    Int GetNodeTraitInt(typename BTreeNodeTraits::Enum trait, bool root, bool leaf, Int level) const
+    Int getNodeTraitInt(typename BTreeNodeTraits::Enum trait, bool root, bool leaf, Int level) const
     {
-    	GetNodeTraintsFn fn(trait);
+    	getNodeTraintsFn fn(trait);
     	NodeDispatcher::DispatchStatic(root, leaf, level, fn);
     	return fn.value_;
     }
 
-    Int GetMaxKeyCountForNode(bool root, bool leaf, Int level) const
+    Int getMaxKeyCountForNode(bool root, bool leaf, Int level) const
     {
-    	Int key_count = GetNodeTraitInt(BTreeNodeTraits::MAX_CHILDREN, root, leaf, level);
-    	Int max_count = me()->GetBranchingFactor();
+    	Int key_count = getNodeTraitInt(BTreeNodeTraits::MAX_CHILDREN, root, leaf, level);
+    	Int max_count = me()->getBranchingFactor();
 
     	if (max_count == 0)
     	{
@@ -108,23 +108,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	return path1[level].node()->id() == path2[level].node()->id();
     }
 
-    void SetBranchingFactor(Int count)
+    void setBranchingFactor(Int count)
     {
         if (count == 0 || count > 2)
         {
-        	Metadata meta 			= me()->GetRootMetadata();
+        	Metadata meta 			= me()->getRootMetadata();
         	meta.branching_factor() = count;
 
-    		me()->SetRootMetadata(meta);
+    		me()->setRootMetadata(meta);
         }
         else {
-        	throw Exception(MEMORIA_SOURCE, SBuf()<<"Incorrect SetBranchingFactor value: "<<count<<". It must be 0 or > 2");
+        	throw Exception(MEMORIA_SOURCE, SBuf()<<"Incorrect setBranchingFactor value: "<<count<<". It must be 0 or > 2");
         }
     }
 
-    Int GetBranchingFactor() const
+    Int getBranchingFactor() const
     {
-        return me()->GetRootMetadata().branching_factor();
+        return me()->getRootMetadata().branching_factor();
     }
 
     void Root2Node(NodeBaseG& node)
@@ -174,11 +174,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     }
 
     template <typename Idx>
-    class GetPageIdFn {
+    class getPageIdFn {
         const ID *id_;
         Idx idx_;
     public:
-        GetPageIdFn(Idx idx): idx_(idx) {}
+        getPageIdFn(Idx idx): idx_(idx) {}
 
         template <typename T>
         void operator()(T *node) {
@@ -190,36 +190,36 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         };
     };
 
-    ID GetPageId(const NodeBaseG& node, Int idx) const
+    ID getPageId(const NodeBaseG& node, Int idx) const
     {
-        GetPageIdFn<Int> fn(idx);
+        getPageIdFn<Int> fn(idx);
         NonLeafDispatcher::DispatchConst(node, fn);
         return *fn.id();
     }
 
 
-    NodeBaseG GetChild(const NodeBase *node, Int idx, Int flags) const
+    NodeBaseG getChild(const NodeBase *node, Int idx, Int flags) const
     {
-        return memoria::btree::GetChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator(), flags);
+        return memoria::btree::getChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator(), flags);
     }
 
-    NodeBaseG GetLastChild(const NodeBase *node, Int flags)
+    NodeBaseG getLastChild(const NodeBase *node, Int flags)
     {
-        return memoria::btree::GetLastChild<NonLeafDispatcher, NodeBaseG>(node, me()->allocator(), flags);
+        return memoria::btree::getLastChild<NonLeafDispatcher, NodeBaseG>(node, me()->allocator(), flags);
     }
 
 
-    TreePathItem& GetParent(TreePath& path, const NodeBaseG& node) const
+    TreePathItem& getParent(TreePath& path, const NodeBaseG& node) const
     {
     	return path[node->level() + 1];
     }
 
     template <typename Max>
-    class GetCapacityFn {
+    class getCapacityFn {
         Int cap_;
         Max max_node_capacity_;
     public:
-        GetCapacityFn(Max max_node_capacity): max_node_capacity_(max_node_capacity) {}
+        getCapacityFn(Max max_node_capacity): max_node_capacity_(max_node_capacity) {}
 
         template <typename T>
         void operator()(T *node)
@@ -240,19 +240,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         }
     };
 
-    Int GetCapacity(const NodeBaseG& node) const
+    Int getCapacity(const NodeBaseG& node) const
     {
-        GetCapacityFn<Int> fn(me()->GetBranchingFactor());
+        getCapacityFn<Int> fn(me()->getBranchingFactor());
         NodeDispatcher::DispatchConst(node, fn);
         return fn.cap();
     }
 
     template <typename Max>
-    class GetMaxCapacityFn {
+    class getMaxCapacityFn {
         Int cap_;
         Max max_node_capacity_;
     public:
-        GetMaxCapacityFn(Max max_node_capacity): max_node_capacity_(max_node_capacity) {}
+        getMaxCapacityFn(Max max_node_capacity): max_node_capacity_(max_node_capacity) {}
 
         template <typename T>
         void operator()(T *node) {
@@ -271,9 +271,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         }
     };
 
-    Int GetMaxCapacity(const NodeBaseG& node) const
+    Int getMaxCapacity(const NodeBaseG& node) const
     {
-        GetMaxCapacityFn<Int> fn(me()->GetBranchingFactor());
+        getMaxCapacityFn<Int> fn(me()->getBranchingFactor());
         NodeDispatcher::DispatchConst(node, fn);
         return fn.cap();
     }
@@ -281,51 +281,51 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     bool ShouldMergeNode(const TreePath& path, Int level) const
     {
     	const NodeBaseG& node = path[level].node();
-    	return node->children_count() <= me()->GetMaxCapacity(node) / 2;
+    	return node->children_count() <= me()->getMaxCapacity(node) / 2;
     }
 
     bool ShouldSplitNode(const TreePath& path, Int level) const
     {
     	const NodeBaseG& node = path[level].node();
-    	return me()->GetCapacity(node) == 0;
+    	return me()->getCapacity(node) == 0;
     }
 
 
 
-    Key GetKey(const NodeBaseG& node, Int i, Int idx) const
+    Key getKey(const NodeBaseG& node, Int i, Int idx) const
     {
-        return memoria::btree::GetKey<NodeDispatcher, Key>(node.page(), i, idx);
+        return memoria::btree::getKey<NodeDispatcher, Key>(node.page(), i, idx);
     }
 
-    Accumulator GetKeys(const NodeBaseG& node, Int idx) const
+    Accumulator getKeys(const NodeBaseG& node, Int idx) const
     {
         Accumulator keys;
-    	memoria::btree::GetKeys<NodeDispatcher, Indexes, Key>(node.page(), idx, keys.keys());
+    	memoria::btree::getKeys<NodeDispatcher, Indexes, Key>(node.page(), idx, keys.keys());
     	return keys;
     }
 
-    Accumulator GetMaxKeys(const NodeBaseG& node) const
+    Accumulator getMaxKeys(const NodeBaseG& node) const
     {
     	Accumulator keys;
-    	memoria::btree::GetMaxKeys<NodeDispatcher, Indexes, Key>(node.page(), keys.keys());
+    	memoria::btree::getMaxKeys<NodeDispatcher, Indexes, Key>(node.page(), keys.keys());
     	return keys;
     }
 
-    NodeBaseG GetRoot(Int flags) const
+    NodeBaseG getRoot(Int flags) const
     {
-    	return me()->allocator().GetPage(me()->root(), flags);
+    	return me()->allocator().getPage(me()->root(), flags);
     }
 
-    void SetKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
+    void setKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
     	node.update();
-    	memoria::btree::SetKeys<NodeDispatcher>(node.page(), idx, keys.keys());
+    	memoria::btree::setKeys<NodeDispatcher>(node.page(), idx, keys.keys());
     }
 
-    void SetChildrenCount(NodeBaseG& node, Int count) const
+    void setChildrenCount(NodeBaseG& node, Int count) const
     {
         node.update();
-    	memoria::btree::SetChildrenCount<NodeDispatcher>(node.page(), count);
+    	memoria::btree::setChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
     void AddChildrenCount(NodeBaseG& node, Int count) const
@@ -334,15 +334,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	memoria::btree::AddChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
-    ID GetINodeData(const NodeBaseG& node, Int idx) const
+    ID getINodeData(const NodeBaseG& node, Int idx) const
     {
-    	return *memoria::btree::GetValue<NonLeafDispatcher, ID>(node.page(), idx);
+    	return *memoria::btree::getValue<NonLeafDispatcher, ID>(node.page(), idx);
     }
 
-    void SetINodeData(NodeBaseG& node, Int idx, const ID *id) const
+    void setINodeData(NodeBaseG& node, Int idx, const ID *id) const
     {
     	node.update();
-    	memoria::btree::SetData<NonLeafDispatcher>(node.page(), idx, id);
+    	memoria::btree::setData<NonLeafDispatcher>(node.page(), idx, id);
     }
 
     void Reindex(NodeBaseG& node) const
@@ -368,7 +368,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         template <typename T>
         void operator()(T *node)
         {
-            map_->SetNodeKeyValue(node, i_, element_);
+            map_->setNodeKeyValue(node, i_, element_);
 
             if (i_ == node->children_count() - 1)
             {
@@ -381,7 +381,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     };
 
     template <typename Node>
-    void SetNodeKeyValue(Node* node, Int idx, const Element& element) const
+    void setNodeKeyValue(Node* node, Int idx, const Element& element) const
     {
         for (Int c = 0; c < MyType::Indexes; c++)
         {
@@ -391,22 +391,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         node->map().data(idx) = element.second;
     }
 
-    void SetLeafDataAndReindex(NodeBaseG& node, Int idx, const Element& element) const
+    void setLeafDataAndReindex(NodeBaseG& node, Int idx, const Element& element) const
     {
         node.update();
     	SetAndReindexFn fn(idx, element, me());
     	LeafDispatcher::Dispatch(node.page(), fn);
     }
     
-    Value GetLeafData(const NodeBaseG& node, Int idx) const
+    Value getLeafData(const NodeBaseG& node, Int idx) const
     {
-        return *memoria::btree::GetValue<LeafDispatcher, Value>(node.page(), idx);
+        return *memoria::btree::getValue<LeafDispatcher, Value>(node.page(), idx);
     }
 
-    void SetLeafData(NodeBaseG& node, Int idx, const Value &val) const
+    void setLeafData(NodeBaseG& node, Int idx, const Value &val) const
     {
         node.update();
-    	memoria::btree::SetData<LeafDispatcher>(node.page(), idx, &val);
+    	memoria::btree::setData<LeafDispatcher>(node.page(), idx, &val);
     }
 
     void Dump(PageG page, std::ostream& out = std::cout) const
@@ -414,7 +414,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	if (page != NULL)
     	{
     		PageWrapper<Page, Allocator::PAGE_SIZE> pw(page);
-    		PageMetadata* meta = me()->reflection()->GetPageMetadata(pw.GetPageTypeHash());
+    		PageMetadata* meta = me()->reflection()->getPageMetadata(pw.getPageTypeHash());
     		memoria::vapi::DumpPage(meta, &pw, out);
     		out<<endl;
     		out<<endl;
@@ -424,28 +424,28 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	}
     }
 
-    BigInt GetTotalKeyCount() const;
-    void SetTotalKeyCount(BigInt value);
+    BigInt getTotalKeyCount() const;
+    void setTotalKeyCount(BigInt value);
     void AddTotalKeyCount(BigInt value);
     void AddTotalKeyCount(TreePath& path, BigInt value);
 
-    bool GetNextNode(TreePath& path, Int level = 0, bool down = false) const
+    bool getNextNode(TreePath& path, Int level = 0, bool down = false) const
     {
     	Int idx = path[level].node()->children_count();
-    	return GetNextNode(path, level, idx, down ? 0 : level );
+    	return getNextNode(path, level, idx, down ? 0 : level );
     }
 
-    bool GetPrevNode(TreePath& path, Int level = 0, bool down = false) const
+    bool getPrevNode(TreePath& path, Int level = 0, bool down = false) const
     {
-    	return GetPrevNode(path, level, -1, down ? 0 : level);
+    	return getPrevNode(path, level, -1, down ? 0 : level);
     }
 
     void FinishPathStep(TreePath& path, Int key_idx) const {}
 
 private:
 
-    bool GetNextNode(TreePath& path, Int level, Int idx, Int target_level) const;
-    bool GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) const;
+    bool getNextNode(TreePath& path, Int level, Int idx, Int target_level) const;
+    bool getPrevNode(TreePath& path, Int level, Int idx, Int target_level) const;
 
 MEMORIA_CONTAINER_PART_END
 
@@ -455,39 +455,39 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-BigInt M_TYPE::GetTotalKeyCount() const
+BigInt M_TYPE::getTotalKeyCount() const
 {
-	return me()->GetRootMetadata().key_count();
+	return me()->getRootMetadata().key_count();
 }
 
 M_PARAMS
-void M_TYPE::SetTotalKeyCount(BigInt value)
+void M_TYPE::setTotalKeyCount(BigInt value)
 {
-	Metadata meta = me()->GetRootMetadata();
+	Metadata meta = me()->getRootMetadata();
 	meta.key_count() = value;
 
-	me()->SetRootMetadata(meta);
+	me()->setRootMetadata(meta);
 }
 
 M_PARAMS
 void M_TYPE::AddTotalKeyCount(BigInt value)
 {
-	Metadata meta 		= me()->GetRootMetadata();
+	Metadata meta 		= me()->getRootMetadata();
 	meta.key_count() 	+= value;
 
-	me()->SetRootMetadata(meta);
+	me()->setRootMetadata(meta);
 }
 
 
 M_PARAMS
 void M_TYPE::AddTotalKeyCount(TreePath& path, BigInt value)
 {
-	NodeBaseG& node 	= path[path.GetSize() - 1].node();
+	NodeBaseG& node 	= path[path.getSize() - 1].node();
 
-	Metadata meta 		= me()->GetRootMetadata();
+	Metadata meta 		= me()->getRootMetadata();
 	meta.key_count() 	+= value;
 
-	me()->SetRootMetadata(node, meta);
+	me()->setRootMetadata(node, meta);
 }
 
 
@@ -495,7 +495,7 @@ void M_TYPE::AddTotalKeyCount(TreePath& path, BigInt value)
 
 
 M_PARAMS
-bool M_TYPE::GetNextNode(TreePath& path, Int level, Int idx, Int target_level) const
+bool M_TYPE::getNextNode(TreePath& path, Int level, Int idx, Int target_level) const
 {
 	NodeBaseG& page = path[level].node();
 
@@ -503,7 +503,7 @@ bool M_TYPE::GetNextNode(TreePath& path, Int level, Int idx, Int target_level) c
 	{
 		for(; level != target_level && level > 0; level--)
 		{
-			path[level - 1].node() 			= me()->GetChild(path[level].node(), idx, Allocator::READ);
+			path[level - 1].node() 			= me()->getChild(path[level].node(), idx, Allocator::READ);
 			path[level - 1].parent_idx() 	= idx;
 
 			idx = 0;
@@ -518,7 +518,7 @@ bool M_TYPE::GetNextNode(TreePath& path, Int level, Int idx, Int target_level) c
 	else {
 		if (!page->is_root())
 		{
-			return GetNextNode(path, level + 1, path[level].parent_idx() + 1, target_level);
+			return getNextNode(path, level + 1, path[level].parent_idx() + 1, target_level);
 		}
 	}
 
@@ -527,7 +527,7 @@ bool M_TYPE::GetNextNode(TreePath& path, Int level, Int idx, Int target_level) c
 
 
 M_PARAMS
-bool M_TYPE::GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) const
+bool M_TYPE::getPrevNode(TreePath& path, Int level, Int idx, Int target_level) const
 {
 	NodeBaseG& page = path[level].node();
 
@@ -535,7 +535,7 @@ bool M_TYPE::GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 	{
 		for(; level != target_level && level > 0; level--)
 		{
-			path[level - 1].node() 			= me()->GetChild(path[level].node(), idx, Allocator::READ);
+			path[level - 1].node() 			= me()->getChild(path[level].node(), idx, Allocator::READ);
 			path[level - 1].parent_idx() 	= idx;
 
 			idx = path[level - 1].node()->children_count() - 1;
@@ -551,7 +551,7 @@ bool M_TYPE::GetPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 	else {
 		if (!page->is_root())
 		{
-			return GetPrevNode(path, level + 1, path[level].parent_idx() - 1, target_level);
+			return getPrevNode(path, level + 1, path[level].parent_idx() - 1, target_level);
 		}
 	}
 

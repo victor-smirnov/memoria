@@ -83,8 +83,8 @@ typedef Map<1> 		Map1;
 template <Int Indexes>
 struct Set:      	public CodeValue<0x5c421d + Indexes * 256> {};
 
-typedef Set<1> 		Set1;
-typedef Set<2> 		Set2;
+typedef Set<1> 		set1;
+typedef Set<2> 		set2;
 
 struct DFUDS:       public CodeValue<5> {};
 struct LOUDS:       public CodeValue<6> {};

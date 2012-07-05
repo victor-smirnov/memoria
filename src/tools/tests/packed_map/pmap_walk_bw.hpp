@@ -120,7 +120,7 @@ public:
 		{
 			for (Int d = 0; d < Blocks; d++)
 			{
-				map->key(d, c) = GetRandom(50) + 1;
+				map->key(d, c) = getRandom(50) + 1;
 			}
 		}
 

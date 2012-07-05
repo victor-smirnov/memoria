@@ -136,17 +136,17 @@ typedef PageGuard<Derived2> Derived2G;
 
 //RootG derived2(&val);
 
-RootG Get0(Derived2& val) {
+RootG get0(Derived2& val) {
 	return &val;
 }
 
 
-DerivedG Get1(Derived2& val) {
-	return Get0(val);
+DerivedG get1(Derived2& val) {
+	return get0(val);
 }
 
-Derived2G Get2(Derived2& val) {
-	return Get1(val);
+Derived2G get2(Derived2& val) {
+	return get1(val);
 }
 
 int main(void) {
@@ -155,7 +155,7 @@ int main(void) {
 		Derived2 val;
 		RootG r;
 
-		Derived2G d = Get2(val);
+		Derived2G d = get2(val);
 
 		r = &val;
 

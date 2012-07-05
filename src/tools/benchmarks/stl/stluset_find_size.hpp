@@ -22,7 +22,7 @@ using namespace std;
 
 
 
-class StlUSetSizeBenchmark: public BenchmarkTask {
+class StlUsetSizeBenchmark: public BenchmarkTask {
 
 
 	typedef BigInt							Key;
@@ -39,9 +39,9 @@ class StlUSetSizeBenchmark: public BenchmarkTask {
 
 public:
 
-	StlUSetSizeBenchmark(StringRef name): BenchmarkTask(name) {}
+	StlUsetSizeBenchmark(StringRef name): BenchmarkTask(name) {}
 
-	virtual ~StlUSetSizeBenchmark() throw() {}
+	virtual ~StlUsetSizeBenchmark() throw() {}
 
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
@@ -57,7 +57,7 @@ public:
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			rd_array_[c] = GetRandom(map_->size());
+			rd_array_[c] = getRandom(map_->size());
 		}
 	}
 

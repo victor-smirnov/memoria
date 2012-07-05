@@ -147,7 +147,7 @@ String ReplaceAll(StringRef str, StringRef txt) {
 
 
 
-Int GetValueMultiplier(const char* chars, const char* ptr)
+Int getValueMultiplier(const char* chars, const char* ptr)
 {
 	if (*ptr == 0) {
 		return 1;
@@ -190,7 +190,7 @@ long int ConvertToLongInt(StringRef str)
 
 	long int value = strtol(chars, &endptr, 0);
 
-	return value * GetValueMultiplier(chars, endptr);
+	return value * getValueMultiplier(chars, endptr);
 }
 
 long long ConvertToLongLong(StringRef str)
@@ -200,7 +200,7 @@ long long ConvertToLongLong(StringRef str)
 
 	long int value = strtoll(chars, &endptr, 0);
 
-	return value * GetValueMultiplier(chars, endptr);
+	return value * getValueMultiplier(chars, endptr);
 }
 
 double ConvertToDouble(StringRef str)

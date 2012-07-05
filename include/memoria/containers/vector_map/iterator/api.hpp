@@ -24,10 +24,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vector_map::ItrApiName)
 
 typedef Ctr<VectorMapCtrTypes<Types> >						ContainerType;
 
-typedef typename ContainerType::IdxSet::Iterator			IdxSetIterator;
+typedef typename ContainerType::Idxset::Iterator			IdxsetIterator;
 typedef typename ContainerType::ByteArray::Iterator			ByteArrayIterator;
 
-typedef typename ContainerType::IdxSet::Accumulator			IdxSetAccumulator;
+typedef typename ContainerType::Idxset::Accumulator			IdxsetAccumulator;
 
 typedef typename Types::Profile								Profile;
 typedef typename Types::Allocator 							Allocator;
@@ -45,7 +45,7 @@ void Insert(const ArrayData& data)
 {
 	me()->ba_iter().Insert(data);
 
-	IdxSetAccumulator keys;
+	IdxsetAccumulator keys;
 
 	keys.key(1) = data.size();
 
@@ -76,7 +76,7 @@ void Update(const ArrayData& data)
 
 		if (difference != 0)
 		{
-			IdxSetAccumulator keys;
+			IdxsetAccumulator keys;
 			keys.key(1) = difference;
 			me()->is_iter().UpdateUp(keys);
 		}
@@ -149,7 +149,7 @@ void Remove()
 
 BigInt size() const
 {
-	return me()->is_iter().GetRawKey(1);
+	return me()->is_iter().getRawKey(1);
 }
 
 BigInt pos() const
@@ -157,14 +157,14 @@ BigInt pos() const
 	return me()->ba_iter().pos() - me()->is_iter().prefixes()[1];
 }
 
-BigInt GetKey() const
+BigInt getKey() const
 {
-	return me()->is_iter().GetKey(0);
+	return me()->is_iter().getKey(0);
 }
 
-IdxSetAccumulator GetKeys() const
+IdxsetAccumulator getKeys() const
 {
-	IdxSetAccumulator keys = me()->is_iter().GetRawKeys();
+	IdxsetAccumulator keys = me()->is_iter().getRawKeys();
 
 	keys[0] += me()->is_iter().prefix();
 
@@ -201,7 +201,7 @@ bool NextKey()
 	return me()->is_iter().Next();
 }
 
-void SetValue(BigInt value)
+void setValue(BigInt value)
 {
 	ArrayData data(sizeof(value), &value);
 	me()->Update(data);
@@ -231,13 +231,13 @@ MyType& operator*() {
 	return *me();
 }
 
-void SetValue(StringRef value)
+void setValue(StringRef value)
 {
 	ArrayData data(value.size(), T2T<UByte*>(value.c_str()));
 	me()->Update(data);
 }
 
-void SetValue(const ArrayData& value)
+void setValue(const ArrayData& value)
 {
 	me()->Update(value);
 }

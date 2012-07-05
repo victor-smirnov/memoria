@@ -44,14 +44,14 @@ public:
 
 		for (Int c = 0; c < size; c++)
 		{
-			BigInt value = GetRandom(10000);
+			BigInt value = getRandom(10000);
 			ctr_->push_back(value);
 		}
 
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			rd_array_[c] = GetRandom(size);
+			rd_array_[c] = getRandom(size);
 		}
 	}
 

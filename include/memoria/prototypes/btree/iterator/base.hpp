@@ -93,7 +93,7 @@ public:
     	return found_;
     }
 
-    void SetFound(bool found)
+    void setFound(bool found)
     {
     	found_ = found;
     }
@@ -108,7 +108,7 @@ public:
     	return page() != other.page() || key_idx_ != other.key_idx_ || Base::IsNotEqual(other);
     }
 
-    void SetNode(NodeBaseG& node, Int parent_idx)
+    void setNode(NodeBaseG& node, Int parent_idx)
     {
     	path_[node->level()].node() 		= node;
     	path_[node->level()].parent_idx() 	= parent_idx;
@@ -201,7 +201,7 @@ public:
 
     void Dump(ostream& out = cout, const char* header = NULL)
     {
-    	out<<(header != NULL ? header : me()->GetDumpHeader())<<endl;
+    	out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
 
     	me()->DumpKeys(out);
 
@@ -212,7 +212,7 @@ public:
     	me()->DumpPages(out);
     }
 
-    String GetDumpHeader()
+    String getDumpHeader()
     {
     	return String(me()->model().type_name()) + " Iterator State";
     }
@@ -222,7 +222,7 @@ public:
     	out<<"Path:"<<endl;
 
     	TreePath& path0 = me()->path();
-    	for (int c = me()->path().GetSize() - 1; c >= 0; c--)
+    	for (int c = me()->path().getSize() - 1; c >= 0; c--)
     	{
     		out<<"Node("<<c<<"): "<<IDValue(path0[c]->id())<<" idx="<<(c > 0 ? ToString(path0[c - 1].parent_idx()) : "")<<endl;
     	}

@@ -56,11 +56,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 //            while (!page->is_root())
 //            {
 //                Int pidx = page->parent_idx();
-//                page = me()->GetParent(i.path(), page);
+//                page = me()->getParent(i.path(), page);
 //
 //                for (Int c = 0; c < pidx; c++)
 //                {
-//                    NodeBaseG child = me()->GetChild(page, c, Allocator::READ);
+//                    NodeBaseG child = me()->getChild(page, c, Allocator::READ);
 //                    keys += child->counters().key_count();
 //                }
 //            }
@@ -73,9 +73,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     	return 0;
     }
 
-    Iterator GetByIndex(BigInt index)
+    Iterator getByIndex(BigInt index)
     {
-//        NodeBaseG node = me()->GetRoot(Allocator::READ);
+//        NodeBaseG node = me()->getRoot(Allocator::READ);
 //        if (node.is_set())
 //        {
 //        	Iterator iter(*me(), node->level());
@@ -89,7 +89,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 //
 //                for (Int c = 0; c < size; c++)
 //                {
-//                    NodeBaseG child = me()->GetChild(node, c, Allocator::READ);
+//                    NodeBaseG child = me()->getChild(node, c, Allocator::READ);
 //                    BigInt count = child->counters().key_count();
 //
 //                    if (index < keys + count)
@@ -107,7 +107,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 //                    return Iterator(*me());
 //                }
 //                else {
-//                    node = me()->GetChild(node, idx, Allocator::READ);
+//                    node = me()->getChild(node, idx, Allocator::READ);
 //                }
 //            }
 //
@@ -122,7 +122,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     	return Iterator(*me());
     }
     
-    virtual BigInt GetKeyIndex(BigInt key, Int i = 0)
+    virtual BigInt getKeyIndex(BigInt key, Int i = 0)
     {
     	return me()->KeyIndex(key, i);
     }
@@ -130,17 +130,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
 
     // FIXME: value transfer is not yet implemented
-    virtual bool Get(BigInt index, BigInt& key, BigInt& value)
+    virtual bool get(BigInt index, BigInt& key, BigInt& value)
     {
-    	Iterator i = me()->GetByIndex(index);
+    	Iterator i = me()->getByIndex(index);
     	if (i.IsEnd())
     	{
     		return false;
     	}
     	else {
 
-    		value = ConvertToHelper<Value, ID>::cvt(i.GetValue());
-    		key = i.GetKey(0);
+    		value = ConvertToHelper<Value, ID>::cvt(i.getValue());
+    		key = i.getKey(0);
 
     		return true;
     	}

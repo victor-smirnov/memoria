@@ -34,7 +34,7 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-String GetErrorMsg(DWORD err_code)
+String getErrorMsg(DWORD err_code)
 {
 	LPVOID lpMsgBuf;
 
@@ -55,8 +55,8 @@ String GetErrorMsg(DWORD err_code)
 	return msg;
 }
 
-String GetErrorMsg() {
-	return GetErrorMsg(GetLastError());
+String getErrorMsg() {
+	return getErrorMsg(getLastError());
 }
 
 
@@ -72,27 +72,27 @@ File::FileListType::~FileListType() throw() {
 BigInt File::Size() const
 {
 	WIN32_FILE_ATTRIBUTE_DATA   fileInfo;
-	bool fOk = GetFileAttributesEx(path_.c_str(), GetFileExInfoStandard, &fileInfo);
+	bool fOk = getFileAttributesEx(path_.c_str(), getFileExInfoStandard, &fileInfo);
 
 	if (fOk)
 	{
 		return (((BigInt)fileInfo.nFileSizeHigh) << 32) + fileInfo.nFileSizeLow;
 	}
 	else {
-		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get file stats: "<<GetErrorMsg()<<" path="<<path_);
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get file stats: "<<getErrorMsg()<<" path="<<path_);
 	}
 }
 
 bool is_directory(StringRef name, bool throw_ex)
 {
-	DWORD result = GetFileAttributes(name.c_str());
+	DWORD result = getFileAttributes(name.c_str());
 
 	if (result != INVALID_FILE_ATTRIBUTES)
 	{
 		return (result & FILE_ATTRIBUTE_DIRECTORY) != 0;
 	}
 	else if (throw_ex) {
-		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get file attributes:"<<GetErrorMsg()<<" path="<<name);
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get file attributes:"<<getErrorMsg()<<" path="<<name);
 	}
 	else {
 		return false;
@@ -106,10 +106,10 @@ bool File::IsDirectory() const
 
 bool File::IsExists() const
 {
-	return GetFileAttributes(path_.c_str()) != INVALID_FILE_ATTRIBUTES;
+	return getFileAttributes(path_.c_str()) != INVALID_FILE_ATTRIBUTES;
 }
 
-String File::GetAbsolutePath() const
+String File::getAbsolutePath() const
 {
 	if (path_[0] == '/')
 	{
@@ -117,12 +117,12 @@ String File::GetAbsolutePath() const
 	}
 	else {
 		char buf[8192];
-		if (GetCurrentDirectory(sizeof(buf) - 1, buf))
+		if (getCurrentDirectory(sizeof(buf) - 1, buf))
 		{
 			return String(buf)+"/"+path_;
 		}
 		else {
-			throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get absolute path: "<<GetErrorMsg()<<" path="<<path_);
+			throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't get absolute path: "<<getErrorMsg()<<" path="<<path_);
 		}
 	}
 }
@@ -134,7 +134,7 @@ bool mkdir(StringRef name)
 	{
 		return true;
 	}
-	else if (GetLastError() == ERROR_ALREADY_EXISTS)
+	else if (getLastError() == ERROR_ALREADY_EXISTS)
 	{
 		return File(name).IsDirectory();
 	}
@@ -181,7 +181,7 @@ void File::Rename(StringRef new_name)
 {
 	if (!MoveFile(path_.c_str(), new_name.c_str()))
 	{
-		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't rename file: "<<GetErrorMsg()<<", new name = "<<new_name);
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't rename file: "<<getErrorMsg()<<", new name = "<<new_name);
 	}
 	path_ = new_name;
 }
@@ -225,11 +225,11 @@ bool File::DelTree() const {
 	return rm(*this);
 }
 
-StringRef File::GetPath() const {
+StringRef File::getPath() const {
 	return path_;
 }
 
-String File::GetName() const {
+String File::getName() const {
 	String::size_type idx = path_.find_last_of('/');
 	if (idx == String::npos)
 	{
@@ -245,7 +245,7 @@ String File::GetName() const {
 
 
 void ThrowFE(const char* src, const File& file) {
-	throw FileException(src, SBuf()<<"Can't read the directory: "<<GetErrorMsg()<<" path="<<file.GetPath());
+	throw FileException(src, SBuf()<<"Can't read the directory: "<<getErrorMsg()<<" path="<<file.getPath());
 }
 
 File::FileListType* File::ReadDir(const File& file)
@@ -260,7 +260,7 @@ File::FileListType* File::ReadDir(const File& file)
 		// must append \* to the path
 		{
 			char buf[8192];
-			sprintf_s(buf, sizeof(buf), "%s\\*", file.GetAbsolutePath().c_str());
+			sprintf_s(buf, sizeof(buf), "%s\\*", file.getAbsolutePath().c_str());
 			if((dhandle = FindFirstFile(buf, &fdata)) == INVALID_HANDLE_VALUE)
 			{
 				delete list;
@@ -287,7 +287,7 @@ File::FileListType* File::ReadDir(const File& file)
 				}
 			}
 			else {
-				if(GetLastError() == ERROR_NO_MORE_FILES)
+				if(getLastError() == ERROR_NO_MORE_FILES)
 				{
 					break;
 				}
@@ -307,7 +307,7 @@ File::FileListType* File::ReadDir(const File& file)
 	}
 	else
 	{
-		throw FileException(MEMORIA_SOURCE, SBuf()<<"File is not a directory: "<<file.GetPath());
+		throw FileException(MEMORIA_SOURCE, SBuf()<<"File is not a directory: "<<file.getPath());
 	}
 }
 

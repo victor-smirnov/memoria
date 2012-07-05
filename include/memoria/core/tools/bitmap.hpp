@@ -7,7 +7,7 @@
 
 
 /**
- * Basic bitmap tools. Get/Set bit and bit groups. Copy/Shift bits in a Buffer.
+ * Basic bitmap tools. get/set bit and bit groups. Copy/Shift bits in a Buffer.
  *
  * Buffer must have Long type declarator and [] overloaded operator.
  */
@@ -175,12 +175,12 @@ ItemType CShr(ItemType value, Int count) {
 }
 
 /**
- * Set one bit (0, 1) 'bit' in buffer 'buf' at address 'idx'
+ * set one bit (0, 1) 'bit' in buffer 'buf' at address 'idx'
  *
  */
 
 template <typename Buffer>
-void SetBit(Buffer &buf, Int idx, Long bit) {
+void setBit(Buffer &buf, Int idx, Long bit) {
     Int mask = TypeBitmask<Long>();
     Int divisor = TypeBitmaskPopCount(mask);
 
@@ -197,11 +197,11 @@ void SetBit(Buffer &buf, Int idx, Long bit) {
 }
 
 /**
- * Get one bit (0, 1) from buffer 'buf' at address 'idx'.
+ * get one bit (0, 1) from buffer 'buf' at address 'idx'.
  */
 
 template <typename Buffer>
-Long GetBit(const Buffer &buf, Int idx) {
+Long getBit(const Buffer &buf, Int idx) {
     Int mask = TypeBitmask<Long>();
     Int divisor = TypeBitmaskPopCount(mask);
 
@@ -212,14 +212,14 @@ Long GetBit(const Buffer &buf, Int idx) {
 }
 
 /**
- * Set bit group for a case when the group does not span cell boundaries.
+ * set bit group for a case when the group does not span cell boundaries.
  * idx   - group offset in he buffer
  * bits  - bit group to set
  * nbits - number of bits to set starting from position 0 in 'bits'
  */
 
 template <typename Buffer>
-void SetBits0(Buffer &buf, Int idx, Long bits, Int nbits) {
+void setBits0(Buffer &buf, Int idx, Long bits, Int nbits) {
     Int mask = TypeBitmask<Long>();
     Int divisor = TypeBitmaskPopCount(mask);
 
@@ -233,7 +233,7 @@ void SetBits0(Buffer &buf, Int idx, Long bits, Int nbits) {
 }
 
 /**
- * Get bit group for a case when the group does not span cell boundaries.
+ * get bit group for a case when the group does not span cell boundaries.
  * idx   - group offset in he buffer
  * nbits - number of bits to set. 0 <= nbits <= bitsize(Long)
  *
@@ -241,7 +241,7 @@ void SetBits0(Buffer &buf, Int idx, Long bits, Int nbits) {
  */
 
 template <typename Buffer>
-Long GetBits0(const Buffer &buf, Int idx, Int nbits) {
+Long getBits0(const Buffer &buf, Int idx, Int nbits) {
     Int mask = TypeBitmask<Long>();
     Int divisor = TypeBitmaskPopCount(mask);
 
@@ -254,52 +254,52 @@ Long GetBits0(const Buffer &buf, Int idx, Int nbits) {
 }
 
 /**
- * Set group of 'nbits' bits stored in 'bits' to the buffer at the address 'idx'
+ * set group of 'nbits' bits stored in 'bits' to the buffer at the address 'idx'
  *
  * Note that 0 <= nbits <= bitsize(Long)
  */
 
 template <typename Buffer>
-void SetBits(Buffer &buf, Int idx, Long bits, Int nbits) {
+void setBits(Buffer &buf, Int idx, Long bits, Int nbits) {
     Int mask = TypeBitmask<Long>();
     Int laddr = idx & mask;
 
     Long bitsize = TypeBitsize<Long>();
 
     if (laddr + nbits <= bitsize) {
-        SetBits0(buf, idx, bits, nbits);
+        setBits0(buf, idx, bits, nbits);
     }
     else {
         Long nbits1 = laddr + nbits - bitsize;
         Long nbits0 = nbits - nbits1;
 
-        SetBits0(buf, idx, bits, nbits0);
-        SetBits0(buf, idx + nbits0, bits >> (nbits0), nbits1);
+        setBits0(buf, idx, bits, nbits0);
+        setBits0(buf, idx + nbits0, bits >> (nbits0), nbits1);
     }
 }
 
 /**
- * Get the group of 'nbits' bits stored in buffer 'buf' at the address 'idx'. All top bits
+ * get the group of 'nbits' bits stored in buffer 'buf' at the address 'idx'. All top bits
  * after 'nbits' in the returned value are 0.
  *
  * Note that 0 <= nbits <= bitsize(Long)
  */
 
 template <typename Buffer>
-Long GetBits(const Buffer &buf, Int idx, Int nbits) {
+Long getBits(const Buffer &buf, Int idx, Int nbits) {
     Int mask = TypeBitmask<Long>();
     Int laddr = idx & mask;
 
     Long bitsize = TypeBitsize<Long>();
 
     if (laddr + nbits <= bitsize) {
-        return GetBits0(buf, idx, nbits);
+        return getBits0(buf, idx, nbits);
     }
     else {
         Long nbits1 = laddr + nbits - bitsize;
         Long nbits0 = nbits - nbits1;
 
-        return GetBits0(buf, idx, nbits0) | (GetBits0(buf, idx + nbits0, nbits1) << nbits0);
+        return getBits0(buf, idx, nbits0) | (getBits0(buf, idx + nbits0, nbits1) << nbits0);
     }
 }
 
@@ -319,16 +319,16 @@ void CopyBits(const Buffer1 &src_array, Buffer2 &dst_array, Int srcBit, Int dstB
 
     Int c;
     for (c=0; c < (bitCount & ~bitmask); c += bitsize) {
-        SetBits(dst_array, dstBit + c, GetBits(src_array, srcBit + c, bitsize), bitsize);
+        setBits(dst_array, dstBit + c, getBits(src_array, srcBit + c, bitsize), bitsize);
     }
 
     Int remainder = bitCount - c;
 
     if (remainder != 0) {
         Int base = bitCount & ~bitmask;
-        Long val = GetBits(src_array, srcBit + base, remainder);
+        Long val = getBits(src_array, srcBit + base, remainder);
 //        std::cout<<"VAL: "<<val<<" "<<srcBit + base<<" "<<(void*)src_array<<std::endl;
-        SetBits(dst_array, dstBit + base, val, remainder);
+        setBits(dst_array, dstBit + base, val, remainder);
     }
 }
 
@@ -357,13 +357,13 @@ void ShiftBits(Buffer &array, Int srcBit, Int dstBit, Int bitCount) {
 
         Int c;
         for (c = bitCount; c >= bitsize; c -= bitsize) {
-	    Long val = GetBits(array, srcBit + c - bitsize, bitsize);
-            SetBits(array, dstBit + c - bitsize, val, bitsize);
+	    Long val = getBits(array, srcBit + c - bitsize, bitsize);
+            setBits(array, dstBit + c - bitsize, val, bitsize);
         }
 
         if (c != 0) {
-            Long val = GetBits(array, srcBit, c);
-            SetBits(array, dstBit, val, c);
+            Long val = getBits(array, srcBit, c);
+            setBits(array, dstBit, val, c);
         }
     }
     else if (dstBit < srcBit) {
@@ -393,7 +393,7 @@ void DumpBitmap(std::ostream &os, Buffer &buffer, Int from, Int to) {
             os << ".";
             cnt = 0;
         }
-        os << (Int)GetBit(buffer, c);
+        os << (Int)getBit(buffer, c);
     }
     os << std::endl;
 }
@@ -439,7 +439,7 @@ Int CountFw(Buffer &buffer, Int from, Int to, const char *lut, bool zero) {
     Int reminder = (to - from) & 0x7; // lowerst 3 bits
     Int c;
     for (c = from; c < to - reminder; c += 8) {
-        Long tmp = GetBits(buffer, c, 8);
+        Long tmp = getBits(buffer, c, 8);
         char bits = lut[tmp];
         cnt += bits;
         if (bits < 8) {
@@ -448,7 +448,7 @@ Int CountFw(Buffer &buffer, Int from, Int to, const char *lut, bool zero) {
     }
 
     if (reminder > 0) {
-        Long tmp = GetBits(buffer, to - reminder, reminder);
+        Long tmp = getBits(buffer, to - reminder, reminder);
         if (zero) {
             tmp |= 0x1 << reminder;
         }
@@ -475,7 +475,7 @@ Int CountBw(Buffer &buffer, Int from, Int to, const char *lut, bool zero) {
     Int reminder = (from - to) & 0x7; // lowerst 3 bits
     Int c;
     for (c = from; c > to + reminder; c -= 8) {
-        Long tmp = GetBits(buffer, c - 7, 8);
+        Long tmp = getBits(buffer, c - 7, 8);
         char bits = lut[tmp];
         cnt += bits;
         if (bits < 8) {
@@ -484,7 +484,7 @@ Int CountBw(Buffer &buffer, Int from, Int to, const char *lut, bool zero) {
     }
 
     if (reminder > 0) {
-        Long tmp = GetBits(buffer, to + 1, reminder);
+        Long tmp = getBits(buffer, to + 1, reminder);
         if (zero) {
             tmp = ((tmp << 1) | 0x1) << (7 - reminder);;
         }
@@ -513,16 +513,16 @@ template <typename Buffer>
 Int CreateUDS(Buffer &buf, Int start, Int *ds, Int ds_size, Int node_bits) {
     for (Int ids = 0; ids < ds_size; ids++) {
         for (Int i = 0; i < ds[ids]; i++, start++) {
-            SetBit(buf, start, 1);
+            setBit(buf, start, 1);
         }
-        SetBit(buf, start++, 0);
+        setBit(buf, start++, 0);
 
         for (Int i = 0; i < ds[ids]; i++, start += node_bits) {
-            SetBits(buf, start, 0x9, node_bits);
+            setBits(buf, start, 0x9, node_bits);
         }
 
         if (ds[ids] > 0) {
-            SetBit(buf, start++, 0);
+            setBit(buf, start++, 0);
         }
     }
 

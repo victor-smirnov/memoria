@@ -61,7 +61,7 @@ struct IPageOperations
 {
 	virtual Int Serialize(const void* page, void* buf) const						= 0;
 	virtual void Deserialize(const void* buf, Int buf_size, void* page) const		= 0;
-	virtual Int GetPageSize(const void *page) const									= 0;
+	virtual Int getPageSize(const void *page) const									= 0;
 
 	virtual void GenerateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const 		= 0;
 	virtual void GenerateLayoutEvents(const void* page, const LayoutEventsParams& params, IPageLayoutEventHandler* handler) const 	= 0;
@@ -78,7 +78,7 @@ struct MEMORIA_API PageMetadata: public MetadataGroup
 	}
 
 
-	virtual const IPageOperations* GetPageOperations() const {
+	virtual const IPageOperations* getPageOperations() const {
 		return page_operations_;
 	}
 

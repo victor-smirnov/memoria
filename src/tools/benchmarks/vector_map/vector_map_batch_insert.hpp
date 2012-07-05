@@ -30,14 +30,14 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
 	typedef typename MapCtr::Iterator								Iterator;
 	typedef typename MapCtr::ID										ID;
 
-	typedef typename MapCtr::IdxSet									SetCtr;
+	typedef typename MapCtr::Idxset									setCtr;
 
-	typedef typename SetCtr::Accumulator							Accumulator;
+	typedef typename setCtr::Accumulator							Accumulator;
 
-	typedef typename SetCtr::ISubtreeProvider						ISubtreeProvider;
-	typedef typename SetCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
-	typedef typename SetCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
-	typedef typename SetCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
+	typedef typename setCtr::ISubtreeProvider						ISubtreeProvider;
+	typedef typename setCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
+	typedef typename setCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
+	typedef typename setCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
 
 
 	class SubtreeProvider: public DefaultSubtreeProviderBase
@@ -48,17 +48,17 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
 		BigInt data_size_;
 
 	public:
-		SubtreeProvider(SetCtr* ctr, BigInt total, BigInt data_size): Base(*ctr, total), data_size_(data_size)
+		SubtreeProvider(setCtr* ctr, BigInt total, BigInt data_size): Base(*ctr, total), data_size_(data_size)
 		{}
 
-		virtual LeafNodeKeyValuePair GetLeafKVPair(Direction direction, BigInt begin)
+		virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
 		{
 			Accumulator acc;
 
 			acc[0] = 1;
 			acc[1] = data_size_;
 
-			return LeafNodeKeyValuePair(acc, SetCtr::Value());
+			return LeafNodeKeyValuePair(acc, setCtr::Value());
 		}
 	};
 
@@ -112,7 +112,7 @@ public:
 
 		while (total < memory_size)
 		{
-			auto i = key_count == 0 ? map_->Begin() : map_->Find(GetRandom(key_count));
+			auto i = key_count == 0 ? map_->Begin() : map_->Find(getRandom(key_count));
 
 			map_->set().InsertSubtree(i.is_iter(), provider);
 

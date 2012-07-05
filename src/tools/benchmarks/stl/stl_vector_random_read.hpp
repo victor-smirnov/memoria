@@ -48,7 +48,7 @@ public:
 
 		for (Int c = 0; c < size; c++)
 		{
-			BigInt value = GetRandom(10000);
+			BigInt value = getRandom(10000);
 			ctr_->push_back(value);
 		}
 
@@ -57,7 +57,7 @@ public:
 		rd_array_ = new Int[params.operations()];
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			rd_array_[c] = GetRandom(size);
+			rd_array_[c] = getRandom(size);
 //			out<<(rd_array_[c] - last)<<" "<<size<<endl;
 //			last = rd_array_[c];
 		}
@@ -76,7 +76,7 @@ public:
 		{
 
 			BigInt value = ctr_->operator[](rd_array_[c]);
-//			BigInt value = ctr_->operator[](GetRandom(params.x()/128));
+//			BigInt value = ctr_->operator[](getRandom(params.x()/128));
 			result_ += value;
 		}
 

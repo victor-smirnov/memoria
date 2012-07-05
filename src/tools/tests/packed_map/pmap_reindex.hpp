@@ -71,7 +71,7 @@ public:
 
 		for (Int c = 0; c < size; c++)
 		{
-			Int key = GetRandom(1000);
+			Int key = getRandom(1000);
 			map->key(0, c) = key;
 
 			sum += key;

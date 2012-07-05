@@ -46,7 +46,7 @@ public:
 
 public:
 
-	String GetFileName(StringRef name) const;
+	String getFileName(StringRef name) const;
 };
 
 

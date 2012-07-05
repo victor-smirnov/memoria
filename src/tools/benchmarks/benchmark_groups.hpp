@@ -50,10 +50,10 @@
 /**
  * Memoria benchmark suite chart list:
  *
- * 1. PackedSet performance (branching factor, tree size)
+ * 1. Packedset performance (branching factor, tree size)
  * 		- random read + stl		 	(1.1)
  *
- * 2. Memoria Set
+ * 2. Memoria set
  * 		- random read (tree size)	(2.1)
  * 		- linear read 				(2.1)
  * 		- random insert				(2.2)
@@ -86,7 +86,7 @@
  * 		+ multicore ?
  *
  * 6.	Serialization test
- * 		- Set 													(6.1)
+ * 		- set 													(6.1)
  * 		- Vector												(6.2)
  * 		- VectorMap												(6.3)
  */
@@ -134,9 +134,9 @@ public:
 };
 
 
-class PackedSetMemGraph: public LogXScaleGnuplotGraph {
+class PackedsetMemGraph: public LogXScaleGnuplotGraph {
 public:
-	PackedSetMemGraph(): LogXScaleGnuplotGraph("PSetMem")
+	PackedsetMemGraph(): LogXScaleGnuplotGraph("PsetMem")
 	{
 		title 	= "PackedTree random read performance,\\n1 million random reads";
 		xtitle 	= "Memory Block Size, Kb";
@@ -148,23 +148,23 @@ public:
 
 		xunit 		= 1024;
 
-		AddGraph(new PSetMemBenchmark<2>(), GraphData("PackedTree<BigInt>, 2 children"));
-		AddGraph(new PSetMemBenchmark<4>(), GraphData("PackedTree<BigInt>, 4 children"));
-		AddGraph(new PSetMemBenchmark<8>(), GraphData("PackedTree<BigInt>, 8 children"));
-		AddGraph(new PSetMemBenchmark<16>(), GraphData("PackedTree<BigInt>, 16 children"));
-		AddGraph(new PSetMemBenchmark<32>(), GraphData("PackedTree<BigInt>, 32 children"));
-		AddGraph(new PSetMemBenchmark<64>(), GraphData("PackedTree<BigInt>, 64 children"));
+		AddGraph(new PsetMemBenchmark<2>(), GraphData("PackedTree<BigInt>, 2 children"));
+		AddGraph(new PsetMemBenchmark<4>(), GraphData("PackedTree<BigInt>, 4 children"));
+		AddGraph(new PsetMemBenchmark<8>(), GraphData("PackedTree<BigInt>, 8 children"));
+		AddGraph(new PsetMemBenchmark<16>(), GraphData("PackedTree<BigInt>, 16 children"));
+		AddGraph(new PsetMemBenchmark<32>(), GraphData("PackedTree<BigInt>, 32 children"));
+		AddGraph(new PsetMemBenchmark<64>(), GraphData("PackedTree<BigInt>, 64 children"));
 
-		AddGraph(new StlSetMemBenchmark("StlSetMem"), GraphData("std::set, 2 children"));
+		AddGraph(new StlsetMemBenchmark("StlsetMem"), GraphData("std::set, 2 children"));
 	}
 };
 
 
 class SetRandomReadGraph: public LogXScaleGnuplotGraph {
 public:
-	SetRandomReadGraph(): LogXScaleGnuplotGraph("SetRandomRead")
+	SetRandomReadGraph(): LogXScaleGnuplotGraph("setRandomRead")
 	{
-		title 	= "PackedSet<BigInt> vs Set<BigInt> vs std::set<BigInt> Random Read Performance,\\n1 million reads";
+		title 	= "Packedset<BigInt> vs set<BigInt> vs std::set<BigInt> Random Read Performance,\\n1 million reads";
 		xtitle 	= "Number of Elements";
 
 		time_start 	= 128;
@@ -174,9 +174,9 @@ public:
 
 		logscale	= 10;
 
-		AddGraph(new PSetSizeBenchmark<16>(), GraphData("PackedSet"));
-		AddGraph(new SetFindRandomBenchmark("FindRandom"), GraphData("Memoria Set"));
-		AddGraph(new StlSetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
+		AddGraph(new PsetSizeBenchmark<16>(), GraphData("Packedset"));
+		AddGraph(new setFindRandomBenchmark("FindRandom"), GraphData("Memoria set"));
+		AddGraph(new StlsetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
 	}
 };
 
@@ -184,9 +184,9 @@ public:
 
 class SetLinearReadGraph: public LogXScaleGnuplotGraph {
 public:
-	SetLinearReadGraph(): LogXScaleGnuplotGraph("SetLinearRead")
+	SetLinearReadGraph(): LogXScaleGnuplotGraph("setLinearRead")
 	{
-		title 	= "Memoria Set<BigInt> vs std::set<BigInt> Sequential Read Performance,\\n16 million reads";
+		title 	= "Memoria set<BigInt> vs std::set<BigInt> Sequential Read Performance,\\n16 million reads";
 		xtitle 	= "Number of Elements";
 
 		time_start 	= 128;
@@ -198,8 +198,8 @@ public:
 
 		logscale	= 10;
 
-		AddGraph(new SetScanBenchmark("SetScan"), GraphData("Memoria Set"));
-		AddGraph(new StlSetScanBenchmark("StlSetScan"), GraphData("std::set"));
+		AddGraph(new setScanBenchmark("setScan"), GraphData("Memoria set"));
+		AddGraph(new StlsetScanBenchmark("StlsetScan"), GraphData("std::set"));
 	}
 };
 
@@ -207,9 +207,9 @@ public:
 
 class SetRandomInsertGraph: public LogXScaleGnuplotGraph {
 public:
-	SetRandomInsertGraph(): LogXScaleGnuplotGraph("SetInsert")
+	SetRandomInsertGraph(): LogXScaleGnuplotGraph("setInsert")
 	{
-		title 	= "Set<BigInt> Batch Insert Performance";
+		title 	= "set<BigInt> Batch Insert Performance";
 		xtitle 	= "Batch size, Elements";
 
 		time_start 	= 1;
@@ -219,7 +219,7 @@ public:
 
 		logscale	= 10;
 
-		AddGraph(new SetInsertBatchBenchmark("InsertBatch"), GraphData("Random Insert"));
+		AddGraph(new setInsertBatchBenchmark("InsertBatch"), GraphData("Random Insert"));
 		AddGraph(new SetAppendBatchBenchmark("AppendBatch"), GraphData("Sequential Append"));
 	}
 };
@@ -227,9 +227,9 @@ public:
 
 class SetCommitRateGraph: public LogXScaleGnuplotGraph {
 public:
-	SetCommitRateGraph(): LogXScaleGnuplotGraph("SetCommitRate", 10)
+	SetCommitRateGraph(): LogXScaleGnuplotGraph("setCommitRate", 10)
 	{
-		title 	= "Set<BigInt> Commit Performance,\\nInsert/Append 1M keys";
+		title 	= "set<BigInt> Commit Performance,\\nInsert/Append 1M keys";
 		xtitle 	= "Commit Batch size, Elements";
 
 		time_start 	= 1;
@@ -239,17 +239,17 @@ public:
 
 		logscale	= 10;
 
-		AddGraph(new SetCommitRandomBenchmark("Random"), GraphData("Random Insert"));
-		AddGraph(new SetCommitAppendBenchmark("Append"), GraphData("Sequential Append"));
+		AddGraph(new setCommitRandomBenchmark("Random"), GraphData("Random Insert"));
+		AddGraph(new setCommitAppendBenchmark("Append"), GraphData("Sequential Append"));
 	}
 };
 
 
 class SetBatchUpdateGraph: public LogXScaleGnuplotGraph {
 public:
-	SetBatchUpdateGraph(): LogXScaleGnuplotGraph("SetBatchUpdate", 10)
+	SetBatchUpdateGraph(): LogXScaleGnuplotGraph("setBatchUpdate", 10)
 	{
-		title 	= "Insert 16M keys into Memoria Set";
+		title 	= "Insert 16M keys into Memoria set";
 		xtitle 	= "Batch size";
 		ytitle	= "Performance, Insertions/sec";
 
@@ -261,7 +261,7 @@ public:
 
 		logscale	= 10;
 
-		RegisterTask(new SetInsertBatchBenchmark("Insert"));
+		RegisterTask(new setInsertBatchBenchmark("Insert"));
 		RegisterTask(new SetAppendBatchBenchmark("Append"));
 	}
 };
@@ -466,7 +466,7 @@ public:
 //		AddGraph(new VectorSequentialReadBenchmark("Vector"), GraphData("Vector Performance", "Vector Throughput"));
 //		AddGraph(new VectorMapSequentialReadBenchmark("VectorMap"), GraphData("VectorMap Performance", "VectorMap Throughput"));
 
-		AddGraph(new StlSetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
+		AddGraph(new StlsetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
 	}
 };
 
