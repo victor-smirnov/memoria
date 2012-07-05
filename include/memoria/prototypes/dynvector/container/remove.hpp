@@ -75,7 +75,7 @@ public:
     		for (Int c = idx_; c < idx_ + count_; c++)
     		{
     			ID id = node->map().data(c);
-    			me_.allocator().RemovePage(id);
+    			me_.allocator().removePage(id);
     		}
     	}
     };
@@ -353,7 +353,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockFromStart(Iterator& stop)
 	}
 
 	BigInt removed_key_count = 0;
-	me()->RemovePagesFromStart(stop.path(), stop.key_idx(), removed, removed_key_count);
+	me()->removePagesFromStart(stop.path(), stop.key_idx(), removed, removed_key_count);
 
 	if (me()->ShouldMergeData(stop.path()))
 	{
@@ -381,7 +381,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockAtEnd(Iterator& start)
 	if (!start.IsEnd())
 	{
 		BigInt removed_key_count = 0;
-		me()->RemovePagesAtEnd(start.path(), start.key_idx(), removed, removed_key_count);
+		me()->removePagesAtEnd(start.path(), start.key_idx(), removed, removed_key_count);
 	}
 
 	start.PrevKey();
@@ -459,7 +459,7 @@ typename M_TYPE::Accumulator M_TYPE::RemoveDataBlockInMiddle(Iterator& start, It
 		}
 
 		BigInt removed_key_count = 0;
-		me()->RemovePages(start.path(), start.key_idx(), stop.path(), stop.key_idx(), 0, removed, removed_key_count);
+		me()->removePages(start.path(), start.key_idx(), stop.path(), stop.key_idx(), 0, removed, removed_key_count);
 
 		me()->AddTotalKeyCount(-removed_key_count);
 

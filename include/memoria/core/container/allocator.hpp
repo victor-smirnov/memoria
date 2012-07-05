@@ -41,17 +41,17 @@ struct IAbstractAllocator {
 
 	virtual PageG getPage(const ID& id, Int flags)						= 0;
 	virtual PageG getPageG(Page* page)									= 0;
-	virtual void  UpdatePage(Shared* shared)							= 0;
-	virtual void  RemovePage(const ID& id)								= 0;
-	virtual PageG CreatePage(Int initial_size = MaxPageSize)			= 0;
-	virtual void  ResizePage(Shared* page, Int new_size)				= 0;
-	virtual void  ReleasePage(Shared* shared)							= 0;
+	virtual void  updatePage(Shared* shared)							= 0;
+	virtual void  removePage(const ID& id)								= 0;
+	virtual PageG createPage(Int initial_size = MaxPageSize)			= 0;
+	virtual void  resizePage(Shared* page, Int new_size)				= 0;
+	virtual void  releasePage(Shared* shared)							= 0;
 
 	virtual CtrShared* getCtrShared(BigInt name)						= 0;
-	virtual bool IsCtrSharedRegistered(BigInt name)						= 0;
+	virtual bool isCtrSharedRegistered(BigInt name)						= 0;
 
-	virtual void UnregisterCtrShared(CtrShared* shared)					= 0;
-	virtual void RegisterCtrShared(CtrShared* shared)					= 0;
+	virtual void unregisterCtrShared(CtrShared* shared)					= 0;
+	virtual void registerCtrShared(CtrShared* shared)					= 0;
 
 	// Allocator directory interface part
 	virtual PageG getRoot(BigInt name, Int flags)						= 0;
@@ -60,10 +60,10 @@ struct IAbstractAllocator {
 
 	// memory pool allocator
 
-	virtual void* AllocateMemory(size_t size)							= 0;
-	virtual void  FreeMemory(void* ptr)									= 0;
+	virtual void* allocateMemory(size_t size)							= 0;
+	virtual void  freeMemory(void* ptr)									= 0;
 
-	virtual BigInt CreateCtrName()										= 0;
+	virtual BigInt createCtrName()										= 0;
 
 	virtual Logger& logger()											= 0;
 

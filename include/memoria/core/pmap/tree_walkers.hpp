@@ -217,7 +217,7 @@ public:
 
 
 template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
-class FindSumPositionFwFn
+class findSumPositionFwFn
 {
 	IndexKey sum_;
 	const TreeType& me_;
@@ -228,7 +228,7 @@ class FindSumPositionFwFn
 	Int index_block_offsets_[Blocks];
 
 public:
-	FindSumPositionFwFn(const TreeType& me, Int block_num, BigInt limit):
+	findSumPositionFwFn(const TreeType& me, Int block_num, BigInt limit):
 		sum_(0),
 		me_(me),
 		block_num_(block_num),
@@ -289,7 +289,7 @@ public:
 
 
 template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
-class FindSumPositionBwFn
+class findSumPositionBwFn
 {
 	IndexKey sum_;
 	const TreeType& me_;
@@ -300,7 +300,7 @@ class FindSumPositionBwFn
 	Int index_block_offsets_[Blocks];
 
 public:
-	FindSumPositionBwFn(const TreeType& me, Int block_num, BigInt limit):
+	findSumPositionBwFn(const TreeType& me, Int block_num, BigInt limit):
 		sum_(0),
 		me_(me),
 		block_num_(block_num),
@@ -361,7 +361,7 @@ public:
 
 
 template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
-class FindSumPositionBwLTFn
+class findSumPositionBwLTFn
 {
 	IndexKey sum_;
 	const TreeType& me_;
@@ -372,7 +372,7 @@ class FindSumPositionBwLTFn
 	Int index_block_offsets_[Blocks];
 
 public:
-	FindSumPositionBwLTFn(const TreeType& me, Int block_num, BigInt limit):
+	findSumPositionBwLTFn(const TreeType& me, Int block_num, BigInt limit):
 		sum_(0),
 		me_(me),
 		block_num_(block_num),

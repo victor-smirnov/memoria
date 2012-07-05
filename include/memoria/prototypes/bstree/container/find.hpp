@@ -70,11 +70,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         }
 
         template <typename Node>
-        Int Find(Node* node, Key key)
+        Int find(Node* node, Key key)
         {
             current_prefix_ = 0;
 
-            Int idx = me()->FindInMap(node, key, current_prefix_);
+            Int idx = me()->findInMap(node, key, current_prefix_);
             
             if (idx == -1 && node->children_count() > 0)
             {
@@ -121,9 +121,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
     	CompareLT(Int key_num): Base(key_num) {}
 
     	template<typename Node>
-    	Int FindInMap(Node* node, Key key, Key& prefix)
+    	Int findInMap(Node* node, Key key, Key& prefix)
     	{
-    		return node->map().FindLTS(Base::key_num(), key, prefix);
+    		return node->map().findLTS(Base::key_num(), key, prefix);
     	}
 
     	template <typename Node>
@@ -140,9 +140,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         CompareLE(Int key_num): Base(key_num) {}
 
         template<typename Node>
-        Int FindInMap(Node* node, Key key, Key& prefix)
+        Int findInMap(Node* node, Key key, Key& prefix)
         {
-        	return node->map().FindLES(Base::key_num(), key, prefix);
+        	return node->map().findLES(Base::key_num(), key, prefix);
         }
 
         template <typename Node>
@@ -152,12 +152,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         }
     };
 
-    Iterator FindLT(Key key, Int key_num)
+    Iterator findLT(Key key, Int key_num)
     {
         return me()->template _find<CompareLT>(key, key_num);
     }
 
-    Iterator FindLE(Key key, Int key_num)
+    Iterator findLE(Key key, Int key_num)
     {
         return me()->template _find<CompareLE>(key, key_num);
     }

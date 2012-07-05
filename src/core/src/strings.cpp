@@ -175,7 +175,7 @@ Int getValueMultiplier(const char* chars, const char* ptr)
 	}
 }
 
-void CheckError(const char* chars, const char* ptr)
+void checkError(const char* chars, const char* ptr)
 {
 	if (*ptr != 0) {
 		throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
@@ -210,7 +210,7 @@ double ConvertToDouble(StringRef str)
 
 	double value = strtod(chars, &endptr);
 
-	CheckError(chars, endptr);
+	checkError(chars, endptr);
 
 	return value;
 }
@@ -222,7 +222,7 @@ long double ConvertToLongDouble(StringRef str)
 
 	long double value = strtold(chars, &endptr);
 
-	CheckError(chars, endptr);
+	checkError(chars, endptr);
 
 	return value;
 }

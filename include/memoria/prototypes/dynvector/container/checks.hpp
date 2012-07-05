@@ -23,7 +23,7 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::ChecksName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::checksName)
 private:
 
 public:
@@ -67,7 +67,7 @@ public:
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::ChecksName)
+#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::checksName)
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

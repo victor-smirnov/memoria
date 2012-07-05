@@ -152,13 +152,13 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-    	virtual bool Check(const void* id, void* allocator) const
+    	virtual bool check(const void* id, void* allocator) const
     	{
     		Allocator* alloc = T2T<Allocator*>(allocator);
     		ID* root_id = T2T<ID*>(id);
 
     		MyType ctr(*alloc, *root_id);
-    		return ctr.Check(NULL);
+    		return ctr.check(NULL);
     	}
     };
 
@@ -202,13 +202,13 @@ public:
 
     CtrShared* getOrCreateCtrShared(BigInt name)
     {
-    	if (me()->allocator().IsCtrSharedRegistered(name))
+    	if (me()->allocator().isCtrSharedRegistered(name))
     	{
     		return me()->allocator().getCtrShared(name);
     	}
     	else {
     		CtrShared* shared = me()->CreateCtrShared(name);
-    		me()->allocator().RegisterCtrShared(shared);
+    		me()->allocator().registerCtrShared(shared);
 
     		PageG node = me()->allocator().getRoot(name, Allocator::READ);
 
@@ -233,7 +233,7 @@ public:
     void RemoveCtrShared(CtrShared* shared)
     {
     	shared->~CtrShared();
-    	me()->allocator().FreeMemory(shared);
+    	me()->allocator().freeMemory(shared);
     }
 
     const CtrShared* shared() const {
@@ -382,7 +382,7 @@ public:
     	logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
     	debug_(false)
     {
-    	InitCtr(allocator, allocator.CreateCtrName(), true, model_type_name_);
+    	InitCtr(allocator, allocator.createCtrName(), true, model_type_name_);
     }
 
 
@@ -600,7 +600,7 @@ private:
     		dec();
     		if (shared->unref() == 0)
     		{
-    			allocator_->UnregisterCtrShared(shared);
+    			allocator_->unregisterCtrShared(shared);
     			me()->RemoveCtrShared(shared);
 
     			Base::setCtrShared(NULL);

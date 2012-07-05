@@ -44,7 +44,7 @@ struct StaticValue {
 template <Int Name> class ColumnNotFound;
 
 template <Int Name, typename ColumnsList>
-class FindColumn {
+class findColumn {
 
     MEMORIA_STATIC_ASSERT(IsNonemptyList<ColumnsList>::Value);
 
@@ -89,7 +89,7 @@ public:
     typedef ColumnsList List;
     template <Int Name, typename Record>
     class Provider {
-        typedef typename FindColumn<Name, ColumnsList>::Result ColumnType;
+        typedef typename findColumn<Name, ColumnsList>::Result ColumnType;
     public:
         typedef ValueProvider<Name, ColumnType, Record>                         Value;
     };

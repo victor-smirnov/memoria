@@ -106,7 +106,7 @@ public:
 		for (Int c = 0; c < data.operations(); c++)
 		{
 			BigInt key = rd_array_[c];
-			if (map_->FindEQ(0, key) != key)
+			if (map_->findEQ(0, key) != key)
 			{
 				// this shouldn't happen
 				cout<<"MISS! "<<key<<endl;

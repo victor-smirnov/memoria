@@ -154,10 +154,10 @@ public:
     	me()->array().setRoot(name, root_id);
     }
 
-    bool Check(void* ptr = NULL)
+    bool check(void* ptr = NULL)
     {
-    	bool array_errors 	= array_.Check(ptr);
-    	bool set_errors 	= set_.Check(ptr);
+    	bool array_errors 	= array_.check(ptr);
+    	bool set_errors 	= set_.check(ptr);
 
     	return array_errors || set_errors;
     }

@@ -606,7 +606,7 @@ public:
 	{
 		if (shared_ != NULL && !shared_->updated())
 		{
-			shared_->allocator()->UpdatePage(shared_);
+			shared_->allocator()->updatePage(shared_);
 		}
 	}
 
@@ -646,7 +646,7 @@ private:
 		{
 			if (shared_->unref() == 0)
 			{
-				shared_->allocator()->ReleasePage(shared_);
+				shared_->allocator()->releasePage(shared_);
 			}
 		}
 	}

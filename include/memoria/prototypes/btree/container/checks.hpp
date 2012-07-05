@@ -20,7 +20,7 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ChecksName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::checksName)
 private:
     
 public:
@@ -43,10 +43,10 @@ public:
 
 //PUBLIC API:
 
-    bool CheckTree();
+    bool checkTree();
 
-    bool Check(void *data) {
-    	return me()->CheckTree();
+    bool check(void *data) {
+    	return me()->checkTree();
     }
 
 //PRIVATE API:
@@ -57,34 +57,34 @@ public:
     }
 
     template <typename Node>
-    bool CheckNodeContent(Node *node) {
+    bool checkNodeContent(Node *node) {
         return false;
     }
 
     template <typename Node1, typename Node2>
-    bool CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
+    bool checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
 
-    struct CheckNodeContentFn1 {
+    struct checkNodeContentFn1 {
         MyType& map_;
         bool rtn_;
-        CheckNodeContentFn1(MyType& map): map_(map) {}
+        checkNodeContentFn1(MyType& map): map_(map) {}
 
         template <typename T>
         void operator()(T* node) {
-            rtn_ = map_.CheckNodeContent(node);
+            rtn_ = map_.checkNodeContent(node);
         }
     };
 
-    struct CheckNodeContentFn2 {
+    struct checkNodeContentFn2 {
         MyType& map_;
         bool rtn_;
         Int parent_idx_;
 
-        CheckNodeContentFn2(MyType& map, Int parent_idx): map_(map), parent_idx_(parent_idx) {}
+        checkNodeContentFn2(MyType& map, Int parent_idx): map_(map), parent_idx_(parent_idx) {}
 
         template <typename Node1, typename Node2>
         void operator()(Node1* node, Node2* parent) {
-            rtn_ = map_.CheckNodeWithParentContent(node, parent, parent_idx_);
+            rtn_ = map_.checkNodeWithParentContent(node, parent, parent_idx_);
         }
     };
 
@@ -97,11 +97,11 @@ public:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::btree::ChecksName)
+#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::btree::checksName)
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::CheckTree()
+bool M_TYPE::checkTree()
 {
 	NodeBaseG root = me()->getRoot(Allocator::READ);
 	if (root != NULL)
@@ -163,7 +163,7 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx) {
+bool M_TYPE::checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx) {
 	bool errors = false;
 	for (Int c = 0; c < Indexes; c++)
 	{
@@ -184,13 +184,13 @@ bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const N
 
 	if (parent.is_set())
 	{
-		CheckNodeContentFn2 fn2(*me(), parent_idx);
+		checkNodeContentFn2 fn2(*me(), parent_idx);
 		NodeDispatcher::DoubleDispatchConst(node, parent, fn2);
 		errors = fn2.rtn_ || errors;
 	}
 	else {
 
-		CheckNodeContentFn1 fn1(*me());
+		checkNodeContentFn1 fn1(*me());
 		RootDispatcher::DispatchConst(node, fn1);
 		errors = fn1.rtn_ || errors;
 	}

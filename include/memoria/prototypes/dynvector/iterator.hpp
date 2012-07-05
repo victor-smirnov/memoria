@@ -118,11 +118,11 @@ namespace memoria    {
 //
 //    void update() {
 //    	switch (kind_) {
-//    		case BEGIN_ITERATOR: 	(*this) = model().FindStart(); break;
-//    		case END_ITERATOR: 		(*this) = model().FindEnd(); break;
+//    		case BEGIN_ITERATOR: 	(*this) = model().findStart(); break;
+//    		case END_ITERATOR: 		(*this) = model().findEnd(); break;
 //
-//    		case REVERSE_BEGIN_ITERATOR: 	(*this) = model().FindRStart(); break;
-//    		case REVERSE_END_ITERATOR: 		(*this) = model().FindREnd(); break;
+//    		case REVERSE_BEGIN_ITERATOR: 	(*this) = model().findRStart(); break;
+//    		case REVERSE_END_ITERATOR: 		(*this) = model().findREnd(); break;
 //
 //    		default:; // do nothing
 //    	};

@@ -51,7 +51,7 @@ public:
 	virtual ~MapTest() throw () {
 	}
 
-	void CheckContainerData(MapCtr& map, PairVector& pairs)
+	void checkContainerData(MapCtr& map, PairVector& pairs)
 	{
 		Int pairs_size = (Int) pairs.size();
 
@@ -104,7 +104,7 @@ public:
 		Allocator allocator;
 		LoadAllocator(allocator, params);
 
-		Check(allocator, MEMORIA_SOURCE);
+		check(allocator, MEMORIA_SOURCE);
 
 		DoTestStep(out, allocator, params);
 	}
@@ -193,13 +193,13 @@ public:
 			auto iter = map[pairs[c].key_];
 			iter.setData(pairs[c].value_);
 
-			CheckIterator(out, iter, MEMORIA_SOURCE);
+			checkIterator(out, iter, MEMORIA_SOURCE);
 
-			Check(allocator, MEMORIA_SOURCE);
+			check(allocator, MEMORIA_SOURCE);
 
 			AppendToSortedVector(pairs_sorted, pairs[c]);
 
-			CheckContainerData(map, pairs_sorted);
+			checkContainerData(map, pairs_sorted);
 
 			allocator.commit();
 		}
@@ -214,7 +214,7 @@ public:
 
 			MEMORIA_TEST_THROW_IF(result, !=, true);
 
-			Check(allocator, MEMORIA_SOURCE);
+			check(allocator, MEMORIA_SOURCE);
 
 			BigInt size = params->size_ - c - 1;
 
@@ -228,15 +228,15 @@ public:
 				}
 			}
 
-			CheckContainerData(map, pairs_sorted);
+			checkContainerData(map, pairs_sorted);
 
 			allocator.commit();
 		}
 	}
 
-	virtual void CheckIterator(ostream& out, Iterator& iter, const char* source)
+	virtual void checkIterator(ostream& out, Iterator& iter, const char* source)
 	{
-		CheckIteratorPrefix(out, iter, source);
+		checkIteratorPrefix(out, iter, source);
 
 		auto& path = iter.path();
 
@@ -271,7 +271,7 @@ public:
 
 	}
 
-	virtual void CheckIteratorPrefix(ostream& out, Iterator& iter, const char* source)
+	virtual void checkIteratorPrefix(ostream& out, Iterator& iter, const char* source)
 	{
 		Accumulator prefix;
 

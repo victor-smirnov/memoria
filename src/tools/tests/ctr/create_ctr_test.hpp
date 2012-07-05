@@ -162,14 +162,14 @@ public:
 
 			ArrayData data = iter.Read();
 
-			CheckBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
+			checkBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
 		}
 
 		BigInt t33 = getTimeInMillis();
 
 		out<<"Create Time: "<<FormatTime(t0 - t00)<<endl;
-		out<<"Check Time:  "<<FormatTime(t22 - t2)<<endl;
-		out<<"Check Time:  "<<FormatTime(t33 - t22)<<endl;
+		out<<"check Time:  "<<FormatTime(t22 - t2)<<endl;
+		out<<"check Time:  "<<FormatTime(t33 - t22)<<endl;
 	}
 
 

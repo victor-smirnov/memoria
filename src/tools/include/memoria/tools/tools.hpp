@@ -164,13 +164,13 @@ ArrayData CreateRandomBuffer(UByte fill_value, Int max_size);
 
 
 template <typename Allocator>
-void Check(Allocator& allocator, const char* message,  const char* source)
+void check(Allocator& allocator, const char* message,  const char* source)
 {
 	Int level = allocator.getLogger()->level();
 
 	allocator.getLogger()->level() = Logger::ERROR;
 
-	if (allocator.Check())
+	if (allocator.check())
 	{
 		allocator.getLogger()->level() = level;
 
@@ -181,13 +181,13 @@ void Check(Allocator& allocator, const char* message,  const char* source)
 }
 
 template <typename Ctr>
-void CheckCtr(Ctr& ctr, const char* message,  const char* source)
+void checkCtr(Ctr& ctr, const char* message,  const char* source)
 {
 	Int level = ctr.logger().level();
 
 	ctr.logger().level() = Logger::ERROR;
 
-	if (ctr.Check(NULL))
+	if (ctr.check(NULL))
 	{
 		ctr.logger().level() = level;
 		throw TestException(source, message);
@@ -219,7 +219,7 @@ bool CompareBuffer(BAIterator& iter, ArrayData& data, Int& c)
 }
 
 template <typename BAIterator >
-void CheckBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg, const char* source)
+void checkBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg, const char* source)
 {
 	Int pos = 0;
 	if (!CompareBuffer(iter, data, pos))
@@ -250,7 +250,7 @@ bool CompareBuffer(Iterator& iter, const vector<Item>& data, Int& c)
 }
 
 template <typename Iterator, typename Item>
-void CheckBufferWritten(Iterator& iter, const vector<Item>& data, const char* err_msg, const char* source)
+void checkBufferWritten(Iterator& iter, const vector<Item>& data, const char* err_msg, const char* source)
 {
 	Int pos = 0;
 	if (!CompareBuffer(iter, data, pos))

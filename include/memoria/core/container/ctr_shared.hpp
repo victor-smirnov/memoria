@@ -163,13 +163,13 @@ public:
 	template <typename Allocator>
 	void* operator new (size_t size, Allocator* allocator)
 	{
-		return allocator->AllocateMemory(size);
+		return allocator->allocateMemory(size);
 	}
 
 	template <typename Allocator>
 	void operator delete (void *ptr, Allocator* allocator)
 	{
-		allocator->FreeMemory(ptr);
+		allocator->freeMemory(ptr);
 	}
 
 	virtual void commit()

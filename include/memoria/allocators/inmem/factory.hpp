@@ -43,7 +43,7 @@ MEMORIA_TEMPLATE_EXTERN template class MetadataRepository<SmallProfile<> >;
 MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Root)
 
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::checksName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::InsertBatchName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::RemoveName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::FindName)
@@ -59,7 +59,7 @@ MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Root, memoria::btree::It
 MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Map1)
 
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::checksName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::InsertBatchName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::RemoveName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::FindName)
@@ -74,7 +74,7 @@ MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::It
 MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::set1)
 
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::checksName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::InsertBatchName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::RemoveName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::btree::FindName)
@@ -91,7 +91,7 @@ MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::set1, memoria::models::i
 MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Vector)
 
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::ChecksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::checksName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::InsertBatchName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::RemoveName)
 MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::btree::FindName)

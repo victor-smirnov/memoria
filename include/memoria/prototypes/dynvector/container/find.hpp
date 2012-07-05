@@ -45,7 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::SeekName)
 			return 1;
 		}
 
-		Iterator Find(BigInt pos, Int key_number);
+		Iterator find(BigInt pos, Int key_number);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -53,9 +53,9 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::Find(BigInt pos, Int key_number)
+typename M_TYPE::Iterator M_TYPE::find(BigInt pos, Int key_number)
 {
-	Iterator iter = me()->FindLT(pos * me()->getElementSize(), key_number);
+	Iterator iter = me()->findLT(pos * me()->getElementSize(), key_number);
 
 	if (iter.IsNotEmpty())
 	{

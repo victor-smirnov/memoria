@@ -177,7 +177,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	if (create)
     	{
     		BTreeCtrShared* shared = me()->CreateCtrShared(me()->name());
-    		me()->allocator().RegisterCtrShared(shared);
+    		me()->allocator().registerCtrShared(shared);
 
     		NodeBaseG node 		    = me()->CreateRoot();
 

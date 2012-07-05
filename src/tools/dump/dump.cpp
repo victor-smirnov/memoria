@@ -167,7 +167,7 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 void DumpTree(const IDValue& id, const File& folder)
 {
 	processed.insert(id);
-	Page* page = manager->CreatePageWrapper();
+	Page* page = manager->createPageWrapper();
 
 //	FIXME: IDValue
 

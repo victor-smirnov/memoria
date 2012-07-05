@@ -175,8 +175,8 @@ public:
 		logscale	= 10;
 
 		AddGraph(new PsetSizeBenchmark<16>(), GraphData("Packedset"));
-		AddGraph(new setFindRandomBenchmark("FindRandom"), GraphData("Memoria set"));
-		AddGraph(new StlsetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
+		AddGraph(new setFindRandomBenchmark("findRandom"), GraphData("Memoria set"));
+		AddGraph(new StlsetSizeBenchmark("StlfindRandom"), GraphData("std::set"));
 	}
 };
 
@@ -466,7 +466,7 @@ public:
 //		AddGraph(new VectorSequentialReadBenchmark("Vector"), GraphData("Vector Performance", "Vector Throughput"));
 //		AddGraph(new VectorMapSequentialReadBenchmark("VectorMap"), GraphData("VectorMap Performance", "VectorMap Throughput"));
 
-		AddGraph(new StlsetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
+		AddGraph(new StlsetSizeBenchmark("StlfindRandom"), GraphData("std::set"));
 	}
 };
 

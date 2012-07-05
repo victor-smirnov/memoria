@@ -39,7 +39,7 @@ private:
 public:
 
     template <typename Comparator>
-    struct FindFn {
+    struct findFn {
 
         Iterator        i_;
         Key&            key_;
@@ -51,7 +51,7 @@ public:
         bool			found_;
 
     public:
-        FindFn(Comparator& cmp, Key& key, NodeBaseG& root, MyType &model):
+        findFn(Comparator& cmp, Key& key, NodeBaseG& root, MyType &model):
             i_(model),
             key_(key),
             model_(model),
@@ -68,7 +68,7 @@ public:
         template <typename Node>
         void operator()(Node *node)
         {
-        	idx_ = cmp_.Find(node, key_);
+        	idx_ = cmp_.find(node, key_);
 
         	if (!node->is_leaf())
         	{
@@ -107,14 +107,14 @@ public:
 
 
     template <typename Comparator>
-    class CheckBoundsFn {
+    class checkBoundsFn {
     	Key&            key_;
     	Comparator&     cmp_;
 
     	bool 			within_ranges_;
 
     public:
-    	CheckBoundsFn(Comparator& cmp, Key& key):
+    	checkBoundsFn(Comparator& cmp, Key& key):
     		key_(key),
     		cmp_(cmp)
     	{}
@@ -133,8 +133,8 @@ public:
     template <typename Comparator>
     const Iterator _find(Key key, Int c);
 
-    Iterator FindStart(bool reverse = false);
-    Iterator FindEnd  (bool reverse = false);
+    Iterator findStart(bool reverse = false);
+    Iterator findEnd  (bool reverse = false);
 
     BigInt getSize() const
     {
@@ -143,22 +143,22 @@ public:
 
     Iterator Begin()
     {
-    	return me()->FindStart(false);
+    	return me()->findStart(false);
     }
 
     Iterator begin()
     {
-    	return me()->FindStart(false);
+    	return me()->findStart(false);
     }
 
     Iterator RBegin()
     {
-    	return me()->FindEnd(true);
+    	return me()->findEnd(true);
     }
 
     Iterator End()
     {
-    	return me()->FindEnd(false);
+    	return me()->findEnd(false);
     }
 
     Iterator end()
@@ -174,7 +174,7 @@ public:
     }
 
     Iterator REnd() {
-    	return me()->FindStart(true);
+    	return me()->findStart(true);
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -194,12 +194,12 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 	{
 		Comparator cmp(block_num);
 
-		CheckBoundsFn<Comparator> bounds_fn(cmp, key);
+		checkBoundsFn<Comparator> bounds_fn(cmp, key);
 		NodeDispatcher::DispatchConst(node, bounds_fn);
 
 		if (bounds_fn.within_ranges())
 		{
-			FindFn<Comparator> fn(cmp, key, node, *me());
+			findFn<Comparator> fn(cmp, key, node, *me());
 
 			while(1)
 			{
@@ -241,7 +241,7 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindStart(bool reverse)
+typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
 {
 	NodeBaseG node = me()->getRoot(Allocator::READ);
 	if (node.is_set())
@@ -270,7 +270,7 @@ typename M_TYPE::Iterator M_TYPE::FindStart(bool reverse)
 
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindEnd(bool reverse)
+typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
 {
 	NodeBaseG node = me()->getRoot(Allocator::READ);
 	if (node.is_set())

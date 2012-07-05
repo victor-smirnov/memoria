@@ -84,8 +84,8 @@ public:
     }
 
 
-	Iterator FindStart(bool reverse = false);
-	Iterator FindEnd  (bool reverse = false);
+	Iterator findStart(bool reverse = false);
+	Iterator findEnd  (bool reverse = false);
 
     void FinishPathStep(TreePath& path, Int key_idx) const;
 
@@ -97,9 +97,9 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindStart(bool reverse)
+typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
 {
-	Iterator i = Base::FindStart(false);
+	Iterator i = Base::findStart(false);
 
 	if (i.leaf()->children_count() > 0)
 	{
@@ -114,9 +114,9 @@ typename M_TYPE::Iterator M_TYPE::FindStart(bool reverse)
 
 
 M_PARAMS
-typename M_TYPE::Iterator M_TYPE::FindEnd(bool reverse)
+typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
 {
-	Iterator i = Base::FindEnd(false);
+	Iterator i = Base::findEnd(false);
 
 	if (i.leaf()->children_count() > 0 && i.PrevKey())
 	{

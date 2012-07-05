@@ -170,7 +170,7 @@ public:
 	}
 
 
-	virtual void ReleasePage(Shared* shared)
+	virtual void releasePage(Shared* shared)
 	{
 		pool_.Release(shared->id());
 	}
@@ -241,7 +241,7 @@ public:
 		return getPage(page->id(), Base::READ);
 	}
 
-	virtual void UpdatePage(Shared* shared)
+	virtual void updatePage(Shared* shared)
 	{
 		if (shared->state() == Shared::READ)
 		{
@@ -258,7 +258,7 @@ public:
 		}
 	}
 
-	virtual void  RemovePage(const ID& id)
+	virtual void  removePage(const ID& id)
 	{
 		Shared* shared = pool_.get(id);
 		if (shared != NULL)
@@ -282,7 +282,7 @@ public:
 	 * If a tree page is created using new (allocator) PageType call
 	 * than Page() constructor is invoked twice with undefined results
 	 */
-	virtual PageG CreatePage(Int initial_size = PAGE_SIZE)
+	virtual PageG createPage(Int initial_size = PAGE_SIZE)
 	{
 		allocs1_++;
 		char* buf = (char*) malloc(PAGE_SIZE);
@@ -398,7 +398,7 @@ public:
 	}
 
 
-	virtual void ResizePage(Shared* page, Int new_size)
+	virtual void resizePage(Shared* page, Int new_size)
 	{
 	}
 
@@ -443,7 +443,7 @@ public:
 		}
 	}
 
-	virtual void RegisterCtrShared(CtrShared* shared)
+	virtual void registerCtrShared(CtrShared* shared)
 	{
 		BigInt name = shared->name();
 
@@ -463,12 +463,12 @@ public:
 		}
 	}
 
-	virtual void UnregisterCtrShared(CtrShared* shared)
+	virtual void unregisterCtrShared(CtrShared* shared)
 	{
 		ctr_shared_.erase(shared->name());
 	}
 
-	virtual bool IsCtrSharedRegistered(BigInt name)
+	virtual bool isCtrSharedRegistered(BigInt name)
 	{
 		return ctr_shared_.find(name) != ctr_shared_.end();
 	}
@@ -603,7 +603,7 @@ public:
 	// Allocator implementaion
 
 
-	virtual memoria::vapi::Page* CreatePageWrapper()
+	virtual memoria::vapi::Page* createPageWrapper()
 	{
 		return new PageWrapper<Page, PAGE_SIZE>();
 	}
@@ -639,7 +639,7 @@ public:
 	}
 
 
-	void DumpPages(ostream& out = cout)
+	void dumpPages(ostream& out = cout)
 	{
 		for (auto i = pages_.begin(); i != pages_.end(); i++)
 		{
@@ -653,7 +653,7 @@ public:
 		}
 	}
 
-	bool Check()
+	bool check()
 	{
 		bool result = false;
 
@@ -663,7 +663,7 @@ public:
 
 			ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->model_hash());
 
-			result = ctr_meta->getCtrInterface()->Check(&page->id(), this) || result;
+			result = ctr_meta->getCtrInterface()->check(&page->id(), this) || result;
 
 			iter.Next();
 		}
@@ -672,17 +672,17 @@ public:
 	}
 
 
-	virtual void* AllocateMemory(size_t size)
+	virtual void* allocateMemory(size_t size)
 	{
 		return malloc(size);
 	}
 
-	virtual void FreeMemory(void* ptr)
+	virtual void freeMemory(void* ptr)
 	{
 		free(ptr);
 	}
 
-	virtual BigInt CreateCtrName()
+	virtual BigInt createCtrName()
 	{
 		RootMetatata meta = root_map_->getRootMetadata();
 
@@ -815,7 +815,7 @@ private:
 
 	ID get_value_for_key(BigInt name)
 	{
-		auto iter = root_map_->Find(name);
+		auto iter = root_map_->find(name);
 
 		if (!iter.IsEnd())
 		{

@@ -619,7 +619,7 @@ public:
 
 
 	template <typename Comparator>
-	Int Find(Int block_num, const Key& k, Comparator &comparator) const
+	Int find(Int block_num, const Key& k, Comparator &comparator) const
 	{
 		Int key_block_offset 	= getKeyBlockOffset(block_num);
 		Int index_block_offset 	= getIndexKeyBlockOffset(block_num);

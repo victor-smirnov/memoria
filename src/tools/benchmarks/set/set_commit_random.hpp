@@ -80,7 +80,7 @@ public:
 
 		for (Int c = 0; c < this->max_size; c++)
 		{
-			auto i = c == 0? set_->End() : set_->Find(getRandom(c));
+			auto i = c == 0? set_->End() : set_->find(getRandom(c));
 
 			Accumulator keys;
 			keys[0] = 1;

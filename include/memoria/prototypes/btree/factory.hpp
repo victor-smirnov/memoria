@@ -47,7 +47,7 @@ struct BTreeTypes {
     typedef typename TLTool<
     		memoria::btree::AllocatorName,
     		memoria::btree::ToolsName,
-    		memoria::btree::ChecksName,
+    		memoria::btree::checksName,
     		memoria::btree::InsertBatchName,
     		memoria::btree::RemoveName,
     		memoria::btree::FindName,

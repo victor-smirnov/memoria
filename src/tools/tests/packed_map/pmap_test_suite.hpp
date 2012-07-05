@@ -31,7 +31,7 @@ public:
 	PackedMapTestSuite(): TestSuite("PackedMapTestSuite")
 	{
 		RegisterTask(new PMapDataTest());
-		RegisterTask(new PMapFindTest());
+		RegisterTask(new PMapfindTest());
 		RegisterTask(new PMapReindexTest());
 
 		RegisterTask(new PMapSumTest<2>());

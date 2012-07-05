@@ -261,7 +261,7 @@ File::FileListType* File::ReadDir(const File& file)
 		{
 			char buf[8192];
 			sprintf_s(buf, sizeof(buf), "%s\\*", file.getAbsolutePath().c_str());
-			if((dhandle = FindFirstFile(buf, &fdata)) == INVALID_HANDLE_VALUE)
+			if((dhandle = findFirstFile(buf, &fdata)) == INVALID_HANDLE_VALUE)
 			{
 				delete list;
 				ThrowFE(MEMORIA_SOURCE, file);
@@ -278,7 +278,7 @@ File::FileListType* File::ReadDir(const File& file)
 
 		while(1)
 		{
-			if(FindNextFile(dhandle, &fdata))
+			if(findNextFile(dhandle, &fdata))
 			{
 				String st(fdata.cFileName);
 				if (st != "." && st != "..")
@@ -292,14 +292,14 @@ File::FileListType* File::ReadDir(const File& file)
 					break;
 				}
 				else {
-					FindClose(dhandle);
+					findClose(dhandle);
 					delete list;
 					ThrowFE(MEMORIA_SOURCE, file);
 				}
 			}
 		}
 
-		if(FindClose(dhandle) == 0)
+		if(findClose(dhandle) == 0)
 		{
 			delete list;
 			ThrowFE(MEMORIA_SOURCE, file);

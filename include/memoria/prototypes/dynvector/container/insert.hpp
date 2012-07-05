@@ -109,7 +109,7 @@ public:
 	{
 		LeafNodeKeyValuePair pair;
 
-		DataPageG data      	= Base::ctr().allocator().CreatePage();
+		DataPageG data      	= Base::ctr().allocator().createPage();
 		data->init();
 
 		data->model_hash()      = Base::ctr().hash();
@@ -399,7 +399,7 @@ void M_TYPE::CreateDataPage(TreePath& path, Int idx)
 M_PARAMS
 typename M_TYPE::DataPathItem M_TYPE::CreateDataPage(NodeBaseG& node, Int idx)
 {
-	DataPageG data      	= me()->allocator().CreatePage();
+	DataPageG data      	= me()->allocator().createPage();
 	data->init();
 
 	data->model_hash()      = me()->hash();

@@ -661,7 +661,7 @@ void M_TYPE::UpdateParentIfExists(TreePath& path, Int level, const Accumulator& 
 M_PARAMS
 void M_TYPE::InsertSubtree(TreePath& left_path, Int left_idx, TreePath& right_path, Int& right_idx, Int level, InsertSharedData& data)
 {
-	//FIXME: Check node->level() after deletion;
+	//FIXME: check node->level() after deletion;
 
 	BigInt 	subtree_size 	= me()->getSubtreeSize(level);
 

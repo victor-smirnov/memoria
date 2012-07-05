@@ -64,26 +64,26 @@ public:
 
 	virtual void Run(ostream& out)											= 0;
 
-	void Check(Allocator& allocator, const char* source)
+	void check(Allocator& allocator, const char* source)
 	{
-		::memoria::Check<Allocator>(allocator, "Allocator check failed", source);
+		::memoria::check<Allocator>(allocator, "Allocator check failed", source);
 	}
 
-	void Check(Allocator& allocator, const char* message, const char* source)
+	void check(Allocator& allocator, const char* message, const char* source)
 	{
-		::memoria::Check<Allocator>(allocator, message, source);
-	}
-
-	template <typename CtrType>
-	void CheckCtr(CtrType& ctr, const char* message, const char* source)
-	{
-		::memoria::CheckCtr<CtrType>(ctr, message, source);
+		::memoria::check<Allocator>(allocator, message, source);
 	}
 
 	template <typename CtrType>
-	void CheckCtr(CtrType& ctr, const char* source)
+	void checkCtr(CtrType& ctr, const char* message, const char* source)
 	{
-		CheckCtr(ctr, "Container check failed", source);
+		::memoria::checkCtr<CtrType>(ctr, message, source);
+	}
+
+	template <typename CtrType>
+	void checkCtr(CtrType& ctr, const char* source)
+	{
+		checkCtr(ctr, "Container check failed", source);
 	}
 };
 

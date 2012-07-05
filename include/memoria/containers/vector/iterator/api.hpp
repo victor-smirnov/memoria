@@ -103,9 +103,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	out<<"DataPos: "<<me()->data_pos()<<endl;
     }
 
-    void DumpPages(ostream& out)
+    void dumpPages(ostream& out)
     {
-    	Base::DumpPages(out);
+    	Base::dumpPages(out);
     	me()->model().Dump(me()->data(), out);
     }
 

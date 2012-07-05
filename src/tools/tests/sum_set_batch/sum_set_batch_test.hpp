@@ -119,7 +119,7 @@ public:
 
 		MEMORIA_TEST_THROW_IF(size, ==, iter.model().getSize());
 
-		CheckSize(iter.model());
+		checkSize(iter.model());
 	}
 
 	virtual void Read(Iterator& iter, ArrayData& data)
@@ -178,7 +178,7 @@ public:
 		return array.getSize();
 	}
 
-	void CheckSize(Ctr& array)
+	void checkSize(Ctr& array)
 	{
 		BigInt cnt = 0;
 
@@ -190,7 +190,7 @@ public:
 		MEMORIA_TEST_THROW_IF(cnt, !=, array.getSize());
 	}
 
-	virtual void CheckIteratorPrefix(ostream& out, Iterator& iter, const char* source) {}
+	virtual void checkIteratorPrefix(ostream& out, Iterator& iter, const char* source) {}
 
 };
 

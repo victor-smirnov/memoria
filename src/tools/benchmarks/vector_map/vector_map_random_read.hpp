@@ -87,7 +87,7 @@ public:
 
 		for (Int c = 0; c < total; c++)
 		{
-			ctr_->Find(getRandom(total)).Read(data);
+			ctr_->find(getRandom(total)).Read(data);
 		}
 
 		params.operations() = ctr_->Count();

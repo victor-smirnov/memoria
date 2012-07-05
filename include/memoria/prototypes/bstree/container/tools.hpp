@@ -53,11 +53,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
 
     
     template <typename Node>
-    bool CheckNodeContent(Node *node);
+    bool checkNodeContent(Node *node);
 
 
     template <typename Node1, typename Node2>
-    bool CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
+    bool checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
 
 
     //FIXME: SumKeysFn is used in MoveElementsFn
@@ -164,7 +164,7 @@ bool M_TYPE::UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counter
 
 M_PARAMS
 template <typename Node>
-bool M_TYPE::CheckNodeContent(Node *node) {
+bool M_TYPE::checkNodeContent(Node *node) {
 	bool errors = false;
 
 	for (Int i = 0; i < Indexes; i++) {
@@ -187,7 +187,7 @@ bool M_TYPE::CheckNodeContent(Node *node) {
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx)
+bool M_TYPE::checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx)
 {
 	bool errors = false;
 	for (Int c = 0; c < Indexes; c++)
@@ -199,7 +199,7 @@ bool M_TYPE::CheckNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_i
 		}
 	}
 
-	errors = CheckNodeContent(node) || errors;
+	errors = checkNodeContent(node) || errors;
 
 	return errors;
 }

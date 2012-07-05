@@ -38,7 +38,7 @@ public:
 	{
 		if (Forward)
 		{
-			Int position = node->map().FindSumPositionFw(key_num_, idx, target_ - sum_, sum_);
+			Int position = node->map().findSumPositionFw(key_num_, idx, target_ - sum_, sum_);
 			if (position < node->children_count())
 			{
 				return position;
@@ -49,7 +49,7 @@ public:
 		}
 		else
 		{
-			return node->map().FindSumPositionBwLT(key_num_, idx, target_ - sum_, sum_);
+			return node->map().findSumPositionBwLT(key_num_, idx, target_ - sum_, sum_);
 		}
 	}
 };

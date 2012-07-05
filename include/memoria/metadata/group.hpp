@@ -47,7 +47,7 @@ public:
 		return content_[idx];
 	}
 
-//	virtual Metadata* FindFirst(const char* name, bool throwEx = false)
+//	virtual Metadata* findFirst(const char* name, bool throwEx = false)
 //	{
 //		for (Int c = 0; c < Size(); c++)
 //		{
@@ -59,7 +59,7 @@ public:
 //			//FIXME: IsGroup
 //			else if (item->IsGroup())
 //			{
-//				return FindFirst(name, throwEx);
+//				return findFirst(name, throwEx);
 //			}
 //		}
 //
@@ -73,9 +73,9 @@ public:
 //	}
 //
 //
-//	virtual const FieldMetadata* FindFirstField() const
+//	virtual const FieldMetadata* findFirstField() const
 //	{
-//		return FindFirstField(this);
+//		return findFirstField(this);
 //	}
 
 	virtual void putAll(MetadataList& target) const
@@ -95,7 +95,7 @@ protected:
 	MetadataList 	content_;
 	Int 			block_size_;
 
-//	const FieldMetadata* FindFirstField(const MetadataGroup* group) const
+//	const FieldMetadata* findFirstField(const MetadataGroup* group) const
 //	{
 //		for (Int c = 0; c < Size(); c++)
 //		{
@@ -106,7 +106,7 @@ protected:
 //			}
 //			else if (item->IsGroup())
 //			{
-//				return FindFirstField(static_cast<const MetadataGroup*>(item));
+//				return findFirstField(static_cast<const MetadataGroup*>(item));
 //			}
 //		}
 //

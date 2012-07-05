@@ -47,7 +47,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 
     BigInt KeyIndex(Key key, Int c)
     {
-//        Iterator i = me()->FindLE(key, c, false);
+//        Iterator i = me()->findLE(key, c, false);
 //        if (!i.IsEnd())
 //        {
 //            NodeBaseG page = i.page();

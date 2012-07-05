@@ -25,10 +25,10 @@ using namespace std;
 
 
 
-class PMapFindTest: public TestTask {
+class PMapfindTest: public TestTask {
 
 	template <typename Key_, typename Value_, Int Blocks_ = 3>
-	struct PMapFindTypes {
+	struct PMapfindTypes {
 		typedef Key_ 						Key;
 		typedef Key_ 						IndexKey;
 		typedef Value_						Value;
@@ -45,7 +45,7 @@ class PMapFindTest: public TestTask {
 	};
 
 
-	typedef PMapFindTypes<Int, Int, 1> 		Types;
+	typedef PMapfindTypes<Int, Int, 1> 		Types;
 
 	typedef typename Types::Accumulator		Accumulator;
 	typedef typename Types::Key				Key;
@@ -57,9 +57,9 @@ class PMapFindTest: public TestTask {
 
 public:
 
-	PMapFindTest(): TestTask("Find") {}
+	PMapfindTest(): TestTask("find") {}
 
-	virtual ~PMapFindTest() throw() {}
+	virtual ~PMapfindTest() throw() {}
 
 	virtual TestReplayParams* CreateTestStep(StringRef name) const
 	{
@@ -109,21 +109,21 @@ public:
 				{
 					Key src_key = (c + 1) * 2;
 
-					MEMORIA_TEST_THROW_IF(c, !=, map->FindLE(0, src_key));
-					MEMORIA_TEST_THROW_IF(c, !=, map->FindLE(0, src_key - 1));
+					MEMORIA_TEST_THROW_IF(c, !=, map->findLE(0, src_key));
+					MEMORIA_TEST_THROW_IF(c, !=, map->findLE(0, src_key - 1));
 
-					MEMORIA_TEST_THROW_IF(c, !=, map->FindLT(0, src_key - 1));
+					MEMORIA_TEST_THROW_IF(c, !=, map->findLT(0, src_key - 1));
 
 					if (c < map->size() - 1)
 					{
-						MEMORIA_TEST_THROW_IF(c + 1, !=, map->FindLT(0, src_key));
+						MEMORIA_TEST_THROW_IF(c + 1, !=, map->findLT(0, src_key));
 					}
 					else {
-						MEMORIA_TEST_THROW_IF(-1, !=, map->FindLT(0, src_key));
+						MEMORIA_TEST_THROW_IF(-1, !=, map->findLT(0, src_key));
 					}
 
-					MEMORIA_TEST_THROW_IF(c,  !=, map->FindEQ(0, src_key));
-					MEMORIA_TEST_THROW_IF(-1, !=, map->FindEQ(0, src_key - 1));
+					MEMORIA_TEST_THROW_IF(c,  !=, map->findEQ(0, src_key));
+					MEMORIA_TEST_THROW_IF(-1, !=, map->findEQ(0, src_key - 1));
 				}
 			}
 		}

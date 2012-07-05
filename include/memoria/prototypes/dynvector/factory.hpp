@@ -78,7 +78,7 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
                         memoria::dynvector::ToolsName,
                         memoria::dynvector::RemoveName,
                         memoria::dynvector::InsertName,
-                        memoria::dynvector::ChecksName,
+                        memoria::dynvector::checksName,
                         memoria::dynvector::ReadName,
                         memoria::dynvector::SeekName
                     >::List

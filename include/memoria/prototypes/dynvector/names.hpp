@@ -25,7 +25,7 @@ class RemoveName            {};
 class ToolsName             {};
 class SeekName             	{};
 class ReadName             	{};
-class ChecksName            {};
+class checksName            {};
 
 class IteratorContainerAPIName  {};
 class IteratorAPIName       {};

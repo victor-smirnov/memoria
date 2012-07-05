@@ -28,9 +28,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 	typedef typename Base::Accumulator                                          Accumulator;
 
 
-    Iterator Find(Key key)
+    Iterator find(Key key)
     {
-    	Iterator iter = me()->FindLE(key, 0);
+    	Iterator iter = me()->findLE(key, 0);
 
     	if (!iter.IsEnd())
     	{
@@ -47,9 +47,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	}
     }
 
-    Iterator Find1(Key key)
+    Iterator find1(Key key)
     {
-    	Iterator iter = me()->FindLE(key, 0);
+    	Iterator iter = me()->findLE(key, 0);
 
     	if (!iter.IsEnd())
     	{
@@ -69,7 +69,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     Iterator operator[](Key key)
     {
-    	Iterator iter = me()->FindLE(key, 0);
+    	Iterator iter = me()->findLE(key, 0);
 
     	if (iter.IsEnd() || key != iter.key())
     	{
@@ -84,7 +84,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     bool Remove(Key key)
     {
-    	Iterator iter = me()->FindLE(key, 0);
+    	Iterator iter = me()->findLE(key, 0);
 
     	if (key == iter.key(0))
     	{
@@ -128,12 +128,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     bool Contains(Key key)
     {
-    	return !me()->Find(key).IsEnd();
+    	return !me()->find(key).IsEnd();
     }
 
     bool Contains1(Key key)
     {
-    	return !me()->Find1(key).IsEnd();
+    	return !me()->find1(key).IsEnd();
     }
 
     bool RemoveEntry(Iterator& iter, Accumulator& keys)

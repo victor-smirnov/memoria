@@ -53,7 +53,7 @@ public:
 		this->enabled = enabled;
 	}
 
-	Int	getCheckStep() const
+	Int	getcheckStep() const
 	{
 		return check_step;
 	}

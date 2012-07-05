@@ -109,46 +109,46 @@ public:
 	virtual void 			Run(ostream& out)											= 0;
 	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
 
-	void Check(Allocator& allocator, const char* source)
+	void check(Allocator& allocator, const char* source)
 	{
-		Int step_count = getParameters<>()->getCheckStep();
+		Int step_count = getParameters<>()->getcheckStep();
 
 		if (step_count > 0 && (check_count % step_count == 0))
 		{
-			::memoria::Check<Allocator>(allocator, "Allocator check failed", source);
+			::memoria::check<Allocator>(allocator, "Allocator check failed", source);
 		}
 
 		check_count++;
 	}
 
-	void Check(Allocator& allocator, const char* message, const char* source)
+	void check(Allocator& allocator, const char* message, const char* source)
 	{
-		Int step_count = getParameters<>()->getCheckStep();
+		Int step_count = getParameters<>()->getcheckStep();
 
 		if (check_count % step_count == 0)
 		{
-			::memoria::Check<Allocator>(allocator, message, source);
+			::memoria::check<Allocator>(allocator, message, source);
 		}
 		check_count++;
 	}
 
 	template <typename CtrType>
-	void CheckCtr(CtrType& ctr, const char* message, const char* source)
+	void checkCtr(CtrType& ctr, const char* message, const char* source)
 	{
-		Int step_count = getParameters<>()->getCheckStep();
+		Int step_count = getParameters<>()->getcheckStep();
 
 		if (step_count > 0 && (check_count % step_count == 0))
 		{
-			::memoria::CheckCtr<CtrType>(ctr, message, source);
+			::memoria::checkCtr<CtrType>(ctr, message, source);
 		}
 
 		check_count++;
 	}
 
 	template <typename CtrType>
-	void CheckCtr(CtrType& ctr, const char* source)
+	void checkCtr(CtrType& ctr, const char* source)
 	{
-		CheckCtr(ctr, "Container check failed", source);
+		checkCtr(ctr, "Container check failed", source);
 	}
 };
 

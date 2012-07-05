@@ -109,7 +109,7 @@ public:
 		BigInt sum = Sum(map, start, end);
 
 		Accumulator acc;
-		Int idx = map->FindSumPositionBw(0, start, sum, acc);
+		Int idx = map->findSumPositionBw(0, start, sum, acc);
 
 		MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
 	}
@@ -173,7 +173,7 @@ public:
 					BigInt sum = Sum(map, start, end);
 
 					Accumulator acc;
-					Int idx = map->FindSumPositionBw(0, start, sum, acc);
+					Int idx = map->findSumPositionBw(0, start, sum, acc);
 
 					MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
 				}

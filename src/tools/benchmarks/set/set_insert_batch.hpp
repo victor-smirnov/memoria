@@ -102,7 +102,7 @@ public:
 		for (Int c = 0; c < params.operations() / size; c++)
 		{
 			Int pos = getRandom(map_size - 1) + 1;
-			auto i = map_size == 0? set_->End() : set_->Find(pos);
+			auto i = map_size == 0? set_->End() : set_->find(pos);
 
 			set_->InsertSubtree(i, provider);
 

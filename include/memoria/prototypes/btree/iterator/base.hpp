@@ -209,7 +209,7 @@ public:
     	me()->DumpPath(out);
 
     	me()->DumpBeforePages(out);
-    	me()->DumpPages(out);
+    	me()->dumpPages(out);
     }
 
     String getDumpHeader()
@@ -236,7 +236,7 @@ public:
     void DumpBeforePath(ostream& out){}
     void DumpBeforePages(ostream& out){}
 
-    void DumpPages(ostream& out)
+    void dumpPages(ostream& out)
     {
     	me()->model().Dump(me()->leaf().node(), out);
     }

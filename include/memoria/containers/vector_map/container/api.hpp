@@ -65,9 +65,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		return IterEndMark();
 	}
 
-	Iterator Find(BigInt key)
+	Iterator find(BigInt key)
 	{
-		auto is_iter = me()->set().FindLE(key, 0);  // FIXME Check for bounds (for_insert)
+		auto is_iter = me()->set().findLE(key, 0);  // FIXME check for bounds (for_insert)
 
 		is_iter.Init();
 
@@ -82,7 +82,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	Iterator operator[](BigInt key)
 	{
-		Iterator iter = Find(key);
+		Iterator iter = find(key);
 
 		if (iter.exists())
 		{
@@ -123,9 +123,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	Iterator Create(BigInt key)
 	{
-		auto is_iter = me()->set().FindLT(key, 0);
+		auto is_iter = me()->set().findLT(key, 0);
 
-		//FIXME: set_.FindLT() have to return properly initialized iterator
+		//FIXME: set_.findLT() have to return properly initialized iterator
 		//is_iter.Init();
 
 		BigInt 	data_pos 	= is_iter.prefix(1);
@@ -160,9 +160,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 	bool Remove(BigInt key)
 	{
-		auto is_iter = me()->set().FindLE(key, 0);
+		auto is_iter = me()->set().findLE(key, 0);
 
-		//FIXME: set_.FindLT() have to return properly initialized iterator
+		//FIXME: set_.findLT() have to return properly initialized iterator
 //		is_iter.Init();
 
 		bool	end			= is_iter.IsEnd();

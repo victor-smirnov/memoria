@@ -147,9 +147,9 @@ public:
 		return array.getElementSize();
 	}
 
-	void CheckIterator(ostream& out, Iterator& iter, const char* source)
+	void checkIterator(ostream& out, Iterator& iter, const char* source)
 	{
-		Base::CheckIterator(out, iter, source);
+		Base::checkIterator(out, iter, source);
 
 		auto& path = iter.path();
 

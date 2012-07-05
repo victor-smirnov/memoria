@@ -17,7 +17,7 @@ namespace memoria    {
 namespace vapi       {
 
 struct ContainerInterface {
-	virtual bool Check(const void* id, void* allocator) const	= 0;
+	virtual bool check(const void* id, void* allocator) const	= 0;
 
 	virtual ~ContainerInterface() {}
 };

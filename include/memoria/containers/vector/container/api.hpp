@@ -75,7 +75,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::Seek(BigInt pos)
 {
-	return me()->Find(pos, 0);
+	return me()->find(pos, 0);
 }
 
 M_PARAMS

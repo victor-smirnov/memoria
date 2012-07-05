@@ -74,7 +74,7 @@ public:
 
 		for (Int c = 0; c < size; c++)
 		{
-			auto i = set_->Find(getRandom(size));
+			auto i = set_->find(getRandom(size));
 
 			Accumulator keys;
 			keys[0] = 1;

@@ -84,7 +84,7 @@ public:
 		StoreVector(pairs, pairs_name);
 	}
 
-	void CheckIteratorFw(VectorMapCtr& ctr)
+	void checkIteratorFw(VectorMapCtr& ctr)
 	{
 		MEMORIA_TEST_THROW_IF(ctr.Count(), != , (BigInt)pairs_.size());
 
@@ -101,7 +101,7 @@ public:
 
 			ArrayData data = CreateBuffer(pair.value_, value);
 
-			CheckBufferWritten(iter, data, "Buffer written does not match", MEMORIA_SOURCE);
+			checkBufferWritten(iter, data, "Buffer written does not match", MEMORIA_SOURCE);
 
 			iter.Next();
 			c++;
@@ -135,7 +135,7 @@ public:
 
 			auto iter = map.Create(key);
 
-			CheckCtr(map, "Insertion failed 1", MEMORIA_SOURCE);
+			checkCtr(map, "Insertion failed 1", MEMORIA_SOURCE);
 
 			ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
 
@@ -143,20 +143,20 @@ public:
 
 			AppendToSortedVector(pairs_, Pair(key, params->data_size_));
 
-			CheckCtr(map, "Insertion failed 2", MEMORIA_SOURCE);
+			checkCtr(map, "Insertion failed 2", MEMORIA_SOURCE);
 
 			MEMORIA_TEST_THROW_IF(iter.size(), 	!= , data.size());
 			MEMORIA_TEST_THROW_IF(iter.getKey(), 	!= , key);
 
-			auto iter2 = map.Find(iter.getKey());
+			auto iter2 = map.find(iter.getKey());
 
 			MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
 			MEMORIA_TEST_THROW_IF(iter2.size(), 	!= , data.size());
 			MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
-			CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
+			checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
-			CheckIteratorFw(map);
+			checkIteratorFw(map);
 		}
 		else {
 			LoadVector(pairs_, params->pairs_data_file_);
@@ -170,11 +170,11 @@ public:
 
 			MEMORIA_TEST_THROW_IF(removed, != , true);
 
-			CheckCtr(map, "Remove failed.", 	MEMORIA_SOURCE);
+			checkCtr(map, "Remove failed.", 	MEMORIA_SOURCE);
 
 			pairs_.erase(pairs_.begin() + idx);
 
-			CheckIteratorFw(map);
+			checkIteratorFw(map);
 		}
 	}
 
@@ -237,17 +237,17 @@ public:
 
 				total_size += iter.size();
 
-				CheckCtr(map, "Insertion failed.", 	MEMORIA_SOURCE);
+				checkCtr(map, "Insertion failed.", 	MEMORIA_SOURCE);
 
 				MEMORIA_TEST_THROW_IF(map.array().Size(), != , total_size);
 
-				auto iter2 = map.Find(iter.getKey());
+				auto iter2 = map.find(iter.getKey());
 
 				MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
 				MEMORIA_TEST_THROW_IF(iter2.size(),   != , data.size());
 				MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
-				CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
+				checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
 				allocator.commit();
 			}
@@ -294,7 +294,7 @@ public:
 				ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
 				iter.Insert(data);
 
-				CheckCtr(map, "Insertion failed.", 	MEMORIA_SOURCE);
+				checkCtr(map, "Insertion failed.", 	MEMORIA_SOURCE);
 
 				params->key_num_ = AppendToSortedVector(pairs_, Pair(key, params->data_size_));
 
@@ -305,15 +305,15 @@ public:
 
 				MEMORIA_TEST_THROW_IF(map.array().Size(), != , total_size);
 
-				auto iter2 = map.Find(iter.getKey());
+				auto iter2 = map.find(iter.getKey());
 
 				MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
 				MEMORIA_TEST_THROW_IF(iter2.size(), 	!= , data.size());
 				MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
-				CheckBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
+				checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
-				CheckIteratorFw(map);
+				checkIteratorFw(map);
 
 				allocator.commit();
 
@@ -383,11 +383,11 @@ public:
 
 				MEMORIA_TEST_THROW_IF(removed, != , true);
 
-				CheckCtr(map, "Remove failed.", 	MEMORIA_SOURCE);
+				checkCtr(map, "Remove failed.", 	MEMORIA_SOURCE);
 
 				pairs_.erase(pairs_.begin() + idx);
 
-				CheckIteratorFw(map);
+				checkIteratorFw(map);
 				allocator.commit();
 			}
 

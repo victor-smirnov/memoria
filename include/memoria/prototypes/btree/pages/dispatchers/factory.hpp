@@ -47,7 +47,7 @@ class NodeFactoryHelper<NullType, Types> {
 public:
     static NodeBaseG Create(Allocator &allocator, Int level, bool root, bool leaf)
     {
-    	NodeBaseG node = allocator.CreatePage();
+    	NodeBaseG node = allocator.createPage();
     	node->init();
 
         if (!root && !leaf) {
@@ -115,7 +115,7 @@ public:
     {
         if (Level == level)
         {
-            NodeBaseG node = allocator.CreatePage();
+            NodeBaseG node = allocator.createPage();
             node->init();
 
             if (!root && !leaf)

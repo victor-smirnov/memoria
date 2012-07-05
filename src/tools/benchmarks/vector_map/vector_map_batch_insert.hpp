@@ -112,7 +112,7 @@ public:
 
 		while (total < memory_size)
 		{
-			auto i = key_count == 0 ? map_->Begin() : map_->Find(getRandom(key_count));
+			auto i = key_count == 0 ? map_->Begin() : map_->find(getRandom(key_count));
 
 			map_->set().InsertSubtree(i.is_iter(), provider);
 
