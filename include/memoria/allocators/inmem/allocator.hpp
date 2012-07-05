@@ -175,98 +175,7 @@ public:
 		pool_.Release(shared->id());
 	}
 
-	PageOp get_in_log(const ID &page_id)
-	{
-		auto i = pages_log_.find(page_id);
-		if (i != pages_log_.end())
-		{
-			return i->second;
-		}
-		else {
-			return PageOp();
-		}
-	}
 
-	Page *get0(const ID &page_id)
-	{
-		auto i = pages_.find(page_id);
-		if (i != pages_.end())
-		{
-			if (i->second == NULL)
-			{
-				throw NullPointerException(MEMORIA_SOURCE, "Null page for the specified page_id");
-			}
-			return i->second;
-		}
-		else {
-			throw NullPointerException(MEMORIA_SOURCE, SBuf()<<"Can't find page for the specified page_id: "<<page_id);
-		}
-	}
-
-	Page *get1(const ID &page_id)
-	{
-		if (page_id.is_null())
-		{
-			return NULL;
-		}
-		else {
-			return get0(page_id);
-		}
-	}
-
-	// Begin RootMapInterface
-
-	void set_root(const ID& id) {
-		root_map_->set_root(id);
-	}
-
-	void remove_by_key(BigInt name)
-	{
-		root_map_->Remove(name);
-	}
-
-	void set_value_for_key(BigInt name, const ID& page_id)
-	{
-		root_map_->operator[](name).SetData(page_id);
-	}
-
-	ID get_value_for_key(BigInt name)
-	{
-		auto iter = root_map_->Find(name);
-
-		if (!iter.IsEnd())
-		{
-			return iter.GetValue();
-		}
-		else {
-			return ID(0);
-			//throw new Exception(MEMORIA_SOURCE, "Can't find Root ID for model " + ToString(name));
-		}
-	}
-
-	// End RootMapInterface
-
-	Int get_page_size()
-	{
-		return PAGE_SIZE;
-	}
-
-	Shared* get_shared(Page* page, Int op)
-	{
-		Shared* shared = pool_.Get(page->id());
-
-		if (shared == NULL)
-		{
-			shared = pool_.Allocate(page->id());
-
-			shared->id() 		= page->id();
-			shared->state() 	= op;
-			shared->set_page(page);
-			shared->set_allocator(this);
-		}
-
-		return shared;
-	}
 
 
 	virtual PageG GetPage(const ID& id, Int flags)
@@ -421,8 +330,6 @@ public:
 
 	void commit()
 	{
-		//root_map_->SetRootMetadata(root_metadata_);
-
 		for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
 		{
 			PageOp op = i->second;
@@ -471,15 +378,6 @@ public:
 			i->second->commit();
 		}
 
-//		if (updated_)
-//		{
-//			root_ = root_log_;
-//			root_log_ = 0;
-//			updated_ = false;
-//		}
-
-//		root_map_shared_->commit();
-
 		pages_log_.clear();
 	}
 
@@ -495,12 +393,6 @@ public:
 		{
 			i->second->rollback();
 		}
-
-//		if (updated_)
-//		{
-//			updated_ 	= false;
-//			root_log_ 	= 0;
-//		}
 
 		pages_log_.clear();
 	}
@@ -696,77 +588,10 @@ public:
 		output->close();
 	}
 
-	void dump_page(OutputStreamHandler *output, char* buf, Page *page)
-	{
-		if (page->page_type_hash() != 0)
-		{
-			if (page->references() > 0) {cout<<"Dump "<<page->id()<<" "<<page->references()<<endl;}
 
-			MEMORIA_TRACE(me(), "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
 
-			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
 
-			for (Int c = 0; c < PAGE_SIZE; c++)
-			{
-				buf[c] = 0;
-			}
-
-			const IPageOperations* operations = pageMetadata->GetPageOperations();
-
-			operations->Serialize(page, buf);
-
-			Int ptr = operations->GetPageSize(page);
-
-			Short size = ptr;
-
-			output->write(size);
-			output->write(page->page_type_hash());
-
-			MEMORIA_TRACE(me(), "Page size", size, "at", output->pos(), page->page_type_hash());
-			output->write(buf, 0, size);
-		}
-		else {
-			MEMORIA_TRACE(me(), "hash for page", page->id(), "is not specified");
-		}
-	}
-
-	void set_root(BigInt name, const ID &page_id)
-	{
-		if (name == 0)
-		{
-//			root_log_ = page_id;
-//			updated_ = true;
-		}
-		else {
-			roots_->set_value_for_key(name, page_id);
-		}
-	}
-
-	void remove_root(BigInt name)
-	{
-		if (name == 0)
-		{
-//			root_log_.Clear();
-//			updated_ = true;
-		}
-		else {
-			roots_->remove_by_key(name);
-		}
-	}
-
-	virtual void new_root(BigInt name, const ID &page_id)
-	{
-		MEMORIA_TRACE(me(), "Register new root", page_id, "for", name);
-
-		if (page_id.is_null())
-		{
-			remove_root(name);
-		}
-		else {
-			set_root(name, page_id);
-		}
-	}
-
+public:
 	bool is_log(Int level) {
 		return logger_.IsLogEnabled(level);
 	}
@@ -866,6 +691,158 @@ public:
 		root_map_->SetRootMetadata(meta);
 
 		return new_name;
+	}
+
+private:
+
+	void dump_page(OutputStreamHandler *output, char* buf, Page *page)
+	{
+		if (page->page_type_hash() != 0)
+		{
+			if (page->references() > 0) {cout<<"Dump "<<page->id()<<" "<<page->references()<<endl;}
+
+			MEMORIA_TRACE(me(), "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
+
+			PageMetadata* pageMetadata = metadata_->GetPageMetadata(page->page_type_hash());
+
+			for (Int c = 0; c < PAGE_SIZE; c++)
+			{
+				buf[c] = 0;
+			}
+
+			const IPageOperations* operations = pageMetadata->GetPageOperations();
+
+			operations->Serialize(page, buf);
+
+			Int ptr = operations->GetPageSize(page);
+
+			Short size = ptr;
+
+			output->write(size);
+			output->write(page->page_type_hash());
+
+			MEMORIA_TRACE(me(), "Page size", size, "at", output->pos(), page->page_type_hash());
+			output->write(buf, 0, size);
+		}
+		else {
+			MEMORIA_TRACE(me(), "hash for page", page->id(), "is not specified");
+		}
+	}
+
+	void set_root(BigInt name, const ID &page_id)
+	{
+		if (name != 0)
+		{
+			roots_->set_value_for_key(name, page_id);
+		}
+	}
+
+	void remove_root(BigInt name)
+	{
+		if (name != 0)
+		{
+			roots_->remove_by_key(name);
+		}
+	}
+
+	virtual void new_root(BigInt name, const ID &page_id)
+	{
+		MEMORIA_TRACE(me(), "Register new root", page_id, "for", name);
+
+		if (page_id.is_null())
+		{
+			remove_root(name);
+		}
+		else {
+			set_root(name, page_id);
+		}
+	}
+
+	PageOp get_in_log(const ID &page_id)
+	{
+		auto i = pages_log_.find(page_id);
+		if (i != pages_log_.end())
+		{
+			return i->second;
+		}
+		else {
+			return PageOp();
+		}
+	}
+
+	Page *get0(const ID &page_id)
+	{
+		auto i = pages_.find(page_id);
+		if (i != pages_.end())
+		{
+			if (i->second == NULL)
+			{
+				throw NullPointerException(MEMORIA_SOURCE, "Null page for the specified page_id");
+			}
+			return i->second;
+		}
+		else {
+			throw NullPointerException(MEMORIA_SOURCE, SBuf()<<"Can't find page for the specified page_id: "<<page_id);
+		}
+	}
+
+	Page *get1(const ID &page_id)
+	{
+		if (page_id.is_null())
+		{
+			return NULL;
+		}
+		else {
+			return get0(page_id);
+		}
+	}
+
+	// Begin RootMapInterface
+
+	void set_root(const ID& id) {
+		root_map_->set_root(id);
+	}
+
+	void remove_by_key(BigInt name)
+	{
+		root_map_->Remove(name);
+	}
+
+	void set_value_for_key(BigInt name, const ID& page_id)
+	{
+		root_map_->operator[](name).SetData(page_id);
+	}
+
+	ID get_value_for_key(BigInt name)
+	{
+		auto iter = root_map_->Find(name);
+
+		if (!iter.IsEnd())
+		{
+			return iter.GetValue();
+		}
+		else {
+			return ID(0);
+			//throw new Exception(MEMORIA_SOURCE, "Can't find Root ID for model " + ToString(name));
+		}
+	}
+
+
+	Shared* get_shared(Page* page, Int op)
+	{
+		Shared* shared = pool_.Get(page->id());
+
+		if (shared == NULL)
+		{
+			shared = pool_.Allocate(page->id());
+
+			shared->id() 		= page->id();
+			shared->state() 	= op;
+			shared->set_page(page);
+			shared->set_allocator(this);
+		}
+
+		return shared;
 	}
 };
 
