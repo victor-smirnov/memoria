@@ -118,7 +118,7 @@ struct ProfileListBuilder<Order> {												\
 //			ContainerTypesCollection<Profile>::reflection_ = new ContainerCollectionMetadataImpl(TypeNameFactory<Profile>::name(), list);
 //		}
 //
-//		return ContainerTypesCollection<Profile>::reflection_->Hash();
+//		return ContainerTypesCollection<Profile>::reflection_->hash();
 //	}
 //
 //	static void printContainerHashes() {

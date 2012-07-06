@@ -22,7 +22,7 @@ namespace vapi {
 LogHandler* Logger::default_handler_ = new DefaultLogHandlerImpl();
 Logger logger("Memoria", Logger::INFO, NULL);
 
-void ArrayData::Dump(std::ostream& out) {
+void ArrayData::dump(std::ostream& out) {
 	out<<endl;
 	Expand(out, 24);
 	for (int c = 0; c < 32; c++)

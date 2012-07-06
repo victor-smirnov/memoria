@@ -29,7 +29,7 @@ template <typename T>
 struct ValueHelper {
 	static void setup(IPageDataEventHandler* handler, const T& value)
 	{
-		handler->Value("VALUE", &value);
+		handler->value("VALUE", &value);
 	}
 };
 
@@ -40,7 +40,7 @@ struct ValueHelper<AbstractPageID<T, Size> > {
 	static void setup(IPageDataEventHandler* handler, const Type& value)
 	{
 		IDValue id(&value);
-		handler->Value("VALUE", &id);
+		handler->value("VALUE", &id);
 	}
 };
 
@@ -51,7 +51,7 @@ struct ValueHelper<EmptyValue> {
 	static void setup(IPageDataEventHandler* handler, const Type& value)
 	{
 		BigInt val = 0;
-		handler->Value("VALUE", &val);
+		handler->value("VALUE", &val);
 	}
 };
 
@@ -92,13 +92,13 @@ public:
 
 	void generateDataEvents(IPageDataEventHandler* handler) const
 	{
-		handler->StartGroup("PACKED_TREE");
+		handler->startGroup("PACKED_TREE");
 
-		handler->Value("SIZE", 			&size_);
-		handler->Value("MAX_SIZE", 		&max_size_);
-		handler->Value("INDEX_SIZE", 	&indexSize_);
+		handler->value("SIZE", 			&size_);
+		handler->value("MAX_SIZE", 		&max_size_);
+		handler->value("INDEX_SIZE", 	&indexSize_);
 
-		handler->StartGroup("INDEXES", indexSize_);
+		handler->startGroup("INDEXES", indexSize_);
 
 		for (Int idx = 0; idx < indexSize_; idx++)
 		{
@@ -108,16 +108,16 @@ public:
 				indexes[block] = index(block, idx);
 			}
 
-			handler->Value("INDEX", indexes, Blocks);
+			handler->value("INDEX", indexes, Blocks);
 		}
 
-		handler->EndGroup();
+		handler->endGroup();
 
-		handler->StartGroup("DATA", size_);
+		handler->startGroup("DATA", size_);
 
 		for (Int idx = 0; idx < size_; idx++)
 		{
-			handler->StartLine("ENTRY");
+			handler->startLine("ENTRY");
 
 			Key keys[Blocks];
 			for (Int block = 0; block < Blocks; block++)
@@ -125,19 +125,19 @@ public:
 				keys[block] = key(block, idx);
 			}
 
-			handler->Value(Blocks == 1 ? "KEY" : "KEYS", keys, Blocks);
+			handler->value(Blocks == 1 ? "KEY" : "KEYS", keys, Blocks);
 
 			if (getValueSize() > 0)
 			{
 				intrnl0::ValueHelper<Value>::setup(handler, value(idx));
 			}
 
-			handler->EndLine();
+			handler->endLine();
 		}
 
-		handler->EndGroup();
+		handler->endGroup();
 
-		handler->EndGroup();
+		handler->endGroup();
 	}
 
 	void serialize(SerializationData& buf) const
@@ -624,7 +624,7 @@ public:
 		Int key_block_offset 	= getKeyBlockOffset(block_num);
 		Int index_block_offset 	= getIndexKeyBlockOffset(block_num);
 
-		if (comparator.TestMax(k, maxKeyb(index_block_offset)))
+		if (comparator.testMax(k, maxKeyb(index_block_offset)))
 		{
 			return -1;
 		}
@@ -651,7 +651,7 @@ public:
 			for (Int idx = start; idx < end; idx++)
 			{
 				const IndexKey& key0 = indexb(index_block_offset, base + idx);
-				if (comparator.CompareIndex(k, key0))
+				if (comparator.compareIndex(k, key0))
 				{
 					start = idx * BranchingFactor;
 					comparator.Sub(key0);
@@ -666,7 +666,7 @@ public:
 
 		for (Int idx = start; idx < stop; idx++)
 		{
-			if (comparator.CompareKey(k, keyb(key_block_offset, idx)))
+			if (comparator.compareKey(k, keyb(key_block_offset, idx)))
 			{
 				return idx;
 			}
@@ -680,22 +680,22 @@ public:
 	{
 		if (end - start <= BranchingFactor * 2)
 		{
-			walker.WalkKeys(start, end);
+			walker.walkKeys(start, end);
 		}
 		else {
 			Int block_start_end 	= getBlockStartEnd(start);
 			Int block_end_start 	= getBlockStart(end);
 
-			walker.WalkKeys(start, block_start_end);
+			walker.walkKeys(start, block_start_end);
 
 			if (block_start_end < block_end_start)
 			{
 				Int level_size = getIndexCellsNumberFor(max_size_);
-				walker.PrepareIndex();
+				walker.prepareIndex();
 				walkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, indexSize_ - level_size, level_size);
 			}
 
-			walker.WalkKeys(block_end_start, end);
+			walker.walkKeys(block_end_start, end);
 		}
 	}
 
@@ -709,17 +709,17 @@ public:
 
 		if (block_limit >= size())
 		{
-			return walker.WalkKeys(start, size());
+			return walker.walkKeys(start, size());
 		}
 		else
 		{
-			Int limit = walker.WalkKeys(start, block_limit);
+			Int limit = walker.walkKeys(start, block_limit);
 			if (limit < block_limit)
 			{
 				return limit;
 			}
 			else {
-				walker.PrepareIndex();
+				walker.prepareIndex();
 
 				Int level_size 		= getIndexCellsNumberFor(max_size_);
 				Int level_limit 	= getIndexCellsNumberFor(size_);
@@ -729,7 +729,7 @@ public:
 
 				Int last_end = last_start_end <= size()? last_start_end : size();
 
-				return walker.WalkKeys(last_start, last_end);
+				return walker.walkKeys(last_start, last_end);
 			}
 		}
 	}
@@ -742,24 +742,24 @@ public:
 
 		if (block_end == -1)
 		{
-			return walker.WalkKeys(start, -1);
+			return walker.walkKeys(start, -1);
 		}
 		else
 		{
-			Int limit = walker.WalkKeys(start, block_end);
+			Int limit = walker.walkKeys(start, block_end);
 			if (limit > block_end)
 			{
 				return limit;
 			}
 			else {
-				walker.PrepareIndex();
+				walker.prepareIndex();
 
 				Int level_size = getIndexCellsNumberFor(max_size_);
 				Int last_start = walkIndexBw(block_end/BranchingFactor, walker, indexSize_ - level_size, level_size);
 
 				Int last_start_end = getBlockStartEndBw(last_start);
 
-				return walker.WalkKeys(last_start, last_start_end);
+				return walker.walkKeys(last_start, last_start_end);
 			}
 		}
 	}

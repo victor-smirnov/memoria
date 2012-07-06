@@ -31,11 +31,11 @@ StringList::StringList(StringRef list, StringRef separators)
                 String::size_type idx = list.find_first_of(separators, pos);
                 if (idx != String::npos)
                 {
-                        list_.push_back(TrimString(list.substr(pos, idx - pos)));
+                        list_.push_back(trimString(list.substr(pos, idx - pos)));
                         pos = idx + 1;
                 }
                 else {
-                        list_.push_back(TrimString(list.substr(pos, list.length() - pos)));
+                        list_.push_back(trimString(list.substr(pos, list.length() - pos)));
                         pos = String::npos;
                 }
         }
@@ -193,27 +193,27 @@ void add_line(Configurator *cfg, StringRef str, String::size_type start, String:
 {
         typedef String::size_type SizeT;
 
-        if (start != String::npos && start < str.length() && str[start] != '#' && !IsEmpty(str, start, end, sep))
+        if (start != String::npos && start < str.length() && str[start] != '#' && !isEmpty(str, start, end, sep))
         {
                 if (end == String::npos) end = str.length();
 
                 SizeT divider = str.find("=", start);
                 if (divider != String::npos)
                 {
-                        String name = TrimString(str.substr(start, divider - start));
+                        String name = trimString(str.substr(start, divider - start));
 
                         //SizeT pos = divider + 1;
 
                         if (divider + 1 < str.length())
                         {
-                                cfg->AddProperty(name, TrimString(str.substr(divider + 1, end - divider - 1) ));
+                                cfg->AddProperty(name, trimString(str.substr(divider + 1, end - divider - 1) ));
                         }
                         else {
                                 cfg->AddProperty(name, "");
                         }
                 }
                 else {
-                        throw Exception(MEMORIA_SOURCE, SBuf()<<"There is no '=' in the string '"<<TrimString(str.substr(start, end - start))<<"'");
+                        throw Exception(MEMORIA_SOURCE, SBuf()<<"There is no '=' in the string '"<<trimString(str.substr(start, end - start))<<"'");
                 }
         }
         else {
@@ -284,7 +284,7 @@ Configurator* Configurator::Parse(StringRef file_name, Configurator* cfg)
                                         }
                                 }
                                 else {
-                                        if (IsEmpty(text, pos, nl_start, sep))
+                                        if (isEmpty(text, pos, nl_start, sep))
                                         {
                                                 String line = buf->str();
                                                 add_line(cfg, line, 0, String::npos, sep);
@@ -340,9 +340,9 @@ Configurator* Configurator::BuildRootConfigurator(const char** envp) {
                         String pair(*envp);
                         UInt idx = pair.find("=", 0);
                         if (idx != String::npos) {
-                                String name = "env." + TrimString(pair.substr(0, idx));
+                                String name = "env." + trimString(pair.substr(0, idx));
                                 if (idx < pair.length() - 1) {
-                                        String value = TrimString(pair.substr(idx + 1, pair.length()));
+                                        String value = trimString(pair.substr(idx + 1, pair.length()));
                                         cfg->AddProperty(name, value);
                                 }
                                 else {
@@ -378,9 +378,9 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
                         try {
                                 String dirPath = list.getItem(c);
                                 File path(dirPath);
-                                if (path.IsExists())
+                                if (path.isExists())
                                 {
-                                        if (!path.IsDirectory())
+                                        if (!path.isDirectory())
                                         {
                                                 Configurator* cfg = Configurator::Parse(path.getPath());
                                                 cfg->setParent(platform);
@@ -393,9 +393,9 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
                                                 for (File::FileListType::iterator i = list->begin(); i != list->end(); i++)
                                                 {
                                                         File* file = *i;
-                                                        if (!file->IsDirectory())
+                                                        if (!file->isDirectory())
                                                         {
-                                                                if (IsEndsWith(file->getName(), ".props"))
+                                                                if (isEndsWith(file->getName(), ".props"))
                                                                 {
                                                                         cfg = Configurator::Parse(file->getPath(), cfg);
                                                                 }

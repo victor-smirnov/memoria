@@ -149,9 +149,9 @@ public:
 		Prepare(result, *out_);
 	}
 
-	virtual void Release()
+	virtual void release()
 	{
-		Release(*out_);
+		release(*out_);
 	}
 
 	virtual void Benchmark(BenchmarkParameters& result)
@@ -165,7 +165,7 @@ public:
 	virtual void Benchmark(BenchmarkParameters& result, ostream& out) 		= 0;
 	virtual void AfterBenchmark(BenchmarkParameters& result, ostream& out)  {}
 
-	virtual void Release(ostream& out) {}
+	virtual void release(ostream& out) {}
 
 public:
 
@@ -219,7 +219,7 @@ public:
 		current_time = time_start;
 	}
 
-	virtual bool IsEnd() {
+	virtual bool isEnd() {
 		return current_time > time_stop;
 	}
 

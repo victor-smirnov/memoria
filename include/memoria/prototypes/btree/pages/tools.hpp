@@ -34,7 +34,7 @@ public:
     template <typename Node>
     void operator()(Node *node)
     {
-        node->map().MoveData(from_ + count_, from_, node->children_count() - from_);
+        node->map().moveData(from_ + count_, from_, node->children_count() - from_);
 
         for (Int c = from_; c < from_ + count_; c++)
         {
@@ -77,7 +77,7 @@ public:
 
         if (two->children_count() > 0)
         {
-            two->map().MoveData(count_ + shift_, 0, two->children_count());
+            two->map().moveData(count_ + shift_, 0, two->children_count());
         }
 
         one->map().copyData(from_, count_, two->map(), shift_);
@@ -139,7 +139,7 @@ public:
     {
         if (from_ + count_ < node->children_count())
         {
-            node->map().MoveData(from_, from_ + count_, node->children_count() - (from_ + count_));
+            node->map().moveData(from_, from_ + count_, node->children_count() - (from_ + count_));
         }
 
         for (Int c = node->children_count() - count_; c < node->children_count(); c++)
@@ -181,7 +181,7 @@ void RemoveElements(Node *node, Int from, Int count, bool reindex)
 //
 //    tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(NodePage2));
 //
-//    tgt->CopyFrom(src);
+//    tgt->copyFrom(src);
 //
 //    tgt->set_root(root);
 //
@@ -205,7 +205,7 @@ struct CopyRootMetadataFn {
 };
 
 template <typename Dispatcher, typename Node>
-void CopyRootMetadata(Node *src, Node *tgt)
+void copyRootMetadata(Node *src, Node *tgt)
 {
     CopyRootMetadataFn fn;
     Dispatcher::DoubleDispatch(src, tgt, fn);
@@ -234,7 +234,7 @@ public:
 
         tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(RootType));
 
-        tgt->CopyFrom(src);
+        tgt->copyFrom(src);
         tgt->metadata() = metadata_;
 
         tgt->set_root(true);
@@ -276,7 +276,7 @@ public:
 
         tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(NonRootNode));
 
-        tgt->CopyFrom(src);
+        tgt->copyFrom(src);
 
         tgt->set_root(false);
 
@@ -380,10 +380,10 @@ void setChildrenCount(Node *node, Int count)
 }
 
 template <typename Int>
-class AddChildrenCountFn {
+class addChildrenCountFn {
     Int count_;
 public:
-    AddChildrenCountFn(Int count): count_(count) {}
+    addChildrenCountFn(Int count): count_(count) {}
 
     template <typename T>
     void operator()(T *node)
@@ -394,9 +394,9 @@ public:
 
 
 template <typename Dispatcher, typename Node, typename Int>
-void AddChildrenCount(Node *node, Int count)
+void addChildrenCount(Node *node, Int count)
 {
-    AddChildrenCountFn<Int> fn(count);
+    addChildrenCountFn<Int> fn(count);
     Dispatcher::Dispatch(node, fn);
 }
 

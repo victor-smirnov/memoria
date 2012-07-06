@@ -42,7 +42,7 @@ public:
     AbstractPageID(const T &t) : Base(t) {}
 
     AbstractPageID(const memoria::vapi::IDValue& id): Base() {
-        Base::CopyFrom(id.ptr());
+        Base::copyFrom(id.ptr());
     }
 
     bool isNull() const {
@@ -266,21 +266,21 @@ public:
     //Rebuild page content such indexes using provided data.
     void Rebiuild(){}
 
-    void GenerateLayoutEvents(IPageLayoutEventHandler* handler) const {}
+    void generateLayoutEvents(IPageLayoutEventHandler* handler) const {}
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
     	IDValue id(&id_);
-    	handler->Value("ID",				&id);
-    	handler->Value("CRC", 				&crc_);
-    	handler->Value("MODEL_HASH", 		&model_hash_);
-    	handler->Value("PAGE_TYPE_HASH", 	&page_type_hash_);
-    	handler->Value("REFERENCES", 		&references_);
-    	handler->Value("DELETED", 			&deleted_);
+    	handler->value("ID",				&id);
+    	handler->value("CRC", 				&crc_);
+    	handler->value("MODEL_HASH", 		&model_hash_);
+    	handler->value("PAGE_TYPE_HASH", 	&page_type_hash_);
+    	handler->value("REFERENCES", 		&references_);
+    	handler->value("DELETED", 			&deleted_);
     }
 
     template <typename PageType>
-    void CopyFrom(const PageType* page)
+    void copyFrom(const PageType* page)
     {
         this->id()              = page->id();
         this->crc()             = page->crc();

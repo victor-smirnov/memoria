@@ -32,7 +32,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     {
     	Iterator iter = me()->findLE(key, 0);
 
-    	if (!iter.IsEnd())
+    	if (!iter.isEnd())
     	{
     		if (key == iter.key())
     		{
@@ -51,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     {
     	Iterator iter = me()->findLE(key, 0);
 
-    	if (!iter.IsEnd())
+    	if (!iter.isEnd())
     	{
     		if (key == iter.key())
     		{
@@ -71,12 +71,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     {
     	Iterator iter = me()->findLE(key, 0);
 
-    	if (iter.IsEnd() || key != iter.key())
+    	if (iter.isEnd() || key != iter.key())
     	{
     		Accumulator keys;
     		keys[0] = key;
     		me()->insert(iter, keys);
-    		iter.PrevKey();
+    		iter.prevKey();
     	}
 
     	return iter;
@@ -101,7 +101,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
     	Accumulator keys;
     	me()->removeEntries(from, to, keys);
 
-    	if (!to.IsEnd())
+    	if (!to.isEnd())
     	{
     		to.updateUp(keys);
     	}
@@ -128,19 +128,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     bool contains(Key key)
     {
-    	return !me()->find(key).IsEnd();
+    	return !me()->find(key).isEnd();
     }
 
     bool contains1(Key key)
     {
-    	return !me()->find1(key).IsEnd();
+    	return !me()->find1(key).isEnd();
     }
 
     bool removeEntry(Iterator& iter, Accumulator& keys)
     {
     	bool result = Base::removeEntry(iter, keys);
 
-    	if (!iter.IsEnd())
+    	if (!iter.isEnd())
     	{
     		iter.updateUp(keys);
     	}

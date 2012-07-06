@@ -90,7 +90,7 @@ public:
     NodePage(): Base(), map_() {}
 
     static Int hash() {
-        return reflection_->Hash();
+        return reflection_->hash();
     }
 
     static PageMetadata *reflection() {
@@ -152,9 +152,9 @@ public:
     }
 
     template <typename PageType>
-    void CopyFrom(const PageType* page)
+    void copyFrom(const PageType* page)
     {
-        Base::CopyFrom(page);
+        Base::copyFrom(page);
 
         //FIXME: use page->size()
         //FIXME: use PackedTree facilities to copy data or memcpy()
@@ -216,17 +216,17 @@ public:
     	virtual void generateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const
     	{
     		const Me* me = T2T<const Me*>(page);
-    		handler->StartPage("BTREE_NODE");
+    		handler->startPage("BTREE_NODE");
     		me->generateDataEvents(handler);
-    		handler->EndPage();
+    		handler->endPage();
     	}
 
-    	virtual void GenerateLayoutEvents(const void* page, const LayoutEventsParams& params, IPageLayoutEventHandler* handler) const
+    	virtual void generateLayoutEvents(const void* page, const LayoutEventsParams& params, IPageLayoutEventHandler* handler) const
     	{
     		const Me* me = T2T<const Me*>(page);
-    		handler->StartPage("BTREE_NODE");
-    		me->GenerateLayoutEvents(handler);
-    		handler->EndPage();
+    		handler->startPage("BTREE_NODE");
+    		me->generateLayoutEvents(handler);
+    		handler->endPage();
     	}
     };
 
@@ -244,7 +244,7 @@ public:
         }
         else {}
 
-        return reflection_->Hash();
+        return reflection_->hash();
     }
 };
 

@@ -130,7 +130,7 @@ public:
 
 	virtual BigInt getLocalPosition(Iterator& iter)
 	{
-		return iter.data_pos() / iter.getElementSize();
+		return iter.dataPos() / iter.getElementSize();
 	}
 
 	virtual BigInt getSize(Ctr& array)
@@ -155,9 +155,9 @@ public:
 
 		if (path.data().node().isSet())
 		{
-			if (iter.data_pos() < 0)
+			if (iter.dataPos() < 0)
 			{
-				throw TestException(source, SBuf()<<"iter.data_pos() is negative: "<<iter.data_pos());
+				throw TestException(source, SBuf()<<"iter.dataPos() is negative: "<<iter.dataPos());
 			}
 
 			bool found = false;
@@ -168,7 +168,7 @@ public:
 				{
 					if (path.data().parent_idx() != idx)
 					{
-						iter.Dump(out);
+						iter.dump(out);
 						throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"<<path[0]->id()<<" DATA: "<<path.data()->id()<<" idx="<<idx<<" parent_idx="<<path.data().parent_idx());
 					}
 					else {
@@ -180,30 +180,30 @@ public:
 
 			if (!found)
 			{
-				iter.Dump(out);
+				iter.dump(out);
 				throw TestException(source, SBuf()<<"Data: "<<path.data()->id()<<" is not fount is it's parent, parent_idx="<<path.data().parent_idx());
 			}
 		}
 
 
-		if (iter.IsEnd())
+		if (iter.isEnd())
 		{
 			if (iter.data().isSet())
 			{
-				iter.Dump(out);
+				iter.dump(out);
 				throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
 			}
 		}
 		else {
 			if (iter.data().isEmpty())
 			{
-				iter.Dump(out);
+				iter.dump(out);
 				throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
 			}
 
 			if (iter.path().data().parent_idx() != iter.key_idx())
 			{
-				iter.Dump(out);
+				iter.dump(out);
 				throw TestException(MEMORIA_SOURCE, "Iterator data.parent_idx mismatch");
 			}
 		}

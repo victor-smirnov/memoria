@@ -70,7 +70,7 @@ class PMapSumTest: public TestTask {
 public:
 
 	PMapSumTest():
-		TestTask("Sum."+ToString(BranchingFactor_)),
+		TestTask("Sum."+toString(BranchingFactor_)),
 		block_size(16384),
 		max_size(0)
 	{
@@ -110,7 +110,7 @@ public:
 
 		BigInt sum = Sum(map, start, end);
 
-		MEMORIA_TEST_THROW_IF_1(acc[0], !=, sum, ToString(start) + "," + ToString(end));
+		MEMORIA_TEST_THROW_IF_1(acc[0], !=, sum, toString(start) + "," + toString(end));
 	}
 
 	void FillMap(Map* map, Int size)
@@ -172,7 +172,7 @@ public:
 
 					BigInt sum = Sum(map, start, end);
 
-					MEMORIA_TEST_THROW_IF_1(acc[0], !=, sum, ToString(start) + ","+ToString(end));
+					MEMORIA_TEST_THROW_IF_1(acc[0], !=, sum, toString(start) + ","+toString(end));
 				}
 			}
 		}

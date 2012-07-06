@@ -103,7 +103,7 @@ public:
 
 			checkBufferWritten(iter, data, "Buffer written does not match", MEMORIA_SOURCE);
 
-			iter.Next();
+			iter.next();
 			c++;
 		}
 	}

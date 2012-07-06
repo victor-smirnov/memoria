@@ -54,7 +54,7 @@ public:
     {
     	Base::key_idx() 	= 0;
 
-        Base::path().Resize(levels);
+        Base::path().resize(levels);
     }
     
     Iter(const MyType& other): Base(other), model_(other.model_) {}
@@ -100,15 +100,15 @@ public:
     	}
     	else if (other.type() == Base::END)
     	{
-    		return Base::IsEnd();
+    		return Base::isEnd();
     	}
     	else if (other.type() == Base::START)
     	{
-    		return Base::IsBegin();
+    		return Base::isBegin();
     	}
     	else
     	{
-    		return Base::IsEmpty();
+    		return Base::isEmpty();
     	}
     }
 
@@ -125,15 +125,15 @@ public:
     	}
     	else if (other.type() == Base::END)
     	{
-    		return Base::IsNotEnd();
+    		return Base::isNotEnd();
     	}
     	else if (other.type() == Base::START)
     	{
-    		return !Base::IsBegin();
+    		return !Base::isBegin();
     	}
     	else
     	{
-    		return !Base::IsEmpty();
+    		return !Base::isEmpty();
     	}
     }
 
@@ -148,13 +148,13 @@ public:
 template <typename Types>
 bool operator==(const Iter<BTreeIterTypes<Types> >& iter, const IterEndMark& mark)
 {
-	return iter.IsEnd();
+	return iter.isEnd();
 }
 
 template <typename Types>
 bool operator!=(const Iter<BTreeIterTypes<Types> >& iter, const IterEndMark& mark)
 {
-	return iter.IsNotEnd();
+	return iter.isNotEnd();
 }
 
 

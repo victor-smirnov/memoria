@@ -56,7 +56,7 @@ public:
 		Int pairs_size = (Int) pairs.size();
 
 		Int idx = 0;
-		for (auto iter = map.Begin(); !iter.IsEnd();)
+		for (auto iter = map.Begin(); !iter.isEnd();)
 		{
 			BigInt key   = iter.getKey(0);
 			BigInt value = iter.getValue();
@@ -64,14 +64,14 @@ public:
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].key_,   !=, key, idx);
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].value_, !=, value, idx);
 
-			iter.Next();
+			iter.next();
 			idx++;
 		}
 
 		MEMORIA_TEST_THROW_IF	(idx, !=, pairs_size);
 
 		idx = pairs_size - 1;
-		for (auto iter = map.RBegin(); !iter.IsBegin(); )
+		for (auto iter = map.RBegin(); !iter.isBegin(); )
 		{
 			BigInt  key 	= iter.getKey(0);
 			BigInt  value 	= iter.getValue();
@@ -79,7 +79,7 @@ public:
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].key_,   !=, key, idx);
 			MEMORIA_TEST_THROW_IF_1(pairs[idx].value_, !=, value, idx);
 
-			iter.Prev();
+			iter.prev();
 
 			idx--;
 		}
@@ -251,7 +251,7 @@ public:
 				{
 					if (path[level - 1].parent_idx() != idx)
 					{
-						iter.Dump(out);
+						iter.dump(out);
 						throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"<<path[level]->id()<<" child: "<<path[level - 1]->id()<<" idx="<<idx<<" parent_idx="<<path[level-1].parent_idx());
 					}
 					else {
@@ -263,7 +263,7 @@ public:
 
 			if (!found)
 			{
-				iter.Dump(out);
+				iter.dump(out);
 				throw TestException(source, SBuf()<<"Child: "<<path[level - 1]->id()<<" is not fount is it's parent, parent_idx="<<path[level - 1].parent_idx());
 			}
 		}
@@ -279,7 +279,7 @@ public:
 
 		if (iter.prefix() != prefix.key(0))
 		{
-			iter.Dump(out);
+			iter.dump(out);
 			throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefix()<<" Actual: "<<prefix);
 		}
 	}

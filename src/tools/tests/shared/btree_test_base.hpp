@@ -511,7 +511,7 @@ public:
 				{
 					if (path[level - 1].parent_idx() != idx)
 					{
-						iter.Dump(out);
+						iter.dump(out);
 						throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"<<path[level]->id()<<" child: "<<path[level - 1]->id()<<" idx="<<idx<<" parent_idx="<<path[level-1].parent_idx());
 					}
 					else {
@@ -523,7 +523,7 @@ public:
 
 			if (!found)
 			{
-				iter.Dump(out);
+				iter.dump(out);
 				throw TestException(source, SBuf()<<"Child: "<<path[level - 1]->id()<<" is not fount is it's parent, parent_idx="<<path[level - 1].parent_idx());
 			}
 		}
@@ -538,7 +538,7 @@ public:
 
 		if (iter.prefix(0) != prefix.key(0))
 		{
-			iter.Dump(out);
+			iter.dump(out);
 			throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefix()<<" Actual: "<<prefix);
 		}
 	}

@@ -86,7 +86,7 @@ public:
 		}
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete ctr_;
 		delete allocator_;

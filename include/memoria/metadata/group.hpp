@@ -47,36 +47,7 @@ public:
 		return content_[idx];
 	}
 
-//	virtual Metadata* findFirst(const char* name, bool throwEx = false)
-//	{
-//		for (Int c = 0; c < Size(); c++)
-//		{
-//			Metadata* item = getItem(c);
-//			if (item->Name() == name)
-//			{
-//				return item;
-//			}
-//			//FIXME: IsGroup
-//			else if (item->IsGroup())
-//			{
-//				return findFirst(name, throwEx);
-//			}
-//		}
-//
-//		if (throwEx)
-//		{
-//			throw new Exception(MEMORIA_SOURCE, String("Can't find metadata filed: ") + name);
-//		}
-//		else {
-//			return NULL;
-//		}
-//	}
-//
-//
-//	virtual const FieldMetadata* findFirstField() const
-//	{
-//		return findFirstField(this);
-//	}
+
 
 	virtual void putAll(MetadataList& target) const
 	{
@@ -95,23 +66,6 @@ protected:
 	MetadataList 	content_;
 	Int 			block_size_;
 
-//	const FieldMetadata* findFirstField(const MetadataGroup* group) const
-//	{
-//		for (Int c = 0; c < Size(); c++)
-//		{
-//			const Metadata* item = group->getItem(c);
-//			if (item->IsField())
-//			{
-//				return T2T<const FieldMetadata*>(item);
-//			}
-//			else if (item->IsGroup())
-//			{
-//				return findFirstField(static_cast<const MetadataGroup*>(item));
-//			}
-//		}
-//
-//		return NULL;
-//	}
 };
 
 

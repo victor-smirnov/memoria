@@ -22,7 +22,7 @@ struct MEMORIA_API InputStreamHandler {
 
     virtual Int available() 							= 0;
     virtual void close() 								= 0;
-    virtual Int buffer_size() 							= 0;
+    virtual Int bufferSize() 							= 0;
     virtual BigInt pos() 								= 0;
     virtual Int read(void* mem, Int offset, Int length) = 0;
 
@@ -60,7 +60,7 @@ struct MEMORIA_API InputStreamHandler {
 
 struct MEMORIA_API OutputStreamHandler {
 
-    virtual Int buffer_size() = 0;
+    virtual Int bufferSize() = 0;
     virtual void flush() = 0;
     virtual void close() = 0;
     virtual BigInt pos() = 0;
@@ -110,7 +110,7 @@ public:
 		return ftell(fd_);
 	}
 
-	virtual Int buffer_size() {return 0;}
+	virtual Int bufferSize() {return 0;}
 
 	virtual void flush() {
 
@@ -162,7 +162,7 @@ public:
 	}
 
 	virtual Int available() {return 0;}
-	virtual Int buffer_size() {return 0;}
+	virtual Int bufferSize() {return 0;}
 
 	virtual void close()
 	{

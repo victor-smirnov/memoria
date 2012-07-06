@@ -148,7 +148,7 @@ public:
 		return *this;
 	}
 
-	void MoveRight(Int level, Int from, Int count)
+	void moveRight(Int level, Int from, Int count)
 	{
 		if (level >= 0)
 		{
@@ -160,7 +160,7 @@ public:
 		}
 	}
 
-	void MoveLeft(Int level, Int from, Int count)
+	void moveLeft(Int level, Int from, Int count)
 	{
 		if (level >= 0)
 		{
@@ -207,8 +207,8 @@ public:
 
 
 	void Prepare() 				{}
-	void NextKey(bool end) 		{}
-	void PrevKey(bool start) 	{}
+	void nextKey(bool end) 		{}
+	void prevKey(bool start) 	{}
 
 	const Iterator& iterator() const {
 		return *iter_;

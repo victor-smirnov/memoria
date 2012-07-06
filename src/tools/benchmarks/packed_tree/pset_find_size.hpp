@@ -53,7 +53,7 @@ class PsetSizeBenchmark: public BenchmarkTask {
 public:
 
 	PsetSizeBenchmark():
-		BenchmarkTask("FindSize."+ToString(BranchingFactor_))
+		BenchmarkTask("FindSize."+toString(BranchingFactor_))
 	{
 		average = 10;
 	}
@@ -95,7 +95,7 @@ public:
 		}
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		free(map_);
 		delete[] rd_array_;

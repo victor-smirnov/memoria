@@ -19,7 +19,7 @@ namespace memoria    {
 class TypePrinterBase
 {
 public:
-	static void Dump() {}
+	static void dump() {}
 };
 
 template<typename T, typename Base>
@@ -27,7 +27,7 @@ class TypePrinter : public Base
 {
 public:
 
-    static void Dump() {
+    static void dump() {
         std::cout << memoria::vapi::TypeNameFactory<T, 4096*20>::name() << std::endl;
     }
 };
@@ -41,7 +41,7 @@ template <>
 class TypePrinterTool<NullType>
 {
 public:
-    static void Dump()
+    static void dump()
     {
         std::cout << "Empty List" << std::endl;
     }

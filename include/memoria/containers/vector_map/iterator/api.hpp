@@ -171,34 +171,34 @@ IdxsetAccumulator getKeys() const
 	return keys;
 }
 
-bool IsNotEnd() const
+bool isNotEnd() const
 {
-	return me()->is_iter().IsNotEnd();
+	return me()->is_iter().isNotEnd();
 }
 
-bool IsEnd() const
+bool isEnd() const
 {
-	return me()->is_iter().IsEnd();
+	return me()->is_iter().isEnd();
 }
 
-bool IsBegin() const
+bool isBegin() const
 {
-	return me()->is_iter().IsBegin();
+	return me()->is_iter().isBegin();
 }
 
-bool IsEmpty() const
+bool isEmpty() const
 {
-	return me()->is_iter().IsEmpty();
+	return me()->is_iter().isEmpty();
 }
 
-bool Next() {
-	return me()->NextKey();
+bool next() {
+	return me()->nextKey();
 }
 
-bool NextKey()
+bool nextKey()
 {
 	me()->ba_iter().skip(size() - pos());
-	return me()->is_iter().Next();
+	return me()->is_iter().next();
 }
 
 void setValue(BigInt value)
@@ -208,19 +208,19 @@ void setValue(BigInt value)
 }
 
 bool operator++() {
-	return me()->NextKey();
+	return me()->nextKey();
 }
 
 bool operator--() {
-	return me()->PrevKey();
+	return me()->prevKey();
 }
 
 bool operator++(int) {
-	return me()->NextKey();
+	return me()->nextKey();
 }
 
 bool operator--(int) {
-	return me()->PrevKey();
+	return me()->prevKey();
 }
 
 BigInt key() const {

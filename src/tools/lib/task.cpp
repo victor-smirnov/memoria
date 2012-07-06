@@ -40,9 +40,9 @@ void Task::BuildResources()
 
 	bool own_folder = this->own_folder;
 
-	if (!output_f.IsExists())
+	if (!output_f.isExists())
 	{
-		output_f.MkDirs();
+		output_f.mkDirs();
 	}
 
 	String out_file_name = output_folder_ + Platform::getFilePathSeparator() + (own_folder ? "" : getTaskName() + ".") + "output.txt";
@@ -52,7 +52,7 @@ void Task::BuildResources()
 	out_->open(out_file_name, fstream::out);
 }
 
-void Task::ReleaseResources()
+void Task::releaseResources()
 {
 	out_->close();
 	delete out_;
@@ -91,7 +91,7 @@ Int Task::Run()
 		result = true;
 	}
 
-	ReleaseResources();
+	releaseResources();
 
 	return result;
 }
@@ -186,9 +186,9 @@ void TaskGroup::BuildResources()
 	Task::BuildResources();
 }
 
-void TaskGroup::ReleaseResources()
+void TaskGroup::releaseResources()
 {
-	Task::ReleaseResources();
+	Task::releaseResources();
 }
 
 
@@ -206,7 +206,7 @@ Int GroupRunner::Run()
 		String task_folder;
 		if (run_count > 1)
 		{
-			String folder_name = "run-" + ToString(c);
+			String folder_name = "run-" + toString(c);
 			task_folder = output_folder_ + Platform::getFilePathSeparator() + folder_name;
 		}
 		else {
@@ -214,9 +214,9 @@ Int GroupRunner::Run()
 		}
 
 		File folder(task_folder);
-		if (!folder.IsExists())
+		if (!folder.isExists())
 		{
-			folder.MkDirs();
+			folder.mkDirs();
 		}
 
 		for (auto t: tasks_)
@@ -287,7 +287,7 @@ Int GroupRunner::Run()
 		out<<"PASSED: ALL"<<endl;
 	}
 
-	ReleaseResources();
+	releaseResources();
 
 	return counter;
 }

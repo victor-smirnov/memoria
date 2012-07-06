@@ -40,7 +40,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 	Iterator End()
 	{
 		auto is_iter = me()->set().End();
-		if (!is_iter.IsEnd())
+		if (!is_iter.isEnd())
 		{
 			auto ba_iter = me()->array().End();
 
@@ -72,7 +72,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		is_iter.init();
 
 		BigInt 	data_pos 	= is_iter.prefix(1);
-		bool	end			= is_iter.IsEnd();
+		bool	end			= is_iter.isEnd();
 		bool 	exists 		= end ? false : (is_iter.getKey(0) == key);
 
 		auto ba_iter = me()->array().seek(data_pos);
@@ -115,7 +115,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 		me()->set().insertEntry(iter.is_iter(), keys);
 
-		if (!iter.ba_iter().IsEof())
+		if (!iter.ba_iter().isEof())
 		{
 			iter.ba_iter().skip(me()->array().size() - iter.ba_iter().pos());
 		}
@@ -129,7 +129,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		//is_iter.init();
 
 		BigInt 	data_pos 	= is_iter.prefix(1);
-		bool	end			= is_iter.IsEnd();
+		bool	end			= is_iter.isEnd();
 		bool 	exists 		= end ? false : (is_iter.getKey(0) == key);
 
 		auto ba_iter = me()->array().seek(data_pos);
@@ -146,7 +146,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 			keys.key(0) = delta;
 
 
-			if (is_iter.IsNotEnd())
+			if (is_iter.isNotEnd())
 			{
 				me()->set().updateUp(is_iter.path(), 0, is_iter.key_idx(), -keys);
 			}
@@ -165,7 +165,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		//FIXME: set_.findLT() have to return properly initialized iterator
 //		is_iter.init();
 
-		bool	end			= is_iter.IsEnd();
+		bool	end			= is_iter.isEnd();
 		bool 	exists 		= end ? false : (is_iter.getKey(0) == key);
 
 		if (exists)
@@ -177,7 +177,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 			me()->set().removeEntry(is_iter, accum);
 
-			if (!is_iter.IsEnd())
+			if (!is_iter.isEnd())
 			{
 				accum[1] = 0;
 				is_iter.updateUp(accum);

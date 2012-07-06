@@ -53,38 +53,38 @@ public:
 
 	virtual ~IDSelector() {}
 
-	virtual void StartPage(const char* name) {}
-	virtual void EndPage() {}
+	virtual void startPage(const char* name) {}
+	virtual void endPage() {}
 
-	virtual void StartLine(const char* name, Int size = -1)
+	virtual void startLine(const char* name, Int size = -1)
 	{
 		line_ = true;
 		name_ = name;
 	}
 
-	virtual void EndLine() {
+	virtual void endLine() {
 		line_ = false;
 		idx_++;
 	}
 
-	virtual void StartGroup(const char* name, Int elements = -1)
+	virtual void startGroup(const char* name, Int elements = -1)
 	{
 		name_ = name;
 		idx_ = 0;
 	}
 
-	virtual void EndGroup() {}
+	virtual void endGroup() {}
 
-	virtual void Value(const char* name, const Byte* value, Int count = 1, Int kind = 0) 		{}
-	virtual void Value(const char* name, const UByte* value, Int count = 1, Int kind = 0) 		{}
-	virtual void Value(const char* name, const Short* value, Int count = 1, Int kind = 0)		{}
-	virtual void Value(const char* name, const UShort* value, Int count = 1, Int kind = 0)		{}
-	virtual void Value(const char* name, const Int* value, Int count = 1, Int kind = 0)			{}
-	virtual void Value(const char* name, const UInt* value, Int count = 1, Int kind = 0)		{}
-	virtual void Value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)		{}
-	virtual void Value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)		{}
+	virtual void value(const char* name, const Byte* value, Int count = 1, Int kind = 0) 		{}
+	virtual void value(const char* name, const UByte* value, Int count = 1, Int kind = 0) 		{}
+	virtual void value(const char* name, const Short* value, Int count = 1, Int kind = 0)		{}
+	virtual void value(const char* name, const UShort* value, Int count = 1, Int kind = 0)		{}
+	virtual void value(const char* name, const Int* value, Int count = 1, Int kind = 0)			{}
+	virtual void value(const char* name, const UInt* value, Int count = 1, Int kind = 0)		{}
+	virtual void value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)		{}
+	virtual void value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)		{}
 
-	virtual void Value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)
+	virtual void value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)
 	{
 		NamedIDValue entry;
 
@@ -112,9 +112,9 @@ public:
 };
 
 
-void DumpTree(const IDValue& id, const File& folder);
+void dumpTree(const IDValue& id, const File& folder);
 
-void DumpTree(PageMetadata* group, Page* page, const File& folder)
+void dumpTree(PageMetadata* group, Page* page, const File& folder)
 {
 	IDSelector selector;
 
@@ -141,9 +141,9 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 				str<<"___"<<id;
 
 				File folder2(folder.getPath() + Platform::getFilePathSeparator() + str.str());
-				folder2.MkDirs();
+				folder2.mkDirs();
 
-				DumpTree(id, folder2);
+				dumpTree(id, folder2);
 			}
 		}
 	}
@@ -155,7 +155,7 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 //
 //		if (item->getTypeCode() == Metadata::GROUP)
 //		{
-//			DumpTree((MetadataGroup*)item, page, folder, cnt);
+//			dumpTree((MetadataGroup*)item, page, folder, cnt);
 //		}
 //		else if (item->getTypeCode() == Metadata::ID)
 //		{
@@ -164,7 +164,7 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 //	}
 }
 
-void DumpTree(const IDValue& id, const File& folder)
+void dumpTree(const IDValue& id, const File& folder)
 {
 	processed.insert(id);
 	Page* page = manager->createPageWrapper();
@@ -185,9 +185,9 @@ void DumpTree(const IDValue& id, const File& folder)
 
 		PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->getPageTypeHash());
 
-		DumpPage(meta, page, pagetxt);
+		dumpPage(meta, page, pagetxt);
 
-		DumpTree(meta, page, folder);
+		dumpTree(meta, page, folder);
 
 		pagetxt.close();
 	}
@@ -202,7 +202,7 @@ void DumpTree(const IDValue& id, const File& folder)
 
 String getPath(String dump_name)
 {
-	if (IsEndsWith(dump_name, ".dump"))
+	if (isEndsWith(dump_name, ".dump"))
 	{
 		auto idx = dump_name.find_last_of(".");
 		String name = dump_name.substr(0, idx);
@@ -235,31 +235,31 @@ int main(int argc, const char** argv, const char** envp)
 		}
 
 		File file(argv[1]);
-		if (file.IsDirectory())
+		if (file.isDirectory())
 		{
 			cerr<<"ERROR: "<<file.getPath()<<" is a directory"<<endl;
 			return 1;
 		}
-		else if (!file.IsExists())
+		else if (!file.isExists())
 		{
 			cerr<<"ERROR: "<<file.getPath()<<" does not exists"<<endl;
 			return 1;
 		}
 
 		File path(argc == 3 ? String(argv[2]) : getPath(argv[1]));
-		if (path.IsExists() && !path.IsDirectory())
+		if (path.isExists() && !path.isDirectory())
 		{
 			cerr<<"ERROR: "<<path.getPath()<<" is not a directory"<<endl;
 			return 1;
 		}
 
-		if (!path.IsExists())
+		if (!path.isExists())
 		{
-			path.MkDirs();
+			path.mkDirs();
 		}
 		else {
-			path.DelTree();
-			path.MkDirs();
+			path.delTree();
+			path.mkDirs();
 		}
 
 
@@ -273,33 +273,33 @@ int main(int argc, const char** argv, const char** envp)
 		VStreamAllocator::RootMapType* root = manager->roots();
 		auto iter = root->Begin();
 
-		while (!iter.IsEnd())
+		while (!iter.isEnd())
 		{
 			BigInt  name 	= iter.getKey(0);
 
 			BigInt  value 	= iter.getValue();
 			IDValue id(value);
 
-			cout<<"Dumping name="<<name<<" root="<<id<<endl;
+			cout<<"dumping name="<<name<<" root="<<id<<endl;
 
 			stringstream str;
 			str<<name<<"___"<<id;
 
 			File folder(path.getPath() + "/" + str.str());
 
-			if (folder.IsExists())
+			if (folder.isExists())
 			{
-				if (!folder.DelTree())
+				if (!folder.delTree())
 				{
 					throw Exception("dump.cpp", SBuf()<<"can't remove file "<<folder.getPath());
 				}
 			}
 
-			folder.MkDirs();
+			folder.mkDirs();
 
-			DumpTree(id, folder);
+			dumpTree(id, folder);
 
-			iter.Next();
+			iter.next();
 		}
 	}
 	catch (MemoriaThrowable ex) {

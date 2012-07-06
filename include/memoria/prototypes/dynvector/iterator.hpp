@@ -79,7 +79,7 @@ namespace memoria    {
 //    	Base::setupAllocator(&model.allocator());
 //    	Base::page() 		= node;
 //    	Base::data() 		= data;
-//    	Base::data_pos()	= data_pos;
+//    	Base::dataPos()	= data_pos;
 //
 //    	Base::key_idx() 	= idx;
 //    	Base::state() 		= 0;

@@ -34,21 +34,21 @@ public:
 	virtual String getName() const;
 	virtual StringRef getPath() const;
 
-	virtual bool IsExists() const;
-	virtual bool IsDirectory() const;
+	virtual bool isExists() const;
+	virtual bool isDirectory() const;
 	String getAbsolutePath() const;
 
-	virtual bool MkDir() const;
-	virtual bool MkDirs() const;
-	virtual bool Delete() const;
-	virtual bool DelTree() const;
-	virtual BigInt Size() const;
+	virtual bool mkDir() const;
+	virtual bool mkDirs() const;
+	virtual bool deleteFile() const;
+	virtual bool delTree() const;
+	virtual BigInt size() const;
 
-	virtual void Rename(StringRef new_name);
+	virtual void rename(StringRef new_name);
 
 	static FileListType* readDir(const File& file);
 protected:
-	static String NormalizePath(StringRef name);
+	static String normalizePath(StringRef name);
 };
 
 }

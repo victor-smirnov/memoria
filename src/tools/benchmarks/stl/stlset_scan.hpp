@@ -51,7 +51,7 @@ public:
 		}
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete map_;
 	}

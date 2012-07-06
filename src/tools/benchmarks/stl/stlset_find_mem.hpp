@@ -68,7 +68,7 @@ public:
 		}
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete map_;
 		delete[] rd_array_;

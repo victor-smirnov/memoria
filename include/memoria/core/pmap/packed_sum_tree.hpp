@@ -237,20 +237,20 @@ public:
 
 	Int findSumPositionFw(Int block_num, Int start, Key key, Accumulator& acc) const
 	{
-		findSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+		FindSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 		return Base::walkFw(start, walker);
 	}
 
 	Int findSumPositionBw(Int block_num, Int start, Key key, Accumulator& acc) const
 	{
-		findSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+		FindSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 		return Base::walkBw(start, walker);
 	}
 
 
 	Int findSumPositionFw(Int block_num, Int start, Key key, IndexKey& acc) const
 	{
-		findSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+		FindSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 
 		Int position = Base::walkFw(start, walker);
 
@@ -261,7 +261,7 @@ public:
 
 	Int findSumPositionBw(Int block_num, Int start, Key key, IndexKey& acc) const
 	{
-		findSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+		FindSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 
 		Int position = Base::walkBw(start, walker);
 
@@ -272,7 +272,7 @@ public:
 
 	Int findSumPositionBwLT(Int block_num, Int start, Key key, IndexKey& acc) const
 	{
-		findSumPositionBwLTFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+		FindSumPositionBwLTFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 
 		Int position = Base::walkBw(start, walker);
 

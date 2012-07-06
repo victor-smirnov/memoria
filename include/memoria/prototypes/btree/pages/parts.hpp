@@ -70,23 +70,23 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	handler->StartGroup("ROOT_METADATA");
+    	handler->startGroup("ROOT_METADATA");
 
-    	handler->Value("MODEL_NAME", 		&model_name_);
-    	handler->Value("KEY_COUNT", 		&key_count_);
-    	handler->Value("BRANCHING_FACTOR", 	&branching_factor_);
+    	handler->value("MODEL_NAME", 		&model_name_);
+    	handler->value("KEY_COUNT", 		&key_count_);
+    	handler->value("BRANCHING_FACTOR", 	&branching_factor_);
 
-        handler->StartGroup("ROOTS", ROOTS);
+        handler->startGroup("ROOTS", ROOTS);
 
         for (Int c = 0; c < ROOTS; c++)
         {
         	IDValue id(roots_[c]);
-        	handler->Value("ROOT", 	&id);
+        	handler->value("ROOT", 	&id);
         }
 
-        handler->EndGroup();
+        handler->endGroup();
 
-        handler->EndGroup();
+        handler->endGroup();
     }
 
     void serialize(SerializationData& buf) const
@@ -173,7 +173,7 @@ public:
     	FieldFactory<Metadata>::deserialize(buf, metadata_);
     }
 
-    //This part must not contain CopyFrom method because it is
+    //This part must not contain copyFrom method because it is
     //contained only in root pages
 
 MEMORIA_PAGE_PART_END

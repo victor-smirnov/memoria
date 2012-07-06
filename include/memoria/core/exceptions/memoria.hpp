@@ -38,7 +38,7 @@ class MEMORIA_API Exception: public MemoriaThrowable {
     String message_;
 public:
     Exception(const char* source, StringRef message): MemoriaThrowable(source), message_(message) 			{}
-    Exception(const char* source, const SBuf& message): MemoriaThrowable(source), message_(message.Str())	{}
+    Exception(const char* source, const SBuf& message): MemoriaThrowable(source), message_(message.str())	{}
 
 
     StringRef message() const {

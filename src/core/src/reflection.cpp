@@ -42,11 +42,11 @@ ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const M
 
 void ContainerMetadataRepository::process_model(ContainerMetadata* model)
 {
-	if (model_map_.find(model->Hash()) == model_map_.end())
+	if (model_map_.find(model->hash()) == model_map_.end())
 	{
-		hash_ = hash_ + model->Hash();
+		hash_ = hash_ + model->hash();
 
-		model_map_[model->Hash()] = model;
+		model_map_[model->hash()] = model;
 
 		for (Int d = 0; d < model->size(); d++)
 		{
@@ -54,7 +54,7 @@ void ContainerMetadataRepository::process_model(ContainerMetadata* model)
 			if (item->getTypeCode() == Metadata::PAGE)
 			{
 				PageMetadata *page = static_cast<PageMetadata*> (item);
-				page_map_[page->Hash()] = page;
+				page_map_[page->hash()] = page;
 			}
 			else if (item->getTypeCode() == Metadata::MODEL)
 			{

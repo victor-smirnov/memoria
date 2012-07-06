@@ -23,7 +23,7 @@ struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
 
 		virtual ~ContainerMetadataRepository() throw () {}
 
-		virtual Int Hash() const {
+		virtual Int hash() const {
 			return hash_;
 		}
 

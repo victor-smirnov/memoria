@@ -114,7 +114,7 @@ public:
         }
     }
 
-    static bool IsVoid() {
+    static bool isVoid() {
         return SIZE == 0;
     }
 
@@ -126,7 +126,7 @@ public:
         return *(T2T<Long*>(ptr()) + idx);
     }
 
-    void CopyFrom(const void *mem) {
+    void copyFrom(const void *mem) {
     	CopyBuffer(mem, Buffer_, Size);
     }
 
@@ -135,7 +135,7 @@ public:
     }
 
     void dump(std::ostream &os, Int size = BITSIZE) {
-        Dump(os, *this, (Int)0, size);
+        dump(os, *this, (Int)0, size);
     }
 
     Int getHashCode() {
@@ -170,7 +170,7 @@ public:
     	CopyBuffer(&value_, mem, Size);
     }
 
-    void CopyFrom(const void *mem) {
+    void copyFrom(const void *mem) {
     	CopyBuffer(mem, &value_, Size);
     }
 

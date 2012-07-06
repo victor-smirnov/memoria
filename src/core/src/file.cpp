@@ -10,7 +10,7 @@
 
 namespace memoria {
 
-File::File(StringRef path): path_(NormalizePath(path)) {}
+File::File(StringRef path): path_(normalizePath(path)) {}
 File::File(const File& file): path_(file.getPath()) {}
 
 File::~File() throw() {}

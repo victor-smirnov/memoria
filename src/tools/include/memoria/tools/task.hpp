@@ -122,7 +122,7 @@ public:
 
 	String getIterationAsString() const
 	{
-		return ToString(iteration_);
+		return toString(iteration_);
 	}
 
 	StringRef getOutputFolder() const
@@ -144,7 +144,7 @@ public:
 	{
 		String path = getResourcePath(name);
 		File file(path);
-		return file.IsExists();
+		return file.isExists();
 	}
 
 	template <typename T = TaskParametersset>
@@ -168,7 +168,7 @@ public:
 	}
 
 	virtual void BuildResources();
-	virtual void ReleaseResources();
+	virtual void releaseResources();
 
 	virtual void Prepare() {
 		Prepare(*out_);
@@ -176,13 +176,13 @@ public:
 
 	virtual Int Run();
 
-	virtual void Release() {
-		Release(*out_);
+	virtual void release() {
+		release(*out_);
 	}
 
 	virtual void Prepare(ostream& out) {}
 	virtual void Run(ostream& out) 				= 0;
-	virtual void Release(ostream& out) {}
+	virtual void release(ostream& out) {}
 
 
 	virtual void Configure(Configurator* cfg);
@@ -204,7 +204,7 @@ public:
 		fstream file;
 		file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
 
-		params->DumpProperties(file);
+		params->dumpProperties(file);
 
 		file.close();
 	}
@@ -259,7 +259,7 @@ public:
 	virtual void Configure(Configurator* cfg);
 
 	virtual void BuildResources();
-	virtual void ReleaseResources();
+	virtual void releaseResources();
 
 	virtual void OnFailure(Task* task) {}
 
@@ -314,12 +314,12 @@ public:
 
 	virtual String getTaskOutputFolder(String task_name, Int run) const
 	{
-		if (IsEmpty(getOutput()))
+		if (isEmpty(getOutput()))
 		{
-			return task_name +"-" + ToString(run);
+			return task_name +"-" + toString(run);
 		}
 		else {
-			return getOutput() + Platform::getFilePathSeparator() + task_name +"-" + ToString(run);
+			return getOutput() + Platform::getFilePathSeparator() + task_name +"-" + toString(run);
 		}
 	}
 
@@ -339,7 +339,7 @@ public:
 	}
 
 
-	virtual void DumpProperties(ostream& out) {}
+	virtual void dumpProperties(ostream& out) {}
 
 	virtual Int Run();
 };

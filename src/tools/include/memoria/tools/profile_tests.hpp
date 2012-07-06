@@ -58,7 +58,7 @@ public:
 
 	virtual void LoadAllocator(Allocator& allocator, const TestReplayParams* params) const
 	{
-		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(params->getDumpName().c_str()));
+		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(params->getdumpName().c_str()));
 		allocator.load(in.get());
 	}
 
@@ -76,7 +76,7 @@ public:
 
 		String file_name = getAllocatorFileName(params, ".valid");
 		StoreAllocator(allocator, file_name);
-		params->setDumpName(file_name);
+		params->setdumpName(file_name);
 
 		String file_name_invalid = getAllocatorFileName(params, ".invalid");
 		allocator.commit();

@@ -37,10 +37,6 @@ typedef std::vector<Metadata*>          				MetadataList;
 typedef std::map<Int, PageMetadata*>    				PageMetadataMap;
 typedef std::map<Int, ContainerMetadata*>   			ContainerMetadataMap;
 
-
-//typedef Container* (*ContainerFactoryFn) (const IDValue& rootId, ContainerCollection *container, BigInt name);
-//typedef Int (*PageSizeProviderFn)(const void *page);
-
 struct MEMORIA_API Metadata {
 
 public:
@@ -55,7 +51,7 @@ public:
 	Metadata(StringRef name, Byte type): name_(name), typeCode_(type) {}
 	virtual ~Metadata() throw () {}
 
-	StringRef Name() const {
+	StringRef name() const {
 		return name_;
 	}
 
@@ -63,7 +59,7 @@ public:
 		return typeCode_;
 	}
 
-	virtual bool IsGroup() const
+	virtual bool isGroup() const
 	{
 		if (this->getTypeCode() == Metadata::GROUP ||
 				this->getTypeCode() == Metadata::PAGE  ||
@@ -78,12 +74,12 @@ public:
 		}
 	}
 
-	virtual bool IsField() const {
-		return !IsGroup();
+	virtual bool isField() const {
+		return !isGroup();
 	}
 
-	virtual bool IsNumber() const {
-		return (!IsGroup()) && this->getTypeCode() != Metadata::ID && this->getTypeCode() != Metadata::BIGINT && this->getTypeCode() != Metadata::FLAG;
+	virtual bool isNumber() const {
+		return (!isGroup()) && this->getTypeCode() != Metadata::ID && this->getTypeCode() != Metadata::BIGINT && this->getTypeCode() != Metadata::FLAG;
 	}
 
 

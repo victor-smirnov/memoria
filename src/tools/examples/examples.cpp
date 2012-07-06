@@ -93,7 +93,7 @@ int main(int argc, const char** argv, const char** envp)
 		}
 		else if (cmd_line.IsList())
 		{
-			runner.DumpProperties(cout);
+			runner.dumpProperties(cout);
 		}
 		else {
 			cout<<"Seed: "<<seed<<endl;

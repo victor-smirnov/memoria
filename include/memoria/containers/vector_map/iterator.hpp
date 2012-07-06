@@ -151,15 +151,15 @@ public:
 		}
 		else if (other.type() == Base::END)
 		{
-			return Base::IsEnd();
+			return Base::isEnd();
 		}
 		else if (other.type() == Base::START)
 		{
-			return Base::IsBegin();
+			return Base::isBegin();
 		}
 		else
 		{
-			return Base::IsEmpty();
+			return Base::isEmpty();
 		}
 	}
 
@@ -176,24 +176,24 @@ public:
 		}
 		else if (other.type() == Base::END)
 		{
-			return Base::IsNotEnd();
+			return Base::isNotEnd();
 		}
 		else if (other.type() == Base::START)
 		{
-			return !Base::IsBegin();
+			return !Base::isBegin();
 		}
 		else
 		{
-			return !Base::IsEmpty();
+			return !Base::isEmpty();
 		}
 	}
 
-	bool IsEnd() const {
-		return is_iter_.IsEnd();
+	bool isEnd() const {
+		return is_iter_.isEnd();
 	}
 
-	bool IsNotEnd() const {
-		return is_iter_.IsNotEnd();
+	bool isNotEnd() const {
+		return is_iter_.isNotEnd();
 	}
 
 
@@ -209,13 +209,13 @@ public:
 template <typename Types>
 bool operator==(const Iter<VectorMapIterTypes<Types> >& iter, const IterEndMark& mark)
 {
-	return iter.IsEnd();
+	return iter.isEnd();
 }
 
 template <typename Types>
 bool operator!=(const Iter<VectorMapIterTypes<Types> >& iter, const IterEndMark& mark)
 {
-	return iter.IsNotEnd();
+	return iter.isNotEnd();
 }
 
 }

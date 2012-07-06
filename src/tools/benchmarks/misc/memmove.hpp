@@ -53,7 +53,7 @@ public:
 		}
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		free (array_);
 		delete[] rd_array_;

@@ -69,7 +69,7 @@ public:
 		return data_;
 	}
 
-	void MoveRight(Int level, Int from, Int count)
+	void moveRight(Int level, Int from, Int count)
 	{
 		if (level >= 0)
 		{
@@ -85,7 +85,7 @@ public:
 		}
 	}
 
-	void MoveLeft(Int level, Int from, Int count)
+	void moveLeft(Int level, Int from, Int count)
 	{
 		if (level >= 0)
 		{

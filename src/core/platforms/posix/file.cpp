@@ -40,7 +40,7 @@ File::FileListType::~FileListType() throw() {
 	catch (...) {}
 }
 
-BigInt File::Size() const {
+BigInt File::size() const {
 	struct stat buf;
 	if (stat(path_.c_str(), &buf) == 0)
 	{
@@ -65,11 +65,11 @@ bool is_directory(StringRef name, bool throw_ex) {
 	}
 }
 
-bool File::IsDirectory() const {
+bool File::isDirectory() const {
 	return is_directory(path_, true);
 }
 
-bool File::IsExists() const {
+bool File::isExists() const {
 	struct stat buf;
 	if (stat(path_.c_str(), &buf) == 0) {
 		return true;
@@ -115,11 +115,11 @@ bool mkdir(StringRef name) {
 	}
 }
 
-bool File::MkDir() const {
+bool File::mkDir() const {
 	return mkdir(path_);
 }
 
-bool File::MkDirs() const {
+bool File::mkDirs() const {
 
 	typedef String::size_type SizeT;
 	SizeT pos = path_[0] == '/' ? 1 : 0;
@@ -148,9 +148,9 @@ bool File::MkDirs() const {
 	return true;
 }
 
-void File::Rename(StringRef new_name)
+void File::rename(StringRef new_name)
 {
-	if (rename(path_.c_str(), new_name.c_str()) != 0)
+	if (::rename(path_.c_str(), new_name.c_str()) != 0)
 	{
 		throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't rename file: "<<strerror(errno)<<" "<<new_name);
 	}
@@ -158,8 +158,8 @@ void File::Rename(StringRef new_name)
 	path_ = new_name;
 }
 
-bool File::Delete() const {
-	if (IsDirectory())
+bool File::deleteFile() const {
+	if (isDirectory())
 	{
 		return rmdir(path_.c_str()) == 0;
 	}
@@ -170,7 +170,7 @@ bool File::Delete() const {
 
 bool rm(const File &file)
 {
-	if (file.IsDirectory())
+	if (file.isDirectory())
 	{
 		File::FileListType* list = File::readDir(file);
 
@@ -184,15 +184,15 @@ bool rm(const File &file)
 		// memory leak is possible if exception occurs
 		delete list;
 
-		return result && file.Delete();
+		return result && file.deleteFile();
 	}
 	else {
-		return file.Delete();
+		return file.deleteFile();
 	}
 }
 
 
-bool File::DelTree() const {
+bool File::delTree() const {
 	return rm(*this);
 }
 
@@ -217,7 +217,7 @@ String File::getName() const {
 
 File::FileListType* File::readDir(const File& file)
 {
-	if (file.IsDirectory())
+	if (file.isDirectory())
 	{
 		FileListType* list = new FileListType();
 
@@ -264,13 +264,13 @@ inline String replace(String& text, StringRef from, StringRef to, bool& action)
 }
 
 
-String File::NormalizePath(StringRef path)
+String File::normalizePath(StringRef path)
 {
 	if (path.find("/") == String::npos)
 	{
 		return path;
 	}
-	else if (IsEmpty(path)) {
+	else if (isEmpty(path)) {
 		throw Exception(MEMORIA_SOURCE, "Empty string is specified as a path");
 	}
 	else {

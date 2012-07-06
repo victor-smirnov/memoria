@@ -69,7 +69,7 @@ public:
     }
 
     static Int hash() {
-        return reflection()->Hash();
+        return reflection()->hash();
     }
 
     static PageMetadata *reflection()
@@ -150,15 +150,15 @@ public:
     	virtual void generateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const
     	{
     		const Me* me = T2T<const Me*>(page);
-    		handler->StartPage("DATA_PAGE");
+    		handler->startPage("DATA_PAGE");
     		me->generateDataEvents(handler);
-    		handler->StartPage("DATA_PAGE");
+    		handler->startPage("DATA_PAGE");
     	}
 
-    	virtual void GenerateLayoutEvents(const void* page, const LayoutEventsParams& params, IPageLayoutEventHandler* handler) const
+    	virtual void generateLayoutEvents(const void* page, const LayoutEventsParams& params, IPageLayoutEventHandler* handler) const
     	{
     		const Me* me = T2T<const Me*>(page);
-    		me->GenerateLayoutEvents(handler);
+    		me->generateLayoutEvents(handler);
     	}
     };
 
@@ -175,7 +175,7 @@ public:
         }
         else {}
 
-        return reflection_->Hash();
+        return reflection_->hash();
     }
 };
 

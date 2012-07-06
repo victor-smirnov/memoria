@@ -26,7 +26,7 @@ using namespace std;
 class TestException: public Exception {
 public:
 	TestException(const char* source, StringRef message): Exception(source, message) 		 {}
-	TestException(const char* source, const SBuf& message): Exception(source, message.Str()) {}
+	TestException(const char* source, const SBuf& message): Exception(source, message.str()) {}
 };
 
 
@@ -233,7 +233,7 @@ template <typename Iterator, typename Item>
 bool CompareBuffer(Iterator& iter, const vector<Item>& data, Int& c)
 {
 	c = 0;
-	for (auto i = data.begin(); i != data.end(); i++, iter.Next(), c++)
+	for (auto i = data.begin(); i != data.end(); i++, iter.next(), c++)
 	{
 		for (Int d = 0; d < Iterator::Indexes; d++)
 		{
@@ -304,7 +304,7 @@ BigInt getUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
 
 #define MEMORIA_TEST_THROW_IF_EXPR1(expr, op1, op2, arg1) 																												\
 	if (expr) {																																							\
-		throw TestException(MEMORIA_SOURCE, String("ASSERT FAILURE: ")+#expr+"; "+#op1+"="+ToString(op1)+", "+#op2+"="+ToString(op2)+", "+#arg1+"="+ToString(arg1));	\
+		throw TestException(MEMORIA_SOURCE, String("ASSERT FAILURE: ")+#expr+"; "+#op1+"="+toString(op1)+", "+#op2+"="+toString(op2)+", "+#arg1+"="+toString(arg1));	\
 	}
 
 }

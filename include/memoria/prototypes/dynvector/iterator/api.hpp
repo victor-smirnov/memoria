@@ -73,9 +73,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return local_pos_  != other.local_pos_ || Base::isNotEqual(other);
     }
 
-    bool IsEof() const
+    bool isEof() const
     {
-    	return me()->data().isSet() ? me()->data_pos() >= me()->data()->size() : true;
+    	return me()->data().isSet() ? me()->dataPos() >= me()->data()->size() : true;
     }
 
     DataPageG& data()
@@ -88,32 +88,32 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
     	return me()->path().data();
     }
 
-    BigInt &data_pos() {
+    BigInt &dataPos() {
     	return local_pos_;
     }
 
-    const BigInt data_pos() const {
+    const BigInt dataPos() const {
     	return local_pos_;
     }
 
     BigInt pos() const
     {
-    	return (me()->prefix() + me()->data_pos()) / me()->getElementSize();
+    	return (me()->prefix() + me()->dataPos()) / me()->getElementSize();
     }
 
 
-    bool NextKey()
+    bool nextKey()
     {
-    	me()->data_pos() 	= 0;
+    	me()->dataPos() 	= 0;
 
-    	return Base::NextKey();
+    	return Base::nextKey();
     }
 
-    bool PrevKey()
+    bool prevKey()
     {
-    	me()->data_pos() 	= 0;
+    	me()->dataPos() 	= 0;
 
-    	return Base::PrevKey();
+    	return Base::prevKey();
     }
 
 MEMORIA_ITERATOR_PART_END

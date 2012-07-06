@@ -71,7 +71,7 @@ class PMapWalkBwTest: public TestTask {
 public:
 
 	PMapWalkBwTest():
-		TestTask("WalkBw."+ToString(BranchingFactor_)),
+		TestTask("WalkBw."+toString(BranchingFactor_)),
 		block_size(16384),
 		max_size(0)
 	{

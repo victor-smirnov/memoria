@@ -37,8 +37,8 @@ public:
 	        if (content[c]->getTypeCode() == Metadata::PAGE)
 	        {
 	            PageMetadata *page = static_cast<PageMetadata*> (content[c]);
-	            page_map_[page->Hash()] = page;
-	            hash_ += page->Hash() + code;
+	            page_map_[page->hash()] = page;
+	            hash_ += page->hash() + code;
 	        }
 	        else {
 	            //exception;
@@ -48,11 +48,11 @@ public:
 
 	virtual ~ContainerMetadata() throw () {}
 
-	virtual Int Hash() const {
+	virtual Int hash() const {
 		return hash_;
 	}
 
-	virtual Int Code() const {
+	virtual Int code() const {
 		return code_;
 	}
 

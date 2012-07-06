@@ -62,9 +62,9 @@ public:
 		return NULL;
 	}
 
-	Object* Allocate(const ID& id)
+	Object* allocate(const ID& id)
 	{
-		Int idx = SelectFirst0Idx();
+		Int idx = selectFirst0Idx();
 		if (idx < Size)
 		{
 			size_++;
@@ -80,7 +80,7 @@ public:
 		}
 	}
 
-	void Release(const ID& id)
+	void release(const ID& id)
 	{
 		for (Int c = 0; c < Size; c++)
 		{
@@ -125,7 +125,7 @@ public:
 	}
 
 private:
-	Int SelectFirst0Idx()
+	Int selectFirst0Idx()
 	{
 		const ID EMPTY(0);
 		for (Int c = 0; c < Size; c++)

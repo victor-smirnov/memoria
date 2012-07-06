@@ -59,7 +59,7 @@ public:
 		allocator_->commit();
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete map_;
 		delete allocator_;

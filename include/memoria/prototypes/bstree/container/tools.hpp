@@ -122,19 +122,19 @@ private:
 
 public:
 
-    void SumKeys(const NodeBase *node, Int from, Int count, Accumulator& keys) const
+    void sumKeys(const NodeBase *node, Int from, Int count, Accumulator& keys) const
     {
     	SumKeysFn fn(from, count, keys);
     	NodeDispatcher::DispatchConst(node, fn);
     }
 
-    void SumKeys(const NodeBase *node, Int block_num, Int from, Int count, Key& sum) const
+    void sumKeys(const NodeBase *node, Int block_num, Int from, Int count, Key& sum) const
     {
     	SumKeysInOneBlockFn fn(from, count, sum, block_num);
     	NodeDispatcher::DispatchConst(node, fn);
     }
 
-    void AddKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
+    void addKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
     {
     	node.update();
 
@@ -155,7 +155,7 @@ M_PARAMS
 bool M_TYPE::updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
 {
 	node.update();
-	me()->AddKeys(node, idx, counters.keys(), reindex_fully);
+	me()->addKeys(node, idx, counters.keys(), reindex_fully);
 
 	return false; //proceed further unconditionally
 }
@@ -176,7 +176,7 @@ bool M_TYPE::checkNodeContent(Node *node) {
 
 		if (key != node->map().maxKey(i))
 		{
-			//me()->Dump(node);
+			//me()->dump(node);
 			MEMORIA_ERROR(me(), "Sum of keys doen't match maxKey for key", i, key, node->map().maxKey(i));
 			errors = true;
 		}

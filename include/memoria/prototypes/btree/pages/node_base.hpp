@@ -91,10 +91,10 @@ public:
     {
     	Base::generateDataEvents(handler);
 
-    	handler->Value("ROOT", &root_);
-    	handler->Value("LEAF", &leaf_);
-    	handler->Value("BITMAP", &bitmap_);
-    	handler->Value("SIZE", &size_);
+    	handler->value("ROOT", &root_);
+    	handler->value("LEAF", &leaf_);
+    	handler->value("BITMAP", &bitmap_);
+    	handler->value("SIZE", &size_);
     }
 
     template <template <typename> class FieldFactory>
@@ -123,9 +123,9 @@ public:
 
 
     template <typename PageType>
-    void CopyFrom(const PageType* page)
+    void copyFrom(const PageType* page)
     {
-        Base::CopyFrom(page);
+        Base::copyFrom(page);
 
         this->set_root(page->is_root());
         this->set_leaf(page->is_leaf());
@@ -168,7 +168,7 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
     	Base::generateDataEvents(handler);
-    	handler->Value("LEVEL", &level_);
+    	handler->value("LEVEL", &level_);
     }
 
 
@@ -190,9 +190,9 @@ public:
 
 
     template <typename PageType>
-    void CopyFrom(PageType* page)
+    void copyFrom(PageType* page)
     {
-        Base::CopyFrom(page);
+        Base::copyFrom(page);
 
         this->level() = page->level();
     }

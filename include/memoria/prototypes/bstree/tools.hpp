@@ -227,13 +227,13 @@ public:
 
 
 
-	void NextKey(bool end)
+	void nextKey(bool end)
 	{
 		prefix_ 	+= current_;
 		current_	= 0;
 	};
 
-	void PrevKey(bool start)
+	void prevKey(bool start)
 	{
 		prefix_ 	-= current_;
 		current_	= 0;
@@ -262,7 +262,7 @@ public:
 
 		for (Int c = 0; c < path.getSize(); c++)
 		{
-			Base::iterator().model().SumKeys(path[c].node(), block_num, 0, idx, accum);
+			Base::iterator().model().sumKeys(path[c].node(), block_num, 0, idx, accum);
 			idx = path[c].parent_idx();
 		}
 
@@ -297,14 +297,14 @@ public:
 		return prefix_;
 	}
 
-	void NextKey(bool end)
+	void nextKey(bool end)
 	{
 		prefix_ 	+= current_;
 
 		current_.clear();
 	};
 
-	void PrevKey(bool start)
+	void prevKey(bool start)
 	{
 		prefix_ 	-= current_;
 
@@ -339,7 +339,7 @@ public:
 
 		for (Int c = 0; c < path.getSize(); c++)
 		{
-			Base::iterator().model().SumKeys(path[c].node(), 0, idx, prefix_);
+			Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
 			idx = path[c].parent_idx();
 		}
 	}
@@ -363,7 +363,7 @@ private:
 			{
 				if (block_num != skip_num)
 				{
-					Base::iterator().model().SumKeys(path[c].node(), block_num, 0, idx, prefix_[block_num]);
+					Base::iterator().model().sumKeys(path[c].node(), block_num, 0, idx, prefix_[block_num]);
 				}
 			}
 

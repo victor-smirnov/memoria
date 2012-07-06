@@ -24,7 +24,7 @@ public:
                 Exception(source, message) {}
 
     FileException(const char* source, const SBuf& message):
-                    Exception(source, message.Str()) {}
+                    Exception(source, message.str()) {}
 };
 
 

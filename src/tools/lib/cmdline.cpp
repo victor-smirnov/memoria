@@ -21,7 +21,7 @@ void CmdLine::Process()
 	for (Int c = 1; c < argc_; c++)
 	{
 		String arg(argv_[c]);
-		if (IsStartsWith(arg, "-D"))
+		if (isStartsWith(arg, "-D"))
 		{
 			auto pos = arg.find_first_of("=");
 			if (pos != String::npos)
@@ -119,7 +119,7 @@ void CmdLine::Process()
 	{
 		File f0(cfg_file_name_);
 
-		if (f0.IsExists())
+		if (f0.isExists())
 		{
 			Configurator::Parse(cfg_file_name_, &cfg_file_);
 		}
@@ -129,7 +129,7 @@ void CmdLine::Process()
 
 			File f1(cfg_file_name);
 
-			if (f1.IsExists())
+			if (f1.isExists())
 			{
 				Configurator::Parse(cfg_file_name, &cfg_file_);
 			}

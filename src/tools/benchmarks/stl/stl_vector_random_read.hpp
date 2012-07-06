@@ -64,7 +64,7 @@ public:
 		out<<endl;
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete ctr_;
 		delete[] rd_array_;

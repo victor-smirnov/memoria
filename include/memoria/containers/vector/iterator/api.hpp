@@ -100,13 +100,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	Base::dumpKeys(out);
 
     	out<<"Pos:     "<<me()->pos()<<endl;
-    	out<<"DataPos: "<<me()->data_pos()<<endl;
+    	out<<"DataPos: "<<me()->dataPos()<<endl;
     }
 
     void dumpPages(ostream& out)
     {
     	Base::dumpPages(out);
-    	me()->model().Dump(me()->data(), out);
+    	me()->model().dump(me()->data(), out);
     }
 
     void dumpPath(ostream& out)
@@ -227,10 +227,10 @@ BigInt M_TYPE::skipFw(BigInt count)
 	BigInt distance = count * element_size;
 
 	//FIXME: handle START properly
-	if (me()->IsNotEmpty())
+	if (me()->isNotEmpty())
 	{
 		Int 	data_size 	= me()->data()->size();
-		Int 	data_pos 	= me()->data_pos();
+		Int 	data_pos 	= me()->dataPos();
 		BigInt 	pos 		= me()->pos();
 
 		if (distance + data_pos <= data_size)
@@ -241,18 +241,18 @@ BigInt M_TYPE::skipFw(BigInt count)
 			// is the last one in the index node
 			if (distance + data_pos == data_size)
 			{
-				if (me()->NextKey())
+				if (me()->nextKey())
 				{
 					// do nothing
 				}
 				else {
 					// Eof
-					me()->PrevKey();
-					me()->data_pos() = me()->data()->size();
+					me()->prevKey();
+					me()->dataPos() = me()->data()->size();
 				}
 			}
 			else {
-				me()->data_pos() += distance;
+				me()->dataPos() += distance;
 			}
 		}
 		else
@@ -261,21 +261,21 @@ BigInt M_TYPE::skipFw(BigInt count)
 
 			bool end = me()->model().walkFw(me()->path(), me()->key_idx(), walker);
 
-			me()->model().FinishPathStep(me()->path(), me()->key_idx());
+			me()->model().finishPathStep(me()->path(), me()->key_idx());
 
 			if (end)
 			{
-				me()->data_pos() 	= me()->data()->size();
+				me()->dataPos() 	= me()->data()->size();
 
-				me()->cache().setup(pos + (walker.sum() - data_pos) - me()->data_pos(), 0);
+				me()->cache().setup(pos + (walker.sum() - data_pos) - me()->dataPos(), 0);
 
 				return (walker.sum() - data_pos) / element_size;
 			}
 			else {
 
-				me()->data_pos() 	= walker.remainder();
+				me()->dataPos() 	= walker.remainder();
 
-				me()->cache().setup(pos + distance - me()->data_pos(), 0);
+				me()->cache().setup(pos + distance - me()->dataPos(), 0);
 			}
 		}
 
@@ -297,18 +297,18 @@ BigInt M_TYPE::skipBw(BigInt count)
 
 
 	//FIXME: handle EOF properly
-	if (me()->IsNotEmpty())
+	if (me()->isNotEmpty())
 	{
 		BigInt pos = me()->pos();
 
-		Int idx = me()->data_pos();
+		Int idx = me()->dataPos();
 
 		if (distance <= idx)
 		{
 			// A trivial case when the offset is within current data page
 			// we need to check for START if a data page
 			// is the first in the index node
-			me()->data_pos() 	-= distance;
+			me()->dataPos() 	-= distance;
 		}
 		else
 		{
@@ -319,20 +319,20 @@ BigInt M_TYPE::skipBw(BigInt count)
 			//FIXME: does 'end' means the same as for StepFw()?
 			bool end 		= me()->model().walkBw(me()->path(), me()->key_idx(), walker);
 
-			me()->model().FinishPathStep(me()->path(), me()->key_idx());
+			me()->model().finishPathStep(me()->path(), me()->key_idx());
 
 			if (end)
 			{
-				me()->data_pos() 	= 0;
+				me()->dataPos() 	= 0;
 
 				me()->cache().setup(0, 0);
 
 				return (walker.sum() - to_add) / element_size;
 			}
 			else {
-				me()->data_pos()		= me()->data()->size() - walker.remainder();
+				me()->dataPos()		= me()->data()->size() - walker.remainder();
 
-				me()->cache().setup((pos - distance) - me()->data_pos(), 0);
+				me()->cache().setup((pos - distance) - me()->dataPos(), 0);
 			}
 		}
 

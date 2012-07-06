@@ -21,12 +21,12 @@ namespace vapi       {
 
 void Expand(std::ostream& os, Int level);
 
-//void DumpField(FieldMetadata* field, Page* page, std::ostream &out, Int level, Int idx);
-//void DumpMap(MapMetadata* group, Page* page, std::ostream &out, Int level, Int idx);
-//void DumpData(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx);
-//void DumpGroup(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx, Int size = -1);
+//void dumpField(FieldMetadata* field, Page* page, std::ostream &out, Int level, Int idx);
+//void dumpMap(MapMetadata* group, Page* page, std::ostream &out, Int level, Int idx);
+//void dumpData(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx);
+//void dumpGroup(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx, Int size = -1);
 
-void DumpPage(PageMetadata* meta, Page* page, std::ostream& out);
+void dumpPage(PageMetadata* meta, Page* page, std::ostream& out);
 
 }}
 

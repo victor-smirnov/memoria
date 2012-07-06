@@ -59,7 +59,7 @@ public:
 		set_ = new setCtr(*allocator_, 1, true);
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete set_;
 		delete allocator_;
@@ -84,7 +84,7 @@ public:
 			keys[0] = 0;
 			i++;
 
-			if (i.IsNotEnd())
+			if (i.isNotEnd())
 			{
 				i.updateUp(keys);
 			}

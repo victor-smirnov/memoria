@@ -57,22 +57,22 @@ typename M_TYPE::Iterator M_TYPE::find(BigInt pos, Int key_number)
 {
 	Iterator iter = me()->findLT(pos * me()->getElementSize(), key_number);
 
-	if (iter.IsNotEmpty())
+	if (iter.isNotEmpty())
 	{
-		if (iter.IsEnd())
+		if (iter.isEnd())
 		{
-			iter.PrevKey();
+			iter.prevKey();
 		}
 		else {
-			me()->FinishPathStep(iter.path(), iter.key_idx());
+			me()->finishPathStep(iter.path(), iter.key_idx());
 		}
 
 		BigInt offset 	= iter.prefix(); //FIXME: key_number
-		iter.data_pos() = pos * me()->getElementSize() - offset;
+		iter.dataPos() = pos * me()->getElementSize() - offset;
 
-		if (iter.data_pos() > iter.data()->size())
+		if (iter.dataPos() > iter.data()->size())
 		{
-			iter.data_pos() = iter.data()->size();
+			iter.dataPos() = iter.data()->size();
 		}
 	}
 

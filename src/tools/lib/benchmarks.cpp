@@ -31,7 +31,7 @@ void BenchmarkTaskGroup::Run(ostream& out)
 
 			ResetTime();
 
-			while (!IsEnd())
+			while (!isEnd())
 			{
 				BenchmarkParameters result(task->getFullName());
 
@@ -64,7 +64,7 @@ void BenchmarkTaskGroup::Run(ostream& out)
 
 				results_.push_back(result);
 
-				task->Release();
+				task->release();
 			}
 
 			out<<endl;
@@ -72,7 +72,7 @@ void BenchmarkTaskGroup::Run(ostream& out)
 
 		}
 		catch (...) {
-			task->ReleaseResources();
+			task->releaseResources();
 		}
 	}
 }

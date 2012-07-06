@@ -38,25 +38,25 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 	typedef typename Base::Container::Accumulator                               Accumulator;
 	typedef typename Base::Container                                            Container;
 
-    bool NextKey();
-    bool HasNextKey();
+    bool nextKey();
+    bool hasNextKey();
 
-    bool PrevKey();
+    bool prevKey();
 
-    bool HasPrevKey();
+    bool hasPrevKey();
 
-    bool NextLeaf();
-    bool HasNextLeaf();
+    bool nextLeaf();
+    bool hasNextLeaf();
 
-    bool PrevLeaf();
-    bool HasPrevLeaf();
+    bool prevLeaf();
+    bool hasPrevLeaf();
 
-    bool Next() {
-    	return me()->NextKey();
+    bool next() {
+    	return me()->nextKey();
     }
 
-    bool Prev() {
-    	return me()->PrevKey();
+    bool prev() {
+    	return me()->prevKey();
     }
 
     BigInt skipFw(BigInt amount);
@@ -64,19 +64,19 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     BigInt skip(BigInt amount);
 
     bool operator++() {
-    	return me()->NextKey();
+    	return me()->nextKey();
     }
 
     bool operator--() {
-    	return me()->PrevKey();
+    	return me()->prevKey();
     }
 
     bool operator++(int) {
-    	return me()->NextKey();
+    	return me()->nextKey();
     }
 
     bool operator--(int) {
-    	return me()->PrevKey();
+    	return me()->prevKey();
     }
 
     BigInt operator+=(BigInt size)
@@ -138,7 +138,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
     void setData(const Value& data)
     {
-    	if (!me()->IsEnd())
+    	if (!me()->isEnd())
     	{
     		me()->model().setLeafData(me()->leaf().node(), me()->key_idx(), data);
     	}
@@ -167,7 +167,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     }
 
     bool IsFound() {
-        return (!me()->IsEnd()) && me()->IsNotEmpty();
+        return (!me()->isEnd()) && me()->isNotEmpty();
     }
 
     template <typename Walker>
@@ -239,7 +239,7 @@ BigInt M_TYPE::skipFw(BigInt amount)
 
 	for (BigInt c = 0; c < amount; c++, cnt++)
 	{
-		if (!me()->NextKey())
+		if (!me()->nextKey())
 		{
 			break;
 		}
@@ -256,7 +256,7 @@ BigInt M_TYPE::skipBw(BigInt amount)
 
 	for (BigInt c = 0; c < amount; c++, cnt++)
 	{
-		if (!me()->PrevKey())
+		if (!me()->prevKey())
 		{
 			break;
 		}
@@ -280,9 +280,9 @@ BigInt M_TYPE::skip(BigInt amount)
 
 
 M_PARAMS
-bool M_TYPE::NextKey()
+bool M_TYPE::nextKey()
 {
-	if (!me()->IsEnd())
+	if (!me()->isEnd())
 	{
 		if (me()->key_idx() < me()->page()->children_count() - 1)
 		{
@@ -290,33 +290,33 @@ bool M_TYPE::NextKey()
 
 			me()->key_idx()++;
 
-			me()->KeyNum()++;
+			me()->keyNum()++;
 
-			me()->model().FinishPathStep(me()->path(), me()->key_idx());
+			me()->model().finishPathStep(me()->path(), me()->key_idx());
 
-			me()->cache().NextKey(false);
+			me()->cache().nextKey(false);
 
 			return true;
 		}
 		else {
 			me()->cache().Prepare();
 
-			bool has_next_leaf = me()->NextLeaf();
+			bool has_next_leaf = me()->nextLeaf();
 			if (has_next_leaf)
 			{
 				me()->key_idx() = 0;
 
-				me()->cache().NextKey(false);
+				me()->cache().nextKey(false);
 			}
 			else {
 				me()->key_idx() = me()->page()->children_count();
 
-				me()->model().FinishPathStep(me()->path(), me()->key_idx());
+				me()->model().finishPathStep(me()->path(), me()->key_idx());
 
-				me()->cache().NextKey(true);
+				me()->cache().nextKey(true);
 			}
 
-			me()->KeyNum()++;
+			me()->keyNum()++;
 
 			return has_next_leaf;
 		}
@@ -327,16 +327,16 @@ bool M_TYPE::NextKey()
 }
 
 M_PARAMS
-bool M_TYPE::HasNextKey()
+bool M_TYPE::hasNextKey()
 {
-	if (!me()->IsEnd())
+	if (!me()->isEnd())
 	{
 		if (me()->key_idx() < me()->page()->children_count() - 1)
 		{
 			return true;
 		}
 		else {
-			return me()->HasNextLeaf();
+			return me()->hasNextLeaf();
 		}
 	}
 	else {
@@ -347,38 +347,38 @@ bool M_TYPE::HasNextKey()
 
 
 M_PARAMS
-bool M_TYPE::PrevKey()
+bool M_TYPE::prevKey()
 {
 	if (me()->key_idx() > 0)
 	{
 		me()->key_idx()--;
-		me()->KeyNum()--;
+		me()->keyNum()--;
 
-		me()->model().FinishPathStep(me()->path(), me()->key_idx());
+		me()->model().finishPathStep(me()->path(), me()->key_idx());
 
 		me()->cache().Prepare();
-		me()->cache().PrevKey(false);
+		me()->cache().prevKey(false);
 
 		return true;
 	}
 	else {
-		bool has_prev_leaf = me()->PrevLeaf();
+		bool has_prev_leaf = me()->prevLeaf();
 
 		if (has_prev_leaf)
 		{
 			me()->key_idx() = me()->page()->children_count() - 1;
-			me()->KeyNum()--;
+			me()->keyNum()--;
 
 			me()->cache().Prepare();
-			me()->cache().PrevKey(false);
+			me()->cache().prevKey(false);
 		}
 		else {
 			me()->key_idx() = -1;
 
-			me()->model().FinishPathStep(me()->path(), me()->key_idx());
+			me()->model().finishPathStep(me()->path(), me()->key_idx());
 
 			me()->cache().Prepare();
-			me()->cache().PrevKey(true);
+			me()->cache().prevKey(true);
 		}
 
 		return has_prev_leaf;
@@ -387,26 +387,26 @@ bool M_TYPE::PrevKey()
 
 
 M_PARAMS
-bool M_TYPE::HasPrevKey()
+bool M_TYPE::hasPrevKey()
 {
 	if (me()->key_idx() > 0)
 	{
 		return true;
 	}
 	else {
-		return me()->HasPrevLeaf();
+		return me()->hasPrevLeaf();
 	}
 }
 
 
 
-//FIXME: Should NextLeaf/PreveLeaf set to End/Start if move fails?
+//FIXME: Should nextLeaf/PreveLeaf set to End/Start if move fails?
 M_PARAMS
-bool M_TYPE::NextLeaf()
+bool M_TYPE::nextLeaf()
 {
 	if (me()->model().getNextNode(me()->path()))
 	{
-		// FIXME: KeyNum ?
+		// FIXME: keyNum ?
 
 		me()->key_idx() = 0;
 
@@ -418,7 +418,7 @@ bool M_TYPE::NextLeaf()
 
 
 M_PARAMS
-bool M_TYPE::HasNextLeaf()
+bool M_TYPE::hasNextLeaf()
 {
 	TreePath path = me()->path();
 	return me()->model().getNextNode(path);
@@ -426,11 +426,11 @@ bool M_TYPE::HasNextLeaf()
 
 
 M_PARAMS
-bool M_TYPE::PrevLeaf()
+bool M_TYPE::prevLeaf()
 {
 	if (me()->model().getPrevNode(me()->path()))
 	{
-		// FIXME: KeyNum
+		// FIXME: keyNum
 
 		me()->key_idx() = me()->page()->children_count() - 1;
 
@@ -440,7 +440,7 @@ bool M_TYPE::PrevLeaf()
 }
 
 M_PARAMS
-bool M_TYPE::HasPrevLeaf()
+bool M_TYPE::hasPrevLeaf()
 {
 	TreePath path = me()->path();
 	return me()->model().getPrevNode(path);

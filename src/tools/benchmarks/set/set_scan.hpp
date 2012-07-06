@@ -63,7 +63,7 @@ public:
 
 		Int size = params.x();
 
-		String resource_name = "allocator."+ToString(size)+".dump";
+		String resource_name = "allocator."+toString(size)+".dump";
 
 		if (IsResourceExists(resource_name))
 		{
@@ -92,7 +92,7 @@ public:
 		}
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete set_;
 		delete allocator_;
@@ -105,7 +105,7 @@ public:
 
 		for (Int c = 0; c < params.operations(); )
 		{
-			for (auto i = set_->begin(); !i.IsEnd() && c < params.operations(); i++, c++)
+			for (auto i = set_->begin(); !i.isEnd() && c < params.operations(); i++, c++)
 			{
 				total += i.getKey(0);
 			}

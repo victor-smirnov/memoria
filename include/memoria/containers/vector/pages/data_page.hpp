@@ -71,12 +71,12 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	handler->StartGroup("DATA");
+    	handler->startGroup("DATA");
 
-    	handler->Value("SIZE", &size_);
-    	handler->Value("VALUE", value_, size_, IPageDataEventHandler::BYTE_ARRAY);
+    	handler->value("SIZE", &size_);
+    	handler->value("VALUE", value_, size_, IPageDataEventHandler::BYTE_ARRAY);
 
-    	handler->EndGroup();
+    	handler->endGroup();
     }
 
     //template <template <typename> class FieldFactory>

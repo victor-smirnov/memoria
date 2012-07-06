@@ -54,7 +54,7 @@ public:
 
 			for (Int c = 1; c <= 10; c++)
 			{
-				map[c] = String(" ====== "+ToString(c + 1)+" ===== ");
+				map[c] = String(" ====== "+toString(c + 1)+" ===== ");
 			}
 
 			allocator.commit();

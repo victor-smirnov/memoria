@@ -34,7 +34,7 @@ public:
 	virtual void Process(Configurator* cfg) 	= 0;
 	virtual StringRef getName() const			= 0;
 	virtual String getPropertyName() const		= 0;
-	virtual void Dump(std::ostream& os) const	= 0;
+	virtual void dump(std::ostream& os) const	= 0;
 };
 
 
@@ -80,7 +80,7 @@ public:
 		return T2T_S<ParamDescriptor<T>*>(put(new ParamDescriptor<T>(this, name, property, min_value, max_value)));
 	}
 
-	void DumpProperties(std::ostream& os) const;
+	void dumpProperties(std::ostream& os) const;
 
 	void Process(Configurator* cfg);
 };
@@ -166,7 +166,7 @@ public:
 
 	virtual String getPropertyName() const
 	{
-		if (IsEmpty(prefix()))
+		if (isEmpty(prefix()))
 		{
 			return name_;
 		}
@@ -175,7 +175,7 @@ public:
 		}
 	}
 
-	virtual void Dump(std::ostream& os) const
+	virtual void dump(std::ostream& os) const
 	{
 		bool doc = ranges_specified_;
 

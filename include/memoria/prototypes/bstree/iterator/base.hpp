@@ -55,7 +55,7 @@ public:
 
     	for (Int c = 0; c < path0.getSize(); c++)
     	{
-    		me()->model().SumKeys(path0[c].node(), 0, idx, accum);
+    		me()->model().sumKeys(path0[c].node(), 0, idx, accum);
     		idx = path0[c].parent_idx();
     	}
 
@@ -71,7 +71,7 @@ public:
 
     	for (Int c = 0; c < path0.getSize(); c++)
     	{
-    		me()->model().SumKeys(path0[c].node(), block_num, 0, idx, accum);
+    		me()->model().sumKeys(path0[c].node(), block_num, 0, idx, accum);
     		idx = path0[c].parent_idx();
     	}
 

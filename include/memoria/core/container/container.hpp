@@ -127,7 +127,7 @@ public:
     }
 
     static Int hash() {
-        return reflection_->Hash();
+        return reflection_->hash();
     }
 
 
@@ -183,7 +183,7 @@ public:
             MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);
         }
 
-        return reflection_->Hash();
+        return reflection_->hash();
     }
 
     PageG createRoot() {

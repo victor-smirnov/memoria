@@ -44,18 +44,18 @@ class LESumComparator: public ComparatorBase<IndexKey> {
 public:
 	LESumComparator():Base() {}
 
-	bool TestMax(const Key& k, const IndexKey& max) const
+	bool testMax(const Key& k, const IndexKey& max) const
 	{
 		return k > max;
 	}
 
-	bool CompareIndex(const Key& k, const IndexKey& index)
+	bool compareIndex(const Key& k, const IndexKey& index)
 	{
 		Base::sum_ += index;
 		return k <= Base::sum_;
 	}
 
-	bool CompareKey(const Key& k, const Key& index)
+	bool compareKey(const Key& k, const Key& index)
 	{
 		Base::sum_ += index;
 		return k <= Base::sum_;
@@ -68,19 +68,19 @@ class LTSumComparator: public ComparatorBase<IndexKey> {
 public:
 	LTSumComparator():Base() {}
 
-	bool TestMax(const Key& k, const IndexKey& max) const
+	bool testMax(const Key& k, const IndexKey& max) const
 	{
 		return k >= max;
 	}
 
-	bool CompareIndex(const Key& k, const IndexKey& index)
+	bool compareIndex(const Key& k, const IndexKey& index)
 	{
 		Base::sum_ += index;
 		return k < Base::sum_;
 	}
 
 
-	bool CompareKey(const Key& k, const Key& index)
+	bool compareKey(const Key& k, const Key& index)
 	{
 		Base::sum_ += index;
 		return k < Base::sum_;
@@ -94,19 +94,19 @@ class EQSumComparator: public ComparatorBase<IndexKey> {
 public:
 	EQSumComparator():Base() {}
 
-	bool TestMax(const Key& k, const IndexKey& max) const
+	bool testMax(const Key& k, const IndexKey& max) const
 	{
 		return k > max;
 	}
 
-	bool CompareIndex(const Key& k, const IndexKey& index)
+	bool compareIndex(const Key& k, const IndexKey& index)
 	{
 		Base::sum_ += index;
 		return k <= Base::sum_;
 	}
 
 
-	bool CompareKey(const Key& k, const Key& index)
+	bool compareKey(const Key& k, const Key& index)
 	{
 		Base::sum_ += index;
 		return k == Base::sum_;
@@ -132,10 +132,10 @@ public:
 		index_block_offsets_ 	= me.getIndexKeyBlockOffset(block_num);
 	}
 
-	void PrepareIndex() {}
+	void prepareIndex() {}
 
 	//FIXME: move offsets[] to constructor
-	void WalkKeys(Int start, Int end)
+	void walkKeys(Int start, Int end)
 	{
 		for (Int c = start; c < end; c++)
 		{
@@ -181,10 +181,10 @@ public:
 		}
 	}
 
-	void PrepareIndex() {}
+	void prepareIndex() {}
 
 	//FIXME: move offsets[] to constructor
-	void WalkKeys(Int start, Int end)
+	void walkKeys(Int start, Int end)
 	{
 		for (Int block = 0; block < Blocks; block++)
 		{
@@ -217,7 +217,7 @@ public:
 
 
 template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
-class findSumPositionFwFn
+class FindSumPositionFwFn
 {
 	IndexKey sum_;
 	const TreeType& me_;
@@ -228,7 +228,7 @@ class findSumPositionFwFn
 	Int index_block_offsets_[Blocks];
 
 public:
-	findSumPositionFwFn(const TreeType& me, Int block_num, BigInt limit):
+	FindSumPositionFwFn(const TreeType& me, Int block_num, BigInt limit):
 		sum_(0),
 		me_(me),
 		block_num_(block_num),
@@ -241,10 +241,10 @@ public:
 		}
 	}
 
-	void PrepareIndex() {}
+	void prepareIndex() {}
 
 	//FIXME: move offsets[] to constructor
-	Int WalkKeys(Int start, Int end)
+	Int walkKeys(Int start, Int end)
 	{
 		for (Int c = start; c < end; c++)
 		{
@@ -289,7 +289,7 @@ public:
 
 
 template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
-class findSumPositionBwFn
+class FindSumPositionBwFn
 {
 	IndexKey sum_;
 	const TreeType& me_;
@@ -300,7 +300,7 @@ class findSumPositionBwFn
 	Int index_block_offsets_[Blocks];
 
 public:
-	findSumPositionBwFn(const TreeType& me, Int block_num, BigInt limit):
+	FindSumPositionBwFn(const TreeType& me, Int block_num, BigInt limit):
 		sum_(0),
 		me_(me),
 		block_num_(block_num),
@@ -313,10 +313,10 @@ public:
 		}
 	}
 
-	void PrepareIndex() {}
+	void prepareIndex() {}
 
 	//FIXME: move offsets[] to constructor
-	Int WalkKeys(Int start, Int end)
+	Int walkKeys(Int start, Int end)
 	{
 		for (Int c = start; c > end; c--)
 		{
@@ -361,7 +361,7 @@ public:
 
 
 template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
-class findSumPositionBwLTFn
+class FindSumPositionBwLTFn
 {
 	IndexKey sum_;
 	const TreeType& me_;
@@ -372,7 +372,7 @@ class findSumPositionBwLTFn
 	Int index_block_offsets_[Blocks];
 
 public:
-	findSumPositionBwLTFn(const TreeType& me, Int block_num, BigInt limit):
+	FindSumPositionBwLTFn(const TreeType& me, Int block_num, BigInt limit):
 		sum_(0),
 		me_(me),
 		block_num_(block_num),
@@ -385,10 +385,10 @@ public:
 		}
 	}
 
-	void PrepareIndex() {}
+	void prepareIndex() {}
 
 	//FIXME: move offsets[] to constructor
-	Int WalkKeys(Int start, Int end)
+	Int walkKeys(Int start, Int end)
 	{
 		for (Int c = start; c > end; c--)
 		{

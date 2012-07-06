@@ -142,7 +142,7 @@ public:
 
 		auto new_iter = new_map.Begin();
 
-		for (auto iter = map.Begin(); !iter.IsEnd(); iter.NextKey(), new_iter.NextKey())
+		for (auto iter = map.Begin(); !iter.isEnd(); iter.nextKey(), new_iter.nextKey())
 		{
 			MEMORIA_TEST_THROW_IF(iter.getKey(0), !=, new_iter.getKey(0));
 			MEMORIA_TEST_THROW_IF(iter.getValue(), !=, new_iter.getValue());
@@ -156,7 +156,7 @@ public:
 
 		auto new_vm_iter = new_vector_map.Begin();
 
-		for (auto iter = vector_map.Begin(); iter.IsNotEnd(); iter.Next(), new_vm_iter.Next())
+		for (auto iter = vector_map.Begin(); iter.isNotEnd(); iter.next(), new_vm_iter.next())
 		{
 			MEMORIA_TEST_THROW_IF(iter.size(), !=, new_vm_iter.size());
 

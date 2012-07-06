@@ -32,19 +32,19 @@ public:
 	TextPageDumper(std::ostream& out): out_(out), level_(0), cnt_(0), line_(false) {}
 	virtual ~TextPageDumper() {}
 
-	virtual void StartPage(const char* name)
+	virtual void startPage(const char* name)
 	{
 		out_<<name<<endl;
 		level_++;
 	}
 
-	virtual void EndPage()
+	virtual void endPage()
 	{
 		out_<<endl;
 		level_--;
 	}
 
-	virtual void StartGroup(const char* name, Int elements = -1)
+	virtual void startGroup(const char* name, Int elements = -1)
 	{
 		cnt_ = 0;
 		Expand(out_, level_++);
@@ -59,19 +59,19 @@ public:
 		out_<<endl;
 	};
 
-	virtual void EndGroup()
+	virtual void endGroup()
 	{
 		level_--;
 	}
 
 
-	virtual void StartLine(const char* name, Int size = -1)
+	virtual void startLine(const char* name, Int size = -1)
 	{
-		DumpLineHeader(out_, level_, cnt_++, name);
+		dumpLineHeader(out_, level_, cnt_++, name);
 		line_ = true;
 	}
 
-	virtual void EndLine()
+	virtual void endLine()
 	{
 		line_ = false;
 		out_<<endl;
@@ -79,61 +79,61 @@ public:
 
 
 
-	virtual void Value(const char* name, const Byte* value, Int count = 1, Int kind = 0)
+	virtual void value(const char* name, const Byte* value, Int count = 1, Int kind = 0)
 	{
 		if (kind == BYTE_ARRAY)
 		{
-			DumpByteArray("DATA", value, count);
+			dumpByteArray("DATA", value, count);
 		}
 		else {
 			OutNumber(name, value, count, kind);
 		}
 	}
 
-	virtual void Value(const char* name, const UByte* value, Int count = 1, Int kind = 0)
+	virtual void value(const char* name, const UByte* value, Int count = 1, Int kind = 0)
 	{
 		OutNumber(name, value, count, kind);
 	}
 
-	virtual void Value(const char* name, const Short* value, Int count = 1, Int kind = 0)
-	{
-		OutNumber(name, value, count, kind);
-	}
-
-
-	virtual void Value(const char* name, const UShort* value, Int count = 1, Int kind = 0)
-	{
-		OutNumber(name, value, count, kind);
-	}
-
-	virtual void Value(const char* name, const Int* value, Int count = 1, Int kind = 0)
+	virtual void value(const char* name, const Short* value, Int count = 1, Int kind = 0)
 	{
 		OutNumber(name, value, count, kind);
 	}
 
 
-	virtual void Value(const char* name, const UInt* value, Int count = 1, Int kind = 0)
+	virtual void value(const char* name, const UShort* value, Int count = 1, Int kind = 0)
 	{
 		OutNumber(name, value, count, kind);
 	}
 
-	virtual void Value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)
-	{
-		OutNumber(name, value, count, kind);
-	}
-
-	virtual void Value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)
+	virtual void value(const char* name, const Int* value, Int count = 1, Int kind = 0)
 	{
 		OutNumber(name, value, count, kind);
 	}
 
 
+	virtual void value(const char* name, const UInt* value, Int count = 1, Int kind = 0)
+	{
+		OutNumber(name, value, count, kind);
+	}
 
-	virtual void Value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)
+	virtual void value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)
+	{
+		OutNumber(name, value, count, kind);
+	}
+
+	virtual void value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)
+	{
+		OutNumber(name, value, count, kind);
+	}
+
+
+
+	virtual void value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)
 	{
 		if (!line_)
 		{
-			DumpFieldHeader(out_, level_, cnt_++, name);
+			dumpFieldHeader(out_, level_, cnt_++, name);
 		}
 		else {
 			out_<<"    "<<name<<" ";
@@ -159,7 +159,7 @@ private:
 
 
 
-	void DumpFieldHeader(ostream &out, Int level, Int idx, StringRef name)
+	void dumpFieldHeader(ostream &out, Int level, Int idx, StringRef name)
 	{
 		stringstream str;
 		Expand(str, level);
@@ -171,7 +171,7 @@ private:
 		out<<str.str();
 	}
 
-	void DumpLineHeader(ostream &out, Int level, Int idx, StringRef name)
+	void dumpLineHeader(ostream &out, Int level, Int idx, StringRef name)
 	{
 		stringstream str;
 		Expand(str, level);
@@ -184,7 +184,7 @@ private:
 	}
 
 
-	void DumpByteArray(const char* name, const Byte* data, Int count)
+	void dumpByteArray(const char* name, const Byte* data, Int count)
 	{
 		out_<<endl;
 		Expand(out_, 24);
@@ -222,7 +222,7 @@ private:
 	{
 		if (!line_)
 		{
-			DumpFieldHeader(out_, level_, cnt_++, name);
+			dumpFieldHeader(out_, level_, cnt_++, name);
 		}
 		else {
 			out_<<"    "<<name<<" ";
@@ -250,7 +250,7 @@ private:
 
 
 
-void DumpPage(PageMetadata* meta, Page* page, std::ostream& out)
+void dumpPage(PageMetadata* meta, Page* page, std::ostream& out)
 {
 	TextPageDumper dumper(out);
 

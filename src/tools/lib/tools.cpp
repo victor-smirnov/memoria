@@ -78,11 +78,11 @@ BigInt	getTimeInMillis()
 }
 
 String getMillisPart(BigInt millis) {
-	return millis < 100 ? "0"+ToString(millis) : ToString(millis);
+	return millis < 100 ? "0"+toString(millis) : toString(millis);
 }
 
 String getTwoDigitsPart(BigInt value) {
-	return value < 10 ? "0"+ToString(value) : ToString(value);
+	return value < 10 ? "0"+toString(value) : toString(value);
 }
 
 String FormatTime(BigInt millis)
@@ -96,7 +96,7 @@ String FormatTime(BigInt millis)
 		BigInt seconds 	= millis / 1000;
 		millis = millis % 1000;
 
-		return ToString(seconds) +"." + getMillisPart(millis);
+		return toString(seconds) +"." + getMillisPart(millis);
 	}
 	else if (millis < 60000 * 60)
 	{
@@ -107,7 +107,7 @@ String FormatTime(BigInt millis)
 		BigInt seconds 	= millis / 1000;
 		millis = millis % 1000;
 
-		return ToString(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
+		return toString(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
 	}
 	else if (millis < 60000 * 60 * 24)
 	{
@@ -121,7 +121,7 @@ String FormatTime(BigInt millis)
 		BigInt seconds 	= millis / 1000;
 		millis = millis % 1000;
 
-		return ToString(hours) + ":" + getTwoDigitsPart(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
+		return toString(hours) + ":" + getTwoDigitsPart(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
 	}
 	else
 	{
@@ -137,7 +137,7 @@ String FormatTime(BigInt millis)
 		BigInt seconds 	= millis / 1000;
 		millis = millis % 1000;
 
-		return ToString(days) + (days == 1? "day " : "days ") + getTwoDigitsPart(hours) + ":" + getTwoDigitsPart(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
+		return toString(days) + (days == 1? "day " : "days ") + getTwoDigitsPart(hours) + ":" + getTwoDigitsPart(minutes) +":" + getTwoDigitsPart(seconds) +"." + getMillisPart(millis);
 	}
 }
 

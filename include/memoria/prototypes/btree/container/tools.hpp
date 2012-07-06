@@ -64,11 +64,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     };
 
 
-    struct getNodeTraintsFn {
+    struct GetNodeTraintsFn {
     	typename BTreeNodeTraits::Enum trait_;
     	Int value_;
 
-    	getNodeTraintsFn(typename BTreeNodeTraits::Enum trait): trait_(trait) {}
+    	GetNodeTraintsFn(typename BTreeNodeTraits::Enum trait): trait_(trait) {}
 
     	template <typename Node>
     	void operator()()
@@ -84,7 +84,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
 
     Int getNodeTraitInt(typename BTreeNodeTraits::Enum trait, bool root, bool leaf, Int level) const
     {
-    	getNodeTraintsFn fn(trait);
+    	GetNodeTraintsFn fn(trait);
     	NodeDispatcher::DispatchStatic(root, leaf, level, fn);
     	return fn.value_;
     }
@@ -103,7 +103,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	}
     }
 
-    bool IsTheSameNode(const TreePath& path1, const TreePath& path2, int level) const
+    bool isTheSameNode(const TreePath& path1, const TreePath& path2, int level) const
     {
     	return path1[level].node()->id() == path2[level].node()->id();
     }
@@ -127,7 +127,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         return me()->getRootMetadata().branching_factor();
     }
 
-    void Root2Node(NodeBaseG& node)
+    void root2Node(NodeBaseG& node)
     {
         node.update();
 
@@ -135,7 +135,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         RootDispatcher::Dispatch(node, fn);
     }
 
-    void Node2Root(NodeBaseG& node, Metadata& meta)
+    void node2Root(NodeBaseG& node, Metadata& meta)
     {
     	node.update();
 
@@ -143,10 +143,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	NonRootDispatcher::Dispatch(node, fn);
     }
 
-    void CopyRootMetadata(NodeBaseG& src, NodeBaseG& tgt)
+    void copyRootMetadata(NodeBaseG& src, NodeBaseG& tgt)
     {
         tgt.update();
-    	memoria::btree::CopyRootMetadata<RootDispatcher>(src.page(), tgt.page());
+    	memoria::btree::copyRootMetadata<RootDispatcher>(src.page(), tgt.page());
     }
 
     template <typename TypeMap>
@@ -166,7 +166,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         };
     };
 
-    bool CanConvertToRoot(NodeBase* node) const
+    bool canConvertToRoot(NodeBase* node) const
     {
         CanConvertToRootFn<Node2RootMap> fn;
         NonRootDispatcher::Dispatch(node, fn);
@@ -174,11 +174,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     }
 
     template <typename Idx>
-    class getPageIdFn {
+    class GetPageIdFn {
         const ID *id_;
         Idx idx_;
     public:
-        getPageIdFn(Idx idx): idx_(idx) {}
+        GetPageIdFn(Idx idx): idx_(idx) {}
 
         template <typename T>
         void operator()(T *node) {
@@ -192,7 +192,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
 
     ID getPageId(const NodeBaseG& node, Int idx) const
     {
-        getPageIdFn<Int> fn(idx);
+        GetPageIdFn<Int> fn(idx);
         NonLeafDispatcher::DispatchConst(node, fn);
         return *fn.id();
     }
@@ -278,13 +278,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         return fn.cap();
     }
 
-    bool ShouldMergeNode(const TreePath& path, Int level) const
+    bool shouldMergeNode(const TreePath& path, Int level) const
     {
     	const NodeBaseG& node = path[level].node();
     	return node->children_count() <= me()->getMaxCapacity(node) / 2;
     }
 
-    bool ShouldSplitNode(const TreePath& path, Int level) const
+    bool shouldSplitNode(const TreePath& path, Int level) const
     {
     	const NodeBaseG& node = path[level].node();
     	return me()->getCapacity(node) == 0;
@@ -328,10 +328,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	memoria::btree::setChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
-    void AddChildrenCount(NodeBaseG& node, Int count) const
+    void addChildrenCount(NodeBaseG& node, Int count) const
     {
     	node.update();
-    	memoria::btree::AddChildrenCount<NodeDispatcher>(node.page(), count);
+    	memoria::btree::addChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
     ID getINodeData(const NodeBaseG& node, Int idx) const
@@ -409,13 +409,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	memoria::btree::setData<LeafDispatcher>(node.page(), idx, &val);
     }
 
-    void Dump(PageG page, std::ostream& out = std::cout) const
+    void dump(PageG page, std::ostream& out = std::cout) const
     {
     	if (page != NULL)
     	{
     		PageWrapper<Page, Allocator::PAGE_SIZE> pw(page);
     		PageMetadata* meta = me()->reflection()->getPageMetadata(pw.getPageTypeHash());
-    		memoria::vapi::DumpPage(meta, &pw, out);
+    		memoria::vapi::dumpPage(meta, &pw, out);
     		out<<endl;
     		out<<endl;
     	}
@@ -426,8 +426,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
 
     BigInt getTotalKeyCount() const;
     void setTotalKeyCount(BigInt value);
-    void AddTotalKeyCount(BigInt value);
-    void AddTotalKeyCount(TreePath& path, BigInt value);
+    void addTotalKeyCount(BigInt value);
+    void addTotalKeyCount(TreePath& path, BigInt value);
 
     bool getNextNode(TreePath& path, Int level = 0, bool down = false) const
     {
@@ -440,7 +440,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	return getPrevNode(path, level, -1, down ? 0 : level);
     }
 
-    void FinishPathStep(TreePath& path, Int key_idx) const {}
+    void finishPathStep(TreePath& path, Int key_idx) const {}
 
 private:
 
@@ -470,7 +470,7 @@ void M_TYPE::setTotalKeyCount(BigInt value)
 }
 
 M_PARAMS
-void M_TYPE::AddTotalKeyCount(BigInt value)
+void M_TYPE::addTotalKeyCount(BigInt value)
 {
 	Metadata meta 		= me()->getRootMetadata();
 	meta.key_count() 	+= value;
@@ -480,7 +480,7 @@ void M_TYPE::AddTotalKeyCount(BigInt value)
 
 
 M_PARAMS
-void M_TYPE::AddTotalKeyCount(TreePath& path, BigInt value)
+void M_TYPE::addTotalKeyCount(TreePath& path, BigInt value)
 {
 	NodeBaseG& node 	= path[path.getSize() - 1].node();
 
@@ -511,7 +511,7 @@ bool M_TYPE::getNextNode(TreePath& path, Int level, Int idx, Int target_level) c
 
 		if (level == 0)
 		{
-			me()->FinishPathStep(path, idx);
+			me()->finishPathStep(path, idx);
 		}
 		return true;
 	}
@@ -543,7 +543,7 @@ bool M_TYPE::getPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 
 		if (level == 0)
 		{
-			me()->FinishPathStep(path, idx);
+			me()->finishPathStep(path, idx);
 		}
 
 		return true;

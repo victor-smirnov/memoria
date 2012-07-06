@@ -22,9 +22,9 @@ using namespace memoria::vapi;
 using namespace std;
 
 //Long StrToL(StringRef value) {
-//	if (!IsEmpty(value))
+//	if (!isEmpty(value))
 //	{
-//		const char* ptr = TrimString(value).c_str();
+//		const char* ptr = trimString(value).c_str();
 //		char* end_ptr;
 //
 //		errno = 0;

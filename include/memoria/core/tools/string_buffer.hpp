@@ -22,22 +22,22 @@ public:
 
 	SBuf() {}
 
-	stringstream& Buffer() {
+	stringstream& buffer() {
 		return buffer_;
 	}
 
-	const stringstream& Buffer() const {
+	const stringstream& buffer() const {
 		return buffer_;
 	}
 
-	String Str() const {
+	String str() const {
 		return buffer_.str();
 	}
 
 	template <typename T>
 	SBuf& operator<<(const T& value)
 	{
-		this->Buffer()<<value;
+		this->buffer()<<value;
 		return *this;
 	}
 };

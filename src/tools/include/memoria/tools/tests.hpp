@@ -58,12 +58,12 @@ public:
 		task_ = task;
 	}
 
-	StringRef getDumpName() const
+	StringRef getdumpName() const
 	{
 		return dump_name_;
 	}
 
-	void setDumpName(String file_name)
+	void setdumpName(String file_name)
 	{
 		this->dump_name_ = file_name;
 	}

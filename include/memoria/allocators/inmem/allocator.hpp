@@ -172,7 +172,7 @@ public:
 
 	virtual void releasePage(Shared* shared)
 	{
-		pool_.Release(shared->id());
+		pool_.release(shared->id());
 	}
 
 
@@ -218,7 +218,7 @@ public:
 
 				if (shared == NULL)
 				{
-					shared = pool_.Allocate(id);
+					shared = pool_.allocate(id);
 
 					shared->set_allocator(this);
 					shared->id() = id;
@@ -299,7 +299,7 @@ public:
 
 		pages_log_[id] = p;
 
-		Shared* shared 	= pool_.Allocate(id);
+		Shared* shared 	= pool_.allocate(id);
 
 		shared->id() 		= id;
 		shared->state() 	= Shared::UPDATE;
@@ -647,7 +647,7 @@ public:
 			PageMetadata* pageMetadata = metadata_->getPageMetadata(page->page_type_hash());
 
 			PageWrapper<Page, PAGE_SIZE> pw(page);
-			memoria::vapi::DumpPage(pageMetadata, &pw, out);
+			memoria::vapi::dumpPage(pageMetadata, &pw, out);
 			out<<endl;
 			out<<endl;
 		}
@@ -657,7 +657,7 @@ public:
 	{
 		bool result = false;
 
-		for (auto iter = this->roots()->Begin(); !iter.IsEnd(); )
+		for (auto iter = this->roots()->Begin(); !iter.isEnd(); )
 		{
 			PageG page = this->getPage(iter.getValue(), Base::READ);
 
@@ -665,7 +665,7 @@ public:
 
 			result = ctr_meta->getCtrInterface()->check(&page->id(), this) || result;
 
-			iter.Next();
+			iter.next();
 		}
 
 		return result;
@@ -699,9 +699,9 @@ private:
 	{
 		if (page->page_type_hash() != 0)
 		{
-			if (page->references() > 0) {cout<<"Dump "<<page->id()<<" "<<page->references()<<endl;}
+			if (page->references() > 0) {cout<<"dump "<<page->id()<<" "<<page->references()<<endl;}
 
-			MEMORIA_TRACE(me(), "Dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
+			MEMORIA_TRACE(me(), "dump page with hashes", page->page_type_hash(), page->model_hash(), "with id", page->id(), page, &page->id());
 
 			PageMetadata* pageMetadata = metadata_->getPageMetadata(page->page_type_hash());
 
@@ -817,13 +817,13 @@ private:
 	{
 		auto iter = root_map_->find(name);
 
-		if (!iter.IsEnd())
+		if (!iter.isEnd())
 		{
 			return iter.getValue();
 		}
 		else {
 			return ID(0);
-			//throw new Exception(MEMORIA_SOURCE, "Can't find Root ID for model " + ToString(name));
+			//throw new Exception(MEMORIA_SOURCE, "Can't find Root ID for model " + toString(name));
 		}
 	}
 
@@ -834,7 +834,7 @@ private:
 
 		if (shared == NULL)
 		{
-			shared = pool_.Allocate(page->id());
+			shared = pool_.allocate(page->id());
 
 			shared->id() 		= page->id();
 			shared->state() 	= op;

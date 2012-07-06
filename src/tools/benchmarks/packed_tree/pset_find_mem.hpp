@@ -55,7 +55,7 @@ class PsetMemBenchmark: public BenchmarkTask {
 public:
 
 	PsetMemBenchmark():
-		BenchmarkTask("FindMem."+ToString(BranchingFactor_))
+		BenchmarkTask("FindMem."+toString(BranchingFactor_))
 	{
 		average = 10;
 	}
@@ -97,7 +97,7 @@ public:
 		}
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		free(map_);
 		delete[] rd_array_;

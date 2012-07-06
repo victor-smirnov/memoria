@@ -373,7 +373,7 @@ void ShiftBits(Buffer &array, Int srcBit, Int dstBit, Int bitCount) {
 
 
 template <typename Int>
-void DumpAxis(std::ostream &os, Int width) {
+void dumpAxis(std::ostream &os, Int width) {
     for (Int c = 0, cnt = 0, cnt2 = 0; c < width;  c++, cnt++, cnt2++) {
         if (cnt == 10) cnt = 0;
         if (cnt2 == 20) {
@@ -386,7 +386,7 @@ void DumpAxis(std::ostream &os, Int width) {
 }
 
 template <typename Buffer>
-void DumpBitmap(std::ostream &os, Buffer &buffer, Int from, Int to) {
+void dumpBitmap(std::ostream &os, Buffer &buffer, Int from, Int to) {
     os.width(1);
     for (Int c = from, cnt = 0; c < to; c++, cnt++) {
         if (cnt == 20) {
@@ -399,7 +399,7 @@ void DumpBitmap(std::ostream &os, Buffer &buffer, Int from, Int to) {
 }
 
 /**
- * Dump buffer's content in human readable form to an output stream.
+ * dump buffer's content in human readable form to an output stream.
  *
  * os	    - a stream to output to.
  * buffer   - a buffer which content will be dumped.
@@ -408,7 +408,7 @@ void DumpBitmap(std::ostream &os, Buffer &buffer, Int from, Int to) {
  * width    - bits per row (100 bits by default).
  */
 template <typename Buffer>
-void Dump(std::ostream &os, Buffer &buffer, Int from, Int to, Int width = 100) {
+void dump(std::ostream &os, Buffer &buffer, Int from, Int to, Int width = 100) {
     const Int prefix = 7;
     for (Int c = from, cnt = 0; c < to; c += width, cnt++) {
         Int to0 = c + width < to ? c + width : to;
@@ -417,19 +417,19 @@ void Dump(std::ostream &os, Buffer &buffer, Int from, Int to, Int width = 100) {
             os.width(prefix + 2);
             os << "";
             os.width(1);
-            DumpAxis(os, to0 - c);
+            dumpAxis(os, to0 - c);
         }
 
         os.width(prefix);
         os.flags(std::ios::right | std::ios::fixed);
         os<<cnt<<": ";
-        DumpBitmap(os, buffer, c, to0);
+        dumpBitmap(os, buffer, c, to0);
     }
 }
 
 template <typename Buffer>
-void Dump(std::ostream &os, Buffer &buffer, Int size) {
-    Dump(os, buffer, (Int)0, size);
+void dump(std::ostream &os, Buffer &buffer, Int size) {
+    dump(os, buffer, (Int)0, size);
 }
 
 template <typename Buffer>

@@ -19,11 +19,11 @@ void Parametersset::Process(Configurator* cfg)
 	}
 }
 
-void Parametersset::DumpProperties(std::ostream& os) const
+void Parametersset::dumpProperties(std::ostream& os) const
 {
 	for (AbstractParamDescriptor* d: descriptors_)
 	{
-		d->Dump(os);
+		d->dump(os);
 	}
 }
 

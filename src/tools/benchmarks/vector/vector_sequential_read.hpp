@@ -76,7 +76,7 @@ public:
 		allocator_->commit();
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete ctr_;
 		delete allocator_;
@@ -88,7 +88,7 @@ public:
 
 		ArrayData data(size, malloc(size), true);
 
-		for (Iterator i = ctr_->seek(0); !i.IsEof();)
+		for (Iterator i = ctr_->seek(0); !i.isEof();)
 		{
 			i.read(data);
 		}

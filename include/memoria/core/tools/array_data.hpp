@@ -202,7 +202,7 @@ public:
 	}
 
 
-	void Dump(std::ostream& out);
+	void dump(std::ostream& out);
 };
 
 

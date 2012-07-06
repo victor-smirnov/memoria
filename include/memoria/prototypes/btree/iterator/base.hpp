@@ -163,52 +163,52 @@ public:
     }
 
 
-    bool IsBegin() const
+    bool isBegin() const
     {
     	return key_idx() < 0;
     }
 
-    bool IsEnd() const
+    bool isEnd() const
     {
     	return page().isSet() ? key_idx() >= page()->children_count() : true;
     }
 
-    bool IsNotEnd() const
+    bool isNotEnd() const
     {
-    	return !IsEnd();
+    	return !isEnd();
     }
 
-    bool IsEmpty() const
+    bool isEmpty() const
     {
     	return page().isEmpty() || page()->children_count() == 0;
     }
 
-    bool IsNotEmpty() const
+    bool isNotEmpty() const
     {
-    	return !IsEmpty();
+    	return !isEmpty();
     }
 
-    BigInt KeyNum() const
-    {
-    	return cache_.key_num();
-    }
-
-    BigInt& KeyNum()
+    BigInt keyNum() const
     {
     	return cache_.key_num();
     }
 
+    BigInt& keyNum()
+    {
+    	return cache_.key_num();
+    }
 
-    void Dump(ostream& out = cout, const char* header = NULL)
+
+    void dump(ostream& out = cout, const char* header = NULL)
     {
     	out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
 
     	me()->dumpKeys(out);
 
-    	me()->DumpBeforePath(out);
+    	me()->dumpBeforePath(out);
     	me()->dumpPath(out);
 
-    	me()->DumpBeforePages(out);
+    	me()->dumpBeforePages(out);
     	me()->dumpPages(out);
     }
 
@@ -224,7 +224,7 @@ public:
     	TreePath& path0 = me()->path();
     	for (int c = me()->path().getSize() - 1; c >= 0; c--)
     	{
-    		out<<"Node("<<c<<"): "<<IDValue(path0[c]->id())<<" idx="<<(c > 0 ? ToString(path0[c - 1].parent_idx()) : "")<<endl;
+    		out<<"Node("<<c<<"): "<<IDValue(path0[c]->id())<<" idx="<<(c > 0 ? toString(path0[c - 1].parent_idx()) : "")<<endl;
     	}
     }
 
@@ -233,12 +233,12 @@ public:
     	out<<"KeyIdx:  "<<me()->key_idx()<<endl;
     }
 
-    void DumpBeforePath(ostream& out){}
-    void DumpBeforePages(ostream& out){}
+    void dumpBeforePath(ostream& out){}
+    void dumpBeforePages(ostream& out){}
 
     void dumpPages(ostream& out)
     {
-    	me()->model().Dump(me()->leaf().node(), out);
+    	me()->model().dump(me()->leaf().node(), out);
     }
 
     void init()

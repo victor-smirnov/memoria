@@ -126,7 +126,7 @@ public:
 		return size_;
 	}
 
-	void Resize(Int size)
+	void resize(Int size)
 	{
 		size_ = size;
 	}

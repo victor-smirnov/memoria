@@ -89,7 +89,7 @@ public:
 		set_ = new setCtr(*allocator_, 1, true);
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete set_;
 		delete allocator_;

@@ -100,13 +100,13 @@ public:
 
 		for (BigInt c = 0; c < pos; c++)
 		{
-			if (!i.Next())
+			if (!i.next())
 			{
 				break;
 			}
 		}
 
-		MEMORIA_TEST_THROW_IF(pos, !=, i.KeyNum());
+		MEMORIA_TEST_THROW_IF(pos, !=, i.keyNum());
 
 		return i;
 	}
@@ -131,7 +131,7 @@ public:
 				value.keys[c] = iter.getRawKey(c);
 			}
 
-			if (!iter.Next())
+			if (!iter.next())
 			{
 				break;
 			}
@@ -152,20 +152,20 @@ public:
 		{
 			for (BigInt c = 0; c < offset; c++)
 			{
-				iter.Next();
+				iter.next();
 			}
 		}
 		else {
 			for (BigInt c = 0; c < -offset; c++)
 			{
-				iter.Prev();
+				iter.prev();
 			}
 		}
 	}
 
 	virtual BigInt getPosition(Iterator& iter)
 	{
-		return iter.KeyNum();
+		return iter.keyNum();
 	}
 
 	virtual BigInt getLocalPosition(Iterator& iter)
@@ -182,7 +182,7 @@ public:
 	{
 		BigInt cnt = 0;
 
-		for (auto iter = array.Begin(); iter.IsNotEnd(); iter.Next())
+		for (auto iter = array.Begin(); iter.isNotEnd(); iter.next())
 		{
 			cnt++;
 		}

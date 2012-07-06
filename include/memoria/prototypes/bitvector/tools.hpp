@@ -111,7 +111,7 @@ static void dump_tree(node_base *node, Allocator &allocator, txn_t &txn, int idx
             node_base *child = get_child(node, c, allocator, txn);
             if (child!=NULL)
             {
-                DumpTree(child, allocator, txn, idx);
+                dumpTree(child, allocator, txn, idx);
             }
         }
     }
@@ -119,7 +119,7 @@ static void dump_tree(node_base *node, Allocator &allocator, txn_t &txn, int idx
 
 void dump_tree(txn_t &txn)
 {
-    DumpTree(get_node(_root, txn), _allocator, txn);
+    dumpTree(get_node(_root, txn), _allocator, txn);
 }
 
 static node_base* get_child(node_base *node, index_t idx, Allocator &allocator, txn_t &txn)

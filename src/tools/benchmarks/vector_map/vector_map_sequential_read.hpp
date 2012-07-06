@@ -72,7 +72,7 @@ public:
 		allocator_->commit();
 	}
 
-	virtual void Release(ostream& out)
+	virtual void release(ostream& out)
 	{
 		delete ctr_;
 		delete allocator_;
@@ -83,7 +83,7 @@ public:
 		Int size = params.x();
 		ArrayData data(size, malloc(size), true);
 
-		for (auto i = ctr_->Begin(); !i.IsEnd(); i++)
+		for (auto i = ctr_->Begin(); !i.isEnd(); i++)
 		{
 			i.read(data);
 		}

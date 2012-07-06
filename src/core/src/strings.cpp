@@ -17,7 +17,7 @@ namespace memoria{ namespace vapi {
 
 using namespace std;
 
-String TrimString(StringRef str)
+String trimString(StringRef str)
 {
 	if (str.length() == 0)
 	{
@@ -42,7 +42,7 @@ String TrimString(StringRef str)
 	}
 }
 
-bool IsEndsWith(StringRef str, StringRef end) {
+bool isEndsWith(StringRef str, StringRef end) {
 	if (end.length() > str.length())
 	{
 		return false;
@@ -61,7 +61,7 @@ bool IsEndsWith(StringRef str, StringRef end) {
 	}
 }
 
-bool IsStartsWith(StringRef str, StringRef start) {
+bool isStartsWith(StringRef str, StringRef start) {
 	if (start.length() > str.length())
 	{
 		return false;
@@ -78,11 +78,11 @@ bool IsStartsWith(StringRef str, StringRef start) {
 	}
 }
 
-bool IsEmpty(StringRef str) {
+bool isEmpty(StringRef str) {
 	return str.find_first_not_of("\r\n\t ") == String::npos;
 }
 
-bool IsEmpty(StringRef str, String::size_type start, String::size_type end, StringRef sep)
+bool isEmpty(StringRef str, String::size_type start, String::size_type end, StringRef sep)
 {
 	if (end == String::npos) end = str.length();
 
@@ -103,10 +103,10 @@ bool IsEmpty(StringRef str, String::size_type start, String::size_type end, Stri
 	}
 }
 
-Long StrToL(StringRef value) {
-	if (!IsEmpty(value))
+Long strToL(StringRef value) {
+	if (!isEmpty(value))
 	{
-		const char* ptr = TrimString(value).c_str();
+		const char* ptr = trimString(value).c_str();
 		char* end_ptr;
 
 		errno = 0;

@@ -70,7 +70,7 @@ void insertData(Iterator& iter, const IData& data, SizeT start, SizeT len);
 BigInt updateData(Iterator& iter, const IData& data, BigInt start, BigInt len);
 
 
-DataPathItem SplitDataPage(Iterator& iter);
+DataPathItem splitDataPage(Iterator& iter);
 
 Int getMaxDataSize() const
 {
@@ -134,15 +134,15 @@ public:
 
 };
 
-void ImportPages(Iterator& iter, const IData& buffer);
+void importPages(Iterator& iter, const IData& buffer);
 
 void createDataPage(TreePath& path, Int idx);
 DataPathItem createDataPage(NodeBaseG& node, Int idx);
 
-void MoveData(TreePath& src, Int src_idx, TreePath& tgt);
-void MoveData(TreePath& src, Int src_idx, DataPathItem& tgt);
+void moveData(TreePath& src, Int src_idx, TreePath& tgt);
+void moveData(TreePath& src, Int src_idx, DataPathItem& tgt);
 
-Accumulator MoveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& tgt_node, DataPageG& tgt_data);
+Accumulator moveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& tgt_node, DataPageG& tgt_data);
 
 
 MEMORIA_CONTAINER_PART_END
@@ -169,7 +169,7 @@ void M_TYPE::insertData(Iterator& iter, const IData& buffer)
 {
 	BigInt 		max_datapage_size 	= me()->getMaxDataSize();
 
-	BigInt& 	data_idx 			= iter.data_pos();
+	BigInt& 	data_idx 			= iter.dataPos();
 
 	BigInt usage = iter.data() != NULL ? iter.data()->size() : 0;
 
@@ -181,22 +181,22 @@ void M_TYPE::insertData(Iterator& iter, const IData& buffer)
 		insertIntoDataPage(iter, buffer, 0, buffer.getSize());
 		data_idx += buffer.getSize();
 	}
-	else if (!iter.IsEof())
+	else if (!iter.isEof())
 	{
-		if (iter.data_pos() > 0)
+		if (iter.dataPos() > 0)
 		{
-			SplitDataPage(iter);
+			splitDataPage(iter);
 		}
 
-		ImportPages(iter, buffer);
+		importPages(iter, buffer);
 
-		iter.cache().setup(pos + buffer.getSize() - iter.data_pos(), 0);
+		iter.cache().setup(pos + buffer.getSize() - iter.dataPos(), 0);
 	}
 	else
 	{
-		ImportPages(iter, buffer);
+		importPages(iter, buffer);
 
-		iter.cache().setup(pos + buffer.getSize() - iter.data_pos(), 0);
+		iter.cache().setup(pos + buffer.getSize() - iter.dataPos(), 0);
 	}
 }
 
@@ -207,11 +207,11 @@ BigInt M_TYPE::updateData(Iterator& iter, const IData& data, BigInt start, BigIn
 
 	while (len > 0)
 	{
-		Int to_read = iter.data()->size() - iter.data_pos();
+		Int to_read = iter.data()->size() - iter.dataPos();
 
 		if (to_read > len) to_read = len;
 
-		data.get(iter.data()->data().value_addr(iter.data_pos()), start, to_read);
+		data.get(iter.data()->data().value_addr(iter.dataPos()), start, to_read);
 
 		len 	-= to_read;
 		iter.skip(to_read);
@@ -219,7 +219,7 @@ BigInt M_TYPE::updateData(Iterator& iter, const IData& data, BigInt start, BigIn
 		sum 	+= to_read;
 		start 	+= to_read;
 
-		if (iter.IsEof())
+		if (iter.isEof())
 		{
 			break;
 		}
@@ -232,11 +232,11 @@ BigInt M_TYPE::updateData(Iterator& iter, const IData& data, BigInt start, BigIn
 
 
 M_PARAMS
-typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
+typename M_TYPE::DataPathItem M_TYPE::splitDataPage(Iterator& iter)
 {
 	TreePath& path	= iter.path();
 
-	Int data_pos	= iter.data_pos();
+	Int data_pos	= iter.dataPos();
 	Int idx 		= path.data().parent_idx() + 1;
 
 	if (me()->getCapacity(path[0].node()) == 0)
@@ -244,26 +244,26 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 		TreePath  right = path;
 		TreePath& left  = path;
 
-		me()->SplitPath(left, right, 0, idx);
+		me()->splitPath(left, right, 0, idx);
 
-		me()->MakeRoom(right, 0, 0, 1);
+		me()->makeRoom(right, 0, 0, 1);
 
 		me()->createDataPage(right, 0);
 
 		me()->reindex(right.leaf());
 
-		MoveData(left, data_pos, right);
+		moveData(left, data_pos, right);
 
 		return right.data();
 	}
 	else {
-		me()->MakeRoom(path, 0, idx, 1);
+		me()->makeRoom(path, 0, idx, 1);
 
 		DataPathItem target_data = me()->createDataPage(path[0].node(), idx);
 
 		me()->reindex(path.leaf());
 
-		MoveData(path, data_pos, target_data);
+		moveData(path, data_pos, target_data);
 
 		return target_data;
 	}
@@ -288,16 +288,16 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, 
 	bool reindex_fully = false;
 	if (data.isEmpty())
 	{
-		me()->MakeRoom(iter.path(), 0, iter.key_idx(), 1);
+		me()->makeRoom(iter.path(), 0, iter.key_idx(), 1);
 
 		data 			= createDataPage(iter.page(), iter.key_idx());
 
 		iter.path().data().parent_idx() = iter.key_idx();
-		iter.data_pos() = 0;
+		iter.dataPos() = 0;
 		reindex_fully = true;
 	}
 
-	Int data_pos	= iter.data_pos();
+	Int data_pos	= iter.dataPos();
 
 	data->data().shift(data_pos, length);
 
@@ -317,14 +317,14 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, 
 
 
 M_PARAMS
-void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
+void M_TYPE::importPages(Iterator& iter, const IData& buffer)
 {
 	BigInt	length		= buffer.getSize();
 	BigInt 	start;
 
 	Int max_size = me()->getMaxDataSize();
 
-	if (iter.data_pos() > 0)
+	if (iter.dataPos() > 0)
 	{
 		Int start_page_capacity = max_size - iter.data()->size();
 
@@ -332,7 +332,7 @@ void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 
 		insertIntoDataPage(iter, buffer, 0, start);
 
-		iter.NextKey();
+		iter.nextKey();
 	}
 	else {
 		start = 0;
@@ -353,19 +353,19 @@ void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 
 	if (end > 0)
 	{
-		if (!iter.IsEnd())
+		if (!iter.isEnd())
 		{
 			Int end_page_capacity = max_size - iter.data()->size();
 
 			if (end <= end_page_capacity)
 			{
 				insertIntoDataPage(iter, buffer, start + length, end);
-				iter.data_pos() = end;
+				iter.dataPos() = end;
 			}
 			else {
 				ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
 				me()->insertSubtree(iter, provider);
-				iter.data_pos() = 0;
+				iter.dataPos() = 0;
 			}
 		}
 		else
@@ -373,14 +373,14 @@ void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 			ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
 			me()->insertSubtree(iter, provider);
 
-			iter.PrevKey();
-			iter.data_pos() = iter.data()->size();
+			iter.prevKey();
+			iter.dataPos() = iter.data()->size();
 		}
 	}
-	else if (iter.IsEnd())
+	else if (iter.isEnd())
 	{
-		iter.PrevKey();
-		iter.data_pos() = iter.data()->size();
+		iter.prevKey();
+		iter.dataPos() = iter.data()->size();
 	}
 
 //	iter.init();
@@ -412,7 +412,7 @@ typename M_TYPE::DataPathItem M_TYPE::createDataPage(NodeBaseG& node, Int idx)
 
 
 M_PARAMS
-void M_TYPE::MoveData(TreePath& src, Int src_idx, TreePath& tgt)
+void M_TYPE::moveData(TreePath& src, Int src_idx, TreePath& tgt)
 {
 	NodeBaseG& src_node = src[0].node();
 	NodeBaseG& tgt_node = tgt[0].node();
@@ -420,7 +420,7 @@ void M_TYPE::MoveData(TreePath& src, Int src_idx, TreePath& tgt)
 	DataPageG& src_data = src.data().node();
 	DataPageG& tgt_data = tgt.data().node();
 
-	Accumulator accum = MoveData(src_node, src_data, src_idx, tgt_node, tgt_data);
+	Accumulator accum = moveData(src_node, src_data, src_idx, tgt_node, tgt_data);
 
 	me()->updateUp(src, 0, src.data().parent_idx(), -accum);
 	me()->updateUp(tgt, 0, tgt.data().parent_idx(),  accum);
@@ -429,7 +429,7 @@ void M_TYPE::MoveData(TreePath& src, Int src_idx, TreePath& tgt)
 
 
 M_PARAMS
-void M_TYPE::MoveData(TreePath& src, Int src_idx, DataPathItem& tgt)
+void M_TYPE::moveData(TreePath& src, Int src_idx, DataPathItem& tgt)
 {
 	NodeBaseG& src_node = src[0].node();
 	NodeBaseG& tgt_node = src[0].node();
@@ -437,7 +437,7 @@ void M_TYPE::MoveData(TreePath& src, Int src_idx, DataPathItem& tgt)
 	DataPageG& src_data = src.data().node();
 	DataPageG& tgt_data = tgt.node();
 
-	Accumulator accum = MoveData(src_node, src_data, src_idx, tgt_node, tgt_data);
+	Accumulator accum = moveData(src_node, src_data, src_idx, tgt_node, tgt_data);
 
 	me()->updateUp(src, 0, src.data().parent_idx(), -accum);
 	me()->updateUp(src, 0, tgt.parent_idx(), 		 accum);
@@ -446,7 +446,7 @@ void M_TYPE::MoveData(TreePath& src, Int src_idx, DataPathItem& tgt)
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::MoveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& tgt_node, DataPageG& tgt_data)
+typename M_TYPE::Accumulator M_TYPE::moveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& tgt_node, DataPageG& tgt_data)
 {
 	src_data.update();
 	tgt_data.update();

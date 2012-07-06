@@ -40,7 +40,7 @@ public:
     {
     	Base::generateDataEvents(handler);
 
-    	handler->Value("MODEL_NAME_COUNTER", 		&model_name_counter_);
+    	handler->value("MODEL_NAME_COUNTER", 		&model_name_counter_);
     }
 
     void serialize(SerializationData& buf) const

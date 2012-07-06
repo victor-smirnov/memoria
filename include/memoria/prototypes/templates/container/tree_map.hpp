@@ -48,7 +48,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     BigInt KeyIndex(Key key, Int c)
     {
 //        Iterator i = me()->findLE(key, c, false);
-//        if (!i.IsEnd())
+//        if (!i.isEnd())
 //        {
 //            NodeBaseG page = i.page();
 //            BigInt keys = i.key_idx();
@@ -133,7 +133,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     virtual bool get(BigInt index, BigInt& key, BigInt& value)
     {
     	Iterator i = me()->getByIndex(index);
-    	if (i.IsEnd())
+    	if (i.isEnd())
     	{
     		return false;
     	}

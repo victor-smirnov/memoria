@@ -60,7 +60,7 @@ public:
         	level_(root->level()),
         	found_(true)
         {
-        	i_.path().Resize(level_ + 1);
+        	i_.path().resize(level_ + 1);
 
         	i_.setNode(root, 0);
         }
@@ -211,7 +211,7 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 					{
 						fn.i_.key_idx() = fn.idx_;
 
-						me()->FinishPathStep(fn.i_.path(), fn.i_.key_idx());
+						me()->finishPathStep(fn.i_.path(), fn.i_.key_idx());
 
 						cmp.setupIterator(fn.i_);
 

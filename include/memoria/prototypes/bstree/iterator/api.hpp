@@ -53,14 +53,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
     	return me()->getRawKeys() + me()->prefixes();
     }
 
-//    bool NextKey()
+//    bool nextKey()
 //    {
-//        if (!me()->IsEnd())
+//        if (!me()->isEnd())
 //        {
 //        	Accumulator keys = me()->getRawKeys();
 //        	me()->prefix() 	 += keys;
 //
-//        	bool 		has_next 	= Base::NextKey();
+//        	bool 		has_next 	= Base::nextKey();
 //
 //            return has_next;
 //        }
@@ -69,11 +69,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 //        }
 //    }
 //
-//    bool PrevKey()
+//    bool prevKey()
 //    {
-//    	if (!me()->IsBegin())
+//    	if (!me()->isBegin())
 //    	{
-//    		bool result = Base::PrevKey();
+//    		bool result = Base::prevKey();
 //
 //    		if (result)
 //    		{
@@ -100,7 +100,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 
     void ComputeBase()
     {
-//        if (!me()->IsEmpty())
+//        if (!me()->isEmpty())
 //        {
 //        	me()->prefix().clear();
 //
@@ -131,7 +131,7 @@ private:
 
         for (Int c = 0; c < path0.getSize(); c++)
         {
-        	me()->model().SumKeys(path0[c].node(), 0, idx, accum);
+        	me()->model().sumKeys(path0[c].node(), 0, idx, accum);
         	idx = path0[c].parent_idx();
         }
     }
