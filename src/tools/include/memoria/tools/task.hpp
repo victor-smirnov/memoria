@@ -255,7 +255,7 @@ public:
 
 	virtual void Run(ostream& out);
 
-	virtual void RegisterTask(Task* task);
+	virtual void registerTask(Task* task);
 	virtual void Configure(Configurator* cfg);
 
 	virtual void BuildResources();

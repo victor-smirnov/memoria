@@ -25,7 +25,7 @@ public:
 
 	VectorMapTestSuite(): TestSuite("VectorMapTestSuite")
 	{
-		RegisterTask(new VectorMapTest());
+		registerTask(new VectorMapTest());
 	}
 
 };

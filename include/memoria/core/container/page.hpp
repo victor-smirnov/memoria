@@ -45,24 +45,24 @@ public:
         Base::CopyFrom(id.ptr());
     }
 
-    bool is_null() const {
-        return is_empty();
+    bool isNull() const {
+        return isEmpty();
     }
 
-    bool is_empty() const {
+    bool isEmpty() const {
     	return Base::value() == 0;
     }
 
-    bool is_not_null() const {
-    	return !is_null();
+    bool isNotNull() const {
+    	return !isNull();
     }
 
-    bool is_set() const {
+    bool isSet() const {
     	return Base::value() != 0;
     }
 
-    void set_null() {
-        Base::Clear();
+    void setNull() {
+        Base::clear();
     }
 
     ValueType& operator=(const ValueType& other)
@@ -115,7 +115,7 @@ static LogHandler& operator<<(LogHandler &log, const AbstractPageID<T, Size>& va
 }
 
 template <typename T, size_t Size>
-static LogHandler* LogIt(LogHandler* log, const AbstractPageID<T, Size>& value)
+static LogHandler* logIt(LogHandler* log, const AbstractPageID<T, Size>& value)
 {
     IDValue id(&value);
     log->log(id);
@@ -139,20 +139,20 @@ public:
 
     BitBuffer() : Base() {}
 
-    bool is_bit(Index index) const {
+    bool isBit(Index index) const {
         return getBit(*this, index + RESERVED_BITSIZE);
     }
 
-    Bits get_bits(Index idx, Index count) const {
+    Bits getBits(Index idx, Index count) const {
         return getBits(*this, idx, count);
     }
 
-    void set_bits(Index idx, Bits bits, Index count) {
+    void setBits(Index idx, Bits bits, Index count) {
         setBits(*this, idx, bits, count);
     }
 
-    void set_bit(int index, int bit) {
-        setBit(*this, index + RESERVED_BITSIZE, bit);
+    void setBit(int index, int bit) {
+        memoria::setBit(*this, index + RESERVED_BITSIZE, bit);
     }
 
 
@@ -190,10 +190,6 @@ public:
     PageIdType &id() {
         return id_;
     }
-
-//    const FlagsType &flags() const {
-//        return flags_;
-//    };
 
     void init() {}
 
@@ -254,11 +250,11 @@ public:
     }
 
     bool is_updated() {
-    	return flags_.is_bit(0);
+    	return flags_.isBit(0);
     }
 
     void set_updated(bool updated) {
-    	return flags_.set_bit(0, updated);
+    	return flags_.setBit(0, updated);
     }
 
     void *operator new(size_t size, void *page) {
@@ -558,11 +554,11 @@ public:
 		return shared_ != NULL ? *shared_ != page : (char*)shared_ != (char*)page;
 	}
 
-	bool is_empty() const {
+	bool isEmpty() const {
 		return shared_ == NULL || shared_->get() == NULL;
 	}
 
-	bool is_set() const {
+	bool isSet() const {
 		return shared_ != NULL && shared_->get() != NULL;
 	}
 
@@ -610,7 +606,7 @@ public:
 		}
 	}
 
-	void Clear() {
+	void clear() {
 		*this = NULL;
 	}
 
@@ -655,7 +651,7 @@ private:
 
 
 template <typename T, typename A>
-LogHandler* LogIt(LogHandler* log, const PageGuard<T, A>& value) {
+LogHandler* logIt(LogHandler* log, const PageGuard<T, A>& value) {
     log->log(value.page());
     log->log(" ");
     return log;

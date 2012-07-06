@@ -68,12 +68,12 @@ int main(int argc, const char** argv, const char** envp)
 
 		// add test suits to the runner;
 
-		runner.RegisterTask(new CtrTestSuite());
-		runner.RegisterTask(new MapTestSuite());
-		runner.RegisterTask(new PackedMapTestSuite());
-		runner.RegisterTask(new SumTreeTestSuite());
-		runner.RegisterTask(new VectorTestSuite());
-		runner.RegisterTask(new VectorMapTestSuite());
+		runner.registerTask(new CtrTestSuite());
+		runner.registerTask(new MapTestSuite());
+		runner.registerTask(new PackedMapTestSuite());
+		runner.registerTask(new SumTreeTestSuite());
+		runner.registerTask(new VectorTestSuite());
+		runner.registerTask(new VectorMapTestSuite());
 
 		runner.Configure(&cmd_line.getConfigurator());
 

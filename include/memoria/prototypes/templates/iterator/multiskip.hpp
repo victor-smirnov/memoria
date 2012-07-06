@@ -55,7 +55,7 @@ BigInt M_TYPE::skipKeyFw(BigInt distance)
 
 		Walker walker(distance, me()->model());
 
-		if (me()->WalkFw(me()->path(), me()->key_idx(), walker))
+		if (me()->walkFw(me()->path(), me()->key_idx(), walker))
 		{
 			//TODO: check is EOF case is handled properly (prefixes);
 			me()->key_idx()++;
@@ -88,7 +88,7 @@ BigInt M_TYPE::skipKeyBw(BigInt distance)
 			keys[c] = me()->getRawKey(c);
 		}
 
-		if (me()->WalkBw(me()->path(), me()->key_idx(), walker))
+		if (me()->walkBw(me()->path(), me()->key_idx(), walker))
 		{
 			//TODO: check is BOF case is handled properly (prefixes);
 			me()->key_idx() = -1;

@@ -50,25 +50,25 @@ public:
 		return Base::value(idx);
 	}
 
-	void Reindex()
+	void reindex()
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
-			Reindex(c, 0, Base::size());
+			reindex(c, 0, Base::size());
 		}
 	}
 
 
-	void Reindex(Int block_num)
+	void reindex(Int block_num)
 	{
-		Reindex(block_num, 0, Base::size());
+		reindex(block_num, 0, Base::size());
 	}
 
-	void ReindexAll(Int start, Int end)
+	void reindexAll(Int start, Int end)
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
-			Reindex(c, start, end);
+			reindex(c, start, end);
 		}
 	}
 
@@ -76,8 +76,8 @@ public:
 	{
 		Base::key(block_num, idx) += key_value;
 
-		Int level_size 		= Base::max_size();
-		Int level_start 	= Base::index_size();
+		Int level_size 		= Base::maxSize();
+		Int level_start 	= Base::indexSize();
 
 		Int block_offset 	= Base::getIndexKeyBlockOffset(block_num);
 
@@ -92,7 +92,7 @@ public:
 		while (level_start > 0);
 	}
 
-	void Reindex(Int block_num, Int start, Int end)
+	void reindex(Int block_num, Int start, Int end)
 	{
 		Int block_start = Base::getBlockStart(start);
 		Int block_end 	= Base::getBlockEnd(end);
@@ -100,8 +100,8 @@ public:
 		Int index_block_offset 	= Base::getIndexKeyBlockOffset(block_num);
 		Int key_block_offset 	= Base::getKeyBlockOffset(block_num);
 
-		Int index_level_size	= Base::getIndexCellsNumberFor(Base::max_size());
-		Int index_level_start 	= Base::index_size() - index_level_size;
+		Int index_level_size	= Base::getIndexCellsNumberFor(Base::maxSize());
+		Int index_level_start 	= Base::indexSize() - index_level_size;
 
 		Int level_max 			= Base::size();
 
@@ -226,25 +226,25 @@ public:
 	void Sum(Int block_num, Int start, Int end, IndexKey& sum) const
 	{
 		SumWalker<MyType, Key, IndexKey, Blocks> walker(*this, block_num, sum);
-		Base::WalkRange(start, end, walker);
+		Base::walkRange(start, end, walker);
 	}
 
 	void Sum(Int start, Int end, Accumulator& accum) const
 	{
 		SumsWalker<MyType, Key, IndexKey, Accumulator> walker(*this, accum);
-		Base::WalkRange(start, end, walker);
+		Base::walkRange(start, end, walker);
 	}
 
 	Int findSumPositionFw(Int block_num, Int start, Key key, Accumulator& acc) const
 	{
 		findSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
-		return Base::WalkFw(start, walker);
+		return Base::walkFw(start, walker);
 	}
 
 	Int findSumPositionBw(Int block_num, Int start, Key key, Accumulator& acc) const
 	{
 		findSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
-		return Base::WalkBw(start, walker);
+		return Base::walkBw(start, walker);
 	}
 
 
@@ -252,7 +252,7 @@ public:
 	{
 		findSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 
-		Int position = Base::WalkFw(start, walker);
+		Int position = Base::walkFw(start, walker);
 
 		acc += walker.sum();
 
@@ -263,7 +263,7 @@ public:
 	{
 		findSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 
-		Int position = Base::WalkBw(start, walker);
+		Int position = Base::walkBw(start, walker);
 
 		acc += walker.sum();
 
@@ -274,7 +274,7 @@ public:
 	{
 		findSumPositionBwLTFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
 
-		Int position = Base::WalkBw(start, walker);
+		Int position = Base::walkBw(start, walker);
 
 		acc += walker.sum();
 

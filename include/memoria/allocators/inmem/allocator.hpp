@@ -180,7 +180,7 @@ public:
 
 	virtual PageG getPage(const ID& id, Int flags)
 	{
-		if (id.is_null())
+		if (id.isNull())
 		{
 			return PageG();
 		}
@@ -321,9 +321,9 @@ public:
 //		pages_log_.clear();
 //		ctr_shared_.clear();
 //
-//		//pool_.Clear();
+//		//pool_.clear();
 //
-//		root_map_shared_.Clear();
+//		root_map_shared_.clear();
 //
 //		counter_ 	= 100;
 //	}
@@ -571,7 +571,7 @@ public:
 
 		ID root = root_map_->shared()->root();
 
-		if (!root.is_null())
+		if (!root.isNull())
 		{
 			dump_page(output, buf, pages_[root]);
 
@@ -596,7 +596,7 @@ public:
 		return logger_.IsLogEnabled(level);
 	}
 
-	const char* type_name() {
+	const char* typeName() {
 		return type_name_;
 	}
 
@@ -749,7 +749,7 @@ private:
 	{
 		MEMORIA_TRACE(me(), "Register new root", page_id, "for", name);
 
-		if (page_id.is_null())
+		if (page_id.isNull())
 		{
 			remove_root(name);
 		}
@@ -788,7 +788,7 @@ private:
 
 	Page *get1(const ID &page_id)
 	{
-		if (page_id.is_null())
+		if (page_id.isNull())
 		{
 			return NULL;
 		}

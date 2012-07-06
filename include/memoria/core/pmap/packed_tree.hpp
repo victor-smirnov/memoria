@@ -83,7 +83,7 @@ private:
 
 	Int 	size_;
 	Int 	max_size_;
-	Int		index_size_;
+	Int		indexSize_;
 	Byte 	memory_block_[];
 
 public:
@@ -96,11 +96,11 @@ public:
 
 		handler->Value("SIZE", 			&size_);
 		handler->Value("MAX_SIZE", 		&max_size_);
-		handler->Value("INDEX_SIZE", 	&index_size_);
+		handler->Value("INDEX_SIZE", 	&indexSize_);
 
-		handler->StartGroup("INDEXES", index_size_);
+		handler->StartGroup("INDEXES", indexSize_);
 
-		for (Int idx = 0; idx < index_size_; idx++)
+		for (Int idx = 0; idx < indexSize_; idx++)
 		{
 			IndexKey indexes[Blocks];
 			for (Int block = 0; block < Blocks; block++)
@@ -144,9 +144,9 @@ public:
 	{
 		FieldFactory<Int>::serialize(buf, size());
 		FieldFactory<Int>::serialize(buf, max_size_);
-		FieldFactory<Int>::serialize(buf, index_size_);
+		FieldFactory<Int>::serialize(buf, indexSize_);
 
-		FieldFactory<IndexKey>::serialize(buf, index(0, 0), Blocks * index_size());
+		FieldFactory<IndexKey>::serialize(buf, index(0, 0), Blocks * indexSize());
 
 		for (Int c = 0; c < Blocks; c++)
 		{
@@ -163,9 +163,9 @@ public:
 	{
 		FieldFactory<Int>::deserialize(buf, size());
 		FieldFactory<Int>::deserialize(buf, max_size_);
-		FieldFactory<Int>::deserialize(buf, index_size_);
+		FieldFactory<Int>::deserialize(buf, indexSize_);
 
-		FieldFactory<IndexKey>::deserialize(buf, index(0, 0), Blocks * index_size());
+		FieldFactory<IndexKey>::deserialize(buf, index(0, 0), Blocks * indexSize());
 
 		for (Int c = 0; c < Blocks; c++)
 		{
@@ -186,7 +186,7 @@ public:
 		size_ = 0;
 
 		max_size_	= getMaxSize(block_size);
-		index_size_ = getIndexSize(max_size_);
+		indexSize_ = getIndexSize(max_size_);
 	}
 
 
@@ -194,7 +194,7 @@ public:
 	{
 		size_		= 0;
 		max_size_	= max;
-		index_size_ = getIndexSize(max_size_);
+		indexSize_ = getIndexSize(max_size_);
 	}
 
 	Int getObjectSize() const
@@ -204,18 +204,18 @@ public:
 
 	Int getObjectDataSize() const
 	{
-		return sizeof(size_) + sizeof(max_size_) + sizeof(index_size_) + getBlockSize();
+		return sizeof(size_) + sizeof(max_size_) + sizeof(indexSize_) + getBlockSize();
 	}
 
 
 	Int getBlockSize() const
 	{
-		return (index_size_ * sizeof(IndexKey) + max_size_ * sizeof(Key)) * Blocks + max_size_ * getValueSize();
+		return (indexSize_ * sizeof(IndexKey) + max_size_ * sizeof(Key)) * Blocks + max_size_ * getValueSize();
 	}
 
 	Int getDataSize() const
 	{
-		return (index_size_ * sizeof(IndexKey) + size_ * sizeof(Key)) * Blocks + size_ * getValueSize();
+		return (indexSize_ * sizeof(IndexKey) + size_ * sizeof(Key)) * Blocks + size_ * getValueSize();
 	}
 
 	Int& size() {
@@ -227,129 +227,129 @@ public:
 		return size_;
 	}
 
-	Int index_size() const
+	Int indexSize() const
 	{
-		return index_size_;
+		return indexSize_;
 	}
 
-	Int max_size() const
+	Int maxSize() const
 	{
 		return max_size_;
 	}
 
-	static Int max_size_for(Int block_size)
+	static Int maxSizeFor(Int block_size)
 	{
 		return getMaxSize(block_size);
 	}
 
 	static Int getMemoryBlockSizeFor(Int max)
 	{
-		Int index_size = getIndexSize(max);
-		return (index_size * sizeof(IndexKey) + max * sizeof(Key)) * Blocks + max * getValueSize();
+		Int indexSize = getIndexSize(max);
+		return (indexSize * sizeof(IndexKey) + max * sizeof(Key)) * Blocks + max * getValueSize();
 	}
 
-	Byte* memory_block() {
+	Byte* memoryBlock() {
 		return memory_block_;
 	}
 
-	const Byte* memory_block() const {
+	const Byte* memoryBlock() const {
 		return memory_block_;
 	}
 
 	Int getIndexKeyBlockOffset(Int block_num) const
 	{
-		return getIndexKeyBlockOffset(index_size_, block_num);
+		return getIndexKeyBlockOffset(indexSize_, block_num);
 	}
 
-	Int getIndexKeyBlockOffset(Int index_size, Int block_num) const
+	Int getIndexKeyBlockOffset(Int indexSize, Int block_num) const
 	{
-		return sizeof(IndexKey) * index_size * block_num;
+		return sizeof(IndexKey) * indexSize * block_num;
 	}
 
 	Int getKeyBlockOffset(Int block_num) const
 	{
-		return getKeyBlockOffset(index_size_, max_size_, block_num);
+		return getKeyBlockOffset(indexSize_, max_size_, block_num);
 	}
 
-	Int getKeyBlockOffset(Int index_size, Int keys_size, Int block_num) const
+	Int getKeyBlockOffset(Int indexSize, Int keys_size, Int block_num) const
 	{
-		return getIndexKeyBlockOffset(index_size, Blocks) + sizeof(Key) * keys_size * block_num;
+		return getIndexKeyBlockOffset(indexSize, Blocks) + sizeof(Key) * keys_size * block_num;
 	}
 
 	Int getValueBlockOffset() const
 	{
-		return getValueBlockOffset(index_size_, max_size_);
+		return getValueBlockOffset(indexSize_, max_size_);
 	}
 
-	Int getValueBlockOffset(Int index_size, Int keys_size) const
+	Int getValueBlockOffset(Int indexSize, Int keys_size) const
 	{
-		return getKeyBlockOffset(index_size, keys_size, Blocks);
+		return getKeyBlockOffset(indexSize, keys_size, Blocks);
 	}
 
 	template <typename T>
-	T& block_item(Int block_offset, Int item_idx, Int item_size = sizeof(T))
+	T& blockItem(Int block_offset, Int item_idx, Int item_size = sizeof(T))
 	{
 		return *T2T<T*>(memory_block_ + block_offset + item_idx * item_size);
 	}
 
 	template <typename T>
-	const T& block_item(Int block_offset, Int item_idx, Int item_size = sizeof(T)) const
+	const T& blockItem(Int block_offset, Int item_idx, Int item_size = sizeof(T)) const
 	{
 		return *T2T<const T*>(memory_block_ + block_offset + item_idx * item_size);
 	}
 
 	IndexKey& indexb(Int block_offset, Int key_num)
 	{
-		return block_item<IndexKey>(block_offset, key_num);
+		return blockItem<IndexKey>(block_offset, key_num);
 	}
 
 	const IndexKey& indexb(Int block_offset, Int key_num) const
 	{
-		return block_item<IndexKey>(block_offset, key_num);
+		return blockItem<IndexKey>(block_offset, key_num);
 	}
 
 	IndexKey& index(Int block_num, Int key_num)
 	{
-		return block_item<IndexKey>(getIndexKeyBlockOffset(block_num), key_num);
+		return blockItem<IndexKey>(getIndexKeyBlockOffset(block_num), key_num);
 	}
 
 	const IndexKey& index(Int block_num, Int key_num) const
 	{
-		return block_item<IndexKey>(getIndexKeyBlockOffset(block_num), key_num);
+		return blockItem<IndexKey>(getIndexKeyBlockOffset(block_num), key_num);
 	}
 
 
 	Key& keyb(Int block_offset, Int key_num)
 	{
-		return block_item<Key>(block_offset, key_num);
+		return blockItem<Key>(block_offset, key_num);
 	}
 
 	const Key& keyb(Int block_offset, Int key_num) const
 	{
-		return block_item<Key>(block_offset, key_num);
+		return blockItem<Key>(block_offset, key_num);
 	}
 
 	Key& key(Int block_num, Int key_num)
 	{
-		return block_item<Key>(getKeyBlockOffset(block_num), key_num);
+		return blockItem<Key>(getKeyBlockOffset(block_num), key_num);
 	}
 
 	const Key& key(Int block_num, Int key_num) const
 	{
-		return block_item<Key>(getKeyBlockOffset(block_num), key_num);
+		return blockItem<Key>(getKeyBlockOffset(block_num), key_num);
 	}
 
-	IndexKey& max_key(Int block_num)
+	IndexKey& maxKey(Int block_num)
 	{
 		return index(block_num, 0);
 	}
 
-	const IndexKey& max_key(Int block_num) const
+	const IndexKey& maxKey(Int block_num) const
 	{
 		return index(block_num, 0);
 	}
 
-	const IndexKey& max_keyb(Int block_offset) const
+	const IndexKey& maxKeyb(Int block_offset) const
 	{
 		return indexb(block_offset, 0);
 	}
@@ -366,12 +366,12 @@ public:
 
 	Value& valueb(Int block_offset, Int value_num)
 	{
-		return block_item<Value>(block_offset, value_num, getValueSize());
+		return blockItem<Value>(block_offset, value_num, getValueSize());
 	}
 
 	const Value& valueb(Int block_offset, Int value_num) const
 	{
-		return block_item<Value>(block_offset, value_num, getValueSize());
+		return blockItem<Value>(block_offset, value_num, getValueSize());
 	}
 
 	static Int getValueSize()
@@ -379,7 +379,7 @@ public:
 		return ValueTraits<Value>::Size;
 	}
 
-	void CopyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
+	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
@@ -398,7 +398,7 @@ public:
 		}
 	}
 
-	void Clear(Int from, Int to)
+	void clear(Int from, Int to)
 	{
 		for (Int c = 0; c < Blocks; c++)
 		{
@@ -420,95 +420,95 @@ public:
 		}
 	}
 
-	void Enlarge(Byte* target_memory_block, Int new_keys_size, Int new_index_size)
+	void enlarge(Byte* target_memory_block, Int new_keys_size, Int new_indexSize)
 	{
 		Int value_size = getValueSize();
 
 		if (value_size > 0)
 		{
 			Int offset		= getValueBlockOffset();
-			Int new_offset	= getValueBlockOffset(new_index_size, new_keys_size);
+			Int new_offset	= getValueBlockOffset(new_indexSize, new_keys_size);
 
-			CopyData(target_memory_block, offset, new_offset, value_size);
+			copyData(target_memory_block, offset, new_offset, value_size);
 		}
 
 		for (Int c = Blocks - 1; c >= 0; c--)
 		{
 			Int offset		= getKeyBlockOffset(c);
-			Int new_offset	= getKeyBlockOffset(new_index_size, new_keys_size, c);
+			Int new_offset	= getKeyBlockOffset(new_indexSize, new_keys_size, c);
 
-			CopyData(target_memory_block, offset, new_offset, sizeof(Key));
+			copyData(target_memory_block, offset, new_offset, sizeof(Key));
 		}
 
 //		for (Int c = Blocks - 1; c >= 0; c--)
 //		{
 //			Int offset		= getIndexKeyBlockOffset(c);
-//			Int new_offset	= getIndexKeyBlockOffset(new_index_size, c);
+//			Int new_offset	= getIndexKeyBlockOffset(new_indexSize, c);
 //
-//			CopyIndex(target_memory_block, offset, new_offset, sizeof(IndexKey));
+//			copyIndex(target_memory_block, offset, new_offset, sizeof(IndexKey));
 //		}
 	}
 
-	void EnlargeBlock(Int block_size)
+	void enlargeBlock(Int block_size)
 	{
 		Int max_size 	= getMaxSize(block_size);
-		Int index_size	= getIndexSize(max_size);
+		Int indexSize	= getIndexSize(max_size);
 
-		Enlarge(memory_block_, max_size, index_size);
+		enlarge(memory_block_, max_size, indexSize);
 
 		max_size_ 	 	= max_size;
-		index_size_	 	= index_size;
+		indexSize_	 	= indexSize;
 	}
 
-	void EnlargeTo(MyType* other)
+	void enlargeTo(MyType* other)
 	{
-		Enlarge(other->memory_block_, other->max_size_, other->index_size_);
+		enlarge(other->memory_block_, other->max_size_, other->indexSize_);
 	}
 
-	void Shrink(Byte* target_memory_block, Int new_keys_size, Int new_index_size) const
+	void shrink(Byte* target_memory_block, Int new_keys_size, Int new_indexSize) const
 	{
 		Int value_size = getValueSize();
 
 		for (Int c = 0; c < Blocks; c++)
 		{
 			Int offset		= getKeyBlockOffset(c);
-			Int new_offset	= getKeyBlockOffset(new_index_size, new_keys_size, c);
+			Int new_offset	= getKeyBlockOffset(new_indexSize, new_keys_size, c);
 
-			CopyData(target_memory_block, offset, new_offset, sizeof(Key));
+			copyData(target_memory_block, offset, new_offset, sizeof(Key));
 		}
 
 		if (value_size > 0)
 		{
 			Int offset		= getValueBlockOffset();
-			Int new_offset	= getValueBlockOffset(new_index_size, new_keys_size);
+			Int new_offset	= getValueBlockOffset(new_indexSize, new_keys_size);
 
-			CopyData(target_memory_block, offset, new_offset, value_size);
+			copyData(target_memory_block, offset, new_offset, value_size);
 		}
 	}
 
 
-	void ShrinkBlock(Int block_size)
+	void shrinkBlock(Int block_size)
 	{
 		Int max_size 	= getMaxSize(block_size);
-		Int index_size	= getIndexSize(max_size);
+		Int indexSize	= getIndexSize(max_size);
 
-		Shrink(memory_block_, max_size, index_size);
+		shrink(memory_block_, max_size, indexSize);
 
 		max_size_ 	 	= max_size;
-		index_size_	 	= index_size;
+		indexSize_	 	= indexSize;
 	}
 
-	void ShrinkTo(MyType* other)
+	void shrinkTo(MyType* other)
 	{
-		Shrink(other->memory_block_, other->max_size_, other->index_size_);
+		shrink(other->memory_block_, other->max_size_, other->indexSize_);
 	}
 
 	template <typename TreeType>
-	void TransferTo(TreeType* other) const
+	void transferTo(TreeType* other) const
 	{
 		if (sizeof(Key) == sizeof(typename TreeType::Key) && getValueSize() == TreeType::getValueSize())
 		{
-			Shrink(other->memory_block_, other->max_size_, other->index_size_);
+			shrink(other->memory_block_, other->max_size_, other->indexSize_);
 		}
 		else {
 
@@ -544,14 +544,14 @@ public:
 		{
 			Int offset = getValueBlockOffset();
 
-			CopyData(offset, room_start, room_length, value_size);
+			copyData(offset, room_start, room_length, value_size);
 		}
 
 		for (Int c = Blocks - 1; c >= 0; c--)
 		{
 			Int offset = getKeyBlockOffset(c);
 
-			CopyData(offset, room_start, room_length, sizeof(Key));
+			copyData(offset, room_start, room_length, sizeof(Key));
 		}
 
 		size_ += room_length;
@@ -565,27 +565,27 @@ public:
 		{
 			Int offset = getKeyBlockOffset(c);
 
-			CopyData(offset, room_start + room_length, -room_length, sizeof(Key));
+			copyData(offset, room_start + room_length, -room_length, sizeof(Key));
 		}
 
 		if (value_size > 0)
 		{
 			Int offset = getValueBlockOffset();
 
-			CopyData(offset, room_start + room_length, -room_length, value_size);
+			copyData(offset, room_start + room_length, -room_length, value_size);
 		}
 
 		size_ -= room_length;
 	}
 
-	void Add(Int block_num, Int idx, const Key& value)
+	void add(Int block_num, Int idx, const Key& value)
 	{
 		key(block_num, idx) += value;
 
 		Int index_block_offset 	= getIndexKeyBlockOffset(block_num);
 
 		Int index_level_size	= getIndexCellsNumberFor(max_size_);
-		Int index_level_start 	= index_size_ - index_level_size;
+		Int index_level_start 	= indexSize_ - index_level_size;
 
 		while (index_level_start >= 0)
 		{
@@ -624,7 +624,7 @@ public:
 		Int key_block_offset 	= getKeyBlockOffset(block_num);
 		Int index_block_offset 	= getIndexKeyBlockOffset(block_num);
 
-		if (comparator.TestMax(k, max_keyb(index_block_offset)))
+		if (comparator.TestMax(k, maxKeyb(index_block_offset)))
 		{
 			return -1;
 		}
@@ -676,7 +676,7 @@ public:
 	}
 
 	template <typename Functor>
-	void WalkRange(Int start, Int end, Functor& walker) const
+	void walkRange(Int start, Int end, Functor& walker) const
 	{
 		if (end - start <= BranchingFactor * 2)
 		{
@@ -692,7 +692,7 @@ public:
 			{
 				Int level_size = getIndexCellsNumberFor(max_size_);
 				walker.PrepareIndex();
-				WalkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, index_size_ - level_size, level_size);
+				walkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, indexSize_ - level_size, level_size);
 			}
 
 			walker.WalkKeys(block_end_start, end);
@@ -703,7 +703,7 @@ public:
 
 
 	template <typename Walker>
-	Int WalkFw(Int start, Walker& walker) const
+	Int walkFw(Int start, Walker& walker) const
 	{
 		Int block_limit 	= getBlockStartEnd(start);
 
@@ -723,7 +723,7 @@ public:
 
 				Int level_size 		= getIndexCellsNumberFor(max_size_);
 				Int level_limit 	= getIndexCellsNumberFor(size_);
-				Int last_start 		= WalkIndexFw(block_limit/BranchingFactor, walker, index_size_ - level_size, level_size, level_limit);
+				Int last_start 		= walkIndexFw(block_limit/BranchingFactor, walker, indexSize_ - level_size, level_size, level_limit);
 
 				Int last_start_end 	= getBlockStartEnd(last_start);
 
@@ -736,7 +736,7 @@ public:
 
 
 	template <typename Walker>
-	Int WalkBw(Int start, Walker& walker) const
+	Int walkBw(Int start, Walker& walker) const
 	{
 		Int block_end 	= getBlockStartEndBw(start);
 
@@ -755,7 +755,7 @@ public:
 				walker.PrepareIndex();
 
 				Int level_size = getIndexCellsNumberFor(max_size_);
-				Int last_start = WalkIndexBw(block_end/BranchingFactor, walker, index_size_ - level_size, level_size);
+				Int last_start = walkIndexBw(block_end/BranchingFactor, walker, indexSize_ - level_size, level_size);
 
 				Int last_start_end = getBlockStartEndBw(last_start);
 
@@ -768,41 +768,41 @@ public:
 private:
 
 	template <typename Functor>
-	void WalkIndexRange(Int start, Int end, Functor& walker, Int level_offet, Int level_size) const
+	void walkIndexRange(Int start, Int end, Functor& walker, Int level_offet, Int level_size) const
 	{
 		if (end - start <= BranchingFactor*2)
 		{
-			walker.WalkIndex(start + level_offet, end + level_offet);
+			walker.walkIndex(start + level_offet, end + level_offet);
 		}
 		else {
 			Int block_start_end 	= getBlockStartEnd(start);
 			Int block_end_start 	= getBlockStart(end);
 
-			walker.WalkIndex(start + level_offet, block_start_end + level_offet);
+			walker.walkIndex(start + level_offet, block_start_end + level_offet);
 
 			if (block_start_end < block_end_start)
 			{
 				Int level_size0 = getIndexCellsNumberFor(level_size);
-				WalkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, level_offet - level_size0, level_size0);
+				walkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, level_offet - level_size0, level_size0);
 			}
 
-			walker.WalkIndex(block_end_start + level_offet, end + level_offet);
+			walker.walkIndex(block_end_start + level_offet, end + level_offet);
 		}
 	}
 
 
 	template <typename Walker>
-	Int WalkIndexFw(Int start, Walker& walker, Int level_offet, Int level_size, Int level_limit) const
+	Int walkIndexFw(Int start, Walker& walker, Int level_offet, Int level_size, Int level_limit) const
 	{
 		Int block_start_end 	= getBlockStartEnd(start);
 
 		if (block_start_end >= level_limit)
 		{
-			return (walker.WalkIndex(start + level_offet, level_limit + level_offet) - level_offet) * BranchingFactor;
+			return (walker.walkIndex(start + level_offet, level_limit + level_offet) - level_offet) * BranchingFactor;
 		}
 		else
 		{
-			Int limit = walker.WalkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
+			Int limit = walker.walkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
 			if (limit < block_start_end)
 			{
 				return limit * BranchingFactor;
@@ -811,40 +811,40 @@ private:
 				Int level_size0 	= getIndexCellsNumberFor(level_size);
 				Int level_limit0 	= getIndexCellsNumberFor(level_limit);
 
-				Int last_start  	= WalkIndexFw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0, level_limit0);
+				Int last_start  	= walkIndexFw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0, level_limit0);
 
 				Int last_start_end 	= getBlockStartEnd(last_start);
 
 				Int last_end = last_start_end <= level_limit ? last_start_end : level_limit;
 
-				return (walker.WalkIndex(last_start + level_offet, last_end + level_offet) - level_offet) * BranchingFactor;
+				return (walker.walkIndex(last_start + level_offet, last_end + level_offet) - level_offet) * BranchingFactor;
 			}
 		}
 	}
 
 	template <typename Walker>
-	Int WalkIndexBw(Int start, Walker& walker, Int level_offet, Int level_size) const
+	Int walkIndexBw(Int start, Walker& walker, Int level_offet, Int level_size) const
 	{
 		Int block_start_end 	= getBlockStartEndBw(start);
 
 		if (block_start_end == -1)
 		{
-			return (walker.WalkIndex(start + level_offet, level_offet - 1) - level_offet + 1) * BranchingFactor - 1;
+			return (walker.walkIndex(start + level_offet, level_offet - 1) - level_offet + 1) * BranchingFactor - 1;
 		}
 		else
 		{
-			Int idx = walker.WalkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
+			Int idx = walker.walkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
 			if (idx > block_start_end)
 			{
 				return (idx + 1) * BranchingFactor - 1;
 			}
 			else {
 				Int level_size0 = getIndexCellsNumberFor(level_size);
-				Int last_start  = WalkIndexBw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0);
+				Int last_start  = walkIndexBw(block_start_end/BranchingFactor, walker, level_offet - level_size0, level_size0);
 
 				Int last_start_end = getBlockStartEndBw(last_start);
 
-				return (walker.WalkIndex(last_start + level_offet, last_start_end + level_offet) - level_offet + 1) * BranchingFactor - 1;
+				return (walker.walkIndex(last_start + level_offet, last_start_end + level_offet) - level_offet + 1) * BranchingFactor - 1;
 			}
 		}
 	}
@@ -879,7 +879,7 @@ protected:
 
 private:
 
-	void CopyData(Byte* target_memory_block, Int offset, Int new_offset, Int item_size) const
+	void copyData(Byte* target_memory_block, Int offset, Int new_offset, Int item_size) const
 	{
 		CopyBuffer(
 				memory_block_ 		+ offset,
@@ -888,17 +888,17 @@ private:
 		);
 	}
 
-	void CopyIndex(Byte* target_memory_block, Int offset, Int new_offset, Int item_size) const
+	void copyIndex(Byte* target_memory_block, Int offset, Int new_offset, Int item_size) const
 	{
 		CopyBuffer(
 				memory_block_ 		+ offset,
 				target_memory_block + new_offset,
-				index_size_ * item_size
+				indexSize_ * item_size
 		);
 	}
 
 
-	void CopyData(Int offset, Int room_start, Int room_length, Int item_size)
+	void copyData(Int offset, Int room_start, Int room_length, Int item_size)
 	{
 		Byte* src = memory_block_ + offset + room_start * item_size;
 		Byte* dst = src + room_length * item_size;

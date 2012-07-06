@@ -64,7 +64,7 @@ public:
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
-    static void BuildMetadataList(MetadataList &list) {}
+    static void buildMetadataList(MetadataList &list) {}
 };
 
 
@@ -269,10 +269,10 @@ public:
     }
 
 
-    static void BuildMetadataList(MetadataList &list) {
+    static void buildMetadataList(MetadataList &list) {
         Head::initMetadata();
         list.push_back(Head::reflection());
-        NDT0<Types, Idx - 1>::BuildMetadataList(list);
+        NDT0<Types, Idx - 1>::buildMetadataList(list);
     }
 };
 

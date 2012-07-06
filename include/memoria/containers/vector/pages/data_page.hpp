@@ -26,7 +26,7 @@ class DynVectorData
 public:
     DynVectorData() {}
 
-    static Int max_size() {
+    static Int maxSize() {
         return Size - sizeof(size_);
     }
 

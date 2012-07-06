@@ -83,20 +83,20 @@ public:
     	}
     }
 
-    static void BuildMetadataList(MetadataList &list) {
+    static void buildMetadataList(MetadataList &list) {
         Head1::initMetadata();
         Metadata* metadata = Head1::reflection();
         list.push_back(metadata);
-        ContainerDispatcher<Profile, Allocator, Tail1>::BuildMetadataList(list);
+        ContainerDispatcher<Profile, Allocator, Tail1>::buildMetadataList(list);
     }
 
-    static void DestroyMetadata() {
-    	ContainerDispatcher<Profile, Allocator, Tail1>::DestroyMetadata();
+    static void destroyMetadata() {
+    	ContainerDispatcher<Profile, Allocator, Tail1>::destroyMetadata();
     }
 
-    static void PrintContainerHashes() {
+    static void printContainerHashes() {
     	cout<<TypeNameFactory<Name1>::name()<<" "<<Head1::hash()<<endl;
-    	ContainerDispatcher<Profile, Allocator, Tail1>::PrintContainerHashes();
+    	ContainerDispatcher<Profile, Allocator, Tail1>::printContainerHashes();
     }
 };
 
@@ -144,9 +144,9 @@ public:
 //    template <typename Handler>
 //    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
-    static void BuildMetadataList(MetadataList &list) {}
-    static void DestroyMetadata() {}
-    static void PrintContainerHashes() {}
+    static void buildMetadataList(MetadataList &list) {}
+    static void destroyMetadata() {}
+    static void printContainerHashes() {}
 };
 
 
@@ -194,9 +194,9 @@ public:
 //    template <typename Handler>
 //    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
-    static void BuildMetadataList(MetadataList &list) {}
-    static void DestroyMetadata() {}
-    static void PrintContainerHashes() {}
+    static void buildMetadataList(MetadataList &list) {}
+    static void destroyMetadata() {}
+    static void printContainerHashes() {}
 };
 
 
@@ -244,9 +244,9 @@ public:
 //    template <typename Handler>
 //    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
-    static void BuildMetadataList(MetadataList &list) {}
-    static void DestroyMetadata() {}
-    static void PrintContainerHashes() {}
+    static void buildMetadataList(MetadataList &list) {}
+    static void destroyMetadata() {}
+    static void printContainerHashes() {}
 };
 
 
@@ -293,9 +293,9 @@ public:
 //    template <typename Handler>
 //    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
-    static void BuildMetadataList(MetadataList &list) {}
-    static void DestroyMetadata() {}
-    static void PrintContainerHashes() {}
+    static void buildMetadataList(MetadataList &list) {}
+    static void destroyMetadata() {}
+    static void printContainerHashes() {}
 };
 
 template <
@@ -338,10 +338,10 @@ public:
 //    template <typename Handler>
 //    void dispatch4_4(Allocator *allocator, Page *root1, Page *root2, Page *root3, Page *root4, Handler &functor) {}
 
-    static void BuildMetadataList(MetadataList &list) {}
+    static void buildMetadataList(MetadataList &list) {}
 
-    static void DestroyMetadata() {}
-    static void PrintContainerHashes() {}
+    static void destroyMetadata() {}
+    static void printContainerHashes() {}
 };
 
 
@@ -351,23 +351,23 @@ template <typename List> class PageInitDispatcher;
 template <typename Head, typename Tail>
 class PageInitDispatcher<TL<Head, Tail> > {
 public:
-    static void BuildMetadataList(MetadataList &list) {
+    static void buildMetadataList(MetadataList &list) {
         Head::initMetadata();
         list.push_back(Head::reflection());
-        PageInitDispatcher<Tail>::BuildMetadataList(list);
+        PageInitDispatcher<Tail>::buildMetadataList(list);
     }
 
-    static void DestroyMetadata() {
-    	PageInitDispatcher<Tail>::DestroyMetadata();
+    static void destroyMetadata() {
+    	PageInitDispatcher<Tail>::destroyMetadata();
     }
 };
 
 template <>
 class PageInitDispatcher<NullType> {
 public:
-    static void BuildMetadataList(MetadataList &list) {}
+    static void buildMetadataList(MetadataList &list) {}
 
-    static void DestroyMetadata() {}
+    static void destroyMetadata() {}
 };
 
 

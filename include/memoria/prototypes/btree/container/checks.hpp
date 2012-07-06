@@ -167,9 +167,9 @@ bool M_TYPE::checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_i
 	bool errors = false;
 	for (Int c = 0; c < Indexes; c++)
 	{
-		if (node->map().max_key(c) != parent->map().key(c, parent_idx))
+		if (node->map().maxKey(c) != parent->map().key(c, parent_idx))
 		{
-			MEMORIA_TRACE(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, parent_idx), "for node.id=", node->id(), "parent.id=", parent->id(), "parent_idx", parent_idx);
+			MEMORIA_TRACE(me(), "Invalid parent-child nodes chain", c, node->map().maxKey(c), parent->map().key(c, parent_idx), "for node.id=", node->id(), "parent.id=", parent->id(), "parent_idx", parent_idx);
 			errors = true;
 		}
 	}
@@ -182,7 +182,7 @@ bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const N
 {
 	bool errors = false;
 
-	if (parent.is_set())
+	if (parent.isSet())
 	{
 		checkNodeContentFn2 fn2(*me(), parent_idx);
 		NodeDispatcher::DoubleDispatchConst(node, parent, fn2);

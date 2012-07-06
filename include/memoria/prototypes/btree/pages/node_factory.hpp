@@ -107,9 +107,9 @@ public:
         return map_;
     }
 
-    void Reindex()
+    void reindex()
     {
-        map().Reindex();
+        map().reindex();
     }
 
     Int data_size() const
@@ -170,7 +170,7 @@ public:
             map_.data(c) = page->map().data(c);
         }
 
-        for (Int c = this->children_count(); c < map_.max_size(); c++)
+        for (Int c = this->children_count(); c < map_.maxSize(); c++)
         {
             for (Int d = 0; d < INDEXES; d++)
             {

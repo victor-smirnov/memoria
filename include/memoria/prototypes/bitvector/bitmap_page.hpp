@@ -114,36 +114,36 @@ public:
     bitmap_page_header(){}
 
     index_t get_size() {
-        return get_bits(_buffer, FIELD_SIZE_OFFS, FIELD_SIZE_SZ);
+        return getBits(_buffer, FIELD_SIZE_OFFS, FIELD_SIZE_SZ);
     }
 
     void set_size(index_t size) {
-        set_bits(_buffer, FIELD_SIZE_OFFS, size, FIELD_SIZE_SZ);
+        setBits(_buffer, FIELD_SIZE_OFFS, size, FIELD_SIZE_SZ);
     }
 
     index_t get_rank() {
-        return get_bits(_buffer, FIELD_RANK_OFFS, FIELD_RANK_SZ);
+        return getBits(_buffer, FIELD_RANK_OFFS, FIELD_RANK_SZ);
     }
 
     void set_rank(index_t rank) {
-        set_bits(_buffer, FIELD_RANK_OFFS, rank, FIELD_RANK_SZ);
+        setBits(_buffer, FIELD_RANK_OFFS, rank, FIELD_RANK_SZ);
     }
 
-    index_t get_bitsize() {
-        return get_bits(_buffer, FIELD_BITSIZE_OFFS, FIELD_BITSIZE_SZ);
+    index_t getBitsize() {
+        return getBits(_buffer, FIELD_BITSIZE_OFFS, FIELD_BITSIZE_SZ);
     }
 
-    void set_bitsize(index_t bitsize) {
-        set_bits(_buffer, FIELD_BITSIZE_OFFS, bitsize, FIELD_BITSIZE_SZ);
+    void setBitsize(index_t bitsize) {
+        setBits(_buffer, FIELD_BITSIZE_OFFS, bitsize, FIELD_BITSIZE_SZ);
     }
 
     index_t get_inserted() {
-        index_t inserted = get_bits(_buffer, FIELD_INSERTED_OFFS, FIELD_INSERTED_SZ);
+        index_t inserted = getBits(_buffer, FIELD_INSERTED_OFFS, FIELD_INSERTED_SZ);
         return inserted >= PageSize ? -1 : inserted;
     }
 
     void set_inserted(index_t offset) {
-        set_bits(_buffer, FIELD_INSERTED_OFFS, offset == -1 ? PageSize : offset, FIELD_INSERTED_SZ);
+        setBits(_buffer, FIELD_INSERTED_OFFS, offset == -1 ? PageSize : offset, FIELD_INSERTED_SZ);
     }
 
     bool hasnt_label() {
@@ -151,15 +151,15 @@ public:
     }
 
     void set_hasnt_label(bool hasnt_label) {
-        set_bit(_buffer, FIELD_HASNT_LABEL_OFFS, hasnt_label);
+        setBit(_buffer, FIELD_HASNT_LABEL_OFFS, hasnt_label);
     }
 
     index_t get_offset() {
-        return get_bits(_buffer, FIELD_OFFSET_OFFS, FIELD_OFFSET_SZ);
+        return getBits(_buffer, FIELD_OFFSET_OFFS, FIELD_OFFSET_SZ);
     }
 
     void set_offset(index_t offset) {
-        set_bits(_buffer, FIELD_OFFSET_OFFS, offset, FIELD_OFFSET_SZ);
+        setBits(_buffer, FIELD_OFFSET_OFFS, offset, FIELD_OFFSET_SZ);
     }
 
     index_t get_max_blocks() {
@@ -172,29 +172,29 @@ public:
     }
 
     index_t get_rank(index_t block) {
-        return get_bits(_buffer,
+        return getBits(_buffer,
             BLOCKS_BASE + FIELD_BLOCK_SZ * block + FIELD_BLOCK_RANK_OFFS,
             FIELD_BLOCK_RANK_SZ
         );
     }
 
     void set_rank(index_t block, index_t value) {
-        set_bits(_buffer,
+        setBits(_buffer,
             BLOCKS_BASE + FIELD_BLOCK_SZ * block + FIELD_BLOCK_RANK_OFFS,
             value,
             FIELD_BLOCK_RANK_SZ
         );
     }
 
-    index_t get_bitsize(index_t block) {
-        return get_bits(_buffer,
+    index_t getBitsize(index_t block) {
+        return getBits(_buffer,
             BLOCKS_BASE + FIELD_BLOCK_SZ * block + FIELD_BLOCK_BITSIZE_OFFS,
             FIELD_BLOCK_BITSIZE_SZ
         );
     }
 
-    void set_bitsize(index_t block, index_t value) {
-        set_bits(_buffer,
+    void setBitsize(index_t block, index_t value) {
+        setBits(_buffer,
             BLOCKS_BASE + FIELD_BLOCK_SZ * block + FIELD_BLOCK_BITSIZE_OFFS,
             value,
             FIELD_BLOCK_BITSIZE_SZ
@@ -202,14 +202,14 @@ public:
     }
 
     index_t get_offset(index_t block) {
-        return get_bits(_buffer,
+        return getBits(_buffer,
             BLOCKS_BASE + FIELD_BLOCK_SZ * block + FIELD_BLOCK_OFFSET_OFFS,
             FIELD_BLOCK_OFFSET_SZ
         );
     }
 
     void set_offset(index_t block, index_t value) {
-        set_bits(_buffer,
+        setBits(_buffer,
             BLOCKS_BASE + FIELD_BLOCK_SZ * block + FIELD_BLOCK_OFFSET_OFFS,
             value,
             FIELD_BLOCK_OFFSET_SZ
@@ -244,12 +244,12 @@ public:
 
     bitmap_page(): base() {
         base::header().set_inserted(-1);
-        base::set_bitmap(false);
+        base::setBitmap(false);
         base::set_root(false);
         base::header().set_size(0);
         base::header().set_offset(0);
         base::header().set_rank(0);
-        base::header().set_bitsize(0);
+        base::header().setBitsize(0);
     }
 
     void shift(index_t from, index_t count) {
@@ -269,7 +269,7 @@ public:
         index_t idx;
         for (idx = 0; idx < offset / BitBlockSize; idx++) {
             base::header().set_rank(idx,    0);
-            base::header().set_bitsize(idx, 0);
+            base::header().setBitsize(idx, 0);
             base::header().set_offset(idx,  BitBlockSize);
         }
 
@@ -283,7 +283,7 @@ public:
             inserted = hasnt_label = false;
 
             base::header().set_rank(idx, rank);
-            base::header().set_bitsize(idx, bitsize);
+            base::header().setBitsize(idx, bitsize);
 
             if (idx < get_blocks() - 1) {
                 base::header().set_offset(idx + 1, offset - base::header().get_block_start(idx+1) < BitBlockSize ? offset - base::header().get_block_start(idx+1) : BitBlockSize);
@@ -294,7 +294,7 @@ public:
         }
 
         base::header().set_rank(total_rank);
-        base::header().set_bitsize(total_bitsize);
+        base::header().setBitsize(total_bitsize);
     }
 
     index_t get_blocks() {
@@ -310,24 +310,24 @@ public:
         }
     }
 
-    static index_t get_max_size() {
+    static index_t getMaxSize() {
         return sizeof(typename base::bits_t) * 8;
     }
 
     index_t get_capacity() {
-        return get_max_size() - base::header().get_size();
+        return getMaxSize() - base::header().get_size();
     }
 
     void dump(std::ostream &os) {
         os<<"size        = "<<base::header().get_size()<<std::endl;
         os<<"rank        = "<<base::header().get_rank()<<std::endl;
-        os<<"bitsize     = "<<base::header().get_bitsize()<<std::endl;
+        os<<"bitsize     = "<<base::header().getBitsize()<<std::endl;
         os<<"offset      = "<<base::header().get_offset()<<std::endl;
         os<<"inserted    = "<<base::header().get_inserted()<<std::endl;
         os<<"hasnt_label = "<<base::header().hasnt_label()<<std::endl;
 
         for (index_t c = 0; c < get_blocks(); c++) {
-            os<<c<<":("<<base::header().get_rank(c)<<", "<<base::header().get_bitsize(c)<<", "<<base::header().get_offset(c)<<") ";
+            os<<c<<":("<<base::header().get_rank(c)<<", "<<base::header().getBitsize(c)<<", "<<base::header().get_offset(c)<<") ";
         }
         os<<std::endl;
 

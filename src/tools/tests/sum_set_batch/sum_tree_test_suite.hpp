@@ -25,7 +25,7 @@ public:
 
 	SumTreeTestSuite(): TestSuite("SumTreeTestSuite")
 	{
-		RegisterTask(new SumsetBatchTest());
+		registerTask(new SumsetBatchTest());
 	}
 
 };

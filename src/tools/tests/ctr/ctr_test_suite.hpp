@@ -25,7 +25,7 @@ public:
 
 	CtrTestSuite(): TestSuite("CtrTestSuite")
 	{
-		RegisterTask(new CreateCtrTest());
+		registerTask(new CreateCtrTest());
 	}
 
 };

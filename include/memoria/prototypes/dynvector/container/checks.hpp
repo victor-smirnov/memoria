@@ -76,7 +76,7 @@ bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const Nod
 	Int key			= me()->getKey(leaf, 0, idx);
 	DataPageG data 	= me()->getValuePage(leaf, idx, Allocator::READ);
 
-	if (data.is_set())
+	if (data.isSet())
 	{
 		bool error = false;
 

@@ -117,7 +117,7 @@ public:
 		return cnt;
 	}
 
-	void Clear() {
+	void clear() {
 		for (Int c = 0; c < Size; c++)
 		{
 			ids_[c] = ID(0);

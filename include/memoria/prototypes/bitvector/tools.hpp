@@ -32,7 +32,7 @@ node_base *node2node(NodePage1 *src, bool root)
     }
     tgt->children_count() = src->children_count();
 
-    for (index_t c = tgt->children_count(); c < tgt->map().max_size(); c++)
+    for (index_t c = tgt->children_count(); c < tgt->map().maxSize(); c++)
     {
         for (index_t d = 0; d < src->INDEXES; d++)
         {
@@ -75,19 +75,19 @@ bool can_convert_to_root(node_base *node)
 
     if (node->get_key_size() == KEY_SIZE__SMALL)
     {
-        node_max_size = root_small_node::map_t::max_size();
+        node_max_size = root_small_node::map_t::maxSize();
     }
     else if (node->get_key_size() == KEY_SIZE__MEDIUM)
     {
-        node_max_size = root_medium_node::map_t::max_size();
+        node_max_size = root_medium_node::map_t::maxSize();
     }
     else if (node->get_key_size() == KEY_SIZE__LARGE)
     {
-        node_max_size = root_large_node::map_t::max_size();
+        node_max_size = root_large_node::map_t::maxSize();
     }
     else
     {
-        node_max_size = root_huge_node::map_t::max_size();
+        node_max_size = root_huge_node::map_t::maxSize();
     }
 
     //TODO Why ROOT_CAST ?
@@ -180,7 +180,7 @@ index_t get_capacity(node_base *node)
     BV_NODE_CAST2(node,
         if (_max_node_capacity == -1)
         {
-            return (__node->map().max_size() - __node->children_count());
+            return (__node->map().maxSize() - __node->children_count());
         }
         else
         {
@@ -195,7 +195,7 @@ index_t get_max_capacity(node_base *node)
     BV_NODE_CAST2(node,
         if (_max_node_capacity == -1)
         {
-            return __node->map().max_size();
+            return __node->map().maxSize();
         }
         else
         {

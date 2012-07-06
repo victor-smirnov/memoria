@@ -29,7 +29,7 @@
 
 
 
-#define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "<<me()->type_name())
+#define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "<<me()->typeName())
 
 namespace memoria    {
 
@@ -142,7 +142,7 @@ public:
     	{
     		delete reflection_->getCtrInterface();
 
-    		MetadataRepository<typename Types::Profile>::Unregister(reflection_);
+    		MetadataRepository<typename Types::Profile>::unregisterMetadata(reflection_);
 
     		delete reflection_;
     		reflection_ = NULL;
@@ -174,13 +174,13 @@ public:
         {
             MetadataList list;
 
-            Types::Pages::NodeDispatcher::BuildMetadataList(list);
+            Types::Pages::NodeDispatcher::buildMetadataList(list);
 
-            PageInitDispatcher<typename Types::DataPagesList>::BuildMetadataList(list);
+            PageInitDispatcher<typename Types::DataPagesList>::buildMetadataList(list);
 
             reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(), list, Name::Code + salt, MyType::getContainerInterface());
 
-            MetadataRepository<typename Types::Profile>::Register(reflection_);
+            MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);
         }
 
         return reflection_->Hash();
@@ -200,7 +200,7 @@ public:
     	return new (&me()->allocator()) CtrShared(name);
     }
 
-    CtrShared* getOrcreateCtrShared(BigInt name)
+    CtrShared* getOrCreateCtrShared(BigInt name)
     {
     	if (me()->allocator().isCtrSharedRegistered(name))
     	{
@@ -222,13 +222,13 @@ public:
     			shared->updated() = false;
     		}
 
-    		me()->ConfigureNewCtrShared(shared, node);
+    		me()->configureNewCtrShared(shared, node);
 
     		return shared;
     	}
     }
 
-    void ConfigureNewCtrShared(CtrShared* shared, PageG root) const {}
+    void configureNewCtrShared(CtrShared* shared, PageG root) const {}
 
     void removeCtrShared(CtrShared* shared)
     {
@@ -302,7 +302,7 @@ public:
 	CtrHelper(): Base() {}
 	CtrHelper(const ThisType& other): Base(other) {}
 	CtrHelper(ThisType&& other): Base(std::move(other)) {}
-	CtrHelper(ThisType&& other, Allocator0& allocator): Base(std::move(other), allocator) {}
+	CtrHelper(ThisType&& other, Allocator0& allocator): Base(std::move(other), allocator)    {}
 	CtrHelper(const ThisType& other, Allocator0& allocator): Base(other, allocator) 		 {}
 
 	void operator=(ThisType&& other) {
@@ -502,7 +502,7 @@ public:
     	return *allocator_;
     }
 
-    const char* type_name() const {
+    const char* typeName() const {
         return model_type_name_;
     }
 

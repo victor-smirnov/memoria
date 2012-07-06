@@ -98,18 +98,18 @@ public:
 		return parent_idx_;
 	}
 
-	void Clear() {
-		node_.Clear();
+	void clear() {
+		node_.clear();
 		parent_idx_ = 0;
 	}
 };
 
 
-struct ValueClearing {
+struct Valueclearing {
 	template <typename Value>
 	void operator()(Value& value)
 	{
-		value.Clear();
+		value.clear();
 	}
 };
 
@@ -121,9 +121,9 @@ struct ValueClearing {
 template <
 	typename NodePage,
 	Int Size = 8>
-class NodePath: public FixedVector<TreePathItem<NodePage>, Size, ValueClearing> {
+class NodePath: public FixedVector<TreePathItem<NodePage>, Size, Valueclearing> {
 
-	typedef FixedVector<TreePathItem<NodePage>, Size, ValueClearing> 	Base;
+	typedef FixedVector<TreePathItem<NodePage>, Size, Valueclearing> 	Base;
 	typedef NodePath<NodePage, Size> 									MyType;
 
 public:
@@ -174,7 +174,7 @@ public:
 			{
 				for (Int c = level; c >= 0; c--)
 				{
-					Base::operator[](c).Clear();
+					Base::operator[](c).clear();
 				}
 			}
 		}

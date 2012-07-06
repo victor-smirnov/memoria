@@ -51,7 +51,7 @@ void FillPMap(PMap* map, Int size)
 
 	map->size() = size;
 
-	map->Reindex(0);
+	map->reindex(0);
 }
 
 
@@ -67,7 +67,7 @@ void Benchmark(Int size, Int average = 10)
 
 	map_->initByBlock(buffer_size - sizeof(PMap));
 
-	FillPMap(map_, map_->max_size());
+	FillPMap(map_, map_->maxSize());
 
 
 	Int operations = 1000*1000;

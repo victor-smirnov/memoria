@@ -86,7 +86,7 @@ public:
 		return keys_[idx];
 	}
 
-	void Clear()
+	void clear()
 	{
 		for (Int c = 0; c < Indexes; c++)
 		{
@@ -301,14 +301,14 @@ public:
 	{
 		prefix_ 	+= current_;
 
-		current_.Clear();
+		current_.clear();
 	};
 
 	void PrevKey(bool start)
 	{
 		prefix_ 	-= current_;
 
-		current_.Clear();
+		current_.clear();
 	};
 
 	void Prepare()
@@ -332,7 +332,7 @@ public:
 	{
 		typedef typename Iterator::Container::TreePath TreePath;
 
-		prefix_.Clear();
+		prefix_.clear();
 
 		const TreePath& path = Base::iterator().path();
 		Int 			idx  = Base::iterator().key_idx();

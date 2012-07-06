@@ -30,36 +30,36 @@ public:
 
 	PackedMapTestSuite(): TestSuite("PackedMapTestSuite")
 	{
-		RegisterTask(new PMapDataTest());
-		RegisterTask(new PMapfindTest());
-		RegisterTask(new PMapReindexTest());
+		registerTask(new PMapDataTest());
+		registerTask(new PMapfindTest());
+		registerTask(new PMapReindexTest());
 
-		RegisterTask(new PMapSumTest<2>());
-		RegisterTask(new PMapSumTest<4>());
-		RegisterTask(new PMapSumTest<8>());
-		RegisterTask(new PMapSumTest<16>());
-		RegisterTask(new PMapSumTest<32>());
-		RegisterTask(new PMapSumTest<64>());
+		registerTask(new PMapSumTest<2>());
+		registerTask(new PMapSumTest<4>());
+		registerTask(new PMapSumTest<8>());
+		registerTask(new PMapSumTest<16>());
+		registerTask(new PMapSumTest<32>());
+		registerTask(new PMapSumTest<64>());
 
-		RegisterTask(new PMapWalkFwTest<2>());
-		RegisterTask(new PMapWalkFwTest<4>());
-		RegisterTask(new PMapWalkFwTest<8>());
-		RegisterTask(new PMapWalkFwTest<16>());
-		RegisterTask(new PMapWalkFwTest<32>());
-		RegisterTask(new PMapWalkFwTest<64>());
-		RegisterTask(new PMapWalkFwTest<5>());
-		RegisterTask(new PMapWalkFwTest<13>());
-		RegisterTask(new PMapWalkFwTest<22>());
+		registerTask(new PMapWalkFwTest<2>());
+		registerTask(new PMapWalkFwTest<4>());
+		registerTask(new PMapWalkFwTest<8>());
+		registerTask(new PMapWalkFwTest<16>());
+		registerTask(new PMapWalkFwTest<32>());
+		registerTask(new PMapWalkFwTest<64>());
+		registerTask(new PMapWalkFwTest<5>());
+		registerTask(new PMapWalkFwTest<13>());
+		registerTask(new PMapWalkFwTest<22>());
 
-		RegisterTask(new PMapWalkBwTest<2>());
-		RegisterTask(new PMapWalkBwTest<4>());
-		RegisterTask(new PMapWalkBwTest<8>());
-		RegisterTask(new PMapWalkBwTest<16>());
-		RegisterTask(new PMapWalkBwTest<32>());
-		RegisterTask(new PMapWalkBwTest<64>());
-		RegisterTask(new PMapWalkBwTest<5>());
-		RegisterTask(new PMapWalkBwTest<13>());
-		RegisterTask(new PMapWalkBwTest<22>());
+		registerTask(new PMapWalkBwTest<2>());
+		registerTask(new PMapWalkBwTest<4>());
+		registerTask(new PMapWalkBwTest<8>());
+		registerTask(new PMapWalkBwTest<16>());
+		registerTask(new PMapWalkBwTest<32>());
+		registerTask(new PMapWalkBwTest<64>());
+		registerTask(new PMapWalkBwTest<5>());
+		registerTask(new PMapWalkBwTest<13>());
+		registerTask(new PMapWalkBwTest<22>());
 	}
 
 };

@@ -153,7 +153,7 @@ public:
 
 		auto& path = iter.path();
 
-		if (path.data().node().is_set())
+		if (path.data().node().isSet())
 		{
 			if (iter.data_pos() < 0)
 			{
@@ -188,14 +188,14 @@ public:
 
 		if (iter.IsEnd())
 		{
-			if (iter.data().is_set())
+			if (iter.data().isSet())
 			{
 				iter.Dump(out);
 				throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
 			}
 		}
 		else {
-			if (iter.data().is_empty())
+			if (iter.data().isEmpty())
 			{
 				iter.Dump(out);
 				throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");

@@ -63,7 +63,7 @@ public:
     	cache_.init(me());
     }
 
-    void Assign(ThisType&& other)
+    void assign(ThisType&& other)
     {
         path_       = other.path_;
         key_idx_    = other.key_idx_;
@@ -73,10 +73,10 @@ public:
 
         cache_.init(me());
 
-        Base::Assign(std::move(other));
+        Base::assign(std::move(other));
     }
 
-    void Assign(const ThisType& other)
+    void assign(const ThisType& other)
     {
     	path_       = other.path_;
     	key_idx_    = other.key_idx_;
@@ -86,7 +86,7 @@ public:
 
     	cache_.init(me());
 
-    	Base::Assign(other);
+    	Base::assign(other);
     }
 
     bool IsFound() const {
@@ -98,14 +98,14 @@ public:
     	found_ = found;
     }
 
-    bool IsEqual(const ThisType& other) const
+    bool isEqual(const ThisType& other) const
     {
-    	return page() == other.page() && key_idx_ == other.key_idx_ && Base::IsEqual(other);
+    	return page() == other.page() && key_idx_ == other.key_idx_ && Base::isEqual(other);
     }
 
-    bool IsNotEqual(const ThisType& other) const
+    bool isNotEqual(const ThisType& other) const
     {
-    	return page() != other.page() || key_idx_ != other.key_idx_ || Base::IsNotEqual(other);
+    	return page() != other.page() || key_idx_ != other.key_idx_ || Base::isNotEqual(other);
     }
 
     void setNode(NodeBaseG& node, Int parent_idx)
@@ -170,7 +170,7 @@ public:
 
     bool IsEnd() const
     {
-    	return page().is_set() ? key_idx() >= page()->children_count() : true;
+    	return page().isSet() ? key_idx() >= page()->children_count() : true;
     }
 
     bool IsNotEnd() const
@@ -180,7 +180,7 @@ public:
 
     bool IsEmpty() const
     {
-    	return page().is_empty() || page()->children_count() == 0;
+    	return page().isEmpty() || page()->children_count() == 0;
     }
 
     bool IsNotEmpty() const
@@ -214,7 +214,7 @@ public:
 
     String getDumpHeader()
     {
-    	return String(me()->model().type_name()) + " Iterator State";
+    	return String(me()->model().typeName()) + " Iterator State";
     }
 
     void dumpPath(ostream& out)

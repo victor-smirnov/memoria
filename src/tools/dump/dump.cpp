@@ -127,7 +127,7 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 			const IDValue& id = entry.id[c];
 
 			IDValue idv = id;
-			if ((!idv.IsNull()) && processed.find(id) == processed.end())
+			if ((!idv.isNull()) && processed.find(id) == processed.end())
 			{
 				stringstream str;
 

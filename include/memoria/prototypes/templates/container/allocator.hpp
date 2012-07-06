@@ -66,17 +66,17 @@ public:
 
     virtual void unregisterCtrShared(CtrShared* shared)
     {
-    	me()->shared()->UnregisterChild(shared);
+    	me()->shared()->unregisterChild(shared);
     }
 
     virtual void registerCtrShared(CtrShared* shared)
     {
-    	me()->shared()->RegisterChild(shared);
+    	me()->shared()->registerChild(shared);
     }
 
     virtual bool isCtrSharedRegistered(BigInt name)
     {
-    	return me()->shared()->IsChildRegistered(name);
+    	return me()->shared()->isChildRegistered(name);
     }
 
 

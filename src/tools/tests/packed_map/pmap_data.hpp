@@ -77,7 +77,7 @@ public:
 
 	void FillMap(Map* map)
 	{
-		for (Int c = 0; c < map->index_size() / 2; c++)
+		for (Int c = 0; c < map->indexSize() / 2; c++)
 		{
 			for (Int d = 0; d < Blocks; d++)
 			{
@@ -85,7 +85,7 @@ public:
 			}
 		}
 
-		for (Int c = 0; c < map->max_size() / 2; c++)
+		for (Int c = 0; c < map->maxSize() / 2; c++)
 		{
 			for (Int d = 0; d < Blocks; d++)
 			{
@@ -95,7 +95,7 @@ public:
 			map->value(c) = getRandom(50000);
 		}
 
-		map->size() = map->max_size() / 2;
+		map->size() = map->maxSize() / 2;
 	}
 
 	void CopyMap(Map* src, Map* dst)
@@ -103,7 +103,7 @@ public:
 		memmove(dst, src, src->getObjectSize());
 	}
 
-	void ClearMap(Map* src)
+	void clearMap(Map* src)
 	{
 		for (Int c = 0; c < src->size(); c++)
 		{
@@ -115,7 +115,7 @@ public:
 			src->value(c) = 0;
 		}
 
-		for (Int c = 0; c < src->index_size(); c++)
+		for (Int c = 0; c < src->indexSize(); c++)
 		{
 			for (Int d = 0; d < Blocks; d++)
 			{
@@ -127,8 +127,8 @@ public:
 	void CompareAfterinsert(Map* src, Map* dst, Int room_start, Int room_length)
 	{
 		MEMORIA_TEST_THROW_IF(src->size(), 			!=, dst->size() - room_length);
-		MEMORIA_TEST_THROW_IF(src->max_size(), 		!=, dst->max_size());
-		MEMORIA_TEST_THROW_IF(src->index_size(), 	!=, dst->index_size());
+		MEMORIA_TEST_THROW_IF(src->maxSize(), 		!=, dst->maxSize());
+		MEMORIA_TEST_THROW_IF(src->indexSize(), 	!=, dst->indexSize());
 
 		for (Int c = 0; c < room_start; c++)
 		{
@@ -152,7 +152,7 @@ public:
 		}
 
 
-		for (Int c = 0; c < src->index_size(); c++)
+		for (Int c = 0; c < src->indexSize(); c++)
 		{
 			for (Int d = 0; d < Blocks; d++)
 			{
@@ -163,14 +163,14 @@ public:
 
 	void CompareEqual(Map* src, Map* dst, bool compare_index = true)
 	{
-		MEMORIA_TEST_THROW_IF(src->max_size(), 		!=, dst->max_size());
-		MEMORIA_TEST_THROW_IF(src->index_size(), 	!=, dst->index_size());
+		MEMORIA_TEST_THROW_IF(src->maxSize(), 		!=, dst->maxSize());
+		MEMORIA_TEST_THROW_IF(src->indexSize(), 	!=, dst->indexSize());
 
 		CompareContentEqual(src, dst);
 
 		if (compare_index)
 		{
-			for (Int c = 0; c < src->index_size(); c++)
+			for (Int c = 0; c < src->indexSize(); c++)
 			{
 				for (Int d = 0; d < Blocks; d++)
 				{
@@ -199,8 +199,8 @@ public:
 	void CompareAfterRemove(Map* src, Map* dst, Int room_start, Int room_length)
 	{
 		MEMORIA_TEST_THROW_IF(src->size(), 			!=, dst->size() + room_length);
-		MEMORIA_TEST_THROW_IF(src->max_size(), 		!=, dst->max_size());
-		MEMORIA_TEST_THROW_IF(src->index_size(), 	!=, dst->index_size());
+		MEMORIA_TEST_THROW_IF(src->maxSize(), 		!=, dst->maxSize());
+		MEMORIA_TEST_THROW_IF(src->indexSize(), 	!=, dst->indexSize());
 
 		for (Int c = 0; c < room_start; c++)
 		{
@@ -224,7 +224,7 @@ public:
 		}
 
 
-		for (Int c = 0; c < src->index_size(); c++)
+		for (Int c = 0; c < src->indexSize(); c++)
 		{
 			for (Int d = 0; d < Blocks; d++)
 			{
@@ -235,15 +235,15 @@ public:
 
 
 
-	void CompareAfterEnlarge(Map* src, Map* dst)
+	void CompareAfterenlarge(Map* src, Map* dst)
 	{
-		MEMORIA_TEST_THROW_IF(src->max_size(), ==, dst->max_size());
+		MEMORIA_TEST_THROW_IF(src->maxSize(), ==, dst->maxSize());
 		CompareContentEqual(src, dst);
 	}
 
-	void CompareAfterShrink(Map* src, Map* dst)
+	void CompareAftershrink(Map* src, Map* dst)
 	{
-		MEMORIA_TEST_THROW_IF(src->max_size(), ==, dst->max_size());
+		MEMORIA_TEST_THROW_IF(src->maxSize(), ==, dst->maxSize());
 		CompareContentEqual(src, dst);
 	}
 
@@ -277,7 +277,7 @@ public:
 		}
 
 
-		for (Int c = 0; c < map1->index_size(); c++)
+		for (Int c = 0; c < map1->indexSize(); c++)
 		{
 			for (Int d = 0; d < Blocks; d++)
 			{
@@ -296,27 +296,27 @@ public:
 
 		CompareEqual(map1, map2);
 
-		map2->EnlargeBlock(buffer_size);
+		map2->enlargeBlock(buffer_size);
 
-		CompareAfterEnlarge(map1, map2);
+		CompareAfterenlarge(map1, map2);
 
-		map2->ShrinkBlock(buffer_size / 2);
+		map2->shrinkBlock(buffer_size / 2);
 
 		CompareEqual(map1, map2, false);
 
-		ClearMap(map2);
+		clearMap(map2);
 
-		map2->EnlargeBlock(buffer_size);
+		map2->enlargeBlock(buffer_size);
 
-		map1->EnlargeTo(map2);
+		map1->enlargeTo(map2);
 
-		CompareAfterEnlarge(map1, map2);
+		CompareAfterenlarge(map1, map2);
 
-		ClearMap(map1);
+		clearMap(map1);
 
-		map2->ShrinkTo(map1);
+		map2->shrinkTo(map1);
 
-		CompareAfterShrink(map1, map2);
+		CompareAftershrink(map1, map2);
 	}
 };
 

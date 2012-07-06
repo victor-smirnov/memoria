@@ -30,7 +30,7 @@ public:
     template <typename T>
     IDValue(const T* id) {
         clear();
-        id->CopyTo(ptr());
+        id->copyTo(ptr());
     }
 
     IDValue(StringRef id) {
@@ -47,14 +47,14 @@ public:
     IDValue(const AbstractPageID<T,Size>& id)
     {
     	clear();
-    	id.CopyTo(ptr());
+    	id.copyTo(ptr());
     }
 
     template <typename T, Int Size>
     IDValue& operator=(const AbstractPageID<T,Size>& id)
     {
     	clear();
-    	id.CopyTo(ptr());
+    	id.copyTo(ptr());
     	return *this;
     }
 
@@ -68,7 +68,7 @@ public:
     template <typename T>
     void set(const T& id) {
         clear();
-        id.CopyTo(ptr());
+        id.copyTo(ptr());
     }
 
     template <typename T>
@@ -105,7 +105,7 @@ public:
         return String(text);
     }
 
-    virtual bool IsNull() const {
+    virtual bool isNull() const {
         for (unsigned c = 0; c < sizeof(data_); c++) {
             if (data_[c] != 0) {
                 return false;

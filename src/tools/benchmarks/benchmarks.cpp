@@ -68,29 +68,29 @@ int main(int argc, const char** argv, const char** envp)
 		// add tasks to the runner;
 
 
-		runner.RegisterTask(new MemoryThroughputGraph());
+		runner.registerTask(new MemoryThroughputGraph());
 
-		runner.RegisterTask(new PackedsetMemGraph());
+		runner.registerTask(new PackedsetMemGraph());
 
-		runner.RegisterTask(new SetRandomReadGraph());
-		runner.RegisterTask(new SetLinearReadGraph());
-		runner.RegisterTask(new SetRandominsertGraph());
-		runner.RegisterTask(new SetCommitRateGraph());
-
-
-		runner.RegisterTask(new MemmoveGraph());
-
-		runner.RegisterTask(new VectorRandomSmallReadGraph());
-		runner.RegisterTask(new VectorReadGraph());
-		runner.RegisterTask(new VectorinsertGraph());
+		runner.registerTask(new SetRandomReadGraph());
+		runner.registerTask(new SetLinearReadGraph());
+		runner.registerTask(new SetRandominsertGraph());
+		runner.registerTask(new SetCommitRateGraph());
 
 
-		runner.RegisterTask(new VectorMapRandomGraph());
-		runner.RegisterTask(new VectorMapLinearGraph());
-		runner.RegisterTask(new VectorMapReadOverheadGraph());
-		runner.RegisterTask(new VectorMapBatchinsertGraph());
+		runner.registerTask(new MemmoveGraph());
 
-		runner.RegisterTask(new TestGraph());
+		runner.registerTask(new VectorRandomSmallReadGraph());
+		runner.registerTask(new VectorReadGraph());
+		runner.registerTask(new VectorinsertGraph());
+
+
+		runner.registerTask(new VectorMapRandomGraph());
+		runner.registerTask(new VectorMapLinearGraph());
+		runner.registerTask(new VectorMapReadOverheadGraph());
+		runner.registerTask(new VectorMapBatchinsertGraph());
+
+		runner.registerTask(new TestGraph());
 
 		runner.Configure(&cmd_line.getConfigurator());
 

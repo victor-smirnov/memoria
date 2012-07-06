@@ -49,33 +49,33 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     IterPart(const ThisPartType& other): Base(other), local_pos_(other.local_pos_) {}
 
-    void Assign(const ThisPartType& other)
+    void assign(const ThisPartType& other)
     {
-    	Base::Assign(other);
+    	Base::assign(other);
 
     	local_pos_    	= other.local_pos_;
     }
 
-    void Assign(ThisPartType&& other)
+    void assign(ThisPartType&& other)
     {
-    	Base::Assign(std::move(other));
+    	Base::assign(std::move(other));
 
     	local_pos_    	= other.local_pos_;
     }
 
-    bool IsEqual(const ThisPartType& other) const
+    bool isEqual(const ThisPartType& other) const
     {
-    	return local_pos_  == other.local_pos_ && Base::IsEqual(other);
+    	return local_pos_  == other.local_pos_ && Base::isEqual(other);
     }
 
-    bool IsNotEqual(const ThisPartType& other) const
+    bool isNotEqual(const ThisPartType& other) const
     {
-    	return local_pos_  != other.local_pos_ || Base::IsNotEqual(other);
+    	return local_pos_  != other.local_pos_ || Base::isNotEqual(other);
     }
 
     bool IsEof() const
     {
-    	return me()->data().is_set() ? me()->data_pos() >= me()->data()->size() : true;
+    	return me()->data().isSet() ? me()->data_pos() >= me()->data()->size() : true;
     }
 
     DataPageG& data()

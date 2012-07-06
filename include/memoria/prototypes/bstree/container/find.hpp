@@ -82,10 +82,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
                 
                 if (node->is_leaf())
                 {
-                    tmp = node->map().max_key(key_num_);
+                    tmp = node->map().maxKey(key_num_);
                 }
                 else {
-                    tmp = node->map().max_key(key_num_) - node->map().key(key_num_, node->children_count() - 1);
+                    tmp = node->map().maxKey(key_num_) - node->map().key(key_num_, node->children_count() - 1);
                 }
 
                 current_prefix_ += tmp;
@@ -96,9 +96,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
             return idx;
         }
 
-        bool CompareMax(Key key, Key max_key)
+        bool CompareMax(Key key, Key maxKey)
         {
-            return key >= max_key;
+            return key >= maxKey;
         }
 
         const CmpType* me() const {
@@ -129,7 +129,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
     	template <typename Node>
     	bool IsKeyWithinRange(Node* node, Key key) const
     	{
-    		return key < node->map().max_key(Base::key_num());
+    		return key < node->map().maxKey(Base::key_num());
     	}
     };
 
@@ -148,7 +148,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::FindName)
         template <typename Node>
         bool IsKeyWithinRange(Node* node, Key key) const
         {
-        	return key <= node->map().max_key(Base::key_num());
+        	return key <= node->map().maxKey(Base::key_num());
         }
     };
 

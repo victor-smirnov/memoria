@@ -143,7 +143,7 @@ public:
 		}
 	}
 
-	void WalkIndex(Int start, Int end)
+	void walkIndex(Int start, Int end)
 	{
 		for (Int c = start; c < end; c++)
 		{
@@ -195,7 +195,7 @@ public:
 		}
 	}
 
-	void WalkIndex(Int start, Int end)
+	void walkIndex(Int start, Int end)
 	{
 		for (Int block = 0; block < Blocks; block++)
 		{
@@ -263,7 +263,7 @@ public:
 		return end;
 	}
 
-	Int WalkIndex(Int start, Int end)
+	Int walkIndex(Int start, Int end)
 	{
 		for (Int c = start; c < end; c++)
 		{
@@ -335,7 +335,7 @@ public:
 		return end;
 	}
 
-	Int WalkIndex(Int start, Int end)
+	Int walkIndex(Int start, Int end)
 	{
 		for (Int c = start; c > end; c--)
 		{
@@ -407,7 +407,7 @@ public:
 		return end;
 	}
 
-	Int WalkIndex(Int start, Int end)
+	Int walkIndex(Int start, Int end)
 	{
 		for (Int c = start; c > end; c--)
 		{

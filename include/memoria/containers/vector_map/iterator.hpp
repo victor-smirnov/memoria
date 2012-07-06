@@ -81,7 +81,7 @@ public:
 			ba_iter_ = std::move(other.ba_iter_);
 			is_iter_ = std::move(other.is_iter_);
 
-			Base::Assign(other);
+			Base::assign(other);
 		}
 
 		return *this;
@@ -94,7 +94,7 @@ public:
 			ba_iter_ = other.ba_iter_;
 			is_iter_ = other.is_iter_;
 
-			Base::Assign(std::move(other));
+			Base::assign(std::move(other));
 		}
 
 		return *this;
@@ -140,14 +140,14 @@ public:
 
 	bool operator==(const MyType& other) const
 	{
-		return IsEqual(other);
+		return isEqual(other);
 	}
 
-	bool IsEqual(const MyType& other) const
+	bool isEqual(const MyType& other) const
 	{
 		if (other.type() == Base::NORMAL)
 		{
-			return is_iter_ == other.is_iter_ && ba_iter_ == other.ba_iter_ && Base::IsEqual(other);
+			return is_iter_ == other.is_iter_ && ba_iter_ == other.ba_iter_ && Base::isEqual(other);
 		}
 		else if (other.type() == Base::END)
 		{
@@ -165,14 +165,14 @@ public:
 
 	bool operator!=(const MyType& other) const
 	{
-		return IsNotEqual(other);
+		return isNotEqual(other);
 	}
 
-	bool IsNotEqual(const MyType& other) const
+	bool isNotEqual(const MyType& other) const
 	{
 		if (other.type() == Base::NORMAL)
 		{
-			return is_iter_ != other.is_iter_ || ba_iter_ != other.ba_iter_ || Base::IsNotEqual(other);
+			return is_iter_ != other.is_iter_ || ba_iter_ != other.ba_iter_ || Base::isNotEqual(other);
 		}
 		else if (other.type() == Base::END)
 		{

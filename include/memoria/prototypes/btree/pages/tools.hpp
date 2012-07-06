@@ -80,7 +80,7 @@ public:
             two->map().MoveData(count_ + shift_, 0, two->children_count());
         }
 
-        one->map().CopyData(from_, count_, two->map(), shift_);
+        one->map().copyData(from_, count_, two->map(), shift_);
 
         for (Int c = from_; c < from_ + count_; c++)
         {
@@ -103,8 +103,8 @@ public:
             two->map().data(c) = 0;
         }
 
-        one->Reindex();
-        two->Reindex();
+        one->reindex();
+        two->reindex();
     }
 
     Int count() {
@@ -155,7 +155,7 @@ public:
 
         if (reindex_)
         {
-            node->map().Reindex();
+            node->map().reindex();
         }
     }
 };
@@ -187,11 +187,11 @@ void RemoveElements(Node *node, Int from, Int count, bool reindex)
 //
 //    tgt->page_type_hash()   = NodePage2::hash();
 //
-//    src->map().TransferTo(&tgt->map());
+//    src->map().transferTo(&tgt->map());
 //
 //    tgt->set_children_count(src->children_count());
 //
-//    tgt->map().Reindex();
+//    tgt->map().reindex();
 //
 //    CopyBuffer(buffer, src, Allocator::PAGE_SIZE);
 //}
@@ -245,11 +245,11 @@ public:
         	int a = 0; a++;
         }
 
-        src->map().TransferTo(&tgt->map());
+        src->map().transferTo(&tgt->map());
 
         tgt->set_children_count(src->children_count());
 
-        tgt->map().Reindex();
+        tgt->map().reindex();
 
         CopyBuffer(buffer, src, Allocator::PAGE_SIZE);
     }
@@ -282,11 +282,11 @@ public:
 
         tgt->page_type_hash()   = NonRootNode::hash();
 
-        src->map().TransferTo(&tgt->map());
+        src->map().transferTo(&tgt->map());
 
         tgt->set_children_count(src->children_count());
 
-        tgt->map().Reindex();
+        tgt->map().reindex();
 
         CopyBuffer(buffer, src, Allocator::PAGE_SIZE);
     }
@@ -452,7 +452,7 @@ struct ReindexFn {
 
     template <typename T>
     void operator()(T *node) {
-        node->map().ReindexAll(from_, to_);
+        node->map().reindexAll(from_, to_);
     }
 };
 
@@ -541,7 +541,7 @@ public:
 
     template <typename T>
     void operator()(T *node) {
-        key_ = node->map().max_key(i_);
+        key_ = node->map().maxKey(i_);
     }
 
     Key key() {
@@ -567,7 +567,7 @@ public:
     template <typename T>
     void operator()(T *node) {
         for (Int c = 0; c < Indexes; c++) {
-            keys_[c] = node->map().max_key(c);
+            keys_[c] = node->map().maxKey(c);
         }
     }
 };

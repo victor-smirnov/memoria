@@ -29,7 +29,7 @@ public:
 		return source_;
 	}
 
-	virtual void Out(ostream& out) const {}
+	virtual void dump(ostream& out) const {}
 };
 
 
@@ -45,7 +45,7 @@ public:
         return message_;
     }
 
-    virtual void Out(ostream& out) const {
+    virtual void dump(ostream& out) const {
     	out<<message_;
     }
 };

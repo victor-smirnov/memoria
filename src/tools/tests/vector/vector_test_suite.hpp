@@ -25,7 +25,7 @@ public:
 
 	VectorTestSuite(): TestSuite("VectorTestSuite")
 	{
-		RegisterTask(new VectorTest());
+		registerTask(new VectorTest());
 	}
 
 };

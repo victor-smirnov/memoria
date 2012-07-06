@@ -232,11 +232,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     			node->set_children_count(count_);
 
-    			node->map().Reindex();
+    			node->map().reindex();
 
     			for (Int d = 0; d < Indexes; d++)
     			{
-    				total_.keys[d] = node->map().max_key(d);
+    				total_.keys[d] = node->map().maxKey(d);
     			}
 
     			total_.value = node->id();
@@ -334,10 +334,10 @@ private:
     {
     	if (from + count == node->children_count())
     	{
-    		me()->ReindexRegion(node, from, from + count);
+    		me()->reindexRegion(node, from, from + count);
     	}
     	else {
-    		me()->Reindex(node);
+    		me()->reindex(node);
     	}
     }
 
@@ -410,16 +410,16 @@ private:
     			tgt->map().insertSpace(0, count + shift_);
     		}
 
-    		src->map().CopyTo(&tgt->map(), from_, count, shift_);
-    		src->map().Clear(from_, from_ + count);
+    		src->map().copyTo(&tgt->map(), from_, count, shift_);
+    		src->map().clear(from_, from_ + count);
 
     		src->inc_size(-count);
     		tgt->inc_size(count + shift_);
 
-    		tgt->map().Clear(0, shift_);
+    		tgt->map().clear(0, shift_);
 
-    		src->Reindex();
-    		tgt->Reindex();
+    		src->reindex();
+    		tgt->reindex();
     	}
     };
 
@@ -1012,7 +1012,7 @@ void M_TYPE::NewRoot(TreePath& path)
 	me()->setKeys(new_root, 0, keys);
 	me()->setINodeData(new_root, 0, &root->id());
 	me()->setChildrenCount(new_root, 1);
-	me()->Reindex(new_root);
+	me()->reindex(new_root);
 
 	me()->set_root(new_root->id());
 

@@ -170,7 +170,7 @@ public:
 		remove(getSize() - 1);
 	}
 
-	void Clear()
+	void clear()
 	{
 		ClearingFunctor functor;
 

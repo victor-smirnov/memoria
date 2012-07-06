@@ -157,7 +157,7 @@ void TaskGroup::Run(ostream& out)
 	cout<<endl;
 }
 
-void TaskGroup::RegisterTask(Task* task)
+void TaskGroup::registerTask(Task* task)
 {
 	for (auto t: tasks_)
 	{

@@ -99,10 +99,10 @@ public:
 			{
 				for (Int c = level - 1; c >= 0; c--)
 				{
-					Base::operator[](c).Clear();
+					Base::operator[](c).clear();
 				}
 
-				data_.Clear();
+				data_.clear();
 			}
 		}
 		else if (data_.parent_idx() >= from)
@@ -111,7 +111,7 @@ public:
 		}
 		else if (data_.parent_idx() >= from)
 		{
-			data_.Clear();
+			data_.clear();
 		}
 	}
 };

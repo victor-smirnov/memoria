@@ -101,17 +101,17 @@ public:
 
     bool ShouldMergeData(const TreePath& path) const
     {
-    	return path.data()->size() <= DataPage::get_max_size() / 2;
+    	return path.data()->size() <= DataPage::getMaxSize() / 2;
     }
 
     bool CanMergeData(const TreePath& data1, const TreePath& data2) const
     {
-    	return data1[0]->id() == data2[0]->id()  &&  (data1.data()->size() + data2.data()->size() <= DataPage::get_max_size());
+    	return data1[0]->id() == data2[0]->id()  &&  (data1.data()->size() + data2.data()->size() <= DataPage::getMaxSize());
     }
 
     bool CanMergeData2(const TreePath& data1, const TreePath& data2) const
     {
-    	return data1.data()->size() + data2.data()->size() <= DataPage::get_max_size();
+    	return data1.data()->size() + data2.data()->size() <= DataPage::getMaxSize();
     }
 
 
@@ -241,7 +241,7 @@ bool M_TYPE::MergeDataWithRightSibling(Iterator& iter)
 		BigInt source_size = iter.data()->size();
 		BigInt target_size = me()->getKey(iter.page(), 0, iter.key_idx() + 1);
 
-		if (source_size + target_size <= DataPage::get_max_size())
+		if (source_size + target_size <= DataPage::getMaxSize())
 		{
 			DataPathItem target_data_item(me()->getValuePage(iter.page(), iter.key_idx() + 1, Allocator::UPDATE), iter.key_idx() + 1);
 
@@ -404,7 +404,7 @@ typename M_TYPE::Accumulator M_TYPE::removeAllData(Iterator& start, Iterator& st
 	BigInt count = 0;
 	me()->removeAllPages(start.path(), stop.path(), removed, count);
 
-	start.path().data().node().Clear();
+	start.path().data().node().clear();
 	start.path().data().parent_idx() = 0;
 
 	start.cache().setup(0, 0);
@@ -552,7 +552,7 @@ void M_TYPE::MergeDataPagesAndremoveSource(
 
 	source_data->data().size() -= src_size;
 
-	keys.Clear();
+	keys.clear();
 }
 
 

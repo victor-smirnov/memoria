@@ -74,7 +74,7 @@ DataPathItem SplitDataPage(Iterator& iter);
 
 Int getMaxDataSize() const
 {
-	return DataPage::get_max_size() - DataPage::get_max_size() % me()->getElementSize();
+	return DataPage::getMaxSize() - DataPage::getMaxSize() % me()->getElementSize();
 }
 
 
@@ -160,7 +160,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::insertData(Iterator& iter, const IData& data, SizeT start, SizeT length)
 {
-	me()->insertData(iter, getDataProxy(data, start, length));
+	me()->insertData(iter, GetDataProxy(data, start, length));
 }
 
 
@@ -250,7 +250,7 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 
 		me()->createDataPage(right, 0);
 
-		me()->Reindex(right.leaf());
+		me()->reindex(right.leaf());
 
 		MoveData(left, data_pos, right);
 
@@ -261,7 +261,7 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 
 		DataPathItem target_data = me()->createDataPage(path[0].node(), idx);
 
-		me()->Reindex(path.leaf());
+		me()->reindex(path.leaf());
 
 		MoveData(path, data_pos, target_data);
 
@@ -286,7 +286,7 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, 
 
 	//FIXME: should data page be NULL for empty containers?
 	bool reindex_fully = false;
-	if (data.is_empty())
+	if (data.isEmpty())
 	{
 		me()->MakeRoom(iter.path(), 0, iter.key_idx(), 1);
 

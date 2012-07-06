@@ -261,8 +261,8 @@ public:
 
 		logscale	= 10;
 
-		RegisterTask(new setinsertBatchBenchmark("insert"));
-		RegisterTask(new SetappendBatchBenchmark("append"));
+		registerTask(new setinsertBatchBenchmark("insert"));
+		registerTask(new SetappendBatchBenchmark("append"));
 	}
 };
 

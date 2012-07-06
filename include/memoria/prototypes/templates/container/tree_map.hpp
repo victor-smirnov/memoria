@@ -76,7 +76,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     Iterator getByIndex(BigInt index)
     {
 //        NodeBaseG node = me()->getRoot(Allocator::READ);
-//        if (node.is_set())
+//        if (node.isSet())
 //        {
 //        	Iterator iter(*me(), node->level());
 //

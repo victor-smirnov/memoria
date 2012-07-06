@@ -71,7 +71,7 @@ public:
     {
     	if (this != &other)
     	{
-    		Base::Assign(std::move(other));
+    		Base::assign(std::move(other));
     	}
 
     	return *this;
@@ -81,7 +81,7 @@ public:
     {
     	if (this != &other)
     	{
-    		Base::Assign(other);
+    		Base::assign(other);
     	}
 
     	return *this;
@@ -89,14 +89,14 @@ public:
 
     bool operator==(const MyType& other) const
 	{
-    	return IsEqual(other);
+    	return isEqual(other);
 	}
 
-    bool IsEqual(const MyType& other) const
+    bool isEqual(const MyType& other) const
     {
     	if (other.type() == Base::NORMAL)
     	{
-    		return Base::IsEqual(other);
+    		return Base::isEqual(other);
     	}
     	else if (other.type() == Base::END)
     	{
@@ -114,14 +114,14 @@ public:
 
     bool operator!=(const MyType& other) const
     {
-    	return IsNotEqual(other);
+    	return isNotEqual(other);
     }
 
-    bool IsNotEqual(const MyType& other) const
+    bool isNotEqual(const MyType& other) const
     {
     	if (other.type() == Base::NORMAL)
     	{
-    		return Base::IsNotEqual(other);
+    		return Base::isNotEqual(other);
     	}
     	else if (other.type() == Base::END)
     	{

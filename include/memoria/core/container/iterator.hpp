@@ -35,10 +35,6 @@ public:
 	IterHelper(): BaseType() {}
 	IterHelper(ThisType&& other): BaseType(std::move(other)) {}
 	IterHelper(const ThisType& other): BaseType(other) {}
-
-//	void operator=(const ThisType& other) {
-//		BaseType::operator=(other);
-//	}
 };
 
 template <typename Types>
@@ -52,10 +48,6 @@ public:
 	IterHelper(): BaseType() {}
 	IterHelper(ThisType&& other): BaseType(std::move(other)) {}
 	IterHelper(const ThisType& other): BaseType(other) {}
-
-//	void operator=(const ThisType& other) {
-//		BaseType::operator=(other);
-//	}
 };
 
 template <typename Types>
@@ -68,10 +60,6 @@ public:
 	IterStart(): Base() {}
 	IterStart(ThisType&& other): Base(std::move(other)) {}
 	IterStart(const ThisType& other): Base(other) {}
-
-//	void operator=(const ThisType& other) {
-//		Base::operator=(other);
-//	}
 };
 
 
@@ -113,23 +101,23 @@ public:
     	return type_;
     }
 
-    bool IsEqual(const ThisType& other) const
+    bool isEqual(const ThisType& other) const
     {
     	return true;
     }
 
-    bool IsNotEqual(const ThisType& other) const
+    bool isNotEqual(const ThisType& other) const
     {
     	return false;
     }
 
-    void Assign(const ThisType& other)
+    void assign(const ThisType& other)
     {
     	logger_ = other.logger_;
     	type_	= other.type_;
     }
 
-    void assing(ThisType&& other)
+    void assign(ThisType&& other)
     {
     	logger_ = std::move(other.logger_);
     	type_	= other.type_;
@@ -154,8 +142,8 @@ public:
     	  return logger_;
     }
 
-    const char* type_name() const {
-        return me()->model().type_name();
+    const char* typeName() const {
+        return me()->model().typeName();
     }
 
 

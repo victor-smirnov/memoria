@@ -78,9 +78,9 @@ void BenchmarkTaskGroup::Run(ostream& out)
 }
 
 
-void BenchmarkTaskGroup::RegisterTask(BenchmarkTask* task)
+void BenchmarkTaskGroup::registerTask(BenchmarkTask* task)
 {
-	TaskGroup::RegisterTask(task);
+	TaskGroup::registerTask(task);
 }
 
 

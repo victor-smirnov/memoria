@@ -356,7 +356,7 @@ node_base* split_node(node_base *one, node_base *parent, index_t parent_idx, ind
             child->parent_idx() -= from;
             child->parent_idx() += shift;
 
-            if (!child->is_bitmap())
+            if (!child->isBitmap())
             {
                 page_cnt += 1;
             }
@@ -499,7 +499,7 @@ void import_several_pages(node_base *node, index_t &prefix, index_t &offset,
 {
 
     index_t rank, bitsize;
-    index_t page_size = bitmap_node::get_max_size();
+    index_t page_size = bitmap_node::getMaxSize();
 
     csize_t total_size = 0, total_rank = 0, total_bitsize = 0;
     for (index_t c = idx; c < idx + page_count; c++, start+=page_size)
@@ -608,7 +608,7 @@ void import_data(bitmap_node *page, index_t idx, const Buffer &data,
             update_inserted(parent, marked_page->parent_idx(), true, false, _allocator, txn);
         }
     }
-    else if (!_marked_page_id.is_null())
+    else if (!_marked_page_id.isNull())
     {
         bitmap_node *marked_page = get_bitmap(_marked_page_id, txn);
         marked_page->header().set_inserted(-1);
@@ -636,7 +636,7 @@ void import_pages(node_base *node, index_t idx, index_t pos, index_t offset, Buf
                   CountData &base_prefix, int content_type, txn_t &txn)
 {
 
-    index_t page_size = bitmap_node::get_max_size();
+    index_t page_size = bitmap_node::getMaxSize();
     index_t fp_capacity = page_size - get_key(node, 0, idx);
 
     index_t prefix;
@@ -850,13 +850,13 @@ void move_data_in_page(bitmap_node *from, bitmap_node *to, index_t local_idx, in
 
     index_t from_size0 = from->header().get_size();
     index_t from_rank0 = from->header().get_rank();
-    index_t from_bitsize0 = from->header().get_bitsize();
+    index_t from_bitsize0 = from->header().getBitsize();
 
     from->move_data(*to, prefix, local_idx, limit, get_node_bits(), get_data_bits());
 
     index_t from_size1 = from->header().get_size();
     index_t from_rank1 = from->header().get_rank();
-    index_t from_bitsize1 = from->header().get_bitsize();
+    index_t from_bitsize1 = from->header().getBitsize();
 
     index_t size = from_size1 - from_size0;
     index_t rank = from_rank1 - from_rank0;
@@ -881,11 +881,11 @@ void insert_bitmap_block(iterator<> &iter, Buffer &block, index_t offset, index_
     index_t     __idx     = __index != NULL ? __index->parent_idx() : -1;
     index_t     __offset  = iter.idx();
 
-    index_t page_size = bitmap_node::get_max_size();
+    index_t page_size = bitmap_node::getMaxSize();
 
     if (iter.isEmpty())
     {
-        if (_root.is_null())
+        if (_root.isNull())
         {
             page = create_node(txn, 1, true);
             page->set_leaf(true);

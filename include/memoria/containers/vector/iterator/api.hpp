@@ -113,7 +113,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     {
     	Base::dumpPath(out);
 
-    	if (me()->data().is_set())
+    	if (me()->data().isSet())
     	{
     		out<<"Data:    "<<IDValue(me()->data()->id())<<" at "<<me()->path().data().parent_idx()<<endl;
     	}
@@ -155,10 +155,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 	}
 
 
-    void assing(const IData& data)
-    {
-    	update(data);
-    }
+//    void assign(const IData& data)
+//    {
+//    	update(data);
+//    }
 
     template <typename T>
     operator T()
@@ -259,7 +259,7 @@ BigInt M_TYPE::skipFw(BigInt count)
 		{
 			SumTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
 
-			bool end = me()->model().WalkFw(me()->path(), me()->key_idx(), walker);
+			bool end = me()->model().walkFw(me()->path(), me()->key_idx(), walker);
 
 			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 
@@ -317,7 +317,7 @@ BigInt M_TYPE::skipBw(BigInt count)
 			SumTreeWalker<Container, Key, false> walker(distance + to_add, me()->model());
 
 			//FIXME: does 'end' means the same as for StepFw()?
-			bool end 		= me()->model().WalkBw(me()->path(), me()->key_idx(), walker);
+			bool end 		= me()->model().walkBw(me()->path(), me()->key_idx(), walker);
 
 			me()->model().FinishPathStep(me()->path(), me()->key_idx());
 

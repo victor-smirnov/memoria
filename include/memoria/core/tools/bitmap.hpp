@@ -88,7 +88,7 @@ inline T TypeBitsize() {
 
 /**
  * Return the mask that is used to get bit address in the array cell using & operator.
- * See set_bit() for example.
+ * See setBit() for example.
  */
 
 template <typename T>
@@ -99,7 +99,7 @@ inline T TypeBitmask() {
 /**
  * Count the bit number of a type bitmask. It is used to get cell part of bit address
  * using >> operator.
- * See set_bit() for example.
+ * See setBit() for example.
  */
 
 template <typename T>

@@ -225,7 +225,7 @@ public:
 
 	virtual void Run(ostream& out);
 
-	virtual void RegisterTask(BenchmarkTask* task);
+	virtual void registerTask(BenchmarkTask* task);
 };
 
 
@@ -293,7 +293,7 @@ public:
 
 	virtual void AddGraph(BenchmarkTask* graph, const GraphData& data)
 	{
-		this->RegisterTask(graph);
+		this->registerTask(graph);
 		this->graph_data_.push_back(data);
 	}
 

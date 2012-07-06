@@ -75,7 +75,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	{
     		switch (trait_)
     		{
-    			case BTreeNodeTraits::MAX_CHILDREN: value_ = Node::Map::max_size_for(Allocator::PAGE_SIZE - sizeof(Node)); break;
+    			case BTreeNodeTraits::MAX_CHILDREN: value_ = Node::Map::maxSizeFor(Allocator::PAGE_SIZE - sizeof(Node)); break;
 
     			default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait_);
     		}
@@ -158,7 +158,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         void operator()(T *node)
         {
             typedef typename memoria::Type2TypeMap<T, TypeMap, void>::Result RootType;
-            can_ = node->children_count() <= RootType::Map::max_size_for(Allocator::PAGE_SIZE - sizeof(RootType));
+            can_ = node->children_count() <= RootType::Map::maxSizeFor(Allocator::PAGE_SIZE - sizeof(RootType));
         }
 
         bool can() const {
@@ -215,18 +215,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     }
 
     template <typename Max>
-    class getCapacityFn {
+    class GetCapacityFn {
         Int cap_;
         Max max_node_capacity_;
     public:
-        getCapacityFn(Max max_node_capacity): max_node_capacity_(max_node_capacity) {}
+        GetCapacityFn(Max max_node_capacity): max_node_capacity_(max_node_capacity) {}
 
         template <typename T>
         void operator()(T *node)
         {
             if (max_node_capacity_ == 0)
             {
-                cap_ = (node->map().max_size() - node->children_count());
+                cap_ = (node->map().maxSize() - node->children_count());
             }
             else
             {
@@ -242,7 +242,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
 
     Int getCapacity(const NodeBaseG& node) const
     {
-        getCapacityFn<Int> fn(me()->getBranchingFactor());
+        GetCapacityFn<Int> fn(me()->getBranchingFactor());
         NodeDispatcher::DispatchConst(node, fn);
         return fn.cap();
     }
@@ -258,7 +258,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         void operator()(T *node) {
             if (max_node_capacity_ == 0)
             {
-                cap_ = node->map().max_size();
+                cap_ = node->map().maxSize();
             }
             else
             {
@@ -345,13 +345,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	memoria::btree::setData<NonLeafDispatcher>(node.page(), idx, id);
     }
 
-    void Reindex(NodeBaseG& node) const
+    void reindex(NodeBaseG& node) const
     {
         node.update();
     	memoria::btree::Reindex<NodeDispatcher>(node.page(), 0, node->children_count());
     }
 
-    void ReindexRegion(NodeBaseG& node, Int from, Int to) const
+    void reindexRegion(NodeBaseG& node, Int from, Int to) const
     {
     	node.update();
     	memoria::btree::Reindex<NodeDispatcher>(node.page(), from, to);
@@ -372,10 +372,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
 
             if (i_ == node->children_count() - 1)
             {
-            	node->map().ReindexAll(i_, i_ + 1);
+            	node->map().reindexAll(i_, i_ + 1);
             }
             else {
-            	node->map().ReindexAll(i_, node->children_count());
+            	node->map().reindexAll(i_, node->children_count());
             }
         }
     };

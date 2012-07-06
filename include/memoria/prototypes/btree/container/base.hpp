@@ -186,12 +186,12 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     		shared->root_log() 		= node->id();
     		shared->updated() 		= true;
 
-    		me()->ConfigureNewCtrShared(shared, node);
+    		me()->configureNewCtrShared(shared, node);
 
     		Base::setCtrShared(shared);
     	}
     	else {
-    		CtrShared* shared = me()->getOrcreateCtrShared(me()->name());
+    		CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
 
     		Base::setCtrShared(shared);
     	}
@@ -199,11 +199,11 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     void initCtr(const ID& root_id)
     {
-    	CtrShared* shared = me()->getOrcreateCtrShared(me()->name());
+    	CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
     	Base::setCtrShared(shared);
     }
 
-    void ConfigureNewCtrShared(CtrShared* shared, PageG root) const
+    void configureNewCtrShared(CtrShared* shared, PageG root) const
     {
     	T2T<BTreeCtrShared*>(shared)->configure_metadata(MyType::getCtrRootMetadata(root));
     }

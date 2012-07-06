@@ -79,7 +79,7 @@ public:
 
 		map->size() = size;
 
-		map->Reindex(0);
+		map->reindex(0);
 
 		return sum;
 	}
@@ -102,16 +102,16 @@ public:
 
 			map->initByBlock(buffer_size / c);
 
-			for (Int c = 1; c < map->max_size(); c++)
+			for (Int c = 1; c < map->maxSize(); c++)
 			{
 				Int sum = FillPMap(map, c);
-				MEMORIA_TEST_THROW_IF_1(map->max_key(0), !=, sum, c);
+				MEMORIA_TEST_THROW_IF_1(map->maxKey(0), !=, sum, c);
 			}
 
-			for (Int c = map->max_size() - 1; c > 0; c--)
+			for (Int c = map->maxSize() - 1; c > 0; c--)
 			{
 				Int sum = FillPMap(map, c);
-				MEMORIA_TEST_THROW_IF_1(map->max_key(0), !=, sum, c);
+				MEMORIA_TEST_THROW_IF_1(map->maxKey(0), !=, sum, c);
 			}
 		}
 
@@ -123,15 +123,15 @@ public:
 
 			map->initByBlock(buffer_size / c);
 
-			Int sum = FillPMap(map, map->max_size());
+			Int sum = FillPMap(map, map->maxSize());
 
-			for (Int c = 0; c < map->max_size(); c++)
+			for (Int c = 0; c < map->maxSize(); c++)
 			{
-				map->Add(0, c, 1);
+				map->add(0, c, 1);
 
 				sum++;
 
-				MEMORIA_TEST_THROW_IF_1(map->max_key(0), !=, sum, c);
+				MEMORIA_TEST_THROW_IF_1(map->maxKey(0), !=, sum, c);
 			}
 		}
 	}

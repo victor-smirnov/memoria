@@ -103,7 +103,7 @@ public:
 
 		map->initByBlock(buffer_size - sizeof(Map));
 
-		FillMap(map, max_size != 0 ? max_size : map->max_size());
+		FillMap(map, max_size != 0 ? max_size : map->maxSize());
 
 		Accumulator acc;
 		map->Sum(start, end, acc);
@@ -125,7 +125,7 @@ public:
 
 		map->size() = size;
 
-		map->ReindexAll(0, size);
+		map->reindexAll(0, size);
 	}
 
 
@@ -152,7 +152,7 @@ public:
 
 		map->initByBlock(buffer_size - sizeof(Map));
 
-		FillMap(map, max_size != 0 ? max_size : map->max_size());
+		FillMap(map, max_size != 0 ? max_size : map->maxSize());
 
 		TestReplay replay;
 		replay.block_size = buffer_size;

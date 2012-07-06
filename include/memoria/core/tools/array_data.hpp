@@ -92,15 +92,15 @@ public:
 };
 
 
-class getDataProxy: public IData {
+class GetDataProxy: public IData {
 	const IData&	data_;
 	SizeT 			start_;
 	SizeT			length_;
 public:
 
-	getDataProxy(const IData& data, SizeT start, SizeT length): data_(data), start_(start), length_(length) {}
+	GetDataProxy(const IData& data, SizeT start, SizeT length): data_(data), start_(start), length_(length) {}
 
-	virtual ~getDataProxy() throw () {}
+	virtual ~GetDataProxy() throw () {}
 
 	virtual SizeT getSize() const
 	{

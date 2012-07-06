@@ -78,9 +78,9 @@ public:
 
 		map->size() = size;
 
-		map->Reindex(0);
+		map->reindex(0);
 
-		MEMORIA_TEST_THROW_IF(map->max_key(0), !=, size*2);
+		MEMORIA_TEST_THROW_IF(map->maxKey(0), !=, size*2);
 	}
 
 
@@ -99,11 +99,11 @@ public:
 		{
 			map->initByBlock(buffer_size / div);
 
-			for (Int size = 0; size < map->max_size(); size++)
+			for (Int size = 0; size < map->maxSize(); size++)
 			{
 				map->key(0, size) = 2;
 				map->size()++;
-				map->Reindex(0, size, size + 1);
+				map->reindex(0, size, size + 1);
 
 				for (Int c = 0; c < map->size(); c++)
 				{

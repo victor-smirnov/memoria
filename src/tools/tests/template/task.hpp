@@ -83,7 +83,7 @@ public:
 
 	TemplateTestSuite(): TestSuite("Template")
 	{
-		RegisterTask(new TemplateTestTask());
+		registerTask(new TemplateTestTask());
 	}
 };
 

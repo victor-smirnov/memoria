@@ -82,7 +82,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 //    		}
 //    		else
 //    		{
-//    			me()->prefix().Clear();
+//    			me()->prefix().clear();
 //    		}
 //
 //    		return result;
@@ -102,7 +102,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
     {
 //        if (!me()->IsEmpty())
 //        {
-//        	me()->prefix().Clear();
+//        	me()->prefix().clear();
 //
 //            compute_base(me()->prefix());
 //        }

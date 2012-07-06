@@ -209,7 +209,7 @@ public:
 
     bool operator()(bitmap_node *data, IdxType c) {
         index_t rank = data->header().get_rank(c);
-        index_t bitsize = data->header().get_bitsize(c);
+        index_t bitsize = data->header().getBitsize(c);
 
         if (rank == 0 && bitsize == data->get_block_size(c)) {
             _sum += rank;
@@ -274,7 +274,7 @@ public:
 
     bool operator()(bitmap_node *data, IdxType c) {
         index_t rank = data->header().get_rank(c);
-        index_t bitsize = data->header().get_bitsize(c);
+        index_t bitsize = data->header().getBitsize(c);
 
         if (rank == 0 && bitsize == data->get_block_size(c)) {
             _sum += rank;

@@ -25,7 +25,7 @@ public:
 
 	MapTestSuite(): TestSuite("MapTestSuite")
 	{
-		RegisterTask(new MapTest());
+		registerTask(new MapTest());
 	}
 
 };

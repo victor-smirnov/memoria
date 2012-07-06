@@ -184,13 +184,13 @@ private:
                 node->map().removeSpace(from_, count_);
             }
 
-            node->map().Clear(node->children_count() - count_, node->children_count());
+            node->map().clear(node->children_count() - count_, node->children_count());
 
             node->set_children_count(node->map().size());
 
             if (reindex_)
             {
-                node->map().Reindex();
+                node->map().reindex();
             }
         }
     };
@@ -211,9 +211,9 @@ private:
     	{
     		start_ = page1->children_count();
 
-    		page2->map().CopyTo(&page1->map(), 0, page2->children_count(), page1->children_count());
+    		page2->map().copyTo(&page1->map(), 0, page2->children_count(), page1->children_count());
     		page1->inc_size(page2->children_count());
-    		page1->map().Reindex();
+    		page1->map().reindex();
     	}
 
     	Int start() const {
@@ -384,8 +384,8 @@ void M_TYPE::removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum,
 
 	me()->set_root(node->id());
 
-	start.Clear();
-	stop.Clear();
+	start.clear();
+	stop.clear();
 
 	start.append(TreePathItem(node, 0));
 	stop. append(TreePathItem(node, 0));
@@ -571,7 +571,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
 			NodeBaseG node = me()->createRootNode(0, true, me()->getRootMetadata());
 
 			me()->set_root(node->id());
-			path.Clear();
+			path.clear();
 			path.append(TreePathItem(node, 0));
 
 			key_idx = 0;
@@ -585,7 +585,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
 	NodeBaseG node = me()->createRootNode(0, true, me()->getRootMetadata());
 
 	me()->set_root(node->id());
-	path.Clear();
+	path.clear();
 	path.append(TreePathItem(node, 0));
 
 	key_idx = 0;
@@ -617,7 +617,7 @@ BigInt M_TYPE::removeNode(NodeBaseG node)
 	if (node->is_root())
 	{
 		ID id;
-		id.set_null();
+		id.setNull();
 		me()->set_root(id);
 	}
 
@@ -630,7 +630,7 @@ BigInt M_TYPE::removeNode(NodeBaseG node)
 M_PARAMS
 bool M_TYPE::ChangeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
 {
-	if (parent.is_set() && parent->is_root() && parent->children_count() == 1)
+	if (parent.isSet() && parent->is_root() && parent->children_count() == 1)
 	{
 		Metadata meta = me()->getRootMetadata();
 
@@ -897,7 +897,7 @@ void M_TYPE::MergeNodes(TreePath& tgt, TreePath& src, Int level)
 
 	src.MoveRight(level - 1, 0, tgt_children_count);
 
-	me()->Reindex(parent); //FIXME: does it necessary?
+	me()->reindex(parent); //FIXME: does it necessary?
 }
 
 M_PARAMS
@@ -942,7 +942,7 @@ void M_TYPE::Drop()
 {
 	NodeBaseG root = me()->getRoot(Allocator::READ);
 
-	if (root.is_set())
+	if (root.isSet())
 	{
 		me()->removeNode(root);
 	}

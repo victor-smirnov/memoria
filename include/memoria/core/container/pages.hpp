@@ -39,7 +39,7 @@ struct MEMORIA_API Page {
     virtual const void* Ptr() const                  = 0;
     virtual void* Ptr()                  		 	 = 0;
     virtual void setPtr(void* ptr)              	 = 0;
-    virtual bool IsNull() const						 = 0;
+    virtual bool isNull() const						 = 0;
 
     virtual Int size() const                         = 0;
     virtual Int getByte(Int idx) const               = 0;
@@ -55,7 +55,7 @@ public:
     PageWrapper(PageType* page): page_(page) {}
     PageWrapper(): page_(NULL) {}
 
-    virtual bool IsNull() const {
+    virtual bool isNull() const {
     	return page_ == NULL;
     }
 

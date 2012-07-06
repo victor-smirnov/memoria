@@ -51,14 +51,14 @@ public:
 		return metadata_;
 	}
 
-	static void Register(ContainerMetadata* ctr_metadata)
+	static void registerMetadata(ContainerMetadata* ctr_metadata)
 	{
-		metadata_->Register(ctr_metadata);
+		metadata_->registerMetadata(ctr_metadata);
 	}
 
-	static void Unregister(ContainerMetadata* ctr_metadata)
+	static void unregisterMetadata(ContainerMetadata* ctr_metadata)
 	{
-		metadata_->Unregister(ctr_metadata);
+		metadata_->unregisterMetadata(ctr_metadata);
 	}
 
 	static void init()

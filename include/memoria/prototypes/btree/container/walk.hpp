@@ -58,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
      */
 
     template <typename Walker>
-    bool WalkFw(TreePath& path, Int &idx, Walker &walker)
+    bool walkFw(TreePath& path, Int &idx, Walker &walker)
     {
     	NodeBaseG index = path[0].node();
 
@@ -100,7 +100,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
     			if (fn.result() == -1)
     			{
     				// this should not happened here
-    				throw Exception(MEMORIA_SOURCE, "WalkFw:Down: idx == -1");
+    				throw Exception(MEMORIA_SOURCE, "walkFw:Down: idx == -1");
     			}
 
     			if (!index->is_leaf())
@@ -145,7 +145,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::WalkName);
      */
 
     template <typename Walker>
-    bool WalkBw(TreePath& path, Int &idx, Walker &walker)
+    bool walkBw(TreePath& path, Int &idx, Walker &walker)
     {
     	NodeBaseG index = path[0].node();
 

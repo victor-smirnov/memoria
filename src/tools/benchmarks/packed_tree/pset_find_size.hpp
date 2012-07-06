@@ -71,7 +71,7 @@ public:
 
 		map->size() = size;
 
-		map->Reindex(0);
+		map->reindex(0);
 	}
 
 	virtual void Prepare(BenchmarkParameters& data, ostream& out)
@@ -86,7 +86,7 @@ public:
 
 		map_->initByBlock(buffer_size);
 
-		FillPMap(map_, map_->max_size());
+		FillPMap(map_, map_->maxSize());
 
 		rd_array_ = new Int[data.operations()];
 		for (Int c = 0; c < data.operations(); c++)

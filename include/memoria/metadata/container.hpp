@@ -31,12 +31,12 @@ struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
 		ContainerMetadata* getContainerMetadata(Int hashCode) const;
 
 
-		virtual void Register(ContainerMetadata* metadata)
+		virtual void registerMetadata(ContainerMetadata* metadata)
 		{
 			process_model(metadata);
 		}
 
-		virtual void Unregister(ContainerMetadata* metadata) {}
+		virtual void unregisterMetadata(ContainerMetadata* metadata) {}
 
 
 	private:

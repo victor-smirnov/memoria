@@ -62,11 +62,11 @@ public:
         leaf_ = leaf;
     }
 
-    inline bool is_bitmap() const {
+    inline bool isBitmap() const {
         return bitmap_;
     }
 
-    void set_bitmap(bool bitmap) {
+    void setBitmap(bool bitmap) {
         bitmap_ = bitmap;
     }
 
@@ -129,7 +129,7 @@ public:
 
         this->set_root(page->is_root());
         this->set_leaf(page->is_leaf());
-        this->set_bitmap(page->is_bitmap());
+        this->setBitmap(page->isBitmap());
     }
 };
 

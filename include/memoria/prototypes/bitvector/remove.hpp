@@ -268,7 +268,7 @@ void remove_data(bitmap_node *page,
             update_inserted(parent, marked_page->parent_idx(), true, true, _allocator, txn);
         }
     }
-    else if (!_marked_page_id.is_null())
+    else if (!_marked_page_id.isNull())
     {
         bitmap_node *marked_page = get_bitmap(_marked_page_id, txn);
         marked_page->header().set_inserted(_marked_bit_idx);
@@ -298,13 +298,13 @@ void remove_small_block(node_base *node, index_t idx,
     bitmap_node *bitmap = get_bitmap(node, idx, txn);
 
     index_t rank0 = bitmap->header().get_rank();
-    index_t bitsize0 = bitmap->header().get_bitsize();
+    index_t bitsize0 = bitmap->header().getBitsize();
 
     remove_data(bitmap, pos, length,
                 base_prefix, content_type, txn);
 
     index_t rank1 = bitmap->header().get_rank();
-    index_t bitsize1 = bitmap->header().get_bitsize();
+    index_t bitsize1 = bitmap->header().getBitsize();
 
     update_btree_nodes(node, idx, -length, rank1 - rank0, bitsize1 - bitsize0, _allocator, txn);
 }

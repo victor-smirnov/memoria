@@ -108,7 +108,7 @@ public:
         return Buffer_;
     }
 
-    void Clear() {
+    void clear() {
         for (Int c = 0; c < (Int)Size; c++) {
             Buffer_[c] = 0;
         }
@@ -130,7 +130,7 @@ public:
     	CopyBuffer(mem, Buffer_, Size);
     }
 
-    void CopyTo(void *mem) const {
+    void copyTo(void *mem) const {
         CopyBuffer(Buffer_, mem, Size);
     }
 
@@ -162,11 +162,11 @@ public:
         value() = obj;
     }
 
-    void Clear() {
+    void clear() {
     	value_ = 0;
     }
 
-    void CopyTo(void *mem) const {
+    void copyTo(void *mem) const {
     	CopyBuffer(&value_, mem, Size);
     }
 

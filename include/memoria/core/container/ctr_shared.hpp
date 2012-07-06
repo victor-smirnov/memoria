@@ -105,7 +105,7 @@ public:
 		return parent_;
 	}
 
-	void RegisterChild(CtrShared* child)
+	void registerChild(CtrShared* child)
 	{
 		if (children_.getSize() < child->name())
 		{
@@ -118,12 +118,12 @@ public:
 		children_[child->name()] = child;
 	}
 
-	void UnregisterChild(CtrShared* shared)
+	void unregisterChild(CtrShared* shared)
 	{
 		children_[shared->name()] = NULL;
 	}
 
-	bool IsChildRegistered(BigInt name)
+	bool isChildRegistered(BigInt name)
 	{
 		if (name < children_.getSize())
 		{

@@ -91,8 +91,8 @@ public:
         return ((Int)(BigInt)&me->data_) + data_.byte_size();
     }
 
-    static Int get_max_size() {
-        return PageData::max_size();
+    static Int getMaxSize() {
+        return PageData::maxSize();
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const

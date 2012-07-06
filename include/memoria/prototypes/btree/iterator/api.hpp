@@ -173,7 +173,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     template <typename Walker>
     BigInt skip_keys_fw(BigInt distance)
     {
-    	if (me()->page().is_empty())
+    	if (me()->page().isEmpty())
     	{
     		return 0;
     	}
@@ -184,7 +184,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	else {
     		Walker walker(distance, me()->model());
 
-    		if (me()->model().WalkFw(me()->path(), me()->key_idx(), walker))
+    		if (me()->model().walkFw(me()->path(), me()->key_idx(), walker))
     		{
     			me()->key_idx()++;
     			me()->ReHash();
@@ -211,7 +211,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	else {
     		Walker walker(distance, me()->model());
 
-    		if (me()->model().WalkBw(me()->path(), me()->key_idx(), walker))
+    		if (me()->model().walkBw(me()->path(), me()->key_idx(), walker))
     		{
     			me()->key_idx() = -1;
     			me()->ReHash();

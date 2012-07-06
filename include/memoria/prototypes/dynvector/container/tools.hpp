@@ -140,7 +140,7 @@ void M_TYPE::FinishPathStep(TreePath& path, Int key_idx) const
 	}
 	else
 	{
-		path.data().Clear();
+		path.data().clear();
 	}
 }
 

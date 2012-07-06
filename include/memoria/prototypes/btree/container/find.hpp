@@ -244,7 +244,7 @@ M_PARAMS
 typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
 {
 	NodeBaseG node = me()->getRoot(Allocator::READ);
-	if (node.is_set())
+	if (node.isSet())
 	{
 		Iterator i(*me(), node->level() + 1);
 
@@ -273,7 +273,7 @@ M_PARAMS
 typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
 {
 	NodeBaseG node = me()->getRoot(Allocator::READ);
-	if (node.is_set())
+	if (node.isSet())
 	{
 		Iterator i(*me(), node->level() + 1);
 

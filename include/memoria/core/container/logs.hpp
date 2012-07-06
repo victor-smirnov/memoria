@@ -15,7 +15,7 @@
 
 #define MEMORIA_LOG(logger_, level, ...)                                         \
     if (logger_->is_log(level))                                                    \
-        memoria::vapi::log(logger_->logger(), level, MEMORIA_SOURCE, logger_->type_name(), ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
+        memoria::vapi::log(logger_->logger(), level, MEMORIA_SOURCE, logger_->typeName(), ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
 
 #define MEMORIA_DEBUG(logger_, ...)                                              \
     MEMORIA_LOG(logger_, memoria::vapi::Logger::DEBUG, ##__VA_ARGS__)
@@ -249,7 +249,7 @@ public:
 
 
 template <typename T>
-LogHandler* LogIt(LogHandler* log, const T& value) {
+LogHandler* logIt(LogHandler* log, const T& value) {
     log->log(value);
     log->log(" ");
     return log;
@@ -263,7 +263,7 @@ bool log(Logger& log, Int level, const T0& v0) throw () {
         Locker lock(log, level);
         LogHandler* handler = log.getHandler();
 
-        LogIt(handler, v0);
+        logIt(handler, v0);
 
         return true;
     }
@@ -278,8 +278,8 @@ bool log(Logger& log, Int level, const T0& v0, const T1& v1) throw () {
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
+        logIt(handler, v0);
+        logIt(handler, v1);
 
         return true;
     }
@@ -294,9 +294,9 @@ bool log(Logger& log, Int level, const T0& v0, const T1& v1, const T2& v2) throw
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
 
         return true;
     }
@@ -311,10 +311,10 @@ bool log(Logger& log, Int level, const T0& v0, const T1& v1, const T2& v2, const
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
 
         return true;
     }
@@ -329,11 +329,11 @@ bool log(Logger& log, Int level, const T0& v0, const T1& v1, const T2& v2, const
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
 
         return true;
     }
@@ -350,12 +350,12 @@ bool log(Logger& log, Int level,
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
-        LogIt(handler, v5);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
 
         return true;
     }
@@ -375,13 +375,13 @@ bool log(Logger& log, Int level,
     	Locker lock(log, level);
     	LogHandler* handler = lock.handler();
 
-    	LogIt(handler, v0);
-    	LogIt(handler, v1);
-    	LogIt(handler, v2);
-    	LogIt(handler, v3);
-    	LogIt(handler, v4);
-    	LogIt(handler, v5);
-    	LogIt(handler, v6);
+    	logIt(handler, v0);
+    	logIt(handler, v1);
+    	logIt(handler, v2);
+    	logIt(handler, v3);
+    	logIt(handler, v4);
+    	logIt(handler, v5);
+    	logIt(handler, v6);
 
         return true;
     }
@@ -401,14 +401,14 @@ bool log(Logger& log, Int level,
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
-        LogIt(handler, v5);
-        LogIt(handler, v6);
-        LogIt(handler, v7);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
+        logIt(handler, v6);
+        logIt(handler, v7);
 
         return true;
     }
@@ -428,15 +428,15 @@ bool log(Logger& log, Int level,
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
-        LogIt(handler, v5);
-        LogIt(handler, v6);
-        LogIt(handler, v7);
-        LogIt(handler, v8);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
+        logIt(handler, v6);
+        logIt(handler, v7);
+        logIt(handler, v8);
 
 
         return true;
@@ -457,16 +457,16 @@ bool log(Logger& log, Int level,
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
-        LogIt(handler, v5);
-        LogIt(handler, v6);
-        LogIt(handler, v7);
-        LogIt(handler, v8);
-        LogIt(handler, v9);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
+        logIt(handler, v6);
+        logIt(handler, v7);
+        logIt(handler, v8);
+        logIt(handler, v9);
 
         return true;
     }
@@ -488,17 +488,17 @@ bool log(Logger& log, Int level,
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
-        LogIt(handler, v5);
-        LogIt(handler, v6);
-        LogIt(handler, v7);
-        LogIt(handler, v8);
-        LogIt(handler, v9);
-        LogIt(handler, v10);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
+        logIt(handler, v6);
+        logIt(handler, v7);
+        logIt(handler, v8);
+        logIt(handler, v9);
+        logIt(handler, v10);
 
         return true;
     }
@@ -520,18 +520,18 @@ bool log(Logger& log, Int level,
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
-        LogIt(handler, v5);
-        LogIt(handler, v6);
-        LogIt(handler, v7);
-        LogIt(handler, v8);
-        LogIt(handler, v9);
-        LogIt(handler, v10);
-        LogIt(handler, v11);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
+        logIt(handler, v6);
+        logIt(handler, v7);
+        logIt(handler, v8);
+        logIt(handler, v9);
+        logIt(handler, v10);
+        logIt(handler, v11);
 
         return true;
     }
@@ -553,19 +553,19 @@ bool log(Logger& log, Int level,
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
-        LogIt(handler, v5);
-        LogIt(handler, v6);
-        LogIt(handler, v7);
-        LogIt(handler, v8);
-        LogIt(handler, v9);
-        LogIt(handler, v10);
-        LogIt(handler, v11);
-        LogIt(handler, v12);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
+        logIt(handler, v6);
+        logIt(handler, v7);
+        logIt(handler, v8);
+        logIt(handler, v9);
+        logIt(handler, v10);
+        logIt(handler, v11);
+        logIt(handler, v12);
 
         return true;
     }
@@ -587,20 +587,20 @@ bool log(Logger& log, Int level,
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
-        LogIt(handler, v5);
-        LogIt(handler, v6);
-        LogIt(handler, v7);
-        LogIt(handler, v8);
-        LogIt(handler, v9);
-        LogIt(handler, v10);
-        LogIt(handler, v11);
-        LogIt(handler, v12);
-        LogIt(handler, v13);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
+        logIt(handler, v6);
+        logIt(handler, v7);
+        logIt(handler, v8);
+        logIt(handler, v9);
+        logIt(handler, v10);
+        logIt(handler, v11);
+        logIt(handler, v12);
+        logIt(handler, v13);
 
         return true;
     }
@@ -622,21 +622,21 @@ bool log(Logger& log, Int level,
         Locker lock(log, level);
         LogHandler* handler = lock.handler();
 
-        LogIt(handler, v0);
-        LogIt(handler, v1);
-        LogIt(handler, v2);
-        LogIt(handler, v3);
-        LogIt(handler, v4);
-        LogIt(handler, v5);
-        LogIt(handler, v6);
-        LogIt(handler, v7);
-        LogIt(handler, v8);
-        LogIt(handler, v9);
-        LogIt(handler, v10);
-        LogIt(handler, v11);
-        LogIt(handler, v12);
-        LogIt(handler, v13);
-        LogIt(handler, v14);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
+        logIt(handler, v6);
+        logIt(handler, v7);
+        logIt(handler, v8);
+        logIt(handler, v9);
+        logIt(handler, v10);
+        logIt(handler, v11);
+        logIt(handler, v12);
+        logIt(handler, v13);
+        logIt(handler, v14);
 
         return true;
     }

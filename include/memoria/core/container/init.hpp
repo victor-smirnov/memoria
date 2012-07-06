@@ -114,15 +114,15 @@ struct ProfileListBuilder<Order> {												\
 //	{
 //		if (ContainerTypesCollection<Profile>::reflection_ == NULL) {
 //			MetadataList list;
-//			ContainerDispatcherType::BuildMetadataList(list);
+//			ContainerDispatcherType::buildMetadataList(list);
 //			ContainerTypesCollection<Profile>::reflection_ = new ContainerCollectionMetadataImpl(TypeNameFactory<Profile>::name(), list);
 //		}
 //
 //		return ContainerTypesCollection<Profile>::reflection_->Hash();
 //	}
 //
-//	static void PrintContainerHashes() {
-//		ContainerDispatcherType::PrintContainerHashes();
+//	static void printContainerHashes() {
+//		ContainerDispatcherType::printContainerHashes();
 //	}
 //
 //};

@@ -114,7 +114,7 @@ private:
     			node->map().updateUp(c, idx_, keys_[c]);
 
     			if (reindex_fully_) {
-    				node->map().Reindex(c);
+    				node->map().reindex(c);
     			}
     		}
     	}
@@ -174,10 +174,10 @@ bool M_TYPE::checkNodeContent(Node *node) {
 			key += node->map().key(i, c);
 		}
 
-		if (key != node->map().max_key(i))
+		if (key != node->map().maxKey(i))
 		{
 			//me()->Dump(node);
-			MEMORIA_ERROR(me(), "Sum of keys doen't match max_key for key", i, key, node->map().max_key(i));
+			MEMORIA_ERROR(me(), "Sum of keys doen't match maxKey for key", i, key, node->map().maxKey(i));
 			errors = true;
 		}
 	}
@@ -192,9 +192,9 @@ bool M_TYPE::checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_i
 	bool errors = false;
 	for (Int c = 0; c < Indexes; c++)
 	{
-		if (node->map().max_key(c) != parent->map().key(c, parent_idx))
+		if (node->map().maxKey(c) != parent->map().key(c, parent_idx))
 		{
-			MEMORIA_ERROR(me(), "Invalid parent-child nodes chain", c, node->map().max_key(c), parent->map().key(c, parent_idx), "for", node->id(), parent->id(), parent_idx);
+			MEMORIA_ERROR(me(), "Invalid parent-child nodes chain", c, node->map().maxKey(c), parent->map().key(c, parent_idx), "for", node->id(), parent->id(), parent_idx);
 			errors = true;
 		}
 	}

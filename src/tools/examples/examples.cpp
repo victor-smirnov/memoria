@@ -68,13 +68,13 @@ int main(int argc, const char** argv, const char** envp)
 
 		TaskGroup* examples = new TaskGroup("Examples");
 
-		examples->RegisterTask(new CreateCtrExample());
-		examples->RegisterTask(new CopyCtrExample());
-		examples->RegisterTask(new MapExample());
-		examples->RegisterTask(new VectorMapExample());
-		examples->RegisterTask(new EmptyExample());
+		examples->registerTask(new CreateCtrExample());
+		examples->registerTask(new CopyCtrExample());
+		examples->registerTask(new MapExample());
+		examples->registerTask(new VectorMapExample());
+		examples->registerTask(new EmptyExample());
 
-		runner.RegisterTask(examples);
+		runner.registerTask(examples);
 
 		runner.Configure(&cmd_line.getConfigurator());
 
