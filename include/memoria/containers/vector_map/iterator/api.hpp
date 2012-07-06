@@ -49,10 +49,10 @@ void insert(const ArrayData& data)
 
 	keys.key(1) = data.size();
 
-	me()->is_iter().UpdateUp(keys);
+	me()->is_iter().updateUp(keys);
 }
 
-void Update(const ArrayData& data)
+void update(const ArrayData& data)
 {
 	BigInt sz = me()->size();
 
@@ -62,63 +62,63 @@ void Update(const ArrayData& data)
 
 		if (difference < 0)
 		{
-			me()->ba_iter().Update(data);
+			me()->ba_iter().update(data);
 			me()->ba_iter().remove(difference);
 		}
 		else if (difference > 0)
 		{
-			me()->ba_iter().Update(data, 0, sz);
+			me()->ba_iter().update(data, 0, sz);
 			me()->ba_iter().insert(data, sz, difference);
 		}
 		else {
-			me()->ba_iter().Update(data);
+			me()->ba_iter().update(data);
 		}
 
 		if (difference != 0)
 		{
 			IdxsetAccumulator keys;
 			keys.key(1) = difference;
-			me()->is_iter().UpdateUp(keys);
+			me()->is_iter().updateUp(keys);
 		}
 	}
 	else {
 		me()->insert(data);
 	}
 
-	me()->ba_iter().Skip(-data.size());
+	me()->ba_iter().skip(-data.size());
 }
 
 
-ArrayData Read()
+ArrayData read()
 {
-	me()->ba_iter().Skip(-me()->pos());
+	me()->ba_iter().skip(-me()->pos());
 
 	ArrayData data(me()->size());
-	me()->Read(data, 0, data.size());
+	me()->read(data, 0, data.size());
 
 	return data;
 }
 
 
-BigInt Read(ArrayData& data)
+BigInt read(ArrayData& data)
 {
-	return Read(data, 0, data.size());
+	return read(data, 0, data.size());
 }
 
 
-BigInt Read(ArrayData& data, BigInt start, BigInt length)
+BigInt read(ArrayData& data, BigInt start, BigInt length)
 {
 	BigInt current_pos 	= me()->pos();
 	BigInt current_size = me()->size();
 
 	BigInt len = ((length + current_pos) <= current_size) ? length : (current_size - current_pos);
 
-	me()->ba_iter().Read(data, start, len);
+	me()->ba_iter().read(data, start, len);
 
 	return len;
 }
 
-BigInt Skip(BigInt length)
+BigInt skip(BigInt length)
 {
 	BigInt current 	= me()->pos();
 
@@ -137,7 +137,7 @@ BigInt Skip(BigInt length)
 		}
 	}
 
-	return me()->ba_iter().Skip(length);
+	return me()->ba_iter().skip(length);
 }
 
 void remove()
@@ -197,14 +197,14 @@ bool Next() {
 
 bool NextKey()
 {
-	me()->ba_iter().Skip(size() - pos());
+	me()->ba_iter().skip(size() - pos());
 	return me()->is_iter().Next();
 }
 
 void setValue(BigInt value)
 {
 	ArrayData data(sizeof(value), &value);
-	me()->Update(data);
+	me()->update(data);
 }
 
 bool operator++() {
@@ -234,27 +234,27 @@ MyType& operator*() {
 void setValue(StringRef value)
 {
 	ArrayData data(value.size(), T2T<UByte*>(value.c_str()));
-	me()->Update(data);
+	me()->update(data);
 }
 
 void setValue(const ArrayData& value)
 {
-	me()->Update(value);
+	me()->update(value);
 }
 
 operator ArrayData()
 {
 	ArrayData data(me()->size());
-	BigInt len = me()->Read(data);
-	me()->Skip(-len);
+	BigInt len = me()->read(data);
+	me()->skip(-len);
 	return data;
 }
 
 operator String ()
 {
 	ArrayData data(me()->size());
-	BigInt len = me()->Read(data);
-	me()->Skip(-len);
+	BigInt len = me()->read(data);
+	me()->skip(-len);
 	return String(T2T<char*>(data.data()), data.size());
 }
 

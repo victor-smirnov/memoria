@@ -50,8 +50,8 @@ public:
 	{
 		Add("max_size", max_size);
 
-		RootCtr::Init();
-		setCtr::Init();
+		RootCtr::initMetadata();
+		setCtr::initMetadata();
 	}
 
 	virtual ~setCommitappendBenchmark() throw() {}

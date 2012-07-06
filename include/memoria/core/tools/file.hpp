@@ -46,7 +46,7 @@ public:
 
 	virtual void Rename(StringRef new_name);
 
-	static FileListType* ReadDir(const File& file);
+	static FileListType* readDir(const File& file);
 protected:
 	static String NormalizePath(StringRef name);
 };

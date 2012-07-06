@@ -35,8 +35,8 @@ public:
 	CreateCtrExample() :
 		SPExampleTask("CreateCtr")
 	{
-		SmallCtrTypeFactory::Factory<Root>::Type::Init();
-		SmallCtrTypeFactory::Factory<Map1>::Type::Init();
+		SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+		SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
 	}
 
 	virtual ~CreateCtrExample() throw () {

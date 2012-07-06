@@ -72,7 +72,7 @@ public:
 	VectorTest():
 		Base("Vector"), element_size_(1)
 	{
-		Ctr::Init();
+		Ctr::initMetadata();
 
 		max_block_size_ = 1024*40;
 		size_ 			= 1024*1024*16;
@@ -80,7 +80,7 @@ public:
 		Add("element_size", element_size_);
 	}
 
-	virtual ArrayData CreateBuffer(Ctr& array, Int size, UByte value)
+	virtual ArrayData createBuffer(Ctr& array, Int size, UByte value)
 	{
 		ArrayData data(size * array.getElementSize());
 
@@ -109,18 +109,18 @@ public:
 		iter.insert(data);
 	}
 
-	virtual void Read(Iterator& iter, ArrayData& data)
+	virtual void read(Iterator& iter, ArrayData& data)
 	{
-		iter.Read(data);
+		iter.read(data);
 	}
 
 	virtual void remove(Iterator& iter, BigInt size) {
 		iter.remove(size);
 	}
 
-	virtual void Skip(Iterator& iter, BigInt offset)
+	virtual void skip(Iterator& iter, BigInt offset)
 	{
-		iter.Skip(offset);
+		iter.skip(offset);
 	}
 
 	virtual BigInt getPosition(Iterator& iter)

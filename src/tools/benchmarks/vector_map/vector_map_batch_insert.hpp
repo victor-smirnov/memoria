@@ -73,8 +73,8 @@ public:
 	VectorMapBatchinsertBenchmark(StringRef name, Int data_size):
 		SPBenchmarkTask(name), memory_size(128*1024*1024), data_size_(data_size)
 	{
-		RootCtr::Init();
-		MapCtr::Init();
+		RootCtr::initMetadata();
+		MapCtr::initMetadata();
 
 		Add("memory_size", memory_size);
 	}
@@ -122,8 +122,8 @@ public:
 			key_count += size;
 		}
 
-		params.operations() = map_->Count();
-		params.memory() 	= map_->Size() + map_->Count() * 16; //sizeof(BigInt) * 2
+		params.operations() = map_->count();
+		params.memory() 	= map_->size() + map_->count() * 16; //sizeof(BigInt) * 2
 
 		allocator_->commit();
 	}

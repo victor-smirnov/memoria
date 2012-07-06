@@ -41,7 +41,7 @@ int main(int argc, const char** argv, const char** envp)
 {
 	signal(SIGSEGV, sighandler);
 
-	SmallCtrTypeFactory::Factory<Root>::Type::Init();
+	SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
 
 	try {
 		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::NONE);

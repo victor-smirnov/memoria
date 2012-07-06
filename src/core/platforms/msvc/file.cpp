@@ -129,7 +129,7 @@ String File::getAbsolutePath() const
 
 bool mkdir(StringRef name)
 {
-	bool result = CreateDirectory(name.c_str(), NULL);
+	bool result = createDirectory(name.c_str(), NULL);
 	if (result)
 	{
 		return true;
@@ -201,7 +201,7 @@ bool rm(const File &file)
 {
 	if (file.IsDirectory())
 	{
-		File::FileListType* list = File::ReadDir(file);
+		File::FileListType* list = File::readDir(file);
 
 		bool result = true;
 		for (UInt c = 0; c < list->size(); c++)
@@ -248,7 +248,7 @@ void ThrowFE(const char* src, const File& file) {
 	throw FileException(src, SBuf()<<"Can't read the directory: "<<getErrorMsg()<<" path="<<file.getPath());
 }
 
-File::FileListType* File::ReadDir(const File& file)
+File::FileListType* File::readDir(const File& file)
 {
 	if (file.IsDirectory())
 	{

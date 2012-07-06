@@ -42,8 +42,8 @@ public:
 	VectorMapRandomReadBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
-		RootCtr::Init();
-		Ctr::Init();
+		RootCtr::initMetadata();
+		Ctr::initMetadata();
 
 		Add("memory_size", memory_size);
 	}
@@ -63,7 +63,7 @@ public:
 
 		while (total < memory_size)
 		{
-			auto i = ctr_->Create();
+			auto i = ctr_->create();
 			i.insert(data);
 			total += data.size();
 		}
@@ -87,11 +87,11 @@ public:
 
 		for (Int c = 0; c < total; c++)
 		{
-			ctr_->find(getRandom(total)).Read(data);
+			ctr_->find(getRandom(total)).read(data);
 		}
 
-		params.operations() = ctr_->Count();
-		params.memory() 	= ctr_->Size() + ctr_->Count() * 16; //sizeof(BigInt) * 2
+		params.operations() = ctr_->count();
+		params.memory() 	= ctr_->size() + ctr_->count() * 16; //sizeof(BigInt) * 2
 	}
 };
 

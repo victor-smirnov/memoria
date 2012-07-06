@@ -47,8 +47,8 @@ public:
 	VectorSequentialReadBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
-		RootCtr::Init();
-		VectorCtr::Init();
+		RootCtr::initMetadata();
+		VectorCtr::initMetadata();
 
 		Add("memory_size", memory_size);
 
@@ -90,7 +90,7 @@ public:
 
 		for (Iterator i = ctr_->seek(0); !i.IsEof();)
 		{
-			i.Read(data);
+			i.read(data);
 		}
 
 		params.operations() = memory_size / size;

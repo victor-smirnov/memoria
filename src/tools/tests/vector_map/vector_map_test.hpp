@@ -62,14 +62,14 @@ public:
 		SPTestTask("VectorMap"),
 		max_block_size_(1024*40)
 	{
-		VectorMapCtr::Init();
+		VectorMapCtr::initMetadata();
 
 		Add("max_block_size", max_block_size_);
 	}
 
 	virtual ~VectorMapTest() throw() {}
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* createTestStep(StringRef name) const
 	{
 		return new TestReplay();
 	}
@@ -86,7 +86,7 @@ public:
 
 	void checkIteratorFw(VectorMapCtr& ctr)
 	{
-		MEMORIA_TEST_THROW_IF(ctr.Count(), != , (BigInt)pairs_.size());
+		MEMORIA_TEST_THROW_IF(ctr.count(), != , (BigInt)pairs_.size());
 
 		auto iter = ctr.Begin();
 
@@ -99,7 +99,7 @@ public:
 
 			UByte value = pair.key_ & 0xFF;
 
-			ArrayData data = CreateBuffer(pair.value_, value);
+			ArrayData data = createBuffer(pair.value_, value);
 
 			checkBufferWritten(iter, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -133,11 +133,11 @@ public:
 
 			BigInt key = params->key_;
 
-			auto iter = map.Create(key);
+			auto iter = map.create(key);
 
 			checkCtr(map, "insertion failed 1", MEMORIA_SOURCE);
 
-			ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
+			ArrayData data = createBuffer(params->data_size_, key & 0xFF);
 
 			iter.insert(data);
 
@@ -161,7 +161,7 @@ public:
 		else {
 			LoadVector(pairs_, params->pairs_data_file_);
 
-			MEMORIA_TEST_THROW_IF(map.Count(), != , (BigInt)pairs_.size());
+			MEMORIA_TEST_THROW_IF(map.count(), != , (BigInt)pairs_.size());
 
 			Int idx		= params->key_num_;
 			BigInt key  = params->key_;
@@ -224,11 +224,11 @@ public:
 
 			for (Int c = 0; c < params->size_; c++, value++)
 			{
-				auto iter = map.Create();
+				auto iter = map.create();
 
 				params->data_size_ = getRandom(task_params->max_block_size_);
 
-				ArrayData data = CreateBuffer(params->data_size_, c % 256);
+				ArrayData data = createBuffer(params->data_size_, c % 256);
 
 				iter.insert(data);
 
@@ -288,10 +288,10 @@ public:
 
 				params->key_ 		= key;
 
-				auto iter = map.Create(key);
+				auto iter = map.create(key);
 				params->data_size_ = getRandom(task_params->max_block_size_);
 
-				ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
+				ArrayData data = createBuffer(params->data_size_, key & 0xFF);
 				iter.insert(data);
 
 				checkCtr(map, "insertion failed.", 	MEMORIA_SOURCE);
@@ -320,7 +320,7 @@ public:
 				appendToSortedVector(pairs_tmp, Pair(key, params->data_size_));
 			}
 
-			MEMORIA_TEST_THROW_IF(map.Count(), != , (BigInt)pairs_.size());
+			MEMORIA_TEST_THROW_IF(map.count(), != , (BigInt)pairs_.size());
 		}
 		catch (...)
 		{
@@ -359,10 +359,10 @@ public:
 
 				params->key_ 		= key;
 
-				auto iter = map.Create(key);
+				auto iter = map.create(key);
 				params->data_size_ = getRandom(task_params->max_block_size_);
 
-				ArrayData data = CreateBuffer(params->data_size_, key & 0xFF);
+				ArrayData data = createBuffer(params->data_size_, key & 0xFF);
 				iter.insert(data);
 
 				appendToSortedVector(pairs_, Pair(key, params->data_size_));
@@ -370,11 +370,11 @@ public:
 
 			allocator.commit();
 
-			while (map.Count() > 0)
+			while (map.count() > 0)
 			{
 				pairs_tmp = pairs_;
 
-				Int idx = getRandom(map.Count());
+				Int idx = getRandom(map.count());
 
 				params->key_num_ 	= idx;
 				params->key_		= pairs_[idx].key_;

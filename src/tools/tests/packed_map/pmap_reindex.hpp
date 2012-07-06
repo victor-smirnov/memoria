@@ -57,7 +57,7 @@ public:
 
 	virtual ~PMapReindexTest() throw() {}
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* createTestStep(StringRef name) const
 	{
 		return new TestReplay();
 	}
@@ -100,7 +100,7 @@ public:
 		{
 			out<<"Reindex Pass: "<<c<<endl;
 
-			map->InitByBlock(buffer_size / c);
+			map->initByBlock(buffer_size / c);
 
 			for (Int c = 1; c < map->max_size(); c++)
 			{
@@ -121,7 +121,7 @@ public:
 		{
 			out<<"Add Pass: "<<c<<endl;
 
-			map->InitByBlock(buffer_size / c);
+			map->initByBlock(buffer_size / c);
 
 			Int sum = FillPMap(map, map->max_size());
 

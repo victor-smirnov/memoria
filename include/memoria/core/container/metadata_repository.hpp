@@ -61,7 +61,7 @@ public:
 		metadata_->Unregister(ctr_metadata);
 	}
 
-	static void Init()
+	static void init()
 	{
 		if (metadata_ == NULL)
 		{
@@ -77,24 +77,24 @@ ContainerMetadataRepository* MetadataRepository<Profile>::metadata_ = NULL;
 template <typename ProfileList = ::memoria::ProfileListBuilder<>::Type >
 class Memoria {
 public:
-	static Int Init()
+	static Int init()
 	{
-		MetadataRepository<typename ProfileList::Head>::Init();
-		return Memoria<typename ProfileList::Tail>::Init();
+		MetadataRepository<typename ProfileList::Head>::init();
+		return Memoria<typename ProfileList::Tail>::init();
 	}
 };
 
 template <>
 class Memoria<NullType> {
 public:
-	static Int Init() {
+	static Int init() {
 		return 1;
 	}
 };
 
 
 #define MEMORIA_INIT()													\
-const int MEMORIA_INITIALIZED = ::memoria::Memoria<>::Init()
+const int MEMORIA_INITIALIZED = ::memoria::Memoria<>::init()
 
 
 

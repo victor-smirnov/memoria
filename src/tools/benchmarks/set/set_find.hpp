@@ -49,8 +49,8 @@ public:
 	setFindRandomBenchmark(StringRef name):
 		SPBenchmarkTask(name)
 	{
-		RootCtr::Init();
-		setCtr::Init();
+		RootCtr::initMetadata();
+		setCtr::initMetadata();
 
 		average = 10;
 	}

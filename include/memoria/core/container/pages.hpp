@@ -41,7 +41,7 @@ struct MEMORIA_API Page {
     virtual void setPtr(void* ptr)              	 = 0;
     virtual bool IsNull() const						 = 0;
 
-    virtual Int Size() const                         = 0;
+    virtual Int size() const                         = 0;
     virtual Int getByte(Int idx) const               = 0;
     virtual void setByte(Int idx, Int value)    	 = 0;
 };
@@ -109,7 +109,7 @@ public:
     	page_ = static_cast<PageType*>(ptr);
     }
 
-    virtual Int Size() const {
+    virtual Int size() const {
         return PageSize;
     }
 

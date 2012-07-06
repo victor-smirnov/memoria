@@ -268,7 +268,7 @@ BigInt M_TYPE::removeRoom(TreePath& path, Int level, Int from, Int count, Accumu
 		RemoveElementsFn fn(from, count, tmp_accum);
 		NodeDispatcher::Dispatch(node, fn);
 
-		me()->UpdateParentIfExists(path, level, -tmp_accum);
+		me()->updateParentIfExists(path, level, -tmp_accum);
 
 		path.MoveLeft(level - 1, from, count);
 
@@ -380,7 +380,7 @@ void M_TYPE::removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum,
 
 	me()->removeNode(start[level].node());
 
-	NodeBaseG node = me()->CreateRootNode(0, true, me()->getRootMetadata());
+	NodeBaseG node = me()->createRootNode(0, true, me()->getRootMetadata());
 
 	me()->set_root(node->id());
 
@@ -568,7 +568,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
 		{
 			me()->removeNode(path[c].node());
 
-			NodeBaseG node = me()->CreateRootNode(0, true, me()->getRootMetadata());
+			NodeBaseG node = me()->createRootNode(0, true, me()->getRootMetadata());
 
 			me()->set_root(node->id());
 			path.Clear();
@@ -582,7 +582,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
 
 	me()->removeNode(path.leaf().node());
 
-	NodeBaseG node = me()->CreateRootNode(0, true, me()->getRootMetadata());
+	NodeBaseG node = me()->createRootNode(0, true, me()->getRootMetadata());
 
 	me()->set_root(node->id());
 	path.Clear();
@@ -889,7 +889,7 @@ void M_TYPE::MergeNodes(TreePath& tgt, TreePath& src, Int level)
 
 	removeRoom(src, level + 1, parent_idx, 1, accum, false);
 
-	me()->UpdateUp(src, level + 1, parent_idx - 1, accum);
+	me()->updateUp(src, level + 1, parent_idx - 1, accum);
 
 	me()->allocator().removePage(page2->id());
 

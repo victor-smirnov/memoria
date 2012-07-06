@@ -129,7 +129,7 @@ public:
     	type_	= other.type_;
     }
 
-    void Assing(ThisType&& other)
+    void assing(ThisType&& other)
     {
     	logger_ = std::move(other.logger_);
     	type_	= other.type_;
@@ -159,7 +159,7 @@ public:
     }
 
 
-    void Init() {}
+    void init() {}
 };
 
 

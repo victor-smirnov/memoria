@@ -39,14 +39,14 @@ public:
 
 	ProfileTestTask(StringRef name): TestTask(name)
 	{
-		RootMapType::Init();
+		RootMapType::initMetadata();
 
 		Add("check_count", check_count);
 	}
 
 	virtual ~ProfileTestTask() throw () {};
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
+	virtual TestReplayParams* createTestStep(StringRef name) const						= 0;
 	virtual void 			Run(ostream& out)											= 0;
 	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
 
@@ -105,7 +105,7 @@ public:
 	SPTestTaskT(StringRef name): Base(name) {}
 	virtual ~SPTestTaskT() throw () {};
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
+	virtual TestReplayParams* createTestStep(StringRef name) const						= 0;
 	virtual void 			Run(ostream& out)											= 0;
 	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
 

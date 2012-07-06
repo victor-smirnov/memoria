@@ -149,7 +149,7 @@ void DumpTree(PageMetadata* group, Page* page, const File& folder)
 	}
 
 
-//	for (int c = 0; c < group->Size(); c++)
+//	for (int c = 0; c < group->size(); c++)
 //	{
 //		Metadata* item = group->getItem(c);
 //
@@ -175,7 +175,7 @@ void DumpTree(const IDValue& id, const File& folder)
 		manager->getPage(page, id);
 
 		ofstream pagebin((folder.getPath() + Platform::getFilePathSeparator() + "page.bin").c_str());
-		for (Int c = 0; c < page->Size(); c++)
+		for (Int c = 0; c < page->size(); c++)
 		{
 			pagebin<<(Byte)page->getByte(c);
 		}
@@ -218,11 +218,11 @@ MEMORIA_INIT();
 
 int main(int argc, const char** argv, const char** envp)
 {
-	SmallCtrTypeFactory::Factory<Root>::Type::Init();
-	SmallCtrTypeFactory::Factory<Map1>::Type::Init();
-	SmallCtrTypeFactory::Factory<Vector>::Type::Init();
-	SmallCtrTypeFactory::Factory<VectorMap>::Type::Init();
-	SmallCtrTypeFactory::Factory<set1>::Type::Init();
+	SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+	SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
+	SmallCtrTypeFactory::Factory<Vector>::Type::initMetadata();
+	SmallCtrTypeFactory::Factory<VectorMap>::Type::initMetadata();
+	SmallCtrTypeFactory::Factory<set1>::Type::initMetadata();
 
 
 	try {

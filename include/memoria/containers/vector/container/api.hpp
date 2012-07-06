@@ -60,7 +60,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
     template <typename T>
     void append(const T& value)
     {
-    	Iterator i = me()->seek(me()->Size());
+    	Iterator i = me()->seek(me()->size());
     	i.insert(ArrayData(value));
     }
 

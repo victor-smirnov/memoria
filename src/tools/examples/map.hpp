@@ -37,7 +37,7 @@ public:
 	MapExample() :
 		SPExampleTask("Map")
 	{
-		MapCtr::Init();
+		MapCtr::initMetadata();
 	}
 
 	virtual ~MapExample() throw () {

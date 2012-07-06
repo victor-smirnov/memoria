@@ -259,7 +259,7 @@ typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
 
 		i.key_idx() = reverse ? -1 : 0;
 
-		i.Init();
+		i.init();
 
 		return i;
 	}
@@ -290,7 +290,7 @@ typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
 
 		i.key_idx() = i.page()->children_count() + (reverse ? -1 : 0);
 
-		i.Init();
+		i.init();
 
 		return i;
 	}

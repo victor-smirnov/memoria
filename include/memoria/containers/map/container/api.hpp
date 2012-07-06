@@ -103,10 +103,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     	if (!to.IsEnd())
     	{
-    		to.UpdateUp(keys);
+    		to.updateUp(keys);
     	}
 
-    	to.cache().InitState();
+    	to.cache().initState();
     }
 
     void insert(Iterator& iter, const Element& element)
@@ -117,7 +117,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     	if (Base::insert(iter, e))
     	{
-    		iter.UpdateUp(-delta);
+    		iter.updateUp(-delta);
     	}
     }
 
@@ -142,7 +142,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
     	if (!iter.IsEnd())
     	{
-    		iter.UpdateUp(keys);
+    		iter.updateUp(keys);
     	}
 
     	return result;

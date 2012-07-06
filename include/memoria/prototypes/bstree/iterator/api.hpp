@@ -108,18 +108,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 //        }
     }
 
-    void DumpKeys(ostream& out)
+    void dumpKeys(ostream& out)
     {
-    	Base::DumpKeys(out);
+    	Base::dumpKeys(out);
 
     	out<<"Prefix:  "<<me()->prefix()<<endl;
     }
 
 
-    void Init()
+    void init()
     {
         ComputeBase();
-        Base::Init();
+        Base::init();
     }
 
 private:

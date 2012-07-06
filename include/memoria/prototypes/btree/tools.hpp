@@ -198,12 +198,12 @@ class IteratorCacheBase {
 public:
 	IteratorCacheBase() {}
 
-	void Init(Iterator* i)
+	void init(Iterator* i)
 	{
 		iter_ = i;
 	}
 
-	void InitState() {}
+	void initState() {}
 
 
 	void Prepare() 				{}

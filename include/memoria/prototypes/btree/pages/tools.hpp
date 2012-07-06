@@ -179,7 +179,7 @@ void RemoveElements(Node *node, Int from, Int count, bool reindex)
 //    //FIXME type pruning
 //    NodePage2 *tgt = T2T<NodePage2*>(buffer);
 //
-//    tgt->map().InitByBlock(Allocator::PAGE_SIZE - sizeof(NodePage2));
+//    tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(NodePage2));
 //
 //    tgt->CopyFrom(src);
 //
@@ -232,7 +232,7 @@ public:
         //FIXME type pruning
         RootType *tgt = T2T<RootType*>(buffer);
 
-        tgt->map().InitByBlock(Allocator::PAGE_SIZE - sizeof(RootType));
+        tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(RootType));
 
         tgt->CopyFrom(src);
         tgt->metadata() = metadata_;
@@ -274,7 +274,7 @@ public:
         //FIXME type pruning
         NonRootNode *tgt = T2T<NonRootNode*>(buffer);
 
-        tgt->map().InitByBlock(Allocator::PAGE_SIZE - sizeof(NonRootNode));
+        tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(NonRootNode));
 
         tgt->CopyFrom(src);
 

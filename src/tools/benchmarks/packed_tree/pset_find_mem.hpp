@@ -86,7 +86,7 @@ public:
 
 		map_ = T2T<Map*>(buffer);
 
-		map_->InitByBlock(buffer_size - sizeof(Map));
+		map_->initByBlock(buffer_size - sizeof(Map));
 
 		FillPMap(map_, map_->max_size());
 

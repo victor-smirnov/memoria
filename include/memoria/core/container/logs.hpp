@@ -82,7 +82,7 @@ class Logger {
 
 	static LogHandler* default_handler_;
 
-	friend void InitContainers();
+	friend void initContainers();
 
 public:
 

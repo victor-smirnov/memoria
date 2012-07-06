@@ -249,7 +249,7 @@ public:
 		prefix_ = prefix;
 	}
 
-	void InitState()
+	void initState()
 	{
 		typedef typename Iterator::Container::TreePath TreePath;
 
@@ -320,7 +320,7 @@ public:
 	{
 		prefix_[key_num] = prefix;
 
-		Init_(key_num);
+		init_(key_num);
 	}
 
 	void setup(Accumulator prefix)
@@ -328,7 +328,7 @@ public:
 		prefix_ = prefix;
 	}
 
-	void InitState()
+	void initState()
 	{
 		typedef typename Iterator::Container::TreePath TreePath;
 
@@ -346,7 +346,7 @@ public:
 
 private:
 
-	void Init_(Int skip_num)
+	void init_(Int skip_num)
 	{
 		typedef typename Iterator::Container::TreePath TreePath;
 

@@ -270,7 +270,7 @@ public:
 
 
     static void BuildMetadataList(MetadataList &list) {
-        Head::Init();
+        Head::initMetadata();
         list.push_back(Head::reflection());
         NDT0<Types, Idx - 1>::BuildMetadataList(list);
     }

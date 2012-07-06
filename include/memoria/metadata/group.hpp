@@ -39,7 +39,7 @@ public:
 	}
 
 
-	virtual Int Size() const {
+	virtual Int size() const {
 		return content_.size();
 	}
 

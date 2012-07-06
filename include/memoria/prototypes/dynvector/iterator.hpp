@@ -70,7 +70,7 @@ namespace memoria    {
 //    	Base::key_idx() 	= idx;
 //    	Base::state() 		= 0;
 //
-//    	if (do_init) Base::Init();
+//    	if (do_init) Base::init();
 //    	Base::ReHash();
 //    }
 //
@@ -84,7 +84,7 @@ namespace memoria    {
 //    	Base::key_idx() 	= idx;
 //    	Base::state() 		= 0;
 //
-//    	if (do_init) Base::Init();
+//    	if (do_init) Base::init();
 //    	Base::ReHash();
 //    }
 //

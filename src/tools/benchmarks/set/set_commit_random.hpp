@@ -50,8 +50,8 @@ public:
 	setCommitRandomBenchmark(StringRef name):
 		SPBenchmarkTask(name), max_size(1*1024*1024)
 	{
-		RootCtr::Init();
-		setCtr::Init();
+		RootCtr::initMetadata();
+		setCtr::initMetadata();
 
 		Add("max_size", max_size);
 	}
@@ -92,7 +92,7 @@ public:
 
 			if (i.IsNotEnd())
 			{
-				i.UpdateUp(keys);
+				i.updateUp(keys);
 			}
 
 			if (c % size == 0)

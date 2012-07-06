@@ -510,7 +510,7 @@ Int CountZeroBw(Buffer &buffer, Int from, Int to) {
 
 
 template <typename Buffer>
-Int CreateUDS(Buffer &buf, Int start, Int *ds, Int ds_size, Int node_bits) {
+Int createUDS(Buffer &buf, Int start, Int *ds, Int ds_size, Int node_bits) {
     for (Int ids = 0; ids < ds_size; ids++) {
         for (Int i = 0; i < ds[ids]; i++, start++) {
             setBit(buf, start, 1);

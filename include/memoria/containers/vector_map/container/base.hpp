@@ -107,26 +107,26 @@ public:
     	array_	= other.array_;
     }
 
-    void InitCtr(bool create)
+    void initCtr(bool create)
     {
-    	array_.InitCtr(me()->allocator(), me()->name(), create);
-    	set_.  InitCtr(array_, 0, create);
+    	array_.initCtr(me()->allocator(), me()->name(), create);
+    	set_.  initCtr(array_, 0, create);
 
     	Base::setCtrShared(NULL);
     }
 
-    void InitCtr(const ID& root_id)
+    void initCtr(const ID& root_id)
     {
-    	array_.InitCtr(me()->allocator(), root_id);
-    	set_.InitCtr(array_, get_ctr_root(me()->allocator(), root_id, 0));
+    	array_.initCtr(me()->allocator(), root_id);
+    	set_.initCtr(array_, get_ctr_root(me()->allocator(), root_id, 0));
 
     	Base::setCtrShared(NULL);
     }
 
 
-    static Int Init()
+    static Int initMetadata()
     {
-    	Int hash = Idxset::Init() + ByteArray::Init();
+    	Int hash = Idxset::initMetadata() + ByteArray::initMetadata();
 
     	if (Base::reflection() == NULL)
     	{

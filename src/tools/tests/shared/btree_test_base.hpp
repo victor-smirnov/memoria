@@ -46,12 +46,12 @@ public:
 
 	virtual ~BTreeBatchTestBase() throw() {}
 
-	virtual ArrayData CreateBuffer(Ctr& array, Int size, UByte value) 	= 0;
+	virtual ArrayData createBuffer(Ctr& array, Int size, UByte value) 	= 0;
 	virtual Iterator seek(Ctr& array, BigInt pos) 						= 0;
 	virtual void insert(Iterator& iter, const ArrayData& data) 			= 0;
-	virtual void Read(Iterator& iter, ArrayData& data) 					= 0;
+	virtual void read(Iterator& iter, ArrayData& data) 					= 0;
 	virtual void remove(Iterator& iter, BigInt size) 					= 0;
-	virtual void Skip(Iterator& iter, BigInt offset) 					= 0;
+	virtual void skip(Iterator& iter, BigInt offset) 					= 0;
 	virtual BigInt getPosition(Iterator& iter)							= 0;
 	virtual BigInt getLocalPosition(Iterator& iter)						= 0;
 	virtual BigInt getSize(Ctr& array)									= 0;
@@ -62,7 +62,7 @@ public:
 
 	virtual void setElementSize(Ctr& array, ParamType* task_params) {}
 
-	virtual ReplayParamType* CreateTestStep(StringRef name) const
+	virtual ReplayParamType* createTestStep(StringRef name) const
 	{
 		return new ReplayParamType();
 	}
@@ -209,7 +209,7 @@ public:
 		UByte value = params->data_;
 		Int step 	= params->step_;
 
-		ArrayData data = CreateBuffer(array, params->block_size_, value);
+		ArrayData data = createBuffer(array, params->block_size_, value);
 
 		BigInt size = getSize(array);
 
@@ -237,13 +237,13 @@ public:
 				BigInt len = getSize(array);
 				if (len > 100) len = 100;
 
-				ArrayData postfix = CreateBuffer(array, len, 0);
+				ArrayData postfix = createBuffer(array, len, 0);
 
-				Read(iter, postfix);
+				read(iter, postfix);
 
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Skip(iter, -len);
+				skip(iter, -len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				insert(iter, data);
@@ -251,7 +251,7 @@ public:
 
 				check(allocator, "insertion at the start of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
-				Skip(iter, -data.size()/getElementSize(array));
+				skip(iter, -data.size()/getElementSize(array));
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				checkBufferWritten(iter, data, "Failed to read and compare buffer from array", 				MEMORIA_SOURCE);
@@ -270,11 +270,11 @@ public:
 
 				if (len > 100) len = 100;
 
-				ArrayData prefix = CreateBuffer(array, len, 0);
-				Skip(iter, -len);
+				ArrayData prefix = createBuffer(array, len, 0);
+				skip(iter, -len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Read(iter, prefix);
+				read(iter, prefix);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				insert(iter, data);
@@ -282,7 +282,7 @@ public:
 
 				check(allocator, "insertion at the end of the array failed. See the dump for details.", MEMORIA_SOURCE);
 
-				Skip(iter, -data.size()/getElementSize(array) - len);
+				skip(iter, -data.size()/getElementSize(array) - len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				checkBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", MEMORIA_SOURCE);
@@ -305,7 +305,7 @@ public:
 
 				if (params->page_step_ == 0)
 				{
-					Skip(iter, -getLocalPosition(iter));
+					skip(iter, -getLocalPosition(iter));
 					checkIterator(out, iter, MEMORIA_SOURCE);
 					pos = getPosition(iter);
 				}
@@ -316,19 +316,19 @@ public:
 				BigInt postfix_len = getSize(array) - pos;
 				if (postfix_len > 100) postfix_len = 100;
 
-				ArrayData prefix	= CreateBuffer(array, prefix_len, 0);
-				ArrayData postfix	= CreateBuffer(array, postfix_len, 0);
+				ArrayData prefix	= createBuffer(array, prefix_len, 0);
+				ArrayData postfix	= createBuffer(array, postfix_len, 0);
 
-				Skip(iter, -prefix_len);
+				skip(iter, -prefix_len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Read(iter, prefix);
+				read(iter, prefix);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Read(iter, postfix);
+				read(iter, postfix);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Skip(iter, -postfix_len);
+				skip(iter, -postfix_len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				insert(iter, data);
@@ -336,7 +336,7 @@ public:
 
 				check(allocator, "insertion at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
-				Skip(iter, - data.size()/getElementSize(array) - prefix_len);
+				skip(iter, - data.size()/getElementSize(array) - prefix_len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				checkBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 	MEMORIA_SOURCE);
@@ -381,13 +381,13 @@ public:
 				if (len > 100) len = 100;
 
 				ArrayData postfix(len * getElementSize(array));
-				Skip(iter, size);
+				skip(iter, size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Read(iter, postfix);
+				read(iter, postfix);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Skip(iter, -len - size);
+				skip(iter, -len - size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				remove(iter, size);
@@ -408,10 +408,10 @@ public:
 				if (len > 100) len = 100;
 
 				ArrayData prefix(len * getElementSize(array));
-				Skip(iter, -len);
+				skip(iter, -len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Read(iter, prefix);
+				read(iter, prefix);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				remove(iter, size);
@@ -419,7 +419,7 @@ public:
 
 				check(allocator, "Removing region at the end of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
-				Skip(iter, -len);
+				skip(iter, -len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				checkBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", 		MEMORIA_SOURCE);
@@ -437,7 +437,7 @@ public:
 
 				if (params->page_step_ == 0)
 				{
-					Skip(iter, -getLocalPosition(iter));
+					skip(iter, -getLocalPosition(iter));
 					checkIterator(out, iter, MEMORIA_SOURCE);
 
 					pos = getPosition(iter);
@@ -457,19 +457,19 @@ public:
 				ArrayData prefix(prefix_len * getElementSize(array));
 				ArrayData postfix(postfix_len * getElementSize(array));
 
-				Skip(iter, -prefix_len);
+				skip(iter, -prefix_len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Read(iter, prefix);
+				read(iter, prefix);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Skip(iter, size);
+				skip(iter, size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Read(iter, postfix);
+				read(iter, postfix);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
-				Skip(iter, -postfix_len - size);
+				skip(iter, -postfix_len - size);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				remove(iter, size);
@@ -477,7 +477,7 @@ public:
 
 				check(allocator, "Removing region at the middle of the array failed. See the dump for details.", 	MEMORIA_SOURCE);
 
-				Skip(iter, -prefix_len);
+				skip(iter, -prefix_len);
 				checkIterator(out, iter, MEMORIA_SOURCE);
 
 				checkBufferWritten(iter, prefix, 	"Failed to read and compare buffer prefix from array", 			MEMORIA_SOURCE);

@@ -50,17 +50,17 @@ private:
 public:
     BTreeIteratorBase(): Base(), path_(), key_idx_(0)
     {
-    	cache_.Init(me());
+    	cache_.init(me());
     }
 
     BTreeIteratorBase(ThisType&& other): Base(std::move(other)), path_(std::move(other.path_)), key_idx_(other.key_idx_), cache_(std::move(other.cache_))
     {
-    	cache_.Init(me());
+    	cache_.init(me());
     }
 
     BTreeIteratorBase(const ThisType& other): Base(other), path_(other.path_), key_idx_(other.key_idx_), cache_(other.cache_)
     {
-    	cache_.Init(me());
+    	cache_.init(me());
     }
 
     void Assign(ThisType&& other)
@@ -71,7 +71,7 @@ public:
 
         cache_		= other.cache_;
 
-        cache_.Init(me());
+        cache_.init(me());
 
         Base::Assign(std::move(other));
     }
@@ -84,7 +84,7 @@ public:
 
     	cache_		= other.cache_;
 
-    	cache_.Init(me());
+    	cache_.init(me());
 
     	Base::Assign(other);
     }
@@ -203,10 +203,10 @@ public:
     {
     	out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
 
-    	me()->DumpKeys(out);
+    	me()->dumpKeys(out);
 
     	me()->DumpBeforePath(out);
-    	me()->DumpPath(out);
+    	me()->dumpPath(out);
 
     	me()->DumpBeforePages(out);
     	me()->dumpPages(out);
@@ -217,7 +217,7 @@ public:
     	return String(me()->model().type_name()) + " Iterator State";
     }
 
-    void DumpPath(ostream& out)
+    void dumpPath(ostream& out)
     {
     	out<<"Path:"<<endl;
 
@@ -228,7 +228,7 @@ public:
     	}
     }
 
-    void DumpKeys(ostream& out)
+    void dumpKeys(ostream& out)
     {
     	out<<"KeyIdx:  "<<me()->key_idx()<<endl;
     }
@@ -241,10 +241,10 @@ public:
     	me()->model().Dump(me()->leaf().node(), out);
     }
 
-    void Init()
+    void init()
     {
-    	Base::Init();
-    	cache_.InitState();
+    	Base::init();
+    	cache_.initState();
     }
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END

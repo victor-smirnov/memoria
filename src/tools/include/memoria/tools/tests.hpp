@@ -111,7 +111,7 @@ public:
 	virtual void 			Configure(TestReplayParams* params) const;
 
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const						= 0;
+	virtual TestReplayParams* createTestStep(StringRef name) const						= 0;
 	virtual void 			Run(ostream& out)											= 0;
 	virtual void 			Replay(ostream& out, TestReplayParams* step_params)			= 0;
 

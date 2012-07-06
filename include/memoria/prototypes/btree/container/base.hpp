@@ -124,8 +124,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	Base::operator=(other);
     }
 
-    PageG CreateRoot() const {
-    	return me()->CreateNode(0, true, true);
+    PageG createRoot() const {
+    	return me()->createNode(0, true, true);
     }
 
     struct GetModelNameFn
@@ -170,16 +170,16 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	RootDispatcher::Dispatch(root.page(), fn);
     }
 
-    void InitCtr(bool create)
+    void initCtr(bool create)
     {
-    	Base::InitCtr(create);
+    	Base::initCtr(create);
 
     	if (create)
     	{
-    		BTreeCtrShared* shared = me()->CreateCtrShared(me()->name());
+    		BTreeCtrShared* shared = me()->createCtrShared(me()->name());
     		me()->allocator().registerCtrShared(shared);
 
-    		NodeBaseG node 		    = me()->CreateRoot();
+    		NodeBaseG node 		    = me()->createRoot();
 
     		me()->allocator().setRoot(me()->name(), node->id());
 
@@ -191,15 +191,15 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     		Base::setCtrShared(shared);
     	}
     	else {
-    		CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
+    		CtrShared* shared = me()->getOrcreateCtrShared(me()->name());
 
     		Base::setCtrShared(shared);
     	}
     }
 
-    void InitCtr(const ID& root_id)
+    void initCtr(const ID& root_id)
     {
-    	CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
+    	CtrShared* shared = me()->getOrcreateCtrShared(me()->name());
     	Base::setCtrShared(shared);
     }
 
@@ -259,7 +259,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	shared->update_metadata(fn.metadata_);
     }
 
-    BTreeCtrShared* CreateCtrShared(BigInt name)
+    BTreeCtrShared* createCtrShared(BigInt name)
     {
     	return new (&me()->allocator()) BTreeCtrShared(name);
     }
@@ -328,9 +328,9 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     }
 
 
-    NodeBaseG CreateNode(Short level, bool root, bool leaf) const
+    NodeBaseG createNode(Short level, bool root, bool leaf) const
     {
-    	NodeBaseG node = NodeFactory::Create(me()->allocator(), level, root, leaf);
+    	NodeBaseG node = NodeFactory::create(me()->allocator(), level, root, leaf);
 
     	if (root)
     	{
@@ -343,20 +343,20 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     	node->model_hash() = me()->hash();
 
-    	InitNodeSize(node, Allocator::PAGE_SIZE);
+    	initNodeSize(node, Allocator::PAGE_SIZE);
 
     	return node;
     }
 
-    NodeBaseG CreateRootNode(Short level, bool leaf, const Metadata& metadata) const
+    NodeBaseG createRootNode(Short level, bool leaf, const Metadata& metadata) const
     {
-    	NodeBaseG node = NodeFactory::Create(me()->allocator(), level, true, leaf);
+    	NodeBaseG node = NodeFactory::create(me()->allocator(), level, true, leaf);
 
     	MyType::setCtrRootMetadata(node, metadata);
 
     	node->model_hash() = me()->hash();
 
-    	InitNodeSize(node, Allocator::PAGE_SIZE);
+    	initNodeSize(node, Allocator::PAGE_SIZE);
 
     	return node;
     }
@@ -368,28 +368,28 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     }
 
     template <typename Node>
-    void InitNode(Node* node, Int block_size) const
+    void initNode(Node* node, Int block_size) const
     {
-    	node->map().InitByBlock(block_size - sizeof(Node));
+    	node->map().initByBlock(block_size - sizeof(Node));
     }
 
  private:
 
-    struct InitNodeFn {
+    struct initNodeFn {
     	const MyType& me_;
     	Int block_size_;
-    	InitNodeFn(const MyType& me, Int block_size): me_(me), block_size_(block_size) {}
+    	initNodeFn(const MyType& me, Int block_size): me_(me), block_size_(block_size) {}
 
     	template <typename NodeT>
     	void operator()(NodeT* node) const
     	{
-    		me_.InitNode(node, block_size_);
+    		me_.initNode(node, block_size_);
     	}
     };
 
-    void InitNodeSize(NodeBaseG& node, Int block_size) const
+    void initNodeSize(NodeBaseG& node, Int block_size) const
     {
-    	InitNodeFn fn(*me(), block_size);
+    	initNodeFn fn(*me(), block_size);
     	NodeDispatcher::Dispatch(node.page(), fn);
     }
 

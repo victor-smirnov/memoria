@@ -181,7 +181,7 @@ public:
 
 
 
-	void InitByBlock(Int block_size)
+	void initByBlock(Int block_size)
 	{
 		size_ = 0;
 
@@ -190,7 +190,7 @@ public:
 	}
 
 
-	void InitSizes(Int max)
+	void initSizes(Int max)
 	{
 		size_		= 0;
 		max_size_	= max;

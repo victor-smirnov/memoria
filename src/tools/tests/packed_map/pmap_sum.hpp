@@ -80,7 +80,7 @@ public:
 
 	virtual ~PMapSumTest() throw() {}
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* createTestStep(StringRef name) const
 	{
 		return new TestReplay();
 	}
@@ -101,7 +101,7 @@ public:
 
 		Map* map 			= T2T<Map*>(buffer);
 
-		map->InitByBlock(buffer_size - sizeof(Map));
+		map->initByBlock(buffer_size - sizeof(Map));
 
 		FillMap(map, max_size != 0 ? max_size : map->max_size());
 
@@ -150,7 +150,7 @@ public:
 
 		Map* map 			= T2T<Map*>(buffer);
 
-		map->InitByBlock(buffer_size - sizeof(Map));
+		map->initByBlock(buffer_size - sizeof(Map));
 
 		FillMap(map, max_size != 0 ? max_size : map->max_size());
 

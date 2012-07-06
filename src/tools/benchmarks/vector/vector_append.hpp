@@ -45,8 +45,8 @@ public:
 	VectorappendBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
-		RootCtr::Init();
-		MapCtr::Init();
+		RootCtr::initMetadata();
+		MapCtr::initMetadata();
 
 		Add("memory_size", memory_size);
 	}

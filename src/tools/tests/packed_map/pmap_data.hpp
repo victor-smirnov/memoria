@@ -67,7 +67,7 @@ public:
 
 	virtual ~PMapDataTest() throw() {}
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* createTestStep(StringRef name) const
 	{
 		return new TestReplay();
 	}
@@ -258,7 +258,7 @@ public:
 
 		Map* map1 			= T2T<Map*>(buffer1);
 
-		map1->InitByBlock(buffer_size / 2);
+		map1->initByBlock(buffer_size / 2);
 
 		FillMap(map1);
 

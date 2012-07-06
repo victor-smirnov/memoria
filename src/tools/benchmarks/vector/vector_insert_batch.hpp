@@ -43,8 +43,8 @@ public:
 	VectorinsertBatchBenchmark(StringRef name):
 		SPBenchmarkTask(name), max_size(128*1024*1024)
 	{
-		RootCtr::Init();
-		MapCtr::Init();
+		RootCtr::initMetadata();
+		MapCtr::initMetadata();
 
 		Add("max_size", max_size);
 	}

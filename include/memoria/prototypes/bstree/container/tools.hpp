@@ -111,7 +111,7 @@ private:
     	{
     		for (Int c = 0; c < Indexes; c++)
     		{
-    			node->map().UpdateUp(c, idx_, keys_[c]);
+    			node->map().updateUp(c, idx_, keys_[c]);
 
     			if (reindex_fully_) {
     				node->map().Reindex(c);
@@ -142,7 +142,7 @@ public:
     	NodeDispatcher::Dispatch(node, fn);
     }
 
-    bool UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
+    bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
 
 MEMORIA_CONTAINER_PART_END
 
@@ -152,7 +152,7 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
+bool M_TYPE::updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
 {
 	node.update();
 	me()->AddKeys(node, idx, counters.keys(), reindex_fully);

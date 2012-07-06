@@ -93,12 +93,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     Accumulator getCounters(const NodeBaseG& node, Int from, Int count) const;
     void MakeRoom(TreePath& path, Int level, Int start, Int count) const;
 
-    void UpdateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
-    bool UpdateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const {
+    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
+    bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const {
     	return true;
     };
 
-    void UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
+    void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
     Accumulator insertSubtree(Iterator& iter, ISubtreeProvider& provider);
 
     void insertEntry(Iterator& iter, const Element&);
@@ -172,7 +172,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     				SwapVector(children, local);
     			}
 
-    			NodeBaseG node = ctr_.CreateNode(level, false, false);
+    			NodeBaseG node = ctr_.createNode(level, false, false);
 
     			setINodeData(children, node, local);
 
@@ -195,7 +195,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     				SwapVector(children, local);
     			}
 
-    			NodeBaseG node = ctr_.CreateNode(level, false, true);
+    			NodeBaseG node = ctr_.createNode(level, false, true);
 
     			setLeafNodeData(children, node, local);
     			pair.keys = ctr_.getMaxKeys(node);
@@ -330,7 +330,7 @@ private:
 
 
 
-    void ReindexAndUpdateCounters(NodeBaseG& node, Int from, Int count) const
+    void ReindexAndupdateCounters(NodeBaseG& node, Int from, Int count) const
     {
     	if (from + count == node->children_count())
     	{
@@ -564,7 +564,7 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
 
 	me()->setLeafDataAndReindex(node, idx, element);
 
-	me()->UpdateParentIfExists(path, 0, element.first);
+	me()->updateParentIfExists(path, 0, element.first);
 
 	me()->AddTotalKeyCount(1);
 }
@@ -627,11 +627,11 @@ typename M_TYPE::Accumulator M_TYPE::getCounters(const NodeBaseG& node, Int from
 
 
 M_PARAMS
-void M_TYPE::UpdateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully)
+void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully)
 {
 	for (Int c = level; c < path.getSize(); c++)
 	{
-		if (me()->UpdateCounters(path[c].node(), idx, counters, reindex_fully))
+		if (me()->updateCounters(path[c].node(), idx, counters, reindex_fully))
 		{
 			break;
 		}
@@ -642,11 +642,11 @@ void M_TYPE::UpdateUp(TreePath& path, Int level, Int idx, const Accumulator& cou
 }
 
 M_PARAMS
-void M_TYPE::UpdateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
+void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
 {
 	if (level < path.getSize() - 1)
 	{
-		me()->UpdateUp(path, level + 1, path[level].parent_idx(), counters);
+		me()->updateUp(path, level + 1, path[level].parent_idx(), counters);
 	}
 }
 
@@ -806,11 +806,11 @@ void M_TYPE::FillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
 		}
 	}
 
-	ReindexAndUpdateCounters(node, from, count);
+	ReindexAndupdateCounters(node, from, count);
 
 	Accumulator accumulator = me()->getCounters(node, from, count);
 
-	me()->UpdateParentIfExists(path, level, accumulator);
+	me()->updateParentIfExists(path, level, accumulator);
 
 	data.accumulator += accumulator;
 }
@@ -857,11 +857,11 @@ void M_TYPE::FillNodeRight(TreePath& path, Int level, Int from, Int count, Inser
 //		path[level-1].parent_idx() += count;
 //	}
 
-	ReindexAndUpdateCounters(node, from, count);
+	ReindexAndupdateCounters(node, from, count);
 
 	Accumulator accumulator = me()->getCounters(node, from, count);
 
-	me()->UpdateParentIfExists(path, level, accumulator);
+	me()->updateParentIfExists(path, level, accumulator);
 
 	data.accumulator += accumulator;
 }
@@ -911,7 +911,7 @@ typename M_TYPE::TreePathItem M_TYPE::Split(TreePath& path, Int level, Int idx)
 	node.update();
 	parent.update();
 
-	NodeBaseG other = me()->CreateNode(level, false, node->is_leaf());
+	NodeBaseG other = me()->createNode(level, false, node->is_leaf());
 
 	Accumulator keys = MoveElements(node, other, idx);
 
@@ -921,8 +921,8 @@ typename M_TYPE::TreePathItem M_TYPE::Split(TreePath& path, Int level, Int idx)
 	me()->setINodeData(parent, parent_idx + 1, &other->id());
 
 	//FIXME: Should we proceed up to the root here in general case?
-	me()->UpdateCounters(parent, parent_idx, 	  -keys);
-	me()->UpdateCounters(parent, parent_idx + 1, keys, true);
+	me()->updateCounters(parent, parent_idx, 	  -keys);
+	me()->updateCounters(parent, parent_idx + 1, keys, true);
 
 	if (level > 0)
 	{
@@ -959,7 +959,7 @@ void M_TYPE::Split(TreePath& left, TreePath& right, Int level, Int idx)
 	left_parent.update();
 	right_parent.update();
 
-	NodeBaseG other = me()->CreateNode(level, false, left_node->is_leaf());
+	NodeBaseG other = me()->createNode(level, false, left_node->is_leaf());
 
 	Accumulator keys = MoveElements(left_node, other, idx);
 
@@ -971,8 +971,8 @@ void M_TYPE::Split(TreePath& left, TreePath& right, Int level, Int idx)
 		me()->setINodeData(left_parent, parent_idx + 1, &other->id());
 
 		//FIXME: should we proceed up to the root?
-		me()->UpdateCounters(left_parent, parent_idx,    -keys);
-		me()->UpdateCounters(left_parent, parent_idx + 1, keys, true);
+		me()->updateCounters(left_parent, parent_idx,    -keys);
+		me()->updateCounters(left_parent, parent_idx + 1, keys, true);
 
 		right[level].node() 		= other;
 		right[level].parent_idx() 	= parent_idx + 1;
@@ -981,8 +981,8 @@ void M_TYPE::Split(TreePath& left, TreePath& right, Int level, Int idx)
 		MakeRoom(right, level + 1, 0, 1);
 		me()->setINodeData(right_parent, 0, &other->id());
 
-		UpdateUp(left,  level + 1, parent_idx, -keys);
-		UpdateUp(right, level + 1, 0,  			keys, true);
+		updateUp(left,  level + 1, parent_idx, -keys);
+		updateUp(right, level + 1, 0,  			keys, true);
 
 		right[level].node() 		= other;
 		right[level].parent_idx() 	= 0;
@@ -1002,7 +1002,7 @@ void M_TYPE::NewRoot(TreePath& path)
 	NodeBaseG& root 		= path[path.getSize() - 1].node(); // page == root
 	root.update();
 
-	NodeBaseG new_root 		= me()->CreateNode(root->level() + 1, true, false);
+	NodeBaseG new_root 		= me()->createNode(root->level() + 1, true, false);
 
 	me()->CopyRootMetadata(root, new_root);
 

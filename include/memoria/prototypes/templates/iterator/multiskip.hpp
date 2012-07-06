@@ -35,8 +35,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorMultiskipName)
 
 	static const Int Indexes = Container::Indexes;
 
-	BigInt SkipKeyFw(BigInt distance);
-	BigInt SkipKeyBw(BigInt distance);
+	BigInt skipKeyFw(BigInt distance);
+	BigInt skipKeyBw(BigInt distance);
 
 MEMORIA_ITERATOR_PART_END
 
@@ -44,7 +44,7 @@ MEMORIA_ITERATOR_PART_END
 #define M_PARAMS 	MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
-BigInt M_TYPE::SkipKeyFw(BigInt distance)
+BigInt M_TYPE::skipKeyFw(BigInt distance)
 {
 	if (me()->page() == NULL || distance == 0)
 	{
@@ -72,7 +72,7 @@ BigInt M_TYPE::SkipKeyFw(BigInt distance)
 }
 
 M_PARAMS
-BigInt M_TYPE::SkipKeyBw(BigInt distance)
+BigInt M_TYPE::skipKeyBw(BigInt distance)
 {
 	if (me()->page() == NULL)
 	{

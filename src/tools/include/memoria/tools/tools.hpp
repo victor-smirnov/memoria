@@ -158,9 +158,9 @@ BigInt	getTimeInMillis();
 String FormatTime(BigInt millis);
 
 void Fill(char* buf, int size, char value);
-ArrayData CreateBuffer(Int size, UByte value);
+ArrayData createBuffer(Int size, UByte value);
 Int getNonZeroRandom(Int size);
-ArrayData CreateRandomBuffer(UByte fill_value, Int max_size);
+ArrayData createRandomBuffer(UByte fill_value, Int max_size);
 
 
 template <typename Allocator>
@@ -202,7 +202,7 @@ bool CompareBuffer(BAIterator& iter, ArrayData& data, Int& c)
 {
 	ArrayData buf(data.size());
 
-	iter.Read(buf);
+	iter.read(buf);
 
 	const UByte* buf0 = buf.data();
 	const UByte* buf1 = data.data();

@@ -41,8 +41,8 @@ public:
 	VectorMapappendBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
-		RootCtr::Init();
-		MapCtr::Init();
+		RootCtr::initMetadata();
+		MapCtr::initMetadata();
 
 		Add("memory_size", memory_size);
 	}
@@ -78,15 +78,15 @@ public:
 
 		while (total < memory_size)
 		{
-			map_->CreateNew(i);
+			map_->createNew(i);
 			i.insert(data);
 			i++;
 
 			total += data.size();
 		}
 
-		params.operations() = map_->Count();
-		params.memory() 	= map_->Size() + map_->Count() * 16; //sizeof(BigInt) * 2
+		params.operations() = map_->count();
+		params.memory() 	= map_->size() + map_->count() * 16; //sizeof(BigInt) * 2
 
 		allocator_->commit();
 

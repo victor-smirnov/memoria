@@ -41,8 +41,8 @@ public:
 	VectorMapSequentialReadBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
-		RootCtr::Init();
-		Ctr::Init();
+		RootCtr::initMetadata();
+		Ctr::initMetadata();
 
 		Add("memory_size", memory_size);
 
@@ -64,7 +64,7 @@ public:
 
 		while (total < memory_size)
 		{
-			auto i = ctr_->Create();
+			auto i = ctr_->create();
 			i.insert(data);
 			total += data.size();
 		}
@@ -85,11 +85,11 @@ public:
 
 		for (auto i = ctr_->Begin(); !i.IsEnd(); i++)
 		{
-			i.Read(data);
+			i.read(data);
 		}
 
-		params.operations() = ctr_->Count();
-		params.memory() 	= ctr_->Size() + ctr_->Count() * 16; //sizeof(BigInt) * 2
+		params.operations() = ctr_->count();
+		params.memory() 	= ctr_->size() + ctr_->count() * 16; //sizeof(BigInt) * 2
 	}
 };
 

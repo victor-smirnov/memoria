@@ -67,7 +67,7 @@ typedef Accumulators<Key, Indexes>											Accumulator;
 void insertData(Iterator& iter, const IData& data);
 void insertData(Iterator& iter, const IData& data, SizeT start, SizeT len);
 
-BigInt UpdateData(Iterator& iter, const IData& data, BigInt start, BigInt len);
+BigInt updateData(Iterator& iter, const IData& data, BigInt start, BigInt len);
 
 
 DataPathItem SplitDataPage(Iterator& iter);
@@ -136,8 +136,8 @@ public:
 
 void ImportPages(Iterator& iter, const IData& buffer);
 
-void CreateDataPage(TreePath& path, Int idx);
-DataPathItem CreateDataPage(NodeBaseG& node, Int idx);
+void createDataPage(TreePath& path, Int idx);
+DataPathItem createDataPage(NodeBaseG& node, Int idx);
 
 void MoveData(TreePath& src, Int src_idx, TreePath& tgt);
 void MoveData(TreePath& src, Int src_idx, DataPathItem& tgt);
@@ -201,7 +201,7 @@ void M_TYPE::insertData(Iterator& iter, const IData& buffer)
 }
 
 M_PARAMS
-BigInt M_TYPE::UpdateData(Iterator& iter, const IData& data, BigInt start, BigInt len)
+BigInt M_TYPE::updateData(Iterator& iter, const IData& data, BigInt start, BigInt len)
 {
 	BigInt sum = 0;
 
@@ -214,7 +214,7 @@ BigInt M_TYPE::UpdateData(Iterator& iter, const IData& data, BigInt start, BigIn
 		data.get(iter.data()->data().value_addr(iter.data_pos()), start, to_read);
 
 		len 	-= to_read;
-		iter.Skip(to_read);
+		iter.skip(to_read);
 
 		sum 	+= to_read;
 		start 	+= to_read;
@@ -248,7 +248,7 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 
 		me()->MakeRoom(right, 0, 0, 1);
 
-		me()->CreateDataPage(right, 0);
+		me()->createDataPage(right, 0);
 
 		me()->Reindex(right.leaf());
 
@@ -259,7 +259,7 @@ typename M_TYPE::DataPathItem M_TYPE::SplitDataPage(Iterator& iter)
 	else {
 		me()->MakeRoom(path, 0, idx, 1);
 
-		DataPathItem target_data = me()->CreateDataPage(path[0].node(), idx);
+		DataPathItem target_data = me()->createDataPage(path[0].node(), idx);
 
 		me()->Reindex(path.leaf());
 
@@ -290,7 +290,7 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, 
 	{
 		me()->MakeRoom(iter.path(), 0, iter.key_idx(), 1);
 
-		data 			= CreateDataPage(iter.page(), iter.key_idx());
+		data 			= createDataPage(iter.page(), iter.key_idx());
 
 		iter.path().data().parent_idx() = iter.key_idx();
 		iter.data_pos() = 0;
@@ -309,7 +309,7 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, 
 
 	accum.keys()[0] = length;
 
-	me()->UpdateUp(iter.path(), 0, iter.key_idx(), accum, reindex_fully);
+	me()->updateUp(iter.path(), 0, iter.key_idx(), accum, reindex_fully);
 }
 
 
@@ -383,7 +383,7 @@ void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 		iter.data_pos() = iter.data()->size();
 	}
 
-//	iter.Init();
+//	iter.init();
 }
 
 
@@ -391,13 +391,13 @@ void M_TYPE::ImportPages(Iterator& iter, const IData& buffer)
 
 
 M_PARAMS
-void M_TYPE::CreateDataPage(TreePath& path, Int idx)
+void M_TYPE::createDataPage(TreePath& path, Int idx)
 {
-	path.data() = CreateDataPage(path[0].node(), idx);
+	path.data() = createDataPage(path[0].node(), idx);
 }
 
 M_PARAMS
-typename M_TYPE::DataPathItem M_TYPE::CreateDataPage(NodeBaseG& node, Int idx)
+typename M_TYPE::DataPathItem M_TYPE::createDataPage(NodeBaseG& node, Int idx)
 {
 	DataPageG data      	= me()->allocator().createPage();
 	data->init();
@@ -422,8 +422,8 @@ void M_TYPE::MoveData(TreePath& src, Int src_idx, TreePath& tgt)
 
 	Accumulator accum = MoveData(src_node, src_data, src_idx, tgt_node, tgt_data);
 
-	me()->UpdateUp(src, 0, src.data().parent_idx(), -accum);
-	me()->UpdateUp(tgt, 0, tgt.data().parent_idx(),  accum);
+	me()->updateUp(src, 0, src.data().parent_idx(), -accum);
+	me()->updateUp(tgt, 0, tgt.data().parent_idx(),  accum);
 }
 
 
@@ -439,8 +439,8 @@ void M_TYPE::MoveData(TreePath& src, Int src_idx, DataPathItem& tgt)
 
 	Accumulator accum = MoveData(src_node, src_data, src_idx, tgt_node, tgt_data);
 
-	me()->UpdateUp(src, 0, src.data().parent_idx(), -accum);
-	me()->UpdateUp(src, 0, tgt.parent_idx(), 		 accum);
+	me()->updateUp(src, 0, src.data().parent_idx(), -accum);
+	me()->updateUp(src, 0, tgt.parent_idx(), 		 accum);
 }
 
 

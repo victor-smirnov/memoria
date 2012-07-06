@@ -230,7 +230,7 @@ public:
     	}
     };
 
-    static Int Init()
+    static Int initMetadata()
     {
         if (reflection_ == NULL)
         {

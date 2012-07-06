@@ -34,20 +34,20 @@ public:
 	CopyCtrExample() :
 		SPExampleTask("CopyCtr")
 	{
-		MapCtr::Init();
+		MapCtr::initMetadata();
 	}
 
 	virtual ~CopyCtrExample() throw () {
 	}
 
-	MapCtr CreateCtr(Allocator& allocator, BigInt name)
+	MapCtr createCtr(Allocator& allocator, BigInt name)
 	{
 		return MapCtr(allocator, name, true);
 	}
 
-	MapCtr CreateCtr1(Allocator& allocator, BigInt name)
+	MapCtr createCtr1(Allocator& allocator, BigInt name)
 	{
-		MapCtr map = CreateCtr(allocator, name);
+		MapCtr map = createCtr(allocator, name);
 
 		map[123456] = 10;
 
@@ -73,7 +73,7 @@ public:
 			allocator.getLogger()->setHandler(&logHandler);
 
 
-			MapCtr map(CreateCtr1(allocator, 1));
+			MapCtr map(createCtr1(allocator, 1));
 
 			cout<<"Map has been created"<<endl;
 
@@ -83,7 +83,7 @@ public:
 
 			cout<<"About to reinitialize Map2"<<endl;
 
-			map2 = CreateCtr(allocator, 2);
+			map2 = createCtr(allocator, 2);
 
 			cout<<"Map2 has been reinitialized"<<endl;
 

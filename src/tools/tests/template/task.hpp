@@ -45,7 +45,7 @@ public:
 
 	virtual ~TemplateTestTask() throw() {}
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* createTestStep(StringRef name) const
 	{
 		return new TestReplay();
 	}

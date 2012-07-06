@@ -44,7 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		{
 			auto ba_iter = me()->array().End();
 
-			ba_iter.Skip(-is_iter.getRawKey(1));
+			ba_iter.skip(-is_iter.getRawKey(1));
 
 			return Iterator(*me(), is_iter, ba_iter);
 		}
@@ -69,7 +69,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 	{
 		auto is_iter = me()->set().findLE(key, 0);  // FIXME check for bounds (for_insert)
 
-		is_iter.Init();
+		is_iter.init();
 
 		BigInt 	data_pos 	= is_iter.prefix(1);
 		bool	end			= is_iter.IsEnd();
@@ -89,11 +89,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 			return iter;
 		}
 		else {
-			return me()->Create(key);
+			return me()->create(key);
 		}
 	}
 
-	Iterator Create()
+	Iterator create()
 	{
 		auto is_iter = me()->set().End();
 
@@ -107,7 +107,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		return Iterator(*me(), is_iter, ba_iter);
 	}
 
-	void CreateNew(Iterator& iter)
+	void createNew(Iterator& iter)
 	{
 		IdxsetAccumulator keys;
 
@@ -117,16 +117,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 		if (!iter.ba_iter().IsEof())
 		{
-			iter.ba_iter().Skip(me()->array().size() - iter.ba_iter().pos());
+			iter.ba_iter().skip(me()->array().size() - iter.ba_iter().pos());
 		}
 	}
 
-	Iterator Create(BigInt key)
+	Iterator create(BigInt key)
 	{
 		auto is_iter = me()->set().findLT(key, 0);
 
 		//FIXME: set_.findLT() have to return properly initialized iterator
-		//is_iter.Init();
+		//is_iter.init();
 
 		BigInt 	data_pos 	= is_iter.prefix(1);
 		bool	end			= is_iter.IsEnd();
@@ -148,7 +148,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 
 			if (is_iter.IsNotEnd())
 			{
-				me()->set().UpdateUp(is_iter.path(), 0, is_iter.key_idx(), -keys);
+				me()->set().updateUp(is_iter.path(), 0, is_iter.key_idx(), -keys);
 			}
 
 			me()->set().insertEntry(is_iter, keys);
@@ -163,7 +163,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		auto is_iter = me()->set().findLE(key, 0);
 
 		//FIXME: set_.findLT() have to return properly initialized iterator
-//		is_iter.Init();
+//		is_iter.init();
 
 		bool	end			= is_iter.IsEnd();
 		bool 	exists 		= end ? false : (is_iter.getKey(0) == key);
@@ -180,7 +180,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 			if (!is_iter.IsEnd())
 			{
 				accum[1] = 0;
-				is_iter.UpdateUp(accum);
+				is_iter.updateUp(accum);
 			}
 
 			auto 	ba_iter 	= me()->array().seek(data_pos);
@@ -206,12 +206,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
 		me()->set().removeEntry(is_iter);
 	}
 
-	BigInt Count()
+	BigInt count()
 	{
 		return me()->set().getSize();
 	}
 
-	BigInt Size()
+	BigInt size()
 	{
 		return me()->array().size();
 	}

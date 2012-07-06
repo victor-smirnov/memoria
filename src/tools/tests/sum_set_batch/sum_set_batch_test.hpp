@@ -76,13 +76,13 @@ public:
 	{
 		size_ = 1024*1024;
 
-		SmallCtrTypeFactory::Factory<Root>::Type::Init();
-		Ctr::Init();
+		SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+		Ctr::initMetadata();
 	}
 
 
 
-	virtual ArrayData CreateBuffer(Ctr& ctr, Int size, UByte value)
+	virtual ArrayData createBuffer(Ctr& ctr, Int size, UByte value)
 	{
 		ArrayData array(size);
 
@@ -122,7 +122,7 @@ public:
 		checkSize(iter.model());
 	}
 
-	virtual void Read(Iterator& iter, ArrayData& data)
+	virtual void read(Iterator& iter, ArrayData& data)
 	{
 		for (auto& value: data)
 		{
@@ -141,12 +141,12 @@ public:
 	virtual void remove(Iterator& iter, BigInt size)
 	{
 		auto iter2 = iter;
-		Skip(iter2, size);
+		skip(iter2, size);
 		Accumulator keys;
 		iter.model().removeEntries(iter, iter2, keys);
 	}
 
-	virtual void Skip(Iterator& iter, BigInt offset)
+	virtual void skip(Iterator& iter, BigInt offset)
 	{
 		if (offset > 0)
 		{

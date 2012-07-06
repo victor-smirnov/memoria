@@ -47,8 +47,8 @@ public:
 	VectorRandomReadBenchmark(StringRef name):
 		SPBenchmarkTask(name), memory_size(128*1024*1024)
 	{
-		RootCtr::Init();
-		VectorCtr::Init();
+		RootCtr::initMetadata();
+		VectorCtr::initMetadata();
 
 		Add("memory_size", memory_size);
 
@@ -94,7 +94,7 @@ public:
 		while (total < memory_size)
 		{
 			auto i = ctr_->seek(getRandom(memory_size - size));
-			total += i.Read(data);
+			total += i.read(data);
 			operations++;
 		}
 

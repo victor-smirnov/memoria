@@ -136,7 +136,7 @@ public:
         return reflection_;
     }
     
-    static void Destroy()
+    static void destroyMetadata()
     {
     	if (reflection_ != NULL)
     	{
@@ -168,7 +168,7 @@ public:
     	return new CtrInterfaceImpl();
     }
 
-    static Int Init(Int salt = 0)
+    static Int initMetadata(Int salt = 0)
     {
         if (reflection_ == NULL)
         {
@@ -186,7 +186,7 @@ public:
         return reflection_->Hash();
     }
 
-    PageG CreateRoot() {
+    PageG createRoot() {
     	return PageG();
     }
 
@@ -195,19 +195,19 @@ public:
     	return -1;
     }
 
-    CtrShared* CreateCtrShared(BigInt name)
+    CtrShared* createCtrShared(BigInt name)
     {
     	return new (&me()->allocator()) CtrShared(name);
     }
 
-    CtrShared* getOrCreateCtrShared(BigInt name)
+    CtrShared* getOrcreateCtrShared(BigInt name)
     {
     	if (me()->allocator().isCtrSharedRegistered(name))
     	{
     		return me()->allocator().getCtrShared(name);
     	}
     	else {
-    		CtrShared* shared = me()->CreateCtrShared(name);
+    		CtrShared* shared = me()->createCtrShared(name);
     		me()->allocator().registerCtrShared(shared);
 
     		PageG node = me()->allocator().getRoot(name, Allocator::READ);
@@ -244,8 +244,8 @@ public:
     	return shared_;
     }
 
-    void InitCtr(bool create) {}
-    void InitCtr(const ID& root_id) {}
+    void initCtr(bool create) {}
+    void initCtr(const ID& root_id) {}
 
 protected:
 
@@ -382,7 +382,7 @@ public:
     	logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
     	debug_(false)
     {
-    	InitCtr(allocator, allocator.createCtrName(), true, model_type_name_);
+    	initCtr(allocator, allocator.createCtrName(), true, model_type_name_);
     }
 
 
@@ -393,7 +393,7 @@ public:
         logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
         debug_(false)
     {
-    	InitCtr(allocator, name, create, mname);
+    	initCtr(allocator, name, create, mname);
     }
 
     Ctr(Allocator &allocator, const ID& root_id, const char* mname = NULL):
@@ -404,7 +404,7 @@ public:
     	logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
     	debug_(false)
     {
-    	InitCtr(allocator, root_id, mname);
+    	initCtr(allocator, root_id, mname);
     }
 
     Ctr(const MyType& other):
@@ -461,26 +461,26 @@ public:
     	unref();
     }
 
-    void InitCtr(Allocator &allocator, BigInt name, bool create = false, const char* mname = NULL)
+    void initCtr(Allocator &allocator, BigInt name, bool create = false, const char* mname = NULL)
     {
     	allocator_ 			= &allocator;
     	name_ 				= name;
     	model_type_name_	= mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
-    	//FIXME: Init logger correctly
+    	//FIXME: init logger correctly
 
-    	Base::InitCtr(create);
+    	Base::initCtr(create);
 
     	ref();
     }
 
-    void InitCtr(Allocator &allocator, const ID& root_id, const char* mname = NULL)
+    void initCtr(Allocator &allocator, const ID& root_id, const char* mname = NULL)
     {
     	allocator_ 			= &allocator;
     	model_type_name_	= mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
     	name_				= me()->getModelName(root_id);
-    	//FIXME: Init logger correctly
+    	//FIXME: init logger correctly
 
-    	Base::InitCtr(root_id);
+    	Base::initCtr(root_id);
 
     	ref();
     }

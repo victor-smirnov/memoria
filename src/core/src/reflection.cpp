@@ -48,7 +48,7 @@ void ContainerMetadataRepository::process_model(ContainerMetadata* model)
 
 		model_map_[model->Hash()] = model;
 
-		for (Int d = 0; d < model->Size(); d++)
+		for (Int d = 0; d < model->size(); d++)
 		{
 			Metadata* item = model->getItem(d);
 			if (item->getTypeCode() == Metadata::PAGE)

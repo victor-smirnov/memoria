@@ -65,7 +65,7 @@ void Benchmark(Int size, Int average = 10)
 
 	PMap* map_ = T2T<PMap*>(buffer);
 
-	map_->InitByBlock(buffer_size - sizeof(PMap));
+	map_->initByBlock(buffer_size - sizeof(PMap));
 
 	FillPMap(map_, map_->max_size());
 

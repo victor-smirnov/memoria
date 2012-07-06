@@ -68,8 +68,8 @@ public:
 	setinsertBatchBenchmark(StringRef name):
 		SPBenchmarkTask(name), max_size(16*1024*1024)
 	{
-		RootCtr::Init();
-		setCtr::Init();
+		RootCtr::initMetadata();
+		setCtr::initMetadata();
 
 		Add("max_size", max_size);
 	}

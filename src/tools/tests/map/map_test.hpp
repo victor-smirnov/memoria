@@ -44,8 +44,8 @@ public:
 	MapTest() :
 		SPTestTask("Map")
 	{
-		SmallCtrTypeFactory::Factory<Root>::Type::Init();
-		SmallCtrTypeFactory::Factory<Map1>::Type::Init();
+		SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+		SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
 	}
 
 	virtual ~MapTest() throw () {
@@ -89,7 +89,7 @@ public:
 
 
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* createTestStep(StringRef name) const
 	{
 		return new MapReplay();
 	}

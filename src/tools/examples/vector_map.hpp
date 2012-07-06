@@ -29,7 +29,7 @@ public:
 	VectorMapExample() :
 		SPExampleTask("VectorMap")
 	{
-		MapCtr::Init();
+		MapCtr::initMetadata();
 	}
 
 	virtual ~VectorMapExample() throw () {

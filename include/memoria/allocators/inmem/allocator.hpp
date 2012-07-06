@@ -481,7 +481,7 @@ public:
 
 		char signature[12];
 
-		MEMORIA_TRACE(me(),"Read header from:", input->pos());
+		MEMORIA_TRACE(me(),"read header from:", input->pos());
 		input->read(signature, sizeof(signature));
 		MEMORIA_TRACE(me(),"Current:", input->pos());
 
@@ -557,7 +557,7 @@ public:
 		counter_ = maxId + 1;
 
 		//FIXME: Is it safe?
-		root_map_->InitCtr(*this, root);
+		root_map_->initCtr(*this, root);
 	}
 
 	virtual void store(OutputStreamHandler *output)

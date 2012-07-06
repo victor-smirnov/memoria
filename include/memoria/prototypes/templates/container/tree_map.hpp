@@ -111,7 +111,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 //                }
 //            }
 //
-//            iter.Init();
+//            iter.init();
 //
 //            return iter;
 //        }

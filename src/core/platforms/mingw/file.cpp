@@ -164,7 +164,7 @@ bool rm(const File &file)
 {
 	if (file.IsDirectory())
 	{
-		File::FileListType* list = File::ReadDir(file);
+		File::FileListType* list = File::readDir(file);
 
 		bool result = true;
 		for (UInt c = 0; c < list->size(); c++)
@@ -206,7 +206,7 @@ String File::getName() const {
 	}
 }
 
-File::FileListType* File::ReadDir(const File& file)
+File::FileListType* File::readDir(const File& file)
 {
 	if (file.IsDirectory())
 	{

@@ -54,14 +54,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     }
 
 
-    BigInt Read(IData& data, BigInt start, BigInt length)
+    BigInt read(IData& data, BigInt start, BigInt length)
     {
-    	return me()->model().Read(*me(), data, start, length);
+    	return me()->model().read(*me(), data, start, length);
     }
 
-    BigInt Read(IData& data)
+    BigInt read(IData& data)
     {
-    	return Read(data, 0, data.getSize());
+    	return read(data, 0, data.getSize());
     }
 
     
@@ -78,8 +78,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	me()->insert(ArrayData(value));
     }
 
-    void Update(const IData& data, BigInt start, BigInt length);
-    void Update(const IData& data);
+    void update(const IData& data, BigInt start, BigInt length);
+    void update(const IData& data);
 
     void remove(BigInt length)
     {
@@ -91,13 +91,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	me()->model().removeDataBlock(*me(), to);
     }
 
-    BigInt Skip(BigInt distance);
-    BigInt SkipFw(BigInt distance);
-    BigInt SkipBw(BigInt distance);
+    BigInt skip(BigInt distance);
+    BigInt skipFw(BigInt distance);
+    BigInt skipBw(BigInt distance);
 
-    void DumpKeys(ostream& out)
+    void dumpKeys(ostream& out)
     {
-    	Base::DumpKeys(out);
+    	Base::dumpKeys(out);
 
     	out<<"Pos:     "<<me()->pos()<<endl;
     	out<<"DataPos: "<<me()->data_pos()<<endl;
@@ -109,9 +109,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	me()->model().Dump(me()->data(), out);
     }
 
-    void DumpPath(ostream& out)
+    void dumpPath(ostream& out)
     {
-    	Base::DumpPath(out);
+    	Base::dumpPath(out);
 
     	if (me()->data().is_set())
     	{
@@ -126,38 +126,38 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     bool operator++()
     {
     	Int size = me()->getElementSize();
-    	return me()->Skip(size) = size;
+    	return me()->skip(size) = size;
     }
 
     bool operator++(int)
     {
-    	return me()->Skip(1) = 1;
+    	return me()->skip(1) = 1;
     }
 
     bool operator+=(Int count)
     {
-    	return me()->Skip(count) = count;
+    	return me()->skip(count) = count;
     }
 
     bool operator--()
     {
-    	return me()->Skip(1);
+    	return me()->skip(1);
     }
 
     bool operator--(int)
     {
-    	return me()->Skip(-1) = 1;
+    	return me()->skip(-1) = 1;
     }
 
     bool operator-=(Int count)
 	{
-    	return me()->Skip(-count) = count;
+    	return me()->skip(-count) = count;
 	}
 
 
-    void Assing(const IData& data)
+    void assing(const IData& data)
     {
-    	Update(data);
+    	update(data);
     }
 
     template <typename T>
@@ -167,7 +167,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     	ArrayData data(value);
 
-    	me()->Read(data);
+    	me()->read(data);
 
     	return value;
     }
@@ -194,33 +194,33 @@ void M_TYPE::insert(const IData& data)
 
 
 M_PARAMS
-void M_TYPE::Update(const IData& data, BigInt start, BigInt len)
+void M_TYPE::update(const IData& data, BigInt start, BigInt len)
 {
-	me()->model().UpdateData(*me(), data, start, len);
+	me()->model().updateData(*me(), data, start, len);
 }
 
 M_PARAMS
-void M_TYPE::Update(const IData& data)
+void M_TYPE::update(const IData& data)
 {
-	me()->model().UpdateData(*me(), data, 0, data.getSize());
+	me()->model().updateData(*me(), data, 0, data.getSize());
 }
 
 
 
 M_PARAMS
-BigInt M_TYPE::Skip(BigInt distance)
+BigInt M_TYPE::skip(BigInt distance)
 {
 	if (distance > 0)
 	{
-		return SkipFw(distance);
+		return skipFw(distance);
 	}
 	else {
-		return SkipBw(-distance);
+		return skipBw(-distance);
 	}
 }
 
 M_PARAMS
-BigInt M_TYPE::SkipFw(BigInt count)
+BigInt M_TYPE::skipFw(BigInt count)
 {
 	Int element_size = me()->getElementSize();
 
@@ -289,7 +289,7 @@ BigInt M_TYPE::SkipFw(BigInt count)
 
 
 M_PARAMS
-BigInt M_TYPE::SkipBw(BigInt count)
+BigInt M_TYPE::skipBw(BigInt count)
 {
 	Int element_size = me()->getElementSize();
 

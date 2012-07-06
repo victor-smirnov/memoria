@@ -387,7 +387,7 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
                                                 platform = cfg;
                                         }
                                         else {
-                                                unique_ptr<File::FileListType> list(File::ReadDir(path));
+                                                unique_ptr<File::FileListType> list(File::readDir(path));
                                                 Configurator* cfg = NULL;
 
                                                 for (File::FileListType::iterator i = list->begin(); i != list->end(); i++)

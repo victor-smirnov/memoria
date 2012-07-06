@@ -72,7 +72,7 @@ public:
 		}
 	}
 
-	void UpdateUp(Int block_num, Int idx, IndexKey key_value)
+	void updateUp(Int block_num, Int idx, IndexKey key_value)
 	{
 		Base::key(block_num, idx) += key_value;
 

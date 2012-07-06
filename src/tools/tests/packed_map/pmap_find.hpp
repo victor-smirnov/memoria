@@ -61,7 +61,7 @@ public:
 
 	virtual ~PMapfindTest() throw() {}
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* createTestStep(StringRef name) const
 	{
 		return new TestReplay();
 	}
@@ -97,7 +97,7 @@ public:
 
 		for (Int div = 1; div <= 16; div *= 2)
 		{
-			map->InitByBlock(buffer_size / div);
+			map->initByBlock(buffer_size / div);
 
 			for (Int size = 0; size < map->max_size(); size++)
 			{

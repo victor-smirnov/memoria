@@ -45,7 +45,7 @@ class NodeFactoryHelper<NullType, Types> {
 	typedef typename Types::Allocator 			Allocator;
 
 public:
-    static NodeBaseG Create(Allocator &allocator, Int level, bool root, bool leaf)
+    static NodeBaseG create(Allocator &allocator, Int level, bool root, bool leaf)
     {
     	NodeBaseG node = allocator.createPage();
     	node->init();
@@ -111,7 +111,7 @@ class NodeFactoryHelper<TL<Head, Tail>, Types> {
     typedef typename ListBuilder<true, true>::Type                              RootLeafNode;
 
 public:
-    static NodeBaseG Create(Allocator &allocator, Int level, bool root, bool leaf)
+    static NodeBaseG create(Allocator &allocator, Int level, bool root, bool leaf)
     {
         if (Level == level)
         {
@@ -145,7 +145,7 @@ public:
             return NodeFactoryHelper<
                         Tail,
                         Types
-                   >::Create(allocator, level, root, leaf);
+                   >::create(allocator, level, root, leaf);
         }
     }
 };

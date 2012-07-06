@@ -28,7 +28,7 @@ String TestTask::getFileName(StringRef name) const
 TestReplayParams* TestTask::ReadTestStep(Configurator* cfg) const
 {
 	String name = cfg->getProperty("name");
-	TestReplayParams* params = CreateTestStep(name);
+	TestReplayParams* params = createTestStep(name);
 	Configure(params);
 
 	params->Process(cfg);

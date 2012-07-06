@@ -46,8 +46,8 @@ public:
 	setinsertBenchmark(StringRef name):
 		SPBenchmarkTask(name)
 	{
-		RootCtr::Init();
-		setCtr::Init();
+		RootCtr::initMetadata();
+		setCtr::initMetadata();
 	}
 
 	virtual ~setinsertBenchmark() throw() {}
@@ -86,7 +86,7 @@ public:
 
 			if (i.IsNotEnd())
 			{
-				i.UpdateUp(keys);
+				i.updateUp(keys);
 			}
 		}
 	}

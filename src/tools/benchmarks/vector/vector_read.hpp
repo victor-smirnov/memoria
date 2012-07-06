@@ -48,8 +48,8 @@ public:
 	VectorReadBenchmark(StringRef name):
 		SPBenchmarkTask(name)
 	{
-		RootCtr::Init();
-		VectorCtr::Init();
+		RootCtr::initMetadata();
+		VectorCtr::initMetadata();
 
 		average = 5;
 	}
@@ -102,7 +102,7 @@ public:
 
 		for (Int c = 0; c < params.operations(); c++)
 		{
-			total += ctr_->seek(rd_array_[c]).Read(data);
+			total += ctr_->seek(rd_array_[c]).read(data);
 		}
 
 		params.memory() = total;

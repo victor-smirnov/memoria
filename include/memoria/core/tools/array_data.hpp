@@ -123,7 +123,7 @@ public:
 
 
 //struct IDataFactory {
-//	virtual IData* Create(SizeT size) = 0;
+//	virtual IData* create(SizeT size) = 0;
 //};
 
 

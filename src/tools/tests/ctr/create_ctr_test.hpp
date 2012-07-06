@@ -54,9 +54,9 @@ public:
 
 	CreateCtrTest(): SPTestTask("CreateCtr"), map_size_(1024*256), vector_map_size_(200), block_size_(1024)
 	{
-		SmallCtrTypeFactory::Factory<Root>::Type::Init();
-		VectorMapCtr::Init();
-		MapCtr::Init();
+		SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+		VectorMapCtr::initMetadata();
+		MapCtr::initMetadata();
 
 		Add("MapSize", map_size_);
 		Add("VectorMapSize", vector_map_size_);
@@ -65,7 +65,7 @@ public:
 
 	virtual ~CreateCtrTest() throw() {}
 
-	virtual TestReplayParams* CreateTestStep(StringRef name) const
+	virtual TestReplayParams* createTestStep(StringRef name) const
 	{
 		return new TaskReplay();
 	}
@@ -114,7 +114,7 @@ public:
 
 		for (Int c = 0; c < task_params->vector_map_size_; c++)
 		{
-			vector_map[getRandom()] = CreateBuffer(getRandom(task_params->block_size_), getRandom(256));
+			vector_map[getRandom()] = createBuffer(getRandom(task_params->block_size_), getRandom(256));
 		}
 
 		allocator.commit();
@@ -160,7 +160,7 @@ public:
 		{
 			MEMORIA_TEST_THROW_IF(iter.size(), !=, new_vm_iter.size());
 
-			ArrayData data = iter.Read();
+			ArrayData data = iter.read();
 
 			checkBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
 		}

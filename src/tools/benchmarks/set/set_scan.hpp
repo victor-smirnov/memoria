@@ -46,8 +46,8 @@ public:
 	setScanBenchmark(StringRef name):
 		SPBenchmarkTask(name)
 	{
-		RootCtr::Init();
-		setCtr::Init();
+		RootCtr::initMetadata();
+		setCtr::initMetadata();
 	}
 
 	virtual ~setScanBenchmark() throw() {}

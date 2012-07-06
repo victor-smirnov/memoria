@@ -166,7 +166,7 @@ typename M_TYPE::Accumulator M_TYPE::removeDataBlock(Iterator& start, BigInt siz
 
 		if (me()->MergeDataWithSiblings(start))
 		{
-			start.Init();
+			start.init();
 		}
 
 		return result;
@@ -174,7 +174,7 @@ typename M_TYPE::Accumulator M_TYPE::removeDataBlock(Iterator& start, BigInt siz
 	else
 	{
 		auto stop = start;
-		stop.Skip(size);
+		stop.skip(size);
 		return me()->removeDataBlock(start, stop);
 	}
 }
@@ -493,7 +493,7 @@ typename M_TYPE::Accumulator M_TYPE::removeData(TreePath& path, Int start, Int l
 	Accumulator accum;
 	accum.keys()[0] = length;
 
-	me()->UpdateUp(path, 0, path.data().parent_idx(), -accum);
+	me()->updateUp(path, 0, path.data().parent_idx(), -accum);
 
 	return accum;
 }
@@ -533,8 +533,8 @@ void M_TYPE::MergeDataPagesAndremoveSource(
 
 		//me()->AddAndSubtractKeyValues(target, target_data_item.parent_idx(), source, source_data_item.parent_idx(), keys);
 
-		me()->UpdateUp(target, 0, target_data_item.parent_idx(), keys);
-		me()->UpdateUp(source, 0, source_data_item.parent_idx(), -keys);
+		me()->updateUp(target, 0, target_data_item.parent_idx(), keys);
+		me()->updateUp(source, 0, source_data_item.parent_idx(), -keys);
 	}
 	else {
 		// make a room for source data in the target data page
@@ -544,8 +544,8 @@ void M_TYPE::MergeDataPagesAndremoveSource(
 		// copy page content from source to target
 		memoria::CopyBuffer(source_data->data().value_addr(0), target_data->data().value_addr(0), src_size);
 
-		me()->UpdateUp(target, 0, target_data_item.parent_idx(), keys);
-		me()->UpdateUp(source, 0, source_data_item.parent_idx(), -keys);
+		me()->updateUp(target, 0, target_data_item.parent_idx(), keys);
+		me()->updateUp(source, 0, source_data_item.parent_idx(), -keys);
 	}
 
 	target_data->data().size() += src_size;

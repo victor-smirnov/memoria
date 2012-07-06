@@ -59,9 +59,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	return me()->PrevKey();
     }
 
-    BigInt SkipFw(BigInt amount);
-    BigInt SkipBw(BigInt amount);
-    BigInt Skip(BigInt amount);
+    BigInt skipFw(BigInt amount);
+    BigInt skipBw(BigInt amount);
+    BigInt skip(BigInt amount);
 
     bool operator++() {
     	return me()->NextKey();
@@ -81,12 +81,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
 
     BigInt operator+=(BigInt size)
     {
-    	return me()->SkipFw(size);
+    	return me()->skipFw(size);
     }
 
     BigInt operator-=(BigInt size)
     {
-    	return me()->SkipBw(size);
+    	return me()->skipBw(size);
     }
 
     operator Value () const
@@ -157,13 +157,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
     	return me()->model().getKeys(me()->page(), me()->key_idx());
     }
 
-    void UpdateUp(const Accumulator& keys)
+    void updateUp(const Accumulator& keys)
     {
-    	me()->model().UpdateUp(me()->path(), 0, me()->key_idx(), keys);
+    	me()->model().updateUp(me()->path(), 0, me()->key_idx(), keys);
     }
 
-    void Init() {
-    	Base::Init();
+    void init() {
+    	Base::init();
     }
 
     bool IsFound() {
@@ -233,7 +233,7 @@ MEMORIA_ITERATOR_PART_END
 
 
 M_PARAMS
-BigInt M_TYPE::SkipFw(BigInt amount)
+BigInt M_TYPE::skipFw(BigInt amount)
 {
 	BigInt cnt = 0;
 
@@ -250,7 +250,7 @@ BigInt M_TYPE::SkipFw(BigInt amount)
 
 
 M_PARAMS
-BigInt M_TYPE::SkipBw(BigInt amount)
+BigInt M_TYPE::skipBw(BigInt amount)
 {
 	BigInt cnt = 0;
 
@@ -267,14 +267,14 @@ BigInt M_TYPE::SkipBw(BigInt amount)
 
 
 M_PARAMS
-BigInt M_TYPE::Skip(BigInt amount)
+BigInt M_TYPE::skip(BigInt amount)
 {
 	if (amount >= 0)
 	{
-		return me()->SkipFw(amount);
+		return me()->skipFw(amount);
 	}
 	else {
-		return me()->SkipBw(-amount);
+		return me()->skipBw(-amount);
 	}
 }
 

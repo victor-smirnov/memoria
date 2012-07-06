@@ -41,7 +41,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::ReadName)
 
 		static const Int Indexes                                                    = Types::Indexes;
 
-		BigInt Read(Iterator& iter, IData& data, BigInt start, BigInt len);
+		BigInt read(Iterator& iter, IData& data, BigInt start, BigInt len);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -49,7 +49,7 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-BigInt M_TYPE::Read(Iterator& iter, IData& data, BigInt start, BigInt len)
+BigInt M_TYPE::read(Iterator& iter, IData& data, BigInt start, BigInt len)
 {
 	BigInt sum = 0;
 
@@ -62,7 +62,7 @@ BigInt M_TYPE::Read(Iterator& iter, IData& data, BigInt start, BigInt len)
 		data.put(iter.data()->data().value_addr(iter.data_pos()), start, to_read);
 
 		len 	-= to_read;
-		iter.Skip(to_read / me()->getElementSize());
+		iter.skip(to_read / me()->getElementSize());
 
 		sum 	+= to_read;
 		start 	+= to_read;
