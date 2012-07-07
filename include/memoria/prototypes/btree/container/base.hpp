@@ -56,8 +56,6 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     typedef typename Types::TreePathItem										TreePathItem;
     typedef typename Types::TreePath											TreePath;
 
-//    typedef typename Types::template IteratorCacheFactory<Iter<Types>, MyType>	IteratorCache;
-
 
     class BTreeCtrShared: public CtrShared {
 
@@ -164,6 +162,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     void setModelName(BigInt name)
     {
+    	MEMORIA_ASSERT_EXPR(name >= 0, "Container name must not be positive")
+
     	NodeBaseG root 	= me()->getRoot(Allocator::READ);
 
     	SetModelNameFn fn(name);
@@ -330,6 +330,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     NodeBaseG createNode(Short level, bool root, bool leaf) const
     {
+    	MEMORIA_ASSERT(level, >=, 0);
+
     	NodeBaseG node = NodeFactory::create(me()->allocator(), level, root, leaf);
 
     	if (root)
@@ -350,6 +352,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     NodeBaseG createRootNode(Short level, bool leaf, const Metadata& metadata) const
     {
+    	MEMORIA_ASSERT(level, >=, 0);
+
     	NodeBaseG node = NodeFactory::create(me()->allocator(), level, true, leaf);
 
     	MyType::setCtrRootMetadata(node, metadata);
@@ -370,15 +374,17 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     template <typename Node>
     void initNode(Node* node, Int block_size) const
     {
+    	MEMORIA_ASSERT(block_size, >=, 512);
+
     	node->map().initByBlock(block_size - sizeof(Node));
     }
 
  private:
 
-    struct initNodeFn {
+    struct InitNodeFn {
     	const MyType& me_;
     	Int block_size_;
-    	initNodeFn(const MyType& me, Int block_size): me_(me), block_size_(block_size) {}
+    	InitNodeFn(const MyType& me, Int block_size): me_(me), block_size_(block_size) {}
 
     	template <typename NodeT>
     	void operator()(NodeT* node) const
@@ -389,7 +395,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     void initNodeSize(NodeBaseG& node, Int block_size) const
     {
-    	initNodeFn fn(*me(), block_size);
+    	InitNodeFn fn(*me(), block_size);
     	NodeDispatcher::Dispatch(node.page(), fn);
     }
 

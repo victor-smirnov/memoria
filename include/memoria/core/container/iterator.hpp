@@ -134,7 +134,7 @@ public:
 
     bool is_log(Int level)
     {
-    	return logger_.IsLogEnabled(level);
+    	return logger_.isLogEnabled(level);
     }
 
     memoria::vapi::Logger& logger()

@@ -188,6 +188,8 @@ M_PARAMS
 template <typename Comparator>
 const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
 {
+	MEMORIA_ASSERT(block_num, >=, 0)
+
 	NodeBaseG node = me()->getRoot(Allocator::READ);
 
 	if (node->children_count() > 0)

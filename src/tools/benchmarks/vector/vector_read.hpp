@@ -62,7 +62,7 @@ public:
 
 		Int size = params.x();
 
-		ctr_ = new VectorCtr(*allocator_);
+		ctr_ = new VectorCtr(allocator_);
 
 		ctr_->setElementSize(8);
 

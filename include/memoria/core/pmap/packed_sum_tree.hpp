@@ -223,13 +223,13 @@ public:
 	}
 
 
-	void Sum(Int block_num, Int start, Int end, IndexKey& sum) const
+	void sum(Int block_num, Int start, Int end, IndexKey& sum) const
 	{
 		SumWalker<MyType, Key, IndexKey, Blocks> walker(*this, block_num, sum);
 		Base::walkRange(start, end, walker);
 	}
 
-	void Sum(Int start, Int end, Accumulator& accum) const
+	void sum(Int start, Int end, Accumulator& accum) const
 	{
 		SumsWalker<MyType, Key, IndexKey, Accumulator> walker(*this, accum);
 		Base::walkRange(start, end, walker);

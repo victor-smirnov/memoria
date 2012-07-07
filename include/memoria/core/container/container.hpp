@@ -13,6 +13,7 @@
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/reflection.hpp>
+#include <memoria/core/tools/assert.hpp>
 
 #include <memoria/metadata/model.hpp>
 
@@ -90,7 +91,7 @@ public:
     	shared_(other.shared_)
     {}
 
-    ContainerBase(const ThisType& other, Allocator& allocator):
+    ContainerBase(const ThisType& other, Allocator* allocator):
     	shared_(other.shared_)
     {}
 
@@ -157,7 +158,7 @@ public:
     		Allocator* alloc = T2T<Allocator*>(allocator);
     		ID* root_id = T2T<ID*>(id);
 
-    		MyType ctr(*alloc, *root_id);
+    		MyType ctr(alloc, *root_id);
     		return ctr.check(NULL);
     	}
     };
@@ -277,8 +278,8 @@ public:
 	CtrHelper(): Base() {}
 	CtrHelper(const ThisType& other): Base(other) {}
 	CtrHelper(ThisType&& other): Base(std::move(other)) {}
-	CtrHelper(ThisType&& other, Allocator0& allocator): Base(std::move(other), allocator) {}
-	CtrHelper(const ThisType& other, Allocator0& allocator): Base(other, allocator) 		 {}
+	CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator) 	{}
+	CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator) 		{}
 
 	void operator=(ThisType&& other) {
 		Base::operator=(std::move(other));
@@ -302,8 +303,8 @@ public:
 	CtrHelper(): Base() {}
 	CtrHelper(const ThisType& other): Base(other) {}
 	CtrHelper(ThisType&& other): Base(std::move(other)) {}
-	CtrHelper(ThisType&& other, Allocator0& allocator): Base(std::move(other), allocator)    {}
-	CtrHelper(const ThisType& other, Allocator0& allocator): Base(other, allocator) 		 {}
+	CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator)    {}
+	CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator) 		 {}
 
 	void operator=(ThisType&& other) {
 		Base::operator=(std::move(other));
@@ -329,8 +330,8 @@ public:
 	CtrStart(): Base() {}
 	CtrStart(const ThisType& other): Base(other) {}
 	CtrStart(ThisType&& other): Base(std::move(other)) {}
-	CtrStart(ThisType&& other, Allocator0& allocator): Base(std::move(other), allocator) {}
-	CtrStart(const ThisType& other, Allocator0& allocator): Base(other, allocator) 		{}
+	CtrStart(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator) {}
+	CtrStart(const ThisType& other, Allocator0* allocator): Base(other, allocator) 		 {}
 
 	void operator=(ThisType&& other) {
 		Base::operator=(std::move(other));
@@ -375,40 +376,49 @@ private:
 
 public:
 
-    Ctr(Allocator &allocator):
+    Ctr(Allocator* allocator):
     	Base(),
-    	allocator_(&allocator),
+    	allocator_(allocator),
     	model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
-    	logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
     	debug_(false)
     {
-    	initCtr(allocator, allocator.createCtrName(), true, model_type_name_);
+    	MEMORIA_ASSERT_NOT_NULL(allocator);
+
+    	initLogger();
+
+    	initCtr(allocator, allocator->createCtrName(), true, model_type_name_);
     }
 
 
-    Ctr(Allocator &allocator, BigInt name, bool create = false, const char* mname = NULL):
+    Ctr(Allocator* allocator, BigInt name, bool create = false, const char* mname = NULL):
         Base(),
-        allocator_(&allocator),
+        allocator_(allocator),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
-        logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
         debug_(false)
     {
+    	MEMORIA_ASSERT_NOT_NULL(allocator);
+
+    	initLogger();
+
     	initCtr(allocator, name, create, mname);
     }
 
-    Ctr(Allocator &allocator, const ID& root_id, const char* mname = NULL):
+    Ctr(Allocator* allocator, const ID& root_id, const char* mname = NULL):
     	Base(),
-    	allocator_(&allocator),
+    	allocator_(allocator),
     	name_(-1),
     	model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
-    	logger_(model_type_name_, Logger::DERIVED, &allocator.logger()),
     	debug_(false)
     {
+    	MEMORIA_ASSERT_NOT_NULL(allocator);
+
+    	initLogger();
+
     	initCtr(allocator, root_id, mname);
     }
 
     Ctr(const MyType& other):
-    	Base(other, *other.allocator_),
+    	Base(other, other.allocator_),
     	allocator_(other.allocator_),
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
@@ -418,33 +428,37 @@ public:
     	ref();
     }
 
-    Ctr(const MyType& other, Allocator& allocator):
+    Ctr(const MyType& other, Allocator* allocator):
     	Base(other, allocator),
-    	allocator_(&allocator),
+    	allocator_(allocator),
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
     	debug_(other.debug_)
     {
+    	MEMORIA_ASSERT_NOT_NULL(allocator);
+
     	Base::setCtrShared(other.shared_);
     	ref();
     }
 
 
     Ctr(MyType&& other):
-    	Base(std::move(other), *other.allocator_),
+    	Base(std::move(other), other.allocator_),
     	allocator_(other.allocator_),
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
     	debug_(other.debug_)
     {}
 
-    Ctr(MyType&& other, Allocator& allocator):
+    Ctr(MyType&& other, Allocator* allocator):
     	Base(std::move(other), allocator),
-    	allocator_(&allocator),
+    	allocator_(allocator),
     	model_type_name_(other.model_type_name_),
     	logger_(other.logger_),
     	debug_(other.debug_)
-    {}
+    {
+    	MEMORIA_ASSERT_NOT_NULL(allocator);
+    }
 
     Ctr(const NoParamCtr&):
     	Base(),
@@ -461,9 +475,25 @@ public:
     	unref();
     }
 
-    void initCtr(Allocator &allocator, BigInt name, bool create = false, const char* mname = NULL)
+    void initLogger(const Logger* other)
     {
-    	allocator_ 			= &allocator;
+    	logger_.setCategory(other->category());
+    	logger_.setHandler(other->getHandler());
+    	logger_.setParent(other->getParent());
+
+    	logger_.level() = other->level();
+    }
+
+    void initLogger()
+    {
+    	logger_.configure(model_type_name_, Logger::DERIVED, &allocator_->logger());
+    }
+
+    void initCtr(Allocator* allocator, BigInt name, bool create = false, const char* mname = NULL)
+    {
+    	MEMORIA_ASSERT(name, >=, 0);
+
+    	allocator_ 			= allocator;
     	name_ 				= name;
     	model_type_name_	= mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
     	//FIXME: init logger correctly
@@ -473,11 +503,14 @@ public:
     	ref();
     }
 
-    void initCtr(Allocator &allocator, const ID& root_id, const char* mname = NULL)
+    void initCtr(Allocator* allocator, const ID& root_id, const char* mname = NULL)
     {
-    	allocator_ 			= &allocator;
+    	MEMORIA_ASSERT_EXPR(root_id.isNotEmpty(), "Container root ID must not be empty");
+
+    	allocator_ 			= allocator;
     	model_type_name_	= mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
     	name_				= me()->getModelName(root_id);
+
     	//FIXME: init logger correctly
 
     	Base::initCtr(root_id);
@@ -508,7 +541,7 @@ public:
 
     bool is_log(Int level)
     {
-    	return logger_.IsLogEnabled(level);
+    	return logger_.isLogEnabled(level);
     }
 
     memoria::vapi::Logger& logger() {

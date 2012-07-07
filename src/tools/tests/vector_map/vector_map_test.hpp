@@ -121,7 +121,7 @@ public:
 
 		LoadAllocator(allocator, params);
 
-		VectorMapCtr map(allocator, params->ctr_name_);
+		VectorMapCtr map(&allocator, params->ctr_name_);
 
 		if (params->step_ == 0)
 		{
@@ -208,7 +208,7 @@ public:
 		Allocator allocator;
 		allocator.getLogger()->setHandler(&logHandler);
 
-		VectorMapCtr map(allocator);
+		VectorMapCtr map(&allocator);
 
 		params->ctr_name_ = map.name();
 
@@ -269,7 +269,7 @@ public:
 		Allocator allocator;
 		allocator.getLogger()->setHandler(&logHandler);
 
-		VectorMapCtr map(allocator);
+		VectorMapCtr map(&allocator);
 
 		params->ctr_name_ = map.name();
 
@@ -342,7 +342,7 @@ public:
 		Allocator allocator;
 		allocator.getLogger()->setHandler(&logHandler);
 
-		VectorMapCtr map(allocator);
+		VectorMapCtr map(&allocator);
 
 		params->ctr_name_ = map.name();
 

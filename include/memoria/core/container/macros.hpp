@@ -113,8 +113,8 @@ public:
     CtrPart(): Base()  {}                            							\
     CtrPart(const ThisType& other): Base(other)  {}                            	\
     CtrPart(ThisType&& other): Base(std::move(other))  {}                       \
-    CtrPart(ThisType&& other, typename TypesType::Allocator& allocator): Base(std::move(other), allocator)  {} 	\
-    CtrPart(const ThisType& other, typename TypesType::Allocator& allocator): Base(other, allocator)  {} 		\
+    CtrPart(ThisType&& other, typename TypesType::Allocator* allocator): Base(std::move(other), allocator)  {} 	\
+    CtrPart(const ThisType& other, typename TypesType::Allocator* allocator): Base(other, allocator)  		{} 	\
     void operator=(ThisType&& other) {											\
 		Base::operator=(std::move(other));										\
 	}																			\

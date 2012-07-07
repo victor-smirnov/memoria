@@ -26,19 +26,19 @@ class setCreateBatchBenchmark: public SPBenchmarkTask {
 	typedef typename Base::Profile 		Profile;
 
 	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<set1>::Type 		setCtr;
-	typedef typename setCtr::Iterator								Iterator;
-	typedef typename setCtr::ID										ID;
-	typedef typename setCtr::Accumulator							Accumulator;
+	typedef typename SmallCtrTypeFactory::Factory<set1>::Type 		SetCtr;
+	typedef typename SetCtr::Iterator								Iterator;
+	typedef typename SetCtr::ID										ID;
+	typedef typename SetCtr::Accumulator							Accumulator;
 
 
-	typedef typename setCtr::Key									Key;
-	typedef typename setCtr::Value									Value;
+	typedef typename SetCtr::Key									Key;
+	typedef typename SetCtr::Value									Value;
 
-	typedef typename setCtr::ISubtreeProvider						ISubtreeProvider;
-	typedef typename setCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
-	typedef typename setCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
-	typedef typename setCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
+	typedef typename SetCtr::ISubtreeProvider						ISubtreeProvider;
+	typedef typename SetCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
+	typedef typename SetCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
+	typedef typename SetCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
 
 
 	class SubtreeProvider: public DefaultSubtreeProviderBase
@@ -46,7 +46,7 @@ class setCreateBatchBenchmark: public SPBenchmarkTask {
 		typedef DefaultSubtreeProviderBase 		Base;
 		typedef typename ISubtreeProvider::Enum Direction;
 	public:
-		SubtreeProvider(setCtr* ctr, BigInt total): Base(*ctr, total) {}
+		SubtreeProvider(SetCtr* ctr, BigInt total): Base(*ctr, total) {}
 
 		virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
 		{
@@ -58,7 +58,7 @@ class setCreateBatchBenchmark: public SPBenchmarkTask {
 
 
 	Allocator* 	allocator_;
-	setCtr* 	set_;
+	SetCtr* 	set_;
 
 public:
 
@@ -66,7 +66,7 @@ public:
 		SPBenchmarkTask(name)
 	{
 		RootCtr::initMetadata();
-		setCtr::initMetadata();
+		SetCtr::initMetadata();
 	}
 
 	virtual ~setCreateBatchBenchmark() throw() {}
@@ -74,7 +74,7 @@ public:
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ 	= new Allocator();
-		set_ 		= new setCtr(*allocator_, 1, true);
+		set_ 		= new SetCtr(allocator_, 1, true);
 
 		allocator_->commit();
 	}

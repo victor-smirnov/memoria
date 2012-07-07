@@ -109,16 +109,16 @@ public:
 
     void initCtr(bool create)
     {
-    	array_.initCtr(me()->allocator(), me()->name(), create);
-    	set_.  initCtr(array_, 0, create);
+    	array_.initCtr(&me()->allocator(), me()->name(), create);
+    	set_.  initCtr(&array_, 0, create);
 
     	Base::setCtrShared(NULL);
     }
 
     void initCtr(const ID& root_id)
     {
-    	array_.initCtr(me()->allocator(), root_id);
-    	set_.initCtr(array_, get_ctr_root(me()->allocator(), root_id, 0));
+    	array_.initCtr(&me()->allocator(), root_id);
+    	set_.initCtr(&array_, get_ctr_root(me()->allocator(), root_id, 0));
 
     	Base::setCtrShared(NULL);
     }

@@ -600,6 +600,8 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& pairs)
 M_PARAMS
 BigInt M_TYPE::getSubtreeSize(Int level) const
 {
+	MEMORIA_ASSERT(level, >=, 0);
+
 	BigInt result = 1;
 
 	for (int c = 0; c < level; c++)
@@ -869,12 +871,15 @@ void M_TYPE::fillNodeRight(TreePath& path, Int level, Int from, Int count, Inser
 M_PARAMS
 void M_TYPE::makeRoom(TreePath& path, Int level, Int start, Int count) const
 {
-	path[level].node().update();
+	if (count > 0)
+	{
+		path[level].node().update();
+		MakeRoomFn fn(start, count);
+		NodeDispatcher::Dispatch(path[level].node(), fn);
+		path.moveRight(level - 1, start, count);
+	}
 
-	MakeRoomFn fn(start, count);
-	NodeDispatcher::Dispatch(path[level].node(), fn);
 
-	path.moveRight(level - 1, start, count);
 
 //	if (level > 0)
 //	{
@@ -891,7 +896,11 @@ M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::moveElements(NodeBaseG& src, NodeBaseG& tgt, Int from, Int shift) const
 {
 	MoveElementsFn fn(from, shift);
-	NodeDispatcher::Dispatch(src, tgt, fn);
+
+	if (from < src->children_count())
+	{
+		NodeDispatcher::Dispatch(src, tgt, fn);
+	}
 
 	return fn.result_;
 }

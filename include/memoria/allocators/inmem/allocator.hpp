@@ -104,7 +104,7 @@ public:
 		counter_(100), metadata_(MetadataRepository<Profile>::getMetadata()), me_(*this),
 		type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this)
 	{
-		root_map_ = new RootMapType(*this, 0, true);
+		root_map_ = new RootMapType(this, 0, true);
 	}
 
 	InMemAllocator(const InMemAllocator& other):
@@ -120,7 +120,7 @@ public:
 			pages_[i->first] = T2T<Page*>(buffer);
 		}
 
-		root_map_ = new RootMapType(*this, 0);
+		root_map_ = new RootMapType(this, 0);
 	}
 
 	virtual ~InMemAllocator() throw ()
@@ -557,7 +557,7 @@ public:
 		counter_ = maxId + 1;
 
 		//FIXME: Is it safe?
-		root_map_->initCtr(*this, root);
+		root_map_->initCtr(this, root);
 	}
 
 	virtual void store(OutputStreamHandler *output)
@@ -593,7 +593,7 @@ public:
 
 public:
 	bool is_log(Int level) {
-		return logger_.IsLogEnabled(level);
+		return logger_.isLogEnabled(level);
 	}
 
 	const char* typeName() {

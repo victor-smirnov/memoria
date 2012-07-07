@@ -93,7 +93,7 @@ public:
 		Allocator allocator;
 		allocator.getLogger()->setHandler(&logHandler);
 
-		MapCtr map(allocator);
+		MapCtr map(&allocator);
 
 		map.setBranchingFactor(100);
 
@@ -106,7 +106,7 @@ public:
 			map[getRandom()] = getRandom();
 		}
 
-		VectorMapCtr vector_map(allocator);
+		VectorMapCtr vector_map(&allocator);
 
 		vector_map.setBranchingFactor(100);
 
@@ -134,7 +134,7 @@ public:
 		out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
 		out<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
 
-		MapCtr new_map(new_alloc, map.name());
+		MapCtr new_map(&new_alloc, map.name());
 
 		MEMORIA_TEST_THROW_IF(map.getBranchingFactor(), !=, new_map.getBranchingFactor());
 
@@ -150,7 +150,7 @@ public:
 
 		BigInt t22 = getTimeInMillis();
 
-		VectorMapCtr new_vector_map(new_alloc, vector_map.name());
+		VectorMapCtr new_vector_map(&new_alloc, vector_map.name());
 
 		MEMORIA_TEST_THROW_IF(vector_map.getBranchingFactor(), !=, new_vector_map.getBranchingFactor());
 

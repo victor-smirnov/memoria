@@ -54,7 +54,7 @@ public:
 	virtual void Prepare(BenchmarkParameters& params, ostream& out)
 	{
 		allocator_ 	= new Allocator();
-		map_ 		= new MapCtr(*allocator_, 1, true);
+		map_ 		= new MapCtr(allocator_, 1, true);
 
 		allocator_->commit();
 	}

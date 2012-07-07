@@ -53,6 +53,10 @@ public:
     	return Base::value() == 0;
     }
 
+    bool isNotEmpty() const {
+    	return Base::value() != 0;
+    }
+
     bool isNotNull() const {
     	return !isNull();
     }

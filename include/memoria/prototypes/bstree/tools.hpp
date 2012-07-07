@@ -241,7 +241,13 @@ public:
 
 	void Prepare()
 	{
-		current_ = Base::iterator().getRawKey(0);
+		if (Base::iterator().key_idx() >=0)
+		{
+			current_ = Base::iterator().getRawKey(0);
+		}
+		else {
+			current_ = 0;
+		}
 	}
 
 	void setup(BigInt prefix, Int key_num)
@@ -313,7 +319,13 @@ public:
 
 	void Prepare()
 	{
-		current_ = Base::iterator().getRawKeys();
+		if (Base::iterator().key_idx() >= 0)
+		{
+			current_ = Base::iterator().getRawKeys();
+		}
+		else {
+			current_.clear();
+		}
 	}
 
 	void setup(BigInt prefix, Int key_num)
@@ -330,17 +342,20 @@ public:
 
 	void initState()
 	{
-		typedef typename Iterator::Container::TreePath TreePath;
-
 		prefix_.clear();
 
-		const TreePath& path = Base::iterator().path();
-		Int 			idx  = Base::iterator().key_idx();
+		Int idx  = Base::iterator().key_idx();
 
-		for (Int c = 0; c < path.getSize(); c++)
+		if (idx >= 0)
 		{
-			Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
-			idx = path[c].parent_idx();
+			typedef typename Iterator::Container::TreePath TreePath;
+			const TreePath& path = Base::iterator().path();
+
+			for (Int c = 0; c < path.getSize(); c++)
+			{
+				Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
+				idx = path[c].parent_idx();
+			}
 		}
 	}
 

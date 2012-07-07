@@ -13,6 +13,7 @@
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/types/traits.hpp>
 #include <memoria/core/tools/buffer.hpp>
+#include <memoria/core/tools/assert.hpp>
 #include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
@@ -83,7 +84,7 @@ private:
 
 	Int 	size_;
 	Int 	max_size_;
-	Int		indexSize_;
+	Int		index_size_;
 	Byte 	memory_block_[];
 
 public:
@@ -96,11 +97,11 @@ public:
 
 		handler->value("SIZE", 			&size_);
 		handler->value("MAX_SIZE", 		&max_size_);
-		handler->value("INDEX_SIZE", 	&indexSize_);
+		handler->value("INDEX_SIZE", 	&index_size_);
 
-		handler->startGroup("INDEXES", indexSize_);
+		handler->startGroup("INDEXES", index_size_);
 
-		for (Int idx = 0; idx < indexSize_; idx++)
+		for (Int idx = 0; idx < index_size_; idx++)
 		{
 			IndexKey indexes[Blocks];
 			for (Int block = 0; block < Blocks; block++)
@@ -144,7 +145,7 @@ public:
 	{
 		FieldFactory<Int>::serialize(buf, size());
 		FieldFactory<Int>::serialize(buf, max_size_);
-		FieldFactory<Int>::serialize(buf, indexSize_);
+		FieldFactory<Int>::serialize(buf, index_size_);
 
 		FieldFactory<IndexKey>::serialize(buf, index(0, 0), Blocks * indexSize());
 
@@ -163,7 +164,7 @@ public:
 	{
 		FieldFactory<Int>::deserialize(buf, size());
 		FieldFactory<Int>::deserialize(buf, max_size_);
-		FieldFactory<Int>::deserialize(buf, indexSize_);
+		FieldFactory<Int>::deserialize(buf, index_size_);
 
 		FieldFactory<IndexKey>::deserialize(buf, index(0, 0), Blocks * indexSize());
 
@@ -186,7 +187,7 @@ public:
 		size_ = 0;
 
 		max_size_	= getMaxSize(block_size);
-		indexSize_ = getIndexSize(max_size_);
+		index_size_ = getIndexSize(max_size_);
 	}
 
 
@@ -194,7 +195,7 @@ public:
 	{
 		size_		= 0;
 		max_size_	= max;
-		indexSize_ = getIndexSize(max_size_);
+		index_size_ = getIndexSize(max_size_);
 	}
 
 	Int getObjectSize() const
@@ -204,18 +205,18 @@ public:
 
 	Int getObjectDataSize() const
 	{
-		return sizeof(size_) + sizeof(max_size_) + sizeof(indexSize_) + getBlockSize();
+		return sizeof(size_) + sizeof(max_size_) + sizeof(index_size_) + getBlockSize();
 	}
 
 
 	Int getBlockSize() const
 	{
-		return (indexSize_ * sizeof(IndexKey) + max_size_ * sizeof(Key)) * Blocks + max_size_ * getValueSize();
+		return (index_size_ * sizeof(IndexKey) + max_size_ * sizeof(Key)) * Blocks + max_size_ * getValueSize();
 	}
 
 	Int getDataSize() const
 	{
-		return (indexSize_ * sizeof(IndexKey) + size_ * sizeof(Key)) * Blocks + size_ * getValueSize();
+		return (index_size_ * sizeof(IndexKey) + size_ * sizeof(Key)) * Blocks + size_ * getValueSize();
 	}
 
 	Int& size() {
@@ -229,7 +230,7 @@ public:
 
 	Int indexSize() const
 	{
-		return indexSize_;
+		return index_size_;
 	}
 
 	Int maxSize() const
@@ -258,7 +259,7 @@ public:
 
 	Int getIndexKeyBlockOffset(Int block_num) const
 	{
-		return getIndexKeyBlockOffset(indexSize_, block_num);
+		return getIndexKeyBlockOffset(index_size_, block_num);
 	}
 
 	Int getIndexKeyBlockOffset(Int indexSize, Int block_num) const
@@ -268,7 +269,7 @@ public:
 
 	Int getKeyBlockOffset(Int block_num) const
 	{
-		return getKeyBlockOffset(indexSize_, max_size_, block_num);
+		return getKeyBlockOffset(index_size_, max_size_, block_num);
 	}
 
 	Int getKeyBlockOffset(Int indexSize, Int keys_size, Int block_num) const
@@ -278,7 +279,7 @@ public:
 
 	Int getValueBlockOffset() const
 	{
-		return getValueBlockOffset(indexSize_, max_size_);
+		return getValueBlockOffset(index_size_, max_size_);
 	}
 
 	Int getValueBlockOffset(Int indexSize, Int keys_size) const
@@ -300,42 +301,66 @@ public:
 
 	IndexKey& indexb(Int block_offset, Int key_num)
 	{
+		MEMORIA_ASSERT(key_num, >=, 0);
+		MEMORIA_ASSERT(key_num, <, index_size_);
+
 		return blockItem<IndexKey>(block_offset, key_num);
 	}
 
 	const IndexKey& indexb(Int block_offset, Int key_num) const
 	{
+		MEMORIA_ASSERT(key_num, >=, 0);
+		MEMORIA_ASSERT(key_num, <, index_size_);
+
 		return blockItem<IndexKey>(block_offset, key_num);
 	}
 
 	IndexKey& index(Int block_num, Int key_num)
 	{
+		MEMORIA_ASSERT(key_num, >=, 0);
+		MEMORIA_ASSERT(key_num, <, index_size_);
+
 		return blockItem<IndexKey>(getIndexKeyBlockOffset(block_num), key_num);
 	}
 
 	const IndexKey& index(Int block_num, Int key_num) const
 	{
+		MEMORIA_ASSERT(key_num, >=, 0);
+		MEMORIA_ASSERT(key_num, <, index_size_);
+
 		return blockItem<IndexKey>(getIndexKeyBlockOffset(block_num), key_num);
 	}
 
 
 	Key& keyb(Int block_offset, Int key_num)
 	{
+		MEMORIA_ASSERT(key_num, >=, 0);
+		MEMORIA_ASSERT(key_num, <, max_size_);
+
 		return blockItem<Key>(block_offset, key_num);
 	}
 
 	const Key& keyb(Int block_offset, Int key_num) const
 	{
+		MEMORIA_ASSERT(key_num, >=, 0);
+		MEMORIA_ASSERT(key_num, <, max_size_);
+
 		return blockItem<Key>(block_offset, key_num);
 	}
 
 	Key& key(Int block_num, Int key_num)
 	{
+		MEMORIA_ASSERT(key_num, >=, 0);
+		MEMORIA_ASSERT(key_num, <, max_size_);
+
 		return blockItem<Key>(getKeyBlockOffset(block_num), key_num);
 	}
 
 	const Key& key(Int block_num, Int key_num) const
 	{
+		MEMORIA_ASSERT(key_num, >=, 0);
+		MEMORIA_ASSERT(key_num, <, max_size_);
+
 		return blockItem<Key>(getKeyBlockOffset(block_num), key_num);
 	}
 
@@ -356,21 +381,33 @@ public:
 
 	Value& value(Int value_num)
 	{
+		MEMORIA_ASSERT(value_num, >=, 0);
+		MEMORIA_ASSERT(value_num, <, max_size_);
+
 		return valueb(getValueBlockOffset(), value_num);
 	}
 
 	const Value& value(Int value_num) const
 	{
+		MEMORIA_ASSERT(value_num, >=, 0);
+		MEMORIA_ASSERT(value_num, <, max_size_);
+
 		return valueb(getValueBlockOffset(), value_num);
 	}
 
 	Value& valueb(Int block_offset, Int value_num)
 	{
+		MEMORIA_ASSERT(value_num, >=, 0);
+		MEMORIA_ASSERT(value_num, <, max_size_);
+
 		return blockItem<Value>(block_offset, value_num, getValueSize());
 	}
 
 	const Value& valueb(Int block_offset, Int value_num) const
 	{
+		MEMORIA_ASSERT(value_num, >=, 0);
+		MEMORIA_ASSERT(value_num, <, max_size_);
+
 		return blockItem<Value>(block_offset, value_num, getValueSize());
 	}
 
@@ -381,6 +418,12 @@ public:
 
 	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
 	{
+		MEMORIA_ASSERT(copy_from, >=, 0);
+		MEMORIA_ASSERT(copy_from + count, <=, max_size_);
+
+		MEMORIA_ASSERT(copy_to, >=, 0);
+		MEMORIA_ASSERT(copy_to + count, <=, other->max_size_);
+
 		for (Int c = 0; c < Blocks; c++)
 		{
 			Int src_block_offset = this->getKeyBlockOffset(c)  + copy_from * sizeof(Key);
@@ -400,6 +443,10 @@ public:
 
 	void clear(Int from, Int to)
 	{
+		MEMORIA_ASSERT(from, >=, 0);
+		MEMORIA_ASSERT(to, <=, max_size_);
+		MEMORIA_ASSERT(from, <=, to);
+
 		for (Int c = 0; c < Blocks; c++)
 		{
 			Int block_offset = this->getKeyBlockOffset(c);
@@ -457,12 +504,12 @@ public:
 		enlarge(memory_block_, max_size, indexSize);
 
 		max_size_ 	 	= max_size;
-		indexSize_	 	= indexSize;
+		index_size_	 	= indexSize;
 	}
 
 	void enlargeTo(MyType* other)
 	{
-		enlarge(other->memory_block_, other->max_size_, other->indexSize_);
+		enlarge(other->memory_block_, other->max_size_, other->index_size_);
 	}
 
 	void shrink(Byte* target_memory_block, Int new_keys_size, Int new_indexSize) const
@@ -495,12 +542,12 @@ public:
 		shrink(memory_block_, max_size, indexSize);
 
 		max_size_ 	 	= max_size;
-		indexSize_	 	= indexSize;
+		index_size_	 	= indexSize;
 	}
 
 	void shrinkTo(MyType* other)
 	{
-		shrink(other->memory_block_, other->max_size_, other->indexSize_);
+		shrink(other->memory_block_, other->max_size_, other->index_size_);
 	}
 
 	template <typename TreeType>
@@ -508,7 +555,7 @@ public:
 	{
 		if (sizeof(Key) == sizeof(typename TreeType::Key) && getValueSize() == TreeType::getValueSize())
 		{
-			shrink(other->memory_block_, other->max_size_, other->indexSize_);
+			shrink(other->memory_block_, other->max_size_, other->index_size_);
 		}
 		else {
 
@@ -538,6 +585,13 @@ public:
 
 	void insertSpace(Int room_start, Int room_length)
 	{
+		MEMORIA_ASSERT(room_start,  >=, 0);
+		MEMORIA_ASSERT(room_start,  <, max_size_);
+		MEMORIA_ASSERT(room_start,  <=, size_);
+
+		MEMORIA_ASSERT(room_length, >=, 0);
+		MEMORIA_ASSERT(size_ + room_length, <=, max_size_);
+
 		Int value_size = getValueSize();
 
 		if (value_size > 0)
@@ -559,6 +613,12 @@ public:
 
 	void removeSpace(Int room_start, Int room_length)
 	{
+		MEMORIA_ASSERT(room_start,  >=, 0);
+		MEMORIA_ASSERT(room_start,  <, size_);
+
+		MEMORIA_ASSERT(room_length, >=, 0);
+		MEMORIA_ASSERT(room_start + room_length, <=, size_);
+
 		Int value_size = getValueSize();
 
 		for (Int c = 0; c < Blocks; c++)
@@ -585,7 +645,7 @@ public:
 		Int index_block_offset 	= getIndexKeyBlockOffset(block_num);
 
 		Int index_level_size	= getIndexCellsNumberFor(max_size_);
-		Int index_level_start 	= indexSize_ - index_level_size;
+		Int index_level_start 	= index_size_ - index_level_size;
 
 		while (index_level_start >= 0)
 		{
@@ -678,6 +738,10 @@ public:
 	template <typename Functor>
 	void walkRange(Int start, Int end, Functor& walker) const
 	{
+		MEMORIA_ASSERT(start, >=, 0);
+		MEMORIA_ASSERT(end,   <=,  size());
+		MEMORIA_ASSERT(start, <=,  end);
+
 		if (end - start <= BranchingFactor * 2)
 		{
 			walker.walkKeys(start, end);
@@ -692,7 +756,7 @@ public:
 			{
 				Int level_size = getIndexCellsNumberFor(max_size_);
 				walker.prepareIndex();
-				walkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, indexSize_ - level_size, level_size);
+				walkIndexRange(start/BranchingFactor + 1, end/BranchingFactor, walker, index_size_ - level_size, level_size);
 			}
 
 			walker.walkKeys(block_end_start, end);
@@ -705,6 +769,9 @@ public:
 	template <typename Walker>
 	Int walkFw(Int start, Walker& walker) const
 	{
+		MEMORIA_ASSERT(start, <=, size());
+
+
 		Int block_limit 	= getBlockStartEnd(start);
 
 		if (block_limit >= size())
@@ -723,7 +790,7 @@ public:
 
 				Int level_size 		= getIndexCellsNumberFor(max_size_);
 				Int level_limit 	= getIndexCellsNumberFor(size_);
-				Int last_start 		= walkIndexFw(block_limit/BranchingFactor, walker, indexSize_ - level_size, level_size, level_limit);
+				Int last_start 		= walkIndexFw(block_limit/BranchingFactor, walker, index_size_ - level_size, level_size, level_limit);
 
 				Int last_start_end 	= getBlockStartEnd(last_start);
 
@@ -738,6 +805,8 @@ public:
 	template <typename Walker>
 	Int walkBw(Int start, Walker& walker) const
 	{
+		MEMORIA_ASSERT(start, >=, -1);
+
 		Int block_end 	= getBlockStartEndBw(start);
 
 		if (block_end == -1)
@@ -755,7 +824,7 @@ public:
 				walker.prepareIndex();
 
 				Int level_size = getIndexCellsNumberFor(max_size_);
-				Int last_start = walkIndexBw(block_end/BranchingFactor, walker, indexSize_ - level_size, level_size);
+				Int last_start = walkIndexBw(block_end/BranchingFactor, walker, index_size_ - level_size, level_size);
 
 				Int last_start_end = getBlockStartEndBw(last_start);
 
@@ -893,7 +962,7 @@ private:
 		CopyBuffer(
 				memory_block_ 		+ offset,
 				target_memory_block + new_offset,
-				indexSize_ * item_size
+				index_size_ * item_size
 		);
 	}
 

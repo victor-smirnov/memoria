@@ -74,7 +74,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
     	template <typename T>
     	void operator()(T *node)
     	{
-    		node->map().Sum(from_, from_ + count_, keys_);
+    		node->map().sum(from_, from_ + count_, keys_);
     	}
     };
 
@@ -95,7 +95,7 @@ private:
     	template <typename T>
     	void operator()(T *node)
     	{
-    		node->map().Sum(block_num_, from_, from_ + count_, sum_);
+    		node->map().sum(block_num_, from_, from_ + count_, sum_);
     	}
     };
 

@@ -71,6 +71,15 @@ Int Task::Run()
 
 		result = false;
 	}
+	catch (Exception e) {
+		(*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;
+
+		String path = getTaskParametersFilePath();
+
+		StoreProperties(this, path);
+
+		result = true;
+	}
 	catch (MemoriaThrowable e) {
 		(*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;
 

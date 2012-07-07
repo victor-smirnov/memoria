@@ -30,14 +30,14 @@ class VectorMapBatchinsertBenchmark: public SPBenchmarkTask {
 	typedef typename MapCtr::Iterator								Iterator;
 	typedef typename MapCtr::ID										ID;
 
-	typedef typename MapCtr::Idxset									setCtr;
+	typedef typename MapCtr::Idxset									SetCtr;
 
-	typedef typename setCtr::Accumulator							Accumulator;
+	typedef typename SetCtr::Accumulator							Accumulator;
 
-	typedef typename setCtr::ISubtreeProvider						ISubtreeProvider;
-	typedef typename setCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
-	typedef typename setCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
-	typedef typename setCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
+	typedef typename SetCtr::ISubtreeProvider						ISubtreeProvider;
+	typedef typename SetCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
+	typedef typename SetCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
+	typedef typename SetCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
 
 
 	class SubtreeProvider: public DefaultSubtreeProviderBase
@@ -48,7 +48,7 @@ class VectorMapBatchinsertBenchmark: public SPBenchmarkTask {
 		BigInt data_size_;
 
 	public:
-		SubtreeProvider(setCtr* ctr, BigInt total, BigInt data_size): Base(*ctr, total), data_size_(data_size)
+		SubtreeProvider(SetCtr* ctr, BigInt total, BigInt data_size): Base(*ctr, total), data_size_(data_size)
 		{}
 
 		virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
@@ -58,7 +58,7 @@ class VectorMapBatchinsertBenchmark: public SPBenchmarkTask {
 			acc[0] = 1;
 			acc[1] = data_size_;
 
-			return LeafNodeKeyValuePair(acc, setCtr::Value());
+			return LeafNodeKeyValuePair(acc, SetCtr::Value());
 		}
 	};
 
@@ -85,7 +85,7 @@ public:
 	{
 		allocator_ = new Allocator();
 
-		map_ = new MapCtr(*allocator_, 1, true);
+		map_ = new MapCtr(allocator_, 1, true);
 
 		allocator_->commit();
 	}

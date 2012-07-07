@@ -34,6 +34,8 @@ protected:
 
 	Int max_block_size_;
 
+	Int cnt_;
+
 public:
 
 	BTreeBatchTestBase(StringRef name):
@@ -42,6 +44,7 @@ public:
 	{
 		size_ = 1024*1024*16;
 		Add("max_block_size", max_block_size_);
+		cnt_ = 0;
 	}
 
 	virtual ~BTreeBatchTestBase() throw() {}
@@ -75,7 +78,7 @@ public:
 
 		check(allocator, "Allocator check failed", 	MEMORIA_SOURCE);
 
-		Ctr dv(allocator, params->ctr_name_);
+		Ctr dv(&allocator, params->ctr_name_);
 
 		if (params->insert_)
 		{
@@ -128,7 +131,7 @@ public:
 		Allocator allocator;
 		allocator.getLogger()->setHandler(&logHandler);
 
-		Ctr dv(allocator);
+		Ctr dv(&allocator);
 
 		setElementSize(dv, task_params);
 
@@ -228,6 +231,8 @@ public:
 			checkBufferWritten(iter1, data, "Failed to read and compare buffer from array", MEMORIA_SOURCE);
 		}
 		else {
+
+
 			if (step == 0)
 			{
 				//insert at the start of the array

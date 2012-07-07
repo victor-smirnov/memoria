@@ -61,7 +61,7 @@ public:
 	{
 		allocator_ = new Allocator();
 
-		ctr_ = new VectorCtr(*allocator_);
+		ctr_ = new VectorCtr(allocator_);
 
 		BigInt size = 1024*1024;
 

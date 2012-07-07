@@ -94,19 +94,47 @@ public:
 	Logger(const Logger& other):category_(other.category_), level_(other.level_), parent_(other.parent_), handler_(other.handler_)
 	{}
 
-	const char* category() const {
+	Logger(): category_(NULL), level_(NONE), parent_(NULL), handler_(NULL) {}
+
+	const char* category() const
+	{
 		return category_;
 	}
 
-	int level() const {
+	void setCategory(const char* category)
+	{
+		category_ = category;
+	}
+
+	Logger* getParent() const
+	{
+		return parent_;
+	}
+
+	void setParent(Logger* parent)
+	{
+		parent_ = parent;
+	}
+
+	int level() const
+	{
 		return level_;
 	}
 
-	int& level() {
+	int& level()
+	{
 		return level_;
 	}
 
-	bool IsLogEnabled(int level)
+	void configure(const char* category, int level = DERIVED, Logger* parent = &memoria::vapi::logger)
+	{
+		category_ 	= category;
+		level_ 		= level;
+		parent_ 	= parent;
+		handler_ 	= NULL;
+	}
+
+	bool isLogEnabled(int level)
 	{
 		int tmp;
 
@@ -116,7 +144,7 @@ public:
 		}
 		else if (parent_ != NULL)
 		{
-			return parent_->IsLogEnabled(level);
+			return parent_->isLogEnabled(level);
 		}
 		else {
 			tmp = INFO;

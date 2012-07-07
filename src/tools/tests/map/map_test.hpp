@@ -138,7 +138,7 @@ public:
 		Allocator allocator;
 		allocator.getLogger()->setHandler(&logHandler);
 
-		MapCtr map(allocator);
+		MapCtr map(&allocator);
 
 		params.ctr_name_ = map.name();
 
@@ -184,7 +184,7 @@ public:
 
 	void DoTestStep(ostream& out, Allocator& allocator, const MapReplay* params)
 	{
-		MapCtr map(allocator, params->ctr_name_);
+		MapCtr map(&allocator, params->ctr_name_);
 
 		Int c = params->vector_idx_;
 
