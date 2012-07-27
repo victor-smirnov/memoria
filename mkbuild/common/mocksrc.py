@@ -2,6 +2,7 @@
 
 import sys, os, re
 
+
 class DebugInfoEntry:
     class_tag_re = re.compile('DW_TAG_class_type', re.I)
     level_num_tag_re = re.compile('^\<(?P<level>\d+?)\>\<(?P<id>.+?)\>\<DW_TAG_(?P<tag>\w+?)\>', re.I)
@@ -90,6 +91,7 @@ class DebugInfoEntry:
     def set_typedef(self, td):
         self.__typedef = td
 
+
 class Class:
     name_re = re.compile('DW_AT_name\<\"(?P<name>.+?)\"\>', re.I)
     specification_re = re.compile('DW_AT_specification\<\<(?P<spid>.+?)\>\>', re.I)
@@ -145,6 +147,7 @@ class Class:
     def __str__(self):
         return self.get_name()
 
+
 class Method:
     #artificial_re = re.compile('DW_AT_artificial\<yes\(1\)\>', re.I)
     def __init__(self, entry, klass):
@@ -193,6 +196,7 @@ def collect_debug_info(source, filter_func = None):
         result.append(di_lines)
     return result
 
+
 def process_debug_info(debug_info):
     entries = {}
     specifications = {}
@@ -237,6 +241,7 @@ def process_debug_info(debug_info):
             typedef = typedefs[id]
             entry.set_typedef(typedef)
 
+
     return (entries, specifications)
 
 def build_class_hiererchy(debug_info_entries, specifications):
@@ -260,8 +265,16 @@ def build_class_hiererchy(debug_info_entries, specifications):
     return classes
 
 
-def find_class(classes):
+def find_ctr_class(classes):
     class_name_re = re.compile('^Ctr\<memoria::CtrTypesT\<memoria::CtrTF\<memoria::[^\<\>:,]+\<\>, memoria::[^\<\>:,]+, memoria::Vector\>::Types\>\s*\>', re.I)
+    for id in classes:
+        c = classes[id]
+        m = class_name_re.match(classes[id].get_name())
+        if m:
+            return c
+
+def find_iter_class(classes):
+    class_name_re = re.compile('^Iter\<memoria::BTreeIterTypes\<memoria::IterTypesT\<memoria::CtrTF\<memoria::SmallProfile\<\>, memoria::DynVector, memoria::Vector\>::Types\> \> \>', re.I)
     for id in classes:
         c = classes[id]
         m = class_name_re.match(classes[id].get_name())
@@ -306,6 +319,9 @@ def extract_signature(lines, line_num):
         if symbol == '{':
             result += '{}'
             break
+        if symbol == ';':
+            result += '{}'
+            break
 
         result += symbol
         position += 1
@@ -313,7 +329,6 @@ def extract_signature(lines, line_num):
             current_line_num += 1
             current_line = lines[current_line_num]
             position = 0
-
 
     # some kind of automaton
 
@@ -382,27 +397,47 @@ def extract_signature(lines, line_num):
     else:
         result += '{}'
 
+    result = result.replace('M_PARAMS', '').replace('M_TYPE::', '')
     return result
 
 
-def do_output(methods, output_dir, is_just_print_places):
+def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
     if is_just_print_places:
-        for m in methods:
-            decl_file = methods[m].get_decl_file()
-            decl_line = methods[m].get_decl_line()
+        for m in ctr_methods:
+            decl_file = ctr_methods[m].get_decl_file()
+            decl_line = ctr_methods[m].get_decl_line()
             print(m)
             print('[{0}:{1}]'.format(decl_file, decl_line))
             print()
         return
-    #
+
     out_file = open(os.path.join(output_dir, 'output.cpp'), 'w')
-    out_file.write('class Vector\n')
+    out_file.write('class Vector<SimpleProfile>\n')
     out_file.write('{\n')
     out_file.write('public:\n')
 
-    for m in methods:
-        decl_file = methods[m].get_decl_file()
-        decl_line = methods[m].get_decl_line()
+    out_file.write('    class Iterator<SimpleProfile>\n')
+    out_file.write('    {\n')
+    out_file.write('    public:\n')
+    for m in iter_methods:
+        decl_file = iter_methods[m].get_decl_file()
+        decl_line = iter_methods[m].get_decl_line()
+
+        f = open(decl_file)
+        lines = f.readlines()
+        f.close()
+
+        for line in extract_signature(lines, decl_line).split('\n'):
+            sl = line.strip()
+            if sl.startswith('!!'):
+                sl = '//' + sl
+            out_file.write('        ' + sl + '\n')
+        out_file.write('\n')
+    out_file.write('    }\n\n')
+
+    for m in ctr_methods:
+        decl_file = ctr_methods[m].get_decl_file()
+        decl_line = ctr_methods[m].get_decl_line()
 
         f = open(decl_file)
         lines = f.readlines()
@@ -417,6 +452,7 @@ def do_output(methods, output_dir, is_just_print_places):
 
     out_file.write('}\n')
     out_file.close()
+
 
 def print_usage(script_name):
     print('Usage:')
@@ -455,10 +491,15 @@ def main(argv):
 
     (entries, specifications) = process_debug_info(debug_info[0])
     classes = build_class_hiererchy(entries, specifications)
-    klass = find_class(classes)
-    linear_hierarchy = get_linear_hierarchy(klass)
-    methods = collect_methods(linear_hierarchy)
-    do_output(methods, output_path, is_just_print_places)
+    ctr_class = find_ctr_class(classes)
+    linear_hierarchy = get_linear_hierarchy(ctr_class)
+    ctr_methods = collect_methods(linear_hierarchy)
+
+    iter_class = find_iter_class(classes)
+    linear_hierarchy = get_linear_hierarchy(iter_class)
+    iter_methods = collect_methods(linear_hierarchy)
+
+    do_output(ctr_methods, iter_methods, output_path, is_just_print_places)
     
 if __name__ == "__main__":
     main(sys.argv)
