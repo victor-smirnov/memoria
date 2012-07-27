@@ -304,6 +304,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     	return keys;
     }
 
+    /**
+     * \brief Get maximal key value in the page.
+     */
+
     Accumulator getMaxKeys(const NodeBaseG& node) const
     {
     	Accumulator keys;

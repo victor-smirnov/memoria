@@ -71,7 +71,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     bool mergePaths(TreePath& tgt, TreePath& src, Int level = 0);
 
     /**
-     * remove key and data pointed by iterator 'iter' form the map.
+     * \brief Remove key and data pointed by iterator 'iter' form the map.
      *
      */
     bool removeEntry(Iterator& iter, Accumulator& keys);
@@ -90,21 +90,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     void removePages(TreePath& start, Int& start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count);
 
     /**
-         * remove 'count' elements from tree node starting from 'from' element.
-         *
-         * For all _counters_ (page_count, key_count, ...)
-         * Sum child._counter_ of all removed children and decrement current
-         * node._counter_
-         *
-         * remove children if 'remove_children' is TRUE
-         *
-         * Collapse elemnt's window in the node by shifting rest of elements
-         * (keys & data) to the 'from' position.
-         *
-         * For all shifted children update child.parent_id
-         */
+     * \brief Remove 'count' elements from tree node starting from 'from' element.
+     *
+     * For all _counters_ (page_count, key_count, ...)
+     * Sum child._counter_ of all removed children and decrement current
+     * node._counter_
+     *
+     * remove children if 'remove_children' is TRUE
+     *
+     * Collapse elemnt's window in the node by shifting rest of elements
+     * (keys & data) to the 'from' position.
+     *
+     * For all shifted children update child.parent_id
+     *
+     * FIXME: remove data pages for dynarray
+     */
 
-        // FIXME: remove data pages for dynarray
     BigInt removeRoom(TreePath& path, Int level, Int from, Int count, Accumulator& accumulator, bool remove_children = true);
 
 
@@ -120,7 +121,7 @@ private:
 
 
     /**
-     * remove a page from the btree. Do recursive removing if page's parent
+     * \brief Remove a page from the btree. Do recursive removing if page's parent
      * has no more children.
      *
      * If after removing the parent is less than half filled than
@@ -131,7 +132,7 @@ private:
 
 
     /**
-     * Delete a node with it's children.
+     * \brief Delete a node with it's children.
      */
     BigInt removeNode(NodeBaseG node);
 
