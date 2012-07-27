@@ -152,6 +152,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     BigInt getModelName(ID root_id) const
     {
+    	MEMORIA_ASSERT_NOT_EMPTY(root_id);
+
     	NodeBaseG root 		= me()->allocator().getPage(root_id, Allocator::READ);
 
     	GetModelNameFn fn;
@@ -223,6 +225,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     virtual ID getRootID(BigInt name)
     {
+    	MEMORIA_ASSERT(name, >=, 0);
+
     	NodeBaseG root = me()->allocator().getPage(me()->root(), Allocator::READ);
 
     	GetRootIDFn fn(name);
@@ -291,6 +295,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     static Metadata getCtrRootMetadata(NodeBaseG node)
     {
+    	MEMORIA_ASSERT_NOT_NULL(node);
+
     	GetMetadataFn fn;
     	RootDispatcher::DispatchConst(node, fn);
     	return fn.metadata_;
@@ -298,6 +304,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     static void setCtrRootMetadata(NodeBaseG node, const Metadata& metadata)
     {
+    	MEMORIA_ASSERT_NOT_NULL(node);
+
     	node.update();
     	SetMetadataFn fn(metadata);
     	RootDispatcher::Dispatch(node, fn);
@@ -395,6 +403,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     void initNodeSize(NodeBaseG& node, Int block_size) const
     {
+    	MEMORIA_ASSERT_NOT_NULL(node);
+
     	InitNodeFn fn(*me(), block_size);
     	NodeDispatcher::Dispatch(node.page(), fn);
     }

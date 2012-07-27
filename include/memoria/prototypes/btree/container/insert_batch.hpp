@@ -114,8 +114,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
 
 //    TreePathItem splitPath(TreePath& path, Int level, Int idx);
-    void 		 splitPath(TreePath& left, TreePath& right, Int level, Int idx);
-    void		 newRoot(TreePath& path);
+    void splitPath(TreePath& left, TreePath& right, Int level, Int idx);
+    void newRoot(TreePath& path);
 
 
     class DefaultSubtreeProviderBase: public ISubtreeProvider {
@@ -330,7 +330,7 @@ private:
 
 
 
-    void reindexAndupdateCounters(NodeBaseG& node, Int from, Int count) const
+    void reindexAndUpdateCounters(NodeBaseG& node, Int from, Int count) const
     {
     	if (from + count == node->children_count())
     	{
@@ -808,7 +808,7 @@ void M_TYPE::fillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
 		}
 	}
 
-	reindexAndupdateCounters(node, from, count);
+	reindexAndUpdateCounters(node, from, count);
 
 	Accumulator accumulator = me()->getCounters(node, from, count);
 
@@ -859,7 +859,7 @@ void M_TYPE::fillNodeRight(TreePath& path, Int level, Int from, Int count, Inser
 //		path[level-1].parent_idx() += count;
 //	}
 
-	reindexAndupdateCounters(node, from, count);
+	reindexAndUpdateCounters(node, from, count);
 
 	Accumulator accumulator = me()->getCounters(node, from, count);
 

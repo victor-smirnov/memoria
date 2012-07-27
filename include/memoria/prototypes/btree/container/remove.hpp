@@ -791,6 +791,8 @@ bool M_TYPE::mergeWithSiblings(TreePath& path, Int level, Int& key_idx)
 M_PARAMS
 bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Int& key_idx)
 {
+	MEMORIA_ASSERT(key_idx, >=, 0);
+
 	bool merged = false;
 
 	if (me()->shouldMergeNode(path, level))

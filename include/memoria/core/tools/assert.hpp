@@ -33,7 +33,6 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 			throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right);	\
 		}
 
-
 #define MEMORIA_ASSERT_EXPR(Expr, Msg) 																\
 		if (!(Expr)) {																				\
 			throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Expr<<" "<<#Msg);	\
@@ -44,6 +43,11 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 		if (Operand == NULL) {																					\
 			throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be NULL");	\
 		}																										\
+
+#define MEMORIA_ASSERT_NOT_EMPTY(Operand) 																		\
+		if (Operand.isEmpty()) {																					\
+			throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be 0");	\
+		}
 
 #else
 

@@ -74,6 +74,9 @@ public:
 
 	void updateUp(Int block_num, Int idx, IndexKey key_value)
 	{
+		MEMORIA_ASSERT(idx, >=, 0);
+		MEMORIA_ASSERT(idx, <=, Base::size());
+
 		Base::key(block_num, idx) += key_value;
 
 		Int level_size 		= Base::maxSize();
@@ -94,6 +97,10 @@ public:
 
 	void reindex(Int block_num, Int start, Int end)
 	{
+		MEMORIA_ASSERT(start, >=, 0);
+		MEMORIA_ASSERT(end, <=, Base::size());
+		MEMORIA_ASSERT(start, <=, end);
+
 		Int block_start = Base::getBlockStart(start);
 		Int block_end 	= Base::getBlockEnd(end);
 
