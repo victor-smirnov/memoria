@@ -854,11 +854,11 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Int& key_idx)
 }
 
 /**
- * \brief Merge node with its right sibling (if present) [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-867)
+ * \brief Merge node with its right sibling (if present) [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-865)
  * \param path path to the node
  * \param level level at the tree of the node
  *
- * [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-867)
+ * [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-865)
  */
 
 
