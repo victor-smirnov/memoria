@@ -150,6 +150,10 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	}
     };
 
+    /**
+     * \brief Get model name from the root node
+     * \param root_id must be a root node ID
+     */
     BigInt getModelName(ID root_id) const
     {
     	MEMORIA_ASSERT_NOT_EMPTY(root_id);
@@ -302,6 +306,13 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	return fn.metadata_;
     }
 
+    /**
+     * \brief Set metadata into root node.
+     *
+     * \param node Must be a root node
+     * \param metadata metadata to set
+     */
+
     static void setCtrRootMetadata(NodeBaseG node, const Metadata& metadata)
     {
     	MEMORIA_ASSERT_NOT_NULL(node);
@@ -322,6 +333,12 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	me()->setRootMetadata(root, metadata);
     }
 
+    /**
+     * \brief Set metadata into root node.
+     *
+     * \param node Must be a root node
+     * \param metadata to set
+     */
     void setRootMetadata(NodeBaseG& node, const Metadata& metadata) const
     {
     	setCtrRootMetadata(node, metadata);

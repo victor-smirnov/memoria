@@ -250,6 +250,10 @@ public:
 
 protected:
 
+    /**
+     * \brief Set container reflection metadata.
+     */
+
     static void setMetadata(ContainerMetadata* metadata)
     {
     	reflection_ = metadata;

@@ -56,7 +56,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 
 
 
-
+    /**
+     * \brief Try to merge tree node with it's siblings at the specified level.
+     *
+     * A right or a left one - it depends on conditions.
+     * \param path path to the node
+     * \param level level at the tree of the node
+     *
+     * \return true if node has been merged
+     *
+     * [Source] (https://bitbucket.org/vsmirnov/memoria/src/8beffa80aca1/include/memoria/prototypes/btree/container/remove.hpp#cl-72)
+     *
+     */
 
     bool mergeWithSiblings(TreePath& path, Int level)
     {
@@ -64,8 +75,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     	return me()->mergeWithSiblings(path, level, idx);
     }
 
+
+
     bool mergeWithLeftSibling(TreePath& path, Int level, Int& key_idx);
+
+
     bool mergeWithRightSibling(TreePath& path, Int level);
+
+
+
     bool mergeWithSiblings(TreePath& path, Int level, Int& key_idx);
 
     bool mergePaths(TreePath& tgt, TreePath& src, Int level = 0);
@@ -89,22 +107,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
     void removePagesAtEnd(TreePath& start, Int& start_idx, Accumulator& accum, BigInt& removed_key_count);
     void removePages(TreePath& start, Int& start_idx, TreePath& stop, Int& stop_idx, Int level, Accumulator& accum, BigInt& removed_key_count);
 
-    /**
-     * \brief Remove 'count' elements from tree node starting from 'from' element.
-     *
-     * For all _counters_ (page_count, key_count, ...)
-     * Sum child._counter_ of all removed children and decrement current
-     * node._counter_
-     *
-     * remove children if 'remove_children' is TRUE
-     *
-     * Collapse elemnt's window in the node by shifting rest of elements
-     * (keys & data) to the 'from' position.
-     *
-     * For all shifted children update child.parent_id
-     *
-     * FIXME: remove data pages for dynarray
-     */
+
 
     BigInt removeRoom(TreePath& path, Int level, Int from, Int count, Accumulator& accumulator, bool remove_children = true);
 
@@ -232,7 +235,18 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
-
+/**
+ * \brief Remove 'count' elements from tree node starting from 'from' element.
+ *
+ * \param path   path to the node
+ * \param level  level of the node at the path
+ * \param from   start element
+ * \param count  number of elements to remove
+ *
+ * \param accumulator 		accumulator to put cumulative values of removed elements
+ * \param remove_children 	if true, remove all child nodes. FIXME: what is this?
+ *
+ */
 
 M_PARAMS
 BigInt M_TYPE::removeRoom(TreePath& path, Int level, Int from, Int count, Accumulator& accumulator, bool remove_children)
@@ -773,7 +787,12 @@ void M_TYPE::removeRedundantRoot(TreePath& start, TreePath& stop, Int level)
 }
 
 
-
+/**
+ * \brief Merge node with its siblings (if present)
+ * \param path path to the node
+ * \param level level at the tree of the node
+ * \param key_idx
+ */
 
 M_PARAMS
 bool M_TYPE::mergeWithSiblings(TreePath& path, Int level, Int& key_idx)
@@ -787,6 +806,19 @@ bool M_TYPE::mergeWithSiblings(TreePath& path, Int level, Int& key_idx)
 		return me()->mergeWithLeftSibling(path, level, key_idx);
 	}
 }
+
+
+/**
+ * \brief Try to merge node with its left sibling (if present).
+ *
+ *
+ *
+ * \param path path to the node
+ * \param level level at the tree of the node
+ * \param key_idx
+ *
+ * \return true if node has been merged
+ */
 
 
 M_PARAMS
@@ -820,6 +852,15 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Int& key_idx)
 
 	return merged;
 }
+
+/**
+ * \brief Merge node with its right sibling (if present) [Source](https://bitbucket.org/vsmirnov/memoria/src/8beffa80aca1/include/memoria/prototypes/btree/container/remove.hpp#cl-867)
+ * \param path path to the node
+ * \param level level at the tree of the node
+ *
+ * [Source](https://bitbucket.org/vsmirnov/memoria/src/8beffa80aca1/include/memoria/prototypes/btree/container/remove.hpp#cl-867)
+ */
+
 
 
 M_PARAMS
