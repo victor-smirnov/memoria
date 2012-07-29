@@ -173,6 +173,14 @@ class Method:
     def get_name(self):
         return self.__entry.get_name()
 
+    def is_constructor(self):
+        result = self.get_name() == self.__class.get_ctr_name()
+        return result
+
+    def is_destructor(self):
+        result = self.get_name() == self.__class.get_dtr_name()
+        return result
+
     def get_parameters(self):
         if self.__parameters:
             return self.__parameters
@@ -321,18 +329,20 @@ def get_linear_hierarchy(klass):
 def collect_methods(linear_hierarchy, is_ctrs_only_from_youngest):
     allowed_ctr = linear_hierarchy[0].get_ctr_name()
 
-    result = {}
+    methods_dict = {}
     for klass in reversed(linear_hierarchy):
         for method in klass.get_methods():
             # if the method is a constructor then we maybe should skip it
             if is_ctrs_only_from_youngest \
-                    and klass.get_ctr_name() == method.get_name() \
+                    and method.is_constructor() \
                     and method.get_name() != allowed_ctr:
                 continue
 
             if method.get_decl_file():
                 key = tuple([method.get_name()] + method.get_parameters()[1:])
-                result[key] = method
+                methods_dict[key] = method
+    key_lambda = lambda x: (not x.is_constructor() and not x.is_destructor(), x.get_name())
+    result = list( sorted(methods_dict.values(), key=key_lambda) )
     return result
 
 
@@ -438,8 +448,7 @@ def extract_signature(lines, line_num):
 
 
 def output_methods(indent_str, methods, out_file):
-    for m in methods:
-        method = methods[m]
+    for method in methods:
         decl_file = method.get_decl_file()
         decl_line = method.get_decl_line()
 
@@ -458,8 +467,7 @@ def output_methods(indent_str, methods, out_file):
 
 def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
     if is_just_print_places:
-        for m in ctr_methods:
-            method = ctr_methods[m]
+        for method in ctr_methods:
             decl_file = method.get_decl_file()
             decl_line = method.get_decl_line()
             print(method.get_name())
@@ -476,11 +484,11 @@ def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
     out_file.write('    {\n')
     out_file.write('    public:\n')
     output_methods(' '*8, iter_methods, out_file)
-    out_file.write('    }\n\n')
+    out_file.write('    };\n\n')
 
     output_methods(' '*4, ctr_methods, out_file)
 
-    out_file.write('}\n')
+    out_file.write('};\n')
     out_file.close()
 
 
