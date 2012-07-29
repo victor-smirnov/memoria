@@ -782,6 +782,8 @@ void M_TYPE::removeRedundantRoot(TreePath& path, Int level)
  * This call iteratively removes nodes in singular node chain starting from the root down to the *level*. It gets two paths as a parameters.
  * Both ones must contains the same nodes at least down to the *level*. After the call is completed both paths are started from the new root node.
  *
+ * \see mergeBTreeNodes, mergePaths
+ *
  */
 
 M_PARAMS
