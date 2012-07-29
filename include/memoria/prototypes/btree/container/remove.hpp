@@ -774,7 +774,13 @@ void M_TYPE::removeRedundantRoot(TreePath& path, Int level)
 /**
  * \brief Removes singular node chain starting from the tree root down to the specified level.
  *
+ * This call is intended to be used in batch removal operations where we have two iterators: the *start* one and the *stop* one.
+ * After internal nodes are removed and range nodes are merged, we might get a redundant root as a result. See the picture below for details.
+ *
  * ![Singular Node Chain](https://bitbucket.org/vsmirnov/memoria/wiki/img/doxygen/singular_node_chain.svg)
+ *
+ * This call iteratively removes nodes in singular node chain starting from the root down to the *level*. It gets two paths as a parameters.
+ * Both ones must contains the same nodes at least down to the *level*. After the call is completed both paths are started from the new root node.
  *
  */
 
@@ -889,7 +895,7 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Int& key_idx)
 }
 
 /**
- * \brief Merge node with its right sibling (if present) [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-907)
+ * \brief Merge node with its right sibling (if present) [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-913)
  *
  * Calls \ref shouldMergeNode to check if requested node should be merged with its right sibling, then merge if true.
  *
@@ -901,7 +907,7 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Int& key_idx)
  * \see mergeWithLeftSibling, shouldMergeNode for details
  *
  *
- * [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-907)
+ * [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-913)
  */
 
 M_PARAMS
