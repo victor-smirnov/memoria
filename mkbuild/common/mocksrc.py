@@ -97,6 +97,7 @@ class Class:
     specification_re = re.compile('DW_AT_specification\<\<(?P<spid>.+?)\>\>', re.I)
     inheritance_re = re.compile('DW_TAG_inheritance', re.I)
     inheritance_type_re = re.compile('DW_AT_type\<\<(?P<id>.+?)\>\>', re.I)
+    ctr_name_re = re.compile('^(?P<name>[^\<]*)', re.I)
 
     def __init__(self, entry):
         self.__entry = entry
@@ -110,6 +111,18 @@ class Class:
 
     def get_name(self):
         return self.__entry.get_name()
+
+    def get_ctr_name(self):
+        m = Class.ctr_name_re.search(self.get_name())
+        if m:
+            return m.group('name')
+        return None
+
+    def get_dtr_name(self):
+        ctr_name = self.get_ctr_name()
+        if ctr_name:
+            return '~'+ctr_name
+        return None
 
     def set_specification(self, sp):
         self.__sp = sp
@@ -305,10 +318,18 @@ def get_linear_hierarchy(klass):
     return result
 
 
-def collect_methods(linear_hierarchy):
+def collect_methods(linear_hierarchy, is_ctrs_only_from_youngest):
+    allowed_ctr = linear_hierarchy[0].get_ctr_name()
+
     result = {}
     for klass in reversed(linear_hierarchy):
         for method in klass.get_methods():
+            # if the method is a constructor then we maybe should skip it
+            if is_ctrs_only_from_youngest \
+                    and klass.get_ctr_name() == method.get_name() \
+                    and method.get_name() != allowed_ctr:
+                continue
+
             if method.get_decl_file():
                 key = tuple([method.get_name()] + method.get_parameters()[1:])
                 result[key] = method
@@ -416,10 +437,11 @@ def extract_signature(lines, line_num):
     return result
 
 
-def output_methods(indent_str, methods):
+def output_methods(indent_str, methods, out_file):
     for m in methods:
-        decl_file = iter_methods[m].get_decl_file()
-        decl_line = iter_methods[m].get_decl_line()
+        method = methods[m]
+        decl_file = method.get_decl_file()
+        decl_line = method.get_decl_line()
 
         f = open(decl_file)
         lines = f.readlines()
@@ -429,9 +451,8 @@ def output_methods(indent_str, methods):
             sl = line.strip()
             if sl.startswith('!!'):
                 continue
-            out_file.write(indent + sl + '\n')
+            out_file.write(indent_str + sl + '\n')
         out_file.write('\n')
-    out_file.write('    }\n\n')
 
 
 
@@ -454,10 +475,10 @@ def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
     out_file.write('    class Iterator<SimpleProfile>\n')
     out_file.write('    {\n')
     out_file.write('    public:\n')
-    output_methods(' '*8, iter_methods)
+    output_methods(' '*8, iter_methods, out_file)
     out_file.write('    }\n\n')
 
-    output_methods(' '*4, ctr_methods)
+    output_methods(' '*4, ctr_methods, out_file)
 
     out_file.write('}\n')
     out_file.close()
@@ -502,11 +523,11 @@ def main(argv):
     classes = build_class_hiererchy(entries, specifications)
     ctr_class = find_ctr_class(classes)
     linear_hierarchy = get_linear_hierarchy(ctr_class)
-    ctr_methods = collect_methods(linear_hierarchy)
+    ctr_methods = collect_methods(linear_hierarchy, True)
 
     iter_class = find_iter_class(classes)
     linear_hierarchy = get_linear_hierarchy(iter_class)
-    iter_methods = collect_methods(linear_hierarchy)
+    iter_methods = collect_methods(linear_hierarchy, True)
 
     do_output(ctr_methods, iter_methods, output_path, is_just_print_places)
     
