@@ -416,6 +416,25 @@ def extract_signature(lines, line_num):
     return result
 
 
+def output_methods(indent_str, methods):
+    for m in methods:
+        decl_file = iter_methods[m].get_decl_file()
+        decl_line = iter_methods[m].get_decl_line()
+
+        f = open(decl_file)
+        lines = f.readlines()
+        f.close()
+
+        for line in extract_signature(lines, decl_line).split('\n'):
+            sl = line.strip()
+            if sl.startswith('!!'):
+                continue
+            out_file.write(indent + sl + '\n')
+        out_file.write('\n')
+    out_file.write('    }\n\n')
+
+
+
 def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
     if is_just_print_places:
         for m in ctr_methods:
@@ -435,38 +454,10 @@ def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
     out_file.write('    class Iterator<SimpleProfile>\n')
     out_file.write('    {\n')
     out_file.write('    public:\n')
-    for m in iter_methods:
-        decl_file = iter_methods[m].get_decl_file()
-        decl_line = iter_methods[m].get_decl_line()
-
-        f = open(decl_file)
-        lines = f.readlines()
-        f.close()
-
-        for line in extract_signature(lines, decl_line).split('\n'):
-            sl = line.strip()
-            if sl.startswith('!!'):
-                continue
-                #sl = '//' + sl
-            out_file.write('        ' + sl + '\n')
-        out_file.write('\n')
+    output_methods(' '*8, iter_methods)
     out_file.write('    }\n\n')
 
-    for m in ctr_methods:
-        decl_file = ctr_methods[m].get_decl_file()
-        decl_line = ctr_methods[m].get_decl_line()
-
-        f = open(decl_file)
-        lines = f.readlines()
-        f.close()
-
-        for line in extract_signature(lines, decl_line).split('\n'):
-            sl = line.strip()
-            if sl.startswith('!!'):
-                continue
-                #sl = '//' + sl
-            out_file.write('    ' + sl + '\n')
-        out_file.write('\n')
+    output_methods(' '*4, ctr_methods)
 
     out_file.write('}\n')
     out_file.close()
