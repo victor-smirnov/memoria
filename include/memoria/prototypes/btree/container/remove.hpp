@@ -57,16 +57,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 
 
     /**
-     * \brief Try to merge tree node with it's siblings at the specified level.
+     * \brief Try to merge tree node with its siblings at the specified level.
      *
-     * A right or a left one - it depends on conditions.
+     * First it tries to merge with left sibling, and if it fails then with the right one.
+     * The *path* object is valid after merge.
+     *
      * \param path path to the node
      * \param level level at the tree of the node
      *
      * \return true if node has been merged
      *
-     * [Source] (https://bitbucket.org/vsmirnov/memoria/src/8beffa80aca1/include/memoria/prototypes/btree/container/remove.hpp#cl-72)
-     *
+     * \see {mergeWithLeftSibling, mergeWithRightSibling} for details
      */
 
     bool mergeWithSiblings(TreePath& path, Int level)
@@ -98,9 +99,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 
     BigInt removeEntries(Iterator& from, Iterator& to, Accumulator& accum, bool merge = true);
 
-    void drop();
+    MEMORIA_PUBLIC void drop();
 
-// PROTECTED API:
+
 
     void removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum, BigInt& removed_key_count);
     void removePagesFromStart(TreePath& stop, Int& stop_idx, Accumulator& accum, BigInt& removed_key_count);
@@ -141,13 +142,29 @@ private:
 
     bool changeRootIfSingular(NodeBaseG& parent, NodeBaseG& node);
 
+    /**
+     * \brief Check if two nodes can be merged.
+     *
+     * \param tgt path to the node to be merged with
+     * \param src path to the node to be merged
+     * \param level level of the node in the tree
+     * \return true if nodes can be merged according to the current policy
+     */
+
     bool canMerge(TreePath& tgt, TreePath& src, Int level)
     {
     	return src[level].node()->children_count() <= me()->getCapacity(tgt[level].node());
     }
 
-
-    static bool IsTheSameParent(TreePath& left, TreePath& right, Int level)
+    /**
+     * \brief Check if two nodes have the same parent.
+     *
+     * \param left one path
+     * \param right another path
+     * \param level level of nodes in the paths
+     * \return true if both nodes have the same parent
+     */
+    static bool isTheSameParent(TreePath& left, TreePath& right, Int level)
     {
     	return left[level + 1].node() == right[level + 1].node();
     }
@@ -505,7 +522,7 @@ void M_TYPE::removePagesInternal(TreePath& start, Int& start_idx, TreePath& stop
 		// FIXME: stop[level].parent_idx() - can be updated elsewhere in makeRoom() - check it
 		removePages(start, start_parent_idx, stop, stop[level].parent_idx(), level + 1, accum, removed_key_count);
 
-		if (IsTheSameParent(start, stop, level))
+		if (isTheSameParent(start, stop, level))
 		{
 			if (canMerge(start, stop, level))
 			{
@@ -720,7 +737,12 @@ void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
 	me()->addTotalKeyCount(-1);
 }
 
-
+/**
+ * \brief Removes singular node chain starting from the tree root down to the specified level.
+ *
+ * ![Singular Node Chain](https://bitbucket.org/vsmirnov/memoria/wiki/img/doxygen/singular_node_chain.svg)
+ *
+ */
 
 
 M_PARAMS
@@ -749,20 +771,25 @@ void M_TYPE::removeRedundantRoot(TreePath& path, Int level)
 		}
 	}
 }
-
+/**
+ * \brief Removes singular node chain starting from the tree root down to the specified level.
+ *
+ * ![Singular Node Chain](https://bitbucket.org/vsmirnov/memoria/wiki/img/doxygen/singular_node_chain.svg)
+ *
+ */
 
 M_PARAMS
-void M_TYPE::removeRedundantRoot(TreePath& start, TreePath& stop, Int level)
+void M_TYPE::removeRedundantRoot(TreePath& first, TreePath& second, Int level)
 {
-	for (Int c = start.getSize() - 1; c > level; c--)
+	for (Int c = first.getSize() - 1; c > level; c--)
 	{
-		NodeBaseG& node = start[c].node();
+		NodeBaseG& node = first[c].node();
 
 		if (node->children_count() == 1)
 		{
 			Metadata root_metadata = me()->getRootMetadata();
 
-			NodeBaseG& child = start[c - 1].node();
+			NodeBaseG& child = first[c - 1].node();
 
 			if (me()->canConvertToRoot(child))
 			{
@@ -772,9 +799,9 @@ void M_TYPE::removeRedundantRoot(TreePath& start, TreePath& stop, Int level)
 
 				me()->set_root(child->id());
 
-				start.removeLast();
+				first.removeLast();
 
-				stop.removeLast();
+				second.removeLast();
 			}
 			else {
 				break;
@@ -788,10 +815,16 @@ void M_TYPE::removeRedundantRoot(TreePath& start, TreePath& stop, Int level)
 
 
 /**
- * \brief Merge node with its siblings (if present)
+ * \brief Merge node with its siblings (if present).
+ *
+ * First try to merge with right sibling, then with left sibling.
+ *
  * \param path path to the node
  * \param level level at the tree of the node
- * \param key_idx
+ * \param key_idx some key index in the merging node. After merge the value will be incremented with the size of the merged sibling.
+ * \return true if the node have been merged
+ *
+ * \see mergeWithRightSibling, mergeWithLeftSibling
  */
 
 M_PARAMS
@@ -811,13 +844,15 @@ bool M_TYPE::mergeWithSiblings(TreePath& path, Int level, Int& key_idx)
 /**
  * \brief Try to merge node with its left sibling (if present).
  *
- *
+ * Calls \ref shouldMergeNode to check if requested node should be merged with its left sibling, then merge if true.
  *
  * \param path path to the node
  * \param level level at the tree of the node
- * \param key_idx
+ * \param key_idx some key index in the merging node. After merge the value will be incremented with the size of the merged sibling.
  *
  * \return true if node has been merged
+ *
+ * \see mergeWithRightSibling, shouldMergeNode for details
  */
 
 
@@ -854,14 +889,20 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Int& key_idx)
 }
 
 /**
- * \brief Merge node with its right sibling (if present) [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-865)
- * \param path path to the node
- * \param level level at the tree of the node
+ * \brief Merge node with its right sibling (if present) [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-907)
  *
- * [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-865)
+ * Calls \ref shouldMergeNode to check if requested node should be merged with its right sibling, then merge if true.
+ *
+ * \param path path to the node
+ * \param level level of the node in the tree
+
+ * \return true if node has been merged
+ *
+ * \see mergeWithLeftSibling, shouldMergeNode for details
+ *
+ *
+ * [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-907)
  */
-
-
 
 M_PARAMS
 bool M_TYPE::mergeWithRightSibling(TreePath& path, Int level)
@@ -881,7 +922,22 @@ bool M_TYPE::mergeWithRightSibling(TreePath& path, Int level)
 	return merged;
 }
 
-
+/**
+ * \brief Merge *src* path to the *tgt* path from the tree root down to the specified *level*.
+ *
+ * If after nodes have been merged the resulting path is redundant, that means it consists from a single node chain,
+ * then this path is truncated from the tree root down to the specified *level*.
+ *
+ * Unlike this call, \ref mergeBTreeNodes does not try to merge parents if nodes at the specified *level* can't be merged.
+ *
+ * \param tgt path to node to be merged with
+ * \param src path to node to be merged
+ * \param level level of the node in the tree
+ * \return true if paths at the specified *level* was merged
+ *
+ * \see canMerge, removeRedundantRoot
+ * \see mergeBTreeNodes
+ */
 
 M_PARAMS
 bool M_TYPE::mergePaths(TreePath& tgt, TreePath& src, Int level)
@@ -911,6 +967,18 @@ bool M_TYPE::mergePaths(TreePath& tgt, TreePath& src, Int level)
 	return merged_at_level;
 }
 
+/**
+ * \brief Merge *src* path to the *tgt* path unconditionally.
+ *
+ * Perform merging of two paths, *src* to *dst* at the specified *level*. Both nodes (at boths paths) must have the same parent.
+ *
+ * \param tgt path to node to be merged with
+ * \param src path to node to be merged
+ * \param level level of the node in the tree
+ * \return true if paths have been merged
+ *
+ * \see mergeWithSiblings - this is the basic method
+ */
 
 M_PARAMS
 void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
@@ -944,12 +1012,33 @@ void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
 	me()->reindex(parent); //FIXME: does it necessary?
 }
 
+/**
+ * \brief Merge *src* path to the *tgt* path.
+ *
+ * Merge two tree paths, *src* to *dst* upward starting from nodes specified with *level*. If both these nodes have different parents,
+ * then recursively merge parents first. Calls \ref canMerge to check if nodes can be merged. This call will try to merge parents only if
+ * current nodes can be merged.
+ *
+ * If after nodes have been merged the resulting path is redundant, that means it consists from a single node chain,
+ * then this path is truncated from the tree root down to the specified *level*.
+ *
+ * Unlike this call, \ref mergePaths tries to merge paths starting from the root down to the specified *level*.
+ *
+ * \param tgt path to node to be merged with
+ * \param src path to node to be merged
+ * \param level level of the node in the tree
+ * \return true if paths have been merged
+ *
+ * \see mergeWithSiblings - this is the basic method
+ * \see canMerge, removeRedundantRoot, mergeNodes, isTheSameParent
+ */
+
 M_PARAMS
 bool M_TYPE::mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level)
 {
 	if (canMerge(tgt, src, level))
 	{
-		if (IsTheSameParent(tgt, src, level))
+		if (isTheSameParent(tgt, src, level))
 		{
 			mergeNodes(tgt, src, level);
 
@@ -980,8 +1069,12 @@ bool M_TYPE::mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level)
 }
 
 
-
-M_PARAMS
+/**
+ * \brief Delete container from allocator with all associated data.
+ *
+ * Note that this call does not destruct container object.
+ */
+MEMORIA_PUBLIC M_PARAMS
 void M_TYPE::drop()
 {
 	NodeBaseG root = me()->getRoot(Allocator::READ);

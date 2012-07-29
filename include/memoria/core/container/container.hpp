@@ -119,20 +119,12 @@ public:
     	shared_ = other.shared_;
     }
 
-    MyType* me() {
-    	return static_cast<MyType*>(this);
-    }
-
-    const MyType* me() const {
-    	return static_cast<const MyType*>(this);
-    }
-
-    static Int hash() {
+    MEMORIA_PUBLIC static Int hash() {
         return reflection_->hash();
     }
 
 
-    static ContainerMetadata * reflection()
+    MEMORIA_PUBLIC static ContainerMetadata* reflection()
     {
         return reflection_;
     }
@@ -263,6 +255,16 @@ protected:
     {
     	this->shared_ = shared;
     }
+
+private:
+
+    MyType* me() {
+    	return static_cast<MyType*>(this);
+    }
+
+    const MyType* me() const {
+    	return static_cast<const MyType*>(this);
+    }
 };
 
 template <typename TypesType>
@@ -380,7 +382,7 @@ private:
 
 public:
 
-    Ctr(Allocator* allocator):
+    MEMORIA_PUBLIC Ctr(Allocator* allocator):
     	Base(),
     	allocator_(allocator),
     	model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
@@ -394,7 +396,7 @@ public:
     }
 
 
-    Ctr(Allocator* allocator, BigInt name, bool create = false, const char* mname = NULL):
+    MEMORIA_PUBLIC Ctr(Allocator* allocator, BigInt name, bool create = false, const char* mname = NULL):
         Base(),
         allocator_(allocator),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
@@ -407,7 +409,7 @@ public:
     	initCtr(allocator, name, create, mname);
     }
 
-    Ctr(Allocator* allocator, const ID& root_id, const char* mname = NULL):
+    MEMORIA_PUBLIC Ctr(Allocator* allocator, const ID& root_id, const char* mname = NULL):
     	Base(),
     	allocator_(allocator),
     	name_(-1),
@@ -421,7 +423,7 @@ public:
     	initCtr(allocator, root_id, mname);
     }
 
-    Ctr(const MyType& other):
+    MEMORIA_PUBLIC Ctr(const MyType& other):
     	Base(other, other.allocator_),
     	allocator_(other.allocator_),
     	model_type_name_(other.model_type_name_),
@@ -432,7 +434,7 @@ public:
     	ref();
     }
 
-    Ctr(const MyType& other, Allocator* allocator):
+    MEMORIA_PUBLIC Ctr(const MyType& other, Allocator* allocator):
     	Base(other, allocator),
     	allocator_(allocator),
     	model_type_name_(other.model_type_name_),
@@ -446,7 +448,7 @@ public:
     }
 
 
-    Ctr(MyType&& other):
+    MEMORIA_PUBLIC Ctr(MyType&& other):
     	Base(std::move(other), other.allocator_),
     	allocator_(other.allocator_),
     	model_type_name_(other.model_type_name_),
@@ -464,7 +466,7 @@ public:
     	MEMORIA_ASSERT_NOT_NULL(allocator);
     }
 
-    Ctr(const NoParamCtr&):
+    MEMORIA_PUBLIC Ctr(const NoParamCtr&):
     	Base(),
     	allocator_(NULL),
     	model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
@@ -474,7 +476,7 @@ public:
     	Base::setCtrShared(NULL);
     }
 
-    ~Ctr() throw()
+    MEMORIA_PUBLIC ~Ctr() throw()
     {
     	unref();
     }
@@ -531,24 +533,24 @@ public:
     	return debug_;
     }
 
-    Allocator& allocator() {
+    MEMORIA_PUBLIC Allocator& allocator() {
         return *allocator_;
     }
 
-    Allocator& allocator() const {
+    MEMORIA_PUBLIC Allocator& allocator() const {
     	return *allocator_;
     }
 
-    const char* typeName() const {
+    MEMORIA_PUBLIC const char* typeName() const {
         return model_type_name_;
     }
 
-    bool is_log(Int level)
+    MEMORIA_PUBLIC bool is_log(Int level)
     {
     	return logger_.isLogEnabled(level);
     }
 
-    memoria::vapi::Logger& logger() {
+    MEMORIA_PUBLIC memoria::vapi::Logger& logger() {
         return logger_;
     }
 
@@ -556,22 +558,12 @@ public:
     	return class_logger_;
     }
 
-    BigInt name() const {
+    MEMORIA_PUBLIC BigInt name() const {
     	return name_;
     }
 
-    BigInt& name() {
+    MEMORIA_PUBLIC BigInt& name() {
     	return name_;
-    }
-
-    MyType* me()
-    {
-    	return this;
-    }
-
-    const MyType* me() const
-    {
-    	return this;
     }
 
     MyType& operator=(const MyType& other)
@@ -620,6 +612,16 @@ public:
 
 
 private:
+    MyType* me()
+    {
+    	return this;
+    }
+
+    const MyType* me() const
+    {
+    	return this;
+    }
+
     void ref()
     {
     	if (me()->shared() != NULL)

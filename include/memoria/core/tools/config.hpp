@@ -58,6 +58,8 @@
 
 #define MEMORIA_SOURCE ::memoria::vapi::ExtractMemoriaPath(__FILE__ ":" MEMORIA_AT)
 
+#define MEMORIA_PUBLIC
+
 #if !defined(MEMORIA_DLL) && !defined(MEMORIA_MAIN)
 #define MEMORIA_TEMPLATE_EXTERN extern
 #else
