@@ -150,12 +150,26 @@ class Class:
 
 class Method:
     #artificial_re = re.compile('DW_AT_artificial\<yes\(1\)\>', re.I)
+    parameter_type_re = re.compile('DW_AT_type\<\<(?P<ref>.*?)\>\>', re.I)
+
     def __init__(self, entry, klass):
         self.__entry = entry
         self.__class = klass
+        self.__parameters = None
 
     def get_name(self):
         return self.__entry.get_name()
+
+    def get_parameters(self):
+        if self.__parameters:
+            return self.__parameters
+        self.__parameters = []
+        for ch in self.__entry.get_children():
+            if ch.get_tag() == 'formal_parameter':
+                m = Method.parameter_type_re.search(ch.get_line())
+                if m:
+                    self.__parameters.append(int(m.group('ref'), 16))
+        return self.__parameters
 
     def get_decl_file(self):
         return self.__entry.get_decl_file()
@@ -296,7 +310,8 @@ def collect_methods(linear_hierarchy):
     for klass in reversed(linear_hierarchy):
         for method in klass.get_methods():
             if method.get_decl_file():
-                result[method.get_name()] = method
+                key = tuple([method.get_name()] + method.get_parameters()[1:])
+                result[key] = method
     return result
 
 
@@ -404,9 +419,10 @@ def extract_signature(lines, line_num):
 def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
     if is_just_print_places:
         for m in ctr_methods:
-            decl_file = ctr_methods[m].get_decl_file()
-            decl_line = ctr_methods[m].get_decl_line()
-            print(m)
+            method = ctr_methods[m]
+            decl_file = method.get_decl_file()
+            decl_line = method.get_decl_line()
+            print(method.get_name())
             print('[{0}:{1}]'.format(decl_file, decl_line))
             print()
         return
@@ -430,7 +446,8 @@ def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
         for line in extract_signature(lines, decl_line).split('\n'):
             sl = line.strip()
             if sl.startswith('!!'):
-                sl = '//' + sl
+                continue
+                #sl = '//' + sl
             out_file.write('        ' + sl + '\n')
         out_file.write('\n')
     out_file.write('    }\n\n')
@@ -446,7 +463,8 @@ def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
         for line in extract_signature(lines, decl_line).split('\n'):
             sl = line.strip()
             if sl.startswith('!!'):
-                sl = '//' + sl
+                continue
+                #sl = '//' + sl
             out_file.write('    ' + sl + '\n')
         out_file.write('\n')
 
