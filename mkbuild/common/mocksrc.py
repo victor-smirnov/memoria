@@ -447,7 +447,9 @@ def extract_signature(lines, line_num):
     return result
 
 
-def output_methods(indent_str, methods, out_file):
+def output_methods(indent_str, methods, old_class_name, new_class_name, out_file):
+    ctr_dtr_rename_re = re.compile('(.*?)(~?)'+old_class_name+'\s*\((.+)', flags=re.M | re.DOTALL | re.I)
+
     for method in methods:
         decl_file = method.get_decl_file()
         decl_line = method.get_decl_line()
@@ -461,6 +463,10 @@ def output_methods(indent_str, methods, out_file):
         if signature.find('MEMORIA_PUBLIC') == -1:
             continue
         signature = signature.replace('MEMORIA_PUBLIC', '')
+
+        if method.is_constructor() or method.is_destructor():
+            signature = ctr_dtr_rename_re.sub('' + r'\1\2' + new_class_name + r'(\3', signature, count=1)
+
         for line in signature.split('\n'):
             sl = line.strip()
             if sl.startswith('!!'):
@@ -488,10 +494,10 @@ def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
     out_file.write('    class Iterator<SimpleProfile>\n')
     out_file.write('    {\n')
     out_file.write('    public:\n')
-    output_methods(' '*8, iter_methods, out_file)
+    output_methods(' '*8, iter_methods, 'tttt', 'ttttt', out_file)
     out_file.write('    };\n\n')
 
-    output_methods(' '*4, ctr_methods, out_file)
+    output_methods(' '*4, ctr_methods, 'Ctr', 'Vector', out_file)
 
     out_file.write('};\n')
     out_file.close()
