@@ -456,7 +456,12 @@ def output_methods(indent_str, methods, out_file):
         lines = f.readlines()
         f.close()
 
-        for line in extract_signature(lines, decl_line).split('\n'):
+        signature = extract_signature(lines, decl_line)
+        # skip not public API methods
+        if signature.find('MEMORIA_PUBLIC') == -1:
+            continue
+        signature = signature.replace('MEMORIA_PUBLIC', '')
+        for line in signature.split('\n'):
             sl = line.strip()
             if sl.startswith('!!'):
                 continue
