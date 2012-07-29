@@ -447,8 +447,11 @@ def extract_signature(lines, line_num):
     return result
 
 
-def output_methods(indent_str, methods, old_class_name, new_class_name, out_file):
+def output_methods(indent, methods, old_class_name, new_class_name, out_file):
     ctr_dtr_rename_re = re.compile('(.*?)(~?)'+old_class_name+'\s*\((.+)', flags=re.M | re.DOTALL | re.I)
+
+    public_signatures = []
+    protected_signatures = []
 
     for method in methods:
         decl_file = method.get_decl_file()
@@ -459,21 +462,38 @@ def output_methods(indent_str, methods, old_class_name, new_class_name, out_file
         f.close()
 
         signature = extract_signature(lines, decl_line)
-        # skip not public API methods
-        if signature.find('MEMORIA_PUBLIC') == -1:
-            continue
-        signature = signature.replace('MEMORIA_PUBLIC', '')
 
+        # rename constructors and destructors
         if method.is_constructor() or method.is_destructor():
             signature = ctr_dtr_rename_re.sub('' + r'\1\2' + new_class_name + r'(\3', signature, count=1)
 
+        if signature.find('MEMORIA_PUBLIC') != -1:
+            #signature = signature.replace('MEMORIA_PUBLIC', '')
+            public_signatures.append(signature)
+        else:
+            protected_signatures.append(signature)
+
+    half_indent = 0 if indent == 4 else int(indent / 2)
+
+    out_file.write(' '*half_indent + 'public:\n')
+    for signature in public_signatures:
         for line in signature.split('\n'):
             sl = line.strip()
             if sl.startswith('!!'):
                 continue
-            out_file.write(indent_str + sl + '\n')
+            out_file.write(' '*indent + sl + '\n')
         out_file.write('\n')
 
+    out_file.write(' '*half_indent + 'protected:\n')
+    for signature in protected_signatures:
+        for line in signature.split('\n'):
+            sl = line.strip()
+            if sl.startswith('!!'):
+                continue
+            if len(sl) == 0:
+                continue
+            out_file.write(' '*indent + sl + '\n')
+        out_file.write('\n')
 
 
 def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
@@ -493,11 +513,11 @@ def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
 
     out_file.write('    class Iterator<SimpleProfile>\n')
     out_file.write('    {\n')
-    out_file.write('    public:\n')
-    output_methods(' '*8, iter_methods, 'tttt', 'ttttt', out_file)
+#    out_file.write('    public:\n')
+    output_methods(8, iter_methods, 'Iter', 'Iterator', out_file)
     out_file.write('    };\n\n')
 
-    output_methods(' '*4, ctr_methods, 'Ctr', 'Vector', out_file)
+    output_methods(4, ctr_methods, 'Ctr', 'Vector', out_file)
 
     out_file.write('};\n')
     out_file.close()
