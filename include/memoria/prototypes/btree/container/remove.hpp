@@ -541,12 +541,16 @@ void M_TYPE::removePagesInternal(TreePath& start, Int& start_idx, TreePath& stop
 
 
 /**
- * remove a page from BTree. Do recursive removal if the page's parent
+ * \brief Remove leaf node from tree.
+ *
+ * Remove the leaf node from tree. Do recursive removal up to the root if the node's parent
  * has no more children.
  *
  * If after removing the parent is less than half filled than
  * merge it with siblings.
  *
+ *
+ * \see removeNode
  */
 
 M_PARAMS
@@ -623,6 +627,13 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
 	key_idx = 0;
 }
 
+/**
+ * \brief Remove node with all its children from the tree.
+ *
+ * \return number of children have been removed.
+ *
+ * \see removePage
+ */
 
 M_PARAMS
 BigInt M_TYPE::removeNode(NodeBaseG node)
@@ -659,6 +670,13 @@ BigInt M_TYPE::removeNode(NodeBaseG node)
 }
 
 
+/**
+ * If *parent* is a root and has only one child then the child is converted to root and returned in *node*.
+ * Old root node is removed.
+ *
+ * \return true if *node* is now a root.
+ */
+
 M_PARAMS
 bool M_TYPE::changeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
 {
@@ -682,8 +700,9 @@ bool M_TYPE::changeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
 
 
 /**
- * remove key and data pointed by iterator 'iter' form the map.
+ * \brief Remove key and data pointed by iterator *iter* form the tree.
  *
+ * \return true if the entry has been removed
  */
 
 M_PARAMS
@@ -705,6 +724,16 @@ bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
 	}
 }
 
+/**
+ * \brief Remove single entry from the leaf node.
+ *
+ * \param path 	path to the leaf
+ * \param idx 	index on the entry in the leaf
+ * \param keys 	accumulator to store values of deleted entry
+ * \param merge	if true then merge leaf with its siblings (if necessary)
+ *
+ * \see mergeWithSiblings
+ */
 
 M_PARAMS
 void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge)
@@ -740,10 +769,12 @@ void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
 /**
  * \brief Removes singular node chain starting from the tree root down to the specified level.
  *
+ * Singular node chain is a chain of tree nodes where each node (except leaf) has exactly one child. See the picture below for details.
+ *
  * ![Singular Node Chain](https://bitbucket.org/vsmirnov/memoria/wiki/img/doxygen/singular_node_chain.svg)
  *
+ * This call iteratively removes nodes in singular node chain starting from the root down to the *level*.
  */
-
 
 M_PARAMS
 void M_TYPE::removeRedundantRoot(TreePath& path, Int level)
@@ -783,7 +814,6 @@ void M_TYPE::removeRedundantRoot(TreePath& path, Int level)
  * Both ones must contains the same nodes at least down to the *level*. After the call is completed both paths are started from the new root node.
  *
  * \see mergeBTreeNodes, mergePaths
- *
  */
 
 M_PARAMS

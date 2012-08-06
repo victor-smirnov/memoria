@@ -48,18 +48,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
 
-    Int getElementSize() const
+    MEMORIA_PUBLIC Int getElementSize() const
     {
     	return me()->model().getElementSize();
     }
 
 
-    BigInt read(IData& data, BigInt start, BigInt length)
+    MEMORIA_PUBLIC BigInt read(IData& data, BigInt start, BigInt length)
     {
     	return me()->model().read(*me(), data, start, length);
     }
 
-    BigInt read(IData& data)
+    MEMORIA_PUBLIC BigInt read(IData& data)
     {
     	return read(data, 0, data.getSize());
     }
@@ -68,12 +68,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     void insert(const IData& data, BigInt start, BigInt length);
     void insert(const IData& data);
 
-    void insert(const ArrayData& data) {
+    MEMORIA_PUBLIC void insert(const ArrayData& data) {
     	insert((IData&)data);
     }
 
     template <typename T>
-    void insert(const T& value)
+    MEMORIA_PUBLIC void insert(const T& value)
     {
     	me()->insert(ArrayData(value));
     }
@@ -81,7 +81,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     void update(const IData& data, BigInt start, BigInt length);
     void update(const IData& data);
 
-    void remove(BigInt length)
+    MEMORIA_PUBLIC void remove(BigInt length)
     {
     	me()->model().removeDataBlock(*me(), length);
     }
@@ -95,7 +95,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     BigInt skipFw(BigInt distance);
     BigInt skipBw(BigInt distance);
 
-    void dumpKeys(ostream& out)
+    MEMORIA_PUBLIC void dumpKeys(ostream& out)
     {
     	Base::dumpKeys(out);
 
@@ -103,13 +103,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     	out<<"DataPos: "<<me()->dataPos()<<endl;
     }
 
-    void dumpPages(ostream& out)
+    MEMORIA_PUBLIC void dumpPages(ostream& out)
     {
     	Base::dumpPages(out);
     	me()->model().dump(me()->data(), out);
     }
 
-    void dumpPath(ostream& out)
+    MEMORIA_PUBLIC void dumpPath(ostream& out)
     {
     	Base::dumpPath(out);
 
@@ -123,33 +123,33 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     }
 
 
-    bool operator++()
+    MEMORIA_PUBLIC bool operator++()
     {
     	Int size = me()->getElementSize();
     	return me()->skip(size) = size;
     }
 
-    bool operator++(int)
+    MEMORIA_PUBLIC bool operator++(int)
     {
     	return me()->skip(1) = 1;
     }
 
-    bool operator+=(Int count)
+    MEMORIA_PUBLIC bool operator+=(Int count)
     {
     	return me()->skip(count) = count;
     }
 
-    bool operator--()
+    MEMORIA_PUBLIC bool operator--()
     {
     	return me()->skip(1);
     }
 
-    bool operator--(int)
+    MEMORIA_PUBLIC bool operator--(int)
     {
     	return me()->skip(-1) = 1;
     }
 
-    bool operator-=(Int count)
+    MEMORIA_PUBLIC bool operator-=(Int count)
 	{
     	return me()->skip(-count) = count;
 	}
@@ -161,7 +161,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 //    }
 
     template <typename T>
-    operator T()
+    MEMORIA_PUBLIC operator T()
     {
     	T value;
 
@@ -179,13 +179,13 @@ MEMORIA_ITERATOR_PART_END
 #define M_PARAMS 	MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 
-M_PARAMS
+MEMORIA_PUBLIC M_PARAMS
 void M_TYPE::insert(const IData& data, BigInt start, BigInt length)
 {
 	me()->model().insertData(*me(), data, start, length);
 }
 
-M_PARAMS
+MEMORIA_PUBLIC M_PARAMS
 void M_TYPE::insert(const IData& data)
 {
 	me()->model().insertData(*me(), data);
@@ -193,13 +193,13 @@ void M_TYPE::insert(const IData& data)
 
 
 
-M_PARAMS
+MEMORIA_PUBLIC M_PARAMS
 void M_TYPE::update(const IData& data, BigInt start, BigInt len)
 {
 	me()->model().updateData(*me(), data, start, len);
 }
 
-M_PARAMS
+MEMORIA_PUBLIC M_PARAMS
 void M_TYPE::update(const IData& data)
 {
 	me()->model().updateData(*me(), data, 0, data.getSize());
@@ -207,7 +207,7 @@ void M_TYPE::update(const IData& data)
 
 
 
-M_PARAMS
+MEMORIA_PUBLIC M_PARAMS
 BigInt M_TYPE::skip(BigInt distance)
 {
 	if (distance > 0)
@@ -219,7 +219,7 @@ BigInt M_TYPE::skip(BigInt distance)
 	}
 }
 
-M_PARAMS
+MEMORIA_PUBLIC M_PARAMS
 BigInt M_TYPE::skipFw(BigInt count)
 {
 	Int element_size = me()->getElementSize();
@@ -288,7 +288,7 @@ BigInt M_TYPE::skipFw(BigInt count)
 }
 
 
-M_PARAMS
+MEMORIA_PUBLIC M_PARAMS
 BigInt M_TYPE::skipBw(BigInt count)
 {
 	Int element_size = me()->getElementSize();

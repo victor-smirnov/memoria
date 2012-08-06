@@ -136,44 +136,44 @@ public:
     Iterator findStart(bool reverse = false);
     Iterator findEnd  (bool reverse = false);
 
-    BigInt getSize() const
+    MEMORIA_PUBLIC BigInt getSize() const
     {
     	return me()->getTotalKeyCount();
     }
 
-    Iterator Begin()
+    MEMORIA_PUBLIC Iterator Begin()
     {
     	return me()->findStart(false);
     }
 
-    Iterator begin()
+    MEMORIA_PUBLIC Iterator begin()
     {
     	return me()->findStart(false);
     }
 
-    Iterator RBegin()
+    MEMORIA_PUBLIC Iterator RBegin()
     {
     	return me()->findEnd(true);
     }
 
-    Iterator End()
+    MEMORIA_PUBLIC Iterator End()
     {
     	return me()->findEnd(false);
     }
 
-    Iterator end()
+    MEMORIA_PUBLIC Iterator end()
     {
     	Iterator iter(*me());
     	iter.type() = Iterator::END;
     	return iter;
     }
 
-    IterEndMark endm()
+    MEMORIA_PUBLIC IterEndMark endm()
     {
     	return IterEndMark();
     }
 
-    Iterator REnd() {
+    MEMORIA_PUBLIC Iterator REnd() {
     	return me()->findStart(true);
     }
 
