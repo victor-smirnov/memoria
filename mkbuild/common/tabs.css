@@ -1,0 +1,50 @@
+.tabs, .tabs2, .tabs3 {
+/*    background-image: url('tab_b.png');*/
+    width: 100%;
+    z-index: 101;
+    font-size: 15px;
+    border-bottom: 1px solid #dddddd;
+}
+
+.tabs2 {
+    font-size: 13px;
+}
+.tabs3 {
+    font-size: 11px;
+}
+
+.tablist {
+    margin: 0;
+    padding: 0;
+    display: table;
+}
+
+.tablist li {
+    float: left;
+    display: table-cell;
+    line-height: 36px;
+    list-style: none;
+}
+
+.tablist a {
+    display: block;
+    padding: 0 20px;
+    font-weight: bold;
+    border-right: 1px solid #dddddd;
+    color: #2B547D;
+    text-decoration: none;
+    outline: none;
+}
+
+.tabs3 .tablist a {
+    padding: 0 10px;
+}
+
+.tablist a:hover {
+    color: #2B547D;
+}
+
+.tablist li.current a {
+    color: black;
+    text-decoration: none;
+}
