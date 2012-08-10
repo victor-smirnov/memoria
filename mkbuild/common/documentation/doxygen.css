@@ -6,6 +6,14 @@ body, table, div, p, dl {
 	line-height: 1.2;
 }
 
+div#god_div {
+    width: 880px;
+    margin: 0 auto;
+
+    border: 1px solid #DDDDDD;
+    /*border-right: 1px solid #DDDDDD;*/
+}
+
 /* @group Heading Levels */
 
 h1 {
@@ -248,9 +256,9 @@ body {
 }
 
 div.contents {
-	margin-top: 10px;
-	margin-left: 12px;
-	margin-right: 8px;
+	padding-top: 10px;
+	padding-left: 12px;
+	padding-right: 8px;
 }
 
 td.indexkey {
@@ -472,7 +480,7 @@ table.memberdecls {
 	font-size: 80%;
 	color: #6D7382;
 	font-weight: normal;
-	margin-left: 9px;
+	margin-left: 15px;
 }
 
 .memnav {
@@ -506,12 +514,12 @@ table.memberdecls {
 }
 
 .memname {
-        font-weight: bold;
-        margin-left: 6px;
+    font-weight: bold;
+    /*margin-left: 6px;*/
 }
 
-.memname td {
-	vertical-align: bottom;
+div.memname {
+    margin-left: 12px;
 }
 
 .memproto, dl.reflist dt {
@@ -875,8 +883,7 @@ div.ingroups a
 	white-space: nowrap;
 }
 
-div.header
-{
+div.header {
 	background-color: #FAFAFB;
 	margin:  0px;
 	border-bottom: 1px solid #D3D5DA;
@@ -983,7 +990,7 @@ dl.section dd {
 {
 	font: 120% Tahoma, Arial,sans-serif;
 	margin: 0px;
-	padding: 0px;
+	padding: 9px;
 }
 
 #projectnumber
@@ -995,10 +1002,10 @@ dl.section dd {
 
 #titlearea
 {
-	padding: 0px;
-	margin: 0px;
-	width: 100%;
-	border-bottom: 1px solid #DDDDDD;
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    border-bottom: 1px solid #DDDDDD;
 }
 
 .image

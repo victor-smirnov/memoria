@@ -435,7 +435,6 @@ def extract_signature(lines, line_num):
         result = current_line + result
         current_line_num -= 1
 
-    result = result.rstrip()
     if result.endswith('}'):
         pass
     elif result.endswith('{'):
@@ -443,7 +442,9 @@ def extract_signature(lines, line_num):
     else:
         result += '{}'
 
-    result = result.replace('M_PARAMS', '').replace('M_TYPE::', '')
+    result = result.replace('M_PARAMS', '')
+    result = result.replace('M_TYPE::', '')
+    result = result.replace('MEMORIA_PUBLIC', '')
     return result
 
 

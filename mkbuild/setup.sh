@@ -49,9 +49,7 @@ mkdir -p $BUILD_DIR
 cp -i $COMMON_DIR/build.sh.tpl $BUILD_DIR/build.sh
 cp -i $COMMON_DIR/clean.sh.tpl $BUILD_DIR/clean.sh
 
-cp -i $COMMON_DIR/mkdoc.sh $BUILD_DIR/mkdoc.sh
-cp -i $COMMON_DIR/mocksrc.py $BUILD_DIR/mocksrc.py
-cp -i $COMMON_DIR/Doxyfile $BUILD_DIR/Doxyfile
+cp -i -r $COMMON_DIR/documentation/ $BUILD_DIR/
 
 sed -e "s/@@C_COMPILER_PLACEHOLDER@@/${C_COMPILER}/" \
     -e "s/@@CXX_COMPILER_PLACEHOLDER@@/${CXX_COMPILER}/" \
