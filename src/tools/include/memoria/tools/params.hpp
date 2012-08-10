@@ -35,6 +35,8 @@ public:
 	virtual StringRef getName() const			= 0;
 	virtual String getPropertyName() const		= 0;
 	virtual void dump(std::ostream& os) const	= 0;
+	
+	virtual ~AbstractParamDescriptor() {}
 };
 
 
@@ -133,6 +135,8 @@ public:
 		ranges_specified_(true),
 		mandatory_(false)
 	{}
+	
+	virtual ~ParamDescriptor() {}
 
 
 	virtual void Process(Configurator* cfg)
