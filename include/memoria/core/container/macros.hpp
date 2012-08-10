@@ -115,6 +115,7 @@ public:
     CtrPart(ThisType&& other): Base(std::move(other))  {}                       \
     CtrPart(ThisType&& other, typename TypesType::Allocator* allocator): Base(std::move(other), allocator)  {} 	\
     CtrPart(const ThisType& other, typename TypesType::Allocator* allocator): Base(other, allocator)  		{} 	\
+    virtual ~CtrPart() throw() {}												\
     void operator=(ThisType&& other) {											\
 		Base::operator=(std::move(other));										\
 	}																			\
@@ -161,7 +162,8 @@ public:
     MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(PartName)                   			\
     IterPart(): Base() {}														\
 	IterPart(ThisPartType&& other): Base(std::move(other)) {}					\
-	IterPart(const ThisPartType& other): Base(other) {}
+	IterPart(const ThisPartType& other): Base(other) {}							\
+	virtual ~IterPart() throw() {}
 
 
 

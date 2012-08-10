@@ -89,10 +89,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::RemoveName)
 
     bool mergePaths(TreePath& tgt, TreePath& src, Int level = 0);
 
-    /**
-     * \brief Remove key and data pointed by iterator 'iter' form the map.
-     *
-     */
+
     bool removeEntry(Iterator& iter, Accumulator& keys);
 
     void removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge = true);
@@ -255,6 +252,8 @@ MEMORIA_CONTAINER_PART_END
 /**
  * \brief Remove 'count' elements from tree node starting from 'from' element.
  *
+ * ![removeRoom Diagram](https://bitbucket.org/vsmirnov/memoria/wiki/img/doxygen/removeRoom.svg)
+ *
  * \param path   path to the node
  * \param level  level of the node at the path
  * \param from   start element
@@ -310,6 +309,18 @@ BigInt M_TYPE::removeRoom(TreePath& path, Int level, Int from, Int count, Accumu
 	return key_count;
 }
 
+/**
+ * \brief Removes all entries from the tree starting with *from* iterator and ending with *to* one, but not include it.
+ *
+ * \param from
+ * \param to
+ * \param merge if *true* then try to merge btree leafs if necessary.
+ *
+ * \return number of removed entries
+ *
+ * \see removeAllPages, removePagesFromStart, removePagesAtEnd, removePages
+ * \see mergeWithRightSibling, addTotalKeyCount
+ */
 
 M_PARAMS
 BigInt M_TYPE::removeEntries(Iterator& from, Iterator& to, Accumulator& keys, bool merge)
@@ -399,7 +410,11 @@ BigInt M_TYPE::removeEntries(Iterator& from, Iterator& to, Accumulator& keys, bo
 }
 
 
-
+/**
+ * \brief
+ *
+ *
+ */
 
 M_PARAMS
 void M_TYPE::removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum, BigInt& removed_key_count)
@@ -700,7 +715,12 @@ bool M_TYPE::changeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
 
 
 /**
- * \brief Remove key and data pointed by iterator *iter* form the tree.
+ * \brief Remove the key and data pointed by iterator *iter* form the tree.
+ *
+ * This call stores removed key values in *keys* variable.
+ *
+ * \param iter iterator pointing to the key/data pair
+ * \param keys an accumulator to add removed key value to
  *
  * \return true if the entry has been removed
  */
@@ -927,7 +947,7 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Int& key_idx)
 }
 
 /**
- * \brief Merge node with its right sibling (if present) [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-913)
+ * \brief Merge node with its right sibling (if present)
  *
  * Calls \ref shouldMergeNode to check if requested node should be merged with its right sibling, then merge if true.
  *
@@ -937,9 +957,6 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Int& key_idx)
  * \return true if node has been merged
  *
  * \see mergeWithLeftSibling, shouldMergeNode for details
- *
- *
- * [Source](https://bitbucket.org/vsmirnov/memoria/src/tip/include/memoria/prototypes/btree/container/remove.hpp#cl-913)
  */
 
 M_PARAMS

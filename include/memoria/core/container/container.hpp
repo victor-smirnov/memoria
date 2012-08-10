@@ -108,6 +108,8 @@ public:
     	other.shared_ = NULL;
     }
 
+    virtual ~ContainerBase() throw () {}
+
     void operator=(ThisType&& other)
     {
     	shared_ = other.shared_;
@@ -287,6 +289,8 @@ public:
 	CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator) 	{}
 	CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator) 		{}
 
+	virtual ~CtrHelper() throw () {}
+
 	void operator=(ThisType&& other) {
 		Base::operator=(std::move(other));
 	}
@@ -311,6 +315,8 @@ public:
 	CtrHelper(ThisType&& other): Base(std::move(other)) {}
 	CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator)    {}
 	CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator) 		 {}
+
+	virtual ~CtrHelper() throw () {}
 
 	void operator=(ThisType&& other) {
 		Base::operator=(std::move(other));
@@ -476,7 +482,7 @@ public:
     	Base::setCtrShared(NULL);
     }
 
-    MEMORIA_PUBLIC ~Ctr() throw()
+    MEMORIA_PUBLIC virtual ~Ctr() throw()
     {
     	unref();
     }
