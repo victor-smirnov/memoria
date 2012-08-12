@@ -8,6 +8,7 @@
 ## http://www.boost.org/LICENSE_1_0.txt)
 
 # This script is for postprocessing of Doxygen HTML output:
+#   - removing of "inline" tag;
 #   - linearization of methods' parameters.
 
 # Usage: postprocess.py [-h|--help] [html_directory]

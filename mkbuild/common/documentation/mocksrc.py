@@ -1,13 +1,31 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-import sys, os, re
+## This file is a part of the Memoria project.
+## Copyright (C) 2012 Memoria team
+## Distributed under the Boost Software License, Version 1.0.
+## (See accompanying file LICENSE_1_0.txt or copy at
+## http://www.boost.org/LICENSE_1_0.txt)
 
+# This script is for creating mock source file for Doxygen. It takes 
+# result of dwarfdump as input and produces a mock cpp file which will
+# be used by Doxygen.
+
+# Usage:
+# mocksrc.py [-o <output_dir>] [-p] memoria_dir input_file
+#   -p
+#       Print only places where comments should be placed.
+
+
+import sys, os, re, subprocess
 
 class DebugInfoEntry:
     class_tag_re = re.compile('DW_TAG_class_type', re.I)
-    level_num_tag_re = re.compile('^\<(?P<level>\d+?)\>\<(?P<id>.+?)\>\<DW_TAG_(?P<tag>\w+?)\>', re.I)
+    level_num_tag_re = re.compile(
+        '^\<(?P<level>\d+?)\>\<(?P<id>.+?)\>\<DW_TAG_(?P<tag>\w+?)\>', re.I)
     name_re = re.compile('DW_AT_name\<\"(?P<name>.+?)\"\>', re.I)
-    linkage_name_re = re.compile('DW_AT_MIPS_linkage_name\<\"(?P<lnkname>.+?)\"\>', re.I)
+    linkage_name_re = re.compile(
+        'DW_AT_MIPS_linkage_name\<\"(?P<lnkname>.+?)\"\>', re.I)
 
     # TODO what if there are spaces in the path? test and fix
     decl_file_re = re.compile('DW_AT_decl_file\<0x\w+?\s(?P<path>.+?)\>', re.I)
@@ -94,7 +112,8 @@ class DebugInfoEntry:
 
 class Class:
     name_re = re.compile('DW_AT_name\<\"(?P<name>.+?)\"\>', re.I)
-    specification_re = re.compile('DW_AT_specification\<\<(?P<spid>.+?)\>\>', re.I)
+    specification_re = re.compile(
+        'DW_AT_specification\<\<(?P<spid>.+?)\>\>', re.I)
     inheritance_re = re.compile('DW_TAG_inheritance', re.I)
     inheritance_type_re = re.compile('DW_AT_type\<\<(?P<id>.+?)\>\>', re.I)
     ctr_name_re = re.compile('^(?P<name>[^\<]*)', re.I)
@@ -134,7 +153,8 @@ class Class:
         result = []
         for entry in self.__entry.get_children():
             if Class.inheritance_re.search(entry.get_line()):
-                id_str = Class.inheritance_type_re.search(entry.get_line()).group('id')
+                id_str = Class.inheritance_type_re.search(
+                    entry.get_line()).group('id')
                 result.append(int(id_str, 16))
         return result
 
@@ -238,7 +258,8 @@ def process_debug_info(debug_info):
     typedefs = {}
 
     line_re = re.compile('^\<(?P<level>\d+?)\>', re.I)
-    specification_re = re.compile('DW_AT_specification\<\<(?P<spid>.+?)\>\>', re.I)
+    specification_re = re.compile(
+        'DW_AT_specification\<\<(?P<spid>.+?)\>\>', re.I)
     type_re = re.compile('DW_AT_type\<\<(?P<typenum>.+?)\>\>', re.I)
 
     parents_for_level = { 0: None }
@@ -249,7 +270,7 @@ def process_debug_info(debug_info):
             entry = DebugInfoEntry(line, parents_for_level[level])
             parents_for_level[level+1] = entry
 
-            if entry.get_tag() == 'class_type' or entry.get_tag() == 'structure_type':
+            if entry.get_tag() in ['class_type', 'structure_type']:
                 entries[entry.get_int_id()] = entry
 
                 spec_m = specification_re.search(line)
@@ -346,8 +367,22 @@ def collect_methods(linear_hierarchy, is_ctrs_only_from_youngest):
     return result
 
 
+def get_srclink_command(decl_file, decl_line, memoria_dir):
+    if not hasattr(get_srclink_command, 'hg_id'):
+        id = subprocess.check_output(
+            ['hg', 'id', '-i', '--debug', '--cwd', memoria_dir])
+        get_srclink_command.hg_id = id.decode('utf-8').strip()
+        pass
+
+    rel_path = os.path.relpath(decl_file, memoria_dir)
+    result = '\srclink{{https://bitbucket.org/vsmirnov/memoria/src/{0}/{1}#cl-{2}, {0}}}' \
+        .format(get_srclink_command.hg_id, rel_path, decl_line)
+    return result
+
+
 def extract_signature(lines, line_num):
-    result = ''
+    signature = ''
+    comments = ''
 
     # zero-based indexing adjustment
     line_num -= 1
@@ -358,18 +393,19 @@ def extract_signature(lines, line_num):
     position = 0
 
     if current_line.startswith('MEMORIA_'):
-        return '!! MACRO: ' + current_line.strip()
+        return ('', '')
 
     while True:
         symbol = current_line[position]
         if symbol == '{':
-            result += '{}'
+            signature += '{}'
             break
         if symbol == ';':
-            result += '{}'
+#            signature += '{}'
+            signature += ';'
             break
 
-        result += symbol
+        signature += symbol
         position += 1
         if symbol == '\n':
             current_line_num += 1
@@ -380,11 +416,10 @@ def extract_signature(lines, line_num):
 
     # states:
     state_initial = 0 # initial state
-    state_brace_passed = 1 # after { of function's body
-    state_block_comment = 2 # inside block comment /* */
-    state_line_comment = 3 # single line comment //
-    state_comment_passed = 4 # after every comment
-    state_end = 5 # final state
+    state_block_comment = 1 # inside block comment /* */
+    state_line_comment = 2 # single line comment //
+    state_comment_passed = 3 # after every comment
+    state_end = 4 # final state
     current_state = state_initial
 
     current_line_num = line_num - 1
@@ -396,19 +431,19 @@ def extract_signature(lines, line_num):
             continue
 
         if current_state == state_initial:
-            #if s_current_line.endswith('{'):
-            current_state = state_brace_passed
-            continue
-            pass
-
-        elif current_state == state_brace_passed:
             if s_current_line.endswith('*/'):
                 current_state = state_block_comment
+                continue
             elif s_current_line.startswith('//'):
                 current_state = state_line_comment
+                continue
             elif s_current_line.startswith('#define') or s_current_line[-1] in [ '{', '}', ';', ':']:
                 current_state = state_end
                 continue
+
+            signature = current_line + signature
+            current_line_num -= 1
+            continue
             pass
 
         elif current_state == state_block_comment:
@@ -432,27 +467,23 @@ def extract_signature(lines, line_num):
                 continue
             pass
 
-        result = current_line + result
+        comments = current_line + comments
         current_line_num -= 1
 
-    if result.endswith('}'):
-        pass
-    elif result.endswith('{'):
-        result += '}'
-    else:
-        result += '{}'
+    signature = signature.replace('M_PARAMS', '')
+    signature = signature.replace('M_TYPE::', '')
+    signature = signature.replace('MEMORIA_PUBLIC', '')
 
-    result = result.replace('M_PARAMS', '')
-    result = result.replace('M_TYPE::', '')
-    result = result.replace('MEMORIA_PUBLIC', '')
-    return result
+    return (comments, signature)
 
 
-def output_methods(indent, methods, old_class_name, new_class_name, out_file):
-    ctr_dtr_rename_re = re.compile('(.*?)(~?)'+old_class_name+'\s*\((.+)', flags=re.M | re.DOTALL | re.I)
+def output_methods(indent, methods, 
+                   old_class_name, new_class_name, out_file, memoria_dir):
+    ctr_dtr_rename_re = re.compile(
+        '(.*?)(~?)'+old_class_name+'\s*\((.+)', flags=re.M | re.DOTALL | re.I)
 
-    public_signatures = []
-    protected_signatures = []
+    public_methods = []
+    protected_methods = []
 
     for method in methods:
         decl_file = method.get_decl_file()
@@ -462,7 +493,13 @@ def output_methods(indent, methods, old_class_name, new_class_name, out_file):
         lines = f.readlines()
         f.close()
 
-        signature = extract_signature(lines, decl_line)
+        (comments, signature) = extract_signature(lines, decl_line)
+        
+        if len(signature.strip()) == 0:
+            continue
+        
+        scrlink_cmd = get_srclink_command(decl_file, decl_line-1, memoria_dir)
+        comments += "\n/**\n\n*\n* {0}\n*/\n".format(scrlink_cmd)
 
         # rename constructors and destructors
         if method.is_constructor() or method.is_destructor():
@@ -470,15 +507,15 @@ def output_methods(indent, methods, old_class_name, new_class_name, out_file):
 
         if signature.find('MEMORIA_PUBLIC') != -1:
             #signature = signature.replace('MEMORIA_PUBLIC', '')
-            public_signatures.append(signature)
+            public_methods.append(comments + signature)
         else:
-            protected_signatures.append(signature)
+            protected_methods.append(comments + signature)
 
     half_indent = 0 if indent == 4 else int(indent / 2)
 
     out_file.write(' '*half_indent + 'public:\n')
-    for signature in public_signatures:
-        for line in signature.split('\n'):
+    for method_text in public_methods:
+        for line in method_text.split('\n'):
             sl = line.strip()
             if sl.startswith('!!'):
                 continue
@@ -486,8 +523,8 @@ def output_methods(indent, methods, old_class_name, new_class_name, out_file):
         out_file.write('\n')
 
     out_file.write(' '*half_indent + 'protected:\n')
-    for signature in protected_signatures:
-        for line in signature.split('\n'):
+    for method_text in protected_methods:
+        for line in method_text.split('\n'):
             sl = line.strip()
             if sl.startswith('!!'):
                 continue
@@ -497,7 +534,8 @@ def output_methods(indent, methods, old_class_name, new_class_name, out_file):
         out_file.write('\n')
 
 
-def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
+def do_output(ctr_methods, iter_methods, 
+              memoria_dir, output_dir, is_just_print_places):
     if is_just_print_places:
         for method in ctr_methods:
             decl_file = method.get_decl_file()
@@ -515,10 +553,10 @@ def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
     out_file.write('    class Iterator<SimpleProfile>\n')
     out_file.write('    {\n')
 #    out_file.write('    public:\n')
-    output_methods(8, iter_methods, 'Iter', 'Iterator', out_file)
+    output_methods(8, iter_methods, 'Iter', 'Iterator', out_file, memoria_dir)
     out_file.write('    };\n\n')
 
-    output_methods(4, ctr_methods, 'Ctr', 'Vector', out_file)
+    output_methods(4, ctr_methods, 'Ctr', 'Vector', out_file, memoria_dir)
 
     out_file.write('};\n')
     out_file.close()
@@ -526,33 +564,45 @@ def do_output(ctr_methods, iter_methods, output_dir, is_just_print_places):
 
 def print_usage(script_name):
     print('Usage:')
-    print('{0} [-o <output_dir>] [-p]'.format(script_name))
+    print('{0} [-o <output_dir>] [-p] memoria_dir input_file'.format(script_name))
+    print('Use "-" as a pseudo-input file for stdin.')
+    print('Default output_dir is "src".')
 
 def main(argv):
     # setting up
     script_name = os.path.basename(argv[0])
 
-    output_path = None
+    if len(argv) < 3 or len(argv) > 6:
+        print_usage(script_name)
+        exit()
+
+    output_dir = 'src'
     is_just_print_places = False
+    input_file = None
     i = 1
-    while i < len(argv):
+    while i < len(argv)-2:
         if argv[i] == '-o' and i+1 < len(argv):
-            output_path = argv[i+1]
+            output_dir = argv[i+1]
             i += 2
         elif argv[i] == '-p':
             is_just_print_places = True
             i += 1
-        else:
-            print_usage(script_name)
-            exit()
+
+    input_file = argv[-1]
+    memoria_dir = argv[-2]
 
     # main part
-    if sys.stdin.isatty():
+    if input_file == '-' and sys.stdin.isatty():
         print("No input data!")
         exit()
 
     ctr_class_name_re = re.compile('"Ctr\<memoria::CtrTypesT\<memoria::CtrTF\<memoria::[^\<\>:,]+\<\>, memoria::[^\<\>:,]+, memoria::Vector\>::Types\>\s*\>', re.I)
-    debug_info = collect_debug_info(sys.stdin, lambda x: ctr_class_name_re.search(x))
+
+    read_source = sys.stdin if input_file == '-' else open(input_file,  'r')
+    debug_info = collect_debug_info(
+        read_source, lambda x: ctr_class_name_re.search(x))
+    read_source.close()
+    
     if len(debug_info) > 1:
         print('More than one suitable .debug_info, first is used.')
     if len(debug_info) == 0:
@@ -569,7 +619,10 @@ def main(argv):
     linear_hierarchy = get_linear_hierarchy(iter_class)
     iter_methods = collect_methods(linear_hierarchy, True)
 
-    do_output(ctr_methods, iter_methods, output_path, is_just_print_places)
+    do_output(
+        ctr_methods, iter_methods,
+        memoria_dir, output_dir,
+        is_just_print_places)
     
 if __name__ == "__main__":
     main(sys.argv)
