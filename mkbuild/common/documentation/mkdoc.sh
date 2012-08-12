@@ -6,6 +6,7 @@ LIB_DIR=../lib
 LIB_NAME="libMemoria.a"
 DOXYFILE=Doxyfile
 MEMORIA_DIR="../../../memoria/"
+RESOURCES_DIR="resources"
 
 if ! [ -e ${WORK_DIR} ]; then
     mkdir ${WORK_DIR};
@@ -21,6 +22,6 @@ cd $WORK_DIR
 doxygen $DOXYFILE
 
 ./postprocess.py html
-cp -f tabs.css html
-cp -f search.js html/search
-cp -f search.css html/search
+cp -f "${RESOURCES_DIR}/tabs.css" html
+cp -f "${RESOURCES_DIR}/search.js" html/search
+cp -f "${RESOURCES_DIR}/search.css" html/search

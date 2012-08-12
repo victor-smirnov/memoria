@@ -371,11 +371,14 @@ def get_srclink_command(decl_file, decl_line, memoria_dir):
     if not hasattr(get_srclink_command, 'hg_id'):
         id = subprocess.check_output(
             ['hg', 'id', '-i', '--debug', '--cwd', memoria_dir])
-        get_srclink_command.hg_id = id.decode('utf-8').strip()
+        id = id.decode('utf-8').strip()
+        if id.endswith('+'):
+            id = id[:-1]
+        get_srclink_command.hg_id = id
         pass
 
     rel_path = os.path.relpath(decl_file, memoria_dir)
-    result = '\srclink{{https://bitbucket.org/vsmirnov/memoria/src/{0}/{1}#cl-{2}, {0}}}' \
+    result = '\srclink{{https://bitbucket.org/vsmirnov/memoria/src/{0}/{1}#cl-{2}}}' \
         .format(get_srclink_command.hg_id, rel_path, decl_line)
     return result
 
