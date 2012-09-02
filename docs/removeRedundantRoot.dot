@@ -1,0 +1,59 @@
+digraph G1 {
+
+	compound=true;
+
+	node [style=filled,color=grey];
+	root -> n1 -> n2 -> n3;
+
+	root [label = "n0"];
+
+	n3->n4;
+	n3->n5;
+	n3->n6;
+
+	subgraph cluster_1 {
+	    label = "Before";
+	    style = "rounded, solid";
+	    color = gray;
+
+	    A1 [style=invis];
+
+	    n4; n5; n6;
+
+
+
+	    subgraph cluster_SNC {
+		label = "Singular Node Chain"
+		labelcolor = blue;
+		root; n1; n2; n3;
+		color = blue;
+		style = "rounded,dotted";
+		shape = rounded;
+
+		Root [label="Root", shape=note, style=solid, color=blue];
+		Root -> root [color=blue];
+	    };
+
+	    NRC [label="New Root Candidate", shape=note, style=solid, color=blue];
+	    NRC->n3 [color=blue];
+	}
+
+
+
+	subgraph cluster_2 {
+	    label = "After";
+	    style = "rounded, solid";
+	    color = grey;
+
+
+	    r3 [label="n3"];
+	    r4 [label="n4"]; r5 [label="n6"]; r6 [label="n6"];
+
+	    r3 -> r4;
+	    r3 -> r5;
+	    r3 -> r6;
+
+	    NR [label="New Root", shape=note, style=solid, color=blue];
+	    NR -> r3 [color=blue];
+	}
+}

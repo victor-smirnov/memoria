@@ -1632,12 +1632,12 @@ DOT_NUM_THREADS        = 0
 # the DOTFONTPATH environment variable or by setting DOT_FONTPATH to the 
 # directory containing the font.
 
-DOT_FONTNAME           = Helvetica
+DOT_FONTNAME           = Verdana
 
 # The DOT_FONTSIZE tag can be used to set the size of the font of dot graphs. 
 # The default size is 10pt.
 
-DOT_FONTSIZE           = 10
+DOT_FONTSIZE           = 8
 
 # By default doxygen will tell dot to use the Helvetica font. 
 # If you specify a different font using DOT_FONTNAME you can use DOT_FONTPATH to 
@@ -1752,13 +1752,13 @@ DOT_PATH               =
 # contain dot files that are included in the documentation (see the 
 # \dotfile command).
 
-DOTFILE_DIRS           = 
+DOTFILE_DIRS           = ../../../memoria/docs
 
 # The MSCFILE_DIRS tag can be used to specify one or more directories that 
 # contain msc files that are included in the documentation (see the 
 # \mscfile command).
 
-MSCFILE_DIRS           = 
+MSCFILE_DIRS           = ../../../memoria/docs
 
 # The DOT_GRAPH_MAX_NODES tag can be used to set the maximum number of 
 # nodes that will be shown in the graph. If the number of nodes in a graph 

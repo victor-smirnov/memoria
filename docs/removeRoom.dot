@@ -1,0 +1,53 @@
+digraph G {
+    
+    node [shape=record, style=rounded];
+    
+    subgraph cluster_1 {
+	label = "Before"
+	color = grey
+	style = "rounded,solid";
+    
+	Label [shape=note, color=blue, label="To Remove"];
+    
+	r0 [label="<l1>1|<l2>2|<l3>3|<l4>4|<l5>5|<l6>6|<l7>7|<l8>8"];
+    
+	subgraph {
+	    node [shape=point, label="", style=invis];
+	    r1; r2; r3; r4; r5; r6; r7; r8;
+	}
+    
+    r0:l1->r1; 
+    r0:l2->r2; 
+    r0:l3->r3;
+    r0:l4->r4; 
+    r0:l5->r5; 
+    r0:l6->r6;
+    r0:l7->r7; 
+    r0:l8->r8; 
+    
+    Label->r0:l4 [color=blue];
+    Label->r0:l5 [color=blue];
+    Label->r0:l6 [color=blue];
+    
+    }
+    
+    subgraph cluster_2 {
+	label = After;
+	color = grey;
+	style = "rounded,solid";
+    
+        rec1 [label="<l1>1|<l2>2|<l3>3|<l7>7|<l8>8|Empty|Empty|Empty"];
+    
+	subgraph {
+    	    node [shape=point, label="", style=invis];
+	    rr1; rr2; rr3; rr7; rr8;
+	}
+    
+    rec1:l1->rr1; 
+    rec1:l2->rr2; 
+    rec1:l3->rr3;
+    rec1:l7->rr7; 
+    rec1:l8->rr8; 
+    
+    }
+}

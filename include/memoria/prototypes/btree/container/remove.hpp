@@ -156,14 +156,6 @@ private:
     /**
      * \brief Check if two nodes have the same parent.
      *
-     * \dot
-     * digraph example {
-     * 	node [shape=record, fontname=Helvetica, fontsize=10];
-     * 	b [ label="class B" URL="\ref B"];
-     * 	c [ label="class C" URL="\ref C"];
-     * 	b -> c [ arrowhead="open", style="dashed" ];
-     * }
-     * \enddot
      *
      * \param left one path
      * \param right another path
@@ -261,61 +253,7 @@ MEMORIA_CONTAINER_PART_END
 /**
  * \brief Remove 'count' elements from tree node starting from 'from' element.
  *
- * \dot
-digraph G {
-
-    node [shape=record];
-
-    subgraph cluster_1 {
-	label = "Before"
-	color = grey
-	style = "rounded,solid";
-
-	Label [shape=note, color=blue, label="To Remove"];
-
-	r0 [label="<l1>1|<l2>2|<l3>3|<l4>4|<l5>5|<l6>6|<l7>7|<l8>8"];
-
-	subgraph {
-	    node [shape=point, label="", style=invis];
-	    r1; r2; r3; r4; r5; r6; r7; r8;
-	}
-
-    r0:l1->r1;
-    r0:l2->r2;
-    r0:l3->r3;
-    r0:l4->r4;
-    r0:l5->r5;
-    r0:l6->r6;
-    r0:l7->r7;
-    r0:l8->r8;
-
-    Label->r0:l4 [color=blue];
-    Label->r0:l5 [color=blue];
-    Label->r0:l6 [color=blue];
-
-    }
-
-    subgraph cluster_2 {
-	label = After;
-	color = grey;
-	style = "rounded,solid";
-
-        rec1 [label="<l1>1|<l2>2|<l3>3|<l7>7|<l8>8|Empty|Empty|Empty"];
-
-	subgraph {
-    	    node [shape=point, label="", style=invis];
-	    rr1; rr2; rr3; rr7; rr8;
-	}
-
-    rec1:l1->rr1;
-    rec1:l2->rr2;
-    rec1:l3->rr3;
-    rec1:l7->rr7;
-    rec1:l8->rr8;
-
-    }
-}
- * \enddot
+ * \dotfile removeRoom.dot
  *
  * \param path   path to the node
  * \param level  level of the node at the path
@@ -377,6 +315,7 @@ BigInt M_TYPE::removeRoom(TreePath& path, Int level, Int from, Int count, Accumu
  *
  * \param from
  * \param to
+ * \param keys
  * \param merge if *true* then try to merge btree leafs if necessary.
  *
  * \return number of removed entries
@@ -854,68 +793,8 @@ void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
  *
  * Singular node chain is a chain of tree nodes where each node (except leaf) has exactly one child. See the picture below for details.
  *
- * \dot
-	digraph G1 {
+ * \dotfile removeRedundantRoot.dot
 
-	compound=true;
-
-	node [style=filled,color=grey];
-	root -> n1 -> n2 -> n3;
-
-	root [label = "n0"];
-
-	n3->n4;
-	n3->n5;
-	n3->n6;
-
-	subgraph cluster_1 {
-	    label = "Before";
-	    style = "rounded, solid";
-	    color = gray;
-
-	    A1 [style=invis];
-
-	    n4; n5; n6;
-
-
-
-	    subgraph cluster_SNC {
-		label = "Singular Node Chain"
-		labelcolor = blue;
-		root; n1; n2; n3;
-		color = blue;
-		style = "rounded,dotted";
-		shape = rounded;
-
-		Root [label="Root", shape=note, style=solid, color=blue];
-		Root -> root [color=blue];
-	    };
-
-	    NRC [label="New Root Candidate", shape=note, style=solid, color=blue];
-	    NRC->n3 [color=blue];
-	}
-
-
-
-	subgraph cluster_2 {
-	    label = "After";
-	    style = "rounded, solid";
-	    color = grey;
-
-
-	    r3 [label="n3"];
-	    r4 [label="n4"]; r5 [label="n6"]; r6 [label="n6"];
-
-	    r3 -> r4;
-	    r3 -> r5;
-	    r3 -> r6;
-
-	    NR [label="New Root", shape=note, style=solid, color=blue];
-	    NR -> r3 [color=blue];
-	}
-	}
- * \enddot
- *
  * This call iteratively removes nodes in singular node chain starting from the root down to the *level*.
  */
 
