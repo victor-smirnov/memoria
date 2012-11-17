@@ -1,0 +1,28 @@
+digraph G {
+
+    node [fontname="Verdana", fontsize="12"];
+
+    subgraph cluster_0 {
+	label="";
+	style=invis;
+	
+	subgraph cluster_1 {
+	    R1 [label="Root\nprofile"];
+	    D1 [label="Derived1\nprofile"];
+	    D2 [label="Derived2\nprofile"];
+	}
+	
+	Rec1 [shape=record, style=rounded, color=blue, label=<<font color="blue"><table border="0" cellborder="0" cellpadding="3"><tr><td>Class 1</td></tr><tr><td><i>Attr1</i></td></tr><tr><td>Attr2</td></tr></table></font>>];
+	Rec2 [shape=record, style=rounded, color=blue, label=<<font color="blue"><table border="0" cellborder="0" cellpadding="3"><tr><td>Class 2</td></tr><tr><td>Attr1</td></tr><tr><td>Attr2</td></tr><tr><td>Attr3</td></tr></table></font>>];
+    }
+    
+    
+    
+    C1 [label="Custom\nprofile"];
+    
+    R1->D2;
+    R1->D1;
+    
+    D1->Rec2;
+    R1->Rec1;
+}

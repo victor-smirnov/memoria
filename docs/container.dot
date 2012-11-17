@@ -1,0 +1,14 @@
+digraph G {
+    rankdir=BT;
+    node[shape=box];
+    
+    CtrStart [color=blue, fontcolor=blue];
+    CtrHelper1 [color=blue, fontcolor=blue, label="CtrHelper"];
+    CtrHelper2 [color=blue, fontcolor=blue, label="CtrHelper"];
+    CtrHelper3 [color=blue, fontcolor=blue, label="CtrHelper"];
+    
+    CtrPart1 [label="CtrPart"];
+    CtrPart2 [label="CtrPart"];
+    
+    Ctr->CtrStart->CtrHelper1->CtrPart1->CtrHelper2->CtrPart2->CtrHelper3->ContainerBase;
+}

@@ -1,0 +1,10 @@
+digraph G {
+    rankdir=BT;
+    node[shape=box];
+    
+    Part3 [label="Part3<Part2<Part1<Base>>>"];
+    Part2 [label="<Part2<Part1<Base>>"];
+    Part1 [label="<Part1<Base>"];
+    
+    Composed->Part3->Part2->Part1->Base;
+}
