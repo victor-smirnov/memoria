@@ -42,7 +42,7 @@ using namespace memoria::vapi;
 template <typename Profile, typename PageType, typename TxnType>
 class InMemAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType, MAX_BLOCK_SIZE> >::Type {
 
-	typedef IAbstractAllocator<PageType>										Base;
+	typedef IAllocator<PageType>										Base;
 	typedef InMemAllocator<Profile, PageType, TxnType>							Me;
 
 public:

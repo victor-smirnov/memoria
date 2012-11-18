@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_API_MODELS_LOGS_HPP
-#define	_MEMORIA_CORE_API_MODELS_LOGS_HPP
+#define _MEMORIA_CORE_API_MODELS_LOGS_HPP
 
 #include <memoria/core/tools/id.hpp>
 #include <iostream>
@@ -54,7 +54,7 @@ struct MEMORIA_API LogHandler {
     virtual void log(const Int value)         = 0;
     virtual void log(const UInt value)        = 0;
     virtual void log(const BigInt value)      = 0;
-    virtual void log(const UBigInt value) 	  = 0;
+    virtual void log(const UBigInt value)     = 0;
     virtual void log(const float value)       = 0;
     virtual void log(const double value)      = 0;
     virtual void log(const IDValue& value)    = 0;
@@ -74,107 +74,107 @@ extern Logger logger;
 
 class Logger {
 
-	const char* category_;
-	int level_;
+    const char* category_;
+    int level_;
 
-	Logger* parent_;
-	LogHandler* handler_;
+    Logger* parent_;
+    LogHandler* handler_;
 
-	static LogHandler* default_handler_;
+    static LogHandler* default_handler_;
 
-	friend void initContainers();
+    friend void initContainers();
 
 public:
 
-	enum {DERIVED = 0, TRACE = 10000, DEBUG = 20000, ERROR = 30000, WARNING = 40000, INFO = 50000, FATAL = 60000, NONE = 70000};
+    enum {DERIVED = 0, TRACE = 10000, DEBUG = 20000, ERROR = 30000, WARNING = 40000, INFO = 50000, FATAL = 60000, NONE = 70000};
 
-	Logger(const char* category, int level = DERIVED, Logger* parent = &memoria::vapi::logger):category_(category), level_(level), parent_(parent), handler_(NULL)
-	{}
+    Logger(const char* category, int level = DERIVED, Logger* parent = &memoria::vapi::logger):category_(category), level_(level), parent_(parent), handler_(NULL)
+    {}
 
-	Logger(const Logger& other):category_(other.category_), level_(other.level_), parent_(other.parent_), handler_(other.handler_)
-	{}
+    Logger(const Logger& other):category_(other.category_), level_(other.level_), parent_(other.parent_), handler_(other.handler_)
+    {}
 
-	Logger(): category_(NULL), level_(NONE), parent_(NULL), handler_(NULL) {}
+    Logger(): category_(NULL), level_(NONE), parent_(NULL), handler_(NULL) {}
 
-	const char* category() const
-	{
-		return category_;
-	}
+    const char* category() const
+    {
+        return category_;
+    }
 
-	void setCategory(const char* category)
-	{
-		category_ = category;
-	}
+    void setCategory(const char* category)
+    {
+        category_ = category;
+    }
 
-	Logger* getParent() const
-	{
-		return parent_;
-	}
+    Logger* getParent() const
+    {
+        return parent_;
+    }
 
-	void setParent(Logger* parent)
-	{
-		parent_ = parent;
-	}
+    void setParent(Logger* parent)
+    {
+        parent_ = parent;
+    }
 
-	int level() const
-	{
-		return level_;
-	}
+    int level() const
+    {
+        return level_;
+    }
 
-	int& level()
-	{
-		return level_;
-	}
+    int& level()
+    {
+        return level_;
+    }
 
-	void configure(const char* category, int level = DERIVED, Logger* parent = &memoria::vapi::logger)
-	{
-		category_ 	= category;
-		level_ 		= level;
-		parent_ 	= parent;
-		handler_ 	= NULL;
-	}
+    void configure(const char* category, int level = DERIVED, Logger* parent = &memoria::vapi::logger)
+    {
+        category_   = category;
+        level_      = level;
+        parent_     = parent;
+        handler_    = NULL;
+    }
 
-	bool isLogEnabled(int level)
-	{
-		int tmp;
+    bool isLogEnabled(int level)
+    {
+        int tmp;
 
-		if (level_ != DERIVED)
-		{
-			tmp = level_;
-		}
-		else if (parent_ != NULL)
-		{
-			return parent_->isLogEnabled(level);
-		}
-		else {
-			tmp = INFO;
-		}
+        if (level_ != DERIVED)
+        {
+            tmp = level_;
+        }
+        else if (parent_ != NULL)
+        {
+            return parent_->isLogEnabled(level);
+        }
+        else {
+            tmp = INFO;
+        }
 
-		bool result = (tmp != NONE) ? level >= tmp : false;
-		return result;
-	}
+        bool result = (tmp != NONE) ? level >= tmp : false;
+        return result;
+    }
 
-	LogHandler* getHandler() const
-	{
-		if (handler_ != NULL) {
-			return handler_;
-		}
-		else if (parent_ != NULL) {
-			return parent_->getHandler();
-		}
-		else {
-			return default_handler_;
-		}
-	}
+    LogHandler* getHandler() const
+    {
+        if (handler_ != NULL) {
+            return handler_;
+        }
+        else if (parent_ != NULL) {
+            return parent_->getHandler();
+        }
+        else {
+            return default_handler_;
+        }
+    }
 
-	void setHandler(LogHandler* handler)
-	{
-		handler_ = handler;
-	}
+    void setHandler(LogHandler* handler)
+    {
+        handler_ = handler;
+    }
 
-	Logger& logger() {
-		return *this;
-	}
+    Logger& logger() {
+        return *this;
+    }
 };
 
 
@@ -182,18 +182,18 @@ public:
 
 class DefaultLogHandlerImpl: public LogHandler {
 
-	Int cnt_;
+    Int cnt_;
 
-	std::ostream& out_;
+    std::ostream& out_;
 
 public:
 
-	DefaultLogHandlerImpl(): out_(std::cout) {}
-	DefaultLogHandlerImpl(std::ostream& out): out_(out) {}
+    DefaultLogHandlerImpl(): out_(std::cout) {}
+    DefaultLogHandlerImpl(std::ostream& out): out_(out) {}
 
     virtual void begin(Int level) {
-    	cnt_ = 0;
-    	preprocess();
+        cnt_ = 0;
+        preprocess();
         if (level <= Logger::TRACE)         out_<<"TRACE";
         else if (level <= Logger::DEBUG)    out_<<"DEBUG";
         else if (level <= Logger::INFO)     out_<<"INFO";
@@ -212,15 +212,15 @@ public:
     virtual void log(const Int value)       {preprocess(); out_<<value; postprocess();}
     virtual void log(const UInt value)      {preprocess(); out_<<value; postprocess();}
     virtual void log(const BigInt value)    {preprocess(); out_<<value; postprocess();}
-    virtual void log(const UBigInt value) 	{preprocess(); out_<<value; postprocess();}
+    virtual void log(const UBigInt value)   {preprocess(); out_<<value; postprocess();}
     virtual void log(const float value)     {preprocess(); out_<<value; postprocess();}
     virtual void log(const double value)    {preprocess(); out_<<value; postprocess();}
     virtual void log(const IDValue& value)  {preprocess(); out_<<value.str(); postprocess();}
     virtual void log(StringRef value)       {preprocess(); out_<<value; postprocess();}
-    virtual void log(const char* value) 	{preprocess(); out_<<value; postprocess();}
-    virtual void log(const void* value) 	{preprocess(); out_<<value; postprocess();}
+    virtual void log(const char* value)     {preprocess(); out_<<value; postprocess();}
+    virtual void log(const void* value)     {preprocess(); out_<<value; postprocess();}
 
-    virtual void log(...) 					{preprocess(); out_<<"DEFAULT"; postprocess();}
+    virtual void log(...)                   {preprocess(); out_<<"DEFAULT"; postprocess();}
 
     virtual void end() {
         out_<<std::endl;
@@ -228,48 +228,48 @@ public:
 
     void preprocess()
     {
-    	using namespace std;
-    	if (cnt_ == 0) {
-    		out_<<left<<setw(7);
-    	}
-    	else if (cnt_ == 1) {
-    		out_<<left<<setw(75);
-    	}
-    	else if (cnt_ == 3) {
-    		out_<<left<<setw(25);
-    	}
-    	else if (cnt_ == 5) {
-    		out_<<left<<setw(22);
-    	}
+        using namespace std;
+        if (cnt_ == 0) {
+            out_<<left<<setw(7);
+        }
+        else if (cnt_ == 1) {
+            out_<<left<<setw(75);
+        }
+        else if (cnt_ == 3) {
+            out_<<left<<setw(25);
+        }
+        else if (cnt_ == 5) {
+            out_<<left<<setw(22);
+        }
     }
 
     void postprocess()
     {
-    	cnt_++;
+        cnt_++;
     }
 
 };
 
 
 class Locker {
-	LogHandler* handler_;
+    LogHandler* handler_;
 
 public:
-	Locker(Logger& logger, Int level): handler_(logger.getHandler())
-	{
-		handler_->begin(level);
-	}
+    Locker(Logger& logger, Int level): handler_(logger.getHandler())
+    {
+        handler_->begin(level);
+    }
 
-	LogHandler* handler() {
-		return handler_;
-	}
+    LogHandler* handler() {
+        return handler_;
+    }
 
-	~Locker() throw() {
-		try {
-			handler_->end();
-		}
-		catch (...) {}
-	}
+    ~Locker() throw() {
+        try {
+            handler_->end();
+        }
+        catch (...) {}
+    }
 };
 
 
@@ -400,16 +400,16 @@ bool log(Logger& log, Int level,
         const T0& v0, const T1& v1, const T2& v2, const T3& v3, const T4& v4,
         const T5& v5, const T6& v6) throw () {
     try {
-    	Locker lock(log, level);
-    	LogHandler* handler = lock.handler();
+        Locker lock(log, level);
+        LogHandler* handler = lock.handler();
 
-    	logIt(handler, v0);
-    	logIt(handler, v1);
-    	logIt(handler, v2);
-    	logIt(handler, v3);
-    	logIt(handler, v4);
-    	logIt(handler, v5);
-    	logIt(handler, v6);
+        logIt(handler, v0);
+        logIt(handler, v1);
+        logIt(handler, v2);
+        logIt(handler, v3);
+        logIt(handler, v4);
+        logIt(handler, v5);
+        logIt(handler, v6);
 
         return true;
     }
@@ -675,19 +675,19 @@ bool log(Logger& log, Int level,
 
 /*
 static String expand(StringRef str) {
-	unsigned int LEN = 62;
-	if (str.length() < LEN)
-	{
-		String st(str);
-		for (size_t c = 0; c < LEN - str.length(); c++)
-		{
-			st.append(" ");
-		}
-		return st;
-	}
-	else {
-		return str;
-	}
+    unsigned int LEN = 62;
+    if (str.length() < LEN)
+    {
+        String st(str);
+        for (size_t c = 0; c < LEN - str.length(); c++)
+        {
+            st.append(" ");
+        }
+        return st;
+    }
+    else {
+        return str;
+    }
 }
 */
 

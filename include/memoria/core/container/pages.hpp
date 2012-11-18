@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_CONTAINER_PAGES_HPP
-#define	_MEMORIA_CORE_CONTAINER_PAGES_HPP
+#define _MEMORIA_CORE_CONTAINER_PAGES_HPP
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/container/builder.hpp>
@@ -37,13 +37,13 @@ struct MEMORIA_API Page {
     virtual Int getPageTypeHash() const              = 0;
     virtual BigInt getFlags() const                  = 0;
     virtual const void* Ptr() const                  = 0;
-    virtual void* Ptr()                  		 	 = 0;
-    virtual void setPtr(void* ptr)              	 = 0;
-    virtual bool isNull() const						 = 0;
+    virtual void* Ptr()                              = 0;
+    virtual void setPtr(void* ptr)                   = 0;
+    virtual bool isNull() const                      = 0;
 
     virtual Int size() const                         = 0;
     virtual Int getByte(Int idx) const               = 0;
-    virtual void setByte(Int idx, Int value)    	 = 0;
+    virtual void setByte(Int idx, Int value)         = 0;
 };
 
 
@@ -56,40 +56,40 @@ public:
     PageWrapper(): page_(NULL) {}
 
     virtual bool isNull() const {
-    	return page_ == NULL;
+        return page_ == NULL;
     }
 
     virtual IDValue getId() const
     {
-    	if (page_ != NULL)
-    	{
-    		return IDValue(&page_->id());
-    	}
-    	else {
-    		throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
-    	}
+        if (page_ != NULL)
+        {
+            return IDValue(&page_->id());
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+        }
     }
 
     virtual Int getContainerHash() const
     {
-    	if (page_ != NULL)
-    	{
-    		return page_->model_hash();
-    	}
-    	else {
-    		throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
-    	}
+        if (page_ != NULL)
+        {
+            return page_->model_hash();
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+        }
     }
 
     virtual Int getPageTypeHash() const
     {
-    	if (page_ != NULL)
-    	{
-    		return page_->page_type_hash();
-    	}
-    	else {
-    		throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
-    	}
+        if (page_ != NULL)
+        {
+            return page_->page_type_hash();
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+        }
     }
     
     virtual BigInt getFlags() const {
@@ -106,7 +106,7 @@ public:
 
     virtual void setPtr(void* ptr)
     {
-    	page_ = static_cast<PageType*>(ptr);
+        page_ = static_cast<PageType*>(ptr);
     }
 
     virtual Int size() const {
@@ -115,35 +115,35 @@ public:
 
     virtual Int getByte(Int idx) const
     {
-    	if (page_ != NULL)
-    	{
-    		if (idx >= 0 && idx < PageSize) {
-    			return ((UByte*)page_)[idx];
-    		}
-    		else {
-    			throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<PageSize);
-    		}
+        if (page_ != NULL)
+        {
+            if (idx >= 0 && idx < PageSize) {
+                return ((UByte*)page_)[idx];
+            }
+            else {
+                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<PageSize);
+            }
 
-    	}
-    	else {
-    		throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
-    	}
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+        }
     }
 
     virtual void setByte(Int idx, Int value)
     {
-    	if (page_ != NULL)
-    	{
-    		if (idx >= 0 && idx < PageSize) {
-    			((UByte*)page_)[idx] = (UByte)value;
-    		}
-    		else {
-    			throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<PageSize);
-    		}
-    	}
-    	else {
-    		throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
-    	}
+        if (page_ != NULL)
+        {
+            if (idx >= 0 && idx < PageSize) {
+                ((UByte*)page_)[idx] = (UByte)value;
+            }
+            else {
+                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<PageSize);
+            }
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+        }
     }
 };
 
@@ -194,4 +194,4 @@ class PageStart: public PageHelper<ListSize<typename Types::List>::Value - 1, Ty
 
 #include <memoria/core/container/page_traits.hpp>
 
-#endif	// _MEMORIA_CORE_CONTAINER_PAGES_HPP
+#endif  // _MEMORIA_CORE_CONTAINER_PAGES_HPP

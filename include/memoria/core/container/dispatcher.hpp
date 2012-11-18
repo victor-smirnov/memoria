@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_CONTAINER_DISPATCHER_HPP
-#define	_MEMORIA_CORE_CONTAINER_DISPATCHER_HPP
+#define _MEMORIA_CORE_CONTAINER_DISPATCHER_HPP
 
 #include <memoria/core/container/profile.hpp>
 #include <memoria/core/container/builder.hpp>
@@ -25,7 +25,7 @@ using memoria::TL;
 template <typename Profile, typename PageType, typename List>
 class PageDispatcher {
 
-    typedef typename PageType::ID                                          		PageId;
+    typedef typename PageType::ID                                               PageId;
 
     typedef typename List::Head                                                 ContainerType;
     typedef typename ContainerType::Types::Pages::NodeDispatcher                    NodeDispatcher;
@@ -62,25 +62,25 @@ template <
 >
 class ContainerDispatcher {
 
-	typedef typename List1::Head::First Name1;
-	typedef typename List1::Head::Second Head1;
+    typedef typename List1::Head::First Name1;
+    typedef typename List1::Head::Second Head1;
     typedef typename List1::Tail Tail1;
 
     typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::Page::ID										ID;
+    typedef typename Allocator::Page::ID                                        ID;
 
 public:
 
     template <typename Handler>
     static void dispatch(Allocator *allocator, Page* root, Handler &functor) {
-    	if (root->model_hash() == Head1::hash())
-    	{
-    		Head1 model(*allocator, root->id());
-    		functor(*allocator, model);
-    	}
-    	else {
-    		ContainerDispatcher<Profile, Allocator, Tail1>::dispatch(allocator, root, functor);
-    	}
+        if (root->model_hash() == Head1::hash())
+        {
+            Head1 model(*allocator, root->id());
+            functor(*allocator, model);
+        }
+        else {
+            ContainerDispatcher<Profile, Allocator, Tail1>::dispatch(allocator, root, functor);
+        }
     }
 
     static void buildMetadataList(MetadataList &list) {
@@ -91,12 +91,12 @@ public:
     }
 
     static void destroyMetadata() {
-    	ContainerDispatcher<Profile, Allocator, Tail1>::destroyMetadata();
+        ContainerDispatcher<Profile, Allocator, Tail1>::destroyMetadata();
     }
 
     static void printContainerHashes() {
-    	cout<<TypeNameFactory<Name1>::name()<<" "<<Head1::hash()<<endl;
-    	ContainerDispatcher<Profile, Allocator, Tail1>::printContainerHashes();
+        cout<<TypeNameFactory<Name1>::name()<<" "<<Head1::hash()<<endl;
+        ContainerDispatcher<Profile, Allocator, Tail1>::printContainerHashes();
     }
 };
 
@@ -111,7 +111,7 @@ template <
 class ContainerDispatcher<Profile, Allocator, NullType, List2, List3, List4> {
 
     typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::Page::ID										ID;
+    typedef typename Allocator::Page::ID                                        ID;
 
 public:
     template <typename Handler>
@@ -161,7 +161,7 @@ template <
 class ContainerDispatcher<Profile, Allocator, List1, NullType, List3, List4> {
 
     typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::Page::ID										ID;
+    typedef typename Allocator::Page::ID                                        ID;
 
 public:
     template <typename Handler>
@@ -211,7 +211,7 @@ template <
 class ContainerDispatcher<Profile, Allocator, List1, List2, NullType, List4> {
 
     typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::Page::ID										ID;
+    typedef typename Allocator::Page::ID                                        ID;
 
 public:
     template <typename Handler>
@@ -260,7 +260,7 @@ template <
 class ContainerDispatcher<Profile, Allocator, List1, List2, List3, NullType> {
 
     typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::Page::ID										ID;
+    typedef typename Allocator::Page::ID                                        ID;
 
 public:
     template <typename Handler>
@@ -305,7 +305,7 @@ template <
 class ContainerDispatcher<Profile, Allocator, NullType, NullType, NullType, NullType> {
 
     typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::Page::ID										ID;
+    typedef typename Allocator::Page::ID                                        ID;
 
 public:
     template <typename Handler>
@@ -358,7 +358,7 @@ public:
     }
 
     static void destroyMetadata() {
-    	PageInitDispatcher<Tail>::destroyMetadata();
+        PageInitDispatcher<Tail>::destroyMetadata();
     }
 };
 
@@ -375,4 +375,4 @@ public:
 
 
 
-#endif	// _MEMORIA_CORE_CONTAINER_DISPATCHER_HPP
+#endif  // _MEMORIA_CORE_CONTAINER_DISPATCHER_HPP

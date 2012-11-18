@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_CONTAINER_MODEL_HPP
-#define	_MEMORIA_CORE_CONTAINER_MODEL_HPP
+#define _MEMORIA_CORE_CONTAINER_MODEL_HPP
 
 #include <memoria/core/types/types.hpp>
 
@@ -46,14 +46,14 @@ template <typename Profile> class MetadataRepository;
 template <typename Allocator>
 struct IParentCtrInterface
 {
-	typedef typename Allocator::CtrShared					CtrShared;
-	typedef typename Allocator::Page::ID 			ID;
+    typedef typename Allocator::CtrShared                   CtrShared;
+    typedef typename Allocator::Page::ID            ID;
 
-	virtual ID 	  getRootID(void* caller, BigInt name)					= 0;
-	virtual void  setRootID(void* caller, BigInt name, const ID& root) 	= 0;
+    virtual ID    getRootID(void* caller, BigInt name)                  = 0;
+    virtual void  setRootID(void* caller, BigInt name, const ID& root)  = 0;
 
-	virtual Allocator& getAllocator()									= 0;
-	virtual CtrShared* getShared()										= 0;
+    virtual Allocator& getAllocator()                                   = 0;
+    virtual CtrShared* getShared()                                      = 0;
 };
 
 
@@ -61,22 +61,22 @@ template <typename TypesType>
 class ContainerBase: public TypesType::Allocator {
 public:
 
-	typedef ContainerBase<TypesType>											ThisType;
-	typedef Ctr<TypesType> 														MyType;
+    typedef ContainerBase<TypesType>                                            ThisType;
+    typedef Ctr<TypesType>                                                      MyType;
 
-	typedef typename TypesType::ContainerTypeName                               ContainerTypeName;
+    typedef typename TypesType::ContainerTypeName                               ContainerTypeName;
     typedef ContainerTypeName                                                   Name;
     typedef TypesType                                                           Types;
 
-    typedef typename Types::Allocator											Allocator;
-    typedef typename Allocator::ID												ID;
+    typedef typename Types::Allocator                                           Allocator;
+    typedef typename Allocator::ID                                              ID;
     typedef typename Allocator::Page                                            Page;
     typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::Page::ID                                        PageId;
     typedef typename Allocator::CtrShared                                       CtrShared;
 
 
-    typedef Iter<typename Types::IterTypes>										Iterator;
+    typedef Iter<typename Types::IterTypes>                                     Iterator;
     
 protected:
     static ContainerMetadata*   reflection_;
@@ -88,37 +88,37 @@ public:
     {}
 
     ContainerBase(const ThisType& other):
-    	shared_(other.shared_)
+        shared_(other.shared_)
     {}
 
     ContainerBase(const ThisType& other, Allocator* allocator):
-    	shared_(other.shared_)
+        shared_(other.shared_)
     {}
 
     //shared_ is configured in move constructors of subclasses.
     ContainerBase(ThisType&& other):
-    	shared_(other.shared_)
+        shared_(other.shared_)
     {
-    	other.shared_ = NULL;
+        other.shared_ = NULL;
     }
 
     ContainerBase(ThisType&& other, Allocator& allocator):
-    	shared_(other.shared_)
+        shared_(other.shared_)
     {
-    	other.shared_ = NULL;
+        other.shared_ = NULL;
     }
 
     virtual ~ContainerBase() throw () {}
 
     void operator=(ThisType&& other)
     {
-    	shared_ = other.shared_;
-    	other.shared_ = NULL;
+        shared_ = other.shared_;
+        other.shared_ = NULL;
     }
 
     void operator=(const ThisType& other)
     {
-    	shared_ = other.shared_;
+        shared_ = other.shared_;
     }
 
     MEMORIA_PUBLIC static Int hash() {
@@ -133,34 +133,34 @@ public:
     
     static void destroyMetadata()
     {
-    	if (reflection_ != NULL)
-    	{
-    		delete reflection_->getCtrInterface();
+        if (reflection_ != NULL)
+        {
+            delete reflection_->getCtrInterface();
 
-    		MetadataRepository<typename Types::Profile>::unregisterMetadata(reflection_);
+            MetadataRepository<typename Types::Profile>::unregisterMetadata(reflection_);
 
-    		delete reflection_;
-    		reflection_ = NULL;
-    	}
+            delete reflection_;
+            reflection_ = NULL;
+        }
     }
 
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-    	virtual bool check(const void* id, void* allocator) const
-    	{
-    		Allocator* alloc = T2T<Allocator*>(allocator);
-    		ID* root_id = T2T<ID*>(id);
+        virtual bool check(const void* id, void* allocator) const
+        {
+            Allocator* alloc = T2T<Allocator*>(allocator);
+            ID* root_id = T2T<ID*>(id);
 
-    		MyType ctr(alloc, *root_id);
-    		return ctr.check(NULL);
-    	}
+            MyType ctr(alloc, *root_id);
+            return ctr.check(NULL);
+        }
     };
 
 
     static ContainerInterface* getContainerInterface()
     {
-    	return new CtrInterfaceImpl();
+        return new CtrInterfaceImpl();
     }
 
     static Int initMetadata(Int salt = 0)
@@ -182,61 +182,61 @@ public:
     }
 
     PageG createRoot() {
-    	return PageG();
+        return PageG();
     }
 
     BigInt getModelName(ID root_id)
     {
-    	return -1;
+        return -1;
     }
 
     CtrShared* createCtrShared(BigInt name)
     {
-    	return new (&me()->allocator()) CtrShared(name);
+        return new (&me()->allocator()) CtrShared(name);
     }
 
     CtrShared* getOrCreateCtrShared(BigInt name)
     {
-    	if (me()->allocator().isCtrSharedRegistered(name))
-    	{
-    		return me()->allocator().getCtrShared(name);
-    	}
-    	else {
-    		CtrShared* shared = me()->createCtrShared(name);
-    		me()->allocator().registerCtrShared(shared);
+        if (me()->allocator().isCtrSharedRegistered(name))
+        {
+            return me()->allocator().getCtrShared(name);
+        }
+        else {
+            CtrShared* shared = me()->createCtrShared(name);
+            me()->allocator().registerCtrShared(shared);
 
-    		PageG node = me()->allocator().getRoot(name, Allocator::READ);
+            PageG node = me()->allocator().getRoot(name, Allocator::READ);
 
-    		if (node.is_updated())
-    		{
-    			shared->root_log() = node->id();
-    			shared->updated() = true;
-    		}
-    		else {
-    			shared->root() = node->id();
-    			shared->updated() = false;
-    		}
+            if (node.is_updated())
+            {
+                shared->root_log() = node->id();
+                shared->updated() = true;
+            }
+            else {
+                shared->root() = node->id();
+                shared->updated() = false;
+            }
 
-    		me()->configureNewCtrShared(shared, node);
+            me()->configureNewCtrShared(shared, node);
 
-    		return shared;
-    	}
+            return shared;
+        }
     }
 
     void configureNewCtrShared(CtrShared* shared, PageG root) const {}
 
     void removeCtrShared(CtrShared* shared)
     {
-    	shared->~CtrShared();
-    	me()->allocator().freeMemory(shared);
+        shared->~CtrShared();
+        me()->allocator().freeMemory(shared);
     }
 
     const CtrShared* shared() const {
-    	return shared_;
+        return shared_;
     }
 
     CtrShared* shared() {
-    	return shared_;
+        return shared_;
     }
 
     void initCtr(bool create) {}
@@ -250,22 +250,22 @@ protected:
 
     static void setMetadata(ContainerMetadata* metadata)
     {
-    	reflection_ = metadata;
+        reflection_ = metadata;
     }
 
     void setCtrShared(CtrShared* shared)
     {
-    	this->shared_ = shared;
+        this->shared_ = shared;
     }
 
 private:
 
     MyType* me() {
-    	return static_cast<MyType*>(this);
+        return static_cast<MyType*>(this);
     }
 
     const MyType* me() const {
-    	return static_cast<const MyType*>(this);
+        return static_cast<const MyType*>(this);
     }
 };
 
@@ -276,82 +276,82 @@ ContainerMetadata* ContainerBase<TypesType>::reflection_ = NULL;
 
 template <int Idx, typename Types>
 class CtrHelper: public CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> {
-	typedef CtrHelper<Idx, Types> 								ThisType;
-	typedef Ctr<Types> 											MyType;
-	typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> Base;
+    typedef CtrHelper<Idx, Types>                               ThisType;
+    typedef Ctr<Types>                                          MyType;
+    typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> Base;
 
-	typedef typename Types::Allocator Allocator0;
+    typedef typename Types::Allocator Allocator0;
 
 public:
-	CtrHelper(): Base() {}
-	CtrHelper(const ThisType& other): Base(other) {}
-	CtrHelper(ThisType&& other): Base(std::move(other)) {}
-	CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator) 	{}
-	CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator) 		{}
+    CtrHelper(): Base() {}
+    CtrHelper(const ThisType& other): Base(other) {}
+    CtrHelper(ThisType&& other): Base(std::move(other)) {}
+    CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator)   {}
+    CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator)         {}
 
-	virtual ~CtrHelper() throw () {}
+    virtual ~CtrHelper() throw () {}
 
-	void operator=(ThisType&& other) {
-		Base::operator=(std::move(other));
-	}
+    void operator=(ThisType&& other) {
+        Base::operator=(std::move(other));
+    }
 
-	void operator=(const ThisType& other) {
-		Base::operator=(other);
-	}
+    void operator=(const ThisType& other) {
+        Base::operator=(other);
+    }
 };
 
 template <typename Types>
 class CtrHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
-	typedef CtrHelper<-1, Types> 								ThisType;
-	typedef Ctr<Types> 											MyType;
-	typedef typename Types::template BaseFactory<Types>::Type 	Base;
+    typedef CtrHelper<-1, Types>                                ThisType;
+    typedef Ctr<Types>                                          MyType;
+    typedef typename Types::template BaseFactory<Types>::Type   Base;
 
 public:
 
-	typedef typename Types::Allocator 							Allocator0;
+    typedef typename Types::Allocator                           Allocator0;
 
-	CtrHelper(): Base() {}
-	CtrHelper(const ThisType& other): Base(other) {}
-	CtrHelper(ThisType&& other): Base(std::move(other)) {}
-	CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator)    {}
-	CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator) 		 {}
+    CtrHelper(): Base() {}
+    CtrHelper(const ThisType& other): Base(other) {}
+    CtrHelper(ThisType&& other): Base(std::move(other)) {}
+    CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator)    {}
+    CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator)          {}
 
-	virtual ~CtrHelper() throw () {}
+    virtual ~CtrHelper() throw () {}
 
-	void operator=(ThisType&& other) {
-		Base::operator=(std::move(other));
-	}
+    void operator=(ThisType&& other) {
+        Base::operator=(std::move(other));
+    }
 
-	void operator=(const ThisType& other) {
-		Base::operator=(other);
-	}
+    void operator=(const ThisType& other) {
+        Base::operator=(other);
+    }
 };
 
 
 template <typename Types>
 class CtrStart: public CtrHelper<ListSize<typename Types::List>::Value - 1, Types> {
 
-	typedef CtrStart<Types>			ThisType;
-	typedef Ctr<Types> 				MyType;
+    typedef CtrStart<Types>         ThisType;
+    typedef Ctr<Types>              MyType;
 
-	typedef CtrHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
+    typedef CtrHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
 
-	typedef typename Types::Allocator 									Allocator0;
+    typedef typename Types::Allocator                                   Allocator0;
 
 public:
-	CtrStart(): Base() {}
-	CtrStart(const ThisType& other): Base(other) {}
-	CtrStart(ThisType&& other): Base(std::move(other)) {}
-	CtrStart(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator) {}
-	CtrStart(const ThisType& other, Allocator0* allocator): Base(other, allocator) 		 {}
+    CtrStart(): Base() {}
+    CtrStart(const ThisType& other): Base(other) {}
+    CtrStart(ThisType&& other): Base(std::move(other)) {}
+    CtrStart(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator) {}
+    CtrStart(const ThisType& other, Allocator0* allocator): Base(other, allocator)       {}
 
-	void operator=(ThisType&& other) {
-		Base::operator=(std::move(other));
-	}
+    void operator=(ThisType&& other) {
+        Base::operator=(std::move(other));
+    }
 
-	void operator=(const ThisType& other) {
-		Base::operator=(other);
-	}
+    void operator=(const ThisType& other) {
+        Base::operator=(other);
+    }
 };
 
 
@@ -361,44 +361,44 @@ extern Int CtrUnrefCounters;
 
 template <typename Types>
 class Ctr: public CtrStart<Types> {
-	typedef CtrStart<Types> 													Base;
+    typedef CtrStart<Types>                                                     Base;
 public:
-	typedef Ctr<Types>            												MyType;
+    typedef Ctr<Types>                                                          MyType;
 
     typedef typename Types::Allocator                                           Allocator;
     typedef typename Types::Allocator::CtrShared                                CtrShared;
-    typedef typename Types::Allocator::PageG									PageG;
-    typedef typename PageG::Page::ID											ID;
+    typedef typename Types::Allocator::PageG                                    PageG;
+    typedef typename PageG::Page::ID                                            ID;
 
 public:
 
-    typedef typename Types::ContainerTypeName									ContainerTypeName;
+    typedef typename Types::ContainerTypeName                                   ContainerTypeName;
     typedef ContainerTypeName                                                   Name;
 
 private:
 
-    Allocator*	allocator_;
+    Allocator*  allocator_;
     BigInt      name_;
     const char* model_type_name_;
 
-    Logger 			logger_;
-    static Logger 	class_logger_;
+    Logger          logger_;
+    static Logger   class_logger_;
 
-    bool 		debug_;
+    bool        debug_;
 
 public:
 
     MEMORIA_PUBLIC Ctr(Allocator* allocator):
-    	Base(),
-    	allocator_(allocator),
-    	model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
-    	debug_(false)
+        Base(),
+        allocator_(allocator),
+        model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
+        debug_(false)
     {
-    	MEMORIA_ASSERT_NOT_NULL(allocator);
+        MEMORIA_ASSERT_NOT_NULL(allocator);
 
-    	initLogger();
+        initLogger();
 
-    	initCtr(allocator, allocator->createCtrName(), true, model_type_name_);
+        initCtr(allocator, allocator->createCtrName(), true, model_type_name_);
     }
 
 
@@ -408,135 +408,135 @@ public:
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         debug_(false)
     {
-    	MEMORIA_ASSERT_NOT_NULL(allocator);
+        MEMORIA_ASSERT_NOT_NULL(allocator);
 
-    	initLogger();
+        initLogger();
 
-    	initCtr(allocator, name, create, mname);
+        initCtr(allocator, name, create, mname);
     }
 
     MEMORIA_PUBLIC Ctr(Allocator* allocator, const ID& root_id, const char* mname = NULL):
-    	Base(),
-    	allocator_(allocator),
-    	name_(-1),
-    	model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
-    	debug_(false)
+        Base(),
+        allocator_(allocator),
+        name_(-1),
+        model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
+        debug_(false)
     {
-    	MEMORIA_ASSERT_NOT_NULL(allocator);
+        MEMORIA_ASSERT_NOT_NULL(allocator);
 
-    	initLogger();
+        initLogger();
 
-    	initCtr(allocator, root_id, mname);
+        initCtr(allocator, root_id, mname);
     }
 
     MEMORIA_PUBLIC Ctr(const MyType& other):
-    	Base(other, other.allocator_),
-    	allocator_(other.allocator_),
-    	model_type_name_(other.model_type_name_),
-    	logger_(other.logger_),
-    	debug_(other.debug_)
+        Base(other, other.allocator_),
+        allocator_(other.allocator_),
+        model_type_name_(other.model_type_name_),
+        logger_(other.logger_),
+        debug_(other.debug_)
     {
-    	Base::setCtrShared(other.shared_);
-    	ref();
+        Base::setCtrShared(other.shared_);
+        ref();
     }
 
     MEMORIA_PUBLIC Ctr(const MyType& other, Allocator* allocator):
-    	Base(other, allocator),
-    	allocator_(allocator),
-    	model_type_name_(other.model_type_name_),
-    	logger_(other.logger_),
-    	debug_(other.debug_)
+        Base(other, allocator),
+        allocator_(allocator),
+        model_type_name_(other.model_type_name_),
+        logger_(other.logger_),
+        debug_(other.debug_)
     {
-    	MEMORIA_ASSERT_NOT_NULL(allocator);
+        MEMORIA_ASSERT_NOT_NULL(allocator);
 
-    	Base::setCtrShared(other.shared_);
-    	ref();
+        Base::setCtrShared(other.shared_);
+        ref();
     }
 
 
     MEMORIA_PUBLIC Ctr(MyType&& other):
-    	Base(std::move(other), other.allocator_),
-    	allocator_(other.allocator_),
-    	model_type_name_(other.model_type_name_),
-    	logger_(other.logger_),
-    	debug_(other.debug_)
+        Base(std::move(other), other.allocator_),
+        allocator_(other.allocator_),
+        model_type_name_(other.model_type_name_),
+        logger_(other.logger_),
+        debug_(other.debug_)
     {}
 
     Ctr(MyType&& other, Allocator* allocator):
-    	Base(std::move(other), allocator),
-    	allocator_(allocator),
-    	model_type_name_(other.model_type_name_),
-    	logger_(other.logger_),
-    	debug_(other.debug_)
+        Base(std::move(other), allocator),
+        allocator_(allocator),
+        model_type_name_(other.model_type_name_),
+        logger_(other.logger_),
+        debug_(other.debug_)
     {
-    	MEMORIA_ASSERT_NOT_NULL(allocator);
+        MEMORIA_ASSERT_NOT_NULL(allocator);
     }
 
     MEMORIA_PUBLIC Ctr(const NoParamCtr&):
-    	Base(),
-    	allocator_(NULL),
-    	model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
-    	logger_(model_type_name_, Logger::DERIVED, NULL),
-    	debug_(false)
+        Base(),
+        allocator_(NULL),
+        model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
+        logger_(model_type_name_, Logger::DERIVED, NULL),
+        debug_(false)
     {
-    	Base::setCtrShared(NULL);
+        Base::setCtrShared(NULL);
     }
 
     MEMORIA_PUBLIC virtual ~Ctr() throw()
     {
-    	unref();
+        unref();
     }
 
     void initLogger(const Logger* other)
     {
-    	logger_.setCategory(other->category());
-    	logger_.setHandler(other->getHandler());
-    	logger_.setParent(other->getParent());
+        logger_.setCategory(other->category());
+        logger_.setHandler(other->getHandler());
+        logger_.setParent(other->getParent());
 
-    	logger_.level() = other->level();
+        logger_.level() = other->level();
     }
 
     void initLogger()
     {
-    	logger_.configure(model_type_name_, Logger::DERIVED, &allocator_->logger());
+        logger_.configure(model_type_name_, Logger::DERIVED, &allocator_->logger());
     }
 
     void initCtr(Allocator* allocator, BigInt name, bool create = false, const char* mname = NULL)
     {
-    	MEMORIA_ASSERT(name, >=, 0);
+        MEMORIA_ASSERT(name, >=, 0);
 
-    	allocator_ 			= allocator;
-    	name_ 				= name;
-    	model_type_name_	= mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
-    	//FIXME: init logger correctly
+        allocator_          = allocator;
+        name_               = name;
+        model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
+        //FIXME: init logger correctly
 
-    	Base::initCtr(create);
+        Base::initCtr(create);
 
-    	ref();
+        ref();
     }
 
     void initCtr(Allocator* allocator, const ID& root_id, const char* mname = NULL)
     {
-    	MEMORIA_ASSERT_EXPR(root_id.isNotEmpty(), "Container root ID must not be empty");
+        MEMORIA_ASSERT_EXPR(root_id.isNotEmpty(), "Container root ID must not be empty");
 
-    	allocator_ 			= allocator;
-    	model_type_name_	= mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
-    	name_				= me()->getModelName(root_id);
+        allocator_          = allocator;
+        model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
+        name_               = me()->getModelName(root_id);
 
-    	//FIXME: init logger correctly
+        //FIXME: init logger correctly
 
-    	Base::initCtr(root_id);
+        Base::initCtr(root_id);
 
-    	ref();
+        ref();
     }
 
 
     bool& debug() {
-    	return debug_;
+        return debug_;
     }
 
     const bool& debug() const {
-    	return debug_;
+        return debug_;
     }
 
     MEMORIA_PUBLIC Allocator& allocator() {
@@ -544,7 +544,7 @@ public:
     }
 
     MEMORIA_PUBLIC Allocator& allocator() const {
-    	return *allocator_;
+        return *allocator_;
     }
 
     MEMORIA_PUBLIC const char* typeName() const {
@@ -553,7 +553,7 @@ public:
 
     MEMORIA_PUBLIC bool is_log(Int level)
     {
-    	return logger_.isLogEnabled(level);
+        return logger_.isLogEnabled(level);
     }
 
     MEMORIA_PUBLIC memoria::vapi::Logger& logger() {
@@ -561,96 +561,96 @@ public:
     }
 
     static memoria::vapi::Logger& class_logger() {
-    	return class_logger_;
+        return class_logger_;
     }
 
     MEMORIA_PUBLIC BigInt name() const {
-    	return name_;
+        return name_;
     }
 
     MEMORIA_PUBLIC BigInt& name() {
-    	return name_;
+        return name_;
     }
 
     MyType& operator=(const MyType& other)
     {
-    	if (this != &other)
-    	{
-    		name_ 				= other.name_;
-    		model_type_name_	= other.model_type_name_;
-    		logger_				= other.logger_;
-    		debug_				= other.debug_;
+        if (this != &other)
+        {
+            name_               = other.name_;
+            model_type_name_    = other.model_type_name_;
+            logger_             = other.logger_;
+            debug_              = other.debug_;
 
-    		unref();
+            unref();
 
-    		Base::operator=(other);
+            Base::operator=(other);
 
-    		ref();
-    	}
+            ref();
+        }
 
-    	return *this;
+        return *this;
     }
 
     MyType& operator=(MyType&& other)
     {
-    	if (this != &other)
-    	{
-    		name_ 				= other.name_;
-    		model_type_name_	= other.model_type_name_;
-    		logger_				= other.logger_;
-    		debug_				= other.debug_;
+        if (this != &other)
+        {
+            name_               = other.name_;
+            model_type_name_    = other.model_type_name_;
+            logger_             = other.logger_;
+            debug_              = other.debug_;
 
-    		unref();
+            unref();
 
-    		Base::operator=(std::move(other));
-    	}
+            Base::operator=(std::move(other));
+        }
 
-    	return *this;
+        return *this;
     }
 
     void inc () {
-    	CtrRefCounters++;
+        CtrRefCounters++;
     }
 
     void dec() {
-    	CtrUnrefCounters--;
+        CtrUnrefCounters--;
     }
 
 
 private:
     MyType* me()
     {
-    	return this;
+        return this;
     }
 
     const MyType* me() const
     {
-    	return this;
+        return this;
     }
 
     void ref()
     {
-    	if (me()->shared() != NULL)
-    	{
-    		inc();
-    		me()->shared()->ref();
-    	}
+        if (me()->shared() != NULL)
+        {
+            inc();
+            me()->shared()->ref();
+        }
     }
 
     void unref()
     {
-    	CtrShared* shared = me()->shared();
-    	if (shared != NULL)
-    	{
-    		dec();
-    		if (shared->unref() == 0)
-    		{
-    			allocator_->unregisterCtrShared(shared);
-    			me()->removeCtrShared(shared);
+        CtrShared* shared = me()->shared();
+        if (shared != NULL)
+        {
+            dec();
+            if (shared->unref() == 0)
+            {
+                allocator_->unregisterCtrShared(shared);
+                me()->removeCtrShared(shared);
 
-    			Base::setCtrShared(NULL);
-    		}
-    	}
+                Base::setCtrShared(NULL);
+            }
+        }
     }
 };
 

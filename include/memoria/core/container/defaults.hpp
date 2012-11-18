@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_CONTAINER_DEFAULTS_HPP
-#define	_MEMORIA_CORE_CONTAINER_DEFAULTS_HPP
+#define _MEMORIA_CORE_CONTAINER_DEFAULTS_HPP
 
 #include <memoria/core/container/names.hpp>
 #include <memoria/core/container/pages.hpp>
@@ -30,13 +30,13 @@ using namespace memoria::vapi;
 template <typename Profile, typename IDValueType = UInt, int FlagsCount = 32, typename TransactionType = AbstractTransaction>
 struct BasicContainerCollectionCfg {
 
-	typedef AbstractPageID <IDValueType>                 						ID;
-	typedef AbstractPage <ID, FlagsCount>                                     	Page;
-	typedef TransactionType                                                 	Transaction;
+    typedef AbstractPageID <IDValueType>                                        ID;
+    typedef AbstractPage <ID, FlagsCount>                                       Page;
+    typedef TransactionType                                                     Transaction;
 
-	typedef IAbstractAllocator<Page, MAX_BLOCK_SIZE>							AbstractAllocator;
+    typedef IAllocator<Page, MAX_BLOCK_SIZE>                                    AbstractAllocator;
 
-	typedef AbstractAllocator  													AllocatorType;
+    typedef AbstractAllocator                                                   AllocatorType;
 };
 
 

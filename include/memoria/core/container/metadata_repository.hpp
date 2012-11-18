@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_CONTAINER_CONTAINER_TYPES_COLLECTION_HPP
-#define	_MEMORIA_CORE_CONTAINER_CONTAINER_TYPES_COLLECTION_HPP
+#define _MEMORIA_CORE_CONTAINER_CONTAINER_TYPES_COLLECTION_HPP
 
 
 #include <memoria/core/container/names.hpp>
@@ -23,51 +23,51 @@ template <typename Profile, typename SelectorType, typename ContainerTypeName = 
 
 template <typename Profile>
 struct CtrTypeFactory {
-	template <typename ContainerName>
-	struct Types {
-		typedef typename CtrTF<Profile, ContainerName>::Types 	Type;
-	};
+    template <typename ContainerName>
+    struct Types {
+        typedef typename CtrTF<Profile, ContainerName>::Types   Type;
+    };
 
-	template <typename ContainerName>
-	struct Factory {
-		typedef typename CtrTF<Profile, ContainerName>::Type 	Type;
-	};
+    template <typename ContainerName>
+    struct Factory {
+        typedef typename CtrTF<Profile, ContainerName>::Type    Type;
+    };
 
-	template <typename ContainerName>
-	struct Factory0 {
-		typedef CtrTF<Profile, ContainerName>					Type;
-	};
+    template <typename ContainerName>
+    struct Factory0 {
+        typedef CtrTF<Profile, ContainerName>                   Type;
+    };
 };
 
 
 
 template <typename Profile>
 class MetadataRepository {
-	static ContainerMetadataRepository* metadata_;
+    static ContainerMetadataRepository* metadata_;
 public:
 
-	static ContainerMetadataRepository* getMetadata()
-	{
-		return metadata_;
-	}
+    static ContainerMetadataRepository* getMetadata()
+    {
+        return metadata_;
+    }
 
-	static void registerMetadata(ContainerMetadata* ctr_metadata)
-	{
-		metadata_->registerMetadata(ctr_metadata);
-	}
+    static void registerMetadata(ContainerMetadata* ctr_metadata)
+    {
+        metadata_->registerMetadata(ctr_metadata);
+    }
 
-	static void unregisterMetadata(ContainerMetadata* ctr_metadata)
-	{
-		metadata_->unregisterMetadata(ctr_metadata);
-	}
+    static void unregisterMetadata(ContainerMetadata* ctr_metadata)
+    {
+        metadata_->unregisterMetadata(ctr_metadata);
+    }
 
-	static void init()
-	{
-		if (metadata_ == NULL)
-		{
-			metadata_ = new ContainerMetadataRepository(TypeNameFactory<Profile>::name(), MetadataList());
-		}
-	}
+    static void init()
+    {
+        if (metadata_ == NULL)
+        {
+            metadata_ = new ContainerMetadataRepository(TypeNameFactory<Profile>::name(), MetadataList());
+        }
+    }
 };
 
 template <typename Profile>
@@ -77,23 +77,23 @@ ContainerMetadataRepository* MetadataRepository<Profile>::metadata_ = NULL;
 template <typename ProfileList = ::memoria::ProfileListBuilder<>::Type >
 class Memoria {
 public:
-	static Int init()
-	{
-		MetadataRepository<typename ProfileList::Head>::init();
-		return Memoria<typename ProfileList::Tail>::init();
-	}
+    static Int init()
+    {
+        MetadataRepository<typename ProfileList::Head>::init();
+        return Memoria<typename ProfileList::Tail>::init();
+    }
 };
 
 template <>
 class Memoria<NullType> {
 public:
-	static Int init() {
-		return 1;
-	}
+    static Int init() {
+        return 1;
+    }
 };
 
 
-#define MEMORIA_INIT()													\
+#define MEMORIA_INIT()                                                  \
 const int MEMORIA_INITIALIZED = ::memoria::Memoria<>::init()
 
 

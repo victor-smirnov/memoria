@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_CONTAINER_BUILDER_HPP
-#define	_MEMORIA_CORE_CONTAINER_BUILDER_HPP
+#define _MEMORIA_CORE_CONTAINER_BUILDER_HPP
 
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/types/typelist.hpp>
@@ -45,13 +45,13 @@ struct Builder<TL<T1, T2>, Element, Base>:
 
 private:
     typedef Element<
-				T1,
-				Builder<
-					T2,
-					Element,
-					Base
-				>
-			>                                                  				BaseType;
+                T1,
+                Builder<
+                    T2,
+                    Element,
+                    Base
+                >
+            >                                                               BaseType;
 
 public:
     
@@ -65,7 +65,7 @@ template <
 >
 struct Builder<TL<T, NullType>, Element, Base>: public Element<T, Base> {
 private:
-    typedef Element<T, Base>	                 							BaseType;
+    typedef Element<T, Base>                                                BaseType;
 
 public:
     Builder(): BaseType() {}
@@ -79,7 +79,7 @@ template <
 struct Builder<NullType, Element, Base>: public Base {
 
 
-	typedef Base                                                            BaseType;
+    typedef Base                                                            BaseType;
 
 
     Builder(): BaseType() {}

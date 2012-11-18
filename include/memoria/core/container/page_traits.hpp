@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_CONTAINER_PAGES_TRAITS11_HPP
-#define	_MEMORIA_CORE_CONTAINER_PAGES_TRAITS11_HPP
+#define _MEMORIA_CORE_CONTAINER_PAGES_TRAITS11_HPP
 
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
@@ -33,14 +33,14 @@ private:
 public:
     static void serialize(SerializationData& data, const Type& field, Int count = 1)
     {
-    	memmove(data.buf, &field, sizeof(Type) * count);
-    	data.buf += sizeof(Type) * count;
+        memmove(data.buf, &field, sizeof(Type) * count);
+        data.buf += sizeof(Type) * count;
     }
 
     static void deserialize(DeserializationData& data, Type& field, Int count = 1)
     {
-    	memmove(&field, data.buf, sizeof(Type) * count);
-    	data.buf += sizeof(Type) * count;
+        memmove(&field, data.buf, sizeof(Type) * count);
+        data.buf += sizeof(Type) * count;
     }
 };
 
@@ -51,17 +51,17 @@ struct FieldFactory<memoria::BitBuffer<Size> > {
 
     static void serialize(SerializationData& data, const Type& field)
     {
-    	memmove(data.buf, &field, sizeof(Type));
-    	data.buf += sizeof(Type);
+        memmove(data.buf, &field, sizeof(Type));
+        data.buf += sizeof(Type);
     }
 
     static void deserialize(DeserializationData& data, Type& field)
     {
-    	memmove(&field, data.buf, sizeof(Type));
-    	data.buf += sizeof(Type);
+        memmove(&field, data.buf, sizeof(Type));
+        data.buf += sizeof(Type);
     }
 };
 
 }
 
-#endif	// _MEMORIA_CORE_CONTAINER_PAGES_HPP
+#endif  // _MEMORIA_CORE_CONTAINER_PAGES_HPP
