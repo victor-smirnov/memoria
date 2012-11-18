@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_ALGO_SORT_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_ALGO_SORT_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_ALGO_SORT_HPP
 
 #include <memoria/core/types/types.hpp>
 
@@ -42,7 +42,7 @@ class Sort {
                 typename MaxElement<SrcList, ValueProvider, ValueType>::Result
     >::Result                                                                   Element;
 
-    typedef TL<Element, Result>                                           List_;
+    typedef TL<Element, Result>                                                 List_;
 
 public:
     typedef typename Sort<

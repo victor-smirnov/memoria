@@ -25,47 +25,47 @@ using namespace std;
 
 class StlsetScanBenchmark: public BenchmarkTask {
 
-	typedef BigInt		 Key;
-	typedef set<Key, less<Key>, CustomAllocator<Key> > Map;
+    typedef BigInt       Key;
+    typedef set<Key, less<Key>, CustomAllocator<Key> > Map;
 
-	Map* 			map_;
-	BigInt 			result_;
+    Map*            map_;
+    BigInt          result_;
 
 public:
 
-	StlsetScanBenchmark(StringRef name): BenchmarkTask(name) {}
+    StlsetScanBenchmark(StringRef name): BenchmarkTask(name) {}
 
-	virtual ~StlsetScanBenchmark() throw() {}
+    virtual ~StlsetScanBenchmark() throw() {}
 
 
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		map_ = new Map();
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        map_ = new Map();
 
-		BigInt sum = 0;
+        BigInt sum = 0;
 
-		for (Int c = 0; c < params.x(); c++)
-		{
-			map_->insert(sum++);
-		}
-	}
+        for (Int c = 0; c < params.x(); c++)
+        {
+            map_->insert(sum++);
+        }
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete map_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete map_;
+    }
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		for (Int c = 0; c < params.operations();)
-		{
-			for (auto i = map_->begin(); i!= map_->end() && c < params.operations(); i++, c++)
-			{
-				result_ += *i;
-			}
-		}
-	}
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        for (Int c = 0; c < params.operations();)
+        {
+            for (auto i = map_->begin(); i!= map_->end() && c < params.operations(); i++, c++)
+            {
+                result_ += *i;
+            }
+        }
+    }
 };
 
 

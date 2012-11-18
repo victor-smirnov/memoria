@@ -17,68 +17,68 @@ namespace memoria    {
 namespace vapi       {
 
 struct ContainerInterface {
-	virtual bool check(const void* id, void* allocator) const	= 0;
+    virtual bool check(const void* id, void* allocator) const   = 0;
 
-	virtual ~ContainerInterface() {}
+    virtual ~ContainerInterface() {}
 };
 
 struct MEMORIA_API ContainerMetadata: public MetadataGroup {
 public:
 
-	ContainerMetadata(StringRef name, const MetadataList &content, Int code, ContainerInterface* container_interface):
-		MetadataGroup(name, content),
-		container_interface_(container_interface),
-		code_(code),
-		hash_(code_)
-	{
-		MetadataGroup::set_type() = MetadataGroup::MODEL;
-		for (UInt c = 0; c < content.size(); c++)
-	    {
-	        if (content[c]->getTypeCode() == Metadata::PAGE)
-	        {
-	            PageMetadata *page = static_cast<PageMetadata*> (content[c]);
-	            page_map_[page->hash()] = page;
-	            hash_ += page->hash() + code;
-	        }
-	        else {
-	            //exception;
-	        }
-	    }
-	}
+    ContainerMetadata(StringRef name, const MetadataList &content, Int code, ContainerInterface* container_interface):
+        MetadataGroup(name, content),
+        container_interface_(container_interface),
+        code_(code),
+        hash_(code_)
+    {
+        MetadataGroup::set_type() = MetadataGroup::MODEL;
+        for (UInt c = 0; c < content.size(); c++)
+        {
+            if (content[c]->getTypeCode() == Metadata::PAGE)
+            {
+                PageMetadata *page = static_cast<PageMetadata*> (content[c]);
+                page_map_[page->hash()] = page;
+                hash_ += page->hash() + code;
+            }
+            else {
+                //exception;
+            }
+        }
+    }
 
-	virtual ~ContainerMetadata() throw () {}
+    virtual ~ContainerMetadata() throw () {}
 
-	virtual Int hash() const {
-		return hash_;
-	}
+    virtual Int hash() const {
+        return hash_;
+    }
 
-	virtual Int code() const {
-		return code_;
-	}
+    virtual Int code() const {
+        return code_;
+    }
 
-	virtual PageMetadata* getPageMetadata(Int hashCode) const
-	{
-		PageMetadataMap::const_iterator i = page_map_.find(hashCode);
-		if (i != page_map_.end()) {
-			return i->second;
-		}
-		else {
-			throw Exception(MEMORIA_SOURCE, "Unknown page type hash code");
-		}
-	}
+    virtual PageMetadata* getPageMetadata(Int hashCode) const
+    {
+        PageMetadataMap::const_iterator i = page_map_.find(hashCode);
+        if (i != page_map_.end()) {
+            return i->second;
+        }
+        else {
+            throw Exception(MEMORIA_SOURCE, "Unknown page type hash code");
+        }
+    }
 
-	virtual ContainerInterface* getCtrInterface() const
-	{
-		return container_interface_;
-	}
+    virtual ContainerInterface* getCtrInterface() const
+    {
+        return container_interface_;
+    }
 
 private:
 
-    PageMetadataMap     	page_map_;
-    ContainerInterface* 	container_interface_;
+    PageMetadataMap         page_map_;
+    ContainerInterface*     container_interface_;
 
-    Int 					code_;
-    Int 					hash_;
+    Int                     code_;
+    Int                     hash_;
 };
 
 

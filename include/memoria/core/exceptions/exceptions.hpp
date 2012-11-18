@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_VAPI_EXCEPTIONS_HPP
-#define	_MEMORIA_VAPI_EXCEPTIONS_HPP
+#define _MEMORIA_VAPI_EXCEPTIONS_HPP
 
 #include <memoria/core/exceptions/memoria.hpp>
 #include <memoria/core/exceptions/dispatch.hpp>

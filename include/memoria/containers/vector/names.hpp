@@ -9,9 +9,9 @@
 #ifndef _MEMORIA_MODELS_ARRAY_NAMES_HPP
 #define _MEMORIA_MODELS_ARRAY_NAMES_HPP
 
-namespace memoria    	{
-namespace models    	{
-namespace array  		{
+namespace memoria       {
+namespace models        {
+namespace array         {
 
 class ApiName               {};
 class ContainerApiName          {};

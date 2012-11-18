@@ -23,15 +23,15 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 
-    typedef typename Base::NodeBase                                             	NodeBase;
-	typedef typename Base::NodeBaseG                                             	NodeBaseG;
+    typedef typename Base::NodeBase                                                 NodeBase;
+    typedef typename Base::NodeBaseG                                                NodeBaseG;
     typedef typename Base::Container                                                Container;
 
     typedef typename Container::Key                                                 Key;
     typedef typename Container::Value                                               Value;
-    typedef typename Container::Allocator											Allocator;
-    typedef typename Container::Accumulator											Accumulator;
-    typedef typename Container::TreePath											TreePath;
+    typedef typename Container::Allocator                                           Allocator;
+    typedef typename Container::Accumulator                                         Accumulator;
+    typedef typename Container::TreePath                                            TreePath;
 
     Key getRawKey(Int i) const
     {
@@ -40,7 +40,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 
     Accumulator getRawKeys() const
     {
-    	return Base::getKeys();
+        return Base::getKeys();
     }
 
     Key getKey(Int i) const
@@ -50,17 +50,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 
     Accumulator getKeys() const
     {
-    	return me()->getRawKeys() + me()->prefixes();
+        return me()->getRawKeys() + me()->prefixes();
     }
 
 //    bool nextKey()
 //    {
 //        if (!me()->isEnd())
 //        {
-//        	Accumulator keys = me()->getRawKeys();
-//        	me()->prefix() 	 += keys;
+//          Accumulator keys = me()->getRawKeys();
+//          me()->prefix()   += keys;
 //
-//        	bool 		has_next 	= Base::nextKey();
+//          bool        has_next    = Base::nextKey();
 //
 //            return has_next;
 //        }
@@ -71,30 +71,30 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 //
 //    bool prevKey()
 //    {
-//    	if (!me()->isBegin())
-//    	{
-//    		bool result = Base::prevKey();
+//      if (!me()->isBegin())
+//      {
+//          bool result = Base::prevKey();
 //
-//    		if (result)
-//    		{
-//    			Accumulator keys = me()->getRawKeys();
-//    			me()->prefix() -= keys;
-//    		}
-//    		else
-//    		{
-//    			me()->prefix().clear();
-//    		}
+//          if (result)
+//          {
+//              Accumulator keys = me()->getRawKeys();
+//              me()->prefix() -= keys;
+//          }
+//          else
+//          {
+//              me()->prefix().clear();
+//          }
 //
-//    		return result;
-//    	}
-//    	else {
-//    		return false;
-//    	}
+//          return result;
+//      }
+//      else {
+//          return false;
+//      }
 //    }
 
     void ComputePrefix(Accumulator& pfx)
     {
-    	compute_base(pfx);
+        compute_base(pfx);
     }
 
 
@@ -102,7 +102,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
     {
 //        if (!me()->isEmpty())
 //        {
-//        	me()->prefix().clear();
+//          me()->prefix().clear();
 //
 //            compute_base(me()->prefix());
 //        }
@@ -110,9 +110,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
 
     void dumpKeys(ostream& out)
     {
-    	Base::dumpKeys(out);
+        Base::dumpKeys(out);
 
-    	out<<"Prefix:  "<<me()->prefix()<<endl;
+        out<<"Prefix:  "<<me()->prefix()<<endl;
     }
 
 
@@ -126,13 +126,13 @@ private:
     
     void compute_base(Accumulator& accum)
     {
-    	TreePath& 	path0 = me()->path();
-    	Int 		idx   = me()->key_idx();
+        TreePath&   path0 = me()->path();
+        Int         idx   = me()->key_idx();
 
         for (Int c = 0; c < path0.getSize(); c++)
         {
-        	me()->model().sumKeys(path0[c].node(), 0, idx, accum);
-        	idx = path0[c].parent_idx();
+            me()->model().sumKeys(path0[c].node(), 0, idx, accum);
+            idx = path0[c].parent_idx();
         }
     }
 

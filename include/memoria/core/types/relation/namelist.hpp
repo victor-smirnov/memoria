@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_RELATION_NAMELIST_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_RELATION_NAMELIST_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_RELATION_NAMELIST_HPP
 
 #include <memoria/core/types/relation/expression.hpp>
 #include <memoria/core/types/algo.hpp>

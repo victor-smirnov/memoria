@@ -19,55 +19,55 @@ using namespace std;
 
 class StlVectorWriteBenchmark: public BenchmarkTask {
 
-	typedef BenchmarkTask Base;
+    typedef BenchmarkTask Base;
 
-	typedef std::vector<BigInt> VectorCtr;
+    typedef std::vector<BigInt> VectorCtr;
 
-	VectorCtr* ctr_;
+    VectorCtr* ctr_;
 
-	Int* rd_array_;
+    Int* rd_array_;
 
 public:
 
-	StlVectorWriteBenchmark(StringRef name):
-		BenchmarkTask(name)
-	{
-	}
+    StlVectorWriteBenchmark(StringRef name):
+        BenchmarkTask(name)
+    {
+    }
 
-	virtual ~StlVectorWriteBenchmark() throw() {}
+    virtual ~StlVectorWriteBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		Int size = params.x();
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        Int size = params.x();
 
-		ctr_ = new VectorCtr();
+        ctr_ = new VectorCtr();
 
-		for (Int c = 0; c < size; c++)
-		{
-			BigInt value = getRandom(10000);
-			ctr_->push_back(value);
-		}
+        for (Int c = 0; c < size; c++)
+        {
+            BigInt value = getRandom(10000);
+            ctr_->push_back(value);
+        }
 
-		rd_array_ = new Int[params.operations()];
-		for (Int c = 0; c < params.operations(); c++)
-		{
-			rd_array_[c] = getRandom(size);
-		}
-	}
+        rd_array_ = new Int[params.operations()];
+        for (Int c = 0; c < params.operations(); c++)
+        {
+            rd_array_[c] = getRandom(size);
+        }
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete ctr_;
-		delete[] rd_array_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete ctr_;
+        delete[] rd_array_;
+    }
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		for (Int c = 0; c < params.operations(); c++)
-		{
-			ctr_->insert(ctr_->begin() + rd_array_[c], rd_array_[c]);
-		}
-	}
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        for (Int c = 0; c < params.operations(); c++)
+        {
+            ctr_->insert(ctr_->begin() + rd_array_[c], rd_array_[c]);
+        }
+    }
 };
 
 

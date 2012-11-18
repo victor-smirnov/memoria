@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_TYPEHASH_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_TYPEHASH_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_TYPEHASH_HPP
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/bitmap.hpp>
@@ -107,5 +107,5 @@ public:
 
 }
 
-#endif	/* _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP */
+#endif  /* _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP */
 

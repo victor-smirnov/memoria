@@ -6,7 +6,7 @@
 
 
 #ifndef _MEMORIA_TOOLS_EXAMPLES_HPP
-#define	_MEMORIA_TOOLS_EXAMPLES_HPP
+#define _MEMORIA_TOOLS_EXAMPLES_HPP
 
 
 #include <memoria/tools/task.hpp>
@@ -24,29 +24,29 @@ using namespace std;
 class ExampleTask: public Task {
 
 public:
-	Int 	size_;
-	Int 	btree_branching_;
-	bool 	btree_random_airity_;
+    Int     size_;
+    Int     btree_branching_;
+    bool    btree_random_airity_;
 
 
 
 public:
-	ExampleTask(String name): Task(name), size_(1024), btree_branching_(0), btree_random_airity_(false)
-	{
-		Add("size", size_);
-		Add("btree_branching", btree_branching_);
-		Add("btree_random_airity", btree_random_airity_);
+    ExampleTask(String name): Task(name), size_(1024), btree_branching_(0), btree_random_airity_(false)
+    {
+        Add("size", size_);
+        Add("btree_branching", btree_branching_);
+        Add("btree_random_airity", btree_random_airity_);
 
-		own_folder = true;
-	}
+        own_folder = true;
+    }
 
-	virtual ~ExampleTask() throw () {}
+    virtual ~ExampleTask() throw () {}
 
-	virtual void Run(ostream& out)											= 0;
+    virtual void Run(ostream& out)                                          = 0;
 
 public:
 
-	String getFileName(StringRef name) const;
+    String getFileName(StringRef name) const;
 };
 
 

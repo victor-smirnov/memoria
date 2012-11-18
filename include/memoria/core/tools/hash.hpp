@@ -17,20 +17,20 @@ template <typename T, Int n = sizeof(T)> struct PtrToHash;
 
 template <typename T>
 struct PtrToHash<T, sizeof(Int)> {
-	static Int hash(T value) {
-		return T2T<Int>(value);
-	}
+    static Int hash(T value) {
+        return T2T<Int>(value);
+    }
 };
 
 template <typename T>
 struct PtrToHash<T, sizeof(BigInt)> {
-	static Int hash(T value) {
-		BigInt v = T2T<BigInt>(value);
-		Int v0 = v;
-		Int v1 = v >> (sizeof(Int) * 8);
+    static Int hash(T value) {
+        BigInt v = T2T<BigInt>(value);
+        Int v0 = v;
+        Int v1 = v >> (sizeof(Int) * 8);
 
-		return v0^v1;
-	}
+        return v0^v1;
+    }
 };
 
 }

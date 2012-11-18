@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_BUILDER_INTRNL_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_BUILDER_INTRNL_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_BUILDER_INTRNL_HPP
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/prototypes/btree/pages/node_factory.hpp>
@@ -41,10 +41,10 @@ class AddTypesQuadToList <
 public:
     typedef typename appendTool<
                         typename TLTool<
-                        	NodePage<typename Types::template LeafTypes<Level> >,
-                        	NodePage<typename Types::template RootLeafTypes<Level> >,
-                        	NodePage<typename Types::template RootTypes<Level> >,
-                        	NodePage<typename Types::template InternalTypes<Level> >
+                            NodePage<typename Types::template LeafTypes<Level> >,
+                            NodePage<typename Types::template RootLeafTypes<Level> >,
+                            NodePage<typename Types::template RootTypes<Level> >,
+                            NodePage<typename Types::template InternalTypes<Level> >
                         >::List,
                         ResultList
     >::Result                                                                   List;
@@ -68,15 +68,15 @@ class AddTypesQuadToList<
 public:
     typedef typename appendTool<
                         typename TLTool<
-                        	NodePage<typename Types::template LeafTypes<Level> >,
-                        	NodePage<typename Types::template RootLeafTypes<Level> >
+                            NodePage<typename Types::template LeafTypes<Level> >,
+                            NodePage<typename Types::template RootLeafTypes<Level> >
                         >::List,
                         ResultList
     >::Result                                                                   List;
 };
 
 template <
-		typename Types,
+        typename Types,
         typename ResultList,
         Int Level,
         bool All
@@ -86,8 +86,8 @@ class AddTypesQuadToList {
 public:
     typedef typename appendTool<
                         typename TLTool<
-                        	NodePage<typename Types::template RootTypes<Level> >,
-                        	NodePage<typename Types::template InternalTypes<Level> >
+                            NodePage<typename Types::template RootTypes<Level> >,
+                            NodePage<typename Types::template InternalTypes<Level> >
                         >::List,
                         ResultList
     >::Result                                                                   List;

@@ -6,7 +6,7 @@
 
 
 #ifndef _MEMORIA_TOOLS_PROFILE_EXAMPLE_HPP
-#define	_MEMORIA_TOOLS_PROFILE_EXAMPLE_HPP
+#define _MEMORIA_TOOLS_PROFILE_EXAMPLE_HPP
 
 
 #include <memoria/tools/task.hpp>
@@ -29,62 +29,62 @@ class ProfileExampleTask: public ExampleTask {
 
 public:
 
-	typedef Profile_ 								Profile;
-	typedef Allocator_ 								Allocator;
+    typedef Profile_                                Profile;
+    typedef Allocator_                              Allocator;
 
 
-	ProfileExampleTask(StringRef name): ExampleTask(name) {}
-	virtual ~ProfileExampleTask() throw () {};
+    ProfileExampleTask(StringRef name): ExampleTask(name) {}
+    virtual ~ProfileExampleTask() throw () {};
 
 
-	virtual void Run(ostream& out)											= 0;
+    virtual void Run(ostream& out)                                          = 0;
 
-	virtual void LoadAllocator(Allocator& allocator, StringRef file_name) const
-	{
-		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
-		allocator.load(in.get());
-	}
+    virtual void LoadAllocator(Allocator& allocator, StringRef file_name) const
+    {
+        unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
+        allocator.load(in.get());
+    }
 
-	virtual void StoreAllocator(Allocator& allocator, StringRef file_name) const
-	{
-		unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
-		allocator.store(out.get());
-	}
+    virtual void StoreAllocator(Allocator& allocator, StringRef file_name) const
+    {
+        unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
+        allocator.store(out.get());
+    }
 
 };
 
 template <typename T = EmptyType>
 class SPExampleTaskT: public ProfileExampleTask<SmallProfile<>, SmallInMemAllocator> {
 
-	typedef ProfileExampleTask<SmallProfile<>, SmallInMemAllocator> Base;
+    typedef ProfileExampleTask<SmallProfile<>, SmallInMemAllocator> Base;
 
 public:
-	SPExampleTaskT(StringRef name): Base(name) {}
-	virtual ~SPExampleTaskT() throw () {};
+    SPExampleTaskT(StringRef name): Base(name) {}
+    virtual ~SPExampleTaskT() throw () {};
 
-	virtual void Run(ostream& out)											= 0;
+    virtual void Run(ostream& out)                                          = 0;
 
-	void check(Allocator& allocator, const char* source)
-	{
-		::memoria::check<Allocator>(allocator, "Allocator check failed", source);
-	}
+    void check(Allocator& allocator, const char* source)
+    {
+        ::memoria::check<Allocator>(allocator, "Allocator check failed", source);
+    }
 
-	void check(Allocator& allocator, const char* message, const char* source)
-	{
-		::memoria::check<Allocator>(allocator, message, source);
-	}
+    void check(Allocator& allocator, const char* message, const char* source)
+    {
+        ::memoria::check<Allocator>(allocator, message, source);
+    }
 
-	template <typename CtrType>
-	void checkCtr(CtrType& ctr, const char* message, const char* source)
-	{
-		::memoria::checkCtr<CtrType>(ctr, message, source);
-	}
+    template <typename CtrType>
+    void checkCtr(CtrType& ctr, const char* message, const char* source)
+    {
+        ::memoria::checkCtr<CtrType>(ctr, message, source);
+    }
 
-	template <typename CtrType>
-	void checkCtr(CtrType& ctr, const char* source)
-	{
-		checkCtr(ctr, "Container check failed", source);
-	}
+    template <typename CtrType>
+    void checkCtr(CtrType& ctr, const char* source)
+    {
+        checkCtr(ctr, "Container check failed", source);
+    }
 };
 
 

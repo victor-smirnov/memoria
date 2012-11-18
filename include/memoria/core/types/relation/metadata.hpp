@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_RELATION_METADATA_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_RELATION_METADATA_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_RELATION_METADATA_HPP
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/types/algo.hpp>

@@ -16,7 +16,7 @@ namespace vector_map {
 
 template <Int Indexes>
 struct VMset {
-	static const Int Code = 56721;
+    static const Int Code = 56721;
 };
 
 struct CtrApiName {};

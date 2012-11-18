@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PLATFORMS_ALL_NAMES_HPP
-#define	_MEMORIA_PLATFORMS_ALL_NAMES_HPP
+#define _MEMORIA_PLATFORMS_ALL_NAMES_HPP
 
 #include <memoria/core/container/profile.hpp>
 #include <memoria/core/container/init.hpp>

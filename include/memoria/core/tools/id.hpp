@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_VAPI_REFLECTION_ID_HPP
-#define	_MEMORIA_VAPI_REFLECTION_ID_HPP
+#define _MEMORIA_VAPI_REFLECTION_ID_HPP
 
 
 #include <memoria/core/types/types.hpp>
@@ -34,28 +34,28 @@ public:
     }
 
     IDValue(StringRef id) {
-    	clear();
+        clear();
     }
 
     IDValue(BigInt id)
     {
-    	BigInt* data_ptr = T2T<BigInt*>(data_);
-    	*data_ptr = id;
+        BigInt* data_ptr = T2T<BigInt*>(data_);
+        *data_ptr = id;
     }
 
     template <typename T, Int Size>
     IDValue(const AbstractPageID<T,Size>& id)
     {
-    	clear();
-    	id.copyTo(ptr());
+        clear();
+        id.copyTo(ptr());
     }
 
     template <typename T, Int Size>
     IDValue& operator=(const AbstractPageID<T,Size>& id)
     {
-    	clear();
-    	id.copyTo(ptr());
-    	return *this;
+        clear();
+        id.copyTo(ptr());
+        return *this;
     }
 
 
@@ -83,10 +83,6 @@ public:
     void* ptr() {
         return data_;
     }
-
-//    const char* cptr() const {
-//        return data_;
-//    }
 
     virtual const String str() const
     {
@@ -124,34 +120,34 @@ public:
     }
 
     bool operator==(const IDValue& other) const {
-    	return equals(other);
+        return equals(other);
     }
 
     bool operator<(const IDValue& other) const
     {
-    	for (Int c = 7; c >=0; c--)
-    	{
-    		Int v0 = data_[c];
-    		Int v1 = other.data_[c];
-    		if (v0 != v1)
-    		{
-    			return v0 < v1;
-    		}
-    	}
-    	return false;
+        for (Int c = 7; c >=0; c--)
+        {
+            Int v0 = data_[c];
+            Int v1 = other.data_[c];
+            if (v0 != v1)
+            {
+                return v0 < v1;
+            }
+        }
+        return false;
     }
 
 private:
 
     static char get_char(Byte value) {
-    	char chars[] = {
-       		'0', '1', '2', '3',
-       		'4', '5', '6', '7',
-       		'8', '9', 'a', 'b',
-       		'c', 'd', 'e', 'f'};
-    	if (value >= 0 && value <= 15) {
-    		return chars[(int)value];
-    	}
+        char chars[] = {
+            '0', '1', '2', '3',
+            '4', '5', '6', '7',
+            '8', '9', 'a', 'b',
+            'c', 'd', 'e', 'f'};
+        if (value >= 0 && value <= 15) {
+            return chars[(int)value];
+        }
         return 'X';
     }
 };

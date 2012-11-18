@@ -20,18 +20,18 @@ namespace memoria {
 template <typename Profile>
 struct BTreeTypes<Profile, memoria::Root>: public BTreeTypes<Profile, memoria::Map<1> > {
 
-	typedef BTreeTypes<Profile, memoria::Map<1> > 							Base;
+    typedef BTreeTypes<Profile, memoria::Map<1> >                           Base;
 
-	typedef typename Base::ID												Value;
+    typedef typename Base::ID                                               Value;
 
-	typedef typename appendLists<
-				typename Base::ContainerPartsList,
-				typename TLTool<
-					memoria::models::root::CtrApiName
-				>::List
-	>::Result                                                               ContainerPartsList;
+    typedef typename appendLists<
+                typename Base::ContainerPartsList,
+                typename TLTool<
+                    memoria::models::root::CtrApiName
+                >::List
+    >::Result                                                               ContainerPartsList;
 
-	typedef RootCtrMetadata<typename Base::ID> 								Metadata;
+    typedef RootCtrMetadata<typename Base::ID>                              Metadata;
 };
 
 

@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_REVERSE_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_LIST_REVERSE_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_LIST_REVERSE_HPP
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/types/list/append.hpp>
@@ -28,4 +28,4 @@ struct ReverseTool<TL<Head, NullType> > {
 
 }
 
-#endif	/* _MEMORIA_CORE_TOOLS_TYPES_LIST_APPEND_HPP */
+#endif  /* _MEMORIA_CORE_TOOLS_TYPES_LIST_APPEND_HPP */

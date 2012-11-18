@@ -17,87 +17,87 @@ namespace memoria {
 
 class CopyCtrExample: public SPExampleTask {
 public:
-	typedef KVPair<BigInt, BigInt> Pair;
+    typedef KVPair<BigInt, BigInt> Pair;
 
 private:
-	typedef vector<Pair> PairVector;
-	typedef SmallCtrTypeFactory::Factory<VectorMap>::Type 			MapCtr;
-	typedef typename MapCtr::Iterator								Iterator;
-	typedef typename MapCtr::ID										ID;
+    typedef vector<Pair> PairVector;
+    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type           MapCtr;
+    typedef typename MapCtr::Iterator                               Iterator;
+    typedef typename MapCtr::ID                                     ID;
 
 
-	PairVector pairs;
-	PairVector pairs_sorted;
+    PairVector pairs;
+    PairVector pairs_sorted;
 
 public:
 
-	CopyCtrExample() :
-		SPExampleTask("CopyCtr")
-	{
-		MapCtr::initMetadata();
-	}
+    CopyCtrExample() :
+        SPExampleTask("CopyCtr")
+    {
+        MapCtr::initMetadata();
+    }
 
-	virtual ~CopyCtrExample() throw () {
-	}
+    virtual ~CopyCtrExample() throw () {
+    }
 
-	MapCtr createCtr(Allocator& allocator, BigInt name)
-	{
-		return MapCtr(allocator, name, true);
-	}
+    MapCtr createCtr(Allocator& allocator, BigInt name)
+    {
+        return MapCtr(allocator, name, true);
+    }
 
-	MapCtr createCtr1(Allocator& allocator, BigInt name)
-	{
-		MapCtr map = createCtr(allocator, name);
+    MapCtr createCtr1(Allocator& allocator, BigInt name)
+    {
+        MapCtr map = createCtr(allocator, name);
 
-		map[123456] = 10;
+        map[123456] = 10;
 
-		return map;
-	}
-
-
-	virtual void Run(ostream& out)
-	{
-		DefaultLogHandlerImpl logHandler(out);
+        return map;
+    }
 
 
-
-		{
-
-			if (this->btree_random_airity_)
-			{
-				this->btree_branching_ = 8 + getRandom(100);
-				out<<"BTree Branching: "<<this->btree_branching_<<endl;
-			}
-
-			Allocator allocator;
-			allocator.getLogger()->setHandler(&logHandler);
+    virtual void Run(ostream& out)
+    {
+        DefaultLogHandlerImpl logHandler(out);
 
 
-			MapCtr map(createCtr1(allocator, 1));
 
-			cout<<"Map has been created"<<endl;
+        {
 
-			MapCtr map2 = map;
+            if (this->btree_random_airity_)
+            {
+                this->btree_branching_ = 8 + getRandom(100);
+                out<<"BTree Branching: "<<this->btree_branching_<<endl;
+            }
 
-			cout<<"Map2 has been created as a copy of Map"<<endl;
+            Allocator allocator;
+            allocator.getLogger()->setHandler(&logHandler);
 
-			cout<<"About to reinitialize Map2"<<endl;
 
-			map2 = createCtr(allocator, 2);
+            MapCtr map(createCtr1(allocator, 1));
 
-			cout<<"Map2 has been reinitialized"<<endl;
+            cout<<"Map has been created"<<endl;
 
-			for (Int c = 1; c <= 10; c++)
-			{
-				map[c] = c;
-			}
+            MapCtr map2 = map;
 
-			allocator.commit();
+            cout<<"Map2 has been created as a copy of Map"<<endl;
 
-		}
+            cout<<"About to reinitialize Map2"<<endl;
 
-		cout<<endl<<"Done. CtrCounters="<<CtrRefCounters<<" "<<CtrUnrefCounters<<endl<<endl;
-	}
+            map2 = createCtr(allocator, 2);
+
+            cout<<"Map2 has been reinitialized"<<endl;
+
+            for (Int c = 1; c <= 10; c++)
+            {
+                map[c] = c;
+            }
+
+            allocator.commit();
+
+        }
+
+        cout<<endl<<"Done. CtrCounters="<<CtrRefCounters<<" "<<CtrUnrefCounters<<endl<<endl;
+    }
 };
 
 }

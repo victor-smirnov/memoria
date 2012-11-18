@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_VAPI_EXCEPTIONS_MEMORIA_HPP
-#define	_MEMORIA_VAPI_EXCEPTIONS_MEMORIA_HPP
+#define _MEMORIA_VAPI_EXCEPTIONS_MEMORIA_HPP
 
 #include <string>
 #include <memoria/core/types/types.hpp>
@@ -21,15 +21,15 @@ namespace vapi       {
 using namespace std;
 
 class MemoriaThrowable {
-	const char* source_;
+    const char* source_;
 public:
-	MemoriaThrowable(const char* source): source_(source) {}
+    MemoriaThrowable(const char* source): source_(source) {}
 
-	const char* source() const {
-		return source_;
-	}
+    const char* source() const {
+        return source_;
+    }
 
-	virtual void dump(ostream& out) const {}
+    virtual void dump(ostream& out) const {}
 };
 
 
@@ -37,8 +37,8 @@ class MEMORIA_API Exception: public MemoriaThrowable {
 
     String message_;
 public:
-    Exception(const char* source, StringRef message): MemoriaThrowable(source), message_(message) 			{}
-    Exception(const char* source, const SBuf& message): MemoriaThrowable(source), message_(message.str())	{}
+    Exception(const char* source, StringRef message): MemoriaThrowable(source), message_(message)           {}
+    Exception(const char* source, const SBuf& message): MemoriaThrowable(source), message_(message.str())   {}
 
 
     StringRef message() const {
@@ -46,7 +46,7 @@ public:
     }
 
     virtual void dump(ostream& out) const {
-    	out<<message_;
+        out<<message_;
     }
 };
 

@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_PAGES_TOOLS_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_PAGES_TOOLS_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_PAGES_TOOLS_HPP
 
 #include <iostream>
 #include <memoria/core/types/typemap.hpp>
@@ -29,7 +29,7 @@ class MoveElementsFn {
     Int total_children_count_;
 public:
     MoveElementsFn(Int from, Int count, bool increase_children_count = true):
-    	from_(from), count_(count), increase_children_count_(increase_children_count) {}
+        from_(from), count_(count), increase_children_count_(increase_children_count) {}
 
     template <typename Node>
     void operator()(Node *node)
@@ -44,17 +44,17 @@ public:
 
         if (increase_children_count_)
         {
-        	node->inc_size(count_);
-        	total_children_count_ = node->children_count();
+            node->inc_size(count_);
+            total_children_count_ = node->children_count();
         }
         else
         {
-        	total_children_count_ = node->children_count() + count_;
+            total_children_count_ = node->children_count() + count_;
         }
     }
 
     Int total_children_count() const {
-    	return total_children_count_;
+        return total_children_count_;
     }
 };
 
@@ -172,9 +172,9 @@ void RemoveElements(Node *node, Int from, Int count, bool reindex)
 //template <typename NodePage1, typename NodePage2, typename Allocator>
 //void Node2Node(NodePage1 *src, bool root)
 //{
-//	Byte buffer[Allocator::PAGE_SIZE];
+//  Byte buffer[Allocator::PAGE_SIZE];
 //
-//	memset(buffer, 0, sizeof(buffer));
+//  memset(buffer, 0, sizeof(buffer));
 //
 //    //FIXME type pruning
 //    NodePage2 *tgt = T2T<NodePage2*>(buffer);
@@ -214,7 +214,7 @@ void copyRootMetadata(Node *src, Node *tgt)
 
 template <typename TypeMap, typename Allocator, typename Metadata>
 class Node2RootFn {
-	const Metadata& metadata_;
+    const Metadata& metadata_;
 
 public:
     Node2RootFn(const Metadata& metadata): metadata_(metadata) {}
@@ -242,7 +242,7 @@ public:
         tgt->page_type_hash()   = RootType::hash();
 
         if (DebugCounter == 3) {
-        	int a = 0; a++;
+            int a = 0; a++;
         }
 
         src->map().transferTo(&tgt->map());
@@ -333,7 +333,7 @@ template <typename Base, typename Mgr>
 class GetLastChildFn {
     Base    node_;
     Mgr&    allocator_;
-    Int 	flags_;
+    Int     flags_;
     
 public:
     GetLastChildFn(Mgr &allocator, Int flags): node_(), allocator_(allocator), flags_(flags) {}
@@ -446,9 +446,9 @@ const Data* getValue(Node *node, Int idx) {
 }
 
 struct ReindexFn {
-	Int from_, to_;
+    Int from_, to_;
 
-	ReindexFn(Int from, Int to): from_(from), to_(to) {}
+    ReindexFn(Int from, Int to): from_(from), to_(to) {}
 
     template <typename T>
     void operator()(T *node) {

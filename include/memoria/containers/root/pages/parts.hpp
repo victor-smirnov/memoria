@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CONTAINERS_ROOT_PAGES_PARTS_HPP
-#define	_MEMORIA_CONTAINERS_ROOT_PAGES_PARTS_HPP
+#define _MEMORIA_CONTAINERS_ROOT_PAGES_PARTS_HPP
 
 
 #include <memoria/prototypes/btree/pages/parts.hpp>
@@ -23,7 +23,7 @@ class RootCtrMetadata: public BTreeMetadata<ID>
 {
     typedef BTreeMetadata<ID> Base;
 
-	BigInt model_name_counter_;
+    BigInt model_name_counter_;
 
 public:
     RootCtrMetadata() {}
@@ -38,23 +38,23 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::generateDataEvents(handler);
+        Base::generateDataEvents(handler);
 
-    	handler->value("MODEL_NAME_COUNTER", 		&model_name_counter_);
+        handler->value("MODEL_NAME_COUNTER",        &model_name_counter_);
     }
 
     void serialize(SerializationData& buf) const
     {
-    	Base::serialize(buf);
+        Base::serialize(buf);
 
-    	FieldFactory<BigInt>::serialize(buf, model_name_counter_);
+        FieldFactory<BigInt>::serialize(buf, model_name_counter_);
     }
 
     void deserialize(DeserializationData& buf)
     {
-    	Base::deserialize(buf);
+        Base::deserialize(buf);
 
-    	FieldFactory<BigInt>::deserialize(buf, model_name_counter_);
+        FieldFactory<BigInt>::deserialize(buf, model_name_counter_);
     }
 };
 

@@ -7,16 +7,16 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_SUMTREE_NAMES_HPP
-#define	_MEMORIA_PROTOTYPES_SUMTREE_NAMES_HPP
+#define _MEMORIA_PROTOTYPES_SUMTREE_NAMES_HPP
 
 namespace memoria    {
 namespace bstree      {
 
-class FindName 		{};
-class ToolsName 	{};
+class FindName      {};
+class ToolsName     {};
 
 template <Int Indexes>
-class IndexPagePrefixName 	{};
+class IndexPagePrefixName   {};
 
 
 class ItrApiName {};
@@ -25,5 +25,5 @@ class ItrApiName {};
 }
 
 
-#endif	// _MEMORIA_PROTOTYPES_BTREE_NAMES_HPP
+#endif  // _MEMORIA_PROTOTYPES_BTREE_NAMES_HPP
 

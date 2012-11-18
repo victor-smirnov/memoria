@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_VAPI_REFLECTION_TOOLS_HPP1
-#define	_MEMORIA_VAPI_REFLECTION_TOOLS_HPP1
+#define _MEMORIA_VAPI_REFLECTION_TOOLS_HPP1
 
 #include <string>
 #include <sstream>
@@ -35,7 +35,7 @@ struct TypeNameFactory
     }
 
     static const char* cname() {
-    	return typeid(T).name();
+        return typeid(T).name();
     }
 };
 #else
@@ -47,7 +47,7 @@ struct TypeNameFactory
     }
 
     static const char* cname() {
-    	return typeid(T).name();
+        return typeid(T).name();
     }
 };
 #endif

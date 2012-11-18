@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_APPEND_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_LIST_APPEND_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_LIST_APPEND_HPP
 
 #include <memoria/core/types/typelist.hpp>
 
@@ -37,10 +37,10 @@ struct appendTool<TL<Head, Tail>, NullType> {
 
 template <typename List, typename Item>
 struct appendLists {
-	typedef typename appendTool<Item, List>::Result			  Result;
+    typedef typename appendTool<Item, List>::Result           Result;
 };
 
 
 }
 
-#endif	/* _MEMORIA_CORE_TOOLS_TYPES_LIST_APPEND_HPP */
+#endif  /* _MEMORIA_CORE_TOOLS_TYPES_LIST_APPEND_HPP */

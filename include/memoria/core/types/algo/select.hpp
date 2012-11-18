@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_ALGO_SELECT_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_ALGO_SELECT_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_ALGO_SELECT_HPP
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/types/types.hpp>

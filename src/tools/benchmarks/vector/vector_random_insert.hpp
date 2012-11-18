@@ -20,78 +20,78 @@ using namespace std;
 
 class VectorRandominsertBenchmark: public SPBenchmarkTask {
 
-	typedef SPBenchmarkTask Base;
+    typedef SPBenchmarkTask Base;
 
-	typedef typename Base::Allocator 	Allocator;
-	typedef typename Base::Profile 		Profile;
+    typedef typename Base::Allocator    Allocator;
+    typedef typename Base::Profile      Profile;
 
-	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<Vector>::Type 	VectorCtr;
-	typedef typename VectorCtr::Iterator							Iterator;
-	typedef typename VectorCtr::ID									ID;
-	typedef typename VectorCtr::Accumulator							Accumulator;
+    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<Vector>::Type     VectorCtr;
+    typedef typename VectorCtr::Iterator                            Iterator;
+    typedef typename VectorCtr::ID                                  ID;
+    typedef typename VectorCtr::Accumulator                         Accumulator;
 
 
-	typedef typename VectorCtr::Key									Key;
+    typedef typename VectorCtr::Key                                 Key;
 
-	Allocator* allocator_;
-	VectorCtr* ctr_;
+    Allocator* allocator_;
+    VectorCtr* ctr_;
 
-	BigInt memory_size;
+    BigInt memory_size;
 
 public:
 
-	VectorRandominsertBenchmark(StringRef name):
-		SPBenchmarkTask(name), memory_size(128*1024*1024)
-	{
-		RootCtr::initMetadata();
-		VectorCtr::initMetadata();
+    VectorRandominsertBenchmark(StringRef name):
+        SPBenchmarkTask(name), memory_size(128*1024*1024)
+    {
+        RootCtr::initMetadata();
+        VectorCtr::initMetadata();
 
-		Add("memory_size", memory_size);
-	}
+        Add("memory_size", memory_size);
+    }
 
-	virtual ~VectorRandominsertBenchmark() throw() {}
+    virtual ~VectorRandominsertBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		allocator_ 	= new Allocator();
-		ctr_ 		= new VectorCtr(allocator_, 1, true);
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        allocator_  = new Allocator();
+        ctr_        = new VectorCtr(allocator_, 1, true);
 
-		allocator_->commit();
-	}
+        allocator_->commit();
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete ctr_;
-		delete allocator_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete ctr_;
+        delete allocator_;
+    }
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		BigInt total = 0;
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        BigInt total = 0;
 
-		ArrayData data(params.x(), malloc(params.x()), true);
+        ArrayData data(params.x(), malloc(params.x()), true);
 
-		Int cnt = 0;
+        Int cnt = 0;
 
-		params.operations() = 0;
+        params.operations() = 0;
 
-		while (total < memory_size)
-		{
-			BigInt idx = getRandom(total);
-			Iterator i = ctr_->seek(idx);
-			i.insert(data);
-			total += data.size();
+        while (total < memory_size)
+        {
+            BigInt idx = getRandom(total);
+            Iterator i = ctr_->seek(idx);
+            i.insert(data);
+            total += data.size();
 
-			cnt++;
+            cnt++;
 
-			params.operations()++;
-		}
+            params.operations()++;
+        }
 
-		params.memory() = total;
+        params.memory() = total;
 
-		allocator_->rollback();
-	}
+        allocator_->rollback();
+    }
 };
 
 

@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_VAPI_TYPES_HPP12
-#define	_MEMORIA_VAPI_TYPES_HPP12
+#define _MEMORIA_VAPI_TYPES_HPP12
 
 #include <string>
 #include <sstream>
@@ -20,28 +20,28 @@ namespace memoria    {
 
 static const int MAX_BLOCK_SIZE = 4096;
 
-typedef int64_t           	BigInt;
-typedef uint64_t  			UBigInt;
+typedef int64_t             BigInt;
+typedef uint64_t            UBigInt;
 typedef int32_t             Int;
-typedef uint32_t        	UInt;
+typedef uint32_t            UInt;
 typedef int16_t             Short;
-typedef uint16_t      		UShort;
+typedef uint16_t            UShort;
 typedef int8_t              Byte;
-typedef uint8_t       		UByte;
-typedef size_t				SizeT;
+typedef uint8_t             UByte;
+typedef size_t              SizeT;
 
 template <int size> struct PlatformLongHelper;
 
 template <>
 struct PlatformLongHelper<4> {
-	typedef Int 			LongType;
-	typedef UInt 			ULongType;
+    typedef Int             LongType;
+    typedef UInt            ULongType;
 };
 
 template <>
 struct PlatformLongHelper<8> {
-	typedef BigInt 			LongType;
-	typedef UBigInt 		ULongType;
+    typedef BigInt          LongType;
+    typedef UBigInt         ULongType;
 };
 
 
@@ -50,11 +50,11 @@ struct PlatformLongHelper<8> {
  * Use types with known size instead.
  */
 
-typedef PlatformLongHelper<sizeof(void*)>::LongType 							Long;
-typedef PlatformLongHelper<sizeof(void*)>::ULongType 							ULong;
+typedef PlatformLongHelper<sizeof(void*)>::LongType                             Long;
+typedef PlatformLongHelper<sizeof(void*)>::ULongType                            ULong;
 
 typedef std::string                                                             String;
-typedef const String&                                                      		StringRef;
+typedef const String&                                                           StringRef;
 
 
 template <Int Value>
@@ -76,20 +76,20 @@ struct Superblock:  public CodeValue<0> {};
 struct Root:        public CodeValue<1> {};
 
 template <Int Indexes>
-struct Map:      	public CodeValue<0x618a2f + Indexes * 256> {};
+struct Map:         public CodeValue<0x618a2f + Indexes * 256> {};
 
-typedef Map<1> 		Map1;
+typedef Map<1>      Map1;
 
 template <Int Indexes>
-struct Set:      	public CodeValue<0x5c421d + Indexes * 256> {};
+struct Set:         public CodeValue<0x5c421d + Indexes * 256> {};
 
-typedef Set<1> 		set1;
-typedef Set<2> 		set2;
+typedef Set<1>      set1;
+typedef Set<2>      set2;
 
 struct DFUDS:       public CodeValue<5> {};
 struct LOUDS:       public CodeValue<6> {};
 struct VectorMap:   public CodeValue<7> {};
-struct Vector:   	public CodeValue<8> {};
+struct Vector:      public CodeValue<8> {};
 
 
 template <typename ChildType = void>
@@ -152,43 +152,43 @@ struct ValueWrapper {
 
 class EmptyValue {
 public:
-	EmptyValue() {}
-	EmptyValue(const BigInt) {}
-	EmptyValue(const EmptyValue& other) {}
-	EmptyValue& operator=(const EmptyValue& other) {
-		return *this;
-	}
+    EmptyValue() {}
+    EmptyValue(const BigInt) {}
+    EmptyValue(const EmptyValue& other) {}
+    EmptyValue& operator=(const EmptyValue& other) {
+        return *this;
+    }
 
-	template <typename T>
-	operator T () {
-		return 0;
-	}
+    template <typename T>
+    operator T () {
+        return 0;
+    }
 
-	operator BigInt () const {
-		return 0;
-	}
+    operator BigInt () const {
+        return 0;
+    }
 };
 
 template <typename First, typename Second>
 struct ValuePair {
 
-	First 	first;
-	Second	second;
+    First   first;
+    Second  second;
 
-	ValuePair(const First& f, const Second& s): first(f), second(s) {}
-	ValuePair(const First& f): first(f) {}
+    ValuePair(const First& f, const Second& s): first(f), second(s) {}
+    ValuePair(const First& f): first(f) {}
 };
 
 struct NoParamCtr {};
 struct IterEndMark {};
 
 struct SerializationData {
-	char* buf;
-	Int total;
+    char* buf;
+    Int total;
 };
 
 struct DeserializationData {
-	const char* buf;
+    const char* buf;
 };
 
 extern BigInt DebugCounter;

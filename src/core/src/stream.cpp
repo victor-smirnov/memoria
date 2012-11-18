@@ -30,11 +30,11 @@ using namespace std;
 
 
 FileOutputStreamHandler* FileOutputStreamHandler::create(const char* file) {
-	return new FileOutputStreamHandlerImpl(file);
+    return new FileOutputStreamHandlerImpl(file);
 }
 
 FileInputStreamHandler* FileInputStreamHandler::create(const char* file) {
-	return new FileInputStreamHandlerImpl(file);
+    return new FileInputStreamHandlerImpl(file);
 }
 
 

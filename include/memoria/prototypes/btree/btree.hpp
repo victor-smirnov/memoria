@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_BTREE_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_BTREE_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_BTREE_HPP
 
 
 #include <memoria/prototypes/btree/factory.hpp>

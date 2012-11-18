@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_ITREE_FACTORY_HPP
-#define	_MEMORIA_PROTOTYPES_ITREE_FACTORY_HPP
+#define _MEMORIA_PROTOTYPES_ITREE_FACTORY_HPP
 
 #include <memoria/prototypes/btree/btree.hpp>
 #include <memoria/prototypes/bstree/tools.hpp>
@@ -27,39 +27,39 @@ namespace memoria    {
 
 template <typename Profile>
 struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria::BTree> {
-	typedef BTreeTypes<Profile, memoria::BTree> 							Base;
+    typedef BTreeTypes<Profile, memoria::BTree>                             Base;
 
-	typedef BigInt															Value;
+    typedef BigInt                                                          Value;
 
-	static const bool MapType                                               = MapTypes::Sum;
+    static const bool MapType                                               = MapTypes::Sum;
 
-	typedef typename appendLists<
-			typename Base::ContainerPartsList,
-			typename TLTool<
-				memoria::bstree::ToolsName,
-				memoria::bstree::FindName
-			>::List
-	>::Result                                                               ContainerPartsList;
+    typedef typename appendLists<
+            typename Base::ContainerPartsList,
+            typename TLTool<
+                memoria::bstree::ToolsName,
+                memoria::bstree::FindName
+            >::List
+    >::Result                                                               ContainerPartsList;
 
-	typedef typename appendLists<
-			typename Base::IteratorPartsList,
-			typename TLTool<
-				memoria::bstree::ItrApiName
-			>::List
-	>::Result                                                               IteratorPartsList;
+    typedef typename appendLists<
+            typename Base::IteratorPartsList,
+            typename TLTool<
+                memoria::bstree::ItrApiName
+            >::List
+    >::Result                                                               IteratorPartsList;
 
-	template <
-		typename Types_
-	>
-	struct IterBaseFactory {
-		typedef ITreeIteratorBase<Types_> 										Type;
-	};
+    template <
+        typename Types_
+    >
+    struct IterBaseFactory {
+        typedef ITreeIteratorBase<Types_>                                       Type;
+    };
 
 
-	template <typename Iterator, typename Container>
-	struct IteratorCacheFactory {
-		typedef BTreeIteratorPrefixCache<Iterator, Container> 					Type;
-	};
+    template <typename Iterator, typename Container>
+    struct IteratorCacheFactory {
+        typedef BTreeIteratorPrefixCache<Iterator, Container>                   Type;
+    };
 
 };
 

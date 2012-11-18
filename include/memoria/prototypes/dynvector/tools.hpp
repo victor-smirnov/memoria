@@ -6,114 +6,114 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_TOOLS_HPP
-#define	_MEMORIA_PROTOTYPES_DYNVECTOR_TOOLS_HPP
+#define _MEMORIA_PROTOTYPES_DYNVECTOR_TOOLS_HPP
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-namespace memoria    	{
-namespace btree 		{
+namespace memoria       {
+namespace btree         {
 
 using namespace memoria::core;
 
 template <typename NodePage, typename DataPage, Int Size = 16>
 class DataPath: public NodePath<NodePage, Size> {
 
-	typedef NodePath<NodePage, Size> 									Base;
-	typedef DataPath<NodePage, DataPage, Size> 							MyType;
+    typedef NodePath<NodePage, Size>                                    Base;
+    typedef DataPath<NodePage, DataPage, Size>                          MyType;
 
 public:
 
-	typedef TreePathItem<DataPage>										DataItem;
+    typedef TreePathItem<DataPage>                                      DataItem;
 private:
 
-	DataItem data_;
+    DataItem data_;
 
 public:
-	DataPath(): Base() {}
+    DataPath(): Base() {}
 
-	DataPath(const MyType& other): Base(other)
-	{
-		data_ = other.data_;
-	}
+    DataPath(const MyType& other): Base(other)
+    {
+        data_ = other.data_;
+    }
 
-	DataPath(MyType&& other): Base(std::move(other))
-	{
-		data_ = std::move(other.data_);
-	}
+    DataPath(MyType&& other): Base(std::move(other))
+    {
+        data_ = std::move(other.data_);
+    }
 
-	MyType& operator=(const MyType& other)
-	{
-		Base::operator=(other);
+    MyType& operator=(const MyType& other)
+    {
+        Base::operator=(other);
 
-		data_ = other.data_;
+        data_ = other.data_;
 
-		return *this;
-	}
+        return *this;
+    }
 
-	MyType& operator=(MyType&& other)
-	{
-		Base::operator=(std::move(other));
+    MyType& operator=(MyType&& other)
+    {
+        Base::operator=(std::move(other));
 
-		data_ = std::move(other.data_);
+        data_ = std::move(other.data_);
 
-		return *this;
-	}
+        return *this;
+    }
 
-	DataItem& data()
-	{
-		return data_;
-	}
+    DataItem& data()
+    {
+        return data_;
+    }
 
-	const DataItem& data() const
-	{
-		return data_;
-	}
+    const DataItem& data() const
+    {
+        return data_;
+    }
 
-	void moveRight(Int level, Int from, Int count)
-	{
-		if (level >= 0)
-		{
-			typename Base::PathItem& item = Base::operator[](level);
-			if (item.parent_idx() >= from)
-			{
-				item.parent_idx() += count;
-			}
-		}
-		else if (data_.parent_idx() >= from)
-		{
-			data_.parent_idx() += count;
-		}
-	}
+    void moveRight(Int level, Int from, Int count)
+    {
+        if (level >= 0)
+        {
+            typename Base::PathItem& item = Base::operator[](level);
+            if (item.parent_idx() >= from)
+            {
+                item.parent_idx() += count;
+            }
+        }
+        else if (data_.parent_idx() >= from)
+        {
+            data_.parent_idx() += count;
+        }
+    }
 
-	void moveLeft(Int level, Int from, Int count)
-	{
-		if (level >= 0)
-		{
-			typename Base::PathItem& item = Base::operator[](level);
+    void moveLeft(Int level, Int from, Int count)
+    {
+        if (level >= 0)
+        {
+            typename Base::PathItem& item = Base::operator[](level);
 
-			if (item.parent_idx() >= from)
-			{
-				item.parent_idx() -= count;
-			}
-			else if (item.parent_idx() >= from)
-			{
-				for (Int c = level - 1; c >= 0; c--)
-				{
-					Base::operator[](c).clear();
-				}
+            if (item.parent_idx() >= from)
+            {
+                item.parent_idx() -= count;
+            }
+            else if (item.parent_idx() >= from)
+            {
+                for (Int c = level - 1; c >= 0; c--)
+                {
+                    Base::operator[](c).clear();
+                }
 
-				data_.clear();
-			}
-		}
-		else if (data_.parent_idx() >= from)
-		{
-			data_.parent_idx() -= count;
-		}
-		else if (data_.parent_idx() >= from)
-		{
-			data_.clear();
-		}
-	}
+                data_.clear();
+            }
+        }
+        else if (data_.parent_idx() >= from)
+        {
+            data_.parent_idx() -= count;
+        }
+        else if (data_.parent_idx() >= from)
+        {
+            data_.clear();
+        }
+    }
 };
 
 }

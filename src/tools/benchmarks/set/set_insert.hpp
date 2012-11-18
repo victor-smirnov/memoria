@@ -20,76 +20,76 @@ using namespace std;
 
 class setinsertBenchmark: public SPBenchmarkTask {
 
-	typedef SPBenchmarkTask Base;
+    typedef SPBenchmarkTask Base;
 
-	typedef typename Base::Allocator 	Allocator;
-	typedef typename Base::Profile 		Profile;
+    typedef typename Base::Allocator    Allocator;
+    typedef typename Base::Profile      Profile;
 
-	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<set1>::Type 		SetCtr;
-	typedef typename SetCtr::Iterator								Iterator;
-	typedef typename SetCtr::ID										ID;
-	typedef typename SetCtr::Accumulator							Accumulator;
-
-
-	typedef typename SetCtr::Key									Key;
-	typedef typename SetCtr::Value									Value;
+    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<set1>::Type       SetCtr;
+    typedef typename SetCtr::Iterator                               Iterator;
+    typedef typename SetCtr::ID                                     ID;
+    typedef typename SetCtr::Accumulator                            Accumulator;
 
 
-	Allocator* 	allocator_;
-	SetCtr* 	set_;
+    typedef typename SetCtr::Key                                    Key;
+    typedef typename SetCtr::Value                                  Value;
+
+
+    Allocator*  allocator_;
+    SetCtr*     set_;
 
 
 
 public:
 
-	setinsertBenchmark(StringRef name):
-		SPBenchmarkTask(name)
-	{
-		RootCtr::initMetadata();
-		SetCtr::initMetadata();
-	}
+    setinsertBenchmark(StringRef name):
+        SPBenchmarkTask(name)
+    {
+        RootCtr::initMetadata();
+        SetCtr::initMetadata();
+    }
 
-	virtual ~setinsertBenchmark() throw() {}
+    virtual ~setinsertBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		allocator_ = new Allocator();
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        allocator_ = new Allocator();
 
-		set_ = new SetCtr(allocator_, 1, true);
-	}
+        set_ = new SetCtr(allocator_, 1, true);
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete set_;
-		delete allocator_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete set_;
+        delete allocator_;
+    }
 
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		Int size = params.x();
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        Int size = params.x();
 
-		params.operations() = size;
+        params.operations() = size;
 
-		for (Int c = 0; c < size; c++)
-		{
-			auto i = set_->find(getRandom(size));
+        for (Int c = 0; c < size; c++)
+        {
+            auto i = set_->find(getRandom(size));
 
-			Accumulator keys;
-			keys[0] = 1;
+            Accumulator keys;
+            keys[0] = 1;
 
-			set_->insertRaw(i, keys);
+            set_->insertRaw(i, keys);
 
-			keys[0] = 0;
-			i++;
+            keys[0] = 0;
+            i++;
 
-			if (i.isNotEnd())
-			{
-				i.updateUp(keys);
-			}
-		}
-	}
+            if (i.isNotEnd())
+            {
+                i.updateUp(keys);
+            }
+        }
+    }
 };
 
 

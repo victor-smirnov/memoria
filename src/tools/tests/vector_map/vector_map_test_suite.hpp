@@ -23,10 +23,10 @@ class VectorMapTestSuite: public TestSuite {
 
 public:
 
-	VectorMapTestSuite(): TestSuite("VectorMapTestSuite")
-	{
-		registerTask(new VectorMapTest());
-	}
+    VectorMapTestSuite(): TestSuite("VectorMapTestSuite")
+    {
+        registerTask(new VectorMapTest());
+    }
 
 };
 

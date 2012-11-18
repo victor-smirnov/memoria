@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/types/types.hpp>
@@ -40,5 +40,5 @@ struct SimpleHierarchy<TL<T, NullType>, Element, Base>: public Element<T, Base> 
 
 }
 
-#endif	/* _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP */
+#endif  /* _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP */
 

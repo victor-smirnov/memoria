@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_NAMES_HPP
-#define	_MEMORIA_PROTOTYPES_DYNVECTOR_NAMES_HPP
+#define _MEMORIA_PROTOTYPES_DYNVECTOR_NAMES_HPP
 
 namespace memoria    {
 namespace dynvector  {
@@ -23,8 +23,8 @@ class DataPagePartsListFactory      {};
 class InsertName            {};
 class RemoveName            {};
 class ToolsName             {};
-class SeekName             	{};
-class ReadName             	{};
+class SeekName              {};
+class ReadName              {};
 class checksName            {};
 
 class IteratorContainerAPIName  {};

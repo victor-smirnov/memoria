@@ -26,83 +26,83 @@ using namespace memoria::btree;
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IteratorMultiskipName)
 
-	typedef typename Base::NodeBase                                             	NodeBase;
-	typedef typename Base::Container                                                Container;
-	typedef typename Container::Key                                                 Key;
-	typedef typename Base::Container::Page                                          PageType;
-	typedef typename Base::Container::ID                                            ID;
-	typedef typename Container::Types::Pages::NodeDispatcher                        NodeDispatcher;
+    typedef typename Base::NodeBase                                                 NodeBase;
+    typedef typename Base::Container                                                Container;
+    typedef typename Container::Key                                                 Key;
+    typedef typename Base::Container::Page                                          PageType;
+    typedef typename Base::Container::ID                                            ID;
+    typedef typename Container::Types::Pages::NodeDispatcher                        NodeDispatcher;
 
-	static const Int Indexes = Container::Indexes;
+    static const Int Indexes = Container::Indexes;
 
-	BigInt skipKeyFw(BigInt distance);
-	BigInt skipKeyBw(BigInt distance);
+    BigInt skipKeyFw(BigInt distance);
+    BigInt skipKeyBw(BigInt distance);
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE 		MEMORIA_ITERATOR_TYPE(memoria::bstree::IteratorMultiskipName)
-#define M_PARAMS 	MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bstree::IteratorMultiskipName)
+#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
 BigInt M_TYPE::skipKeyFw(BigInt distance)
 {
-	if (me()->page() == NULL || distance == 0)
-	{
-		return 0;
-	}
-	else {
-		typedef KeyCounterWithSumWalker<Container, true> Walker;
+    if (me()->page() == NULL || distance == 0)
+    {
+        return 0;
+    }
+    else {
+        typedef KeyCounterWithSumWalker<Container, true> Walker;
 
-		Walker walker(distance, me()->model());
+        Walker walker(distance, me()->model());
 
-		if (me()->walkFw(me()->path(), me()->key_idx(), walker))
-		{
-			//TODO: check is EOF case is handled properly (prefixes);
-			me()->key_idx()++;
-		}
+        if (me()->walkFw(me()->path(), me()->key_idx(), walker))
+        {
+            //TODO: check is EOF case is handled properly (prefixes);
+            me()->key_idx()++;
+        }
 
-		for (Int c = 0; c < Indexes; c++)
-		{
-			me()->prefix(c) += walker.keys(c);
-		}
+        for (Int c = 0; c < Indexes; c++)
+        {
+            me()->prefix(c) += walker.keys(c);
+        }
 
-		me()->ReHash();
-		return walker.sum();
-	}
+        me()->ReHash();
+        return walker.sum();
+    }
 }
 
 M_PARAMS
 BigInt M_TYPE::skipKeyBw(BigInt distance)
 {
-	if (me()->page() == NULL)
-	{
-		return 0;
-	}
-	else {
-		typedef KeyCounterWithSumWalker<Container, false> Walker;
-		Walker walker(distance, me()->model());
+    if (me()->page() == NULL)
+    {
+        return 0;
+    }
+    else {
+        typedef KeyCounterWithSumWalker<Container, false> Walker;
+        Walker walker(distance, me()->model());
 
-		Key keys[Indexes];
-		for (Int c = 0; c < Indexes; c++)
-		{
-			keys[c] = me()->getRawKey(c);
-		}
+        Key keys[Indexes];
+        for (Int c = 0; c < Indexes; c++)
+        {
+            keys[c] = me()->getRawKey(c);
+        }
 
-		if (me()->walkBw(me()->path(), me()->key_idx(), walker))
-		{
-			//TODO: check is BOF case is handled properly (prefixes);
-			me()->key_idx() = -1;
-		}
+        if (me()->walkBw(me()->path(), me()->key_idx(), walker))
+        {
+            //TODO: check is BOF case is handled properly (prefixes);
+            me()->key_idx() = -1;
+        }
 
-		for (Int c = 0; c < Indexes; c++)
-		{
-			me()->prefix(c) -= walker.keys(c) + me()->getRawKey(c) - keys[c];
-		}
+        for (Int c = 0; c < Indexes; c++)
+        {
+            me()->prefix(c) -= walker.keys(c) + me()->getRawKey(c) - keys[c];
+        }
 
 
-		me()->ReHash();
-		return walker.sum();
-	}
+        me()->ReHash();
+        return walker.sum();
+    }
 }
 
 

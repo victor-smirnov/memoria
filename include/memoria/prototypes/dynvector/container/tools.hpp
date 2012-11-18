@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_MODEL_TOOLS_HPP
-#define	_MEMORIA_PROTOTYPES_DYNVECTOR_MODEL_TOOLS_HPP
+#define _MEMORIA_PROTOTYPES_DYNVECTOR_MODEL_TOOLS_HPP
 
 
 
@@ -57,8 +57,8 @@ public:
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
 
-    typedef typename Base::Types::DataPage                                  	DataPage;
-    typedef typename Base::Types::DataPageG                                  	DataPageG;
+    typedef typename Base::Types::DataPage                                      DataPage;
+    typedef typename Base::Types::DataPageG                                     DataPageG;
 
     static const Int Indexes                                                    = Types::Indexes;
 
@@ -73,42 +73,42 @@ public:
 
         DataPathItem item;
 
-        item.node() 		= me()->allocator().getPage(id, flags);
-        item.parent_idx() 	= idx;
+        item.node()         = me()->allocator().getPage(id, flags);
+        item.parent_idx()   = idx;
 
         return item;
     }
 
     bool IsDynarray() const {
-    	return true;
+        return true;
     }
 
 
-	Iterator findStart(bool reverse = false);
-	Iterator findEnd  (bool reverse = false);
+    Iterator findStart(bool reverse = false);
+    Iterator findEnd  (bool reverse = false);
 
     void finishPathStep(TreePath& path, Int key_idx) const;
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::ToolsName)
-#define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::dynvector::ToolsName)
+#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
 
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
 {
-	Iterator i = Base::findStart(false);
+    Iterator i = Base::findStart(false);
 
-	if (i.leaf()->children_count() > 0)
-	{
-		me()->finishPathStep(i.path(), i.key_idx());
+    if (i.leaf()->children_count() > 0)
+    {
+        me()->finishPathStep(i.path(), i.key_idx());
 
-		i.dataPos() = reverse ? -1 : 0;
-	}
+        i.dataPos() = reverse ? -1 : 0;
+    }
 
-	return i;
+    return i;
 }
 
 
@@ -116,14 +116,14 @@ typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
 {
-	Iterator i = Base::findEnd(false);
+    Iterator i = Base::findEnd(false);
 
-	if (i.leaf()->children_count() > 0 && i.prevKey())
-	{
-		i.dataPos() = i.data()->data().size() + (reverse ? -1 : 0);
-	}
+    if (i.leaf()->children_count() > 0 && i.prevKey())
+    {
+        i.dataPos() = i.data()->data().size() + (reverse ? -1 : 0);
+    }
 
-	return i;
+    return i;
 }
 
 
@@ -132,16 +132,16 @@ typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
 M_PARAMS
 void M_TYPE::finishPathStep(TreePath& path, Int key_idx) const
 {
-	if (key_idx >= 0 && key_idx < path.leaf()->children_count())
-	{
-		path.data().node() 			= me()->getValuePage(path.leaf().node(), key_idx, Allocator::READ);
+    if (key_idx >= 0 && key_idx < path.leaf()->children_count())
+    {
+        path.data().node()          = me()->getValuePage(path.leaf().node(), key_idx, Allocator::READ);
 
-		path.data().parent_idx()	= key_idx;
-	}
-	else
-	{
-		path.data().clear();
-	}
+        path.data().parent_idx()    = key_idx;
+    }
+    else
+    {
+        path.data().clear();
+    }
 }
 
 #undef M_PARAMS

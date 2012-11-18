@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_DYNVECTOR_HPP
-#define	_MEMORIA_PROTOTYPES_DYNVECTOR_DYNVECTOR_HPP
+#define _MEMORIA_PROTOTYPES_DYNVECTOR_DYNVECTOR_HPP
 
 #include <memoria/prototypes/dynvector/names.hpp>
 #include <memoria/prototypes/dynvector/factory.hpp>

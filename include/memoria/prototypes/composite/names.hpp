@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_COMPOSITE_NAMES_HPP
-#define	_MEMORIA_PROTOTYPES_COMPOSITE_NAMES_HPP
+#define _MEMORIA_PROTOTYPES_COMPOSITE_NAMES_HPP
 
 namespace memoria     {
 namespace composite   {

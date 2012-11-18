@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_RELATION_SORT_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_RELATION_SORT_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_RELATION_SORT_HPP
 
 #include <memoria/core/types/types.hpp>
 

@@ -20,57 +20,57 @@ using namespace std;
 
 class StlVectorLinearReadBenchmark: public BenchmarkTask {
 
-	typedef BenchmarkTask Base;
+    typedef BenchmarkTask Base;
 
-	typedef std::vector<BigInt> VectorCtr;
+    typedef std::vector<BigInt> VectorCtr;
 
-	VectorCtr* ctr_;
+    VectorCtr* ctr_;
 
-	Int result_;
+    Int result_;
 
 
 public:
 
-	StlVectorLinearReadBenchmark(StringRef name):
-		BenchmarkTask(name)
-	{
-		average = 10;
-	}
+    StlVectorLinearReadBenchmark(StringRef name):
+        BenchmarkTask(name)
+    {
+        average = 10;
+    }
 
-	virtual ~StlVectorLinearReadBenchmark() throw() {}
+    virtual ~StlVectorLinearReadBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		Int size = params.x() / sizeof(BigInt);
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        Int size = params.x() / sizeof(BigInt);
 
-		ctr_ = new VectorCtr();
+        ctr_ = new VectorCtr();
 
-		for (Int c = 0; c < size; c++)
-		{
-			BigInt value = getRandom(10000);
-			ctr_->push_back(value);
-		}
-	}
+        for (Int c = 0; c < size; c++)
+        {
+            BigInt value = getRandom(10000);
+            ctr_->push_back(value);
+        }
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete ctr_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete ctr_;
+    }
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		for (Int c = 0; c < params.operations();)
-		{
-			for (auto i = ctr_->begin(); i != ctr_->end(); i++)
-			{
-				result_ += *i;
-			}
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        for (Int c = 0; c < params.operations();)
+        {
+            for (auto i = ctr_->begin(); i != ctr_->end(); i++)
+            {
+                result_ += *i;
+            }
 
-			c += ctr_->size();
-		}
+            c += ctr_->size();
+        }
 
-		params.memory() = params.operations() * sizeof(BigInt);
-	}
+        params.memory() = params.operations() * sizeof(BigInt);
+    }
 };
 
 

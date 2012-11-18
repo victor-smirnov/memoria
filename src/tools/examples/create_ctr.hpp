@@ -18,64 +18,64 @@ namespace memoria {
 
 class CreateCtrExample: public SPExampleTask {
 public:
-	typedef KVPair<BigInt, BigInt> Pair;
+    typedef KVPair<BigInt, BigInt> Pair;
 
 private:
-	typedef vector<Pair> PairVector;
-	typedef SmallCtrTypeFactory::Factory<Map1>::Type 				MapCtr;
-	typedef typename MapCtr::Iterator								Iterator;
-	typedef typename MapCtr::ID										ID;
-	typedef typename MapCtr::Accumulator							Accumulator;
+    typedef vector<Pair> PairVector;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                MapCtr;
+    typedef typename MapCtr::Iterator                               Iterator;
+    typedef typename MapCtr::ID                                     ID;
+    typedef typename MapCtr::Accumulator                            Accumulator;
 
-	PairVector pairs;
-	PairVector pairs_sorted;
+    PairVector pairs;
+    PairVector pairs_sorted;
 
 public:
 
-	CreateCtrExample() :
-		SPExampleTask("CreateCtr")
-	{
-		SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
-		SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
-	}
+    CreateCtrExample() :
+        SPExampleTask("CreateCtr")
+    {
+        SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+        SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
+    }
 
-	virtual ~CreateCtrExample() throw () {
-	}
-
-
-	virtual void Run(ostream& out)
-	{
-		DefaultLogHandlerImpl logHandler(out);
+    virtual ~CreateCtrExample() throw () {
+    }
 
 
-		if (this->btree_random_airity_)
-		{
-			this->btree_branching_ = 8 + getRandom(100);
-			out<<"BTree Branching: "<<this->btree_branching_<<endl;
-		}
+    virtual void Run(ostream& out)
+    {
+        DefaultLogHandlerImpl logHandler(out);
 
-		Int SIZE = this->size_;
 
-		Allocator allocator;
-		allocator.getLogger()->setHandler(&logHandler);
+        if (this->btree_random_airity_)
+        {
+            this->btree_branching_ = 8 + getRandom(100);
+            out<<"BTree Branching: "<<this->btree_branching_<<endl;
+        }
 
-		MapCtr map(allocator);
+        Int SIZE = this->size_;
 
-		map.setBranchingFactor(this->btree_branching_);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-		for (Int c = 0; c < SIZE; c++)
-		{
-			map[c] = c;
-		}
+        MapCtr map(allocator);
 
-		allocator.commit();
+        map.setBranchingFactor(this->btree_branching_);
 
-		BigInt t0 = getTimeInMillis();
-		StoreAllocator(allocator, "/dev/null");
-		BigInt t1 = getTimeInMillis();
+        for (Int c = 0; c < SIZE; c++)
+        {
+            map[c] = c;
+        }
 
-		out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
-	}
+        allocator.commit();
+
+        BigInt t0 = getTimeInMillis();
+        StoreAllocator(allocator, "/dev/null");
+        BigInt t1 = getTimeInMillis();
+
+        out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
+    }
 };
 
 }

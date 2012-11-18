@@ -37,10 +37,10 @@ namespace memoria    {
 //>
 //class Iter<DynVectorIterTypes<Types> >: public IterStart<DynVectorIterTypes<Types> >
 //{
-//    typedef Iter<DynVectorIterTypes<Types> >                         				MyType;
-//    typedef IterStart<DynVectorIterTypes<Types> >     								Base;
-//    typedef Ctr<typename Types::CtrTypes>                                       	ContainerType;
-//    typedef EmptyType																Txn;
+//    typedef Iter<DynVectorIterTypes<Types> >                                      MyType;
+//    typedef IterStart<DynVectorIterTypes<Types> >                                     Base;
+//    typedef Ctr<typename Types::CtrTypes>                                         ContainerType;
+//    typedef EmptyType                                                             Txn;
 //
 //    typedef typename ContainerType::Types::NodeBase                                 NodeBase;
 //    typedef typename ContainerType::Types::NodeBaseG                                NodeBaseG;
@@ -57,90 +57,90 @@ namespace memoria    {
 //
 //    Iter(Container &model, Int kind = GENERIC_ITERATOR):Base(), kind_(kind), model_(model)
 //    {
-//    	Base::setupAllocator(&model.allocator());
-//    	Base::state() 		= 0;
-//        Base::key_idx() 	= -1;
+//      Base::setupAllocator(&model.allocator());
+//      Base::state()       = 0;
+//        Base::key_idx()   = -1;
 //    }
 //
 //    Iter(NodeBaseG node, Int idx, Container &model, bool do_init = false): Base(), kind_(GENERIC_ITERATOR), model_(model)
 //    {
-//    	Base::setupAllocator(&model.allocator());
-//    	Base::page() 		= node;
-//    	Base::data()		= model.getValuePage(node, idx, ContainerType::Allocator::READ);
-//    	Base::key_idx() 	= idx;
-//    	Base::state() 		= 0;
+//      Base::setupAllocator(&model.allocator());
+//      Base::page()        = node;
+//      Base::data()        = model.getValuePage(node, idx, ContainerType::Allocator::READ);
+//      Base::key_idx()     = idx;
+//      Base::state()       = 0;
 //
-//    	if (do_init) Base::init();
-//    	Base::ReHash();
+//      if (do_init) Base::init();
+//      Base::ReHash();
 //    }
 //
 //    Iter(NodeBaseG node, Int idx, DataPageG data, Int data_pos, Container &model, bool do_init = false): Base(), kind_(GENERIC_ITERATOR), model_(model)
 //    {
-//    	Base::setupAllocator(&model.allocator());
-//    	Base::page() 		= node;
-//    	Base::data() 		= data;
-//    	Base::dataPos()	= data_pos;
+//      Base::setupAllocator(&model.allocator());
+//      Base::page()        = node;
+//      Base::data()        = data;
+//      Base::dataPos() = data_pos;
 //
-//    	Base::key_idx() 	= idx;
-//    	Base::state() 		= 0;
+//      Base::key_idx()     = idx;
+//      Base::state()       = 0;
 //
-//    	if (do_init) Base::init();
-//    	Base::ReHash();
+//      if (do_init) Base::init();
+//      Base::ReHash();
 //    }
 //
 //    Iter(const MyType& other): Base(other), kind_(other.kind_), model_(other.model_) {}
 //
 //    ContainerType& model() {
-//    	return model_;
+//      return model_;
 //    }
 //
 //    const ContainerType& model() const {
-//    	return model_;
+//      return model_;
 //    }
 //
 //    MyType& operator=(MyType&& other)
 //    {
-//    	Base::operator=(std::move(other));
-//    	Base::ReHash();
-//    	return *this;
+//      Base::operator=(std::move(other));
+//      Base::ReHash();
+//      return *this;
 //    }
 //
 //    MyType& operator=(const MyType& other)
 //    {
-//    	Base::operator=(other);
-//    	Base::ReHash();
-//    	return *this;
+//      Base::operator=(other);
+//      Base::ReHash();
+//      return *this;
 //    }
 //
 //    const Int kind() const {
-//    	return kind_;
+//      return kind_;
 //    }
 //
 //    void update() {
-//    	switch (kind_) {
-//    		case BEGIN_ITERATOR: 	(*this) = model().findStart(); break;
-//    		case END_ITERATOR: 		(*this) = model().findEnd(); break;
+//      switch (kind_) {
+//          case BEGIN_ITERATOR:    (*this) = model().findStart(); break;
+//          case END_ITERATOR:      (*this) = model().findEnd(); break;
 //
-//    		case REVERSE_BEGIN_ITERATOR: 	(*this) = model().findRStart(); break;
-//    		case REVERSE_END_ITERATOR: 		(*this) = model().findREnd(); break;
+//          case REVERSE_BEGIN_ITERATOR:    (*this) = model().findRStart(); break;
+//          case REVERSE_END_ITERATOR:      (*this) = model().findREnd(); break;
 //
-//    		default:; // do nothing
-//    	};
+//          default:; // do nothing
+//      };
 //    }
 //
 //    bool operator==(const MyType& other) const
 //    {
-//    	if (Base::hash() == other.hash())
-//    	{
-//    		return Base::operator==(other);
-//    	}
-//    	else {
-//    		return false;
-//    	}
+//      if (Base::hash() == other.hash())
+//      {
+//          return Base::operator==(other);
+//      }
+//      else {
+//          return false;
+//      }
 //    }
 //
 //    bool operator!=(const MyType& other) const {
-//    	return !operator==(other);
+//      return !operator==(other);
 //    }
 //
 //};

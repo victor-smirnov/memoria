@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_RELATION_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_RELATION_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_RELATION_HPP
 
 #include <memoria/core/types/relation/metadata.hpp>
 #include <memoria/core/types/relation/projection.hpp>

@@ -28,26 +28,27 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #ifndef MEMORIA_NO_ASSERTS
 
-#define MEMORIA_ASSERT(Left, Operation, Right) 																										\
-		if (!(Left Operation Right)) {																												\
-			throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right);	\
-		}
+#define MEMORIA_ASSERT(Left, Operation, Right)                                                                                                      \
+        if (!(Left Operation Right)) {                                                                                                              \
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "\
+                    <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right); \
+        }
 
-#define MEMORIA_ASSERT_EXPR(Expr, Msg) 																\
-		if (!(Expr)) {																				\
-			throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Expr<<" "<<#Msg);	\
-		}
+#define MEMORIA_ASSERT_EXPR(Expr, Msg)                                                              \
+        if (!(Expr)) {                                                                              \
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Expr<<" "<<#Msg);   \
+        }
 
 
-#define MEMORIA_ASSERT_NOT_NULL(Operand) 																		\
-		if (Operand == NULL) {																					\
-			throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be NULL");	\
-		}																										\
+#define MEMORIA_ASSERT_NOT_NULL(Operand)                                                                        \
+        if (Operand == NULL) {                                                                                  \
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be NULL");  \
+        }                                                                                                       \
 
-#define MEMORIA_ASSERT_NOT_EMPTY(Operand) 																		\
-		if (Operand.isEmpty()) {																					\
-			throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be 0");	\
-		}
+#define MEMORIA_ASSERT_NOT_EMPTY(Operand)                                                                       \
+        if (Operand.isEmpty()) {                                                                                    \
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be 0"); \
+        }
 
 #else
 

@@ -20,78 +20,78 @@ namespace memoria {
 class VectorMapExample: public SPExampleTask {
 
 private:
-	typedef SmallCtrTypeFactory::Factory<VectorMap>::Type 				MapCtr;
-	typedef typename MapCtr::Iterator									Iterator;
-	typedef typename MapCtr::ID											ID;
+    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type               MapCtr;
+    typedef typename MapCtr::Iterator                                   Iterator;
+    typedef typename MapCtr::ID                                         ID;
 
 public:
 
-	VectorMapExample() :
-		SPExampleTask("VectorMap")
-	{
-		MapCtr::initMetadata();
-	}
+    VectorMapExample() :
+        SPExampleTask("VectorMap")
+    {
+        MapCtr::initMetadata();
+    }
 
-	virtual ~VectorMapExample() throw () {
-	}
-
-
-	virtual void Run(ostream& out)
-	{
-		DefaultLogHandlerImpl logHandler(out);
-
-		{
-			if (this->btree_random_airity_)
-			{
-				this->btree_branching_ = 8 + getRandom(100);
-				out<<"BTree Branching: "<<this->btree_branching_<<endl;
-			}
-
-			Allocator allocator;
-			allocator.getLogger()->setHandler(&logHandler);
-
-			MapCtr map(allocator, 1, true);
-
-			for (Int c = 1; c <= 10; c++)
-			{
-				map[c] = String(" ====== "+toString(c + 1)+" ===== ");
-			}
-
-			allocator.commit();
-
-			for (auto iter = map.begin(); iter != map.endm(); iter++)
-			{
-				out<<iter.key()<<" => "<<(String)iter<<endl;
-			}
+    virtual ~VectorMapExample() throw () {
+    }
 
 
-			auto iter1 = map.begin();
-			auto iter2 = iter1;
+    virtual void Run(ostream& out)
+    {
+        DefaultLogHandlerImpl logHandler(out);
 
-			iter2++;
+        {
+            if (this->btree_random_airity_)
+            {
+                this->btree_branching_ = 8 + getRandom(100);
+                out<<"BTree Branching: "<<this->btree_branching_<<endl;
+            }
 
-			if (iter1 == iter2)
-			{
-				out<<"Iterators are equal"<<endl;
-			}
-			else {
-				out<<"Iterators are NOT equal"<<endl;
-			}
+            Allocator allocator;
+            allocator.getLogger()->setHandler(&logHandler);
 
-			for (auto& val: map)
-			{
-				out<<val.key()<<" => "<<(String)val<<endl;
-			}
+            MapCtr map(allocator, 1, true);
 
-			BigInt sum = 0;
-			for (auto& val: map)
-			{
-				sum += val.key();
-			}
+            for (Int c = 1; c <= 10; c++)
+            {
+                map[c] = String(" ====== "+toString(c + 1)+" ===== ");
+            }
 
-			out<<"Sum="<<sum<<endl;
-		}
-	}
+            allocator.commit();
+
+            for (auto iter = map.begin(); iter != map.endm(); iter++)
+            {
+                out<<iter.key()<<" => "<<(String)iter<<endl;
+            }
+
+
+            auto iter1 = map.begin();
+            auto iter2 = iter1;
+
+            iter2++;
+
+            if (iter1 == iter2)
+            {
+                out<<"Iterators are equal"<<endl;
+            }
+            else {
+                out<<"Iterators are NOT equal"<<endl;
+            }
+
+            for (auto& val: map)
+            {
+                out<<val.key()<<" => "<<(String)val<<endl;
+            }
+
+            BigInt sum = 0;
+            for (auto& val: map)
+            {
+                sum += val.key();
+            }
+
+            out<<"Sum="<<sum<<endl;
+        }
+    }
 };
 
 }

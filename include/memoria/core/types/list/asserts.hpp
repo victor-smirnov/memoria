@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_ASSERTS_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_LIST_ASSERTS_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_LIST_ASSERTS_HPP
 
 #include <memoria/core/types/types.hpp>
 
@@ -38,4 +38,4 @@ struct IsNonemptyList<NullType>: public FalseValue {};
 
 }
 
-#endif	/* _MEMORIA_CORE_TOOLS_TYPES_LIST_TYPELIST_HPP */
+#endif  /* _MEMORIA_CORE_TOOLS_TYPES_LIST_TYPELIST_HPP */

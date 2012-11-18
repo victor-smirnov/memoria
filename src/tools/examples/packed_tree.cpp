@@ -22,93 +22,93 @@ using namespace memoria::btree;
 
 template <typename Key_, typename Value_ = EmptyValue>
 struct PMapFindTypes {
-	typedef Key_ 						Key;
-	typedef Key_ 						IndexKey;
-	typedef Value_						Value;
+    typedef Key_                        Key;
+    typedef Key_                        IndexKey;
+    typedef Value_                      Value;
 
-	static const Int Blocks 			= 1;
-	static const Int BranchingFactor	= 32;
+    static const Int Blocks             = 1;
+    static const Int BranchingFactor    = 32;
 
-	typedef Accumulators<Key, Blocks> 	Accumulator;
+    typedef Accumulators<Key, Blocks>   Accumulator;
 };
 
-typedef PMapFindTypes<BigInt> 			Types;
+typedef PMapFindTypes<BigInt>           Types;
 
-typedef Types::Accumulator				Accumulator;
-typedef Types::Key						Key;
-typedef Types::Value					Value;
+typedef Types::Accumulator              Accumulator;
+typedef Types::Key                      Key;
+typedef Types::Value                    Value;
 
-typedef PackedSumTree<Types> 			PMap;
+typedef PackedSumTree<Types>            PMap;
 
 void FillPMap(PMap* map, Int size)
 {
-	map->key(0, 0) = 0;
+    map->key(0, 0) = 0;
 
-	for (Int c = 1; c < size; c++)
-	{
-		map->key(0, c) = 1;
-	}
+    for (Int c = 1; c < size; c++)
+    {
+        map->key(0, c) = 1;
+    }
 
-	map->size() = size;
+    map->size() = size;
 
-	map->reindex(0);
+    map->reindex(0);
 }
 
 
 void Benchmark(Int size, Int average = 10)
 {
-	Int buffer_size 	= size*1024;
+    Int buffer_size     = size*1024;
 
-	Byte* buffer 		= T2T<Byte*>(malloc(buffer_size));
+    Byte* buffer        = T2T<Byte*>(malloc(buffer_size));
 
-	memset(buffer, buffer_size, 0);
+    memset(buffer, buffer_size, 0);
 
-	PMap* map_ = T2T<PMap*>(buffer);
+    PMap* map_ = T2T<PMap*>(buffer);
 
-	map_->initByBlock(buffer_size - sizeof(PMap));
+    map_->initByBlock(buffer_size - sizeof(PMap));
 
-	FillPMap(map_, map_->maxSize());
+    FillPMap(map_, map_->maxSize());
 
 
-	Int operations = 1000*1000;
+    Int operations = 1000*1000;
 
-	Int* rd_array_ = new Int[operations];
-	for (Int c = 0; c < operations; c++)
-	{
-		rd_array_[c] = getRandom(map_->size());
-	}
+    Int* rd_array_ = new Int[operations];
+    for (Int c = 0; c < operations; c++)
+    {
+        rd_array_[c] = getRandom(map_->size());
+    }
 
-	BigInt t0 = getTimeInMillis();
+    BigInt t0 = getTimeInMillis();
 
-	for (Int d = 0; d < average; d++)
-	{
-		for (Int c = 0; c < operations; c++)
-		{
-			BigInt key = rd_array_[c];
-			if (map_->findEQ(0, key) != key)
-			{
-				// this shouldn't happen
-				cout<<"MISS! "<<key<<endl;
-			}
-		}
-	}
+    for (Int d = 0; d < average; d++)
+    {
+        for (Int c = 0; c < operations; c++)
+        {
+            BigInt key = rd_array_[c];
+            if (map_->findEQ(0, key) != key)
+            {
+                // this shouldn't happen
+                cout<<"MISS! "<<key<<endl;
+            }
+        }
+    }
 
-	BigInt t1 = getTimeInMillis();
+    BigInt t1 = getTimeInMillis();
 
-	BigInt duration = (t1 / average - t0 / average);
-	BigInt speed	= operations*1000 / duration;
+    BigInt duration = (t1 / average - t0 / average);
+    BigInt speed    = operations*1000 / duration;
 
-	cout<<size<<" "<<speed<<endl;
+    cout<<size<<" "<<speed<<endl;
 }
 
 
 int main(int argc, const char** argv, const char** envp)
 {
 
-	for (Int c = 1; c <= 128*1024; c*= 2) {
-		Benchmark(c);
-	}
+    for (Int c = 1; c <= 128*1024; c*= 2) {
+        Benchmark(c);
+    }
 
 
-	return 0;
+    return 0;
 }

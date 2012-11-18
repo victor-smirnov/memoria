@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_READ_HPP
-#define	_MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_READ_HPP
+#define _MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_READ_HPP
 
 #include <memoria/prototypes/dynvector/names.hpp>
 
@@ -17,63 +17,63 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::ReadName)
 
-		typedef typename Base::Types                                                Types;
-		typedef typename Base::Allocator                                            Allocator;
-		typedef typename Base::ID                                                   ID;
+        typedef typename Base::Types                                                Types;
+        typedef typename Base::Allocator                                            Allocator;
+        typedef typename Base::ID                                                   ID;
 
-		typedef typename Base::NodeBaseG                                            NodeBaseG;
-		typedef typename Base::Iterator                                             Iterator;
+        typedef typename Base::NodeBaseG                                            NodeBaseG;
+        typedef typename Base::Iterator                                             Iterator;
 
-		typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-		typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
-		typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
-		typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
-		typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
-
-
-		typedef typename Base::Metadata                                             Metadata;
-
-		typedef typename Base::Key                                                  Key;
-		typedef typename Base::Value                                                Value;
-
-		typedef typename Base::DataPageG                                        	DataPageG;
+        typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
+        typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
+        typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
+        typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
+        typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
 
 
-		static const Int Indexes                                                    = Types::Indexes;
+        typedef typename Base::Metadata                                             Metadata;
 
-		BigInt read(Iterator& iter, IData& data, BigInt start, BigInt len);
+        typedef typename Base::Key                                                  Key;
+        typedef typename Base::Value                                                Value;
+
+        typedef typename Base::DataPageG                                            DataPageG;
+
+
+        static const Int Indexes                                                    = Types::Indexes;
+
+        BigInt read(Iterator& iter, IData& data, BigInt start, BigInt len);
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::dynvector::ReadName)
-#define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::dynvector::ReadName)
+#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
 BigInt M_TYPE::read(Iterator& iter, IData& data, BigInt start, BigInt len)
 {
-	BigInt sum = 0;
+    BigInt sum = 0;
 
-	while (len > 0)
-	{
-		Int to_read = iter.data()->size() - iter.dataPos();
+    while (len > 0)
+    {
+        Int to_read = iter.data()->size() - iter.dataPos();
 
-		if (to_read > len) to_read = len;
+        if (to_read > len) to_read = len;
 
-		data.put(iter.data()->data().value_addr(iter.dataPos()), start, to_read);
+        data.put(iter.data()->data().value_addr(iter.dataPos()), start, to_read);
 
-		len 	-= to_read;
-		iter.skip(to_read / me()->getElementSize());
+        len     -= to_read;
+        iter.skip(to_read / me()->getElementSize());
 
-		sum 	+= to_read;
-		start 	+= to_read;
+        sum     += to_read;
+        start   += to_read;
 
-		if (iter.isEof())
-		{
-			break;
-		}
-	}
+        if (iter.isEof())
+        {
+            break;
+        }
+    }
 
-	return sum;
+    return sum;
 }
 
 

@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_MODEL_BASE_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_MODEL_BASE_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_MODEL_BASE_HPP
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/names.hpp>
@@ -18,23 +18,23 @@
 
 #include <iostream>
 
-namespace memoria    	{
-namespace btree			{
+namespace memoria       {
+namespace btree         {
 
 MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
 
     typedef typename Base::Types                                                Types;
 
-	typedef typename Base::Allocator                                           	Allocator;
-	typedef typename Allocator::PageG                                           PageG;
-	typedef typename Allocator::ID                                           	ID;
-	typedef typename Base::CtrShared                                       		CtrShared;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Allocator::PageG                                           PageG;
+    typedef typename Allocator::ID                                              ID;
+    typedef typename Base::CtrShared                                            CtrShared;
 
-    typedef typename Types::Key                                               	Key;
+    typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
     typedef typename Types::Element                                             Element;
-    typedef typename Types::Accumulator											Accumulator;
+    typedef typename Types::Accumulator                                         Accumulator;
 
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
@@ -51,63 +51,63 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     typedef typename Types::Pages::NodeFactory                                  NodeFactory;
 
-    typedef typename Types::Metadata 											Metadata;
+    typedef typename Types::Metadata                                            Metadata;
 
-    typedef typename Types::TreePathItem										TreePathItem;
-    typedef typename Types::TreePath											TreePath;
+    typedef typename Types::TreePathItem                                        TreePathItem;
+    typedef typename Types::TreePath                                            TreePath;
 
 
     class BTreeCtrShared: public CtrShared {
 
-    	Metadata metadata_;
-    	Metadata metadata_log_;
+        Metadata metadata_;
+        Metadata metadata_log_;
 
-    	bool metadata_updated;
+        bool metadata_updated;
 
     public:
 
-    	BTreeCtrShared(BigInt name): CtrShared(name), metadata_updated(false) 							 {}
-    	BTreeCtrShared(BigInt name, CtrShared* parent): CtrShared(name, parent), metadata_updated(false) {}
+        BTreeCtrShared(BigInt name): CtrShared(name), metadata_updated(false)                            {}
+        BTreeCtrShared(BigInt name, CtrShared* parent): CtrShared(name, parent), metadata_updated(false) {}
 
-    	const Metadata& metadata() const { return metadata_updated ? metadata_log_ : metadata_ ;}
+        const Metadata& metadata() const { return metadata_updated ? metadata_log_ : metadata_ ;}
 
-    	void update_metadata(const Metadata& metadata)
-    	{
-    		metadata_log_ 		= metadata;
-    		metadata_updated 	= true;
-    	}
+        void update_metadata(const Metadata& metadata)
+        {
+            metadata_log_       = metadata;
+            metadata_updated    = true;
+        }
 
-    	void configure_metadata(const Metadata& metadata)
-    	{
-    		metadata_ 			= metadata;
-    		metadata_updated 	= false;
-    	}
+        void configure_metadata(const Metadata& metadata)
+        {
+            metadata_           = metadata;
+            metadata_updated    = false;
+        }
 
-    	bool is_metadata_updated() const
-    	{
-    		return metadata_updated;
-    	}
+        bool is_metadata_updated() const
+        {
+            return metadata_updated;
+        }
 
-    	virtual void commit()
-    	{
-    		CtrShared::commit();
+        virtual void commit()
+        {
+            CtrShared::commit();
 
-    		if (is_metadata_updated())
-    		{
-    			metadata_ 			= metadata_log_;
-    			metadata_updated	= false;
-    		}
-    	}
+            if (is_metadata_updated())
+            {
+                metadata_           = metadata_log_;
+                metadata_updated    = false;
+            }
+        }
 
-    	virtual void rollback()
-    	{
-    		CtrShared::rollback();
+        virtual void rollback()
+        {
+            CtrShared::rollback();
 
-    		if (is_metadata_updated())
-    		{
-    			metadata_updated	= false;
-    		}
-    	}
+            if (is_metadata_updated())
+            {
+                metadata_updated    = false;
+            }
+        }
     };
 
 
@@ -115,39 +115,39 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
 
     void operator=(ThisType&& other) {
-    	Base::operator=(std::move(other));
+        Base::operator=(std::move(other));
     }
 
     void operator=(const ThisType& other) {
-    	Base::operator=(other);
+        Base::operator=(other);
     }
 
     PageG createRoot() const {
-    	return me()->createNode(0, true, true);
+        return me()->createNode(0, true, true);
     }
 
     struct GetModelNameFn
     {
-    	BigInt name_;
+        BigInt name_;
 
-    	template <typename Node>
-    	void operator()(const Node* node)
-    	{
-    		name_ = node->metadata().model_name();
-    	}
+        template <typename Node>
+        void operator()(const Node* node)
+        {
+            name_ = node->metadata().model_name();
+        }
     };
 
     struct SetModelNameFn
     {
-    	BigInt name_;
+        BigInt name_;
 
-    	SetModelNameFn(BigInt name): name_(name) {}
+        SetModelNameFn(BigInt name): name_(name) {}
 
-    	template <typename Node>
-    	void operator()(Node* node)
-    	{
-    		node->metadata().model_name() = name_;
-    	}
+        template <typename Node>
+        void operator()(Node* node)
+        {
+            node->metadata().model_name() = name_;
+        }
     };
 
     /**
@@ -156,120 +156,120 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
      */
     BigInt getModelName(ID root_id) const
     {
-    	MEMORIA_ASSERT_NOT_EMPTY(root_id);
+        MEMORIA_ASSERT_NOT_EMPTY(root_id);
 
-    	NodeBaseG root 		= me()->allocator().getPage(root_id, Allocator::READ);
+        NodeBaseG root      = me()->allocator().getPage(root_id, Allocator::READ);
 
-    	GetModelNameFn fn;
-    	RootDispatcher::DispatchConst(root.page(), fn);
+        GetModelNameFn fn;
+        RootDispatcher::DispatchConst(root.page(), fn);
 
-    	return fn.name_;
+        return fn.name_;
     }
 
     void setModelName(BigInt name)
     {
-    	MEMORIA_ASSERT_EXPR(name >= 0, "Container name must not be positive")
+        MEMORIA_ASSERT_EXPR(name >= 0, "Container name must not be positive")
 
-    	NodeBaseG root 	= me()->getRoot(Allocator::READ);
+        NodeBaseG root  = me()->getRoot(Allocator::READ);
 
-    	SetModelNameFn fn(name);
-    	RootDispatcher::Dispatch(root.page(), fn);
+        SetModelNameFn fn(name);
+        RootDispatcher::Dispatch(root.page(), fn);
     }
 
     void initCtr(bool create)
     {
-    	Base::initCtr(create);
+        Base::initCtr(create);
 
-    	if (create)
-    	{
-    		BTreeCtrShared* shared = me()->createCtrShared(me()->name());
-    		me()->allocator().registerCtrShared(shared);
+        if (create)
+        {
+            BTreeCtrShared* shared = me()->createCtrShared(me()->name());
+            me()->allocator().registerCtrShared(shared);
 
-    		NodeBaseG node 		    = me()->createRoot();
+            NodeBaseG node          = me()->createRoot();
 
-    		me()->allocator().setRoot(me()->name(), node->id());
+            me()->allocator().setRoot(me()->name(), node->id());
 
-    		shared->root_log() 		= node->id();
-    		shared->updated() 		= true;
+            shared->root_log()      = node->id();
+            shared->updated()       = true;
 
-    		me()->configureNewCtrShared(shared, node);
+            me()->configureNewCtrShared(shared, node);
 
-    		Base::setCtrShared(shared);
-    	}
-    	else {
-    		CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
+            Base::setCtrShared(shared);
+        }
+        else {
+            CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
 
-    		Base::setCtrShared(shared);
-    	}
+            Base::setCtrShared(shared);
+        }
     }
 
     void initCtr(const ID& root_id)
     {
-    	CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
-    	Base::setCtrShared(shared);
+        CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
+        Base::setCtrShared(shared);
     }
 
     void configureNewCtrShared(CtrShared* shared, PageG root) const
     {
-    	T2T<BTreeCtrShared*>(shared)->configure_metadata(MyType::getCtrRootMetadata(root));
+        T2T<BTreeCtrShared*>(shared)->configure_metadata(MyType::getCtrRootMetadata(root));
     }
 
     struct GetRootIDFn {
-    	BigInt 	name_;
-    	ID		root_;
+        BigInt  name_;
+        ID      root_;
 
-    	GetRootIDFn(BigInt name): name_(name) {}
+        GetRootIDFn(BigInt name): name_(name) {}
 
-    	template <typename Node>
-    	void operator()(const Node* node)
-    	{
-    		root_ = node->metadata().roots(name_);
-    	}
+        template <typename Node>
+        void operator()(const Node* node)
+        {
+            root_ = node->metadata().roots(name_);
+        }
     };
 
     virtual ID getRootID(BigInt name)
     {
-    	MEMORIA_ASSERT(name, >=, 0);
+        MEMORIA_ASSERT(name, >=, 0);
 
-    	NodeBaseG root = me()->allocator().getPage(me()->root(), Allocator::READ);
+        NodeBaseG root = me()->allocator().getPage(me()->root(), Allocator::READ);
 
-    	GetRootIDFn fn(name);
-    	RootDispatcher::DispatchConst(root.page(), fn);
+        GetRootIDFn fn(name);
+        RootDispatcher::DispatchConst(root.page(), fn);
 
-    	return fn.root_;
+        return fn.root_;
     }
 
     struct SetRootIDFn {
-    	BigInt 		name_;
-    	ID			root_;
+        BigInt      name_;
+        ID          root_;
 
-    	Metadata 	metadata_;
+        Metadata    metadata_;
 
-    	SetRootIDFn(BigInt name, const ID& root): name_(name), root_(root) {}
+        SetRootIDFn(BigInt name, const ID& root): name_(name), root_(root) {}
 
-    	template <typename Node>
-    	void operator()(Node* node)
-    	{
-    		node->metadata().roots(name_) = root_;
+        template <typename Node>
+        void operator()(Node* node)
+        {
+            node->metadata().roots(name_) = root_;
 
-    		metadata_ = node->metadata();
-    	}
+            metadata_ = node->metadata();
+        }
     };
 
     virtual void  setRoot(BigInt name, const ID& root_id)
     {
-    	NodeBaseG root 	= me()->allocator().getPage(me()->root(), Allocator::UPDATE);
+        NodeBaseG root  = me()->allocator().getPage(me()->root(), Allocator::UPDATE);
 
-    	SetRootIDFn fn(name, root_id);
-    	RootDispatcher::Dispatch(root.page(), fn);
+        SetRootIDFn fn(name, root_id);
+        RootDispatcher::Dispatch(root.page(), fn);
 
-    	BTreeCtrShared* shared = T2T<BTreeCtrShared*>(me()->shared());
-    	shared->update_metadata(fn.metadata_);
+        BTreeCtrShared* shared = T2T<BTreeCtrShared*>(me()->shared());
+        shared->update_metadata(fn.metadata_);
     }
 
     BTreeCtrShared* createCtrShared(BigInt name)
     {
-    	return new (&me()->allocator()) BTreeCtrShared(name);
+        return new (&me()->allocator()) BTreeCtrShared(name);
     }
 
 
@@ -286,24 +286,24 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
 
     struct SetMetadataFn {
-    	const Metadata& metadata_;
+        const Metadata& metadata_;
 
-    	SetMetadataFn(const Metadata& metadata): metadata_(metadata) {}
+        SetMetadataFn(const Metadata& metadata): metadata_(metadata) {}
 
-    	template <typename T>
-    	void operator()(T *node)
-    	{
-    		node->metadata() = metadata_;
-    	}
+        template <typename T>
+        void operator()(T *node)
+        {
+            node->metadata() = metadata_;
+        }
     };
 
     static Metadata getCtrRootMetadata(NodeBaseG node)
     {
-    	MEMORIA_ASSERT_NOT_NULL(node);
+        MEMORIA_ASSERT_NOT_NULL(node);
 
-    	GetMetadataFn fn;
-    	RootDispatcher::DispatchConst(node, fn);
-    	return fn.metadata_;
+        GetMetadataFn fn;
+        RootDispatcher::DispatchConst(node, fn);
+        return fn.metadata_;
     }
 
     /**
@@ -315,22 +315,22 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     static void setCtrRootMetadata(NodeBaseG node, const Metadata& metadata)
     {
-    	MEMORIA_ASSERT_NOT_NULL(node);
+        MEMORIA_ASSERT_NOT_NULL(node);
 
-    	node.update();
-    	SetMetadataFn fn(metadata);
-    	RootDispatcher::Dispatch(node, fn);
+        node.update();
+        SetMetadataFn fn(metadata);
+        RootDispatcher::Dispatch(node, fn);
     }
 
     const Metadata& getRootMetadata() const
     {
-    	return T2T<const BTreeCtrShared*>(me()->shared())->metadata();
+        return T2T<const BTreeCtrShared*>(me()->shared())->metadata();
     }
 
     void setRootMetadata(const Metadata& metadata) const
     {
-    	NodeBaseG root = me()->getRoot(Allocator::UPDATE);
-    	me()->setRootMetadata(root, metadata);
+        NodeBaseG root = me()->getRoot(Allocator::UPDATE);
+        me()->setRootMetadata(root, metadata);
     }
 
     /**
@@ -341,10 +341,10 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
      */
     void setRootMetadata(NodeBaseG& node, const Metadata& metadata) const
     {
-    	setCtrRootMetadata(node, metadata);
+        setCtrRootMetadata(node, metadata);
 
-    	BTreeCtrShared* shared = T2T<BTreeCtrShared*>(me()->shared());
-    	shared->update_metadata(metadata);
+        BTreeCtrShared* shared = T2T<BTreeCtrShared*>(me()->shared());
+        shared->update_metadata(metadata);
     }
 
     BigInt getContainerName() const
@@ -355,75 +355,75 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     NodeBaseG createNode(Short level, bool root, bool leaf) const
     {
-    	MEMORIA_ASSERT(level, >=, 0);
+        MEMORIA_ASSERT(level, >=, 0);
 
-    	NodeBaseG node = NodeFactory::create(me()->allocator(), level, root, leaf);
+        NodeBaseG node = NodeFactory::create(me()->allocator(), level, root, leaf);
 
-    	if (root)
-    	{
-    		Metadata meta = MyType::getCtrRootMetadata(node);
+        if (root)
+        {
+            Metadata meta = MyType::getCtrRootMetadata(node);
 
-    		me()->configureRootMetadata(meta);
+            me()->configureRootMetadata(meta);
 
-    		MyType::setCtrRootMetadata(node, meta);
-    	}
+            MyType::setCtrRootMetadata(node, meta);
+        }
 
-    	node->model_hash() = me()->hash();
+        node->model_hash() = me()->hash();
 
-    	initNodeSize(node, Allocator::PAGE_SIZE);
+        initNodeSize(node, Allocator::PAGE_SIZE);
 
-    	return node;
+        return node;
     }
 
     NodeBaseG createRootNode(Short level, bool leaf, const Metadata& metadata) const
     {
-    	MEMORIA_ASSERT(level, >=, 0);
+        MEMORIA_ASSERT(level, >=, 0);
 
-    	NodeBaseG node = NodeFactory::create(me()->allocator(), level, true, leaf);
+        NodeBaseG node = NodeFactory::create(me()->allocator(), level, true, leaf);
 
-    	MyType::setCtrRootMetadata(node, metadata);
+        MyType::setCtrRootMetadata(node, metadata);
 
-    	node->model_hash() = me()->hash();
+        node->model_hash() = me()->hash();
 
-    	initNodeSize(node, Allocator::PAGE_SIZE);
+        initNodeSize(node, Allocator::PAGE_SIZE);
 
-    	return node;
+        return node;
     }
 
 
     void configureRootMetadata(Metadata& metadata) const
     {
-    	metadata.model_name() = me()->name();
+        metadata.model_name() = me()->name();
     }
 
     template <typename Node>
     void initNode(Node* node, Int block_size) const
     {
-    	MEMORIA_ASSERT(block_size, >=, 512);
+        MEMORIA_ASSERT(block_size, >=, 512);
 
-    	node->map().initByBlock(block_size - sizeof(Node));
+        node->map().initByBlock(block_size - sizeof(Node));
     }
 
  private:
 
     struct InitNodeFn {
-    	const MyType& me_;
-    	Int block_size_;
-    	InitNodeFn(const MyType& me, Int block_size): me_(me), block_size_(block_size) {}
+        const MyType& me_;
+        Int block_size_;
+        InitNodeFn(const MyType& me, Int block_size): me_(me), block_size_(block_size) {}
 
-    	template <typename NodeT>
-    	void operator()(NodeT* node) const
-    	{
-    		me_.initNode(node, block_size_);
-    	}
+        template <typename NodeT>
+        void operator()(NodeT* node) const
+        {
+            me_.initNode(node, block_size_);
+        }
     };
 
     void initNodeSize(NodeBaseG& node, Int block_size) const
     {
-    	MEMORIA_ASSERT_NOT_NULL(node);
+        MEMORIA_ASSERT_NOT_NULL(node);
 
-    	InitNodeFn fn(*me(), block_size);
-    	NodeDispatcher::Dispatch(node.page(), fn);
+        InitNodeFn fn(*me(), block_size);
+        NodeDispatcher::Dispatch(node.page(), fn);
     }
 
 MEMORIA_BTREE_MODEL_BASE_CLASS_END

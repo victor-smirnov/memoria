@@ -11,7 +11,7 @@
 
 namespace memoria    {
 namespace models     {
-namespace array  	 {
+namespace array      {
 
 struct CountData {
 
@@ -31,10 +31,10 @@ public:
 
     BufferContentDescriptor(): length_(0), offset_(0), start_(0)
     {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		indexes_[c] = 0;
-    	}
+        for (Int c = 0; c < Indexes; c++)
+        {
+            indexes_[c] = 0;
+        }
     }
 
     BigInt* indexes() {

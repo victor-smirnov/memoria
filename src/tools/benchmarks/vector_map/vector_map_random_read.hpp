@@ -21,78 +21,78 @@ using namespace std;
 
 class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
 
-	typedef SPBenchmarkTask Base;
+    typedef SPBenchmarkTask Base;
 
-	typedef typename Base::Allocator 	Allocator;
-	typedef typename Base::Profile 		Profile;
+    typedef typename Base::Allocator    Allocator;
+    typedef typename Base::Profile      Profile;
 
-	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<VectorMap>::Type 	Ctr;
-	typedef typename Ctr::Iterator									Iterator;
+    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMap>::Type  Ctr;
+    typedef typename Ctr::Iterator                                  Iterator;
 
-	static const Int MAX_DATA_SIZE									= 256;
+    static const Int MAX_DATA_SIZE                                  = 256;
 
-	Allocator* 	allocator_;
-	Ctr* 		ctr_;
+    Allocator*  allocator_;
+    Ctr*        ctr_;
 
-	BigInt 		memory_size;
+    BigInt      memory_size;
 
 public:
 
-	VectorMapRandomReadBenchmark(StringRef name):
-		SPBenchmarkTask(name), memory_size(128*1024*1024)
-	{
-		RootCtr::initMetadata();
-		Ctr::initMetadata();
+    VectorMapRandomReadBenchmark(StringRef name):
+        SPBenchmarkTask(name), memory_size(128*1024*1024)
+    {
+        RootCtr::initMetadata();
+        Ctr::initMetadata();
 
-		Add("memory_size", memory_size);
-	}
+        Add("memory_size", memory_size);
+    }
 
-	virtual ~VectorMapRandomReadBenchmark() throw() {}
+    virtual ~VectorMapRandomReadBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		allocator_ = new Allocator();
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        allocator_ = new Allocator();
 
-		Int size = params.x();
-		ArrayData data(size, malloc(size), true);
+        Int size = params.x();
+        ArrayData data(size, malloc(size), true);
 
-		BigInt total = 0;
+        BigInt total = 0;
 
-		ctr_ = new Ctr(allocator_, 1, true);
+        ctr_ = new Ctr(allocator_, 1, true);
 
-		while (total < memory_size)
-		{
-			auto i = ctr_->create();
-			i.insert(data);
-			total += data.size();
-		}
+        while (total < memory_size)
+        {
+            auto i = ctr_->create();
+            i.insert(data);
+            total += data.size();
+        }
 
-		allocator_->commit();
-	}
+        allocator_->commit();
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete ctr_;
-		delete allocator_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete ctr_;
+        delete allocator_;
+    }
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		Int size = params.x();
-		ArrayData data(size, malloc(size), true);
-		Int total = memory_size/size;
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        Int size = params.x();
+        ArrayData data(size, malloc(size), true);
+        Int total = memory_size/size;
 
-		params.operations() = total;
+        params.operations() = total;
 
-		for (Int c = 0; c < total; c++)
-		{
-			ctr_->find(getRandom(total)).read(data);
-		}
+        for (Int c = 0; c < total; c++)
+        {
+            ctr_->find(getRandom(total)).read(data);
+        }
 
-		params.operations() = ctr_->count();
-		params.memory() 	= ctr_->size() + ctr_->count() * 16; //sizeof(BigInt) * 2
-	}
+        params.operations() = ctr_->count();
+        params.memory()     = ctr_->size() + ctr_->count() * 16; //sizeof(BigInt) * 2
+    }
 };
 
 

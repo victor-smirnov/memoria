@@ -22,26 +22,26 @@ class EmptyExample: public ExampleTask {
 
 public:
 
-	Int param;
+    Int param;
 
 public:
 
 
-	EmptyExample() :
-		ExampleTask("EmptyExample"), param(-1)
-	{
-		Add("param", param)->setMandatory(true);
-	}
+    EmptyExample() :
+        ExampleTask("EmptyExample"), param(-1)
+    {
+        Add("param", param)->setMandatory(true);
+    }
 
-	virtual ~EmptyExample() throw ()
-	{
-	}
+    virtual ~EmptyExample() throw ()
+    {
+    }
 
 
-	virtual void Run(ostream& out)
-	{
-		out<<"Ok! "<<param<<endl;
-	}
+    virtual void Run(ostream& out)
+    {
+        out<<"Ok! "<<param<<endl;
+    }
 };
 
 }

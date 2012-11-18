@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_INDEX_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_LIST_INDEX_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_LIST_INDEX_HPP
 
 #include <memoria/core/types/typelist.hpp>
 
@@ -56,4 +56,4 @@ struct SelectByIndexTool<Idx, NullType, Counter> {
 
 }
 
-#endif	/* _MEMORIA_CORE_TOOLS_TYPES_LIST_INDEX_HPP */
+#endif  /* _MEMORIA_CORE_TOOLS_TYPES_LIST_INDEX_HPP */

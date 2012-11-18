@@ -20,86 +20,86 @@ using namespace std;
 
 class setCreateBatchBenchmark: public SPBenchmarkTask {
 
-	typedef SPBenchmarkTask Base;
+    typedef SPBenchmarkTask Base;
 
-	typedef typename Base::Allocator 	Allocator;
-	typedef typename Base::Profile 		Profile;
+    typedef typename Base::Allocator    Allocator;
+    typedef typename Base::Profile      Profile;
 
-	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<set1>::Type 		SetCtr;
-	typedef typename SetCtr::Iterator								Iterator;
-	typedef typename SetCtr::ID										ID;
-	typedef typename SetCtr::Accumulator							Accumulator;
-
-
-	typedef typename SetCtr::Key									Key;
-	typedef typename SetCtr::Value									Value;
-
-	typedef typename SetCtr::ISubtreeProvider						ISubtreeProvider;
-	typedef typename SetCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
-	typedef typename SetCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
-	typedef typename SetCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
+    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<set1>::Type       SetCtr;
+    typedef typename SetCtr::Iterator                               Iterator;
+    typedef typename SetCtr::ID                                     ID;
+    typedef typename SetCtr::Accumulator                            Accumulator;
 
 
-	class SubtreeProvider: public DefaultSubtreeProviderBase
-	{
-		typedef DefaultSubtreeProviderBase 		Base;
-		typedef typename ISubtreeProvider::Enum Direction;
-	public:
-		SubtreeProvider(SetCtr* ctr, BigInt total): Base(*ctr, total) {}
+    typedef typename SetCtr::Key                                    Key;
+    typedef typename SetCtr::Value                                  Value;
 
-		virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
-		{
-			Accumulator acc;
-			acc[0] = 1;
-			return LeafNodeKeyValuePair(acc, Value());
-		}
-	};
+    typedef typename SetCtr::ISubtreeProvider                       ISubtreeProvider;
+    typedef typename SetCtr::DefaultSubtreeProviderBase             DefaultSubtreeProviderBase;
+    typedef typename SetCtr::NonLeafNodeKeyValuePair                NonLeafNodeKeyValuePair;
+    typedef typename SetCtr::LeafNodeKeyValuePair                   LeafNodeKeyValuePair;
 
 
-	Allocator* 	allocator_;
-	SetCtr* 	set_;
+    class SubtreeProvider: public DefaultSubtreeProviderBase
+    {
+        typedef DefaultSubtreeProviderBase      Base;
+        typedef typename ISubtreeProvider::Enum Direction;
+    public:
+        SubtreeProvider(SetCtr* ctr, BigInt total): Base(*ctr, total) {}
+
+        virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
+        {
+            Accumulator acc;
+            acc[0] = 1;
+            return LeafNodeKeyValuePair(acc, Value());
+        }
+    };
+
+
+    Allocator*  allocator_;
+    SetCtr*     set_;
 
 public:
 
-	setCreateBatchBenchmark(StringRef name):
-		SPBenchmarkTask(name)
-	{
-		RootCtr::initMetadata();
-		SetCtr::initMetadata();
-	}
+    setCreateBatchBenchmark(StringRef name):
+        SPBenchmarkTask(name)
+    {
+        RootCtr::initMetadata();
+        SetCtr::initMetadata();
+    }
 
-	virtual ~setCreateBatchBenchmark() throw() {}
+    virtual ~setCreateBatchBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		allocator_ 	= new Allocator();
-		set_ 		= new SetCtr(allocator_, 1, true);
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        allocator_  = new Allocator();
+        set_        = new SetCtr(allocator_, 1, true);
 
-		allocator_->commit();
-	}
+        allocator_->commit();
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete set_;
-		delete allocator_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete set_;
+        delete allocator_;
+    }
 
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		Int size = params.x();
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        Int size = params.x();
 
-		params.operations() = size;
+        params.operations() = size;
 
-		Iterator i = set_->End();
+        Iterator i = set_->End();
 
-		SubtreeProvider provider(set_, size);
+        SubtreeProvider provider(set_, size);
 
-		set_->insertSubtree(i, provider);
+        set_->insertSubtree(i, provider);
 
-		allocator_->commit();
-	}
+        allocator_->commit();
+    }
 };
 
 

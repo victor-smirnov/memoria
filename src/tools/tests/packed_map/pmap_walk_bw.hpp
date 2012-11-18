@@ -26,165 +26,165 @@ using namespace std;
 template <Int BranchingFactor_>
 class PMapWalkBwTest: public TestTask {
 
-	template <typename Key_, typename Value_, Int BF>
-	struct PMapWalkBwTypes {
-		typedef Key_ 						Key;
-		typedef Key_ 						IndexKey;
-		typedef Value_						Value;
+    template <typename Key_, typename Value_, Int BF>
+    struct PMapWalkBwTypes {
+        typedef Key_                        Key;
+        typedef Key_                        IndexKey;
+        typedef Value_                      Value;
 
-		static const Int Blocks 			= 1;
-		static const Int BranchingFactor	= BF;
+        static const Int Blocks             = 1;
+        static const Int BranchingFactor    = BF;
 
-		typedef Accumulators<Key, Blocks> 	Accumulator;
-	};
+        typedef Accumulators<Key, Blocks>   Accumulator;
+    };
 
-	struct TestReplay: public TestReplayParams {
+    struct TestReplay: public TestReplayParams {
 
-		Int start;
-		Int end;
+        Int start;
+        Int end;
 
-		Int block_size;
-		Int size;
+        Int block_size;
+        Int size;
 
-		TestReplay(): TestReplayParams()
-		{
-			Add("start", 		start);
-			Add("end", 			end);
-			Add("block_size",	block_size);
-			Add("size", 		size);
-		}
-	};
+        TestReplay(): TestReplayParams()
+        {
+            Add("start",        start);
+            Add("end",          end);
+            Add("block_size",   block_size);
+            Add("size",         size);
+        }
+    };
 
-	typedef PMapWalkBwTypes<Int, EmptyValue, BranchingFactor_> 	Types;
+    typedef PMapWalkBwTypes<Int, EmptyValue, BranchingFactor_>  Types;
 
-	typedef typename Types::Accumulator		Accumulator;
-	typedef typename Types::Key				Key;
-	typedef typename Types::Value			Value;
+    typedef typename Types::Accumulator     Accumulator;
+    typedef typename Types::Key             Key;
+    typedef typename Types::Value           Value;
 
-	static const Int Blocks					= Types::Blocks;
+    static const Int Blocks                 = Types::Blocks;
 
-	typedef PackedSumTree<Types> 				Map;
+    typedef PackedSumTree<Types>                Map;
 
-	Int block_size;
-	Int max_size;
+    Int block_size;
+    Int max_size;
 
 public:
 
-	PMapWalkBwTest():
-		TestTask("WalkBw."+toString(BranchingFactor_)),
-		block_size(16384),
-		max_size(0)
-	{
-		Add("block_size", block_size);
-		Add("max_size",   max_size);
-	}
+    PMapWalkBwTest():
+        TestTask("WalkBw."+toString(BranchingFactor_)),
+        block_size(16384),
+        max_size(0)
+    {
+        Add("block_size", block_size);
+        Add("max_size",   max_size);
+    }
 
-	virtual ~PMapWalkBwTest() throw() {}
+    virtual ~PMapWalkBwTest() throw() {}
 
-	virtual TestReplayParams* createTestStep(StringRef name) const
-	{
-		return new TestReplay();
-	}
+    virtual TestReplayParams* createTestStep(StringRef name) const
+    {
+        return new TestReplay();
+    }
 
-	virtual void Replay(ostream& out, TestReplayParams* step_params)
-	{
-		TestReplay* params = T2T<TestReplay*>(step_params);
+    virtual void Replay(ostream& out, TestReplayParams* step_params)
+    {
+        TestReplay* params = T2T<TestReplay*>(step_params);
 
-		Int start 		= params->start;
-		Int end 		= params->end;
-		Int size		= params->size;
+        Int start       = params->start;
+        Int end         = params->end;
+        Int size        = params->size;
 
-		Int buffer_size 	= params->block_size;
+        Int buffer_size     = params->block_size;
 
-		unique_ptr<Byte[]>	buffer_ptr(new Byte[buffer_size]);
-		Byte* buffer 		= buffer_ptr.get();
-
-
-		Map* map 			= T2T<Map*>(buffer);
-
-		map->initByBlock(buffer_size - sizeof(Map));
-
-		FillMap(map, size);
-
-		BigInt sum = Sum(map, start, end);
-
-		Accumulator acc;
-		Int idx = map->findSumPositionBw(0, start, sum, acc);
-
-		MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
-	}
-
-	void FillMap(Map* map, Int size)
-	{
-		for (Int c = 0; c < size; c++)
-		{
-			for (Int d = 0; d < Blocks; d++)
-			{
-				map->key(d, c) = getRandom(50) + 1;
-			}
-		}
-
-		map->size() = size;
-
-		map->reindexAll(0, size);
-	}
+        unique_ptr<Byte[]>  buffer_ptr(new Byte[buffer_size]);
+        Byte* buffer        = buffer_ptr.get();
 
 
-	BigInt Sum(Map* map, Int start, Int end) const
-	{
-		BigInt sum = 0;
-		for (Int c = start; c > end; c--)
-		{
-			sum += map->key(0, c);
-		}
-		return sum;
-	}
+        Map* map            = T2T<Map*>(buffer);
 
-	virtual void Run(ostream& out)
-	{
-		Int buffer_size 	= this->block_size;
-		Int max_size 		= this->max_size;
+        map->initByBlock(buffer_size - sizeof(Map));
 
-		unique_ptr<Byte[]>	buffer_ptr(new Byte[buffer_size]);
-		Byte* buffer 		= buffer_ptr.get();
+        FillMap(map, size);
+
+        BigInt sum = Sum(map, start, end);
+
+        Accumulator acc;
+        Int idx = map->findSumPositionBw(0, start, sum, acc);
+
+        MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
+    }
+
+    void FillMap(Map* map, Int size)
+    {
+        for (Int c = 0; c < size; c++)
+        {
+            for (Int d = 0; d < Blocks; d++)
+            {
+                map->key(d, c) = getRandom(50) + 1;
+            }
+        }
+
+        map->size() = size;
+
+        map->reindexAll(0, size);
+    }
 
 
-		Map* map 			= T2T<Map*>(buffer);
+    BigInt Sum(Map* map, Int start, Int end) const
+    {
+        BigInt sum = 0;
+        for (Int c = start; c > end; c--)
+        {
+            sum += map->key(0, c);
+        }
+        return sum;
+    }
 
-		map->initByBlock(buffer_size - sizeof(Map));
+    virtual void Run(ostream& out)
+    {
+        Int buffer_size     = this->block_size;
+        Int max_size        = this->max_size;
 
-		Int size = max_size != 0 ? max_size : map->maxSize();
+        unique_ptr<Byte[]>  buffer_ptr(new Byte[buffer_size]);
+        Byte* buffer        = buffer_ptr.get();
 
-		FillMap(map, size);
 
-		TestReplay replay;
+        Map* map            = T2T<Map*>(buffer);
 
-		replay.block_size 	= buffer_size;
-		replay.size			= size;
+        map->initByBlock(buffer_size - sizeof(Map));
 
-		try {
-			for (Int end = map->size() - 1; end >= -1; end--)
-			{
-				for (Int start = map->size() - 1; start > end; start--)
-				{
-					replay.start 	= start;
-					replay.end		= end;
+        Int size = max_size != 0 ? max_size : map->maxSize();
 
-					BigInt sum = Sum(map, start, end);
+        FillMap(map, size);
 
-					Accumulator acc;
-					Int idx = map->findSumPositionBw(0, start, sum, acc);
+        TestReplay replay;
 
-					MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
-				}
-			}
-		}
-		catch (...) {
-			Store(&replay);
-			throw;
-		}
+        replay.block_size   = buffer_size;
+        replay.size         = size;
 
-	}
+        try {
+            for (Int end = map->size() - 1; end >= -1; end--)
+            {
+                for (Int start = map->size() - 1; start > end; start--)
+                {
+                    replay.start    = start;
+                    replay.end      = end;
+
+                    BigInt sum = Sum(map, start, end);
+
+                    Accumulator acc;
+                    Int idx = map->findSumPositionBw(0, start, sum, acc);
+
+                    MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
+                }
+            }
+        }
+        catch (...) {
+            Store(&replay);
+            throw;
+        }
+
+    }
 };
 
 

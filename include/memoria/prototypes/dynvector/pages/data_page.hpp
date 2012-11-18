@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_PAGES_DATA_PAGE_HPP
-#define	_MEMORIA_PROTOTYPES_DYNVECTOR_PAGES_DATA_PAGE_HPP
+#define _MEMORIA_PROTOTYPES_DYNVECTOR_PAGES_DATA_PAGE_HPP
 
 #include <memoria/core/tools/reflection.hpp>
 
@@ -31,11 +31,11 @@ public:
                 ComponentList,
                 DataBlockTypeFactory,
                 Base0
-    >                                                                           	Me;
+    >                                                                               Me;
 
-    typedef PageBuilder<ComponentList, Base0>                      					Base;
+    typedef PageBuilder<ComponentList, Base0>                                       Base;
 
-    typedef typename Base0::Allocator                                         		Allocator;
+    typedef typename Base0::Allocator                                               Allocator;
 
 public:
     
@@ -52,12 +52,12 @@ public:
     DVDataPage(): Base(), data_() {}
 
     void init() {
-    	data_.init();
-    	Base::init();
+        data_.init();
+        Base::init();
     }
 
     Short size() const {
-    	return data_.size();
+        return data_.size();
     }
 
     const PageData& data() const {
@@ -74,7 +74,7 @@ public:
 
     static PageMetadata *reflection()
     {
-    	return reflection_;
+        return reflection_;
     }
 
     void Reindex()
@@ -97,69 +97,77 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::generateDataEvents(handler);
-    	data_.generateDataEvents(handler);
+        Base::generateDataEvents(handler);
+        data_.generateDataEvents(handler);
     }
 
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
-    	Base::template serialize<FieldFactory>(buf);
+        Base::template serialize<FieldFactory>(buf);
 
-    	FieldFactory<PageData>::serialize(buf, data_);
+        FieldFactory<PageData>::serialize(buf, data_);
     }
 
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
-    	Base::template deserialize<FieldFactory>(buf);
+        Base::template deserialize<FieldFactory>(buf);
 
-    	FieldFactory<PageData>::deserialize(buf, data_);
+        FieldFactory<PageData>::deserialize(buf, data_);
     }
 
 
     class PageOperations: public IPageOperations
     {
-    	virtual Int serialize(const void* page, void* buf) const
-    	{
-    		const Me* me = T2T<const Me*>(page);
+        virtual Int serialize(const void* page, void* buf) const
+        {
+            const Me* me = T2T<const Me*>(page);
 
-    		SerializationData data;
-    		data.buf = T2T<char*>(buf);
+            SerializationData data;
+            data.buf = T2T<char*>(buf);
 
-    		me->template serialize<FieldFactory>(data);
+            me->template serialize<FieldFactory>(data);
 
-    		return data.total;
-    	}
+            return data.total;
+        }
 
-    	virtual void deserialize(const void* buf, Int buf_size, void* page) const
-    	{
-    		Me* me = T2T<Me*>(page);
+        virtual void deserialize(const void* buf, Int buf_size, void* page) const
+        {
+            Me* me = T2T<Me*>(page);
 
-    		DeserializationData data;
-    		data.buf = T2T<const char*>(buf);
+            DeserializationData data;
+            data.buf = T2T<const char*>(buf);
 
-    		me->template deserialize<FieldFactory>(data);
-    	}
+            me->template deserialize<FieldFactory>(data);
+        }
 
-    	virtual Int getPageSize(const void *page) const	{
-    		const Me* me = T2T<const Me*>(page);
-    		return me->data_size();
-    	}
+        virtual Int getPageSize(const void *page) const {
+            const Me* me = T2T<const Me*>(page);
+            return me->data_size();
+        }
 
-    	virtual void generateDataEvents(const void* page, const DataEventsParams& params, IPageDataEventHandler* handler) const
-    	{
-    		const Me* me = T2T<const Me*>(page);
-    		handler->startPage("DATA_PAGE");
-    		me->generateDataEvents(handler);
-    		handler->startPage("DATA_PAGE");
-    	}
+        virtual void generateDataEvents(
+                        const void* page,
+                        const DataEventsParams& params,
+                        IPageDataEventHandler* handler
+                     ) const
+        {
+            const Me* me = T2T<const Me*>(page);
+            handler->startPage("DATA_PAGE");
+            me->generateDataEvents(handler);
+            handler->startPage("DATA_PAGE");
+        }
 
-    	virtual void generateLayoutEvents(const void* page, const LayoutEventsParams& params, IPageLayoutEventHandler* handler) const
-    	{
-    		const Me* me = T2T<const Me*>(page);
-    		me->generateLayoutEvents(handler);
-    	}
+        virtual void generateLayoutEvents(
+                        const void* page,
+                        const LayoutEventsParams& params,
+                        IPageLayoutEventHandler* handler
+                     ) const
+        {
+            const Me* me = T2T<const Me*>(page);
+            me->generateLayoutEvents(handler);
+        }
     };
 
     static Int initMetadata()

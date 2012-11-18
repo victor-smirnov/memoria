@@ -16,30 +16,30 @@ using namespace std;
 
 class SBuf {
 
-	stringstream buffer_;
+    stringstream buffer_;
 
 public:
 
-	SBuf() {}
+    SBuf() {}
 
-	stringstream& buffer() {
-		return buffer_;
-	}
+    stringstream& buffer() {
+        return buffer_;
+    }
 
-	const stringstream& buffer() const {
-		return buffer_;
-	}
+    const stringstream& buffer() const {
+        return buffer_;
+    }
 
-	String str() const {
-		return buffer_.str();
-	}
+    String str() const {
+        return buffer_.str();
+    }
 
-	template <typename T>
-	SBuf& operator<<(const T& value)
-	{
-		this->buffer()<<value;
-		return *this;
-	}
+    template <typename T>
+    SBuf& operator<<(const T& value)
+    {
+        this->buffer()<<value;
+        return *this;
+    }
 };
 
 

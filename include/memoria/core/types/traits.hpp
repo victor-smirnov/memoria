@@ -26,7 +26,7 @@ struct ValueTraits {
 };
 
 
-#define MEMORIA_VALUE_TRAITS(ValueType, MinValue, MaxValue)                      \
+#define MEMORIA_VALUE_TRAITS(ValueType, MinValue, MaxValue)                     \
 template <>                                                                     \
 struct ValueTraits<ValueType> {                                                 \
     static const Long Size              = sizeof(ValueType);                    \

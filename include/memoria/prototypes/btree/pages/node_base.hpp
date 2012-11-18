@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_BASE_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_BASE_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_BASE_HPP
 
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/container/page.hpp>
@@ -72,53 +72,53 @@ public:
 
     Int size() const
     {
-    	return size_;
+        return size_;
     }
 
     Int children_count() const
     {
-    	return size_;
+        return size_;
     }
 
 protected:
     Int& map_size()
     {
-    	return size_;
+        return size_;
     }
 public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::generateDataEvents(handler);
+        Base::generateDataEvents(handler);
 
-    	handler->value("ROOT", &root_);
-    	handler->value("LEAF", &leaf_);
-    	handler->value("BITMAP", &bitmap_);
-    	handler->value("SIZE", &size_);
+        handler->value("ROOT", &root_);
+        handler->value("LEAF", &leaf_);
+        handler->value("BITMAP", &bitmap_);
+        handler->value("SIZE", &size_);
     }
 
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
-    	Base::template serialize<FieldFactory>(buf);
+        Base::template serialize<FieldFactory>(buf);
 
-    	FieldFactory<Int>::serialize(buf, root_);
-    	FieldFactory<Int>::serialize(buf, leaf_);
-    	FieldFactory<Int>::serialize(buf, bitmap_);
+        FieldFactory<Int>::serialize(buf, root_);
+        FieldFactory<Int>::serialize(buf, leaf_);
+        FieldFactory<Int>::serialize(buf, bitmap_);
 
-    	FieldFactory<Int>::serialize(buf, size_);
+        FieldFactory<Int>::serialize(buf, size_);
     }
 
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
-    	Base::template deserialize<FieldFactory>(buf);
+        Base::template deserialize<FieldFactory>(buf);
 
-    	FieldFactory<Int>::deserialize(buf, root_);
-    	FieldFactory<Int>::deserialize(buf, leaf_);
-    	FieldFactory<Int>::deserialize(buf, bitmap_);
+        FieldFactory<Int>::deserialize(buf, root_);
+        FieldFactory<Int>::deserialize(buf, leaf_);
+        FieldFactory<Int>::deserialize(buf, bitmap_);
 
-    	FieldFactory<Int>::deserialize(buf, size_);
+        FieldFactory<Int>::deserialize(buf, size_);
     }
 
 
@@ -135,7 +135,7 @@ public:
 
 
 template <
-		typename BaseType0
+        typename BaseType0
 >
 class NodePageBase: public BaseType0
 {
@@ -152,7 +152,7 @@ public:
 
     void init()
     {
-    	Base::init();
+        Base::init();
     }
 
     const Short &level() const
@@ -167,25 +167,25 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::generateDataEvents(handler);
-    	handler->value("LEVEL", &level_);
+        Base::generateDataEvents(handler);
+        handler->value("LEVEL", &level_);
     }
 
 
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
-    	Base::template serialize<FieldFactory>(buf);
+        Base::template serialize<FieldFactory>(buf);
 
-    	FieldFactory<Short>::serialize(buf, level_);
+        FieldFactory<Short>::serialize(buf, level_);
     }
 
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
-    	Base::template deserialize<FieldFactory>(buf);
+        Base::template deserialize<FieldFactory>(buf);
 
-    	FieldFactory<Short>::deserialize(buf, level_);
+        FieldFactory<Short>::deserialize(buf, level_);
     }
 
 

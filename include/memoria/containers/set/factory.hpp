@@ -19,9 +19,9 @@ namespace memoria    {
 template <typename Profile, Int Indexes>
 struct BTreeTypes<Profile, memoria::Set<Indexes> >: public BTreeTypes<Profile, memoria::Map<Indexes> > {
 
-	typedef BTreeTypes<Profile, memoria::Set<Indexes> > 					Base;
+    typedef BTreeTypes<Profile, memoria::Set<Indexes> >                     Base;
 
-	typedef EmptyValue														Value;
+    typedef EmptyValue                                                      Value;
 
 };
 

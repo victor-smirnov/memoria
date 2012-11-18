@@ -511,9 +511,9 @@ void import_several_pages(node_base *node, index_t &prefix, index_t &offset,
 
         set_keys(node, c, page_size, rank, bitsize);
 
-        total_size	    += page_size;
-        total_rank	    += rank;
-        total_bitsize	+= bitsize;
+        total_size      += page_size;
+        total_rank      += rank;
+        total_bitsize   += bitsize;
     }
 
     BV_NODE_CAST2(node, __node->reindex());

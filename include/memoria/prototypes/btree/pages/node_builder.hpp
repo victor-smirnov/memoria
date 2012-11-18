@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_BUILDER_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_BUILDER_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_BUILDER_HPP
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/prototypes/btree/pages/node_builder_intrnl.hpp>

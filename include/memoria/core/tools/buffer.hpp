@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_BUFFER_H
-#define	_MEMORIA_CORE_TOOLS_BUFFER_H
+#define _MEMORIA_CORE_TOOLS_BUFFER_H
 
 
 #include <memoria/core/types/types.hpp>
@@ -80,24 +80,24 @@ class Buffer {
     typedef Buffer<Size> Me;
 
 public:
-    typedef Long          	Element;
+    typedef Long            Element;
     
-    static const BigInt     SIZE 	= Size;                 //in bytes;
-    static const BigInt     BITSIZE = SIZE * 8;          	//in bits;
+    static const BigInt     SIZE    = Size;                 //in bytes;
+    static const BigInt     BITSIZE = SIZE * 8;             //in bits;
 
     Buffer() {}
 
     const Me& operator=(const Me& other) {
-    	CopyBuffer(other.Buffer_, Buffer_, Size);
+        CopyBuffer(other.Buffer_, Buffer_, Size);
         return *this;
     }
 
     bool operator==(const Me&other) const {
-    	return CompareBuffers(Buffer_, other.Buffer_, Size);
+        return CompareBuffers(Buffer_, other.Buffer_, Size);
     }
 
     bool operator!=(const Me&other) const {
-    	return !CompareBuffers(Buffer_, other.Buffer_, Size);
+        return !CompareBuffers(Buffer_, other.Buffer_, Size);
     }
 
     const char *ptr() const {
@@ -127,7 +127,7 @@ public:
     }
 
     void copyFrom(const void *mem) {
-    	CopyBuffer(mem, Buffer_, Size);
+        CopyBuffer(mem, Buffer_, Size);
     }
 
     void copyTo(void *mem) const {
@@ -151,8 +151,8 @@ class ValueBuffer {
 
 public:
 
-    static const BigInt     SIZE 	= Size;                 //in bytes;
-    static const BigInt     BITSIZE = SIZE * 8;          	//in bits;
+    static const BigInt     SIZE    = Size;                 //in bytes;
+    static const BigInt     BITSIZE = SIZE * 8;             //in bits;
 
     typedef Object                              ValueType;
 
@@ -163,15 +163,15 @@ public:
     }
 
     void clear() {
-    	value_ = 0;
+        value_ = 0;
     }
 
     void copyTo(void *mem) const {
-    	CopyBuffer(&value_, mem, Size);
+        CopyBuffer(&value_, mem, Size);
     }
 
     void copyFrom(const void *mem) {
-    	CopyBuffer(mem, &value_, Size);
+        CopyBuffer(mem, &value_, Size);
     }
 
     const Object &value() const {

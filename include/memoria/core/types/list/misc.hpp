@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_MISC_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_LIST_MISC_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_LIST_MISC_HPP
 
 #include <memoria/core/types/list/append.hpp>
 
@@ -98,4 +98,4 @@ struct AsListTool<TL<Head, Tail> > {
 
 }
 
-#endif	/* _MEMORIA_CORE_TOOLS_TYPES_TYPECHAIN_HPP */
+#endif  /* _MEMORIA_CORE_TOOLS_TYPES_TYPECHAIN_HPP */

@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_MODELS_ARRAY_PAGES_DATA_PAGE_HPP
-#define	_MEMORIA_MODELS_ARRAY_PAGES_DATA_PAGE_HPP
+#define _MEMORIA_MODELS_ARRAY_PAGES_DATA_PAGE_HPP
 
 #include <memoria/core/tools/reflection.hpp>
 
@@ -49,11 +49,11 @@ public:
     }
 
     Byte* value_addr(Int idx) {
-    	return &value_[idx];
+        return &value_[idx];
     }
 
     const Byte* value_addr(Int idx) const {
-    	return &value_[idx];
+        return &value_[idx];
     }
 
     Int byte_size() const {
@@ -62,39 +62,39 @@ public:
 
     void shift(BigInt pos, BigInt length)
     {
-    	//FIXME: implement left shift properly
-    	if (pos < size_)
-    	{
-    		MoveBuffer(value_, pos, pos + length, size_ - pos);
-    	}
+        //FIXME: implement left shift properly
+        if (pos < size_)
+        {
+            MoveBuffer(value_, pos, pos + length, size_ - pos);
+        }
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	handler->startGroup("DATA");
+        handler->startGroup("DATA");
 
-    	handler->value("SIZE", &size_);
-    	handler->value("VALUE", value_, size_, IPageDataEventHandler::BYTE_ARRAY);
+        handler->value("SIZE", &size_);
+        handler->value("VALUE", value_, size_, IPageDataEventHandler::BYTE_ARRAY);
 
-    	handler->endGroup();
+        handler->endGroup();
     }
 
     //template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
-    	FieldFactory<Int>::serialize(buf, size_);
-    	FieldFactory<Byte>::serialize(buf, value_[0], sizeof(value_));
+        FieldFactory<Int>::serialize(buf, size_);
+        FieldFactory<Byte>::serialize(buf, value_[0], sizeof(value_));
     }
 
     //template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
-    	FieldFactory<Int>::deserialize(buf, size_);
-    	FieldFactory<Byte>::deserialize(buf, value_[0], sizeof(value_));
+        FieldFactory<Int>::deserialize(buf, size_);
+        FieldFactory<Byte>::deserialize(buf, value_[0], sizeof(value_));
     }
 
     void init() {
-    	size_ = 0;
+        size_ = 0;
     }
 };
 

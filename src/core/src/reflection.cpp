@@ -11,8 +11,8 @@
 namespace std {
 
 ostream& operator<<(ostream& os, const memoria::vapi::IDValue& id) {
-	os<<id.str();
-	return os;
+    os<<id.str();
+    return os;
 }
 
 }
@@ -23,7 +23,8 @@ namespace vapi {
 
 
 
-ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const MetadataList &content) : MetadataGroup(name, content), hash_(0)
+ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const MetadataList &content):
+        MetadataGroup(name, content), hash_(0)
 {
     MetadataGroup::set_type() = Metadata::MODEL;
 
@@ -42,29 +43,29 @@ ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const M
 
 void ContainerMetadataRepository::process_model(ContainerMetadata* model)
 {
-	if (model_map_.find(model->hash()) == model_map_.end())
-	{
-		hash_ = hash_ + model->hash();
+    if (model_map_.find(model->hash()) == model_map_.end())
+    {
+        hash_ = hash_ + model->hash();
 
-		model_map_[model->hash()] = model;
+        model_map_[model->hash()] = model;
 
-		for (Int d = 0; d < model->size(); d++)
-		{
-			Metadata* item = model->getItem(d);
-			if (item->getTypeCode() == Metadata::PAGE)
-			{
-				PageMetadata *page = static_cast<PageMetadata*> (item);
-				page_map_[page->hash()] = page;
-			}
-			else if (item->getTypeCode() == Metadata::MODEL)
-			{
-				process_model(static_cast<ContainerMetadata*> (item));
-			}
-			else {
-				//exception
-			}
-		}
-	}
+        for (Int d = 0; d < model->size(); d++)
+        {
+            Metadata* item = model->getItem(d);
+            if (item->getTypeCode() == Metadata::PAGE)
+            {
+                PageMetadata *page = static_cast<PageMetadata*> (item);
+                page_map_[page->hash()] = page;
+            }
+            else if (item->getTypeCode() == Metadata::MODEL)
+            {
+                process_model(static_cast<ContainerMetadata*> (item));
+            }
+            else {
+                //exception
+            }
+        }
+    }
 }
 
 
@@ -75,7 +76,7 @@ PageMetadata* ContainerMetadataRepository::getPageMetadata(Int hashCode) const {
         return i->second;
     }
     else {
-    	throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown page type hash code "<<hashCode);
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown page type hash code "<<hashCode);
     }
 }
 
@@ -87,16 +88,23 @@ ContainerMetadata* ContainerMetadataRepository::getContainerMetadata(Int hashCod
         return i->second;
     }
     else {
-    	throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown model hash code "<<hashCode);
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown model hash code "<<hashCode);
     }
 }
 
 
 
-PageMetadata::PageMetadata(StringRef name, const MetadataList &content, Int attributes, Int hash0, const IPageOperations* page_operations, Int page_size):
+PageMetadata::PageMetadata(
+                StringRef name,
+                const MetadataList &content,
+                Int attributes,
+                Int hash0,
+                const IPageOperations* page_operations,
+                Int page_size
+              ):
     MetadataGroup(name, content), attributes_(attributes)
 {
-	MetadataGroup::set_type() = Metadata::PAGE;
+    MetadataGroup::set_type() = Metadata::PAGE;
     hash_ = hash0;
     page_operations_ = page_operations;
     page_size_ = page_size;

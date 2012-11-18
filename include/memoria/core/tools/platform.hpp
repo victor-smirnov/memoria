@@ -18,9 +18,9 @@ namespace memoria{
 
 class MEMORIA_API Platform {
 public:
-	static String getLineSeparator();
-	static String getPathSeparator();
-	static String getFilePathSeparator();
+    static String getLineSeparator();
+    static String getPathSeparator();
+    static String getFilePathSeparator();
 };
 
 }

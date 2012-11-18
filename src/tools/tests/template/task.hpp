@@ -22,69 +22,69 @@ using namespace memoria::vapi;
 
 class TemplateTestTask: public SPTestTask {
 
-	Int param;
+    Int param;
 
 public:
 
-	struct TestReplay: public TestReplayParams
-	{
-		Int replay_param;
+    struct TestReplay: public TestReplayParams
+    {
+        Int replay_param;
 
-		TestReplay(): TestReplayParams(), replay_param(0)
-		{
-			Add("replay_param", replay_param);
-		}
-	};
+        TestReplay(): TestReplayParams(), replay_param(0)
+        {
+            Add("replay_param", replay_param);
+        }
+    };
 
 
 
-	TemplateTestTask(): SPTestTask("Test"), param(1024)
-	{
-		Add("param", param);
-	}
+    TemplateTestTask(): SPTestTask("Test"), param(1024)
+    {
+        Add("param", param);
+    }
 
-	virtual ~TemplateTestTask() throw() {}
+    virtual ~TemplateTestTask() throw() {}
 
-	virtual TestReplayParams* createTestStep(StringRef name) const
-	{
-		return new TestReplay();
-	}
+    virtual TestReplayParams* createTestStep(StringRef name) const
+    {
+        return new TestReplay();
+    }
 
-	virtual void Replay(ostream& out, TestReplayParams* step_params)
-	{
-		TestReplay* params = static_cast<TestReplay*>(step_params);
-		Allocator allocator;
+    virtual void Replay(ostream& out, TestReplayParams* step_params)
+    {
+        TestReplay* params = static_cast<TestReplay*>(step_params);
+        Allocator allocator;
 
-		LoadAllocator(allocator, params);
+        LoadAllocator(allocator, params);
 
-		//do something with allocator
-	}
+        //do something with allocator
+    }
 
-	virtual void Run(ostream& out)
-	{
-		TestReplay params;
-		out<<getTaskName()<<": "<<"Do main things"<<endl;
+    virtual void Run(ostream& out)
+    {
+        TestReplay params;
+        out<<getTaskName()<<": "<<"Do main things"<<endl;
 
-		Allocator allocator;
-		allocator.commit();
+        Allocator allocator;
+        allocator.commit();
 
-		try {
-			throw Exception(MEMORIA_SOURCE, "Test Exception");
-		}
-		catch (...) {
-			Store(allocator, &params);
-			throw;
-		}
-	}
+        try {
+            throw Exception(MEMORIA_SOURCE, "Test Exception");
+        }
+        catch (...) {
+            Store(allocator, &params);
+            throw;
+        }
+    }
 };
 
 class TemplateTestSuite: public TestSuite {
 public:
 
-	TemplateTestSuite(): TestSuite("Template")
-	{
-		registerTask(new TemplateTestTask());
-	}
+    TemplateTestSuite(): TestSuite("Template")
+    {
+        registerTask(new TemplateTestTask());
+    }
 };
 
 

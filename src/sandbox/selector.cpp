@@ -92,7 +92,7 @@ class SomeTag<InheritSomeTag<TSpec> > { };
 template <typename TSpec>
 class SomeTag<InheritSomeTag<InheritSomeTag2<TSpec> > > { };
 
-template <class T, class Tag=T	>
+template <class T, class Tag=T  >
 struct MyClass { };
 
 template <class T, typename TSpec>
@@ -103,7 +103,7 @@ struct MyClass<T, SomeTag<TSpec> >
 
 template <typename T>
 struct Factory {
-	typedef SomeTag<InheritSomeTag<T> > Type;
+    typedef SomeTag<InheritSomeTag<T> > Type;
 };
 
 //typename Factory<TSpec>::Type
@@ -135,7 +135,7 @@ typedef TLTool<Name1, Name2, Name3, Name4, Name5, Name6>::List List;
 
 int main()
 {
-	MyClass<SomeTag<> >::isSpecialized test1; //ok
+    MyClass<SomeTag<> >::isSpecialized test1; //ok
     MyClass<SomeTag<InheritSomeTag<> > >::isSpecialized test2; //ok
     MyClass<SomeTag<InheritSomeTag<InheritSomeTag2<> > > >::isSpecialized test3; //ok
 

@@ -6,7 +6,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_PAGES_DISPATCHERS_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_PAGES_DISPATCHERS_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_PAGES_DISPATCHERS_HPP
 
 
 #include <memoria/prototypes/btree/pages/dispatchers/defs.hpp>

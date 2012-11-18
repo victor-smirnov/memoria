@@ -17,54 +17,55 @@ namespace vapi       {
 struct MEMORIA_API MetadataGroup: public Metadata {
 public:
 
-	MetadataGroup(StringRef name, const MetadataList &content, Int block_size = 0, Int type = Metadata::GROUP): Metadata(name, type), content_(content.size()), block_size_(block_size)
-	{
-		for (UInt c = 0; c < content.size(); c++) {
-			content_[c] = content[c];
-		}
-	}
+    MetadataGroup(StringRef name, const MetadataList &content, Int block_size = 0, Int type = Metadata::GROUP):
+        Metadata(name, type), content_(content.size()), block_size_(block_size)
+    {
+        for (UInt c = 0; c < content.size(); c++) {
+            content_[c] = content[c];
+        }
+    }
 
-	virtual ~MetadataGroup() throw ()
-	{
-		for (UInt c = 0; c < content_.size(); c++)
-		{
+    virtual ~MetadataGroup() throw ()
+    {
+        for (UInt c = 0; c < content_.size(); c++)
+        {
 
-			if (content_[c]->getTypeCode() != Metadata::PAGE &&
-					content_[c]->getTypeCode() != Metadata::MODEL &&
-					content_[c]->getTypeCode() != Metadata::CONTAINER)
-			{
-				delete content_[c];
-			}
-		}
-	}
-
-
-	virtual Int size() const {
-		return content_.size();
-	}
-
-	virtual Metadata* getItem(Int idx) const {
-		return content_[idx];
-	}
+            if (content_[c]->getTypeCode() != Metadata::PAGE &&
+                    content_[c]->getTypeCode() != Metadata::MODEL &&
+                    content_[c]->getTypeCode() != Metadata::CONTAINER)
+            {
+                delete content_[c];
+            }
+        }
+    }
 
 
+    virtual Int size() const {
+        return content_.size();
+    }
 
-	virtual void putAll(MetadataList& target) const
-	{
-		for (auto i = content_.begin(); i != content_.end(); i++)
-		{
-			target.push_back(*i);
-		}
-	}
+    virtual Metadata* getItem(Int idx) const {
+        return content_[idx];
+    }
 
-	virtual Int getBlockSize() const
-	{
-		return block_size_;
-	}
+
+
+    virtual void putAll(MetadataList& target) const
+    {
+        for (auto i = content_.begin(); i != content_.end(); i++)
+        {
+            target.push_back(*i);
+        }
+    }
+
+    virtual Int getBlockSize() const
+    {
+        return block_size_;
+    }
 
 protected:
-	MetadataList 	content_;
-	Int 			block_size_;
+    MetadataList    content_;
+    Int             block_size_;
 
 };
 

@@ -23,121 +23,121 @@ namespace memoria {
 
 template <typename ID, typename Object, Int Size = 64>
 class StaticPool {
-	typedef StaticPool<ID, Object, Size> MyType;
-	typedef ID T;
+    typedef StaticPool<ID, Object, Size> MyType;
+    typedef ID T;
 
-	T 		ids_[Size];
-	Object 	objects_[Size];
-	UByte	idxs_[Size];
-	Int 	size_;
-	Int 	Max;
+    T       ids_[Size];
+    Object  objects_[Size];
+    UByte   idxs_[Size];
+    Int     size_;
+    Int     Max;
 
 public:
-	StaticPool(): size_(0), Max(0)
-	{
-		for (Int c = 0; c < Size; c++)
-		{
-			ids_[c] = 0;
-		}
-	}
+    StaticPool(): size_(0), Max(0)
+    {
+        for (Int c = 0; c < Size; c++)
+        {
+            ids_[c] = 0;
+        }
+    }
 
-	StaticPool(const MyType& other): size_(0), Max(0) {}
+    StaticPool(const MyType& other): size_(0), Max(0) {}
 
-	MyType& operator=(const MyType& other) {
-		return *this;
-	}
+    MyType& operator=(const MyType& other) {
+        return *this;
+    }
 
-	Object* get(const ID& id)
-	{
-		const T idv = id.value();
+    Object* get(const ID& id)
+    {
+        const T idv = id.value();
 
-		for (Int c = 0; c < Max; c++)
-		{
-			if (ids_[c] == idv)
-			{
-				return &objects_[c];
-			}
-		}
+        for (Int c = 0; c < Max; c++)
+        {
+            if (ids_[c] == idv)
+            {
+                return &objects_[c];
+            }
+        }
 
-		return NULL;
-	}
+        return NULL;
+    }
 
-	Object* allocate(const ID& id)
-	{
-		Int idx = selectFirst0Idx();
-		if (idx < Size)
-		{
-			size_++;
+    Object* allocate(const ID& id)
+    {
+        Int idx = selectFirst0Idx();
+        if (idx < Size)
+        {
+            size_++;
 
-			if (size_ > Max && Max < Size) Max = size_;
+            if (size_ > Max && Max < Size) Max = size_;
 
-			ids_[idx] = id;
-			objects_[idx].init();
-			return &objects_[idx];
-		}
-		else {
-			throw new Exception(MEMORIA_SOURCE, "StaticPool is full");
-		}
-	}
+            ids_[idx] = id;
+            objects_[idx].init();
+            return &objects_[idx];
+        }
+        else {
+            throw new Exception(MEMORIA_SOURCE, "StaticPool is full");
+        }
+    }
 
-	void release(const ID& id)
-	{
-		for (Int c = 0; c < Size; c++)
-		{
-			if (ids_[c] == id)
-			{
-				size_--;
-				ids_[c] = 0;
-				return;
-			}
-		}
+    void release(const ID& id)
+    {
+        for (Int c = 0; c < Size; c++)
+        {
+            if (ids_[c] == id)
+            {
+                size_--;
+                ids_[c] = 0;
+                return;
+            }
+        }
 
-		throw new Exception(MEMORIA_SOURCE, "ID is not known in this StaticPool");
-	}
+        throw new Exception(MEMORIA_SOURCE, "ID is not known in this StaticPool");
+    }
 
-	Int getMax() {
-		return Max;
-	}
+    Int getMax() {
+        return Max;
+    }
 
-	Int getUsage() {
-		return Size - getCapacity();
-	}
+    Int getUsage() {
+        return Size - getCapacity();
+    }
 
-	Int getCapacity()
-	{
-		Int cnt = 0;
-		for (Int c = 0; c < Size; c++)
-		{
-			if (ids_[c] == 0)
-			{
-				cnt++;
-			}
-		}
+    Int getCapacity()
+    {
+        Int cnt = 0;
+        for (Int c = 0; c < Size; c++)
+        {
+            if (ids_[c] == 0)
+            {
+                cnt++;
+            }
+        }
 
-		return cnt;
-	}
+        return cnt;
+    }
 
-	void clear() {
-		for (Int c = 0; c < Size; c++)
-		{
-			ids_[c] = ID(0);
-		}
-	}
+    void clear() {
+        for (Int c = 0; c < Size; c++)
+        {
+            ids_[c] = ID(0);
+        }
+    }
 
 private:
-	Int selectFirst0Idx()
-	{
-		const ID EMPTY(0);
-		for (Int c = 0; c < Size; c++)
-		{
-			if (ids_[c] == EMPTY)
-			{
-				return c;
-			}
-		}
+    Int selectFirst0Idx()
+    {
+        const ID EMPTY(0);
+        for (Int c = 0; c < Size; c++)
+        {
+            if (ids_[c] == EMPTY)
+            {
+                return c;
+            }
+        }
 
-		return Size;
-	}
+        return Size;
+    }
 };
 
 

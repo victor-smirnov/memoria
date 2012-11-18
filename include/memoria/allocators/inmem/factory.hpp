@@ -31,11 +31,16 @@ class ContainerCollectionCfg;
 template <typename T>
 class ContainerCollectionCfg<SmallProfile<T> > {
 public:
-    typedef BasicContainerCollectionCfg<SmallProfile<T> >                      			Types;
+    typedef BasicContainerCollectionCfg<SmallProfile<T> >                               Types;
 };
 
 
-typedef memoria::InMemAllocator<SmallProfile<>, ContainerCollectionCfg<SmallProfile<> >::Types::Page, EmptyType> SmallInMemAllocator;
+typedef memoria::InMemAllocator<
+            SmallProfile<>,
+            ContainerCollectionCfg<SmallProfile<> >::Types::Page,
+            EmptyType
+        >                                                                               SmallInMemAllocator;
+
 typedef CtrTypeFactory<SmallProfile<> > SmallCtrTypeFactory;
 MEMORIA_TEMPLATE_EXTERN template class MetadataRepository<SmallProfile<> >;
 
@@ -112,7 +117,11 @@ MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Vector, memoria::dynvect
 
 
 
-MEMORIA_TEMPLATE_EXTERN template class memoria::InMemAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType>;
+MEMORIA_TEMPLATE_EXTERN template class memoria::InMemAllocator<
+                                                    SmallProfile<>,
+                                                    BasicContainerCollectionCfg<SmallProfile<> >::Page,
+                                                    EmptyType
+                                                >;
 
 
 }

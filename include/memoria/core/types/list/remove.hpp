@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_REMOVE_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_LIST_REMOVE_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_LIST_REMOVE_HPP
 
 #include <memoria/core/types/list/typelist.hpp>
 
@@ -17,7 +17,7 @@ template <typename Item, typename List, bool All = false> struct RemoveTool;
 
 template <typename Item, typename Head, typename Tail, bool All>
 struct RemoveTool<Item, TL<Head, Tail>, All> {
-    typedef TL<Head, typename RemoveTool<Item, Tail>::Result>                 Result;
+    typedef TL<Head, typename RemoveTool<Item, Tail>::Result>                   Result;
 };
 
 template <typename Item, typename Tail>
@@ -27,7 +27,7 @@ struct RemoveTool<Item, TL<Item, Tail>, false> {
 
 template <typename Item, typename Tail>
 struct RemoveTool<Item, TL<Item, Tail>, true> {
-    typedef typename RemoveTool<Item, Tail, true>::Result                           Result;
+    typedef typename RemoveTool<Item, Tail, true>::Result                       Result;
 };
 
 
@@ -56,4 +56,4 @@ public:
 
 }
 
-#endif	/* _MEMORIA_CORE_TOOLS_TYPES_LIST_REMOVE_HPP */
+#endif  /* _MEMORIA_CORE_TOOLS_TYPES_LIST_REMOVE_HPP */

@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_MODEL_INSERT_BATCH_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_MODEL_INSERT_BATCH_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_MODEL_INSERT_BATCH_HPP
 
 #include <memoria/prototypes/btree/tools.hpp>
 #include <memoria/prototypes/btree/pages/tools.hpp>
@@ -30,7 +30,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
     
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::TreeNodePage                                     	TreeNodePage;
+    typedef typename Base::TreeNodePage                                         TreeNodePage;
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
@@ -45,7 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Base::Accumulator											Accumulator;
+    typedef typename Base::Accumulator                                          Accumulator;
 
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
@@ -54,37 +54,37 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     struct LeafNodeKeyValuePair
     {
-    	Accumulator keys;
-    	Value		value;
+        Accumulator keys;
+        Value       value;
 
-    	LeafNodeKeyValuePair() {}
-    	LeafNodeKeyValuePair(Accumulator k, Value v): keys(k), value(v) {}
+        LeafNodeKeyValuePair() {}
+        LeafNodeKeyValuePair(Accumulator k, Value v): keys(k), value(v) {}
     };
 
-    typedef vector<LeafNodeKeyValuePair>										LeafPairsVector;
+    typedef vector<LeafNodeKeyValuePair>                                        LeafPairsVector;
 
     struct NonLeafNodeKeyValuePair
     {
-    	Accumulator keys;
-    	ID			value;
-    	BigInt		key_count;
+        Accumulator keys;
+        ID          value;
+        BigInt      key_count;
     };
 
     struct ISubtreeProvider
     {
-    	typedef enum {FORWARD, BACKWARD} 	Enum;
-    	typedef MyType 						CtrType;
+        typedef enum {FORWARD, BACKWARD}    Enum;
+        typedef MyType                      CtrType;
 
-    	virtual NonLeafNodeKeyValuePair getKVPair(Enum direction, BigInt begin, BigInt count, Int level) 	= 0;
-    	virtual LeafNodeKeyValuePair 	getLeafKVPair(Enum direction, BigInt begin) 						= 0;
-    	virtual BigInt 					getTotalKeyCount()													= 0;
+        virtual NonLeafNodeKeyValuePair getKVPair(Enum direction, BigInt begin, BigInt count, Int level)    = 0;
+        virtual LeafNodeKeyValuePair    getLeafKVPair(Enum direction, BigInt begin)                         = 0;
+        virtual BigInt                  getTotalKeyCount()                                                  = 0;
 
-    	virtual ISubtreeProvider&		getProvider() {return *this;}
+        virtual ISubtreeProvider&       getProvider() {return *this;}
     };
 
     BigInt divide(BigInt op1, BigInt op2)
     {
-    	return (op1 / op2) + ((op1 % op2 == 0) ?  0 : 1);
+        return (op1 / op2) + ((op1 % op2 == 0) ?  0 : 1);
     }
 
     BigInt getSubtreeSize(Int level) const;
@@ -95,7 +95,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
     bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const {
-    	return true;
+        return true;
     };
 
     void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
@@ -105,8 +105,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     bool insert(Iterator& iter, const Element& element)
     {
-    	insertEntry(iter, element);
-    	return iter.nextKey();
+        insertEntry(iter, element);
+        return iter.nextKey();
     }
 
     void insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size);
@@ -120,177 +120,177 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
     class DefaultSubtreeProviderBase: public ISubtreeProvider {
 
-    	BigInt 	total_;
-    	MyType& ctr_;
+        BigInt  total_;
+        MyType& ctr_;
 
     public:
 
-    	typedef typename ISubtreeProvider::Enum Direction;
+        typedef typename ISubtreeProvider::Enum Direction;
 
-    	DefaultSubtreeProviderBase(MyType& ctr, BigInt total): total_(total), ctr_(ctr) {}
+        DefaultSubtreeProviderBase(MyType& ctr, BigInt total): total_(total), ctr_(ctr) {}
 
-    	virtual NonLeafNodeKeyValuePair getKVPair(Direction direction, BigInt begin, BigInt total, Int level)
-    	{
-    		BigInt local_count = 0;
-    		return BuildTree(direction, begin, local_count, total, level - 1);
-    	}
+        virtual NonLeafNodeKeyValuePair getKVPair(Direction direction, BigInt begin, BigInt total, Int level)
+        {
+            BigInt local_count = 0;
+            return BuildTree(direction, begin, local_count, total, level - 1);
+        }
 
-    	virtual BigInt getTotalKeyCount() {
-    		return total_;
-    	}
+        virtual BigInt getTotalKeyCount() {
+            return total_;
+        }
 
-    	MyType& ctr() {
-    		return ctr_;
-    	}
+        MyType& ctr() {
+            return ctr_;
+        }
 
-    	const MyType& ctr() const {
-    		return ctr_;
-    	}
+        const MyType& ctr() const {
+            return ctr_;
+        }
 
 
     private:
-    	NonLeafNodeKeyValuePair BuildTree(Direction direction, BigInt start, BigInt& count, const BigInt total, Int level)
-    	{
-    		NonLeafNodeKeyValuePair pair;
-    		pair.key_count = 0;
+        NonLeafNodeKeyValuePair BuildTree(Direction direction, BigInt start, BigInt& count, const BigInt total, Int level)
+        {
+            NonLeafNodeKeyValuePair pair;
+            pair.key_count = 0;
 
-    		Int max_keys = ctr_.getMaxKeyCountForNode(false, level == 0, level);
+            Int max_keys = ctr_.getMaxKeyCountForNode(false, level == 0, level);
 
-    		if (level > 0)
-    		{
-    			NonLeafNodeKeyValuePair children[1000];
+            if (level > 0)
+            {
+                NonLeafNodeKeyValuePair children[1000];
 
-    			Int local = 0;
-    			for (Int c = 0; c < max_keys && count < total; c++, local++)
-    			{
-    				children[c] 	=  BuildTree(direction, start, count, total, level - 1);
-    				pair.key_count 	+= children[c].key_count;
-    			}
+                Int local = 0;
+                for (Int c = 0; c < max_keys && count < total; c++, local++)
+                {
+                    children[c]     =  BuildTree(direction, start, count, total, level - 1);
+                    pair.key_count  += children[c].key_count;
+                }
 
-    			if (direction == Direction::BACKWARD)
-    			{
-    				SwapVector(children, local);
-    			}
+                if (direction == Direction::BACKWARD)
+                {
+                    SwapVector(children, local);
+                }
 
-    			NodeBaseG node = ctr_.createNode(level, false, false);
+                NodeBaseG node = ctr_.createNode(level, false, false);
 
-    			setINodeData(children, node, local);
+                setINodeData(children, node, local);
 
 
-    			pair.keys = ctr_.getMaxKeys(node);
-    			pair.value = node->id();
-    		}
-    		else
-    		{
-    			LeafNodeKeyValuePair children[1000];
+                pair.keys = ctr_.getMaxKeys(node);
+                pair.value = node->id();
+            }
+            else
+            {
+                LeafNodeKeyValuePair children[1000];
 
-    			Int local = 0;
-    			for (Int c = 0; c < max_keys && count < total; c++, local++, count++)
-    			{
-    				children[c] =  this->getLeafKVPair(direction, start + count);
-    			}
+                Int local = 0;
+                for (Int c = 0; c < max_keys && count < total; c++, local++, count++)
+                {
+                    children[c] =  this->getLeafKVPair(direction, start + count);
+                }
 
-    			if (direction == Direction::BACKWARD)
-    			{
-    				SwapVector(children, local);
-    			}
+                if (direction == Direction::BACKWARD)
+                {
+                    SwapVector(children, local);
+                }
 
-    			NodeBaseG node = ctr_.createNode(level, false, true);
+                NodeBaseG node = ctr_.createNode(level, false, true);
 
-    			setLeafNodeData(children, node, local);
-    			pair.keys = ctr_.getMaxKeys(node);
+                setLeafNodeData(children, node, local);
+                pair.keys = ctr_.getMaxKeys(node);
 
-    			pair.value 		=  node->id();
-    			pair.key_count 	+= local;
-    		}
+                pair.value      =  node->id();
+                pair.key_count  += local;
+            }
 
-    		return pair;
-    	}
+            return pair;
+        }
 
-    	template <typename PairType, typename ParentPairType>
-    	struct SetNodeValuesFn
-    	{
-    		PairType* 		pairs_;
-    		Int 			count_;
+        template <typename PairType, typename ParentPairType>
+        struct SetNodeValuesFn
+        {
+            PairType*       pairs_;
+            Int             count_;
 
-    		ParentPairType	total_;
+            ParentPairType  total_;
 
-    		SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
+            SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
 
-    		template <typename Node>
-    		void operator()(Node* node)
-    		{
-    			for (Int c = 0; c < count_; c++)
-    			{
-    				for (Int d = 0; d < Indexes; d++)
-    				{
-    					node->map().key(d, c) = pairs_[c].keys[d];
-    				}
+            template <typename Node>
+            void operator()(Node* node)
+            {
+                for (Int c = 0; c < count_; c++)
+                {
+                    for (Int d = 0; d < Indexes; d++)
+                    {
+                        node->map().key(d, c) = pairs_[c].keys[d];
+                    }
 
-    				node->map().data(c) = pairs_[c].value;
-    			}
+                    node->map().data(c) = pairs_[c].value;
+                }
 
-    			node->set_children_count(count_);
+                node->set_children_count(count_);
 
-    			node->map().reindex();
+                node->map().reindex();
 
-    			for (Int d = 0; d < Indexes; d++)
-    			{
-    				total_.keys[d] = node->map().maxKey(d);
-    			}
+                for (Int d = 0; d < Indexes; d++)
+                {
+                    total_.keys[d] = node->map().maxKey(d);
+                }
 
-    			total_.value = node->id();
-    		}
-    	};
+                total_.value = node->id();
+            }
+        };
 
-    	template <typename PairType>
-    	NonLeafNodeKeyValuePair setINodeData(PairType* data, NodeBaseG& node, Int count)
-    	{
-    		SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
-    		NonLeafDispatcher::Dispatch(node, fn);
-    		return fn.total_;
-    	}
+        template <typename PairType>
+        NonLeafNodeKeyValuePair setINodeData(PairType* data, NodeBaseG& node, Int count)
+        {
+            SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
+            NonLeafDispatcher::Dispatch(node, fn);
+            return fn.total_;
+        }
 
-    	template <typename PairType>
-    	NonLeafNodeKeyValuePair setLeafNodeData(PairType* data, NodeBaseG& node, Int count)
-    	{
-    		SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
-    		LeafDispatcher::Dispatch(node, fn);
-    		return fn.total_;
-    	}
+        template <typename PairType>
+        NonLeafNodeKeyValuePair setLeafNodeData(PairType* data, NodeBaseG& node, Int count)
+        {
+            SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
+            LeafDispatcher::Dispatch(node, fn);
+            return fn.total_;
+        }
 
-    	template <typename PairType>
-    	void SwapVector(PairType* data, Int total)
-    	{
-    		for (Int c = 0; c < total; c++)
-    		{
-    			PairType tmp 			= data[c];
-    			data[c] 				= data[total - c  - 1];
-    			data[total - c  - 1] 	= tmp;
-    		}
-    	}
+        template <typename PairType>
+        void SwapVector(PairType* data, Int total)
+        {
+            for (Int c = 0; c < total; c++)
+            {
+                PairType tmp            = data[c];
+                data[c]                 = data[total - c  - 1];
+                data[total - c  - 1]    = tmp;
+            }
+        }
     };
 
 
     class ArraySubtreeProvider: public DefaultSubtreeProviderBase
     {
-    	typedef DefaultSubtreeProviderBase 		Base;
-    	typedef typename ISubtreeProvider::Enum Direction;
+        typedef DefaultSubtreeProviderBase      Base;
+        typedef typename ISubtreeProvider::Enum Direction;
 
-    	const LeafNodeKeyValuePair* pairs_;
+        const LeafNodeKeyValuePair* pairs_;
     public:
-    	ArraySubtreeProvider(MyType& ctr, BigInt total, const LeafNodeKeyValuePair* pairs): Base(ctr, total), pairs_(pairs) {}
+        ArraySubtreeProvider(MyType& ctr, BigInt total, const LeafNodeKeyValuePair* pairs): Base(ctr, total), pairs_(pairs) {}
 
-    	virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
-    	{
-    		if (direction == Direction::FORWARD)
-    		{
-    			return pairs_[begin];
-    		}
-    		else {
-    			return pairs_[Base::getTotalKeyCount() - begin - 1];
-    		}
-    	}
+        virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
+        {
+            if (direction == Direction::FORWARD)
+            {
+                return pairs_[begin];
+            }
+            else {
+                return pairs_[Base::getTotalKeyCount() - begin - 1];
+            }
+        }
     };
 
 
@@ -301,44 +301,51 @@ private:
 
     struct InsertSharedData
     {
-    	ISubtreeProvider& provider;
+        ISubtreeProvider& provider;
 
-    	Accumulator accumulator;
+        Accumulator accumulator;
 
-    	BigInt start;
-    	BigInt end;
-    	BigInt total;
+        BigInt start;
+        BigInt end;
+        BigInt total;
 
-    	BigInt remains;
+        BigInt remains;
 
-    	InsertSharedData(ISubtreeProvider& provider_): provider(provider_), start(0), end(0), total(provider_.getTotalKeyCount()), remains(total) {}
+        InsertSharedData(ISubtreeProvider& provider_):
+            provider(provider_), start(0), end(0), total(provider_.getTotalKeyCount()), remains(total) {}
     };
 
 
     void insertSubtree(TreePath& path, Int &idx, InsertSharedData& data)
     {
-    	TreePath left_path = path;
-    	insertSubtree(left_path, idx, path, idx, 0, data);
+        TreePath left_path = path;
+        insertSubtree(left_path, idx, path, idx, 0, data);
 
-    	me()->finishPathStep(path, idx);
+        me()->finishPathStep(path, idx);
 
-    	me()->addTotalKeyCount(data.provider.getTotalKeyCount());
+        me()->addTotalKeyCount(data.provider.getTotalKeyCount());
     }
 
 
-    void insertSubtree(TreePath& left_path, Int left_idx, TreePath& right_path, Int& right_idx, Int level, InsertSharedData& data);
+    void insertSubtree(
+            TreePath& left_path,
+            Int left_idx,
+            TreePath& right_path,
+            Int& right_idx,
+            Int level,
+            InsertSharedData& data);
 
 
 
     void reindexAndUpdateCounters(NodeBaseG& node, Int from, Int count) const
     {
-    	if (from + count == node->children_count())
-    	{
-    		me()->reindexRegion(node, from, from + count);
-    	}
-    	else {
-    		me()->reindex(node);
-    	}
+        if (from + count == node->children_count())
+        {
+            me()->reindexRegion(node, from, from + count);
+        }
+        else {
+            me()->reindex(node);
+        }
     }
 
 
@@ -352,7 +359,7 @@ private:
 
 
     TreePathItem split(TreePath& path, Int level, Int idx);
-    void		 split(TreePath& left, TreePath& right, Int level, Int idx);
+    void         split(TreePath& left, TreePath& right, Int level, Int idx);
 
 
     class MakeRoomFn {
@@ -360,7 +367,7 @@ private:
 
     public:
         MakeRoomFn(Int from, Int count):
-        	from_(from), count_(count)
+            from_(from), count_(count)
         {}
 
         template <typename Node>
@@ -370,10 +377,10 @@ private:
 
             for (Int c = from_; c < from_ + count_; c++)
             {
-            	for (Int d = 0; d < Indexes; d++)
-            	{
-            		node->map().key(d, c) = 0;
-            	}
+                for (Int d = 0; d < Indexes; d++)
+                {
+                    node->map().key(d, c) = 0;
+                }
 
                 node->map().data(c) = 0;
             }
@@ -386,41 +393,41 @@ private:
 
     class MoveElementsFn
     {
-    	Int 		from_;
-    	Int 		shift_;
+        Int         from_;
+        Int         shift_;
     public:
 
 
-    	Accumulator result_;
+        Accumulator result_;
 
-    	MoveElementsFn(Int from, Int shift = 0):
-    		from_(from), shift_(shift)
-    	{}
+        MoveElementsFn(Int from, Int shift = 0):
+            from_(from), shift_(shift)
+        {}
 
-    	template <typename Node>
-    	void operator()(Node* src, Node* tgt)
-    	{
-    		Int count = src->children_count() - from_;
+        template <typename Node>
+        void operator()(Node* src, Node* tgt)
+        {
+            Int count = src->children_count() - from_;
 
-    		typename MyType::SumKeysFn sum_fn(from_, count, result_);
-    		sum_fn(src);
+            typename MyType::SumKeysFn sum_fn(from_, count, result_);
+            sum_fn(src);
 
-    		if (tgt->children_count() > 0)
-    		{
-    			tgt->map().insertSpace(0, count + shift_);
-    		}
+            if (tgt->children_count() > 0)
+            {
+                tgt->map().insertSpace(0, count + shift_);
+            }
 
-    		src->map().copyTo(&tgt->map(), from_, count, shift_);
-    		src->map().clear(from_, from_ + count);
+            src->map().copyTo(&tgt->map(), from_, count, shift_);
+            src->map().clear(from_, from_ + count);
 
-    		src->inc_size(-count);
-    		tgt->inc_size(count + shift_);
+            src->inc_size(-count);
+            tgt->inc_size(count + shift_);
 
-    		tgt->map().clear(0, shift_);
+            tgt->map().clear(0, shift_);
 
-    		src->reindex();
-    		tgt->reindex();
-    	}
+            src->reindex();
+            tgt->reindex();
+        }
     };
 
 
@@ -428,46 +435,46 @@ private:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::btree::InsertBatchName)
-#define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::btree::InsertBatchName)
+#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::insertSubtree(Iterator& iter, ISubtreeProvider& provider)
 {
-	InsertSharedData data(provider);
+    InsertSharedData data(provider);
 
-	TreePath& path 		= iter.path();
-	Int& idx			= iter.key_idx();
+    TreePath& path      = iter.path();
+    Int& idx            = iter.key_idx();
 
-	if (iter.key_idx() == 0)
-	{
-		//FIXME: use iterator here
+    if (iter.key_idx() == 0)
+    {
+        //FIXME: use iterator here
 
-		TreePath left = path;
+        TreePath left = path;
 
-		if (me()->getPrevNode(left))
-		{
-			//FIXME arguments
-			insertSubtree(left, left[0].node()->children_count(), path, idx, 0, data);
+        if (me()->getPrevNode(left))
+        {
+            //FIXME arguments
+            insertSubtree(left, left[0].node()->children_count(), path, idx, 0, data);
 
-			me()->finishPathStep(path, idx);
+            me()->finishPathStep(path, idx);
 
-			me()->addTotalKeyCount(data.provider.getTotalKeyCount());
-		}
-		else
-		{
-			insertSubtree(path, idx, data);
-		}
-	}
-	else
-	{
-		insertSubtree(path, idx, data);
-	}
+            me()->addTotalKeyCount(data.provider.getTotalKeyCount());
+        }
+        else
+        {
+            insertSubtree(path, idx, data);
+        }
+    }
+    else
+    {
+        insertSubtree(path, idx, data);
+    }
 
-	iter.keyNum() += provider.getTotalKeyCount();
+    iter.keyNum() += provider.getTotalKeyCount();
 
-	return data.accumulator;
+    return data.accumulator;
 }
 
 
@@ -475,143 +482,143 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(Iterator& iter, ISubtreeProvi
 //M_PARAMS
 //typename M_TYPE::TreePathItem M_TYPE::splitPath(TreePath& path, Int level, Int idx)
 //{
-//	if (level < path.getSize() - 1)
-//	{
-//		NodeBaseG& parent = path[level + 1].node();
+//  if (level < path.getSize() - 1)
+//  {
+//      NodeBaseG& parent = path[level + 1].node();
 //
-//		if (me()->getCapacity(parent) == 0)
-//		{
-//			Int idx_in_parent = path[level].parent_idx();
+//      if (me()->getCapacity(parent) == 0)
+//      {
+//          Int idx_in_parent = path[level].parent_idx();
 //
-//			splitPath(path, level + 1, idx_in_parent + 1);
-//		}
+//          splitPath(path, level + 1, idx_in_parent + 1);
+//      }
 //
-//		return split(path, level, idx);
-//	}
-//	else
-//	{
-//		newRoot(path);
+//      return split(path, level, idx);
+//  }
+//  else
+//  {
+//      newRoot(path);
 //
-//		return split(path, level, idx);
-//	}
+//      return split(path, level, idx);
+//  }
 //}
 
 
 M_PARAMS
 void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, Int idx)
 {
-	if (level < left.getSize() - 1)
-	{
-		NodeBaseG& parent = left[level + 1].node();
+    if (level < left.getSize() - 1)
+    {
+        NodeBaseG& parent = left[level + 1].node();
 
-		if (me()->getCapacity(parent) == 0)
-		{
-			Int idx_in_parent = left[level].parent_idx();
-			splitPath(left, right, level + 1, idx_in_parent + 1);
-		}
+        if (me()->getCapacity(parent) == 0)
+        {
+            Int idx_in_parent = left[level].parent_idx();
+            splitPath(left, right, level + 1, idx_in_parent + 1);
+        }
 
-		split(left, right, level, idx);
-	}
-	else
-	{
-		newRoot(left);
+        split(left, right, level, idx);
+    }
+    else
+    {
+        newRoot(left);
 
-		right.resize(left.getSize());
-		right[level + 1] = left[level + 1];
+        right.resize(left.getSize());
+        right[level + 1] = left[level + 1];
 
-		split(left, right, level, idx);
-	}
+        split(left, right, level, idx);
+    }
 }
 
 
 M_PARAMS
 void M_TYPE::insertEntry(Iterator &iter, const Element& element)
 {
-	TreePath& 	path 	= iter.path();
-	NodeBaseG& 	node 	= path.leaf().node();
-	Int& 		idx 	= iter.key_idx();
+    TreePath&   path    = iter.path();
+    NodeBaseG&  node    = path.leaf().node();
+    Int&        idx     = iter.key_idx();
 
-	if (me()->getCapacity(node) > 0)
-	{
-		makeRoom(path, 0, idx, 1);
-	}
-	else if (idx == 0)
-	{
-		TreePath next = path;
-		splitPath(path, next, 0, node->children_count() / 2);
-		idx = 0;
-		makeRoom(path, 0, idx, 1);
-	}
-	else if (idx < node->children_count())
-	{
-		//FIXME: does it necessary to split the page at the middle ???
-		TreePath next = path;
-		splitPath(path, next, 0, idx);
-		makeRoom(path, 0, idx, 1);
-	}
-	else {
-		TreePath next = path;
+    if (me()->getCapacity(node) > 0)
+    {
+        makeRoom(path, 0, idx, 1);
+    }
+    else if (idx == 0)
+    {
+        TreePath next = path;
+        splitPath(path, next, 0, node->children_count() / 2);
+        idx = 0;
+        makeRoom(path, 0, idx, 1);
+    }
+    else if (idx < node->children_count())
+    {
+        //FIXME: does it necessary to split the page at the middle ???
+        TreePath next = path;
+        splitPath(path, next, 0, idx);
+        makeRoom(path, 0, idx, 1);
+    }
+    else {
+        TreePath next = path;
 
-		splitPath(path, next, 0, node->children_count() / 2);
+        splitPath(path, next, 0, node->children_count() / 2);
 
-		path = next;
+        path = next;
 
-		idx = node->children_count();
-		makeRoom(path, 0, idx, 1);
+        idx = node->children_count();
+        makeRoom(path, 0, idx, 1);
 
-		iter.key_idx() 	= idx;
-	}
+        iter.key_idx()  = idx;
+    }
 
-	me()->setLeafDataAndReindex(node, idx, element);
+    me()->setLeafDataAndReindex(node, idx, element);
 
-	me()->updateParentIfExists(path, 0, element.first);
+    me()->updateParentIfExists(path, 0, element.first);
 
-	me()->addTotalKeyCount(1);
+    me()->addTotalKeyCount(1);
 }
 
 
 
 //M_PARAMS
 //void M_TYPE::insertEntry(Iterator &iter, Key key, const Value &value) {
-//	Accumulator keys;
+//  Accumulator keys;
 //
-//	keys.key(0) = key;
+//  keys.key(0) = key;
 //
-//	insertEntry(iter, keys, value);
+//  insertEntry(iter, keys, value);
 //}
 
 M_PARAMS
 void M_TYPE::insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
 {
-	ArraySubtreeProvider provider(*me(), size, pairs);
+    ArraySubtreeProvider provider(*me(), size, pairs);
 
-	me()->insertSubtree(iter, provider);
+    me()->insertSubtree(iter, provider);
 }
 
 M_PARAMS
 void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& pairs)
 {
-	ArraySubtreeProvider provider(*me(), pairs.size(), &pairs.at(0));
+    ArraySubtreeProvider provider(*me(), pairs.size(), &pairs.at(0));
 
-	me()->insertSubtree(iter, provider);
+    me()->insertSubtree(iter, provider);
 }
 
 
 M_PARAMS
 BigInt M_TYPE::getSubtreeSize(Int level) const
 {
-	MEMORIA_ASSERT(level, >=, 0);
+    MEMORIA_ASSERT(level, >=, 0);
 
-	BigInt result = 1;
+    BigInt result = 1;
 
-	for (int c = 0; c < level; c++)
-	{
-		BigInt children_at_level = me()->getMaxKeyCountForNode(false, c == 0, c);
+    for (int c = 0; c < level; c++)
+    {
+        BigInt children_at_level = me()->getMaxKeyCountForNode(false, c == 0, c);
 
-		result *= children_at_level;
-	}
+        result *= children_at_level;
+    }
 
-	return result;
+    return result;
 }
 
 
@@ -619,11 +626,11 @@ BigInt M_TYPE::getSubtreeSize(Int level) const
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::getCounters(const NodeBaseG& node, Int from, Int count) const
 {
-	Accumulator counters;
+    Accumulator counters;
 
-	me()->sumKeys(node, from, count, counters);
+    me()->sumKeys(node, from, count, counters);
 
-	return counters;
+    return counters;
 }
 
 
@@ -631,140 +638,147 @@ typename M_TYPE::Accumulator M_TYPE::getCounters(const NodeBaseG& node, Int from
 M_PARAMS
 void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully)
 {
-	for (Int c = level; c < path.getSize(); c++)
-	{
-		if (me()->updateCounters(path[c].node(), idx, counters, reindex_fully))
-		{
-			break;
-		}
-		else {
-			idx = path[c].parent_idx();
-		}
-	}
+    for (Int c = level; c < path.getSize(); c++)
+    {
+        if (me()->updateCounters(path[c].node(), idx, counters, reindex_fully))
+        {
+            break;
+        }
+        else {
+            idx = path[c].parent_idx();
+        }
+    }
 }
 
 M_PARAMS
 void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
 {
-	if (level < path.getSize() - 1)
-	{
-		me()->updateUp(path, level + 1, path[level].parent_idx(), counters);
-	}
+    if (level < path.getSize() - 1)
+    {
+        me()->updateUp(path, level + 1, path[level].parent_idx(), counters);
+    }
 }
 
 
 
 
 
-//// ======================================================  PRIVATE API ====================================================== ////
+//// ==================================================  PRIVATE API ================================================== ////
 
 
 
 M_PARAMS
-void M_TYPE::insertSubtree(TreePath& left_path, Int left_idx, TreePath& right_path, Int& right_idx, Int level, InsertSharedData& data)
+void M_TYPE::insertSubtree(
+        TreePath& left_path,
+        Int left_idx,
+        TreePath&
+        right_path,
+        Int& right_idx,
+        Int level,
+        InsertSharedData& data)
 {
-	//FIXME: check node->level() after deletion;
+    //FIXME: check node->level() after deletion;
 
-	BigInt 	subtree_size 	= me()->getSubtreeSize(level);
+    BigInt  subtree_size    = me()->getSubtreeSize(level);
 
-	BigInt  key_count		= data.total - data.start - data.end;
+    BigInt  key_count       = data.total - data.start - data.end;
 
-	NodeBaseG& left_node 	= left_path[level].node();
-	NodeBaseG& right_node 	= right_path[level].node();
+    NodeBaseG& left_node    = left_path[level].node();
+    NodeBaseG& right_node   = right_path[level].node();
 
-	if (left_node == right_node)
-	{
-		Int node_capacity = me()->getCapacity(left_node);
+    if (left_node == right_node)
+    {
+        Int node_capacity = me()->getCapacity(left_node);
 
-		if (key_count <= subtree_size * node_capacity)
-		{
-			// We have enough free space for all subtrees in the current node
-			BigInt total 	= divide(key_count, subtree_size);
+        if (key_count <= subtree_size * node_capacity)
+        {
+            // We have enough free space for all subtrees in the current node
+            BigInt total    = divide(key_count, subtree_size);
 
-			fillNodeLeft(left_path, level, left_idx, total, data);
+            fillNodeLeft(left_path, level, left_idx, total, data);
 
-			right_path.moveRight(level - 1, 0, total);
+            right_path.moveRight(level - 1, 0, total);
 
-			right_idx 		+= total;
-		}
-		else
-		{
-			// There is no enough free space in current node for all subtrees
-			// split the node and proceed
+            right_idx       += total;
+        }
+        else
+        {
+            // There is no enough free space in current node for all subtrees
+            // split the node and proceed
 
-			//FIXME:
-			me()->splitPath(left_path, right_path, level, left_idx);
+            //FIXME:
+            me()->splitPath(left_path, right_path, level, left_idx);
 
-			right_idx  = 0;
+            right_idx  = 0;
 
-			insertSubtree(left_path, left_idx, right_path, right_idx, level, data);
-		}
-	}
-	else {
-		Int start_capacity 	= me()->getCapacity(left_node);
-		Int end_capacity 	= me()->getCapacity(right_node);
-		Int total_capacity	= start_capacity + end_capacity;
+            insertSubtree(left_path, left_idx, right_path, right_idx, level, data);
+        }
+    }
+    else {
+        Int start_capacity  = me()->getCapacity(left_node);
+        Int end_capacity    = me()->getCapacity(right_node);
+        Int total_capacity  = start_capacity + end_capacity;
 
 
-		BigInt max_key_count = subtree_size * total_capacity;
+        BigInt max_key_count = subtree_size * total_capacity;
 
-		if (key_count <= max_key_count)
-		{
-			// Otherwise fill nodes 'equally'. Each node will have almost
-			// equal free space after processing.
+        if (key_count <= max_key_count)
+        {
+            // Otherwise fill nodes 'equally'. Each node will have almost
+            // equal free space after processing.
 
-			BigInt total_keys 			= divide(key_count, subtree_size);
+            BigInt total_keys           = divide(key_count, subtree_size);
 
-			Int left_count, right_count;
+            Int left_count, right_count;
 
-			if (total_keys <= total_capacity)
-			{
-				Int left_usage 	= left_path[level]->children_count();
-				Int right_usage = right_path[level]->children_count();
+            if (total_keys <= total_capacity)
+            {
+                Int left_usage  = left_path[level]->children_count();
+                Int right_usage = right_path[level]->children_count();
 
-				if (left_usage < right_usage)
-				{
-					left_count 	= start_capacity > total_keys ? total_keys : start_capacity;
-					right_count = total_keys - left_count;
-				}
-				else {
-					right_count	= end_capacity > total_keys ? total_keys : end_capacity;
-					left_count	= total_keys - right_count;
-				}
-			}
-			else {
-				left_count 	= start_capacity;
-				right_count = end_capacity;
-			}
+                if (left_usage < right_usage)
+                {
+                    left_count  = start_capacity > total_keys ? total_keys : start_capacity;
+                    right_count = total_keys - left_count;
+                }
+                else {
+                    right_count = end_capacity > total_keys ? total_keys : end_capacity;
+                    left_count  = total_keys - right_count;
+                }
+            }
+            else {
+                left_count  = start_capacity;
+                right_count = end_capacity;
+            }
 
-			fillNodeLeft(left_path, level,   left_idx,  left_count,  data);
-			fillNodeRight(right_path, level, right_idx, right_count, data);
+            fillNodeLeft(left_path, level,   left_idx,  left_count,  data);
+            fillNodeRight(right_path, level, right_idx, right_count, data);
 
-			right_idx = right_count;
-		}
-		else
-		{
-			// If there are more keys than these nodes can store,
-			// fill nodes fully
+            right_idx = right_count;
+        }
+        else
+        {
+            // If there are more keys than these nodes can store,
+            // fill nodes fully
 
-			fillNodeLeft(left_path,   level, left_idx,  start_capacity,  data);
-			fillNodeRight(right_path, level, right_idx, end_capacity, data);
+            fillNodeLeft(left_path,   level, left_idx,  start_capacity,  data);
+            fillNodeRight(right_path, level, right_idx, end_capacity, data);
 
-			right_idx += end_capacity;
+            right_idx += end_capacity;
 
-			// There is something more to insert.
-			Int parent_right_idx = right_path[level].parent_idx();
-			insertSubtree
-			(
-					left_path,
-					left_path[level].parent_idx() + 1,
-					right_path,
-					parent_right_idx,
-					level + 1,
-					data
-			);
-		}
-	}
+            // There is something more to insert.
+            Int parent_right_idx = right_path[level].parent_idx();
+            insertSubtree
+            (
+                    left_path,
+                    left_path[level].parent_idx() + 1,
+                    right_path,
+                    parent_right_idx,
+                    level + 1,
+                    data
+            );
+        }
+    }
 }
 
 
@@ -775,134 +789,145 @@ void M_TYPE::insertSubtree(TreePath& left_path, Int left_idx, TreePath& right_pa
 M_PARAMS
 void M_TYPE::fillNodeLeft(TreePath& path, Int level, Int from, Int count, InsertSharedData& data)
 {
-	NodeBaseG& node = path[level].node();
+    NodeBaseG& node = path[level].node();
 
-	BigInt subtree_size = me()->getSubtreeSize(level);
+    BigInt subtree_size = me()->getSubtreeSize(level);
 
-	makeRoom(path, level, from, count);
+    makeRoom(path, level, from, count);
 
-	if (level > 0)
-	{
-		for (Int c = from; c < from + count; c++)
-		{
-			BigInt 					requested_size 	= data.remains >= subtree_size ? subtree_size : data.remains;
-			NonLeafNodeKeyValuePair pair 			= data.provider.getKVPair(ISubtreeProvider::FORWARD, data.start, requested_size, level);
+    if (level > 0)
+    {
+        for (Int c = from; c < from + count; c++)
+        {
+            BigInt                  requested_size  = data.remains >= subtree_size ? subtree_size : data.remains;
 
-			me()->setKeys(node, c, pair.keys);
-			me()->setINodeData(node, c, &pair.value);
+            NonLeafNodeKeyValuePair pair            = data.provider.getKVPair(
+                                                                        ISubtreeProvider::FORWARD,
+                                                                        data.start,
+                                                                        requested_size,
+                                                                        level
+                                                                    );
 
-			data.start  	+= pair.key_count;
-			data.remains	-= pair.key_count;
-		}
-	}
-	else {
-		for (Int c = from; c < from + count; c++)
-		{
-			LeafNodeKeyValuePair pair = data.provider.getLeafKVPair(ISubtreeProvider::FORWARD, data.start);
+            me()->setKeys(node, c, pair.keys);
+            me()->setINodeData(node, c, &pair.value);
 
-			me()->setKeys(node, c, pair.keys);
-			me()->setLeafData(node, c, pair.value);
+            data.start      += pair.key_count;
+            data.remains    -= pair.key_count;
+        }
+    }
+    else {
+        for (Int c = from; c < from + count; c++)
+        {
+            LeafNodeKeyValuePair pair = data.provider.getLeafKVPair(ISubtreeProvider::FORWARD, data.start);
 
-			data.start 		+= 1;
-			data.remains	-= 1;
-		}
-	}
+            me()->setKeys(node, c, pair.keys);
+            me()->setLeafData(node, c, pair.value);
 
-	reindexAndUpdateCounters(node, from, count);
+            data.start      += 1;
+            data.remains    -= 1;
+        }
+    }
 
-	Accumulator accumulator = me()->getCounters(node, from, count);
+    reindexAndUpdateCounters(node, from, count);
 
-	me()->updateParentIfExists(path, level, accumulator);
+    Accumulator accumulator = me()->getCounters(node, from, count);
 
-	data.accumulator += accumulator;
+    me()->updateParentIfExists(path, level, accumulator);
+
+    data.accumulator += accumulator;
 }
 
 
 M_PARAMS
 void M_TYPE::fillNodeRight(TreePath& path, Int level, Int from, Int count, InsertSharedData& data)
 {
-	NodeBaseG& 	node 			= path[level].node();
-	BigInt 		subtree_size 	= me()->getSubtreeSize(level);
+    NodeBaseG&  node            = path[level].node();
+    BigInt      subtree_size    = me()->getSubtreeSize(level);
 
-	makeRoom(path, level, from, count);
+    makeRoom(path, level, from, count);
 
-	if (level > 0)
-	{
-		for (Int c = count - 1; c >= 0; c--)
-		{
-			BigInt 					requested_size 	= data.remains >= subtree_size ? subtree_size : data.remains;
-			NonLeafNodeKeyValuePair pair 			= data.provider.getKVPair(ISubtreeProvider::BACKWARD, data.end, requested_size, level);
+    if (level > 0)
+    {
+        for (Int c = count - 1; c >= 0; c--)
+        {
+            BigInt                  requested_size  = data.remains >= subtree_size ? subtree_size : data.remains;
+            NonLeafNodeKeyValuePair pair            = data.provider.getKVPair(
+                                                                        ISubtreeProvider::BACKWARD,
+                                                                        data.end,
+                                                                        requested_size,
+                                                                        level
+                                                                    );
 
-			me()->setKeys(node, c, pair.keys);
-			me()->setINodeData(node, c, &pair.value);
+            me()->setKeys(node, c, pair.keys);
+            me()->setINodeData(node, c, &pair.value);
 
-			data.end 		+= pair.key_count;
-			data.remains	-= pair.key_count;
-		}
-	}
-	else {
-		for (Int c = count - 1; c >= 0; c--)
-		{
-			LeafNodeKeyValuePair pair = data.provider.getLeafKVPair(ISubtreeProvider::BACKWARD, data.end);
+            data.end        += pair.key_count;
+            data.remains    -= pair.key_count;
+        }
+    }
+    else {
+        for (Int c = count - 1; c >= 0; c--)
+        {
+            LeafNodeKeyValuePair pair = data.provider.getLeafKVPair(ISubtreeProvider::BACKWARD, data.end);
 
-			me()->setKeys(node, c, pair.keys);
-			me()->setLeafData(node, c, pair.value);
+            me()->setKeys(node, c, pair.keys);
+            me()->setLeafData(node, c, pair.value);
 
-			data.end 		+= 1;
-			data.remains	-= 1;
-		}
-	}
+            data.end        += 1;
+            data.remains    -= 1;
+        }
+    }
 
 
 // FIXME: ??????? why is this here?
-//	if (level > 0) {
-//		path[level-1].parent_idx() += count;
-//	}
+//  if (level > 0) {
+//      path[level-1].parent_idx() += count;
+//  }
 
-	reindexAndUpdateCounters(node, from, count);
+    reindexAndUpdateCounters(node, from, count);
 
-	Accumulator accumulator = me()->getCounters(node, from, count);
+    Accumulator accumulator = me()->getCounters(node, from, count);
 
-	me()->updateParentIfExists(path, level, accumulator);
+    me()->updateParentIfExists(path, level, accumulator);
 
-	data.accumulator += accumulator;
+    data.accumulator += accumulator;
 }
 
 M_PARAMS
 void M_TYPE::makeRoom(TreePath& path, Int level, Int start, Int count) const
 {
-	if (count > 0)
-	{
-		path[level].node().update();
-		MakeRoomFn fn(start, count);
-		NodeDispatcher::Dispatch(path[level].node(), fn);
-		path.moveRight(level - 1, start, count);
-	}
+    if (count > 0)
+    {
+        path[level].node().update();
+        MakeRoomFn fn(start, count);
+        NodeDispatcher::Dispatch(path[level].node(), fn);
+        path.moveRight(level - 1, start, count);
+    }
 
 
 
-//	if (level > 0)
-//	{
-//		Int& parent_idx = path[level - 1].parent_idx();
+//  if (level > 0)
+//  {
+//      Int& parent_idx = path[level - 1].parent_idx();
 //
-//		if (parent_idx >=  (start + count))
-//		{
-//			parent_idx += count;
-//		}
-//	}
+//      if (parent_idx >=  (start + count))
+//      {
+//          parent_idx += count;
+//      }
+//  }
 }
 
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::moveElements(NodeBaseG& src, NodeBaseG& tgt, Int from, Int shift) const
 {
-	MoveElementsFn fn(from, shift);
+    MoveElementsFn fn(from, shift);
 
-	if (from < src->children_count())
-	{
-		NodeDispatcher::Dispatch(src, tgt, fn);
-	}
+    if (from < src->children_count())
+    {
+        NodeDispatcher::Dispatch(src, tgt, fn);
+    }
 
-	return fn.result_;
+    return fn.result_;
 }
 
 
@@ -912,122 +937,122 @@ typename M_TYPE::Accumulator M_TYPE::moveElements(NodeBaseG& src, NodeBaseG& tgt
 M_PARAMS
 typename M_TYPE::TreePathItem M_TYPE::split(TreePath& path, Int level, Int idx)
 {
-	NodeBaseG& node 	= path[level].node();
-	NodeBaseG& parent 	= path[level + 1].node();
+    NodeBaseG& node     = path[level].node();
+    NodeBaseG& parent   = path[level + 1].node();
 
-	Int parent_idx		= path[level].parent_idx();
+    Int parent_idx      = path[level].parent_idx();
 
-	node.update();
-	parent.update();
+    node.update();
+    parent.update();
 
-	NodeBaseG other = me()->createNode(level, false, node->is_leaf());
+    NodeBaseG other = me()->createNode(level, false, node->is_leaf());
 
-	Accumulator keys = moveElements(node, other, idx);
+    Accumulator keys = moveElements(node, other, idx);
 
-	//FIXME:: Make room in the parent
-	makeRoom(path, level + 1, parent_idx + 1, 1);
+    //FIXME:: Make room in the parent
+    makeRoom(path, level + 1, parent_idx + 1, 1);
 
-	me()->setINodeData(parent, parent_idx + 1, &other->id());
+    me()->setINodeData(parent, parent_idx + 1, &other->id());
 
-	//FIXME: Should we proceed up to the root here in general case?
-	me()->updateCounters(parent, parent_idx, 	  -keys);
-	me()->updateCounters(parent, parent_idx + 1, keys, true);
+    //FIXME: Should we proceed up to the root here in general case?
+    me()->updateCounters(parent, parent_idx,      -keys);
+    me()->updateCounters(parent, parent_idx + 1, keys, true);
 
-	if (level > 0)
-	{
-		if (path[level - 1].parent_idx() < idx)
-		{
-			return TreePathItem(other, parent_idx + 1);
-		}
-		else {
+    if (level > 0)
+    {
+        if (path[level - 1].parent_idx() < idx)
+        {
+            return TreePathItem(other, parent_idx + 1);
+        }
+        else {
 
-			TreePathItem item = path[level];
+            TreePathItem item = path[level];
 
-			path[level    ].node() 			= other;
-			path[level    ].parent_idx()++;
+            path[level    ].node()          = other;
+            path[level    ].parent_idx()++;
 
-			path[level - 1].parent_idx() 	-= idx;
+            path[level - 1].parent_idx()    -= idx;
 
-			return item;
-		}
-	}
-	else {
-		return TreePathItem(other, parent_idx + 1);
-	}
+            return item;
+        }
+    }
+    else {
+        return TreePathItem(other, parent_idx + 1);
+    }
 }
 
 M_PARAMS
 void M_TYPE::split(TreePath& left, TreePath& right, Int level, Int idx)
 {
-	NodeBaseG& left_node 	= left[level].node();
+    NodeBaseG& left_node    = left[level].node();
 
-	NodeBaseG& left_parent 	= left[level + 1].node();
-	NodeBaseG& right_parent = right[level + 1].node();
+    NodeBaseG& left_parent  = left[level + 1].node();
+    NodeBaseG& right_parent = right[level + 1].node();
 
-	left_node.update();
-	left_parent.update();
-	right_parent.update();
+    left_node.update();
+    left_parent.update();
+    right_parent.update();
 
-	NodeBaseG other = me()->createNode(level, false, left_node->is_leaf());
+    NodeBaseG other = me()->createNode(level, false, left_node->is_leaf());
 
-	Accumulator keys = moveElements(left_node, other, idx);
+    Accumulator keys = moveElements(left_node, other, idx);
 
-	Int parent_idx = left[level].parent_idx();
+    Int parent_idx = left[level].parent_idx();
 
-	if (right_parent == left_parent)
-	{
-		makeRoom(left, level + 1,  parent_idx + 1, 1);
-		me()->setINodeData(left_parent, parent_idx + 1, &other->id());
+    if (right_parent == left_parent)
+    {
+        makeRoom(left, level + 1,  parent_idx + 1, 1);
+        me()->setINodeData(left_parent, parent_idx + 1, &other->id());
 
-		//FIXME: should we proceed up to the root?
-		me()->updateCounters(left_parent, parent_idx,    -keys);
-		me()->updateCounters(left_parent, parent_idx + 1, keys, true);
+        //FIXME: should we proceed up to the root?
+        me()->updateCounters(left_parent, parent_idx,    -keys);
+        me()->updateCounters(left_parent, parent_idx + 1, keys, true);
 
-		right[level].node() 		= other;
-		right[level].parent_idx() 	= parent_idx + 1;
-	}
-	else {
-		makeRoom(right, level + 1, 0, 1);
-		me()->setINodeData(right_parent, 0, &other->id());
+        right[level].node()         = other;
+        right[level].parent_idx()   = parent_idx + 1;
+    }
+    else {
+        makeRoom(right, level + 1, 0, 1);
+        me()->setINodeData(right_parent, 0, &other->id());
 
-		updateUp(left,  level + 1, parent_idx, -keys);
-		updateUp(right, level + 1, 0,  			keys, true);
+        updateUp(left,  level + 1, parent_idx, -keys);
+        updateUp(right, level + 1, 0,           keys, true);
 
-		right[level].node() 		= other;
-		right[level].parent_idx() 	= 0;
-	}
+        right[level].node()         = other;
+        right[level].parent_idx()   = 0;
+    }
 
-	right.moveLeft(level - 1, 0, idx);
+    right.moveLeft(level - 1, 0, idx);
 
-//	if (level > 0)
-//	{
-//		right[level-1].parent_idx() -= idx;
-//	}
+//  if (level > 0)
+//  {
+//      right[level-1].parent_idx() -= idx;
+//  }
 }
 
 M_PARAMS
 void M_TYPE::newRoot(TreePath& path)
 {
-	NodeBaseG& root 		= path[path.getSize() - 1].node(); // page == root
-	root.update();
+    NodeBaseG& root         = path[path.getSize() - 1].node(); // page == root
+    root.update();
 
-	NodeBaseG new_root 		= me()->createNode(root->level() + 1, true, false);
+    NodeBaseG new_root      = me()->createNode(root->level() + 1, true, false);
 
-	me()->copyRootMetadata(root, new_root);
+    me()->copyRootMetadata(root, new_root);
 
-	me()->root2Node(root);
+    me()->root2Node(root);
 
-	Accumulator keys = me()->getMaxKeys(root);
-	me()->setKeys(new_root, 0, keys);
-	me()->setINodeData(new_root, 0, &root->id());
-	me()->setChildrenCount(new_root, 1);
-	me()->reindex(new_root);
+    Accumulator keys = me()->getMaxKeys(root);
+    me()->setKeys(new_root, 0, keys);
+    me()->setINodeData(new_root, 0, &root->id());
+    me()->setChildrenCount(new_root, 1);
+    me()->reindex(new_root);
 
-	me()->set_root(new_root->id());
+    me()->set_root(new_root->id());
 
-	path.append(TreePathItem(new_root));
+    path.append(TreePathItem(new_root));
 
-	path[path.getSize() - 2].parent_idx() = 0;
+    path[path.getSize() - 2].parent_idx() = 0;
 }
 
 #undef M_TYPE

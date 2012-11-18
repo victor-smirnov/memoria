@@ -6,7 +6,7 @@
 
 
 #ifndef _MEMORIA_TOOLS_PROFILE_BENCHMARK_HPP
-#define	_MEMORIA_TOOLS_PROFILE_BENCHMARK_HPP
+#define _MEMORIA_TOOLS_PROFILE_BENCHMARK_HPP
 
 
 #include <memoria/tools/task.hpp>
@@ -31,72 +31,72 @@ class ProfileBenchmarkTask: public BenchmarkTask {
 
 public:
 
-	typedef Profile_ 								Profile;
-	typedef Allocator_ 								Allocator;
+    typedef Profile_                                Profile;
+    typedef Allocator_                              Allocator;
 
 
-	ProfileBenchmarkTask(StringRef name): BenchmarkTask(name) {}
-	virtual ~ProfileBenchmarkTask() throw () {};
+    ProfileBenchmarkTask(StringRef name): BenchmarkTask(name) {}
+    virtual ~ProfileBenchmarkTask() throw () {};
 
 
 
 
-	virtual void LoadAllocator(Allocator& allocator, StringRef file_name) const
-	{
-		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
-		allocator.load(in.get());
-	}
+    virtual void LoadAllocator(Allocator& allocator, StringRef file_name) const
+    {
+        unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
+        allocator.load(in.get());
+    }
 
-	virtual void StoreAllocator(Allocator& allocator, StringRef file_name) const
-	{
-		unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
-		allocator.store(out.get());
-	}
+    virtual void StoreAllocator(Allocator& allocator, StringRef file_name) const
+    {
+        unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
+        allocator.store(out.get());
+    }
 
 
-	virtual void LoadResource(Allocator& allocator, StringRef file_name) const
-	{
-		String path = getResourcePath(file_name);
-		LoadAllocator(allocator, path);
-	}
+    virtual void LoadResource(Allocator& allocator, StringRef file_name) const
+    {
+        String path = getResourcePath(file_name);
+        LoadAllocator(allocator, path);
+    }
 
-	virtual void StoreResource(Allocator& allocator, StringRef file_name) const
-	{
-		String path = getResourcePath(file_name);
-		StoreAllocator(allocator, path);
-	}
+    virtual void StoreResource(Allocator& allocator, StringRef file_name) const
+    {
+        String path = getResourcePath(file_name);
+        StoreAllocator(allocator, path);
+    }
 };
 
 template<typename T = EmptyType>
 class SPBenchmarkTaskT: public ProfileBenchmarkTask<SmallProfile<>, SmallInMemAllocator> {
 
-	typedef ProfileBenchmarkTask<SmallProfile<>, SmallInMemAllocator> Base;
+    typedef ProfileBenchmarkTask<SmallProfile<>, SmallInMemAllocator> Base;
 
 public:
-	SPBenchmarkTaskT(StringRef name): Base(name) {}
-	virtual ~SPBenchmarkTaskT() throw () {};
+    SPBenchmarkTaskT(StringRef name): Base(name) {}
+    virtual ~SPBenchmarkTaskT() throw () {};
 
-	void check(Allocator& allocator, const char* source)
-	{
-		::memoria::check<Allocator>(allocator, "Allocator check failed", source);
-	}
+    void check(Allocator& allocator, const char* source)
+    {
+        ::memoria::check<Allocator>(allocator, "Allocator check failed", source);
+    }
 
-	void check(Allocator& allocator, const char* message, const char* source)
-	{
-		::memoria::check<Allocator>(allocator, message, source);
-	}
+    void check(Allocator& allocator, const char* message, const char* source)
+    {
+        ::memoria::check<Allocator>(allocator, message, source);
+    }
 
-	template <typename CtrType>
-	void checkCtr(CtrType& ctr, const char* message, const char* source)
-	{
-		::memoria::checkCtr<CtrType>(ctr, message, source);
-	}
+    template <typename CtrType>
+    void checkCtr(CtrType& ctr, const char* message, const char* source)
+    {
+        ::memoria::checkCtr<CtrType>(ctr, message, source);
+    }
 
-	template <typename CtrType>
-	void checkCtr(CtrType& ctr, const char* source)
-	{
-		checkCtr(ctr, "Container check failed", source);
-	}
+    template <typename CtrType>
+    void checkCtr(CtrType& ctr, const char* source)
+    {
+        checkCtr(ctr, "Container check failed", source);
+    }
 };
 
 typedef SPBenchmarkTaskT<> SPBenchmarkTask;

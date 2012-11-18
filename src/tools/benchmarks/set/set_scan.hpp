@@ -20,97 +20,97 @@ using namespace std;
 
 class setScanBenchmark: public SPBenchmarkTask {
 
-	typedef SPBenchmarkTask Base;
+    typedef SPBenchmarkTask Base;
 
-	typedef typename Base::Allocator 	Allocator;
-	typedef typename Base::Profile 		Profile;
+    typedef typename Base::Allocator    Allocator;
+    typedef typename Base::Profile      Profile;
 
-	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<set1>::Type 		SetCtr;
-	typedef typename SetCtr::Iterator								Iterator;
-	typedef typename SetCtr::ID										ID;
-	typedef typename SetCtr::Accumulator							Accumulator;
-
-
-	typedef typename SetCtr::Key									Key;
-	typedef typename SetCtr::Value									Value;
+    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<set1>::Type       SetCtr;
+    typedef typename SetCtr::Iterator                               Iterator;
+    typedef typename SetCtr::ID                                     ID;
+    typedef typename SetCtr::Accumulator                            Accumulator;
 
 
-	Allocator* 	allocator_;
-	SetCtr* 	set_;
+    typedef typename SetCtr::Key                                    Key;
+    typedef typename SetCtr::Value                                  Value;
 
-	Int 		result_;
+
+    Allocator*  allocator_;
+    SetCtr*     set_;
+
+    Int         result_;
 
 public:
 
-	setScanBenchmark(StringRef name):
-		SPBenchmarkTask(name)
-	{
-		RootCtr::initMetadata();
-		SetCtr::initMetadata();
-	}
+    setScanBenchmark(StringRef name):
+        SPBenchmarkTask(name)
+    {
+        RootCtr::initMetadata();
+        SetCtr::initMetadata();
+    }
 
-	virtual ~setScanBenchmark() throw() {}
+    virtual ~setScanBenchmark() throw() {}
 
-	Key key(Int c) const
-	{
-		return c * 2 + 1;
-	}
+    Key key(Int c) const
+    {
+        return c * 2 + 1;
+    }
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		allocator_ = new Allocator();
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        allocator_ = new Allocator();
 
-		Int size = params.x();
+        Int size = params.x();
 
-		String resource_name = "allocator."+toString(size)+".dump";
+        String resource_name = "allocator."+toString(size)+".dump";
 
-		if (IsResourceExists(resource_name))
-		{
-			LoadResource(*allocator_, resource_name);
+        if (IsResourceExists(resource_name))
+        {
+            LoadResource(*allocator_, resource_name);
 
-			set_ = new SetCtr(allocator_, 1);
-		}
-		else {
-			set_ = new SetCtr(allocator_, 1, true);
+            set_ = new SetCtr(allocator_, 1);
+        }
+        else {
+            set_ = new SetCtr(allocator_, 1, true);
 
-			Iterator i = set_->End();
+            Iterator i = set_->End();
 
-			for (Int c = 0; c < size; c++)
-			{
-				Accumulator keys;
-				keys[0] = key(c);
+            for (Int c = 0; c < size; c++)
+            {
+                Accumulator keys;
+                keys[0] = key(c);
 
-				set_->insert(i, keys);
+                set_->insert(i, keys);
 
-				i++;
-			}
+                i++;
+            }
 
-			allocator_->commit();
+            allocator_->commit();
 
-			StoreResource(*allocator_, resource_name);
-		}
-	}
+            StoreResource(*allocator_, resource_name);
+        }
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete set_;
-		delete allocator_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete set_;
+        delete allocator_;
+    }
 
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		BigInt total = 0;
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        BigInt total = 0;
 
-		for (Int c = 0; c < params.operations(); )
-		{
-			for (auto i = set_->begin(); !i.isEnd() && c < params.operations(); i++, c++)
-			{
-				total += i.getKey(0);
-			}
-		}
-	}
+        for (Int c = 0; c < params.operations(); )
+        {
+            for (auto i = set_->begin(); !i.isEnd() && c < params.operations(); i++, c++)
+            {
+                total += i.getKey(0);
+            }
+        }
+    }
 };
 
 

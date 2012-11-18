@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_ALGO_INDEXOF_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_ALGO_INDEXOF_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_ALGO_INDEXOF_HPP
 
 #include <memoria/core/types/types.hpp>
 
@@ -30,7 +30,10 @@ class IndexOf {
 
     template <typename Config, typename Item, typename Accumulator>
     struct Handler {
-        static const Int Idx = IfTypesEqual<Type, typename Provider<Item>::Type>::Value ? Accumulator::Counter : Accumulator::Idx;
+        static const Int Idx = IfTypesEqual<
+                                    Type,
+                                    typename Provider<Item>::Type
+                               >::Value ? Accumulator::Counter : Accumulator::Idx;
         static const Int Counter = Accumulator::Counter + 1;
     };
 

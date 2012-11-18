@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_ALGO_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_ALGO_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_ALGO_HPP
 
 #include <memoria/core/types/algo/for_each.hpp>
 #include <memoria/core/types/algo/minmax.hpp>

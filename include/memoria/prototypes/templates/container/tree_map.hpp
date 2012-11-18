@@ -70,7 +70,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 //        else {
 //            return -1;
 //        }
-    	return 0;
+        return 0;
     }
 
     Iterator getByIndex(BigInt index)
@@ -78,9 +78,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 //        NodeBaseG node = me()->getRoot(Allocator::READ);
 //        if (node.isSet())
 //        {
-//        	Iterator iter(*me(), node->level());
+//          Iterator iter(*me(), node->level());
 //
-//        	BigInt keys = 0;
+//          BigInt keys = 0;
 //            while (!node->is_leaf())
 //            {
 //                Int size = node->children_count();
@@ -119,12 +119,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
 //            return Iterator(*me());
 //        }
 
-    	return Iterator(*me());
+        return Iterator(*me());
     }
     
     virtual BigInt getKeyIndex(BigInt key, Int i = 0)
     {
-    	return me()->KeyIndex(key, i);
+        return me()->KeyIndex(key, i);
     }
 
 
@@ -132,18 +132,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::TreeMapName)
     // FIXME: value transfer is not yet implemented
     virtual bool get(BigInt index, BigInt& key, BigInt& value)
     {
-    	Iterator i = me()->getByIndex(index);
-    	if (i.isEnd())
-    	{
-    		return false;
-    	}
-    	else {
+        Iterator i = me()->getByIndex(index);
+        if (i.isEnd())
+        {
+            return false;
+        }
+        else {
 
-    		value = ConvertToHelper<Value, ID>::cvt(i.getValue());
-    		key = i.getKey(0);
+            value = ConvertToHelper<Value, ID>::cvt(i.getValue());
+            key = i.getKey(0);
 
-    		return true;
-    	}
+            return true;
+        }
     }
 
 

@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_ALGO_FOR_EACH_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_ALGO_FOR_EACH_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_ALGO_FOR_EACH_HPP
 
 #include <memoria/core/types/typelist.hpp>
 
@@ -48,4 +48,4 @@ struct ForEach<Config, TL<Head, Tail>, Handler, Accumulator> {
 
 }
 
-#endif	//_MEMORIA_CORE_TOOLS_TYPES_ALGO_FOR_EACH_HPP
+#endif  //_MEMORIA_CORE_TOOLS_TYPES_ALGO_FOR_EACH_HPP

@@ -6,7 +6,7 @@
 
 
 #ifndef _MEMORIA_CONTAINERS_ROOTS_HPP
-#define	_MEMORIA_CONTAINERS_ROOTS_HPP
+#define _MEMORIA_CONTAINERS_ROOTS_HPP
 
 #include <memoria/core/container/init.hpp>
 #include <memoria/core/types/types.hpp>

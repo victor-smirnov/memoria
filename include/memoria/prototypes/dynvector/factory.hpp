@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_FACTORY_HPP
-#define	_MEMORIA_PROTOTYPES_DYNVECTOR_FACTORY_HPP
+#define _MEMORIA_PROTOTYPES_DYNVECTOR_FACTORY_HPP
 
 
 #include <memoria/prototypes/bstree/factory.hpp>
@@ -54,26 +54,26 @@ struct DynVectorContainerTypes: public Base {
                     typename Base::DataPagesList
     >::Result                                                                   DataPagesList;
 
-    typedef DataPage_                                                       	DataPage;
-    typedef PageGuard<DataPage, typename Base::Allocator>						DataPageG;
-    typedef Buffer_                                                         	Buffer;
-    typedef BufferContentDescriptor_                                        	BufferContentDescriptor;
-    typedef CountData_                                                      	CountData;
+    typedef DataPage_                                                           DataPage;
+    typedef PageGuard<DataPage, typename Base::Allocator>                       DataPageG;
+    typedef Buffer_                                                             Buffer;
+    typedef BufferContentDescriptor_                                            BufferContentDescriptor;
+    typedef CountData_                                                          CountData;
 };
 
 
 template <typename Profile>
 struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memoria::BSTree> {
 
-	typedef IDType																Value;
-    typedef BTreeTypes<Profile, memoria::BSTree> 								Base;
+    typedef IDType                                                              Value;
+    typedef BTreeTypes<Profile, memoria::BSTree>                                Base;
 
     typedef NullType                                                            DataPagePartsList;
 
     static const bool MapType                                                   = MapTypes::Sum;
 
     typedef typename appendLists<
-    		        typename Base::ContainerPartsList,
+                    typename Base::ContainerPartsList,
                     typename TLTool<
                         memoria::dynvector::ToolsName,
                         memoria::dynvector::RemoveName,
@@ -85,14 +85,14 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
     >::Result                                                                   ContainerPartsList;
 
     typedef typename appendLists<
-    				typename Base::IteratorPartsList,
+                    typename Base::IteratorPartsList,
                     typename TLTool<
                        memoria::dynvector::IteratorAPIName
                     >::List
     >::Result                                                                   IteratorPartsList;
 
 
-    typedef NullType                                                 			Buffer;
+    typedef NullType                                                            Buffer;
     typedef NullType                                                            BufferContentDescriptor;
     typedef NullType                                                            CountData;
 
@@ -104,7 +104,7 @@ struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memor
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-    	typedef BTreeIteratorScalarPrefixCache<Iterator, Container> 			Type;
+        typedef BTreeIteratorScalarPrefixCache<Iterator, Container>             Type;
     };
 };
 
@@ -119,11 +119,11 @@ template <
 >
 class CtrTF<Profile, memoria::DynVector, ContainerTypeName>: public CtrTF<Profile, memoria::BSTree, ContainerTypeName> {
 
-    typedef CtrTF<Profile, memoria::BSTree, ContainerTypeName>   					Base1;
+    typedef CtrTF<Profile, memoria::BSTree, ContainerTypeName>                      Base1;
 
 public:
 
-    typedef typename Base1::ContainerTypes 											ContainerTypes;
+    typedef typename Base1::ContainerTypes                                          ContainerTypes;
 
     typedef typename ContainerTypes::DataPagePartsList                              DataPagePartsList;
 
@@ -133,7 +133,7 @@ public:
                 DataPagePartsList,
                 ContainerTypes::template DataBlockTypeFactory,
                 memoria::btree::TreePage<typename ContainerTypes::Allocator>
-    >                                                                           	DataPage;
+    >                                                                               DataPage;
 
 
 
@@ -145,30 +145,30 @@ public:
                 typename Base1::Types
     >
     {
-    	typedef DynVectorContainerTypes<
+        typedef DynVectorContainerTypes<
                 DataPage,
                 typename ContainerTypes::Buffer,
                 typename ContainerTypes::BufferContentDescriptor,
                 typename ContainerTypes::CountData,
                 typename Base1::Types
-        > 																			Base0;
+        >                                                                           Base0;
 
 
-    	typedef typename Base0::ContainerPartsList 									CtrList;
-    	typedef typename Base0::IteratorPartsList									IterList;
+        typedef typename Base0::ContainerPartsList                                  CtrList;
+        typedef typename Base0::IteratorPartsList                                   IterList;
 
-    	typedef CtrTypesT<Types> 													CtrTypes;
-    	typedef BTreeIterTypes<IterTypesT<Types> >									IterTypes;
+        typedef CtrTypesT<Types>                                                    CtrTypes;
+        typedef BTreeIterTypes<IterTypesT<Types> >                                  IterTypes;
 
-    	typedef DataPath<
-    			typename Base0::NodeBaseG,
-    			typename Base0::DataPageG
-    	>																			TreePath;
+        typedef DataPath<
+                typename Base0::NodeBaseG,
+                typename Base0::DataPageG
+        >                                                                           TreePath;
 
-    	typedef typename TreePath::DataItem											DataPathItem;
+        typedef typename TreePath::DataItem                                         DataPathItem;
     };
 
-    typedef typename Types::CtrTypes												CtrTypes;
+    typedef typename Types::CtrTypes                                                CtrTypes;
 
     typedef Ctr<CtrTypes>                                                           Type;
 };

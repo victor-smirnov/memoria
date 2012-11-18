@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_MODELS_IDX_MAP_MODEL_TOOLS_HPP
-#define	_MEMORIA_MODELS_IDX_MAP_MODEL_TOOLS_HPP
+#define _MEMORIA_MODELS_IDX_MAP_MODEL_TOOLS_HPP
 
 
 #include <memoria/prototypes/bstree/names.hpp>
@@ -43,7 +43,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
     typedef typename Base::Element                                              Element;
-    typedef typename Base::Accumulator											Accumulator;
+    typedef typename Base::Accumulator                                          Accumulator;
 
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
@@ -63,19 +63,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bstree::ToolsName)
     //FIXME: SumKeysFn is used in MoveElementsFn
     struct SumKeysFn {
 
-    	Int         	from_;
-    	Int         	count_;
-    	Accumulator&    keys_;
+        Int             from_;
+        Int             count_;
+        Accumulator&    keys_;
 
     public:
-    	SumKeysFn(Int from, Int count, Accumulator& keys):
-    		from_(from), count_(count), keys_(keys) {}
+        SumKeysFn(Int from, Int count, Accumulator& keys):
+            from_(from), count_(count), keys_(keys) {}
 
-    	template <typename T>
-    	void operator()(T *node)
-    	{
-    		node->map().sum(from_, from_ + count_, keys_);
-    	}
+        template <typename T>
+        void operator()(T *node)
+        {
+            node->map().sum(from_, from_ + count_, keys_);
+        }
     };
 
 private:
@@ -83,63 +83,63 @@ private:
 
     struct SumKeysInOneBlockFn {
 
-    	Int         	from_;
-    	Int         	count_;
-    	Key&    		sum_;
-    	Int 			block_num_;
+        Int             from_;
+        Int             count_;
+        Key&            sum_;
+        Int             block_num_;
 
     public:
-    	SumKeysInOneBlockFn(Int from, Int count, Key& sum, Int block_num):
-    		from_(from), count_(count), sum_(sum), block_num_(block_num) {}
+        SumKeysInOneBlockFn(Int from, Int count, Key& sum, Int block_num):
+            from_(from), count_(count), sum_(sum), block_num_(block_num) {}
 
-    	template <typename T>
-    	void operator()(T *node)
-    	{
-    		node->map().sum(block_num_, from_, from_ + count_, sum_);
-    	}
+        template <typename T>
+        void operator()(T *node)
+        {
+            node->map().sum(block_num_, from_, from_ + count_, sum_);
+        }
     };
 
     struct AddKeysFn {
-    	Int idx_;
-    	const Key *keys_;
-    	bool reindex_fully_;
+        Int idx_;
+        const Key *keys_;
+        bool reindex_fully_;
 
-    	AddKeysFn(Int idx, const Key* keys, bool reindex_fully): idx_(idx), keys_(keys), reindex_fully_(reindex_fully) {}
+        AddKeysFn(Int idx, const Key* keys, bool reindex_fully): idx_(idx), keys_(keys), reindex_fully_(reindex_fully) {}
 
-    	template <typename Node>
-    	void operator()(Node *node)
-    	{
-    		for (Int c = 0; c < Indexes; c++)
-    		{
-    			node->map().updateUp(c, idx_, keys_[c]);
+        template <typename Node>
+        void operator()(Node *node)
+        {
+            for (Int c = 0; c < Indexes; c++)
+            {
+                node->map().updateUp(c, idx_, keys_[c]);
 
-    			if (reindex_fully_) {
-    				node->map().reindex(c);
-    			}
-    		}
-    	}
+                if (reindex_fully_) {
+                    node->map().reindex(c);
+                }
+            }
+        }
     };
 
 public:
 
     void sumKeys(const NodeBase *node, Int from, Int count, Accumulator& keys) const
     {
-    	SumKeysFn fn(from, count, keys);
-    	NodeDispatcher::DispatchConst(node, fn);
+        SumKeysFn fn(from, count, keys);
+        NodeDispatcher::DispatchConst(node, fn);
     }
 
     void sumKeys(const NodeBase *node, Int block_num, Int from, Int count, Key& sum) const
     {
-    	SumKeysInOneBlockFn fn(from, count, sum, block_num);
-    	NodeDispatcher::DispatchConst(node, fn);
+        SumKeysInOneBlockFn fn(from, count, sum, block_num);
+        NodeDispatcher::DispatchConst(node, fn);
     }
 
     void addKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
     {
-    	node.update();
+        node.update();
 
-    	AddKeysFn fn(idx, keys.keys(), reindex_fully);
-    	NodeDispatcher::Dispatch(node, fn);
+        AddKeysFn fn(idx, keys.keys(), reindex_fully);
+        NodeDispatcher::Dispatch(node, fn);
     }
 
     bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
@@ -148,16 +148,16 @@ MEMORIA_CONTAINER_PART_END
 
 
 
-#define M_TYPE 		MEMORIA_CONTAINER_TYPE(memoria::bstree::ToolsName)
-#define M_PARAMS 	MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bstree::ToolsName)
+#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
 bool M_TYPE::updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
 {
-	node.update();
-	me()->addKeys(node, idx, counters.keys(), reindex_fully);
+    node.update();
+    me()->addKeys(node, idx, counters.keys(), reindex_fully);
 
-	return false; //proceed further unconditionally
+    return false; //proceed further unconditionally
 }
 
 
@@ -165,43 +165,54 @@ bool M_TYPE::updateCounters(NodeBaseG& node, Int idx, const Accumulator& counter
 M_PARAMS
 template <typename Node>
 bool M_TYPE::checkNodeContent(Node *node) {
-	bool errors = false;
+    bool errors = false;
 
-	for (Int i = 0; i < Indexes; i++) {
-		Key key = 0;
+    for (Int i = 0; i < Indexes; i++) {
+        Key key = 0;
 
-		for (Int c = 0; c < node->children_count(); c++) {
-			key += node->map().key(i, c);
-		}
+        for (Int c = 0; c < node->children_count(); c++) {
+            key += node->map().key(i, c);
+        }
 
-		if (key != node->map().maxKey(i))
-		{
-			//me()->dump(node);
-			MEMORIA_ERROR(me(), "Sum of keys doen't match maxKey for key", i, key, node->map().maxKey(i));
-			errors = true;
-		}
-	}
+        if (key != node->map().maxKey(i))
+        {
+            //me()->dump(node);
+            MEMORIA_ERROR(me(), "Sum of keys doen't match maxKey for key", i, key, node->map().maxKey(i));
+            errors = true;
+        }
+    }
 
-	return errors;
+    return errors;
 }
 
 M_PARAMS
 template <typename Node1, typename Node2>
 bool M_TYPE::checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx)
 {
-	bool errors = false;
-	for (Int c = 0; c < Indexes; c++)
-	{
-		if (node->map().maxKey(c) != parent->map().key(c, parent_idx))
-		{
-			MEMORIA_ERROR(me(), "Invalid parent-child nodes chain", c, node->map().maxKey(c), parent->map().key(c, parent_idx), "for", node->id(), parent->id(), parent_idx);
-			errors = true;
-		}
-	}
+    bool errors = false;
+    for (Int c = 0; c < Indexes; c++)
+    {
+        if (node->map().maxKey(c) != parent->map().key(c, parent_idx))
+        {
+            MEMORIA_ERROR(
+                    me(),
+                    "Invalid parent-child nodes chain",
+                    c,
+                    node->map().maxKey(c),
+                    parent->map().key(c, parent_idx),
+                    "for",
+                    node->id(),
+                    parent->id(),
+                    parent_idx
+            );
 
-	errors = checkNodeContent(node) || errors;
+            errors = true;
+        }
+    }
 
-	return errors;
+    errors = checkNodeContent(node) || errors;
+
+    return errors;
 }
 
 

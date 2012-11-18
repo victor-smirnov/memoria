@@ -44,6 +44,8 @@ struct MEMORIA_API Page {
     virtual Int size() const                         = 0;
     virtual Int getByte(Int idx) const               = 0;
     virtual void setByte(Int idx, Int value)         = 0;
+
+    virtual ~Page() throw() {}
 };
 
 
@@ -54,6 +56,8 @@ class PageWrapper: public Page {
 public:
     PageWrapper(PageType* page): page_(page) {}
     PageWrapper(): page_(NULL) {}
+
+    virtual ~PageWrapper() throw()  {}
 
     virtual bool isNull() const {
         return page_ == NULL;
@@ -168,8 +172,11 @@ struct PageBuilder: public Builder<PartsList, PagePart, Base> {};
 
 
 template <int Idx, typename Types>
-class PageHelper: public PagePart<typename SelectByIndexTool<Idx, typename Types::List>::Result, PageHelper<Idx - 1, Types> > {
-
+class PageHelper: public PagePart<
+                    typename SelectByIndexTool<Idx, typename Types::List>::Result,
+                    PageHelper<Idx - 1, Types>
+                  >
+{
 };
 
 template <typename Types>

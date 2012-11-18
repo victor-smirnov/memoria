@@ -20,113 +20,113 @@ using namespace std;
 
 class VectorMapBatchinsertBenchmark: public SPBenchmarkTask {
 
-	typedef SPBenchmarkTask Base;
+    typedef SPBenchmarkTask Base;
 
-	typedef typename Base::Allocator 	Allocator;
-	typedef typename Base::Profile 		Profile;
+    typedef typename Base::Allocator    Allocator;
+    typedef typename Base::Profile      Profile;
 
-	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<VectorMap>::Type 	MapCtr;
-	typedef typename MapCtr::Iterator								Iterator;
-	typedef typename MapCtr::ID										ID;
+    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMap>::Type  MapCtr;
+    typedef typename MapCtr::Iterator                               Iterator;
+    typedef typename MapCtr::ID                                     ID;
 
-	typedef typename MapCtr::Idxset									SetCtr;
+    typedef typename MapCtr::Idxset                                 SetCtr;
 
-	typedef typename SetCtr::Accumulator							Accumulator;
+    typedef typename SetCtr::Accumulator                            Accumulator;
 
-	typedef typename SetCtr::ISubtreeProvider						ISubtreeProvider;
-	typedef typename SetCtr::DefaultSubtreeProviderBase				DefaultSubtreeProviderBase;
-	typedef typename SetCtr::NonLeafNodeKeyValuePair				NonLeafNodeKeyValuePair;
-	typedef typename SetCtr::LeafNodeKeyValuePair 					LeafNodeKeyValuePair;
-
-
-	class SubtreeProvider: public DefaultSubtreeProviderBase
-	{
-		typedef DefaultSubtreeProviderBase 			Base;
-		typedef typename ISubtreeProvider::Enum 	Direction;
-
-		BigInt data_size_;
-
-	public:
-		SubtreeProvider(SetCtr* ctr, BigInt total, BigInt data_size): Base(*ctr, total), data_size_(data_size)
-		{}
-
-		virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
-		{
-			Accumulator acc;
-
-			acc[0] = 1;
-			acc[1] = data_size_;
-
-			return LeafNodeKeyValuePair(acc, SetCtr::Value());
-		}
-	};
+    typedef typename SetCtr::ISubtreeProvider                       ISubtreeProvider;
+    typedef typename SetCtr::DefaultSubtreeProviderBase             DefaultSubtreeProviderBase;
+    typedef typename SetCtr::NonLeafNodeKeyValuePair                NonLeafNodeKeyValuePair;
+    typedef typename SetCtr::LeafNodeKeyValuePair                   LeafNodeKeyValuePair;
 
 
-	Allocator* 	allocator_;
-	MapCtr* 	map_;
+    class SubtreeProvider: public DefaultSubtreeProviderBase
+    {
+        typedef DefaultSubtreeProviderBase          Base;
+        typedef typename ISubtreeProvider::Enum     Direction;
 
-	BigInt 		memory_size;
-	Int 		data_size_;
+        BigInt data_size_;
+
+    public:
+        SubtreeProvider(SetCtr* ctr, BigInt total, BigInt data_size): Base(*ctr, total), data_size_(data_size)
+        {}
+
+        virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
+        {
+            Accumulator acc;
+
+            acc[0] = 1;
+            acc[1] = data_size_;
+
+            return LeafNodeKeyValuePair(acc, SetCtr::Value());
+        }
+    };
+
+
+    Allocator*  allocator_;
+    MapCtr*     map_;
+
+    BigInt      memory_size;
+    Int         data_size_;
 public:
 
-	VectorMapBatchinsertBenchmark(StringRef name, Int data_size):
-		SPBenchmarkTask(name), memory_size(128*1024*1024), data_size_(data_size)
-	{
-		RootCtr::initMetadata();
-		MapCtr::initMetadata();
+    VectorMapBatchinsertBenchmark(StringRef name, Int data_size):
+        SPBenchmarkTask(name), memory_size(128*1024*1024), data_size_(data_size)
+    {
+        RootCtr::initMetadata();
+        MapCtr::initMetadata();
 
-		Add("memory_size", memory_size);
-	}
+        Add("memory_size", memory_size);
+    }
 
-	virtual ~VectorMapBatchinsertBenchmark() throw() {}
+    virtual ~VectorMapBatchinsertBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		allocator_ = new Allocator();
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        allocator_ = new Allocator();
 
-		map_ = new MapCtr(allocator_, 1, true);
+        map_ = new MapCtr(allocator_, 1, true);
 
-		allocator_->commit();
-	}
-
-
-	virtual void release(ostream& out)
-	{
-		delete map_;
-		delete allocator_;
-	}
+        allocator_->commit();
+    }
 
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		Int size = params.x();
+    virtual void release(ostream& out)
+    {
+        delete map_;
+        delete allocator_;
+    }
 
-		ArrayData data(size * data_size_, malloc(size * data_size_), true);
 
-		SubtreeProvider provider(&map_->set(), size, data_size_);
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        Int size = params.x();
 
-		BigInt total = 0;
+        ArrayData data(size * data_size_, malloc(size * data_size_), true);
 
-		BigInt key_count = 0;
+        SubtreeProvider provider(&map_->set(), size, data_size_);
 
-		while (total < memory_size)
-		{
-			auto i = key_count == 0 ? map_->Begin() : map_->find(getRandom(key_count));
+        BigInt total = 0;
 
-			map_->set().insertSubtree(i.is_iter(), provider);
+        BigInt key_count = 0;
 
-			i.ba_iter().insert(data);
+        while (total < memory_size)
+        {
+            auto i = key_count == 0 ? map_->Begin() : map_->find(getRandom(key_count));
 
-			total += data.size();
-			key_count += size;
-		}
+            map_->set().insertSubtree(i.is_iter(), provider);
 
-		params.operations() = map_->count();
-		params.memory() 	= map_->size() + map_->count() * 16; //sizeof(BigInt) * 2
+            i.ba_iter().insert(data);
 
-		allocator_->commit();
-	}
+            total += data.size();
+            key_count += size;
+        }
+
+        params.operations() = map_->count();
+        params.memory()     = map_->size() + map_->count() * 16; //sizeof(BigInt) * 2
+
+        allocator_->commit();
+    }
 };
 
 

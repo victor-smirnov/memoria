@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_PRINTER_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_LIST_PRINTER_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_LIST_PRINTER_HPP
 
 #include <iostream>
 #include <typeinfo>
@@ -19,7 +19,7 @@ namespace memoria    {
 class TypePrinterBase
 {
 public:
-	static void dump() {}
+    static void dump() {}
 };
 
 template<typename T, typename Base>
@@ -48,4 +48,4 @@ public:
 };
 
 }
-#endif	//_MEMORIA_CORE_TOOLS_TYPES_LIST_PRINTER_HPP
+#endif  //_MEMORIA_CORE_TOOLS_TYPES_LIST_PRINTER_HPP

@@ -31,35 +31,35 @@ namespace memoria {
 template <typename Profile>
 struct BTreeTypes<Profile, memoria::Vector>: public BTreeTypes<Profile, memoria::DynVector>  {
 
-	typedef BTreeTypes<Profile, memoria::DynVector> 								Base;
+    typedef BTreeTypes<Profile, memoria::DynVector>                                 Base;
 
-	typedef typename appendLists<
-			typename Base::ContainerPartsList,
-			typename TLTool<
-				memoria::models::array::ApiName
-			>::List
-	>::Result                                                               		ContainerPartsList;
+    typedef typename appendLists<
+            typename Base::ContainerPartsList,
+            typename TLTool<
+                memoria::models::array::ApiName
+            >::List
+    >::Result                                                                       ContainerPartsList;
 
-	typedef typename appendLists<
-			typename Base::IteratorPartsList,
-			typename TLTool<
-				memoria::models::array::IteratorContainerAPIName
-			>::List
-	>::Result                                                               		IteratorPartsList;
+    typedef typename appendLists<
+            typename Base::IteratorPartsList,
+            typename TLTool<
+                memoria::models::array::IteratorContainerAPIName
+            >::List
+    >::Result                                                                       IteratorPartsList;
 
-	typedef ArrayData                                                     			Buffer;
+    typedef ArrayData                                                               Buffer;
 
-	template <Int Size>
-	struct DataBlockTypeFactory {
-		typedef memoria::array::DynVectorData<Size>                       			Type;
-	};
+    template <Int Size>
+    struct DataBlockTypeFactory {
+        typedef memoria::array::DynVectorData<Size>                                 Type;
+    };
 
-	typedef VectorMetadata<typename Base::ID> 										Metadata;
+    typedef VectorMetadata<typename Base::ID>                                       Metadata;
 
-	template <typename Iterator, typename Container>
-	struct IteratorCacheFactory {
-		typedef BTreeIteratorScalarPrefixCache<Iterator, Container> 					Type;
-	};
+    template <typename Iterator, typename Container>
+    struct IteratorCacheFactory {
+        typedef BTreeIteratorScalarPrefixCache<Iterator, Container>                 Type;
+    };
 };
 
 

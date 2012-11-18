@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_PAGES_DISPATCHERS_FACTORY_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_PAGES_DISPATCHERS_FACTORY_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_PAGES_DISPATCHERS_FACTORY_HPP
 
 #include <memoria/core/types/types.hpp>
 
@@ -35,20 +35,20 @@ template <
 >
 class NodeFactoryHelper<NullType, Types> {
 
-	typedef typename Types::RootNode 			RootNode;
-	typedef typename Types::LeafNode 			LeafNode;
-	typedef typename Types::RootLeafNode 		RootLeafNode;
-	typedef typename Types::Node 				Node;
+    typedef typename Types::RootNode            RootNode;
+    typedef typename Types::LeafNode            LeafNode;
+    typedef typename Types::RootLeafNode        RootLeafNode;
+    typedef typename Types::Node                Node;
 
-	typedef typename Types::NodeBase 			NodeBase;
-	typedef typename Types::NodeBaseG 			NodeBaseG;
-	typedef typename Types::Allocator 			Allocator;
+    typedef typename Types::NodeBase            NodeBase;
+    typedef typename Types::NodeBaseG           NodeBaseG;
+    typedef typename Types::Allocator           Allocator;
 
 public:
     static NodeBaseG create(Allocator &allocator, Int level, bool root, bool leaf)
     {
-    	NodeBaseG node = allocator.createPage();
-    	node->init();
+        NodeBaseG node = allocator.createPage();
+        node->init();
 
         if (!root && !leaf) {
             node->page_type_hash() = Node::hash();
@@ -79,9 +79,9 @@ template <
 >
 class NodeFactoryHelper<TL<Head, Tail>, Types> {
 
-	typedef typename Types::NodeBase 			NodeBase;
-	typedef typename Types::NodeBaseG 			NodeBaseG;
-	typedef typename Types::Allocator 			Allocator;
+    typedef typename Types::NodeBase            NodeBase;
+    typedef typename Types::NodeBaseG           NodeBaseG;
+    typedef typename Types::Allocator           Allocator;
 
     static const Int Level = Head::Value;
 
@@ -124,11 +124,11 @@ public:
             }
             else if (!root && leaf)
             {
-            	node->page_type_hash() = LeafNode::hash();
+                node->page_type_hash() = LeafNode::hash();
             }
             else if (root && !leaf)
             {
-            	node->page_type_hash() = RootNode::hash();
+                node->page_type_hash() = RootNode::hash();
             }
             else
             {

@@ -27,7 +27,7 @@ class Configurator;
 class Configurator {
 public:
 
-        typedef std::map<String, String>        		StringMapType;
+        typedef std::map<String, String>                StringMapType;
         typedef std::set<String>                        PropertyListType;
 
         Configurator(Configurator *parent = NULL);
@@ -53,26 +53,26 @@ public:
         template <typename T>
         T getValue(StringRef name)
         {
-        	if (this->IsPropertyDefined(name))
-        	{
-        		return FromString<T>::convert(this->getProperty(name));
-        	}
-        	else {
-        		throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name<<" is not specified");
-        	}
+            if (this->IsPropertyDefined(name))
+            {
+                return FromString<T>::convert(this->getProperty(name));
+            }
+            else {
+                throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name<<" is not specified");
+            }
         }
 
         template <typename T>
         T getValue(StringRef name, const T& default_value)
         {
-        	if (this->IsPropertyDefined(name))
-        	{
-        		return FromString<T>::convert(this->getProperty(name));
-        	}
-        	else
-        	{
-        		return default_value;
-        	}
+            if (this->IsPropertyDefined(name))
+            {
+                return FromString<T>::convert(this->getProperty(name));
+            }
+            else
+            {
+                return default_value;
+            }
         }
 
 protected:
@@ -91,18 +91,18 @@ protected:
 
                 bool find(StringRef name) const
                 {
-                	if (name == *name_)
-                	{
-                		return true;
-                	}
-                	else if (parent_ != NULL)
-                	{
-                		return parent_->find(name);
-                	}
-                	else
-                	{
-                		return false;
-                	}
+                    if (name == *name_)
+                    {
+                        return true;
+                    }
+                    else if (parent_ != NULL)
+                    {
+                        return parent_->find(name);
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
         };
 

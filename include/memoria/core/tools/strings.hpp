@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_VAPI_TOOLS_STRINGS_HPP
-#define	_MEMORIA_VAPI_TOOLS_STRINGS_HPP
+#define _MEMORIA_VAPI_TOOLS_STRINGS_HPP
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/config.hpp>
@@ -31,52 +31,52 @@ MEMORIA_API Long strToL(StringRef str);
 template <typename T>
 String toString(const T& value, bool hex = false)
 {
-	std::stringstream str;
-	if (hex) {
-		str<<hex;
-	}
-	str<<value;
-	return str.str();
+    std::stringstream str;
+    if (hex) {
+        str<<hex;
+    }
+    str<<value;
+    return str.str();
 }
 
 template <typename T>
 struct AsString {
-	static String convert(const T& value, bool hex = false)
-	{
-		std::stringstream str;
-		if (hex) {
-			str<<hex;
-		}
-		str<<value;
-		return str.str();
-	}
+    static String convert(const T& value, bool hex = false)
+    {
+        std::stringstream str;
+        if (hex) {
+            str<<hex;
+        }
+        str<<value;
+        return str.str();
+    }
 };
 
 template <>
 struct AsString<bool> {
-	static String convert(const bool& value)
-	{
-		std::stringstream str;
+    static String convert(const bool& value)
+    {
+        std::stringstream str;
 
-		if (value)
-		{
-			str<<"True";
-		}
-		else
-		{
-			str<<"False";
-		}
+        if (value)
+        {
+            str<<"True";
+        }
+        else
+        {
+            str<<"False";
+        }
 
-		return str.str();
-	}
+        return str.str();
+    }
 };
 
 template <>
 struct AsString<String> {
-	static String convert(StringRef value)
-	{
-		return value;
-	}
+    static String convert(StringRef value)
+    {
+        return value;
+    }
 };
 
 
@@ -90,42 +90,42 @@ template <typename T> struct FromString;
 
 template <>
 struct FromString<Int> {
-	static Int convert(StringRef str)
-	{
-		return ConvertToLongInt(str);
-	}
+    static Int convert(StringRef str)
+    {
+        return ConvertToLongInt(str);
+    }
 };
 
 template <>
 struct FromString<BigInt> {
-	static BigInt convert(StringRef str)
-	{
-		return ConvertToLongLong(str);
-	}
+    static BigInt convert(StringRef str)
+    {
+        return ConvertToLongLong(str);
+    }
 };
 
 template <>
 struct FromString<double> {
-	static double convert(StringRef str)
-	{
-		return ConvertToDouble(str);
-	}
+    static double convert(StringRef str)
+    {
+        return ConvertToDouble(str);
+    }
 };
 
 template <>
 struct FromString<bool> {
-	static bool convert(StringRef str)
-	{
-		return ConvertToBool(str);
-	}
+    static bool convert(StringRef str)
+    {
+        return ConvertToBool(str);
+    }
 };
 
 template <>
 struct FromString<String> {
-	static String convert(StringRef str)
-	{
-		return str;
-	}
+    static String convert(StringRef str)
+    {
+        return str;
+    }
 };
 
 }}

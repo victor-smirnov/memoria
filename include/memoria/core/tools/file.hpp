@@ -17,38 +17,38 @@
 namespace memoria{
 
 class MEMORIA_API File {
-	String path_;
+    String path_;
 
 public:
-	class FileListType: public std::vector<File*> {
-	public:
-		FileListType(){}
-		virtual ~FileListType() throw();
-	};
+    class FileListType: public std::vector<File*> {
+    public:
+        FileListType(){}
+        virtual ~FileListType() throw();
+    };
 
-	File(StringRef path);
-	File(const File& file);
+    File(StringRef path);
+    File(const File& file);
 
-	virtual ~File() throw();
+    virtual ~File() throw();
 
-	virtual String getName() const;
-	virtual StringRef getPath() const;
+    virtual String getName() const;
+    virtual StringRef getPath() const;
 
-	virtual bool isExists() const;
-	virtual bool isDirectory() const;
-	String getAbsolutePath() const;
+    virtual bool isExists() const;
+    virtual bool isDirectory() const;
+    String getAbsolutePath() const;
 
-	virtual bool mkDir() const;
-	virtual bool mkDirs() const;
-	virtual bool deleteFile() const;
-	virtual bool delTree() const;
-	virtual BigInt size() const;
+    virtual bool mkDir() const;
+    virtual bool mkDirs() const;
+    virtual bool deleteFile() const;
+    virtual bool delTree() const;
+    virtual BigInt size() const;
 
-	virtual void rename(StringRef new_name);
+    virtual void rename(StringRef new_name);
 
-	static FileListType* readDir(const File& file);
+    static FileListType* readDir(const File& file);
 protected:
-	static String normalizePath(StringRef name);
+    static String normalizePath(StringRef name);
 };
 
 }

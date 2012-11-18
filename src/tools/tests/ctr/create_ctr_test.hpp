@@ -24,153 +24,153 @@ using namespace std;
 
 class CreateCtrTest: public SPTestTask {
 
-	typedef KVPair<BigInt, BigInt> 										Pair;
-	typedef vector<Pair>												PairVector;
-	typedef SmallCtrTypeFactory::Factory<VectorMap>::Type 				VectorMapCtr;
-	typedef SmallCtrTypeFactory::Factory<Map1>::Type 					MapCtr;
-	typedef VectorMapCtr::Iterator										VMIterator;
+    typedef KVPair<BigInt, BigInt>                                      Pair;
+    typedef vector<Pair>                                                PairVector;
+    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type               VectorMapCtr;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                    MapCtr;
+    typedef VectorMapCtr::Iterator                                      VMIterator;
 
-	struct TaskReplay: public ReplayParams {
+    struct TaskReplay: public ReplayParams {
 
-		BigInt map_name_;
-		BigInt vector_map_name_;
+        BigInt map_name_;
+        BigInt vector_map_name_;
 
-		TaskReplay(): ReplayParams()
-		{
-			Add("map_name", map_name_);
-			Add("vector_map_name", vector_map_name_);
-		}
-	};
+        TaskReplay(): ReplayParams()
+        {
+            Add("map_name", map_name_);
+            Add("vector_map_name", vector_map_name_);
+        }
+    };
 
 
 
-	PairVector pairs_;
+    PairVector pairs_;
 
-	Int map_size_;
-	Int vector_map_size_;
-	Int block_size_;
+    Int map_size_;
+    Int vector_map_size_;
+    Int block_size_;
 
 public:
 
-	CreateCtrTest(): SPTestTask("CreateCtr"), map_size_(1024*256), vector_map_size_(200), block_size_(1024)
-	{
-		SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
-		VectorMapCtr::initMetadata();
-		MapCtr::initMetadata();
+    CreateCtrTest(): SPTestTask("CreateCtr"), map_size_(1024*256), vector_map_size_(200), block_size_(1024)
+    {
+        SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+        VectorMapCtr::initMetadata();
+        MapCtr::initMetadata();
 
-		Add("MapSize", map_size_);
-		Add("VectorMapSize", vector_map_size_);
-		Add("BlockSize", block_size_);
-	}
+        Add("MapSize", map_size_);
+        Add("VectorMapSize", vector_map_size_);
+        Add("BlockSize", block_size_);
+    }
 
-	virtual ~CreateCtrTest() throw() {}
+    virtual ~CreateCtrTest() throw() {}
 
-	virtual TestReplayParams* createTestStep(StringRef name) const
-	{
-		return new TaskReplay();
-	}
+    virtual TestReplayParams* createTestStep(StringRef name) const
+    {
+        return new TaskReplay();
+    }
 
 
-	virtual void Replay(ostream& out, TestReplayParams* step_params)
-	{
-	}
+    virtual void Replay(ostream& out, TestReplayParams* step_params)
+    {
+    }
 
-	virtual void Run(ostream& out)
-	{
-		DefaultLogHandlerImpl logHandler(out);
+    virtual void Run(ostream& out)
+    {
+        DefaultLogHandlerImpl logHandler(out);
 
-		CreateCtrTest* task_params = this;
+        CreateCtrTest* task_params = this;
 
-		TaskReplay params;
+        TaskReplay params;
 
-		params.size_ = task_params->size_;
-		if (task_params->btree_random_branching_)
-		{
-			task_params->btree_branching_ = 8 + getRandom(100);
-			out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
-		}
+        params.size_ = task_params->size_;
+        if (task_params->btree_random_branching_)
+        {
+            task_params->btree_branching_ = 8 + getRandom(100);
+            out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
+        }
 
-		Allocator allocator;
-		allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-		MapCtr map(&allocator);
+        MapCtr map(&allocator);
 
-		map.setBranchingFactor(100);
+        map.setBranchingFactor(100);
 
-		params.map_name_ = map.name();
+        params.map_name_ = map.name();
 
-		BigInt t00 = getTimeInMillis();
+        BigInt t00 = getTimeInMillis();
 
-		for (Int c = 0; c < task_params->map_size_; c++)
-		{
-			map[getRandom()] = getRandom();
-		}
+        for (Int c = 0; c < task_params->map_size_; c++)
+        {
+            map[getRandom()] = getRandom();
+        }
 
-		VectorMapCtr vector_map(&allocator);
+        VectorMapCtr vector_map(&allocator);
 
-		vector_map.setBranchingFactor(100);
+        vector_map.setBranchingFactor(100);
 
-		params.vector_map_name_ = vector_map.name();
+        params.vector_map_name_ = vector_map.name();
 
-		for (Int c = 0; c < task_params->vector_map_size_; c++)
-		{
-			vector_map[getRandom()] = createBuffer(getRandom(task_params->block_size_), getRandom(256));
-		}
+        for (Int c = 0; c < task_params->vector_map_size_; c++)
+        {
+            vector_map[getRandom()] = createBuffer(getRandom(task_params->block_size_), getRandom(256));
+        }
 
-		allocator.commit();
+        allocator.commit();
 
-		BigInt t0 = getTimeInMillis();
+        BigInt t0 = getTimeInMillis();
 
-		StoreAllocator(allocator, "alloc1.dump");
+        StoreAllocator(allocator, "alloc1.dump");
 
-		BigInt t1 = getTimeInMillis();
+        BigInt t1 = getTimeInMillis();
 
-		Allocator new_alloc;
+        Allocator new_alloc;
 
-		LoadAllocator(new_alloc, "alloc1.dump");
+        LoadAllocator(new_alloc, "alloc1.dump");
 
-		BigInt t2 = getTimeInMillis();
+        BigInt t2 = getTimeInMillis();
 
-		out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
-		out<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
+        out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
+        out<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
 
-		MapCtr new_map(&new_alloc, map.name());
+        MapCtr new_map(&new_alloc, map.name());
 
-		MEMORIA_TEST_THROW_IF(map.getBranchingFactor(), !=, new_map.getBranchingFactor());
+        MEMORIA_TEST_THROW_IF(map.getBranchingFactor(), !=, new_map.getBranchingFactor());
 
-		MEMORIA_TEST_THROW_IF(map.getSize(), !=, new_map.getSize());
+        MEMORIA_TEST_THROW_IF(map.getSize(), !=, new_map.getSize());
 
-		auto new_iter = new_map.Begin();
+        auto new_iter = new_map.Begin();
 
-		for (auto iter = map.Begin(); !iter.isEnd(); iter.nextKey(), new_iter.nextKey())
-		{
-			MEMORIA_TEST_THROW_IF(iter.getKey(0), !=, new_iter.getKey(0));
-			MEMORIA_TEST_THROW_IF(iter.getValue(), !=, new_iter.getValue());
-		}
+        for (auto iter = map.Begin(); !iter.isEnd(); iter.nextKey(), new_iter.nextKey())
+        {
+            MEMORIA_TEST_THROW_IF(iter.getKey(0), !=, new_iter.getKey(0));
+            MEMORIA_TEST_THROW_IF(iter.getValue(), !=, new_iter.getValue());
+        }
 
-		BigInt t22 = getTimeInMillis();
+        BigInt t22 = getTimeInMillis();
 
-		VectorMapCtr new_vector_map(&new_alloc, vector_map.name());
+        VectorMapCtr new_vector_map(&new_alloc, vector_map.name());
 
-		MEMORIA_TEST_THROW_IF(vector_map.getBranchingFactor(), !=, new_vector_map.getBranchingFactor());
+        MEMORIA_TEST_THROW_IF(vector_map.getBranchingFactor(), !=, new_vector_map.getBranchingFactor());
 
-		auto new_vm_iter = new_vector_map.Begin();
+        auto new_vm_iter = new_vector_map.Begin();
 
-		for (auto iter = vector_map.Begin(); iter.isNotEnd(); iter.next(), new_vm_iter.next())
-		{
-			MEMORIA_TEST_THROW_IF(iter.size(), !=, new_vm_iter.size());
+        for (auto iter = vector_map.Begin(); iter.isNotEnd(); iter.next(), new_vm_iter.next())
+        {
+            MEMORIA_TEST_THROW_IF(iter.size(), !=, new_vm_iter.size());
 
-			ArrayData data = iter.read();
+            ArrayData data = iter.read();
 
-			checkBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
-		}
+            checkBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
+        }
 
-		BigInt t33 = getTimeInMillis();
+        BigInt t33 = getTimeInMillis();
 
-		out<<"Create Time: "<<FormatTime(t0 - t00)<<endl;
-		out<<"check Time:  "<<FormatTime(t22 - t2)<<endl;
-		out<<"check Time:  "<<FormatTime(t33 - t22)<<endl;
-	}
+        out<<"Create Time: "<<FormatTime(t0 - t00)<<endl;
+        out<<"check Time:  "<<FormatTime(t22 - t2)<<endl;
+        out<<"check Time:  "<<FormatTime(t33 - t22)<<endl;
+    }
 
 
 };

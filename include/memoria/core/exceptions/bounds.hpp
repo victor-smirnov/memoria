@@ -6,7 +6,7 @@
 
 
 #ifndef _MEMORIA_VAPI_EXCEPTIONS_BOUNDS_HPP
-#define	_MEMORIA_VAPI_EXCEPTIONS_BOUNDS_HPP
+#define _MEMORIA_VAPI_EXCEPTIONS_BOUNDS_HPP
 
 #include <memoria/core/exceptions/memoria.hpp>
 #include <string>

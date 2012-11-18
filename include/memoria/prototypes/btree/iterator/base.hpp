@@ -24,52 +24,53 @@ using namespace memoria::btree;
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBase)
 public:
-	typedef typename Base::Container::Types                                        		Types;
-	typedef typename Base::Container::TreePath                                        	TreePath;
-	typedef typename Base::Container::TreePath::Element                               	TreePathItem;
-    typedef typename Base::Container::NodeBase                                        	NodeBase;
-    typedef typename Base::Container::NodeBaseG                                       	NodeBaseG;
-    typedef typename Base::Container::Allocator										  	Allocator;
+    typedef typename Base::Container::Types                                             Types;
+    typedef typename Base::Container::TreePath                                          TreePath;
+    typedef typename Base::Container::TreePath::Element                                 TreePathItem;
+    typedef typename Base::Container::NodeBase                                          NodeBase;
+    typedef typename Base::Container::NodeBaseG                                         NodeBaseG;
+    typedef typename Base::Container::Allocator                                         Allocator;
 
     typedef typename Types::template IteratorCacheFactory<
-    		MyType,
-    		typename Base::Container
-    >::Type																				IteratorCache;
+            MyType,
+            typename Base::Container
+    >::Type                                                                             IteratorCache;
 
-    static const Int Indexes															= Base::Container::Indexes;
+    static const Int Indexes                                                            = Base::Container::Indexes;
 
 private:
 
-    TreePath           	path_;
+    TreePath            path_;
     Int                 key_idx_;
 
-    bool				found_;
+    bool                found_;
 
-    IteratorCache 		cache_;
+    IteratorCache       cache_;
 
 public:
     BTreeIteratorBase(): Base(), path_(), key_idx_(0)
     {
-    	cache_.init(me());
+        cache_.init(me());
     }
 
-    BTreeIteratorBase(ThisType&& other): Base(std::move(other)), path_(std::move(other.path_)), key_idx_(other.key_idx_), cache_(std::move(other.cache_))
+    BTreeIteratorBase(ThisType&& other):
+        Base(std::move(other)), path_(std::move(other.path_)), key_idx_(other.key_idx_), cache_(std::move(other.cache_))
     {
-    	cache_.init(me());
+        cache_.init(me());
     }
 
     BTreeIteratorBase(const ThisType& other): Base(other), path_(other.path_), key_idx_(other.key_idx_), cache_(other.cache_)
     {
-    	cache_.init(me());
+        cache_.init(me());
     }
 
     void assign(ThisType&& other)
     {
         path_       = other.path_;
         key_idx_    = other.key_idx_;
-        found_		= other.found_;
+        found_      = other.found_;
 
-        cache_		= other.cache_;
+        cache_      = other.cache_;
 
         cache_.init(me());
 
@@ -78,40 +79,40 @@ public:
 
     void assign(const ThisType& other)
     {
-    	path_       = other.path_;
-    	key_idx_    = other.key_idx_;
-    	found_		= other.found_;
+        path_       = other.path_;
+        key_idx_    = other.key_idx_;
+        found_      = other.found_;
 
-    	cache_		= other.cache_;
+        cache_      = other.cache_;
 
-    	cache_.init(me());
+        cache_.init(me());
 
-    	Base::assign(other);
+        Base::assign(other);
     }
 
     bool IsFound() const {
-    	return found_;
+        return found_;
     }
 
     void setFound(bool found)
     {
-    	found_ = found;
+        found_ = found;
     }
 
     bool isEqual(const ThisType& other) const
     {
-    	return page() == other.page() && key_idx_ == other.key_idx_ && Base::isEqual(other);
+        return page() == other.page() && key_idx_ == other.key_idx_ && Base::isEqual(other);
     }
 
     bool isNotEqual(const ThisType& other) const
     {
-    	return page() != other.page() || key_idx_ != other.key_idx_ || Base::isNotEqual(other);
+        return page() != other.page() || key_idx_ != other.key_idx_ || Base::isNotEqual(other);
     }
 
     void setNode(NodeBaseG& node, Int parent_idx)
     {
-    	path_[node->level()].node() 		= node;
-    	path_[node->level()].parent_idx() 	= parent_idx;
+        path_[node->level()].node()         = node;
+        path_[node->level()].parent_idx()   = parent_idx;
     }
 
     Int &key_idx()
@@ -131,106 +132,107 @@ public:
 
     const NodeBaseG& page() const
     {
-    	return path_.leaf().node();
+        return path_.leaf().node();
     }
 
     TreePathItem& leaf()
     {
-    	return path_.leaf();
+        return path_.leaf();
     }
 
     const TreePathItem& leaf() const
     {
-    	return path_.leaf();
+        return path_.leaf();
     }
 
     TreePath& path()
     {
-    	return path_;
+        return path_;
     }
 
     const TreePath& path() const
     {
-    	return path_;
+        return path_;
     }
 
     IteratorCache& cache() {
-    	return cache_;
+        return cache_;
     }
 
     const IteratorCache& cache() const {
-    	return cache_;
+        return cache_;
     }
 
 
     bool isBegin() const
     {
-    	return key_idx() < 0;
+        return key_idx() < 0;
     }
 
     bool isEnd() const
     {
-    	return page().isSet() ? key_idx() >= page()->children_count() : true;
+        return page().isSet() ? key_idx() >= page()->children_count() : true;
     }
 
     bool isNotEnd() const
     {
-    	return !isEnd();
+        return !isEnd();
     }
 
     bool isEmpty() const
     {
-    	return page().isEmpty() || page()->children_count() == 0;
+        return page().isEmpty() || page()->children_count() == 0;
     }
 
     bool isNotEmpty() const
     {
-    	return !isEmpty();
+        return !isEmpty();
     }
 
     BigInt keyNum() const
     {
-    	return cache_.key_num();
+        return cache_.key_num();
     }
 
     BigInt& keyNum()
     {
-    	return cache_.key_num();
+        return cache_.key_num();
     }
 
 
     void dump(ostream& out = cout, const char* header = NULL)
     {
-    	out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
+        out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
 
-    	me()->dumpKeys(out);
+        me()->dumpKeys(out);
 
-    	me()->dumpBeforePath(out);
-    	me()->dumpPath(out);
+        me()->dumpBeforePath(out);
+        me()->dumpPath(out);
 
-    	me()->dumpBeforePages(out);
-    	me()->dumpPages(out);
+        me()->dumpBeforePages(out);
+        me()->dumpPages(out);
     }
 
     String getDumpHeader()
     {
-    	return String(me()->model().typeName()) + " Iterator State";
+        return String(me()->model().typeName()) + " Iterator State";
     }
 
     void dumpPath(ostream& out)
     {
-    	out<<"Path:"<<endl;
+        out<<"Path:"<<endl;
 
-    	TreePath& path0 = me()->path();
-    	for (int c = me()->path().getSize() - 1; c >= 0; c--)
-    	{
-    		out<<"Node("<<c<<"): "<<IDValue(path0[c]->id())<<" idx="<<(c > 0 ? toString(path0[c - 1].parent_idx()) : "")<<endl;
-    	}
+        TreePath& path0 = me()->path();
+        for (int c = me()->path().getSize() - 1; c >= 0; c--)
+        {
+            out<<"Node("<<c<<"): "<<IDValue(path0[c]->id())
+               <<" idx="<<(c > 0 ? toString(path0[c - 1].parent_idx()) : "")<<endl;
+        }
     }
 
     void dumpKeys(ostream& out)
     {
-    	out<<"KeyIdx:  "<<me()->key_idx()<<endl;
+        out<<"KeyIdx:  "<<me()->key_idx()<<endl;
     }
 
     void dumpBeforePath(ostream& out){}
@@ -238,13 +240,13 @@ public:
 
     void dumpPages(ostream& out)
     {
-    	me()->model().dump(me()->leaf().node(), out);
+        me()->model().dump(me()->leaf().node(), out);
     }
 
     void init()
     {
-    	Base::init();
-    	cache_.initState();
+        Base::init();
+        cache_.initState();
     }
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END

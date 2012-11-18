@@ -22,7 +22,7 @@
 
 #ifndef MEMORIA_STATIC
 #if defined (WIN32)
-#	define MEMORIA_EXPORT __declspec(dllexport)
+#   define MEMORIA_EXPORT __declspec(dllexport)
 #   define MEMORIA_NO_EXPORT
 #   define MEMORIA_IMPORT __declspec(dllimport)
 #elif defined(__GNUC__) && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))

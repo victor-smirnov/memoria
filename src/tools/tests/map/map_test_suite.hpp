@@ -23,10 +23,10 @@ class MapTestSuite: public TestSuite {
 
 public:
 
-	MapTestSuite(): TestSuite("MapTestSuite")
-	{
-		registerTask(new MapTest());
-	}
+    MapTestSuite(): TestSuite("MapTestSuite")
+    {
+        registerTask(new MapTest());
+    }
 
 };
 

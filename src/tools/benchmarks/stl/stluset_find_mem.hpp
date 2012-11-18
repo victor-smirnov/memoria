@@ -25,56 +25,56 @@ using namespace std;
 class StlUsetMemBenchmark: public BenchmarkTask {
 
 
-	typedef BigInt							Key;
-	typedef unordered_set<
-				Key,
-            	hash<Key>,
-            	std::equal_to<Key>,
-            	CustomAllocator<Key>
-	> 										Map;
+    typedef BigInt                          Key;
+    typedef unordered_set<
+                Key,
+                hash<Key>,
+                std::equal_to<Key>,
+                CustomAllocator<Key>
+    >                                       Map;
 
-	Map* 			map_;
-	Int 			result_;
-	Int* 			rd_array_;
+    Map*            map_;
+    Int             result_;
+    Int*            rd_array_;
 
 public:
 
-	StlUsetMemBenchmark(StringRef name): BenchmarkTask(name) {}
+    StlUsetMemBenchmark(StringRef name): BenchmarkTask(name) {}
 
-	virtual ~StlUsetMemBenchmark() throw() {}
+    virtual ~StlUsetMemBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		map_ = new Map();
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        map_ = new Map();
 
-		AllocatorBase<>::reset();
+        AllocatorBase<>::reset();
 
-		BigInt sum = 0;
-		while (AllocatorBase<>::count() < params.x())
-		{
-			map_->insert(sum++);
-		}
+        BigInt sum = 0;
+        while (AllocatorBase<>::count() < params.x())
+        {
+            map_->insert(sum++);
+        }
 
-		rd_array_ = new Int[params.operations()];
-		for (Int c = 0; c < params.operations(); c++)
-		{
-			rd_array_[c] = getRandom(map_->size());
-		}
-	}
+        rd_array_ = new Int[params.operations()];
+        for (Int c = 0; c < params.operations(); c++)
+        {
+            rd_array_[c] = getRandom(map_->size());
+        }
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete map_;
-		delete[] rd_array_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete map_;
+        delete[] rd_array_;
+    }
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		for (Int c = 0; c < params.operations(); c++)
-		{
-			result_ = (map_->find(rd_array_[c]) != map_->end());
-		}
-	}
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        for (Int c = 0; c < params.operations(); c++)
+        {
+            result_ = (map_->find(rd_array_[c]) != map_->end());
+        }
+    }
 };
 
 

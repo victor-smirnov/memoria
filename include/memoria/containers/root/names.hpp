@@ -11,7 +11,7 @@
 
 namespace memoria    {
 namespace models     {
-namespace root   	 {
+namespace root       {
 
 class CtrApiName {};
 

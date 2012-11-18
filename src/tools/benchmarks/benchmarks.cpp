@@ -26,12 +26,12 @@ using namespace memoria;
 MEMORIA_INIT();
 
 const char* DESCRIPTION = "Run Memoria benchmarks with specified configuration";
-const char* CFG_FILE	= "benchmarks.properties";
+const char* CFG_FILE    = "benchmarks.properties";
 
 void sighandler(int signum)
 {
-	cout<<"SigSegv!"<<endl;
-	throw MemoriaSigSegv(MEMORIA_SOURCE, "Segment violation");
+    cout<<"SigSegv!"<<endl;
+    throw MemoriaSigSegv(MEMORIA_SOURCE, "Segment violation");
 }
 
 
@@ -39,95 +39,96 @@ void sighandler(int signum)
 
 int main(int argc, const char** argv, const char** envp)
 {
-	signal(SIGSEGV, sighandler);
+    signal(SIGSEGV, sighandler);
 
-	SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+    SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
 
-	try {
-		CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::NONE);
+    try {
+        CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::NONE);
 
-		//FIXME: C++11 RNG seed doesn't work
-		//Seed(getTimeInMillis());
-		//SeedBI(getTimeInMillis());
+        //FIXME: C++11 RNG seed doesn't work
+        //Seed(getTimeInMillis());
+        //SeedBI(getTimeInMillis());
 
-		Int default_seed = getTimeInMillis() % 10000;
+        Int default_seed = getTimeInMillis() % 10000;
 
-		Int seed = cmd_line.getConfigurator().getValue<Int>("seed", default_seed);
+        Int seed = cmd_line.getConfigurator().getValue<Int>("seed", default_seed);
 
-		// Emulate seed;
-		for (Int c = 0; c < seed; c++)
-		{
-			getRandom();
-			getBIRandom();
-		}
+        // Emulate seed;
+        for (Int c = 0; c < seed; c++)
+        {
+            getRandom();
+            getBIRandom();
+        }
 
-		MemoriaTaskRunner runner;
+        MemoriaTaskRunner runner;
 
-		runner.setRunCount(cmd_line.getCount());
+        runner.setRunCount(cmd_line.getCount());
 
-		// add tasks to the runner;
-
-
-		runner.registerTask(new MemoryThroughputGraph());
-
-		runner.registerTask(new PackedsetMemGraph());
-
-		runner.registerTask(new SetRandomReadGraph());
-		runner.registerTask(new SetLinearReadGraph());
-		runner.registerTask(new SetRandominsertGraph());
-		runner.registerTask(new SetCommitRateGraph());
+        // add tasks to the runner;
 
 
-		runner.registerTask(new MemmoveGraph());
+        runner.registerTask(new MemoryThroughputGraph());
 
-		runner.registerTask(new VectorRandomSmallReadGraph());
-		runner.registerTask(new VectorReadGraph());
-		runner.registerTask(new VectorinsertGraph());
+        runner.registerTask(new PackedsetMemGraph());
+
+        runner.registerTask(new SetRandomReadGraph());
+        runner.registerTask(new SetLinearReadGraph());
+        runner.registerTask(new SetRandominsertGraph());
+        runner.registerTask(new SetCommitRateGraph());
 
 
-		runner.registerTask(new VectorMapRandomGraph());
-		runner.registerTask(new VectorMapLinearGraph());
-		runner.registerTask(new VectorMapReadOverheadGraph());
-		runner.registerTask(new VectorMapBatchinsertGraph());
+        runner.registerTask(new MemmoveGraph());
 
-		runner.registerTask(new TestGraph());
+        runner.registerTask(new VectorRandomSmallReadGraph());
+        runner.registerTask(new VectorReadGraph());
+        runner.registerTask(new VectorinsertGraph());
 
-		runner.Configure(&cmd_line.getConfigurator());
 
-		if (cmd_line.IsHelp())
-		{
-			cout<<endl;
-			cout<<"Description: "<<DESCRIPTION<<endl;
-			cout<<"Usage: "<<cmd_line.getImageName()<<" [options]"<<endl;
-			cout<<"    --help                     Display this help and exit"<<endl;
-			cout<<"    --count N                  Run all tests N times"<<endl;
-			cout<<"    --config <file.properties> Use the specified config file"<<endl;
-			cout<<"    --list                     List available tasks and their configuration properties and exit"<<endl;
-			cout<<"    --out <output folder>      Path where tests output will be put. (It will be recreated if already exists)"<<endl;
-		}
-		else if (cmd_line.IsList())
-		{
-			runner.dumpProperties(cout);
-		}
-		else {
-			cout<<"Seed: "<<seed<<endl;
+        runner.registerTask(new VectorMapRandomGraph());
+        runner.registerTask(new VectorMapLinearGraph());
+        runner.registerTask(new VectorMapReadOverheadGraph());
+        runner.registerTask(new VectorMapBatchinsertGraph());
 
-			String default_output_folder = cmd_line.getImageName()+".out";
+        runner.registerTask(new TestGraph());
 
-			String output_folder = (cmd_line.getOutFolder() != NULL) ? cmd_line.getOutFolder() : default_output_folder;
+        runner.Configure(&cmd_line.getConfigurator());
 
-			runner.setOutput(output_folder);
+        if (cmd_line.IsHelp())
+        {
+            cout<<endl;
+            cout<<"Description: "<<DESCRIPTION<<endl;
+            cout<<"Usage: "<<cmd_line.getImageName()<<" [options]"<<endl;
+            cout<<"    --help                     Display this help and exit"<<endl;
+            cout<<"    --count N                  Run all tests N times"<<endl;
+            cout<<"    --config <file.properties> Use the specified config file"<<endl;
+            cout<<"    --list                     List available tasks and their configuration properties and exit"<<endl;
+            cout<<"    --out <output folder>      Path where tests output will be put. "
+                <<"(It will be recreated if already exists)"<<endl;
+        }
+        else if (cmd_line.IsList())
+        {
+            runner.dumpProperties(cout);
+        }
+        else {
+            cout<<"Seed: "<<seed<<endl;
 
-			runner.Run();
-			cout<<"Done..."<<endl;
+            String default_output_folder = cmd_line.getImageName()+".out";
 
-			return 0;
-		}
-	}
-	catch (MemoriaThrowable e)
-	{
-		cerr<<e.source()<<" ERROR: "<<e<<endl;
-	}
+            String output_folder = (cmd_line.getOutFolder() != NULL) ? cmd_line.getOutFolder() : default_output_folder;
 
-	return 1;
+            runner.setOutput(output_folder);
+
+            runner.Run();
+            cout<<"Done..."<<endl;
+
+            return 0;
+        }
+    }
+    catch (MemoriaThrowable e)
+    {
+        cerr<<e.source()<<" ERROR: "<<e<<endl;
+    }
+
+    return 1;
 }

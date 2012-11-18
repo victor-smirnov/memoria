@@ -23,76 +23,76 @@ public:
 
 
 
-	typedef SPBenchmarkTask Base;
+    typedef SPBenchmarkTask Base;
 
-	typedef typename Base::Allocator 	Allocator;
-	typedef typename Base::Profile 		Profile;
+    typedef typename Base::Allocator    Allocator;
+    typedef typename Base::Profile      Profile;
 
-	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<Vector>::Type 	MapCtr;
-	typedef typename MapCtr::Iterator								Iterator;
-	typedef typename MapCtr::ID										ID;
+    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<Vector>::Type     MapCtr;
+    typedef typename MapCtr::Iterator                               Iterator;
+    typedef typename MapCtr::ID                                     ID;
 
 
-	Allocator* 	allocator_;
-	MapCtr* 	map_;
+    Allocator*  allocator_;
+    MapCtr*     map_;
 
-	Int 		memory_size;
+    Int         memory_size;
 
 
 public:
 
-	VectorappendBenchmark(StringRef name):
-		SPBenchmarkTask(name), memory_size(128*1024*1024)
-	{
-		RootCtr::initMetadata();
-		MapCtr::initMetadata();
+    VectorappendBenchmark(StringRef name):
+        SPBenchmarkTask(name), memory_size(128*1024*1024)
+    {
+        RootCtr::initMetadata();
+        MapCtr::initMetadata();
 
-		Add("memory_size", memory_size);
-	}
+        Add("memory_size", memory_size);
+    }
 
-	virtual ~VectorappendBenchmark() throw() {}
+    virtual ~VectorappendBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		allocator_ 	= new Allocator();
-		map_ 		= new MapCtr(allocator_, 1, true);
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        allocator_  = new Allocator();
+        map_        = new MapCtr(allocator_, 1, true);
 
-		allocator_->commit();
-	}
+        allocator_->commit();
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete map_;
-		delete allocator_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete map_;
+        delete allocator_;
+    }
 
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		Int size = params.x();
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        Int size = params.x();
 
-		auto i = map_->End();
+        auto i = map_->End();
 
-		BigInt total = 0;
+        BigInt total = 0;
 
-		params.operations() = 0;
+        params.operations() = 0;
 
-		ArrayData data(size, malloc(size), true);
+        ArrayData data(size, malloc(size), true);
 
-		while (total < memory_size)
-		{
-			i.insert(data);
+        while (total < memory_size)
+        {
+            i.insert(data);
 
-			total += data.size();
+            total += data.size();
 
-			params.operations()++;
-		}
+            params.operations()++;
+        }
 
-		params.memory() = total;
+        params.memory() = total;
 
-		allocator_->rollback();
-	}
+        allocator_->rollback();
+    }
 };
 
 

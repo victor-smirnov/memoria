@@ -20,61 +20,61 @@ using namespace std;
 
 class MemmoveBenchmark: public BenchmarkTask {
 
-	Byte* 	array_;
-	Int* 	rd_array_;
+    Byte*   array_;
+    Int*    rd_array_;
 
 public:
 
-	MemmoveBenchmark(StringRef name):
-		BenchmarkTask(name)
-	{
-		average	= 5;
-	}
+    MemmoveBenchmark(StringRef name):
+        BenchmarkTask(name)
+    {
+        average = 5;
+    }
 
-	virtual ~MemmoveBenchmark() throw() {}
+    virtual ~MemmoveBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		Int size = params.x();
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        Int size = params.x();
 
-		array_ = T2T<Byte*>(malloc(size));
+        array_ = T2T<Byte*>(malloc(size));
 
-		rd_array_ = new Int[params.operations()];
-		for (Int c = 0; c < params.operations(); c++)
-		{
-			Int addr = getRandom(size - 16);
+        rd_array_ = new Int[params.operations()];
+        for (Int c = 0; c < params.operations(); c++)
+        {
+            Int addr = getRandom(size - 16);
 
-			if ((addr & 4095) > 4080)
-			{
-				addr -= 16;
-			}
+            if ((addr & 4095) > 4080)
+            {
+                addr -= 16;
+            }
 
-			rd_array_[c] = addr;
-		}
-	}
+            rd_array_[c] = addr;
+        }
+    }
 
-	virtual void release(ostream& out)
-	{
-		free (array_);
-		delete[] rd_array_;
-	}
+    virtual void release(ostream& out)
+    {
+        free (array_);
+        delete[] rd_array_;
+    }
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		BigInt 	total 	= 0;
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        BigInt  total   = 0;
 
-		for (Int c = 0; c < params.operations(); c++)
-		{
-			Int addr = rd_array_[c];
-			Int size = 4096 - (addr & 0xFFF) - 8;
+        for (Int c = 0; c < params.operations(); c++)
+        {
+            Int addr = rd_array_[c];
+            Int size = 4096 - (addr & 0xFFF) - 8;
 
-			CopyBuffer(array_ + addr, array_ + addr + 8, size);
+            CopyBuffer(array_ + addr, array_ + addr + 8, size);
 
-			total += size;
-		}
+            total += size;
+        }
 
-		params.memory() = total;
-	}
+        params.memory() = total;
+    }
 };
 
 

@@ -20,194 +20,203 @@ using namespace memoria::vapi;
 
 class VectorReplay: public ReplayParams {
 public:
-	Int 	data_;
-	bool 	insert_;
-	Int		block_size_;
+    Int     data_;
+    bool    insert_;
+    Int     block_size_;
 
-	Int		page_step_;
+    Int     page_step_;
 
-	BigInt 	pos_;
+    BigInt  pos_;
 
-	Int 	cnt_;
+    Int     cnt_;
 
-	BigInt 	ctr_name_;
+    BigInt  ctr_name_;
 
 public:
-	VectorReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
-	{
-		Add("data", 		data_);
-		Add("insert", 		insert_);
-		Add("data_size", 	block_size_);
-		Add("page_step", 	page_step_);
-		Add("pos", 			pos_);
-		Add("cnt", 			cnt_);
-		Add("ctr_name", 	ctr_name_);
-	}
+    VectorReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
+    {
+        Add("data",         data_);
+        Add("insert",       insert_);
+        Add("data_size",    block_size_);
+        Add("page_step",    page_step_);
+        Add("pos",          pos_);
+        Add("cnt",          cnt_);
+        Add("ctr_name",     ctr_name_);
+    }
 };
 
 
 
 class VectorTest: public BTreeBatchTestBase<
-	Vector,
-	ArrayData,
-	VectorReplay
+    Vector,
+    ArrayData,
+    VectorReplay
 >
 {
-	typedef VectorTest MyType;
-	typedef MyType ParamType;
+    typedef VectorTest MyType;
+    typedef MyType ParamType;
 
 
-	typedef BTreeBatchTestBase<
-			Vector,
-			ArrayData,
-			VectorReplay
-	>																Base;
+    typedef BTreeBatchTestBase<
+            Vector,
+            ArrayData,
+            VectorReplay
+    >                                                               Base;
 
-	typedef typename Base::Ctr 										Ctr;
+    typedef typename Base::Ctr                                      Ctr;
 
 
-	Int 	element_size_;
+    Int     element_size_;
 
 public:
-	VectorTest():
-		Base("Vector"), element_size_(1)
-	{
-		Ctr::initMetadata();
+    VectorTest():
+        Base("Vector"), element_size_(1)
+    {
+        Ctr::initMetadata();
 
-		max_block_size_ = 1024*40;
-		size_ 			= 1024*1024*16;
+        max_block_size_ = 1024*40;
+        size_           = 1024*1024*16;
 
-		Add("element_size", element_size_);
-	}
+        Add("element_size", element_size_);
+    }
 
-	virtual ArrayData createBuffer(Ctr& array, Int size, UByte value)
-	{
-		ArrayData data(size * array.getElementSize());
+    virtual ArrayData createBuffer(Ctr& array, Int size, UByte value)
+    {
+        ArrayData data(size * array.getElementSize());
 
-		Int esize = array.getElementSize();
+        Int esize = array.getElementSize();
 
-		for (Int c = 0; c < size; c++)
-		{
-			*(data.data() + c * esize) = value;
+        for (Int c = 0; c < size; c++)
+        {
+            *(data.data() + c * esize) = value;
 
-			for (Int d = 1; d < esize; d++)
-			{
-				*(data.data() + c * esize + d) = value == 1 ? 0 : 1;
-			}
-		}
+            for (Int d = 1; d < esize; d++)
+            {
+                *(data.data() + c * esize + d) = value == 1 ? 0 : 1;
+            }
+        }
 
-		return data;
-	}
+        return data;
+    }
 
-	virtual Iterator seek(Ctr& array, BigInt pos)
-	{
-		return array.seek(pos);
-	}
+    virtual Iterator seek(Ctr& array, BigInt pos)
+    {
+        return array.seek(pos);
+    }
 
-	virtual void insert(Iterator& iter, const ArrayData& data)
-	{
-		iter.insert(data);
-	}
+    virtual void insert(Iterator& iter, const ArrayData& data)
+    {
+        iter.insert(data);
+    }
 
-	virtual void read(Iterator& iter, ArrayData& data)
-	{
-		iter.read(data);
-	}
+    virtual void read(Iterator& iter, ArrayData& data)
+    {
+        iter.read(data);
+    }
 
-	virtual void remove(Iterator& iter, BigInt size) {
-		iter.remove(size);
-	}
+    virtual void remove(Iterator& iter, BigInt size) {
+        iter.remove(size);
+    }
 
-	virtual void skip(Iterator& iter, BigInt offset)
-	{
-		iter.skip(offset);
-	}
+    virtual void skip(Iterator& iter, BigInt offset)
+    {
+        iter.skip(offset);
+    }
 
-	virtual BigInt getPosition(Iterator& iter)
-	{
-		return iter.pos();
-	}
+    virtual BigInt getPosition(Iterator& iter)
+    {
+        return iter.pos();
+    }
 
-	virtual BigInt getLocalPosition(Iterator& iter)
-	{
-		return iter.dataPos() / iter.getElementSize();
-	}
+    virtual BigInt getLocalPosition(Iterator& iter)
+    {
+        return iter.dataPos() / iter.getElementSize();
+    }
 
-	virtual BigInt getSize(Ctr& array)
-	{
-		return array.size();
-	}
+    virtual BigInt getSize(Ctr& array)
+    {
+        return array.size();
+    }
 
-	virtual void setElementSize(Ctr& array, ParamType* task_params)
-	{
-		array.setElementSize(task_params->element_size_);
-	};
+    virtual void setElementSize(Ctr& array, ParamType* task_params)
+    {
+        array.setElementSize(task_params->element_size_);
+    };
 
-	virtual Int getElementSize(Ctr& array) {
-		return array.getElementSize();
-	}
+    virtual Int getElementSize(Ctr& array) {
+        return array.getElementSize();
+    }
 
-	void checkIterator(ostream& out, Iterator& iter, const char* source)
-	{
-		Base::checkIterator(out, iter, source);
+    void checkIterator(ostream& out, Iterator& iter, const char* source)
+    {
+        Base::checkIterator(out, iter, source);
 
-		auto& path = iter.path();
+        auto& path = iter.path();
 
-		if (path.data().node().isSet())
-		{
-			if (iter.dataPos() < 0)
-			{
-				throw TestException(source, SBuf()<<"iter.dataPos() is negative: "<<iter.dataPos());
-			}
+        if (path.data().node().isSet())
+        {
+            if (iter.dataPos() < 0)
+            {
+                throw TestException(source, SBuf()<<"iter.dataPos() is negative: "<<iter.dataPos());
+            }
 
-			bool found = false;
-			for (Int idx = 0; idx < path[0]->children_count(); idx++)
-			{
-				ID id = iter.model().getLeafData(path[0].node(), idx);
-				if (id == path.data()->id())
-				{
-					if (path.data().parent_idx() != idx)
-					{
-						iter.dump(out);
-						throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"<<path[0]->id()<<" DATA: "<<path.data()->id()<<" idx="<<idx<<" parent_idx="<<path.data().parent_idx());
-					}
-					else {
-						found = true;
-						break;
-					}
-				}
-			}
+            bool found = false;
+            for (Int idx = 0; idx < path[0]->children_count(); idx++)
+            {
+                ID id = iter.model().getLeafData(path[0].node(), idx);
+                if (id == path.data()->id())
+                {
+                    if (path.data().parent_idx() != idx)
+                    {
+                        iter.dump(out);
+                        throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"
+                                                          <<path[0]->id()
+                                                          <<" DATA: "
+                                                          <<path.data()->id()
+                                                          <<" idx="
+                                                          <<idx
+                                                          <<" parent_idx="<<path.data().parent_idx());
+                    }
+                    else {
+                        found = true;
+                        break;
+                    }
+                }
+            }
 
-			if (!found)
-			{
-				iter.dump(out);
-				throw TestException(source, SBuf()<<"Data: "<<path.data()->id()<<" is not fount is it's parent, parent_idx="<<path.data().parent_idx());
-			}
-		}
+            if (!found)
+            {
+                iter.dump(out);
+                throw TestException(source, SBuf()<<"Data: "
+                                                  <<path.data()->id()
+                                                  <<" is not fount is it's parent, parent_idx="
+                                                  <<path.data().parent_idx());
+            }
+        }
 
 
-		if (iter.isEnd())
-		{
-			if (iter.data().isSet())
-			{
-				iter.dump(out);
-				throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
-			}
-		}
-		else {
-			if (iter.data().isEmpty())
-			{
-				iter.dump(out);
-				throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
-			}
+        if (iter.isEnd())
+        {
+            if (iter.data().isSet())
+            {
+                iter.dump(out);
+                throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
+            }
+        }
+        else {
+            if (iter.data().isEmpty())
+            {
+                iter.dump(out);
+                throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
+            }
 
-			if (iter.path().data().parent_idx() != iter.key_idx())
-			{
-				iter.dump(out);
-				throw TestException(MEMORIA_SOURCE, "Iterator data.parent_idx mismatch");
-			}
-		}
-	}
+            if (iter.path().data().parent_idx() != iter.key_idx())
+            {
+                iter.dump(out);
+                throw TestException(MEMORIA_SOURCE, "Iterator data.parent_idx mismatch");
+            }
+        }
+    }
 };
 
 

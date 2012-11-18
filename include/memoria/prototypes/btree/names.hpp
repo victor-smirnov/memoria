@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_PROTOTYPES_BTREE_NAMES_HPP
-#define	_MEMORIA_PROTOTYPES_BTREE_NAMES_HPP
+#define _MEMORIA_PROTOTYPES_BTREE_NAMES_HPP
 
 namespace memoria    {
 
@@ -66,10 +66,10 @@ class FindName              {};
 class InsertName            {};
 class InsertBatchName       {};
 class RemoveName            {};
-class ApiName            	{};
+class ApiName               {};
 class checksName            {};
-class WalkName      		{};
-class AllocatorName      	{};
+class WalkName              {};
+class AllocatorName         {};
 
 
 template <typename MyType, typename TypesType, typename ContainerTypeName>
@@ -112,5 +112,5 @@ struct ValueTypeIsNotSupported;
 }
 
 
-#endif	// _MEMORIA_PROTOTYPES_BTREE_NAMES_HPP
+#endif  // _MEMORIA_PROTOTYPES_BTREE_NAMES_HPP
 

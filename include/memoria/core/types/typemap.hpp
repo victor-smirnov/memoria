@@ -7,7 +7,7 @@
 
 
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_NODE_TYPEMAP_HPP
-#define	_MEMORIA_CORE_TOOLS_TYPES_NODE_TYPEMAP_HPP
+#define _MEMORIA_CORE_TOOLS_TYPES_NODE_TYPEMAP_HPP
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/typelist.hpp>
@@ -49,6 +49,6 @@ struct Type2TypeMap<T, memoria::TL<Head, Tail>, DefaultType> {
 };
 
 }
-#endif	//_MEMORIA_CORE_TOOLS_TYPES_NODE_TYPEMAP_HPP
+#endif  //_MEMORIA_CORE_TOOLS_TYPES_NODE_TYPEMAP_HPP
 
 

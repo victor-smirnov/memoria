@@ -19,128 +19,128 @@ using namespace std;
 
 String trimString(StringRef str)
 {
-	if (str.length() == 0)
-	{
-		return "";
-	}
-	else {
-		unsigned begin = str.find_first_not_of("\n\r\t ");
-		if (begin == String::npos)
-		{
-			return "";
-		}
-		else {
-			unsigned end = str.find_last_not_of("\n\r\t ");
-			if (end != String::npos)
-			{
-				return str.substr(begin, end - begin + 1);
-			}
-			else {
-				return str.substr(begin, str.length() - begin);
-			}
-		}
-	}
+    if (str.length() == 0)
+    {
+        return "";
+    }
+    else {
+        unsigned begin = str.find_first_not_of("\n\r\t ");
+        if (begin == String::npos)
+        {
+            return "";
+        }
+        else {
+            unsigned end = str.find_last_not_of("\n\r\t ");
+            if (end != String::npos)
+            {
+                return str.substr(begin, end - begin + 1);
+            }
+            else {
+                return str.substr(begin, str.length() - begin);
+            }
+        }
+    }
 }
 
 bool isEndsWith(StringRef str, StringRef end) {
-	if (end.length() > str.length())
-	{
-		return false;
-	}
-	else {
-		UInt l0 = str.length();
-		UInt l1 = end.length();
-		for (unsigned c = 0; c < end.length(); c++)
-		{
-			if (str[l0 - l1 + c] != end[c])
-			{
-				return false;
-			}
-		}
-		return true;
-	}
+    if (end.length() > str.length())
+    {
+        return false;
+    }
+    else {
+        UInt l0 = str.length();
+        UInt l1 = end.length();
+        for (unsigned c = 0; c < end.length(); c++)
+        {
+            if (str[l0 - l1 + c] != end[c])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 bool isStartsWith(StringRef str, StringRef start) {
-	if (start.length() > str.length())
-	{
-		return false;
-	}
-	else {
-		for (unsigned c = 0; c < start.length(); c++)
-		{
-			if (str[c] != start[c])
-			{
-				return false;
-			}
-		}
-		return true;
-	}
+    if (start.length() > str.length())
+    {
+        return false;
+    }
+    else {
+        for (unsigned c = 0; c < start.length(); c++)
+        {
+            if (str[c] != start[c])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 bool isEmpty(StringRef str) {
-	return str.find_first_not_of("\r\n\t ") == String::npos;
+    return str.find_first_not_of("\r\n\t ") == String::npos;
 }
 
 bool isEmpty(StringRef str, String::size_type start, String::size_type end, StringRef sep)
 {
-	if (end == String::npos) end = str.length();
+    if (end == String::npos) end = str.length();
 
-	if (start != String::npos && start < str.length() && start < end - 1)
-	{
-		String::size_type idx = str.find_first_not_of((sep+"\t ").data(), start);
+    if (start != String::npos && start < str.length() && start < end - 1)
+    {
+        String::size_type idx = str.find_first_not_of((sep+"\t ").data(), start);
 
-		if (idx != String::npos)
-		{
-			return idx >= end;
-		}
-		else {
-			return true;
-		}
-	}
-	else {
-		return true;
-	}
+        if (idx != String::npos)
+        {
+            return idx >= end;
+        }
+        else {
+            return true;
+        }
+    }
+    else {
+        return true;
+    }
 }
 
 Long strToL(StringRef value) {
-	if (!isEmpty(value))
-	{
-		const char* ptr = trimString(value).c_str();
-		char* end_ptr;
+    if (!isEmpty(value))
+    {
+        const char* ptr = trimString(value).c_str();
+        char* end_ptr;
 
-		errno = 0;
-		Long v = strtol(ptr, &end_ptr, 0);
+        errno = 0;
+        Long v = strtol(ptr, &end_ptr, 0);
 
-		if (errno == 0)
-		{
-			if (*end_ptr == '\0')
-			{
-				return v;
-			}
-			else {
-				throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
-			}
-		}
-		else {
-			throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
-		}
-	}
-	else {
-		throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
-	}
+        if (errno == 0)
+        {
+            if (*end_ptr == '\0')
+            {
+                return v;
+            }
+            else {
+                throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
+            }
+        }
+        else {
+            throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
+        }
+    }
+    else {
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Invalid integer value: "<<value);
+    }
 }
 
 String ReplaceFirst(StringRef str, StringRef txt) {
-	return str;
+    return str;
 }
 
 String ReplaceLast(StringRef str, StringRef txt) {
-	return str;
+    return str;
 }
 
 String ReplaceAll(StringRef str, StringRef txt) {
-	return str;
+    return str;
 }
 
 
@@ -149,97 +149,97 @@ String ReplaceAll(StringRef str, StringRef txt) {
 
 Int getValueMultiplier(const char* chars, const char* ptr)
 {
-	if (*ptr == 0) {
-		return 1;
-	}
-	else if (*ptr == 'K') {
-		return 1024;
-	}
-	else if (*ptr == 'M') {
-		return 1024*1024;
-	}
-	else if (*ptr == 'G') {
-		return 1024*1024*1024;
-	}
-	else if (*ptr == 'k') {
-		return 1000;
-	}
-	else if (*ptr == 'm') {
-		return 1000*1000;
-	}
-	else if (*ptr == 'g') {
-		return 1000*1000*1000;
-	}
-	else {
-		throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
-	}
+    if (*ptr == 0) {
+        return 1;
+    }
+    else if (*ptr == 'K') {
+        return 1024;
+    }
+    else if (*ptr == 'M') {
+        return 1024*1024;
+    }
+    else if (*ptr == 'G') {
+        return 1024*1024*1024;
+    }
+    else if (*ptr == 'k') {
+        return 1000;
+    }
+    else if (*ptr == 'm') {
+        return 1000*1000;
+    }
+    else if (*ptr == 'g') {
+        return 1000*1000*1000;
+    }
+    else {
+        throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
+    }
 }
 
 void checkError(const char* chars, const char* ptr)
 {
-	if (*ptr != 0) {
-		throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
-	}
+    if (*ptr != 0) {
+        throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
+    }
 }
 
 
 long int ConvertToLongInt(StringRef str)
 {
-	const char* chars = str.c_str();
-	char* endptr;
+    const char* chars = str.c_str();
+    char* endptr;
 
-	long int value = strtol(chars, &endptr, 0);
+    long int value = strtol(chars, &endptr, 0);
 
-	return value * getValueMultiplier(chars, endptr);
+    return value * getValueMultiplier(chars, endptr);
 }
 
 long long ConvertToLongLong(StringRef str)
 {
-	const char* chars = str.c_str();
-	char* endptr;
+    const char* chars = str.c_str();
+    char* endptr;
 
-	long int value = strtoll(chars, &endptr, 0);
+    long int value = strtoll(chars, &endptr, 0);
 
-	return value * getValueMultiplier(chars, endptr);
+    return value * getValueMultiplier(chars, endptr);
 }
 
 double ConvertToDouble(StringRef str)
 {
-	const char* chars = str.c_str();
-	char* endptr;
+    const char* chars = str.c_str();
+    char* endptr;
 
-	double value = strtod(chars, &endptr);
+    double value = strtod(chars, &endptr);
 
-	checkError(chars, endptr);
+    checkError(chars, endptr);
 
-	return value;
+    return value;
 }
 
 long double ConvertToLongDouble(StringRef str)
 {
-	const char* chars = str.c_str();
-	char* endptr;
+    const char* chars = str.c_str();
+    char* endptr;
 
-	long double value = strtold(chars, &endptr);
+    long double value = strtold(chars, &endptr);
 
-	checkError(chars, endptr);
+    checkError(chars, endptr);
 
-	return value;
+    return value;
 }
 
 bool ConvertToBool(StringRef str)
 {
-	if (str == "true" || str == "True" || str == "Yes" || str == "yes" || str == "1")
-	{
-		return true;
-	}
-	else if (str == "false" || str == "False" || str == "No" || str == "no" || str == "0")
-	{
-		return false;
-	}
-	else {
-		throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid boolean format: "<<str);
-	}
+    if (str == "true" || str == "True" || str == "Yes" || str == "yes" || str == "1")
+    {
+        return true;
+    }
+    else if (str == "false" || str == "False" || str == "No" || str == "no" || str == "0")
+    {
+        return false;
+    }
+    else {
+        throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid boolean format: "<<str);
+    }
 }
 
 }}

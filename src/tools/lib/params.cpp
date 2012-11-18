@@ -13,36 +13,36 @@ namespace memoria {
 
 void Parametersset::Process(Configurator* cfg)
 {
-	for (AbstractParamDescriptor* d: descriptors_)
-	{
-		d->Process(cfg);
-	}
+    for (AbstractParamDescriptor* d: descriptors_)
+    {
+        d->Process(cfg);
+    }
 }
 
 void Parametersset::dumpProperties(std::ostream& os) const
 {
-	for (AbstractParamDescriptor* d: descriptors_)
-	{
-		d->dump(os);
-	}
+    for (AbstractParamDescriptor* d: descriptors_)
+    {
+        d->dump(os);
+    }
 }
 
 
 AbstractParamDescriptor* Parametersset::put(AbstractParamDescriptor* descr)
 {
-	for (UInt c = 0; c < descriptors_.size(); c++)
-	{
-		if (descriptors_[c]->getName() == descr->getName())
-		{
-			delete descriptors_[c];
-			descriptors_[c] = descr;
-			return descr;
-		}
-	}
+    for (UInt c = 0; c < descriptors_.size(); c++)
+    {
+        if (descriptors_[c]->getName() == descr->getName())
+        {
+            delete descriptors_[c];
+            descriptors_[c] = descr;
+            return descr;
+        }
+    }
 
-	descriptors_.push_back(descr);
+    descriptors_.push_back(descr);
 
-	return descr;
+    return descr;
 }
 
 

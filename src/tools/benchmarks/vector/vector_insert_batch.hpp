@@ -19,76 +19,76 @@ using namespace std;
 class VectorinsertBatchBenchmark: public SPBenchmarkTask {
 public:
 
-	Int max_size;
+    Int max_size;
 
 
-	typedef SPBenchmarkTask Base;
+    typedef SPBenchmarkTask Base;
 
-	typedef typename Base::Allocator 	Allocator;
-	typedef typename Base::Profile 		Profile;
+    typedef typename Base::Allocator    Allocator;
+    typedef typename Base::Profile      Profile;
 
-	typedef typename SmallCtrTypeFactory::Factory<Root>::Type 		RootCtr;
-	typedef typename SmallCtrTypeFactory::Factory<Vector>::Type 	MapCtr;
-	typedef typename MapCtr::Iterator								Iterator;
-	typedef typename MapCtr::ID										ID;
+    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<Vector>::Type     MapCtr;
+    typedef typename MapCtr::Iterator                               Iterator;
+    typedef typename MapCtr::ID                                     ID;
 
 
-	Allocator* 	allocator_;
-	MapCtr* 	map_;
+    Allocator*  allocator_;
+    MapCtr*     map_;
 
 
 
 public:
 
-	VectorinsertBatchBenchmark(StringRef name):
-		SPBenchmarkTask(name), max_size(128*1024*1024)
-	{
-		RootCtr::initMetadata();
-		MapCtr::initMetadata();
+    VectorinsertBatchBenchmark(StringRef name):
+        SPBenchmarkTask(name), max_size(128*1024*1024)
+    {
+        RootCtr::initMetadata();
+        MapCtr::initMetadata();
 
-		Add("max_size", max_size);
-	}
+        Add("max_size", max_size);
+    }
 
-	virtual ~VectorinsertBatchBenchmark() throw() {}
+    virtual ~VectorinsertBatchBenchmark() throw() {}
 
-	virtual void Prepare(BenchmarkParameters& params, ostream& out)
-	{
-		allocator_ 	= new Allocator();
-		map_ 		= new MapCtr(allocator_, 1, true);
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
+    {
+        allocator_  = new Allocator();
+        map_        = new MapCtr(allocator_, 1, true);
 
-		allocator_->commit();
-	}
+        allocator_->commit();
+    }
 
-	virtual void release(ostream& out)
-	{
-		delete map_;
-		delete allocator_;
-	}
+    virtual void release(ostream& out)
+    {
+        delete map_;
+        delete allocator_;
+    }
 
 
-	virtual void Benchmark(BenchmarkParameters& params, ostream& out)
-	{
-		Int size = params.x();
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
+    {
+        Int size = params.x();
 
-		ArrayData data(size, malloc(size), true);
+        ArrayData data(size, malloc(size), true);
 
-		Int max = this->max_size / size;
+        Int max = this->max_size / size;
 
-		Int total = 0;
+        Int total = 0;
 
-		params.operations() = max;
+        params.operations() = max;
 
-		for (Int c = 0; c < max; c++)
-		{
-			auto i = map_->seek(getRandom(total));
+        for (Int c = 0; c < max; c++)
+        {
+            auto i = map_->seek(getRandom(total));
 
-			i.insert(data);
+            i.insert(data);
 
-			total += size;
-		}
+            total += size;
+        }
 
-		allocator_->rollback();
-	}
+        allocator_->rollback();
+    }
 };
 
 

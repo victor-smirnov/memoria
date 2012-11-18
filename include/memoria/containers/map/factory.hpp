@@ -21,31 +21,31 @@ namespace memoria    {
 template <typename Profile, Int Indexes_>
 struct BTreeTypes<Profile, memoria::Map<Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
 
-	typedef BTreeTypes<Profile, memoria::BSTree> 							Base;
+    typedef BTreeTypes<Profile, memoria::BSTree>                            Base;
 
-	typedef BigInt															Value;
+    typedef BigInt                                                          Value;
 
-	static const Int Indexes                                                = Indexes_;
+    static const Int Indexes                                                = Indexes_;
 
-	typedef typename appendLists<
-			typename Base::ContainerPartsList,
-			typename TLTool<
-				memoria::models::idx_map::CtrApiName
-			>::List
-	>::Result                                                               ContainerPartsList;
+    typedef typename appendLists<
+            typename Base::ContainerPartsList,
+            typename TLTool<
+                memoria::models::idx_map::CtrApiName
+            >::List
+    >::Result                                                               ContainerPartsList;
 
-	typedef typename appendTool<
-			typename Base::IteratorPartsList,
-			typename TLTool<
-				memoria::models::idx_map::ItrApiName
-			>::List
-	>::Result                                                               IteratorPartsList;
+    typedef typename appendTool<
+            typename Base::IteratorPartsList,
+            typename TLTool<
+                memoria::models::idx_map::ItrApiName
+            >::List
+    >::Result                                                               IteratorPartsList;
 
 
-	template <typename Iterator, typename Container>
-	struct IteratorCacheFactory {
-		typedef BTreeIteratorPrefixCache<Iterator, Container> 				Type;
-	};
+    template <typename Iterator, typename Container>
+    struct IteratorCacheFactory {
+        typedef BTreeIteratorPrefixCache<Iterator, Container>               Type;
+    };
 
 
 };
