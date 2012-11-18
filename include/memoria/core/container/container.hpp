@@ -30,7 +30,8 @@
 
 
 
-#define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "<<me()->typeName())
+#define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "\
+        <<me()->typeName())
 
 namespace memoria    {
 
@@ -173,7 +174,10 @@ public:
 
             PageInitDispatcher<typename Types::DataPagesList>::buildMetadataList(list);
 
-            reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(), list, Name::Code + salt, MyType::getContainerInterface());
+            reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(),
+                                                list,
+                                                Name::Code + salt,
+                                                MyType::getContainerInterface());
 
             MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);
         }
@@ -275,7 +279,11 @@ ContainerMetadata* ContainerBase<TypesType>::reflection_ = NULL;
 
 
 template <int Idx, typename Types>
-class CtrHelper: public CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> {
+class CtrHelper: public CtrPart<
+                            typename SelectByIndexTool<Idx, typename Types::List>::Result,
+                            CtrHelper<Idx - 1, Types>,
+                            Types>
+{
     typedef CtrHelper<Idx, Types>                               ThisType;
     typedef Ctr<Types>                                          MyType;
     typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> Base;

@@ -36,8 +36,11 @@ private:
 
 public:
 
-    ContainerShared(BigInt name0): references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(NULL) {}
-    ContainerShared(BigInt name0, CtrShared* parent): references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(parent) {}
+    ContainerShared(BigInt name0):
+        references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(NULL) {}
+
+    ContainerShared(BigInt name0, CtrShared* parent):
+        references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(parent) {}
 
     //FIXME virtual destructor
     ~ContainerShared() throw ()

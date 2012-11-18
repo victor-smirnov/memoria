@@ -26,10 +26,18 @@ template <typename Name, typename Base, typename Types> class IterPart;
 
 
 template <int Idx, typename Types>
-class IterHelper: public IterPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, IterHelper<Idx - 1, Types>, Types> {
-    typedef Iter<Types>                 MyType;
-    typedef IterHelper<Idx, Types>      ThisType;
-    typedef IterPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, IterHelper<Idx - 1, Types>, Types> BaseType;
+class IterHelper: public IterPart<typename SelectByIndexTool<
+                                                Idx,
+                                                typename Types::List>::Result,
+                                                IterHelper<Idx - 1, Types>, Types
+                                                >
+{
+    typedef Iter<Types>                         MyType;
+    typedef IterHelper<Idx, Types>              ThisType;
+    typedef IterPart<
+                typename SelectByIndexTool<Idx, typename Types::List>::Result,
+                IterHelper<Idx - 1, Types>, Types
+            >                                   BaseType;
 
 public:
     IterHelper(): BaseType() {}
@@ -39,8 +47,8 @@ public:
 
 template <typename Types>
 class IterHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
-    typedef Iter<Types>                 MyType;
-    typedef IterHelper<-1, Types>       ThisType;
+    typedef Iter<Types>                                                             MyType;
+    typedef IterHelper<-1, Types>                                                   ThisType;
 
     typedef typename Types::template BaseFactory<Types>::Type BaseType;
 
@@ -52,8 +60,8 @@ public:
 
 template <typename Types>
 class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Types> {
-    typedef Iter<Types>                 MyType;
-    typedef IterStart<Types>            ThisType;
+    typedef Iter<Types>                                                             MyType;
+    typedef IterStart<Types>                                                        ThisType;
 
     typedef IterHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
 public:
@@ -159,14 +167,14 @@ template<
 >
 class Iter: public IterStart <Types>
 {
-    typedef IterStart<Types>                                                    Base;
+    typedef IterStart<Types>                                                        Base;
 
-    typedef Iter<Types>                                                         ThisIteratorType;
-    typedef Iter<Types>                                                         MyType;
+    typedef Iter<Types>                                                             ThisIteratorType;
+    typedef Iter<Types>                                                             MyType;
 public:
 
 
-    typedef Ctr<typename Types::CtrTypes>                                       ContainerType;
+    typedef Ctr<typename Types::CtrTypes>                                           ContainerType;
 
 
 protected:

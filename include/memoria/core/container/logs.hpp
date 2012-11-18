@@ -15,7 +15,8 @@
 
 #define MEMORIA_LOG(logger_, level, ...)                                         \
     if (logger_->is_log(level))                                                    \
-        memoria::vapi::log(logger_->logger(), level, MEMORIA_SOURCE, logger_->typeName(), ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
+        memoria::vapi::log(logger_->logger(), level, MEMORIA_SOURCE, logger_->typeName(), \
+                ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
 
 #define MEMORIA_DEBUG(logger_, ...)                                              \
     MEMORIA_LOG(logger_, memoria::vapi::Logger::DEBUG, ##__VA_ARGS__)
@@ -86,12 +87,15 @@ class Logger {
 
 public:
 
-    enum {DERIVED = 0, TRACE = 10000, DEBUG = 20000, ERROR = 30000, WARNING = 40000, INFO = 50000, FATAL = 60000, NONE = 70000};
+    enum {DERIVED = 0, TRACE = 10000, DEBUG = 20000, ERROR = 30000,
+          WARNING = 40000, INFO = 50000, FATAL = 60000, NONE = 70000};
 
-    Logger(const char* category, int level = DERIVED, Logger* parent = &memoria::vapi::logger):category_(category), level_(level), parent_(parent), handler_(NULL)
+    Logger(const char* category, int level = DERIVED, Logger* parent = &memoria::vapi::logger):
+        category_(category), level_(level), parent_(parent), handler_(NULL)
     {}
 
-    Logger(const Logger& other):category_(other.category_), level_(other.level_), parent_(other.parent_), handler_(other.handler_)
+    Logger(const Logger& other):
+        category_(other.category_), level_(other.level_), parent_(other.parent_), handler_(other.handler_)
     {}
 
     Logger(): category_(NULL), level_(NONE), parent_(NULL), handler_(NULL) {}
@@ -672,26 +676,6 @@ bool log(Logger& log, Int level,
         return false;
     }
 }
-
-/*
-static String expand(StringRef str) {
-    unsigned int LEN = 62;
-    if (str.length() < LEN)
-    {
-        String st(str);
-        for (size_t c = 0; c < LEN - str.length(); c++)
-        {
-            st.append(" ");
-        }
-        return st;
-    }
-    else {
-        return str;
-    }
-}
-*/
-
-
 
 }}
 

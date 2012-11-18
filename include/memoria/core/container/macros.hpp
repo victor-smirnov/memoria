@@ -17,7 +17,7 @@ MEMORIA_TEMPLATE_EXTERN template class Ctr<CollectionName::Types<CtrName>::Type:
 #define MEMORIA_EXTERN_ITER(CollectionName, CtrName)\
 MEMORIA_TEMPLATE_EXTERN template class Iter<CollectionName::Types<CtrName>::Type::IterTypes>;
 
-#define MEMORIA_EXTERN_CTR_BASE(CollectionName,  CtrName, BaseName)                             \
+#define MEMORIA_EXTERN_CTR_BASE(CollectionName,  CtrName, BaseName) \
 MEMORIA_TEMPLATE_EXTERN template class BaseName<CollectionName::Types<CtrName>::Type::CtrTypes >;
 
 
@@ -36,30 +36,38 @@ MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, RootLeafTypes, ANY_LEVEL)     
 MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, LeafTypes, ANY_LEVEL)                 \
 MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, InternalTypes, ANY_LEVEL)
 
-#define MEMORIA_EXTERN_BASIC_CONTAINER(CollectionName,  CtrName) MEMORIA_EXTERN_CONTAINER(CollectionName, CtrName, memoria::btree::BTreeContainerBase, memoria::BTreeIteratorBase)
+#define MEMORIA_EXTERN_BASIC_CONTAINER(CollectionName,  CtrName) MEMORIA_EXTERN_CONTAINER(CollectionName, CtrName, \
+        memoria::btree::BTreeContainerBase, memoria::BTreeIteratorBase)
 
 
 
 
 
 
-#define MEMORIA_EXTERN_CTR_PAPRT(CollectionName,  CtrName, PartName) \
-MEMORIA_TEMPLATE_EXTERN template class CtrPart<PartName, CtrHelper<IndexOfTool<PartName, CollectionName::Types<CtrName>::Type::CtrTypes::CtrList>::Value - 1, CollectionName::Types<CtrName>::Type::CtrTypes>, CollectionName::Types<CtrName>::Type::CtrTypes>;
+#define MEMORIA_EXTERN_CTR_PAPRT(CollectionName,  CtrName, PartName)                            \
+    MEMORIA_TEMPLATE_EXTERN template class CtrPart<PartName, CtrHelper<IndexOfTool<PartName,    \
+    CollectionName::Types<CtrName>::Type::CtrTypes::CtrList>::Value - 1,                        \
+    CollectionName::Types<CtrName>::Type::CtrTypes>, CollectionName::Types<CtrName>::Type::CtrTypes>;
 
-#define MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, PageType, Level) \
-MEMORIA_TEMPLATE_EXTERN template class PackedSumTree<NodePage<CollectionName::Factory0<CtrName>::Type::PageType<Level> >::MapTypes>; \
-MEMORIA_TEMPLATE_EXTERN template class PackedTree<NodePage<CollectionName::Factory0<CtrName>::Type::PageType<Level> >::MapTypes>;
-
-
-#define MEMORIA_EXTERN_ITER_PAPRT(CollectionName,  CtrName, PartName) \
-MEMORIA_TEMPLATE_EXTERN template class IterPart<PartName, IterHelper<IndexOfTool<PartName, CollectionName::Types<CtrName>::Type::CtrTypes::IterList>::Value - 1, CollectionName::Types<CtrName>::Type::CtrTypes::IterTypes>, CollectionName::Types<CtrName>::Type::CtrTypes::IterTypes>;
-
-
+#define MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, PageType, Level)                          \
+    MEMORIA_TEMPLATE_EXTERN template class                                                          \
+    PackedSumTree<NodePage<CollectionName::Factory0<CtrName>::Type::PageType<Level> >::MapTypes>;   \
+    MEMORIA_TEMPLATE_EXTERN template class                                                          \
+    PackedTree<NodePage<CollectionName::Factory0<CtrName>::Type::PageType<Level> >::MapTypes>;
 
 
+#define MEMORIA_EXTERN_ITER_PAPRT(CollectionName,  CtrName, PartName)                           \
+    MEMORIA_TEMPLATE_EXTERN template class IterPart<PartName, IterHelper<IndexOfTool<PartName,  \
+    CollectionName::Types<CtrName>::Type::CtrTypes::IterList>::Value - 1,                       \
+    CollectionName::Types<CtrName>::Type::CtrTypes::IterTypes>,                                 \
+    CollectionName::Types<CtrName>::Type::CtrTypes::IterTypes>;
 
 
-#define MEMORIA_PAGE_PART_BEGIN(PartName)                                                   \
+
+
+
+
+#define MEMORIA_PAGE_PART_BEGIN(PartName)                                               \
 template <typename BaseType>                                                            \
 class PagePart<PartName, BaseType>: public BaseType {                                   \
 public:                                                                                 \
@@ -71,7 +79,7 @@ public:                                                                         
 
 
 
-#define MEMORIA_PAGE_PART_BEGIN1(PartName, Param)                                           \
+#define MEMORIA_PAGE_PART_BEGIN1(PartName, Param)                                       \
 template <typename Param, typename BaseType>                                            \
 class PagePart<PartName<Param>, BaseType>: public BaseType {                            \
 public:                                                                                 \
@@ -84,7 +92,7 @@ public:                                                                         
 
 
 
-#define MEMORIA_PAGE_PART_BEGIN2(PartName, Param)                                           \
+#define MEMORIA_PAGE_PART_BEGIN2(PartName, Param)                                       \
 template <Param, typename BaseType>                                                     \
 class PagePart<PartName, BaseType>: public BaseType {                                   \
 public:                                                                                 \
