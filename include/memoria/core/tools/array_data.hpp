@@ -160,7 +160,7 @@ public:
     virtual SizeT get(Byte* buffer, SizeT start, SizeT length) const
     {
         CopyBuffer(data_ + start, buffer, length);
-        return 0;
+        return length;
     }
 
 

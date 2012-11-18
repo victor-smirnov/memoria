@@ -1,3 +1,3 @@
 if (BUILD_STREAM_CONTAINER)
-    add_subdirectory(stream)
+    add_subdirectory(inmem)
 endif()
