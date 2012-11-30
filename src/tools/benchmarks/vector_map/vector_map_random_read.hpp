@@ -26,11 +26,11 @@ class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorMap>::Type  Ctr;
-    typedef typename Ctr::Iterator                                  Iterator;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       		RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr>::Type  		Ctr;
+    typedef typename Ctr::Iterator                                  		Iterator;
 
-    static const Int MAX_DATA_SIZE                                  = 256;
+    static const Int MAX_DATA_SIZE                                  		= 256;
 
     Allocator*  allocator_;
     Ctr*        ctr_;
@@ -42,7 +42,7 @@ public:
     VectorMapRandomReadBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-        RootCtr::initMetadata();
+//        RootCtr::initMetadata();
         Ctr::initMetadata();
 
         Add("memory_size", memory_size);

@@ -29,9 +29,9 @@
 namespace memoria {
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::Vector>: public BTreeTypes<Profile, memoria::DynVector>  {
+struct BTreeTypes<Profile, memoria::VectorCtr>: public BTreeTypes<Profile, memoria::DynVectorCtr>  {
 
-    typedef BTreeTypes<Profile, memoria::DynVector>                                 Base;
+    typedef BTreeTypes<Profile, memoria::DynVectorCtr>                              Base;
 
     typedef typename appendLists<
             typename Base::ContainerPartsList,
@@ -64,7 +64,7 @@ struct BTreeTypes<Profile, memoria::Vector>: public BTreeTypes<Profile, memoria:
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::Vector, T>: public CtrTF<Profile, memoria::DynVector, T> {
+class CtrTF<Profile, memoria::VectorCtr, T>: public CtrTF<Profile, memoria::DynVectorCtr, T> {
 
 };
 

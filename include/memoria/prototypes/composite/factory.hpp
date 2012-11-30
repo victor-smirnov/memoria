@@ -43,9 +43,9 @@ struct CompositeTypes {
 
 
 template <typename Profile_, typename T>
-class CtrTF<Profile_, memoria::Composite, T> {
+class CtrTF<Profile_, memoria::CompositeCtr, T> {
 
-    typedef CtrTF<Profile_, Composite, T>                                       MyType;
+    typedef CtrTF<Profile_, CompositeCtr, T>                                    MyType;
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 

@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_VAPI_TYPES_HPP12
-#define _MEMORIA_VAPI_TYPES_HPP12
+#ifndef _MEMORIA_CORE_TYPES_TYPES_HPP
+#define _MEMORIA_CORE_TYPES_TYPES_HPP
 
 #include <string>
 #include <sstream>
@@ -62,18 +62,23 @@ struct CodeValue {
     static const Int Code = Value;
 };
 
+template <typename T, T V> struct ConstValue {
+	static const T Value = V;
+};
+
+template <typename T> struct TypeHash; // must define Value constant
+
 /*
  * Container type names & profiles
  */
 
-
-struct BTree {};
-struct BSTree {};
-struct DynVector {};
-struct Composite {};
+struct BTreeCtr	 	{};
+struct BSTreeCtr 	{};
+struct DynVectorCtr {};
+struct CompositeCtr {};
 
 struct Superblock:  public CodeValue<0> {};
-struct Root:        public CodeValue<1> {};
+struct RootCtr:     public CodeValue<1> {};
 
 template <Int Indexes>
 struct Map:         public CodeValue<0x618a2f + Indexes * 256> {};
@@ -83,13 +88,13 @@ typedef Map<1>      Map1;
 template <Int Indexes>
 struct Set:         public CodeValue<0x5c421d + Indexes * 256> {};
 
-typedef Set<1>      set1;
-typedef Set<2>      set2;
+typedef Set<1>      Set1;
+typedef Set<2>      Set2;
 
 struct DFUDS:       public CodeValue<5> {};
 struct LOUDS:       public CodeValue<6> {};
-struct VectorMap:   public CodeValue<7> {};
-struct Vector:      public CodeValue<8> {};
+struct VectorMapCtr:   public CodeValue<7> {};
+struct VectorCtr:      public CodeValue<8> {};
 
 
 template <typename ChildType = void>
@@ -101,8 +106,9 @@ class SmallProfile {};
 
 
 
+
 struct NullType {
-    typedef NullType List;
+//    typedef NullType List;
 };
 
 struct EmptyType {};
@@ -134,6 +140,16 @@ struct TrueValue {
 struct FalseValue {
     static const bool Value = false;
 };
+
+template <typename T>
+struct TypeDef {
+	typedef T Type;
+};
+
+class NotDefined {};
+
+template <int Value>
+struct CtrNameDeclarator: TypeDef<NotDefined> {};
 
 
 template <typename HeadType, typename TailType = NullType>

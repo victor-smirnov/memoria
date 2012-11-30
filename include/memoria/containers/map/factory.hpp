@@ -19,9 +19,9 @@ namespace memoria    {
 
 
 template <typename Profile, Int Indexes_>
-struct BTreeTypes<Profile, memoria::Map<Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
+struct BTreeTypes<Profile, memoria::Map<Indexes_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
 
-    typedef BTreeTypes<Profile, memoria::BSTree>                            Base;
+    typedef BTreeTypes<Profile, memoria::BSTreeCtr>                         Base;
 
     typedef BigInt                                                          Value;
 
@@ -34,7 +34,7 @@ struct BTreeTypes<Profile, memoria::Map<Indexes_> >: public BTreeTypes<Profile, 
             >::List
     >::Result                                                               ContainerPartsList;
 
-    typedef typename appendTool<
+    typedef typename AppendTool<
             typename Base::IteratorPartsList,
             typename TLTool<
                 memoria::models::idx_map::ItrApiName
@@ -51,7 +51,7 @@ struct BTreeTypes<Profile, memoria::Map<Indexes_> >: public BTreeTypes<Profile, 
 };
 
 template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::Map<Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
+class CtrTF<Profile, memoria::Map<Indexes>, T>: public CtrTF<Profile, memoria::BSTreeCtr, T> {
 };
 
 }

@@ -21,9 +21,9 @@ class StlVectorWriteBenchmark: public BenchmarkTask {
 
     typedef BenchmarkTask Base;
 
-    typedef std::vector<BigInt> VectorCtr;
+    typedef std::vector<BigInt> VectorCtrType;
 
-    VectorCtr* ctr_;
+    VectorCtrType* ctr_;
 
     Int* rd_array_;
 
@@ -40,7 +40,7 @@ public:
     {
         Int size = params.x();
 
-        ctr_ = new VectorCtr();
+        ctr_ = new VectorCtrType();
 
         for (Int c = 0; c < size; c++)
         {

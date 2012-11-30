@@ -36,9 +36,9 @@ using namespace memoria::vector_map;
 
 
 template <typename Profile, Int Indexes_>
-struct BTreeTypes<Profile, memoria::VMset<Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
+struct BTreeTypes<Profile, memoria::VMset<Indexes_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
 
-    typedef BTreeTypes<Profile, memoria::BSTree >                           Base;
+    typedef BTreeTypes<Profile, memoria::BSTreeCtr >                        Base;
 
     typedef EmptyValue                                                      Value;
 
@@ -47,18 +47,18 @@ struct BTreeTypes<Profile, memoria::VMset<Indexes_> >: public BTreeTypes<Profile
 
 
 template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::VMset<Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
+class CtrTF<Profile, memoria::VMset<Indexes>, T>: public CtrTF<Profile, memoria::BSTreeCtr, T> {
 };
 
 
 
 
 template <typename Profile_>
-struct CompositeTypes<Profile_, VectorMap>: public CompositeTypes<Profile_, Composite> {
+struct CompositeTypes<Profile_, VectorMapCtr>: public CompositeTypes<Profile_, CompositeCtr> {
 
-    typedef VectorMap                                                           ContainerTypeName;
+    typedef VectorMapCtr                                                        ContainerTypeName;
 
-    typedef CompositeTypes<Profile_, Composite>                                 Base;
+    typedef CompositeTypes<Profile_, CompositeCtr>                              Base;
 
     typedef typename appendLists<
                 typename Base::ContainerPartsList,
@@ -84,13 +84,13 @@ struct CompositeTypes<Profile_, VectorMap>: public CompositeTypes<Profile_, Comp
 
 
 template <typename Profile_, typename T>
-class CtrTF<Profile_, VectorMap, T> {
+class CtrTF<Profile_, VectorMapCtr, T> {
 
-    typedef CtrTF<Profile_, VectorMap, T>                                       MyType;
+    typedef CtrTF<Profile_, VectorMapCtr, T>                                    MyType;
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 
-    typedef CompositeTypes<Profile_, VectorMap>                                 ContainerTypes;
+    typedef CompositeTypes<Profile_, VectorMapCtr>                              ContainerTypes;
 
 public:
 

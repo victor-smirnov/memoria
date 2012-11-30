@@ -1,6 +1,6 @@
 
 #include <memoria/containers/root/factory.hpp>
-#include <memoria/allocators/ct-test/factory.hpp>
+
 
 #include <iostream>
 

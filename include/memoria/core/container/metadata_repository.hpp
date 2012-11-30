@@ -99,6 +99,71 @@ const int MEMORIA_INITIALIZED = ::memoria::Memoria<>::init()
 
 
 
+template <
+	template <int> class Decl,
+	int Value = 100,
+	typename List = NullType
+>
+class SimpleOrderedBuilder {
+	typedef typename Decl<Value>::Type 							DeclType;
+
+	typedef typename IfThenElse<
+		IfTypesEqual<DeclType, NotDefined>::Value,
+		List,
+		typename AppendTool<DeclType, List>::Result
+	>::Result 													NewList;
+
+public:
+	typedef typename SimpleOrderedBuilder<Decl, Value - 1, NewList>::Type 	Type;
+};
+
+template <
+	template <int> class Decl,
+	typename List
+>
+class SimpleOrderedBuilder<Decl, -1, List> {
+public:
+	typedef List Type;
+};
+
+typedef SimpleOrderedBuilder<CtrNameDeclarator> CtrNameListBuilder;
+
+
+template <typename ProfileType, typename NameList>
+struct CtrListInitializer {
+	static void init() {
+		CtrTF<ProfileType, typename NameList::Head>::Type::initMetadata();
+
+		CtrListInitializer<ProfileType, typename NameList::Tail>::init();
+	}
+};
+
+template <typename ProfileType>
+struct CtrListInitializer<ProfileType, NullType> {
+	static void init() {}
+};
+
+template <
+	typename Profile,
+
+	template <
+		template <int> class Decl,
+		int Value,
+		typename List
+	>
+	class CtrListBuilder = SimpleOrderedBuilder
+>
+class MetadataInitializer {
+	typedef typename CtrListBuilder<CtrNameDeclarator, 100, NullType>::Type CtrNameList;
+
+public:
+	static void init() {
+		CtrListInitializer<Profile, CtrNameList>::init();
+	}
+};
+
+
+
 
 
 }

@@ -21,9 +21,9 @@ public:
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type           MapCtr;
-    typedef typename MapCtr::Iterator                               Iterator;
-    typedef typename MapCtr::ID                                     ID;
+    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type           MapCtrType;
+    typedef typename MapCtrType::Iterator                               Iterator;
+    typedef typename MapCtrType::ID                                     ID;
 
 
     PairVector pairs;
@@ -34,20 +34,20 @@ public:
     CopyCtrExample() :
         SPExampleTask("CopyCtr")
     {
-        MapCtr::initMetadata();
+        MapCtrType::initMetadata();
     }
 
     virtual ~CopyCtrExample() throw () {
     }
 
-    MapCtr createCtr(Allocator& allocator, BigInt name)
+    MapCtrType createCtr(Allocator& allocator, BigInt name)
     {
-        return MapCtr(allocator, name, true);
+        return MapCtrType(allocator, name, true);
     }
 
-    MapCtr createCtr1(Allocator& allocator, BigInt name)
+    MapCtrType createCtr1(Allocator& allocator, BigInt name)
     {
-        MapCtr map = createCtr(allocator, name);
+        MapCtrType map = createCtr(allocator, name);
 
         map[123456] = 10;
 
@@ -73,11 +73,11 @@ public:
             allocator.getLogger()->setHandler(&logHandler);
 
 
-            MapCtr map(createCtr1(allocator, 1));
+            MapCtrType map(createCtr1(allocator, 1));
 
             cout<<"Map has been created"<<endl;
 
-            MapCtr map2 = map;
+            MapCtrType map2 = map;
 
             cout<<"Map2 has been created as a copy of Map"<<endl;
 

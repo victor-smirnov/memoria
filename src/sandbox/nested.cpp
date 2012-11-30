@@ -37,7 +37,7 @@ template <>
 template <>
 struct Main<int>::A<int> {
     static void dump() {
-        int b;
+        int b = 0;
         cout<<"second "<<b<<endl;
     }
 };

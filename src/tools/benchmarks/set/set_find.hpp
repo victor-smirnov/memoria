@@ -26,19 +26,19 @@ class setFindRandomBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<set1>::Type       SetCtr;
-    typedef typename SetCtr::Iterator                               Iterator;
-    typedef typename SetCtr::ID                                     ID;
-    typedef typename SetCtr::Accumulator                            Accumulator;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type       SetCtrType;
+    typedef typename SetCtrType::Iterator                               Iterator;
+    typedef typename SetCtrType::ID                                     ID;
+    typedef typename SetCtrType::Accumulator                            Accumulator;
 
 
-    typedef typename SetCtr::Key                                    Key;
-    typedef typename SetCtr::Value                                  Value;
+    typedef typename SetCtrType::Key                                    Key;
+    typedef typename SetCtrType::Value                                  Value;
 
 
     Allocator* allocator_;
-    SetCtr* set_;
+    SetCtrType* set_;
 
     Int result_;
 
@@ -49,8 +49,8 @@ public:
     setFindRandomBenchmark(StringRef name):
         SPBenchmarkTask(name)
     {
-        RootCtr::initMetadata();
-        SetCtr::initMetadata();
+//        RootCtr::initMetadata();
+        SetCtrType::initMetadata();
 
         average = 10;
     }
@@ -74,10 +74,10 @@ public:
         {
             LoadResource(*allocator_, resource_name);
 
-            set_ = new SetCtr(allocator_, 1);
+            set_ = new SetCtrType(allocator_, 1);
         }
         else {
-            set_ = new SetCtr(allocator_, 1, true);
+            set_ = new SetCtrType(allocator_, 1, true);
 
             Iterator i = set_->End();
 

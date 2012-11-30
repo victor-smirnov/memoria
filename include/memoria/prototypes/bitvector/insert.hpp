@@ -571,13 +571,13 @@ void import_data(bitmap_node *page, index_t idx, const Buffer &data,
 
     page->header().set_size(usage);
 
-    index_t offset1 = page->header().get_offset();
+    index_t offSet1 = page->header().get_offset();
 
     if (usage == length)
     {
         page->header().set_offset(offset0 >= usage ? usage : offset0);
     }
-    else if (pos <= offset1)
+    else if (pos <= offSet1)
     {
         if (offset0 < length)
         {
@@ -585,7 +585,7 @@ void import_data(bitmap_node *page, index_t idx, const Buffer &data,
         }
         else
         {
-            page->header().set_offset(offset1 + length < usage ? offset1 + length : usage);
+            page->header().set_offset(offSet1 + length < usage ? offSet1 + length : usage);
         }
     }
 

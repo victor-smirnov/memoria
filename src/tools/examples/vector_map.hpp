@@ -20,16 +20,16 @@ namespace memoria {
 class VectorMapExample: public SPExampleTask {
 
 private:
-    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type               MapCtr;
-    typedef typename MapCtr::Iterator                                   Iterator;
-    typedef typename MapCtr::ID                                         ID;
+    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type               MapCtrType;
+    typedef typename MapCtrType::Iterator                                   Iterator;
+    typedef typename MapCtrType::ID                                         ID;
 
 public:
 
     VectorMapExample() :
         SPExampleTask("VectorMap")
     {
-        MapCtr::initMetadata();
+        MapCtrType::initMetadata();
     }
 
     virtual ~VectorMapExample() throw () {
@@ -50,7 +50,7 @@ public:
             Allocator allocator;
             allocator.getLogger()->setHandler(&logHandler);
 
-            MapCtr map(allocator, 1, true);
+            MapCtrType map(allocator, 1, true);
 
             for (Int c = 1; c <= 10; c++)
             {

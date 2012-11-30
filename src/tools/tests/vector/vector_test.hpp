@@ -48,7 +48,7 @@ public:
 
 
 class VectorTest: public BTreeBatchTestBase<
-    Vector,
+    VectorCtr,
     ArrayData,
     VectorReplay
 >
@@ -58,7 +58,7 @@ class VectorTest: public BTreeBatchTestBase<
 
 
     typedef BTreeBatchTestBase<
-            Vector,
+            VectorCtr,
             ArrayData,
             VectorReplay
     >                                                               Base;

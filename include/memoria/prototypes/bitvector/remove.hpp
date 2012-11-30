@@ -226,19 +226,19 @@ void remove_data(bitmap_node *page,
 
     index_t usage = page->header().get_size();
 
-    index_t offset1 = page->header().get_offset();
+    index_t offSet1 = page->header().get_offset();
 
-    if (offset1 >= pos + length)
+    if (offSet1 >= pos + length)
     {
-        offset1 -= length;
+        offSet1 -= length;
     }
-    else if (offset1 >= pos && offset1 < pos + length)
+    else if (offSet1 >= pos && offSet1 < pos + length)
     {
         CountData tmp = base_prefix;
-        offset1 = page->get_offset_for(pos + length, tmp, get_node_bits(), get_data_bits()) - length;
+        offSet1 = page->get_offset_for(pos + length, tmp, get_node_bits(), get_data_bits()) - length;
     }
 
-    page->header().set_offset(offset1);
+    page->header().set_offset(offSet1);
 
     if (pos + length < usage)
     {
@@ -279,7 +279,7 @@ void remove_data(bitmap_node *page,
         _marked_page_id.clear();
     }
 
-    csize_t page_offset = offset1;
+    csize_t page_offset = offSet1;
 
     page->reindex(base_prefix.inserted, base_prefix.hasnt_label, base_prefix.count, page_offset, get_node_bits(), get_data_bits());
 

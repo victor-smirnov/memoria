@@ -25,19 +25,19 @@ class VectorReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<Vector>::Type     VectorCtr;
-    typedef typename VectorCtr::Iterator                            Iterator;
-    typedef typename VectorCtr::ID                                  ID;
-    typedef typename VectorCtr::Accumulator                         Accumulator;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorCtr>::Type      VectorCtrType;
+    typedef typename VectorCtrType::Iterator                            Iterator;
+    typedef typename VectorCtrType::ID                                  ID;
+    typedef typename VectorCtrType::Accumulator                         Accumulator;
 
 
-    typedef typename VectorCtr::Key                                 Key;
+    typedef typename VectorCtrType::Key                                 Key;
 
 
 
     Allocator* allocator_;
-    VectorCtr* ctr_;
+    VectorCtrType* ctr_;
 
     Int result_;
 
@@ -48,8 +48,8 @@ public:
     VectorReadBenchmark(StringRef name):
         SPBenchmarkTask(name)
     {
-        RootCtr::initMetadata();
-        VectorCtr::initMetadata();
+//        RootCtr::initMetadata();
+        VectorCtrType::initMetadata();
 
         average = 5;
     }
@@ -62,7 +62,7 @@ public:
 
         Int size = params.x();
 
-        ctr_ = new VectorCtr(allocator_);
+        ctr_ = new VectorCtrType(allocator_);
 
         ctr_->setElementSize(8);
 

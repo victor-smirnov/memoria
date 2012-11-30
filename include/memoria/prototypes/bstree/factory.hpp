@@ -26,8 +26,8 @@ namespace memoria    {
 
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria::BTree> {
-    typedef BTreeTypes<Profile, memoria::BTree>                             Base;
+struct BTreeTypes<Profile, memoria::BSTreeCtr>: public BTreeTypes<Profile, memoria::BTreeCtr> {
+    typedef BTreeTypes<Profile, memoria::BTreeCtr>                          Base;
 
     typedef BigInt                                                          Value;
 
@@ -64,7 +64,7 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
 };
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::BSTree, T>: public CtrTF<Profile, memoria::BTree, T> {};
+class CtrTF<Profile, memoria::BSTreeCtr, T>: public CtrTF<Profile, memoria::BTreeCtr, T> {};
 
 
 }

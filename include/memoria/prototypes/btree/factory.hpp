@@ -106,9 +106,9 @@ template <
         typename Profile,
         typename ContainerTypeName_
 >
-class CtrTF<Profile, memoria::BTree, ContainerTypeName_> {
+class CtrTF<Profile, memoria::BTreeCtr, ContainerTypeName_> {
 
-    typedef CtrTF<Profile, memoria::BTree, ContainerTypeName_>                      MyType;
+    typedef CtrTF<Profile, memoria::BTreeCtr, ContainerTypeName_>                   MyType;
 
 public:
 
@@ -159,7 +159,7 @@ public:
     template <int Level> struct RootLeafTypes: NodeTypesBase {
         typedef NodeKey                                                     Key;
         typedef typename MyType::Value                                      Value;
-        typedef typename appendTool<
+        typedef typename AppendTool<
                 RootPagePartsList,
                 typename ContainerTypes::LeafPagePartsList
         >::Result                                                           List;
@@ -176,7 +176,7 @@ public:
     template <int Level> struct RootTypes: NodeTypesBase {
         typedef NodeKey                                                     Key;
         typedef ID                                                          Value;
-        typedef typename appendTool<
+        typedef typename AppendTool<
                 RootPagePartsList,
                 typename ContainerTypes::InternalPagePartsList
         >::Result                                                           List;

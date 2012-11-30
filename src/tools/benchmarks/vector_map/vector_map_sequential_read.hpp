@@ -27,9 +27,9 @@ class VectorMapSequentialReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorMap>::Type  Ctr;
-    typedef typename Ctr::Iterator                                  Iterator;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       	RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr>::Type 	Ctr;
+    typedef typename Ctr::Iterator                                  	Iterator;
 
     Allocator*  allocator_;
     Ctr*        ctr_;
@@ -41,7 +41,7 @@ public:
     VectorMapSequentialReadBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-        RootCtr::initMetadata();
+//        RootCtr::initMetadata();
         Ctr::initMetadata();
 
         Add("memory_size", memory_size);

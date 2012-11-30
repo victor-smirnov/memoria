@@ -63,10 +63,10 @@ struct DynVectorContainerTypes: public Base {
 
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::DynVector>: public BTreeTypes<Profile, memoria::BSTree> {
+struct BTreeTypes<Profile, memoria::DynVectorCtr>: public BTreeTypes<Profile, memoria::BSTreeCtr> {
 
     typedef IDType                                                              Value;
-    typedef BTreeTypes<Profile, memoria::BSTree>                                Base;
+    typedef BTreeTypes<Profile, memoria::BSTreeCtr>                             Base;
 
     typedef NullType                                                            DataPagePartsList;
 
@@ -117,9 +117,9 @@ template <
         typename Profile,
         typename ContainerTypeName
 >
-class CtrTF<Profile, memoria::DynVector, ContainerTypeName>: public CtrTF<Profile, memoria::BSTree, ContainerTypeName> {
+class CtrTF<Profile, memoria::DynVectorCtr, ContainerTypeName>: public CtrTF<Profile, memoria::BSTreeCtr, ContainerTypeName> {
 
-    typedef CtrTF<Profile, memoria::BSTree, ContainerTypeName>                      Base1;
+    typedef CtrTF<Profile, memoria::BSTreeCtr, ContainerTypeName>                   Base1;
 
 public:
 

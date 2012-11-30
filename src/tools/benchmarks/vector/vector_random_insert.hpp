@@ -25,17 +25,17 @@ class VectorRandominsertBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<Vector>::Type     VectorCtr;
-    typedef typename VectorCtr::Iterator                            Iterator;
-    typedef typename VectorCtr::ID                                  ID;
-    typedef typename VectorCtr::Accumulator                         Accumulator;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorCtr>::Type      VectorCtrType;
+    typedef typename VectorCtrType::Iterator                            Iterator;
+    typedef typename VectorCtrType::ID                                  ID;
+    typedef typename VectorCtrType::Accumulator                         Accumulator;
 
 
-    typedef typename VectorCtr::Key                                 Key;
+    typedef typename VectorCtrType::Key                                 Key;
 
     Allocator* allocator_;
-    VectorCtr* ctr_;
+    VectorCtrType* ctr_;
 
     BigInt memory_size;
 
@@ -44,8 +44,8 @@ public:
     VectorRandominsertBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-        RootCtr::initMetadata();
-        VectorCtr::initMetadata();
+//        RootCtr::initMetadata();
+        VectorCtrType::initMetadata();
 
         Add("memory_size", memory_size);
     }
@@ -55,7 +55,7 @@ public:
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
         allocator_  = new Allocator();
-        ctr_        = new VectorCtr(allocator_, 1, true);
+        ctr_        = new VectorCtrType(allocator_, 1, true);
 
         allocator_->commit();
     }

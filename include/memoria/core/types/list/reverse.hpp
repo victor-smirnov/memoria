@@ -18,7 +18,7 @@ template <typename List> struct ReverseTool;
 
 template <typename Head, typename Tail>
 struct ReverseTool<TL<Head, Tail> > {
-    typedef typename appendTool<Head, typename ReverseTool<Tail>::Result>::Result  Result;
+    typedef typename AppendTool<Head, typename ReverseTool<Tail>::Result>::Result  Result;
 };
 
 template<typename Head>

@@ -1,5 +1,5 @@
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX aliasing container demangle guard if_then_else nested selector)
+    set(MEMORIA_SANDBOX demangle guard if_then_else nested selector partial_specialization static_md5 md5_init vlist)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})

@@ -25,14 +25,14 @@ class VectorMapappendBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorMap>::Type  MapCtr;
-    typedef typename MapCtr::Iterator                               Iterator;
-    typedef typename MapCtr::ID                                     ID;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr>::Type   MapCtrType;
+    typedef typename MapCtrType::Iterator                               Iterator;
+    typedef typename MapCtrType::ID                                     ID;
 
 
     Allocator*  allocator_;
-    MapCtr*     map_;
+    MapCtrType*     map_;
 
     BigInt      memory_size;
 
@@ -41,8 +41,8 @@ public:
     VectorMapappendBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-        RootCtr::initMetadata();
-        MapCtr::initMetadata();
+//        RootCtr::initMetadata();
+        MapCtrType::initMetadata();
 
         Add("memory_size", memory_size);
     }
@@ -54,7 +54,7 @@ public:
     {
         allocator_ = new Allocator();
 
-        map_ = new MapCtr(allocator_, 1, true);
+        map_ = new MapCtrType(allocator_, 1, true);
 
         allocator_->commit();
     }

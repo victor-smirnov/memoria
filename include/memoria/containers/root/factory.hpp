@@ -18,7 +18,7 @@
 namespace memoria {
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::Root>: public BTreeTypes<Profile, memoria::Map<1> > {
+struct BTreeTypes<Profile, memoria::RootCtr>: public BTreeTypes<Profile, memoria::Map<1> > {
 
     typedef BTreeTypes<Profile, memoria::Map<1> >                           Base;
 
@@ -37,8 +37,11 @@ struct BTreeTypes<Profile, memoria::Root>: public BTreeTypes<Profile, memoria::M
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::Root, T>: public CtrTF<Profile, memoria::Map<1>, T> {
+class CtrTF<Profile, memoria::RootCtr, T>: public CtrTF<Profile, memoria::Map<1>, T> {
 };
+
+template <>
+struct CtrNameDeclarator<0>: TypeDef<RootCtr> {};
 
 }
 

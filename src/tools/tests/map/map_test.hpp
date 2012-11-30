@@ -31,10 +31,10 @@ class MapTest: public SPTestTask {
 
     private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                MapCtr;
-    typedef typename MapCtr::Iterator                               Iterator;
-    typedef typename MapCtr::ID                                     ID;
-    typedef typename MapCtr::Accumulator                            Accumulator;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                MapCtrType;
+    typedef typename MapCtrType::Iterator                               Iterator;
+    typedef typename MapCtrType::ID                                     ID;
+    typedef typename MapCtrType::Accumulator                            Accumulator;
 
     PairVector pairs;
     PairVector pairs_sorted;
@@ -44,14 +44,14 @@ class MapTest: public SPTestTask {
     MapTest() :
         SPTestTask("Map")
     {
-        SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+        //SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
         SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
     }
 
     virtual ~MapTest() throw () {
     }
 
-    void checkContainerData(MapCtr& map, PairVector& pairs)
+    void checkContainerData(MapCtrType& map, PairVector& pairs)
     {
         Int pairs_size = (Int) pairs.size();
 
@@ -138,7 +138,7 @@ class MapTest: public SPTestTask {
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        MapCtr map(&allocator);
+        MapCtrType map(&allocator);
 
         params.ctr_name_ = map.name();
 
@@ -184,7 +184,7 @@ class MapTest: public SPTestTask {
 
     void DoTestStep(ostream& out, Allocator& allocator, const MapReplay* params)
     {
-        MapCtr map(&allocator, params->ctr_name_);
+        MapCtrType map(&allocator, params->ctr_name_);
 
         Int c = params->vector_idx_;
 

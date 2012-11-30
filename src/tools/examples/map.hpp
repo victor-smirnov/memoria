@@ -24,9 +24,9 @@ public:
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                MapCtr;
-    typedef typename MapCtr::Iterator                               Iterator;
-    typedef typename MapCtr::ID                                     ID;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                MapCtrType;
+    typedef typename MapCtrType::Iterator                               Iterator;
+    typedef typename MapCtrType::ID                                     ID;
 
 
     PairVector pairs;
@@ -37,7 +37,7 @@ public:
     MapExample() :
         SPExampleTask("Map")
     {
-        MapCtr::initMetadata();
+        MapCtrType::initMetadata();
     }
 
     virtual ~MapExample() throw () {
@@ -59,7 +59,7 @@ public:
             Allocator allocator;
             allocator.getLogger()->setHandler(&logHandler);
 
-            MapCtr map(allocator, 1, true);
+            MapCtrType map(allocator, 1, true);
 
 
             for (Int c = 0; c < 10; c++)

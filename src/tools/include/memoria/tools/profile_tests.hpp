@@ -28,7 +28,7 @@ using namespace std;
 template <typename Profile_, typename Allocator_>
 class ProfileTestTask: public TestTask {
 
-    typedef Ctr<typename CtrTF<Profile_, Root>::CtrTypes>                       RootMapType;
+    //typedef Ctr<typename CtrTF<Profile_, Root>::CtrTypes>                       RootMapType;
 
 public:
 
@@ -39,7 +39,7 @@ public:
 
     ProfileTestTask(StringRef name): TestTask(name)
     {
-        RootMapType::initMetadata();
+        //RootMapType::initMetadata();
 
         Add("check_count", check_count);
     }

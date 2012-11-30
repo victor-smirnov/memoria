@@ -29,19 +29,19 @@ public:
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<set1>::Type       SetCtr;
-    typedef typename SetCtr::Iterator                               Iterator;
-    typedef typename SetCtr::ID                                     ID;
-    typedef typename SetCtr::Accumulator                            Accumulator;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type       SetCtrType;
+    typedef typename SetCtrType::Iterator                               Iterator;
+    typedef typename SetCtrType::ID                                     ID;
+    typedef typename SetCtrType::Accumulator                            Accumulator;
 
 
-    typedef typename SetCtr::Key                                    Key;
-    typedef typename SetCtr::Value                                  Value;
+    typedef typename SetCtrType::Key                                    Key;
+    typedef typename SetCtrType::Value                                  Value;
 
 
     Allocator*  allocator_;
-    SetCtr*     set_;
+    SetCtrType*     set_;
 
 
 
@@ -50,8 +50,8 @@ public:
     setCommitRandomBenchmark(StringRef name):
         SPBenchmarkTask(name), max_size(1*1024*1024)
     {
-        RootCtr::initMetadata();
-        SetCtr::initMetadata();
+//        RootCtr::initMetadata();
+        SetCtrType::initMetadata();
 
         Add("max_size", max_size);
     }
@@ -62,7 +62,7 @@ public:
     {
         allocator_ = new Allocator();
 
-        set_ = new SetCtr(allocator_, 1, true);
+        set_ = new SetCtrType(allocator_, 1, true);
     }
 
     virtual void release(ostream& out)

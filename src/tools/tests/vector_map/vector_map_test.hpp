@@ -29,8 +29,8 @@ class VectorMapTest: public SPTestTask {
 
     typedef KVPair<BigInt, BigInt>                                      Pair;
     typedef vector<Pair>                                                PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type               VectorMapCtr;
-    typedef VectorMapCtr::Iterator                                      VMIterator;
+    typedef SmallCtrTypeFactory::Factory<VectorMapCtr>::Type            VectorMapCtrType;
+    typedef VectorMapCtrType::Iterator                                  VMIterator;
 
     struct TestReplay: public ReplayParams {
         Int     data_;
@@ -62,7 +62,7 @@ public:
         SPTestTask("VectorMap"),
         max_block_size_(1024*40)
     {
-        VectorMapCtr::initMetadata();
+        VectorMapCtrType::initMetadata();
 
         Add("max_block_size", max_block_size_);
     }
@@ -84,7 +84,7 @@ public:
         StoreVector(pairs, pairs_name);
     }
 
-    void checkIteratorFw(VectorMapCtr& ctr)
+    void checkIteratorFw(VectorMapCtrType& ctr)
     {
         MEMORIA_TEST_THROW_IF(ctr.count(), != , (BigInt)pairs_.size());
 
@@ -121,7 +121,7 @@ public:
 
         LoadAllocator(allocator, params);
 
-        VectorMapCtr map(&allocator, params->ctr_name_);
+        VectorMapCtrType map(&allocator, params->ctr_name_);
 
         if (params->step_ == 0)
         {
@@ -208,7 +208,7 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        VectorMapCtr map(&allocator);
+        VectorMapCtrType map(&allocator);
 
         params->ctr_name_ = map.name();
 
@@ -269,7 +269,7 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        VectorMapCtr map(&allocator);
+        VectorMapCtrType map(&allocator);
 
         params->ctr_name_ = map.name();
 
@@ -342,7 +342,7 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        VectorMapCtr map(&allocator);
+        VectorMapCtrType map(&allocator);
 
         params->ctr_name_ = map.name();
 

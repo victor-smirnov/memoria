@@ -44,6 +44,8 @@ int main(int argc, const char** argv, const char** envp)
 {
     signal(SIGSEGV, sighandler);
 
+    MetadataInitializer<SmallProfile<> >::init();
+
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
