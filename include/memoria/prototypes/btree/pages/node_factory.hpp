@@ -9,6 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_FACTORY_HPP
 #define _MEMORIA_PROTOTYPES_BTREE_PAGES_NODE_FACTORY_HPP
 
+#include <memoria/core/types/static_md5.hpp>
 
 #include <memoria/core/pmap/packed_sum_tree.hpp>
 #include <memoria/core/tools/reflection.hpp>
@@ -27,7 +28,7 @@ template <
 >
 class NodePage: public PageStart<Types>
 {
-
+    static const UInt VERSION = 1;
 public:
 
     typedef NodePage<Types>                                                     Me;
@@ -35,6 +36,8 @@ public:
     typedef typename Types::NodePageBase                                        BaseType0;
 
     typedef typename BaseType0::Allocator                                       Allocator;
+
+
 
 private:
 
@@ -55,7 +58,25 @@ public:
 
     typedef typename Types::Descriptor                                          Descriptor;
 
+
+
 private:
+
+    // Don't forget to update fields list
+    // if type description is changed
+    typedef typename MergeLists<
+            typename Base::FieldsList,
+
+            ConstValue<UInt, VERSION>,
+            ConstValue<UInt, Descriptor::Root>,
+            ConstValue<UInt, Descriptor::Leaf>,
+            ConstValue<UInt, Descriptor::Level>,
+            ConstValue<UInt, Types::Indexes>,
+            ConstValue<UInt, Types::Name::Code>,
+            ConstValue<UInt, MapTypes::BranchingFactor>,
+
+            typename Map::FieldsList
+    >::Result                                                                   FieldsList;
 
     Map map_;
 
@@ -130,6 +151,8 @@ public:
         Base::template deserialize<FieldFactory>(buf);
 
         FieldFactory<Map>::deserialize(buf, map_);
+
+
     }
 
     template <typename PageType>
@@ -225,12 +248,7 @@ public:
         {
             MetadataList list;
 
-            Int hash0 = 1234567
-                        + Descriptor::Root
-                        + 2 * Descriptor::Leaf
-                        + 4 * Descriptor::Level
-                        + 8 * Types::Indexes
-                        + 16 * Types::Name::Code;
+            UInt hash0 = md5::Md5Sum<typename TypeToValueList<FieldsList>::Type>::Result::Value32;
 
             Int attrs = BTREE + Descriptor::Root * ROOT + Descriptor::Leaf * LEAF;
 

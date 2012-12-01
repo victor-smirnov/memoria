@@ -10,8 +10,28 @@
 
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/type_name.hpp>
+#include <memoria/core/types/types.hpp>
 
 namespace memoria   {
+
+
+template <typename List> struct TypeToValueList;
+
+template <typename Head, typename... Tail>
+struct TypeToValueList<TypeList<Head, Tail...>> {
+    typedef typename AppendValueTool<
+                UInt,
+                TypeHash<Head>::Value,
+                typename TypeToValueList<TypeList<Tail...> >::Type
+    >::Result                                                                   Type;
+};
+
+template <>
+struct TypeToValueList<TypeList<>> {
+    typedef ValueList<UInt>                                                     Type;
+};
+
+
 namespace md5       {
 
 using namespace memoria::vapi;

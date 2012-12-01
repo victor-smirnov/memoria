@@ -17,11 +17,21 @@ namespace memoria    {
 template <typename ID>
 class VectorMetadata: public BTreeMetadata<ID>
 {
+    static const UInt VERSION = 1;
+
     typedef BTreeMetadata<ID> Base;
 
     Int element_size_;
 
 public:
+
+    typedef typename AppendToList<
+            typename Base::FieldsList,
+
+            ConstValue<UInt, VERSION>,
+            decltype(element_size_)
+    >::Result                                                                   FieldsList;
+
     VectorMetadata() {}
 
     void generateDataEvents(IPageDataEventHandler* handler) const

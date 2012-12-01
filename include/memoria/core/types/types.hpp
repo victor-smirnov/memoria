@@ -77,24 +77,24 @@ struct BSTreeCtr    {};
 struct DynVectorCtr {};
 struct CompositeCtr {};
 
-struct Superblock:  public CodeValue<0> {};
-struct RootCtr:     public CodeValue<1> {};
+struct Superblock:      public CodeValue<0> {};
+struct RootCtr:         public CodeValue<1> {};
 
 template <Int Indexes>
-struct Map:         public CodeValue<0x618a2f + Indexes * 256> {};
+struct MapCtr:          public CodeValue<0x618a2f + Indexes * 256> {};
 
-typedef Map<1>      Map1;
+typedef MapCtr<1>       Map1Ctr;
 
 template <Int Indexes>
-struct Set:         public CodeValue<0x5c421d + Indexes * 256> {};
+struct SetCtr:          public CodeValue<0x5c421d + Indexes * 256> {};
 
-typedef Set<1>      Set1;
-typedef Set<2>      Set2;
+typedef SetCtr<1>       Set1Ctr;
+typedef SetCtr<2>       Set2Ctr;
 
-struct DFUDS:       public CodeValue<5> {};
-struct LOUDS:       public CodeValue<6> {};
-struct VectorMapCtr:   public CodeValue<7> {};
-struct VectorCtr:      public CodeValue<8> {};
+struct DFUDS:           public CodeValue<5> {};
+struct LOUDS:           public CodeValue<6> {};
+struct VectorMapCtr:    public CodeValue<7> {};
+struct VectorCtr:       public CodeValue<8> {};
 
 
 template <typename ChildType = void>

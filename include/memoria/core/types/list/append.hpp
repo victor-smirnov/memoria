@@ -16,7 +16,10 @@
 namespace memoria {
 
 template <typename Item1, typename Item2> struct AppendTool;
+template <typename List, typename ... Items> struct AppendToList;
 template <typename T, T Item1, typename List> struct AppendValueTool;
+
+
 
 template <typename Item, typename ... List>
 struct AppendTool<Item, TypeList<List...> > {
@@ -47,6 +50,11 @@ struct AppendTool<ValueList<List1...>, ValueList<T, List2...> > {
 };
 
 
+template <typename ... List, typename ... Items>
+struct AppendToList<TypeList<List...>, Items...> {
+    typedef TypeList<List..., Items...>                                 Result;
+};
+
 
 // Errors:
 template <typename ... List>
@@ -57,6 +65,40 @@ struct AppendTool<NullType, TypeList<List...>>;
 
 template <>
 struct AppendTool<NullType, NullType>;
+
+
+
+
+
+namespace internal {
+template <typename Accumulator, typename ... Lists> class MergeListsHelper;
+
+template <typename Accumulator, typename ... List, typename ... Tail>
+class MergeListsHelper<Accumulator, TypeList<List...>, Tail...> {
+    typedef typename AppendTool<Accumulator, TypeList<List...> >::Result        R0;
+public:
+    typedef typename MergeListsHelper<R0, Tail...>::Result                      Result;
+};
+
+template <typename Accumulator, typename Item, typename ... Tail>
+class MergeListsHelper<Accumulator, Item, Tail...> {
+    typedef typename AppendTool<Accumulator, TypeList<Item> >::Result           R0;
+public:
+    typedef typename MergeListsHelper<R0, Tail...>::Result                      Result;
+};
+
+template <typename Accumulator>
+class MergeListsHelper<Accumulator> {
+public:
+    typedef Accumulator                                                         Result;
+};
+
+}
+
+template <typename ... Lists> struct MergeLists {
+    typedef typename internal::MergeListsHelper<TypeList<>, Lists...>::Result   Result;
+};
+
 
 }
 

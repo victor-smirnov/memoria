@@ -61,36 +61,36 @@ MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::RootCtr, memoria::btree:
 
 
 
-MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Map1)
+MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Map1Ctr)
 
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::checksName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::InsertBatchName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::FindName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1Ctr, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1Ctr, memoria::btree::checksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1Ctr, memoria::btree::InsertBatchName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1Ctr, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1Ctr, memoria::btree::FindName)
 
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::models::idx_map::CtrApiName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::bstree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::bstree::FindName)
-MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Map1, memoria::btree::IteratorAPIName)
-
-
-
-MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Set1)
-
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::checksName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::InsertBatchName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::FindName)
-
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::models::idx_map::CtrApiName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::bstree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::bstree::FindName)
-MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::btree::IteratorAPIName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1Ctr, memoria::models::idx_map::CtrApiName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1Ctr, memoria::bstree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Map1Ctr, memoria::bstree::FindName)
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Map1Ctr, memoria::btree::IteratorAPIName)
 
 
-MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1, memoria::models::idx_map::ItrApiName)
+
+MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::Set1Ctr)
+
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::btree::checksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::btree::InsertBatchName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::btree::FindName)
+
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::models::idx_map::CtrApiName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::bstree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::bstree::FindName)
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::btree::IteratorAPIName)
+
+
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::models::idx_map::ItrApiName)
 
 
 MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::VectorCtr)

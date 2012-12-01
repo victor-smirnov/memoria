@@ -13,6 +13,8 @@
 
 #include <strings.h>
 
+#include <memoria/core/tools/md5.hpp>
+
 namespace memoria    {
 
 inline BigInt PtrToLong(const void *ptr) {
@@ -40,6 +42,9 @@ class BitField{};
 
 template <typename Type>
 struct FieldFactory<BitField<Type> > {
+
+    typedef BitField<Type> BFType;
+
     static void serialize(SerializationData& data, const Type& field)
     {
         field.template serialize<FieldFactory>(data);

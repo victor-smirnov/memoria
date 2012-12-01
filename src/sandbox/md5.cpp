@@ -13,6 +13,7 @@
 #include <memoria/core/types/list/append.hpp>
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/md5.hpp>
+#include <memoria/core/types/typehash.hpp>
 
 using namespace std;
 using namespace memoria;
@@ -35,6 +36,8 @@ int main(void) {
     md5.compute();
 
     cout<<md5.result().hash64()<<endl;
+
+    cout<<TypeHash<SmallProfile<>>::Value<<endl;
 
     return 0;
 }

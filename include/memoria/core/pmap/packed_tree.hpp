@@ -17,6 +17,7 @@
 #include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/md5.hpp>
 
 #include <memoria/core/tools/reflection.hpp>
 
@@ -64,6 +65,8 @@ struct ValueHelper<EmptyValue> {
 template <typename Types>
 class PackedTree {
 
+    static const UInt VERSION               = 1;
+
     typedef PackedTree<Types>               MyType;
 
 public:
@@ -88,6 +91,17 @@ private:
     Byte    memory_block_[];
 
 public:
+
+    typedef TypeList<
+            ConstValue<UInt, VERSION>,
+            decltype(size_),
+            decltype(max_size_),
+            decltype(index_size_),
+            Key,
+            IndexKey,
+            Value
+    >                                                                           FieldsList;
+
     PackedTree() {}
 
 
@@ -178,8 +192,17 @@ public:
             FieldFactory<Value>::deserialize(buf, value(0), size());
         }
     }
-
-
+//
+//    void buildHash(MD5Hash& hash) {
+//      hash.add(VERSION);
+//      hash.add(TypeHash<Key>::Value);
+//      hash.add(TypeHash<IndexKey>::Value);
+//      hash.add(TypeHash<Value>::Value);
+//
+//      hash.add(TypeHash<decltype(size_)>::Value);
+//      hash.add(TypeHash<decltype(max_size_)>::Value);
+//      hash.add(TypeHash<decltype(index_size_)>::Value);
+//    }
 
 
     void initByBlock(Int block_size)

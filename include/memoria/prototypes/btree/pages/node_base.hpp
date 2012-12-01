@@ -24,6 +24,9 @@ using memoria::BitBuffer;
 template <typename Allocator_>
 class TreePage: public Allocator_::Page {
 
+    static const UInt VERSION = 1;
+
+
     Int root_;
     Int leaf_;
     Int bitmap_;
@@ -43,6 +46,16 @@ public:
     typedef TreePage<Allocator>               Me;
     typedef typename Allocator::Page          Base;
     typedef typename Base::ID                 ID;
+
+
+    typedef typename MergeLists<
+                typename Base::FieldsList,
+                ConstValue<UInt, VERSION>,
+                decltype(root_),
+                decltype(leaf_),
+                decltype(bitmap_),
+                decltype(size_)
+    >::Result                                                                   FieldsList;
 
     TreePage(): Base() {}
 

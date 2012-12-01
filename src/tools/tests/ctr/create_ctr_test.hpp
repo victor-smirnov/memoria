@@ -27,7 +27,7 @@ class CreateCtrTest: public SPTestTask {
     typedef KVPair<BigInt, BigInt>                                      Pair;
     typedef vector<Pair>                                                PairVector;
     typedef SmallCtrTypeFactory::Factory<VectorMapCtr>::Type            VectorMapCtrType;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                    MapCtrType;
+    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                    MapCtrType;
     typedef VectorMapCtrType::Iterator                                  VMIterator;
 
     struct TaskReplay: public ReplayParams {

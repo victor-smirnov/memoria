@@ -48,7 +48,7 @@ class MD5Hash {
     };
 
 public:
-    MD5Hash(): Q0_(0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476), ptr_(0), dirty_(true)
+    MD5Hash(): Q0_(0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476), ptr_(0), dirty_(true), accumulator_(0)
     {
         for (UInt& value: K_) value = 0;
     }
@@ -59,6 +59,18 @@ public:
 
     Quad result() {
         return Q0_;
+    }
+
+    void incAccumulator(BigInt amount) {
+        accumulator_ += amount;
+    }
+
+    UInt getAccumulator() {
+        return accumulator_;
+    }
+
+    void addAccumulator() {
+        add(accumulator_);
     }
 
 private:
@@ -109,6 +121,7 @@ private:
     Quad    Q0_;
     Int     ptr_;
     bool    dirty_;
+    UInt    accumulator_;
 };
 
 

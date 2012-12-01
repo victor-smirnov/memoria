@@ -21,11 +21,20 @@ using namespace memoria::btree;
 template <typename ID>
 class RootCtrMetadata: public BTreeMetadata<ID>
 {
+    static const UInt VERSION = 1;
+
     typedef BTreeMetadata<ID> Base;
 
     BigInt model_name_counter_;
 
 public:
+
+    typedef typename MergeLists<
+                typename Base::FieldsList,
+                ConstValue<UInt, VERSION>,
+                decltype(model_name_counter_)
+    >::Result                                                                   FieldsList;
+
     RootCtrMetadata() {}
 
     BigInt &model_name_counter() {

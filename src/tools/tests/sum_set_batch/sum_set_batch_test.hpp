@@ -22,7 +22,7 @@
 
 namespace memoria {
 
-typedef SmallCtrTypeFactory::Factory<Set1>::Type SumSet1Ctr;
+typedef SmallCtrTypeFactory::Factory<Set1Ctr>::Type SumSet1Ctr;
 
 struct SumsetBatchReplay: public ReplayParams {
 
@@ -51,13 +51,13 @@ struct SumsetBatchReplay: public ReplayParams {
 
 
 class SumsetBatchTest: public BTreeBatchTestBase<
-    Set1,
+    Set1Ctr,
     typename SumSet1Ctr::LeafPairsVector,
     SumsetBatchReplay
 >
 {
     typedef BTreeBatchTestBase<
-            Set1,
+            Set1Ctr,
             typename SumSet1Ctr::LeafPairsVector,
             SumsetBatchReplay
     >                                                               Base;

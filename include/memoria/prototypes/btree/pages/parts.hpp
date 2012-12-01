@@ -24,6 +24,8 @@ using namespace memoria::btree;
 template <typename ID>
 class BTreeMetadata
 {
+    static const UInt VERSION = 1;
+
     static const Int ROOTS = 2;
 
     BigInt  model_name_;
@@ -34,6 +36,16 @@ class BTreeMetadata
     ID      roots_[2];
 
 public:
+
+    typedef TypeList<
+                ConstValue<UInt, VERSION>,
+                ConstValue<UInt, ROOTS>,
+                decltype(model_name_),
+                decltype(key_count_),
+                decltype(branching_factor_),
+                ID
+    >                                                                           FieldsList;
+
     BTreeMetadata() {}
 
     BigInt &model_name()
@@ -125,11 +137,19 @@ public:
 
 MEMORIA_PAGE_PART_BEGIN1(RootNodeMetadataName, TheContainerName)
 
+    static const UInt VERSION = 1;
+
     typedef TheContainerName       Metadata;
 
 private:
     Metadata metadata_;
 public:
+
+    typedef typename MergeLists<
+                typename Base::FieldsList,
+                ConstValue<UInt, VERSION>,
+                typename Metadata::FieldsList
+    >::Result                                                                   FieldsList;
 
     PagePart(): Base(), metadata_() {
         cout<<"RootPage.id="<<Base::id().value()<<endl;

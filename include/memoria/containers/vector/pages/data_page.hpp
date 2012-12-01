@@ -19,11 +19,20 @@ namespace array      {
 template <Int Size>
 class DynVectorData
 {
+    static const UInt VERSION = 1;
+
     Int size_;
 
     Byte value_[Size - sizeof(size_)];
 
 public:
+    typedef TypeList<
+        ConstValue<UInt, VERSION>,
+        decltype(size_),
+        decltype(value_)
+    >                                                                           FieldsList;
+
+
     DynVectorData() {}
 
     static Int maxSize() {

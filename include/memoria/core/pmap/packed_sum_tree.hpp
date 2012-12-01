@@ -36,6 +36,11 @@ public:
     static const Int Blocks                 = Base::Blocks;
     static const Int BranchingFactor        = Base::BranchingFactor;
 
+    typedef typename MergeLists<
+                typename Base::FieldsList,
+                ConstValue<UInt, 1>
+    >::Result                                                                           FieldsList;
+
 private:
 
 

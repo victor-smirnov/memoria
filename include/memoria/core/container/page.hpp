@@ -14,6 +14,7 @@
 
 #include <memoria/core/tools/buffer.hpp>
 #include <memoria/core/tools/id.hpp>
+#include <memoria/core/tools/md5.hpp>
 
 #include <memoria/core/container/logs.hpp>
 
@@ -105,7 +106,11 @@ public:
     }
 };
 
-
+//template <typename T, size_t Size>
+//class TypeHash<AbstractPageID<T, Size> > {
+//public:
+//    static const UInt Value = TypeHash<T>::Value * Size;
+//};
 
 
 
@@ -162,10 +167,16 @@ public:
 
 };
 
-
+template <Int Size>
+class TypeHash<BitBuffer<Size> > {
+public:
+    static const UInt Value = 123456 * Size;
+};
 
 template <typename PageIdType, Int FlagsCount = 32>
 class AbstractPage {
+
+    static const UInt VERSION                                                   = 1;
 
     typedef AbstractPage<PageIdType, FlagsCount> Me;
 
@@ -181,6 +192,17 @@ class AbstractPage {
     Int         deleted_;
 
 public:
+    typedef TypeList<
+                ConstValue<UInt, VERSION>,
+                decltype(flags_),
+                decltype(id_),
+                decltype(crc_),
+                decltype(model_hash_),
+                decltype(page_type_hash_),
+                decltype(references_),
+                decltype(deleted_)
+    >                                                                           FieldsList;
+
     typedef PageIdType      ID;
 
     AbstractPage(): flags_(), id_() {}

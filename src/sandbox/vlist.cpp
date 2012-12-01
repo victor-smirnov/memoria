@@ -24,10 +24,6 @@ using namespace memoria::vapi;
 
 
 
-
-
-
-
 int main(void) {
 
     typedef TypeList<int, float, bool> List0;
@@ -56,5 +52,21 @@ int main(void) {
 
     cout<<TypeNameFactory<AppendTool<TypeList<int, float>, TypeList<bool, double>>::Result>::name()<<endl;
 
+
+    typedef MergeLists<
+            TypeList<
+                int,
+                float
+            >,
+            double,
+            TypeList <
+                bool,
+                void,
+                Byte[1234]
+            >
+    >::Result Merge0;
+
+    cout<<endl;
+    cout<<TypeNameFactory<Merge0>::name()<<endl;
     return 0;
 }

@@ -24,6 +24,7 @@ template <
 >
 class DVDataPage: public PageBuilder<ComponentList, Base0>
 {
+    static const UInt VERSION = 1;
 
 public:
 
@@ -31,15 +32,20 @@ public:
                 ComponentList,
                 DataBlockTypeFactory,
                 Base0
-    >                                                                               Me;
+    >                                                                           Me;
 
-    typedef PageBuilder<ComponentList, Base0>                                       Base;
+    typedef PageBuilder<ComponentList, Base0>                                   Base;
 
-    typedef typename Base0::Allocator                                               Allocator;
-
-public:
+    typedef typename Base0::Allocator                                           Allocator;
     
     typedef typename DataBlockTypeFactory<Allocator::PAGE_SIZE - sizeof(Base)>::Type PageData;
+
+
+    typedef typename MergeLists <
+                typename Base::FieldsList,
+                ConstValue<UInt, VERSION>,
+                typename PageData::FieldsList
+    >::Result                                                                   FieldsList;
 
 private:
 

@@ -186,10 +186,6 @@ public:
     bool operator<(const Me &other) const {
         return value() < other.value();
     }
-
-    Int getHashCode() {
-        return CShr(PtrToInt(&value_), 3) /*^ memoria::tools::types::TypeHash<Int>::Value*/;
-    }
 };
 
 class VoidBuffer {

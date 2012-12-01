@@ -12,49 +12,18 @@
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/types/static_md5.hpp>
 
 namespace memoria    {
 
-template <typename Type>
-class TypeHash {
-public:
-    static const UInt Value = Type::kHashCode;
-};
-
-template <UInt HashValue>
-class HashCode{};
-
-template <UInt HashValue>
-class TypeHash<HashCode<HashValue> > {
-public:
-    static const UInt Value = HashValue;
-};
-
-
-template <typename List> struct ListHash;
-
-template <typename Head, typename ... Tail>
-struct ListHash<TypeList<Head, Tail...> > {
-    static const UInt Value = CSHR<UInt, TypeHash<Head>::Value, 1>::Value ^ ListHash<TypeList<Tail...>>::Value;
-};
+template <typename Type> class TypeHash;
 
 template <>
-struct ListHash<TypeList<> > {
+class TypeHash<void> {
+public:
+    typedef ValueList<UInt, 0>                                                  VList;
     static const UInt Value = 0;
 };
-
-
-inline Int PtrToInt(const void *ptr)
-{
-    return (Int) (T2T<BigInt>(ptr) & 0xFFFFFFFF);
-}
-
-template <typename Type>
-Int Hash(Type *ptr) {
-    return CShr(PtrToInt(ptr), 2) ^ TypeHash<Type>::Value;
-}
-
-
 
 template <>
 class TypeHash<Byte> {
@@ -104,6 +73,22 @@ public:
     static const UInt Value = 14;
 };
 
+template <
+    template <typename> class Profile,
+    typename T
+>
+class TypeHash<Profile<T>> {
+public:
+    typedef typename AppendValueTool<UInt, 15, typename TypeHash<T>::VList>::Result     VList;
+
+    static const UInt Value = md5::Md5Sum<VList>::Result::Value32;
+};
+
+template <typename T, T V>
+class TypeHash<ConstValue<T, V>> {
+public:
+    static const UInt Value = (TypeHash<T>::Value << 16) + V;
+};
 
 }
 
