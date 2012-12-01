@@ -37,23 +37,58 @@ struct IndexOfTool<Item, TypeList<>, Idx> {
 
 
 
-template <Int Idx, typename List, Int Counter = 0> struct SelectByIndexTool;
+template <Int Idx, typename List, bool ReturnDefault = false, Int Counter = 0> struct SelectByIndexTool;
 
-template <Int Value> struct ListIndexOutOfRange {};
+template <Int idx> class ListIndexOutOfRange {};
 
-template <Int Idx, typename Head, typename ... Tail>
-struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, Idx> {
+
+template <Int Idx, bool ReturnDefault, typename Head, typename ... Tail>
+struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Idx> {
     typedef Head                                                                Result;
 };
 
-template <Int Idx, typename Head, typename ... Tail, Int Counter>
-struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, Counter> {
-    typedef typename SelectByIndexTool<Idx, TypeList<Tail...>, Counter + 1>::Result  Result;
+template <Int Idx, bool ReturnDefault, typename Head, typename ... Tail, Int Counter>
+struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Counter> {
+    typedef typename SelectByIndexTool<
+    					Idx,
+    					TypeList<Tail...>,
+    					ReturnDefault,
+    					Counter + 1
+    				 >::Result  												Result;
 };
 
 template <Int Idx, Int Counter>
-struct SelectByIndexTool<Idx, TypeList<>, Counter> {
+struct SelectByIndexTool<Idx, TypeList<>, false, Counter> {
     typedef ListIndexOutOfRange<Idx>                                            Result;
+};
+
+template <Int Idx, Int Counter>
+struct SelectByIndexTool<Idx, TypeList<>, true, Counter> {
+    typedef NullType                                            				Result;
+};
+
+
+template <Int Idx, bool ReturnDefault, typename T, T Head, T ... Tail>
+struct SelectByIndexTool<Idx, ValueList<T, Head, Tail...>, ReturnDefault, Idx> {
+    static const T Value = Head;
+};
+
+template <Int Idx, bool ReturnDefault, typename T, T Head, T ... Tail, Int Counter>
+struct SelectByIndexTool<Idx, ValueList<T, Head, Tail...>, ReturnDefault, Counter> {
+    static const T Value = SelectByIndexTool<
+    					Idx,
+    					ValueList<T, Tail...>,
+    					ReturnDefault,
+    					Counter + 1
+    				 >::Value;
+};
+
+template <Int Idx, Int Counter, typename T>
+struct SelectByIndexTool<Idx, ValueList<T>, false, Counter>;
+
+template <Int Idx, Int Counter, typename T>
+struct SelectByIndexTool<Idx, ValueList<T>, true, Counter> {
+	static const T Value = 0;
 };
 
 }

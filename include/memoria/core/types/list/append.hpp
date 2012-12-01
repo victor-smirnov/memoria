@@ -15,9 +15,8 @@
 
 namespace memoria {
 
-template <typename Item1, typename Item2> struct AppendTool {
-	typedef TypeList<Item1, Item2>                                 	Result;
-};
+template <typename Item1, typename Item2> struct AppendTool;
+template <typename T, T Item1, typename List> struct AppendValueTool;
 
 template <typename Item, typename ... List>
 struct AppendTool<Item, TypeList<List...> > {
@@ -26,13 +25,27 @@ struct AppendTool<Item, TypeList<List...> > {
 
 template <typename ... List1, typename ... List2>
 struct AppendTool<TypeList<List1...>, TypeList<List2...> > {
-	typedef TypeList<List1..., List2...> 							Result;
+	typedef TypeList<List1..., List2...> 								Result;
 };
 
 template <typename ... List, typename Item>
 struct AppendTool<TypeList<List...>, Item > {
 	typedef TypeList<List..., Item> 									Result;
 };
+
+
+
+// ValueList
+template <typename T, T Item, T ... List>
+struct AppendValueTool<T, Item, ValueList<T, List...> > {
+	typedef ValueList<T, Item, List...> 								Result;
+};
+
+template <typename T, T ... List1, T ... List2>
+struct AppendTool<ValueList<List1...>, ValueList<T, List2...> > {
+	typedef ValueList<T, List1..., List2...> 							Result;
+};
+
 
 
 // Errors:

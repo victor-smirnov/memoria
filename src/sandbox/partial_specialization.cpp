@@ -37,7 +37,7 @@ struct Declarator<1> {
 template <
 	template <int> class Decl,
 	int Value = 100,
-	typename List = NullType
+	typename List = TypeList<>
 >
 class Builder {
 	typedef typename Decl<Value>::Type 							DeclType;

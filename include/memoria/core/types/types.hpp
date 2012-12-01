@@ -107,9 +107,7 @@ class SmallProfile {};
 
 
 
-struct NullType {
-//    typedef NullType List;
-};
+struct NullType {};
 
 struct EmptyType {};
 struct IncompleteType;
@@ -153,6 +151,9 @@ struct CtrNameDeclarator: TypeDef<NotDefined> {};
 
 template <typename ... Types>
 struct TypeList {};
+
+template <typename T, T ... Values>
+struct ValueList {};
 
 template <typename Type_, Type_ V>
 struct ValueWrapper {
