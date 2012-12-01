@@ -41,22 +41,22 @@ template <Int From, typename List> struct Sublist;
 
 template <typename T, T Head, T ... Tail>
 struct Sublist<0, ValueList<T, Head, Tail...> > {
-	typedef ValueList<T, Head, Tail...> 										Type;
+    typedef ValueList<T, Head, Tail...>                                         Type;
 };
 
 template <Int From, typename T, T Head, T ... Tail>
 struct Sublist<From, ValueList<T, Head, Tail...> > {
-	typedef typename Sublist<From - 1, ValueList<T, Tail...>>::Type 			Type;
+    typedef typename Sublist<From - 1, ValueList<T, Tail...>>::Type             Type;
 };
 
 template <Int From, typename T>
 struct Sublist<From, ValueList<T> > {
-	typedef ValueList<T> 														Type;
+    typedef ValueList<T>                                                        Type;
 };
 
 template <typename T>
 struct Sublist<0, ValueList<T> > {
-	typedef ValueList<T> 														Type;
+    typedef ValueList<T>                                                        Type;
 };
 
 

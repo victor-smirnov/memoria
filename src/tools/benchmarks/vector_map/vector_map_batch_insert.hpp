@@ -25,7 +25,7 @@ class VectorMapBatchinsertBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       	RootCtr;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type         RootCtr;
     typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr>::Type   MapCtrType;
     typedef typename MapCtrType::Iterator                               Iterator;
     typedef typename MapCtrType::ID                                     ID;

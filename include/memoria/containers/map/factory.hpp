@@ -35,7 +35,7 @@ struct BTreeTypes<Profile, memoria::Map<Indexes_> >: public BTreeTypes<Profile, 
     >::Result                                                               ContainerPartsList;
 
     typedef typename AppendTool<
-    		typename Base::IteratorPartsList,
+            typename Base::IteratorPartsList,
             TypeList<
                 memoria::models::idx_map::ItrApiName
             >

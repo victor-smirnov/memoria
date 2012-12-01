@@ -52,21 +52,21 @@ struct BTreeTypes {
             memoria::btree::RemoveName,
             memoria::btree::FindName,
             memoria::btree::WalkName
-    >                                                                     		ContainerPartsList;
+    >                                                                           ContainerPartsList;
 
-    typedef TypeList<>                                                            	BasePagePartsList;
+    typedef TypeList<>                                                              BasePagePartsList;
     
-    typedef TypeList<>                                                            	RootPagePartsList;
+    typedef TypeList<>                                                              RootPagePartsList;
 
-    typedef TypeList<>                                                            	InternalPagePartsList;
+    typedef TypeList<>                                                              InternalPagePartsList;
 
-    typedef TypeList<>                                                            	LeafPagePartsList;
+    typedef TypeList<>                                                              LeafPagePartsList;
 
-    typedef TypeList<>                                                            	DataPagesList;
+    typedef TypeList<>                                                              DataPagesList;
 
     typedef TypeList<
             memoria::btree::IteratorAPIName
-    >                                                                     		IteratorPartsList;
+    >                                                                           IteratorPartsList;
 
     typedef EmptyType                                                           ContainerInterface;
     typedef EmptyType                                                           IteratorInterface;
@@ -226,7 +226,7 @@ public:
         typedef NodeContainerTypesG                                             NodeBaseG;
 
 
-        typedef TypeList<>                                                        	EmbeddedContainersList;
+        typedef TypeList<>                                                          EmbeddedContainersList;
 
 
 

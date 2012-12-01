@@ -68,7 +68,7 @@ struct BTreeTypes<Profile, memoria::DynVectorCtr>: public BTreeTypes<Profile, me
     typedef IDType                                                              Value;
     typedef BTreeTypes<Profile, memoria::BSTreeCtr>                             Base;
 
-    typedef TypeList<>                                                            	DataPagePartsList;
+    typedef TypeList<>                                                              DataPagePartsList;
 
     static const bool MapType                                                   = MapTypes::Sum;
 

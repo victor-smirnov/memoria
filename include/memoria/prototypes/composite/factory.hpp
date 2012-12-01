@@ -22,10 +22,10 @@ struct CompositeTypes {
     typedef Profile_                                                        Profile;
 
     typedef TypeList<
-    	memoria::btree::AllocatorName
-    >                                                                 		ContainerPartsList;
+        memoria::btree::AllocatorName
+    >                                                                       ContainerPartsList;
 
-    typedef TypeList<>                                                        	IteratorPartsList;
+    typedef TypeList<>                                                          IteratorPartsList;
 
     typedef EmptyType                                                       IteratorInterface;
 

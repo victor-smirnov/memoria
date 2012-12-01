@@ -20,45 +20,45 @@ using namespace memoria::vapi;
 
 template <int Value>
 struct Declarator {
-	typedef NotDefined Type;
+    typedef NotDefined Type;
 };
 
 template <>
 struct Declarator<0> {
-	typedef int Type;
+    typedef int Type;
 };
 
 template <>
 struct Declarator<1> {
-	typedef long Type;
+    typedef long Type;
 };
 
 
 template <
-	template <int> class Decl,
-	int Value = 100,
-	typename List = TypeList<>
+    template <int> class Decl,
+    int Value = 100,
+    typename List = TypeList<>
 >
 class Builder {
-	typedef typename Decl<Value>::Type 							DeclType;
+    typedef typename Decl<Value>::Type                          DeclType;
 
-	typedef typename IfThenElse<
-		IfTypesEqual<DeclType, NotDefined>::Value,
-		List,
-		typename AppendTool<DeclType, List>::Result
-	>::Result 													NewList;
+    typedef typename IfThenElse<
+        IfTypesEqual<DeclType, NotDefined>::Value,
+        List,
+        typename AppendTool<DeclType, List>::Result
+    >::Result                                                   NewList;
 
 public:
-	typedef typename Builder<Decl, Value - 1, NewList>::Type 	Type;
+    typedef typename Builder<Decl, Value - 1, NewList>::Type    Type;
 };
 
 template <
-	template <int> class Decl,
-	typename List
+    template <int> class Decl,
+    typename List
 >
 class Builder<Decl, -1, List> {
 public:
-	typedef List Type;
+    typedef List Type;
 };
 
 
@@ -71,15 +71,15 @@ typedef Builder<Declarator> DeclBuilder;
 
 template <>
 struct Declarator<2> {
-	typedef bool Type;
+    typedef bool Type;
 };
 
 
 
 int main(void) {
 
-	cout<<"Type: "<<TypeNameFactory<DeclBuilder::Type>::name()<<endl;
+    cout<<"Type: "<<TypeNameFactory<DeclBuilder::Type>::name()<<endl;
 
-	return 0;
+    return 0;
 }
 

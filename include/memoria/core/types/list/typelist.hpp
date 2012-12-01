@@ -17,12 +17,12 @@ template <typename ... List> struct ListHead;
 
 template <typename Head, typename ... Tail>
 struct ListHead<TypeList<Head, Tail...>> {
-	typedef Head Type;
+    typedef Head Type;
 };
 
 template <typename T, T Head, T ... Tail>
 struct ListHead<ValueList<T, Head, Tail...>> {
-	static const T Value = Head;
+    static const T Value = Head;
 };
 
 
@@ -30,12 +30,12 @@ template <typename ... List> struct ListTail;
 
 template <typename Head, typename ... Tail>
 struct ListTail<TypeList<Head, Tail...>> {
-	typedef TypeList<Tail...> Type;
+    typedef TypeList<Tail...> Type;
 };
 
 template <typename T, T Head, T ... Tail>
 struct ListTail<ValueList<T, Head, Tail...>> {
-	typedef ValueList<Tail...> Type;
+    typedef ValueList<Tail...> Type;
 };
 }
 

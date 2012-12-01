@@ -63,7 +63,7 @@ struct CodeValue {
 };
 
 template <typename T, T V> struct ConstValue {
-	static const T Value = V;
+    static const T Value = V;
 };
 
 template <typename T> struct TypeHash; // must define Value constant
@@ -72,8 +72,8 @@ template <typename T> struct TypeHash; // must define Value constant
  * Container type names & profiles
  */
 
-struct BTreeCtr	 	{};
-struct BSTreeCtr 	{};
+struct BTreeCtr     {};
+struct BSTreeCtr    {};
 struct DynVectorCtr {};
 struct CompositeCtr {};
 
@@ -141,7 +141,7 @@ struct FalseValue {
 
 template <typename T>
 struct TypeDef {
-	typedef T Type;
+    typedef T Type;
 };
 
 class NotDefined {};

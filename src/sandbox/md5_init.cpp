@@ -23,10 +23,10 @@ using namespace memoria::vapi;
 
 int main(void) {
 
-	for (int i = 1; i <= 64; i++) {
-		cout<<UInt(UINT_MAX * fabs(sin(i)))<<", "<<endl;
-	}
+    for (int i = 1; i <= 64; i++) {
+        cout<<UInt(UINT_MAX * fabs(sin(i)))<<", "<<endl;
+    }
 
-	return 0;
+    return 0;
 }
 

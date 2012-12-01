@@ -50,11 +50,11 @@ struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Idx> {
 template <Int Idx, bool ReturnDefault, typename Head, typename ... Tail, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Counter> {
     typedef typename SelectByIndexTool<
-    					Idx,
-    					TypeList<Tail...>,
-    					ReturnDefault,
-    					Counter + 1
-    				 >::Result  												Result;
+                        Idx,
+                        TypeList<Tail...>,
+                        ReturnDefault,
+                        Counter + 1
+                     >::Result                                                  Result;
 };
 
 template <Int Idx, Int Counter>
@@ -64,7 +64,7 @@ struct SelectByIndexTool<Idx, TypeList<>, false, Counter> {
 
 template <Int Idx, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<>, true, Counter> {
-    typedef NullType                                            				Result;
+    typedef NullType                                                            Result;
 };
 
 
@@ -76,11 +76,11 @@ struct SelectByIndexTool<Idx, ValueList<T, Head, Tail...>, ReturnDefault, Idx> {
 template <Int Idx, bool ReturnDefault, typename T, T Head, T ... Tail, Int Counter>
 struct SelectByIndexTool<Idx, ValueList<T, Head, Tail...>, ReturnDefault, Counter> {
     static const T Value = SelectByIndexTool<
-    					Idx,
-    					ValueList<T, Tail...>,
-    					ReturnDefault,
-    					Counter + 1
-    				 >::Value;
+                        Idx,
+                        ValueList<T, Tail...>,
+                        ReturnDefault,
+                        Counter + 1
+                     >::Value;
 };
 
 template <Int Idx, Int Counter, typename T>
@@ -88,7 +88,7 @@ struct SelectByIndexTool<Idx, ValueList<T>, false, Counter>;
 
 template <Int Idx, Int Counter, typename T>
 struct SelectByIndexTool<Idx, ValueList<T>, true, Counter> {
-	static const T Value = 0;
+    static const T Value = 0;
 };
 
 }
