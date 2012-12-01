@@ -16,7 +16,7 @@ namespace memoria    {
 template <typename ... List> struct ListHead;
 
 template <typename Head, typename ... Tail>
-struct ListHead<VTL<Head, Tail...>> {
+struct ListHead<TypeList<Head, Tail...>> {
 	typedef Head Type;
 };
 
@@ -24,7 +24,7 @@ template <typename ... List> struct ListTail;
 
 template <typename Head, typename ... Tail>
 struct ListTail<Head, Tail...> {
-	typedef VTL<Tail...> Type;
+	typedef TypeList<Tail...> Type;
 };
 
 }

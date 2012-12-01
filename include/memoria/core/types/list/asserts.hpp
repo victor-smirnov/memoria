@@ -19,17 +19,17 @@ template <typename Type>
 struct IsList: public FalseValue {};
 
 template <typename ... List>
-struct IsList<VTL<List...> >: public TrueValue {};
+struct IsList<TypeList<List...> >: public TrueValue {};
 
 
 template <typename Type>
 struct IsNonemptyList: public FalseValue {};
 
 template <typename ... List>
-struct IsNonemptyList<VTL<List...>>: public TrueValue {};
+struct IsNonemptyList<TypeList<List...>>: public TrueValue {};
 
 template <>
-struct IsNonemptyList<VTL<>>: public FalseValue {};
+struct IsNonemptyList<TypeList<>>: public FalseValue {};
 
 }
 

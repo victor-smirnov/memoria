@@ -25,7 +25,7 @@ template <
     typename T,
     typename DefaultType
 >
-struct Type2TypeMap<T, VTL<>, DefaultType> {
+struct Type2TypeMap<T, TypeList<>, DefaultType> {
     typedef DefaultType Result;
 };
 
@@ -34,7 +34,7 @@ template <
     typename ... Tail,
     typename DefaultType
 >
-struct Type2TypeMap<typename T::First, VTL<T, Tail...>, DefaultType> {
+struct Type2TypeMap<typename T::First, TypeList<T, Tail...>, DefaultType> {
     typedef typename T::Second Result;
 };
 
@@ -44,8 +44,8 @@ template <
     typename ... Tail,
     typename DefaultType
 >
-struct Type2TypeMap<T, memoria::VTL<Head, Tail...>, DefaultType> {
-    typedef typename Type2TypeMap<T, VTL<Tail...>, DefaultType>::Result Result;
+struct Type2TypeMap<T, memoria::TypeList<Head, Tail...>, DefaultType> {
+    typedef typename Type2TypeMap<T, TypeList<Tail...>, DefaultType>::Result Result;
 };
 
 }

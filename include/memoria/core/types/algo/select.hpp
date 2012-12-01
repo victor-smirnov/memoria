@@ -37,17 +37,17 @@ struct Select<Value, NullType, Idx> {
 */
 
 template <Int Value, typename Head, typename ... Tail>
-struct Select<Value, VTL<Head, Tail...>, Value> {
+struct Select<Value, TypeList<Head, Tail...>, Value> {
     typedef Head                                                                Result;
 };
 
 template <Int Value, typename Head, typename ... Tail, Int Idx>
-struct Select<Value, VTL<Head, Tail...>, Idx> {
-    typedef typename Select<Value, VTL<Tail...>, Idx + 1>::Result               Result;
+struct Select<Value, TypeList<Head, Tail...>, Idx> {
+    typedef typename Select<Value, TypeList<Tail...>, Idx + 1>::Result               Result;
 };
 
 template <Int Value, Int Idx>
-struct Select<Value, VTL<>, Idx> {
+struct Select<Value, TypeList<>, Idx> {
     typedef ListIndexOutOfRange<Value>                                          Result;
 };
 
@@ -56,7 +56,7 @@ template <bool Value, typename ResultIfTrue, typename Else>
 struct IfThenElse {
     typedef typename Select<
                 Value ? 0 : 1,
-                VTL<ResultIfTrue, Else >
+                TypeList<ResultIfTrue, Else >
     >::Result                                                                   Result;
 };
 

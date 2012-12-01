@@ -42,7 +42,7 @@ public:
 };
 
 template <typename Profile, typename PageType>
-class PageDispatcher<Profile, PageType, VTL<> > {
+class PageDispatcher<Profile, PageType, TypeList<> > {
 
 public:
     void dispatch(PageType *page) {
@@ -213,21 +213,21 @@ public:
 template <typename List> class PageInitDispatcher;
 
 template <typename Head, typename ... Tail>
-class PageInitDispatcher<VTL<Head, Tail...> > {
+class PageInitDispatcher<TypeList<Head, Tail...> > {
 public:
     static void buildMetadataList(MetadataList &list) {
         Head::initMetadata();
         list.push_back(Head::reflection());
-        PageInitDispatcher<VTL<Tail...>>::buildMetadataList(list);
+        PageInitDispatcher<TypeList<Tail...>>::buildMetadataList(list);
     }
 
     static void destroyMetadata() {
-        PageInitDispatcher<VTL<Tail...>>::destroyMetadata();
+        PageInitDispatcher<TypeList<Tail...>>::destroyMetadata();
     }
 };
 
 template <>
-class PageInitDispatcher<VTL<>> {
+class PageInitDispatcher<TypeList<>> {
 public:
     static void buildMetadataList(MetadataList &list) {}
 

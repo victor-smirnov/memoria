@@ -37,7 +37,7 @@ class Filter {
     };
 
     struct Init {
-        typedef VTL<>            Result;
+        typedef TypeList<>            Result;
     };
 
 public:

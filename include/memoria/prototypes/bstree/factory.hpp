@@ -35,7 +35,7 @@ struct BTreeTypes<Profile, memoria::BSTreeCtr>: public BTreeTypes<Profile, memor
 
     typedef typename AppendTool<
             typename Base::ContainerPartsList,
-            VTL<
+            TypeList<
                 memoria::bstree::ToolsName,
                 memoria::bstree::FindName
             >
@@ -43,7 +43,7 @@ struct BTreeTypes<Profile, memoria::BSTreeCtr>: public BTreeTypes<Profile, memor
 
     typedef typename AppendTool<
             typename Base::IteratorPartsList,
-            VTL<
+            TypeList<
                 memoria::bstree::ItrApiName
             >
     >::Result                                                               IteratorPartsList;

@@ -49,7 +49,7 @@ class CreateColumnValuesList {
     };
 
     struct Init {
-        typedef VTL<> Result;
+        typedef TypeList<> Result;
     };
 
 public:
@@ -80,7 +80,7 @@ class Projection {
     };
 
     struct Init {
-        typedef VTL<> Result;
+        typedef TypeList<> Result;
     };
 
 public:

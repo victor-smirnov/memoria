@@ -58,7 +58,7 @@ template <
         template <typename, typename, typename> class Handler,
         typename Accumulator
 >
-struct ForEach<Config, VTL<>, Handler, Accumulator> {
+struct ForEach<Config, TypeList<>, Handler, Accumulator> {
     typedef Accumulator                                                         Result;
 };
 
@@ -69,10 +69,10 @@ template <
         template <typename, typename, typename> class Handler,
         typename Accumulator
 >
-struct ForEach<Config, VTL<Head, Tail...>, Handler, Accumulator> {
+struct ForEach<Config, TypeList<Head, Tail...>, Handler, Accumulator> {
     typedef typename ForEach<
                 Config,
-                VTL<Tail...>,
+                TypeList<Tail...>,
                 Handler,
                 Handler<Config, Head, Accumulator>
     >::Result                                                                   Result;

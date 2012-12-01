@@ -35,11 +35,11 @@ template <
 >
 struct NodeTLBuilder<
         Types,
-        VTL<Key>
+        TypeList<Key>
 > {
     typedef typename AddTypesQuadToList <
                                 Types,
-                                VTL<>,
+                                TypeList<>,
                                 ANY_LEVEL,
                                 true
     >::List                                                                     List;

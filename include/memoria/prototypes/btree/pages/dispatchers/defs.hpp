@@ -34,7 +34,7 @@ struct NodeDescriptor {
 template <Int Name, typename ColumnType, typename Record> struct ValueProvider;
 
 typedef RelationMetadata<
-            VTL<Column<ROOT, bool>, Column<LEAF, bool>, Column<LEVEL, Short> >,
+            TypeList<Column<ROOT, bool>, Column<LEAF, bool>, Column<LEVEL, Short> >,
             ValueProvider
 >                                                                               NodeDescriptorMetadata;
 

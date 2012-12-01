@@ -30,7 +30,7 @@ class NodeFactoryHelper;
 template <
     typename Types
 >
-class NodeFactoryHelper<VTL<>, Types> {
+class NodeFactoryHelper<TypeList<>, Types> {
 
     typedef typename Types::RootNode            RootNode;
     typedef typename Types::LeafNode            LeafNode;
@@ -74,7 +74,7 @@ template <
     typename ... Tail,
     typename Types
 >
-class NodeFactoryHelper<VTL<Head, Tail...>, Types> {
+class NodeFactoryHelper<TypeList<Head, Tail...>, Types> {
 
     typedef typename Types::NodeBase            NodeBase;
     typedef typename Types::NodeBaseG           NodeBaseG;
@@ -140,7 +140,7 @@ public:
         }
         else {
             return NodeFactoryHelper<
-                        VTL<Tail...>,
+                        TypeList<Tail...>,
                         Types
                    >::create(allocator, level, root, leaf);
         }

@@ -18,12 +18,12 @@ namespace memoria    {
 template <typename List, typename Default> struct SelectHeadIfNotEmpty;
 
 template <typename Head, typename ... Tail, typename Default>
-struct SelectHeadIfNotEmpty<VTL<Head, Tail...>, Default> {
+struct SelectHeadIfNotEmpty<TypeList<Head, Tail...>, Default> {
     typedef Head                                                                Result;
 };
 
 template <typename Default>
-struct SelectHeadIfNotEmpty<VTL<>, Default> {
+struct SelectHeadIfNotEmpty<TypeList<>, Default> {
     typedef Default                                                             Result;
 };
 
@@ -31,7 +31,7 @@ struct SelectHeadIfNotEmpty<VTL<>, Default> {
 template <typename List> struct ListSize;
 
 template <typename ... List>
-struct ListSize<VTL<List...> > {
+struct ListSize<TypeList<List...> > {
     static const Int Value = sizeof...(List);
 };
 

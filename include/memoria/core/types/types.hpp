@@ -152,7 +152,7 @@ template <int Value>
 struct CtrNameDeclarator: TypeDef<NotDefined> {};
 
 template <typename ... Types>
-struct VTL {};
+struct TypeList {};
 
 template <typename Type_, Type_ V>
 struct ValueWrapper {

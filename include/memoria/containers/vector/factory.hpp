@@ -35,14 +35,14 @@ struct BTreeTypes<Profile, memoria::VectorCtr>: public BTreeTypes<Profile, memor
 
     typedef typename AppendTool<
             typename Base::ContainerPartsList,
-            VTL<
+            TypeList<
                 memoria::models::array::ApiName
             >
     >::Result                                                                       ContainerPartsList;
 
     typedef typename AppendTool<
             typename Base::IteratorPartsList,
-            VTL<
+            TypeList<
                 memoria::models::array::IteratorContainerAPIName
             >
     >::Result                                                                       IteratorPartsList;

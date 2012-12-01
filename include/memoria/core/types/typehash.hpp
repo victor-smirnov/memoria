@@ -34,12 +34,12 @@ public:
 template <typename List> struct ListHash;
 
 template <typename Head, typename ... Tail>
-struct ListHash<VTL<Head, Tail...> > {
-    static const UInt Value = CSHR<UInt, TypeHash<Head>::Value, 1>::Value ^ ListHash<VTL<Tail...>>::Value;
+struct ListHash<TypeList<Head, Tail...> > {
+    static const UInt Value = CSHR<UInt, TypeHash<Head>::Value, 1>::Value ^ ListHash<TypeList<Tail...>>::Value;
 };
 
 template <>
-struct ListHash<VTL<> > {
+struct ListHash<TypeList<> > {
     static const UInt Value = 0;
 };
 

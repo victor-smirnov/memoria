@@ -48,7 +48,7 @@ template <
 struct DynVectorContainerTypes: public Base {
 
     typedef typename AppendTool<
-                    VTL<
+                    TypeList<
                         DataPage_
                     >,
                     typename Base::DataPagesList
@@ -68,13 +68,13 @@ struct BTreeTypes<Profile, memoria::DynVectorCtr>: public BTreeTypes<Profile, me
     typedef IDType                                                              Value;
     typedef BTreeTypes<Profile, memoria::BSTreeCtr>                             Base;
 
-    typedef VTL<>                                                            	DataPagePartsList;
+    typedef TypeList<>                                                            	DataPagePartsList;
 
     static const bool MapType                                                   = MapTypes::Sum;
 
     typedef typename AppendTool<
                     typename Base::ContainerPartsList,
-                    VTL<
+                    TypeList<
                         memoria::dynvector::ToolsName,
                         memoria::dynvector::RemoveName,
                         memoria::dynvector::InsertName,
@@ -86,7 +86,7 @@ struct BTreeTypes<Profile, memoria::DynVectorCtr>: public BTreeTypes<Profile, me
 
     typedef typename AppendTool<
                     typename Base::IteratorPartsList,
-                    VTL<
+                    TypeList<
                        memoria::dynvector::IteratorAPIName
                     >
     >::Result                                                                   IteratorPartsList;

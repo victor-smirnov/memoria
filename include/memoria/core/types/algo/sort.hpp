@@ -23,7 +23,7 @@ template <
         template <typename Item> class ValueProvider,
         bool Asc,
         typename ValueType = BigInt,
-        typename Result = VTL<> >
+        typename Result = TypeList<> >
 class Sort;
 
 
@@ -74,7 +74,7 @@ template <
         typename ValueType,
         typename Result
 >
-class Sort<VTL<>, ValueProvider, Asc, ValueType, Result> {
+class Sort<TypeList<>, ValueProvider, Asc, ValueType, Result> {
 public:
     typedef Result                                                              List;
 };

@@ -17,18 +17,18 @@ namespace memoria    {
 template <typename List> struct RevertList;
 
 template <typename Head, typename ... Tail>
-struct RevertList<VTL<Head, Tail...>> {
+struct RevertList<TypeList<Head, Tail...>> {
 	typedef typename AppendTool<
 				typename RevertList<
-							VTL<Tail...>
+							TypeList<Tail...>
 						 >::Type,
 				Head
 			>::Result 										Type;
 };
 
 template <>
-struct RevertList<VTL<>> {
-	typedef VTL<> 											Type;
+struct RevertList<TypeList<>> {
+	typedef TypeList<> 											Type;
 };
 
 

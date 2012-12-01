@@ -85,7 +85,7 @@ public:
 };
 
 template <>
-class Memoria<VTL<>> {
+class Memoria<TypeList<>> {
 public:
     static Int init() {
         return 1;
@@ -102,7 +102,7 @@ const int MEMORIA_INITIALIZED = ::memoria::Memoria<>::init()
 template <
 	template <int> class Decl,
 	int Value = 100,
-	typename List = VTL<>
+	typename List = TypeList<>
 >
 class SimpleOrderedBuilder {
 	typedef typename Decl<Value>::Type 							DeclType;
@@ -139,7 +139,7 @@ struct CtrListInitializer {
 };
 
 template <typename ProfileType>
-struct CtrListInitializer<ProfileType, VTL<> > {
+struct CtrListInitializer<ProfileType, TypeList<> > {
 	static void init() {}
 };
 
@@ -154,7 +154,7 @@ template <
 	class CtrListBuilder = SimpleOrderedBuilder
 >
 class MetadataInitializer {
-	typedef typename CtrListBuilder<CtrNameDeclarator, 100, VTL<> >::Type CtrNameList;
+	typedef typename CtrListBuilder<CtrNameDeclarator, 100, TypeList<> >::Type CtrNameList;
 
 public:
 	static void init() {

@@ -14,7 +14,7 @@
 
 namespace memoria    {
 
-using memoria::VTL;
+using memoria::TypeList;
 
 template <
     typename TChain,
@@ -29,14 +29,14 @@ template <
     template <typename, typename> class Element,
     typename Base
 >
-struct SimpleHierarchy<VTL<T1, T2...>, Element, Base>: public Element<T1, SimpleHierarchy<VTL <T2...>, Element, Base> > {};
+struct SimpleHierarchy<TypeList<T1, T2...>, Element, Base>: public Element<T1, SimpleHierarchy<TypeList <T2...>, Element, Base> > {};
 
 template <
     typename T,
     template <typename, typename> class Element,
     typename Base
 >
-struct SimpleHierarchy<VTL<T>, Element, Base>: public Element<T, Base> {};
+struct SimpleHierarchy<TypeList<T>, Element, Base>: public Element<T, Base> {};
 
 }
 

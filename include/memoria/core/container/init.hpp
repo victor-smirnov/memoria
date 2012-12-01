@@ -21,7 +21,7 @@ struct RootCtrListBuilder {
 
 template <>
 struct RootCtrListBuilder<-1> {
-    typedef VTL<>                                        Type;
+    typedef TypeList<>                                        Type;
 };
 
 
@@ -44,7 +44,7 @@ struct ProfileListBuilder {
 
 template <>
 struct ProfileListBuilder<-1> {
-    typedef VTL<>                                        Type;
+    typedef TypeList<>                                        Type;
 };
 
 

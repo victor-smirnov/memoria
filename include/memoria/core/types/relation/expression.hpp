@@ -134,7 +134,7 @@ class Evaluator<Metadata, ValueOp<Name, Op, Type, ExValue>, Record> {
 
     typedef typename Select<
                 OpIdx,
-                VTL<
+                TypeList<
                     TypeCode<EqVal>,
                     TypeCode<GTVal>,
                     TypeCode<GTEVal>,

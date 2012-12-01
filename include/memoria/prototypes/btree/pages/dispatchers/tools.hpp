@@ -26,19 +26,19 @@ template <
 class NodeFilter: public Filter<NodeDescriptorMetadata, Expression, Relation> {};
 
 
-template <typename List, typename Result = VTL<> > struct LevelListBuilder;
+template <typename List, typename Result = TypeList<> > struct LevelListBuilder;
 
 template <typename Head, typename ... Tail, typename Result>
-struct LevelListBuilder<VTL<Head, Tail...>, Result> {
+struct LevelListBuilder<TypeList<Head, Tail...>, Result> {
     static const BigInt Level = Head::Descriptor::Level;
 private:
     typedef typename AppendTool<TypeCode<Level>, Result>::Result                NewResult;
 public:
-    typedef typename LevelListBuilder<VTL<Tail...>, NewResult>::List            List;
+    typedef typename LevelListBuilder<TypeList<Tail...>, NewResult>::List            List;
 };
 
 template <typename Result>
-struct LevelListBuilder<VTL<>, Result> {
+struct LevelListBuilder<TypeList<>, Result> {
     typedef typename RemoveDuplicatesTool<Result>::Result                       List;
 };
 
@@ -48,7 +48,7 @@ namespace intrnl {
 template <
         typename List,
         typename SrcList,
-        typename Result = VTL<>
+        typename Result = TypeList<>
 >
 class Node2NodeMapBuilderTool;
 
@@ -56,7 +56,7 @@ template <
         typename SrcList,
         typename Result
 >
-class Node2NodeMapBuilderTool<VTL<>, SrcList, Result> {
+class Node2NodeMapBuilderTool<TypeList<>, SrcList, Result> {
 public:
     typedef Result                                                              Map;
 };
@@ -67,7 +67,7 @@ template <
         typename SrcList,
         typename Result
 >
-class Node2NodeMapBuilderTool<VTL<Head, Tail...>, SrcList, Result> {
+class Node2NodeMapBuilderTool<TypeList<Head, Tail...>, SrcList, Result> {
     static const bool   Root  = Head::Descriptor::Root;
     static const bool   Leaf  = Head::Descriptor::Leaf;
     static const BigInt Level = Head::Descriptor::Level;
@@ -85,7 +85,7 @@ class Node2NodeMapBuilderTool<VTL<Head, Tail...>, SrcList, Result> {
             >::Result                                                           NewResult;
 
 public:
-    typedef typename Node2NodeMapBuilderTool<VTL<Tail...>, SrcList, NewResult>::Map     Map;
+    typedef typename Node2NodeMapBuilderTool<TypeList<Tail...>, SrcList, NewResult>::Map     Map;
 };
 }
 
@@ -93,7 +93,7 @@ template <
         typename List,
         bool IsRoot2Node,
         typename SrcList = List,
-        typename Result = VTL<>
+        typename Result = TypeList<>
 >
 class Node2NodeMapTool {
     typedef typename NodeFilter<

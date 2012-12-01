@@ -131,7 +131,7 @@ class Name4{};
 class Name5{};
 class Name6{};
 
-typedef VTL<Name1, Name2, Name3, Name4, Name5, Name6> List;
+typedef TypeList<Name1, Name2, Name3, Name4, Name5, Name6> List;
 
 int main()
 {

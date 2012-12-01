@@ -38,7 +38,7 @@ class TypePrinterTool : public SimpleHierarchy <List, TypePrinter, TypePrinterBa
 };
 
 template <>
-class TypePrinterTool<VTL<> >
+class TypePrinterTool<TypeList<> >
 {
 public:
     static void dump()

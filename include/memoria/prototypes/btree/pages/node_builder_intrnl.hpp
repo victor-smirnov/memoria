@@ -40,7 +40,7 @@ class AddTypesQuadToList <
 
 public:
     typedef typename AppendTool<
-                        VTL<
+                        TypeList<
                             NodePage<typename Types::template LeafTypes<Level> >,
                             NodePage<typename Types::template RootLeafTypes<Level> >,
                             NodePage<typename Types::template RootTypes<Level> >,
@@ -67,7 +67,7 @@ class AddTypesQuadToList<
 
 public:
     typedef typename AppendTool<
-                        VTL<
+                        TypeList<
                             NodePage<typename Types::template LeafTypes<Level> >,
                             NodePage<typename Types::template RootLeafTypes<Level> >
                         >,
@@ -85,7 +85,7 @@ class AddTypesQuadToList {
 
 public:
     typedef typename AppendTool<
-                        VTL<
+                        TypeList<
                             NodePage<typename Types::template RootTypes<Level> >,
                             NodePage<typename Types::template InternalTypes<Level> >
                         >,
@@ -103,7 +103,7 @@ public:
 template <
         typename Types,
         typename KeysList,
-        typename ResultList = VTL<>,
+        typename ResultList = TypeList<>,
         Int Level = 0
 >
 class NodeTLBuilderTool;
@@ -118,7 +118,7 @@ template <
 >
 class NodeTLBuilderTool<
         Types,
-        VTL<Head, Tail...>,
+        TypeList<Head, Tail...>,
         ResultList,
         Level
 > {
@@ -135,7 +135,7 @@ public:
 
     typedef typename NodeTLBuilderTool<
                         Types,
-                        VTL<Tail...>,
+                        TypeList<Tail...>,
                         List,
                         Level + 1
     >::NodeTypesList                                                            NodeTypesList;
@@ -150,7 +150,7 @@ template <
 >
 class NodeTLBuilderTool<
         Types,
-        VTL<Head>,
+        TypeList<Head>,
         ResultList,
         Level
 > {

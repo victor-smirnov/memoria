@@ -16,35 +16,35 @@ namespace memoria    {
 template <typename Item, typename List, bool All = false> struct RemoveTool;
 
 template <typename Item, typename Head, typename ... Tail, bool All>
-struct RemoveTool<Item, VTL<Head, Tail...>, All> {
+struct RemoveTool<Item, TypeList<Head, Tail...>, All> {
     typedef typename AppendTool<
     					Head,
     					typename RemoveTool<
     								Item,
-    								VTL<Tail...>,
+    								TypeList<Tail...>,
     								All
     					>::Result
     				>::Result 													Result;
 };
 
 template <typename Item, typename ... Tail>
-struct RemoveTool<Item, VTL<Item, Tail...>, false> {
-    typedef VTL<Tail...>														Result;
+struct RemoveTool<Item, TypeList<Item, Tail...>, false> {
+    typedef TypeList<Tail...>														Result;
 };
 
 template <typename Item, typename ... Tail>
-struct RemoveTool<Item, VTL<Item, Tail... >, true> {
+struct RemoveTool<Item, TypeList<Item, Tail... >, true> {
     typedef typename RemoveTool<
     					Item,
-    					VTL<Tail...>,
+    					TypeList<Tail...>,
     					true
     				>::Result                       							Result;
 };
 
 
 template <typename Item, bool All>
-struct RemoveTool<Item, VTL<>, All> {
-    typedef VTL<>                                                            	Result;
+struct RemoveTool<Item, TypeList<>, All> {
+    typedef TypeList<>                                                            	Result;
 };
 
 
@@ -54,16 +54,16 @@ template <typename List> struct RemoveDuplicatesTool;
 
 
 template<>
-struct RemoveDuplicatesTool<VTL<>> {
-    typedef VTL<>                                                            	Result;
+struct RemoveDuplicatesTool<TypeList<>> {
+    typedef TypeList<>                                                            	Result;
 };
 
 
 
 template <typename Head, typename ... Tail>
-struct RemoveDuplicatesTool<VTL<Head, Tail...> > {
+struct RemoveDuplicatesTool<TypeList<Head, Tail...> > {
 private:
-    typedef typename RemoveDuplicatesTool<VTL<Tail...>>::Result	TailResult;
+    typedef typename RemoveDuplicatesTool<TypeList<Tail...>>::Result	TailResult;
     typedef typename RemoveTool<Head, TailResult>::Result		HeadResult;
 public:
     typedef typename AppendTool<Head, HeadResult>::Result                       Result;

@@ -16,31 +16,31 @@
 namespace memoria {
 
 template <typename Item1, typename Item2> struct AppendTool {
-	typedef VTL<Item1, Item2>                                 	Result;
+	typedef TypeList<Item1, Item2>                                 	Result;
 };
 
 template <typename Item, typename ... List>
-struct AppendTool<Item, VTL<List...> > {
-	typedef VTL<Item, List...> 									Result;
+struct AppendTool<Item, TypeList<List...> > {
+	typedef TypeList<Item, List...> 									Result;
 };
 
 template <typename ... List1, typename ... List2>
-struct AppendTool<VTL<List1...>, VTL<List2...> > {
-	typedef VTL<List1..., List2...> 							Result;
+struct AppendTool<TypeList<List1...>, TypeList<List2...> > {
+	typedef TypeList<List1..., List2...> 							Result;
 };
 
 template <typename ... List, typename Item>
-struct AppendTool<VTL<List...>, Item > {
-	typedef VTL<List..., Item> 									Result;
+struct AppendTool<TypeList<List...>, Item > {
+	typedef TypeList<List..., Item> 									Result;
 };
 
 
 // Errors:
 template <typename ... List>
-struct AppendTool<VTL<List...>, NullType>;
+struct AppendTool<TypeList<List...>, NullType>;
 
 template <typename ... List>
-struct AppendTool<NullType, VTL<List...>>;
+struct AppendTool<NullType, TypeList<List...>>;
 
 template <>
 struct AppendTool<NullType, NullType>;

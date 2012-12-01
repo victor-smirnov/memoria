@@ -17,7 +17,7 @@
 
 namespace memoria    {
 
-using memoria::VTL;
+using memoria::TypeList;
 template <
     typename List,
     template <typename, typename> class Element,
@@ -32,11 +32,11 @@ template <
     template <typename, typename> class Element,
     typename Base
 >
-struct Builder<VTL<T1, T2...>, Element, Base>:
+struct Builder<TypeList<T1, T2...>, Element, Base>:
             public Element<
                         T1,
                         Builder<
-                            VTL<T2...>,
+                            TypeList<T2...>,
                             Element,
                             Base
                         >
@@ -47,7 +47,7 @@ private:
     typedef Element<
                 T1,
                 Builder<
-                    VTL<T2...>,
+                    TypeList<T2...>,
                     Element,
                     Base
                 >
@@ -63,7 +63,7 @@ template <
     template <typename, typename> class Element,
     typename Base
 >
-struct Builder<VTL<T>, Element, Base>: public Element<T, Base> {
+struct Builder<TypeList<T>, Element, Base>: public Element<T, Base> {
 private:
     typedef Element<T, Base>                                                BaseType;
 
@@ -76,7 +76,7 @@ template <
     template <typename, typename> class Element,
     typename Base
 >
-struct Builder<VTL<>, Element, Base>: public Base {
+struct Builder<TypeList<>, Element, Base>: public Base {
 
 
     typedef Base                                                            BaseType;

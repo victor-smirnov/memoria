@@ -24,12 +24,12 @@ template <typename T, T ... Data> struct Array {};
 
 //template <>
 //struct TypeList<> {
-//	typedef VTL<> Type;
+//	typedef TypeList<> Type;
 //};
 //
 //template <typename Head, typename ... Tail>
 //struct TypeList<Head, Tail...> {
-//	typedef VTL<Head, typename TypeList<Tail...>::Type> Type;
+//	typedef TypeList<Head, typename TypeList<Tail...>::Type> Type;
 //};
 
 
@@ -308,7 +308,7 @@ public:
 
 int main(void) {
 
-	cout<<TypeNameFactory<VTL<int,long,float,double>>::name()<<endl;
+	cout<<TypeNameFactory<TypeList<int,long,float,double>>::name()<<endl;
 
 	cout<<TypeNameFactory<Get<3, int,long,float,double>::Type>::name()<<endl;
 

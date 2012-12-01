@@ -40,11 +40,11 @@ struct BTreeTypes {
 
     typedef Profile_                                                            Profile;
 
-    typedef VTL<BigInt>                                                         KeysList;
+    typedef TypeList<BigInt>                                                         KeysList;
 
     static const Int Indexes                                                    = 1;
 
-    typedef VTL<
+    typedef TypeList<
             memoria::btree::AllocatorName,
             memoria::btree::ToolsName,
             memoria::btree::checksName,
@@ -54,17 +54,17 @@ struct BTreeTypes {
             memoria::btree::WalkName
     >                                                                     		ContainerPartsList;
 
-    typedef VTL<>                                                            	BasePagePartsList;
+    typedef TypeList<>                                                            	BasePagePartsList;
     
-    typedef VTL<>                                                            	RootPagePartsList;
+    typedef TypeList<>                                                            	RootPagePartsList;
 
-    typedef VTL<>                                                            	InternalPagePartsList;
+    typedef TypeList<>                                                            	InternalPagePartsList;
 
-    typedef VTL<>                                                            	LeafPagePartsList;
+    typedef TypeList<>                                                            	LeafPagePartsList;
 
-    typedef VTL<>                                                            	DataPagesList;
+    typedef TypeList<>                                                            	DataPagesList;
 
-    typedef VTL<
+    typedef TypeList<
             memoria::btree::IteratorAPIName
     >                                                                     		IteratorPartsList;
 
@@ -226,7 +226,7 @@ public:
         typedef NodeContainerTypesG                                             NodeBaseG;
 
 
-        typedef VTL<>                                                        	EmbeddedContainersList;
+        typedef TypeList<>                                                        	EmbeddedContainersList;
 
 
 

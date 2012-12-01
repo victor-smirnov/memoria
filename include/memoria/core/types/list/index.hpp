@@ -20,17 +20,17 @@ template <typename Item_> struct DefaultItemProvider {
 template <typename Item, typename List, Int Idx = 0> struct IndexOfTool;
 
 template <typename Item, typename ... Tail, Int Idx>
-struct IndexOfTool<Item, VTL<Item, Tail...>, Idx> {
+struct IndexOfTool<Item, TypeList<Item, Tail...>, Idx> {
     static const Int Value = Idx;
 };
 
 template <typename Item, typename Head, typename ... Tail, Int Idx>
-struct IndexOfTool<Item, VTL<Head, Tail...>, Idx> {
-    static const Int Value = IndexOfTool<Item, VTL<Tail...>, Idx + 1>::Value;
+struct IndexOfTool<Item, TypeList<Head, Tail...>, Idx> {
+    static const Int Value = IndexOfTool<Item, TypeList<Tail...>, Idx + 1>::Value;
 };
 
 template <typename Item, Int Idx>
-struct IndexOfTool<Item, VTL<>, Idx> {
+struct IndexOfTool<Item, TypeList<>, Idx> {
     static const Int Value = -1; //not found
 };
 
@@ -42,17 +42,17 @@ template <Int Idx, typename List, Int Counter = 0> struct SelectByIndexTool;
 template <Int Value> struct ListIndexOutOfRange {};
 
 template <Int Idx, typename Head, typename ... Tail>
-struct SelectByIndexTool<Idx, VTL<Head, Tail...>, Idx> {
+struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, Idx> {
     typedef Head                                                                Result;
 };
 
 template <Int Idx, typename Head, typename ... Tail, Int Counter>
-struct SelectByIndexTool<Idx, VTL<Head, Tail...>, Counter> {
-    typedef typename SelectByIndexTool<Idx, VTL<Tail...>, Counter + 1>::Result  Result;
+struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, Counter> {
+    typedef typename SelectByIndexTool<Idx, TypeList<Tail...>, Counter + 1>::Result  Result;
 };
 
 template <Int Idx, Int Counter>
-struct SelectByIndexTool<Idx, VTL<>, Counter> {
+struct SelectByIndexTool<Idx, TypeList<>, Counter> {
     typedef ListIndexOutOfRange<Idx>                                            Result;
 };
 
