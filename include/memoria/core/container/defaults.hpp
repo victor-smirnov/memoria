@@ -22,8 +22,6 @@ public:
     AbstractTransaction() {}
 };
 
-using memoria::TL;
-
 using namespace memoria::vapi;
 
 

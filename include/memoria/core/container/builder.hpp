@@ -17,7 +17,7 @@
 
 namespace memoria    {
 
-using memoria::TL;
+using memoria::VTL;
 template <
     typename List,
     template <typename, typename> class Element,
@@ -28,15 +28,15 @@ struct Builder;
 
 template <
     typename T1,
-    typename T2,
+    typename ... T2,
     template <typename, typename> class Element,
     typename Base
 >
-struct Builder<TL<T1, T2>, Element, Base>:
+struct Builder<VTL<T1, T2...>, Element, Base>:
             public Element<
                         T1,
                         Builder<
-                            T2,
+                            VTL<T2...>,
                             Element,
                             Base
                         >
@@ -47,7 +47,7 @@ private:
     typedef Element<
                 T1,
                 Builder<
-                    T2,
+                    VTL<T2...>,
                     Element,
                     Base
                 >
@@ -63,7 +63,7 @@ template <
     template <typename, typename> class Element,
     typename Base
 >
-struct Builder<TL<T, NullType>, Element, Base>: public Element<T, Base> {
+struct Builder<VTL<T>, Element, Base>: public Element<T, Base> {
 private:
     typedef Element<T, Base>                                                BaseType;
 
@@ -76,7 +76,7 @@ template <
     template <typename, typename> class Element,
     typename Base
 >
-struct Builder<NullType, Element, Base>: public Base {
+struct Builder<VTL<>, Element, Base>: public Base {
 
 
     typedef Base                                                            BaseType;

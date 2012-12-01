@@ -9,6 +9,24 @@
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_TYPELIST_HPP
 #define _MEMORIA_CORE_TOOLS_TYPES_LIST_TYPELIST_HPP
 
-namespace memoria    {}
+#include <memoria/core/types/types.hpp>
+
+namespace memoria    {
+
+template <typename ... List> struct ListHead;
+
+template <typename Head, typename ... Tail>
+struct ListHead<VTL<Head, Tail...>> {
+	typedef Head Type;
+};
+
+template <typename ... List> struct ListTail;
+
+template <typename Head, typename ... Tail>
+struct ListTail<Head, Tail...> {
+	typedef VTL<Tail...> Type;
+};
+
+}
 
 #endif  /* _MEMORIA_CORE_TOOLS_TYPES_LIST_TYPELIST_HPP */

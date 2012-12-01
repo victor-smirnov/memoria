@@ -40,12 +40,12 @@ class AddTypesQuadToList <
 
 public:
     typedef typename AppendTool<
-                        typename TLTool<
+                        VTL<
                             NodePage<typename Types::template LeafTypes<Level> >,
                             NodePage<typename Types::template RootLeafTypes<Level> >,
                             NodePage<typename Types::template RootTypes<Level> >,
                             NodePage<typename Types::template InternalTypes<Level> >
-                        >::List,
+                        >,
                         ResultList
     >::Result                                                                   List;
 };
@@ -67,10 +67,10 @@ class AddTypesQuadToList<
 
 public:
     typedef typename AppendTool<
-                        typename TLTool<
+                        VTL<
                             NodePage<typename Types::template LeafTypes<Level> >,
                             NodePage<typename Types::template RootLeafTypes<Level> >
-                        >::List,
+                        >,
                         ResultList
     >::Result                                                                   List;
 };
@@ -85,10 +85,10 @@ class AddTypesQuadToList {
 
 public:
     typedef typename AppendTool<
-                        typename TLTool<
+                        VTL<
                             NodePage<typename Types::template RootTypes<Level> >,
                             NodePage<typename Types::template InternalTypes<Level> >
-                        >::List,
+                        >,
                         ResultList
     >::Result                                                                   List;
 };
@@ -103,7 +103,7 @@ public:
 template <
         typename Types,
         typename KeysList,
-        typename ResultList = NullType,
+        typename ResultList = VTL<>,
         Int Level = 0
 >
 class NodeTLBuilderTool;
@@ -112,13 +112,13 @@ class NodeTLBuilderTool;
 template <
         typename Types,
         typename Head,
-        typename Tail,
+        typename ... Tail,
         typename ResultList,
         Int Level
 >
 class NodeTLBuilderTool<
         Types,
-        TL<Head, Tail>,
+        VTL<Head, Tail...>,
         ResultList,
         Level
 > {
@@ -135,7 +135,7 @@ public:
 
     typedef typename NodeTLBuilderTool<
                         Types,
-                        Tail,
+                        VTL<Tail...>,
                         List,
                         Level + 1
     >::NodeTypesList                                                            NodeTypesList;
@@ -150,7 +150,7 @@ template <
 >
 class NodeTLBuilderTool<
         Types,
-        TL<Head, NullType>,
+        VTL<Head>,
         ResultList,
         Level
 > {

@@ -19,7 +19,6 @@ namespace memoria    {
 namespace btree     {
 
 
-using memoria::TL;
 
 const BigInt ANY_LEVEL = 0x7fff;
 
@@ -35,7 +34,7 @@ struct NodeDescriptor {
 template <Int Name, typename ColumnType, typename Record> struct ValueProvider;
 
 typedef RelationMetadata<
-            TLTool<Column<ROOT, bool>, Column<LEAF, bool>, Column<LEVEL, Short> >::List,
+            VTL<Column<ROOT, bool>, Column<LEAF, bool>, Column<LEVEL, Short> >,
             ValueProvider
 >                                                                               NodeDescriptorMetadata;
 

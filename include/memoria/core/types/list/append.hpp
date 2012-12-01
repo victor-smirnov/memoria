@@ -11,35 +11,39 @@
 
 #include <memoria/core/types/types.hpp>
 
+#include <memoria/core/types/list/typelist.hpp>
+
 namespace memoria {
 
-template <typename Item, typename List> struct AppendTool;
-
-template <typename Head, typename Tail, typename Item>
-struct AppendTool<Item, TL<Head, Tail> > {
-    typedef TL<Head, typename AppendTool<Item, Tail>::Result> Result;
+template <typename Item1, typename Item2> struct AppendTool {
+	typedef VTL<Item1, Item2>                                 	Result;
 };
 
-template<>
-struct AppendTool<NullType, NullType> {
-    typedef NullType                                          Result;
+template <typename Item, typename ... List>
+struct AppendTool<Item, VTL<List...> > {
+	typedef VTL<Item, List...> 									Result;
 };
 
-template <typename Item>
-struct AppendTool<Item, NullType> {
-    typedef TL<Item, NullType>                                Result;
+template <typename ... List1, typename ... List2>
+struct AppendTool<VTL<List1...>, VTL<List2...> > {
+	typedef VTL<List1..., List2...> 							Result;
 };
 
-template <typename Head, typename Tail>
-struct AppendTool<TL<Head, Tail>, NullType> {
-    typedef TL<Head, Tail>                                    Result;
+template <typename ... List, typename Item>
+struct AppendTool<VTL<List...>, Item > {
+	typedef VTL<List..., Item> 									Result;
 };
 
-template <typename List, typename Item>
-struct appendLists {
-    typedef typename AppendTool<Item, List>::Result           Result;
-};
 
+// Errors:
+template <typename ... List>
+struct AppendTool<VTL<List...>, NullType>;
+
+template <typename ... List>
+struct AppendTool<NullType, VTL<List...>>;
+
+template <>
+struct AppendTool<NullType, NullType>;
 
 }
 

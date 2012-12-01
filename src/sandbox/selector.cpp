@@ -131,7 +131,7 @@ class Name4{};
 class Name5{};
 class Name6{};
 
-typedef TLTool<Name1, Name2, Name3, Name4, Name5, Name6>::List List;
+typedef VTL<Name1, Name2, Name3, Name4, Name5, Name6> List;
 
 int main()
 {
@@ -143,7 +143,7 @@ int main()
     std::cout<<typeid(test2).name()<<std::endl;
     std::cout<<typeid(test3).name()<<std::endl;
 
-    std::cout<<TypeNameFactory<ReverseTool<List>::Result>::name()<<std::endl;
+    std::cout<<TypeNameFactory<RevertList<List>::Type>::name()<<std::endl;
 }
 
 

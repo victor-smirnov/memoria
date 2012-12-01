@@ -20,7 +20,6 @@
 
 namespace memoria    {
 
-using memoria::TL;
 
 template <typename Profile, typename PageType, typename List>
 class PageDispatcher {
@@ -37,13 +36,13 @@ public:
             NodeDispatcher::dispatch(static_cast<NodeBase*>(page));
         }
         else {
-            PageDispatcher<Profile, PageType, typename List::Tail>::dispatch(page);
+            PageDispatcher<Profile, PageType, typename ListTail<List>::Type>::dispatch(page);
         }
     }
 };
 
 template <typename Profile, typename PageType>
-class PageDispatcher<Profile, PageType, memoria::NullType> {
+class PageDispatcher<Profile, PageType, VTL<> > {
 
 public:
     void dispatch(PageType *page) {
@@ -213,22 +212,22 @@ public:
 
 template <typename List> class PageInitDispatcher;
 
-template <typename Head, typename Tail>
-class PageInitDispatcher<TL<Head, Tail> > {
+template <typename Head, typename ... Tail>
+class PageInitDispatcher<VTL<Head, Tail...> > {
 public:
     static void buildMetadataList(MetadataList &list) {
         Head::initMetadata();
         list.push_back(Head::reflection());
-        PageInitDispatcher<Tail>::buildMetadataList(list);
+        PageInitDispatcher<VTL<Tail...>>::buildMetadataList(list);
     }
 
     static void destroyMetadata() {
-        PageInitDispatcher<Tail>::destroyMetadata();
+        PageInitDispatcher<VTL<Tail...>>::destroyMetadata();
     }
 };
 
 template <>
-class PageInitDispatcher<NullType> {
+class PageInitDispatcher<VTL<>> {
 public:
     static void buildMetadataList(MetadataList &list) {}
 

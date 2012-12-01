@@ -18,9 +18,6 @@
 namespace memoria    {
 namespace btree      {
 
-
-using memoria::TL;
-
 template <
     typename Types
 >

@@ -60,18 +60,18 @@ struct CompositeTypes<Profile_, VectorMapCtr>: public CompositeTypes<Profile_, C
 
     typedef CompositeTypes<Profile_, CompositeCtr>                              Base;
 
-    typedef typename appendLists<
+    typedef typename AppendTool<
                 typename Base::ContainerPartsList,
-                typename TLTool<
+                VTL<
                     memoria::vector_map::CtrApiName
-                >::List
+                >
     >::Result                                                                   CtrList;
 
-    typedef typename appendLists<
+    typedef typename AppendTool<
                 typename Base::IteratorPartsList,
-                typename TLTool<
+                VTL<
                     memoria::vector_map::ItrApiName
-                >::List
+                >
     >::Result                                                                   IterList;
 
 

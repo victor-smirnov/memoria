@@ -21,11 +21,11 @@ struct CompositeTypes {
 
     typedef Profile_                                                        Profile;
 
-    typedef typename TLTool<
-                memoria::btree::AllocatorName
-    >::List                                                                 ContainerPartsList;
+    typedef VTL<
+    	memoria::btree::AllocatorName
+    >                                                                 		ContainerPartsList;
 
-    typedef NullType                                                        IteratorPartsList;
+    typedef VTL<>                                                        	IteratorPartsList;
 
     typedef EmptyType                                                       IteratorInterface;
 

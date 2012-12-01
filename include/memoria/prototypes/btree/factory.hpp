@@ -40,11 +40,11 @@ struct BTreeTypes {
 
     typedef Profile_                                                            Profile;
 
-    typedef TL<BigInt>                                                          KeysList;
+    typedef VTL<BigInt>                                                         KeysList;
 
     static const Int Indexes                                                    = 1;
 
-    typedef typename TLTool<
+    typedef VTL<
             memoria::btree::AllocatorName,
             memoria::btree::ToolsName,
             memoria::btree::checksName,
@@ -52,21 +52,21 @@ struct BTreeTypes {
             memoria::btree::RemoveName,
             memoria::btree::FindName,
             memoria::btree::WalkName
-    >::List                                                                     ContainerPartsList;
+    >                                                                     		ContainerPartsList;
 
-    typedef NullType                                                            BasePagePartsList;
+    typedef VTL<>                                                            	BasePagePartsList;
     
-    typedef NullType                                                            RootPagePartsList;
+    typedef VTL<>                                                            	RootPagePartsList;
 
-    typedef NullType                                                            InternalPagePartsList;
+    typedef VTL<>                                                            	InternalPagePartsList;
 
-    typedef NullType                                                            LeafPagePartsList;
+    typedef VTL<>                                                            	LeafPagePartsList;
 
-    typedef NullType                                                            DataPagesList;
+    typedef VTL<>                                                            	DataPagesList;
 
-    typedef typename TLTool<
+    typedef VTL<
             memoria::btree::IteratorAPIName
-    >::List                                                                     IteratorPartsList;
+    >                                                                     		IteratorPartsList;
 
     typedef EmptyType                                                           ContainerInterface;
     typedef EmptyType                                                           IteratorInterface;
@@ -116,10 +116,10 @@ public:
     typedef BTreeTypes<Profile, ContainerTypeName_>                                 ContainerTypes;
 
 
-    typedef TL<
+    typedef typename AppendTool<
                 RootNodeMetadataName<typename ContainerTypes::Metadata>,
                 typename ContainerTypes::RootPagePartsList
-    >                                                                               RootPagePartsList;
+    >::Result                                                                       RootPagePartsList;
     
     typedef typename ContainerTypes::Allocator::Page::ID                            ID;
 
@@ -154,7 +154,7 @@ public:
     };
 
 
-    typedef typename ContainerTypes::KeysList::Head                         NodeKey;
+    typedef typename ListHead<typename ContainerTypes::KeysList>::Type      NodeKey;
 
     template <int Level> struct RootLeafTypes: NodeTypesBase {
         typedef NodeKey                                                     Key;
@@ -226,7 +226,7 @@ public:
         typedef NodeContainerTypesG                                             NodeBaseG;
 
 
-        typedef NullType                                                        EmbeddedContainersList;
+        typedef VTL<>                                                        	EmbeddedContainersList;
 
 
 

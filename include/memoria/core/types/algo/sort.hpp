@@ -23,8 +23,10 @@ template <
         template <typename Item> class ValueProvider,
         bool Asc,
         typename ValueType = BigInt,
-        typename Result = NullType>
+        typename Result = VTL<> >
 class Sort;
+
+
 
 template <
         typename SrcList,
@@ -42,7 +44,7 @@ class Sort {
                 typename MaxElement<SrcList, ValueProvider, ValueType>::Result
     >::Result                                                                   Element;
 
-    typedef TL<Element, Result>                                                 List_;
+    typedef typename AppendTool<Element, Result>::Result                        List_;
 
 public:
     typedef typename Sort<
@@ -55,13 +57,24 @@ public:
 };
 
 
+//template <
+//        template <typename Item> class ValueProvider,
+//        bool Asc,
+//        typename ValueType,
+//        typename Result
+//>
+//class Sort<NullType, ValueProvider, Asc, ValueType, Result> {
+//public:
+//    typedef Result                                                              List;
+//};
+
 template <
         template <typename Item> class ValueProvider,
         bool Asc,
         typename ValueType,
         typename Result
 >
-class Sort<NullType, ValueProvider, Asc, ValueType, Result> {
+class Sort<VTL<>, ValueProvider, Asc, ValueType, Result> {
 public:
     typedef Result                                                              List;
 };

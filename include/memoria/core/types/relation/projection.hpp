@@ -42,14 +42,14 @@ class CreateColumnValuesList {
         typedef typename Metadata::template Provider<Column::Value, Record>::Value ColumnValue;
         typedef typename ColumnValue::Column ColumnType;
 
-        typedef TL<
+        typedef typename AppendTool<
                     typename WrapperProvider<ColumnType, ColumnValue>::Type,
                     typename Accumulator::Result
-        >                                                                       Result;
+        >::Result                                                                    Result;
     };
 
     struct Init {
-        typedef NullType Result;
+        typedef VTL<> Result;
     };
 
 public:
@@ -73,14 +73,14 @@ class Projection {
     struct Handler {
         typedef typename CreateColumnValuesList<Metadata, ColumnNamesList, Record>::List ValuesList;
 
-        typedef TL<
+        typedef typename AppendTool<
                     ValuesList,
                     typename Accumulator::Result
-        >                                                                       Result;
+        >::Result                                                                       Result;
     };
 
     struct Init {
-        typedef NullType Result;
+        typedef VTL<> Result;
     };
 
 public:

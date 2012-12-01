@@ -151,14 +151,8 @@ class NotDefined {};
 template <int Value>
 struct CtrNameDeclarator: TypeDef<NotDefined> {};
 
-
-template <typename HeadType, typename TailType = NullType>
-struct TL {
-    typedef TL<HeadType, TailType>    List;
-
-    typedef HeadType                        Head;
-    typedef TailType                        Tail;
-};
+template <typename ... Types>
+struct VTL {};
 
 template <typename Type_, Type_ V>
 struct ValueWrapper {

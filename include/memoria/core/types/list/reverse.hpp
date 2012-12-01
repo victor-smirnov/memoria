@@ -14,17 +14,23 @@
 
 namespace memoria    {
 
-template <typename List> struct ReverseTool;
+template <typename List> struct RevertList;
 
-template <typename Head, typename Tail>
-struct ReverseTool<TL<Head, Tail> > {
-    typedef typename AppendTool<Head, typename ReverseTool<Tail>::Result>::Result  Result;
+template <typename Head, typename ... Tail>
+struct RevertList<VTL<Head, Tail...>> {
+	typedef typename AppendTool<
+				typename RevertList<
+							VTL<Tail...>
+						 >::Type,
+				Head
+			>::Result 										Type;
 };
 
-template<typename Head>
-struct ReverseTool<TL<Head, NullType> > {
-    typedef TL<Head>                                          Result;
+template <>
+struct RevertList<VTL<>> {
+	typedef VTL<> 											Type;
 };
+
 
 }
 

@@ -31,13 +31,13 @@ class Filter {
         static const bool Value = Evaluator<Metadata, Expression, Record>::Value;
         typedef typename IfThenElse<
                     Value,
-                    TL<Record, typename Accumulator::Result>,
+                    typename AppendTool<Record, typename Accumulator::Result>::Result,
                     typename Accumulator::Result
         >::Result                                                               Result;
     };
 
     struct Init {
-        typedef NullType            Result;
+        typedef VTL<>            Result;
     };
 
 public:

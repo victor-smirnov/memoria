@@ -19,8 +19,6 @@ namespace memoria    {
 namespace btree      {
 
 
-using memoria::TL;
-
 template <
         typename Expression,
         typename Relation
@@ -28,19 +26,19 @@ template <
 class NodeFilter: public Filter<NodeDescriptorMetadata, Expression, Relation> {};
 
 
-template <typename List, typename Result = NullType> struct LevelListBuilder;
+template <typename List, typename Result = VTL<> > struct LevelListBuilder;
 
-template <typename Head, typename Tail, typename Result>
-struct LevelListBuilder<TL<Head, Tail>, Result> {
+template <typename Head, typename ... Tail, typename Result>
+struct LevelListBuilder<VTL<Head, Tail...>, Result> {
     static const BigInt Level = Head::Descriptor::Level;
 private:
-    typedef TL<TypeCode<Level>, Result>                                   NewResult;
+    typedef typename AppendTool<TypeCode<Level>, Result>::Result                NewResult;
 public:
-    typedef typename LevelListBuilder<Tail, NewResult>::List                    List;
+    typedef typename LevelListBuilder<VTL<Tail...>, NewResult>::List            List;
 };
 
 template <typename Result>
-struct LevelListBuilder<NullType, Result> {
+struct LevelListBuilder<VTL<>, Result> {
     typedef typename RemoveDuplicatesTool<Result>::Result                       List;
 };
 
@@ -50,7 +48,7 @@ namespace intrnl {
 template <
         typename List,
         typename SrcList,
-        typename Result = NullType
+        typename Result = VTL<>
 >
 class Node2NodeMapBuilderTool;
 
@@ -58,18 +56,18 @@ template <
         typename SrcList,
         typename Result
 >
-class Node2NodeMapBuilderTool<NullType, SrcList, Result> {
+class Node2NodeMapBuilderTool<VTL<>, SrcList, Result> {
 public:
     typedef Result                                                              Map;
 };
 
 template <
         typename Head,
-        typename Tail,
+        typename ... Tail,
         typename SrcList,
         typename Result
 >
-class Node2NodeMapBuilderTool<TL<Head, Tail>, SrcList, Result> {
+class Node2NodeMapBuilderTool<VTL<Head, Tail...>, SrcList, Result> {
     static const bool   Root  = Head::Descriptor::Root;
     static const bool   Leaf  = Head::Descriptor::Leaf;
     static const BigInt Level = Head::Descriptor::Level;
@@ -78,16 +76,16 @@ class Node2NodeMapBuilderTool<TL<Head, Tail>, SrcList, Result> {
     typedef typename NodeFilter<ValueOp<LEAF,  EQ, bool,  Leaf>,  InverseRootList>::Result SameLeafList;
     typedef typename NodeFilter<ValueOp<LEVEL, EQ, Short, Level>, SameLeafList>::Result    SameLevelList;
 
-    typedef TL<
+    typedef typename AppendTool<
                 Pair<
                     Head,
-                    typename SameLevelList::Head
+                    typename ListHead<SameLevelList>::Type
                 >,
                 Result
-            >                                                                   NewResult;
+            >::Result                                                           NewResult;
 
 public:
-    typedef typename Node2NodeMapBuilderTool<Tail, SrcList, NewResult>::Map     Map;
+    typedef typename Node2NodeMapBuilderTool<VTL<Tail...>, SrcList, NewResult>::Map     Map;
 };
 }
 
@@ -95,7 +93,7 @@ template <
         typename List,
         bool IsRoot2Node,
         typename SrcList = List,
-        typename Result = NullType
+        typename Result = VTL<>
 >
 class Node2NodeMapTool {
     typedef typename NodeFilter<
@@ -118,7 +116,7 @@ class FindNodeWithMaxLevelTool {
     >::Result                                                                   SubList;
 public:
     
-    typedef typename Sorter<NodeDescriptorMetadata, LEVEL, false, SubList>::Result::Head Type;
+    typedef typename ListHead<typename Sorter<NodeDescriptorMetadata, LEVEL, false, SubList>::Result>::Type Type;
 };
 
 }

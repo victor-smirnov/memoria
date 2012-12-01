@@ -33,18 +33,18 @@ struct BTreeTypes<Profile, memoria::VectorCtr>: public BTreeTypes<Profile, memor
 
     typedef BTreeTypes<Profile, memoria::DynVectorCtr>                              Base;
 
-    typedef typename appendLists<
+    typedef typename AppendTool<
             typename Base::ContainerPartsList,
-            typename TLTool<
+            VTL<
                 memoria::models::array::ApiName
-            >::List
+            >
     >::Result                                                                       ContainerPartsList;
 
-    typedef typename appendLists<
+    typedef typename AppendTool<
             typename Base::IteratorPartsList,
-            typename TLTool<
+            VTL<
                 memoria::models::array::IteratorContainerAPIName
-            >::List
+            >
     >::Result                                                                       IteratorPartsList;
 
     typedef ArrayData                                                               Buffer;

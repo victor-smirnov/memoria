@@ -19,10 +19,7 @@
 #include <memoria/prototypes/btree/pages/dispatchers/tools.hpp>
 
 namespace memoria    {
-namespace btree     {
-
-
-using memoria::TL;
+namespace btree      {
 
 template <
     typename LevelList,
@@ -33,7 +30,7 @@ class NodeFactoryHelper;
 template <
     typename Types
 >
-class NodeFactoryHelper<NullType, Types> {
+class NodeFactoryHelper<VTL<>, Types> {
 
     typedef typename Types::RootNode            RootNode;
     typedef typename Types::LeafNode            LeafNode;
@@ -74,10 +71,10 @@ public:
 
 template <
     typename Head,
-    typename Tail,
+    typename ... Tail,
     typename Types
 >
-class NodeFactoryHelper<TL<Head, Tail>, Types> {
+class NodeFactoryHelper<VTL<Head, Tail...>, Types> {
 
     typedef typename Types::NodeBase            NodeBase;
     typedef typename Types::NodeBaseG           NodeBaseG;
@@ -143,7 +140,7 @@ public:
         }
         else {
             return NodeFactoryHelper<
-                        Tail,
+                        VTL<Tail...>,
                         Types
                    >::create(allocator, level, root, leaf);
         }

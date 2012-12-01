@@ -18,23 +18,18 @@ namespace memoria    {
 template <typename Type>
 struct IsList: public FalseValue {};
 
-template <typename Head, typename Tail>
-struct IsList<TL<Head, Tail> >: public TrueValue {};
-
-template <>
-struct IsList<NullType>: public TrueValue {};
-
+template <typename ... List>
+struct IsList<VTL<List...> >: public TrueValue {};
 
 
 template <typename Type>
 struct IsNonemptyList: public FalseValue {};
 
-template <typename Head, typename Tail>
-struct IsNonemptyList<TL<Head, Tail> >: public TrueValue {};
+template <typename ... List>
+struct IsNonemptyList<VTL<List...>>: public TrueValue {};
 
 template <>
-struct IsNonemptyList<NullType>: public FalseValue {};
-
+struct IsNonemptyList<VTL<>>: public FalseValue {};
 
 }
 

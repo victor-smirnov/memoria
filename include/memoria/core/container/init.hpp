@@ -21,14 +21,14 @@ struct RootCtrListBuilder {
 
 template <>
 struct RootCtrListBuilder<-1> {
-    typedef NullType                                        Type;
+    typedef VTL<>                                        Type;
 };
 
 
 #define MEMORIA_DECLARE_ROOT_CTR(CtrType, Order)                                \
 template <>                                                                     \
 struct RootCtrListBuilder<Order> {                                              \
-    typedef TL<CtrType, typename RootCtrListBuilder<Order - 1>::Type>   Type;   \
+    typedef typename AppendTool<CtrType, typename RootCtrListBuilder<Order - 1>::Type>::Result   Type;   \
 };
 
 
@@ -44,14 +44,14 @@ struct ProfileListBuilder {
 
 template <>
 struct ProfileListBuilder<-1> {
-    typedef NullType                                        Type;
+    typedef VTL<>                                        Type;
 };
 
 
 #define MEMORIA_DECLARE_PROFILE(Profile, Order)                                 \
 template <>                                                                     \
 struct ProfileListBuilder<Order> {                                              \
-    typedef TL<Profile, typename ProfileListBuilder<Order - 1>::Type>   Type;   \
+    typedef typename AppendTool<Profile, typename ProfileListBuilder<Order - 1>::Type>::Result   Type;   \
 }
 
 }

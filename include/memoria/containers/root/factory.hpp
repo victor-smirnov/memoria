@@ -24,11 +24,11 @@ struct BTreeTypes<Profile, memoria::RootCtr>: public BTreeTypes<Profile, memoria
 
     typedef typename Base::ID                                               Value;
 
-    typedef typename appendLists<
+    typedef typename AppendTool<
                 typename Base::ContainerPartsList,
-                typename TLTool<
+                VTL<
                     memoria::models::root::CtrApiName
-                >::List
+                >
     >::Result                                                               ContainerPartsList;
 
     typedef RootCtrMetadata<typename Base::ID>                              Metadata;

@@ -47,10 +47,10 @@ template <
 >
 struct DynVectorContainerTypes: public Base {
 
-    typedef typename appendLists<
-                    typename TLTool<
+    typedef typename AppendTool<
+                    VTL<
                         DataPage_
-                    >::List,
+                    >,
                     typename Base::DataPagesList
     >::Result                                                                   DataPagesList;
 
@@ -68,27 +68,27 @@ struct BTreeTypes<Profile, memoria::DynVectorCtr>: public BTreeTypes<Profile, me
     typedef IDType                                                              Value;
     typedef BTreeTypes<Profile, memoria::BSTreeCtr>                             Base;
 
-    typedef NullType                                                            DataPagePartsList;
+    typedef VTL<>                                                            	DataPagePartsList;
 
     static const bool MapType                                                   = MapTypes::Sum;
 
-    typedef typename appendLists<
+    typedef typename AppendTool<
                     typename Base::ContainerPartsList,
-                    typename TLTool<
+                    VTL<
                         memoria::dynvector::ToolsName,
                         memoria::dynvector::RemoveName,
                         memoria::dynvector::InsertName,
                         memoria::dynvector::checksName,
                         memoria::dynvector::ReadName,
                         memoria::dynvector::SeekName
-                    >::List
+                    >
     >::Result                                                                   ContainerPartsList;
 
-    typedef typename appendLists<
+    typedef typename AppendTool<
                     typename Base::IteratorPartsList,
-                    typename TLTool<
+                    VTL<
                        memoria::dynvector::IteratorAPIName
-                    >::List
+                    >
     >::Result                                                                   IteratorPartsList;
 
 

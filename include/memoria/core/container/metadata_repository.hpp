@@ -79,13 +79,13 @@ class Memoria {
 public:
     static Int init()
     {
-        MetadataRepository<typename ProfileList::Head>::init();
-        return Memoria<typename ProfileList::Tail>::init();
+        MetadataRepository<typename ListHead<ProfileList>::Type>::init();
+        return Memoria<typename ListTail<ProfileList>::Type>::init();
     }
 };
 
 template <>
-class Memoria<NullType> {
+class Memoria<VTL<>> {
 public:
     static Int init() {
         return 1;
@@ -102,7 +102,7 @@ const int MEMORIA_INITIALIZED = ::memoria::Memoria<>::init()
 template <
 	template <int> class Decl,
 	int Value = 100,
-	typename List = NullType
+	typename List = VTL<>
 >
 class SimpleOrderedBuilder {
 	typedef typename Decl<Value>::Type 							DeclType;
@@ -132,14 +132,14 @@ typedef SimpleOrderedBuilder<CtrNameDeclarator> CtrNameListBuilder;
 template <typename ProfileType, typename NameList>
 struct CtrListInitializer {
 	static void init() {
-		CtrTF<ProfileType, typename NameList::Head>::Type::initMetadata();
+		CtrTF<ProfileType, typename ListHead<NameList>::Type>::Type::initMetadata();
 
-		CtrListInitializer<ProfileType, typename NameList::Tail>::init();
+		CtrListInitializer<ProfileType, typename ListTail<NameList>::Type>::init();
 	}
 };
 
 template <typename ProfileType>
-struct CtrListInitializer<ProfileType, NullType> {
+struct CtrListInitializer<ProfileType, VTL<> > {
 	static void init() {}
 };
 
@@ -154,7 +154,7 @@ template <
 	class CtrListBuilder = SimpleOrderedBuilder
 >
 class MetadataInitializer {
-	typedef typename CtrListBuilder<CtrNameDeclarator, 100, NullType>::Type CtrNameList;
+	typedef typename CtrListBuilder<CtrNameDeclarator, 100, VTL<> >::Type CtrNameList;
 
 public:
 	static void init() {

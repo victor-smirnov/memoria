@@ -9,6 +9,7 @@
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_ALGO_FOR_EACH_HPP
 #define _MEMORIA_CORE_TOOLS_TYPES_ALGO_FOR_EACH_HPP
 
+#include <memoria/core/types/types.hpp>
 #include <memoria/core/types/typelist.hpp>
 
 namespace memoria    {
@@ -20,7 +21,7 @@ template <
         typename Accumulator
 >
 struct ForEach;
-
+/*
 template <
         typename Config,
         template <typename, typename, typename> class Handler,
@@ -45,6 +46,39 @@ struct ForEach<Config, TL<Head, Tail>, Handler, Accumulator> {
                 Handler<Config, Head, Accumulator>
     >::Result                                                                   Result;
 };
+
+
+*/
+
+
+
+
+template <
+        typename Config,
+        template <typename, typename, typename> class Handler,
+        typename Accumulator
+>
+struct ForEach<Config, VTL<>, Handler, Accumulator> {
+    typedef Accumulator                                                         Result;
+};
+
+template <
+        typename Config,
+        typename Head,
+        typename ... Tail,
+        template <typename, typename, typename> class Handler,
+        typename Accumulator
+>
+struct ForEach<Config, VTL<Head, Tail...>, Handler, Accumulator> {
+    typedef typename ForEach<
+                Config,
+                VTL<Tail...>,
+                Handler,
+                Handler<Config, Head, Accumulator>
+    >::Result                                                                   Result;
+};
+
+
 
 }
 

@@ -20,17 +20,17 @@ using namespace memoria::vapi;
 
 template <typename T, T ... Data> struct Array {};
 
-template <typename... List> struct TypeList;
+//template <typename... List> struct TypeList;
 
-template <>
-struct TypeList<> {
-	typedef NullType Type;
-};
-
-template <typename Head, typename ... Tail>
-struct TypeList<Head, Tail...> {
-	typedef TL<Head, typename TypeList<Tail...>::Type> Type;
-};
+//template <>
+//struct TypeList<> {
+//	typedef VTL<> Type;
+//};
+//
+//template <typename Head, typename ... Tail>
+//struct TypeList<Head, Tail...> {
+//	typedef VTL<Head, typename TypeList<Tail...>::Type> Type;
+//};
 
 
 
@@ -308,7 +308,7 @@ public:
 
 int main(void) {
 
-	cout<<TypeNameFactory<TypeList<int,long,float,double>::Type>::name()<<endl;
+	cout<<TypeNameFactory<VTL<int,long,float,double>>::name()<<endl;
 
 	cout<<TypeNameFactory<Get<3, int,long,float,double>::Type>::name()<<endl;
 

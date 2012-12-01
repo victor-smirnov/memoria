@@ -12,8 +12,6 @@
 namespace memoria    {
 namespace btree      {
 
-using memoria::TL;
-
 template <typename Types, int idx> class NDT0;
 template <typename Types, int idx> class NDT1;
 
