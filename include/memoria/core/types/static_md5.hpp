@@ -9,9 +9,13 @@
 #define _MEMORIA_CORE_TOOLS_TYPES_STATIC_MD5_HPP
 
 #include <memoria/core/types/algo/select.hpp>
+#include <memoria/core/tools/type_name.hpp>
 
 namespace memoria   {
 namespace md5       {
+
+using namespace memoria::vapi;
+using namespace std;
 
 template <UInt X, UInt Y, UInt Z>
 struct FunF {
@@ -95,7 +99,7 @@ class Block<Quad<A, B, C, D>, Fun, X, K, S, I> {
                   >::Value;
 
 public:
-    typedef Quad<D, ValueB, B, A> Result;
+    typedef Quad<D, ValueB, B, C> Result;
 };
 
 typedef Quad<0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476> Q0;
@@ -125,7 +129,12 @@ class Round1 {
     typedef typename Block<R15, FunF, X, 15, 22, 16>::Result    R16;
 
 public:
-    typedef Quad<R0::A + R16::A, R0::B + R16::B, R0::C + R16::C, R0::D + R16::D>    Result;
+
+    typedef R16                                                                 Result;
+
+    static void dump() {
+        cout<<TypeNameFactory<Result>::name()<<endl;
+    }
 };
 
 
@@ -153,7 +162,11 @@ class Round2 {
     typedef typename Block<R15, FunG, X, 12, 20, 32>::Result    R16;
 
 public:
-    typedef Quad<R0::A + R16::A, R0::B + R16::B, R0::C + R16::C, R0::D + R16::D>    Result;
+    typedef R16                                                                 Result;
+
+    static void dump() {
+        cout<<TypeNameFactory<Result>::name()<<endl;
+    }
 };
 
 
@@ -180,33 +193,41 @@ class Round3 {
     typedef typename Block<R15, FunH, X,  2, 23, 48>::Result    R16;
 
 public:
-    typedef Quad<R0::A + R16::A, R0::B + R16::B, R0::C + R16::C, R0::D + R16::D>    Result;
+    typedef R16                                                                 Result;
+
+    static void dump() {
+        cout<<TypeNameFactory<Result>::name()<<endl;
+    }
 };
 
 template <typename R0, typename X>
 class Round4 {
-    typedef typename Block<R0, FunH, X,  0,  6, 49>::Result     R1;
-    typedef typename Block<R1, FunH, X,  7, 10, 50>::Result     R2;
-    typedef typename Block<R2, FunH, X, 14, 15, 51>::Result     R3;
-    typedef typename Block<R3, FunH, X,  5, 21, 52>::Result     R4;
+    typedef typename Block<R0, FunI, X,  0,  6, 49>::Result     R1;
+    typedef typename Block<R1, FunI, X,  7, 10, 50>::Result     R2;
+    typedef typename Block<R2, FunI, X, 14, 15, 51>::Result     R3;
+    typedef typename Block<R3, FunI, X,  5, 21, 52>::Result     R4;
 
-    typedef typename Block<R4, FunH, X, 12,  6, 53>::Result     R5;
-    typedef typename Block<R5, FunH, X,  3, 10, 54>::Result     R6;
-    typedef typename Block<R6, FunH, X, 10, 15, 55>::Result     R7;
-    typedef typename Block<R7, FunH, X,  1, 21, 56>::Result     R8;
+    typedef typename Block<R4, FunI, X, 12,  6, 53>::Result     R5;
+    typedef typename Block<R5, FunI, X,  3, 10, 54>::Result     R6;
+    typedef typename Block<R6, FunI, X, 10, 15, 55>::Result     R7;
+    typedef typename Block<R7, FunI, X,  1, 21, 56>::Result     R8;
 
-    typedef typename Block<R8,  FunH, X,  8,  6, 57>::Result    R9;
-    typedef typename Block<R9,  FunH, X, 15, 10, 58>::Result    R10;
-    typedef typename Block<R10, FunH, X,  6, 15, 59>::Result    R11;
-    typedef typename Block<R11, FunH, X, 13, 21, 60>::Result    R12;
+    typedef typename Block<R8,  FunI, X,  8,  6, 57>::Result    R9;
+    typedef typename Block<R9,  FunI, X, 15, 10, 58>::Result    R10;
+    typedef typename Block<R10, FunI, X,  6, 15, 59>::Result    R11;
+    typedef typename Block<R11, FunI, X, 13, 21, 60>::Result    R12;
 
-    typedef typename Block<R12, FunH, X,  4,  6, 61>::Result    R13;
-    typedef typename Block<R13, FunH, X, 11, 10, 62>::Result    R14;
-    typedef typename Block<R14, FunH, X,  2, 15, 63>::Result    R15;
-    typedef typename Block<R15, FunH, X,  9, 21, 64>::Result    R16;
+    typedef typename Block<R12, FunI, X,  4,  6, 61>::Result    R13;
+    typedef typename Block<R13, FunI, X, 11, 10, 62>::Result    R14;
+    typedef typename Block<R14, FunI, X,  2, 15, 63>::Result    R15;
+    typedef typename Block<R15, FunI, X,  9, 21, 64>::Result    R16;
 
 public:
-    typedef Quad<R0::A + R16::A, R0::B + R16::B, R0::C + R16::C, R0::D + R16::D>    Result;
+    typedef R16                                                                 Result;
+
+    static void dump() {
+        cout<<TypeNameFactory<Result>::name()<<endl;
+    }
 };
 
 template <typename Q0, typename X>
@@ -217,7 +238,17 @@ class Md5Round {
     typedef typename Round4<R3, X>::Result R4;
 
 public:
-    typedef R4 Result;
+    typedef Quad<Q0::A + R4::A, Q0::B + R4::B, Q0::C + R4::C, Q0::D + R4::D>    Result;
+
+
+    static void dump() {
+        Round1<Q0, X>::dump();
+        Round1<R1, X>::dump();
+        Round1<R2, X>::dump();
+        Round1<R3, X>::dump();
+
+        cout<<"RoundTotal: "<<TypeNameFactory<Result>::name()<<endl;
+    }
 };
 
 
@@ -228,20 +259,34 @@ template <typename List, typename Initial> class Md5SumHelper;
 
 template <UInt ... Data, typename Initial>
 class Md5SumHelper<ValueList<UInt, Data...>, Initial> {
+
     typedef ValueList<UInt, Data...>                    List;
-    typedef typename Md5Round<Initial, List>::Result    RoundResult;
+    typedef Md5Round<Initial, List>                     Round;
+
+    typedef typename Round::Result                      RoundResult;
+
+    typedef Md5SumHelper<
+                    typename Sublist<16, List>::Type,
+                    RoundResult
+    >                                                                           Helper;
 
 public:
-    typedef typename Md5SumHelper<
-                typename Sublist<16, List>::Type,
-                RoundResult
-    >::Result                                                                   Result;
+    typedef typename Helper::Result                                             Result;
+
+    static void dump() {
+        Round::dump();
+        Helper::dump();
+    }
 };
 
 template <typename Initial>
 class Md5SumHelper<ValueList<UInt>, Initial> {
 public:
     typedef Initial Result;
+
+    static void dump() {
+        cout<<"Final Result: "<<TypeNameFactory<Initial>::name()<<endl;
+    }
 };
 
 }
@@ -250,14 +295,20 @@ public:
 template <typename List> struct Md5Sum;
 template <UInt ... Data>
 struct Md5Sum<ValueList<UInt, Data...>> {
+    typedef typename AppendValueTool<
+            UInt,
+            sizeof...(Data),
+            ValueList<UInt, Data...>
+    >::Result                                                                   List;
+
     typedef typename internal::Md5SumHelper<
-                typename AppendValueTool<
-                            UInt,
-                            sizeof...(Data),
-                            ValueList<UInt, Data...>
-                >::Result,
+                List,
                 Q0
     >::Result                                                                   Result;
+
+    static void dump() {
+        internal::Md5SumHelper<List, Q0>::dump();
+    }
 };
 
 

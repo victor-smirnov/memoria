@@ -8,6 +8,7 @@
 
 #include <memoria/metadata/tools.hpp>
 #include <memoria/core/tools/array_data.hpp>
+#include <memoria/core/tools/hash.hpp>
 
 namespace memoria {
 
