@@ -47,6 +47,8 @@ public:
                 typename PageData::FieldsList
     >::Result                                                                   FieldsList;
 
+    static const UInt PAGE_HASH = md5::Md5Sum<typename TypeToValueList<FieldsList>::Type>::Result::Value32;
+
 private:
 
     PageData data_;
@@ -180,12 +182,9 @@ public:
     {
         if (reflection_ == NULL)
         {
-            MetadataList list;
-
-            Int hash0 = 1234567;
             Int attrs = BITMAP;
 
-            reflection_ = new PageMetadata("DATA_PAGE", list, attrs, hash0, new PageOperations(), Allocator::PAGE_SIZE);
+            reflection_ = new PageMetadata("DATA_PAGE", attrs, PAGE_HASH, new PageOperations(), Allocator::PAGE_SIZE);
         }
         else {}
 

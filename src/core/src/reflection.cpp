@@ -96,13 +96,12 @@ ContainerMetadata* ContainerMetadataRepository::getContainerMetadata(Int hashCod
 
 PageMetadata::PageMetadata(
                 StringRef name,
-                const MetadataList &content,
                 Int attributes,
                 Int hash0,
                 const IPageOperations* page_operations,
                 Int page_size
               ):
-    MetadataGroup(name, content), attributes_(attributes)
+    MetadataGroup(name), attributes_(attributes)
 {
     MetadataGroup::set_type() = Metadata::PAGE;
     hash_ = hash0;

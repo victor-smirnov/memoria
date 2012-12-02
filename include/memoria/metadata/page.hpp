@@ -79,7 +79,6 @@ struct MEMORIA_API PageMetadata: public MetadataGroup
 {
     PageMetadata(
             StringRef name,
-            const MetadataList &content,
             Int attributes,
             Int hash0,
             const IPageOperations* page_operations,

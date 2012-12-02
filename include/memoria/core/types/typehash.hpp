@@ -16,6 +16,11 @@
 
 namespace memoria    {
 
+struct TypeHashes {
+    enum {SCALAR, ARRAY, CONST_VALUE};
+};
+
+
 template <typename Type> class TypeHash;
 
 template <>
@@ -87,7 +92,13 @@ public:
 template <typename T, T V>
 class TypeHash<ConstValue<T, V>> {
 public:
-    static const UInt Value = (TypeHash<T>::Value << 16) + V;
+    static const UInt Value = md5::Md5Sum<ValueList<UInt, TypeHash<T>::Value, TypeHashes::CONST_VALUE, V>>::Result::Value32;
+};
+
+template <typename T, size_t Size>
+class TypeHash<T[Size]> {
+public:
+    static const UInt Value = md5::Md5Sum<ValueList<UInt, TypeHash<T>::Value, TypeHashes::ARRAY, Size>>::Result::Value32;
 };
 
 }

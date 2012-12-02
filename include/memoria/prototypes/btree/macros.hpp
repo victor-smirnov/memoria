@@ -28,9 +28,9 @@ public:
     BTreeContainerBaseClassName(const ThisType& other): Base(other) {}                  \
     BTreeContainerBaseClassName(ThisType&& other): Base(std::move(other)) {}            \
     BTreeContainerBaseClassName(ThisType&& other, typename TypesType::Allocator* allocator): \
-    	Base(std::move(other), allocator)  {}                                           \
+        Base(std::move(other), allocator)  {}                                           \
     BTreeContainerBaseClassName(const ThisType& other, typename TypesType::Allocator* allocator): \
-    	Base(other, allocator)        {}                                                \
+        Base(other, allocator)        {}                                                \
 
 
 #define MEMORIA_BTREE_MODEL_BASE_CLASS_END                                              \

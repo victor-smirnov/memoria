@@ -25,6 +25,10 @@ public:
         }
     }
 
+    MetadataGroup(StringRef name, Int block_size = 0, Int type = Metadata::GROUP):
+        Metadata(name, type), block_size_(block_size)
+    {}
+
     virtual ~MetadataGroup() throw ()
     {
         for (UInt c = 0; c < content_.size(); c++)

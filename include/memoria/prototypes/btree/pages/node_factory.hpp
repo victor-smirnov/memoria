@@ -248,13 +248,9 @@ public:
     {
         if (reflection_ == NULL)
         {
-            MetadataList list;
-
-
-
             Int attrs = BTREE + Descriptor::Root * ROOT + Descriptor::Leaf * LEAF;
 
-            reflection_ = new PageMetadata("BTREE_PAGE", list, attrs, hash(), new PageOperations(), Allocator::PAGE_SIZE);
+            reflection_ = new PageMetadata("BTREE_PAGE", attrs, hash(), new PageOperations(), Allocator::PAGE_SIZE);
         }
         else {}
 
