@@ -78,6 +78,8 @@ private:
             typename Map::FieldsList
     >::Result                                                                   FieldsList;
 
+    static const UInt PAGE_HASH = md5::Md5Sum<typename TypeToValueList<FieldsList>::Type>::Result::Value32;
+
     Map map_;
 
     static PageMetadata *reflection_;
@@ -92,7 +94,7 @@ public:
     NodePage(): Base(), map_() {}
 
     static Int hash() {
-        return reflection_->hash();
+        return PAGE_HASH;
     }
 
     static PageMetadata *reflection() {
@@ -248,11 +250,11 @@ public:
         {
             MetadataList list;
 
-            UInt hash0 = md5::Md5Sum<typename TypeToValueList<FieldsList>::Type>::Result::Value32;
+
 
             Int attrs = BTREE + Descriptor::Root * ROOT + Descriptor::Leaf * LEAF;
 
-            reflection_ = new PageMetadata("BTREE_PAGE", list, attrs, hash0, new PageOperations(), Allocator::PAGE_SIZE);
+            reflection_ = new PageMetadata("BTREE_PAGE", list, attrs, hash(), new PageOperations(), Allocator::PAGE_SIZE);
         }
         else {}
 

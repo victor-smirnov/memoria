@@ -103,7 +103,7 @@ public:
         other.shared_ = NULL;
     }
 
-    ContainerBase(ThisType&& other, Allocator& allocator):
+    ContainerBase(ThisType&& other, Allocator* allocator):
         shared_(other.shared_)
     {
         other.shared_ = NULL;

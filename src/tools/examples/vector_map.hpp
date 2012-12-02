@@ -20,7 +20,7 @@ namespace memoria {
 class VectorMapExample: public SPExampleTask {
 
 private:
-    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type               MapCtrType;
+    typedef SmallCtrTypeFactory::Factory<VectorMapCtr>::Type                MapCtrType;
     typedef typename MapCtrType::Iterator                                   Iterator;
     typedef typename MapCtrType::ID                                         ID;
 
@@ -50,7 +50,7 @@ public:
             Allocator allocator;
             allocator.getLogger()->setHandler(&logHandler);
 
-            MapCtrType map(allocator, 1, true);
+            MapCtrType map(&allocator, 1, true);
 
             for (Int c = 1; c <= 10; c++)
             {

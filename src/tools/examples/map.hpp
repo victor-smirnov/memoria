@@ -24,7 +24,7 @@ public:
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                MapCtrType;
+    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                 MapCtrType;
     typedef typename MapCtrType::Iterator                               Iterator;
     typedef typename MapCtrType::ID                                     ID;
 
@@ -59,7 +59,7 @@ public:
             Allocator allocator;
             allocator.getLogger()->setHandler(&logHandler);
 
-            MapCtrType map(allocator, 1, true);
+            MapCtrType map(&allocator, 1, true);
 
 
             for (Int c = 0; c < 10; c++)

@@ -21,7 +21,7 @@ public:
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMap>::Type           MapCtrType;
+    typedef SmallCtrTypeFactory::Factory<VectorMapCtr>::Type            MapCtrType;
     typedef typename MapCtrType::Iterator                               Iterator;
     typedef typename MapCtrType::ID                                     ID;
 
@@ -42,7 +42,7 @@ public:
 
     MapCtrType createCtr(Allocator& allocator, BigInt name)
     {
-        return MapCtrType(allocator, name, true);
+        return MapCtrType(&allocator, name, true);
     }
 
     MapCtrType createCtr1(Allocator& allocator, BigInt name)

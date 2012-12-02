@@ -31,35 +31,35 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VectorMapContainerBase)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::CtrShared                                            CtrShared;
 
-    typedef typename CtrTF<Profile, VMset<2>, VMset<2> >::Type                  Idxset;
+    typedef typename CtrTF<Profile, VMset<2>, VMset<2> >::Type                  IdxSet;
     typedef typename CtrTF<Profile, VectorCtr,  VectorCtr>::Type                ByteArray;
 
-    typedef typename Idxset::Accumulator                                        IdxsetAccumulator;
+    typedef typename IdxSet::Accumulator                                        IdxsetAccumulator;
 
-    typedef typename Idxset::Key                                                Key;
-    typedef typename Idxset::Value                                              ISValue;
+    typedef typename IdxSet::Key                                                Key;
+    typedef typename IdxSet::Value                                              ISValue;
 
-    static const Int IS_Indexes                                                 = Idxset::Indexes;
+    static const Int IS_Indexes                                                 = IdxSet::Indexes;
     static const Int BA_Indexes                                                 = ByteArray::Indexes;
 
 private:
     ByteArray   array_;
-    Idxset      set_;
+    IdxSet      set_;
 
 public:
 
     VectorMapContainerBase(): Base(), array_(NoParamCtr()), set_(NoParamCtr()) {}
 
-    VectorMapContainerBase(const ThisType& other, Allocator& allocator):
+    VectorMapContainerBase(const ThisType& other, Allocator* allocator):
         Base(other, allocator),
         array_(other.array_, allocator),
-        set_(other.set_, array_)
+        set_(other.set_, allocator)
     {}
 
-    VectorMapContainerBase(ThisType&& other, Allocator& allocator):
+    VectorMapContainerBase(ThisType&& other, Allocator* allocator):
         Base(std::move(other), allocator),
         array_(std::move(other.array_), allocator),
-        set_(std::move(other.set_), array_)
+        set_(std::move(other.set_), allocator)
     {}
 
     //broken constructor
@@ -75,7 +75,7 @@ public:
         set_(NoParamCtr())
     {}
 
-    Idxset& set() {
+    IdxSet& set() {
         return set_;
     }
 
@@ -83,7 +83,7 @@ public:
         return array_;
     }
 
-    const Idxset& set() const {
+    const IdxSet& set() const {
         return set_;
     }
 
@@ -126,13 +126,13 @@ public:
 
     static Int initMetadata()
     {
-        Int hash = Idxset::initMetadata() + ByteArray::initMetadata();
+        Int hash = IdxSet::initMetadata() + ByteArray::initMetadata();
 
         if (Base::reflection() == NULL)
         {
             MetadataList list;
 
-            Idxset::reflection()->putAll(list);
+            IdxSet::reflection()->putAll(list);
             ByteArray::reflection()->putAll(list);
 
             Base::setMetadata(new ContainerMetadata(
@@ -179,7 +179,7 @@ public:
 
     void setBranchingFactor(Int count)
     {
-        typename Idxset::Metadata set_meta = set_.getRootMetadata();
+        typename IdxSet::Metadata set_meta = set_.getRootMetadata();
         set_meta.branching_factor() = count;
         set_.setRootMetadata(set_meta);
 

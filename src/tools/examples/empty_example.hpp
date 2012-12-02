@@ -30,7 +30,7 @@ public:
     EmptyExample() :
         ExampleTask("EmptyExample"), param(-1)
     {
-        Add("param", param)->setMandatory(true);
+        Add("param", param)->setMandatory(false);
     }
 
     virtual ~EmptyExample() throw ()

@@ -24,10 +24,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vector_map::ItrApiName)
 
 typedef Ctr<VectorMapCtrTypes<Types> >                      ContainerType;
 
-typedef typename ContainerType::Idxset::Iterator            IdxsetIterator;
+typedef typename ContainerType::IdxSet::Iterator            IdxsetIterator;
 typedef typename ContainerType::ByteArray::Iterator         ByteArrayIterator;
 
-typedef typename ContainerType::Idxset::Accumulator         IdxsetAccumulator;
+typedef typename ContainerType::IdxSet::Accumulator         IdxsetAccumulator;
 
 typedef typename Types::Profile                             Profile;
 typedef typename Types::Allocator                           Allocator;
