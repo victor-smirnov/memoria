@@ -419,7 +419,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         if (page != NULL)
         {
             PageWrapper<Page, Allocator::PAGE_SIZE> pw(page);
-            PageMetadata* meta = me()->reflection()->getPageMetadata(pw.getPageTypeHash());
+            PageMetadata* meta = me()->getMetadata()->getPageMetadata(pw.getPageTypeHash());
             memoria::vapi::dumpPage(meta, &pw, out);
             out<<endl;
             out<<endl;

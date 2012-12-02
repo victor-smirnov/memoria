@@ -35,7 +35,6 @@ public:
         {
 
             if (content_[c]->getTypeCode() != Metadata::PAGE &&
-                    content_[c]->getTypeCode() != Metadata::MODEL &&
                     content_[c]->getTypeCode() != Metadata::CONTAINER)
             {
                 delete content_[c];
@@ -78,7 +77,7 @@ protected:
 inline bool isGroup(Metadata *meta)
 {
     Int type = meta->getTypeCode();
-    return type == Metadata::GROUP || type == Metadata::CONTAINER || type == Metadata::MODEL ||
+    return type == Metadata::GROUP || type == Metadata::CONTAINER ||
         type == Metadata::PAGE;
 }
 

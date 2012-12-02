@@ -53,7 +53,7 @@ private:
 
     PageData data_;
 
-    static PageMetadata *reflection_;
+    static PageMetadata *page_metadata_;
 
 public:
 
@@ -77,12 +77,12 @@ public:
     }
 
     static Int hash() {
-        return reflection()->hash();
+        return PAGE_HASH;
     }
 
-    static PageMetadata *reflection()
+    static PageMetadata *page_metadata()
     {
-        return reflection_;
+        return page_metadata_;
     }
 
     void Reindex()
@@ -180,15 +180,15 @@ public:
 
     static Int initMetadata()
     {
-        if (reflection_ == NULL)
+        if (page_metadata_ == NULL)
         {
             Int attrs = BITMAP;
 
-            reflection_ = new PageMetadata("DATA_PAGE", attrs, PAGE_HASH, new PageOperations(), Allocator::PAGE_SIZE);
+            page_metadata_ = new PageMetadata("DATA_PAGE", attrs, PAGE_HASH, new PageOperations(), Allocator::PAGE_SIZE);
         }
         else {}
 
-        return reflection_->hash();
+        return page_metadata_->hash();
     }
 };
 
@@ -198,7 +198,7 @@ template <
         template <Int> class DataBlockTypeFactory,
         typename BaseType
 >
-PageMetadata* DVDataPage<ComponentList, DataBlockTypeFactory, BaseType>::reflection_ = NULL;
+PageMetadata* DVDataPage<ComponentList, DataBlockTypeFactory, BaseType>::page_metadata_ = NULL;
 
 #pragma pack()
 

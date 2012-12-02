@@ -128,12 +128,12 @@ public:
     {
         Int hash = IdxSet::initMetadata() + ByteArray::initMetadata();
 
-        if (Base::reflection() == NULL)
+        if (Base::getMetadata() == NULL)
         {
             MetadataList list;
 
-            IdxSet::reflection()->putAll(list);
-            ByteArray::reflection()->putAll(list);
+            IdxSet::getMetadata()->putAll(list);
+            ByteArray::getMetadata()->putAll(list);
 
             Base::setMetadata(new ContainerMetadata(
                                     "memoria::VectorMap",

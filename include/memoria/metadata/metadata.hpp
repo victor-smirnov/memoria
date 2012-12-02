@@ -40,9 +40,7 @@ typedef std::map<Int, ContainerMetadata*>               ContainerMetadataMap;
 struct MEMORIA_API Metadata {
 
 public:
-    enum   {BYTE,   UBYTE,  SHORT,   USHORT, INT,    UINT,
-        BIGINT, ID,     BITMAP,  FLAG,   GROUP,  PAGE,
-        MODEL,  CONTAINER, MAP};
+    enum   {GROUP,  PAGE, CONTAINER};
 
     typedef Metadata            Me;
 
@@ -63,8 +61,6 @@ public:
     {
         if (this->getTypeCode() == Metadata::GROUP ||
                 this->getTypeCode() == Metadata::PAGE  ||
-                this->getTypeCode() == Metadata::MODEL ||
-                this->getTypeCode() == Metadata::MAP   ||
                 this->getTypeCode() == Metadata::CONTAINER)
         {
             return true;
@@ -73,19 +69,6 @@ public:
             return false;
         }
     }
-
-    virtual bool isField() const {
-        return !isGroup();
-    }
-
-    virtual bool isNumber() const {
-        return (!isGroup())
-                && this->getTypeCode() != Metadata::ID
-                && this->getTypeCode() != Metadata::BIGINT
-                && this->getTypeCode() != Metadata::FLAG;
-    }
-
-
 
 protected:
 

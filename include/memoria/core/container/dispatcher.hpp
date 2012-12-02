@@ -84,7 +84,7 @@ public:
 
     static void buildMetadataList(MetadataList &list) {
         Head1::initMetadata();
-        Metadata* metadata = Head1::reflection();
+        Metadata* metadata = Head1::page_metadata();
         list.push_back(metadata);
         ContainerDispatcher<Profile, Allocator, Tail1>::buildMetadataList(list);
     }
@@ -217,7 +217,7 @@ class PageInitDispatcher<TypeList<Head, Tail...> > {
 public:
     static void buildMetadataList(MetadataList &list) {
         Head::initMetadata();
-        list.push_back(Head::reflection());
+        list.push_back(Head::page_metadata());
         PageInitDispatcher<TypeList<Tail...>>::buildMetadataList(list);
     }
 

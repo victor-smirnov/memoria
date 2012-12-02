@@ -26,11 +26,11 @@ namespace vapi {
 ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const MetadataList &content):
         MetadataGroup(name, content), hash_(0)
 {
-    MetadataGroup::set_type() = Metadata::MODEL;
+    MetadataGroup::set_type() = Metadata::CONTAINER;
 
     for (UInt c = 0; c < content_.size(); c++)
     {
-        if (content[c]->getTypeCode() == Metadata::MODEL)
+        if (content[c]->getTypeCode() == Metadata::CONTAINER)
         {
             ContainerMetadata *model = static_cast<ContainerMetadata*> (content_[c]);
             process_model(model);
@@ -57,7 +57,7 @@ void ContainerMetadataRepository::process_model(ContainerMetadata* model)
                 PageMetadata *page = static_cast<PageMetadata*> (item);
                 page_map_[page->hash()] = page;
             }
-            else if (item->getTypeCode() == Metadata::MODEL)
+            else if (item->getTypeCode() == Metadata::CONTAINER)
             {
                 process_model(static_cast<ContainerMetadata*> (item));
             }

@@ -161,12 +161,12 @@ public:
         Base::set_root(true);
     }
 
-    const Metadata &metadata() const
+    const Metadata &root_metadata() const
     {
         return metadata_;
     }
 
-    Metadata &metadata()
+    Metadata &root_metadata()
     {
         return metadata_;
     }

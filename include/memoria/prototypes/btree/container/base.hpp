@@ -69,7 +69,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         BTreeCtrShared(BigInt name): CtrShared(name), metadata_updated(false)                            {}
         BTreeCtrShared(BigInt name, CtrShared* parent): CtrShared(name, parent), metadata_updated(false) {}
 
-        const Metadata& metadata() const { return metadata_updated ? metadata_log_ : metadata_ ;}
+        const Metadata& root_metadata() const { return metadata_updated ? metadata_log_ : metadata_ ;}
 
         void update_metadata(const Metadata& metadata)
         {
@@ -133,7 +133,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         template <typename Node>
         void operator()(const Node* node)
         {
-            name_ = node->metadata().model_name();
+            name_ = node->root_metadata().model_name();
         }
     };
 
@@ -146,7 +146,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         template <typename Node>
         void operator()(Node* node)
         {
-            node->metadata().model_name() = name_;
+            node->root_metadata().model_name() = name_;
         }
     };
 
@@ -223,7 +223,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         template <typename Node>
         void operator()(const Node* node)
         {
-            root_ = node->metadata().roots(name_);
+            root_ = node->root_metadata().roots(name_);
         }
     };
 
@@ -250,9 +250,9 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         template <typename Node>
         void operator()(Node* node)
         {
-            node->metadata().roots(name_) = root_;
+            node->root_metadata().roots(name_) = root_;
 
-            metadata_ = node->metadata();
+            metadata_ = node->root_metadata();
         }
     };
 
@@ -280,7 +280,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         template <typename T>
         void operator()(T *node) {
-            metadata_ = node->metadata();
+            metadata_ = node->root_metadata();
         }
     };
 
@@ -293,7 +293,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         template <typename T>
         void operator()(T *node)
         {
-            node->metadata() = metadata_;
+            node->root_metadata() = metadata_;
         }
     };
 
@@ -324,7 +324,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     const Metadata& getRootMetadata() const
     {
-        return T2T<const BTreeCtrShared*>(me()->shared())->metadata();
+        return T2T<const BTreeCtrShared*>(me()->shared())->root_metadata();
     }
 
     void setRootMetadata(const Metadata& metadata) const

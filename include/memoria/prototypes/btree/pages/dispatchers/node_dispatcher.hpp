@@ -269,7 +269,7 @@ public:
 
     static void buildMetadataList(MetadataList &list) {
         Head::initMetadata();
-        list.push_back(Head::reflection());
+        list.push_back(Head::page_metadata());
         NDT0<Types, Idx - 1>::buildMetadataList(list);
     }
 };

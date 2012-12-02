@@ -82,7 +82,7 @@ private:
 
     Map map_;
 
-    static PageMetadata *reflection_;
+    static PageMetadata *page_metadata_;
 
 public:
 
@@ -97,8 +97,8 @@ public:
         return PAGE_HASH;
     }
 
-    static PageMetadata *reflection() {
-        return reflection_;
+    static PageMetadata *page_metadata() {
+        return page_metadata_;
     }
 
     const Map &map() const
@@ -246,15 +246,15 @@ public:
 
     static Int initMetadata()
     {
-        if (reflection_ == NULL)
+        if (page_metadata_ == NULL)
         {
             Int attrs = BTREE + Descriptor::Root * ROOT + Descriptor::Leaf * LEAF;
 
-            reflection_ = new PageMetadata("BTREE_PAGE", attrs, hash(), new PageOperations(), Allocator::PAGE_SIZE);
+            page_metadata_ = new PageMetadata("BTREE_PAGE", attrs, hash(), new PageOperations(), Allocator::PAGE_SIZE);
         }
         else {}
 
-        return reflection_->hash();
+        return page_metadata_->hash();
     }
 };
 
@@ -262,7 +262,7 @@ public:
 template <
         typename Types
 >
-PageMetadata* NodePage<Types>::reflection_ = NULL;
+PageMetadata* NodePage<Types>::page_metadata_ = NULL;
 
 
 #pragma pack()

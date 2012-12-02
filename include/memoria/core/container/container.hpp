@@ -15,7 +15,7 @@
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/tools/assert.hpp>
 
-#include <memoria/metadata/model.hpp>
+#include <memoria/metadata/container.hpp>
 
 #include <memoria/core/container/logs.hpp>
 #include <memoria/core/container/names.hpp>
@@ -127,7 +127,7 @@ public:
     }
 
 
-    MEMORIA_PUBLIC static ContainerMetadata* reflection()
+    MEMORIA_PUBLIC static ContainerMetadata* getMetadata()
     {
         return reflection_;
     }

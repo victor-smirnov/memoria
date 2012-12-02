@@ -200,7 +200,7 @@ void RemoveElements(Node *node, Int from, Int count, bool reindex)
 struct CopyRootMetadataFn {
     template <typename Tgt, typename Src>
     void operator()(Src *src, Tgt *tgt) {
-        tgt->metadata() = src->metadata();
+        tgt->root_metadata() = src->root_metadata();
     }
 };
 
@@ -235,7 +235,7 @@ public:
         tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(RootType));
 
         tgt->copyFrom(src);
-        tgt->metadata() = metadata_;
+        tgt->root_metadata() = metadata_;
 
         tgt->set_root(true);
 

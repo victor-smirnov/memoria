@@ -65,7 +65,7 @@ node_base *node2root(node_base *node)
 void copy_root_metadata(node_base *src, node_base *tgt)
 {
     BV_ROOT_CAST2(src,
-                  BV_ROOT_CAST2(tgt, __tgt->metadata() = __src->metadata())
+                  BV_ROOT_CAST2(tgt, __tgt->root_metadata() = __src->root_metadata())
                  );
 }
 
