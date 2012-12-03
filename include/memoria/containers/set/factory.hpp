@@ -12,18 +12,6 @@
 
 #include <memoria/containers/map/factory.hpp>
 
-namespace memoria    {
-
-
-
-template <typename Profile, Int Indexes>
-struct BTreeTypes<Profile, memoria::SetCtr<Indexes> >: public BTreeTypes<Profile, memoria::MapCtr<BigInt, EmptyValue, Indexes> > {
-};
-
-template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::SetCtr<Indexes>, T>: public CtrTF<Profile, memoria::MapCtr<BigInt, EmptyValue, Indexes>, T> {
-};
-
-}
+namespace memoria    {}
 
 #endif

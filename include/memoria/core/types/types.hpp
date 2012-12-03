@@ -31,6 +31,8 @@ typedef uint8_t             UByte;
 typedef size_t              SizeT;
 
 
+
+
 namespace internal {
 template <int size> struct PlatformLongHelper;
 
@@ -65,6 +67,26 @@ template <typename T, T V> struct ConstValue {
 template <UInt Value>
 using UIntValue = ConstValue<UInt, Value>;
 
+
+class EmptyValue {
+public:
+    EmptyValue() {}
+    EmptyValue(const BigInt) {}
+    EmptyValue(const EmptyValue& other) {}
+    EmptyValue& operator=(const EmptyValue& other) {
+        return *this;
+    }
+
+    template <typename T>
+    operator T () {
+        return 0;
+    }
+
+    operator BigInt () const {
+        return 0;
+    }
+};
+
 template <typename T> struct TypeHash; // must define Value constant
 
 /*
@@ -84,11 +106,15 @@ struct MapCtr       {};
 
 typedef MapCtr<BigInt, BigInt, 1>       Map1Ctr;
 
-template <Int Indexes>
-struct SetCtr       {};
+//template <Int Indexes>
+//struct SetCtr       {};
 
-typedef SetCtr<1>       Set1Ctr;
-typedef SetCtr<2>       Set2Ctr;
+template <typename Key, Int Indexes = 1>
+using SetCtr = MapCtr<Key, EmptyValue, Indexes>;
+
+
+typedef SetCtr<BigInt, 1>       Set1Ctr;
+typedef SetCtr<BigInt, 2>       Set2Ctr;
 
 struct DFUDS        {};
 struct LOUDS        {};
@@ -139,24 +165,7 @@ struct ValueList {};
 
 
 
-class EmptyValue {
-public:
-    EmptyValue() {}
-    EmptyValue(const BigInt) {}
-    EmptyValue(const EmptyValue& other) {}
-    EmptyValue& operator=(const EmptyValue& other) {
-        return *this;
-    }
 
-    template <typename T>
-    operator T () {
-        return 0;
-    }
-
-    operator BigInt () const {
-        return 0;
-    }
-};
 
 template <typename First, typename Second>
 struct ValuePair {
