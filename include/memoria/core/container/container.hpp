@@ -176,7 +176,7 @@ public:
 
             reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(),
                                                 list,
-                                                Name::Code + salt,
+                                                TypeHash<Name>::Value + salt,
                                                 MyType::getContainerInterface());
 
             MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);

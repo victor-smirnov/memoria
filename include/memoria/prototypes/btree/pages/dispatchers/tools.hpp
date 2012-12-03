@@ -32,9 +32,9 @@ template <typename Head, typename ... Tail, typename Result>
 struct LevelListBuilder<TypeList<Head, Tail...>, Result> {
     static const BigInt Level = Head::Descriptor::Level;
 private:
-    typedef typename AppendTool<TypeCode<Level>, Result>::Result                NewResult;
+    typedef typename AppendTool<ConstValue<Int, Level>, Result>::Result         NewResult;
 public:
-    typedef typename LevelListBuilder<TypeList<Tail...>, NewResult>::List            List;
+    typedef typename LevelListBuilder<TypeList<Tail...>, NewResult>::List       List;
 };
 
 template <typename Result>

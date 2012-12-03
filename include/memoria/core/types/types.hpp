@@ -30,6 +30,8 @@ typedef int8_t              Byte;
 typedef uint8_t             UByte;
 typedef size_t              SizeT;
 
+
+namespace internal {
 template <int size> struct PlatformLongHelper;
 
 template <>
@@ -43,28 +45,25 @@ struct PlatformLongHelper<8> {
     typedef BigInt          LongType;
     typedef UBigInt         ULongType;
 };
-
+}
 
 /**
  * Please note that Long/ULong types are not intended to be used for data page properties.
  * Use types with known size instead.
  */
 
-typedef PlatformLongHelper<sizeof(void*)>::LongType                             Long;
-typedef PlatformLongHelper<sizeof(void*)>::ULongType                            ULong;
+typedef internal::PlatformLongHelper<sizeof(void*)>::LongType                   Long;
+typedef internal::PlatformLongHelper<sizeof(void*)>::ULongType                  ULong;
 
 typedef std::string                                                             String;
 typedef const String&                                                           StringRef;
 
-
-template <Int Value>
-struct CodeValue {
-    static const Int Code = Value;
-};
-
 template <typename T, T V> struct ConstValue {
     static const T Value = V;
 };
+
+template <UInt Value>
+using UIntValue = ConstValue<UInt, Value>;
 
 template <typename T> struct TypeHash; // must define Value constant
 
@@ -77,24 +76,24 @@ struct BSTreeCtr    {};
 struct DynVectorCtr {};
 struct CompositeCtr {};
 
-struct Superblock:      public CodeValue<0> {};
-struct RootCtr:         public CodeValue<1> {};
+struct Superblock   {};
+struct RootCtr      {};
 
 template <Int Indexes>
-struct MapCtr:          public CodeValue<0x618a2f + Indexes * 256> {};
+struct MapCtr       {};
 
 typedef MapCtr<1>       Map1Ctr;
 
 template <Int Indexes>
-struct SetCtr:          public CodeValue<0x5c421d + Indexes * 256> {};
+struct SetCtr       {};
 
 typedef SetCtr<1>       Set1Ctr;
 typedef SetCtr<2>       Set2Ctr;
 
-struct DFUDS:           public CodeValue<5> {};
-struct LOUDS:           public CodeValue<6> {};
-struct VectorMapCtr:    public CodeValue<7> {};
-struct VectorCtr:       public CodeValue<8> {};
+struct DFUDS        {};
+struct LOUDS        {};
+struct VectorMapCtr {};
+struct VectorCtr    {};
 
 
 template <typename ChildType = void>
@@ -116,19 +115,16 @@ template <typename Name>
 struct TypeNotFound;
 struct TypeIsNotDefined;
 
-template <typename Name>
-struct PrintType;
-
 template <typename FirstType, typename SecondType>
 struct Pair {
     typedef FirstType   First;
     typedef SecondType  Second;
 };
 
-template <BigInt Code>
-struct TypeCode {
-    static const BigInt Value = Code;
-};
+//template <BigInt Code>
+//struct TypeCode {
+//    static const BigInt Value = Code;
+//};
 
 
 struct TrueValue {

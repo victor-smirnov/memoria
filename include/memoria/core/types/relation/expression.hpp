@@ -135,12 +135,12 @@ class Evaluator<Metadata, ValueOp<Name, Op, Type, ExValue>, Record> {
     typedef typename Select<
                 OpIdx,
                 TypeList<
-                    TypeCode<EqVal>,
-                    TypeCode<GTVal>,
-                    TypeCode<GTEVal>,
-                    TypeCode<LTVal>,
-                    TypeCode<LTEVal>,
-                    TypeCode<NEVal>
+                    ConstValue<Int, EqVal>,
+                    ConstValue<Int, GTVal>,
+                    ConstValue<Int, GTEVal>,
+                    ConstValue<Int, LTVal>,
+                    ConstValue<Int, LTEVal>,
+                    ConstValue<Int, NEVal>
                 >
     >::Result                                                                   SelectResult;
 

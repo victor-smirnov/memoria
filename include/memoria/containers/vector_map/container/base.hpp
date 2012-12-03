@@ -31,7 +31,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VectorMapContainerBase)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::CtrShared                                            CtrShared;
 
-    typedef typename CtrTF<Profile, VMset<2>, VMset<2> >::Type                  IdxSet;
+    typedef typename CtrTF<Profile, VMSetCtr<2>, VMSetCtr<2> >::Type                  IdxSet;
     typedef typename CtrTF<Profile, VectorCtr,  VectorCtr>::Type                ByteArray;
 
     typedef typename IdxSet::Accumulator                                        IdxsetAccumulator;
@@ -138,7 +138,7 @@ public:
             Base::setMetadata(new ContainerMetadata(
                                     "memoria::VectorMap",
                                     list,
-                                    VectorMapCtr::Code,
+                                    TypeHash<VectorMapCtr>::Value,
                                     Base::getContainerInterface()
                                   )
             );

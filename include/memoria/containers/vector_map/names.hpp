@@ -11,13 +11,13 @@
 
 #include <memoria/core/container/names.hpp>
 
+#include <memoria/core/types/typehash.hpp>
+
 namespace memoria    {
 namespace vector_map {
 
 template <Int Indexes>
-struct VMset {
-    static const Int Code = 56721;
-};
+struct VMSetCtr {};
 
 struct CtrApiName {};
 struct ItrApiName {};
@@ -28,10 +28,15 @@ struct VectorMapCtrTypes: CtrTypesT<Types> {};
 template <typename Types>
 struct VectorMapIterTypes: IterTypesT<Types> {};
 
-
-
-
 }
+
+template <Int Indexes>
+class TypeHash<vector_map::VMSetCtr<Indexes> > {
+public:
+    static const UInt Value = 1000 + Indexes;
+};
+
+
 }
 
 #endif

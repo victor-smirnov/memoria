@@ -13,7 +13,7 @@
 #include <memoria/core/container/builder.hpp>
 #include <memoria/core/container/names.hpp>
 
-
+#include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/types/typelist.hpp>
 
 

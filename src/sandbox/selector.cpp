@@ -3,12 +3,12 @@
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/types/list/reverse.hpp>
+#include <memoria/core/tools/type_name.hpp>
 
-#include <memoria/core/types/list_printer.hpp>
 
 using namespace memoria;
-
 using namespace memoria::vapi;
+
 
 //using namespace std;
 //

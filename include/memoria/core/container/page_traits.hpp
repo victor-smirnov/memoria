@@ -17,10 +17,10 @@
 namespace memoria    {
 
 template <typename T> struct FieldFactory;
-template <typename T> class  TypeHash;
+
 
 template <typename Object, size_t Size_>
-class TypeHash<memoria::AbstractPageID<Object, Size_> > {
+struct TypeHash<memoria::AbstractPageID<Object, Size_> > {
 public:
     static const UInt Value = TypeHash<Object>::Value;
 };

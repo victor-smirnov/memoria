@@ -17,89 +17,59 @@
 namespace memoria    {
 
 struct TypeHashes {
-    enum {SCALAR, ARRAY, CONST_VALUE};
+    enum {SCALAR = 1, ARRAY, CONST_VALUE};
 };
 
-
-template <typename Type> class TypeHash;
 
 template <>
-class TypeHash<void> {
+struct TypeHash<void>: UIntValue<1> {
 public:
-    typedef ValueList<UInt, 0>                                                  VList;
-    static const UInt Value = 0;
+    typedef ValueList<UInt, 1>                                                  VList;
 };
 
-template <>
-class TypeHash<Byte> {
-public:
-    static const UInt Value = 1;
-};
+template <> struct TypeHash<Byte>:      UIntValue<2> {};
+template <> struct TypeHash<UByte>:     UIntValue<3> {};
+template <> struct TypeHash<Short>:     UIntValue<4> {};
+template <> struct TypeHash<UShort>:    UIntValue<5> {};
+template <> struct TypeHash<Int>:       UIntValue<6> {};
+template <> struct TypeHash<UInt>:      UIntValue<7> {};
+template <> struct TypeHash<BigInt>:    UIntValue<8> {};
+template <> struct TypeHash<UBigInt>:   UIntValue<9> {};
 
-template <>
-class TypeHash<Short> {
-public:
-    static const UInt Value = 2;
-};
-
-template <>
-class TypeHash<Int> {
-public:
-    static const UInt Value = 3;
-};
-
-template <>
-class TypeHash<BigInt> {
-public:
-    static const UInt Value = 5;
-};
-
-template <>
-class TypeHash<UByte> {
-public:
-    static const UInt Value = 11;
-};
-
-template <>
-class TypeHash<UShort> {
-public:
-    static const UInt Value = 12;
-};
-
-template <>
-class TypeHash<UInt> {
-public:
-    static const UInt Value = 13;
-};
-
-template <>
-class TypeHash<EmptyValue> {
-public:
-    static const UInt Value = 14;
-};
+template <> struct TypeHash<EmptyValue>:    UIntValue<10> {};
 
 template <
     template <typename> class Profile,
     typename T
 >
-class TypeHash<Profile<T>> {
-public:
-    typedef typename AppendValueTool<UInt, 15, typename TypeHash<T>::VList>::Result     VList;
+struct TypeHash<Profile<T>> {
+    // FIXME need template assigning unique code to the each profile level
+    typedef typename AppendValueTool<UInt, 100, typename TypeHash<T>::VList>::Result     VList;
 
     static const UInt Value = md5::Md5Sum<VList>::Result::Value32;
 };
 
+template <UInt Base, UInt ... Values>
+struct HashHelper {
+    static const UInt Value = md5::Md5Sum<ValueList<UInt, Base, Values...>>::Result::Value32;
+};
+
+
 template <typename T, T V>
-class TypeHash<ConstValue<T, V>> {
-public:
-    static const UInt Value = md5::Md5Sum<ValueList<UInt, TypeHash<T>::Value, TypeHashes::CONST_VALUE, V>>::Result::Value32;
+struct TypeHash<ConstValue<T, V>> {
+    static const UInt Value = HashHelper<TypeHash<T>::Value, TypeHashes::CONST_VALUE, V>::Value;
 };
 
 template <typename T, size_t Size>
-class TypeHash<T[Size]> {
-public:
-    static const UInt Value = md5::Md5Sum<ValueList<UInt, TypeHash<T>::Value, TypeHashes::ARRAY, Size>>::Result::Value32;
+struct TypeHash<T[Size]> {
+    static const UInt Value = HashHelper<TypeHash<T>::Value, TypeHashes::ARRAY, Size>::Value;
 };
+
+template <>             struct TypeHash<VectorMapCtr>:      UIntValue<1000> {};
+template <Int Indexes>  struct TypeHash<MapCtr<Indexes>>:   UIntValue<HashHelper<1100, Indexes>::Value> {};
+template <Int Indexes>  struct TypeHash<SetCtr<Indexes>>:   UIntValue<HashHelper<1200, Indexes>::Value> {};
+template <>             struct TypeHash<VectorCtr>:         UIntValue<1300> {};
+template <>             struct TypeHash<RootCtr>:           UIntValue<1400> {};
 
 }
 

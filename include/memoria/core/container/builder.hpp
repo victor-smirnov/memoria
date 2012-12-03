@@ -11,7 +11,6 @@
 
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/types/typelist.hpp>
-#include <memoria/core/types/list_printer.hpp>
 
 #include <memoria/core/container/profile.hpp>
 

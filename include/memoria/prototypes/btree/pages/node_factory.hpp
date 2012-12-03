@@ -72,7 +72,7 @@ private:
             ConstValue<UInt, Descriptor::Leaf>,
             ConstValue<UInt, Descriptor::Level>,
             ConstValue<UInt, Types::Indexes>,
-            ConstValue<UInt, Types::Name::Code>,
+            typename Types::Name,
             ConstValue<UInt, MapTypes::BranchingFactor>,
 
             typename Map::FieldsList

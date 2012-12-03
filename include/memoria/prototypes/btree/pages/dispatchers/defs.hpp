@@ -28,7 +28,7 @@ template <bool Root_, bool Leaf_, BigInt Level_>
 struct NodeDescriptor {
     static const bool   Root  =      Root_;
     static const bool   Leaf  =      Leaf_;
-    static const BigInt Level =      Level_;
+    static const Int    Level =      Level_;
 };
 
 template <Int Name, typename ColumnType, typename Record> struct ValueProvider;
