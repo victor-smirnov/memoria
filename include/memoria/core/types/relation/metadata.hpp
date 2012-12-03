@@ -22,10 +22,10 @@ struct Column {
 };
 
 template <typename T>
-struct IsColumn: public FalseValue {};
+struct IsColumn: ConstValue<bool, true> {};
 
 template <Int Name, typename T>
-struct IsColumn<Column<Name, T> >: public TrueValue {};
+struct IsColumn<Column<Name, T> >: ConstValue<bool, true> {};
 
 
 template <typename ColumnType, typename TypeValue_>
@@ -96,13 +96,13 @@ public:
 };
 
 
-template <typename T> struct IsRelationMetadata: public FalseValue {};
+template <typename T> struct IsRelationMetadata: ConstValue<bool, false> {};
 
 template <
         typename ColumnsList,
         template <Int Name, typename ColumnType, typename Record> class ValueProvider
 >
-struct IsRelationMetadata<RelationMetadata<ColumnsList, ValueProvider> >: public TrueValue {};
+struct IsRelationMetadata<RelationMetadata<ColumnsList, ValueProvider> >: ConstValue<bool, true> {};
 
 }
 

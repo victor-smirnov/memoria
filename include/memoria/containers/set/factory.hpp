@@ -17,16 +17,11 @@ namespace memoria    {
 
 
 template <typename Profile, Int Indexes>
-struct BTreeTypes<Profile, memoria::SetCtr<Indexes> >: public BTreeTypes<Profile, memoria::MapCtr<Indexes> > {
-
-    typedef BTreeTypes<Profile, memoria::SetCtr<Indexes> >                     Base;
-
-    typedef EmptyValue                                                      Value;
-
+struct BTreeTypes<Profile, memoria::SetCtr<Indexes> >: public BTreeTypes<Profile, memoria::MapCtr<BigInt, EmptyValue, Indexes> > {
 };
 
 template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::SetCtr<Indexes>, T>: public CtrTF<Profile, memoria::MapCtr<Indexes>, T> {
+class CtrTF<Profile, memoria::SetCtr<Indexes>, T>: public CtrTF<Profile, memoria::MapCtr<BigInt, EmptyValue, Indexes>, T> {
 };
 
 }

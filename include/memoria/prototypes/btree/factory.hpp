@@ -40,7 +40,7 @@ struct BTreeTypes {
 
     typedef Profile_                                                            Profile;
 
-    typedef TypeList<BigInt>                                                         KeysList;
+    typedef TypeList<BigInt>                                                    KeysList;
 
     static const Int Indexes                                                    = 1;
 
@@ -54,15 +54,15 @@ struct BTreeTypes {
             memoria::btree::WalkName
     >                                                                           ContainerPartsList;
 
-    typedef TypeList<>                                                              BasePagePartsList;
+    typedef TypeList<>                                                          BasePagePartsList;
     
-    typedef TypeList<>                                                              RootPagePartsList;
+    typedef TypeList<>                                                          RootPagePartsList;
 
-    typedef TypeList<>                                                              InternalPagePartsList;
+    typedef TypeList<>                                                          InternalPagePartsList;
 
-    typedef TypeList<>                                                              LeafPagePartsList;
+    typedef TypeList<>                                                          LeafPagePartsList;
 
-    typedef TypeList<>                                                              DataPagesList;
+    typedef TypeList<>                                                          DataPagesList;
 
     typedef TypeList<
             memoria::btree::IteratorAPIName
@@ -108,20 +108,20 @@ template <
 >
 class CtrTF<Profile, memoria::BTreeCtr, ContainerTypeName_> {
 
-    typedef CtrTF<Profile, memoria::BTreeCtr, ContainerTypeName_>                   MyType;
+    typedef CtrTF<Profile, memoria::BTreeCtr, ContainerTypeName_>               MyType;
 
 public:
 
 
-    typedef BTreeTypes<Profile, ContainerTypeName_>                                 ContainerTypes;
+    typedef BTreeTypes<Profile, ContainerTypeName_>                             ContainerTypes;
 
 
     typedef typename AppendTool<
                 RootNodeMetadataName<typename ContainerTypes::Metadata>,
                 typename ContainerTypes::RootPagePartsList
-    >::Result                                                                       RootPagePartsList;
+    >::Result                                                                   RootPagePartsList;
     
-    typedef typename ContainerTypes::Allocator::Page::ID                            ID;
+    typedef typename ContainerTypes::Allocator::Page::ID                        ID;
 
     //TAGS: #IF_THEN_ELSE_EXAMPLE
     typedef typename memoria::IfThenElse<
@@ -131,16 +131,16 @@ public:
                 >::Value,
                 ID,
                 typename ContainerTypes::Value
-    >::Result                                                                       Value;
+    >::Result                                                                   Value;
 
 
     struct BasePartsTypes{
-        typedef TreePage<typename ContainerTypes::Allocator>                NodePageBase;
-        typedef typename ContainerTypes::BasePagePartsList                  List;
+        typedef TreePage<typename ContainerTypes::Allocator>            NodePageBase;
+        typedef typename ContainerTypes::BasePagePartsList              List;
     };
 
-    typedef PageStart<BasePartsTypes>                                               BasePageParts;
-    typedef NodePageBase<BasePageParts>                                             NodePageBase0;
+    typedef PageStart<BasePartsTypes>                                           BasePageParts;
+    typedef NodePageBase<BasePageParts>                                         NodePageBase0;
 
     struct NodePageContainerTypes: public NodePageBase0 {};
 
@@ -154,7 +154,7 @@ public:
     };
 
 
-    typedef typename ListHead<typename ContainerTypes::KeysList>::Type      NodeKey;
+    typedef typename ListHead<typename ContainerTypes::KeysList>::Type      	NodeKey;
 
     template <int Level> struct RootLeafTypes: NodeTypesBase {
         typedef NodeKey                                                     Key;
@@ -193,13 +193,13 @@ public:
     typedef typename NodeTLBuilder <
                 MyType,
                 typename ContainerTypes::KeysList
-    >::List                                                                 NodeTypesList;
+    >::List                                                                 	NodeTypesList;
 
     MEMORIA_STATIC_ASSERT(IsNonemptyList<NodeTypesList>::Value);
 
 
-    typedef NodePageContainerTypes                                                  NodeContainerTypes;
-    typedef PageGuard<NodeContainerTypes, typename ContainerTypes::Allocator>       NodeContainerTypesG;
+    typedef NodePageContainerTypes                                              NodeContainerTypes;
+    typedef PageGuard<NodeContainerTypes, typename ContainerTypes::Allocator>   NodeContainerTypesG;
 
     struct DispatcherTypes
     {
@@ -209,7 +209,7 @@ public:
         typedef typename ContainerTypes::Allocator          Allocator;
     };
 
-    typedef BTreeDispatchers<DispatcherTypes>                                       PageDispatchers;
+    typedef BTreeDispatchers<DispatcherTypes>                                   PageDispatchers;
 
 
 public:
@@ -226,7 +226,7 @@ public:
         typedef NodeContainerTypesG                                             NodeBaseG;
 
 
-        typedef TypeList<>                                                          EmbeddedContainersList;
+        typedef TypeList<>                                                      EmbeddedContainersList;
 
 
 
@@ -253,7 +253,6 @@ public:
 
         typedef ValuePair<Accumulator, Value>                                   Element;
     };
-
 
     typedef typename Types::CtrTypes                                            CtrTypes;
     typedef Ctr<CtrTypes>                                                       Type;

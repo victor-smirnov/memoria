@@ -18,6 +18,13 @@ namespace memoria    {
 
 template <typename ColumnType, typename ColumnValue> struct WrapperProvider;
 
+template <typename Type_, Type_ V>
+struct ValueWrapper {
+    typedef Type_               Type;
+    static const Type Value     = V;
+};
+
+
 template <Int Name, typename ColumnValue>
 struct WrapperProvider<Column<Name, NullType>, ColumnValue> {
     // no wrapper if value is a type

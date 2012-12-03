@@ -59,28 +59,28 @@ struct Not {
 
 
 template<typename Type>
-struct IsExpression: public FalseValue {};
+struct IsExpression: ConstValue<bool, false> {};
 
 template<typename T1, typename T2>
-struct IsExpression<And<T1, T2> >: public TrueValue {};
+struct IsExpression<And<T1, T2> >: ConstValue<bool, true> {};
 
 template<typename T1, typename T2>
-struct IsExpression<Or<T1, T2> >: public TrueValue {};
+struct IsExpression<Or<T1, T2> >: ConstValue<bool, true> {};
 
 template<typename T1, typename T2>
-struct IsExpression<Xor<T1, T2> >: public TrueValue {};
+struct IsExpression<Xor<T1, T2> >: ConstValue<bool, true> {};
 
 template<typename T>
-struct IsExpression<Not<T> >: public TrueValue {};
+struct IsExpression<Not<T> >: ConstValue<bool, true> {};
 
 template<Int Name, CompareOps Op, typename T, T Value>
-struct IsExpression<ValueOp<Name, Op, T, Value> >: public TrueValue {};
+struct IsExpression<ValueOp<Name, Op, T, Value> >: ConstValue<bool, true> {};
 
 template<Int Name, typename T>
-struct IsExpression<TypeOp<Name, T> >: public TrueValue {};
+struct IsExpression<TypeOp<Name, T> >: ConstValue<bool, true> {};
 
 template<>
-struct IsExpression<TrueOp>: public TrueValue {};
+struct IsExpression<TrueOp>: ConstValue<bool, true> {};
 
 
 

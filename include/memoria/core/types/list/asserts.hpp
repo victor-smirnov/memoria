@@ -16,20 +16,20 @@
 namespace memoria    {
 
 template <typename Type>
-struct IsList: public FalseValue {};
+struct IsList: ConstValue<bool, false> {};
 
 template <typename ... List>
-struct IsList<TypeList<List...> >: public TrueValue {};
+struct IsList<TypeList<List...> >: ConstValue<bool, true> {};
 
 
 template <typename Type>
-struct IsNonemptyList: public FalseValue {};
+struct IsNonemptyList: ConstValue<bool, false> {};
 
 template <typename ... List>
-struct IsNonemptyList<TypeList<List...>>: public TrueValue {};
+struct IsNonemptyList<TypeList<List...>>: ConstValue<bool, true> {};
 
 template <>
-struct IsNonemptyList<TypeList<>>: public FalseValue {};
+struct IsNonemptyList<TypeList<>>: ConstValue<bool, false> {};
 
 }
 

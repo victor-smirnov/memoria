@@ -79,10 +79,10 @@ struct CompositeCtr {};
 struct Superblock   {};
 struct RootCtr      {};
 
-template <Int Indexes>
+template <typename Key, typename Value, Int Indexes = 1>
 struct MapCtr       {};
 
-typedef MapCtr<1>       Map1Ctr;
+typedef MapCtr<BigInt, BigInt, 1>       Map1Ctr;
 
 template <Int Indexes>
 struct SetCtr       {};
@@ -104,8 +104,6 @@ class SmallProfile {};
  */
 
 
-
-
 struct NullType {};
 
 struct EmptyType {};
@@ -121,19 +119,6 @@ struct Pair {
     typedef SecondType  Second;
 };
 
-//template <BigInt Code>
-//struct TypeCode {
-//    static const BigInt Value = Code;
-//};
-
-
-struct TrueValue {
-    static const bool Value = true;
-};
-
-struct FalseValue {
-    static const bool Value = false;
-};
 
 template <typename T>
 struct TypeDef {
@@ -142,7 +127,8 @@ struct TypeDef {
 
 class NotDefined {};
 
-template <int Value>
+// For metadata initialization
+template <int Order>
 struct CtrNameDeclarator: TypeDef<NotDefined> {};
 
 template <typename ... Types>
@@ -151,11 +137,7 @@ struct TypeList {};
 template <typename T, T ... Values>
 struct ValueList {};
 
-template <typename Type_, Type_ V>
-struct ValueWrapper {
-    typedef Type_               Type;
-    static const Type Value     = V;
-};
+
 
 class EmptyValue {
 public:

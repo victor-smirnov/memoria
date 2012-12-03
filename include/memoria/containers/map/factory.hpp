@@ -18,12 +18,13 @@ namespace memoria    {
 
 
 
-template <typename Profile, Int Indexes_>
-struct BTreeTypes<Profile, memoria::MapCtr<Indexes_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
+template <typename Profile, typename Key_, typename Value_, Int Indexes_>
+struct BTreeTypes<Profile, memoria::MapCtr<Key_, Value_, Indexes_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
 
     typedef BTreeTypes<Profile, memoria::BSTreeCtr>                         Base;
 
-    typedef BigInt                                                          Value;
+    typedef Value_                                                          Value;
+    typedef TypeList<Key_>                                                	KeysList;
 
     static const Int Indexes                                                = Indexes_;
 
@@ -50,8 +51,8 @@ struct BTreeTypes<Profile, memoria::MapCtr<Indexes_> >: public BTreeTypes<Profil
 
 };
 
-template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::MapCtr<Indexes>, T>: public CtrTF<Profile, memoria::BSTreeCtr, T> {
+template <typename Profile, typename Key, typename Value, typename T, Int Indexes>
+class CtrTF<Profile, memoria::MapCtr<Key, Value, Indexes>, T>: public CtrTF<Profile, memoria::BSTreeCtr, T> {
 };
 
 }
