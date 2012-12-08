@@ -93,23 +93,25 @@ MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::btree:
 MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::Set1Ctr, memoria::models::idx_map::ItrApiName)
 
 
-MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::VectorCtr)
 
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::btree::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::btree::checksName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::btree::InsertBatchName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::btree::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::btree::FindName)
 
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::dynvector::ToolsName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::dynvector::RemoveName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::dynvector::InsertName)
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::dynvector::SeekName)
+MEMORIA_EXTERN_BASIC_CONTAINER(SmallCtrTypeFactory, memoria::VectorCtr<UByte>)
 
-MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::models::array::ApiName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::btree::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::btree::checksName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::btree::InsertBatchName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::btree::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::btree::FindName)
 
-MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::btree::IteratorAPIName)
-MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr, memoria::dynvector::IteratorAPIName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::dynvector::ToolsName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::dynvector::RemoveName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::dynvector::InsertName)
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::dynvector::SeekName)
+
+MEMORIA_EXTERN_CTR_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::models::array::ApiName)
+
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::btree::IteratorAPIName)
+MEMORIA_EXTERN_ITER_PAPRT(SmallCtrTypeFactory, memoria::VectorCtr<UByte>, memoria::dynvector::IteratorAPIName)
 
 
 

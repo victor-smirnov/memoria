@@ -224,34 +224,29 @@ public:
     {
         typedef typename memoria::Type2TypeMap<T, TypeMap>::Result RootType;
 
-        DebugCounter++;
+        RootType tgt_buf;
+        memset(&tgt_buf, 0, sizeof(tgt_buf));
 
-        Byte buffer[Allocator::PAGE_SIZE];
-        memset(buffer, 0, sizeof(buffer));
+        RootType* tgt = T2T<RootType*>(src);
 
-        //FIXME type pruning
-        RootType *tgt = T2T<RootType*>(buffer);
+        tgt_buf.map().initByBlock(Allocator::PAGE_SIZE - sizeof(RootType));
+        tgt_buf.copyFrom(src);
 
-        tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(RootType));
+        tgt_buf.root_metadata() = metadata_;
 
-        tgt->copyFrom(src);
-        tgt->root_metadata() = metadata_;
+        tgt_buf.set_root(true);
 
-        tgt->set_root(true);
+        tgt_buf.page_type_hash()   = RootType::hash();
 
-        tgt->page_type_hash()   = RootType::hash();
+        src->map().transferTo(&tgt_buf.map(), tgt->map().memoryBlock());
 
-        if (DebugCounter == 3) {
-            int a = 0; a++;
-        }
+        tgt_buf.set_children_count(src->children_count());
 
-        src->map().transferTo(&tgt->map());
+        CopyByteBuffer(&tgt_buf, tgt, sizeof(tgt_buf));
 
-        tgt->set_children_count(src->children_count());
+        tgt->map().clearUnused();
 
         tgt->map().reindex();
-
-        CopyBuffer(buffer, src, Allocator::PAGE_SIZE);
     }
 };
 
@@ -267,28 +262,26 @@ public:
     {
         typedef typename memoria::Type2TypeMap<T, TypeMap>::Result NonRootNode;
 
-        Byte buffer[Allocator::PAGE_SIZE];
+        NonRootNode tgt_buf;
+        memset(&tgt_buf, 0, sizeof(tgt_buf));
 
-        memset(buffer, 0, sizeof(buffer));
+        NonRootNode* tgt = T2T<NonRootNode*>(src);
 
-        //FIXME type pruning
-        NonRootNode *tgt = T2T<NonRootNode*>(buffer);
+        tgt_buf.map().initByBlock(Allocator::PAGE_SIZE - sizeof(NonRootNode));
+        tgt_buf.copyFrom(src);
+        tgt_buf.set_root(false);
 
-        tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(NonRootNode));
+        tgt_buf.page_type_hash()   = NonRootNode::hash();
 
-        tgt->copyFrom(src);
+        src->map().transferTo(&tgt_buf.map(), tgt->map().memoryBlock());
 
-        tgt->set_root(false);
+        tgt_buf.set_children_count(src->children_count());
 
-        tgt->page_type_hash()   = NonRootNode::hash();
+        CopyByteBuffer(&tgt_buf, tgt, sizeof(tgt_buf));
 
-        src->map().transferTo(&tgt->map());
-
-        tgt->set_children_count(src->children_count());
+        tgt->map().clearUnused();
 
         tgt->map().reindex();
-
-        CopyBuffer(buffer, src, Allocator::PAGE_SIZE);
     }
 };
 

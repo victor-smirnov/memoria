@@ -31,8 +31,8 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VectorMapContainerBase)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::CtrShared                                            CtrShared;
 
-    typedef typename CtrTF<Profile, VMSetCtr<2>, VMSetCtr<2> >::Type                  IdxSet;
-    typedef typename CtrTF<Profile, VectorCtr,  VectorCtr>::Type                ByteArray;
+    typedef typename CtrTF<Profile, VMSetCtr<2>, VMSetCtr<2> >::Type            IdxSet;
+    typedef typename CtrTF<Profile, VectorCtr<UByte>,  VectorCtr<UByte> >::Type   ByteArray;
 
     typedef typename IdxSet::Accumulator                                        IdxsetAccumulator;
 

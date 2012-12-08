@@ -30,7 +30,7 @@ class VectorMapBatchinsertBenchmark: public SPBenchmarkTask {
     typedef typename MapCtrType::Iterator                               Iterator;
     typedef typename MapCtrType::ID                                     ID;
 
-    typedef typename MapCtrType::Idxset                                 SetCtrType;
+    typedef typename MapCtrType::IdxSet                                 SetCtrType;
 
     typedef typename SetCtrType::Accumulator                            Accumulator;
 
@@ -102,7 +102,7 @@ public:
     {
         Int size = params.x();
 
-        ArrayData data(size * data_size_, malloc(size * data_size_), true);
+        ArrayData<UByte> data(size * data_size_, malloc(size * data_size_), true);
 
         SubtreeProvider provider(&map_->set(), size, data_size_);
 

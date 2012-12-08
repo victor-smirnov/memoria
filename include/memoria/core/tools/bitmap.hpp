@@ -552,16 +552,23 @@ Int createUDS(Buffer &buf, Int start, Int *ds, Int ds_size, Int node_bits) {
 }
 
 
-static inline void CopyBuffer(const void *src, void *dst, long size)
+template <typename T>
+void CopyBuffer(const T *src, T *dst, size_t size)
+{
+    memmove(dst, src, size * sizeof(T));
+}
+
+
+static inline void CopyByteBuffer(const void *src, void *dst, size_t size)
 {
     memmove(dst, src, size);
 }
 
-
-static inline void MoveBuffer(void *src, long from, long to, long size)
+template <typename T>
+void MoveBuffer(T *src, long from, long to, long size)
 {
     char* csrc = (char*)src;
-    CopyBuffer(csrc + from, csrc + to, size);
+    CopyBuffer(csrc + from, csrc + to, size*sizeof(T));
 }
 
 static inline bool CompareBuffers(const void *src, const void *dst, long size)

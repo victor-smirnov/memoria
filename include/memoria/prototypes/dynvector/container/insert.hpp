@@ -63,11 +63,15 @@ typedef typename Base::LeafNodeKeyValuePair                                 Leaf
 static const Int Indexes                                                    = Types::Indexes;
 typedef Accumulators<Key, Indexes>                                          Accumulator;
 
+typedef typename Types::ElementType                        					ElementType;
 
-void insertData(Iterator& iter, const IData& data);
-void insertData(Iterator& iter, const IData& data, SizeT start, SizeT len);
+typedef IData<ElementType>													IDataType;
 
-BigInt updateData(Iterator& iter, const IData& data, BigInt start, BigInt len);
+
+void insertData(Iterator& iter, const IDataType& data);
+void insertData(Iterator& iter, const IDataType& data, SizeT start, SizeT len);
+
+BigInt updateData(Iterator& iter, const IDataType& data, BigInt start, BigInt len);
 
 
 DataPathItem splitDataPage(Iterator& iter);
@@ -82,21 +86,21 @@ Int getMaxDataSize() const
 
 private:
 
-void insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, Int length);
+void insertIntoDataPage(Iterator& iter, const IDataType& buffer, Int start, Int length);
 
 class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
 
     typedef typename MyType::DefaultSubtreeProviderBase     Base;
     typedef typename Base::Direction                        Direction;
 
-    const IData&        data_;
+    const IDataType&    data_;
     BigInt              start_;
     BigInt              length_;
     Int                 suffix_;
     Int                 last_idx_;
 
 public:
-    ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, const IData& data, BigInt start, BigInt length):
+    ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, const IDataType& data, BigInt start, BigInt length):
         Base(ctr, key_count), data_(data), start_(start), length_(length)
     {
         Int data_size   = Base::ctr().getMaxDataSize();
@@ -134,7 +138,7 @@ public:
 
 };
 
-void importPages(Iterator& iter, const IData& buffer);
+void importPages(Iterator& iter, const IDataType& buffer);
 
 void createDataPage(TreePath& path, Int idx);
 DataPathItem createDataPage(NodeBaseG& node, Int idx);
@@ -158,14 +162,14 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-void M_TYPE::insertData(Iterator& iter, const IData& data, SizeT start, SizeT length)
+void M_TYPE::insertData(Iterator& iter, const IDataType& data, SizeT start, SizeT length)
 {
-    me()->insertData(iter, GetDataProxy(data, start, length));
+    me()->insertData(iter, GetDataProxy<ElementType>(data, start, length));
 }
 
 
 M_PARAMS
-void M_TYPE::insertData(Iterator& iter, const IData& buffer)
+void M_TYPE::insertData(Iterator& iter, const IDataType& buffer)
 {
     BigInt      max_datapage_size   = me()->getMaxDataSize();
 
@@ -201,7 +205,7 @@ void M_TYPE::insertData(Iterator& iter, const IData& buffer)
 }
 
 M_PARAMS
-BigInt M_TYPE::updateData(Iterator& iter, const IData& data, BigInt start, BigInt len)
+BigInt M_TYPE::updateData(Iterator& iter, const IDataType& data, BigInt start, BigInt len)
 {
     BigInt sum = 0;
 
@@ -211,7 +215,11 @@ BigInt M_TYPE::updateData(Iterator& iter, const IData& data, BigInt start, BigIn
 
         if (to_read > len) to_read = len;
 
-        data.get(iter.data()->data().value_addr(iter.dataPos()), start, to_read);
+        data.get(
+        		iter.data()->data().value_addr(iter.dataPos()),
+        		start,
+        		to_read
+        		);
 
         len     -= to_read;
         iter.skip(to_read);
@@ -279,7 +287,7 @@ typename M_TYPE::DataPathItem M_TYPE::splitDataPage(Iterator& iter)
 //// =============================================== PRIVATE API ===================================================== ////
 
 M_PARAMS
-void M_TYPE::insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, Int length)
+void M_TYPE::insertIntoDataPage(Iterator& iter, const IDataType& buffer, Int start, Int length)
 {
     DataPageG& data = iter.path().data().node();
     data.update();
@@ -317,7 +325,7 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, const IData& buffer, Int start, 
 
 
 M_PARAMS
-void M_TYPE::importPages(Iterator& iter, const IData& buffer)
+void M_TYPE::importPages(Iterator& iter, const IDataType& buffer)
 {
     BigInt  length      = buffer.getSize();
     BigInt  start;

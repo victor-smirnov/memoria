@@ -28,10 +28,10 @@ public:
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorCtr>::Type      MapCtrType;
-    typedef typename MapCtrType::Iterator                               Iterator;
-    typedef typename MapCtrType::ID                                     ID;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           		RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte> >::Type     	MapCtrType;
+    typedef typename MapCtrType::Iterator                               		Iterator;
+    typedef typename MapCtrType::ID                                     		ID;
 
 
     Allocator*  allocator_;
@@ -78,7 +78,7 @@ public:
 
         params.operations() = 0;
 
-        ArrayData data(size, malloc(size), true);
+        ArrayData<UByte> data(size, malloc(size), true);
 
         while (total < memory_size)
         {

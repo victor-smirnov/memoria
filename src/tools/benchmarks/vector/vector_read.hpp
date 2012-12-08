@@ -25,14 +25,14 @@ class VectorReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorCtr>::Type      VectorCtrType;
-    typedef typename VectorCtrType::Iterator                            Iterator;
-    typedef typename VectorCtrType::ID                                  ID;
-    typedef typename VectorCtrType::Accumulator                         Accumulator;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           		RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte>>::Type      	VectorCtrType;
+    typedef typename VectorCtrType::Iterator                            		Iterator;
+    typedef typename VectorCtrType::ID                                  		ID;
+    typedef typename VectorCtrType::Accumulator                         		Accumulator;
 
 
-    typedef typename VectorCtrType::Key                                 Key;
+    typedef typename VectorCtrType::Key                                 		Key;
 
 
 
@@ -76,7 +76,7 @@ public:
                 array[d] = getRandom(10000);
             }
 
-            i.insert(ArrayData(sizeof(array), array));
+            i.insert(ArrayData<UByte>(sizeof(array), array));
         }
 
         rd_array_ = new Int[params.operations()];
@@ -96,7 +96,7 @@ public:
     virtual void Benchmark(BenchmarkParameters& params, ostream& out)
     {
         BigInt buffer;
-        ArrayData data(sizeof(buffer), &buffer);
+        ArrayData<UByte> data(sizeof(buffer), &buffer);
 
         BigInt total = 0;
 

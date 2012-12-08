@@ -62,8 +62,8 @@ struct DynVectorContainerTypes: public Base {
 };
 
 
-template <typename Profile>
-struct BTreeTypes<Profile, memoria::DynVectorCtr>: public BTreeTypes<Profile, memoria::BSTreeCtr> {
+template <typename Profile, typename ElementType_>
+struct BTreeTypes<Profile, memoria::DynVectorCtr<ElementType_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
 
     typedef IDType                                                              Value;
     typedef BTreeTypes<Profile, memoria::BSTreeCtr>                             Base;
@@ -95,6 +95,7 @@ struct BTreeTypes<Profile, memoria::DynVectorCtr>: public BTreeTypes<Profile, me
     typedef NullType                                                            Buffer;
     typedef NullType                                                            BufferContentDescriptor;
     typedef NullType                                                            CountData;
+    typedef ElementType_                                                        ElementType;
 
 
     template <Int Size>
@@ -115,9 +116,10 @@ struct BTreeTypes<Profile, memoria::DynVectorCtr>: public BTreeTypes<Profile, me
 
 template <
         typename Profile,
-        typename ContainerTypeName
+        typename ContainerTypeName,
+        typename Atom
 >
-class CtrTF<Profile, memoria::DynVectorCtr, ContainerTypeName>: public CtrTF<Profile, memoria::BSTreeCtr, ContainerTypeName> {
+class CtrTF<Profile, memoria::DynVectorCtr<Atom>, ContainerTypeName>: public CtrTF<Profile, memoria::BSTreeCtr, ContainerTypeName> {
 
     typedef CtrTF<Profile, memoria::BSTreeCtr, ContainerTypeName>                   Base1;
 

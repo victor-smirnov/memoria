@@ -70,7 +70,9 @@ template <>             struct TypeHash<VectorMapCtr>:      UIntValue<1000> {};
 template <typename Key, typename Value, Int Indexes>
 struct TypeHash<MapCtr<Key, Value, Indexes>>:   UIntValue<HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value, Indexes>::Value> {};
 
-template <>             struct TypeHash<VectorCtr>:         UIntValue<1300> {};
+template <typename T>
+struct TypeHash<VectorCtr<T> >:         UIntValue<HashHelper<1300, TypeHash<T>::Value>::Value> {};
+
 template <>             struct TypeHash<RootCtr>:           UIntValue<1400> {};
 
 }

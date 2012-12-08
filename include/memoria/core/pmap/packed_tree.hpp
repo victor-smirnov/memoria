@@ -21,6 +21,8 @@
 
 #include <memoria/core/tools/reflection.hpp>
 
+#include <functional>
+#include <algorithm>
 
 namespace memoria {
 
@@ -89,6 +91,7 @@ private:
     Int     max_size_;
     Int     index_size_;
     Byte    memory_block_[];
+
 
 public:
 
@@ -192,18 +195,6 @@ public:
             FieldFactory<Value>::deserialize(buf, value(0), size());
         }
     }
-//
-//    void buildHash(MD5Hash& hash) {
-//      hash.add(VERSION);
-//      hash.add(TypeHash<Key>::Value);
-//      hash.add(TypeHash<IndexKey>::Value);
-//      hash.add(TypeHash<Value>::Value);
-//
-//      hash.add(TypeHash<decltype(size_)>::Value);
-//      hash.add(TypeHash<decltype(max_size_)>::Value);
-//      hash.add(TypeHash<decltype(index_size_)>::Value);
-//    }
-
 
     void initByBlock(Int block_size)
     {
@@ -240,6 +231,27 @@ public:
     Int getDataSize() const
     {
         return (index_size_ * sizeof(IndexKey) + size_ * sizeof(Key)) * Blocks + size_ * getValueSize();
+    }
+
+    Int getTotalDataSize() const
+    {
+    	return (index_size_ * sizeof(IndexKey) + max_size_ * sizeof(Key)) * Blocks + max_size_ * getValueSize();
+    }
+
+    Byte* getKeysPtr(Byte* memory_block) const {
+    	return memory_block + index_size_ * sizeof(IndexKey) * Blocks;
+    }
+
+    Byte* getKeysPtr() {
+    	return getKeysPtr(memory_block_);
+    }
+
+    const Byte* getKeysPtr() const {
+    	return memory_block_ + index_size_ * sizeof(IndexKey) * Blocks;
+    }
+
+    Int getKeysSize() const {
+    	return max_size_ * sizeof(Key) * Blocks;
     }
 
     Int& size() {
@@ -282,38 +294,29 @@ public:
 
     Int getIndexKeyBlockOffset(Int block_num) const
     {
-        return getIndexKeyBlockOffset(index_size_, block_num);
-    }
-
-    Int getIndexKeyBlockOffset(Int indexSize, Int block_num) const
-    {
-        return sizeof(IndexKey) * indexSize * block_num;
+    	return sizeof(IndexKey) * index_size_ * block_num;
     }
 
     Int getKeyBlockOffset(Int block_num) const
     {
-        return getKeyBlockOffset(index_size_, max_size_, block_num);
-    }
-
-    Int getKeyBlockOffset(Int indexSize, Int keys_size, Int block_num) const
-    {
-        return getIndexKeyBlockOffset(indexSize, Blocks) + sizeof(Key) * keys_size * block_num;
+    	return getIndexKeyBlockOffset(Blocks) + sizeof(Key) * max_size_ * block_num;
     }
 
     Int getValueBlockOffset() const
     {
-        return getValueBlockOffset(index_size_, max_size_);
-    }
-
-    Int getValueBlockOffset(Int indexSize, Int keys_size) const
-    {
-        return getKeyBlockOffset(indexSize, keys_size, Blocks);
+    	return getKeyBlockOffset(Blocks);
     }
 
     template <typename T>
     T& blockItem(Int block_offset, Int item_idx, Int item_size = sizeof(T))
     {
         return *T2T<T*>(memory_block_ + block_offset + item_idx * item_size);
+    }
+
+    template <typename T>
+    T& blockItem(Byte* memory_block, Int block_offset, Int item_idx, Int item_size = sizeof(T)) const
+    {
+    	return *T2T<T*>(memory_block + block_offset + item_idx * item_size);
     }
 
     template <typename T>
@@ -361,6 +364,14 @@ public:
         MEMORIA_ASSERT(key_num, <, max_size_);
 
         return blockItem<Key>(block_offset, key_num);
+    }
+
+    Key& keyb(Byte* memory_block, Int block_offset, Int key_num) const
+    {
+    	MEMORIA_ASSERT(key_num, >=, 0);
+    	MEMORIA_ASSERT(key_num, <, max_size_);
+
+    	return blockItem<Key>(memory_block, block_offset, key_num);
     }
 
     const Key& keyb(Int block_offset, Int key_num) const
@@ -426,6 +437,14 @@ public:
         return blockItem<Value>(block_offset, value_num, getValueSize());
     }
 
+    Value& valueb(Byte* memory_block, Int block_offset, Int value_num) const
+    {
+    	MEMORIA_ASSERT(value_num, >=, 0);
+    	MEMORIA_ASSERT(value_num, <, max_size_);
+
+    	return blockItem<Value>(memory_block, block_offset, value_num, getValueSize());
+    }
+
     const Value& valueb(Int block_offset, Int value_num) const
     {
         MEMORIA_ASSERT(value_num, >=, 0);
@@ -464,6 +483,28 @@ public:
         }
     }
 
+    void clearKeys(Int block, Int from, Int to)
+    {
+    	Int block_offset = this->getKeyBlockOffset(block);
+
+    	for (Int idx = from; idx < to; idx++)
+    	{
+    		keyb(block_offset, idx) = 0;
+    	}
+    }
+
+    void clearValues(Int from, Int to)
+    {
+    	if (this->getValueSize() > 0)
+    	{
+    		Int block_offset = this->getValueBlockOffset();
+    		for (Int idx = from; idx < to; idx++)
+    		{
+    			valueb(block_offset, idx) = 0;
+    		}
+    	}
+    }
+
     void clear(Int from, Int to)
     {
         MEMORIA_ASSERT(from, >=, 0);
@@ -472,137 +513,101 @@ public:
 
         for (Int c = 0; c < Blocks; c++)
         {
-            Int block_offset = this->getKeyBlockOffset(c);
-
-            for (Int idx = from; idx < to; idx++)
-            {
-                keyb(block_offset, idx) = 0;
-            }
+        	clearKeys(c, from, to);
         }
 
-        if (this->getValueSize() > 0)
-        {
-            Int block_offset = this->getValueBlockOffset();
-            for (Int idx = from; idx < to; idx++)
-            {
-                valueb(block_offset, idx) = 0;
-            }
-        }
+        clearValues(from, to);
     }
 
-    void enlarge(Byte* target_memory_block, Int new_keys_size, Int new_indexSize)
+    void clearIndex(Int block)
     {
-        Int value_size = getValueSize();
+    	for (Int idx = 0; idx < indexSize(); idx++)
+    	{
+    		index(block, idx) = 0;
+    	}
+    }
 
-        if (value_size > 0)
-        {
-            Int offset      = getValueBlockOffset();
-            Int new_offset  = getValueBlockOffset(new_indexSize, new_keys_size);
+    void clearIndexes()
+    {
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		clearIndex(b);
+    	}
+    }
 
-            copyData(target_memory_block, offset, new_offset, value_size);
-        }
+    void clearUnusedData()
+    {
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		clearKeys(b, size(), maxSize());
+    	}
 
-        for (Int c = Blocks - 1; c >= 0; c--)
-        {
-            Int offset      = getKeyBlockOffset(c);
-            Int new_offset  = getKeyBlockOffset(new_indexSize, new_keys_size, c);
+    	clearValues(size(), maxSize());
+    }
 
-            copyData(target_memory_block, offset, new_offset, sizeof(Key));
-        }
-
-//      for (Int c = Blocks - 1; c >= 0; c--)
-//      {
-//          Int offset      = getIndexKeyBlockOffset(c);
-//          Int new_offset  = getIndexKeyBlockOffset(new_indexSize, c);
-//
-//          copyIndex(target_memory_block, offset, new_offset, sizeof(IndexKey));
-//      }
+    void clearUnused() {
+    	clearUnusedData();
+    	clearIndexes();
     }
 
     void enlargeBlock(Int block_size)
     {
-        Int max_size    = getMaxSize(block_size);
-        Int indexSize   = getIndexSize(max_size);
+        MyType buf;
+        buf.initByBlock(block_size);
 
-        enlarge(memory_block_, max_size, indexSize);
+        repackDataWithSameTypes(&buf, memory_block_);
 
-        max_size_       = max_size;
-        index_size_     = indexSize;
+        buf.size() = this->size();
+
+        *this = buf;
+
+        clearUnused();
     }
 
     void enlargeTo(MyType* other)
     {
-        enlarge(other->memory_block_, other->max_size_, other->index_size_);
+    	repackDataWithSameTypes(other, other->memory_block_);
     }
-
-    void shrink(Byte* target_memory_block, Int new_keys_size, Int new_indexSize) const
-    {
-        Int value_size = getValueSize();
-
-        for (Int c = 0; c < Blocks; c++)
-        {
-            Int offset      = getKeyBlockOffset(c);
-            Int new_offset  = getKeyBlockOffset(new_indexSize, new_keys_size, c);
-
-            copyData(target_memory_block, offset, new_offset, sizeof(Key));
-        }
-
-        if (value_size > 0)
-        {
-            Int offset      = getValueBlockOffset();
-            Int new_offset  = getValueBlockOffset(new_indexSize, new_keys_size);
-
-            copyData(target_memory_block, offset, new_offset, value_size);
-        }
-    }
-
 
     void shrinkBlock(Int block_size)
     {
-        Int max_size    = getMaxSize(block_size);
-        Int indexSize   = getIndexSize(max_size);
+        MyType buf;
+        buf.initByBlock(block_size);
 
-        shrink(memory_block_, max_size, indexSize);
+        repackDataWithSameTypes(&buf, memory_block_);
 
-        max_size_       = max_size;
-        index_size_     = indexSize;
+        buf.size() = this->size();
+
+        *this = buf;
+
+        clearUnused();
     }
 
     void shrinkTo(MyType* other)
     {
-        shrink(other->memory_block_, other->max_size_, other->index_size_);
+    	repackDataWithSameTypes(other, other->memory_block_);
     }
 
     template <typename TreeType>
-    void transferTo(TreeType* other) const
+    void transferTo(TreeType* other, Byte* memory_block = nullptr) const
     {
-        if (sizeof(Key) == sizeof(typename TreeType::Key) && getValueSize() == TreeType::getValueSize())
+    	MEMORIA_ASSERT(size(), <=, other->maxSize());
+    	MEMORIA_ASSERT(Blocks,  ==, other->Blocks);
+
+    	if (memory_block == nullptr)
+    	{
+    		memory_block = other->memory_block_;
+    	}
+
+        if (
+        		sizeof(IndexKey) == sizeof(typename TreeType::IndexKey) &&
+        		sizeof(Key) == sizeof(typename TreeType::Key) &&
+        		getValueSize() == TreeType::getValueSize())
         {
-            shrink(other->memory_block_, other->max_size_, other->index_size_);
+        	repackDataWithSameTypes(other, memory_block);
         }
         else {
-
-            for (Int block = 0; block < Blocks; block++)
-            {
-                Int src_block_offset = this->getKeyBlockOffset(block);
-                Int tgt_block_offset = other->getKeyBlockOffset(block);
-
-                for (Int idx = 0; idx < size(); idx++)
-                {
-                    other->keyb(tgt_block_offset, idx) = keyb(src_block_offset, idx);
-                }
-            }
-
-            if (getValueSize() > 0)
-            {
-                Int src_block_offset = this->getValueBlockOffset();
-                Int tgt_block_offset = other->getValueBlockOffset();
-
-                for (Int idx = 0; idx < size(); idx++)
-                {
-                    other->valueb(tgt_block_offset, idx) = valueb(src_block_offset, idx);
-                }
-            }
+        	repackDataWithDifferentTypes(other, memory_block);
         }
     }
 
@@ -868,6 +873,27 @@ public:
         }
     }
 
+    void dumpRanges(Byte* memory_block = nullptr, std::ostream& out = std::cout)
+    {
+    	if (memory_block == nullptr)
+    	{
+    		memory_block = memory_block_;
+    	}
+
+    	for (Int c = 0; c <= Blocks; c++)
+    	{
+    		Int 	offset 		= getKeyBlockOffset(c);
+    		BigInt 	key_offset 	= T2T<SizeT>(memory_block + offset) - MemBase;
+
+    		out<<key_offset<<" "<<flush;
+    	}
+
+		Int 	offset 		= getValueBlockOffset();
+		BigInt 	key_offset 	= T2T<SizeT>(memory_block + offset + getValueSize()*maxSize()) - MemBase;
+
+		out<<key_offset<<endl;
+    }
+
 
 private:
 
@@ -973,6 +999,7 @@ private:
 
 
 
+
 protected:
     static Int getBlockStart(Int i)
     {
@@ -1001,6 +1028,372 @@ protected:
 
 private:
 
+    template <typename TreeType>
+    void repackDataWithSameTypes(TreeType* other, Byte* target_memory_block) const
+    {
+    	Int new_keys_size			= other->maxSize();
+    	Byte* target_keys			= other->getKeysPtr(target_memory_block);
+
+    	Int target_keys_block_size 	= new_keys_size * sizeof(Key);
+
+    	if (this->isMeInsideTarget(other, target_memory_block))
+    	{
+    		Int range = this->findBlockRange(target_keys, target_keys_block_size, std::less_equal<const Byte*>());
+
+    		if (range < Blocks)
+    		{
+    			copyValuesBlock(other, target_memory_block);
+    		}
+
+    		for (Int block = Blocks - 1; block >= range; block--)
+    		{
+    			copyKeysBlock(other, target_memory_block, block);
+    		}
+
+    		for (Int block = 0; block < range; block++)
+    		{
+    			copyKeysBlock(other, target_memory_block, block);
+    		}
+
+    		if (range == Blocks)
+    		{
+    			copyValuesBlock(other, target_memory_block);
+    		}
+    	}
+    	else if (this->isTargetInsideMe(other, target_memory_block))
+    	{
+    		Int range = this->findBlockRange(target_keys, target_keys_block_size, std::greater_equal<const Byte*>());
+
+    		if (range == Blocks)
+    		{
+    			copyValuesBlock(other, target_memory_block);
+    		}
+
+    		for (Int block = range - 1; block >= 0; block--)
+    		{
+    			copyKeysBlock(other, target_memory_block, block);
+    		}
+
+    		for (Int block = range; block < Blocks; block++)
+    		{
+    			copyKeysBlock(other, target_memory_block, block);
+    		}
+
+    		if (range < Blocks)
+    		{
+    			copyValuesBlock(other, target_memory_block);
+    		}
+    	}
+    	else if (target_keys < this->getKeysPtr())
+    	{
+    		for (Int block = 0; block < Blocks; block++)
+    		{
+    			copyKeysBlock(other, target_memory_block, block);
+    		}
+
+    		copyValuesBlock(other, target_memory_block);
+    	}
+    	else
+    	{
+    		copyValuesBlock(other, target_memory_block);
+
+    		for (Int block = Blocks - 1; block >= 0; block--)
+    		{
+    			copyKeysBlock(other, target_memory_block, block);
+    		}
+    	}
+    }
+
+    template <typename TreeType>
+    void repackDataWithDifferentTypes(TreeType* other, Byte* target_memory_block) const
+    {
+    	if (DebugCounter == 1) {
+    		int a = 0;
+    		a++;
+    	}
+
+    	Int target_max_size			= other->maxSize();
+    	Byte* target_keys			= other->getKeysPtr(target_memory_block);
+
+    	Int target_keys_block_size 	= target_max_size * sizeof(typename TreeType::Key);
+
+    	if (this->isMeInsideTarget(other, target_memory_block))
+    	{
+    		Int range = this->findBlockRange(target_keys, target_keys_block_size, std::less_equal<const Byte*>());
+
+    		if (range < Blocks)
+    		{
+    			copyValues(other, target_memory_block);
+    		}
+
+    		for (Int block = Blocks - 1; block >= range; block--)
+    		{
+    			copyKeys(other, target_memory_block, block);
+    		}
+
+    		for (Int block = 0; block < range; block++)
+    		{
+    			copyKeys(other, target_memory_block, block);
+    		}
+
+    		if (range == Blocks)
+    		{
+    			copyValues(other, target_memory_block);
+    		}
+    	}
+    	else if (this->isTargetInsideMe(other, target_memory_block))
+    	{
+    		Int range = this->findBlockRange(target_keys, target_keys_block_size, std::greater_equal<const Byte*>());
+
+    		if (range == Blocks)
+    		{
+    			copyValues(other, target_memory_block);
+    		}
+
+    		for (Int block = range - 1; block >= 0; block--)
+    		{
+    			copyKeys(other, target_memory_block, block);
+    		}
+
+    		for (Int block = range; block < Blocks; block++)
+    		{
+    			copyKeys(other, target_memory_block, block);
+    		}
+
+    		if (range < Blocks)
+    		{
+    			copyValues(other, target_memory_block);
+    		}
+    	}
+    	else if (target_keys < this->getKeysPtr())
+    	{
+    		for (Int block = 0; block < Blocks; block++)
+    		{
+    			copyKeys(other, target_memory_block, block);
+    		}
+
+    		copyValues(other, target_memory_block);
+    	}
+    	else
+    	{
+    		copyValues(other, target_memory_block);
+
+    		for (Int block = Blocks - 1; block >= 0; block--)
+    		{
+    			copyKeys(other, target_memory_block, block);
+    		}
+    	}
+    }
+
+    template <typename TreeType>
+    bool isTargetInsideMe(const TreeType* target, const Byte* target_memory_block) const
+    {
+    	const Byte* start 			= memory_block_ + this->getKeyBlockOffset(0);
+    	const Byte* end 			= memory_block_ + this->getValueBlockOffset() + maxSize() * getValueSize();
+
+    	const Byte* target_start 	= target_memory_block + target->getKeyBlockOffset(0);
+    	const Byte* target_end 		= target_memory_block + target->getValueBlockOffset() + target->maxSize() * target->getValueSize();
+
+    	return start <= target_start && end >= target_end;
+    }
+
+    bool isTargetInsideMe(const Byte* memory_block, const Byte* target_memory_block, Int size, Int target_size) const
+    {
+    	return target_memory_block >= memory_block && (target_memory_block + target_size) <= (memory_block + size);
+    }
+
+    template <typename TreeType>
+    bool isMeInsideTarget(const TreeType* target, const Byte* target_memory_block) const
+    {
+    	const Byte* start 			= memory_block_ + this->getKeyBlockOffset(0);
+    	const Byte* end 			= memory_block_ + this->getValueBlockOffset() + maxSize() * getValueSize();
+
+    	const Byte* target_start 	= target_memory_block + target->getKeyBlockOffset(0);
+    	const Byte* target_end 		= target_memory_block + target->getValueBlockOffset() + target->maxSize() * target->getValueSize();
+
+    	return start >= target_start && end <= target_end;
+    }
+
+    bool isMeInsideTarget(const Byte* memory_block, const Byte* target_memory_block, Int size, Int target_size) const
+    {
+    	return target_memory_block <= memory_block && (target_memory_block + target_size) >= (memory_block + size);
+    }
+
+    template <typename Comparator>
+    Int findBlockRange(const Byte* target_memory_block, Int target_block_size, const Comparator& cmp) const
+    {
+    	const Byte* mptr = getKeysPtr();
+    	const Byte* tptr = target_memory_block;
+
+    	for (Int c = 0; c < Blocks; c++)
+    	{
+    		if (cmp(mptr, tptr))
+    		{
+    			return c;
+    		}
+
+    		mptr += max_size_ * sizeof(Key);
+    		tptr += target_block_size;
+    	}
+
+    	return Blocks;
+    }
+
+    template <typename Comparator>
+    Int findRange(const Byte* memory_block, const Byte* target_memory_block, Int item_size, Int target_item_size, const Comparator& cmp) const
+    {
+    	for (Int c = 0; c < size(); c++)
+    	{
+    		if (cmp(memory_block, target_memory_block))
+    		{
+    			return c;
+    		}
+
+    		memory_block 		+= item_size;
+    		target_memory_block += target_item_size;
+    	}
+
+    	return size();
+    }
+
+
+    template <typename TreeType>
+    void copyKeysBlock(TreeType* other, Byte* target_memory_block, Int block) const
+    {
+    	Int offset      	= getKeyBlockOffset(block);
+    	Int target_offset  	= other->getKeyBlockOffset(block);
+
+    	copyData(target_memory_block, offset, target_offset, sizeof(Key));
+    }
+
+    template <typename TreeType>
+    void copyKeys(TreeType* other, Byte* target_memory_block, Int block) const
+    {
+    	Int offset      	= getKeyBlockOffset(block);
+    	Int target_offset   = other->getKeyBlockOffset(block);
+
+    	const Byte* key_block 	= memory_block_ + offset;
+    	Byte* target_key_block	= target_memory_block + target_offset;
+
+    	Int item_size 				= sizeof(Key);
+    	Int target_item_size 		= sizeof(typename TreeType::Key);
+
+    	Int key_block_size			= size() * item_size;
+    	Int target_key_block_size	= size() * target_item_size;
+
+    	if (this->isMeInsideTarget(key_block, target_key_block, key_block_size, target_key_block_size))
+    	{
+    		Int range = this->findRange(key_block, target_key_block, item_size, target_item_size, std::less_equal<const Byte*>());
+
+    		copyKeysAsc(other, target_memory_block, offset, target_offset, 0, range);
+    		DebugCounter = 2;
+    		copyKeysDsc(other, target_memory_block, offset, target_offset, range, size());
+    	}
+    	else if (this->isTargetInsideMe(key_block, target_key_block, key_block_size, target_key_block_size))
+    	{
+    		Int range = this->findRange(key_block, target_key_block, item_size, target_item_size, std::greater_equal<const Byte*>());
+
+    		copyKeysDsc(other, target_memory_block, offset, target_offset, 0, range);
+    		copyKeysAsc(other, target_memory_block, offset, target_offset, range, size());
+    	}
+    	else if (target_key_block < key_block)
+    	{
+    		copyKeysAsc(other, target_memory_block, offset, target_offset, 0, size());
+    	}
+    	else
+    	{
+    		copyKeysDsc(other, target_memory_block, offset, target_offset, 0, size());
+    	}
+    }
+
+    template <typename TreeType>
+    void copyKeysAsc(TreeType* other, Byte* target_memory_block, Int offset, Int target_offset, Int from, int to) const
+    {
+    	for (Int c = from; c < to; c++)
+    	{
+    		other->keyb(target_memory_block, target_offset, c) = keyb(offset, c);
+    	}
+    }
+
+    template <typename TreeType>
+    void copyKeysDsc(TreeType* other, Byte* target_memory_block, Int offset, Int target_offset, Int from, int to) const
+    {
+    	for (Int c = to - 1; c >= from; c--)
+    	{
+    		other->keyb(target_memory_block, target_offset, c) = keyb(offset, c);
+    	}
+    }
+
+
+    template <typename TreeType>
+    void copyValuesBlock(TreeType* other, Byte* target_memory_block) const
+    {
+    	if (getValueSize() > 0)
+    	{
+    		Int offset      = getValueBlockOffset();
+    		Int new_offset  = other->getValueBlockOffset();
+
+    		copyData(target_memory_block, offset, new_offset, getValueSize());
+    	}
+    }
+
+    template <typename TreeType>
+    void copyValues(TreeType* other, Byte* target_memory_block) const
+    {
+    	if (getValueSize() == 0) return;
+
+    	Int offset      	= getValueBlockOffset();
+    	Int target_offset   = other->getValueBlockOffset();
+
+    	const Byte* value_block 	= memory_block_ + offset;
+    	Byte* target_value_block	= target_memory_block + target_offset;
+
+    	Int value_block_size		= size() * getValueSize();
+    	Int target_value_block_size	= size() * other->getValueSize();
+
+    	if (this->isMeInsideTarget(value_block, target_value_block, value_block_size, target_value_block_size))
+    	{
+    		Int range = this->findRange(value_block, target_value_block, getValueSize(), other->getValueSize(), std::less_equal<const Byte*>());
+
+    		copyValuesAsc(other, target_memory_block, offset, target_offset, 0, range);
+    		copyValuesDsc(other, target_memory_block, offset, target_offset, range, size());
+
+    	}
+    	else if (this->isTargetInsideMe(value_block, target_value_block, value_block_size, target_value_block_size))
+    	{
+    		Int range = this->findRange(value_block, target_value_block, getValueSize(), other->getValueSize(), std::greater_equal<const Byte*>());
+
+    		copyValuesDsc(other, target_memory_block, offset, target_offset, 0, range);
+    		copyValuesAsc(other, target_memory_block, offset, target_offset, range, size());
+    	}
+    	else if (target_value_block < value_block)
+    	{
+    		copyValuesAsc(other, target_memory_block, offset, target_offset, 0, size());
+    	}
+    	else
+    	{
+    		copyValuesDsc(other, target_memory_block, offset, target_offset, 0, size());
+    	}
+    }
+
+    template <typename TreeType>
+    void copyValuesAsc(TreeType* other, Byte* target_memory_block, Int offset, Int target_offset, Int from, int to) const
+    {
+    	for (Int c = from; c < to; c++)
+    	{
+    		other->valueb(target_memory_block, target_offset, c) = valueb(offset, c);
+    	}
+    }
+
+    template <typename TreeType>
+    void copyValuesDsc(TreeType* other, Byte* target_memory_block, Int offset, Int target_offset, Int from, int to) const
+    {
+    	for (Int c = to - 1; c >= from; c--)
+    	{
+    		other->valueb(target_memory_block, target_offset, c) = valueb(offset, c);
+    	}
+    }
+
     void copyData(Byte* target_memory_block, Int offset, Int new_offset, Int item_size) const
     {
         CopyBuffer(
@@ -1009,16 +1402,6 @@ private:
                 size_ * item_size
         );
     }
-
-    void copyIndex(Byte* target_memory_block, Int offset, Int new_offset, Int item_size) const
-    {
-        CopyBuffer(
-                memory_block_       + offset,
-                target_memory_block + new_offset,
-                index_size_ * item_size
-        );
-    }
-
 
     void copyData(Int offset, Int room_start, Int room_length, Int item_size)
     {

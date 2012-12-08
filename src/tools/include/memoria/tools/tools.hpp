@@ -158,9 +158,9 @@ BigInt  getTimeInMillis();
 String FormatTime(BigInt millis);
 
 void Fill(char* buf, int size, char value);
-ArrayData createBuffer(Int size, UByte value);
+ArrayData<UByte> createBuffer(Int size, UByte value);
 Int getNonZeroRandom(Int size);
-ArrayData createRandomBuffer(UByte fill_value, Int max_size);
+ArrayData<UByte> createRandomBuffer(UByte fill_value, Int max_size);
 
 
 template <typename Allocator>
@@ -198,9 +198,9 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 
 
 template <typename BAIterator>
-bool CompareBuffer(BAIterator& iter, ArrayData& data, Int& c)
+bool CompareBuffer(BAIterator& iter, ArrayData<UByte>& data, Int& c)
 {
-    ArrayData buf(data.size());
+    ArrayData<UByte> buf(data.size());
 
     iter.read(buf);
 
@@ -219,7 +219,7 @@ bool CompareBuffer(BAIterator& iter, ArrayData& data, Int& c)
 }
 
 template <typename BAIterator >
-void checkBufferWritten(BAIterator& iter, ArrayData& data, const char* err_msg, const char* source)
+void checkBufferWritten(BAIterator& iter, ArrayData<UByte>& data, const char* err_msg, const char* source)
 {
     Int pos = 0;
     if (!CompareBuffer(iter, data, pos))
@@ -299,7 +299,7 @@ BigInt getUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
 #define MEMORIA_TEST_THROW_IF_EXPR(expr, op1, op2)                                             \
     if (expr) {                                                                                \
         throw TestException(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#expr<<"; "            \
-                                                  <<#op1<<"="<<op1<<", "<<op2<<"="<<op2);      \
+                                                  <<#op1<<"="<<op1<<", "<<#op2<<"="<<op2);     \
     }
 
 

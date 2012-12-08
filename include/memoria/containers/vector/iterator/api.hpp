@@ -42,6 +42,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     typedef typename Container::Types::BufferContentDescriptor                      BufferContentDescriptor;
     typedef typename Container::Types::CountData                                    CountData;
     typedef typename Container::Types::Pages::NodeDispatcher                        NodeDispatcher;
+    typedef typename Container::Types::ElementType                        			ElementType;
+
+    typedef IData<ElementType>														IDataType;
 
     typedef typename Base::TreePath                                                 TreePath;
 
@@ -54,32 +57,32 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     }
 
 
-    MEMORIA_PUBLIC BigInt read(IData& data, BigInt start, BigInt length)
+    MEMORIA_PUBLIC BigInt read(IDataType& data, BigInt start, BigInt length)
     {
         return me()->model().read(*me(), data, start, length);
     }
 
-    MEMORIA_PUBLIC BigInt read(IData& data)
+    MEMORIA_PUBLIC BigInt read(IDataType& data)
     {
         return read(data, 0, data.getSize());
     }
 
     
-    void insert(const IData& data, BigInt start, BigInt length);
-    void insert(const IData& data);
+    void insert(const IDataType& data, BigInt start, BigInt length);
+    void insert(const IDataType& data);
 
-    MEMORIA_PUBLIC void insert(const ArrayData& data) {
-        insert((IData&)data);
+    MEMORIA_PUBLIC void insert(const ArrayData<ElementType>& data) {
+        insert((IDataType&)data);
     }
 
     template <typename T>
     MEMORIA_PUBLIC void insert(const T& value)
     {
-        me()->insert(ArrayData(value));
+        me()->insert(ArrayData<ElementType>(value));
     }
 
-    void update(const IData& data, BigInt start, BigInt length);
-    void update(const IData& data);
+    void update(const IDataType& data, BigInt start, BigInt length);
+    void update(const IDataType& data);
 
     MEMORIA_PUBLIC void remove(BigInt length)
     {
@@ -165,7 +168,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     {
         T value;
 
-        ArrayData data(value);
+        ArrayData<ElementType> data(value);
 
         me()->read(data);
 
@@ -180,13 +183,13 @@ MEMORIA_ITERATOR_PART_END
 
 
 MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::insert(const IData& data, BigInt start, BigInt length)
+void M_TYPE::insert(const IDataType& data, BigInt start, BigInt length)
 {
     me()->model().insertData(*me(), data, start, length);
 }
 
 MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::insert(const IData& data)
+void M_TYPE::insert(const IDataType& data)
 {
     me()->model().insertData(*me(), data);
 }
@@ -194,13 +197,13 @@ void M_TYPE::insert(const IData& data)
 
 
 MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::update(const IData& data, BigInt start, BigInt len)
+void M_TYPE::update(const IDataType& data, BigInt start, BigInt len)
 {
     me()->model().updateData(*me(), data, start, len);
 }
 
 MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::update(const IData& data)
+void M_TYPE::update(const IDataType& data)
 {
     me()->model().updateData(*me(), data, 0, data.getSize());
 }

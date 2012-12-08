@@ -28,9 +28,6 @@ typedef int16_t             Short;
 typedef uint16_t            UShort;
 typedef int8_t              Byte;
 typedef uint8_t             UByte;
-typedef size_t              SizeT;
-
-
 
 
 namespace internal {
@@ -40,12 +37,14 @@ template <>
 struct PlatformLongHelper<4> {
     typedef Int             LongType;
     typedef UInt            ULongType;
+    typedef Int             SizeTType;
 };
 
 template <>
 struct PlatformLongHelper<8> {
     typedef BigInt          LongType;
     typedef UBigInt         ULongType;
+    typedef BigInt          SizeTType;
 };
 }
 
@@ -56,6 +55,7 @@ struct PlatformLongHelper<8> {
 
 typedef internal::PlatformLongHelper<sizeof(void*)>::LongType                   Long;
 typedef internal::PlatformLongHelper<sizeof(void*)>::ULongType                  ULong;
+typedef internal::PlatformLongHelper<sizeof(void*)>::SizeTType              	SizeT;
 
 typedef std::string                                                             String;
 typedef const String&                                                           StringRef;
@@ -95,6 +95,8 @@ template <typename T> struct TypeHash; // must define Value constant
 
 struct BTreeCtr     {};
 struct BSTreeCtr    {};
+
+template <typename T>
 struct DynVectorCtr {};
 struct CompositeCtr {};
 
@@ -119,6 +121,8 @@ typedef SetCtr<BigInt, 2>       Set2Ctr;
 struct DFUDS        {};
 struct LOUDS        {};
 struct VectorMapCtr {};
+
+template <typename T>
 struct VectorCtr    {};
 
 
@@ -190,6 +194,7 @@ struct DeserializationData {
 };
 
 extern BigInt DebugCounter;
+extern size_t MemBase;
 
 }
 

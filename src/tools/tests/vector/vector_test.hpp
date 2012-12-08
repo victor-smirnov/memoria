@@ -48,8 +48,8 @@ public:
 
 
 class VectorTest: public BTreeBatchTestBase<
-    VectorCtr,
-    ArrayData,
+    VectorCtr<UByte>,
+    ArrayData<UByte>,
     VectorReplay
 >
 {
@@ -58,8 +58,8 @@ class VectorTest: public BTreeBatchTestBase<
 
 
     typedef BTreeBatchTestBase<
-            VectorCtr,
-            ArrayData,
+            VectorCtr<UByte>,
+            ArrayData<UByte>,
             VectorReplay
     >                                                               Base;
 
@@ -80,9 +80,9 @@ public:
         Add("element_size", element_size_);
     }
 
-    virtual ArrayData createBuffer(Ctr& array, Int size, UByte value)
+    virtual ArrayData<UByte> createBuffer(Ctr& array, Int size, UByte value)
     {
-        ArrayData data(size * array.getElementSize());
+        ArrayData<UByte> data(size * array.getElementSize());
 
         Int esize = array.getElementSize();
 
@@ -104,12 +104,12 @@ public:
         return array.seek(pos);
     }
 
-    virtual void insert(Iterator& iter, const ArrayData& data)
+    virtual void insert(Iterator& iter, const ArrayData<UByte>& data)
     {
         iter.insert(data);
     }
 
-    virtual void read(Iterator& iter, ArrayData& data)
+    virtual void read(Iterator& iter, ArrayData<UByte>& data)
     {
         iter.read(data);
     }

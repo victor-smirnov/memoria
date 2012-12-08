@@ -42,7 +42,7 @@ void sighandler(int signum)
 
 int main(int argc, const char** argv, const char** envp)
 {
-    signal(SIGSEGV, sighandler);
+    //signal(SIGSEGV, sighandler);
 
     MetadataInitializer<SmallProfile<> >::init();
 
@@ -53,7 +53,7 @@ int main(int argc, const char** argv, const char** envp)
         //Seed(getTimeInMillis());
         //SeedBI(getTimeInMillis());
 
-        Int default_seed = getTimeInMillis() % 10000;
+        Int default_seed = getTimeInMillis() % 100000;
 
         Int seed = cmd_line.getConfigurator().getValue<Int>("seed", default_seed);
 

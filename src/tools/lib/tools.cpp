@@ -160,16 +160,16 @@ void Fill(char* buf, int size, char value)
     }
 }
 
-ArrayData createBuffer(Int size, UByte value)
+ArrayData<UByte> createBuffer(Int size, UByte value)
 {
-    char* buf = (char*)malloc(size);
+    UByte* buf = (UByte*)malloc(size);
 
     for (Int c = 0;c < size; c++)
     {
         buf[c] = value;
     }
 
-    return ArrayData(size, buf, true);
+    return ArrayData<UByte>(size, buf, true);
 }
 
 
@@ -179,7 +179,7 @@ Int getNonZeroRandom(Int size)
     return value != 0 ? value : getNonZeroRandom(size);
 }
 
-ArrayData createRandomBuffer(UByte fill_value, Int max_size)
+ArrayData<UByte> createRandomBuffer(UByte fill_value, Int max_size)
 {
     return createBuffer(getNonZeroRandom(max_size), fill_value);
 }

@@ -152,7 +152,6 @@ public:
     >::Result                                                                   FieldsList;
 
     PagePart(): Base(), metadata_() {
-        cout<<"RootPage.id="<<Base::id().value()<<endl;
         init();
     }
 

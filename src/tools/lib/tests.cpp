@@ -16,7 +16,8 @@ namespace memoria {
 
 void TestTask::Replay(ostream& out, Configurator* cfg)
 {
-    unique_ptr<TestReplayParams> params(cfg != NULL ? ReadTestStep(cfg) : NULL);
+    setReplayMode();
+	unique_ptr<TestReplayParams> params(cfg != NULL ? ReadTestStep(cfg) : NULL);
     Replay(out, params.get());
 }
 
@@ -56,7 +57,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 
     if (folder.isExists())
     {
-        replay_file_name = task_folder + Platform::getFilePathSeparator() + "Replay.properties";
+        replay_file_name = task_folder + Platform::getFilePathSeparator() + "ReplayTask.properties";
         File file(replay_file_name);
 
         if (!file.isExists())
@@ -64,13 +65,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
             throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<replay_file_name<<" does not exists");
         }
 
-        task_file_name = task_folder + Platform::getFilePathSeparator() + "ReplayTask.properties";
-        File task_file(task_file_name);
-
-        if (!file.isExists())
-        {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<task_file_name<<" does not exists");
-        }
+        task_file_name = replay_file_name;
     }
     else {
         throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<task_folder<<" does not exists");
@@ -88,6 +83,10 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
             task->LoadProperties(task, task_file_name);
             task->Replay(out, &cfg);
             out<<"PASSED"<<endl;
+        }
+        catch (Exception e)
+        {
+        	out<<"FAILED: "<<e.source()<<" "<<e<<endl;
         }
         catch (MemoriaThrowable e)
         {

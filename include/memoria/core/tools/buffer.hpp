@@ -167,11 +167,11 @@ public:
     }
 
     void copyTo(void *mem) const {
-        CopyBuffer(&value_, mem, Size);
+        CopyByteBuffer(&value_, mem, Size);
     }
 
     void copyFrom(const void *mem) {
-        CopyBuffer(mem, &value_, Size);
+        CopyByteBuffer(mem, &value_, Size);
     }
 
     const Object &value() const {

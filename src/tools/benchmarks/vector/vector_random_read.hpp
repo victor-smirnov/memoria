@@ -26,14 +26,14 @@ class VectorRandomReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorCtr>::Type      VectorCtrType;
-    typedef typename VectorCtrType::Iterator                            Iterator;
-    typedef typename VectorCtrType::ID                                  ID;
-    typedef typename VectorCtrType::Accumulator                         Accumulator;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           		RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte>>::Type      	VectorCtrType;
+    typedef typename VectorCtrType::Iterator                            		Iterator;
+    typedef typename VectorCtrType::ID                                  		ID;
+    typedef typename VectorCtrType::Accumulator                         		Accumulator;
 
 
-    typedef typename VectorCtrType::Key                                 Key;
+    typedef typename VectorCtrType::Key                                 		Key;
 
 
 
@@ -65,7 +65,7 @@ public:
 
         BigInt size = 1024*1024;
 
-        ArrayData data(size, malloc(size), true);
+        ArrayData<UByte> data(size, malloc(size), true);
 
         Iterator i = ctr_->seek(0);
         for (Int c = 0; c < memory_size / size; c++)
@@ -86,7 +86,7 @@ public:
     {
         Int     size    = params.x();
 
-        ArrayData data(size, malloc(size), true);
+        ArrayData<UByte> data(size, malloc(size), true);
 
         BigInt total = 0;
         BigInt operations = 0;

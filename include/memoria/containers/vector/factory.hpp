@@ -28,10 +28,10 @@
 
 namespace memoria {
 
-template <typename Profile>
-struct BTreeTypes<Profile, memoria::VectorCtr>: public BTreeTypes<Profile, memoria::DynVectorCtr>  {
+template <typename Profile, typename ElementType>
+struct BTreeTypes<Profile, memoria::VectorCtr<ElementType>>: public BTreeTypes<Profile, memoria::DynVectorCtr<ElementType>>  {
 
-    typedef BTreeTypes<Profile, memoria::DynVectorCtr>                              Base;
+    typedef BTreeTypes<Profile, memoria::DynVectorCtr<ElementType>>                 Base;
 
     typedef typename AppendTool<
             typename Base::ContainerPartsList,
@@ -47,11 +47,11 @@ struct BTreeTypes<Profile, memoria::VectorCtr>: public BTreeTypes<Profile, memor
             >
     >::Result                                                                       IteratorPartsList;
 
-    typedef ArrayData                                                               Buffer;
+    typedef ArrayData<ElementType>                                                  Buffer;
 
     template <Int Size>
     struct DataBlockTypeFactory {
-        typedef memoria::array::DynVectorData<Size>                                 Type;
+        typedef memoria::array::DynVectorData<ElementType, Size>                    Type;
     };
 
     typedef VectorMetadata<typename Base::ID>                                       Metadata;
@@ -63,8 +63,8 @@ struct BTreeTypes<Profile, memoria::VectorCtr>: public BTreeTypes<Profile, memor
 };
 
 
-template <typename Profile, typename T>
-class CtrTF<Profile, memoria::VectorCtr, T>: public CtrTF<Profile, memoria::DynVectorCtr, T> {
+template <typename Profile, typename T, typename ElementType>
+class CtrTF<Profile, memoria::VectorCtr<ElementType>, T>: public CtrTF<Profile, memoria::DynVectorCtr<ElementType>, T> {
 
 };
 

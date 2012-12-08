@@ -34,6 +34,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
 
     static const Int Indexes                                                    = Base::Indexes;
     
+    typedef typename Types::ElementType                        					ElementType;
+
+    typedef IData<ElementType>													IDataType;
+
 
     MEMORIA_PUBLIC void configureRootMetadata(Metadata& metadata) const
     {
@@ -61,7 +65,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
     MEMORIA_PUBLIC void append(const T& value)
     {
         Iterator i = me()->seek(me()->size());
-        i.insert(ArrayData(value));
+        i.insert(ArrayData<ElementType>(value));
     }
 
     Iterator seek(BigInt pos);

@@ -38,10 +38,13 @@ typedef typename Page::ID                                   ID;
 
 typedef typename ContainerType::Key                         Key;
 
+typedef typename ContainerType::ByteArray::ElementType      ElementType;
+typedef ArrayData<ElementType>								ArrayDataType;
 
 
 
-void insert(const ArrayData& data)
+
+void insert(const ArrayDataType& data)
 {
     me()->ba_iter().insert(data);
 
@@ -52,7 +55,7 @@ void insert(const ArrayData& data)
     me()->is_iter().updateUp(keys);
 }
 
-void update(const ArrayData& data)
+void update(const ArrayDataType& data)
 {
     BigInt sz = me()->size();
 
@@ -89,24 +92,24 @@ void update(const ArrayData& data)
 }
 
 
-ArrayData read()
+ArrayDataType read()
 {
     me()->ba_iter().skip(-me()->pos());
 
-    ArrayData data(me()->size());
+    ArrayDataType data(me()->size());
     me()->read(data, 0, data.size());
 
     return data;
 }
 
 
-BigInt read(ArrayData& data)
+BigInt read(ArrayDataType& data)
 {
     return read(data, 0, data.size());
 }
 
 
-BigInt read(ArrayData& data, BigInt start, BigInt length)
+BigInt read(ArrayDataType& data, BigInt start, BigInt length)
 {
     BigInt current_pos  = me()->pos();
     BigInt current_size = me()->size();
@@ -203,7 +206,7 @@ bool nextKey()
 
 void setValue(BigInt value)
 {
-    ArrayData data(sizeof(value), &value);
+    ArrayDataType data(sizeof(value), &value);
     me()->update(data);
 }
 
@@ -233,18 +236,18 @@ MyType& operator*() {
 
 void setValue(StringRef value)
 {
-    ArrayData data(value.size(), T2T<UByte*>(value.c_str()));
+    ArrayDataType data(value.size(), T2T<UByte*>(value.c_str()));
     me()->update(data);
 }
 
-void setValue(const ArrayData& value)
+void setValue(const ArrayDataType& value)
 {
     me()->update(value);
 }
 
-operator ArrayData()
+operator ArrayDataType()
 {
-    ArrayData data(me()->size());
+    ArrayDataType data(me()->size());
     BigInt len = me()->read(data);
     me()->skip(-len);
     return data;
@@ -252,7 +255,7 @@ operator ArrayData()
 
 operator String ()
 {
-    ArrayData data(me()->size());
+    ArrayDataType data(me()->size());
     BigInt len = me()->read(data);
     me()->skip(-len);
     return String(T2T<char*>(data.data()), data.size());

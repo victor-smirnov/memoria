@@ -84,6 +84,8 @@ public:
 
 class TestTask: public Task {
 
+	bool	replay_;
+
 protected:
     Int     size_;
     Int     btree_branching_;
@@ -92,6 +94,7 @@ protected:
 public:
     TestTask(StringRef name):
         Task(name),
+        replay_(false),
         size_(200),
         btree_branching_(0),
         btree_random_branching_(true)
@@ -115,6 +118,13 @@ public:
     virtual void            Run(ostream& out)                                           = 0;
     virtual void            Replay(ostream& out, TestReplayParams* step_params)         = 0;
 
+    virtual void setReplayMode() {
+    	replay_ = true;
+    }
+
+    virtual bool isReplayMode() const {
+    	return replay_;
+    }
 
     virtual void Store(TestReplayParams* params) const
     {

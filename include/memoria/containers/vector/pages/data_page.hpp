@@ -16,16 +16,18 @@ namespace array      {
 
 #pragma pack(1)
 
-template <Int Size>
+template <typename ElementType_, Int Size>
 class DynVectorData
 {
     static const UInt VERSION = 1;
 
     Int size_;
 
-    Byte value_[Size - sizeof(size_)];
+    ElementType_ value_[Size - sizeof(size_)];
 
 public:
+    typedef ElementType_ 														ElementType;
+
     typedef TypeList<
         ConstValue<UInt, VERSION>,
         decltype(size_),
@@ -49,24 +51,24 @@ public:
         return size_;
     }
 
-    const Byte& value(Int idx) const {
+    const ElementType& value(Int idx) const {
         return value_[idx];
     }
 
-    Byte& value(Int idx) {
+    ElementType& value(Int idx) {
         return value_[idx];
     }
 
-    Byte* value_addr(Int idx) {
+    ElementType* value_addr(Int idx) {
         return &value_[idx];
     }
 
-    const Byte* value_addr(Int idx) const {
+    const ElementType* value_addr(Int idx) const {
         return &value_[idx];
     }
 
     Int byte_size() const {
-        return size_ + sizeof(size_);
+        return size_ * sizeof(ElementType) + sizeof(size_);
     }
 
     void shift(BigInt pos, BigInt length)
@@ -83,7 +85,7 @@ public:
         handler->startGroup("DATA");
 
         handler->value("SIZE", &size_);
-        handler->value("VALUE", value_, size_, IPageDataEventHandler::BYTE_ARRAY);
+        handler->value("VALUE", value_, size_, IPageDataEventHandler::BYTE_ARRAY); // FIXME; use correct data type handler
 
         handler->endGroup();
     }
@@ -92,14 +94,14 @@ public:
     void serialize(SerializationData& buf) const
     {
         FieldFactory<Int>::serialize(buf, size_);
-        FieldFactory<Byte>::serialize(buf, value_[0], sizeof(value_));
+        FieldFactory<ElementType>::serialize(buf, value_[0], sizeof(value_));
     }
 
     //template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<Int>::deserialize(buf, size_);
-        FieldFactory<Byte>::deserialize(buf, value_[0], sizeof(value_));
+        FieldFactory<ElementType>::deserialize(buf, value_[0], sizeof(value_));
     }
 
     void init() {

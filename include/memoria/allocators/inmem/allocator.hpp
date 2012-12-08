@@ -116,7 +116,7 @@ public:
         for (auto i = other.pages_.begin(); i != other.pages_.end(); i++)
         {
             char* buffer = (char*) malloc(PAGE_SIZE);
-            CopyBuffer(i->second, buffer, PAGE_SIZE);
+            CopyBuffer(T2T<const char*>(i->second), buffer, PAGE_SIZE);
             pages_[i->first] = T2T<Page*>(buffer);
         }
 
@@ -209,7 +209,7 @@ public:
 
                 char* buffer = (char*) malloc(PAGE_SIZE);
                 allocs1_++;
-                CopyBuffer(page, buffer, PAGE_SIZE);
+                CopyBuffer(T2T<const char*>(page), buffer, PAGE_SIZE);
                 Page* page2 = T2T<Page*>(buffer);
 
                 pages_log_[id] = page2;
@@ -248,7 +248,7 @@ public:
             char* buffer = (char*) malloc(PAGE_SIZE);
             allocs1_++;
 
-            CopyBuffer(shared->get(), buffer, PAGE_SIZE);
+            CopyBuffer(T2T<const char*>(shared->get()), buffer, PAGE_SIZE);
             Page* page0 = T2T<Page*>(buffer);
 
             pages_log_[page0->id()] = page0;

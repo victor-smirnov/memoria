@@ -37,7 +37,7 @@ public:
 
     Int check_count;
 
-    ProfileTestTask(StringRef name): TestTask(name)
+    ProfileTestTask(StringRef name): TestTask(name), check_count(0)
     {
         //RootMapType::initMetadata();
 

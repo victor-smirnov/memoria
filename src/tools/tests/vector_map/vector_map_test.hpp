@@ -99,7 +99,7 @@ public:
 
             UByte value = pair.key_ & 0xFF;
 
-            ArrayData data = createBuffer(pair.value_, value);
+            ArrayData<UByte> data = createBuffer(pair.value_, value);
 
             checkBufferWritten(iter, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -137,7 +137,7 @@ public:
 
             checkCtr(map, "insertion failed 1", MEMORIA_SOURCE);
 
-            ArrayData data = createBuffer(params->data_size_, key & 0xFF);
+            ArrayData<UByte> data = createBuffer(params->data_size_, key & 0xFF);
 
             iter.insert(data);
 
@@ -145,13 +145,13 @@ public:
 
             checkCtr(map, "insertion failed 2", MEMORIA_SOURCE);
 
-            MEMORIA_TEST_THROW_IF(iter.size(),  != , data.size());
+            MEMORIA_TEST_THROW_IF(iter.size(),  	!= , data.size());
             MEMORIA_TEST_THROW_IF(iter.getKey(),    != , key);
 
             auto iter2 = map.find(iter.getKey());
 
             MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
-            MEMORIA_TEST_THROW_IF(iter2.size(),     != , data.size());
+            MEMORIA_TEST_THROW_IF(iter2.size(),   != , data.size());
             MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
             checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
@@ -228,7 +228,7 @@ public:
 
                 params->data_size_ = getRandom(task_params->max_block_size_);
 
-                ArrayData data = createBuffer(params->data_size_, c % 256);
+                ArrayData<UByte> data = createBuffer(params->data_size_, c % 256);
 
                 iter.insert(data);
 
@@ -291,7 +291,7 @@ public:
                 auto iter = map.create(key);
                 params->data_size_ = getRandom(task_params->max_block_size_);
 
-                ArrayData data = createBuffer(params->data_size_, key & 0xFF);
+                ArrayData<UByte> data = createBuffer(params->data_size_, key & 0xFF);
                 iter.insert(data);
 
                 checkCtr(map, "insertion failed.",  MEMORIA_SOURCE);
@@ -362,7 +362,7 @@ public:
                 auto iter = map.create(key);
                 params->data_size_ = getRandom(task_params->max_block_size_);
 
-                ArrayData data = createBuffer(params->data_size_, key & 0xFF);
+                ArrayData<UByte> data = createBuffer(params->data_size_, key & 0xFF);
                 iter.insert(data);
 
                 appendToSortedVector(pairs_, Pair(key, params->data_size_));

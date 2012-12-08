@@ -25,7 +25,7 @@ using namespace std;
 
 
 
-class PMapfindTest: public TestTask {
+class PMapFindTest: public TestTask {
 
     template <typename Key_, typename Value_, Int Blocks_ = 3>
     struct PMapfindTypes {
@@ -57,9 +57,9 @@ class PMapfindTest: public TestTask {
 
 public:
 
-    PMapfindTest(): TestTask("find") {}
+    PMapFindTest(): TestTask("find") {}
 
-    virtual ~PMapfindTest() throw() {}
+    virtual ~PMapFindTest() throw() {}
 
     virtual TestReplayParams* createTestStep(StringRef name) const
     {

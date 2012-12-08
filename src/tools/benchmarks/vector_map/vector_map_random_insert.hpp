@@ -69,7 +69,7 @@ public:
     {
         Int size = params.x();
 
-        ArrayData data(size, malloc(size), true);
+        ArrayData<UByte> data(size, malloc(size), true);
 
         BigInt total = 0;
 

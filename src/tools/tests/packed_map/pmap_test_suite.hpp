@@ -13,6 +13,7 @@
 #include "pmap_data.hpp"
 #include "pmap_find.hpp"
 #include "pmap_reindex.hpp"
+#include "pmap_transfer.hpp"
 #include "pmap_sum.hpp"
 #include "pmap_walk_bw.hpp"
 #include "pmap_walk_fw.hpp"
@@ -31,8 +32,11 @@ public:
     PackedMapTestSuite(): TestSuite("PackedMapTestSuite")
     {
         registerTask(new PMapDataTest());
-        registerTask(new PMapfindTest());
+        registerTask(new PMapFindTest());
         registerTask(new PMapReindexTest());
+
+        registerTask(new PMapTransferTest<true>("TransferSameMaps"));
+        registerTask(new PMapTransferTest<false>("TransferDifferentMaps"));
 
         registerTask(new PMapSumTest<2>());
         registerTask(new PMapSumTest<4>());

@@ -55,7 +55,7 @@ public:
         allocator_ = new Allocator();
 
         Int size = params.x();
-        ArrayData data(size, malloc(size), true);
+        ArrayData<UByte> data(size, malloc(size), true);
 
         BigInt total = 0;
 
@@ -80,7 +80,7 @@ public:
     virtual void Benchmark(BenchmarkParameters& params, ostream& out)
     {
         Int size = params.x();
-        ArrayData data(size, malloc(size), true);
+        ArrayData<UByte> data(size, malloc(size), true);
         Int total = memory_size/size;
 
         params.operations() = total;

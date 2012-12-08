@@ -157,35 +157,35 @@ public:
 
     }
 
-    template <typename PageType>
-    void copyFrom(const PageType* page)
-    {
-        Base::copyFrom(page);
-
-        //FIXME: use page->size()
-        //FIXME: use PackedTree facilities to copy data or memcpy()
-        set_children_count(page->children_count());
-
-        for (Int c = 0; c < page->children_count(); c++)
-        {
-            for (Int d = 0; d < INDEXES; d++)
-            {
-                map_.key(d, c) = page->map().key(d, c);
-            }
-
-            map_.data(c) = page->map().data(c);
-        }
-
-        for (Int c = this->children_count(); c < map_.maxSize(); c++)
-        {
-            for (Int d = 0; d < INDEXES; d++)
-            {
-                map_.key(d, c) = 0;
-            }
-
-            map().data(c) = 0;
-        }
-    }
+//    template <typename PageType>
+//    void copyFrom(const PageType* page)
+//    {
+//        Base::copyFrom(page);
+//
+//        //FIXME: use page->size()
+//        //FIXME: use PackedTree facilities to copy data or memcpy()
+//        set_children_count(page->children_count());
+//
+//        for (Int c = 0; c < page->children_count(); c++)
+//        {
+//            for (Int d = 0; d < INDEXES; d++)
+//            {
+//                map_.key(d, c) = page->map().key(d, c);
+//            }
+//
+//            map_.data(c) = page->map().data(c);
+//        }
+//
+//        for (Int c = this->children_count(); c < map_.maxSize(); c++)
+//        {
+//            for (Int d = 0; d < INDEXES; d++)
+//            {
+//                map_.key(d, c) = 0;
+//            }
+//
+//            map().data(c) = 0;
+//        }
+//    }
 
 
 

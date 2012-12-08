@@ -204,6 +204,8 @@ public:
         fstream file;
         file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
 
+        file<<"task="<<params->getPrefix()<<endl;
+
         params->dumpProperties(file);
 
         file.close();
