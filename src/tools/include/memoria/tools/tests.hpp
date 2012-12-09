@@ -84,7 +84,7 @@ public:
 
 class TestTask: public Task {
 
-	bool	replay_;
+    bool    replay_;
 
 protected:
     Int     size_;
@@ -119,11 +119,11 @@ public:
     virtual void            Replay(ostream& out, TestReplayParams* step_params)         = 0;
 
     virtual void setReplayMode() {
-    	replay_ = true;
+        replay_ = true;
     }
 
     virtual bool isReplayMode() const {
-    	return replay_;
+        return replay_;
     }
 
     virtual void Store(TestReplayParams* params) const

@@ -42,9 +42,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     typedef typename Container::Types::BufferContentDescriptor                      BufferContentDescriptor;
     typedef typename Container::Types::CountData                                    CountData;
     typedef typename Container::Types::Pages::NodeDispatcher                        NodeDispatcher;
-    typedef typename Container::Types::ElementType                        			ElementType;
+    typedef typename Container::Types::ElementType                                  ElementType;
 
-    typedef IData<ElementType>														IDataType;
+    typedef IData<ElementType>                                                      IDataType;
 
     typedef typename Base::TreePath                                                 TreePath;
 

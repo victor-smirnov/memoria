@@ -17,7 +17,7 @@ namespace memoria {
 void TestTask::Replay(ostream& out, Configurator* cfg)
 {
     setReplayMode();
-	unique_ptr<TestReplayParams> params(cfg != NULL ? ReadTestStep(cfg) : NULL);
+    unique_ptr<TestReplayParams> params(cfg != NULL ? ReadTestStep(cfg) : NULL);
     Replay(out, params.get());
 }
 
@@ -86,7 +86,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
         }
         catch (Exception e)
         {
-        	out<<"FAILED: "<<e.source()<<" "<<e<<endl;
+            out<<"FAILED: "<<e.source()<<" "<<e<<endl;
         }
         catch (MemoriaThrowable e)
         {

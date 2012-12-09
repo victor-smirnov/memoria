@@ -19,11 +19,12 @@
 #include <memoria/core/tools/pool.hpp>
 
 #include <malloc.h>
-
+#include <memory>
 
 
 namespace memoria {
 
+using namespace std;
 
 typedef struct
 {
@@ -51,7 +52,6 @@ public:
     typedef typename Base::Shared                                               Shared;
     typedef typename Base::CtrShared                                            CtrShared;
     typedef typename Page::ID                                                   ID;
-    static const Int PAGE_SIZE                                                  = MAX_BLOCK_SIZE;
 
     typedef Base                                                                AbstractAllocator;
 
@@ -98,11 +98,14 @@ private:
 
     StaticPool<ID, Shared>  pool_;
 
+    // For Allocator copy initialization
+    ID                  root_id0_;
+
 public:
     InMemAllocator() :
         logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
         counter_(100), metadata_(MetadataRepository<Profile>::getMetadata()), me_(*this),
-        type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this)
+        type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this), root_id0_(0)
     {
         root_map_ = new RootMapType(this, 0, true);
     }
@@ -111,16 +114,33 @@ public:
             logger_(other.logger_),
             counter_(other.counter_), metadata_(other.metadata_), me_(*this),
             type_name_("StreamAllocator"), allocs1_(other.allocs1_), allocs2_(other.allocs2_), roots_(this),
-            pool_(other.pool_)
+            root_map_(nullptr),
+            pool_()
     {
         for (auto i = other.pages_.begin(); i != other.pages_.end(); i++)
         {
-            char* buffer = (char*) malloc(PAGE_SIZE);
-            CopyBuffer(T2T<const char*>(i->second), buffer, PAGE_SIZE);
+            Page* page = i->second;
+
+            Byte* buffer = (Byte*) malloc(page->page_size());
+
+            CopyByteBuffer(page, buffer, page->page_size());
+
             pages_[i->first] = T2T<Page*>(buffer);
+
+            if (RootMapType::isRoot(page))
+            {
+                root_id0_ = page->id();
+            }
+        }
+
+        if (root_id0_.isEmpty())
+        {
+            throw Exception(MEMORIA_SOURCE, SBuf()<<"Root page for Root container is not found in this allocator");
         }
 
         root_map_ = new RootMapType(this, 0);
+
+        root_id0_.setNull();
     }
 
     virtual ~InMemAllocator() throw ()
@@ -166,7 +186,14 @@ public:
 
     const ID &root() const
     {
-        return root_map_->root();
+        if (root_map_ != nullptr)
+        {
+            return root_map_->root();
+        }
+        else
+        {
+            return root_id0_;
+        }
     }
 
 
@@ -174,7 +201,6 @@ public:
     {
         pool_.release(shared->id());
     }
-
 
 
 
@@ -207,9 +233,9 @@ public:
             {
                 Page* page = get0(id);
 
-                char* buffer = (char*) malloc(PAGE_SIZE);
+                char* buffer = (char*) malloc(page->page_size());
                 allocs1_++;
-                CopyBuffer(T2T<const char*>(page), buffer, PAGE_SIZE);
+                CopyByteBuffer(page, buffer, page->page_size());
                 Page* page2 = T2T<Page*>(buffer);
 
                 pages_log_[id] = page2;
@@ -245,10 +271,12 @@ public:
     {
         if (shared->state() == Shared::READ)
         {
-            char* buffer = (char*) malloc(PAGE_SIZE);
+            Int page_size = shared->get()->page_size();
+
+            Byte* buffer = (Byte*) malloc(page_size);
             allocs1_++;
 
-            CopyBuffer(T2T<const char*>(shared->get()), buffer, PAGE_SIZE);
+            CopyByteBuffer(shared->get(), buffer, page_size);
             Page* page0 = T2T<Page*>(buffer);
 
             pages_log_[page0->id()] = page0;
@@ -282,20 +310,18 @@ public:
      * If a tree page is created using new (allocator) PageType call
      * than Page() constructor is invoked twice with undefined results
      */
-    virtual PageG createPage(Int initial_size = PAGE_SIZE)
+    virtual PageG createPage(Int initial_size)
     {
         allocs1_++;
-        char* buf = (char*) malloc(PAGE_SIZE);
-//      Clean(buf, PAGE_SIZE);
+        Byte* buf = (Byte*) malloc(initial_size);
 
-        for (int c = 0; c < PAGE_SIZE; c++)
-        {
-            buf[c] = 0;
-        }
+        memset(buf, 0, initial_size);
 
         ID id = counter_++;
 
         Page* p = new (buf) Page(id);
+
+        p->page_size() = initial_size;
 
         pages_log_[id] = p;
 
@@ -511,38 +537,25 @@ public:
         ID root(0);
 
         bool first = true;
-        Short size;
-        while (input->read(size))
+        Int page_data_size;
+        while (input->read(page_data_size))
         {
-            char buf[PAGE_SIZE];
-            for (Int c = 0; c < PAGE_SIZE; c++)
-                buf[c] = 0;
+            Int page_size;
+            input->read(page_size);
 
-            Int page_hash;
+            Int hash;
+            input->read(hash);
 
-            MEMORIA_TRACE(me(),"File pos before reading page hash:", input->pos());
-            input->read(page_hash);
+            unique_ptr<Byte> page_data((Byte*)malloc(page_data_size));
 
-            MEMORIA_TRACE(me(),"Page size", size, "from", input->pos(), "page_hash=", page_hash);
-            input->read(buf, 0, size);
+            Page* page      = T2T<Page*>(malloc(page_size));
 
-            Page* page = T2T<Page*>(buf);
+            input->read(page_data.get(), 0, page_data_size);
 
-            PageMetadata* pageMetadata = metadata_->getPageMetadata(page_hash);
-
-            char* mem = new char[PAGE_SIZE];
-            for (Int c = 0; c < PAGE_SIZE; c++)
-            {
-                mem[c] = 0;
-            }
-
-            pageMetadata->getPageOperations()->deserialize(page, size, mem);
-
-            page = T2T<Page*>(mem);
+            PageMetadata* pageMetadata = metadata_->getPageMetadata(0, hash);
+            pageMetadata->getPageOperations()->deserialize(page_data.get(), page_data_size, T2T<void*>(page));
 
             pages_[page->id()] = page;
-
-            MEMORIA_TRACE(me(), "Register page", page, page->id());
 
             if (first)
             {
@@ -574,20 +587,18 @@ public:
 
         output->write(&signature, 0, sizeof(signature));
 
-        char buf[PAGE_SIZE];
-
         ID root = root_map_->shared()->root();
 
         if (!root.isNull())
         {
-            dump_page(output, buf, pages_[root]);
+            dump_page(output, pages_[root]);
 
             for (typename IDPageMap::iterator i = pages_.begin(); i!= pages_.end(); i++)
             {
                 Page *page = i->second;
                 if (page != NULL && !(page->id() == root))
                 {
-                    dump_page(output, buf, page);
+                    dump_page(output, page);
                 }
             }
         }
@@ -612,7 +623,7 @@ public:
 
     virtual memoria::vapi::Page* createPageWrapper()
     {
-        return new PageWrapper<Page, PAGE_SIZE>();
+        return new PageWrapper<Page>();
     }
 
     virtual void getRootPageId(IDValue& id)
@@ -651,9 +662,9 @@ public:
         for (auto i = pages_.begin(); i != pages_.end(); i++)
         {
             Page* page = i->second;
-            PageMetadata* pageMetadata = metadata_->getPageMetadata(page->page_type_hash());
+            PageMetadata* pageMetadata = metadata_->getPageMetadata(page->model_hash(), page->page_type_hash());
 
-            PageWrapper<Page, PAGE_SIZE> pw(page);
+            PageWrapper<Page> pw(page);
             memoria::vapi::dumpPage(pageMetadata, &pw, out);
             out<<endl;
             out<<endl;
@@ -702,46 +713,35 @@ public:
 
 private:
 
-    void dump_page(OutputStreamHandler *output, char* buf, Page *page)
+    void dump_page(OutputStreamHandler *output, Page *page)
     {
-        if (page->page_type_hash() != 0)
-        {
-            if (page->references() > 0) {cout<<"dump "<<page->id()<<" "<<page->references()<<endl;}
+        if (page->references() > 0) {cout<<"dump "<<page->id()<<" "<<page->references()<<endl;}
 
-            MEMORIA_TRACE(
-                    me(),
-                    "dump page with hashes",
-                    page->page_type_hash(),
-                    page->model_hash(),
-                    "with id",
-                    page->id(),
-                    page,
-                    &page->id());
+        MEMORIA_TRACE(
+                me(),
+                "dump page with hashes",
+                page->page_type_hash(),
+                page->model_hash(),
+                "with id",
+                page->id(),
+                page,
+                &page->id());
 
-            PageMetadata* pageMetadata = metadata_->getPageMetadata(page->page_type_hash());
+        PageMetadata* pageMetadata = metadata_->getPageMetadata(page->model_hash(), page->page_type_hash());
 
-            for (Int c = 0; c < PAGE_SIZE; c++)
-            {
-                buf[c] = 0;
-            }
+        unique_ptr<Byte> buffer((Byte*)malloc(page->page_size()));
 
-            const IPageOperations* operations = pageMetadata->getPageOperations();
+        const IPageOperations* operations = pageMetadata->getPageOperations();
 
-            operations->serialize(page, buf);
+        operations->serialize(page, buffer.get());
 
-            Int ptr = operations->getPageSize(page);
+        Int page_data_size = operations->getPageSize(page);
 
-            Short size = ptr;
+        output->write(page_data_size);
+        output->write(page->page_size());
+        output->write(page->page_type_hash() ^ page->model_hash());
 
-            output->write(size);
-            output->write(page->page_type_hash());
-
-            MEMORIA_TRACE(me(), "Page size", size, "at", output->pos(), page->page_type_hash());
-            output->write(buf, 0, size);
-        }
-        else {
-            MEMORIA_TRACE(me(), "hash for page", page->id(), "is not specified");
-        }
+        output->write(buffer.get(), 0, page_data_size);
     }
 
     void set_root(BigInt name, const ID &page_id)

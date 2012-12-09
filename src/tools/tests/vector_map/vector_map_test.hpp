@@ -145,7 +145,7 @@ public:
 
             checkCtr(map, "insertion failed 2", MEMORIA_SOURCE);
 
-            MEMORIA_TEST_THROW_IF(iter.size(),  	!= , data.size());
+            MEMORIA_TEST_THROW_IF(iter.size(),      != , data.size());
             MEMORIA_TEST_THROW_IF(iter.getKey(),    != , key);
 
             auto iter2 = map.find(iter.getKey());

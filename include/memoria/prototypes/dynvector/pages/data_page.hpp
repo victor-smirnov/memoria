@@ -38,7 +38,7 @@ public:
 
     typedef typename Base0::Allocator                                           Allocator;
     
-    typedef typename DataBlockTypeFactory<Allocator::PAGE_SIZE - sizeof(Base)>::Type PageData;
+    typedef typename DataBlockTypeFactory<MAX_BLOCK_SIZE - sizeof(Base)>::Type PageData;
 
 
     typedef typename MergeLists <
@@ -184,7 +184,7 @@ public:
         {
             Int attrs = BITMAP;
 
-            page_metadata_ = new PageMetadata("DATA_PAGE", attrs, PAGE_HASH, new PageOperations(), Allocator::PAGE_SIZE);
+            page_metadata_ = new PageMetadata("DATA_PAGE", attrs, PAGE_HASH, new PageOperations());
         }
         else {}
 

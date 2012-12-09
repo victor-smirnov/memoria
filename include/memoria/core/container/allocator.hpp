@@ -19,12 +19,12 @@ namespace memoria    {
 
 
 
-template <typename PageType, int MaxPageSize = MAX_BLOCK_SIZE>
+template <typename PageType>
 struct IAllocator {
 
     enum {READ, UPDATE};
 
-    typedef IAllocator<PageType, MaxPageSize>                           MyType;
+    typedef IAllocator<PageType>                                        MyType;
 
     typedef PageType                                                    Page;
     typedef typename Page::ID                                           ID;
@@ -33,17 +33,15 @@ struct IAllocator {
     typedef PageGuard<Page, MyType>                                     PageG;
     typedef typename PageG::Shared                                      Shared;
 
-    typedef IAllocator<PageType, MaxPageSize>                           AbstractAllocator;
+    typedef IAllocator<PageType>                                        AbstractAllocator;
 
     typedef ContainerShared<ID>                                         CtrShared;
-
-    static const Int PAGE_SIZE                                          = MaxPageSize;
 
     virtual PageG getPage(const ID& id, Int flags)                      = 0;
     virtual PageG getPageG(Page* page)                                  = 0;
     virtual void  updatePage(Shared* shared)                            = 0;
     virtual void  removePage(const ID& id)                              = 0;
-    virtual PageG createPage(Int initial_size = MaxPageSize)            = 0;
+    virtual PageG createPage(Int initial_size)                          = 0;
     virtual void  resizePage(Shared* page, Int new_size)                = 0;
     virtual void  releasePage(Shared* shared)                           = 0;
 
@@ -71,10 +69,10 @@ struct IAllocator {
 };
 
 
-template <typename Profile, typename PageType, int MaxPageSize>
-class AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType, MaxPageSize> > {
+template <typename Profile, typename PageType>
+class AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> > {
 public:
-    typedef IAllocator<PageType, MaxPageSize>                           Type;
+    typedef IAllocator<PageType>                                                Type;
 };
 
 

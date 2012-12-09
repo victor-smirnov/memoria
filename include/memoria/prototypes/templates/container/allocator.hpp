@@ -56,7 +56,9 @@ public:
         }
     }
 
-
+    bool isNew() const {
+        return me()->shared() == nullptr;
+    }
 
 
     virtual CtrShared* getCtrShared(BigInt name)

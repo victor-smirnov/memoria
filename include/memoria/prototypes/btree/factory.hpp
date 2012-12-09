@@ -154,7 +154,7 @@ public:
     };
 
 
-    typedef typename ListHead<typename ContainerTypes::KeysList>::Type      	NodeKey;
+    typedef typename ListHead<typename ContainerTypes::KeysList>::Type          NodeKey;
 
     template <int Level> struct RootLeafTypes: NodeTypesBase {
         typedef NodeKey                                                     Key;
@@ -193,7 +193,7 @@ public:
     typedef typename NodeTLBuilder <
                 MyType,
                 typename ContainerTypes::KeysList
-    >::List                                                                 	NodeTypesList;
+    >::List                                                                     NodeTypesList;
 
     MEMORIA_STATIC_ASSERT(IsNonemptyList<NodeTypesList>::Value);
 

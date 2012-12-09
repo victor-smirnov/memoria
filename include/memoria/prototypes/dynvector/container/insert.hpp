@@ -63,9 +63,9 @@ typedef typename Base::LeafNodeKeyValuePair                                 Leaf
 static const Int Indexes                                                    = Types::Indexes;
 typedef Accumulators<Key, Indexes>                                          Accumulator;
 
-typedef typename Types::ElementType                        					ElementType;
+typedef typename Types::ElementType                                         ElementType;
 
-typedef IData<ElementType>													IDataType;
+typedef IData<ElementType>                                                  IDataType;
 
 
 void insertData(Iterator& iter, const IDataType& data);
@@ -98,6 +98,7 @@ class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
     BigInt              length_;
     Int                 suffix_;
     Int                 last_idx_;
+    Int                 page_size_;
 
 public:
     ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, const IDataType& data, BigInt start, BigInt length):
@@ -107,13 +108,17 @@ public:
 
         suffix_         = length % data_size == 0 ? data_size : length_ % data_size;
         last_idx_       = Base::getTotalKeyCount() - 1;
+
+        page_size_      = ctr.getRootMetadata().page_size();
     }
 
     virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt idx)
     {
         LeafNodeKeyValuePair pair;
 
-        DataPageG data          = Base::ctr().allocator().createPage();
+
+
+        DataPageG data          = Base::ctr().allocator().createPage(page_size_);
         data->init();
 
         data->model_hash()      = Base::ctr().hash();
@@ -216,10 +221,10 @@ BigInt M_TYPE::updateData(Iterator& iter, const IDataType& data, BigInt start, B
         if (to_read > len) to_read = len;
 
         data.get(
-        		iter.data()->data().value_addr(iter.dataPos()),
-        		start,
-        		to_read
-        		);
+                iter.data()->data().value_addr(iter.dataPos()),
+                start,
+                to_read
+                );
 
         len     -= to_read;
         iter.skip(to_read);
@@ -407,7 +412,9 @@ void M_TYPE::createDataPage(TreePath& path, Int idx)
 M_PARAMS
 typename M_TYPE::DataPathItem M_TYPE::createDataPage(NodeBaseG& node, Int idx)
 {
-    DataPageG data          = me()->allocator().createPage();
+    Int page_size           = me()->getRootMetadata().page_size();
+
+    DataPageG data          = me()->allocator().createPage(page_size);
     data->init();
 
     data->model_hash()      = me()->hash();

@@ -28,6 +28,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::root::CtrApiName)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Metadata                                             Metadata;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
+    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Base::Page                                                 Page;
 
 
     BigInt getModelNameCounter() const
@@ -52,6 +54,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::root::CtrApiName)
         meta.model_name_counter() += value;
 
         me()->setRootMetadata(meta);
+    }
+
+    static bool isRoot(const Page* page)
+    {
+        if (page->model_hash()      == MyType::hash())
+        {
+            const NodeBase* node = T2T<const NodeBase*>(page);
+            return node->is_root();
+        }
+
+        return false;
     }
 
 MEMORIA_CONTAINER_PART_END

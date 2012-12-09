@@ -55,7 +55,7 @@ void ContainerMetadataRepository::process_model(ContainerMetadata* model)
             if (item->getTypeCode() == Metadata::PAGE)
             {
                 PageMetadata *page = static_cast<PageMetadata*> (item);
-                page_map_[page->hash()] = page;
+                page_map_[page->hash() ^ model->hash()] = page;
             }
             else if (item->getTypeCode() == Metadata::CONTAINER)
             {
@@ -69,19 +69,21 @@ void ContainerMetadataRepository::process_model(ContainerMetadata* model)
 }
 
 
-PageMetadata* ContainerMetadataRepository::getPageMetadata(Int hashCode) const {
-    PageMetadataMap::const_iterator i = page_map_.find(hashCode);
+PageMetadata* ContainerMetadataRepository::getPageMetadata(Int model_hash, Int page_hash) const
+{
+    PageMetadataMap::const_iterator i = page_map_.find(model_hash ^ page_hash);
     if (i != page_map_.end())
     {
         return i->second;
     }
     else {
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown page type hash code "<<hashCode);
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Unknown page type hash codes "<<model_hash<<" "<<page_hash);
     }
 }
 
 
-ContainerMetadata* ContainerMetadataRepository::getContainerMetadata(Int hashCode) const {
+ContainerMetadata* ContainerMetadataRepository::getContainerMetadata(Int hashCode) const
+{
     ContainerMetadataMap::const_iterator i = model_map_.find(hashCode);
     if (i != model_map_.end())
     {
@@ -97,20 +99,18 @@ ContainerMetadata* ContainerMetadataRepository::getContainerMetadata(Int hashCod
 PageMetadata::PageMetadata(
                 StringRef name,
                 Int attributes,
-                Int hash0,
-                const IPageOperations* page_operations,
-                Int page_size
+                Int hash,
+                const IPageOperations* page_operations
               ):
     MetadataGroup(name), attributes_(attributes)
 {
     MetadataGroup::set_type() = Metadata::PAGE;
-    hash_ = hash0;
+    hash_ = hash;
     page_operations_ = page_operations;
-    page_size_ = page_size;
 
     if (page_operations == NULL)
     {
-        throw NullPointerException(MEMORIA_SOURCE, "Page size provider is not specified");
+        throw NullPointerException(MEMORIA_SOURCE, "Page operations is not specified");
     }
 }
 

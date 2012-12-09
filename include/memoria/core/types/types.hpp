@@ -18,6 +18,7 @@
 
 namespace memoria    {
 
+static const int DEFAULT_BLOCK_SIZE = 4096;
 static const int MAX_BLOCK_SIZE = 4096;
 
 typedef int64_t             BigInt;
@@ -55,7 +56,7 @@ struct PlatformLongHelper<8> {
 
 typedef internal::PlatformLongHelper<sizeof(void*)>::LongType                   Long;
 typedef internal::PlatformLongHelper<sizeof(void*)>::ULongType                  ULong;
-typedef internal::PlatformLongHelper<sizeof(void*)>::SizeTType              	SizeT;
+typedef internal::PlatformLongHelper<sizeof(void*)>::SizeTType                  SizeT;
 
 typedef std::string                                                             String;
 typedef const String&                                                           StringRef;

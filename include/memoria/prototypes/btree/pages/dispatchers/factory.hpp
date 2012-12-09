@@ -42,9 +42,9 @@ class NodeFactoryHelper<TypeList<>, Types> {
     typedef typename Types::Allocator           Allocator;
 
 public:
-    static NodeBaseG create(Allocator &allocator, Int level, bool root, bool leaf)
+    static NodeBaseG create(Allocator &allocator, Int level, bool root, bool leaf, Int size)
     {
-        NodeBaseG node = allocator.createPage();
+        NodeBaseG node = allocator.createPage(size);
         node->init();
 
         if (!root && !leaf) {
@@ -108,11 +108,11 @@ class NodeFactoryHelper<TypeList<Head, Tail...>, Types> {
     typedef typename ListBuilder<true, true>::Type                              RootLeafNode;
 
 public:
-    static NodeBaseG create(Allocator &allocator, Int level, bool root, bool leaf)
+    static NodeBaseG create(Allocator &allocator, Int level, bool root, bool leaf, Int size)
     {
         if (Level == level)
         {
-            NodeBaseG node = allocator.createPage();
+            NodeBaseG node = allocator.createPage(size);
             node->init();
 
             if (!root && !leaf)
@@ -142,7 +142,7 @@ public:
             return NodeFactoryHelper<
                         TypeList<Tail...>,
                         Types
-                   >::create(allocator, level, root, leaf);
+                   >::create(allocator, level, root, leaf, size);
         }
     }
 };

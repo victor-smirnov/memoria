@@ -67,13 +67,13 @@ private:
     typedef typename MergeLists<
             typename Base::FieldsList,
 
-            ConstValue<UInt, VERSION>,
-            ConstValue<UInt, Descriptor::Root>,
-            ConstValue<UInt, Descriptor::Leaf>,
-            ConstValue<UInt, Descriptor::Level>,
-            ConstValue<UInt, Types::Indexes>,
+            UIntValue<VERSION>,
+            UIntValue<Descriptor::Root>,
+            UIntValue<Descriptor::Leaf>,
+            UIntValue<Descriptor::Level>,
+            UIntValue<Types::Indexes>,
             typename Types::Name,
-            ConstValue<UInt, MapTypes::BranchingFactor>,
+            UIntValue<MapTypes::BranchingFactor>,
 
             typename Map::FieldsList
     >::Result                                                                   FieldsList;
@@ -157,37 +157,6 @@ public:
 
     }
 
-//    template <typename PageType>
-//    void copyFrom(const PageType* page)
-//    {
-//        Base::copyFrom(page);
-//
-//        //FIXME: use page->size()
-//        //FIXME: use PackedTree facilities to copy data or memcpy()
-//        set_children_count(page->children_count());
-//
-//        for (Int c = 0; c < page->children_count(); c++)
-//        {
-//            for (Int d = 0; d < INDEXES; d++)
-//            {
-//                map_.key(d, c) = page->map().key(d, c);
-//            }
-//
-//            map_.data(c) = page->map().data(c);
-//        }
-//
-//        for (Int c = this->children_count(); c < map_.maxSize(); c++)
-//        {
-//            for (Int d = 0; d < INDEXES; d++)
-//            {
-//                map_.key(d, c) = 0;
-//            }
-//
-//            map().data(c) = 0;
-//        }
-//    }
-
-
 
     class PageOperations: public IPageOperations
     {
@@ -250,7 +219,7 @@ public:
         {
             Int attrs = BTREE + Descriptor::Root * ROOT + Descriptor::Leaf * LEAF;
 
-            page_metadata_ = new PageMetadata("BTREE_PAGE", attrs, hash(), new PageOperations(), Allocator::PAGE_SIZE);
+            page_metadata_ = new PageMetadata("BTREE_PAGE", attrs, hash(), new PageOperations());
         }
         else {}
 

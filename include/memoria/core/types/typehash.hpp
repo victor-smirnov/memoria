@@ -38,6 +38,8 @@ template <> struct TypeHash<UBigInt>:   UIntValue<9> {};
 
 template <> struct TypeHash<EmptyValue>:    UIntValue<10> {};
 
+
+
 template <
     template <typename> class Profile,
     typename T
@@ -49,10 +51,13 @@ struct TypeHash<Profile<T>> {
     static const UInt Value = md5::Md5Sum<VList>::Result::Value32;
 };
 
+
+
 template <UInt Base, UInt ... Values>
 struct HashHelper {
     static const UInt Value = md5::Md5Sum<ValueList<UInt, Base, Values...>>::Result::Value32;
 };
+
 
 
 template <typename T, T V>
@@ -60,20 +65,28 @@ struct TypeHash<ConstValue<T, V>> {
     static const UInt Value = HashHelper<TypeHash<T>::Value, TypeHashes::CONST_VALUE, V>::Value;
 };
 
+
+
 template <typename T, size_t Size>
 struct TypeHash<T[Size]> {
     static const UInt Value = HashHelper<TypeHash<T>::Value, TypeHashes::ARRAY, Size>::Value;
 };
 
-template <>             struct TypeHash<VectorMapCtr>:      UIntValue<1000> {};
+
+template <> struct TypeHash<VectorMapCtr>: UIntValue<1000> {};
+
 
 template <typename Key, typename Value, Int Indexes>
 struct TypeHash<MapCtr<Key, Value, Indexes>>:   UIntValue<HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value, Indexes>::Value> {};
 
-template <typename T>
-struct TypeHash<VectorCtr<T> >:         UIntValue<HashHelper<1300, TypeHash<T>::Value>::Value> {};
 
-template <>             struct TypeHash<RootCtr>:           UIntValue<1400> {};
+
+template <typename T>
+struct TypeHash<VectorCtr<T>>: UIntValue<HashHelper<1300, TypeHash<T>::Value>::Value> {};
+
+
+
+template <> struct TypeHash<RootCtr>: UIntValue<1400> {};
 
 }
 

@@ -28,10 +28,10 @@ public:
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           		RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte> >::Type     	MapCtrType;
-    typedef typename MapCtrType::Iterator                               		Iterator;
-    typedef typename MapCtrType::ID                                     		ID;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type                 RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte> >::Type      MapCtrType;
+    typedef typename MapCtrType::Iterator                                       Iterator;
+    typedef typename MapCtrType::ID                                             ID;
 
 
     Allocator*  allocator_;

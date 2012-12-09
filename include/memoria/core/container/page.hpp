@@ -190,6 +190,7 @@ class AbstractPage {
     Int         page_type_hash_;
     Int         references_;
     Int         deleted_;
+    Int         page_size_;
 
 public:
     typedef TypeList<
@@ -200,7 +201,8 @@ public:
                 decltype(model_hash_),
                 decltype(page_type_hash_),
                 decltype(references_),
-                decltype(deleted_)
+                decltype(deleted_),
+                decltype(page_size_)
     >                                                                           FieldsList;
 
     typedef PageIdType      ID;
@@ -263,6 +265,14 @@ public:
         return deleted_;
     }
 
+    Int& page_size() {
+        return page_size_;
+    }
+
+    const Int& page_size() const {
+        return page_size_;
+    }
+
     Int ref() {
         return ++references_;
     }
@@ -303,10 +313,11 @@ public:
         handler->value("PAGE_TYPE_HASH",    &page_type_hash_);
         handler->value("REFERENCES",        &references_);
         handler->value("DELETED",           &deleted_);
+        handler->value("PAGE_SIZE",         &page_size_);
     }
 
-    template <typename PageType>
-    void copyFrom(const PageType* page)
+    //template <typename PageType>
+    void copyFrom(const Me* page)
     {
         this->id()              = page->id();
         this->crc()             = page->crc();
@@ -314,6 +325,7 @@ public:
         this->page_type_hash()  = page->page_type_hash();
         this->references()      = page->references();
         this->deleted()         = page->deleted();
+        this->page_size()       = page->page_size();
     }
 
     template <template <typename> class FieldFactory>
@@ -325,6 +337,7 @@ public:
         FieldFactory<Int>::serialize(buf, page_type_hash());
         FieldFactory<Int>::serialize(buf, references_);
         FieldFactory<Int>::serialize(buf, deleted_);
+        FieldFactory<Int>::serialize(buf, page_size_);
     }
 
     template <template <typename> class FieldFactory>
@@ -336,6 +349,7 @@ public:
         FieldFactory<Int>::deserialize(buf, page_type_hash());
         FieldFactory<Int>::deserialize(buf, references_);
         FieldFactory<Int>::deserialize(buf, deleted_);
+        FieldFactory<Int>::deserialize(buf, page_size_);
     }
 };
 

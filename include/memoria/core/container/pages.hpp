@@ -50,7 +50,7 @@ struct MEMORIA_API Page {
 
 
 
-template <typename PageType, Int PageSize>
+template <typename PageType>
 class PageWrapper: public Page {
     PageType *page_;
 public:
@@ -114,18 +114,18 @@ public:
     }
 
     virtual Int size() const {
-        return PageSize;
+        return page_->page_size();
     }
 
     virtual Int getByte(Int idx) const
     {
         if (page_ != NULL)
         {
-            if (idx >= 0 && idx < PageSize) {
-                return ((UByte*)page_)[idx];
+            if (idx >= 0 && idx < page_->page_size()) {
+                return T2T<UByte*>(page_)[idx];
             }
             else {
-                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<PageSize);
+                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<page_->page_size());
             }
 
         }
@@ -138,11 +138,12 @@ public:
     {
         if (page_ != NULL)
         {
-            if (idx >= 0 && idx < PageSize) {
-                ((UByte*)page_)[idx] = (UByte)value;
+            if (idx >= 0 && idx < page_->page_size())
+            {
+                T2T<UByte*>(page_)[idx] = (UByte)value;
             }
             else {
-                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<PageSize);
+                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<page_->page_size());
             }
         }
         else {

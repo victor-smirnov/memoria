@@ -50,17 +50,19 @@ class CreateCtrTest: public SPTestTask {
     Int vector_map_size_;
     Int block_size_;
 
+    Int iteration_;
+
 public:
 
-    CreateCtrTest(): SPTestTask("CreateCtr"), map_size_(1024*256), vector_map_size_(200), block_size_(1024)
+    CreateCtrTest(): SPTestTask("CreateCtr"), map_size_(1024*256), vector_map_size_(200), block_size_(1024), iteration_(0)
     {
-        //SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
         VectorMapCtrType::initMetadata();
         MapCtrType::initMetadata();
 
         Add("MapSize", map_size_);
         Add("VectorMapSize", vector_map_size_);
         Add("BlockSize", block_size_);
+        Add("Iteration", iteration_);
     }
 
     virtual ~CreateCtrTest() throw() {}
@@ -119,20 +121,26 @@ public:
 
         allocator.commit();
 
+        check(allocator, MEMORIA_SOURCE);
+
         BigInt t0 = getTimeInMillis();
 
-        StoreAllocator(allocator, "alloc1.dump");
+        String name = this->getOutputFolder() + Platform::getFilePathSeparator() + "alloc1.dump";
+
+        StoreAllocator(allocator, name);
 
         BigInt t1 = getTimeInMillis();
 
         Allocator new_alloc;
 
-        LoadAllocator(new_alloc, "alloc1.dump");
+        LoadAllocator(new_alloc, name);
 
         BigInt t2 = getTimeInMillis();
 
         out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
         out<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
+
+        check(new_alloc, MEMORIA_SOURCE);
 
         MapCtrType new_map(&new_alloc, map.name());
 

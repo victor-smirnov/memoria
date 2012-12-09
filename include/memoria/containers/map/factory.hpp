@@ -24,7 +24,7 @@ struct BTreeTypes<Profile, memoria::MapCtr<Key_, Value_, Indexes_> >: public BTr
     typedef BTreeTypes<Profile, memoria::BSTreeCtr>                         Base;
 
     typedef Value_                                                          Value;
-    typedef TypeList<Key_>                                                	KeysList;
+    typedef TypeList<Key_>                                                  KeysList;
 
     static const Int Indexes                                                = Indexes_;
 

@@ -39,9 +39,9 @@ struct IData {
 
 template <typename T>
 class DataProxy: IData<T> {
-    IData<T>&	data_;
-    SizeT   	start_;
-    SizeT   	length_;
+    IData<T>&   data_;
+    SizeT       start_;
+    SizeT       length_;
 public:
 
     DataProxy(IData<T>& data, SizeT start, SizeT length): data_(data), start_(start), length_(length) {}
@@ -70,9 +70,9 @@ public:
 
 template <typename T>
 class GetDataProxy: public IData<T> {
-    const IData<T>& 	data_;
-    SizeT           	start_;
-    SizeT           	length_;
+    const IData<T>&     data_;
+    SizeT               start_;
+    SizeT               length_;
 public:
 
     GetDataProxy(const IData<T>& data, SizeT start, SizeT length): data_(data), start_(start), length_(length) {}
@@ -99,9 +99,9 @@ public:
 
 template <typename T>
 class ArrayData: public IData<T> {
-    SizeT 	length_;
-    T* 		data_;
-    bool 	owner_;
+    SizeT   length_;
+    T*      data_;
+    bool    owner_;
 public:
 
     template <typename Value>

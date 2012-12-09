@@ -34,15 +34,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
 
     static const Int Indexes                                                    = Base::Indexes;
     
-    typedef typename Types::ElementType                        					ElementType;
+    typedef typename Types::ElementType                                         ElementType;
 
-    typedef IData<ElementType>													IDataType;
+    typedef IData<ElementType>                                                  IDataType;
 
 
-    MEMORIA_PUBLIC void configureRootMetadata(Metadata& metadata) const
+    MEMORIA_PUBLIC Metadata createNewRootMetadata() const
     {
-        Base::configureRootMetadata(metadata);
+        Metadata metadata = Base::createNewRootMetadata();
         metadata.element_size() = 1;
+
+        return metadata;
     }
 
     MEMORIA_PUBLIC Int getElementSize() const {

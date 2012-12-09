@@ -168,35 +168,6 @@ void RemoveElements(Node *node, Int from, Int count, bool reindex)
 }
 
 
-
-//template <typename NodePage1, typename NodePage2, typename Allocator>
-//void Node2Node(NodePage1 *src, bool root)
-//{
-//  Byte buffer[Allocator::PAGE_SIZE];
-//
-//  memset(buffer, 0, sizeof(buffer));
-//
-//    //FIXME type pruning
-//    NodePage2 *tgt = T2T<NodePage2*>(buffer);
-//
-//    tgt->map().initByBlock(Allocator::PAGE_SIZE - sizeof(NodePage2));
-//
-//    tgt->copyFrom(src);
-//
-//    tgt->set_root(root);
-//
-//    tgt->page_type_hash()   = NodePage2::hash();
-//
-//    src->map().transferTo(&tgt->map());
-//
-//    tgt->set_children_count(src->children_count());
-//
-//    tgt->map().reindex();
-//
-//    CopyBuffer(buffer, src, Allocator::PAGE_SIZE);
-//}
-
-
 struct CopyRootMetadataFn {
     template <typename Tgt, typename Src>
     void operator()(Src *src, Tgt *tgt) {
@@ -229,7 +200,7 @@ public:
 
         RootType* tgt = T2T<RootType*>(src);
 
-        tgt_buf.map().initByBlock(Allocator::PAGE_SIZE - sizeof(RootType));
+        tgt_buf.map().initByBlock(src->page_size() - sizeof(RootType));
         tgt_buf.copyFrom(src);
 
         tgt_buf.root_metadata() = metadata_;
@@ -267,7 +238,7 @@ public:
 
         NonRootNode* tgt = T2T<NonRootNode*>(src);
 
-        tgt_buf.map().initByBlock(Allocator::PAGE_SIZE - sizeof(NonRootNode));
+        tgt_buf.map().initByBlock(src->page_size() - sizeof(NonRootNode));
         tgt_buf.copyFrom(src);
         tgt_buf.set_root(false);
 

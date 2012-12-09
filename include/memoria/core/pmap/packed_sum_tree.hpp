@@ -59,7 +59,7 @@ public:
     {
         for (Int c = 0; c < Blocks; c++)
         {
-        	reindex(c, 0, Base::size());
+            reindex(c, 0, Base::size());
         }
     }
 

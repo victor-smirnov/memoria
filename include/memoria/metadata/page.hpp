@@ -81,8 +81,7 @@ struct MEMORIA_API PageMetadata: public MetadataGroup
             StringRef name,
             Int attributes,
             Int hash0,
-            const IPageOperations* page_operations,
-            Int page_size);
+            const IPageOperations* page_operations);
 
     virtual ~PageMetadata() throw () {}
 
@@ -98,7 +97,6 @@ struct MEMORIA_API PageMetadata: public MetadataGroup
 private:
     Int  hash_;
     bool attributes_;
-    Int page_size_;
 
     const IPageOperations* page_operations_;
 };

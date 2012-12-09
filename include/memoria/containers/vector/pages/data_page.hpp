@@ -26,7 +26,7 @@ class DynVectorData
     ElementType_ value_[Size - sizeof(size_)];
 
 public:
-    typedef ElementType_ 														ElementType;
+    typedef ElementType_                                                        ElementType;
 
     typedef TypeList<
         ConstValue<UInt, VERSION>,

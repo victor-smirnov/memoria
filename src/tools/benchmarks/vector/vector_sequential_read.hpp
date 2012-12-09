@@ -26,14 +26,14 @@ class VectorSequentialReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type           		RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte>>::Type      	VectorCtrType;
-    typedef typename VectorCtrType::Iterator                            		Iterator;
-    typedef typename VectorCtrType::ID                                  		ID;
-    typedef typename VectorCtrType::Accumulator                         		Accumulator;
+//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type                 RootCtr;
+    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte>>::Type       VectorCtrType;
+    typedef typename VectorCtrType::Iterator                                    Iterator;
+    typedef typename VectorCtrType::ID                                          ID;
+    typedef typename VectorCtrType::Accumulator                                 Accumulator;
 
 
-    typedef typename VectorCtrType::Key                                 		Key;
+    typedef typename VectorCtrType::Key                                         Key;
 
 
 

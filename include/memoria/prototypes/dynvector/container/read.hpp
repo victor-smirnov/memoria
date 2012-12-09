@@ -41,8 +41,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::ReadName)
 
         static const Int Indexes                                                    = Types::Indexes;
 
-        typedef typename Types::ElementType                        					ElementType;
-        typedef IData<ElementType>													IDataType;
+        typedef typename Types::ElementType                                         ElementType;
+        typedef IData<ElementType>                                                  IDataType;
 
         BigInt read(Iterator& iter, IDataType& data, BigInt start, BigInt len);
 

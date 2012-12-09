@@ -47,8 +47,8 @@ template <typename Profile> class MetadataRepository;
 template <typename Allocator>
 struct IParentCtrInterface
 {
-    typedef typename Allocator::CtrShared                   CtrShared;
-    typedef typename Allocator::Page::ID            ID;
+    typedef typename Allocator::CtrShared                                       CtrShared;
+    typedef typename Allocator::Page::ID                                        ID;
 
     virtual ID    getRootID(void* caller, BigInt name)                  = 0;
     virtual void  setRootID(void* caller, BigInt name, const ID& root)  = 0;
@@ -79,13 +79,15 @@ public:
 
     typedef Iter<typename Types::IterTypes>                                     Iterator;
     
+    static const Int CONTAINER_HASH                                             = TypeHash<Name>::Value;
+
 protected:
     static ContainerMetadata*   reflection_;
 
     CtrShared* shared_;
 
 public:
-    ContainerBase()
+    ContainerBase(): shared_(nullptr)
     {}
 
     ContainerBase(const ThisType& other):
@@ -123,7 +125,7 @@ public:
     }
 
     MEMORIA_PUBLIC static Int hash() {
-        return reflection_->hash();
+        return CONTAINER_HASH;
     }
 
 
@@ -176,7 +178,7 @@ public:
 
             reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(),
                                                 list,
-                                                TypeHash<Name>::Value + salt,
+                                                CONTAINER_HASH,
                                                 MyType::getContainerInterface());
 
             MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);

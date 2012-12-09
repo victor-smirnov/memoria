@@ -33,6 +33,8 @@ class BTreeMetadata
 
     Int     branching_factor_;
 
+    Int     page_size_;
+
     ID      roots_[2];
 
 public:
@@ -43,6 +45,7 @@ public:
                 decltype(model_name_),
                 decltype(key_count_),
                 decltype(branching_factor_),
+                decltype(page_size_),
                 ID
     >                                                                           FieldsList;
 
@@ -78,7 +81,15 @@ public:
         return branching_factor_;
     }
 
+    Int &page_size()
+    {
+        return page_size_;
+    }
 
+    const Int &page_size() const
+    {
+        return page_size_;
+    }
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
@@ -87,6 +98,7 @@ public:
         handler->value("MODEL_NAME",        &model_name_);
         handler->value("KEY_COUNT",         &key_count_);
         handler->value("BRANCHING_FACTOR",  &branching_factor_);
+        handler->value("BRANCHING_FACTOR",  &page_size_);
 
         handler->startGroup("ROOTS", ROOTS);
 
@@ -106,6 +118,7 @@ public:
         FieldFactory<BigInt>::serialize(buf, model_name_);
         FieldFactory<BigInt>::serialize(buf, key_count_);
         FieldFactory<Int>::serialize(buf,    branching_factor_);
+        FieldFactory<Int>::serialize(buf,    page_size_);
 
         for (Int c = 0; c < ROOTS; c++)
         {
@@ -118,6 +131,7 @@ public:
         FieldFactory<BigInt>::deserialize(buf, model_name_);
         FieldFactory<BigInt>::deserialize(buf, key_count_);
         FieldFactory<Int>::deserialize(buf,    branching_factor_);
+        FieldFactory<Int>::deserialize(buf,    page_size_);
 
         for (Int c = 0; c < ROOTS; c++)
         {

@@ -39,10 +39,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     BigInt          local_pos_;
 
-
-    static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
-
-
     IterPart(): Base(), local_pos_(0) {}
 
     IterPart(ThisPartType&& other): Base(std::move(other)), local_pos_(other.local_pos_) {}

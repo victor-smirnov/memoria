@@ -67,16 +67,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     struct GetNodeTraintsFn {
         typename BTreeNodeTraits::Enum trait_;
         Int value_;
+        Int page_size_;
 
-        GetNodeTraintsFn(typename BTreeNodeTraits::Enum trait): trait_(trait) {}
+        GetNodeTraintsFn(typename BTreeNodeTraits::Enum trait, Int page_size): trait_(trait), page_size_(page_size) {}
 
         template <typename Node>
         void operator()()
         {
             switch (trait_)
             {
-                case BTreeNodeTraits::MAX_CHILDREN: value_ =
-                        Node::Map::maxSizeFor(Allocator::PAGE_SIZE - sizeof(Node)); break;
+                case BTreeNodeTraits::MAX_CHILDREN:
+                    value_ = Node::Map::maxSizeFor(page_size_ - sizeof(Node)); break;
 
                 default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait_);
             }
@@ -85,7 +86,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
 
     Int getNodeTraitInt(typename BTreeNodeTraits::Enum trait, bool root, bool leaf, Int level) const
     {
-        GetNodeTraintsFn fn(trait);
+        Int page_size = me()->getRootMetadata().page_size();
+        GetNodeTraintsFn fn(trait, page_size);
         NodeDispatcher::DispatchStatic(root, leaf, level, fn);
         return fn.value_;
     }
@@ -159,7 +161,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
         void operator()(T *node)
         {
             typedef typename memoria::Type2TypeMap<T, TypeMap, void>::Result RootType;
-            can_ = node->children_count() <= RootType::Map::maxSizeFor(Allocator::PAGE_SIZE - sizeof(RootType));
+            can_ = node->children_count() <= RootType::Map::maxSizeFor(node->page_size() - sizeof(RootType));
         }
 
         bool can() const {
@@ -418,8 +420,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ToolsName)
     {
         if (page != NULL)
         {
-            PageWrapper<Page, Allocator::PAGE_SIZE> pw(page);
-            PageMetadata* meta = me()->getMetadata()->getPageMetadata(pw.getPageTypeHash());
+            PageWrapper<Page> pw(page);
+            PageMetadata* meta = me()->getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
             memoria::vapi::dumpPage(meta, &pw, out);
             out<<endl;
             out<<endl;

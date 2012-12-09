@@ -28,8 +28,8 @@ struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
             return hash_;
         }
 
-        PageMetadata* getPageMetadata(Int hashCode) const;
-        ContainerMetadata* getContainerMetadata(Int hashCode) const;
+        PageMetadata* getPageMetadata(Int model_hash, Int page_hash) const;
+        ContainerMetadata* getContainerMetadata(Int model_hash) const;
 
 
         virtual void registerMetadata(ContainerMetadata* metadata)
@@ -60,11 +60,10 @@ struct ContainerInterface {
 struct MEMORIA_API ContainerMetadata: public MetadataGroup {
 public:
 
-    ContainerMetadata(StringRef name, const MetadataList &content, Int code, ContainerInterface* container_interface):
+    ContainerMetadata(StringRef name, const MetadataList &content, Int hash, ContainerInterface* container_interface):
         MetadataGroup(name, content),
         container_interface_(container_interface),
-        code_(code),
-        hash_(code_)
+        hash_(hash)
     {
         MetadataGroup::set_type() = MetadataGroup::CONTAINER;
         for (UInt c = 0; c < content.size(); c++)
@@ -72,8 +71,7 @@ public:
             if (content[c]->getTypeCode() == Metadata::PAGE)
             {
                 PageMetadata *page = static_cast<PageMetadata*> (content[c]);
-                page_map_[page->hash()] = page;
-                hash_ += page->hash() + code;
+                page_map_[page->hash() ^ hash] = page;
             }
             else {
                 //exception;
@@ -87,14 +85,11 @@ public:
         return hash_;
     }
 
-    virtual Int code() const {
-        return code_;
-    }
-
-    virtual PageMetadata* getPageMetadata(Int hashCode) const
+    virtual PageMetadata* getPageMetadata(Int model_hash, Int page_hash) const
     {
-        PageMetadataMap::const_iterator i = page_map_.find(hashCode);
-        if (i != page_map_.end()) {
+        PageMetadataMap::const_iterator i = page_map_.find(model_hash ^ page_hash);
+        if (i != page_map_.end())
+        {
             return i->second;
         }
         else {

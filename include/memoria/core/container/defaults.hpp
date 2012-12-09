@@ -32,7 +32,7 @@ struct BasicContainerCollectionCfg {
     typedef AbstractPage <ID, FlagsCount>                                       Page;
     typedef TransactionType                                                     Transaction;
 
-    typedef IAllocator<Page, MAX_BLOCK_SIZE>                                    AbstractAllocator;
+    typedef IAllocator<Page>                                                    AbstractAllocator;
 
     typedef AbstractAllocator                                                   AllocatorType;
 };

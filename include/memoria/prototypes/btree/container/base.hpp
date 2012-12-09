@@ -27,6 +27,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     typedef typename Base::Types                                                Types;
 
     typedef typename Base::Allocator                                            Allocator;
+    typedef typename Allocator::Page                                            Page;
     typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::ID                                              ID;
     typedef typename Base::CtrShared                                            CtrShared;
@@ -352,25 +353,43 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         return getRootMetadata().model_name();
     }
 
+    Metadata createNewRootMetadata() const
+    {
+        Metadata metadata;
+
+        memset(&metadata, 0, sizeof(Metadata));
+
+        metadata.model_name()       = me()->name();
+        metadata.page_size()        = DEFAULT_BLOCK_SIZE;
+        metadata.branching_factor() = 0;
+
+        return metadata;
+    }
 
     NodeBaseG createNode(Short level, bool root, bool leaf) const
     {
         MEMORIA_ASSERT(level, >=, 0);
 
-        NodeBaseG node = NodeFactory::create(me()->allocator(), level, root, leaf);
+        Metadata meta;
+
+        if (!me()->isNew())
+        {
+            meta = me()->getRootMetadata();
+        }
+        else {
+            meta = me()->createNewRootMetadata();
+        }
+
+        NodeBaseG node = NodeFactory::create(me()->allocator(), level, root, leaf, meta.page_size());
 
         if (root)
         {
-            Metadata meta = MyType::getCtrRootMetadata(node);
-
-            me()->configureRootMetadata(meta);
-
             MyType::setCtrRootMetadata(node, meta);
         }
 
         node->model_hash() = me()->hash();
 
-        initNodeSize(node, Allocator::PAGE_SIZE);
+        initNodeSize(node, meta.page_size());
 
         return node;
     }
@@ -379,21 +398,15 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT(level, >=, 0);
 
-        NodeBaseG node = NodeFactory::create(me()->allocator(), level, true, leaf);
+        NodeBaseG node = NodeFactory::create(me()->allocator(), level, true, leaf, metadata.page_size());
 
         MyType::setCtrRootMetadata(node, metadata);
 
         node->model_hash() = me()->hash();
 
-        initNodeSize(node, Allocator::PAGE_SIZE);
+        initNodeSize(node, metadata.page_size());
 
         return node;
-    }
-
-
-    void configureRootMetadata(Metadata& metadata) const
-    {
-        metadata.model_name() = me()->name();
     }
 
     template <typename Node>

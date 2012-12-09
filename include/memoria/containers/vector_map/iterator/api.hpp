@@ -39,7 +39,7 @@ typedef typename Page::ID                                   ID;
 typedef typename ContainerType::Key                         Key;
 
 typedef typename ContainerType::ByteArray::ElementType      ElementType;
-typedef ArrayData<ElementType>								ArrayDataType;
+typedef ArrayData<ElementType>                              ArrayDataType;
 
 
 
