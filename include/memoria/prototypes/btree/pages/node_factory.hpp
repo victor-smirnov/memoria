@@ -35,7 +35,7 @@ public:
     typedef PageStart<Types>                                                    Base;
     typedef typename Types::NodePageBase                                        BaseType0;
 
-    typedef typename BaseType0::Allocator                                       Allocator;
+//    typedef typename BaseType0::Allocator                                       Allocator;
 
 
 
@@ -186,6 +186,11 @@ public:
         {
             const Me* me = T2T<const Me*>(page);
             return me->data_size();
+        }
+
+        virtual void resize(const void* page, void* buffer, Int new_size) const
+        {
+
         }
 
         virtual void generateDataEvents(

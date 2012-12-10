@@ -49,10 +49,7 @@ struct BTreeTypes<Profile, memoria::VectorCtr<ElementType>>: public BTreeTypes<P
 
     typedef ArrayData<ElementType>                                                  Buffer;
 
-    template <Int Size>
-    struct DataBlockTypeFactory {
-        typedef memoria::array::DynVectorData<ElementType, Size>                    Type;
-    };
+    typedef memoria::array::DynVectorData<ElementType>								DataBlock;
 
     typedef VectorMetadata<typename Base::ID>                                       Metadata;
 

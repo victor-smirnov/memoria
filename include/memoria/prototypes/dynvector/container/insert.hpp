@@ -78,7 +78,8 @@ DataPathItem splitDataPage(Iterator& iter);
 
 Int getMaxDataSize() const
 {
-    return DataPage::getMaxSize() - DataPage::getMaxSize() % me()->getElementSize();
+	Int max_size = me()->getMaxDataPageCapacity();
+    return max_size - max_size % me()->getElementSize();
 }
 
 

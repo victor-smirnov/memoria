@@ -21,8 +21,8 @@ using memoria::BitBuffer;
 
 #pragma pack(1)
 
-template <typename Allocator_>
-class TreePage: public Allocator_::Page {
+template <typename Base_>
+class TreePage: public Base_ {
 
     static const UInt VERSION = 1;
 
@@ -41,11 +41,11 @@ public:
         BITMAP        = 2
     }                                       FLAGS;
 
-    typedef Allocator_                        Allocator;
+//    typedef Allocator_                        Allocator;
 
-    typedef TreePage<Allocator>               Me;
-    typedef typename Allocator::Page          Base;
-    typedef typename Base::ID                 ID;
+    typedef Base_          						Base;
+    typedef TreePage<Base>               		Me;
+    typedef typename Base::ID                 	ID;
 
 
     typedef typename MergeLists<

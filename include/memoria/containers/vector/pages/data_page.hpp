@@ -16,14 +16,14 @@ namespace array      {
 
 #pragma pack(1)
 
-template <typename ElementType_, Int Size>
+template <typename ElementType_>
 class DynVectorData
 {
     static const UInt VERSION = 1;
 
     Int size_;
 
-    ElementType_ value_[Size - sizeof(size_)];
+    ElementType_ value_[];
 
 public:
     typedef ElementType_                                                        ElementType;
@@ -31,15 +31,11 @@ public:
     typedef TypeList<
         ConstValue<UInt, VERSION>,
         decltype(size_),
-        decltype(value_)
+        ElementType
     >                                                                           FieldsList;
 
 
     DynVectorData() {}
-
-    static Int maxSize() {
-        return Size - sizeof(size_);
-    }
 
     Int reindex() {return 0;}
 
@@ -49,6 +45,10 @@ public:
 
     Int &size() {
         return size_;
+    }
+
+    Int data_size() const {
+    	return size_ * sizeof(ElementType);
     }
 
     const ElementType& value(Int idx) const {
@@ -65,10 +65,6 @@ public:
 
     const ElementType* value_addr(Int idx) const {
         return &value_[idx];
-    }
-
-    Int byte_size() const {
-        return size_ * sizeof(ElementType) + sizeof(size_);
     }
 
     void shift(BigInt pos, BigInt length)
@@ -94,14 +90,14 @@ public:
     void serialize(SerializationData& buf) const
     {
         FieldFactory<Int>::serialize(buf, size_);
-        FieldFactory<ElementType>::serialize(buf, value_[0], sizeof(value_));
+        FieldFactory<ElementType>::serialize(buf, value_[0], size_);
     }
 
     //template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<Int>::deserialize(buf, size_);
-        FieldFactory<ElementType>::deserialize(buf, value_[0], sizeof(value_));
+        FieldFactory<ElementType>::deserialize(buf, value_[0], size_);
     }
 
     void init() {

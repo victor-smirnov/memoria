@@ -63,6 +63,8 @@ struct IPageOperations
     virtual void deserialize(const void* buf, Int buf_size, void* page) const                   = 0;
     virtual Int getPageSize(const void *page) const                                             = 0;
 
+    virtual void resize(const void* page, void* buffer, Int new_size) const 					= 0;
+
     virtual void generateDataEvents(
                     const void* page,
                     const DataEventsParams& params,

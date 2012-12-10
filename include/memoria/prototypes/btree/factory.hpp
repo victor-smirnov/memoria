@@ -135,7 +135,7 @@ public:
 
 
     struct BasePartsTypes{
-        typedef TreePage<typename ContainerTypes::Allocator>            NodePageBase;
+        typedef TreePage<typename ContainerTypes::Allocator::Page>      NodePageBase;
         typedef typename ContainerTypes::BasePagePartsList              List;
     };
 

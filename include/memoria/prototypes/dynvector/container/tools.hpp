@@ -89,6 +89,20 @@ public:
 
     void finishPathStep(TreePath& path, Int key_idx) const;
 
+    Int getDataPageCapacity(const DataPageG& node) const
+    {
+    	const Metadata& metadata = me()->getRootMetadata();
+
+    	return metadata.page_size() - sizeof(DataPage) - node->data().size();
+    }
+
+    Int getMaxDataPageCapacity() const
+    {
+    	const Metadata& metadata = me()->getRootMetadata();
+
+    	return metadata.page_size() - sizeof(DataPage);
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::dynvector::ToolsName)

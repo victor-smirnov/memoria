@@ -19,7 +19,7 @@ namespace dynvector {
 
 template <
         typename ComponentList,
-        template <Int> class DataBlockTypeFactory,
+        typename DataBlock,
         typename Base0
 >
 class DVDataPage: public PageBuilder<ComponentList, Base0>
@@ -30,15 +30,13 @@ public:
 
     typedef DVDataPage<
                 ComponentList,
-                DataBlockTypeFactory,
+                DataBlock,
                 Base0
-    >                                                                           Me;
+    >                                                                           MyType;
 
     typedef PageBuilder<ComponentList, Base0>                                   Base;
-
-    typedef typename Base0::Allocator                                           Allocator;
     
-    typedef typename DataBlockTypeFactory<MAX_BLOCK_SIZE - sizeof(Base)>::Type PageData;
+    typedef DataBlock 															PageData;
 
 
     typedef typename MergeLists <
@@ -93,14 +91,11 @@ public:
 
     Int data_size() const
     {
-        Me* me = NULL;
-        //FIXME: strict alias ?????????
-        //Use c++11 offsetof
-        return ((Int)(BigInt)&me->data_) + data_.byte_size();
+        return sizeof(MyType) + data_.data_size();
     }
 
-    static Int getMaxSize() {
-        return PageData::maxSize();
+    Int getCapacity() {
+        return Base::page_size() - sizeof(MyType);
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const
@@ -130,7 +125,7 @@ public:
     {
         virtual Int serialize(const void* page, void* buf) const
         {
-            const Me* me = T2T<const Me*>(page);
+            const MyType* me = T2T<const MyType*>(page);
 
             SerializationData data;
             data.buf = T2T<char*>(buf);
@@ -142,7 +137,7 @@ public:
 
         virtual void deserialize(const void* buf, Int buf_size, void* page) const
         {
-            Me* me = T2T<Me*>(page);
+        	MyType* me = T2T<MyType*>(page);
 
             DeserializationData data;
             data.buf = T2T<const char*>(buf);
@@ -151,8 +146,13 @@ public:
         }
 
         virtual Int getPageSize(const void *page) const {
-            const Me* me = T2T<const Me*>(page);
+            const MyType* me = T2T<const MyType*>(page);
             return me->data_size();
+        }
+
+        virtual void resize(const void* page, void* buffer, Int new_size) const
+        {
+
         }
 
         virtual void generateDataEvents(
@@ -161,7 +161,7 @@ public:
                         IPageDataEventHandler* handler
                      ) const
         {
-            const Me* me = T2T<const Me*>(page);
+            const MyType* me = T2T<const MyType*>(page);
             handler->startPage("DATA_PAGE");
             me->generateDataEvents(handler);
             handler->startPage("DATA_PAGE");
@@ -173,7 +173,7 @@ public:
                         IPageLayoutEventHandler* handler
                      ) const
         {
-            const Me* me = T2T<const Me*>(page);
+            const MyType* me = T2T<const MyType*>(page);
             me->generateLayoutEvents(handler);
         }
     };
@@ -195,10 +195,10 @@ public:
 
 template <
         typename ComponentList,
-        template <Int> class DataBlockTypeFactory,
+        typename DataBlock,
         typename BaseType
 >
-PageMetadata* DVDataPage<ComponentList, DataBlockTypeFactory, BaseType>::page_metadata_ = NULL;
+PageMetadata* DVDataPage<ComponentList, DataBlock, BaseType>::page_metadata_ = NULL;
 
 #pragma pack()
 

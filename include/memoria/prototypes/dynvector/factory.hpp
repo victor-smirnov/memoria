@@ -133,8 +133,8 @@ public:
 
     typedef DVDataPage<
                 DataPagePartsList,
-                ContainerTypes::template DataBlockTypeFactory,
-                memoria::btree::TreePage<typename ContainerTypes::Allocator>
+                typename ContainerTypes::DataBlock,
+                memoria::btree::TreePage<typename ContainerTypes::Allocator::Page>
     >                                                                               DataPage;
 
 
