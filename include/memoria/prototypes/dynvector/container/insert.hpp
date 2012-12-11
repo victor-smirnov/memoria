@@ -73,17 +73,7 @@ void insertData(Iterator& iter, const IDataType& data, SizeT start, SizeT len);
 
 BigInt updateData(Iterator& iter, const IDataType& data, BigInt start, BigInt len);
 
-
 DataPathItem splitDataPage(Iterator& iter);
-
-Int getMaxDataSize() const
-{
-	Int max_size = me()->getMaxDataPageCapacity();
-    return max_size - max_size % me()->getElementSize();
-}
-
-
-
 
 private:
 
@@ -100,14 +90,15 @@ class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
     Int                 suffix_;
     Int                 last_idx_;
     Int                 page_size_;
+    Int 				max_page_capacity_;
 
 public:
     ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, const IDataType& data, BigInt start, BigInt length):
         Base(ctr, key_count), data_(data), start_(start), length_(length)
     {
-        Int data_size   = Base::ctr().getMaxDataSize();
+        max_page_capacity_ = Base::ctr().getMaxDataPageCapacity();
 
-        suffix_         = length % data_size == 0 ? data_size : length_ % data_size;
+        suffix_         = length % max_page_capacity_ == 0 ? max_page_capacity_ : length_ % max_page_capacity_;
         last_idx_       = Base::getTotalKeyCount() - 1;
 
         page_size_      = ctr.getRootMetadata().page_size();
@@ -117,8 +108,6 @@ public:
     {
         LeafNodeKeyValuePair pair;
 
-
-
         DataPageG data          = Base::ctr().allocator().createPage(page_size_);
         data->init();
 
@@ -127,10 +116,8 @@ public:
 
         Int idx0                = (direction == Direction::FORWARD) ? idx : last_idx_ - idx;
 
-        Int data_size           = Base::ctr().getMaxDataSize();
-
-        BigInt offset           = start_ + data_size * idx0;
-        BigInt length           = idx0 < last_idx_ ? data_size : suffix_;
+        BigInt offset           = start_ + max_page_capacity_ * idx0;
+        BigInt length           = idx0 < last_idx_ ? max_page_capacity_ : suffix_;
 
         data_.get(data->data().value_addr(0), offset, length);
 
@@ -177,15 +164,13 @@ void M_TYPE::insertData(Iterator& iter, const IDataType& data, SizeT start, Size
 M_PARAMS
 void M_TYPE::insertData(Iterator& iter, const IDataType& buffer)
 {
-    BigInt      max_datapage_size   = me()->getMaxDataSize();
+    BigInt& data_idx = iter.dataPos();
 
-    BigInt&     data_idx            = iter.dataPos();
-
-    BigInt usage = iter.data() != NULL ? iter.data()->size() : 0;
+    BigInt capacity = iter.data().isSet() ? me()->getDataPageCapacity(iter.data()) : me()->getMaxDataPageCapacity();
 
     BigInt pos = iter.pos();
 
-    if (usage + (BigInt)buffer.getSize() <= max_datapage_size)
+    if (buffer.getSize() <= capacity)
     {
         // The target datapage has enough free space to insert into
         insertIntoDataPage(iter, buffer, 0, buffer.getSize());
@@ -307,8 +292,8 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, const IDataType& buffer, Int sta
         data            = createDataPage(iter.page(), iter.key_idx());
 
         iter.path().data().parent_idx() = iter.key_idx();
-        iter.dataPos() = 0;
-        reindex_fully = true;
+        iter.dataPos() 	= 0;
+        reindex_fully 	= true;
     }
 
     Int data_pos    = iter.dataPos();
@@ -336,11 +321,9 @@ void M_TYPE::importPages(Iterator& iter, const IDataType& buffer)
     BigInt  length      = buffer.getSize();
     BigInt  start;
 
-    Int max_size = me()->getMaxDataSize();
-
     if (iter.dataPos() > 0)
     {
-        Int start_page_capacity = max_size - iter.data()->size();
+        Int start_page_capacity =  me()->getDataPageCapacity(iter.data());
 
         start = length > start_page_capacity ? start_page_capacity : length;
 
@@ -352,6 +335,7 @@ void M_TYPE::importPages(Iterator& iter, const IDataType& buffer)
         start = 0;
     }
 
+    Int max_size = me()->getMaxDataPageCapacity();
 
     BigInt end          = (length - start) % max_size;
 
@@ -369,7 +353,7 @@ void M_TYPE::importPages(Iterator& iter, const IDataType& buffer)
     {
         if (!iter.isEnd())
         {
-            Int end_page_capacity = max_size - iter.data()->size();
+            Int end_page_capacity = me()->getDataPageCapacity(iter.data());
 
             if (end <= end_page_capacity)
             {

@@ -91,17 +91,22 @@ public:
 
     Int getDataPageCapacity(const DataPageG& node) const
     {
-    	const Metadata& metadata = me()->getRootMetadata();
-
-    	return metadata.page_size() - sizeof(DataPage) - node->data().size();
+    	return node->page_size() - sizeof(DataPage) - node->data().size();
     }
 
     Int getMaxDataPageCapacity() const
     {
     	const Metadata& metadata = me()->getRootMetadata();
-
     	return metadata.page_size() - sizeof(DataPage);
     }
+
+//    Int getMaxCapacityForDataPage(const DataPageG& node) const
+//    {
+//    	Int max_capacity = me()->getMaxDataPageCapacity();
+//    	Int page_capacity = getDataPageCapacity(node);
+//
+//    	return
+//    }
 
 MEMORIA_CONTAINER_PART_END
 

@@ -101,17 +101,17 @@ public:
 
     bool shouldMergeData(const TreePath& path) const
     {
-        return path.data()->size() <= me()->getMaxDataPageCapacity() / 2;
+        return path.data()->size() <= me()->getDataPageCapacity(path.data()) / 2;
     }
 
     bool canMergeData(const TreePath& data1, const TreePath& data2) const
     {
-        return data1[0]->id() == data2[0]->id()  &&  (data1.data()->size() + data2.data()->size() <= me()->getMaxDataPageCapacity());
+        return data1[0]->id() == data2[0]->id()  &&  (data1.data()->size() + data2.data()->size() <= me()->getDataPageCapacity(data1.data()));
     }
 
     bool canMergeData2(const TreePath& data1, const TreePath& data2) const
     {
-        return data1.data()->size() + data2.data()->size() <= me()->getMaxDataPageCapacity();
+        return data1.data()->size() + data2.data()->size() <= me()->getDataPageCapacity(data1.data());
     }
 
 
@@ -244,7 +244,12 @@ bool M_TYPE::mergeDataWithRightSibling(Iterator& iter)
         if (source_size + target_size <= me()->getMaxDataPageCapacity())
         {
             DataPathItem target_data_item(
-                            me()->getValuePage(iter.page(), iter.key_idx() + 1, Allocator::UPDATE), iter.key_idx() + 1
+                            me()->getValuePage(
+                            		iter.page(),
+                            		iter.key_idx() + 1,
+                            		Allocator::UPDATE
+                            ),
+                            iter.key_idx() + 1
                          );
 
             mergeDataPagesAndremoveSource(target_data_item, iter.path(), MergeType::RIGHT);
