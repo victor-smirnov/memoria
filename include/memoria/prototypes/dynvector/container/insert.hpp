@@ -133,8 +133,8 @@ public:
 
 void importPages(Iterator& iter, const IDataType& buffer);
 
-void createDataPage(TreePath& path, Int idx);
-DataPathItem createDataPage(NodeBaseG& node, Int idx);
+void createDataPage(TreePath& path, Int idx, Int size = -1);
+DataPathItem createDataPage(NodeBaseG& node, Int idx, Int size = -1);
 
 void moveData(TreePath& src, Int src_idx, TreePath& tgt);
 void moveData(TreePath& src, Int src_idx, DataPathItem& tgt);
@@ -247,7 +247,7 @@ typename M_TYPE::DataPathItem M_TYPE::splitDataPage(Iterator& iter)
 
         me()->makeRoom(right, 0, 0, 1);
 
-        me()->createDataPage(right, 0);
+        me()->createDataPage(right, 0, path.data()->page_size());
 
         me()->reindex(right.leaf());
 
@@ -258,7 +258,7 @@ typename M_TYPE::DataPathItem M_TYPE::splitDataPage(Iterator& iter)
     else {
         me()->makeRoom(path, 0, idx, 1);
 
-        DataPathItem target_data = me()->createDataPage(path[0].node(), idx);
+        DataPathItem target_data = me()->createDataPage(path[0].node(), idx, path.data()->page_size());
 
         me()->reindex(path.leaf());
 
@@ -289,7 +289,7 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, const IDataType& buffer, Int sta
     {
         me()->makeRoom(iter.path(), 0, iter.key_idx(), 1);
 
-        data            = createDataPage(iter.page(), iter.key_idx());
+        data            = me()->createDataPage(iter.page(), iter.key_idx());
 
         iter.path().data().parent_idx() = iter.key_idx();
         iter.dataPos() 	= 0;
@@ -389,17 +389,22 @@ void M_TYPE::importPages(Iterator& iter, const IDataType& buffer)
 
 
 M_PARAMS
-void M_TYPE::createDataPage(TreePath& path, Int idx)
+void M_TYPE::createDataPage(TreePath& path, Int idx, Int size)
 {
-    path.data() = createDataPage(path[0].node(), idx);
+    path.data() = createDataPage(path[0].node(), idx, size);
 }
 
 M_PARAMS
-typename M_TYPE::DataPathItem M_TYPE::createDataPage(NodeBaseG& node, Int idx)
+typename M_TYPE::DataPathItem M_TYPE::createDataPage(NodeBaseG& node, Int idx, Int size)
 {
     Int page_size           = me()->getRootMetadata().page_size();
 
-    DataPageG data          = me()->allocator().createPage(page_size);
+    if (size == -1)
+    {
+    	size = page_size;
+    }
+
+    DataPageG data          = me()->allocator().createPage(size);
     data->init();
 
     data->model_hash()      = me()->hash();
@@ -459,8 +464,16 @@ typename M_TYPE::Accumulator M_TYPE::moveData(
 
     Int amount_to_topy = src_data->size() - src_idx;
 
+    if (tgt_data->getCapacity() > amount_to_topy) {
+    	int a = 0;
+    	a++;
+    }
+
+    MEMORIA_ASSERT(tgt_data->getCapacity(), >= , amount_to_topy);
+
     // make a room in the target page
     tgt_data->data().shift(0, amount_to_topy);
+
     memoria::CopyBuffer(src_data->data().value_addr(src_idx), tgt_data->data().value_addr(0), amount_to_topy);
 
     src_data->data().size() -= amount_to_topy;

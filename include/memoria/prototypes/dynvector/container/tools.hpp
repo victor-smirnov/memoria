@@ -100,14 +100,6 @@ public:
     	return metadata.page_size() - sizeof(DataPage);
     }
 
-//    Int getMaxCapacityForDataPage(const DataPageG& node) const
-//    {
-//    	Int max_capacity = me()->getMaxDataPageCapacity();
-//    	Int page_capacity = getDataPageCapacity(node);
-//
-//    	return
-//    }
-
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::dynvector::ToolsName)

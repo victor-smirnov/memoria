@@ -183,7 +183,7 @@ void dumpTree(const IDValue& id, const File& folder)
 
         ofstream pagetxt((folder.getPath() + Platform::getFilePathSeparator() + "page.txt").c_str());
 
-        PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->getPageTypeHash());
+        PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->getContainerHash(), page->getPageTypeHash());
 
         dumpPage(meta, page, pagetxt);
 

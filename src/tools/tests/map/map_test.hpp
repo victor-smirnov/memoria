@@ -31,7 +31,7 @@ class MapTest: public SPTestTask {
 
     private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                MapCtrType;
+    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                 MapCtrType;
     typedef typename MapCtrType::Iterator                               Iterator;
     typedef typename MapCtrType::ID                                     ID;
     typedef typename MapCtrType::Accumulator                            Accumulator;
@@ -139,6 +139,8 @@ class MapTest: public SPTestTask {
         allocator.getLogger()->setHandler(&logHandler);
 
         MapCtrType map(&allocator);
+
+        map.setNewPageSize(8192);
 
         params.ctr_name_ = map.name();
 

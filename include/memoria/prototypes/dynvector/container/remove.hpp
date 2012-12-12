@@ -239,20 +239,14 @@ bool M_TYPE::mergeDataWithRightSibling(Iterator& iter)
     if (iter.key_idx() < iter.page()->children_count() - 1)
     {
         BigInt source_size = iter.data()->size();
-        BigInt target_size = me()->getKey(iter.page(), 0, iter.key_idx() + 1);
 
-        if (source_size + target_size <= me()->getMaxDataPageCapacity())
+        Int next_idx = iter.key_idx() + 1;
+
+        DataPathItem target_data_item(me()->getValuePage(iter.page(), next_idx, Allocator::READ), next_idx);
+
+        if (source_size <= target_data_item->getCapacity())
         {
-            DataPathItem target_data_item(
-                            me()->getValuePage(
-                            		iter.page(),
-                            		iter.key_idx() + 1,
-                            		Allocator::UPDATE
-                            ),
-                            iter.key_idx() + 1
-                         );
-
-            mergeDataPagesAndremoveSource(target_data_item, iter.path(), MergeType::RIGHT);
+        	mergeDataPagesAndremoveSource(target_data_item, iter.path(), MergeType::RIGHT);
 
             return true;
         }
@@ -546,6 +540,7 @@ void M_TYPE::mergeDataPagesAndremoveSource(
     else {
         // make a room for source data in the target data page
         // FIXME: separate method for this task?
+
         memoria::CopyBuffer(target_data->data().value_addr(0), target_data->data().value_addr(src_size), tgt_size);
 
         // copy page content from source to target

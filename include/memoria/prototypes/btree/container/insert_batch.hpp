@@ -945,7 +945,7 @@ typename M_TYPE::TreePathItem M_TYPE::split(TreePath& path, Int level, Int idx)
     node.update();
     parent.update();
 
-    NodeBaseG other = me()->createNode(level, false, node->is_leaf());
+    NodeBaseG other = me()->createNode(level, false, node->is_leaf(), node->page_size());
 
     Accumulator keys = moveElements(node, other, idx);
 
@@ -955,7 +955,7 @@ typename M_TYPE::TreePathItem M_TYPE::split(TreePath& path, Int level, Int idx)
     me()->setINodeData(parent, parent_idx + 1, &other->id());
 
     //FIXME: Should we proceed up to the root here in general case?
-    me()->updateCounters(parent, parent_idx,      -keys);
+    me()->updateCounters(parent, parent_idx,    -keys);
     me()->updateCounters(parent, parent_idx + 1, keys, true);
 
     if (level > 0)
@@ -993,7 +993,7 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, Int idx)
     left_parent.update();
     right_parent.update();
 
-    NodeBaseG other = me()->createNode(level, false, left_node->is_leaf());
+    NodeBaseG other = me()->createNode(level, false, left_node->is_leaf(), left_node->page_size());
 
     Accumulator keys = moveElements(left_node, other, idx);
 
@@ -1036,7 +1036,7 @@ void M_TYPE::newRoot(TreePath& path)
     NodeBaseG& root         = path[path.getSize() - 1].node(); // page == root
     root.update();
 
-    NodeBaseG new_root      = me()->createNode(root->level() + 1, true, false);
+    NodeBaseG new_root      = me()->createNode(root->level() + 1, true, false, root->page_size());
 
     me()->copyRootMetadata(root, new_root);
 

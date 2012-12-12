@@ -464,6 +464,12 @@ public:
         MEMORIA_ASSERT(copy_from + count, <=, max_size_);
 
         MEMORIA_ASSERT(copy_to, >=, 0);
+
+        if (copy_to + count > other->max_size_) {
+        	int a = 0;
+        	a++;
+        }
+
         MEMORIA_ASSERT(copy_to + count, <=, other->max_size_);
 
         for (Int c = 0; c < Blocks; c++)

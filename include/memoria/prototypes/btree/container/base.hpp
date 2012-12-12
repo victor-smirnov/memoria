@@ -366,7 +366,20 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         return metadata;
     }
 
-    NodeBaseG createNode(Short level, bool root, bool leaf) const
+    Int getNewPageSize() const
+    {
+    	return me()->getRootMetadata().page_size();
+    }
+
+    void setNewPageSize(Int page_size) const
+    {
+    	Metadata metadata 		= me()->getRootMetadata();
+    	metadata.page_size() 	= page_size;
+
+    	me()->setRootMetadata(metadata);
+    }
+
+    NodeBaseG createNode(Short level, bool root, bool leaf, Int size = -1) const
     {
         MEMORIA_ASSERT(level, >=, 0);
 
@@ -380,7 +393,11 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
             meta = me()->createNewRootMetadata();
         }
 
-        NodeBaseG node = NodeFactory::create(me()->allocator(), level, root, leaf, meta.page_size());
+        if (size == -1) {
+        	size = meta.page_size();
+        }
+
+        NodeBaseG node = NodeFactory::create(me()->allocator(), level, root, leaf, size);
 
         if (root)
         {
@@ -389,7 +406,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         node->model_hash() = me()->hash();
 
-        initNodeSize(node, meta.page_size());
+        initNodeSize(node, size);
 
         return node;
     }

@@ -95,7 +95,7 @@ public:
     }
 
     Int getCapacity() {
-        return Base::page_size() - sizeof(MyType);
+        return Base::page_size() - sizeof(MyType) - data_.size();
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const

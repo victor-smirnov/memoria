@@ -21,6 +21,9 @@ using namespace memoria::btree;
 
 #pragma pack(1)
 
+// FIXME: Make one more level of root metadata hierarchy and
+// move model_name and page_size fields into it.
+
 template <typename ID>
 class BTreeMetadata
 {

@@ -36,11 +36,14 @@ protected:
 
     Int cnt_;
 
+    Int page_size_cnt_;
+
 public:
 
     BTreeBatchTestBase(StringRef name):
         SPTestTask(name),
-        max_block_size_(1024*40)
+        max_block_size_(1024*40),
+        page_size_cnt_(0)
     {
         size_ = 1024*1024*16;
         Add("max_block_size", max_block_size_);
@@ -133,6 +136,8 @@ public:
 
         Ctr dv(&allocator);
 
+        //dv.setNewPageSize(8192);
+
         setElementSize(dv, task_params);
 
         params.ctr_name_ = dv.name();
@@ -153,6 +158,11 @@ public:
                     params.step_        = getRandom(3);
                 }
 
+                if (page_size_cnt_ % 1 == 0)
+                {
+                	dv.setNewPageSize(4096 + getRandom(10)*1024);
+                }
+
                 params.block_size_  = 1 + getRandom(task_params->max_block_size_);
 
                 Build(out, allocator, dv, &params);
@@ -163,9 +173,11 @@ public:
 
                 params.pos_         = -1;
                 params.page_step_   = -1;
+
+                page_size_cnt_++;
             }
 
-//          StoreAllocator(allocator, "vector.dump");
+            StoreAllocator(allocator, "vector.dump");
 
             out<<"remove data. Sumset contains "<<(getSize(dv)/1024)<<"K keys"<<endl;
             params.insert_ = false;
@@ -176,6 +188,11 @@ public:
                 {
                     params.step_ = getRandom(3);
                 }
+
+//                if (page_size_cnt_ % 1 == 0)
+//                {
+//                	dv.setNewPageSize(4096 + getRandom(10)*1024);
+//                }
 
                 BigInt size = getSize(dv);
                 BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
@@ -192,6 +209,8 @@ public:
                 params.page_step_   = -1;
 
                 allocator.commit();
+
+                page_size_cnt_++;
             }
 
             out<<"Sumset.size = "<<(getSize(dv) / 1024)<<"K keys"<<endl;
@@ -211,6 +230,8 @@ public:
     {
         UByte value = params->data_;
         Int step    = params->step_;
+
+
 
         ArrayData data = createBuffer(array, params->block_size_, value);
 
