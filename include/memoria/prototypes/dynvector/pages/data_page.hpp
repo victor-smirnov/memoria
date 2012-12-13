@@ -95,7 +95,7 @@ public:
     }
 
     Int getCapacity() {
-        return Base::page_size() - sizeof(MyType) - data_.size();
+        return (Base::page_size() - sizeof(MyType)) / sizeof(typename PageData::ElementType) - data_.size();
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const
@@ -152,7 +152,11 @@ public:
 
         virtual void resize(const void* page, void* buffer, Int new_size) const
         {
+        	const MyType* me = T2T<const MyType*>(page);
+        	MyType* tgt = T2T<MyType*>(buffer);
 
+        	tgt->copyFrom(me);
+        	me->data().copyTo(&tgt->data());
         }
 
         virtual void generateDataEvents(

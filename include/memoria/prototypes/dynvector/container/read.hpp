@@ -65,7 +65,7 @@ BigInt M_TYPE::read(Iterator& iter, IDataType& data, BigInt start, BigInt len)
         data.put(iter.data()->data().value_addr(iter.dataPos()), start, to_read);
 
         len     -= to_read;
-        iter.skip(to_read / me()->getElementSize());
+        iter.skip(to_read);
 
         sum     += to_read;
         start   += to_read;

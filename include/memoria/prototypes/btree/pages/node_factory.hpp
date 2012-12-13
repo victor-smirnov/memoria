@@ -190,7 +190,17 @@ public:
 
         virtual void resize(const void* page, void* buffer, Int new_size) const
         {
+        	const Me* me = T2T<const Me*>(page);
+        	Me* tgt = T2T<Me*>(buffer);
 
+        	tgt->copyFrom(me);
+        	tgt->map().initByBlock(new_size - sizeof(Me));
+
+        	me->map().transferTo(&tgt->map());
+        	tgt->set_children_count(me->children_count());
+
+            tgt->map().clearUnused();
+            tgt->map().reindex();
         }
 
         virtual void generateDataEvents(

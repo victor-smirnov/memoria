@@ -51,12 +51,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
 
-    MEMORIA_PUBLIC Int getElementSize() const
-    {
-        return me()->model().getElementSize();
-    }
-
-
     MEMORIA_PUBLIC BigInt read(IDataType& data, BigInt start, BigInt length)
     {
         return me()->model().read(*me(), data, start, length);
@@ -223,11 +217,9 @@ BigInt M_TYPE::skip(BigInt distance)
 }
 
 MEMORIA_PUBLIC M_PARAMS
-BigInt M_TYPE::skipFw(BigInt count)
+BigInt M_TYPE::skipFw(BigInt distance)
 {
-    Int element_size = me()->getElementSize();
 
-    BigInt distance = count * element_size;
 
     //FIXME: handle START properly
     if (me()->isNotEmpty())
@@ -272,7 +264,7 @@ BigInt M_TYPE::skipFw(BigInt count)
 
                 me()->cache().setup(pos + (walker.sum() - data_pos) - me()->dataPos(), 0);
 
-                return (walker.sum() - data_pos) / element_size;
+                return walker.sum() - data_pos;
             }
             else {
 
@@ -283,7 +275,7 @@ BigInt M_TYPE::skipFw(BigInt count)
         }
 
         //FIXME: return true distance
-        return count;
+        return distance;
     }
     else {
         return 0;
@@ -292,13 +284,8 @@ BigInt M_TYPE::skipFw(BigInt count)
 
 
 MEMORIA_PUBLIC M_PARAMS
-BigInt M_TYPE::skipBw(BigInt count)
+BigInt M_TYPE::skipBw(BigInt distance)
 {
-    Int element_size = me()->getElementSize();
-
-    BigInt distance = count * element_size;
-
-
     //FIXME: handle EOF properly
     if (me()->isNotEmpty())
     {
@@ -330,7 +317,7 @@ BigInt M_TYPE::skipBw(BigInt count)
 
                 me()->cache().setup(0, 0);
 
-                return (walker.sum() - to_add) / element_size;
+                return walker.sum() - to_add;
             }
             else {
                 me()->dataPos()     = me()->data()->size() - walker.remainder();
@@ -339,7 +326,7 @@ BigInt M_TYPE::skipBw(BigInt count)
             }
         }
 
-        return count;
+        return distance;
     }
     else {
         return 0;

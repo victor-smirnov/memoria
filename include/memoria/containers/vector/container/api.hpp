@@ -39,26 +39,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
     typedef IData<ElementType>                                                  IDataType;
 
 
-    MEMORIA_PUBLIC Metadata createNewRootMetadata() const
-    {
-        Metadata metadata = Base::createNewRootMetadata();
-        metadata.element_size() = 1;
-
-        return metadata;
-    }
-
-    MEMORIA_PUBLIC Int getElementSize() const {
-        return me()->getRootMetadata().element_size();
-    }
-
-    MEMORIA_PUBLIC void setElementSize(Int size)
-    {
-        Metadata meta       = me()->getRootMetadata();
-        meta.element_size() = size;
-
-        me()->setRootMetadata(meta);
-    }
-
     MEMORIA_PUBLIC Iterator operator[](BigInt pos) {
         return seek(pos);
     }
@@ -91,7 +71,7 @@ BigInt M_TYPE::size()
 
     if (node != NULL)
     {
-        return me()->getMaxKeys(node).key(0) / me()->getElementSize();
+        return me()->getMaxKeys(node).key(0);
     }
     else {
         return 0;

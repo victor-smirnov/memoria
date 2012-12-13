@@ -94,7 +94,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     BigInt pos() const
     {
-        return (me()->prefix() + me()->dataPos()) / me()->getElementSize();
+        return me()->prefix() + me()->dataPos();
     }
 
 

@@ -82,18 +82,11 @@ public:
 
     virtual ArrayData<UByte> createBuffer(Ctr& array, Int size, UByte value)
     {
-        ArrayData<UByte> data(size * array.getElementSize());
-
-        Int esize = array.getElementSize();
+        ArrayData<UByte> data((SizeT)size);
 
         for (Int c = 0; c < size; c++)
         {
-            *(data.data() + c * esize) = value;
-
-            for (Int d = 1; d < esize; d++)
-            {
-                *(data.data() + c * esize + d) = value == 1 ? 0 : 1;
-            }
+            *(data.data() + c) = value;
         }
 
         return data;
@@ -130,21 +123,12 @@ public:
 
     virtual BigInt getLocalPosition(Iterator& iter)
     {
-        return iter.dataPos() / iter.getElementSize();
+        return iter.dataPos();
     }
 
     virtual BigInt getSize(Ctr& array)
     {
         return array.size();
-    }
-
-    virtual void setElementSize(Ctr& array, ParamType* task_params)
-    {
-        array.setElementSize(task_params->element_size_);
-    };
-
-    virtual Int getElementSize(Ctr& array) {
-        return array.getElementSize();
     }
 
     void checkIterator(ostream& out, Iterator& iter, const char* source)

@@ -41,10 +41,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::SeekName)
 
         static const Int Indexes                                                    = Types::Indexes;
 
-        Int getElementSize() const {
-            return 1;
-        }
-
         Iterator find(BigInt pos, Int key_number);
 
 MEMORIA_CONTAINER_PART_END
@@ -55,7 +51,7 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 typename M_TYPE::Iterator M_TYPE::find(BigInt pos, Int key_number)
 {
-    Iterator iter = me()->findLT(pos * me()->getElementSize(), key_number);
+    Iterator iter = me()->findLT(pos, key_number);
 
     if (iter.isNotEmpty())
     {
@@ -68,7 +64,7 @@ typename M_TYPE::Iterator M_TYPE::find(BigInt pos, Int key_number)
         }
 
         BigInt offset   = iter.prefix(); //FIXME: key_number
-        iter.dataPos() = pos * me()->getElementSize() - offset;
+        iter.dataPos() = pos - offset;
 
         if (iter.dataPos() > iter.data()->size())
         {

@@ -76,6 +76,12 @@ public:
         }
     }
 
+    void copyTo(DynVectorData<ElementType_>* target) const
+    {
+    	target->size() = size();
+    	CopyBuffer(value_, target->value_, size_);
+    }
+
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         handler->startGroup("DATA");

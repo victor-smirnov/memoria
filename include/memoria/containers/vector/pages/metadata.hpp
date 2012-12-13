@@ -21,15 +21,12 @@ class VectorMetadata: public BTreeMetadata<ID>
 
     typedef BTreeMetadata<ID> Base;
 
-    Int element_size_;
-
 public:
 
     typedef typename AppendToList<
             typename Base::FieldsList,
 
-            ConstValue<UInt, VERSION>,
-            decltype(element_size_)
+            ConstValue<UInt, VERSION>
     >::Result                                                                   FieldsList;
 
     VectorMetadata() {}
@@ -37,29 +34,16 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
-        handler->value("ELEMENT_SIZE", &element_size_);
-    }
-
-    Int& element_size() {
-        return element_size_;
-    }
-
-    const Int& element_size() const {
-        return element_size_;
     }
 
     void serialize(SerializationData& buf) const
     {
         Base::serialize(buf);
-
-        FieldFactory<Int>::serialize(buf, element_size_);
     }
 
     void deserialize(DeserializationData& buf)
     {
         Base::deserialize(buf);
-
-        FieldFactory<Int>::deserialize(buf, element_size_);
     }
 };
 
