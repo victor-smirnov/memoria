@@ -48,7 +48,7 @@ public:
     }
 
     Int data_size() const {
-    	return size_ * sizeof(ElementType);
+        return size_ * sizeof(ElementType);
     }
 
     const ElementType& value(Int idx) const {
@@ -78,8 +78,8 @@ public:
 
     void copyTo(DynVectorData<ElementType_>* target) const
     {
-    	target->size() = size();
-    	CopyBuffer(value_, target->value_, size_);
+        target->size() = size();
+        CopyBuffer(value_, target->value_, size_);
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const

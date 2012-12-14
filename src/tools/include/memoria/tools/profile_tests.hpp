@@ -27,34 +27,25 @@ using namespace std;
 
 template <typename Profile_, typename Allocator_>
 class ProfileTestTask: public TestTask {
-
+    typedef ProfileTestTask<Profile_, Allocator_>                               MyType;
 public:
 
     typedef Profile_                                                            Profile;
     typedef Allocator_                                                          Allocator;
 
-    Int check_count;
+    Int     check_count = 0;
 
-    ProfileTestTask(StringRef name): TestTask(name), check_count(0)
+
+    ProfileTestTask(StringRef name): TestTask(name)
     {
-        Add("check_count", check_count);
+        MEMORIA_ADD_TEST_PARAM(check_count);
     }
 
     virtual ~ProfileTestTask() throw () {};
 
-    virtual TestReplayParams* createTestStep(StringRef name) const                      = 0;
-    virtual void            Run(ostream& out)                                           = 0;
-    virtual void            Replay(ostream& out, TestReplayParams* step_params)         = 0;
-
     virtual void LoadAllocator(Allocator& allocator, StringRef file_name) const
     {
         unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
-        allocator.load(in.get());
-    }
-
-    virtual void LoadAllocator(Allocator& allocator, const TestReplayParams* params) const
-    {
-        unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(params->getdumpName().c_str()));
         allocator.load(in.get());
     }
 
@@ -66,30 +57,22 @@ public:
 
 
 
-    virtual void Store(Allocator& allocator, TestReplayParams* params) const
+    virtual String Store(Allocator& allocator) const
     {
-        Configure(params);
-
-        String file_name = getAllocatorFileName(params, ".valid");
+        String file_name = getAllocatorFileName(".valid");
         StoreAllocator(allocator, file_name);
-        params->setdumpName(file_name);
 
-        String file_name_invalid = getAllocatorFileName(params, ".invalid");
+        String file_name_invalid = getAllocatorFileName(".invalid");
         allocator.commit();
         StoreAllocator(allocator, file_name_invalid);
 
-        String props_name = getPropertiesFileName();
-        StoreProperties(params, props_name);
+        return file_name;
     }
 
-
-
-    virtual String getAllocatorFileName(const TestReplayParams* params, StringRef infix = "") const
+    virtual String getAllocatorFileName(StringRef infix = "") const
     {
-        return getResourcePath(params->getName()+infix+".dump");
+        return getResourcePath("Allocator"+infix+".dump");
     }
-
-
 };
 
 template <typename T = EmptyType>
@@ -101,13 +84,9 @@ public:
     SPTestTaskT(StringRef name): Base(name) {}
     virtual ~SPTestTaskT() throw () {};
 
-    virtual TestReplayParams* createTestStep(StringRef name) const                      = 0;
-    virtual void            Run(ostream& out)                                           = 0;
-    virtual void            Replay(ostream& out, TestReplayParams* step_params)         = 0;
-
     void check(Allocator& allocator, const char* source)
     {
-        Int step_count = getParameters<>()->getcheckStep();
+        Int step_count = getcheckStep();
 
         if (step_count > 0 && (check_count % step_count == 0))
         {
@@ -119,7 +98,7 @@ public:
 
     void check(Allocator& allocator, const char* message, const char* source)
     {
-        Int step_count = getParameters<>()->getcheckStep();
+        Int step_count = getcheckStep();
 
         if (check_count % step_count == 0)
         {
@@ -131,7 +110,7 @@ public:
     template <typename CtrType>
     void checkCtr(CtrType& ctr, const char* message, const char* source)
     {
-        Int step_count = getParameters<>()->getcheckStep();
+        Int step_count = getcheckStep();
 
         if (step_count > 0 && (check_count % step_count == 0))
         {

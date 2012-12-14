@@ -12,11 +12,12 @@
 
 #include "sum_set_batch/sum_tree_test_suite.hpp"
 
+
 #include "vector/vector_test_suite.hpp"
 
 #include "vector_map/vector_map_test_suite.hpp"
 
-#include "template/task.hpp"
+#include "template/template_test_suite.hpp"
 
 #include <memoria/tools/cmdline.hpp>
 
@@ -46,6 +47,8 @@ int main(int argc, const char** argv, const char** envp)
 
     MetadataInitializer<SmallProfile<> >::init();
 
+    SmallCtrTypeFactory::Factory<Map1Ctr>::Type::initMetadata();
+
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
@@ -70,6 +73,7 @@ int main(int argc, const char** argv, const char** envp)
 
         // add test suits to the runner;
 
+        runner.registerTask(new TemplateTestSuite());
         runner.registerTask(new CtrTestSuite());
         runner.registerTask(new MapTestSuite());
         runner.registerTask(new PackedMapTestSuite());

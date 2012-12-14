@@ -18,73 +18,49 @@ namespace memoria {
 using namespace memoria::vapi;
 
 
-
-
 class TemplateTestTask: public SPTestTask {
 
-    Int param;
+    typedef TemplateTestTask MyType;
+
+    Int param_      = 1024;
+    bool throw_ex_  = false;
+
+    Int state_param_;
 
 public:
 
-    struct TestReplay: public TestReplayParams
+
+    TemplateTestTask(): SPTestTask("Test")
     {
-        Int replay_param;
-
-        TestReplay(): TestReplayParams(), replay_param(0)
-        {
-            Add("replay_param", replay_param);
-        }
-    };
+        MEMORIA_ADD_TEST_PARAM(param_)->setDescription("Basic test parameter");
+        MEMORIA_ADD_TEST_PARAM(throw_ex_)->setDescription("Throw exception if true");
 
 
+        MEMORIA_ADD_TEST_PARAM(state_param_)->state();
 
-    TemplateTestTask(): SPTestTask("Test"), param(1024)
+        MEMORIA_ADD_TEST_WITH_REPLAY(runFirst, replayFirst);
+    }
+
+    void runFirst(ostream& out)
     {
-        Add("param", param);
+        out<<"Precofigured Param: "<<param_<<endl;
+
+        state_param_ = 12344321;
+
+        param_ = 123456;
+
+        if (throw_ex_)
+            throw Exception(MEMORIA_SOURCE, "Fake Exception!");
+    }
+
+
+    void replayFirst(ostream& out)
+    {
+        out<<"Param="<<param_<<endl;
     }
 
     virtual ~TemplateTestTask() throw() {}
 
-    virtual TestReplayParams* createTestStep(StringRef name) const
-    {
-        return new TestReplay();
-    }
-
-    virtual void Replay(ostream& out, TestReplayParams* step_params)
-    {
-        TestReplay* params = static_cast<TestReplay*>(step_params);
-        Allocator allocator;
-
-        LoadAllocator(allocator, params);
-
-        //do something with allocator
-    }
-
-    virtual void Run(ostream& out)
-    {
-        TestReplay params;
-        out<<getTaskName()<<": "<<"Do main things"<<endl;
-
-        Allocator allocator;
-        allocator.commit();
-
-        try {
-            throw Exception(MEMORIA_SOURCE, "Test Exception");
-        }
-        catch (...) {
-            Store(allocator, &params);
-            throw;
-        }
-    }
-};
-
-class TemplateTestSuite: public TestSuite {
-public:
-
-    TemplateTestSuite(): TestSuite("Template")
-    {
-        registerTask(new TemplateTestTask());
-    }
 };
 
 

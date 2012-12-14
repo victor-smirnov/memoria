@@ -19,66 +19,15 @@ namespace memoria {
 
 using namespace std;
 
-class TestReplayParams: public Parametersset {
+#define MEMORIA_ADD_TEST_PARAM(paramName)\
+    Add(#paramName, paramName)
 
-    String name_;
-    String task_;
 
-    String dump_name_;
+#define MEMORIA_ADD_TEST(testMethodName)\
+    addTest(#testMethodName, &MyType::testMethodName)
 
-    bool replay_;
-
-public:
-    TestReplayParams(StringRef name = "Replay", StringRef task = "", StringRef prefix = ""):Parametersset(prefix), name_(name), task_(task), replay_(false)
-    {
-        Add("name", name_);
-        Add("task", task_);
-        Add("dump_name", dump_name_);
-    }
-
-    virtual ~TestReplayParams() {}
-
-    StringRef getName() const
-    {
-        return name_;
-    }
-
-    void setName(StringRef name)
-    {
-        name_ = name;
-    }
-
-    StringRef getTask() const
-    {
-        return task_;
-    }
-
-    void setTask(StringRef task)
-    {
-        task_ = task;
-    }
-
-    StringRef getdumpName() const
-    {
-        return dump_name_;
-    }
-
-    void setdumpName(String file_name)
-    {
-        this->dump_name_ = file_name;
-    }
-
-    bool IsReplay() const
-    {
-        return replay_;
-    }
-
-    void setReplay(bool replay)
-    {
-        replay_ = replay;
-    }
-};
-
+#define MEMORIA_ADD_TEST_WITH_REPLAY(testMethodName, replayMethodName)\
+    addTest(#testMethodName, &MyType::testMethodName, &MyType::replayMethodName)
 
 
 
@@ -87,17 +36,69 @@ class TestTask: public Task {
     bool    replay_;
 
 protected:
+    typedef Task Base;
+
     Int     size_;
     Int     btree_branching_;
     bool    btree_random_branching_;
 
+    String  current_test_name_;
+
+    struct TestDescriptor {
+        String name_;
+
+        StringRef name() const {
+            return name_;
+        }
+        TestDescriptor(StringRef name): name_(name) {}
+        virtual ~TestDescriptor() throw () {}
+
+        virtual void run(TestTask* test, ostream&) const        = 0;
+        virtual void replay(TestTask* test, ostream&) const     = 0;
+        virtual bool hasReplay() const                          = 0;
+    };
+
+    template <typename T>
+    class TypedTestDescriptor: public TestDescriptor {
+        typedef void (T::*TestMethod)(std::ostream& out);
+
+        TestMethod run_test_;
+        TestMethod replay_test_;
+    public:
+        TypedTestDescriptor(StringRef name, TestMethod run_test, TestMethod replay_test):
+            TestDescriptor(name),
+            run_test_(run_test), replay_test_(replay_test) {}
+
+        virtual ~TypedTestDescriptor() throw () {}
+
+        virtual void run(TestTask* test, ostream& out) const {
+            T* casted = T2T<T*>(test);
+            (casted->*run_test_)(out);
+        }
+
+        virtual void replay(TestTask* test, ostream& out) const {
+            T* casted = T2T<T*>(test);
+            (casted->*replay_test_)(out);
+        }
+
+        virtual bool hasReplay() const {
+            return replay_test_ != nullptr;
+        }
+    };
+private:
+
+    vector<TestDescriptor*>     tests_;
+    Configurator*               configurator_;
+
 public:
+
     TestTask(StringRef name):
         Task(name),
         replay_(false),
         size_(200),
         btree_branching_(0),
-        btree_random_branching_(true)
+        btree_random_branching_(true),
+        configurator_(nullptr)
     {
         own_folder = true;
 
@@ -106,33 +107,63 @@ public:
         Add("btree_random_branching", btree_random_branching_);
     }
 
-    virtual ~TestTask() throw ()            {}
 
-    virtual TestReplayParams* ReadTestStep(Configurator* cfg) const;
+    virtual ~TestTask() throw ();
+
+
+    virtual void Configure(Configurator* cfg)
+    {
+        configurator_ = cfg;
+    }
+
+    virtual void setUp(ostream&) {}
+    virtual void tearDown(ostream&) {}
+
+    virtual void addParameters() {}
+
+    virtual void addTests() {}
+
+
+
+    template <typename T>
+    using TaskMethodPtr = void (T::*) (std::ostream&);
+
+    template <typename T>
+    void addTest(StringRef name, TaskMethodPtr<T> run_test, TaskMethodPtr<T> replay_test = nullptr)
+    {
+        String tmp;
+
+        if (isStartsWith(name, "run")) {
+            tmp = name.substr(3);
+        }
+        else {
+            tmp = name;
+        }
+
+        tests_.push_back(new TypedTestDescriptor<T>(tmp, run_test, replay_test));
+    }
 
     virtual void            Replay(ostream& out, Configurator* cfg);
-    virtual void            Configure(TestReplayParams* params) const;
+    virtual void            Run(ostream& out);
 
 
-    virtual TestReplayParams* createTestStep(StringRef name) const                      = 0;
-    virtual void            Run(ostream& out)                                           = 0;
-    virtual void            Replay(ostream& out, TestReplayParams* step_params)         = 0;
-
-    virtual void setReplayMode() {
+    virtual void setReplayMode()
+    {
         replay_ = true;
     }
 
-    virtual bool isReplayMode() const {
+    virtual bool isReplayMode() const
+    {
         return replay_;
     }
 
-    virtual void Store(TestReplayParams* params) const
-    {
-        Configure(params);
-
-        String props_name = getPropertiesFileName();
-        StoreProperties(params, props_name);
-    }
+//    virtual void Store(TestReplayParams* params) const
+//    {
+//    //    Configure(params);
+//
+//        String props_name = getPropertiesFileName();
+//        StoreProperties(props_name);
+//    }
 
     virtual String getPropertiesFileName(StringRef infix = "") const
     {
@@ -148,6 +179,11 @@ public:
     }
 
     String getFileName(StringRef name) const;
+
+protected:
+
+    const TestDescriptor* findTestDescriptor(StringRef name) const;
+    virtual void storeAdditionalProperties(fstream& file) const;
 
 };
 
@@ -166,8 +202,8 @@ public:
 
 class MemoriaTestRunner: public MemoriaTaskRunner {
 public:
-    MemoriaTestRunner(): MemoriaTaskRunner()        {}
-    virtual ~MemoriaTestRunner() throw ()           {}
+    MemoriaTestRunner(): MemoriaTaskRunner("Tests")         {}
+    virtual ~MemoriaTestRunner() throw ()                   {}
 
     void Replay(ostream& out, StringRef replay_file);
 

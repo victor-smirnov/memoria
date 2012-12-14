@@ -31,10 +31,11 @@ using namespace memoria::vapi;
 
 class AbstractParamDescriptor {
 public:
-    virtual void Process(Configurator* cfg)     = 0;
-    virtual StringRef getName() const           = 0;
-    virtual String getPropertyName() const      = 0;
-    virtual void dump(std::ostream& os) const   = 0;
+    virtual void Process(Configurator* cfg)                             = 0;
+    virtual StringRef getName() const                                   = 0;
+    virtual String getPropertyName() const                              = 0;
+    virtual void dump(std::ostream& os, bool dump_prefix = true) const  = 0;
+    virtual bool isStateParameter() const                               = 0;
     
     virtual ~AbstractParamDescriptor() {}
 };
@@ -42,24 +43,40 @@ public:
 
 template <typename T> class ParamDescriptor;
 
-class Parametersset {
+class ParametersSet {
 
-    String          prefix_;
+    String          name_;
+    ParametersSet*  context_;
 
     vector<AbstractParamDescriptor*> descriptors_;
 
 public:
-    Parametersset(StringRef prefix): prefix_(prefix) {}
-    Parametersset(const Parametersset&) = delete;
+    ParametersSet(StringRef name): name_(name), context_(nullptr)  {}
+    ParametersSet(const ParametersSet&) = delete;
 
-    StringRef getPrefix() const
+    virtual String getFullName() const
     {
-        return prefix_;
+        if (context_)
+        {
+            return context_->getFullName()+"."+name_;
+        }
+        else {
+            return name_;
+        }
     }
 
-    void setPrefix(StringRef prefix)
+    virtual StringRef getName() const {
+        return name_;
+    }
+
+    const ParametersSet* getContext() const
     {
-        prefix_ = prefix;
+        return context_;
+    }
+
+    void setContext(ParametersSet* context)
+    {
+        this->context_ = context;
     }
 
     virtual AbstractParamDescriptor* put(AbstractParamDescriptor* descr);
@@ -82,7 +99,7 @@ public:
         return T2T_S<ParamDescriptor<T>*>(put(new ParamDescriptor<T>(this, name, property, min_value, max_value)));
     }
 
-    void dumpProperties(std::ostream& os) const;
+    virtual void dumpProperties(std::ostream& os, bool dump_prefix = true, bool dump_all = false) const;
 
     void Process(Configurator* cfg);
 };
@@ -93,9 +110,10 @@ class ParamDescriptor: public AbstractParamDescriptor {
 
     typedef ParamDescriptor<T>                      MyType;
 
-    Parametersset*      cfg_;
+    ParametersSet*      cfg_;
 
     String              name_;
+    String              description_;
 
     T&                  value_;
 
@@ -106,34 +124,39 @@ class ParamDescriptor: public AbstractParamDescriptor {
 
     bool                mandatory_;
 
+    bool                state_parameter_;
+
 public:
 
-    ParamDescriptor(Parametersset* cfg, String name, T& value):
+    ParamDescriptor(ParametersSet* cfg, String name, T& value):
         cfg_(cfg),
         name_(name),
         value_(value),
         ranges_specified_(false),
-        mandatory_(false)
+        mandatory_(false),
+        state_parameter_(false)
     {}
 
-    ParamDescriptor(Parametersset* cfg, String name, T& value, const T& max_value):
+    ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& max_value):
         cfg_(cfg),
         name_(name),
         value_(value),
         min_value_(numeric_limits<T>::min()),
         max_value_(max_value),
         ranges_specified_(true),
-        mandatory_(false)
+        mandatory_(false),
+        state_parameter_(false)
     {}
 
-    ParamDescriptor(Parametersset* cfg, String name, T& value, const T& min_value, const T& max_value):
+    ParamDescriptor(ParametersSet* cfg, String name, T& value, const T& min_value, const T& max_value):
         cfg_(cfg),
         name_(name),
         value_(value),
         min_value_(min_value),
         max_value_(max_value),
         ranges_specified_(true),
-        mandatory_(false)
+        mandatory_(false),
+        state_parameter_(false)
     {}
     
     virtual ~ParamDescriptor() {}
@@ -152,14 +175,31 @@ public:
         }
     }
 
+    MyType* setDescription(StringRef descr)
+    {
+        description_ = descr;
+        return this;
+    }
+
     virtual bool IsMandatory() const
     {
         return mandatory_;
     }
 
+    virtual bool isStateParameter() const
+    {
+        return state_parameter_;
+    }
+
     MyType* setMandatory(bool mandatory)
     {
         mandatory_ = mandatory;
+        return this;
+    }
+
+    MyType* state(bool state = true)
+    {
+        state_parameter_ = state;
         return this;
     }
 
@@ -179,40 +219,34 @@ public:
         }
     }
 
-    virtual void dump(std::ostream& os) const
+    virtual void dump(std::ostream& os, bool dump_prefix) const
     {
-        bool doc = ranges_specified_;
-
-        if (doc)
+        if (dump_prefix)
         {
-            os<<"#";
-        }
+            if (!isEmpty(description_))
+            {
+                os<<"#"<<description_<<endl;
+            }
 
-        //FIXME: print default value in property dump
-        //os<<"default: "<<AsString<T>::convert(default_value_)<<" ";
+            if (ranges_specified_)
+            {
+                os<<"#";
+                os<<"Range from: "<<min_value_<<" to "<<max_value_;
+                os<<endl;
+            }
 
-        if (ranges_specified_)
-        {
-            //FIXME: Is conversion to string is necessary here?
-            os<<"Range from: "<<AsString<T>::convert(min_value_)<<" to "<<AsString<T>::convert(max_value_);
-        }
+            os<<getPropertyName()<<" = "<<value_<<endl;
 
-        if (doc)
-        {
             os<<endl;
         }
-
-        os<<getPropertyName()<<"="<<AsString<T>::convert(value_)<<endl;
-
-        if (doc)
-        {
-            os<<endl;
+        else {
+            os<<getName()<<" = "<<value_<<endl;
         }
     }
 
-    StringRef prefix() const
+    String prefix() const
     {
-        return cfg_->getPrefix();
+        return cfg_->getFullName();
     }
 
 protected:

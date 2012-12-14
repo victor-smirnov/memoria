@@ -30,6 +30,7 @@ using namespace std;
 
 class PMapDataTest: public TestTask {
 
+    typedef PMapDataTest MyType;
 
     template <typename Key_, typename Value_, Int Blocks_ = 3>
     struct PMapTypes {
@@ -56,24 +57,15 @@ class PMapDataTest: public TestTask {
     typedef PackedTree<Types>               Map;
 
 
-    struct TestReplay: public TestReplayParams {
-        TestReplay(): TestReplayParams() {}
-    };
-
 
 public:
 
-    PMapDataTest(): TestTask("Data") {}
-
-    virtual ~PMapDataTest() throw() {}
-
-    virtual TestReplayParams* createTestStep(StringRef name) const
+    PMapDataTest(): TestTask("Data")
     {
-        return new TestReplay();
+        MEMORIA_ADD_TEST(runTest);
     }
 
-    virtual void Replay(ostream& out, TestReplayParams* step_params)
-    {}
+    virtual ~PMapDataTest() throw() {}
 
     void FillMap(Map* map)
     {
@@ -248,7 +240,7 @@ public:
     }
 
 
-    virtual void Run(ostream& out)
+    void runTest(ostream& out)
     {
         Int buffer_size     = 1024*16;
 

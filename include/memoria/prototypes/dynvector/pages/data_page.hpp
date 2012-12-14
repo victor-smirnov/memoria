@@ -36,7 +36,7 @@ public:
 
     typedef PageBuilder<ComponentList, Base0>                                   Base;
     
-    typedef DataBlock 															PageData;
+    typedef DataBlock                                                           PageData;
 
 
     typedef typename MergeLists <
@@ -94,7 +94,7 @@ public:
         return sizeof(MyType) + data_.data_size();
     }
 
-    Int getCapacity() {
+    Int getCapacity() const {
         return (Base::page_size() - sizeof(MyType)) / sizeof(typename PageData::ElementType) - data_.size();
     }
 
@@ -137,7 +137,7 @@ public:
 
         virtual void deserialize(const void* buf, Int buf_size, void* page) const
         {
-        	MyType* me = T2T<MyType*>(page);
+            MyType* me = T2T<MyType*>(page);
 
             DeserializationData data;
             data.buf = T2T<const char*>(buf);
@@ -152,11 +152,11 @@ public:
 
         virtual void resize(const void* page, void* buffer, Int new_size) const
         {
-        	const MyType* me = T2T<const MyType*>(page);
-        	MyType* tgt = T2T<MyType*>(buffer);
+            const MyType* me = T2T<const MyType*>(page);
+            MyType* tgt = T2T<MyType*>(buffer);
 
-        	tgt->copyFrom(me);
-        	me->data().copyTo(&tgt->data());
+            tgt->copyFrom(me);
+            me->data().copyTo(&tgt->data());
         }
 
         virtual void generateDataEvents(

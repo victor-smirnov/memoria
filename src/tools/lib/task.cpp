@@ -23,14 +23,7 @@ Task::~Task() throw () {
 
 void Task::Configure(Configurator* cfg)
 {
-    TaskParametersset* params = getParameters<>();
-
-    if (constext_name_ != "")
-    {
-        params->setPrefix(constext_name_ + "." + params->getPrefix());
-    }
-
-    params->Process(cfg);
+    this->Process(cfg);
 }
 
 
@@ -47,7 +40,7 @@ void Task::BuildResources()
 
     String out_file_name = output_folder_
                            + Platform::getFilePathSeparator()
-                           + (own_folder ? "" : getTaskName() + ".")
+                           + (own_folder ? "" : getName() + ".")
                            + "output.txt";
 
     out_ = new fstream();
@@ -79,7 +72,7 @@ Int Task::Run()
 
         String path = getTaskParametersFilePath();
 
-        StoreProperties(this, path);
+        StoreProperties(path);
 
         result = true;
     }
@@ -88,7 +81,7 @@ Int Task::Run()
 
         String path = getTaskParametersFilePath();
 
-        StoreProperties(this, path);
+        StoreProperties(path);
 
         result = true;
     }
@@ -98,7 +91,7 @@ Int Task::Run()
 
         String path = getTaskParametersFilePath();
 
-        StoreProperties(this, path);
+        StoreProperties(path);
 
         result = true;
     }
@@ -129,7 +122,7 @@ void TaskGroup::Run(ostream& out)
 
         if (t->own_folder)
         {
-            folder = output_folder_ + Platform::getFilePathSeparator() + t->getTaskName();
+            folder = output_folder_ + Platform::getFilePathSeparator() + t->getName();
         }
         else {
             folder = output_folder_;
@@ -140,11 +133,11 @@ void TaskGroup::Run(ostream& out)
 
         if (t->Run())
         {
-            failures_.push_back(FailureDescriptor(t->getIteration(), t->getTaskName()));
+            failures_.push_back(FailureDescriptor(t->getIteration(), t->getName()));
         }
     }
 
-    cout<<getTaskName();
+    cout<<getName();
 
     if (failures_.size() > 0)
     {
@@ -173,22 +166,21 @@ void TaskGroup::registerTask(Task* task)
 {
     for (auto t: tasks_)
     {
-        if (t->getTaskName() == task->getTaskName())
+        if (t->getName() == task->getName())
         {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Task "<<task->getTaskName()<<" is already registered");
+            throw Exception(MEMORIA_SOURCE, SBuf()<<"Task "<<task->getName()<<" is already registered");
         }
     }
+
+    task->setContext(this);
 
     tasks_.push_back(task);
 }
 
 void TaskGroup::Configure(Configurator* cfg)
 {
-    Task::Configure(cfg);
-
     for (auto t: tasks_)
     {
-        t->setContextName(this->getFullName());
         t->Configure(cfg);
     }
 }
@@ -201,6 +193,16 @@ void TaskGroup::BuildResources()
 void TaskGroup::releaseResources()
 {
     Task::releaseResources();
+}
+
+void TaskGroup::dumpProperties(std::ostream& os, bool dump_prefix, bool dump_all) const
+{
+    os<<"# ============== "<<this->getFullName()<<" ===================="<<endl<<endl;
+    for (auto t: tasks_)
+    {
+        t->dumpProperties(os, dump_prefix, dump_all);
+    }
+    os<<endl<<endl;
 }
 
 
@@ -239,7 +241,7 @@ Int GroupRunner::Run()
 
                 if (t->own_folder)
                 {
-                    folder = task_folder + Platform::getFilePathSeparator() + t->getTaskName();
+                    folder = task_folder + Platform::getFilePathSeparator() + t->getName();
                 }
                 else {
                     folder = task_folder;
@@ -252,7 +254,7 @@ Int GroupRunner::Run()
 
                 if (Int failures = t->Run())
                 {
-                    failures_.push_back(FailureDescriptor(t->getIteration(), t->getTaskName()));
+                    failures_.push_back(FailureDescriptor(t->getIteration(), t->getName()));
 
                     counter += failures;
                 }
@@ -304,6 +306,12 @@ Int GroupRunner::Run()
     return counter;
 }
 
-
+void GroupRunner::dumpProperties(std::ostream& os, bool dump_prefix, bool dump_all) const
+{
+    for (auto t: tasks_)
+    {
+        t->dumpProperties(os, dump_prefix, dump_all);
+    }
+}
 
 }

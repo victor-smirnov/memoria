@@ -11,7 +11,7 @@ namespace memoria {
 
 
 
-void Parametersset::Process(Configurator* cfg)
+void ParametersSet::Process(Configurator* cfg)
 {
     for (AbstractParamDescriptor* d: descriptors_)
     {
@@ -19,16 +19,19 @@ void Parametersset::Process(Configurator* cfg)
     }
 }
 
-void Parametersset::dumpProperties(std::ostream& os) const
+void ParametersSet::dumpProperties(std::ostream& os, bool dump_prefix, bool dump_all) const
 {
     for (AbstractParamDescriptor* d: descriptors_)
     {
-        d->dump(os);
+        if (dump_all || !d->isStateParameter())
+        {
+            d->dump(os, dump_prefix);
+        }
     }
 }
 
 
-AbstractParamDescriptor* Parametersset::put(AbstractParamDescriptor* descr)
+AbstractParamDescriptor* ParametersSet::put(AbstractParamDescriptor* descr)
 {
     for (UInt c = 0; c < descriptors_.size(); c++)
     {

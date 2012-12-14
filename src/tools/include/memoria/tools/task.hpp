@@ -22,7 +22,7 @@ namespace memoria {
 using namespace std;
 
 
-class TaskParametersset: public Parametersset {
+class TaskParametersSet: public ParametersSet {
 public:
     bool    enabled;
     Int     check_step;
@@ -30,17 +30,17 @@ public:
     bool    own_folder;
 public:
 
-    TaskParametersset(StringRef name):
-        Parametersset(name),
+    TaskParametersSet(StringRef name):
+        ParametersSet(name),
         enabled(true),
         check_step(1),
         memory_limit(LLONG_MAX),
         own_folder(false)
     {
         Add("enabled", enabled);
-        Add("check_step", check_step);
+        Add("check_step", check_step)->state();
         Add("memory_limit", memory_limit);
-        Add("own_folder", own_folder);
+        Add("own_folder", own_folder)->state();
     }
 
     bool IsEnabled() const
@@ -60,13 +60,13 @@ public:
 };
 
 
-struct ExampleTaskParams: public TaskParametersset {
+struct ExampleTaskParams: public TaskParametersSet {
 
     Int     size_;
     Int     btree_branching_;
     bool    btree_random_airity_;
 
-    ExampleTaskParams(StringRef name): TaskParametersset(name), size_(1024), btree_branching_(0), btree_random_airity_(true)
+    ExampleTaskParams(StringRef name): TaskParametersSet(name), size_(1024), btree_branching_(0), btree_random_airity_(true)
     {
         Add("size", size_);
         Add("btree_branching", btree_branching_);
@@ -76,23 +76,19 @@ struct ExampleTaskParams: public TaskParametersset {
 
 
 
-class Task: public TaskParametersset {
+class Task: public TaskParametersSet {
 protected:
-    String              constext_name_;
     Int                 iteration_;
     BigInt              duration_;
     String              output_folder_;
-
-    String              task_name_;
 
     fstream*            out_;
 
 public:
     Task(StringRef name):
-        TaskParametersset(name),
+        TaskParametersSet(name),
         iteration_(0),
         duration_(0),
-        task_name_(name),
         out_(NULL)
     {}
 
@@ -147,26 +143,6 @@ public:
         return file.isExists();
     }
 
-    template <typename T = TaskParametersset>
-    T* getParameters() {
-        return static_cast<T*>(this);
-    }
-
-    template <typename T = TaskParametersset>
-    const T* getParameters() const {
-        return static_cast<const T*>(this);
-    }
-
-    virtual String getTaskName() const
-    {
-        return task_name_;
-    }
-
-    virtual String getFullName() const
-    {
-        return getPrefix();
-    }
-
     virtual void BuildResources();
     virtual void releaseResources();
 
@@ -187,31 +163,31 @@ public:
 
     virtual void Configure(Configurator* cfg);
 
-    virtual void setContextName(StringRef name) {
-        constext_name_ = name;
-    }
-
     virtual String getTaskPropertiesFileName() const {
-        return getTaskName()+".properties";
+        return getName()+".properties";
     }
 
     virtual String getTaskParametersFilePath() {
         return getOutputFolder() + Platform::getFilePathSeparator() + getTaskPropertiesFileName();
     }
 
-    static void StoreProperties(const Parametersset* params, StringRef file_name)
+    virtual void storeAdditionalProperties(fstream& file) const {}
+
+    virtual void StoreProperties(StringRef file_name)
     {
         fstream file;
         file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
 
-        file<<"task="<<params->getPrefix()<<endl;
+        file<<"task = "<<this->getFullName()<<endl;
 
-        params->dumpProperties(file);
+        storeAdditionalProperties(file);
+
+        this->dumpProperties(file, false, true);
 
         file.close();
     }
 
-    static void LoadProperties(Parametersset* params, StringRef file_name)
+    virtual void LoadProperties(StringRef file_name)
     {
         fstream file;
         file.open(file_name.c_str(), fstream::in | fstream::trunc | fstream::trunc);
@@ -219,7 +195,7 @@ public:
         Configurator cfg;
         Configurator::Parse(file_name.c_str(), &cfg);
 
-        params->Process(&cfg);
+        this->Process(&cfg);
 
         file.close();
     }
@@ -258,12 +234,15 @@ public:
     virtual void Run(ostream& out);
 
     virtual void registerTask(Task* task);
-    virtual void Configure(Configurator* cfg);
 
     virtual void BuildResources();
     virtual void releaseResources();
 
     virtual void OnFailure(Task* task) {}
+
+    virtual void Configure(Configurator* cfg);
+
+    virtual void dumpProperties(std::ostream& os, bool dump_prefix = true, bool dump_all = false) const;
 
     virtual Int Run()
     {
@@ -332,24 +311,23 @@ public:
 
     Int getRunCount() const
     {
-        return getParameters<GroupRunner>()->run_count;
+        return run_count;
     }
 
     void setRunCount(Int count)
     {
-        getParameters<GroupRunner>()->run_count = count;
+        run_count = count;
     }
 
-
-    virtual void dumpProperties(ostream& out) {}
-
     virtual Int Run();
+
+    virtual void dumpProperties(std::ostream& os, bool dump_prefix = true, bool dump_all = false) const;
 };
 
 
 class MemoriaTaskRunner: public GroupRunner {
 public:
-    MemoriaTaskRunner(): GroupRunner("")            {}
+    MemoriaTaskRunner(StringRef name = ""): GroupRunner(name) {}
     virtual ~MemoriaTaskRunner() throw ()           {}
 };
 

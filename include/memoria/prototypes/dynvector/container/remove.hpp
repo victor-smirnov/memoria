@@ -246,7 +246,7 @@ bool M_TYPE::mergeDataWithRightSibling(Iterator& iter)
 
         if (source_size <= target_data_item->getCapacity())
         {
-        	mergeDataPagesAndremoveSource(target_data_item, iter.path(), MergeType::RIGHT);
+            mergeDataPagesAndremoveSource(target_data_item, iter.path(), MergeType::RIGHT);
 
             return true;
         }

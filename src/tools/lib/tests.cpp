@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #include <memoria/tools/tests.hpp>
-
+#include <memoria/core/exceptions/exceptions.hpp>
 
 #include <algorithm>
 #include <fstream>
@@ -13,36 +13,82 @@
 
 namespace memoria {
 
+TestTask::~TestTask() throw ()
+{
+    for (TestDescriptor* descr: tests_)
+    {
+        delete(descr);
+    }
+}
+
+void TestTask::Run(std::ostream& out)
+{
+    for (TestDescriptor* descr: tests_)
+    {
+        Base::Configure(configurator_);
+
+        current_test_name_ = descr->name();
+
+        this->setUp(out);
+
+        try {
+
+            descr->run(this, out);
+
+            this->tearDown(out);
+        }
+        catch (...) {
+            this->tearDown(out);
+            throw;
+        }
+    }
+}
 
 void TestTask::Replay(ostream& out, Configurator* cfg)
 {
     setReplayMode();
-    unique_ptr<TestReplayParams> params(cfg != NULL ? ReadTestStep(cfg) : NULL);
-    Replay(out, params.get());
+
+    configurator_ = cfg;
+
+    String test_name = cfg->getValue<String>("test");
+    const TestDescriptor* descr = findTestDescriptor(test_name);
+
+    current_test_name_ = descr->name();
+
+    if (descr->hasReplay())
+    {
+        Base::Configure(configurator_);
+        descr->replay(this, out);
+    }
+    else {
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Replay method for test "<<test_name<<" is not specified");
+    }
 }
+
+void TestTask::storeAdditionalProperties(fstream& file) const
+{
+    file<<"test = "<<current_test_name_<<endl;
+}
+
+const TestTask::TestDescriptor* TestTask::findTestDescriptor(StringRef name) const
+{
+    for (const TestDescriptor* descr: tests_)
+    {
+        if (descr->name() == name)
+        {
+            return descr;
+        }
+    }
+
+    throw Exception(MEMORIA_SOURCE, SBuf()<<"Test "<<name<<" is not found");
+}
+
+
 
 String TestTask::getFileName(StringRef name) const
 {
     return name + ".properties";
 }
-
-TestReplayParams* TestTask::ReadTestStep(Configurator* cfg) const
-{
-    String name = cfg->getProperty("name");
-    TestReplayParams* params = createTestStep(name);
-    Configure(params);
-
-    params->Process(cfg);
-
-    return params;
-}
-
-void TestTask::Configure(TestReplayParams* params) const
-{
-    params->setTask(getFullName());
-    params->setReplay(true);
-}
-
 
 
 void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
@@ -80,7 +126,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
     {
         try {
             out<<"Task: "<<task->getFullName()<<endl;
-            task->LoadProperties(task, task_file_name);
+            task->LoadProperties(task_file_name);
             task->Replay(out, &cfg);
             out<<"PASSED"<<endl;
         }

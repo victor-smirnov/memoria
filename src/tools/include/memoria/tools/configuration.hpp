@@ -31,6 +31,7 @@ public:
         typedef std::set<String>                        PropertyListType;
 
         Configurator(Configurator *parent = NULL);
+
         virtual ~Configurator() throw ();
 
         virtual Configurator* getParent() const;
@@ -51,7 +52,7 @@ public:
         static Configurator* BuildChain(const char** envp, bool read_config_files = true);
 
         template <typename T>
-        T getValue(StringRef name)
+        T getValue(StringRef name) const
         {
             if (this->IsPropertyDefined(name))
             {
@@ -63,7 +64,7 @@ public:
         }
 
         template <typename T>
-        T getValue(StringRef name, const T& default_value)
+        T getValue(StringRef name, const T& default_value) const
         {
             if (this->IsPropertyDefined(name))
             {

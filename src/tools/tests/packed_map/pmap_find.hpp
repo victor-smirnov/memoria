@@ -21,11 +21,9 @@ namespace memoria {
 using namespace std;
 
 
-
-
-
-
 class PMapFindTest: public TestTask {
+
+    typedef PMapFindTest MyType;
 
     template <typename Key_, typename Value_, Int Blocks_ = 3>
     struct PMapfindTypes {
@@ -40,11 +38,6 @@ class PMapFindTest: public TestTask {
     };
 
 
-    struct TestReplay: public TestReplayParams {
-        TestReplay(): TestReplayParams() {}
-    };
-
-
     typedef PMapfindTypes<Int, Int, 1>      Types;
 
     typedef typename Types::Accumulator     Accumulator;
@@ -55,19 +48,18 @@ class PMapFindTest: public TestTask {
 
     typedef PackedSumTree<Types>            Map;
 
+    Int buffer_size     = 1024*16;
+
 public:
 
-    PMapFindTest(): TestTask("find") {}
-
-    virtual ~PMapFindTest() throw() {}
-
-    virtual TestReplayParams* createTestStep(StringRef name) const
+    PMapFindTest(): TestTask("Find")
     {
-        return new TestReplay();
+        MEMORIA_ADD_TEST_PARAM(buffer_size);
+
+        MEMORIA_ADD_TEST(runTest);
     }
 
-    virtual void Replay(ostream& out, TestReplayParams* step_params)
-    {}
+    virtual ~PMapFindTest() throw() {}
 
     void FillPMap(Map* map, Int size)
     {
@@ -84,10 +76,8 @@ public:
     }
 
 
-    virtual void Run(ostream& out)
+    void runTest(ostream& out)
     {
-        Int buffer_size     = 1024*16;
-
         unique_ptr<Byte[]>  buffer_ptr(new Byte[buffer_size]);
         Byte* buffer        = buffer_ptr.get();
 

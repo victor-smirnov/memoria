@@ -23,6 +23,8 @@ using namespace std;
 template <bool TheSameMapTypes>
 class PMapTransferTest: public TestTask {
 
+    typedef PMapTransferTest<TheSameMapTypes> MyType;
+
     template <typename Key_, typename Value_, Int Blocks_ = 8>
     struct PMapTypes {
         typedef Key_                        Key;
@@ -33,22 +35,6 @@ class PMapTransferTest: public TestTask {
         static const Int BranchingFactor    = 16;
 
         typedef Accumulators<Key, Blocks>   Accumulator;
-    };
-
-    struct TestReplay: public TestReplayParams {
-        Int offset1;
-        Int max1;
-        Int offset2;
-        Int max2;
-        Int size;
-        TestReplay(): TestReplayParams()
-        {
-            Add("offset1", offset1);
-            Add("max1", max1);
-            Add("offset2", offset2);
-            Add("max2", max2);
-            Add("size", size);
-        }
     };
 
     typedef PMapTypes<Int, Int>             Types1;
@@ -81,26 +67,22 @@ class PMapTransferTest: public TestTask {
     Int max2;
     Int size;
 
-
 public:
 
-    PMapTransferTest(StringRef name = "Transfer"): TestTask(name), offset1(0), max1(0), offset2(0), max2(0), size(0)
+    PMapTransferTest(StringRef name = "Transfer"): TestTask(name)
     {
-        Add("offset1", offset1);
-        Add("max1", max1);
-        Add("offset2", offset2);
-        Add("max2", max2);
-        Add("size", size);
+        MEMORIA_ADD_TEST_PARAM(offset1)->state();
+        MEMORIA_ADD_TEST_PARAM(max1)->state();
+        MEMORIA_ADD_TEST_PARAM(offset2)->state();
+        MEMORIA_ADD_TEST_PARAM(max2)->state();
+        MEMORIA_ADD_TEST_PARAM(size)->state();
+
+        MEMORIA_ADD_TEST_WITH_REPLAY(runTest, runReplay);
     }
 
     virtual ~PMapTransferTest() throw() {}
 
-    virtual TestReplayParams* createTestStep(StringRef name) const
-    {
-        return new TestReplay();
-    }
-
-    virtual void Replay(ostream& out, TestReplayParams* step_params)
+    void runReplay(ostream& out)
     {
         out<<offset1<<" "<<max1<<" "<<offset2<<" "<<max2<<" "<<size<<endl;
         test(out, offset1, max1, offset2, max2, size);
@@ -191,7 +173,7 @@ public:
         }
     }
 
-    virtual void Run(ostream& out)
+    void runTest(ostream& out)
     {
         for (int c = 0; c < 10000; c++)
         {

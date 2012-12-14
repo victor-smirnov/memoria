@@ -31,8 +31,8 @@ struct IData {
 
     virtual ~IData() throw () {}
 
-    virtual SizeT getSize() const                                       = 0;
-    virtual void setSize(SizeT size)                                    = 0;
+    virtual SizeT getSize() const                                   = 0;
+    virtual void setSize(SizeT size)                                = 0;
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)   = 0;
     virtual SizeT get(T* buffer, SizeT start, SizeT length) const   = 0;
 };
@@ -112,7 +112,7 @@ public:
     {}
 
     ArrayData(SizeT length, void* data, bool owner = false):length_(length), data_(T2T<T*>(data)), owner_(owner) {}
-    ArrayData(SizeT length):length_(length), data_(T2T<T*>(::malloc(length))), owner_(true) {}
+    ArrayData(SizeT length):length_(length), data_(T2T<T*>(::malloc(length*sizeof(T)))), owner_(true) {}
 
     ArrayData(ArrayData<T>&& other):length_(other.length_), data_(other.data_), owner_(other.owner_)
     {

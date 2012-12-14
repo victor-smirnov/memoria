@@ -10,7 +10,8 @@
 #include "../shared/params.hpp"
 #include "../tests_inc.hpp"
 
-#include "map_test.hpp"
+#include "map_create_test.hpp"
+#include "map_remove_test.hpp"
 
 #include <vector>
 
@@ -23,9 +24,10 @@ class MapTestSuite: public TestSuite {
 
 public:
 
-    MapTestSuite(): TestSuite("MapTestSuite")
+    MapTestSuite(): TestSuite("MapSuite")
     {
-        registerTask(new MapTest());
+        registerTask(new MapCreateTest());
+        registerTask(new MapRemoveTest());
     }
 
 };

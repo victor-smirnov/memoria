@@ -18,41 +18,64 @@ namespace memoria {
 
 template <
     typename ContainerTypeName,
-    typename ArrayData,
-    typename ReplayParamType
+    typename ArrayData
 >
 class BTreeBatchTestBase: public SPTestTask {
 
-    typedef BTreeBatchTestBase<ContainerTypeName, ArrayData, ReplayParamType>           MyType;
-    typedef MyType                                                                      ParamType;
+    typedef BTreeBatchTestBase<ContainerTypeName, ArrayData>                            MyType;
 
 protected:
-    typedef typename SmallCtrTypeFactory::Factory<ContainerTypeName>::Type  Ctr;
+    typedef typename SmallCtrTypeFactory::Factory<ContainerTypeName>::Type              Ctr;
     typedef typename Ctr::Iterator                                                      Iterator;
     typedef typename Ctr::Accumulator                                                   Accumulator;
     typedef typename Ctr::ID                                                            ID;
 
-    Int max_block_size_;
+    Int max_block_size_     = 1024*40;
 
-    Int cnt_;
+    Int page_size_cnt_      = 0;
 
-    Int page_size_cnt_;
+    Int ctr_name_;
+
+    String dump_name_;
+
+    Int     data_;
+    bool    insert_;
+    Int     block_size_;
+    Int     page_step_;
+    BigInt  pos_;
+    Int     cnt_                = 0;
+    Int     step_               = 0;
+
 
 public:
 
     BTreeBatchTestBase(StringRef name):
-        SPTestTask(name),
-        max_block_size_(1024*40),
-        page_size_cnt_(0)
+        SPTestTask(name)
     {
         size_ = 1024*1024*16;
-        Add("max_block_size", max_block_size_);
-        cnt_ = 0;
+
+        MEMORIA_ADD_TEST_PARAM(max_block_size_);
+        MEMORIA_ADD_TEST_PARAM(cnt_);
+        MEMORIA_ADD_TEST_PARAM(page_size_cnt_);
+
+        MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
+
+        MEMORIA_ADD_TEST_PARAM(data_)->state();
+        MEMORIA_ADD_TEST_PARAM(insert_)->state();
+        MEMORIA_ADD_TEST_PARAM(block_size_)->state();
+
+        MEMORIA_ADD_TEST_PARAM(page_step_)->state();
+        MEMORIA_ADD_TEST_PARAM(pos_)->state();
+        MEMORIA_ADD_TEST_PARAM(cnt_)->state();
+        MEMORIA_ADD_TEST_PARAM(step_)->state();
+
+        MEMORIA_ADD_TEST_WITH_REPLAY(runTest, runReplay);
     }
 
     virtual ~BTreeBatchTestBase() throw() {}
 
-    virtual ArrayData createBuffer(Ctr& array, Int size, UByte value)   = 0;
+    virtual ArrayData createBuffer(Ctr& array, Int size, BigInt value)  = 0;
     virtual Iterator seek(Ctr& array, BigInt pos)                       = 0;
     virtual void insert(Iterator& iter, const ArrayData& data)          = 0;
     virtual void read(Iterator& iter, ArrayData& data)                  = 0;
@@ -62,33 +85,21 @@ public:
     virtual BigInt getLocalPosition(Iterator& iter)                     = 0;
     virtual BigInt getSize(Ctr& array)                                  = 0;
 
-    virtual Int getElementSize(Ctr& array) {
-        return 1;
-    }
-
-    virtual void setElementSize(Ctr& array, ParamType* task_params) {}
-
-    virtual ReplayParamType* createTestStep(StringRef name) const
+    void runReplay(ostream& out)
     {
-        return new ReplayParamType();
-    }
-
-    virtual void Replay(ostream& out, TestReplayParams* step_params)
-    {
-        ReplayParamType* params = static_cast<ReplayParamType*>(step_params);
         Allocator allocator;
-        LoadAllocator(allocator, params);
+        LoadAllocator(allocator, dump_name_);
 
         check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-        Ctr dv(&allocator, params->ctr_name_);
+        Ctr dv(&allocator, ctr_name_);
 
-        if (params->insert_)
+        if (insert_)
         {
-            Build(out, allocator, dv, params);
+            Build(out, allocator, dv);
         }
         else {
-            remove(out, allocator, dv, params);
+            remove(out, allocator, dv);
         }
     }
 
@@ -99,35 +110,28 @@ public:
         return getBIRandom(size);
     }
 
-    virtual void Run(ostream& out)
+    virtual void setUp(ostream& out)
     {
-        ReplayParamType params;
-        ParamType* task_params = getParameters<ParamType>();
-
-        if (task_params->btree_random_branching_)
+        if (btree_random_branching_)
         {
-            task_params->btree_branching_ = 8 + getRandom(100);
-            out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
+            btree_branching_ = 8 + getRandom(100);
+            out<<"BTree Branching: "<<btree_branching_<<endl;
         }
+    }
 
-        out<<"Max Block Size: "<<task_params->max_block_size_<<endl;
-
-        params.size_                = task_params->size_;
-
+    void runTest(ostream& out)
+    {
         for (Int step = 0; step < 2; step++)
         {
-            params.step_ = step;
-            Run(out, params, task_params, false, task_params->btree_branching_);
+            step_ = step;
+            Run(out, false);
         }
 
         // Run() will use different step for each ByteArray update operation
-        Run(out, params, task_params, true, task_params->btree_branching_);
+        Run(out, true);
     }
 
-
-
-
-    virtual void Run(ostream& out, ReplayParamType& params, ParamType* task_params, bool step, Int branching)
+    virtual void Run(ostream& out, bool step)
     {
         DefaultLogHandlerImpl logHandler(out);
 
@@ -136,77 +140,66 @@ public:
 
         Ctr dv(&allocator);
 
-        //dv.setNewPageSize(8192);
-
-        setElementSize(dv, task_params);
-
-        params.ctr_name_ = dv.name();
+        ctr_name_ = dv.name();
 
         allocator.commit();
 
-        dv.setBranchingFactor(branching);
+        dv.setBranchingFactor(btree_branching_);
 
         try {
             out<<"insert data"<<endl;
-            params.insert_ = true;
+            insert_ = true;
+            data_ = 1;
 
-            params.data_ = 1;
-            while (getSize(dv) < params.size_)
+            while (getSize(dv) < size_)
             {
                 if (step)
                 {
-                    params.step_        = getRandom(3);
+                    step_        = getRandom(3);
                 }
 
                 if (page_size_cnt_ % 1 == 0)
                 {
-                	dv.setNewPageSize(4096 + getRandom(10)*1024);
+                    dv.setNewPageSize(4096 + getRandom(10)*1024);
                 }
 
-                params.block_size_  = 1 + getRandom(task_params->max_block_size_);
+                block_size_  = 1 + getRandom(max_block_size_);
 
-                Build(out, allocator, dv, &params);
+                Build(out, allocator, dv);
 
                 allocator.commit();
 
-                params.data_++;
+                data_++;
 
-                params.pos_         = -1;
-                params.page_step_   = -1;
+                pos_         = -1;
+                page_step_   = -1;
 
                 page_size_cnt_++;
             }
 
-            StoreAllocator(allocator, "vector.dump");
-
             out<<"remove data. Sumset contains "<<(getSize(dv)/1024)<<"K keys"<<endl;
-            params.insert_ = false;
+            insert_ = false;
 
             for (Int c = 0; ; c++)
             {
                 if (step)
                 {
-                    params.step_ = getRandom(3);
+                    step_ = getRandom(3);
                 }
 
-//                if (page_size_cnt_ % 1 == 0)
-//                {
-//                	dv.setNewPageSize(4096 + getRandom(10)*1024);
-//                }
-
                 BigInt size = getSize(dv);
-                BigInt max_size = task_params->max_block_size_ <= size ? task_params->max_block_size_ : size;
+                BigInt max_size = max_block_size_ <= size ? max_block_size_ : size;
 
-                params.block_size_  = 1 + getBIRandom(max_size);
-                params.page_step_   = getRandom(3);
+                block_size_  = 1 + getBIRandom(max_size);
+                page_step_   = getRandom(3);
 
-                if (!remove(out, allocator, dv, &params))
+                if (!remove(out, allocator, dv))
                 {
                     break;
                 }
 
-                params.pos_         = -1;
-                params.page_step_   = -1;
+                pos_         = -1;
+                page_step_   = -1;
 
                 allocator.commit();
 
@@ -219,21 +212,18 @@ public:
         }
         catch (...)
         {
-            Store(allocator, &params);
+            dump_name_ = Store(allocator);
             throw;
         }
     }
 
 
 
-    void Build(ostream& out, Allocator& allocator, Ctr& array, ReplayParamType *params)
+    void Build(ostream& out, Allocator& allocator, Ctr& array)
     {
-        UByte value = params->data_;
-        Int step    = params->step_;
+        UByte value = data_;
 
-
-
-        ArrayData data = createBuffer(array, params->block_size_, value);
+        ArrayData data = createBuffer(array, block_size_, value);
 
         BigInt size = getSize(array);
 
@@ -252,9 +242,7 @@ public:
             checkBufferWritten(iter1, data, "Failed to read and compare buffer from array", MEMORIA_SOURCE);
         }
         else {
-
-
-            if (step == 0)
+            if (step_ == 0)
             {
                 //insert at the start of the array
                 auto iter = seek(array, 0);
@@ -277,7 +265,7 @@ public:
 
                 check(allocator, "insertion at the start of the array failed. See the dump for details.",   MEMORIA_SOURCE);
 
-                skip(iter, -data.size()/getElementSize(array));
+                skip(iter, -data.size());
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
                 checkBufferWritten(iter, data, "Failed to read and compare buffer from array",              MEMORIA_SOURCE);
@@ -286,7 +274,7 @@ public:
                 checkBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array",   MEMORIA_SOURCE);
                 checkIterator(out, iter, MEMORIA_SOURCE);
             }
-            else if (step == 1)
+            else if (step_ == 1)
             {
                 //insert at the end of the array
                 BigInt len = getSize(array);
@@ -308,7 +296,7 @@ public:
 
                 check(allocator, "insertion at the end of the array failed. See the dump for details.", MEMORIA_SOURCE);
 
-                skip(iter, -data.size()/getElementSize(array) - len);
+                skip(iter, -data.size() - len);
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
                 checkBufferWritten(iter, prefix, "Failed to read and compare buffer prefix from array", MEMORIA_SOURCE);
@@ -320,16 +308,16 @@ public:
             else {
                 //insert in the middle of the array
 
-                if (params->pos_ == -1) params->pos_ = getRandomPosition(array);
+                if (pos_ == -1) pos_ = getRandomPosition(array);
 
-                Int pos = params->pos_;
+                Int pos = pos_;
 
                 auto iter = seek(array, pos);
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
-                if (params->page_step_ == -1) params->page_step_ = getRandom(2);
+                if (page_step_ == -1) page_step_ = getRandom(2);
 
-                if (params->page_step_ == 0)
+                if (page_step_ == 0)
                 {
                     skip(iter, -getLocalPosition(iter));
                     checkIterator(out, iter, MEMORIA_SOURCE);
@@ -362,7 +350,7 @@ public:
 
                 check(allocator, "insertion at the middle of the array failed. See the dump for details.",  MEMORIA_SOURCE);
 
-                skip(iter, - data.size()/getElementSize(array) - prefix_len);
+                skip(iter, - data.size() - prefix_len);
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
                 checkBufferWritten(iter, prefix,    "Failed to read and compare buffer prefix from array",  MEMORIA_SOURCE);
@@ -377,11 +365,9 @@ public:
         }
     }
 
-    bool remove(ostream& out, Allocator& allocator, Ctr& array, ReplayParamType* params)
+    bool remove(ostream& out, Allocator& allocator, Ctr& array)
     {
-        Int step = params->step_;
-
-        params->cnt_++;
+        cnt_++;
 
         if (getSize(array) < 200)
         {
@@ -395,9 +381,9 @@ public:
             return getSize(array) > 0;
         }
         else {
-            BigInt size = params->block_size_;
+            BigInt size = block_size_;
 
-            if (step == 0)
+            if (step_ == 0)
             {
                 //remove at the start of the array
                 auto iter = seek(array, 0);
@@ -406,7 +392,7 @@ public:
                 BigInt len = getSize(array) - size;
                 if (len > 100) len = 100;
 
-                ArrayData postfix(len * getElementSize(array));
+                ArrayData postfix(len);
                 skip(iter, size);
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
@@ -424,7 +410,7 @@ public:
                 checkBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array",       MEMORIA_SOURCE);
                 checkIterator(out, iter, MEMORIA_SOURCE);
             }
-            else if (step == 1)
+            else if (step_ == 1)
             {
                 //remove at the end of the array
                 auto iter = seek(array, getSize(array) - size);
@@ -433,7 +419,7 @@ public:
                 BigInt len = getPosition(iter);
                 if (len > 100) len = 100;
 
-                ArrayData prefix(len * getElementSize(array));
+                ArrayData prefix(len);
                 skip(iter, -len);
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
@@ -453,15 +439,15 @@ public:
             }
             else {
                 //remove at the middle of the array
-                if (params->pos_ == -1) params->pos_ = getRandomPosition(array);
+                if (pos_ == -1) pos_ = getRandomPosition(array);
 
-                Int pos = params->pos_;
+                Int pos = pos_;
 
                 auto iter = seek(array, pos);
 
-                if (params->page_step_ == -1) params->page_step_ = getRandom(2);
+                if (page_step_ == -1) page_step_ = getRandom(2);
 
-                if (params->page_step_ == 0)
+                if (page_step_ == 0)
                 {
                     skip(iter, -getLocalPosition(iter));
                     checkIterator(out, iter, MEMORIA_SOURCE);
@@ -480,8 +466,8 @@ public:
                 BigInt postfix_len = getSize(array) - (pos + size);
                 if (postfix_len > 100) postfix_len = 100;
 
-                ArrayData prefix(prefix_len * getElementSize(array));
-                ArrayData postfix(postfix_len * getElementSize(array));
+                ArrayData prefix(prefix_len);
+                ArrayData postfix(postfix_len);
 
                 skip(iter, -prefix_len);
                 checkIterator(out, iter, MEMORIA_SOURCE);

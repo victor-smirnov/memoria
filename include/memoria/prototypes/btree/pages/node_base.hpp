@@ -43,9 +43,9 @@ public:
 
 //    typedef Allocator_                        Allocator;
 
-    typedef Base_          						Base;
-    typedef TreePage<Base>               		Me;
-    typedef typename Base::ID                 	ID;
+    typedef Base_                               Base;
+    typedef TreePage<Base>                      Me;
+    typedef typename Base::ID                   ID;
 
 
     typedef typename MergeLists<

@@ -197,15 +197,39 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 }
 
 
-template <typename BAIterator>
-bool CompareBuffer(BAIterator& iter, ArrayData<UByte>& data, Int& c)
+//template <typename BAIterator, typename T>
+//bool CompareBuffer(BAIterator& iter, const IData<T>& data, Int& c)
+//{
+//    ArrayData<T> buf(data.getSize());
+//
+//    iter.read(buf);
+//
+//    for (c = 0; c < data.getSize(); c++)
+//    {
+//      T buf0, buf1;
+//
+//      buf.get(&buf0, c, 1);
+//      data.get(&buf1, c, 1);
+//
+//        if (buf0 != buf1)
+//        {
+//            return false;
+//        }
+//    }
+//
+//    return true;
+//}
+
+
+template <typename BAIterator, typename T>
+bool CompareBuffer(BAIterator& iter, const ArrayData<T>& data, Int& c)
 {
-    ArrayData<UByte> buf(data.size());
+    ArrayData<T> buf(data.size());
 
     iter.read(buf);
 
-    const UByte* buf0 = buf.data();
-    const UByte* buf1 = data.data();
+    const T* buf0 = buf.data();
+    const T* buf1 = data.data();
 
     for (c = 0; c < data.size(); c++)
     {
@@ -218,8 +242,9 @@ bool CompareBuffer(BAIterator& iter, ArrayData<UByte>& data, Int& c)
     return true;
 }
 
-template <typename BAIterator >
-void checkBufferWritten(BAIterator& iter, ArrayData<UByte>& data, const char* err_msg, const char* source)
+
+template <typename BAIterator, typename T>
+void checkBufferWritten(BAIterator& iter, const ArrayData<T>& data, const char* err_msg, const char* source)
 {
     Int pos = 0;
     if (!CompareBuffer(iter, data, pos))

@@ -23,7 +23,7 @@ class CtrTestSuite: public TestSuite {
 
 public:
 
-    CtrTestSuite(): TestSuite("CtrTestSuite")
+    CtrTestSuite(): TestSuite("CtrSuite")
     {
         registerTask(new CreateCtrTest());
     }

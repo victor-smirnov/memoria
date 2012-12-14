@@ -91,7 +91,7 @@ void GnuplotGraph::Run(ostream& out)
 {
     BenchmarkTaskGroup::Run(out);
 
-    BuildGnuplotScript(getOutputFolder() + Platform::getFilePathSeparator() + getTaskName()+".plot");
+    BuildGnuplotScript(getOutputFolder() + Platform::getFilePathSeparator() + getName()+".plot");
 }
 
 void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
@@ -131,7 +131,7 @@ void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 
     out_file<<"reset"<<endl;
     out_file<<"set terminal png size "<<this->resolution<<" large"<<endl;
-    out_file<<"set output '"+this->getTaskName()+".png'"<<endl;
+    out_file<<"set output '"+this->getName()+".png'"<<endl;
     out_file<<"set title \""+this->title+"\""<<endl;
     out_file<<"set xlabel \""+this->xtitle+"\""<<endl;
     out_file<<"set ylabel \""+this->ytitle+"\""<<endl;

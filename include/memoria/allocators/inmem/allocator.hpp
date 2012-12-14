@@ -426,14 +426,14 @@ public:
 
     virtual void resizePage(Shared* shared, Int new_size)
     {
-    	Page* page 		= shared->get();
-    	Page* new_page 	= T2T<Page*>(malloc(new_size));
+        Page* page      = shared->get();
+        Page* new_page  = T2T<Page*>(malloc(new_size));
 
-    	PageMetadata* pageMetadata = metadata_->getPageMetadata(page->model_hash(), page->page_type_hash());
-    	pageMetadata->getPageOperations()->resize(page, new_page, new_size);
+        PageMetadata* pageMetadata = metadata_->getPageMetadata(page->model_hash(), page->page_type_hash());
+        pageMetadata->getPageOperations()->resize(page, new_page, new_size);
 
-    	shared->set_page(new_page);
-    	::free(page);
+        shared->set_page(new_page);
+        ::free(page);
     }
 
     virtual PageG getRoot(BigInt name, Int flags)

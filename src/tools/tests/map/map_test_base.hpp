@@ -3,8 +3,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_MAP_MAP_TEST_HPP_
-#define MEMORIA_TESTS_MAP_MAP_TEST_HPP_
+#ifndef MEMORIA_TESTS_MAP_MAP_TEST_BASE_HPP_
+#define MEMORIA_TESTS_MAP_MAP_TEST_BASE_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -19,17 +19,13 @@
 
 namespace memoria {
 
-class MapTest: public SPTestTask {
+class MapTestBase: public SPTestTask {
+    typedef MapTestBase MyType;
 
-    struct MapReplay: public BTreeReplayParams {
-        MapReplay(): BTreeReplayParams(){}
-    };
-
-
-    public:
+public:
     typedef KVPair<BigInt, BigInt> Pair;
 
-    private:
+protected:
     typedef vector<Pair> PairVector;
     typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                 MapCtrType;
     typedef typename MapCtrType::Iterator                               Iterator;
@@ -39,16 +35,32 @@ class MapTest: public SPTestTask {
     PairVector pairs;
     PairVector pairs_sorted;
 
+    Int vector_idx_;
+    Int step_;
+
+    BigInt ctr_name_;
+    String dump_name_;
+    String pairs_data_file_;
+    String pairs_sorted_data_file_;
+
+    bool throw_ex_ = false;
+
     public:
 
-    MapTest() :
-        SPTestTask("Map")
+    MapTestBase(StringRef name): SPTestTask(name)
     {
-        //SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
-        SmallCtrTypeFactory::Factory<Map1Ctr>::Type::initMetadata();
+        MEMORIA_ADD_TEST_PARAM(throw_ex_);
+
+        MEMORIA_ADD_TEST_PARAM(vector_idx_)->state();
+        MEMORIA_ADD_TEST_PARAM(step_)->state();
+
+        MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(pairs_data_file_)->state();
+        MEMORIA_ADD_TEST_PARAM(pairs_sorted_data_file_)->state();
     }
 
-    virtual ~MapTest() throw () {
+    virtual ~MapTestBase() throw () {
     }
 
     void checkContainerData(MapCtrType& map, PairVector& pairs)
@@ -87,154 +99,21 @@ class MapTest: public SPTestTask {
         MEMORIA_TEST_THROW_IF_EXPR(idx != -1, idx, pairs_size);
     }
 
-
-
-    virtual TestReplayParams* createTestStep(StringRef name) const
+    void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted)
     {
-        return new MapReplay();
-    }
-
-    virtual void Replay(ostream& out, TestReplayParams* step_params)
-    {
-        MapReplay* params = static_cast<MapReplay*>(step_params);
-
-        LoadVector(pairs, params->pairs_data_file_);
-        LoadVector(pairs_sorted, params->pairs_sorted_data_file_);
-
-        Allocator allocator;
-        LoadAllocator(allocator, params);
-
-        check(allocator, MEMORIA_SOURCE);
-
-        DoTestStep(out, allocator, params);
-    }
-
-    virtual void Run(ostream& out)
-    {
-        DefaultLogHandlerImpl logHandler(out);
-
-        MapTest* task_params = this;
-
-        if (task_params->btree_random_branching_)
-        {
-            task_params->btree_branching_ = 8 + getRandom(100);
-            out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
-        }
-
-        Int SIZE = task_params->size_;
-
-        pairs.clear();
-        pairs_sorted.clear();
-
-        for (Int c = 0; c < SIZE; c++)
-        {
-            pairs.push_back(Pair(getUniqueBIRandom(pairs, 1000000), getBIRandom(100000)));
-        }
-
-        MapReplay params;
-
-        params.size_ = SIZE;
-
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
-
-        MapCtrType map(&allocator);
-
-        map.setNewPageSize(8192);
-
-        params.ctr_name_ = map.name();
-
-        map.setBranchingFactor(task_params->btree_branching_);
-
-        for (Int step = 0; step < 3; step++)
-        {
-            params.step_ = step;
-
-            for (Int c = 0; c < SIZE; c++)
-            {
-                PairVector pairs_sorted_tmp = pairs_sorted;
-
-                try {
-                    params.vector_idx_ = c;
-
-                    DoTestStep(out, allocator, &params);
-                }
-                catch (...)
-                {
-                    StorePairs(pairs, pairs_sorted_tmp, params);
-                    Store(allocator, &params);
-                    throw;
-                }
-            }
-        }
-    }
-
-    void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted, MapReplay& params)
-    {
-        String basic_name = "Data." + params.getName();
+        String basic_name = "Data." + getName();
 
         String pairs_name = basic_name + ".pairs.txt";
-        params.pairs_data_file_ = getResourcePath(pairs_name);
+        pairs_data_file_ = getResourcePath(pairs_name);
 
-        StoreVector(pairs, params.pairs_data_file_);
+        StoreVector(pairs, pairs_data_file_);
 
         String pairs_sorted_name = basic_name + ".pairs_sorted.txt";
-        params.pairs_sorted_data_file_ = getResourcePath(pairs_sorted_name);
+        pairs_sorted_data_file_ = getResourcePath(pairs_sorted_name);
 
-        StoreVector(pairs_sorted, params.pairs_sorted_data_file_);
+        StoreVector(pairs_sorted, pairs_sorted_data_file_);
     }
 
-    void DoTestStep(ostream& out, Allocator& allocator, const MapReplay* params)
-    {
-        MapCtrType map(&allocator, params->ctr_name_);
-
-        Int c = params->vector_idx_;
-
-        if (params->step_ == 0)
-        {
-            auto iter = map[pairs[c].key_];
-            iter.setData(pairs[c].value_);
-
-            checkIterator(out, iter, MEMORIA_SOURCE);
-
-            check(allocator, MEMORIA_SOURCE);
-
-            appendToSortedVector(pairs_sorted, pairs[c]);
-
-            checkContainerData(map, pairs_sorted);
-
-            allocator.commit();
-        }
-        else if (params->step_ == 1)
-        {
-            BigInt value = map[pairs[c].key_].getValue();
-
-            MEMORIA_TEST_THROW_IF(pairs[c].value_, !=, value);
-        }
-        else {
-            bool result = map.remove(pairs[c].key_);
-
-            MEMORIA_TEST_THROW_IF(result, !=, true);
-
-            check(allocator, MEMORIA_SOURCE);
-
-            BigInt size = params->size_ - c - 1;
-
-            MEMORIA_TEST_THROW_IF(size, !=, map.getSize());
-
-            for (UInt x = 0; x < pairs_sorted.size(); x++)
-            {
-                if (pairs_sorted[x].key_ == pairs[c].key_)
-                {
-                    pairs_sorted.erase(pairs_sorted.begin() + x);
-                }
-            }
-
-            checkContainerData(map, pairs_sorted);
-
-            allocator.commit();
-        }
-    }
 
     virtual void checkIterator(ostream& out, Iterator& iter, const char* source)
     {
@@ -297,6 +176,22 @@ class MapTest: public SPTestTask {
     }
 
 
+    virtual void setUp(ostream& out)
+    {
+        if (btree_random_branching_)
+        {
+            btree_branching_ = 8 + getRandom(100);
+            out<<"BTree Branching: "<<btree_branching_<<endl;
+        }
+
+        pairs.clear();
+        pairs_sorted.clear();
+
+        for (Int c = 0; c < size_; c++)
+        {
+            pairs.push_back(Pair(getUniqueBIRandom(pairs, 1000000), getBIRandom(100000)));
+        }
+    }
 };
 
 }

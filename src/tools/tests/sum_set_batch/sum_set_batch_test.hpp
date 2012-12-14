@@ -24,42 +24,14 @@ namespace memoria {
 
 typedef SmallCtrTypeFactory::Factory<Set1Ctr>::Type SumSet1Ctr;
 
-struct SumsetBatchReplay: public ReplayParams {
-
-    Int     data_;
-    bool    insert_;
-    Int     block_size_;
-
-    Int     page_step_;
-
-    BigInt  pos_;
-
-    Int     cnt_;
-
-    SumsetBatchReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
-    {
-        Add("data",         data_);
-        Add("insert",       insert_);
-        Add("block_size",   block_size_);
-        Add("page_step",    page_step_);
-        Add("pos",          pos_);
-        Add("cnt",          cnt_);
-    }
-};
-
-
-
-
 class SumsetBatchTest: public BTreeBatchTestBase<
     Set1Ctr,
-    typename SumSet1Ctr::LeafPairsVector,
-    SumsetBatchReplay
+    typename SumSet1Ctr::LeafPairsVector
 >
 {
     typedef BTreeBatchTestBase<
             Set1Ctr,
-            typename SumSet1Ctr::LeafPairsVector,
-            SumsetBatchReplay
+            typename SumSet1Ctr::LeafPairsVector
     >                                                               Base;
 
     typedef typename Base::Ctr                                      Ctr;
@@ -70,19 +42,19 @@ class SumsetBatchTest: public BTreeBatchTestBase<
 
 
 
+
 public:
     SumsetBatchTest():
         Base("SumsetBatch")
     {
         size_ = 1024*1024;
 
-        //SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
         Ctr::initMetadata();
     }
 
 
 
-    virtual ArrayData createBuffer(Ctr& ctr, Int size, UByte value)
+    virtual ArrayData createBuffer(Ctr& ctr, Int size, BigInt value)
     {
         ArrayData array(size);
 

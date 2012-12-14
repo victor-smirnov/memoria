@@ -18,71 +18,67 @@ namespace memoria {
 using namespace memoria::vapi;
 
 
-class VectorReplay: public ReplayParams {
-public:
-    Int     data_;
-    bool    insert_;
-    Int     block_size_;
+//class VectorReplay: public ReplayParams {
+//public:
+//
+//    Int     data_;
+//    bool    insert_;
+//    Int     block_size_;
+//
+//    Int     page_step_;
+//
+//    BigInt  pos_;
+//
+//    Int     cnt_;
+//
+//    BigInt  ctr_name_;
+//
+//public:
+//    VectorReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
+//    {
+//        Add("data",         data_);
+//        Add("insert",       insert_);
+//        Add("data_size",    block_size_);
+//        Add("page_step",    page_step_);
+//        Add("pos",          pos_);
+//        Add("cnt",          cnt_);
+//        Add("ctr_name",     ctr_name_);
+//    }
+//};
 
-    Int     page_step_;
 
-    BigInt  pos_;
-
-    Int     cnt_;
-
-    BigInt  ctr_name_;
-
-public:
-    VectorReplay(): ReplayParams(), data_(0), insert_(true), block_size_(0), page_step_(-1), pos_(-1), cnt_(0)
-    {
-        Add("data",         data_);
-        Add("insert",       insert_);
-        Add("data_size",    block_size_);
-        Add("page_step",    page_step_);
-        Add("pos",          pos_);
-        Add("cnt",          cnt_);
-        Add("ctr_name",     ctr_name_);
-    }
-};
-
-
-
+template <typename T>
 class VectorTest: public BTreeBatchTestBase<
-    VectorCtr<UByte>,
-    ArrayData<UByte>,
-    VectorReplay
+    VectorCtr<T>,
+    ArrayData<T>
 >
 {
-    typedef VectorTest MyType;
-    typedef MyType ParamType;
-
+    typedef VectorTest                                              MyType;
+    typedef MyType                                                  ParamType;
 
     typedef BTreeBatchTestBase<
-            VectorCtr<UByte>,
-            ArrayData<UByte>,
-            VectorReplay
+                VectorCtr<T>,
+                ArrayData<T>
     >                                                               Base;
 
     typedef typename Base::Ctr                                      Ctr;
+    typedef typename Base::Iterator                                 Iterator;
+    typedef typename Base::ID                                       ID;
 
-
-    Int     element_size_;
 
 public:
-    VectorTest():
-        Base("Vector"), element_size_(1)
+    VectorTest(StringRef name):
+        Base(name)
     {
         Ctr::initMetadata();
 
-        max_block_size_ = 1024*40;
-        size_           = 1024*1024*16;
-
-        Add("element_size", element_size_);
+        Base::max_block_size_ = 1024*40;
+        Base::size_           = 1024*1024*16;
     }
 
-    virtual ArrayData<UByte> createBuffer(Ctr& array, Int size, UByte value)
+    virtual ArrayData<T> createBuffer(Ctr& array, Int size, BigInt value)
     {
-        ArrayData<UByte> data((SizeT)size);
+        ArrayData<T> data((SizeT)size);
 
         for (Int c = 0; c < size; c++)
         {
@@ -97,12 +93,12 @@ public:
         return array.seek(pos);
     }
 
-    virtual void insert(Iterator& iter, const ArrayData<UByte>& data)
+    virtual void insert(Iterator& iter, const ArrayData<T>& data)
     {
         iter.insert(data);
     }
 
-    virtual void read(Iterator& iter, ArrayData<UByte>& data)
+    virtual void read(Iterator& iter, ArrayData<T>& data)
     {
         iter.read(data);
     }

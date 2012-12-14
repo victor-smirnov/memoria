@@ -23,6 +23,8 @@ using namespace std;
 
 class PMapReindexTest: public TestTask {
 
+    typedef PMapReindexTest MyType;
+
     template <typename Key_, typename Value_, Int Blocks_ = 3>
     struct PMapReindexTypes {
         typedef Key_                        Key;
@@ -34,12 +36,6 @@ class PMapReindexTest: public TestTask {
 
         typedef Accumulators<Key, Blocks>   Accumulator;
     };
-
-    struct TestReplay: public TestReplayParams {
-        TestReplay(): TestReplayParams() {}
-    };
-
-
 
     typedef PMapReindexTypes<Int, Int, 1>   Types;
 
@@ -53,17 +49,12 @@ class PMapReindexTest: public TestTask {
 
 public:
 
-    PMapReindexTest(): TestTask("Reindex") {}
-
-    virtual ~PMapReindexTest() throw() {}
-
-    virtual TestReplayParams* createTestStep(StringRef name) const
+    PMapReindexTest(): TestTask("Reindex")
     {
-        return new TestReplay();
+        MEMORIA_ADD_TEST(runTest);
     }
 
-    virtual void Replay(ostream& out, TestReplayParams* step_params)
-    {}
+    virtual ~PMapReindexTest() throw() {}
 
     BigInt FillPMap(Map* map, Int size)
     {
@@ -85,7 +76,7 @@ public:
     }
 
 
-    virtual void Run(ostream& out)
+    void runTest(ostream& out)
     {
         Int buffer_size     = 1024*64;
 

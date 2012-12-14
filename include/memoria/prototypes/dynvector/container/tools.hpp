@@ -66,6 +66,8 @@ public:
     typedef typename Base::TreePathItem                                         TreePathItem;
     typedef typename Base::Types::DataPathItem                                  DataPathItem;
     
+    typedef typename DataPage::PageData::ElementType                            ElementType;
+
 
     DataPathItem getValuePage(const NodeBaseG& node, Int idx, Int flags) const
     {
@@ -91,13 +93,13 @@ public:
 
     Int getDataPageCapacity(const DataPageG& node) const
     {
-    	return node->page_size() - sizeof(DataPage) - node->data().size();
+        return node->getCapacity();
     }
 
     Int getMaxDataPageCapacity() const
     {
-    	const Metadata& metadata = me()->getRootMetadata();
-    	return metadata.page_size() - sizeof(DataPage);
+        const Metadata& metadata = me()->getRootMetadata();
+        return (metadata.page_size() - sizeof(DataPage)) / sizeof (ElementType);
     }
 
 MEMORIA_CONTAINER_PART_END

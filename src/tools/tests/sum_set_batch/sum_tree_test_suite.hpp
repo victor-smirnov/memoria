@@ -23,7 +23,7 @@ class SumTreeTestSuite: public TestSuite {
 
 public:
 
-    SumTreeTestSuite(): TestSuite("SumTreeTestSuite")
+    SumTreeTestSuite(): TestSuite("SumTreeSuite")
     {
         registerTask(new SumsetBatchTest());
     }

@@ -90,7 +90,7 @@ class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
     Int                 suffix_;
     Int                 last_idx_;
     Int                 page_size_;
-    Int 				max_page_capacity_;
+    Int                 max_page_capacity_;
 
 public:
     ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, const IDataType& data, BigInt start, BigInt length):
@@ -292,8 +292,8 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, const IDataType& buffer, Int sta
         data            = me()->createDataPage(iter.page(), iter.key_idx());
 
         iter.path().data().parent_idx() = iter.key_idx();
-        iter.dataPos() 	= 0;
-        reindex_fully 	= true;
+        iter.dataPos()  = 0;
+        reindex_fully   = true;
     }
 
     Int data_pos    = iter.dataPos();
@@ -401,7 +401,7 @@ typename M_TYPE::DataPathItem M_TYPE::createDataPage(NodeBaseG& node, Int idx, I
 
     if (size == -1)
     {
-    	size = page_size;
+        size = page_size;
     }
 
     DataPageG data          = me()->allocator().createPage(size);
@@ -465,8 +465,8 @@ typename M_TYPE::Accumulator M_TYPE::moveData(
     Int amount_to_topy = src_data->size() - src_idx;
 
     if (tgt_data->getCapacity() > amount_to_topy) {
-    	int a = 0;
-    	a++;
+        int a = 0;
+        a++;
     }
 
     MEMORIA_ASSERT(tgt_data->getCapacity(), >= , amount_to_topy);

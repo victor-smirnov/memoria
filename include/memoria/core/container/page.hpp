@@ -648,10 +648,10 @@ public:
 
     void resize(Int new_size)
     {
-    	if (shared_ != nullptr)
-    	{
-    		shared_->allocator()->resizePage(shared, new_size);
-    	}
+        if (shared_ != nullptr)
+        {
+            shared_->allocator()->resizePage(shared, new_size);
+        }
     }
 
     void clear() {

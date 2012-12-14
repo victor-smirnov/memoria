@@ -466,8 +466,8 @@ public:
         MEMORIA_ASSERT(copy_to, >=, 0);
 
         if (copy_to + count > other->max_size_) {
-        	int a = 0;
-        	a++;
+            int a = 0;
+            a++;
         }
 
         MEMORIA_ASSERT(copy_to + count, <=, other->max_size_);

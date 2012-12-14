@@ -29,8 +29,10 @@ class PackedMapTestSuite: public TestSuite {
 
 public:
 
-    PackedMapTestSuite(): TestSuite("PackedMapTestSuite")
+    PackedMapTestSuite(): TestSuite("PackedMapSuite")
     {
+        enabled = false;
+
         registerTask(new PMapDataTest());
         registerTask(new PMapFindTest());
         registerTask(new PMapReindexTest());

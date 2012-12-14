@@ -24,72 +24,58 @@ using namespace std;
 
 class CreateCtrTest: public SPTestTask {
 
+    typedef CreateCtrTest MyType;
+
     typedef KVPair<BigInt, BigInt>                                      Pair;
     typedef vector<Pair>                                                PairVector;
     typedef SmallCtrTypeFactory::Factory<VectorMapCtr>::Type            VectorMapCtrType;
-    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                    MapCtrType;
+    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                 MapCtrType;
     typedef VectorMapCtrType::Iterator                                  VMIterator;
-
-    struct TaskReplay: public ReplayParams {
-
-        BigInt map_name_;
-        BigInt vector_map_name_;
-
-        TaskReplay(): ReplayParams()
-        {
-            Add("map_name", map_name_);
-            Add("vector_map_name", vector_map_name_);
-        }
-    };
-
-
 
     PairVector pairs_;
 
-    Int map_size_;
-    Int vector_map_size_;
-    Int block_size_;
+    Int map_size_           = 1024*256;
+    Int vector_map_size_    = 200;
+    Int block_size_         = 1024;
 
-    Int iteration_;
+    Int iteration_          = 0;
+
+    BigInt map_name_;
+    BigInt vector_map_name_;
 
 public:
 
-    CreateCtrTest(): SPTestTask("CreateCtr"), map_size_(1024*256), vector_map_size_(200), block_size_(1024), iteration_(0)
+    CreateCtrTest(): SPTestTask("CreateCtr")
     {
         VectorMapCtrType::initMetadata();
         MapCtrType::initMetadata();
 
-        Add("MapSize", map_size_);
-        Add("VectorMapSize", vector_map_size_);
-        Add("BlockSize", block_size_);
-        Add("Iteration", iteration_);
+        MEMORIA_ADD_TEST_PARAM(map_size_)->setDescription("Size of the Map container");
+        MEMORIA_ADD_TEST_PARAM(vector_map_size_)->setDescription("Size of the VectorMap container");
+        MEMORIA_ADD_TEST_PARAM(block_size_)->setDescription("Size of data block inserted into VectorMap container");
+
+        MEMORIA_ADD_TEST_PARAM(map_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(vector_map_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(iteration_)->state();
+
+
+        MEMORIA_ADD_TEST(runTest);
     }
 
     virtual ~CreateCtrTest() throw() {}
 
-    virtual TestReplayParams* createTestStep(StringRef name) const
-    {
-        return new TaskReplay();
-    }
 
 
-    virtual void Replay(ostream& out, TestReplayParams* step_params)
-    {
-    }
 
-    virtual void Run(ostream& out)
+    void runTest(ostream& out)
     {
         DefaultLogHandlerImpl logHandler(out);
 
-        CreateCtrTest* task_params = this;
 
-        TaskReplay params;
-
-        params.size_ = task_params->size_;
-        if (task_params->btree_random_branching_)
+        if (btree_random_branching_)
         {
-            task_params->btree_branching_ = 8 + getRandom(100);
-            out<<"BTree Branching: "<<task_params->btree_branching_<<endl;
+            btree_branching_ = 8 + getRandom(100);
+            out<<"BTree Branching: "<<btree_branching_<<endl;
         }
 
         Allocator allocator;
@@ -99,11 +85,11 @@ public:
 
         map.setBranchingFactor(100);
 
-        params.map_name_ = map.name();
+        map_name_ = map.name();
 
         BigInt t00 = getTimeInMillis();
 
-        for (Int c = 0; c < task_params->map_size_; c++)
+        for (Int c = 0; c < map_size_; c++)
         {
             map[getRandom()] = getRandom();
         }
@@ -112,11 +98,11 @@ public:
 
         vector_map.setBranchingFactor(100);
 
-        params.vector_map_name_ = vector_map.name();
+        vector_map_name_ = vector_map.name();
 
-        for (Int c = 0; c < task_params->vector_map_size_; c++)
+        for (Int c = 0; c < vector_map_size_; c++)
         {
-            vector_map[getRandom()] = createBuffer(getRandom(task_params->block_size_), getRandom(256));
+            vector_map[getRandom()] = createBuffer(getRandom(block_size_), getRandom(256));
         }
 
         allocator.commit();
@@ -125,7 +111,7 @@ public:
 
         BigInt t0 = getTimeInMillis();
 
-        String name = this->getOutputFolder() + Platform::getFilePathSeparator() + "alloc1.dump";
+        String name = this->getResourcePath("alloc1.dump");
 
         StoreAllocator(allocator, name);
 
