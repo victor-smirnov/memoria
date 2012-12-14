@@ -43,9 +43,22 @@ public:
         Add("own_folder", own_folder)->state();
     }
 
-    bool IsEnabled() const
+    virtual bool IsEnabled() const
     {
-        return enabled;
+//        TaskParametersSet* ctx = T2T<TaskParametersSet*>(getContext());
+//
+//        if (ctx != nullptr)
+//        {
+//        	if (!ctx->IsEnabled())
+//        	{
+//
+//        	}
+//        }
+//        else {
+//        	return enabled;
+//        }
+
+    	return enabled;
     }
 
     void setEnabled(bool enabled)
@@ -199,6 +212,10 @@ public:
 
         file.close();
     }
+
+    virtual void Process(Configurator* cfg) {
+    	TaskParametersSet::Process(cfg);
+    }
 };
 
 
@@ -216,6 +233,9 @@ protected:
         FailureDescriptor() {}
         FailureDescriptor(Int number, StringRef name): run_number(number), task_name(name) {}
     };
+
+
+
 
     vector<FailureDescriptor> failures_;
 
@@ -273,6 +293,8 @@ public:
 
         return NULL;
     }
+
+    virtual bool IsEnabled() const;
 };
 
 

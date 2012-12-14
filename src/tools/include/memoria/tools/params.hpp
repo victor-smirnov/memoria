@@ -8,9 +8,6 @@
 #ifndef _MEMORIA_TOOLS_PARAMS_HPP
 #define _MEMORIA_TOOLS_PARAMS_HPP
 
-#include <limits>
-#include <stdlib.h>
-
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/tools/strings.hpp>
@@ -18,15 +15,15 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/tools/configuration.hpp>
 
+#include <limits>
+#include <stdlib.h>
 
+#include <iostream>
 
 namespace memoria {
 
 using namespace std;
 using namespace memoria::vapi;
-
-
-
 
 
 class AbstractParamDescriptor {

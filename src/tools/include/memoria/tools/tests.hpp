@@ -114,6 +114,7 @@ public:
     virtual void Configure(Configurator* cfg)
     {
         configurator_ = cfg;
+        Process(cfg);
     }
 
     virtual void setUp(ostream&) {}

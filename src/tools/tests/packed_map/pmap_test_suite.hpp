@@ -31,8 +31,6 @@ public:
 
     PackedMapTestSuite(): TestSuite("PackedMapSuite")
     {
-        enabled = false;
-
         registerTask(new PMapDataTest());
         registerTask(new PMapFindTest());
         registerTask(new PMapReindexTest());
