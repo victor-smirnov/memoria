@@ -26,9 +26,8 @@ class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type             RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr>::Type       Ctr;
-    typedef typename Ctr::Iterator                                          Iterator;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte>>::Type	Ctr;
+    typedef typename Ctr::Iterator                                          		Iterator;
 
     static const Int MAX_DATA_SIZE                                          = 256;
 
@@ -80,7 +79,7 @@ public:
     virtual void Benchmark(BenchmarkParameters& params, ostream& out)
     {
         Int size = params.x();
-        ArrayData<UByte> data(size, malloc(size), true);
+        ArrayData<Byte> data(size, malloc(size), true);
         Int total = memory_size/size;
 
         params.operations() = total;

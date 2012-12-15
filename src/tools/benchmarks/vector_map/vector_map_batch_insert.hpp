@@ -18,17 +18,16 @@ using namespace std;
 
 
 
-class VectorMapBatchinsertBenchmark: public SPBenchmarkTask {
+class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type         RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr>::Type   MapCtrType;
-    typedef typename MapCtrType::Iterator                               Iterator;
-    typedef typename MapCtrType::ID                                     ID;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte>>::Type	MapCtrType;
+    typedef typename MapCtrType::Iterator                               			Iterator;
+    typedef typename MapCtrType::ID                                     			ID;
 
     typedef typename MapCtrType::IdxSet                                 SetCtrType;
 
@@ -64,22 +63,21 @@ class VectorMapBatchinsertBenchmark: public SPBenchmarkTask {
 
 
     Allocator*  allocator_;
-    MapCtrType*     map_;
+    MapCtrType* map_;
 
     BigInt      memory_size;
     Int         data_size_;
 public:
 
-    VectorMapBatchinsertBenchmark(StringRef name, Int data_size):
+    VectorMapBatchInsertBenchmark(StringRef name, Int data_size):
         SPBenchmarkTask(name), memory_size(128*1024*1024), data_size_(data_size)
     {
-//        RootCtr::initMetadata();
         MapCtrType::initMetadata();
 
         Add("memory_size", memory_size);
     }
 
-    virtual ~VectorMapBatchinsertBenchmark() throw() {}
+    virtual ~VectorMapBatchInsertBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

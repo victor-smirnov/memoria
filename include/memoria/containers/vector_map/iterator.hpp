@@ -23,7 +23,7 @@ class Iter<VectorMapIterTypes<Types> >: public IterStart<VectorMapIterTypes<Type
     typedef Iter<VectorMapIterTypes<Types> >                    MyType;
     typedef Ctr<VectorMapCtrTypes<Types> >                      ContainerType;
 
-    typedef typename ContainerType::IdxSet::Iterator            IdxsetIterator;
+    typedef typename ContainerType::IdxSet::Iterator            IdxSetIterator;
     typedef typename ContainerType::ByteArray::Iterator         ByteArrayIterator;
 
     typedef typename ContainerType::IdxSet::Accumulator         IdxsetAccumulator;
@@ -40,7 +40,7 @@ class Iter<VectorMapIterTypes<Types> >: public IterStart<VectorMapIterTypes<Type
     ContainerType&      model_;
 
     ByteArrayIterator   ba_iter_;
-    IdxsetIterator      is_iter_;
+    IdxSetIterator      is_iter_;
     bool                exists_;
 
 public:
@@ -51,10 +51,10 @@ public:
     Iter(const MyType& other):
         model_(other.model_), ba_iter_(other.ba_iter_), is_iter_(other.is_iter_), exists_(other.exists_) {}
 
-    Iter(ContainerType &model, const IdxsetIterator& is_iter, const ByteArrayIterator& ba_iter, bool exists = false):
+    Iter(ContainerType &model, const IdxSetIterator& is_iter, const ByteArrayIterator& ba_iter, bool exists = false):
         model_(model), ba_iter_(ba_iter), is_iter_(is_iter), exists_(exists) {}
 
-    Iter(ContainerType &model, const IdxsetIterator& is_iter, bool exists = false):
+    Iter(ContainerType &model, const IdxSetIterator& is_iter, bool exists = false):
         model_(model), ba_iter_(model), is_iter_(is_iter), exists_(exists) {}
 
     Iter(ContainerType &model, const ByteArrayIterator& ba_iter, bool exists = false):
@@ -104,7 +104,7 @@ public:
         return *this;
     }
 
-    MyType& operator=(IdxsetIterator&& is_iter)
+    MyType& operator=(IdxSetIterator&& is_iter)
     {
         is_iter_ = is_iter;
         return *this;
@@ -126,12 +126,12 @@ public:
         return ba_iter_;
     }
 
-    IdxsetIterator& is_iter()
+    IdxSetIterator& is_iter()
     {
         return is_iter_;
     }
 
-    const IdxsetIterator& is_iter() const
+    const IdxSetIterator& is_iter() const
     {
         return is_iter_;
     }

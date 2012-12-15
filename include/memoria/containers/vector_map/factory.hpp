@@ -35,8 +35,8 @@ using namespace memoria::vector_map;
 
 
 
-template <typename Profile, Int Indexes_>
-struct BTreeTypes<Profile, memoria::VMSetCtr<Indexes_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
+template <typename Profile, typename Key, Int Indexes_>
+struct BTreeTypes<Profile, memoria::VMSetCtr<Key, Indexes_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
 
     typedef BTreeTypes<Profile, memoria::BSTreeCtr >                        Base;
 
@@ -46,17 +46,19 @@ struct BTreeTypes<Profile, memoria::VMSetCtr<Indexes_> >: public BTreeTypes<Prof
 };
 
 
-template <typename Profile, typename T, Int Indexes>
-class CtrTF<Profile, memoria::VMSetCtr<Indexes>, T>: public CtrTF<Profile, memoria::BSTreeCtr, T> {
+template <typename Profile, typename T, typename Key, Int Indexes>
+class CtrTF<Profile, memoria::VMSetCtr<Key, Indexes>, T>: public CtrTF<Profile, memoria::BSTreeCtr, T> {
 };
 
 
+template <typename Profile_, typename Key_, typename Value_>
+struct CompositeTypes<Profile_, VectorMapCtr<Key_,Value_>>: public CompositeTypes<Profile_, CompositeCtr> {
 
+    typedef VectorMapCtr<Key_,Value_>                                           ContainerTypeName;
 
-template <typename Profile_>
-struct CompositeTypes<Profile_, VectorMapCtr>: public CompositeTypes<Profile_, CompositeCtr> {
+    typedef Key_																Key;
+    typedef Value_																Value;
 
-    typedef VectorMapCtr                                                        ContainerTypeName;
 
     typedef CompositeTypes<Profile_, CompositeCtr>                              Base;
 
@@ -83,14 +85,14 @@ struct CompositeTypes<Profile_, VectorMapCtr>: public CompositeTypes<Profile_, C
 };
 
 
-template <typename Profile_, typename T>
-class CtrTF<Profile_, VectorMapCtr, T> {
+template <typename Profile_, typename T, typename Key, typename Value>
+class CtrTF<Profile_, VectorMapCtr<Key, Value>, T> {
 
-    typedef CtrTF<Profile_, VectorMapCtr, T>                                    MyType;
+    typedef CtrTF<Profile_, VectorMapCtr<Key, Value>, T>                        MyType;
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 
-    typedef CompositeTypes<Profile_, VectorMapCtr>                              ContainerTypes;
+    typedef CompositeTypes<Profile_, VectorMapCtr<Key, Value> >                 ContainerTypes;
 
 public:
 

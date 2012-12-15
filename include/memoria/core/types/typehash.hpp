@@ -72,12 +72,16 @@ struct TypeHash<T[Size]> {
     static const UInt Value = HashHelper<TypeHash<T>::Value, TypeHashes::ARRAY, Size>::Value;
 };
 
-
-template <> struct TypeHash<VectorMapCtr>: UIntValue<1000> {};
+template <typename Key, typename Value>
+struct TypeHash<VectorMapCtr<Key, Value>>: UIntValue<
+	HashHelper<1000, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+> {};
 
 
 template <typename Key, typename Value, Int Indexes>
-struct TypeHash<MapCtr<Key, Value, Indexes>>:   UIntValue<HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value, Indexes>::Value> {};
+struct TypeHash<MapCtr<Key, Value, Indexes>>:   UIntValue<
+	HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value, Indexes>::Value
+> {};
 
 
 

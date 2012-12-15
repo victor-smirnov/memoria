@@ -121,6 +121,8 @@ typedef SetCtr<BigInt, 2>       Set2Ctr;
 
 struct DFUDS        {};
 struct LOUDS        {};
+
+template <typename Key, typename Value>
 struct VectorMapCtr {};
 
 template <typename T>

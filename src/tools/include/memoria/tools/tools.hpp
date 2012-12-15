@@ -158,9 +158,31 @@ BigInt  getTimeInMillis();
 String FormatTime(BigInt millis);
 
 void Fill(char* buf, int size, char value);
-ArrayData<UByte> createBuffer(Int size, UByte value);
+
+template <typename T>
+ArrayData<T> createBuffer(Int size, T value)
+{
+    T* buf = (T*)malloc(size*sizeof(T));
+
+    for (Int c = 0;c < size; c++)
+    {
+        buf[c] = value;
+    }
+
+    return ArrayData<T>(size, buf, true);
+}
+
 Int getNonZeroRandom(Int size);
-ArrayData<UByte> createRandomBuffer(UByte fill_value, Int max_size);
+
+template <typename T>
+ArrayData<T> createRandomBuffer(T fill_value, Int max_size)
+{
+	return createBuffer<T>(getNonZeroRandom(max_size), fill_value);
+}
+
+
+
+
 
 
 template <typename Allocator>

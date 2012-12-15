@@ -16,7 +16,7 @@
 namespace memoria    {
 namespace vector_map {
 
-template <Int Indexes>
+template <typename Key, Int Indexes>
 struct VMSetCtr {};
 
 struct CtrApiName {};
@@ -30,11 +30,11 @@ struct VectorMapIterTypes: IterTypesT<Types> {};
 
 }
 
-template <Int Indexes>
-class TypeHash<vector_map::VMSetCtr<Indexes> > {
-public:
-    static const UInt Value = 1000 + Indexes;
-};
+template <typename Key, Int Indexes>
+struct TypeHash<vector_map::VMSetCtr<Key, Indexes>>:   UIntValue<
+	HashHelper<10000, TypeHash<Key>::Value, Indexes>::Value
+> {};
+
 
 
 }

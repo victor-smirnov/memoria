@@ -27,12 +27,12 @@ using namespace std;
 
 class VectorMapTest: public SPTestTask {
 
-    typedef VectorMapTest                                               MyType;
+    typedef VectorMapTest                                               		MyType;
 
-    typedef KVPair<BigInt, BigInt>                                      Pair;
-    typedef vector<Pair>                                                PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMapCtr>::Type            VectorMapCtrType;
-    typedef VectorMapCtrType::Iterator                                  VMIterator;
+    typedef KVPair<BigInt, BigInt>                                      		Pair;
+    typedef vector<Pair>                                                		PairVector;
+    typedef SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte>>::Type     	VectorMapCtrType;
+    typedef VectorMapCtrType::Iterator                                  		VMIterator;
 
 
     PairVector pairs_;
@@ -95,9 +95,9 @@ public:
             MEMORIA_TEST_THROW_IF_1(iter.size(),   != , pair.value_, c);
             MEMORIA_TEST_THROW_IF_1(iter.pos(),    != , 0, c);
 
-            UByte value = pair.key_ & 0xFF;
+            Byte value = pair.key_ & 0xFF;
 
-            ArrayData<UByte> data = createBuffer(pair.value_, value);
+            ArrayData<Byte> data = createBuffer(pair.value_, value);
 
             checkBufferWritten(iter, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -131,7 +131,7 @@ public:
 
             checkCtr(map, "insertion failed 1", MEMORIA_SOURCE);
 
-            ArrayData<UByte> data = createBuffer(data_size_, key_ & 0xFF);
+            ArrayData<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);
 
             iter.insert(data);
 
@@ -206,7 +206,7 @@ public:
 
             step_ = 0;
 
-            UByte value = 0;
+            Byte value = 0;
 
             Int total_size = 0;
 
@@ -216,7 +216,7 @@ public:
 
                 data_size_ = getRandom(max_block_size_);
 
-                ArrayData<UByte> data = createBuffer(data_size_, c % 256);
+                ArrayData<Byte> data = createBuffer<Byte>(data_size_, c % 256);
 
                 iter.insert(data);
 
@@ -278,7 +278,7 @@ public:
                 auto iter = map.create(key_);
                 data_size_ = getRandom(max_block_size_);
 
-                ArrayData<UByte> data = createBuffer(data_size_, key_ & 0xFF);
+                ArrayData<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);
                 iter.insert(data);
 
                 checkCtr(map, "insertion failed.",  MEMORIA_SOURCE);
@@ -346,7 +346,7 @@ public:
                 auto iter = map.create(key_);
                 data_size_ = getRandom(max_block_size_);
 
-                ArrayData<UByte> data = createBuffer(data_size_, key_ & 0xFF);
+                ArrayData<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);
                 iter.insert(data);
 
                 appendToSortedVector(pairs_, Pair(key_, data_size_));

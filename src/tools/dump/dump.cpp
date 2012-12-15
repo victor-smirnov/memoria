@@ -222,7 +222,7 @@ int main(int argc, const char** argv, const char** envp)
     SmallCtrTypeFactory::Factory<Map1Ctr>::Type::initMetadata();
     SmallCtrTypeFactory::Factory<VectorCtr<UByte>>::Type::initMetadata();
     SmallCtrTypeFactory::Factory<VectorCtr<Int>>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<VectorMapCtr>::Type::initMetadata();
+    SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte>>::Type::initMetadata();
     SmallCtrTypeFactory::Factory<Set1Ctr>::Type::initMetadata();
 
 

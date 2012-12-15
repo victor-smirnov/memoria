@@ -18,35 +18,34 @@ using namespace std;
 
 
 
-class VectorMapRandominsertBenchmark: public SPBenchmarkTask {
+class VectorMapRandomInsertBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type         RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr>::Type   MapCtrType;
-    typedef typename MapCtrType::Iterator                               Iterator;
-    typedef typename MapCtrType::ID                                     ID;
+
+    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte>>::Type	MapCtrType;
+    typedef typename MapCtrType::Iterator                               			Iterator;
+    typedef typename MapCtrType::ID                                     			ID;
 
 
     Allocator*  allocator_;
-    MapCtrType*     map_;
+    MapCtrType* map_;
 
     BigInt      memory_size;
 public:
 
-    VectorMapRandominsertBenchmark(StringRef name):
+    VectorMapRandomInsertBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-//        RootCtr::initMetadata();
         MapCtrType::initMetadata();
 
         Add("memory_size", memory_size);
     }
 
-    virtual ~VectorMapRandominsertBenchmark() throw() {}
+    virtual ~VectorMapRandomInsertBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

@@ -143,7 +143,7 @@ public:
 
 class PackedsetMemGraph: public LogXScaleGnuplotGraph {
 public:
-    PackedsetMemGraph(): LogXScaleGnuplotGraph("PsetMem")
+    PackedsetMemGraph(): LogXScaleGnuplotGraph("PSetMem")
     {
         title   = "PackedTree random read performance,\\n1 million random reads";
         xtitle  = "Memory Block Size, Kb";
@@ -162,7 +162,7 @@ public:
         AddGraph(new PsetMemBenchmark<32>(), GraphData("PackedTree<BigInt>, 32 children"));
         AddGraph(new PsetMemBenchmark<64>(), GraphData("PackedTree<BigInt>, 64 children"));
 
-        AddGraph(new StlsetMemBenchmark("StlsetMem"), GraphData("std::set, 2 children"));
+        AddGraph(new StlsetMemBenchmark("StlSetMem"), GraphData("std::set, 2 children"));
     }
 };
 
@@ -181,9 +181,9 @@ public:
 
         logscale    = 10;
 
-        AddGraph(new PsetSizeBenchmark<16>(), GraphData("Packedset"));
-        AddGraph(new setFindRandomBenchmark("findRandom"), GraphData("Memoria set"));
-        AddGraph(new StlsetSizeBenchmark("StlfindRandom"), GraphData("std::set"));
+        AddGraph(new PsetSizeBenchmark<16>(), GraphData("PackedSet"));
+        AddGraph(new setFindRandomBenchmark("FindRandom"), GraphData("Memoria set"));
+        AddGraph(new StlsetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
     }
 };
 
@@ -191,9 +191,9 @@ public:
 
 class SetLinearReadGraph: public LogXScaleGnuplotGraph {
 public:
-    SetLinearReadGraph(): LogXScaleGnuplotGraph("setLinearRead")
+    SetLinearReadGraph(): LogXScaleGnuplotGraph("SetLinearRead")
     {
-        title   = "Memoria set<BigInt> vs std::set<BigInt> Sequential Read Performance,\\n16 million reads";
+        title   = "Memoria Set<BigInt> vs std::set<BigInt> Sequential Read Performance,\\n16 million reads";
         xtitle  = "Number of Elements";
 
         time_start  = 128;
@@ -205,8 +205,8 @@ public:
 
         logscale    = 10;
 
-        AddGraph(new setScanBenchmark("setScan"), GraphData("Memoria set"));
-        AddGraph(new StlsetScanBenchmark("StlsetScan"), GraphData("std::set"));
+        AddGraph(new setScanBenchmark("SetScan"), GraphData("Memoria Set"));
+        AddGraph(new StlsetScanBenchmark("StlSetScan"), GraphData("std::set"));
     }
 };
 
@@ -214,9 +214,9 @@ public:
 
 class SetRandominsertGraph: public LogXScaleGnuplotGraph {
 public:
-    SetRandominsertGraph(): LogXScaleGnuplotGraph("setinsert")
+    SetRandominsertGraph(): LogXScaleGnuplotGraph("SetInsert")
     {
-        title   = "set<BigInt> Batch insert Performance";
+        title   = "Set<BigInt> Batch insert Performance";
         xtitle  = "Batch size, Elements";
 
         time_start  = 1;
@@ -234,9 +234,9 @@ public:
 
 class SetCommitRateGraph: public LogXScaleGnuplotGraph {
 public:
-    SetCommitRateGraph(): LogXScaleGnuplotGraph("setCommitRate", 10)
+    SetCommitRateGraph(): LogXScaleGnuplotGraph("SetCommitRate", 10)
     {
-        title   = "set<BigInt> Commit Performance,\\ninsert/append 1M keys";
+        title   = "Set<BigInt> Commit Performance,\\ninsert/append 1M keys";
         xtitle  = "Commit Batch size, Elements";
 
         time_start  = 1;
@@ -268,8 +268,8 @@ public:
 
         logscale    = 10;
 
-        registerTask(new setinsertBatchBenchmark("insert"));
-        registerTask(new SetappendBatchBenchmark("append"));
+        registerTask(new setinsertBatchBenchmark("Insert"));
+        registerTask(new SetappendBatchBenchmark("Append"));
     }
 };
 
@@ -347,7 +347,7 @@ public:
 
 class VectorinsertGraph: public LogXScaleGnuplotGraph {
 public:
-    VectorinsertGraph(): LogXScaleGnuplotGraph("Vectorinsert")
+    VectorinsertGraph(): LogXScaleGnuplotGraph("VectorInsert")
     {
         title   = "Vector insert Performance";
         xtitle  = "Block Size, Bytes";
@@ -365,12 +365,12 @@ public:
 
         AddGraph(
             new VectorRandominsertBenchmark("Random"),
-            GraphData("Random insert Performance", "Random insert Throughput")
+            GraphData("Random Insert Performance", "Random Insert Throughput")
         );
 
         AddGraph(
             new VectorappendBenchmark("Sequential"),
-            GraphData("Sequential append Performance", "Sequential append Throughput")
+            GraphData("Sequential Append Performance", "Sequential Append Throughput")
         );
     }
 };
@@ -391,7 +391,7 @@ public:
 
         y2          = true;
 
-        AddGraph(new VectorMapRandominsertBenchmark("insert"), GraphData("insert Performance", "insert Throughput"));
+        AddGraph(new VectorMapRandomInsertBenchmark("Insert"), GraphData("Insert Performance", "Insert Throughput"));
         AddGraph(new VectorMapRandomReadBenchmark("Read"), GraphData("Read Performance", "Read Throughput"));
     }
 };
@@ -410,7 +410,7 @@ public:
 
         y2          = true;
 
-        AddGraph(new VectorMapappendBenchmark("append"), GraphData("append Performance", "append Throughput"));
+        AddGraph(new VectorMapappendBenchmark("Append"), GraphData("Append Performance", "Append Throughput"));
         AddGraph(new VectorMapSequentialReadBenchmark("Read"), GraphData("Read Performance", "Read Throughput"));
     }
 };
@@ -445,7 +445,7 @@ public:
 
 class VectorMapBatchinsertGraph: public LogXScaleGnuplotGraph {
 public:
-    VectorMapBatchinsertGraph(): LogXScaleGnuplotGraph("VectorMapBatchinsert", 2)
+    VectorMapBatchinsertGraph(): LogXScaleGnuplotGraph("VectorMapBatchInsert", 2)
     {
         title   = "VectorMap Batch insert Performance";
         xtitle  = "Batch Size, Elements";
@@ -462,7 +462,7 @@ public:
         logscale    = 2;
 
         AddGraph(
-            new VectorMapBatchinsertBenchmark("insert.128", 128),
+            new VectorMapBatchInsertBenchmark("Insert.128", 128),
             GraphData("VectorMap Performance, 128 bytes value", "VectorMap Throughput, 128 bytes value")
         );
     }
@@ -494,7 +494,7 @@ public:
 //          GraphData("VectorMap Performance", "VectorMap Throughput")
 //      );
 
-        AddGraph(new StlsetSizeBenchmark("StlfindRandom"), GraphData("std::set"));
+        AddGraph(new StlsetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
     }
 };
 
