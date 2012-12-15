@@ -22,10 +22,10 @@ class VectorReadBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
-    typedef typename Base::Allocator    Allocator;
-    typedef typename Base::Profile      Profile;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Profile                                              Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Vector<BigInt>>::Type         VectorCtrType;
+    typedef typename SCtrTF<Vector<BigInt>>::Type                               VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
     typedef typename VectorCtrType::ID                                          ID;
     typedef typename VectorCtrType::Accumulator                                 Accumulator;
@@ -47,8 +47,6 @@ public:
     VectorReadBenchmark(StringRef name):
         SPBenchmarkTask(name)
     {
-        VectorCtrType::initMetadata();
-
         average = 5;
     }
 

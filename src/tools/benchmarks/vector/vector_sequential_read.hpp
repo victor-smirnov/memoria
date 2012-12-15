@@ -23,10 +23,10 @@ class VectorSequentialReadBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
-    typedef typename Base::Allocator    Allocator;
-    typedef typename Base::Profile      Profile;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Profile                                              Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Vector<UByte>>::Type          VectorCtrType;
+    typedef typename SCtrTF<Vector<UByte>>::Type                                VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
     typedef typename VectorCtrType::ID                                          ID;
     typedef typename VectorCtrType::Accumulator                                 Accumulator;
@@ -46,8 +46,6 @@ public:
     VectorSequentialReadBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-        VectorCtrType::initMetadata();
-
         Add("memory_size", memory_size);
 
         average = 10;

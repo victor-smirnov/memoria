@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class setinsertBenchmark: public SPBenchmarkTask {
+class SetInsertBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
@@ -26,7 +26,7 @@ class setinsertBenchmark: public SPBenchmarkTask {
     typedef typename Base::Profile      Profile;
 
 
-    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type           SetCtrType;
+    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -37,19 +37,17 @@ class setinsertBenchmark: public SPBenchmarkTask {
 
 
     Allocator*  allocator_;
-    SetCtrType*     set_;
+    SetCtrType* set_;
 
 
 
 public:
 
-    setinsertBenchmark(StringRef name):
+    SetInsertBenchmark(StringRef name):
         SPBenchmarkTask(name)
-    {
-        SetCtrType::initMetadata();
-    }
+    {}
 
-    virtual ~setinsertBenchmark() throw() {}
+    virtual ~SetInsertBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

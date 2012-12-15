@@ -197,11 +197,11 @@ private:
 
     template <typename T>
     T cvt(T value) {
-    	return value;
+        return value;
     }
 
     UByte cvt(Byte value) {
-    	return (Byte)value;
+        return (Byte)value;
     }
 
 

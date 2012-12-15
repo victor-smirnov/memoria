@@ -40,9 +40,6 @@ template <typename Profile, typename T>
 class CtrTF<Profile, memoria::Root, T>: public CtrTF<Profile, memoria::Map<BigInt, NullType, 1>, T> {
 };
 
-template <>
-struct CtrNameDeclarator<0>: TypeDef<Root> {};
-
 }
 
 #endif

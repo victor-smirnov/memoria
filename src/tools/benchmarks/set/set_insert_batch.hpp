@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class setinsertBatchBenchmark: public SPBenchmarkTask {
+class SetInsertBatchBenchmark: public SPBenchmarkTask {
 public:
 
     Int max_size;
@@ -28,7 +28,7 @@ public:
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type           SetCtrType;
+    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -64,15 +64,13 @@ public:
 
 public:
 
-    setinsertBatchBenchmark(StringRef name):
+    SetInsertBatchBenchmark(StringRef name):
         SPBenchmarkTask(name), max_size(16*1024*1024)
     {
-        SetCtrType::initMetadata();
-
         Add("max_size", max_size);
     }
 
-    virtual ~setinsertBatchBenchmark() throw() {}
+    virtual ~SetInsertBatchBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

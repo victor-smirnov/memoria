@@ -23,9 +23,9 @@ using namespace std;
 
 
 
-class StlsetMemBenchmark: public BenchmarkTask {
+class StlSetMemBenchmark: public BenchmarkTask {
 public:
-    enum setType {MEMORY = 1, COUNT = 2};
+    enum SetType {MEMORY = 1, COUNT = 2};
 private:
 
     typedef BigInt       Key;
@@ -37,11 +37,11 @@ private:
 
 public:
 
-    StlsetMemBenchmark(StringRef name): BenchmarkTask(name) {
+    StlSetMemBenchmark(StringRef name): BenchmarkTask(name) {
         average = 10;
     }
 
-    virtual ~StlsetMemBenchmark() throw() {}
+    virtual ~StlSetMemBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

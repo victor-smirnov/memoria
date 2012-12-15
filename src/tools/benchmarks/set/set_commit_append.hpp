@@ -31,7 +31,7 @@ class setCommitappendBenchmark: public SPBenchmarkTask {
     typedef typename Base::Profile      Profile;
 
 
-    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type           SetCtrType;
+    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -49,9 +49,6 @@ public:
         SPBenchmarkTask(name), max_size(1*1024*1024)
     {
         Add("max_size", max_size);
-
-//        RootCtr::initMetadata();
-        SetCtrType::initMetadata();
     }
 
     virtual ~setCommitappendBenchmark() throw() {}

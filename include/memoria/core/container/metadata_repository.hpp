@@ -22,26 +22,6 @@ using memoria::vapi::ContainerMetadataRepository;
 template <typename Profile, typename SelectorType, typename ContainerTypeName = SelectorType> class CtrTF;
 
 template <typename Profile>
-struct CtrTypeFactory {
-    template <typename ContainerName>
-    struct Types {
-        typedef typename CtrTF<Profile, ContainerName>::Types   Type;
-    };
-
-    template <typename ContainerName>
-    struct Factory {
-        typedef typename CtrTF<Profile, ContainerName>::Type    Type;
-    };
-
-    template <typename ContainerName>
-    struct Factory0 {
-        typedef CtrTF<Profile, ContainerName>                   Type;
-    };
-};
-
-
-
-template <typename Profile>
 class MetadataRepository {
     static ContainerMetadataRepository* metadata_;
 public:
@@ -72,29 +52,6 @@ public:
 
 template <typename Profile>
 ContainerMetadataRepository* MetadataRepository<Profile>::metadata_ = NULL;
-
-
-template <typename ProfileList = ::memoria::ProfileListBuilder<>::Type >
-class Memoria {
-public:
-    static Int init()
-    {
-        MetadataRepository<typename ListHead<ProfileList>::Type>::init();
-        return Memoria<typename ListTail<ProfileList>::Type>::init();
-    }
-};
-
-template <>
-class Memoria<TypeList<>> {
-public:
-    static Int init() {
-        return 1;
-    }
-};
-
-
-#define MEMORIA_INIT()                                                  \
-const int MEMORIA_INITIALIZED = ::memoria::Memoria<>::init()
 
 
 
@@ -143,6 +100,10 @@ struct CtrListInitializer<ProfileType, TypeList<> > {
     static void init() {}
 };
 
+
+
+
+
 template <
     typename Profile,
 
@@ -158,13 +119,15 @@ class MetadataInitializer {
 
 public:
     static void init() {
+        MetadataRepository<Profile>::init();
+
         CtrListInitializer<Profile, CtrNameList>::init();
     }
 };
 
 
-
-
+#define MEMORIA_INIT(Profile)\
+    MetadataInitializer<Profile>::init()
 
 }
 

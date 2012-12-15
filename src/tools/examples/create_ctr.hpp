@@ -18,11 +18,11 @@ namespace memoria {
 
 class CreateCtrExample: public SPExampleTask {
 public:
-    typedef KVPair<BigInt, BigInt> Pair;
+    typedef KVPair<BigInt, BigInt>                                              Pair;
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                            Ctr;
+    typedef SCtrTF<Map1>::Type                                                  Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
     typedef typename Ctr::Accumulator                                           Accumulator;
@@ -34,9 +34,7 @@ public:
 
     CreateCtrExample() :
         SPExampleTask("CreateCtr")
-    {
-        SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
-    }
+    {}
 
     virtual ~CreateCtrExample() throw () {
     }

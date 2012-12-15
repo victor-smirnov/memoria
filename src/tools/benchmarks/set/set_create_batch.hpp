@@ -25,7 +25,7 @@ class setCreateBatchBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type           SetCtrType;
+    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -63,10 +63,7 @@ public:
 
     setCreateBatchBenchmark(StringRef name):
         SPBenchmarkTask(name)
-    {
-//        RootCtr::initMetadata();
-        SetCtrType::initMetadata();
-    }
+    {}
 
     virtual ~setCreateBatchBenchmark() throw() {}
 

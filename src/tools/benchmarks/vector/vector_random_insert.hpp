@@ -18,14 +18,14 @@ using namespace std;
 
 
 
-class VectorRandominsertBenchmark: public SPBenchmarkTask {
+class VectorRandomInsertBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
-    typedef typename Base::Allocator    Allocator;
-    typedef typename Base::Profile      Profile;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Profile                                              Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Vector<UByte>>::Type          VectorCtrType;
+    typedef typename SCtrTF<Vector<UByte>>::Type                                VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
     typedef typename VectorCtrType::ID                                          ID;
     typedef typename VectorCtrType::Accumulator                                 Accumulator;
@@ -40,15 +40,13 @@ class VectorRandominsertBenchmark: public SPBenchmarkTask {
 
 public:
 
-    VectorRandominsertBenchmark(StringRef name):
+    VectorRandomInsertBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-        VectorCtrType::initMetadata();
-
         Add("memory_size", memory_size);
     }
 
-    virtual ~VectorRandominsertBenchmark() throw() {}
+    virtual ~VectorRandomInsertBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

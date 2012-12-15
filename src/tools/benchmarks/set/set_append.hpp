@@ -19,14 +19,14 @@ using namespace std;
 
 
 
-class SetappendBatchBenchmark: public SPBenchmarkTask {
+class SetAppendBatchBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type           SetCtrType;
+    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -65,15 +65,13 @@ class SetappendBatchBenchmark: public SPBenchmarkTask {
 
 public:
 
-    SetappendBatchBenchmark(StringRef name):
+    SetAppendBatchBenchmark(StringRef name):
         SPBenchmarkTask(name), max_size(16*1024*1024)
     {
-        SetCtrType::initMetadata();
-
         Add("max_size", max_size);
     }
 
-    virtual ~SetappendBatchBenchmark() throw() {}
+    virtual ~SetAppendBatchBenchmark() throw() {}
 
     Key key(Int c) const
     {

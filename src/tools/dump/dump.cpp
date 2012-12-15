@@ -214,17 +214,9 @@ String getPath(String dump_name)
 }
 
 
-MEMORIA_INIT();
-
 int main(int argc, const char** argv, const char** envp)
 {
-    SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<Vector<UByte>>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<Vector<Int>>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<Set1>::Type::initMetadata();
-
+    MetadataInitializer<SmallProfile<> >::init();
 
     try {
         logger.level() = Logger::NONE;

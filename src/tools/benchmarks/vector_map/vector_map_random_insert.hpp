@@ -22,17 +22,17 @@ class VectorMapRandomInsertBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
-    typedef typename Base::Allocator    Allocator;
-    typedef typename Base::Profile      Profile;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Profile                                              Profile;
 
 
-    typedef typename SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type    Ctr;
-    typedef typename Ctr::Iterator                                           Iterator;
-    typedef typename Ctr::ID                                                 ID;
+    typedef typename SCtrTF<VectorMap<BigInt, Byte>>::Type                      Ctr;
+    typedef typename Ctr::Iterator                                              Iterator;
+    typedef typename Ctr::ID                                                    ID;
 
 
     Allocator*  allocator_;
-    Ctr* map_;
+    Ctr*        map_;
 
     BigInt      memory_size;
 public:
@@ -40,8 +40,6 @@ public:
     VectorMapRandomInsertBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-        Ctr::initMetadata();
-
         Add("memory_size", memory_size);
     }
 

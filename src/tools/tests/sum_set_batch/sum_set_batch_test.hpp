@@ -22,7 +22,7 @@
 
 namespace memoria {
 
-typedef SmallCtrTypeFactory::Factory<Set1>::Type SumSet1Ctr;
+typedef SCtrTF<Set1>::Type SumSet1Ctr;
 
 class SumsetBatchTest: public BTreeBatchTestBase<
     Set1,
@@ -32,13 +32,13 @@ class SumsetBatchTest: public BTreeBatchTestBase<
     typedef BTreeBatchTestBase<
             Set1,
             typename SumSet1Ctr::LeafPairsVector
-    >                                                               Base;
+    >                                                                           Base;
 
-    typedef typename Base::Ctr                                      Ctr;
-    typedef typename Base::Accumulator                              Accumulator;
-    typedef typename SumSet1Ctr::LeafPairsVector                    ArrayData;
+    typedef typename Base::Ctr                                                  Ctr;
+    typedef typename Base::Accumulator                                          Accumulator;
+    typedef typename SumSet1Ctr::LeafPairsVector                                ArrayData;
 
-    static const Int Indexes                                        = Ctr::Indexes;
+    static const Int Indexes                                                    = Ctr::Indexes;
 
 
 
@@ -48,8 +48,6 @@ public:
         Base("SumsetBatch")
     {
         size_ = 1024*1024;
-
-        Ctr::initMetadata();
     }
 
 

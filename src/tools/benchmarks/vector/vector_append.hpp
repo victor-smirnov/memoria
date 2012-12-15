@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class VectorappendBenchmark: public SPBenchmarkTask {
+class VectorAppendBenchmark: public SPBenchmarkTask {
 public:
 
 
@@ -29,7 +29,7 @@ public:
     typedef typename Base::Profile      Profile;
 
 
-    typedef typename SmallCtrTypeFactory::Factory<Vector<UByte> >::Type         Ctr;
+    typedef typename SCtrTF<Vector<UByte>>::Type                                Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
 
@@ -42,15 +42,13 @@ public:
 
 public:
 
-    VectorappendBenchmark(StringRef name):
+    VectorAppendBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-        Ctr::initMetadata();
-
         Add("memory_size", memory_size);
     }
 
-    virtual ~VectorappendBenchmark() throw() {}
+    virtual ~VectorAppendBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

@@ -23,24 +23,15 @@
 
 #include <iostream>
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <signal.h>
-
 using namespace std;
 using namespace memoria;
-
-MEMORIA_INIT();
 
 const char* DESCRIPTION = "Run Memoria regression tests with specified configuration";
 const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MetadataInitializer<SmallProfile<> >::init();
-
-    SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
-
+    MEMORIA_INIT(SmallProfile<>);
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 

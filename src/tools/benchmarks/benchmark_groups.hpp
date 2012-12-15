@@ -141,9 +141,9 @@ public:
 };
 
 
-class PackedsetMemGraph: public LogXScaleGnuplotGraph {
+class PackedSetMemGraph: public LogXScaleGnuplotGraph {
 public:
-    PackedsetMemGraph(): LogXScaleGnuplotGraph("PSetMem")
+    PackedSetMemGraph(): LogXScaleGnuplotGraph("PSetMem")
     {
         title   = "PackedTree random read performance,\\n1 million random reads";
         xtitle  = "Memory Block Size, Kb";
@@ -155,14 +155,14 @@ public:
 
         xunit       = 1024;
 
-        AddGraph(new PsetMemBenchmark<2>(), GraphData("PackedTree<BigInt>, 2 children"));
-        AddGraph(new PsetMemBenchmark<4>(), GraphData("PackedTree<BigInt>, 4 children"));
-        AddGraph(new PsetMemBenchmark<8>(), GraphData("PackedTree<BigInt>, 8 children"));
-        AddGraph(new PsetMemBenchmark<16>(), GraphData("PackedTree<BigInt>, 16 children"));
-        AddGraph(new PsetMemBenchmark<32>(), GraphData("PackedTree<BigInt>, 32 children"));
-        AddGraph(new PsetMemBenchmark<64>(), GraphData("PackedTree<BigInt>, 64 children"));
+        AddGraph(new PSetMemBenchmark<2>(), GraphData("PackedTree<BigInt>, 2 children"));
+        AddGraph(new PSetMemBenchmark<4>(), GraphData("PackedTree<BigInt>, 4 children"));
+        AddGraph(new PSetMemBenchmark<8>(), GraphData("PackedTree<BigInt>, 8 children"));
+        AddGraph(new PSetMemBenchmark<16>(), GraphData("PackedTree<BigInt>, 16 children"));
+        AddGraph(new PSetMemBenchmark<32>(), GraphData("PackedTree<BigInt>, 32 children"));
+        AddGraph(new PSetMemBenchmark<64>(), GraphData("PackedTree<BigInt>, 64 children"));
 
-        AddGraph(new StlsetMemBenchmark("StlSetMem"), GraphData("std::set, 2 children"));
+        AddGraph(new StlSetMemBenchmark("StlSetMem"), GraphData("std::set, 2 children"));
     }
 };
 
@@ -181,9 +181,9 @@ public:
 
         logscale    = 10;
 
-        AddGraph(new PsetSizeBenchmark<16>(), GraphData("PackedSet"));
+        AddGraph(new PSetSizeBenchmark<16>(), GraphData("PackedSet"));
         AddGraph(new setFindRandomBenchmark("FindRandom"), GraphData("Memoria set"));
-        AddGraph(new StlsetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
+        AddGraph(new StlSetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
     }
 };
 
@@ -205,8 +205,8 @@ public:
 
         logscale    = 10;
 
-        AddGraph(new setScanBenchmark("SetScan"), GraphData("Memoria Set"));
-        AddGraph(new StlsetScanBenchmark("StlSetScan"), GraphData("std::set"));
+        AddGraph(new SetScanBenchmark("SetScan"), GraphData("Memoria Set"));
+        AddGraph(new StlSetScanBenchmark("StlSetScan"), GraphData("std::set"));
     }
 };
 
@@ -226,8 +226,8 @@ public:
 
         logscale    = 10;
 
-        AddGraph(new setinsertBatchBenchmark("insertBatch"), GraphData("Random insert"));
-        AddGraph(new SetappendBatchBenchmark("appendBatch"), GraphData("Sequential append"));
+        AddGraph(new SetInsertBatchBenchmark("insertBatch"), GraphData("Random insert"));
+        AddGraph(new SetAppendBatchBenchmark("appendBatch"), GraphData("Sequential append"));
     }
 };
 
@@ -268,8 +268,8 @@ public:
 
         logscale    = 10;
 
-        registerTask(new setinsertBatchBenchmark("Insert"));
-        registerTask(new SetappendBatchBenchmark("Append"));
+        registerTask(new SetInsertBatchBenchmark("Insert"));
+        registerTask(new SetAppendBatchBenchmark("Append"));
     }
 };
 
@@ -345,9 +345,9 @@ public:
 };
 
 
-class VectorinsertGraph: public LogXScaleGnuplotGraph {
+class VectorInsertGraph: public LogXScaleGnuplotGraph {
 public:
-    VectorinsertGraph(): LogXScaleGnuplotGraph("VectorInsert")
+    VectorInsertGraph(): LogXScaleGnuplotGraph("VectorInsert")
     {
         title   = "Vector insert Performance";
         xtitle  = "Block Size, Bytes";
@@ -364,12 +364,12 @@ public:
         y2unit      = 1024*1024;
 
         AddGraph(
-            new VectorRandominsertBenchmark("Random"),
+            new VectorRandomInsertBenchmark("Random"),
             GraphData("Random Insert Performance", "Random Insert Throughput")
         );
 
         AddGraph(
-            new VectorappendBenchmark("Sequential"),
+            new VectorAppendBenchmark("Sequential"),
             GraphData("Sequential Append Performance", "Sequential Append Throughput")
         );
     }
@@ -410,7 +410,7 @@ public:
 
         y2          = true;
 
-        AddGraph(new VectorMapappendBenchmark("Append"), GraphData("Append Performance", "Append Throughput"));
+        AddGraph(new VectorMapAppendBenchmark("Append"), GraphData("Append Performance", "Append Throughput"));
         AddGraph(new VectorMapSequentialReadBenchmark("Read"), GraphData("Read Performance", "Read Throughput"));
     }
 };
@@ -494,7 +494,7 @@ public:
 //          GraphData("VectorMap Performance", "VectorMap Throughput")
 //      );
 
-        AddGraph(new StlsetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
+        AddGraph(new StlSetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
     }
 };
 

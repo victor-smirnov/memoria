@@ -23,7 +23,7 @@ using namespace std;
 
 
 
-class StlsetSizeBenchmark: public BenchmarkTask {
+class StlSetSizeBenchmark: public BenchmarkTask {
 private:
 
     typedef BigInt       Key;
@@ -35,12 +35,12 @@ private:
 
 public:
 
-    StlsetSizeBenchmark(StringRef name): BenchmarkTask(name)
+    StlSetSizeBenchmark(StringRef name): BenchmarkTask(name)
     {
         average = 10;
     }
 
-    virtual ~StlsetSizeBenchmark() throw() {}
+    virtual ~StlSetSizeBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

@@ -23,7 +23,7 @@ using namespace std;
 
 
 template <Int BranchingFactor_>
-class PsetMemBenchmark: public BenchmarkTask {
+class PSetMemBenchmark: public BenchmarkTask {
 
     template <typename Key_, typename Value_, Int Blocks_>
     struct PMapFindTypes {
@@ -54,13 +54,13 @@ class PsetMemBenchmark: public BenchmarkTask {
 
 public:
 
-    PsetMemBenchmark():
+    PSetMemBenchmark():
         BenchmarkTask("FindMem."+toString(BranchingFactor_))
     {
         average = 10;
     }
 
-    virtual ~PsetMemBenchmark() throw() {}
+    virtual ~PSetMemBenchmark() throw() {}
 
     void FillPMap(Map* map, Int size)
     {

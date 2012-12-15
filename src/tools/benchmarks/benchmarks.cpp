@@ -23,25 +23,12 @@
 using namespace std;
 using namespace memoria;
 
-MEMORIA_INIT();
-
 const char* DESCRIPTION = "Run Memoria benchmarks with specified configuration";
 const char* CFG_FILE    = "benchmarks.properties";
 
-void sighandler(int signum)
-{
-    cout<<"SigSegv!"<<endl;
-    throw MemoriaSigSegv(MEMORIA_SOURCE, "Segment violation");
-}
-
-
-
-
 int main(int argc, const char** argv, const char** envp)
 {
-    signal(SIGSEGV, sighandler);
-
-    MetadataInitializer<SmallProfile<> >::init();
+    MEMORIA_INIT(SmallProfile<>);
 
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::NONE);
@@ -70,7 +57,7 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.registerTask(new MemoryThroughputGraph());
 
-        runner.registerTask(new PackedsetMemGraph());
+        runner.registerTask(new PackedSetMemGraph());
 
         runner.registerTask(new SetRandomReadGraph());
         runner.registerTask(new SetLinearReadGraph());
@@ -82,7 +69,7 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.registerTask(new VectorRandomSmallReadGraph());
         runner.registerTask(new VectorReadGraph());
-        runner.registerTask(new VectorinsertGraph());
+        runner.registerTask(new VectorInsertGraph());
 
 
         runner.registerTask(new VectorMapRandomGraph());

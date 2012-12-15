@@ -20,7 +20,7 @@ namespace memoria {
 class VectorMapExample: public SPExampleTask {
 
 private:
-    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type         Ctr;
+    typedef SCtrTF<VectorMap<BigInt, Byte>>::Type                               Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
 
@@ -28,9 +28,7 @@ public:
 
     VectorMapExample() :
         SPExampleTask("VectorMap")
-    {
-        Ctr::initMetadata();
-    }
+    {}
 
     virtual ~VectorMapExample() throw () {
     }

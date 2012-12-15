@@ -18,14 +18,14 @@ using namespace std;
 
 
 
-class setScanBenchmark: public SPBenchmarkTask {
+class SetScanBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type           SetCtrType;
+    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -36,19 +36,17 @@ class setScanBenchmark: public SPBenchmarkTask {
 
 
     Allocator*  allocator_;
-    SetCtrType*     set_;
+    SetCtrType* set_;
 
     Int         result_;
 
 public:
 
-    setScanBenchmark(StringRef name):
+    SetScanBenchmark(StringRef name):
         SPBenchmarkTask(name)
-    {
-        SetCtrType::initMetadata();
-    }
+    {}
 
-    virtual ~setScanBenchmark() throw() {}
+    virtual ~SetScanBenchmark() throw() {}
 
     Key key(Int c) const
     {

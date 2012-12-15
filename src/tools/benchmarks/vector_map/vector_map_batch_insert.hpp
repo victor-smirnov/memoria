@@ -22,21 +22,21 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
 
     typedef SPBenchmarkTask Base;
 
-    typedef typename Base::Allocator    Allocator;
-    typedef typename Base::Profile      Profile;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Profile                                              Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type    Ctr;
-    typedef typename Ctr::Iterator                                           Iterator;
-    typedef typename Ctr::ID                                                 ID;
+    typedef typename SCtrTF<VectorMap<BigInt, Byte>>::Type                      Ctr;
+    typedef typename Ctr::Iterator                                              Iterator;
+    typedef typename Ctr::ID                                                    ID;
 
-    typedef typename Ctr::IdxSet                                 SetCtrType;
+    typedef typename Ctr::IdxSet                                                SetCtrType;
 
-    typedef typename SetCtrType::Accumulator                            Accumulator;
+    typedef typename SetCtrType::Accumulator                                    Accumulator;
 
-    typedef typename SetCtrType::ISubtreeProvider                       ISubtreeProvider;
-    typedef typename SetCtrType::DefaultSubtreeProviderBase             DefaultSubtreeProviderBase;
-    typedef typename SetCtrType::NonLeafNodeKeyValuePair                NonLeafNodeKeyValuePair;
-    typedef typename SetCtrType::LeafNodeKeyValuePair                   LeafNodeKeyValuePair;
+    typedef typename SetCtrType::ISubtreeProvider                               ISubtreeProvider;
+    typedef typename SetCtrType::DefaultSubtreeProviderBase                     DefaultSubtreeProviderBase;
+    typedef typename SetCtrType::NonLeafNodeKeyValuePair                        NonLeafNodeKeyValuePair;
+    typedef typename SetCtrType::LeafNodeKeyValuePair                           LeafNodeKeyValuePair;
 
 
     class SubtreeProvider: public DefaultSubtreeProviderBase
@@ -63,7 +63,7 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
 
 
     Allocator*  allocator_;
-    Ctr* map_;
+    Ctr*        map_;
 
     BigInt      memory_size;
     Int         data_size_;
@@ -72,8 +72,6 @@ public:
     VectorMapBatchInsertBenchmark(StringRef name, Int data_size):
         SPBenchmarkTask(name), memory_size(128*1024*1024), data_size_(data_size)
     {
-        Ctr::initMetadata();
-
         Add("memory_size", memory_size);
     }
 

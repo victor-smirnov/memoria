@@ -203,8 +203,8 @@ public:
 
     MyType& operator=(const IData<Value>& value)
     {
-    	this->setValue(value);
-    	return *this;
+        this->setValue(value);
+        return *this;
     }
 
     template <typename T>

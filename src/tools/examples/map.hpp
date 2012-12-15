@@ -20,11 +20,11 @@ namespace memoria {
 
 class MapExample: public SPExampleTask {
 public:
-    typedef KVPair<BigInt, BigInt> Pair;
+    typedef KVPair<BigInt, BigInt>                                              Pair;
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                            Ctr;
+    typedef SCtrTF<Map1>::Type                                                  Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
 
@@ -36,9 +36,7 @@ public:
 
     MapExample() :
         SPExampleTask("Map")
-    {
-        Ctr::initMetadata();
-    }
+    {}
 
     virtual ~MapExample() throw () {
     }

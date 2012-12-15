@@ -27,7 +27,7 @@ class setFindRandomBenchmark: public SPBenchmarkTask {
     typedef typename Base::Profile      Profile;
 
 
-    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type           SetCtrType;
+    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -49,9 +49,6 @@ public:
     setFindRandomBenchmark(StringRef name):
         SPBenchmarkTask(name)
     {
-//        RootCtr::initMetadata();
-        SetCtrType::initMetadata();
-
         average = 10;
     }
 

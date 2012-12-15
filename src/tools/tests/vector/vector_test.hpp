@@ -30,19 +30,17 @@ class VectorTest: public BTreeBatchTestBase<
     typedef BTreeBatchTestBase<
                 Vector<T>,
                 ArrayData<T>
-    >                                                               Base;
+    >                                                                           Base;
 
-    typedef typename Base::Ctr                                      Ctr;
-    typedef typename Base::Iterator                                 Iterator;
-    typedef typename Base::ID                                       ID;
+    typedef typename Base::Ctr                                                  Ctr;
+    typedef typename Base::Iterator                                             Iterator;
+    typedef typename Base::ID                                                   ID;
 
 
 public:
     VectorTest(StringRef name):
         Base(name)
     {
-        Ctr::initMetadata();
-
         Base::max_block_size_ = 1024*40;
         Base::size_           = 1024*1024*16;
     }

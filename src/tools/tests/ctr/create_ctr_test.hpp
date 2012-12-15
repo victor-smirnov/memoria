@@ -24,12 +24,12 @@ using namespace std;
 
 class CreateCtrTest: public SPTestTask {
 
-    typedef CreateCtrTest MyType;
+    typedef CreateCtrTest                                                       MyType;
 
     typedef KVPair<BigInt, BigInt>                                              Pair;
     typedef vector<Pair>                                                        PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte> >::Type        VectorMapCtr;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                            MapCtr;
+    typedef SCtrTF<VectorMap<BigInt, Byte>>::Type                               VectorMapCtr;
+    typedef SCtrTF<Map1>::Type                                                  MapCtr;
     typedef VectorMapCtr::Iterator                                              VMIterator;
 
     PairVector pairs_;
@@ -47,9 +47,6 @@ public:
 
     CreateCtrTest(): SPTestTask("CreateCtr")
     {
-        VectorMapCtr::initMetadata();
-        MapCtr::initMetadata();
-
         MEMORIA_ADD_TEST_PARAM(map_size_)->setDescription("Size of the Map container");
         MEMORIA_ADD_TEST_PARAM(vector_map_size_)->setDescription("Size of the VectorMap container");
         MEMORIA_ADD_TEST_PARAM(block_size_)->setDescription("Size of data block inserted into VectorMap container");

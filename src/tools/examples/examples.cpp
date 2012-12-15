@@ -20,29 +20,15 @@
 
 #include <iostream>
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <signal.h>
-
 using namespace std;
 using namespace memoria;
-
-MEMORIA_INIT();
 
 const char* DESCRIPTION = "Run Memoria examples with specified configuration";
 const char* CFG_FILE    = "examples.properties";
 
-void sighandler(int signum)
-{
-    cout<<"SigSegv!"<<endl;
-    throw MemoriaSigSegv(MEMORIA_SOURCE, "Segment violation");
-}
-
 int main(int argc, const char** argv, const char** envp)
 {
-    signal(SIGSEGV, sighandler);
-
-    SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+    MEMORIA_INIT(SmallProfile<>);
 
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);

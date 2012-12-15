@@ -31,7 +31,7 @@ class VectorMapTest: public SPTestTask {
 
     typedef KVPair<BigInt, BigInt>                                              Pair;
     typedef vector<Pair>                                                        PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type         Ctr;
+    typedef SCtrTF<VectorMap<BigInt, Byte>>::Type                               Ctr;
     typedef Ctr::Iterator                                                       VMIterator;
 
 
@@ -53,8 +53,6 @@ public:
 
     VectorMapTest(): SPTestTask("VectorMap")
     {
-        Ctr::initMetadata();
-
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
 
         MEMORIA_ADD_TEST_PARAM(step_)->state();

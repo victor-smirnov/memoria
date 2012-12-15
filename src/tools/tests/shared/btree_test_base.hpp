@@ -25,7 +25,7 @@ class BTreeBatchTestBase: public SPTestTask {
     typedef BTreeBatchTestBase<ContainerTypeName, ArrayData>                            MyType;
 
 protected:
-    typedef typename SmallCtrTypeFactory::Factory<ContainerTypeName>::Type              Ctr;
+    typedef typename SCtrTF<ContainerTypeName>::Type                                    Ctr;
     typedef typename Ctr::Iterator                                                      Iterator;
     typedef typename Ctr::Accumulator                                                   Accumulator;
     typedef typename Ctr::ID                                                            ID;

@@ -17,11 +17,11 @@ namespace memoria {
 
 class CopyCtrExample: public SPExampleTask {
 public:
-    typedef KVPair<BigInt, BigInt> Pair;
+    typedef KVPair<BigInt, BigInt>                                              Pair;
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type         Ctr;
+    typedef SCtrTF<VectorMap<BigInt, Byte>>::Type                               Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
 
@@ -33,9 +33,7 @@ public:
 
     CopyCtrExample() :
         SPExampleTask("CopyCtr")
-    {
-        Ctr::initMetadata();
-    }
+    {}
 
     virtual ~CopyCtrExample() throw () {
     }
@@ -58,8 +56,6 @@ public:
     virtual void Run(ostream& out)
     {
         DefaultLogHandlerImpl logHandler(out);
-
-
 
         {
 

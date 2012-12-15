@@ -163,9 +163,9 @@ public:
     }
 
     static ArrayData<T> var(T& ref)
-	{
-    	return ArrayData<T>(sizeof(ref), &ref, false);
-	}
+    {
+        return ArrayData<T>(sizeof(ref), &ref, false);
+    }
 
 
     void dump(std::ostream& out) {

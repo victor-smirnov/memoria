@@ -24,10 +24,10 @@ public:
 
     typedef SPBenchmarkTask Base;
 
-    typedef typename Base::Allocator    Allocator;
-    typedef typename Base::Profile      Profile;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Profile                                              Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Vector<UByte>>::Type          Ctr;
+    typedef typename SCtrTF<Vector<UByte>>::Type                                Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
 
@@ -42,8 +42,6 @@ public:
     VectorinsertBatchBenchmark(StringRef name):
         SPBenchmarkTask(name), max_size(128*1024*1024)
     {
-        Ctr::initMetadata();
-
         Add("max_size", max_size);
     }
 
