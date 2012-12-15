@@ -104,13 +104,6 @@ class ArrayData: public IData<T> {
     bool    owner_;
 public:
 
-    template <typename Value>
-    ArrayData(Value& value):
-        length_(sizeof(Value)),
-        data_(T2T<T*>(&value)),
-        owner_(false)
-    {}
-
     ArrayData(SizeT length, void* data, bool owner = false):length_(length), data_(T2T<T*>(data)), owner_(owner) {}
     ArrayData(SizeT length):length_(length), data_(T2T<T*>(::malloc(length*sizeof(T)))), owner_(true) {}
 
@@ -168,6 +161,11 @@ public:
         CopyBuffer(data_ + start, buffer, length);
         return length;
     }
+
+    static ArrayData<T> var(T& ref)
+	{
+    	return ArrayData<T>(sizeof(ref), &ref, false);
+	}
 
 
     void dump(std::ostream& out) {

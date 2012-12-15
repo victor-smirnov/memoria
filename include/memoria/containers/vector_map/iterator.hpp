@@ -36,6 +36,7 @@ class Iter<VectorMapIterTypes<Types> >: public IterStart<VectorMapIterTypes<Type
     typedef typename Page::ID                                   ID;
 
     typedef typename ContainerType::Key                         Key;
+    typedef typename ContainerType::Value                       Value;
 
     ContainerType&      model_;
 
@@ -200,6 +201,11 @@ public:
         return is_iter_.isNotEnd();
     }
 
+    MyType& operator=(const IData<Value>& value)
+    {
+    	this->setValue(value);
+    	return *this;
+    }
 
     template <typename T>
     MyType& operator=(const T& value)

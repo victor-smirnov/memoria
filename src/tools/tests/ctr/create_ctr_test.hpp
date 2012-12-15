@@ -102,7 +102,7 @@ public:
 
         for (Int c = 0; c < vector_map_size_; c++)
         {
-            vector_map[getRandom()] = createBuffer(getRandom(block_size_), getRandom(256));
+            vector_map[getRandom()] = createBuffer<Byte>(getRandom(block_size_), getRandom(256));
         }
 
         allocator.commit();

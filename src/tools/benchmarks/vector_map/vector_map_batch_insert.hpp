@@ -100,7 +100,7 @@ public:
     {
         Int size = params.x();
 
-        ArrayData<UByte> data(size * data_size_, malloc(size * data_size_), true);
+        ArrayData<Byte> data(size * data_size_, malloc(size * data_size_), true);
 
         SubtreeProvider provider(&map_->set(), size, data_size_);
 

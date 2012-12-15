@@ -44,24 +44,24 @@ typedef ArrayData<ElementType>                              ArrayDataType;
 
 
 
-void insert(const ArrayDataType& data)
+void insert(const IData<ElementType>& data)
 {
     me()->ba_iter().insert(data);
 
     IdxsetAccumulator keys;
 
-    keys.key(1) = data.size();
+    keys.key(1) = data.getSize();
 
     me()->is_iter().updateUp(keys);
 }
 
-void update(const ArrayDataType& data)
+void update(const IData<ElementType>& data)
 {
     BigInt sz = me()->size();
 
     if (sz > 0)
     {
-        BigInt difference = sz - data.size();
+        BigInt difference = sz - data.getSize();
 
         if (difference < 0)
         {
@@ -88,7 +88,7 @@ void update(const ArrayDataType& data)
         me()->insert(data);
     }
 
-    me()->ba_iter().skip(-data.size());
+    me()->ba_iter().skip(-data.getSize());
 }
 
 
@@ -103,13 +103,13 @@ ArrayDataType read()
 }
 
 
-BigInt read(ArrayDataType& data)
+BigInt read(IData<ElementType>& data)
 {
-    return read(data, 0, data.size());
+    return read(data, 0, data.getSize());
 }
 
 
-BigInt read(ArrayDataType& data, BigInt start, BigInt length)
+BigInt read(IData<ElementType>& data, BigInt start, BigInt length)
 {
     BigInt current_pos  = me()->pos();
     BigInt current_size = me()->size();
@@ -240,7 +240,7 @@ void setValue(StringRef value)
     me()->update(data);
 }
 
-void setValue(const ArrayDataType& value)
+void setValue(const IData<ElementType>& value)
 {
     me()->update(value);
 }

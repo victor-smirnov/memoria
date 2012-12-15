@@ -29,7 +29,7 @@ class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
     typedef typename SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type    Ctr;
     typedef typename Ctr::Iterator                                                  Iterator;
 
-    static const Int MAX_DATA_SIZE                                          = 256;
+    static const Int MAX_DATA_SIZE                                          		= 256;
 
     Allocator*  allocator_;
     Ctr*        ctr_;
@@ -53,7 +53,7 @@ public:
         allocator_ = new Allocator();
 
         Int size = params.x();
-        ArrayData<UByte> data(size, malloc(size), true);
+        ArrayData<Byte> data(size, malloc(size), true);
 
         BigInt total = 0;
 

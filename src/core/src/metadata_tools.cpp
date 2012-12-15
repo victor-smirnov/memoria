@@ -195,6 +195,15 @@ private:
         out<<str.str();
     }
 
+    template <typename T>
+    T cvt(T value) {
+    	return value;
+    }
+
+    UByte cvt(Byte value) {
+    	return (Byte)value;
+    }
+
 
     template <typename T>
     void dumpArray(const char* name, const T* data, Int count)
@@ -230,10 +239,9 @@ private:
 
             for (Int d = 0; d < columns && c + d < count; d++)
             {
-                T udata = data[c + d];
                 out_<<hex;
                 out_.width(width);
-                out_<<udata;
+                out_<<cvt(data[c + d]);
             }
 
             out_<<dec<<endl;
