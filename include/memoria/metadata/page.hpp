@@ -30,7 +30,7 @@ struct IPageLayoutEventHandler {
 
 struct IPageDataEventHandler {
 
-    enum {BYTE_ARRAY, BITMAP};
+    enum {BYTE_ARRAY = 100, BITMAP};
 
     virtual ~IPageDataEventHandler() {}
 

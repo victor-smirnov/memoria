@@ -567,8 +567,7 @@ static inline void CopyByteBuffer(const void *src, void *dst, size_t size)
 template <typename T>
 void MoveBuffer(T *src, long from, long to, long size)
 {
-    char* csrc = (char*)src;
-    CopyBuffer(csrc + from, csrc + to, size*sizeof(T));
+    CopyBuffer(src + from, src + to, size);
 }
 
 static inline bool CompareBuffers(const void *src, const void *dst, long size)

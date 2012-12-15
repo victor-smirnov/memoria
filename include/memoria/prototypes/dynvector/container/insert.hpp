@@ -380,8 +380,6 @@ void M_TYPE::importPages(Iterator& iter, const IDataType& buffer)
         iter.prevKey();
         iter.dataPos() = iter.data()->size();
     }
-
-//  iter.init();
 }
 
 

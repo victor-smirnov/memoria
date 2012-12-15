@@ -26,7 +26,8 @@ public:
     VectorTestSuite(): TestSuite("VectorSuite")
     {
         registerTask(new VectorTest<UByte>("UByte"));
-//        registerTask(new VectorTest<Int>("Int"));
+        registerTask(new VectorTest<Int>("Int"));
+        registerTask(new VectorTest<BigInt>("BigInt"));
     }
 
 };

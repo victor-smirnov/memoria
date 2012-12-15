@@ -120,12 +120,6 @@ public:
     virtual void setUp(ostream&) {}
     virtual void tearDown(ostream&) {}
 
-    virtual void addParameters() {}
-
-    virtual void addTests() {}
-
-
-
     template <typename T>
     using TaskMethodPtr = void (T::*) (std::ostream&);
 
@@ -157,14 +151,6 @@ public:
     {
         return replay_;
     }
-
-//    virtual void Store(TestReplayParams* params) const
-//    {
-//    //    Configure(params);
-//
-//        String props_name = getPropertiesFileName();
-//        StoreProperties(props_name);
-//    }
 
     virtual String getPropertiesFileName(StringRef infix = "") const
     {

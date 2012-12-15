@@ -83,7 +83,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            dumpByteArray("DATA", value, count);
+            dumpArray("DATA", value, count);
         }
         else {
             OutNumber(name, value, count, kind);
@@ -92,7 +92,13 @@ public:
 
     virtual void value(const char* name, const UByte* value, Int count = 1, Int kind = 0)
     {
-        OutNumber(name, value, count, kind);
+    	if (kind == BYTE_ARRAY)
+    	{
+    		dumpArray("DATA", value, count);
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
     }
 
     virtual void value(const char* name, const Short* value, Int count = 1, Int kind = 0)
@@ -108,7 +114,13 @@ public:
 
     virtual void value(const char* name, const Int* value, Int count = 1, Int kind = 0)
     {
-        OutNumber(name, value, count, kind);
+    	if (kind == BYTE_ARRAY)
+    	{
+    		dumpArray("DATA", value, count);
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
     }
 
 
@@ -184,32 +196,44 @@ private:
     }
 
 
-    void dumpByteArray(const char* name, const Byte* data, Int count)
+    template <typename T>
+    void dumpArray(const char* name, const T* data, Int count)
     {
-        out_<<endl;
-        Expand(out_, 24);
-        for (int c = 0; c < 32; c++)
+        Int columns;
+
+        switch (sizeof(T)) {
+        	case 1: columns = 32; break;
+        	case 2: columns = 16; break;
+        	case 4: columns = 16; break;
+        	default: columns = 8;
+        }
+
+        Int width = sizeof(T) * 2 + 1;
+
+    	out_<<endl;
+        Expand(out_, 19 + width);
+        for (int c = 0; c < columns; c++)
         {
-            out_.width(3);
+            out_.width(width);
             out_<<hex<<c;
         }
         out_<<endl;
 
-        for (Int c = 0; c < count; c+= 32)
+        for (Int c = 0; c < count; c+= columns)
         {
             Expand(out_, 12);
             out_<<" ";
-            out_.width(4);
+            out_.width(6);
             out_<<dec<<c<<" "<<hex;
-            out_.width(4);
+            out_.width(6);
             out_<<c<<": ";
 
-            for (Int d = 0; d < 32 && c + d < count; d++)
+            for (Int d = 0; d < columns && c + d < count; d++)
             {
-                UByte udata = data[c + d];
+                T udata = data[c + d];
                 out_<<hex;
-                out_.width(3);
-                out_<<(Int)udata;
+                out_.width(width);
+                out_<<udata;
             }
 
             out_<<dec<<endl;

@@ -33,12 +33,13 @@ protected:
     Int max_block_size_     = 1024*40;
 
     Int page_size_cnt_      = 0;
+    Int new_page_size_      = 0;
 
     Int ctr_name_;
 
     String dump_name_;
 
-    Int     data_;
+    BigInt  data_;
     bool    insert_;
     Int     block_size_;
     Int     page_step_;
@@ -70,6 +71,8 @@ public:
         MEMORIA_ADD_TEST_PARAM(cnt_)->state();
         MEMORIA_ADD_TEST_PARAM(step_)->state();
 
+        MEMORIA_ADD_TEST_PARAM(new_page_size_)->state();
+
         MEMORIA_ADD_TEST_WITH_REPLAY(runTest, runReplay);
     }
 
@@ -93,6 +96,8 @@ public:
         check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
         Ctr dv(&allocator, ctr_name_);
+
+        dv.setNewPageSize(new_page_size_);
 
         if (insert_)
         {
@@ -149,7 +154,7 @@ public:
         try {
             out<<"insert data"<<endl;
             insert_ = true;
-            data_ = 1;
+            data_ = 1;//0xabcdef00;
 
             while (getSize(dv) < size_)
             {
@@ -158,10 +163,12 @@ public:
                     step_        = getRandom(3);
                 }
 
-                if (page_size_cnt_ % 1 == 0)
+                if (!isReplayMode())
                 {
-                    dv.setNewPageSize(4096 + getRandom(10)*1024);
+                	new_page_size_ = 4096 + getRandom(10)*1024;
                 }
+
+                dv.setNewPageSize(new_page_size_);
 
                 block_size_  = 1 + getRandom(max_block_size_);
 
@@ -221,9 +228,7 @@ public:
 
     void Build(ostream& out, Allocator& allocator, Ctr& array)
     {
-        UByte value = data_;
-
-        ArrayData data = createBuffer(array, block_size_, value);
+        ArrayData data = createBuffer(array, block_size_, data_);
 
         BigInt size = getSize(array);
 
@@ -272,6 +277,7 @@ public:
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
                 checkBufferWritten(iter, postfix, "Failed to read and compare buffer postfix from array",   MEMORIA_SOURCE);
+
                 checkIterator(out, iter, MEMORIA_SOURCE);
             }
             else if (step_ == 1)
