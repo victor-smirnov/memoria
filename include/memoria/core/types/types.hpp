@@ -94,39 +94,36 @@ template <typename T> struct TypeHash; // must define Value constant
  * Container type names & profiles
  */
 
-struct BTreeCtr     {};
-struct BSTreeCtr    {};
+struct BTree        {};
+struct BSTree       {};
 
 template <typename T>
-struct DynVectorCtr {};
-struct CompositeCtr {};
+struct DynVector    {};
+struct Composite    {};
 
 struct Superblock   {};
-struct RootCtr      {};
+struct Root         {};
 
 template <typename Key, typename Value, Int Indexes = 1>
-struct MapCtr       {};
+struct Map          {};
 
-typedef MapCtr<BigInt, BigInt, 1>       Map1Ctr;
-
-//template <Int Indexes>
-//struct SetCtr       {};
+typedef Map<BigInt, BigInt, 1>       Map1;
 
 template <typename Key, Int Indexes = 1>
-using SetCtr = MapCtr<Key, EmptyValue, Indexes>;
+using Set = Map<Key, EmptyValue, Indexes>;
 
 
-typedef SetCtr<BigInt, 1>       Set1Ctr;
-typedef SetCtr<BigInt, 2>       Set2Ctr;
+typedef Set<BigInt, 1>       Set1;
+typedef Set<BigInt, 2>       Set2;
 
 struct DFUDS        {};
 struct LOUDS        {};
 
 template <typename Key, typename Value>
-struct VectorMapCtr {};
+struct VectorMap    {};
 
 template <typename T>
-struct VectorCtr    {};
+struct Vector       {};
 
 
 template <typename ChildType = void>

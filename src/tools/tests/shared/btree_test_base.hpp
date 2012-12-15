@@ -165,7 +165,7 @@ public:
 
                 if (!isReplayMode())
                 {
-                	new_page_size_ = 4096 + getRandom(10)*1024;
+                    new_page_size_ = 4096 + getRandom(10)*1024;
                 }
 
                 dv.setNewPageSize(new_page_size_);

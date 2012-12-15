@@ -25,8 +25,7 @@ class VectorRandominsertBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type                 RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte>>::Type       VectorCtrType;
+    typedef typename SmallCtrTypeFactory::Factory<Vector<UByte>>::Type          VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
     typedef typename VectorCtrType::ID                                          ID;
     typedef typename VectorCtrType::Accumulator                                 Accumulator;
@@ -34,8 +33,8 @@ class VectorRandominsertBenchmark: public SPBenchmarkTask {
 
     typedef typename VectorCtrType::Key                                         Key;
 
-    Allocator* allocator_;
-    VectorCtrType* ctr_;
+    Allocator*      allocator_;
+    VectorCtrType*  ctr_;
 
     BigInt memory_size;
 
@@ -44,7 +43,6 @@ public:
     VectorRandominsertBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-//        RootCtr::initMetadata();
         VectorCtrType::initMetadata();
 
         Add("memory_size", memory_size);

@@ -27,8 +27,8 @@ class VectorMapSequentialReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte>>::Type	Ctr;
-    typedef typename Ctr::Iterator                                      			Iterator;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type    Ctr;
+    typedef typename Ctr::Iterator                                                  Iterator;
 
     Allocator*  allocator_;
     Ctr*        ctr_;

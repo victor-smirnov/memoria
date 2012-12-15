@@ -25,8 +25,7 @@ class setScanBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<Set1Ctr>::Type       SetCtrType;
+    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type           SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -46,7 +45,6 @@ public:
     setScanBenchmark(StringRef name):
         SPBenchmarkTask(name)
     {
-//        RootCtr::initMetadata();
         SetCtrType::initMetadata();
     }
 

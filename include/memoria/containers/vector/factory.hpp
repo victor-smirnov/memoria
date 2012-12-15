@@ -29,9 +29,9 @@
 namespace memoria {
 
 template <typename Profile, typename ElementType>
-struct BTreeTypes<Profile, memoria::VectorCtr<ElementType>>: public BTreeTypes<Profile, memoria::DynVectorCtr<ElementType>>  {
+struct BTreeTypes<Profile, memoria::Vector<ElementType>>: public BTreeTypes<Profile, memoria::DynVector<ElementType>>  {
 
-    typedef BTreeTypes<Profile, memoria::DynVectorCtr<ElementType>>                 Base;
+    typedef BTreeTypes<Profile, memoria::DynVector<ElementType>>                 Base;
 
     typedef typename AppendTool<
             typename Base::ContainerPartsList,
@@ -61,7 +61,7 @@ struct BTreeTypes<Profile, memoria::VectorCtr<ElementType>>: public BTreeTypes<P
 
 
 template <typename Profile, typename T, typename ElementType>
-class CtrTF<Profile, memoria::VectorCtr<ElementType>, T>: public CtrTF<Profile, memoria::DynVectorCtr<ElementType>, T> {
+class CtrTF<Profile, memoria::Vector<ElementType>, T>: public CtrTF<Profile, memoria::DynVector<ElementType>, T> {
 
 };
 

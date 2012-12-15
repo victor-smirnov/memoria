@@ -19,33 +19,33 @@ namespace memoria    {
 template <typename Profile_, typename ContainerTypeSelector>
 struct CompositeTypes {
 
-    typedef Profile_                                                        Profile;
+    typedef Profile_                                                            Profile;
 
     typedef TypeList<
         memoria::btree::AllocatorName
-    >                                                                       ContainerPartsList;
+    >                                                                           ContainerPartsList;
 
     typedef TypeList<>                                                          IteratorPartsList;
 
-    typedef EmptyType                                                       IteratorInterface;
+    typedef EmptyType                                                           IteratorInterface;
 
     template <typename Types_>
     struct IterBaseFactory {
-        typedef IteratorBase<Types_>                                        Type;
+        typedef IteratorBase<Types_>                                            Type;
     };
 
     template <typename Types_>
     struct CtrBaseFactory {
-        typedef ContainerBase<Types_>                                       Type;
+        typedef ContainerBase<Types_>                                           Type;
     };
 };
 
 
 
 template <typename Profile_, typename T>
-class CtrTF<Profile_, memoria::CompositeCtr, T> {
+class CtrTF<Profile_, memoria::Composite, T> {
 
-    typedef CtrTF<Profile_, CompositeCtr, T>                                    MyType;
+    typedef CtrTF<Profile_, Composite, T>                                       MyType;
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 

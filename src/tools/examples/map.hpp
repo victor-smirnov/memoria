@@ -24,7 +24,7 @@ public:
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                 MapCtrType;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                    MapCtrType;
     typedef typename MapCtrType::Iterator                               Iterator;
     typedef typename MapCtrType::ID                                     ID;
 

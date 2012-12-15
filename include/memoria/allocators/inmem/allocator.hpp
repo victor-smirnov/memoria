@@ -55,7 +55,7 @@ public:
 
     typedef Base                                                                AbstractAllocator;
 
-    typedef Ctr<typename CtrTF<Profile, RootCtr>::CtrTypes>                     RootMapType;
+    typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>                        RootMapType;
     typedef typename RootMapType::Metadata                                      RootMetatata;
     typedef typename RootMapType::BTreeCtrShared                                RootCtrShared;
 

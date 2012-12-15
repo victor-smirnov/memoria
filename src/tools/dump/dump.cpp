@@ -218,12 +218,12 @@ MEMORIA_INIT();
 
 int main(int argc, const char** argv, const char** envp)
 {
-    SmallCtrTypeFactory::Factory<RootCtr>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<Map1Ctr>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<VectorCtr<UByte>>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<VectorCtr<Int>>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte>>::Type::initMetadata();
-    SmallCtrTypeFactory::Factory<Set1Ctr>::Type::initMetadata();
+    SmallCtrTypeFactory::Factory<Root>::Type::initMetadata();
+    SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
+    SmallCtrTypeFactory::Factory<Vector<UByte>>::Type::initMetadata();
+    SmallCtrTypeFactory::Factory<Vector<Int>>::Type::initMetadata();
+    SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type::initMetadata();
+    SmallCtrTypeFactory::Factory<Set1>::Type::initMetadata();
 
 
     try {

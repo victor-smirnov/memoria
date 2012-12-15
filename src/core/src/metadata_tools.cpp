@@ -92,13 +92,13 @@ public:
 
     virtual void value(const char* name, const UByte* value, Int count = 1, Int kind = 0)
     {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		dumpArray("DATA", value, count);
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            dumpArray("DATA", value, count);
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
     virtual void value(const char* name, const Short* value, Int count = 1, Int kind = 0)
@@ -114,13 +114,13 @@ public:
 
     virtual void value(const char* name, const Int* value, Int count = 1, Int kind = 0)
     {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		dumpArray("DATA", value, count);
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            dumpArray("DATA", value, count);
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
 
@@ -202,15 +202,15 @@ private:
         Int columns;
 
         switch (sizeof(T)) {
-        	case 1: columns = 32; break;
-        	case 2: columns = 16; break;
-        	case 4: columns = 16; break;
-        	default: columns = 8;
+            case 1: columns = 32; break;
+            case 2: columns = 16; break;
+            case 4: columns = 16; break;
+            default: columns = 8;
         }
 
         Int width = sizeof(T) * 2 + 1;
 
-    	out_<<endl;
+        out_<<endl;
         Expand(out_, 19 + width);
         for (int c = 0; c < columns; c++)
         {

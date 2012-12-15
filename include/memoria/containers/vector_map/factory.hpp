@@ -36,9 +36,9 @@ using namespace memoria::vector_map;
 
 
 template <typename Profile, typename Key, Int Indexes_>
-struct BTreeTypes<Profile, memoria::VMSetCtr<Key, Indexes_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
+struct BTreeTypes<Profile, memoria::VMSet<Key, Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
 
-    typedef BTreeTypes<Profile, memoria::BSTreeCtr >                        Base;
+    typedef BTreeTypes<Profile, memoria::BSTree>                            Base;
 
     typedef EmptyValue                                                      Value;
 
@@ -47,20 +47,20 @@ struct BTreeTypes<Profile, memoria::VMSetCtr<Key, Indexes_> >: public BTreeTypes
 
 
 template <typename Profile, typename T, typename Key, Int Indexes>
-class CtrTF<Profile, memoria::VMSetCtr<Key, Indexes>, T>: public CtrTF<Profile, memoria::BSTreeCtr, T> {
+class CtrTF<Profile, memoria::VMSet<Key, Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
 };
 
 
 template <typename Profile_, typename Key_, typename Value_>
-struct CompositeTypes<Profile_, VectorMapCtr<Key_,Value_>>: public CompositeTypes<Profile_, CompositeCtr> {
+struct CompositeTypes<Profile_, VectorMap<Key_,Value_>>: public CompositeTypes<Profile_, Composite> {
 
-    typedef VectorMapCtr<Key_,Value_>                                           ContainerTypeName;
+    typedef VectorMap<Key_,Value_>                                              ContainerTypeName;
 
-    typedef Key_																Key;
-    typedef Value_																Value;
+    typedef Key_                                                                Key;
+    typedef Value_                                                              Value;
 
 
-    typedef CompositeTypes<Profile_, CompositeCtr>                              Base;
+    typedef CompositeTypes<Profile_, Composite>                                 Base;
 
     typedef typename AppendTool<
                 typename Base::ContainerPartsList,
@@ -86,13 +86,13 @@ struct CompositeTypes<Profile_, VectorMapCtr<Key_,Value_>>: public CompositeType
 
 
 template <typename Profile_, typename T, typename Key, typename Value>
-class CtrTF<Profile_, VectorMapCtr<Key, Value>, T> {
+class CtrTF<Profile_, VectorMap<Key, Value>, T> {
 
-    typedef CtrTF<Profile_, VectorMapCtr<Key, Value>, T>                        MyType;
+    typedef CtrTF<Profile_, VectorMap<Key, Value>, T>                           MyType;
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 
-    typedef CompositeTypes<Profile_, VectorMapCtr<Key, Value> >                 ContainerTypes;
+    typedef CompositeTypes<Profile_, VectorMap<Key, Value> >                    ContainerTypes;
 
 public:
 

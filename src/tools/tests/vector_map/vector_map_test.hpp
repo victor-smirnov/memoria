@@ -27,12 +27,12 @@ using namespace std;
 
 class VectorMapTest: public SPTestTask {
 
-    typedef VectorMapTest                                               		MyType;
+    typedef VectorMapTest                                                       MyType;
 
-    typedef KVPair<BigInt, BigInt>                                      		Pair;
-    typedef vector<Pair>                                                		PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte>>::Type     	VectorMapCtrType;
-    typedef VectorMapCtrType::Iterator                                  		VMIterator;
+    typedef KVPair<BigInt, BigInt>                                              Pair;
+    typedef vector<Pair>                                                        PairVector;
+    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type         VectorMapCtrType;
+    typedef VectorMapCtrType::Iterator                                          VMIterator;
 
 
     PairVector pairs_;

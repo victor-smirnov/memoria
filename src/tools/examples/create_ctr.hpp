@@ -22,7 +22,7 @@ public:
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                 MapCtrType;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                    MapCtrType;
     typedef typename MapCtrType::Iterator                               Iterator;
     typedef typename MapCtrType::ID                                     ID;
     typedef typename MapCtrType::Accumulator                            Accumulator;
@@ -35,8 +35,7 @@ public:
     CreateCtrExample() :
         SPExampleTask("CreateCtr")
     {
-        SmallCtrTypeFactory::Factory<RootCtr>::Type::initMetadata();
-        SmallCtrTypeFactory::Factory<Map1Ctr>::Type::initMetadata();
+        SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
     }
 
     virtual ~CreateCtrExample() throw () {

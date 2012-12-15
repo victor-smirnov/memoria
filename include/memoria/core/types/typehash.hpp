@@ -73,24 +73,24 @@ struct TypeHash<T[Size]> {
 };
 
 template <typename Key, typename Value>
-struct TypeHash<VectorMapCtr<Key, Value>>: UIntValue<
-	HashHelper<1000, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+struct TypeHash<VectorMap<Key, Value>>: UIntValue<
+    HashHelper<1000, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
 
 template <typename Key, typename Value, Int Indexes>
-struct TypeHash<MapCtr<Key, Value, Indexes>>:   UIntValue<
-	HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value, Indexes>::Value
+struct TypeHash<Map<Key, Value, Indexes>>:   UIntValue<
+    HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value, Indexes>::Value
 > {};
 
 
 
 template <typename T>
-struct TypeHash<VectorCtr<T>>: UIntValue<HashHelper<1300, TypeHash<T>::Value>::Value> {};
+struct TypeHash<Vector<T>>: UIntValue<HashHelper<1300, TypeHash<T>::Value>::Value> {};
 
 
 
-template <> struct TypeHash<RootCtr>: UIntValue<1400> {};
+template <> struct TypeHash<Root>: UIntValue<1400> {};
 
 }
 

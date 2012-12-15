@@ -26,11 +26,11 @@ class CreateCtrTest: public SPTestTask {
 
     typedef CreateCtrTest MyType;
 
-    typedef KVPair<BigInt, BigInt>                                      		Pair;
-    typedef vector<Pair>                                                		PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte> >::Type     VectorMapCtrType;
-    typedef SmallCtrTypeFactory::Factory<Map1Ctr>::Type                 		MapCtrType;
-    typedef VectorMapCtrType::Iterator                                  		VMIterator;
+    typedef KVPair<BigInt, BigInt>                                              Pair;
+    typedef vector<Pair>                                                        PairVector;
+    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte> >::Type        VectorMapCtrType;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                            MapCtrType;
+    typedef VectorMapCtrType::Iterator                                          VMIterator;
 
     PairVector pairs_;
 

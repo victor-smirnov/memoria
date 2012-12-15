@@ -49,16 +49,16 @@ public:
 //
 //        if (ctx != nullptr)
 //        {
-//        	if (!ctx->IsEnabled())
-//        	{
+//          if (!ctx->IsEnabled())
+//          {
 //
-//        	}
+//          }
 //        }
 //        else {
-//        	return enabled;
+//          return enabled;
 //        }
 
-    	return enabled;
+        return enabled;
     }
 
     void setEnabled(bool enabled)
@@ -214,7 +214,7 @@ public:
     }
 
     virtual void Process(Configurator* cfg) {
-    	TaskParametersSet::Process(cfg);
+        TaskParametersSet::Process(cfg);
     }
 };
 

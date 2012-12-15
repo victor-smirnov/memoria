@@ -35,19 +35,11 @@ MEMORIA_INIT();
 const char* DESCRIPTION = "Run Memoria regression tests with specified configuration";
 const char* CFG_FILE    = "tests.properties";
 
-void sighandler(int signum)
-{
-    cout<<"SigSegv!"<<endl;
-    throw MemoriaSigSegv(MEMORIA_SOURCE, "Segment violation");
-}
-
 int main(int argc, const char** argv, const char** envp)
 {
-    //signal(SIGSEGV, sighandler);
-
     MetadataInitializer<SmallProfile<> >::init();
 
-    SmallCtrTypeFactory::Factory<Map1Ctr>::Type::initMetadata();
+    SmallCtrTypeFactory::Factory<Map1>::Type::initMetadata();
 
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);

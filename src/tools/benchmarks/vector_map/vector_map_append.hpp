@@ -26,9 +26,9 @@ class VectorMapappendBenchmark: public SPBenchmarkTask {
     typedef typename Base::Profile      Profile;
 
 
-    typedef typename SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte>>::Type	MapCtrType;
-    typedef typename MapCtrType::Iterator                               			Iterator;
-    typedef typename MapCtrType::ID                                     			ID;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type    MapCtrType;
+    typedef typename MapCtrType::Iterator                                           Iterator;
+    typedef typename MapCtrType::ID                                                 ID;
 
 
     Allocator*  allocator_;

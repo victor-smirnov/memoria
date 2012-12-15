@@ -63,12 +63,12 @@ struct DynVectorContainerTypes: public Base {
 
 
 template <typename Profile, typename ElementType_>
-struct BTreeTypes<Profile, memoria::DynVectorCtr<ElementType_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
+struct BTreeTypes<Profile, memoria::DynVector<ElementType_> >: public BTreeTypes<Profile, memoria::BSTree> {
 
     typedef IDType                                                              Value;
-    typedef BTreeTypes<Profile, memoria::BSTreeCtr>                             Base;
+    typedef BTreeTypes<Profile, memoria::BSTree>                                Base;
 
-    typedef TypeList<>                                                              DataPagePartsList;
+    typedef TypeList<>                                                          DataPagePartsList;
 
     static const bool MapType                                                   = MapTypes::Sum;
 
@@ -119,23 +119,25 @@ template <
         typename ContainerTypeName,
         typename Atom
 >
-class CtrTF<Profile, memoria::DynVectorCtr<Atom>, ContainerTypeName>: public CtrTF<Profile, memoria::BSTreeCtr, ContainerTypeName> {
+class CtrTF<Profile, memoria::DynVector<Atom>, ContainerTypeName>: public CtrTF<Profile, memoria::BSTree, ContainerTypeName> {
 
-    typedef CtrTF<Profile, memoria::BSTreeCtr, ContainerTypeName>                   Base1;
+    typedef CtrTF<Profile, memoria::BSTree, ContainerTypeName>                   Base1;
 
 public:
 
-    typedef typename Base1::ContainerTypes                                          ContainerTypes;
+    typedef typename Base1::ContainerTypes                                       ContainerTypes;
 
-    typedef typename ContainerTypes::DataPagePartsList                              DataPagePartsList;
+    typedef typename ContainerTypes::DataPagePartsList                           DataPagePartsList;
 
     MEMORIA_STATIC_ASSERT(IsList<DataPagePartsList>::Value);
 
     typedef DVDataPage<
                 DataPagePartsList,
                 typename ContainerTypes::DataBlock,
-                memoria::btree::TreePage<typename ContainerTypes::Allocator::Page>
-    >                                                                               DataPage;
+                memoria::btree::TreePage<
+                    typename ContainerTypes::Allocator::Page
+                >
+    >                                                                           DataPage;
 
 
 
@@ -153,26 +155,26 @@ public:
                 typename ContainerTypes::BufferContentDescriptor,
                 typename ContainerTypes::CountData,
                 typename Base1::Types
-        >                                                                           Base0;
+        >                                                                       Base0;
 
 
-        typedef typename Base0::ContainerPartsList                                  CtrList;
-        typedef typename Base0::IteratorPartsList                                   IterList;
+        typedef typename Base0::ContainerPartsList                              CtrList;
+        typedef typename Base0::IteratorPartsList                               IterList;
 
-        typedef CtrTypesT<Types>                                                    CtrTypes;
-        typedef BTreeIterTypes<IterTypesT<Types> >                                  IterTypes;
+        typedef CtrTypesT<Types>                                                CtrTypes;
+        typedef BTreeIterTypes<IterTypesT<Types> >                              IterTypes;
 
         typedef DataPath<
                 typename Base0::NodeBaseG,
                 typename Base0::DataPageG
-        >                                                                           TreePath;
+        >                                                                       TreePath;
 
-        typedef typename TreePath::DataItem                                         DataPathItem;
+        typedef typename TreePath::DataItem                                     DataPathItem;
     };
 
-    typedef typename Types::CtrTypes                                                CtrTypes;
+    typedef typename Types::CtrTypes                                            CtrTypes;
 
-    typedef Ctr<CtrTypes>                                                           Type;
+    typedef Ctr<CtrTypes>                                                       Type;
 };
 
 }

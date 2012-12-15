@@ -28,8 +28,7 @@ public:
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type       RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<Set1Ctr>::Type       SetCtrType;
+    typedef typename SmallCtrTypeFactory::Factory<Set1>::Type           SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -68,7 +67,6 @@ public:
     setinsertBatchBenchmark(StringRef name):
         SPBenchmarkTask(name), max_size(16*1024*1024)
     {
-//        RootCtr::initMetadata();
         SetCtrType::initMetadata();
 
         Add("max_size", max_size);

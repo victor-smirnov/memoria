@@ -20,7 +20,7 @@ using namespace memoria::vapi;
 
 template <typename T>
 class VectorTest: public BTreeBatchTestBase<
-    VectorCtr<T>,
+    Vector<T>,
     ArrayData<T>
 >
 {
@@ -28,7 +28,7 @@ class VectorTest: public BTreeBatchTestBase<
     typedef MyType                                                  ParamType;
 
     typedef BTreeBatchTestBase<
-                VectorCtr<T>,
+                Vector<T>,
                 ArrayData<T>
     >                                                               Base;
 

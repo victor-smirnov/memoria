@@ -26,8 +26,8 @@ namespace memoria    {
 
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::BSTreeCtr>: public BTreeTypes<Profile, memoria::BTreeCtr> {
-    typedef BTreeTypes<Profile, memoria::BTreeCtr>                          Base;
+struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria::BTree> {
+    typedef BTreeTypes<Profile, memoria::BTree>                             Base;
 
     typedef BigInt                                                          Value;
 
@@ -52,19 +52,19 @@ struct BTreeTypes<Profile, memoria::BSTreeCtr>: public BTreeTypes<Profile, memor
         typename Types_
     >
     struct IterBaseFactory {
-        typedef ITreeIteratorBase<Types_>                                       Type;
+        typedef ITreeIteratorBase<Types_>                                   Type;
     };
 
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef BTreeIteratorPrefixCache<Iterator, Container>                   Type;
+        typedef BTreeIteratorPrefixCache<Iterator, Container>               Type;
     };
 
 };
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::BSTreeCtr, T>: public CtrTF<Profile, memoria::BTreeCtr, T> {};
+class CtrTF<Profile, memoria::BSTree, T>: public CtrTF<Profile, memoria::BTree, T> {};
 
 
 }

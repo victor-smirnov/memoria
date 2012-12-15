@@ -106,9 +106,9 @@ template <
         typename Profile,
         typename ContainerTypeName_
 >
-class CtrTF<Profile, memoria::BTreeCtr, ContainerTypeName_> {
+class CtrTF<Profile, memoria::BTree, ContainerTypeName_> {
 
-    typedef CtrTF<Profile, memoria::BTreeCtr, ContainerTypeName_>               MyType;
+    typedef CtrTF<Profile, memoria::BTree, ContainerTypeName_>                  MyType;
 
 public:
 

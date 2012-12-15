@@ -26,15 +26,15 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VectorMapContainerBase)
 
     typedef TypesType                                                           Types;
     typedef typename Types::Profile                                             Profile;
-    typedef typename Types::Key                                             	Key;
-    typedef typename Types::Value                                             	Value;
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
 
     typedef typename Base::ID                                                   ID;
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::CtrShared                                            CtrShared;
 
-    typedef typename CtrTF<Profile, VMSetCtr<Key, 2>, VMSetCtr<Key, 2> >::Type  IdxSet;
-    typedef typename CtrTF<Profile, VectorCtr<Value>, VectorCtr<Value> >::Type 	ByteArray;
+    typedef typename CtrTF<Profile, VMSet<Key, 2>, VMSet<Key, 2> >::Type        IdxSet;
+    typedef typename CtrTF<Profile, Vector<Value>, Vector<Value> >::Type        ByteArray;
 
     typedef typename IdxSet::Accumulator                                        IdxsetAccumulator;
 
@@ -137,7 +137,7 @@ public:
             ByteArray::getMetadata()->putAll(list);
 
             Base::setMetadata(new ContainerMetadata(
-            						TypeNameFactory<typename Types::ContainerTypeName>::name(),
+                                    TypeNameFactory<typename Types::ContainerTypeName>::name(),
                                     list,
                                     TypeHash<typename Types::ContainerTypeName>::Value,
                                     Base::getContainerInterface()

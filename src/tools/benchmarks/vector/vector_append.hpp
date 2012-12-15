@@ -28,14 +28,14 @@ public:
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-//    typedef typename SmallCtrTypeFactory::Factory<Root>::Type                 RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte> >::Type      MapCtrType;
+
+    typedef typename SmallCtrTypeFactory::Factory<Vector<UByte> >::Type         MapCtrType;
     typedef typename MapCtrType::Iterator                                       Iterator;
     typedef typename MapCtrType::ID                                             ID;
 
 
     Allocator*  allocator_;
-    MapCtrType*     map_;
+    MapCtrType* map_;
 
     Int         memory_size;
 
@@ -45,7 +45,6 @@ public:
     VectorappendBenchmark(StringRef name):
         SPBenchmarkTask(name), memory_size(128*1024*1024)
     {
-//        RootCtr::initMetadata();
         MapCtrType::initMetadata();
 
         Add("memory_size", memory_size);

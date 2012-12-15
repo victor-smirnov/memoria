@@ -19,9 +19,9 @@ namespace memoria    {
 
 
 template <typename Profile, typename Key_, typename Value_, Int Indexes_>
-struct BTreeTypes<Profile, memoria::MapCtr<Key_, Value_, Indexes_> >: public BTreeTypes<Profile, memoria::BSTreeCtr> {
+struct BTreeTypes<Profile, memoria::Map<Key_, Value_, Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
 
-    typedef BTreeTypes<Profile, memoria::BSTreeCtr>                         Base;
+    typedef BTreeTypes<Profile, memoria::BSTree>                            Base;
 
     typedef Value_                                                          Value;
     typedef TypeList<Key_>                                                  KeysList;
@@ -52,7 +52,7 @@ struct BTreeTypes<Profile, memoria::MapCtr<Key_, Value_, Indexes_> >: public BTr
 };
 
 template <typename Profile, typename Key, typename Value, typename T, Int Indexes>
-class CtrTF<Profile, memoria::MapCtr<Key, Value, Indexes>, T>: public CtrTF<Profile, memoria::BSTreeCtr, T> {
+class CtrTF<Profile, memoria::Map<Key, Value, Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
 };
 
 }

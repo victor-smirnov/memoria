@@ -22,15 +22,15 @@
 
 namespace memoria {
 
-typedef SmallCtrTypeFactory::Factory<Set1Ctr>::Type SumSet1Ctr;
+typedef SmallCtrTypeFactory::Factory<Set1>::Type SumSet1Ctr;
 
 class SumsetBatchTest: public BTreeBatchTestBase<
-    Set1Ctr,
+    Set1,
     typename SumSet1Ctr::LeafPairsVector
 >
 {
     typedef BTreeBatchTestBase<
-            Set1Ctr,
+            Set1,
             typename SumSet1Ctr::LeafPairsVector
     >                                                               Base;
 

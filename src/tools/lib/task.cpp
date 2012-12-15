@@ -118,26 +118,26 @@ void TaskGroup::Run(ostream& out)
 {
     for (auto t: tasks_)
     {
-    	if (t->IsEnabled())
-    	{
-    		String folder;
+        if (t->IsEnabled())
+        {
+            String folder;
 
-    		if (t->own_folder)
-    		{
-    			folder = output_folder_ + Platform::getFilePathSeparator() + t->getName();
-    		}
-    		else {
-    			folder = output_folder_;
-    		}
+            if (t->own_folder)
+            {
+                folder = output_folder_ + Platform::getFilePathSeparator() + t->getName();
+            }
+            else {
+                folder = output_folder_;
+            }
 
-    		t->setOutputFolder(folder);
-    		t->setIteration(1);
+            t->setOutputFolder(folder);
+            t->setIteration(1);
 
-    		if (t->Run())
-    		{
-    			failures_.push_back(FailureDescriptor(t->getIteration(), t->getName()));
-    		}
-    	}
+            if (t->Run())
+            {
+                failures_.push_back(FailureDescriptor(t->getIteration(), t->getName()));
+            }
+        }
     }
 
     cout<<getName();
@@ -182,7 +182,7 @@ void TaskGroup::registerTask(Task* task)
 
 void TaskGroup::Configure(Configurator* cfg)
 {
-	Process(cfg);
+    Process(cfg);
     for (auto t: tasks_)
     {
         t->Configure(cfg);
@@ -211,15 +211,15 @@ void TaskGroup::dumpProperties(std::ostream& os, bool dump_prefix, bool dump_all
 
 bool TaskGroup::IsEnabled() const
 {
-	for (auto t: tasks_)
-	{
-		if (t->IsEnabled())
-		{
-			return true;
-		}
-	}
+    for (auto t: tasks_)
+    {
+        if (t->IsEnabled())
+        {
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 

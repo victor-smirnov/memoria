@@ -20,9 +20,9 @@ namespace memoria {
 class VectorMapExample: public SPExampleTask {
 
 private:
-    typedef SmallCtrTypeFactory::Factory<VectorMapCtr<BigInt, Byte> >::Type		MapCtrType;
-    typedef typename MapCtrType::Iterator                                   	Iterator;
-    typedef typename MapCtrType::ID                                         	ID;
+    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte> >::Type        MapCtrType;
+    typedef typename MapCtrType::Iterator                                       Iterator;
+    typedef typename MapCtrType::ID                                             ID;
 
 public:
 
