@@ -26,7 +26,7 @@ class VectorReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Profile      Profile;
 
 //    typedef typename SmallCtrTypeFactory::Factory<Root>::Type                 RootCtr;
-    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<UByte>>::Type       VectorCtrType;
+    typedef typename SmallCtrTypeFactory::Factory<VectorCtr<BigInt>>::Type      VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
     typedef typename VectorCtrType::ID                                          ID;
     typedef typename VectorCtrType::Accumulator                                 Accumulator;
@@ -48,7 +48,6 @@ public:
     VectorReadBenchmark(StringRef name):
         SPBenchmarkTask(name)
     {
-//        RootCtr::initMetadata();
         VectorCtrType::initMetadata();
 
         average = 5;
@@ -64,8 +63,6 @@ public:
 
         ctr_ = new VectorCtrType(allocator_);
 
-        ctr_->setElementSize(8);
-
         Iterator i = ctr_->seek(0);
 
         for (Int c = 0; c < size/128; c++)
@@ -76,7 +73,7 @@ public:
                 array[d] = getRandom(10000);
             }
 
-            i.insert(ArrayData<UByte>(sizeof(array), array));
+            i.insert(ArrayData<BigInt>(sizeof(array)/sizeof(BigInt), array));
         }
 
         rd_array_ = new Int[params.operations()];
@@ -96,7 +93,7 @@ public:
     virtual void Benchmark(BenchmarkParameters& params, ostream& out)
     {
         BigInt buffer;
-        ArrayData<UByte> data(sizeof(buffer), &buffer);
+        ArrayData<BigInt> data(sizeof(buffer), &buffer);
 
         BigInt total = 0;
 
