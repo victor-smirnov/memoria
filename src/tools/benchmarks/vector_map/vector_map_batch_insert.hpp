@@ -25,11 +25,11 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type    MapCtrType;
-    typedef typename MapCtrType::Iterator                                           Iterator;
-    typedef typename MapCtrType::ID                                                 ID;
+    typedef typename SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type    Ctr;
+    typedef typename Ctr::Iterator                                           Iterator;
+    typedef typename Ctr::ID                                                 ID;
 
-    typedef typename MapCtrType::IdxSet                                 SetCtrType;
+    typedef typename Ctr::IdxSet                                 SetCtrType;
 
     typedef typename SetCtrType::Accumulator                            Accumulator;
 
@@ -63,7 +63,7 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
 
 
     Allocator*  allocator_;
-    MapCtrType* map_;
+    Ctr* map_;
 
     BigInt      memory_size;
     Int         data_size_;
@@ -72,7 +72,7 @@ public:
     VectorMapBatchInsertBenchmark(StringRef name, Int data_size):
         SPBenchmarkTask(name), memory_size(128*1024*1024), data_size_(data_size)
     {
-        MapCtrType::initMetadata();
+        Ctr::initMetadata();
 
         Add("memory_size", memory_size);
     }
@@ -83,7 +83,7 @@ public:
     {
         allocator_ = new Allocator();
 
-        map_ = new MapCtrType(allocator_, 1, true);
+        map_ = new Ctr(allocator_, 1, true);
 
         allocator_->commit();
     }

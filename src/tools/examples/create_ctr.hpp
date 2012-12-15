@@ -22,10 +22,10 @@ public:
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                    MapCtrType;
-    typedef typename MapCtrType::Iterator                               Iterator;
-    typedef typename MapCtrType::ID                                     ID;
-    typedef typename MapCtrType::Accumulator                            Accumulator;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                    		Ctr;
+    typedef typename Ctr::Iterator                               				Iterator;
+    typedef typename Ctr::ID                                     				ID;
+    typedef typename Ctr::Accumulator                            				Accumulator;
 
     PairVector pairs;
     PairVector pairs_sorted;
@@ -58,7 +58,7 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        MapCtrType map(&allocator);
+        Ctr map(&allocator);
 
         map.setBranchingFactor(this->btree_branching_);
 

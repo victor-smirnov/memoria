@@ -31,8 +31,8 @@ class VectorMapTest: public SPTestTask {
 
     typedef KVPair<BigInt, BigInt>                                              Pair;
     typedef vector<Pair>                                                        PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type         VectorMapCtrType;
-    typedef VectorMapCtrType::Iterator                                          VMIterator;
+    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type         Ctr;
+    typedef Ctr::Iterator                                          				VMIterator;
 
 
     PairVector pairs_;
@@ -53,7 +53,7 @@ public:
 
     VectorMapTest(): SPTestTask("VectorMap")
     {
-        VectorMapCtrType::initMetadata();
+        Ctr::initMetadata();
 
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
 
@@ -82,7 +82,7 @@ public:
         StoreVector(pairs, pairs_name);
     }
 
-    void checkIteratorFw(VectorMapCtrType& ctr)
+    void checkIteratorFw(Ctr& ctr)
     {
         MEMORIA_TEST_THROW_IF(ctr.count(), != , (BigInt)pairs_.size());
 
@@ -117,7 +117,7 @@ public:
 
         LoadAllocator(allocator, dump_name_);
 
-        VectorMapCtrType map(&allocator, ctr_name_);
+        Ctr map(&allocator, ctr_name_);
 
         if (step_ == 0)
         {
@@ -196,7 +196,7 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        VectorMapCtrType map(&allocator);
+        Ctr map(&allocator);
 
         ctr_name_ = map.name();
 
@@ -256,7 +256,7 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        VectorMapCtrType map(&allocator);
+        Ctr map(&allocator);
 
         ctr_name_ = map.name();
 
@@ -328,7 +328,7 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        VectorMapCtrType map(&allocator);
+        Ctr map(&allocator);
 
         ctr_name_ = map.name();
 

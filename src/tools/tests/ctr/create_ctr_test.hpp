@@ -28,9 +28,9 @@ class CreateCtrTest: public SPTestTask {
 
     typedef KVPair<BigInt, BigInt>                                              Pair;
     typedef vector<Pair>                                                        PairVector;
-    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte> >::Type        VectorMapCtrType;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                            MapCtrType;
-    typedef VectorMapCtrType::Iterator                                          VMIterator;
+    typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte> >::Type        VectorMapCtr;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                            MapCtr;
+    typedef VectorMapCtr::Iterator                                          	VMIterator;
 
     PairVector pairs_;
 
@@ -47,8 +47,8 @@ public:
 
     CreateCtrTest(): SPTestTask("CreateCtr")
     {
-        VectorMapCtrType::initMetadata();
-        MapCtrType::initMetadata();
+        VectorMapCtr::initMetadata();
+        MapCtr::initMetadata();
 
         MEMORIA_ADD_TEST_PARAM(map_size_)->setDescription("Size of the Map container");
         MEMORIA_ADD_TEST_PARAM(vector_map_size_)->setDescription("Size of the VectorMap container");
@@ -81,7 +81,7 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        MapCtrType map(&allocator);
+        MapCtr map(&allocator);
 
         map.setBranchingFactor(100);
 
@@ -94,7 +94,7 @@ public:
             map[getRandom()] = getRandom();
         }
 
-        VectorMapCtrType vector_map(&allocator);
+        VectorMapCtr vector_map(&allocator);
 
         vector_map.setBranchingFactor(100);
 
@@ -128,7 +128,7 @@ public:
 
         check(new_alloc, MEMORIA_SOURCE);
 
-        MapCtrType new_map(&new_alloc, map.name());
+        MapCtr new_map(&new_alloc, map.name());
 
         MEMORIA_TEST_THROW_IF(map.getBranchingFactor(), !=, new_map.getBranchingFactor());
 
@@ -144,7 +144,7 @@ public:
 
         BigInt t22 = getTimeInMillis();
 
-        VectorMapCtrType new_vector_map(&new_alloc, vector_map.name());
+        VectorMapCtr new_vector_map(&new_alloc, vector_map.name());
 
         MEMORIA_TEST_THROW_IF(vector_map.getBranchingFactor(), !=, new_vector_map.getBranchingFactor());
 

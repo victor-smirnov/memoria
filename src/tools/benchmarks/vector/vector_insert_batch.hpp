@@ -27,13 +27,13 @@ public:
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SmallCtrTypeFactory::Factory<Vector<UByte>>::Type          MapCtrType;
-    typedef typename MapCtrType::Iterator                                       Iterator;
-    typedef typename MapCtrType::ID                                             ID;
+    typedef typename SmallCtrTypeFactory::Factory<Vector<UByte>>::Type          Ctr;
+    typedef typename Ctr::Iterator                                       		Iterator;
+    typedef typename Ctr::ID                                             		ID;
 
 
     Allocator*  allocator_;
-    MapCtrType* map_;
+    Ctr* map_;
 
 
 
@@ -42,7 +42,7 @@ public:
     VectorinsertBatchBenchmark(StringRef name):
         SPBenchmarkTask(name), max_size(128*1024*1024)
     {
-        MapCtrType::initMetadata();
+        Ctr::initMetadata();
 
         Add("max_size", max_size);
     }
@@ -52,7 +52,7 @@ public:
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
         allocator_  = new Allocator();
-        map_        = new MapCtrType(allocator_, 1, true);
+        map_        = new Ctr(allocator_, 1, true);
 
         allocator_->commit();
     }

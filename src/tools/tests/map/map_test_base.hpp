@@ -27,10 +27,10 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                    MapCtrType;
-    typedef typename MapCtrType::Iterator                               Iterator;
-    typedef typename MapCtrType::ID                                     ID;
-    typedef typename MapCtrType::Accumulator                            Accumulator;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                    		Ctr;
+    typedef typename Ctr::Iterator                               				Iterator;
+    typedef typename Ctr::ID                                     				ID;
+    typedef typename Ctr::Accumulator                            				Accumulator;
 
     PairVector pairs;
     PairVector pairs_sorted;
@@ -63,7 +63,7 @@ protected:
     virtual ~MapTestBase() throw () {
     }
 
-    void checkContainerData(MapCtrType& map, PairVector& pairs)
+    void checkContainerData(Ctr& map, PairVector& pairs)
     {
         Int pairs_size = (Int) pairs.size();
 

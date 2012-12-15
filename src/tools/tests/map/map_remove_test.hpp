@@ -41,7 +41,7 @@ class MapRemoveTest: public MapTestBase {
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        MapCtrType map(&allocator);
+        Ctr map(&allocator);
 
         map.setNewPageSize(8192);
 
@@ -115,7 +115,7 @@ class MapRemoveTest: public MapTestBase {
         LoadVector(pairs, pairs_data_file_);
         LoadVector(pairs_sorted, pairs_sorted_data_file_);
 
-        MapCtrType map(&allocator, ctr_name_);
+        Ctr map(&allocator, ctr_name_);
 
         bool result = map.remove(pairs[vector_idx_].key_);
 
