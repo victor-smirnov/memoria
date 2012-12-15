@@ -22,8 +22,8 @@ public:
 private:
     typedef vector<Pair> PairVector;
     typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type         Ctr;
-    typedef typename Ctr::Iterator                                       		Iterator;
-    typedef typename Ctr::ID                                             		ID;
+    typedef typename Ctr::Iterator                                              Iterator;
+    typedef typename Ctr::ID                                                    ID;
 
 
     PairVector pairs;

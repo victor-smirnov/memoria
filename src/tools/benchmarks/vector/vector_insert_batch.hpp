@@ -28,8 +28,8 @@ public:
     typedef typename Base::Profile      Profile;
 
     typedef typename SmallCtrTypeFactory::Factory<Vector<UByte>>::Type          Ctr;
-    typedef typename Ctr::Iterator                                       		Iterator;
-    typedef typename Ctr::ID                                             		ID;
+    typedef typename Ctr::Iterator                                              Iterator;
+    typedef typename Ctr::ID                                                    ID;
 
 
     Allocator*  allocator_;

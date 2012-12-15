@@ -30,7 +30,7 @@ class CreateCtrTest: public SPTestTask {
     typedef vector<Pair>                                                        PairVector;
     typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte> >::Type        VectorMapCtr;
     typedef SmallCtrTypeFactory::Factory<Map1>::Type                            MapCtr;
-    typedef VectorMapCtr::Iterator                                          	VMIterator;
+    typedef VectorMapCtr::Iterator                                              VMIterator;
 
     PairVector pairs_;
 

@@ -27,10 +27,10 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef SmallCtrTypeFactory::Factory<Map1>::Type                    		Ctr;
-    typedef typename Ctr::Iterator                               				Iterator;
-    typedef typename Ctr::ID                                     				ID;
-    typedef typename Ctr::Accumulator                            				Accumulator;
+    typedef SmallCtrTypeFactory::Factory<Map1>::Type                            Ctr;
+    typedef typename Ctr::Iterator                                              Iterator;
+    typedef typename Ctr::ID                                                    ID;
+    typedef typename Ctr::Accumulator                                           Accumulator;
 
     PairVector pairs;
     PairVector pairs_sorted;

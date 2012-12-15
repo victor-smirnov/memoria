@@ -32,7 +32,7 @@ class VectorMapTest: public SPTestTask {
     typedef KVPair<BigInt, BigInt>                                              Pair;
     typedef vector<Pair>                                                        PairVector;
     typedef SmallCtrTypeFactory::Factory<VectorMap<BigInt, Byte>>::Type         Ctr;
-    typedef Ctr::Iterator                                          				VMIterator;
+    typedef Ctr::Iterator                                                       VMIterator;
 
 
     PairVector pairs_;
