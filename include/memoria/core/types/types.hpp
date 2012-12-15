@@ -18,7 +18,9 @@
 
 namespace memoria    {
 
-static const int DEFAULT_BLOCK_SIZE = 4096;
+static const int DEFAULT_BLOCK_SIZE 		= 4096;
+static const int PackedTreeBranchingFactor	= 32;
+
 //static const int MAX_BLOCK_SIZE = 4096;
 
 typedef int64_t             BigInt;

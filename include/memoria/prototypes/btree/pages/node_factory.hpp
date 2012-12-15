@@ -28,33 +28,40 @@ template <
 >
 class NodePage: public PageStart<Types>
 {
-    static const UInt VERSION = 1;
+    static const UInt VERSION 													= 1;
+    static const Int  BranchingFactor 											= PackedTreeBranchingFactor;
 public:
 
     typedef NodePage<Types>                                                     Me;
     typedef PageStart<Types>                                                    Base;
-    typedef typename Types::NodePageBase                                        BaseType0;
-
-//    typedef typename BaseType0::Allocator                                       Allocator;
-
-
 
 private:
 
 public:
 
-    struct MapTypes {
-        typedef typename Types::Key     Key;
-        typedef typename Types::Value   Value;
-        typedef typename Types::Key     IndexKey;
+//    struct MapTypes {
+//        typedef typename Types::Key     Key;
+//        typedef typename Types::Value   Value;
+//        typedef typename Types::Key     IndexKey;
+//
+//        static const Int Blocks             = Types::Indexes;
+//        static const Int BranchingFactor    = 32;
+//
+//        typedef Accumulators<Key, Blocks>   Accumulator;
+//    };
 
-        static const Int Blocks             = Types::Indexes;
-        static const Int BranchingFactor    = 32;
+    typedef PackedSumTree<
+    			PackedTreeTypes<
+    				typename Types::Key,
+    				typename Types::Key,
+    				typename Types::Value,
+    				Accumulators<typename Types::Key, Types::Indexes>,
+    				Types::Indexes,
+    				BranchingFactor
+    			>
+    >                                             								Map;
 
-        typedef Accumulators<Key, Blocks>   Accumulator;
-    };
-
-    typedef PackedSumTree<MapTypes>                                             Map;
+//    typedef PackedSumTree<MapTypes> 											Map;
 
     typedef typename Types::Descriptor                                          Descriptor;
 
@@ -73,7 +80,7 @@ private:
             UIntValue<Descriptor::Level>,
             UIntValue<Types::Indexes>,
             typename Types::Name,
-            UIntValue<MapTypes::BranchingFactor>,
+            UIntValue<BranchingFactor>,
 
             typename Map::FieldsList
     >::Result                                                                   FieldsList;

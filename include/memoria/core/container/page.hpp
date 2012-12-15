@@ -32,17 +32,17 @@ extern Int PageDtr;
 
 extern bool GlobalDebug;
 
-template <typename T, size_t Size = sizeof(T)>
-class AbstractPageID: public ValueBuffer<T, Size> {
+template <typename T>
+class PageID: public ValueBuffer<T> {
 public:
-    typedef AbstractPageID<T, Size>                 ValueType;
-    typedef ValueBuffer<T, Size>                    Base;
+    typedef PageID<T>                 											ValueType;
+    typedef ValueBuffer<T>                    									Base;
 
-    AbstractPageID(): Base() {}
+    PageID(): Base() {}
 
-    AbstractPageID(const T &t) : Base(t) {}
+    PageID(const T &t) : Base(t) {}
 
-    AbstractPageID(const memoria::vapi::IDValue& id): Base() {
+    PageID(const memoria::vapi::IDValue& id): Base() {
         Base::copyFrom(id.ptr());
     }
 
@@ -106,16 +106,9 @@ public:
     }
 };
 
-//template <typename T, size_t Size>
-//class TypeHash<AbstractPageID<T, Size> > {
-//public:
-//    static const UInt Value = TypeHash<T>::Value * Size;
-//};
 
-
-
-template <typename T, size_t Size>
-static LogHandler& operator<<(LogHandler &log, const AbstractPageID<T, Size>& value)
+template <typename T>
+static LogHandler& operator<<(LogHandler &log, const PageID<T>& value)
 {
     IDValue id(&value);
     log.log(id);
@@ -123,8 +116,8 @@ static LogHandler& operator<<(LogHandler &log, const AbstractPageID<T, Size>& va
     return log;
 }
 
-template <typename T, size_t Size>
-static LogHandler* logIt(LogHandler* log, const AbstractPageID<T, Size>& value)
+template <typename T>
+static LogHandler* logIt(LogHandler* log, const PageID<T>& value)
 {
     IDValue id(&value);
     log->log(id);
@@ -163,8 +156,6 @@ public:
     void setBit(int index, int bit) {
         memoria::setBit(*this, index + RESERVED_BITSIZE, bit);
     }
-
-
 };
 
 template <Int Size>
@@ -712,8 +703,8 @@ namespace std {
 
 using namespace memoria;
 
-template <typename T, size_t Size>
-ostream& operator<<(ostream& out, const AbstractPageID<T, Size>& id)
+template <typename T>
+ostream& operator<<(ostream& out, const PageID<T>& id)
 {
     out<<id.value();
     return out;

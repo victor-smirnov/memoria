@@ -19,16 +19,16 @@ namespace memoria    {
 template <typename T> struct FieldFactory;
 
 
-template <typename Object, size_t Size_>
-struct TypeHash<memoria::AbstractPageID<Object, Size_> > {
+template <typename Object>
+struct TypeHash<PageID<Object> > {
 public:
     static const UInt Value = TypeHash<Object>::Value;
 };
 
-template <typename T, size_t Size>
-struct FieldFactory<memoria::AbstractPageID<T, Size> > {
+template <typename T>
+struct FieldFactory<PageID<T> > {
 private:
-    typedef memoria::AbstractPageID<T, Size>                                             Type;
+    typedef PageID<T>                                          			Type;
 
 public:
     static void serialize(SerializationData& data, const Type& field, Int count = 1)
@@ -46,8 +46,8 @@ public:
 
 
 template <Int Size>
-struct FieldFactory<memoria::BitBuffer<Size> > {
-    typedef memoria::BitBuffer<Size>                                                     Type;
+struct FieldFactory<BitBuffer<Size> > {
+    typedef BitBuffer<Size>                                            			Type;
 
     static void serialize(SerializationData& data, const Type& field)
     {

@@ -28,14 +28,14 @@ using namespace std;
 
 typedef struct
 {
-    template <typename T, size_t S>
-    long operator() (const AbstractPageID<T,S> &k) const { return k.value(); }
+    template <typename T>
+    long operator() (const PageID<T> &k) const { return k.value(); }
 } IDKeyHash;
 
 typedef struct
 {
-    template <typename T, size_t S>
-    bool operator() (const AbstractPageID<T,S> &x, const AbstractPageID<T,S> &y) const { return x == y; }
+    template <typename T>
+    bool operator() (const PageID<T> &x, const PageID<T> &y) const { return x == y; }
 } IDKeyEq;
 
 using namespace memoria::vapi;

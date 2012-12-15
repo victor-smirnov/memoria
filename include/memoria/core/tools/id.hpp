@@ -16,7 +16,7 @@
 
 namespace memoria    {
 
-template <typename T, size_t Size> class AbstractPageID;
+template <typename T> class PageID;
 
 namespace vapi       {
 
@@ -43,15 +43,15 @@ public:
         *data_ptr = id;
     }
 
-    template <typename T, Int Size>
-    IDValue(const AbstractPageID<T,Size>& id)
+    template <typename T>
+    IDValue(const PageID<T>& id)
     {
         clear();
         id.copyTo(ptr());
     }
 
-    template <typename T, Int Size>
-    IDValue& operator=(const AbstractPageID<T,Size>& id)
+    template <typename T>
+    IDValue& operator=(const PageID<T>& id)
     {
         clear();
         id.copyTo(ptr());

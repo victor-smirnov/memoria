@@ -144,17 +144,17 @@ public:
 };
 
 
-template <typename Object, size_t Size = sizeof(Object)>
+template <typename Object>
 class ValueBuffer {
-    typedef ValueBuffer<Object, Size>           Me;
+    typedef ValueBuffer<Object>           										MyType;
     Object value_;
 
 public:
 
-    static const BigInt     SIZE    = Size;                 //in bytes;
+    static const BigInt     SIZE    = sizeof(Object);       //in bytes;
     static const BigInt     BITSIZE = SIZE * 8;             //in bits;
 
-    typedef Object                              ValueType;
+    typedef Object                              								ValueType;
 
     ValueBuffer() {}
 
@@ -167,23 +167,23 @@ public:
     }
 
     void copyTo(void *mem) const {
-        CopyByteBuffer(&value_, mem, Size);
+        CopyByteBuffer(&value_, mem, sizeof(Object));
     }
 
     void copyFrom(const void *mem) {
-        CopyByteBuffer(mem, &value_, Size);
+        CopyByteBuffer(mem, &value_, sizeof(Object));
     }
 
     const Object &value() const {
-        return value_;//P2CR<Object>(Base::ptr());
+        return value_;
     }
 
     Object &value() {
-        return value_;//P2R<Object>(Base::ptr());
+        return value_;
     }
 
 
-    bool operator<(const Me &other) const {
+    bool operator<(const MyType &other) const {
         return value() < other.value();
     }
 };

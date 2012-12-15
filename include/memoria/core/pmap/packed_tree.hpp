@@ -37,9 +37,9 @@ struct ValueHelper {
     }
 };
 
-template <typename T, size_t Size>
-struct ValueHelper<AbstractPageID<T, Size> > {
-    typedef AbstractPageID<T, Size> Type;
+template <typename T>
+struct ValueHelper<PageID<T> > {
+    typedef PageID<T> 													Type;
 
     static void setup(IPageDataEventHandler* handler, const Type& value)
     {
@@ -62,7 +62,16 @@ struct ValueHelper<EmptyValue> {
 
 }
 
+template <typename K, typename IK, typename V, typename Acc, Int Blocks_ = 1, Int BF = PackedTreeBranchingFactor>
+struct PackedTreeTypes {
+	typedef K             	Key;
+	typedef IK        		IndexKey;
+	typedef V				Value;
+	typedef Acc 			Accumulator;
 
+	static const Int Blocks                 = Blocks_;
+	static const Int BranchingFactor        = BF;
+};
 
 template <typename Types>
 class PackedTree {
