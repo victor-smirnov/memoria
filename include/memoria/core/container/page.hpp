@@ -127,8 +127,8 @@ static LogHandler* logIt(LogHandler* log, const PageID<T>& value)
 
 
 template <Int Size>
-class BitBuffer: public Buffer<Size % 8 == 0 ? Size / 8 : ((Size / 8) + 1)> {
-    typedef Buffer<(Size % 8 == 0 ? Size / 8 : ((Size / 8) + 1))>               Base;
+class BitBuffer: public StaticBuffer<Size % 8 == 0 ? Size / 8 : ((Size / 8) + 1)> {
+    typedef StaticBuffer<(Size % 8 == 0 ? Size / 8 : ((Size / 8) + 1))>               Base;
 public:
 
     typedef Int                         Index;
@@ -706,7 +706,8 @@ using namespace memoria;
 template <typename T>
 ostream& operator<<(ostream& out, const PageID<T>& id)
 {
-    out<<id.value();
+    IDValue idv(id);
+	out<<idv;
     return out;
 }
 

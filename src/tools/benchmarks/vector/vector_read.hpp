@@ -70,7 +70,7 @@ public:
                 array[d] = getRandom(10000);
             }
 
-            i.insert(ArrayData<BigInt>(sizeof(array)/sizeof(BigInt), array));
+            i.insert(MemBuffer<BigInt>(array, sizeof(array)/sizeof(BigInt)));
         }
 
         rd_array_ = new Int[params.operations()];
@@ -89,14 +89,13 @@ public:
 
     virtual void Benchmark(BenchmarkParameters& params, ostream& out)
     {
-        BigInt buffer;
-        ArrayData<BigInt> data(sizeof(buffer), &buffer);
+        volatile BigInt buffer;
 
         BigInt total = 0;
 
-        for (Int c = 0; c < params.operations(); c++)
+        for (Int c = 0; c < params.operations(); c++, total++)
         {
-            total += ctr_->seek(rd_array_[c]).read(data);
+            buffer += ctr_->seek(rd_array_[c]).element();
         }
 
         params.memory() = total;

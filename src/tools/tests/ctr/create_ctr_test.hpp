@@ -151,7 +151,7 @@ public:
         {
             MEMORIA_TEST_THROW_IF(iter.size(), !=, new_vm_iter.size());
 
-            ArrayData<Byte> data = iter.read();
+            MemBuffer<Byte> data = iter.read();
 
             checkBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
         }

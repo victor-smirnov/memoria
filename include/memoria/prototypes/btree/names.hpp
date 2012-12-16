@@ -34,12 +34,6 @@ class IDType {};
 template <typename ContainerName, typename BasePagesPartsList>
 class NodeBaseFactory               {};
 
-//template <typename ContainerTypeName>
-//class BTreeRootMetadataFactory      {
-//    typedef ContainerTypeName ContainerName;
-//};
-
-
 template <typename ContainerName>
 class ContainerPartsListFactory     {};
 
@@ -105,10 +99,22 @@ struct Lists {
 template <typename Name>
 struct ValueTypeIsNotSupported;
 
-
-
-
 }
+
+template <typename Types>
+struct BTreeCtrTypesT: CtrTypesT<Types> 		{};
+
+template <typename Types>
+struct BTreeIterTypesT: IterTypesT<Types> 	{};
+
+
+template <typename Types>
+using BTreeCtrTypes = CtrTypesT<BTreeCtrTypesT<Types>>;
+
+template <typename Types>
+using BTreeIterTypes = IterTypesT<BTreeIterTypesT<Types>>;
+
+
 }
 
 

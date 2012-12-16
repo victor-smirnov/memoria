@@ -26,6 +26,8 @@ using namespace std;
 using namespace memoria::vapi;
 
 
+
+
 class AbstractParamDescriptor {
 public:
     virtual void Process(Configurator* cfg)                             = 0;

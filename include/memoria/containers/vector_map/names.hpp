@@ -22,18 +22,29 @@ struct VMSet {};
 struct CtrApiName {};
 struct ItrApiName {};
 
-template <typename Types>
-struct VectorMapCtrTypes: CtrTypesT<Types> {};
-
-template <typename Types>
-struct VectorMapIterTypes: IterTypesT<Types> {};
-
 }
+
+template <typename Types>
+struct VectorMapCtrTypesT: CtrTypesT<Types> {};
+
+template <typename Types>
+struct VectorMapIterTypesT: IterTypesT<Types> {};
+
+template <typename Types>
+using VectorMapCtrTypes  = CtrTypesT<VectorCtrTypesT<Types>>;
+
+template <typename Types>
+using VectorMapIterTypes = IterTypesT<VectorIterTypesT<Types>>;
+
+
 
 template <typename Key, Int Indexes>
 struct TypeHash<vector_map::VMSet<Key, Indexes>>:   UIntValue<
     HashHelper<10000, TypeHash<Key>::Value, Indexes>::Value
 > {};
+
+
+
 
 
 

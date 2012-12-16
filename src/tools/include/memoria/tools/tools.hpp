@@ -160,7 +160,7 @@ String FormatTime(BigInt millis);
 void Fill(char* buf, int size, char value);
 
 template <typename T>
-ArrayData<T> createBuffer(Int size, T value)
+MemBuffer<T> createBuffer(Int size, T value)
 {
     T* buf = (T*)malloc(size*sizeof(T));
 
@@ -169,13 +169,13 @@ ArrayData<T> createBuffer(Int size, T value)
         buf[c] = value;
     }
 
-    return ArrayData<T>(size, buf, true);
+    return MemBuffer<T>(buf, size, true);
 }
 
 Int getNonZeroRandom(Int size);
 
 template <typename T>
-ArrayData<T> createRandomBuffer(T fill_value, Int max_size)
+MemBuffer<T> createRandomBuffer(T fill_value, Int max_size)
 {
     return createBuffer<T>(getNonZeroRandom(max_size), fill_value);
 }
@@ -222,7 +222,7 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 //template <typename BAIterator, typename T>
 //bool CompareBuffer(BAIterator& iter, const IData<T>& data, Int& c)
 //{
-//    ArrayData<T> buf(data.getSize());
+//    MemBuffer<T> buf(data.getSize());
 //
 //    iter.read(buf);
 //
@@ -244,16 +244,16 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 
 
 template <typename BAIterator, typename T>
-bool CompareBuffer(BAIterator& iter, const ArrayData<T>& data, Int& c)
+bool CompareBuffer(BAIterator& iter, const MemBuffer<T>& data, Int& c)
 {
-    ArrayData<T> buf(data.size());
+    MemBuffer<T> buf(data.getSize());
 
     iter.read(buf);
 
     const T* buf0 = buf.data();
     const T* buf1 = data.data();
 
-    for (c = 0; c < data.size(); c++)
+    for (c = 0; c < data.getSize(); c++)
     {
         if (buf0[c] != buf1[c])
         {
@@ -266,7 +266,7 @@ bool CompareBuffer(BAIterator& iter, const ArrayData<T>& data, Int& c)
 
 
 template <typename BAIterator, typename T>
-void checkBufferWritten(BAIterator& iter, const ArrayData<T>& data, const char* err_msg, const char* source)
+void checkBufferWritten(BAIterator& iter, const MemBuffer<T>& data, const char* err_msg, const char* source)
 {
     Int pos = 0;
     if (!CompareBuffer(iter, data, pos))

@@ -47,7 +47,7 @@ public:
     {
         Ctr map = createCtr(allocator, name);
 
-        map[123456] = 10;
+//        map[123456] = 10;
 
         return map;
     }
@@ -83,10 +83,10 @@ public:
 
             cout<<"Map2 has been reinitialized"<<endl;
 
-            for (Int c = 1; c <= 10; c++)
-            {
-                map[c] = c;
-            }
+//            for (Int c = 1; c <= 10; c++)
+//            {
+//                map[c] = c;
+//            }
 
             allocator.commit();
 

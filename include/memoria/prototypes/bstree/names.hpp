@@ -6,22 +6,40 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_SUMTREE_NAMES_HPP
-#define _MEMORIA_PROTOTYPES_SUMTREE_NAMES_HPP
+#ifndef _MEMORIA_PROTOTYPES_BSTREE_NAMES_HPP
+#define _MEMORIA_PROTOTYPES_BSTREE_NAMES_HPP
+
+#include <memoria/prototypes/btree/names.hpp>
 
 namespace memoria    {
 namespace bstree      {
 
+using namespace memoria::btree;
+
 class FindName      {};
 class ToolsName     {};
+
+class ItrApiName {};
+
+
 
 template <Int Indexes>
 class IndexPagePrefixName   {};
 
-
-class ItrApiName {};
-
 }
+
+template <typename Types>
+struct BSTreeIterTypesT: IterTypesT<Types> 		{};
+
+template <typename Types>
+struct BSTreeCtrTypesT: CtrTypesT<Types> 		{};
+
+template <typename Types>
+using BSTreeCtrTypes = BTreeCtrTypes<BSTreeCtrTypesT<Types>>;
+
+template <typename Types>
+using BSTreeIterTypes = BTreeIterTypes<BSTreeIterTypesT<Types>>;
+
 }
 
 

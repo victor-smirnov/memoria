@@ -48,46 +48,46 @@ public:
             Allocator allocator;
             allocator.getLogger()->setHandler(&logHandler);
 
-            Ctr map(&allocator, 1, true);
-
-            for (Int c = 1; c <= 10; c++)
-            {
-                map[c] = String(" ====== "+toString(c + 1)+" ===== ");
-            }
-
-            allocator.commit();
-
-            for (auto iter = map.begin(); iter != map.endm(); iter++)
-            {
-                out<<iter.key()<<" => "<<(String)iter<<endl;
-            }
-
-
-            auto iter1 = map.begin();
-            auto iter2 = iter1;
-
-            iter2++;
-
-            if (iter1 == iter2)
-            {
-                out<<"Iterators are equal"<<endl;
-            }
-            else {
-                out<<"Iterators are NOT equal"<<endl;
-            }
-
-            for (auto& val: map)
-            {
-                out<<val.key()<<" => "<<(String)val<<endl;
-            }
-
-            BigInt sum = 0;
-            for (auto& val: map)
-            {
-                sum += val.key();
-            }
-
-            out<<"Sum="<<sum<<endl;
+//            Ctr map(&allocator, 1, true);
+//
+//            for (Int c = 1; c <= 10; c++)
+//            {
+//                map[c] = String(" ====== "+toString(c + 1)+" ===== ");
+//            }
+//
+//            allocator.commit();
+//
+//            for (auto iter = map.begin(); iter != map.endm(); iter++)
+//            {
+//                out<<iter.key()<<" => "<<(String)iter<<endl;
+//            }
+//
+//
+//            auto iter1 = map.begin();
+//            auto iter2 = iter1;
+//
+//            iter2++;
+//
+//            if (iter1 == iter2)
+//            {
+//                out<<"Iterators are equal"<<endl;
+//            }
+//            else {
+//                out<<"Iterators are NOT equal"<<endl;
+//            }
+//
+//            for (auto& val: map)
+//            {
+//                out<<val.key()<<" => "<<(String)val<<endl;
+//            }
+//
+//            BigInt sum = 0;
+//            for (auto& val: map)
+//            {
+//                sum += val.key();
+//            }
+//
+//            out<<"Sum="<<sum<<endl;
         }
     }
 };

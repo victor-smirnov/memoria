@@ -8,7 +8,8 @@
 
 
 
-#include <memoria/allocators/inmem/factory.hpp>
+#include <memoria/memoria.hpp>
+
 #include <memoria/core/tools/file.hpp>
 #include <memoria/core/tools/platform.hpp>
 
@@ -131,7 +132,16 @@ void dumpTree(PageMetadata* group, Page* page, const File& folder)
             {
                 stringstream str;
 
-                str<<entry.name<<"-"<<entry.index;
+                str<<entry.name<<"-";
+
+                char prev = str.fill();
+
+                str.fill('0');
+                str.width(4);
+
+                str<<entry.index;
+
+                str.fill(prev);
 
                 if (entry.count > 1)
                 {
@@ -147,21 +157,6 @@ void dumpTree(PageMetadata* group, Page* page, const File& folder)
             }
         }
     }
-
-
-//  for (int c = 0; c < group->size(); c++)
-//  {
-//      Metadata* item = group->getItem(c);
-//
-//      if (item->getTypeCode() == Metadata::GROUP)
-//      {
-//          dumpTree((MetadataGroup*)item, page, folder, cnt);
-//      }
-//      else if (item->getTypeCode() == Metadata::ID)
-//      {
-//
-//      }
-//  }
 }
 
 void dumpTree(const IDValue& id, const File& folder)
@@ -295,11 +290,14 @@ int main(int argc, const char** argv, const char** envp)
             iter.next();
         }
     }
-    catch (MemoriaThrowable ex) {
+    catch (Exception ex) {
         cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
     }
     catch (MemoriaThrowable *ex) {
         cout<<"Exception* "<<ex->source()<<" "<<*ex<<endl;
+    }
+    catch (MemoriaThrowable ex) {
+    	cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
     }
     catch (int i) {
         cout<<"IntegerEx: "<<i<<endl;

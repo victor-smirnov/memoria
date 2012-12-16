@@ -66,7 +66,7 @@ public:
     {
         Int size = params.x();
 
-        ArrayData<UByte> data(size, malloc(size), true);
+        MemBuffer<UByte> data(size);
 
         Int max = this->max_size / size;
 

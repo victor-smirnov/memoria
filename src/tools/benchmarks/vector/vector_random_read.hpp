@@ -61,7 +61,7 @@ public:
 
         BigInt size = 1024*1024;
 
-        ArrayData<UByte> data(size, malloc(size), true);
+        MemBuffer<UByte> data(size);
 
         Iterator i = ctr_->seek(0);
         for (Int c = 0; c < memory_size / size; c++)
@@ -82,7 +82,7 @@ public:
     {
         Int     size    = params.x();
 
-        ArrayData<UByte> data(size, malloc(size), true);
+        MemBuffer<UByte> data(size);
 
         BigInt total = 0;
         BigInt operations = 0;

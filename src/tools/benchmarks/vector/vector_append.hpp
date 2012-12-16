@@ -75,7 +75,7 @@ public:
 
         params.operations() = 0;
 
-        ArrayData<UByte> data(size, malloc(size), true);
+        MemBuffer<UByte> data(size);
 
         while (total < memory_size)
         {

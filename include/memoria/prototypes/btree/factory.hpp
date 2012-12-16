@@ -233,10 +233,10 @@ public:
         typedef typename ContainerTypes::ContainerPartsList                     CtrList;
         typedef typename ContainerTypes::IteratorPartsList                      IterList;
 
-
-        typedef CtrTypesT<Types>                                                CtrTypes;
-        typedef BTreeIterTypes<IterTypesT<Types> >                              IterTypes;
-
+        // FIXME Refactor BTree hierarchy
+        // Use container types as base definitions
+        typedef BTreeCtrTypes<Types>                                            CtrTypes;
+        typedef BTreeIterTypes<Types>                              				IterTypes;
 
         typedef NodePath<
                 NodeBaseG, 8

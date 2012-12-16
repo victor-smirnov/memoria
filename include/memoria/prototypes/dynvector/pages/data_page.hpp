@@ -62,7 +62,7 @@ public:
         Base::init();
     }
 
-    Short size() const {
+    Int size() const {
         return data_.size();
     }
 

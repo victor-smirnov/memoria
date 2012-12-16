@@ -1,5 +1,5 @@
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX demangle if_then_else nested selector partial_specialization static_md5 md5_init vlist md5)
+    set(MEMORIA_SANDBOX for_each map selector partial_specialization static_md5 md5_init vlist md5)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})

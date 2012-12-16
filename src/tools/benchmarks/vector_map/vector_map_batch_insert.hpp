@@ -98,7 +98,7 @@ public:
     {
         Int size = params.x();
 
-        ArrayData<Byte> data(size * data_size_, malloc(size * data_size_), true);
+        MemBuffer<Byte> data(size * data_size_);
 
         SubtreeProvider provider(&map_->set(), size, data_size_);
 

@@ -9,18 +9,33 @@
 #ifndef _MEMORIA_MODELS_ARRAY_NAMES_HPP
 #define _MEMORIA_MODELS_ARRAY_NAMES_HPP
 
-namespace memoria       {
-namespace models        {
-namespace array         {
+#include <memoria/prototypes/dynvector/names.hpp>
 
-class ApiName               {};
+
+namespace memoria       {
+namespace mvector       {
+
+using namespace memoria::dynvector;
+
+class ApiName               	{};
 class ContainerApiName          {};
-class IteratorToolsName     {};
+class IteratorToolsName     	{};
 class IteratorContainerAPIName  {};
 
+}
 
-}
-}
+template <typename Types>
+struct VectorCtrTypesT: CtrTypesT<Types> {};
+
+template <typename Types>
+struct VectorIterTypesT: IterTypesT<Types> {};
+
+template <typename Types>
+using VectorCtrTypes  = DynVectorCtrTypes<VectorCtrTypesT<Types>>;
+
+template <typename Types>
+using VectorIterTypes = DynVectorIterTypes<VectorIterTypesT<Types>>;
+
 }
 
 #endif

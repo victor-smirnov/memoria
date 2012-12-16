@@ -15,6 +15,7 @@
 #include <memoria/containers/map/factory.hpp>
 
 #include <memoria/containers/vector/iterator/api.hpp>
+#include <memoria/containers/vector/iterator.hpp>
 
 #include <memoria/containers/vector/pages/data_page.hpp>
 #include <memoria/containers/vector/pages/metadata.hpp>
@@ -26,42 +27,55 @@
 
 #include <memoria/prototypes/dynvector/dynvector.hpp>
 
+
 namespace memoria {
 
 template <typename Profile, typename ElementType>
 struct BTreeTypes<Profile, memoria::Vector<ElementType>>: public BTreeTypes<Profile, memoria::DynVector<ElementType>>  {
 
-    typedef BTreeTypes<Profile, memoria::DynVector<ElementType>>                 Base;
+    typedef BTreeTypes<Profile, memoria::DynVector<ElementType>>                Base;
 
     typedef typename AppendTool<
             typename Base::ContainerPartsList,
             TypeList<
-                memoria::models::array::ApiName
+                memoria::mvector::ApiName
             >
-    >::Result                                                                       ContainerPartsList;
+    >::Result                                                                   ContainerPartsList;
 
     typedef typename AppendTool<
             typename Base::IteratorPartsList,
             TypeList<
-                memoria::models::array::IteratorContainerAPIName
+                memoria::mvector::IteratorContainerAPIName
             >
-    >::Result                                                                       IteratorPartsList;
+    >::Result                                                                   IteratorPartsList;
 
-    typedef ArrayData<ElementType>                                                  Buffer;
+    typedef MemBuffer<ElementType>                                              Buffer;
 
-    typedef memoria::array::DynVectorData<ElementType>                              DataBlock;
+    typedef memoria::DynVectorData<ElementType>                         		DataBlock;
 
-    typedef VectorMetadata<typename Base::ID>                                       Metadata;
+    typedef VectorMetadata<typename Base::ID>                                   Metadata;
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef BTreeIteratorScalarPrefixCache<Iterator, Container>                 Type;
+        typedef BTreeIteratorScalarPrefixCache<Iterator, Container>             Type;
     };
 };
 
 
 template <typename Profile, typename T, typename ElementType>
 class CtrTF<Profile, memoria::Vector<ElementType>, T>: public CtrTF<Profile, memoria::DynVector<ElementType>, T> {
+	typedef CtrTF<Profile, memoria::DynVector<ElementType>, T> Base;
+public:
+
+	struct Types: Base::Types {
+		typedef VectorCtrTypes<Types> 	CtrTypes;
+		typedef VectorIterTypes<Types> 	IterTypes;
+	};
+
+
+	typedef typename Types::CtrTypes                                            CtrTypes;
+
+	typedef Ctr<CtrTypes>                                                       Type;
 
 };
 

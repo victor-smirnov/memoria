@@ -12,7 +12,6 @@
 #include <memoria/core/tools/reflection.hpp>
 
 namespace memoria    {
-namespace array      {
 
 #pragma pack(1)
 
@@ -113,6 +112,6 @@ public:
 
 #pragma pack()
 
-}}
+}
 
 #endif

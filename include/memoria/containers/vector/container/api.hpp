@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_MODELS_ARRAY_MODEL_API_HPP
-#define _MEMORIA_MODELS_ARRAY_MODEL_API_HPP
+#ifndef _MEMORIA_CONTAINERS_VECTOR_API_HPP
+#define _MEMORIA_CONTAINERS_VECTOR_API_HPP
 
 #include <memoria/containers/vector/names.hpp>
 
@@ -19,7 +19,7 @@
 namespace memoria    {
 
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::ApiName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -43,19 +43,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::array::ApiName)
         return seek(pos);
     }
 
-    template <typename T>
-    MEMORIA_PUBLIC void append(const T& value)
-    {
-        Iterator i = me()->seek(me()->size());
-        i.insert(ArrayData<ElementType>(value));
-    }
+//    template <typename T>
+//    MEMORIA_PUBLIC void append(const T& value)
+//    {
+//        Iterator i = me()->seek(me()->size());
+//        i.insert(MemBuffer<ElementType>(value));
+//    }
 
     Iterator seek(BigInt pos);
     BigInt size();
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::models::array::ApiName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::ApiName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 MEMORIA_PUBLIC M_PARAMS

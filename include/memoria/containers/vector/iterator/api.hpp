@@ -24,7 +24,7 @@ namespace memoria    {
 using namespace memoria::btree;
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
 
     typedef typename Base::NodeBase                                                 NodeBase;
     typedef typename Base::NodeBaseG                                                NodeBaseG;
@@ -58,25 +58,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     MEMORIA_PUBLIC BigInt read(IDataType& data)
     {
-        return read(data, 0, data.getSize());
+        return me()->read(data, 0, data.getSize());
     }
-
     
     void insert(const IDataType& data, BigInt start, BigInt length);
     void insert(const IDataType& data);
 
-    MEMORIA_PUBLIC void insert(const ArrayData<ElementType>& data) {
-        insert((IDataType&)data);
-    }
-
-    template <typename T>
-    MEMORIA_PUBLIC void insert(const T& value)
-    {
-        me()->insert(ArrayData<ElementType>(value));
-    }
-
     void update(const IDataType& data, BigInt start, BigInt length);
     void update(const IDataType& data);
+
+    void assigne(const ElementType& value)
+    {
+    	me()->data().update();
+    	me()->data()->data().value(me()->dataPos()) = value;
+    }
 
     MEMORIA_PUBLIC void remove(BigInt length)
     {
@@ -122,57 +117,67 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::models::array::IteratorContainerAPIName)
 
     MEMORIA_PUBLIC bool operator++()
     {
-        Int size = me()->getElementSize();
-        return me()->skip(size) = size;
+        return me()->skip(1) == 1;
     }
 
     MEMORIA_PUBLIC bool operator++(int)
     {
-        return me()->skip(1) = 1;
+        return me()->skip(1) == 1;
     }
 
     MEMORIA_PUBLIC bool operator+=(Int count)
     {
-        return me()->skip(count) = count;
+        return me()->skip(count) == count;
     }
 
     MEMORIA_PUBLIC bool operator--()
     {
-        return me()->skip(1);
+        return me()->skip(1) == 1;
     }
 
     MEMORIA_PUBLIC bool operator--(int)
     {
-        return me()->skip(-1) = 1;
+        return me()->skip(-1) == 1;
     }
 
     MEMORIA_PUBLIC bool operator-=(Int count)
     {
-        return me()->skip(-count) = count;
+        return me()->skip(-count) == count;
     }
 
-
-//    void assign(const IData& data)
-//    {
-//      update(data);
-//    }
-
-    template <typename T>
-    MEMORIA_PUBLIC operator T()
+    MEMORIA_PUBLIC operator ElementType() const
     {
-        T value;
-
-        ArrayData<ElementType> data(value);
-
-        me()->read(data);
-
-        return value;
+    	return element();
     }
+
+    MEMORIA_PUBLIC operator std::vector<ElementType>() const
+    {
+    	MyType tmp = *me();
+
+    	BigInt size = tmp.model().size() - tmp.pos();
+
+    	std::vector<ElementType> vec(size);
+
+    	MemBuffer<ElementType> buf(&vec[0], vec.size());
+
+    	tmp.read(buf);
+
+    	return vec;
+    }
+
+    MEMORIA_PUBLIC ElementType element() const
+	{
+    	return me()->data()->data().value(me()->dataPos());
+	}
+
+
+
+
 
 MEMORIA_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::models::array::IteratorContainerAPIName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mvector::IteratorContainerAPIName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 

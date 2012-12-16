@@ -66,7 +66,7 @@ public:
     {
         BigInt total = 0;
 
-        ArrayData<UByte> data(params.x(), malloc(params.x()), true);
+        MemBuffer<UByte> data(params.x());
 
         Int cnt = 0;
 

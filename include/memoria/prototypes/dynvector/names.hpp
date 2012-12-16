@@ -9,8 +9,12 @@
 #ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_NAMES_HPP
 #define _MEMORIA_PROTOTYPES_DYNVECTOR_NAMES_HPP
 
+#include <memoria/prototypes/bstree/names.hpp>
+
 namespace memoria    {
 namespace dynvector  {
+
+using namespace memoria::bstree;
 
 template <typename ContainerTypes>
 struct DynVector {
@@ -36,6 +40,21 @@ template <Int Indexes>
 class IndexPagePrefixName   {};
 
 }
+
+template <typename Types>
+struct DynVectorCtrTypesT: CtrTypesT<Types> {};
+
+template <typename Types>
+struct DynVectorIterTypesT: IterTypesT<Types> {};
+
+template <typename Types>
+using DynVectorCtrTypes = BSTreeCtrTypes<DynVectorCtrTypesT<Types>>;
+
+template <typename Types>
+using DynVectorIterTypes = BSTreeIterTypes<DynVectorIterTypesT<Types>>;
+
+
+
 }
 
 

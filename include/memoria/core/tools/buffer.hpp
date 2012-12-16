@@ -22,70 +22,73 @@ namespace memoria    {
 
 #pragma pack(1)
 
-typedef long bitmap_atom_t;
+//typedef long bitmap_atom_t;
+//
+//template <long Size, long Align = sizeof(long)>
+//class Padding {
+//    static const long SIZE = (sizeof(Size) % Align == 0 ? Align : (sizeof(bitmap_atom_t) - Size % sizeof(bitmap_atom_t))) ;
+//    char bytes[SIZE];
+//public:
+//    Padding(){}
+//};
 
-template <long Size, long Align = sizeof(long)>
-class Padding {
-    static const long SIZE = (sizeof(Size) % Align == 0 ? Align : (sizeof(bitmap_atom_t) - Size % sizeof(bitmap_atom_t))) ;
-    char bytes[SIZE];
-public:
-    Padding(){}
-};
+//template <typename T>
+//class Wrapper {
+//    T value_;
+//public:
+//    static const int SIZE                           = sizeof(T);
+//    static const int BITSIZE                        = sizeof(T) * 8;
+//
+//    typedef T                                       ValueType;
+//
+//    Wrapper(const T &value): value_(value) {};
+//    Wrapper(const Wrapper<T> &copy): value_(copy.value_) {};
+//
+//    T &value() const {
+//        return value_;
+//    }
+//
+//    void set_value(const T &v) {
+//        value_ = v;
+//    }
+//
+//    bool operator==(const Wrapper<T> &v) const {
+//        return value_ == v.value_;
+//    }
+//
+//    bool operator!=(const Wrapper<T> &v) const {
+//        return value_ != v.value_;
+//    }
+//
+//    bool operator>=(const Wrapper<T> &v) const {
+//        return value_ >= v.value_;
+//    }
+//
+//    bool operator<=(const Wrapper<T> &v) const {
+//        return value_ <= v.value_;
+//    }
+//
+//    bool operator<(const Wrapper<T> &v) const {
+//        return value_ < v.value_;
+//    }
+//};
 
-template <typename T>
-class Wrapper {
-    T value_;
-public:
-    static const int SIZE                           = sizeof(T);
-    static const int BITSIZE                        = sizeof(T) * 8;
 
-    typedef T                                       ValueType;
-
-    Wrapper(const T &value): value_(value) {};
-    Wrapper(const Wrapper<T> &copy): value_(copy.value_) {};
-
-    T &value() const {
-        return value_;
-    }
-
-    void set_value(const T &v) {
-        value_ = v;
-    }
-
-    bool operator==(const Wrapper<T> &v) const {
-        return value_ == v.value_;
-    }
-
-    bool operator!=(const Wrapper<T> &v) const {
-        return value_ != v.value_;
-    }
-
-    bool operator>=(const Wrapper<T> &v) const {
-        return value_ >= v.value_;
-    }
-
-    bool operator<=(const Wrapper<T> &v) const {
-        return value_ <= v.value_;
-    }
-
-    bool operator<(const Wrapper<T> &v) const {
-        return value_ < v.value_;
-    }
-};
 
 template <size_t Size>
-class Buffer {
+class StaticBuffer {
+
     char Buffer_[Size];
 
-    typedef Buffer<Size> Me;
+    typedef StaticBuffer<Size> Me;
 
 public:
     typedef Long            Element;
-    
+
     static const BigInt     SIZE    = Size;                 //in bytes;
     static const BigInt     BITSIZE = SIZE * 8;             //in bits;
 
-    Buffer() {}
+    StaticBuffer() {}
 
     const Me& operator=(const Me& other) {
         CopyBuffer(other.Buffer_, Buffer_, Size);

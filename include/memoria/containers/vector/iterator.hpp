@@ -6,56 +6,51 @@
 
 
 
-#ifndef __MEMORIA_PROTOTYPES_BTREE_ITERATOR_H
-#define __MEMORIA_PROTOTYPES_BTREE_ITERATOR_H
+#ifndef __MEMORIA_CONTAINERS_VECTOR_ITERATOR_H
+#define __MEMORIA_CONTAINERS_VECTOR_ITERATOR_H
 
 
 
 #include <memoria/prototypes/btree/iterator/api.hpp>
 #include <memoria/prototypes/btree/iterator/base.hpp>
-#include <memoria/prototypes/btree/names.hpp>
 
-namespace memoria    {
+#include <memoria/containers/vector/names.hpp>
 
-template <typename Types> struct IterTypesT;
-template <typename Types> class Iter;
-template <typename Name, typename Base, typename Types> class IterPart;
+#include <vector>
 
+namespace memoria {
 
-
+using namespace std;
 
 
 
 
-
-template<
-        typename Types
->
-class Iter<BTreeIterTypes<Types>>: public IterStart<BTreeIterTypes<Types>>
+template <typename Types>
+class Iter<VectorIterTypes<Types>>: public IterStart<VectorIterTypes<Types>>
 {
-    typedef Iter<BTreeIterTypes<Types>>                                             MyType;
-    typedef IterStart<BTreeIterTypes<Types>>                                        Base;
+    typedef Iter<VectorIterTypes<Types>>             								MyType;
+    typedef IterStart<VectorIterTypes<Types>>        								Base;
     typedef Ctr<typename Types::CtrTypes>                                           ContainerType;
     typedef EmptyType                                                               Txn;
 
     typedef typename ContainerType::Types::NodeBase                                 NodeBase;
     typedef typename ContainerType::Types::NodeBaseG                                NodeBaseG;
 
+    typedef typename ContainerType::Types::ElementType                              ElementType;
+
     ContainerType&      model_;
 
 public:
 
-    enum {GENERIC_ITERATOR, BEGIN_ITERATOR, END_ITERATOR, REVERSE_BEGIN_ITERATOR, REVERSE_END_ITERATOR};
-
     typedef ContainerType                                                           Container;
-    
+
     Iter(Container &model, Int levels = 0): Base(), model_(model)
     {
         Base::key_idx()     = 0;
 
         Base::path().resize(levels);
     }
-    
+
     Iter(const MyType& other): Base(other), model_(other.model_) {}
 
     ContainerType& model() {
@@ -84,6 +79,13 @@ public:
         }
 
         return *this;
+    }
+
+    template <typename T>
+    MyType& operator=(const T& value)
+    {
+    	AssignToVectorItem(*this, value);
+    	return *this;
     }
 
     bool operator==(const MyType& other) const
@@ -124,11 +126,11 @@ public:
         }
         else if (other.type() == Base::END)
         {
-            return Base::isNotEnd();
+            return !Base::isEof();
         }
         else if (other.type() == Base::START)
         {
-            return !Base::isBegin();
+            return !Base::isBof();
         }
         else
         {
@@ -136,25 +138,58 @@ public:
         }
     }
 
-    template <typename T>
-    MyType& operator=(const T& value)
+    MyType& operator=(const ElementType& value)
     {
-        this->setData(value);
-        return *this;
+    	this->assigne(value);
+    	return *this;
+    }
+
+    MyType& operator*() {
+    	return *this;
+    }
+
+    const MyType& operator*() const {
+    	return *this;
     }
 };
 
+
 template <typename Types>
-bool operator==(const Iter<BTreeIterTypes<Types> >& iter, const IterEndMark& mark)
+bool operator==(const Iter<VectorIterTypes<Types>>& iter, const IterEndMark& mark)
 {
     return iter.isEnd();
 }
 
 template <typename Types>
-bool operator!=(const Iter<BTreeIterTypes<Types> >& iter, const IterEndMark& mark)
+bool operator!=(const Iter<VectorIterTypes<Types>>& iter, const IterEndMark& mark)
 {
     return iter.isNotEnd();
 }
+
+
+template <typename Types, typename T>
+Ctr<VectorCtrTypes<Types>>& operator<<(Ctr<VectorCtrTypes<Types>>& ctr, const T& value)
+{
+	auto iter = ctr.End();
+	iter.insert(VariableRef<const T>(value));
+	return ctr;
+}
+
+
+
+template <typename Types>
+void UpdateVector(Iter<VectorIterTypes<Types>>& iter, const std::vector<typename Types::ElementType>& source)
+{
+	typedef Iter<VectorIterTypes<Types>> 	IterType;
+	typedef typename Types::ElementType 	ElementType;
+
+	IterType tmp = iter;
+
+	const MemBuffer<const ElementType> src(&source[0], source.size());
+
+	tmp.update(src);
+}
+
 
 
 }

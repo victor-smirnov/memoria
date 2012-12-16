@@ -9,9 +9,24 @@
 #ifndef _MEMORIA_PROTOTYPES_COMPOSITE_NAMES_HPP
 #define _MEMORIA_PROTOTYPES_COMPOSITE_NAMES_HPP
 
+#include <memoria/core/container/names.hpp>
+
 namespace memoria     {
 namespace composite   {
 
+template <typename Types>
+struct CompositeCtrTypesT: CtrTypesT<Types> 		{};
+
+template <typename Types>
+struct CompositeIterTypesT: IterTypesT<Types> 		{};
+
+
+
+template <typename Types>
+using CompositeCtrTypes = CtrTypesT<CompositeCtrTypesT<Types>>;
+
+template <typename Types>
+using CompositeIterTypes = CtrTypesT<CompositeIterTypesT<Types>>;
 
 
 }

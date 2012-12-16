@@ -25,7 +25,6 @@
 #include <memoria/prototypes/dynvector/container/read.hpp>
 
 #include <memoria/prototypes/dynvector/iterator/api.hpp>
-#include <memoria/prototypes/dynvector/iterator.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -161,8 +160,8 @@ public:
         typedef typename Base0::ContainerPartsList                              CtrList;
         typedef typename Base0::IteratorPartsList                               IterList;
 
-        typedef CtrTypesT<Types>                                                CtrTypes;
-        typedef BTreeIterTypes<IterTypesT<Types> >                              IterTypes;
+        typedef DynVectorCtrTypes<Types>                                        CtrTypes;
+        typedef DynVectorIterTypes<Types>           							IterTypes;
 
         typedef DataPath<
                 typename Base0::NodeBaseG,

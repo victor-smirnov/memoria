@@ -18,11 +18,11 @@ namespace memoria {
 
 template <
     typename ContainerTypeName,
-    typename ArrayData
+    typename MemBuffer
 >
 class BTreeBatchTestBase: public SPTestTask {
 
-    typedef BTreeBatchTestBase<ContainerTypeName, ArrayData>                            MyType;
+    typedef BTreeBatchTestBase<ContainerTypeName, MemBuffer>                            MyType;
 
 protected:
     typedef typename SCtrTF<ContainerTypeName>::Type                                    Ctr;
@@ -78,10 +78,10 @@ public:
 
     virtual ~BTreeBatchTestBase() throw() {}
 
-    virtual ArrayData createBuffer(Ctr& array, Int size, BigInt value)  = 0;
+    virtual MemBuffer createBuffer(Ctr& array, Int size, BigInt value)  = 0;
     virtual Iterator seek(Ctr& array, BigInt pos)                       = 0;
-    virtual void insert(Iterator& iter, const ArrayData& data)          = 0;
-    virtual void read(Iterator& iter, ArrayData& data)                  = 0;
+    virtual void insert(Iterator& iter, const MemBuffer& data)          = 0;
+    virtual void read(Iterator& iter, MemBuffer& data)                  = 0;
     virtual void remove(Iterator& iter, BigInt size)                    = 0;
     virtual void skip(Iterator& iter, BigInt offset)                    = 0;
     virtual BigInt getPosition(Iterator& iter)                          = 0;
@@ -228,7 +228,7 @@ public:
 
     void Build(ostream& out, Allocator& allocator, Ctr& array)
     {
-        ArrayData data = createBuffer(array, block_size_, data_);
+        MemBuffer data = createBuffer(array, block_size_, data_);
 
         BigInt size = getSize(array);
 
@@ -256,7 +256,7 @@ public:
                 BigInt len = getSize(array);
                 if (len > 100) len = 100;
 
-                ArrayData postfix = createBuffer(array, len, 0);
+                MemBuffer postfix = createBuffer(array, len, 0);
 
                 read(iter, postfix);
 
@@ -290,7 +290,7 @@ public:
 
                 if (len > 100) len = 100;
 
-                ArrayData prefix = createBuffer(array, len, 0);
+                MemBuffer prefix = createBuffer(array, len, 0);
                 skip(iter, -len);
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
@@ -336,8 +336,8 @@ public:
                 BigInt postfix_len = getSize(array) - pos;
                 if (postfix_len > 100) postfix_len = 100;
 
-                ArrayData prefix    = createBuffer(array, prefix_len, 0);
-                ArrayData postfix   = createBuffer(array, postfix_len, 0);
+                MemBuffer prefix    = createBuffer(array, prefix_len, 0);
+                MemBuffer postfix   = createBuffer(array, postfix_len, 0);
 
                 skip(iter, -prefix_len);
                 checkIterator(out, iter, MEMORIA_SOURCE);
@@ -398,7 +398,7 @@ public:
                 BigInt len = getSize(array) - size;
                 if (len > 100) len = 100;
 
-                ArrayData postfix(len);
+                MemBuffer postfix(len);
                 skip(iter, size);
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
@@ -409,6 +409,7 @@ public:
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
                 remove(iter, size);
+
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
                 check(allocator, "Removing region at the start of the array failed. See the dump for details.", MEMORIA_SOURCE);
@@ -425,7 +426,7 @@ public:
                 BigInt len = getPosition(iter);
                 if (len > 100) len = 100;
 
-                ArrayData prefix(len);
+                MemBuffer prefix(len);
                 skip(iter, -len);
                 checkIterator(out, iter, MEMORIA_SOURCE);
 
@@ -472,8 +473,8 @@ public:
                 BigInt postfix_len = getSize(array) - (pos + size);
                 if (postfix_len > 100) postfix_len = 100;
 
-                ArrayData prefix(prefix_len);
-                ArrayData postfix(postfix_len);
+                MemBuffer prefix(prefix_len);
+                MemBuffer postfix(postfix_len);
 
                 skip(iter, -prefix_len);
                 checkIterator(out, iter, MEMORIA_SOURCE);

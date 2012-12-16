@@ -36,7 +36,7 @@ class SumsetBatchTest: public BTreeBatchTestBase<
 
     typedef typename Base::Ctr                                                  Ctr;
     typedef typename Base::Accumulator                                          Accumulator;
-    typedef typename SumSet1Ctr::LeafPairsVector                                ArrayData;
+    typedef typename SumSet1Ctr::LeafPairsVector                                MemBuffer;
 
     static const Int Indexes                                                    = Ctr::Indexes;
 
@@ -52,9 +52,9 @@ public:
 
 
 
-    virtual ArrayData createBuffer(Ctr& ctr, Int size, BigInt value)
+    virtual MemBuffer createBuffer(Ctr& ctr, Int size, BigInt value)
     {
-        ArrayData array(size);
+        MemBuffer array(size);
 
         for (auto& pair: array)
         {
@@ -81,7 +81,7 @@ public:
         return i;
     }
 
-    virtual void insert(Iterator& iter, const ArrayData& data)
+    virtual void insert(Iterator& iter, const MemBuffer& data)
     {
         BigInt size = iter.model().getSize();
 
@@ -92,7 +92,7 @@ public:
         checkSize(iter.model());
     }
 
-    virtual void read(Iterator& iter, ArrayData& data)
+    virtual void read(Iterator& iter, MemBuffer& data)
     {
         for (auto& value: data)
         {

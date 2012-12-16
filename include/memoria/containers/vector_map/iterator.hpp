@@ -207,12 +207,12 @@ public:
         return *this;
     }
 
-    template <typename T>
-    MyType& operator=(const T& value)
-    {
-        this->setValue(value);
-        return *this;
-    }
+//    template <typename T>
+//    MyType& operator=(const T& value)
+//    {
+//        this->setValue(value);
+//        return *this;
+//    }
 };
 
 

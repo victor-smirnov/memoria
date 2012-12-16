@@ -67,7 +67,7 @@ public:
     {
         Int size = params.x();
 
-        ArrayData<Byte> data(size, malloc(size), true);
+        MemBuffer<Byte> data(size);
 
         BigInt total = 0;
 

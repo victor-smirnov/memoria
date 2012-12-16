@@ -39,7 +39,7 @@ typedef typename Page::ID                                   ID;
 typedef typename ContainerType::Key                         Key;
 
 typedef typename ContainerType::ByteArray::ElementType      ElementType;
-typedef ArrayData<ElementType>                              ArrayDataType;
+typedef MemBuffer<ElementType>                             	MemBufferType;
 
 
 
@@ -92,12 +92,13 @@ void update(const IData<ElementType>& data)
 }
 
 
-ArrayDataType read()
+MemBufferType read()
 {
     me()->ba_iter().skip(-me()->pos());
 
-    ArrayDataType data(me()->size());
-    me()->read(data, 0, data.size());
+    MemBufferType data(me()->size());
+
+    me()->read(data, 0, data.getSize());
 
     return data;
 }
@@ -204,11 +205,12 @@ bool nextKey()
     return me()->is_iter().next();
 }
 
-void setValue(BigInt value)
-{
-    ArrayDataType data(sizeof(value), &value);
-    me()->update(data);
-}
+
+//void setValue(BigInt value)
+//{
+//    MemBufferType data(sizeof(value), &value);
+//    me()->update(data);
+//}
 
 bool operator++() {
     return me()->nextKey();
@@ -234,20 +236,20 @@ MyType& operator*() {
     return *me();
 }
 
-void setValue(StringRef value)
-{
-    ArrayDataType data(value.size(), T2T<UByte*>(value.c_str()));
-    me()->update(data);
-}
+//void setValue(StringRef value)
+//{
+//    MemBufferType data(value.size(), T2T<UByte*>(value.c_str()));
+//    me()->update(data);
+//}
 
 void setValue(const IData<ElementType>& value)
 {
     me()->update(value);
 }
 
-operator ArrayDataType()
+operator MemBufferType()
 {
-    ArrayDataType data(me()->size());
+    MemBufferType data(me()->size());
     BigInt len = me()->read(data);
     me()->skip(-len);
     return data;
@@ -255,7 +257,7 @@ operator ArrayDataType()
 
 operator String ()
 {
-    ArrayDataType data(me()->size());
+    MemBufferType data(me()->size());
     BigInt len = me()->read(data);
     me()->skip(-len);
     return String(T2T<char*>(data.data()), data.size());

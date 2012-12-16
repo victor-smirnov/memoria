@@ -206,6 +206,7 @@ typename M_TYPE::Accumulator M_TYPE::removeDataBlock(Iterator& start, Iterator& 
                 stop.cache().setup(0, 0);
 
                 start = stop;
+
                 return result;
             }
         }

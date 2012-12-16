@@ -70,7 +70,7 @@ struct AppendTool<NullType, NullType>;
 
 
 
-namespace internal {
+namespace internal0 {
 template <typename Accumulator, typename ... Lists> class MergeListsHelper;
 
 template <typename Accumulator, typename ... List, typename ... Tail>
@@ -96,7 +96,7 @@ public:
 }
 
 template <typename ... Lists> struct MergeLists {
-    typedef typename internal::MergeListsHelper<TypeList<>, Lists...>::Result   Result;
+    typedef typename internal0::MergeListsHelper<TypeList<>, Lists...>::Result   Result;
 };
 
 

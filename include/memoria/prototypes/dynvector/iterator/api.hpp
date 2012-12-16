@@ -74,6 +74,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
         return me()->data().isSet() ? me()->dataPos() >= me()->data()->size() : true;
     }
 
+    bool isBof() const
+    {
+    	return local_pos_ == 0 && me()->isBegin();
+    }
+
     DataPageG& data()
     {
         return me()->path().data();

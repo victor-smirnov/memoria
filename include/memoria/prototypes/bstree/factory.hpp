@@ -63,9 +63,23 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
 
 };
 
-template <typename Profile, typename T>
-class CtrTF<Profile, memoria::BSTree, T>: public CtrTF<Profile, memoria::BTree, T> {};
 
+template <typename Profile, typename T>
+class CtrTF<Profile, memoria::BSTree, T>: public CtrTF<Profile, memoria::BTree, T> {
+
+	typedef CtrTF<Profile, memoria::BTree, T> Base;
+
+public:
+
+	struct Types: Base::Types {
+		typedef BSTreeCtrTypes<Types> CtrTypes;
+		typedef BSTreeIterTypes<Types> IterTypes;
+	};
+
+
+	typedef typename Types::CtrTypes                                            CtrTypes;
+	typedef Ctr<CtrTypes>                                                       Type;
+};
 
 }
 

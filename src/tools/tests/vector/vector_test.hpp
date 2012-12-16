@@ -21,7 +21,7 @@ using namespace memoria::vapi;
 template <typename T>
 class VectorTest: public BTreeBatchTestBase<
     Vector<T>,
-    ArrayData<T>
+    MemBuffer<T>
 >
 {
     typedef VectorTest                                              MyType;
@@ -29,7 +29,7 @@ class VectorTest: public BTreeBatchTestBase<
 
     typedef BTreeBatchTestBase<
                 Vector<T>,
-                ArrayData<T>
+                MemBuffer<T>
     >                                                                           Base;
 
     typedef typename Base::Ctr                                                  Ctr;
@@ -45,9 +45,9 @@ public:
         Base::size_           = 1024*1024*16;
     }
 
-    virtual ArrayData<T> createBuffer(Ctr& array, Int size, BigInt value)
+    virtual MemBuffer<T> createBuffer(Ctr& array, Int size, BigInt value)
     {
-        ArrayData<T> data((SizeT)size);
+        MemBuffer<T> data((SizeT)size);
 
         for (Int c = 0; c < size; c++)
         {
@@ -62,12 +62,12 @@ public:
         return array.seek(pos);
     }
 
-    virtual void insert(Iterator& iter, const ArrayData<T>& data)
+    virtual void insert(Iterator& iter, const MemBuffer<T>& data)
     {
         iter.insert(data);
     }
 
-    virtual void read(Iterator& iter, ArrayData<T>& data)
+    virtual void read(Iterator& iter, MemBuffer<T>& data)
     {
         iter.read(data);
     }
