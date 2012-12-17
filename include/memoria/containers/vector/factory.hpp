@@ -51,7 +51,7 @@ struct BTreeTypes<Profile, memoria::Vector<ElementType>>: public BTreeTypes<Prof
 
     typedef MemBuffer<ElementType>                                              Buffer;
 
-    typedef memoria::DynVectorData<ElementType>                         		DataBlock;
+    typedef memoria::DynVectorData<ElementType>                                 DataBlock;
 
     typedef VectorMetadata<typename Base::ID>                                   Metadata;
 
@@ -64,18 +64,18 @@ struct BTreeTypes<Profile, memoria::Vector<ElementType>>: public BTreeTypes<Prof
 
 template <typename Profile, typename T, typename ElementType>
 class CtrTF<Profile, memoria::Vector<ElementType>, T>: public CtrTF<Profile, memoria::DynVector<ElementType>, T> {
-	typedef CtrTF<Profile, memoria::DynVector<ElementType>, T> Base;
+    typedef CtrTF<Profile, memoria::DynVector<ElementType>, T> Base;
 public:
 
-	struct Types: Base::Types {
-		typedef VectorCtrTypes<Types> 	CtrTypes;
-		typedef VectorIterTypes<Types> 	IterTypes;
-	};
+    struct Types: Base::Types {
+        typedef VectorCtrTypes<Types>   CtrTypes;
+        typedef VectorIterTypes<Types>  IterTypes;
+    };
 
 
-	typedef typename Types::CtrTypes                                            CtrTypes;
+    typedef typename Types::CtrTypes                                            CtrTypes;
 
-	typedef Ctr<CtrTypes>                                                       Type;
+    typedef Ctr<CtrTypes>                                                       Type;
 
 };
 

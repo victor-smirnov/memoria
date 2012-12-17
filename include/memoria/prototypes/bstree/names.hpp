@@ -29,10 +29,10 @@ class IndexPagePrefixName   {};
 }
 
 template <typename Types>
-struct BSTreeIterTypesT: IterTypesT<Types> 		{};
+struct BSTreeIterTypesT: IterTypesT<Types>      {};
 
 template <typename Types>
-struct BSTreeCtrTypesT: CtrTypesT<Types> 		{};
+struct BSTreeCtrTypesT: CtrTypesT<Types>        {};
 
 template <typename Types>
 using BSTreeCtrTypes = BTreeCtrTypes<BSTreeCtrTypesT<Types>>;

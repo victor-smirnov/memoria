@@ -46,13 +46,13 @@ using SCtrTF = CtrTF<SmallProfile<>, CtrName>;
 
 typedef PageID<UInt> ID4;
 
-MEMORIA_EXTERN_TREE(BigInt, BigInt, 	1);
+MEMORIA_EXTERN_TREE(BigInt, BigInt,     1);
 MEMORIA_EXTERN_TREE(BigInt, EmptyValue, 1);
-MEMORIA_EXTERN_TREE(BigInt, ID4, 		1);
+MEMORIA_EXTERN_TREE(BigInt, ID4,        1);
 
 
 MEMORIA_EXTERN_TREE(BigInt, EmptyValue, 2);
-MEMORIA_EXTERN_TREE(BigInt, ID4, 		2);
+MEMORIA_EXTERN_TREE(BigInt, ID4,        2);
 
 }
 

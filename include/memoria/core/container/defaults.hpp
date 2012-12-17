@@ -28,7 +28,7 @@ using namespace memoria::vapi;
 template <typename Profile, typename IDValueType = UInt, int FlagsCount = 32, typename TransactionType = AbstractTransaction>
 struct BasicContainerCollectionCfg {
 
-    typedef PageID<IDValueType>                                        			ID;
+    typedef PageID<IDValueType>                                                 ID;
     typedef AbstractPage <ID, FlagsCount>                                       Page;
     typedef TransactionType                                                     Transaction;
 

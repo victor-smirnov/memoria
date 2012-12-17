@@ -15,10 +15,10 @@ namespace memoria     {
 namespace composite   {
 
 template <typename Types>
-struct CompositeCtrTypesT: CtrTypesT<Types> 		{};
+struct CompositeCtrTypesT: CtrTypesT<Types>         {};
 
 template <typename Types>
-struct CompositeIterTypesT: IterTypesT<Types> 		{};
+struct CompositeIterTypesT: IterTypesT<Types>       {};
 
 
 

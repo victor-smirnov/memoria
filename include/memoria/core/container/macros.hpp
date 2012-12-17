@@ -13,24 +13,24 @@
 
 
 
-#define MEMORIA_EXTERN_TREE(Key, Value, Indexes) 			\
-MEMORIA_TEMPLATE_EXTERN template class PackedSumTree<		\
-	PackedTreeTypes<										\
-		Key,												\
-		Key,												\
-		Value, 												\
-		memoria::btree::Accumulators<Key, Indexes>,			\
-		Indexes												\
-	>														\
->;															\
-MEMORIA_TEMPLATE_EXTERN template class PackedTree<			\
-	PackedTreeTypes<										\
-		Key,												\
-		Key,												\
-		Value, 												\
-		memoria::btree::Accumulators<Key, Indexes>,			\
-		Indexes												\
-	>														\
+#define MEMORIA_EXTERN_TREE(Key, Value, Indexes)            \
+MEMORIA_TEMPLATE_EXTERN template class PackedSumTree<       \
+    PackedTreeTypes<                                        \
+        Key,                                                \
+        Key,                                                \
+        Value,                                              \
+        memoria::btree::Accumulators<Key, Indexes>,         \
+        Indexes                                             \
+    >                                                       \
+>;                                                          \
+MEMORIA_TEMPLATE_EXTERN template class PackedTree<          \
+    PackedTreeTypes<                                        \
+        Key,                                                \
+        Key,                                                \
+        Value,                                              \
+        memoria::btree::Accumulators<Key, Indexes>,         \
+        Indexes                                             \
+    >                                                       \
 >
 
 #define MEMORIA_EXTERN_CTR(CollectionName,  CtrName)\

@@ -35,8 +35,8 @@ extern bool GlobalDebug;
 template <typename T>
 class PageID: public ValueBuffer<T> {
 public:
-    typedef PageID<T>                 											ValueType;
-    typedef ValueBuffer<T>                    									Base;
+    typedef PageID<T>                                                           ValueType;
+    typedef ValueBuffer<T>                                                      Base;
 
     PageID(): Base() {}
 
@@ -707,7 +707,7 @@ template <typename T>
 ostream& operator<<(ostream& out, const PageID<T>& id)
 {
     IDValue idv(id);
-	out<<idv;
+    out<<idv;
     return out;
 }
 

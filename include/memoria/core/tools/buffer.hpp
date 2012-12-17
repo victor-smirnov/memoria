@@ -149,7 +149,7 @@ public:
 
 template <typename Object>
 class ValueBuffer {
-    typedef ValueBuffer<Object>           										MyType;
+    typedef ValueBuffer<Object>                                                 MyType;
     Object value_;
 
 public:
@@ -157,7 +157,7 @@ public:
     static const BigInt     SIZE    = sizeof(Object);       //in bytes;
     static const BigInt     BITSIZE = SIZE * 8;             //in bits;
 
-    typedef Object                              								ValueType;
+    typedef Object                                                              ValueType;
 
     ValueBuffer() {}
 

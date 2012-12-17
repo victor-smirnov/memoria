@@ -236,7 +236,7 @@ public:
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
         typedef BTreeCtrTypes<Types>                                            CtrTypes;
-        typedef BTreeIterTypes<Types>                              				IterTypes;
+        typedef BTreeIterTypes<Types>                                           IterTypes;
 
         typedef NodePath<
                 NodeBaseG, 8

@@ -21,54 +21,54 @@ using namespace memoria::vapi;
 
 class Iterator {
 
-	Int i = 0;
+    Int i = 0;
 
 public:
 
-	bool operator!=(const Iterator& other) const {
-		return i < 10;
-	}
+    bool operator!=(const Iterator& other) const {
+        return i < 10;
+    }
 
-	void operator++() {
-		i++;
-	}
+    void operator++() {
+        i++;
+    }
 
-	const Iterator& operator*() const {
-		cout<<"A"<<endl;
-		return *this;
-	}
+    const Iterator& operator*() const {
+        cout<<"A"<<endl;
+        return *this;
+    }
 
-	Iterator& operator*() {
-		cout<<"B"<<endl;
-		return *this;
-	}
+    Iterator& operator*() {
+        cout<<"B"<<endl;
+        return *this;
+    }
 
-	int cnt() {
-		return i;
-	}
+    int cnt() {
+        return i;
+    }
 };
 
 class Container {
 public:
 
-	Iterator begin() {
-		return Iterator();
-	}
+    Iterator begin() {
+        return Iterator();
+    }
 
-	Iterator end() {
-		return Iterator();
-	}
+    Iterator end() {
+        return Iterator();
+    }
 
 };
 
 
 int main(void) {
 
-	Container ctr;
+    Container ctr;
 
-	for (auto& var: ctr) {
-		cout<<var.cnt()<<endl;
-	}
+    for (auto& var: ctr) {
+        cout<<var.cnt()<<endl;
+    }
 
     return 0;
 }

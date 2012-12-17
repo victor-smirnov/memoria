@@ -14,24 +14,24 @@ namespace memoria    {
 
 template <typename Iter, typename T>
 class IDataAdater: public IData<T> {
-	Iter iter_;
-	BigInt length_;
+    Iter iter_;
+    BigInt length_;
 public:
-	IDataAdater(const Iter& iter, BigInt length): iter_(iter), length_(length) {}
+    IDataAdater(const Iter& iter, BigInt length): iter_(iter), length_(length) {}
 
 
-	virtual SizeT getSize() const {
-		return length_;
-	}
+    virtual SizeT getSize() const {
+        return length_;
+    }
 
-	virtual void  setSize(SizeT size) {}
+    virtual void  setSize(SizeT size) {}
 
-	virtual SizeT put(const T* buffer, SizeT start, SizeT length) {return 0;}
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length) {return 0;}
 
-	virtual SizeT get(T* buffer, SizeT start, SizeT length) const
-	{
-		return length;
-	}
+    virtual SizeT get(T* buffer, SizeT start, SizeT length) const
+    {
+        return length;
+    }
 };
 
 

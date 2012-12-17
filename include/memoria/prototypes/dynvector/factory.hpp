@@ -161,7 +161,7 @@ public:
         typedef typename Base0::IteratorPartsList                               IterList;
 
         typedef DynVectorCtrTypes<Types>                                        CtrTypes;
-        typedef DynVectorIterTypes<Types>           							IterTypes;
+        typedef DynVectorIterTypes<Types>                                       IterTypes;
 
         typedef DataPath<
                 typename Base0::NodeBaseG,

@@ -76,7 +76,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dynvector::IteratorAPIName)
 
     bool isBof() const
     {
-    	return local_pos_ == 0 && me()->isBegin();
+        return local_pos_ == 0 && me()->isBegin();
     }
 
     DataPageG& data()

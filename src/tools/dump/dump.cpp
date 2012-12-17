@@ -297,7 +297,7 @@ int main(int argc, const char** argv, const char** envp)
         cout<<"Exception* "<<ex->source()<<" "<<*ex<<endl;
     }
     catch (MemoriaThrowable ex) {
-    	cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
+        cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
     }
     catch (int i) {
         cout<<"IntegerEx: "<<i<<endl;

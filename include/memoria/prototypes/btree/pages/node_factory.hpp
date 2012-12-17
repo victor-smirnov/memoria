@@ -28,8 +28,8 @@ template <
 >
 class NodePage: public PageStart<Types>
 {
-    static const UInt VERSION 													= 1;
-    static const Int  BranchingFactor 											= PackedTreeBranchingFactor;
+    static const UInt VERSION                                                   = 1;
+    static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 public:
 
     typedef NodePage<Types>                                                     Me;
@@ -51,17 +51,17 @@ public:
 //    };
 
     typedef PackedSumTree<
-    			PackedTreeTypes<
-    				typename Types::Key,
-    				typename Types::Key,
-    				typename Types::Value,
-    				Accumulators<typename Types::Key, Types::Indexes>,
-    				Types::Indexes,
-    				BranchingFactor
-    			>
-    >                                             								Map;
+                PackedTreeTypes<
+                    typename Types::Key,
+                    typename Types::Key,
+                    typename Types::Value,
+                    Accumulators<typename Types::Key, Types::Indexes>,
+                    Types::Indexes,
+                    BranchingFactor
+                >
+    >                                                                           Map;
 
-//    typedef PackedSumTree<MapTypes> 											Map;
+//    typedef PackedSumTree<MapTypes>                                           Map;
 
     typedef typename Types::Descriptor                                          Descriptor;
 
