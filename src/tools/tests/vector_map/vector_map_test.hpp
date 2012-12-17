@@ -95,7 +95,7 @@ public:
 
             Byte value = pair.key_ & 0xFF;
 
-            MemBuffer<Byte> data = createBuffer(pair.value_, value);
+            vector<Byte> data = createBuffer(pair.value_, value);
 
             checkBufferWritten(iter, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -129,21 +129,21 @@ public:
 
             checkCtr(map, "insertion failed 1", MEMORIA_SOURCE);
 
-            MemBuffer<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);
+            vector<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);
 
-            iter.insert(data);
+            iter = data;
 
             appendToSortedVector(pairs_, Pair(key_, data_size_));
 
             checkCtr(map, "insertion failed 2", MEMORIA_SOURCE);
 
-            MEMORIA_TEST_THROW_IF(iter.size(),      != , data.getSize());
+            MEMORIA_TEST_THROW_IF(iter.size(),      != , (BigInt)data.size());
             MEMORIA_TEST_THROW_IF(iter.getKey(),    != , key_);
 
             auto iter2 = map.find(iter.getKey());
 
             MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
-            MEMORIA_TEST_THROW_IF(iter2.size(),   != , data.getSize());
+            MEMORIA_TEST_THROW_IF(iter2.size(),   != , (BigInt)data.size());
             MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
             checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
@@ -214,11 +214,11 @@ public:
 
                 data_size_ = getRandom(max_block_size_);
 
-                MemBuffer<Byte> data = createBuffer<Byte>(data_size_, c % 256);
+                vector<Byte> data = createBuffer<Byte>(data_size_, c % 256);
 
-                iter.insert(data);
+                iter = data;
 
-                MEMORIA_TEST_THROW_IF(iter.size(),   != , data.getSize());
+                MEMORIA_TEST_THROW_IF(iter.size(),   != , (BigInt)data.size());
                 MEMORIA_TEST_THROW_IF(iter.getKey(), != , c + 1);
 
                 total_size += iter.size();
@@ -230,7 +230,7 @@ public:
                 auto iter2 = map.find(iter.getKey());
 
                 MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
-                MEMORIA_TEST_THROW_IF(iter2.size(),   != , data.getSize());
+                MEMORIA_TEST_THROW_IF(iter2.size(),   != , (BigInt)data.size());
                 MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
                 checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
@@ -276,14 +276,14 @@ public:
                 auto iter = map.create(key_);
                 data_size_ = getRandom(max_block_size_);
 
-                MemBuffer<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);
-                iter.insert(data);
+                vector<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);
+                iter = data;
 
                 checkCtr(map, "insertion failed.",  MEMORIA_SOURCE);
 
                 key_num_ = appendToSortedVector(pairs_, Pair(key_, data_size_));
 
-                MEMORIA_TEST_THROW_IF(iter.size(),      != , data.getSize());
+                MEMORIA_TEST_THROW_IF(iter.size(),      != , (BigInt)data.size());
                 MEMORIA_TEST_THROW_IF(iter.getKey(),    != , key_);
 
                 total_size += iter.size();
@@ -293,7 +293,7 @@ public:
                 auto iter2 = map.find(iter.getKey());
 
                 MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
-                MEMORIA_TEST_THROW_IF(iter2.size(),   != , data.getSize());
+                MEMORIA_TEST_THROW_IF(iter2.size(),   != , (BigInt)data.size());
                 MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
 
                 checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
@@ -344,8 +344,8 @@ public:
                 auto iter = map.create(key_);
                 data_size_ = getRandom(max_block_size_);
 
-                MemBuffer<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);
-                iter.insert(data);
+                vector<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);
+                iter = data;
 
                 appendToSortedVector(pairs_, Pair(key_, data_size_));
             }

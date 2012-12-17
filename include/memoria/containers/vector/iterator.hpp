@@ -17,6 +17,7 @@
 #include <memoria/containers/vector/names.hpp>
 
 #include <vector>
+#include <ostream>
 
 namespace memoria {
 
@@ -28,8 +29,8 @@ using namespace std;
 template <typename Types>
 class Iter<VectorIterTypes<Types>>: public IterStart<VectorIterTypes<Types>>
 {
-    typedef Iter<VectorIterTypes<Types>>             								MyType;
-    typedef IterStart<VectorIterTypes<Types>>        								Base;
+    typedef Iter<VectorIterTypes<Types>>                                            MyType;
+    typedef IterStart<VectorIterTypes<Types>>                                       Base;
     typedef Ctr<typename Types::CtrTypes>                                           ContainerType;
     typedef EmptyType                                                               Txn;
 
@@ -84,8 +85,8 @@ public:
     template <typename T>
     MyType& operator=(const T& value)
     {
-    	AssignToVectorItem(*this, value);
-    	return *this;
+        AssignToVectorItem(*this, value);
+        return *this;
     }
 
     bool operator==(const MyType& other) const
@@ -140,16 +141,16 @@ public:
 
     MyType& operator=(const ElementType& value)
     {
-    	this->assigne(value);
-    	return *this;
+        this->assignElement(value);
+        return *this;
     }
 
     MyType& operator*() {
-    	return *this;
+        return *this;
     }
 
     const MyType& operator*() const {
-    	return *this;
+        return *this;
     }
 };
 
@@ -170,9 +171,17 @@ bool operator!=(const Iter<VectorIterTypes<Types>>& iter, const IterEndMark& mar
 template <typename Types, typename T>
 Ctr<VectorCtrTypes<Types>>& operator<<(Ctr<VectorCtrTypes<Types>>& ctr, const T& value)
 {
-	auto iter = ctr.End();
-	iter.insert(VariableRef<const T>(value));
-	return ctr;
+    auto iter = ctr.End();
+    VariableRef<const T> ref(value);
+    iter.insert(ref, 0, 1);
+    return ctr;
+}
+
+template <typename Types>
+ostream& operator<<(ostream& out, const Iter<VectorIterTypes<Types>>& iter)
+{
+    out<<iter.element();
+    return out;
 }
 
 
@@ -180,15 +189,17 @@ Ctr<VectorCtrTypes<Types>>& operator<<(Ctr<VectorCtrTypes<Types>>& ctr, const T&
 template <typename Types>
 void UpdateVector(Iter<VectorIterTypes<Types>>& iter, const std::vector<typename Types::ElementType>& source)
 {
-	typedef Iter<VectorIterTypes<Types>> 	IterType;
-	typedef typename Types::ElementType 	ElementType;
+    typedef Iter<VectorIterTypes<Types>>    IterType;
+    typedef typename Types::ElementType     ElementType;
 
-	IterType tmp = iter;
+    IterType tmp = iter;
 
-	const MemBuffer<const ElementType> src(&source[0], source.size());
+    const MemBuffer<const ElementType> src(&source[0], source.size());
 
-	tmp.update(src);
+    tmp.update(src);
 }
+
+
 
 
 

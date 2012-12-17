@@ -33,12 +33,12 @@ namespace internal {
 
 template <typename T>
 T cvt(T value) {
-	return value;
+    return value;
 }
 
 
 inline UByte cvt(Byte value) {
-	return (Byte)value;
+    return (Byte)value;
 }
 
 }
@@ -47,44 +47,44 @@ inline UByte cvt(Byte value) {
 template <typename T>
 void dumpArray(std::ostream& out_, const T* data, Int count)
 {
-	Int columns;
+    Int columns;
 
-	switch (sizeof(T)) {
-	case 1: columns = 32; break;
-	case 2: columns = 16; break;
-	case 4: columns = 16; break;
-	default: columns = 8;
-	}
+    switch (sizeof(T)) {
+    case 1: columns = 32; break;
+    case 2: columns = 16; break;
+    case 4: columns = 16; break;
+    default: columns = 8;
+    }
 
-	Int width = sizeof(T) * 2 + 1;
+    Int width = sizeof(T) * 2 + 1;
 
-	out_<<endl;
-	Expand(out_, 19 + width);
-	for (int c = 0; c < columns; c++)
-	{
-		out_.width(width);
-		out_<<hex<<c;
-	}
-	out_<<endl;
+    out_<<endl;
+    Expand(out_, 19 + width);
+    for (int c = 0; c < columns; c++)
+    {
+        out_.width(width);
+        out_<<hex<<c;
+    }
+    out_<<endl;
 
-	for (Int c = 0; c < count; c+= columns)
-	{
-		Expand(out_, 12);
-		out_<<" ";
-		out_.width(6);
-		out_<<dec<<c<<" "<<hex;
-		out_.width(6);
-		out_<<c<<": ";
+    for (Int c = 0; c < count; c+= columns)
+    {
+        Expand(out_, 12);
+        out_<<" ";
+        out_.width(6);
+        out_<<dec<<c<<" "<<hex;
+        out_.width(6);
+        out_<<c<<": ";
 
-		for (Int d = 0; d < columns && c + d < count; d++)
-		{
-			out_<<hex;
-			out_.width(width);
-			out_<<internal::cvt(data[c + d]);
-		}
+        for (Int d = 0; d < columns && c + d < count; d++)
+        {
+            out_<<hex;
+            out_.width(width);
+            out_<<internal::cvt(data[c + d]);
+        }
 
-		out_<<dec<<endl;
-	}
+        out_<<dec<<endl;
+    }
 }
 
 
@@ -96,7 +96,6 @@ struct IData {
     virtual ~IData() throw () {}
 
     virtual SizeT getSize() const                                   = 0;
-    virtual void  setSize(SizeT size)                               = 0;
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)   = 0;
     virtual SizeT get(T* buffer, SizeT start, SizeT length) const   = 0;
 };
@@ -151,8 +150,6 @@ public:
         return length_;
     }
 
-    virtual void setSize(SizeT size) {}
-
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
         return 0;
@@ -179,28 +176,28 @@ protected:
 public:
 
     MemBuffer(T* data, SizeT length, bool owner = false):
-    	length_(length),
-    	data_(data),
-    	owner_(owner)
+        length_(length),
+        data_(data),
+        owner_(owner)
     {}
 
     MemBuffer(SizeT length):
-    	length_(length),
-    	data_(T2T<T*>(::malloc(length * sizeof(T)))),
-    	owner_(true)
+        length_(length),
+        data_(T2T<T*>(::malloc(length * sizeof(T)))),
+        owner_(true)
     {}
 
     MemBuffer(MemBuffer<T>&& other):
-    	length_(other.length_),
-    	data_(other.data_),
-    	owner_(other.owner_)
+        length_(other.length_),
+        data_(other.data_),
+        owner_(other.owner_)
     {
         other.data_ = NULL;
     }
 
     MemBuffer(const MemBuffer<T>& other):
-    	length_(other.length_),
-    	owner_(true)
+        length_(other.length_),
+        owner_(true)
     {
         data_ = T2T<T*>(::malloc(length_*sizeof(T)));
 
@@ -219,37 +216,37 @@ public:
 
     T* data()
     {
-    	return data_;
+        return data_;
     }
 
     const T* data() const
     {
-    	return data_;
+        return data_;
     }
 
     SizeT size() const {
-    	return getSize();
+        return getSize();
     }
 
     virtual void setSize(SizeT size)
     {
-    	length_ = size;
+        length_ = size;
     }
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-    	CopyBuffer(buffer, data_ + start, length);
-    	return length;
+        CopyBuffer(buffer, data_ + start, length);
+        return length;
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length) const
     {
-    	CopyBuffer(data_ + start, buffer, length);
-    	return length;
+        CopyBuffer(data_ + start, buffer, length);
+        return length;
     }
 
     void dump(std::ostream& out) const {
-    	dumpArray(out, data_, length_);
+        dumpArray(out, data_, length_);
     }
 };
 
@@ -257,18 +254,18 @@ public:
 template <typename T>
 class MemBuffer<const T>: public IData<T> {
 protected:
-    SizeT   	length_;
+    SizeT       length_;
     const T*    data_;
 public:
 
     MemBuffer(const T* data, SizeT length):
-    	length_(length),
-    	data_(data)
+        length_(length),
+        data_(data)
     {}
 
     MemBuffer(const MemBuffer<const T>& other):
-    	data_(other.data_),
-    	length_(other.length_)
+        data_(other.data_),
+        length_(other.length_)
     {}
 
     virtual ~MemBuffer() throw () {}
@@ -280,31 +277,26 @@ public:
 
     const T* data() const
     {
-    	return data_;
+        return data_;
     }
 
     SizeT size() const {
-    	return getSize();
-    }
-
-    virtual void setSize(SizeT size)
-    {
-    	length_ = size;
+        return getSize();
     }
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-    	return 0;
+        return 0;
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length) const
     {
-    	CopyBuffer(data_ + start, buffer, length);
-    	return length;
+        CopyBuffer(data_ + start, buffer, length);
+        return length;
     }
 
     void dump(std::ostream& out) const {
-    	dumpArray(out, data_, length_);
+        dumpArray(out, data_, length_);
     }
 };
 
@@ -321,34 +313,31 @@ public:
 
     virtual SizeT getSize() const
     {
-    	return 1;
+        return 1;
     }
-
-    virtual void setSize(SizeT size) {}
-
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-    	value_ = *buffer;
-    	return 1;
+        value_ = *buffer;
+        return 1;
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length) const
     {
-    	*buffer = value_;
-    	return 1;
+        *buffer = value_;
+        return 1;
     }
 
     operator T() const {
-    	return value_;
+        return value_;
     }
 
     operator const T&() const {
-    	return value_;
+        return value_;
     }
 
     operator T&() {
-    	return value_;
+        return value_;
     }
 };
 
@@ -363,28 +352,25 @@ public:
 
     virtual SizeT getSize() const
     {
-    	return 1;
+        return 1;
     }
 
-    virtual void setSize(SizeT size) {}
-
-
     virtual SizeT put(const T* buffer, SizeT start, SizeT length) {
-    	return 0;
+        return 0;
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length) const
     {
-    	*buffer = value_;
-    	return 1;
+        *buffer = value_;
+        return 1;
     }
 
     operator T() const {
-    	return value_;
+        return value_;
     }
 
     operator const T&() const {
-    	return value_;
+        return value_;
     }
 };
 
@@ -402,33 +388,33 @@ public:
 
     virtual SizeT getSize() const
     {
-    	return 1;
+        return 1;
     }
 
     virtual void setSize(SizeT size) {}
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-    	value_ = *buffer;
-    	return 1;
+        value_ = *buffer;
+        return 1;
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length) const
     {
-    	*buffer = value_;
-    	return 1;
+        *buffer = value_;
+        return 1;
     }
 
     operator T() const {
-    	return value_;
+        return value_;
     }
 
     operator const T&() const {
-    	return value_;
+        return value_;
     }
 
     operator T&() {
-    	return value_;
+        return value_;
     }
 };
 

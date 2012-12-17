@@ -61,16 +61,28 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
         return me()->read(data, 0, data.getSize());
     }
     
-    void insert(const IDataType& data, BigInt start, BigInt length);
-    void insert(const IDataType& data);
+    void insert(IDataType& data, BigInt start, BigInt length);
+    void insert(IDataType& data);
 
-    void update(const IDataType& data, BigInt start, BigInt length);
-    void update(const IDataType& data);
+    void update(IDataType& data, BigInt start, BigInt length);
+    void update(IDataType& data);
 
-    void assigne(const ElementType& value)
+    void update(const vector<ElementType>& other)
     {
-    	me()->data().update();
-    	me()->data()->data().value(me()->dataPos()) = value;
+    	MemBuffer<const ElementType> buffer(&other[0], other.size());
+    	me()->update(buffer, 0, other.size());
+    }
+
+    void insert(const vector<ElementType>& other)
+    {
+    	MemBuffer<const ElementType> buffer(&other[0], other.size());
+    	me()->insert(buffer, 0, other.size());
+    }
+
+    void assignElement(const ElementType& value)
+    {
+        me()->data().update();
+        me()->data()->data().value(me()->dataPos()) = value;
     }
 
     MEMORIA_PUBLIC void remove(BigInt length)
@@ -147,28 +159,33 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
 
     MEMORIA_PUBLIC operator ElementType() const
     {
-    	return element();
+        return element();
     }
 
-    MEMORIA_PUBLIC operator std::vector<ElementType>() const
+    MEMORIA_PUBLIC std::vector<ElementType> subVector(BigInt length) const
     {
-    	MyType tmp = *me();
+        MyType tmp = *me();
 
-    	BigInt size = tmp.model().size() - tmp.pos();
+        BigInt max_size = tmp.model().size() - tmp.pos();
 
-    	std::vector<ElementType> vec(size);
+        if (length > max_size)
+        {
+        	length = max_size;
+        }
 
-    	MemBuffer<ElementType> buf(&vec[0], vec.size());
+        std::vector<ElementType> vec(length);
 
-    	tmp.read(buf);
+        MemBuffer<ElementType> buf(&vec[0], vec.size());
 
-    	return vec;
+        tmp.read(buf);
+
+        return vec;
     }
 
     MEMORIA_PUBLIC ElementType element() const
-	{
-    	return me()->data()->data().value(me()->dataPos());
-	}
+    {
+        return me()->data()->data().value(me()->dataPos());
+    }
 
 
 
@@ -182,13 +199,13 @@ MEMORIA_ITERATOR_PART_END
 
 
 MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::insert(const IDataType& data, BigInt start, BigInt length)
+void M_TYPE::insert(IDataType& data, BigInt start, BigInt length)
 {
     me()->model().insertData(*me(), data, start, length);
 }
 
 MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::insert(const IDataType& data)
+void M_TYPE::insert(IDataType& data)
 {
     me()->model().insertData(*me(), data);
 }
@@ -196,13 +213,13 @@ void M_TYPE::insert(const IDataType& data)
 
 
 MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::update(const IDataType& data, BigInt start, BigInt len)
+void M_TYPE::update(IDataType& data, BigInt start, BigInt len)
 {
     me()->model().updateData(*me(), data, start, len);
 }
 
 MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::update(const IDataType& data)
+void M_TYPE::update(IDataType& data)
 {
     me()->model().updateData(*me(), data, 0, data.getSize());
 }

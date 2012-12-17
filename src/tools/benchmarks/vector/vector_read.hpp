@@ -70,7 +70,9 @@ public:
                 array[d] = getRandom(10000);
             }
 
-            i.insert(MemBuffer<BigInt>(array, sizeof(array)/sizeof(BigInt)));
+            MemBuffer<BigInt> buffer(array, sizeof(array)/sizeof(BigInt));
+
+            i.insert(buffer, 0, buffer.size());
         }
 
         rd_array_ = new Int[params.operations()];

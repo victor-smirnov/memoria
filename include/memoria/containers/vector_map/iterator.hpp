@@ -201,10 +201,16 @@ public:
         return is_iter_.isNotEnd();
     }
 
-    MyType& operator=(const IData<Value>& value)
+//    MyType& operator=(IData<Value>& value)
+//    {
+//        this->setValue(value);
+//        return *this;
+//    }
+
+    MyType& operator=(const vector<Value> & value)
     {
-        this->setValue(value);
-        return *this;
+    	this->setValue(value);
+    	return *this;
     }
 
 //    template <typename T>

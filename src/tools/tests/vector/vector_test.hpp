@@ -8,20 +8,21 @@
 #define MEMORIA_TESTS_VECTOR_VECTOR_TEST_HPP_
 
 #include <memoria/memoria.hpp>
-
 #include <memoria/tools/tests.hpp>
 
 #include "../shared/btree_test_base.hpp"
 
+#include <vector>
+
 namespace memoria {
 
 using namespace memoria::vapi;
-
+using namespace std;
 
 template <typename T>
 class VectorTest: public BTreeBatchTestBase<
     Vector<T>,
-    MemBuffer<T>
+    vector<T>
 >
 {
     typedef VectorTest                                              MyType;
@@ -29,7 +30,7 @@ class VectorTest: public BTreeBatchTestBase<
 
     typedef BTreeBatchTestBase<
                 Vector<T>,
-                MemBuffer<T>
+                vector<T>
     >                                                                           Base;
 
     typedef typename Base::Ctr                                                  Ctr;
@@ -45,13 +46,13 @@ public:
         Base::size_           = 1024*1024*16;
     }
 
-    virtual MemBuffer<T> createBuffer(Ctr& array, Int size, BigInt value)
+    virtual vector<T> createBuffer(Ctr& array, Int size, BigInt value)
     {
-        MemBuffer<T> data((SizeT)size);
+    	vector<T> data(size);
 
-        for (Int c = 0; c < size; c++)
+        for (auto& item: data)
         {
-            *(data.data() + c) = value;
+            item = value;
         }
 
         return data;
@@ -62,14 +63,15 @@ public:
         return array.seek(pos);
     }
 
-    virtual void insert(Iterator& iter, const MemBuffer<T>& data)
+    virtual void insert(Iterator& iter, vector<T>& data)
     {
         iter.insert(data);
     }
 
-    virtual void read(Iterator& iter, MemBuffer<T>& data)
+    virtual void read(Iterator& iter, vector<T>& data)
     {
-        iter.read(data);
+        data = iter.subVector(data.size());
+        iter.skip(data.size());
     }
 
     virtual void remove(Iterator& iter, BigInt size) {

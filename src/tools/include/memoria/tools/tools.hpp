@@ -14,6 +14,9 @@
 #include <memoria/core/tools/array_data.hpp>
 #include <memoria/core/container/logs.hpp>
 
+#include <memoria/containers/vector/names.hpp>
+#include <memoria/containers/vector_map/names.hpp>
+
 #include <vector>
 #include <fstream>
 
@@ -160,22 +163,22 @@ String FormatTime(BigInt millis);
 void Fill(char* buf, int size, char value);
 
 template <typename T>
-MemBuffer<T> createBuffer(Int size, T value)
+vector<T> createBuffer(Int size, T value)
 {
-    T* buf = (T*)malloc(size*sizeof(T));
+    vector<T> vec(size);
 
-    for (Int c = 0;c < size; c++)
+    for (auto& item: vec)
     {
-        buf[c] = value;
+    	item = value;
     }
 
-    return MemBuffer<T>(buf, size, true);
+    return vec;
 }
 
 Int getNonZeroRandom(Int size);
 
 template <typename T>
-MemBuffer<T> createRandomBuffer(T fill_value, Int max_size)
+vector<T> createRandomBuffer(T fill_value, Int max_size)
 {
     return createBuffer<T>(getNonZeroRandom(max_size), fill_value);
 }
@@ -243,19 +246,16 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 //}
 
 
-template <typename BAIterator, typename T>
-bool CompareBuffer(BAIterator& iter, const MemBuffer<T>& data, Int& c)
+template <typename Types, typename T>
+bool CompareBuffer(Iter<VectorIterTypes<Types>>& iter, const vector<T>& data, Int& c)
 {
-    MemBuffer<T> buf(data.getSize());
+    vector<T> buf = iter.subVector(data.size());
 
-    iter.read(buf);
+    iter.skip(data.size());
 
-    const T* buf0 = buf.data();
-    const T* buf1 = data.data();
-
-    for (c = 0; c < data.getSize(); c++)
+    for (c = 0; c < (Int)data.size(); c++)
     {
-        if (buf0[c] != buf1[c])
+        if (buf[c] != data[c])
         {
             return false;
         }
@@ -266,7 +266,7 @@ bool CompareBuffer(BAIterator& iter, const MemBuffer<T>& data, Int& c)
 
 
 template <typename BAIterator, typename T>
-void checkBufferWritten(BAIterator& iter, const MemBuffer<T>& data, const char* err_msg, const char* source)
+void checkBufferWritten(BAIterator& iter, const vector<T>& data, const char* err_msg, const char* source)
 {
     Int pos = 0;
     if (!CompareBuffer(iter, data, pos))
@@ -275,10 +275,22 @@ void checkBufferWritten(BAIterator& iter, const MemBuffer<T>& data, const char* 
     }
 }
 
-
-template <typename Iterator, typename Item>
-bool CompareBuffer(Iterator& iter, const vector<Item>& data, Int& c)
+template <typename Types, typename Item>
+void checkBufferWritten(Iter<VectorMapIterTypes<Types>>& iter, const vector<Item>& data, const char* err_msg, const char* source)
 {
+	Int pos = 0;
+	if (!CompareBuffer(iter.ba_iter(), data, pos))
+	{
+		throw TestException(source, SBuf()<<err_msg<<": pos="<<pos);
+	}
+}
+
+
+template <typename Types, typename Item>
+bool CompareBuffer(Iter<Types>& iter, const vector<Item>& data, Int& c)
+{
+	typedef Iter<Types> Iterator;
+
     c = 0;
     for (auto i = data.begin(); i != data.end(); i++, iter.next(), c++)
     {
@@ -294,16 +306,6 @@ bool CompareBuffer(Iterator& iter, const vector<Item>& data, Int& c)
     }
 
     return true;
-}
-
-template <typename Iterator, typename Item>
-void checkBufferWritten(Iterator& iter, const vector<Item>& data, const char* err_msg, const char* source)
-{
-    Int pos = 0;
-    if (!CompareBuffer(iter, data, pos))
-    {
-        throw TestException(source, SBuf()<<err_msg<<": pos="<<pos);
-    }
 }
 
 template <typename T, typename A>

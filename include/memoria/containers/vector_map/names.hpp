@@ -25,17 +25,10 @@ struct ItrApiName {};
 }
 
 template <typename Types>
-struct VectorMapCtrTypesT: CtrTypesT<Types> {};
+struct VectorMapCtrTypes: CtrTypesT<Types> {};
 
 template <typename Types>
-struct VectorMapIterTypesT: IterTypesT<Types> {};
-
-template <typename Types>
-using VectorMapCtrTypes  = CtrTypesT<VectorCtrTypesT<Types>>;
-
-template <typename Types>
-using VectorMapIterTypes = IterTypesT<VectorIterTypesT<Types>>;
-
+struct VectorMapIterTypes: IterTypesT<Types> {};
 
 
 template <typename Key, Int Indexes>

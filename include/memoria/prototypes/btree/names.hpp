@@ -9,6 +9,8 @@
 #ifndef _MEMORIA_PROTOTYPES_BTREE_NAMES_HPP
 #define _MEMORIA_PROTOTYPES_BTREE_NAMES_HPP
 
+#include <memoria/core/container/container.hpp>
+
 namespace memoria    {
 
 
@@ -102,17 +104,17 @@ struct ValueTypeIsNotSupported;
 }
 
 template <typename Types>
-struct BTreeCtrTypesT: CtrTypesT<Types> 		{};
+struct BTreeCtrTypesT: CtrTypesT<Types>         {};
 
 template <typename Types>
-struct BTreeIterTypesT: IterTypesT<Types> 	{};
+struct BTreeIterTypesT: IterTypesT<Types>   {};
 
 
 template <typename Types>
-using BTreeCtrTypes = CtrTypesT<BTreeCtrTypesT<Types>>;
+using BTreeCtrTypes = BTreeCtrTypesT<Types>;
 
 template <typename Types>
-using BTreeIterTypes = IterTypesT<BTreeIterTypesT<Types>>;
+using BTreeIterTypes = BTreeIterTypesT<Types>;
 
 
 }

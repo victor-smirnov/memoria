@@ -81,7 +81,7 @@ public:
         return i;
     }
 
-    virtual void insert(Iterator& iter, const MemBuffer& data)
+    virtual void insert(Iterator& iter, MemBuffer& data)
     {
         BigInt size = iter.model().getSize();
 

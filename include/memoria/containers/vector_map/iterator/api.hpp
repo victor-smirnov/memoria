@@ -9,15 +9,17 @@
 #ifndef _MEMORIA_MODELS_VECTOR_MAP_ITERATOR_API_HPP
 #define _MEMORIA_MODELS_VECTOR_MAP_ITERATOR_API_HPP
 
-#include <iostream>
-
 #include <memoria/core/types/types.hpp>
 
 #include <memoria/containers/vector_map/names.hpp>
 #include <memoria/core/container/iterator.hpp>
 
+#include <vector>
+#include <iostream>
+
 namespace memoria    {
 
+using namespace std;
 using namespace memoria::vector_map;
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::vector_map::ItrApiName)
@@ -39,12 +41,9 @@ typedef typename Page::ID                                   ID;
 typedef typename ContainerType::Key                         Key;
 
 typedef typename ContainerType::ByteArray::ElementType      ElementType;
-typedef MemBuffer<ElementType>                             	MemBufferType;
 
 
-
-
-void insert(const IData<ElementType>& data)
+void insert(IData<ElementType>& data)
 {
     me()->ba_iter().insert(data);
 
@@ -55,7 +54,7 @@ void insert(const IData<ElementType>& data)
     me()->is_iter().updateUp(keys);
 }
 
-void update(const IData<ElementType>& data)
+void update(IData<ElementType>& data)
 {
     BigInt sz = me()->size();
 
@@ -92,15 +91,11 @@ void update(const IData<ElementType>& data)
 }
 
 
-MemBufferType read()
+vector<ElementType> read()
 {
     me()->ba_iter().skip(-me()->pos());
 
-    MemBufferType data(me()->size());
-
-    me()->read(data, 0, data.getSize());
-
-    return data;
+    return me()->ba_iter().subVector(me()->size());
 }
 
 
@@ -205,13 +200,6 @@ bool nextKey()
     return me()->is_iter().next();
 }
 
-
-//void setValue(BigInt value)
-//{
-//    MemBufferType data(sizeof(value), &value);
-//    me()->update(data);
-//}
-
 bool operator++() {
     return me()->nextKey();
 }
@@ -236,31 +224,27 @@ MyType& operator*() {
     return *me();
 }
 
-//void setValue(StringRef value)
-//{
-//    MemBufferType data(value.size(), T2T<UByte*>(value.c_str()));
-//    me()->update(data);
-//}
-
-void setValue(const IData<ElementType>& value)
+void setValue(IData<ElementType>& value)
 {
     me()->update(value);
 }
 
-operator MemBufferType()
+void setValue(const vector<ElementType>& value)
 {
-    MemBufferType data(me()->size());
+	MemBuffer<const ElementType> buffer(&value[0], value.size());
+
+    me()->update(buffer);
+}
+
+operator vector<ElementType>()
+{
+    vector<ElementType> vec(me()->size());
+
+	MemBuffer<ElementType> data(&vec[0], vec.size());
+
     BigInt len = me()->read(data);
     me()->skip(-len);
     return data;
-}
-
-operator String ()
-{
-    MemBufferType data(me()->size());
-    BigInt len = me()->read(data);
-    me()->skip(-len);
-    return String(T2T<char*>(data.data()), data.size());
 }
 
 MEMORIA_ITERATOR_PART_END
