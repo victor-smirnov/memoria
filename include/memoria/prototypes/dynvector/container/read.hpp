@@ -44,7 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::ReadName)
         typedef typename Types::ElementType                                         ElementType;
         typedef IData<ElementType>                                                  IDataType;
 
-        BigInt read(Iterator& iter, IDataType& data, BigInt start, BigInt len);
+        BigInt read(Iterator& iter, IDataType& data);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -52,9 +52,11 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-BigInt M_TYPE::read(Iterator& iter, IDataType& data, BigInt start, BigInt len)
+BigInt M_TYPE::read(Iterator& iter, IDataType& data)
 {
     BigInt sum = 0;
+
+    BigInt len = data.getSize();
 
     while (len > 0)
     {
@@ -62,13 +64,13 @@ BigInt M_TYPE::read(Iterator& iter, IDataType& data, BigInt start, BigInt len)
 
         if (to_read > len) to_read = len;
 
-        data.put(iter.data()->data().value_addr(iter.dataPos()), start, to_read);
+        SizeT processed = data.put(iter.data()->data().value_addr(iter.dataPos()), to_read);
+        data.skip(processed);
 
         len     -= to_read;
         iter.skip(to_read);
 
         sum     += to_read;
-        start   += to_read;
 
         if (iter.isEof())
         {

@@ -11,7 +11,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/strings.hpp>
-#include <memoria/core/tools/array_data.hpp>
+#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/container/logs.hpp>
 
 #include <memoria/containers/vector/names.hpp>

@@ -15,7 +15,7 @@
 #include <memoria/core/tools/walkers.hpp>
 #include <memoria/core/tools/sum_walker.hpp>
 
-#include <memoria/core/tools/array_data.hpp>
+#include <memoria/core/tools/idata.hpp>
 
 #include <iostream>
 
@@ -51,32 +51,25 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
     static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
 
 
-    MEMORIA_PUBLIC BigInt read(IDataType& data, BigInt start, BigInt length)
-    {
-        return me()->model().read(*me(), data, start, length);
-    }
-
     MEMORIA_PUBLIC BigInt read(IDataType& data)
     {
-        return me()->read(data, 0, data.getSize());
+    	return me()->model().read(*me(), data);
     }
     
-    void insert(IDataType& data, BigInt start, BigInt length);
-    void insert(IDataType& data);
 
-    void update(IDataType& data, BigInt start, BigInt length);
+    void insert(IDataType& data);
     void update(IDataType& data);
 
     void update(const vector<ElementType>& other)
     {
     	MemBuffer<const ElementType> buffer(&other[0], other.size());
-    	me()->update(buffer, 0, other.size());
+    	me()->update(buffer);
     }
 
     void insert(const vector<ElementType>& other)
     {
     	MemBuffer<const ElementType> buffer(&other[0], other.size());
-    	me()->insert(buffer, 0, other.size());
+    	me()->insert(buffer);
     }
 
     void assignElement(const ElementType& value)
@@ -93,16 +86,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
     void remove(MyType& to)
     {
         me()->model().removeDataBlock(*me(), to);
-    }
-
-    void readFrom(istream& is, BigInt size)
-    {
-
-    }
-
-    void writeTo(istream& is, BigInt size)
-    {
-
     }
 
     BigInt skip(BigInt distance);
@@ -209,29 +192,16 @@ MEMORIA_ITERATOR_PART_END
 
 
 MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::insert(IDataType& data, BigInt start, BigInt length)
-{
-    me()->model().insertData(*me(), data, start, length);
-}
-
-MEMORIA_PUBLIC M_PARAMS
 void M_TYPE::insert(IDataType& data)
 {
     me()->model().insertData(*me(), data);
 }
 
 
-
-MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::update(IDataType& data, BigInt start, BigInt len)
-{
-    me()->model().updateData(*me(), data, start, len);
-}
-
 MEMORIA_PUBLIC M_PARAMS
 void M_TYPE::update(IDataType& data)
 {
-    me()->model().updateData(*me(), data, 0, data.getSize());
+    me()->model().updateData(*me(), data);
 }
 
 

@@ -17,7 +17,7 @@ Ctr<VectorCtrTypes<Types>>& operator<<(Ctr<VectorCtrTypes<Types>>& ctr, const T&
 {
     auto iter = ctr.End();
     VariableRef<const T> ref(value);
-    iter.insert(ref, 0, 1);
+    iter.insert(ref);
     return ctr;
 }
 

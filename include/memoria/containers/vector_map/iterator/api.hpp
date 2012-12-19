@@ -69,8 +69,9 @@ void update(IData<ElementType>& data)
         }
         else if (difference > 0)
         {
-            me()->ba_iter().update(data, 0, sz);
-            me()->ba_iter().insert(data, sz, difference);
+        	DataProxy<ElementType> proxy(data, sz);
+            me()->ba_iter().update(proxy);
+            me()->ba_iter().insert(data);
         }
         else {
             me()->ba_iter().update(data);
@@ -103,21 +104,18 @@ vector<ElementType> read()
 
 BigInt read(IData<ElementType>& data)
 {
-    return read(data, 0, data.getSize());
+	BigInt current_pos  = me()->pos();
+	BigInt current_size = me()->size();
+
+	SizeT length = data.getSize();
+
+	BigInt len = ((length + current_pos) <= current_size) ? length : (current_size - current_pos);
+
+	me()->ba_iter().read(data);
+
+	return len;
 }
 
-
-BigInt read(IData<ElementType>& data, BigInt start, BigInt length)
-{
-    BigInt current_pos  = me()->pos();
-    BigInt current_size = me()->size();
-
-    BigInt len = ((length + current_pos) <= current_size) ? length : (current_size - current_pos);
-
-    me()->ba_iter().read(data, start, len);
-
-    return len;
-}
 
 BigInt skip(BigInt length)
 {

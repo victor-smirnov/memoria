@@ -69,15 +69,14 @@ typedef IData<ElementType>                                                  IDat
 
 
 void insertData(Iterator& iter, IDataType& data);
-void insertData(Iterator& iter, IDataType& data, SizeT start, SizeT len);
 
-BigInt updateData(Iterator& iter, IDataType& data, BigInt start, BigInt len);
+BigInt updateData(Iterator& iter, IDataType& data);
 
 DataPathItem splitDataPage(Iterator& iter);
 
 private:
 
-void insertIntoDataPage(Iterator& iter, IDataType& buffer, Int start, Int length);
+void insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length);
 
 class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
 
@@ -116,10 +115,12 @@ public:
 
         Int idx0                = (direction == Direction::FORWARD) ? idx : last_idx_ - idx;
 
-        BigInt offset           = start_ + max_page_capacity_ * idx0;
+        //BigInt offset           = start_ + max_page_capacity_ * idx0;
         BigInt length           = idx0 < last_idx_ ? max_page_capacity_ : suffix_;
 
-        data_.get(data->data().value_addr(0), offset, length);
+        SizeT processed 		= data_.get(data->data().value_addr(0), length);
+        data_.skip(processed);
+
 
         data->data().size() = length;
 
@@ -144,23 +145,8 @@ Accumulator moveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, Node
 
 MEMORIA_CONTAINER_PART_END
 
-
-
-
-
-
-
-
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::dynvector::InsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
-M_PARAMS
-void M_TYPE::insertData(Iterator& iter, IDataType& data, SizeT start, SizeT length)
-{
-    GetDataProxy<ElementType> proxy(data, start, length);
-
-    me()->insertData(iter, proxy);
-}
 
 
 M_PARAMS
@@ -175,7 +161,7 @@ void M_TYPE::insertData(Iterator& iter, IDataType& buffer)
     if (buffer.getSize() <= capacity)
     {
         // The target datapage has enough free space to insert into
-        insertIntoDataPage(iter, buffer, 0, buffer.getSize());
+        insertIntoDataPage(iter, buffer, buffer.getSize());
         data_idx += buffer.getSize();
     }
     else if (!iter.isEof())
@@ -198,9 +184,11 @@ void M_TYPE::insertData(Iterator& iter, IDataType& buffer)
 }
 
 M_PARAMS
-BigInt M_TYPE::updateData(Iterator& iter, IDataType& data, BigInt start, BigInt len)
+BigInt M_TYPE::updateData(Iterator& iter, IDataType& data)
 {
     BigInt sum = 0;
+
+    SizeT len = data.getSize();
 
     while (len > 0)
     {
@@ -208,17 +196,17 @@ BigInt M_TYPE::updateData(Iterator& iter, IDataType& data, BigInt start, BigInt 
 
         if (to_read > len) to_read = len;
 
-        data.get(
+        SizeT processed = data.get(
                 iter.data()->data().value_addr(iter.dataPos()),
-                start,
                 to_read
                 );
+
+        data.skip(processed);
 
         len     -= to_read;
         iter.skip(to_read);
 
         sum     += to_read;
-        start   += to_read;
 
         if (iter.isEof())
         {
@@ -280,7 +268,7 @@ typename M_TYPE::DataPathItem M_TYPE::splitDataPage(Iterator& iter)
 //// =============================================== PRIVATE API ===================================================== ////
 
 M_PARAMS
-void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int start, Int length)
+void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length)
 {
     DataPageG& data = iter.path().data().node();
     data.update();
@@ -302,7 +290,8 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int start, In
 
     data->data().shift(data_pos, length);
 
-    buffer.get(data->data().value_addr(data_pos), start, length);
+    SizeT processed = buffer.get(data->data().value_addr(data_pos), length);
+    buffer.skip(processed);
 
     data->data().size() += length;
 
@@ -329,7 +318,7 @@ void M_TYPE::importPages(Iterator& iter, IDataType& buffer)
 
         start = length > start_page_capacity ? start_page_capacity : length;
 
-        insertIntoDataPage(iter, buffer, 0, start);
+        insertIntoDataPage(iter, buffer, start);
 
         iter.nextKey();
     }
@@ -341,7 +330,7 @@ void M_TYPE::importPages(Iterator& iter, IDataType& buffer)
 
     BigInt end          = (length - start) % max_size;
 
-    length -= start + end;
+    length 				-= start + end;
 
     BigInt key_count    = length / max_size;
 
@@ -359,7 +348,7 @@ void M_TYPE::importPages(Iterator& iter, IDataType& buffer)
 
             if (end <= end_page_capacity)
             {
-                insertIntoDataPage(iter, buffer, start + length, end);
+                insertIntoDataPage(iter, buffer, end);
                 iter.dataPos() = end;
             }
             else {

@@ -7,7 +7,7 @@
 
 
 #include <memoria/metadata/tools.hpp>
-#include <memoria/core/tools/array_data.hpp>
+#include <memoria/core/tools/idata.hpp>
 
 #include <sstream>
 #include <string>
