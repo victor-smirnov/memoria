@@ -17,7 +17,7 @@
 #include <memoria/core/types/type2type.hpp>
 
 #include <vector>
-#include <ostream>
+#include <iostream>
 #include <vector>
 
 #include <malloc.h>
@@ -417,6 +417,61 @@ public:
         return value_;
     }
 };
+
+
+
+template <typename T>
+class IStreamDataWrapper: public IData<T> {
+	istream& is_;
+	SizeT length_;
+public:
+	IStreamDataWrapper(istream& is, SizeT length): is_(is), length_(length) {}
+
+	virtual SizeT getSize() const {return length_;}
+
+	virtual SizeT put(const T* buffer, SizeT start, SizeT length)
+	{
+		return 0;
+	}
+
+	virtual SizeT get(T* buffer, SizeT start, SizeT length) const
+	{
+		for (SizeT c = start; c < start + length; c++)
+		{
+			is_>>buffer[c];
+		}
+
+		// FIXME EOF handling?
+		return length;
+	}
+};
+
+template <typename T>
+class OStreamDataWrapper: public IData<T> {
+	ostream& os_;
+	SizeT length_;
+public:
+	OStreamDataWrapper(ostream& os, SizeT length): os_(os), length_(length) {}
+
+	virtual SizeT getSize() const {return length_;}
+
+	virtual SizeT put(const T* buffer, SizeT start, SizeT length)
+	{
+		for (SizeT c = start; c < start + length; c++)
+		{
+			os_<<buffer[c];
+		}
+
+		// FIXME EOF handling?
+		return length;
+	}
+
+	virtual SizeT get(T* buffer, SizeT start, SizeT length) const
+	{
+		return 0;
+	}
+};
+
 
 }
 }

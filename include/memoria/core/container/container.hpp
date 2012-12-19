@@ -12,6 +12,7 @@
 #include <memoria/core/types/types.hpp>
 
 #include <memoria/core/types/typelist.hpp>
+#include <memoria/core/types/selector.hpp>
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/tools/assert.hpp>
 

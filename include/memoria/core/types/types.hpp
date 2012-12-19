@@ -29,7 +29,8 @@ typedef int32_t             Int;
 typedef uint32_t            UInt;
 typedef int16_t             Short;
 typedef uint16_t            UShort;
-typedef int8_t              Byte;
+//typedef int8_t              Byte;
+typedef char              	Byte;
 typedef uint8_t             UByte;
 
 
@@ -70,6 +71,8 @@ template <typename T, T V> struct ConstValue {
 template <UInt Value>
 using UIntValue = ConstValue<UInt, Value>;
 
+template <bool Value>
+using BoolValue = ConstValue<bool, Value>;
 
 class EmptyValue {
 public:

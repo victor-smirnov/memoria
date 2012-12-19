@@ -207,6 +207,13 @@ public:
 //        return *this;
 //    }
 
+    template <typename T>
+    MyType& operator=(const T & value)
+    {
+    	AssignToItem(*this, value);
+    	return *this;
+    }
+
     MyType& operator=(const vector<Value> & value)
     {
     	this->setValue(value);

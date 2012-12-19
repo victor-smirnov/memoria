@@ -9,8 +9,6 @@
 #ifndef _MEMORIA_MODELS_ARRAY_ITERATOR_MODEL_API_HPP
 #define _MEMORIA_MODELS_ARRAY_ITERATOR_MODEL_API_HPP
 
-#include <iostream>
-
 #include <memoria/containers/vector/names.hpp>
 #include <memoria/core/container/iterator.hpp>
 
@@ -18,6 +16,8 @@
 #include <memoria/core/tools/sum_walker.hpp>
 
 #include <memoria/core/tools/array_data.hpp>
+
+#include <iostream>
 
 namespace memoria    {
 
@@ -93,6 +93,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
     void remove(MyType& to)
     {
         me()->model().removeDataBlock(*me(), to);
+    }
+
+    void readFrom(istream& is, BigInt size)
+    {
+
+    }
+
+    void writeTo(istream& is, BigInt size)
+    {
+
     }
 
     BigInt skip(BigInt distance);

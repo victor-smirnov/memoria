@@ -60,12 +60,12 @@ void update(IData<ElementType>& data)
 
     if (sz > 0)
     {
-        BigInt difference = sz - data.getSize();
+        BigInt difference = data.getSize() - sz;
 
         if (difference < 0)
         {
             me()->ba_iter().update(data);
-            me()->ba_iter().remove(difference);
+            me()->ba_iter().remove(-difference);
         }
         else if (difference > 0)
         {
@@ -97,6 +97,8 @@ vector<ElementType> read()
 
     return me()->ba_iter().subVector(me()->size());
 }
+
+
 
 
 BigInt read(IData<ElementType>& data)
@@ -141,9 +143,23 @@ BigInt skip(BigInt length)
 
 void remove()
 {
-    BigInt data_size = me()->size();
+	me()->erase();
+
     me()->model().set().removeEntry(me()->is_iter());
-    me()->ba_iter().remove(data_size);
+}
+
+void erase()
+{
+	BigInt current = me()->pos();
+
+	if (pos > 0)
+	{
+		me()->skip(-current);
+	}
+
+	BigInt data_size = me()->size();
+
+	me()->ba_iter().remove(data_size);
 }
 
 BigInt size() const

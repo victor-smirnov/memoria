@@ -19,6 +19,8 @@
 
 #include <memoria/containers/vector_map/iterator/api.hpp>
 
+#include <memoria/containers/vector_map/tools.hpp>
+
 #include <memoria/containers/set/factory.hpp>
 #include <memoria/containers/vector/factory.hpp>
 
@@ -98,6 +100,8 @@ public:
 
     struct Types: public ContainerTypes
     {
+    	typedef VectorMap<Key, Value>			Name;
+
         typedef Profile_                        Profile;
         typedef MyType::Allocator               Allocator;
 

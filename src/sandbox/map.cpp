@@ -1,10 +1,18 @@
 
 
+// Copyright Victor Smirnov 2012.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+
+
 #include <memoria/memoria.hpp>
 
 #include <typeinfo>
 #include <iostream>
 #include <vector>
+#include <type_traits>
 
 using namespace std;
 using namespace memoria;
@@ -78,6 +86,40 @@ int main(void) {
     for (auto& value: vec)
     {
         cout<<"Std::Vector "<<value<<endl;
+    }
+
+    VectorMapCtr vector_map(&allocator, 3, true);
+
+
+    for (Int c = 1; c <= 5; c++)
+    {
+    	vector_map[c] = "Hello, world!";
+    }
+
+    for (auto& iter: vector_map)
+    {
+    	cout<<iter<<endl;
+    }
+
+    for (Int c = 1; c <= 5; c++)
+    {
+    	vector_map[c] = String("Hello, world! - ") + toString(c);
+    }
+
+    for (auto& iter: vector_map)
+    {
+    	cout<<iter<<endl;
+    }
+
+    for (Int c = 1; c <= 5; c++)
+    {
+    	auto iter = vector_map[c];
+    	iter<<"Hello, world! - "<<toString(c)<<" ";
+    }
+
+    for (auto& iter: vector_map)
+    {
+    	cout<<iter<<endl;
     }
 
     return 0;

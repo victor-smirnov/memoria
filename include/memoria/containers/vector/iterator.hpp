@@ -85,7 +85,7 @@ public:
     template <typename T>
     MyType& operator=(const T& value)
     {
-        AssignToVectorItem(*this, value);
+        AssignToItem(*this, value);
         return *this;
     }
 
@@ -168,36 +168,6 @@ bool operator!=(const Iter<VectorIterTypes<Types>>& iter, const IterEndMark& mar
 }
 
 
-template <typename Types, typename T>
-Ctr<VectorCtrTypes<Types>>& operator<<(Ctr<VectorCtrTypes<Types>>& ctr, const T& value)
-{
-    auto iter = ctr.End();
-    VariableRef<const T> ref(value);
-    iter.insert(ref, 0, 1);
-    return ctr;
-}
-
-template <typename Types>
-ostream& operator<<(ostream& out, const Iter<VectorIterTypes<Types>>& iter)
-{
-    out<<iter.element();
-    return out;
-}
-
-
-
-template <typename Types>
-void UpdateVector(Iter<VectorIterTypes<Types>>& iter, const std::vector<typename Types::ElementType>& source)
-{
-    typedef Iter<VectorIterTypes<Types>>    IterType;
-    typedef typename Types::ElementType     ElementType;
-
-    IterType tmp = iter;
-
-    const MemBuffer<const ElementType> src(&source[0], source.size());
-
-    tmp.update(src);
-}
 
 
 
