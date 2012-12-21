@@ -64,12 +64,19 @@ BigInt M_TYPE::read(Iterator& iter, IDataType& data)
 
         if (to_read > len) to_read = len;
 
-        SizeT processed = data.put(iter.data()->data().value_addr(iter.dataPos()), to_read);
-        data.skip(processed);
+        BigInt to_read_local = to_read;
+
+        while (to_read_local > 0)
+        {
+        	SizeT processed = data.put(iter.data()->addr(iter.dataPos()), to_read_local);
+
+        	data.skip(processed);
+        	iter.skip(processed);
+
+        	to_read_local -= processed;
+        }
 
         len     -= to_read;
-        iter.skip(to_read);
-
         sum     += to_read;
 
         if (iter.isEof())

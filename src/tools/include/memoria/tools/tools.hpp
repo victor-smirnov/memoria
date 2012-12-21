@@ -249,6 +249,8 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 template <typename Types, typename T>
 bool CompareBuffer(Iter<VectorIterTypes<Types>>& iter, const vector<T>& data, Int& c)
 {
+	auto tmp = iter;
+
     vector<T> buf = iter.subVector(data.size());
 
     iter.skip(data.size());
@@ -257,7 +259,13 @@ bool CompareBuffer(Iter<VectorIterTypes<Types>>& iter, const vector<T>& data, In
     {
         if (buf[c] != data[c])
         {
-            return false;
+            MemBuffer<T> mbuf(&buf[0], buf.size());
+            MemBuffer<const T> mdata(&data[0], data.size());
+
+            mbuf.dump(cout);
+            mdata.dump(cout);
+
+        	return false;
         }
     }
 

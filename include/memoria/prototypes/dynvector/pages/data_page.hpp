@@ -47,6 +47,8 @@ public:
 
     static const UInt PAGE_HASH = md5::Md5Sum<typename TypeToValueList<FieldsList>::Type>::Result::Value32;
 
+    typedef typename PageData::ElementType 										ElementType;
+
 private:
 
     PageData data_;
@@ -95,7 +97,15 @@ public:
     }
 
     Int getCapacity() const {
-        return (Base::page_size() - sizeof(MyType)) / sizeof(typename PageData::ElementType) - data_.size();
+        return (Base::page_size() - sizeof(MyType)) / sizeof(ElementType) - data_.size();
+    }
+
+    const ElementType* addr(Int idx) const {
+    	return data_.value_addr(idx);
+    }
+
+    ElementType* addr(Int idx) {
+    	return data_.value_addr(idx);
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const

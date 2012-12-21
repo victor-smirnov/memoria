@@ -50,9 +50,14 @@ public:
     {
     	vector<T> data(size);
 
-        for (auto& item: data)
+    	T counter = 0;
+    	for (auto& item: data)
         {
-            item = value;
+            item = counter++;
+            if (counter == value)
+            {
+            	counter = 0;
+            }
         }
 
         return data;

@@ -80,7 +80,7 @@ public:
 
     virtual MemBuffer createBuffer(Ctr& array, Int size, BigInt value)  = 0;
     virtual Iterator seek(Ctr& array, BigInt pos)                       = 0;
-    virtual void insert(Iterator& iter, MemBuffer& data)          = 0;
+    virtual void insert(Iterator& iter, MemBuffer& data)          		= 0;
     virtual void read(Iterator& iter, MemBuffer& data)                  = 0;
     virtual void remove(Iterator& iter, BigInt size)                    = 0;
     virtual void skip(Iterator& iter, BigInt offset)                    = 0;

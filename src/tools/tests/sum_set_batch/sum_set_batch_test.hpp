@@ -56,9 +56,13 @@ public:
     {
         MemBuffer array(size);
 
+
+        BigInt cnt = 0;
         for (auto& pair: array)
         {
-            pair.keys[0] = value;
+            pair.keys[0] = cnt++;
+
+            if (cnt == value) cnt = 0;
         }
 
         return array;

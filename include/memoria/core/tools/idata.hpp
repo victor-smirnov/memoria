@@ -247,14 +247,14 @@ public:
 
     virtual SizeT put(const T* buffer, SizeT length)
     {
-        CopyBuffer(buffer, data_ + start_, length);
-        return length;
+        CopyBuffer(buffer, data_ + start_, 1);
+        return 1;
     }
 
     virtual SizeT get(T* buffer, SizeT length) const
     {
-        CopyBuffer(data_ + start_, buffer, length);
-        return length;
+        CopyBuffer(data_ + start_, buffer, 1);
+        return 1;
     }
 
     void dump(std::ostream& out) const {
@@ -329,8 +329,8 @@ public:
 
     virtual SizeT get(T* buffer, SizeT length) const
     {
-        CopyBuffer(data_ + start_, buffer, length);
-        return length;
+        CopyBuffer(data_ + start_, buffer, 1);
+        return 1;
     }
 
     void dump(std::ostream& out) const {

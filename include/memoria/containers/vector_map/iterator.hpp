@@ -201,12 +201,6 @@ public:
         return is_iter_.isNotEnd();
     }
 
-//    MyType& operator=(IData<Value>& value)
-//    {
-//        this->setValue(value);
-//        return *this;
-//    }
-
     template <typename T>
     MyType& operator=(const T & value)
     {
@@ -219,13 +213,6 @@ public:
     	this->setValue(value);
     	return *this;
     }
-
-//    template <typename T>
-//    MyType& operator=(const T& value)
-//    {
-//        this->setValue(value);
-//        return *this;
-//    }
 };
 
 

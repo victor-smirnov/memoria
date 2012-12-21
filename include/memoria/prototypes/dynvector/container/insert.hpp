@@ -81,7 +81,6 @@ void insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length);
 class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
 
     typedef typename MyType::DefaultSubtreeProviderBase     Base;
-    typedef typename Base::Direction                        Direction;
 
     IDataType&          data_;
     BigInt              start_;
@@ -103,7 +102,7 @@ public:
         page_size_      = ctr.getRootMetadata().page_size();
     }
 
-    virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt idx)
+    virtual LeafNodeKeyValuePair getLeafKVPair(BigInt idx)
     {
         LeafNodeKeyValuePair pair;
 
@@ -113,13 +112,21 @@ public:
         data->model_hash()      = Base::ctr().hash();
         data->page_type_hash()  = DataPage::hash();
 
-        Int idx0                = (direction == Direction::FORWARD) ? idx : last_idx_ - idx;
+        Int idx0                = idx;
 
         //BigInt offset           = start_ + max_page_capacity_ * idx0;
         BigInt length           = idx0 < last_idx_ ? max_page_capacity_ : suffix_;
 
-        SizeT processed 		= data_.get(data->data().value_addr(0), length);
-        data_.skip(processed);
+        BigInt length_local 	= length;
+        BigInt accum			= 0;
+
+        while (length_local > 0)
+        {
+        	SizeT processed = data_.get(data->addr(accum), length_local);
+        	data_.skip(processed);
+        	length_local 	-= processed;
+        	accum			+= processed;
+        }
 
 
         data->data().size() = length;
@@ -196,16 +203,19 @@ BigInt M_TYPE::updateData(Iterator& iter, IDataType& data)
 
         if (to_read > len) to_read = len;
 
-        SizeT processed = data.get(
-                iter.data()->data().value_addr(iter.dataPos()),
-                to_read
-                );
+        BigInt to_read_local = to_read;
 
-        data.skip(processed);
+        while (to_read_local > 0)
+        {
+        	SizeT processed = data.get(iter.data()->addr(iter.dataPos()), to_read_local);
+
+        	data.skip(processed);
+        	iter.skip(to_read);
+
+        	to_read_local -= processed;
+    	}
 
         len     -= to_read;
-        iter.skip(to_read);
-
         sum     += to_read;
 
         if (iter.isEof())
@@ -290,8 +300,16 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length)
 
     data->data().shift(data_pos, length);
 
-    SizeT processed = buffer.get(data->data().value_addr(data_pos), length);
-    buffer.skip(processed);
+    BigInt length_local = length;
+
+    while (length_local > 0)
+    {
+    	SizeT processed = buffer.get(data->addr(data_pos), length_local);
+    	buffer.skip(processed);
+
+    	length_local 	-= processed;
+    	data_pos		+= processed;
+    }
 
     data->data().size() += length;
 
