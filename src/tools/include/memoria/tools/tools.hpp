@@ -167,9 +167,12 @@ vector<T> createBuffer(Int size, T value)
 {
     vector<T> vec(size);
 
+    T cnt = 0;
     for (auto& item: vec)
     {
-    	item = value;
+        item = cnt++;
+
+        if (cnt == value) cnt = 0;
     }
 
     return vec;
@@ -249,7 +252,7 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 template <typename Types, typename T>
 bool CompareBuffer(Iter<VectorIterTypes<Types>>& iter, const vector<T>& data, Int& c)
 {
-	auto tmp = iter;
+    auto tmp = iter;
 
     vector<T> buf = iter.subVector(data.size());
 
@@ -265,7 +268,7 @@ bool CompareBuffer(Iter<VectorIterTypes<Types>>& iter, const vector<T>& data, In
             mbuf.dump(cout);
             mdata.dump(cout);
 
-        	return false;
+            return false;
         }
     }
 
@@ -286,18 +289,18 @@ void checkBufferWritten(BAIterator& iter, const vector<T>& data, const char* err
 template <typename Types, typename Item>
 void checkBufferWritten(Iter<VectorMapIterTypes<Types>>& iter, const vector<Item>& data, const char* err_msg, const char* source)
 {
-	Int pos = 0;
-	if (!CompareBuffer(iter.ba_iter(), data, pos))
-	{
-		throw TestException(source, SBuf()<<err_msg<<": pos="<<pos);
-	}
+    Int pos = 0;
+    if (!CompareBuffer(iter.ba_iter(), data, pos))
+    {
+        throw TestException(source, SBuf()<<err_msg<<": pos="<<pos);
+    }
 }
 
 
 template <typename Types, typename Item>
 bool CompareBuffer(Iter<Types>& iter, const vector<Item>& data, Int& c)
 {
-	typedef Iter<Types> Iterator;
+    typedef Iter<Types> Iterator;
 
     c = 0;
     for (auto i = data.begin(); i != data.end(); i++, iter.next(), c++)

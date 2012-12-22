@@ -93,33 +93,33 @@ int main(void) {
 
     for (Int c = 1; c <= 5; c++)
     {
-    	vector_map[c] = "Hello, world!";
+        vector_map[c] = "Hello, world!";
     }
 
     for (auto& iter: vector_map)
     {
-    	cout<<iter<<endl;
+        cout<<iter<<endl;
     }
 
     for (Int c = 1; c <= 5; c++)
     {
-    	vector_map[c] = String("Hello, world! - ") + toString(c);
+        vector_map[c] = String("Hello, world! - ") + toString(c);
     }
 
     for (auto& iter: vector_map)
     {
-    	cout<<iter<<endl;
+        cout<<iter<<endl;
     }
 
     for (Int c = 1; c <= 5; c++)
     {
-    	auto iter = vector_map[c];
-    	iter<<"Hello, world! - "<<toString(c)<<" ";
+        auto iter = vector_map[c];
+        iter<<"Hello, world! - "<<toString(c)<<" ";
     }
 
     for (auto& iter: vector_map)
     {
-    	cout<<iter<<endl;
+        cout<<iter<<endl;
     }
 
     return 0;

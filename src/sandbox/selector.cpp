@@ -13,12 +13,12 @@ using namespace memoria::vapi;
 
 template <typename T>
 struct IsInt {
-	static const bool Value = false;
+    static const bool Value = false;
 };
 
 template <>
 struct IsInt<Int> {
-	static const bool Value = true;
+    static const bool Value = true;
 };
 
 template <typename T, typename = void> struct TCtr;
@@ -37,17 +37,17 @@ struct TCtr<T, IsIntCtr<T> > {
 
 template <typename T, typename = IsIntCtr<T>>
 void boo(T value) {
-	cout<<value<<endl;
+    cout<<value<<endl;
 }
 
 int main()
 {
-	TCtr<Int> c1;
-//	TCtr<Long> c2; // will not compile
+    TCtr<Int> c1;
+//  TCtr<Long> c2; // will not compile
 
-	boo(1);
+    boo(1);
 
-	return sizeof(c1);
+    return sizeof(c1);
 }
 
 

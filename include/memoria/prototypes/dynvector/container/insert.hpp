@@ -117,15 +117,15 @@ public:
         //BigInt offset           = start_ + max_page_capacity_ * idx0;
         BigInt length           = idx0 < last_idx_ ? max_page_capacity_ : suffix_;
 
-        BigInt length_local 	= length;
-        BigInt accum			= 0;
+        BigInt length_local     = length;
+        BigInt accum            = 0;
 
         while (length_local > 0)
         {
-        	SizeT processed = data_.get(data->addr(accum), length_local);
-        	data_.skip(processed);
-        	length_local 	-= processed;
-        	accum			+= processed;
+            SizeT processed = data_.get(data->addr(accum), length_local);
+            data_.skip(processed);
+            length_local    -= processed;
+            accum           += processed;
         }
 
 
@@ -207,13 +207,13 @@ BigInt M_TYPE::updateData(Iterator& iter, IDataType& data)
 
         while (to_read_local > 0)
         {
-        	SizeT processed = data.get(iter.data()->addr(iter.dataPos()), to_read_local);
+            SizeT processed = data.get(iter.data()->addr(iter.dataPos()), to_read_local);
 
-        	data.skip(processed);
-        	iter.skip(to_read);
+            data.skip(processed);
+            iter.skip(to_read);
 
-        	to_read_local -= processed;
-    	}
+            to_read_local -= processed;
+        }
 
         len     -= to_read;
         sum     += to_read;
@@ -304,11 +304,11 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length)
 
     while (length_local > 0)
     {
-    	SizeT processed = buffer.get(data->addr(data_pos), length_local);
-    	buffer.skip(processed);
+        SizeT processed = buffer.get(data->addr(data_pos), length_local);
+        buffer.skip(processed);
 
-    	length_local 	-= processed;
-    	data_pos		+= processed;
+        length_local    -= processed;
+        data_pos        += processed;
     }
 
     data->data().size() += length;
@@ -348,7 +348,7 @@ void M_TYPE::importPages(Iterator& iter, IDataType& buffer)
 
     BigInt end          = (length - start) % max_size;
 
-    length 				-= start + end;
+    length              -= start + end;
 
     BigInt key_count    = length / max_size;
 

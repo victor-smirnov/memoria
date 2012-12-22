@@ -38,26 +38,13 @@ public:
         own_folder(false)
     {
         Add("enabled", enabled);
-        Add("check_step", check_step)->state();
+        Add("check_step", check_step);
         Add("memory_limit", memory_limit);
         Add("own_folder", own_folder)->state();
     }
 
     virtual bool IsEnabled() const
     {
-//        TaskParametersSet* ctx = T2T<TaskParametersSet*>(getContext());
-//
-//        if (ctx != nullptr)
-//        {
-//          if (!ctx->IsEnabled())
-//          {
-//
-//          }
-//        }
-//        else {
-//          return enabled;
-//        }
-
         return enabled;
     }
 

@@ -25,8 +25,8 @@ class VectorTest: public BTreeBatchTestBase<
     vector<T>
 >
 {
-    typedef VectorTest                                              MyType;
-    typedef MyType                                                  ParamType;
+    typedef VectorTest<T>                                                       MyType;
+    typedef MyType                                                              ParamType;
 
     typedef BTreeBatchTestBase<
                 Vector<T>,
@@ -48,15 +48,15 @@ public:
 
     virtual vector<T> createBuffer(Ctr& array, Int size, BigInt value)
     {
-    	vector<T> data(size);
+        vector<T> data(size);
 
-    	T counter = 0;
-    	for (auto& item: data)
+        T counter = 0;
+        for (auto& item: data)
         {
             item = counter++;
             if (counter == value)
             {
-            	counter = 0;
+                counter = 0;
             }
         }
 

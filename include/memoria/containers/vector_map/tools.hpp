@@ -23,60 +23,60 @@ using namespace std;
 template <typename Types, typename = IsVectorMap<Types, Any, Byte>>
 void AssignToItem(Iter<VectorMapIterTypes<Types>>& iter, const char* str)
 {
-	MemBuffer<const Byte> data(str, str != nullptr ? strlen(str) : 0);
-	iter.setValue(data);
+    MemBuffer<const Byte> data(str, str != nullptr ? strlen(str) : 0);
+    iter.setValue(data);
 }
 
 template <typename Types, typename = IsVectorMap<Types, Any, Byte>>
 void AssignToItem(Iter<VectorMapIterTypes<Types>>& iter, StringRef str)
 {
-	MemBuffer<const Byte> data(str.c_str(), str.size());
-	iter.setValue(data);
+    MemBuffer<const Byte> data(str.c_str(), str.size());
+    iter.setValue(data);
 }
 
 
 template <typename Types, typename = IsVectorMap<Types, Any, Byte>>
 ostream& operator<<(ostream& out, Iter<VectorMapIterTypes<Types>>& iter)
 {
-	OStreamDataWrapper<Byte> wrapper(out, iter.size());
-	iter.read(wrapper);
-	return out;
+    OStreamDataWrapper<Byte> wrapper(out, iter.size());
+    iter.read(wrapper);
+    return out;
 }
 
 template <typename Types, typename = IsVectorMap<Types, Any, Byte>>
 Iter<VectorMapIterTypes<Types>>& operator<<(Iter<VectorMapIterTypes<Types>>& iter, const char* str)
 {
-	if (str)
-	{
-		MemBuffer<const Byte> data(str, str != nullptr ? strlen(str) : 0);
-		iter.insert(data);
-	}
-	return iter;
+    if (str)
+    {
+        MemBuffer<const Byte> data(str, str != nullptr ? strlen(str) : 0);
+        iter.insert(data);
+    }
+    return iter;
 }
 
 
 template <typename Types, typename = IsVectorMap<Types, Any, Byte>>
 Iter<VectorMapIterTypes<Types>>& operator<<(Iter<VectorMapIterTypes<Types>>& iter, StringRef str)
 {
-	if (str.size() > 0)
-	{
-		MemBuffer<const Byte> data(str.c_str(), str.size());
-		iter.insert(data);
-	}
-	return iter;
+    if (str.size() > 0)
+    {
+        MemBuffer<const Byte> data(str.c_str(), str.size());
+        iter.insert(data);
+    }
+    return iter;
 }
 
 template <typename Types, typename = IsVectorMap<Types, Any, Byte>>
 Iter<VectorMapIterTypes<Types>>& operator<<(Iter<VectorMapIterTypes<Types>>& iter, const SBuf& buf)
 {
-	String str = buf.str();
+    String str = buf.str();
 
-	if (str.size() > 0)
-	{
-		MemBuffer<const Byte> data(str.c_str(), str.size());
-		iter.insert(data);
-	}
-	return iter;
+    if (str.size() > 0)
+    {
+        MemBuffer<const Byte> data(str.c_str(), str.size());
+        iter.insert(data);
+    }
+    return iter;
 }
 
 

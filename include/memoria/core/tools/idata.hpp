@@ -29,21 +29,6 @@ using namespace std;
 
 void Expand(std::ostream& os, Int level);
 
-namespace internal {
-
-template <typename T>
-T cvt(T value) {
-    return value;
-}
-
-
-inline UByte cvt(Byte value) {
-    return (Byte)value;
-}
-
-}
-
-
 template <typename T>
 void dumpArray(std::ostream& out_, const T* data, Int count)
 {
@@ -80,7 +65,13 @@ void dumpArray(std::ostream& out_, const T* data, Int count)
         {
             out_<<hex;
             out_.width(width);
-            out_<<internal::cvt(data[c + d]);
+            if (sizeof(T) == 1)
+            {
+                out_<<(Int)data[c + d];
+            }
+            else {
+                out_<<data[c + d];
+            }
         }
 
         out_<<dec<<endl;
@@ -95,13 +86,13 @@ struct IData {
 
     virtual ~IData() throw () {}
 
-    virtual SizeT skip(SizeT length)								= 0;
-    virtual SizeT getStart() const									= 0;
-    virtual SizeT getRemainder() const								= 0;
+    virtual SizeT skip(SizeT length)                                = 0;
+    virtual SizeT getStart() const                                  = 0;
+    virtual SizeT getRemainder() const                              = 0;
 
     virtual SizeT getSize() const                                   = 0;
-    virtual SizeT put(const T* buffer, SizeT length)   				= 0;
-    virtual SizeT get(T* buffer, SizeT length) const   				= 0;
+    virtual SizeT put(const T* buffer, SizeT length)                = 0;
+    virtual SizeT get(T* buffer, SizeT length) const                = 0;
 };
 
 
@@ -122,17 +113,17 @@ public:
 
     virtual SizeT skip(SizeT length)
     {
-    	return data_.skip(length);
+        return data_.skip(length);
     }
 
     virtual SizeT getStart() const
     {
-    	return data_.getStart();
+        return data_.getStart();
     }
 
     virtual SizeT getRemainder() const
     {
-    	return length_ - getStart();
+        return length_ - getStart();
     }
 
     virtual SizeT put(const T* buffer, SizeT length)
@@ -153,29 +144,29 @@ public:
 template <typename T>
 class MemBuffer: public IData<T> {
 protected:
-    SizeT	start_;
-	SizeT   length_;
+    SizeT   start_;
+    SizeT   length_;
     T*      data_;
     bool    owner_;
 public:
 
     MemBuffer(T* data, SizeT length, bool owner = false):
         start_(0),
-    	length_(length),
+        length_(length),
         data_(data),
         owner_(owner)
     {}
 
     MemBuffer(SizeT length):
-    	start_(0),
-    	length_(length),
+        start_(0),
+        length_(length),
         data_(T2T<T*>(::malloc(length * sizeof(T)))),
         owner_(true)
     {}
 
     MemBuffer(MemBuffer<T>&& other):
-    	start_(other.start_),
-    	length_(other.length_),
+        start_(other.start_),
+        length_(other.length_),
         data_(other.data_),
         owner_(other.owner_)
     {
@@ -183,8 +174,8 @@ public:
     }
 
     MemBuffer(const MemBuffer<T>& other):
-    	start_(other.start_),
-    	length_(other.length_),
+        start_(other.start_),
+        length_(other.length_),
         owner_(true)
     {
         data_ = T2T<T*>(::malloc(length_*sizeof(T)));
@@ -199,25 +190,25 @@ public:
 
     virtual SizeT skip(SizeT length)
     {
-    	if (start_ + length <= length_)
-    	{
-    		start_ += length;
-    		return length;
-    	}
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
 
-		SizeT distance = length_ - start_;
-		start_ = length_;
-		return distance;
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
     }
 
     virtual SizeT getStart() const
     {
-    	return start_;
+        return start_;
     }
 
     virtual SizeT getRemainder() const
     {
-    	return length_ - start_;
+        return length_ - start_;
     }
 
     virtual SizeT getSize() const
@@ -247,14 +238,14 @@ public:
 
     virtual SizeT put(const T* buffer, SizeT length)
     {
-        CopyBuffer(buffer, data_ + start_, 1);
-        return 1;
+        CopyBuffer(buffer, data_ + start_, length);
+        return length;
     }
 
     virtual SizeT get(T* buffer, SizeT length) const
     {
-        CopyBuffer(data_ + start_, buffer, 1);
-        return 1;
+        CopyBuffer(data_ + start_, buffer, length);
+        return length;
     }
 
     void dump(std::ostream& out) const {
@@ -266,20 +257,20 @@ public:
 template <typename T>
 class MemBuffer<const T>: public IData<T> {
 protected:
-    SizeT		start_;
-	SizeT       length_;
+    SizeT       start_;
+    SizeT       length_;
     const T*    data_;
 public:
 
     MemBuffer(const T* data, SizeT length):
         start_(0),
-    	length_(length),
+        length_(length),
         data_(data)
     {}
 
     MemBuffer(const MemBuffer<const T>& other):
-    	start_(other.start_),
-    	data_(other.data_),
+        start_(other.start_),
+        data_(other.data_),
         length_(other.length_)
     {}
 
@@ -287,25 +278,25 @@ public:
 
     virtual SizeT skip(SizeT length)
     {
-    	if (start_ + length <= length_)
-    	{
-    		start_ += length;
-    		return length;
-    	}
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
 
-    	SizeT distance = length_ - start_;
-    	start_ = length_;
-    	return distance;
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
     }
 
     virtual SizeT getStart() const
     {
-    	return start_;
+        return start_;
     }
 
     virtual SizeT getRemainder() const
     {
-    	return length_ - start_;
+        return length_ - start_;
     }
 
     virtual SizeT getSize() const
@@ -329,8 +320,8 @@ public:
 
     virtual SizeT get(T* buffer, SizeT length) const
     {
-        CopyBuffer(data_ + start_, buffer, 1);
-        return 1;
+        CopyBuffer(data_ + start_, buffer, length);
+        return length;
     }
 
     void dump(std::ostream& out) const {
@@ -343,7 +334,7 @@ public:
 template <typename T>
 class VariableRef: public IData<T> {
 protected:
-	SizeT	start_;
+    SizeT   start_;
     T&      value_;
 public:
     VariableRef(T& value): start_(0), value_(value) {}
@@ -352,23 +343,23 @@ public:
 
     virtual SizeT skip(SizeT length)
     {
-    	if (start_ + length <= 1)
-    	{
-    		start_ += 1;
-    		return 1;
-    	}
+        if (start_ + length <= 1)
+        {
+            start_ += 1;
+            return 1;
+        }
 
-    	return 0;
+        return 0;
     }
 
     virtual SizeT getStart() const
     {
-    	return start_;
+        return start_;
     }
 
     virtual SizeT getRemainder() const
     {
-    	return 1 - start_;
+        return 1 - start_;
     }
 
     virtual SizeT getSize() const
@@ -404,7 +395,7 @@ public:
 template <typename T>
 class VariableRef<const T>: public IData<T> {
 protected:
-	SizeT		start_;
+    SizeT       start_;
     const T&    value_;
 public:
     VariableRef(const T& value): start_(0), value_(value) {}
@@ -413,23 +404,23 @@ public:
 
     virtual SizeT skip(SizeT length)
     {
-    	if (start_ + length <= 1)
-    	{
-    		start_ += 1;
-    		return 1;
-    	}
+        if (start_ + length <= 1)
+        {
+            start_ += 1;
+            return 1;
+        }
 
-    	return 0;
+        return 0;
     }
 
     virtual SizeT getStart() const
     {
-    	return start_;
+        return start_;
     }
 
     virtual SizeT getRemainder() const
     {
-    	return 1 - start_;
+        return 1 - start_;
     }
 
     virtual SizeT getSize() const
@@ -460,7 +451,7 @@ public:
 template <typename T>
 class VariableValue: public IData<T> {
 protected:
-	SizeT start_;
+    SizeT start_;
     T value_;
 public:
     VariableValue(): start_(0), value_() {}
@@ -471,23 +462,23 @@ public:
 
     virtual SizeT skip(SizeT length)
     {
-    	if (start_ + length <= 1)
-    	{
-    		start_ += 1;
-    		return 1;
-    	}
+        if (start_ + length <= 1)
+        {
+            start_ += 1;
+            return 1;
+        }
 
-    	return 0;
+        return 0;
     }
 
     virtual SizeT getStart() const
     {
-    	return start_;
+        return start_;
     }
 
     virtual SizeT getRemainder() const
     {
-    	return 1 - start_;
+        return 1 - start_;
     }
 
     virtual SizeT getSize() const
@@ -526,102 +517,102 @@ public:
 
 template <typename T>
 class IStreamDataWrapper: public IData<T> {
-	istream& is_;
-	SizeT start_;
-	SizeT length_;
+    istream& is_;
+    SizeT start_;
+    SizeT length_;
 public:
-	IStreamDataWrapper(istream& is, SizeT length): is_(is), start_(0), length_(length) {}
+    IStreamDataWrapper(istream& is, SizeT length): is_(is), start_(0), length_(length) {}
 
     virtual SizeT skip(SizeT length)
     {
-    	if (start_ + length <= length_)
-    	{
-    		start_ += length;
-    		return length;
-    	}
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
 
-    	SizeT distance = length_ - start_;
-    	start_ = length_;
-    	return distance;
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
     }
 
     virtual SizeT getStart() const
     {
-    	return start_;
+        return start_;
     }
 
     virtual SizeT getRemainder() const
     {
-    	return length_ - start_;
+        return length_ - start_;
     }
 
-	virtual SizeT getSize() const {return length_;}
+    virtual SizeT getSize() const {return length_;}
 
-	virtual SizeT put(const T* buffer, SizeT length)
-	{
-		return 0;
-	}
+    virtual SizeT put(const T* buffer, SizeT length)
+    {
+        return 0;
+    }
 
-	virtual SizeT get(T* buffer, SizeT length) const
-	{
-		for (SizeT c = 0; c < length; c++)
-		{
-			is_>>buffer[c];
-		}
+    virtual SizeT get(T* buffer, SizeT length) const
+    {
+        for (SizeT c = 0; c < length; c++)
+        {
+            is_>>buffer[c];
+        }
 
-		// FIXME EOF handling?
-		return length;
-	}
+        // FIXME EOF handling?
+        return length;
+    }
 };
 
 template <typename T>
 class OStreamDataWrapper: public IData<T> {
-	ostream& os_;
-	SizeT start_;
-	SizeT length_;
+    ostream& os_;
+    SizeT start_;
+    SizeT length_;
 public:
-	OStreamDataWrapper(ostream& os, SizeT length): os_(os), start_(0), length_(length) {}
+    OStreamDataWrapper(ostream& os, SizeT length): os_(os), start_(0), length_(length) {}
 
     virtual SizeT skip(SizeT length)
     {
-    	if (start_ + length <= length_)
-    	{
-    		start_ += length;
-    		return length;
-    	}
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
 
-    	SizeT distance = length_ - start_;
-    	start_ = length_;
-    	return distance;
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
     }
 
     virtual SizeT getStart() const
     {
-    	return start_;
+        return start_;
     }
 
     virtual SizeT getRemainder() const
     {
-    	return length_ - start_;
+        return length_ - start_;
     }
 
-	virtual SizeT getSize() const {return length_;}
+    virtual SizeT getSize() const {return length_;}
 
-	virtual SizeT put(const T* buffer, SizeT length)
-	{
-		for (SizeT c = 0; c < length; c++)
-		{
-			os_<<buffer[c];
-		}
+    virtual SizeT put(const T* buffer, SizeT length)
+    {
+        for (SizeT c = 0; c < length; c++)
+        {
+            os_<<buffer[c];
+        }
 
-		// FIXME EOF handling?
-		return length;
-	}
+        // FIXME EOF handling?
+        return length;
+    }
 
-	virtual SizeT get(T* buffer, SizeT length) const
-	{
-		return 0;
-	}
+    virtual SizeT get(T* buffer, SizeT length) const
+    {
+        return 0;
+    }
 };
 
 

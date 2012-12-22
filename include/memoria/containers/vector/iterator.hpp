@@ -37,11 +37,11 @@ class Iter<VectorIterTypes<Types>>: public IterStart<VectorIterTypes<Types>>
     typedef typename ContainerType::Types::NodeBase                                 NodeBase;
     typedef typename ContainerType::Types::NodeBaseG                                NodeBaseG;
 
-    typedef typename ContainerType::Types::ElementType                              ElementType;
-
     ContainerType&      model_;
 
 public:
+
+    typedef typename ContainerType::Types::ElementType                              ElementType;
 
     typedef ContainerType                                                           Container;
 

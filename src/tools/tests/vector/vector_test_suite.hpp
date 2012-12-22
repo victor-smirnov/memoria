@@ -11,6 +11,7 @@
 #include "../tests_inc.hpp"
 
 #include "vector_test.hpp"
+#include "vector_transfer_test.hpp"
 
 #include <vector>
 
@@ -28,6 +29,8 @@ public:
         registerTask(new VectorTest<UByte>("UByte"));
         registerTask(new VectorTest<Int>("Int"));
         registerTask(new VectorTest<BigInt>("BigInt"));
+
+        registerTask(new VectorTransferTest<UByte>("Transfer"));
     }
 
 };

@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2012.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -9,7 +9,85 @@
 #ifndef _MEMORIA_MODELS_ARRAY_TOOLS_HPP
 #define _MEMORIA_MODELS_ARRAY_TOOLS_HPP
 
+#include <memoria/containers/vector/names.hpp>
+#include <memoria/core/container/container.hpp>
+#include <memoria/core/tools/idata.hpp>
+
 namespace memoria    {
+
+
+template <typename Iterator>
+class IDataAdapter: public IData<typename Iterator::ElementType> {
+    typedef typename Iterator::ElementType T;
+
+    Iterator    iter_;
+    BigInt      length_;
+
+    BigInt      start_  = 0;
+
+public:
+    IDataAdapter(IDataAdapter<Iterator>&& other):
+        iter_(std::move(other.iter_)), length_ (other.length_), start_(other.start_) {}
+
+
+
+    IDataAdapter(const Iterator& iter, BigInt length): iter_(iter)
+    {
+        BigInt pos  = iter_.pos();
+        BigInt size = iter_.model().size();
+
+        if (length != -1 && (pos + length <= size))
+        {
+            length_ = length;
+        }
+        else {
+            length_ = size - pos;
+        }
+    }
+
+    virtual SizeT skip(SizeT length)
+    {
+        BigInt delta = iter_.skip(length);
+        start_ += delta;
+        return delta;
+    }
+
+    virtual SizeT getStart() const
+    {
+        return start_;
+    }
+
+    virtual SizeT getRemainder() const
+    {
+        return length_ - start_;
+    }
+
+    virtual SizeT getSize() const
+    {
+        return length_;
+    }
+
+    virtual SizeT put(const T* buffer, SizeT length)
+    {
+        return 0;
+    }
+
+    virtual SizeT get(T* buffer, SizeT length) const
+    {
+        auto& data  = iter_.data();
+        Int pos     = iter_.dataPos();
+        BigInt size = data->data_size() - pos;
+
+        if (length > size)
+        {
+            length = size;
+        }
+
+        CopyBuffer(data->addr(pos), buffer, length);
+
+        return length;
+    }
+};
 
 
 template <typename Types, typename T>

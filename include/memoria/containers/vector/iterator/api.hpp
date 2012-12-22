@@ -10,6 +10,7 @@
 #define _MEMORIA_MODELS_ARRAY_ITERATOR_MODEL_API_HPP
 
 #include <memoria/containers/vector/names.hpp>
+#include <memoria/containers/vector/tools.hpp>
 #include <memoria/core/container/iterator.hpp>
 
 #include <memoria/core/tools/walkers.hpp>
@@ -53,23 +54,47 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
 
     MEMORIA_PUBLIC BigInt read(IDataType& data)
     {
-    	return me()->model().read(*me(), data);
+        return me()->model().read(*me(), data);
     }
     
+    MEMORIA_PUBLIC std::vector<ElementType> subVector(BigInt length) const
+    {
+    	MyType tmp = *me();
+    	return tmp.read(length);
+    }
+
+    MEMORIA_PUBLIC std::vector<ElementType> read(BigInt length)
+	{
+    	BigInt max_size = me()->model().size() - me()->pos();
+
+    	if (length > max_size)
+    	{
+    		length = max_size;
+    	}
+
+    	std::vector<ElementType> vec(length);
+
+    	MemBuffer<ElementType> buf(&vec[0], vec.size());
+
+    	me()->read(buf);
+
+    	return vec;
+	}
+
 
     void insert(IDataType& data);
     void update(IDataType& data);
 
     void update(const vector<ElementType>& other)
     {
-    	MemBuffer<const ElementType> buffer(&other[0], other.size());
-    	me()->update(buffer);
+        MemBuffer<const ElementType> buffer(&other[0], other.size());
+        me()->update(buffer);
     }
 
     void insert(const vector<ElementType>& other)
     {
-    	MemBuffer<const ElementType> buffer(&other[0], other.size());
-    	me()->insert(buffer);
+        MemBuffer<const ElementType> buffer(&other[0], other.size());
+        me()->insert(buffer);
     }
 
     void assignElement(const ElementType& value)
@@ -155,25 +180,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
         return element();
     }
 
-    MEMORIA_PUBLIC std::vector<ElementType> subVector(BigInt length) const
-    {
-        MyType tmp = *me();
 
-        BigInt max_size = tmp.model().size() - tmp.pos();
 
-        if (length > max_size)
-        {
-        	length = max_size;
-        }
-
-        std::vector<ElementType> vec(length);
-
-        MemBuffer<ElementType> buf(&vec[0], vec.size());
-
-        tmp.read(buf);
-
-        return vec;
-    }
 
     MEMORIA_PUBLIC ElementType element() const
     {
@@ -181,8 +189,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
     }
 
 
-
-
+    MEMORIA_PUBLIC IDataAdapter<MyType> asIData(BigInt length = -1) const
+    {
+        return IDataAdapter<MyType>(*me(), length);
+    }
 
 MEMORIA_ITERATOR_PART_END
 

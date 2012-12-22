@@ -69,7 +69,7 @@ void update(IData<ElementType>& data)
         }
         else if (difference > 0)
         {
-        	DataProxy<ElementType> proxy(data, sz);
+            DataProxy<ElementType> proxy(data, sz);
             me()->ba_iter().update(proxy);
             me()->ba_iter().insert(data);
         }
@@ -104,16 +104,16 @@ vector<ElementType> read()
 
 BigInt read(IData<ElementType>& data)
 {
-	BigInt current_pos  = me()->pos();
-	BigInt current_size = me()->size();
+    BigInt current_pos  = me()->pos();
+    BigInt current_size = me()->size();
 
-	SizeT length = data.getSize();
+    SizeT length = data.getSize();
 
-	BigInt len = ((length + current_pos) <= current_size) ? length : (current_size - current_pos);
+    BigInt len = ((length + current_pos) <= current_size) ? length : (current_size - current_pos);
 
-	me()->ba_iter().read(data);
+    me()->ba_iter().read(data);
 
-	return len;
+    return len;
 }
 
 
@@ -141,23 +141,23 @@ BigInt skip(BigInt length)
 
 void remove()
 {
-	me()->erase();
+    me()->erase();
 
     me()->model().set().removeEntry(me()->is_iter());
 }
 
 void erase()
 {
-	BigInt current = me()->pos();
+    BigInt current = me()->pos();
 
-	if (pos > 0)
-	{
-		me()->skip(-current);
-	}
+    if (pos > 0)
+    {
+        me()->skip(-current);
+    }
 
-	BigInt data_size = me()->size();
+    BigInt data_size = me()->size();
 
-	me()->ba_iter().remove(data_size);
+    me()->ba_iter().remove(data_size);
 }
 
 BigInt size() const
@@ -245,7 +245,7 @@ void setValue(IData<ElementType>& value)
 
 void setValue(const vector<ElementType>& value)
 {
-	MemBuffer<const ElementType> buffer(&value[0], value.size());
+    MemBuffer<const ElementType> buffer(&value[0], value.size());
 
     me()->update(buffer);
 }
@@ -254,7 +254,7 @@ operator vector<ElementType>()
 {
     vector<ElementType> vec(me()->size());
 
-	MemBuffer<ElementType> data(&vec[0], vec.size());
+    MemBuffer<ElementType> data(&vec[0], vec.size());
 
     BigInt len = me()->read(data);
     me()->skip(-len);

@@ -30,7 +30,7 @@ typedef uint32_t            UInt;
 typedef int16_t             Short;
 typedef uint16_t            UShort;
 //typedef int8_t              Byte;
-typedef char              	Byte;
+typedef char                Byte;
 typedef uint8_t             UByte;
 
 

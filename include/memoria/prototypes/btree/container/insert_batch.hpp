@@ -154,7 +154,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
             if (level > 0)
             {
-            	// FIXME: buffer size can be too small
+                // FIXME: buffer size can be too small
                 NonLeafNodeKeyValuePair children[2000];
 
                 Int local = 0;
@@ -173,7 +173,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
             }
             else
             {
-            	// FIXME: buffer size can be too small
+                // FIXME: buffer size can be too small
                 LeafNodeKeyValuePair children[2000];
 
                 Int local = 0;
@@ -269,7 +269,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::InsertBatchName)
 
         virtual LeafNodeKeyValuePair getLeafKVPair(BigInt begin)
         {
-        	return pairs_[begin];
+            return pairs_[begin];
         }
     };
 
@@ -684,7 +684,7 @@ void M_TYPE::insertSubtree(
 
             right_idx       += total;
 
-            data.remains  	= data.total - data.start;
+            data.remains    = data.total - data.start;
         }
         else
         {
@@ -740,7 +740,7 @@ void M_TYPE::insertSubtree(
 
             prepareNodeFillmentRight(level, right_count, data);
 
-            data.remains  	= data.total - data.start;
+            data.remains    = data.total - data.start;
 
             fillNodeLeft(right_path, level, 0, right_count,  data);
 
@@ -792,19 +792,19 @@ void M_TYPE::fillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
     {
         for (Int c = from; c < from + count; c++)
         {
-        	BigInt requested_size;
+            BigInt requested_size;
 
-        	if (data.first_cell_key_count > 0)
-        	{
-        		requested_size 				= data.first_cell_key_count;
-        		data.first_cell_key_count 	= 0;
-        	}
-        	else {
-        		requested_size  = data.remains >= subtree_size ? subtree_size : data.remains;
-        	}
+            if (data.first_cell_key_count > 0)
+            {
+                requested_size              = data.first_cell_key_count;
+                data.first_cell_key_count   = 0;
+            }
+            else {
+                requested_size  = data.remains >= subtree_size ? subtree_size : data.remains;
+            }
 
-            NonLeafNodeKeyValuePair pair	= data.provider.getKVPair(
-                                            					data.start,
+            NonLeafNodeKeyValuePair pair    = data.provider.getKVPair(
+                                                                data.start,
                                                                 requested_size,
                                                                 level
                                                             );
@@ -846,25 +846,25 @@ void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& da
 
     if (level > 0)
     {
-    	BigInt total = subtree_size * count;
+        BigInt total = subtree_size * count;
 
-    	if (data.remains >= total)
-    	{
-    		data.end        += total;
-    		data.remains    -= total;
-    	}
-    	else {
-    		BigInt remainder = data.remains - (subtree_size * count - subtree_size);
+        if (data.remains >= total)
+        {
+            data.end        += total;
+            data.remains    -= total;
+        }
+        else {
+            BigInt remainder = data.remains - (subtree_size * count - subtree_size);
 
-    		data.end        += data.remains;
-    		data.remains    = 0;
+            data.end        += data.remains;
+            data.remains    = 0;
 
-    		data.first_cell_key_count = remainder;
-    	}
+            data.first_cell_key_count = remainder;
+        }
     }
     else {
-    	data.end        += count;
-    	data.remains    -= count;
+        data.end        += count;
+        data.remains    -= count;
     }
 }
 

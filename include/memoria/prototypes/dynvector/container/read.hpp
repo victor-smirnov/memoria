@@ -68,12 +68,12 @@ BigInt M_TYPE::read(Iterator& iter, IDataType& data)
 
         while (to_read_local > 0)
         {
-        	SizeT processed = data.put(iter.data()->addr(iter.dataPos()), to_read_local);
+            SizeT processed = data.put(iter.data()->addr(iter.dataPos()), to_read_local);
 
-        	data.skip(processed);
-        	iter.skip(processed);
+            data.skip(processed);
+            iter.skip(processed);
 
-        	to_read_local -= processed;
+            to_read_local -= processed;
         }
 
         len     -= to_read;

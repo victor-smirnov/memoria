@@ -100,7 +100,7 @@ public:
 
     struct Types: public ContainerTypes
     {
-    	typedef VectorMap<Key, Value>			Name;
+        typedef VectorMap<Key, Value>           Name;
 
         typedef Profile_                        Profile;
         typedef MyType::Allocator               Allocator;

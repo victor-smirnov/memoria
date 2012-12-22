@@ -204,14 +204,14 @@ public:
     template <typename T>
     MyType& operator=(const T & value)
     {
-    	AssignToItem(*this, value);
-    	return *this;
+        AssignToItem(*this, value);
+        return *this;
     }
 
     MyType& operator=(const vector<Value> & value)
     {
-    	this->setValue(value);
-    	return *this;
+        this->setValue(value);
+        return *this;
     }
 };
 
