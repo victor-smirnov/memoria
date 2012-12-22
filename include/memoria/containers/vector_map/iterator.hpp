@@ -202,17 +202,24 @@ public:
     }
 
     template <typename T>
-    MyType& operator=(const T & value)
+    T operator=(const T & value)
     {
         AssignToItem(*this, value);
-        return *this;
+        return value;
     }
 
-    MyType& operator=(const vector<Value> & value)
+    template <typename T>
+    T operator=(T&& value)
     {
-        this->setValue(value);
-        return *this;
+        AssignToItem(*this, std::forward<T>(value));
+        return value;
     }
+
+//    MyType& operator=(const vector<Value> & value)
+//    {
+//        this->setValue(value);
+//        return *this;
+//    }
 };
 
 

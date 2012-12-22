@@ -97,7 +97,11 @@ public:
     }
 
     Int getCapacity() const {
-        return (Base::page_size() - sizeof(MyType)) / sizeof(ElementType) - data_.size();
+        return getMaxCapacity() - data_.size();
+    }
+
+    Int getMaxCapacity() const {
+        return (Base::page_size() - sizeof(MyType)) / sizeof(ElementType);
     }
 
     const ElementType* addr(Int idx) const {

@@ -29,7 +29,8 @@ public:
     IDataAdapter(IDataAdapter<Iterator>&& other):
         iter_(std::move(other.iter_)), length_ (other.length_), start_(other.start_) {}
 
-
+    IDataAdapter(const IDataAdapter<Iterator>& other):
+            iter_(other.iter_), length_ (other.length_), start_(other.start_) {}
 
     IDataAdapter(const Iterator& iter, BigInt length): iter_(iter)
     {
@@ -76,7 +77,7 @@ public:
     {
         auto& data  = iter_.data();
         Int pos     = iter_.dataPos();
-        BigInt size = data->data_size() - pos;
+        BigInt size = data->getMaxCapacity() - pos;
 
         if (length > size)
         {
@@ -86,6 +87,12 @@ public:
         CopyBuffer(data->addr(pos), buffer, length);
 
         return length;
+    }
+
+    virtual void reset()
+    {
+        iter_.skip(-start_);
+        start_ = 0;
     }
 };
 

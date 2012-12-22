@@ -93,6 +93,8 @@ struct IData {
     virtual SizeT getSize() const                                   = 0;
     virtual SizeT put(const T* buffer, SizeT length)                = 0;
     virtual SizeT get(T* buffer, SizeT length) const                = 0;
+
+    virtual void reset()                                            = 0;
 };
 
 
@@ -135,6 +137,11 @@ public:
     {
         return data_.get(buffer, length);
     }
+
+    virtual void reset()
+    {
+        data_.reset();
+    }
 };
 
 
@@ -155,6 +162,13 @@ public:
         length_(length),
         data_(data),
         owner_(owner)
+    {}
+
+    MemBuffer(vector<T>& data):
+        start_(0),
+        length_(data.size()),
+        data_(&data[0]),
+        owner_(false)
     {}
 
     MemBuffer(SizeT length):
@@ -251,6 +265,11 @@ public:
     void dump(std::ostream& out) const {
         dumpArray(out, data_, length_);
     }
+
+    virtual void reset()
+    {
+        start_ = 0;
+    }
 };
 
 
@@ -327,6 +346,11 @@ public:
     void dump(std::ostream& out) const {
         dumpArray(out, data_, length_);
     }
+
+    virtual void reset()
+    {
+        start_ = 0;
+    }
 };
 
 
@@ -390,6 +414,11 @@ public:
     operator T&() {
         return value_;
     }
+
+    virtual void reset()
+    {
+        start_ = 0;
+    }
 };
 
 template <typename T>
@@ -444,6 +473,11 @@ public:
 
     operator const T&() const {
         return value_;
+    }
+
+    virtual void reset()
+    {
+        start_ = 0;
     }
 };
 
@@ -511,6 +545,11 @@ public:
     operator T&() {
         return value_;
     }
+
+    virtual void reset()
+    {
+        start_ = 0;
+    }
 };
 
 
@@ -563,6 +602,11 @@ public:
         // FIXME EOF handling?
         return length;
     }
+
+    virtual void reset()
+    {
+        start_ = 0;
+    }
 };
 
 template <typename T>
@@ -612,6 +656,11 @@ public:
     virtual SizeT get(T* buffer, SizeT length) const
     {
         return 0;
+    }
+
+    virtual void reset()
+    {
+        start_ = 0;
     }
 };
 

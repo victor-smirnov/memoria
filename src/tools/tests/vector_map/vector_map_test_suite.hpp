@@ -11,6 +11,7 @@
 #include "../tests_inc.hpp"
 
 #include "vector_map_test.hpp"
+#include "vector_map_transfer_test.hpp"
 
 #include <vector>
 
@@ -26,6 +27,8 @@ public:
     VectorMapTestSuite(): TestSuite("VectorMapSuite")
     {
         registerTask(new VectorMapTest());
+
+        registerTask(new VectorMapTransferTest<UByte>("Transfer"));
     }
 
 };

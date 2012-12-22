@@ -11,6 +11,7 @@
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/containers/vector_map/names.hpp>
+#include <memoria/containers/vector/tools.hpp>
 
 #include <memoria/core/types/selector.hpp>
 
@@ -19,6 +20,24 @@
 namespace memoria {
 
 using namespace std;
+
+
+template <typename IDataWrapper>
+class VectorMapDataWrapper {
+    IDataWrapper wrapper_;
+
+public:
+
+    VectorMapDataWrapper(const IDataWrapper& wrapper): wrapper_(wrapper) {}
+    VectorMapDataWrapper(IDataWrapper&& wrapper): wrapper_(wrapper) {}
+    VectorMapDataWrapper(VectorMapDataWrapper<IDataWrapper>&& other): wrapper_(std::move(other.wrapper_)) {}
+
+    VectorMapDataWrapper(const VectorMapDataWrapper<IDataWrapper>& other): wrapper_(other.wrapper_) {}
+
+    IDataWrapper& wrapper() {
+        return wrapper_;
+    }
+};
 
 template <typename Types, typename = IsVectorMap<Types, Any, Byte>>
 void AssignToItem(Iter<VectorMapIterTypes<Types>>& iter, const char* str)
@@ -34,6 +53,18 @@ void AssignToItem(Iter<VectorMapIterTypes<Types>>& iter, StringRef str)
     iter.setValue(data);
 }
 
+template <typename Types>
+void AssignToItem(Iter<VectorMapIterTypes<Types>>& iter, const vector<typename Types::Value>& value)
+{
+    iter.setValue(value);
+}
+
+template <typename Types, typename Wrapper>
+void AssignToItem(Iter<VectorMapIterTypes<Types>>& iter, VectorMapDataWrapper<Wrapper>&& wrapper)
+{
+    iter.update(wrapper.wrapper());
+    wrapper.wrapper().reset();
+}
 
 template <typename Types, typename = IsVectorMap<Types, Any, Byte>>
 ostream& operator<<(ostream& out, Iter<VectorMapIterTypes<Types>>& iter)

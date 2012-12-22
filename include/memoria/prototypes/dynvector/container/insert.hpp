@@ -165,11 +165,11 @@ void M_TYPE::insertData(Iterator& iter, IDataType& buffer)
 
     BigInt pos = iter.pos();
 
-    if (buffer.getSize() <= capacity)
+    if (buffer.getRemainder() <= capacity)
     {
         // The target datapage has enough free space to insert into
-        insertIntoDataPage(iter, buffer, buffer.getSize());
-        data_idx += buffer.getSize();
+        insertIntoDataPage(iter, buffer, buffer.getRemainder());
+        data_idx += buffer.getRemainder();
     }
     else if (!iter.isEof())
     {
@@ -180,13 +180,13 @@ void M_TYPE::insertData(Iterator& iter, IDataType& buffer)
 
         importPages(iter, buffer);
 
-        iter.cache().setup(pos + buffer.getSize() - iter.dataPos(), 0);
+        iter.cache().setup(pos + buffer.getRemainder() - iter.dataPos(), 0);
     }
     else
     {
         importPages(iter, buffer);
 
-        iter.cache().setup(pos + buffer.getSize() - iter.dataPos(), 0);
+        iter.cache().setup(pos + buffer.getRemainder() - iter.dataPos(), 0);
     }
 }
 
@@ -195,11 +195,14 @@ BigInt M_TYPE::updateData(Iterator& iter, IDataType& data)
 {
     BigInt sum = 0;
 
-    SizeT len = data.getSize();
+    SizeT len = data.getRemainder();
 
     while (len > 0)
     {
-        Int to_read = iter.data()->size() - iter.dataPos();
+        Int pos0 = iter.dataPos();
+        Int size = iter.data()->size();
+
+        Int to_read = size - pos0;
 
         if (to_read > len) to_read = len;
 
@@ -207,10 +210,12 @@ BigInt M_TYPE::updateData(Iterator& iter, IDataType& data)
 
         while (to_read_local > 0)
         {
-            SizeT processed = data.get(iter.data()->addr(iter.dataPos()), to_read_local);
+            Int pos = iter.dataPos();
+
+            SizeT processed = data.get(iter.data()->addr(pos), to_read_local);
 
             data.skip(processed);
-            iter.skip(to_read);
+            iter.skip(processed);
 
             to_read_local -= processed;
         }
@@ -327,7 +332,7 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length)
 M_PARAMS
 void M_TYPE::importPages(Iterator& iter, IDataType& buffer)
 {
-    BigInt  length      = buffer.getSize();
+    BigInt  length      = buffer.getRemainder();
     BigInt  start;
 
     if (iter.dataPos() > 0)

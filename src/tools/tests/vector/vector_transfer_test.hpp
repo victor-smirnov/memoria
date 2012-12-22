@@ -27,7 +27,7 @@ class VectorTransferTest: public SPTestTask {
     typedef typename Ctr::Iterator                                              Iterator;
 
 
-    Int transfers_ 		= 1000;
+    Int transfers_      = 1000;
     Int max_block_size_ = 1024*128;
     Int min_block_size_ = 128;
 
@@ -128,17 +128,17 @@ public:
 
     void insertData(Ctr& v1, Ctr& v2)
     {
-		auto i1 = v1.seek(pos1_);
-		auto i2 = v2.seek(pos2_);
+        auto i1 = v1.seek(pos1_);
+        auto i2 = v2.seek(pos2_);
 
-		auto data1 = i1.asIData(block_size_);
-		i2.insert(data1);
+        auto data1 = i1.asData(block_size_);
+        i2.insert(data1);
 
-		i2.skip(-block_size_);
+        i2.skip(-block_size_);
 
-		auto i1_1 = v1.seek(pos2_);
-		auto data2 = i2.asIData(block_size_);
-		i1_1.insert(data2);
+        auto i1_1 = v1.seek(pos2_);
+        auto data2 = i2.asData(block_size_);
+        i1_1.insert(data2);
     }
 
     void runInsertTest(ostream& out)
@@ -147,59 +147,59 @@ public:
 
         try {
 
-        	Ctr v1(&allocator, 1, true);
-        	Ctr v2(&allocator, 2, true);
+            Ctr v1(&allocator, 1, true);
+            Ctr v2(&allocator, 2, true);
 
-        	ctr1_name_ = v1.name();
-        	ctr2_name_ = v2.name();
+            ctr1_name_ = v1.name();
+            ctr2_name_ = v2.name();
 
-        	for (BigInt c = 0; c < Base::size_/1024; c++)
-        	{
-        		vector<T> buf = createBuffer<T>(1024, 100);
-        		v1<<buf;
-        		v2<<buf;
-        	}
+            for (BigInt c = 0; c < Base::size_/1024; c++)
+            {
+                vector<T> buf = createBuffer<T>(1024, 100);
+                v1<<buf;
+                v2<<buf;
+            }
 
-        	check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
+            check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-        	compareVectors(out, v1, v2, MEMORIA_SOURCE);
+            compareVectors(out, v1, v2, MEMORIA_SOURCE);
 
-        	for (Int c = 0; c < transfers_; c++)
-        	{
-        		block_size_ = getRandom(max_block_size_ - min_block_size_) + min_block_size_;
-        		pos1_ = getRandom(v1.size() - block_size_);
-        		pos2_ = getRandom(v1.size());
+            for (Int c = 0; c < transfers_; c++)
+            {
+                block_size_ = getRandom(max_block_size_ - min_block_size_) + min_block_size_;
+                pos1_ = getRandom(v1.size() - block_size_);
+                pos2_ = getRandom(v1.size());
 
-        		insertData(v1, v2);
+                insertData(v1, v2);
 
-        		check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
+                check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-        		compareVectors(out, v1, v2, MEMORIA_SOURCE);
+                compareVectors(out, v1, v2, MEMORIA_SOURCE);
 
-        		out<<c<<endl;
-        	}
+                out<<c<<endl;
+            }
         }
         catch (...) {
-        	dump_name_ = Store(allocator);
-        	throw;
+            dump_name_ = Store(allocator);
+            throw;
         }
     }
 
     void runInsertReplay(ostream& out)
     {
-    	Allocator allocator;
-    	LoadAllocator(allocator, dump_name_);
+        Allocator allocator;
+        LoadAllocator(allocator, dump_name_);
 
-    	check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
+        check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-    	Ctr v1(&allocator, ctr1_name_);
-    	Ctr v2(&allocator, ctr2_name_);
+        Ctr v1(&allocator, ctr1_name_);
+        Ctr v2(&allocator, ctr2_name_);
 
-    	insertData(v1, v2);
+        insertData(v1, v2);
 
-    	check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
+        check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-    	compareVectors(out, v1, v2, MEMORIA_SOURCE);
+        compareVectors(out, v1, v2, MEMORIA_SOURCE);
     }
 };
 

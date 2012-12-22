@@ -43,15 +43,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::ApiName)
         return seek(pos);
     }
 
-//    template <typename T>
-//    MEMORIA_PUBLIC void append(const T& value)
-//    {
-//        Iterator i = me()->seek(me()->size());
-//        i.insert(MemBuffer<ElementType>(value));
-//    }
-
     Iterator seek(BigInt pos);
-    BigInt size();
+    BigInt   size();
 
 MEMORIA_CONTAINER_PART_END
 

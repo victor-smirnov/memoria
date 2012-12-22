@@ -59,27 +59,27 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
     
     MEMORIA_PUBLIC std::vector<ElementType> subVector(BigInt length) const
     {
-    	MyType tmp = *me();
-    	return tmp.read(length);
+        MyType tmp = *me();
+        return tmp.read(length);
     }
 
     MEMORIA_PUBLIC std::vector<ElementType> read(BigInt length)
-	{
-    	BigInt max_size = me()->model().size() - me()->pos();
+    {
+        BigInt max_size = me()->model().size() - me()->pos();
 
-    	if (length > max_size)
-    	{
-    		length = max_size;
-    	}
+        if (length > max_size)
+        {
+            length = max_size;
+        }
 
-    	std::vector<ElementType> vec(length);
+        std::vector<ElementType> vec(length);
 
-    	MemBuffer<ElementType> buf(&vec[0], vec.size());
+        MemBuffer<ElementType> buf(&vec[0], vec.size());
 
-    	me()->read(buf);
+        me()->read(buf);
 
-    	return vec;
-	}
+        return vec;
+    }
 
 
     void insert(IDataType& data);
@@ -189,7 +189,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
     }
 
 
-    MEMORIA_PUBLIC IDataAdapter<MyType> asIData(BigInt length = -1) const
+    MEMORIA_PUBLIC IDataAdapter<MyType> asData(BigInt length = -1) const
     {
         return IDataAdapter<MyType>(*me(), length);
     }

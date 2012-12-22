@@ -12,6 +12,7 @@
 #include <memoria/core/types/types.hpp>
 
 #include <memoria/containers/vector_map/names.hpp>
+#include <memoria/containers/vector_map/tools.hpp>
 #include <memoria/core/container/iterator.hpp>
 
 #include <vector>
@@ -49,7 +50,7 @@ void insert(IData<ElementType>& data)
 
     IdxsetAccumulator keys;
 
-    keys.key(1) = data.getSize();
+    keys.key(1) = data.getRemainder();
 
     me()->is_iter().updateUp(keys);
 }
@@ -60,7 +61,7 @@ void update(IData<ElementType>& data)
 
     if (sz > 0)
     {
-        BigInt difference = data.getSize() - sz;
+        BigInt difference = data.getRemainder() - sz;
 
         if (difference < 0)
         {
@@ -107,13 +108,30 @@ BigInt read(IData<ElementType>& data)
     BigInt current_pos  = me()->pos();
     BigInt current_size = me()->size();
 
-    SizeT length = data.getSize();
+    SizeT length = data.getRemainder();
 
     BigInt len = ((length + current_pos) <= current_size) ? length : (current_size - current_pos);
 
     me()->ba_iter().read(data);
 
     return len;
+}
+
+BigInt seek(BigInt position)
+{
+    BigInt current_pos  = me()->pos();
+    BigInt current_size = me()->size();
+
+    if (position >= current_size)
+    {
+        position = current_pos;
+    }
+    else if (position <= 0)
+    {
+        position = 0;
+    }
+
+    return skip(position - current_pos);
 }
 
 
@@ -259,6 +277,11 @@ operator vector<ElementType>()
     BigInt len = me()->read(data);
     me()->skip(-len);
     return data;
+}
+
+VectorMapDataWrapper<IDataAdapter<ByteArrayIterator>> asData() const
+{
+    return VectorMapDataWrapper<IDataAdapter<ByteArrayIterator>>(me()->ba_iter().asData(me()->size()));
 }
 
 MEMORIA_ITERATOR_PART_END

@@ -56,7 +56,7 @@ BigInt M_TYPE::read(Iterator& iter, IDataType& data)
 {
     BigInt sum = 0;
 
-    BigInt len = data.getSize();
+    BigInt len = data.getRemainder();
 
     while (len > 0)
     {
