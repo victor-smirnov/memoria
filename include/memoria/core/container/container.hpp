@@ -51,11 +51,11 @@ struct IParentCtrInterface
     typedef typename Allocator::CtrShared                                       CtrShared;
     typedef typename Allocator::Page::ID                                        ID;
 
-    virtual ID    getRootID(void* caller, BigInt name)                  = 0;
-    virtual void  setRootID(void* caller, BigInt name, const ID& root)  = 0;
+    virtual ID    getRootID(void* caller, BigInt name)                  		= 0;
+    virtual void  setRootID(void* caller, BigInt name, const ID& root)  		= 0;
 
-    virtual Allocator& getAllocator()                                   = 0;
-    virtual CtrShared* getShared()                                      = 0;
+    virtual Allocator& getAllocator()                                   		= 0;
+    virtual CtrShared* getShared()                                      		= 0;
 };
 
 

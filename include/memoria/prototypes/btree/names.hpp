@@ -63,7 +63,7 @@ class InsertName            {};
 class InsertBatchName       {};
 class RemoveName            {};
 class ApiName               {};
-class checksName            {};
+class ChecksName            {};
 class WalkName              {};
 class AllocatorName         {};
 

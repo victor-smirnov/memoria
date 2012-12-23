@@ -12,8 +12,8 @@
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/prototypes/dynvector/names.hpp>
-#include <memoria/prototypes/dynvector/pages/data_page.hpp>
+#include <memoria/containers/vector/names.hpp>
+#include <memoria/containers/vector/pages/data_page.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -24,7 +24,7 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::RemoveName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::RemoveName)
 
 public:
 
@@ -152,7 +152,7 @@ private:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::dynvector::RemoveName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::RemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

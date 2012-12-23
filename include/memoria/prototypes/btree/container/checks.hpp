@@ -20,7 +20,7 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::checksName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::ChecksName)
 private:
     
 public:
@@ -97,7 +97,7 @@ public:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::btree::checksName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::btree::ChecksName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

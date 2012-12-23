@@ -13,8 +13,8 @@
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/prototypes/dynvector/names.hpp>
-#include <memoria/prototypes/dynvector/pages/data_page.hpp>
+#include <memoria/containers/vector/names.hpp>
+#include <memoria/containers/vector/pages/data_page.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -23,7 +23,7 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::checksName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::ChecksName)
 private:
 
 public:
@@ -54,10 +54,6 @@ public:
 
     typedef typename Types::DataPage                                            DataPage;
     typedef typename Types::DataPageG                                           DataPageG;
-    typedef typename Types::Buffer                                              Buffer;
-    typedef typename Types::BufferContentDescriptor                             BufferContentDescriptor;
-    typedef typename Types::CountData                                           CountData;
-
 
     static const Int Indexes                                                    = Types::Indexes;
 
@@ -67,7 +63,7 @@ public:
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::dynvector::checksName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::ChecksName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

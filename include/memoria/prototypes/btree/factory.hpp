@@ -47,7 +47,7 @@ struct BTreeTypes {
     typedef TypeList<
             memoria::btree::AllocatorName,
             memoria::btree::ToolsName,
-            memoria::btree::checksName,
+            memoria::btree::ChecksName,
             memoria::btree::InsertBatchName,
             memoria::btree::RemoveName,
             memoria::btree::FindName,

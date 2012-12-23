@@ -25,31 +25,109 @@ namespace memoria    {
 using namespace memoria::btree;
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::IteratorContainerAPIName)
+MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::mvector::IteratorContainerAPIName)
 
-    typedef typename Base::NodeBase                                                 NodeBase;
-    typedef typename Base::NodeBaseG                                                NodeBaseG;
-    typedef typename Base::Container                                                Container;
+    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    typedef typename Base::Container                                            Container;
 
-    typedef typename Container::Key                                                 Key;
+    typedef typename Container::Key                                             Key;
 
-    typedef typename Base::Container::Page                                          PageType;
-    typedef typename Base::Container::ID                                            ID;
+    typedef typename Container::Page                                      		PageType;
+    typedef typename Container::ID                                        		ID;
 
-    typedef typename Container::Types::Allocator                                    Allocator;
-    typedef typename Container::Types::DataPage                                     DataPage;
-    typedef typename Container::Types::DataPageG                                    DataPageG;
-    typedef typename Container::Types::Buffer                                       Buffer;
-    typedef typename Container::Types::BufferContentDescriptor                      BufferContentDescriptor;
-    typedef typename Container::Types::CountData                                    CountData;
-    typedef typename Container::Types::Pages::NodeDispatcher                        NodeDispatcher;
-    typedef typename Container::Types::ElementType                                  ElementType;
+    typedef typename Types::Allocator                                			Allocator;
+    typedef typename Types::DataPage                                 			DataPage;
+    typedef typename Types::DataPageG                                			DataPageG;
+    typedef typename Types::Pages::NodeDispatcher                    			NodeDispatcher;
+    typedef typename Types::ElementType                              			ElementType;
 
-    typedef IData<ElementType>                                                      IDataType;
+    typedef typename Types::IDataType                                 			IDataType;
 
-    typedef typename Base::TreePath                                                 TreePath;
+    typedef typename Base::TreePath                                             TreePath;
 
-    static const Int PAGE_SIZE = Base::Container::Allocator::PAGE_SIZE;
+    static const Int Indexes = Container::Indexes;
+
+    BigInt          local_pos_;
+
+    IterPart(): Base(), local_pos_(0) {}
+
+    IterPart(ThisPartType&& other): Base(std::move(other)), local_pos_(other.local_pos_) {}
+
+    IterPart(const ThisPartType& other): Base(other), local_pos_(other.local_pos_) {}
+
+
+    void assign(const ThisPartType& other)
+    {
+    	Base::assign(other);
+
+    	local_pos_      = other.local_pos_;
+    }
+
+    void assign(ThisPartType&& other)
+    {
+    	Base::assign(std::move(other));
+
+    	local_pos_      = other.local_pos_;
+    }
+
+    bool isEqual(const ThisPartType& other) const
+    {
+    	return local_pos_  == other.local_pos_ && Base::isEqual(other);
+    }
+
+    bool isNotEqual(const ThisPartType& other) const
+    {
+    	return local_pos_  != other.local_pos_ || Base::isNotEqual(other);
+    }
+
+    bool isEof() const
+    {
+    	return me()->data().isSet() ? me()->dataPos() >= me()->data()->size() : true;
+    }
+
+    bool isBof() const
+    {
+    	return local_pos_ == 0 && me()->isBegin();
+    }
+
+    DataPageG& data()
+    {
+    	return me()->path().data();
+    }
+
+    const DataPageG& data() const
+    {
+    	return me()->path().data();
+    }
+
+    BigInt &dataPos() {
+    	return local_pos_;
+    }
+
+    const BigInt dataPos() const {
+    	return local_pos_;
+    }
+
+    BigInt pos() const
+    {
+    	return me()->prefix() + me()->dataPos();
+    }
+
+
+    bool nextKey()
+    {
+    	me()->dataPos()     = 0;
+
+    	return Base::nextKey();
+    }
+
+    bool prevKey()
+    {
+    	me()->dataPos()     = 0;
+
+    	return Base::prevKey();
+    }
 
 
     MEMORIA_PUBLIC BigInt read(IDataType& data)

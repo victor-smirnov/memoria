@@ -9,13 +9,13 @@
 #ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_FIND_HPP
 #define _MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_FIND_HPP
 
-#include <memoria/prototypes/dynvector/names.hpp>
+#include <memoria/containers/vector/names.hpp>
 
 #include <memoria/prototypes/btree/btree.hpp>
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::SeekName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::SeekName)
 
         typedef typename Base::Types                                                Types;
         typedef typename Base::Allocator                                            Allocator;
@@ -45,7 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::SeekName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::dynvector::SeekName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::SeekName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

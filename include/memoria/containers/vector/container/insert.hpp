@@ -11,8 +11,8 @@
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/prototypes/dynvector/names.hpp>
-#include <memoria/prototypes/dynvector/pages/data_page.hpp>
+#include <memoria/containers/vector/names.hpp>
+#include <memoria/containers/vector/pages/data_page.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -21,7 +21,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::dynvector::InsertName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::InsertName)
 
 typedef typename Base::Types                                                Types;
 typedef typename Base::Allocator                                            Allocator;
@@ -49,9 +49,7 @@ typedef typename Base::Value                                                Valu
 
 typedef typename Types::DataPage                                            DataPage;
 typedef typename Types::DataPageG                                           DataPageG;
-typedef typename Types::Buffer                                              Buffer;
-typedef typename Types::BufferContentDescriptor                             BufferContentDescriptor;
-typedef typename Types::CountData                                           CountData;
+typedef typename Types::IDataType                                          	IDataType;
 
 typedef typename Types::TreePath                                            TreePath;
 typedef typename Types::TreePathItem                                        TreePathItem;
@@ -65,7 +63,7 @@ typedef Accumulators<Key, Indexes>                                          Accu
 
 typedef typename Types::ElementType                                         ElementType;
 
-typedef IData<ElementType>                                                  IDataType;
+
 
 
 void insertData(Iterator& iter, IDataType& data);
@@ -152,7 +150,7 @@ Accumulator moveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, Node
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::dynvector::InsertName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::InsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

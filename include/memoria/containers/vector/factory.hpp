@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_MODELS_ARRAY_FACTORY_HPP
-#define _MEMORIA_MODELS_ARRAY_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_VECTOR_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_VECTOR_FACTORY_HPP
 
 #include <memoria/containers/map/factory.hpp>
 
@@ -18,58 +18,143 @@
 #include <memoria/containers/vector/pages/metadata.hpp>
 
 #include <memoria/containers/vector/container/api.hpp>
+#include <memoria/containers/vector/container/insert.hpp>
+#include <memoria/containers/vector/container/remove.hpp>
+#include <memoria/containers/vector/container/tools.hpp>
+#include <memoria/containers/vector/container/checks.hpp>
+#include <memoria/containers/vector/container/find.hpp>
+#include <memoria/containers/vector/container/read.hpp>
 
 #include <memoria/containers/vector/names.hpp>
 #include <memoria/containers/vector/tools.hpp>
 
-#include <memoria/prototypes/dynvector/dynvector.hpp>
-
-#include <memoria/containers/vector/tools.hpp>
 
 namespace memoria {
 
-template <typename Profile, typename ElementType>
-struct BTreeTypes<Profile, memoria::Vector<ElementType>>: public BTreeTypes<Profile, memoria::DynVector<ElementType>>  {
 
-    typedef BTreeTypes<Profile, memoria::DynVector<ElementType>>                Base;
-
-    typedef typename AppendTool<
-            typename Base::ContainerPartsList,
-            TypeList<
-                memoria::mvector::ApiName
-            >
-    >::Result                                                                   ContainerPartsList;
+template <
+    typename DataPage_,
+    typename IData_,
+    typename Base
+>
+struct VectorContainerTypes: public Base {
 
     typedef typename AppendTool<
-            typename Base::IteratorPartsList,
-            TypeList<
-                memoria::mvector::IteratorContainerAPIName
-            >
-    >::Result                                                                   IteratorPartsList;
+                    TypeList<
+                        DataPage_
+                    >,
+                    typename Base::DataPagesList
+    >::Result                                                                   DataPagesList;
 
-    typedef MemBuffer<ElementType>                                              Buffer;
-
-    typedef memoria::DynVectorData<ElementType>                                 DataBlock;
-
-    typedef VectorMetadata<typename Base::ID>                                   Metadata;
-
-    template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef BTreeIteratorScalarPrefixCache<Iterator, Container>             Type;
-    };
+    typedef DataPage_                                                           DataPage;
+    typedef PageGuard<DataPage, typename Base::Allocator>                       DataPageG;
+    typedef IData_                                                             	IData;
 };
 
 
-template <typename Profile, typename T, typename ElementType>
-class CtrTF<Profile, memoria::Vector<ElementType>, T>: public CtrTF<Profile, memoria::DynVector<ElementType>, T> {
-    typedef CtrTF<Profile, memoria::DynVector<ElementType>, T> Base;
-public:
+template <typename Profile, typename ElementType_>
+struct BTreeTypes<Profile, memoria::Vector<ElementType_>>: public BTreeTypes<Profile, memoria::BSTree>  {
 
-    struct Types: Base::Types {
-        typedef VectorCtrTypes<Types>   CtrTypes;
-        typedef VectorIterTypes<Types>  IterTypes;
+    typedef IDType                                                              Value;
+    typedef BTreeTypes<Profile, memoria::BSTree>                                Base;
+
+    typedef TypeList<>                                                          DataPagePartsList;
+
+    typedef typename AppendTool<
+    		typename Base::ContainerPartsList,
+    		TypeList<
+    			memoria::mvector::ToolsName,
+    			memoria::mvector::RemoveName,
+    			memoria::mvector::InsertName,
+    			memoria::mvector::ChecksName,
+    			memoria::mvector::ReadName,
+    			memoria::mvector::SeekName,
+    			memoria::mvector::ApiName
+    		>
+    >::Result                                                                   ContainerPartsList;
+
+    typedef typename AppendTool<
+    		typename Base::IteratorPartsList,
+    		TypeList<
+    			memoria::mvector::IteratorContainerAPIName
+    		>
+    >::Result                                                                   IteratorPartsList;
+
+
+    typedef ElementType_                                                        ElementType;
+
+
+    template <typename Iterator, typename Container>
+    struct IteratorCacheFactory {
+    	typedef BTreeIteratorScalarPrefixCache<Iterator, Container> Type;
     };
 
+    typedef IData<ElementType>                                              	IDataType;
+
+    typedef memoria::VectorData<ElementType>                                 	DataBlock;
+
+    typedef VectorMetadata<typename Base::ID>                                   Metadata;
+};
+
+
+
+
+
+
+template <typename Profile, typename T, typename ElementType>
+class CtrTF<Profile, memoria::Vector<ElementType>, T>: public CtrTF<Profile, memoria::BSTree, T> {
+
+	typedef CtrTF<Profile, memoria::BSTree, T> 									Base;
+
+public:
+
+	typedef typename Base::ContainerTypes                                       ContainerTypes;
+
+	typedef typename ContainerTypes::DataPagePartsList                          DataPagePartsList;
+
+    MEMORIA_STATIC_ASSERT(IsList<DataPagePartsList>::Value);
+
+
+
+    typedef VectorDataPage<
+    			DataPagePartsList,
+    			typename ContainerTypes::DataBlock,
+    			memoria::btree::TreePage<
+    				typename ContainerTypes::Allocator::Page
+    			>
+    >                                                                           DataPage_;
+
+
+    struct Types: Base::Types {
+
+    	typedef typename Base::Types                                            Base0;
+
+    	typedef DataPage_                                                       DataPage;
+    	typedef PageGuard<DataPage, typename Base0::Allocator>                  DataPageG;
+    	typedef IData<ElementType>                                              IDataType;
+
+
+    	typedef typename AppendTool<
+    					TypeList<
+    						DataPage_
+    					>,
+    					typename Base0::DataPagesList
+    	>::Result                                                               DataPagesList;
+
+
+    	typedef typename Base0::ContainerPartsList                              CtrList;
+    	typedef typename Base0::IteratorPartsList                               IterList;
+
+    	typedef VectorCtrTypes<Types>                                        	CtrTypes;
+    	typedef VectorIterTypes<Types>                                       	IterTypes;
+
+    	typedef DataPath<
+    			typename Base0::NodeBaseG,
+    			DataPageG
+    	>                                                                       TreePath;
+
+    	typedef typename TreePath::DataItem                                     DataPathItem;
+    };
 
     typedef typename Types::CtrTypes                                            CtrTypes;
 

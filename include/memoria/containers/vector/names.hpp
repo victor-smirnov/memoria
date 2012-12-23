@@ -9,18 +9,35 @@
 #ifndef _MEMORIA_MODELS_ARRAY_NAMES_HPP
 #define _MEMORIA_MODELS_ARRAY_NAMES_HPP
 
-#include <memoria/prototypes/dynvector/names.hpp>
+#include <memoria/prototypes/bstree/names.hpp>
 
 
 namespace memoria       {
 namespace mvector       {
 
-using namespace memoria::dynvector;
+
+template <typename ContainerName>
+class DataPagePartsListFactory      {};
+
+class InsertName            {};
+class RemoveName            {};
+class ToolsName             {};
+class SeekName              {};
+class ReadName              {};
+class ChecksName            {};
+
+class IteratorContainerAPIName  {};
+class IteratorAPIName       {};
+class IteratorToolsName     {};
+class IteratorWalkName      {};
+
+template <Int Indexes>
+class IndexPagePrefixName   {};
+
 
 class ApiName                   {};
 class ContainerApiName          {};
-class IteratorToolsName         {};
-class IteratorContainerAPIName  {};
+
 
 }
 
@@ -31,10 +48,10 @@ template <typename Types>
 struct VectorIterTypesT: IterTypesT<Types> {};
 
 template <typename Types>
-using VectorCtrTypes  = DynVectorCtrTypes<VectorCtrTypesT<Types>>;
+using VectorCtrTypes  = BSTreeCtrTypes<VectorCtrTypesT<Types>>;
 
 template <typename Types>
-using VectorIterTypes = DynVectorIterTypes<VectorIterTypesT<Types>>;
+using VectorIterTypes = BSTreeIterTypes<VectorIterTypesT<Types>>;
 
 }
 
