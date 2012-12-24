@@ -12,8 +12,6 @@
 #include <memoria/tools/tests.hpp>
 
 
-#include "../shared/params.hpp"
-
 
 #include <vector>
 
@@ -115,7 +113,7 @@ public:
 
         LoadAllocator(allocator, dump_name_);
 
-        Ctr map(&allocator, ctr_name_);
+        Ctr map(&allocator, CTR_FIND, ctr_name_);
 
         if (step_ == 0)
         {
@@ -271,9 +269,8 @@ public:
             {
                 key_ = getUniqueRandom(pairs_);
 
-
-
                 auto iter = map.create(key_);
+
                 data_size_ = getRandom(max_block_size_);
 
                 vector<Byte> data = createBuffer<Byte>(data_size_, key_ & 0xFF);

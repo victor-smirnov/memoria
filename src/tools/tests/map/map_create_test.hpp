@@ -90,7 +90,7 @@ public:
         LoadVector(pairs, pairs_data_file_);
         LoadVector(pairs_sorted, pairs_sorted_data_file_);
 
-        Ctr map(&allocator, ctr_name_);
+        Ctr map(&allocator, CTR_FIND, ctr_name_);
 
         auto iter = map[pairs[vector_idx_].key_];
         iter.setData(pairs[vector_idx_].value_);

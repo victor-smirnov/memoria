@@ -177,35 +177,41 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         RootDispatcher::Dispatch(root.page(), fn);
     }
 
-    void initCtr(bool create)
+    void initCtr(Int command)
     {
-        Base::initCtr(create);
+        Base::initCtr(command);
 
-        if (create)
+        if ((command & CTR_CREATE) && (command & CTR_FIND))
         {
-            BTreeCtrShared* shared = me()->createCtrShared(me()->name());
-            me()->allocator().registerCtrShared(shared);
-
-            NodeBaseG node          = me()->createRoot();
-
-            me()->allocator().setRoot(me()->name(), node->id());
-
-            shared->root_log()      = node->id();
-            shared->updated()       = true;
-
-            me()->configureNewCtrShared(shared, node);
-
-            Base::setCtrShared(shared);
+        	if (me()->allocator().hasRoot(me()->name()))
+        	{
+        		findCtrByName();
+        	}
+        	else {
+        		createCtrByName();
+        	}
+        }
+        else if (command & CTR_CREATE)
+        {
+        	if (!me()->allocator().hasRoot(me()->name()))
+        	{
+        		createCtrByName();
+        	}
+        	else {
+        		throw CtrAlreadyExistsException (
+        				MEMORIA_SOURCE,
+        				SBuf()<<"Container with name "<<me()->name()<<" already exists"
+        		);
+        	}
         }
         else {
-            CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
-
-            Base::setCtrShared(shared);
+            findCtrByName();
         }
     }
 
     void initCtr(const ID& root_id)
     {
+    	// FIXME: Why root_id is not in use here?
         CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
         Base::setCtrShared(shared);
     }
@@ -454,6 +460,29 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         InitNodeFn fn(*me(), block_size);
         NodeDispatcher::Dispatch(node.page(), fn);
+    }
+
+    void findCtrByName()
+    {
+    	CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
+    	Base::setCtrShared(shared);
+    }
+
+    void createCtrByName()
+    {
+    	BTreeCtrShared* shared = me()->createCtrShared(me()->name());
+    	me()->allocator().registerCtrShared(shared);
+
+    	NodeBaseG node          = me()->createRoot();
+
+    	me()->allocator().setRoot(me()->name(), node->id());
+
+    	shared->root_log()      = node->id();
+    	shared->updated()       = true;
+
+    	me()->configureNewCtrShared(shared, node);
+
+    	Base::setCtrShared(shared);
     }
 
 MEMORIA_BTREE_MODEL_BASE_CLASS_END

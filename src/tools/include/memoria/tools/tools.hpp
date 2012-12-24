@@ -353,6 +353,78 @@ BigInt getUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
 }
 
 
+template <typename Exception, typename Functor>
+void AssertThrows(const char* src, Functor&& fn)
+{
+	bool throwsException;
+
+	try {
+		fn();
+		throwsException = false;
+	}
+	catch (Exception ex)
+	{
+		throwsException = true;
+	}
+	catch (...)
+	{
+		throw TestException(src, SBuf()<<"Code throws unexpected exception");
+	}
+
+	if (!throwsException)
+	{
+		throw TestException(src, SBuf()<<"Code doesn't throw exception "<<TypeNameFactory<Exception>::name());
+	}
+}
+
+template <typename Exception, typename Functor>
+void AssertDoesntThrowEx(const char* src, Functor&& fn)
+{
+	try {
+		fn();
+	}
+	catch (Exception ex)
+	{
+		throw TestException(src, SBuf()<<"Code throws exception "<<TypeNameFactory<Exception>::name());
+	}
+	catch (...)
+	{
+		throw TestException(src, SBuf()<<"Code throws unexpected exception");
+	}
+}
+
+template <typename Functor>
+void AssertDoesntThrow(const char* src, Functor&& fn)
+{
+	try {
+		fn();
+	}
+	catch (...)
+	{
+		throw TestException(src, SBuf()<<"Code throws exception");
+	}
+}
+
+
+template <typename Op1, typename Op2>
+void AssertEQ(const char* src, const Op1& op1, const Op2& op2)
+{
+	if (!(op1 == op2))
+	{
+		throw new TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2);
+	}
+}
+
+template <typename Op1, typename Op2>
+void AssertNEQ(const char* src, const Op1& op1, const Op2& op2)
+{
+	if (!(op1 != op2))
+	{
+		throw new TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2);
+	}
+}
+
+
 #define MEMORIA_TEST_THROW_IF(op1, operator_, op2)      MEMORIA_TEST_THROW_IF_EXPR(op1 operator_ op2, op1, op2)
 #define MEMORIA_TEST_THROW_IF_1(op1, operator_, op2, arg1) MEMORIA_TEST_THROW_IF_EXPR1(op1 operator_ op2, op1, op2, arg1)
 

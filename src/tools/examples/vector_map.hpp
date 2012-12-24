@@ -48,7 +48,7 @@ public:
             Allocator allocator;
             allocator.getLogger()->setHandler(&logHandler);
 
-//            Ctr map(&allocator, 1, true);
+//            Ctr map(&allocator);
 //
 //            for (Int c = 1; c <= 10; c++)
 //            {

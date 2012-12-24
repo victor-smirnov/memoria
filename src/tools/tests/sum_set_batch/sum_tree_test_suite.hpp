@@ -7,7 +7,6 @@
 #ifndef MEMORIA_TESTS_SUM_SET_BATCH_SUM_TREE_TEST_SUITE_HPP_
 #define MEMORIA_TESTS_SUM_SET_BATCH_SUM_TREE_TEST_SUITE_HPP_
 
-#include "../shared/params.hpp"
 #include "../tests_inc.hpp"
 
 #include "sum_set_batch_test.hpp"

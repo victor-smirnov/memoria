@@ -46,11 +46,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vector_map::ItrApiName)
 
 	void insert(IDataType& data)
 	{
+		BigInt data_size = data.getRemainder();
+
 		me()->ba_iter().insert(data);
 
 		IdxsetAccumulator keys;
 
-		keys.key(1) = data.getRemainder();
+		keys.key(1) = data_size;
 
 		me()->is_iter().updateUp(keys);
 	}
@@ -59,9 +61,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vector_map::ItrApiName)
 	{
 		BigInt sz = me()->size();
 
+		BigInt data_size = data.getRemainder();
+
 		if (sz > 0)
 		{
-			BigInt difference = data.getRemainder() - sz;
+			BigInt difference = data_size - sz;
 
 			if (difference < 0)
 			{
@@ -89,7 +93,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vector_map::ItrApiName)
 			me()->insert(data);
 		}
 
-		me()->ba_iter().skip(-data.getSize());
+		me()->ba_iter().skip(-data_size);
 	}
 
 

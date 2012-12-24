@@ -40,7 +40,7 @@ public:
 
     Ctr createCtr(Allocator& allocator, BigInt name)
     {
-        return Ctr(&allocator, name, true);
+        return Ctr(&allocator, CTR_CREATE, name);
     }
 
     Ctr createCtr1(Allocator& allocator, BigInt name)

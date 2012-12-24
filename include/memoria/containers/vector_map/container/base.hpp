@@ -108,10 +108,10 @@ public:
         array_  = other.array_;
     }
 
-    void initCtr(bool create)
+    void initCtr(Int command)
     {
-        array_.initCtr(&me()->allocator(), me()->name(), create);
-        set_.  initCtr(&array_, 0, create);
+        array_.initCtr(&me()->allocator(), me()->name(), command);
+        set_.  initCtr(&array_, 0, command);
 
         Base::setCtrShared(NULL);
     }

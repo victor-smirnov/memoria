@@ -56,7 +56,7 @@ public:
 
         BigInt total = 0;
 
-        ctr_ = new Ctr(allocator_, 1, true);
+        ctr_ = new Ctr(allocator_);
 
         while (total < memory_size)
         {

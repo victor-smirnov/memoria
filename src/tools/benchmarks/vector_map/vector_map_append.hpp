@@ -51,7 +51,7 @@ public:
     {
         allocator_ = new Allocator();
 
-        map_ = new Ctr(allocator_, 1, true);
+        map_ = new Ctr(allocator_);
 
         allocator_->commit();
     }

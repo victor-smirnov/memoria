@@ -51,7 +51,7 @@ public:
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
         allocator_  = new Allocator();
-        ctr_        = new VectorCtrType(allocator_, 1, true);
+        ctr_        = new VectorCtrType(allocator_);
 
         allocator_->commit();
     }

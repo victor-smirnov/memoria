@@ -72,7 +72,7 @@ public:
 
             MemBuffer<BigInt> buffer(array, sizeof(array)/sizeof(BigInt));
 
-            i.insert(buffer, 0, buffer.size());
+            i.insert(buffer);
         }
 
         rd_array_ = new Int[params.operations()];

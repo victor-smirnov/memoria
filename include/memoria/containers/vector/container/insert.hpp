@@ -157,17 +157,19 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::insertData(Iterator& iter, IDataType& buffer)
 {
+	BigInt buffer_size = buffer.getRemainder();
+
     BigInt& data_idx = iter.dataPos();
 
     BigInt capacity = iter.data().isSet() ? me()->getDataPageCapacity(iter.data()) : me()->getMaxDataPageCapacity();
 
     BigInt pos = iter.pos();
 
-    if (buffer.getRemainder() <= capacity)
+    if (buffer_size <= capacity)
     {
         // The target datapage has enough free space to insert into
-        insertIntoDataPage(iter, buffer, buffer.getRemainder());
-        data_idx += buffer.getRemainder();
+        insertIntoDataPage(iter, buffer, buffer_size);
+        data_idx += buffer_size;
     }
     else if (!iter.isEof())
     {
@@ -178,13 +180,13 @@ void M_TYPE::insertData(Iterator& iter, IDataType& buffer)
 
         importPages(iter, buffer);
 
-        iter.cache().setup(pos + buffer.getRemainder() - iter.dataPos(), 0);
+        iter.cache().setup(pos + buffer_size - iter.dataPos(), 0);
     }
     else
     {
         importPages(iter, buffer);
 
-        iter.cache().setup(pos + buffer.getRemainder() - iter.dataPos(), 0);
+        iter.cache().setup(pos + buffer_size - iter.dataPos(), 0);
     }
 }
 

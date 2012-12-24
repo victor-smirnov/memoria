@@ -7,7 +7,6 @@
 #ifndef MEMORIA_TESTS_CREATE_CTR_CREATE_CTR_TEST_HPP_
 #define MEMORIA_TESTS_CREATE_CTR_CREATE_CTR_TEST_HPP_
 
-#include "../shared/params.hpp"
 #include "../tests_inc.hpp"
 
 #include <vector>
@@ -56,24 +55,94 @@ public:
         MEMORIA_ADD_TEST_PARAM(iteration_)->state();
 
 
-        MEMORIA_ADD_TEST(runTest);
+        MEMORIA_ADD_TEST(runCreateCtrTest);
+        MEMORIA_ADD_TEST(runStoreTest);
     }
 
     virtual ~CreateCtrTest() throw() {}
 
+    virtual void setUp(ostream& out)
+    {
+    	if (btree_random_branching_)
+    	{
+    		btree_branching_ = 8 + getRandom(100);
+    		out<<"BTree Branching: "<<btree_branching_<<endl;
+    	}
+    }
 
 
+    void runCreateCtrTest(ostream& out)
+    {
+    	DefaultLogHandlerImpl logHandler(out);
 
-    void runTest(ostream& out)
+    	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+
+    	AssertThrows<Exception>(MA_SRC, []{MapCtr map(nullptr);});
+    	AssertThrows<Exception>(MA_SRC, [&]{MapCtr map(&allocator, 0);});
+
+    	AssertThrows<NoCtrException>(MA_SRC, [&]{
+    		MapCtr map(&allocator, CTR_FIND, 12345);
+    	});
+
+    	// Ensure subsequent CTR_FIND with the same name
+    	// doesn't affect allocator
+    	AssertThrows<NoCtrException>(MA_SRC, [&]{
+    		MapCtr map(&allocator, CTR_FIND, 12345);
+    	});
+
+    	AssertDoesntThrow(MA_SRC, [&]{
+    		MapCtr map(&allocator, CTR_CREATE | CTR_FIND, 12345);
+    	});
+
+    	AssertThrows<CtrTypeException>(MA_SRC, [&]{
+    		VectorMapCtr map(&allocator, CTR_FIND, 12345);
+    	});
+
+    	AssertThrows<NoCtrException>(MA_SRC, [&]{
+    		VectorMapCtr map(&allocator, CTR_FIND, 12346);
+    	});
+
+    	AssertDoesntThrow(MA_SRC, [&]{
+    		VectorMapCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
+    	});
+
+    	AssertDoesntThrow(MA_SRC, [&]{
+    		VectorMapCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
+    	});
+
+    	AssertDoesntThrow(MA_SRC, [&]{
+    		VectorMapCtr map(&allocator, CTR_FIND, 12346);
+    	});
+
+    	BigInt name;
+
+    	{	// Container object lifecycle scope.
+
+    		MapCtr map(&allocator);
+    		name = map.name();
+
+    		for (Int c = 0; c < 1000; c++)
+    		{
+    			map[c] = c + 1;
+    		}
+
+    		// Container's data still exists in allocator
+    	}	// after control leaves the cope
+
+
+    	MapCtr map(&allocator, CTR_FIND, name);
+
+    	for (auto& iter: map)
+    	{
+    		AssertEQ(MA_SRC, iter.key(), iter.value() - 1);
+    	}
+    }
+
+
+    void runStoreTest(ostream& out)
     {
         DefaultLogHandlerImpl logHandler(out);
-
-
-        if (btree_random_branching_)
-        {
-            btree_branching_ = 8 + getRandom(100);
-            out<<"BTree Branching: "<<btree_branching_<<endl;
-        }
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -104,7 +173,7 @@ public:
 
         allocator.commit();
 
-        check(allocator, MEMORIA_SOURCE);
+        check(allocator, MA_SRC);
 
         BigInt t0 = getTimeInMillis();
 
@@ -123,37 +192,37 @@ public:
         out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
         out<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
 
-        check(new_alloc, MEMORIA_SOURCE);
+        check(new_alloc, MA_SRC);
 
-        MapCtr new_map(&new_alloc, map.name());
+        MapCtr new_map(&new_alloc, CTR_FIND, map.name());
 
-        MEMORIA_TEST_THROW_IF(map.getBranchingFactor(), !=, new_map.getBranchingFactor());
+        AssertEQ(MA_SRC, map.getBranchingFactor(), new_map.getBranchingFactor());
 
-        MEMORIA_TEST_THROW_IF(map.getSize(), !=, new_map.getSize());
+        AssertEQ(MA_SRC, map.getSize(), new_map.getSize());
 
         auto new_iter = new_map.Begin();
 
         for (auto iter = map.Begin(); !iter.isEnd(); iter.nextKey(), new_iter.nextKey())
         {
-            MEMORIA_TEST_THROW_IF(iter.getKey(0), !=, new_iter.getKey(0));
-            MEMORIA_TEST_THROW_IF(iter.getValue(), !=, new_iter.getValue());
+            AssertEQ(MA_SRC, iter.getKey(0), new_iter.getKey(0));
+            AssertEQ(MA_SRC, iter.getValue(), new_iter.getValue());
         }
 
         BigInt t22 = getTimeInMillis();
 
-        VectorMapCtr new_vector_map(&new_alloc, vector_map.name());
+        VectorMapCtr new_vector_map(&new_alloc, CTR_FIND, vector_map.name());
 
-        MEMORIA_TEST_THROW_IF(vector_map.getBranchingFactor(), !=, new_vector_map.getBranchingFactor());
+        AssertEQ(MA_SRC, vector_map.getBranchingFactor(), new_vector_map.getBranchingFactor());
 
         auto new_vm_iter = new_vector_map.Begin();
 
         for (auto iter = vector_map.Begin(); iter.isNotEnd(); iter.next(), new_vm_iter.next())
         {
-            MEMORIA_TEST_THROW_IF(iter.size(), !=, new_vm_iter.size());
+        	AssertEQ(MA_SRC, iter.size(), new_vm_iter.size());
 
             vector<Byte> data = iter.read();
 
-            checkBufferWritten(new_vm_iter, data, "Array data check failed", MEMORIA_SOURCE);
+            checkBufferWritten(new_vm_iter, data, "Array data check failed", MA_SRC);
         }
 
         BigInt t33 = getTimeInMillis();

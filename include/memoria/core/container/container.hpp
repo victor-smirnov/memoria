@@ -209,24 +209,36 @@ public:
             return me()->allocator().getCtrShared(name);
         }
         else {
-            CtrShared* shared = me()->createCtrShared(name);
-            me()->allocator().registerCtrShared(shared);
-
             PageG node = me()->allocator().getRoot(name, Allocator::READ);
 
-            if (node.is_updated())
+            if (node.isSet())
             {
-                shared->root_log() = node->id();
-                shared->updated() = true;
+            	CtrShared* shared = me()->createCtrShared(name);
+            	me()->allocator().registerCtrShared(shared);
+
+            	if (node->model_hash() == CONTAINER_HASH)
+            	{
+            		if (node.is_updated())
+            		{
+            			shared->root_log() = node->id();
+            			shared->updated() = true;
+            		}
+            		else {
+            			shared->root() = node->id();
+            			shared->updated() = false;
+            		}
+
+            		me()->configureNewCtrShared(shared, node);
+
+            		return shared;
+            	}
+            	else {
+            		throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->model_hash());
+            	}
             }
             else {
-                shared->root() = node->id();
-                shared->updated() = false;
+            	throw NoCtrException(MEMORIA_SOURCE, SBuf()<<"Container with name "<<name<<" does not exists");
             }
-
-            me()->configureNewCtrShared(shared, node);
-
-            return shared;
         }
     }
 
@@ -246,7 +258,7 @@ public:
         return shared_;
     }
 
-    void initCtr(bool create) {}
+    void initCtr(Int command) {}
     void initCtr(const ID& root_id) {}
 
 protected:
@@ -399,21 +411,12 @@ private:
 
 public:
 
-    MEMORIA_PUBLIC Ctr(Allocator* allocator):
-        Base(),
-        allocator_(allocator),
-        model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
-        debug_(false)
-    {
-        MEMORIA_ASSERT_NOT_NULL(allocator);
-
-        initLogger();
-
-        initCtr(allocator, allocator->createCtrName(), true, model_type_name_);
-    }
-
-
-    MEMORIA_PUBLIC Ctr(Allocator* allocator, BigInt name, bool create = false, const char* mname = NULL):
+    MEMORIA_PUBLIC Ctr(
+    		Allocator* allocator,
+    		Int command = CTR_CREATE,
+    		BigInt name = CTR_DEFAULT_NAME,
+    		const char* mname = NULL
+    ):
         Base(),
         allocator_(allocator),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
@@ -421,10 +424,32 @@ public:
     {
         MEMORIA_ASSERT_NOT_NULL(allocator);
 
+        checkCommandArguments(command, name);
+
         initLogger();
 
-        initCtr(allocator, name, create, mname);
+        if (name == CTR_DEFAULT_NAME)
+        {
+        	initCtr(allocator, allocator->createCtrName(), command, model_type_name_);
+        }
+        else {
+        	initCtr(allocator, name, command, model_type_name_);
+        }
     }
+
+    void checkCommandArguments(Int command, BigInt name)
+    {
+    	if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
+    	{
+    		throw memoria::vapi::Exception(MEMORIA_SOURCE, "Either CTR_CREATE, CTR_FIND or both must be specified");
+    	}
+
+    	if ((command & CTR_FIND) && name == CTR_DEFAULT_NAME)
+    	{
+    		throw memoria::vapi::Exception(MEMORIA_SOURCE, "Container name must be specified for the CTR_FIND operation");
+    	}
+    }
+
 
     MEMORIA_PUBLIC Ctr(Allocator* allocator, const ID& root_id, const char* mname = NULL):
         Base(),
@@ -512,7 +537,7 @@ public:
         logger_.configure(model_type_name_, Logger::DERIVED, &allocator_->logger());
     }
 
-    void initCtr(Allocator* allocator, BigInt name, bool create = false, const char* mname = NULL)
+    void initCtr(Allocator* allocator, BigInt name, Int command, const char* mname = NULL)
     {
         MEMORIA_ASSERT(name, >=, 0);
 
@@ -521,7 +546,7 @@ public:
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
         //FIXME: init logger correctly
 
-        Base::initCtr(create);
+        Base::initCtr(command);
 
         ref();
     }

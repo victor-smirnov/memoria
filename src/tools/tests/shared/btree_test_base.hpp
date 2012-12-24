@@ -95,7 +95,7 @@ public:
 
         check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-        Ctr dv(&allocator, ctr_name_);
+        Ctr dv(&allocator, CTR_FIND, ctr_name_);
 
         dv.setNewPageSize(new_page_size_);
 
@@ -239,6 +239,7 @@ public:
             checkIterator(out, iter, MEMORIA_SOURCE);
 
             insert(iter, data);
+
             checkIterator(out, iter, MEMORIA_SOURCE);
 
             check(allocator, "insertion into an empty array failed. See the dump for details.", MEMORIA_SOURCE);

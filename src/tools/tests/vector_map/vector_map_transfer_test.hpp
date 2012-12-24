@@ -99,8 +99,6 @@ public:
                     b1.dump(out);
                     b2.dump(out);
 
-//                  cout<<"Data contents are not equal at: "<<c<<" "<<iter1.key()<<endl;
-//                  break;
                     throw TestException(src, SBuf()<<"Data contents are not equal at: "<<c<<" "<<iter1.key());
                 }
             }
@@ -127,8 +125,8 @@ public:
 
         try {
 
-            Ctr v1(&allocator, 1, true);
-            Ctr v2(&allocator, 2, true);
+            Ctr v1(&allocator);
+            Ctr v2(&allocator);
 
             ctr1_name_ = v1.name();
             ctr2_name_ = v2.name();
@@ -139,8 +137,7 @@ public:
 
                 v1[c] = buf;
                 v2[c] = buf;
-
-                cout<<"Insert: "<<c<<endl;
+                out<<"Insert: "<<c<<endl;
             }
 
             allocator.commit();
@@ -167,7 +164,7 @@ public:
                 compareVectors(out, v1, v2, MEMORIA_SOURCE);
 
                 allocator.commit();
-                cout<<c<<endl;
+                out<<c<<endl;
             }
         }
         catch (...) {
@@ -183,8 +180,8 @@ public:
 
         check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-        Ctr v1(&allocator, ctr1_name_);
-        Ctr v2(&allocator, ctr2_name_);
+        Ctr v1(&allocator, CTR_FIND, ctr1_name_);
+        Ctr v2(&allocator, CTR_FIND, ctr2_name_);
 
         insertData(v1, v2);
 

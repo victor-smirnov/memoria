@@ -147,8 +147,8 @@ public:
 
         try {
 
-            Ctr v1(&allocator, 1, true);
-            Ctr v2(&allocator, 2, true);
+            Ctr v1(&allocator);
+            Ctr v2(&allocator);
 
             ctr1_name_ = v1.name();
             ctr2_name_ = v2.name();
@@ -192,8 +192,8 @@ public:
 
         check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-        Ctr v1(&allocator, ctr1_name_);
-        Ctr v2(&allocator, ctr2_name_);
+        Ctr v1(&allocator, CTR_FIND, ctr1_name_);
+        Ctr v2(&allocator, CTR_FIND, ctr2_name_);
 
         insertData(v1, v2);
 

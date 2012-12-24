@@ -46,11 +46,11 @@ public:
     class SubtreeProvider: public DefaultSubtreeProviderBase
     {
         typedef DefaultSubtreeProviderBase          Base;
-        typedef typename ISubtreeProvider::Enum     Direction;
+
     public:
         SubtreeProvider(SetCtrType* ctr, BigInt total): Base(*ctr, total) {}
 
-        virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
+        virtual LeafNodeKeyValuePair getLeafKVPair(BigInt begin)
         {
             Accumulator acc;
             acc[0] = 1;
@@ -76,7 +76,7 @@ public:
     {
         allocator_ = new Allocator();
 
-        set_ = new SetCtrType(allocator_, 1, true);
+        set_ = new SetCtrType(allocator_);
     }
 
     virtual void release(ostream& out)

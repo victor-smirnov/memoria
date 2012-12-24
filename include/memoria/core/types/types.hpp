@@ -21,7 +21,6 @@ namespace memoria    {
 static const int DEFAULT_BLOCK_SIZE         = 4096;
 static const int PackedTreeBranchingFactor  = 32;
 
-//static const int MAX_BLOCK_SIZE = 4096;
 
 typedef int64_t             BigInt;
 typedef uint64_t            UBigInt;
@@ -29,7 +28,6 @@ typedef int32_t             Int;
 typedef uint32_t            UInt;
 typedef int16_t             Short;
 typedef uint16_t            UShort;
-//typedef int8_t              Byte;
 typedef char                Byte;
 typedef uint8_t             UByte;
 
@@ -51,6 +49,15 @@ struct PlatformLongHelper<8> {
     typedef BigInt          SizeTType;
 };
 }
+
+const BigInt CTR_DEFAULT_NAME = -1;
+
+enum {
+	CTR_NONE 				= 0,
+	CTR_CREATE 				= 1,
+	CTR_FIND 				= 1<<1,
+	CTR_THROW_IF_EXISTS 	= 1<<2,
+};
 
 /**
  * Please note that Long/ULong types are not intended to be used for data page properties.

@@ -42,7 +42,6 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
     class SubtreeProvider: public DefaultSubtreeProviderBase
     {
         typedef DefaultSubtreeProviderBase          Base;
-        typedef typename ISubtreeProvider::Enum     Direction;
 
         BigInt data_size_;
 
@@ -50,7 +49,7 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
         SubtreeProvider(SetCtrType* ctr, BigInt total, BigInt data_size): Base(*ctr, total), data_size_(data_size)
         {}
 
-        virtual LeafNodeKeyValuePair getLeafKVPair(Direction direction, BigInt begin)
+        virtual LeafNodeKeyValuePair getLeafKVPair(BigInt begin)
         {
             Accumulator acc;
 
@@ -81,7 +80,7 @@ public:
     {
         allocator_ = new Allocator();
 
-        map_ = new Ctr(allocator_, 1, true);
+        map_ = new Ctr(allocator_);
 
         allocator_->commit();
     }

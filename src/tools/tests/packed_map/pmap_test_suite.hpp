@@ -7,7 +7,6 @@
 #ifndef MEMORIA_TESTS_CTR_PMAP_TEST_SUITE_HPP_
 #define MEMORIA_TESTS_CTR_PMAP_TEST_SUITE_HPP_
 
-#include "../shared/params.hpp"
 #include "../tests_inc.hpp"
 
 #include "pmap_data.hpp"

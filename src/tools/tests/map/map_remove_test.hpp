@@ -115,7 +115,7 @@ class MapRemoveTest: public MapTestBase {
         LoadVector(pairs, pairs_data_file_);
         LoadVector(pairs_sorted, pairs_sorted_data_file_);
 
-        Ctr map(&allocator, ctr_name_);
+        Ctr map(&allocator, CTR_FIND, ctr_name_);
 
         bool result = map.remove(pairs[vector_idx_].key_);
 

@@ -105,9 +105,9 @@ public:
     InMemAllocator() :
         logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
         counter_(100), metadata_(MetadataRepository<Profile>::getMetadata()), me_(*this),
-        type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this), root_id0_(0)
+        type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this), root_map_(nullptr), root_id0_(0)
     {
-        root_map_ = new RootMapType(this, 0, true);
+        root_map_ = new RootMapType(this, CTR_CREATE, 0);
     }
 
     InMemAllocator(const InMemAllocator& other):
@@ -138,7 +138,7 @@ public:
             throw Exception(MEMORIA_SOURCE, SBuf()<<"Root page for Root container is not found in this allocator");
         }
 
-        root_map_ = new RootMapType(this, 0);
+        root_map_ = new RootMapType(this, CTR_FIND, 0);
 
         root_id0_.setNull();
     }
@@ -334,6 +334,17 @@ public:
         shared->set_allocator(this);
 
         return PageG(shared);
+    }
+
+    virtual bool hasRoot(BigInt name)
+    {
+    	if (root_map_)
+    	{
+    		return get_value_for_key(name) != ID(0);
+    	}
+    	else {
+    		return false;
+    	}
     }
 
     void stat() {

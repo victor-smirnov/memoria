@@ -65,10 +65,10 @@ public:
         {
             LoadResource(*allocator_, resource_name);
 
-            set_ = new SetCtrType(allocator_, 1);
+            set_ = new SetCtrType(allocator_, CTR_FIND, 1);
         }
         else {
-            set_ = new SetCtrType(allocator_, 1, true);
+            set_ = new SetCtrType(allocator_, CTR_CREATE, 1);
 
             Iterator i = set_->End();
 

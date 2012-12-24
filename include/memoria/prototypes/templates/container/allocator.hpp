@@ -88,10 +88,10 @@ public:
         return me()->allocator().getPage(me()->getRootID(name), flags);
     }
 
-
-
-
-
+    virtual bool hasRoot(BigInt name)
+    {
+    	return isCtrSharedRegistered(name); // Is it correct?
+    }
 
     virtual PageG getPage(const ID& id, Int flags);
 
@@ -106,6 +106,8 @@ public:
     virtual void  resizePage(Shared* page, Int new_size);
 
     virtual void  releasePage(Shared* shared);
+
+
 
     virtual Logger& logger();
 

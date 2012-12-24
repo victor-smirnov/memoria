@@ -59,7 +59,7 @@ public:
     {
         allocator_ = new Allocator();
 
-        set_ = new SetCtrType(allocator_, 1, true);
+        set_ = new SetCtrType(allocator_);
     }
 
     virtual void release(ostream& out)
