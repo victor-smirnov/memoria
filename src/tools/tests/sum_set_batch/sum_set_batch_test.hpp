@@ -80,7 +80,7 @@ public:
             }
         }
 
-        MEMORIA_TEST_THROW_IF(pos, !=, i.keyNum());
+        AssertEQ(MA_SRC, pos, i.keyNum());
 
         return i;
     }
@@ -91,7 +91,7 @@ public:
 
         iter.model().insertBatch(iter, data);
 
-        MEMORIA_TEST_THROW_IF(size, ==, iter.model().getSize());
+        AssertNEQ(MA_SRC, size, iter.model().getSize());
 
         checkSize(iter.model());
     }
@@ -161,7 +161,7 @@ public:
             cnt++;
         }
 
-        MEMORIA_TEST_THROW_IF(cnt, !=, array.getSize());
+        AssertEQ(MA_SRC, cnt, array.getSize());
     }
 
     virtual void checkIteratorPrefix(ostream& out, Iterator& iter, const char* source) {}

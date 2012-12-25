@@ -118,18 +118,18 @@ public:
 
     void CompareAfterinsert(Map* src, Map* dst, Int room_start, Int room_length)
     {
-        MEMORIA_TEST_THROW_IF(src->size(),          !=, dst->size() - room_length);
-        MEMORIA_TEST_THROW_IF(src->maxSize(),       !=, dst->maxSize());
-        MEMORIA_TEST_THROW_IF(src->indexSize(),     !=, dst->indexSize());
+        AssertEQ(MA_SRC, src->size(),          dst->size() - room_length);
+        AssertEQ(MA_SRC, src->maxSize(),       dst->maxSize());
+        AssertEQ(MA_SRC, src->indexSize(),     dst->indexSize());
 
         for (Int c = 0; c < room_start; c++)
         {
             for (Int d = 0; d < Blocks; d++)
             {
-                MEMORIA_TEST_THROW_IF(src->key(d, c), !=, dst->key(d, c));
+            	AssertEQ(MA_SRC, src->key(d, c), dst->key(d, c));
             }
 
-            MEMORIA_TEST_THROW_IF(src->value(c), !=, dst->value(c));
+            AssertEQ(MA_SRC, src->value(c), dst->value(c));
         }
 
 
@@ -137,10 +137,10 @@ public:
         {
             for (Int d = 0; d < Blocks; d++)
             {
-                MEMORIA_TEST_THROW_IF(src->key(d, c), !=, dst->key(d, c + room_length));
+            	AssertEQ(MA_SRC, src->key(d, c), dst->key(d, c + room_length));
             }
 
-            MEMORIA_TEST_THROW_IF(src->value(c), !=, dst->value(c + room_length));
+            AssertEQ(MA_SRC, src->value(c), dst->value(c + room_length));
         }
 
 
@@ -148,15 +148,15 @@ public:
         {
             for (Int d = 0; d < Blocks; d++)
             {
-                MEMORIA_TEST_THROW_IF(src->index(d, c), !=, dst->index(d, c));
+            	AssertEQ(MA_SRC, src->index(d, c), dst->index(d, c));
             }
         }
     }
 
     void CompareEqual(Map* src, Map* dst, bool compare_index = true)
     {
-        MEMORIA_TEST_THROW_IF(src->maxSize(),       !=, dst->maxSize());
-        MEMORIA_TEST_THROW_IF(src->indexSize(),     !=, dst->indexSize());
+    	AssertEQ(MA_SRC, src->maxSize(),       dst->maxSize());
+    	AssertEQ(MA_SRC, src->indexSize(),     dst->indexSize());
 
         CompareContentEqual(src, dst);
 
@@ -166,7 +166,7 @@ public:
             {
                 for (Int d = 0; d < Blocks; d++)
                 {
-                    MEMORIA_TEST_THROW_IF(src->index(d, c), !=, dst->index(d, c));
+                	AssertEQ(MA_SRC, src->index(d, c), dst->index(d, c));
                 }
             }
         }
@@ -174,34 +174,34 @@ public:
 
     void CompareContentEqual(Map* src, Map* dst, bool cmp_max_size = true)
     {
-        MEMORIA_TEST_THROW_IF(src->size(), !=, dst->size());
+    	AssertEQ(MA_SRC, src->size(), dst->size());
 
         for (Int c = 0; c < src->size(); c++)
         {
             for (Int d = 0; d < Blocks; d++)
             {
-                MEMORIA_TEST_THROW_IF_1(src->key(d, c), !=, dst->key(d, c), c);
+            	AssertEQ(MA_SRC, src->key(d, c), dst->key(d, c), SBuf()<<"c="<<c);
             }
 
-            MEMORIA_TEST_THROW_IF(src->value(c), !=, dst->value(c));
+            AssertEQ(MA_SRC, src->value(c), dst->value(c));
         }
     }
 
 
     void CompareAfterRemove(Map* src, Map* dst, Int room_start, Int room_length)
     {
-        MEMORIA_TEST_THROW_IF(src->size(),          !=, dst->size() + room_length);
-        MEMORIA_TEST_THROW_IF(src->maxSize(),       !=, dst->maxSize());
-        MEMORIA_TEST_THROW_IF(src->indexSize(),     !=, dst->indexSize());
+    	AssertEQ(MA_SRC, src->size(),          dst->size() + room_length);
+    	AssertEQ(MA_SRC, src->maxSize(),       dst->maxSize());
+    	AssertEQ(MA_SRC, src->indexSize(),     dst->indexSize());
 
         for (Int c = 0; c < room_start; c++)
         {
             for (Int d = 0; d < Blocks; d++)
             {
-                MEMORIA_TEST_THROW_IF(src->key(d, c), !=, dst->key(d, c));
+            	AssertEQ(MA_SRC, src->key(d, c), dst->key(d, c));
             }
 
-            MEMORIA_TEST_THROW_IF(src->value(c), !=, dst->value(c));
+            AssertEQ(MA_SRC, src->value(c), dst->value(c));
         }
 
 
@@ -209,10 +209,10 @@ public:
         {
             for (Int d = 0; d < Blocks; d++)
             {
-                MEMORIA_TEST_THROW_IF(src->key(d, c), !=, dst->key(d, c - room_length));
+            	AssertEQ(MA_SRC, src->key(d, c), dst->key(d, c - room_length));
             }
 
-            MEMORIA_TEST_THROW_IF(src->value(c), !=, dst->value(c - room_length));
+            AssertEQ(MA_SRC, src->value(c), dst->value(c - room_length));
         }
 
 
@@ -220,7 +220,7 @@ public:
         {
             for (Int d = 0; d < Blocks; d++)
             {
-                MEMORIA_TEST_THROW_IF(src->index(d, c), !=, dst->index(d, c));
+            	AssertEQ(MA_SRC, src->index(d, c), dst->index(d, c));
             }
         }
     }
@@ -229,13 +229,13 @@ public:
 
     void CompareAfterenlarge(Map* src, Map* dst)
     {
-        MEMORIA_TEST_THROW_IF(src->maxSize(), ==, dst->maxSize());
+    	AssertNEQ(MA_SRC, src->maxSize(), dst->maxSize());
         CompareContentEqual(src, dst);
     }
 
     void CompareAftershrink(Map* src, Map* dst)
     {
-        MEMORIA_TEST_THROW_IF(src->maxSize(), ==, dst->maxSize());
+    	AssertNEQ(MA_SRC, src->maxSize(), dst->maxSize());
         CompareContentEqual(src, dst);
     }
 
@@ -264,7 +264,7 @@ public:
         {
             for (Int d = 0; d < Blocks; d++)
             {
-                MEMORIA_TEST_THROW_IF(map1->key(d, c), !=, map2->key(d, c));
+            	AssertEQ(MA_SRC, map1->key(d, c), map2->key(d, c));
             }
         }
 
@@ -273,7 +273,7 @@ public:
         {
             for (Int d = 0; d < Blocks; d++)
             {
-                MEMORIA_TEST_THROW_IF(map1->index(d, c), !=, map2->index(d, c));
+            	AssertEQ(MA_SRC, map1->index(d, c), map2->index(d, c));
             }
         }
 

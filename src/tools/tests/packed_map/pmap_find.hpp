@@ -72,7 +72,7 @@ public:
 
         map->reindex(0);
 
-        MEMORIA_TEST_THROW_IF(map->maxKey(0), !=, size*2);
+        AssertEQ(MA_SRC, map->maxKey(0), size*2);
     }
 
 
@@ -99,21 +99,21 @@ public:
                 {
                     Key src_key = (c + 1) * 2;
 
-                    MEMORIA_TEST_THROW_IF(c, !=, map->findLE(0, src_key));
-                    MEMORIA_TEST_THROW_IF(c, !=, map->findLE(0, src_key - 1));
+                    AssertEQ(MA_SRC, c, map->findLE(0, src_key));
+                    AssertEQ(MA_SRC, c, map->findLE(0, src_key - 1));
 
-                    MEMORIA_TEST_THROW_IF(c, !=, map->findLT(0, src_key - 1));
+                    AssertEQ(MA_SRC, c, map->findLT(0, src_key - 1));
 
                     if (c < map->size() - 1)
                     {
-                        MEMORIA_TEST_THROW_IF(c + 1, !=, map->findLT(0, src_key));
+                    	AssertEQ(MA_SRC, c + 1, map->findLT(0, src_key));
                     }
                     else {
-                        MEMORIA_TEST_THROW_IF(-1, !=, map->findLT(0, src_key));
+                    	AssertEQ(MA_SRC, -1, map->findLT(0, src_key));
                     }
 
-                    MEMORIA_TEST_THROW_IF(c,  !=, map->findEQ(0, src_key));
-                    MEMORIA_TEST_THROW_IF(-1, !=, map->findEQ(0, src_key - 1));
+                    AssertEQ(MA_SRC, c,  map->findEQ(0, src_key));
+                    AssertEQ(MA_SRC, -1, map->findEQ(0, src_key - 1));
                 }
             }
         }

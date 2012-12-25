@@ -142,7 +142,7 @@ public:
 
             allocator.commit();
 
-            MEMORIA_TEST_THROW_IF(size_, !=, v1.count());
+            AssertEQ(MA_SRC, size_, v1.count());
 
             for (Int c = 0; c < transfers_; c++)
             {

@@ -130,11 +130,15 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
             task->Replay(out, &cfg);
             out<<"PASSED"<<endl;
         }
-        catch (Exception e)
+        catch (std::exception& e)
+        {
+        	out<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+        }
+        catch (Exception& e)
         {
             out<<"FAILED: "<<e.source()<<" "<<e<<endl;
         }
-        catch (MemoriaThrowable e)
+        catch (MemoriaThrowable& e)
         {
             out<<"FAILED: "<<e.source()<<" "<<e<<endl;
         }

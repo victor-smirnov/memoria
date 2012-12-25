@@ -94,7 +94,7 @@ public:
 
         BigInt sum = Sum(map, start, end);
 
-        MEMORIA_TEST_THROW_IF_1(acc[0], !=, sum, toString(start) + "," + toString(end));
+        AssertEQ(MA_SRC, acc[0], sum, SBuf()<<start<<","<<end);
     }
 
     void FillMap(Map* map, Int size)
@@ -145,7 +145,7 @@ public:
 
                 BigInt sum = Sum(map, start, end);
 
-                MEMORIA_TEST_THROW_IF_1(acc[0], !=, sum, toString(start) + ","+toString(end));
+                AssertEQ(MA_SRC, acc[0], sum, SBuf()<<start<<","<<end);
             }
         }
     }

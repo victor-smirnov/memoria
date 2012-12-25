@@ -163,13 +163,13 @@ public:
         {
             for (Int c = 0; c < map2->size(); c++)
             {
-                MEMORIA_TEST_THROW_IF_1(map2->key(block, c), !=, result.keys[block][c], toString(c) + " " + toString(block));
+            	AssertEQ(MA_SRC, map2->key(block, c), result.keys[block][c], SBuf()<<c<<" "<<block);
             }
         }
 
         for (Int c = 0; c < map2->size(); c++)
         {
-            MEMORIA_TEST_THROW_IF_1(map2->value(c), !=, result.values[c], c);
+        	AssertEQ(MA_SRC, map2->value(c), result.values[c], SBuf()<<"c="<<c);
         }
     }
 

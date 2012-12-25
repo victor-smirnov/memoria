@@ -69,13 +69,13 @@ class MapRemoveTest: public MapTestBase {
             {
                 bool result = map.remove(pairs[vector_idx_].key_);
 
-                MEMORIA_TEST_THROW_IF(result, !=, true);
+                AssertTrue(MA_SRC, result);
 
                 check(allocator, MEMORIA_SOURCE);
 
                 BigInt size = size_ - vector_idx_ - 1;
 
-                MEMORIA_TEST_THROW_IF(size, !=, map.getSize());
+                AssertEQ(MA_SRC, size, map.getSize());
 
                 PairVector pairs_sorted_tmp = pairs_sorted;
 
@@ -119,13 +119,13 @@ class MapRemoveTest: public MapTestBase {
 
         bool result = map.remove(pairs[vector_idx_].key_);
 
-        MEMORIA_TEST_THROW_IF(result, !=, true);
+        AssertTrue(MA_SRC, result);
 
         check(allocator, MEMORIA_SOURCE);
 
         BigInt size = size_ - vector_idx_ - 1;
 
-        MEMORIA_TEST_THROW_IF(size, !=, map.getSize());
+        AssertEQ(MA_SRC, size, map.getSize());
 
         for (UInt x = 0; x < pairs_sorted.size(); x++)
         {

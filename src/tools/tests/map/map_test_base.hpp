@@ -73,14 +73,14 @@ protected:
             BigInt key   = iter.getKey(0);
             BigInt value = iter.getValue();
 
-            MEMORIA_TEST_THROW_IF_1(pairs[idx].key_,   !=, key, idx);
-            MEMORIA_TEST_THROW_IF_1(pairs[idx].value_, !=, value, idx);
+            AssertEQ(MA_SRC, pairs[idx].key_,   key,   SBuf()<<"idx="<<idx);
+            AssertEQ(MA_SRC, pairs[idx].value_, value, SBuf()<<"idx="<<idx);
 
             iter.next();
             idx++;
         }
 
-        MEMORIA_TEST_THROW_IF   (idx, !=, pairs_size);
+        AssertEQ(MA_SRC, idx, pairs_size);
 
         idx = pairs_size - 1;
         for (auto iter = map.RBegin(); !iter.isBegin(); )
@@ -88,15 +88,15 @@ protected:
             BigInt  key     = iter.getKey(0);
             BigInt  value   = iter.getValue();
 
-            MEMORIA_TEST_THROW_IF_1(pairs[idx].key_,   !=, key, idx);
-            MEMORIA_TEST_THROW_IF_1(pairs[idx].value_, !=, value, idx);
+            AssertEQ(MA_SRC, pairs[idx].key_,   key,   SBuf()<<"idx="<<idx);
+            AssertEQ(MA_SRC, pairs[idx].value_, value, SBuf()<<"idx="<<idx);
 
             iter.prev();
 
             idx--;
         }
 
-        MEMORIA_TEST_THROW_IF_EXPR(idx != -1, idx, pairs_size);
+        AssertEQ(MA_SRC, idx, -1, SBuf()<<"pairs_size="<<pairs_size);
     }
 
     void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted)

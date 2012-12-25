@@ -80,16 +80,16 @@ public:
 
     void checkIteratorFw(Ctr& ctr)
     {
-        MEMORIA_TEST_THROW_IF(ctr.count(), != , (BigInt)pairs_.size());
+    	AssertEQ(MA_SRC, ctr.count(), (BigInt)pairs_.size());
 
         auto iter = ctr.Begin();
 
         Int c = 0;
         for (Pair& pair: pairs_)
         {
-            MEMORIA_TEST_THROW_IF_1(iter.getKey(), != , pair.key_, c);
-            MEMORIA_TEST_THROW_IF_1(iter.size(),   != , pair.value_, c);
-            MEMORIA_TEST_THROW_IF_1(iter.pos(),    != , 0, c);
+        	AssertEQ(MA_SRC, iter.getKey(), pair.key_, SBuf()<<"c="<<c);
+        	AssertEQ(MA_SRC, iter.size(),   pair.value_, SBuf()<<"c="<<c);
+        	AssertEQ(MA_SRC, iter.pos(),    0, SBuf()<<"c="<<c);
 
             Byte value = pair.key_ & 0xFF;
 
@@ -135,14 +135,14 @@ public:
 
             checkCtr(map, "insertion failed 2", MEMORIA_SOURCE);
 
-            MEMORIA_TEST_THROW_IF(iter.size(),      != , (BigInt)data.size());
-            MEMORIA_TEST_THROW_IF(iter.getKey(),    != , key_);
+            AssertEQ(MA_SRC, iter.size(),      (BigInt)data.size());
+            AssertEQ(MA_SRC, iter.getKey(),    key_);
 
             auto iter2 = map.find(iter.getKey());
 
-            MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
-            MEMORIA_TEST_THROW_IF(iter2.size(),   != , (BigInt)data.size());
-            MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
+            AssertTrue(MA_SRC, iter2.exists());
+            AssertEQ(MA_SRC, iter2.size(),   (BigInt)data.size());
+            AssertEQ(MA_SRC, iter2.getKey(), iter.getKey());
 
             checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -151,11 +151,11 @@ public:
         else {
             LoadVector(pairs_, pairs_data_file_);
 
-            MEMORIA_TEST_THROW_IF(map.count(), != , (BigInt)pairs_.size());
+            AssertEQ(MA_SRC, map.count(), (BigInt)pairs_.size());
 
             bool removed        = map.remove(key_);
 
-            MEMORIA_TEST_THROW_IF(removed, != , true);
+            AssertTrue(MA_SRC, removed);
 
             checkCtr(map, "remove failed.",     MEMORIA_SOURCE);
 
@@ -216,20 +216,20 @@ public:
 
                 iter = data;
 
-                MEMORIA_TEST_THROW_IF(iter.size(),   != , (BigInt)data.size());
-                MEMORIA_TEST_THROW_IF(iter.getKey(), != , c + 1);
+                AssertEQ(MA_SRC, iter.size(),   (BigInt)data.size());
+                AssertEQ(MA_SRC, iter.getKey(), c + 1);
 
                 total_size += iter.size();
 
                 checkCtr(map, "insertion failed.",  MEMORIA_SOURCE);
 
-                MEMORIA_TEST_THROW_IF(map.array().size(), != , total_size);
+                AssertEQ(MA_SRC, map.array().size(), total_size);
 
                 auto iter2 = map.find(iter.getKey());
 
-                MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
-                MEMORIA_TEST_THROW_IF(iter2.size(),   != , (BigInt)data.size());
-                MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
+                AssertTrue(MA_SRC, iter2.exists());
+                AssertEQ(MA_SRC, iter2.size(),   (BigInt)data.size());
+                AssertEQ(MA_SRC, iter2.getKey(), iter.getKey());
 
                 checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -280,18 +280,18 @@ public:
 
                 key_num_ = appendToSortedVector(pairs_, Pair(key_, data_size_));
 
-                MEMORIA_TEST_THROW_IF(iter.size(),      != , (BigInt)data.size());
-                MEMORIA_TEST_THROW_IF(iter.getKey(),    != , key_);
+                AssertEQ(MA_SRC, iter.size(),   (BigInt)data.size());
+                AssertEQ(MA_SRC, iter.getKey(), key_);
 
                 total_size += iter.size();
 
-                MEMORIA_TEST_THROW_IF(map.array().size(), != , total_size);
+                AssertEQ(MA_SRC, map.array().size(), total_size);
 
                 auto iter2 = map.find(iter.getKey());
 
-                MEMORIA_TEST_THROW_IF(iter2.exists(), != , true);
-                MEMORIA_TEST_THROW_IF(iter2.size(),   != , (BigInt)data.size());
-                MEMORIA_TEST_THROW_IF(iter2.getKey(), != , iter.getKey());
+                AssertTrue(MA_SRC, iter2.exists());
+                AssertEQ(MA_SRC, iter2.size(),   (BigInt)data.size());
+                AssertEQ(MA_SRC, iter2.getKey(), iter.getKey());
 
                 checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 
@@ -302,7 +302,7 @@ public:
                 appendToSortedVector(pairs_tmp, Pair(key_, data_size_));
             }
 
-            MEMORIA_TEST_THROW_IF(map.count(), != , (BigInt)pairs_.size());
+            AssertEQ(MA_SRC, map.count(), (BigInt)pairs_.size());
         }
         catch (...)
         {
@@ -360,7 +360,7 @@ public:
 
                 bool removed = map.remove(pairs_[idx].key_);
 
-                MEMORIA_TEST_THROW_IF(removed, != , true);
+                AssertTrue(MA_SRC, removed);
 
                 checkCtr(map, "remove failed.",     MEMORIA_SOURCE);
 

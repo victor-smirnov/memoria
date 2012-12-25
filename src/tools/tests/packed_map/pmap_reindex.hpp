@@ -96,13 +96,13 @@ public:
             for (Int c = 1; c < map->maxSize(); c++)
             {
                 Int sum = FillPMap(map, c);
-                MEMORIA_TEST_THROW_IF_1(map->maxKey(0), !=, sum, c);
+                AssertEQ(MA_SRC, map->maxKey(0), sum, SBuf()<<"c="<<c);
             }
 
             for (Int c = map->maxSize() - 1; c > 0; c--)
             {
                 Int sum = FillPMap(map, c);
-                MEMORIA_TEST_THROW_IF_1(map->maxKey(0), !=, sum, c);
+                AssertEQ(MA_SRC, map->maxKey(0), sum, SBuf()<<"c="<<c);
             }
         }
 
@@ -122,7 +122,7 @@ public:
 
                 sum++;
 
-                MEMORIA_TEST_THROW_IF_1(map->maxKey(0), !=, sum, c);
+                AssertEQ(MA_SRC, map->maxKey(0), sum, SBuf()<<"c="<<c);
             }
         }
     }

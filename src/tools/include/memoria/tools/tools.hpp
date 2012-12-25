@@ -225,29 +225,6 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 }
 
 
-//template <typename BAIterator, typename T>
-//bool CompareBuffer(BAIterator& iter, const IData<T>& data, Int& c)
-//{
-//    MemBuffer<T> buf(data.getSize());
-//
-//    iter.read(buf);
-//
-//    for (c = 0; c < data.getSize(); c++)
-//    {
-//      T buf0, buf1;
-//
-//      buf.get(&buf0, c, 1);
-//      data.get(&buf1, c, 1);
-//
-//        if (buf0 != buf1)
-//        {
-//            return false;
-//        }
-//    }
-//
-//    return true;
-//}
-
 
 template <typename Types, typename T>
 bool CompareBuffer(Iter<VectorIterTypes<Types>>& iter, const vector<T>& data, Int& c)
@@ -405,42 +382,77 @@ void AssertDoesntThrow(const char* src, Functor&& fn)
 	}
 }
 
+template <typename Op>
+void AssertTrue(const char* src, const Op& op, const SBuf& msg = SBuf())
+{
+	if (!(op))
+	{
+		throw TestException(src, SBuf()<<"True assertion failed: "<<op<<msg.str());
+	}
+}
+
+template <typename Op>
+void AssertFalse(const char* src, const Op& op, const SBuf& msg = SBuf())
+{
+	if (op)
+	{
+		throw TestException(src, SBuf()<<"False assertion failed: "<<op<<" "<<msg.str());
+	}
+}
 
 template <typename Op1, typename Op2>
-void AssertEQ(const char* src, const Op1& op1, const Op2& op2)
+void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
 {
 	if (!(op1 == op2))
 	{
-		throw new TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2);
+		throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
 	}
 }
 
 template <typename Op1, typename Op2>
-void AssertNEQ(const char* src, const Op1& op1, const Op2& op2)
+void AssertLT(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
 {
-	if (!(op1 != op2))
+	if (!(op1 < op2))
 	{
-		throw new TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2);
+		throw TestException(src, SBuf()<<"LT assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
 	}
 }
 
+template <typename Op1, typename Op2>
+void AssertLE(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
+{
+	if (!(op1 <= op2))
+	{
+		throw TestException(src, SBuf()<<"LE assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+	}
+}
 
-#define MEMORIA_TEST_THROW_IF(op1, operator_, op2)      MEMORIA_TEST_THROW_IF_EXPR(op1 operator_ op2, op1, op2)
-#define MEMORIA_TEST_THROW_IF_1(op1, operator_, op2, arg1) MEMORIA_TEST_THROW_IF_EXPR1(op1 operator_ op2, op1, op2, arg1)
+template <typename Op1, typename Op2>
+void AssertGT(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
+{
+	if (!(op1 > op2))
+	{
+		throw TestException(src, SBuf()<<"GT assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+	}
+}
 
-#define MEMORIA_TEST_THROW_IF_EXPR(expr, op1, op2)                                             \
-    if (expr) {                                                                                \
-        throw TestException(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#expr<<"; "            \
-                                                  <<#op1<<"="<<op1<<", "<<#op2<<"="<<op2);     \
-    }
+template <typename Op1, typename Op2>
+void AssertGE(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
+{
+	if (!(op1 >= op2))
+	{
+		throw TestException(src, SBuf()<<"GE assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+	}
+}
 
-
-#define MEMORIA_TEST_THROW_IF_EXPR1(expr, op1, op2, arg1)                                      \
-    if (expr) {                                                                                \
-        throw TestException(MEMORIA_SOURCE, String("ASSERT FAILURE: ")+#expr+"; "+#op1         \
-                                            +"="+toString(op1)+", "+#op2+"="+toString(op2)+", "\
-                                            +#arg1+"="+toString(arg1));                        \
-    }
+template <typename Op1, typename Op2>
+void AssertNEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
+{
+	if (!(op1 != op2))
+	{
+		throw TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+	}
+}
 
 }
 

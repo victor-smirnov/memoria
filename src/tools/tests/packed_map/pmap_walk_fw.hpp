@@ -93,7 +93,7 @@ public:
         Accumulator acc;
         Int idx = map->findSumPositionFw(0, start, sum, acc);
 
-        MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
+        AssertEQ(MA_SRC, idx, end, SBuf()<<"start="<<start);
     }
 
     void FillMap(Map* map, Int size)
@@ -145,7 +145,7 @@ public:
                 Accumulator acc;
                 Int idx = map->findSumPositionFw(0, start, sum, acc);
 
-                MEMORIA_TEST_THROW_IF_1(idx, !=, end, start);
+                AssertEQ(MA_SRC, idx, end, SBuf()<<"start="<<start);
             }
         }
     }
