@@ -70,6 +70,15 @@ public:
     	}
     }
 
+    void assertEmpty(const char* src, Allocator& allocator)
+    {
+    	AssertEQ(src, allocator.size(), 0);
+    }
+
+    void assertSize(const char* src, Allocator& allocator, Int size)
+    {
+    	AssertEQ(src, allocator.size(), size);
+    }
 
     void runCreateCtrTest(ostream& out)
     {
@@ -77,13 +86,20 @@ public:
 
     	Allocator allocator;
     	allocator.getLogger()->setHandler(&logHandler);
+    	allocator.commit();
+
+    	assertEmpty(MA_SRC, allocator);
 
     	AssertThrows<Exception>(MA_SRC, []{MapCtr map(nullptr);});
     	AssertThrows<Exception>(MA_SRC, [&]{MapCtr map(&allocator, 0);});
 
+    	assertEmpty(MA_SRC, allocator);
+
     	AssertThrows<NoCtrException>(MA_SRC, [&]{
     		MapCtr map(&allocator, CTR_FIND, 12345);
     	});
+
+    	assertEmpty(MA_SRC, allocator);
 
     	// Ensure subsequent CTR_FIND with the same name
     	// doesn't affect allocator
@@ -91,29 +107,43 @@ public:
     		MapCtr map(&allocator, CTR_FIND, 12345);
     	});
 
+    	assertEmpty(MA_SRC, allocator);
+
     	AssertDoesntThrow(MA_SRC, [&]{
     		MapCtr map(&allocator, CTR_CREATE | CTR_FIND, 12345);
     	});
+
+    	assertSize(MA_SRC, allocator, 1);
 
     	AssertThrows<CtrTypeException>(MA_SRC, [&]{
     		VectorMapCtr map(&allocator, CTR_FIND, 12345);
     	});
 
+    	assertSize(MA_SRC, allocator, 1);
+
     	AssertThrows<NoCtrException>(MA_SRC, [&]{
     		VectorMapCtr map(&allocator, CTR_FIND, 12346);
     	});
 
-    	AssertDoesntThrow(MA_SRC, [&]{
-    		VectorMapCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
-    	});
+    	assertSize(MA_SRC, allocator, 1);
 
     	AssertDoesntThrow(MA_SRC, [&]{
     		VectorMapCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
     	});
+
+    	assertSize(MA_SRC, allocator, 2);
+
+    	AssertDoesntThrow(MA_SRC, [&]{
+    		VectorMapCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
+    	});
+
+    	assertSize(MA_SRC, allocator, 2);
 
     	AssertDoesntThrow(MA_SRC, [&]{
     		VectorMapCtr map(&allocator, CTR_FIND, 12346);
     	});
+
+    	assertSize(MA_SRC, allocator, 2);
 
     	BigInt name;
 
@@ -121,6 +151,8 @@ public:
 
     		MapCtr map(&allocator);
     		name = map.name();
+
+    		assertSize(MA_SRC, allocator, 3);
 
     		for (Int c = 0; c < 1000; c++)
     		{
@@ -130,6 +162,9 @@ public:
     		// Container's data still exists in allocator
     	}	// after control leaves the cope
 
+    	AssertEQ(MA_SRC, name, INITAL_CTR_NAME_COUNTER + 1);
+
+    	assertSize(MA_SRC, allocator, 3);
 
     	MapCtr map(&allocator, CTR_FIND, name);
 
@@ -137,6 +172,23 @@ public:
     	{
     		AssertEQ(MA_SRC, iter.key(), iter.value() - 1);
     	}
+
+    	map.drop();
+
+    	assertSize(MA_SRC, allocator, 2);
+
+    	allocator.commit();
+
+    	assertSize(MA_SRC, allocator, 2);
+
+
+    	BigInt name1 = allocator.createCtrName();
+
+    	allocator.rollback();
+
+    	BigInt name2 = allocator.createCtrName();
+
+    	AssertEQ(MA_SRC, name1, name2);
     }
 
 

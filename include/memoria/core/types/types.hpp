@@ -50,7 +50,8 @@ struct PlatformLongHelper<8> {
 };
 }
 
-const BigInt CTR_DEFAULT_NAME = -1;
+const BigInt CTR_DEFAULT_NAME 			= -1;
+const BigInt INITAL_CTR_NAME_COUNTER	= 1000000;
 
 enum {
 	CTR_NONE 				= 0,

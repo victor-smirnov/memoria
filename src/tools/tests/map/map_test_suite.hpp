@@ -10,6 +10,7 @@
 
 #include "../tests_inc.hpp"
 
+#include "map_api_test.hpp"
 #include "map_create_test.hpp"
 #include "map_remove_test.hpp"
 
@@ -26,6 +27,7 @@ public:
 
     MapTestSuite(): TestSuite("MapSuite")
     {
+    	registerTask(new MapApiTest());
         registerTask(new MapCreateTest());
         registerTask(new MapRemoveTest());
     }

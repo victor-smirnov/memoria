@@ -105,7 +105,8 @@ public:
     InMemAllocator() :
         logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
         counter_(100), metadata_(MetadataRepository<Profile>::getMetadata()), me_(*this),
-        type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this), root_map_(nullptr), root_id0_(0)
+        type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this), root_map_(nullptr),
+        pool_(), root_id0_(0)
     {
         root_map_ = new RootMapType(this, CTR_CREATE, 0);
     }
@@ -115,13 +116,13 @@ public:
             counter_(other.counter_), metadata_(other.metadata_), me_(*this),
             type_name_("StreamAllocator"), allocs1_(other.allocs1_), allocs2_(other.allocs2_), roots_(this),
             root_map_(nullptr),
-            pool_()
+            pool_(), root_id0_(0)
     {
         for (auto i = other.pages_.begin(); i != other.pages_.end(); i++)
         {
             Page* page = i->second;
 
-            Byte* buffer = (Byte*) malloc(page->page_size());
+            Byte* buffer = T2T<Byte*>(malloc(page->page_size()));
 
             CopyByteBuffer(page, buffer, page->page_size());
 
@@ -721,13 +722,21 @@ public:
 
     virtual BigInt createCtrName()
     {
-        RootMetatata meta = root_map_->getRootMetadata();
+        //FIXME Ctr name counter is Txn-aware just because we
+    	// currently have only one acive Txn at a time.
+
+    	RootMetatata meta = root_map_->getRootMetadata();
 
         BigInt new_name = ++meta.model_name_counter();
 
         root_map_->setRootMetadata(meta);
 
         return new_name;
+    }
+
+    BigInt size()
+    {
+    	return root_map_->getSize();
     }
 
 private:
