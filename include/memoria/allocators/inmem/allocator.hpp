@@ -736,7 +736,7 @@ public:
 
     BigInt size()
     {
-    	return root_map_->getSize();
+    	return root_map_->size();
     }
 
 private:

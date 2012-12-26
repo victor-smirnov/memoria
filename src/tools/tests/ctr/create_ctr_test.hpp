@@ -90,8 +90,13 @@ public:
 
     	assertEmpty(MA_SRC, allocator);
 
-    	AssertThrows<Exception>(MA_SRC, []{MapCtr map(nullptr);});
-    	AssertThrows<Exception>(MA_SRC, [&]{MapCtr map(&allocator, 0);});
+    	AssertThrows<Exception>(MA_SRC, []{
+    		MapCtr map(nullptr);
+    	});
+
+    	AssertThrows<Exception>(MA_SRC, [&]{
+    		MapCtr map(&allocator, 0);
+    	});
 
     	assertEmpty(MA_SRC, allocator);
 

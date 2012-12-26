@@ -206,12 +206,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
         me()->set().removeEntry(is_iter);
     }
 
-    BigInt count()
+    BigInt size()
     {
-        return me()->set().getSize();
+        return me()->set().size();
     }
 
-    BigInt size()
+    BigInt totalDataSize()
     {
         return me()->array().size();
     }

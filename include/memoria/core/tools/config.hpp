@@ -60,6 +60,7 @@
 #define MA_SRC MEMORIA_SOURCE
 
 #define MEMORIA_PUBLIC
+#define MEMORIA_DEPRECATED
 
 #if !defined(MEMORIA_DLL) && !defined(MEMORIA_MAIN)
 #define MEMORIA_TEMPLATE_EXTERN extern

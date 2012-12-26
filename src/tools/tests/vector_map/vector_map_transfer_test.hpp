@@ -62,14 +62,20 @@ public:
 
     void compareVectors(ostream& out, Ctr& v1, Ctr& v2, const char* src)
     {
-        if (v2.count() != v2.count())
-        {
-            throw TestException(src, SBuf()<<"VectorMaps have different key couts: "<<v1.count()<<" "<<v2.count());
-        }
-
         if (v2.size() != v2.size())
         {
-            throw TestException(src, SBuf()<<"VectorMaps have different sizes: "<<v1.size()<<" "<<v2.size());
+            throw TestException(src, SBuf()<<"VectorMaps have different key couts: "<<v1.size()<<" "<<v2.size());
+        }
+
+        if (v2.totalDataSize() != v2.totalDataSize())
+        {
+            throw TestException(
+            		src,
+            		SBuf()<<"VectorMaps have different sizes: "
+            			  <<v1.totalDataSize()
+            			  <<" "
+            			  <<v2.totalDataSize()
+            );
         }
 
         auto iter2 = v2.Begin();
@@ -142,12 +148,12 @@ public:
 
             allocator.commit();
 
-            AssertEQ(MA_SRC, size_, v1.count());
+            AssertEQ(MA_SRC, size_, v1.size());
 
             for (Int c = 0; c < transfers_; c++)
             {
-                pos1_ = getRandom(v1.count());
-                pos2_ = getRandom(v2.count());
+                pos1_ = getRandom(v1.size());
+                pos2_ = getRandom(v2.size());
 
                 insertData(v1, v2);
 

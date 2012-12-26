@@ -80,7 +80,7 @@ public:
 
     void checkIteratorFw(Ctr& ctr)
     {
-    	AssertEQ(MA_SRC, ctr.count(), (BigInt)pairs_.size());
+    	AssertEQ(MA_SRC, ctr.size(), (BigInt)pairs_.size());
 
         auto iter = ctr.Begin();
 
@@ -151,7 +151,7 @@ public:
         else {
             LoadVector(pairs_, pairs_data_file_);
 
-            AssertEQ(MA_SRC, map.count(), (BigInt)pairs_.size());
+            AssertEQ(MA_SRC, map.size(), (BigInt)pairs_.size());
 
             bool removed        = map.remove(key_);
 
@@ -302,7 +302,7 @@ public:
                 appendToSortedVector(pairs_tmp, Pair(key_, data_size_));
             }
 
-            AssertEQ(MA_SRC, map.count(), (BigInt)pairs_.size());
+            AssertEQ(MA_SRC, map.size(), (BigInt)pairs_.size());
         }
         catch (...)
         {
@@ -349,11 +349,11 @@ public:
 
             allocator.commit();
 
-            while (map.count() > 0)
+            while (map.size() > 0)
             {
                 pairs_tmp = pairs_;
 
-                Int idx = getRandom(map.count());
+                Int idx = getRandom(map.size());
 
                 key_num_    = idx;
                 key_        = pairs_[idx].key_;

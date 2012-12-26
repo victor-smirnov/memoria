@@ -136,9 +136,14 @@ public:
     Iterator findStart(bool reverse = false);
     Iterator findEnd  (bool reverse = false);
 
-    MEMORIA_PUBLIC BigInt getSize() const
+    MEMORIA_PUBLIC MEMORIA_DEPRECATED BigInt getSize() const
     {
         return me()->getTotalKeyCount();
+    }
+
+    MEMORIA_PUBLIC BigInt size() const
+    {
+    	return me()->getTotalKeyCount();
     }
 
     MEMORIA_PUBLIC Iterator Begin()
