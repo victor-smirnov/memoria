@@ -11,8 +11,8 @@
 
 
 
-#include <memoria/prototypes/btree/iterator/api.hpp>
-#include <memoria/prototypes/btree/iterator/base.hpp>
+#include <memoria/prototypes/btree/iterator/btree_c_api.hpp>
+#include <memoria/prototypes/btree/iterator/btree_c_base.hpp>
 
 #include <memoria/containers/vector/names.hpp>
 

@@ -11,13 +11,11 @@
 
 #include <memoria/containers/vector_map/names.hpp>
 
-#include <memoria/containers/vector_map/container/base.hpp>
-#include <memoria/containers/vector_map/container/api.hpp>
+#include <memoria/containers/vector_map/container/vmap_c_base.hpp>
+#include <memoria/containers/vector_map/container/vmap_c_api.hpp>
 
-#include <memoria/containers/vector_map/iterator/api.hpp>
+#include <memoria/containers/vector_map/iterator/vmap_i_api.hpp>
 #include <memoria/containers/vector_map/iterator.hpp>
-
-#include <memoria/containers/vector_map/iterator/api.hpp>
 
 #include <memoria/containers/vector_map/tools.hpp>
 

@@ -11,19 +11,19 @@
 
 #include <memoria/containers/map/factory.hpp>
 
-#include <memoria/containers/vector/iterator/api.hpp>
+#include <memoria/containers/vector/iterator/vector_i_api.hpp>
 #include <memoria/containers/vector/iterator.hpp>
 
 #include <memoria/containers/vector/pages/data_page.hpp>
 #include <memoria/containers/vector/pages/metadata.hpp>
 
-#include <memoria/containers/vector/container/api.hpp>
-#include <memoria/containers/vector/container/insert.hpp>
-#include <memoria/containers/vector/container/remove.hpp>
-#include <memoria/containers/vector/container/tools.hpp>
-#include <memoria/containers/vector/container/checks.hpp>
-#include <memoria/containers/vector/container/find.hpp>
-#include <memoria/containers/vector/container/read.hpp>
+#include <memoria/containers/vector/container/vector_c_api.hpp>
+#include <memoria/containers/vector/container/vector_c_insert.hpp>
+#include <memoria/containers/vector/container/vector_c_remove.hpp>
+#include <memoria/containers/vector/container/vector_c_tools.hpp>
+#include <memoria/containers/vector/container/vector_c_checks.hpp>
+#include <memoria/containers/vector/container/vector_c_find.hpp>
+#include <memoria/containers/vector/container/vector_c_read.hpp>
 
 #include <memoria/containers/vector/names.hpp>
 #include <memoria/containers/vector/tools.hpp>

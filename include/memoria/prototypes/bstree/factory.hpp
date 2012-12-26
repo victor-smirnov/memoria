@@ -12,11 +12,11 @@
 #include <memoria/prototypes/btree/btree.hpp>
 #include <memoria/prototypes/bstree/tools.hpp>
 
-#include <memoria/prototypes/bstree/container/find.hpp>
-#include <memoria/prototypes/bstree/container/tools.hpp>
+#include <memoria/prototypes/bstree/container/bstree_c_find.hpp>
+#include <memoria/prototypes/bstree/container/bstree_c_tools.hpp>
 
-#include <memoria/prototypes/bstree/iterator/base.hpp>
-#include <memoria/prototypes/bstree/iterator/api.hpp>
+#include <memoria/prototypes/bstree/iterator/bstree_c_base.hpp>
+#include <memoria/prototypes/bstree/iterator/bstree_c_api.hpp>
 
 #include <memoria/prototypes/bstree/names.hpp>
 #include <memoria/prototypes/bstree/macros.hpp>

@@ -9,8 +9,8 @@
 #ifndef _MEMORIA_MODELS_IDX_MAP_FACTORY_HPP
 #define _MEMORIA_MODELS_IDX_MAP_FACTORY_HPP
 
-#include <memoria/containers/map/container/api.hpp>
-#include <memoria/containers/map/iterator/api.hpp>
+#include <memoria/containers/map/container/map_c_api.hpp>
+#include <memoria/containers/map/iterator/map_i_api.hpp>
 
 #include <memoria/prototypes/bstree/factory.hpp>
 

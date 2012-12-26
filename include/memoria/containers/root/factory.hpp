@@ -11,7 +11,7 @@
 
 #include <memoria/containers/map/factory.hpp>
 
-#include <memoria/containers/root/container/api.hpp>
+#include <memoria/containers/root/container/root_c_api.hpp>
 
 #include <memoria/containers/root/pages/parts.hpp>
 

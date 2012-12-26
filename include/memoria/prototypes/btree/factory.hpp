@@ -15,13 +15,13 @@
 
 #include <memoria/prototypes/btree/pages/pages.hpp>
 
-#include <memoria/prototypes/btree/container/base.hpp>
-#include <memoria/prototypes/btree/container/tools.hpp>
-#include <memoria/prototypes/btree/container/checks.hpp>
-#include <memoria/prototypes/btree/container/insert_batch.hpp>
-#include <memoria/prototypes/btree/container/remove.hpp>
-#include <memoria/prototypes/btree/container/walk.hpp>
-#include <memoria/prototypes/btree/container/find.hpp>
+#include <memoria/prototypes/btree/container/btree_c_base.hpp>
+#include <memoria/prototypes/btree/container/btree_c_tools.hpp>
+#include <memoria/prototypes/btree/container/btree_c_checks.hpp>
+#include <memoria/prototypes/btree/container/btree_c_insert.hpp>
+#include <memoria/prototypes/btree/container/btree_c_remove.hpp>
+#include <memoria/prototypes/btree/container/btree_c_walk.hpp>
+#include <memoria/prototypes/btree/container/btree_c_find.hpp>
 
 #include <memoria/prototypes/templates/container/allocator.hpp>
 

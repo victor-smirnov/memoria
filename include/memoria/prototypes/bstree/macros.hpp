@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_SUMTREE_MACROS_HPP
 #define _MEMORIA_PROTOTYPES_SUMTREE_MACROS_HPP
 
-#include <memoria/prototypes/btree/iterator/base.hpp>
+#include <memoria/prototypes/btree/iterator/btree_c_base.hpp>
 
 #define MEMORIA_BSTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(IteratorBaseClassName)         \
 template <                                                                              \
