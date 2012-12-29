@@ -10,8 +10,6 @@
 #define _MEMORIA_PROTOTYPES_DYNVECTOR_CONTAINER_READ_HPP
 
 #include <memoria/containers/vector/names.hpp>
-#include <memoria/containers/vector/pages/data_page.hpp>
-
 #include <memoria/prototypes/btree/btree.hpp>
 
 namespace memoria    {

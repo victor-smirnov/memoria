@@ -13,7 +13,6 @@
 #include <memoria/prototypes/btree/btree.hpp>
 
 #include <memoria/containers/vector/names.hpp>
-#include <memoria/containers/vector/pages/data_page.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -487,10 +486,10 @@ typename M_TYPE::Accumulator M_TYPE::removeData(TreePath& path, Int start, Int l
 
     if (pos < data->size())
     {
-        data->data().shift(pos, -length);
+        data->shift(pos, -length);
     }
 
-    data->data().size() -= length;
+    data->size() -= length;
 
     Accumulator accum;
     accum.keys()[0] = length;
@@ -531,7 +530,7 @@ void M_TYPE::mergeDataPagesAndremoveSource(
 
     if (merge_type == MergeType::LEFT)
     {
-        memoria::CopyBuffer(source_data->data().value_addr(0), target_data->data().value_addr(tgt_size), src_size);
+        memoria::CopyBuffer(source_data->addr(0), target_data->addr(tgt_size), src_size);
 
         //me()->AddAndSubtractKeyValues(target, target_data_item.parent_idx(), source, source_data_item.parent_idx(), keys);
 
@@ -542,18 +541,18 @@ void M_TYPE::mergeDataPagesAndremoveSource(
         // make a room for source data in the target data page
         // FIXME: separate method for this task?
 
-        memoria::CopyBuffer(target_data->data().value_addr(0), target_data->data().value_addr(src_size), tgt_size);
+        memoria::CopyBuffer(target_data->addr(0), target_data->addr(src_size), tgt_size);
 
         // copy page content from source to target
-        memoria::CopyBuffer(source_data->data().value_addr(0), target_data->data().value_addr(0), src_size);
+        memoria::CopyBuffer(source_data->addr(0), target_data->addr(0), src_size);
 
         me()->updateUp(target, 0, target_data_item.parent_idx(), keys);
         me()->updateUp(source, 0, source_data_item.parent_idx(), -keys);
     }
 
-    target_data->data().size() += src_size;
+    target_data->size() += src_size;
 
-    source_data->data().size() -= src_size;
+    source_data->size() -= src_size;
 
     keys.clear();
 }

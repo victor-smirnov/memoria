@@ -14,7 +14,6 @@
 #include <memoria/prototypes/btree/btree.hpp>
 
 #include <memoria/containers/vector/names.hpp>
-#include <memoria/containers/vector/pages/data_page.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -66,7 +65,7 @@ public:
     typedef typename Base::TreePathItem                                         TreePathItem;
     typedef typename Base::Types::DataPathItem                                  DataPathItem;
     
-    typedef typename DataPage::PageData::ElementType                            ElementType;
+    typedef typename DataPage::ElementType                            			ElementType;
 
 
     DataPathItem getValuePage(const NodeBaseG& node, Int idx, Int flags) const
@@ -133,7 +132,7 @@ typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
 
     if (i.leaf()->children_count() > 0 && i.prevKey())
     {
-        i.dataPos() = i.data()->data().size() + (reverse ? -1 : 0);
+        i.dataPos() = i.data()->size() + (reverse ? -1 : 0);
     }
 
     return i;

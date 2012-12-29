@@ -14,7 +14,7 @@
 #include <memoria/containers/vector/iterator/vector_i_api.hpp>
 #include <memoria/containers/vector/iterator.hpp>
 
-#include <memoria/containers/vector/pages/data_page.hpp>
+#include <memoria/containers/vector/pages/vector_datapage.hpp>
 #include <memoria/containers/vector/pages/metadata.hpp>
 
 #include <memoria/containers/vector/container/vector_c_api.hpp>
@@ -91,8 +91,6 @@ struct BTreeTypes<Profile, memoria::Vector<ElementType_>>: public BTreeTypes<Pro
 
     typedef IData<ElementType>                                              	IDataType;
 
-    typedef memoria::VectorData<ElementType>                                 	DataBlock;
-
     typedef VectorMetadata<typename Base::ID>                                   Metadata;
 };
 
@@ -118,7 +116,7 @@ public:
 
     typedef VectorDataPage<
     			DataPagePartsList,
-    			typename ContainerTypes::DataBlock,
+    			ElementType,
     			memoria::btree::TreePage<
     				typename ContainerTypes::Allocator::Page
     			>

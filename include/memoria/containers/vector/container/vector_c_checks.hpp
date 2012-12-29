@@ -14,8 +14,6 @@
 #include <memoria/prototypes/btree/btree.hpp>
 
 #include <memoria/containers/vector/names.hpp>
-#include <memoria/containers/vector/pages/data_page.hpp>
-
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
 
@@ -76,12 +74,12 @@ bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const Nod
     {
         bool error = false;
 
-        if (key != data->data().size())
+        if (key != data->size())
         {
             me()->dump(leaf);
             me()->dump(data);
 
-            MEMORIA_ERROR(me(), "Invalid data page size", data->id(), leaf->id(), idx, key, data->data().size());
+            MEMORIA_ERROR(me(), "Invalid data page size", data->id(), leaf->id(), idx, key, data->size());
             error = true;
         }
 

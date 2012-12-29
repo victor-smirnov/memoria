@@ -12,7 +12,6 @@
 #include <memoria/prototypes/btree/btree.hpp>
 
 #include <memoria/containers/vector/names.hpp>
-#include <memoria/containers/vector/pages/data_page.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -127,7 +126,7 @@ public:
         }
 
 
-        data->data().size() = length;
+        data->size() = length;
 
         pair.keys[0]    = length;
         pair.value      = data->id();
@@ -303,7 +302,7 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length)
 
     Int data_pos    = iter.dataPos();
 
-    data->data().shift(data_pos, length);
+    data->shift(data_pos, length);
 
     BigInt length_local = length;
 
@@ -316,7 +315,7 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length)
         data_pos        += processed;
     }
 
-    data->data().size() += length;
+    data->size() += length;
 
     Accumulator accum;
 
@@ -484,12 +483,12 @@ typename M_TYPE::Accumulator M_TYPE::moveData(
     MEMORIA_ASSERT(tgt_data->getCapacity(), >= , amount_to_topy);
 
     // make a room in the target page
-    tgt_data->data().shift(0, amount_to_topy);
+    tgt_data->shift(0, amount_to_topy);
 
-    memoria::CopyBuffer(src_data->data().value_addr(src_idx), tgt_data->data().value_addr(0), amount_to_topy);
+    memoria::CopyBuffer(src_data->addr(src_idx), tgt_data->addr(0), amount_to_topy);
 
-    src_data->data().size() -= amount_to_topy;
-    tgt_data->data().size() += amount_to_topy;
+    src_data->size() -= amount_to_topy;
+    tgt_data->size() += amount_to_topy;
 
     Accumulator accum;
 

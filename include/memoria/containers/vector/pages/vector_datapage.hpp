@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2012.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -18,7 +18,7 @@ namespace memoria    {
 
 template <
         typename ComponentList,
-        typename DataBlock,
+        typename ElementType_,
         typename Base0
 >
 class VectorDataPage: public PageBuilder<ComponentList, Base0>
@@ -29,28 +29,27 @@ public:
 
     typedef VectorDataPage<
                 ComponentList,
-                DataBlock,
+                ElementType_,
                 Base0
     >                                                                           MyType;
 
     typedef PageBuilder<ComponentList, Base0>                                   Base;
 
-    typedef DataBlock                                                           PageData;
-
-
     typedef typename MergeLists <
                 typename Base::FieldsList,
                 ConstValue<UInt, VERSION>,
-                typename PageData::FieldsList
+                Int,
+                ElementType_
     >::Result                                                                   FieldsList;
 
     static const UInt PAGE_HASH = md5::Md5Sum<typename TypeToValueList<FieldsList>::Type>::Result::Value32;
 
-    typedef typename PageData::ElementType                                      ElementType;
+    typedef ElementType_                                      					ElementType;
 
 private:
 
-    PageData data_;
+    Int size_;
+    ElementType data_[];
 
     static PageMetadata *page_metadata_;
 
@@ -58,21 +57,18 @@ public:
 
     VectorDataPage(): Base(), data_() {}
 
-    void init() {
-        data_.init();
+    void init()
+    {
+    	size_ = 0;
         Base::init();
     }
 
-    Int size() const {
-        return data_.size();
+    const Int& size() const {
+        return size_;
     }
 
-    const PageData& data() const {
-        return data_;
-    }
-
-    PageData& data() {
-        return data_;
+    Int& size() {
+    	return size_;
     }
 
     static Int hash() {
@@ -84,19 +80,19 @@ public:
         return page_metadata_;
     }
 
-    void Reindex()
-    {
-        Base::Reindex();
-        data_.reindex();
-    }
+//    void Reindex()
+//    {
+//        Base::Reindex();
+//        data_.reindex();
+//    }
 
     Int data_size() const
     {
-        return sizeof(MyType) + data_.data_size();
+        return sizeof(MyType) + size_ * sizeof(ElementType);
     }
 
     Int getCapacity() const {
-        return getMaxCapacity() - data_.size();
+        return getMaxCapacity() - size();
     }
 
     Int getMaxCapacity() const {
@@ -104,17 +100,40 @@ public:
     }
 
     const ElementType* addr(Int idx) const {
-        return data_.value_addr(idx);
+        return &data_[idx];
     }
 
     ElementType* addr(Int idx) {
-        return data_.value_addr(idx);
+        return &data_[idx];
+    }
+
+    void shift(BigInt pos, BigInt length)
+    {
+    	//FIXME: implement left shift properly
+    	if (pos < size_)
+    	{
+    		MoveBuffer(data_, pos, pos + length, size_ - pos);
+    	}
+    }
+
+    void copyFrom(const MyType* src)
+    {
+    	Base::copyFrom(src);
+
+    	size() = src->size();
+    	CopyBuffer(src->data_, data_, size_);
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
-        data_.generateDataEvents(handler);
+
+        handler->startGroup("DATA");
+
+        handler->value("SIZE", &size_);
+        handler->value("VALUE", data_, size_, IPageDataEventHandler::BYTE_ARRAY); // FIXME; use correct data type handler
+
+        handler->endGroup();
     }
 
     template <template <typename> class FieldFactory>
@@ -122,7 +141,8 @@ public:
     {
         Base::template serialize<FieldFactory>(buf);
 
-        FieldFactory<PageData>::serialize(buf, data_);
+        FieldFactory<Int>::serialize(buf, size_);
+        FieldFactory<ElementType>::serialize(buf, data_[0], size_);
     }
 
     template <template <typename> class FieldFactory>
@@ -130,7 +150,8 @@ public:
     {
         Base::template deserialize<FieldFactory>(buf);
 
-        FieldFactory<PageData>::deserialize(buf, data_);
+        FieldFactory<Int>::deserialize(buf, size_);
+        FieldFactory<ElementType>::deserialize(buf, data_[0], size_);
     }
 
 
@@ -169,7 +190,6 @@ public:
             MyType* tgt = T2T<MyType*>(buffer);
 
             tgt->copyFrom(me);
-            me->data().copyTo(&tgt->data());
         }
 
         virtual void generateDataEvents(
@@ -216,102 +236,6 @@ template <
         typename BaseType
 >
 PageMetadata* VectorDataPage<ComponentList, DataBlock, BaseType>::page_metadata_ = NULL;
-
-
-template <typename ElementType_>
-class VectorData
-{
-    static const UInt VERSION = 1;
-
-    Int size_;
-
-    ElementType_ value_[];
-
-public:
-    typedef ElementType_                                                        ElementType;
-
-    typedef TypeList<
-        ConstValue<UInt, VERSION>,
-        decltype(size_),
-        ElementType
-    >                                                                           FieldsList;
-
-
-    VectorData() {}
-
-    Int reindex() {return 0;}
-
-    const Int &size() const {
-        return size_;
-    }
-
-    Int &size() {
-        return size_;
-    }
-
-    Int data_size() const {
-        return size_ * sizeof(ElementType);
-    }
-
-    const ElementType& value(Int idx) const {
-        return value_[idx];
-    }
-
-    ElementType& value(Int idx) {
-        return value_[idx];
-    }
-
-    ElementType* value_addr(Int idx) {
-        return &value_[idx];
-    }
-
-    const ElementType* value_addr(Int idx) const {
-        return &value_[idx];
-    }
-
-    void shift(BigInt pos, BigInt length)
-    {
-        //FIXME: implement left shift properly
-        if (pos < size_)
-        {
-            MoveBuffer(value_, pos, pos + length, size_ - pos);
-        }
-    }
-
-    void copyTo(VectorData<ElementType_>* target) const
-    {
-        target->size() = size();
-        CopyBuffer(value_, target->value_, size_);
-    }
-
-    void generateDataEvents(IPageDataEventHandler* handler) const
-    {
-        handler->startGroup("DATA");
-
-        handler->value("SIZE", &size_);
-        handler->value("VALUE", value_, size_, IPageDataEventHandler::BYTE_ARRAY); // FIXME; use correct data type handler
-
-        handler->endGroup();
-    }
-
-    //template <template <typename> class FieldFactory>
-    void serialize(SerializationData& buf) const
-    {
-        FieldFactory<Int>::serialize(buf, size_);
-        FieldFactory<ElementType>::serialize(buf, value_[0], size_);
-    }
-
-    //template <template <typename> class FieldFactory>
-    void deserialize(DeserializationData& buf)
-    {
-        FieldFactory<Int>::deserialize(buf, size_);
-        FieldFactory<ElementType>::deserialize(buf, value_[0], size_);
-    }
-
-    void init() {
-        size_ = 0;
-    }
-};
 
 #pragma pack()
 
