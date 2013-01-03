@@ -14,6 +14,7 @@
 #include <memoria/containers/set/factory.hpp>
 #include <memoria/containers/vector/factory.hpp>
 #include <memoria/containers/vector_map/factory.hpp>
+#include <memoria/containers/bv_dense/factory.hpp>
 
 #include <memoria/core/container/metadata_repository.hpp>
 

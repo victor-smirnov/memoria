@@ -27,7 +27,7 @@ struct BTreeTypes<Profile, memoria::Root>: public BTreeTypes<Profile, memoria::M
     typedef typename AppendTool<
                 typename Base::ContainerPartsList,
                 TypeList<
-                    memoria::models::root::CtrApiName
+                    memoria::root::CtrApiName
                 >
     >::Result                                                                   ContainerPartsList;
 

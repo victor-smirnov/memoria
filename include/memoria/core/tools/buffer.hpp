@@ -22,127 +22,58 @@ namespace memoria    {
 
 #pragma pack(1)
 
-//typedef long bitmap_atom_t;
-//
-//template <long Size, long Align = sizeof(long)>
-//class Padding {
-//    static const long SIZE = (sizeof(Size) % Align == 0 ? Align : (sizeof(bitmap_atom_t) - Size % sizeof(bitmap_atom_t))) ;
-//    char bytes[SIZE];
-//public:
-//    Padding(){}
-//};
-
-//template <typename T>
-//class Wrapper {
-//    T value_;
-//public:
-//    static const int SIZE                           = sizeof(T);
-//    static const int BITSIZE                        = sizeof(T) * 8;
-//
-//    typedef T                                       ValueType;
-//
-//    Wrapper(const T &value): value_(value) {};
-//    Wrapper(const Wrapper<T> &copy): value_(copy.value_) {};
-//
-//    T &value() const {
-//        return value_;
-//    }
-//
-//    void set_value(const T &v) {
-//        value_ = v;
-//    }
-//
-//    bool operator==(const Wrapper<T> &v) const {
-//        return value_ == v.value_;
-//    }
-//
-//    bool operator!=(const Wrapper<T> &v) const {
-//        return value_ != v.value_;
-//    }
-//
-//    bool operator>=(const Wrapper<T> &v) const {
-//        return value_ >= v.value_;
-//    }
-//
-//    bool operator<=(const Wrapper<T> &v) const {
-//        return value_ <= v.value_;
-//    }
-//
-//    bool operator<(const Wrapper<T> &v) const {
-//        return value_ < v.value_;
-//    }
-//};
-
-
-
 template <size_t Size>
 class StaticBuffer {
+public:
+	typedef UInt            Element;
+	typedef UInt            ElementType;
 
-    char Buffer_[Size];
+private:
+    ElementType buffer_[Size];
 
     typedef StaticBuffer<Size> Me;
 
 public:
-    typedef Long            Element;
-
-    static const BigInt     SIZE    = Size;                 //in bytes;
-    static const BigInt     BITSIZE = SIZE * 8;             //in bits;
 
     StaticBuffer() {}
 
     const Me& operator=(const Me& other) {
-        CopyBuffer(other.Buffer_, Buffer_, Size);
+        CopyBuffer(other.buffer_, buffer_, Size);
         return *this;
     }
 
     bool operator==(const Me&other) const {
-        return CompareBuffers(Buffer_, other.Buffer_, Size);
+        return CompareBuffers(buffer_, other.buffer_, Size);
     }
 
     bool operator!=(const Me&other) const {
-        return !CompareBuffers(Buffer_, other.Buffer_, Size);
+        return !CompareBuffers(buffer_, other.buffer_, Size);
     }
 
-    const char *ptr() const {
-        return Buffer_;
-    }
-
-    char *ptr() {
-        return Buffer_;
-    }
-
-    void clear() {
-        for (Int c = 0; c < (Int)Size; c++) {
-            Buffer_[c] = 0;
+    void clear()
+    {
+        for (size_t c = 0; c < Size; c++)
+        {
+            buffer_[c] = 0;
         }
     }
 
-    static bool isVoid() {
-        return SIZE == 0;
+    const ElementType &operator[](Int idx) const
+    {
+        return buffer_[idx];
     }
 
-    const Long &operator[](Int idx) const {
-        return *(CP2CP<Long>(ptr()) + idx);
-    }
-
-    Long &operator[](Int idx) {
-        return *(T2T<Long*>(ptr()) + idx);
+    ElementType &operator[](Int idx)
+    {
+        return buffer_[idx];
     }
 
     void copyFrom(const void *mem) {
-        CopyBuffer(mem, Buffer_, Size);
+        CopyBuffer(mem, buffer_, Size);
     }
 
     void copyTo(void *mem) const {
-        CopyBuffer(Buffer_, mem, Size);
-    }
-
-    void dump(std::ostream &os, Int size = BITSIZE) {
-        dump(os, *this, (Int)0, size);
-    }
-
-    Int getHashCode() {
-        return PtrToInt(ptr());
+        CopyBuffer(buffer_, mem, Size);
     }
 };
 
@@ -153,10 +84,6 @@ class ValueBuffer {
     Object value_;
 
 public:
-
-    static const BigInt     SIZE    = sizeof(Object);       //in bytes;
-    static const BigInt     BITSIZE = SIZE * 8;             //in bits;
-
     typedef Object                                                              ValueType;
 
     ValueBuffer() {}
@@ -188,31 +115,6 @@ public:
 
     bool operator<(const MyType &other) const {
         return value() < other.value();
-    }
-};
-
-class VoidBuffer {
-public:
-
-    static const int SIZE = 0;              //in bytes;
-    static const int BITSIZE = SIZE * 8;    //in bits;
-
-    VoidBuffer() {}
-
-    static bool is_void() {
-        return true;
-    }
-
-    const char* ptr() const {
-        return NULL;
-    }
-
-    char* ptr() {
-        return NULL;
-    }
-
-    Int getHashCode() {
-        return 0;
     }
 };
 

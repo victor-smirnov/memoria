@@ -401,11 +401,20 @@ void AssertFalse(const char* src, const Op& op, const SBuf& msg = SBuf())
 }
 
 template <typename Op1, typename Op2>
-void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
+void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
 	if (!(op1 == op2))
 	{
 		throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+	}
+}
+
+template <typename Op1, typename Op2>
+void AssertEQ(const char* src, const Op1& op1, const Op2& op2)
+{
+	if (!(op1 == op2))
+	{
+		throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2);
 	}
 }
 

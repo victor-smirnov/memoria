@@ -18,7 +18,7 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::models::root::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::root::CtrApiName)
 
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::Key                                                  Key;

@@ -127,12 +127,15 @@ static LogHandler* logIt(LogHandler* log, const PageID<T>& value)
 
 
 template <Int Size>
-class BitBuffer: public StaticBuffer<Size % 8 == 0 ? Size / 8 : ((Size / 8) + 1)> {
-    typedef StaticBuffer<(Size % 8 == 0 ? Size / 8 : ((Size / 8) + 1))>               Base;
+class BitBuffer: public StaticBuffer<Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1)> {
+    typedef StaticBuffer<
+    			(Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1))
+    >       																	Base;
 public:
 
-    typedef Int                         Index;
-    typedef Long                        Bits;
+
+    typedef Int                         										Index;
+    typedef typename Base::ElementType											Bits;
 
     static const Int kBitSize           = Size;
 
@@ -142,19 +145,19 @@ public:
     BitBuffer() : Base() {}
 
     bool isBit(Index index) const {
-        return getBit(*this, index + RESERVED_BITSIZE);
+        return GetBit(*this, index + RESERVED_BITSIZE);
     }
 
     Bits getBits(Index idx, Index count) const {
-        return getBits(*this, idx, count);
+        return GetBits(*this, idx, count);
     }
 
     void setBits(Index idx, Bits bits, Index count) {
-        setBits(*this, idx, bits, count);
+        SetBits(*this, idx, bits, count);
     }
 
     void setBit(int index, int bit) {
-        memoria::setBit(*this, index + RESERVED_BITSIZE, bit);
+        memoria::SetBit(*this, index + RESERVED_BITSIZE, bit);
     }
 };
 

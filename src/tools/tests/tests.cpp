@@ -17,6 +17,8 @@
 
 #include "vector_map/vector_map_test_suite.hpp"
 
+#include "bit_vector/bitvector_test_suite.hpp"
+
 #include "template/template_test_suite.hpp"
 
 #include <memoria/tools/cmdline.hpp>
@@ -31,7 +33,7 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MEMORIA_INIT(SmallProfile<>);
+//    MEMORIA_INIT(SmallProfile<>);
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
@@ -56,13 +58,14 @@ int main(int argc, const char** argv, const char** envp)
 
         // add test suits to the runner;
 
-        runner.registerTask(new TemplateTestSuite());
-        runner.registerTask(new CtrTestSuite());
-        runner.registerTask(new MapTestSuite());
-        runner.registerTask(new PackedMapTestSuite());
-        runner.registerTask(new SumTreeTestSuite());
-        runner.registerTask(new VectorTestSuite());
-        runner.registerTask(new VectorMapTestSuite());
+//        runner.registerTask(new TemplateTestSuite());
+//        runner.registerTask(new CtrTestSuite());
+//        runner.registerTask(new MapTestSuite());
+//        runner.registerTask(new PackedMapTestSuite());
+//        runner.registerTask(new SumTreeTestSuite());
+//        runner.registerTask(new VectorTestSuite());
+//        runner.registerTask(new VectorMapTestSuite());
+        runner.registerTask(new BitVectorTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

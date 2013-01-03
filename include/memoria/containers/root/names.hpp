@@ -10,12 +10,10 @@
 #define _MEMORIA_MODELS_ROOT_NAMES_HPP
 
 namespace memoria    {
-namespace models     {
 namespace root       {
 
 class CtrApiName {};
 
-}
 }
 }
 

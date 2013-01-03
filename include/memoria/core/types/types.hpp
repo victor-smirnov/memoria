@@ -109,12 +109,7 @@ template <typename T> struct TypeHash; // must define Value constant
 
 struct BTree        {};
 struct BSTree       {};
-
-template <typename T>
-struct DynVector    {};
 struct Composite    {};
-
-struct Superblock   {};
 struct Root         {};
 
 template <typename Key, typename Value, Int Indexes = 1>
@@ -138,9 +133,11 @@ struct VectorMap    {};
 template <typename T>
 struct Vector       {};
 
+template <bool Sparse = false>
+struct BitVector	{};
 
 template <typename ChildType = void>
-class SmallProfile {};
+class SmallProfile 	{};
 
 /*
  * End of container type names and profiles
@@ -182,7 +179,9 @@ struct ValueList {};
 
 
 
-
+template <typename T> struct DeclType {
+	typedef T Type;
+};
 
 template <typename First, typename Second>
 struct ValuePair {

@@ -19,12 +19,14 @@
 #include <memoria/core/types/type2type.hpp>
 
 #include <iostream>
+#include <limits>
 #include <string.h>
 
 namespace memoria    {
 
 using namespace std;
 
+/*
 template <typename ItemType, Int BitCount> struct MakeSimpleMask;
 
 template <typename ItemType>
@@ -69,7 +71,7 @@ public:
     ))))))))))))))))))))))))))))))))
 
 #define SIMPLE_LG2_16(value) SIMPLE_LG2_32(value)
-
+*/
 const char kPopCountFW_LUT [] = {0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,5,0,1,0,2,0,1,0,3,0,1,0,2,\
                                  0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,6,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,\
                                  0,1,0,2,0,1,0,5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,7,0,1,0,2,\
@@ -98,13 +100,17 @@ const char kZeroCountBW_LUT[] = {8,7,6,6,5,5,5,5,4,4,4,4,4,4,4,4,3,3,3,3,3,3,3,3
                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
 
+
+
+
+
 /**
  * Return size in bits of type T
  *
  */
 
 template <typename T>
-inline T TypeBitsize() {
+inline size_t TypeBitsize() {
     return sizeof(T) * 8;
 }
 
@@ -114,7 +120,7 @@ inline T TypeBitsize() {
  */
 
 template <typename T>
-inline T TypeBitmask() {
+inline size_t TypeBitmask() {
     return TypeBitsize<T>() - 1;
 }
 
@@ -125,45 +131,119 @@ inline T TypeBitmask() {
  */
 
 template <typename T>
-inline T TypeBitmaskPopCount(T mask) {
+inline size_t TypeBitmaskPopCount(T mask) {
     return mask == 7 ? 3 : (mask == 15 ? 4 : (mask == 31 ? 5 : (mask == 63 ? 6 : (mask == 127 ? 7 : 7))));
 }
+//
+//template <typename T>
+//T SimpleLg2(T value) {
+//    T c, mask;
+//    for (c = 0, mask = 1; mask < value; mask <<= 1, c++) {}
+//    return c;
+//}
+//
+//template <typename T>
+//T SimpleSup2(BigInt value) {
+//    T c, mask;
+//    for (c = 1, mask = 1; mask < value; mask = (mask << 1) + 1, c++) {}
+//    return c;
+//}
+//
+//
 
-template <typename T>
-T SimpleLg2(T value) {
-    T c, mask;
-    for (c = 0, mask = 1; mask < value; mask <<= 1, c++) {}
-    return c;
-}
 
-template <typename T>
-T SimpleSup2(BigInt value) {
-    T c, mask;
-    for (c = 1, mask = 1; mask < value; mask = (mask << 1) + 1, c++) {}
-    return c;
-}
+
+
+
+
+
+//
+//template <typename ItemType>
+//ItemType CShr(ItemType value, Int count) {
+//    Int bitCount = sizeof(ItemType) * 8 - count;
+//    ItemType tmp = value >> (bitCount) & MakeMask<ItemType>(count, 0);
+//    return (value << count) | tmp;
+//}
+//
+
 
 
 /**
- *              |  size|  shift|
- * Make bitmask od type 00001111111100000000) where number of 1s is specified by
+ * set one bit (0, 1) 'bit' in buffer 'buf' at address 'idx'
+ *
+ */
+
+namespace intrnl {
+
+
+template <typename T>
+struct ElementT {
+	typedef typename T::ElementType Type;
+};
+
+template <typename T>
+struct ElementT<T*> {
+	typedef T Type;
+};
+
+template <typename T, size_t Size>
+struct ElementT<T[Size]> {
+	typedef T Type;
+};
+
+
+/**
+ *              			|  size|  shift|
+ * Make bitmask of type 00001111111100000000) where number of 1s is specified by
  * the size argument and mask's shift is specified by the pos argument.
  *
  * Note that optimizing compiler is able to collapse this function to one value - the mask.
  */
 
-template <typename T, typename sT>
-T MakeMask0(Int size, Int pos) {
-    T bitsize = TypeBitsize<T>();
-    sT svalue = ((sT)0x1) << (bitsize - 1);
+template <typename uT, typename sT>
+uT MakeMask0(Int start, Int length)
+{
+    sT svalue 	= numeric_limits<sT>::min();
 
-    if (pos + size == bitsize) {
-        return (T)(svalue >> (size - 1));
-    }
-    else {
-        sT mask = ~svalue;
-        return (T)((svalue >> size) & mask) >> (bitsize - size - 1 - pos);
-    }
+    Int bitsize = TypeBitsize<uT>();
+
+    uT value 	= svalue >> (length - 1);
+
+    return value >> (bitsize - length - start);
+}
+
+template <typename T>
+struct MakeSigned: DeclType<T> {};
+
+template <typename T>
+struct MakeUnsigned: DeclType<T> {};
+
+
+template <>
+struct MakeSigned<UByte>: DeclType<Byte> {};
+
+template <>
+struct MakeSigned<UShort>: DeclType<Short> {};
+
+template <>
+struct MakeSigned<UInt>: DeclType<Int> {};
+
+template <>
+struct MakeSigned<UBigInt>: DeclType<BigInt> {};
+
+
+template <>
+struct MakeUnsigned<Byte>: DeclType<UByte> {};
+
+template <>
+struct MakeUnsigned<Short>: DeclType<UShort> {};
+
+template <>
+struct MakeUnsigned<Int>: DeclType<UInt> {};
+
+template <>
+struct MakeUnsigned<BigInt>: DeclType<UBigInt> {};
+
 }
 
 /**
@@ -171,50 +251,73 @@ T MakeMask0(Int size, Int pos) {
  * its signed equivalent basing on sizeof(T). T can be signed or unsigned.
  */
 template <typename T>
-T MakeMask(Int size, Int pos) {
-    if (sizeof(T) == 1) {
-        return MakeMask0<T, Byte>(size, pos);
-    }
-    else if (sizeof(T) == 2) {
-        return MakeMask0<T, Short>(size, pos);
-    }
-    else if (sizeof(T) == 4) {
-        return MakeMask0<T, Int>(size, pos);
-    }
-    else if (sizeof(T) == 8) {
-        return MakeMask0<T, BigInt>(size, pos);
-    }
-    else {
-        return 0;
-    }
+T MakeMask(Int start, Int length)
+{
+	if (length > 0)
+	{
+		return (T)intrnl::MakeMask0<
+					typename intrnl::MakeUnsigned<T>::Type,
+					typename intrnl::MakeSigned<T>::Type
+				>(start, length);
+	}
+	else {
+		return 0;
+	}
 }
 
-template <typename ItemType>
-ItemType CShr(ItemType value, Int count) {
-    Int bitCount = sizeof(ItemType) * 8 - count;
-    ItemType tmp = value >> (bitCount) & MakeMask<ItemType>(count, 0);
-    return (value << count) | tmp;
+
+inline Int PopCnt(UBigInt arg)
+{
+	arg = arg - ((arg >> 1) & 0x5555555555555555uLL);
+	arg = ((arg >> 2) & 0x3333333333333333uLL) + (arg & 0x3333333333333333uLL);
+	arg = (arg + (arg >> 4)) & 0x0F0F0F0F0F0F0F0FuLL;
+	UInt argl = static_cast<UInt>(arg + (arg >> 32));
+	argl += (argl >> 16);
+	return (argl + (argl >> 8)) & 0x7F;
 }
 
-/**
- * set one bit (0, 1) 'bit' in buffer 'buf' at address 'idx'
- *
- */
+inline Int PopCnt(UInt v)
+{
+	v -= ((v >> 1) & 0x55555555);
+	v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+	v = (v + (v >> 4)) & 0x0F0F0F0F;
+	v = (v * 0x01010101) >> 24;
+	return v;
+}
+
+inline Int PopCnt(UBigInt arg, Int start, Int length)
+{
+	UBigInt mask = MakeMask<UBigInt>(start, length);
+	return PopCnt(arg & mask);
+}
+
+inline Int PopCnt(UInt arg, Int start, Int length)
+{
+	UInt mask = MakeMask<UInt>(start, length);
+	return PopCnt(arg & mask);
+}
 
 template <typename Buffer>
-void setBit(Buffer &buf, Int idx, Long bit) {
-    Int mask = TypeBitmask<Long>();
-    Int divisor = TypeBitmaskPopCount(mask);
+void SetBit(Buffer& buf, size_t idx, Int value)
+{
+    typedef typename intrnl::ElementT<Buffer>::Type T;
 
-    Int haddr = (idx & ~mask) >> divisor;
-    Int laddr = idx & mask;
+	size_t mask 	= TypeBitmask<T>();
+    size_t divisor 	= TypeBitmaskPopCount(mask);
 
-    const Long x1 = 0x1;
+    size_t haddr 	= (idx & ~mask) >> divisor;
+    size_t laddr 	= idx & mask;
 
-    buf[haddr] = buf[haddr] & ~(x1 << laddr);
+    T& ref 			= buf[haddr];
 
-    if ((bit & x1) == 1) {
-        buf[haddr] = buf[haddr] | ((bit & x1) << laddr);
+    T bit			= ((T)0x1) << laddr;
+
+    if (value)
+    {
+        ref |= bit;
+    }
+    else {
+    	ref &= ~bit; // clear bit
     }
 }
 
@@ -223,14 +326,19 @@ void setBit(Buffer &buf, Int idx, Long bit) {
  */
 
 template <typename Buffer>
-Long getBit(const Buffer &buf, Int idx) {
-    Int mask = TypeBitmask<Long>();
-    Int divisor = TypeBitmaskPopCount(mask);
+Int GetBit(const Buffer &buf, size_t idx)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-    Int haddr = (idx & ~mask) >> divisor;
-    Int laddr = idx & mask;
+	size_t mask = TypeBitmask<T>();
+	size_t divisor = TypeBitmaskPopCount(mask);
 
-    return (buf[haddr] >> laddr) & 0x1;
+	size_t haddr = (idx & ~mask) >> divisor;
+	size_t laddr = idx & mask;
+
+	// FIXME: should we return buf[haddr] & bit_mask ?
+
+	return (buf[haddr] >> laddr) & 0x1;
 }
 
 /**
@@ -241,17 +349,22 @@ Long getBit(const Buffer &buf, Int idx) {
  */
 
 template <typename Buffer>
-void setBits0(Buffer &buf, Int idx, Long bits, Int nbits) {
-    Int mask = TypeBitmask<Long>();
-    Int divisor = TypeBitmaskPopCount(mask);
+void SetBits0(Buffer &buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-    Int haddr = (idx & ~mask) >> divisor;
-    Int laddr = idx & mask;
+	size_t mask = TypeBitmask<T>();
+	size_t divisor = TypeBitmaskPopCount(mask);
 
-    Long bitmask = MakeMask<Long>(nbits, laddr);
+	size_t haddr = (idx & ~mask) >> divisor;
+    size_t laddr = idx & mask;
 
-    buf[haddr] = buf[haddr] & ~bitmask;
-    buf[haddr] = buf[haddr] | ((bits << laddr) & bitmask);
+    T bitmask = MakeMask<T>(laddr, nbits);
+
+    T& ref = buf[haddr];
+
+    ref &= ~bitmask;
+    ref |= (bits << laddr) & bitmask;
 }
 
 /**
@@ -259,18 +372,22 @@ void setBits0(Buffer &buf, Int idx, Long bits, Int nbits) {
  * idx   - group offset in he buffer
  * nbits - number of bits to set. 0 <= nbits <= bitsize(Long)
  *
- * The grou will starts from position 0 in returned value. All top bits after nbits are 0.
+ * The group will starts from position 0 in returned value. All top bits after nbits are 0.
  */
 
 template <typename Buffer>
-Long getBits0(const Buffer &buf, Int idx, Int nbits) {
-    Int mask = TypeBitmask<Long>();
-    Int divisor = TypeBitmaskPopCount(mask);
+typename intrnl::ElementT<Buffer>::Type
+GetBits0(const Buffer &buf, size_t idx, Int nbits)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-    Int haddr = (idx & ~mask) >> divisor;
-    Int laddr = idx & mask;
+	size_t mask = TypeBitmask<T>();
+    size_t divisor = TypeBitmaskPopCount(mask);
 
-    Long bitmask = MakeMask<Long>(nbits, 0);
+    size_t haddr = (idx & ~mask) >> divisor;
+    size_t laddr = idx & mask;
+
+    T bitmask = MakeMask<T>(0, nbits);
 
     return (buf[haddr] >> laddr) & bitmask;
 }
@@ -282,21 +399,26 @@ Long getBits0(const Buffer &buf, Int idx, Int nbits) {
  */
 
 template <typename Buffer>
-void setBits(Buffer &buf, Int idx, Long bits, Int nbits) {
-    Int mask = TypeBitmask<Long>();
-    Int laddr = idx & mask;
+void SetBits(Buffer &buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-    Long bitsize = TypeBitsize<Long>();
+	size_t mask 	= TypeBitmask<T>();
+    size_t laddr 	= idx & mask;
 
-    if (laddr + nbits <= bitsize) {
-        setBits0(buf, idx, bits, nbits);
+    size_t bitsize = TypeBitsize<T>();
+
+    if (laddr + nbits <= bitsize)
+    {
+        SetBits0(buf, idx, bits, nbits);
     }
-    else {
-        Long nbits1 = laddr + nbits - bitsize;
-        Long nbits0 = nbits - nbits1;
+    else
+    {
+        size_t nbits1 = laddr + nbits - bitsize;
+        size_t nbits0 = nbits - nbits1;
 
-        setBits0(buf, idx, bits, nbits0);
-        setBits0(buf, idx + nbits0, bits >> (nbits0), nbits1);
+        SetBits0(buf, idx, bits, nbits0);
+        SetBits0(buf, idx + nbits0, bits >> (nbits0), nbits1);
     }
 }
 
@@ -308,117 +430,200 @@ void setBits(Buffer &buf, Int idx, Long bits, Int nbits) {
  */
 
 template <typename Buffer>
-Long getBits(const Buffer &buf, Int idx, Int nbits) {
-    Int mask = TypeBitmask<Long>();
-    Int laddr = idx & mask;
+typename intrnl::ElementT<Buffer>::Type
+GetBits(const Buffer &buf, size_t idx, Int nbits)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-    Long bitsize = TypeBitsize<Long>();
+	size_t mask = TypeBitmask<T>();
+    size_t laddr = idx & mask;
 
-    if (laddr + nbits <= bitsize) {
-        return getBits0(buf, idx, nbits);
+    size_t bitsize = TypeBitsize<T>();
+
+    if (laddr + nbits <= bitsize)
+    {
+        return GetBits0(buf, idx, nbits);
     }
-    else {
-        Long nbits1 = laddr + nbits - bitsize;
-        Long nbits0 = nbits - nbits1;
+    else
+    {
+    	size_t nbits1 = laddr + nbits - bitsize;
+    	size_t nbits0 = nbits - nbits1;
 
-        return getBits0(buf, idx, nbits0) | (getBits0(buf, idx + nbits0, nbits1) << nbits0);
+        return GetBits0(buf, idx, nbits0) | (GetBits0(buf, idx + nbits0, nbits1) << nbits0);
     }
 }
 
 /**
- * Copy 'bitCount' bits from buffer 'src_array':srcBit to 'dst_array':dstBit.
+ * Move 'bitCount' bits from buffer 'src_array':srcBit to 'dst_array':dstBit.
  *
  * Note that src_aray and dst_array MUST be different buffers.
  *
  * Note that bitCount is not limited by Long.
  */
 
-template <typename Buffer1, typename Buffer2>
-void CopyBits(const Buffer1 &src_array, Buffer2 &dst_array, Int srcBit, Int dstBit, Int bitCount) {
+template <typename Buffer>
+void MoveBitsFW(const Buffer &src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-    Int bitsize = TypeBitsize<Long>();
-    Int bitmask = TypeBitmask<Long>();
+    size_t bitsize = TypeBitsize<T>();
+    size_t mask = TypeBitmask<T>();
 
-    Int c;
-    for (c=0; c < (bitCount & ~bitmask); c += bitsize) {
-        setBits(dst_array, dstBit + c, getBits(src_array, srcBit + c, bitsize), bitsize);
+    size_t extent = dst_idx + bitsize - (dst_idx & mask);
+
+    if (extent >= dst_idx + length)
+    {
+    	SetBits(dst, dst_idx, GetBits(src, src_idx, length), length);
     }
+    else
+    {
+    	size_t prefix = extent - dst_idx;
+    	SetBits(dst, dst_idx, GetBits(src, src_idx, prefix), prefix);
 
-    Int remainder = bitCount - c;
+    	src_idx += prefix;
 
-    if (remainder != 0) {
-        Int base = bitCount & ~bitmask;
-        Long val = getBits(src_array, srcBit + base, remainder);
-//        std::cout<<"VAL: "<<val<<" "<<srcBit + base<<" "<<(void*)src_array<<std::endl;
-        setBits(dst_array, dstBit + base, val, remainder);
+    	size_t divisor 		= TypeBitmaskPopCount(mask);
+    	size_t start_cell 	= extent >> divisor;
+    	size_t stop_cell 	= (dst_idx + length) >> divisor;
+
+    	size_t cell;
+    	for (cell = start_cell; cell < stop_cell; cell++, src_idx += bitsize)
+    	{
+    		dst[cell] = GetBits(src, src_idx, bitsize);
+    	}
+
+    	size_t suffix = (dst_idx + length) & mask;
+
+    	if (suffix > 0)
+    	{
+    		SetBits(dst, dst_idx + length - suffix, GetBits(src, src_idx, suffix), suffix);
+    	}
     }
 }
 
-/**
- * Copy 'bitCount' bits from buffer 'src_array' 0 bit to 'dst_array' 0 bit.
- *
- * Note that src_aray and dst_array MUST be different buffers.
- *
- * Note that bitCount is not limited by Long.
- */
-template <typename Buffer1, typename Buffer2>
-void CopyBits(const Buffer1 &src_array, Buffer2 &dst_array, Int bitCount) {
-    CopyBits(src_array, dst_array, 0, 0, bitCount);
-}
 
-/**
- * Move group of 'bitCount' bits from position 'srcBit' to 'dstBit' in the buffer 'array'
- *
- * Note that bitCount is not limited by Long.
- */
+
 
 template <typename Buffer>
-void ShiftBits(Buffer &array, Int srcBit, Int dstBit, Int bitCount) {
-    if (dstBit > srcBit) {
-        Int bitsize = TypeBitsize<Long>();
+void MoveBitsBW(const Buffer &src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-        Int c;
-        for (c = bitCount; c >= bitsize; c -= bitsize) {
-        Long val = getBits(array, srcBit + c - bitsize, bitsize);
-            setBits(array, dstBit + c - bitsize, val, bitsize);
-        }
+    size_t bitsize = TypeBitsize<T>();
+    size_t mask = TypeBitmask<T>();
 
-        if (c != 0) {
-            Long val = getBits(array, srcBit, c);
-            setBits(array, dstBit, val, c);
-        }
+    size_t dst_to = dst_idx + length;
+    size_t extent = dst_to -(dst_to & mask);
+
+    if (extent <= dst_idx)
+    {
+    	SetBits(dst, dst_idx, GetBits(src, src_idx, length), length);
     }
-    else if (dstBit < srcBit) {
-        CopyBits(array, array, srcBit, dstBit, bitCount);
+    else
+    {
+    	size_t suffix = dst_to - extent;
+
+    	src_idx	+= length - suffix;
+
+    	SetBits(dst, extent, GetBits(src, src_idx, suffix), suffix);
+
+    	size_t divisor 		= TypeBitmaskPopCount(mask);
+    	size_t start_cell 	= extent >> divisor;
+    	size_t stop_cell 	= dst_to >> divisor;
+
+    	size_t cell;
+    	for (cell = stop_cell; cell > start_cell; cell--, src_idx -= bitsize)
+    	{
+    		dst[cell] = GetBits(src, src_idx, bitsize);
+    	}
+
+    	size_t prefix = bitsize - (dst_idx & mask);
+
+    	SetBits(dst, dst_idx, GetBits(src, src_idx - prefix, prefix), prefix);
     }
 }
 
-
-template <typename Int>
-void dumpAxis(std::ostream &os, Int width) {
-    for (Int c = 0, cnt = 0, cnt2 = 0; c < width;  c++, cnt++, cnt2++) {
-        if (cnt == 10) cnt = 0;
-        if (cnt2 == 20) {
-            os << ".";
-            cnt2 = 0;
-        }
-        os << cnt;
-    }
-    os<<std::endl;
-}
 
 template <typename Buffer>
-void dumpBitmap(std::ostream &os, Buffer &buffer, Int from, Int to) {
-    os.width(1);
-    for (Int c = from, cnt = 0; c < to; c++, cnt++) {
-        if (cnt == 20) {
-            os << ".";
-            cnt = 0;
-        }
-        os << (Int)getBit(buffer, c);
-    }
-    os << std::endl;
+void MoveBits(const Buffer &src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
+{
+	if (dst_idx > src_idx)
+	{
+		MoveBitsBW(src, dst, src_idx, dst_idx, length);
+	}
+	else {
+		MoveBitsFW(src, dst, src_idx, dst_idx, length);
+	}
 }
+
+
+//
+///**
+// * Copy 'bitCount' bits from buffer 'src_array' 0 bit to 'dst_array' 0 bit.
+// *
+// * Note that src_aray and dst_array MUST be different buffers.
+// *
+// * Note that bitCount is not limited by Long.
+// */
+//template <typename Buffer1, typename Buffer2>
+//void CopyBits(const Buffer1 &src_array, Buffer2 &dst_array, Int bitCount) {
+//    CopyBits(src_array, dst_array, 0, 0, bitCount);
+//}
+//
+///**
+// * Move group of 'bitCount' bits from position 'srcBit' to 'dstBit' in the buffer 'array'
+// *
+// * Note that bitCount is not limited by Long.
+// */
+//
+//template <typename Buffer>
+//void ShiftBits(Buffer &array, Int srcBit, Int dstBit, Int bitCount) {
+//    if (dstBit > srcBit) {
+//        Int bitsize = TypeBitsize<Long>();
+//
+//        Int c;
+//        for (c = bitCount; c >= bitsize; c -= bitsize) {
+//        Long val = getBits(array, srcBit + c - bitsize, bitsize);
+//            setBits(array, dstBit + c - bitsize, val, bitsize);
+//        }
+//
+//        if (c != 0) {
+//            Long val = getBits(array, srcBit, c);
+//            setBits(array, dstBit, val, c);
+//        }
+//    }
+//    else if (dstBit < srcBit) {
+//        CopyBits(array, array, srcBit, dstBit, bitCount);
+//    }
+//}
+//
+//
+//template <typename Int>
+//void dumpAxis(std::ostream &os, Int width) {
+//    for (Int c = 0, cnt = 0, cnt2 = 0; c < width;  c++, cnt++, cnt2++) {
+//        if (cnt == 10) cnt = 0;
+//        if (cnt2 == 20) {
+//            os << ".";
+//            cnt2 = 0;
+//        }
+//        os << cnt;
+//    }
+//    os<<std::endl;
+//}
+//
+//template <typename Buffer>
+//void dumpBitmap(std::ostream &os, Buffer &buffer, Int from, Int to) {
+//    os.width(1);
+//    for (Int c = from, cnt = 0; c < to; c++, cnt++) {
+//        if (cnt == 20) {
+//            os << ".";
+//            cnt = 0;
+//        }
+//        os << (Int)getBit(buffer, c);
+//    }
+//    os << std::endl;
+//}
+
 
 /**
  * dump buffer's content in human readable form to an output stream.
@@ -429,50 +634,60 @@ void dumpBitmap(std::ostream &os, Buffer &buffer, Int from, Int to) {
  * to       - dump to
  * width    - bits per row (100 bits by default).
  */
+//template <typename Buffer>
+//void dump(std::ostream &os, Buffer &buffer, Int from, Int to, Int width = 100) {
+//    const Int prefix = 7;
+//    for (Int c = from, cnt = 0; c < to; c += width, cnt++) {
+//        Int to0 = c + width < to ? c + width : to;
+//
+//        if (cnt %5 == 0) {
+//            os.width(prefix + 2);
+//            os << "";
+//            os.width(1);
+//            dumpAxis(os, to0 - c);
+//        }
+//
+//        os.width(prefix);
+//        os.flags(std::ios::right | std::ios::fixed);
+//        os<<cnt<<": ";
+//        dumpBitmap(os, buffer, c, to0);
+//    }
+//}
+//
+//template <typename Buffer>
+//void dump(std::ostream &os, Buffer &buffer, Int size) {
+//    dump(os, buffer, (Int)0, size);
+//}
+
+namespace intrnl {
+
 template <typename Buffer>
-void dump(std::ostream &os, Buffer &buffer, Int from, Int to, Int width = 100) {
-    const Int prefix = 7;
-    for (Int c = from, cnt = 0; c < to; c += width, cnt++) {
-        Int to0 = c + width < to ? c + width : to;
+size_t CountFw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zero)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-        if (cnt %5 == 0) {
-            os.width(prefix + 2);
-            os << "";
-            os.width(1);
-            dumpAxis(os, to0 - c);
-        }
+	size_t cnt = 0;
 
-        os.width(prefix);
-        os.flags(std::ios::right | std::ios::fixed);
-        os<<cnt<<": ";
-        dumpBitmap(os, buffer, c, to0);
-    }
-}
+    size_t remainder = (to - from) & static_cast<size_t>(0x7); // lowest 3 bits
+    size_t c;
 
-template <typename Buffer>
-void dump(std::ostream &os, Buffer &buffer, Int size) {
-    dump(os, buffer, (Int)0, size);
-}
-
-template <typename Buffer>
-Int CountFw(Buffer &buffer, Int from, Int to, const char *lut, bool zero) {
-    Int cnt = 0;
-
-    Int reminder = (to - from) & 0x7; // lowerst 3 bits
-    Int c;
-    for (c = from; c < to - reminder; c += 8) {
-        Long tmp = getBits(buffer, c, 8);
+    for (c = from; c < to - remainder; c += 8)
+    {
+        size_t tmp = GetBits(buffer, c, 8);
         char bits = lut[tmp];
         cnt += bits;
-        if (bits < 8) {
+        if (bits < 8)
+        {
             return cnt;
         }
     }
 
-    if (reminder > 0) {
-        Long tmp = getBits(buffer, to - reminder, reminder);
-        if (zero) {
-            tmp |= 0x1 << reminder;
+    if (remainder > 0)
+    {
+        size_t tmp = GetBits(buffer, to - remainder, remainder);
+        if (zero)
+        {
+            tmp |= static_cast<size_t>(0x1) << remainder;
         }
         cnt += lut[tmp];
     }
@@ -480,71 +695,189 @@ Int CountFw(Buffer &buffer, Int from, Int to, const char *lut, bool zero) {
     return cnt;
 }
 
+
+
 template <typename Buffer>
-Int CountOneFw(Buffer &buffer, Int from, Int to) {
+size_t CountBw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zero)
+{
+    size_t cnt = 0;
+
+    if (from > to)
+    {
+    	size_t remainder = (from - to) & 0x7; // lowerst 3 bits
+
+    	for (BigInt c = from - 1; c > (BigInt)(to + remainder); c -= 8)
+    	{
+    		size_t tmp = GetBits(buffer, c - 7, 8);
+    		char bits = lut[tmp];
+    		cnt += bits;
+    		if (bits < 8)
+    		{
+    			return cnt;
+    		}
+    	}
+
+    	if (remainder > 0)
+    	{
+    		size_t tmp = GetBits(buffer, to, remainder);
+    		if (zero)
+    		{
+    			tmp = ((tmp << 1) | static_cast<size_t>(0x1)) << (7 - remainder);
+    		}
+    		else {
+    			tmp = tmp << (8 - remainder);
+    		}
+
+    		cnt += lut[tmp];
+    	}
+
+    }
+
+    return cnt;
+}
+
+}
+
+template <typename Buffer>
+size_t CountFw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zero)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
+
+	size_t bitsize 	= TypeBitsize<T>();
+	size_t mask 	= TypeBitmask<T>();
+
+	size_t extent = from + bitsize - (from & mask);
+
+	if (extent >= to)
+	{
+		return intrnl::CountFw(buffer, from, to, lut, zero);
+	}
+
+	size_t cnt = intrnl::CountFw(buffer, from, extent, lut, zero);
+
+	if (cnt == extent - from)
+	{
+		size_t divisor 		= TypeBitmaskPopCount(mask);
+		size_t start_cell 	= extent >> divisor;
+		size_t stop_cell 	= to >> divisor;
+
+		T value = zero ? 0 : static_cast<T>(-1);
+
+		size_t cell;
+		for (cell = start_cell; cell < stop_cell; cell++)
+		{
+			if (buffer[cell] == value)
+			{
+				cnt += bitsize;
+			}
+			else {
+				break;
+			}
+		}
+
+		cnt += intrnl::CountFw(buffer, cell<<divisor, to, lut, zero);
+
+		return cnt;
+	}
+	else {
+		return cnt;
+	}
+}
+
+template <typename Buffer>
+size_t CountOneFw(Buffer &buffer, size_t from, size_t to)
+{
     return CountFw(buffer, from, to, kPopCountFW_LUT, false);
 }
 
 template <typename Buffer>
-Int CountZeroFw(Buffer &buffer, Int from, Int to) {
+size_t CountZeroFw(Buffer &buffer, size_t from, size_t to)
+{
     return CountFw(buffer, from, to, kZeroCountFW_LUT, true);
 }
 
+
+
 template <typename Buffer>
-Int CountBw(Buffer &buffer, Int from, Int to, const char *lut, bool zero) {
-    Int cnt = 0;
+size_t CountBw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zero)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-    Int reminder = (from - to) & 0x7; // lowerst 3 bits
-    Int c;
-    for (c = from; c > to + reminder; c -= 8) {
-        Long tmp = getBits(buffer, c - 7, 8);
-        char bits = lut[tmp];
-        cnt += bits;
-        if (bits < 8) {
-            return cnt;
-        }
-    }
+	size_t bitsize 	= TypeBitsize<T>();
+	size_t mask 	= TypeBitmask<T>();
 
-    if (reminder > 0) {
-        Long tmp = getBits(buffer, to + 1, reminder);
-        if (zero) {
-            tmp = ((tmp << 1) | 0x1) << (7 - reminder);;
-        }
-        else {
-            tmp = tmp << (8 - reminder);
-        }
+	size_t extent = from - (from & mask);
 
-        cnt += lut[tmp];
-    }
+	if (extent <= to || extent == 0)
+	{
+		return intrnl::CountBw(buffer, from, to, lut, zero);
+	}
 
-    return cnt;
+	size_t cnt = intrnl::CountBw(buffer, from, extent, lut, zero);
+
+	if (cnt == from - extent)
+	{
+		size_t divisor 		= TypeBitmaskPopCount(mask);
+		size_t start_cell 	= extent >> divisor;
+		size_t stop_cell 	= to >> divisor;
+
+		T value = zero ? 0 : static_cast<T>(-1);
+
+		size_t cell;
+		for (cell = start_cell; cell > stop_cell; cell--)
+		{
+			if (buffer[cell] == value)
+			{
+				cnt += bitsize;
+			}
+			else {
+				break;
+			}
+		}
+
+		cnt += intrnl::CountBw(buffer, cell<<divisor, to, lut, zero);
+
+		return cnt;
+	}
+	else {
+		return cnt;
+	}
 }
 
+
+
 template <typename Buffer>
-Int CountOneBw(Buffer &buffer, Int from, Int to) {
+size_t CountOneBw(Buffer &buffer, size_t from, size_t to)
+{
     return CountBw(buffer, from, to, kPopCountBW_LUT, false);
 }
 
 template <typename Buffer>
-Int CountZeroBw(Buffer &buffer, Int from, Int to) {
+size_t CountZeroBw(Buffer &buffer, size_t from, size_t to)
+{
     return CountBw(buffer, from, to, kZeroCountBW_LUT, true);
 }
 
 
 template <typename Buffer>
-Int createUDS(Buffer &buf, Int start, Int *ds, Int ds_size, Int node_bits) {
-    for (Int ids = 0; ids < ds_size; ids++) {
-        for (Int i = 0; i < ds[ids]; i++, start++) {
-            setBit(buf, start, 1);
+Int CreateUDS(Buffer& buf, Int start, const Int* ds, Int ds_size, Int node_bits)
+{
+    for (Int ids = 0; ids < ds_size; ids++)
+    {
+        for (Int i = 0; i < ds[ids]; i++, start++)
+        {
+            SetBit(buf, start, 1);
         }
-        setBit(buf, start++, 0);
+        SetBit(buf, start++, 0);
 
-        for (Int i = 0; i < ds[ids]; i++, start += node_bits) {
-            setBits(buf, start, 0x9, node_bits);
+        for (Int i = 0; i < ds[ids]; i++, start += node_bits)
+        {
+            SetBits(buf, start, 0x9, node_bits);
         }
 
-        if (ds[ids] > 0) {
-            setBit(buf, start++, 0);
+        if (ds[ids] > 0)
+        {
+            SetBit(buf, start++, 0);
         }
     }
 

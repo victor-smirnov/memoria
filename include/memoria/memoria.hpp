@@ -37,6 +37,9 @@ struct CtrNameDeclarator<6>: TypeDef<Set<BigInt>> {};
 template <>
 struct CtrNameDeclarator<7>: TypeDef<VectorMap<BigInt, Byte>> {};
 
+template <>
+struct CtrNameDeclarator<8>: TypeDef<BitVector<false>> {};
+
 }
 
 #endif

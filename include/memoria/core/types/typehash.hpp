@@ -92,6 +92,9 @@ struct TypeHash<Vector<T>>: UIntValue<HashHelper<1300, TypeHash<T>::Value>::Valu
 
 template <> struct TypeHash<Root>: UIntValue<1400> {};
 
+template <bool Sparse>
+struct TypeHash<BitVector<Sparse>>: UIntValue<HashHelper<1500, Sparse>::Value> {};
+
 }
 
 #endif  /* _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP */
