@@ -28,16 +28,19 @@ public:
     BitmapTest(StringRef name):
         Base(name)
     {
-        MEMORIA_ADD_TEST(testPopCnt);
-        MEMORIA_ADD_TEST(testMakeMaskInternal);
-        MEMORIA_ADD_TEST(testMakeMask);
-        MEMORIA_ADD_TEST(testSetBit);
-        MEMORIA_ADD_TEST(testSetBits);
-        MEMORIA_ADD_TEST(testCountOneFW);
-        MEMORIA_ADD_TEST(testCountZeroFW);
-        MEMORIA_ADD_TEST(testCountOneBW);
-        MEMORIA_ADD_TEST(testCountZeroBW);
-    	MEMORIA_ADD_TEST(testMoveBits);
+//        MEMORIA_ADD_TEST(testPopCnt);
+//        MEMORIA_ADD_TEST(testMakeMaskInternal);
+//        MEMORIA_ADD_TEST(testMakeMask);
+//        MEMORIA_ADD_TEST(testSetBit);
+//        MEMORIA_ADD_TEST(testSetBits);
+    	MEMORIA_ADD_TEST(testPopCount);
+
+//        MEMORIA_ADD_TEST(testCountOneFW);
+//        MEMORIA_ADD_TEST(testCountZeroFW);
+//        MEMORIA_ADD_TEST(testCountOneBW);
+//        MEMORIA_ADD_TEST(testCountZeroBW);
+//    	MEMORIA_ADD_TEST(testMoveBits);
+
     }
 
 
@@ -55,6 +58,24 @@ public:
     		}
     		else {
     			AssertEQ(MA_SRC, cnt, __builtin_popcount(v));
+    		}
+    	}
+    }
+
+    void testPopCount(ostream& out)
+    {
+    	T bitmap[10];
+    	Int bitsize 	= sizeof(bitmap) * 8;
+
+    	clearBitmap(bitmap, bitsize, 0);
+
+    	for (Int length = 1; length <= bitsize; length++)
+    	{
+    		for (Int start = 0; start < bitsize - length; start++)
+    		{
+    			Int cnt = PopCount(bitmap, start, start + length);
+
+    			AssertEQ(MA_SRC, cnt, length, SBuf()<<start<<" "<<length);
     		}
     	}
     }

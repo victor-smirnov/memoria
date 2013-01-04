@@ -432,6 +432,117 @@ public:
 };
 
 
+template <typename TreeType, Int Bits>
+class RankWalker {
+	typedef typename TreeType::IndexKey IndexKey;
+	typedef typename TreeType::Value 	Value;
+
+	IndexKey 		sum_;
+	const TreeType& me_;
+	Value 			symbol_;
+
+	static const Int Blocks = TreeType::Blocks;
+
+	Int value_block_offset_;
+	Int index_block_offset_;
+
+public:
+	RankWalker(const TreeType& me, Value symbol, IndexKey sum = 0):
+		sum_(sum),
+		me_(me),
+		symbol_(symbol)
+	{
+		value_block_offset_ = me.getValueBlockOffset();
+		index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
+	}
+
+	void prepareIndex() {}
+
+	//FIXME: move offsets[] to constructor
+	void walkValues(Int start, Int end)
+	{
+		sum_ += me_.popCount(start, end, symbol_);
+	}
+
+	void walkIndex(Int start, Int end, Int size)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			sum_ += me_.indexb(index_block_offset_, c);
+		}
+	}
+
+	IndexKey sum() const
+	{
+		return sum_;
+	}
+};
+
+
+template <typename TreeType>
+class RankWalker<TreeType, 1>
+{
+    typedef typename TreeType::IndexKey IndexKey;
+    typedef typename TreeType::Value 	Value;
+
+    IndexKey 		sum_;
+    const TreeType& me_;
+    Value 			symbol_;
+
+    static const Int Blocks = TreeType::Blocks;
+
+    Int value_block_offset_;
+    Int index_block_offset_;
+
+public:
+    RankWalker(const TreeType& me, Value symbol, IndexKey sum = 0):
+        sum_(sum),
+        me_(me),
+        symbol_(symbol)
+    {
+    	value_block_offset_ = me.getValueBlockOffset();
+    	index_block_offset_ = me.getIndexKeyBlockOffset(0);
+    }
+
+    void prepareIndex() {}
+
+    //FIXME: move offsets[] to constructor
+    void walkValues(Int start, Int end)
+    {
+    	const Value* buffer = T2T<const Value*>(me_.memoryBlock() + value_block_offset_);
+    	size_t count = PopCount(buffer, start, end);
+
+    	if (symbol_)
+    	{
+    		sum_ += count;
+    	}
+    	else {
+    		sum_ += end - start - count;
+    	}
+    }
+
+    void walkIndex(Int start, Int end, Int size)
+    {
+    	for (Int c = start; c < end; c++)
+    	{
+    		IndexKey count = me_.indexb(index_block_offset_, c);
+
+    		if (symbol_) {
+    			sum_ += count;
+    		}
+    		else {
+    			sum_ += size - count;
+    		}
+    	}
+    }
+
+    IndexKey sum() const
+    {
+    	return sum_;
+    }
+};
+
+
 
 }
 

@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <limits>
+#include <type_traits>
 #include <string.h>
 
 namespace memoria    {
@@ -110,7 +111,7 @@ const char kZeroCountBW_LUT[] = {8,7,6,6,5,5,5,5,4,4,4,4,4,4,4,4,3,3,3,3,3,3,3,3
  */
 
 template <typename T>
-inline size_t TypeBitsize() {
+constexpr inline size_t TypeBitsize() {
     return sizeof(T) * 8;
 }
 
@@ -120,7 +121,7 @@ inline size_t TypeBitsize() {
  */
 
 template <typename T>
-inline size_t TypeBitmask() {
+constexpr inline size_t TypeBitmask() {
     return TypeBitsize<T>() - 1;
 }
 
@@ -131,7 +132,7 @@ inline size_t TypeBitmask() {
  */
 
 template <typename T>
-inline size_t TypeBitmaskPopCount(T mask) {
+constexpr inline size_t TypeBitmaskPopCount(T mask) {
     return mask == 7 ? 3 : (mask == 15 ? 4 : (mask == 31 ? 5 : (mask == 63 ? 6 : (mask == 127 ? 7 : 7))));
 }
 //
@@ -211,39 +212,6 @@ uT MakeMask0(Int start, Int length)
 
     return value >> (bitsize - length - start);
 }
-
-template <typename T>
-struct MakeSigned: DeclType<T> {};
-
-template <typename T>
-struct MakeUnsigned: DeclType<T> {};
-
-
-template <>
-struct MakeSigned<UByte>: DeclType<Byte> {};
-
-template <>
-struct MakeSigned<UShort>: DeclType<Short> {};
-
-template <>
-struct MakeSigned<UInt>: DeclType<Int> {};
-
-template <>
-struct MakeSigned<UBigInt>: DeclType<BigInt> {};
-
-
-template <>
-struct MakeUnsigned<Byte>: DeclType<UByte> {};
-
-template <>
-struct MakeUnsigned<Short>: DeclType<UShort> {};
-
-template <>
-struct MakeUnsigned<Int>: DeclType<UInt> {};
-
-template <>
-struct MakeUnsigned<BigInt>: DeclType<UBigInt> {};
-
 }
 
 /**
@@ -256,8 +224,8 @@ T MakeMask(Int start, Int length)
 	if (length > 0)
 	{
 		return (T)intrnl::MakeMask0<
-					typename intrnl::MakeUnsigned<T>::Type,
-					typename intrnl::MakeSigned<T>::Type
+					typename std::make_unsigned<T>::type,
+					typename std::make_signed<T>::type
 				>(start, length);
 	}
 	else {
@@ -296,6 +264,43 @@ inline Int PopCnt(UInt arg, Int start, Int length)
 	UInt mask = MakeMask<UInt>(start, length);
 	return PopCnt(arg & mask);
 }
+
+template <typename Buffer>
+size_t PopCount(const Buffer& buffer, size_t start, size_t stop)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
+
+	size_t bitsize 	= TypeBitsize<T>();
+	size_t mask 	= TypeBitmask<T>();
+	size_t divisor 	= TypeBitmaskPopCount(mask);
+
+	size_t prefix 	= bitsize - (start & mask);
+
+	size_t total	= 0;
+
+	if (start + prefix > stop)
+	{
+		return PopCnt(buffer[start >> divisor], start & mask, stop - start);
+	}
+	else {
+		total += PopCnt(buffer[start >> divisor], start & mask, prefix);
+
+		for (size_t c = (start >> divisor) + 1; c < (stop >> divisor); c++)
+		{
+			total += PopCnt(buffer[c]);
+		}
+
+		size_t suffix = stop & mask;
+
+		if (suffix > 0)
+		{
+			total += PopCnt(buffer[stop >> divisor], 0, suffix);
+		}
+
+		return total;
+	}
+}
+
 
 template <typename Buffer>
 void SetBit(Buffer& buf, size_t idx, Int value)
@@ -418,7 +423,11 @@ void SetBits(Buffer &buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bi
         size_t nbits0 = nbits - nbits1;
 
         SetBits0(buf, idx, bits, nbits0);
-        SetBits0(buf, idx + nbits0, bits >> (nbits0), nbits1);
+
+        if (nbits1 > 0)
+        {
+        	SetBits0(buf, idx + nbits0, bits >> (nbits0), nbits1);
+        }
     }
 }
 
@@ -449,7 +458,7 @@ GetBits(const Buffer &buf, size_t idx, Int nbits)
     	size_t nbits1 = laddr + nbits - bitsize;
     	size_t nbits0 = nbits - nbits1;
 
-        return GetBits0(buf, idx, nbits0) | (GetBits0(buf, idx + nbits0, nbits1) << nbits0);
+        return GetBits0(buf, idx, nbits0) | (nbits1 > 0 ? (GetBits0(buf, idx + nbits0, nbits1) << nbits0) : 0);
     }
 }
 

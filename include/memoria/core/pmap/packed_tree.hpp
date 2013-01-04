@@ -474,11 +474,6 @@ public:
 
         MEMORIA_ASSERT(copy_to, >=, 0);
 
-        if (copy_to + count > other->max_size_) {
-            int a = 0;
-            a++;
-        }
-
         MEMORIA_ASSERT(copy_to + count, <=, other->max_size_);
 
         for (Int c = 0; c < Blocks; c++)
@@ -1301,7 +1296,6 @@ private:
             Int range = this->findRange(key_block, target_key_block, item_size, target_item_size, std::less_equal<const Byte*>());
 
             copyKeysAsc(other, target_memory_block, offset, target_offset, 0, range);
-            DebugCounter = 2;
             copyKeysDsc(other, target_memory_block, offset, target_offset, range, size());
         }
         else if (this->isTargetInsideMe(key_block, target_key_block, key_block_size, target_key_block_size))
