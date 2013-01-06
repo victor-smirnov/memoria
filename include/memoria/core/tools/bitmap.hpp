@@ -18,6 +18,8 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 
+#include <memoria/core/exceptions/exceptions.hpp>
+
 #include <iostream>
 #include <limits>
 #include <type_traits>
@@ -26,6 +28,8 @@
 namespace memoria    {
 
 using namespace std;
+
+using namespace memoria::vapi;
 
 /*
 template <typename ItemType, Int BitCount> struct MakeSimpleMask;
@@ -266,9 +270,9 @@ inline Int PopCnt(UInt arg, Int start, Int length)
 }
 
 template <typename Buffer>
-size_t PopCount(const Buffer& buffer, size_t start, size_t stop)
+size_t PopCount(const Buffer* buffer, size_t start, size_t stop)
 {
-	typedef typename intrnl::ElementT<Buffer>::Type T;
+	typedef typename intrnl::ElementT<Buffer*>::Type T;
 
 	size_t bitsize 	= TypeBitsize<T>();
 	size_t mask 	= TypeBitmask<T>();
@@ -331,7 +335,7 @@ void SetBit(Buffer& buf, size_t idx, Int value)
  */
 
 template <typename Buffer>
-Int GetBit(const Buffer &buf, size_t idx)
+Int GetBit(const Buffer& buf, size_t idx)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -354,7 +358,7 @@ Int GetBit(const Buffer &buf, size_t idx)
  */
 
 template <typename Buffer>
-void SetBits0(Buffer &buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
+void SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -382,7 +386,7 @@ void SetBits0(Buffer &buf, size_t idx, typename intrnl::ElementT<Buffer>::Type b
 
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
-GetBits0(const Buffer &buf, size_t idx, Int nbits)
+GetBits0(const Buffer& buf, size_t idx, Int nbits)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -397,6 +401,24 @@ GetBits0(const Buffer &buf, size_t idx, Int nbits)
     return (buf[haddr] >> laddr) & bitmask;
 }
 
+template <typename Buffer>
+typename intrnl::ElementT<Buffer>::Type
+GetBitsNeg0(const Buffer& buf, size_t idx, Int nbits)
+{
+	typedef typename intrnl::ElementT<Buffer>::Type T;
+
+	size_t mask = TypeBitmask<T>();
+    size_t divisor = TypeBitmaskPopCount(mask);
+
+    size_t haddr = (idx & ~mask) >> divisor;
+    size_t laddr = idx & mask;
+
+    T bitmask = MakeMask<T>(0, nbits);
+
+    return ((~buf[haddr]) >> laddr) & bitmask;
+}
+
+
 /**
  * set group of 'nbits' bits stored in 'bits' to the buffer at the address 'idx'
  *
@@ -404,7 +426,7 @@ GetBits0(const Buffer &buf, size_t idx, Int nbits)
  */
 
 template <typename Buffer>
-void SetBits(Buffer &buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
+void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -440,7 +462,7 @@ void SetBits(Buffer &buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bi
 
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
-GetBits(const Buffer &buf, size_t idx, Int nbits)
+GetBits(const Buffer& buf, size_t idx, Int nbits)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -471,9 +493,9 @@ GetBits(const Buffer &buf, size_t idx, Int nbits)
  */
 
 template <typename Buffer>
-void MoveBitsFW(const Buffer &src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
+void MoveBitsFW(const Buffer* src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
 {
-	typedef typename intrnl::ElementT<Buffer>::Type T;
+	typedef typename intrnl::ElementT<Buffer*>::Type T;
 
     size_t bitsize = TypeBitsize<T>();
     size_t mask = TypeBitmask<T>();
@@ -514,9 +536,9 @@ void MoveBitsFW(const Buffer &src, Buffer &dst, size_t src_idx, size_t dst_idx, 
 
 
 template <typename Buffer>
-void MoveBitsBW(const Buffer &src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
+void MoveBitsBW(const Buffer* src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
 {
-	typedef typename intrnl::ElementT<Buffer>::Type T;
+	typedef typename intrnl::ElementT<Buffer*>::Type T;
 
     size_t bitsize = TypeBitsize<T>();
     size_t mask = TypeBitmask<T>();
@@ -554,7 +576,7 @@ void MoveBitsBW(const Buffer &src, Buffer &dst, size_t src_idx, size_t dst_idx, 
 
 
 template <typename Buffer>
-void MoveBits(const Buffer &src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
+void MoveBits(const Buffer* src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
 {
 	if (dst_idx > src_idx)
 	{
@@ -671,9 +693,9 @@ void MoveBits(const Buffer &src, Buffer &dst, size_t src_idx, size_t dst_idx, si
 namespace intrnl {
 
 template <typename Buffer>
-size_t CountFw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zero)
+size_t CountFw(const Buffer* buffer, size_t from, size_t to, const char *lut, bool zero)
 {
-	typedef typename intrnl::ElementT<Buffer>::Type T;
+	typedef typename intrnl::ElementT<Buffer*>::Type T;
 
 	size_t cnt = 0;
 
@@ -707,7 +729,7 @@ size_t CountFw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zer
 
 
 template <typename Buffer>
-size_t CountBw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zero)
+size_t CountBw(const Buffer* buffer, size_t from, size_t to, const char *lut, bool zero)
 {
     size_t cnt = 0;
 
@@ -748,9 +770,9 @@ size_t CountBw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zer
 }
 
 template <typename Buffer>
-size_t CountFw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zero)
+size_t CountFw(const Buffer* buffer, size_t from, size_t to, const char *lut, bool zero)
 {
-	typedef typename intrnl::ElementT<Buffer>::Type T;
+	typedef typename intrnl::ElementT<Buffer*>::Type T;
 
 	size_t bitsize 	= TypeBitsize<T>();
 	size_t mask 	= TypeBitmask<T>();
@@ -794,13 +816,13 @@ size_t CountFw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zer
 }
 
 template <typename Buffer>
-size_t CountOneFw(Buffer &buffer, size_t from, size_t to)
+size_t CountOneFw(const Buffer* buffer, size_t from, size_t to)
 {
     return CountFw(buffer, from, to, kPopCountFW_LUT, false);
 }
 
 template <typename Buffer>
-size_t CountZeroFw(Buffer &buffer, size_t from, size_t to)
+size_t CountZeroFw(const Buffer* buffer, size_t from, size_t to)
 {
     return CountFw(buffer, from, to, kZeroCountFW_LUT, true);
 }
@@ -808,9 +830,9 @@ size_t CountZeroFw(Buffer &buffer, size_t from, size_t to)
 
 
 template <typename Buffer>
-size_t CountBw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zero)
+size_t CountBw(const Buffer* buffer, size_t from, size_t to, const char *lut, bool zero)
 {
-	typedef typename intrnl::ElementT<Buffer>::Type T;
+	typedef typename intrnl::ElementT<Buffer*>::Type T;
 
 	size_t bitsize 	= TypeBitsize<T>();
 	size_t mask 	= TypeBitmask<T>();
@@ -856,20 +878,20 @@ size_t CountBw(Buffer &buffer, size_t from, size_t to, const char *lut, bool zer
 
 
 template <typename Buffer>
-size_t CountOneBw(Buffer &buffer, size_t from, size_t to)
+size_t CountOneBw(const Buffer* buffer, size_t from, size_t to)
 {
     return CountBw(buffer, from, to, kPopCountBW_LUT, false);
 }
 
 template <typename Buffer>
-size_t CountZeroBw(Buffer &buffer, size_t from, size_t to)
+size_t CountZeroBw(const Buffer* buffer, size_t from, size_t to)
 {
     return CountBw(buffer, from, to, kZeroCountBW_LUT, true);
 }
 
 
 template <typename Buffer>
-Int CreateUDS(Buffer& buf, Int start, const Int* ds, Int ds_size, Int node_bits)
+Int CreateUDS(Buffer* buf, Int start, const Int* ds, Int ds_size, Int node_bits)
 {
     for (Int ids = 0; ids < ds_size; ids++)
     {

@@ -543,6 +543,97 @@ public:
 };
 
 
+template <typename TreeType, Int Bits>
+class SelectFWWalker;
+
+
+
+template <typename TreeType>
+class SelectFWWalker<TreeType, 1> {
+
+	typedef typename TreeType::IndexKey IndexKey;
+    typedef typename TreeType::Value 	Value;
+
+    IndexKey 		sum_;
+    IndexKey 		limit_;
+    const TreeType& me_;
+    Value 			symbol_;
+
+    static const Int Blocks = TreeType::Blocks;
+
+    Int value_block_offset_;
+    Int index_block_offset_;
+
+public:
+    SelectFWWalker(const TreeType& me, Value symbol, IndexKey limit):
+        sum_(0),
+        limit_(limit),
+        me_(me),
+        symbol_(symbol)
+    {
+    	value_block_offset_ = me.getValueBlockOffset();
+    	index_block_offset_ = me.getIndexKeyBlockOffset(0);
+    }
+
+    void prepareIndex() {}
+
+    //FIXME: move offsets[] to constructor
+    void walkValues(Int start, Int end)
+    {
+//    	for (Int c = start; c < end; c++)
+//    	{
+//    		IndexKey key = me_.keyb(key_block_offset_, c);
+//    		IndexKey sum = sum_ + key;
+//
+//    		if (sum <= limit_)
+//    		{
+//    			sum_ = sum;
+//    		}
+//    		else {
+//    			return c;
+//    		}
+//    	}
+//
+//    	return end;
+
+
+//    	const Value* buffer = T2T<const Value*>(me_.memoryBlock() + value_block_offset_);
+//    	size_t count = PopCount(buffer, start, end);
+//
+//    	if (symbol_)
+//    	{
+//    		sum_ += count;
+//    	}
+//    	else {
+//    		sum_ += end - start - count;
+//    	}
+    }
+
+    void walkIndex(Int start, Int end, Int size)
+    {
+        for (Int c = start; c < end; c++)
+        {
+        	IndexKey count 	= me_.indexb(index_block_offset_, c);
+        	IndexKey sum 	= sum_ + (symbol_ ? count : size - count);
+
+            if (sum <= limit_)
+            {
+                sum_ = sum;
+            }
+            else {
+                return c;
+            }
+        }
+
+        return end;
+    }
+
+    IndexKey sum() const
+    {
+    	return sum_;
+    }
+};
+
 
 }
 

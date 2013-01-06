@@ -27,9 +27,9 @@ public:
     {
     	registerTask(new PSeqInitTest());
 
-    	registerTask(new PSeqRankTest<1>());
-    	registerTask(new PSeqRankTest<2>());
-    	registerTask(new PSeqRankTest<4>());
+//    	registerTask(new PSeqRankTest<1>());
+//    	registerTask(new PSeqRankTest<2>());
+//    	registerTask(new PSeqRankTest<4>());
     	registerTask(new PSeqRankTest<8>());
     }
 

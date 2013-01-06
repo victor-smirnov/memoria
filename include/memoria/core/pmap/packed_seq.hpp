@@ -360,13 +360,18 @@ public:
     }
 
 
-    Int rank(Int from, Int to, Value symbol)
+    Int rank(Int from, Int to, Value symbol) const
     {
     	RankWalker<MyType, Bits> walker(*this, symbol);
 
     	walkRange(from, to, walker);
 
     	return walker.sum();
+    }
+
+    Int selectFw(Int from, Value symbol, Int count) const
+    {
+    	return 0;
     }
 
 private:
@@ -432,14 +437,40 @@ public:
 
     Value getValueItem(Int block_offset, Int item_idx) const
     {
-    	const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
-    	return GetBits(buffer, item_idx * Bits, Bits);
+    	if (Bits == 1 || Bits == 2 || Bits == 4)
+    	{
+    		const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
+    		return GetBits0(buffer, item_idx * Bits, Bits);
+    	}
+    	else if (Bits == 8)
+    	{
+    		const UByte* buffer = T2T<const UByte*>(memory_block_ + block_offset);
+    		return buffer[item_idx];
+    	}
+    	else
+    	{
+    		const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
+    		return GetBits(buffer, item_idx * Bits, Bits);
+    	}
     }
 
     void setValueItem(Int block_offset, Int item_idx, const Value& v)
     {
-    	Value* buffer = T2T<Value*>(memory_block_ + block_offset);
-    	SetBits(buffer, item_idx * Bits, v, Bits);
+    	if (Bits == 1 || Bits == 2 || Bits == 4)
+    	{
+    		Value* buffer = T2T<Value*>(memory_block_ + block_offset);
+    		SetBits0(buffer, item_idx * Bits, v, Bits);
+    	}
+    	else if (Bits == 8)
+    	{
+    		UByte* buffer = T2T<UByte*>(memory_block_ + block_offset);
+    		buffer[item_idx] = v;
+    	}
+    	else
+    	{
+    		Value* buffer = T2T<Value*>(memory_block_ + block_offset);
+    		SetBits(buffer, item_idx * Bits, v, Bits);
+    	}
     }
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
@@ -816,6 +847,48 @@ protected:
     	}
     }
 
+    template <typename Walker>
+    Int walkFw(Int start, Walker& walker) const
+    {
+    	MEMORIA_ASSERT(start, <=, size());
+
+
+    	Int block_limit     = getBlockStartEndV(start);
+
+    	if (block_limit >= size())
+    	{
+    		return walker.walkValues(start, size());
+    	}
+    	else
+    	{
+    		Int limit = walker.walkValues(start, block_limit);
+    		if (limit < block_limit)
+    		{
+    			return limit;
+    		}
+    		else {
+    			walker.prepareIndex();
+
+    			Int level_size      = getIndexCellsNumberFor(max_size_);
+    			Int level_limit     = getIndexCellsNumberFor(size_);
+    			Int last_start      = walkIndexFw(
+    					block_limit/ValuesPerBranch,
+    					walker,
+    					index_size_ - level_size,
+    					level_size,
+    					level_limit,
+    					ValuesPerBranch
+    			);
+
+    			Int last_start_end  = getBlockStartEndV(last_start);
+
+    			Int last_end = last_start_end <= size()? last_start_end : size();
+
+    			return walker.walkValues(last_start, last_end);
+    		}
+    	}
+    }
+
 
     static Int getBlockStart(Int i)
     {
@@ -901,17 +974,22 @@ private:
     }
 
     template <typename Walker>
-    Int walkIndexFw(Int start, Walker& walker, Int level_offet, Int level_size, Int level_limit) const
+    Int walkIndexFw(Int start, Walker& walker, Int level_offet, Int level_size, Int level_limit, Int cell_size) const
     {
     	Int block_start_end     = getBlockStartEnd(start);
 
     	if (block_start_end >= level_limit)
     	{
-    		return (walker.walkIndex(start + level_offet, level_limit + level_offet) - level_offet) * BranchingFactor;
+    		return (walker.walkIndex(
+    							start + level_offet,
+    							level_limit + level_offet,
+    							cell_size
+    						)
+    						- level_offet) * BranchingFactor;
     	}
     	else
     	{
-    		Int limit = walker.walkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
+    		Int limit = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
     		if (limit < block_start_end)
     		{
     			return limit * BranchingFactor;
@@ -925,30 +1003,41 @@ private:
     					walker,
     					level_offet - level_size0,
     					level_size0,
-    					level_limit0
+    					level_limit0,
+    					cell_size * BranchingFactor
     			);
 
     			Int last_start_end  = getBlockStartEnd(last_start);
 
     			Int last_end = last_start_end <= level_limit ? last_start_end : level_limit;
 
-    			return (walker.walkIndex(last_start + level_offet, last_end + level_offet) - level_offet) * BranchingFactor;
+    			return (walker.walkIndex(
+    								last_start + level_offet,
+    								last_end + level_offet,
+    								cell_size
+    							)
+    							- level_offet) * BranchingFactor;
     		}
     	}
     }
 
     template <typename Walker>
-    Int walkIndexBw(Int start, Walker& walker, Int level_offet, Int level_size) const
+    Int walkIndexBw(Int start, Walker& walker, Int level_offet, Int level_size, Int cell_size) const
     {
     	Int block_start_end     = getBlockStartEndBw(start);
 
     	if (block_start_end == -1)
     	{
-    		return (walker.walkIndex(start + level_offet, level_offet - 1) - level_offet + 1) * BranchingFactor - 1;
+    		return (walker.walkIndex(
+    							start + level_offet,
+    							level_offet - 1,
+    							cell_size
+    						)
+    						- level_offet + 1) * BranchingFactor - 1;
     	}
     	else
     	{
-    		Int idx = walker.walkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
+    		Int idx = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
     		if (idx > block_start_end)
     		{
     			return (idx + 1) * BranchingFactor - 1;
@@ -959,13 +1048,18 @@ private:
     					block_start_end/BranchingFactor,
     					walker,
     					level_offet - level_size0,
-    					level_size0
+    					level_size0,
+    					cell_size * BranchingFactor
     			);
 
     			Int last_start_end = getBlockStartEndBw(last_start);
 
-    			return (walker.walkIndex(last_start + level_offet, last_start_end + level_offet) - level_offet + 1)
-    					* BranchingFactor - 1;
+    			return (walker.walkIndex(
+    							last_start + level_offet,
+    							last_start_end + level_offet,
+    							cell_size
+    							)
+    							- level_offet + 1) * BranchingFactor - 1;
     		}
     	}
     }

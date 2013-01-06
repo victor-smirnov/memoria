@@ -387,7 +387,7 @@ void AssertTrue(const char* src, const Op& op, const SBuf& msg = SBuf())
 {
 	if (!(op))
 	{
-		throw TestException(src, SBuf()<<"True assertion failed: "<<op<<msg.str());
+		throw TestException(src, SBuf()<<"True assertion failed: "<<op<<" "<<msg.str());
 	}
 }
 

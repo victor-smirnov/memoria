@@ -58,7 +58,7 @@ public:
     {
     	out<<"runTest1: "<<Bits<<endl;
 
-    	Int buffer_size     = 2048*Bits;
+    	Int buffer_size     = Bits < 8 ? 2048*Bits : 8192*Bits;
 
     	unique_ptr<Byte[]>  buffer_ptr(new Byte[buffer_size]);
     	Byte* buffer       	= buffer_ptr.get();
@@ -77,7 +77,7 @@ public:
 
     	for (Int start = 0; start < seq->maxSize(); start += 10)
     	{
-    		out<<start<<endl;
+    		cout<<start<<endl;
     		for (Int end = start; end < seq->maxSize(); end += 10)
     		{
     			for (Int s = 0; s < Symbols; s++)
