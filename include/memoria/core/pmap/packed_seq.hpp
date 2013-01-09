@@ -17,6 +17,7 @@
 #include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/bitmap_select.hpp>
 #include <memoria/core/tools/md5.hpp>
 
 #include <memoria/core/tools/reflection.hpp>

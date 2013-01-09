@@ -25,11 +25,17 @@ class BitmapTest: public TestTask {
     typedef BitmapTest                                                  		MyType;
     typedef TestTask                                                          	Base;
 
+    UBigInt value_ = 0;
+    UBigInt rank_ = 0;
+
 
 public:
     BitmapTest(StringRef name):
         Base(name)
     {
+    	MEMORIA_ADD_TEST_PARAM(value_)->state();
+    	MEMORIA_ADD_TEST_PARAM(rank_)->state();
+
 //        MEMORIA_ADD_TEST(testPopCnt);
 //        MEMORIA_ADD_TEST(testMakeMaskInternal);
 //        MEMORIA_ADD_TEST(testMakeMask);
@@ -43,9 +49,9 @@ public:
 //        MEMORIA_ADD_TEST(testCountZeroBW);
 //    	  MEMORIA_ADD_TEST(testMoveBits);
 
-//    	MEMORIA_ADD_TEST(testSelectFWPlain);
-    	MEMORIA_ADD_TEST(testSelectBWPlain);
-//    	MEMORIA_ADD_TEST(testSelectFW);
+//    	MEMORIA_ADD_TEST_WITH_REPLAY(testSelectFWPlain, replaySelectFWPlain);
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testSelectBWPlain, replaySelectBWPlain);
+    	MEMORIA_ADD_TEST(testSelectFW);
     }
 
 
@@ -409,145 +415,98 @@ public:
     	}
     }
 
+    size_t selectFW(UBigInt x, Int rank)
+    {
+    	for (size_t c = 0; c < TypeBitsize<UBigInt>(); c++)
+    	{
+    		if (PopCnt(x & MakeMask<UBigInt>(0, c)) == rank)
+    		{
+    			return c;
+    		}
+    	}
 
+    	return 100 + PopCnt(x);
+    }
+
+    size_t selectBW(UBigInt x, Int rank)
+    {
+    	Int bitsize = TypeBitsize<UBigInt>();
+
+    	for (Int c = bitsize; c >= 0; c--)
+    	{
+    		UBigInt mask = MakeMask<UBigInt>(c, bitsize - c);
+    		if (PopCnt(x & mask) == rank)
+    		{
+    			return c;
+    		}
+    	}
+
+    	return 100 + PopCnt(x);
+    }
 
     void testSelectFWPlain(ostream& out)
     {
-    	UBigInt value = -1;
     	size_t bitsize = TypeBitsize<UBigInt>();
-    	value >>= bitsize/2;
 
-    	size_t total 	= 0;
-    	size_t pos		= 0;
-
-    	AssertFalse(MA_SRC, intrnl2::SelectFW(value, total, pos, pos));
-
-    	for (size_t c = 1; c < bitsize / 2; c++)
+    	for (Int c = 0; c < 10000; c++)
     	{
-    		total 	= 0;
-    		pos		= c;
+    		value_ = getBIRandom();
 
-    		auto result = intrnl2::SelectFW(value, total, c, pos);
+    		for (rank_ = 0; rank_ < bitsize; rank_++)
+    		{
+    			size_t pos1 = SelectFW(value_, rank_);
+    			size_t pos2 = selectFW(value_, rank_);
 
-    		AssertTrue(MA_SRC, result);
-
-    		AssertEQ(MA_SRC, total, c);
-    		AssertEQ(MA_SRC, pos,   c - 1);
+    			AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
+    		}
     	}
-
-    	for (size_t c = 1; c < bitsize / 2; c++)
-    	{
-    		total 	= 0;
-    		pos		= bitsize;
-
-    		auto result = intrnl2::SelectFW(value, total, c, pos);
-
-    		AssertTrue(MA_SRC, result);
-
-    		AssertEQ(MA_SRC, total, c);
-    		AssertEQ(MA_SRC, pos,   c - 1);
-    	}
-
-		total 	= 0;
-		pos		= bitsize;
-
-		auto result = intrnl2::SelectFW(value, total, bitsize/2 + 1, pos);
-
-		AssertFalse(MA_SRC, result);
-		AssertEQ(MA_SRC, total, bitsize/2);
-		AssertEQ(MA_SRC, pos,   bitsize);
-
-		total 	= 0;
-		pos		= bitsize;
-
-		result = intrnl2::SelectFW(value, total, bitsize/2, pos);
-
-		AssertTrue(MA_SRC, result);
-		AssertEQ(MA_SRC, total, bitsize/2);
-		AssertEQ(MA_SRC, pos,   bitsize/2 - 1);
     }
-
 
     void testSelectBWPlain(ostream& out)
     {
     	size_t bitsize = TypeBitsize<UBigInt>();
 
-    	UBigInt value = -1;
-    	//value <<= bitsize/2;
-
-    	size_t total 	= 0;
-    	size_t delta;
-
-    	for (size_t c = 1; c < bitsize; c++)
+    	for (Int c = 0; c < 10000; c++)
     	{
-    		total 	= 0;
+    		value_ = getBIRandom();
 
-    		auto result = intrnl2::SelectBW(value, total, c, bitsize - 1,  delta);
+    		for (rank_ = 0; rank_ < bitsize; rank_++)
+    		{
+    			size_t pos1 = SelectBW(value_, rank_);
+    			size_t pos2 = selectBW(value_, rank_);
 
-    		AssertTrue(MA_SRC, result, SBuf()<<c);
-
-    		AssertEQ(MA_SRC, total, c);
-    		AssertEQ(MA_SRC, delta, c - 1);
+    			AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
+    		}
     	}
+    }
 
-    	for (size_t c = bitsize; c > 0; c--, value >>= 1)
+    void dumpRanks(ostream& out, UBigInt value) const
+    {
+    	for (Int c = 0; c < 64; c++)
     	{
-    		total 	= 0;
-
-    		auto result = intrnl2::SelectBW(value, total, c, bitsize - 1,  delta);
-
-    		AssertTrue(MA_SRC, result);
-
-    		AssertEQ(MA_SRC, total, c);
-    		AssertEQ(MA_SRC, delta, bitsize - 1);
+    		out<<c<<" ";
+    		out<<PopCnt(value & MakeMask<UBigInt>(0, c))<<endl;
     	}
+    }
 
-    	value = -1;
+    void replaySelectFWPlain(ostream& out)
+    {
+    	dumpRanks(out, value_);
 
-    	for (size_t c = bitsize; c > 0; c--, value >>= 1)
-    	{
-    		total 	= 0;
+		size_t pos1 = SelectFW(value_, rank_);
+		size_t pos2 = selectFW(value_, rank_);
 
-    		auto result = intrnl2::SelectBW(value, total, c, c - 1,  delta);
+		AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
+    }
 
-    		AssertTrue(MA_SRC, result);
+    void replaySelectBWPlain(ostream& out)
+    {
+    	dumpRanks(out, value_);
 
-    		AssertEQ(MA_SRC, total, c);
-    		AssertEQ(MA_SRC, delta, c - 1);
-    	}
+    	size_t pos1 = SelectBW(value_, rank_);
+    	size_t pos2 = selectBW(value_, rank_);
 
-    	value = 1;
-
-    	for (size_t c = 0; c < bitsize; c++, value <<= 1)
-    	{
-    		total 	= 0;
-
-    		auto result = intrnl2::SelectBW(value, total, 1, bitsize - 1,  delta);
-
-    		AssertTrue(MA_SRC, result);
-
-    		AssertEQ(MA_SRC, total, 1ul);
-    		AssertEQ(MA_SRC, delta, bitsize - c - 1);
-    	}
-
-//
-//    	total 	= 0;
-//    	pos		= bitsize;
-//
-//    	auto result = intrnl2::SelectFW(value, total, bitsize/2 + 1, pos);
-//
-//    	AssertFalse(MA_SRC, result);
-//    	AssertEQ(MA_SRC, total, bitsize/2);
-//    	AssertEQ(MA_SRC, pos,   bitsize);
-//
-//    	total 	= 0;
-//    	pos		= bitsize;
-//
-//    	result = intrnl2::SelectFW(value, total, bitsize/2, pos);
-//
-//    	AssertTrue(MA_SRC, result);
-//    	AssertEQ(MA_SRC, total, bitsize/2);
-//    	AssertEQ(MA_SRC, pos,   bitsize/2 - 1);
+    	AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
     }
 
 
@@ -557,13 +516,13 @@ public:
 
     	for (size_t c = start; c < stop; c++)
     	{
-    		total += GetBit(bitmap, c);
-
     		if (total == count)
     		{
     			stop = c;
     			break;
     		}
+
+    		total += GetBit(bitmap, c);
     	}
 
     	return total;
@@ -575,13 +534,13 @@ public:
 
     	for (size_t c = start; c < stop; c++)
     	{
-    		total += 1 - GetBit(bitmap, c);
-
     		if (total == count)
     		{
     			stop = c;
     			break;
     		}
+
+    		total += 1 - GetBit(bitmap, c);
     	}
 
     	return total;
@@ -596,20 +555,20 @@ public:
 
     	for (size_t start = 0; start < bitsize; start++)
     	{
-    		for (size_t count = 1; count < bitsize - start; count++)
+    		for (size_t rank = 0; rank < bitsize - start; rank++)
     		{
-        		auto result = Select1FW(bitmap, start, bitsize, count);
+    			auto result = Select1FW(bitmap, start, bitsize, rank);
 
-        		AssertEQ(MA_SRC, result.idx(), 	 start + count - 1, SBuf()<<start<<" "<<count);
-        		AssertEQ(MA_SRC, result.count(), count, SBuf()<<start<<" "<<count);
+        		AssertEQ(MA_SRC, result.idx(), 	start + rank, SBuf()<<start<<" "<<rank);
+        		AssertEQ(MA_SRC, result.rank(), rank, SBuf()<<start<<" "<<rank);
     		}
 
-    		for (size_t count = 1; count < bitsize - start; count++)
+    		for (size_t rank = 0; rank < bitsize - start; rank++)
     		{
-    			auto result = Select1FW(bitmap, start, start + count, count);
+    			auto result = Select1FW(bitmap, start, start + rank, rank);
 
-    			AssertEQ(MA_SRC, result.idx(), 	 start + count - 1, SBuf()<<start<<" "<<count);
-    			AssertEQ(MA_SRC, result.count(), count, SBuf()<<start<<" "<<count);
+    			AssertEQ(MA_SRC, result.idx(), 	start + rank, SBuf()<<start<<" "<<rank);
+    			AssertEQ(MA_SRC, result.rank(), rank, SBuf()<<start<<" "<<rank);
     		}
     	}
 
@@ -618,26 +577,26 @@ public:
 
     	for (size_t start = 0; start < bitsize; start++)
     	{
-    		for (size_t count = 1; count < bitsize - start; count++)
+    		for (size_t rank = 0; rank < bitsize - start; rank++)
     		{
-    			auto result = Select1FW(bitmap, start, bitsize, count);
+    			auto result = Select1FW(bitmap, start, bitsize, rank);
 
     			size_t pos = bitsize;
-    			size_t total = select1FW(bitmap, start, pos, count);
+    			size_t total = select1FW(bitmap, start, pos, rank);
 
-    			AssertEQ(MA_SRC, result.idx(), 	 pos, SBuf()<<start<<" "<<count);
-    			AssertEQ(MA_SRC, result.count(), total, SBuf()<<start<<" "<<count);
+    			AssertEQ(MA_SRC, result.idx(), 	 pos, SBuf()<<start<<" "<<rank);
+    			AssertEQ(MA_SRC, result.rank(),  total, SBuf()<<start<<" "<<rank);
     		}
 
-    		for (size_t count = 1; count < bitsize - start; count++)
+    		for (size_t rank = 0; rank < bitsize - start; rank++)
     		{
-    			auto result = Select1FW(bitmap, start, start + count, count);
+    			auto result = Select1FW(bitmap, start, start + rank, rank);
 
-    			size_t pos = start + count;
-    			size_t total = select1FW(bitmap, start, pos, count);
+    			size_t pos = start + rank;
+    			size_t total = select1FW(bitmap, start, pos, rank);
 
-    			AssertEQ(MA_SRC, result.idx(), 	 pos, SBuf()<<start<<" "<<count);
-    			AssertEQ(MA_SRC, result.count(), total, SBuf()<<start<<" "<<count);
+    			AssertEQ(MA_SRC, result.idx(), 	 pos, SBuf()<<start<<" "<<rank);
+    			AssertEQ(MA_SRC, result.rank(),  total, SBuf()<<start<<" "<<rank);
     		}
     	}
 
@@ -646,20 +605,20 @@ public:
 
     	for (size_t start = 0; start < bitsize; start++)
     	{
-    		for (size_t count = 1; count < bitsize - start; count++)
+    		for (size_t rank = 0; rank < bitsize - start; rank++)
     		{
-    			auto result = Select0FW(bitmap, start, bitsize, count);
+    			auto result = Select0FW(bitmap, start, bitsize, rank);
 
-    			AssertEQ(MA_SRC, result.idx(), 	 start + count - 1, SBuf()<<start<<" "<<count);
-    			AssertEQ(MA_SRC, result.count(), count, SBuf()<<start<<" "<<count);
+    			AssertEQ(MA_SRC, result.idx(), 	start + rank, SBuf()<<start<<" "<<rank);
+    			AssertEQ(MA_SRC, result.rank(), rank, SBuf()<<start<<" "<<rank);
     		}
 
-    		for (size_t count = 1; count < bitsize - start; count++)
+    		for (size_t rank = 0; rank < bitsize - start; rank++)
     		{
-    			auto result = Select0FW(bitmap, start, start + count, count);
+    			auto result = Select0FW(bitmap, start, start + rank, rank);
 
-    			AssertEQ(MA_SRC, result.idx(), 	 start + count - 1, SBuf()<<start<<" "<<count);
-    			AssertEQ(MA_SRC, result.count(), count, SBuf()<<start<<" "<<count);
+    			AssertEQ(MA_SRC, result.idx(), 	start + rank, SBuf()<<start<<" "<<rank);
+    			AssertEQ(MA_SRC, result.rank(), rank, SBuf()<<start<<" "<<rank);
     		}
     	}
 
@@ -667,26 +626,26 @@ public:
 
     	for (size_t start = 0; start < bitsize; start++)
     	{
-    		for (size_t count = 1; count < bitsize - start; count++)
+    		for (size_t rank = 0; rank < bitsize - start; rank++)
     		{
-    			auto result = Select0FW(bitmap, start, bitsize, count);
+    			auto result = Select0FW(bitmap, start, bitsize, rank);
 
     			size_t pos = bitsize;
-    			size_t total = select0FW(bitmap, start, pos, count);
+    			size_t total = select0FW(bitmap, start, pos, rank);
 
-    			AssertEQ(MA_SRC, result.idx(), 	 pos, SBuf()<<start<<" "<<count);
-    			AssertEQ(MA_SRC, result.count(), total, SBuf()<<start<<" "<<count);
+    			AssertEQ(MA_SRC, result.idx(), 	 pos, SBuf()<<start<<" "<<rank);
+    			AssertEQ(MA_SRC, result.rank(), total, SBuf()<<start<<" "<<rank);
     		}
 
-    		for (size_t count = 1; count < bitsize - start; count++)
+    		for (size_t rank = 0; rank < bitsize - start; rank++)
     		{
-    			auto result = Select0FW(bitmap, start, start + count, count);
+    			auto result = Select0FW(bitmap, start, start + rank, rank);
 
-    			size_t pos = start + count;
-    			size_t total = select0FW(bitmap, start, pos, count);
+    			size_t pos = start + rank;
+    			size_t total = select0FW(bitmap, start, pos, rank);
 
-    			AssertEQ(MA_SRC, result.idx(), 	 pos, SBuf()<<start<<" "<<count);
-    			AssertEQ(MA_SRC, result.count(), total, SBuf()<<start<<" "<<count);
+    			AssertEQ(MA_SRC, result.idx(), 	 pos, SBuf()<<start<<" "<<rank);
+    			AssertEQ(MA_SRC, result.rank(), total, SBuf()<<start<<" "<<rank);
     		}
     	}
     }

@@ -198,7 +198,17 @@ long long ConvertToLongLong(StringRef str)
     const char* chars = str.c_str();
     char* endptr;
 
-    long int value = strtoll(chars, &endptr, 0);
+    long long int value = strtoll(chars, &endptr, 0);
+
+    return value * getValueMultiplier(chars, endptr);
+}
+
+long long ConvertToULongLong(StringRef str)
+{
+    const char* chars = str.c_str();
+    char* endptr;
+
+    unsigned long long int value = strtoull(chars, &endptr, 0);
 
     return value * getValueMultiplier(chars, endptr);
 }

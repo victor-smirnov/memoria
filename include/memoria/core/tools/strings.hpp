@@ -82,6 +82,7 @@ struct AsString<String> {
 
 long int ConvertToLongInt(StringRef str);
 long long ConvertToLongLong(StringRef str);
+long long ConvertToULongLong(StringRef str);
 double ConvertToDouble(StringRef str);
 long double ConvertToLongDouble(StringRef str);
 bool ConvertToBool(StringRef str);
@@ -101,6 +102,14 @@ struct FromString<BigInt> {
     static BigInt convert(StringRef str)
     {
         return ConvertToLongLong(str);
+    }
+};
+
+template <>
+struct FromString<UBigInt> {
+    static UBigInt convert(StringRef str)
+    {
+        return ConvertToULongLong(str);
     }
 };
 

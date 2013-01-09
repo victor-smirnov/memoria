@@ -19,10 +19,121 @@ using namespace memoria::vapi;
 
 
 
+UBigInt BroadwordGTZ8 (UBigInt x)
+{
+	UBigInt H8 = 0x8080808080808080;
+	UBigInt L8 = 0x0101010101010101;
+
+	return  ((x | (( x | H8) - L8)) & H8) >> 7;
+}
+
+UBigInt BroadwordLE8 (UBigInt x, UBigInt y)
+{
+	UBigInt H8 = 0x8080808080808080;
+	return ((((y | H8) - (x & ~H8)) ^ x ^ y) & H8 ) >> 7;
+}
+
+inline size_t SelectFW(UBigInt arg, size_t rank)
+{
+	UBigInt v = arg;
+
+	v -= ((v >> 1) & 0x5555555555555555);
+	v = (v & 0x3333333333333333) + ((v >> 2) & 0x3333333333333333);
+	v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0F;
+
+	UInt argl = static_cast<UInt>(v + (v >> 32));
+	argl += (argl >> 16);
+	size_t full_rank = (argl + (argl >> 8)) & 0x7F;
+
+	if (full_rank >= rank)
+	{
+		size_t r = 0;
+
+		for (UBigInt shift	= 0; shift < 64; shift += 8)
+		{
+			UBigInt popc =  (v >> shift) & 0xFF;
+
+			if (r + popc >= rank)
+			{
+				UBigInt mask = 1ull << shift;
+
+				for (size_t d = 0; d < 8; d++, mask <<= 1)
+				{
+					if (r == rank)
+					{
+						return shift + d;
+					}
+					else {
+						r += ((arg & mask) != 0);
+					}
+				}
+			}
+			else {
+				r += popc;
+			}
+		}
+
+		return 100 + full_rank;
+	}
+	else {
+		return 100 + full_rank;
+	}
+}
+
+
+inline size_t SelectBW(UBigInt arg, size_t rank)
+{
+	UBigInt v = arg;
+
+	v -= ((v >> 1) & 0x5555555555555555);
+	v = (v & 0x3333333333333333) + ((v >> 2) & 0x3333333333333333);
+	v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0F;
+
+	UInt argl = static_cast<UInt>(v + (v >> 32));
+	argl += (argl >> 16);
+	size_t full_rank = (argl + (argl >> 8)) & 0x7F;
+
+	if (full_rank >= rank)
+	{
+		size_t r = 0;
+
+		for (Int shift = 56; shift >= 0; shift -= 8)
+		{
+			UBigInt popc =  (v >> shift) & 0xFF;
+
+			if (r + popc >= rank)
+			{
+				UBigInt mask = 1ull << (shift + 7);
+
+				for (size_t d = 0; d < 8; d++, mask >>= 1)
+				{
+					if (r == rank)
+					{
+						return shift + 8 - d;
+					}
+					else {
+						r += ((arg & mask) != 0);
+					}
+				}
+			}
+			else {
+				r += popc;
+			}
+		}
+
+		return 0;
+	}
+	else {
+		return 100 + full_rank;
+	}
+}
+
+
 
 
 
 namespace intrnl2 {
+
 
 template <typename T>
 bool SelectFW(T arg, size_t& total, size_t count, size_t& stop)
@@ -44,7 +155,7 @@ bool SelectFW(T arg, size_t& total, size_t count, size_t& stop)
 
 			if (total == count)
 			{
-				stop = c;
+				stop = c + 1;
 				return true;
 			}
 		}
@@ -96,19 +207,19 @@ bool SelectBW(T arg, size_t& total, size_t count, size_t start, size_t& delta)
 
 class SelectResult {
 	size_t idx_;
-	size_t count_;
+	size_t rank_;
 	bool found_;
 public:
-	SelectResult(size_t idx, size_t count, bool found): idx_(idx), count_(count), found_(found) {}
+	SelectResult(size_t idx, size_t rank, bool found): idx_(idx), rank_(rank), found_(found) {}
 
 	size_t idx() const   {return idx_;}
-	size_t count() const {return count_;}
+	size_t rank() const  {return rank_;}
 	bool is_found() const {return found_;}
 };
 
 
 template <typename T>
-SelectResult Select1FW(const T* buffer, size_t start, size_t stop, size_t count)
+SelectResult Select1FW(const T* buffer, size_t start, size_t stop, size_t rank)
 {
 	size_t bitsize 	= TypeBitsize<T>();
 	size_t mask 	= TypeBitmask<T>();
@@ -136,32 +247,51 @@ SelectResult Select1FW(const T* buffer, size_t start, size_t stop, size_t count)
 
 	size_t total = 0;
 
-	if (intrnl2::SelectFW(GetBits0(buffer, start, prefix), total, count, prefix))
+	size_t result = SelectFW(GetBits0(buffer, start, prefix), rank - total);
+	if (result < 100)
 	{
-		return SelectResult(start + prefix, total, true);
+		return SelectResult(start + result, rank, true);
 	}
+	else {
+		total += result - 100;
+	}
+
 
 	for (size_t cell = start_cell; cell < stop_cell; cell++)
 	{
-		if (intrnl2::SelectFW(buffer[cell], total, count, bitsize))
+		result = SelectFW(buffer[cell], rank - total);
+		if (result < 100)
 		{
-			return SelectResult((cell << divisor) + bitsize, total, true);
+			return SelectResult((cell << divisor) + result, rank, true);
+		}
+		else
+		{
+			total += result - 100;
 		}
 	}
 
 	if (suffix > 0)
 	{
 		size_t start0 = stop_cell << divisor;
-		intrnl2::SelectFW(GetBits0(buffer, start0, suffix), total, count, suffix);
-		return SelectResult(suffix + start0, total, true);
+
+		result = SelectFW(GetBits0(buffer, start0, suffix), rank - total);
+
+		if (result < 100)
+		{
+			return SelectResult(start0 + result, rank, true);
+		}
+		else {
+			return SelectResult(stop, total + result - 100, false);
+		}
 	}
 	else {
 		return SelectResult(stop, total, false);
 	}
 }
+
 
 template <typename T>
-SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t count)
+SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t rank)
 {
 	size_t bitsize 	= TypeBitsize<T>();
 	size_t mask 	= TypeBitmask<T>();
@@ -189,29 +319,48 @@ SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t count)
 
 	size_t total = 0;
 
-	if (intrnl2::SelectFW(GetBitsNeg0(buffer, start, prefix), total, count, prefix))
+	size_t result = SelectFW(GetBitsNeg0(buffer, start, prefix), rank - total);
+	if (result < 100)
 	{
-		return SelectResult(start + prefix, total, true);
+		return SelectResult(start + result, rank, true);
 	}
+	else {
+		total += result - 100;
+	}
+
 
 	for (size_t cell = start_cell; cell < stop_cell; cell++)
 	{
-		if (intrnl2::SelectFW(~buffer[cell], total, count, bitsize))
+		result = SelectFW(~buffer[cell], rank - total);
+		if (result < 100)
 		{
-			return SelectResult((cell << divisor) + bitsize, total, true);
+			return SelectResult((cell << divisor) + result, rank, true);
+		}
+		else
+		{
+			total += result - 100;
 		}
 	}
 
 	if (suffix > 0)
 	{
 		size_t start0 = stop_cell << divisor;
-		intrnl2::SelectFW(GetBitsNeg0(buffer, start0, suffix), total, count, suffix);
-		return SelectResult(suffix + start0, total, true);
+
+		result = SelectFW(GetBitsNeg0(buffer, start0, suffix), rank - total);
+
+		if (result < 100)
+		{
+			return SelectResult(start0 + result, rank, true);
+		}
+		else {
+			return SelectResult(stop, total + result - 100, false);
+		}
 	}
 	else {
 		return SelectResult(stop, total, false);
 	}
 }
+
 
 
 
@@ -271,6 +420,62 @@ SelectResult Select1BW(const T* buffer, size_t start, size_t stop, size_t count)
 	}
 }
 
+
+
+template <typename T>
+SelectResult Select0BW(const T* buffer, size_t start, size_t stop, size_t count)
+{
+	size_t bitsize 	= TypeBitsize<T>();
+	size_t mask 	= TypeBitmask<T>();
+	size_t divisor 	= TypeBitmaskPopCount(mask);
+
+	size_t prefix 	= start & mask;
+
+	size_t suffix;
+	size_t start_cell;
+	size_t stop_cell;
+
+	if (start - prefix <= stop)
+	{
+		prefix 		= start - stop;
+		suffix 		= 0;
+		start_cell  = 0;
+		stop_cell 	= 0;
+	}
+	else
+	{
+		size_t padding  = stop & mask;
+
+		suffix 		= bitsize - padding;
+		stop_cell	= stop >> divisor;
+		start_cell	= ((start - prefix) >> divisor) - 1;
+	}
+
+	size_t total = 0;
+	size_t delta;
+
+	if (intrnl2::SelectBW(GetBitsNeg0(buffer, start, prefix), total, count, prefix, delta))
+	{
+		return SelectResult(start - delta, total, true);
+	}
+
+	for (size_t cell = start_cell; cell > stop_cell; cell--)
+	{
+		if (intrnl2::SelectBW(~buffer[cell], total, count, bitsize - 1, delta))
+		{
+			return SelectResult((cell << divisor) + bitsize - delta, total, true);
+		}
+	}
+
+	if (suffix > 0)
+	{
+		intrnl2::SelectBW(GetBitsNeg0(buffer, stop, suffix), total, count, suffix, delta);
+		return SelectResult(stop + (bitsize - delta), total);
+	}
+	else {
+		return SelectResult(stop, total, false);
+	}
+}
 
 
 } //memoria

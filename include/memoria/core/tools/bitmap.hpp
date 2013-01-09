@@ -237,6 +237,26 @@ T MakeMask(Int start, Int length)
 	}
 }
 
+inline UBigInt ReverseBits(UBigInt value)
+{
+	value = (((value & 0xAAAAAAAAAAAAAAAAuLL) >> 1) | ((value & 0x5555555555555555uLL) << 1));
+	value = (((value & 0xCCCCCCCCCCCCCCCCuLL) >> 2) | ((value & 0x3333333333333333uLL) << 2));
+	value = (((value & 0xF0F0F0F0F0F0F0F0uLL) >> 4) | ((value & 0x0F0F0F0F0F0F0F0FuLL) << 4));
+	value = (((value & 0xFF00FF00FF00FF00uLL) >> 8) | ((value & 0x00FF00FF00FF00FFuLL) << 8));
+	value = (((value & 0xFFFF0000FFFF0000uLL) >> 16)| ((value & 0x0000FFFF0000FFFFuLL) << 16));
+
+	return (value >> 32) | (value << 32);
+}
+
+inline UInt ReverseBits(UInt value)
+{
+	value = (((value & 0xaaaaaaaa) >> 1) | ((value & 0x55555555) << 1));
+	value = (((value & 0xcccccccc) >> 2) | ((value & 0x33333333) << 2));
+	value = (((value & 0xf0f0f0f0) >> 4) | ((value & 0x0f0f0f0f) << 4));
+	value = (((value & 0xff00ff00) >> 8) | ((value & 0x00ff00ff) << 8));
+
+	return (value >> 16) | (value << 16);
+}
 
 inline Int PopCnt(UBigInt arg)
 {
@@ -254,6 +274,14 @@ inline Int PopCnt(UInt v)
 	v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
 	v = (v + (v >> 4)) & 0x0F0F0F0F;
 	v = (v * 0x01010101) >> 24;
+	return v;
+}
+
+inline Int PopCnt(UByte v)
+{
+	v -= ((v >> 1) & 0x55);
+	v = (v & 0x33) + ((v >> 2) & 0x33);
+	v = (v + (v >> 4)) & 0x0F;
 	return v;
 }
 
