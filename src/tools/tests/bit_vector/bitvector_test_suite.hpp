@@ -9,7 +9,6 @@
 
 #include "../tests_inc.hpp"
 
-#include "bitmap_test.hpp"
 #include "bitvector_test.hpp"
 
 #include <vector>
@@ -25,8 +24,8 @@ public:
 
     BitVectorTestSuite(): TestSuite("BitVectorSuite")
     {
-    	registerTask(new BitmapTest<>("Bitmap"));
-//        registerTask(new BitVectorTest<false>("Sparse"));
+//    	registerTask(new BitmapTest<>("Bitmap"));
+//      registerTask(new BitVectorTest<false>("Sparse"));
     }
 
 };

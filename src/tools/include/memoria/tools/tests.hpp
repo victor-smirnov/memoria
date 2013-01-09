@@ -24,10 +24,10 @@ using namespace std;
 
 
 #define MEMORIA_ADD_TEST(testMethodName)\
-    addTest(#testMethodName, &MyType::testMethodName)
+    MyType::addTest(#testMethodName, &MyType::testMethodName)
 
 #define MEMORIA_ADD_TEST_WITH_REPLAY(testMethodName, replayMethodName)\
-    addTest(#testMethodName, &MyType::testMethodName, &MyType::replayMethodName)
+	MyType::addTest(#testMethodName, &MyType::testMethodName, &MyType::replayMethodName)
 
 
 

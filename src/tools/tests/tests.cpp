@@ -19,6 +19,7 @@
 #include "vector_map/vector_map_test_suite.hpp"
 
 #include "bit_vector/bitvector_test_suite.hpp"
+#include "bitmap/bitmap_test_suite.hpp"
 
 #include "template/template_test_suite.hpp"
 
@@ -67,7 +68,9 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new SumTreeTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
-        runner.registerTask(new BitVectorTestSuite());
+//        runner.registerTask(new BitVectorTestSuite());
+
+        runner.registerTask(new BitmapTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 
