@@ -17,8 +17,9 @@
 
 #include <limits>
 #include <stdlib.h>
-
 #include <iostream>
+#include <sstream>
+
 
 namespace memoria {
 
@@ -249,49 +250,204 @@ public:
     }
 
 protected:
-    void setValue(Configurator* cfg, T& value);
+    void setValue(Configurator* cfg, T& value)
+    {
+        StringRef prefix1 = prefix();
+
+        auto pos = prefix1.length();
+
+        while (true)
+        {
+            String name = prefix().substr(0, pos) + "." + name_;
+
+            if (cfg->IsPropertyDefined(name))
+            {
+                value = FromString<T>::convert(cfg->getProperty(name));
+                return;
+            }
+            else {
+                pos = prefix().find_last_of(".", pos - 1);
+
+                if (pos == String::npos)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (cfg->IsPropertyDefined(name_))
+        {
+            value = FromString<T>::convert(cfg->getProperty(name_));
+            return;
+        }
+        else if (mandatory_)
+        {
+            throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name_<<" is not defined in the program configuration");
+        }
+    }
 };
 
 
 
 
 
-template <typename T>
-void ParamDescriptor<T>::setValue(Configurator* cfg, T& value)
-{
-    StringRef prefix1 = prefix();
+template <typename T, size_t Size>
+class ParamDescriptor<T[Size]>: public AbstractParamDescriptor {
 
-    auto pos = prefix1.length();
+    typedef ParamDescriptor<T[Size]>                      						MyType;
 
-    while (true)
+    ParametersSet*      cfg_;
+
+    String              name_;
+    String              description_;
+
+    T*                  value_;
+
+    bool                mandatory_;
+    bool                state_parameter_;
+
+public:
+
+    ParamDescriptor(ParametersSet* cfg, String name, T* value):
+        cfg_(cfg),
+        name_(name),
+        value_(value),
+
+        mandatory_(false),
+        state_parameter_(false)
+    {}
+
+
+    virtual ~ParamDescriptor() {}
+
+
+    virtual void Process(Configurator* cfg)
     {
-        String name = prefix().substr(0, pos) + "." + name_;
+        setValue(cfg, value_);
+    }
 
-        if (cfg->IsPropertyDefined(name))
+    MyType* setDescription(StringRef descr)
+    {
+        description_ = descr;
+        return this;
+    }
+
+    virtual bool IsMandatory() const
+    {
+        return mandatory_;
+    }
+
+    virtual bool isStateParameter() const
+    {
+        return state_parameter_;
+    }
+
+    MyType* setMandatory(bool mandatory)
+    {
+        mandatory_ = mandatory;
+        return this;
+    }
+
+    MyType* state(bool state = true)
+    {
+        state_parameter_ = state;
+        return this;
+    }
+
+    virtual StringRef getName() const
+    {
+        return name_;
+    }
+
+    virtual String getPropertyName() const
+    {
+        if (isEmpty(prefix()))
         {
-            value = FromString<T>::convert(cfg->getProperty(name));
-            return;
+            return name_;
         }
         else {
-            pos = prefix().find_last_of(".", pos - 1);
-
-            if (pos == String::npos)
-            {
-                break;
-            }
+            return prefix()+"."+name_;
         }
     }
 
-    if (cfg->IsPropertyDefined(name_))
+    virtual void dump(std::ostream& os, bool dump_prefix) const
     {
-        value = FromString<T>::convert(cfg->getProperty(name_));
-        return;
+        if (dump_prefix)
+        {
+            if (!isEmpty(description_))
+            {
+                os<<"#"<<description_<<endl;
+            }
+
+            os<<getPropertyName()<<" = "<<valueToString()<<endl;
+
+            os<<endl;
+        }
+        else {
+            os<<getName()<<" = "<<valueToString()<<endl;
+        }
     }
-    else if (mandatory_)
+
+    String prefix() const
     {
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name_<<" is not defined in the program configuration");
+        return cfg_->getFullName();
     }
-}
+
+protected:
+    void setValue(Configurator* cfg, T* value)
+    {
+        StringRef prefix1 = prefix();
+
+        auto pos = prefix1.length();
+
+        while (true)
+        {
+            String name = prefix().substr(0, pos) + "." + name_;
+
+            if (cfg->IsPropertyDefined(name))
+            {
+                FromString<T[Size]>::convert(value, cfg->getProperty(name));
+                return;
+            }
+            else {
+                pos = prefix().find_last_of(".", pos - 1);
+
+                if (pos == String::npos)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (cfg->IsPropertyDefined(name_))
+        {
+            FromString<T[Size]>::convert(value, cfg->getProperty(name_));
+            return;
+        }
+        else if (mandatory_)
+        {
+            throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name_<<" is not defined in the program configuration");
+        }
+    }
+
+    virtual String valueToString() const
+    {
+    	stringstream str;
+
+    	for (size_t c = 0; c < Size; c++)
+    	{
+    		str<<value_[c];
+
+    		if (c < Size - 1)
+    		{
+    			str<<", ";
+    		}
+    	}
+
+    	return str.str();
+    }
+};
+
 
 
 

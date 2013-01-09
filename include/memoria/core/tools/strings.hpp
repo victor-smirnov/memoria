@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -13,6 +13,7 @@
 #include <memoria/core/tools/config.hpp>
 
 #include <string>
+#include <iostream>
 
 namespace memoria { namespace vapi {
 
@@ -136,6 +137,44 @@ struct FromString<String> {
         return str;
     }
 };
+
+
+template <typename T, size_t Size>
+struct FromString<T[Size]> {
+    static void convert(T* values, StringRef str)
+    {
+    	size_t start = 0;
+
+    	for (size_t c = 0; c < Size; c++)
+    	{
+    		values[c] = 0;
+    	}
+
+    	for (size_t c = 0; c < Size; c++)
+    	{
+    		size_t pos = str.find_first_of(",", start);
+
+    		String value = trimString(str.substr(start, pos != String::npos ? pos - start : pos));
+
+    		if (!isEmpty(value))
+    		{
+    			values[c] = FromString<T>::convert(value);
+    		}
+    		else {
+    			values[c] = 0;
+    		}
+
+    		if (pos != String::npos && pos < str.length())
+    		{
+    			start = pos + 1;
+    		}
+    		else {
+    			break;
+    		}
+    	}
+    }
+};
+
 
 }}
 

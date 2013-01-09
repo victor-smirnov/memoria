@@ -429,12 +429,10 @@ GetBits0(const Buffer& buf, size_t idx, Int nbits)
     return (buf[haddr] >> laddr) & bitmask;
 }
 
-template <typename Buffer>
-typename intrnl::ElementT<Buffer>::Type
-GetBitsNeg0(const Buffer& buf, size_t idx, Int nbits)
-{
-	typedef typename intrnl::ElementT<Buffer>::Type T;
+template <typename T>
 
+T GetBitsNeg0(const T* buf, size_t idx, Int nbits)
+{
 	size_t mask = TypeBitmask<T>();
     size_t divisor = TypeBitmaskPopCount(mask);
 

@@ -362,120 +362,210 @@ SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t rank)
 }
 
 
+template <typename T>
+T GetBits00(const T* buf, size_t idx, Int nbits)
+{
+	size_t mask = TypeBitmask<T>();
+    size_t divisor = TypeBitmaskPopCount(mask);
+
+    size_t haddr = (idx & ~mask) >> divisor;
+    size_t laddr = idx & mask;
+
+    size_t bitsize = TypeBitsize<T>();
+
+    T bitmask = MakeMask<T>(bitsize - nbits, nbits);
+
+    return (buf[haddr] << (bitsize - laddr - nbits)) & bitmask;
+}
+
+
+template <typename T>
+T GetBitsNeg00(const T* buf, size_t idx, Int nbits)
+{
+	size_t mask = TypeBitmask<T>();
+    size_t divisor = TypeBitmaskPopCount(mask);
+
+    size_t haddr = (idx & ~mask) >> divisor;
+    size_t laddr = idx & mask;
+
+    size_t bitsize = TypeBitsize<T>();
+
+    T bitmask = MakeMask<T>(bitsize - nbits, nbits);
+
+    return (~buf[haddr] << (bitsize - laddr - nbits)) & bitmask;
+}
+
 
 
 
 template <typename T>
-SelectResult Select1BW(const T* buffer, size_t start, size_t stop, size_t count)
+SelectResult Select1BW(const T* buffer, size_t start, size_t stop, size_t rank)
 {
-	size_t bitsize 	= TypeBitsize<T>();
-	size_t mask 	= TypeBitmask<T>();
-	size_t divisor 	= TypeBitmaskPopCount(mask);
-
-	size_t prefix 	= start & mask;
-
-	size_t suffix;
-	size_t start_cell;
-	size_t stop_cell;
-
-	if (start - prefix <= stop)
+	if (start - stop > 0)
 	{
-		prefix 		= start - stop;
-		suffix 		= 0;
-		start_cell  = 0;
-		stop_cell 	= 0;
-	}
-	else
-	{
+		size_t bitsize 	= TypeBitsize<T>();
+		size_t mask 	= TypeBitmask<T>();
+		size_t divisor 	= TypeBitmaskPopCount(mask);
+
+		size_t prefix 	= start & mask;
 		size_t padding  = stop & mask;
 
-		suffix 		= bitsize - padding;
-		stop_cell	= stop >> divisor;
-		start_cell	= ((start - prefix) >> divisor) - 1;
-	}
+		size_t suffix;
+		size_t start_cell;
+		size_t stop_cell;
 
-	size_t total = 0;
-	size_t delta;
-
-	if (intrnl2::SelectBW(GetBits0(buffer, start, prefix), total, count, prefix, delta))
-	{
-		return SelectResult(start - delta, total, true);
-	}
-
-	for (size_t cell = start_cell; cell > stop_cell; cell--)
-	{
-		if (intrnl2::SelectBW(buffer[cell], total, count, bitsize - 1, delta))
+		if (start - prefix <= stop)
 		{
-			return SelectResult((cell << divisor) + bitsize - delta, total, true);
+			prefix 		= start - stop;
+			suffix 		= 0;
+			start_cell  = 0;
+			stop_cell 	= 0;
+		}
+		else
+		{
+			suffix 		= bitsize - padding;
+			stop_cell	= stop >> divisor;
+			start_cell	= ((start - prefix) >> divisor) - 1;
+		}
+
+
+
+		size_t total = 0;
+
+		if (prefix > 0)
+		{
+			size_t result = SelectBW(GetBits00(buffer, start - prefix, prefix), rank);
+
+			if (result < 100)
+			{
+				return SelectResult(start + result - bitsize, rank, true);
+			}
+			else {
+				total += result - 100;
+			}
+		}
+
+		for (size_t cell = start_cell; cell > stop_cell; cell--)
+		{
+			size_t result = SelectBW(buffer[cell], rank - total);
+
+			if (result < 100)
+			{
+				return SelectResult((cell << divisor) + result, rank, true);
+			}
+			else {
+				total += result - 100;
+			}
+		}
+
+		if (suffix > 0)
+		{
+			size_t result = SelectBW(GetBits00(buffer, stop, suffix), rank - total);
+			if (result < 100)
+			{
+				return SelectResult(stop - padding + result, rank, true);
+			}
+			else {
+				return SelectResult(stop, total + result - 100, false);
+			}
+		}
+		else {
+			return SelectResult(stop, total, false);
 		}
 	}
-
-	if (suffix > 0)
-	{
-		intrnl2::SelectBW(GetBits0(buffer, stop, suffix), total, count, suffix, delta);
-		return SelectResult(stop + (bitsize - delta), total);
+	else if (rank > 0) {
+		return SelectResult(stop, 0, false);
 	}
 	else {
-		return SelectResult(stop, total, false);
+		return SelectResult(stop, 0, true);
 	}
 }
 
 
 
 template <typename T>
-SelectResult Select0BW(const T* buffer, size_t start, size_t stop, size_t count)
+SelectResult Select0BW(const T* buffer, size_t start, size_t stop, size_t rank)
 {
-	size_t bitsize 	= TypeBitsize<T>();
-	size_t mask 	= TypeBitmask<T>();
-	size_t divisor 	= TypeBitmaskPopCount(mask);
-
-	size_t prefix 	= start & mask;
-
-	size_t suffix;
-	size_t start_cell;
-	size_t stop_cell;
-
-	if (start - prefix <= stop)
+	if (start - stop > 0)
 	{
-		prefix 		= start - stop;
-		suffix 		= 0;
-		start_cell  = 0;
-		stop_cell 	= 0;
-	}
-	else
-	{
+		size_t bitsize 	= TypeBitsize<T>();
+		size_t mask 	= TypeBitmask<T>();
+		size_t divisor 	= TypeBitmaskPopCount(mask);
+
+		size_t prefix 	= start & mask;
 		size_t padding  = stop & mask;
 
-		suffix 		= bitsize - padding;
-		stop_cell	= stop >> divisor;
-		start_cell	= ((start - prefix) >> divisor) - 1;
-	}
+		size_t suffix;
+		size_t start_cell;
+		size_t stop_cell;
 
-	size_t total = 0;
-	size_t delta;
-
-	if (intrnl2::SelectBW(GetBitsNeg0(buffer, start, prefix), total, count, prefix, delta))
-	{
-		return SelectResult(start - delta, total, true);
-	}
-
-	for (size_t cell = start_cell; cell > stop_cell; cell--)
-	{
-		if (intrnl2::SelectBW(~buffer[cell], total, count, bitsize - 1, delta))
+		if (start - prefix <= stop)
 		{
-			return SelectResult((cell << divisor) + bitsize - delta, total, true);
+			prefix 		= start - stop;
+			suffix 		= 0;
+			start_cell  = 0;
+			stop_cell 	= 0;
+		}
+		else
+		{
+			suffix 		= bitsize - padding;
+			stop_cell	= stop >> divisor;
+			start_cell	= ((start - prefix) >> divisor) - 1;
+		}
+
+
+
+		size_t total = 0;
+
+		if (prefix > 0)
+		{
+			size_t result = SelectBW(GetBitsNeg00(buffer, start - prefix, prefix), rank);
+
+			if (result < 100)
+			{
+				return SelectResult(start + result - bitsize, rank, true);
+			}
+			else {
+				total += result - 100;
+			}
+		}
+
+		for (size_t cell = start_cell; cell > stop_cell; cell--)
+		{
+			size_t result = SelectBW(~buffer[cell], rank - total);
+
+			if (result < 100)
+			{
+				return SelectResult((cell << divisor) + result, rank, true);
+			}
+			else {
+				total += result - 100;
+			}
+		}
+
+		if (suffix > 0)
+		{
+			size_t result = SelectBW(GetBitsNeg00(buffer, stop, suffix), rank - total);
+			if (result < 100)
+			{
+				return SelectResult(stop - padding + result, rank, true);
+			}
+			else {
+				return SelectResult(stop, total + result - 100, false);
+			}
+		}
+		else {
+			return SelectResult(stop, total, false);
 		}
 	}
-
-	if (suffix > 0)
-	{
-		intrnl2::SelectBW(GetBitsNeg0(buffer, stop, suffix), total, count, suffix, delta);
-		return SelectResult(stop + (bitsize - delta), total);
+	else if (rank > 0) {
+		return SelectResult(stop, 0, false);
 	}
 	else {
-		return SelectResult(stop, total, false);
+		return SelectResult(stop, 0, true);
 	}
 }
+
 
 
 } //memoria

@@ -25,7 +25,7 @@ public:
 
     BitVectorTestSuite(): TestSuite("BitVectorSuite")
     {
-    	registerTask(new BitmapTest<UBigInt>("Bitmap"));
+    	registerTask(new BitmapTest<>("Bitmap"));
 //        registerTask(new BitVectorTest<false>("Sparse"));
     }
 
