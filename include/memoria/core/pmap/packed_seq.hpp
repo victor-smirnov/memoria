@@ -94,7 +94,7 @@ public:
     typedef typename Types::Value           Value;
 
     static const Int Bits					= Types::Bits;
-    static const Int Blocks                 = Bits == 1 ? 1 : (1<<Bits);
+    static const Int Blocks                 = 1<<Bits;
     static const Int BranchingFactor        = Types::BranchingFactor;
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
 
@@ -299,6 +299,16 @@ public:
         return memory_block_;
     }
 
+    Value* valuesBlock()
+    {
+    	return T2T<Value*>(memory_block_ + getValueBlockOffset());
+    }
+
+    const Value* valuesBlock() const
+    {
+    	return T2T<const Value*>(memory_block_ + getValueBlockOffset());
+    }
+
     Int getIndexKeyBlockOffset(Int block_num) const
     {
         return sizeof(IndexKey) * index_size_ * block_num;
@@ -370,9 +380,13 @@ public:
     	return walker.sum();
     }
 
-    Int selectFw(Int from, Value symbol, Int count) const
+    SelectResult selectFW(Int from, Value symbol, Int rank) const
     {
-    	return 0;
+    	SelectFWWalker<MyType, Bits> walker(*this, symbol, rank);
+
+    	Int idx = walkFw(from, walker);
+
+    	return SelectResult(idx, walker.rank(), walker.is_found());
     }
 
 private:
@@ -695,7 +709,7 @@ public:
         		{
         			Int max      = c + ValuesPerBranch <= level_max ? c + ValuesPerBranch : level_max;
 
-        			IndexKey sum = popCount(value_block_offset, c, max, Blocks == 1 ? 1 : block);
+        			IndexKey sum = popCount(value_block_offset, c, max, block);
 
         			Int idx = c / ValuesPerBranch + index_level_start;
         			indexb(index_block_offset, idx) = sum;
@@ -728,9 +742,9 @@ public:
 
         for (Int block = 0; block < Blocks; block ++)
         {
-        	Int block_start0 	= block_start;
-        	Int block_end0 		= block_end;
-        	Int level_max0		= level_max;
+        	Int block_start0 		= block_start;
+        	Int block_end0 			= block_end;
+        	Int level_max0			= level_max;
         	Int index_level_start0 	= index_level_start;
         	Int index_level_size0 	= index_level_size;
 
@@ -870,8 +884,8 @@ protected:
     		else {
     			walker.prepareIndex();
 
-    			Int level_size      = getIndexCellsNumberFor(max_size_);
-    			Int level_limit     = getIndexCellsNumberFor(size_);
+    			Int level_size      = getIndexCellsNumberFor(0, max_size_);
+    			Int level_limit     = getIndexCellsNumberFor(0, size_);
     			Int last_start      = walkIndexFw(
     					block_limit/ValuesPerBranch,
     					walker,
@@ -881,11 +895,17 @@ protected:
     					ValuesPerBranch
     			);
 
-    			Int last_start_end  = getBlockStartEndV(last_start);
+    			if (last_start < size())
+    			{
+    				Int last_start_end  = getBlockStartEndV(last_start);
 
-    			Int last_end = last_start_end <= size()? last_start_end : size();
+    				Int last_end = last_start_end <= size()? last_start_end : size();
 
-    			return walker.walkValues(last_start, last_end);
+    				return walker.walkValues(last_start, last_end);
+    			}
+    			else {
+    				return size();
+    			}
     		}
     	}
     }
@@ -983,17 +1003,16 @@ private:
     	{
     		return (walker.walkIndex(
     							start + level_offet,
-    							level_limit + level_offet,
-    							cell_size
+    							level_limit + level_offet
     						)
-    						- level_offet) * BranchingFactor;
+    						- level_offet) * cell_size;
     	}
     	else
     	{
-    		Int limit = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
+    		Int limit = walker.walkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
     		if (limit < block_start_end)
     		{
-    			return limit * BranchingFactor;
+    			return limit * cell_size;
     		}
     		else {
     			Int level_size0     = getIndexCellsNumberFor(level_size);
@@ -1005,7 +1024,7 @@ private:
     					level_offet - level_size0,
     					level_size0,
     					level_limit0,
-    					cell_size * BranchingFactor
+    					BranchingFactor
     			);
 
     			Int last_start_end  = getBlockStartEnd(last_start);
@@ -1014,10 +1033,9 @@ private:
 
     			return (walker.walkIndex(
     								last_start + level_offet,
-    								last_end + level_offet,
-    								cell_size
+    								last_end + level_offet
     							)
-    							- level_offet) * BranchingFactor;
+    							- level_offet) * cell_size;
     		}
     	}
     }

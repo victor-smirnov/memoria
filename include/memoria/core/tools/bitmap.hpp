@@ -518,12 +518,10 @@ GetBits(const Buffer& buf, size_t idx, Int nbits)
  * Note that bitCount is not limited by Long.
  */
 
-template <typename Buffer>
-void MoveBitsFW(const Buffer* src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
+template <typename T>
+void MoveBitsFW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length)
 {
-	typedef typename intrnl::ElementT<Buffer*>::Type T;
-
-    size_t bitsize = TypeBitsize<T>();
+	size_t bitsize = TypeBitsize<T>();
     size_t mask = TypeBitmask<T>();
 
     size_t extent = dst_idx + bitsize - (dst_idx & mask);
@@ -561,13 +559,11 @@ void MoveBitsFW(const Buffer* src, Buffer &dst, size_t src_idx, size_t dst_idx, 
 
 
 
-template <typename Buffer>
-void MoveBitsBW(const Buffer* src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
+template <typename T>
+void MoveBitsBW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length)
 {
-	typedef typename intrnl::ElementT<Buffer*>::Type T;
-
-    size_t bitsize = TypeBitsize<T>();
-    size_t mask = TypeBitmask<T>();
+	size_t bitsize 	= TypeBitsize<T>();
+    size_t mask 	= TypeBitmask<T>();
 
     size_t dst_to = dst_idx + length;
     size_t extent = dst_to -(dst_to & mask);
@@ -601,8 +597,8 @@ void MoveBitsBW(const Buffer* src, Buffer &dst, size_t src_idx, size_t dst_idx, 
 }
 
 
-template <typename Buffer>
-void MoveBits(const Buffer* src, Buffer &dst, size_t src_idx, size_t dst_idx, size_t length)
+template <typename T>
+void MoveBits(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length)
 {
 	if (dst_idx > src_idx)
 	{
@@ -718,11 +714,9 @@ void MoveBits(const Buffer* src, Buffer &dst, size_t src_idx, size_t dst_idx, si
 
 namespace intrnl {
 
-template <typename Buffer>
-size_t CountFw(const Buffer* buffer, size_t from, size_t to, const char *lut, bool zero)
+template <typename T>
+size_t CountFw(const T* buffer, size_t from, size_t to, const char *lut, bool zero)
 {
-	typedef typename intrnl::ElementT<Buffer*>::Type T;
-
 	size_t cnt = 0;
 
     size_t remainder = (to - from) & static_cast<size_t>(0x7); // lowest 3 bits
@@ -754,8 +748,8 @@ size_t CountFw(const Buffer* buffer, size_t from, size_t to, const char *lut, bo
 
 
 
-template <typename Buffer>
-size_t CountBw(const Buffer* buffer, size_t from, size_t to, const char *lut, bool zero)
+template <typename T>
+size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool zero)
 {
     size_t cnt = 0;
 
@@ -795,11 +789,9 @@ size_t CountBw(const Buffer* buffer, size_t from, size_t to, const char *lut, bo
 
 }
 
-template <typename Buffer>
-size_t CountFw(const Buffer* buffer, size_t from, size_t to, const char *lut, bool zero)
+template <typename T>
+size_t CountFw(const T* buffer, size_t from, size_t to, const char *lut, bool zero)
 {
-	typedef typename intrnl::ElementT<Buffer*>::Type T;
-
 	size_t bitsize 	= TypeBitsize<T>();
 	size_t mask 	= TypeBitmask<T>();
 
@@ -841,25 +833,23 @@ size_t CountFw(const Buffer* buffer, size_t from, size_t to, const char *lut, bo
 	}
 }
 
-template <typename Buffer>
-size_t CountOneFw(const Buffer* buffer, size_t from, size_t to)
+template <typename T>
+size_t CountOneFw(const T* buffer, size_t from, size_t to)
 {
     return CountFw(buffer, from, to, kPopCountFW_LUT, false);
 }
 
-template <typename Buffer>
-size_t CountZeroFw(const Buffer* buffer, size_t from, size_t to)
+template <typename T>
+size_t CountZeroFw(const T* buffer, size_t from, size_t to)
 {
     return CountFw(buffer, from, to, kZeroCountFW_LUT, true);
 }
 
 
 
-template <typename Buffer>
-size_t CountBw(const Buffer* buffer, size_t from, size_t to, const char *lut, bool zero)
+template <typename T>
+size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool zero)
 {
-	typedef typename intrnl::ElementT<Buffer*>::Type T;
-
 	size_t bitsize 	= TypeBitsize<T>();
 	size_t mask 	= TypeBitmask<T>();
 

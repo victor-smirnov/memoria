@@ -11,6 +11,7 @@
 
 #include "pseq_init_test.hpp"
 #include "pseq_rank_test.hpp"
+#include "pseq_select_test.hpp"
 
 #include <vector>
 
@@ -25,12 +26,14 @@ public:
 
     PackedSeqTestSuite(): TestSuite("PackedSeqSuite")
     {
-    	registerTask(new PSeqInitTest());
+//    	registerTask(new PSeqInitTest());
 
 //    	registerTask(new PSeqRankTest<1>());
 //    	registerTask(new PSeqRankTest<2>());
 //    	registerTask(new PSeqRankTest<4>());
-    	registerTask(new PSeqRankTest<8>());
+//    	registerTask(new PSeqRankTest<8>());
+
+    	registerTask(new PSeqSelectTest<1>());
     }
 
 };

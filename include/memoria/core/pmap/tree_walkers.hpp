@@ -14,6 +14,7 @@
 #include <memoria/core/types/traits.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/bitmap_select.hpp>
 
 
 namespace memoria {
@@ -501,7 +502,7 @@ public:
         symbol_(symbol)
     {
     	value_block_offset_ = me.getValueBlockOffset();
-    	index_block_offset_ = me.getIndexKeyBlockOffset(0);
+    	index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
     }
 
     void prepareIndex() {}
@@ -521,18 +522,13 @@ public:
     	}
     }
 
-    void walkIndex(Int start, Int end, Int size)
+    void walkIndex(Int start, Int end)
     {
     	for (Int c = start; c < end; c++)
     	{
     		IndexKey count = me_.indexb(index_block_offset_, c);
 
-    		if (symbol_) {
-    			sum_ += count;
-    		}
-    		else {
-    			sum_ += size - count;
-    		}
+    		sum_ += count;
     	}
     }
 
@@ -554,7 +550,7 @@ class SelectFWWalker<TreeType, 1> {
 	typedef typename TreeType::IndexKey IndexKey;
     typedef typename TreeType::Value 	Value;
 
-    IndexKey 		sum_;
+    IndexKey 		rank_;
     IndexKey 		limit_;
     const TreeType& me_;
     Value 			symbol_;
@@ -564,73 +560,64 @@ class SelectFWWalker<TreeType, 1> {
     Int value_block_offset_;
     Int index_block_offset_;
 
+    bool			found_;
+
 public:
     SelectFWWalker(const TreeType& me, Value symbol, IndexKey limit):
-        sum_(0),
+        rank_(0),
         limit_(limit),
         me_(me),
         symbol_(symbol)
     {
     	value_block_offset_ = me.getValueBlockOffset();
-    	index_block_offset_ = me.getIndexKeyBlockOffset(0);
+    	index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
     }
 
     void prepareIndex() {}
 
     //FIXME: move offsets[] to constructor
-    void walkValues(Int start, Int end)
+    Int walkValues(Int start, Int end)
     {
-//    	for (Int c = start; c < end; c++)
-//    	{
-//    		IndexKey key = me_.keyb(key_block_offset_, c);
-//    		IndexKey sum = sum_ + key;
-//
-//    		if (sum <= limit_)
-//    		{
-//    			sum_ = sum;
-//    		}
-//    		else {
-//    			return c;
-//    		}
-//    	}
-//
-//    	return end;
+    	const Value* buffer = me_.valuesBlock();
 
+    	auto result = symbol_?
+    			Select1FW(buffer, start, end, limit_) :
+    			Select0FW(buffer, start, end, limit_);
 
-//    	const Value* buffer = T2T<const Value*>(me_.memoryBlock() + value_block_offset_);
-//    	size_t count = PopCount(buffer, start, end);
-//
-//    	if (symbol_)
-//    	{
-//    		sum_ += count;
-//    	}
-//    	else {
-//    		sum_ += end - start - count;
-//    	}
+    	rank_ 	+= result.rank();
+    	limit_  -= result.rank();
+
+    	found_	= result.is_found() || limit_ == 0;
+
+    	return result.idx();
     }
 
-    void walkIndex(Int start, Int end, Int size)
+    Int walkIndex(Int start, Int end)
     {
         for (Int c = start; c < end; c++)
         {
-        	IndexKey count 	= me_.indexb(index_block_offset_, c);
-        	IndexKey sum 	= sum_ + (symbol_ ? count : size - count);
+        	IndexKey block_rank = me_.indexb(index_block_offset_, c);
 
-            if (sum <= limit_)
-            {
-                sum_ = sum;
-            }
-            else {
-                return c;
-            }
+        	if (block_rank >= limit_)
+        	{
+        		return c;
+        	}
+
+        	rank_  += block_rank;
+        	limit_ -= block_rank;
         }
 
         return end;
     }
 
-    IndexKey sum() const
+    IndexKey rank() const
     {
-    	return sum_;
+    	return rank_;
+    }
+
+    bool is_found() const
+    {
+    	return found_;
     }
 };
 
