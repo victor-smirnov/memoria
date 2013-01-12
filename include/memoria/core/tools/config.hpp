@@ -9,16 +9,29 @@
 #define _MEMORIA_CORE_TOOLS_CONFIG_HPP12_
 
 #ifdef _INTEL_COMPILER
+
 #pragma warning (disable : 2586)
 #pragma warning (disable : 1125)
 #pragma warning (disable : 869)
+
 #elif defined(_MSC_VER)
+
 #pragma warning (disable : 4503)
 #pragma warning (disable : 4355)
 #pragma warning (disable : 4244)
 #pragma warning (disable : 4231)
 #pragma warning (disable : 4800)
+
+#elif defined(__clang__)
+
+#pragma clang diagnostic ignored "-Woverloaded-virtual"
+#pragma clang diagnostic ignored "-Wunused-private-field"
+
 #endif
+
+
+
+
 
 #ifndef MEMORIA_STATIC
 #if defined (WIN32)

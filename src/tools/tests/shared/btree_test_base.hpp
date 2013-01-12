@@ -129,14 +129,14 @@ public:
         for (Int step = 0; step < 2; step++)
         {
             step_ = step;
-            Run(out, false);
+            Run1(out, false);
         }
 
         // Run() will use different step for each ByteArray update operation
-        Run(out, true);
+        Run1(out, true);
     }
 
-    virtual void Run(ostream& out, bool step)
+    void Run1(ostream& out, bool step)
     {
         DefaultLogHandlerImpl logHandler(out);
 

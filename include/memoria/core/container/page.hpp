@@ -162,7 +162,7 @@ public:
 };
 
 template <Int Size>
-class TypeHash<BitBuffer<Size> > {
+struct TypeHash<BitBuffer<Size> > {
 public:
     static const UInt Value = 123456 * Size;
 };

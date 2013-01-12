@@ -165,7 +165,7 @@ public:
         }
     }
 
-    virtual void setUp(ostream out)
+    virtual void setUp(ostream& out)
     {
         if (btree_random_branching_)
         {

@@ -172,7 +172,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vector_map::ItrApiName)
 	{
 		BigInt current = me()->pos();
 
-		if (pos > 0)
+		if (pos() > 0)
 		{
 			me()->skip(-current);
 		}

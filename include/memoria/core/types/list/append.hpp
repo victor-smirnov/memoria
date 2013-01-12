@@ -45,7 +45,7 @@ struct AppendValueTool<T, Item, ValueList<T, List...> > {
 };
 
 template <typename T, T ... List1, T ... List2>
-struct AppendTool<ValueList<List1...>, ValueList<T, List2...> > {
+struct AppendTool<ValueList<T, List1...>, ValueList<T, List2...> > {
     typedef ValueList<T, List1..., List2...>                            Result;
 };
 

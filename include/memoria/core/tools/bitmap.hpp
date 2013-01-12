@@ -297,11 +297,9 @@ inline Int PopCnt(UInt arg, Int start, Int length)
 	return PopCnt(arg & mask);
 }
 
-template <typename Buffer>
-size_t PopCount(const Buffer* buffer, size_t start, size_t stop)
+template <typename T>
+size_t PopCount(const T* buffer, size_t start, size_t stop)
 {
-	typedef typename intrnl::ElementT<Buffer*>::Type T;
-
 	size_t bitsize 	= TypeBitsize<T>();
 	size_t mask 	= TypeBitmask<T>();
 	size_t divisor 	= TypeBitmaskPopCount(mask);

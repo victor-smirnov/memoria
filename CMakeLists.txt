@@ -77,7 +77,7 @@ endif()
 
 # -fno-elide-constructors 
 if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -std=c++0x -Wall -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -Wcomment -Wunused-variable") 
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -std=c++0x -Wall -g -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -Wcomment -Wunused-variable") 
     
     if (CHECK_SYNTAX_ONLY)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsyntax-only")

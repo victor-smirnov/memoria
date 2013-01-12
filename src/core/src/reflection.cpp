@@ -102,7 +102,7 @@ PageMetadata::PageMetadata(
                 Int hash,
                 const IPageOperations* page_operations
               ):
-    MetadataGroup(name), attributes_(attributes)
+    MetadataGroup(name)
 {
     MetadataGroup::set_type() = Metadata::PAGE;
     hash_ = hash;

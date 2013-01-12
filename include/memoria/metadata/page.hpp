@@ -98,7 +98,7 @@ struct MEMORIA_API PageMetadata: public MetadataGroup
 
 private:
     Int  hash_;
-    bool attributes_;
+//    bool attributes_;
 
     const IPageOperations* page_operations_;
 };

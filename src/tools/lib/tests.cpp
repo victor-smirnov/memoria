@@ -33,11 +33,14 @@ void TestTask::Run(std::ostream& out)
 
         try {
 
+        	out<<"Test: "<<current_test_name_<<endl;
             descr->run(this, out);
+            out<<"TEST PASSED"<<endl<<endl;
 
             this->tearDown(out);
         }
         catch (...) {
+        	out<<"TEST FAILED"<<endl;
             this->tearDown(out);
             throw;
         }

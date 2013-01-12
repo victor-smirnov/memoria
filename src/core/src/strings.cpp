@@ -24,13 +24,13 @@ String trimString(StringRef str)
         return "";
     }
     else {
-        unsigned begin = str.find_first_not_of("\n\r\t ");
+        size_t begin = str.find_first_not_of("\n\r\t ");
         if (begin == String::npos)
         {
             return "";
         }
         else {
-            unsigned end = str.find_last_not_of("\n\r\t ");
+            size_t end = str.find_last_not_of("\n\r\t ");
             if (end != String::npos)
             {
                 return str.substr(begin, end - begin + 1);

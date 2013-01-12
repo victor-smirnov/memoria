@@ -389,6 +389,15 @@ public:
     	return SelectResult(idx, walker.rank(), walker.is_found());
     }
 
+    SelectResult selectBW(Int from, Value symbol, Int rank) const
+    {
+    	SelectBWWalker<MyType, Bits> walker(*this, symbol, rank);
+
+    	Int idx = walkBw(from, walker);
+
+    	return SelectResult(idx, walker.rank(), walker.is_found());
+    }
+
 private:
 
     class ValueSetter {
@@ -802,16 +811,15 @@ public:
 
     IndexKey popCount(Int block_offset, Int start, Int end, Value symbol) const
     {
-    	const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
-
     	if (Bits == 1)
     	{
-    		size_t count = PopCount(buffer, start, end);
+    		const Value* buffer = this->valuesBlock();
+    		size_t rank = PopCount(buffer, start, end);
     		if (symbol) {
-    			return count;
+    			return rank;
     		}
     		else {
-    			return end - start - count;
+    			return end - start - rank;
     		}
     	}
     	else {
@@ -826,7 +834,7 @@ public:
     	}
     }
 
-protected:
+
     template <typename Functor>
     void walkRange(Int start, Int end, Functor& walker) const
     {
@@ -910,7 +918,48 @@ protected:
     	}
     }
 
+    template <typename Walker>
+    Int walkBw(Int start, Walker& walker) const
+    {
+        MEMORIA_ASSERT(start, >=, 0);
 
+        Int block_end   = getBlockStartEndBwV(start);
+
+        if (block_end == 0)
+        {
+            return walker.walkValues(start, 0);
+        }
+        else
+        {
+            Int limit = walker.walkValues(start, block_end);
+            if (walker.is_found())
+            {
+                return limit;
+            }
+            else {
+                walker.prepareIndex();
+
+                Int level_size = getIndexCellsNumberFor(0, max_size_);
+                Int last_start = walkIndexBw(
+                					block_end/ValuesPerBranch,
+                					walker,
+                					index_size_ - level_size,
+                					level_size,
+                					ValuesPerBranch
+                				 );
+
+                if (last_start > 0)
+                {
+                	return walker.walkValues(last_start, last_start - ValuesPerBranch);
+                }
+                else {
+                	return 0;
+                }
+            }
+        }
+    }
+
+protected:
     static Int getBlockStart(Int i)
     {
         return (i / BranchingFactor) * BranchingFactor;
@@ -934,6 +983,11 @@ protected:
     static Int getBlockStartEndBw(Int i)
     {
         return (i / BranchingFactor) * BranchingFactor - 1;
+    }
+
+    static Int getBlockStartEndBwV(Int i)
+    {
+    	return (i / ValuesPerBranch) * ValuesPerBranch;
     }
 
     static Int getBlockEnd(Int i)
@@ -1004,8 +1058,8 @@ private:
     		return (walker.walkIndex(
     							start + level_offet,
     							level_limit + level_offet
-    						)
-    						- level_offet) * cell_size;
+    					   )
+    					   - level_offet) * cell_size;
     	}
     	else
     	{
@@ -1019,13 +1073,13 @@ private:
     			Int level_limit0    = getIndexCellsNumberFor(level_limit);
 
     			Int last_start      = walkIndexFw(
-    					block_start_end/BranchingFactor,
-    					walker,
-    					level_offet - level_size0,
-    					level_size0,
-    					level_limit0,
-    					BranchingFactor
-    			);
+    									block_start_end / BranchingFactor,
+    									walker,
+    									level_offet - level_size0,
+    									level_size0,
+    									level_limit0,
+    									BranchingFactor
+    								  );
 
     			Int last_start_end  = getBlockStartEnd(last_start);
 
@@ -1034,8 +1088,8 @@ private:
     			return (walker.walkIndex(
     								last_start + level_offet,
     								last_end + level_offet
-    							)
-    							- level_offet) * cell_size;
+    						   )
+    						   - level_offet) * cell_size;
     		}
     	}
     }
@@ -1048,15 +1102,14 @@ private:
     	if (block_start_end == -1)
     	{
     		return (walker.walkIndex(
-    							start + level_offet,
-    							level_offet - 1,
-    							cell_size
-    						)
-    						- level_offet + 1) * BranchingFactor - 1;
+    							start + level_offet - 1,
+    							level_offet - 1
+    					   )
+    					   - level_offet + 1) * cell_size;
     	}
     	else
     	{
-    		Int idx = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
+    		Int idx = walker.walkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
     		if (idx > block_start_end)
     		{
     			return (idx + 1) * BranchingFactor - 1;
@@ -1064,21 +1117,20 @@ private:
     		else {
     			Int level_size0 = getIndexCellsNumberFor(level_size);
     			Int last_start  = walkIndexBw(
-    					block_start_end/BranchingFactor,
-    					walker,
-    					level_offet - level_size0,
-    					level_size0,
-    					cell_size * BranchingFactor
-    			);
+    								block_start_end / BranchingFactor,
+    								walker,
+    								level_offet - level_size0,
+    								level_size0,
+    								BranchingFactor
+    							  );
 
     			Int last_start_end = getBlockStartEndBw(last_start);
 
     			return (walker.walkIndex(
-    							last_start + level_offet,
-    							last_start_end + level_offet,
-    							cell_size
-    							)
-    							- level_offet + 1) * BranchingFactor - 1;
+    								last_start + level_offet,
+    								last_start_end + level_offet
+    						   )
+    						   - level_offet) * cell_size;
     		}
     	}
     }

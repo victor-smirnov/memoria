@@ -87,11 +87,11 @@ String Configurator::resolve_references(StringRef value, NameTree* names) const
     UInt pos = 0;
     while (pos < value.length())
     {
-        UInt idx1 = value.find("${", pos);
+        size_t idx1 = value.find("${", pos);
         if (idx1 != String::npos)
         {
             buf<<value.substr(pos, idx1 - pos);
-            UInt idx2 = value.find("}", idx1 + 2);
+            size_t idx2 = value.find("}", idx1 + 2);
 
             if (idx2 != String::npos)
             {
@@ -342,7 +342,7 @@ Configurator* Configurator::BuildRootConfigurator(const char** envp) {
         for (; NULL != *envp; envp++)
         {
             String pair(*envp);
-            UInt idx = pair.find("=", 0);
+            size_t idx = pair.find("=", 0);
             if (idx != String::npos) {
                 String name = "env." + trimString(pair.substr(0, idx));
                 if (idx < pair.length() - 1) {

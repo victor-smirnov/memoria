@@ -35,7 +35,7 @@ struct ListTail<TypeList<Head, Tail...>> {
 
 template <typename T, T Head, T ... Tail>
 struct ListTail<ValueList<T, Head, Tail...>> {
-    typedef ValueList<Tail...> Type;
+    typedef ValueList<T, Tail...> Type;
 };
 }
 

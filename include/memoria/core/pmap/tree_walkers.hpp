@@ -622,6 +622,89 @@ public:
 };
 
 
+template <typename TreeType, Int Bits>
+class SelectBWWalker;
+
+
+
+template <typename TreeType>
+class SelectBWWalker<TreeType, 1> {
+
+	typedef typename TreeType::IndexKey IndexKey;
+    typedef typename TreeType::Value 	Value;
+
+    IndexKey 		rank_;
+    IndexKey 		limit_;
+    const TreeType& me_;
+    Value 			symbol_;
+
+    static const Int Blocks = TreeType::Blocks;
+
+    Int value_block_offset_;
+    Int index_block_offset_;
+
+    bool			found_;
+
+public:
+    SelectBWWalker(const TreeType& me, Value symbol, IndexKey limit):
+        rank_(0),
+        limit_(limit),
+        me_(me),
+        symbol_(symbol)
+    {
+    	value_block_offset_ = me.getValueBlockOffset();
+    	index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
+    }
+
+    void prepareIndex() {}
+
+    //FIXME: move offsets[] to constructor
+    Int walkValues(Int start, Int end)
+    {
+    	const Value* buffer = me_.valuesBlock();
+
+    	auto result = symbol_?
+    			Select1BW(buffer, start, end, limit_) :
+    			Select0BW(buffer, start, end, limit_);
+
+    	rank_ 	+= result.rank();
+    	limit_  -= result.rank();
+
+    	found_	= result.is_found() || limit_ == 0;
+
+    	return result.idx();
+    }
+
+    Int walkIndex(Int start, Int end)
+    {
+        for (Int c = start; c > end; c--)
+        {
+        	IndexKey block_rank = me_.indexb(index_block_offset_, c);
+
+        	if (block_rank >= limit_)
+        	{
+        		return c;
+        	}
+
+        	rank_  += block_rank;
+        	limit_ -= block_rank;
+        }
+
+        return end;
+    }
+
+    IndexKey rank() const
+    {
+    	return rank_;
+    }
+
+    bool is_found() const
+    {
+    	return found_;
+    }
+};
+
+
 }
 
 

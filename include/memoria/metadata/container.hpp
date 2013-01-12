@@ -107,7 +107,7 @@ private:
     PageMetadataMap         page_map_;
     ContainerInterface*     container_interface_;
 
-    Int                     code_;
+//    Int                     code_;
     Int                     hash_;
 };
 
