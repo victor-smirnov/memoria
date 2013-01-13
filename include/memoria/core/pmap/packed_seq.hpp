@@ -398,6 +398,64 @@ public:
     	return SelectResult(idx, walker.rank(), walker.is_found());
     }
 
+    void dump(ostream& out_) const
+    {
+    	out_<<"size_ = "<<size_<<endl;
+    	out_<<"max_size_ = "<<max_size_<<endl;
+    	out_<<"index_size_ = "<<index_size_<<endl;
+
+    	for (Int c = 0; c < index_size_; c++)
+    	{
+    		out_.width(4);
+    		out_<<c<<": ";
+    		for (Int d = 0; d < Blocks; d++)
+    		{
+    			out_<<this->indexb(this->getIndexKeyBlockOffset(d), c)<<" ";
+    		}
+    		out_<<endl;
+    	}
+
+
+    	Int columns;
+
+    	switch (Bits) {
+    	case 1: columns = 64; break;
+    	case 2: columns = 64; break;
+    	case 4: columns = 32; break;
+    	default: columns = 32;
+    	}
+
+    	Int width = Bits <= 4 ? 1 : 3;
+
+    	out_<<endl;
+    	Expand(out_, 23 + width);
+    	for (int c = 0; c < columns; c += 5)
+    	{
+    		out_.width(width*5);
+    		out_<<dec<<c;
+    	}
+    	out_<<endl;
+
+    	for (Int c = 0; c < size(); c += columns)
+    	{
+    		Expand(out_, 12);
+    		out_<<" ";
+    		out_.width(6);
+    		out_<<dec<<c<<" "<<hex;
+    		out_.width(6);
+    		out_<<c<<": ";
+
+    		for (Int d = 0; d < columns && c + d < size(); d++)
+    		{
+    			out_<<hex;
+    			out_.width(width);
+    			out_<<value(c + d);
+    		}
+
+    		out_<<dec<<endl;
+    	}
+    }
+
 private:
 
     class ValueSetter {
@@ -494,6 +552,18 @@ public:
     	{
     		Value* buffer = T2T<Value*>(memory_block_ + block_offset);
     		SetBits(buffer, item_idx * Bits, v, Bits);
+    	}
+    }
+
+    bool testb(Int block_offset, Int item_idx, Value value) const
+    {
+    	if (Bits == 1 || Bits == 2 || Bits == 4)
+    	{
+    		const Value* buffer = valuesBlock();
+    		return TestBits(buffer, item_idx * Bits, value, Bits);
+    	}
+    	else {
+    		return valueb(block_offset, item_idx) == value;
     	}
     }
 

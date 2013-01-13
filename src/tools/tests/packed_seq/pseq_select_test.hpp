@@ -46,18 +46,13 @@ class PSeqSelectTest: public TestTask {
     static const Int VPB					= Seq::ValuesPerBranch;
 
 
-    typedef function<void (MyType*, const Seq*, size_t, size_t)> 				AssertSelectFn;
-
-
 public:
 
     PSeqSelectTest(): TestTask((SBuf()<<"Select."<<Bits).str())
     {
-        MEMORIA_ADD_TEST(runSelect1FWTest);
-        MEMORIA_ADD_TEST(runSelect0FWTest);
+        MEMORIA_ADD_TEST(runSelectFWTest);
 
-        MEMORIA_ADD_TEST(runSelect1BWTest);
-        MEMORIA_ADD_TEST(runSelect0BWTest);
+        MEMORIA_ADD_TEST(runSelectBWTest);
     }
 
     virtual ~PSeqSelectTest() throw() {}
@@ -94,11 +89,11 @@ public:
     	seq->reindex();
     }
 
-    SelectResult select1FW(const Seq* seq, size_t start, size_t rank)
+    SelectResult selectFW(const Seq* seq, size_t start, size_t rank, Value symbol)
     {
-    	const Value* bitmap = seq->valuesBlock();
-
     	size_t total = 0;
+
+    	Int block = seq->getValueBlockOffset();
 
     	for (size_t c = start; c < (size_t)seq->maxSize(); c++)
     	{
@@ -107,45 +102,25 @@ public:
     			return SelectResult(c, rank, true);
     		}
 
-    		total += GetBit(bitmap, c);
+    		total += seq->valueb(block, c) == symbol;
     	}
 
     	return SelectResult(seq->maxSize(), total, total == rank);
     }
 
-    SelectResult select0FW(const Seq* seq, size_t start, size_t rank)
-    {
-    	const Value* bitmap = seq->valuesBlock();
 
-    	size_t total = 0;
-
-    	for (size_t c = start; c < (size_t)seq->maxSize(); c++)
-    	{
-    		if (total == rank)
-    		{
-    			return SelectResult(c, rank, true);
-    		}
-
-    		total += 1 - GetBit(bitmap, c);
-    	}
-
-    	return SelectResult(seq->maxSize(), total, total == rank);
-    }
-
-    SelectResult select1BW(const Seq* seq, size_t start, size_t stop, size_t rank)
+    SelectResult selectBW(const Seq* seq, size_t start, size_t stop, size_t rank, Value symbol)
     {
     	if (rank == 0) {
     		return SelectResult(start, 0, true);
     	}
 
-
-    	const Value* bitmap = seq->valuesBlock();
-
     	size_t total = 0;
+    	Int block = seq->getValueBlockOffset();
 
     	for (size_t c = start; c > stop; c--)
     	{
-    		total += GetBit(bitmap, c - 1);
+    		total += seq->testb(block, c - 1, symbol);
 
     		if (total == rank)
     		{
@@ -156,70 +131,25 @@ public:
     	return SelectResult(stop, total, total == rank);
     }
 
-    SelectResult select0BW(const Seq* seq, size_t start, size_t stop, size_t rank)
+    void assertSelectFW(const Seq* seq, size_t start, size_t rank, Value symbol)
     {
-    	if (rank == 0) {
-    		return SelectResult(start, 0, true);
-    	}
-
-    	const Value* bitmap = seq->valuesBlock();
-
-    	size_t total = 0;
-
-    	for (size_t c = start; c > stop; c--)
-    	{
-    		total += 1 - GetBit(bitmap, c - 1);
-
-    		if (total == rank)
-    		{
-    			return SelectResult(c - 1, rank, true);
-    		}
-    	}
-
-    	return SelectResult(stop, total, total == rank);
-    }
-
-    void assertSelect1FW(const Seq* seq, size_t start, size_t rank)
-    {
-    	auto result1 = seq->selectFW(start, 1, rank);
-    	auto result2 = select1FW(seq, start, rank);
+    	auto result1 = seq->selectFW(start, symbol, rank);
+    	auto result2 = selectFW(seq, start, rank, symbol);
 
     	AssertEQ(MA_SRC, result1.is_found(),  result2.is_found(), SBuf()<<start<<" "<<rank);
     	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf()<<start<<" "<<rank);
     	AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start<<" "<<rank);
     }
 
-    void assertSelect0FW(const Seq* seq, size_t start, size_t rank)
+    void assertSelectBW(const Seq* seq, size_t start, size_t rank, Value symbol)
     {
-    	auto result1 = seq->selectFW(start, 0, rank);
-    	auto result2 = select0FW(seq, start, rank);
+    	auto result1 = seq->selectBW(start, symbol, rank);
+    	auto result2 = selectBW(seq, start, 0, rank, symbol);
 
     	AssertEQ(MA_SRC, result1.is_found(),  result2.is_found(), SBuf()<<start<<" "<<rank);
     	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf()<<start<<" "<<rank);
     	AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start<<" "<<rank);
     }
-
-
-    void assertSelect1BW(const Seq* seq, size_t start, size_t rank)
-    {
-    	auto result1 = seq->selectBW(start, 1, rank);
-    	auto result2 = select1BW(seq, start, 0, rank);
-
-    	AssertEQ(MA_SRC, result1.is_found(),  result2.is_found(), SBuf()<<start<<" "<<rank);
-    	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf()<<start<<" "<<rank);
-    	AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start<<" "<<rank);
-    }
-
-    void assertSelect0BW(const Seq* seq, size_t start, size_t rank)
-    {
-    	auto result1 = seq->selectBW(start, 0, rank);
-    	auto result2 = select0BW(seq, start, 0, rank);
-
-    	AssertEQ(MA_SRC, result1.is_found(),  result2.is_found(), SBuf()<<start<<" "<<rank);
-    	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf()<<start<<" "<<rank);
-    	AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start<<" "<<rank);
-    }
-
 
     vector<size_t> createStarts(const Seq* seq)
 	{
@@ -320,7 +250,7 @@ public:
 
     Seq* createEmptySequence() const
     {
-    	Int buffer_size     = Bits < 8 ? 8192*Bits : 8192*Bits;
+    	Int buffer_size     = Bits < 8 ? 8192*Bits : 65536*Bits;
 
     	Byte* buffer       	= new Byte[buffer_size];
 
@@ -332,19 +262,15 @@ public:
     	return seq;
     }
 
-    void runSelect1FWTest(ostream& out)
+    void runSelectFWTest(ostream& out)
     {
-    	runSelectFWTest(out, &MyType::assertSelect1FW, 1);
+    	runSelectFWTest(out, 0);
+    	runSelectFWTest(out, Symbols - 1);
     }
 
-    void runSelect0FWTest(ostream& out)
+    void runSelectFWTest(ostream& out, Value symbol)
     {
-    	runSelectFWTest(out, &MyType::assertSelect0FW, 0);
-    }
-
-    void runSelectFWTest(ostream& out, AssertSelectFn assert_fn, Value symbol)
-    {
-    	out<<"Parameters: "<<Bits<<" "<<symbol<<endl;
+    	out<<"Parameters: Bits="<<Bits<<" symbol="<<symbol<<endl;
 
     	Seq* seq = createEmptySequence();
 
@@ -362,7 +288,7 @@ public:
 
     		for (size_t rank: ranks)
     		{
-    			assert_fn(this, seq, start, rank);
+    			assertSelectFW(seq, start, rank, symbol);
     		}
     	}
 
@@ -379,7 +305,7 @@ public:
 
     		for (size_t rank: ranks)
     		{
-    			assert_fn(this, seq, start, rank);
+    			assertSelectFW(seq, start, rank, symbol);
     		}
     	}
 
@@ -408,17 +334,13 @@ public:
     }
 
 
-    void runSelect1BWTest(ostream& out)
+    void runSelectBWTest(ostream& out)
     {
-    	runSelectBWTest(out, &MyType::assertSelect1BW, 1);
+    	runSelectBWTest(out, 0);
+    	runSelectBWTest(out, Symbols - 1);
     }
 
-    void runSelect0BWTest(ostream& out)
-    {
-    	runSelectBWTest(out, &MyType::assertSelect0BW, 0);
-    }
-
-    void runSelectBWTest(ostream& out, AssertSelectFn assert_fn, Value symbol)
+    void runSelectBWTest(ostream& out, Value symbol)
     {
     	out<<"Parameters: "<<Bits<<" "<<symbol<<endl;
 
@@ -440,7 +362,7 @@ public:
 
     		for (size_t rank: ranks)
     		{
-    			assert_fn(this, seq, start, rank);
+    			assertSelectBW(seq, start, rank, symbol);
     		}
     	}
 
@@ -457,7 +379,7 @@ public:
 
     		for (size_t rank: ranks)
     		{
-    			assert_fn(this, seq, start, rank);
+    			assertSelectBW(seq, start, rank, symbol);
     		}
     	}
 
@@ -484,7 +406,7 @@ public:
     	out<<endl;
 
     	size_t rank = seq->popCount(0, seq->size(), symbol);
-    	assert_fn(this, seq, seq->size(), rank/2);
+    	assertSelectBW(seq, seq->size(), rank/2, symbol);
     }
 };
 

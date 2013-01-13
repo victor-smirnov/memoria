@@ -33,7 +33,9 @@ public:
 //    	registerTask(new PSeqRankTest<4>());
 //    	registerTask(new PSeqRankTest<8>());
 
-    	registerTask(new PSeqSelectTest<1>());
+//    	registerTask(new PSeqSelectTest<1>());
+//    	registerTask(new PSeqSelectTest<4>());
+    	registerTask(new PSeqSelectTest<8>());
     }
 
 };

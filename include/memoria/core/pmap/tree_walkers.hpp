@@ -459,7 +459,6 @@ public:
 
 	void prepareIndex() {}
 
-	//FIXME: move offsets[] to constructor
 	void walkValues(Int start, Int end)
 	{
 		sum_ += me_.popCount(start, end, symbol_);
@@ -507,7 +506,6 @@ public:
 
     void prepareIndex() {}
 
-    //FIXME: move offsets[] to constructor
     void walkValues(Int start, Int end)
     {
     	const Value* buffer = T2T<const Value*>(me_.memoryBlock() + value_block_offset_);
@@ -539,97 +537,158 @@ public:
 };
 
 
+template <typename TreeType>
+class SelectFWWalkerBase {
+
+protected:
+	typedef typename TreeType::IndexKey IndexKey;
+	typedef typename TreeType::Value 	Value;
+
+	IndexKey 		rank_;
+	IndexKey 		limit_;
+	const TreeType& me_;
+	Value 			symbol_;
+
+	Int index_block_offset_;
+
+	bool			found_;
+
+public:
+	SelectFWWalkerBase(const TreeType& me, Value symbol, IndexKey limit):
+		rank_(0),
+		limit_(limit),
+		me_(me),
+		symbol_(symbol)
+	{
+		index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
+	}
+
+	void prepareIndex() {}
+
+	Int walkIndex(Int start, Int end)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			IndexKey block_rank = me_.indexb(index_block_offset_, c);
+
+			if (block_rank >= limit_)
+			{
+				return c;
+			}
+
+			rank_  += block_rank;
+			limit_ -= block_rank;
+		}
+
+		return end;
+	}
+
+	IndexKey rank() const
+	{
+		return rank_;
+	}
+
+	bool is_found() const
+	{
+		return found_;
+	}
+};
+
+
+
 template <typename TreeType, Int Bits>
 class SelectFWWalker;
 
 
 
+
 template <typename TreeType>
-class SelectFWWalker<TreeType, 1> {
+class SelectFWWalker<TreeType, 1>: public SelectFWWalkerBase<TreeType> {
 
-	typedef typename TreeType::IndexKey IndexKey;
-    typedef typename TreeType::Value 	Value;
+	typedef SelectFWWalkerBase<TreeType> Base;
 
-    IndexKey 		rank_;
-    IndexKey 		limit_;
-    const TreeType& me_;
-    Value 			symbol_;
-
-    static const Int Blocks = TreeType::Blocks;
-
-    Int value_block_offset_;
-    Int index_block_offset_;
-
-    bool			found_;
+	typedef typename Base::IndexKey IndexKey;
+    typedef typename Base::Value 	Value;
 
 public:
     SelectFWWalker(const TreeType& me, Value symbol, IndexKey limit):
-        rank_(0),
-        limit_(limit),
-        me_(me),
-        symbol_(symbol)
-    {
-    	value_block_offset_ = me.getValueBlockOffset();
-    	index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
-    }
+    	Base(me, symbol, limit)
+    {}
 
-    void prepareIndex() {}
 
-    //FIXME: move offsets[] to constructor
     Int walkValues(Int start, Int end)
     {
-    	const Value* buffer = me_.valuesBlock();
+    	const Value* buffer = Base::me_.valuesBlock();
 
-    	auto result = symbol_?
-    			Select1FW(buffer, start, end, limit_) :
-    			Select0FW(buffer, start, end, limit_);
+    	auto result = Base::symbol_?
+    			Select1FW(buffer, start, end, Base::limit_) :
+    			Select0FW(buffer, start, end, Base::limit_);
 
-    	rank_ 	+= result.rank();
-    	limit_  -= result.rank();
+    	Base::rank_ 	+= result.rank();
+    	Base::limit_  -= result.rank();
 
-    	found_	= result.is_found() || limit_ == 0;
+    	Base::found_	= result.is_found() || Base::limit_ == 0;
 
     	return result.idx();
-    }
-
-    Int walkIndex(Int start, Int end)
-    {
-        for (Int c = start; c < end; c++)
-        {
-        	IndexKey block_rank = me_.indexb(index_block_offset_, c);
-
-        	if (block_rank >= limit_)
-        	{
-        		return c;
-        	}
-
-        	rank_  += block_rank;
-        	limit_ -= block_rank;
-        }
-
-        return end;
-    }
-
-    IndexKey rank() const
-    {
-    	return rank_;
-    }
-
-    bool is_found() const
-    {
-    	return found_;
     }
 };
 
 
+
+
 template <typename TreeType, Int Bits>
-class SelectBWWalker;
+class SelectFWWalker: public SelectFWWalkerBase<TreeType> {
+
+	typedef SelectFWWalkerBase<TreeType> Base;
+
+	typedef typename Base::IndexKey IndexKey;
+    typedef typename Base::Value 	Value;
+
+    Int value_block_offset_;
+
+public:
+    SelectFWWalker(const TreeType& me, Value symbol, IndexKey limit):
+    	Base(me, symbol, limit)
+    {
+    	value_block_offset_ = me.getValueBlockOffset();
+    }
+
+    Int walkValues(Int start, Int end)
+    {
+    	IndexKey total = 0;
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		if (total == Base::limit_)
+    		{
+    			Base::rank_ += total;
+    			Base::found_ = true;
+
+    			return c;
+    		}
+
+    		total += Base::me_.testb(value_block_offset_, c, Base::symbol_);
+    	}
+
+    	Base::rank_ 	+= total;
+    	Base::limit_  	-= total;
+    	Base::found_ 	= Base::limit_ == 0;
+
+    	return end;
+    }
+};
+
+
+
+
+
 
 
 
 template <typename TreeType>
-class SelectBWWalker<TreeType, 1> {
+class SelectBWWalkerBase {
 
+protected:
 	typedef typename TreeType::IndexKey IndexKey;
     typedef typename TreeType::Value 	Value;
 
@@ -638,42 +697,21 @@ class SelectBWWalker<TreeType, 1> {
     const TreeType& me_;
     Value 			symbol_;
 
-    static const Int Blocks = TreeType::Blocks;
-
-    Int value_block_offset_;
     Int index_block_offset_;
 
     bool			found_;
 
 public:
-    SelectBWWalker(const TreeType& me, Value symbol, IndexKey limit):
+    SelectBWWalkerBase(const TreeType& me, Value symbol, IndexKey limit):
         rank_(0),
         limit_(limit),
         me_(me),
         symbol_(symbol)
     {
-    	value_block_offset_ = me.getValueBlockOffset();
     	index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
     }
 
     void prepareIndex() {}
-
-    //FIXME: move offsets[] to constructor
-    Int walkValues(Int start, Int end)
-    {
-    	const Value* buffer = me_.valuesBlock();
-
-    	auto result = symbol_?
-    			Select1BW(buffer, start, end, limit_) :
-    			Select0BW(buffer, start, end, limit_);
-
-    	rank_ 	+= result.rank();
-    	limit_  -= result.rank();
-
-    	found_	= result.is_found() || limit_ == 0;
-
-    	return result.idx();
-    }
 
     Int walkIndex(Int start, Int end)
     {
@@ -703,6 +741,101 @@ public:
     	return found_;
     }
 };
+
+
+
+template <typename TreeType, Int Bits>
+class SelectBWWalker;
+
+
+
+template <typename TreeType>
+class SelectBWWalker<TreeType, 1>: public SelectBWWalkerBase<TreeType> {
+
+	typedef SelectBWWalkerBase<TreeType> Base;
+
+	typedef typename Base::IndexKey IndexKey;
+    typedef typename Base::Value 	Value;
+
+public:
+    SelectBWWalker(const TreeType& me, Value symbol, IndexKey limit):
+        Base(me, symbol, limit)
+    {}
+
+    //FIXME: move offsets[] to constructor
+    Int walkValues(Int start, Int end)
+    {
+    	const Value* buffer = Base::me_.valuesBlock();
+
+    	auto result = Base::symbol_?
+    			Select1BW(buffer, start, end, Base::limit_) :
+    			Select0BW(buffer, start, end, Base::limit_);
+
+    	Base::rank_   += result.rank();
+    	Base::limit_  -= result.rank();
+
+    	Base::found_	= result.is_found() || Base::limit_ == 0;
+
+    	return result.idx();
+    }
+};
+
+
+
+
+template <typename TreeType, Int Bits>
+class SelectBWWalker: public SelectBWWalkerBase<TreeType> {
+
+	typedef SelectBWWalkerBase<TreeType> Base;
+
+	typedef typename Base::IndexKey IndexKey;
+    typedef typename Base::Value 	Value;
+
+    Int value_block_offset_;
+
+public:
+    SelectBWWalker(const TreeType& me, Value symbol, IndexKey limit):
+        Base(me, symbol, limit)
+    {
+    	value_block_offset_ = me.getValueBlockOffset();
+    }
+
+
+    Int walkValues(Int start, Int end)
+    {
+    	if (Base::limit_ == 0)
+    	{
+    		Base::found_ = true;
+    		return start;
+    	}
+
+    	IndexKey total = 0;
+
+    	for (Int c = start; c > end; c--)
+    	{
+    		total += Base::me_.testb(value_block_offset_, c - 1, Base::symbol_);
+
+    		if (total == Base::limit_)
+    		{
+    			Base::rank_ 	+= total;
+    			Base::found_ 	= true;
+
+    			return c - 1;
+    		}
+    	}
+
+    	Base::rank_ 	+= total;
+    	Base::limit_  	-= total;
+    	Base::found_ 	= Base::limit_ == 0;
+
+    	return end;
+    }
+};
+
+
+
+
+
 
 
 }
