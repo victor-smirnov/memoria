@@ -941,7 +941,7 @@ public:
 
                 Int level_size = getIndexCellsNumberFor(0, max_size_);
                 Int last_start = walkIndexBw(
-                					block_end/ValuesPerBranch,
+                					block_end/ValuesPerBranch - 1,
                 					walker,
                 					index_size_ - level_size,
                 					level_size,
@@ -1102,7 +1102,7 @@ private:
     	if (block_start_end == -1)
     	{
     		return (walker.walkIndex(
-    							start + level_offet - 1,
+    							start + level_offet,
     							level_offet - 1
     					   )
     					   - level_offet + 1) * cell_size;
@@ -1112,7 +1112,7 @@ private:
     		Int idx = walker.walkIndex(start + level_offet, block_start_end + level_offet) - level_offet;
     		if (idx > block_start_end)
     		{
-    			return (idx + 1) * BranchingFactor - 1;
+    			return (idx + 1) * cell_size;
     		}
     		else {
     			Int level_size0 = getIndexCellsNumberFor(level_size);
@@ -1122,7 +1122,7 @@ private:
     								level_offet - level_size0,
     								level_size0,
     								BranchingFactor
-    							  );
+    							  ) - 1;
 
     			Int last_start_end = getBlockStartEndBw(last_start);
 
@@ -1130,7 +1130,7 @@ private:
     								last_start + level_offet,
     								last_start_end + level_offet
     						   )
-    						   - level_offet) * cell_size;
+    						   - level_offet + 1) * cell_size;
     		}
     	}
     }

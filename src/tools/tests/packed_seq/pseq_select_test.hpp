@@ -53,11 +53,11 @@ public:
 
     PSeqSelectTest(): TestTask((SBuf()<<"Select."<<Bits).str())
     {
-//        MEMORIA_ADD_TEST(runSelect1FWTest);
-//        MEMORIA_ADD_TEST(runSelect0FWTest);
+        MEMORIA_ADD_TEST(runSelect1FWTest);
+        MEMORIA_ADD_TEST(runSelect0FWTest);
 
         MEMORIA_ADD_TEST(runSelect1BWTest);
-//        MEMORIA_ADD_TEST(runSelect0FWTest);
+        MEMORIA_ADD_TEST(runSelect0BWTest);
     }
 
     virtual ~PSeqSelectTest() throw() {}
@@ -158,6 +158,10 @@ public:
 
     SelectResult select0BW(const Seq* seq, size_t start, size_t stop, size_t rank)
     {
+    	if (rank == 0) {
+    		return SelectResult(start, 0, true);
+    	}
+
     	const Value* bitmap = seq->valuesBlock();
 
     	size_t total = 0;
@@ -316,7 +320,7 @@ public:
 
     Seq* createEmptySequence() const
     {
-    	Int buffer_size     = Bits < 8 ? 2048*Bits : 8192*Bits;
+    	Int buffer_size     = Bits < 8 ? 8192*Bits : 8192*Bits;
 
     	Byte* buffer       	= new Byte[buffer_size];
 
@@ -426,6 +430,8 @@ public:
 
     	starts.push_back(seq->maxSize());
 
+    	out<<"Solid bitmap"<<endl;
+
     	for (size_t start: starts)
     	{
     		out<<start<<endl;
@@ -437,6 +443,9 @@ public:
     			assert_fn(this, seq, start, rank);
     		}
     	}
+
+    	out<<endl;
+    	out<<"Random bitmap, random positions"<<endl;
 
     	populateRandom(seq, seq->maxSize());
 
@@ -452,8 +461,13 @@ public:
     		}
     	}
 
+    	out<<endl;
+    	out<<"Random bitmap, "<<symbol<<"-set positions"<<endl;
+
     	for (size_t start : starts)
     	{
+    		out<<start<<endl;
+
     		auto pairs = createRanksBW(seq, start, symbol);
 
     		for (auto pair: pairs)
@@ -462,11 +476,15 @@ public:
 
     			AssertTrue(MA_SRC, result.is_found());
 
-    			AssertEQ(MA_SRC, result.rank(), pair.rank);
-    			AssertEQ(MA_SRC, result.idx(),  pair.idx);
+    			AssertEQ(MA_SRC, result.rank(), pair.rank, SBuf()<<start<<" "<<pair.rank);
+    			AssertEQ(MA_SRC, result.idx(),  pair.idx, SBuf()<<start<<" "<<pair.rank);
     		}
     	}
 
+    	out<<endl;
+
+    	size_t rank = seq->popCount(0, seq->size(), symbol);
+    	assert_fn(this, seq, seq->size(), rank/2);
     }
 };
 
