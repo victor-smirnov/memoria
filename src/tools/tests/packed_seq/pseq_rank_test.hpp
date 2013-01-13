@@ -41,6 +41,7 @@ class PSeqRankTest: public TestTask {
 
     static const Int Blocks                 = Seq::Blocks;
     static const Int Symbols                = 1<<Seq::Bits;
+    static const Int VPB					= Seq::ValuesPerBranch;
 
 public:
 
@@ -53,56 +54,120 @@ public:
 
     virtual ~PSeqRankTest() throw() {}
 
-
-    void runTest1(ostream& out)
+    Seq* createEmptySequence()
     {
-    	out<<"runTest1: "<<Bits<<endl;
+    	Int buffer_size     = Bits < 8 ? 8192*Bits : 128*1024*Bits;
 
-    	Int buffer_size     = Bits < 8 ? 2048*Bits : 8192*Bits;
-
-    	unique_ptr<Byte[]>  buffer_ptr(new Byte[buffer_size]);
-    	Byte* buffer       	= buffer_ptr.get();
+    	Byte* buffer       	= new Byte[buffer_size];
     	memset(buffer, 0, buffer_size);
 
     	Seq* seq           = T2T<Seq*>(buffer);
     	seq->initByBlock(buffer_size - sizeof(Seq));
 
+    	return seq;
+    }
+
+
+    vector<size_t> createStarts(const Seq* seq)
+    {
+    	size_t max_block  = seq->size() / VPB + (seq->size() % VPB == 0 ? 0 : 1);
+
+    	vector<size_t> starts;
+
+    	for (size_t block = 0; block < max_block; block++)
+    	{
+    		size_t block_start = block * VPB;
+    		size_t block_end = block_start + VPB <= (size_t)seq->size() ? block_start + VPB : seq->size();
+
+    		starts.push_back(block_start);
+    		starts.push_back(block_start + 1);
+
+    		for (size_t d = 2; d < (size_t)VPB && block_start + d < block_end; d += 128)
+    		{
+    			starts.push_back(block_start + d);
+    		}
+
+    		starts.push_back(block_end - 1);
+    		starts.push_back(block_end);
+    	}
+
+    	return starts;
+    }
+
+
+    vector<size_t> createEnds(const Seq* seq, size_t start)
+    {
+    	size_t max_block  = seq->size() / VPB + (seq->size() % VPB == 0 ? 0 : 1);
+
+    	vector<size_t> ranks;
+
+    	for (size_t block = start / VPB; block < max_block; block++)
+    	{
+    		size_t block_start = block * VPB;
+    		size_t block_end = block_start + VPB <= (size_t)seq->size() ? block_start + VPB : seq->size();
+
+    		if (block_start >= start) ranks.push_back(block_start);
+    		if (block_start + 1 >= start) ranks.push_back(block_start + 1);
+
+    		for (size_t d = 128; d < (size_t)VPB; d += 128)
+    		{
+    			if (block_start + d >= start) ranks.push_back(block_start + d);
+    		}
+
+    		if (block_end - 1 >= start) ranks.push_back(block_end - 1);
+    		if (block_end >= start) ranks.push_back(block_end);
+    	}
+
+    	return ranks;
+    }
+
+    void assertRank(Seq* seq, size_t start, size_t end, Value symbol)
+    {
+    	Int rank = seq->rank(start, end, symbol);
+    	Int popc = seq->popCount(start, end, symbol);
+
+    	AssertEQ(MA_SRC, rank, popc);
+    }
+
+    void runTest1(ostream& out)
+    {
+    	out<<"Parameters: Bits="<<Bits<<endl;
+
+    	Seq* seq = createEmptySequence();
+
     	for (Int c = 0; c < seq->maxSize(); c++)
     	{
-    		seq->value(c) = getRandom(Blocks == 1 ? 2 : Blocks);
+    		seq->value(c) = getRandom(Symbols);
     	}
 
     	seq->size() = seq->maxSize();
     	seq->reindex();
 
-    	for (Int start = 0; start < seq->maxSize(); start += 10)
-    	{
-    		cout<<start<<endl;
-    		for (Int end = start; end < seq->maxSize(); end += 10)
-    		{
-    			for (Int s = 0; s < Symbols; s++)
-    			{
-    				Int rank = seq->rank(start, end, s);
-    				Int popc = seq->popCount(start, end, s);
+    	assertRank(seq, 10,seq->size() - 10, 0);
 
-    				AssertEQ(MA_SRC, rank, popc);
-    			}
+    	seq->dump(cout);
+
+    	auto starts = createStarts(seq);
+
+    	for (size_t start: starts)
+    	{
+    		out<<start<<endl;
+
+    		auto ends = createEnds(seq, start);
+
+    		for (size_t end: ends)
+    		{
+    			assertRank(seq, start, end, 0);
+    			assertRank(seq, start, end, Symbols - 1);
     		}
     	}
     }
 
     void runTest2(ostream& out)
     {
-    	out<<"runTest2: "<<Bits<<endl;
+    	out<<"Parameters: Bits="<<Bits<<endl;
 
-    	Int buffer_size     = 4096*Bits;
-
-    	unique_ptr<Byte[]>  buffer_ptr(new Byte[buffer_size]);
-    	Byte* buffer       	= buffer_ptr.get();
-    	memset(buffer, 0, buffer_size);
-
-    	Seq* seq           = T2T<Seq*>(buffer);
-    	seq->initByBlock(buffer_size - sizeof(Seq));
+    	Seq* seq = createEmptySequence();
 
     	for (Int c = 0; c < seq->maxSize(); c++)
     	{
@@ -114,32 +179,20 @@ public:
     		seq->size() = end;
     		seq->reindex();
 
-    		for (Int s = 0; s < Symbols; s++)
-    		{
-    			Int rank = seq->rank(0, end, s);
-    			Int popc = seq->popCount(0, end, s);
-
-    			AssertEQ(MA_SRC, rank, popc, SBuf()<<end<<" "<<s);
-    		}
+    		assertRank(seq, 0, end, 0);
+    		assertRank(seq, 0, end, Symbols - 1);
     	}
     }
 
     void runTest3(ostream& out)
     {
-    	out<<"runTest3: "<<Bits<<endl;
+    	out<<"Parameters: Bits="<<Bits<<endl;
 
-    	Int buffer_size     = 4096*Bits;
-
-    	unique_ptr<Byte[]>  buffer_ptr(new Byte[buffer_size]);
-    	Byte* buffer       	= buffer_ptr.get();
-    	memset(buffer, 0, buffer_size);
-
-    	Seq* seq           = T2T<Seq*>(buffer);
-    	seq->initByBlock(buffer_size - sizeof(Seq));
+    	Seq* seq = createEmptySequence();
 
     	for (Int c = 0; c < seq->maxSize(); c++)
     	{
-    		seq->value(c) = getRandom(Blocks == 1 ? 2 : Blocks);
+    		seq->value(c) = getRandom(Symbols);
     	}
 
     	seq->size() = seq->maxSize();
@@ -149,13 +202,8 @@ public:
 
     	for (Int start = 0; start < seq->maxSize(); start++)
     	{
-    		for (Int s = 0; s < Symbols; s++)
-    		{
-    			Int rank = seq->rank(start, end, s);
-    			Int popc = seq->popCount(start, end, s);
-
-    			AssertEQ(MA_SRC, rank, popc);
-    		}
+    		assertRank(seq, start, end, 0);
+    		assertRank(seq, start, end, Symbols - 1);
     	}
     }
 };

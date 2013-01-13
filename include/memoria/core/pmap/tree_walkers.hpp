@@ -433,6 +433,9 @@ public:
 };
 
 
+
+
+
 template <typename TreeType, Int Bits>
 class RankWalker {
 	typedef typename TreeType::IndexKey IndexKey;
@@ -464,7 +467,7 @@ public:
 		sum_ += me_.popCount(start, end, symbol_);
 	}
 
-	void walkIndex(Int start, Int end, Int size)
+	void walkIndex(Int start, Int end)
 	{
 		for (Int c = start; c < end; c++)
 		{

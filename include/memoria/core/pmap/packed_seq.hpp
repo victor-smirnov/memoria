@@ -404,12 +404,22 @@ public:
     	out_<<"max_size_ = "<<max_size_<<endl;
     	out_<<"index_size_ = "<<index_size_<<endl;
 
+    	Expand(out_, 5);
+    	for (Int d = 0; d < Blocks; d++)
+    	{
+    		out_.width(5);
+    		out_<<d;
+    	}
+
+    	out_<<endl<<endl;
+
     	for (Int c = 0; c < index_size_; c++)
     	{
     		out_.width(4);
     		out_<<c<<": ";
     		for (Int d = 0; d < Blocks; d++)
     		{
+    			out_.width(4);
     			out_<<this->indexb(this->getIndexKeyBlockOffset(d), c)<<" ";
     		}
     		out_<<endl;
@@ -428,7 +438,7 @@ public:
     	Int width = Bits <= 4 ? 1 : 3;
 
     	out_<<endl;
-    	Expand(out_, 23 + width);
+    	Expand(out_, 31 - width*5 - (Bits <= 4 ? 2 : 0));
     	for (int c = 0; c < columns; c += 5)
     	{
     		out_.width(width*5);
@@ -897,7 +907,7 @@ public:
 
     		for (Int c = start; c < end; c++)
     		{
-    			total += (valueb(block_offset, c) == symbol);
+    			total += testb(block_offset, c, symbol);
     		}
 
     		return total;
@@ -1093,13 +1103,13 @@ private:
     {
         if (end - start <= BranchingFactor * 2)
         {
-            walker.walkIndex(start + level_offet, end + level_offet, cell_size);
+            walker.walkIndex(start + level_offet, end + level_offet);
         }
         else {
             Int block_start_end     = getBlockStartEnd(start);
             Int block_end_start     = getBlockStart(end);
 
-            walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size);
+            walker.walkIndex(start + level_offet, block_start_end + level_offet);
 
             if (block_start_end < block_end_start)
             {
@@ -1110,11 +1120,11 @@ private:
                         walker,
                         level_offet - level_size0,
                         level_size0,
-                        cell_size * BranchingFactor
+                        BranchingFactor
                 );
             }
 
-            walker.walkIndex(block_end_start + level_offet, end + level_offet, cell_size);
+            walker.walkIndex(block_end_start + level_offet, end + level_offet);
         }
     }
 

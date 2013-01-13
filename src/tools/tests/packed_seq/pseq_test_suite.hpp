@@ -26,15 +26,14 @@ public:
 
     PackedSeqTestSuite(): TestSuite("PackedSeqSuite")
     {
-//    	registerTask(new PSeqInitTest());
+    	registerTask(new PSeqInitTest());
 
-//    	registerTask(new PSeqRankTest<1>());
-//    	registerTask(new PSeqRankTest<2>());
-//    	registerTask(new PSeqRankTest<4>());
-//    	registerTask(new PSeqRankTest<8>());
+    	registerTask(new PSeqRankTest<1>());
+    	registerTask(new PSeqRankTest<2>());
+    	registerTask(new PSeqRankTest<8>());
 
-//    	registerTask(new PSeqSelectTest<1>());
-//    	registerTask(new PSeqSelectTest<4>());
+    	registerTask(new PSeqSelectTest<1>());
+    	registerTask(new PSeqSelectTest<4>());
     	registerTask(new PSeqSelectTest<8>());
     }
 
