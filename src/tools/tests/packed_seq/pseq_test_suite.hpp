@@ -12,6 +12,7 @@
 #include "pseq_init_test.hpp"
 #include "pseq_rank_test.hpp"
 #include "pseq_select_test.hpp"
+#include "pseq_count_test.hpp"
 
 #include <vector>
 
@@ -35,6 +36,8 @@ public:
     	registerTask(new PSeqSelectTest<1>());
     	registerTask(new PSeqSelectTest<4>());
     	registerTask(new PSeqSelectTest<8>());
+
+    	registerTask(new PSeqCountTest<1>());
     }
 
 };
