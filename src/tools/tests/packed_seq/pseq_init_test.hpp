@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/pmap/packed_seq.hpp>
+#include <memoria/core/packed/packed_seq.hpp>
 
 #include <memory>
 

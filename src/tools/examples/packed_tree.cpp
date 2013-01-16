@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include <memoria/core/packed/packed_sum_tree.hpp>
 #include <memoria/prototypes/bstree/tools.hpp>
 
 #include <memoria/tools/tools.hpp>

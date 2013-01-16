@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include <memoria/core/packed/packed_sum_tree.hpp>
 
 #include <memory>
 

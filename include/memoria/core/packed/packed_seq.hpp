@@ -22,7 +22,7 @@
 
 #include <memoria/core/tools/reflection.hpp>
 
-#include <memoria/core/pmap/tree_walkers.hpp>
+#include <memoria/core/packed/tree_walkers.hpp>
 
 #include <functional>
 #include <algorithm>
@@ -373,9 +373,13 @@ public:
 
     Int rank(Int from, Int to, Value symbol) const
     {
+    	MEMORIA_ASSERT(from, >=, 0);
+    	MEMORIA_ASSERT(to, >=, from);
+    	MEMORIA_ASSERT(to, <, size());
+
     	RankWalker<MyType, Bits> walker(*this, symbol);
 
-    	walkRange(from, to, walker);
+    	walkRange(from, to + 1, walker);
 
     	return walker.sum();
     }

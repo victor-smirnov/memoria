@@ -2,7 +2,7 @@
 
 #include <memoria/memoria.hpp>
 
-#include <memoria/core/pmap/packed_seq.hpp>
+#include <memoria/core/packed/packed_seq.hpp>
 
 #include <memoria/tools/tools.hpp>
 

@@ -15,8 +15,8 @@
 
 #include <memoria/core/tools/bitmap.hpp>
 
-#include <memoria/core/pmap/packed_tree.hpp>
-#include <memoria/core/pmap/tree_walkers.hpp>
+#include <memoria/core/packed/packed_tree.hpp>
+#include <memoria/core/packed/tree_walkers.hpp>
 
 namespace memoria {
 

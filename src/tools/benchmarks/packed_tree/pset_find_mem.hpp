@@ -9,7 +9,7 @@
 
 #include "../benchmarks_inc.hpp"
 
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include <memoria/core/packed/packed_sum_tree.hpp>
 
 #include <malloc.h>
 #include <memory>

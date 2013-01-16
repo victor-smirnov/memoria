@@ -11,7 +11,7 @@
 
 #include <memoria/core/types/static_md5.hpp>
 
-#include <memoria/core/pmap/packed_sum_tree.hpp>
+#include <memoria/core/packed/packed_sum_tree.hpp>
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/prototypes/btree/pages/node_base.hpp>
 

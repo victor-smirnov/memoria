@@ -662,6 +662,8 @@ public:
 
     	for (Int c = start; c < end; c++)
     	{
+    		total += Base::me_.testb(value_block_offset_, c, Base::symbol_);
+
     		if (total == Base::limit_)
     		{
     			Base::rank_ += total;
@@ -669,8 +671,6 @@ public:
 
     			return c;
     		}
-
-    		total += Base::me_.testb(value_block_offset_, c, Base::symbol_);
     	}
 
     	Base::rank_ 	+= total;

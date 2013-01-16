@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/pmap/packed_seq.hpp>
+#include <memoria/core/packed/packed_seq.hpp>
 
 #include <memory>
 
@@ -106,25 +106,36 @@ public:
     		size_t block_start = block * VPB;
     		size_t block_end = block_start + VPB <= (size_t)seq->size() ? block_start + VPB : seq->size();
 
-    		if (block_start >= start) ranks.push_back(block_start);
-    		if (block_start + 1 >= start) ranks.push_back(block_start + 1);
+    		appendPos(ranks, start, block_end, block_start);
+    		appendPos(ranks, start, block_end, block_start + 1);
+
 
     		for (size_t d = 128; d < (size_t)VPB; d += 128)
     		{
-    			if (block_start + d >= start) ranks.push_back(block_start + d);
+    			if (block_start + d >= start  && block_start + d < block_end) {
+    				appendPos(ranks, start, block_end, block_start + d);
+    			}
     		}
 
-    		if (block_end - 1 >= start) ranks.push_back(block_end - 1);
-    		if (block_end >= start) ranks.push_back(block_end);
+    		appendPos(ranks, start, block_end, block_end - 1);
+    		appendPos(ranks, start, block_end, block_end);
     	}
 
     	return ranks;
     }
 
+    void appendPos(vector<size_t>& v, size_t start, size_t end, size_t pos)
+    {
+    	if (pos >= start && pos < end)
+    	{
+    		v.push_back(pos);
+    	}
+    }
+
     void assertRank(Seq* seq, size_t start, size_t end, Value symbol)
     {
     	Int rank = seq->rank(start, end, symbol);
-    	Int popc = seq->popCount(start, end, symbol);
+    	Int popc = seq->popCount(start, end + 1, symbol);
 
     	AssertEQ(MA_SRC, rank, popc);
     }
@@ -144,8 +155,6 @@ public:
     	seq->reindex();
 
     	assertRank(seq, 10,seq->size() - 10, 0);
-
-    	seq->dump(cout);
 
     	auto starts = createStarts(seq);
 
@@ -174,13 +183,13 @@ public:
     		seq->value(c) = getRandom(Blocks == 1 ? 2 : Blocks);
     	}
 
-    	for (Int end = 0; end < seq->maxSize(); end++)
+    	for (Int end = 1; end < seq->maxSize(); end++)
     	{
     		seq->size() = end;
     		seq->reindex();
 
-    		assertRank(seq, 0, end, 0);
-    		assertRank(seq, 0, end, Symbols - 1);
+    		assertRank(seq, 0, end - 1, 0);
+    		assertRank(seq, 0, end - 1, Symbols - 1);
     	}
     }
 
@@ -198,12 +207,12 @@ public:
     	seq->size() = seq->maxSize();
     	seq->reindex();
 
-    	Int end = seq->size();
+    	Int stop = seq->size() - 1;
 
     	for (Int start = 0; start < seq->maxSize(); start++)
     	{
-    		assertRank(seq, start, end, 0);
-    		assertRank(seq, start, end, Symbols - 1);
+    		assertRank(seq, start, stop, 0);
+    		assertRank(seq, start, stop, Symbols - 1);
     	}
     }
 };

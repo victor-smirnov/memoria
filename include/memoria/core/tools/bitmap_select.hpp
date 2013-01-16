@@ -59,12 +59,10 @@ inline size_t SelectFW(UBigInt arg, size_t rank)
 
 				for (size_t d = 0; d < 8; d++, mask <<= 1)
 				{
+					r += ((arg & mask) != 0);
 					if (r == rank)
 					{
 						return shift + d;
-					}
-					else {
-						r += ((arg & mask) != 0);
 					}
 				}
 			}
@@ -107,12 +105,11 @@ inline size_t SelectBW(UBigInt arg, size_t rank)
 
 				for (size_t d = 0; d < 8; d++, mask >>= 1)
 				{
+					r += ((arg & mask) != 0);
+
 					if (r == rank)
 					{
-						return shift + 8 - d;
-					}
-					else {
-						r += ((arg & mask) != 0);
+						return shift + 7 - d;
 					}
 				}
 			}

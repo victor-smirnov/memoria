@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/pmap/packed_seq.hpp>
+#include <memoria/core/packed/packed_seq.hpp>
 
 #include <memory>
 #include <vector>
@@ -25,7 +25,7 @@ using namespace std;
 template <Int Bits>
 class PSeqSelectTest: public TestTask {
 
-    typedef PSeqSelectTest MyType;
+    typedef PSeqSelectTest<Bits> MyType;
 
     typedef PackedSeqTypes<
     		UInt,
@@ -97,12 +97,12 @@ public:
 
     	for (size_t c = start; c < (size_t)seq->maxSize(); c++)
     	{
+    		total += seq->testb(block, c, symbol);
+
     		if (total == rank)
     		{
     			return SelectResult(c, rank, true);
     		}
-
-    		total += seq->valueb(block, c) == symbol;
     	}
 
     	return SelectResult(seq->maxSize(), total, total == rank);
@@ -189,19 +189,27 @@ public:
     		size_t block_start = block * VPB;
     		size_t block_end = block_start + VPB <= (size_t)seq->size() ? block_start + VPB : seq->size();
 
-    		ranks.push_back(block_start);
-    		ranks.push_back(block_start + 1);
+    		appendRank(ranks, block_start);
+    		appendRank(ranks, block_start + 1);
 
     		for (size_t d = 128; d < (size_t)VPB; d += 128)
     		{
-    			ranks.push_back(block_start + d);
+    			appendRank(ranks, block_start + d);
     		}
 
-    		ranks.push_back(block_end - 1);
-    		ranks.push_back(block_end);
+    		appendRank(ranks, block_end - 1);
+    		appendRank(ranks, block_end);
     	}
 
     	return ranks;
+    }
+
+    void appendRank(vector<size_t>& v, size_t rank)
+    {
+    	if (rank > 0)
+    	{
+    		v.push_back(rank);
+    	}
     }
 
     struct Pair {
@@ -222,7 +230,7 @@ public:
     		if (seq->value(c) == symbol)
     		{
     			rank++;
-    			ranks.push_back(Pair(rank, c + 1));
+    			ranks.push_back(Pair(rank, c));
     		}
     	}
 

@@ -73,11 +73,11 @@ public:
 
     size_t selectFW(UBigInt x, Int rank)
     {
-    	for (size_t c = 0; c < TypeBitsize<UBigInt>(); c++)
+    	for (size_t c = 0; c <= TypeBitsize<UBigInt>(); c++)
     	{
     		if (PopCnt(x & MakeMask<UBigInt>(0, c)) == rank)
     		{
-    			return c;
+    			return c - 1;
     		}
     	}
 
@@ -86,52 +86,77 @@ public:
 
     size_t selectBW(UBigInt x, Int rank)
     {
-    	Int bitsize = TypeBitsize<UBigInt>();
+    	size_t bitsize = TypeBitsize<UBigInt>();
 
-    	for (Int c = bitsize; c >= 0; c--)
+    	for (size_t c = 1; c <= bitsize; c++)
     	{
-    		UBigInt mask = MakeMask<UBigInt>(c, bitsize - c);
+    		UBigInt mask = MakeMask<UBigInt>(bitsize - c, c);
     		if (PopCnt(x & mask) == rank)
     		{
-    			return c;
+    			return bitsize - c;
     		}
     	}
 
     	return 100 + PopCnt(x);
     }
 
+
+    void AssertSelectFW(UBigInt value, size_t rank)
+    {
+    	value_ = value;
+    	rank_  = rank;
+
+    	size_t pos1 = SelectFW(value_, rank_);
+    	size_t pos2 = selectFW(value_, rank_);
+
+    	AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
+    }
+
+    void AssertSelectBW(UBigInt value, size_t rank)
+    {
+    	value_ = value;
+    	rank_  = rank;
+
+    	size_t pos1 = SelectBW(value_, rank_);
+    	size_t pos2 = selectBW(value_, rank_);
+
+    	AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
+    }
+
+
     void testSelectFWPlain(ostream& out)
     {
+    	AssertSelectFW(-1ull, 64);
+
     	size_t bitsize = TypeBitsize<UBigInt>();
 
     	for (Int c = 0; c < 10000; c++)
     	{
-    		value_ = getBIRandom();
+    		UBigInt value = getBIRandom();
 
-    		for (rank_ = 0; rank_ < bitsize; rank_++)
+    		for (size_t rank = 1; rank <= bitsize; rank++)
     		{
-    			size_t pos1 = SelectFW(value_, rank_);
-    			size_t pos2 = selectFW(value_, rank_);
-
-    			AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
+    			AssertSelectFW(value, rank);
     		}
     	}
     }
 
+
+
     void testSelectBWPlain(ostream& out)
     {
+    	AssertSelectBW(-1ull, 64);
+    	AssertSelectBW(-1ull, 1);
+
     	size_t bitsize = TypeBitsize<UBigInt>();
 
     	for (Int c = 0; c < 10000; c++)
     	{
-    		value_ = getBIRandom();
+    		UBigInt value = getBIRandom();
 
-    		for (rank_ = 0; rank_ < bitsize; rank_++)
+    		for (size_t rank = 1; rank <= bitsize; rank++)
     		{
-    			size_t pos1 = SelectBW(value_, rank_);
-    			size_t pos2 = selectBW(value_, rank_);
-
-    			AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
+    			AssertSelectBW(value, rank);
     		}
     	}
     }
@@ -172,12 +197,12 @@ public:
 
     	for (size_t c = start; c < stop; c++)
     	{
+    		total += GetBit(bitmap, c);
+
     		if (total == rank)
     		{
     			return SelectResult(c, rank, true);
     		}
-
-    		total += GetBit(bitmap, c);
     	}
 
     	return SelectResult(stop, total, false);
@@ -189,12 +214,12 @@ public:
 
     	for (size_t c = start; c < stop; c++)
     	{
+    		total += 1 - GetBit(bitmap, c);
+
     		if (total == rank)
     		{
     			return SelectResult(c, rank, true);
     		}
-
-    		total += 1 - GetBit(bitmap, c);
     	}
 
     	return SelectResult(stop, total, false);
@@ -266,7 +291,7 @@ public:
 
     void testSelect1FW(ostream& out)
     {
-    	testSelectBW(out, &MyType::assertSelect1FW);
+    	testSelectFW(out, &MyType::assertSelect1FW);
     }
 
     void testSelect0FW(ostream& out)
@@ -283,12 +308,12 @@ public:
 
     	for (size_t start = 0; start < bitsize; start++)
     	{
-    		for (size_t rank = 0; rank < bitsize - start; rank++)
+    		for (size_t rank = 1; rank < bitsize - start; rank++)
     		{
     			assert_fn(this, start, bitsize, rank);
     		}
 
-    		for (size_t rank = 0; rank < bitsize - start; rank++)
+    		for (size_t rank = 1; rank < bitsize - start; rank++)
     		{
     			assert_fn(this, start, start + rank, rank);
     		}
@@ -299,12 +324,12 @@ public:
 
     	for (size_t start = 0; start < bitsize; start++)
     	{
-    		for (size_t rank = 0; rank < bitsize - start; rank++)
+    		for (size_t rank = 1; rank < bitsize - start; rank++)
     		{
     			assert_fn(this, start, bitsize, rank);
     		}
 
-    		for (size_t rank = 0; rank < bitsize - start; rank++)
+    		for (size_t rank = 1; rank < bitsize - start; rank++)
     		{
     			assert_fn(this, start, start + rank, rank);
     		}
