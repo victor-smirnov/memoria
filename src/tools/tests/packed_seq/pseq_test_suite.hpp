@@ -9,7 +9,7 @@
 
 #include "../tests_inc.hpp"
 
-#include "pseq_init_test.hpp"
+#include "pseq_misc_test.hpp"
 #include "pseq_rank_test.hpp"
 #include "pseq_select_test.hpp"
 #include "pseq_count_test.hpp"
@@ -27,7 +27,7 @@ public:
 
     PackedSeqTestSuite(): TestSuite("PackedSeqSuite")
     {
-    	registerTask(new PSeqInitTest());
+    	registerTask(new PSeqMiscTest<1>());
 
     	registerTask(new PSeqRankTest<1>());
     	registerTask(new PSeqRankTest<2>());

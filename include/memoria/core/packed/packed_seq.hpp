@@ -95,6 +95,7 @@ public:
 
     static const Int Bits					= Types::Bits;
     static const Int Blocks                 = 1<<Bits;
+    static const Int Symbols                = Blocks;
     static const Int BranchingFactor        = Types::BranchingFactor;
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
 
@@ -614,11 +615,8 @@ public:
 
         MEMORIA_ASSERT(copy_to + count, <=, other->max_size_);
 
-        Int src_block_offset = this->getValueBlockOffset();
-        Int tgt_block_offset = other->getValueBlockOffset();
-
-        const Value* src 	= T2T<const Value*>(memory_block_ + src_block_offset);
-        Value* dst 			= T2T<const Value*>(memory_block_ + tgt_block_offset);
+        const Value* src 	= valuesBlock();
+        Value* dst 			= other.valuesBlock();
 
         MoveBits(src, dst, copy_from * Bits, copy_to * Bits, count * Bits);
     }
@@ -721,7 +719,7 @@ public:
 
         Int offset = getValueBlockOffset();
 
-        copyData(offset, room_start, room_length);
+        copyTo(offset, room_start, room_start + room_length);
 
         size_ += room_length;
     }
@@ -734,8 +732,7 @@ public:
         MEMORIA_ASSERT(room_length, >=, 0);
         MEMORIA_ASSERT(room_start + room_length, <=, size_);
 
-        Int offset = getValueBlockOffset();
-        copyData(offset, room_start + room_length, -room_length);
+        copyTo(room_start + room_length, -room_length);
 
         size_ -= room_length;
     }
@@ -747,16 +744,19 @@ public:
         Int index_level_size    = getIndexCellsNumberFor(max_size_);
         Int index_level_start   = index_size_ - index_level_size;
 
+        Int level = 0;
         while (index_level_start >= 0)
         {
             idx /= BranchingFactor;
 
             indexb(index_block_offset, idx + index_level_start) += value;
 
-            Int index_parent_size   = getIndexCellsNumberFor(index_level_size);
+            Int index_parent_size   = getIndexCellsNumberFor(level, index_level_size);
 
             index_level_size        = index_parent_size;
             index_level_start       -= index_parent_size;
+
+            level++;
         }
     }
 
@@ -1269,28 +1269,9 @@ private:
 
     void copyValuesBlock(MyType* other, Byte* target_memory_block) const
     {
-    	Int offset      = getValueBlockOffset();
-    	Int new_offset  = other->getValueBlockOffset();
+    	Value* tgt = T2T<Value*>(target_memory_block + other->getValueBlockOffset());
 
-    	copyData(target_memory_block, offset, new_offset);
-    }
-
-
-    void copyData(Byte* target_memory_block, Int offset, Int new_offset, Int item_size) const
-    {
-        CopyBuffer(
-                memory_block_       + offset,
-                target_memory_block + new_offset,
-                size_ * item_size
-        );
-    }
-
-    void copyData(Int offset, Int room_start, Int room_length, Int item_size)
-    {
-        Byte* src = memory_block_ + offset + room_start * item_size;
-        Byte* dst = src + room_length * item_size;
-
-        CopyBuffer(src, dst, (size_ - room_start) * item_size);
+    	CopyBuffer(valuesBlock(), tgt, getValueCellsCount(size()));
     }
 
     static Int getBlockSize(Int item_count)
