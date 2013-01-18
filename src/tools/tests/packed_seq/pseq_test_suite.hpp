@@ -38,6 +38,8 @@ public:
     	registerTask(new PSeqSelectTest<8>());
 
     	registerTask(new PSeqCountTest<1>());
+    	registerTask(new PSeqCountTest<2>());
+    	registerTask(new PSeqCountTest<8>());
     }
 
 };

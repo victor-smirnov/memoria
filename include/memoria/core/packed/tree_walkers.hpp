@@ -893,7 +893,44 @@ public:
 };
 
 template <typename TreeType, Int Bits>
-class CountFWWalker;
+class CountFWWalker: public CountFWWalkerBase<TreeType> {
+
+	typedef CountFWWalkerBase<TreeType> Base;
+
+	typedef typename Base::IndexKey IndexKey;
+    typedef typename Base::Value 	Value;
+
+    Int value_block_offset_;
+
+public:
+    CountFWWalker(const TreeType& me, Value symbol):
+    	Base(me, symbol)
+    {
+    	value_block_offset_ = me.getValueBlockOffset();
+    }
+
+    Int walkValues(Int start, Int end)
+    {
+    	IndexKey total = 0;
+
+    	Int c;
+    	for (c = start; c < end; c++)
+    	{
+    		if (Base::me_.testb(value_block_offset_, c, Base::symbol_))
+    		{
+    			total++;
+    		}
+    		else {
+    			break;
+    		}
+    	}
+
+    	Base::rank_  += total;
+    	Base::found_ = c != end;
+
+    	return c;
+    }
+};
 
 template <typename TreeType>
 class CountFWWalker<TreeType, 1>: public CountFWWalkerBase<TreeType> {
@@ -986,7 +1023,52 @@ public:
 };
 
 template <typename TreeType, Int Bits>
-class CountBWWalker;
+class CountBWWalker: public CountBWWalkerBase<TreeType> {
+
+	typedef CountBWWalkerBase<TreeType> Base;
+
+	typedef typename Base::IndexKey IndexKey;
+    typedef typename Base::Value 	Value;
+
+    Int value_block_offset_;
+
+public:
+    CountBWWalker(const TreeType& me, Value symbol):
+        Base(me, symbol)
+    {
+    	value_block_offset_ = me.getValueBlockOffset();
+    }
+
+    //FIXME: move offsets[] to constructor
+    Int walkValues(Int start, Int end)
+    {
+    	IndexKey total = 0;
+
+    	Base::found_ = false;
+
+    	Int c;
+    	for (c = start - 1; c >= end; c--)
+    	{
+    		if (Base::me_.testb(value_block_offset_, c, Base::symbol_))
+    		{
+    			total++;
+    		}
+    		else {
+    			Base::found_ = true;
+    			break;
+    		}
+    	}
+
+    	Base::rank_  += total;
+
+    	return c;
+    }
+};
+
+
+
+
+
 
 template <typename TreeType>
 class CountBWWalker<TreeType, 1>: public CountBWWalkerBase<TreeType> {

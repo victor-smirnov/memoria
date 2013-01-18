@@ -318,8 +318,11 @@ public:
 
     	for (Int c = 1; c <= 50; c++)
     	{
-    		out<<"pass: "<<c<<endl;
     		populateRandom(seq, 100 + c * 300, symbol);
+
+    		out<<"pass: "<<c<<" "<<seq->maxIndex(0)<<endl;
+
+    		//seq->dump(cout);
 
     		for (Int start = 0; start < seq->size(); start++)
     		{
