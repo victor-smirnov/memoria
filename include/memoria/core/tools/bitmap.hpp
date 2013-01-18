@@ -594,12 +594,13 @@ void MoveBitsBW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t len
     	SetBits(dst, extent, GetBits(src, src_idx, suffix), suffix);
 
     	size_t divisor 		= TypeBitmaskPopCount(mask);
-    	size_t start_cell 	= extent >> divisor;
-    	size_t stop_cell 	= dst_to >> divisor;
+    	size_t start_cell 	= dst_idx >> divisor;
+    	size_t stop_cell 	= (dst_to >> divisor) - 1;
 
     	size_t cell;
-    	for (cell = stop_cell; cell > start_cell; cell--, src_idx -= bitsize)
+    	for (cell = stop_cell; cell > start_cell; cell--)
     	{
+    		src_idx -= bitsize;
     		dst[cell] = GetBits(src, src_idx, bitsize);
     	}
 

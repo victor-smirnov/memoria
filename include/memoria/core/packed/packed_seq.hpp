@@ -269,6 +269,10 @@ public:
         return size_;
     }
 
+    Int capacity() const {
+    	return max_size_ - size_;
+    }
+
     Int indexSize() const
     {
         return index_size_;
@@ -466,33 +470,39 @@ public:
 
     	Int width = Bits <= 4 ? 1 : 3;
 
-    	out_<<endl;
-    	Expand(out_, 31 - width*5 - (Bits <= 4 ? 2 : 0));
-    	for (int c = 0; c < columns; c += 5)
-    	{
-    		out_.width(width*5);
-    		out_<<dec<<c;
-    	}
-    	out_<<endl;
+    	Int c = 0;
 
-    	for (Int c = 0; c < size(); c += columns)
+    	do
     	{
-    		Expand(out_, 12);
-    		out_<<" ";
-    		out_.width(6);
-    		out_<<dec<<c<<" "<<hex;
-    		out_.width(6);
-    		out_<<c<<": ";
-
-    		for (Int d = 0; d < columns && c + d < size(); d++)
+    		out_<<endl;
+    		Expand(out_, 31 - width*5 - (Bits <= 4 ? 2 : 0));
+    		for (int c = 0; c < columns; c += 5)
     		{
-    			out_<<hex;
-    			out_.width(width);
-    			out_<<value(c + d);
+    			out_.width(width*5);
+    			out_<<dec<<c;
     		}
+    		out_<<endl;
 
-    		out_<<dec<<endl;
-    	}
+    		Int rows = 0;
+    		for (; c < size() && rows < 10; c += columns, rows++)
+    		{
+    			Expand(out_, 12);
+    			out_<<" ";
+    			out_.width(6);
+    			out_<<dec<<c<<" "<<hex;
+    			out_.width(6);
+    			out_<<c<<": ";
+
+    			for (Int d = 0; d < columns && c + d < size(); d++)
+    			{
+    				out_<<hex;
+    				out_.width(width);
+    				out_<<value(c + d);
+    			}
+
+    			out_<<dec<<endl;
+    		}
+    	} while (c < size());
     }
 
 private:
@@ -616,7 +626,7 @@ public:
         MEMORIA_ASSERT(copy_to + count, <=, other->max_size_);
 
         const Value* src 	= valuesBlock();
-        Value* dst 			= other.valuesBlock();
+        Value* dst 			= other->valuesBlock();
 
         MoveBits(src, dst, copy_from * Bits, copy_to * Bits, count * Bits);
     }
@@ -717,9 +727,7 @@ public:
         MEMORIA_ASSERT(room_length, >=, 0);
         MEMORIA_ASSERT(size_ + room_length, <=, max_size_);
 
-        Int offset = getValueBlockOffset();
-
-        copyTo(offset, room_start, room_start + room_length);
+        copyTo(this, room_start, size() - room_start, room_start + room_length);
 
         size_ += room_length;
     }
@@ -732,7 +740,9 @@ public:
         MEMORIA_ASSERT(room_length, >=, 0);
         MEMORIA_ASSERT(room_start + room_length, <=, size_);
 
-        copyTo(room_start + room_length, -room_length);
+        Int copy_from = room_start + room_length;
+
+        copyTo(this, copy_from, size() - copy_from, room_start);
 
         size_ -= room_length;
     }
