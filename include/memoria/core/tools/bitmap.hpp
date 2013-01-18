@@ -878,24 +878,22 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
 	if (cnt == from - extent)
 	{
 		size_t divisor 		= TypeBitmaskPopCount(mask);
-		size_t start_cell 	= extent >> divisor;
+		size_t start_cell 	= (extent >> divisor) - 1;
 		size_t stop_cell 	= to >> divisor;
 
 		T value = zero ? 0 : static_cast<T>(-1);
 
 		size_t cell;
-		for (cell = start_cell; cell > stop_cell; cell--)
+		for (cell = start_cell; cell != stop_cell - 1; cell--)
 		{
 			if (buffer[cell] == value)
 			{
 				cnt += bitsize;
 			}
 			else {
-				break;
+				return cnt + intrnl::CountBw(buffer, (cell + 1) << divisor, to, lut, zero);
 			}
 		}
-
-		cnt += intrnl::CountBw(buffer, cell<<divisor, to, lut, zero);
 
 		return cnt;
 	}

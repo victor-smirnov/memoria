@@ -52,7 +52,7 @@ public:
     {
         MEMORIA_ADD_TEST(runCountFWTest);
 
-//        MEMORIA_ADD_TEST(runCountBWTest);
+        MEMORIA_ADD_TEST(runCountBWTest);
     }
 
     virtual ~PSeqCountTest() throw() {}
@@ -98,9 +98,9 @@ public:
     	seq->reindex();
     }
 
-    SelectResult countFW(const Seq* seq, Int start, Value symbol)
+    Key countFW(const Seq* seq, Int start, Value symbol)
     {
-    	Int total = 0;
+    	Key total = 0;
 
     	Int block = seq->getValueBlockOffset();
 
@@ -111,34 +111,32 @@ public:
     			total++;
     		}
     		else {
-    			return SelectResult(c, total, true);
+    			break;
     		}
     	}
 
-    	return SelectResult(start + total, total, start + total < seq->size());
+    	return total;
     }
 
 
-    SelectResult selectBW(const Seq* seq, size_t start, size_t stop, size_t rank, Value symbol)
+    Key countBW(const Seq* seq, size_t start, Value symbol)
     {
-    	if (rank == 0) {
-    		return SelectResult(start, 0, true);
-    	}
+    	Key total = 0;
 
-    	size_t total = 0;
     	Int block = seq->getValueBlockOffset();
 
-    	for (size_t c = start; c > stop; c--)
+    	for (size_t c = start; c > 0; c--)
     	{
-    		total += seq->testb(block, c - 1, symbol);
-
-    		if (total == rank)
+    		if (seq->testb(block, c - 1, symbol))
     		{
-    			return SelectResult(c - 1, rank, true);
+    			total++;
+    		}
+    		else {
+    			break;
     		}
     	}
 
-    	return SelectResult(stop, total, total == rank);
+    	return total;
     }
 
     void assertCountFW(const Seq* seq, size_t start, Value symbol)
@@ -146,19 +144,15 @@ public:
     	auto result1 = seq->countFW(start, symbol);
     	auto result2 = countFW(seq, start, symbol);
 
-    	AssertEQ(MA_SRC, result1.is_found(),  result2.is_found(), SBuf()<<start);
-    	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf()<<start);
-    	AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start);
+    	AssertEQ(MA_SRC, result1, result2, SBuf()<<start);
     }
 
-    void assertSelectBW(const Seq* seq, size_t start, size_t rank, Value symbol)
+    void assertCountBW(const Seq* seq, size_t start, Value symbol)
     {
-    	auto result1 = seq->selectBW(start, symbol, rank);
-    	auto result2 = selectBW(seq, start, 0, rank, symbol);
+    	auto result1 = seq->countBW(start, symbol);
+    	auto result2 = countBW(seq, start, symbol);
 
-    	AssertEQ(MA_SRC, result1.is_found(),  result2.is_found(), SBuf()<<start<<" "<<rank);
-    	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf()<<start<<" "<<rank);
-    	AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start<<" "<<rank);
+    	AssertEQ(MA_SRC, result1, result2, SBuf()<<start);
     }
 
     vector<size_t> createStarts(const Seq* seq)
@@ -186,33 +180,6 @@ public:
 
     	return starts;
 	}
-
-
-    vector<size_t> createRanks(const Seq* seq, size_t start)
-    {
-    	size_t max_block  = seq->size() / VPB + (seq->size() % VPB == 0 ? 0 : 1);
-
-    	vector<size_t> ranks;
-
-    	for (size_t block = start / VPB; block < max_block; block++)
-    	{
-    		size_t block_start = block * VPB;
-    		size_t block_end = block_start + VPB <= (size_t)seq->size() ? block_start + VPB : seq->size();
-
-    		appendRank(ranks, block_start);
-    		appendRank(ranks, block_start + 1);
-
-    		for (size_t d = 128; d < (size_t)VPB; d += 128)
-    		{
-    			appendRank(ranks, block_start + d);
-    		}
-
-    		appendRank(ranks, block_end - 1);
-    		appendRank(ranks, block_end);
-    	}
-
-    	return ranks;
-    }
 
     void appendRank(vector<size_t>& v, size_t rank)
     {
@@ -307,10 +274,10 @@ public:
     	out<<endl;
     	out<<"Random bitmap, sequential positions"<<endl;
 
-    	for (Int c = 0; c < 50; c++)
+    	for (Int c = 1; c <= 50; c++)
     	{
-    		out<<"pass: "<<(c + 1)<<endl;
-    		populateRandom(seq, 2048, symbol);
+    		out<<"pass: "<<c<<endl;
+    		populateRandom(seq, 100 + c * 300, symbol);
 
     		for (Int start = 0; start < seq->size(); start++)
     		{
@@ -330,71 +297,37 @@ public:
 
     void runCountBWTest(ostream& out, Value symbol)
     {
-    	out<<"Parameters: "<<Bits<<" "<<symbol<<endl;
+    	out<<"Parameters: Bits="<<Bits<<" symbol="<<symbol<<endl;
 
     	Seq* seq = createEmptySequence();
 
-    	populate(seq, seq->maxSize(), symbol);
+    	populate(seq, symbol);
 
     	vector<size_t> starts = createStarts(seq);
-
-    	starts.push_back(seq->maxSize());
 
     	out<<"Solid bitmap"<<endl;
 
     	for (size_t start: starts)
     	{
     		out<<start<<endl;
-
-    		vector<size_t> ranks = createRanks(seq, start);
-
-    		for (size_t rank: ranks)
-    		{
-    			assertSelectBW(seq, start, rank, symbol);
-    		}
+    		assertCountBW(seq, start, symbol);
     	}
 
     	out<<endl;
-    	out<<"Random bitmap, random positions"<<endl;
+    	out<<"Random bitmap, sequential positions"<<endl;
 
-    	populateRandom(seq, seq->maxSize());
-
-    	for (size_t start: starts)
+    	for (Int c = 1; c <= 50; c++)
     	{
-    		out<<start<<endl;
+    		out<<"pass: "<<c<<endl;
+    		populateRandom(seq, 100 + c * 300, symbol);
 
-    		vector<size_t> ranks = createRanks(seq, start);
-
-    		for (size_t rank: ranks)
+    		for (Int start = 0; start < seq->size(); start++)
     		{
-    			assertSelectBW(seq, start, rank, symbol);
+    			assertCountBW(seq, start, symbol);
     		}
     	}
 
     	out<<endl;
-    	out<<"Random bitmap, "<<symbol<<"-set positions"<<endl;
-
-    	for (size_t start : starts)
-    	{
-    		out<<start<<endl;
-
-    		auto pairs = createRanksBW(seq, start, symbol);
-
-    		for (auto pair: pairs)
-    		{
-    			SelectResult result = seq->selectBW(start, symbol, pair.rank);
-
-    			AssertTrue(MA_SRC, result.is_found());
-
-    			AssertEQ(MA_SRC, result.rank(), pair.rank, SBuf()<<start<<" "<<pair.rank);
-    			AssertEQ(MA_SRC, result.idx(),  pair.idx, SBuf()<<start<<" "<<pair.rank);
-    		}
-    	}
-
-    	out<<endl;
-
-    	size_t rank = seq->popCount(0, seq->size(), symbol);
-    	assertSelectBW(seq, seq->size(), rank/2, symbol);
     }
 };
 
