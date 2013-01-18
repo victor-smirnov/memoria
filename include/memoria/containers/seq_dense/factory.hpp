@@ -6,19 +6,19 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_BV_SPARSE_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_BV_SPARSE_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_SEQ_DENSE_FACTORY_HPP
 
 #include <memoria/containers/vector/factory.hpp>
 
-#include <memoria/containers/bv_dense/names.hpp>
+#include <memoria/containers/seq_dense/names.hpp>
 
-#include <memoria/containers/bv_dense/container/bvdense_c_insert.hpp>
+#include <memoria/containers/seq_dense/container/bvdense_c_insert.hpp>
 
 namespace memoria {
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::BitVector<false>>: public BTreeTypes<Profile, memoria::Vector<BigInt>> {
+struct BTreeTypes<Profile, memoria::BitVector<true>>: public BTreeTypes<Profile, memoria::Vector<BigInt>> {
 
     typedef BTreeTypes<Profile, memoria::Vector<BigInt>>              			Base;
 
@@ -27,7 +27,7 @@ struct BTreeTypes<Profile, memoria::BitVector<false>>: public BTreeTypes<Profile
     typedef typename AppendTool<
         		typename Base::ContainerPartsList,
         		TypeList<
-        			memoria::bv_dense::CtrInsertName
+        			memoria::seq_dense::CtrInsertName
         		>
     >::Result                                                                   ContainerPartsList;
 
@@ -37,7 +37,7 @@ struct BTreeTypes<Profile, memoria::BitVector<false>>: public BTreeTypes<Profile
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::BitVector<false>, T>: public CtrTF<Profile, memoria::Vector<BigInt>, T> {
+class CtrTF<Profile, memoria::BitVector<true>, T>: public CtrTF<Profile, memoria::Vector<BigInt>, T> {
 
 	typedef CtrTF<Profile, memoria::Vector<BigInt>, T> 							Base;
 
@@ -45,8 +45,8 @@ public:
 
 	struct Types: Base::Types
 	{
-		typedef BitVectorCtrTypes<Types>                    CtrTypes;
-		typedef BitVectorIterTypes<Types>                   IterTypes;
+		typedef SequenceCtrTypes<Types>                    	CtrTypes;
+		typedef SequenceIterTypes<Types>                   	IterTypes;
 	};
 
 	typedef typename Types::CtrTypes                                            CtrTypes;

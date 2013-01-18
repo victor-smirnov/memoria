@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_BIT_VECTOR_BIT_VECTOR_TEST_HPP_
-#define MEMORIA_TESTS_BIT_VECTOR_BIT_VECTOR_TEST_HPP_
+#ifndef MEMORIA_TESTS_SEQUENCE_SEQUENCE_TEST_HPP_
+#define MEMORIA_TESTS_SEQUENCE_SEQUENCE_TEST_HPP_
 
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
@@ -18,8 +18,8 @@ using namespace memoria::vapi;
 using namespace std;
 
 template <bool Sparse>
-class BitVectorTest: public SPTestTask {
-    typedef BitVectorTest                                                  		MyType;
+class SequenceTest: public SPTestTask {
+    typedef SequenceTest                                                  		MyType;
     typedef SPTestTask                                                          Base;
 
 
@@ -41,7 +41,7 @@ class BitVectorTest: public SPTestTask {
 
 
 public:
-    BitVectorTest(StringRef name):
+    SequenceTest(StringRef name):
         Base(name)
     {
         Base::size_ = 16*1024*1024;

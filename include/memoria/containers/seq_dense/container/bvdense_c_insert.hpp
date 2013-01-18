@@ -6,12 +6,12 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_BVDENSE_CONTAINER_INSERT_HPP
-#define _MEMORIA_CONTAINERS_BVDENSE_CONTAINER_INSERT_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQDENSE_CONTAINER_INSERT_HPP
+#define _MEMORIA_CONTAINERS_SEQDENSE_CONTAINER_INSERT_HPP
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/containers/bv_dense/names.hpp>
+#include <memoria/containers/seq_dense/names.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -20,7 +20,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bv_dense::CtrInsertName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -68,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bv_dense::CtrInsertName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bv_dense::CtrInsertName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::seq_dense::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

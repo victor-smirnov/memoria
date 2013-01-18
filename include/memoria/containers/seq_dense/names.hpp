@@ -6,13 +6,13 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_BV_DENSE_NAMES_HPP
-#define _MEMORIA_CONTAINERS_BV_DENSE_NAMES_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_NAMES_HPP
+#define _MEMORIA_CONTAINERS_SEQ_DENSE_NAMES_HPP
 
 #include <memoria/containers/vector/names.hpp>
 
 namespace memoria    	{
-namespace bv_dense		{
+namespace seq_dense		{
 
 class CtrInsertName {};
 class CtrRemoveName {};
@@ -24,16 +24,16 @@ class IterAPIName  	{};
 }
 
 template <typename Types>
-struct BitVectorCtrTypesT: CtrTypesT<Types> {};
+struct SequenceCtrTypesT: CtrTypesT<Types> {};
 
 template <typename Types>
-struct BitVectorIterTypesT: IterTypesT<Types> {};
+struct SequenceIterTypesT: IterTypesT<Types> {};
 
 template <typename Types>
-using BitVectorCtrTypes  = VectorCtrTypes<BitVectorCtrTypesT<Types>>;
+using SequenceCtrTypes  = VectorCtrTypes<SequenceCtrTypesT<Types>>;
 
 template <typename Types>
-using BitVectorIterTypes = VectorIterTypes<BitVectorIterTypesT<Types>>;
+using SequenceIterTypes = VectorIterTypes<SequenceIterTypesT<Types>>;
 
 }
 

@@ -135,8 +135,11 @@ struct VectorMap    {};
 template <typename T>
 struct Vector       {};
 
-template <bool Sparse = false>
-struct BitVector	{};
+template <Int BitsPerSymbol, bool Dense = true>
+struct Sequence	{};
+
+template <bool Dense = true>
+using BitVector = Sequence<1, Dense>;
 
 template <typename ChildType = void>
 class SmallProfile 	{};
