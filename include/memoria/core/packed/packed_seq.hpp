@@ -92,6 +92,7 @@ public:
 
     typedef typename Types::IndexKey        IndexKey;
     typedef typename Types::Value           Value;
+    typedef typename Types::Value           Symbol;
 
     static const Int Bits					= Types::Bits;
     static const Int Blocks                 = 1<<Bits;
@@ -212,6 +213,14 @@ public:
     Int getObjectSize() const
     {
         return sizeof(MyType) + getBlockSize();
+    }
+
+    static size_t getObjectSzie(size_t capacity)
+    {
+    	MyType seq;
+    	seq.initSizes(capacity);
+
+    	return seq.getObjectSize();
     }
 
     Int getObjectDataSize() const

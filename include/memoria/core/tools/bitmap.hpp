@@ -419,7 +419,7 @@ GetBits0(const Buffer& buf, size_t idx, Int nbits)
 	size_t mask = TypeBitmask<T>();
     size_t divisor = TypeBitmaskPopCount(mask);
 
-    size_t haddr = (idx & ~mask) >> divisor;
+    size_t haddr = (idx & ~mask) >> divisor; // FIXME: Why negation with mask here?
     size_t laddr = idx & mask;
 
     T bitmask = MakeMask<T>(0, nbits);

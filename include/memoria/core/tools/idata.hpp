@@ -81,21 +81,72 @@ void dumpArray(std::ostream& out_, const T* data, Int count)
 
 
 
-template <typename T>
-struct IData {
+//template <typename T>
+//struct IData {
+//
+//    virtual ~IData() throw () {}
+//
+//    virtual SizeT skip(SizeT length)                                = 0;
+//    virtual SizeT getStart() const                                  = 0;
+//    virtual SizeT getRemainder() const                              = 0;
+//
+//    virtual SizeT getSize() const                                   = 0;
+//    virtual SizeT put(const T* buffer, SizeT length)                = 0;
+//    virtual SizeT get(T* buffer, SizeT length) const                = 0;
+//
+//    virtual void reset()                                            = 0;
+//};
 
-    virtual ~IData() throw () {}
+struct IDataBase {
+
+    virtual ~IDataBase() throw () {}
 
     virtual SizeT skip(SizeT length)                                = 0;
     virtual SizeT getStart() const                                  = 0;
     virtual SizeT getRemainder() const                              = 0;
-
     virtual SizeT getSize() const                                   = 0;
-    virtual SizeT put(const T* buffer, SizeT length)                = 0;
+    virtual void  reset()                                           = 0;
+};
+
+
+
+template <typename T>
+struct IDataSource: virtual IDataBase {
+
+    virtual ~IDataSource() throw () {}
+
     virtual SizeT get(T* buffer, SizeT length) const                = 0;
 
-    virtual void reset()                                            = 0;
+
 };
+
+
+template <typename T>
+struct IDataTarget: virtual IDataBase {
+
+    virtual ~IDataTarget() throw () {}
+
+//    virtual SizeT get(T* buffer, SizeT length) const                = 0;
+    virtual SizeT put(const T* buffer, SizeT length)                = 0;
+};
+
+
+template <typename T>
+struct IData: IDataSource<T>, IDataTarget<T> {
+
+    virtual ~IData() throw () {}
+//
+//    virtual SizeT skip(SizeT length)                                = 0;
+//    virtual SizeT getStart() const                                  = 0;
+//    virtual SizeT getRemainder() const                              = 0;
+//
+//    virtual SizeT getSize() const                                   = 0;
+//    virtual SizeT put(const T* buffer, SizeT length)                = 0;
+//    virtual SizeT get(T* buffer, SizeT length) const                = 0;
+//
+//    virtual void reset()                                            = 0;
+};
+
 
 
 template <typename T>
