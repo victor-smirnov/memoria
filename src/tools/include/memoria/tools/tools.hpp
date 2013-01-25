@@ -12,9 +12,11 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/strings.hpp>
 #include <memoria/core/tools/idata.hpp>
+#include <memoria/core/tools/symbol_sequence.hpp>
 #include <memoria/core/container/logs.hpp>
 
 #include <memoria/containers/vector/names.hpp>
+#include <memoria/prototypes/sequence/names.hpp>
 #include <memoria/containers/vector_map/names.hpp>
 
 #include <vector>
@@ -253,8 +255,8 @@ bool CompareBuffer(Iter<VectorIterTypes<Types>>& iter, const vector<T>& data, In
 }
 
 
-template <typename BAIterator, typename T>
-void checkBufferWritten(BAIterator& iter, const vector<T>& data, const char* err_msg, const char* source)
+template <typename BAIterator, typename MemBuffer>
+void checkBufferWritten(BAIterator& iter, const MemBuffer& data, const char* err_msg, const char* source)
 {
     Int pos = 0;
     if (!CompareBuffer(iter, data, pos))
@@ -274,13 +276,13 @@ void checkBufferWritten(Iter<VectorMapIterTypes<Types>>& iter, const vector<Item
 }
 
 
-template <typename Types, typename Item>
-bool CompareBuffer(Iter<Types>& iter, const vector<Item>& data, Int& c)
+template <typename Types, typename MemBuffer>
+bool CompareBuffer(Iter<Types>& iter, const MemBuffer& data, Int& c)
 {
     typedef Iter<Types> Iterator;
 
     c = 0;
-    for (auto i = data.begin(); i != data.end(); i++, iter.next(), c++)
+    for (size_t i = 0; i != data.size(); i++, iter.next(), c++)
     {
         for (Int d = 0; d < Iterator::Indexes; d++)
         {
@@ -295,6 +297,30 @@ bool CompareBuffer(Iter<Types>& iter, const vector<Item>& data, Int& c)
 
     return true;
 }
+
+
+template <typename Types, Int Bits>
+bool CompareBuffer(Iter<SequenceIterTypes<Types>>& iter, const SymbolSequence<Bits>& data, Int& c)
+{
+    typedef Iter<Types> Iterator;
+
+    c = 0;
+    for (size_t i = 0; i != data.size(); i++, iter.next(), c++)
+    {
+
+
+//            auto value = iter.getRawKey(d);
+//
+//            if (value != data[c])
+//            {
+//                return false;
+//            }
+
+    }
+
+    return true;
+}
+
 
 template <typename T, typename A>
 Int getUniqueRandom(const vector<T, A> &vec)

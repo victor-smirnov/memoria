@@ -24,8 +24,8 @@ public:
 
     SequenceTestSuite(): TestSuite("SequenceSuite")
     {
-//    	registerTask(new BitmapTest<>("Bitmap"));
-//      registerTask(new BitVectorTest<false>("Sparse"));
+//    	registerTask(new SequenceTest<1>("Dense.1"));
+    	registerTask(new SequenceTest<3>("Dense.3"));
     }
 
 };

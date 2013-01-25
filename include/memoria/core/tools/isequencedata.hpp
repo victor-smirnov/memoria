@@ -16,18 +16,19 @@ namespace memoria    {
 namespace vapi       {
 
 
+template <typename T, Int BitsPerSymbol>
+struct ISequenceDataSource: IDataBase {
+	virtual ~ISequenceDataSource() throw() {}
+
+	virtual SizeT get(T* buffer, SizeT start, SizeT length)   					= 0;
+};
 
 
 template <typename T, Int BitsPerSymbol>
-struct ISequenceDataSource: IDataSource<T> {
-	virtual ~ISequenceDataSource() throw() {}
+struct ISequenceDataTarget: IDataBase {
+	virtual ~ISequenceDataTarget() throw() {}
 
-	virtual SizeT bits()	const									 			= 0;
-
-	virtual void getPrefix(T* buffer, SizeT start, SizeT length)   				= 0;
-	virtual void getSuffix(T* buffer)   										= 0;
-
-	virtual SizeT getSuffixSize() const											= 0;
+	virtual SizeT put(T* buffer, SizeT start, SizeT length)   					= 0;
 };
 
 

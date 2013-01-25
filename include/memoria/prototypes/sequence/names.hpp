@@ -6,18 +6,19 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_NAMES_HPP
-#define _MEMORIA_CONTAINERS_SEQ_DENSE_NAMES_HPP
+#ifndef _MEMORIA_PROTOTYPES_SEQUENCE_NAMES_HPP
+#define _MEMORIA_PROTOTYPES_SEQUENCE_NAMES_HPP
 
-#include <memoria/containers/vector/names.hpp>
+#include <memoria/prototypes/bstree/names.hpp>
 
 namespace memoria    	{
-namespace seq_dense		{
+namespace sequence		{
 
 class CtrInsertName {};
 class CtrRemoveName {};
 class CtrToolsName  {};
-class CtrAPIName  	{};
+class CtrFindName  	{};
+class CtrChecksName {};
 
 class IterAPIName  	{};
 
@@ -30,10 +31,10 @@ template <typename Types>
 struct SequenceIterTypesT: IterTypesT<Types> {};
 
 template <typename Types>
-using SequenceCtrTypes  = VectorCtrTypes<SequenceCtrTypesT<Types>>;
+using SequenceCtrTypes  = BSTreeCtrTypes<SequenceCtrTypesT<Types>>;
 
 template <typename Types>
-using SequenceIterTypes = VectorIterTypes<SequenceIterTypesT<Types>>;
+using SequenceIterTypes = BSTreeIterTypes<SequenceIterTypesT<Types>>;
 
 }
 

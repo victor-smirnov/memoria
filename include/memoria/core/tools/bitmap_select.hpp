@@ -19,7 +19,7 @@ using namespace memoria::vapi;
 
 
 
-UBigInt BroadwordGTZ8 (UBigInt x)
+inline UBigInt BroadwordGTZ8 (UBigInt x)
 {
 	UBigInt H8 = 0x8080808080808080;
 	UBigInt L8 = 0x0101010101010101;
@@ -27,7 +27,7 @@ UBigInt BroadwordGTZ8 (UBigInt x)
 	return  ((x | (( x | H8) - L8)) & H8) >> 7;
 }
 
-UBigInt BroadwordLE8 (UBigInt x, UBigInt y)
+inline UBigInt BroadwordLE8 (UBigInt x, UBigInt y)
 {
 	UBigInt H8 = 0x8080808080808080;
 	return ((((y | H8) - (x & ~H8)) ^ x ^ y) & H8 ) >> 7;

@@ -64,7 +64,7 @@ typename M_TYPE::Iterator M_TYPE::find(BigInt pos, Int key_number)
         }
 
         BigInt offset   = iter.prefix(); //FIXME: key_number
-        iter.dataPos() = pos - offset;
+        iter.dataPos()  = pos - offset;
 
         if (iter.dataPos() > iter.data()->size())
         {

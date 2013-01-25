@@ -1,159 +1,163 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_MODEL_REMOVE_HPP
-#define _MEMORIA_PROTOTYPES_DYNVECTOR_MODEL_REMOVE_HPP
 
-
+#ifndef _MEMORIA_PROTOTYPES_SEQUENCE_SEQ_C_REMOVE_HPP
+#define _MEMORIA_PROTOTYPES_SEQUENCE_SEQ_C_REMOVE_HPP
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/containers/vector/names.hpp>
+#include <memoria/prototypes/sequence/names.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
 
 
+
 namespace memoria    {
 
+MEMORIA_CONTAINER_PART_BEGIN(memoria::sequence::CtrRemoveName)
 
-using namespace memoria::btree;
+	typedef typename Base::Types                                                Types;
+	typedef typename Base::Allocator                                            Allocator;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::RemoveName)
+	typedef typename Allocator::Page                                            Page;
+	typedef typename Page::ID                                                   ID;
 
-public:
+	typedef typename Types::NodeBase                                            NodeBase;
+	typedef typename Types::NodeBaseG                                           NodeBaseG;
+	typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
+	typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
+	typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
+	typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
+	typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
+	typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
 
-    typedef typename Allocator::Page                                            Page;
-    typedef typename Page::ID                                                   ID;
+	typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
+	typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
 
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
+	typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
-    typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
-    typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
-    typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
+	typedef typename Base::Key                                                  Key;
+	typedef typename Base::Value                                                Value;
 
-    typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-    typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
+	typedef typename Types::DataPage                                            DataPage;
+	typedef typename Types::DataPageG                                           DataPageG;
 
-    typedef typename Base::Metadata                                             Metadata;
+	typedef typename Types::IDataSourceType                                     IDataSourceType;
+	typedef typename Types::IDataTargetType                                     IDataTargetType;
 
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
+	typedef typename Types::TreePath                                            TreePath;
+	typedef typename Types::TreePathItem                                        TreePathItem;
+	typedef typename Types::DataPathItem                                        DataPathItem;
 
-    typedef typename Base::Types::DataPage                                      DataPage;
-    typedef typename Base::Types::DataPageG                                     DataPageG;
-
-    typedef typename Types::TreePath                                            TreePath;
-    typedef typename Types::TreePathItem                                        TreePathItem;
-    typedef typename Types::DataPathItem                                        DataPathItem;
-
-    static const Int Indexes                                                    = Types::Indexes;
-    typedef Accumulators<Key, Indexes>                                          Accumulator;
-
-    struct DataRemoveHandlerFn {
-
-        Int idx_, count_;
-        MyType& me_;
-
-        DataRemoveHandlerFn(Int idx, Int count, MyType& me): idx_(idx), count_(count), me_(me) {}
-
-        template <typename Node>
-        void operator()(Node* node)
-        {
-            for (Int c = idx_; c < idx_ + count_; c++)
-            {
-                ID id = node->map().data(c);
-                me_.allocator().removePage(id);
-            }
-        }
-    };
-
-    /**
-     * remove the data block between positions pointed with iterators.
-     *
-     * start - remove from (inclusive)
-     *
-     * stop  - remove up to (exclusive)
-     *
-     */
-
-    Accumulator removeDataBlock(Iterator& start, Iterator& stop);
-    Accumulator removeDataBlock(Iterator& start, BigInt size);
-
-    bool mergeDataWithSiblings(Iterator& iter);
-
-    bool mergeDataWithRightSibling(Iterator& iter);
-    bool mergeDataWithLeftSibling(Iterator& iter);
+	typedef typename Base::LeafNodeKeyValuePair                                 LeafNodeKeyValuePair;
 
 
+	static const Int Indexes                                                    = Types::Indexes;
+	typedef Accumulators<Key, Indexes>                                          Accumulator;
 
-    bool shouldMergeData(const TreePath& path) const
-    {
-        return path.data()->size() <= me()->getDataPageCapacity(path.data()) / 2;
-    }
+	typedef typename Types::ElementType                                         ElementType;
 
-    bool canMergeData(const TreePath& data1, const TreePath& data2) const
-    {
-        return data1[0]->id() == data2[0]->id()  &&  (data1.data()->size() + data2.data()->size() <= me()->getDataPageCapacity(data1.data()));
-    }
+	struct DataRemoveHandlerFn {
 
-    bool canMergeData2(const TreePath& data1, const TreePath& data2) const
-    {
-        return data1.data()->size() + data2.data()->size() <= me()->getDataPageCapacity(data1.data());
-    }
+		Int idx_, count_;
+		MyType& me_;
+
+		DataRemoveHandlerFn(Int idx, Int count, MyType& me): idx_(idx), count_(count), me_(me) {}
+
+		template <typename Node>
+		void operator()(Node* node)
+		{
+			for (Int c = idx_; c < idx_ + count_; c++)
+			{
+				ID id = node->map().data(c);
+				me_.allocator().removePage(id);
+			}
+		}
+	};
+
+	/**
+	 * remove the data block between positions pointed with iterators.
+	 *
+	 * start - remove from (inclusive)
+	 *
+	 * stop  - remove up to (exclusive)
+	 *
+	 */
+
+	Accumulator removeDataBlock(Iterator& start, Iterator& stop);
+	Accumulator removeDataBlock(Iterator& start, BigInt size);
+
+	bool mergeDataWithSiblings(Iterator& iter);
+
+	bool mergeDataWithRightSibling(Iterator& iter);
+	bool mergeDataWithLeftSibling(Iterator& iter);
+
+
+
+	bool shouldMergeData(const TreePath& path) const
+	{
+		return path.data()->size() <= me()->getDataPageCapacity(path.data()) / 2;
+	}
+
+	bool canMergeData(const TreePath& data1, const TreePath& data2) const
+	{
+		return data1[0]->id() == data2[0]->id()  &&  (data1.data()->size() + data2.data()->size() <= me()->getDataPageCapacity(data1.data()));
+	}
+
+	bool canMergeData2(const TreePath& data1, const TreePath& data2) const
+	{
+		return data1.data()->size() + data2.data()->size() <= me()->getDataPageCapacity(data1.data());
+	}
 
 
 private:
 
-    Accumulator removeDataBlockFromStart(Iterator& stop);
-    Accumulator removeDataBlockAtEnd(Iterator& start);
-    Accumulator removeAllData(Iterator& start, Iterator& stop);
-    Accumulator removeDataBlockInMiddle(Iterator& start, Iterator& stop);
+	Accumulator removeDataBlockFromStart(Iterator& stop);
+	Accumulator removeDataBlockAtEnd(Iterator& start);
+	Accumulator removeAllData(Iterator& start, Iterator& stop);
+	Accumulator removeDataBlockInMiddle(Iterator& start, Iterator& stop);
 
 
-    Accumulator removeData(TreePath& path, Int start, Int length);
+	Accumulator removeData(TreePath& path, Int start, Int length);
 
-    struct MergeType {
-        enum Enum {LEFT, RIGHT};
-    };
+	struct MergeType {
+		enum Enum {LEFT, RIGHT};
+	};
 
-    void mergeDataPagesAndremoveSource(
-            TreePath& target,
-            TreePath& source,
-            typename MergeType::Enum merge_type
-    );
+	void mergeDataPagesAndremoveSource(
+			TreePath& target,
+			TreePath& source,
+			typename MergeType::Enum merge_type
+	);
 
-    void mergeDataPagesAndremoveSource(
-            TreePath&       target,
-            DataPathItem&   target_data,
-            TreePath&       source,
-            DataPathItem&   source_data,
-            typename MergeType::Enum merge_type
-    );
+	void mergeDataPagesAndremoveSource(
+			TreePath&       target,
+			DataPathItem&   target_data,
+			TreePath&       source,
+			DataPathItem&   source_data,
+			typename MergeType::Enum merge_type
+	);
 
-    void mergeDataPagesAndremoveSource(
-            DataPathItem&   target,
-            TreePath&       source,
-            typename MergeType::Enum merge_type
-    );
+	void mergeDataPagesAndremoveSource(
+			DataPathItem&   target,
+			TreePath&       source,
+			typename MergeType::Enum merge_type
+	);
+
+
+
 
 MEMORIA_CONTAINER_PART_END
 
-
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::RemoveName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::sequence::CtrRemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
 
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::removeDataBlock(Iterator& start, BigInt size)
@@ -530,8 +534,8 @@ void M_TYPE::mergeDataPagesAndremoveSource(
 
     if (merge_type == MergeType::LEFT)
     {
-//        source_data->copyTo(target_data->get(), 0, tgt_size, src_size);
-    	memoria::CopyBuffer(source_data->addr(0), target_data->addr(tgt_size), src_size);
+//        memoria::CopyBuffer(source_data->addr(0), target_data->addr(tgt_size), src_size);
+        source_data->copyTo(target_data.page(), 0, tgt_size, src_size);
 
         //me()->AddAndSubtractKeyValues(target, target_data_item.parent_idx(), source, source_data_item.parent_idx(), keys);
 
@@ -542,13 +546,12 @@ void M_TYPE::mergeDataPagesAndremoveSource(
         // make a room for source data in the target data page
         // FIXME: separate method for this task?
 
-//    	target_data->shift(0, src_size);
-
-        memoria::CopyBuffer(target_data->addr(0), target_data->addr(src_size), tgt_size);
+//        memoria::CopyBuffer(target_data->addr(0), target_data->addr(src_size), tgt_size);
+        target_data->copyTo(target_data.page(), 0, src_size, tgt_size);
 
         // copy page content from source to target
-//    	source_data->copyTo(target_data->get(), 0, 0, src_size);
-        memoria::CopyBuffer(source_data->addr(0), target_data->addr(0), src_size);
+//        memoria::CopyBuffer(source_data->addr(0), target_data->addr(0), src_size);
+        source_data->copyTo(target_data.page(), 0, 0, src_size);
 
         me()->updateUp(target, 0, target_data_item.parent_idx(), keys);
         me()->updateUp(source, 0, source_data_item.parent_idx(), -keys);
@@ -611,12 +614,11 @@ void M_TYPE::mergeDataPagesAndremoveSource(
 }
 
 
-#undef M_TYPE
-#undef M_PARAMS
 
+#undef M_PARAMS
+#undef M_TYPE
 
 }
-
 
 
 #endif

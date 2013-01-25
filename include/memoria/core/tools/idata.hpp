@@ -78,6 +78,77 @@ void dumpArray(std::ostream& out_, const T* data, Int count)
     }
 }
 
+template <typename T>
+void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
+{
+//	Expand(out_, 5);
+//	for (Int d = 0; d < Blocks; d++)
+//	{
+//		out_.width(5);
+//		out_<<d;
+//	}
+//
+//	out_<<endl<<endl;
+//
+//	for (Int c = 0; c < index_size_; c++)
+//	{
+//		out_.width(4);
+//		out_<<c<<": ";
+//		for (Int d = 0; d < Blocks; d++)
+//		{
+//			out_.width(4);
+//			out_<<this->indexb(this->getIndexKeyBlockOffset(d), c)<<" ";
+//		}
+//		out_<<endl;
+//	}
+
+
+	Int columns;
+
+	switch (bits_per_symbol)
+	{
+		case 1: columns = 100; break;
+		case 2: columns = 100; break;
+		case 4: columns = 100; break;
+		default: columns = 50;
+	}
+
+	Int width = bits_per_symbol <= 4 ? 1 : 3;
+
+	Int c = 0;
+
+	do
+	{
+		out_<<endl;
+		Expand(out_, 31 - width * 5 - (bits_per_symbol <= 4 ? 2 : 0));
+		for (int c = 0; c < columns; c += 5)
+		{
+			out_.width(width*5);
+			out_<<dec<<c;
+		}
+		out_<<endl;
+
+		Int rows = 0;
+		for (; c < size_ && rows < 10; c += columns, rows++)
+		{
+			Expand(out_, 12);
+			out_<<" ";
+			out_.width(6);
+			out_<<dec<<c<<" "<<hex;
+			out_.width(6);
+			out_<<c<<": ";
+
+			for (Int d = 0; d < columns && c + d < size_; d++)
+			{
+				out_<<hex;
+				out_.width(width);
+				out_<<GetBits(symbols, c + d, bits_per_symbol);
+			}
+
+			out_<<dec<<endl;
+		}
+	} while (c < size_);
+}
 
 
 

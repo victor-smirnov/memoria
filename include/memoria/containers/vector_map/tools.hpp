@@ -11,7 +11,7 @@
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/containers/vector_map/names.hpp>
-#include <memoria/containers/vector/tools.hpp>
+#include <memoria/prototypes/sequence/tools.hpp>
 
 #include <memoria/core/types/selector.hpp>
 

@@ -168,6 +168,12 @@ public:
         }
     }
 
+
+    virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)
+    {
+    	dumpSymbols(out_, value, count, bits_per_symbol);
+    }
+
 private:
 
 

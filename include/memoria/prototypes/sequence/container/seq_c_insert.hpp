@@ -1,17 +1,17 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_DYNVECTOR_MODEL_INSERT2_HPP
-#define _MEMORIA_PROTOTYPES_DYNVECTOR_MODEL_INSERT2_HPP
+#ifndef _MEMORIA_PROTOTYPES_SEQUENCE_SEQ_C_INSERT_HPP
+#define _MEMORIA_PROTOTYPES_SEQUENCE_SEQ_C_INSERT_HPP
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/containers/vector/names.hpp>
+#include <memoria/prototypes/sequence/names.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -20,141 +20,142 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::InsertName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::sequence::CtrInsertName)
 
-typedef typename Base::Types                                                Types;
-typedef typename Base::Allocator                                            Allocator;
+	typedef typename Base::Types                                                Types;
+	typedef typename Base::Allocator                                            Allocator;
 
-typedef typename Allocator::Page                                            Page;
-typedef typename Page::ID                                                   ID;
+	typedef typename Allocator::Page                                            Page;
+	typedef typename Page::ID                                                   ID;
 
-typedef typename Types::NodeBase                                            NodeBase;
-typedef typename Types::NodeBaseG                                           NodeBaseG;
-typedef typename Base::Iterator                                             Iterator;
+	typedef typename Types::NodeBase                                            NodeBase;
+	typedef typename Types::NodeBaseG                                           NodeBaseG;
+	typedef typename Base::Iterator                                             Iterator;
 
-typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
-typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
-typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
-typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
+	typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
+	typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
+	typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
+	typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
+	typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
 
-typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
+	typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
+	typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
 
-typedef typename Base::Metadata                                             Metadata;
+	typedef typename Base::Metadata                                             Metadata;
 
-typedef typename Base::Key                                                  Key;
-typedef typename Base::Value                                                Value;
+	typedef typename Base::Key                                                  Key;
+	typedef typename Base::Value                                                Value;
 
-typedef typename Types::DataPage                                            DataPage;
-typedef typename Types::DataPageG                                           DataPageG;
-typedef typename Types::IDataType                                          	IDataType;
+	typedef typename Types::DataPage                                            DataPage;
+	typedef typename Types::DataPageG                                           DataPageG;
 
-typedef typename Types::TreePath                                            TreePath;
-typedef typename Types::TreePathItem                                        TreePathItem;
-typedef typename Types::DataPathItem                                        DataPathItem;
+	typedef typename Types::IDataSourceType                                     IDataSourceType;
+	typedef typename Types::IDataTargetType                                     IDataTargetType;
 
-typedef typename Base::LeafNodeKeyValuePair                                 LeafNodeKeyValuePair;
+	typedef typename Types::TreePath                                            TreePath;
+	typedef typename Types::TreePathItem                                        TreePathItem;
+	typedef typename Types::DataPathItem                                        DataPathItem;
 
-
-static const Int Indexes                                                    = Types::Indexes;
-typedef Accumulators<Key, Indexes>                                          Accumulator;
-
-typedef typename Types::ElementType                                         ElementType;
+	typedef typename Base::LeafNodeKeyValuePair                                 LeafNodeKeyValuePair;
 
 
+	static const Int Indexes                                                    = Types::Indexes;
+	typedef Accumulators<Key, Indexes>                                          Accumulator;
+
+	typedef typename Types::ElementType                                         ElementType;
 
 
-void insertData(Iterator& iter, IDataType& data);
+	void insertData(Iterator& iter, IDataSourceType& data);
 
-BigInt updateData(Iterator& iter, IDataType& data);
+	BigInt updateData(Iterator& iter, IDataSourceType& data);
 
-DataPathItem splitDataPage(Iterator& iter);
+	DataPathItem splitDataPage(Iterator& iter);
 
 private:
 
-void insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length);
+	void insertIntoDataPage(Iterator& iter, IDataSourceType& buffer, Int length);
 
-class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
+	class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
 
-    typedef typename MyType::DefaultSubtreeProviderBase     Base;
+	    typedef typename MyType::DefaultSubtreeProviderBase     Base;
 
-    IDataType&          data_;
-    BigInt              start_;
-    BigInt              length_;
-    Int                 suffix_;
-    Int                 last_idx_;
-    Int                 page_size_;
-    Int                 max_page_capacity_;
+	    IDataSourceType&    data_;
+	    BigInt              start_;
+	    BigInt              length_;
+	    Int                 suffix_;
+	    Int                 last_idx_;
+	    Int                 page_size_;
+	    Int                 max_page_capacity_;
 
-public:
-    ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, IDataType& data, BigInt start, BigInt length):
-        Base(ctr, key_count), data_(data), start_(start), length_(length)
-    {
-        max_page_capacity_ = Base::ctr().getMaxDataPageCapacity();
+	public:
+	    ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, IDataSourceType& data, BigInt start, BigInt length):
+	        Base(ctr, key_count), data_(data), start_(start), length_(length)
+	    {
+	        max_page_capacity_ = Base::ctr().getMaxDataPageCapacity();
 
-        suffix_         = length % max_page_capacity_ == 0 ? max_page_capacity_ : length_ % max_page_capacity_;
-        last_idx_       = Base::getTotalKeyCount() - 1;
+	        suffix_         = length % max_page_capacity_ == 0 ? max_page_capacity_ : length_ % max_page_capacity_;
+	        last_idx_       = Base::getTotalKeyCount() - 1;
 
-        page_size_      = ctr.getRootMetadata().page_size();
-    }
+	        page_size_      = ctr.getRootMetadata().page_size();
+	    }
 
-    virtual LeafNodeKeyValuePair getLeafKVPair(BigInt idx)
-    {
-        LeafNodeKeyValuePair pair;
+	    virtual LeafNodeKeyValuePair getLeafKVPair(BigInt idx)
+	    {
+	        LeafNodeKeyValuePair pair;
 
-        DataPageG data          = Base::ctr().allocator().createPage(page_size_);
-        data->init();
+	        DataPageG data          = Base::ctr().allocator().createPage(page_size_);
+	        data->init(page_size_);
 
-        data->model_hash()      = Base::ctr().hash();
-        data->page_type_hash()  = DataPage::hash();
+	        data->model_hash()      = Base::ctr().hash();
+	        data->page_type_hash()  = DataPage::hash();
 
-        Int idx0                = idx;
+	        Int idx0                = idx;
 
-        //BigInt offset           = start_ + max_page_capacity_ * idx0;
-        BigInt length           = idx0 < last_idx_ ? max_page_capacity_ : suffix_;
+	        //BigInt offset           = start_ + max_page_capacity_ * idx0;
+	        BigInt length           = idx0 < last_idx_ ? max_page_capacity_ : suffix_;
 
-        BigInt length_local     = length;
-        BigInt accum            = 0;
+	        BigInt length_local     = length;
+	        BigInt accum            = 0;
 
-        while (length_local > 0)
-        {
-            SizeT processed = data_.get(data->addr(accum), length_local);
-            data_.skip(processed);
-            length_local    -= processed;
-            accum           += processed;
-        }
+	        while (length_local > 0)
+	        {
+	            SizeT processed = data_.get(data->values(), accum, length_local);
+
+	            length_local    -= processed;
+	            accum           += processed;
+	        }
 
 
-        data->size() = length;
+	        data->size() = length;
 
-        pair.keys[0]    = length;
-        pair.value      = data->id();
+	        pair.keys[0]    = length;
+	        pair.value      = data->id();
 
-        return pair;
-    }
+	        return pair;
+	    }
 
-};
+	};
 
-void importPages(Iterator& iter, IDataType& buffer);
+	void importPages(Iterator& iter, IDataSourceType& buffer);
 
-void createDataPage(TreePath& path, Int idx, Int size = -1);
-DataPathItem createDataPage(NodeBaseG& node, Int idx, Int size = -1);
+	void createDataPage(TreePath& path, Int idx, Int size = -1);
+	DataPathItem createDataPage(NodeBaseG& node, Int idx, Int size = -1);
 
-void moveData(TreePath& src, Int src_idx, TreePath& tgt);
-void moveData(TreePath& src, Int src_idx, DataPathItem& tgt);
+	void moveData(TreePath& src, Int src_idx, TreePath& tgt);
+	void moveData(TreePath& src, Int src_idx, DataPathItem& tgt);
 
-Accumulator moveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& tgt_node, DataPageG& tgt_data);
+	Accumulator moveData(NodeBaseG& src_node, DataPageG& src_data, Int src_idx, NodeBaseG& tgt_node, DataPageG& tgt_data);
+
 
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::InsertName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::sequence::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
 M_PARAMS
-void M_TYPE::insertData(Iterator& iter, IDataType& buffer)
+void M_TYPE::insertData(Iterator& iter, IDataSourceType& buffer)
 {
 	BigInt buffer_size = buffer.getRemainder();
 
@@ -190,7 +191,7 @@ void M_TYPE::insertData(Iterator& iter, IDataType& buffer)
 }
 
 M_PARAMS
-BigInt M_TYPE::updateData(Iterator& iter, IDataType& data)
+BigInt M_TYPE::updateData(Iterator& iter, IDataSourceType& data)
 {
     BigInt sum = 0;
 
@@ -211,9 +212,8 @@ BigInt M_TYPE::updateData(Iterator& iter, IDataType& data)
         {
             Int pos = iter.dataPos();
 
-            SizeT processed = data.get(iter.data()->addr(pos), to_read_local);
+            SizeT processed = data.get(iter.data()->values(), pos, to_read_local);
 
-            data.skip(processed);
             iter.skip(processed);
 
             to_read_local -= processed;
@@ -282,7 +282,7 @@ typename M_TYPE::DataPathItem M_TYPE::splitDataPage(Iterator& iter)
 //// =============================================== PRIVATE API ===================================================== ////
 
 M_PARAMS
-void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length)
+void M_TYPE::insertIntoDataPage(Iterator& iter, IDataSourceType& buffer, Int length)
 {
     DataPageG& data = iter.path().data().node();
     data.update();
@@ -308,8 +308,7 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length)
 
     while (length_local > 0)
     {
-        SizeT processed = buffer.get(data->addr(data_pos), length_local);
-        buffer.skip(processed);
+        SizeT processed = buffer.get(data->values(), data_pos, length_local);
 
         length_local    -= processed;
         data_pos        += processed;
@@ -329,23 +328,22 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataType& buffer, Int length)
 
 
 M_PARAMS
-void M_TYPE::importPages(Iterator& iter, IDataType& buffer)
+void M_TYPE::importPages(Iterator& iter, IDataSourceType& buffer)
 {
     BigInt  length      = buffer.getRemainder();
-    BigInt  start;
+    BigInt  start		= 0;
 
     if (iter.dataPos() > 0)
     {
         Int start_page_capacity =  me()->getDataPageCapacity(iter.data());
 
-        start = length > start_page_capacity ? start_page_capacity : length;
-
-        insertIntoDataPage(iter, buffer, start);
+        if (start_page_capacity > 0)
+        {
+        	start = length > start_page_capacity ? start_page_capacity : length;
+        	insertIntoDataPage(iter, buffer, start);
+        }
 
         iter.nextKey();
-    }
-    else {
-        start = 0;
     }
 
     Int max_size = me()->getMaxDataPageCapacity();
@@ -416,7 +414,7 @@ typename M_TYPE::DataPathItem M_TYPE::createDataPage(NodeBaseG& node, Int idx, I
     }
 
     DataPageG data          = me()->allocator().createPage(size);
-    data->init();
+    data->init(size);
 
     data->model_hash()      = me()->hash();
     data->page_type_hash()  = DataPage::hash();
@@ -480,7 +478,8 @@ typename M_TYPE::Accumulator M_TYPE::moveData(
     // make a room in the target page
     tgt_data->shift(0, amount_to_topy);
 
-    memoria::CopyBuffer(src_data->addr(src_idx), tgt_data->addr(0), amount_to_topy);
+//    memoria::CopyBuffer(src_data->addr(src_idx), tgt_data->addr(0), amount_to_topy);
+    src_data->copyTo(tgt_data.page(), src_idx, 0, amount_to_topy);
 
     src_data->size() -= amount_to_topy;
     tgt_data->size() += amount_to_topy;

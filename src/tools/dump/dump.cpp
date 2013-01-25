@@ -106,6 +106,8 @@ public:
         }
     }
 
+    virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol) {}
+
     const IDValueVector& values() const
     {
         return values_;

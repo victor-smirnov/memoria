@@ -22,7 +22,10 @@ template <
 >
 class BTreeBatchTestBase: public SPTestTask {
 
-    typedef BTreeBatchTestBase<ContainerTypeName, MemBuffer>                            MyType;
+    typedef BTreeBatchTestBase<
+    			ContainerTypeName,
+    			MemBuffer
+    >                            														MyType;
 
 protected:
     typedef typename SCtrTF<ContainerTypeName>::Type                                    Ctr;
@@ -223,8 +226,6 @@ public:
             throw;
         }
     }
-
-
 
     void Build(ostream& out, Allocator& allocator, Ctr& array)
     {

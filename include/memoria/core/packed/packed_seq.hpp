@@ -151,15 +151,7 @@ public:
 
         handler->startGroup("DATA", size_);
 
-        for (Int idx = 0; idx < size_; idx++)
-        {
-            // FIXME: dump format
-        	handler->startLine("ENTRY");
-
-        	intrnl1::ValueHelper<Value>::setup(handler, value(idx));
-
-            handler->endLine();
-        }
+        handler->symbols("BITMAP", valuesBlock(), size_, Bits);
 
         handler->endGroup();
 
@@ -172,9 +164,9 @@ public:
         FieldFactory<Int>::serialize(buf, max_size_);
         FieldFactory<Int>::serialize(buf, index_size_);
 
-        FieldFactory<IndexKey>::serialize(buf, index(0, 0), Blocks * indexSize());
+        FieldFactory<IndexKey>::serialize(buf, indexBlock(), Blocks * indexSize());
 
-        const Value* values = T2T<const Value*>(memory_block_ + getValueBlockOffset());
+        const Value* values = valuesBlock();
 
         FieldFactory<Value>::serialize(buf, values, getUsedValueCells());
     }
@@ -185,9 +177,9 @@ public:
         FieldFactory<Int>::deserialize(buf, max_size_);
         FieldFactory<Int>::deserialize(buf, index_size_);
 
-        FieldFactory<IndexKey>::deserialize(buf, index(0, 0), Blocks * indexSize());
+        FieldFactory<IndexKey>::deserialize(buf, indexBlock(), Blocks * indexSize());
 
-        Value* values = T2T<Value*>(memory_block_ + getValueBlockOffset());
+        Value* values = valuesBlock();
 
         FieldFactory<Value>::deserialize(buf, values, getUsedValueCells());
     }
@@ -269,6 +261,11 @@ public:
     	return getValueCellsCount(max_size_);
     }
 
+    Int getValueCellsCapacity() const
+    {
+    	return getValueCellsCount(max_size_ - size_);
+    }
+
     Int& size() {
         return size_;
     }
@@ -321,6 +318,16 @@ public:
     const Value* valuesBlock() const
     {
     	return T2T<const Value*>(memory_block_ + getValueBlockOffset());
+    }
+
+    IndexKey* indexBlock()
+    {
+    	return T2T<IndexKey*>(memory_block_);
+    }
+
+    const IndexKey* indexBlock() const
+    {
+    	return T2T<const IndexKey*>(memory_block_);
     }
 
     Int getIndexKeyBlockOffset(Int block_num) const
@@ -623,6 +630,16 @@ public:
     	else {
     		return valueb(block_offset, item_idx) == value;
     	}
+    }
+
+    const Value* cellAddr(Int idx) const
+    {
+    	return T2T<const Value*>(valuesBlock() + idx);
+    }
+
+    Value* cellAddr(Int idx)
+    {
+    	return T2T<Value*>(valuesBlock() + idx);
     }
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const

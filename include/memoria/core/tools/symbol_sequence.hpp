@@ -17,36 +17,26 @@
 #include <malloc.h>
 
 namespace memoria    {
-namespace vapi       {
-
 
 template <typename Seq>
 class SequenceDataSourceAdapter: public ISequenceDataSource<typename Seq::Symbol, Seq::Bits> {
 
-	static const SizeT BITSIZE  = TypeBitsize<typename Seq::Symbol>();
 	static const SizeT Bits		= Seq::Bits;
 
 	typedef typename Seq::Symbol T;
 
+	SizeT   start0_;
 	SizeT   start_;
 	SizeT   length_;
 
-
 	const Seq*	sequence_;
-	SizeT   idx0_;
-	SizeT	idx_;
-	SizeT 	bits_;
-	SizeT	prefix_;
-
 public:
 
-	SequenceDataSourceAdapter(const Seq* sequence, SizeT idx, SizeT bits):
-		start_(0),
-		length_(0),
-		sequence_(sequence),
-		idx0_(idx), idx_(idx),
-		bits_(bits),
-		prefix_(0)
+	SequenceDataSourceAdapter(const Seq* sequence, SizeT start, SizeT length):
+		start0_(start),
+		start_(start),
+		length_(length),
+		sequence_(sequence)
 	{}
 
 	virtual SizeT skip(SizeT length)
@@ -54,15 +44,11 @@ public:
 		if (start_ + length <= length_)
 		{
 			start_ += length;
-			idx_ += length * BITSIZE;
-
 			return length;
 		}
 
 		SizeT distance = length_ - start_;
 		start_ = length_;
-
-		idx_ += length * BITSIZE;
 
 		return distance;
 	}
@@ -84,59 +70,89 @@ public:
 
 	virtual void  reset()
 	{
-		start_ 	= 0;
-		idx_ 	= idx0_;
+		start_ 	= start0_;
 	}
 
-	virtual SizeT get(T* buffer, SizeT length) const
+	virtual SizeT get(T* buffer, SizeT start, SizeT length)
 	{
 		const T* syms = sequence_->valuesBlock();
 
-		SizeT idx = idx_;
-		for (SizeT c = 0; c < length; c++, idx += BITSIZE)
-		{
-			buffer[c] = GetBits(syms, idx, BITSIZE);
-		}
+		MoveBits(syms, buffer, start_ * Bits, start * Bits, length * Bits);
+
+		start_ += length;
 
 		return length;
 	}
+};
 
-	virtual SizeT bits() const
+
+
+template <typename Seq>
+class SequenceDataTargetAdapter: public ISequenceDataTarget<typename Seq::Symbol, Seq::Bits> {
+
+	static const SizeT Bits		= Seq::Bits;
+
+	typedef typename Seq::Symbol T;
+
+	SizeT   start0_;
+	SizeT   start_;
+	SizeT   length_;
+
+	const Seq*	sequence_;
+public:
+
+	SequenceDataTargetAdapter(const Seq* sequence, SizeT start, SizeT length):
+		start0_(start),
+		start_(start),
+		length_(length),
+		sequence_(sequence)
+	{}
+
+	virtual SizeT skip(SizeT length)
 	{
-		return bits_;
+		if (start_ + length <= length_)
+		{
+			start_ += length;
+			return length;
+		}
+
+		SizeT distance = length_ - start_;
+		start_ = length_;
+
+		return distance;
 	}
 
-	virtual void getPrefix(T* buffer, SizeT start, SizeT length)
+	virtual SizeT getStart() const
 	{
-		getSymbols(buffer, start, length);
-		prefix_ = length;
-
-		length_ = (bits_ - prefix_) / BITSIZE;
+		return start_;
 	}
 
-	virtual void getSuffix(T* buffer)
+	virtual SizeT getRemainder() const
 	{
-		getSymbols(buffer, 0, getSuffixSize());
+		return length_ - start_;
 	}
 
-	virtual SizeT getSuffixSize() const
+	virtual SizeT getSize() const
 	{
-		SizeT mask = TypeBitmask<T>();
-		return (bits_ - prefix_) & mask;
+		return length_;
 	}
 
-private:
-	void getSymbols(T* buffer, SizeT start, SizeT length)
+	virtual void  reset()
+	{
+		start_ 	= start0_;
+	}
+
+	virtual SizeT put(T* buffer, SizeT start, SizeT length)
 	{
 		const T* syms = sequence_->valuesBlock();
 
-		SetBits0(buffer, start, GetBits(syms, idx_, length), length);
+		MoveBits(syms, buffer, start_ * Bits, start * Bits, length * Bits);
 
-		idx0_	+= length;
-		idx_  	= idx0_;
+		start_ += length;
+
+		return length;
 	}
 };
-
 
 
 
@@ -159,7 +175,9 @@ public:
 	static const Int Symbols													= Seq::Symbols;
 
 	typedef ISequenceDataSource<Symbol, Bits>									IDataSrc;
+	typedef ISequenceDataTarget<Symbol, Bits>									IDataTgt;
 	typedef SequenceDataSourceAdapter<Seq>										SourceAdapter;
+	typedef SequenceDataTargetAdapter<Seq>										TargetAdapter;
 
 	SymbolSequence()
 	{
@@ -291,50 +309,40 @@ public:
 
     SourceAdapter source(size_t idx, size_t length) const
     {
-    	return SourceAdapter(sequence_, idx * BitsPerSymbol, length * BitsPerSymbol);
+    	return SourceAdapter(sequence_, idx, length);
     }
 
-    void update(size_t idx, IDataSrc& src)
+    SourceAdapter source() const
     {
-    	size_t bit_idx  = idx * Bits;
+    	return source(0, sequence_->size());
+    }
 
-    	size_t bitsize	= TypeBitsize<Symbol>();
-    	size_t mask 	= TypeBitmask<Symbol>();
-    	size_t divisor 	= TypeBitmaskPopCount(mask);
+    TargetAdapter target(size_t idx, size_t length) const
+    {
+    	return TargetAdapter(sequence_, idx, length);
+    }
 
-    	size_t padding 	= bit_idx & mask;
-    	size_t prefix  	= bitsize - padding;
-    	size_t length 	= src.bits();
+    TargetAdapter target() const
+    {
+    	return target(0, sequence_->size());
+    }
 
-    	size_t pos 		= bit_idx >> divisor;
-    	size_t bit_pos	= bit_idx & mask;
+    void update(size_t start, IDataSrc& src)
+    {
+    	Symbol* syms = sequence_->valuesBlock();
+    	src.get(syms, start, src.getSize());
+    }
 
-    	Symbol* symbols = sequence_->valuesBlock() + pos;
+    void insert(size_t at, IDataSrc& src)
+    {
+    	sequence_->insertSpace(at, src.getSize());
+    	update(at, src);
+    }
 
-    	if (prefix >= length)
-    	{
-    		src.getPrefix(symbols, bit_pos, length);
-    	}
-    	else {
-    		src.getPrefix(symbols, bit_pos, prefix);
-
-    		symbols++;
-
-    		while (src.getRemainder() > 0)
-    		{
-    			size_t size = src.get(symbols, src.getRemainder());
-    			src.skip(size);
-    			symbols += size;
-    		}
-
-    		if (src.getSuffixSize() > 0)
-    		{
-    			src.getSuffix(symbols);
-    		}
-    		else {
-    			int a = 0; a++;
-    		}
-    	}
+    void read(size_t from, IDataTgt& tgt) const
+    {
+    	const Symbol* syms = sequence_->valuesBlock();
+    	tgt.put(syms, from, tgt.getSize());
     }
 
     void fillCells(std::function<void(Symbol&)>&& f)
@@ -359,7 +367,6 @@ public:
     }
 };
 
-}
 }
 
 #endif

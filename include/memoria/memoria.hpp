@@ -10,6 +10,7 @@
 
 #include <memoria/core/tools/file.hpp>
 #include <memoria/allocators/inmem/factory.hpp>
+#include <memoria/core/tools/symbol_sequence.hpp>
 
 namespace memoria {
 
@@ -38,7 +39,17 @@ template <>
 struct CtrNameDeclarator<7>: TypeDef<VectorMap<BigInt, Byte>> {};
 
 template <>
-struct CtrNameDeclarator<8>: TypeDef<BitVector<false>> {};
+struct CtrNameDeclarator<8>: TypeDef<Sequence<1, true>> {};
+
+template <>
+struct CtrNameDeclarator<9>: TypeDef<Sequence<2, true>> {};
+
+template <>
+struct CtrNameDeclarator<10>: TypeDef<Sequence<3, true>> {};
+
+template <>
+struct CtrNameDeclarator<11>: TypeDef<Sequence<4, true>> {};
+
 
 }
 

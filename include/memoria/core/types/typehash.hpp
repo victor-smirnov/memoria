@@ -92,8 +92,8 @@ struct TypeHash<Vector<T>>: UIntValue<HashHelper<1300, TypeHash<T>::Value>::Valu
 
 template <> struct TypeHash<Root>: UIntValue<1400> {};
 
-template <bool Sparse>
-struct TypeHash<BitVector<Sparse>>: UIntValue<HashHelper<1500, Sparse>::Value> {};
+template <Int BitsPerSymbol, bool Dense>
+struct TypeHash<Sequence<BitsPerSymbol, Dense>>: UIntValue<HashHelper<1500, BitsPerSymbol, Dense>::Value> {};
 
 }
 
