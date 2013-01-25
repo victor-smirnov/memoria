@@ -17,18 +17,14 @@ namespace vapi       {
 
 
 template <typename T, Int BitsPerSymbol>
-struct ISequenceDataSource: IDataBase {
+struct ISequenceDataSource: IDataSource<T> {
 	virtual ~ISequenceDataSource() throw() {}
-
-	virtual SizeT get(T* buffer, SizeT start, SizeT length)   					= 0;
 };
 
 
 template <typename T, Int BitsPerSymbol>
-struct ISequenceDataTarget: IDataBase {
+struct ISequenceDataTarget: IDataTarget<T> {
 	virtual ~ISequenceDataTarget() throw() {}
-
-	virtual SizeT put(T* buffer, SizeT start, SizeT length)   					= 0;
 };
 
 

@@ -186,9 +186,7 @@ struct IDataSource: virtual IDataBase {
 
     virtual ~IDataSource() throw () {}
 
-    virtual SizeT get(T* buffer, SizeT length) const                = 0;
-
-
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)               		= 0;
 };
 
 
@@ -197,25 +195,14 @@ struct IDataTarget: virtual IDataBase {
 
     virtual ~IDataTarget() throw () {}
 
-//    virtual SizeT get(T* buffer, SizeT length) const                = 0;
-    virtual SizeT put(const T* buffer, SizeT length)                = 0;
+
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
 };
 
 
 template <typename T>
 struct IData: IDataSource<T>, IDataTarget<T> {
-
     virtual ~IData() throw () {}
-//
-//    virtual SizeT skip(SizeT length)                                = 0;
-//    virtual SizeT getStart() const                                  = 0;
-//    virtual SizeT getRemainder() const                              = 0;
-//
-//    virtual SizeT getSize() const                                   = 0;
-//    virtual SizeT put(const T* buffer, SizeT length)                = 0;
-//    virtual SizeT get(T* buffer, SizeT length) const                = 0;
-//
-//    virtual void reset()                                            = 0;
 };
 
 
@@ -250,14 +237,14 @@ public:
         return length_ - getStart();
     }
 
-    virtual SizeT put(const T* buffer, SizeT length)
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-        return data_.put(buffer, length);
+        return data_.put(buffer, start, length);
     }
 
-    virtual SizeT get(T* buffer, SizeT length) const
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        return data_.get(buffer, length);
+        return data_.get(buffer, start, length);
     }
 
     virtual void reset()
@@ -372,16 +359,18 @@ public:
         length_ = size;
     }
 
-    virtual SizeT put(const T* buffer, SizeT length)
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-        CopyBuffer(buffer, data_ + start_, length);
-        return length;
+        CopyBuffer(buffer + start, data_ + start_, length);
+
+        return skip(length);
     }
 
-    virtual SizeT get(T* buffer, SizeT length) const
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        CopyBuffer(data_ + start_, buffer, length);
-        return length;
+        CopyBuffer(data_ + start_, buffer + start, length);
+
+        return skip(length);
     }
 
     void dump(std::ostream& out) const {
@@ -454,18 +443,20 @@ public:
         return getSize();
     }
 
-    virtual SizeT put(const T* buffer, SizeT length)
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
         return 0;
     }
 
-    virtual SizeT get(T* buffer, SizeT length) const
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        CopyBuffer(data_ + start_, buffer, length);
-        return length;
+        CopyBuffer(data_ + start_, buffer + start, length);
+
+        return skip(length);
     }
 
-    void dump(std::ostream& out) const {
+    void dump(std::ostream& out) const
+    {
         dumpArray(out, data_, length_);
     }
 
@@ -513,16 +504,16 @@ public:
         return 1;
     }
 
-    virtual SizeT put(const T* buffer, SizeT length)
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-        value_ = *buffer;
-        return 1;
+        value_ = *(buffer + start);
+        return skip(1);
     }
 
-    virtual SizeT get(T* buffer, SizeT length) const
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        *buffer = value_;
-        return 1;
+        *(buffer + start) = value_;
+        return skip(1);
     }
 
     operator T() const {
@@ -579,14 +570,15 @@ public:
         return 1;
     }
 
-    virtual SizeT put(const T* buffer, SizeT length) {
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length) {
         return 0;
     }
 
-    virtual SizeT get(T* buffer, SizeT length) const
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        *buffer = value_;
-        return 1;
+        *(buffer + start) = value_;
+
+        return skip(1);
     }
 
     operator T() const {
@@ -644,16 +636,16 @@ public:
 
     virtual void setSize(SizeT size) {}
 
-    virtual SizeT put(const T* buffer, SizeT length)
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-        value_ = *buffer;
-        return 1;
+        value_ = *(buffer + start);
+        return skip(1);
     }
 
-    virtual SizeT get(T* buffer, SizeT length) const
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        *buffer = value_;
-        return 1;
+        *(buffer + start) = value_;
+        return skip(1);
     }
 
     operator T() const {
@@ -693,7 +685,9 @@ public:
         }
 
         SizeT distance = length_ - start_;
+
         start_ = length_;
+
         return distance;
     }
 
@@ -709,20 +703,20 @@ public:
 
     virtual SizeT getSize() const {return length_;}
 
-    virtual SizeT put(const T* buffer, SizeT length)
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
         return 0;
     }
 
-    virtual SizeT get(T* buffer, SizeT length) const
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        for (SizeT c = 0; c < length; c++)
+        for (SizeT c = start; c < start + length; c++)
         {
             is_>>buffer[c];
         }
 
-        // FIXME EOF handling?
-        return length;
+        // FIXME: EOF handling?
+        return skip(length);
     }
 
     virtual void reset()
@@ -764,18 +758,18 @@ public:
 
     virtual SizeT getSize() const {return length_;}
 
-    virtual SizeT put(const T* buffer, SizeT length)
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-        for (SizeT c = 0; c < length; c++)
+        for (SizeT c = start; c < start + length; c++)
         {
             os_<<buffer[c];
         }
 
         // FIXME EOF handling?
-        return length;
+        return skip(length);
     }
 
-    virtual SizeT get(T* buffer, SizeT length) const
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
         return 0;
     }

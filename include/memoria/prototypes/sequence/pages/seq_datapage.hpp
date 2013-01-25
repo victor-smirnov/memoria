@@ -72,7 +72,6 @@ public:
 
 private:
 
-//    Int size_;
     Sequence sequence_;
 
     static PageMetadata *page_metadata_;
@@ -127,13 +126,6 @@ public:
     	return SizeSetter(*this);
     }
 
-    const Int& symbols() const {
-    	return sequence_.size();
-    }
-
-    Int& symbols() {
-    	return sequence_.size();
-    }
 
     static Int hash() {
         return PAGE_HASH;
@@ -178,16 +170,6 @@ public:
         return sequence_.valuesBlock();
     }
 
-    const ElementType* addr(Int idx) const
-    {
-        return sequence_.cellAddr(idx);
-    }
-
-    ElementType* addr(Int idx)
-    {
-    	return sequence_.cellAddr(idx);
-    }
-
     void shift(BigInt pos, BigInt length)
     {
     	if (length > 0)
@@ -224,7 +206,6 @@ public:
     {
         Base::template serialize<FieldFactory>(buf);
 
-//        FieldFactory<Int>::serialize(buf, size_);
         FieldFactory<Sequence>::serialize(buf, sequence_);
     }
 
@@ -233,7 +214,6 @@ public:
     {
         Base::template deserialize<FieldFactory>(buf);
 
-//        FieldFactory<Int>::deserialize(buf, size_);
         FieldFactory<Sequence>::deserialize(buf, sequence_);
     }
 

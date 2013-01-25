@@ -79,9 +79,7 @@ public:
 
 		MoveBits(syms, buffer, start_ * Bits, start * Bits, length * Bits);
 
-		start_ += length;
-
-		return length;
+		return skip(length);
 	}
 };
 
@@ -98,10 +96,10 @@ class SequenceDataTargetAdapter: public ISequenceDataTarget<typename Seq::Symbol
 	SizeT   start_;
 	SizeT   length_;
 
-	const Seq*	sequence_;
+	Seq*	sequence_;
 public:
 
-	SequenceDataTargetAdapter(const Seq* sequence, SizeT start, SizeT length):
+	SequenceDataTargetAdapter(Seq* sequence, SizeT start, SizeT length):
 		start0_(start),
 		start_(start),
 		length_(length),
@@ -142,15 +140,13 @@ public:
 		start_ 	= start0_;
 	}
 
-	virtual SizeT put(T* buffer, SizeT start, SizeT length)
+	virtual SizeT put(const T* buffer, SizeT start, SizeT length)
 	{
-		const T* syms = sequence_->valuesBlock();
+		T* syms = sequence_->valuesBlock();
 
-		MoveBits(syms, buffer, start_ * Bits, start * Bits, length * Bits);
+		MoveBits(buffer, syms, start * Bits, start_ * Bits, length * Bits);
 
-		start_ += length;
-
-		return length;
+		return skip(length);
 	}
 };
 

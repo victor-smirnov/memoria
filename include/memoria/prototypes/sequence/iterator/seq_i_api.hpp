@@ -136,30 +136,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
    		return me()->model().read(*me(), data);
    	}
 
-   	MEMORIA_PUBLIC std::vector<ElementType> subVector(BigInt length) const
-	{
-   		MyType tmp = *me();
-   		return tmp.read(length);
-	}
-
-   	MEMORIA_PUBLIC std::vector<ElementType> read(BigInt length)
-	{
-   		BigInt max_size = me()->model().size() - me()->pos();
-
-   		if (length > max_size)
-   		{
-   			length = max_size;
-   		}
-
-   		std::vector<ElementType> vec(length);
-
-   		MemBuffer<ElementType> buf(&vec[0], vec.size());
-
-   		me()->read(buf);
-
-   		return vec;
-	}
-
    	void insert(IDataSourceType& data);
    	void update(IDataSourceType& data);
 

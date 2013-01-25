@@ -173,12 +173,12 @@ public:
         return length_;
     }
 
-    virtual SizeT put(const T* buffer, SizeT length)
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
         return 0;
     }
 
-    virtual SizeT get(T* buffer, SizeT length) const
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
         auto& data  = iter_.data();
         Int pos     = iter_.dataPos();
@@ -189,9 +189,9 @@ public:
             length = size;
         }
 
-        CopyBuffer(data->addr(pos), buffer, length);
+        CopyBuffer(data->values() + pos, buffer + start, length);
 
-        return length;
+        return skip(length);
     }
 
     virtual void reset()
@@ -200,39 +200,6 @@ public:
         start_ = 0;
     }
 };
-
-
-template <typename Types, typename T>
-Ctr<VectorCtrTypes<Types>>& operator<<(Ctr<VectorCtrTypes<Types>>& ctr, const T& value)
-{
-    auto iter = ctr.End();
-    VariableRef<const T> ref(value);
-    iter.insert(ref);
-    return ctr;
-}
-
-template <typename Types>
-ostream& operator<<(ostream& out, const Iter<VectorIterTypes<Types>>& iter)
-{
-    out<<iter.element();
-    return out;
-}
-
-
-
-template <typename Types>
-void UpdateVector(Iter<VectorIterTypes<Types>>& iter, const std::vector<typename Types::ElementType>& source)
-{
-    typedef Iter<VectorIterTypes<Types>>    IterType;
-    typedef typename Types::ElementType     ElementType;
-
-    IterType tmp = iter;
-
-    const MemBuffer<const ElementType> src(&source[0], source.size());
-
-    tmp.update(src);
-}
-
 
 }
 

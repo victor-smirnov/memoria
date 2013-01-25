@@ -162,6 +162,8 @@ public:
 
             check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
+            allocator.commit();
+
             compareVectors(out, v1, v2, MEMORIA_SOURCE);
 
             for (Int c = 0; c < transfers_; c++)

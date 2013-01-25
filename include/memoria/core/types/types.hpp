@@ -135,6 +135,8 @@ struct VectorMap    {};
 template <typename T>
 struct Vector       {};
 
+struct ASequence	{};
+
 template <Int BitsPerSymbol, bool Dense = true>
 struct Sequence	{};
 
