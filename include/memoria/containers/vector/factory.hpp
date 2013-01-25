@@ -11,19 +11,19 @@
 
 #include <memoria/containers/map/factory.hpp>
 
-//#include <memoria/containers/vector/iterator/vector_i_api.hpp>
+#include <memoria/containers/vector/iterator/vector_i_api.hpp>
 #include <memoria/containers/vector/iterator.hpp>
 
 #include <memoria/containers/vector/pages/vector_datapage.hpp>
 #include <memoria/containers/vector/pages/metadata.hpp>
 
-//#include <memoria/containers/vector/container/vector_c_api.hpp>
-//#include <memoria/containers/vector/container/vector_c_insert.hpp>
-//#include <memoria/containers/vector/container/vector_c_remove.hpp>
-//#include <memoria/containers/vector/container/vector_c_tools.hpp>
-//#include <memoria/containers/vector/container/vector_c_checks.hpp>
-//#include <memoria/containers/vector/container/vector_c_find.hpp>
-//#include <memoria/containers/vector/container/vector_c_read.hpp>
+#include <memoria/containers/vector/container/vector_c_api.hpp>
+#include <memoria/containers/vector/container/vector_c_insert.hpp>
+#include <memoria/containers/vector/container/vector_c_remove.hpp>
+#include <memoria/containers/vector/container/vector_c_tools.hpp>
+#include <memoria/containers/vector/container/vector_c_checks.hpp>
+#include <memoria/containers/vector/container/vector_c_find.hpp>
+#include <memoria/containers/vector/container/vector_c_read.hpp>
 
 #include <memoria/containers/vector/names.hpp>
 #include <memoria/prototypes/sequence/tools.hpp>
