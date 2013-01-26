@@ -255,6 +255,11 @@ public:
         prefix_ = prefix;
     }
 
+    void setup(const Accumulator& prefix)
+    {
+    	prefix_ = prefix[0];
+    }
+
     void initState()
     {
         typedef typename Iterator::Container::TreePath TreePath;

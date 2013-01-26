@@ -73,7 +73,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::sequence::CtrInsertName)
 
 private:
 
-	void insertIntoDataPage(Iterator& iter, IDataSourceType& buffer, Int length);
+	Accumulator insertIntoDataPage(Iterator& iter, IDataSourceType& buffer, Int length);
 
 	class ArrayDataSubtreeProvider: public MyType::DefaultSubtreeProviderBase {
 
@@ -86,6 +86,8 @@ private:
 	    Int                 last_idx_;
 	    Int                 page_size_;
 	    Int                 max_page_capacity_;
+
+	    Accumulator			accumulator_;
 
 	public:
 	    ArrayDataSubtreeProvider(MyType& ctr, BigInt key_count, IDataSourceType& data, BigInt start, BigInt length):
@@ -129,15 +131,20 @@ private:
 
 	        data->reindex();
 
-	        pair.keys    	= Base::ctr().getDataIndexes(data, 0, length);
-	        pair.value      = data->id();
+	        accumulator_ += pair.keys	= Base::ctr().getDataIndexes(data, 0, length);
+	        pair.value      			= data->id();
 
 	        return pair;
 	    }
 
+	    const Accumulator& accumulator() const
+	    {
+	    	return accumulator_;
+	    }
+
 	};
 
-	void importPages(Iterator& iter, IDataSourceType& buffer);
+	Accumulator importPages(Iterator& iter, IDataSourceType& buffer);
 
 	void createDataPage(TreePath& path, Int idx, Int size = -1);
 	DataPathItem createDataPage(NodeBaseG& node, Int idx, Int size = -1);
@@ -179,15 +186,19 @@ void M_TYPE::insertData(Iterator& iter, IDataSourceType& buffer)
             splitDataPage(iter);
         }
 
-        importPages(iter, buffer);
+        Accumulator indexes = importPages(iter, buffer);
 
-        iter.cache().setup(pos + buffer_size - iter.dataPos(), 0);
+        indexes[0] = pos + buffer_size - iter.dataPos();
+
+        iter.cache().setup(indexes);
     }
     else
     {
-        importPages(iter, buffer);
+    	Accumulator indexes = importPages(iter, buffer);
 
-        iter.cache().setup(pos + buffer_size - iter.dataPos(), 0);
+    	indexes[0] = pos + buffer_size - iter.dataPos();
+
+        iter.cache().setup(indexes);
     }
 }
 
@@ -291,7 +302,7 @@ typename M_TYPE::DataPathItem M_TYPE::splitDataPage(Iterator& iter)
 //// =============================================== PRIVATE API ===================================================== ////
 
 M_PARAMS
-void M_TYPE::insertIntoDataPage(Iterator& iter, IDataSourceType& buffer, Int length)
+typename M_TYPE::Accumulator M_TYPE::insertIntoDataPage(Iterator& iter, IDataSourceType& buffer, Int length)
 {
     DataPageG& data = iter.path().data().node();
     data.update();
@@ -331,6 +342,8 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataSourceType& buffer, Int len
     Accumulator accum = me()->getDataIndexes(data, pos, pos + length);
 
     me()->updateUp(iter.path(), 0, iter.key_idx(), accum, reindex_fully);
+
+    return accum;
 }
 
 
@@ -338,10 +351,12 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataSourceType& buffer, Int len
 
 
 M_PARAMS
-void M_TYPE::importPages(Iterator& iter, IDataSourceType& buffer)
+typename M_TYPE::Accumulator M_TYPE::importPages(Iterator& iter, IDataSourceType& buffer)
 {
     BigInt  length      = buffer.getRemainder();
     BigInt  start		= 0;
+
+    Accumulator indexes;
 
     if (iter.dataPos() > 0)
     {
@@ -350,7 +365,7 @@ void M_TYPE::importPages(Iterator& iter, IDataSourceType& buffer)
         if (start_page_capacity > 0)
         {
         	start = length > start_page_capacity ? start_page_capacity : length;
-        	insertIntoDataPage(iter, buffer, start);
+        	indexes = insertIntoDataPage(iter, buffer, start);
         }
 
         iter.nextKey();
@@ -368,6 +383,8 @@ void M_TYPE::importPages(Iterator& iter, IDataSourceType& buffer)
     {
         ArrayDataSubtreeProvider provider(*me(), key_count, buffer, start, length);
         me()->insertSubtree(iter, provider);
+
+        indexes += provider.accumulator();
     }
 
     if (end > 0)
@@ -378,19 +395,24 @@ void M_TYPE::importPages(Iterator& iter, IDataSourceType& buffer)
 
             if (end <= end_page_capacity)
             {
-                insertIntoDataPage(iter, buffer, end);
+                indexes += insertIntoDataPage(iter, buffer, end);
+
                 iter.dataPos() = end;
             }
             else {
                 ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
                 me()->insertSubtree(iter, provider);
                 iter.dataPos() = 0;
+
+                indexes += provider.accumulator();
             }
         }
         else
         {
             ArrayDataSubtreeProvider provider(*me(), 1, buffer, start + length, end);
             me()->insertSubtree(iter, provider);
+
+            indexes += provider.accumulator();
 
             iter.prevKey();
             iter.dataPos() = iter.data()->size();
@@ -401,6 +423,8 @@ void M_TYPE::importPages(Iterator& iter, IDataSourceType& buffer)
         iter.prevKey();
         iter.dataPos() = iter.data()->size();
     }
+
+    return indexes;
 }
 
 

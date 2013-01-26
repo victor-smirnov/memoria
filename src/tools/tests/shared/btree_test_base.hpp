@@ -33,6 +33,8 @@ protected:
     typedef typename Ctr::Accumulator                                                   Accumulator;
     typedef typename Ctr::ID                                                            ID;
 
+    static const Int Indexes = Ctr::Indexes;
+
     Int max_block_size_     = 1024*40;
 
     Int page_size_cnt_      = 0;
@@ -576,13 +578,13 @@ public:
 
     virtual void checkIteratorPrefix(ostream& out, Iterator& iter, const char* source)
     {
-        Accumulator prefix;
-        iter.ComputePrefix(prefix);
+        Accumulator prefixes;
+        iter.ComputePrefix(prefixes);
 
-        if (iter.prefix(0) != prefix.key(0))
+        if (iter.prefixes() != prefixes)
         {
-            iter.dump(out);
-            throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefix()<<" Actual: "<<prefix);
+        	iter.dump(out);
+        	throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefixes()<<" Actual: "<<prefixes);
         }
     }
 

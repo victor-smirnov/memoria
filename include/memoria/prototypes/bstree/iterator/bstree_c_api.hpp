@@ -112,7 +112,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
     {
         Base::dumpKeys(out);
 
-        out<<"Prefix:  "<<me()->prefix()<<endl;
+        out<<"Prefix:  "<<me()->prefixes()<<endl;
     }
 
 
