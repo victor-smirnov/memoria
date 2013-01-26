@@ -111,7 +111,6 @@ private:
 
 	        Int idx0                = idx;
 
-	        //BigInt offset           = start_ + max_page_capacity_ * idx0;
 	        BigInt length           = idx0 < last_idx_ ? max_page_capacity_ : suffix_;
 
 	        BigInt length_local     = length;
@@ -126,9 +125,11 @@ private:
 	        }
 
 
-	        data->size() = length;
+	        data->size() 	= length;
 
-	        pair.keys[0]    = length;
+	        data->reindex();
+
+	        pair.keys    	= Base::ctr().getDataIndexes(data, 0, length);
 	        pair.value      = data->id();
 
 	        return pair;
@@ -208,6 +209,8 @@ BigInt M_TYPE::updateData(Iterator& iter, IDataSourceType& data)
 
         BigInt to_read_local = to_read;
 
+        Accumulator accum0	= me()->getDataIndexes(iter.data(), pos0, size);
+
         while (to_read_local > 0)
         {
             Int pos = iter.dataPos();
@@ -219,8 +222,14 @@ BigInt M_TYPE::updateData(Iterator& iter, IDataSourceType& data)
             to_read_local -= processed;
         }
 
-        len     -= to_read;
-        sum     += to_read;
+        iter.data()->reindex();
+
+        Accumulator accum 	= me()->getDataIndexes(iter.data(), pos0, size);
+
+        me()->updateUp(iter.path(), 0, iter.key_idx(), accum - accum0);
+
+        len -= to_read;
+        sum += to_read;
 
         if (iter.isEof())
         {
@@ -316,9 +325,10 @@ void M_TYPE::insertIntoDataPage(Iterator& iter, IDataSourceType& buffer, Int len
 
     data->size() += length;
 
-    Accumulator accum;
+    data->reindex();
 
-    accum.keys()[0] = length;
+    Int pos = iter.dataPos();
+    Accumulator accum = me()->getDataIndexes(data, pos, pos + length);
 
     me()->updateUp(iter.path(), 0, iter.key_idx(), accum, reindex_fully);
 }
@@ -478,15 +488,15 @@ typename M_TYPE::Accumulator M_TYPE::moveData(
     // make a room in the target page
     tgt_data->shift(0, amount_to_topy);
 
-//    memoria::CopyBuffer(src_data->addr(src_idx), tgt_data->addr(0), amount_to_topy);
+    Accumulator accum = me()->getDataIndexes(src_data, src_idx, src_idx + amount_to_topy);
+
     src_data->copyTo(tgt_data.page(), src_idx, 0, amount_to_topy);
 
     src_data->size() -= amount_to_topy;
     tgt_data->size() += amount_to_topy;
 
-    Accumulator accum;
-
-    accum.keys()[0] = amount_to_topy;
+    src_data->reindex();
+    tgt_data->reindex();
 
     return accum;
 }

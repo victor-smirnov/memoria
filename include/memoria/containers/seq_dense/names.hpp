@@ -14,6 +14,10 @@
 namespace memoria    	{
 namespace seq_dense		{
 
+class CtrChecksName {};
+class CtrToolsName {};
+class CtrFindName {};
+
 class IterAPIName  {};
 
 }

@@ -488,6 +488,8 @@ typename M_TYPE::Accumulator M_TYPE::removeData(TreePath& path, Int start, Int l
 
     Int pos = start + length;
 
+    Accumulator accum = me()->getDataIndexes(data, start, start + length);
+
     if (pos < data->size())
     {
         data->shift(pos, -length);
@@ -495,8 +497,7 @@ typename M_TYPE::Accumulator M_TYPE::removeData(TreePath& path, Int start, Int l
 
     data->size() -= length;
 
-    Accumulator accum;
-    accum.keys()[0] = length;
+    data->reindex();
 
     me()->updateUp(path, 0, path.data().parent_idx(), -accum);
 
@@ -528,40 +529,33 @@ void M_TYPE::mergeDataPagesAndremoveSource(
 
     //FIXME: we have to get all keys values for the moved data block there
 
-    Accumulator keys;
-
-    keys.keys()[0] = src_size;
+    Accumulator keys = me()->getDataIndexes(source_data, 0, src_size);
 
     if (merge_type == MergeType::LEFT)
     {
-//        memoria::CopyBuffer(source_data->addr(0), target_data->addr(tgt_size), src_size);
         source_data->copyTo(target_data.page(), 0, tgt_size, src_size);
 
-        //me()->AddAndSubtractKeyValues(target, target_data_item.parent_idx(), source, source_data_item.parent_idx(), keys);
-
-        me()->updateUp(target, 0, target_data_item.parent_idx(), keys);
+        me()->updateUp(target, 0, target_data_item.parent_idx(), keys); // FIXME: move this code out of if(){}
         me()->updateUp(source, 0, source_data_item.parent_idx(), -keys);
     }
     else {
         // make a room for source data in the target data page
         // FIXME: separate method for this task?
 
-//        memoria::CopyBuffer(target_data->addr(0), target_data->addr(src_size), tgt_size);
         target_data->copyTo(target_data.page(), 0, src_size, tgt_size);
 
         // copy page content from source to target
-//        memoria::CopyBuffer(source_data->addr(0), target_data->addr(0), src_size);
         source_data->copyTo(target_data.page(), 0, 0, src_size);
 
-        me()->updateUp(target, 0, target_data_item.parent_idx(), keys);
+        me()->updateUp(target, 0, target_data_item.parent_idx(), keys); // FIXME: move this code out of if(){}
         me()->updateUp(source, 0, source_data_item.parent_idx(), -keys);
     }
 
     target_data->size() += src_size;
-
     source_data->size() -= src_size;
 
-    keys.clear();
+    target_data->reindex();
+    source_data->reindex();
 }
 
 

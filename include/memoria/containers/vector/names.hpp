@@ -15,6 +15,8 @@
 namespace memoria       {
 namespace mvector       {
 
+class CtrToolsName {};
+
 class IteratorContainerAPIName  {};
 
 }

@@ -43,9 +43,9 @@ public:
     typedef typename MergeLists <
                 typename Base::FieldsList,
                 ConstValue<UInt, VERSION>,
-                Int,
                 IndexType_,
-                ElementType_
+                ElementType_,
+                ConstValue<UInt, BitsPerSymbol>
     >::Result                                                                   FieldsList;
 
     static const UInt PAGE_HASH = md5::Md5Sum<typename TypeToValueList<FieldsList>::Type>::Result::Value32;
@@ -118,6 +118,14 @@ public:
     	}
     };
 
+    const Sequence& sequence() const {
+    	return sequence_;
+    }
+
+    Sequence& sequence() {
+    	return sequence_;
+    }
+
     Int size() const {
         return sequence_.size();
     }
@@ -136,9 +144,8 @@ public:
         return page_metadata_;
     }
 
-    void Reindex()
+    void reindex()
     {
-        Base::Reindex();
         sequence_.reindex();
     }
 

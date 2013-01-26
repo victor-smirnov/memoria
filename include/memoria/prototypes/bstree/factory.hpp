@@ -31,8 +31,6 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
 
     typedef BigInt                                                          Value;
 
-    static const bool MapType                                               = MapTypes::Sum;
-
     typedef typename AppendTool<
             typename Base::ContainerPartsList,
             TypeList<
