@@ -31,7 +31,8 @@ struct BTreeTypes<Profile, memoria::Sequence<BitsPerSymbol_, true>>: public BTre
             typename Base::ContainerPartsList,
             TypeList<
             	memoria::seq_dense::CtrChecksName,
-                memoria::seq_dense::CtrToolsName
+                memoria::seq_dense::CtrToolsName,
+                memoria::seq_dense::CtrFindName
             >
     >::Result                                                           ContainerPartsList;
 

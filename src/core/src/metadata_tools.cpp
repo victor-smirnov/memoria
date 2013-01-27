@@ -263,7 +263,7 @@ private:
         for (Int c = 0; c < count; c++)
         {
             out_.width(12);
-            out_<<*value;
+            out_<<*(value + c);
 
             if (c < count - 1)
             {

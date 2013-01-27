@@ -10,6 +10,7 @@
 #include "../tests_inc.hpp"
 
 #include "sequence_test.hpp"
+#include "sequence_rank_test.hpp"
 
 #include <vector>
 
@@ -26,6 +27,8 @@ public:
     {
     	registerTask(new SequenceTest<1>("Dense.1"));
     	registerTask(new SequenceTest<3>("Dense.3"));
+
+    	registerTask(new SequenceRankTest<1>("Rank.1"));
     }
 
 };

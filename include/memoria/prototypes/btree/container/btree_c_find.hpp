@@ -39,7 +39,7 @@ private:
 public:
 
     template <typename Comparator>
-    struct findFn {
+    struct FindFn {
 
         Iterator        i_;
         Key&            key_;
@@ -51,7 +51,7 @@ public:
         bool            found_;
 
     public:
-        findFn(Comparator& cmp, Key& key, NodeBaseG& root, MyType &model):
+        FindFn(Comparator& cmp, Key& key, NodeBaseG& root, MyType &model):
             i_(model),
             key_(key),
             model_(model),
@@ -107,14 +107,14 @@ public:
 
 
     template <typename Comparator>
-    class checkBoundsFn {
+    class CheckBoundsFn {
         Key&            key_;
         Comparator&     cmp_;
 
         bool            within_ranges_;
 
     public:
-        checkBoundsFn(Comparator& cmp, Key& key):
+        CheckBoundsFn(Comparator& cmp, Key& key):
             key_(key),
             cmp_(cmp)
         {}
@@ -201,12 +201,12 @@ const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
     {
         Comparator cmp(block_num);
 
-        checkBoundsFn<Comparator> bounds_fn(cmp, key);
+        CheckBoundsFn<Comparator> bounds_fn(cmp, key);
         NodeDispatcher::DispatchConst(node, bounds_fn);
 
         if (bounds_fn.within_ranges())
         {
-            findFn<Comparator> fn(cmp, key, node, *me());
+            FindFn<Comparator> fn(cmp, key, node, *me());
 
             while(1)
             {

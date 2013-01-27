@@ -64,8 +64,61 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 	typedef typename Types::ElementType                                         ElementType;
 
 
-//	Iterator rank(BigInt pos);
-//	Iterator select(BigInt rank);
+	BigInt rank(BigInt pos, Int symbol)
+	{
+		Iterator iter = me()->seek(pos);
+
+		Int rank_local = iter.data()->sequence().rank(0, iter.dataPos(), symbol);
+
+		if (Indexes == 2)
+		{
+			if (symbol)
+			{
+				return iter.prefix(1) + rank_local;
+			}
+			else {
+				BigInt prefix_rank = iter.prefix(0) - iter.prefix(1);
+
+				return prefix_rank + rank_local;
+			}
+		}
+		else {
+			return iter.prefix(symbol + 1) + rank_local;
+		}
+	}
+
+	Iterator select(BigInt rank, Int symbol)
+	{
+		Iterator iter = me()->findLE(rank, symbol + 1);
+
+		BigInt local_rank;
+
+		if (Indexes == 2)
+		{
+			if (symbol)
+			{
+				local_rank = rank - iter.prefix(1);
+			}
+			else {
+				local_rank = iter.prefix(0) - rank - iter.prefix(1);
+			}
+		}
+		else {
+			local_rank = rank - iter.prefix(symbol + 1);
+		}
+
+		auto result = iter.data()->sequence().selectFW(0, symbol, local_rank);
+
+		if (result.is_found())
+		{
+			iter.dataPos() = result.idx();
+		}
+		else {
+			iter.dataPos() = iter.data()->size();
+		}
+
+		return iter;
+	}
 
 MEMORIA_CONTAINER_PART_END
 
