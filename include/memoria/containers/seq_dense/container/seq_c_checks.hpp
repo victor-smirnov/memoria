@@ -76,10 +76,11 @@ bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const Nod
     {
         bool error = false;
 
-        if (Indexes == 2)
+
+        for (Int c = 0; c < Symbols; c++)
         {
-        	BigInt rank = data->sequence().maxIndex(1);
-        	BigInt rank1 = data->sequence().popCount(0, data->size(), 1);
+        	BigInt rank = data->sequence().maxIndex(c);
+        	BigInt rank1 = data->sequence().popCount(0, data->size(), c);
 
         	if (rank1 != rank)
         	{
@@ -87,32 +88,12 @@ bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const Nod
         		error = true;
         	}
 
-        	if (keys[1] != rank)
+        	if (keys[c + 1] != rank)
         	{
-        		MEMORIA_ERROR(me(), "Invalid data rank size", data->id(), leaf->id(), idx, keys[1], rank);
+        		MEMORIA_ERROR(me(), "Invalid data rank size", data->id(), leaf->id(), idx, keys[c + 1], rank);
         		error = true;
         	}
         }
-        else {
-        	for (Int c = 0; c < Symbols; c++)
-        	{
-        		BigInt rank = data->sequence().maxIndex(c);
-        		BigInt rank1 = data->sequence().popCount(0, data->size(), c);
-
-        		if (rank1 != rank)
-        		{
-        			MEMORIA_ERROR(me(), "Invalid data page index", data->id(), leaf->id(), idx, rank1, rank);
-        			error = true;
-        		}
-
-        		if (keys[c + 1] != rank)
-        		{
-        			MEMORIA_ERROR(me(), "Invalid data rank size", data->id(), leaf->id(), idx, keys[c + 1], rank);
-        			error = true;
-        		}
-        	}
-        }
-
 
         if (keys[0] != data->size())
         {

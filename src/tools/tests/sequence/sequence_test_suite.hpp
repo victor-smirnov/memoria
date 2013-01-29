@@ -11,6 +11,7 @@
 
 #include "sequence_test.hpp"
 #include "sequence_rank_test.hpp"
+#include "sequence_select_test.hpp"
 
 #include <vector>
 
@@ -29,6 +30,8 @@ public:
     	registerTask(new SequenceTest<3>("Dense.3"));
 
     	registerTask(new SequenceRankTest<1>("Rank.1"));
+    	registerTask(new SequenceSelectTest<1>("Select.1"));
+    	registerTask(new SequenceSelectTest<1>("Select.3"));
     }
 
 };

@@ -149,7 +149,7 @@ public:
         typedef NodePageContainerTypes                      NodePageBase;
         typedef ContainerTypeName_                          Name;
         static const Int                                    Indexes             = ContainerTypes::Indexes;
-        static const bool                                   PackedMapType       = ContainerTypes::MapType;
+//        static const bool                                   PackedMapType       = ContainerTypes::MapType;
         typedef typename ContainerTypes::BasePagePartsList  BasePartsList;
     };
 

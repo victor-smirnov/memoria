@@ -71,22 +71,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrToolsName)
 	{
 		Accumulator keys;
 
-		if (Indexes == 2)
+		BigInt sum = 0;
+
+		for (Int c = 0; c < Symbols; c++)
 		{
-			keys[1] = data->sequence().rank(from, to - 1, 1);
+			keys[c + 1] = data->sequence().rank(from, to - 1, c);
+
+			sum += keys[c + 1];
 		}
-		else {
-			BigInt sum = 0;
 
-			for (Int c = 0; c < Symbols; c++)
-			{
-				keys[c + 1] = data->sequence().rank(from, to - 1, c);
-
-				sum += keys[c + 1];
-			}
-
-			MEMORIA_ASSERT(sum, =, to - from);
-		}
+		MEMORIA_ASSERT(sum, =, to - from);
 
 		keys[0] = to - from;
 

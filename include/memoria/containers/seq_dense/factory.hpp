@@ -10,6 +10,7 @@
 #define _MEMORIA_CONTAINERS_SEQDENSE_FACTORY_HPP
 
 #include <memoria/containers/seq_dense/names.hpp>
+#include <memoria/containers/seq_dense/tools.hpp>
 
 #include <memoria/containers/seq_dense/container/seq_c_checks.hpp>
 #include <memoria/containers/seq_dense/container/seq_c_tools.hpp>
@@ -44,8 +45,7 @@ struct BTreeTypes<Profile, memoria::Sequence<BitsPerSymbol_, true>>: public BTre
 	>::Result                                                           IteratorPartsList;
 
 	static const Int BitsPerSymbol 										= BitsPerSymbol_;
-    static const Int Indexes											= 1 + (BitsPerSymbol == 1 ? 1 : 1 << BitsPerSymbol);
-
+    static const Int Indexes											= 1 + (1 << BitsPerSymbol);
 };
 
 
