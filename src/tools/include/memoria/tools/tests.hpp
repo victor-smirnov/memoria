@@ -90,6 +90,8 @@ private:
     vector<TestDescriptor*>     tests_;
     Configurator*               configurator_;
 
+    ostream* out_;
+
 public:
 
     TestTask(StringRef name):
@@ -110,6 +112,15 @@ public:
 
     virtual ~TestTask() throw ();
 
+    void setOut(ostream* out)
+    {
+    	out_ = out;
+    }
+
+    ostream& out()
+    {
+    	return *out_;
+    }
 
     virtual void Configure(Configurator* cfg)
     {

@@ -21,6 +21,7 @@ class SBuf {
 public:
 
     SBuf() {}
+    SBuf(const memoria::SBuf& other): buffer_(other.buffer_.str()) {}
 
     stringstream& buffer() {
         return buffer_;

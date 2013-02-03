@@ -66,7 +66,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedMapTestSuite());
 //        runner.registerTask(new PackedSeqTestSuite());
 //        runner.registerTask(new SumTreeTestSuite());
-//        runner.registerTask(new VectorTestSuite());
+        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
         runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new SymbolSeqTestSuite());

@@ -436,6 +436,15 @@ void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 }
 
 template <typename Op1, typename Op2>
+void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const std::function<SBuf ()> msg_fn)
+{
+	if (!(op1 == op2))
+	{
+		throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2<<" "<<msg_fn().str());
+	}
+}
+
+template <typename Op1, typename Op2>
 void AssertEQ(const char* src, const Op1& op1, const Op2& op2)
 {
 	if (!(op1 == op2))

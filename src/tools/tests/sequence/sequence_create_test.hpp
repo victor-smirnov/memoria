@@ -4,13 +4,13 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_SEQUENCE_SEQUENCE_TEST_HPP_
-#define MEMORIA_TESTS_SEQUENCE_SEQUENCE_TEST_HPP_
+#ifndef MEMORIA_TESTS_SEQUENCE_SEQUENCE_CREATE_TEST_HPP_
+#define MEMORIA_TESTS_SEQUENCE_SEQUENCE_CREATE_TEST_HPP_
 
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
-#include "../shared/btree_test_base.hpp"
+#include "../shared/randomaccesslist_test_base.hpp"
 
 #include <vector>
 
@@ -20,57 +20,44 @@ using namespace memoria::vapi;
 using namespace std;
 
 template <Int BitsPerSymbol, bool Dense = true>
-class SequenceTest: public BTreeBatchTestBase<
-    Sequence<BitsPerSymbol, Dense>,
-    SymbolSequence<BitsPerSymbol>
->
+class SequenceCreateTest: public RandomAccessListTestBase <
+									Sequence<BitsPerSymbol, Dense>,
+									SymbolSequence<BitsPerSymbol>
+						  >
 {
-    typedef SequenceTest<BitsPerSymbol, Dense>                                  MyType;
+    typedef SequenceCreateTest<BitsPerSymbol, Dense>                            MyType;
     typedef MyType                                                              ParamType;
     typedef SymbolSequence<BitsPerSymbol>										MemBuffer;
 
-    typedef BTreeBatchTestBase<
-    		Sequence<BitsPerSymbol, Dense>,
-    		SymbolSequence<BitsPerSymbol>
-    >                                                                           Base;
+    typedef RandomAccessListTestBase <
+				Sequence<BitsPerSymbol, Dense>,
+				SymbolSequence<BitsPerSymbol>
+    		>                                                          			Base;
 
-    typedef typename Base::Ctr                                                  Ctr;
+    typedef typename Base::Ctr               									Ctr;
     typedef typename Base::Iterator                                             Iterator;
+    typedef typename Base::Accumulator                                          Accumulator;
     typedef typename Base::ID                                                   ID;
+    typedef typename Ctr::Value                                                 Symbol;
 
     typedef typename Ctr::ElementType											T;
 
-    static const Int Symbols = 1 << BitsPerSymbol;
-
 public:
-    SequenceTest(StringRef name):
+    SequenceCreateTest(StringRef name):
         Base(name)
     {
-        Base::max_block_size_ = 1024*40;
-        Base::size_           = 1024*1024*16;
+    	Base::size_ 			= 32 * 1024 * 1024;
+    	Base::max_block_size_ 	= 1024 * 128;
+    	Base::check_size_ 		= 1000;
     }
 
-    virtual MemBuffer createBuffer(Ctr& array, Int size, BigInt value)
-    {
-    	MemBuffer data(size);
-
-    	data.resize(size);
-
-    	data.fillCells([](UBigInt& cell) {
-    		cell = getBIRandom();
-    	});
-
-        return data;
-    }
-
-    virtual Iterator seek(Ctr& array, BigInt pos)
-    {
-        return array.seek(pos);
+    virtual Iterator seek(Ctr& array, BigInt pos) {
+    	return array.seek(pos);
     }
 
     virtual void insert(Iterator& iter, MemBuffer& data)
     {
-        auto src = data.source();
+    	auto src = data.source();
     	iter.insert(src);
     }
 
@@ -80,33 +67,78 @@ public:
     	iter.read(tgt);
     }
 
-    virtual void remove(Iterator& iter, BigInt size) {
-        iter.remove(size);
-    }
-
     virtual void skip(Iterator& iter, BigInt offset)
     {
-        iter.skip(offset);
+    	iter.skip(offset);
     }
 
-    virtual BigInt getPosition(Iterator& iter)
-    {
-        return iter.pos();
+    virtual BigInt getSize(Ctr& ctr) {
+    	return ctr.size();
     }
 
-    virtual BigInt getLocalPosition(Iterator& iter)
-    {
-        return iter.dataPos();
+    virtual BigInt getPosition(Iterator& iter) {
+    	return iter.pos();
     }
 
-    virtual BigInt getSize(Ctr& array)
+    virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
     {
-        return array.size();
+    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+
+    	for (size_t c = 0; c < src.size(); c++)
+    	{
+    		auto v1 = src[c];
+    		auto v2 = tgt[c];
+
+    		AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
+    	}
     }
 
-    void checkIterator(ostream& out, Iterator& iter, const char* source)
+    virtual MemBuffer createBuffer(Int size)
     {
-        Base::checkIterator(out, iter, source);
+    	MemBuffer data(size);
+
+    	data.resize(size);
+
+    	data.fillCells([](UBigInt& cell) {
+    		cell = 0;
+    	});
+
+        return data;
+    }
+
+    virtual MemBuffer createRandomBuffer(Int size)
+    {
+    	MemBuffer data(size);
+
+    	data.resize(size);
+
+    	data.fillCells([](UBigInt& cell) {
+    		cell = getBIRandom();
+    	});
+
+    	return data;
+    }
+
+    ostream& out() {
+    	return Base::out();
+    }
+
+    virtual void fillRandom(Ctr& ctr, BigInt size)
+    {
+    	MemBuffer data = createRandomBuffer(size);
+    	Iterator iter = ctr.seek(0);
+    	insert(iter, data);
+    }
+
+    virtual void remove(Iterator& iter, BigInt size)
+    {
+    	iter.remove(size);
+    }
+
+
+    void checkIterator(Iterator& iter, const char* source)
+    {
+        Base::checkIterator(iter, source);
 
         auto& path = iter.path();
 
@@ -125,7 +157,7 @@ public:
                 {
                     if (path.data().parent_idx() != idx)
                     {
-                        iter.dump(out);
+                        iter.dump(out());
                         throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"
                                                           <<path[0]->id()
                                                           <<" DATA: "
@@ -143,7 +175,7 @@ public:
 
             if (!found)
             {
-                iter.dump(out);
+                iter.dump(out());
                 throw TestException(source, SBuf()<<"Data: "
                                                   <<path.data()->id()
                                                   <<" is not fount is it's parent, parent_idx="
@@ -156,20 +188,20 @@ public:
         {
             if (iter.data().isSet())
             {
-                iter.dump(out);
+                iter.dump(out());
                 throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
             }
         }
         else {
             if (iter.data().isEmpty())
             {
-                iter.dump(out);
+                iter.dump(out());
                 throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
             }
 
             if (iter.path().data().parent_idx() != iter.key_idx())
             {
-                iter.dump(out);
+                iter.dump(out());
                 throw TestException(MEMORIA_SOURCE, "Iterator data.parent_idx mismatch");
             }
         }

@@ -841,13 +841,19 @@ void M_TYPE::removeRedundantRoot(TreePath& path, Int level)
 
             NodeBaseG& child = path[c - 1].node();
 
-            me()->node2Root(child, root_metadata);
+            if (me()->canConvertToRoot(child))
+            {
+            	me()->node2Root(child, root_metadata);
 
-            me()->allocator().removePage(node->id());
+            	me()->allocator().removePage(node->id());
 
-            me()->set_root(child->id());
+            	me()->set_root(child->id());
 
-            path.removeLast();
+            	path.removeLast();
+            }
+            else {
+            	break;
+            }
         }
         else {
             break;

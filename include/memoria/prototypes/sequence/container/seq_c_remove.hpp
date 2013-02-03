@@ -219,8 +219,6 @@ typename M_TYPE::Accumulator M_TYPE::removeDataBlock(Iterator& start, Iterator& 
             {
                 auto result = removeDataBlockAtEnd(start);
 
-                stop.cache().setup(start_pos - stop.dataPos(), 0);
-
                 stop = start;
 
                 return result;
@@ -386,6 +384,7 @@ typename M_TYPE::Accumulator M_TYPE::removeDataBlockAtEnd(Iterator& start)
     if (!start.isEnd())
     {
         BigInt removed_key_count = 0;
+
         me()->removePagesAtEnd(start.path(), start.key_idx(), removed, removed_key_count);
     }
 

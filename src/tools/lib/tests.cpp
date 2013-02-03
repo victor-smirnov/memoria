@@ -23,7 +23,9 @@ TestTask::~TestTask() throw ()
 
 void TestTask::Run(std::ostream& out)
 {
-    for (TestDescriptor* descr: tests_)
+    setOut(&out);
+
+	for (TestDescriptor* descr: tests_)
     {
         Base::Configure(configurator_);
 
@@ -49,7 +51,8 @@ void TestTask::Run(std::ostream& out)
 
 void TestTask::Replay(ostream& out, Configurator* cfg)
 {
-    setReplayMode();
+	setOut(&out);
+	setReplayMode();
 
     configurator_ = cfg;
 

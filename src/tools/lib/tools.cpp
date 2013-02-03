@@ -55,6 +55,7 @@ BigInt getBIRandom()
     return generator();
 }
 
+#ifdef __CLING__
 BigInt getBIRandom(BigInt max)
 {
 	BigInt value = generator();
@@ -62,6 +63,12 @@ BigInt getBIRandom(BigInt max)
 
     return max > 0 ? (value + generator()) % max : 0;
 }
+#else
+BigInt getBIRandom(BigInt max)
+{
+	return max > 0 ? generator() % max : 0;
+}
+#endif
 
 void SeedBI(BigInt value)
 {

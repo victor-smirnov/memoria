@@ -10,7 +10,7 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
-#include "../shared/btree_test_base.hpp"
+#include "../shared/randomaccesslist_test_base.hpp"
 
 #include <vector>
 
@@ -20,7 +20,7 @@ using namespace memoria::vapi;
 using namespace std;
 
 template <typename T>
-class VectorTest: public BTreeBatchTestBase<
+class VectorTest: public RandomAccessListTestBase<
     Vector<T>,
     vector<T>
 >
@@ -28,7 +28,7 @@ class VectorTest: public BTreeBatchTestBase<
     typedef VectorTest<T>                                                       MyType;
     typedef MyType                                                              ParamType;
 
-    typedef BTreeBatchTestBase<
+    typedef RandomAccessListTestBase<
                 Vector<T>,
                 vector<T>
     >                                                                           Base;
@@ -37,6 +37,7 @@ class VectorTest: public BTreeBatchTestBase<
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::ID                                                   ID;
 
+    typedef vector<T>															MemBuffer;
 
 public:
     VectorTest(StringRef name):
@@ -46,21 +47,39 @@ public:
         Base::size_           = 1024*1024*16;
     }
 
-    virtual vector<T> createBuffer(Ctr& array, Int size, BigInt value)
+    virtual MemBuffer createBuffer(Int size)
     {
-        vector<T> data(size);
+    	MemBuffer data(size);
+    	for (auto& item: data)
+    	{
+    		item = 0;
+    	}
 
-        T counter = 0;
-        for (auto& item: data)
-        {
-            item = counter++;
-            if (counter == value)
-            {
-                counter = 0;
-            }
-        }
+    	return data;
+    }
 
-        return data;
+    virtual MemBuffer createRandomBuffer(Int size)
+    {
+    	MemBuffer data(size);
+    	for (auto& item: data)
+    	{
+    		item = getRandom();
+    	}
+
+    	return data;
+    }
+
+    virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
+    {
+    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+
+    	for (size_t c = 0; c < src.size(); c++)
+    	{
+    		auto v1 = src[c];
+    		auto v2 = tgt[c];
+
+    		AssertEQ(source, v1, v2);
+    	}
     }
 
     virtual Iterator seek(Ctr& array, BigInt pos)
@@ -103,9 +122,20 @@ public:
         return array.size();
     }
 
-    void checkIterator(ostream& out, Iterator& iter, const char* source)
+    ostream& out() {
+    	return Base::out();
+    }
+
+    virtual void fillRandom(Ctr& ctr, BigInt size)
     {
-        Base::checkIterator(out, iter, source);
+    	MemBuffer data = createRandomBuffer(size);
+    	Iterator iter = ctr.seek(0);
+    	insert(iter, data);
+    }
+
+    void checkIterator(Iterator& iter, const char* source)
+    {
+        Base::checkIterator(iter, source);
 
         auto& path = iter.path();
 
@@ -124,7 +154,7 @@ public:
                 {
                     if (path.data().parent_idx() != idx)
                     {
-                        iter.dump(out);
+                        iter.dump(out());
                         throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"
                                                           <<path[0]->id()
                                                           <<" DATA: "
@@ -142,7 +172,7 @@ public:
 
             if (!found)
             {
-                iter.dump(out);
+                iter.dump(out());
                 throw TestException(source, SBuf()<<"Data: "
                                                   <<path.data()->id()
                                                   <<" is not fount is it's parent, parent_idx="
@@ -155,20 +185,20 @@ public:
         {
             if (iter.data().isSet())
             {
-                iter.dump(out);
+                iter.dump(out());
                 throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
             }
         }
         else {
             if (iter.data().isEmpty())
             {
-                iter.dump(out);
+                iter.dump(out());
                 throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
             }
 
             if (iter.path().data().parent_idx() != iter.key_idx())
             {
-                iter.dump(out);
+                iter.dump(out());
                 throw TestException(MEMORIA_SOURCE, "Iterator data.parent_idx mismatch");
             }
         }
