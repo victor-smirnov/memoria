@@ -178,7 +178,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::mvector::IteratorContainerAPIName)
     void assignElement(const ElementType& value)
     {
         me()->data().update();
-        me()->data()->data().value(me()->dataPos()) = value;
+        me()->data()->value(me()->dataPos()) = value;
     }
 
     MEMORIA_PUBLIC void remove(BigInt length)
@@ -258,12 +258,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::mvector::IteratorContainerAPIName)
         return element();
     }
 
-
-
-
     MEMORIA_PUBLIC ElementType element() const
     {
-        return me()->data()->data().value(me()->dataPos());
+        return me()->data()->value(me()->dataPos());
     }
 
 

@@ -112,6 +112,14 @@ public:
         return sequence_;
     }
 
+    ElementType& value(Int idx) {
+    	return sequence_[idx];
+    }
+
+    const ElementType& value(Int idx) const {
+    	return sequence_[idx];
+    }
+
     void shift(BigInt pos, BigInt length)
     {
     	CopyBuffer(sequence_ + pos, sequence_ + pos + length, size_ - pos);

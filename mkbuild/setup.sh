@@ -45,9 +45,11 @@ BUILD_DIR=$BASE_DIR/../../memoria-build/$BUILD_DIR
 COMMON_DIR=$BASE_DIR/common
 
 mkdir -p $BUILD_DIR
+mkdir -p $BUILD_DIR/bin
 
 cp -i $COMMON_DIR/build.sh.tpl $BUILD_DIR/build.sh
 cp -i $COMMON_DIR/clean.sh.tpl $BUILD_DIR/clean.sh
+cp -i $COMMON_DIR/cling.sh.tpl $BUILD_DIR/bin/cling.sh
 
 cp -i -r $COMMON_DIR/documentation/ $BUILD_DIR/
 

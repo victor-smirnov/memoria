@@ -52,12 +52,15 @@ Int getSeed() {
 
 BigInt getBIRandom()
 {
-    return generator_bi();
+    return generator();
 }
 
 BigInt getBIRandom(BigInt max)
 {
-    return max > 0 ? generator_bi() % max : 0;
+	BigInt value = generator();
+	value <<= 32;
+
+    return max > 0 ? (value + generator()) % max : 0;
 }
 
 void SeedBI(BigInt value)

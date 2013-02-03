@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX bitmap seq for_each selector partial_specialization static_md5 md5_init vlist md5)
+    set(MEMORIA_SANDBOX bitmap seq for_each selector partial_specialization static_md5 md5_init vlist md5 map)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})

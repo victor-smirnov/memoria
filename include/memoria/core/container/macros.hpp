@@ -11,8 +11,7 @@
 
 #include <memoria/core/tools/config.hpp>
 
-
-
+#ifndef __CLING__
 #define MEMORIA_EXTERN_TREE(Key, Value, Indexes)            \
 MEMORIA_TEMPLATE_EXTERN template class PackedSumTree<       \
     PackedTreeTypes<                                        \
@@ -32,6 +31,10 @@ MEMORIA_TEMPLATE_EXTERN template class PackedTree<          \
         Indexes                                             \
     >                                                       \
 >
+#else
+#define MEMORIA_EXTERN_TREE(Key, Value, Indexes)
+#endif
+
 
 #define MEMORIA_EXTERN_CTR(CollectionName,  CtrName)\
 MEMORIA_TEMPLATE_EXTERN template class Ctr<CollectionName::Types<CtrName>::Type::CtrTypes>;

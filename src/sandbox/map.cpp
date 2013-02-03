@@ -31,7 +31,7 @@ int main(void) {
 
     Allocator allocator;
 
-    MapCtr map(&allocator, 1, true);
+    MapCtr map(&allocator);
 
     for (int c = 0; c < 10; c++)
     {
@@ -45,7 +45,7 @@ int main(void) {
 
     cout<<endl;
 
-    VectorCtr mvector(&allocator, 2, true);
+    VectorCtr mvector(&allocator);
 
     for (Int c = 0x100; c < 0x120; c++)
     {
@@ -88,7 +88,7 @@ int main(void) {
         cout<<"Std::Vector "<<value<<endl;
     }
 
-    VectorMapCtr vector_map(&allocator, 3, true);
+    VectorMapCtr vector_map(&allocator);
 
 
     for (Int c = 1; c <= 5; c++)
