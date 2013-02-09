@@ -16,131 +16,35 @@
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/bitmap_select.hpp>
 
+#include <functional>
 
 namespace memoria {
 
-
-template <typename Type>
-class ComparatorBase {
-protected:
-    Type sum_;
-public:
-    ComparatorBase(): sum_(0) {}
-
-    void Sub(const Type& k)
-    {
-        sum_ -= k;
-    }
-
-    Type sum() const {
-        return sum_;
-    }
-};
-
-
-template <typename Key, typename IndexKey>
-class LESumComparator: public ComparatorBase<IndexKey> {
-    typedef ComparatorBase<IndexKey> Base;
-
-public:
-    LESumComparator():Base() {}
-
-    bool testMax(const Key& k, const IndexKey& max) const
-    {
-        return k > max;
-    }
-
-    bool compareIndex(const Key& k, const IndexKey& index)
-    {
-        Base::sum_ += index;
-        return k <= Base::sum_;
-    }
-
-    bool compareKey(const Key& k, const Key& index)
-    {
-        Base::sum_ += index;
-        return k <= Base::sum_;
-    }
-};
-
-template <typename Key, typename IndexKey>
-class LTSumComparator: public ComparatorBase<IndexKey> {
-    typedef ComparatorBase<IndexKey> Base;
-public:
-    LTSumComparator():Base() {}
-
-    bool testMax(const Key& k, const IndexKey& max) const
-    {
-        return k >= max;
-    }
-
-    bool compareIndex(const Key& k, const IndexKey& index)
-    {
-        Base::sum_ += index;
-        return k < Base::sum_;
-    }
-
-
-    bool compareKey(const Key& k, const Key& index)
-    {
-        Base::sum_ += index;
-        return k < Base::sum_;
-    }
-};
-
-
-template <typename Key, typename IndexKey>
-class EQSumComparator: public ComparatorBase<IndexKey> {
-    typedef ComparatorBase<IndexKey> Base;
-public:
-    EQSumComparator():Base() {}
-
-    bool testMax(const Key& k, const IndexKey& max) const
-    {
-        return k > max;
-    }
-
-    bool compareIndex(const Key& k, const IndexKey& index)
-    {
-        Base::sum_ += index;
-        return k <= Base::sum_;
-    }
-
-
-    bool compareKey(const Key& k, const Key& index)
-    {
-        Base::sum_ += index;
-        return k == Base::sum_;
-    }
-};
-
+using namespace std;
 
 template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
 class SumWalker
 {
     IndexKey& sum_;
-    const TreeType& me_;
 
-    Int key_block_offsets_;
-    Int index_block_offsets_;
+    const IndexKey* indexes_;
+    const Key*		keys_;
 
 public:
     SumWalker(const TreeType& me, Int block_num, IndexKey& sum):
-        sum_(sum),
-        me_(me)
+        sum_(sum)
     {
-        key_block_offsets_      = me.getKeyBlockOffset(block_num);
-        index_block_offsets_    = me.getIndexKeyBlockOffset(block_num);
+        keys_ = me.keys(block_num);
+        indexes_ = me.indexes(block_num);
     }
 
     void prepareIndex() {}
 
-    //FIXME: move offsets[] to constructor
     void walkKeys(Int start, Int end)
     {
         for (Int c = start; c < end; c++)
         {
-            sum_ += me_.keyb(key_block_offsets_, c);
+            sum_ += keys_[c];
         }
     }
 
@@ -148,7 +52,7 @@ public:
     {
         for (Int c = start; c < end; c++)
         {
-            sum_ += me_.indexb(index_block_offsets_, c);
+            sum_ += indexes_[c];
         }
     }
 
@@ -162,36 +66,33 @@ template <typename TreeType, typename Key, typename IndexKey, typename Accumulat
 class SumsWalker
 {
     Accumulator& sum_;
-    const TreeType& me_;
 
     static const Int Blocks = Accumulator::Indexes;
 
-    Int key_block_offsets_[Blocks];
-    Int index_block_offsets_[Blocks];
+    const Key* 		keys_[Blocks];
+    const IndexKey* indexes_[Blocks];
 
 
 public:
     SumsWalker(const TreeType& me, Accumulator& sum):
-        sum_(sum),
-        me_(me)
+        sum_(sum)
     {
         for (Int c = 0; c < Blocks; c++)
         {
-            key_block_offsets_[c]   = me.getKeyBlockOffset(c);
-            index_block_offsets_[c]     = me.getIndexKeyBlockOffset(c);
+            keys_[c]   = me.keys(c);
+            indexes_[c] = me.indexes(c);
         }
     }
 
     void prepareIndex() {}
 
-    //FIXME: move offsets[] to constructor
     void walkKeys(Int start, Int end)
     {
         for (Int block = 0; block < Blocks; block++)
         {
             for (Int c = start; c < end; c++)
             {
-                sum_[block] += me_.keyb(key_block_offsets_[block], c);
+                sum_[block] += keys_[block][c];
             }
         }
     }
@@ -202,7 +103,7 @@ public:
         {
             for (Int c = start; c < end; c++)
             {
-                sum_[block] += me_.indexb(index_block_offsets_[block], c);
+                sum_[block] += indexes_[block][c];
             }
         }
     }
@@ -216,63 +117,154 @@ public:
     }
 };
 
+template <typename K1, typename K2>
+struct SumCompareLE {
+	bool operator()(K1 k1, K2 k2) {
+		return k1 <= k2;
+	}
+};
 
-template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
-class FindSumPositionFwFn
+template <typename K1, typename K2>
+struct SumCompareLT {
+	bool operator()(K1 k1, K2 k2) {
+		return k1 < k2;
+	}
+};
+
+
+template <
+	typename TreeType,
+	typename IndexKey,
+	template <typename, typename> class Comparator
+>
+class FindSumPositionFwFnBase
 {
-    IndexKey sum_;
+protected:
+	IndexKey sum_;
     const TreeType& me_;
-    Int block_num_;
     BigInt limit_;
 
-    Int key_block_offsets_[Blocks];
-    Int index_block_offsets_[Blocks];
+    const IndexKey* indexes_;
+
+public:
+    FindSumPositionFwFnBase(const TreeType& me, Int block_num, BigInt limit):
+        sum_(0),
+        me_(me),
+        limit_(limit)
+    {
+    	indexes_ = me_.indexes(block_num);
+    }
+
+    void prepareIndex() {}
+
+    Int walkIndex(Int start, Int end)
+    {
+        Comparator<BigInt, IndexKey> compare;
+
+    	for (Int c = start; c < end; c++)
+        {
+        	IndexKey key = indexes_[c];
+
+        	if (compare(key, limit_))
+        	{
+        		sum_ 	+= key;
+        		limit_ 	-= key;
+        	}
+        	else {
+        		return c;
+        	}
+        }
+
+        return end;
+    }
+
+
+    IndexKey sum() const {
+        return sum_;
+    }
+};
+
+
+
+template <
+	typename TreeType,
+	typename Key,
+	typename IndexKey,
+	template <typename, typename> class Comparator>
+class FindSumPositionFwFn: public FindSumPositionFwFnBase<TreeType, IndexKey, Comparator>
+{
+	typedef FindSumPositionFwFnBase<TreeType, IndexKey, Comparator> Base;
+	const Key* keys_;
 
 public:
     FindSumPositionFwFn(const TreeType& me, Int block_num, BigInt limit):
-        sum_(0),
-        me_(me),
-        block_num_(block_num),
-        limit_(limit)
+        Base(me, block_num, limit)
     {
-        for (Int c = 0; c < Blocks; c++)
-        {
-            key_block_offsets_[c]   = me.getKeyBlockOffset(c);
-            index_block_offsets_[c] = me.getIndexKeyBlockOffset(c);
-        }
+    	keys_ 	 = me.keys(block_num);
     }
 
     void prepareIndex() {}
 
-    //FIXME: move offsets[] to constructor
     Int walkKeys(Int start, Int end)
     {
-        for (Int c = start; c < end; c++)
-        {
-            IndexKey key = me_.keyb(key_block_offsets_[block_num_], c);
-            IndexKey sum = sum_ + key;
+    	Comparator<BigInt, IndexKey> compare;
 
-            if (sum <= limit_)
+    	for (Int c = start; c < end; c++)
+        {
+            IndexKey key = keys_[c];
+
+            if (compare(key, Base::limit_))
             {
-                sum_ = sum;
+            	Base::sum_ 		+= key;
+            	Base::limit_ 	-= key;
             }
             else {
-                return c;
+            	return c;
             }
         }
 
         return end;
     }
+};
+
+
+template <
+	typename TreeType,
+	typename IndexKey,
+	template <typename, typename> class Comparator
+>
+class FindSumPositionBwFnBase
+{
+protected:
+    IndexKey sum_;
+    const TreeType& me_;
+    BigInt limit_;
+
+    const IndexKey* indexes_;
+
+public:
+    FindSumPositionBwFnBase(const TreeType& me, Int block_num, BigInt limit):
+        sum_(0),
+        me_(me),
+        limit_(limit)
+    {
+    	indexes_ = me.indexes(block_num);
+    }
+
+    void prepareIndex() {}
 
     Int walkIndex(Int start, Int end)
     {
-        for (Int c = start; c < end; c++)
-        {
-            IndexKey sum = sum_ + me_.indexb(index_block_offsets_[block_num_], c);
+        Comparator<BigInt, IndexKey> comparator;
 
-            if (sum <= limit_)
+    	for (Int c = start; c > end; c--)
+        {
+            IndexKey sum = indexes_[c];
+
+            if (comparator(sum, limit_))
             {
-                sum_ = sum;
+                sum_ 	+= sum;
+                limit_	-= sum;
             }
             else {
                 return c;
@@ -289,44 +281,42 @@ public:
 };
 
 
-template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
-class FindSumPositionBwFn
-{
-    IndexKey sum_;
-    const TreeType& me_;
-    Int block_num_;
-    BigInt limit_;
 
-    Int key_block_offsets_[Blocks];
-    Int index_block_offsets_[Blocks];
+
+template <
+	typename TreeType,
+	typename Key,
+	typename IndexKey,
+	template <typename, typename> class Comparator
+>
+class FindSumPositionBwFn: public FindSumPositionBwFnBase<TreeType, IndexKey, Comparator>
+{
+	typedef FindSumPositionBwFnBase<TreeType, IndexKey, Comparator> Base;
+
+
+    const IndexKey* keys_;
 
 public:
     FindSumPositionBwFn(const TreeType& me, Int block_num, BigInt limit):
-        sum_(0),
-        me_(me),
-        block_num_(block_num),
-        limit_(limit)
+        Base(me, block_num, limit)
     {
-        for (Int c = 0; c < Blocks; c++)
-        {
-            key_block_offsets_[c]   = me.getKeyBlockOffset(c);
-            index_block_offsets_[c] = me.getIndexKeyBlockOffset(c);
-        }
+    	keys_  = me.keys(block_num);
     }
 
     void prepareIndex() {}
 
-    //FIXME: move offsets[] to constructor
     Int walkKeys(Int start, Int end)
     {
+    	Comparator<Key, IndexKey> comparator;
+
         for (Int c = start; c > end; c--)
         {
-            IndexKey key = me_.keyb(key_block_offsets_[block_num_], c);
-            IndexKey sum = sum_ + key;
+            IndexKey key = keys_[c];
 
-            if (sum <= limit_)
+            if (comparator(key, Base::limit_))
             {
-                sum_ = sum;
+                Base::sum_ 		+= key;
+                Base::limit_ 	-= key;
             }
             else {
                 return c;
@@ -336,103 +326,19 @@ public:
         return end;
     }
 
-    Int walkIndex(Int start, Int end)
-    {
-        for (Int c = start; c > end; c--)
-        {
-            IndexKey sum = sum_ + me_.indexb(index_block_offsets_[block_num_], c);
-
-            if (sum <= limit_)
-            {
-                sum_ = sum;
-            }
-            else {
-                return c;
-            }
-        }
-
-        return end;
-    }
-
-
-    IndexKey sum() const {
-        return sum_;
-    }
 };
 
+template <typename TreeType, typename Key, typename IndexKey>
+using FindSumPositionFwLtFn = FindSumPositionFwFn<TreeType, Key, IndexKey, SumCompareLE>;
 
-template <typename TreeType, typename Key, typename IndexKey, Int Blocks>
-class FindSumPositionBwLTFn
-{
-    IndexKey sum_;
-    const TreeType& me_;
-    Int block_num_;
-    BigInt limit_;
+template <typename TreeType, typename Key, typename IndexKey>
+using FindSumPositionFwLeFn = FindSumPositionFwFn<TreeType, Key, IndexKey, SumCompareLT>;
 
-    Int key_block_offsets_[Blocks];
-    Int index_block_offsets_[Blocks];
+template <typename TreeType, typename Key, typename IndexKey>
+using FindSumPositionBwLtFn = FindSumPositionFwFn<TreeType, Key, IndexKey, SumCompareLE>;
 
-public:
-    FindSumPositionBwLTFn(const TreeType& me, Int block_num, BigInt limit):
-        sum_(0),
-        me_(me),
-        block_num_(block_num),
-        limit_(limit)
-    {
-        for (Int c = 0; c < Blocks; c++)
-        {
-            key_block_offsets_[c]   = me.getKeyBlockOffset(c);
-            index_block_offsets_[c] = me.getIndexKeyBlockOffset(c);
-        }
-    }
-
-    void prepareIndex() {}
-
-    //FIXME: move offsets[] to constructor
-    Int walkKeys(Int start, Int end)
-    {
-        for (Int c = start; c > end; c--)
-        {
-            IndexKey key = me_.keyb(key_block_offsets_[block_num_], c);
-            IndexKey sum = sum_ + key;
-
-            if (sum < limit_)
-            {
-                sum_ = sum;
-            }
-            else {
-                return c;
-            }
-        }
-
-        return end;
-    }
-
-    Int walkIndex(Int start, Int end)
-    {
-        for (Int c = start; c > end; c--)
-        {
-            IndexKey sum = sum_ + me_.indexb(index_block_offsets_[block_num_], c);
-
-            if (sum < limit_)
-            {
-                sum_ = sum;
-            }
-            else {
-                return c;
-            }
-        }
-
-        return end;
-    }
-
-
-    IndexKey sum() const {
-        return sum_;
-    }
-};
-
-
+template <typename TreeType, typename Key, typename IndexKey>
+using FindSumPositionBwLEFn = FindSumPositionBwFn<TreeType, Key, IndexKey, SumCompareLT>;
 
 
 
@@ -447,8 +353,7 @@ class RankWalker {
 
 	static const Int Blocks = TreeType::Blocks;
 
-	Int value_block_offset_;
-	Int index_block_offset_;
+	const IndexKey* indexes_;
 
 public:
 	RankWalker(const TreeType& me, Value symbol, IndexKey sum = 0):
@@ -456,8 +361,7 @@ public:
 		me_(me),
 		symbol_(symbol)
 	{
-		value_block_offset_ = me.getValueBlockOffset();
-		index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
+		indexes_ = me.indexes(symbol);
 	}
 
 	void prepareIndex() {}
@@ -471,7 +375,7 @@ public:
 	{
 		for (Int c = start; c < end; c++)
 		{
-			sum_ += me_.indexb(index_block_offset_, c);
+			sum_ += indexes_[c];
 		}
 	}
 
@@ -494,8 +398,8 @@ class RankWalker<TreeType, 1>
 
     static const Int Blocks = TreeType::Blocks;
 
-    Int value_block_offset_;
-    Int index_block_offset_;
+    const Value* 	values_;
+    const IndexKey* indexes_;
 
 public:
     RankWalker(const TreeType& me, Value symbol, IndexKey sum = 0):
@@ -503,16 +407,15 @@ public:
         me_(me),
         symbol_(symbol)
     {
-    	value_block_offset_ = me.getValueBlockOffset();
-    	index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
+    	values_ 	= me.valuesBlock();
+    	indexes_ 	= me.indexes(symbol);
     }
 
     void prepareIndex() {}
 
     void walkValues(Int start, Int end)
     {
-    	const Value* buffer = T2T<const Value*>(me_.memoryBlock() + value_block_offset_);
-    	size_t count = PopCount(buffer, start, end);
+    	size_t count = PopCount(values_, start, end);
 
     	if (symbol_)
     	{
@@ -527,8 +430,7 @@ public:
     {
     	for (Int c = start; c < end; c++)
     	{
-    		IndexKey count = me_.indexb(index_block_offset_, c);
-
+    		IndexKey count = indexes_[c];
     		sum_ += count;
     	}
     }
@@ -552,9 +454,9 @@ protected:
 	const TreeType& me_;
 	Value 			symbol_;
 
-	Int index_block_offset_;
-
 	bool			found_;
+
+	const IndexKey* indexes_;
 
 public:
 	SelectFWWalkerBase(const TreeType& me, Value symbol, IndexKey limit):
@@ -563,7 +465,7 @@ public:
 		me_(me),
 		symbol_(symbol)
 	{
-		index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
+		indexes_ = me.indexes(symbol);
 	}
 
 	void prepareIndex() {}
@@ -572,15 +474,16 @@ public:
 	{
 		for (Int c = start; c < end; c++)
 		{
-			IndexKey block_rank = me_.indexb(index_block_offset_, c);
+			IndexKey block_rank = indexes_[c];
 
-			if (block_rank >= limit_)
+			if (block_rank < limit_)
 			{
+				rank_  += block_rank;
+				limit_ -= block_rank;
+			}
+			else {
 				return c;
 			}
-
-			rank_  += block_rank;
-			limit_ -= block_rank;
 		}
 
 		return end;
@@ -602,37 +505,83 @@ public:
 template <typename TreeType, Int Bits>
 class SelectFWWalker;
 
-
+//template <typename TreeType>
+//class SelectFWWalker<TreeType, 1>: public SelectFWWalkerBase<TreeType> {
+//
+//	typedef SelectFWWalkerBase<TreeType> Base;
+//
+//	typedef typename Base::IndexKey 	IndexKey;
+//	typedef typename Base::Value        Value;
+//
+//	const Value* buffer_;
+//
+//public:
+//    SelectFWWalker(const TreeType& me, Value symbol, IndexKey limit):
+//        Base(me, symbol, limit)
+//    {
+//    	buffer_ = Base::me_.valuesBlock();
+//    }
+//
+//    Int walkValues(Int start, Int end)
+//    {
+//        auto result = Base::symbol_?
+//                        Select1FW(buffer_, start, end, Base::limit_) :
+//                        Select0FW(buffer_, start, end, Base::limit_);
+//
+//        Base::rank_   += result.rank();
+//        Base::limit_  -= result.rank();
+//
+//        Base::found_  = result.is_found() || Base::limit_ == 0;
+//
+//        return result.idx();
+//    }
+//};
 
 
 template <typename TreeType>
-class SelectFWWalker<TreeType, 1>: public SelectFWWalkerBase<TreeType> {
+class SelectFWWalker<TreeType, 1>: public FindSumPositionFwFnBase<TreeType, typename TreeType::IndexKey, SumCompareLT> {
 
-	typedef SelectFWWalkerBase<TreeType> Base;
+	typedef FindSumPositionFwFnBase<TreeType, typename TreeType::IndexKey, SumCompareLT> Base;
 
-	typedef typename Base::IndexKey IndexKey;
-    typedef typename Base::Value 	Value;
+	typedef typename TreeType::IndexKey 	IndexKey;
+	typedef typename TreeType::Value        Value;
+
+	const Value* buffer_;
+	bool found_;
+
+	Value symbol_;
 
 public:
     SelectFWWalker(const TreeType& me, Value symbol, IndexKey limit):
-    	Base(me, symbol, limit)
-    {}
-
+        Base(me, symbol, limit), found_(false), symbol_(symbol)
+    {
+    	buffer_ = Base::me_.valuesBlock();
+    }
 
     Int walkValues(Int start, Int end)
     {
-    	const Value* buffer = Base::me_.valuesBlock();
+        auto result = symbol_?
+                        Select1FW(buffer_, start, end, Base::limit_) :
+                        Select0FW(buffer_, start, end, Base::limit_);
 
-    	auto result = Base::symbol_?
-    			Select1FW(buffer, start, end, Base::limit_) :
-    			Select0FW(buffer, start, end, Base::limit_);
+        Base::sum_    += result.rank();
+        Base::limit_  -= result.rank();
 
-    	Base::rank_ 	+= result.rank();
-    	Base::limit_  -= result.rank();
+        found_  = result.is_found() || Base::limit_ == 0;
 
-    	Base::found_	= result.is_found() || Base::limit_ == 0;
+        return result.idx();
+    }
 
-    	return result.idx();
+    Int walkIndex(Int start, Int end, Int) {
+    	return Base::walkIndex(start, end);
+    }
+
+    bool is_found() const {
+    	return found_;
+    }
+
+    BigInt rank() const {
+    	return Base::sum();
     }
 };
 
@@ -680,6 +629,9 @@ public:
     	return end;
     }
 };
+
+
+
 
 
 
@@ -870,12 +822,13 @@ public:
 		{
 			IndexKey block_rank = me_.indexb(index_block_offset_, c);
 
-			if (block_rank < size)
+			if (block_rank >= size)
 			{
+				rank_  += block_rank;
+			}
+			else {
 				return c;
 			}
-
-			rank_  += block_rank;
 		}
 
 		return end;
@@ -1000,12 +953,13 @@ public:
         {
         	IndexKey block_rank = me_.indexb(index_block_offset_, c);
 
-        	if (block_rank < size)
+        	if (block_rank >= size)
         	{
+        		rank_  += block_rank;
+        	}
+        	else {
         		return c;
         	}
-
-        	rank_  += block_rank;
         }
 
         return end;
@@ -1083,7 +1037,6 @@ public:
         Base(me, symbol)
     {}
 
-    //FIXME: move offsets[] to constructor
     Int walkValues(Int start, Int end)
     {
     	const Value* bitmap = Base::me_.valuesBlock();
@@ -1097,6 +1050,7 @@ public:
     	return start - count - 1;
     }
 };
+
 
 
 }

@@ -30,7 +30,7 @@ public:
 //    	registerTask(new SequenceCreateTest<3>("Dense.3"));
 
 //    	registerTask(new SequenceRankTest<1>("Rank.1"));
-//    	registerTask(new SequenceSelectTest<1>("Select.1"));
+    	registerTask(new SequenceSelectTest<1>("Select.1"));
 //    	registerTask(new SequenceSelectTest<1>("Select.3"));
     }
 

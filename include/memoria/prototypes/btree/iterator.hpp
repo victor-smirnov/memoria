@@ -11,8 +11,9 @@
 
 
 
-#include <memoria/prototypes/btree/iterator/btree_c_api.hpp>
-#include <memoria/prototypes/btree/iterator/btree_c_base.hpp>
+#include <memoria/prototypes/btree/iterator/btree_i_api.hpp>
+#include <memoria/prototypes/btree/iterator/btree_i_base.hpp>
+#include <memoria/prototypes/btree/iterator/btree_i_find.hpp>
 #include <memoria/prototypes/btree/names.hpp>
 
 namespace memoria    {

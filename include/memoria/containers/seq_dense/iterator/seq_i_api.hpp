@@ -14,7 +14,8 @@
 #include <memoria/core/container/iterator.hpp>
 
 #include <memoria/core/tools/walkers.hpp>
-#include <memoria/core/tools/sum_walker.hpp>
+
+#include <memoria/containers/seq_dense/walkers.hpp>
 
 #include <memoria/core/tools/symbol_sequence.hpp>
 
@@ -46,6 +47,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
 
     typedef typename Base::TreePath                                             TreePath;
 
+    typedef typename Types::Value                              					Symbol;
+
+
     static const Int Indexes = Container::Indexes;
 
     typedef SymbolSequence<
@@ -55,7 +59,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
     > 																			SymbolSequenceType;
 
     
-    MEMORIA_PUBLIC SymbolSequenceType subVector(BigInt length) const
+    MEMORIA_PUBLIC SymbolSequenceType subSequence(BigInt length) const
     {
         MyType tmp = *me();
         return tmp.readSequence(length);
@@ -80,12 +84,203 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
         return seq;
     }
 
+    BigInt selectNext(BigInt rank, Symbol symbol);
+    BigInt selectPrev(BigInt rank, Symbol symbol);
+
+    BigInt countNext();
+    BigInt countPrev();
+
+    BigInt rank(BigInt size, Symbol symbol);
+
 MEMORIA_ITERATOR_PART_END
 
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::seq_dense::IterAPIName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
+M_PARAMS
+BigInt M_TYPE::selectNext(BigInt rank, Symbol symbol)
+{
+	BigInt pos = me()->pos();
+
+	Int data_pos  = me()->dataPos();
+
+	auto result = me()->data()->sequence().selectFW(data_pos, symbol, rank);
+
+	if (result.is_found())
+	{
+		me()->dataPos() = result.idx();
+		return rank;
+	}
+	else {
+		BigInt rank0 = rank + me()->data()->sequence().maxIndex(symbol) - result.rank();
+
+		SelectWalker<BigInt> walker(rank0, 0, symbol + 1);
+
+		bool end = me()->model().walkFw(me()->path(), me()->key_idx(), walker);
+
+		me()->model().finishPathStep(me()->path(), me()->key_idx());
+
+		if (!end)
+		{
+			result = me()->data()->sequence().selectFW(0, symbol, walker.remainder());
+
+			if (result.is_found())
+			{
+				me()->dataPos() = result.idx();
+
+				//me()->cache().setup(pos - data_pos + walker.distance() - me()->dataPos(), 0);
+
+				return rank;
+			}
+			else {
+				throw Exception(MA_SRC, SBuf()<<"selectNext("<<rank<<", "<<symbol<<") failed");
+			}
+		}
+		else
+		{
+			me()->dataPos() = me()->data()->size();
+
+			//me()->cache().setup(pos + (walker.distance() - data_pos) - me()->dataPos(), 0);
+
+			return walker.rank() - result.rank();
+		}
+	}
+}
+
+
+
+M_PARAMS
+BigInt M_TYPE::selectPrev(BigInt rank, Symbol symbol)
+{
+	BigInt pos = me()->pos();
+
+	Int data_pos  = me()->dataPos();
+
+	auto result = me()->data()->sequence().selectBW(data_pos + 1, symbol, rank);
+
+	if (result.is_found())
+	{
+		me()->dataPos() = result.idx();
+
+		return rank;
+	}
+	else {
+		BigInt rank0 = rank + me()->data()->sequence().maxIndex(symbol) - result.rank();
+
+		SelectWalker<BigInt, false> walker(rank0, -me()->data()->size(), symbol + 1);
+
+		bool end = me()->model().walkBw(me()->path(), me()->key_idx(), walker);
+
+		me()->model().finishPathStep(me()->path(), me()->key_idx());
+
+		if (!end)
+		{
+			Int data_size = me()->data()->size();
+
+			result = me()->data()->sequence().selectBW(data_size, symbol, walker.remainder());
+
+			if (result.is_found())
+			{
+				me()->dataPos() = result.idx();
+
+				me()->cache().setup(pos - data_pos - walker.distance() - me()->dataPos(), 0);
+
+				return rank;
+			}
+			else {
+				throw Exception(MA_SRC, SBuf()<<"selectPrev("<<rank<<", "<<symbol<<") failed");
+			}
+		}
+		else
+		{
+			me()->dataPos() = 0;
+
+			me()->cache().setup(0, 0);
+
+			return walker.rank() - result.rank();
+		}
+	}
+}
+
+M_PARAMS
+BigInt M_TYPE::countNext()
+{
+	Int data_pos  = me()->dataPos();
+
+	auto result = me()->data()->sequence().countFW(data_pos, symbol, rank);
+
+	if (result.is_found())
+	{
+		me()->dataPos() = result.idx();
+		return rank;
+	}
+	else {
+		BigInt rank0 = rank + me()->data()->sequence().maxIndex(symbol) - result.rank();
+
+		SelectWalker<BigInt> walker(rank0, 0, symbol + 1);
+
+		bool end = me()->model().walkFw(me()->path(), me()->key_idx(), walker);
+
+		me()->model().finishPathStep(me()->path(), me()->key_idx());
+
+		if (!end)
+		{
+			result = me()->data()->sequence().countFW(0, symbol, walker.remainder());
+
+			if (result.is_found())
+			{
+				me()->dataPos() = result.idx();
+
+				//me()->cache().setup(pos - data_pos + walker.distance() - me()->dataPos(), 0);
+
+				return rank;
+			}
+			else {
+				throw Exception(MA_SRC, SBuf()<<"selectNext("<<rank<<", "<<symbol<<") failed");
+			}
+		}
+		else
+		{
+			me()->dataPos() = me()->data()->size();
+
+			//me()->cache().setup(pos + (walker.distance() - data_pos) - me()->dataPos(), 0);
+
+			return walker.rank() - result.rank();
+		}
+	}
+
+	return 0;
+}
+
+M_PARAMS
+BigInt M_TYPE::countPrev()
+{
+
+
+	return 0;
+}
+
+M_PARAMS
+BigInt M_TYPE::rank(BigInt size, Symbol symbol)
+{
+	Int data_size = me()->data_size();
+	Int data_pos  = me()->dataPos();
+
+	if (data_pos + size < data_size)
+	{
+		return me()->data()->sequence().rank(data_pos, data_pos + size, symbol);
+	}
+	else {
+		MyType tmp = *me();
+
+		tmp.skipFw(size);
+
+		return tmp.prefix(symbol + 1) - me()->prefix(symbol + 1);
+	}
+
+	return 0;
+}
 
 
 #undef M_TYPE

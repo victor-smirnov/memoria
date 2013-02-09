@@ -162,78 +162,44 @@ public:
 
     Int findLE(Int block_num, const Key& k) const
     {
-        LESumComparator<Key, IndexKey> cmp;
-        return Base::find(block_num, k, cmp);
+    	FindSumPositionFwLeFn<MyType, Key, IndexKey> walker(*this, block_num, k);
+    	return Base::find(walker);
     }
 
-    //FIXME: Refactor it
     Int findLES(Int block_num, const Key& k, Key& sum) const
     {
-        LESumComparator<Key, IndexKey> cmp;
-        Int idx = Base::find(block_num, k, cmp);
+    	FindSumPositionFwLeFn<MyType, Key, IndexKey> fn(*this, block_num, k);
 
-        if (idx >= 0)
-        {
-            //FIXME: what does it mean here "size() > 0 ? key(i, idx) : 0" ???
-            sum += cmp.sum() - (Base::size() > 0 ? Base::key(block_num, idx) : 0);
-        }
+    	Int idx = Base::find(fn);
 
-        return idx;
+    	if (idx >= 0)
+    	{
+    		sum += fn.sum();
+    	}
+
+    	return idx;
     }
 
-
-    Int findLE(Int block_num, const Key& k, Accumulator& acc) const
-    {
-        LESumComparator<Key, IndexKey> cmp;
-        Int result = Base::find(block_num, k, cmp);
-        acc[block_num] += cmp.sum();
-        return result;
-    }
 
     Int findLT(Int block_num, const Key& k) const
     {
-        LTSumComparator<Key, IndexKey> cmp;
-        return Base::find(block_num, k, cmp);
+    	FindSumPositionFwLtFn<MyType, Key, IndexKey> walker(*this, block_num, k);
+    	return Base::find(walker);
     }
 
-    //FIXME: Refactor it
     Int findLTS(Int block_num, const Key& k, Key& sum) const
     {
-        LTSumComparator<Key, IndexKey> cmp;
-        Int idx = Base::find(block_num, k, cmp);
+    	FindSumPositionFwLtFn<MyType, Key, IndexKey> fn(*this, block_num, k);
 
-        if (idx >= 0)
-        {
-            //FIXME: what does it mean here "size() > 0 ? key(i, idx) : 0" ???
-            sum += cmp.sum() - (Base::size() > 0 ? Base::key(block_num, idx) : 0);
-        }
+    	Int idx = Base::find(fn);
 
-        return idx;
+    	if (idx >= 0)
+    	{
+    		sum += fn.sum();
+    	}
+
+    	return idx;
     }
-
-    Int findLT(Int block_num, const Key& k, Accumulator& acc) const
-    {
-        LTSumComparator<Key, IndexKey> cmp;
-        Int result = Base::find(block_num, k, cmp);
-        acc[block_num] += cmp.sum();
-        return result;
-    }
-
-
-    Int findEQ(Int block_num, const Key& k) const
-    {
-        EQSumComparator<Key, IndexKey> cmp;
-        return Base::find(block_num, k, cmp);
-    }
-
-    Int findEQ(Int block_num, const Key& k, Accumulator& acc) const
-    {
-        EQSumComparator<Key, IndexKey> cmp;
-        Int result = Base::find(block_num, k, cmp);
-        acc[block_num] += cmp.sum();
-        return result;
-    }
-
 
     void sum(Int block_num, Int start, Int end, IndexKey& sum) const
     {
@@ -247,22 +213,22 @@ public:
         Base::walkRange(start, end, walker);
     }
 
-    Int findSumPositionFw(Int block_num, Int start, Key key, Accumulator& acc) const
+    Int findSumPositionFwLT(Int block_num, Int start, Key key, Accumulator& acc) const
     {
-        FindSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+    	FindSumPositionFwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
         return Base::walkFw(start, walker);
     }
 
-    Int findSumPositionBw(Int block_num, Int start, Key key, Accumulator& acc) const
+    Int findSumPositionBwLT(Int block_num, Int start, Key key, Accumulator& acc) const
     {
-        FindSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+        FindSumPositionBwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
         return Base::walkBw(start, walker);
     }
 
 
-    Int findSumPositionFw(Int block_num, Int start, Key key, IndexKey& acc) const
+    Int findSumPositionFwLT(Int block_num, Int start, Key key, IndexKey& acc) const
     {
-        FindSumPositionFwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+        FindSumPositionFwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 
         Int position = Base::walkFw(start, walker);
 
@@ -271,9 +237,20 @@ public:
         return position;
     }
 
-    Int findSumPositionBw(Int block_num, Int start, Key key, IndexKey& acc) const
+    Int findSumPositionFwLE(Int block_num, Int start, Key key, IndexKey& acc) const
     {
-        FindSumPositionBwFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+    	FindSumPositionFwLeFn<MyType, Key, IndexKey> walker(*this, block_num, key);
+
+    	Int position = Base::walkFw(start, walker);
+
+    	acc += walker.sum();
+
+    	return position;
+    }
+
+    Int findSumPositionBwLT(Int block_num, Int start, Key key, IndexKey& acc) const
+    {
+        FindSumPositionBwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 
         Int position = Base::walkBw(start, walker);
 
@@ -282,9 +259,9 @@ public:
         return position;
     }
 
-    Int findSumPositionBwLT(Int block_num, Int start, Key key, IndexKey& acc) const
+    Int findSumPositionBwLE(Int block_num, Int start, Key key, IndexKey& acc) const
     {
-        FindSumPositionBwLTFn<MyType, Key, IndexKey, Blocks> walker(*this, block_num, key);
+        FindSumPositionBwLEFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 
         Int position = Base::walkBw(start, walker);
 

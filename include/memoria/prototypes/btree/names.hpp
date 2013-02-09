@@ -68,6 +68,7 @@ class WalkName              {};
 class AllocatorName         {};
 
 
+
 template <typename MyType, typename TypesType, typename ContainerTypeName>
 class BTreeIteratorBaseFactoryName  {};
 
@@ -78,6 +79,7 @@ class IteratorToolsName     {};
 class IteratorAPIName       {};
 class IteratorMultiskipName {};
 class IteratorContainerAPIName  {};
+class IteratorFindName		{};
 
 template <typename ContainerTypeName>
 class RootNodeMetadataName  {

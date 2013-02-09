@@ -203,9 +203,9 @@ bool SelectBW(T arg, size_t& total, size_t count, size_t start, size_t& delta)
 }
 
 class SelectResult {
-	size_t idx_;
-	size_t rank_;
-	bool found_;
+	size_t 	idx_;
+	size_t 	rank_;
+	bool   	found_;
 public:
 	SelectResult(size_t idx, size_t rank, bool found): idx_(idx), rank_(rank), found_(found) {}
 
@@ -424,8 +424,6 @@ SelectResult Select1BW(const T* buffer, size_t start, size_t stop, size_t rank)
 			stop_cell	= stop >> divisor;
 			start_cell	= ((start - prefix) >> divisor) - 1;
 		}
-
-
 
 		size_t total = 0;
 

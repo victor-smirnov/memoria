@@ -82,7 +82,6 @@ public:
     virtual BigInt getSize(Ctr& ctr)                                  	= 0;
     virtual BigInt getPosition(Iterator& iter)                          = 0;
 
-    virtual void fillRandom(Ctr& ctr, BigInt size)						= 0;
     virtual void remove(Iterator& iter, BigInt size)                    = 0;
 
     virtual MemBuffer createBuffer(Int size) 							= 0;
@@ -90,6 +89,12 @@ public:
     virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source) = 0;
 
 
+    virtual void fillRandom(Ctr& ctr, BigInt size)
+    {
+    	MemBuffer data = createRandomBuffer(size);
+    	Iterator iter = ctr.seek(0);
+    	insert(iter, data);
+    }
 
 
     virtual BigInt getRandomPosition(Ctr& array)

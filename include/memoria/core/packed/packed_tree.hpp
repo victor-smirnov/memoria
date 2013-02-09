@@ -259,6 +259,23 @@ public:
         return memory_block_ + index_size_ * sizeof(IndexKey) * Blocks;
     }
 
+    Key* keys(Int block) {
+    	return T2T<Key*>(memory_block_ + getKeyBlockOffset(block));
+    }
+
+    const Key* keys(Int block) const {
+    	return T2T<const Key*>(memory_block_ + getKeyBlockOffset(block));
+    }
+
+    IndexKey* indexes(Int block) {
+    	return T2T<IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+    }
+
+    const IndexKey* indexes(Int block) const {
+    	return T2T<const IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+    }
+
+
     Int getKeysSize() const {
         return max_size_ * sizeof(Key) * Blocks;
     }
@@ -715,63 +732,55 @@ public:
     }
 
 
-
-    template <typename Comparator>
-    Int find(Int block_num, const Key& k, Comparator &comparator) const
+    template <typename Walker>
+    Int find(Walker &walker) const
     {
-        Int key_block_offset    = getKeyBlockOffset(block_num);
-        Int index_block_offset  = getIndexKeyBlockOffset(block_num);
+    	Int levels = 0;
+    	Int level_sizes[LEVELS_MAX];
 
-        if (comparator.testMax(k, maxKeyb(index_block_offset)))
-        {
-            return -1;
-        }
+    	Int level_size = max_size_;
 
-        Int levels = 0;
-        Int level_sizes[LEVELS_MAX];
+    	do
+    	{
+    		level_size = getIndexCellsNumberFor(level_size);
+    		level_sizes[levels++] = level_size;
+    	}
+    	while (level_size > 1);
 
-        Int level_size = max_size_;
+    	Int base = 1, start = 0;
 
-        do
-        {
-            level_size = getIndexCellsNumberFor(level_size);
-            level_sizes[levels++] = level_size;
-        }
-        while (level_size > 1);
+    	for (Int level = levels - 2; level >= 0; level--)
+    	{
+    		Int level_size  = level_sizes[level];
+    		Int end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
 
-        Int base = 1, start = 0;
+    		Int idx = walker.walkIndex(start + base, end + base) - base;
+    		if (idx < end)
+    		{
+    			start = idx * BranchingFactor;
+    		}
+    		else {
+    			return -1;
+    		}
 
-        for (Int level = levels - 2; level >= 0; level--)
-        {
-            Int level_size  = level_sizes[level];
-            Int end         = start + BranchingFactor < level_size ? start + BranchingFactor : level_size;
+    		base += level_size;
+    	}
 
-            for (Int idx = start; idx < end; idx++)
-            {
-                const IndexKey& key0 = indexb(index_block_offset, base + idx);
-                if (comparator.compareIndex(k, key0))
-                {
-                    start = idx * BranchingFactor;
-                    comparator.Sub(key0);
-                    break;
-                }
-            }
+    	Int end = (start + BranchingFactor) > size_ ? size_ : start + BranchingFactor;
 
-            base += level_size;
-        }
+    	Int idx = walker.walkKeys(start, end);
 
-        Int stop = (start + BranchingFactor) > size_ ? size_ : start + BranchingFactor;
+    	if (idx < end)
+    	{
+    		return idx;
+    	}
 
-        for (Int idx = start; idx < stop; idx++)
-        {
-            if (comparator.compareKey(k, keyb(key_block_offset, idx)))
-            {
-                return idx;
-            }
-        }
-
-        return -1;
+    	return -1;
     }
+
+
+
+
 
     template <typename Functor>
     void walkRange(Int start, Int end, Functor& walker) const

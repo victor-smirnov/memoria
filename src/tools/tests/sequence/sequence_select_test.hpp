@@ -36,16 +36,21 @@ class SequenceSelectTest: public SPTestTask{
 
     Int ctr_name_;
 
+    Int rank_ = 1;
 
 public:
     SequenceSelectTest(StringRef name):
         Base(name)
     {
-        MEMORIA_ADD_TEST(runSelectTest);
-
         Base::size_ = 2048*1024;
 
+        MEMORIA_ADD_TEST_PARAM(rank_)->minValue(1);
+
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
+
+        MEMORIA_ADD_TEST(runSelectTest);
+        MEMORIA_ADD_TEST(runIteratorSequentialSelectNextTest);
+        MEMORIA_ADD_TEST(runIteratorSequentialSelectPrevTest);
     }
 
     void fillRandom(Ctr& ctr, Int size)
@@ -158,12 +163,7 @@ public:
 
     void assertSelect(Ctr& ctr, Int rank, Int pos, Int symbol)
     {
-    	if (pos == 28481) {
-    		int a = 0; a++;
-    	}
-
     	Iterator iter = ctr.select(rank, symbol);
-
     	BigInt rank1 = ctr.rank(iter.pos(), symbol);
 
 //    	auto result2 = selectFW(ctr, rank, symbol);
@@ -198,6 +198,77 @@ public:
     	BigInt t1 = getTimeInMillis();
 
     	cout<<"time="<<FormatTime(t1 - t0)<<endl;
+    }
+
+    void runIteratorSequentialSelectNextTest(ostream& out)
+    {
+    	Allocator allocator;
+    	Ctr ctr(&allocator);
+    	ctr_name_ = ctr.name();
+
+    	fillRandom(ctr, Base::size_);
+
+    	allocator.commit();
+
+    	Int symbol 	= 1;
+
+    	Int selections = 0;
+
+    	BigInt t0 = getTimeInMillis();
+
+    	for (Int rank = rank_; rank < 100000; rank += 10)
+    	{
+    		auto iter = ctr.begin();
+
+    		while ((!iter.isEof()) && iter.selectNext(rank, symbol) == rank)
+    		{
+    			Int s = iter.element();
+
+    			AssertEQ(MA_SRC, s, symbol);
+
+    			iter++;
+    			selections++;
+    		}
+    	}
+
+    	BigInt t1 = getTimeInMillis();
+    	cout<<"FW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
+    }
+
+    void runIteratorSequentialSelectPrevTest(ostream& out)
+    {
+    	Allocator allocator;
+    	Ctr ctr(&allocator);
+    	ctr_name_ = ctr.name();
+
+    	fillRandom(ctr, Base::size_);
+
+    	allocator.commit();
+
+    	Int symbol 	= 1;
+
+    	Int selections = 0;
+
+    	BigInt t0 = getTimeInMillis();
+
+    	for (Int rank = rank_; rank < 100000; rank += 10)
+    	{
+    		auto iter = ctr.End();
+    		iter--;
+
+    		while ((!iter.isBof()) && iter.selectPrev(rank, symbol) == rank)
+    		{
+    			Int s = iter.element();
+
+    			AssertEQ(MA_SRC, s, symbol);
+
+    			if (!iter--) break;
+    			selections++;
+    		}
+    	}
+
+    	BigInt t1 = getTimeInMillis();
+    	cout<<"BW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
     }
 };
 

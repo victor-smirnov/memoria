@@ -19,7 +19,8 @@ using namespace memoria::btree;
 class FindName      {};
 class ToolsName     {};
 
-class ItrApiName {};
+class IterApiName {};
+class IterFindName {};
 
 
 

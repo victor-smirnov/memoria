@@ -21,7 +21,7 @@
 namespace memoria    {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::ItrApiName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IterApiName)
 
     typedef typename Base::NodeBase                                                 NodeBase;
     typedef typename Base::NodeBaseG                                                NodeBaseG;

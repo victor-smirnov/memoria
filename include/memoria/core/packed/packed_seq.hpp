@@ -330,6 +330,15 @@ public:
     	return T2T<const IndexKey*>(memory_block_);
     }
 
+    IndexKey* indexes(Int block) {
+    	return T2T<IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+    }
+
+    const IndexKey* indexes(Int block) const {
+    	return T2T<const IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+    }
+
+
     Int getIndexKeyBlockOffset(Int block_num) const
     {
         return sizeof(IndexKey) * index_size_ * block_num;
@@ -1064,7 +1073,7 @@ public:
     }
 
     template <typename Walker>
-    Int walkBw(Int start, Walker& walker) const
+    size_t walkBw(Int start, Walker& walker) const
     {
         MEMORIA_ASSERT(start, >=, 0);
 

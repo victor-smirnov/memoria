@@ -104,6 +104,13 @@ public:
 
                     AssertEQ(MA_SRC, c, map->findLT(0, src_key - 1));
 
+                    Int sum1 = 0, sum2 = 0;
+                    AssertEQ(MA_SRC, c, map->findLTS(0, src_key - 1, sum1));
+
+                    map->sum(0, 0, c, sum2);
+                    AssertEQ(MA_SRC, sum1, sum2);
+
+
                     if (c < map->size() - 1)
                     {
                     	AssertEQ(MA_SRC, c + 1, map->findLT(0, src_key));
@@ -111,9 +118,6 @@ public:
                     else {
                     	AssertEQ(MA_SRC, -1, map->findLT(0, src_key));
                     }
-
-                    AssertEQ(MA_SRC, c,  map->findEQ(0, src_key));
-                    AssertEQ(MA_SRC, -1, map->findEQ(0, src_key - 1));
                 }
             }
         }

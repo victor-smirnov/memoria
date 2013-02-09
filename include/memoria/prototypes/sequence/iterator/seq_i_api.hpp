@@ -239,7 +239,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
 
     MEMORIA_PUBLIC ElementType element() const
     {
-    	return me()->data()->data().value(me()->dataPos());
+    	return me()->data()->sequence().value(me()->dataPos());
     }
 
 

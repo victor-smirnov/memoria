@@ -15,8 +15,9 @@
 #include <memoria/prototypes/bstree/container/bstree_c_find.hpp>
 #include <memoria/prototypes/bstree/container/bstree_c_tools.hpp>
 
-#include <memoria/prototypes/bstree/iterator/bstree_c_base.hpp>
-#include <memoria/prototypes/bstree/iterator/bstree_c_api.hpp>
+#include <memoria/prototypes/bstree/iterator/bstree_i_base.hpp>
+#include <memoria/prototypes/bstree/iterator/bstree_i_api.hpp>
+#include <memoria/prototypes/bstree/iterator/bstree_i_find.hpp>
 
 #include <memoria/prototypes/bstree/names.hpp>
 #include <memoria/prototypes/bstree/macros.hpp>
@@ -42,7 +43,8 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
     typedef typename AppendTool<
             typename Base::IteratorPartsList,
             TypeList<
-                memoria::bstree::ItrApiName
+                memoria::bstree::IterApiName,
+                memoria::bstree::IterFindName
             >
     >::Result                                                               IteratorPartsList;
 

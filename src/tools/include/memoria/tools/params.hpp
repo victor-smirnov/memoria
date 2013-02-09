@@ -203,6 +203,18 @@ public:
         return this;
     }
 
+    MyType* minValue(const T& value)
+    {
+    	min_value_ = value;
+    	return this;
+    }
+
+    MyType* maxValue(const T& value)
+    {
+    	max_value_ = value;
+    	return this;
+    }
+
     virtual StringRef getName() const
     {
         return name_;
