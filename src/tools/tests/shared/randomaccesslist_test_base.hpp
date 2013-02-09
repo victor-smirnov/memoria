@@ -29,6 +29,8 @@ class RandomAccessListTestBase: public SPTestTask {
     			MemBuffer
     >                            														MyType;
 
+    typedef SPTestTask 																	Base;
+
 protected:
     typedef typename SCtrTF<ContainerTypeName>::Type                                    Ctr;
     typedef typename Ctr::Iterator                                                      Iterator;

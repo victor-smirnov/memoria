@@ -87,8 +87,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
     BigInt selectNext(BigInt rank, Symbol symbol);
     BigInt selectPrev(BigInt rank, Symbol symbol);
 
-    BigInt countNext();
-    BigInt countPrev();
+    BigInt countNext(Symbol symbol);
+    BigInt countPrev(Symbol symbol);
 
     BigInt rank(BigInt size, Symbol symbol);
 
@@ -101,7 +101,7 @@ MEMORIA_ITERATOR_PART_END
 M_PARAMS
 BigInt M_TYPE::selectNext(BigInt rank, Symbol symbol)
 {
-	BigInt pos = me()->pos();
+//	BigInt pos = me()->pos();
 
 	Int data_pos  = me()->dataPos();
 
@@ -204,49 +204,57 @@ BigInt M_TYPE::selectPrev(BigInt rank, Symbol symbol)
 }
 
 M_PARAMS
-BigInt M_TYPE::countNext()
+BigInt M_TYPE::countNext(Symbol symbol)
 {
 	Int data_pos  = me()->dataPos();
 
-	auto result = me()->data()->sequence().countFW(data_pos, symbol, rank);
+	Int result = me()->data()->sequence().countFW(data_pos, symbol);
 
-	if (result.is_found())
+	if (result + data_pos < me()->data()->sequence().size())
 	{
-		me()->dataPos() = result.idx();
-		return rank;
+		me()->dataPos() += result;
+
+		return result;
 	}
 	else {
-		BigInt rank0 = rank + me()->data()->sequence().maxIndex(symbol) - result.rank();
+		CountWalker<BigInt> walker(symbol + 1);
 
-		SelectWalker<BigInt> walker(rank0, 0, symbol + 1);
-
-		bool end = me()->model().walkFw(me()->path(), me()->key_idx(), walker);
-
-		me()->model().finishPathStep(me()->path(), me()->key_idx());
-
-		if (!end)
+		if (me()->nextKey())
 		{
-			result = me()->data()->sequence().countFW(0, symbol, walker.remainder());
+			bool end = me()->model().walkFw(me()->path(), me()->key_idx(), walker);
 
-			if (result.is_found())
+			me()->model().finishPathStep(me()->path(), me()->key_idx());
+
+			if (!end)
 			{
-				me()->dataPos() = result.idx();
+				Int result1 = me()->data()->sequence().countFW(0, symbol);
 
-				//me()->cache().setup(pos - data_pos + walker.distance() - me()->dataPos(), 0);
+				if (result1 < me()->data()->sequence().size())
+				{
+					me()->dataPos() = result1;
 
-				return rank;
+					//me()->cache().setup(pos - data_pos + walker.distance() - me()->dataPos(), 0);
+
+					return result + walker.sum() + result1;
+				}
+				else {
+					throw Exception(MA_SRC, SBuf()<<"countNext("<<symbol<<") failed");
+				}
 			}
-			else {
-				throw Exception(MA_SRC, SBuf()<<"selectNext("<<rank<<", "<<symbol<<") failed");
+			else
+			{
+				me()->dataPos() = me()->data()->size();
+
+				//me()->cache().setup(pos + (walker.distance() - data_pos) - me()->dataPos(), 0);
+
+				return result + walker.sum();
 			}
 		}
-		else
-		{
+		else {
+			me()->prevKey();
 			me()->dataPos() = me()->data()->size();
 
-			//me()->cache().setup(pos + (walker.distance() - data_pos) - me()->dataPos(), 0);
-
-			return walker.rank() - result.rank();
+			return result;
 		}
 	}
 
@@ -254,9 +262,59 @@ BigInt M_TYPE::countNext()
 }
 
 M_PARAMS
-BigInt M_TYPE::countPrev()
+BigInt M_TYPE::countPrev(Symbol symbol)
 {
+	Int data_pos  = me()->dataPos();
 
+	Int result = me()->data()->sequence().countBW(data_pos + 1, symbol);
+
+	if (result < data_pos)
+	{
+		me()->dataPos() -= result;
+
+		return result;
+	}
+	else {
+		CountWalker<BigInt, false> walker(symbol + 1);
+
+		if (me()->prevKey())
+		{
+			bool end = me()->model().walkBw(me()->path(), me()->key_idx(), walker);
+
+			me()->model().finishPathStep(me()->path(), me()->key_idx());
+
+			if (!end)
+			{
+				Int size 	= me()->data()->sequence().size();
+				Int result1 = me()->data()->sequence().countBW(size, symbol);
+
+				if (result1 < size)
+				{
+					me()->dataPos() = size - result1 - 1;
+
+					//me()->cache().setup(pos - data_pos + walker.distance() - me()->dataPos(), 0);
+
+					return result + walker.sum() + result1;
+				}
+				else {
+					throw Exception(MA_SRC, SBuf()<<"countPrev("<<symbol<<") failed");
+				}
+			}
+			else
+			{
+				me()->dataPos() = 0;
+
+				//me()->cache().setup(pos + (walker.distance() - data_pos) - me()->dataPos(), 0);
+
+				return result + walker.sum();
+			}
+		}
+		else {
+			me()->nextKey();
+			me()->dataPos() = 0;
+			return result;
+		}
+	}
 
 	return 0;
 }

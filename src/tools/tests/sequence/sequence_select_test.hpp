@@ -75,7 +75,6 @@ public:
 
     	while (!iter.isEof())
     	{
-    		Int data_size 	= iter.data()->size();
     		Int start 		= iter.dataPos();
 
     		auto result 	= iter.data()->sequence().selectFW(start, rank - total_rank, symbol);

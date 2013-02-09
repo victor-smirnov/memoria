@@ -824,7 +824,6 @@ public:
     {
         MEMORIA_ASSERT(start, <=, size());
 
-
         Int block_limit     = getBlockStartEnd(start);
 
         if (block_limit >= size())
@@ -891,6 +890,7 @@ public:
             }
         }
     }
+
 
     void dumpRanges(Byte* memory_block = nullptr, std::ostream& out = std::cout)
     {
@@ -982,6 +982,7 @@ private:
             }
         }
     }
+
 
     template <typename Walker>
     Int walkIndexBw(Int start, Walker& walker, Int level_offet, Int level_size) const
