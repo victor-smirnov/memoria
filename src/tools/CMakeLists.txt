@@ -16,11 +16,11 @@ if (NOT DEFINED BUILD_BENCHMARKS)
 endif()
 
 if (NOT DEFINED BUILD_DUMP)
-    set(BUILD_DUMP true)
+    set(BUILD_DUMP false)
 endif()
 
 if (NOT DEFINED BUILD_EXAMPLES)
-    set(BUILD_EXAMPLES true)
+    set(BUILD_EXAMPLES false)
 endif()
 
 if (BUILD_TESTS) 

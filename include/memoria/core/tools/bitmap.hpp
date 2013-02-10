@@ -31,52 +31,6 @@ using namespace std;
 
 using namespace memoria::vapi;
 
-/*
-template <typename ItemType, Int BitCount> struct MakeSimpleMask;
-
-template <typename ItemType>
-struct MakeSimpleMask<ItemType, 1> {
-    static const ItemType Value = 1;
-};
-
-template <typename ItemType>
-struct MakeSimpleMask<ItemType, 0> {
-    static const ItemType Value = 0;
-};
-
-template <typename ItemType, Int BitCount>
-struct MakeSimpleMask {
-    static const ItemType Value = MakeSimpleMask<ItemType, BitCount - 1>::Value + (1 << (BitCount - 1));
-};
-
-template <typename ItemType, Int BitCount, Int Offset>
-struct MakeMaskTool {
-    static const ItemType Value = MakeSimpleMask<ItemType, BitCount>::Value << Offset;
-};
-
-template <typename ItemType, ItemType Value_, Int Count>
-class CSHR {
-    static const ItemType Tmp = (Value_ >> (sizeof(ItemType) * 8 - Count)) & MakeSimpleMask<ItemType, Count>::Value;
-public:
-    static const ItemType Value = (Value_ << Count) | Tmp;
-};
-
-
-
-
-#define SIMPLE_LG2_32(value) \
-    (value >= 0xFFFFFFFF ? 32 : (value >= 0x7FFFFFFF ? 31 : (value >= 0x3FFFFFFF ? 30 : (value >= 0x1FFFFFFF ? 29 : \
-    (value >= 0xFFFFFFF  ? 28 : (value >= 0x7FFFFFF  ? 27 : (value >= 0x3FFFFFF  ? 26 : (value >= 0x1FFFFFF  ? 25 : \
-    (value >= 0xFFFFFF   ? 24 : (value >= 0x7FFFFF   ? 23 : (value >= 0x3FFFFF   ? 22 : (value >= 0x1FFFFF   ? 21 : \
-    (value >= 0xFFFFF    ? 20 : (value >= 0x7FFFF    ? 19 : (value >= 0x3FFFF    ? 18 : (value >= 0x1FFFF    ? 17 : \
-    (value >= 0xFFFF ? 16 : (value >= 0x7FFF ? 15 : (value >= 0x3FFF ? 14 : (value >= 0x1FFF ? 13 :     \
-    (value >= 0xFFF  ? 12 : (value >= 0x7FF  ? 11 : (value >= 0x3FF  ? 10 : (value >= 0x1FF  ? 9  :     \
-    (value >= 0xFF   ?  8 : (value >= 0x7F   ?  7 : (value >= 0x3F   ?  6 : (value >= 0x1F   ? 5  :     \
-    (value >= 0xF    ?  4 : (value >= 0x7    ?  3 : (value >= 0x3    ?  2 : (value >= 0x1    ? 1  : 0   \
-    ))))))))))))))))))))))))))))))))
-
-#define SIMPLE_LG2_16(value) SIMPLE_LG2_32(value)
-*/
 const char kPopCountFW_LUT [] = {0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,5,0,1,0,2,0,1,0,3,0,1,0,2,\
                                  0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,6,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,\
                                  0,1,0,2,0,1,0,5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,7,0,1,0,2,\
@@ -139,38 +93,6 @@ template <typename T>
 constexpr inline size_t TypeBitmaskPopCount(T mask) {
     return mask == 7 ? 3 : (mask == 15 ? 4 : (mask == 31 ? 5 : (mask == 63 ? 6 : (mask == 127 ? 7 : 7))));
 }
-//
-//template <typename T>
-//T SimpleLg2(T value) {
-//    T c, mask;
-//    for (c = 0, mask = 1; mask < value; mask <<= 1, c++) {}
-//    return c;
-//}
-//
-//template <typename T>
-//T SimpleSup2(BigInt value) {
-//    T c, mask;
-//    for (c = 1, mask = 1; mask < value; mask = (mask << 1) + 1, c++) {}
-//    return c;
-//}
-//
-//
-
-
-
-
-
-
-
-//
-//template <typename ItemType>
-//ItemType CShr(ItemType value, Int count) {
-//    Int bitCount = sizeof(ItemType) * 8 - count;
-//    ItemType tmp = value >> (bitCount) & MakeMask<ItemType>(count, 0);
-//    return (value << count) | tmp;
-//}
-//
-
 
 
 /**
@@ -317,7 +239,12 @@ size_t PopCount(const T* buffer, size_t start, size_t stop)
 
 		for (size_t c = (start >> divisor) + 1; c < (stop >> divisor); c++)
 		{
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 7
+			volatile T value = *(buffer + c);
+			total += PopCnt(value);
+#else
 			total += PopCnt(buffer[c]);
+#endif
 		}
 
 		size_t suffix = stop & mask;
@@ -624,107 +551,6 @@ void MoveBits(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t lengt
 }
 
 
-//
-///**
-// * Copy 'bitCount' bits from buffer 'src_array' 0 bit to 'dst_array' 0 bit.
-// *
-// * Note that src_aray and dst_array MUST be different buffers.
-// *
-// * Note that bitCount is not limited by Long.
-// */
-//template <typename Buffer1, typename Buffer2>
-//void CopyBits(const Buffer1 &src_array, Buffer2 &dst_array, Int bitCount) {
-//    CopyBits(src_array, dst_array, 0, 0, bitCount);
-//}
-//
-///**
-// * Move group of 'bitCount' bits from position 'srcBit' to 'dstBit' in the buffer 'array'
-// *
-// * Note that bitCount is not limited by Long.
-// */
-//
-//template <typename Buffer>
-//void ShiftBits(Buffer &array, Int srcBit, Int dstBit, Int bitCount) {
-//    if (dstBit > srcBit) {
-//        Int bitsize = TypeBitsize<Long>();
-//
-//        Int c;
-//        for (c = bitCount; c >= bitsize; c -= bitsize) {
-//        Long val = getBits(array, srcBit + c - bitsize, bitsize);
-//            setBits(array, dstBit + c - bitsize, val, bitsize);
-//        }
-//
-//        if (c != 0) {
-//            Long val = getBits(array, srcBit, c);
-//            setBits(array, dstBit, val, c);
-//        }
-//    }
-//    else if (dstBit < srcBit) {
-//        CopyBits(array, array, srcBit, dstBit, bitCount);
-//    }
-//}
-//
-//
-//template <typename Int>
-//void dumpAxis(std::ostream &os, Int width) {
-//    for (Int c = 0, cnt = 0, cnt2 = 0; c < width;  c++, cnt++, cnt2++) {
-//        if (cnt == 10) cnt = 0;
-//        if (cnt2 == 20) {
-//            os << ".";
-//            cnt2 = 0;
-//        }
-//        os << cnt;
-//    }
-//    os<<std::endl;
-//}
-//
-//template <typename Buffer>
-//void dumpBitmap(std::ostream &os, Buffer &buffer, Int from, Int to) {
-//    os.width(1);
-//    for (Int c = from, cnt = 0; c < to; c++, cnt++) {
-//        if (cnt == 20) {
-//            os << ".";
-//            cnt = 0;
-//        }
-//        os << (Int)getBit(buffer, c);
-//    }
-//    os << std::endl;
-//}
-
-
-/**
- * dump buffer's content in human readable form to an output stream.
- *
- * os       - a stream to output to.
- * buffer   - a buffer which content will be dumped.
- * from     - dump from
- * to       - dump to
- * width    - bits per row (100 bits by default).
- */
-//template <typename Buffer>
-//void dump(std::ostream &os, Buffer &buffer, Int from, Int to, Int width = 100) {
-//    const Int prefix = 7;
-//    for (Int c = from, cnt = 0; c < to; c += width, cnt++) {
-//        Int to0 = c + width < to ? c + width : to;
-//
-//        if (cnt %5 == 0) {
-//            os.width(prefix + 2);
-//            os << "";
-//            os.width(1);
-//            dumpAxis(os, to0 - c);
-//        }
-//
-//        os.width(prefix);
-//        os.flags(std::ios::right | std::ios::fixed);
-//        os<<cnt<<": ";
-//        dumpBitmap(os, buffer, c, to0);
-//    }
-//}
-//
-//template <typename Buffer>
-//void dump(std::ostream &os, Buffer &buffer, Int size) {
-//    dump(os, buffer, (Int)0, size);
-//}
 
 namespace intrnl {
 
@@ -1044,6 +870,6 @@ static inline bool IsClean(const void *dst, long size)
     return true;
 }
 
-} //memoria
+}
 
 #endif

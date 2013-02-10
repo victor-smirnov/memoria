@@ -70,7 +70,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new VectorMapTestSuite());
         runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new SymbolSeqTestSuite());
-        runner.registerTask(new BitmapTestSuite());
+//        runner.registerTask(new BitmapTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 
