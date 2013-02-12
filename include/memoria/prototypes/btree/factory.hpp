@@ -12,6 +12,7 @@
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/prototypes/btree/names.hpp>
 #include <memoria/prototypes/btree/tools.hpp>
+#include <memoria/prototypes/btree/walkers.hpp>
 
 #include <memoria/prototypes/btree/pages/pages.hpp>
 
@@ -99,6 +100,18 @@ struct BTreeTypes {
         typedef BTreeIteratorCache<Iterator, Container>                         Type;
     };
 
+
+    template <typename Types>
+    using FindBeginWalker = TypeIsNotDefined;
+
+    template <typename Types>
+    using FindEndWalker = TypeIsNotDefined;
+
+    template <typename Types>
+    using FindRBeginWalker = TypeIsNotDefined;
+
+    template <typename Types>
+    using FindREndWalker = TypeIsNotDefined;
 };
 
 
@@ -149,7 +162,6 @@ public:
         typedef NodePageContainerTypes                      NodePageBase;
         typedef ContainerTypeName_                          Name;
         static const Int                                    Indexes             = ContainerTypes::Indexes;
-//        static const bool                                   PackedMapType       = ContainerTypes::MapType;
         typedef typename ContainerTypes::BasePagePartsList  BasePartsList;
     };
 

@@ -24,11 +24,18 @@ class MapCreateTest: public MapTestBase {
 
     typedef MapCreateTest                                                       MyType;
 
+    BigInt 	key_;
+    BigInt 	value_;
+
 public:
 
     MapCreateTest(): MapTestBase("Create")
     {
+    	MEMORIA_ADD_TEST_PARAM(key_)->state();
+    	MEMORIA_ADD_TEST_PARAM(value_)->state();
+
         MEMORIA_ADD_TEST_WITH_REPLAY(runCreateTest, replayCreateTest);
+        MEMORIA_ADD_TEST_WITH_REPLAY(runIteratorTest, replayIteratorTest);
     }
 
     virtual ~MapCreateTest() throw () {}
@@ -107,6 +114,83 @@ public:
 
         check(allocator, MEMORIA_SOURCE);
     }
+
+    vector<Int> fillVector(Allocator& allocator, Ctr& ctr, Int size)
+    {
+    	vector<Int> v;
+
+    	for (int c = 0; c < size; c++)
+    	{
+    		key_ = value_ = c;
+
+    		ctr[c] = c;
+    		v.push_back(c);
+
+    		auto i = ctr[c];
+
+    		AssertEQ(MA_SRC, i.key(), c);
+    		AssertEQ(MA_SRC, i.value(), c);
+    	}
+
+    	return v;
+    }
+
+
+    void runIteratorTest(ostream& out)
+    {
+    	DefaultLogHandlerImpl logHandler(out);
+    	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+
+    	try {
+    		Ctr ctr(&allocator);
+
+    		ctr_name_ = ctr.name();
+
+    		vector<Int> v = fillVector(allocator, ctr, 10000);
+
+    		allocator.commit();
+
+    		Iterator i1 = ctr.Begin();
+    		AssertEQ(MA_SRC, i1.key(), v[0]);
+
+    		Iterator i2 = ctr.RBegin();
+    		AssertEQ(MA_SRC, i2.key(), v[v.size() - 1]);
+
+    		Iterator i3 = ctr.End();
+    		AssertTrue(MA_SRC, i3.isEnd());
+    		AssertEQ(MA_SRC, i3.key_idx(), i3.page()->children_count());
+
+    		AssertThrows<Exception>(MA_SRC, [&]{i3.key();});
+
+    		Iterator i4 = ctr.REnd();
+    		AssertTrue(MA_SRC, i4.isBegin());
+    		AssertEQ(MA_SRC, i4.key_idx(), -1);
+    	}
+    	catch (...) {
+    		dump_name_ = Store(allocator);
+    		throw;
+    	}
+    }
+
+    void replayIteratorTest(ostream& out)
+    {
+    	DefaultLogHandlerImpl logHandler(out);
+    	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+
+    	LoadAllocator(allocator, dump_name_);
+
+    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
+
+    	ctr[key_] = value_;
+
+		auto i = ctr[key_];
+
+		AssertEQ(MA_SRC, i.key(), key_);
+		AssertEQ(MA_SRC, i.value(), value_);
+    }
+
 };
 
 }

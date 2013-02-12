@@ -252,8 +252,7 @@ public:
 
     	for (Int rank = rank_; rank < 100000; rank += 10)
     	{
-    		auto iter = ctr.End();
-    		iter--;
+    		auto iter = ctr.REnd();
 
     		while ((!iter.isBof()) && iter.selectPrev(rank, symbol) == rank)
     		{

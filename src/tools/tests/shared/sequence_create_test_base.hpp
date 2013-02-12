@@ -47,8 +47,6 @@ public:
         Base(name)
     {}
 
-
-
     virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
     {
     	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");

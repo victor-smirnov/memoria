@@ -12,6 +12,7 @@
 #include <memoria/prototypes/bstree/factory.hpp>
 
 #include <memoria/prototypes/sequence/names.hpp>
+#include <memoria/prototypes/sequence/sequence_walkers.hpp>
 
 #include <memoria/prototypes/sequence/container/seq_c_insert.hpp>
 #include <memoria/prototypes/sequence/container/seq_c_find.hpp>
@@ -86,6 +87,26 @@ struct BTreeTypes<Profile, memoria::ASequence>: public BTreeTypes<Profile, memor
     };
 
     typedef SequenceMetadata<typename Base::ID>                                 Metadata;
+
+
+    template <typename Types>
+    using FindLTWalker 		= ::memoria::sequence::FindLTWalker<Types>;
+
+    template <typename Types>
+    using FindLEWalker 		= ::memoria::sequence::FindLEWalker<Types>;
+
+
+    template <typename Types>
+    using FindBeginWalker 	= ::memoria::sequence::FindBeginWalker<Types>;
+
+    template <typename Types>
+    using FindEndWalker 	= ::memoria::sequence::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker 	= ::memoria::sequence::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker 	= ::memoria::sequence::FindREndWalker<Types>;
 };
 
 

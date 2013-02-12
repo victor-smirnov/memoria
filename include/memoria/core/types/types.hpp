@@ -155,6 +155,7 @@ struct NullType {};
 
 struct EmptyType {};
 struct IncompleteType;
+struct TypeIsNotDefined {};
 
 template <typename Name>
 struct TypeNotFound;

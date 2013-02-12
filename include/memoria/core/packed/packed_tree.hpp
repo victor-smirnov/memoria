@@ -760,7 +760,7 @@ public:
     			start = idx * BranchingFactor;
     		}
     		else {
-    			return -1;
+    			return size_;
     		}
 
     		base += level_size;
@@ -768,14 +768,7 @@ public:
 
     	Int end = (start + BranchingFactor) > size_ ? size_ : start + BranchingFactor;
 
-    	Int idx = walker.walkKeys(start, end);
-
-    	if (idx < end)
-    	{
-    		return idx;
-    	}
-
-    	return -1;
+    	return walker.walkKeys(start, end);
     }
 
 

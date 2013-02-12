@@ -38,103 +38,8 @@ private:
 
 public:
 
-    template <typename Comparator>
-    struct FindFn {
-
-        Iterator        i_;
-        Key&            key_;
-        MyType&         model_;
-        Comparator&     cmp_;
-        Int             idx_;
-        bool            end_;
-        Int             level_;
-        bool            found_;
-
-    public:
-        FindFn(Comparator& cmp, Key& key, NodeBaseG& root, MyType &model):
-            i_(model),
-            key_(key),
-            model_(model),
-            cmp_(cmp),
-            end_(false),
-            level_(root->level()),
-            found_(true)
-        {
-            i_.path().resize(level_ + 1);
-
-            i_.setNode(root, 0);
-        }
-
-        template <typename Node>
-        void operator()(Node *node)
-        {
-            idx_ = cmp_.find(node, key_);
-
-            if (!node->is_leaf())
-            {
-                if (idx_ >= 0)
-                {
-                    auto& path_item         = i_.path()[node->level() - 1];
-
-                    path_item.parent_idx()  = idx_;
-                    path_item.node()        = model_.getChild(node, idx_, Allocator::READ);
-
-                    level_--;
-                }
-                else
-                {
-                    idx_    = 0;
-                    found_  = false;
-                    end_    = true;
-                }
-            }
-            else
-            {
-                if (idx_ < 0)
-                {
-                    found_  = false;
-                }
-
-                end_ = true;
-            }
-        }
-
-        NodeBaseG& node()
-        {
-            return i_.path()[level_];
-        }
-    };
-
-
-    template <typename Comparator>
-    class CheckBoundsFn {
-        Key&            key_;
-        Comparator&     cmp_;
-
-        bool            within_ranges_;
-
-    public:
-        CheckBoundsFn(Comparator& cmp, Key& key):
-            key_(key),
-            cmp_(cmp)
-        {}
-
-        template <typename Node>
-        void operator()(Node *node)
-        {
-            within_ranges_ = cmp_.IsKeyWithinRange(node, key_);
-        }
-
-        bool within_ranges() const {
-            return within_ranges_;
-        }
-    };
-
-    template <typename Comparator>
-    const Iterator _find(Key key, Int c);
-
-    Iterator findStart(bool reverse = false);
-    Iterator findEnd  (bool reverse = false);
+    template <typename Walker>
+    Iterator find0(Walker& walker);
 
     MEMORIA_PUBLIC MEMORIA_DEPRECATED BigInt getSize() const
     {
@@ -148,23 +53,28 @@ public:
 
     MEMORIA_PUBLIC Iterator Begin()
     {
-        return me()->findStart(false);
+    	typename Types::template FindBeginWalker<Types> walker(*me());
+    	return me()->find0(walker);
     }
 
     MEMORIA_PUBLIC Iterator begin()
     {
-        return me()->findStart(false);
+    	typename Types::template FindBeginWalker<Types> walker(*me());
+    	return me()->find0(walker);
     }
 
     MEMORIA_PUBLIC Iterator RBegin()
     {
-        return me()->findEnd(true);
+    	typename Types::template FindRBeginWalker<Types> walker(*me());
+    	return me()->find0(walker);
     }
 
     MEMORIA_PUBLIC Iterator End()
     {
-        return me()->findEnd(false);
+    	typename Types::template FindEndWalker<Types> walker(*me());
+    	return me()->find0(walker);
     }
+
 
     MEMORIA_PUBLIC Iterator end()
     {
@@ -178,8 +88,10 @@ public:
         return IterEndMark();
     }
 
-    MEMORIA_PUBLIC Iterator REnd() {
-        return me()->findStart(true);
+    MEMORIA_PUBLIC Iterator REnd()
+    {
+    	typename Types::template FindREndWalker<Types> walker(*me());
+    	return me()->find0(walker);
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -189,122 +101,163 @@ MEMORIA_CONTAINER_PART_END
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::btree::FindName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
+//M_PARAMS
+//template <typename Comparator>
+//const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
+//{
+//    MEMORIA_ASSERT(block_num, >=, 0)
+//
+//    NodeBaseG node = me()->getRoot(Allocator::READ);
+//
+//    if (node->children_count() > 0)
+//    {
+//        Comparator cmp(block_num);
+//
+//        CheckBoundsFn<Comparator> bounds_fn(cmp, key);
+//        NodeDispatcher::DispatchConst(node, bounds_fn);
+//
+//        if (bounds_fn.within_ranges())
+//        {
+//            FindFn<Comparator> fn(cmp, key, node, *me());
+//
+//            while(1)
+//            {
+//                NodeDispatcher::Dispatch(node, fn);
+//
+//                if (fn.end_)
+//                {
+//                    if (fn.found_)
+//                    {
+//                        fn.i_.key_idx() = fn.idx_;
+//
+//                        me()->finishPathStep(fn.i_.path(), fn.i_.key_idx());
+//
+//                        cmp.setupIterator(fn.i_);
+//
+//                        return fn.i_;
+//                    }
+//                    else
+//                    {
+//                        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't find key: "<<key);
+//                    }
+//                }
+//                else
+//                {
+//                    node = fn.node();
+//                    cmp.AdjustKey(key);
+//                }
+//            }
+//        }
+//        else {
+//            return me()->End();
+//        }
+//    }
+//    else {
+//        return me()->End();
+//    }
+//}
+
 M_PARAMS
-template <typename Comparator>
-const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
+template <typename Walker>
+typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 {
-    MEMORIA_ASSERT(block_num, >=, 0)
+	NodeBaseG node = me()->getRoot(Allocator::READ);
+	if (node.isSet())
+	{
+		Iterator i(*me(), node->level() + 1);
 
-    NodeBaseG node = me()->getRoot(Allocator::READ);
+		i.setNode(node, 0);
 
-    if (node->children_count() > 0)
-    {
-        Comparator cmp(block_num);
+		if (node->children_count() > 0)
+		{
+			while (!node->is_leaf())
+			{
+				NodeDispatcher::DispatchConst(node, walker);
+				Int idx = walker.idx();
 
-        CheckBoundsFn<Comparator> bounds_fn(cmp, key);
-        NodeDispatcher::DispatchConst(node, bounds_fn);
+				idx = walker.checkIdxBounds(idx, node.page());
 
-        if (bounds_fn.within_ranges())
-        {
-            FindFn<Comparator> fn(cmp, key, node, *me());
+				node = me()->getChild(node, idx, Allocator::READ);
+				i.setNode(node, idx);
+			}
 
-            while(1)
-            {
-                NodeDispatcher::Dispatch(node, fn);
 
-                if (fn.end_)
-                {
-                    if (fn.found_)
-                    {
-                        fn.i_.key_idx() = fn.idx_;
+			NodeDispatcher::Dispatch(node, walker);
 
-                        me()->finishPathStep(fn.i_.path(), fn.i_.key_idx());
+			Int idx = walker.idx();
+			walker.finish(idx, i);
+		}
+		else {
+			walker.empty(i);
+		}
 
-                        cmp.setupIterator(fn.i_);
-
-                        return fn.i_;
-                    }
-                    else
-                    {
-                        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't find key: "<<key);
-                    }
-                }
-                else
-                {
-                    node = fn.node();
-                    cmp.AdjustKey(key);
-                }
-            }
-        }
-        else {
-            return me()->End();
-        }
-    }
-    else {
-        return me()->End();
-    }
+		return i;
+	}
+	else {
+		return Iterator(*me());
+	}
 }
 
 
 
-M_PARAMS
-typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
-{
-    NodeBaseG node = me()->getRoot(Allocator::READ);
-    if (node.isSet())
-    {
-        Iterator i(*me(), node->level() + 1);
+//M_PARAMS
+//typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
+//{
+//    NodeBaseG node = me()->getRoot(Allocator::READ);
+//    if (node.isSet())
+//    {
+//        Iterator i(*me(), node->level() + 1);
+//
+//        i.setNode(node, 0);
+//
+//        while(!node->is_leaf())
+//        {
+//            node = me()->getChild(node, 0, Allocator::READ);
+//
+//            i.setNode(node, 0);
+//        }
+//
+//        i.key_idx() = reverse ? -1 : 0;
+//
+//        i.init();
+//
+//        return i;
+//    }
+//    else {
+//        return Iterator(*me());
+//    }
+//}
 
-        i.setNode(node, 0);
 
-        while(!node->is_leaf())
-        {
-            node = me()->getChild(node, 0, Allocator::READ);
-
-            i.setNode(node, 0);
-        }
-
-        i.key_idx() = reverse ? -1 : 0;
-
-        i.init();
-
-        return i;
-    }
-    else {
-        return Iterator(*me());
-    }
-}
-
-
-M_PARAMS
-typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
-{
-    NodeBaseG node = me()->getRoot(Allocator::READ);
-    if (node.isSet())
-    {
-        Iterator i(*me(), node->level() + 1);
-
-        i.setNode(node, 0);
-
-        while(!node->is_leaf())
-        {
-            Int parent_idx = node->children_count() - 1;
-
-            node = me()->getLastChild(node, Allocator::READ);
-
-            i.setNode(node, parent_idx);
-        }
-
-        i.key_idx() = i.page()->children_count() + (reverse ? -1 : 0);
-
-        i.init();
-
-        return i;
-    }
-    else {
-        return Iterator(*me());
-    }
-}
+//M_PARAMS
+//typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
+//{
+//    NodeBaseG node = me()->getRoot(Allocator::READ);
+//    if (node.isSet())
+//    {
+//        Iterator i(*me(), node->level() + 1);
+//
+//        i.setNode(node, 0);
+//
+//        while(!node->is_leaf())
+//        {
+//            Int parent_idx = node->children_count() - 1;
+//
+//            node = me()->getLastChild(node, Allocator::READ);
+//
+//            i.setNode(node, parent_idx);
+//        }
+//
+//        i.key_idx() = i.page()->children_count() + (reverse ? -1 : 0);
+//
+//        i.init();
+//
+//        return i;
+//    }
+//    else {
+//        return Iterator(*me());
+//    }
+//}
 
 
 

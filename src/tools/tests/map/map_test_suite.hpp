@@ -29,7 +29,7 @@ public:
     {
     	registerTask(new MapApiTest());
         registerTask(new MapCreateTest());
-        registerTask(new MapRemoveTest());
+//        registerTask(new MapRemoveTest());
     }
 
 };

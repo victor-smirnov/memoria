@@ -9,6 +9,7 @@
 
 #include "../tests_inc.hpp"
 
+#include "sequence_iter_test.hpp"
 #include "sequence_create_test.hpp"
 #include "sequence_rank_test.hpp"
 #include "sequence_select_test.hpp"
@@ -27,6 +28,8 @@ public:
 
     SequenceTestSuite(): TestSuite("SequenceSuite")
     {
+    	registerTask(new SequenceIteratorTest<1>("Iter.1"));
+
 //    	registerTask(new SequenceCreateTest<1>("Dense.1"));
 //    	registerTask(new SequenceCreateTest<3>("Dense.3"));
 

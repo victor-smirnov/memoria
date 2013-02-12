@@ -73,9 +73,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::models::idx_map::CtrApiName)
 
         if (iter.isEnd() || key != iter.key())
         {
-            Accumulator keys;
+        	Accumulator keys;
             keys[0] = key;
             me()->insert(iter, keys);
+
             iter.prevKey();
         }
 

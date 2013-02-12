@@ -11,6 +11,7 @@
 
 #include <memoria/prototypes/btree/btree.hpp>
 #include <memoria/prototypes/bstree/tools.hpp>
+#include <memoria/prototypes/bstree/bstree_walkers.hpp>
 
 #include <memoria/prototypes/bstree/container/bstree_c_find.hpp>
 #include <memoria/prototypes/bstree/container/bstree_c_tools.hpp>
@@ -61,6 +62,27 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
         typedef BTreeIteratorPrefixCache<Iterator, Container>               Type;
     };
 
+
+
+
+    template <typename Types>
+    using FindLTWalker 		= ::memoria::bstree::FindLTWalker<Types>;
+
+    template <typename Types>
+    using FindLEWalker 		= ::memoria::bstree::FindLEWalker<Types>;
+
+
+    template <typename Types>
+    using FindBeginWalker 	= ::memoria::bstree::FindBeginWalker<Types>;
+
+    template <typename Types>
+    using FindEndWalker 	= ::memoria::bstree::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker 	= ::memoria::bstree::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker 	= ::memoria::bstree::FindREndWalker<Types>;
 };
 
 

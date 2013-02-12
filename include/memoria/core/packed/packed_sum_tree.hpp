@@ -172,7 +172,7 @@ public:
 
     	Int idx = Base::find(fn);
 
-    	if (idx >= 0)
+    	if (idx < Base::size())
     	{
     		sum += fn.sum();
     	}
@@ -193,7 +193,7 @@ public:
 
     	Int idx = Base::find(fn);
 
-    	if (idx >= 0)
+    	if (idx < Base::size())
     	{
     		sum += fn.sum();
     	}

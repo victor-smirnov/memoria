@@ -81,8 +81,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::sequence::CtrToolsName)
     }
 
 
-    Iterator findStart(bool reverse = false);
-    Iterator findEnd  (bool reverse = false);
+//    Iterator findStart(bool reverse = false);
+//    Iterator findEnd  (bool reverse = false);
 
     void finishPathStep(TreePath& path, Int key_idx) const;
 
@@ -106,35 +106,35 @@ MEMORIA_CONTAINER_PART_END
 
 
 
-M_PARAMS
-typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
-{
-    Iterator i = Base::findStart(false);
-
-    if (i.leaf()->children_count() > 0)
-    {
-        me()->finishPathStep(i.path(), i.key_idx());
-
-        i.dataPos() = reverse ? -1 : 0;
-    }
-
-    return i;
-}
-
-
-
-M_PARAMS
-typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
-{
-    Iterator i = Base::findEnd(false);
-
-    if (i.leaf()->children_count() > 0 && i.prevKey())
-    {
-        i.dataPos() = i.data()->size() + (reverse ? -1 : 0);
-    }
-
-    return i;
-}
+//M_PARAMS
+//typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
+//{
+//    Iterator i = Base::findStart(false);
+//
+//    if (i.leaf()->children_count() > 0)
+//    {
+//        me()->finishPathStep(i.path(), i.key_idx());
+//
+//        i.dataPos() = reverse ? -1 : 0;
+//    }
+//
+//    return i;
+//}
+//
+//
+//
+//M_PARAMS
+//typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
+//{
+//    Iterator i = Base::findEnd(false);
+//
+//    if (i.leaf()->children_count() > 0 && i.prevKey())
+//    {
+//        i.dataPos() = i.data()->size() + (reverse ? -1 : 0);
+//    }
+//
+//    return i;
+//}
 
 
 
