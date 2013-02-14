@@ -168,12 +168,12 @@ public:
     void assertSelect(Ctr& ctr, Int rank, Int pos, Int symbol)
     {
     	Iterator iter = ctr.select(rank, symbol);
-//    	BigInt rank1 = ctr.rank(iter.pos() + 1, symbol);
-//
-//    	AssertTrue(MA_SRC, !iter.isEof());
-//
-//    	AssertEQ(MA_SRC, rank1, rank);
-//    	AssertEQ(MA_SRC, iter.pos(), pos);
+    	BigInt rank1 = ctr.rank(iter.pos() + 1, symbol);
+
+    	AssertTrue(MA_SRC, !iter.isEof());
+
+    	AssertEQ(MA_SRC, rank1, rank);
+    	AssertEQ(MA_SRC, iter.pos(), pos);
     }
 
     void runSelectTest(ostream& out)
