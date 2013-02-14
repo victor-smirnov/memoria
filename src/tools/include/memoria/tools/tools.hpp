@@ -409,13 +409,23 @@ void AssertDoesntThrow(const char* src, Functor&& fn)
 }
 
 template <typename Op>
-void AssertTrue(const char* src, const Op& op, const SBuf& msg = SBuf())
+void AssertTrue(const char* src, const Op& op, const SBuf& msg)
 {
 	if (!(op))
 	{
 		throw TestException(src, SBuf()<<"True assertion failed: "<<op<<" "<<msg.str());
 	}
 }
+
+template <typename Op>
+void AssertTrue(const char* src, const Op& op)
+{
+	if (!(op))
+	{
+		throw TestException(src, SBuf()<<"True assertion failed: "<<op);
+	}
+}
+
 
 template <typename Op>
 void AssertFalse(const char* src, const Op& op, const SBuf& msg = SBuf())

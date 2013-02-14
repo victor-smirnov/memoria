@@ -434,10 +434,20 @@ public:
 
     	SelectFWWalker<MyType, Bits> walker(*this, symbol, rank);
 
-    	Int idx = walkFw(from, walker);
+    	Int idx = findFw(from, walker);
 
     	return SelectResult(idx, walker.rank(), walker.is_found());
     }
+
+    SelectResult selectFW(Value symbol, Int rank) const
+    {
+    	SelectFWWalker<MyType, Bits> walker(*this, symbol, rank);
+
+    	Int idx = findFw(walker);
+
+    	return SelectResult(idx, walker.rank(), walker.is_found());
+    }
+
 
     SelectResult selectBW(Int from, Value symbol, Int rank) const
     {
@@ -446,7 +456,7 @@ public:
 
     	SelectBWWalker<MyType, Bits> walker(*this, symbol, rank);
 
-    	Int idx = walkBw(from, walker);
+    	Int idx = findBw(from, walker);
 
     	return SelectResult(idx, walker.rank(), walker.is_found());
     }
@@ -455,7 +465,7 @@ public:
     {
     	CountFWWalker<MyType, Bits> walker(*this, symbol);
 
-    	walkFw(from, walker);
+    	findFw(from, walker);
 
     	return walker.rank();
     }
@@ -464,7 +474,7 @@ public:
     {
     	CountBWWalker<MyType, Bits> walker(*this, symbol);
 
-    	walkBw(from, walker);
+    	findBw(from, walker);
 
     	return walker.rank();
     }
@@ -1036,8 +1046,50 @@ public:
     	}
     }
 
+
     template <typename Walker>
-    Int walkFw(Int start, Walker& walker) const
+    Int findFw(Walker &walker) const
+    {
+    	Int levels = 0;
+    	Int level_sizes[LEVELS_MAX];
+
+    	Int level_size = max_size_;
+
+    	do
+    	{
+    		level_size = getIndexCellsNumberFor(levels, level_size);
+    		level_sizes[levels++] = level_size;
+    	}
+    	while (level_size > 1);
+
+    	Int base = 1, start = 0;
+
+    	for (Int level = levels - 2; level >= 0; level--)
+    	{
+    		Int level_size  = level_sizes[level];
+    		Int end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
+
+    		Int idx = walker.walkIndex(start + base, end + base, 0) - base;
+    		if (idx < end)
+    		{
+    			start = level > 0 ? idx * BranchingFactor : idx * ValuesPerBranch;
+    		}
+    		else {
+    			return size_;
+    		}
+
+    		base += level_size;
+    	}
+
+    	Int end = (start + ValuesPerBranch) > size_ ? size_ : start + ValuesPerBranch;
+
+    	return walker.walkValues(start, end);
+    }
+
+
+
+    template <typename Walker>
+    Int findFw(Int start, Walker& walker) const
     {
     	MEMORIA_ASSERT(start, <=, size());
 
@@ -1086,7 +1138,7 @@ public:
     }
 
     template <typename Walker>
-    size_t walkBw(Int start, Walker& walker) const
+    size_t findBw(Int start, Walker& walker) const
     {
         MEMORIA_ASSERT(start, >=, 0);
 

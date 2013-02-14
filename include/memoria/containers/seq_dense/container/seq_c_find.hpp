@@ -99,7 +99,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 		{
 			BigInt local_rank = rank - prefixes[0];
 
-			auto result = iter.data()->sequence().selectFW(0, symbol, local_rank);
+			auto result = iter.data()->sequence().selectFW(symbol, local_rank);
 
 			if (result.is_found())
 			{
