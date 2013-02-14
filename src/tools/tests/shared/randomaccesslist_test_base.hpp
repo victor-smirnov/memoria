@@ -357,6 +357,8 @@ public:
 
     	skip(iter, -data.size() - prefix.size());
 
+    	checkIterator(iter, MA_SRC);
+
     	checkBufferWritten(iter, prefix, MA_SRC);
     	checkBufferWritten(iter, data, MA_SRC);
     }

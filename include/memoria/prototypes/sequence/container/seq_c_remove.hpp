@@ -169,7 +169,7 @@ typename M_TYPE::Accumulator M_TYPE::removeDataBlock(Iterator& start, BigInt siz
 
         if (me()->mergeDataWithSiblings(start))
         {
-            start.init();
+            start.cache().initState();
         }
 
         return result;

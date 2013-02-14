@@ -213,8 +213,16 @@ struct DeserializationData {
     const char* buf;
 };
 
+enum class WalkDirection {
+	UP, DOWN
+};
+
+
 extern BigInt DebugCounter;
 extern size_t MemBase;
+
+
+
 
 }
 

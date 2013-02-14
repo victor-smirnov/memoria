@@ -31,34 +31,38 @@ protected:
 
 	Key prefix_;
 	Int idx_;
+
+	WalkDirection direction_;
+
+	Int start_;
+
 public:
 	FindWalkerBase(Key key, Int key_num):
 		key_(key), key_num_(key_num), prefix_(0), idx_(0)
 	{}
 
-	template <typename Node>
-	Int checkIdxBounds(Int idx, const Node* node) const
-	{
-		if (idx < node->children_count())
-		{
-			return idx;
-		}
-		else
-		{
-			return node->children_count() - 1;
-		}
+	WalkDirection& direction() {
+		return direction_;
+	}
+
+	const Int& start() const {
+		return start_;
+	}
+
+	Int& start() {
+		return start_;
 	}
 
 	void finish(Int idx, Iterator& iter)
 	{
 		iter.key_idx() = idx;
 
-		iter.init();
+		iter.cache().setup(prefix_, 0);
 	}
 
 	void empty(Iterator& iter)
 	{
-		iter.init();
+		iter.cache().setup(0, 0);
 	}
 
 	Int idx() const {
@@ -80,7 +84,15 @@ public:
 	template <typename Node>
 	void operator()(const Node* node)
 	{
-		Base::idx_ = node->map().findLTS(Base::key_num_, Base::key_ - Base::prefix_, Base::prefix_);
+		const typename Node::Map& map = node->map();
+
+		Base::idx_ = map.findLTS(Base::key_num_, Base::key_ - Base::prefix_, Base::prefix_);
+
+		if (node->level() != 0 && Base::idx_ == map.size())
+		{
+			Base::prefix_ -= map.key(0, map.size() - 1);
+			Base::idx_--;
+		}
 	}
 };
 
@@ -97,7 +109,15 @@ public:
 	template <typename Node>
 	void operator()(const Node* node)
 	{
-		Base::idx_ = node->map().findLES(Base::key_num_, Base::key_ - Base::prefix_, Base::prefix_);
+		const typename Node::Map& map = node->map();
+
+		Base::idx_ = map.findLES(Base::key_num_, Base::key_ - Base::prefix_, Base::prefix_);
+
+		if (node->level() != 0 && Base::idx_ == map.size())
+		{
+			Base::prefix_ -= map.key(0, map.size() - 1);
+			Base::idx_--;
+		}
 	}
 };
 
@@ -109,18 +129,29 @@ protected:
 	typedef Ctr<typename Types::CtrTypes> 	Container;
 
 	Int idx_;
+
+	WalkDirection direction_;
+
+	Int start_;
+
 public:
 	FindRangeWalkerBase(): idx_(0) {}
 
-	template <typename Node>
-	Int checkIdxBounds(Int idx, const Node* node) const
-	{
-		return idx;
+	WalkDirection& direction() {
+		return direction_;
+	}
+
+	const Int& start() const {
+		return start_;
+	}
+
+	Int& start() {
+		return start_;
 	}
 
 	void empty(Iterator& iter)
 	{
-		iter.init();
+		iter.cache().setup(0, 0);
 	}
 
 	Int idx() const
@@ -138,13 +169,21 @@ class FindEndWalker: public FindRangeWalkerBase<Types> {
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 
+	typedef typename Types::Key 			Key;
+
+	Key prefix_;
+
 public:
-	FindEndWalker(Container& ctr) {}
+	FindEndWalker(Container& ctr): prefix_(0) {}
 
 	template <typename Node>
 	void operator()(const Node* node)
 	{
+		const typename Node::Map& map = node->map();
+
 		Base::idx_ = node->children_count() - 1;
+
+		prefix_ += map.maxKey(0) - map.key(0, map.size() - 1);
 	}
 
 	void finish(Int idx, Iterator& iter)
@@ -154,7 +193,7 @@ public:
 		iter.model().finishPathStep(iter.path(), iter.key_idx());
 		iter.dataPos() = iter.data()->size();
 
-		iter.init();
+		iter.cache().setup(prefix_, 0);
 	}
 };
 
@@ -182,7 +221,7 @@ public:
 		iter.model().finishPathStep(iter.path(), iter.key_idx());
 		iter.dataPos() = -1;
 
-		iter.init();
+		iter.cache().setup(0, 0);
 	}
 };
 
@@ -213,7 +252,7 @@ public:
 		iter.model().finishPathStep(iter.path(), iter.key_idx());
 		iter.dataPos() = 0;
 
-		iter.init();
+		iter.cache().setup(0, 0);
 	}
 };
 
@@ -224,13 +263,21 @@ class FindRBeginWalker: public FindRangeWalkerBase<Types> {
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 
+	typedef typename Types::Key 			Key;
+
+	Key prefix_;
+
 public:
-	FindRBeginWalker(Container&) {}
+	FindRBeginWalker(Container&): prefix_(0) {}
 
 	template <typename Node>
 	void operator()(const Node* node)
 	{
+		const typename Node::Map& map = node->map();
+
 		Base::idx_ = node->children_count() - 1;
+
+		prefix_ += map.maxKey(0) - map.key(0, map.size() - 1);
 	}
 
 	void finish(Int idx, Iterator& iter)
@@ -240,94 +287,224 @@ public:
 		iter.model().finishPathStep(iter.path(), iter.key_idx());
 		iter.dataPos() = iter.data()->size() - 1;
 
-		iter.init();
+		iter.cache().setup(prefix_, 0);
 	}
 };
+
+
+template <
+	typename Types
+>
+class MultiPrefixWalkerBase {
+protected:
+	typedef typename Types::Key 												Key;
+	typedef Iter<typename Types::IterTypes> 									Iterator;
+	typedef Ctr<typename Types::CtrTypes> 										Container;
+
+	Container& ctr_;
+
+	Key key_;
+
+	Int key_count_;
+	const Int* key_nums_;
+
+	Key* prefixes_;
+
+	Int idx_;
+
+
+	WalkDirection direction_;
+
+	Int start_;
+
+public:
+	MultiPrefixWalkerBase(Container& ctr, Key key, Int key_count, const Int* key_nums, Key* prefixes):
+		ctr_(ctr),
+		key_(key),
+		key_count_(key_count),
+		key_nums_(key_nums),
+		prefixes_(prefixes),
+		idx_(0)
+	{}
+
+	WalkDirection& direction() {
+		return direction_;
+	}
+
+	const Int& start() const {
+		return start_;
+	}
+
+	Int& start() {
+		return start_;
+	}
+
+	void finish(Int idx, Iterator& iter)
+	{
+		iter.key_idx() = idx;
+
+		ctr_.finishPathStep(iter.path(), iter.key_idx());
+	}
+
+	void empty(Iterator& iter) {}
+
+	const Int& idx() const {
+		return idx_;
+	}
+
+	Int& idx() {
+		return idx_;
+	}
+};
+
+
+
+
+
+template <
+	typename Types
+>
+class SinglePrefixWalkerBase {
+protected:
+	typedef typename Types::Key 												Key;
+	typedef Iter<typename Types::IterTypes> 									Iterator;
+	typedef Ctr<typename Types::CtrTypes> 										Container;
+
+	Container& ctr_;
+
+	Int key_num_;
+
+	BigInt prefix_;
+
+	Int idx_;
+
+	WalkDirection direction_;
+
+	Int start_;
+
+public:
+	SinglePrefixWalkerBase(Container& ctr, Int key_num):
+		ctr_(ctr),
+		key_num_(key_num),
+		prefix_(0),
+		idx_(0)
+	{}
+
+	WalkDirection& direction() {
+		return direction_;
+	}
+
+	const Int& start() const {
+		return start_;
+	}
+
+	Int& start() {
+		return start_;
+	}
+
+	void finish(Int idx, Iterator& iter)
+	{
+		iter.key_idx() = idx;
+
+		ctr_.finishPathStep(iter.path(), iter.key_idx());
+	}
+
+	void empty(Iterator& iter) {}
+
+	const Int& idx() const {
+		return idx_;
+	}
+
+	Int& idx() {
+		return idx_;
+	}
+
+	BigInt prefix() const {
+		return prefix_;
+	}
+};
+
+
+
+
+template <
+	typename Types
+>
+class SequenceSkipFWWalker: public SinglePrefixWalkerBase<Types> {
+protected:
+	typedef SinglePrefixWalkerBase<Types>										Base;
+	typedef typename Types::Key 												Key;
+	typedef typename Base::Iterator 											Iterator;
+	typedef typename Base::Container 											Container;
+
+	BigInt key_;
+
+public:
+	SequenceSkipFWWalker(Container& ctr, Int key_num, BigInt key):
+		Base(ctr, key_num), key_(key)
+	{}
+
+	template <typename Node>
+	void operator()(const Node* node)
+	{
+		typedef typename Node::Map Map;
+
+		const Map& map = node->map();
+
+		Base::idx_ = map.findSumPositionFwLT(Base::key_num_, Base::start_, key_ - Base::prefix_, Base::prefix_);
+
+		if (Base::idx_ == map.size() && Base::direction_ == WalkDirection::DOWN)
+		{
+			Base::prefix_ -= map.key(Base::key_num_, map.size() - 1);
+			Base::idx_--;
+		}
+	}
+};
+
+
+template <
+	typename Types
+>
+class SequenceSkipBWWalker: public SinglePrefixWalkerBase<Types> {
+protected:
+	typedef SinglePrefixWalkerBase<Types>										Base;
+	typedef typename Types::Key 												Key;
+	typedef typename Base::Iterator 											Iterator;
+	typedef typename Base::Container 											Container;
+
+	BigInt key_;
+
+public:
+	SequenceSkipBWWalker(Container& ctr, Int key_num, Int key):
+		Base(ctr, key_num), key_(key)
+	{}
+
+	template <typename Node>
+	void operator()(const Node* node)
+	{
+		typedef typename Node::Map Map;
+
+		const Map& map = node->map();
+
+		Base::idx_ = map.findSumPositionBwLE(Base::key_num_, Base::start_, key_ - Base::prefix_, Base::prefix_);
+
+		if (Base::idx_ == -1 && Base::direction_ == WalkDirection::DOWN)
+		{
+			Base::prefix_ -= map.key(Base::key_num_, 0);
+			Base::idx_++;
+		}
+	}
+};
+
+
+
 
 
 
 }
 
 
-template <typename Iterator>
-class IDataAdapter: public IData<typename Iterator::ElementType> {
-    typedef typename Iterator::ElementType T;
 
-    Iterator    iter_;
-    BigInt      length_;
-
-    BigInt      start_  = 0;
-
-public:
-    IDataAdapter(IDataAdapter<Iterator>&& other):
-        iter_(std::move(other.iter_)), length_ (other.length_), start_(other.start_) {}
-
-    IDataAdapter(const IDataAdapter<Iterator>& other):
-            iter_(other.iter_), length_ (other.length_), start_(other.start_) {}
-
-    IDataAdapter(const Iterator& iter, BigInt length): iter_(iter)
-    {
-        BigInt pos  = iter_.pos();
-        BigInt size = iter_.model().size();
-
-        if (length != -1 && (pos + length <= size))
-        {
-            length_ = length;
-        }
-        else {
-            length_ = size - pos;
-        }
-    }
-
-    virtual SizeT skip(SizeT length)
-    {
-        BigInt delta = iter_.skip(length);
-        start_ += delta;
-        return delta;
-    }
-
-    virtual SizeT getStart() const
-    {
-        return start_;
-    }
-
-    virtual SizeT getRemainder() const
-    {
-        return length_ - start_;
-    }
-
-    virtual SizeT getSize() const
-    {
-        return length_;
-    }
-
-    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
-    {
-        return 0;
-    }
-
-    virtual SizeT get(T* buffer, SizeT start, SizeT length)
-    {
-        auto& data  = iter_.data();
-        Int pos     = iter_.dataPos();
-        BigInt size = data->getMaxCapacity() - pos;
-
-        if (length > size)
-        {
-            length = size;
-        }
-
-        CopyBuffer(data->values() + pos, buffer + start, length);
-
-        return skip(length);
-    }
-
-    virtual void reset()
-    {
-        iter_.skip(-start_);
-        start_ = 0;
-    }
-};
 
 }
 

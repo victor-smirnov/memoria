@@ -11,6 +11,7 @@
 
 #include <memoria/prototypes/sequence/names.hpp>
 #include <memoria/prototypes/sequence/tools.hpp>
+#include <memoria/prototypes/sequence/sequence_walkers.hpp>
 #include <memoria/core/container/iterator.hpp>
 
 #include <memoria/core/tools/walkers.hpp>
@@ -23,7 +24,7 @@
 namespace memoria    {
 
 using namespace memoria::btree;
-
+using namespace memoria::sequence;
 
 MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
 
@@ -154,7 +155,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
    	void assignElement(const ElementType& value)
    	{
    		me()->data().update();
-   		me()->data()->data().value(me()->dataPos()) = value;
+   		me()->data()->sequence().value(me()->dataPos()) = value;
    	}
 
    	MEMORIA_PUBLIC void remove(BigInt length)
@@ -281,119 +282,124 @@ BigInt M_TYPE::skip(BigInt distance)
     }
 }
 
-MEMORIA_PUBLIC M_PARAMS
+M_PARAMS
 BigInt M_TYPE::skipFw(BigInt distance)
 {
-    //FIXME: handle START properly
-    if (me()->isNotEmpty())
-    {
-        Int     data_size   = me()->data()->size();
-        Int     data_pos    = me()->dataPos();
-        BigInt  pos         = me()->pos();
+	MyType& iter = *me();
 
-        if (distance + data_pos <= data_size)
-        {
-            // A trivial case when the offset is within current data page
+	if (iter.isNotEmpty())
+	{
+		BigInt data_pos 	= iter.dataPos();
+		BigInt first_size   = iter.data()->size();
 
-            // we need to check for EOF if a data page
-            // is the last one in the index node
-            if (distance + data_pos == data_size)
-            {
-                if (me()->nextKey())
-                {
-                    // do nothing
-                }
-                else {
-                    // Eof
-                    me()->prevKey();
-                    me()->dataPos() = me()->data()->size();
-                }
-            }
-            else {
-                me()->dataPos() += distance;
-            }
-        }
-        else
-        {
-            SumTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
+		if (data_pos + distance < first_size)
+		{
+			iter.dataPos() += distance;
 
-            bool end = me()->model().walkFw(me()->path(), me()->key_idx(), walker);
+			return distance;
+		}
+		else {
+			BigInt prefix = iter.prefix(0) + first_size;
 
-            me()->model().finishPathStep(me()->path(), me()->key_idx());
+			BigInt start  = first_size - data_pos;
+			BigInt target = distance - start;
 
-            if (end)
-            {
-                me()->dataPos()     = me()->data()->size();
+			SequenceSkipFWWalker<Types> walker(iter.model(), 0, target);
 
-                me()->cache().setup(pos + (walker.sum() - data_pos) - me()->dataPos(), 0);
+			Int idx = iter.model().findFw(iter.path(), iter.key_idx() + 1, walker);
 
-                return walker.sum() - data_pos;
-            }
-            else {
+			if (idx < iter.page()->children_count())
+			{
+				walker.finish(idx, iter);
+				iter.cache().setup(prefix + walker.prefix(), 0);
 
-                me()->dataPos()     = walker.remainder();
+				BigInt remainder = target - walker.prefix();
 
-                me()->cache().setup(pos + distance - me()->dataPos(), 0);
-            }
-        }
+				const DataPage* data = iter.data().page();
 
-        //FIXME: return true distance
-        return distance;
-    }
-    else {
-        return 0;
-    }
+				if (remainder < data->size())
+				{
+					iter.dataPos() = remainder;
+				}
+				else {
+					iter.dataPos() = data->size();
+				}
+
+				return start + walker.prefix() + remainder;
+			}
+			else {
+				walker.finish(iter.page()->children_count() - 1, iter);
+				iter.dataPos() = iter.data()->size();
+				iter.cache().setup(prefix + walker.prefix() - iter.dataPos(), 0);
+
+				return start;
+			}
+		}
+	}
+
+	return 0;
 }
+
+
+
 
 
 MEMORIA_PUBLIC M_PARAMS
 BigInt M_TYPE::skipBw(BigInt distance)
 {
-    //FIXME: handle EOF properly
-    if (me()->isNotEmpty())
-    {
-        BigInt pos = me()->pos();
+	MyType& iter = *me();
 
-        Int idx = me()->dataPos();
+	if (iter.isNotEmpty())
+	{
+		Int data_pos  = iter.dataPos();
 
-        if (distance <= idx)
-        {
-            // A trivial case when the offset is within current data page
-            // we need to check for START if a data page
-            // is the first in the index node
-            me()->dataPos()     -= distance;
-        }
-        else
-        {
-            Int data_size   = me()->data()->size();
-            Int to_add      = data_size - idx;
-            SumTreeWalker<Container, Key, false> walker(distance + to_add, me()->model());
+		if (data_pos - distance >= 0)
+		{
+			iter.dataPos() -= distance;
+			return distance;
+		}
+		else {
+			BigInt prefix = iter.prefix(0);
+			BigInt target = distance - data_pos;
 
-            //FIXME: does 'end' means the same as for StepFw()?
-            bool end        = me()->model().walkBw(me()->path(), me()->key_idx(), walker);
+			SequenceSkipBWWalker<Types> walker(iter.model(), 0, target);
 
-            me()->model().finishPathStep(me()->path(), me()->key_idx());
+			Int idx = iter.model().findBw(iter.path(), iter.key_idx() - 1, walker);
 
-            if (end)
-            {
-                me()->dataPos()     = 0;
+			if (idx >= 0)
+			{
+				walker.finish(idx, iter);
 
-                me()->cache().setup(0, 0);
+				const DataPage* data = iter.data().page();
 
-                return walker.sum() - to_add;
-            }
-            else {
-                me()->dataPos()     = me()->data()->size() - walker.remainder();
+				Int data_size = data->size();
 
-                me()->cache().setup((pos - distance) - me()->dataPos(), 0);
-            }
-        }
+				BigInt prefix_len = prefix - walker.prefix() - data_size;
+				iter.cache().setup(prefix_len, 0);
 
-        return distance;
-    }
-    else {
-        return 0;
-    }
+				BigInt remainder = target - walker.prefix();
+
+				if (remainder <= data_size)
+				{
+					iter.dataPos() = data_size - remainder;
+				}
+				else {
+					iter.dataPos() = -1;
+				}
+
+				return data_pos + walker.prefix() + remainder;
+			}
+			else {
+				walker.finish(0, iter);
+				iter.dataPos() = -1;
+				iter.cache().setup(0, 0);
+
+				return data_pos;
+			}
+		}
+	}
+
+	return 0;
 }
 
 

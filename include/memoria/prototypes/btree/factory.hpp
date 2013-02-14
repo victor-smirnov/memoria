@@ -21,7 +21,6 @@
 #include <memoria/prototypes/btree/container/btree_c_checks.hpp>
 #include <memoria/prototypes/btree/container/btree_c_insert.hpp>
 #include <memoria/prototypes/btree/container/btree_c_remove.hpp>
-#include <memoria/prototypes/btree/container/btree_c_walk.hpp>
 #include <memoria/prototypes/btree/container/btree_c_find.hpp>
 
 #include <memoria/prototypes/templates/container/allocator.hpp>
@@ -51,8 +50,7 @@ struct BTreeTypes {
             memoria::btree::ChecksName,
             memoria::btree::InsertBatchName,
             memoria::btree::RemoveName,
-            memoria::btree::FindName,
-            memoria::btree::WalkName
+            memoria::btree::FindName
     >                                                                           ContainerPartsList;
 
     typedef TypeList<>                                                          BasePagePartsList;

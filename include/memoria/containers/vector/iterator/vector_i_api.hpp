@@ -191,9 +191,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::mvector::IteratorContainerAPIName)
         me()->model().removeDataBlock(*me(), to);
     }
 
-    BigInt skip(BigInt distance);
-    BigInt skipFw(BigInt distance);
-    BigInt skipBw(BigInt distance);
+//    BigInt skip(BigInt distance);
+//    BigInt skipFw(BigInt distance);
+//    BigInt skipBw(BigInt distance);
 
     MEMORIA_PUBLIC void dumpKeys(ostream& out)
     {
@@ -291,134 +291,134 @@ void M_TYPE::update(IDataType& data)
 
 
 
-MEMORIA_PUBLIC M_PARAMS
-BigInt M_TYPE::skip(BigInt distance)
-{
-    if (distance > 0)
-    {
-        return skipFw(distance);
-    }
-    else {
-        return skipBw(-distance);
-    }
-}
+//MEMORIA_PUBLIC M_PARAMS
+//BigInt M_TYPE::skip(BigInt distance)
+//{
+//    if (distance > 0)
+//    {
+//        return skipFw(distance);
+//    }
+//    else {
+//        return skipBw(-distance);
+//    }
+//}
 
-MEMORIA_PUBLIC M_PARAMS
-BigInt M_TYPE::skipFw(BigInt distance)
-{
-
-
-    //FIXME: handle START properly
-    if (me()->isNotEmpty())
-    {
-        Int     data_size   = me()->data()->size();
-        Int     data_pos    = me()->dataPos();
-        BigInt  pos         = me()->pos();
-
-        if (distance + data_pos <= data_size)
-        {
-            // A trivial case when the offset is within current data page
-
-            // we need to check for EOF if a data page
-            // is the last one in the index node
-            if (distance + data_pos == data_size)
-            {
-                if (me()->nextKey())
-                {
-                    // do nothing
-                }
-                else {
-                    // Eof
-                    me()->prevKey();
-                    me()->dataPos() = me()->data()->size();
-                }
-            }
-            else {
-                me()->dataPos() += distance;
-            }
-        }
-        else
-        {
-            SumTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
-
-            bool end = me()->model().walkFw(me()->path(), me()->key_idx(), walker);
-
-            me()->model().finishPathStep(me()->path(), me()->key_idx());
-
-            if (end)
-            {
-                me()->dataPos()     = me()->data()->size();
-
-                me()->cache().setup(pos + (walker.sum() - data_pos) - me()->dataPos(), 0);
-
-                return walker.sum() - data_pos;
-            }
-            else {
-
-                me()->dataPos()     = walker.remainder();
-
-                me()->cache().setup(pos + distance - me()->dataPos(), 0);
-            }
-        }
-
-        //FIXME: return true distance
-        return distance;
-    }
-    else {
-        return 0;
-    }
-}
-
-
-MEMORIA_PUBLIC M_PARAMS
-BigInt M_TYPE::skipBw(BigInt distance)
-{
-    //FIXME: handle EOF properly
-    if (me()->isNotEmpty())
-    {
-        BigInt pos = me()->pos();
-
-        Int idx = me()->dataPos();
-
-        if (distance <= idx)
-        {
-            // A trivial case when the offset is within current data page
-            // we need to check for START if a data page
-            // is the first in the index node
-            me()->dataPos()     -= distance;
-        }
-        else
-        {
-            Int data_size   = me()->data()->size();
-            Int to_add      = data_size - idx;
-            SumTreeWalker<Container, Key, false> walker(distance + to_add, me()->model());
-
-            //FIXME: does 'end' means the same as for StepFw()?
-            bool end        = me()->model().walkBw(me()->path(), me()->key_idx(), walker);
-
-            me()->model().finishPathStep(me()->path(), me()->key_idx());
-
-            if (end)
-            {
-                me()->dataPos()     = 0;
-
-                me()->cache().setup(0, 0);
-
-                return walker.sum() - to_add;
-            }
-            else {
-                me()->dataPos()     = me()->data()->size() - walker.remainder();
-
-                me()->cache().setup((pos - distance) - me()->dataPos(), 0);
-            }
-        }
-
-        return distance;
-    }
-    else {
-        return 0;
-    }
-}
+//MEMORIA_PUBLIC M_PARAMS
+//BigInt M_TYPE::skipFw(BigInt distance)
+//{
+//
+//
+//    //FIXME: handle START properly
+//    if (me()->isNotEmpty())
+//    {
+//        Int     data_size   = me()->data()->size();
+//        Int     data_pos    = me()->dataPos();
+//        BigInt  pos         = me()->pos();
+//
+//        if (distance + data_pos <= data_size)
+//        {
+//            // A trivial case when the offset is within current data page
+//
+//            // we need to check for EOF if a data page
+//            // is the last one in the index node
+//            if (distance + data_pos == data_size)
+//            {
+//                if (me()->nextKey())
+//                {
+//                    // do nothing
+//                }
+//                else {
+//                    // Eof
+//                    me()->prevKey();
+//                    me()->dataPos() = me()->data()->size();
+//                }
+//            }
+//            else {
+//                me()->dataPos() += distance;
+//            }
+//        }
+//        else
+//        {
+//            SumTreeWalker<Container, Key, true> walker(distance + data_pos, me()->model());
+//
+//            bool end = me()->model().walkFw(me()->path(), me()->key_idx(), walker);
+//
+//            me()->model().finishPathStep(me()->path(), me()->key_idx());
+//
+//            if (end)
+//            {
+//                me()->dataPos()     = me()->data()->size();
+//
+//                me()->cache().setup(pos + (walker.sum() - data_pos) - me()->dataPos(), 0);
+//
+//                return walker.sum() - data_pos;
+//            }
+//            else {
+//
+//                me()->dataPos()     = walker.remainder();
+//
+//                me()->cache().setup(pos + distance - me()->dataPos(), 0);
+//            }
+//        }
+//
+//        //FIXME: return true distance
+//        return distance;
+//    }
+//    else {
+//        return 0;
+//    }
+//}
+//
+//
+//MEMORIA_PUBLIC M_PARAMS
+//BigInt M_TYPE::skipBw(BigInt distance)
+//{
+//    //FIXME: handle EOF properly
+//    if (me()->isNotEmpty())
+//    {
+//        BigInt pos = me()->pos();
+//
+//        Int idx = me()->dataPos();
+//
+//        if (distance <= idx)
+//        {
+//            // A trivial case when the offset is within current data page
+//            // we need to check for START if a data page
+//            // is the first in the index node
+//            me()->dataPos()     -= distance;
+//        }
+//        else
+//        {
+//            Int data_size   = me()->data()->size();
+//            Int to_add      = data_size - idx;
+//            SumTreeWalker<Container, Key, false> walker(distance + to_add, me()->model());
+//
+//            //FIXME: does 'end' means the same as for StepFw()?
+//            bool end        = me()->model().walkBw(me()->path(), me()->key_idx(), walker);
+//
+//            me()->model().finishPathStep(me()->path(), me()->key_idx());
+//
+//            if (end)
+//            {
+//                me()->dataPos()     = 0;
+//
+//                me()->cache().setup(0, 0);
+//
+//                return walker.sum() - to_add;
+//            }
+//            else {
+//                me()->dataPos()     = me()->data()->size() - walker.remainder();
+//
+//                me()->cache().setup((pos - distance) - me()->dataPos(), 0);
+//            }
+//        }
+//
+//        return distance;
+//    }
+//    else {
+//        return 0;
+//    }
+//}
 
 
 #undef M_TYPE

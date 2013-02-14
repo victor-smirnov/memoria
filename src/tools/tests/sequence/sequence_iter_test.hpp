@@ -11,6 +11,7 @@
 #include <memoria/tools/tests.hpp>
 
 #include <vector>
+#include <functional>
 
 namespace memoria {
 
@@ -36,16 +37,23 @@ class SequenceIteratorTest: public SPTestTask{
 
     Int ctr_name_;
 
+    BigInt size2_;
+
+    typedef std::function<void (MyType*, Iterator)> SkipFn;
 
 public:
     SequenceIteratorTest(StringRef name):
         Base(name)
     {
-        Base::size_ = 2048*1024;
+        size2_ = Base::size_ = 2048*1024;
+
+        MEMORIA_ADD_TEST_PARAM(size2_);
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
 
-        MEMORIA_ADD_TEST(runIteratorTest);
+        MEMORIA_ADD_TEST(runRangeTest);
+        MEMORIA_ADD_TEST(runSkipFwTest);
+        MEMORIA_ADD_TEST(runSkipBwTest);
     }
 
     void fillRandom(Ctr& ctr, Int size)
@@ -63,7 +71,7 @@ public:
     }
 
 
-    void runIteratorTest(ostream& out)
+    void runRangeTest(ostream& out)
     {
     	DefaultLogHandlerImpl logHandler(out);
     	Allocator allocator;
@@ -84,6 +92,8 @@ public:
     		fillRandom(ctr, size);
 
     		allocator.commit();
+
+    		Store(allocator);
 
     		Iterator i1 = ctr.Begin();
     		AssertEQ(MA_SRC, i1.pos(), 0);
@@ -111,6 +121,138 @@ public:
     	}
     	catch (...) {
     		throw;
+    	}
+    }
+
+    BigInt getPrefix(Iterator& iter) {
+    	Accumulator acc;
+    	iter.ComputePrefix(acc);
+
+    	return acc[0];
+    }
+
+    BigInt getPosition(Iterator& iter)
+    {
+    	return getPrefix(iter) + iter.dataPos();
+    }
+
+    void assertIteratorPosition(const char* source, Iterator& iter)
+    {
+    	AssertEQ(source, iter.pos(), getPosition(iter));
+    }
+
+    void assertIteratorEQ(const char* source, Iterator& iter1, Iterator& iter2)
+    {
+    	AssertEQ(source, iter1.pos(), iter2.pos(), SBuf()<<"Positions");
+    	AssertEQ(source, iter1.prefix(), iter2.prefix(), SBuf()<<"Prefixes");
+    	AssertEQ(source, iter1.dataPos(), iter2.dataPos(), SBuf()<<"Local Positions");
+    	AssertEQ(source, iter1.data()->id(), iter2.data()->id(), SBuf()<<"Pages");
+    }
+
+    vector<Int> createPositions(Ctr& ctr)
+    {
+    	vector<Int> v;
+
+    	for (auto iter = ctr.Begin(); !iter.isEnd(); iter.nextKey())
+    	{
+    		Int page_size = iter.data()->size();
+
+    		v.push_back(getPosition(iter));
+
+    		iter.skip(page_size/2);
+    		v.push_back(getPosition(iter));
+
+    		iter.skip(page_size - page_size/2 - 1);
+    		v.push_back(getPosition(iter));
+    	}
+
+    	return v;
+    }
+
+
+
+
+    void runSkipFwTest(ostream& out)
+    {
+    	DefaultLogHandlerImpl logHandler(out);
+    	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+
+    	Ctr ctr(&allocator);
+    	ctr_name_ = ctr.name();
+
+    	fillRandom(ctr, Base::size_);
+
+    	vector<Int> positions = createPositions(ctr);
+
+    	positions.push_back(ctr.size());
+
+    	for (UInt start = 0; start < positions.size(); start++)
+    	{
+    		for (UInt end = start; end < positions.size(); end++)
+    		{
+    			Int start_pos = positions[start];
+    			Int end_pos = positions[end];
+
+    			Iterator iter_start = ctr.seek(start_pos);
+
+    			assertIteratorPosition(MA_SRC, iter_start);
+    			AssertEQ(MA_SRC, iter_start.pos(), start_pos);
+
+
+    			Iterator iter = iter_start;
+
+    			iter.skipFw(end_pos - start_pos);
+
+    			assertIteratorPosition(MA_SRC, iter);
+    			AssertEQ(MA_SRC, iter.pos(), end_pos);
+
+    			Iterator iter_end = ctr.seek(end_pos);
+
+    			assertIteratorEQ(MA_SRC, iter, iter_end);
+    		}
+    	}
+    }
+
+
+    void runSkipBwTest(ostream& out)
+    {
+    	DefaultLogHandlerImpl logHandler(out);
+    	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+
+    	Ctr ctr(&allocator);
+    	ctr_name_ = ctr.name();
+
+    	fillRandom(ctr, Base::size_);
+
+    	vector<Int> positions = createPositions(ctr);
+
+    	positions.push_back(ctr.size());
+
+    	for (Int start = positions.size() - 1; start >= 0; start --)
+    	{
+    		for (Int end = start; end >= 0; end--)
+    		{
+    			Int start_pos = positions[start];
+    			Int end_pos = positions[end];
+
+    			Iterator iter_start = ctr.seek(start_pos);
+
+    			assertIteratorPosition(MA_SRC, iter_start);
+    			AssertEQ(MA_SRC, iter_start.pos(), start_pos);
+
+    			Iterator iter = iter_start;
+
+    			iter.skipBw(start_pos - end_pos);
+
+    			assertIteratorPosition(MA_SRC, iter);
+    			AssertEQ(MA_SRC, iter.pos(), end_pos);
+
+    			Iterator iter_end = ctr.seek(end_pos);
+
+    			assertIteratorEQ(MA_SRC, iter, iter_end);
+    		}
     	}
     }
 };

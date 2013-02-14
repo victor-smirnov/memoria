@@ -83,7 +83,7 @@ struct BTreeTypes<Profile, memoria::ASequence>: public BTreeTypes<Profile, memor
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-    	typedef BTreeIteratorPrefixCache<Iterator, Container> Type;
+    	typedef BTreeIteratorScalarPrefixCache<Iterator, Container> Type;
     };
 
     typedef SequenceMetadata<typename Base::ID>                                 Metadata;

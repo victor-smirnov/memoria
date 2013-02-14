@@ -69,8 +69,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vector_map::CtrApiName)
     {
         auto is_iter = me()->set().findLE(key, 0);  // FIXME check for bounds (for_insert)
 
-        is_iter.init();
-
         BigInt  data_pos    = is_iter.prefix(1);
         bool    end         = is_iter.isEnd();
         bool    exists      = end ? false : (is_iter.getKey(0) == key);

@@ -162,9 +162,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btree::IteratorAPIName)
         me()->model().updateUp(me()->path(), 0, me()->key_idx(), keys);
     }
 
-    void init() {
-        Base::init();
-    }
+//    void init() {
+//        Base::init();
+//    }
 
     bool IsFound() {
         return (!me()->isEnd()) && me()->isNotEmpty();

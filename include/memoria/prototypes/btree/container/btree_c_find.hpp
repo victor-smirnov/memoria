@@ -41,6 +41,12 @@ public:
     template <typename Walker>
     Iterator find0(Walker& walker);
 
+    template <typename Walker>
+    Int findFw(TreePath& path, Int idx, Walker &walker, Int level = 0);
+
+    template <typename Walker>
+    Int findBw(TreePath& path, Int idx, Walker &walker, Int level = 0);
+
     MEMORIA_PUBLIC MEMORIA_DEPRECATED BigInt getSize() const
     {
         return me()->getTotalKeyCount();
@@ -101,66 +107,15 @@ MEMORIA_CONTAINER_PART_END
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::btree::FindName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
-//M_PARAMS
-//template <typename Comparator>
-//const typename M_TYPE::Iterator M_TYPE::_find(Key key, Int block_num)
-//{
-//    MEMORIA_ASSERT(block_num, >=, 0)
-//
-//    NodeBaseG node = me()->getRoot(Allocator::READ);
-//
-//    if (node->children_count() > 0)
-//    {
-//        Comparator cmp(block_num);
-//
-//        CheckBoundsFn<Comparator> bounds_fn(cmp, key);
-//        NodeDispatcher::DispatchConst(node, bounds_fn);
-//
-//        if (bounds_fn.within_ranges())
-//        {
-//            FindFn<Comparator> fn(cmp, key, node, *me());
-//
-//            while(1)
-//            {
-//                NodeDispatcher::Dispatch(node, fn);
-//
-//                if (fn.end_)
-//                {
-//                    if (fn.found_)
-//                    {
-//                        fn.i_.key_idx() = fn.idx_;
-//
-//                        me()->finishPathStep(fn.i_.path(), fn.i_.key_idx());
-//
-//                        cmp.setupIterator(fn.i_);
-//
-//                        return fn.i_;
-//                    }
-//                    else
-//                    {
-//                        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't find key: "<<key);
-//                    }
-//                }
-//                else
-//                {
-//                    node = fn.node();
-//                    cmp.AdjustKey(key);
-//                }
-//            }
-//        }
-//        else {
-//            return me()->End();
-//        }
-//    }
-//    else {
-//        return me()->End();
-//    }
-//}
+
 
 M_PARAMS
 template <typename Walker>
 typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 {
+	walker.start() 		= 0;
+	walker.direction() 	= WalkDirection::DOWN;
+
 	NodeBaseG node = me()->getRoot(Allocator::READ);
 	if (node.isSet())
 	{
@@ -173,16 +128,14 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 			while (!node->is_leaf())
 			{
 				NodeDispatcher::DispatchConst(node, walker);
-				Int idx = walker.idx();
 
-				idx = walker.checkIdxBounds(idx, node.page());
+				Int idx = walker.idx();
 
 				node = me()->getChild(node, idx, Allocator::READ);
 				i.setNode(node, idx);
 			}
 
-
-			NodeDispatcher::Dispatch(node, walker);
+			NodeDispatcher::DispatchConst(node, walker);
 
 			Int idx = walker.idx();
 			walker.finish(idx, i);
@@ -198,67 +151,127 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 	}
 }
 
+M_PARAMS
+template <typename Walker>
+Int M_TYPE::findFw(TreePath& path, Int idx, Walker &walker, Int level)
+{
+	NodeBaseG node = path[level].node();
+
+	if (node->is_root())
+	{
+		walker.direction() 	= WalkDirection::DOWN;
+	}
+	else {
+		walker.direction() 	= WalkDirection::UP;
+	}
+
+	walker.idx() = walker.start() = idx;
+
+	if (idx < node->children_count())
+	{
+		NodeDispatcher::DispatchConst(node, walker);
+	}
+
+	if (walker.idx() >= node->children_count())
+	{
+		if (!node->is_root())
+		{
+			// Step up the tree
+			Int child_idx = findFw(path, path[level].parent_idx() + 1, walker, level + 1);
+
+			if (child_idx < path[level + 1].node()->children_count())
+			{
+				// Step down the tree
+				NodeBaseG child_node		= me()->getChild(path[level + 1].node(), child_idx, Allocator::READ);
+
+				path[level].node() 			= child_node;
+				path[level].parent_idx()	= child_idx;
+
+				NodeDispatcher::DispatchConst(child_node, walker);
+
+				return walker.idx();
+			}
+			else {
+				return path[level].node()->children_count();
+			}
+		}
+		else {
+			walker.direction() 	= WalkDirection::DOWN;
+			walker.start() 		= 0;
+
+			return walker.idx();
+		}
+	}
+	else {
+		walker.direction() 	= WalkDirection::DOWN;
+		walker.start() 		= 0;
+
+		return walker.idx();
+	}
+}
 
 
-//M_PARAMS
-//typename M_TYPE::Iterator M_TYPE::findStart(bool reverse)
-//{
-//    NodeBaseG node = me()->getRoot(Allocator::READ);
-//    if (node.isSet())
-//    {
-//        Iterator i(*me(), node->level() + 1);
-//
-//        i.setNode(node, 0);
-//
-//        while(!node->is_leaf())
-//        {
-//            node = me()->getChild(node, 0, Allocator::READ);
-//
-//            i.setNode(node, 0);
-//        }
-//
-//        i.key_idx() = reverse ? -1 : 0;
-//
-//        i.init();
-//
-//        return i;
-//    }
-//    else {
-//        return Iterator(*me());
-//    }
-//}
+M_PARAMS
+template <typename Walker>
+Int M_TYPE::findBw(TreePath& path, Int idx, Walker &walker, Int level)
+{
+	NodeBaseG node = path[level].node();
 
+	if (node->is_root())
+	{
+		walker.direction() 	= WalkDirection::DOWN;
+	}
+	else {
+		walker.direction() 	= WalkDirection::UP;
+	}
 
-//M_PARAMS
-//typename M_TYPE::Iterator M_TYPE::findEnd(bool reverse)
-//{
-//    NodeBaseG node = me()->getRoot(Allocator::READ);
-//    if (node.isSet())
-//    {
-//        Iterator i(*me(), node->level() + 1);
-//
-//        i.setNode(node, 0);
-//
-//        while(!node->is_leaf())
-//        {
-//            Int parent_idx = node->children_count() - 1;
-//
-//            node = me()->getLastChild(node, Allocator::READ);
-//
-//            i.setNode(node, parent_idx);
-//        }
-//
-//        i.key_idx() = i.page()->children_count() + (reverse ? -1 : 0);
-//
-//        i.init();
-//
-//        return i;
-//    }
-//    else {
-//        return Iterator(*me());
-//    }
-//}
+	walker.idx() = walker.start() = idx;
 
+	if (idx >= 0)
+	{
+		NodeDispatcher::DispatchConst(node, walker);
+	}
+
+	if (walker.idx() < 0)
+	{
+		if (!node->is_root())
+		{
+			// Step up the tree
+			Int child_idx			= findBw(path, path[level].parent_idx() - 1, walker, level + 1);
+
+			if (child_idx >= 0)
+			{
+				// Step down the tree
+				NodeBaseG child_node		= me()->getChild(path[level + 1].node(), child_idx, Allocator::READ);
+
+				path[level].node() 			= child_node;
+				path[level].parent_idx()	= child_idx;
+
+				walker.start() 				= child_node->children_count() - 1;
+
+				NodeDispatcher::DispatchConst(child_node, walker);
+
+				return walker.idx();
+			}
+			else {
+				return -1;
+			}
+		}
+		else if (node->is_leaf())
+		{
+			return walker.idx();
+		}
+		else {
+			return -1;
+		}
+	}
+	else {
+		walker.direction() 	= WalkDirection::DOWN;
+		walker.start() 		= 0;
+
+		return walker.idx();
+	}
+}
 
 
 

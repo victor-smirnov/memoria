@@ -65,24 +65,24 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
 
 
 
-    template <typename Types>
-    using FindLTWalker 		= ::memoria::bstree::FindLTWalker<Types>;
-
-    template <typename Types>
-    using FindLEWalker 		= ::memoria::bstree::FindLEWalker<Types>;
-
-
-    template <typename Types>
-    using FindBeginWalker 	= ::memoria::bstree::FindBeginWalker<Types>;
-
-    template <typename Types>
-    using FindEndWalker 	= ::memoria::bstree::FindEndWalker<Types>;
-
-    template <typename Types>
-    using FindRBeginWalker 	= ::memoria::bstree::FindRBeginWalker<Types>;
-
-    template <typename Types>
-    using FindREndWalker 	= ::memoria::bstree::FindREndWalker<Types>;
+//    template <typename Types>
+//    using FindLTWalker 		= ::memoria::bstree::FindLTWalker<Types>;
+//
+//    template <typename Types>
+//    using FindLEWalker 		= ::memoria::bstree::FindLEWalker<Types>;
+//
+//
+//    template <typename Types>
+//    using FindBeginWalker 	= ::memoria::bstree::FindBeginWalker<Types>;
+//
+//    template <typename Types>
+//    using FindEndWalker 	= ::memoria::bstree::FindEndWalker<Types>;
+//
+//    template <typename Types>
+//    using FindRBeginWalker 	= ::memoria::bstree::FindRBeginWalker<Types>;
+//
+//    template <typename Types>
+//    using FindREndWalker 	= ::memoria::bstree::FindREndWalker<Types>;
 };
 
 

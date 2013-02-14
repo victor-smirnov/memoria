@@ -7,67 +7,107 @@
 #ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_WALKERS_HPP
 #define _MEMORIA_CONTAINERS_SEQ_DENSE_WALKERS_HPP
 
+#include <memoria/prototypes/sequence/sequence_walkers.hpp>
 
 namespace memoria {
 
-template <typename Key, bool Forward = true>
-class SelectWalker {
+using namespace sequence;
+
+template <
+	typename Types,
+	template <typename, typename> class Comparator
+>
+class SequenceFWWalker: public MultiPrefixWalkerBase<Types> {
+protected:
+	typedef MultiPrefixWalkerBase<Types>											Base;
+	typedef typename Types::Key 												Key;
+	typedef typename Base::Iterator 											Iterator;
+	typedef typename Base::Container 											Container;
+
+
 public:
-    Key sum_;
-    Key target_;
-    Int key_num_;
+	SequenceFWWalker(Container& ctr, Key key, Int key_count, const Int* key_nums, Key* prefixes):
+		Base(ctr, key, key_count, key_nums, prefixes)
+	{}
 
-    Key distance_;
+	template <typename Node>
+	void operator()(const Node* node)
+	{
+		typedef typename Node::Map Map;
 
-public:
-    SelectWalker(Key target, Key distance, Int key_num = 0):
-    	sum_(0),
-    	target_(target),
-    	key_num_(key_num),
-    	distance_(distance) {}
+		const Map& map = node->map();
 
-    Key remainder() const
-    {
-        return target_ - sum_;
-    }
+		FindSumPositionFwCompoundFn<Map, Comparator> fn(
+				map, Base::key_count_, Base::key_nums_, Base::prefixes_, Base::key_ - Base::prefixes_[0]);
 
-    Key rank() const
-    {
-        return sum_;
-    }
+		if (Base::start_ == 0)
+		{
+			Base::idx_ = map.find(fn);
+		}
+		else
+		{
+			Base::idx_ = map.walkFw(Base::start_, fn);
+		}
 
-    Key distance() const
-    {
-    	return distance_;
-    }
+		if (Base::idx_ == map.size() && Base::direction_ == WalkDirection::DOWN)
+		{
+			for (Int c = 0; c < Base::key_count_; c++)
+			{
+				Base::prefixes_[c] -= map.key(Base::key_nums_[c], map.size() - 1);
+			}
 
-    template <typename Node>
-    Int operator()(Node *node, Int idx)
-    {
-        if (Forward)
-        {
-            Int position = node->map().findSumPositionFwLE(key_num_, idx, target_ - sum_, sum_);
-
-            node->map().sum(0, idx, position, distance_);
-
-            if (position < node->children_count())
-            {
-            	return position;
-            }
-            else {
-                return -1;
-            }
-        }
-        else
-        {
-        	Int position = node->map().findSumPositionBwLE(key_num_, idx, target_ - sum_, sum_);
-
-        	node->map().sum(0, position + 1, idx + 1, distance_);
-
-        	return position;
-        }
-    }
+			Base::idx_--;
+		}
+	}
 };
+
+
+
+template <
+	typename Types,
+	template <typename, typename> class Comparator
+>
+class SequenceBWWalker: public MultiPrefixWalkerBase<Types> {
+protected:
+	typedef MultiPrefixWalkerBase<Types>											Base;
+	typedef typename Types::Key 												Key;
+	typedef typename Base::Iterator 											Iterator;
+	typedef typename Base::Container 											Container;
+
+
+public:
+	SequenceBWWalker(Container& ctr, Key key, Int key_count, const Int* key_nums, Key* prefixes):
+		Base(ctr, key, key_count, key_nums, prefixes)
+	{}
+
+	template <typename Node>
+	void operator()(const Node* node)
+	{
+		typedef typename Node::Map Map;
+
+		const Map& map = node->map();
+
+		FindSumPositionBwCompoundFn<Map, Comparator> fn(
+				map, Base::key_count_, Base::key_nums_, Base::prefixes_, Base::key_ - Base::prefixes_[0]);
+
+		Base::idx_ = map.walkBw(Base::start_, fn);
+
+		if (Base::idx_ == -1 && Base::direction_ == WalkDirection::DOWN)
+		{
+			for (Int c = 0; c < Base::key_count_; c++)
+			{
+				Base::prefixes_[c] -= map.key(Base::key_nums_[c], 0);
+			}
+
+			Base::idx_++;
+		}
+	}
+};
+
+
+
+
+
 
 
 
@@ -219,64 +259,88 @@ public:
 };
 
 
-template <typename Key, bool Forward = true>
-class CountWalker {
-public:
-    Key sum_;
-    Int key_num_;
+
+
+
+
+
+
+
+template <
+	typename Types
+>
+class SequenceCountFWWalker: public SinglePrefixWalkerBase<Types> {
+protected:
+	typedef SinglePrefixWalkerBase<Types>										Base;
+	typedef typename Types::Key 												Key;
+	typedef typename Base::Iterator 											Iterator;
+	typedef typename Base::Container 											Container;
 
 
 public:
-    CountWalker(Int key_num):
-    	sum_(0),
-    	key_num_(key_num)
-    {}
+	SequenceCountFWWalker(Container& ctr, Int key_num):
+		Base(ctr, key_num)
+	{}
 
-    Key sum() const
-    {
-        return sum_;
-    }
+	template <typename Node>
+	void operator()(const Node* node)
+	{
+		typedef typename Node::Map Map;
 
-    Key rank() const
-    {
-        return sum_;
-    }
+		const Map& map = node->map();
 
+		BSTreeCountFWWalker<typename Node::Map> walker(map, Base::key_num_);
 
-    template <typename Node>
-    Int operator()(Node *node, Int idx)
-    {
-        if (Forward)
-        {
-            BSTreeCountFWWalker<typename Node::Map> walker(node->map(), key_num_);
+		Base::idx_ = map.walkFw(Base::start_, walker);
 
-        	Int position = node->map().walkFw(idx, walker);
+		Base::prefix_ += walker.rank();
 
-        	sum_ += walker.rank();
+		if (Base::idx_ == map.size() && Base::direction_ == WalkDirection::DOWN)
+		{
+			Base::prefix_ -= map.key(Base::key_num_, map.size() - 1);
+			Base::idx_--;
+		}
 
-            if (position < node->children_count())
-            {
-            	return position;
-            }
-            else {
-                return -1;
-            }
-        }
-        else
-        {
-        	BSTreeCountBWWalker<typename Node::Map> walker(node->map(), key_num_);
-
-        	Int position = node->map().walkBw(idx, walker);
-
-        	sum_ += walker.rank();
-
-        	return position;
-        }
-    }
+	}
 };
 
 
+template <
+	typename Types
+>
+class SequenceCountBWWalker: public SinglePrefixWalkerBase<Types> {
+protected:
+	typedef SinglePrefixWalkerBase<Types>										Base;
+	typedef typename Types::Key 												Key;
+	typedef typename Base::Iterator 											Iterator;
+	typedef typename Base::Container 											Container;
 
+
+public:
+	SequenceCountBWWalker(Container& ctr, Int key_num):
+		Base(ctr, key_num)
+	{}
+
+	template <typename Node>
+	void operator()(const Node* node)
+	{
+		typedef typename Node::Map Map;
+
+		const Map& map = node->map();
+
+		BSTreeCountBWWalker<typename Node::Map> walker(map, Base::key_num_);
+
+		Base::idx_ = map.walkBw(Base::start_, walker);
+
+		Base::prefix_ += walker.rank();
+
+		if (Base::idx_ == -1 && Base::direction_ == WalkDirection::DOWN)
+		{
+			Base::prefix_ -= map.key(Base::key_num_, 0);
+			Base::idx_++;
+		}
+	}
+};
 
 
 }

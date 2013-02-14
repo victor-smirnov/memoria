@@ -9,6 +9,8 @@
 #ifndef _MEMORIA_MODELS_BLOB_MAP_FACTORY_HPP
 #define _MEMORIA_MODELS_BLOB_MAP_FACTORY_HPP
 
+#include <memoria/containers/map/map_walkers.hpp>
+
 #include <memoria/containers/vector_map/names.hpp>
 
 #include <memoria/containers/vector_map/container/vmap_c_base.hpp>
@@ -43,6 +45,27 @@ struct BTreeTypes<Profile, memoria::VMSet<Key, Indexes_> >: public BTreeTypes<Pr
     typedef EmptyValue                                                      Value;
 
     static const Int Indexes                                                = Indexes_;
+
+
+    template <typename Types>
+    using FindLTWalker 		= ::memoria::map::FindLTWalker<Types>;
+
+    template <typename Types>
+    using FindLEWalker 		= ::memoria::map::FindLEWalker<Types>;
+
+
+    template <typename Types>
+    using FindBeginWalker 	= ::memoria::map::FindBeginWalker<Types>;
+
+    template <typename Types>
+    using FindEndWalker 	= ::memoria::map::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker 	= ::memoria::map::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker 	= ::memoria::map::FindREndWalker<Types>;
+
 };
 
 

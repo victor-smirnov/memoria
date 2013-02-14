@@ -10,13 +10,12 @@
 #define _MEMORIA_MODELS_IDX_MAP_NAMES_HPP
 
 namespace memoria    {
-namespace models    {
-namespace idx_map   {
+namespace map 		 {
 
 class CtrApiName {};
 class ItrApiName {};
 
-}
+
 }
 }
 

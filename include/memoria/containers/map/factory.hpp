@@ -9,6 +9,8 @@
 #ifndef _MEMORIA_MODELS_IDX_MAP_FACTORY_HPP
 #define _MEMORIA_MODELS_IDX_MAP_FACTORY_HPP
 
+#include <memoria/containers/map/map_walkers.hpp>
+
 #include <memoria/containers/map/container/map_c_api.hpp>
 #include <memoria/containers/map/iterator/map_i_api.hpp>
 
@@ -31,14 +33,14 @@ struct BTreeTypes<Profile, memoria::Map<Key_, Value_, Indexes_> >: public BTreeT
     typedef typename AppendTool<
             typename Base::ContainerPartsList,
             TypeList<
-                memoria::models::idx_map::CtrApiName
+                memoria::map::CtrApiName
             >
     >::Result                                                               ContainerPartsList;
 
     typedef typename AppendTool<
             typename Base::IteratorPartsList,
             TypeList<
-                memoria::models::idx_map::ItrApiName
+                memoria::map::ItrApiName
             >
     >::Result                                                               IteratorPartsList;
 
@@ -49,6 +51,25 @@ struct BTreeTypes<Profile, memoria::Map<Key_, Value_, Indexes_> >: public BTreeT
     };
 
 
+
+    template <typename Types>
+    using FindLTWalker 		= ::memoria::map::FindLTWalker<Types>;
+
+    template <typename Types>
+    using FindLEWalker 		= ::memoria::map::FindLEWalker<Types>;
+
+
+    template <typename Types>
+    using FindBeginWalker 	= ::memoria::map::FindBeginWalker<Types>;
+
+    template <typename Types>
+    using FindEndWalker 	= ::memoria::map::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker 	= ::memoria::map::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker 	= ::memoria::map::FindREndWalker<Types>;
 };
 
 template <typename Profile, typename Key, typename Value, typename T, Int Indexes>

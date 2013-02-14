@@ -116,11 +116,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bstree::IterApiName)
     }
 
 
-    void init()
-    {
-        ComputeBase();
-        Base::init();
-    }
+//    void init()
+//    {
+//        ComputeBase();
+//        Base::init();
+//    }
 
 private:
     

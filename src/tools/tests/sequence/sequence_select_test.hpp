@@ -35,6 +35,7 @@ class SequenceSelectTest: public SPTestTask{
     static const Int Symbols = 1 << BitsPerSymbol;
 
     Int ctr_name_;
+    String dump_name_;
 
     Int rank_ = 1;
 
@@ -47,8 +48,10 @@ public:
         MEMORIA_ADD_TEST_PARAM(rank_)->minValue(1);
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
 
-        MEMORIA_ADD_TEST(runSelectTest);
+//        MEMORIA_ADD_TEST(runSelectTest);
+//        MEMORIA_ADD_TEST(runSelect1Test);
         MEMORIA_ADD_TEST(runIteratorSequentialSelectNextTest);
         MEMORIA_ADD_TEST(runIteratorSequentialSelectPrevTest);
     }
@@ -61,6 +64,9 @@ public:
     	buffer.fillCells([](T& cell) {
     		cell = getBIRandom();
     	});
+
+    	buffer[0] 		 = 1;
+    	buffer[size - 1] = 1;
 
     	auto src = buffer.source();
 
@@ -163,7 +169,7 @@ public:
     void assertSelect(Ctr& ctr, Int rank, Int pos, Int symbol)
     {
     	Iterator iter = ctr.select(rank, symbol);
-    	BigInt rank1 = ctr.rank(iter.pos(), symbol);
+    	BigInt rank1 = ctr.rank(iter.pos() + 1, symbol);
 
 //    	auto result2 = selectFW(ctr, rank, symbol);
 
@@ -199,6 +205,33 @@ public:
     	cout<<"time="<<FormatTime(t1 - t0)<<endl;
     }
 
+    void runSelect1Test(ostream& out)
+    {
+    	Allocator allocator;
+    	Ctr ctr(&allocator);
+    	ctr_name_ = ctr.name();
+
+    	fillRandom(ctr, Base::size_);
+
+    	allocator.commit();
+
+    	dump_name_ = Store(allocator);
+
+    	Int symbol = 1;
+
+    	BigInt pos = ctr.size();
+
+    	BigInt rank = ctr.rank(pos, symbol);
+//    	Iterator iter1 = ctr.select(rank, symbol);
+    	Iterator iter2 = ctr.RBegin();
+
+    	iter2.selectBw(rank -1, symbol);
+
+//    	AssertEQ(MA_SRC, iter1.pos(), ctr.size() - 1);
+    	AssertGT(MA_SRC, iter2.pos(), 0);
+    }
+
+
     void runIteratorSequentialSelectNextTest(ostream& out)
     {
     	Allocator allocator;
@@ -215,11 +248,11 @@ public:
 
     	BigInt t0 = getTimeInMillis();
 
-    	for (Int rank = rank_; rank < 100000; rank += 10)
+    	for (Int rank = rank_; rank < 1000000; rank += 1000)
     	{
     		auto iter = ctr.begin();
 
-    		while ((!iter.isEof()) && iter.selectNext(rank, symbol) == rank)
+    		while ((!iter.isEof()) && iter.selectFw(rank, symbol) == rank)
     		{
     			Int s = iter.element();
 
@@ -250,11 +283,11 @@ public:
 
     	BigInt t0 = getTimeInMillis();
 
-    	for (Int rank = rank_; rank < 100000; rank += 10)
+    	for (Int rank = rank_; rank < 100000; rank += 1000)
     	{
-    		auto iter = ctr.REnd();
+    		auto iter = ctr.RBegin();
 
-    		while ((!iter.isBof()) && iter.selectPrev(rank, symbol) == rank)
+    		while (iter.selectBw(rank, symbol) == rank)
     		{
     			Int s = iter.element();
 

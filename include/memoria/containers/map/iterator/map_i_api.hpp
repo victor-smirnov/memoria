@@ -22,7 +22,7 @@ namespace memoria    {
 using namespace memoria::btree;
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::models::idx_map::ItrApiName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
 
     typedef typename Base::Container::Key                                       Key;

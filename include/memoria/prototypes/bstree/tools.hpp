@@ -208,7 +208,6 @@ class BTreeIteratorScalarPrefixCache: public BTreeIteratorCache<Iterator, Contai
     BigInt prefix_;
     BigInt current_;
 
-
 public:
 
     BTreeIteratorScalarPrefixCache(): Base(), prefix_(0), current_(0) {}
@@ -224,8 +223,6 @@ public:
         a[0] = prefix_;
         return a;
     }
-
-
 
     void nextKey(bool end)
     {
@@ -340,7 +337,7 @@ public:
         init_(key_num);
     }
 
-    void setup(Accumulator prefix)
+    void setup(const Accumulator& prefix)
     {
         prefix_ = prefix;
     }

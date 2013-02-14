@@ -41,11 +41,12 @@ public:
     SequenceRankTest(StringRef name):
         Base(name)
     {
-        MEMORIA_ADD_TEST(runRankTest);
-
         Base::size_ = 2048*1024;
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
+
+        MEMORIA_ADD_TEST(runRank1Test);
+        MEMORIA_ADD_TEST(runRankTest);
     }
 
     void fillRandom(Ctr& ctr, Int size)
@@ -77,12 +78,12 @@ public:
 
     		if (total_size + data_size < size)
     		{
-    			rank += iter.data()->sequence().rank(start, data_size - 1, symbol);
+    			rank += iter.data()->sequence().rank1(start, data_size, symbol);
     		}
 
     		else {
     			Int local_size = size - total_size;
-    			rank += iter.data()->sequence().rank(start, local_size, symbol);
+    			rank += iter.data()->sequence().rank1(start, local_size, symbol);
 
     			break;
     		}
@@ -104,6 +105,20 @@ public:
 
     	AssertEQ(MA_SRC, rank1 - rank0, rank2);
     }
+
+    void runRank1Test(ostream& out)
+    {
+    	Allocator allocator;
+    	Ctr ctr(&allocator);
+    	ctr_name_ = ctr.name();
+
+    	fillRandom(ctr, Base::size_);
+
+    	allocator.commit();
+
+    	assertRank(ctr, 0, ctr.size(), 1);
+    }
+
 
     void runRankTest(ostream& out)
     {

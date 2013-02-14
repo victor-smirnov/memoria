@@ -166,7 +166,7 @@ public:
 
     bool isBegin() const
     {
-        return key_idx() < 0;
+        return key_idx() < 0 || isEmpty();
     }
 
     bool isEnd() const
@@ -243,11 +243,11 @@ public:
         me()->model().dump(me()->leaf().node(), out);
     }
 
-    void init()
-    {
-        Base::init();
-        cache_.initState();
-    }
+//    void init()
+//    {
+//        Base::init();
+//        cache_.initState();
+//    }
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END
 

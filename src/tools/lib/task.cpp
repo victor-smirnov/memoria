@@ -11,9 +11,11 @@
 #include <algorithm>
 #include <memory>
 #include <sstream>
+#include <map>
 
 namespace memoria {
 
+using std::map;
 using namespace std;
 
 Task::~Task() throw () {

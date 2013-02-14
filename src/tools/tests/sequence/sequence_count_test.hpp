@@ -37,6 +37,7 @@ class SequenceCountTest: public SPTestTask {
     Int ctr_name_;
 
     Int rank_ = 1;
+    Int rank_step_ = 100;
 
 public:
     SequenceCountTest(StringRef name):
@@ -45,9 +46,9 @@ public:
         Base::size_ = 2048*1024;
 
         MEMORIA_ADD_TEST_PARAM(rank_)->minValue(1);
+        MEMORIA_ADD_TEST_PARAM(rank_step_)->minValue(1);
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
-
 
         MEMORIA_ADD_TEST(runIteratorSequentialCountNextTest);
         MEMORIA_ADD_TEST(runIteratorSequentialCountPrevTest);
@@ -64,7 +65,7 @@ public:
 
     	vector<Int> sizes;
 
-    	for (UInt idx = 0, length = 1; idx < buffer.size(); length += 100)
+    	for (UInt idx = 0, length = 1; idx < buffer.size(); length += rank_step_)
     	{
     		UInt cnt;
     		for (cnt = 0; cnt < length && idx < buffer.size() - 1; cnt++, idx++)
@@ -109,13 +110,14 @@ public:
 
     	while (!iter.isEof())
     	{
-    		Int size = iter.countNext(symbol);
+    		Int size = iter.countFw(symbol);
 
     		AssertEQ(MA_SRC, iter.element(), 0ul);
     		AssertEQ(MA_SRC, size, sizes[idx]);
 
     		iter++;
     		idx++;
+    		selections++;
     	}
 
     	BigInt t1 = getTimeInMillis();
@@ -135,34 +137,32 @@ public:
 
     	allocator.commit();
 
+    	Store(allocator);
+
     	Int symbol 	= 1;
 
     	Int selections = 0;
 
     	BigInt t0 = getTimeInMillis();
 
-//    	auto iter1 = ctr.Begin();
-//
-//    	do
-//    	{
-//    		ctr.dump(iter1.data());
-//    	}
-//    	while (iter1.nextKey());
-
     	auto iter = ctr.End();
 
     	Int idx = sizes.size();
 
-    	while(iter--)
+    	while (iter--)
     	{
     		idx--;
 
-//    		cout<<iter.dataPos()<<" ";
-    		Int size = iter.countPrev(symbol);
-//    		cout<<iter.dataPos()<<" "<<size<<endl;
+    		Int size = iter.countBw(symbol);
 
-    		AssertEQ(MA_SRC, iter.element(), idx == 0);
+    		if (iter.pos() >= 0)
+    		{
+    			AssertEQ(MA_SRC, iter.element(), idx == 0);
+    		}
+
     		AssertEQ(MA_SRC, size, sizes[idx], SBuf()<<idx);
+
+    		selections++;
     	}
 
     	BigInt t1 = getTimeInMillis();

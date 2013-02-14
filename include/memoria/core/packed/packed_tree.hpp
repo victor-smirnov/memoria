@@ -275,6 +275,18 @@ public:
     	return T2T<const IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
+    Accumulator keysAt(Int idx) const
+    {
+    	Accumulator acc;
+
+    	for (Int c = 0; c < Blocks; c++)
+    	{
+    		acc[c] = key(c, idx);
+    	}
+
+    	return acc;
+    }
+
 
     Int getKeysSize() const {
         return max_size_ * sizeof(Key) * Blocks;
@@ -437,6 +449,18 @@ public:
     const IndexKey& maxKeyb(Int block_offset) const
     {
         return indexb(block_offset, 0);
+    }
+
+    Accumulator maxKeys() const
+    {
+    	Accumulator acc;
+
+    	for (Int c = 0; c < Blocks; c++)
+    	{
+    		acc[c] = maxKey(c);
+    	}
+
+    	return acc;
     }
 
     Value& value(Int value_num)

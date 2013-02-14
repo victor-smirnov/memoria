@@ -9,11 +9,9 @@
 #ifndef _MEMORIA_CORE_TOOLS_REFLECTION_HPP
 #define _MEMORIA_CORE_TOOLS_REFLECTION_HPP
 
-
-
-#include <strings.h>
-
 #include <memoria/core/tools/md5.hpp>
+
+#include <string.h>
 
 namespace memoria    {
 

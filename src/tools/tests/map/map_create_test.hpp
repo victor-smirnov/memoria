@@ -130,6 +130,8 @@ public:
 
     		AssertEQ(MA_SRC, i.key(), c);
     		AssertEQ(MA_SRC, i.value(), c);
+
+    		allocator.commit();
     	}
 
     	return v;
@@ -161,8 +163,6 @@ public:
     		AssertTrue(MA_SRC, i3.isEnd());
     		AssertEQ(MA_SRC, i3.key_idx(), i3.page()->children_count());
 
-    		AssertThrows<Exception>(MA_SRC, [&]{i3.key();});
-
     		Iterator i4 = ctr.REnd();
     		AssertTrue(MA_SRC, i4.isBegin());
     		AssertEQ(MA_SRC, i4.key_idx(), -1);
@@ -189,6 +189,7 @@ public:
 
 		AssertEQ(MA_SRC, i.key(), key_);
 		AssertEQ(MA_SRC, i.value(), value_);
+
     }
 
 };

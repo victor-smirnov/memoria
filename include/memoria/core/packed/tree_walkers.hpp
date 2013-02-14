@@ -188,6 +188,81 @@ public:
 
 template <
 	typename TreeType,
+	template <typename, typename> class Comparator
+>
+class FindSumPositionFwAccFnBase
+{
+protected:
+	typedef typename TreeType::IndexKey 	IndexKey;
+	typedef typename TreeType::Accumulator 	Accumulator;
+
+    static const Int Blocks = TreeType::Blocks;
+
+	Accumulator sum_;
+    const TreeType& me_;
+    BigInt limit_;
+
+    const IndexKey* indexes_;
+
+public:
+    FindSumPositionFwAccFnBase(const TreeType& me, Int block_num, BigInt limit):
+        sum_(),
+        me_(me),
+        limit_(limit)
+    {
+    	indexes_ = me_.indexes(block_num);
+    }
+
+    void prepareIndex() {}
+
+    void sumIndex(Int from, Int to)
+    {
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		const IndexKey* indexes = me_.indexes(block);
+
+    		for (Int c = from; c != to; c++)
+    		{
+    			sum_[block] += indexes[c];
+    		}
+    	}
+    }
+
+    Int walkIndex(Int start, Int end)
+    {
+        Comparator<BigInt, IndexKey> compare;
+
+    	for (Int c = start; c < end; c++)
+        {
+        	IndexKey key = indexes_[c];
+
+        	if (compare(key, limit_))
+        	{
+        		limit_ 	-= key;
+        	}
+        	else {
+        		sumIndex(start, c);
+        		return c;
+        	}
+        }
+
+    	sumIndex(start, end);
+
+        return end;
+    }
+
+
+    Accumulator sum() const
+    {
+        return sum_;
+    }
+};
+
+
+
+
+template <
+	typename TreeType,
 	typename Key,
 	typename IndexKey,
 	template <typename, typename> class Comparator>
@@ -226,6 +301,297 @@ public:
         return end;
     }
 };
+
+
+
+template <
+	typename TreeType,
+	template <typename, typename> class Comparator
+>
+class FindSumPositionFwCompoundFn
+{
+protected:
+
+	typedef typename TreeType::Key 			Key;
+	typedef typename TreeType::IndexKey 	IndexKey;
+	typedef typename TreeType::Accumulator 	Accumulator;
+
+    const TreeType& 	me_;
+
+    Int 				blocks_count_;
+    const Int* 			blocks_;
+    BigInt* 			sums_;
+    BigInt 				limit_;
+
+public:
+    FindSumPositionFwCompoundFn(
+    		const TreeType& me,
+    		Int blocks_count,
+    		const Int* blocks,
+    		BigInt* sums,
+    		BigInt limit
+    ):
+        me_(me),
+        blocks_count_(blocks_count),
+        blocks_(blocks),
+        sums_(sums),
+        limit_(limit)
+    {}
+
+    void prepareIndex() {}
+
+    void sumIndex(Int from, Int to)
+    {
+    	for (Int block = 0; block < blocks_count_; block++)
+    	{
+    		const IndexKey* indexes = me_.indexes(blocks_[block]);
+
+    		for (Int c = from; c < to; c++)
+    		{
+    			sums_[block] += indexes[c];
+    		}
+    	}
+    }
+
+    Int walkIndex(Int start, Int end)
+    {
+        Comparator<BigInt, IndexKey> compare;
+
+        const IndexKey* indexes = me_.indexes(blocks_[0]);
+
+    	for (Int c = start; c < end; c++)
+        {
+        	IndexKey key = indexes[c];
+
+        	if (compare(key, limit_))
+        	{
+        		limit_ 	-= key;
+        	}
+        	else {
+        		sumIndex(start, c);
+        		return c;
+        	}
+        }
+
+    	sumIndex(start, end);
+
+        return end;
+    }
+
+    void sumKeys(Int from, Int to)
+    {
+    	for (Int block = 0; block < blocks_count_; block++)
+    	{
+    		const Key* keys = me_.keys(blocks_[block]);
+
+    		for (Int c = from; c < to; c++)
+    		{
+    			sums_[block] += keys[c];
+    		}
+    	}
+    }
+
+
+    Int walkKeys(Int start, Int end)
+    {
+    	Comparator<BigInt, IndexKey> compare;
+
+    	const Key* keys = me_.keys(blocks_[0]);
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		IndexKey key = keys[c];
+
+    		if (compare(key, limit_))
+    		{
+    			limit_ 	-= key;
+    		}
+    		else {
+    			sumKeys(start, c);
+    			return c;
+    		}
+    	}
+
+    	sumKeys(start, end);
+
+    	return end;
+    }
+};
+
+
+template <
+	typename TreeType,
+	template <typename, typename> class Comparator
+>
+class FindSumPositionBwCompoundFn
+{
+protected:
+
+	typedef typename TreeType::Key 			Key;
+	typedef typename TreeType::IndexKey 	IndexKey;
+	typedef typename TreeType::Accumulator 	Accumulator;
+
+    const TreeType& 	me_;
+
+    Int 				blocks_count_;
+    const Int* 			blocks_;
+    BigInt* 			sums_;
+    BigInt 				limit_;
+
+public:
+    FindSumPositionBwCompoundFn(
+    		const TreeType& me,
+    		Int blocks_count,
+    		const Int* blocks,
+    		BigInt* sums,
+    		BigInt limit
+    ):
+        me_(me),
+        blocks_count_(blocks_count),
+        blocks_(blocks),
+        sums_(sums),
+        limit_(limit)
+    {}
+
+    void prepareIndex() {}
+
+    void sumIndex(Int from, Int to)
+    {
+    	for (Int block = 0; block < blocks_count_; block++)
+    	{
+    		const IndexKey* indexes = me_.indexes(blocks_[block]);
+
+    		for (Int c = from; c > to; c--)
+    		{
+    			sums_[block] += indexes[c];
+    		}
+    	}
+    }
+
+    Int walkIndex(Int start, Int end)
+    {
+        Comparator<BigInt, IndexKey> compare;
+
+        const IndexKey* indexes = me_.indexes(blocks_[0]);
+
+    	for (Int c = start; c > end; c++)
+        {
+        	IndexKey key = indexes[c];
+
+        	if (compare(key, limit_))
+        	{
+        		limit_ 	-= key;
+        	}
+        	else {
+        		sumIndex(start, c);
+        		return c;
+        	}
+        }
+
+    	sumIndex(start, end);
+
+        return end;
+    }
+
+    void sumKeys(Int from, Int to)
+    {
+    	for (Int block = 0; block < blocks_count_; block++)
+    	{
+    		const Key* keys = me_.keys(blocks_[block]);
+
+    		for (Int c = from; c > to; c--)
+    		{
+    			sums_[block] += keys[c];
+    		}
+    	}
+    }
+
+
+    Int walkKeys(Int start, Int end)
+    {
+    	Comparator<BigInt, IndexKey> compare;
+
+    	const Key* keys = me_.keys(blocks_[0]);
+
+    	for (Int c = start; c > end; c--)
+    	{
+    		IndexKey key = keys[c];
+
+    		if (compare(key, limit_))
+    		{
+    			limit_ 	-= key;
+    		}
+    		else {
+    			sumKeys(start, c);
+    			return c;
+    		}
+    	}
+
+    	sumKeys(start, end);
+
+    	return end;
+    }
+};
+
+
+template <
+	typename TreeType,
+	template <typename, typename> class Comparator
+>
+class FindSumPositionFwAccFn: public FindSumPositionFwAccFnBase<TreeType, Comparator>
+{
+	typedef FindSumPositionFwAccFnBase<TreeType, Comparator> 	Base;
+	typedef typename TreeType::Key 								Key;
+	typedef typename TreeType::IndexKey 						IndexKey;
+
+	const Key* keys_;
+
+public:
+    FindSumPositionFwAccFn(const TreeType& me, Int block_num, BigInt limit):
+        Base(me, block_num, limit)
+    {
+    	keys_ 	 = me.keys(block_num);
+    }
+
+    void prepareIndex() {}
+
+    void sumKeys(Int from, Int to)
+    {
+    	for (Int block = 0; block < Base::Blocks; block++)
+    	{
+    		const Key* keys = Base::me_.keys(block);
+
+    		for (Int c = from; c != to; c++)
+    		{
+    			Base::sum_[block] += keys[c];
+    		}
+    	}
+    }
+
+    Int walkKeys(Int start, Int end)
+    {
+    	Comparator<BigInt, IndexKey> compare;
+
+    	for (Int c = start; c < end; c++)
+        {
+            IndexKey key = keys_[c];
+
+            if (compare(key, Base::limit_))
+            {
+            	Base::limit_ 	-= key;
+            }
+            else {
+            	sumKeys(start, c);
+            	return c;
+            }
+        }
+
+    	sumKeys(start, end);
+
+        return end;
+    }
+};
+
 
 
 template <
@@ -279,6 +645,81 @@ public:
         return sum_;
     }
 };
+
+
+template <
+	typename TreeType,
+	template <typename, typename> class Comparator
+>
+class FindSumPositionBwAccFnBase
+{
+protected:
+    typedef typename TreeType::IndexKey 	IndexKey;
+    typedef typename TreeType::Accumulator 	Accumulator;
+
+    static const Int Blocks = TreeType::Blocks;
+
+	const TreeType& me_;
+
+	Int block_num_;
+	BigInt limit_;
+    Accumulator sum_;
+
+    const IndexKey* indexes_;
+
+public:
+    FindSumPositionBwAccFnBase(const TreeType& me, Int block_num, BigInt limit):
+        me_(me),
+        block_num_(block_num),
+        limit_(limit),
+        sum_()
+    {
+    	indexes_ = me.indexes(block_num);
+    }
+
+    void prepareIndex() {}
+
+    void sumIndex(Int from, Int to)
+    {
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		const IndexKey* indexes = me_.indexes(block);
+
+    		for (Int c = from; c != to; c--)
+    		{
+    			sum_[block] += indexes[c];
+    		}
+    	}
+    }
+
+    Int walkIndex(Int start, Int end)
+    {
+        Comparator<BigInt, IndexKey> comparator;
+
+    	for (Int c = start; c > end; c--)
+        {
+            IndexKey sum = indexes_[c];
+
+            if (comparator(sum, limit_))
+            {
+                limit_ -= sum;
+            }
+            else {
+            	sumIndex(start, c);
+            	return c;
+            }
+        }
+
+    	sumIndex(start, end);
+        return end;
+    }
+
+
+    Accumulator sum() const {
+        return sum_;
+    }
+};
+
 
 
 
@@ -335,11 +776,17 @@ template <typename TreeType, typename Key, typename IndexKey>
 using FindSumPositionFwLeFn = FindSumPositionFwFn<TreeType, Key, IndexKey, SumCompareLT>;
 
 template <typename TreeType, typename Key, typename IndexKey>
-using FindSumPositionBwLtFn = FindSumPositionFwFn<TreeType, Key, IndexKey, SumCompareLE>;
+using FindSumPositionBwLtFn = FindSumPositionBwFn<TreeType, Key, IndexKey, SumCompareLE>;
 
 template <typename TreeType, typename Key, typename IndexKey>
 using FindSumPositionBwLEFn = FindSumPositionBwFn<TreeType, Key, IndexKey, SumCompareLT>;
 
+
+template <typename TreeType>
+using FindSumPositionFwAccLtFn = FindSumPositionFwAccFn<TreeType, SumCompareLE>;
+
+template <typename TreeType>
+using FindSumPositionFwAccLeFn = FindSumPositionFwAccFn<TreeType, SumCompareLT>;
 
 
 template <typename TreeType, Int Bits>

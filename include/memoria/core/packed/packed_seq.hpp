@@ -414,6 +414,19 @@ public:
     	return walker.sum();
     }
 
+    Int rank1(Int from, Int to, Value symbol) const
+    {
+    	MEMORIA_ASSERT(from, >=, 0);
+    	MEMORIA_ASSERT(to, >=, from);
+    	MEMORIA_ASSERT(to, <=, size());
+
+    	RankWalker<MyType, Bits> walker(*this, symbol);
+
+    	walkRange(from, to, walker);
+
+    	return walker.sum();
+    }
+
     SelectResult selectFW(Int from, Value symbol, Int rank) const
     {
     	MEMORIA_ASSERT(from, >=, 0);
