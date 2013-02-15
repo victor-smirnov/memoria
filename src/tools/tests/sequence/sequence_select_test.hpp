@@ -188,12 +188,27 @@ public:
 
     	vector<Pair> ranks = getSelections(ctr, 0, ctr.size(), 1);
 
+    	vector<Int> cells(ranks.size());
+
+    	for (Int& cell: cells)
+    	{
+    		cell = getRandom(cells.size());
+    	}
+
     	cout<<"Selections: "<<ranks.size()<<endl;
 
     	BigInt t0 = getTimeInMillis();
 
-    	for (Pair pair: ranks)
+//    	for (Pair pair: ranks)
+//    	{
+//    		assertSelect(ctr, pair.rank, pair.idx, 1);
+//    	}
+
+
+
+    	for (Int cell: cells)
     	{
+    		Pair& pair = ranks[cell];
     		assertSelect(ctr, pair.rank, pair.idx, 1);
     	}
 

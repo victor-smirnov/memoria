@@ -427,6 +427,19 @@ public:
     	return walker.sum();
     }
 
+    Int rank1(Int to, Value symbol) const
+    {
+    	MEMORIA_ASSERT(to, <=, size());
+
+    	RankWalker<MyType, Bits> walker(*this, symbol);
+
+    	walkRange(to, walker);
+
+    	return walker.sum();
+    }
+
+
+
     SelectResult selectFW(Int from, Value symbol, Int rank) const
     {
     	MEMORIA_ASSERT(from, >=, 0);
@@ -1044,6 +1057,46 @@ public:
 
     		walker.walkValues(block_end_start, end);
     	}
+    }
+
+    template <typename Walker>
+    void walkRange(Int target, Walker& walker) const
+    {
+    	MEMORIA_ASSERT(target,   <=,  size());
+
+    	Int levels = 0;
+    	Int level_sizes[LEVELS_MAX];
+
+    	Int level_size = max_size_;
+    	Int cell_size = 1;
+
+    	do
+    	{
+    		level_size = getIndexCellsNumberFor(levels, level_size);
+    		level_sizes[levels++] = level_size;
+    	}
+    	while (level_size > 1);
+
+    	cell_size = ValuesPerBranch;
+    	for (Int c = 0; c < levels - 2; c++)
+    	{
+    		cell_size *= BranchingFactor;
+    	}
+
+    	Int base = 1, start = 0, target_idx = target;
+
+    	for (Int level = levels - 2; level >= 0; level--)
+    	{
+    		Int end = target_idx / cell_size;
+
+    		walker.walkIndex(start + base, end + base);
+
+    		start 		= level > 0 ? end * BranchingFactor : end * ValuesPerBranch;
+    		base 		+= level_sizes[level];
+    		cell_size 	/= BranchingFactor;
+    	}
+
+    	return walker.walkValues(start, target);
     }
 
 

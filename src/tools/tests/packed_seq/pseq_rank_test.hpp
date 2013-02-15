@@ -47,9 +47,11 @@ public:
 
     PSeqRankTest(): TestTask((SBuf()<<"Rank."<<Bits).str())
     {
-        MEMORIA_ADD_TEST(runTest1);
-        MEMORIA_ADD_TEST(runTest2);
-        MEMORIA_ADD_TEST(runTest3);
+//        MEMORIA_ADD_TEST(runTest1);
+//        MEMORIA_ADD_TEST(runTest2);
+//        MEMORIA_ADD_TEST(runTest3);
+
+        MEMORIA_ADD_TEST(runTest4);
     }
 
     virtual ~PSeqRankTest() throw() {}
@@ -140,6 +142,14 @@ public:
     	AssertEQ(MA_SRC, rank, popc);
     }
 
+    void assertRank(Seq* seq, size_t end, Value symbol)
+    {
+    	Int rank = seq->rank1(end, symbol);
+    	Int popc = seq->rank1(0, end, symbol);
+
+    	AssertEQ(MA_SRC, rank, popc, SBuf()<<end);
+    }
+
     void runTest1(ostream& out)
     {
     	out<<"Parameters: Bits="<<Bits<<endl;
@@ -213,6 +223,26 @@ public:
     	{
     		assertRank(seq, start, stop, 0);
     		assertRank(seq, start, stop, Symbols - 1);
+    	}
+    }
+
+    void runTest4(ostream& out)
+    {
+    	out<<"Parameters: Bits="<<Bits<<endl;
+
+    	Seq* seq = createEmptySequence();
+
+    	for (Int c = 0; c < seq->maxSize(); c++)
+    	{
+    		seq->value(c) = getRandom(Symbols);
+    	}
+
+    	seq->size() = seq->maxSize();
+    	seq->reindex();
+
+    	for (Int c = 0; c <= seq->size(); c++)
+    	{
+    		assertRank(seq, c, 0);
     	}
     }
 };

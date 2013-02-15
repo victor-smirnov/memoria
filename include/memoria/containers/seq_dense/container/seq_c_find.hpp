@@ -77,7 +77,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 			iter.dataPos() = pos - prefixes[0];
 			iter.cache().setup(prefixes[0], 0);
 
-			Int rank_local = iter.data()->sequence().rank1(0, iter.dataPos(), symbol);
+			Int rank_local = iter.data()->sequence().rank1(iter.dataPos(), symbol);
 
 			return prefixes[1] + rank_local;
 		}
