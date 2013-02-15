@@ -38,7 +38,7 @@ public:
     {
         if (Forward)
         {
-            Int position = node->map().findSumPositionFwLT(key_num_, idx, target_ - sum_, sum_);
+            Int position = node->map().findFwLT(key_num_, idx, target_ - sum_, sum_);
             if (position < node->children_count())
             {
                 return position;
@@ -49,7 +49,7 @@ public:
         }
         else
         {
-            return node->map().findSumPositionBwLE(key_num_, idx, target_ - sum_, sum_);
+            return node->map().findBwLE(key_num_, idx, target_ - sum_, sum_);
         }
     }
 };

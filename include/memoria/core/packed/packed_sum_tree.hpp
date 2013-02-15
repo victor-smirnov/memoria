@@ -232,57 +232,57 @@ public:
         Base::walkRange(start, end, walker);
     }
 
-//    Int findSumPositionFwLT(Int block_num, Int start, Key key, Accumulator& acc) const
+//    Int findFwLT(Int block_num, Int start, Key key, Accumulator& acc) const
 //    {
 //    	FindSumPositionFwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 //        return Base::walkFw(start, walker);
 //    }
 //
-//    Int findSumPositionBwLT(Int block_num, Int start, Key key, Accumulator& acc) const
+//    Int findBwLT(Int block_num, Int start, Key key, Accumulator& acc) const
 //    {
 //        FindSumPositionBwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 //        return Base::walkBw(start, walker);
 //    }
 
 
-    Int findSumPositionFwLT(Int block_num, Int start, Key key, IndexKey& acc) const
+    Int findFwLT(Int block_num, Int start, Key key, IndexKey& acc) const
     {
         FindSumPositionFwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 
-        Int position = Base::walkFw(start, walker);
+        Int position = Base::findFw(start, walker);
 
         acc += walker.sum();
 
         return position;
     }
 
-    Int findSumPositionFwLE(Int block_num, Int start, Key key, IndexKey& acc) const
+    Int findFwLE(Int block_num, Int start, Key key, IndexKey& acc) const
     {
     	FindSumPositionFwLeFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 
-    	Int position = Base::walkFw(start, walker);
+    	Int position = Base::findFw(start, walker);
 
     	acc += walker.sum();
 
     	return position;
     }
 
-    Int findSumPositionBwLT(Int block_num, Int start, Key key, IndexKey& acc) const
+    Int findBwLT(Int block_num, Int start, Key key, IndexKey& acc) const
     {
         FindSumPositionBwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 
-        Int position = Base::walkBw(start, walker);
+        Int position = Base::findBw(start, walker);
 
         acc += walker.sum();
 
         return position;
     }
 
-    Int findSumPositionBwLE(Int block_num, Int start, Key key, IndexKey& acc) const
+    Int findBwLE(Int block_num, Int start, Key key, IndexKey& acc) const
     {
         FindSumPositionBwLEFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 
-        Int position = Base::walkBw(start, walker);
+        Int position = Base::findBw(start, walker);
 
         acc += walker.sum();
 

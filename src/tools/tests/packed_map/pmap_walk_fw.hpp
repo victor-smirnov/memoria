@@ -91,7 +91,7 @@ public:
         BigInt sum = Sum(map, start, end);
 
         Key acc;
-        Int idx = map->findSumPositionFwLT(0, start, sum, acc);
+        Int idx = map->findFwLT(0, start, sum, acc);
 
         AssertEQ(MA_SRC, idx, end, SBuf()<<"start="<<start);
     }
@@ -143,7 +143,7 @@ public:
                 BigInt sum = Sum(map, start, end);
 
                 Key acc;
-                Int idx = map->findSumPositionFwLT(0, start, sum, acc);
+                Int idx = map->findFwLT(0, start, sum, acc);
 
                 AssertEQ(MA_SRC, idx, end, SBuf()<<"start="<<start);
             }

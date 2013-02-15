@@ -796,9 +796,6 @@ public:
     }
 
 
-
-
-
     template <typename Functor>
     void walkRange(Int start, Int end, Functor& walker) const
     {
@@ -837,7 +834,7 @@ public:
 
 
     template <typename Walker>
-    Int walkFw(Int start, Walker& walker) const
+    Int findFw(Int start, Walker& walker) const
     {
         MEMORIA_ASSERT(start, <=, size());
 
@@ -878,7 +875,7 @@ public:
 
 
     template <typename Walker>
-    Int walkBw(Int start, Walker& walker) const
+    Int findBw(Int start, Walker& walker) const
     {
         MEMORIA_ASSERT(start, >=, -1);
 

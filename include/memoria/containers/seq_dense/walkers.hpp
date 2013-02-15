@@ -46,7 +46,7 @@ public:
 		}
 		else
 		{
-			Base::idx_ = map.walkFw(Base::start_, fn);
+			Base::idx_ = map.findFw(Base::start_, fn);
 		}
 
 		if (Base::idx_ == map.size() && Base::direction_ == WalkDirection::DOWN)
@@ -90,7 +90,7 @@ public:
 		FindSumPositionBwCompoundFn<Map, Comparator> fn(
 				map, Base::key_count_, Base::key_nums_, Base::prefixes_, Base::key_ - Base::prefixes_[0]);
 
-		Base::idx_ = map.walkBw(Base::start_, fn);
+		Base::idx_ = map.findBw(Base::start_, fn);
 
 		if (Base::idx_ == -1 && Base::direction_ == WalkDirection::DOWN)
 		{
@@ -291,7 +291,7 @@ public:
 
 		BSTreeCountFWWalker<typename Node::Map> walker(map, Base::key_num_);
 
-		Base::idx_ = map.walkFw(Base::start_, walker);
+		Base::idx_ = map.findFw(Base::start_, walker);
 
 		Base::prefix_ += walker.rank();
 
@@ -330,7 +330,7 @@ public:
 
 		BSTreeCountBWWalker<typename Node::Map> walker(map, Base::key_num_);
 
-		Base::idx_ = map.walkBw(Base::start_, walker);
+		Base::idx_ = map.findBw(Base::start_, walker);
 
 		Base::prefix_ += walker.rank();
 

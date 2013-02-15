@@ -451,7 +451,7 @@ public:
 
 		const Map& map = node->map();
 
-		Base::idx_ = map.findSumPositionFwLT(Base::key_num_, Base::start_, key_ - Base::prefix_, Base::prefix_);
+		Base::idx_ = map.findFwLT(Base::key_num_, Base::start_, key_ - Base::prefix_, Base::prefix_);
 
 		if (Base::idx_ == map.size() && Base::direction_ == WalkDirection::DOWN)
 		{
@@ -486,7 +486,7 @@ public:
 
 		const Map& map = node->map();
 
-		Base::idx_ = map.findSumPositionBwLE(Base::key_num_, Base::start_, key_ - Base::prefix_, Base::prefix_);
+		Base::idx_ = map.findBwLE(Base::key_num_, Base::start_, key_ - Base::prefix_, Base::prefix_);
 
 		if (Base::idx_ == -1 && Base::direction_ == WalkDirection::DOWN)
 		{
