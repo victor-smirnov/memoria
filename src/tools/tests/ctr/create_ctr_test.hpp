@@ -61,12 +61,12 @@ public:
 
     virtual ~CreateCtrTest() throw() {}
 
-    virtual void setUp(ostream& out)
+    virtual void setUp()
     {
     	if (btree_random_branching_)
     	{
     		btree_branching_ = 8 + getRandom(100);
-    		out<<"BTree Branching: "<<btree_branching_<<endl;
+    		out()<<"BTree Branching: "<<btree_branching_<<endl;
     	}
     }
 
@@ -80,9 +80,9 @@ public:
     	AssertEQ(src, allocator.size(), size);
     }
 
-    void runCreateCtrTest(ostream& out)
+    void runCreateCtrTest()
     {
-    	DefaultLogHandlerImpl logHandler(out);
+    	DefaultLogHandlerImpl logHandler(out());
 
     	Allocator allocator;
     	allocator.getLogger()->setHandler(&logHandler);
@@ -197,9 +197,9 @@ public:
     }
 
 
-    void runStoreTest(ostream& out)
+    void runStoreTest()
     {
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -246,8 +246,8 @@ public:
 
         BigInt t2 = getTimeInMillis();
 
-        out<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
-        out<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
+        out()<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
+        out()<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
 
         check(new_alloc, MA_SRC);
 
@@ -284,9 +284,9 @@ public:
 
         BigInt t33 = getTimeInMillis();
 
-        out<<"Create Time: "<<FormatTime(t0 - t00)<<endl;
-        out<<"check Time:  "<<FormatTime(t22 - t2)<<endl;
-        out<<"check Time:  "<<FormatTime(t33 - t22)<<endl;
+        out()<<"Create Time: "<<FormatTime(t0 - t00)<<endl;
+        out()<<"check Time:  "<<FormatTime(t22 - t2)<<endl;
+        out()<<"check Time:  "<<FormatTime(t33 - t22)<<endl;
     }
 
 

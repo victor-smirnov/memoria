@@ -93,8 +93,10 @@ public:
     virtual BigInt getLocalPosition(Iterator& iter)                     = 0;
     virtual BigInt getSize(Ctr& array)                                  = 0;
 
-    void runReplay(ostream& out)
+    void runReplay()
     {
+    	std::ostream& out0 = out();
+
         Allocator allocator;
         LoadAllocator(allocator, dump_name_);
 
@@ -106,10 +108,10 @@ public:
 
         if (insert_)
         {
-            Build(out, allocator, dv);
+            Build(out0, allocator, dv);
         }
         else {
-            remove(out, allocator, dv);
+            remove(out0, allocator, dv);
         }
     }
 
@@ -120,25 +122,27 @@ public:
         return getBIRandom(size);
     }
 
-    virtual void setUp(ostream& out)
+    virtual void setUp()
     {
         if (btree_random_branching_)
         {
             btree_branching_ = 8 + getRandom(100);
-            out<<"BTree Branching: "<<btree_branching_<<endl;
+            out()<<"BTree Branching: "<<btree_branching_<<endl;
         }
     }
 
-    void runTest(ostream& out)
+    void runTest()
     {
+    	ostream& out0 = out();
+
         for (Int step = 0; step < 2; step++)
         {
             step_ = step;
-            Run1(out, false);
+            Run1(out0, false);
         }
 
         // Run() will use different step for each ByteArray update operation
-        Run1(out, true);
+        Run1(out0, true);
     }
 
     void Run1(ostream& out, bool step)

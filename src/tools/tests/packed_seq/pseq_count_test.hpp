@@ -247,15 +247,15 @@ public:
     	return seq;
     }
 
-    void runCountFWTest(ostream& out)
+    void runCountFWTest()
     {
-    	runCountFWTest(out, 0);
-    	runCountFWTest(out, Symbols - 1);
+    	runCountFWTest(0);
+    	runCountFWTest(Symbols - 1);
     }
 
-    void runCountFWTest(ostream& out, Value symbol)
+    void runCountFWTest(Value symbol)
     {
-    	out<<"Parameters: Bits="<<Bits<<" symbol="<<symbol<<endl;
+    	out()<<"Parameters: Bits="<<Bits<<" symbol="<<symbol<<endl;
 
     	Seq* seq = createEmptySequence();
 
@@ -263,20 +263,20 @@ public:
 
     	vector<size_t> starts = createStarts(seq);
 
-    	out<<"Solid bitmap"<<endl;
+    	out()<<"Solid bitmap"<<endl;
 
     	for (size_t start: starts)
     	{
-    		out<<start<<endl;
+    		out()<<start<<endl;
     		assertCountFW(seq, start, symbol);
     	}
 
-    	out<<endl;
-    	out<<"Random bitmap, sequential positions"<<endl;
+    	out()<<endl;
+    	out()<<"Random bitmap, sequential positions"<<endl;
 
     	for (Int c = 1; c <= 50; c++)
     	{
-    		out<<"pass: "<<c<<endl;
+    		out()<<"pass: "<<c<<endl;
     		populateRandom(seq, 100 + c * 300, symbol);
 
     		for (Int start = 0; start < seq->size(); start++)
@@ -285,19 +285,19 @@ public:
     		}
     	}
 
-    	out<<endl;
+    	out()<<endl;
     }
 
 
-    void runCountBWTest(ostream& out)
+    void runCountBWTest()
     {
-    	runCountBWTest(out, 0);
-    	runCountBWTest(out, Symbols - 1);
+    	runCountBWTest(0);
+    	runCountBWTest(Symbols - 1);
     }
 
-    void runCountBWTest(ostream& out, Value symbol)
+    void runCountBWTest(Value symbol)
     {
-    	out<<"Parameters: Bits="<<Bits<<" symbol="<<symbol<<endl;
+    	out()<<"Parameters: Bits="<<Bits<<" symbol="<<symbol<<endl;
 
     	Seq* seq = createEmptySequence();
 
@@ -305,24 +305,22 @@ public:
 
     	vector<size_t> starts = createStarts(seq);
 
-    	out<<"Solid bitmap"<<endl;
+    	out()<<"Solid bitmap"<<endl;
 
     	for (size_t start: starts)
     	{
-    		out<<start<<endl;
+    		out()<<start<<endl;
     		assertCountBW(seq, start, symbol);
     	}
 
-    	out<<endl;
-    	out<<"Random bitmap, sequential positions"<<endl;
+    	out()<<endl;
+    	out()<<"Random bitmap, sequential positions"<<endl;
 
     	for (Int c = 1; c <= 50; c++)
     	{
     		populateRandom(seq, 100 + c * 300, symbol);
 
-    		out<<"pass: "<<c<<" "<<seq->maxIndex(0)<<endl;
-
-    		//seq->dump(cout);
+    		out()<<"pass: "<<c<<" "<<seq->maxIndex(0)<<endl;
 
     		for (Int start = 0; start < seq->size(); start++)
     		{
@@ -330,7 +328,7 @@ public:
     		}
     	}
 
-    	out<<endl;
+    	out()<<endl;
     }
 };
 

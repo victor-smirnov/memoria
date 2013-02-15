@@ -71,9 +71,9 @@ public:
     }
 
 
-    void runRangeTest(ostream& out)
+    void runRangeTest()
     {
-    	DefaultLogHandlerImpl logHandler(out);
+    	DefaultLogHandlerImpl logHandler(out());
     	Allocator allocator;
     	allocator.getLogger()->setHandler(&logHandler);
 
@@ -172,9 +172,9 @@ public:
 
 
 
-    void runSkipFwTest(ostream& out)
+    void runSkipFwTest()
     {
-    	DefaultLogHandlerImpl logHandler(out);
+    	DefaultLogHandlerImpl logHandler(out());
     	Allocator allocator;
     	allocator.getLogger()->setHandler(&logHandler);
 
@@ -215,9 +215,9 @@ public:
     }
 
 
-    void runSkipBwTest(ostream& out)
+    void runSkipBwTest()
     {
-    	DefaultLogHandlerImpl logHandler(out);
+    	DefaultLogHandlerImpl logHandler(out());
     	Allocator allocator;
     	allocator.getLogger()->setHandler(&logHandler);
 

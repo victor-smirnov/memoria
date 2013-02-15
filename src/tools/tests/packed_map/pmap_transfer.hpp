@@ -82,10 +82,10 @@ public:
 
     virtual ~PMapTransferTest() throw() {}
 
-    void runReplay(ostream& out)
+    void runReplay()
     {
-        out<<offset1<<" "<<max1<<" "<<offset2<<" "<<max2<<" "<<size<<endl;
-        test(out, offset1, max1, offset2, max2, size);
+        out()<<offset1<<" "<<max1<<" "<<offset2<<" "<<max2<<" "<<size<<endl;
+        test(offset1, max1, offset2, max2, size);
     }
 
     FillMapResult FillPMap(Map1* map, Int size)
@@ -118,7 +118,7 @@ public:
         return result;
     }
 
-    void test(ostream& out, Int offset1, Int max1, Int offset2, Int max2, Int size)
+    void test(Int offset1, Int max1, Int offset2, Int max2, Int size)
     {
 
         Int max = max1 > max2 ? max1 : max2;
@@ -149,8 +149,8 @@ public:
         map2_buf.size() = map1->size();
 
         if (isReplayMode()) {
-            map1->dumpRanges(map1->memoryBlock(), out);
-            map2_buf.dumpRanges(map2->memoryBlock(), out);
+            map1->dumpRanges(map1->memoryBlock(), out());
+            map2_buf.dumpRanges(map2->memoryBlock(), out());
         }
 
         map1->transferTo(&map2_buf, map2->memoryBlock());
@@ -173,15 +173,11 @@ public:
         }
     }
 
-    void runTest(ostream& out)
+    void runTest()
     {
         for (int c = 0; c < 10000; c++)
         {
-            out<<c<<endl;
-
-            if (c == 679) {
-                DebugCounter = 1;
-            }
+            out()<<c<<endl;
 
             Int max1 = getRandom(4500) + 500;
             Int max2 = getRandom(4500) + 500;
@@ -197,7 +193,7 @@ public:
             this->max2      = max2;
             this->size      = min;
 
-            test(out, offset1, max1, offset2, max2, min);
+            test(offset1, max1, offset2, max2, min);
         }
     }
 };

@@ -88,7 +88,7 @@ public:
     }
 
 
-    void runIteratorSequentialCountNextTest(ostream& out)
+    void runIteratorSequentialCountNextTest()
     {
     	Allocator allocator;
     	Ctr ctr(&allocator);
@@ -121,11 +121,11 @@ public:
     	}
 
     	BigInt t1 = getTimeInMillis();
-    	cout<<"FW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
+    	out()<<"FW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
     }
 
 
-    void runIteratorSequentialCountPrevTest(ostream& out)
+    void runIteratorSequentialCountPrevTest()
     {
     	Allocator allocator;
     	Ctr ctr(&allocator);
@@ -166,7 +166,7 @@ public:
     	}
 
     	BigInt t1 = getTimeInMillis();
-    	cout<<"FW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
+    	out()<<"FW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
     }
 
 };

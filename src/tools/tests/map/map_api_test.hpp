@@ -34,9 +34,9 @@ public:
     virtual ~MapApiTest() throw () {}
 
 
-    void runTest(ostream& out)
+    void runTest()
     {
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);

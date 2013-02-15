@@ -78,7 +78,7 @@ public:
         return -1;
     }
 
-    void compareVectors(ostream& out, Ctr& v1, Ctr& v2, const char* src)
+    void compareVectors(Ctr& v1, Ctr& v2, const char* src)
     {
         if (v2.size() != v2.size())
         {
@@ -102,8 +102,8 @@ public:
             BigInt result = compareVectors(buffer1, size1, buffer2, size2);
             if (result != -1)
             {
-                iter1.dump(out);
-                iter2.dump(out);
+                iter1.dump(out());
+                iter2.dump(out());
 
                 if (result == -2)
                 {
@@ -114,8 +114,8 @@ public:
                 }
                 else {
 
-                    buf1.dump(out);
-                    buf2.dump(out);
+                    buf1.dump(out());
+                    buf2.dump(out());
 
                     throw TestException(src,
                             SBuf()
@@ -141,7 +141,7 @@ public:
         i1_1.insert(data2);
     }
 
-    void runInsertTest(ostream& out)
+    void runInsertTest()
     {
         Allocator allocator;
 
@@ -164,7 +164,7 @@ public:
 
             allocator.commit();
 
-            compareVectors(out, v1, v2, MEMORIA_SOURCE);
+            compareVectors(v1, v2, MEMORIA_SOURCE);
 
             for (Int c = 0; c < transfers_; c++)
             {
@@ -176,9 +176,9 @@ public:
 
                 check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-                compareVectors(out, v1, v2, MEMORIA_SOURCE);
+                compareVectors(v1, v2, MEMORIA_SOURCE);
 
-                out<<c<<endl;
+                out()<<c<<endl;
             }
         }
         catch (...) {
@@ -187,7 +187,7 @@ public:
         }
     }
 
-    void runInsertReplay(ostream& out)
+    void runInsertReplay()
     {
         Allocator allocator;
         LoadAllocator(allocator, dump_name_);
@@ -201,7 +201,7 @@ public:
 
         check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-        compareVectors(out, v1, v2, MEMORIA_SOURCE);
+        compareVectors(v1, v2, MEMORIA_SOURCE);
     }
 };
 

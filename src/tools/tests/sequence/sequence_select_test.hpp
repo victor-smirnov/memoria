@@ -51,8 +51,8 @@ public:
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
 
         MEMORIA_ADD_TEST(runSelectTest);
-//        MEMORIA_ADD_TEST(runIteratorSequentialSelectNextTest);
-//        MEMORIA_ADD_TEST(runIteratorSequentialSelectPrevTest);
+        MEMORIA_ADD_TEST(runIteratorSequentialSelectNextTest);
+        MEMORIA_ADD_TEST(runIteratorSequentialSelectPrevTest);
     }
 
     void fillRandom(Ctr& ctr, Int size)
@@ -176,7 +176,7 @@ public:
     	AssertEQ(MA_SRC, iter.pos(), pos);
     }
 
-    void runSelectTest(ostream& out)
+    void runSelectTest()
     {
     	Allocator allocator;
     	Ctr ctr(&allocator);
@@ -188,33 +188,31 @@ public:
 
     	vector<Pair> ranks = getSelections(ctr, 0, ctr.size(), 1);
 
-    	vector<Int> cells(ranks.size());
+//    	vector<Int> cells(ranks.size());
+//
+//    	for (Int& cell: cells)
+//    	{
+//    		cell = getRandom(cells.size());
+//    	}
 
-    	for (Int& cell: cells)
-    	{
-    		cell = getRandom(cells.size());
-    	}
-
-    	cout<<"Selections: "<<ranks.size()<<endl;
+    	out()<<"Selections: "<<ranks.size()<<endl;
 
     	BigInt t0 = getTimeInMillis();
 
-//    	for (Pair pair: ranks)
-//    	{
-//    		assertSelect(ctr, pair.rank, pair.idx, 1);
-//    	}
-
-
-
-    	for (Int cell: cells)
+    	for (Pair pair: ranks)
     	{
-    		Pair& pair = ranks[cell];
     		assertSelect(ctr, pair.rank, pair.idx, 1);
     	}
 
+//    	for (Int cell: cells)
+//    	{
+//    		Pair& pair = ranks[cell];
+//    		assertSelect(ctr, pair.rank, pair.idx, 1);
+//    	}
+
     	BigInt t1 = getTimeInMillis();
 
-    	cout<<"time="<<FormatTime(t1 - t0)<<endl;
+    	out()<<"time="<<FormatTime(t1 - t0)<<endl;
     }
 
     void runSelect1Test(ostream& out)
@@ -244,7 +242,7 @@ public:
     }
 
 
-    void runIteratorSequentialSelectNextTest(ostream& out)
+    void runIteratorSequentialSelectNextTest()
     {
     	Allocator allocator;
     	Ctr ctr(&allocator);
@@ -276,10 +274,10 @@ public:
     	}
 
     	BigInt t1 = getTimeInMillis();
-    	cout<<"FW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
+    	out()<<"FW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
     }
 
-    void runIteratorSequentialSelectPrevTest(ostream& out)
+    void runIteratorSequentialSelectPrevTest()
     {
     	Allocator allocator;
     	Ctr ctr(&allocator);
@@ -311,7 +309,7 @@ public:
     	}
 
     	BigInt t1 = getTimeInMillis();
-    	cout<<"BW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
+    	out()<<"BW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
     }
 };
 

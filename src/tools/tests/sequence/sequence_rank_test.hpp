@@ -106,7 +106,7 @@ public:
     	AssertEQ(MA_SRC, rank1 - rank0, rank2);
     }
 
-    void runRank1Test(ostream& out)
+    void runRank1Test()
     {
     	Allocator allocator;
     	Ctr ctr(&allocator);
@@ -120,7 +120,7 @@ public:
     }
 
 
-    void runRankTest(ostream& out)
+    void runRankTest()
     {
     	Allocator allocator;
     	Ctr ctr(&allocator);
@@ -132,7 +132,7 @@ public:
 
     	for (int c = 1, cnt = 0; c < ctr.size(); c += 100, cnt++)
     	{
-    		out<<cnt<<endl;
+    		out()<<cnt<<endl;
     		assertRank(ctr, 0, c, 0);
     	}
 

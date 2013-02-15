@@ -271,15 +271,15 @@ public:
     	return seq;
     }
 
-    void runSelectFromFWTest(ostream& out)
+    void runSelectFromFWTest()
     {
-    	runSelectFromFWTest(out, 0);
-    	runSelectFromFWTest(out, Symbols - 1);
+    	runSelectFromFWTest(0);
+    	runSelectFromFWTest(Symbols - 1);
     }
 
-    void runSelectFromFWTest(ostream& out, Value symbol)
+    void runSelectFromFWTest(Value symbol)
     {
-    	out<<"Parameters: Bits="<<Bits<<" symbol="<<symbol<<endl;
+    	out()<<"Parameters: Bits="<<Bits<<" symbol="<<symbol<<endl;
 
     	Seq* seq = createEmptySequence();
 
@@ -287,11 +287,11 @@ public:
 
     	vector<size_t> starts = createStarts(seq);
 
-    	out<<"Solid bitmap"<<endl;
+    	out()<<"Solid bitmap"<<endl;
 
     	for (size_t start: starts)
     	{
-    		out<<start<<endl;
+    		out()<<start<<endl;
 
     		vector<size_t> ranks = createRanks(seq, start);
 
@@ -301,14 +301,14 @@ public:
     		}
     	}
 
-    	out<<endl;
-    	out<<"Random bitmap, random positions"<<endl;
+    	out()<<endl;
+    	out()<<"Random bitmap, random positions"<<endl;
 
     	populateRandom(seq, seq->maxSize());
 
     	for (size_t start: starts)
     	{
-    		out<<start<<endl;
+    		out()<<start<<endl;
 
     		vector<size_t> ranks = createRanks(seq, start);
 
@@ -318,14 +318,14 @@ public:
     		}
     	}
 
-    	out<<endl;
-    	out<<"Random bitmap, "<<symbol<<"-set positions"<<endl;
+    	out()<<endl;
+    	out()<<"Random bitmap, "<<symbol<<"-set positions"<<endl;
 
     	for (size_t start : starts)
     	{
     		auto pairs = createRanksFW(seq, start, symbol);
 
-    		out<<start<<endl;
+    		out()<<start<<endl;
 
     		for (auto pair: pairs)
     		{
@@ -338,11 +338,11 @@ public:
     		}
     	}
 
-    	out<<endl;
+    	out()<<endl;
     }
 
 
-    void runSelectFWTest(ostream& out)
+    void runSelectFWTest()
     {
     	Seq* seq = createEmptySequence();
 
@@ -362,15 +362,15 @@ public:
     }
 
 
-    void runSelectBWTest(ostream& out)
+    void runSelectBWTest()
     {
-    	runSelectBWTest(out, 0);
-    	runSelectBWTest(out, Symbols - 1);
+    	runSelectBWTest(0);
+    	runSelectBWTest(Symbols - 1);
     }
 
-    void runSelectBWTest(ostream& out, Value symbol)
+    void runSelectBWTest(Value symbol)
     {
-    	out<<"Parameters: "<<Bits<<" "<<symbol<<endl;
+    	out()<<"Parameters: "<<Bits<<" "<<symbol<<endl;
 
     	Seq* seq = createEmptySequence();
 
@@ -380,11 +380,11 @@ public:
 
     	starts.push_back(seq->maxSize());
 
-    	out<<"Solid bitmap"<<endl;
+    	out()<<"Solid bitmap"<<endl;
 
     	for (size_t start: starts)
     	{
-    		out<<start<<endl;
+    		out()<<start<<endl;
 
     		vector<size_t> ranks = createRanks(seq, start);
 
@@ -394,14 +394,14 @@ public:
     		}
     	}
 
-    	out<<endl;
-    	out<<"Random bitmap, random positions"<<endl;
+    	out()<<endl;
+    	out()<<"Random bitmap, random positions"<<endl;
 
     	populateRandom(seq, seq->maxSize());
 
     	for (size_t start: starts)
     	{
-    		out<<start<<endl;
+    		out()<<start<<endl;
 
     		vector<size_t> ranks = createRanks(seq, start);
 
@@ -411,12 +411,12 @@ public:
     		}
     	}
 
-    	out<<endl;
-    	out<<"Random bitmap, "<<symbol<<"-set positions"<<endl;
+    	out()<<endl;
+    	out()<<"Random bitmap, "<<symbol<<"-set positions"<<endl;
 
     	for (size_t start : starts)
     	{
-    		out<<start<<endl;
+    		out()<<start<<endl;
 
     		auto pairs = createRanksBW(seq, start, symbol);
 
@@ -431,7 +431,7 @@ public:
     		}
     	}
 
-    	out<<endl;
+    	out()<<endl;
 
     	size_t rank = seq->popCount(0, seq->size(), symbol);
     	assertSelectBW(seq, seq->size(), rank/2, symbol);

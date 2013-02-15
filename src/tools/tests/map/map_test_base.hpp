@@ -115,9 +115,9 @@ protected:
     }
 
 
-    virtual void checkIterator(ostream& out, Iterator& iter, const char* source)
+    virtual void checkIterator(Iterator& iter, const char* source)
     {
-        checkIteratorPrefix(out, iter, source);
+        checkIteratorPrefix(iter, source);
 
         auto& path = iter.path();
 
@@ -132,7 +132,7 @@ protected:
                 {
                     if (path[level - 1].parent_idx() != idx)
                     {
-                        iter.dump(out);
+                        iter.dump(out());
                         throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"
                                                           <<path[level]->id()
                                                           <<" child: "
@@ -151,7 +151,7 @@ protected:
 
             if (!found)
             {
-                iter.dump(out);
+                iter.dump(out());
                 throw TestException(source, SBuf()<<"Child: "
                                                   <<path[level - 1]->id()
                                                   <<" is not fount is it's parent, parent_idx="
@@ -162,7 +162,7 @@ protected:
 
     }
 
-    virtual void checkIteratorPrefix(ostream& out, Iterator& iter, const char* source)
+    virtual void checkIteratorPrefix(Iterator& iter, const char* source)
     {
         Accumulator prefix;
 
@@ -170,18 +170,18 @@ protected:
 
         if (iter.prefix() != prefix.key(0))
         {
-            iter.dump(out);
+            iter.dump(out());
             throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefix()<<" Actual: "<<prefix);
         }
     }
 
 
-    virtual void setUp(ostream& out)
+    virtual void setUp()
     {
         if (btree_random_branching_)
         {
             btree_branching_ = 8 + getRandom(100);
-            out<<"BTree Branching: "<<btree_branching_<<endl;
+            out()<<"BTree Branching: "<<btree_branching_<<endl;
         }
 
         pairs.clear();

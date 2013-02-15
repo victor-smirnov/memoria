@@ -41,9 +41,9 @@ public:
     virtual ~MapCreateTest() throw () {}
 
 
-    void runCreateTest(ostream& out)
+    void runCreateTest()
     {
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -62,7 +62,7 @@ public:
                 auto iter = map[pairs[vector_idx_].key_];
                 iter.setData(pairs[vector_idx_].value_);
 
-                checkIterator(out, iter, MEMORIA_SOURCE);
+                checkIterator(iter, MEMORIA_SOURCE);
 
                 check(allocator, MEMORIA_SOURCE);
 
@@ -86,9 +86,9 @@ public:
         }
     }
 
-    void replayCreateTest(ostream& out)
+    void replayCreateTest()
     {
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
@@ -102,7 +102,7 @@ public:
         auto iter = map[pairs[vector_idx_].key_];
         iter.setData(pairs[vector_idx_].value_);
 
-        checkIterator(out, iter, MEMORIA_SOURCE);
+        checkIterator(iter, MEMORIA_SOURCE);
 
         check(allocator, MEMORIA_SOURCE);
 
@@ -138,9 +138,9 @@ public:
     }
 
 
-    void runIteratorTest(ostream& out)
+    void runIteratorTest()
     {
-    	DefaultLogHandlerImpl logHandler(out);
+    	DefaultLogHandlerImpl logHandler(out());
     	Allocator allocator;
     	allocator.getLogger()->setHandler(&logHandler);
 
@@ -173,9 +173,9 @@ public:
     	}
     }
 
-    void replayIteratorTest(ostream& out)
+    void replayIteratorTest()
     {
-    	DefaultLogHandlerImpl logHandler(out);
+    	DefaultLogHandlerImpl logHandler(out());
     	Allocator allocator;
     	allocator.getLogger()->setHandler(&logHandler);
 
@@ -189,7 +189,6 @@ public:
 
 		AssertEQ(MA_SRC, i.key(), key_);
 		AssertEQ(MA_SRC, i.value(), value_);
-
     }
 
 };

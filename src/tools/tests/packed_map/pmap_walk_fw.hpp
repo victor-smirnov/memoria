@@ -76,12 +76,10 @@ public:
     virtual ~PMapWalkFwTest() throw() {}
 
 
-    void runReplay(ostream& out)
+    void runReplay()
     {
         unique_ptr<Byte[]>  buffer_ptr(new Byte[block_size]);
         Byte* buffer        = buffer_ptr.get();
-
-
         Map* map            = T2T<Map*>(buffer);
 
         map->initByBlock(block_size - sizeof(Map));
@@ -122,33 +120,31 @@ public:
         return sum;
     }
 
-    void runTest(ostream& out)
+    void runTest()
     {
-       unique_ptr<Byte[]>  buffer_ptr(new Byte[block_size]);
-        Byte* buffer        = buffer_ptr.get();
+    	unique_ptr<Byte[]>  buffer_ptr(new Byte[block_size]);
+    	Byte* buffer        = buffer_ptr.get();
+    	Map* map            = T2T<Map*>(buffer);
 
+    	map->initByBlock(block_size - sizeof(Map));
 
-        Map* map            = T2T<Map*>(buffer);
+    	Int size = max_size != 0 ? max_size : map->maxSize();
 
-        map->initByBlock(block_size - sizeof(Map));
+    	FillMap(map, size);
 
-        Int size = max_size != 0 ? max_size : map->maxSize();
+    	for (Int end = 0; end < map->size(); end++)
+    	{
+    		out()<<end<<endl;
+    		for (Int start = 0; start < end; start++)
+    		{
+    			BigInt sum = Sum(map, start, end);
 
-        FillMap(map, size);
+    			Key acc;
+    			Int idx = map->findFwLT(0, start, sum, acc);
 
-        for (Int end = 0; end < map->size(); end++)
-        {
-            out<<end<<endl;
-        	for (Int start = 0; start < end; start++)
-            {
-                BigInt sum = Sum(map, start, end);
-
-                Key acc;
-                Int idx = map->findFwLT(0, start, sum, acc);
-
-                AssertEQ(MA_SRC, idx, end, SBuf()<<"start="<<start);
-            }
-        }
+    			AssertEQ(MA_SRC, idx, end, SBuf()<<"start="<<start);
+    		}
+    	}
     }
 };
 

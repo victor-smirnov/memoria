@@ -77,7 +77,7 @@ public:
 
     virtual ~PMapSumTest() throw() {}
 
-    void runReplay(ostream& out)
+    void runReplay()
     {
         unique_ptr<Byte[]>  buffer_ptr(new Byte[block_size]);
         Byte* buffer        = buffer_ptr.get();
@@ -123,7 +123,7 @@ public:
         return sum;
     }
 
-    void runTest(ostream& out)
+    void runTest()
     {
         unique_ptr<Byte[]>  buffer_ptr(new Byte[block_size]);
         Byte* buffer        = buffer_ptr.get();
@@ -136,7 +136,7 @@ public:
 
         for (Int end = 0; end < map->size(); end++)
         {
-            out<<end<<endl;
+            out()<<end<<endl;
 
             for (Int start = 0; start < end; start++)
             {

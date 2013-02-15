@@ -105,12 +105,12 @@ public:
         return getBIRandom(size);
     }
 
-    virtual void setUp(ostream& out)
+    virtual void setUp()
     {
         if (btree_random_branching_)
         {
             btree_branching_ = 8 + getRandom(100);
-            out<<"BTree Branching: "<<btree_branching_<<endl;
+            out()<<"BTree Branching: "<<btree_branching_<<endl;
         }
     }
 
@@ -330,11 +330,11 @@ public:
     	checkBufferWritten(iter, suffix, MA_SRC);
     }
 
-    void testInsertFromStart(ostream& out) {
+    void testInsertFromStart() {
     	testInsert(&MyType::insertFromStart);
     }
 
-    void replayInsertFromStart(ostream& out) {
+    void replayInsertFromStart() {
     	replay(&MyType::insertFromStart);
     }
 
@@ -364,12 +364,12 @@ public:
     }
 
 
-    void testInsertAtEnd(ostream& out)
+    void testInsertAtEnd()
     {
     	testInsert(&MyType::insertAtEnd);
     }
 
-    void replayInsertAtEnd(ostream& out)
+    void replayInsertAtEnd()
     {
     	replay(&MyType::insertAtEnd);
     }
@@ -400,12 +400,12 @@ public:
     }
 
 
-    void testInsertInTheMiddle(ostream& out)
+    void testInsertInTheMiddle()
     {
     	testInsert(&MyType::insertInTheMiddle);
     }
 
-    void replayInsertInTheMiddle(ostream& out)
+    void replayInsertInTheMiddle()
     {
     	replay(&MyType::insertInTheMiddle);
     }
@@ -441,11 +441,11 @@ public:
     	checkBufferWritten(iter, suffix, MA_SRC);
     }
 
-    void testRemoveFromStart(ostream& out) {
+    void testRemoveFromStart() {
     	testRemove(&MyType::removeFromStart);
     }
 
-    void replayRemoveFromStart(ostream& out) {
+    void replayRemoveFromStart() {
     	replay(&MyType::removeFromStart);
     }
 
@@ -485,11 +485,11 @@ public:
     	checkBufferWritten(iter, prefix, MA_SRC);
     }
 
-    void testRemoveAtEnd(ostream& out) {
+    void testRemoveAtEnd() {
     	testRemove(&MyType::removeAtEnd);
     }
 
-    void replayRemoveAtEnd(ostream& out) {
+    void replayRemoveAtEnd() {
     	replay(&MyType::removeAtEnd);
     }
 
@@ -545,12 +545,12 @@ public:
     }
 
 
-    void testRemoveInTheMiddle(ostream& out)
+    void testRemoveInTheMiddle()
     {
     	testRemove(&MyType::removeInTheMiddle);
     }
 
-    void replayRemoveInTheMiddle(ostream& out)
+    void replayRemoveInTheMiddle()
     {
     	replay(&MyType::removeInTheMiddle);
     }

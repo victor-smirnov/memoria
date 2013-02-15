@@ -76,7 +76,7 @@ public:
     }
 
 
-    void runTest(ostream& out)
+    void runTest()
     {
         unique_ptr<Byte[]>  buffer_ptr(new Byte[buffer_size]);
         Byte* buffer        = buffer_ptr.get();

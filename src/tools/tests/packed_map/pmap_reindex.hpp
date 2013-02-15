@@ -76,7 +76,7 @@ public:
     }
 
 
-    void runTest(ostream& out)
+    void runTest()
     {
         Int buffer_size     = 1024*64;
 
@@ -89,7 +89,7 @@ public:
 
         for (int c = 1; c < 64; c++)
         {
-            out<<"Reindex Pass: "<<c<<endl;
+            out()<<"Reindex Pass: "<<c<<endl;
 
             map->initByBlock(buffer_size / c);
 
@@ -106,11 +106,11 @@ public:
             }
         }
 
-        out<<endl<<endl;
+        out()<<endl<<endl;
 
         for (int c = 1; c < 64; c++)
         {
-            out<<"Add Pass: "<<c<<endl;
+            out()<<"Add Pass: "<<c<<endl;
 
             map->initByBlock(buffer_size / c);
 

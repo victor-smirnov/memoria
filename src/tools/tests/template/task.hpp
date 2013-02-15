@@ -41,9 +41,9 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(runFirst, replayFirst);
     }
 
-    void runFirst(ostream& out)
+    void runFirst()
     {
-        out<<"Precofigured Param: "<<param_<<endl;
+        out()<<"Precofigured Param: "<<param_<<endl;
 
         state_param_ = 12344321;
 
@@ -54,9 +54,9 @@ public:
     }
 
 
-    void replayFirst(ostream& out)
+    void replayFirst()
     {
-        out<<"Param="<<param_<<endl;
+        out()<<"Param="<<param_<<endl;
     }
 
     virtual ~TemplateTestTask() throw() {}

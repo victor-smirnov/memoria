@@ -34,9 +34,9 @@ class MapRemoveTest: public MapTestBase {
 
     virtual ~MapRemoveTest() throw () {}
 
-    void runRemoveTest(ostream& out)
+    void runRemoveTest()
     {
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -104,9 +104,9 @@ class MapRemoveTest: public MapTestBase {
         }
     }
 
-    void replayRemoveTest(ostream& out)
+    void replayRemoveTest()
     {
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 

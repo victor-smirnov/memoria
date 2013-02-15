@@ -31,7 +31,7 @@ void TestTask::Run(std::ostream& out)
 
         current_test_name_ = descr->name();
 
-        this->setUp(out);
+        this->setUp();
 
         try {
 
@@ -39,11 +39,11 @@ void TestTask::Run(std::ostream& out)
             descr->run(this, out);
             out<<"TEST PASSED"<<endl<<endl;
 
-            this->tearDown(out);
+            this->tearDown();
         }
         catch (...) {
         	out<<"TEST FAILED"<<endl;
-            this->tearDown(out);
+            this->tearDown();
             throw;
         }
     }

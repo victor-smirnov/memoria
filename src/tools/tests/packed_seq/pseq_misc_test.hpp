@@ -49,7 +49,7 @@ public:
 
     virtual ~PSeqMiscTest() throw() {}
 
-    void testInit(ostream& out)
+    void testInit()
     {
     	Seq seq;
 
@@ -124,7 +124,7 @@ public:
     	}
     }
 
-    void testTransferTo(ostream& out)
+    void testTransferTo()
     {
     	Seq* seq1 = createEmptySequence(8192);
     	Seq* seq2 = createEmptySequence(8192);
@@ -146,7 +146,7 @@ public:
     	});
     }
 
-    void testResize(ostream& out)
+    void testResize()
     {
     	Seq* seq1 = createEmptySequence(8192, 2048);
     	Buffer data = populateRandom(seq1);
@@ -212,7 +212,7 @@ public:
     	compare(dst, dst_data);
     }
 
-    void testCopyTo(ostream& out)
+    void testCopyTo()
     {
     	Seq* seq1 = createEmptySequence(1024);
     	Seq* seq2 = createEmptySequence(1024);
@@ -222,7 +222,7 @@ public:
 
     	for (Int c = 0; c < 100; c++)
     	{
-    		out<<c<<endl;
+    		out()<<c<<endl;
 
     		Int src_idx = getRandom(seq1->size()) / 4 * 3;
     		Int dst_idx;
@@ -251,14 +251,14 @@ public:
     	data.erase(data.begin() + idx, data.begin() + idx + length);
     }
 
-    void testRemoveSpace(ostream& out)
+    void testRemoveSpace()
     {
     	Seq* seq = createEmptySequence(8192);
     	Buffer data = populateRandom(seq);
 
     	while (seq->size() > 0)
     	{
-    		out<<seq->size()<<endl;
+    		out()<<seq->size()<<endl;
 
     		Int idx 		= getRandom(seq->size());
     		Int max_length 	= seq->size() - idx - 1;
@@ -271,14 +271,14 @@ public:
     	}
     }
 
-    void testInsertSpace(ostream& out)
+    void testInsertSpace()
     {
     	Seq* seq = createEmptySequence(8192);
     	Buffer data;
 
     	while (seq->capacity() > 0)
     	{
-    		out<<seq->size()<<endl;
+    		out()<<seq->size()<<endl;
 
     		Int idx 		= getRandom(seq->size());
     		Int max_length 	= seq->capacity();

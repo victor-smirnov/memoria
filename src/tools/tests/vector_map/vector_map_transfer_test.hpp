@@ -60,7 +60,7 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(runInsertTest, runInsertReplay);
     }
 
-    void compareVectors(ostream& out, Ctr& v1, Ctr& v2, const char* src)
+    void compareVectors(Ctr& v1, Ctr& v2, const char* src)
     {
         if (v2.size() != v2.size())
         {
@@ -102,8 +102,8 @@ public:
                     MemBuffer<T> b1(data1);
                     MemBuffer<T> b2(data2);
 
-                    b1.dump(out);
-                    b2.dump(out);
+                    b1.dump(out());
+                    b2.dump(out());
 
                     throw TestException(src, SBuf()<<"Data contents are not equal at: "<<c<<" "<<iter1.key());
                 }
@@ -125,7 +125,7 @@ public:
         return createBuffer<T>(size, getRandom(255));
     }
 
-    void runInsertTest(ostream& out)
+    void runInsertTest()
     {
         Allocator allocator;
 
@@ -143,7 +143,7 @@ public:
 
                 v1[c] = buf;
                 v2[c] = buf;
-                out<<"Insert: "<<c<<endl;
+                out()<<"Insert: "<<c<<endl;
             }
 
             allocator.commit();
@@ -158,7 +158,7 @@ public:
                 insertData(v1, v2);
 
                 check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
-                compareVectors(out, v1, v2, MEMORIA_SOURCE);
+                compareVectors(v1, v2, MEMORIA_SOURCE);
 
                 auto buf1 = createRandomBuffer();
                 auto buf2 = createRandomBuffer();
@@ -167,10 +167,10 @@ public:
                 v1[pos2_] = v2[pos2_] = buf2;
 
                 check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
-                compareVectors(out, v1, v2, MEMORIA_SOURCE);
+                compareVectors(v1, v2, MEMORIA_SOURCE);
 
                 allocator.commit();
-                out<<c<<endl;
+                out()<<c<<endl;
             }
         }
         catch (...) {
@@ -179,7 +179,7 @@ public:
         }
     }
 
-    void runInsertReplay(ostream& out)
+    void runInsertReplay()
     {
         Allocator allocator;
         LoadAllocator(allocator, dump_name_);
@@ -193,7 +193,7 @@ public:
 
         check(allocator, "Allocator check failed",  MEMORIA_SOURCE);
 
-        compareVectors(out, v1, v2, MEMORIA_SOURCE);
+        compareVectors(v1, v2, MEMORIA_SOURCE);
     }
 };
 

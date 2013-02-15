@@ -149,9 +149,9 @@ public:
     	AssertEQ(MA_SRC, rank, popc, SBuf()<<end);
     }
 
-    void runTest1(ostream& out)
+    void runTest1()
     {
-    	out<<"Parameters: Bits="<<Bits<<endl;
+    	out()<<"Parameters: Bits="<<Bits<<endl;
 
     	Seq* seq = createEmptySequence();
 
@@ -169,7 +169,7 @@ public:
 
     	for (size_t start: starts)
     	{
-    		out<<start<<endl;
+    		out()<<start<<endl;
 
     		auto ends = createEnds(seq, start);
 
@@ -181,9 +181,9 @@ public:
     	}
     }
 
-    void runTest2(ostream& out)
+    void runTest2()
     {
-    	out<<"Parameters: Bits="<<Bits<<endl;
+    	out()<<"Parameters: Bits="<<Bits<<endl;
 
     	Seq* seq = createEmptySequence();
 
@@ -202,9 +202,9 @@ public:
     	}
     }
 
-    void runTest3(ostream& out)
+    void runTest3()
     {
-    	out<<"Parameters: Bits="<<Bits<<endl;
+    	out()<<"Parameters: Bits="<<Bits<<endl;
 
     	Seq* seq = createEmptySequence();
 
@@ -225,9 +225,9 @@ public:
     	}
     }
 
-    void runTest4(ostream& out)
+    void runTest4()
     {
-    	out<<"Parameters: Bits="<<Bits<<endl;
+    	out()<<"Parameters: Bits="<<Bits<<endl;
 
     	Seq* seq = createEmptySequence();
 

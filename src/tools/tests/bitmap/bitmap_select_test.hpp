@@ -124,7 +124,7 @@ public:
     }
 
 
-    void testSelectFWPlain(ostream& out)
+    void testSelectFWPlain()
     {
     	AssertSelectFW(-1ull, 64);
 
@@ -143,7 +143,7 @@ public:
 
 
 
-    void testSelectBWPlain(ostream& out)
+    void testSelectBWPlain()
     {
     	AssertSelectBW(-1ull, 64);
     	AssertSelectBW(-1ull, 1);
@@ -161,18 +161,18 @@ public:
     	}
     }
 
-    void dumpRanks(ostream& out, UBigInt value) const
+    void dumpRanks(UBigInt value)
     {
     	for (Int c = 0; c < 64; c++)
     	{
-    		out<<c<<" ";
-    		out<<PopCnt(value & MakeMask<UBigInt>(0, c))<<endl;
+    		out()<<c<<" ";
+    		out()<<PopCnt(value & MakeMask<UBigInt>(0, c))<<endl;
     	}
     }
 
-    void replaySelectFWPlain(ostream& out)
+    void replaySelectFWPlain()
     {
-    	dumpRanks(out, value_);
+    	dumpRanks(value_);
 
 		size_t pos1 = SelectFW(value_, rank_);
 		size_t pos2 = selectFW(value_, rank_);
@@ -180,9 +180,9 @@ public:
 		AssertEQ(MA_SRC, pos1, pos2, SBuf()<<value_<<" "<<rank_);
     }
 
-    void replaySelectBWPlain(ostream& out)
+    void replaySelectBWPlain()
     {
-    	dumpRanks(out, value_);
+    	dumpRanks(value_);
 
     	size_t pos1 = SelectBW(value_, rank_);
     	size_t pos2 = selectBW(value_, rank_);
@@ -289,17 +289,17 @@ public:
     }
 
 
-    void testSelect1FW(ostream& out)
+    void testSelect1FW()
     {
-    	testSelectFW(out, &MyType::assertSelect1FW);
+    	testSelectFW(&MyType::assertSelect1FW);
     }
 
-    void testSelect0FW(ostream& out)
+    void testSelect0FW()
     {
-    	testSelectBW(out, &MyType::assertSelect0FW);
+    	testSelectBW(&MyType::assertSelect0FW);
     }
 
-    void testSelectFW(ostream& out, AssertSelectBWFn assert_fn)
+    void testSelectFW(AssertSelectBWFn assert_fn)
     {
 
     	size_t bitsize = sizeof(bitmap_) * 8;
@@ -336,12 +336,12 @@ public:
     	}
     }
 
-    void replaySelect1FW(ostream& out)
+    void replaySelect1FW()
     {
 
     }
 
-    void replaySelect0FW(ostream& out)
+    void replaySelect0FW()
     {
 
     }
@@ -375,17 +375,17 @@ public:
     	AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start_<<" "<<stop_<<" "<<rank_);
     }
 
-    void testSelect1BW(ostream& out)
+    void testSelect1BW()
     {
-    	testSelectBW(out, &MyType::assertSelect1BW);
+    	testSelectBW(&MyType::assertSelect1BW);
     }
 
-    void testSelect0BW(ostream& out)
+    void testSelect0BW()
     {
-    	testSelectBW(out, &MyType::assertSelect0BW);
+    	testSelectBW(&MyType::assertSelect0BW);
     }
 
-    void testSelectBW(ostream& out, AssertSelectBWFn assert_fn)
+    void testSelectBW(AssertSelectBWFn assert_fn)
     {
     	size_t bitsize = sizeof(bitmap_) * 8;
 
@@ -472,7 +472,7 @@ public:
     	}
     }
 
-    void replaySelect1BW(ostream& out)
+    void replaySelect1BW()
     {
 		auto result1 = Select1BW(bitmap_, start_, stop_, rank_);
 		auto result2 = select1BW(bitmap_, start_, stop_, rank_);
@@ -482,7 +482,7 @@ public:
 		AssertEQ(MA_SRC, result1.rank(), 	 result2.rank());
     }
 
-    void replaySelect0BW(ostream& out)
+    void replaySelect0BW()
     {
 		auto result1 = Select0BW(bitmap_, start_, stop_, rank_);
 		auto result2 = select0BW(bitmap_, start_, stop_, rank_);

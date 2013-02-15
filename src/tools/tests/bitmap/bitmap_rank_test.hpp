@@ -37,7 +37,7 @@ public:
     }
 
 
-    void testPopCnt(ostream& out)
+    void testPopCnt()
     {
     	for (Int c = 0; c < 100000; c++)
     	{
@@ -55,7 +55,7 @@ public:
     	}
     }
 
-    void testPopCount(ostream& out)
+    void testPopCount()
     {
     	T bitmap[10];
     	Int bitsize 	= sizeof(bitmap) * 8;

@@ -76,12 +76,10 @@ public:
 
     virtual ~PMapWalkBwTest() throw() {}
 
-    void runReplay(ostream& out)
+    void runReplay()
     {
         unique_ptr<Byte[]>  buffer_ptr(new Byte[block_size]);
-
         Byte* buffer        = buffer_ptr.get();
-
         Map* map            = T2T<Map*>(buffer);
 
         map->initByBlock(block_size - sizeof(Map));
@@ -122,12 +120,10 @@ public:
         return sum;
     }
 
-    void runTest(ostream& out)
+    void runTest()
     {
         unique_ptr<Byte[]>  buffer_ptr(new Byte[block_size]);
         Byte* buffer        = buffer_ptr.get();
-
-
         Map* map            = T2T<Map*>(buffer);
 
         map->initByBlock(block_size - sizeof(Map));
@@ -138,7 +134,7 @@ public:
 
         for (Int end = map->size() - 1; end >= -1; end--)
         {
-        	out<<end<<endl;
+        	out()<<end<<endl;
             for (Int start = map->size() - 1; start > end; start--)
             {
                 BigInt sum = Sum(map, start, end);

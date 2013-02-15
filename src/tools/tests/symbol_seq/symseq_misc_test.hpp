@@ -42,7 +42,7 @@ public:
     virtual ~SymSeqMiscTest() throw() {}
 
 
-    void testCreate(ostream& out)
+    void testCreate()
     {
     	Seq seq;
 
@@ -67,7 +67,7 @@ public:
     	AssertEQ(MA_SRC, seq2.capacity(), capacity2);
     }
 
-    void testAdapter(ostream& out)
+    void testAdapter()
     {
     	Seq seq1(4096);
     	Seq seq2(seq1.capacity());

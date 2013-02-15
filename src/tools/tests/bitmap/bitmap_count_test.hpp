@@ -39,19 +39,19 @@ public:
         MEMORIA_ADD_TEST(testCountZeroBW);
     }
 
-    void testCountOneFW(ostream& out) {
-    	testCountFW(out, 1);
+    void testCountOneFW() {
+    	testCountFW(1);
     }
 
 
-    void testCountZeroFW(ostream& out) {
-    	testCountFW(out, 0);
+    void testCountZeroFW() {
+    	testCountFW(0);
     }
 
 
-    void testCountFW(ostream& out, Int value)
+    void testCountFW(Int value)
     {
-    	out<<"TestCountFw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
+    	Base::out()<<"TestCountFw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
 
     	T values[10];
 
@@ -87,19 +87,19 @@ public:
 
 
 
-    void testCountOneBW(ostream& out) {
-    	testCountBW(out, 1);
+    void testCountOneBW() {
+    	testCountBW(1);
     }
 
 
-    void testCountZeroBW(ostream& out) {
-    	testCountBW(out, 0);
+    void testCountZeroBW() {
+    	testCountBW(0);
     }
 
 
-    void testCountBW(ostream& out, Int value)
+    void testCountBW(Int value)
     {
-    	out<<"TestCountBw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
+    	Base::out()<<"TestCountBw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
 
     	T values[10];
 

@@ -53,7 +53,7 @@ public:
     	return value;
     }
 
-    void testMakeMaskInternal(ostream& out)
+    void testMakeMaskInternal()
     {
     	UInt value = 0xF;
 
@@ -63,9 +63,9 @@ public:
     	}
     }
 
-    void testMakeMask(ostream& out)
+    void testMakeMask()
     {
-    	out<<"MakeMask "<<TypeNameFactory<T>::name()<<endl;
+    	Base::out()<<"MakeMask "<<TypeNameFactory<T>::name()<<endl;
 
     	Int bitsize = TypeBitsize<T>();
 
@@ -81,9 +81,9 @@ public:
     	}
     }
 
-    void testSetBit(ostream& out)
+    void testSetBit()
     {
-    	out<<"TestSetBit: "<<TypeNameFactory<T>::name()<<endl;
+    	Base::out()<<"TestSetBit: "<<TypeNameFactory<T>::name()<<endl;
 
     	T values[4];
     	Int bitsize = sizeof(values) * 8;
@@ -113,9 +113,9 @@ public:
     }
 
 
-    void testSetBits(ostream& out)
+    void testSetBits()
     {
-    	out<<"TestSetBits: "<<TypeNameFactory<T>::name()<<endl;
+    	Base::out()<<"TestSetBits: "<<TypeNameFactory<T>::name()<<endl;
 
     	T values[4];
 
@@ -179,7 +179,7 @@ public:
     	}
     }
 
-    void testMoveBits(ostream& out)
+    void testMoveBits()
     {
     	T bitmap1[5];
     	T bitmap2[5];
@@ -190,7 +190,7 @@ public:
     	{
     		makeRandomBitmap(bitmap1, bitsize);
 
-    		out<<"length: "<<length<<endl;
+    		Base::out()<<"length: "<<length<<endl;
 
     		for (Int src_bit = 0; src_bit < bitsize - length; src_bit++)
     		{

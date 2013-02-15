@@ -240,7 +240,7 @@ public:
     }
 
 
-    void runTest(ostream& out)
+    void runTest()
     {
         Int buffer_size     = 1024*16;
 

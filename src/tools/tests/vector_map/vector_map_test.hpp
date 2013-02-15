@@ -102,11 +102,11 @@ public:
         }
     }
 
-    void runReplay(ostream& out)
+    void runReplay()
     {
         pairs_.clear();
 
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -165,29 +165,29 @@ public:
         }
     }
 
-    virtual void setUp(ostream& out)
+    virtual void setUp()
     {
         if (btree_random_branching_)
         {
             btree_branching_ = 8 + getRandom(100);
-            out<<"BTree Branching: "<<btree_branching_<<endl;
+            out()<<"BTree Branching: "<<btree_branching_<<endl;
         }
 
         pairs_.clear();
     }
 
-    void runTest(ostream& out)
+    void runTest()
     {
-        TestOrderedCreation(out);
-        TestRandomCreation(out);
-        TestRandomDeletion(out);
+        TestOrderedCreation();
+        TestRandomCreation();
+        TestRandomDeletion();
     }
 
-    void TestOrderedCreation(ostream& out)
+    void TestOrderedCreation()
     {
-        out<<"OrderedCreation Test"<<endl;
+        out()<<"OrderedCreation Test"<<endl;
 
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -243,11 +243,11 @@ public:
     }
 
 
-    void TestRandomCreation(ostream& out)
+    void TestRandomCreation()
     {
-        out<<"RandomCreation test"<<endl;
+        out()<<"RandomCreation test"<<endl;
 
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -314,11 +314,11 @@ public:
     }
 
 
-    void TestRandomDeletion(ostream& out)
+    void TestRandomDeletion()
     {
-        out<<"RandomDeletion Test"<<endl;
+        out()<<"RandomDeletion Test"<<endl;
 
-        DefaultLogHandlerImpl logHandler(out);
+        DefaultLogHandlerImpl logHandler(out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);

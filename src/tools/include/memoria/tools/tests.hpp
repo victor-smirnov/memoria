@@ -60,7 +60,7 @@ protected:
 
     template <typename T>
     class TypedTestDescriptor: public TestDescriptor {
-        typedef void (T::*TestMethod)(std::ostream& out);
+        typedef void (T::*TestMethod)();
 
         TestMethod run_test_;
         TestMethod replay_test_;
@@ -73,12 +73,12 @@ protected:
 
         virtual void run(TestTask* test, ostream& out) const {
             T* casted = T2T<T*>(test);
-            (casted->*run_test_)(out);
+            (casted->*run_test_)();
         }
 
         virtual void replay(TestTask* test, ostream& out) const {
             T* casted = T2T<T*>(test);
-            (casted->*replay_test_)(out);
+            (casted->*replay_test_)();
         }
 
         virtual bool hasReplay() const {
@@ -128,11 +128,11 @@ public:
         Process(cfg);
     }
 
-    virtual void setUp(ostream&) {}
-    virtual void tearDown(ostream&) {}
+    virtual void setUp() {}
+    virtual void tearDown() {}
 
     template <typename T>
-    using TaskMethodPtr = void (T::*) (std::ostream&);
+    using TaskMethodPtr = void (T::*) ();
 
     template <typename T>
     void addTest(StringRef name, TaskMethodPtr<T> run_test, TaskMethodPtr<T> replay_test = nullptr)
