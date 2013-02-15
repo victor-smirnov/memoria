@@ -1,18 +1,18 @@
 
-// Copyright Victor Smirnov 2012.
+// Copyright Victor Smirnov 2012-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_SUM_SET_BATCH_SUM_SET_BATCH_TESTS_HPP_
-#define MEMORIA_TESTS_SUM_SET_BATCH_SUM_SET_BATCH_TESTS_HPP_
+#ifndef MEMORIA_TESTS_SUMSETBATCH_SUMSETBATCHTEST_HPP_
+#define MEMORIA_TESTS_SUMSETBATCH_SUMSETBATCHTEST_HPP_
 
 #include <memoria/memoria.hpp>
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "../shared/btree_test_base.hpp"
+#include "../shared/randomaccesslist_test_base.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -24,12 +24,12 @@ namespace memoria {
 
 typedef SCtrTF<Set1>::Type SumSet1Ctr;
 
-class SumsetBatchTest: public BTreeBatchTestBase<
+class SumsetBatchTest: public RandomAccessListTestBase<
     Set1,
     typename SumSet1Ctr::LeafPairsVector
 >
 {
-    typedef BTreeBatchTestBase<
+    typedef RandomAccessListTestBase<
             Set1,
             typename SumSet1Ctr::LeafPairsVector
     >                                                                           Base;
@@ -51,22 +51,39 @@ public:
     }
 
 
+    virtual MemBuffer createBuffer(Int size) {
+    	return createRandomBuffer(size);
+    }
 
-    virtual MemBuffer createBuffer(Ctr& ctr, Int size, BigInt value)
+    virtual MemBuffer createRandomBuffer(Int size)
     {
         MemBuffer array(size);
-
 
         BigInt cnt = 0;
         for (auto& pair: array)
         {
             pair.keys[0] = cnt++;
 
-            if (cnt == value) cnt = 0;
+            if (cnt == 10000) cnt = 0;
         }
 
         return array;
     }
+
+
+    virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
+    {
+    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+
+    	for (size_t c = 0; c < src.size(); c++)
+    	{
+    		auto v1 = src[c].keys[0];
+    		auto v2 = tgt[c].keys[0];
+
+    		AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
+    	}
+    }
+
 
     virtual Iterator seek(Ctr& array, BigInt pos)
     {
@@ -164,7 +181,7 @@ public:
         AssertEQ(MA_SRC, cnt, array.getSize());
     }
 
-    virtual void checkIteratorPrefix(ostream& out, Iterator& iter, const char* source) {}
+    virtual void checkIteratorPrefix(Iterator& iter, const char* source) {}
 
 };
 

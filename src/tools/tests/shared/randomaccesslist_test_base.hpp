@@ -94,7 +94,7 @@ public:
     virtual void fillRandom(Ctr& ctr, BigInt size)
     {
     	MemBuffer data = createRandomBuffer(size);
-    	Iterator iter = ctr.seek(0);
+    	Iterator iter = seek(ctr, 0);
     	insert(iter, data);
     }
 
