@@ -47,10 +47,9 @@ public:
 
     PSeqRankTest(): TestTask((SBuf()<<"Rank."<<Bits).str())
     {
-//        MEMORIA_ADD_TEST(runTest1);
-//        MEMORIA_ADD_TEST(runTest2);
-//        MEMORIA_ADD_TEST(runTest3);
-
+        MEMORIA_ADD_TEST(runTest1);
+        MEMORIA_ADD_TEST(runTest2);
+        MEMORIA_ADD_TEST(runTest3);
         MEMORIA_ADD_TEST(runTest4);
     }
 

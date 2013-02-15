@@ -25,8 +25,8 @@ public:
     SymbolSeqTestSuite(): TestSuite("SymbolSeqSuite")
     {
     	registerTask(new SymSeqMiscTest<1>());
-//    	registerTask(new SymSeqMiscTest<2>());
-//    	registerTask(new SymSeqMiscTest<3>());
+    	registerTask(new SymSeqMiscTest<2>());
+    	registerTask(new SymSeqMiscTest<3>());
     }
 
 };

@@ -138,7 +138,8 @@ public:
 
         for (Int end = 0; end < map->size(); end++)
         {
-            for (Int start = 0; start < end; start++)
+            out<<end<<endl;
+        	for (Int start = 0; start < end; start++)
             {
                 BigInt sum = Sum(map, start, end);
 

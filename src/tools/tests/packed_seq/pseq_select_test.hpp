@@ -50,10 +50,10 @@ public:
 
     PSeqSelectTest(): TestTask((SBuf()<<"Select."<<Bits).str())
     {
-//        MEMORIA_ADD_TEST(runSelectFromFWTest);
+        MEMORIA_ADD_TEST(runSelectFromFWTest);
         MEMORIA_ADD_TEST(runSelectFWTest);
 
-//        MEMORIA_ADD_TEST(runSelectBWTest);
+        MEMORIA_ADD_TEST(runSelectBWTest);
     }
 
     virtual ~PSeqSelectTest() throw() {}

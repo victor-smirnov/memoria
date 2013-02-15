@@ -138,6 +138,7 @@ public:
 
         for (Int end = map->size() - 1; end >= -1; end--)
         {
+        	out<<end<<endl;
             for (Int start = map->size() - 1; start > end; start--)
             {
                 BigInt sum = Sum(map, start, end);
@@ -145,7 +146,7 @@ public:
                 Key acc;
                 Int idx = map->findBwLT(0, start, sum, acc);
 
-                AssertEQ(MA_SRC, idx, end, SBuf()<<"start="<<start);
+                AssertEQ(MA_SRC, idx, end, [=]() {return SBuf()<<"start="<<start;});
             }
         }
     }

@@ -116,7 +116,7 @@ public:
                     	AssertEQ(MA_SRC, c + 1, map->findLT(0, src_key));
                     }
                     else {
-                    	AssertEQ(MA_SRC, -1, map->findLT(0, src_key));
+                    	AssertEQ(MA_SRC, map->size(), map->findLT(0, src_key));
                     }
                 }
             }
