@@ -474,7 +474,7 @@ public:
 
         const IndexKey* indexes = me_.indexes(blocks_[0]);
 
-    	for (Int c = start; c > end; c++)
+    	for (Int c = start; c > end; c--)
         {
         	IndexKey key = indexes[c];
 

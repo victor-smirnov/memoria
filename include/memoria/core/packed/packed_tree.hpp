@@ -643,7 +643,9 @@ public:
     void transferTo(TreeType* other, Byte* memory_block = nullptr) const
     {
         MEMORIA_ASSERT(size(), <=, other->maxSize());
+#ifndef __clang__
         MEMORIA_ASSERT(Blocks,  ==, other->Blocks);
+#endif
 
         if (memory_block == nullptr)
         {
