@@ -25,26 +25,20 @@ class PMapFindTest: public TestTask {
 
     typedef PMapFindTest MyType;
 
-    template <typename Key_, typename Value_, Int Blocks_ = 3>
-    struct PMapfindTypes {
-        typedef Key_                        Key;
-        typedef Key_                        IndexKey;
-        typedef Value_                      Value;
+	static const Int Blocks                 = 1;
 
-        static const Int Blocks             = Blocks_;
-        static const Int BranchingFactor    = 8;
+	typedef Int             				Key;
+	typedef Int           					Value;
+	typedef Accumulators<Int, Blocks>     	Accumulator;
 
-        typedef Accumulators<Key, Blocks>   Accumulator;
-    };
-
-
-    typedef PMapfindTypes<Int, Int, 1>      Types;
-
-    typedef typename Types::Accumulator     Accumulator;
-    typedef typename Types::Key             Key;
-    typedef typename Types::Value           Value;
-
-    static const Int Blocks                 = Types::Blocks;
+    typedef PackedTreeTypes<
+    		Key,
+    		Key,
+    		Value,
+    		Accumulator,
+    		Blocks,
+    		8
+    >										Types;
 
     typedef PackedSumTree<Types>            Map;
 

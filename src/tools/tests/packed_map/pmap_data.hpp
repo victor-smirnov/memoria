@@ -20,43 +20,26 @@ namespace memoria {
 
 using namespace std;
 
-
-
-
-
-
-
-
-
 class PMapDataTest: public TestTask {
 
-    typedef PMapDataTest MyType;
+	typedef PMapDataTest 					MyType;
 
-    template <typename Key_, typename Value_, Int Blocks_ = 3>
-    struct PMapTypes {
-        typedef Key_                        Key;
-        typedef Key_                        IndexKey;
-        typedef Value_                      Value;
+	static const Int Blocks                 = 3;
 
-        static const Int Blocks             = Blocks_;
-        static const Int BranchingFactor    = 64 / sizeof (Key);
+	typedef Int             				Key;
+	typedef Int           					Value;
+	typedef Accumulators<Int, Blocks>     	Accumulator;
 
-        typedef Accumulators<Key, Blocks>   Accumulator;
-    };
-
-
-
-    typedef PMapTypes<Int, Int, 3>          Types;
-
-    typedef typename Types::Accumulator     Accumulator;
-    typedef typename Types::Key             Key;
-    typedef typename Types::Value           Value;
-
-    static const Int Blocks                 = Types::Blocks;
+    typedef PackedTreeTypes<
+    		Key,
+    		Key,
+    		Value,
+    		Accumulator,
+    		Blocks,
+    		64 / sizeof (Int)
+    >										Types;
 
     typedef PackedTree<Types>               Map;
-
-
 
 public:
 

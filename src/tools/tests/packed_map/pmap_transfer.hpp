@@ -25,33 +25,34 @@ class PMapTransferTest: public TestTask {
 
     typedef PMapTransferTest<TheSameMapTypes> MyType;
 
-    template <typename Key_, typename Value_, Int Blocks_ = 8>
-    struct PMapTypes {
-        typedef Key_                        Key;
-        typedef Key_                        IndexKey;
-        typedef Value_                      Value;
+	static const Int Blocks                 = 8;
 
-        static const Int Blocks             = Blocks_;
-        static const Int BranchingFactor    = 16;
+	typedef Int             				Key;
+	typedef Int           					Value;
+	typedef Accumulators<BigInt, Blocks>    Accumulator;
 
-        typedef Accumulators<Key, Blocks>   Accumulator;
-    };
+    typedef PackedTreeTypes<
+    		Key,
+    		Key,
+    		Value,
+    		Accumulator,
+    		Blocks,
+    		16
+    >										Types1;
 
-    typedef PMapTypes<Int, Int>             Types1;
 
     typedef typename IfThenElse<
-            TheSameMapTypes,
-            Types1,
-            PMapTypes<BigInt, BigInt>
+    		TheSameMapTypes,
+    		Types1,
+    		PackedTreeTypes<
+				BigInt,
+				BigInt,
+				BigInt,
+				Accumulator,
+				Blocks,
+				16
+    		>
     >::Result                               Types2;
-
-
-
-    typedef typename Types1::Accumulator    Accumulator;
-    typedef typename Types1::Key            Key;
-    typedef typename Types2::Value          Value;
-
-    static const Int Blocks                 = Types1::Blocks;
 
     typedef PackedSumTree<Types1>           Map1;
     typedef PackedSumTree<Types2>           Map2;
