@@ -80,10 +80,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::sequence::CtrToolsName)
         return true;
     }
 
-
-//    Iterator findStart(bool reverse = false);
-//    Iterator findEnd  (bool reverse = false);
-
     void finishPathStep(TreePath& path, Int key_idx) const;
 
     Int getDataPageCapacity(const DataPageG& node) const

@@ -64,28 +64,30 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 	typedef typename Types::ElementType                                         ElementType;
 
 
-
 	BigInt rank(BigInt pos, Int symbol)
 	{
 		Key prefixes[2] = {0, 0};
 		Int key_nums[2] = {0, symbol + 1};
 
-		SequenceFWWalker<Types, SumCompareLE> walker(*me(), pos, 2, key_nums, prefixes);
-		Iterator iter = me()->find0(walker);
-		if (iter.isNotEmpty())
-		{
-			iter.dataPos() = pos - prefixes[0];
-			iter.cache().setup(prefixes[0], 0);
+		SequenceSimpleWalker<Types, SumCompareLE> walker(*me(), pos, 2, key_nums, prefixes);
 
-			Int rank_local = iter.data()->sequence().rank1(iter.dataPos(), symbol);
+		me()->find1(walker);
+
+		if (walker.data().isSet())
+		{
+			Int local_pos = pos - prefixes[0];
+			Int rank_local = walker.data()->sequence().rank1(local_pos, symbol);
 
 			return prefixes[1] + rank_local;
+		}
+		else if (!walker.is_empty())
+		{
+			return prefixes[1];
 		}
 		else {
 			return 0;
 		}
 	}
-
 
 	Iterator select(BigInt rank, Int symbol)
 	{
@@ -113,6 +115,38 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 		}
 
 		return iter;
+	}
+
+
+	BigInt selectIdx(BigInt rank, Int symbol)
+	{
+		Key prefixes[2] = {0, 0};
+		Int key_nums[2] = {symbol + 1, 0};
+
+		SequenceSimpleWalker<Types, SumCompareLT> walker(*me(), rank, 2, key_nums, prefixes);
+		me()->find1(walker);
+
+		if (walker.data().isSet())
+		{
+			BigInt local_rank = rank - prefixes[0];
+
+			auto result = walker.data()->sequence().selectFW(symbol, local_rank);
+
+			if (result.is_found())
+			{
+				return prefixes[1] + result.idx();
+			}
+			else {
+				return prefixes[1] + walker.data()->size();
+			}
+		}
+		else if (!walker.is_empty())
+		{
+			return prefixes[1];
+		}
+		else {
+			return 0;
+		}
 	}
 
 MEMORIA_CONTAINER_PART_END

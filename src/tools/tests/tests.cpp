@@ -59,18 +59,18 @@ int main(int argc, const char** argv, const char** envp)
         runner.setRunCount(cmd_line.getCount());
 
         // add test suits to the runner;
-        runner.registerTask(new TemplateTestSuite());
-
-        runner.registerTask(new BitmapTestSuite());
-        runner.registerTask(new PackedMapTestSuite());
-        runner.registerTask(new PackedSeqTestSuite());
-        runner.registerTask(new SymbolSeqTestSuite());
-
-        runner.registerTask(new CtrTestSuite());
-        runner.registerTask(new MapTestSuite());
-        runner.registerTask(new SumTreeTestSuite());
-        runner.registerTask(new VectorTestSuite());
-        runner.registerTask(new VectorMapTestSuite());
+//        runner.registerTask(new TemplateTestSuite());
+//
+//        runner.registerTask(new BitmapTestSuite());
+//        runner.registerTask(new PackedMapTestSuite());
+//        runner.registerTask(new PackedSeqTestSuite());
+//        runner.registerTask(new SymbolSeqTestSuite());
+//
+//        runner.registerTask(new CtrTestSuite());
+//        runner.registerTask(new MapTestSuite());
+//        runner.registerTask(new SumTreeTestSuite());
+//        runner.registerTask(new VectorTestSuite());
+//        runner.registerTask(new VectorMapTestSuite());
         runner.registerTask(new SequenceTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());

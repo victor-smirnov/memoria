@@ -62,6 +62,53 @@ public:
 };
 
 
+template <
+	typename Types,
+	template <typename, typename> class Comparator
+>
+class SequenceSimpleWalker: public SequenceFWWalker<Types, Comparator> {
+protected:
+	typedef SequenceFWWalker<Types, Comparator>									Base;
+	typedef typename Types::Key 												Key;
+	typedef typename Base::Container 											Container;
+	typedef typename Types::DataPageG 											DataPageG;
+	typedef typename Types::NodeBaseG 											NodeBaseG;
+	typedef typename Types::Allocator 											Allocator;
+
+	DataPageG data_;
+
+	bool empty_ = false;
+
+public:
+	SequenceSimpleWalker(Container& ctr, Key key, Int key_count, const Int* key_nums, Key* prefixes):
+		Base(ctr, key, key_count, key_nums, prefixes)
+	{}
+
+	void finish(const NodeBaseG& node, Int idx)
+	{
+		if (idx < node->children_count())
+		{
+			data_ = Base::ctr_.getValuePage(node, idx, Allocator::READ);
+		}
+	}
+
+	void empty() {
+		empty_ = true;
+	}
+
+	DataPageG& data() {
+		return data_;
+	}
+
+	bool is_empty() const {
+		return empty_;
+	}
+};
+
+
+
+
+
 
 template <
 	typename Types,

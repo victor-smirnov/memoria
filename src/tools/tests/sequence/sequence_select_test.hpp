@@ -165,7 +165,7 @@ public:
     	return pairs;
 	}
 
-    void assertSelect(Ctr& ctr, Int rank, Int pos, Int symbol)
+    void assertSelect1(Ctr& ctr, Int rank, Int pos, Int symbol)
     {
     	Iterator iter = ctr.select(rank, symbol);
     	BigInt rank1 = ctr.rank(iter.pos() + 1, symbol);
@@ -174,6 +174,15 @@ public:
 
     	AssertEQ(MA_SRC, rank1, rank);
     	AssertEQ(MA_SRC, iter.pos(), pos);
+    }
+
+    void assertSelect2(Ctr& ctr, Int rank, Int pos, Int symbol)
+    {
+    	BigInt idx = ctr.selectIdx(rank, symbol);
+    	BigInt rank1 = ctr.rank(idx + 1, symbol);
+
+    	AssertEQ(MA_SRC, rank1, rank);
+    	AssertEQ(MA_SRC, idx, pos);
     }
 
     void runSelectTest()
@@ -188,31 +197,39 @@ public:
 
     	vector<Pair> ranks = getSelections(ctr, 0, ctr.size(), 1);
 
-//    	vector<Int> cells(ranks.size());
-//
-//    	for (Int& cell: cells)
-//    	{
-//    		cell = getRandom(cells.size());
-//    	}
+    	vector<Int> cells(ranks.size());
+
+    	for (Int& cell: cells)
+    	{
+    		cell = getRandom(cells.size());
+    	}
 
     	out()<<"Selections: "<<ranks.size()<<endl;
 
     	BigInt t0 = getTimeInMillis();
 
-    	for (Pair pair: ranks)
-    	{
-    		assertSelect(ctr, pair.rank, pair.idx, 1);
-    	}
-
-//    	for (Int cell: cells)
+//    	for (Pair pair: ranks)
 //    	{
-//    		Pair& pair = ranks[cell];
 //    		assertSelect(ctr, pair.rank, pair.idx, 1);
 //    	}
 
+    	for (Int cell: cells)
+    	{
+    		Pair& pair = ranks[cell];
+    		assertSelect1(ctr, pair.rank, pair.idx, 1);
+    	}
+
     	BigInt t1 = getTimeInMillis();
 
-    	out()<<"time="<<FormatTime(t1 - t0)<<endl;
+    	for (Int cell: cells)
+    	{
+    		Pair& pair = ranks[cell];
+    		assertSelect2(ctr, pair.rank, pair.idx, 1);
+    	}
+
+    	BigInt t2 = getTimeInMillis();
+
+    	out()<<"times = "<<FormatTime(t1 - t0)<<" "<<FormatTime(t2 - t1)<<endl;
     }
 
     void runSelect1Test(ostream& out)

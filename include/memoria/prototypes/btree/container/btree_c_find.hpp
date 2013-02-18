@@ -42,6 +42,9 @@ public:
     Iterator find0(Walker& walker);
 
     template <typename Walker>
+    void find1(Walker& walker);
+
+    template <typename Walker>
     Int findFw(TreePath& path, Int idx, Walker &walker, Int level = 0);
 
     template <typename Walker>
@@ -150,6 +153,43 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 		return Iterator(*me());
 	}
 }
+
+
+M_PARAMS
+template <typename Walker>
+void M_TYPE::find1(Walker& walker)
+{
+	walker.start() 		= 0;
+	walker.direction() 	= WalkDirection::DOWN;
+
+	NodeBaseG node = me()->getRoot(Allocator::READ);
+	if (node.isSet())
+	{
+		if (node->children_count() > 0)
+		{
+			while (!node->is_leaf())
+			{
+				NodeDispatcher::DispatchConst(node, walker);
+
+				Int idx = walker.idx();
+
+				node = me()->getChild(node, idx, Allocator::READ);
+			}
+
+			NodeDispatcher::DispatchConst(node, walker);
+
+			Int idx = walker.idx();
+			walker.finish(node, idx);
+		}
+		else {
+			walker.empty();
+		}
+	}
+	else {
+		walker.empty();
+	}
+}
+
 
 M_PARAMS
 template <typename Walker>
