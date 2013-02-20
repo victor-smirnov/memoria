@@ -1,0 +1,62 @@
+
+// Copyright Victor Smirnov 2013.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef _MEMORIA_PROTOTYPES_CTRWRAPPER_ITER_BASE_HPP
+#define _MEMORIA_PROTOTYPES_CTRWRAPPER_ITER_BASE_HPP
+
+#include <memoria/prototypes/btree/macros.hpp>
+
+namespace memoria {
+
+MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
+
+	CtrWrapperIteratorBase(): Base()
+	{
+
+	}
+
+	CtrWrapperIteratorBase(ThisType&& other):
+		Base(std::move(other)), path_(std::move(other.path_))
+	{
+
+	}
+
+	CtrWrapperIteratorBase(const ThisType& other): Base(other)
+	{
+
+	}
+
+	void assign(ThisType&& other)
+	{
+		Base::assign(std::move(other));
+	}
+
+	void assign(const ThisType& other)
+	{
+		Base::assign(other);
+	}
+
+	bool isEqual(const ThisType& other) const
+	{
+		return Base::isEqual(other);
+	}
+
+	bool isNotEqual(const ThisType& other) const
+	{
+		return Base::isNotEqual(other);
+	}
+
+	void dump(ostream& out = cout, const char* header = NULL)
+	{
+
+	}
+
+MEMORIA_BTREE_ITERATOR_BASE_CLASS_END;
+
+}
+
+
+#endif /* CTRWRP_I_BASE_HPP_ */

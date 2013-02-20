@@ -114,6 +114,9 @@ struct BSTree       {};
 struct Composite    {};
 struct Root         {};
 
+template <typename CtrName>
+class CtrWrapper 	{};
+
 template <typename Key, typename Value, Int Indexes = 1>
 struct Map          {};
 

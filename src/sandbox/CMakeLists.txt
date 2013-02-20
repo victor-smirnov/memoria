@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX bitmap seq for_each selector partial_specialization static_md5 md5_init vlist md5)
+    set(MEMORIA_SANDBOX louds)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
@@ -10,6 +10,6 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
     set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/sandbox")
     if (NOT CHECK_SYNTAX_ONLY)
-        target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS})
+        target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS} pugixml)
     endif()
 ENDFOREACH(MEMORIA_TARGET)

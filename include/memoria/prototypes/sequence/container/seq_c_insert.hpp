@@ -108,7 +108,7 @@ private:
 	        DataPageG data          = Base::ctr().allocator().createPage(page_size_);
 	        data->init(page_size_);
 
-	        data->model_hash()      = Base::ctr().hash();
+	        data->ctr_type_hash()   = Base::ctr().hash();
 	        data->page_type_hash()  = DataPage::hash();
 
 	        Int idx0                = idx;
@@ -450,7 +450,7 @@ typename M_TYPE::DataPathItem M_TYPE::createDataPage(NodeBaseG& node, Int idx, I
     DataPageG data          = me()->allocator().createPage(size);
     data->init(size);
 
-    data->model_hash()      = me()->hash();
+    data->ctr_type_hash()   = me()->hash();
     data->page_type_hash()  = DataPage::hash();
 
     me()->setLeafData(node, idx, data->id());

@@ -410,7 +410,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
             MyType::setCtrRootMetadata(node, meta);
         }
 
-        node->model_hash() = me()->hash();
+        node->ctr_type_hash() = me()->hash();
 
         initNodeSize(node, size);
 
@@ -425,7 +425,7 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         MyType::setCtrRootMetadata(node, metadata);
 
-        node->model_hash() = me()->hash();
+        node->ctr_type_hash() = me()->hash();
 
         initNodeSize(node, metadata.page_size());
 

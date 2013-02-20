@@ -243,12 +243,6 @@ public:
         me()->model().dump(me()->leaf().node(), out);
     }
 
-//    void init()
-//    {
-//        Base::init();
-//        cache_.initState();
-//    }
-
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_END
 
 } //memoria

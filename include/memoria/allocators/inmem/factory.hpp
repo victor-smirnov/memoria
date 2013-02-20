@@ -16,6 +16,8 @@
 #include <memoria/containers/vector_map/factory.hpp>
 #include <memoria/containers/seq_dense/factory.hpp>
 
+#include <memoria/containers/louds/louds_factory.hpp>
+
 #include <memoria/core/container/metadata_repository.hpp>
 
 #include "names.hpp"

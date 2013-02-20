@@ -1,23 +1,19 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+#ifndef MEMORIA_PROTOTYPES_WRAPPER_FACTORY_HPP_
+#define MEMORIA_PROTOTYPES_WRAPPER_FACTORY_HPP_
+
+#include <memoria/prototypes/ctr_wrapper/container/ctrwrp_c_base.hpp>
 
 
-#ifndef _MEMORIA_PROTOTYPES_COMPOSITE_FACTORY_HPP
-#define _MEMORIA_PROTOTYPES_COMPOSITE_FACTORY_HPP
-
-#include <memoria/prototypes/composite/names.hpp>
-#include <memoria/core/container/container.hpp>
-
-namespace memoria    {
-
-
+namespace memoria {
 
 template <typename Profile_, typename ContainerTypeSelector>
-struct CompositeTypes {
+struct CtrWrapperTypes {
 
     typedef Profile_                                                            Profile;
 
@@ -31,27 +27,28 @@ struct CompositeTypes {
 
     template <typename Types_>
     struct IterBaseFactory {
-        typedef IteratorBase<Types_>                                            Type;
+        typedef CtrWrapperIteratorBase<Types_>                                  Type;
     };
 
     template <typename Types_>
     struct CtrBaseFactory {
-        typedef ContainerBase<Types_>                                           Type;
+        typedef CtrWrapperContainerBase<Types_>                                 Type;
     };
 };
 
 
 
-template <typename Profile_, typename T>
-class CtrTF<Profile_, memoria::Composite, T> {
+template <typename Profile_, typename T, typename CtrName>
+class CtrTF<Profile_, CtrWrapper<CtrName>, T> {
 
-    typedef CtrTF<Profile_, Composite, T>                                       MyType;
+    typedef CtrTF<Profile_, CtrWrapper<CtrName>, T>                             MyType;
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 
 public:
 
     struct Types {
+    	typedef CtrName							WrappedCtrName;
         typedef Profile_                        Profile;
         typedef MyType::Allocator               Allocator;
 
@@ -68,6 +65,9 @@ public:
 };
 
 
+
+
 }
 
-#endif
+
+#endif /* WRAPPER_FACTORY_HPP_ */

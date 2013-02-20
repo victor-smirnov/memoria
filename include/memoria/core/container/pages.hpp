@@ -78,7 +78,7 @@ public:
     {
         if (page_ != NULL)
         {
-            return page_->model_hash();
+            return page_->ctr_type_hash();
         }
         else {
             throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");

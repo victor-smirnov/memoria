@@ -745,9 +745,9 @@ size_t CountZeroBw(const Buffer* buffer, size_t from, size_t to)
 
 
 template <typename Buffer>
-Int CreateUDS(Buffer* buf, Int start, const Int* ds, Int ds_size, Int node_bits)
+size_t CreateUDS(Buffer* buf, size_t start, const size_t* ds, size_t ds_size, size_t node_bits)
 {
-    for (Int ids = 0; ids < ds_size; ids++)
+    for (size_t ids = 0; ids < ds_size; ids++)
     {
         for (Int i = 0; i < ds[ids]; i++, start++)
         {
@@ -755,7 +755,7 @@ Int CreateUDS(Buffer* buf, Int start, const Int* ds, Int ds_size, Int node_bits)
         }
         SetBit(buf, start++, 0);
 
-        for (Int i = 0; i < ds[ids]; i++, start += node_bits)
+        for (size_t i = 0; i < ds[ids]; i++, start += node_bits)
         {
             SetBits(buf, start, 0x9, node_bits);
         }

@@ -441,7 +441,7 @@ public:
         Page* page      = shared->get();
         Page* new_page  = T2T<Page*>(malloc(new_size));
 
-        PageMetadata* pageMetadata = metadata_->getPageMetadata(page->model_hash(), page->page_type_hash());
+        PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
         pageMetadata->getPageOperations()->resize(page, new_page, new_size);
 
         shared->set_page(new_page);
@@ -682,7 +682,7 @@ public:
         for (auto i = pages_.begin(); i != pages_.end(); i++)
         {
             Page* page = i->second;
-            PageMetadata* pageMetadata = metadata_->getPageMetadata(page->model_hash(), page->page_type_hash());
+            PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
             PageWrapper<Page> pw(page);
             memoria::vapi::dumpPage(pageMetadata, &pw, out);
@@ -699,7 +699,7 @@ public:
         {
             PageG page = this->getPage(iter.getValue(), Base::READ);
 
-            ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->model_hash());
+            ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
             result = ctr_meta->getCtrInterface()->check(&page->id(), this) || result;
 
@@ -749,13 +749,13 @@ private:
                 me(),
                 "dump page with hashes",
                 page->page_type_hash(),
-                page->model_hash(),
+                page->ctr_type_hash(),
                 "with id",
                 page->id(),
                 page,
                 &page->id());
 
-        PageMetadata* pageMetadata = metadata_->getPageMetadata(page->model_hash(), page->page_type_hash());
+        PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         unique_ptr<Byte> buffer((Byte*)malloc(page->page_size()));
 
@@ -767,7 +767,7 @@ private:
 
         output->write(page_data_size);
         output->write(page->page_size());
-        output->write(page->page_type_hash() ^ page->model_hash());
+        output->write(page->page_type_hash() ^ page->ctr_type_hash());
 
         output->write(buffer.get(), 0, page_data_size);
     }

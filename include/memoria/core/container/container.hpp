@@ -45,18 +45,18 @@ template <typename Types> class Iter;
 
 template <typename Profile> class MetadataRepository;
 
-template <typename Allocator>
-struct IParentCtrInterface
-{
-    typedef typename Allocator::CtrShared                                       CtrShared;
-    typedef typename Allocator::Page::ID                                        ID;
-
-    virtual ID    getRootID(void* caller, BigInt name)                  		= 0;
-    virtual void  setRootID(void* caller, BigInt name, const ID& root)  		= 0;
-
-    virtual Allocator& getAllocator()                                   		= 0;
-    virtual CtrShared* getShared()                                      		= 0;
-};
+//template <typename Allocator>
+//struct IParentCtrInterface
+//{
+//    typedef typename Allocator::CtrShared                                       CtrShared;
+//    typedef typename Allocator::Page::ID                                        ID;
+//
+//    virtual ID    getRootID(void* caller, BigInt name)                  		= 0;
+//    virtual void  setRootID(void* caller, BigInt name, const ID& root)  		= 0;
+//
+//    virtual Allocator& getAllocator()                                   		= 0;
+//    virtual CtrShared* getShared()                                      		= 0;
+//};
 
 
 template <typename TypesType>
@@ -216,7 +216,7 @@ public:
             	CtrShared* shared = me()->createCtrShared(name);
             	me()->allocator().registerCtrShared(shared);
 
-            	if (node->model_hash() == CONTAINER_HASH)
+            	if (node->ctr_type_hash() == CONTAINER_HASH)
             	{
             		if (node.is_updated())
             		{
@@ -233,7 +233,7 @@ public:
             		return shared;
             	}
             	else {
-            		throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->model_hash());
+            		throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->ctr_type_hash());
             	}
             }
             else {
@@ -409,6 +409,9 @@ private:
 
     bool        debug_;
 
+    Int 		owner_ctr_type_hash_ = 0;
+    Int 		master_ctr_type_hash_ = 0;
+
 public:
 
     MEMORIA_PUBLIC Ctr(
@@ -564,6 +567,14 @@ public:
         Base::initCtr(root_id);
 
         ref();
+    }
+
+    Int owner_ctr_type_hash () const {
+    	return owner_ctr_type_hash_;
+    }
+
+    Int master_ctr_type_hash() const {
+    	return master_ctr_type_hash_;
     }
 
 

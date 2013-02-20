@@ -155,7 +155,7 @@ public:
 
 template <Int BitsPerSymbol, typename ItemType = UBigInt, typename IndexKeyType = UInt>
 class SymbolSequence {
-
+protected:
 	typedef SymbolSequence<BitsPerSymbol> 										MyType;
 	typedef PackedSeqTypes<IndexKeyType, ItemType, BitsPerSymbol>				Types;
 	typedef PackedSeq<Types>													Seq;
@@ -200,7 +200,7 @@ public:
 
 	SymbolSequence(const MyType& other)
 	{
-		size_t other_size = other.getObjectSize();
+		size_t other_size = other.sequence_->getObjectSize();
 		sequence_ = T2T<Seq*>(malloc(other_size));
 		CopyByteBuffer(other.sequence_, sequence_, other_size);
 	}
@@ -247,14 +247,33 @@ public:
 		sequence_->size() = size + 1;
 	}
 
+	void enlarge(size_t size)
+	{
+		ensureCapacity(size);
+		sequence_->size() += size;
+	}
+
 	void ensureCapacity(size_t value)
 	{
 		if ((size_t)sequence_->capacity() < value)
 		{
 			Seq seq;
-			seq.initSizes(sequence_->capacity() * 4 / 3);
-			Seq* new_sequence = T2T<Seq*>(seq.getObjectSize());
+			seq.initSizes(sequence_->maxSize() * 4 / 3);
+			seq.size() = sequence_->size();
+
+			if ((size_t)seq.capacity() < value)
+			{
+				seq.initSizes(sequence_->maxSize() + value*2);
+			}
+
+			seq.size() = sequence_->size();
+
+			size_t new_size = seq.getObjectSize();
+
+			Seq* new_sequence = T2T<Seq*>(malloc(new_size));
 			CopyByteBuffer(&seq, new_sequence, sizeof(Seq));
+
+			sequence_->transferTo(new_sequence);
 
 			free(T2T<void*>(sequence_));
 

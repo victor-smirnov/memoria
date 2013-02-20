@@ -180,7 +180,9 @@ class AbstractPage {
     PageIdType  id_;
 
     Int         crc_;
-    Int         model_hash_;
+    Int         master_ctr_type_hash_;
+    Int         owner_ctr_type_hash_;
+    Int         ctr_type_hash_;
     Int         page_type_hash_;
     Int         references_;
     Int         deleted_;
@@ -192,14 +194,16 @@ public:
                 decltype(flags_),
                 decltype(id_),
                 decltype(crc_),
-                decltype(model_hash_),
+                decltype(master_ctr_type_hash_),
+                decltype(owner_ctr_type_hash_),
+                decltype(ctr_type_hash_),
                 decltype(page_type_hash_),
                 decltype(references_),
                 decltype(deleted_),
                 decltype(page_size_)
     >                                                                           FieldsList;
 
-    typedef PageIdType      ID;
+    typedef PageIdType      													ID;
 
     AbstractPage(): flags_(), id_() {}
 
@@ -227,14 +231,29 @@ public:
         return crc_;
     }
 
-    Int &model_hash() {
-        return model_hash_;
+    Int &ctr_type_hash() {
+        return ctr_type_hash_;
     }
 
-    const Int &model_hash() const {
-        return model_hash_;
+    const Int &ctr_type_hash() const {
+        return ctr_type_hash_;
     }
 
+    Int &owner_ctr_type_hash() {
+        return owner_ctr_type_hash_;
+    }
+
+    const Int &owner_ctr_type_hash() const {
+        return owner_ctr_type_hash_;
+    }
+
+    Int &master_ctr_type_hash() {
+        return master_ctr_type_hash_;
+    }
+
+    const Int &master_ctr_type_hash() const {
+        return master_ctr_type_hash_;
+    }
     Int &page_type_hash() {
         return page_type_hash_;
     }
@@ -303,7 +322,7 @@ public:
         IDValue id(&id_);
         handler->value("ID",                &id);
         handler->value("CRC",               &crc_);
-        handler->value("MODEL_HASH",        &model_hash_);
+        handler->value("MODEL_HASH",        &ctr_type_hash_);
         handler->value("PAGE_TYPE_HASH",    &page_type_hash_);
         handler->value("REFERENCES",        &references_);
         handler->value("DELETED",           &deleted_);
@@ -315,7 +334,7 @@ public:
     {
         this->id()              = page->id();
         this->crc()             = page->crc();
-        this->model_hash()      = page->model_hash();
+        this->ctr_type_hash()   = page->ctr_type_hash();
         this->page_type_hash()  = page->page_type_hash();
         this->references()      = page->references();
         this->deleted()         = page->deleted();
@@ -327,7 +346,7 @@ public:
     {
         FieldFactory<PageIdType>::serialize(buf, id());
         FieldFactory<Int>::serialize(buf, crc());
-        FieldFactory<Int>::serialize(buf, model_hash());
+        FieldFactory<Int>::serialize(buf, ctr_type_hash());
         FieldFactory<Int>::serialize(buf, page_type_hash());
         FieldFactory<Int>::serialize(buf, references_);
         FieldFactory<Int>::serialize(buf, deleted_);
@@ -339,7 +358,7 @@ public:
     {
         FieldFactory<PageIdType>::deserialize(buf, id());
         FieldFactory<Int>::deserialize(buf, crc());
-        FieldFactory<Int>::deserialize(buf, model_hash());
+        FieldFactory<Int>::deserialize(buf, ctr_type_hash());
         FieldFactory<Int>::deserialize(buf, page_type_hash());
         FieldFactory<Int>::deserialize(buf, references_);
         FieldFactory<Int>::deserialize(buf, deleted_);

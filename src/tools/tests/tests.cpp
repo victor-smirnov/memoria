@@ -23,6 +23,8 @@
 
 #include "template/template_test_suite.hpp"
 
+#include "louds/louds_test_suite.hpp"
+
 #include <memoria/tools/cmdline.hpp>
 
 #include <iostream>
@@ -71,7 +73,9 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new SumTreeTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
-        runner.registerTask(new SequenceTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
+
+        runner.registerTask(new LoudsTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

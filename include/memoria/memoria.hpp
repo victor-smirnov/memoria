@@ -50,6 +50,9 @@ struct CtrNameDeclarator<10>: TypeDef<Sequence<3, true>> {};
 template <>
 struct CtrNameDeclarator<11>: TypeDef<Sequence<4, true>> {};
 
+template <>
+struct CtrNameDeclarator<15>: TypeDef<LOUDS> {};
+
 
 }
 

@@ -95,6 +95,13 @@ template <> struct TypeHash<Root>: UIntValue<1400> {};
 template <Int BitsPerSymbol, bool Dense>
 struct TypeHash<Sequence<BitsPerSymbol, Dense>>: UIntValue<HashHelper<1500, BitsPerSymbol, Dense>::Value> {};
 
+template <>
+struct TypeHash<LOUDS>: UIntValue<1600> {};
+
+
+template <typename CtrName>
+struct TypeHash<CtrWrapper<CtrName>>: UIntValue<HashHelper<1700, TypeHash<CtrName>::Value>::Value> {};
+
 }
 
 #endif  /* _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP */
