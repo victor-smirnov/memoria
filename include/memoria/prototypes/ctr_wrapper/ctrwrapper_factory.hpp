@@ -8,12 +8,17 @@
 #define MEMORIA_PROTOTYPES_WRAPPER_FACTORY_HPP_
 
 #include <memoria/prototypes/ctr_wrapper/container/ctrwrp_c_base.hpp>
+#include <memoria/prototypes/ctr_wrapper/iterator/ctrwrp_i_base.hpp>
 
+#include <memoria/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
+#include <memoria/prototypes/ctr_wrapper/iterator.hpp>
 
 namespace memoria {
 
 template <typename Profile_, typename ContainerTypeSelector>
-struct CtrWrapperTypes {
+struct WrapperTypes {
+
+	typedef ContainerTypeSelector                       						ContainerTypeName;
 
     typedef Profile_                                                            Profile;
 
@@ -27,12 +32,12 @@ struct CtrWrapperTypes {
 
     template <typename Types_>
     struct IterBaseFactory {
-        typedef CtrWrapperIteratorBase<Types_>                                  Type;
+        typedef IteratorBase<Types_>                        Type;
     };
 
     template <typename Types_>
     struct CtrBaseFactory {
-        typedef CtrWrapperContainerBase<Types_>                                 Type;
+        typedef CtrWrapperContainerBase<Types_>             Type;
     };
 };
 
@@ -45,29 +50,16 @@ class CtrTF<Profile_, CtrWrapper<CtrName>, T> {
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 
+    typedef WrapperTypes<Profile_, CtrWrapper<CtrName>> 						TypesBase;
+
 public:
 
-    struct Types {
-    	typedef CtrName							WrappedCtrName;
-        typedef Profile_                        Profile;
-        typedef MyType::Allocator               Allocator;
-
-        typedef CtrTypesT<Types>        		CtrTypes;
-        typedef IterTypesT<Types>       		IterTypes;
+    struct Types: TypesBase {
+    	typedef MyType::Allocator               			Allocator;
     };
-
-    typedef typename Types::CtrTypes                                            CtrTypes;
-    typedef typename Types::IterTypes                                           IterTypes;
-
-    typedef Ctr<CtrTypes>                                                       Type;
-
-
 };
-
-
-
 
 }
 
 
-#endif /* WRAPPER_FACTORY_HPP_ */
+#endif

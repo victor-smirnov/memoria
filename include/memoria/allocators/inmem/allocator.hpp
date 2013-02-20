@@ -563,8 +563,11 @@ public:
             Int page_size;
             input->read(page_size);
 
-            Int hash;
-            input->read(hash);
+            Int ctr_hash;
+            input->read(ctr_hash);
+
+            Int page_hash;
+            input->read(page_hash);
 
             unique_ptr<Byte> page_data((Byte*)malloc(page_data_size));
 
@@ -572,7 +575,7 @@ public:
 
             input->read(page_data.get(), 0, page_data_size);
 
-            PageMetadata* pageMetadata = metadata_->getPageMetadata(0, hash);
+            PageMetadata* pageMetadata = metadata_->getPageMetadata(ctr_hash, page_hash);
             pageMetadata->getPageOperations()->deserialize(page_data.get(), page_data_size, T2T<void*>(page));
 
             pages_[page->id()] = page;
@@ -767,7 +770,8 @@ private:
 
         output->write(page_data_size);
         output->write(page->page_size());
-        output->write(page->page_type_hash() ^ page->ctr_type_hash());
+        output->write(page->ctr_type_hash());
+        output->write(page->page_type_hash());
 
         output->write(buffer.get(), 0, page_data_size);
     }

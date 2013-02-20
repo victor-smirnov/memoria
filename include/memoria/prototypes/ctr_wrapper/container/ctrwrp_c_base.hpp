@@ -29,8 +29,6 @@ MEMORIA_BTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperContainerBase)
 	typedef typename Types::WrappedCtrName                                      WrappedCtrName;
 
     typedef typename Types::Profile                                             Profile;
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
 
     typedef typename Base::ID                                                   ID;
     typedef typename Base::Allocator                                            Allocator;
@@ -45,7 +43,10 @@ private:
 
 public:
 
-    CtrWrapperContainerBase(): Base(), ctr_(NoParamCtr()) {}
+    CtrWrapperContainerBase(const CtrInitData& data):
+    	Base(data),
+    	ctr_(data.owner(Base::CONTAINER_HASH))
+    {}
 
     CtrWrapperContainerBase(const ThisType& other, Allocator* allocator):
         Base(other, allocator),
@@ -60,12 +61,12 @@ public:
     //broken constructor
     CtrWrapperContainerBase(const ThisType& other):
         Base(other),
-        ctr_(NoParamCtr())
+        ctr_(other.init_data_.owner(Base::CONTAINER_HASH))
     {}
 
     CtrWrapperContainerBase(ThisType&& other):
         Base(std::move(other)),
-        ctr_(NoParamCtr())
+        ctr_(other.init_data_.owner(Base::CONTAINER_HASH))
     {}
 
     WrappedCtr& ctr() {
@@ -80,7 +81,7 @@ public:
     {
         Base::operator=(std::move(other));
 
-        ctr_    = std::move(other.ctr_);
+        ctr_ = std::move(other.ctr_);
     }
 
     void operator=(const ThisType& other)
@@ -107,84 +108,64 @@ public:
 
     static Int initMetadata()
     {
-        Int hash = WrappedCtr::initMetadata();
+    	Int hash = WrappedCtr::initMetadata();
 
-        if (Base::getMetadata() == NULL)
-        {
-            MetadataList list;
+    	if (Base::getMetadata() == NULL)
+    	{
+    		MetadataList list;
 
-            IdxSet::getMetadata()->putAll(list);
-            ByteArray::getMetadata()->putAll(list);
+    		list.push_back(WrappedCtr::getMetadata());
 
-            Base::setMetadata(new ContainerMetadata(
-                                    TypeNameFactory<typename Types::ContainerTypeName>::name(),
-                                    list,
-                                    TypeHash<typename Types::ContainerTypeName>::Value,
-                                    Base::getContainerInterface()
-                                  )
-            );
-        }
+    		Base::setMetadata(new ContainerMetadata(
+    									TypeNameFactory<typename Types::ContainerTypeName>::name(),
+    									list,
+    									Base::CONTAINER_HASH,
+    									Base::getContainerInterface()
+    						  	  )
+    						 );
 
-        return hash;
+    		MetadataRepository<typename Types::Profile>::registerMetadata(Base::getMetadata());
+    	}
+
+    	return hash;
     }
+
 
     virtual ID getRootID(BigInt name)
     {
-        return me()->array().getRootID(name);
+        return me()->ctr().getRootID(name);
     }
-
-
 
 
     virtual void setRoot(BigInt name, const ID& root_id)
     {
-        me()->array().setRoot(name, root_id);
+        me()->ctr().setRoot(name, root_id);
     }
 
     bool check(void* ptr = NULL)
     {
-        bool array_errors   = array_.check(ptr);
-        bool set_errors     = set_.check(ptr);
-
-        return array_errors || set_errors;
+        return ctr_.check(ptr);
     }
 
     const CtrShared* shared() const {
-        return array_.shared();
+        return ctr_.shared();
     }
 
     CtrShared* shared() {
-        return array_.shared();
+        return ctr_.shared();
     }
 
 
     void setBranchingFactor(Int count)
     {
-        typename IdxSet::Metadata set_meta = set_.getRootMetadata();
-        set_meta.branching_factor() = count;
-        set_.setRootMetadata(set_meta);
-
-        typename ByteArray::Metadata array_meta = array_.getRootMetadata();
-        array_meta.branching_factor() = count;
-        array_.setRootMetadata(array_meta);
+        typename WrappedCtr::Metadata meta = ctr_.getRootMetadata();
+        meta.branching_factor() = count;
+        ctr_.setRootMetadata(meta);
     }
 
     Int getBranchingFactor() const
     {
-        return set_.getRootMetadata().branching_factor();
-    }
-
-private:
-
-    static ID get_ctr_root(Allocator& allocator, const ID& root_id, BigInt name)
-    {
-        typedef typename ByteArray::NodeBaseG   NodeBaseG;
-        typedef typename ByteArray::Metadata    Metadata;
-
-        NodeBaseG root  = allocator.getPage(root_id, Allocator::READ);
-        Metadata  meta  = ByteArray::getCtrRootMetadata(root);
-
-        return meta.roots(name);
+        return ctr_.getRootMetadata().branching_factor();
     }
 
 MEMORIA_BTREE_MODEL_BASE_CLASS_END

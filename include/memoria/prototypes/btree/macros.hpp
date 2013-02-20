@@ -24,7 +24,7 @@ public:
 #define MEMORIA_BTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBaseClassName)               \
     MEMORIA_BTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeContainerBaseClassName)           \
                                                                                         \
-    BTreeContainerBaseClassName(): Base() {}                                            \
+    BTreeContainerBaseClassName(const CtrInitData& data): Base(data) {}                 \
     BTreeContainerBaseClassName(const ThisType& other): Base(other) {}                  \
     BTreeContainerBaseClassName(ThisType&& other): Base(std::move(other)) {}            \
     BTreeContainerBaseClassName(ThisType&& other, typename TypesType::Allocator* allocator): \

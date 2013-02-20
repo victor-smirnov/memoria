@@ -39,17 +39,6 @@ private:
 
 public:
 
-//    struct MapTypes {
-//        typedef typename Types::Key     Key;
-//        typedef typename Types::Value   Value;
-//        typedef typename Types::Key     IndexKey;
-//
-//        static const Int Blocks             = Types::Indexes;
-//        static const Int BranchingFactor    = 32;
-//
-//        typedef Accumulators<Key, Blocks>   Accumulator;
-//    };
-
     typedef PackedSumTree<
                 PackedTreeTypes<
                     typename Types::Key,
@@ -60,8 +49,6 @@ public:
                     BranchingFactor
                 >
     >                                                                           Map;
-
-//    typedef PackedSumTree<MapTypes>                                           Map;
 
     typedef typename Types::Descriptor                                          Descriptor;
 

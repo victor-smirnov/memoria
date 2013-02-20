@@ -60,10 +60,10 @@ struct ContainerInterface {
 struct MEMORIA_API ContainerMetadata: public MetadataGroup {
 public:
 
-    ContainerMetadata(StringRef name, const MetadataList &content, Int hash, ContainerInterface* container_interface):
+    ContainerMetadata(StringRef name, const MetadataList &content, Int ctr_hash, ContainerInterface* container_interface):
         MetadataGroup(name, content),
         container_interface_(container_interface),
-        hash_(hash)
+        ctr_hash_(ctr_hash)
     {
         MetadataGroup::set_type() = MetadataGroup::CONTAINER;
         for (UInt c = 0; c < content.size(); c++)
@@ -71,7 +71,10 @@ public:
             if (content[c]->getTypeCode() == Metadata::PAGE)
             {
                 PageMetadata *page = static_cast<PageMetadata*> (content[c]);
-                page_map_[page->hash() ^ hash] = page;
+                page_map_[page->hash() ^ ctr_hash] = page;
+            }
+            else if (content[c]->getTypeCode() == Metadata::CONTAINER) {
+            	// nothing to do
             }
             else {
                 //exception;
@@ -81,8 +84,8 @@ public:
 
     virtual ~ContainerMetadata() throw () {}
 
-    virtual Int hash() const {
-        return hash_;
+    virtual Int ctr_hash() const {
+        return ctr_hash_;
     }
 
     virtual PageMetadata* getPageMetadata(Int model_hash, Int page_hash) const
@@ -107,8 +110,7 @@ private:
     PageMetadataMap         page_map_;
     ContainerInterface*     container_interface_;
 
-//    Int                     code_;
-    Int                     hash_;
+    Int                     ctr_hash_;
 };
 
 

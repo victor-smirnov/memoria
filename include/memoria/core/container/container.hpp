@@ -45,18 +45,35 @@ template <typename Types> class Iter;
 
 template <typename Profile> class MetadataRepository;
 
-//template <typename Allocator>
-//struct IParentCtrInterface
-//{
-//    typedef typename Allocator::CtrShared                                       CtrShared;
-//    typedef typename Allocator::Page::ID                                        ID;
-//
-//    virtual ID    getRootID(void* caller, BigInt name)                  		= 0;
-//    virtual void  setRootID(void* caller, BigInt name, const ID& root)  		= 0;
-//
-//    virtual Allocator& getAllocator()                                   		= 0;
-//    virtual CtrShared* getShared()                                      		= 0;
-//};
+
+class CtrInitData {
+	Int master_ctr_type_hash_;
+	Int owner_ctr_type_hash_;
+
+public:
+	CtrInitData(Int master_hash, Int owner_hash):
+		master_ctr_type_hash_(master_hash),
+		owner_ctr_type_hash_(owner_hash)
+	{}
+
+	CtrInitData(Int master_hash):
+		master_ctr_type_hash_(master_hash),
+		owner_ctr_type_hash_(0)
+	{}
+
+	Int owner_ctr_type_hash() const {
+		return owner_ctr_type_hash_;
+	}
+
+	Int master_ctr_type_hash() const {
+		return master_ctr_type_hash_;
+	}
+
+	CtrInitData owner(int owner_hash) const
+	{
+		return CtrInitData(master_ctr_type_hash_, owner_hash);
+	}
+};
 
 
 template <typename TypesType>
@@ -87,27 +104,33 @@ protected:
 
     CtrShared* shared_;
 
+    CtrInitData init_data_;
+
 public:
-    ContainerBase(): shared_(nullptr)
+    ContainerBase(const CtrInitData& data): shared_(nullptr), init_data_(data)
     {}
 
     ContainerBase(const ThisType& other):
-        shared_(other.shared_)
+        shared_(other.shared_),
+    	init_data_(other.init_data_)
     {}
 
     ContainerBase(const ThisType& other, Allocator* allocator):
-        shared_(other.shared_)
+        shared_(other.shared_),
+    	init_data_(other.init_data_)
     {}
 
     //shared_ is configured in move constructors of subclasses.
     ContainerBase(ThisType&& other):
-        shared_(other.shared_)
+        shared_(other.shared_),
+    	init_data_(other.init_data_)
     {
         other.shared_ = NULL;
     }
 
     ContainerBase(ThisType&& other, Allocator* allocator):
-        shared_(other.shared_)
+        shared_(other.shared_),
+    	init_data_(other.init_data_)
     {
         other.shared_ = NULL;
     }
@@ -116,19 +139,21 @@ public:
 
     void operator=(ThisType&& other)
     {
-        shared_ = other.shared_;
+        shared_ 	= other.shared_;
+        init_data_	= other.init_data_;
+
         other.shared_ = NULL;
     }
 
     void operator=(const ThisType& other)
     {
-        shared_ = other.shared_;
+        shared_ 	= other.shared_;
+        init_data_	= other.init_data_;
     }
 
     MEMORIA_PUBLIC static Int hash() {
         return CONTAINER_HASH;
     }
-
 
     MEMORIA_PUBLIC static ContainerMetadata* getMetadata()
     {
@@ -185,7 +210,7 @@ public:
             MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);
         }
 
-        return reflection_->hash();
+        return reflection_->ctr_hash();
     }
 
     PageG createRoot() {
@@ -306,7 +331,7 @@ class CtrHelper: public CtrPart<
     typedef typename Types::Allocator Allocator0;
 
 public:
-    CtrHelper(): Base() {}
+    CtrHelper(const CtrInitData& data): Base(data) {}
     CtrHelper(const ThisType& other): Base(other) {}
     CtrHelper(ThisType&& other): Base(std::move(other)) {}
     CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator)   {}
@@ -333,7 +358,7 @@ public:
 
     typedef typename Types::Allocator                           Allocator0;
 
-    CtrHelper(): Base() {}
+    CtrHelper(const CtrInitData& data): Base(data) {}
     CtrHelper(const ThisType& other): Base(other) {}
     CtrHelper(ThisType&& other): Base(std::move(other)) {}
     CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator)    {}
@@ -362,7 +387,7 @@ class CtrStart: public CtrHelper<ListSize<typename Types::List>::Value - 1, Type
     typedef typename Types::Allocator                                   Allocator0;
 
 public:
-    CtrStart(): Base() {}
+    CtrStart(const CtrInitData& data): Base(data) {}
     CtrStart(const ThisType& other): Base(other) {}
     CtrStart(ThisType&& other): Base(std::move(other)) {}
     CtrStart(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator) {}
@@ -420,7 +445,7 @@ public:
     		BigInt name = CTR_DEFAULT_NAME,
     		const char* mname = NULL
     ):
-        Base(),
+        Base(CtrInitData(Base::CONTAINER_HASH)),
         allocator_(allocator),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         debug_(false)
@@ -454,8 +479,8 @@ public:
     }
 
 
-    MEMORIA_PUBLIC Ctr(Allocator* allocator, const ID& root_id, const char* mname = NULL):
-        Base(),
+    MEMORIA_PUBLIC Ctr(Allocator* allocator, const ID& root_id, const CtrInitData& ctr_init_data, const char* mname = NULL):
+        Base(ctr_init_data),
         allocator_(allocator),
         name_(-1),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
@@ -499,7 +524,9 @@ public:
         model_type_name_(other.model_type_name_),
         logger_(other.logger_),
         debug_(other.debug_)
-    {}
+    {
+    	//FIXME: ref() ???
+    }
 
     Ctr(MyType&& other, Allocator* allocator):
         Base(std::move(other), allocator),
@@ -509,16 +536,29 @@ public:
         debug_(other.debug_)
     {
         MEMORIA_ASSERT_NOT_NULL(allocator);
+        //FIXME: ref() ???
     }
 
-    MEMORIA_PUBLIC Ctr(const NoParamCtr&):
-        Base(),
+//    MEMORIA_PUBLIC Ctr(const NoParamCtr&):
+//        Base(CtrInitData()),
+//        allocator_(NULL),
+//        model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
+//        logger_(model_type_name_, Logger::DERIVED, NULL),
+//        debug_(false)
+//    {
+//        Base::setCtrShared(NULL);
+//        //FIXME: ref() ???
+//    }
+
+    MEMORIA_PUBLIC Ctr(const CtrInitData& data):
+        Base(data),
         allocator_(NULL),
         model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
         logger_(model_type_name_, Logger::DERIVED, NULL),
         debug_(false)
     {
-        Base::setCtrShared(NULL);
+    	Base::setCtrShared(NULL);
+    	//FIXME: ref() ???
     }
 
     MEMORIA_PUBLIC virtual ~Ctr() throw()

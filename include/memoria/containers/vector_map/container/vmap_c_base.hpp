@@ -49,7 +49,11 @@ private:
 
 public:
 
-    VectorMapContainerBase(): Base(), array_(NoParamCtr()), set_(NoParamCtr()) {}
+    VectorMapContainerBase(const CtrInitData& data):
+    	Base(data),
+    	array_(data.owner(Base::CONTAINER_HASH)),
+    	set_(data.owner(Base::CONTAINER_HASH))
+    {}
 
     VectorMapContainerBase(const ThisType& other, Allocator* allocator):
         Base(other, allocator),
@@ -66,14 +70,14 @@ public:
     //broken constructor
     VectorMapContainerBase(const ThisType& other):
         Base(other),
-        array_(NoParamCtr()),
-        set_(NoParamCtr())
+        array_(other.init_data_.owner(Base::CONTAINER_HASH)),
+        set_(other.init_data_.owner(Base::CONTAINER_HASH))
     {}
 
     VectorMapContainerBase(ThisType&& other):
         Base(std::move(other)),
-        array_(NoParamCtr()),
-        set_(NoParamCtr())
+        array_(other.init_data_.owner(Base::CONTAINER_HASH)),
+        set_(other.init_data_.owner(Base::CONTAINER_HASH))
     {}
 
     IdxSet& set() {
@@ -133,16 +137,18 @@ public:
         {
             MetadataList list;
 
-            IdxSet::getMetadata()->putAll(list);
-            ByteArray::getMetadata()->putAll(list);
+            list.push_back(IdxSet::getMetadata());
+            list.push_back(ByteArray::getMetadata());
 
             Base::setMetadata(new ContainerMetadata(
                                     TypeNameFactory<typename Types::ContainerTypeName>::name(),
                                     list,
-                                    TypeHash<typename Types::ContainerTypeName>::Value,
+                                    Base::CONTAINER_HASH,
                                     Base::getContainerInterface()
-                                  )
-            );
+                             	  )
+            				 );
+
+            MetadataRepository<typename Types::Profile>::registerMetadata(Base::getMetadata());
         }
 
         return hash;

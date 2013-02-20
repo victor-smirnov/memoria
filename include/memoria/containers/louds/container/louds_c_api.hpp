@@ -11,12 +11,19 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/containers/louds/louds_names.hpp>
 
+#include <memoria/prototypes/ctr_wrapper/iterator.hpp>
+
 namespace memoria    {
 
 using namespace memoria::btree;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
+	typedef typename Base::Iterator 											Iterator;
+
+	Iterator begin() {
+		return Iterator(*me(), me()->ctr().begin());
+	}
 
 	BigInt parent()
 	{

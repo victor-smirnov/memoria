@@ -13,13 +13,20 @@ namespace memoria {
 
 MEMORIA_BTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
 
-	CtrWrapperIteratorBase(): Base()
+	typedef TypesType 															Types;
+	typedef Ctr<typename Types::CtrTypes> 										Container;
+	typedef typename Container::WrappedCtr 										WrappedCtr;
+	typedef typename WrappedCtr::Iterator										WrappedIter;
+
+
+	CtrWrapperIteratorBase():
+		Base()
 	{
 
 	}
 
 	CtrWrapperIteratorBase(ThisType&& other):
-		Base(std::move(other)), path_(std::move(other.path_))
+		Base(std::move(other))
 	{
 
 	}

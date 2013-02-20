@@ -204,7 +204,7 @@ struct ValuePair {
     ValuePair(const First& f): first(f) {}
 };
 
-struct NoParamCtr {};
+//struct NoParamCtr {};
 struct IterEndMark {};
 
 struct SerializationData {

@@ -39,6 +39,8 @@ public:
     	Allocator allocator;
 
     	Ctr ctr(&allocator);
+
+    	auto iter = ctr.begin();
     }
 
 

@@ -137,13 +137,13 @@ template <typename Base1, typename TypesType>                                   
 class CtrPart<PartName, Base1, TypesType>: public Base1 {                       \
     typedef Base1 Base;                                                         \
     typedef CtrPart<PartName, Base1, TypesType> ThisType;                       \
-    typedef Ctr<TypesType> MyType;                                              \
+    typedef Ctr<TypesType> MyType;                           					\
 public:
 
 
 #define MEMORIA_CONTAINER_PART_BEGIN(PartName)                                  \
     MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(PartName)                               \
-    CtrPart(): Base()  {}                                                       \
+    CtrPart(const CtrInitData& data): Base(data)  {}                            \
     CtrPart(const ThisType& other): Base(other)  {}                             \
     CtrPart(ThisType&& other): Base(std::move(other))  {}                       \
     CtrPart(ThisType&& other, typename TypesType::Allocator* allocator): Base(std::move(other), allocator)  {}  \

@@ -8,68 +8,54 @@
 #define MEMORIA_CONTAINERS_LOUDS_FACTORY_HPP_
 
 #include <memoria/core/types/types.hpp>
+
 #include <memoria/containers/louds/louds_names.hpp>
 
 #include <memoria/containers/louds/container/louds_c_api.hpp>
-#include <memoria/containers/louds/container/louds_c_base.hpp>
-
 #include <memoria/containers/louds/iterator/louds_i_api.hpp>
+
+
+#include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
 namespace memoria {
 
 template <typename Profile_>
-struct CompositeTypes<Profile_, LOUDS>: public CompositeTypes<Profile_, Composite> {
+struct WrapperTypes<Profile_, CtrWrapper<LOUDS>>: WrapperTypes<Profile_, LOUDS> {
 
-    typedef LOUDS                                             					ContainerTypeName;
+	typedef WrapperTypes<Profile_, LOUDS>   			Base;
 
-    typedef CompositeTypes<Profile_, Composite>                                 Base;
+	typedef typename AppendTool<
+			typename Base::ContainerPartsList,
+			TypeList<
+				memoria::louds::CtrApiName
+			>
+	>::Result                                           CtrList;
 
-    typedef typename AppendTool<
-                typename Base::ContainerPartsList,
-                TypeList<
-                    memoria::louds::CtrApiName
-                >
-    >::Result                                                                   CtrList;
+	typedef typename AppendTool<
+			typename Base::IteratorPartsList,
+			TypeList<
+				memoria::louds::ItrApiName
+			>
+	>::Result                                           IterList;
 
-    typedef typename AppendTool<
-                typename Base::IteratorPartsList,
-                TypeList<
-                    memoria::louds::ItrApiName
-                >
-    >::Result                                                                   IterList;
-
-
-    template <typename Types_>
-    struct CtrBaseFactory {
-        typedef LoudsContainerBase<Types_>					Type;
-    };
+	typedef Sequence<1, true>           				WrappedCtrName;
 };
 
 
+
 template <typename Profile_, typename T>
-class CtrTF<Profile_, LOUDS, T> {
+class CtrTF<Profile_, LOUDS, T>: public CtrTF<Profile_, CtrWrapper<LOUDS>, T> {
 
-    typedef CtrTF<Profile_, LOUDS, T>                           				MyType;
-
-    typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
-
-    typedef CompositeTypes<Profile_, LOUDS>                    					ContainerTypes;
+	typedef CtrTF<Profile_, CtrWrapper<LOUDS>, T> 								Base;
 
 public:
 
-    struct Types: public ContainerTypes
-    {
-        typedef BigInt 							Key;
-        typedef UBigInt							Value;
+    struct Types: Base::Types {
 
-    	typedef LOUDS           				Name;
-
-        typedef Profile_                        Profile;
-        typedef MyType::Allocator               Allocator;
-
-        typedef LoudsCtrTypes<Types>        	CtrTypes;
-        typedef LoudsIterTypes<Types>       	IterTypes;
+    	typedef LoudsCtrTypes<Types> 		CtrTypes;
+        typedef LoudsIterTypes<Types> 		IterTypes;
     };
+
 
     typedef typename Types::CtrTypes                                            CtrTypes;
     typedef typename Types::IterTypes                                           IterTypes;
