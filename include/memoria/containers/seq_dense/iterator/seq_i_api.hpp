@@ -53,9 +53,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
     static const Int Indexes = Container::Indexes;
 
     typedef SymbolSequence<
-    		Types::BitsPerSymbol,
-    		ElementType,
-    		typename DataPage::IndexType
+    			Types::BitsPerSymbol,
+    			ElementType,
+    			typename DataPage::IndexType
     > 																			SymbolSequenceType;
 
     
@@ -91,6 +91,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
     BigInt countBw(Symbol symbol);
 
     BigInt rank(BigInt size, Symbol symbol);
+
+    bool test(Symbol value) const
+    {
+    	return me()->data()->sequence().test(me()->dataPos(), value);
+    }
 
 MEMORIA_ITERATOR_PART_END
 

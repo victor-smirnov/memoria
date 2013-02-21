@@ -33,20 +33,16 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
 
     typedef BigInt                                                          Value;
 
-    typedef typename AppendTool<
-            typename Base::ContainerPartsList,
-            TypeList<
-                memoria::bstree::ToolsName,
-                memoria::bstree::FindName
-            >
+    typedef typename MergeLists<
+            	typename Base::ContainerPartsList,
+            	memoria::bstree::ToolsName,
+            	memoria::bstree::FindName
     >::Result                                                               ContainerPartsList;
 
-    typedef typename AppendTool<
-            typename Base::IteratorPartsList,
-            TypeList<
-                memoria::bstree::IterApiName,
-                memoria::bstree::IterFindName
-            >
+    typedef typename MergeLists<
+            	typename Base::IteratorPartsList,
+            	memoria::bstree::IterApiName,
+            	memoria::bstree::IterFindName
     >::Result                                                               IteratorPartsList;
 
     template <
@@ -61,28 +57,6 @@ struct BTreeTypes<Profile, memoria::BSTree>: public BTreeTypes<Profile, memoria:
     struct IteratorCacheFactory {
         typedef BTreeIteratorPrefixCache<Iterator, Container>               Type;
     };
-
-
-
-
-//    template <typename Types>
-//    using FindLTWalker 		= ::memoria::bstree::FindLTWalker<Types>;
-//
-//    template <typename Types>
-//    using FindLEWalker 		= ::memoria::bstree::FindLEWalker<Types>;
-//
-//
-//    template <typename Types>
-//    using FindBeginWalker 	= ::memoria::bstree::FindBeginWalker<Types>;
-//
-//    template <typename Types>
-//    using FindEndWalker 	= ::memoria::bstree::FindEndWalker<Types>;
-//
-//    template <typename Types>
-//    using FindRBeginWalker 	= ::memoria::bstree::FindRBeginWalker<Types>;
-//
-//    template <typename Types>
-//    using FindREndWalker 	= ::memoria::bstree::FindREndWalker<Types>;
 };
 
 

@@ -22,10 +22,11 @@ class Iter<IterWrapperTypes<Types> >: public IterStart<IterWrapperTypes<Types> >
     typedef IterStart<VectorMapIterTypes<Types> >               Base;
     typedef Iter<IterWrapperTypes<Types> >                    	MyType;
 
+public:
+
     typedef Ctr<typename Types::CtrTypes>                      	ContainerType;
 
     typedef typename ContainerType::WrappedCtr::Iterator        WrappedIterator;
-
 
     typedef typename Types::Profile                             Profile;
     typedef typename Types::Allocator                           Allocator;
@@ -34,7 +35,7 @@ class Iter<IterWrapperTypes<Types> >: public IterStart<IterWrapperTypes<Types> >
     typedef typename Allocator::Page                            Page;
     typedef typename Page::ID                                   ID;
 
-
+private:
     ContainerType&      model_;
     WrappedIterator   	iter_;
 

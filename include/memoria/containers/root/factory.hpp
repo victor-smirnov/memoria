@@ -24,11 +24,9 @@ struct BTreeTypes<Profile, memoria::Root>: public BTreeTypes<Profile, memoria::M
 
     typedef typename Base::ID                                                   Value;
 
-    typedef typename AppendTool<
-                typename Base::ContainerPartsList,
-                TypeList<
+    typedef typename MergeLists<
+                	typename Base::ContainerPartsList,
                     memoria::root::CtrApiName
-                >
     >::Result                                                                   ContainerPartsList;
 
     typedef RootCtrMetadata<typename Base::ID>                                  Metadata;

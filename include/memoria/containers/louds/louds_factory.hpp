@@ -12,6 +12,8 @@
 #include <memoria/containers/louds/louds_names.hpp>
 
 #include <memoria/containers/louds/container/louds_c_api.hpp>
+#include <memoria/containers/louds/container/louds_c_find.hpp>
+
 #include <memoria/containers/louds/iterator/louds_i_api.hpp>
 
 
@@ -24,18 +26,15 @@ struct WrapperTypes<Profile_, CtrWrapper<LOUDS>>: WrapperTypes<Profile_, LOUDS> 
 
 	typedef WrapperTypes<Profile_, LOUDS>   			Base;
 
-	typedef typename AppendTool<
-			typename Base::ContainerPartsList,
-			TypeList<
-				memoria::louds::CtrApiName
-			>
+	typedef typename MergeLists<
+				typename Base::ContainerPartsList,
+				memoria::louds::CtrApiName,
+				memoria::louds::CtrFindName
 	>::Result                                           CtrList;
 
-	typedef typename AppendTool<
-			typename Base::IteratorPartsList,
-			TypeList<
+	typedef typename MergeLists<
+				typename Base::IteratorPartsList,
 				memoria::louds::ItrApiName
-			>
 	>::Result                                           IterList;
 
 	typedef Sequence<1, true>           				WrappedCtrName;

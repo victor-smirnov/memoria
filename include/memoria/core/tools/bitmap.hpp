@@ -259,6 +259,76 @@ size_t PopCount(const T* buffer, size_t start, size_t stop)
 }
 
 
+template <typename T>
+void FillOne(T* buffer, size_t start, size_t stop)
+{
+	size_t bitsize 	= TypeBitsize<T>();
+	size_t mask 	= TypeBitmask<T>();
+	size_t divisor 	= TypeBitmaskPopCount(mask);
+
+	size_t prefix 	= bitsize - (start & mask);
+
+	if (start + prefix > stop)
+	{
+		T value = MakeMask<T>(start & mask, stop - start);
+
+		buffer[start >> divisor] |= value;
+	}
+	else {
+		buffer[start >> divisor] |= MakeMask<T>(start & mask, prefix);
+
+		const T ALL_ONES = MakeMask<T>(0, bitsize);
+
+		for (size_t c = (start >> divisor) + 1; c < (stop >> divisor); c++)
+		{
+			buffer[c] = ALL_ONES;
+		}
+
+		size_t suffix = stop & mask;
+
+		if (suffix > 0)
+		{
+			buffer[stop >> divisor] |= MakeMask<T>(0, suffix);
+		}
+	}
+}
+
+
+template <typename T>
+void FillZero(T* buffer, size_t start, size_t stop)
+{
+	size_t bitsize 	= TypeBitsize<T>();
+	size_t mask 	= TypeBitmask<T>();
+	size_t divisor 	= TypeBitmaskPopCount(mask);
+
+	size_t prefix 	= bitsize - (start & mask);
+
+	if (start + prefix > stop)
+	{
+		T value = ~MakeMask<T>(start & mask, stop - start);
+
+		buffer[start >> divisor] &= value;
+	}
+	else {
+		buffer[start >> divisor] &= ~MakeMask<T>(start & mask, prefix);
+
+		for (size_t c = (start >> divisor) + 1; c < (stop >> divisor); c++)
+		{
+			buffer[c] = 0;
+		}
+
+		size_t suffix = stop & mask;
+
+		if (suffix > 0)
+		{
+			buffer[stop >> divisor] &= ~MakeMask<T>(0, suffix);
+		}
+	}
+}
+
+
+
+
 template <typename Buffer>
 void SetBit(Buffer& buf, size_t idx, Int value)
 {

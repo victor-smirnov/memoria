@@ -30,18 +30,14 @@ struct BTreeTypes<Profile, memoria::Map<Key_, Value_, Indexes_> >: public BTreeT
 
     static const Int Indexes                                                = Indexes_;
 
-    typedef typename AppendTool<
-            typename Base::ContainerPartsList,
-            TypeList<
+    typedef typename MergeLists<
+            	typename Base::ContainerPartsList,
                 memoria::map::CtrApiName
-            >
     >::Result                                                               ContainerPartsList;
 
-    typedef typename AppendTool<
-            typename Base::IteratorPartsList,
-            TypeList<
+    typedef typename MergeLists<
+            	typename Base::IteratorPartsList,
                 memoria::map::ItrApiName
-            >
     >::Result                                                               IteratorPartsList;
 
 

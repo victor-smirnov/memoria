@@ -79,9 +79,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::sequence::CtrFindName)
 
 	BigInt read(Iterator& iter, IDataTargetType& data);
 
-//	Iterator rank(BigInt pos);
-//	Iterator select(BigInt rank);
-
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::sequence::CtrFindName)

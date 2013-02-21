@@ -28,20 +28,16 @@ struct BTreeTypes<Profile, memoria::Sequence<BitsPerSymbol_, true>>: public BTre
 
 	typedef BTreeTypes<Profile, memoria::ASequence> Base;
 
-    typedef typename AppendTool<
-            typename Base::ContainerPartsList,
-            TypeList<
+    typedef typename MergeLists<
+            	typename Base::ContainerPartsList,
             	memoria::seq_dense::CtrChecksName,
                 memoria::seq_dense::CtrToolsName,
                 memoria::seq_dense::CtrFindName
-            >
     >::Result                                                           ContainerPartsList;
 
-	typedef typename AppendTool<
-			typename Base::IteratorPartsList,
-			TypeList<
+	typedef typename MergeLists<
+				typename Base::IteratorPartsList,
 				memoria::seq_dense::IterAPIName
-			>
 	>::Result                                                           IteratorPartsList;
 
 	static const Int BitsPerSymbol 										= BitsPerSymbol_;
@@ -89,11 +85,9 @@ public:
     	typedef ISequenceDataTarget<ElementType, BitsPerSymbol>                 IDataTargetType;
 
 
-    	typedef typename AppendTool<
-    					TypeList<
-    						DataPage_
-    					>,
-    					typename Base0::DataPagesList
+    	typedef typename MergeLists<
+    						DataPage_,
+    						typename Base0::DataPagesList
     	>::Result                                                               DataPagesList;
 
 

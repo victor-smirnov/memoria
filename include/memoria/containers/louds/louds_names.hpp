@@ -15,6 +15,8 @@ namespace memoria    {
 namespace louds	 	 {
 
 class CtrApiName {};
+class CtrFindName {};
+
 class ItrApiName {};
 
 }

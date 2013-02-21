@@ -37,6 +37,8 @@ public:
         MEMORIA_ADD_TEST(testMakeMask);
         MEMORIA_ADD_TEST(testSetBit);
         MEMORIA_ADD_TEST(testSetBits);
+        MEMORIA_ADD_TEST(testFillOne);
+        MEMORIA_ADD_TEST(testFillZero);
     }
 
     template <typename TT>
@@ -205,6 +207,63 @@ public:
     				MoveBitsBW(bitmap1, bitmap2, src_bit, dst_bit, length);
 
     				compareBitmaps(MA_SRC, bitmap1, bitmap2, src_bit, dst_bit, length);
+    			}
+    		}
+    	}
+    }
+
+    void testFillOne()
+    {
+    	T bitmap[10];
+
+    	size_t bitsize = sizeof(bitmap) * 8;
+
+    	for (Int c = 0; c < 1000; c++)
+    	{
+    		size_t start = getRandom(bitsize - 1);
+    		size_t stop  = getRandom(bitsize - start);
+
+    		MyType::clearBitmap(bitmap, bitsize, 1);
+
+    		FillOne(bitmap, start, stop);
+
+    		for (size_t idx = 0; idx < bitsize; idx++)
+    		{
+    			if (idx >= start && idx < stop)
+    			{
+    				AssertEQ(MA_SRC, GetBit(bitmap, idx), 1);
+    			}
+    			else {
+    				AssertEQ(MA_SRC, GetBit(bitmap, idx), 0);
+    			}
+    		}
+    	}
+    }
+
+
+    void testFillZero()
+    {
+    	T bitmap[10];
+
+    	size_t bitsize = sizeof(bitmap) * 8;
+
+    	for (Int c = 0; c < 1000; c++)
+    	{
+    		size_t start = getRandom(bitsize - 1);
+    		size_t stop  = getRandom(bitsize - start);
+
+    		MyType::clearBitmap(bitmap, bitsize, 0);
+
+    		FillZero(bitmap, start, stop);
+
+    		for (size_t idx = 0; idx < bitsize; idx++)
+    		{
+    			if (idx >= start && idx < stop)
+    			{
+    				AssertEQ(MA_SRC, GetBit(bitmap, idx), 0);
+    			}
+    			else {
+    				AssertEQ(MA_SRC, GetBit(bitmap, idx), 1);
     			}
     		}
     	}

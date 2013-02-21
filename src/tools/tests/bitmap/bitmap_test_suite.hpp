@@ -14,6 +14,7 @@
 #include "bitmap_count_test.hpp"
 #include "bitmap_select_test.hpp"
 
+
 #include <vector>
 
 namespace memoria {

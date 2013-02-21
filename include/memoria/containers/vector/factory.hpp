@@ -32,18 +32,14 @@ struct BTreeTypes<Profile, memoria::Vector<ElementType_>>: public BTreeTypes<Pro
 
 	typedef BTreeTypes<Profile, memoria::ASequence> Base;
 
-    typedef typename AppendTool<
-            typename Base::ContainerPartsList,
-            TypeList<
+    typedef typename MergeLists<
+            	typename Base::ContainerPartsList,
                 memoria::mvector::CtrToolsName
-            >
     >::Result                                                               	ContainerPartsList;
 
-    typedef typename AppendTool<
-    		typename Base::IteratorPartsList,
-    		TypeList<
+    typedef typename MergeLists<
+    			typename Base::IteratorPartsList,
     			memoria::mvector::IteratorContainerAPIName
-    		>
     >::Result                                                                   IteratorPartsList;
 
 
@@ -94,11 +90,9 @@ public:
     	typedef IDataTarget<ElementType>                                        IDataTargetType;
 
 
-    	typedef typename AppendTool<
-    					TypeList<
-    						DataPage_
-    					>,
-    					typename Base0::DataPagesList
+    	typedef typename MergeLists<
+    						DataPage_,
+    						typename Base0::DataPagesList
     	>::Result                                                               DataPagesList;
 
 

@@ -689,6 +689,19 @@ public:
     	}
     }
 
+    bool test(Int item_idx, Value value) const
+    {
+    	if (Bits == 1 || Bits == 2 || Bits == 4)
+    	{
+    		const Value* buffer = valuesBlock();
+    		return TestBits(buffer, item_idx * Bits, value, Bits);
+    	}
+    	else {
+    		Int block_offset = getValueBlockOffset();
+    		return valueb(block_offset, item_idx) == value;
+    	}
+    }
+
     const Value* cellAddr(Int idx) const
     {
     	return T2T<const Value*>(valuesBlock() + idx);

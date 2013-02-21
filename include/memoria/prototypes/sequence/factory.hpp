@@ -38,11 +38,9 @@ template <
 >
 struct SequenceContainerTypes: public Base {
 
-    typedef typename AppendTool<
-                    TypeList<
-                        DataPage_
-                    >,
-                    typename Base::DataPagesList
+    typedef typename MergeLists<
+                       DataPage_,
+                       typename Base::DataPagesList
     >::Result                                                                   DataPagesList;
 
     typedef DataPage_                                                           DataPage;
@@ -59,22 +57,18 @@ struct BTreeTypes<Profile, memoria::ASequence>: public BTreeTypes<Profile, memor
 
     typedef TypeList<>                                                          DataPagePartsList;
 
-    typedef typename AppendTool<
-    		typename Base::ContainerPartsList,
-    		TypeList<
+    typedef typename MergeLists<
+    			typename Base::ContainerPartsList,
     			memoria::sequence::CtrToolsName,
     			memoria::sequence::CtrRemoveName,
     			memoria::sequence::CtrInsertName,
     			memoria::sequence::CtrChecksName,
     			memoria::sequence::CtrFindName
-    		>
     >::Result                                                                   ContainerPartsList;
 
-    typedef typename AppendTool<
-    		typename Base::IteratorPartsList,
-    		TypeList<
+    typedef typename MergeLists<
+    			typename Base::IteratorPartsList,
     			memoria::sequence::IterAPIName
-    		>
     >::Result                                                                   IteratorPartsList;
 
 

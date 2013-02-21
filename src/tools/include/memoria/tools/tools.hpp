@@ -428,13 +428,23 @@ void AssertTrue(const char* src, const Op& op)
 
 
 template <typename Op>
-void AssertFalse(const char* src, const Op& op, const SBuf& msg = SBuf())
+void AssertFalse(const char* src, const Op& op)
+{
+	if (op)
+	{
+		throw TestException(src, SBuf()<<"False assertion failed: "<<op);
+	}
+}
+
+template <typename Op>
+void AssertFalse(const char* src, const Op& op, const SBuf& msg)
 {
 	if (op)
 	{
 		throw TestException(src, SBuf()<<"False assertion failed: "<<op<<" "<<msg.str());
 	}
 }
+
 
 template <typename Op1, typename Op2>
 void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
@@ -509,13 +519,24 @@ void AssertGE(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg =
 }
 
 template <typename Op1, typename Op2>
-void AssertNEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
+void AssertNEQ(const char* src, const Op1& op1, const Op2& op2)
+{
+	if (!(op1 != op2))
+	{
+		throw TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2);
+	}
+}
+
+
+template <typename Op1, typename Op2>
+void AssertNEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
 	if (!(op1 != op2))
 	{
 		throw TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
 	}
 }
+
 
 }
 
