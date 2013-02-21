@@ -125,7 +125,7 @@ public:
 
     		AssertEQ(MA_SRC, count0, count1);
 
-    		out<<"TreeSize: "<<count0<<" Tree Build Time: "<<FormatTime(t1-t0)<<", Traverse Time: "<<FormatTime(t2-t1)<<endl;
+    		out()<<"TreeSize: "<<count0<<" Tree Build Time: "<<FormatTime(t1-t0)<<", Traverse Time: "<<FormatTime(t2-t1)<<endl;
     	}
     }
 
