@@ -74,18 +74,18 @@ public:
     	LoudsTree tgt_tree = createRandomTree(1000);
     	LoudsTree src_tree = createRandomTree(200);
 
-    	tgt_tree.dump();
-    	src_tree.dump();
+    	size_t tgt_nodes = tgt_tree.rank1();
 
-    	size_t insert_at = tgt_tree.select1(55);
+    	for (size_t c = 2; c < tgt_nodes; c++)
+    	{
+    		size_t insert_at = tgt_tree.select1(c);
 
-    	cout<<"insert_at: "<<insert_at<<endl;
+    		LoudsTree tmp = tgt_tree;
 
-    	tgt_tree.insertAt(insert_at, src_tree);
+    		tmp.insertAt(insert_at, src_tree);
 
-    	tgt_tree.dump();
-
-    	checkTreeStructure(tgt_tree);
+    		checkTreeStructure(tmp);
+    	}
     }
 
 };
