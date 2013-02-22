@@ -21,18 +21,11 @@ using namespace pugi;
 
 
 template <typename TreeType>
-size_t createRandomLouds(TreeType& tree, size_t max_children = 10, size_t size = -1)
+size_t createRandomLouds(TreeType& tree, size_t size, size_t max_children = 10)
 {
-	size_t nodes_count = 0;
-	size_t idx = 2;
+	size_t nodes_count = 1;
 
-	if (size == static_cast<size_t>(-1))
-	{
-		size = (tree.size() - 1) / 2;
-	}
-
-	tree[0] = 1;
-	tree[1] = 0;
+	tree.appendUDS(1);
 
 	size_t last_nodes = 1;
 
@@ -43,9 +36,15 @@ size_t createRandomLouds(TreeType& tree, size_t max_children = 10, size_t size =
 		for (size_t c = 0; c < last_nodes; c++)
 		{
 			size_t children = getRandom(max_children);
+
+			if (last_nodes == 1 && children == 0)
+			{
+				while ((children = getRandom(max_children)) == 0);
+			}
+
 			if (nodes_count + children <= size)
 			{
-				idx = tree.writeUDS(idx, children);
+				tree.appendUDS(children);
 				count += children;
 				nodes_count += children;
 			}
@@ -54,17 +53,41 @@ size_t createRandomLouds(TreeType& tree, size_t max_children = 10, size_t size =
 			}
 		}
 
-		last_nodes = count;
+		if (count > 0)
+		{
+			last_nodes = count;
+		}
+		else {
+			break;
+		}
 	}
 
 	exit:
 
-	for (; idx < tree.size(); idx++)
-	{
-		tree[idx] = 0;
-	}
+	size_t remainder = 2 * (nodes_count + 1) + 1 - tree.size();
+
+	cout<<"size "<<tree.size()<<" remainder "<<remainder<<endl;
+
+	for (size_t c = 0; c < remainder; c++) tree.appendUDS(0);
+
+	tree.reindex();
 
 	return nodes_count;
+}
+
+
+template <typename T>
+LoudsTree createLouds(vector<T>& degrees)
+{
+	LoudsTree tree;
+
+	for (auto d: degrees)
+	{
+		tree.appendUDS(d);
+	}
+
+	tree.reindex();
+	return tree;
 }
 
 struct NodeOrAttr {
@@ -215,52 +238,97 @@ void traverseDOM(const xml_node& node, size_t& count)
 
 int main()
 {
-	const char* xmlFile = "/home/developer/workspace/memoria-build/unix/bin/sandbox/articles9.xml";
+//	const char* xmlFile = "/home/developer/workspace/memoria-build/unix/bin/sandbox/articles9.xml";
+//
+//	xml_document doc;
+//
+//	doc.load_file(xmlFile, parse_full);
+//
+//	LoudsTree tree;
+//	createLouds(tree, doc);
+//
+//	cout<<"LOUDS Size = "<<tree.size()<<" bits"<<endl;
+//
+//	BigInt t0 = getTimeInMillis();
+//
+//	tree.reindex();
+//
+////	tree.dump(cout);
+//
+//	BigInt t1 = getTimeInMillis();
+//
+//	cout<<"ReindexTime: "<<FormatTime(t1 - t0)<<endl;
+//
+//	try {
+//		checkTreeStructures(tree, 0, doc);
+//		cout<<"LOUDS and XML trees match"<<endl;
+//	}
+//	catch (const char* msg) {
+//		cout<<msg<<endl;
+//	}
+//
+//	BigInt t2 = getTimeInMillis();
+//
+//	cout<<"DOM + LOUDS TraverseTime: "<<FormatTime(t2 - t1)<<endl;
+//
+//	size_t louds_count = 0;
+//	traverseTree(tree, 0, louds_count);
+//
+//	BigInt t3 = getTimeInMillis();
+//
+//	cout<<"LOUDS TraverseTime: "<<FormatTime(t3 - t2)<<" nodes="<<louds_count<<endl;
+//
+//	size_t node_count = 0;
+//	traverseDOM(doc, node_count);
+//
+//	BigInt t4 = getTimeInMillis();
+//
+//	cout<<"DOM TraverseTime: "<<FormatTime(t4 - t3)<<" nodes="<<node_count<<endl;
 
-	xml_document doc;
-
-	doc.load_file(xmlFile, parse_full);
 
 	LoudsTree tree;
-	createLouds(tree, doc);
+	size_t count1 = createRandomLouds(tree, 100);
 
-	cout<<"LOUDS Size = "<<tree.size()<<" bits"<<endl;
+	tree.dump();
 
-	BigInt t0 = getTimeInMillis();
+	size_t count2 = 0;
+	traverseTree(tree, 0, count2);
 
-	tree.reindex();
+	cout<<count1<<" "<<count2<<endl;
 
-//	tree.dump(cout);
+	vector<size_t> degrees1 = {1,4,2,2,2,2,0,0,2,1,0,0,2,0,0,0,1,1,0,0,0};
 
-	BigInt t1 = getTimeInMillis();
+	LoudsTree tree1 = createLouds(degrees1);
 
-	cout<<"ReindexTime: "<<FormatTime(t1 - t0)<<endl;
+	size_t count3 = 0;
+	traverseTree(tree1, 0, count3);
 
-	try {
-		checkTreeStructures(tree, 0, doc);
-		cout<<"LOUDS and XML trees match"<<endl;
-	}
-	catch (const char* msg) {
-		cout<<msg<<endl;
-	}
+	cout<<count3<<endl;
 
-	BigInt t2 = getTimeInMillis();
+	tree1.traverseSubtree(13, [](size_t left, size_t right) {
+		cout<<left<<" "<<right<<endl;
+	});
 
-	cout<<"DOM + LOUDS TraverseTime: "<<FormatTime(t2 - t1)<<endl;
 
-	size_t louds_count = 0;
-	traverseTree(tree, 0, louds_count);
+	vector<size_t> degrees2 = {1, 3, 1,3,1, 1,2,2,2,1, 1,0,0,0,0,0,0,1, 0,0};
 
-	BigInt t3 = getTimeInMillis();
+	LoudsTree tree2 = createLouds(degrees2);
 
-	cout<<"LOUDS TraverseTime: "<<FormatTime(t3 - t2)<<" nodes="<<louds_count<<endl;
+	tree2.dump();
 
-	size_t node_count = 0;
-	traverseDOM(doc, node_count);
+	tree2.traverseSubtree(3, [](size_t left, size_t right) {
+		cout<<left<<" "<<right<<endl;
+	});
 
-	BigInt t4 = getTimeInMillis();
 
-	cout<<"DOM TraverseTime: "<<FormatTime(t4 - t3)<<" nodes="<<node_count<<endl;
+	auto tree4 = tree2.getSubtree(3);
+
+	tree4.dump();
+
+	size_t count4 = 0;
+	traverseTree(tree4, 0, count4);
+
+	cout<<count4<<endl;
 
 	return 0;
 }

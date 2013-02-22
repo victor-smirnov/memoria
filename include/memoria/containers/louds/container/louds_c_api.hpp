@@ -57,8 +57,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 		return iter;
 	}
 
-
-
 	LoudsNode parentNode(const LoudsNode& node)
 	{
 		return parent(node).node();

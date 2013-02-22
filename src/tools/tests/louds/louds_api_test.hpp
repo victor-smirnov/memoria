@@ -11,6 +11,8 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
+#include "louds_test_base.hpp"
+
 #include <vector>
 #include <algorithm>
 #include <sstream>
@@ -20,116 +22,35 @@ namespace memoria {
 
 using namespace memoria::louds;
 
-class LoudsApiTest: public SPTestTask {
+class LoudsApiTest: public LoudsTestBase {
 
     typedef LoudsApiTest                                                       	MyType;
 
-    typedef typename SCtrTF<LOUDS>::Type 										Ctr;
-    typedef typename Ctr::Iterator 												Iterator;
+    vector<char> degrees_ = {1,4,2,2,2,2,0,0,2,1,0,0,2,0,0,0,1,1,0,0,0};
 
 public:
 
-    LoudsApiTest(): SPTestTask("API")
+    LoudsApiTest(): LoudsTestBase("Api")
     {
-        MEMORIA_ADD_TEST(runTest);
+        MEMORIA_ADD_TEST(runParent);
     }
 
     virtual ~LoudsApiTest() throw () {}
 
-    size_t createRandomLouds(Ctr& tree, size_t size, size_t max_children = 10)
+    void runParent()
     {
-    	size_t nodes_count = 1;
+    	Allocator allocator;
+    	Ctr tree(&allocator);
 
-    	Iterator iter = tree.begin();
+    	createLouds(tree, degrees_);
 
-    	iter.insertDegree(1);
+    	BigInt count = 0;
+    	traverseTree(tree, 0, 0, count);
 
-    	iter.insertDegree(1);
+    	AssertEQ(MA_SRC, count, (BigInt)degrees_.size() - 1);
 
-    	size_t last_nodes = 1;
-
-    	while (nodes_count <= size)
-    	{
-    		size_t count = 0;
-
-    		for (size_t c = 0; c < last_nodes; c++)
-    		{
-    			size_t children = getRandom(max_children);
-
-    			if (last_nodes == 1 && children == 0)
-    			{
-    				while ((children = getRandom(max_children)) == 0);
-    			}
-
-    			if (nodes_count + children <= size)
-    			{
-    				iter.insertDegree(children);
-    				count += children;
-    				nodes_count += children;
-    			}
-    			else {
-    				goto exit;
-    			}
-    		}
-
-    		last_nodes = count;
-    	}
-
-    	exit:
-
-    	BigInt remainder = 2 * (nodes_count + 1) + 1 - tree.ctr().size();
-
-    	iter.insertZeroes(remainder);
-
-    	return nodes_count;
+    	cout<<tree.parentNode(0).node()<<endl;
     }
-
-
-    void traverseTree(Ctr& tree, BigInt nodeIdx, BigInt parentIdx, BigInt& count)
-    {
-    	count++;
-
-    	BigInt parent = tree.parentNode(nodeIdx).node();
-    	AssertEQ(MA_SRC, parentIdx, parent);
-
-    	LoudsNodeRange children = tree.children(nodeIdx);
-
-    	AssertNEQ(MA_SRC, nodeIdx, children.node());
-
-    	for (BigInt child = children.first(); child < children.last(); child++)
-    	{
-    		traverseTree(tree, child, nodeIdx, count);
-    	}
-    }
-
-
-    void runTest()
-    {
-    	for (Int c = 1; c <= 10; c++)
-    	{
-    		Allocator allocator;
-
-    		Ctr ctr(&allocator);
-
-    		BigInt t0 = getTimeInMillis();
-
-    		BigInt count0 = createRandomLouds(ctr, 100000 * c);
-
-    		BigInt t1 = getTimeInMillis();
-
-    		BigInt count1 = 0;
-
-    		traverseTree(ctr, 2, 0, count1);
-
-    		BigInt t2 = getTimeInMillis();
-
-    		AssertEQ(MA_SRC, count0, count1);
-
-    		out()<<"TreeSize: "<<count0<<" Tree Build Time: "<<FormatTime(t1-t0)<<", Traverse Time: "<<FormatTime(t2-t1)<<endl;
-    	}
-    }
-
-
 };
 
 }

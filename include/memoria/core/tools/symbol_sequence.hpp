@@ -253,7 +253,7 @@ public:
 		sequence_->size() += size;
 	}
 
-	void ensureCapacity(size_t value)
+	bool ensureCapacity(size_t value)
 	{
 		if ((size_t)sequence_->capacity() < value)
 		{
@@ -278,7 +278,11 @@ public:
 			free(T2T<void*>(sequence_));
 
 			sequence_ = new_sequence;
+
+			return true;
 		}
+
+		return false;
 	}
 
 private:
@@ -353,6 +357,15 @@ public:
     	sequence_->insertSpace(at, src.getSize());
     	update(at, src);
     }
+
+    void append(IDataSrc& src)
+    {
+    	size_t at = sequence_->size();
+    	ensureCapacity(src.getSize());
+    	sequence_->insertSpace(at, src.getSize());
+    	update(at, src);
+    }
+
 
     void read(size_t from, IDataTgt& tgt) const
     {

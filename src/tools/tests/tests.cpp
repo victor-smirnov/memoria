@@ -4,26 +4,28 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include "ctr/ctr_test_suite.hpp"
+//#include "ctr/ctr_test_suite.hpp"
+//
+//#include "map/map_test_suite.hpp"
+//
+//#include "packed_map/pmap_test_suite.hpp"
+//#include "packed_seq/pseq_test_suite.hpp"
+//
+//#include "sum_set_batch/sum_tree_test_suite.hpp"
+//
+//#include "vector/vector_test_suite.hpp"
+//
+//#include "vector_map/vector_map_test_suite.hpp"
+//
+//#include "sequence/sequence_test_suite.hpp"
+//#include "symbol_seq/symseq_test_suite.hpp"
+//#include "bitmap/bitmap_test_suite.hpp"
+//
+//#include "template/template_test_suite.hpp"
+//
+//#include "louds/louds_test_suite.hpp"
 
-#include "map/map_test_suite.hpp"
-
-#include "packed_map/pmap_test_suite.hpp"
-#include "packed_seq/pseq_test_suite.hpp"
-
-#include "sum_set_batch/sum_tree_test_suite.hpp"
-
-#include "vector/vector_test_suite.hpp"
-
-#include "vector_map/vector_map_test_suite.hpp"
-
-#include "sequence/sequence_test_suite.hpp"
-#include "symbol_seq/symseq_test_suite.hpp"
-#include "bitmap/bitmap_test_suite.hpp"
-
-#include "template/template_test_suite.hpp"
-
-#include "louds/louds_test_suite.hpp"
+#include "louds_static/staticlouds_test_suite.hpp"
 
 #include <memoria/tools/cmdline.hpp>
 
@@ -37,7 +39,7 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MEMORIA_INIT(SmallProfile<>);
+//    MEMORIA_INIT(SmallProfile<>);
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
@@ -75,7 +77,9 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new VectorMapTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
 
-        runner.registerTask(new LoudsTestSuite());
+//        runner.registerTask(new LoudsTestSuite());
+
+        runner.registerTask(new StaticLoudsTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

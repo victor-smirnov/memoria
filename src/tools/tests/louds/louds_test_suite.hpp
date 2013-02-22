@@ -11,6 +11,7 @@
 #include "../tests_inc.hpp"
 
 #include "louds_api_test.hpp"
+#include "louds_create_test.hpp"
 
 #include <vector>
 
@@ -26,6 +27,7 @@ public:
     LoudsTestSuite(): TestSuite("LoudsSuite")
     {
     	registerTask(new LoudsApiTest());
+    	registerTask(new LoudsCreateTest());
     }
 
 };
