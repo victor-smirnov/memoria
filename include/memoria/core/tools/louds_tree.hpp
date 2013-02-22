@@ -276,22 +276,22 @@ public:
 
 		tree.traverseSubtree(0, [&](size_t left, size_t right)
 		{
-			cout<<"target: "<<tgt_node<<" "<<left<<" "<<right<<endl;
+//			cout<<"target: "<<tgt_node<<" "<<left<<" "<<right<<endl;
 
 			if (insert_at_leaf && left == 0)
 			{
 				return;
 			}
 
-			auto src = this->source(left, right - left + (left == 0 ? 0 : 1));
+			auto src = tree.source(left, right - left + (left == 0 ? 0 : 1));
 
-			LoudsTree tmp(src.getSize());
-			tmp.insert(0, src);
-
-			cout<<"Temporary structure:"<<endl;
-			tmp.dump();
-
-			src.reset();
+//			LoudsTree tmp(src.getSize());
+//			tmp.insert(0, src);
+//
+//			cout<<"Temporary structure:"<<endl;
+//			tmp.dump();
+//
+//			src.reset();
 
 			checkCapacity(src.getSize());
 
@@ -299,7 +299,7 @@ public:
 
 			me.reindex();
 
-			me.dump();
+//			me.dump();
 
 			tgt_node = me.firstChildNode(tgt_node);
 		});

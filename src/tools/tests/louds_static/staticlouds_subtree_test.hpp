@@ -71,13 +71,13 @@ public:
 
     void testInsertAt()
     {
-    	LoudsTree tgt_tree = createRandomTree(100);
-    	LoudsTree src_tree = createRandomTree(20);
+    	LoudsTree tgt_tree = createRandomTree(1000);
+    	LoudsTree src_tree = createRandomTree(200);
 
     	tgt_tree.dump();
     	src_tree.dump();
 
-    	size_t insert_at = tgt_tree.select1(3);
+    	size_t insert_at = tgt_tree.select1(55);
 
     	cout<<"insert_at: "<<insert_at<<endl;
 
@@ -85,7 +85,7 @@ public:
 
     	tgt_tree.dump();
 
-//    	checkTreeStructure(tgt_tree);
+    	checkTreeStructure(tgt_tree);
     }
 
 };
