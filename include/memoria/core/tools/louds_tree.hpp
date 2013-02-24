@@ -180,6 +180,11 @@ public:
 		return Base::sequence_->rank1(idx + 1, 1);
 	}
 
+	size_t rank1(size_t start, size_t end) const
+	{
+		return Base::sequence_->rank1(start, end + 1, 1);
+	}
+
 	size_t rank0(size_t idx) const
 	{
 		return Base::sequence_->rank1(idx + 1, 0);
@@ -194,11 +199,7 @@ public:
 	}
 
 
-	template <typename Functor>
-	void traverseSubtree(size_t node, Functor&& fn) const
-	{
-		traverseSubtree(node, node, fn);
-	}
+
 
 	bool isLeaf(size_t node) const
 	{
@@ -214,7 +215,7 @@ public:
 	{
 		size_t tree_size = 0;
 
-		this->traverseSubtree(node, [&tree_size](size_t left, size_t right)
+		this->traverseSubtree(node, [&tree_size](size_t left, size_t right, size_t level)
 		{
 			if (left <= right)
 			{
@@ -224,7 +225,7 @@ public:
 
 		LoudsTree tree(tree_size);
 
-		this->traverseSubtree(node, [&tree, this](size_t left, size_t right)
+		this->traverseSubtree(node, [&tree, this](size_t left, size_t right, size_t level)
 		{
 			if (left <= right)
 			{
@@ -247,7 +248,7 @@ public:
 	{
 		size_t level_counter = 0;
 
-		this->traverseSubtree(node, [&level_counter](size_t left, size_t right) {
+		this->traverseSubtree(node, [&level_counter](size_t left, size_t right, size_t level) {
 			level_counter++;
 		});
 
@@ -258,7 +259,7 @@ public:
 	{
 		SubtreeRange range;
 
-		this->traverseSubtree(node, [&range](size_t left, size_t right)	{
+		this->traverseSubtree(node, [&range](size_t left, size_t right, size_t level)	{
 			if (left <= right)
 			{
 				range.push_back(LevelRange(left, right));
@@ -268,32 +269,118 @@ public:
 		return range;
 	}
 
+	size_t getSubtreeSize(size_t node) const
+	{
+		size_t count = 0;
+
+		this->traverseSubtree(node, [&count, this](size_t left, size_t right, size_t level) {
+			if (level == 0) {
+				count += this->rank1(left, right - 1);
+			}
+			else {
+				count += this->rank1(left, right);
+			}
+		});
+
+		return count;
+	}
+
 	void insertAt(size_t tgt_node, const LoudsTree& tree)
 	{
 		MyType& me = *this;
 
 		bool insert_at_leaf = me.isLeaf(tgt_node);
 
-		tree.traverseSubtree(0, [&](size_t left, size_t right)
+		tree.traverseSubtree(0, [&](size_t left, size_t right, size_t level)
 		{
-			if (insert_at_leaf && left == 0)
+			if (insert_at_leaf)
 			{
-				return;
+				if (level == 0)
+				{
+					return;
+				}
+				else if (level == 1)
+				{
+					me.remove(tgt_node, 1);
+				}
 			}
 
 			auto src = tree.source(left, right - left + (left == 0 ? 0 : 1));
 
-			checkCapacity(src.getSize());
+			me.checkCapacity(src.getSize());
 
 			me.insert(tgt_node, src);
 
 			me.reindex();
 
-			tgt_node = me.firstChildNode(tgt_node);
+			if (me.isNotLeaf(tgt_node))
+			{
+				tgt_node = me.firstChildNode(tgt_node);
+			}
+			else {
+				tgt_node = me.select1Fw(tgt_node, 1);
+
+				if (tgt_node < me.size())
+				{
+					tgt_node = me.firstChildNode(tgt_node);
+				}
+			}
 		});
 	}
 
+
+	void removeSubtree(size_t tgt_node)
+	{
+		MyType& me = *this;
+
+		if (tgt_node > 0)
+		{
+			if (me.isNotLeaf(tgt_node))
+			{
+				me.traverseSubtreeReverse(tgt_node, [&me](size_t left, size_t right, size_t level){
+					me.remove(left, right - left + (level > 0 ? 1 : 0));
+				});
+
+				me.reindex();
+			}
+		}
+		else {
+			me.clear();
+			me.reindex();
+		}
+	}
+
+	template <typename Functor>
+	void traverseSubtree(size_t node, Functor&& fn) const
+	{
+		traverseSubtree(node, node, fn);
+	}
+
+	template <typename Functor>
+	void traverseSubtreeReverse(size_t node, Functor&& fn) const
+	{
+		traverseSubtreeReverse(node, node, fn);
+	}
+
+	void clear() {
+		sequence_->size() = 0;
+	}
+
 private:
+
+	template <typename T>
+	void dumpTmp(ISequenceDataSource<T, 1>& src)
+	{
+		LoudsTree tree;
+
+		tree.append(src);
+
+		tree.reindex();
+
+		tree.dump();
+
+		src.reset();
+	}
 
 	void checkCapacity(size_t requested)
 	{
@@ -304,11 +391,11 @@ private:
 	}
 
 	template <typename Functor>
-	void traverseSubtree(size_t left_node, size_t right_node, Functor&& fn) const
+	void traverseSubtree(size_t left_node, size_t right_node, Functor&& fn, size_t level = 0) const
 	{
 		const MyType& tree = *this;
 
-		fn(left_node, right_node + 1);
+		fn(left_node, right_node + 1, level);
 
 		bool left_leaf 		= tree.isLeaf(left_node);
 		bool right_leaf		= tree.isLeaf(right_node);
@@ -338,9 +425,50 @@ private:
 				size_t left_child 	= tree.firstChildNode(left_tgt);
 				size_t right_child 	= tree.lastChildNode(right_tgt);
 
-				traverseSubtree(left_child, right_child, fn);
+				traverseSubtree(left_child, right_child, fn, level + 1);
 			}
 		}
+	}
+
+
+	template <typename Functor>
+	void traverseSubtreeReverse(size_t left_node, size_t right_node, Functor&& fn, size_t level = 0) const
+	{
+		const MyType& tree = *this;
+
+		bool left_leaf 		= tree.isLeaf(left_node);
+		bool right_leaf		= tree.isLeaf(right_node);
+
+		if (!left_leaf || !right_leaf || !is_end(left_node, right_node))
+		{
+			size_t left_tgt;
+			if (left_leaf)
+			{
+				left_tgt = tree.select1Fw(left_node, 1);
+			}
+			else {
+				left_tgt = left_node;
+			}
+
+			size_t right_tgt;
+			if (right_leaf)
+			{
+				right_tgt = tree.select1Bw(right_node, 1);
+			}
+			else {
+				right_tgt = right_node;
+			}
+
+			if (left_tgt < tree.size())
+			{
+				size_t left_child 	= tree.firstChildNode(left_tgt);
+				size_t right_child 	= tree.lastChildNode(right_tgt);
+
+				traverseSubtreeReverse(left_child, right_child, fn, level + 1);
+			}
+		}
+
+		fn(left_node, right_node + 1, level);
 	}
 
 	bool is_end(size_t left_node, size_t right_node) const

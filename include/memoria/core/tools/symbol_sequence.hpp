@@ -358,6 +358,11 @@ public:
     	update(at, src);
     }
 
+    void remove(size_t at, size_t length)
+    {
+    	sequence_->removeSpace(at, length);
+    }
+
     void append(IDataSrc& src)
     {
     	size_t at = sequence_->size();

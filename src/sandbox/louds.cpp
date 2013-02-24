@@ -305,7 +305,7 @@ int main()
 
 	cout<<count3<<endl;
 
-	tree1.traverseSubtree(13, [](size_t left, size_t right) {
+	tree1.traverseSubtree(13, [](size_t left, size_t right, size_t level) {
 		cout<<left<<" "<<right<<endl;
 	});
 
@@ -316,7 +316,7 @@ int main()
 
 	tree2.dump();
 
-	tree2.traverseSubtree(3, [](size_t left, size_t right) {
+	tree2.traverseSubtree(3, [](size_t left, size_t right, size_t level) {
 		cout<<left<<" "<<right<<endl;
 	});
 

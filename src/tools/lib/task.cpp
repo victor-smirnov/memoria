@@ -142,7 +142,7 @@ void TaskGroup::Run(ostream& out)
         }
     }
 
-    cout<<getName();
+    cout<<getIteration()<<") "<<getName();
 
     if (failures_.size() > 0)
     {
@@ -165,6 +165,8 @@ void TaskGroup::Run(ostream& out)
 
     out<<endl;
     cout<<endl;
+
+    failures_.clear();
 }
 
 void TaskGroup::registerTask(Task* task)
@@ -269,8 +271,6 @@ Int GroupRunner::Run()
 
                 t->setOutputFolder(folder);
                 t->setIteration(c);
-
-
 
                 if (Int failures = t->Run())
                 {
