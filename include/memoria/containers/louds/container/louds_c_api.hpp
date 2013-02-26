@@ -15,11 +15,13 @@
 
 #include <memoria/prototypes/ctr_wrapper/iterator.hpp>
 
+#include <functional>
+
 namespace memoria    {
 
 using namespace memoria::btree;
-
 using namespace louds;
+using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
@@ -49,12 +51,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 		return IterEndMark();
 	}
 
+	LoudsNode rootNode()
+	{
+		return me()->find(0).node();
+	}
+
 	Iterator parent(const LoudsNode& node)
 	{
-		BigInt rank 	= me()->rank0(node.node());
-		Iterator iter 	= me()->select1(rank);
-
-		return iter;
+		return me()->select1(node.rank0());
 	}
 
 	LoudsNode parentNode(const LoudsNode& node)
@@ -90,17 +94,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 		return child(node, child_num).node();
 	}
 
-
-	bool isLeaf(const LoudsNode& node)
-	{
-		auto iter = me()->ctr().seek(node.node());
-		return iter.test(0);
-	}
-
 	Iterator firstChild(const LoudsNode& node)
 	{
-		BigInt rank 	= me()->rank1(node.node());
-		Iterator iter 	= me()->select0(rank);
+		Iterator iter 	= me()->select0(node.rank1());
 
 		iter.skipFw();
 
@@ -109,12 +105,83 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
 	Iterator lastChild(const LoudsNode& node)
 	{
-		BigInt rank 	= me()->rank1(node.node()) + 1;
-		Iterator iter 	= me()->select0(rank);
+		Iterator iter 	= me()->select0(node.rank1() + 1);
 
 		iter--;
 
 		return iter;
+	}
+
+	BigInt size() {
+		return me()->ctr().size();
+	}
+
+	BigInt nodes() {
+		return me()->rank1(size() - 1);
+	}
+
+	BigInt getSubtreeSize(const LoudsNode& node)
+	{
+		BigInt count = 0;
+
+		this->traverseSubtree(node, [&count](const Iterator& left, BigInt length, Int level) {
+			if (level == 0)
+			{
+				count += left.rank1(length - 1);
+			}
+			else {
+				count += left.rank1(length);
+			}
+		});
+
+		return count;
+	}
+
+
+//	template <typename Functor>
+	void traverseSubtree(const LoudsNode& node, function<void (const Iterator&, BigInt, Int)> fn)
+	{
+		Iterator left = me()->find(node.node());
+		Iterator right = left;
+
+		traverseSubtree(left, right, fn);
+	}
+
+private:
+
+//	template <typename Functor>
+	void traverseSubtree(Iterator& left, Iterator& right, function<void (const Iterator&, BigInt, Int)> fn, Int level = 0)
+	{
+		fn(left, right.nodeIdx() - left.nodeIdx() + 1, level);
+
+		bool left_leaf 		= left.isLeaf();
+		bool right_leaf		= right.isLeaf();
+
+		if (!left_leaf || !right_leaf || !is_end(left, right))
+		{
+			if (left_leaf)
+			{
+				left.select1Fw(1);
+			}
+
+			if (right_leaf)
+			{
+				right.select1Bw(1);
+			}
+
+			if (!left.isEof())
+			{
+				left.firstChild();
+				right.lastChild();
+
+				traverseSubtree(left, right, fn, level + 1);
+			}
+		}
+	}
+
+	bool is_end(Iterator& left, Iterator& right)
+	{
+		return left.nodeIdx() >= right.nodeIdx();
 	}
 
 MEMORIA_CONTAINER_PART_END

@@ -69,10 +69,6 @@ public:
     		size_t count = 0;
     		checkTreeStructure(tree, 0, 0, count);
 
-    		if (count != tree.rank1(tree.size() - 1)) {
-    			cout<<count<<" "<<tree.rank1(tree.size() - 1)<<endl;
-    		}
-
     		AssertEQ(MA_SRC, count, tree.rank1(tree.size() - 1));
     	}
     	else

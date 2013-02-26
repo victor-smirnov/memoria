@@ -44,46 +44,65 @@ namespace louds 	{
 
 class LoudsNode {
 protected:
-	BigInt node_;
-	BigInt node_rank_;
+	BigInt 	node_;
+	BigInt 	rank1_;
+	Int 	value_;
 
 public:
-	LoudsNode(BigInt node, BigInt node_rank):
+	LoudsNode(BigInt node, BigInt rank1, Int value = -1):
 		node_(node),
-		node_rank_(node_rank)
+		rank1_(rank1),
+		value_(value)
 	{}
 
-	LoudsNode(BigInt node):
-		node_(node),
-		node_rank_(0)
+	LoudsNode():
+		node_(0),
+		rank1_(0),
+		value_(0)
 	{}
 
 	BigInt node() const {return node_;}
-	BigInt node_rank() const {return node_rank_;}
+	BigInt rank1() const {return rank1_;}
+	BigInt rank0() const {return node_ + 1 - rank1_;}
+
+	Int value() const {return value_;}
+
+	bool isLeaf() const {
+		return value_ == 0;
+	}
+
+	void operator++(int) {
+		node_++;
+		rank1_++;
+	}
+
+	bool operator<(const LoudsNode& other) const {
+		return node_ < other.node_;
+	}
 };
 
 
 class LoudsNodeRange: public LoudsNode {
 	BigInt count_;
 public:
-	LoudsNodeRange(BigInt node, BigInt node_rank, BigInt count):
-		LoudsNode(node, node_rank),
+	LoudsNodeRange(BigInt node, BigInt node_rank, Int value, BigInt count):
+		LoudsNode(node, node_rank, value),
 		count_(count)
 	{}
 
 	LoudsNodeRange(const LoudsNode& start, BigInt count):
-		LoudsNode(start.node(), start.node_rank()),
+		LoudsNode(start),
 		count_(count)
 	{}
 
 	BigInt count() const {return count_;}
 
-	BigInt first() const {
-		return node();
+	LoudsNode first() const {
+		return LoudsNode(node(), rank1(), value());
 	}
 
-	BigInt last() const {
-		return node() + count();
+	LoudsNode last() const {
+		return LoudsNode(node() + count_, rank1() + count_, 0);
 	}
 };
 
@@ -95,29 +114,30 @@ protected:
 	typedef typename TreeType::Value 	Value;
 
 	IndexKey 		rank0_;
-	IndexKey 		rank1_;
+//	IndexKey 		rank1_;
 	IndexKey 		limit_;
 
 	bool			found_;
 
 	const IndexKey* indexes0_;
-	const IndexKey* indexes1_;
+//	const IndexKey* indexes1_;
 	const Value* 	buffer_;
 
 public:
 	Select0Walker(const TreeType& me, IndexKey limit):
 		rank0_(0),
-		rank1_(0),
+//		rank1_(0),
 		limit_(limit),
 		found_(false)
 	{
 		indexes0_ 	= me.indexes(0);
-		indexes1_ 	= me.indexes(1);
+//		indexes1_ 	= me.indexes(1);
 
 		buffer_ 	= me.valuesBlock();
 	}
 
 	void prepareIndex() {}
+	void finish() {}
 
 	Int walkIndex(Int start, Int end, Int cell_size)
 	{
@@ -128,7 +148,7 @@ public:
 			if (block_rank < limit_)
 			{
 				rank0_ += block_rank;
-				rank1_ += indexes1_[c];
+//				rank1_ += indexes1_[c];
 
 				limit_ -= block_rank;
 			}
@@ -144,7 +164,7 @@ public:
 	{
 		auto result = Select0FW(buffer_, start, end, limit_);
 
-		rank1_  += PopCount(buffer_, start, result.idx() + 1);
+//		rank1_  += PopCount(buffer_, start, result.idx() + 1);
 
 		rank0_  += result.rank();
 		limit_  -= result.rank();
@@ -160,10 +180,10 @@ public:
 		return rank0_;
 	}
 
-	IndexKey rank1() const
-	{
-		return rank1_;
-	}
+//	IndexKey rank1() const
+//	{
+//		return rank1_;
+//	}
 
 	bool is_found() const
 	{

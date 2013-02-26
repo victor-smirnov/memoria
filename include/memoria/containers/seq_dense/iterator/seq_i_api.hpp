@@ -90,7 +90,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
     BigInt countFw(Symbol symbol);
     BigInt countBw(Symbol symbol);
 
-    BigInt rank(BigInt size, Symbol symbol);
+    BigInt rank(BigInt size, Symbol symbol) const;
+    BigInt rank(Symbol symbol) const;
 
     bool test(Symbol value) const
     {
@@ -349,9 +350,9 @@ BigInt M_TYPE::countBw(Symbol symbol)
 }
 
 M_PARAMS
-BigInt M_TYPE::rank(BigInt size, Symbol symbol)
+BigInt M_TYPE::rank(BigInt size, Symbol symbol) const
 {
-	Int data_size = me()->data_size();
+	Int data_size = me()->data()->size();
 	Int data_pos  = me()->dataPos();
 
 	if (data_pos + size < data_size)
@@ -361,11 +362,19 @@ BigInt M_TYPE::rank(BigInt size, Symbol symbol)
 	else {
 		MyType tmp = *me();
 
-		tmp.skipFw(size);
 
-		return tmp.prefix(symbol + 1) - me()->prefix(symbol + 1);
+
+
+
+		return 0;
 	}
 
+	return 0;
+}
+
+M_PARAMS
+BigInt M_TYPE::rank(Symbol symbol) const
+{
 	return 0;
 }
 

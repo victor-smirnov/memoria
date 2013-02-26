@@ -16,6 +16,7 @@
 #include <memoria/core/types/selector.hpp>
 
 #include <ostream>
+#include <vector>
 
 namespace memoria {
 
@@ -54,7 +55,7 @@ void AssignToItem(Iter<VectorMapIterTypes<Types>>& iter, StringRef str)
 }
 
 template <typename Types>
-void AssignToItem(Iter<VectorMapIterTypes<Types>>& iter, const vector<typename Types::Value>& value)
+void AssignToItem(Iter<VectorMapIterTypes<Types>>& iter, const std::vector<typename Types::Value>& value)
 {
     iter.setValue(value);
 }

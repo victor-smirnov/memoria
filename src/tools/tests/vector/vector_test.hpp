@@ -69,19 +69,6 @@ public:
     	return data;
     }
 
-//    virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
-//    {
-//    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
-//
-//    	for (size_t c = 0; c < src.size(); c++)
-//    	{
-//    		auto v1 = src[c];
-//    		auto v2 = tgt[c];
-//
-//    		AssertEQ(source, v1, v2);
-//    	}
-//    }
-
     virtual Iterator seek(Ctr& array, BigInt pos)
     {
         return array.seek(pos);

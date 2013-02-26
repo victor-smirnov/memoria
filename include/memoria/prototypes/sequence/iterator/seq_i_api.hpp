@@ -169,8 +169,44 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
    	}
 
    	BigInt skip(BigInt distance);
-   	BigInt skipFw(BigInt distance);
-   	BigInt skipBw(BigInt distance);
+
+   	template <typename Functor>
+   	void findFw(Functor&& fn);
+
+   	template <typename Functor>
+   	void findBw(Functor&& fn);
+
+
+   	BigInt skipFw(BigInt distance)
+   	{
+   		typename Types::template SkipForwardWalker<
+   			Types,
+   			EmptyExtender,
+   			EmptyExtender,
+   			EmptyExtenderState
+   		>
+   		walker(distance, 0, EmptyExtenderState());
+
+   		findFw(walker);
+
+   		return walker.sum();
+   	}
+
+   	BigInt skipBw(BigInt distance)
+   	{
+   		typename Types::template SkipBackwardWalker<
+   			Types,
+   			EmptyExtender,
+   			EmptyExtender,
+   			EmptyExtenderState
+   		> walker(distance, 0, EmptyExtenderState());
+
+   		findBw(walker);
+
+   		return walker.sum();
+   	}
+
+
 
     MEMORIA_PUBLIC void dumpKeys(ostream& out)
     {
@@ -282,127 +318,180 @@ BigInt M_TYPE::skip(BigInt distance)
     }
 }
 
+//M_PARAMS
+//BigInt M_TYPE::skipFw(BigInt distance)
+//{
+//	MyType& iter = *me();
+//
+//	if (iter.isNotEmpty())
+//	{
+//		BigInt data_pos 	= iter.dataPos();
+//		BigInt first_size   = iter.data()->size();
+//
+//		if (data_pos + distance < first_size)
+//		{
+//			iter.dataPos() += distance;
+//
+//			return distance;
+//		}
+//		else {
+//			BigInt prefix = iter.prefix(0) + first_size;
+//
+//			BigInt start  = first_size - data_pos;
+//			BigInt target = distance - start;
+//
+//			SequenceSkipFWWalker<Types> walker(iter.model(), 0, target);
+//
+//			Int idx = iter.model().findFw(iter.path(), iter.key_idx() + 1, walker);
+//
+//			if (idx < iter.page()->children_count())
+//			{
+//				walker.finish(idx, iter);
+//				iter.cache().setup(prefix + walker.prefix(), 0);
+//
+//				BigInt remainder = target - walker.prefix();
+//
+//				const DataPage* data = iter.data().page();
+//
+//				if (remainder < data->size())
+//				{
+//					iter.dataPos() = remainder;
+//				}
+//				else {
+//					iter.dataPos() = data->size();
+//				}
+//
+//				return start + walker.prefix() + remainder;
+//			}
+//			else {
+//				walker.finish(iter.page()->children_count() - 1, iter);
+//				iter.dataPos() = iter.data()->size();
+//				iter.cache().setup(prefix + walker.prefix() - iter.dataPos(), 0);
+//
+//				return start;
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
+
+
+
+//MEMORIA_PUBLIC M_PARAMS
+//BigInt M_TYPE::skipBw(BigInt distance)
+//{
+//	MyType& iter = *me();
+//
+//	if (iter.isNotEmpty())
+//	{
+//		Int data_pos  = iter.dataPos();
+//
+//		if (data_pos - distance >= 0)
+//		{
+//			iter.dataPos() -= distance;
+//			return distance;
+//		}
+//		else {
+//			BigInt prefix = iter.prefix(0);
+//			BigInt target = distance - data_pos;
+//
+//			SequenceSkipBWWalker<Types> walker(iter.model(), 0, target);
+//
+//			Int idx = iter.model().findBw(iter.path(), iter.key_idx() - 1, walker);
+//
+//			if (idx >= 0)
+//			{
+//				walker.finish(idx, iter);
+//
+//				const DataPage* data = iter.data().page();
+//
+//				Int data_size = data->size();
+//
+//				BigInt prefix_len = prefix - walker.prefix() - data_size;
+//				iter.cache().setup(prefix_len, 0);
+//
+//				BigInt remainder = target - walker.prefix();
+//
+//				if (remainder <= data_size)
+//				{
+//					iter.dataPos() = data_size - remainder;
+//				}
+//				else {
+//					iter.dataPos() = -1;
+//				}
+//
+//				return data_pos + walker.prefix() + remainder;
+//			}
+//			else {
+//				walker.finish(0, iter);
+//				iter.dataPos() = -1;
+//				iter.cache().setup(0, 0);
+//
+//				return data_pos;
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
+
 M_PARAMS
-BigInt M_TYPE::skipFw(BigInt distance)
+template <typename Functor>
+void M_TYPE::findFw(Functor&& walker)
 {
 	MyType& iter = *me();
 
 	if (iter.isNotEmpty())
 	{
-		BigInt data_pos 	= iter.dataPos();
-		BigInt first_size   = iter.data()->size();
+		DataPageG data = iter.data();
 
-		if (data_pos + distance < first_size)
+		walker.setup(iter);
+
+		if (!walker.dispatchFirstData(iter))
 		{
-			iter.dataPos() += distance;
-
-			return distance;
-		}
-		else {
-			BigInt prefix = iter.prefix(0) + first_size;
-
-			BigInt start  = first_size - data_pos;
-			BigInt target = distance - start;
-
-			SequenceSkipFWWalker<Types> walker(iter.model(), 0, target);
-
 			Int idx = iter.model().findFw(iter.path(), iter.key_idx() + 1, walker);
 
 			if (idx < iter.page()->children_count())
 			{
 				walker.finish(idx, iter);
-				iter.cache().setup(prefix + walker.prefix(), 0);
-
-				BigInt remainder = target - walker.prefix();
-
-				const DataPage* data = iter.data().page();
-
-				if (remainder < data->size())
-				{
-					iter.dataPos() = remainder;
-				}
-				else {
-					iter.dataPos() = data->size();
-				}
-
-				return start + walker.prefix() + remainder;
+				walker.dispatchLastData(iter);
 			}
 			else {
-				walker.finish(iter.page()->children_count() - 1, iter);
-				iter.dataPos() = iter.data()->size();
-				iter.cache().setup(prefix + walker.prefix() - iter.dataPos(), 0);
-
-				return start;
+				walker.finishEof(iter);
 			}
 		}
 	}
-
-	return 0;
 }
 
 
-
-
-
-MEMORIA_PUBLIC M_PARAMS
-BigInt M_TYPE::skipBw(BigInt distance)
+M_PARAMS
+template <typename Functor>
+void M_TYPE::findBw(Functor&& walker)
 {
 	MyType& iter = *me();
 
 	if (iter.isNotEmpty())
 	{
-		Int data_pos  = iter.dataPos();
+		DataPageG data = iter.data();
 
-		if (data_pos - distance >= 0)
+		walker.setup(iter);
+
+		if (!walker.dispatchFirstData(iter))
 		{
-			iter.dataPos() -= distance;
-			return distance;
-		}
-		else {
-			BigInt prefix = iter.prefix(0);
-			BigInt target = distance - data_pos;
-
-			SequenceSkipBWWalker<Types> walker(iter.model(), 0, target);
-
 			Int idx = iter.model().findBw(iter.path(), iter.key_idx() - 1, walker);
 
 			if (idx >= 0)
 			{
 				walker.finish(idx, iter);
-
-				const DataPage* data = iter.data().page();
-
-				Int data_size = data->size();
-
-				BigInt prefix_len = prefix - walker.prefix() - data_size;
-				iter.cache().setup(prefix_len, 0);
-
-				BigInt remainder = target - walker.prefix();
-
-				if (remainder <= data_size)
-				{
-					iter.dataPos() = data_size - remainder;
-				}
-				else {
-					iter.dataPos() = -1;
-				}
-
-				return data_pos + walker.prefix() + remainder;
+				walker.dispatchLastData(iter);
 			}
 			else {
-				walker.finish(0, iter);
-				iter.dataPos() = -1;
-				iter.cache().setup(0, 0);
-
-				return data_pos;
+				walker.finishBof(iter);
 			}
 		}
 	}
-
-	return 0;
 }
-
-
 
 
 #undef M_TYPE

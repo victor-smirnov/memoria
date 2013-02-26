@@ -1049,13 +1049,28 @@ public:
     	}
     }
 
+private:
+    template <typename Walker>
+    class FinishHandler {
+    	Walker& walker_;
+    public:
+    	FinishHandler(Walker& walker): walker_(walker) {}
 
+    	~FinishHandler()
+    	{
+    		walker_.finish();
+    	}
+    };
+
+public:
     template <typename Functor>
     void walkRange(Int start, Int end, Functor& walker) const
     {
     	MEMORIA_ASSERT(start, >=, 0);
     	MEMORIA_ASSERT(end,   <=,  size());
     	MEMORIA_ASSERT(start, <=,  end);
+
+    	FinishHandler<Functor> finish_handler(walker);
 
     	if (end - start <= ValuesPerBranch * 2)
     	{
@@ -1089,6 +1104,8 @@ public:
     void walkRange(Int target, Walker& walker) const
     {
     	MEMORIA_ASSERT(target,   <=,  size());
+
+    	FinishHandler<Walker> finish_handler(walker);
 
     	Int levels = 0;
     	Int level_sizes[LEVELS_MAX];
@@ -1129,6 +1146,8 @@ public:
     template <typename Walker>
     Int findFw(Walker &walker) const
     {
+    	FinishHandler<Walker> finish_handler(walker);
+
     	Int levels = 0;
     	Int level_sizes[LEVELS_MAX];
 
@@ -1172,6 +1191,7 @@ public:
     {
     	MEMORIA_ASSERT(start, <=, size());
 
+    	FinishHandler<Walker> finish_handler(walker);
 
     	Int block_limit     = getBlockStartEndV(start);
 
@@ -1220,6 +1240,8 @@ public:
     size_t findBw(Int start, Walker& walker) const
     {
         MEMORIA_ASSERT(start, >=, 0);
+
+        FinishHandler<Walker> finish_handler(walker);
 
         Int block_end   = getBlockStartEndBwV(start);
 

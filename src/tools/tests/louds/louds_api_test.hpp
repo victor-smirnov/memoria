@@ -44,12 +44,7 @@ public:
 
     	createLouds(tree, degrees_);
 
-    	BigInt count = 0;
-    	traverseTree(tree, 0, 0, count);
-
-    	AssertEQ(MA_SRC, count, (BigInt)degrees_.size() - 1);
-
-    	cout<<tree.parentNode(0).node()<<endl;
+    	checkTreeStructure(tree);
     }
 };
 

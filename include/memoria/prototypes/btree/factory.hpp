@@ -12,7 +12,7 @@
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/prototypes/btree/names.hpp>
 #include <memoria/prototypes/btree/tools.hpp>
-#include <memoria/prototypes/btree/walkers.hpp>
+#include <memoria/prototypes/btree/btree_walkers.hpp>
 
 #include <memoria/prototypes/btree/pages/pages.hpp>
 

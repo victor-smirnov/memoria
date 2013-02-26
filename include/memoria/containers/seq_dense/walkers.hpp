@@ -186,6 +186,7 @@ public:
 	}
 
 	void prepareIndex() {}
+	void finish() {}
 
 	Int walkIndex(Int start, Int end)
 	{
@@ -260,6 +261,7 @@ public:
 	}
 
 	void prepareIndex() {}
+	void finish() {}
 
 	Int walkIndex(Int start, Int end)
 	{
@@ -388,6 +390,16 @@ public:
 		}
 	}
 };
+
+
+namespace sequence {
+
+
+
+
+
+}
+
 
 
 }

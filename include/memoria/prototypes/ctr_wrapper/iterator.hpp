@@ -19,7 +19,7 @@ namespace memoria {
 template <typename Types>
 class Iter<IterWrapperTypes<Types> >: public IterStart<IterWrapperTypes<Types> >
 {
-    typedef IterStart<VectorMapIterTypes<Types> >               Base;
+    typedef IterStart<IterWrapperTypes<Types> >               	Base;
     typedef Iter<IterWrapperTypes<Types> >                    	MyType;
 
 public:
@@ -47,7 +47,7 @@ public:
         model_(model), iter_(model.ctr()), exists_(false) {}
 
     Iter(const MyType& other):
-        model_(other.model_), iter_(other.iter_), exists_(other.exists_) {}
+        Base(other), model_(other.model_), iter_(other.iter_), exists_(other.exists_) {}
 
     Iter(ContainerType &model, const WrappedIterator& iter, bool exists = false):
         model_(model), iter_(iter), exists_(exists) {}

@@ -46,19 +46,17 @@ public:
 
     		BigInt t0 = getTimeInMillis();
 
-    		BigInt count0 = createRandomLouds(ctr, 1000 * c, 10);
+    		BigInt count0 = createRandomLouds(ctr, 100000 * c, 1000);
 
     		BigInt t1 = getTimeInMillis();
 
-    		BigInt count1 = 0;
-
-    		traverseTree(ctr, 0, 0, count1);
+    		checkTreeStructure(ctr);
 
     		BigInt t2 = getTimeInMillis();
 
-    		AssertEQ(MA_SRC, count0, count1);
+    		AssertEQ(MA_SRC, count0, ctr.getSubtreeSize(ctr.rootNode()));
 
-    		out()<<"TreeSize: "<<count0<<" Tree Build Time: "<<FormatTime(t1-t0)<<", Traverse Time: "<<FormatTime(t2-t1)<<endl;
+    		cout<<"TreeSize: "<<count0<<" Tree Build Time: "<<FormatTime(t1-t0)<<", Traverse Time: "<<FormatTime(t2-t1)<<endl;
     	}
     }
 

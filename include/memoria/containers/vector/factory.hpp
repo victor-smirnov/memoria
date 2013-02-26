@@ -25,6 +25,8 @@
 #include <memoria/prototypes/sequence/tools.hpp>
 
 
+#include <memoria/containers/vector/vector_walkers.hpp>
+
 namespace memoria {
 
 template <typename Profile, typename ElementType_>
@@ -50,6 +52,21 @@ struct BTreeTypes<Profile, memoria::Vector<ElementType_>>: public BTreeTypes<Pro
     struct IteratorCacheFactory {
     	typedef BTreeIteratorScalarPrefixCache<Iterator, Container> Type;
     };
+
+//    template <
+//    	typename Types,
+//    	template <typename, typename> class NodeExtender,
+//    	template <typename, typename> class DataExtender
+//    >
+//    using SkipForwardWalker = sequence::SequenceSkipForwardWalker<Types>;
+//
+//
+//    template <
+//    	typename Types,
+//    	template <typename, typename> class NodeExtender,
+//    	template <typename, typename> class DataExtender
+//    >
+//    using SkipBackwardWalker = mvector::VectorBackwardWalker<Types>;
 
 };
 

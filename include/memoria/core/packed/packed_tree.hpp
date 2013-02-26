@@ -757,10 +757,27 @@ public:
         value(at) = val;
     }
 
+private:
+    template <typename Walker>
+    class FinishHandler {
+    	Walker& walker_;
+    public:
+    	FinishHandler(Walker& walker): walker_(walker) {}
+
+    	~FinishHandler()
+    	{
+    		walker_.finish();
+    	}
+    };
+
+public:
+
 
     template <typename Walker>
     Int find(Walker &walker) const
     {
+    	FinishHandler<Walker> finish_handler(walker);
+
     	Int levels = 0;
     	Int level_sizes[LEVELS_MAX];
 
@@ -805,6 +822,8 @@ public:
         MEMORIA_ASSERT(end,   <=,  size());
         MEMORIA_ASSERT(start, <=,  end);
 
+        FinishHandler<Functor> finish_handler(walker);
+
         if (end - start <= BranchingFactor * 2)
         {
             walker.walkKeys(start, end);
@@ -839,6 +858,8 @@ public:
     Int findFw(Int start, Walker& walker) const
     {
         MEMORIA_ASSERT(start, <=, size());
+
+        FinishHandler<Walker> finish_handler(walker);
 
         Int block_limit     = getBlockStartEnd(start);
 
@@ -880,6 +901,8 @@ public:
     Int findBw(Int start, Walker& walker) const
     {
         MEMORIA_ASSERT(start, >=, -1);
+
+        FinishHandler<Walker> finish_handler(walker);
 
         Int block_end   = getBlockStartEndBw(start);
 

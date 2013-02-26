@@ -39,6 +39,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     void walkKeys(Int start, Int end)
     {
@@ -85,6 +86,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     void walkKeys(Int start, Int end)
     {
@@ -156,6 +158,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     Int walkIndex(Int start, Int end)
     {
@@ -214,6 +217,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     void sumIndex(Int from, Int to)
     {
@@ -339,6 +343,7 @@ public:
     {}
 
     void prepareIndex() {}
+    void finish() {}
 
     void sumIndex(Int from, Int to)
     {
@@ -454,6 +459,7 @@ public:
     {}
 
     void prepareIndex() {}
+    void finish() {}
 
     void sumIndex(Int from, Int to)
     {
@@ -554,6 +560,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     void sumKeys(Int from, Int to)
     {
@@ -618,6 +625,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     Int walkIndex(Int start, Int end)
     {
@@ -678,6 +686,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     void sumIndex(Int from, Int to)
     {
@@ -812,6 +821,7 @@ public:
 	}
 
 	void prepareIndex() {}
+	void finish() {}
 
 	void walkValues(Int start, Int end)
 	{
@@ -859,6 +869,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     void walkValues(Int start, Int end)
     {
@@ -916,6 +927,7 @@ public:
 	}
 
 	void prepareIndex() {}
+	void finish() {}
 
 	Int walkIndex(Int start, Int end, Int cell_size)
 	{
@@ -1114,6 +1126,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     Int walkIndex(Int start, Int end, IndexKey size)
     {
@@ -1262,6 +1275,7 @@ public:
 	}
 
 	void prepareIndex() {}
+	void finish() {}
 
 	Int walkIndex(Int start, Int end, IndexKey size)
 	{
@@ -1393,6 +1407,7 @@ public:
     }
 
     void prepareIndex() {}
+    void finish() {}
 
     Int walkIndex(Int start, Int end, IndexKey size)
     {

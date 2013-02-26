@@ -97,7 +97,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vector_map::ItrApiName)
 	}
 
 
-	vector<ElementType> read()
+	std::vector<ElementType> read()
 	{
 		me()->ba_iter().skip(-me()->pos());
 
@@ -265,16 +265,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vector_map::ItrApiName)
 		me()->update(value);
 	}
 
-	void setValue(const vector<ElementType>& value)
+	void setValue(const std::vector<ElementType>& value)
 	{
 		MemBuffer<const ElementType> buffer(&value[0], value.size());
 
 		me()->update(buffer);
 	}
 
-	operator vector<ElementType>()
+	operator std::vector<ElementType>()
 	{
-		vector<ElementType> vec(me()->size());
+		std::vector<ElementType> vec(me()->size());
 
 		MemBuffer<ElementType> data(&vec[0], vec.size());
 

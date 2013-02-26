@@ -46,7 +46,13 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
 
     Int value() const
     {
-    	return me()->iter().element();
+    	if (!me()->iter().isEof())
+    	{
+    		return me()->iter().element();
+    	}
+    	else {
+    		return 0;
+    	}
     }
 
     bool test(Int value) const
@@ -62,6 +68,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
     bool isLeaf() const
     {
     	return test(0);
+    }
+
+    bool isEof() const {
+    	return me()->iter().isEof();
     }
 
     bool operator++()
@@ -103,7 +113,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
 
     LoudsNode node() const
     {
-    	return LoudsNode(nodeIdx(), node_rank());
+    	return LoudsNode(nodeIdx(), node_rank(), value());
     }
 
     BigInt nextSiblings()
@@ -134,6 +144,33 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
     void dump(ostream& out = cout)
     {
     	me()->iter().dump(out);
+    }
+
+    BigInt select1Fw(BigInt rank)
+    {
+    	BigInt actual_rank = me()->iter().selectFw(rank, 1);
+    	node_rank_ += actual_rank;
+    	return actual_rank;
+    }
+
+    BigInt select1Bw(BigInt rank)
+    {
+    	BigInt actual_rank = me()->iter().selectBw(rank, 1);
+    	node_rank_ -= actual_rank;
+    	return actual_rank;
+    }
+
+    BigInt rank1(BigInt length) const
+    {
+    	return me()->iter().rank(length, 1);
+    }
+
+    void firstChild() {
+
+    }
+
+    void lastChild() {
+
     }
 
 MEMORIA_ITERATOR_PART_END

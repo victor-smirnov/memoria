@@ -45,6 +45,8 @@ public:
 
     typedef ElementType_                                      					ElementType;
 
+    typedef ElementType*														Sequence;
+
 private:
 
     Int size_;
@@ -109,7 +111,15 @@ public:
     }
 
     ElementType* values() {
-        return sequence_;
+    	return sequence_;
+    }
+
+    Sequence sequence() {
+    	return sequence_;
+    }
+
+    const Sequence sequence() const {
+    	return sequence_;
     }
 
     ElementType& value(Int idx) {

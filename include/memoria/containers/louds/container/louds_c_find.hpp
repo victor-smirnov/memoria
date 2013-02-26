@@ -71,14 +71,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 
 	Iterator select0(BigInt rank)
 	{
-		BigInt 	prefixes[3] = {0, 0, 0};
-		Int 	key_nums[3] = {1, 0, 2};
+		BigInt 	prefixes[2] = {0, 0};
+		Int 	key_nums[2] = {1, 0};
 
 		BigInt& rank0_prefix	= prefixes[0];
 		BigInt& size_prefix 	= prefixes[1];
-		BigInt& rank1_prefix 	= prefixes[2];
+//		BigInt& rank1_prefix 	= prefixes[2];
 
-		SequenceFWWalker<typename MyType::WrappedCtr::Types, SumCompareLT> walker(me()->ctr(), rank, 3, key_nums, prefixes);
+		SequenceFWWalker<typename MyType::WrappedCtr::Types, SumCompareLT> walker(me()->ctr(), rank, 2, key_nums, prefixes);
 		auto iter = me()->ctr().find0(walker);
 
 		if (iter.isNotEmpty())
@@ -104,7 +104,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 
 			Iterator louds_iter(*me(), iter);
 
-			louds_iter.node_rank() = rank1_prefix + data_walker.rank1();
+			louds_iter.node_rank() = (size_prefix - rank0_prefix) + (idx + 1 - data_walker.rank0());
 
 			return louds_iter;
 		}
@@ -112,6 +112,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 			return Iterator(*me(), iter);
 		}
 	}
+
+
 
 	Iterator select1(BigInt rank)
 	{
@@ -133,7 +135,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 	{
 		return me()->ctr().rank(idx + 1, 0);
 	}
-
 
 MEMORIA_CONTAINER_PART_END
 
