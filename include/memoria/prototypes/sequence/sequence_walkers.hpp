@@ -15,11 +15,12 @@
 
 #include <memoria/prototypes/btree/btree_walkers.hpp>
 
+#include <functional>
+
 namespace memoria    {
+namespace sequence 	 {
 
-
-
-namespace sequence {
+using namespace std;
 
 
 template <typename Types>
@@ -513,12 +514,34 @@ public:
 
 
 template <
-	typename Types,
-	template <typename MyType, typename Map, template <typename, typename> class Extender> class NodeWalker,
-	template <typename MyType, typename Sequence, template <typename, typename> class Extender> class SequenceWalker,
-	template <typename, typename> class NodeExtender,
-	template <typename, typename> class SequenceExtender,
-	typename ExtenderState
+	typename 											Types,
+
+	template <
+		typename 						MyType,
+		typename 						Map,
+		template <
+			typename,
+			typename,
+			typename
+		> 								class Extender,
+		typename 						ExtenderState
+	> 													class NodeWalker,
+
+	template <
+		typename 						MyType,
+		typename 						Sequence,
+		template <
+			typename,
+			typename,
+			typename
+		> 								class Extender,
+		typename 						ExtenderState
+	> 													class SequenceWalker,
+
+	template <typename, typename, typename> 			class NodeExtender,
+	template <typename, typename, typename> 			class SequenceExtender,
+
+	typename 											ExtenderState
 >
 class SequenceForwardWalker: public btree::BTreeForwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> {
 protected:
@@ -555,7 +578,7 @@ public:
 
 		const Sequence& seq = data->sequence();
 
-		SequenceWalker<MyType, Sequence, SequenceExtender> walker(*this, seq, sequence_block_num_);
+		SequenceWalker<MyType, Sequence, SequenceExtender, ExtenderState> walker(*this, seq, sequence_block_num_);
 
 		Int idx = seq.findFw(iter.dataPos(), walker);
 
@@ -573,11 +596,33 @@ public:
 
 
 template <
-	typename Types,
-	template <typename MyType, typename Map, template <typename, typename> class Extender> class NodeWalker,
-	template <typename MyType, typename Sequence, template <typename, typename> class Extender> class SequenceWalker,
-	template <typename, typename> class NodeExtender,
-	template <typename, typename> class SequenceExtender,
+	typename 											Types,
+
+	template <
+		typename 						MyType,
+		typename 						Map,
+		template <
+			typename,
+			typename,
+			typename
+		> 								class Extender,
+		typename 						ExtenderState
+	> 													class NodeWalker,
+
+	template <
+		typename 						MyType,
+		typename 						Sequence,
+		template <
+			typename,
+			typename,
+			typename
+		> 								class Extender,
+		typename 						ExtenderState
+	> 													class SequenceWalker,
+
+	template <typename, typename, typename> 			class NodeExtender,
+	template <typename, typename, typename> 			class SequenceExtender,
+
 	typename ExtenderState
 >
 class SequenceBackwardWalker: public btree::BTreeBackwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> {
@@ -615,7 +660,7 @@ public:
 
 		const Sequence& seq = data->sequence();
 
-		SequenceWalker<MyType, Sequence, SequenceExtender> walker(*this, seq, sequence_block_num_);
+		SequenceWalker<MyType, Sequence, SequenceExtender, ExtenderState> walker(*this, seq, sequence_block_num_);
 
 		Int idx = seq.findFw(iter.dataPos(), walker);
 
@@ -633,6 +678,234 @@ public:
 
 
 
+template <
+	typename Types,
+
+	template <typename Walker, typename Map, typename State> 		class NodeWalkerExtender,
+	template <typename Walker, typename Sequence, typename State>	class SequenceWalkerExtender,
+
+	typename ExtenderState
+>
+class SequenceSkipForwardWalker: public BTreeForwardWalker<
+	Types, NodeLEForwardWalker, NodeWalkerExtender, ExtenderState
+> {
+protected:
+
+	typedef btree::BTreeForwardWalker<Types, NodeLEForwardWalker, NodeWalkerExtender, ExtenderState> 		Base;
+
+	typedef SequenceSkipForwardWalker<Types, NodeWalkerExtender, SequenceWalkerExtender, ExtenderState>		MyType;
+
+	typedef Iter<typename Types::IterTypes>													Iterator;
+
+	typedef typename Types::DataPage::Sequence												Sequence;
+
+	BigInt prefix_ = 0;
+
+	ExtenderState& data_state_;
+
+public:
+	SequenceSkipForwardWalker(BigInt limit, Int node_block_num, ExtenderState& node_state, ExtenderState& data_state):
+		Base(limit, node_block_num, node_state),
+		data_state_(data_state)
+	{}
+
+	void setup(Iterator& iter)
+	{
+		prefix_ = iter.prefix();
+	}
+
+	bool dispatchFirstData(Iterator& iter)
+	{
+		auto data 	= iter.data();
+		Int pos 	= iter.dataPos();
+
+		SequenceWalkerExtender<
+			MyType, Sequence, ExtenderState
+		>
+		extender(*this, iter.data()->sequence(), data_state_);
+
+		if (pos + Base::limit_ < data->size())
+		{
+			extender.processValues(0, -1, iter.dataPos(), iter.dataPos() + Base::limit_);
+
+			iter.dataPos() 	+= Base::limit_;
+			Base::sum_ 		+= Base::limit_;
+
+			return true;
+		}
+		else {
+			extender.processValues(0, -1, iter.dataPos(), data->size());
+
+			BigInt remainder = data->size() - pos;
+
+			Base::sum_ 		+= remainder;
+			Base::limit_ 	-= remainder;
+
+			prefix_ += pos;
+
+			return false;
+		}
+	}
+
+	void dispatchLastData(Iterator& iter)
+	{
+		auto data = iter.data();
+
+		SequenceWalkerExtender<
+			MyType, Sequence, ExtenderState
+		>
+		extender(*this, iter.data()->sequence(), data_state_);
+
+		iter.cache().setup(prefix_ + Base::sum_, 0);
+
+		if (Base::limit_ < data->size())
+		{
+			iter.dataPos() 	= Base::limit_;
+			Base::sum_ 		+= Base::limit_;
+		}
+		else {
+			Base::sum_ 		+= data->size();
+			Base::limit_ 	-= data->size();
+
+			iter.dataPos() = data->size();
+		}
+
+		extender.processValues(0, -1, 0, iter.dataPos());
+	}
+
+	void finish(Int idx, Iterator& iter)
+	{
+		iter.key_idx() = idx;
+		iter.model().finishPathStep(iter.path(), idx);
+	}
+
+	void finishEof(Iterator& iter)
+	{
+		iter.key_idx() = iter.page()->children_count() - 1;
+		iter.model().finishPathStep(iter.path(), iter.key_idx());
+		iter.dataPos() = iter.data()->size();
+
+		iter.cache().setup(prefix_ + Base::sum_ - iter.data()->size(), 0);
+	}
+};
+
+
+
+template <
+	typename Types,
+
+	template <typename Walker, typename Map, typename State> 		class NodeWalkerExtender,
+	template <typename Walker, typename Sequenc, typename State>	class SequenceWalkerExtender,
+
+	typename ExtenderState
+>
+class SequenceSkipBackwardWalker:public BTreeBackwardWalker<
+	Types, NodeLEBackwardWalker, NodeWalkerExtender, ExtenderState
+> {
+protected:
+
+	typedef btree::BTreeBackwardWalker<Types, NodeLEBackwardWalker, NodeWalkerExtender, ExtenderState> 		Base;
+
+	typedef SequenceSkipBackwardWalker<Types, NodeWalkerExtender, SequenceWalkerExtender, ExtenderState>	MyType;
+
+	typedef Iter<typename Types::IterTypes>													Iterator;
+	typedef typename Types::DataPage::Sequence												Sequence;
+
+	BigInt prefix_ = 0;
+
+	ExtenderState& data_state_;
+
+public:
+	SequenceSkipBackwardWalker(BigInt limit, Int node_block_num, ExtenderState& node_state, ExtenderState& data_state):
+		Base(limit, node_block_num, node_state),
+		data_state_(data_state)
+	{}
+
+	void setup(Iterator& iter)
+	{
+		prefix_ = iter.prefix();
+	}
+
+	bool dispatchFirstData(Iterator& iter)
+	{
+		auto data 	= iter.data();
+		Int pos 	= iter.dataPos();
+
+		SequenceWalkerExtender<
+			MyType, Sequence, ExtenderState
+		>
+		extender(*this, iter.data()->sequence(), data_state_);
+
+		if (pos >= Base::limit_)
+		{
+			extender.processValues(0, -1, iter.dataPos() - Base::limit_, iter.dataPos() + 1);
+
+			iter.dataPos() 	-= Base::limit_;
+			Base::sum_ 		+= Base::limit_;
+
+			return true;
+		}
+		else {
+			extender.processValues(0, -1, 0, iter.dataPos() + 1);
+
+			BigInt remainder = pos + 1;
+
+			Base::sum_ 		+= remainder;
+			Base::limit_ 	-= remainder;
+
+			prefix_ += remainder;
+
+			return false;
+		}
+	}
+
+	void dispatchLastData(Iterator& iter)
+	{
+		SequenceWalkerExtender<
+			MyType, Sequence, ExtenderState
+		>
+		extender(*this, iter.data()->sequence(), data_state_);
+
+		auto data = iter.data();
+
+		Int data_size = data->size();
+
+		iter.cache().setup(prefix_ - Base::sum_ - data_size, 0);
+
+		if (Base::limit_ < data_size)
+		{
+			iter.dataPos() 	= data_size - Base::limit_ - 1;
+			Base::sum_ 		+= Base::limit_;
+
+			extender.processValues(0, -1, iter.dataPos(), data_size);
+		}
+		else {
+			Base::sum_ 		+= data_size;
+			Base::limit_ 	-= data_size;
+
+			extender.processValues(0, -1, 0, data_size);
+
+			iter.dataPos() = -1;
+		}
+	}
+
+	void finish(Int idx, Iterator& iter)
+	{
+		iter.key_idx() = idx;
+		iter.model().finishPathStep(iter.path(), idx);
+	}
+
+	void finishBof(Iterator& iter)
+	{
+		iter.key_idx() = 0;
+		iter.model().finishPathStep(iter.path(), iter.key_idx());
+		iter.dataPos() = -1;
+
+		iter.cache().setup(0, 0);
+	}
+};
+
+
 
 
 
@@ -640,7 +913,8 @@ template <
 	typename Sequence,
 	typename MainWalker,
 	template <typename K1, typename K2> class Comparator,
-	template <typename Walker, typename Map> class Extender = EmptyExtender
+	template <typename Walker, typename Map, typename State> class Extender,
+	typename State
 >
 class DataForwardWalkerBase: public btree::NodeWalkerBase {
 
@@ -653,13 +927,13 @@ class DataForwardWalkerBase: public btree::NodeWalkerBase {
 
 	MainWalker& 	main_walker_;
 
-	Extender<MainWalker, Sequence> extender_;
+	Extender<MainWalker, Sequence, State> extender_;
 
 public:
-	DataForwardWalkerBase(MainWalker& main_walker, const Sequence& data, BigInt limit, Int block_num):
+	DataForwardWalkerBase(MainWalker& main_walker, const Sequence& data, BigInt limit, Int block_num, State& state):
 		limit_(limit),
 		main_walker_(main_walker),
-		extender_(main_walker, data)
+		extender_(main_walker, data, state)
 	{
 		indexes_ 	= data.indexes(block_num);
 	}
@@ -700,7 +974,8 @@ template <
 	typename Sequence,
 	typename MainWalker,
 	template <typename K1, typename K2> class Comparator,
-	template <typename Walker, typename Map> class Extender = EmptyExtender
+	template <typename Walker, typename Map, typename State> class Extender,
+	typename State
 >
 class DataBackwardWalkerBase: public btree::NodeWalkerBase {
 
@@ -713,13 +988,13 @@ class DataBackwardWalkerBase: public btree::NodeWalkerBase {
 
 	MainWalker& 	main_walker_;
 
-	Extender<MainWalker, Sequence> extender_;
+	Extender<MainWalker, Sequence, State> extender_;
 
 public:
-	DataBackwardWalkerBase(MainWalker& main_walker, const Sequence& data, BigInt limit, Int block_num):
+	DataBackwardWalkerBase(MainWalker& main_walker, const Sequence& data, BigInt limit, Int block_num, State& state):
 		limit_(limit),
 		main_walker_(main_walker),
-		extender_(main_walker, data)
+		extender_(main_walker, data, state)
 	{
 		indexes_ 	= data.indexes(block_num);
 	}
@@ -759,218 +1034,35 @@ public:
 
 
 
+template <typename Walker, typename Sequence, typename State>
+class RankExtender: public SumExtenderBase<Sequence, State> {
 
+	typedef SumExtenderBase<Sequence, State> Base;
 
-template <
-	typename Types,
+	typedef typename Sequence::Symbol 	Symbol;
+	typedef typename Sequence::IndexKey 	IndexKey;
 
-	template <typename Walker, typename Map> 		class NodeWalkerExtender,
-	template <typename Walker, typename Sequence>	class SequenceWalkerExtender,
-
-	typename ExtenderState
->
-class SequenceSkipForwardWalker: public BTreeForwardWalker<
-	Types, NodeLEForwardWalker, NodeWalkerExtender, ExtenderState
-> {
-protected:
-
-	typedef btree::BTreeForwardWalker<Types, NodeLEForwardWalker, NodeWalkerExtender, ExtenderState> 		Base;
-
-	typedef SequenceSkipForwardWalker<Types, NodeWalkerExtender, SequenceWalkerExtender, ExtenderState>		MyType;
-
-	typedef Iter<typename Types::IterTypes>													Iterator;
-
-	typedef typename Types::DataPage::Sequence												Sequence;
-
-	BigInt prefix_ = 0;
+	const Sequence& seq_;
 
 public:
-	SequenceSkipForwardWalker(BigInt limit, Int node_block_num, const ExtenderState& state):
-		Base(limit, node_block_num, state)
+
+	RankExtender(Walker&, const Sequence& seq, State& state):
+		Base(seq, state),
+		seq_(seq)
 	{}
 
-	void setup(Iterator& iter)
+	void processValues(BigInt sum, Int key_num, Int start, Int end)
 	{
-		prefix_ = iter.prefix();
-	}
-
-	bool dispatchFirstData(Iterator& iter)
-	{
-		auto data 	= iter.data();
-		Int pos 	= iter.dataPos();
-
-		SequenceWalkerExtender<MyType, Sequence> extender(*this, iter.data()->sequence());
-
-		if (pos + Base::limit_ < data->size())
+		for (Int c = 0; c < this->state_.indexes(); c++)
 		{
-			extender.processValues(iter.dataPos(), iter.dataPos() + Base::limit_);
+			Int 	idx = this->state_.idx(c);
 
-			iter.dataPos() 	+= Base::limit_;
-			Base::sum_ 		+= Base::limit_;
+			size_t 	cnt = seq_.rank1(start, end, idx);
 
-			return true;
+			this->state_.value()(cnt, idx);
 		}
-		else {
-			extender.processValues(iter.dataPos(), data->size());
-
-			BigInt remainder = data->size() - pos;
-
-			Base::sum_ 		+= remainder;
-			Base::limit_ 	-= remainder;
-
-			prefix_ += pos;
-
-			return false;
-		}
-	}
-
-	void dispatchLastData(Iterator& iter)
-	{
-		auto data = iter.data();
-
-		SequenceWalkerExtender<MyType, Sequence> extender(*this, iter.data()->sequence());
-
-		iter.cache().setup(prefix_ + Base::sum_, 0);
-
-		if (Base::limit_ < data->size())
-		{
-			iter.dataPos() 	= Base::limit_;
-			Base::sum_ 		+= Base::limit_;
-		}
-		else {
-			Base::sum_ 		+= data->size();
-			Base::limit_ 	-= data->size();
-
-			iter.dataPos() = data->size();
-		}
-
-		extender.processValues(0, iter.dataPos());
-	}
-
-	void finish(Int idx, Iterator& iter)
-	{
-		iter.key_idx() = idx;
-		iter.model().finishPathStep(iter.path(), idx);
-	}
-
-	void finishEof(Iterator& iter)
-	{
-		iter.key_idx() = iter.page()->children_count() - 1;
-		iter.model().finishPathStep(iter.path(), iter.key_idx());
-		iter.dataPos() = iter.data()->size();
-
-		iter.cache().setup(prefix_ + Base::sum_ - iter.data()->size(), 0);
 	}
 };
-
-
-
-template <
-	typename Types,
-
-	template <typename Walker, typename Map> 		class NodeWalkerExtender,
-	template <typename Walker, typename Sequence>	class SequenceWalkerExtender,
-
-	typename ExtenderState
->
-class SequenceSkipBackwardWalker:public BTreeBackwardWalker<
-	Types, NodeLEBackwardWalker, NodeWalkerExtender, ExtenderState
-> {
-protected:
-
-	typedef btree::BTreeBackwardWalker<Types, NodeLEBackwardWalker, NodeWalkerExtender, ExtenderState> 		Base;
-
-	typedef SequenceSkipBackwardWalker<Types, NodeWalkerExtender, SequenceWalkerExtender, ExtenderState>	MyType;
-
-	typedef Iter<typename Types::IterTypes>													Iterator;
-	typedef typename Types::DataPage::Sequence												Sequence;
-
-	BigInt prefix_ = 0;
-
-public:
-	SequenceSkipBackwardWalker(BigInt limit, Int node_block_num, const ExtenderState& state):
-		Base(limit, node_block_num, state)
-	{}
-
-	void setup(Iterator& iter)
-	{
-		prefix_ = iter.prefix();
-	}
-
-	bool dispatchFirstData(Iterator& iter)
-	{
-		auto data 	= iter.data();
-		Int pos 	= iter.dataPos();
-
-		SequenceWalkerExtender<MyType, Sequence> extender(*this, iter.data()->sequence());
-
-		if (pos >= Base::limit_)
-		{
-			extender.processValues(iter.dataPos() - Base::limit_, iter.dataPos() + 1);
-
-			iter.dataPos() 	-= Base::limit_;
-			Base::sum_ 		+= Base::limit_;
-
-			return true;
-		}
-		else {
-			extender.processValues(0, iter.dataPos() + 1);
-
-			BigInt remainder = pos + 1;
-
-			Base::sum_ 		+= remainder;
-			Base::limit_ 	-= remainder;
-
-			prefix_ += remainder;
-
-			return false;
-		}
-	}
-
-	void dispatchLastData(Iterator& iter)
-	{
-		SequenceWalkerExtender<MyType, Sequence> extender(*this, iter.data()->sequence());
-
-		auto data = iter.data();
-
-		Int data_size = data->size();
-
-		iter.cache().setup(prefix_ - Base::sum_ - data_size, 0);
-
-		if (Base::limit_ < data_size)
-		{
-			iter.dataPos() 	= data_size - Base::limit_ - 1;
-			Base::sum_ 		+= Base::limit_;
-
-			extender.processValues(iter.dataPos(), data_size);
-		}
-		else {
-			Base::sum_ 		+= data_size;
-			Base::limit_ 	-= data_size;
-
-			extender.processValues(0, data_size);
-
-			iter.dataPos() = -1;
-		}
-	}
-
-	void finish(Int idx, Iterator& iter)
-	{
-		iter.key_idx() = idx;
-		iter.model().finishPathStep(iter.path(), idx);
-	}
-
-	void finishBof(Iterator& iter)
-	{
-		iter.key_idx() = 0;
-		iter.model().finishPathStep(iter.path(), iter.key_idx());
-		iter.dataPos() = -1;
-
-		iter.cache().setup(0, 0);
-	}
-};
-
-
 
 
 

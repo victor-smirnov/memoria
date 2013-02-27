@@ -357,16 +357,33 @@ BigInt M_TYPE::rank(BigInt size, Symbol symbol) const
 
 	if (data_pos + size < data_size)
 	{
-		return me()->data()->sequence().rank(data_pos, data_pos + size, symbol);
+		return me()->data()->sequence().rank1(data_pos, data_pos + size, symbol);
 	}
 	else {
 		MyType tmp = *me();
 
+		BigInt rank = 0;
 
+		auto rank_fn = [&rank](BigInt value, Int) {
+			rank += value;
+		};
 
+		Int node_indexes[1] = {(Int)symbol + 1};
+		FunctorExtenderState<> node_state(1, node_indexes, rank_fn);
 
+		Int data_indexes[1] = {(Int)symbol};
+		FunctorExtenderState<> data_state(1, data_indexes, rank_fn);
 
-		return 0;
+		typename Types::template SkipForwardWalker<
+		   			Types,
+		   			NodeSumExtender,
+		   			RankExtender,
+		   			FunctorExtenderState<>
+		> walker(size, 0, node_state, data_state);
+
+		tmp.findFw(walker);
+
+		return rank;
 	}
 
 	return 0;

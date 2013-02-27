@@ -12,9 +12,12 @@
 #include <memoria/core/container/iterator.hpp>
 
 #include <ostream>
+#include <functional>
 
 namespace memoria       {
 namespace btree         {
+
+using namespace std;
 
 template <typename MyType>
 class BTreeWalkerBase {
@@ -216,10 +219,19 @@ public:
 
 
 template <
-	typename Types,
-	template <typename MainWalker, typename Map, template <typename, typename> class Extender> class NodeWalker,
-	template <typename, typename> class WalkerExtender,
-	typename ExtenderState
+	typename 										Types,
+	template <
+		typename 						MainWalker,
+		typename 						Map,
+		template <
+			typename,
+			typename,
+			typename
+		> 								class Extender,
+		typename ExtenderState
+	> 												class NodeWalker,
+	template <typename, typename, typename> 		class WalkerExtender,
+	typename 										ExtenderState
 >
 class BTreeForwardWalker: public DefaultBTreeForwardWalkerBase<
 	BTreeForwardWalker<Types, NodeWalker, WalkerExtender, ExtenderState>
@@ -234,14 +246,19 @@ class BTreeForwardWalker: public DefaultBTreeForwardWalkerBase<
 	ExtenderState extender_state_;
 
 public:
-	BTreeForwardWalker(BigInt limit, Int block_num, const ExtenderState& state):
+	BTreeForwardWalker(BigInt limit, Int block_num, ExtenderState& state):
 		Base(limit, block_num), extender_state_(state)
 	{}
 
 	template <typename Map>
-	NodeWalker<MyType, Map, WalkerExtender> nodeWalker(const Map& map)
+	NodeWalker<MyType, Map, WalkerExtender, ExtenderState> nodeWalker(const Map& map)
 	{
-		return NodeWalker<MyType, Map, WalkerExtender>(*this, map, Base::limit_, Base::block_num_);
+		return NodeWalker<
+				MyType,
+				Map,
+				WalkerExtender,
+				ExtenderState
+			   >(*this, map, Base::limit_, Base::block_num_, extender_state_);
 	}
 
 	ExtenderState& extenderState() {
@@ -255,10 +272,19 @@ public:
 
 
 template <
-	typename Types,
-	template <typename MainWalker, typename Map, template <typename, typename> class Extender> class NodeWalker,
-	template <typename, typename> class WalkerExtender,
-	typename ExtenderState
+	typename 										Types,
+	template <
+		typename 						MainWalker,
+		typename 						Map,
+		template <
+			typename,
+			typename,
+			typename
+		> 								class Extender,
+		typename 						ExtenderState
+	> 												class NodeWalker,
+	template <typename, typename, typename>			class WalkerExtender,
+	typename 										ExtenderState
 >
 class BTreeBackwardWalker: public DefaultBTreeBackwardWalkerBase<
 	BTreeBackwardWalker<Types, NodeWalker, WalkerExtender, ExtenderState>
@@ -273,14 +299,19 @@ class BTreeBackwardWalker: public DefaultBTreeBackwardWalkerBase<
 	ExtenderState extender_state_;
 
 public:
-	BTreeBackwardWalker(BigInt limit, Int block_num, const ExtenderState& state):
+	BTreeBackwardWalker(BigInt limit, Int block_num, ExtenderState& state):
 		Base(limit, block_num), extender_state_(state)
 	{}
 
 	template <typename Map>
-	NodeWalker<MyType, Map, WalkerExtender> nodeWalker(const Map& map)
+	NodeWalker<MyType, Map, WalkerExtender, ExtenderState> nodeWalker(const Map& map)
 	{
-		return NodeWalker<MyType, Map, WalkerExtender>(*this, map, Base::limit_, Base::block_num_);
+		return NodeWalker<
+				MyType,
+				Map,
+				WalkerExtender,
+				ExtenderState
+			   >(*this, map, Base::limit_, Base::block_num_, extender_state_);
 	}
 
 	ExtenderState& extenderState() {
@@ -305,7 +336,8 @@ template <
 	typename MainWalker,
 	typename Map,
 	template <typename K1, typename K2> class Comparator,
-	template <typename Walker, typename Map> class Extender
+	template <typename Walker, typename Map, typename State> class Extender,
+	typename ExtenderState
 >
 class NodeForwardWalker: public NodeWalkerBase {
 
@@ -320,13 +352,15 @@ class NodeForwardWalker: public NodeWalkerBase {
 
 	MainWalker& 	main_walker_;
 
-	Extender<MainWalker, Map> extender_;
+	Extender<MainWalker, Map, ExtenderState> extender_;
 
+	Int 			block_num_;
 public:
-	NodeForwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num):
+	NodeForwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num, ExtenderState& state):
 		limit_(limit),
 		main_walker_(main_walker),
-		extender_(main_walker, map)
+		extender_(main_walker, map, state),
+		block_num_(block_num)
 	{
 		keys_ 		= map.keys(block_num);
 		indexes_ 	= map.indexes(block_num);
@@ -346,12 +380,12 @@ public:
 				limit_ 	-= key;
 			}
 			else {
-				extender_.processIndexes(sum_, start, c);
+				extender_.processIndexes(sum_, block_num_, start, c);
 				return c;
 			}
 		}
 
-		extender_.processIndexes(sum_, start, end);
+		extender_.processIndexes(sum_, block_num_, start, end);
 		return end;
 	}
 
@@ -369,12 +403,12 @@ public:
 				limit_ 	-= key;
 			}
 			else {
-				extender_.processKeys(sum_, start, c);
+				extender_.processKeys(sum_, block_num_, start, c);
 				return c;
 			}
 		}
 
-		extender_.processKeys(sum_, start, end);
+		extender_.processKeys(sum_, block_num_, start, end);
 
 		return end;
 	}
@@ -386,10 +420,11 @@ public:
 	void adjustEnd(const Map& map)
 	{
 		main_walker_.adjust(-keys_[map.size() - 1]);
-		extender_.adjust(map.size() - 1);
+		extender_.subtract(map.size() - 1);
 	}
 
-	BigInt sum() const {
+	BigInt sum() const
+	{
 		return sum_;
 	}
 };
@@ -399,7 +434,8 @@ template <
 	typename MainWalker,
 	typename Map,
 	template <typename K1, typename K2> class Comparator,
-	template <typename Walker, typename Map> class Extender
+	template <typename Walker, typename Map, typename State> class Extender,
+	typename ExtenderState
 >
 class NodeBackwardWalker: public NodeWalkerBase {
 
@@ -414,13 +450,16 @@ class NodeBackwardWalker: public NodeWalkerBase {
 
 	MainWalker& 	main_walker_;
 
-	Extender<MainWalker, Map> extender_;
+	Extender<MainWalker, Map, ExtenderState> extender_;
+
+	Int 			block_num_;
 
 public:
-	NodeBackwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num):
+	NodeBackwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num, ExtenderState& state):
 		limit_(limit),
 		main_walker_(main_walker),
-		extender_(main_walker, map)
+		extender_(main_walker, map, state),
+		block_num_(block_num)
 	{
 		keys_ 		= map.keys(block_num);
 		indexes_ 	= map.indexes(block_num);
@@ -440,12 +479,12 @@ public:
 				limit_ 	-= key;
 			}
 			else {
-				extender_.processIndexes(sum_, start, c);
+				extender_.processIndexes(sum_, block_num_, start, c);
 				return c;
 			}
 		}
 
-		extender_.processIndexes(sum_, start, end);
+		extender_.processIndexes(sum_, block_num_, start, end);
 		return end;
 	}
 
@@ -463,12 +502,12 @@ public:
 				limit_ 	-= key;
 			}
 			else {
-				extender_.processKeys(sum_, start, c);
+				extender_.processKeys(sum_, block_num_, start, c);
 				return c;
 			}
 		}
 
-		extender_.processKeys(sum_, start, end);
+		extender_.processKeys(sum_, block_num_, start, end);
 
 		return end;
 	}
@@ -480,7 +519,7 @@ public:
 	void adjustStart(const Map& map)
 	{
 		main_walker_.adjust(-keys_[0]);
-		extender_.adjust(0);
+		extender_.subtract(0);
 	}
 
 	BigInt sum() const {
@@ -505,53 +544,169 @@ struct BTreeCompareLT {
 	}
 };
 
-template <typename MainWalker, typename Map, template <typename, typename> class Extender>
-using NodeLTForwardWalker = NodeForwardWalker<MainWalker, Map, BTreeCompareLT, Extender>;
+template <typename MainWalker, typename Map, template <typename, typename, typename> class Extender, typename ExtenderState>
+using NodeLTForwardWalker = NodeForwardWalker<MainWalker, Map, BTreeCompareLT, Extender, ExtenderState>;
 
-template <typename MainWalker, typename Map, template <typename, typename> class Extender>
-using NodeLEForwardWalker = NodeForwardWalker<MainWalker, Map, BTreeCompareLE, Extender>;
+template <typename MainWalker, typename Map, template <typename, typename, typename> class Extender, typename ExtenderState>
+using NodeLEForwardWalker = NodeForwardWalker<MainWalker, Map, BTreeCompareLE, Extender, ExtenderState>;
 
-template <typename MainWalker, typename Map, template <typename, typename> class Extender>
-using NodeLTBackwardWalker = NodeBackwardWalker<MainWalker, Map, BTreeCompareLT, Extender>;
+template <typename MainWalker, typename Map, template <typename, typename, typename> class Extender, typename ExtenderState>
+using NodeLTBackwardWalker = NodeBackwardWalker<MainWalker, Map, BTreeCompareLT, Extender, ExtenderState>;
 
-template <typename MainWalker, typename Map, template <typename, typename> class Extender>
-using NodeLEBackwardWalker = NodeBackwardWalker<MainWalker, Map, BTreeCompareLE, Extender>;
+template <typename MainWalker, typename Map, template <typename, typename, typename> class Extender, typename ExtenderState>
+using NodeLEBackwardWalker = NodeBackwardWalker<MainWalker, Map, BTreeCompareLE, Extender, ExtenderState>;
 
 
-template <typename Walker, typename Map>
+template <typename Walker, typename Map, typename State>
 struct EmptyExtender {
 
-	EmptyExtender(const Walker&, const Map&) {}
+	EmptyExtender(Walker&, const Map&, State&) {}
 
-	void processIndexes(BigInt sum, Int start, Int end) {}
-	void processKeys(BigInt sum, Int start, Int end) 	{}
+	void processIndexes(BigInt sum, Int key_num, Int start, Int end) {}
+	void processKeys(BigInt sum, Int key_num, Int start, Int end) 	 {}
 
-	void processValues(Int start, Int end) 	{}
-
-	void adjust(BigInt adjustment)			{}
+	void processValues(BigInt, Int, Int start, Int end) 			 {}
+	void subtract(Int idx)											 {}
 };
+
+
 
 struct EmptyExtenderState {};
 
-struct ExternalSumExtenderState {
-	Int size_;
-	BigInt* values_;
+template <typename T = BigInt>
+class FunctorExtenderState {
+protected:
+	typedef function<void (T, Int)> ValueFunction;
 
-	ExternalSumExtenderState(Int size, BigInt* values):
-		size_(size),
-		values_(values)
+	Int	 		indexes_;
+	const Int* 	idx_numbers_;
+
+	ValueFunction value_;
+
+public:
+	FunctorExtenderState(Int indexes, const Int* numbers, ValueFunction value_fn):
+		indexes_(indexes), idx_numbers_(numbers), value_(value_fn)
 	{}
 
-	Int size() const {
-		return size_;
+	Int indexes() const
+	{
+		return indexes_;
 	}
 
-	BigInt& value(Int idx) {
-		return values_[idx];
+	Int idx(int num) const
+	{
+		return idx_numbers_[num];
 	}
 
-	const BigInt& value(Int idx) const {
-		return values_[idx];
+	ValueFunction value() const {
+		return value_;
+	}
+};
+
+
+
+
+
+
+
+template <typename Map, typename State>
+class SumExtenderBase {
+protected:
+	typedef typename Map::IndexKey 	IndexKey;
+
+	static const Int MAX_INDEXES = 8;
+
+	State& state_;
+
+	const IndexKey* indexes_[MAX_INDEXES];
+
+public:
+	SumExtenderBase(const Map& map, State& state):
+		state_(state)
+	{
+		if (state.indexes() < 8)
+		{
+			for (Int c = 0; c < state.indexes(); c++)
+			{
+				indexes_[c] = map.indexes(state_.idx(c));
+			}
+		}
+		else {
+			throw Exception(MA_SRC, SBuf()<<"Requested number of resqested in Extender State inxeses is too large: "
+										  <<state.indexes()<<". The limit is 8.");
+		}
+	}
+
+	void processIndexes(BigInt sum, Int key_num, Int start, Int end)
+	{
+		process(sum, key_num, start, end, indexes_);
+	}
+
+protected:
+	template <typename T>
+	void process(BigInt sum, Int key_num, Int start, Int end, const T** array)
+	{
+		for (Int c = 0; c < state_.indexes(); c++)
+		{
+			if (state_.idx(c) != key_num)
+			{
+				BigInt local_sum = 0;
+				const T* values = array[c];
+
+				for (Int idx = start; idx < end; idx++)
+				{
+					local_sum += values[idx];
+				}
+
+				state_.value()(local_sum, state_.idx(c));
+			}
+			else {
+				state_.value()(sum, state_.idx(c));
+			}
+		}
+	}
+
+	template <typename T>
+	void subtractFromState(Int idx, const T** array)
+	{
+		for (Int c = 0; c < state_.indexes(); c++)
+		{
+			state_.value()(-array[c][idx], state_.idx(c));
+		}
+	}
+};
+
+
+
+template <typename Walker, typename Map, typename State>
+class NodeSumExtender: public SumExtenderBase<Map, State> {
+
+	typedef SumExtenderBase<Map, State> Base;
+
+	typedef typename Map::Key 		Key;
+	typedef typename Map::IndexKey 	IndexKey;
+
+	const Key* keys_[Base::MAX_INDEXES];
+
+public:
+
+	NodeSumExtender(Walker&, const Map& map, State& state):
+		Base(map, state)
+	{
+		for (Int c = 0; c < state.indexes(); c++)
+		{
+			keys_[c] = map.keys(Base::state_.idx(c));
+		}
+	}
+
+	void processKeys(BigInt sum, Int key_num, Int start, Int end)
+	{
+		this->process(sum, key_num, start, end, keys_);
+	}
+
+	void subtract(Int idx)
+	{
+		this->subtractFromState(idx, keys_);
 	}
 };
 

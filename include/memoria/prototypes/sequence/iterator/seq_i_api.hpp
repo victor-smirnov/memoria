@@ -179,13 +179,15 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
 
    	BigInt skipFw(BigInt distance)
    	{
+   		EmptyExtenderState state;
+
    		typename Types::template SkipForwardWalker<
    			Types,
    			EmptyExtender,
    			EmptyExtender,
    			EmptyExtenderState
    		>
-   		walker(distance, 0, EmptyExtenderState());
+   		walker(distance, 0, state, state);
 
    		findFw(walker);
 
@@ -194,12 +196,14 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
 
    	BigInt skipBw(BigInt distance)
    	{
+   		EmptyExtenderState state;
+
    		typename Types::template SkipBackwardWalker<
    			Types,
    			EmptyExtender,
    			EmptyExtender,
    			EmptyExtenderState
-   		> walker(distance, 0, EmptyExtenderState());
+   		> walker(distance, 0, state, state);
 
    		findBw(walker);
 

@@ -105,8 +105,8 @@ struct BTreeTypes<Profile, memoria::ASequence>: public BTreeTypes<Profile, memor
 
     template <
     	typename Types,
-    	template <typename, typename> class NodeExtender,
-    	template <typename, typename> class DataExtender,
+    	template <typename, typename, typename> class NodeExtender,
+    	template <typename, typename, typename> class DataExtender,
     	typename ExtenderState
     >
     using SkipForwardWalker = sequence::SequenceSkipForwardWalker<Types, NodeExtender, DataExtender, ExtenderState>;
@@ -114,8 +114,8 @@ struct BTreeTypes<Profile, memoria::ASequence>: public BTreeTypes<Profile, memor
 
     template <
     	typename Types,
-    	template <typename, typename> class NodeExtender,
-    	template <typename, typename> class DataExtender,
+    	template <typename, typename, typename> class NodeExtender,
+    	template <typename, typename, typename> class DataExtender,
     	typename ExtenderState
     >
     using SkipBackwardWalker = sequence::SequenceSkipBackwardWalker<Types, NodeExtender, DataExtender, ExtenderState>;

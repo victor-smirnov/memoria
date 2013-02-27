@@ -45,7 +45,7 @@ public:
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
 
-        MEMORIA_ADD_TEST(runRank1Test);
+//        MEMORIA_ADD_TEST(runRank1Test);
         MEMORIA_ADD_TEST(runRankTest);
     }
 
@@ -98,12 +98,22 @@ public:
 
     void assertRank(Ctr& ctr, Int from, Int to, Int symbol)
     {
-    	BigInt rank0 = from == 0 ? 0 : ctr.rank(from - 1, symbol);
+//    	BigInt rank0 = from == 0 ? 0 : ctr.rank(from - 1, symbol);
+//
+//    	BigInt rank1 = ctr.rank(to, symbol);
+//    	BigInt rank2 = rank(ctr, from, to, symbol);
 
-    	BigInt rank1 = ctr.rank(to, symbol);
-    	BigInt rank2 = rank(ctr, from, to, symbol);
+    	Iterator iter = ctr.seek(from);
 
-    	AssertEQ(MA_SRC, rank1 - rank0, rank2);
+    	BigInt distance = to - from;
+
+    	BigInt rank1 = iter.rank(distance, symbol);
+
+//    	BigInt rank2 = rank(ctr, from, to, symbol);
+
+    	BigInt rank2 = ctr.rank(to, symbol) - ctr.rank(from, symbol);
+
+    	AssertEQ(MA_SRC, rank1, rank2);
     }
 
     void runRank1Test()
@@ -116,7 +126,7 @@ public:
 
     	allocator.commit();
 
-    	assertRank(ctr, 0, ctr.size(), 1);
+    	assertRank(ctr, ctr.size() / 4, ctr.size() * 3 / 4, 1);
     }
 
 
