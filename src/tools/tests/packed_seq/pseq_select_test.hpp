@@ -50,8 +50,8 @@ public:
 
     PSeqSelectTest(): TestTask((SBuf()<<"Select."<<Bits).str())
     {
-        MEMORIA_ADD_TEST(runSelectFromFWTest);
-        MEMORIA_ADD_TEST(runSelectFWTest);
+//        MEMORIA_ADD_TEST(runSelectFromFWTest);
+//        MEMORIA_ADD_TEST(runSelectFWTest);
 
         MEMORIA_ADD_TEST(runSelectBWTest);
     }
@@ -355,9 +355,15 @@ public:
     		auto result1 = seq->selectFW(0, 1, rank);
     		auto result2 = seq->selectFW(1, rank);
 
+    		auto result3 = selectFW(seq, 0, rank, 1);
+
     		AssertEQ(MA_SRC, result1.is_found(), result2.is_found(), SBuf()<<rank);
 			AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<rank);
 			AssertEQ(MA_SRC, result1.idx(), result2.idx(), SBuf()<<rank);
+
+			AssertEQ(MA_SRC, result1.is_found(), result3.is_found(), SBuf()<<rank);
+			AssertEQ(MA_SRC, result1.rank(), result3.rank(), SBuf()<<rank);
+			AssertEQ(MA_SRC, result1.idx(), result3.idx(), SBuf()<<rank);
     	}
     }
 

@@ -15,7 +15,7 @@
 
 #include <memoria/core/tools/walkers.hpp>
 
-#include <memoria/containers/seq_dense/walkers.hpp>
+#include <memoria/containers/seq_dense/seqdense_walkers.hpp>
 
 #include <memoria/core/tools/symbol_sequence.hpp>
 
@@ -24,6 +24,7 @@
 namespace memoria    {
 
 using namespace memoria::btree;
+using namespace memoria::sequence;
 
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
@@ -87,6 +88,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
     BigInt selectFw(BigInt rank, Symbol symbol);
     BigInt selectBw(BigInt rank, Symbol symbol);
 
+
+
     BigInt countFw(Symbol symbol);
     BigInt countBw(Symbol symbol);
 
@@ -109,58 +112,35 @@ BigInt M_TYPE::selectFw(BigInt rank, Symbol symbol)
 {
 	MyType& iter = *me();
 
-	if (iter.isNotEmpty())
-	{
-		Int data_pos  = iter.dataPos();
-		auto result   = iter.data()->sequence().selectFW(data_pos, symbol, rank);
+	BigInt pos = iter.pos();
 
-		if (result.is_found())
-		{
-			iter.dataPos() = result.idx();
-			return rank;
-		}
-		else {
-			BigInt prefix = iter.prefix(0) + iter.data()->size();
+	BigInt size = 0;
 
-			BigInt rank0 = rank - result.rank();
+	auto size_fn = [&size](BigInt value, Int) {
+		size += value;
+	};
 
-			Key prefixes[2] = {0, 0};
-			Int key_nums[2] = {(Int)symbol + 1, 0};
+	Int node_indexes[1] = {0};
+	FunctorExtenderState<> node_state(1, node_indexes, size_fn);
 
-			SequenceFWWalker<Types, SumCompareLT> walker(iter.model(), rank0, 2, key_nums, prefixes);
+	Int data_indexes[0] = {};
+	FunctorExtenderState<> data_state(0, data_indexes, size_fn);
 
-			Int idx = iter.model().findFw(iter.path(), iter.key_idx() + 1, walker);
+	sequence::SequenceForwardWalker<
+		Types,
+		NodeLTForwardWalker,
+		SelectForwardWalker,
+		NodeSumExtender,
+		SelectExtender,
+		FunctorExtenderState<>
+	>
+	walker(rank, symbol + 1, symbol, node_state, data_state);
 
-			if (idx < iter.page()->children_count())
-			{
-				walker.finish(idx, *me());
-				iter.cache().setup(prefix + prefixes[1], 0);
+	iter.findFw(walker);
 
-				auto result1 = iter.data()->sequence().selectFW(0, symbol, rank0 - prefixes[0]);
+	iter.cache().setup(pos + size - iter.dataPos() - 1 + walker.data_length(), 0);
 
-				if (result1.is_found())
-				{
-					iter.dataPos() = result1.idx();
-					return rank;
-				}
-				else {
-					iter.dataPos() = iter.data()->size();
-					return result.rank() + prefixes[0] + result1.rank();
-				}
-			}
-			else {
-				walker.finish(iter.page()->children_count() - 1, *me());
-				iter.dataPos() = iter.data()->size();
-
-				iter.cache().setup(prefix + prefixes[1] - iter.dataPos(), 0);
-
-				return result.rank() + prefixes[0];
-			}
-		}
-	}
-	else {
-		return 0;
-	}
+	return walker.sum();
 }
 
 
@@ -169,63 +149,35 @@ BigInt M_TYPE::selectBw(BigInt rank, Symbol symbol)
 {
 	MyType& iter = *me();
 
-	if (iter.isNotEmpty())
-	{
-		Int data_pos  = iter.dataPos();
+	BigInt pos = iter.pos();
 
-		auto result = iter.data()->sequence().selectBW(data_pos + 1, symbol, rank);
+	BigInt size = 0;
 
-		if (result.is_found())
-		{
-			iter.dataPos() = result.idx();
-			return rank;
-		}
-		else {
-			BigInt rank0  	= rank - result.rank();
-			BigInt prefix 	= iter.prefix(0);
+	auto size_fn = [&size](BigInt value, Int) {
+		size += value;
+	};
 
-			Key prefixes[2] = {0, 0};
-			Int key_nums[2] = {(Int)symbol + 1, 0};
+	Int node_indexes[1] = {0};
+	FunctorExtenderState<> node_state(1, node_indexes, size_fn);
 
-			SequenceBWWalker<Types, SumCompareLT> walker(iter.model(), rank0, 2, key_nums, prefixes);
+	Int data_indexes[0] = {};
+	FunctorExtenderState<> data_state(0, data_indexes, size_fn);
 
-			Int idx = me()->model().findBw(iter.path(), iter.key_idx() - 1, walker);
+	sequence::SequenceBackwardWalker<
+		Types,
+		NodeLTBackwardWalker,
+		SelectBackwardWalker,
+		NodeSumExtender,
+		SelectExtender,
+		FunctorExtenderState<>
+	>
+	walker(rank, symbol + 1, symbol, node_state, data_state);
 
-			if (idx >= 0)
-			{
-				walker.finish(idx, iter);
+	iter.findBw(walker);
 
-				Int data_size = iter.data()->size();
+	iter.cache().setup(pos - (size + walker.data_length()) - iter.dataPos() , 0);
 
-				BigInt length_prefix = prefix - prefixes[1] - data_size;
-
-				iter.cache().setup(length_prefix, 0);
-
-				auto result1 = iter.data()->sequence().selectBW(data_size, symbol, rank0 - prefixes[0]);
-
-				if (result1.is_found())
-				{
-					iter.dataPos() = result1.idx();
-					return rank;
-				}
-				else {
-					iter.dataPos() = -1;
-					return result.rank() + prefixes[0] + result1.rank();
-				}
-			}
-			else {
-				walker.finish(0, *me());
-
-				iter.cache().setup(0, 0);
-				iter.dataPos() = -1;
-
-				return result.rank() + prefixes[0];
-			}
-		}
-	}
-	else {
-		return 0;
-	}
+	return walker.sum();
 }
 
 

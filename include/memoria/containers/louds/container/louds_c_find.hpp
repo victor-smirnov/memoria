@@ -11,7 +11,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/containers/louds/louds_names.hpp>
 #include <memoria/containers/louds/louds_tools.hpp>
-#include <memoria/containers/seq_dense/walkers.hpp>
+#include <memoria/containers/seq_dense/seqdense_walkers.hpp>
 
 
 #include <memoria/prototypes/ctr_wrapper/iterator.hpp>
@@ -33,7 +33,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 		Int 	key_nums[2] = {0, 2};
 
 		BigInt& size_prefix 	= prefixes[0];
-		BigInt& rank1_prefix 	= prefixes[2];
+		BigInt& rank1_prefix 	= prefixes[1];
 
 		SequenceFWWalker<typename MyType::WrappedCtr::Types, SumCompareLE> walker(me()->ctr(), pos, 2, key_nums, prefixes);
 		auto iter = me()->ctr().find0(walker);

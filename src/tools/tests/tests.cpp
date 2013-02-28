@@ -9,7 +9,7 @@
 //#include "map/map_test_suite.hpp"
 //
 //#include "packed_map/pmap_test_suite.hpp"
-//#include "packed_seq/pseq_test_suite.hpp"
+#include "packed_seq/pseq_test_suite.hpp"
 //
 //#include "sum_set_batch/sum_tree_test_suite.hpp"
 //
@@ -67,7 +67,7 @@ int main(int argc, const char** argv, const char** envp)
 //
 //        runner.registerTask(new BitmapTestSuite());
 //        runner.registerTask(new PackedMapTestSuite());
-//        runner.registerTask(new PackedSeqTestSuite());
+        runner.registerTask(new PackedSeqTestSuite());
 //        runner.registerTask(new SymbolSeqTestSuite());
 //
 //        runner.registerTask(new CtrTestSuite());

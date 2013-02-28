@@ -24,6 +24,8 @@
 
 #include <memoria/core/packed/tree_walkers.hpp>
 
+#include <memoria/containers/seq_dense/seqdense_walkers.hpp>
+
 #include <functional>
 #include <algorithm>
 
@@ -31,6 +33,10 @@ namespace memoria {
 
 
 namespace intrnl1 {
+
+struct EmptyMainWalker {
+	void adjust(BigInt value) {}
+};
 
 template <typename T>
 struct ValueHelper {
@@ -457,33 +463,60 @@ public:
     	MEMORIA_ASSERT(from, >=, 0);
     	MEMORIA_ASSERT(from, <, size());
 
-    	SelectFWWalker<MyType, Bits> walker(*this, symbol, rank);
+    	intrnl1::EmptyMainWalker mw;
+    	btree::EmptyExtenderState state;
 
-    	Int idx = findFw(from, walker);
+    	sequence::SelectForwardWalker<
+    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    	>
+    	walker(mw, *this, rank, symbol, state);
 
-    	return SelectResult(idx, walker.rank(), walker.is_found());
+    	size_t idx = findFw(from, walker);
+
+    	return SelectResult(idx, walker.sum(), walker.is_found());
     }
 
     SelectResult selectFW(Value symbol, Int rank) const
     {
-    	SelectFWWalker<MyType, Bits> walker(*this, symbol, rank);
+    	intrnl1::EmptyMainWalker mw;
+    	btree::EmptyExtenderState state;
 
-    	Int idx = findFw(walker);
+    	sequence::SelectForwardWalker<
+    	 	 MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    	>
+    	walker(mw, *this, rank, symbol, state);
 
-    	return SelectResult(idx, walker.rank(), walker.is_found());
+    	size_t idx = findFw(walker);
+
+    	return SelectResult(idx, walker.sum(), walker.is_found());
     }
 
 
     SelectResult selectBW(Int from, Value symbol, Int rank) const
     {
-    	MEMORIA_ASSERT(from, >=, 0);
-    	MEMORIA_ASSERT(from, <=, size());
+//    	MEMORIA_ASSERT(from, >=, 0);
+//    	MEMORIA_ASSERT(from, <=, size());
+//
+//    	SelectBWWalker<MyType, Bits> walker(*this, symbol, rank);
+//
+//    	Int idx = findBw(from, walker);
+//
+//    	return SelectResult(idx, walker.rank(), walker.is_found());
 
-    	SelectBWWalker<MyType, Bits> walker(*this, symbol, rank);
 
-    	Int idx = findBw(from, walker);
+    	intrnl1::EmptyMainWalker mw;
+    	btree::EmptyExtenderState state;
 
-    	return SelectResult(idx, walker.rank(), walker.is_found());
+    	sequence::SelectBackwardWalker<
+    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    	>
+    	walker(mw, *this, rank, symbol, state);
+
+    	size_t idx = findBw(from, walker);
+
+    	return SelectResult(idx, walker.sum(), walker.is_found());
+
+
     }
 
     IndexKey countFW(Int from, Value symbol) const

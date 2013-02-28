@@ -50,9 +50,17 @@ public:
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
 
-        MEMORIA_ADD_TEST(runSelectTest);
+//        MEMORIA_ADD_TEST(runSelectTest);
         MEMORIA_ADD_TEST(runIteratorSequentialSelectNextTest);
         MEMORIA_ADD_TEST(runIteratorSequentialSelectPrevTest);
+    }
+
+    void checkIterator(Iterator& iter)
+    {
+//    	Accumulator acc;
+//    	iter.ComputePrefix(acc);
+//
+//    	AssertEQ(MA_SRC, acc[0], iter.prefix());
     }
 
     void fillRandom(Ctr& ctr, Int size)
@@ -281,6 +289,8 @@ public:
 
     		while ((!iter.isEof()) && iter.selectFw(rank, symbol) == rank)
     		{
+    			checkIterator(iter);
+
     			Int s = iter.element();
 
     			AssertEQ(MA_SRC, s, symbol);
@@ -316,6 +326,8 @@ public:
 
     		while (iter.selectBw(rank, symbol) == rank)
     		{
+    			checkIterator(iter);
+
     			Int s = iter.element();
 
     			AssertEQ(MA_SRC, s, symbol);

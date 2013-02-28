@@ -394,7 +394,270 @@ public:
 
 namespace sequence {
 
+template <typename Walker, typename Sequence, typename State>
+class RankExtender: public SumExtenderBase<Sequence, State> {
 
+	typedef SumExtenderBase<Sequence, State> Base;
+
+	typedef typename Sequence::Symbol 	Symbol;
+	typedef typename Sequence::IndexKey 	IndexKey;
+
+	const Sequence& seq_;
+
+public:
+
+	RankExtender(Walker&, const Sequence& seq, State& state):
+		Base(seq, state),
+		seq_(seq)
+	{}
+
+	void processValues(BigInt sum, Int key_num, Int start, Int end)
+	{
+		for (Int c = 0; c < this->state_.indexes(); c++)
+		{
+			Int 	idx = this->state_.idx(c);
+
+			size_t 	cnt = seq_.rank1(start, end, idx);
+
+			this->state_.value()(cnt, idx);
+		}
+	}
+};
+
+
+template <typename Walker, typename Sequence, typename State>
+class SelectExtender: public SumExtenderBase<Sequence, State> {
+
+	typedef SumExtenderBase<Sequence, State> Base;
+
+	typedef typename Sequence::Symbol 	Symbol;
+	typedef typename Sequence::IndexKey 	IndexKey;
+
+	const Sequence& seq_;
+
+public:
+
+	SelectExtender(Walker&, const Sequence& seq, State& state):
+		Base(seq, state),
+		seq_(seq)
+	{}
+
+	void processValues(BigInt sum, Int key_num, Int start, Int end)
+	{
+		for (Int c = 0; c < this->state_.indexes(); c++)
+		{
+			Int 	idx = this->state_.idx(c);
+
+			size_t 	cnt = seq_.rank1(start, end, idx);
+
+			this->state_.value()(cnt, idx);
+		}
+	}
+};
+
+
+template <
+	typename Sequence,
+	typename MainWalker,
+	template <typename Walker, typename Map, typename State> class Extender,
+	typename State
+>
+class SelectForwardWalker :public DataForwardWalkerBase<Sequence, MainWalker, BTreeCompareLT, Extender, State> {
+
+	typedef DataForwardWalkerBase<Sequence, MainWalker, BTreeCompareLT, Extender, State> 		Base;
+	typedef SelectForwardWalker<Sequence, MainWalker, Extender, State> 							MyType;
+
+	typedef typename Sequence::Symbol											Symbol;
+
+	const Symbol* symbols_;
+
+	bool found_ = false;
+
+	const Sequence& seq_;
+
+public:
+
+	SelectForwardWalker(MainWalker& main_walker, const Sequence& data, BigInt limit, Int block_num, State& state):
+		Base(main_walker, data, limit, block_num, state),
+		seq_(data)
+	{
+		symbols_ 	= data.valuesBlock();
+	}
+
+	Int walkValues(Int start, Int end)
+	{
+		auto& sum_ 			= Base::sum_;
+		auto& limit_		= Base::limit_;
+		auto& block_num_	= Base::block_num_;
+
+		Int idx;
+
+		if (Sequence::Bits == 1)
+		{
+			auto result = block_num_?
+					Select1FW(symbols_, start, end, limit_) :
+					Select0FW(symbols_, start, end, limit_);
+
+			sum_    += result.rank();
+			limit_  -= result.rank();
+
+			idx = result.idx();
+
+			found_  = result.is_found() || limit_ == 0;
+		}
+		else {
+			Int total = 0;
+
+			found_ = false;
+
+			idx = end;
+
+			Int value_block_offset = seq_.getValueBlockOffset();
+
+			for (Int c = start; c < end; c++)
+			{
+				total += seq_.testb(value_block_offset, c, Base::block_num_);
+
+				if (total == limit_)
+				{
+					idx = c;
+					break;
+				}
+			}
+
+			sum_ 	+= total;
+			limit_  -= total;
+
+			found_ 	= limit_ == 0;
+		}
+
+		if (found_)
+		{
+			Base::extender_.processValues(sum_, block_num_, start, idx + 1);
+		}
+		else {
+			Base::extender_.processValues(sum_, block_num_, start, end);
+		}
+
+		return idx;
+	}
+
+	Int walkIndex(Int start, Int end, Int)
+	{
+		return Base::walkIndex(start, end);
+	}
+
+	bool is_found() const
+	{
+		return found_;
+	}
+};
+
+
+
+
+
+template <
+	typename Sequence,
+	typename MainWalker,
+	template <typename Walker, typename Map, typename State> class Extender,
+	typename State
+>
+class SelectBackwardWalker :public DataBackwardWalkerBase<Sequence, MainWalker, BTreeCompareLT, Extender, State> {
+
+	typedef DataBackwardWalkerBase<Sequence, MainWalker, BTreeCompareLT, Extender, State> 		Base;
+	typedef SelectBackwardWalker<Sequence, MainWalker, Extender, State> 						MyType;
+
+	typedef typename Sequence::Symbol											Symbol;
+
+	const Symbol* symbols_;
+
+	bool found_ = false;
+
+	const Sequence& seq_;
+
+public:
+
+	SelectBackwardWalker(MainWalker& main_walker, const Sequence& data, BigInt limit, Int block_num, State& state):
+		Base(main_walker, data, limit, block_num, state),
+		seq_(data)
+	{
+		symbols_ 	= data.valuesBlock();
+	}
+
+	Int walkValues(Int start, Int end)
+	{
+		auto& sum_ 			= Base::sum_;
+		auto& limit_		= Base::limit_;
+		auto& block_num_	= Base::block_num_;
+
+		Int idx;
+
+		if (Sequence::Bits == 1)
+		{
+			auto result = block_num_?
+					Select1BW(symbols_, start, end, limit_) :
+					Select0BW(symbols_, start, end, limit_);
+
+			sum_    += result.rank();
+			limit_  -= result.rank();
+
+			idx = result.idx();
+
+			found_  = result.is_found() || limit_ == 0;
+		}
+		else {
+	    	if (limit_ == 0)
+	    	{
+	    		found_ = true;
+	    		return start;
+	    	}
+
+	    	found_ = false;
+
+	    	Int total 				= 0;
+	    	Int idx					= end;
+	    	Int value_block_offset 	= seq_.getValueBlockOffset();
+
+	    	for (Int c = start; c > end; c--)
+	    	{
+	    		total += seq_.testb(value_block_offset, c - 1, Base::block_num_);
+
+	    		if (total == Base::limit_)
+	    		{
+	    			idx = c - 1;
+	    			break;
+	    		}
+	    	}
+
+	    	sum_ 	+= total;
+	    	limit_  -= total;
+	    	found_ 	= limit_ == 0;
+
+	    	return idx;
+		}
+
+		if (found_)
+		{
+			Base::extender_.processValues(sum_, block_num_, idx + 1, start + 1);
+		}
+		else {
+			Base::extender_.processValues(sum_, block_num_, end + 1, start + 1);
+		}
+
+		return idx;
+	}
+
+	Int walkIndex(Int start, Int end, Int)
+	{
+		return Base::walkIndex(start, end);
+	}
+
+	bool is_found() const
+	{
+		return found_;
+	}
+};
 
 
 

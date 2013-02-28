@@ -273,6 +273,7 @@ public:
 
 template <
 	typename 										Types,
+
 	template <
 		typename 						MainWalker,
 		typename 						Map,
@@ -283,7 +284,9 @@ template <
 		> 								class Extender,
 		typename 						ExtenderState
 	> 												class NodeWalker,
+
 	template <typename, typename, typename>			class WalkerExtender,
+
 	typename 										ExtenderState
 >
 class BTreeBackwardWalker: public DefaultBTreeBackwardWalkerBase<
@@ -336,7 +339,7 @@ template <
 	typename MainWalker,
 	typename Map,
 	template <typename K1, typename K2> class Comparator,
-	template <typename Walker, typename Map, typename State> class Extender,
+	template <typename Walker, typename MapType, typename State> class Extender,
 	typename ExtenderState
 >
 class NodeForwardWalker: public NodeWalkerBase {
@@ -434,7 +437,7 @@ template <
 	typename MainWalker,
 	typename Map,
 	template <typename K1, typename K2> class Comparator,
-	template <typename Walker, typename Map, typename State> class Extender,
+	template <typename Walker, typename MapType, typename State> class Extender,
 	typename ExtenderState
 >
 class NodeBackwardWalker: public NodeWalkerBase {
@@ -479,12 +482,12 @@ public:
 				limit_ 	-= key;
 			}
 			else {
-				extender_.processIndexes(sum_, block_num_, start, c);
+				extender_.processIndexes(sum_, block_num_, c + 1, start + 1);
 				return c;
 			}
 		}
 
-		extender_.processIndexes(sum_, block_num_, start, end);
+		extender_.processIndexes(sum_, block_num_, end + 1, start + 1);
 		return end;
 	}
 
@@ -502,12 +505,12 @@ public:
 				limit_ 	-= key;
 			}
 			else {
-				extender_.processKeys(sum_, block_num_, start, c);
+				extender_.processKeys(sum_, block_num_, c + 1,  start + 1);
 				return c;
 			}
 		}
 
-		extender_.processKeys(sum_, block_num_, start, end);
+		extender_.processKeys(sum_, block_num_, end + 1, start + 1);
 
 		return end;
 	}

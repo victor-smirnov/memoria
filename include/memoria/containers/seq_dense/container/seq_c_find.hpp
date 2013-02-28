@@ -16,7 +16,7 @@
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
 
-#include <memoria/containers/seq_dense/walkers.hpp>
+#include <memoria/containers/seq_dense/seqdense_walkers.hpp>
 
 namespace memoria    {
 
