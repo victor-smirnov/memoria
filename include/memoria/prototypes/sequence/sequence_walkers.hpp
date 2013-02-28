@@ -571,8 +571,8 @@ public:
 			BigInt limit,
 			Int node_block_num,
 			Int sequence_block_num,
-			ExtenderState& node_state,
-			ExtenderState& data_state
+			ExtenderState& node_state = ExtenderState(),
+			ExtenderState& data_state = ExtenderState()
 		):
 		Base(limit, node_block_num, node_state),
 		sequence_block_num_(sequence_block_num),
@@ -699,8 +699,8 @@ public:
 			BigInt limit,
 			Int node_block_num,
 			Int sequence_block_num,
-			ExtenderState& node_state,
-			ExtenderState& data_state
+			ExtenderState& node_state = ExtenderState(),
+			ExtenderState& data_state = ExtenderState()
 	):
 		Base(limit, node_block_num, node_state),
 		sequence_block_num_(sequence_block_num),
@@ -805,10 +805,15 @@ protected:
 
 	BigInt prefix_ = 0;
 
-	ExtenderState& data_state_;
+	ExtenderState data_state_;
 
 public:
-	SequenceSkipForwardWalker(BigInt limit, Int node_block_num, ExtenderState& node_state, ExtenderState& data_state):
+	SequenceSkipForwardWalker(
+			BigInt limit,
+			Int node_block_num,
+			const ExtenderState& node_state = ExtenderState(),
+			const ExtenderState& data_state = ExtenderState()
+	):
 		Base(limit, node_block_num, node_state),
 		data_state_(data_state)
 	{}
@@ -862,16 +867,18 @@ public:
 
 		iter.cache().setup(prefix_ + Base::sum_, 0);
 
-		if (Base::limit_ < data->size())
+		Int size = data->size();
+
+		if (Base::limit_ < size)
 		{
 			iter.dataPos() 	= Base::limit_;
 			Base::sum_ 		+= Base::limit_;
 		}
 		else {
-			Base::sum_ 		+= data->size();
-			Base::limit_ 	-= data->size();
+			Base::sum_ 		+= size;
+			Base::limit_ 	-= size;
 
-			iter.dataPos() = data->size();
+			iter.dataPos() 	= size;
 		}
 
 		extender.processValues(0, -1, 0, iter.dataPos());
@@ -881,6 +888,8 @@ public:
 	{
 		iter.key_idx() = idx;
 		iter.model().finishPathStep(iter.path(), idx);
+
+		dispatchLastData(iter);
 	}
 
 	void finishEof(Iterator& iter)
@@ -921,10 +930,15 @@ protected:
 
 	BigInt prefix_ = 0;
 
-	ExtenderState& data_state_;
+	ExtenderState data_state_;
 
 public:
-	SequenceSkipBackwardWalker(BigInt limit, Int node_block_num, ExtenderState& node_state, ExtenderState& data_state):
+	SequenceSkipBackwardWalker(
+			BigInt limit,
+			Int node_block_num,
+			const ExtenderState& node_state = ExtenderState(),
+			const ExtenderState& data_state = ExtenderState()
+	):
 		Base(limit, node_block_num, node_state),
 		data_state_(data_state)
 	{}
@@ -1161,9 +1175,40 @@ public:
 
 
 
+template <
+	typename Types,
+	template <typename, typename, typename> class NodeExtender,
+	typename ExtenderState
+>
+class FindLE1Walker: public btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> {
+
+	typedef btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> 	Base;
+	typedef FindLE1Walker<Types, NodeExtender, ExtenderState>											MyType;
+
+public:
+
+	FindLE1Walker(BigInt key, Int key_num, ExtenderState& state = ExtenderState()):
+		Base(key, key_num, state)
+	{}
+};
 
 
+template <
+	typename Types,
+	template <typename, typename, typename> class NodeExtender,
+	typename ExtenderState
+>
+class FindLT1Walker: public btree::BTreeForwardWalker<Types, btree::NodeLEForwardWalker, NodeExtender, ExtenderState> {
 
+	typedef btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> 	Base;
+	typedef FindLT1Walker<Types, NodeExtender, ExtenderState>											MyType;
+
+public:
+
+	FindLT1Walker(BigInt key, Int key_num, ExtenderState& state = ExtenderState()):
+		Base(key, key_num, state)
+	{}
+};
 
 
 

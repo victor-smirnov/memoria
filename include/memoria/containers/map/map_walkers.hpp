@@ -13,6 +13,8 @@
 
 #include <memoria/core/container/container.hpp>
 
+#include <memoria/prototypes/btree/btree_walkers.hpp>
+
 #include <ostream>
 
 namespace memoria       {
@@ -132,6 +134,25 @@ public:
 	}
 };
 
+
+
+
+//template <
+//	typename Types,
+//	template <typename, typename, typename> class NodeExtender,
+//	typename ExtenderState
+//>
+//class FindLE1Walker: public btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> {
+//
+//	typedef btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> 	Base;
+//	typedef FindLE1Walker<Types, NodeExtender, ExtenderState>											MyType;
+//
+//public:
+//
+//	FindLE1Walker(BigInt key, Int key_num, ExtenderState& state):
+//		Base(key, key_num, state)
+//	{}
+//};
 
 
 template <typename Types>

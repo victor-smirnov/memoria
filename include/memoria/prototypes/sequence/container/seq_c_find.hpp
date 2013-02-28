@@ -70,12 +70,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::sequence::CtrFindName)
 
     Iterator seek(BigInt pos)
     {
-    	return me()->find(pos, 0);
+    	MyType& ctr = *me();
+
+    	typename Types::template SkipForwardWalker<
+    		Types,
+    		EmptyExtender,
+    		EmptyExtender,
+    		EmptyExtenderState
+    	> walker(pos, 0);
+
+    	return ctr.find0(walker);
     }
 
     BigInt   size();
-
-	Iterator find(BigInt pos, Int key_number);
 
 	BigInt read(Iterator& iter, IDataTargetType& data);
 
@@ -83,36 +90,6 @@ MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::sequence::CtrFindName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
-M_PARAMS
-typename M_TYPE::Iterator M_TYPE::find(BigInt pos, Int key_number)
-{
-    Iterator iter = me()->findLT(pos, key_number);
-
-    if (iter.isNotEmpty())
-    {
-        if (iter.isEnd())
-        {
-            iter.prevKey();
-        }
-        else {
-            me()->finishPathStep(iter.path(), iter.key_idx());
-        }
-
-        BigInt offset   = iter.prefix(); //FIXME: key_number
-        iter.dataPos()  = pos - offset;
-
-
-        if (iter.dataPos() > iter.data()->size())
-        {
-            iter.dataPos() 		= iter.data()->size();
-        }
-    }
-
-
-    return iter;
-}
-
 
 
 MEMORIA_PUBLIC M_PARAMS

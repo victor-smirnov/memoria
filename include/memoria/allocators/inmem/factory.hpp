@@ -10,7 +10,7 @@
 #define _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
 
 #include <memoria/containers/root/factory.hpp>
-#include <memoria/containers/map/factory.hpp>
+#include <memoria/containers/map/map_factory.hpp>
 #include <memoria/containers/set/factory.hpp>
 #include <memoria/containers/vector/factory.hpp>
 #include <memoria/containers/vector_map/factory.hpp>

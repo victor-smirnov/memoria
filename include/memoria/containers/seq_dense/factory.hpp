@@ -18,7 +18,7 @@
 
 #include <memoria/containers/seq_dense/iterator/seq_i_api.hpp>
 
-#include <memoria/prototypes/sequence/factory.hpp>
+#include <memoria/prototypes/sequence/sequence_factory.hpp>
 
 namespace memoria {
 

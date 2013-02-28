@@ -179,15 +179,13 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
 
    	BigInt skipFw(BigInt distance)
    	{
-   		EmptyExtenderState state;
-
    		typename Types::template SkipForwardWalker<
    			Types,
    			EmptyExtender,
    			EmptyExtender,
    			EmptyExtenderState
    		>
-   		walker(distance, 0, state, state);
+   		walker(distance, 0);
 
    		findFw(walker);
 
@@ -196,14 +194,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
 
    	BigInt skipBw(BigInt distance)
    	{
-   		EmptyExtenderState state;
-
    		typename Types::template SkipBackwardWalker<
    			Types,
    			EmptyExtender,
    			EmptyExtender,
    			EmptyExtenderState
-   		> walker(distance, 0, state, state);
+   		> walker(distance, 0);
 
    		findBw(walker);
 
@@ -341,7 +337,9 @@ void M_TYPE::findFw(Functor&& walker)
 
 			if (idx < iter.page()->children_count())
 			{
-				walker.finish(idx, iter);
+				iter.key_idx() = idx;
+				iter.model().finishPathStep(iter.path(), idx);
+
 				walker.dispatchLastData(iter);
 			}
 			else {
@@ -360,8 +358,6 @@ void M_TYPE::findBw(Functor&& walker)
 
 	if (iter.isNotEmpty())
 	{
-		DataPageG data = iter.data();
-
 		walker.setup(iter);
 
 		if (!walker.dispatchFirstData(iter))
@@ -370,7 +366,9 @@ void M_TYPE::findBw(Functor&& walker)
 
 			if (idx >= 0)
 			{
-				walker.finish(idx, iter);
+				iter.key_idx() = idx;
+				iter.model().finishPathStep(iter.path(), idx);
+
 				walker.dispatchLastData(iter);
 			}
 			else {

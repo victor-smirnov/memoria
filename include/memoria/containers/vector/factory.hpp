@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CONTAINERS_VECTOR_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_VECTOR_FACTORY_HPP
 
-#include <memoria/prototypes/sequence/factory.hpp>
+#include <memoria/prototypes/sequence/sequence_factory.hpp>
 
 #include <memoria/containers/vector/container/vector_c_tools.hpp>
 

@@ -47,25 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
         }
     }
 
-//    Iterator find1(Key key)
-//    {
-//        Iterator iter = me()->findLE(key, 0);
-//
-//        if (!iter.isEnd())
-//        {
-//            if (key == iter.key())
-//            {
-//                return iter;
-//            }
-//            else {
-//                return me()->End();
-//            }
-//        }
-//        else {
-//            return iter;
-//        }
-//    }
-
 
     Iterator operator[](Key key)
     {

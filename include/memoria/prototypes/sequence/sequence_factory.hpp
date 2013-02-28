@@ -31,6 +31,8 @@
 
 namespace memoria {
 
+
+
 template <
     typename DataPage_,
     typename IData_,
@@ -84,10 +86,10 @@ struct BTreeTypes<Profile, memoria::ASequence>: public BTreeTypes<Profile, memor
 
 
     template <typename Types>
-    using FindLTWalker 		= ::memoria::sequence::FindLTWalker<Types>;
+    using FindLTWalker 		= ::memoria::sequence::FindLT1Walker<Types, btree::EmptyExtender, btree::EmptyExtenderState>;
 
     template <typename Types>
-    using FindLEWalker 		= ::memoria::sequence::FindLEWalker<Types>;
+    using FindLEWalker 		= ::memoria::sequence::FindLE1Walker<Types, btree::EmptyExtender, btree::EmptyExtenderState>;
 
 
     template <typename Types>

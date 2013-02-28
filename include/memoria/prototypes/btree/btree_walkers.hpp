@@ -243,10 +243,12 @@ class BTreeForwardWalker: public DefaultBTreeForwardWalkerBase<
 
 	typedef BTreeForwardWalker<Types, NodeWalker, WalkerExtender, ExtenderState>					MyType;
 
+	typedef Iter<typename Types::IterTypes>															Iterator;
+
 	ExtenderState extender_state_;
 
 public:
-	BTreeForwardWalker(BigInt limit, Int block_num, ExtenderState& state):
+	BTreeForwardWalker(BigInt limit, Int block_num, const ExtenderState& state = ExtenderState()):
 		Base(limit, block_num), extender_state_(state)
 	{}
 
@@ -268,6 +270,8 @@ public:
 	const ExtenderState& extenderState() const {
 		return extender_state_;
 	}
+
+	void empty(Iterator& i) {}
 };
 
 
@@ -302,7 +306,7 @@ class BTreeBackwardWalker: public DefaultBTreeBackwardWalkerBase<
 	ExtenderState extender_state_;
 
 public:
-	BTreeBackwardWalker(BigInt limit, Int block_num, ExtenderState& state):
+	BTreeBackwardWalker(BigInt limit, Int block_num, const ExtenderState& state = ExtenderState()):
 		Base(limit, block_num), extender_state_(state)
 	{}
 

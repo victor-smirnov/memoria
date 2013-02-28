@@ -155,6 +155,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 }
 
 
+
 M_PARAMS
 template <typename Walker>
 void M_TYPE::find1(Walker& walker)

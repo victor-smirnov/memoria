@@ -10,7 +10,7 @@
 #define _MEMORIA_MODELS_IDX_SET_FACTORY_HPP
 
 
-#include <memoria/containers/map/factory.hpp>
+#include <memoria/containers/map/map_factory.hpp>
 
 namespace memoria    {}
 

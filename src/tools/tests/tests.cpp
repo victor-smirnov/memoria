@@ -6,7 +6,7 @@
 
 #include "ctr/ctr_test_suite.hpp"
 
-//#include "map/map_test_suite.hpp"
+#include "map/map_test_suite.hpp"
 //
 //#include "packed_map/pmap_test_suite.hpp"
 #include "packed_seq/pseq_test_suite.hpp"
@@ -71,7 +71,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new SymbolSeqTestSuite());
 //
 //        runner.registerTask(new CtrTestSuite());
-//        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new SumTreeTestSuite());
         runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());

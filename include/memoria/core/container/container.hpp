@@ -181,7 +181,9 @@ public:
             Allocator* alloc = T2T<Allocator*>(allocator);
             ID* root_id = T2T<ID*>(id);
 
-            MyType ctr(alloc, *root_id);
+            PageG page = alloc->getPage(*root_id, Allocator::READ);
+
+            MyType ctr(alloc, *root_id, CtrInitData(page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
             return ctr.check(NULL);
         }
     };

@@ -55,6 +55,7 @@ struct BTreeTypes<Profile, memoria::Map<Key_, Value_, Indexes_> >: public BTreeT
     using FindLEWalker 		= ::memoria::map::FindLEWalker<Types>;
 
 
+
     template <typename Types>
     using FindBeginWalker 	= ::memoria::map::FindBeginWalker<Types>;
 
