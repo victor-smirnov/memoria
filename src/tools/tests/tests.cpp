@@ -7,21 +7,21 @@
 #include "ctr/ctr_test_suite.hpp"
 
 #include "map/map_test_suite.hpp"
-//
-//#include "packed_map/pmap_test_suite.hpp"
+
+#include "packed_map/pmap_test_suite.hpp"
 #include "packed_seq/pseq_test_suite.hpp"
-//
-//#include "sum_set_batch/sum_tree_test_suite.hpp"
-//
+
+#include "sum_set_batch/sum_tree_test_suite.hpp"
+
 #include "vector/vector_test_suite.hpp"
-//
-//#include "vector_map/vector_map_test_suite.hpp"
+
+#include "vector_map/vector_map_test_suite.hpp"
 
 #include "sequence/sequence_test_suite.hpp"
-//#include "symbol_seq/symseq_test_suite.hpp"
-//#include "bitmap/bitmap_test_suite.hpp"
-//
-//#include "template/template_test_suite.hpp"
+#include "symbol_seq/symseq_test_suite.hpp"
+#include "bitmap/bitmap_test_suite.hpp"
+
+#include "template/template_test_suite.hpp"
 
 #include "louds/louds_test_suite.hpp"
 
@@ -67,19 +67,19 @@ int main(int argc, const char** argv, const char** envp)
 //
 //        runner.registerTask(new BitmapTestSuite());
 //        runner.registerTask(new PackedMapTestSuite());
-        runner.registerTask(new PackedSeqTestSuite());
+//        runner.registerTask(new PackedSeqTestSuite());
 //        runner.registerTask(new SymbolSeqTestSuite());
 //
 //        runner.registerTask(new CtrTestSuite());
-        runner.registerTask(new MapTestSuite());
+//        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new SumTreeTestSuite());
-        runner.registerTask(new VectorTestSuite());
+//        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
         runner.registerTask(new SequenceTestSuite());
 
-        runner.registerTask(new LoudsTestSuite());
-
-        runner.registerTask(new StaticLoudsTestSuite());
+//        runner.registerTask(new LoudsTestSuite());
+//
+//        runner.registerTask(new StaticLoudsTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

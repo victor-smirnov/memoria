@@ -180,7 +180,7 @@ void M_TYPE::find1(Walker& walker)
 			NodeDispatcher::DispatchConst(node, walker);
 
 			Int idx = walker.idx();
-			walker.finish(node, idx);
+			walker.finish(*me(), node, idx);
 		}
 		else {
 			walker.empty();

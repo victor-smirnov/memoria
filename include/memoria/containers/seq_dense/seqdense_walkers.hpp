@@ -62,53 +62,6 @@ public:
 };
 
 
-template <
-	typename Types,
-	template <typename, typename> class Comparator
->
-class SequenceSimpleWalker: public SequenceFWWalker<Types, Comparator> {
-protected:
-	typedef SequenceFWWalker<Types, Comparator>									Base;
-	typedef typename Types::Key 												Key;
-	typedef typename Base::Container 											Container;
-	typedef typename Types::DataPageG 											DataPageG;
-	typedef typename Types::NodeBaseG 											NodeBaseG;
-	typedef typename Types::Allocator 											Allocator;
-
-	DataPageG data_;
-
-	bool empty_ = false;
-
-public:
-	SequenceSimpleWalker(Container& ctr, Key key, Int key_count, const Int* key_nums, Key* prefixes):
-		Base(ctr, key, key_count, key_nums, prefixes)
-	{}
-
-	void finish(const NodeBaseG& node, Int idx)
-	{
-		if (idx < node->children_count())
-		{
-			data_ = Base::ctr_.getValuePage(node, idx, Allocator::READ);
-		}
-	}
-
-	void empty() {
-		empty_ = true;
-	}
-
-	DataPageG& data() {
-		return data_;
-	}
-
-	bool is_empty() const {
-		return empty_;
-	}
-};
-
-
-
-
-
 
 template <
 	typename Types,
@@ -392,6 +345,12 @@ public:
 };
 
 
+
+
+
+// ================================ New Stuff ================================================
+
+
 namespace sequence {
 
 template <typename Walker, typename Sequence, typename State>
@@ -425,6 +384,8 @@ public:
 };
 
 
+
+
 template <typename Walker, typename Sequence, typename State>
 class SelectExtender: public SumExtenderBase<Sequence, State> {
 
@@ -454,6 +415,8 @@ public:
 		}
 	}
 };
+
+
 
 
 template <
@@ -552,6 +515,8 @@ public:
 		return found_;
 	}
 };
+
+
 
 
 
@@ -661,10 +626,445 @@ public:
 
 
 
+
+
+
+
+template <
+	typename MainWalker,
+	typename Map,
+	template <typename Walker, typename MapType, typename State> class Extender,
+	typename ExtenderState
+>
+class NodeCountForwardWalker: public NodeWalkerBase {
+
+	typedef typename Map::Key Key;
+	typedef typename Map::IndexKey IndexKey;
+
+	BigInt 			sum_				= 0;
+
+	const Key* 		keys_;
+	const IndexKey* indexes_;
+
+	const Key* 		size_keys_;
+	const IndexKey* size_indexes_;
+
+	MainWalker& 	main_walker_;
+
+	Extender<MainWalker, Map, ExtenderState> extender_;
+
+	Int 			block_num_;
+public:
+	NodeCountForwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num, ExtenderState& state):
+		main_walker_(main_walker),
+		extender_(main_walker, map, state),
+		block_num_(block_num)
+	{
+		keys_ 		= map.keys(block_num);
+		indexes_ 	= map.indexes(block_num);
+
+		size_keys_ 		= map.keys(0);
+		size_indexes_ 	= map.indexes(0);
+	}
+
+	Int walkIndex(Int start, Int end)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			IndexKey block_rank = indexes_[c];
+			IndexKey size 		= size_indexes_[c];
+
+			if (block_rank == size)
+			{
+				sum_  	+= block_rank;
+			}
+			else {
+				extender_.processIndexes(sum_, block_num_, start, c);
+				return c;
+			}
+		}
+
+		extender_.processIndexes(sum_, block_num_, start, end);
+		return end;
+	}
+
+	Int walkKeys(Int start, Int end)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			IndexKey block_rank = keys_[c];
+			IndexKey size 		= size_keys_[c];
+
+			if (block_rank == size)
+			{
+				sum_  	+= block_rank;
+			}
+			else {
+				extender_.processKeys(sum_, block_num_, start, c);
+				return c;
+			}
+		}
+
+		extender_.processKeys(sum_, block_num_, start, end);
+		return end;
+	}
+
+	void finish() {
+		main_walker_.adjust(sum_);
+	}
+
+	void adjustEnd(const Map& map)
+	{
+		main_walker_.adjust(-keys_[map.size() - 1]);
+		extender_.subtract(map.size() - 1);
+	}
+
+	BigInt sum() const
+	{
+		return sum_;
+	}
+};
+
+
+template <
+	typename MainWalker,
+	typename Map,
+	template <typename Walker, typename MapType, typename State> class Extender,
+	typename ExtenderState
+>
+class NodeCountBackwardWalker: public NodeWalkerBase {
+
+	typedef typename Map::Key Key;
+	typedef typename Map::IndexKey IndexKey;
+
+	BigInt 			sum_				= 0;
+
+	const Key* 		keys_;
+	const IndexKey* indexes_;
+
+	const Key* 		size_keys_;
+	const IndexKey* size_indexes_;
+
+	MainWalker& 	main_walker_;
+
+	Extender<MainWalker, Map, ExtenderState> extender_;
+
+	Int 			block_num_;
+
+public:
+	NodeCountBackwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num, ExtenderState& state):
+		main_walker_(main_walker),
+		extender_(main_walker, map, state),
+		block_num_(block_num)
+	{
+		keys_ 		= map.keys(block_num);
+		indexes_ 	= map.indexes(block_num);
+
+		size_keys_ 		= map.keys(0);
+		size_indexes_ 	= map.indexes(0);
+	}
+
+	Int walkIndex(Int start, Int end)
+	{
+		for (Int c = start; c > end; c--)
+		{
+			IndexKey block_rank = indexes_[c];
+			IndexKey size 		= size_indexes_[c];
+
+			if (block_rank == size)
+			{
+				sum_   += block_rank;
+			}
+			else {
+				extender_.processIndexes(sum_, block_num_, c + 1, start + 1);
+				return c;
+			}
+		}
+
+		extender_.processIndexes(sum_, block_num_, end + 1, start + 1);
+		return end;
+	}
+
+
+	Int walkKeys(Int start, Int end)
+	{
+		for (Int c = start; c > end; c--)
+		{
+			IndexKey block_rank = keys_[c];
+			IndexKey size 		= size_keys_[c];
+
+			if (block_rank == size)
+			{
+				sum_   += block_rank;
+			}
+			else {
+				extender_.processKeys(sum_, block_num_, c + 1, start + 1);
+				return c;
+			}
+		}
+
+		extender_.processKeys(sum_, block_num_, end + 1, start + 1);
+		return end;
+	}
+
+	void finish() {
+		main_walker_.adjust(sum_);
+	}
+
+	void adjustStart(const Map& map)
+	{
+		main_walker_.adjust(-keys_[0]);
+		extender_.subtract(0);
+	}
+
+	BigInt sum() const {
+		return sum_;
+	}
+};
+
+
+
+
+
+template <
+	typename Sequence,
+	typename MainWalker,
+	template <typename Walker, typename Map, typename State> class Extender,
+	typename State
+>
+class PackedSequenceCountForwardWalker: public btree::NodeWalkerBase {
+
+	typedef typename Sequence::IndexKey IndexKey;
+	typedef typename Sequence::Symbol 	Symbol;
+
+	BigInt 			sum_				= 0;
+
+	const IndexKey* indexes_;
+
+	MainWalker& 	main_walker_;
+
+	Extender<MainWalker, Sequence, State> extender_;
+
+	Int block_num_;
+
+	const Sequence& data_;
+
+	bool found_ = false;
+
+public:
+	PackedSequenceCountForwardWalker(
+			MainWalker& main_walker,
+			const Sequence& data,
+			BigInt limit,
+			Int block_num,
+			State& state
+	):
+		main_walker_(main_walker),
+		extender_(main_walker, data, state),
+		block_num_(block_num),
+		data_(data)
+	{
+		indexes_ 	= data.indexes(block_num);
+	}
+
+	Int walkIndex(Int start, Int end, Int size)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			IndexKey block_rank = indexes_[c];
+
+			if (block_rank == (IndexKey)size)
+			{
+				sum_  	+= block_rank;
+			}
+			else {
+				extender_.processIndexes(sum_, block_num_, start, c);
+				return c;
+			}
+		}
+
+		extender_.processIndexes(sum_, block_num_, start, end);
+		return end;
+	}
+
+	Int walkValues(Int start, Int end)
+	{
+		if (Sequence::Bits == 1)
+		{
+			const Symbol*	bitmap = data_.valuesBlock();
+
+			Int count = block_num_? CountOneFw(bitmap, start, end) : CountZeroFw(bitmap, start, end);
+
+			sum_ 	+= count;
+			found_ 	= count < (end - start);
+
+			extender_.processValues(sum_, block_num_, start, start + count);
+
+			return start + count;
+		}
+		else {
+			Int total = 0;
+			Int value_block_offset = data_.getValueBlockOffset();
+
+			Int c;
+			for (c = start; c < end; c++)
+			{
+				if (data_.testb(value_block_offset, c, block_num_))
+				{
+					total++;
+				}
+				else {
+					break;
+				}
+			}
+
+			sum_  	+= total;
+			found_ 	=  c != end;
+
+			extender_.processValues(sum_, block_num_, start, c);
+
+			return c;
+		}
+	}
+
+	void finish()
+	{
+		main_walker_.adjust(sum_);
+	}
+
+	BigInt sum() const {
+		return sum_;
+	}
+
+	bool is_found() const {
+		return found_;
+	}
+};
+
+
+
+template <
+	typename Sequence,
+	typename MainWalker,
+	template <typename Walker, typename Map, typename State> class Extender,
+	typename State
+>
+class PackedSequenceCountBackwardWalker: public btree::NodeWalkerBase {
+
+	typedef typename Sequence::IndexKey IndexKey;
+	typedef typename Sequence::Symbol 	Symbol;
+
+	BigInt 			sum_				= 0;
+
+	const IndexKey* indexes_;
+
+	MainWalker& 	main_walker_;
+
+	Extender<MainWalker, Sequence, State> extender_;
+
+	Int block_num_;
+
+	const Sequence& data_;
+
+	bool found_ = false;
+
+public:
+	PackedSequenceCountBackwardWalker(
+			MainWalker& main_walker,
+			const Sequence& data,
+			BigInt limit,
+			Int block_num,
+			State& state
+	):
+		main_walker_(main_walker),
+		extender_(main_walker, data, state),
+		block_num_(block_num),
+		data_(data)
+	{
+		indexes_ 	= data.indexes(block_num);
+	}
+
+	Int walkIndex(Int start, Int end, Int size)
+	{
+		for (Int c = start; c > end; c--)
+		{
+			IndexKey block_rank = indexes_[c];
+
+			if (block_rank >= (IndexKey)size)
+			{
+				sum_  += block_rank;
+			}
+			else {
+				extender_.processIndexes(sum_, block_num_, c + 1, start + 1);
+				return c;
+			}
+		}
+
+		extender_.processIndexes(sum_, block_num_, end + 1, start + 1);
+		return end;
+	}
+
+	Int walkValues(Int start, Int end)
+	{
+		if (Sequence::Bits == 1)
+		{
+			const Symbol* bitmap = data_.valuesBlock();
+
+			Int count = block_num_? CountOneBw(bitmap, start, end) : CountZeroBw(bitmap, start, end);
+
+			sum_ += count;
+
+			found_ = count < (start - end);
+
+			extender_.processIndexes(sum_, block_num_, start - count, start + 1);
+
+			return start - count - 1;
+		}
+		else {
+			Int total = 0;
+			Int value_block_offset = data_.getValueBlockOffset();
+
+			found_ = false;
+
+			Int c;
+			for (c = start - 1; c >= end; c--)
+			{
+				if (data_.testb(value_block_offset, c, block_num_))
+				{
+					total++;
+				}
+				else {
+					found_ = true;
+					break;
+				}
+			}
+
+			sum_  += total;
+
+			extender_.processIndexes(sum_, block_num_, c + 1, start + 1);
+
+			return c;
+		}
+	}
+
+	void finish()
+	{
+		main_walker_.adjust(sum_);
+	}
+
+	BigInt sum() const {
+		return sum_;
+	}
+
+	bool is_found() const {
+		return found_;
+	}
+};
+
+
+
+
 }
-
-
-
 }
 
 #endif

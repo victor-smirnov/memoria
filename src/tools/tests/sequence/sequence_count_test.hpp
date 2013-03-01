@@ -51,7 +51,21 @@ public:
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
 
         MEMORIA_ADD_TEST(runIteratorSequentialCountNextTest);
-        MEMORIA_ADD_TEST(runIteratorSequentialCountPrevTest);
+//        MEMORIA_ADD_TEST(runIteratorSequentialCountPrevTest);
+    }
+
+    void checkIterator(Iterator& iter)
+    {
+    	Accumulator acc;
+    	iter.ComputePrefix(acc);
+
+//    	AssertEQ(MA_SRC, acc[0], iter.prefix());
+
+    	if (acc[0] != iter.prefix())
+    	{
+    		cout<<"Prefix! "<<acc[0]<<" "<<iter.prefix()<<endl;
+    		iter.cache().setup(acc[0], 0);
+    	}
     }
 
     vector<Int> fillSequence(Ctr& ctr, Int size)
@@ -110,7 +124,15 @@ public:
 
     	while (!iter.isEof())
     	{
+//    		cout<<"pos="<<iter.pos()<<endl;
+
+//    		if (iter.pos() == 4545704) {
+//    			int a = 0; a++;
+//    		}
+
     		Int size = iter.countFw(symbol);
+
+    		checkIterator(iter);
 
     		AssertEQ(MA_SRC, iter.element(), 0ul);
     		AssertEQ(MA_SRC, size, sizes[idx]);
@@ -151,9 +173,19 @@ public:
 
     	while (iter--)
     	{
+    		out()<<"pos="<<iter.pos()<<endl;
+
+//    		iter.dump(cout);
+
+    		if (iter.pos() == 4575904) {
+    			int a = 0; a++;
+    		}
+
     		idx--;
 
     		Int size = iter.countBw(symbol);
+
+    		checkIterator(iter);
 
     		if (iter.pos() >= 0)
     		{
@@ -161,6 +193,8 @@ public:
     		}
 
     		AssertEQ(MA_SRC, size, sizes[idx], SBuf()<<idx);
+
+//    		cout<<size<<" "<<sizes[idx]<<endl;
 
     		selections++;
     	}

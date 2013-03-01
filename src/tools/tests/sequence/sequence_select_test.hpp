@@ -50,17 +50,17 @@ public:
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
 
-//        MEMORIA_ADD_TEST(runSelectTest);
+        MEMORIA_ADD_TEST(runSelectTest);
         MEMORIA_ADD_TEST(runIteratorSequentialSelectNextTest);
         MEMORIA_ADD_TEST(runIteratorSequentialSelectPrevTest);
     }
 
     void checkIterator(Iterator& iter)
     {
-//    	Accumulator acc;
-//    	iter.ComputePrefix(acc);
-//
-//    	AssertEQ(MA_SRC, acc[0], iter.prefix());
+    	Accumulator acc;
+    	iter.ComputePrefix(acc);
+
+    	AssertEQ(MA_SRC, acc[0], iter.prefix());
     }
 
     void fillRandom(Ctr& ctr, Int size)
@@ -186,11 +186,11 @@ public:
 
     void assertSelect2(Ctr& ctr, Int rank, Int pos, Int symbol)
     {
-    	BigInt idx = ctr.selectIdx(rank, symbol);
-    	BigInt rank1 = ctr.rank(idx + 1, symbol);
-
-    	AssertEQ(MA_SRC, rank1, rank);
-    	AssertEQ(MA_SRC, idx, pos);
+//    	BigInt idx = ctr.selectIdx(rank, symbol);
+//    	BigInt rank1 = ctr.rank(idx + 1, symbol);
+//
+//    	AssertEQ(MA_SRC, rank1, rank);
+//    	AssertEQ(MA_SRC, idx, pos);
     }
 
     void runSelectTest()

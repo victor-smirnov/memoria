@@ -93,6 +93,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
    		return local_pos_ == 0 && me()->isBegin();
    	}
 
+	bool isBeforeBegin() const
+   	{
+   		return local_pos_ < 0;
+   	}
+
    	DataPageG& data()
    	{
    		return me()->path().data();

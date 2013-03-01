@@ -86,10 +86,10 @@ struct BTreeTypes<Profile, memoria::ASequence>: public BTreeTypes<Profile, memor
 
 
     template <typename Types>
-    using FindLTWalker 		= ::memoria::sequence::FindLT1Walker<Types, btree::EmptyExtender, btree::EmptyExtenderState>;
+    using FindLTWalker 		= ::memoria::sequence::FindLTWalker<Types, btree::EmptyExtender, btree::EmptyExtenderState>;
 
     template <typename Types>
-    using FindLEWalker 		= ::memoria::sequence::FindLE1Walker<Types, btree::EmptyExtender, btree::EmptyExtenderState>;
+    using FindLEWalker 		= ::memoria::sequence::FindLEWalker<Types, btree::EmptyExtender, btree::EmptyExtenderState>;
 
 
     template <typename Types>

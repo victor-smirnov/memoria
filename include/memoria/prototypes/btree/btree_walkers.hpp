@@ -665,9 +665,11 @@ protected:
 					local_sum += values[idx];
 				}
 
-				state_.value()(local_sum, state_.idx(c));
+				if (local_sum > 0) {
+					state_.value()(local_sum, state_.idx(c));
+				}
 			}
-			else {
+			else if (sum > 0) {
 				state_.value()(sum, state_.idx(c));
 			}
 		}

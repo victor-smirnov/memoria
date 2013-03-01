@@ -186,56 +186,23 @@ BigInt M_TYPE::countFw(Symbol symbol)
 {
 	MyType& iter = *me();
 
-	if (iter.isNotEmpty())
-	{
-		Int data_pos  = iter.dataPos();
+	BigInt pos = iter.pos();
 
-		Int result = iter.data()->sequence().countFW(data_pos, symbol);
+	sequence::SequenceForwardWalker<
+		Types,
+		NodeCountForwardWalker,
+		PackedSequenceCountForwardWalker,
+		EmptyExtender,
+		EmptyExtender,
+		EmptyExtenderState
+	>
+	walker(0, symbol + 1, symbol);
 
-		if (result + data_pos < iter.data()->sequence().size())
-		{
-			iter.dataPos() += result;
+	iter.findFw(walker);
 
-			return result;
-		}
-		else {
-			BigInt prefix = iter.prefix(0) + iter.data()->size();
+	iter.cache().setup(pos + walker.sum() - iter.dataPos(), 0);
 
-			SequenceCountFWWalker<Types> walker(iter.model(), symbol + 1);
-
-			Int idx = iter.model().findFw(iter.path(), iter.key_idx() + 1, walker);
-
-			if (idx < iter.page()->children_count())
-			{
-				walker.finish(idx, iter);
-				iter.cache().setup(prefix + walker.prefix(), 0);
-
-				const DataPage* data = iter.data().page();
-
-				Int result1 = data->sequence().countFW(0, symbol);
-
-				if (result1 < data->size())
-				{
-					iter.dataPos() = result1;
-				}
-				else {
-					iter.dataPos() = data->size();
-				}
-
-				return result + walker.prefix() + result1;
-			}
-			else {
-				walker.finish(iter.page()->children_count() - 1, *me());
-				iter.dataPos() = iter.data()->size();
-
-				iter.cache().setup(prefix + walker.prefix() - iter.dataPos(), 0);
-
-				return result + walker.prefix();
-			}
-		}
-	}
-
-	return 0;
+	return walker.sum();
 }
 
 
@@ -245,60 +212,29 @@ BigInt M_TYPE::countBw(Symbol symbol)
 {
 	MyType& iter = *me();
 
-	if (iter.isNotEmpty())
+	BigInt pos = iter.pos();
+
+	sequence::SequenceCountBackwardWalker<
+		Types,
+		NodeCountBackwardWalker,
+		PackedSequenceCountBackwardWalker,
+		EmptyExtender,
+		EmptyExtender,
+		EmptyExtenderState
+	>
+	walker(0, symbol + 1, symbol);
+
+	iter.findBw(walker);
+
+	if (!iter.isBeforeBegin())
 	{
-		Int data_pos  = iter.dataPos() + 1;
-
-		Int result = iter.data()->sequence().countBW(data_pos, symbol);
-
-		if (result < data_pos)
-		{
-			iter.dataPos() -= result;
-
-			return result;
-		}
-		else {
-			BigInt prefix = iter.prefix(0);
-
-			SequenceCountBWWalker<Types> walker(iter.model(), symbol + 1);
-
-			Int idx = iter.model().findBw(iter.path(), iter.key_idx() - 1, walker);
-
-			if (idx >= 0)
-			{
-				walker.finish(idx, iter);
-
-				const DataPage* data = iter.data().page();
-
-				Int data_size = data->size();
-
-
-				BigInt prefix_len = prefix - walker.prefix() - data_size;
-				iter.cache().setup(prefix_len, 0);
-
-				Int result1 = data->sequence().countBW(data_size, symbol);
-
-				if (result1 < data_size)
-				{
-					iter.dataPos() = data_size - result1 - 1;
-				}
-				else {
-					iter.dataPos() = -1;
-				}
-
-				return result + walker.prefix() + result1;
-			}
-			else {
-				walker.finish(0, *me());
-				iter.cache().setup(0, 0);
-
-				iter.dataPos() = -1;
-				return result + walker.prefix();
-			}
-		}
+		iter.cache().setup(pos - (walker.sum()) - iter.dataPos() , 0);
+	}
+	else {
+		iter.cache().setup(0, 0);
 	}
 
-	return 0;
+	return walker.sum();
 }
 
 M_PARAMS

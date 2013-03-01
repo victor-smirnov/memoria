@@ -494,16 +494,6 @@ public:
 
     SelectResult selectBW(Int from, Value symbol, Int rank) const
     {
-//    	MEMORIA_ASSERT(from, >=, 0);
-//    	MEMORIA_ASSERT(from, <=, size());
-//
-//    	SelectBWWalker<MyType, Bits> walker(*this, symbol, rank);
-//
-//    	Int idx = findBw(from, walker);
-//
-//    	return SelectResult(idx, walker.rank(), walker.is_found());
-
-
     	intrnl1::EmptyMainWalker mw;
     	btree::EmptyExtenderState state;
 
@@ -515,26 +505,42 @@ public:
     	size_t idx = findBw(from, walker);
 
     	return SelectResult(idx, walker.sum(), walker.is_found());
-
-
     }
 
     IndexKey countFW(Int from, Value symbol) const
     {
-    	CountFWWalker<MyType, Bits> walker(*this, symbol);
+    	intrnl1::EmptyMainWalker mw;
+    	btree::EmptyExtenderState state;
+
+    	sequence::PackedSequenceCountForwardWalker<
+    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    	>
+    	walker(mw, *this, 0, symbol, state);
 
     	findFw(from, walker);
 
-    	return walker.rank();
+    	return walker.sum();
     }
 
     IndexKey countBW(Int from, Value symbol) const
     {
-    	CountBWWalker<MyType, Bits> walker(*this, symbol);
+//    	CountBWWalker<MyType, Bits> walker(*this, symbol);
+//
+//    	findBw(from, walker);
+//
+//    	return walker.rank();
+
+    	intrnl1::EmptyMainWalker mw;
+    	btree::EmptyExtenderState state;
+
+    	sequence::PackedSequenceCountBackwardWalker<
+    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    	>
+    	walker(mw, *this, 0, symbol, state);
 
     	findBw(from, walker);
 
-    	return walker.rank();
+    	return walker.sum();
     }
 
     void dump(ostream& out_) const

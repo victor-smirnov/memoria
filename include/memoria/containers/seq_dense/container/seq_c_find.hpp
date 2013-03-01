@@ -66,87 +66,65 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
 	BigInt rank(BigInt pos, Int symbol)
 	{
-		Key prefixes[2] = {0, 0};
-		Int key_nums[2] = {0, symbol + 1};
+		MyType& ctr = *me();
 
-		SequenceSimpleWalker<Types, SumCompareLE> walker(*me(), pos, 2, key_nums, prefixes);
+		BigInt rank = 0;
 
-		me()->find1(walker);
+		auto rank_fn = [&rank](BigInt value, Int) {
+			rank += value;
+		};
 
-		if (walker.data().isSet())
-		{
-			Int local_pos = pos - prefixes[0];
-			Int rank_local = walker.data()->sequence().rank1(local_pos, symbol);
+		Int node_indexes[1] = {(Int)symbol + 1};
+		Int data_indexes[1] = {(Int)symbol};
 
-			return prefixes[1] + rank_local;
-		}
-		else if (!walker.is_empty())
-		{
-			return prefixes[1];
-		}
-		else {
-			return 0;
-		}
+		typename Types::template SkipForwardWalker<
+			Types,
+			NodeSumExtender,
+			RankExtender,
+			FunctorExtenderState<>
+		> walker(
+			pos,
+			0,
+			FunctorExtenderState<>(1, node_indexes, rank_fn),
+			FunctorExtenderState<>(1, data_indexes, rank_fn)
+		);
+
+		ctr.find1(walker);
+
+		return rank;
 	}
 
 	Iterator select(BigInt rank, Int symbol)
 	{
-		Key prefixes[2] = {0, 0};
-		Int key_nums[2] = {symbol + 1, 0};
+		MyType& ctr = *me();
 
-		SequenceFWWalker<Types, SumCompareLT> walker(*me(), rank, 2, key_nums, prefixes);
-		Iterator iter = me()->find0(walker);
+		BigInt size = 0;
 
-		if (iter.isNotEmpty())
-		{
-			BigInt local_rank = rank - prefixes[0];
+		auto size_fn = [&size](BigInt value, Int) {
+			size += value;
+		};
 
-			auto result = iter.data()->sequence().selectFW(symbol, local_rank);
+		Int node_indexes[1] = {0};
+		FunctorExtenderState<> node_state(1, node_indexes, size_fn);
 
-			if (result.is_found())
-			{
-				iter.dataPos() = result.idx();
-			}
-			else {
-				iter.dataPos() = iter.data()->size();
-			}
+		Int data_indexes[0] = {};
+		FunctorExtenderState<> data_state(0, data_indexes, size_fn);
 
-			iter.cache().setup(prefixes[1], 0);
-		}
+		sequence::SequenceForwardWalker<
+			Types,
+			NodeLTForwardWalker,
+			SelectForwardWalker,
+			NodeSumExtender,
+			SelectExtender,
+			FunctorExtenderState<>
+		>
+		walker(rank, symbol + 1, symbol, node_state, data_state);
+
+		Iterator iter = ctr.find0(walker);
+
+		iter.cache().setup(size - iter.dataPos() - 1 + walker.data_length(), 0);
 
 		return iter;
-	}
-
-
-	BigInt selectIdx(BigInt rank, Int symbol)
-	{
-		Key prefixes[2] = {0, 0};
-		Int key_nums[2] = {symbol + 1, 0};
-
-		SequenceSimpleWalker<Types, SumCompareLT> walker(*me(), rank, 2, key_nums, prefixes);
-		me()->find1(walker);
-
-		if (walker.data().isSet())
-		{
-			BigInt local_rank = rank - prefixes[0];
-
-			auto result = walker.data()->sequence().selectFW(symbol, local_rank);
-
-			if (result.is_found())
-			{
-				return prefixes[1] + result.idx();
-			}
-			else {
-				return prefixes[1] + walker.data()->size();
-			}
-		}
-		else if (!walker.is_empty())
-		{
-			return prefixes[1];
-		}
-		else {
-			return 0;
-		}
 	}
 
 MEMORIA_CONTAINER_PART_END
