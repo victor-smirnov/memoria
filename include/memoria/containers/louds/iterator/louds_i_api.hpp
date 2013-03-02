@@ -18,6 +18,8 @@
 
 #include <memoria/core/container/iterator.hpp>
 
+#include <memoria/core/tools/louds_tree.hpp>
+
 #include <vector>
 #include <iostream>
 
@@ -27,6 +29,9 @@ using namespace std;
 using namespace ::memoria::louds;
 
 MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
+
+	typedef Ctr<typename Types::CtrTypes>                      	ContainerType;
+    typedef typename ContainerType::WrappedCtr::Iterator        WrappedIterator;
 
 
 	BigInt node_rank_;
@@ -95,16 +100,30 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
     	return false;
     }
 
-    bool operator--()
-    {
+    bool skipBw() {
+
+    	Int value = test(1);
+
     	if (me()->iter()--)
     	{
-    		node_rank_ -= test(1);
+    		node_rank_ -= value;
+
     		return true;
     	}
 
     	return false;
     }
+
+//    bool operator--()
+//    {
+//    	if (me()->iter()--)
+//    	{
+//    		node_rank_ -= test(1);
+//    		return true;
+//    	}
+//
+//    	return false;
+//    }
 
     BigInt nodeIdx() const
     {
@@ -156,7 +175,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
     BigInt select1Bw(BigInt rank)
     {
     	BigInt actual_rank = me()->iter().selectBw(rank, 1);
-    	node_rank_ -= actual_rank;
+    	node_rank_ -= (actual_rank - 1);
     	return actual_rank;
     }
 
@@ -165,12 +184,41 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
     	return me()->iter().rank(length, 1);
     }
 
-    void firstChild() {
+    BigInt rank1() const {
+    	return node_rank_;
+    }
 
+    BigInt rank0() const {
+    	return nodeIdx() + 1 - node_rank_;
+    }
+
+    void firstChild() {
+    	MyType& iter = *me();
+
+    	BigInt rank0 = iter.nodeIdx() + 1 - node_rank_;
+
+    	BigInt drank = iter.iter().selectFw(node_rank_ - rank0, 0);
+
+    	node_rank_ = iter.nodeIdx() + 1 - (rank0 + drank);
+
+    	iter.skipFw();
     }
 
     void lastChild() {
+    	MyType& iter = *me();
 
+    	BigInt rank0 = iter.nodeIdx() + 1 - node_rank_;
+
+    	BigInt drank = iter.iter().selectFw(node_rank_ + 1 - rank0, 0);
+
+    	node_rank_ = iter.nodeIdx() + 1 - (rank0 + drank);
+
+    	iter.skipBw();
+    }
+
+    IDataAdapter<WrappedIterator> source(BigInt length = -1) const
+    {
+    	return IDataAdapter<WrappedIterator>(*me()->iter(), length);
     }
 
 MEMORIA_ITERATOR_PART_END

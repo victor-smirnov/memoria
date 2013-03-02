@@ -75,11 +75,10 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new SumTreeTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
-        runner.registerTask(new SequenceTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
 
-//        runner.registerTask(new LoudsTestSuite());
-//
-//        runner.registerTask(new StaticLoudsTestSuite());
+        runner.registerTask(new LoudsTestSuite());
+        runner.registerTask(new StaticLoudsTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

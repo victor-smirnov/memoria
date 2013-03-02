@@ -44,7 +44,15 @@ public:
 
     	createLouds(tree, degrees_);
 
+    	auto iter = tree.select1(1);
+
+    	iter.dump();
+
     	checkTreeStructure(tree);
+
+    	BigInt count = tree.nodes();
+
+    	AssertEQ(MA_SRC, count, tree.getSubtreeSize(tree.rootNode()));
     }
 };
 

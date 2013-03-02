@@ -15,6 +15,8 @@
 
 #include <memoria/prototypes/ctr_wrapper/iterator.hpp>
 
+#include <memoria/core/tools/louds_tree.hpp>
+
 #include <functional>
 
 namespace memoria    {
@@ -107,7 +109,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 	{
 		Iterator iter 	= me()->select0(node.rank1() + 1);
 
-		iter--;
+		iter.skipBw();
 
 		return iter;
 	}
@@ -119,6 +121,34 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 	BigInt nodes() {
 		return me()->rank1(size() - 1);
 	}
+
+//	LoudsTree getLoudsSubtree(const LoudsNode& node)
+//	{
+//		BigInt tree_size = 0;
+//
+//		this->traverseSubtree(node, [&tree_size](const Iterator& left, BigInt length, Int level) {
+//			tree_size += length;
+//		});
+//
+//		LoudsTree tree(tree_size);
+//
+//		this->traverseSubtree(node, [&tree, this](const Iterator& left, BigInt length, Int level) {
+//			if (length >= 0)
+//			{
+//				if (length > 0)
+//				{
+//					auto src = left.source(length - 1);
+//					tree.append(src);
+//				}
+//
+//				tree.appendUDS(0);
+//			}
+//		});
+//
+//		tree.reindex();
+//
+//		return tree;
+//	}
 
 	BigInt getSubtreeSize(const LoudsNode& node)
 	{
@@ -138,7 +168,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 	}
 
 
-//	template <typename Functor>
+
 	void traverseSubtree(const LoudsNode& node, function<void (const Iterator&, BigInt, Int)> fn)
 	{
 		Iterator left = me()->find(node.node());
@@ -148,11 +178,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 	}
 
 private:
-
-//	template <typename Functor>
 	void traverseSubtree(Iterator& left, Iterator& right, function<void (const Iterator&, BigInt, Int)> fn, Int level = 0)
 	{
-		fn(left, right.nodeIdx() - left.nodeIdx() + 1, level);
+		BigInt length = right.nodeIdx() - left.nodeIdx() + 1;
+
+		fn(left, length + 1, level);
 
 		bool left_leaf 		= left.isLeaf();
 		bool right_leaf		= right.isLeaf();

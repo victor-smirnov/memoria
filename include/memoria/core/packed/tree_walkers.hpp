@@ -904,271 +904,271 @@ public:
 
 
 
-template <typename TreeType>
-class CountFWWalkerBase {
-
-protected:
-	typedef typename TreeType::IndexKey IndexKey;
-	typedef typename TreeType::Value 	Value;
-
-	IndexKey 		rank_;
-	const TreeType& me_;
-
-	Value 			symbol_;
-	Int index_block_offset_;
-
-	bool			found_;
-
-public:
-	CountFWWalkerBase(const TreeType& me, Value symbol):
-		rank_(0),
-		me_(me),
-		symbol_(symbol)
-	{
-		index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
-	}
-
-	void prepareIndex() {}
-	void finish() {}
-
-	Int walkIndex(Int start, Int end, IndexKey size)
-	{
-		for (Int c = start; c < end; c++)
-		{
-			IndexKey block_rank = me_.indexb(index_block_offset_, c);
-
-			if (block_rank >= size)
-			{
-				rank_  += block_rank;
-			}
-			else {
-				return c;
-			}
-		}
-
-		return end;
-	}
-
-	IndexKey rank() const
-	{
-		return rank_;
-	}
-
-	bool is_found() const
-	{
-		return found_;
-	}
-};
-
-
-
-
-template <typename TreeType, Int Bits>
-class CountFWWalker: public CountFWWalkerBase<TreeType> {
-
-	typedef CountFWWalkerBase<TreeType> Base;
-
-	typedef typename Base::IndexKey IndexKey;
-    typedef typename Base::Value 	Value;
-
-    Int value_block_offset_;
-
-public:
-    CountFWWalker(const TreeType& me, Value symbol):
-    	Base(me, symbol)
-    {
-    	value_block_offset_ = me.getValueBlockOffset();
-    }
-
-    Int walkValues(Int start, Int end)
-    {
-    	IndexKey total = 0;
-
-    	Int c;
-    	for (c = start; c < end; c++)
-    	{
-    		if (Base::me_.testb(value_block_offset_, c, Base::symbol_))
-    		{
-    			total++;
-    		}
-    		else {
-    			break;
-    		}
-    	}
-
-    	Base::rank_  += total;
-    	Base::found_ = c != end;
-
-    	return c;
-    }
-};
-
-template <typename TreeType>
-class CountFWWalker<TreeType, 1>: public CountFWWalkerBase<TreeType> {
-
-	typedef CountFWWalkerBase<TreeType> Base;
-
-	typedef typename Base::IndexKey IndexKey;
-    typedef typename Base::Value 	Value;
-
-    Int value_block_offset_;
-
-public:
-    CountFWWalker(const TreeType& me, Value symbol):
-    	Base(me, symbol)
-    {
-    	value_block_offset_ = me.getValueBlockOffset();
-    }
-
-    Int walkValues(Int start, Int end)
-    {
-    	const Value* bitmap = Base::me_.valuesBlock();
-
-    	Int count = Base::symbol_? CountOneFw(bitmap, start, end) : CountZeroFw(bitmap, start, end);
-
-    	Base::rank_ += count;
-
-    	Base::found_ = count < (end - start);
-
-    	return start + count;
-    }
-};
-
-
-
-
-
-template <typename TreeType>
-class CountBWWalkerBase {
-
-protected:
-	typedef typename TreeType::IndexKey IndexKey;
-    typedef typename TreeType::Value 	Value;
-
-    IndexKey 		rank_;
-
-    const TreeType& me_;
-    Value 			symbol_;
-
-    Int index_block_offset_;
-
-    bool			found_;
-
-public:
-    CountBWWalkerBase(const TreeType& me, Value symbol):
-        rank_(0),
-        me_(me),
-        symbol_(symbol)
-    {
-    	index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
-    }
-
-    void prepareIndex() {}
-    void finish() {}
-
-    Int walkIndex(Int start, Int end, IndexKey size)
-    {
-        for (Int c = start; c > end; c--)
-        {
-        	IndexKey block_rank = me_.indexb(index_block_offset_, c);
-
-        	if (block_rank >= size)
-        	{
-        		rank_  += block_rank;
-        	}
-        	else {
-        		return c;
-        	}
-        }
-
-        return end;
-    }
-
-    IndexKey rank() const
-    {
-    	return rank_;
-    }
-
-    bool is_found() const
-    {
-    	return found_;
-    }
-};
-
-template <typename TreeType, Int Bits>
-class CountBWWalker: public CountBWWalkerBase<TreeType> {
-
-	typedef CountBWWalkerBase<TreeType> Base;
-
-	typedef typename Base::IndexKey IndexKey;
-    typedef typename Base::Value 	Value;
-
-    Int value_block_offset_;
-
-public:
-    CountBWWalker(const TreeType& me, Value symbol):
-        Base(me, symbol)
-    {
-    	value_block_offset_ = me.getValueBlockOffset();
-    }
-
-    //FIXME: move offsets[] to constructor
-    Int walkValues(Int start, Int end)
-    {
-    	IndexKey total = 0;
-
-    	Base::found_ = false;
-
-    	Int c;
-    	for (c = start - 1; c >= end; c--)
-    	{
-    		if (Base::me_.testb(value_block_offset_, c, Base::symbol_))
-    		{
-    			total++;
-    		}
-    		else {
-    			Base::found_ = true;
-    			break;
-    		}
-    	}
-
-    	Base::rank_  += total;
-
-    	return c;
-    }
-};
-
-
-
-
-
-
-template <typename TreeType>
-class CountBWWalker<TreeType, 1>: public CountBWWalkerBase<TreeType> {
-
-	typedef CountBWWalkerBase<TreeType> Base;
-
-	typedef typename Base::IndexKey IndexKey;
-    typedef typename Base::Value 	Value;
-
-public:
-    CountBWWalker(const TreeType& me, Value symbol):
-        Base(me, symbol)
-    {}
-
-    Int walkValues(Int start, Int end)
-    {
-    	const Value* bitmap = Base::me_.valuesBlock();
-
-    	Int count = Base::symbol_? CountOneBw(bitmap, start, end) : CountZeroBw(bitmap, start, end);
-
-    	Base::rank_ += count;
-
-    	Base::found_ = count < (start - end);
-
-    	return start - count - 1;
-    }
-};
+//template <typename TreeType>
+//class CountFWWalkerBase {
+//
+//protected:
+//	typedef typename TreeType::IndexKey IndexKey;
+//	typedef typename TreeType::Value 	Value;
+//
+//	IndexKey 		rank_;
+//	const TreeType& me_;
+//
+//	Value 			symbol_;
+//	Int index_block_offset_;
+//
+//	bool			found_;
+//
+//public:
+//	CountFWWalkerBase(const TreeType& me, Value symbol):
+//		rank_(0),
+//		me_(me),
+//		symbol_(symbol)
+//	{
+//		index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
+//	}
+//
+//	void prepareIndex() {}
+//	void finish() {}
+//
+//	Int walkIndex(Int start, Int end, IndexKey size)
+//	{
+//		for (Int c = start; c < end; c++)
+//		{
+//			IndexKey block_rank = me_.indexb(index_block_offset_, c);
+//
+//			if (block_rank >= size)
+//			{
+//				rank_  += block_rank;
+//			}
+//			else {
+//				return c;
+//			}
+//		}
+//
+//		return end;
+//	}
+//
+//	IndexKey rank() const
+//	{
+//		return rank_;
+//	}
+//
+//	bool is_found() const
+//	{
+//		return found_;
+//	}
+//};
+//
+//
+//
+//
+//template <typename TreeType, Int Bits>
+//class CountFWWalker: public CountFWWalkerBase<TreeType> {
+//
+//	typedef CountFWWalkerBase<TreeType> Base;
+//
+//	typedef typename Base::IndexKey IndexKey;
+//    typedef typename Base::Value 	Value;
+//
+//    Int value_block_offset_;
+//
+//public:
+//    CountFWWalker(const TreeType& me, Value symbol):
+//    	Base(me, symbol)
+//    {
+//    	value_block_offset_ = me.getValueBlockOffset();
+//    }
+//
+//    Int walkValues(Int start, Int end)
+//    {
+//    	IndexKey total = 0;
+//
+//    	Int c;
+//    	for (c = start; c < end; c++)
+//    	{
+//    		if (Base::me_.testb(value_block_offset_, c, Base::symbol_))
+//    		{
+//    			total++;
+//    		}
+//    		else {
+//    			break;
+//    		}
+//    	}
+//
+//    	Base::rank_  += total;
+//    	Base::found_ = c != end;
+//
+//    	return c;
+//    }
+//};
+//
+//template <typename TreeType>
+//class CountFWWalker<TreeType, 1>: public CountFWWalkerBase<TreeType> {
+//
+//	typedef CountFWWalkerBase<TreeType> Base;
+//
+//	typedef typename Base::IndexKey IndexKey;
+//    typedef typename Base::Value 	Value;
+//
+//    Int value_block_offset_;
+//
+//public:
+//    CountFWWalker(const TreeType& me, Value symbol):
+//    	Base(me, symbol)
+//    {
+//    	value_block_offset_ = me.getValueBlockOffset();
+//    }
+//
+//    Int walkValues(Int start, Int end)
+//    {
+//    	const Value* bitmap = Base::me_.valuesBlock();
+//
+//    	Int count = Base::symbol_? CountOneFw(bitmap, start, end) : CountZeroFw(bitmap, start, end);
+//
+//    	Base::rank_ += count;
+//
+//    	Base::found_ = count < (end - start);
+//
+//    	return start + count;
+//    }
+//};
+//
+//
+//
+//
+//
+//template <typename TreeType>
+//class CountBWWalkerBase {
+//
+//protected:
+//	typedef typename TreeType::IndexKey IndexKey;
+//    typedef typename TreeType::Value 	Value;
+//
+//    IndexKey 		rank_;
+//
+//    const TreeType& me_;
+//    Value 			symbol_;
+//
+//    Int index_block_offset_;
+//
+//    bool			found_;
+//
+//public:
+//    CountBWWalkerBase(const TreeType& me, Value symbol):
+//        rank_(0),
+//        me_(me),
+//        symbol_(symbol)
+//    {
+//    	index_block_offset_ = me.getIndexKeyBlockOffset(symbol);
+//    }
+//
+//    void prepareIndex() {}
+//    void finish() {}
+//
+//    Int walkIndex(Int start, Int end, IndexKey size)
+//    {
+//        for (Int c = start; c > end; c--)
+//        {
+//        	IndexKey block_rank = me_.indexb(index_block_offset_, c);
+//
+//        	if (block_rank >= size)
+//        	{
+//        		rank_  += block_rank;
+//        	}
+//        	else {
+//        		return c;
+//        	}
+//        }
+//
+//        return end;
+//    }
+//
+//    IndexKey rank() const
+//    {
+//    	return rank_;
+//    }
+//
+//    bool is_found() const
+//    {
+//    	return found_;
+//    }
+//};
+//
+//template <typename TreeType, Int Bits>
+//class CountBWWalker: public CountBWWalkerBase<TreeType> {
+//
+//	typedef CountBWWalkerBase<TreeType> Base;
+//
+//	typedef typename Base::IndexKey IndexKey;
+//    typedef typename Base::Value 	Value;
+//
+//    Int value_block_offset_;
+//
+//public:
+//    CountBWWalker(const TreeType& me, Value symbol):
+//        Base(me, symbol)
+//    {
+//    	value_block_offset_ = me.getValueBlockOffset();
+//    }
+//
+//    //FIXME: move offsets[] to constructor
+//    Int walkValues(Int start, Int end)
+//    {
+//    	IndexKey total = 0;
+//
+//    	Base::found_ = false;
+//
+//    	Int c;
+//    	for (c = start - 1; c >= end; c--)
+//    	{
+//    		if (Base::me_.testb(value_block_offset_, c, Base::symbol_))
+//    		{
+//    			total++;
+//    		}
+//    		else {
+//    			Base::found_ = true;
+//    			break;
+//    		}
+//    	}
+//
+//    	Base::rank_  += total;
+//
+//    	return c;
+//    }
+//};
+//
+//
+//
+//
+//
+//
+//template <typename TreeType>
+//class CountBWWalker<TreeType, 1>: public CountBWWalkerBase<TreeType> {
+//
+//	typedef CountBWWalkerBase<TreeType> Base;
+//
+//	typedef typename Base::IndexKey IndexKey;
+//    typedef typename Base::Value 	Value;
+//
+//public:
+//    CountBWWalker(const TreeType& me, Value symbol):
+//        Base(me, symbol)
+//    {}
+//
+//    Int walkValues(Int start, Int end)
+//    {
+//    	const Value* bitmap = Base::me_.valuesBlock();
+//
+//    	Int count = Base::symbol_? CountOneBw(bitmap, start, end) : CountZeroBw(bitmap, start, end);
+//
+//    	Base::rank_ += count;
+//
+//    	Base::found_ = count < (start - end);
+//
+//    	return start - count - 1;
+//    }
+//};
 
 
 

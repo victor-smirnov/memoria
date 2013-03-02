@@ -398,11 +398,6 @@ public:
 
 	void setup(Iterator& iter) {}
 
-	void finish(Int idx, Iterator& iter)
-	{
-		iter.key_idx() = idx;
-		iter.model().finishPathStep(iter.path(), idx);
-	}
 
 	bool dispatchFirstData(Iterator& iter)
 	{
@@ -439,6 +434,11 @@ public:
 		data_length_ +=  (idx < seq.size()) ? (idx + 1) : idx;
 
 		iter.dataPos() = idx;
+	}
+
+	void finish(Int idx, Iterator& iter)
+	{
+		dispatchLastData(iter);
 	}
 
 	void finishEof(Iterator& iter)

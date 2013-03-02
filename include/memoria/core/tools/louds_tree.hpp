@@ -198,7 +198,9 @@ public:
 		return sequence_->maxIndex(0);
 	}
 
-
+	size_t nodes() const {
+		return rank1();
+	}
 
 
 	bool isLeaf(size_t node) const

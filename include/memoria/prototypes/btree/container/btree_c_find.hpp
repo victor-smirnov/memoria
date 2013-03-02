@@ -141,6 +141,10 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 			NodeDispatcher::DispatchConst(node, walker);
 
 			Int idx = walker.idx();
+			i.key_idx() = idx;
+
+			me()->finishPathStep(i.path(), idx);
+
 			walker.finish(idx, i);
 		}
 		else {

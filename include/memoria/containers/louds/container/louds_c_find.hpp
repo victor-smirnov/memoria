@@ -29,88 +29,46 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 
 	Iterator find(BigInt pos)
 	{
-		BigInt 	prefixes[2] = {0, 0};
-		Int 	key_nums[2] = {0, 2};
+		MyType& ctr = *me();
 
-		BigInt& size_prefix 	= prefixes[0];
-		BigInt& rank1_prefix 	= prefixes[1];
+		BigInt rank = 0;
 
-		SequenceFWWalker<typename MyType::WrappedCtr::Types, SumCompareLE> walker(me()->ctr(), pos, 2, key_nums, prefixes);
-		auto iter = me()->ctr().find0(walker);
+		auto rank_fn = [&rank](BigInt value, Int) {
+			rank += value;
+		};
 
-		if (iter.isNotEmpty())
-		{
-			BigInt local_pos = pos - size_prefix;
+		Int node_indexes[1] = {2};
+		FunctorExtenderState<> node_state(1, node_indexes, rank_fn);
 
-			BigInt rank;
+		Int data_indexes[1] = {1};
+		FunctorExtenderState<> data_state(1, data_indexes, rank_fn);
 
-			if (local_pos < iter.data()->size())
-			{
-				rank = iter.data()->sequence().rank1(local_pos + 1, 1);
-				iter.dataPos() = local_pos;
-			}
-			else
-			{
-				rank = iter.data()->sequence().maxIndex(1);
-				iter.dataPos() = iter.data()->size();
-			}
+		typename MyType::WrappedCtr::Types::template SkipForwardWalker<
+			typename MyType::WrappedCtr::Types,
+			NodeSumExtender,
+			RankExtender,
+			FunctorExtenderState<>
+		> walker(pos, 0, node_state, data_state);
 
-			iter.cache().setup(size_prefix, 0);
+		auto seq_iter = ctr.ctr().find0(walker);
 
-			Iterator louds_iter(*me(), iter);
+		Iterator iter(*me(), seq_iter);
 
-			louds_iter.node_rank() = rank1_prefix + rank;
+		iter.node_rank() = rank + (!iter.isEof() ? iter.test(1) : 0);
 
-			return louds_iter;
-		}
-		else {
-			return Iterator(*me(), iter);
-		}
+		return iter;
 	}
 
 
 	Iterator select0(BigInt rank)
 	{
-		BigInt 	prefixes[2] = {0, 0};
-		Int 	key_nums[2] = {1, 0};
+		auto seq_iter = me()->ctr().select(rank, 0);
 
-		BigInt& rank0_prefix	= prefixes[0];
-		BigInt& size_prefix 	= prefixes[1];
-//		BigInt& rank1_prefix 	= prefixes[2];
+		Iterator iter(*me(), seq_iter);
 
-		SequenceFWWalker<typename MyType::WrappedCtr::Types, SumCompareLT> walker(me()->ctr(), rank, 2, key_nums, prefixes);
-		auto iter = me()->ctr().find0(walker);
+		iter.node_rank() = seq_iter.pos() + 1 - rank;
 
-		if (iter.isNotEmpty())
-		{
-			BigInt local_rank = rank - rank0_prefix;
-
-			louds::Select0Walker<
-				typename MyType::WrappedCtr::Types::DataPage::Sequence
-			>
-			data_walker(iter.data()->sequence(), local_rank);
-
-			Int idx = iter.data()->sequence().findFw(0, data_walker);
-
-			if (data_walker.is_found())
-			{
-				iter.dataPos() = idx;
-			}
-			else {
-				iter.dataPos() = iter.data()->size();
-			}
-
-			iter.cache().setup(size_prefix, 0);
-
-			Iterator louds_iter(*me(), iter);
-
-			louds_iter.node_rank() = (size_prefix - rank0_prefix) + (idx + 1 - data_walker.rank0());
-
-			return louds_iter;
-		}
-		else {
-			return Iterator(*me(), iter);
-		}
+		return iter;
 	}
 
 

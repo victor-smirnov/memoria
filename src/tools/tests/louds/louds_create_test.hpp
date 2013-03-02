@@ -12,6 +12,8 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
+
+
 #include <vector>
 #include <algorithm>
 #include <sstream>
@@ -25,11 +27,17 @@ class LoudsCreateTest: public LoudsTestBase {
 
     typedef LoudsCreateTest                                                     MyType;
 
+    BigInt 	tree_size_ 	= 100000;
+    Int 	nodes_		= 10;
+
 public:
 
     LoudsCreateTest(): LoudsTestBase("Create")
     {
-        MEMORIA_ADD_TEST(runCreateRandomTest);
+        MEMORIA_ADD_TEST_PARAM(tree_size_);
+        MEMORIA_ADD_TEST_PARAM(nodes_);
+
+    	MEMORIA_ADD_TEST(runCreateRandomTest);
     }
 
     virtual ~LoudsCreateTest() throw () {}
@@ -46,7 +54,7 @@ public:
 
     		BigInt t0 = getTimeInMillis();
 
-    		BigInt count0 = createRandomLouds(ctr, 100000 * c, 1000);
+    		BigInt count0 = createRandomLouds(ctr, tree_size_ * c, nodes_);
 
     		BigInt t1 = getTimeInMillis();
 
@@ -54,12 +62,16 @@ public:
 
     		BigInt t2 = getTimeInMillis();
 
-    		AssertEQ(MA_SRC, count0, ctr.getSubtreeSize(ctr.rootNode()));
+    		BigInt count1 = ctr.getSubtreeSize(ctr.rootNode());
 
-    		cout<<"TreeSize: "<<count0<<" Tree Build Time: "<<FormatTime(t1-t0)<<", Traverse Time: "<<FormatTime(t2-t1)<<endl;
+    		BigInt nodes = ctr.nodes();
+
+    		AssertEQ(MA_SRC, count0 + 1, nodes);
+    		AssertEQ(MA_SRC, count1, nodes);
+
+    		cout<<"TreeSize: "<<nodes<<" Tree Build Time: "<<FormatTime(t1-t0)<<", Traverse Time: "<<FormatTime(t2-t1)<<endl;
     	}
     }
-
 
 };
 
