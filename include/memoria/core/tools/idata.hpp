@@ -81,28 +81,6 @@ void dumpArray(std::ostream& out_, const T* data, Int count)
 template <typename T>
 void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
 {
-//	Expand(out_, 5);
-//	for (Int d = 0; d < Blocks; d++)
-//	{
-//		out_.width(5);
-//		out_<<d;
-//	}
-//
-//	out_<<endl<<endl;
-//
-//	for (Int c = 0; c < index_size_; c++)
-//	{
-//		out_.width(4);
-//		out_<<c<<": ";
-//		for (Int d = 0; d < Blocks; d++)
-//		{
-//			out_.width(4);
-//			out_<<this->indexb(this->getIndexKeyBlockOffset(d), c)<<" ";
-//		}
-//		out_<<endl;
-//	}
-
-
 	Int columns;
 
 	switch (bits_per_symbol)

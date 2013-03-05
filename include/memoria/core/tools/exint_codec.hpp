@@ -18,11 +18,22 @@
 
 namespace memoria {
 
-//size_t GetExintValueLength()
-
-
 template <typename V>
-size_t EncodeExint(UByte* buffer, V value, size_t start)
+size_t GetExintValueLength(V value)
+{
+	size_t length;
+
+	for (length = 1; value > 0; value >>= 8)
+	{
+		length++;
+	}
+
+	return length;
+}
+
+
+template <typename T, typename V>
+size_t EncodeExint(T* buffer, V value, size_t start)
 {
 	UByte& byte_length = buffer[start];
 
@@ -38,8 +49,8 @@ size_t EncodeExint(UByte* buffer, V value, size_t start)
 	return byte_length + 1;
 }
 
-template <typename V>
-size_t DecodeExint(const UByte* buffer, V& value, size_t start)
+template <typename T, typename V>
+size_t DecodeExint(const T* buffer, V& value, size_t start)
 {
 	size_t byte_length = buffer[start];
 
@@ -52,6 +63,29 @@ size_t DecodeExint(const UByte* buffer, V& value, size_t start)
 
 	return byte_length + 1;
 }
+
+template <typename T, typename V>
+struct ExintCodec {
+
+	size_t length(const T* buffer, size_t idx) const {
+		return buffer[idx] + 1;
+	}
+
+	size_t length(V value) const {
+		return GetExintValueLength(value);
+	}
+
+	size_t decode(const T* buffer, V& value, size_t idx) const
+	{
+		return DecodeExint(buffer, value, idx);
+	}
+
+	size_t encode(T* buffer, V value, size_t idx) const
+	{
+		return EncodeExint(buffer, value, idx);
+	}
+};
+
 
 
 }

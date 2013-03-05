@@ -543,7 +543,7 @@ public:
     	return walker.sum();
     }
 
-    void dump(ostream& out_) const
+    void dump(ostream& out_ = cout) const
     {
     	out_<<"size_ = "<<size_<<endl;
     	out_<<"max_size_ = "<<max_size_<<endl;
