@@ -28,7 +28,8 @@ template <
 	typename V,
 	typename ResizeHandler_ = EmptyResizeHandler,
 	Int Blocks_ = 1,
-	Int BF = PackedTreeBranchingFactor
+	Int BF = PackedTreeBranchingFactor,
+	Int VPB = 256
 >
 struct PackedVLETreeTypes {
     typedef K               Key;
@@ -38,7 +39,7 @@ struct PackedVLETreeTypes {
 
     static const Int Blocks                 = Blocks_;
     static const Int BranchingFactor        = BF;
-    static const Int ValuesPerBranch        = 256;
+    static const Int ValuesPerBranch        = VPB;
 
     template <typename T, typename VV>
     using Codec = ExintCodec<T, VV>;
@@ -46,15 +47,15 @@ struct PackedVLETreeTypes {
 
 
 
-template <typename Types>
-class PackedVLETree: public PackedTreeBase<PackedVLETree<Types>, Types> {
+template <typename Types_>
+class PackedVLETree: public PackedTreeBase<PackedVLETree<Types_>, Types_> {
 
-	typedef PackedTreeBase<PackedVLETree<Types>, Types>							Base;
+	typedef PackedTreeBase<PackedVLETree<Types_>, Types_>						Base;
 
 public:
 	static const UInt VERSION               									= 1;
 
-
+	typedef Types_																Types;
 	typedef PackedVLETree<Types>               									MyType;
 
 	typedef typename Types::ResizeHandler										ResizeHandler;
@@ -165,13 +166,19 @@ public:
 
 	static Int getOffsetsLengts(Int items_num)
 	{
-		Int value_blocks = getValueBlocks(items_num);
+		if (items_num > ValuesPerBranch)
+		{
+			Int value_blocks = getValueBlocks(items_num);
 
-		Int offsets_bits = value_blocks * BITS_PER_OFFSET;
+			Int offsets_bits = value_blocks * BITS_PER_OFFSET;
 
-		Int offsets_bytes = roundBitsToAlignmentBlocks(offsets_bits);
+			Int offsets_bytes = roundBitsToAlignmentBlocks(offsets_bits);
 
-		return offsets_bytes;
+			return offsets_bytes;
+		}
+		else {
+			return 0;
+		}
 	}
 
 	static Int getBlockSize(Int items_num)
@@ -185,7 +192,13 @@ public:
 
 	static Int getIndexSize(Int items_number)
 	{
-		return MyType::template compute_index_size<MyType>(items_number);
+		if (items_number > ValuesPerBranch)
+		{
+			return MyType::template compute_index_size<MyType>(items_number);
+		}
+		else {
+			return 0;
+		}
 	}
 
 	// ================================= Reindexing ======================================== //
@@ -242,7 +255,10 @@ private:
 			size_t limit = ValuesPerBranch;
 			Int value_block = 0;
 
-			me_.offset(0) = 0;
+			if (me_.offsets() > 0)
+			{
+				me_.offset(0) = 0;
+			}
 
 			for (Int c = 0; c < me_.size(); c++)
 			{
@@ -260,7 +276,7 @@ private:
 				{
 					value_block++;
 
-					if (c + 1 < me_.max_size())
+					if (value_block < me_.offsets())
 					{
 						me_.offset(value_block) = pos - limit;
 					}
@@ -307,131 +323,7 @@ private:
 		void processValue(Value value)	{}
 	};
 
-	class GetValuesSumFn: public GetValueOffsetFnBase<MyType, GetValuesSumFn> {
-		typedef GetValueOffsetFnBase<MyType, GetValuesSumFn> Base;
 
-		const IndexKey* indexes_;
-
-		Value value_ = 0;
-
-	public:
-		GetValuesSumFn(const MyType& me, Int limit): Base(me, limit)
-		{
-			indexes_ = me.indexes(0);
-		}
-
-		void processIndexes(Int start, Int end)
-		{
-			for (Int c = start; c < end; c++)
-			{
-				value_ += indexes_[c];
-			}
-		}
-
-		void processValue(Value value)
-		{
-			value_ += value;
-		}
-
-		Value value() const {
-			return value_;
-		}
-	};
-
-
-
-
-	template <template <typename, typename> class Comparator>
-	class FindElementFn: public FindForwardFnBase<MyType, FindElementFn<Comparator>, IndexKey, Comparator> {
-
-		typedef FindForwardFnBase<MyType, FindElementFn<Comparator>, IndexKey, Comparator> 	Base;
-
-	public:
-		static const Int BranchingFactor        = Types::BranchingFactor;
-		static const Int ValuesPerBranch        = Types::ValuesPerBranch;
-	private:
-
-		const MyType& 		me_;
-
-		const UByte* 		values_;
-		const IndexKey* 	sizes_;
-
-		Int position_;
-
-	public:
-		FindElementFn(const MyType& me, BigInt limit): Base(me.indexes(0), limit), me_(me), position_(0)
-		{
-			values_  = me.getValues();
-			sizes_   = me.sizes();
-		}
-
-		Int max_size() const {
-			return me_.max_size();
-		}
-
-		Int index_size() const {
-			return me_.index_size();
-		}
-
-		Int size() const {
-			return me_.max_size();
-		}
-
-		Int position() const {
-			return position_;
-		}
-
-		Int walkFirstValuesBlock(Int start, Int end)
-		{
-			return walkValues(start, end);
-		}
-
-		Int walkLastValuesBlock(Int value_block_num)
-		{
-			Int offset = me_.offset(value_block_num);
-
-			Int pos = value_block_num * ValuesPerBranch + offset;
-			Int end = me_.max_size();
-
-			return walkValues(pos, end);
-		}
-
-		Int walkValues(Int pos, Int end)
-		{
-			Comparator<Int, Key> compare;
-			Codec codec;
-
-			while (pos < end)
-			{
-				Value value;
-
-				Int len = codec.decode(values_, value, pos);
-
-				if (compare(value, Base::limit_))
-				{
-					Base::sum_ 	 += value;
-					Base::limit_ -= value;
-
-					pos += len;
-
-					position_ ++;
-				}
-				else {
-					return pos;
-				}
-			}
-
-			return end;
-		}
-
-		void processIndexes(Int start, Int end)
-		{
-			for (Int c = start; c < end; c++)
-			{
-				position_ += sizes_[c];
-			}
-		}
-	};
 
 
 
@@ -492,82 +384,7 @@ public:
 		codec.encode(values_, value, pos);
 	}
 
-	class ValueDescr {
-		Value value_;
-		Int pos_;
-		Int idx_;
-	public:
-		ValueDescr(BigInt value, Int pos, Int idx): value_(value), pos_(pos), idx_(idx) {}
 
-		Value value() const 	{return value_;}
-		Int pos() const 		{return pos_;}
-		Int idx() const 		{return idx_;}
-	};
-
-	ValueDescr findLE1(Int start_idx, Value value) const
-	{
-		FindElementFn<BTreeCompareLT> fn(*this, value);
-
-		Int pos;
-
-		if (start_idx > 0)
-		{
-			Int start = getValueOffset(start_idx);
-			pos = Base::find_fw(start, fn);
-		}
-		else {
-			pos = Base::find_fw(fn);
-		}
-
-		Codec codec;
-		Value actual_value;
-
-		const UByte* values_ = getValues();
-		codec.decode(values_, actual_value, pos);
-
-		return ValueDescr(actual_value + fn.sum(), pos, start_idx + fn.position());
-	}
-
-	ValueDescr findLE(Value value) const
-	{
-		FindElementFn<BTreeCompareLT> fn(*this, value);
-
-		Int pos = Base::find_fw(fn);
-
-		Codec codec;
-		Value actual_value;
-
-		const UByte* values_ = getValues();
-		codec.decode(values_, actual_value, pos);
-
-		return ValueDescr(actual_value + fn.sum(), pos, fn.position());
-	}
-
-	ValueDescr findLE(Int start_idx, Value value) const
-	{
-		ValueDescr prefix = sum(start_idx);
-
-		ValueDescr descr = findLE(value + prefix.value());
-
-		return ValueDescr(descr.value() - prefix.value(), descr.pos(), descr.idx());
-	}
-
-	ValueDescr sum(Int to) const
-	{
-		GetValuesSumFn fn(*this, to);
-
-		Int pos = Base::find_fw(fn);
-
-		return ValueDescr(fn.value(), pos, to);
-	}
-
-	ValueDescr sum(Int from, Int to) const
-	{
-		ValueDescr prefix = sum(from);
-		ValueDescr total = sum(to);
-
-		return ValueDescr(total.value() - prefix.value(), total.pos(), to);
-	}
 
 
 	FnAccessor<Value> value(Int idx)
@@ -586,6 +403,12 @@ public:
 	}
 
 	// =================================== Offsets ======================================== //
+
+	Int offsets() const
+	{
+		Int blocks = getValueBlocks();
+		return blocks > 1 ? blocks : 0;
+	}
 
 	BitmapAccessor<OffsetsType*, Int, BITS_PER_OFFSET>
 	offset(Int idx)

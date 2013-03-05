@@ -10,6 +10,8 @@
 #include "../tests_inc.hpp"
 
 #include "pvle_misc_test.hpp"
+#include "pvle_init_test.hpp"
+#include "pvle_create_test.hpp"
 #include "pvle_find_test.hpp"
 
 namespace memoria {
@@ -24,7 +26,16 @@ public:
     PackedVLEMapTestSuite(): TestSuite("PackedVLEMapSuite")
     {
         registerTask(new PVLEMapMiscTest());
-        registerTask(new PVLEMapFindTest());
+    	registerTask(new PVLEMapInitTest());
+
+    	registerTask(new PVLEMapCreateTest<32, 256>());
+    	registerTask(new PVLEMapCreateTest<15, 25>());
+    	registerTask(new PVLEMapCreateTest<44, 125>());
+    	registerTask(new PVLEMapCreateTest<11, 18>());
+
+    	registerTask(new PVLEMapFindTest<32, 256>());
+    	registerTask(new PVLEMapFindTest<11, 33>());
+    	registerTask(new PVLEMapFindTest<44, 125>());
     }
 
 };

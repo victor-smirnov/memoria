@@ -61,10 +61,6 @@ protected:
 		while (level_start > 0);
 	}
 
-private:
-
-
-
 protected:
 
 	template <typename Functor>
@@ -112,7 +108,7 @@ private:
 		}
 	};
 
-protected:
+public:
 	template <typename Functor>
 	void walk_range(Int start, Int end, Functor& walker) const
 	{
@@ -276,7 +272,6 @@ protected:
 						walker.index_size() - level_size,
 						level_size,
 						level_limit,
-//						ValuesPerBranch,
 						ValuesPerBranch
 				);
 
@@ -449,7 +444,6 @@ private:
 			Int level_offet,
 			Int level_size,
 			Int level_limit,
-//			Int cells_number_on_lower_level,
 			Int cell_size
 	) const
 	{
@@ -464,14 +458,14 @@ private:
 					level_limit + level_offet,
 					cell_size
 			)
-			- level_offet);// * cells_number_on_lower_level;
+			- level_offet);
 		}
 		else
 		{
 			Int limit = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
 			if (limit < block_start_end)
 			{
-				return limit;// * cells_number_on_lower_level;
+				return limit;
 			}
 			else {
 				Int level_size0     = getIndexCellsNumberFor<Functor>(level_size);
@@ -483,7 +477,6 @@ private:
 						level_offet - level_size0,
 						level_size0,
 						level_limit0,
-//						BranchingFactor,
 						cell_size * BranchingFactor
 				) * BranchingFactor;
 
@@ -496,7 +489,7 @@ private:
 						last_end + level_offet,
 						cell_size
 				)
-				- level_offet);// * cells_number_on_lower_level;
+				- level_offet);
 			}
 		}
 	}

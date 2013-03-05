@@ -1011,10 +1011,9 @@ public:
 		return me_.max_size();
 	}
 
-
 	Int walkLastValuesBlock(Int value_block_num)
 	{
-		Int offset = me_.offset(value_block_num);
+		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
 
 		Int pos = value_block_num * ValuesPerBranch + offset;
 		Int end = me_.max_size();

@@ -13,7 +13,7 @@
 //#include "packed_map/pmap_test_suite.hpp"
 //#include "packed_seq/pseq_test_suite.hpp"
 
-#include "packed_vle_map/pvle_test_suite.hpp"
+#include "packed_vle_tree/pvle_test_suite.hpp"
 
 //
 //#include "sum_set_batch/sum_tree_test_suite.hpp"
