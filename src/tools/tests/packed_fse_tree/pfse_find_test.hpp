@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_PVLE_FIND_HPP_
-#define MEMORIA_TESTS_PVLE_FIND_HPP_
+#ifndef MEMORIA_TESTS_PFSE_FIND_HPP_
+#define MEMORIA_TESTS_PFSE_FIND_HPP_
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
@@ -16,46 +16,44 @@
 
 #include <memoria/core/tools/exint_codec.hpp>
 
-#include "pvle_test_base.hpp"
+#include "pfse_test_base.hpp"
 
 #include <memory>
+
 
 namespace memoria {
 
 using namespace std;
 
 template <Int BF, Int VPB>
-class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, EmptyAllocator, 2, BF, VPB>> {
+class PackedFSETreeFindTest: public PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>> {
 
-	typedef PVLEMapFindTest<BF, VPB> 														MyType;
-	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Int, EmptyAllocator, 2, BF, VPB>> 	Base;
+	typedef PackedFSETreeFindTest<BF, VPB> 														MyType;
+	typedef PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>> 		Base;
 
 	typedef typename Base::Types			Types;
 	typedef typename Base::Tree 			Tree;
 	typedef typename Base::TreePtr 			TreePtr;
 	typedef typename Base::Value			Value;
-	typedef typename Base::Codec			Codec;
+
 
 	typedef typename Tree::IndexKey			IndexKey;
-	typedef typename Tree::Key				Key;
 
-	typedef VLETreeValueDescr<Value>		ValueDescr;
 
-	vector<Int> block_sizes_ = {16, 50, 125, 256, 1024, 4096}; //
+	vector<Int> block_sizes_ = {50, 125, 256, 1024, 4096}; //
 
 public:
 
-    PVLEMapFindTest(): Base((SBuf()<<"Find."<<BF<<"."<<VPB).str())
+	PackedFSETreeFindTest(): Base((SBuf()<<"Find."<<BF<<"."<<VPB).str())
     {
     	MEMORIA_ADD_TEST(testSumValues);
 
     	MEMORIA_ADD_TEST(testFindFromStart);
     	MEMORIA_ADD_TEST(testFind);
-
-    	MEMORIA_ADD_TEST(testFindLargeValue);
+    	MEMORIA_ADD_TEST(testFindExt);
     }
 
-    virtual ~PVLEMapFindTest() throw() {}
+    virtual ~PackedFSETreeFindTest() throw() {}
 
     void fillTree(TreePtr& tree)
     {
@@ -70,9 +68,21 @@ public:
     	});
     }
 
+    class ValueDescr {
+    	Value value_;
+    	Int idx_;
+    public:
+    	ValueDescr(BigInt value, Int idx): value_(value), idx_(idx) {}
+
+    	Value value() const 	{return value_;}
+    	Int idx() const 		{return idx_;}
+    };
+
+
+
     ValueDescr findLE1(const TreePtr& tree, Int start_idx, Value value)
     {
-    	FindElementFn<Tree, BTreeCompareLT> fn(*tree.get(), value);
+    	FSEFindElementFn<Tree, BTreeCompareLT> fn(*tree.get(), value);
 
     	Int pos;
 
@@ -85,54 +95,46 @@ public:
     		pos = tree->find_fw(fn);
     	}
 
-    	Codec codec;
-    	Value actual_value;
+    	Value actual_value = tree->value(pos);
 
-    	const UByte* values_ = tree->getValues();
-    	codec.decode(values_, actual_value, pos);
-
-    	return ValueDescr(actual_value + fn.sum(), pos, start_idx + fn.position());
+    	return ValueDescr(actual_value + fn.sum(), pos);
     }
 
     ValueDescr findLE(const TreePtr& tree, Value value)
     {
-    	FindElementFn<Tree, BTreeCompareLT> fn(*tree.get(), value);
+    	FSEFindElementFn<Tree, BTreeCompareLT> fn(*tree.get(), value);
 
     	Int pos = tree->find_fw(fn);
 
-    	Codec codec;
-    	Value actual_value;
+    	Value actual_value = tree->value(pos);
 
-    	const UByte* values_ = tree->values();
-    	codec.decode(values_, actual_value, pos);
-
-    	return ValueDescr(actual_value + fn.sum(), pos, fn.position());
+    	return ValueDescr(actual_value + fn.sum(), pos);
     }
 
     ValueDescr findLE(const TreePtr& tree, Int start_idx, Value value)
     {
-    	ValueDescr prefix = sum(tree, start_idx);
+    	IndexKey prefix = sum(tree, start_idx);
 
-    	ValueDescr descr = findLE(tree, value + prefix.value());
+    	ValueDescr descr = findLE(tree, value + prefix);
 
-    	return ValueDescr(descr.value() - prefix.value(), descr.pos(), descr.idx());
+    	return ValueDescr(descr.value() - prefix, descr.idx());
     }
 
-    ValueDescr sum(const TreePtr& tree, Int to)
+    IndexKey sum(const TreePtr& tree, Int to)
     {
-    	GetVLEValuesSumFn<Tree> fn(*tree.get(), to);
+    	GetFSEValuesSumFn<Tree> fn(*tree.get());
 
-    	Int pos = tree->find_fw(fn);
+    	tree->walk_range(to, fn);
 
-    	return ValueDescr(fn.value(), pos, to);
+    	return fn.sum();
     }
 
-    ValueDescr sum(const TreePtr& tree, Int from, Int to)
+    IndexKey sum(const TreePtr& tree, Int from, Int to)
     {
-    	ValueDescr prefix = sum(tree, from);
-    	ValueDescr total = sum(tree, to);
+    	auto prefix = sum(tree, from);
+    	auto total = sum(tree, to);
 
-    	return ValueDescr(total.value() - prefix.value(), total.pos(), to);
+    	return total - prefix;
     }
 
 
@@ -160,7 +162,7 @@ public:
     			auto sum1 = sum(tree, start, c);
     			auto sum2 = Base::sumValues(tree, start, c);
 
-    			AssertEQ(MA_SRC, sum1.value(), sum2);
+    			AssertEQ(MA_SRC, sum1, sum2);
     		}
     	}
     }
@@ -188,7 +190,6 @@ public:
     		Value v = values[idx];
     		auto result = findLE(tree, 0, v);
 
-    		AssertLT(MA_SRC, result.pos(), tree->max_size());
     		AssertEQ(MA_SRC, result.value(), v);
     		AssertEQ(MA_SRC, result.idx(), 0 + idx);
     	}
@@ -222,32 +223,29 @@ public:
 
     			auto result = findLE(tree, start, v);
 
-    			AssertLT(MA_SRC, result.pos(), tree->max_size());
     			AssertEQ(MA_SRC, result.value(), v);
     			AssertEQ(MA_SRC, result.idx(), start + idx);
     		}
     	}
     }
 
-    void testFindLargeValue()
+    void testFindExt()
     {
     	TreePtr tree = Base::createTree(4096);
 
-    	for (Int size = 0; size < tree->max_size(); size += 10)
-    	{
-    		fillTree(tree, size);
+    	fillTree(tree, 100);
 
-    		Int pos1 = tree->getValueOffset(tree->size() - 1);
-    		Int pos2 = tree->getValueOffset(tree->size());
+    	auto result1 = tree->template find_le<FSEFindExtender>(10);
+    	Base::out()<<result1.idx()<<" "<<result1.value()<<endl;
 
-    		AssertLT(MA_SRC, pos1, tree->max_size());
-    		AssertGE(MA_SRC, pos2, tree->max_size());
-    	}
+    	auto result2 = tree->template find_lt<FSEFindExtender>(10);
+    	Base::out()<<result2.idx()<<" "<<result2.value()<<endl;
     }
 };
 
 
 }
+
 
 
 #endif

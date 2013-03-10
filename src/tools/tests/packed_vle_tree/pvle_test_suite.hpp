@@ -19,23 +19,23 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-class PackedVLEMapTestSuite: public TestSuite {
+class PackedVLETestSuite: public TestSuite {
 
 public:
 
-    PackedVLEMapTestSuite(): TestSuite("PackedVLEMapSuite")
+    PackedVLETestSuite(): TestSuite("PackedVLETreeSuite")
     {
-        registerTask(new PVLEMapMiscTest());
-    	registerTask(new PVLEMapInitTest());
+//        registerTask(new PVLEMapMiscTest());
+//    	registerTask(new PVLEMapInitTest());
 
     	registerTask(new PVLEMapCreateTest<32, 256>());
-    	registerTask(new PVLEMapCreateTest<15, 25>());
-    	registerTask(new PVLEMapCreateTest<44, 125>());
-    	registerTask(new PVLEMapCreateTest<11, 18>());
-
-    	registerTask(new PVLEMapFindTest<32, 256>());
-    	registerTask(new PVLEMapFindTest<11, 33>());
-    	registerTask(new PVLEMapFindTest<44, 125>());
+//    	registerTask(new PVLEMapCreateTest<15, 25>());
+//    	registerTask(new PVLEMapCreateTest<44, 125>());
+//    	registerTask(new PVLEMapCreateTest<11, 18>());
+//
+//    	registerTask(new PVLEMapFindTest<32, 256>());
+//    	registerTask(new PVLEMapFindTest<11, 33>());
+//    	registerTask(new PVLEMapFindTest<44, 125>());
     }
 
 };

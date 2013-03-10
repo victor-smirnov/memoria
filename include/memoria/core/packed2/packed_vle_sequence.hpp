@@ -8,34 +8,29 @@
 #ifndef MEMORIA_CORE_PACKED_VLE_TREE_HPP_
 #define MEMORIA_CORE_PACKED_VLE_TREE_HPP_
 
-#include <memoria/core/packed/packed_tree_base.hpp>
-#include <memoria/core/packed/tree_walkers.hpp>
+#include <memoria/core/packed2/packed_tree_base.hpp>
+#include <memoria/core/packed2/packed_tree_walkers.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
 
 #include <memoria/core/tools/accessors.hpp>
 
 namespace memoria {
 
-struct EmptyResizeHandler {
-
-};
-
-
 
 template <
 	typename K,
 	typename IK,
 	typename V,
-	typename ResizeHandler_ = EmptyResizeHandler,
+	typename Allocator_ = EmptyAllocator,
 	Int Blocks_ = 1,
 	Int BF = PackedTreeBranchingFactor,
 	Int VPB = 256
 >
-struct PackedVLETreeTypes {
+struct PackedVLESequenceTypes {
     typedef K               Key;
     typedef IK              IndexKey;
     typedef V               Value;
-    typedef ResizeHandler_  ResizeHandler;
+    typedef Allocator_  	Allocator;
 
     static const Int Blocks                 = Blocks_;
     static const Int BranchingFactor        = BF;
@@ -48,7 +43,7 @@ struct PackedVLETreeTypes {
 
 
 template <typename Types_>
-class PackedVLETree: public PackedTreeBase<PackedVLETree<Types_>, Types_> {
+class PackedVLESequence: public PackedTreeBase<PackedVLETree<Types_>, Types_> {
 
 	typedef PackedTreeBase<PackedVLETree<Types_>, Types_>						Base;
 
@@ -56,9 +51,9 @@ public:
 	static const UInt VERSION               									= 1;
 
 	typedef Types_																Types;
-	typedef PackedVLETree<Types>               									MyType;
+	typedef PackedVLESequence<Types>               								MyType;
 
-	typedef typename Types::ResizeHandler										ResizeHandler;
+	typedef typename Types::Allocator											Allocator;
 
 	typedef typename Types::Key													Key;
 	typedef typename Types::IndexKey											IndexKey;
@@ -78,15 +73,24 @@ public:
 	static const Int ALIGNMENT_BLOCK		= 8; //Bytes
 
 private:
+
 	Int size_;
 	Int index_size_;
 	Int max_size_;
-	Int block_size_;
 
-	UByte buffer_[];
+	UByte* buffer_[];
 
 public:
-	PackedVLETree() {}
+	PackedVLESequence() {}
+
+	void setAllocatorOffset(const void* allocator)
+	{
+		const char* my_ptr = T2T<const char*>(this);
+		const char* alc_ptr = T2T<const char*>(allocator);
+		size_t diff = T2T<size_t>(my_ptr - alc_ptr);
+
+		Base::allocator_offset() = diff;
+	}
 
 	Int& size() {return size_;}
 	const Int& size() const {return size_;}
@@ -94,7 +98,6 @@ public:
 	const Int& index_size() const {return index_size_;}
 
 	const Int& max_size() const {return max_size_;}
-	const Int& block_size() const {return block_size_;}
 
 	OffsetsType* offsetsBlock() {
 		return T2T<OffsetsType*> (buffer_);
@@ -457,8 +460,6 @@ public:
 
 		max_size_   = MyType::getMaxSize(block_size, InitByBlockFn(*this));
 		index_size_ = getIndexSize(max_size_);
-
-		block_size_ = block_size;
 	}
 
 
@@ -477,7 +478,6 @@ public:
 		out<<"size_       = "<<size_<<endl;
 		out<<"max_size_   = "<<max_size_<<endl;
 		out<<"index_size_ = "<<index_size_<<endl;
-		out<<"block_size_ = "<<block_size_<<endl;
 		out<<endl;
 
 		out<<"Offsets:"<<endl;

@@ -18,10 +18,12 @@
 
 namespace memoria    {
 
-static const int DEFAULT_BLOCK_SIZE         = 4096;
-static const int PackedTreeBranchingFactor  = 32;
-static const int PackedSeqBranchingFactor   = 32;
-static const int PackedSeqValuesPerBranch   = 1024;
+static const int DEFAULT_BLOCK_SIZE         		= 4096;
+static const int PackedTreeBranchingFactor  		= 32;
+static const int PackedSeqBranchingFactor   		= 32;
+static const int PackedSeqValuesPerBranch   		= 1024;
+static const int PackedExintVLETreeValuesPerBranch  = 256;
+static const int PackedAllocationAlignment  		= 8;
 
 
 typedef int64_t             BigInt;

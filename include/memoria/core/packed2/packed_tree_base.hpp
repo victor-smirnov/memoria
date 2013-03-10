@@ -10,18 +10,13 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/assert.hpp>
 
+#include <memoria/core/packed2/packed_allocator_base.hpp>
+#include <memoria/core/packed2/packed_tools.hpp>
+
 namespace memoria {
 
-template <typename MyType, typename Types>
-class PackedTreeBase {
-
-public:
-
-	typedef typename Types::IndexKey        IndexKey;
-	typedef typename Types::Value           Value;
-	typedef typename Types::Value           Symbol;
-
-	template <typename T> friend class PackedTree;
+template <typename MyType, typename IndexKey, Int BranchingFactor, Int ValuesPerBranch, Int AlignmentBlock>
+class PackedTreeBase: public PackedAllocatable {
 
 private:
 
@@ -37,16 +32,13 @@ protected:
 		MEMORIA_ASSERT(idx, >=, 0);
 		MEMORIA_ASSERT(idx, <=, fn.size());
 
-		Int BranchingFactor = Functor::BranchingFactor;
-		Int ValuesPerBranch = Functor::ValuesPerBranch;
-
 		Int level_size      = fn.maxSize();
 		Int level_start     = fn.indexSize();
 
 		Int level 			= 0;
 
 		do {
-			level_size      = getIndexCellsNumberFor<Functor>(level, level_size);
+			level_size      = getIndexCellsNumberFor(level, level_size);
 			level_start     -= level_size;
 
 			if (level > 0) {
@@ -70,28 +62,30 @@ protected:
 		MEMORIA_ASSERT(end, <=, fn.size());
 		MEMORIA_ASSERT(start, <=, end);
 
-		Int BranchingFactor = Functor::BranchingFactor;
-
-		Int level_size    = getIndexCellsNumberFor<Functor>(0, fn.maxSize());
-		Int level_start   = fn.indexSize() - level_size;
-
-		fn.clearIndex(0, fn.indexSize());
-
-		fn.buildFirstIndexLine(level_start, level_size);
-
-		while (level_start > 0)
+		if (fn.indexSize() > 0)
 		{
-			Int parent_size 	= getIndexCellsNumberFor<Functor>(1, level_size);
-			Int parent_start 	= level_start - parent_size;
+			Int level_size    = getIndexCellsNumberFor(0, fn.maxSize());
+			Int level_start   = fn.indexSize() - level_size;
 
-			for (Int idx = 0; idx < level_size; idx += BranchingFactor)
+			fn.clearIndex(0, fn.indexSize());
+
+			fn.buildFirstIndexLine(level_start, level_size);
+
+			while (level_start > 0)
 			{
-				Int max = (idx + BranchingFactor) < level_size ? (idx + BranchingFactor) : level_size;
-				fn.processIndex(parent_start + idx / BranchingFactor, idx + level_start, level_start + max);
+				Int parent_size 	= getIndexCellsNumberFor(1, level_size);
+				Int parent_start 	= level_start - parent_size;
+
+				for (Int idx = 0; idx < level_size; idx += BranchingFactor)
+				{
+					Int max = (idx + BranchingFactor) < level_size ? (idx + BranchingFactor) : level_size;
+					fn.processIndex(parent_start + idx / BranchingFactor, idx + level_start, level_start + max);
+				}
+
+				level_start -= parent_size;
+				level_size = parent_size;
 			}
 
-			level_start -= parent_size;
-			level_size = parent_size;
 		}
 	}
 
@@ -116,8 +110,6 @@ public:
 		MEMORIA_ASSERT(end,   <=,  walker.size());
 		MEMORIA_ASSERT(start, <=,  end);
 
-		Int ValuesPerBranch = Functor::ValuesPerBranch;
-
 		FinishHandler<Functor> finish_handler(walker);
 
 		if (end - start <= ValuesPerBranch * 2)
@@ -125,14 +117,14 @@ public:
 			walker.walkValues(start, end);
 		}
 		else {
-			Int block_start_end     = getBlockStartEndV<Functor>(start);
-			Int block_end_start     = getBlockStartV<Functor>(end);
+			Int block_start_end     = getBlockStartEndV(start);
+			Int block_end_start     = getBlockStartV(end);
 
 			walker.walkValues(start, block_start_end);
 
 			if (block_start_end < block_end_start)
 			{
-				Int level_size = getIndexCellsNumberFor<Functor>(0, walker.max_size());
+				Int level_size = getIndexCellsNumberFor(0, walker.max_size());
 				walker.prepareIndex();
 				walkIndexRange(
 						start / ValuesPerBranch + 1,
@@ -153,9 +145,6 @@ public:
 	{
 		MEMORIA_ASSERT(target,   <=,  walker.size());
 
-		Int BranchingFactor = Functor::BranchingFactor;
-		Int ValuesPerBranch = Functor::ValuesPerBranch;
-
 		FinishHandler<Functor> finish_handler(walker);
 
 		Int levels = 0;
@@ -166,7 +155,7 @@ public:
 
 		do
 		{
-			level_size = getIndexCellsNumberFor<Functor>(levels, level_size);
+			level_size = getIndexCellsNumberFor(levels, level_size);
 			level_sizes[levels++] = level_size;
 		}
 		while (level_size > 1);
@@ -183,14 +172,14 @@ public:
 		{
 			Int end = target_idx / cell_size;
 
-			walker.walkIndex(start + base, end + base);
+			walker.walkIndex(start + base, end + base, 0);
 
 			start 		= level > 0 ? end * BranchingFactor : end * ValuesPerBranch;
 			base 		+= level_sizes[level];
 			cell_size 	/= BranchingFactor;
 		}
 
-		return walker.walkValues(start, target);
+		walker.walkValues(start, target);
 	}
 
 
@@ -202,13 +191,11 @@ public:
 		Int levels = 0;
 		Int level_sizes[LEVELS_MAX];
 
-		Int BranchingFactor = Functor::BranchingFactor;
-
 		Int level_size = walker.max_size();
 
 		do
 		{
-			level_size = getIndexCellsNumberFor<Functor>(levels, level_size);
+			level_size = getIndexCellsNumberFor(levels, level_size);
 			level_sizes[levels++] = level_size;
 		}
 		while (level_size > 1);
@@ -244,11 +231,9 @@ public:
 
 		MEMORIA_ASSERT(start, <=, size);
 
-		Int ValuesPerBranch = Functor::ValuesPerBranch;
-
 		FinishHandler<Functor> finish_handler(walker);
 
-		Int block_limit     = getBlockStartEndV<Functor>(start);
+		Int block_limit     = getBlockStartEndV(start);
 
 		if (block_limit >= size)
 		{
@@ -264,8 +249,8 @@ public:
 			else {
 				walker.prepareIndex();
 
-				Int level_size      = getIndexCellsNumberFor<Functor>(0, walker.max_size());
-				Int level_limit     = getIndexCellsNumberFor<Functor>(0, size);
+				Int level_size      = getIndexCellsNumberFor(0, walker.max_size());
+				Int level_limit     = getIndexCellsNumberFor(0, size);
 				Int last_start      = walkIndexFw(
 						block_limit/ValuesPerBranch,
 						walker,
@@ -285,11 +270,9 @@ public:
 	{
 		MEMORIA_ASSERT(start, >=, 0);
 
-		Int ValuesPerBranch = Functor::ValuesPerBranch;
-
 		FinishHandler<Functor> finish_handler(walker);
 
-		Int block_end   = getBlockStartEndBwV<Functor>(start);
+		Int block_end   = getBlockStartEndBwV(start);
 
 		if (block_end == 0)
 		{
@@ -305,7 +288,7 @@ public:
 			else {
 				walker.prepareIndex();
 
-				Int level_size = getIndexCellsNumberFor<Functor>(0, walker.max_size());
+				Int level_size = getIndexCellsNumberFor(0, walker.max_size());
 				Int last_start = walkIndexBw(
 						block_end/ValuesPerBranch - 1,
 						walker,
@@ -326,71 +309,65 @@ public:
 		}
 	}
 
-private:
+protected:
 
-	template <typename Fn>
 	static Int getBlockStart(Int i)
 	{
-		return (i / Fn::BranchingFactor) * Fn::BranchingFactor;
+		return (i / BranchingFactor) * BranchingFactor;
 	}
 
-	template <typename Fn>
 	static Int getBlockStartEnd(Int i)
 	{
-		return (i / Fn::BranchingFactor + 1) * Fn::BranchingFactor;
+		return (i / BranchingFactor + 1) * BranchingFactor;
 	}
 
-	template <typename Fn>
 	static Int getBlockStartV(Int i)
 	{
-		return (i / Fn::ValuesPerBranch) * Fn::ValuesPerBranch;
+		return (i / ValuesPerBranch) * ValuesPerBranch;
 	}
 
-	template <typename Fn>
 	static Int getBlockStartEndV(Int i)
 	{
-		return (i / Fn::ValuesPerBranch + 1) * Fn::ValuesPerBranch;
+		return (i / ValuesPerBranch + 1) * ValuesPerBranch;
 	}
 
-	template <typename Fn>
+
 	static Int getBlockStartEndBw(Int i)
 	{
-		return (i / Fn::BranchingFactor) * Fn::BranchingFactor - 1;
+		return (i / BranchingFactor) * BranchingFactor - 1;
 	}
 
-	template <typename Fn>
+
 	static Int getBlockStartEndBwV(Int i)
 	{
-		return (i / Fn::ValuesPerBranch) * Fn::ValuesPerBranch;
+		return (i / ValuesPerBranch) * ValuesPerBranch;
 	}
 
-	template <typename Fn>
+
 	static Int getBlockEnd(Int i)
 	{
-		return (i / Fn::BranchingFactor + ((i % Fn::BranchingFactor) ? 1 : 0)) * Fn::BranchingFactor;
+		return (i / BranchingFactor + ((i % BranchingFactor) ? 1 : 0)) * BranchingFactor;
 	}
 
-	template <typename Fn>
+
 	static Int getBlockEndV(Int i)
 	{
-		return (i / Fn::ValuesPerBranch + ((i % Fn::ValuesPerBranch) ? 1 : 0)) * Fn::ValuesPerBranch;
+		return (i / ValuesPerBranch + ((i % ValuesPerBranch) ? 1 : 0)) * ValuesPerBranch;
 	}
 
-	template <typename Fn>
 	static Int getIndexCellsNumberFor(Int i)
 	{
-		return getIndexCellsNumberFor<Fn>(1, i);
+		return getIndexCellsNumberFor(1, i);
 	}
 
-	template <typename Fn>
 	static Int getIndexCellsNumberFor(Int level, Int i)
 	{
 		if (level > 0)
 		{
-			return i / Fn::BranchingFactor + ((i % Fn::BranchingFactor) ? 1 : 0);
+			return i / BranchingFactor + ((i % BranchingFactor) ? 1 : 0);
 		}
 		else {
-			return i / Fn::ValuesPerBranch + ((i % Fn::ValuesPerBranch) ? 1 : 0);
+			return i / ValuesPerBranch + ((i % ValuesPerBranch) ? 1 : 0);
 		}
 	}
 
@@ -408,21 +385,19 @@ private:
 	template <typename Functor>
 	void walkIndexRange(Int start, Int end, Functor& walker, Int level_offet, Int level_size, Int cell_size) const
 	{
-		Int BranchingFactor = Functor::BranchingFactor;
-
 		if (end - start <= BranchingFactor * 2)
 		{
 			walker.walkIndex(start + level_offet, end + level_offet);
 		}
 		else {
-			Int block_start_end     = getBlockStartEnd<Functor>(start);
-			Int block_end_start     = getBlockStart<Functor>(end);
+			Int block_start_end     = getBlockStartEnd(start);
+			Int block_end_start     = getBlockStart(end);
 
 			walker.walkIndex(start + level_offet, block_start_end + level_offet);
 
 			if (block_start_end < block_end_start)
 			{
-				Int level_size0 = getIndexCellsNumberFor<Functor>(level_size);
+				Int level_size0 = getIndexCellsNumberFor(level_size);
 				walkIndexRange(
 						start / BranchingFactor + 1,
 						end / BranchingFactor,
@@ -447,9 +422,7 @@ private:
 			Int cell_size
 	) const
 	{
-		Int BranchingFactor = Functor::BranchingFactor;
-
-		Int block_start_end     = getBlockStartEnd<Functor>(start);
+		Int block_start_end     = getBlockStartEnd(start);
 
 		if (block_start_end >= level_limit)
 		{
@@ -468,8 +441,8 @@ private:
 				return limit;
 			}
 			else {
-				Int level_size0     = getIndexCellsNumberFor<Functor>(level_size);
-				Int level_limit0    = getIndexCellsNumberFor<Functor>(level_limit);
+				Int level_size0     = getIndexCellsNumberFor(level_size);
+				Int level_limit0    = getIndexCellsNumberFor(level_limit);
 
 				Int last_start      = walkIndexFw(
 						block_start_end / BranchingFactor,
@@ -480,7 +453,7 @@ private:
 						cell_size * BranchingFactor
 				) * BranchingFactor;
 
-				Int last_start_end  = getBlockStartEnd<Functor>(last_start);
+				Int last_start_end  = getBlockStartEnd(last_start);
 
 				Int last_end = last_start_end <= level_limit ? last_start_end : level_limit;
 
@@ -504,9 +477,7 @@ private:
 			Int cell_size
 	) const
 	{
-		Int BranchingFactor = Functor::BranchingFactor;
-
-		Int block_start_end     = getBlockStartEndBw<Functor>(start);
+		Int block_start_end     = getBlockStartEndBw(start);
 
 		if (block_start_end == -1)
 		{
@@ -525,7 +496,7 @@ private:
 				return (idx + 1) * cells_number_on_lower_level;
 			}
 			else {
-				Int level_size0 = getIndexCellsNumberFor<Functor>(level_size);
+				Int level_size0 = getIndexCellsNumberFor(level_size);
 				Int last_start  = walkIndexBw(
 						block_start_end / BranchingFactor,
 						walker,
@@ -535,7 +506,7 @@ private:
 						cell_size * BranchingFactor
 				) - 1;
 
-				Int last_start_end = getBlockStartEndBw<Functor>(last_start);
+				Int last_start_end = getBlockStartEndBw(last_start);
 
 				return (walker.walkIndex(
 						last_start + level_offet,
@@ -549,7 +520,6 @@ private:
 
 protected:
 
-	template <typename Fn>
 	static Int compute_index_size(Int csize)
 	{
 		if (csize == 1)
@@ -561,14 +531,14 @@ protected:
 			for (Int nlevels=0; csize > 1; nlevels++)
 			{
 				if (nlevels > 0) {
-					csize = ((csize % Fn::BranchingFactor) == 0) ?
-								(csize / Fn::BranchingFactor) :
-									(csize / Fn::BranchingFactor) + 1;
+					csize = ((csize % BranchingFactor) == 0) ?
+								(csize / BranchingFactor) :
+									(csize / BranchingFactor) + 1;
 				}
 				else {
-					csize = ((csize % Fn::ValuesPerBranch) == 0) ?
-								(csize / Fn::ValuesPerBranch) :
-									(csize / Fn::ValuesPerBranch) + 1;
+					csize = ((csize % ValuesPerBranch) == 0) ?
+								(csize / ValuesPerBranch) :
+									(csize / ValuesPerBranch) + 1;
 				}
 				sum += csize;
 			}
@@ -576,155 +546,89 @@ protected:
 		}
 	}
 
+	static Int roundBytesToAlignmentBlocks(Int value)
+	{
+		return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
+	}
+
+	static Int roundBitsToBytes(Int bitsize)
+	{
+		return (bitsize / 8 + (bitsize % 8 ? 1 : 0));
+	}
+
+	static Int roundBitsToAlignmentBlocks(Int bitsize)
+	{
+		Int byte_size = roundBitsToBytes(bitsize);
+		return roundBytesToAlignmentBlocks(byte_size);
+	}
+
 	template <typename Fn>
 	static Int getMaxSize(Int block_size, Fn&& fn)
 	{
-		Int first       = 1;
-		Int last        = fn.last(block_size);
-
-		while (first < last - 1)
-		{
-			Int middle = (first + last) / 2;
-
-			Int size = fn.getBlockSize(middle);
-			if (size < block_size)
-			{
-				first = middle;
-			}
-			else if (size > block_size)
-			{
-				last = middle;
-			}
-			else {
-				break;
-			}
-		}
-
-		Int max_size;
-
-		if (fn.getBlockSize(last) <= block_size)
-		{
-			max_size = last;
-		}
-		else if (fn.getBlockSize((first + last) / 2) <= block_size)
-		{
-			max_size = (first + last) / 2;
-		}
-		else {
-			max_size = first;
-		}
-
-		Int max = fn.extend(max_size);
-
-		if (fn.getIndexSize(max) <= fn.getIndexSize(max_size))
-		{
-			return max;
-		}
-
-		return max_size;
-	}
-
-
-	template <typename V>
-	void dumpArray(std::ostream& out, Int count, function<V(Int)> fn) const
-	{
-	    Int columns;
-
-	    switch (sizeof(V)) {
-	    case 1: columns = 32; break;
-	    case 2: columns = 16; break;
-	    case 4: columns = 16; break;
-	    default: columns = 8;
-	    }
-
-	    Int width = sizeof(V) * 2 + 1;
-
-	    out<<endl;
-	    Expand(out, 19 + width);
-	    for (int c = 0; c < columns; c++)
-	    {
-	        out.width(width);
-	        out<<hex<<c;
-	    }
-	    out<<endl;
-
-	    for (Int c = 0; c < count; c+= columns)
-	    {
-	        Expand(out, 12);
-	        out<<" ";
-	        out.width(6);
-	        out<<dec<<c<<" "<<hex;
-	        out.width(6);
-	        out<<c<<": ";
-
-	        for (Int d = 0; d < columns && c + d < count; d++)
-	        {
-	            out<<hex;
-	            out.width(width);
-	            if (sizeof(V) == 1)
-	            {
-	                out<<(Int)fn(c + d);
-	            }
-	            else {
-	                out<<fn(c + d);
-	            }
-	        }
-
-	        out<<dec<<endl;
-	    }
-	}
-
-
-	template <typename V>
-	void dumpSymbols(ostream& out_, Int size_, Int bits_per_symbol, function<V(Int)> fn) const
-	{
-		Int columns;
-
-		switch (bits_per_symbol)
-		{
-		case 1: columns = 100; break;
-		case 2: columns = 100; break;
-		case 4: columns = 100; break;
-		default: columns = 50;
-		}
-
-		Int width = bits_per_symbol <= 4 ? 1 : 3;
-
-		Int c = 0;
-
-		do
-		{
-			out_<<endl;
-			Expand(out_, 31 - width * 5 - (bits_per_symbol <= 4 ? 2 : 0));
-			for (int c = 0; c < columns; c += 5)
-			{
-				out_.width(width*5);
-				out_<<dec<<c;
-			}
-			out_<<endl;
-
-			Int rows = 0;
-			for (; c < size_ && rows < 10; c += columns, rows++)
-			{
-				Expand(out_, 12);
-				out_<<" ";
-				out_.width(6);
-				out_<<dec<<c<<" "<<hex;
-				out_.width(6);
-				out_<<c<<": ";
-
-				for (Int d = 0; d < columns && c + d < size_; d++)
-				{
-					out_<<hex;
-					out_.width(width);
-					out_<<fn(c + d);
-				}
-
-				out_<<dec<<endl;
-			}
-		} while (c < size_);
+		return FindTotalElementsNumber(block_size, fn);
 	}
 };
+
+template <typename MyType>
+class ReindexFnBase {
+	public:
+		static const Int Indexes        		= MyType::Indexes;
+
+		typedef typename MyType:: IndexKey 		IndexKey;
+
+	protected:
+		MyType& me_;
+
+		IndexKey* indexes_[Indexes];
+
+	public:
+		ReindexFnBase(MyType& me): me_(me)
+		{
+			for (Int idx = 0; idx < Indexes; idx++)
+			{
+				indexes_[idx] = me.indexes(idx);
+			}
+		}
+
+		Int size() const {
+			return me_.size();
+		}
+
+		Int maxSize() const {
+			return me_.max_size();
+		}
+
+		Int indexSize() const {
+			return me_.index_size();
+		}
+
+		void clearIndex(Int start, Int end)
+		{
+			for (Int idx = 0; idx < Indexes; idx++)
+			{
+				for (Int c = start; c < end; c++)
+				{
+					indexes_[idx][c] = 0;
+				}
+			}
+		}
+
+		void processIndex(Int parent, Int start, Int end)
+		{
+			for (Int idx = 0; idx < Indexes; idx++)
+			{
+				IndexKey sum = 0;
+
+				for (Int c = start; c < end; c++)
+				{
+					sum += indexes_[idx][c];
+				}
+
+				indexes_[idx][parent] = sum;
+			}
+		}
+	};
+
 
 }
 

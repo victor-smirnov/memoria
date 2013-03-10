@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_PVLE_BASE_HPP_
-#define MEMORIA_TESTS_PVLE_BASE_HPP_
+#ifndef MEMORIA_TESTS_PFSE_BASE_HPP_
+#define MEMORIA_TESTS_PFSE_BASE_HPP_
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
@@ -23,36 +23,39 @@ namespace memoria {
 using namespace std;
 
 template <typename Types_>
-class PVLETestBase: public TestTask {
+class PackedFSETestBase: public TestTask {
 protected:
 	typedef Types_							Types;
-	typedef PVLETestBase 					MyType;
+	typedef PackedFSETestBase 				MyType;
 
 
-	typedef PackedVLETree<Types> 			Tree;
+	typedef PackedFSETree<Types> 			Tree;
 
 	typedef shared_ptr<Tree> 				TreePtr;
 
 	typedef typename Tree::Value			Value;
-	typedef typename Tree::Codec			Codec;
 
 public:
 
-    PVLETestBase(StringRef name): TestTask(name){}
+	PackedFSETestBase(StringRef name): TestTask(name){}
 
-    virtual ~PVLETestBase() throw() {}
+    virtual ~PackedFSETestBase() throw() {}
 
     TreePtr createTree(Int size)
     {
     	void* buffer = malloc(size);
 
-    	memset(buffer, 0, size);
+    	if (buffer)
+    	{
+    		Tree* tree = T2T<Tree*>(buffer);
 
-    	Tree* tree = T2T<Tree*>(buffer);
+    		tree->initBlockSize(size - sizeof(Tree));
 
-    	tree->init(size);
-
-    	return TreePtr(tree);
+    		return TreePtr(tree);
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf()<<"Can't allocate "<<size<<" bytes");
+    	}
     }
 
     void fillTree(TreePtr& tree, function<Value()> value_provider)
@@ -62,74 +65,25 @@ public:
 
     void fillTree(TreePtr& tree, Int size, function<Value()> value_provider)
     {
-    	auto* values = tree->values();
-
-    	Int pos = 0;
-
-    	Codec codec;
-
-    	Int tree_size = 0;
-
-    	for (int c = 0; ; c++)
-    	{
-    		Int value = value_provider();
-
-    		if (pos + (Int)codec.length(value) <= size)
-    		{
-    			pos += codec.encode(values, value, pos);
-    			tree_size++;
-    		}
-    		else {
-    			break;
-    		}
-    	}
-
-    	tree->size() = tree_size;
-
-    	tree->reindex();
-    }
-
-    void fillTreeByElements(TreePtr& tree, Int size, function<Value()> value_provider)
-    {
-    	auto* values = tree->values();
-
-    	Int pos = 0;
-
-    	Codec codec;
-
-    	Int tree_size = 0;
-
     	for (int c = 0; c < size; c++)
     	{
-    		Int value = value_provider();
-
-    		pos += codec.encode(values, value, pos);
-    		tree_size++;
+    		tree->value(c) = value_provider();
     	}
 
-    	tree->size() = tree_size;
+    	tree->size() = size;
 
     	tree->reindex();
     }
-
 
     vector<Value> sumValues(TreePtr tree, Int start)
     {
-    	Int pos = tree->getValueOffset(start);
-    	const UByte* values_array = tree->values();
-    	Codec codec;
-
     	vector<Value> values;
 
     	Value sum = 0;
 
     	for (Int c = start; c < tree->size(); c++)
     	{
-    		Value value;
-
-    		pos += codec.decode(values_array, value, pos);
-
-    		sum += value;
+    		sum += tree->value(c);
     		values.push_back(sum);
     	}
 
@@ -138,21 +92,11 @@ public:
 
     Value sumValues(TreePtr tree, Int start, Int stop) const
     {
-    	Int pos = tree->getValueOffset(start);
-
-    	const UByte* values = tree->values();
-
     	Value sum = 0;
-
-    	Codec codec;
 
     	for (Int c = start; c < stop; c++)
     	{
-    		Value value;
-
-    		pos += codec.decode(values, value, pos);
-
-    		sum += value;
+    		sum += tree->value(c);
     	}
 
     	return sum;

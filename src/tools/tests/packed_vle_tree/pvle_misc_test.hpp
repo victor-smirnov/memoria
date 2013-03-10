@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/packed/packed_vle_tree.hpp>
+#include <memoria/core/packed2/packed_vle_tree.hpp>
 
 #include <memoria/core/tools/exint_codec.hpp>
 

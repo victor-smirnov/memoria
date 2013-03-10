@@ -1,0 +1,507 @@
+
+// Copyright Victor Smirnov 2013.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+
+#ifndef MEMORIA_CORE_PVLE_TREE_WALKERS_HPP_
+#define MEMORIA_CORE_PVLE_TREE_WALKERS_HPP_
+
+
+#include <memoria/core/types/types.hpp>
+#include <memoria/core/types/type2type.hpp>
+#include <memoria/core/types/traits.hpp>
+
+#include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/bitmap_select.hpp>
+
+#include <functional>
+
+namespace memoria {
+
+using namespace std;
+
+
+
+
+
+
+template <
+	typename TreeType,
+	typename MyType,
+	typename IndexKey,
+	template <typename, typename> class Comparator
+>
+class FindForwardFnBase
+{
+protected:
+	IndexKey sum_;
+
+    BigInt limit_;
+
+    const IndexKey* indexes_;
+
+public:
+    FindForwardFnBase(const IndexKey* indexes, BigInt limit):
+        sum_(0),
+        limit_(limit),
+        indexes_(indexes)
+    {}
+
+    void prepareIndex() {}
+    void finish() {}
+
+    Int walkIndex(Int start, Int end, Int size)
+    {
+        Comparator<BigInt, IndexKey> compare;
+
+    	for (Int c = start; c < end; c++)
+        {
+        	IndexKey key = indexes_[c];
+
+        	if (compare(key, limit_))
+        	{
+        		sum_ 	+= key;
+        		limit_ 	-= key;
+        	}
+        	else {
+        		me().processIndexes(start, c);
+        		return c;
+        	}
+        }
+
+    	me().processIndexes(start, end);
+        return end;
+    }
+
+
+    IndexKey sum() const {
+        return sum_;
+    }
+
+    MyType& me() {
+    	return *static_cast<MyType*>(this);
+    }
+};
+
+template <typename K1, typename K2>
+struct VLECompareLE {
+	bool operator()(K1 k1, K2 k2) {
+		return k1 <= k2;
+	}
+};
+
+template <typename K1, typename K2>
+struct VLECompareLT {
+	bool operator()(K1 k1, K2 k2) {
+		return k1 < k2;
+	}
+};
+
+
+
+template <typename TreeType, typename MyType>
+class GetValueOffsetFnBase: public FindForwardFnBase<TreeType, MyType, typename TreeType::IndexKey, VLECompareLE> {
+
+	typedef FindForwardFnBase<TreeType, MyType, typename TreeType::IndexKey, VLECompareLE> 	Base;
+
+protected:
+
+	typedef typename TreeType::Value 		Value;
+	typedef typename TreeType::Codec 		Codec;
+
+
+private:
+
+	const TreeType& me_;
+
+	const UByte* values_;
+
+public:
+	GetValueOffsetFnBase(const TreeType& me, Int limit): Base(me.indexes(0), limit), me_(me)
+	{
+		values_  = me.values();
+	}
+
+	Int max_size() const {
+		return me_.max_size();
+	}
+
+	Int size() const {
+		return me_.max_size();
+	}
+
+	Int walkLastValuesBlock(Int value_block_num)
+	{
+		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
+
+		Int pos = value_block_num * TreeType::ValuesPerBranch + offset;
+		Int end = me_.max_size();
+
+		VLECompareLE<Int, BigInt> compare;
+		Codec codec;
+
+		while (pos < end)
+		{
+			Int value = pos < end;
+
+			if (compare(value, Base::limit_))
+			{
+				Base::sum_ 	 ++;
+				Base::limit_ --;
+
+				Value val;
+
+				pos += codec.decode(values_, val, pos);
+
+				Base::me().processValue(val);
+			}
+			else {
+				return pos;
+			}
+		}
+
+		return end;
+	}
+};
+
+
+template <typename TreeType, typename MyType>
+class SumValuesFnBase {
+
+protected:
+
+	typedef typename TreeType::IndexKey		IndexKey;
+	typedef typename TreeType::Value 		Value;
+
+private:
+
+	const TreeType& me_;
+
+	const Value* values_;
+	const IndexKey* indexes_;
+
+	IndexKey sum_ = 0;
+
+public:
+	SumValuesFnBase(const TreeType& me, Int index): me_(me)
+	{
+		values_ 	= me.values();
+		indexes_ 	= me.indexes(index);
+	}
+
+	void prepareIndex() {}
+	void finish() {}
+
+	Int max_size() const {
+		return me_.max_size();
+	}
+
+	Int size() const {
+		return me_.max_size();
+	}
+
+	Int walkIndex(Int start, Int end, Int size)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			sum_ += indexes_[c];
+		}
+
+//		me_.processIndexes(start, end);
+		return end;
+	}
+
+	IndexKey sum() const {
+		return sum_;
+	}
+
+	Int walkValues(Int start, Int end)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			sum_ += values_[c];
+		}
+
+//		me_.processValues(start, end);
+
+		return end;
+	}
+};
+
+
+
+template <typename TreeType>
+class GetVLEValuesSumFn: public GetValueOffsetFnBase<TreeType, GetVLEValuesSumFn<TreeType> > {
+	typedef GetValueOffsetFnBase<TreeType, GetVLEValuesSumFn<TreeType> > Base;
+
+	typedef typename TreeType::IndexKey 			IndexKey;
+	typedef typename TreeType::Value 				Value;
+
+	const IndexKey* indexes_;
+
+	Value value_ = 0;
+
+public:
+	GetVLEValuesSumFn(const TreeType& me, Int limit): Base(me, limit)
+	{
+		indexes_ = me.indexes(1);
+	}
+
+	void processIndexes(Int start, Int end)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			value_ += indexes_[c];
+		}
+	}
+
+	void processValue(Value value)
+	{
+		value_ += value;
+	}
+
+	Value value() const {
+		return value_;
+	}
+};
+
+
+
+
+
+template <
+	typename TreeType,
+	template <typename, typename> class Comparator
+>
+class FindElementFn: public FindForwardFnBase<
+	TreeType,
+	FindElementFn<TreeType, Comparator>,
+	typename TreeType::IndexKey,
+	Comparator
+>
+{
+	typedef typename TreeType::IndexKey 	IndexKey;
+	typedef typename TreeType::Codec 		Codec;
+	typedef typename TreeType::Value		Value;
+
+	typedef FindForwardFnBase<TreeType, FindElementFn<TreeType, Comparator>, IndexKey, Comparator> 	Base;
+
+public:
+
+private:
+
+	const TreeType& 	me_;
+
+	const UByte* 		values_;
+	const IndexKey* 	sizes_;
+
+	Int position_;
+
+public:
+	FindElementFn(const TreeType& me, BigInt limit): Base(me.indexes(1), limit), me_(me), position_(0)
+	{
+		values_  = me.values();
+		sizes_   = me.sizes();
+	}
+
+	Int max_size() const {
+		return me_.max_size();
+	}
+
+	Int index_size() const {
+		return me_.index_size();
+	}
+
+	Int size() const {
+		return me_.max_size();
+	}
+
+	Int position() const {
+		return position_;
+	}
+
+	Int walkFirstValuesBlock(Int start, Int end)
+	{
+		return walkValues(start, end);
+	}
+
+	Int walkLastValuesBlock(Int value_block_num)
+	{
+		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
+
+		Int pos = value_block_num * TreeType::ValuesPerBranch + offset;
+		Int end = me_.max_size();
+
+		return walkValues(pos, end);
+	}
+
+	Int walkValues(Int pos, Int end)
+	{
+		Comparator<IndexKey, BigInt> compare;
+		Codec codec;
+
+		while (pos < end)
+		{
+			Value value;
+
+			Int len = codec.decode(values_, value, pos);
+
+			if (compare(value, Base::limit_))
+			{
+				Base::sum_ 	 += value;
+				Base::limit_ -= value;
+
+				pos += len;
+
+				position_ ++;
+			}
+			else {
+				return pos;
+			}
+		}
+
+		return end;
+	}
+
+	void processIndexes(Int start, Int end)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			position_ += sizes_[c];
+		}
+	}
+};
+
+
+template <typename Tree>
+class GetFSEValuesSumFn: public SumValuesFnBase<Tree, GetFSEValuesSumFn<Tree> > {
+
+	typedef SumValuesFnBase<Tree, GetFSEValuesSumFn<Tree> > 		Base;
+
+public:
+	GetFSEValuesSumFn(const Tree& me, Int index = 0): Base(me, index) {}
+
+	void processIndexes(Int start, Int end) {}
+	void processValues(Int start, Int end) {}
+};
+
+
+
+
+template <
+	typename Tree,
+	template <typename, typename> class Comparator,
+	typename MyType
+>
+class FSEFindElementFnBase: public FindForwardFnBase <
+	Tree, MyType, typename Tree::IndexKey, Comparator
+> {
+
+	typedef typename Tree::IndexKey 	IndexKey;
+	typedef typename Tree::Value 		Value;
+
+	typedef FindForwardFnBase<Tree, MyType, IndexKey, Comparator> 	Base;
+
+public:
+
+private:
+
+	const Tree& 		me_;
+
+	const Value* 		values_;
+
+public:
+	FSEFindElementFnBase(const Tree& me, BigInt limit, Int index = 0): Base(me.indexes(index), limit), me_(me)
+	{
+		values_  = me_.values();
+	}
+
+	Int max_size() const {
+		return me_.max_size();
+	}
+
+	Int index_size() const {
+		return me_.index_size();
+	}
+
+	Int size() const {
+		return me_.size();
+	}
+
+	Int walkFirstValuesBlock(Int start, Int end)
+	{
+		return walkValues(start, end);
+	}
+
+	Int walkLastValuesBlock(Int value_block_num)
+	{
+		Int pos = value_block_num * Tree::Types::ValuesPerBranch;
+		Int end = me_.size();
+
+		return walkValues(pos, end);
+	}
+
+	Int walkValues(Int pos, Int end)
+	{
+		Comparator<Int, Value> compare;
+
+		for (Int c = pos; c < end; c++)
+		{
+			Value value = values_[c];
+
+			if (compare(value, Base::limit_))
+			{
+				Base::sum_ 	 += value;
+				Base::limit_ -= value;
+
+				Base::me().processValue(value);
+			}
+			else {
+				Base::me().processValues(pos, c);
+				return c;
+			}
+		}
+
+		Base::me().processValues(pos, end);
+		return end;
+	}
+
+	void processIndexes(Int start, Int end) {}
+	void processValues(Int start, Int end)	{}
+	void processValue(Value value)	{}
+};
+
+
+template <
+	typename Tree,
+	template <typename, typename> class Comparator
+>
+class FSEFindElementFn: public FSEFindElementFnBase<Tree, Comparator, FSEFindElementFn<Tree, Comparator>> {
+	typedef FSEFindElementFnBase<Tree, Comparator, FSEFindElementFn<Tree, Comparator>> Base;
+public:
+	FSEFindElementFn(const Tree& me, BigInt limit, Int index = 0): Base(me, limit, index) {}
+};
+
+
+template <typename TreeType, template <typename, typename> class BaseClass>
+class FSEFindExtender: public BaseClass<TreeType, FSEFindExtender<TreeType, BaseClass>>
+{
+	typedef BaseClass<TreeType, FSEFindExtender<TreeType, BaseClass>> Base;
+
+public:
+
+	FSEFindExtender(const TreeType& me, BigInt limit, Int index = 0): Base(me, limit, index) {}
+
+	void processIndexes(Int start, Int end)
+	{
+	}
+};
+
+
+
+
+}
+
+#endif

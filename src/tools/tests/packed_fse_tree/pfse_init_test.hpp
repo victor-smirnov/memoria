@@ -4,15 +4,15 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_PVLE_INIT_HPP_
-#define MEMORIA_TESTS_PVLE_INIT_HPP_
+#ifndef MEMORIA_TESTS_PFSE_INIT_HPP_
+#define MEMORIA_TESTS_PFSE_INIT_HPP_
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/packed2/packed_vle_tree.hpp>
+#include <memoria/core/packed2/packed_fse_tree.hpp>
 
 #include <memoria/core/tools/exint_codec.hpp>
 
@@ -20,28 +20,28 @@ namespace memoria {
 
 using namespace std;
 
-class PVLEMapInitTest: public TestTask {
+class PackedFSETreeInitTest: public TestTask {
 
-	typedef PVLEMapInitTest 				MyType;
+	typedef PackedFSETreeInitTest 											MyType;
 public:
 
-    PVLEMapInitTest(): TestTask("Init")
+	PackedFSETreeInitTest(): TestTask("Init")
     {
     	MEMORIA_ADD_TEST(testInit);
     }
 
-    virtual ~PVLEMapInitTest() throw() {}
+    virtual ~PackedFSETreeInitTest() throw() {}
 
     template <Int BF, Int VPB>
     void testInitByBlock(Int block_size)
     {
-    	typedef PackedVLETreeTypes<Int, Int, Int, EmptyAllocator, 2, BF, VPB>	Types;
-    	typedef PackedVLETree<Types> 											Tree;
+    	typedef PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>	Types;
+    	typedef PackedFSETree<Types> 										Tree;
 
     	Tree tree;
 
     	Int size = block_size;
-    	tree.init(size);
+    	tree.initBlockSize(size);
 
     	AssertLE(MA_SRC, tree.max_size(), size);
     	AssertGE(MA_SRC, tree.index_size(), 0);
@@ -52,12 +52,12 @@ public:
     template <Int BF, Int VPB>
     void testInitByBlock()
     {
-    	typedef PackedVLETreeTypes<Int, Int, Int, EmptyAllocator, 2, BF, VPB>	Types;
-    	typedef PackedVLETree<Types> 											Tree;
+    	typedef PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>	Types;
+    	typedef PackedFSETree<Types> 										Tree;
 
     	Tree tree;
 
-    	tree.init(0);
+    	tree.initBlockSize(0);
 
     	AssertEQ(MA_SRC, tree.max_size(), 0);
     	AssertEQ(MA_SRC, tree.index_size(), 0);
