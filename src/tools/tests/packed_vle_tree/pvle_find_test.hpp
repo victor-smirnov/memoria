@@ -25,10 +25,10 @@ namespace memoria {
 using namespace std;
 
 template <Int BF, Int VPB>
-class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, EmptyAllocator, 2, BF, VPB>> {
+class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedSingleElementAllocator, 2, BF, VPB>> {
 
-	typedef PVLEMapFindTest<BF, VPB> 														MyType;
-	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Int, EmptyAllocator, 2, BF, VPB>> 	Base;
+	typedef PVLEMapFindTest<BF, VPB> 																	MyType;
+	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedSingleElementAllocator, 2, BF, VPB>> 	Base;
 
 	typedef typename Base::Types			Types;
 	typedef typename Base::Tree 			Tree;
@@ -57,12 +57,12 @@ public:
 
     virtual ~PVLEMapFindTest() throw() {}
 
-    void fillTree(TreePtr& tree)
+    void fillTree(Tree* tree)
     {
     	fillTree(tree, tree->max_size());
     }
 
-    void fillTree(TreePtr& tree, Int size)
+    void fillTree(Tree* tree, Int size)
     {
     	Value c = 0;
     	Base::fillTree(tree, [&]()->Value {
@@ -70,9 +70,9 @@ public:
     	});
     }
 
-    ValueDescr findLE1(const TreePtr& tree, Int start_idx, Value value)
+    ValueDescr findLE1(const Tree* tree, Int start_idx, Value value)
     {
-    	FindElementFn<Tree, BTreeCompareLT> fn(*tree.get(), value);
+    	FindElementFn<Tree, BTreeCompareLT> fn(*tree, value);
 
     	Int pos;
 
@@ -94,9 +94,9 @@ public:
     	return ValueDescr(actual_value + fn.sum(), pos, start_idx + fn.position());
     }
 
-    ValueDescr findLE(const TreePtr& tree, Value value)
+    ValueDescr findLE(const Tree* tree, Value value)
     {
-    	FindElementFn<Tree, BTreeCompareLT> fn(*tree.get(), value);
+    	FindElementFn<Tree, BTreeCompareLT> fn(*tree, value);
 
     	Int pos = tree->find_fw(fn);
 
@@ -109,7 +109,7 @@ public:
     	return ValueDescr(actual_value + fn.sum(), pos, fn.position());
     }
 
-    ValueDescr findLE(const TreePtr& tree, Int start_idx, Value value)
+    ValueDescr findLE(const Tree* tree, Int start_idx, Value value)
     {
     	ValueDescr prefix = sum(tree, start_idx);
 
@@ -118,16 +118,16 @@ public:
     	return ValueDescr(descr.value() - prefix.value(), descr.pos(), descr.idx());
     }
 
-    ValueDescr sum(const TreePtr& tree, Int to)
+    ValueDescr sum(const Tree* tree, Int to)
     {
-    	GetVLEValuesSumFn<Tree> fn(*tree.get(), to);
+    	GetVLEValuesSumFn<Tree> fn(*tree, to);
 
     	Int pos = tree->find_fw(fn);
 
     	return ValueDescr(fn.value(), pos, to);
     }
 
-    ValueDescr sum(const TreePtr& tree, Int from, Int to)
+    ValueDescr sum(const Tree* tree, Int from, Int to)
     {
     	ValueDescr prefix = sum(tree, from);
     	ValueDescr total = sum(tree, to);
@@ -148,7 +148,9 @@ public:
     {
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
-    	TreePtr tree = Base::createTree(block_size);
+    	TreePtr tree_block = Base::createTree(block_size);
+    	Tree* tree = tree_block->template get<Tree>();
+
 
     	fillTree(tree);
 
@@ -177,7 +179,8 @@ public:
     {
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
-    	TreePtr tree = Base::createTree(block_size);
+    	TreePtr tree_block = Base::createTree(block_size);
+    	Tree* tree = tree_block->template get<Tree>();
 
     	fillTree(tree);
 
@@ -205,7 +208,8 @@ public:
     {
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
-    	TreePtr tree = Base::createTree(block_size);
+    	TreePtr tree_block = Base::createTree(block_size);
+    	Tree* tree = tree_block->template get<Tree>();
 
     	fillTree(tree);
 
@@ -231,7 +235,8 @@ public:
 
     void testFindLargeValue()
     {
-    	TreePtr tree = Base::createTree(4096);
+    	TreePtr tree_block = Base::createTree(4096);
+    	Tree* tree = tree_block->template get<Tree>();
 
     	for (Int size = 0; size < tree->max_size(); size += 10)
     	{

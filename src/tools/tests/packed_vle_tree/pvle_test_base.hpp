@@ -13,6 +13,7 @@
 #include <memoria/prototypes/btree/tools.hpp>
 
 #include <memoria/core/packed2/packed_vle_tree.hpp>
+#include <memoria/core/packed2/packed_dynamic_allocator.hpp>
 
 #include <memoria/core/tools/exint_codec.hpp>
 
@@ -31,10 +32,14 @@ protected:
 
 	typedef PackedVLETree<Types> 			Tree;
 
-	typedef shared_ptr<Tree> 				TreePtr;
+
 
 	typedef typename Tree::Value			Value;
 	typedef typename Tree::Codec			Codec;
+
+	typedef typename Types::Allocator		Allocator;
+
+	typedef shared_ptr<Allocator> 			TreePtr;
 
 public:
 
@@ -42,25 +47,31 @@ public:
 
     virtual ~PVLETestBase() throw() {}
 
-    TreePtr createTree(Int size)
+    TreePtr createTree(Int size, Int free_space = 0)
     {
-    	void* buffer = malloc(size);
+    	Int block_size = Allocator::block_size(size + free_space);
 
-    	memset(buffer, 0, size);
+    	void* buffer = malloc(block_size);
 
-    	Tree* tree = T2T<Tree*>(buffer);
+    	memset(buffer, 0, block_size);
 
-    	tree->init(size);
+    	Allocator* allocator = T2T<Allocator*>(buffer);
 
-    	return TreePtr(tree);
+    	auto block = allocator->allocate(size);
+
+    	Tree* tree = T2T<Tree*>(block.ptr());
+
+    	tree->init(block.size());
+
+    	return TreePtr(allocator);
     }
 
-    void fillTree(TreePtr& tree, function<Value()> value_provider)
+    void fillTree(Tree* tree, function<Value()> value_provider)
     {
     	fillTree(tree, tree->max_size(), value_provider);
     }
 
-    void fillTree(TreePtr& tree, Int size, function<Value()> value_provider)
+    void fillTree(Tree* tree, Int size, function<Value()> value_provider)
     {
     	auto* values = tree->values();
 
@@ -89,7 +100,7 @@ public:
     	tree->reindex();
     }
 
-    void fillTreeByElements(TreePtr& tree, Int size, function<Value()> value_provider)
+    void fillTreeByElements(Tree* tree, Int size, function<Value()> value_provider)
     {
     	auto* values = tree->values();
 
@@ -113,7 +124,7 @@ public:
     }
 
 
-    vector<Value> sumValues(TreePtr tree, Int start)
+    vector<Value> sumValues(Tree* tree, Int start)
     {
     	Int pos = tree->getValueOffset(start);
     	const UByte* values_array = tree->values();
@@ -136,7 +147,7 @@ public:
     	return values;
     }
 
-    Value sumValues(TreePtr tree, Int start, Int stop) const
+    Value sumValues(Tree* tree, Int start, Int stop) const
     {
     	Int pos = tree->getValueOffset(start);
 

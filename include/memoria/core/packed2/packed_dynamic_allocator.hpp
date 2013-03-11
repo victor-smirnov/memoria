@@ -73,7 +73,7 @@ public:
 		return sizeof(MyType) + layout_block_size;
 	}
 
-	void initBlockSize(Int block_size, Int elements_number)
+	void init(Int block_size, Int elements_number)
 	{
 		block_size_ 				= block_size;
 		Int requested_layout_size	= Layout::block_size(elements_number);
@@ -193,11 +193,11 @@ public:
 };
 
 
-template <typename Allocatable>
-class PackedSingleElementAllocator: public PackedAllocatorBase<PackedSingleElementAllocator<Allocatable>> {
 
-	typedef PackedAllocatorBase<PackedSingleElementAllocator<Allocatable>> 		Base;
-	typedef PackedSingleElementAllocator<Allocatable>							MyType;
+class PackedSingleElementAllocator: public PackedAllocatorBase<PackedSingleElementAllocator> {
+
+	typedef PackedAllocatorBase<PackedSingleElementAllocator> 		Base;
+	typedef PackedSingleElementAllocator							MyType;
 
 	Int block_size_;
 	Int allocated_;
@@ -211,20 +211,23 @@ public:
 		return block_size_;
 	}
 
-	static Int block_size(Int memory_size) {
+	static Int block_size(Int memory_size)
+	{
 		return memory_size + sizeof(MyType);
 	}
 
-	void initBlockSize(Int block_size)
+	void init(Int block_size)
 	{
 		block_size_ = block_size;
 	}
 
+	template <typename Allocatable>
 	const Allocatable* get() const
 	{
 		return T2T<const Allocatable*>(buffer_ + getOffset(0));
 	}
 
+	template <typename Allocatable>
 	Allocatable* get()
 	{
 		return T2T<Allocatable*>(buffer_ + getOffset(0));

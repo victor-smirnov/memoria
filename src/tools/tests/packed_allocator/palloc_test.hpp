@@ -30,7 +30,7 @@ class PackedAllocatorTest: public TestTask {
 
 	typedef PackedFSECxSequence<Types>										Sequence;
 
-	typedef PackedSingleElementAllocator<Sequence>							Allocator;
+	typedef PackedSingleElementAllocator									Allocator;
 
 	typedef shared_ptr<Allocator>											SequencePtr;
 
@@ -53,13 +53,13 @@ public:
 
     	Allocator* allocator = T2T<Allocator*>(memory_block);
 
-    	allocator->initBlockSize(block_size);
+    	allocator->init(block_size);
 
     	AllocationBlock block = allocator->allocate(sequence_block_size);
 
     	Sequence* seq = T2T<Sequence*>(block.ptr());
 
-    	seq->initBlockSize(sequence_block_size);
+    	seq->init(sequence_block_size);
 
     	seq->setAllocatorOffset(allocator);
 
@@ -70,7 +70,7 @@ public:
     void testCreate()
     {
     	SequencePtr seq_ptr = createSequence(64*1024);
-    	Sequence* seq = seq_ptr->get();
+    	Sequence* seq = seq_ptr->get<Sequence>();
 
     	Int max_size = seq->max_size();
     	auto* symbols = seq->symbols();

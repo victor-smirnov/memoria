@@ -176,14 +176,14 @@ private:
 	};
 
 public:
-	void initBlockSize(Int block_size)
+	void init(Int block_size)
 	{
 		size_ = 0;
 		max_size_ = FindTotalElementsNumber(block_size, InitFn());
 
 		Int indexes_block_size = block_size - max_size_ - sizeof(MyType);
 
-		indexes().initBlockSize(indexes_block_size, 1);
+		indexes().init(indexes_block_size, 1);
 	}
 
 

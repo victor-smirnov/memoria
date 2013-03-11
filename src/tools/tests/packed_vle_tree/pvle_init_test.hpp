@@ -57,7 +57,7 @@ public:
 
     	Tree tree;
 
-    	tree.init(0);
+    	tree.init(sizeof(Tree));
 
     	AssertEQ(MA_SRC, tree.max_size(), 0);
     	AssertEQ(MA_SRC, tree.index_size(), 0);
@@ -67,7 +67,7 @@ public:
 
     void testInit()
     {
-    	for (Int block_size = 0; block_size < 128*1024; block_size += getRandom(10)+1)
+    	for (Int block_size = 16; block_size < 128*1024; block_size += getRandom(10)+1)
     	{
     		testInitByBlock<32, 32>(block_size);
     		testInitByBlock<32, 256>(block_size);
