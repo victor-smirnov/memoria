@@ -49,7 +49,7 @@ public:
     	{
     		Tree* tree = T2T<Tree*>(buffer);
 
-    		tree->initBlockSize(size - sizeof(Tree));
+    		tree->init(size);
 
     		return TreePtr(tree);
     	}

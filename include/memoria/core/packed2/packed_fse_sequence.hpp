@@ -9,18 +9,12 @@
 #define MEMORIA_CORE_PACKED_FSE_SEQUENCE_HPP_
 
 #include <memoria/core/packed2/packed_tree_base.hpp>
-#include <memoria/core/packed/tree_walkers.hpp>
+#include <memoria/core/packed2/packed_tree_walkers.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
 
 #include <memoria/core/tools/accessors.hpp>
 
 namespace memoria {
-
-struct EmptyAllocator {
-
-};
-
-
 
 template <
 	Int BitsPerSymbol_,
@@ -161,42 +155,21 @@ private:
 			Int limit = ValuesPerBranch - 1;
 			Int block_num = 0;
 
-			if (Indexes == 2)
+			const Value* values = Base::me_.values();
+
+			for (Int c = 0, block_num = 0; c < size(); c += ValuesPerBranch, blok_num++)
 			{
-				const Value* values = Base::me_.values();
-
-				for (Int c = 0; c < size(); c += ValuesPerBranch)
+				Int end;
+				if (c + ValuesPerBranch < size())
 				{
-					Int end;
-					if (c + ValuesPerBranch < size())
-					{
-						end = c + ValuesPerBranch;
-					}
-					else {
-						end = size();
-					}
-
-					Base::indexes_[1] = PopCount(values, c, end);
-					Base::indexes_[0] = (end - c) - Base::indexes_[1];
-
-					if (c == limit)
-					{
-						block_num++;
-						limit += ValuesPerBranch;
-					}
+					end = c + ValuesPerBranch;
 				}
-			}
-			else {
-				for (Int c = 0; c < size(); c++)
-				{
-					indexes_[Base::me_[c]][block_num]++;
-
-					if (c == limit)
-					{
-						block_num++;
-						limit += ValuesPerBranch;
-					}
+				else {
+					end = size();
 				}
+
+				Base::indexes_[1][block_num] = PopCount(values, c, end);
+				Base::indexes_[0][block_num] = (end - c) - Base::indexes_[1];
 			}
 		}
 	};
@@ -320,7 +293,7 @@ public:
 		});
 	}
 
-private:
+
 };
 
 

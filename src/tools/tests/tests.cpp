@@ -74,8 +74,8 @@ int main(int argc, const char** argv, const char** envp)
 //
 //        runner.registerTask(new BitmapTestSuite());
 //        runner.registerTask(new PackedMapTestSuite());
-        runner.registerTask(new PackedVLETestSuite());
-        runner.registerTask(new PackedFSETestSuite());
+//        runner.registerTask(new PackedVLETestSuite());
+//        runner.registerTask(new PackedFSETestSuite());
         runner.registerTask(new PackedAllocatorTestSuite());
 //        runner.registerTask(new PackedSeqTestSuite());
 //        runner.registerTask(new SymbolSeqTestSuite());

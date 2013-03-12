@@ -19,17 +19,20 @@ namespace memoria {
 template <typename Value, typename Walker = EmptyType>
 class FSEValueDescr {
 	Value value_;
+	Value prefix_;
 	Int idx_;
 
 	Walker walker_;
 public:
-	FSEValueDescr(BigInt value, Int idx, const Walker& walker = EmptyType()):
+	FSEValueDescr(BigInt value, Int idx, Value prefix, const Walker& walker = EmptyType()):
 		value_(value),
+		prefix_(prefix),
 		idx_(idx),
 		walker_(walker)
 	{}
 
 	Value value() const 	{return value_;}
+	Value prefix() const 	{return prefix_;}
 	Int idx() const 		{return idx_;}
 
 	const Walker& walker() const 	{return walker_;}
@@ -328,7 +331,7 @@ private:
 	};
 
 public:
-	void initBlockSize(Int block_size)
+	void init(Int block_size)
 	{
 		memset(this, 0, block_size);
 
@@ -402,6 +405,10 @@ public:
 		});
 	}
 
+	Value sum() const {
+		return sum(size_);
+	}
+
 	Value sum(Int to) const
 	{
 		GetFSEValuesSumFn<MyType> fn(*this);
@@ -418,25 +425,26 @@ public:
 
 	ValueDescr findLT(Value val) const
 	{
-		FSEFindElementFn<MyType, BTreeCompareLE> fn(*this, value);
+		FSEFindElementFn<MyType, BTreeCompareLE> fn(*this, val);
 
 		Int pos = this->find_fw(fn);
 
 		Value actual_value = value(pos);
 
-		return ValueDescr(actual_value + fn.sum(), pos);
+		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
 	}
 
 	ValueDescr findLE(Value val) const
 	{
-		FSEFindElementFn<MyType, BTreeCompareLT> fn(*this, value);
+		FSEFindElementFn<MyType, BTreeCompareLT> fn(*this, val);
 
 		Int pos = this->find_fw(fn);
 
 		Value actual_value = value(pos);
 
-		return ValueDescr(actual_value + fn.sum(), pos);
+		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
 	}
+
 
 	template <
 		template <typename TreeType, template <typename, typename> class BaseClass> class Extender
@@ -453,7 +461,7 @@ public:
 
 		Value actual_value = this->value(pos);
 
-		return FSEValueDescr<Value, Extender<MyType, FindLEFnBase>>(actual_value + fn.sum(), pos, fn);
+		return FSEValueDescr<Value, Extender<MyType, FindLEFnBase>>(actual_value + fn.sum(), pos, fn.sum(), fn);
 	}
 
 
@@ -472,7 +480,7 @@ public:
 
 		Value actual_value = this->value(pos);
 
-		return FSEValueDescr<Value, Extender<MyType, FindLTFnBase>>(actual_value + fn.sum(), pos, fn);
+		return FSEValueDescr<Value, Extender<MyType, FindLTFnBase>>(actual_value + fn.sum(), pos, fn.sum(), fn);
 	}
 };
 

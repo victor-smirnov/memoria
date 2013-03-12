@@ -41,7 +41,7 @@ public:
     	Tree tree;
 
     	Int size = block_size;
-    	tree.initBlockSize(size);
+    	tree.init(size);
 
     	AssertLE(MA_SRC, tree.max_size(), size);
     	AssertGE(MA_SRC, tree.index_size(), 0);
@@ -57,7 +57,7 @@ public:
 
     	Tree tree;
 
-    	tree.initBlockSize(0);
+    	tree.init(0);
 
     	AssertEQ(MA_SRC, tree.max_size(), 0);
     	AssertEQ(MA_SRC, tree.index_size(), 0);

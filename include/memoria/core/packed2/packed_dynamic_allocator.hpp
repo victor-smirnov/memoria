@@ -45,6 +45,18 @@ protected:
 
 public:
 
+	Int available() const
+	{
+		Int alc = allocated();
+		return block_size_ - sizeof(MyType) - alc;
+	}
+
+	Int allocated() const
+	{
+		Int size = layout().size();
+		return layout().sum(0, size);
+	}
+
 	char* data()
 	{
 		return buffer_ + layout_block_size_;
@@ -81,7 +93,7 @@ public:
 
 		Layout& the_layout = layout();
 
-		the_layout.initBlockSize(requested_layout_size);
+		the_layout.init(requested_layout_size);
 
 		MEMORIA_ASSERT(the_layout.max_size(), >=, elements_number);
 		MEMORIA_ASSERT(the_layout.block_size(), <=, layout_block_size_);
@@ -98,7 +110,7 @@ public:
 
 		Int allocation_size = Base::enlargeBlock(idx, size);
 
-		return AllocationBlock(allocation_size, offset, ptr);
+		return AllocationBlock(allocation_size, offset, T2T<UByte*>(ptr));
 	}
 
 	AllocationBlock describe(Int idx)
@@ -107,7 +119,7 @@ public:
 		Int size	= getSize(idx);
 		char* ptr	= data() + offset;
 
-		return AllocationBlock(size, offset, ptr);
+		return AllocationBlock(size, offset, T2T<UByte*>(ptr));
 	}
 
 	AllocationBlockConst describe(Int idx) const
@@ -116,7 +128,7 @@ public:
 		Int size	= getSize(idx);
 		const char* ptr	= data() + offset;
 
-		return AllocationBlockConst(size, offset, ptr);
+		return AllocationBlockConst(size, offset, T2T<UByte*>(ptr));
 	}
 
 	void free(Int idx)
@@ -156,6 +168,10 @@ public:
 		return layout().size();
 	}
 
+	const char* getOffsetBase() const {
+		return data();
+	}
+
 	Int getSize(Int idx) const
 	{
 		return layout().value(idx);
@@ -186,10 +202,57 @@ public:
 };
 
 
-template <typename Base = EmptyType>
-class PackedDynamicAllocator: public PackedDynamicAllocatorBase<PackedDynamicAllocator<Base>, Base> {
+template <typename Allocator = EmptyAllocator>
+class PackedDynamicAllocator: public PackedDynamicAllocatorBase<PackedDynamicAllocator<Allocator>, PackedAllocatable> {
+
+	typedef PackedDynamicAllocatorBase<PackedDynamicAllocator<Allocator>, PackedAllocatable> Base;
+
 public:
 	PackedDynamicAllocator() {}
+
+	Allocator* allocator()
+	{
+		if (Base::allocator_offset() > 0)
+		{
+			UByte* my_ptr = T2T<UByte*>(this);
+			return T2T<Allocator*>(my_ptr - Base::allocator_offset());
+		}
+		else {
+			return nullptr;
+		}
+	}
+
+	const Allocator* allocator() const
+	{
+		if (Base::allocator_offset() > 0)
+		{
+			const UByte* my_ptr = T2T<const UByte*>(this);
+			return T2T<const Allocator*>(my_ptr - Base::allocator_offset());
+		}
+		else {
+			return nullptr;
+		}
+	}
+
+	bool enlargeAllocator(Int delta)
+	{
+		Allocator* alloc = allocator();
+
+		if (alloc)
+		{
+			Int allocated = alloc->enlargeBlock(this, Base::block_size_ + delta);
+			if (allocated)
+			{
+				Base::block_size_ = allocated;
+				return true;
+			}
+
+			return false;
+		}
+		else {
+			return false;
+		}
+	};
 };
 
 
@@ -206,6 +269,12 @@ class PackedSingleElementAllocator: public PackedAllocatorBase<PackedSingleEleme
 
 public:
 	PackedSingleElementAllocator() {}
+
+
+	Int available() const
+	{
+		return block_size_ - sizeof(MyType) - allocated_;
+	}
 
 	Int block_size() const {
 		return block_size_;
@@ -233,6 +302,10 @@ public:
 		return T2T<Allocatable*>(buffer_ + getOffset(0));
 	}
 
+	const char* getOffsetBase() const {
+		return buffer_;
+	}
+
 	Int getElementsNumber() const
 	{
 		return 1;
@@ -256,7 +329,7 @@ public:
 	AllocationBlock allocate(Int size)
 	{
 		Int allocation_size = Base::enlargeBlock(0, size);
-		return AllocationBlock(allocation_size, 0, buffer_);
+		return AllocationBlock(allocation_size, 0, T2T<UByte*>(buffer_));
 	}
 };
 

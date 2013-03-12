@@ -115,9 +115,69 @@ public:
 
 	Int rank(Int idx, Int symbol) const
 	{
-		Index& seq_index = index(0);
+		Int value_block_start 	= (idx / ValuesPerBranch) * ValuesPerBranch;
 
-		return 0;
+		Int value_blocks 		= getValueBlocks(max_size_);
+
+		Int index_from 			= value_blocks * symbol;
+		Int index_to 			= index_from + idx / ValuesPerBranch;
+
+		const Index* seq_index 	= index(0);
+
+		Int sum = seq_index->sum(index_from, index_to);
+
+		const Value* buffer = symbols();
+
+		for (Int c = value_block_start; c < idx; c++)
+		{
+			if (buffer[c] == symbol)
+			{
+				sum++;
+			}
+		}
+
+		return sum;
+	}
+
+	class SelectResult {
+		Int idx_;
+		Int rank_;
+	public:
+		SelectResult(Int idx, Int rank): idx_(idx), rank_(rank) {}
+		Int idx() const {return idx_;}
+		Int rank() const {return rank_;}
+	};
+
+	SelectResult select(Int rank, Int symbol) const
+	{
+		Int value_blocks 		= getValueBlocks(max_size_);
+		Int index_from 			= value_blocks * symbol;
+
+		const Index* seq_index 	= index(0);
+
+		Int prefix  = seq_index->sum(index_from);
+
+		auto result = seq_index->findLE(rank + prefix);
+
+
+		Int value_block_start 	= (result.idx() - value_blocks * symbol) * ValuesPerBranch;
+		Int value_block_end		= value_block_start + ValuesPerBranch;
+
+		Int local_rank 			= rank + prefix - result.prefix();
+
+		const Value* buffer 	= symbols();
+
+		for (Int c = value_block_start; c < value_block_end; c++)
+		{
+			local_rank -= buffer[c] == symbol;
+
+			if (local_rank == 0)
+			{
+				return SelectResult(c, rank);
+			}
+		}
+
+		return SelectResult(size(), 0);
 	}
 
 	void dump(std::ostream& out = cout) const
@@ -349,12 +409,14 @@ public:
 		return 0;
 	}
 
+
+
 protected:
 	Index* allocateIndex(Int idx, Int index_block_size)
 	{
 		AllocationBlock block = indexes().allocate(idx, index_block_size);
 		Index* index = T2T<Index*>(block.ptr());
-		index->initBlockSize(block.size());
+		index->init(block.size());
 		index->setAllocatorOffset(&indexes());
 		return index;
 	}

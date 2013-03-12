@@ -26,10 +26,10 @@ public:
 
 	Int getComputeOffset(const void* element) const
 	{
-		const char* my_ptr = T2T<const char*>(this);
+		const char* base_ptr = me().getOffsetBase();
 		const char* elt_ptr = T2T<const char*>(element);
 
-		size_t diff = T2T<size_t>(elt_ptr - my_ptr);
+		size_t diff = T2T<size_t>(elt_ptr - base_ptr);
 
 		return diff;
 	}
@@ -44,7 +44,7 @@ public:
 
 		Int start_idx = elements_number;
 
-		Int current_size;
+		Int current_size = -1;
 
 		for (Int idx = 0; idx < elements_number; idx++)
 		{
@@ -55,6 +55,19 @@ public:
 				start_idx = idx;
 				current_size = me().getSize(idx);
 				break;
+			}
+		}
+
+		if (current_size >= 0)
+		{
+			Int required = allocation_size - current_size;
+
+			if (me().available() < required)
+			{
+				if (!me().enlargeAllocator(required))
+				{
+					return 0;
+				}
 			}
 		}
 
@@ -154,6 +167,8 @@ public:
 
 		element->allocator_offset() += delta;
 	}
+
+	bool enlargeAllocator(Int delta) {return false;};
 
 	MyType& me() 				{return *static_cast<MyType*>(this);}
 	const MyType& me() const 	{return *static_cast<const MyType*>(this);}

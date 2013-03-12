@@ -175,7 +175,7 @@ protected:
 	typedef typename TreeType::IndexKey		IndexKey;
 	typedef typename TreeType::Value 		Value;
 
-private:
+protected:
 
 	const TreeType& me_;
 
@@ -500,6 +500,101 @@ public:
 };
 
 
+
+//template <typename TreeType, typename MyType>
+//class SumValuesFnBase<TreeType, >
+
+
+template <typename TreeType>
+class BitRankFn: public SumValuesFnBase<TreeType, BitRankFn<TreeType>> {
+
+	typedef SumValuesFnBase<TreeType, BitRankFn<TreeType>> 		Base;
+
+	typedef typename TreeType::Value 							Value;
+	typedef typename TreeType::IndexKey 						IndexKey;
+
+	const Value* values_;
+	Int bit_;
+
+public:
+	BitRankFn(TreeType& tree, Int bit): Base(tree, bit), values_(tree.values()), bit_(bit)
+	{}
+
+	void walkValues(Int start, Int end)
+	{
+		IndexKey& sum = Base::sum_;
+
+		Int rank1 = PopCount(values_, start, end);
+
+		if (bit_) {
+			sum += rank1;
+		}
+		else {
+			sum += (end - start) - rank1;
+		}
+	}
+};
+
+
+template <typename TreeType>
+class BitSelectFn: public FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, BTreeCompareLT> {
+
+	typedef FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, BTreeCompareLT> 	Base;
+
+	typedef typename TreeType::Value 							Value;
+	typedef typename TreeType::IndexKey 						IndexKey;
+
+	TreeType& tree_;
+
+	const Value* values_;
+	Int bit_;
+
+	bool found_;
+
+	Int rank_;
+
+public:
+	BitSelectFn(TreeType& tree, Int rank, Int bit):
+		Base(tree.indexes(bit), rank),
+		tree_(tree),
+		values_(tree.values()),
+		bit_(bit)
+	{}
+
+	Int walkLastValuesBlock(Int start)
+	{
+		BigInt& limit 	= Base::limit_;
+
+		start *= TreeType::ValuesPerBranch;
+
+		auto result = bit_ ?
+				Select1FW(values_, start, tree_.size(), limit) :
+				Select0FW(values_, start, tree_.size(), limit);
+
+		rank_  = result.rank();
+		found_ = result.is_found();
+
+		return result.idx();
+	}
+
+	void processIndexes(Int start, Int c) {}
+
+	bool is_found() const {
+		return found_;
+	}
+
+	Int rank() const {
+		return rank_;
+	}
+
+	Int max_size() {
+		return tree_.max_size();
+	}
+
+	Int size() {
+		return tree_.size();
+	}
+};
 
 
 }

@@ -63,7 +63,7 @@ public:
 	const Int& size() const {return size_;}
 
 public:
-	void initByBlock(Int block_size)
+	void init(Int block_size)
 	{
 		size_ = 0;
 		max_size_   = block_size / sizeof(Value);

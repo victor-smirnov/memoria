@@ -499,8 +499,14 @@ public:
 
 	const Allocator* allocator() const
 	{
-		const UByte* my_ptr = T2T<const UByte*>(this);
-		return T2T<const Allocator*>(my_ptr - Base::allocator_offset());
+		if (Base::allocator_offset() > 0)
+		{
+			const UByte* my_ptr = T2T<const UByte*>(this);
+			return T2T<const Allocator*>(my_ptr - Base::allocator_offset());
+		}
+		else {
+			return nullptr;
+		}
 	}
 
 	void transferTo(MyType* other, UByte* target_memory_block = nullptr) const

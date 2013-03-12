@@ -10,7 +10,9 @@
 #include "../tests_inc.hpp"
 
 #include "palloc_test.hpp"
-
+#include "palloc_cxseq_test.hpp"
+#include "palloc_bitvector_test.hpp"
+#include "palloc_wtree_test.hpp"
 
 namespace memoria {
 
@@ -24,6 +26,9 @@ public:
 	PackedAllocatorTestSuite(): TestSuite("PackedAllocatorSuite")
     {
 		registerTask(new PackedAllocatorTest());
+//		registerTask(new PackedCxSequenceTest());
+//		registerTask(new PackedBitVectorTest());
+//		registerTask(new PackedWaveletTreeTest());
     }
 
 };

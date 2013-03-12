@@ -12,8 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/packed2/packed_dynamic_allocator.hpp>
-#include <memoria/core/packed2/packed_fse_cxsequence.hpp>
+#include <memoria/core/packed2/packed_allocator.hpp>
 
 #include <memory>
 
@@ -25,69 +24,240 @@ class PackedAllocatorTest: public TestTask {
 
 	typedef PackedAllocatorTest 											MyType;
 
+	typedef PackedAllocator													Allocator;
 
-	typedef PackedFSECxSequenceTypes<8, char> 								Types;
+	typedef shared_ptr<Allocator>											AllocatorPtr;
 
-	typedef PackedFSECxSequence<Types>										Sequence;
+	class SimpleStruct: public PackedAllocatable {
+		Int size_;
+		UByte data_;
+		UByte content_[];
+	public:
+		SimpleStruct() {}
 
-	typedef PackedSingleElementAllocator									Allocator;
+		static Int block_size(Int size) {
+			return sizeof(SimpleStruct) + size;
+		}
 
-	typedef shared_ptr<Allocator>											SequencePtr;
+		Int block_size() const
+		{
+			const Allocator* alloc = allocator();
+			AssertTrue(MA_SRC, alloc != nullptr);
+
+			return alloc->element_size(this);
+		}
+
+		Int object_size() const {
+			return sizeof(MyType) + size_;
+		}
+
+		Int size() const {
+			return size_;
+		}
+
+		void init(Int block_size, UByte data)
+		{
+			size_ = block_size - sizeof(SimpleStruct);
+			data_ = data;
+		}
+
+		void fill()
+		{
+			for (Int c = 0; c < size_; c++)
+			{
+				content_[c] = data_;
+			}
+		}
+
+		void check() const
+		{
+			for (Int c = 0; c < size_; c++)
+			{
+				AssertEQ(MA_SRC, content_[c], data_, SBuf()<<", idx = "<<c);
+			}
+		}
+
+		void dump(ostream& out = cout) const
+		{
+			out<<"size_ = "<<size_<<endl;
+			out<<"data_ = "<<hex<<(Int)data_<<dec<<endl;
+			out<<"Data:"<<endl;
+			dumpArray<UByte>(out, size_, [this](Int idx) {
+				return this->content_[idx];
+			});
+		}
+
+		void enlarge(Int delta)
+		{
+			Allocator* alloc = allocator();
+			if (alloc)
+			{
+				Int block_size = alloc->element_size(this);
+
+				Int new_size = alloc->enlargeBlock(this, block_size + delta);
+				if (new_size)
+				{
+					init(new_size, data_);
+					fill();
+				}
+			}
+		}
+	};
+
+	class ComplexStruct: public PackedAllocator {
+	public:
+		ComplexStruct() {}
+
+		static Int block_size(Int client_area) {
+			return PackedAllocator::block_size(client_area, 3);
+		}
+
+		void init(Int block_size)
+		{
+			PackedAllocator::init(block_size, 3);
+		}
+	};
 
 public:
 
-	PackedAllocatorTest(): TestTask("Test")
+	PackedAllocatorTest(): TestTask("Alloc")
     {
-    	MEMORIA_ADD_TEST(testCreate);
+		MEMORIA_ADD_TEST(testCreate);
+		MEMORIA_ADD_TEST(testEnlarge);
     }
 
     virtual ~PackedAllocatorTest() throw() {}
 
-    SequencePtr createSequence(Int size)
+    AllocatorPtr createAllocator(Int client_area_size, Int elements)
     {
-    	Int sequence_block_size = Sequence::getBlockSize(64*1024);
-    	Int block_size 			= Allocator::block_size(sequence_block_size) + 4096;
+    	Int block_size 		= Allocator::block_size(client_area_size, elements);
+    	void* mem_block 	= malloc(block_size);
+    	memset(mem_block, 0, block_size);
 
-    	void* memory_block = malloc(block_size);
-    	memset(memory_block, 0, block_size);
+    	Allocator* alloc 	= T2T<Allocator*>(mem_block);
 
-    	Allocator* allocator = T2T<Allocator*>(memory_block);
+    	alloc->init(block_size, elements);
 
-    	allocator->init(block_size);
+    	AssertEQ(MA_SRC, alloc->elements(), elements);
+    	AssertEQ(MA_SRC, alloc->block_size(), block_size);
+    	AssertGE(MA_SRC, alloc->block_size(), client_area_size);
 
-    	AllocationBlock block = allocator->allocate(sequence_block_size);
+    	AssertGT(MA_SRC, alloc->layout_size(), 0);
+    	AssertGT(MA_SRC, alloc->bitmap_size(), 0);
 
-    	Sequence* seq = T2T<Sequence*>(block.ptr());
+    	AssertGE(MA_SRC, alloc->client_area(), client_area_size);
 
-    	seq->init(sequence_block_size);
+    	return AllocatorPtr(alloc);
+    }
 
-    	seq->setAllocatorOffset(allocator);
+    AllocatorPtr createSampleAllocator(Int client_area_size, Int elements)
+    {
+    	AllocatorPtr alloc_ptr 	= createAllocator(client_area_size, elements);
+    	Allocator*   alloc 		= alloc_ptr.get();
 
-    	return SequencePtr(allocator);
+    	for (Int c = 0; c < 2; c++)
+    	{
+    		alloc->setBlockType(c, PackedBlockType::ALLOCATABLE);
+
+    		Int size = SimpleStruct::block_size(111 + c*10);
+
+    		AllocationBlock block = alloc->allocate(c, size);
+    		AssertTrue(MA_SRC, block);
+
+    		AssertGE(MA_SRC, alloc->element_size(c), size);
+
+    		SimpleStruct* obj = block.cast<SimpleStruct>();
+
+    		obj->init(size, 0x55 + c * 16);
+    		obj->setAllocatorOffset(alloc);
+
+    		obj->fill();
+
+    		AssertEQ(MA_SRC, obj->size(), 111 + c*10);
+    	}
+
+    	alloc->setBlockType(2, PackedBlockType::ALLOCATABLE);
+    	AllocationBlock block = alloc->allocate(2, 512);
+    	AssertTrue(MA_SRC, block);
+
+    	ComplexStruct* cx_struct = T2T<ComplexStruct*>(block.ptr());
+
+    	cx_struct->init(512);
+
+    	for (Int c = 0; c < cx_struct->elements(); c++)
+    	{
+    		AllocationBlock block = cx_struct->allocate(c, 100);
+    		AssertTrue(MA_SRC, block);
+
+    		SimpleStruct* sl_struct = block.cast<SimpleStruct>();
+    		sl_struct->init(100, 0x22 + c*16);
+    		sl_struct->fill();
+    	}
+
+    	return alloc_ptr;
+    }
+
+    void checkStructure(const Allocator* alloc)
+    {
+    	for (Int c = 0; c < alloc->elements() - 1; c++)
+    	{
+    		const SimpleStruct* sl_struct = alloc->get<SimpleStruct>(c);
+    		sl_struct->check();
+    	}
+
+    	const ComplexStruct* cx_struct = alloc->get<ComplexStruct>(alloc->elements() - 1);
+
+    	for (Int c = 0; c < cx_struct->elements(); c++)
+    	{
+    		const SimpleStruct* sl_struct = cx_struct->get<SimpleStruct>(c);
+    		sl_struct->check();
+    	}
+    }
+
+    void dumpStructure(const Allocator* alloc)
+    {
+    	alloc->dump();
+
+    	for (Int c = 0; c < alloc->elements() - 1; c++)
+    	{
+    		const SimpleStruct* sl_struct = alloc->get<SimpleStruct>(c);
+    		sl_struct->dump();
+    	}
+
+    	const ComplexStruct* cx_struct = alloc->get<ComplexStruct>(alloc->elements() - 1);
+
+    	cx_struct->dump();
+
+    	for (Int c = 0; c < cx_struct->elements(); c++)
+    	{
+    		const SimpleStruct* sl_struct = cx_struct->get<SimpleStruct>(c);
+    		sl_struct->dump();
+    	}
     }
 
 
     void testCreate()
     {
-    	SequencePtr seq_ptr = createSequence(64*1024);
-    	Sequence* seq = seq_ptr->get<Sequence>();
+    	AllocatorPtr alloc_ptr = createSampleAllocator(4096, 3);
 
-    	Int max_size = seq->max_size();
-    	auto* symbols = seq->symbols();
+    	Allocator* alloc = alloc_ptr.get();
 
-    	for (Int c = 0; c < max_size; c++)
-    	{
-    		symbols[c] = getRandom(256);
-    	}
-
-    	seq->size() = max_size;
-
-    	seq->reindex();
-
-    	seq->dump();
+    	checkStructure(alloc);
     }
 
 
+    void testEnlarge()
+    {
+    	AllocatorPtr alloc_ptr = createSampleAllocator(4096, 3);
+
+    	Allocator* alloc = alloc_ptr.get();
+
+    	SimpleStruct* sl_struct = alloc->get<SimpleStruct>(0);
+
+    	sl_struct->enlarge(100);
+
+    	checkStructure(alloc);
+    }
 };
 
 
