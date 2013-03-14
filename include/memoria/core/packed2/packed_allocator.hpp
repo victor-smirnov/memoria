@@ -106,6 +106,8 @@ public:
 
 	void init(Int block_size, Int blocks)
 	{
+		allocator_offset_ = 0;
+
 		block_size_ = block_size;
 
 		Layout* layout = this->layout();
@@ -170,7 +172,7 @@ public:
 
 		layout->reindex();
 
-		return new_size;
+		return allocation_size;
 	}
 
 	Int shrinkBlock(const void* element, Int new_size)
@@ -277,6 +279,12 @@ public:
 		layout->reindex();
 	}
 
+	void clear(Int idx)
+	{
+		auto block = describe(idx);
+		memset(block.ptr(), 0, block.size());
+	}
+
 	void setBlockType(Int idx, PackedBlockType type)
 	{
 		Bitmap* bitmap = this->bitmap();
@@ -296,7 +304,7 @@ public:
 		});
 	}
 
-protected:
+
 
 	Int enlargeAllocator(Int delta)
 	{
@@ -315,6 +323,7 @@ protected:
 			}
 		}
 		else {
+			block_size_ += delta;
 			return 0;
 		}
 	}
@@ -326,12 +335,15 @@ protected:
 		if (alloc)
 		{
 			block_size_ = alloc->shrinkBlock(this, block_size_ - delta);
+			return block_size_;
 		}
 		else {
+			block_size_ -= delta;
 			return 0;
 		}
 	}
 
+protected:
 
 	void moveElements(Int start_idx, Int delta)
 	{
@@ -339,7 +351,7 @@ protected:
 
 		if (delta > 0)
 		{
-			for (Int idx = layout->size(); idx >= start_idx; idx--)
+			for (Int idx = layout->size() - 1; idx >= start_idx; idx--)
 			{
 				moveElement(idx, delta);
 			}

@@ -26,7 +26,7 @@ public:
 	BitmapAccessor(T* values, Int idx): values_(values), idx_(idx) {}
 
 	V value() const {
-		return GetBits(values_, idx_, BitsPerElement);
+		return GetBits(values_, idx_ * BitsPerElement, BitsPerElement);
 	}
 
 	operator V() const {
@@ -35,7 +35,7 @@ public:
 
 	V operator=(const V& value)
 	{
-		MEMORIA_ASSERT(value, <=, (Int)(static_cast<UInt>(-1) >> (TypeBitsize<UInt>() - BitsPerElement)));
+		//MEMORIA_ASSERT(value, <=, static_cast<UInt>(-1) >> (TypeBitsize<UInt>() - BitsPerElement));
 		SetBits(values_, idx_ * BitsPerElement, value, BitsPerElement);
 		return value;
 	}

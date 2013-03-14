@@ -17,9 +17,9 @@
 namespace memoria {
 
 template <
-	typename Allocator_ = EmptyAllocator,
 	Int BF = PackedTreeBranchingFactor,
-	Int VPB = PackedSeqValuesPerBranch
+	Int VPB = PackedSeqValuesPerBranch,
+	typename Allocator_ = PackedAllocator
 >
 struct PackedBitVectorTypes {
     typedef Allocator_  	Allocator;
@@ -281,18 +281,16 @@ public:
 
 private:
 	struct InitFn {
+
 		InitFn() {}
 
-		Int getBlockSize(Int items_number) const {
-			return MyType::block_size(items_number * 8);
+		Int block_size(Int items_number) const {
+			return MyType::block_size(items_number);
 		}
 
-		Int extend(Int items_number) const {
-			return items_number;
-		}
-
-		Int getIndexSize(Int items_number) const {
-			return MyType::compute_index_size(items_number * 8);
+		Int max_elements(Int block_size)
+		{
+			return block_size * 8;
 		}
 	};
 
@@ -301,7 +299,7 @@ public:
 	{
 		size_ = 0;
 
-		max_size_   = MyType::getMaxSize(block_size, InitFn()) * 8;
+		max_size_   = FindTotalElementsNumber2(block_size, InitFn());
 		index_size_ = getIndexSize(max_size_);
 	}
 
@@ -354,21 +352,24 @@ public:
 
 	bool enlarge(Int bit_amount)
 	{
-		Int amount = roundBitToBytes(bit_amount);
-
 		Allocator* alloc = allocator();
 
 		if (alloc)
 		{
-			Int size = block_size();
-
 			MyType other;
 
-			Int new_size = alloc->enlargeBlock(this, size + amount);
+			Int requested_block_size = MyType::block_size(max_size_ + bit_amount);
+
+			Int new_size = alloc->enlargeBlock(this, requested_block_size);
 
 			if (new_size)
 			{
 				other.init(new_size);
+				other.size() 				= this->size();
+				other.allocator_offset() 	= this->allocator_offset();
+
+				MEMORIA_ASSERT(other.size(), <=, other.max_size());
+				MEMORIA_ASSERT(other.capacity(), >=, bit_amount);
 
 				transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
 
@@ -441,7 +442,7 @@ public:
 
 	// ==================================== Query ========================================== //
 
-	Int rank(Int idx, Int bit)
+	Int rank(Int idx, Int bit) const
 	{
 		BitRankFn<MyType> fn(*this, bit);
 
@@ -453,13 +454,15 @@ public:
 	class SelectResult {
 		Int idx_;
 		Int rank_;
+		bool found_;
 	public:
-		SelectResult(Int idx, Int rank): idx_(idx), rank_(rank) {}
+		SelectResult(Int idx, Int rank, bool found): idx_(idx), rank_(rank), found_(found) {}
 		Int idx() const {return idx_;}
 		Int rank() const {return rank_;}
+		bool found() const {return found_;};
 	};
 
-	SelectResult select(Int rank, Int bit)
+	SelectResult select(Int rank, Int bit) const
 	{
 		BitSelectFn<MyType> fn(*this, rank, bit);
 
@@ -467,11 +470,44 @@ public:
 
 		if (fn.is_found())
 		{
-			return SelectResult(idx, rank);
+			return SelectResult(idx, rank, true);
 		}
 		else {
-			return SelectResult(size(), fn.sum() + fn.rank());
+			return SelectResult(size(), fn.sum() + fn.rank(), false);
 		}
+	}
+
+	// ==================================== Update ========================================= //
+
+	Int capacity() const
+	{
+		return max_size_ - size_;
+	}
+
+	bool insert(Int idx, Int bits, Int nbits)
+	{
+		if (nbits > capacity())
+		{
+			Int required = nbits - capacity();
+			if (!enlarge(required))
+			{
+				return false;
+			}
+		}
+
+		Value* values = this->values();
+
+		MoveBits(values, values, idx, idx + nbits, size_ - idx);
+
+		SetBits(values, idx, bits, nbits);
+
+		size_ += nbits;
+
+		if (size_ > max_size_) {
+			int a = 0; a++;
+		}
+
+		return true;
 	}
 };
 

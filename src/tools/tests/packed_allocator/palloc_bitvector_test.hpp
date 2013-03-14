@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/packed2/packed_dynamic_allocator.hpp>
+#include <memoria/core/packed2/packed_allocator.hpp>
 #include <memoria/core/packed2/packed_bitvector.hpp>
 
 #include <memory>
@@ -27,13 +27,11 @@ class PackedBitVectorTest: public TestTask {
 	typedef PackedBitVectorTest 											MyType;
 
 
-	typedef PackedSingleElementAllocator									Allocator;
+	typedef PackedAllocator													Allocator;
 
-	typedef PackedBitVectorTypes<PackedSingleElementAllocator> 				Types;
+	typedef PackedBitVectorTypes<> 											Types;
 
 	typedef PackedBitVector<Types>											Sequence;
-
-
 
 	typedef shared_ptr<Allocator>											SequencePtr;
 
@@ -53,16 +51,16 @@ public:
     SequencePtr createSequence(Int size)
     {
     	Int sequence_block_size = Sequence::block_size(size);
-    	Int block_size 			= Allocator::block_size(sequence_block_size) + 4096;
+    	Int block_size 			= Allocator::block_size(sequence_block_size, 1) + 4096;
 
     	void* memory_block = malloc(block_size);
     	memset(memory_block, 0, block_size);
 
     	Allocator* allocator = T2T<Allocator*>(memory_block);
 
-    	allocator->init(block_size);
+    	allocator->init(block_size, 1);
 
-    	AllocationBlock block = allocator->allocate(sequence_block_size);
+    	AllocationBlock block = allocator->allocate(0, sequence_block_size);
 
     	Sequence* seq = T2T<Sequence*>(block.ptr());
 
@@ -77,7 +75,7 @@ public:
     void testCreate()
     {
     	SequencePtr seq_ptr = createSequence(64*1024);
-    	Sequence* seq = seq_ptr->get<Sequence>();
+    	Sequence* seq = seq_ptr->get<Sequence>(0);
 
     	Int max_size = seq->max_size();
 
@@ -103,17 +101,17 @@ public:
 
     		if (total == rank)
     		{
-    			return SelectResult(c, rank);
+    			return SelectResult(c, rank, true);
     		}
     	}
 
-    	return SelectResult(seq->size(), total);
+    	return SelectResult(seq->size(), total, false);
     }
 
     void testRank()
     {
     	SequencePtr seq_ptr = createSequence(2048);
-    	Sequence* seq = seq_ptr->get<Sequence>();
+    	Sequence* seq = seq_ptr->get<Sequence>(0);
 
     	Int max_size = seq->max_size();
 
@@ -138,7 +136,7 @@ public:
     void testSelect()
     {
     	SequencePtr seq_ptr = createSequence(64*1024);
-    	Sequence* seq = seq_ptr->get<Sequence>();
+    	Sequence* seq = seq_ptr->get<Sequence>(0);
 
     	Int max_size = seq->max_size();
 

@@ -26,14 +26,11 @@ class PackedWaveletTreeTest: public TestTask {
 	typedef TestTask														Base;
 	typedef PackedWaveletTreeTest 											MyType;
 
-
-	typedef PackedSingleElementAllocator									Allocator;
-
-	typedef PackedWaveletTreeTypes<PackedSingleElementAllocator> 			Types;
+	typedef PackedWaveletTreeTypes<> 										Types;
 
 	typedef PackedWaveletTree<Types>										Tree;
 
-	typedef shared_ptr<Allocator>											TreePtr;
+	typedef shared_ptr<Tree>												TreePtr;
 
 public:
 
@@ -46,37 +43,29 @@ public:
 
     TreePtr createSequence(Int block_size, Int free_space)
     {
-    	Int tree_block_size = Allocator::block_size(block_size);
+    	Int tree_block_size = Tree::block_size(block_size) + free_space;
 
-    	void* memory_block = malloc(block_size +  free_space);
-    	memset(memory_block, 0, block_size + free_space);
+    	void* memory_block = malloc(tree_block_size);
+    	memset(memory_block, 0, tree_block_size);
 
-    	Allocator* allocator = T2T<Allocator*>(memory_block);
-
-    	allocator->init(block_size + free_space);
-
-    	AllocationBlock block = allocator->allocate(tree_block_size);
-
-    	Tree* tree = T2T<Tree*>(block.ptr());
+    	Tree* tree = T2T<Tree*>(memory_block);
 
     	tree->init(tree_block_size);
 
-    	tree->setAllocatorOffset(allocator);
-
-    	return TreePtr(allocator);
+    	return TreePtr(tree);
     }
 
     void testAllocator()
     {
     	TreePtr tree_ptr = createSequence(64*1024, 40*1024);
-    	Tree* tree = tree_ptr->get<Tree>();
-    	tree->content_allocator()->dump();
+    	Tree* tree = tree_ptr.get();
+    	tree->dump();
 
     	tree->bit_vector()->dump();
 
     	tree->bit_vector()->enlarge(100);
 
-    	tree->content_allocator()->dump();
+    	tree->dump();
     	tree->bit_vector()->dump();
     }
 

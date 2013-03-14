@@ -18,33 +18,32 @@
 #include <memoria/core/packed2/packed_bitvector.hpp>
 #include <memoria/core/packed2/packed_fse_tree.hpp>
 
+#include <memoria/core/exceptions/exceptions.hpp>
+
 namespace memoria {
 
-template <typename Allocator_>
+template <typename Allocator_ = PackedAllocator>
 struct PackedWaveletTreeTypes {
 	typedef Allocator_ 				Allocator;
 };
 
 template <typename Types>
-class PackedWaveletTree: public PackedAllocatable {
+class PackedWaveletTree: public PackedAllocator {
 
-	typedef PackedAllocatable													Base;
+	typedef PackedAllocator														Base;
 	typedef PackedWaveletTree<Types>											MyType;
 
 	typedef typename Types::Allocator 											Allocator;
-	typedef PackedDynamicAllocator<MyType>										ContentAllocator;
+
 
 public:
 	typedef PackedBitVector<
-		PackedBitVectorTypes<
-			ContentAllocator
-		>
+		PackedBitVectorTypes<>
 	>																			BitVector;
 
 	typedef PackedFSEArray<
 		PackedFSEArrayTypes<
-			UByte,
-			ContentAllocator
+			UByte
 		>
 	>																			NodeLabelsArray;
 
@@ -52,8 +51,7 @@ public:
 		PackedFSETreeTypes<
 			Int,
 			Int,
-			Int,
-			ContentAllocator
+			Int
 		>
 	>																			SequenceLebelsArray;
 
@@ -62,113 +60,102 @@ public:
 		PackedFSECxSequenceTypes<
 			8,
 			UByte,
-			ContentAllocator,
 			PackedTreeBranchingFactor,
 			512
 		>
 	>																			Sequence;
 
 
-private:
-	Int 		size_;
-	UByte buffer_[];
+	class Metadata {
+		Int size_;
+		Int max_size_;
+	public:
+		Int& size() 		{return size_;}
+		Int& max_size() 	{return max_size_;}
+
+		const Int& size() const 	{return size_;}
+		const Int& max_size() const {return max_size_;}
+	};
 
 public:
 
 	PackedWaveletTree() {}
 
-	ContentAllocator* content_allocator() {
-		return T2T<ContentAllocator*>(buffer_);
-	}
-
-	const ContentAllocator* content_allocator() const {
-		return T2T<const ContentAllocator*>(buffer_);
-	}
-
-	Allocator* allocator()
+	Metadata* metadata()
 	{
-		if (Base::allocator_offset() > 0)
-		{
-			UByte* my_ptr = T2T<UByte*>(this);
-			return T2T<Allocator*>(my_ptr - Base::allocator_offset());
-		}
-		else {
-			return nullptr;
-		}
+		return Base::template get<Metadata>(0);
 	}
 
-	const Allocator* allocator() const
+	const Metadata* metadata() const
 	{
-		if (Base::allocator_offset() > 0)
-		{
-			const UByte* my_ptr = T2T<const UByte*>(this);
-			return T2T<const Allocator*>(my_ptr - Base::allocator_offset());
-		}
-		else {
-			return nullptr;
-		}
+		return Base::template get<Metadata>(0);
 	}
 
 	BitVector* bit_vector()
 	{
-		return content_allocator()->template get<BitVector>(0);
+		return Base::template get<BitVector>(1);
 	}
 
 	const BitVector* bit_vector() const
 	{
-		return allocator()->template get<BitVector>(0);
+		return Base::get<BitVector>(1);
 	}
 
 	NodeLabelsArray* node_label_array()
 	{
-		return content_allocator()->template get<NodeLabelsArray>(1);
+		return Base::template get<NodeLabelsArray>(2);
 	}
 
 	const NodeLabelsArray* node_label_array() const
 	{
-		return allocator()->template get<NodeLabelsArray>(1);
+		return Base::template get<NodeLabelsArray>(2);
 	}
 
 	SequenceLebelsArray* sequence_label_array()
 	{
-		return content_allocator()->template get<SequenceLebelsArray>(2);
+		return Base::template get<SequenceLebelsArray>(3);
 	}
 
 	const SequenceLebelsArray* sequence_label_array() const
 	{
-		return allocator()->template get<SequenceLebelsArray>(2);
+		return Base::template get<SequenceLebelsArray>(3);
 	}
 
 	Sequence* sequence()
 	{
-		return content_allocator()->template get<Sequence>(3);
+		return Base::template get<Sequence>(4);
 	}
 
 	const Sequence* sequence() const
 	{
-		return allocator()->template get<Sequence>(3);
+		return Base::template get<Sequence>(4);
 	}
 
 	void init(Int block_size)
 	{
-		content_allocator()->init(block_size - sizeof(MyType), 4);
-		content_allocator()->setAllocatorOffset(this);
+		Base::init(block_size, 5);
 
-		Int bitvector_size 			= block_size / 20;
-		Int node_labels_size 		= block_size / 5;
-		Int sequence_labels_size 	= block_size / 20;
+		Int bitvector_size 			= roundBytesToAlignmentBlocks(block_size / 20);
+		Int node_labels_size 		= roundBytesToAlignmentBlocks(block_size / 5);
+		Int sequence_labels_size 	= roundBytesToAlignmentBlocks(block_size / 20);
 
-		Int sequence_size 			= block_size - bitvector_size - node_labels_size - sequence_labels_size;
+		Int sequence_size 			= Base::client_area()
+									- bitvector_size
+									- node_labels_size
+									- sequence_labels_size
+									- roundBytesToAlignmentBlocks(sizeof(Metadata));
 
-		allocateElement<BitVector>				(0, bitvector_size);
-		allocateElement<NodeLabelsArray>		(1, node_labels_size);
-		allocateElement<SequenceLebelsArray>	(2, sequence_labels_size);
-		allocateElement<Sequence>				(3, sequence_size);
+		allocateStruct<Metadata>				(0, sizeof(Metadata));
+		allocateElement<BitVector>				(1, bitvector_size);
+		allocateElement<NodeLabelsArray>		(2, node_labels_size);
+		allocateElement<SequenceLebelsArray>	(3, sequence_labels_size);
+
+		allocateElement<Sequence>				(4, sequence_size);
 	}
 
-	Int block_size() const
+	static Int block_size(Int client_area)
 	{
-		return 0;
+		return Base::block_size(client_area - roundBytesToAlignmentBlocks(sizeof(Metadata)), 5);
 	}
 
 	Int enlargeBlock(void* element, Int new_size)
@@ -188,11 +175,33 @@ private:
 	template <typename T>
 	void allocateElement(Int idx, Int block_size)
 	{
-		AllocationBlock block = content_allocator()->allocate(idx, block_size);
+		AllocationBlock block = Base::allocate(idx, block_size);
 
-		T* element = T2T<T*>(block.ptr());
-		element->init(block.size());
-		element->setAllocatorOffset(content_allocator());
+		if (block)
+		{
+			Base::setBlockType(idx, PackedBlockType::ALLOCATABLE);
+
+			T* element = T2T<T*>(block.ptr());
+			element->init(block.size());
+			element->setAllocatorOffset(this);
+		}
+		else {
+			throw Exception(MA_SRC, SBuf()<<"Can't allocate object Wavelet Tree content block "<<idx);
+		}
+	}
+
+	template <typename T>
+	void allocateStruct(Int idx, Int block_size)
+	{
+		AllocationBlock block = Base::allocate(idx, block_size);
+
+		if (block)
+		{
+			Base::setBlockType(idx, PackedBlockType::RAW_MEMORY);
+		}
+		else {
+			throw Exception(MA_SRC, SBuf()<<"Can't allocate object Wavelet Tree content block "<<idx);
+		}
 	}
 };
 

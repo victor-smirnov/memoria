@@ -31,9 +31,7 @@ class PackedCxSequenceTest: public TestTask {
 
 	typedef PackedFSECxSequence<Types>										Sequence;
 
-	typedef PackedSingleElementAllocator									Allocator;
-
-	typedef shared_ptr<Allocator>											SequencePtr;
+	typedef shared_ptr<Sequence>											SequencePtr;
 
 	typedef typename Sequence::SelectResult									SelectResult;
 
@@ -41,7 +39,7 @@ public:
 
 	PackedCxSequenceTest(): TestTask("CxSeq")
     {
-    	MEMORIA_ADD_TEST(testCreate);
+//    	MEMORIA_ADD_TEST(testCreate);
     	MEMORIA_ADD_TEST(testRank);
     	MEMORIA_ADD_TEST(testSelect);
     }
@@ -50,32 +48,23 @@ public:
 
     SequencePtr createSequence(Int size)
     {
-    	Int sequence_block_size = Sequence::getBlockSize(64*1024);
-    	Int block_size 			= Allocator::block_size(sequence_block_size) + 4096;
+    	Int block_size = Sequence::block_size(64*1024);
 
     	void* memory_block = malloc(block_size);
     	memset(memory_block, 0, block_size);
 
-    	Allocator* allocator = T2T<Allocator*>(memory_block);
+    	Sequence* seq = T2T<Sequence*>(memory_block);
 
-    	allocator->init(block_size);
+    	seq->init(block_size);
 
-    	AllocationBlock block = allocator->allocate(sequence_block_size);
-
-    	Sequence* seq = T2T<Sequence*>(block.ptr());
-
-    	seq->init(sequence_block_size);
-
-    	seq->setAllocatorOffset(allocator);
-
-    	return SequencePtr(allocator);
+    	return SequencePtr(seq);
     }
 
 
     void testCreate()
     {
     	SequencePtr seq_ptr = createSequence(64*1024);
-    	Sequence* seq = seq_ptr->get<Sequence>();
+    	Sequence* seq = seq_ptr.get();
 
     	Int max_size = seq->max_size();
     	auto* symbols = seq->symbols();
@@ -114,7 +103,7 @@ public:
     void testRank()
     {
     	SequencePtr seq_ptr = createSequence(64*1024);
-    	Sequence* seq = seq_ptr->get<Sequence>();
+    	Sequence* seq = seq_ptr.get();
 
     	Int max_size = seq->max_size();
     	auto* symbols = seq->symbols();
@@ -138,7 +127,7 @@ public:
     void testSelect()
     {
     	SequencePtr seq_ptr = createSequence(64*1024);
-    	Sequence* seq = seq_ptr->get<Sequence>();
+    	Sequence* seq = seq_ptr.get();
 
     	Int max_size = seq->max_size();
     	auto* symbols = seq->symbols();

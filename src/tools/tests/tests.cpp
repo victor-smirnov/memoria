@@ -16,6 +16,7 @@
 #include "packed_vle_tree/pvle_test_suite.hpp"
 #include "packed_fse_tree/pfse_test_suite.hpp"
 #include "packed_allocator/palloc_test_suite.hpp"
+#include "packed_louds_tree/packed_louds_suite.hpp"
 
 //
 //#include "sum_set_batch/sum_tree_test_suite.hpp"
@@ -77,6 +78,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedVLETestSuite());
 //        runner.registerTask(new PackedFSETestSuite());
         runner.registerTask(new PackedAllocatorTestSuite());
+        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedSeqTestSuite());
 //        runner.registerTask(new SymbolSeqTestSuite());
 //

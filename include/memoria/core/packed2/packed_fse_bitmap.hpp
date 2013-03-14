@@ -10,6 +10,7 @@
 
 #include <memoria/core/packed2/packed_allocator.hpp>
 #include <memoria/core/tools/accessors.hpp>
+#include <memoria/core/tools/dump.hpp>
 
 namespace memoria {
 
@@ -18,7 +19,7 @@ namespace memoria {
 template <
 	Int BitsPerSymbol_,
 	typename V = UBigInt,
-	typename Allocator_ = EmptyAllocator
+	typename Allocator_ = PackedAllocator
 >
 struct PackedFSEBitmapTypes {
 
@@ -39,7 +40,7 @@ public:
 	static const UInt VERSION               									= 1;
 
 	typedef Types_																Types;
-	typedef PackedFSESequence<Types>               								MyType;
+	typedef PackedFSEBitmap<Types>               								MyType;
 
 	typedef typename Types::Allocator											Allocator;
 	typedef typename Types::Value												Value;
@@ -50,43 +51,42 @@ private:
 
 	Int size_;
 	Int max_size_;
+	Int alignment_gap_;
 
 	Value buffer_[];
 
 public:
 	PackedFSEBitmap() {}
 
-	void setAllocatorOffset(const void* allocator)
-	{
-		const char* my_ptr = T2T<const char*>(this);
-		const char* alc_ptr = T2T<const char*>(allocator);
-		size_t diff = T2T<size_t>(my_ptr - alc_ptr);
-		Base::allocator_offset() = diff;
-	}
-
 	Int& size() {return size_;}
 	const Int& size() const {return size_;}
 
+	Int& max_size() {return max_size_;}
+	const Int& max_size() const {return max_size_;}
+
 public:
-	void initByBlock(Int block_size)
+	void init(Int block_size)
 	{
 		size_ = 0;
-		max_size_   = block_size/sizeof(Value);
+		alignment_gap_ = 0;
+
+		Int data_size = block_size - sizeof(MyType);
+
+		max_size_   = data_size * 8 / BitsPerSymbol;
 	}
 
-	void initSizes(Int max)
+	static Int block_size(Int elements)
 	{
-		size_       = 0;
-		max_size_   = max;
+		return sizeof(MyType) + roundBitsToAlignmentBlocks(elements * BitsPerSymbol);
 	}
 
 	BitmapAccessor<Value*, Value, BitsPerSymbol>
-	operator[](Int idx) {
+	value(Int idx) {
 		return BitmapAccessor<Value*, Value, BitsPerSymbol>(buffer_, idx);
 	}
 
 	BitmapAccessor<const Value*, Value, BitsPerSymbol>
-	operator[](Int idx) const {
+	value(Int idx) const {
 		return BitmapAccessor<const Value*, Value, BitsPerSymbol>(buffer_, idx);
 	}
 
@@ -96,6 +96,73 @@ public:
 
 	const Value* data() const {
 		return buffer_;
+	}
+
+	Int capacity() const {
+		return max_size_ - size_;
+	}
+
+	bool enlarge(Int elements)
+	{
+		Allocator* alloc = Base::allocator();
+		if (alloc)
+		{
+			Int amount = roundBitToBytes(roundBitToBytes(elements * BitsPerSymbol));
+			Int size = alloc->element_size(this);
+			Int new_size = alloc->enlargeBlock(this, size + amount);
+			max_size_ = new_size * 8 / BitsPerSymbol;
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	bool insertSpace(Int idx, Int space)
+	{
+		if (space > capacity())
+		{
+			if (!enlarge(space - capacity()))
+			{
+				return false;
+			}
+		}
+
+		MEMORIA_ASSERT(idx, >=, 0);
+		MEMORIA_ASSERT(idx, <=, size_);
+		MEMORIA_ASSERT(size_ + space, <=, max_size_);
+
+		Int remainder = (size_ - idx) * BitsPerSymbol;
+
+		Value* data = this->data();
+
+		MoveBits(data, data, idx * BitsPerSymbol, (idx + space) * BitsPerSymbol, remainder);
+
+		size_ += space;
+
+		return true;
+	}
+
+	bool insert(Int idx, Value value)
+	{
+		if (insertSpace(idx, 1))
+		{
+			this->value(idx) = value;
+			return true;
+		}
+		return false;
+	}
+
+	void removeSpace(Int idx, Int space)
+	{
+		MEMORIA_ASSERT(idx, >=, 0);
+		MEMORIA_ASSERT(idx, <=, size_);
+		MEMORIA_ASSERT(idx + space, <=, size_);
+
+		Int remainder = (size_ - idx - space) * BitsPerSymbol;
+		MoveBits(data(), (idx + space) * BitsPerSymbol, data(), idx * BitsPerSymbol, remainder);
+
+		size_ -= space;
 	}
 
 	// ==================================== Dump =========================================== //
@@ -109,10 +176,10 @@ public:
 
 		out<<"Data:"<<endl;
 
-		const Value* values_ = buffer_;
+//		const Value* values_ = buffer_;
 
-		dumpSequence<Value>(out, size_, BitsPerSymbol, [&](Int pos) -> Value {
-			return values_[pos];
+		dumpSymbols<Value>(out, size_, BitsPerSymbol, [this](Int pos) -> Value {
+			return this->value(pos);
 		});
 	}
 };

@@ -44,7 +44,7 @@ template <
 	typename K,
 	typename IK,
 	typename V,
-	typename Allocator_ = EmptyAllocator,
+	typename Allocator_ = PackedAllocator,
 	Int BF = PackedTreeBranchingFactor,
 	Int VPB = PackedTreeBranchingFactor
 >

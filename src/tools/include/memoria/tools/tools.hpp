@@ -474,7 +474,16 @@ void AssertEQ(const char* src, const Op1& op1, const Op2& op2)
 }
 
 template <typename Op1, typename Op2>
-void AssertLT(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
+void AssertLT(const char* src, const Op1& op1, const Op2& op2)
+{
+	if (!(op1 < op2))
+	{
+		throw TestException(src, SBuf()<<"LT assertion failed: "<<op1<<" "<<op2);
+	}
+}
+
+template <typename Op1, typename Op2>
+void AssertLT(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
 	if (!(op1 < op2))
 	{

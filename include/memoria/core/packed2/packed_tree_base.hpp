@@ -143,7 +143,11 @@ public:
 	template <typename Functor>
 	void walk_range(Int target, Functor& walker) const
 	{
-		MEMORIA_ASSERT(target,   <=,  walker.size());
+		if (target > walker.size()) {
+			int a = 0; a++;
+		}
+
+		MEMORIA_ASSERT(target, <=, walker.size());
 
 		FinishHandler<Functor> finish_handler(walker);
 
@@ -188,38 +192,45 @@ public:
 	{
 		FinishHandler<Functor> finish_handler(walker);
 
-		Int levels = 0;
-		Int level_sizes[LEVELS_MAX];
-
-		Int level_size = walker.max_size();
-
-		do
+		if (walker.index_size() == 0)
 		{
-			level_size = getIndexCellsNumberFor(levels, level_size);
-			level_sizes[levels++] = level_size;
+			return walker.walkLastValuesBlock(0);
 		}
-		while (level_size > 1);
+		else {
 
-		Int base = 1, start = 0;
+			Int levels = 0;
+			Int level_sizes[LEVELS_MAX];
 
-		for (Int level = levels - 2; level >= 0; level--)
-		{
-			Int level_size  = level_sizes[level];
-			Int end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
+			Int level_size = walker.max_size();
 
-			Int idx = walker.walkIndex(start + base, end + base, 0) - base;
-			if (idx < end)
+			do
 			{
-				start = level > 0 ? idx * BranchingFactor : idx;
+				level_size = getIndexCellsNumberFor(levels, level_size);
+				level_sizes[levels++] = level_size;
 			}
-			else {
-				return walker.size();
+			while (level_size > 1);
+
+			Int base = 1, start = 0;
+
+			for (Int level = levels - 2; level >= 0; level--)
+			{
+				Int level_size  = level_sizes[level];
+				Int end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
+
+				Int idx = walker.walkIndex(start + base, end + base, 0) - base;
+				if (idx < end)
+				{
+					start = level > 0 ? idx * BranchingFactor : idx;
+				}
+				else {
+					return walker.size();
+				}
+
+				base += level_size;
 			}
 
-			base += level_size;
+			return walker.walkLastValuesBlock(start);
 		}
-
-		return walker.walkLastValuesBlock(start);
 	}
 
 

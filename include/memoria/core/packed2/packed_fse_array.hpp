@@ -17,7 +17,7 @@ namespace memoria {
 
 template <
 	typename V,
-	typename Allocator_ = EmptyAllocator
+	typename Allocator_ = PackedAllocator
 >
 struct PackedFSEArrayTypes {
     typedef V               Value;

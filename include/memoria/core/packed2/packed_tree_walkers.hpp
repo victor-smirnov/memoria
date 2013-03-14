@@ -42,15 +42,22 @@ protected:
 
     const IndexKey* indexes_;
 
+    Int index_size_;
+
 public:
-    FindForwardFnBase(const IndexKey* indexes, BigInt limit):
+    FindForwardFnBase(const IndexKey* indexes, BigInt limit, Int index_size):
         sum_(0),
         limit_(limit),
-        indexes_(indexes)
+        indexes_(indexes),
+        index_size_(index_size)
     {}
 
     void prepareIndex() {}
     void finish() {}
+
+    Int index_size() const {
+    	return index_size_;
+    }
 
     Int walkIndex(Int start, Int end, Int size)
     {
@@ -119,7 +126,9 @@ private:
 	const UByte* values_;
 
 public:
-	GetValueOffsetFnBase(const TreeType& me, Int limit): Base(me.indexes(0), limit), me_(me)
+	GetValueOffsetFnBase(const TreeType& me, Int limit):
+		Base(me.indexes(0), limit, me.index_size()),
+		me_(me)
 	{
 		values_  = me.values();
 	}
@@ -199,7 +208,7 @@ public:
 	}
 
 	Int size() const {
-		return me_.max_size();
+		return me_.size();
 	}
 
 	Int walkIndex(Int start, Int end, Int size)
@@ -300,7 +309,10 @@ private:
 	Int position_;
 
 public:
-	FindElementFn(const TreeType& me, BigInt limit): Base(me.indexes(1), limit), me_(me), position_(0)
+	FindElementFn(const TreeType& me, BigInt limit):
+		Base(me.indexes(1), limit, me.index_size()),
+		me_(me),
+		position_(0)
 	{
 		values_  = me.values();
 		sizes_   = me.sizes();
@@ -413,7 +425,9 @@ private:
 	const Value* 		values_;
 
 public:
-	FSEFindElementFnBase(const Tree& me, BigInt limit, Int index = 0): Base(me.indexes(index), limit), me_(me)
+	FSEFindElementFnBase(const Tree& me, BigInt limit, Int index = 0):
+		Base(me.indexes(index), limit, me.index_size()),
+		me_(me)
 	{
 		values_  = me_.values();
 	}
@@ -517,7 +531,7 @@ class BitRankFn: public SumValuesFnBase<TreeType, BitRankFn<TreeType>> {
 	Int bit_;
 
 public:
-	BitRankFn(TreeType& tree, Int bit): Base(tree, bit), values_(tree.values()), bit_(bit)
+	BitRankFn(const TreeType& tree, Int bit): Base(tree, bit), values_(tree.values()), bit_(bit)
 	{}
 
 	void walkValues(Int start, Int end)
@@ -544,7 +558,7 @@ class BitSelectFn: public FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typ
 	typedef typename TreeType::Value 							Value;
 	typedef typename TreeType::IndexKey 						IndexKey;
 
-	TreeType& tree_;
+	const TreeType& tree_;
 
 	const Value* values_;
 	Int bit_;
@@ -554,8 +568,8 @@ class BitSelectFn: public FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typ
 	Int rank_;
 
 public:
-	BitSelectFn(TreeType& tree, Int rank, Int bit):
-		Base(tree.indexes(bit), rank),
+	BitSelectFn(const TreeType& tree, Int rank, Int bit):
+		Base(tree.indexes(bit), rank, tree.index_size()),
 		tree_(tree),
 		values_(tree.values()),
 		bit_(bit)

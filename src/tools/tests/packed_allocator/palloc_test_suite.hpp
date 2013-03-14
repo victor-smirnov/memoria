@@ -26,9 +26,9 @@ public:
 	PackedAllocatorTestSuite(): TestSuite("PackedAllocatorSuite")
     {
 		registerTask(new PackedAllocatorTest());
-//		registerTask(new PackedCxSequenceTest());
-//		registerTask(new PackedBitVectorTest());
-//		registerTask(new PackedWaveletTreeTest());
+		registerTask(new PackedCxSequenceTest());
+		registerTask(new PackedBitVectorTest());
+		registerTask(new PackedWaveletTreeTest());
     }
 
 };
