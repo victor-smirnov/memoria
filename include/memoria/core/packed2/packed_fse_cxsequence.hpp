@@ -19,10 +19,10 @@ namespace memoria {
 using namespace std;
 
 template <
-	Int BitsPerSymbol_,
-	typename V,
+	Int BitsPerSymbol_		= 8,
+	typename V				= UByte,
 	Int BF 					= PackedTreeBranchingFactor,
-	Int VPB 				= 512,
+	Int VPB 				= 1024,
 	typename Allocator_ 	= PackedAllocator
 >
 struct PackedFSECxSequenceTypes {
@@ -69,6 +69,8 @@ public:
 
 	typedef typename Index::Codec												Codec;
 
+	static const Int IndexSizeThreshold											= 2;
+
 
 	class Metadata {
 		Int size_;
@@ -113,6 +115,10 @@ public:
 		return Base::template get<Index>(1);
 	}
 
+	bool has_index() const {
+		return Base::layout()->value(1) > 0;
+	}
+
 	Value* symbols()
 	{
 		return Base::template get<Value>(2);
@@ -125,28 +131,59 @@ public:
 
 	Int rank(Int idx, Int symbol) const
 	{
-		Int value_block_start 	= (idx / ValuesPerBranch) * ValuesPerBranch;
-
-		Int value_blocks 		= getValueBlocks(max_size());
-
-		Int index_from 			= value_blocks * symbol;
-		Int index_to 			= index_from + idx / ValuesPerBranch;
-
-		const Index* seq_index 	= index();
-
-		Int sum = seq_index->sum(index_from, index_to);
-
-		const Value* buffer = symbols();
-
-		for (Int c = value_block_start; c < idx; c++)
+		if (has_index())
 		{
-			if (buffer[c] == symbol)
-			{
-				sum++;
-			}
-		}
+			Int value_block_start 	= (idx / ValuesPerBranch) * ValuesPerBranch;
 
-		return sum;
+			Int value_blocks 		= getValueBlocks(max_size());
+
+			Int index_from 			= value_blocks * symbol;
+			Int index_to 			= index_from + idx / ValuesPerBranch;
+
+			const Index* seq_index 	= index();
+
+			Int sum = seq_index->sum(index_from, index_to);
+
+			const Value* buffer = symbols();
+
+			for (Int c = value_block_start; c < idx; c++)
+			{
+				if (buffer[c] == symbol)
+				{
+					sum++;
+				}
+			}
+
+			return sum;
+		}
+		else {
+			const Value* buffer = symbols();
+
+			Int sum = 0;
+
+			for (Int c = 0; c < idx; c++)
+			{
+				if (buffer[c] == symbol)
+				{
+					sum++;
+				}
+			}
+
+			return sum;
+		}
+	}
+
+	Value& value(Int idx) {
+		return symbols()[idx];
+	}
+
+	const Value& value(Int idx) const {
+		return symbols()[idx];
+	}
+
+	Int rank(Int from, Int to, Int symbol) const
+	{
+		return rank(to, symbol) - rank(from, symbol);
 	}
 
 	class SelectResult {
@@ -160,34 +197,65 @@ public:
 
 	SelectResult select(Int rank, Int symbol) const
 	{
-		Int value_blocks 		= getValueBlocks(max_size());
-		Int index_from 			= value_blocks * symbol;
-
-		const Index* seq_index 	= index();
-
-		Int prefix  = seq_index->sum(index_from);
-
-		auto result = seq_index->findLE(rank + prefix);
 
 
-		Int value_block_start 	= (result.idx() - value_blocks * symbol) * ValuesPerBranch;
-		Int value_block_end		= value_block_start + ValuesPerBranch;
 
-		Int local_rank 			= rank + prefix - result.prefix();
-
-		const Value* buffer 	= symbols();
-
-		for (Int c = value_block_start; c < value_block_end; c++)
+		if (has_index())
 		{
-			local_rank -= buffer[c] == symbol;
-
-			if (local_rank == 0)
-			{
-				return SelectResult(c, rank);
+			if (rank == 2 && symbol == 173) {
+				int a = 0; a++;
 			}
-		}
 
-		return SelectResult(size(), 0);
+
+			Int value_blocks 		= getValueBlocks(max_size());
+			Int index_from 			= value_blocks * symbol;
+			Int index_to 			= value_blocks * (symbol + 1);
+
+			const Index* seq_index 	= index();
+
+			Int prefix   = seq_index->sum(index_from);
+			auto result  = seq_index->findLE(rank + prefix);
+
+
+			MEMORIA_ASSERT(result.idx(), <, index_to);
+
+			Int value_block_start 	= (result.idx() - index_from) * ValuesPerBranch;
+			Int value_block_end		= value_block_start + ValuesPerBranch;
+
+			Int local_rank 			= rank + prefix - result.prefix();
+
+			const Value* buffer 	= symbols();
+
+			for (Int c = value_block_start; c < value_block_end; c++)
+			{
+				local_rank -= buffer[c] == symbol;
+
+				if (local_rank == 0)
+				{
+					return SelectResult(c, rank);
+				}
+			}
+
+			return SelectResult(size(), 0);
+		}
+		else
+		{
+			const Value* buffer = symbols();
+			Int size 			= this->size();
+
+			Int local_rank = rank;
+			for (Int c = 0; c < size; c++)
+			{
+				local_rank -= buffer[c] == symbol;
+
+				if (local_rank == 0)
+				{
+					return SelectResult(c, rank);
+				}
+			}
+
+			return SelectResult(size, rank - local_rank);
+		}
 	}
 
 	void dump(std::ostream& out = cout) const
@@ -209,12 +277,12 @@ public:
 
 		out<<endl;
 
-		out<<"Data:"<<endl;
+		out<<"Symbols:"<<endl;
 
 		const auto* values = this->symbols();
 
-		dumpArray<UByte>(out, size(), [&](Int pos) {
-			return (UByte)values[pos];
+		dumpSymbols<UByte>(out, size(), 8, [&](Int pos) {
+			return values[pos];
 		});
 	}
 
@@ -245,15 +313,23 @@ public:
 
 		Int value_blocks 	= getValueBlocks(meta->max_size());
 
-		Int index_block_size = Index::expected_block_size(value_blocks * Indexes);
+		Int index_block_size = value_blocks > IndexSizeThreshold ? Index::expected_block_size(value_blocks * Indexes) : 0;
 
 		allocated 			+= Base::allocate(1, index_block_size).size();
 		Base::setBlockType(1, PackedBlockType::ALLOCATABLE);
 
-		Index* index = this->index();
-		index->init(index_block_size);
+		if (value_blocks > IndexSizeThreshold)
+		{
+			Index* index = this->index();
+			index->init(index_block_size);
+			index->setAllocatorOffset(this);
+
+			Int idx_max_size = index->max_size();
+			MEMORIA_ASSERT(idx_max_size, ==, value_blocks * Indexes);
+		}
 
 		Base::allocate(2, Base::client_area() - allocated);
+		Base::setBlockType(1, PackedBlockType::RAW_MEMORY);
 	}
 
 	static Int metadata_block_size()
@@ -277,7 +353,7 @@ public:
 
 		Int value_blocks 		= getValueBlocks(max_sequence_size);
 
-		Int index_size			= getSingleIndexBlockSize(value_blocks * Indexes);
+		Int index_size			= value_blocks > IndexSizeThreshold ? Index::block_size(value_blocks * Indexes) : 0;
 
 		Int index_block_size 	= roundBytesToAlignmentBlocks(index_size);
 
@@ -288,6 +364,12 @@ public:
 		Int block_size			= Base::block_size(client_area, 3);
 
 		return block_size;
+	}
+
+	Int capacity() const
+	{
+		const Metadata* meta = metadata();
+		return meta->max_size() - meta->size();
 	}
 
 	class IndexDescr {
@@ -364,23 +446,44 @@ public:
 
 	void allocateIndexes(const IndexStat& stat)
 	{
-		Int value_blocks = getValueBlocks(metadata()->max_size());
+		if (has_index())
+		{
+			Int value_blocks = getValueBlocks(metadata()->max_size());
 
-		Index* index 	= this->index();
-		Int index_size	= getSingleIndexBlockSize(value_blocks * Indexes);
+			Index* index 	= this->index();
+			Int index_size	= getSingleIndexBlockSize(value_blocks * Indexes);
 
-		index->init(index_size);
+			index->init(index_size);
+			index->setAllocatorOffset(this);
+		}
 	}
 
 	Int reindex()
 	{
-		IndexStat stat = computeIndexStat();
+		if (!has_index()) {
+			return 0;
+		}
+
+
+		IndexStat stat;// = computeIndexStat();
 		clearIndexes();
 
 		allocateIndexes(stat);
 
 		Int sums[Indexes];
-		Int limit = ValuesPerBranch - 1;
+
+		Int limit;
+
+		if (ValuesPerBranch < size())
+		{
+			limit = ValuesPerBranch - 1;
+		}
+		else {
+			limit = size() - 1;
+		}
+
+
+
 		for (auto& v: sums) {v = 0;}
 
 		const Value* values = this->symbols();
@@ -419,10 +522,72 @@ public:
 		}
 
 		seq_index->reindex();
-
 		return 0;
 	}
 
+	Int enlarge(Int symbols)
+	{
+		Int requested_symbols 		= symbols - capacity();
+		Int new_max_size			= max_size() + requested_symbols;
+
+		Int requested_block_size 	= MyType::block_size(new_max_size);
+
+		Int new_size = this->enlargeBlock(this->symbols(), requested_block_size);
+		if (new_size)
+		{
+			metadata()->max_size()  = new_max_size;
+
+			Int value_blocks 		= getValueBlocks(new_max_size);
+			Int index_block_size	= Index::block_size(value_blocks * Indexes);
+
+			Int new_index_size 		= this->enlargeBlock(index(), index_block_size);
+
+			MEMORIA_ASSERT(new_index_size, >, 0);
+
+			this->index()->init(index_block_size);
+
+			if (value_blocks > IndexSizeThreshold)
+			{
+				Int idx_max_size = index()->max_size();
+				MEMORIA_ASSERT(idx_max_size, ==, value_blocks * Indexes);
+			}
+
+			return new_size;
+		}
+		else {
+			return 0;
+		}
+	}
+
+
+	bool insert(Int idx, Int symbol)
+	{
+		if (capacity() == 0)
+		{
+			if (!enlarge(1))
+			{
+				return false;
+			}
+		}
+
+		Value* values = symbols();
+
+		Int size = this->size();
+
+		MEMORIA_ASSERT(idx, <=, size);
+
+		CopyBuffer(values + idx, values + idx + 1, size - idx);
+
+		values[idx] = symbol;
+
+		this->size()++;
+
+		return true;
+	}
+
+	bool append(Int symbol) {
+		return insert(size(), symbol);
+	}
 };
 
 

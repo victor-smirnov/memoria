@@ -281,9 +281,6 @@ public:
 
 private:
 	struct InitFn {
-
-		InitFn() {}
-
 		Int block_size(Int items_number) const {
 			return MyType::block_size(items_number);
 		}

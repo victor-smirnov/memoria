@@ -11,6 +11,7 @@
 
 #include "palloc_test.hpp"
 #include "palloc_cxseq_test.hpp"
+#include "palloc_cxmultiseq_test.hpp"
 #include "palloc_bitvector_test.hpp"
 #include "palloc_wtree_test.hpp"
 
@@ -27,6 +28,7 @@ public:
     {
 		registerTask(new PackedAllocatorTest());
 		registerTask(new PackedCxSequenceTest());
+		registerTask(new PackedCxMultiSequenceTest());
 		registerTask(new PackedBitVectorTest());
 		registerTask(new PackedWaveletTreeTest());
     }

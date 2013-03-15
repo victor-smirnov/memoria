@@ -108,7 +108,13 @@ void dumpSymbols(ostream& out_, Int size_, Int bits_per_symbol, function<V(Int)>
 			{
 				out_<<hex;
 				out_.width(width);
-				out_<<fn(c + d);
+
+				if (sizeof(V) > 1) {
+					out_<<fn(c + d);
+				}
+				else {
+					out_<<(Int)fn(c + d);
+				}
 			}
 
 			out_<<dec<<endl;

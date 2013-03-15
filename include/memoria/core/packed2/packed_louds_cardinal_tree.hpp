@@ -23,6 +23,7 @@ class PackedLoudsCardinalTree: public PackedAllocator {
 	typedef PackedAllocator 								Base;
 	typedef PackedLoudsCardinalTree<Types> 					MyType;
 
+public:
 	static const Int SafetyGap 								= 8;
 	static const Int BitsPerLabel							= Types::BitsPerLabel;
 
@@ -97,7 +98,6 @@ public:
 	void insert_path(UBigInt path, Int size, function<void (const PackedLoudsNode&, Int label, Int level)> fn)
 	{
 		LoudsTree* louds = tree();
-//		LabelArray* labels = this->labels();
 
 		PackedLoudsNode node = louds->root();
 

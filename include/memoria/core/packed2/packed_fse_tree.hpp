@@ -115,7 +115,7 @@ public:
 		}
 	};
 
-	typedef FSEValueDescr<Value> 												ValueDescr;
+	typedef FSEValueDescr<IndexKey> 											ValueDescr;
 
 	template <typename TreeType, typename MyType>
 	using FindLTFnBase = FSEFindElementFnBase<TreeType, BTreeCompareLE, MyType>;
@@ -314,34 +314,39 @@ public:
 	// ==================================== Allocation =========================================== //
 
 private:
-	struct InitByBlockFn {
-		InitByBlockFn() {}
+	struct InitFn {
+//		Int getBlockSize(Int items_number) const {
+//			return MyType::block_size(items_number);
+//		}
+//
+//		Int extend(Int items_number) const {
+//			return items_number;
+//		}
+//
+//		Int getIndexSize(Int items_number) const {
+//			return MyType::compute_index_size(items_number);
+//		}
 
-		Int getBlockSize(Int items_number) const {
+		Int block_size(Int items_number) const {
 			return MyType::block_size(items_number);
 		}
 
-		Int extend(Int items_number) const {
-			return items_number;
-		}
-
-		Int getIndexSize(Int items_number) const {
-			return MyType::compute_index_size(items_number);
+		Int max_elements(Int block_size)
+		{
+			return block_size * 8;
 		}
 	};
 
 public:
 	void init(Int block_size)
 	{
-		memset(this, 0, block_size);
-
 		size_ = 0;
 
-		max_size_   = block_size >= (Int)sizeof(Value) ? MyType::getMaxSize(block_size, InitByBlockFn()) : 0;
+		max_size_   = block_size >= (Int)sizeof(Value) ? FindTotalElementsNumber2(block_size, InitFn()) : 0;
 		index_size_ = getIndexSize(max_size_);
 	}
 
-	Int getDataSize() const
+	Int data_size() const
 	{
 		return size() * sizeof(Value);
 	}
@@ -356,6 +361,10 @@ public:
 		return index_size_ * sizeof(IndexKey) * Indexes;
 	}
 
+	Int capacity() const {
+		return max_size_ - size_;
+	}
+
 	Allocator* allocator()
 	{
 		UByte* my_ptr = T2T<UByte*>(this);
@@ -367,6 +376,74 @@ public:
 		const UByte* my_ptr = T2T<const UByte*>(this);
 		return T2T<const Allocator*>(my_ptr - Base::allocator_offset());
 	}
+
+
+	void transferTo(MyType* other, Value* target_memory_block = nullptr) const
+	{
+		if (target_memory_block == nullptr)
+		{
+			target_memory_block = other->values();
+		}
+
+		Int data_size = this->data_size();
+
+		const Value* data = values();
+
+		CopyByteBuffer(data, target_memory_block, data_size);
+	}
+
+	bool enlarge(Int items_num)
+	{
+		Allocator* alloc = allocator();
+
+		if (alloc)
+		{
+			MyType other;
+
+			Int requested_block_size = MyType::block_size(max_size_ + items_num);
+
+			Int new_size = alloc->enlargeBlock(this, requested_block_size);
+
+			if (new_size)
+			{
+				other.init(new_size);
+				other.size() 				= this->size();
+				other.allocator_offset() 	= this->allocator_offset();
+
+				MEMORIA_ASSERT(other.size(), <=, other.max_size());
+				MEMORIA_ASSERT(other.capacity(), >=, items_num);
+
+				transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
+
+				*this = other;
+
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
+	}
+
+//	void shrink(Int amount)
+//	{
+//		Allocator* alloc = allocator();
+//		Int size = block_size();
+//
+//		MEMORIA_ASSERT(size - amount, >=, 0);
+//
+//		MyType other;
+//		other.init(size - amount);
+//
+//		Int new_size = alloc->shrinkBlock(this, size - amount);
+//
+//		other.init(new_size);
+//
+//		transferTo(&other, buffer_ + other.getDataOffset());
+//	}
 
 
 	// ==================================== Dump =========================================== //
@@ -405,11 +482,13 @@ public:
 		});
 	}
 
-	Value sum() const {
+	// ==================================== Query ========================================== //
+
+	IndexKey sum() const {
 		return sum(size_);
 	}
 
-	Value sum(Int to) const
+	IndexKey sum(Int to) const
 	{
 		GetFSEValuesSumFn<MyType> fn(*this);
 
@@ -418,12 +497,28 @@ public:
 		return fn.sum();
 	}
 
-	Value sum(Int from, Int to) const
+	IndexKey suml(Int to) const
+	{
+		IndexKey sum = 0;
+
+		cout<<"=================== SUML: "<<to<<" ================================"<<endl;
+
+		const Value* values = this->values();
+
+		for (Int c = 0; c < to; c++) {
+//			cout<<c<<" "<<values[c]<<" "<<sum<<endl;
+			sum += values[c];
+		}
+
+		return sum;
+	}
+
+	IndexKey sum(Int from, Int to) const
 	{
 		return sum(to) - sum(from);
 	}
 
-	ValueDescr findLT(Value val) const
+	ValueDescr findLT(IndexKey val) const
 	{
 		FSEFindElementFn<MyType, BTreeCompareLE> fn(*this, val);
 
@@ -434,7 +529,7 @@ public:
 		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
 	}
 
-	ValueDescr findLE(Value val) const
+	ValueDescr findLE(IndexKey val) const
 	{
 		FSEFindElementFn<MyType, BTreeCompareLT> fn(*this, val);
 
@@ -445,6 +540,16 @@ public:
 		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
 	}
 
+	ValueDescr findLEl(IndexKey val) const
+	{
+		FSEFindElementFn<MyType, BTreeCompareLT> fn(*this, val);
+
+		Int pos = fn.walkLastValuesBlock(0);
+
+		Value actual_value = value(pos);
+
+		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
+	}
 
 	template <
 		template <typename TreeType, template <typename, typename> class BaseClass> class Extender
@@ -481,6 +586,35 @@ public:
 		Value actual_value = this->value(pos);
 
 		return FSEValueDescr<Value, Extender<MyType, FindLTFnBase>>(actual_value + fn.sum(), pos, fn.sum(), fn);
+	}
+
+	// ==================================== Update ========================================== //
+
+	bool insert(Int idx, Value value)
+	{
+		if (capacity() == 0)
+		{
+			if (!enlarge(1))
+			{
+				return false;
+			}
+		}
+
+		MEMORIA_ASSERT(idx, <=, size());
+
+		Value* values = this->values();
+
+		CopyBuffer(values + idx, values + idx + 1, size() - idx);
+
+		this->value(idx) = value;
+
+		size_++;
+
+		return true;
+	}
+
+	bool append(Value value) {
+		return insert(size_, value);
 	}
 };
 
