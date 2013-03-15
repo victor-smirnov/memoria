@@ -383,6 +383,24 @@ public:
 		}
 	}
 
+	bool ensureCapacity(Int bit_amount)
+	{
+		if (bit_amount <= capacity())
+		{
+			return true;
+		}
+		else {
+			if (enlarge(bit_amount - capacity()))
+			{
+				reindex();
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+
 	void shrink(Int amount)
 	{
 		Allocator* alloc = allocator();
@@ -404,28 +422,32 @@ public:
 	// ==================================== Dump =========================================== //
 
 
-	void dump(std::ostream& out = cout) const
+	void dump(std::ostream& out = cout, bool dump_index = true) const
 	{
 		out<<"size_       = "<<size_<<endl;
 		out<<"max_size_   = "<<max_size_<<endl;
-		out<<"index_size_ = "<<index_size_<<endl;
-		out<<"Indexes     = "<<Indexes<<endl;
-		out<<endl;
 
-		Int idx_max = index_size_;
-
-		out<<"Indexes:"<<endl;
-
-		for (Int c = 0; c < idx_max; c++)
+		if (dump_index)
 		{
-			out<<c<<" ";
-
-			for (Int idx = 0; idx < Indexes; idx++)
-			{
-				out<<this->indexes(idx)[c]<<" ";
-			}
-
+			out<<"index_size_ = "<<index_size_<<endl;
+			out<<"Indexes     = "<<Indexes<<endl;
 			out<<endl;
+
+			Int idx_max = index_size_;
+
+			out<<"Indexes:"<<endl;
+
+			for (Int c = 0; c < idx_max; c++)
+			{
+				out<<c<<" ";
+
+				for (Int idx = 0; idx < Indexes; idx++)
+				{
+					out<<this->indexes(idx)[c]<<" ";
+				}
+
+				out<<endl;
+			}
 		}
 
 		out<<endl;

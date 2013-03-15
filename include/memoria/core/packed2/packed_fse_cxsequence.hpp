@@ -258,22 +258,26 @@ public:
 		}
 	}
 
-	void dump(std::ostream& out = cout) const
+	void dump(std::ostream& out = cout, bool dump_index = true) const
 	{
 		out<<"size_       = "<<size()<<endl;
 		out<<"max_size_   = "<<max_size()<<endl;
-		out<<endl;
 
-		out<<"Layout:"<<endl;
+		if (dump_index)
+		{
+			out<<endl;
 
-		Base::dump(out);
+			out<<"Layout:"<<endl;
 
-		out<<dec<<endl;
+			Base::dump(out);
 
-		out<<"Sequence Indexes:"<<endl;
+			out<<dec<<endl;
 
-		const Index* index = this->index();
-		index->dump();
+			out<<"Sequence Indexes:"<<endl;
+
+			const Index* index = this->index();
+			index->dump();
+		}
 
 		out<<endl;
 
@@ -334,7 +338,7 @@ public:
 
 	static Int metadata_block_size()
 	{
-		return Base::roundBytesToAlignmentBlocks(sizeof(Metadata));
+		return Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 	}
 
 	static Int getSingleIndexBlockSize(Int items_number)
@@ -349,15 +353,15 @@ public:
 
 	static Int block_size(Int sequence_size)
 	{
-		Int max_sequence_size 	= roundBytesToAlignmentBlocks(sequence_size);
+		Int max_sequence_size 	= roundUpBytesToAlignmentBlocks(sequence_size);
 
 		Int value_blocks 		= getValueBlocks(max_sequence_size);
 
 		Int index_size			= value_blocks > IndexSizeThreshold ? Index::block_size(value_blocks * Indexes) : 0;
 
-		Int index_block_size 	= roundBytesToAlignmentBlocks(index_size);
+		Int index_block_size 	= roundUpBytesToAlignmentBlocks(index_size);
 
-		Int metadata_size		= roundBytesToAlignmentBlocks(sizeof(Metadata));
+		Int metadata_size		= roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
 		Int client_area 		= metadata_size + index_block_size + max_sequence_size;
 

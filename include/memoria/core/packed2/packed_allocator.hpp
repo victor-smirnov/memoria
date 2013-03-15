@@ -112,7 +112,7 @@ public:
 
 		Layout* layout = this->layout();
 
-		layout_size_ = roundBytesToAlignmentBlocks(Layout::block_size(blocks));
+		layout_size_ = roundUpBytesToAlignmentBlocks(Layout::block_size(blocks));
 
 		memset(layout, 0, layout_size_);
 
@@ -120,7 +120,7 @@ public:
 		layout->size() = blocks;
 		layout->reindex();
 
-		bitmap_size_ = roundBitsToAlignmentBlocks(blocks);
+		bitmap_size_ = roundUpBitsToAlignmentBlocks(blocks);
 
 		Bitmap* bitmap = this->bitmap();
 		memset(bitmap, 0, bitmap_size_);
@@ -128,10 +128,10 @@ public:
 
 	static Int block_size(Int client_area, Int blocks)
 	{
-		Int layout_size = roundBytesToAlignmentBlocks(Layout::block_size(blocks));
-		Int bitmap_size = roundBitsToAlignmentBlocks(blocks);
+		Int layout_size = roundUpBytesToAlignmentBlocks(Layout::block_size(blocks));
+		Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
 
-		return sizeof(MyType) + layout_size + bitmap_size + roundBytesToAlignmentBlocks(client_area);
+		return sizeof(MyType) + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
 	}
 
 
@@ -152,7 +152,7 @@ public:
 		Int offset 		= computeElementOffset(element);
 		Int idx 		= layout->findLT(offset).idx();
 
-		Int allocation_size = roundBytesToAlignmentBlocks(new_size);
+		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
 
 		Int delta 		= allocation_size - layout->value(idx);
 
@@ -181,7 +181,7 @@ public:
 		Int offset 		= computeElementOffset(element);
 		Int idx 		= layout->findLT(offset).idx();
 
-		Int allocation_size = roundBytesToAlignmentBlocks(new_size);
+		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
 
 		Int delta 		= allocation_size - layout->value(idx);
 
@@ -247,9 +247,9 @@ public:
 	}
 
 
-	AllocationBlock allocate(Int idx, Int size)
+	AllocationBlock allocate(Int idx, Int size, PackedBlockType type = PackedBlockType::ALLOCATABLE)
 	{
-		Int allocation_size = roundBytesToAlignmentBlocks(size);
+		Int allocation_size = roundUpBytesToAlignmentBlocks(size);
 
 		if (allocation_size <= free_space())
 		{
@@ -259,6 +259,8 @@ public:
 
 			layout()->value(idx) = allocation_size;
 			layout()->reindex();
+
+			setBlockType(idx, type);
 
 			return AllocationBlock(allocation_size, offset, base() + offset);
 		}

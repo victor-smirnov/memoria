@@ -28,11 +28,19 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #ifndef MEMORIA_NO_ASSERTS
 
-#define MEMORIA_ASSERT(Left, Operation, Right)                                                                                                      \
-        if (!(Left Operation Right)) {                                                                                                              \
+#define MEMORIA_ASSERT(Left, Operation, Right)                                                                            \
+        if (!(Left Operation Right)) {                                                                                    \
             throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "\
                     <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right); \
         }
+
+
+#define MEMORIA_ASSERT_TRUE(Arg0)                                                                       \
+        if (!(Arg0)) {                                                                                  \
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT TRUE FAILURE: "				\
+                    <<#Arg0); 																			\
+        }
+
 
 #define MEMORIA_ASSERT_EXPR(Expr, Msg)                                                              \
         if (!(Expr)) {                                                                              \

@@ -44,6 +44,10 @@ public:
 	bool is_empty() const {
 		return idx_ < 0;
 	}
+
+	operator bool() const {
+		return idx_ >= 0;
+	}
 };
 
 class PackedLoudsNodeSet: public PackedLoudsNode {
@@ -166,12 +170,34 @@ public:
 		return PackedLoudsNode(idx, this->rank1(idx));
 	}
 
-	PackedLoudsNodeSet children(const PackedLoudsNode& node)
+	PackedLoudsNodeSet children(const PackedLoudsNode& node) const
 	{
 		PackedLoudsNode first = this->first_child(node);
 		PackedLoudsNode last  = this->last_child(node);
 
 		return PackedLoudsNodeSet(first, last.idx() - first.idx());
+	}
+
+	PackedLoudsNode insertNode(const PackedLoudsNode& at)
+	{
+		if (this->ensureCapacity(2))
+		{
+			this->insert(at.idx(), 1, 1);
+			this->reindex();
+
+			PackedLoudsNode node = this->node(at.idx());
+
+			Int zero_idx = first_child(node).idx();
+
+			this->insert(zero_idx, 0, 1);
+
+			this->reindex();
+
+			return node;
+		}
+		else {
+			return PackedLoudsNode();
+		}
 	}
 
 	bool isLeaf(const PackedLoudsNode& node) const

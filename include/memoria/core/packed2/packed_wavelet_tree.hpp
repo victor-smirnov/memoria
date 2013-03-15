@@ -12,19 +12,16 @@
 #include <memoria/core/tools/accessors.hpp>
 #include <memoria/core/tools/dump.hpp>
 
-#include <memoria/core/packed2/packed_dynamic_allocator.hpp>
-
-#include <memoria/core/packed2/packed_fse_cxsequence.hpp>
-#include <memoria/core/packed2/packed_bitvector.hpp>
-#include <memoria/core/packed2/packed_fse_tree.hpp>
-
+#include <memoria/core/packed2/packed_louds_cardinal_tree.hpp>
+#include <memoria/core/packed2/packed_multisequence.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 
 namespace memoria {
 
 template <typename Allocator_ = PackedAllocator>
 struct PackedWaveletTreeTypes {
-	typedef Allocator_ 				Allocator;
+	typedef Allocator_ 					Allocator;
+	static const Int BitsPerLabel 		= 8;
 };
 
 template <typename Types>
@@ -35,139 +32,204 @@ class PackedWaveletTree: public PackedAllocator {
 
 	typedef typename Types::Allocator 											Allocator;
 
+    struct CardinalTreeTypes {
+    	static const Int BitsPerLabel = Types::BitsPerLabel;
+    };
+
+    typedef PackedFSECxSequenceTypes<> 											MultiSequenceTypes;
 
 public:
-	typedef PackedBitVector<
-		PackedBitVectorTypes<>
-	>																			BitVector;
-
-	typedef PackedFSEArray<
-		PackedFSEArrayTypes<
-			UByte
-		>
-	>																			NodeLabelsArray;
-
-	typedef PackedFSETree<
-		PackedFSETreeTypes<
-			Int,
-			Int,
-			Int
-		>
-	>																			SequenceLebelsArray;
+    typedef PackedLoudsCardinalTree<CardinalTreeTypes>							CardinalTree;
 
 
-	typedef PackedFSECxSequence<
-		PackedFSECxSequenceTypes<
-			8,
-			UByte,
-			PackedTreeBranchingFactor,
-			512
-		>
-	>																			Sequence;
+    typedef PackedCxMultiSequence<MultiSequenceTypes>							MultiSequence;
 
 
-	class Metadata {
-		Int size_;
-		Int max_size_;
-	public:
-		Int& size() 		{return size_;}
-		Int& max_size() 	{return max_size_;}
+public:
 
-		const Int& size() const 	{return size_;}
-		const Int& max_size() const {return max_size_;}
-	};
 
 public:
 
 	PackedWaveletTree() {}
 
-	Metadata* metadata()
+
+	CardinalTree* ctree()
 	{
-		return Base::template get<Metadata>(0);
+		return Base::template get<CardinalTree>(0);
 	}
 
-	const Metadata* metadata() const
+	const CardinalTree* ctree() const
 	{
-		return Base::template get<Metadata>(0);
+		return Base::get<CardinalTree>(0);
 	}
 
-	BitVector* bit_vector()
+	MultiSequence* msequence()
 	{
-		return Base::template get<BitVector>(1);
+		return Base::template get<MultiSequence>(1);
 	}
 
-	const BitVector* bit_vector() const
+	const MultiSequence* msequence() const
 	{
-		return Base::get<BitVector>(1);
+		return Base::template get<MultiSequence>(1);
 	}
 
-	NodeLabelsArray* node_label_array()
+	void prepare()
 	{
-		return Base::template get<NodeLabelsArray>(2);
+		ctree()->prepare();
+		msequence()->insertSubsequence(0);
 	}
 
-	const NodeLabelsArray* node_label_array() const
-	{
-		return Base::template get<NodeLabelsArray>(2);
+	Int size() const {
+		return msequence()->subseq_size(0);
 	}
 
-	SequenceLebelsArray* sequence_label_array()
+	void insert(Int idx, UBigInt value)
 	{
-		return Base::template get<SequenceLebelsArray>(3);
+		insert(ctree()->tree()->root(), idx, value, 3);
 	}
 
-	const SequenceLebelsArray* sequence_label_array() const
+private:
+	void insert(const PackedLoudsNode& node, Int idx, UBigInt value, Int level)
 	{
-		return Base::template get<SequenceLebelsArray>(3);
+		Int label = (value >> (level * 8)) & 0xFF;
+
+		Int seq_num = node.rank1() - 1;
+
+		MEMORIA_ASSERT_TRUE(msequence()->insertSymbol(seq_num, idx, label));
+		Int rank = msequence()->rank(seq_num, idx + 1, label);
+
+		if (level > 0)
+		{
+			PackedLoudsNode child = ctree()->find_child(node, label);
+
+			if (rank == 1)
+			{
+				child = ctree()->insertNode(child, label);
+				MEMORIA_ASSERT_TRUE(msequence()->insertSubsequence(child.rank1() - 1));
+			}
+
+			insert(child, rank - 1, value, level - 1);
+		}
 	}
 
-	Sequence* sequence()
+public:
+
+	UBigInt value(Int idx) const
 	{
-		return Base::template get<Sequence>(4);
+		UBigInt value = 0;
+
+		buildValue(idx, ctree()->tree()->root(), value, 3);
+
+		return value;
 	}
 
-	const Sequence* sequence() const
+private:
+
+	void buildValue(Int idx, const PackedLoudsNode& node, UBigInt& value, Int level) const
 	{
-		return Base::template get<Sequence>(4);
+		Int 	seq_num = node.rank1() - 1;
+		UBigInt label 	= msequence()->value(seq_num, idx);
+		Int 	rank	= msequence()->rank(seq_num, idx + 1, label);
+
+		value |= label << (level * 8);
+
+		if (level > 0)
+		{
+			PackedLoudsNode child = ctree()->find_child(node, label);
+
+			buildValue(rank - 1, child, value, level - 1);
+		}
 	}
+
+public:
+
+	Int rank(Int idx, UBigInt symbol) const
+	{
+		return buildRank(ctree()->tree()->root(), idx, symbol, 3);
+	}
+
+private:
+
+	Int buildRank(const PackedLoudsNode& node, Int idx, UBigInt symbol, Int level) const
+	{
+		Int seq_num = node.rank1() - 1;
+		Int label 	= (symbol >> (level * 8)) & 0xFFull;
+		Int rank	= msequence()->rank(seq_num, idx + 1, label);
+
+		if (level > 0)
+		{
+			PackedLoudsNode child = ctree()->find_child(node, label);
+			return buildRank(child, rank - 1, symbol, level - 1);
+		}
+		else {
+			return rank;
+		}
+	}
+
+public:
+
+	Int select(Int rank, UBigInt symbol) const
+	{
+		return select(ctree()->tree()->root(), rank, symbol, 3) - 1;
+	}
+
+private:
+
+	Int select(const PackedLoudsNode& node, Int rank, UBigInt symbol, Int level) const
+	{
+		if (level >= 0)
+		{
+			Int label = (symbol >> (level * 8)) & 0xFFull;
+
+			PackedLoudsNode child = ctree()->find_child(node, label);
+
+			Int rnk = select(child, rank, symbol, level - 1);
+
+			Int seq_num = node.rank1() - 1;
+			return msequence()->select(seq_num, rnk, label).idx() + 1;
+		}
+		else {
+			return rank;
+		}
+	}
+
+
+public:
 
 	void init(Int block_size)
 	{
-		Base::init(block_size, 5);
+		Base::init(block_size, 2);
 
-		Int bitvector_size 			= roundBytesToAlignmentBlocks(block_size / 20);
-		Int node_labels_size 		= roundBytesToAlignmentBlocks(block_size / 5);
-		Int sequence_labels_size 	= roundBytesToAlignmentBlocks(block_size / 20);
+		Int client_area = this->client_area();
 
-		Int sequence_size 			= Base::client_area()
-									- bitvector_size
-									- node_labels_size
-									- sequence_labels_size
-									- roundBytesToAlignmentBlocks(sizeof(Metadata));
+		auto cardinal_tree_block 	= allocate(0, client_area/4);
+		MEMORIA_ASSERT_TRUE(cardinal_tree_block);
 
-		allocateStruct<Metadata>				(0, sizeof(Metadata));
-		allocateElement<BitVector>				(1, bitvector_size);
-		allocateElement<NodeLabelsArray>		(2, node_labels_size);
-		allocateElement<SequenceLebelsArray>	(3, sequence_labels_size);
+		ctree()->init(cardinal_tree_block.size());
 
-		allocateElement<Sequence>				(4, sequence_size);
+		auto multisequence_block 	= allocate(1, roundDownBytesToAlignmentBlocks(client_area - cardinal_tree_block.size()));
+		MEMORIA_ASSERT_TRUE(multisequence_block);
+
+		msequence()->init(multisequence_block.size());
 	}
 
 	static Int block_size(Int client_area)
 	{
-		return Base::block_size(client_area - roundBytesToAlignmentBlocks(sizeof(Metadata)), 5);
+		return Base::block_size(client_area, 2);
 	}
 
-	Int enlargeBlock(void* element, Int new_size)
+	void dump(ostream& out = cout, bool dump_index = true) const
 	{
-		Allocator* alloc = allocator();
-		if (alloc)
+		if (dump_index)
 		{
-			return alloc->enlargeBlock(this, new_size);
+			Base::dump(out);
 		}
-		else {
-			return 0;
-		}
+
+		out<<"Cardinal Tree:"<<endl;
+		ctree()->dump(out, dump_index);
+
+		out<<"MultiSequence:"<<endl;
+		msequence()->dump(out, true, dump_index);
 	}
 
 private:

@@ -77,7 +77,12 @@ public:
 
 	static Int block_size(Int elements)
 	{
-		return sizeof(MyType) + roundBitsToAlignmentBlocks(elements * BitsPerSymbol);
+		return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
+	}
+
+	static Int block_size_bs(Int block_size)
+	{
+		return sizeof(MyType) + block_size;
 	}
 
 	BitmapAccessor<Value*, Value, BitsPerSymbol>
@@ -107,7 +112,7 @@ public:
 		Allocator* alloc = Base::allocator();
 		if (alloc)
 		{
-			Int amount = roundBitToBytes(roundBitToBytes(elements * BitsPerSymbol));
+			Int amount = roundUpBitToBytes(roundUpBitToBytes(elements * BitsPerSymbol));
 			Int size = alloc->element_size(this);
 			Int new_size = alloc->enlargeBlock(this, size + amount);
 			max_size_ = new_size * 8 / BitsPerSymbol;

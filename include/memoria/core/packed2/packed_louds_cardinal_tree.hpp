@@ -52,6 +52,20 @@ public:
 		return Base::template get<LabelArray>(1);
 	}
 
+	Int label(const PackedLoudsNode& node) const
+	{
+		return labels(node.rank1());
+	}
+
+	PackedLoudsNode insertNode(const PackedLoudsNode& at, Int label)
+	{
+		PackedLoudsNode node = tree()->insertNode(at);
+		MEMORIA_ASSERT_TRUE(node);
+		MEMORIA_ASSERT_TRUE(labels()->insert(node.rank1() - 1, label));
+
+		return node;
+	}
+
 	void init(Int block_size, Int nodes)
 	{
 		Base::init(block_size, 2);
@@ -60,27 +74,44 @@ public:
 		Int louds_size  = LoudsTree::block_size(bit_size);
 
 		auto block = Base::allocate(0, louds_size);
-		Base::setBlockType(0, PackedBlockType::ALLOCATABLE);
 
 		LoudsTree* tree = this->tree();
 		tree->init(block.size());
-		tree->setAllocatorOffset(this);
 
 		Int labels_array_size = LabelArray::block_size(nodes);
 		block = Base::allocate(1, labels_array_size);
-		Base::setBlockType(1, PackedBlockType::ALLOCATABLE);
 
 		LabelArray* labels = this->labels();
 		labels->init(block.size());
-		labels->setAllocatorOffset(this);
 	}
 
-	PackedLoudsNode find_child(const PackedLoudsNode& node, Int label)
+	void init(Int block_size)
 	{
-		LoudsTree* louds = tree();
-		PackedLoudsNodeSet children = louds->children(node);
+		Base::init(block_size, 2);
+
+		Int client_area = this->client_area();
+
+		auto block = Base::allocate(0, client_area/8);
+		MEMORIA_ASSERT_TRUE(block);
+
+		LoudsTree* tree = this->tree();
+		tree->init(block.size());
+
+		Int labels_array_size = roundDownBytesToAlignmentBlocks(client_area - block.size());
+
+		block = Base::allocate(1, labels_array_size);
+		MEMORIA_ASSERT_TRUE(block);
 
 		LabelArray* labels = this->labels();
+		labels->init(block.size());
+	}
+
+	PackedLoudsNode find_child(const PackedLoudsNode& node, Int label) const
+	{
+		const LoudsTree* louds = tree();
+		PackedLoudsNodeSet children = louds->children(node);
+
+		const LabelArray* labels = this->labels();
 
 		for (Int c = 0; c < children.length(); c++)
 		{
@@ -193,18 +224,21 @@ public:
 	{
 		Int bit_size	= 2 * nodes + 1 + SafetyGap;
 
-		Int client_area = roundBytesToAlignmentBlocks(LoudsTree::block_size(bit_size))
-						  + roundBytesToAlignmentBlocks(LabelArray::block_size(nodes));
+		Int client_area = roundUpBytesToAlignmentBlocks(LoudsTree::block_size(bit_size))
+						  + roundUpBytesToAlignmentBlocks(LabelArray::block_size(nodes));
 
 		return Base::block_size(client_area, 2);
 	}
 
-	void dump(ostream& out = cout) const
+	void dump(ostream& out = cout, bool dump_index = true) const
 	{
-		Base::dump(out);
+		if (dump_index)
+		{
+			Base::dump(out);
+		}
 
 		out<<"Louds Tree: "<<endl;
-		tree()->dump(out);
+		tree()->dump(out, dump_index);
 		out<<endl;
 
 		out<<"Cardinal Labels: "<<endl;

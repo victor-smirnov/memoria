@@ -203,7 +203,7 @@ public:
 		Int index_size = getIndexSize(items_num);
 		Int raw_block_size = sizeof(MyType) + index_size * Indexes * sizeof(IndexKey) + items_num * sizeof(Value);
 
-		return Allocator::roundBytesToAlignmentBlocks(raw_block_size);
+		return Allocator::roundUpBytesToAlignmentBlocks(raw_block_size);
 	}
 
 	static Int expected_block_size(Int items_num)
@@ -449,28 +449,32 @@ public:
 	// ==================================== Dump =========================================== //
 
 
-	void dump(std::ostream& out = cout) const
+	void dump(std::ostream& out = cout, bool dump_index = true) const
 	{
 		out<<"size_       = "<<size_<<endl;
 		out<<"max_size_   = "<<max_size_<<endl;
-		out<<"index_size_ = "<<index_size_<<endl;
-		out<<"Indexes     = "<<Indexes<<endl;
-		out<<endl;
 
-		Int idx_max = index_size_;
-
-		out<<"Indexes:"<<endl;
-
-		for (Int c = 0; c < idx_max; c++)
+		if (dump_index)
 		{
-			out<<c<<" ";
-
-			for (Int idx = 0; idx < Indexes; idx++)
-			{
-				out<<this->indexes(idx)[c]<<" ";
-			}
-
+			out<<"index_size_ = "<<index_size_<<endl;
+			out<<"Indexes     = "<<Indexes<<endl;
 			out<<endl;
+
+			Int idx_max = index_size_;
+
+			out<<"Indexes:"<<endl;
+
+			for (Int c = 0; c < idx_max; c++)
+			{
+				out<<c<<" ";
+
+				for (Int idx = 0; idx < Indexes; idx++)
+				{
+					out<<this->indexes(idx)[c]<<" ";
+				}
+
+				out<<endl;
+			}
 		}
 
 		out<<endl;

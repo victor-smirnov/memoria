@@ -58,7 +58,7 @@ public:
 
 		Int client_area = Base::client_area();
 
-		Int label_array_size = roundBytesToAlignmentBlocks(client_area / 5);
+		Int label_array_size = roundUpBytesToAlignmentBlocks(client_area / 5);
 		Int sequence_size	 = client_area - label_array_size;
 
 
@@ -142,7 +142,7 @@ public:
 
 			labels->reindex();
 
-//			seq->reindex();
+			seq->reindex();
 
 			return true;
 		}
@@ -159,22 +159,51 @@ public:
 		return insertSymbol(subseq_num, size, symbol);
 	}
 
+	Int subseq_size(Int seq_num) const
+	{
+		return labels()->value(seq_num);
+	}
+
 	static Int block_size(Int client_area)
 	{
 		return Base::block_size(client_area, 2);
 	}
 
-	void dump(ostream& out = cout, bool multi = true) const
+	const UByte& value(Int seq_num, Int idx) const
 	{
-		Base::dump(out);
+		Int seq_prefix	= labels()->sum(seq_num);
+		Int size 		= labels()->value(seq_num);
+
+		MEMORIA_ASSERT(idx, <, size);
+
+		return sequence()->value(seq_prefix + idx);
+	}
+
+	UByte& value(Int seq_num, Int idx)
+	{
+		Int seq_prefix	= labels()->sum(seq_num);
+		Int size 		= labels()->value(seq_num);
+
+		MEMORIA_ASSERT(idx, <, size);
+
+		return sequence()->value(seq_prefix + idx);
+	}
+
+	void dump(ostream& out = cout, bool multi = true, bool dump_index = true) const
+	{
+		if (dump_index) {
+			Base::dump(out);
+		}
 
 		out<<"Sequence Labels: "<<endl;
-		labels()->dump(out);
+		labels()->dump(out, dump_index);
 		out<<endl;
 
 		if (multi)
 		{
-			sequence()->index()->dump(out);
+			if (dump_index) {
+				sequence()->index()->dump(out);
+			}
 
 			const auto* values = sequence()->symbols();
 
@@ -199,7 +228,7 @@ public:
 		}
 		else {
 			out<<"Sequence: "<<endl;
-			sequence()->dump(out);
+			sequence()->dump(out, dump_index);
 			out<<endl;
 		}
 	}

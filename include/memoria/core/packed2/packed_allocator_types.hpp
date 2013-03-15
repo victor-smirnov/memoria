@@ -67,17 +67,32 @@ public:
 		}
 	}
 
-	static Int roundBytesToAlignmentBlocks(Int value)
+	static Int roundUpBytesToAlignmentBlocks(Int value)
 	{
 		return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
 	}
 
-	static Int roundBitsToAlignmentBlocks(Int bits)
+	static Int roundDownBytesToAlignmentBlocks(Int value)
 	{
-		return roundBytesToAlignmentBlocks(roundBitToBytes(bits));
+		return (value / AlignmentBlock) * AlignmentBlock;
 	}
 
-	static Int roundBitToBytes(Int bits)
+	static Int roundUpBitsToAlignmentBlocks(Int bits)
+	{
+		return roundUpBytesToAlignmentBlocks(roundUpBitToBytes(bits));
+	}
+
+	static Int roundDownBitsToAlignmentBlocks(Int bits)
+	{
+		return roundDownBytesToAlignmentBlocks(roundDownBitToBytes(bits));
+	}
+
+	static Int roundUpBitToBytes(Int bits)
+	{
+		return bits / 8 + (bits % 8 > 0);
+	}
+
+	static Int roundDownBitToBytes(Int bits)
 	{
 		return bits / 8 + (bits % 8 > 0);
 	}
@@ -141,7 +156,7 @@ struct AllocationBlockConst {
 struct EmptyAllocator {
 	Int enlargeBlock(void*, Int size) {return 0;}
 
-	static Int roundBytesToAlignmentBlocks(int size) {return size;}
+	static Int roundUpBytesToAlignmentBlocks(int size) {return size;}
 };
 
 }
