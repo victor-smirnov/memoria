@@ -25,10 +25,10 @@ namespace memoria {
 using namespace std;
 
 template <Int BF, Int VPB>
-class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedSingleElementAllocator, 2, BF, VPB>> {
+class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedAllocator, 2, BF, VPB>> {
 
 	typedef PVLEMapFindTest<BF, VPB> 																	MyType;
-	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedSingleElementAllocator, 2, BF, VPB>> 	Base;
+	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedAllocator, 2, BF, VPB>> 				Base;
 
 	typedef typename Base::Types			Types;
 	typedef typename Base::Tree 			Tree;
@@ -149,7 +149,7 @@ public:
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
     	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>();
+    	Tree* tree = tree_block->template get<Tree>(0);
 
 
     	fillTree(tree);
@@ -180,7 +180,7 @@ public:
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
     	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>();
+    	Tree* tree = tree_block->template get<Tree>(0);
 
     	fillTree(tree);
 
@@ -209,7 +209,7 @@ public:
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
     	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>();
+    	Tree* tree = tree_block->template get<Tree>(0);
 
     	fillTree(tree);
 
@@ -236,7 +236,7 @@ public:
     void testFindLargeValue()
     {
     	TreePtr tree_block = Base::createTree(4096);
-    	Tree* tree = tree_block->template get<Tree>();
+    	Tree* tree = tree_block->template get<Tree>(0);
 
     	for (Int size = 0; size < tree->max_size(); size += 10)
     	{

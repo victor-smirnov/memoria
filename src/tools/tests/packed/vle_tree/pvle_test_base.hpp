@@ -13,7 +13,6 @@
 #include <memoria/prototypes/btree/tools.hpp>
 
 #include <memoria/core/packed2/packed_vle_tree.hpp>
-#include <memoria/core/packed2/packed_dynamic_allocator.hpp>
 
 #include <memoria/core/tools/exint_codec.hpp>
 
@@ -49,7 +48,7 @@ public:
 
     TreePtr createTree(Int size, Int free_space = 0)
     {
-    	Int block_size = Allocator::block_size(size + free_space);
+    	Int block_size = Allocator::block_size(size, 1);
 
     	void* buffer = malloc(block_size);
 
@@ -57,11 +56,17 @@ public:
 
     	Allocator* allocator = T2T<Allocator*>(buffer);
 
-    	auto block = allocator->allocate(size);
+    	allocator->init(block_size, 1);
+
+    	auto block = allocator->allocate(0, size);
+
+    	AssertTrue(MA_SRC, block);
 
     	Tree* tree = T2T<Tree*>(block.ptr());
 
     	tree->init(block.size());
+
+    	allocator->enlargeAllocator(free_space);
 
     	return TreePtr(allocator);
     }

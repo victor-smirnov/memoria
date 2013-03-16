@@ -61,7 +61,7 @@ public:
 				Int,
 				Int,
 				UShort,
-				PackedDynamicAllocator<>,
+				PackedAllocator,
 				BranchingFactor,
 				64
 				>																IndexTypes;

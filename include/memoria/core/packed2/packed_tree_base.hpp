@@ -10,7 +10,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/assert.hpp>
 
-#include <memoria/core/packed2/packed_allocator_base.hpp>
+#include <memoria/core/packed2/packed_allocator_types.hpp>
 #include <memoria/core/packed2/packed_tools.hpp>
 
 namespace memoria {

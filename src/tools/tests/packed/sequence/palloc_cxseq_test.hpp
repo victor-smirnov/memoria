@@ -12,7 +12,6 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/packed2/packed_dynamic_allocator.hpp>
 #include <memoria/core/packed2/packed_fse_cxsequence.hpp>
 #include <memoria/core/packed2/packed_wavelet_tree.hpp>
 

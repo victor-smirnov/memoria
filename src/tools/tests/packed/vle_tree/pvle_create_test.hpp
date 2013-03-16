@@ -23,17 +23,17 @@ namespace memoria {
 using namespace std;
 
 template <Int BF, Int VPB>
-class PVLEMapCreateTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedSingleElementAllocator, 2, BF, VPB>> {
+class PVLEMapCreateTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedAllocator, 2, BF, VPB>> {
 
 	typedef PVLEMapCreateTest 																			MyType;
-	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedSingleElementAllocator, 2, BF, VPB>> 	Base;
+	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedAllocator, 2, BF, VPB>> 				Base;
 
 	typedef typename Base::Tree 			Tree;
 	typedef typename Base::TreePtr 			TreePtr;
 	typedef typename Base::Value			Value;
 	typedef typename Base::Codec			Codec;
 
-	typedef PackedSingleElementAllocator 	Allocator;
+	typedef PackedAllocator 				Allocator;
 
 public:
 
@@ -67,7 +67,7 @@ public:
     {
     	Base::out()<<"Block size: "<<block_size<<endl;
     	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>();
+    	Tree* tree = tree_block->template get<Tree>(0);
 
     	Value c = 0;
     	Base::fillTree(tree, [&]()->Value {
@@ -86,7 +86,7 @@ public:
 
     	Base::out()<<"Block size: "<<block_size<<endl;
     	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>();
+    	Tree* tree = tree_block->template get<Tree>(0);
 
     	vector<Value> values(tree->max_size() / 3);
 
@@ -125,7 +125,7 @@ public:
 
     	Base::out()<<"Block size: "<<block_size<<endl;
     	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>();
+    	Tree* tree = tree_block->template get<Tree>(0);
 
 
     	MultiValueSetter<Tree, 16> setter(tree);

@@ -44,6 +44,7 @@ public:
     TreePtr createTree(Int size)
     {
     	void* buffer = malloc(size);
+    	memset(buffer, 0, size);
 
     	if (buffer)
     	{
