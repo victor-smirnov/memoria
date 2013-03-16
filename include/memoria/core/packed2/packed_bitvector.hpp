@@ -522,10 +522,6 @@ public:
 
 		size_ += nbits;
 
-		if (size_ > max_size_) {
-			int a = 0; a++;
-		}
-
 		return true;
 	}
 };

@@ -22,7 +22,7 @@ template <
 	Int BitsPerSymbol_		= 8,
 	typename V				= UByte,
 	Int BF 					= PackedTreeBranchingFactor,
-	Int VPB 				= 1024,
+	Int VPB 				= 4096,
 	typename Allocator_ 	= PackedAllocator
 >
 struct PackedFSECxSequenceTypes {
@@ -69,7 +69,7 @@ public:
 
 	typedef typename Index::Codec												Codec;
 
-	static const Int IndexSizeThreshold											= 2;
+	static const Int IndexSizeThreshold											= 0;
 
 
 	class Metadata {
@@ -197,15 +197,11 @@ public:
 
 	SelectResult select(Int rank, Int symbol) const
 	{
-
-
-
 		if (has_index())
 		{
 			if (rank == 2 && symbol == 173) {
 				int a = 0; a++;
 			}
-
 
 			Int value_blocks 		= getValueBlocks(max_size());
 			Int index_from 			= value_blocks * symbol;
@@ -215,7 +211,6 @@ public:
 
 			Int prefix   = seq_index->sum(index_from);
 			auto result  = seq_index->findLE(rank + prefix);
-
 
 			MEMORIA_ASSERT(result.idx(), <, index_to);
 
@@ -276,7 +271,7 @@ public:
 			out<<"Sequence Indexes:"<<endl;
 
 			const Index* index = this->index();
-			index->dump();
+			index->dump(out);
 		}
 
 		out<<endl;
@@ -308,7 +303,7 @@ public:
 	{
 		Base::init(block_size, 3);
 
-		Int allocated 		= Base::allocate(0, sizeof(Metadata)).size();
+		Int allocated 		= Base::allocate(0, sizeof(Metadata), PackedBlockType::RAW_MEMORY).size();
 
 		Metadata* meta 		= metadata();
 
@@ -542,18 +537,21 @@ public:
 			metadata()->max_size()  = new_max_size;
 
 			Int value_blocks 		= getValueBlocks(new_max_size);
-			Int index_block_size	= Index::block_size(value_blocks * Indexes);
-
-			Int new_index_size 		= this->enlargeBlock(index(), index_block_size);
-
-			MEMORIA_ASSERT(new_index_size, >, 0);
-
-			this->index()->init(index_block_size);
-
 			if (value_blocks > IndexSizeThreshold)
 			{
-				Int idx_max_size = index()->max_size();
-				MEMORIA_ASSERT(idx_max_size, ==, value_blocks * Indexes);
+				Int index_block_size	= Index::block_size(value_blocks * Indexes);
+
+				Int new_index_size 		= this->enlargeBlock(index(), index_block_size);
+
+				MEMORIA_ASSERT(new_index_size, >, 0);
+
+				this->index()->init(index_block_size);
+
+				if (value_blocks > IndexSizeThreshold)
+				{
+					Int idx_max_size = index()->max_size();
+					MEMORIA_ASSERT(idx_max_size, ==, value_blocks * Indexes);
+				}
 			}
 
 			return new_size;

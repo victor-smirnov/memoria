@@ -50,6 +50,10 @@ public:
 
     	PackedLoudsNode child = tree->first_child(node);
 
+    	if (child.idx() >= tree->size()) {
+    		tree->dump();
+    	}
+
     	AssertLT(MA_SRC, child.idx(), tree->size());
 
     	while (child != PackedLoudsNode() && !tree->isLeaf(child))

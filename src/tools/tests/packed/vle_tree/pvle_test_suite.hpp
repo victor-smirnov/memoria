@@ -7,7 +7,7 @@
 #ifndef MEMORIA_TESTS_PVLE_TEST_SUITE_HPP_
 #define MEMORIA_TESTS_PVLE_TEST_SUITE_HPP_
 
-#include "../tests_inc.hpp"
+#include "../../tests_inc.hpp"
 
 #include "pvle_misc_test.hpp"
 #include "pvle_init_test.hpp"
@@ -19,11 +19,11 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-class PackedVLETestSuite: public TestSuite {
+class PackedVLETreeTestSuite: public TestSuite {
 
 public:
 
-    PackedVLETestSuite(): TestSuite("PackedVLETreeSuite")
+    PackedVLETreeTestSuite(): TestSuite("Packed.VLETreeSuite")
     {
         registerTask(new PVLEMapMiscTest());
     	registerTask(new PVLEMapInitTest());

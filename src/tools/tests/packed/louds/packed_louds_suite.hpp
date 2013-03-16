@@ -7,7 +7,7 @@
 #ifndef MEMORIA_TESTS_PACKEDLOUDS_SUITE_HPP_
 #define MEMORIA_TESTS_PACKEDLOUDS_SUITE_HPP_
 
-#include "../tests_inc.hpp"
+#include "../../tests_inc.hpp"
 
 
 #include "packed_louds_create_test.hpp"
@@ -22,7 +22,7 @@ class PackedLoudsTestSuite: public TestSuite {
 
 public:
 
-	PackedLoudsTestSuite(): TestSuite("PackedLoudsSuite")
+	PackedLoudsTestSuite(): TestSuite("Packed.LoudsSuite")
     {
 		registerTask(new PackedLoudsCreateTest());
 		registerTask(new PackedLoudsCardinalTest());

@@ -112,8 +112,12 @@ public:
     {
     	Int subseq_num = 0;
 
+    	out()<<"Building Multisequence"<<endl;
+
     	for (const SequencePtr& seq_ptr: seqs)
     	{
+    		out()<<subseq_num<<endl;
+
     		mseq_ptr->appendSubsequence();
 
     		for (Int c = 0; c < seq_ptr->size(); c++)
@@ -123,6 +127,8 @@ public:
 
     		subseq_num++;
     	}
+
+    	out()<<"Building is done"<<endl;
     }
 
     vector<pair<Int, Int>> getRankedSymbols(const Sequence* seq, Int num_maxs)
@@ -202,24 +208,22 @@ public:
 
     void testCreate()
     {
-    	MultiSequencePtr mseq_ptr = createMultiSequence(8000, 1000000);
+    	MultiSequencePtr mseq_ptr = createMultiSequence(10500, 1000000);
 
-    	auto seqs = createRandomSequences(8050, 100);
+    	auto seqs = createRandomSequences(100, 100);
 
     	insertSequences(mseq_ptr, seqs);
 
-//    	mseq_ptr->sequence()->dump();
-
     	auto* seq = mseq_ptr->sequence();
     	seq->reindex();
-//    	mseq_ptr->dump(cout, false);
+    	mseq_ptr->dump(out(), false);
 
-//    	checkRanks(mseq_ptr, seqs);
+    	checkRanks(mseq_ptr, seqs);
     	checkSelects(mseq_ptr, seqs);
 
-    	cout<<mseq_ptr->free_space()<<endl;
-    	cout<<mseq_ptr->sequence()->size()<<" "<<mseq_ptr->sequence()->max_size()<<" ";
-    	cout<<mseq_ptr->labels()->size()<<" "<<mseq_ptr->labels()->max_size()<<endl;
+    	out()<<mseq_ptr->free_space()<<endl;
+    	out()<<mseq_ptr->sequence()->size()<<" "<<mseq_ptr->sequence()->max_size()<<" ";
+    	out()<<mseq_ptr->labels()->size()<<" "<<mseq_ptr->labels()->max_size()<<endl;
     }
 
 

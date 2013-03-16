@@ -7,7 +7,7 @@
 #ifndef MEMORIA_TESTS_PFSE_TEST_SUITE_HPP_
 #define MEMORIA_TESTS_PFSE_TEST_SUITE_HPP_
 
-#include "../tests_inc.hpp"
+#include "../../tests_inc.hpp"
 
 
 #include "pfse_init_test.hpp"
@@ -19,11 +19,11 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-class PackedFSETestSuite: public TestSuite {
+class PackedFSETreeTestSuite: public TestSuite {
 
 public:
 
-    PackedFSETestSuite(): TestSuite("PackedFSETreeSuite")
+    PackedFSETreeTestSuite(): TestSuite("Packed.FSETreeSuite")
     {
         registerTask(new PackedFSETreeInitTest());
 

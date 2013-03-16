@@ -154,7 +154,13 @@ public:
 
 		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
 
-		Int delta 		= allocation_size - layout->value(idx);
+		Int size		= layout->value(idx);
+		Int delta 		= allocation_size - size;
+
+		if (delta < 0) {
+			layout->dump(cout, false);
+			int a = 0; a++;
+		}
 
 		MEMORIA_ASSERT(delta, >=, 0);
 
@@ -262,6 +268,12 @@ public:
 
 			setBlockType(idx, type);
 
+			if (type == PackedBlockType::ALLOCATABLE)
+			{
+				PackedAllocatable* alc = T2T<PackedAllocatable*>(base() + offset);
+				alc->setAllocatorOffset(this);
+			}
+
 			return AllocationBlock(allocation_size, offset, base() + offset);
 		}
 		else {
@@ -296,7 +308,7 @@ public:
 	void dump(ostream& out = cout) const
 	{
 		out<<"PackedAllocator Layout:"<<endl;
-		layout()->dump(cout);
+		layout()->dump(out);
 
 		out<<"PackedAllocator Block Types Bitmap:"<<endl;
 		const Bitmap* bitmap = this->bitmap();

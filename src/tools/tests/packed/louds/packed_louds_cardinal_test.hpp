@@ -87,7 +87,7 @@ public:
 
     void testCreateCardinalTree()
     {
-    	CardinalTreePtr tree_ptr = createCardinalTree(100, 4096*2);
+    	CardinalTreePtr tree_ptr = createCardinalTree(100, 4096*20);
     	tree_ptr->prepare();
 
     	auto fn = [](const PackedLoudsNode& node, Int label, Int level){};
@@ -98,7 +98,7 @@ public:
     	{
     		UInt path = getRandom();
 
-    		cout<<c<<" "<<hex<<path<<dec<<endl;
+    		out()<<c<<" "<<hex<<path<<dec<<endl;
 
     		paths.insert(path);
 
