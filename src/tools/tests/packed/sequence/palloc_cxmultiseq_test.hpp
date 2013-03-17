@@ -48,6 +48,8 @@ public:
 
     MultiSequencePtr createMultiSequence(Int block_size, Int free_space = 0)
     {
+    	free_space = PackedAllocator::roundDownBytesToAlignmentBlocks(free_space);
+
     	Int sequence_block_size = MultiSequence::block_size(block_size);
 
     	void* memory_block = malloc(sequence_block_size + free_space);
@@ -57,7 +59,7 @@ public:
 
     	seq->init(sequence_block_size);
 
-    	seq->enlargeAllocator(free_space);
+    	seq->enlarge(free_space);
 
     	return MultiSequencePtr(seq, free);
     }

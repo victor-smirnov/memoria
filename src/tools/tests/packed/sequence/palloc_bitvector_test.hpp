@@ -60,13 +60,7 @@ public:
 
     	allocator->init(block_size, 1);
 
-    	AllocationBlock block = allocator->allocate(0, sequence_block_size);
-
-    	Sequence* seq = T2T<Sequence*>(block.ptr());
-
-    	seq->init(sequence_block_size);
-
-    	seq->setAllocatorOffset(allocator);
+    	allocator->allocate<Sequence>(0, sequence_block_size);
 
     	return SequencePtr(allocator);
     }

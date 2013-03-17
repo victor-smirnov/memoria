@@ -61,22 +61,8 @@ public:
 		Int label_array_size = roundUpBytesToAlignmentBlocks(client_area / 5);
 		Int sequence_size	 = client_area - label_array_size;
 
-
-		auto block = Base::allocate(0, label_array_size);
-		Base::setBlockType(0, PackedBlockType::ALLOCATABLE);
-
-		LabelArray* labels= this->labels();
-		labels->init(block.size());
-		labels->setAllocatorOffset(this);
-
-		block = Base::allocate(1, sequence_size);
-		MEMORIA_ASSERT(block, == , true);
-
-		Base::setBlockType(1, PackedBlockType::ALLOCATABLE);
-
-		Sequence* seq = this->sequence();
-		seq->init(sequence_size);
-		seq->setAllocatorOffset(this);
+		Base::template allocate<LabelArray>(0, label_array_size);
+		Base::template allocate<Sequence>(1, sequence_size);
 	}
 
 	Int rank(Int subseq_num, Int to, Int symbol) const

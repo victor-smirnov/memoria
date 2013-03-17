@@ -9,8 +9,25 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
+#include <memoria/core/exceptions/memoria.hpp>
 
 namespace memoria {
+
+
+class MEMORIA_API PackedOOMException: public vapi::Exception {
+
+public:
+	PackedOOMException(const char* source, StringRef message):
+                Exception(source, message) {}
+
+	PackedOOMException(const char* source, const SBuf& message):
+                    Exception(source, message) {}
+
+	PackedOOMException(const char* source):
+                Exception(source, "PackedOOMException"){}
+
+};
+
 
 template <typename MyType, typename Base> class PackedAllocatorBase;
 

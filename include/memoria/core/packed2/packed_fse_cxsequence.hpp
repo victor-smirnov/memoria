@@ -303,32 +303,19 @@ public:
 	{
 		Base::init(block_size, 3);
 
-		Int allocated 		= Base::allocate(0, sizeof(Metadata), PackedBlockType::RAW_MEMORY).size();
-
-		Metadata* meta 		= metadata();
+		Metadata* meta		= Base::template allocate<Metadata>(0);
 
 		meta->max_size() 	= FindTotalElementsNumber2(block_size, InitFn());
 		meta->size()	 	= 0;
 
 		Int value_blocks 	= getValueBlocks(meta->max_size());
-
 		Int index_block_size = value_blocks > IndexSizeThreshold ? Index::expected_block_size(value_blocks * Indexes) : 0;
 
-		allocated 			+= Base::allocate(1, index_block_size).size();
-		Base::setBlockType(1, PackedBlockType::ALLOCATABLE);
+		Base::template allocate<Index>(1, index_block_size);
 
-		if (value_blocks > IndexSizeThreshold)
-		{
-			Index* index = this->index();
-			index->init(index_block_size);
-			index->setAllocatorOffset(this);
+		Int symbols_size = Base::client_area() - (Base::element_size(0) + Base::element_size(1));
 
-			Int idx_max_size = index->max_size();
-			MEMORIA_ASSERT(idx_max_size, ==, value_blocks * Indexes);
-		}
-
-		Base::allocate(2, Base::client_area() - allocated);
-		Base::setBlockType(1, PackedBlockType::RAW_MEMORY);
+		Base::allocate(2, symbols_size, PackedBlockType::RAW_MEMORY);
 	}
 
 	static Int metadata_block_size()

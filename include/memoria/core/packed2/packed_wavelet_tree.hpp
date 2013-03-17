@@ -202,15 +202,11 @@ public:
 
 		Int client_area = this->client_area();
 
-		auto cardinal_tree_block 	= allocate(0, client_area/4);
-		MEMORIA_ASSERT_TRUE(cardinal_tree_block);
+		Base::template allocate<CardinalTree>(0, client_area/4);
 
-		ctree()->init(cardinal_tree_block.size());
+		Int multiseq_size = client_area - Base::element_size(0);
 
-		auto multisequence_block 	= allocate(1, roundDownBytesToAlignmentBlocks(client_area - cardinal_tree_block.size()));
-		MEMORIA_ASSERT_TRUE(multisequence_block);
-
-		msequence()->init(multisequence_block.size());
+		Base::allocate<MultiSequence>(1, multiseq_size);
 	}
 
 	static Int block_size(Int client_area)

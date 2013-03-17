@@ -46,13 +46,15 @@ public:
 
     CardinalTreePtr createCardinalTree(Int nodes, Int free_space = 0)
     {
+    	free_space = PackedAllocator::roundDownBytesToAlignmentBlocks(free_space);
+
     	Int block_size  = CardinalTree::block_size(nodes);
 
     	CardinalTree* tree = T2T<CardinalTree*>(malloc(block_size + free_space));
 
     	tree->init(block_size, nodes);
 
-    	tree->enlargeAllocator(free_space);
+    	tree->enlarge(free_space);
 
     	return CardinalTreePtr(tree, free);
     }
@@ -108,7 +110,7 @@ public:
     		checkTreeContent(tree_ptr, paths);
     	}
 
-    	tree_ptr->dump();
+    	tree_ptr->dump(out());
     	cout<<tree_ptr->free_space()<<endl;
     }
 };

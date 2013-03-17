@@ -16,7 +16,11 @@
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/dump.hpp>
 
+#include <type_traits>
+
 namespace memoria {
+
+using namespace std;
 
 enum class PackedBlockType {
 	RAW_MEMORY = 0, ALLOCATABLE = 1
@@ -108,7 +112,7 @@ public:
 	{
 		allocator_offset_ = 0;
 
-		block_size_ = block_size;
+		block_size_ = roundDownBytesToAlignmentBlocks(block_size);
 
 		Layout* layout = this->layout();
 
@@ -146,8 +150,10 @@ public:
 		return diff;
 	}
 
-	Int enlargeBlock(const void* element, Int new_size)
+	Int resizeBlock(const void* element, Int new_size)
 	{
+		MEMORIA_ASSERT_TRUE(new_size != 0);
+
 		Layout* layout 	= this->layout();
 		Int offset 		= computeElementOffset(element);
 		Int idx 		= layout->findLT(offset).idx();
@@ -157,18 +163,11 @@ public:
 		Int size		= layout->value(idx);
 		Int delta 		= allocation_size - size;
 
-		if (delta < 0) {
-			layout->dump(cout, false);
-			int a = 0; a++;
-		}
-
-		MEMORIA_ASSERT(delta, >=, 0);
-
-		if (delta > free_space())
+		if (delta > 0)
 		{
-			if (!enlargeAllocator(delta))
+			if (delta > free_space())
 			{
-				return 0;
+				resize1(delta);
 			}
 		}
 
@@ -181,7 +180,8 @@ public:
 		return allocation_size;
 	}
 
-	Int shrinkBlock(const void* element, Int new_size)
+
+	Int enlargeBlock(const void* element, Int new_size)
 	{
 		Layout* layout 	= this->layout();
 		Int offset 		= computeElementOffset(element);
@@ -189,9 +189,15 @@ public:
 
 		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
 
-		Int delta 		= allocation_size - layout->value(idx);
+		Int size		= layout->value(idx);
+		Int delta 		= allocation_size - size;
 
-		MEMORIA_ASSERT(delta, <=, 0);
+		MEMORIA_ASSERT(delta, >=, 0);
+
+		if (delta > free_space())
+		{
+			enlarge(delta);
+		}
 
 		moveElements(idx + 1, delta);
 
@@ -199,8 +205,9 @@ public:
 
 		layout->reindex();
 
-		return new_size;
+		return allocation_size;
 	}
+
 
 	Int element_offset(Int idx) const {
 		return layout()->sum(idx);
@@ -223,13 +230,20 @@ public:
 	template <typename T>
 	const T* get(Int idx) const
 	{
+		MEMORIA_ASSERT(element_size(idx), >, 0);
 		return T2T<const T*>(base() + element_offset(idx));
 	}
 
 	template <typename T>
 	T* get(Int idx)
 	{
+		MEMORIA_ASSERT(element_size(idx), >, 0);
 		return T2T<T*>(base() + element_offset(idx));
+	}
+
+	bool is_empty(int idx) const
+	{
+		return element_size(idx) == 0;
 	}
 
 	AllocationBlock describe(Int idx)
@@ -252,8 +266,36 @@ public:
 		return AllocationBlockConst(size, offset, base() + offset);
 	}
 
+	template <typename T>
+	T* allocate(Int idx, Int block_size)
+	{
+		static_assert(is_base_of<PackedAllocatable, T>::value, "Only derived classes of PackedAllocatable "
+														"should be instantiated this way");
 
-	AllocationBlock allocate(Int idx, Int size, PackedBlockType type = PackedBlockType::ALLOCATABLE)
+		AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
+
+		T* object = block.cast<T>();
+
+		if (block_size > 0)
+		{
+			object->init(block.size());
+		}
+
+		return object;
+	}
+
+	template <typename T>
+	T* allocate(Int idx)
+	{
+		static_assert(!is_base_of<PackedAllocatable, T>::value, "Only classes that are not derived from PackedAllocatable "
+																"should be instantiated this way");
+
+		AllocationBlock block = allocate(idx, sizeof(T), PackedBlockType::RAW_MEMORY);
+		return block.cast<T>();
+	}
+
+
+	AllocationBlock allocate(Int idx, Int size, PackedBlockType type)
 	{
 		Int allocation_size = roundUpBytesToAlignmentBlocks(size);
 
@@ -318,43 +360,32 @@ public:
 		});
 	}
 
-
-
-	Int enlargeAllocator(Int delta)
+	Int enlarge(Int delta)
 	{
-		Allocator* alloc = allocator();
-
-		if (alloc)
-		{
-			Int new_size = alloc->enlargeBlock(this, block_size_ + delta);
-			if (new_size)
-			{
-				block_size_ = new_size;
-				return new_size;
-			}
-			else {
-				return 0;
-			}
-		}
-		else {
-			block_size_ += delta;
-			return 0;
-		}
+		return resize1(block_size_ + roundUpBytesToAlignmentBlocks(delta));
 	}
 
-	Int shrinkAllocator(Int delta)
+
+	Int resize1(Int new_size)
 	{
 		Allocator* alloc = allocator();
 
 		if (alloc)
 		{
-			block_size_ = alloc->shrinkBlock(this, block_size_ - delta);
-			return block_size_;
+			block_size_ = alloc->enlargeBlock(this, new_size);
 		}
 		else {
-			block_size_ -= delta;
+			block_size_ = new_size;
 			return 0;
 		}
+
+		return block_size_;
+	}
+
+
+	Int pack()
+	{
+		return resize1(block_size_ - free_space());
 	}
 
 protected:

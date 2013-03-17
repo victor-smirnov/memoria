@@ -74,6 +74,8 @@ public:
 
     TreePtr createSequence(Int block_size, Int free_space)
     {
+    	free_space = PackedAllocator::roundDownBytesToAlignmentBlocks(free_space);
+
     	Int tree_block_size = Tree::block_size(block_size);
 
     	void* memory_block = malloc(tree_block_size + free_space);
@@ -83,7 +85,7 @@ public:
 
     	tree->init(tree_block_size);
 
-    	tree->enlargeAllocator(free_space);
+    	tree->enlarge(free_space);
 
     	return TreePtr(tree);
     }

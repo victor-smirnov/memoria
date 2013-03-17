@@ -157,11 +157,9 @@ public:
 
     	for (Int c = 0; c < 2; c++)
     	{
-    		alloc->setBlockType(c, PackedBlockType::ALLOCATABLE);
-
     		Int size = SimpleStruct::block_size(111 + c*10);
 
-    		AllocationBlock block = alloc->allocate(c, size);
+    		AllocationBlock block = alloc->allocate(c, size, PackedBlockType::ALLOCATABLE);
     		AssertTrue(MA_SRC, block);
 
     		AssertGE(MA_SRC, alloc->element_size(c), size);
@@ -176,8 +174,7 @@ public:
     		AssertEQ(MA_SRC, obj->size(), 111 + c*10);
     	}
 
-    	alloc->setBlockType(2, PackedBlockType::ALLOCATABLE);
-    	AllocationBlock block = alloc->allocate(2, 512);
+    	AllocationBlock block = alloc->allocate(2, 512, PackedBlockType::ALLOCATABLE);
     	AssertTrue(MA_SRC, block);
 
     	ComplexStruct* cx_struct = T2T<ComplexStruct*>(block.ptr());
@@ -186,7 +183,7 @@ public:
 
     	for (Int c = 0; c < cx_struct->elements(); c++)
     	{
-    		AllocationBlock block = cx_struct->allocate(c, 100);
+    		AllocationBlock block = cx_struct->allocate(c, 100, PackedBlockType::ALLOCATABLE);
     		AssertTrue(MA_SRC, block);
 
     		SimpleStruct* sl_struct = block.cast<SimpleStruct>();

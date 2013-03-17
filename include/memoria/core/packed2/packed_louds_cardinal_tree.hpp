@@ -73,16 +73,10 @@ public:
 		Int bit_size	= 2 * nodes + 1 + SafetyGap;
 		Int louds_size  = LoudsTree::block_size(bit_size);
 
-		auto block = Base::allocate(0, louds_size);
-
-		LoudsTree* tree = this->tree();
-		tree->init(block.size());
+		Base::template allocate<LoudsTree>(0, louds_size);
 
 		Int labels_array_size = LabelArray::block_size(nodes);
-		block = Base::allocate(1, labels_array_size);
-
-		LabelArray* labels = this->labels();
-		labels->init(block.size());
+		Base::template allocate<LabelArray>(1, labels_array_size);
 	}
 
 	void init(Int block_size)
@@ -91,19 +85,11 @@ public:
 
 		Int client_area = this->client_area();
 
-		auto block = Base::allocate(0, client_area/8);
-		MEMORIA_ASSERT_TRUE(block);
+		Base::template allocate<LoudsTree>(0, client_area/8);
 
-		LoudsTree* tree = this->tree();
-		tree->init(block.size());
+		Int labels_array_size = client_area - Base::element_size(0);
 
-		Int labels_array_size = roundDownBytesToAlignmentBlocks(client_area - block.size());
-
-		block = Base::allocate(1, labels_array_size);
-		MEMORIA_ASSERT_TRUE(block);
-
-		LabelArray* labels = this->labels();
-		labels->init(block.size());
+		Base::template allocate<LabelArray>(1, labels_array_size);
 	}
 
 	PackedLoudsNode find_child(const PackedLoudsNode& node, Int label) const
