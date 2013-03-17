@@ -10,11 +10,14 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
+
 #include <memoria/prototypes/btree/tools.hpp>
 
 #include <memoria/core/packed2/packed_vle_tree.hpp>
 
 #include <memoria/core/tools/exint_codec.hpp>
+#include <memoria/core/tools/elias_codec.hpp>
+#include <memoria/core/tools/dump.hpp>
 
 #include <memory>
 
@@ -30,7 +33,9 @@ public:
 
     PVLEMapMiscTest(): TestTask("Misc")
     {
-    	MEMORIA_ADD_TEST(testExintCodec);
+//    	MEMORIA_ADD_TEST(testExintCodec);
+
+    	MEMORIA_ADD_TEST(testEliasCodec);
     }
 
     virtual ~PVLEMapMiscTest() throw() {}
@@ -83,6 +88,32 @@ public:
     	}
     }
 
+
+    void testEliasCodec()
+    {
+    	vector<size_t> lengths = {1, 4,4, 5,5,5,5, 8,8,8,8,8,8,8,8, 9,9,9,9,9};
+
+    	for (size_t c = 1; c <= 20; c++)
+    	{
+    		size_t length = GetEliasDeltaValueLength(c);
+    		out()<<c<<" "<<length<<endl;
+    		AssertEQ(MA_SRC, length, lengths[c - 1]);
+    	}
+
+    	UBigInt bitmap[3];
+
+    	for (UBigInt c = 1; c < 1000000; c++)
+    	{
+    		memset(bitmap, 0, sizeof(bitmap));
+
+    		EncodeEliasDelta(bitmap, c, 0, sizeof(bitmap)*8);
+
+    		UBigInt value = 0;
+    		DecodeEliasDelta(bitmap, value, 0, sizeof(bitmap)*8);
+
+    		AssertEQ(MA_SRC, value, c);
+    	}
+    }
 };
 
 

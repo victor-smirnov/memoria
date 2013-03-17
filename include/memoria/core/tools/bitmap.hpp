@@ -799,6 +799,68 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
 	}
 }
 
+inline Int Log2(UInt value) {
+	return 32 - __builtin_clz(value);
+}
+
+inline Int Log2(UBigInt value) {
+	return 64 - __builtin_clzll(value);
+}
+
+inline Int CountTrailingZeroes(UInt value) {
+	return __builtin_ctz(value);
+}
+
+inline Int CountTrailingZeroes(UBigInt value) {
+	return __builtin_ctzll(value);
+}
+
+template <typename T>
+size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit)
+{
+	size_t bitsize 	= TypeBitsize<T>();
+	size_t mask 		= TypeBitmask<T>();
+
+	size_t start_cell 	= pos / bitsize;
+	size_t stop_cell 	= limit / bitsize;
+
+	size_t length = 0;
+
+	size_t prefix = pos & mask;
+
+	for (size_t c = start_cell; c < stop_cell; c++)
+	{
+		T val = buf[c] >> prefix;
+
+		if (val)
+		{
+			length += CountTrailingZeroes(val);
+			break;
+		}
+		else {
+			length += TypeBitsize<T>() - prefix;
+			prefix = 0;
+		}
+	}
+
+	size_t suffix = limit & mask;
+
+	if (suffix > 0)
+	{
+		T val = buf[stop_cell];
+		if (val)
+		{
+			length += CountTrailingZeroes(val);
+		}
+		else {
+			length += suffix;
+		}
+	}
+
+	return length;
+}
+
+
 
 
 template <typename Buffer>

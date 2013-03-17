@@ -39,6 +39,7 @@ public:
         MEMORIA_ADD_TEST(testSetBits);
         MEMORIA_ADD_TEST(testFillOne);
         MEMORIA_ADD_TEST(testFillZero);
+        MEMORIA_ADD_TEST(testCTZ);
     }
 
     template <typename TT>
@@ -266,6 +267,25 @@ public:
     				AssertEQ(MA_SRC, GetBit(bitmap, idx), 1);
     			}
     		}
+    	}
+    }
+
+    void testCTZ()
+    {
+    	UBigInt bitmap[5];
+
+    	for (Int c = 0; c < 1000000; c++)
+    	{
+    		memset(bitmap, 0, sizeof(bitmap));
+
+    		Int bit = getRandom(sizeof(bitmap)*8);
+    		Int start = getRandom(bit + 1);
+
+    		SetBit(bitmap, bit, 1);
+
+    		Int length = CountTrailingZeroes(bitmap, start, sizeof(bitmap) * 8);
+
+    		AssertEQ(MA_SRC, length, bit - start, SBuf()<<c);
     	}
     }
 };
