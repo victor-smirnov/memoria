@@ -180,24 +180,20 @@ public:
 
 	PackedLoudsNode insertNode(const PackedLoudsNode& at)
 	{
-		if (this->ensureCapacity(2))
-		{
-			this->insert(at.idx(), 1, 1);
-			this->reindex();
+		this->ensureCapacity(2);
 
-			PackedLoudsNode node = this->node(at.idx());
+		this->insert(at.idx(), 1, 1);
+		this->reindex();
 
-			Int zero_idx = first_child(node).idx();
+		PackedLoudsNode node = this->node(at.idx());
 
-			this->insert(zero_idx, 0, 1);
+		Int zero_idx = first_child(node).idx();
 
-			this->reindex();
+		this->insert(zero_idx, 0, 1);
 
-			return node;
-		}
-		else {
-			return PackedLoudsNode();
-		}
+		this->reindex();
+
+		return node;
 	}
 
 	bool isLeaf(const PackedLoudsNode& node) const

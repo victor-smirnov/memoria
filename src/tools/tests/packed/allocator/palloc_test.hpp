@@ -55,14 +55,15 @@ class PackedAllocatorTest: public TestTask {
 			return size_;
 		}
 
-		void init(Int block_size, UByte data)
+		void init(Int block_size)
 		{
 			size_ = block_size - sizeof(SimpleStruct);
-			data_ = data;
 		}
 
-		void fill()
+		void fill(UByte data)
 		{
+			data_ = data;
+
 			for (Int c = 0; c < size_; c++)
 			{
 				content_[c] = data_;
@@ -90,17 +91,21 @@ class PackedAllocatorTest: public TestTask {
 		void enlarge(Int delta)
 		{
 			Allocator* alloc = allocator();
-			if (alloc)
-			{
-				Int block_size = alloc->element_size(this);
+			Int block_size 	 = alloc->element_size(this);
+			Int new_size 	 = alloc->resizeBlock(this, block_size + delta);
 
-				Int new_size = alloc->enlargeBlock(this, block_size + delta);
-				if (new_size)
-				{
-					init(new_size, data_);
-					fill();
-				}
-			}
+			init(new_size);
+			fill(data_);
+		}
+
+		void shrink(Int delta)
+		{
+			Allocator* alloc = allocator();
+			Int block_size   = alloc->element_size(this);
+			Int new_size 	 = alloc->resizeBlock(this, block_size - delta);
+
+			init(new_size);
+			fill(data_);
 		}
 	};
 
@@ -159,23 +164,15 @@ public:
     	{
     		Int size = SimpleStruct::block_size(111 + c*10);
 
-    		AllocationBlock block = alloc->allocate(c, size, PackedBlockType::ALLOCATABLE);
-    		AssertTrue(MA_SRC, block);
-
+    		SimpleStruct* obj = alloc->allocate<SimpleStruct>(c, size);
     		AssertGE(MA_SRC, alloc->element_size(c), size);
 
-    		SimpleStruct* obj = block.cast<SimpleStruct>();
+    		obj->fill(0x55 + c * 16);
 
-    		obj->init(size, 0x55 + c * 16);
-    		obj->setAllocatorOffset(alloc);
-
-    		obj->fill();
-
-    		AssertEQ(MA_SRC, obj->size(), 111 + c*10);
+    		AssertGE(MA_SRC, obj->size(), 111 + c*10);
     	}
 
     	AllocationBlock block = alloc->allocate(2, 512, PackedBlockType::ALLOCATABLE);
-    	AssertTrue(MA_SRC, block);
 
     	ComplexStruct* cx_struct = T2T<ComplexStruct*>(block.ptr());
 
@@ -183,12 +180,9 @@ public:
 
     	for (Int c = 0; c < cx_struct->elements(); c++)
     	{
-    		AllocationBlock block = cx_struct->allocate(c, 100, PackedBlockType::ALLOCATABLE);
-    		AssertTrue(MA_SRC, block);
+    		SimpleStruct* sl_struct = cx_struct->allocate<SimpleStruct>(c, 100);
 
-    		SimpleStruct* sl_struct = block.cast<SimpleStruct>();
-    		sl_struct->init(100, 0x22 + c*16);
-    		sl_struct->fill();
+    		sl_struct->fill(0x22 + c*16);
     	}
 
     	return alloc_ptr;
@@ -251,9 +245,32 @@ public:
 
     	SimpleStruct* sl_struct = alloc->get<SimpleStruct>(0);
 
+    	Int size0	= alloc->element_size(0);
+    	Int offset2 = alloc->element_offset(2);
+
     	sl_struct->enlarge(100);
 
+    	AssertEQ(MA_SRC, alloc->element_offset(2), offset2 + alloc->element_size(0) - size0);
+
     	checkStructure(alloc);
+
+    	sl_struct->shrink(100);
+
+    	Int size0_delta = alloc->element_size(0) - size0;
+
+    	AssertEQ(MA_SRC, alloc->element_offset(2) - size0_delta, offset2);
+
+    	AssertThrows<PackedOOMException>(MA_SRC, [alloc](){
+    		alloc->enlarge(10000);
+    	});
+
+    	AssertThrows<PackedOOMException>(MA_SRC, [sl_struct](){
+    		sl_struct->enlarge(10000);
+    	});
+
+    	AssertThrows<Exception>(MA_SRC, [sl_struct](){
+    		sl_struct->enlarge(-300);
+    	});
     }
 };
 

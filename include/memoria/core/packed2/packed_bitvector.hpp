@@ -347,57 +347,34 @@ public:
 		CopyByteBuffer(data, target_memory_block, data_size);
 	}
 
-	bool enlarge(Int bit_amount)
+	void enlarge(Int bit_amount)
 	{
 		Allocator* alloc = allocator();
 
-		if (alloc)
-		{
-			MyType other;
+		MyType other;
 
-			Int requested_block_size = MyType::block_size(max_size_ + bit_amount);
+		Int requested_block_size = MyType::block_size(max_size_ + bit_amount);
 
-			Int new_size = alloc->enlargeBlock(this, requested_block_size);
+		Int new_size = alloc->resizeBlock(this, requested_block_size);
 
-			if (new_size)
-			{
-				other.init(new_size);
-				other.size() 				= this->size();
-				other.allocator_offset() 	= this->allocator_offset();
+		other.init(new_size);
+		other.size() 				= this->size();
+		other.allocator_offset() 	= this->allocator_offset();
 
-				MEMORIA_ASSERT(other.size(), <=, other.max_size());
-				MEMORIA_ASSERT(other.capacity(), >=, bit_amount);
+		MEMORIA_ASSERT(other.size(), <=, other.max_size());
+		MEMORIA_ASSERT(other.capacity(), >=, bit_amount);
 
-				transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
+		transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
 
-				*this = other;
-
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-		else {
-			return false;
-		}
+		*this = other;
 	}
 
-	bool ensureCapacity(Int bit_amount)
+	void ensureCapacity(Int bit_amount)
 	{
-		if (bit_amount <= capacity())
+		if (bit_amount > capacity())
 		{
-			return true;
-		}
-		else {
-			if (enlarge(bit_amount - capacity()))
-			{
-				reindex();
-				return true;
-			}
-			else {
-				return false;
-			}
+			enlarge(bit_amount - capacity());
+			reindex();
 		}
 	}
 
@@ -503,15 +480,12 @@ public:
 		return max_size_ - size_;
 	}
 
-	bool insert(Int idx, Int bits, Int nbits)
+	void insert(Int idx, Int bits, Int nbits)
 	{
 		if (nbits > capacity())
 		{
 			Int required = nbits - capacity();
-			if (!enlarge(required))
-			{
-				return false;
-			}
+			enlarge(required);
 		}
 
 		Value* values = this->values();
@@ -521,8 +495,6 @@ public:
 		SetBits(values, idx, bits, nbits);
 
 		size_ += nbits;
-
-		return true;
 	}
 };
 

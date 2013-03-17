@@ -113,7 +113,7 @@ public:
 		return insertSubsequence(labels()->size());
 	}
 
-	bool insertSymbol(Int subseq_num, Int idx, Int symbol)
+	void insertSymbol(Int subseq_num, Int idx, Int symbol)
 	{
 		Sequence* seq 		= sequence();
 		LabelArray* labels 	= this->labels();
@@ -122,27 +122,21 @@ public:
 
 		MEMORIA_ASSERT(idx, <=, labels->value(subseq_num));
 
-		if (seq->insert(seq_prefix + idx, symbol))
-		{
-			labels->value(subseq_num)++;
+		seq->insert(seq_prefix + idx, symbol);
 
-			labels->reindex();
+		labels->value(subseq_num)++;
 
-			seq->reindex();
+		labels->reindex();
 
-			return true;
-		}
-		else {
-			return false;
-		}
+		seq->reindex();
 	}
 
-	bool appendSymbol(Int subseq_num, Int symbol)
+	void appendSymbol(Int subseq_num, Int symbol)
 	{
 		LabelArray* labels  = this->labels();
 		Int size 			= labels->value(subseq_num);
 
-		return insertSymbol(subseq_num, size, symbol);
+		insertSymbol(subseq_num, size, symbol);
 	}
 
 	Int subseq_size(Int seq_num) const

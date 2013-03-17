@@ -107,30 +107,20 @@ public:
 		return max_size_ - size_;
 	}
 
-	bool enlarge(Int elements)
+	void enlarge(Int elements)
 	{
 		Allocator* alloc = Base::allocator();
-		if (alloc)
-		{
-			Int amount = roundUpBitToBytes(roundUpBitToBytes(elements * BitsPerSymbol));
-			Int size = alloc->element_size(this);
-			Int new_size = alloc->enlargeBlock(this, size + amount);
-			max_size_ = new_size * 8 / BitsPerSymbol;
-			return true;
-		}
-		else {
-			return false;
-		}
+		Int amount = roundUpBitToBytes(roundUpBitToBytes(elements * BitsPerSymbol));
+		Int size = alloc->element_size(this);
+		Int new_size = alloc->resizeBlock(this, size + amount);
+		max_size_ = new_size * 8 / BitsPerSymbol;
 	}
 
 	bool insertSpace(Int idx, Int space)
 	{
 		if (space > capacity())
 		{
-			if (!enlarge(space - capacity()))
-			{
-				return false;
-			}
+			enlarge(space - capacity());
 		}
 
 		MEMORIA_ASSERT(idx, >=, 0);

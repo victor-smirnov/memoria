@@ -150,14 +150,14 @@ public:
 			{
 				louds = this->tree();
 
-				MEMORIA_ASSERT_TRUE(louds->insert(node.idx(), 1, 2 - first));
+				louds->insert(node.idx(), 1, 2 - first);
 				louds->reindex();
 
 				node = louds->node(node.idx()); // refresh
 
 				Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
-				MEMORIA_ASSERT_TRUE(labels()->insert(node.rank1() - 1, label));
+				labels()->insert(node.rank1() - 1, label);
 
 				louds->reindex();
 
@@ -171,7 +171,7 @@ public:
 				first = false;
 			}
 
-			MEMORIA_ASSERT(tree()->insert(node.idx(), 0, 1), ==, true);
+			tree()->insert(node.idx(), 0, 1);
 			tree()->reindex();
 		}
 	}

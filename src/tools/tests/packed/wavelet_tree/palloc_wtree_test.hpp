@@ -85,7 +85,7 @@ public:
 
     	tree->init(tree_block_size);
 
-    	tree->enlarge(free_space);
+    	tree->forceResize(free_space);
 
     	return TreePtr(tree);
     }

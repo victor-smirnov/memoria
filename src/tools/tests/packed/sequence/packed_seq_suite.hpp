@@ -24,9 +24,9 @@ public:
 
 	PackedSequenceTestSuite(): TestSuite("Packed.SequenceSuite")
     {
-		registerTask(new PackedCxSequenceTest());
+//		registerTask(new PackedCxSequenceTest());
 		registerTask(new PackedCxMultiSequenceTest());
-		registerTask(new PackedBitVectorTest());
+//		registerTask(new PackedBitVectorTest());
     }
 
 };

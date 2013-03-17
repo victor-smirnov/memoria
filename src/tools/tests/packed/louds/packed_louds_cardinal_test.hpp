@@ -54,7 +54,7 @@ public:
 
     	tree->init(block_size, nodes);
 
-    	tree->enlarge(free_space);
+    	tree->forceResize(free_space);
 
     	return CardinalTreePtr(tree, free);
     }

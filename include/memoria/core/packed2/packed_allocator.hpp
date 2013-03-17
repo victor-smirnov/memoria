@@ -110,8 +110,6 @@ public:
 
 	void init(Int block_size, Int blocks)
 	{
-		allocator_offset_ = 0;
-
 		block_size_ = roundDownBytesToAlignmentBlocks(block_size);
 
 		Layout* layout = this->layout();
@@ -152,7 +150,7 @@ public:
 
 	Int resizeBlock(const void* element, Int new_size)
 	{
-		MEMORIA_ASSERT_TRUE(new_size != 0);
+		MEMORIA_ASSERT(new_size, >, 0);
 
 		Layout* layout 	= this->layout();
 		Int offset 		= computeElementOffset(element);
@@ -167,7 +165,7 @@ public:
 		{
 			if (delta > free_space())
 			{
-				resize1(delta);
+				enlarge(delta);
 			}
 		}
 
@@ -181,32 +179,32 @@ public:
 	}
 
 
-	Int enlargeBlock(const void* element, Int new_size)
-	{
-		Layout* layout 	= this->layout();
-		Int offset 		= computeElementOffset(element);
-		Int idx 		= layout->findLT(offset).idx();
-
-		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
-
-		Int size		= layout->value(idx);
-		Int delta 		= allocation_size - size;
-
-		MEMORIA_ASSERT(delta, >=, 0);
-
-		if (delta > free_space())
-		{
-			enlarge(delta);
-		}
-
-		moveElements(idx + 1, delta);
-
-		layout->value(idx) = allocation_size;
-
-		layout->reindex();
-
-		return allocation_size;
-	}
+//	Int enlargeBlock(const void* element, Int new_size)
+//	{
+//		Layout* layout 	= this->layout();
+//		Int offset 		= computeElementOffset(element);
+//		Int idx 		= layout->findLT(offset).idx();
+//
+//		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
+//
+//		Int size		= layout->value(idx);
+//		Int delta 		= allocation_size - size;
+//
+//		MEMORIA_ASSERT(delta, >=, 0);
+//
+//		if (delta > free_space())
+//		{
+//			enlarge(delta);
+//		}
+//
+//		moveElements(idx + 1, delta);
+//
+//		layout->value(idx) = allocation_size;
+//
+//		layout->reindex();
+//
+//		return allocation_size;
+//	}
 
 
 	Int element_offset(Int idx) const {
@@ -276,10 +274,7 @@ public:
 
 		T* object = block.cast<T>();
 
-		if (block_size > 0)
-		{
-			object->init(block.size());
-		}
+		object->init(block.size());
 
 		return object;
 	}
@@ -299,28 +294,29 @@ public:
 	{
 		Int allocation_size = roundUpBytesToAlignmentBlocks(size);
 
-		if (allocation_size <= free_space())
+		if (allocation_size > free_space())
 		{
-			moveElements(idx + 1, allocation_size);
-
-			Int offset = element_offset(idx);
-
-			layout()->value(idx) = allocation_size;
-			layout()->reindex();
-
-			setBlockType(idx, type);
-
-			if (type == PackedBlockType::ALLOCATABLE)
-			{
-				PackedAllocatable* alc = T2T<PackedAllocatable*>(base() + offset);
-				alc->setAllocatorOffset(this);
-			}
-
-			return AllocationBlock(allocation_size, offset, base() + offset);
+			enlarge(allocation_size - free_space());
 		}
-		else {
-			return AllocationBlock(allocation_size - free_space());
+
+		moveElements(idx + 1, allocation_size);
+
+		Int offset = element_offset(idx);
+
+		layout()->value(idx) = allocation_size;
+		layout()->reindex();
+
+		setBlockType(idx, type);
+
+		memset(base() + offset, 0, allocation_size);
+
+		if (type == PackedBlockType::ALLOCATABLE)
+		{
+			PackedAllocatable* alc = T2T<PackedAllocatable*>(base() + offset);
+			alc->setAllocatorOffset(this);
 		}
+
+		return AllocationBlock(allocation_size, offset, base() + offset);
 	}
 
 	void free(Int idx)
@@ -362,30 +358,46 @@ public:
 
 	Int enlarge(Int delta)
 	{
-		return resize1(block_size_ + roundUpBytesToAlignmentBlocks(delta));
+		return resize(block_size_ + roundUpBytesToAlignmentBlocks(delta));
 	}
 
 
-	Int resize1(Int new_size)
+	Int resize(Int new_size)
 	{
-		Allocator* alloc = allocator();
-
-		if (alloc)
+		if (allocator_offset() > 0)
 		{
-			block_size_ = alloc->enlargeBlock(this, new_size);
+			Allocator* alloc = allocator();
+			block_size_ = alloc->resizeBlock(this, new_size);
+		}
+		else if (new_size < block_size_)
+		{
+			if (new_size >= allocated() + (Int)sizeof(MyType) + layout_size_ + bitmap_size_)
+			{
+				block_size_ = new_size;
+			}
+			else {
+				throw PackedOOMException(MA_SRC, SBuf()<<"Requested allocator size is too small: "
+						<<new_size<<" bytes. Allocated = "<<allocated()<<" bytes.");
+			}
 		}
 		else {
-			block_size_ = new_size;
-			return 0;
+			throw PackedOOMException(MA_SRC, SBuf()<<"no space left in packed allocator: "
+												   <<new_size<<" bytes. Allocated = "<<allocated()
+												   <<" bytes, avaliable = "<<free_space()<<" bytes.");
 		}
 
 		return block_size_;
 	}
 
+	void forceResize(Int amount)
+	{
+		block_size_ += roundDownBytesToAlignmentBlocks(amount);
+	}
+
 
 	Int pack()
 	{
-		return resize1(block_size_ - free_space());
+		return resize(block_size_ - free_space());
 	}
 
 protected:

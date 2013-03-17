@@ -118,9 +118,9 @@ public:
 
     	Int rank = seq->rank(seq->size(), 0x11);
 
-    	cout<<rank<<endl;
-    	cout<<seq->select(rank/2 + 10, 0x11).idx()<<endl;
-    	cout<<selectFW(seq, 0, rank/2 + 10, 0x11).idx()<<endl;
+    	out()<<rank<<endl;
+    	out()<<seq->select(rank/2 + 10, 0x11).idx()<<endl;
+    	out()<<selectFW(seq, 0, rank/2 + 10, 0x11).idx()<<endl;
     }
 
     void testSelect()
@@ -160,7 +160,7 @@ public:
 
     	BigInt t1 = getTimeInMillis();
 
-    	cout<<"time: "<<FormatTime(t1 - t0)<<" ops="<<ops<<endl;
+    	out()<<"time: "<<FormatTime(t1 - t0)<<" ops="<<ops<<endl;
     }
 
 

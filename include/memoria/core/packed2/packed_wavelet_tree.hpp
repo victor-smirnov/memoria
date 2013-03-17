@@ -95,7 +95,7 @@ private:
 
 		Int seq_num = node.rank1() - 1;
 
-		MEMORIA_ASSERT_TRUE(msequence()->insertSymbol(seq_num, idx, label));
+		msequence()->insertSymbol(seq_num, idx, label);
 		Int rank = msequence()->rank(seq_num, idx + 1, label);
 
 		if (level > 0)
@@ -105,7 +105,7 @@ private:
 			if (rank == 1)
 			{
 				child = ctree()->insertNode(child, label);
-				MEMORIA_ASSERT_TRUE(msequence()->insertSubsequence(child.rank1() - 1));
+				msequence()->insertSubsequence(child.rank1() - 1);
 			}
 
 			insert(child, rank - 1, value, level - 1);
@@ -226,40 +226,6 @@ public:
 
 		out<<"MultiSequence:"<<endl;
 		msequence()->dump(out, true, dump_index);
-	}
-
-private:
-
-	template <typename T>
-	void allocateElement(Int idx, Int block_size)
-	{
-		AllocationBlock block = Base::allocate(idx, block_size);
-
-		if (block)
-		{
-			Base::setBlockType(idx, PackedBlockType::ALLOCATABLE);
-
-			T* element = T2T<T*>(block.ptr());
-			element->init(block.size());
-			element->setAllocatorOffset(this);
-		}
-		else {
-			throw Exception(MA_SRC, SBuf()<<"Can't allocate object Wavelet Tree content block "<<idx);
-		}
-	}
-
-	template <typename T>
-	void allocateStruct(Int idx, Int block_size)
-	{
-		AllocationBlock block = Base::allocate(idx, block_size);
-
-		if (block)
-		{
-			Base::setBlockType(idx, PackedBlockType::RAW_MEMORY);
-		}
-		else {
-			throw Exception(MA_SRC, SBuf()<<"Can't allocate object Wavelet Tree content block "<<idx);
-		}
 	}
 };
 

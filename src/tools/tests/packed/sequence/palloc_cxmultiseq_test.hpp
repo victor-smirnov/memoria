@@ -59,7 +59,7 @@ public:
 
     	seq->init(sequence_block_size);
 
-    	seq->enlarge(free_space);
+    	seq->forceResize(free_space);
 
     	return MultiSequencePtr(seq, free);
     }
@@ -210,9 +210,9 @@ public:
 
     void testCreate()
     {
-    	MultiSequencePtr mseq_ptr = createMultiSequence(10500, 1000000);
+    	MultiSequencePtr mseq_ptr = createMultiSequence(1050, 1000000);
 
-    	auto seqs = createRandomSequences(100, 100);
+    	auto seqs = createRandomSequences(1000, 100);
 
     	insertSequences(mseq_ptr, seqs);
 

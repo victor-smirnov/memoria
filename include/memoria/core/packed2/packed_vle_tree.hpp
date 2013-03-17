@@ -377,10 +377,7 @@ public:
 
 			if (capacity < delta)
 			{
-				if (!enlarge(delta))
-				{
-					return delta;
-				}
+				enlarge(delta);
 			}
 		}
 
@@ -523,29 +520,21 @@ public:
 		CopyByteBuffer(data, target_memory_block, data_size);
 	}
 
-	bool enlarge(Int amount)
+	void enlarge(Int amount)
 	{
 		Allocator* alloc = allocator();
 
-		if (alloc)
-		{
-			Int size = block_size();
+		Int size = block_size();
 
-			MyType other;
+		MyType other;
 
-			other.init(size + amount);
+		other.init(size + amount);
 
-			Int new_size = alloc->enlargeBlock(this, other.block_size());
+		Int new_size = alloc->resizeBlock(this, other.block_size());
 
-			other.init(new_size);
+		other.init(new_size);
 
-			transferTo(&other, buffer_ + other.getDataOffset());
-
-			return true;
-		}
-		else {
-			return false;
-		}
+		transferTo(&other, buffer_ + other.getDataOffset());
 	}
 
 	void shrink(Int amount)
@@ -558,7 +547,7 @@ public:
 		MyType other;
 		other.init(size - amount);
 
-		Int new_size = alloc->shrinkBlock(this, size - amount);
+		Int new_size = alloc->resizeBlock(this, size - amount);
 
 		other.init(new_size);
 

@@ -392,40 +392,26 @@ public:
 		CopyByteBuffer(data, target_memory_block, data_size);
 	}
 
-	bool enlarge(Int items_num)
+	void enlarge(Int items_num)
 	{
 		Allocator* alloc = allocator();
 
-		if (alloc)
-		{
-			MyType other;
+		MyType other;
 
-			Int requested_block_size = MyType::block_size(max_size_ + items_num);
+		Int requested_block_size = MyType::block_size(max_size_ + items_num);
 
-			Int new_size = alloc->enlargeBlock(this, requested_block_size);
+		Int new_size = alloc->resizeBlock(this, requested_block_size);
 
-			if (new_size)
-			{
-				other.init(new_size);
-				other.size() 				= this->size();
-				other.allocator_offset() 	= this->allocator_offset();
+		other.init(new_size);
+		other.size() 				= this->size();
+		other.allocator_offset() 	= this->allocator_offset();
 
-				MEMORIA_ASSERT(other.size(), <=, other.max_size());
-				MEMORIA_ASSERT(other.capacity(), >=, items_num);
+		MEMORIA_ASSERT(other.size(), <=, other.max_size());
+		MEMORIA_ASSERT(other.capacity(), >=, items_num);
 
-				transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
+		transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
 
-				*this = other;
-
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-		else {
-			return false;
-		}
+		*this = other;
 	}
 
 //	void shrink(Int amount)
@@ -598,10 +584,7 @@ public:
 	{
 		if (capacity() == 0)
 		{
-			if (!enlarge(1))
-			{
-				return false;
-			}
+			enlarge(1);
 		}
 
 		MEMORIA_ASSERT(idx, <=, size());

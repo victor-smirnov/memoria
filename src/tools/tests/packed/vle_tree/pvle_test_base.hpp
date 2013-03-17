@@ -63,7 +63,7 @@ public:
 
     	allocator->template allocate<Tree>(0, size);
 
-    	allocator->enlarge(free_space);
+    	allocator->forceResize(free_space);
 
     	return TreePtr(allocator);
     }

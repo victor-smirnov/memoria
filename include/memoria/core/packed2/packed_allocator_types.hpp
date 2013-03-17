@@ -52,6 +52,11 @@ public:
 
 	friend class PackedAllocator;
 
+	bool has_allocator() const
+	{
+		return allocator_offset_ > 0;
+	}
+
 	void setAllocatorOffset(const void* allocator)
 	{
 		const char* my_ptr = T2T<const char*>(this);
@@ -68,7 +73,7 @@ public:
 			return T2T<PackedAllocator*>(my_ptr - allocator_offset());
 		}
 		else {
-			return nullptr;
+			throw PackedOOMException(MA_SRC, "No allocation is defined for this object");
 		}
 	}
 
@@ -80,7 +85,7 @@ public:
 			return T2T<const PackedAllocator*>(my_ptr - allocator_offset());
 		}
 		else {
-			return nullptr;
+			throw PackedOOMException(MA_SRC, "No allocation is defined for this object");
 		}
 	}
 
@@ -125,19 +130,13 @@ struct AllocationBlock {
 	Int size_;
 	Int offset_;
 	UByte* ptr_;
-	bool success_;
 
-	AllocationBlock(Int size, Int offset, UByte* ptr): size_(size), offset_(offset), ptr_(ptr), success_(true) {}
-	AllocationBlock(Int size): size_(size), offset_(0), ptr_(0), success_(false) {}
+	AllocationBlock(Int size, Int offset, UByte* ptr): size_(size), offset_(offset), ptr_(ptr) {}
 
 	Int size() const 	{return size_;}
 	Int offset() const 	{return offset_;}
 	UByte* ptr() const 	{return ptr_;}
-	bool success() const {return success_;}
-
-	operator bool() const {
-		return success_;
-	}
+	bool is_empty() const {return size_ == 0;}
 
 	template <typename T>
 	const T* cast() const {

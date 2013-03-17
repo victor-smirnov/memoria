@@ -511,52 +511,41 @@ public:
 		return 0;
 	}
 
-	Int enlarge(Int symbols)
+	void enlarge(Int symbols)
 	{
 		Int requested_symbols 		= symbols - capacity();
 		Int new_max_size			= max_size() + requested_symbols;
 
 		Int requested_block_size 	= MyType::block_size(new_max_size);
 
-		Int new_size = this->enlargeBlock(this->symbols(), requested_block_size);
-		if (new_size)
-		{
-			metadata()->max_size()  = new_max_size;
+		this->resizeBlock(this->symbols(), requested_block_size);
+		metadata()->max_size()  	= new_max_size;
 
-			Int value_blocks 		= getValueBlocks(new_max_size);
+		Int value_blocks 		= getValueBlocks(new_max_size);
+		if (value_blocks > IndexSizeThreshold)
+		{
+			Int index_block_size	= Index::block_size(value_blocks * Indexes);
+
+			Int new_index_size 		= this->resizeBlock(index(), index_block_size);
+
+			MEMORIA_ASSERT(new_index_size, >, 0);
+
+			this->index()->init(index_block_size);
+
 			if (value_blocks > IndexSizeThreshold)
 			{
-				Int index_block_size	= Index::block_size(value_blocks * Indexes);
-
-				Int new_index_size 		= this->enlargeBlock(index(), index_block_size);
-
-				MEMORIA_ASSERT(new_index_size, >, 0);
-
-				this->index()->init(index_block_size);
-
-				if (value_blocks > IndexSizeThreshold)
-				{
-					Int idx_max_size = index()->max_size();
-					MEMORIA_ASSERT(idx_max_size, ==, value_blocks * Indexes);
-				}
+				Int idx_max_size = index()->max_size();
+				MEMORIA_ASSERT(idx_max_size, ==, value_blocks * Indexes);
 			}
-
-			return new_size;
-		}
-		else {
-			return 0;
 		}
 	}
 
 
-	bool insert(Int idx, Int symbol)
+	void insert(Int idx, Int symbol)
 	{
 		if (capacity() == 0)
 		{
-			if (!enlarge(1))
-			{
-				return false;
-			}
+			enlarge(1);
 		}
 
 		Value* values = symbols();
@@ -570,8 +559,6 @@ public:
 		values[idx] = symbol;
 
 		this->size()++;
-
-		return true;
 	}
 
 	bool append(Int symbol) {
