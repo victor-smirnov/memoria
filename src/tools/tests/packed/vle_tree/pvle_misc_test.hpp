@@ -33,8 +33,7 @@ public:
 
     PVLEMapMiscTest(): TestTask("Misc")
     {
-//    	MEMORIA_ADD_TEST(testExintCodec);
-
+    	MEMORIA_ADD_TEST(testExintCodec);
     	MEMORIA_ADD_TEST(testEliasCodec);
     }
 

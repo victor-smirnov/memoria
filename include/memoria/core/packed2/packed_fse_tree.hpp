@@ -9,7 +9,7 @@
 #define MEMORIA_CORE_PACKED_FSE_TREE_HPP_
 
 #include <memoria/core/packed2/packed_tree_base.hpp>
-#include <memoria/core/packed/tree_walkers.hpp>
+#include <memoria/core/packed2/packed_tree_walkers.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
 
 #include <memoria/core/tools/accessors.hpp>
@@ -68,16 +68,14 @@ class PackedFSETree: public PackedTreeBase<
 	PackedFSETree<Types_>,
 	typename Types_::IndexKey,
 	Types_::BranchingFactor,
-	Types_::ValuesPerBranch,
-	Types_::ALIGNMENT_BLOCK
+	Types_::ValuesPerBranch
 > {
 
 	typedef  PackedTreeBase<
 			PackedFSETree<Types_>,
 			typename Types_::IndexKey,
 			Types_::BranchingFactor,
-			Types_::ValuesPerBranch,
-			Types_::ALIGNMENT_BLOCK
+			Types_::ValuesPerBranch
 	>																			Base;
 
 public:
@@ -95,9 +93,6 @@ public:
 	static const Int BranchingFactor        = Types::BranchingFactor;
 	static const Int ValuesPerBranch        = Types::ValuesPerBranch;
 	static const Int Indexes        		= Types::Blocks;
-
-	static const Int ALIGNMENT_BLOCK		= 8; //Bytes
-
 
 	struct Codec {
 		size_t length(const Value* buffer, size_t idx) const {return 1;}
@@ -177,11 +172,6 @@ public:
 	const Value* getValues() const
 	{
 		return buffer_ + index_size_ * sizeof(IndexKey) * Indexes;
-	}
-
-	static Int roundBytesToAlignmentBlocks(Int value)
-	{
-		return (value / ALIGNMENT_BLOCK + (value % ALIGNMENT_BLOCK ? 1 : 0)) * ALIGNMENT_BLOCK;
 	}
 
 	static Int getValueBlocks(Int items_num)
@@ -315,18 +305,6 @@ public:
 
 private:
 	struct InitFn {
-//		Int getBlockSize(Int items_number) const {
-//			return MyType::block_size(items_number);
-//		}
-//
-//		Int extend(Int items_number) const {
-//			return items_number;
-//		}
-//
-//		Int getIndexSize(Int items_number) const {
-//			return MyType::compute_index_size(items_number);
-//		}
-
 		Int block_size(Int items_number) const {
 			return MyType::block_size(items_number);
 		}

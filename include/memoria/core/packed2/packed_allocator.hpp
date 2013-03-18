@@ -289,6 +289,26 @@ public:
 		return block.cast<T>();
 	}
 
+	template <typename T>
+	T* allocateArrayByLength(Int idx, Int length)
+	{
+		static_assert(!is_base_of<PackedAllocatable, T>::value, "Only classes that are not derived from PackedAllocatable "
+				"should be instantiated this way");
+
+		AllocationBlock block = allocate(idx, length, PackedBlockType::RAW_MEMORY);
+		return block.cast<T>();
+	}
+
+	template <typename T>
+	T* allocateArrayBySize(Int idx, Int size)
+	{
+		static_assert(!is_base_of<PackedAllocatable, T>::value, "Only classes that are not derived from PackedAllocatable "
+				"should be instantiated this way");
+
+		AllocationBlock block = allocate(idx, sizeof(T)*size, PackedBlockType::RAW_MEMORY);
+		return block.cast<T>();
+	}
+
 
 	AllocationBlock allocate(Int idx, Int size, PackedBlockType type)
 	{

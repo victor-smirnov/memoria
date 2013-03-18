@@ -90,7 +90,7 @@ static Int FindTotalElementsNumber2(Int block_size, Fn&& fn)
 
 			max_size = middle;
 
-			for (Int c = 0; c < 64; c++)
+			for (Int c = 0; c < 128; c++)
 			{
 				if (fn.block_size(middle + c) <= block_size)
 				{
@@ -141,7 +141,7 @@ class MultiValueSetter {
 
 	Tree* tree_;
 
-	UByte* data_;
+	typename Codec::BufferType* data_;
 
 	Int total_size_;
 
@@ -192,9 +192,11 @@ private:
 	{
 		Int len = codec_.length(value);
 
-		CopyBuffer(data_ + pos, data_ + pos + len, total_size_ - pos);
+//		CopyBuffer(data_ + pos, data_ + pos + len, total_size_ - pos);
 
-		return codec_.encode(data_, value, pos);
+		codec_.move(data_, pos, pos + len, total_size_ - pos);
+
+		return codec_.encode(data_, value, pos, tree_->max_size());
 	}
 };
 

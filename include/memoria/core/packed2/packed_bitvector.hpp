@@ -37,16 +37,14 @@ class PackedBitVector: public PackedTreeBase<
 	PackedBitVector<Types_>,
 	Int,
 	Types_::BranchingFactor,
-	Types_::ValuesPerBranch,
-	Types_::ALIGNMENT_BLOCK
+	Types_::ValuesPerBranch
 > {
 
 	typedef  PackedTreeBase<
 			PackedBitVector<Types_>,
 			Int,
 			Types_::BranchingFactor,
-			Types_::ValuesPerBranch,
-			Types_::ALIGNMENT_BLOCK
+			Types_::ValuesPerBranch
 	>																			Base;
 
 public:
@@ -64,8 +62,6 @@ public:
 	static const Int BranchingFactor        = Types::BranchingFactor;
 	static const Int ValuesPerBranch        = Types::ValuesPerBranch;
 	static const Int Indexes        		= 2;
-
-	static const Int ALIGNMENT_BLOCK		= Types::ALIGNMENT_BLOCK; //Bytes
 
 	struct Codec {
 		size_t length(const Value* buffer, size_t idx) const {return 1;}
@@ -113,7 +109,7 @@ public:
 	{
 		Int index_length = index_size_ * sizeof(IndexKey) * Indexes;
 
-		return sizeof(MyType) + index_length + roundBitsToAlignmentBlocks(max_size_);
+		return sizeof(MyType) + index_length + Base::roundUpBitsToAlignmentBlocks(max_size_);
 	}
 
 	IndexKey* indexes(Int index_block)
@@ -151,16 +147,6 @@ public:
 		return values();
 	}
 
-	static Int roundBitsToAlignmentBlocks(Int bits)
-	{
-		return roundBytesToAlignmentBlocks(roundBitToBytes(bits));
-	}
-
-	static Int roundBytesToAlignmentBlocks(Int bytes)
-	{
-		return (bytes / ALIGNMENT_BLOCK + (bytes % ALIGNMENT_BLOCK ? 1 : 0)) * ALIGNMENT_BLOCK;
-	}
-
 	static Int getValueBlocks(Int items_num)
 	{
 		return items_num / ValuesPerBranch + (items_num % ValuesPerBranch ? 1 : 0);
@@ -175,7 +161,7 @@ public:
 		Int index_size 		= getIndexSize(items_num);
 
 		Int base_length 	= sizeof(MyType) + index_size * Indexes * sizeof(IndexKey);
-		Int bitmap_length 	= roundBitsToAlignmentBlocks(items_num);
+		Int bitmap_length 	= Base::roundUpBitsToAlignmentBlocks(items_num);
 
 		return base_length + bitmap_length;
 	}

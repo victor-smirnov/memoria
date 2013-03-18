@@ -848,9 +848,19 @@ inline Int Log2(UInt value) {
 	return 32 - __builtin_clz(value);
 }
 
+inline Int Log2(Int value) {
+	return 32 - __builtin_clz(value);
+}
+
+
 inline Int Log2(UBigInt value) {
 	return 64 - __builtin_clzll(value);
 }
+
+inline Int Log2(BigInt value) {
+	return 64 - __builtin_clzll(value);
+}
+
 
 inline Int CountTrailingZeroes(UInt value) {
 	return __builtin_ctz(value);

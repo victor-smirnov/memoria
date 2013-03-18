@@ -15,6 +15,7 @@
  */
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/tools/bitmap.hpp>
 
 namespace memoria {
 
@@ -67,7 +68,11 @@ size_t DecodeExint(const T* buffer, V& value, size_t start)
 template <typename T, typename V>
 struct ExintCodec {
 
-	size_t length(const T* buffer, size_t idx) const {
+	typedef T BufferType;
+	static const Int BitsPerOffset 	= 4;
+	static const Int ElementSize	= 8; // In bits;
+
+	size_t length(const T* buffer, size_t idx, size_t limit) const {
 		return buffer[idx] + 1;
 	}
 
@@ -75,17 +80,25 @@ struct ExintCodec {
 		return GetExintValueLength(value);
 	}
 
-	size_t decode(const T* buffer, V& value, size_t idx) const
+	size_t decode(const T* buffer, V& value, size_t idx, size_t limit) const
 	{
 		return DecodeExint(buffer, value, idx);
 	}
 
-	size_t encode(T* buffer, V value, size_t idx) const
+	size_t encode(T* buffer, V value, size_t idx, size_t limit) const
 	{
 		return EncodeExint(buffer, value, idx);
 	}
+
+	void move(T* buffer, size_t from, size_t to, size_t size) const
+	{
+		CopyBuffer(buffer + from, buffer + to, size);
+	}
 };
 
+
+template <typename V>
+using UByteExintCodec = ExintCodec<UByte, V>;
 
 
 }

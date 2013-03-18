@@ -23,6 +23,10 @@ using namespace std;
 class PVLEMapInitTest: public TestTask {
 
 	typedef PVLEMapInitTest 				MyType;
+
+	template <Int BF, Int VPB>
+	using TreeType = PackedVLETree<PackedVLETreeTypes<Int, Int, UByteExintCodec, 2, BF, VPB>>;
+
 public:
 
     PVLEMapInitTest(): TestTask("Init")
@@ -33,58 +37,34 @@ public:
     virtual ~PVLEMapInitTest() throw() {}
 
     template <Int BF, Int VPB>
-    void testInitByBlock(Int block_size)
+    void assertTree()
     {
-    	typedef PackedVLETreeTypes<Int, Int, Int, EmptyAllocator, 2, BF, VPB>	Types;
-    	typedef PackedVLETree<Types> 											Tree;
+    	typedef TreeType<BF, VPB> Tree;
 
-    	Tree tree;
+    	for (Int max_size = 0; max_size < 128*1024; max_size += getRandom(10) + 1)
+    	{
+    		Int block_size = Tree::block_size(max_size);
 
-    	Int size = block_size;
-    	tree.init(size);
+    		Tree* tree = T2T<Tree*>(malloc(block_size));
+    		memset(tree, 0, block_size);
 
-    	AssertLE(MA_SRC, tree.max_size(), size);
-    	AssertGE(MA_SRC, tree.index_size(), 0);
+    		tree->init(block_size);
 
-    	AssertGE(MA_SRC, tree.getValueBlocks(), 0);
-    }
+    		AssertGE(MA_SRC, tree->max_size(), max_size);
 
-    template <Int BF, Int VPB>
-    void testInitByBlock()
-    {
-    	typedef PackedVLETreeTypes<Int, Int, Int, EmptyAllocator, 2, BF, VPB>	Types;
-    	typedef PackedVLETree<Types> 											Tree;
-
-    	Tree tree;
-
-    	tree.init(sizeof(Tree));
-
-    	AssertEQ(MA_SRC, tree.max_size(), 0);
-    	AssertEQ(MA_SRC, tree.index_size(), 0);
-
-    	AssertEQ(MA_SRC, tree.getValueBlocks(), 0);
+    		free(tree);
+    	}
     }
 
     void testInit()
     {
-    	for (Int block_size = 16; block_size < 128*1024; block_size += getRandom(10)+1)
-    	{
-    		testInitByBlock<32, 32>(block_size);
-    		testInitByBlock<32, 256>(block_size);
-    		testInitByBlock<32, 16>(block_size);
+    	assertTree<32, 32>();
+    	assertTree<32, 256>();
+    	assertTree<32, 16>();
 
-    		testInitByBlock<12, 15>(block_size);
-    		testInitByBlock<82, 11>(block_size);
-    		testInitByBlock<9, 77>(block_size);
-    	}
-
-    	testInitByBlock<32, 32>();
-    	testInitByBlock<32, 256>();
-    	testInitByBlock<32, 16>();
-
-    	testInitByBlock<12, 15>();
-    	testInitByBlock<82, 11>();
-    	testInitByBlock<9, 77>();
+    	assertTree<12, 15>();
+    	assertTree<82, 11>();
+    	assertTree<9, 77>();
     }
 };
 

@@ -22,11 +22,11 @@ namespace memoria {
 
 using namespace std;
 
-template <Int BF, Int VPB>
-class PVLEMapCreateTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedAllocator, 2, BF, VPB>> {
+template <Int BF, Int VPB, template <typename> class Codec_>
+class PVLEMapCreateTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Codec_, 2, BF, VPB>> {
 
-	typedef PVLEMapCreateTest 																			MyType;
-	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedAllocator, 2, BF, VPB>> 				Base;
+	typedef PVLEMapCreateTest 															MyType;
+	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Codec_, 2, BF, VPB>> 			Base;
 
 	typedef typename Base::Tree 			Tree;
 	typedef typename Base::TreePtr 			TreePtr;
@@ -37,7 +37,7 @@ class PVLEMapCreateTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, P
 
 public:
 
-    PVLEMapCreateTest(): Base((SBuf()<<"Create."<<BF<<"."<<VPB).str())
+    PVLEMapCreateTest(String codec): Base((SBuf()<<"Create."<<BF<<"."<<VPB<<"."<<codec).str())
     {
     	MEMORIA_ADD_TEST(testValueAccess);
     	MEMORIA_ADD_TEST(testValueSet);
@@ -49,7 +49,7 @@ public:
 
     void testValueAccess()
     {
-    	for (Int block_size = sizeof(Tree); block_size < 128*1024; )
+    	for (Int block_size = 256; block_size < 128*1024; )
     	{
     		testValueAccess(block_size);
 
@@ -66,8 +66,9 @@ public:
     void testValueAccess(Int block_size)
     {
     	Base::out()<<"Block size: "<<block_size<<endl;
-    	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>(0);
+
+    	TreePtr tree_ptr = Base::createTree(block_size);
+    	Tree* tree 		 = tree_ptr.get();
 
     	Value c = 0;
     	Base::fillTree(tree, [&]()->Value {
@@ -76,7 +77,7 @@ public:
 
     	for (int idx = 0; idx < tree->size(); idx++)
     	{
-    		AssertEQ(MA_SRC, idx, tree->value(idx));
+    		AssertEQ(MA_SRC, idx, tree->value(idx), SBuf()<<idx<<" "<<tree->size()<<" "<<tree->max_size());
     	}
     }
 
@@ -85,12 +86,13 @@ public:
     	Int block_size = 4096;
 
     	Base::out()<<"Block size: "<<block_size<<endl;
-    	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>(0);
 
-    	vector<Value> values(tree->max_size() / 3);
+    	TreePtr tree_ptr = Base::createTree(block_size);
+    	Tree* tree 		 = tree_ptr.get();
 
-    	for (auto& v: values) v = getRandom(10000);
+    	vector<Value> values(tree->max_size() / 10);
+
+    	for (auto& v: values) v = getRandom(100);
 
     	Int idx = 0;
     	Base::fillTreeByElements(tree, values.size(), [&](){
@@ -102,7 +104,7 @@ public:
     	for (Int c = 0; c < 1000; c++)
     	{
     		Int idx = getRandom(values.size());
-    		Int value = getRandom(10000);
+    		Int value = getRandom(100);
 
     		values[idx] = value;
 
@@ -110,11 +112,11 @@ public:
 
     		AssertEQ(MA_SRC, delta, 0, SBuf()<<idx<<" "<<value<<" "<<c);
 
-    		for (Int c = 0; c < tree->size(); c++)
+    		for (Int x = 0; x < tree->size(); x++)
     		{
-    			Value value = tree->value(c);
+    			Value value = tree->value(x);
 
-    			AssertEQ(MA_SRC, value, values[c]);
+    			AssertEQ(MA_SRC, value, values[x], SBuf()<<idx<<" "<<value<<" "<<x);
     		}
     	}
     }
@@ -124,8 +126,9 @@ public:
     	Int block_size = 4096;
 
     	Base::out()<<"Block size: "<<block_size<<endl;
-    	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>(0);
+
+    	TreePtr tree_ptr = Base::createTree(block_size);
+    	Tree* tree 		 = tree_ptr.get();
 
 
     	MultiValueSetter<Tree, 16> setter(tree);

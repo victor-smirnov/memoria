@@ -117,13 +117,14 @@ protected:
 
 	typedef typename TreeType::Value 		Value;
 	typedef typename TreeType::Codec 		Codec;
+	typedef typename TreeType::BufferType 	BufferType;
 
 
 private:
 
 	const TreeType& me_;
 
-	const UByte* values_;
+	const BufferType* values_;
 
 public:
 	GetValueOffsetFnBase(const TreeType& me, Int limit):
@@ -151,6 +152,8 @@ public:
 		VLECompareLE<Int, BigInt> compare;
 		Codec codec;
 
+		Int max_size = me_.max_size();
+
 		while (pos < end)
 		{
 			Int value = pos < end;
@@ -162,7 +165,7 @@ public:
 
 				Value val;
 
-				pos += codec.decode(values_, val, pos);
+				pos += codec.decode(values_, val, pos, max_size);
 
 				Base::me().processValue(val);
 			}
@@ -294,6 +297,7 @@ class FindElementFn: public FindForwardFnBase<
 	typedef typename TreeType::IndexKey 	IndexKey;
 	typedef typename TreeType::Codec 		Codec;
 	typedef typename TreeType::Value		Value;
+	typedef typename TreeType::BufferType 	BufferType;
 
 	typedef FindForwardFnBase<TreeType, FindElementFn<TreeType, Comparator>, IndexKey, Comparator> 	Base;
 
@@ -303,7 +307,7 @@ private:
 
 	const TreeType& 	me_;
 
-	const UByte* 		values_;
+	const BufferType* 	values_;
 	const IndexKey* 	sizes_;
 
 	Int position_;
@@ -358,7 +362,7 @@ public:
 		{
 			Value value;
 
-			Int len = codec.decode(values_, value, pos);
+			Int len = codec.decode(values_, value, pos, end);
 
 			if (compare(value, Base::limit_))
 			{

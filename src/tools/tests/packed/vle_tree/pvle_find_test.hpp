@@ -24,11 +24,11 @@ namespace memoria {
 
 using namespace std;
 
-template <Int BF, Int VPB>
-class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedAllocator, 2, BF, VPB>> {
+template <Int BF, Int VPB, template <typename> class Codec_>
+class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Codec_, 2, BF, VPB>> {
 
-	typedef PVLEMapFindTest<BF, VPB> 																	MyType;
-	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Int, PackedAllocator, 2, BF, VPB>> 				Base;
+	typedef PVLEMapFindTest<BF, VPB, Codec_> 											MyType;
+	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Codec_, 2, BF, VPB>> 				Base;
 
 	typedef typename Base::Types			Types;
 	typedef typename Base::Tree 			Tree;
@@ -37,7 +37,6 @@ class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, Pac
 	typedef typename Base::Codec			Codec;
 
 	typedef typename Tree::IndexKey			IndexKey;
-	typedef typename Tree::Key				Key;
 
 	typedef VLETreeValueDescr<Value>		ValueDescr;
 
@@ -45,7 +44,7 @@ class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Int, Pac
 
 public:
 
-    PVLEMapFindTest(): Base((SBuf()<<"Find."<<BF<<"."<<VPB).str())
+    PVLEMapFindTest(StringRef codec): Base((SBuf()<<"Find."<<BF<<"."<<VPB<<"."<<codec).str())
     {
     	MEMORIA_ADD_TEST(testSumValues);
 
@@ -79,16 +78,16 @@ public:
     	if (start_idx > 0)
     	{
     		Int start = tree->getValueOffset(start_idx);
-    		pos = tree->find_fw(start, fn);
+    		pos = Tree::TreeTools::find_fw(start, fn);
     	}
     	else {
-    		pos = tree->find_fw(fn);
+    		pos = Tree::TreeTools::find_fw(fn);
     	}
 
     	Codec codec;
     	Value actual_value;
 
-    	const UByte* values_ = tree->getValues();
+    	const auto* values_ = tree->getValues();
     	codec.decode(values_, actual_value, pos);
 
     	return ValueDescr(actual_value + fn.sum(), pos, start_idx + fn.position());
@@ -98,13 +97,13 @@ public:
     {
     	FindElementFn<Tree, BTreeCompareLT> fn(*tree, value);
 
-    	Int pos = tree->find_fw(fn);
+    	Int pos = Tree::TreeTools::find_fw(fn);
 
     	Codec codec;
     	Value actual_value;
 
-    	const UByte* values_ = tree->values();
-    	codec.decode(values_, actual_value, pos);
+    	const auto* values_ = tree->values();
+    	codec.decode(values_, actual_value, pos, tree->max_size());
 
     	return ValueDescr(actual_value + fn.sum(), pos, fn.position());
     }
@@ -122,7 +121,7 @@ public:
     {
     	GetVLEValuesSumFn<Tree> fn(*tree, to);
 
-    	Int pos = tree->find_fw(fn);
+    	Int pos = Tree::TreeTools::find_fw(fn);
 
     	return ValueDescr(fn.value(), pos, to);
     }
@@ -148,8 +147,8 @@ public:
     {
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
-    	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>(0);
+    	TreePtr tree_ptr = Base::createTree(block_size);
+    	Tree* tree 		 = tree_ptr.get();
 
 
     	fillTree(tree);
@@ -179,8 +178,8 @@ public:
     {
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
-    	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>(0);
+    	TreePtr tree_ptr = Base::createTree(block_size);
+    	Tree* tree 		 = tree_ptr.get();
 
     	fillTree(tree);
 
@@ -208,8 +207,8 @@ public:
     {
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
-    	TreePtr tree_block = Base::createTree(block_size);
-    	Tree* tree = tree_block->template get<Tree>(0);
+    	TreePtr tree_ptr = Base::createTree(block_size);
+    	Tree* tree 		 = tree_ptr.get();
 
     	fillTree(tree);
 
@@ -235,8 +234,8 @@ public:
 
     void testFindLargeValue()
     {
-    	TreePtr tree_block = Base::createTree(4096);
-    	Tree* tree = tree_block->template get<Tree>(0);
+    	TreePtr tree_ptr = Base::createTree(4096);
+    	Tree* tree 		 = tree_ptr.get();
 
     	for (Int size = 0; size < tree->max_size(); size += 10)
     	{

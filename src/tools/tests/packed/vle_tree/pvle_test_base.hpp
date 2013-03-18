@@ -32,14 +32,12 @@ protected:
 
 	typedef PackedVLETree<Types> 			Tree;
 
-
-
 	typedef typename Tree::Value			Value;
 	typedef typename Tree::Codec			Codec;
 
 	typedef typename Types::Allocator		Allocator;
 
-	typedef shared_ptr<Allocator> 			TreePtr;
+	typedef shared_ptr<Tree> 				TreePtr;
 
 public:
 
@@ -47,25 +45,22 @@ public:
 
     virtual ~PVLETestBase() throw() {}
 
-    TreePtr createTree(Int size, Int free_space = 0)
+    TreePtr createTree(Int block_size, Int free_space = 0)
     {
     	free_space = PackedAllocator::roundDownBytesToAlignmentBlocks(free_space);
 
-    	Int block_size = Allocator::block_size(size, 1);
+    	Int max_tree_size = Tree::max_tree_size(block_size);
 
-    	void* buffer = malloc(block_size);
+    	Int tree_block_size = Tree::block_size(max_tree_size);
 
-    	memset(buffer, 0, block_size);
+    	Tree* tree = T2T<Tree*>(malloc(tree_block_size + free_space));
+    	memset(tree, 0, tree_block_size + free_space);
 
-    	Allocator* allocator = T2T<Allocator*>(buffer);
+    	tree->init(tree_block_size);
 
-    	allocator->init(block_size, 1);
+    	tree->forceResize(free_space);
 
-    	allocator->template allocate<Tree>(0, size);
-
-    	allocator->forceResize(free_space);
-
-    	return TreePtr(allocator);
+    	return TreePtr(tree, free);
     }
 
     void fillTree(Tree* tree, function<Value()> value_provider)
@@ -89,7 +84,7 @@ public:
 
     		if (pos + (Int)codec.length(value) <= size)
     		{
-    			pos += codec.encode(values, value, pos);
+    			pos += codec.encode(values, value, pos, tree->max_size());
     			tree_size++;
     		}
     		else {
@@ -116,7 +111,7 @@ public:
     	{
     		Int value = value_provider();
 
-    		pos += codec.encode(values, value, pos);
+    		pos += codec.encode(values, value, pos, tree->max_size());
     		tree_size++;
     	}
 
@@ -129,7 +124,7 @@ public:
     vector<Value> sumValues(Tree* tree, Int start)
     {
     	Int pos = tree->getValueOffset(start);
-    	const UByte* values_array = tree->values();
+    	const auto* values_array = tree->values();
     	Codec codec;
 
     	vector<Value> values;
@@ -140,7 +135,7 @@ public:
     	{
     		Value value;
 
-    		pos += codec.decode(values_array, value, pos);
+    		pos += codec.decode(values_array, value, pos, tree->max_size());
 
     		sum += value;
     		values.push_back(sum);
@@ -153,7 +148,7 @@ public:
     {
     	Int pos = tree->getValueOffset(start);
 
-    	const UByte* values = tree->values();
+    	const auto* values = tree->values();
 
     	Value sum = 0;
 
@@ -163,7 +158,7 @@ public:
     	{
     		Value value;
 
-    		pos += codec.decode(values, value, pos);
+    		pos += codec.decode(values, value, pos, tree->max_size());
 
     		sum += value;
     	}

@@ -33,7 +33,7 @@ size_t GetEliasDeltaValueLength(V value)
 
 
 template <typename T, typename V>
-size_t EncodeEliasDelta(T* buffer, V value, size_t start, size_t limit)
+size_t EncodeEliasDelta(T* buffer, V value, size_t start, size_t limit = -1)
 {
 	size_t length 			= Log2(value);
 	size_t length_length 	= Log2(length) - 1;
@@ -62,7 +62,7 @@ size_t EncodeEliasDelta(T* buffer, V value, size_t start, size_t limit)
 }
 
 template <typename T, typename V>
-inline size_t DecodeEliasDelta(const T* buffer, V& value, size_t start, size_t limit)
+inline size_t DecodeEliasDelta(const T* buffer, V& value, size_t start, size_t limit = -1)
 {
 	if (TestBit(buffer, start))
 	{
@@ -91,8 +91,8 @@ inline size_t DecodeEliasDelta(const T* buffer, V& value, size_t start, size_t l
 }
 
 
-template <typename T, typename V>
-inline size_t DecodeEliasDeltaLength(const T* buffer, size_t start, size_t limit)
+template <typename T>
+inline size_t DecodeEliasDeltaLength(const T* buffer, size_t start, size_t limit = -1)
 {
 	if (TestBit(buffer, start))
 	{
@@ -119,25 +119,44 @@ inline size_t DecodeEliasDeltaLength(const T* buffer, size_t start, size_t limit
 template <typename T, typename V>
 struct EliasDeltaCodec {
 
-	size_t length(const T* buffer, size_t idx) const
+	typedef T BufferType;
+	static const Int BitsPerOffset 	= 8;
+	static const Int ElementSize	= 1; // In bits;
+
+	size_t length(const T* buffer, size_t idx, size_t limit) const
 	{
-		return buffer[idx] + 1;
+		return DecodeEliasDeltaLength(buffer, idx, limit);
 	}
 
-	size_t length(V value) const {
-		return GetEliasDeltaValueLength(value);
+	size_t length(V value) const
+	{
+		return GetEliasDeltaValueLength(value + 1);
 	}
 
-	size_t decode(const T* buffer, V& value, size_t idx) const
+	size_t decode(const T* buffer, V& value, size_t idx, size_t limit) const
 	{
-		return DecodeEliasDelta(buffer, value, idx);
+		size_t len = DecodeEliasDelta(buffer, value, idx, limit);
+
+		value--;
+
+		return len;
 	}
 
-	size_t encode(T* buffer, V value, size_t idx) const
+	size_t encode(T* buffer, V value, size_t idx, size_t limit) const
 	{
-		return EncodeEliasDelta(buffer, value, idx);
+		value++;
+		return EncodeEliasDelta(buffer, value, idx, limit);
+	}
+
+	void move(T* buffer, size_t from, size_t to, size_t size) const
+	{
+		MoveBits(buffer, buffer, from, to, size);
 	}
 };
+
+
+template <typename V>
+using UBigIntEliasCodec = EliasDeltaCodec<UBigInt, V>;
 
 
 

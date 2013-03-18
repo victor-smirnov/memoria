@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_PACKED_TREE_BASE_HPP_
-#define MEMORIA_CORE_PACKED_TREE_BASE_HPP_
+#ifndef MEMORIA_CORE_PACKED_TREE_TOOLS_HPP_
+#define MEMORIA_CORE_PACKED_TREE_TOOLS_HPP_
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/assert.hpp>
@@ -15,19 +15,19 @@
 
 namespace memoria {
 
-template <typename MyType, typename IndexKey, Int BranchingFactor, Int ValuesPerBranch>
-class PackedTreeBase: public PackedAllocatable {
+template <typename IndexKey, Int BranchingFactor, Int ValuesPerBranch>
+class PackedTreeTools {
 
 private:
 
 	static const Int LEVELS_MAX             = 32;
 
-protected:
+public:
 
-	PackedTreeBase() {}
+	PackedTreeTools() {}
 
 	template <typename Functor>
-	void update_up(Int idx, Functor&& fn)
+	static void update_up(Int idx, Functor&& fn)
 	{
 		MEMORIA_ASSERT(idx, >=, 0);
 		MEMORIA_ASSERT(idx, <=, fn.size());
@@ -53,10 +53,8 @@ protected:
 		while (level_start > 0);
 	}
 
-protected:
-
 	template <typename Functor>
-	void reindex(Int start, Int end, Functor& fn)
+	static void reindex(Int start, Int end, Functor& fn)
 	{
 		MEMORIA_ASSERT(start, >=, 0);
 		MEMORIA_ASSERT(end, <=, fn.size());
@@ -104,7 +102,7 @@ private:
 
 public:
 	template <typename Functor>
-	void walk_range(Int start, Int end, Functor& walker) const
+	static void walk_range(Int start, Int end, Functor& walker)
 	{
 		MEMORIA_ASSERT(start, >=, 0);
 		MEMORIA_ASSERT(end,   <=,  walker.size());
@@ -141,7 +139,7 @@ public:
 	}
 
 	template <typename Functor>
-	void walk_range(Int target, Functor& walker) const
+	static void walk_range(Int target, Functor& walker)
 	{
 		if (target > walker.size()) {
 			int a = 0; a++;
@@ -188,7 +186,7 @@ public:
 
 
 	template <typename Functor>
-	Int find_fw(Functor &walker) const
+	static Int find_fw(Functor &walker)
 	{
 		FinishHandler<Functor> finish_handler(walker);
 
@@ -236,7 +234,7 @@ public:
 
 
 	template <typename Functor>
-	Int find_fw(Int start, Functor& walker) const
+	static Int find_fw(Int start, Functor& walker)
 	{
 		Int size = walker.size();
 
@@ -277,7 +275,7 @@ public:
 	}
 
 	template <typename Functor>
-	Int find_bw(Int start, Functor& walker) const
+	static Int find_bw(Int start, Functor& walker)
 	{
 		MEMORIA_ASSERT(start, >=, 0);
 
@@ -320,7 +318,7 @@ public:
 		}
 	}
 
-protected:
+
 
 	static Int getBlockStart(Int i)
 	{
@@ -383,18 +381,8 @@ protected:
 	}
 
 
-
-	MyType& me() {
-		return *static_cast<MyType*>(this);
-	}
-
-	const MyType& me() const {
-		return *static_cast<const MyType*>(this);
-	}
-
-
 	template <typename Functor>
-	void walkIndexRange(Int start, Int end, Functor& walker, Int level_offet, Int level_size, Int cell_size) const
+	static void walkIndexRange(Int start, Int end, Functor& walker, Int level_offet, Int level_size, Int cell_size)
 	{
 		if (end - start <= BranchingFactor * 2)
 		{
@@ -424,14 +412,14 @@ protected:
 	}
 
 	template <typename Functor>
-	Int walkIndexFw(
+	static Int walkIndexFw(
 			Int start,
 			Functor& walker,
 			Int level_offet,
 			Int level_size,
 			Int level_limit,
 			Int cell_size
-	) const
+	)
 	{
 		Int block_start_end     = getBlockStartEnd(start);
 
@@ -479,14 +467,14 @@ protected:
 	}
 
 	template <typename Functor>
-	Int walkIndexBw(
+	static Int walkIndexBw(
 			Int start,
 			Functor& walker,
 			Int level_offet,
 			Int level_size,
 			Int cells_number_on_lower_level,
 			Int cell_size
-	) const
+	)
 	{
 		Int block_start_end     = getBlockStartEndBw(start);
 
@@ -529,8 +517,6 @@ protected:
 		}
 	}
 
-protected:
-
 	static Int compute_index_size(Int csize)
 	{
 		if (csize == 1)
@@ -556,32 +542,10 @@ protected:
 			return sum;
 		}
 	}
-
-	static Int roundBytesToAlignmentBlocks(Int value)
-	{
-		return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
-	}
-
-	static Int roundBitsToBytes(Int bitsize)
-	{
-		return (bitsize / 8 + (bitsize % 8 ? 1 : 0));
-	}
-
-	static Int roundBitsToAlignmentBlocks(Int bitsize)
-	{
-		Int byte_size = roundBitsToBytes(bitsize);
-		return roundBytesToAlignmentBlocks(byte_size);
-	}
-
-	template <typename Fn>
-	static Int getMaxSize(Int block_size, Fn&& fn)
-	{
-		return FindTotalElementsNumber(block_size, fn);
-	}
 };
 
 template <typename MyType>
-class ReindexFnBase {
+class Reindex2FnBase {
 	public:
 		static const Int Indexes        		= MyType::Indexes;
 
@@ -593,7 +557,7 @@ class ReindexFnBase {
 		IndexKey* indexes_[Indexes];
 
 	public:
-		ReindexFnBase(MyType& me): me_(me)
+		Reindex2FnBase(MyType& me): me_(me)
 		{
 			for (Int idx = 0; idx < Indexes; idx++)
 			{
