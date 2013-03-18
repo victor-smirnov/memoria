@@ -409,7 +409,7 @@ void SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type b
 
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
-GetBits0(const Buffer& buf, size_t idx, Int nbits)
+inline GetBits0(const Buffer& buf, size_t idx, Int nbits)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -425,7 +425,7 @@ GetBits0(const Buffer& buf, size_t idx, Int nbits)
 }
 
 template <typename T>
-bool TestBits(const T* buf, size_t idx, T bits, Int nbits)
+inline bool TestBits(const T* buf, size_t idx, T bits, Int nbits)
 {
 	size_t mask = TypeBitmask<T>();
     size_t divisor = TypeBitmaskPopCount(mask);
@@ -437,6 +437,20 @@ bool TestBits(const T* buf, size_t idx, T bits, Int nbits)
 
     return (buf[haddr] & bitmask) == (bits << laddr);
 }
+
+
+template <typename T>
+inline bool TestBit(const T* buf, size_t idx)
+{
+	size_t mask = TypeBitmask<T>();
+    size_t divisor = TypeBitmaskPopCount(mask);
+
+    size_t haddr = (idx & ~mask) >> divisor;
+    size_t laddr = idx & mask;
+
+    return buf[haddr] & (static_cast<T>(1)<<laddr);
+}
+
 
 
 template <typename T>
@@ -519,6 +533,37 @@ GetBits(const Buffer& buf, size_t idx, Int nbits)
         return GetBits0(buf, idx, nbits0) | (nbits1 > 0 ? (GetBits0(buf, idx + nbits0, nbits1) << nbits0) : 0);
     }
 }
+
+template <typename T>
+inline T GetBits2(const T* buf, size_t& pos, size_t nbits)
+{
+	size_t bitsize 		= TypeBitsize<T>();
+	size_t mask 		= TypeBitmask<T>();
+
+	T value = 0;
+
+	size_t idx 		= pos / bitsize;
+	size_t prefix	= bitsize - (pos & mask);
+	size_t bit_pos	= pos & mask;
+
+	const T ONES = static_cast<T>(-1);
+
+	if (nbits + bit_pos> bitsize)
+	{
+		value = buf[idx] >> bit_pos;
+
+		size_t suffix = nbits - prefix;
+		value |= (buf[idx + 1] & (ONES >> (bitsize - suffix))) << prefix;
+	}
+	else {
+		value = (buf[idx] >> bit_pos) & (ONES >> (bitsize - nbits));
+	}
+
+	pos += nbits;
+
+	return value;
+}
+
 
 /**
  * Move 'bitCount' bits from buffer 'src_array':srcBit to 'dst_array':dstBit.
@@ -815,10 +860,14 @@ inline Int CountTrailingZeroes(UBigInt value) {
 	return __builtin_ctzll(value);
 }
 
+
+
+
+
 template <typename T>
-size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit)
+inline size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit)
 {
-	size_t bitsize 	= TypeBitsize<T>();
+	size_t bitsize 		= TypeBitsize<T>();
 	size_t mask 		= TypeBitmask<T>();
 
 	size_t start_cell 	= pos / bitsize;
@@ -860,6 +909,15 @@ size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit)
 	return length;
 }
 
+
+
+
+
+template <typename T>
+size_t CountTrailingZeroesLight(const T* buf, size_t pos, size_t limit)
+{
+	return CountTrailingZeroes(GetBits(buf, pos, sizeof(T)*8));
+}
 
 
 

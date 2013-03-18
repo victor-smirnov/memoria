@@ -100,19 +100,28 @@ public:
     		AssertEQ(MA_SRC, length, lengths[c - 1]);
     	}
 
-    	UBigInt bitmap[3];
+    	UBigInt bitmap[4];
 
-    	for (UBigInt c = 1; c < 1000000; c++)
+    	BigInt t0 = getTimeInMillis();
+
+    	for (size_t start = 1; start < 64; start++)
     	{
-    		memset(bitmap, 0, sizeof(bitmap));
+    		memset(bitmap, 0xFF, sizeof(bitmap));
 
-    		EncodeEliasDelta(bitmap, c, 0, sizeof(bitmap)*8);
+    		for (UBigInt c = 1; c < 1000000; c++)
+    		{
+    			EncodeEliasDelta(bitmap, c, start, sizeof(bitmap)*8);
 
-    		UBigInt value = 0;
-    		DecodeEliasDelta(bitmap, value, 0, sizeof(bitmap)*8);
+    			UBigInt value = 0;
+    			DecodeEliasDelta(bitmap, value, start, sizeof(bitmap)*8);
 
-    		AssertEQ(MA_SRC, value, c);
+    			AssertEQ(MA_SRC, value, c);
+    		}
     	}
+
+    	BigInt t1 = getTimeInMillis();
+
+    	out()<<"Time1="<<FormatTime(t1 - t0)<<endl;
     }
 };
 

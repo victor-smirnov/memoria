@@ -80,12 +80,12 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedVLETestSuite());
 //        runner.registerTask(new PackedFSETestSuite());
 
-        runner.registerTask(new PackedFSETreeTestSuite());
+//        runner.registerTask(new PackedFSETreeTestSuite());
         runner.registerTask(new PackedVLETreeTestSuite());
-        runner.registerTask(new PackedAllocatorTestSuite());
-        runner.registerTask(new PackedSequenceTestSuite());
-        runner.registerTask(new PackedLoudsTestSuite());
-        runner.registerTask(new PackedWaveletTreeTestSuite());
+//        runner.registerTask(new PackedAllocatorTestSuite());
+//        runner.registerTask(new PackedSequenceTestSuite());
+//        runner.registerTask(new PackedLoudsTestSuite());
+//        runner.registerTask(new PackedWaveletTreeTestSuite());
 
 
 
