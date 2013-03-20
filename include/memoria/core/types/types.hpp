@@ -111,6 +111,8 @@ template <typename T> struct TypeHash; // must define Value constant
  * Container type names & profiles
  */
 
+struct BalancedTree {};
+
 struct BTree        {};
 struct BSTree       {};
 struct Composite    {};
@@ -121,6 +123,9 @@ class CtrWrapper 	{};
 
 template <typename Key, typename Value, Int Indexes = 1>
 struct Map          {};
+
+template <typename Key, typename Value, Int Indexes = 1>
+struct Map2         {};
 
 typedef Map<BigInt, BigInt, 1>       Map1;
 
