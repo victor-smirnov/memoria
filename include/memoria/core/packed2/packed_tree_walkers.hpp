@@ -312,26 +312,31 @@ private:
 
 	Int position_;
 
+	Int size_;
+	Int max_size_;
+
 public:
-	FindElementFn(const TreeType& me, BigInt limit):
-		Base(me.indexes(1), limit, me.index_size()),
+	FindElementFn(const TreeType& me, BigInt limit, Int index_size, Int size, Int max_size):
+		Base(me.indexes(1), limit, index_size),
 		me_(me),
-		position_(0)
+		position_(0),
+		size_(size),
+		max_size_(max_size)
 	{
 		values_  = me.values();
 		sizes_   = me.sizes();
 	}
 
 	Int max_size() const {
-		return me_.max_size();
+		return max_size_;
 	}
 
-	Int index_size() const {
-		return me_.index_size();
-	}
+//	Int index_size() const {
+//		return index_size_;
+//	}
 
 	Int size() const {
-		return me_.max_size();
+		return size_;
 	}
 
 	Int position() const {
@@ -348,7 +353,7 @@ public:
 		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
 
 		Int pos = value_block_num * TreeType::ValuesPerBranch + offset;
-		Int end = me_.max_size();
+		Int end = max_size_;
 
 		return walkValues(pos, end);
 	}

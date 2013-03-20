@@ -51,6 +51,9 @@ public:
     	MEMORIA_ADD_TEST(testFindFromStart);
     	MEMORIA_ADD_TEST(testFind);
     	MEMORIA_ADD_TEST(testFindExt);
+
+		MEMORIA_ADD_TEST(testSearchSpeed);
+		MEMORIA_ADD_TEST(testSearchLargeBlockSpeed);
     }
 
     virtual ~PackedFSETreeFindTest() throw() {}
@@ -240,6 +243,141 @@ public:
 
     	auto result2 = tree->template find_lt<FSEFindExtender>(10);
     	Base::out()<<result2.idx()<<" "<<result2.value()<<endl;
+    }
+
+
+    void testSearchSpeed()
+    {
+    	Base::out()<<"Test Search Speed"<<endl;
+
+    	for (Int size = 4; size <= 4096*4; size *= 2)
+    	{
+    		testSearchSpeed(size*1024);
+    	}
+
+    	Base::out()<<endl;
+    }
+
+
+    void testSearchSpeed(Int size_max)
+    {
+    	vector<Value> data(size_max);
+    	for (auto& v: data)
+    	{
+    		v = getRandom(10) + 1;
+    	}
+
+    	vector<Int> indexes(1000000);
+
+    	for (auto& v: indexes)
+    	{
+    		v = getRandom(size_max);
+    	}
+
+    	Int tree_size = size_max;
+
+    	TreePtr tree_ptr = Base::createTree(Tree::block_size(tree_size));
+    	Tree* tree = tree_ptr.get();
+
+    	Int idx = 0;
+    	Base::fillTree(tree_ptr, data.size(), [&](){
+    		return data[idx++];
+    	});
+
+    	Value last = 0;
+
+    	for (auto& v: data)
+    	{
+    		v += last;
+    		last = v;
+    	}
+
+    	BigInt t0 = getTimeInMillis();
+
+    	Value v = 0;
+
+    	for (auto idx: indexes)
+    	{
+    		v += findLE(tree_ptr, data[idx]).value();
+    	}
+
+    	BigInt t1 = getTimeInMillis();
+
+    	Base::out()<<tree->size()<<" "<<tree->block_size()<<" "<<FormatTime(t1-t0)<<endl;
+    }
+
+    void testSearchLargeBlockSpeed()
+    {
+    	Base::out()<<"Search Large Block Speed"<<endl;
+
+    	for (Int c = 1; c <= 1024; c *= 2)
+    	{
+    		testSearchLargeBlockSpeed(c * 4096, 16*1024/c);
+    	}
+
+    	Base::out()<<endl;
+    }
+
+
+    void testSearchLargeBlockSpeed(Int size_max, Int blocks)
+    {
+    	typedef std::pair<Int, Int> IntPair;
+    	typedef std::pair<TreePtr, vector<Value>> TreePair;
+
+    	vector<TreePair> trees;
+
+    	for (Int c = 0; c < blocks; c++)
+    	{
+    		vector<Value> data(size_max);
+    		for (auto& v: data)
+    		{
+    			v = getRandom(10) + 1;
+    		}
+
+    		Int tree_size = size_max;
+
+    		TreePtr tree_ptr = Base::createTree(Tree::block_size(tree_size));
+
+    		Int idx = 0;
+    		Base::fillTree(tree_ptr, data.size(), [&](){
+    			return data[idx++];
+    		});
+
+    		Value last = 0;
+
+    		for (auto& v: data)
+    		{
+    			v += last;
+    			last = v;
+    		}
+
+    		trees.push_back(TreePair(tree_ptr, data));
+    	}
+
+    	vector<IntPair> indexes(1000000);
+
+    	for (auto& v: indexes)
+    	{
+    		v.first 	= getRandom(blocks);
+    		v.second 	= getRandom(size_max);
+    	}
+
+
+    	BigInt t0 = getTimeInMillis();
+
+    	Value v = 0;
+
+    	for (auto idx: indexes)
+    	{
+    		TreePtr& tree_ptr = trees[idx.first].first;
+    		vector<Value>& data =  trees[idx.first].second;
+
+    		v += findLE(tree_ptr, data[idx.second]).value();
+    	}
+
+    	BigInt t1 = getTimeInMillis();
+
+    	Base::out()<<size_max<<" "<<blocks<<" "<<FormatTime(t1-t0)<<endl;
     }
 };
 

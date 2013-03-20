@@ -875,7 +875,7 @@ inline Int CountTrailingZeroes(UBigInt value) {
 
 
 template <typename T>
-inline size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit)
+__attribute__((always_inline))  inline size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit)
 {
 	size_t bitsize 		= TypeBitsize<T>();
 	size_t mask 		= TypeBitmask<T>();

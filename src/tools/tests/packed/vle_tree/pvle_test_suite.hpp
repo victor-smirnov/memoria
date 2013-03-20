@@ -27,18 +27,18 @@ public:
     {
         registerTask(new PVLEMapMiscTest());
     	registerTask(new PVLEMapInitTest());
-//
+
     	registerTask(new PVLEMapCreateTest<32, 256, UByteExintCodec>("Exint"));
     	registerTask(new PVLEMapCreateTest<15, 25,  UByteExintCodec>("Exint"));
     	registerTask(new PVLEMapCreateTest<44, 125, UByteExintCodec>("Exint"));
     	registerTask(new PVLEMapCreateTest<11, 18,  UByteExintCodec>("Exint"));
 
-    	registerTask(new PVLEMapFindTest<32, 256, UByteExintCodec>("Exint"));
+    	registerTask(new PVLEMapFindTest<64, 128, UByteExintCodec>("Exint"));
     	registerTask(new PVLEMapFindTest<11, 33,  UByteExintCodec>("Exint"));
     	registerTask(new PVLEMapFindTest<44, 125, UByteExintCodec>("Exint"));
 
-    	registerTask(new PVLEMapCreateTest<32, 256, UBigIntEliasCodec>("Elias"));
-    	registerTask(new PVLEMapFindTest<32, 256, UBigIntEliasCodec>("Elias"));
+    	registerTask(new PVLEMapCreateTest<64, 128, UBigIntEliasCodec>("Elias"));
+    	registerTask(new PVLEMapFindTest<64, 128, UBigIntEliasCodec>("Elias"));
     }
 
 };

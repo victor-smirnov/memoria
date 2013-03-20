@@ -173,6 +173,45 @@ public:
     		fn(value);
     	}
     }
+
+    vector<Value> getRandomVector(Int size_limit, Int value_max)
+    {
+    	vector<Value> values;
+
+    	Codec codec;
+
+    	Int len = 0;
+    	while (true)
+    	{
+    		Int value = getRandom(value_max);
+
+    		len += codec.length(value);
+
+    		if (len > size_limit)
+    		{
+    			break;
+    		}
+    		else {
+    			values.push_back(value);
+    		}
+    	}
+
+    	return values;
+    }
+
+
+    Int getDataSize(const vector<Value>& data)
+    {
+    	Int len = 0;
+    	Codec codec;
+
+    	for (auto& v: data)
+    	{
+    		len += codec.length(v);
+    	}
+
+    	return len;
+    }
 };
 
 

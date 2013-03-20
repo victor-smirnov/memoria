@@ -43,25 +43,16 @@ private:
 	Int block_size_;
 	Int layout_size_;
 	Int bitmap_size_;
+
 	UByte buffer_[];
 
 public:
 	PackedAllocator() {}
 
-
-
 	bool is_allocatable(Int idx) const
 	{
 		const Bitmap* bmp = bitmap();
 		return GetBit(bmp, idx);
-	}
-
-	Layout* layout() {
-		return T2T<Layout*>(buffer_);
-	}
-
-	const Layout* layout() const {
-		return T2T<const Layout*>(buffer_);
 	}
 
 	Bitmap* bitmap() {
@@ -73,7 +64,7 @@ public:
 	}
 
 	Int allocated() const {
-		return layout()->sum();
+		return element_offset(elements());
 	}
 
 	Int client_area() const {
@@ -85,7 +76,7 @@ public:
 	}
 
 	Int elements() const {
-		return layout()->size();
+		return layout_size_/4 - 1;
 	}
 
 	UByte* base() {
@@ -112,17 +103,13 @@ public:
 	{
 		block_size_ = roundDownBytesToAlignmentBlocks(block_size);
 
-		Layout* layout = this->layout();
+		Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
 
-		layout_size_ = roundUpBytesToAlignmentBlocks(Layout::block_size(blocks));
+		layout_size_ = layout_blocks * sizeof(Int);
 
-		memset(layout, 0, layout_size_);
+		memset(buffer_, 0, layout_size_);
 
-		layout->init(layout_size_);
-		layout->size() = blocks;
-		layout->reindex();
-
-		bitmap_size_ = roundUpBitsToAlignmentBlocks(blocks);
+		bitmap_size_ = roundUpBitsToAlignmentBlocks(layout_blocks);
 
 		Bitmap* bitmap = this->bitmap();
 		memset(bitmap, 0, bitmap_size_);
@@ -130,13 +117,13 @@ public:
 
 	static Int block_size(Int client_area, Int blocks)
 	{
-		Int layout_size = roundUpBytesToAlignmentBlocks(Layout::block_size(blocks));
+		Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
+
+		Int layout_size = layout_blocks * sizeof(Int);
 		Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
 
 		return sizeof(MyType) + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
 	}
-
-
 
 	Int computeElementOffset(const void* element) const
 	{
@@ -152,13 +139,11 @@ public:
 	{
 		MEMORIA_ASSERT(new_size, >, 0);
 
-		Layout* layout 	= this->layout();
-		Int offset 		= computeElementOffset(element);
-		Int idx 		= layout->findLT(offset).idx();
+		Int idx 		= findElement(element);
 
 		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
 
-		Int size		= layout->value(idx);
+		Int size		= element_size(idx);
 		Int delta 		= allocation_size - size;
 
 		if (delta > 0)
@@ -171,71 +156,53 @@ public:
 
 		moveElements(idx + 1, delta);
 
-		layout->value(idx) = allocation_size;
-
-		layout->reindex();
-
 		return allocation_size;
 	}
 
-
-//	Int enlargeBlock(const void* element, Int new_size)
-//	{
-//		Layout* layout 	= this->layout();
-//		Int offset 		= computeElementOffset(element);
-//		Int idx 		= layout->findLT(offset).idx();
-//
-//		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
-//
-//		Int size		= layout->value(idx);
-//		Int delta 		= allocation_size - size;
-//
-//		MEMORIA_ASSERT(delta, >=, 0);
-//
-//		if (delta > free_space())
-//		{
-//			enlarge(delta);
-//		}
-//
-//		moveElements(idx + 1, delta);
-//
-//		layout->value(idx) = allocation_size;
-//
-//		layout->reindex();
-//
-//		return allocation_size;
-//	}
-
-
-	Int element_offset(Int idx) const {
-		return layout()->sum(idx);
+	Int element_offset(Int idx) const
+	{
+		return *(T2T<const Int*>(buffer_) + idx);
 	}
 
-	Int element_size(Int idx) const {
-		return layout()->value(idx);
+	Int element_size(Int idx) const
+	{
+		return element_offset(idx + 1) - element_offset(idx);
 	}
 
 	Int element_size(const void* element_ptr) const
 	{
-		const Layout* layout = this->layout();
-
-		Int offset 	= computeElementOffset(element_ptr);
-		Int idx 	= layout->findLT(offset).idx();
-
-		return layout->value(idx);
+		Int idx = findElement(element_ptr);
+		return element_size(idx);
 	}
+
+
+	Int findElement(const void* element_ptr) const
+	{
+		Int offset 	= computeElementOffset(element_ptr);
+
+		for (Int c = 0; c < layout_size_ / 4; c++)
+		{
+			if (offset < element_offset(c))
+			{
+				return c - 1;
+			}
+		}
+
+		throw Exception(MA_SRC, "Requested element is not found in thit allocator");
+	}
+
 
 	template <typename T>
 	const T* get(Int idx) const
 	{
-		MEMORIA_ASSERT(element_size(idx), >, 0);
+		//MEMORIA_ASSERT(element_size(idx), >, 0);
 		return T2T<const T*>(base() + element_offset(idx));
 	}
 
 	template <typename T>
 	T* get(Int idx)
 	{
-		MEMORIA_ASSERT(element_size(idx), >, 0);
+		//MEMORIA_ASSERT(element_size(idx), >, 0);
 		return T2T<T*>(base() + element_offset(idx));
 	}
 
@@ -246,20 +213,16 @@ public:
 
 	AllocationBlock describe(Int idx)
 	{
-		const Layout* lt 	= layout();
-
-		Int offset 	= lt->sum(idx);
-		Int size	= lt->value(idx);
+		Int offset 	= element_offset(idx);
+		Int size	= element_size(idx);
 
 		return AllocationBlock(size, offset, base() + offset);
 	}
 
 	AllocationBlockConst describe(Int idx) const
 	{
-		const Layout* lt 	= layout();
-
-		Int offset 	= lt->sum(idx);
-		Int size	= lt->value(idx);
+		Int offset 	= element_offset(idx);
+		Int size	= element_size(idx);
 
 		return AllocationBlockConst(size, offset, base() + offset);
 	}
@@ -321,12 +284,9 @@ public:
 
 		moveElements(idx + 1, allocation_size);
 
-		Int offset = element_offset(idx);
-
-		layout()->value(idx) = allocation_size;
-		layout()->reindex();
-
 		setBlockType(idx, type);
+
+		Int offset = element_offset(idx);
 
 		memset(base() + offset, 0, allocation_size);
 
@@ -341,14 +301,8 @@ public:
 
 	void free(Int idx)
 	{
-		Layout* layout 	= this->layout();
-
 		Int size 		= element_size(idx);
-
 		moveElements(idx + 1, -size);
-
-		layout->value(idx) = 0;
-		layout->reindex();
 	}
 
 	void clear(Int idx)
@@ -366,13 +320,21 @@ public:
 	void dump(ostream& out = cout) const
 	{
 		out<<"PackedAllocator Layout:"<<endl;
-		layout()->dump(out);
+
+		dumpLayout(out);
 
 		out<<"PackedAllocator Block Types Bitmap:"<<endl;
 		const Bitmap* bitmap = this->bitmap();
 
-		dumpSymbols<Bitmap>(out, layout()->size(), 1, [bitmap](Int idx){
+		dumpSymbols<Bitmap>(out, layout_size_/4, 1, [bitmap](Int idx){
 			return GetBit(bitmap, idx);
+		});
+	}
+
+	void dumpLayout(ostream& out = cout) const
+	{
+		dumpArray<Int>(out, layout_size_/4, [this](Int idx){
+			return this->element_offset(idx);
 		});
 	}
 
@@ -420,31 +382,51 @@ public:
 		return resize(block_size_ - free_space());
 	}
 
-protected:
+private:
 
-	void moveElements(Int start_idx, Int delta)
+	Int& set_element_offset(Int idx)
 	{
-		Layout* layout = this->layout();
+		return *(T2T<Int*>(buffer_) + idx);
+	}
 
-		if (delta > 0)
+
+	void moveElementsUp(Int idx, int delta)
+	{
+		Int layout_size = layout_size_/4;
+
+		if (idx < layout_size - 1)
 		{
-			for (Int idx = layout->size() - 1; idx >= start_idx; idx--)
-			{
-				moveElement(idx, delta);
-			}
+			AllocationBlock block = describe(idx);
+
+			moveElementsUp(idx + 1, delta);
+
+			moveElementData(idx, block, delta);
+		}
+
+		set_element_offset(idx) += delta;
+	}
+
+	void moveElementsDown(Int idx, int delta)
+	{
+		Int layout_size = layout_size_/4;
+
+		if (idx < layout_size - 1)
+		{
+			AllocationBlock block = describe(idx);
+
+			moveElementData(idx, block, delta);
+
+			set_element_offset(idx) += delta;
+
+			moveElementsDown(idx + 1, delta);
 		}
 		else {
-			for (Int idx = start_idx; idx < layout->size(); idx++)
-			{
-				moveElement(idx, delta);
-			}
+			set_element_offset(idx) += delta;
 		}
 	}
 
-	void moveElement(Int idx, Int delta)
+	void moveElementData(Int idx, const AllocationBlock& block, Int delta)
 	{
-		AllocationBlock block = describe(idx);
-
 		if (block.size() > 0)
 		{
 			UByte* ptr = block.ptr();
@@ -458,6 +440,18 @@ protected:
 			}
 		}
 	}
+
+
+	void moveElements(Int start_idx, Int delta)
+	{
+		if (delta > 0) {
+			moveElementsUp(start_idx, delta);
+		}
+		else {
+			moveElementsDown(start_idx, delta);
+		}
+	}
+
 };
 
 }

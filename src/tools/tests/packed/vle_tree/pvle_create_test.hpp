@@ -81,6 +81,8 @@ public:
     	}
     }
 
+
+
     void testValueSet()
     {
     	Int block_size = 4096;
@@ -90,9 +92,8 @@ public:
     	TreePtr tree_ptr = Base::createTree(block_size);
     	Tree* tree 		 = tree_ptr.get();
 
-    	vector<Value> values(tree->max_size() / 10);
-
-    	for (auto& v: values) v = getRandom(100);
+    	Int tree_max = tree->max_size();
+    	vector<Value> values = Base::getRandomVector(tree_max - tree_max / 10, 100);
 
     	Int idx = 0;
     	Base::fillTreeByElements(tree, values.size(), [&](){

@@ -116,7 +116,7 @@ public:
 	}
 
 	bool has_index() const {
-		return Base::layout()->value(1) > 0;
+		return Base::element_size(1) > 0;
 	}
 
 	Value* symbols()

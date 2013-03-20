@@ -106,6 +106,7 @@ public:
 public:
 	PackedVLETree() {}
 
+public:
 	Metadata* metadata() {
 		return Base::template get<Metadata>(0);
 	}
@@ -131,12 +132,12 @@ public:
 
 	IndexKey* indexes(Int index_block)
 	{
-		if (!Base::is_empty(2)) {
+		//if (!Base::is_empty(2)) {
 			return Base::template get<IndexKey>(2) + index_block * index_size();
-		}
-		else {
-			return nullptr;
-		}
+//		}
+//		else {
+//			return nullptr;
+//		}
 	}
 
 	IndexKey* sizes() {
@@ -145,12 +146,12 @@ public:
 
 	const IndexKey* indexes(Int index_block) const
 	{
-		if (!Base::is_empty(2)) {
+//		if (!Base::is_empty(2)) {
 			return Base::template get<IndexKey>(2) + index_block * index_size();
-		}
-		else {
-			return nullptr;
-		}
+//		}
+//		else {
+//			return nullptr;
+//		}
 	}
 
 	const IndexKey* sizes() const {
@@ -190,6 +191,10 @@ public:
 		Int offsets_bytes = Base::roundUpBitsToAlignmentBlocks(offsets_bits);
 
 		return offsets_bytes;
+	}
+
+	Int block_size() const {
+		return Base::block_size();
 	}
 
 	static Int block_size(Int max_items_num)
@@ -492,6 +497,10 @@ public:
 
 	void dump(std::ostream& out = cout) const
 	{
+		out<<"Layout: "<<endl;
+		Base::dump(out);
+
+
 		out<<"size_       = "<<size()<<endl;
 		out<<"max_size_   = "<<max_size()<<endl;
 		out<<"index_size_ = "<<index_size()<<endl;

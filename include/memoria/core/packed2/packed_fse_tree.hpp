@@ -11,6 +11,7 @@
 #include <memoria/core/packed2/packed_tree_base.hpp>
 #include <memoria/core/packed2/packed_tree_walkers.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
+#include <memoria/core/tools/dump.hpp>
 
 #include <memoria/core/tools/accessors.hpp>
 
@@ -458,11 +459,26 @@ public:
 
 	IndexKey sum(Int to) const
 	{
-		GetFSEValuesSumFn<MyType> fn(*this);
+		if (to < ValuesPerBranch)
+		{
+			IndexKey sum = 0;
 
-		this->walk_range(to, fn);
+			const Value* values = this->values();
 
-		return fn.sum();
+			for (Int c = 0; c < to; c++)
+			{
+				sum += values[c];
+			}
+
+			return sum;
+		}
+		else {
+			GetFSEValuesSumFn<MyType> fn(*this);
+
+			this->walk_range(to, fn);
+
+			return fn.sum();
+		}
 	}
 
 	IndexKey suml(Int to) const

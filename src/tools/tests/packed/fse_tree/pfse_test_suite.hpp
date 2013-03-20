@@ -32,7 +32,7 @@ public:
     	registerTask(new PackedFSETreeCreateTest<44, 125>());
     	registerTask(new PackedFSETreeCreateTest<11, 18>());
 
-    	registerTask(new PackedFSETreeFindTest<32, 32>());
+    	registerTask(new PackedFSETreeFindTest<64, 64>());
     	registerTask(new PackedFSETreeFindTest<11, 33>());
     	registerTask(new PackedFSETreeFindTest<44, 125>());
     }
