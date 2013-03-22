@@ -20,8 +20,6 @@
 
 namespace memoria    {
 
-#pragma pack(1)
-
 template <size_t Size>
 class StaticBuffer {
 public:
@@ -118,7 +116,6 @@ public:
     }
 };
 
-#pragma pack()
 
 } //memoria
 

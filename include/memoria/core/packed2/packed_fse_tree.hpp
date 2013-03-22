@@ -65,7 +65,7 @@ struct PackedFSETreeTypes {
 
 
 template <typename Types_>
-class PackedFSETree: public PackedTreeBase<
+class PackedFSETree: public PackedTreeBase <
 	PackedFSETree<Types_>,
 	typename Types_::IndexKey,
 	Types_::BranchingFactor,
@@ -94,6 +94,7 @@ public:
 	static const Int BranchingFactor        = Types::BranchingFactor;
 	static const Int ValuesPerBranch        = Types::ValuesPerBranch;
 	static const Int Indexes        		= Types::Blocks;
+	static const Int Blocks        			= Types::Blocks;
 
 	struct Codec {
 		size_t length(const Value* buffer, size_t idx) const {return 1;}
@@ -114,10 +115,12 @@ public:
 	typedef FSEValueDescr<IndexKey> 											ValueDescr;
 
 	template <typename TreeType, typename MyType>
-	using FindLTFnBase = FSEFindElementFnBase<TreeType, BTreeCompareLE, MyType>;
+	using FindLTFnBase = FSEFindElementFnBase<TreeType, btree::BTreeCompareLE, MyType>;
 
 	template <typename TreeType, typename MyType>
-	using FindLEFnBase = FSEFindElementFnBase<TreeType, BTreeCompareLT, MyType>;
+	using FindLEFnBase = FSEFindElementFnBase<TreeType, btree::BTreeCompareLT, MyType>;
+
+
 
 private:
 
@@ -128,6 +131,20 @@ private:
 	UByte buffer_[];
 
 public:
+
+	typedef typename MergeLists<
+				typename Base::FieldsList,
+	            ConstValue<UInt, VERSION>,
+	            decltype(size_),
+	            decltype(max_size_),
+	            decltype(index_size_),
+	            Key,
+	            IndexKey,
+	            Value
+	>::Result                                                                   FieldsList;
+
+
+
 	PackedFSETree() {}
 
 	void setAllocatorOffset(const void* allocator)
@@ -485,12 +502,9 @@ public:
 	{
 		IndexKey sum = 0;
 
-		cout<<"=================== SUML: "<<to<<" ================================"<<endl;
-
 		const Value* values = this->values();
 
 		for (Int c = 0; c < to; c++) {
-//			cout<<c<<" "<<values[c]<<" "<<sum<<endl;
 			sum += values[c];
 		}
 
@@ -504,7 +518,7 @@ public:
 
 	ValueDescr findLT(IndexKey val) const
 	{
-		FSEFindElementFn<MyType, BTreeCompareLE> fn(*this, val);
+		FSEFindElementFn<MyType, btree::BTreeCompareLE> fn(*this, val);
 
 		Int pos = this->find_fw(fn);
 
@@ -515,7 +529,7 @@ public:
 
 	ValueDescr findLE(IndexKey val) const
 	{
-		FSEFindElementFn<MyType, BTreeCompareLT> fn(*this, val);
+		FSEFindElementFn<MyType, btree::BTreeCompareLT> fn(*this, val);
 
 		Int pos = this->find_fw(fn);
 
@@ -526,7 +540,7 @@ public:
 
 	ValueDescr findLEl(IndexKey val) const
 	{
-		FSEFindElementFn<MyType, BTreeCompareLT> fn(*this, val);
+		FSEFindElementFn<MyType, btree::BTreeCompareLT> fn(*this, val);
 
 		Int pos = fn.walkLastValuesBlock(0);
 
@@ -574,29 +588,172 @@ public:
 
 	// ==================================== Update ========================================== //
 
-	bool insert(Int idx, Value value)
+	void insert(Int idx, Value value)
 	{
-		if (capacity() == 0)
-		{
-			enlarge(1);
-		}
+		insertSpace(idx, 1);
 
+		this->value(idx) = value;
+	}
+
+
+	void insertSpace(Int idx, Int room_length)
+	{
 		MEMORIA_ASSERT(idx, <=, size());
+
+		if (capacity() < room_length)
+		{
+			enlarge(room_length - capacity());
+		}
 
 		Value* values = this->values();
 
-		CopyBuffer(values + idx, values + idx + 1, size() - idx);
+		CopyBuffer(values + idx, values + idx + room_length, size() - idx);
 
-		this->value(idx) = value;
-
-		size_++;
-
-		return true;
+		size_ += room_length;
 	}
+
+	void removeSpace(Int idx, Int room_length)
+	{
+		MEMORIA_ASSERT(room_length, <= , size() - idx);
+
+		Value* values = this->values();
+
+		CopyBuffer(values + idx + room_length, values + idx, size() - idx - room_length);
+
+		size_ -= room_length;
+	}
+
+	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
+	{
+		CopyBuffer(this->values() + copy_from, other->values() + copy_to, count);
+	}
+
+	template <typename TreeType>
+	void transferDataTo(TreeType* other) const
+	{
+		const auto* my_values 	= values();
+		auto* other_values 		= other->values();
+
+		Int size = this->size();
+
+		for (Int c = 0; c < size; c++)
+		{
+			other_values[c] 	= my_values[c];
+		}
+	}
+
 
 	bool append(Value value) {
 		return insert(size_, value);
 	}
+
+	void generateDataEvents(IPageDataEventHandler* handler) const
+	{
+		handler->startGroup("PACKED_TREE");
+
+		handler->value("ALLOCATOR",     &Base::allocator_offset());
+		handler->value("SIZE",          &size_);
+		handler->value("MAX_SIZE",      &max_size_);
+		handler->value("INDEX_SIZE",    &index_size_);
+
+		handler->startGroup("INDEXES", index_size_);
+
+		for (Int idx = 0; idx < index_size_; idx++)
+		{
+			IndexKey indexes[Blocks];
+			for (Int block = 0; block < Blocks; block++)
+			{
+				indexes[block] = this->indexes(block)[idx];
+			}
+
+			handler->value("INDEX", indexes, Blocks);
+		}
+
+		handler->endGroup();
+
+		handler->startGroup("DATA", size_);
+
+		for (Int idx = 0; idx < size_; idx++)
+		{
+			handler->value("TREE_ITEM", &value(idx));
+		}
+
+		handler->endGroup();
+
+		handler->endGroup();
+	}
+
+	void serialize(SerializationData& buf) const
+	{
+		FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
+		FieldFactory<Int>::serialize(buf, size_);
+		FieldFactory<Int>::serialize(buf, max_size_);
+		FieldFactory<Int>::serialize(buf, index_size_);
+
+		FieldFactory<IndexKey>::serialize(buf, indexes(0), Blocks * index_size());
+
+		FieldFactory<Key>::serialize(buf, values(), size_);
+	}
+
+	void deserialize(DeserializationData& buf)
+	{
+		FieldFactory<Int>::deserialize(buf, Base::allocator_offset_);
+		FieldFactory<Int>::deserialize(buf, size_);
+		FieldFactory<Int>::deserialize(buf, max_size_);
+		FieldFactory<Int>::deserialize(buf, index_size_);
+
+		FieldFactory<IndexKey>::deserialize(buf, indexes(0), Blocks * index_size());
+
+		FieldFactory<Key>::deserialize(buf, values(), size_);
+	}
+
+private:
+
+	class UpdateUpFn {
+
+		MyType& me_;
+
+		IndexKey* indexes_;
+
+		Value value_;
+
+	public:
+		UpdateUpFn(MyType& me, Int index, Value value):
+			me_(me), indexes_(me_.indexes(index)), value_(value)
+		{}
+
+		Int size() const {
+			return me_.size();
+		}
+
+		Int maxSize() const {
+			return me_.max_size();
+		}
+
+		Int indexSize() const {
+			return me_.index_size();
+		}
+
+		void operator()(Int idx)
+		{
+			indexes_[idx] += value_;
+		}
+	};
+
+public:
+
+
+	void updateUp(Int block_num, Int idx, IndexKey key_value)
+	{
+		values()[idx] += key_value;
+
+		if (index_size() > 0)
+		{
+			Base::update_up(idx, UpdateUpFn(*this, block_num, key_value));
+//			reindex();
+		}
+	}
+
 };
 
 

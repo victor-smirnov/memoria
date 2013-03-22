@@ -29,7 +29,9 @@ class MapRemoveTest: public MapTestBase {
 
     MapRemoveTest(): MapTestBase("Remove")
     {
-        MEMORIA_ADD_TEST_WITH_REPLAY(runRemoveTest, replayRemoveTest);
+        size_ = 10000;
+
+    	MEMORIA_ADD_TEST_WITH_REPLAY(runRemoveTest, replayRemoveTest);
     }
 
     virtual ~MapRemoveTest() throw () {}
@@ -42,8 +44,6 @@ class MapRemoveTest: public MapTestBase {
         allocator.getLogger()->setHandler(&logHandler);
 
         Ctr map(&allocator);
-
-        map.setNewPageSize(8192);
 
         ctr_name_ = map.name();
 

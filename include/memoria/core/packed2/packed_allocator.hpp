@@ -39,6 +39,8 @@ public:
 
 	typedef UBigInt																Bitmap;
 
+	static const UInt VERSION           										= 1;
+
 private:
 	Int block_size_;
 	Int layout_size_;
@@ -47,6 +49,17 @@ private:
 	UByte buffer_[];
 
 public:
+
+	typedef typename MergeLists<
+	            typename Base::FieldsList,
+
+	            UIntValue<VERSION>,
+	            decltype(block_size_),
+	            decltype(layout_size_),
+	            decltype(bitmap_size_)
+
+	>::Result                                                                   FieldsList;
+
 	PackedAllocator() {}
 
 	bool is_allocatable(Int idx) const
@@ -159,7 +172,15 @@ public:
 		return allocation_size;
 	}
 
-	Int element_offset(Int idx) const
+	Int* layout() {
+		return T2T<Int*>(buffer_);
+	}
+
+	const Int* layout() const {
+		return T2T<const Int*>(buffer_);
+	}
+
+	const Int& element_offset(Int idx) const
 	{
 		return *(T2T<const Int*>(buffer_) + idx);
 	}
@@ -381,6 +402,62 @@ public:
 	{
 		return resize(block_size_ - free_space());
 	}
+
+
+	void generateDataEvents(IPageDataEventHandler* handler) const
+	{
+		handler->startGroup("PACKED_ALLOCATOR");
+
+		handler->value("ALLOCATOR",     &Base::allocator_offset());
+
+		handler->value("BLOCK_SIZE",    &block_size_);
+		handler->value("LAYOUT_SIZE",   &layout_size_);
+		handler->value("BITMAP_SIZE",   &bitmap_size_);
+
+		Int layout_size = layout_size_ / 4;
+
+		handler->startGroup("LAYOUT", layout_size);
+
+		for (Int idx = 0; idx < layout_size; idx++)
+		{
+			handler->value("OFFSET", &element_offset(idx));
+		}
+
+		handler->endGroup();
+
+		handler->symbols("BITMAP", bitmap(), layout_size, 1);
+
+		handler->endGroup();
+	}
+
+	void serialize(SerializationData& buf) const
+	{
+		FieldFactory<Int>::serialize(buf, allocator_offset_);
+		FieldFactory<Int>::serialize(buf, block_size_);
+		FieldFactory<Int>::serialize(buf, layout_size_);
+		FieldFactory<Int>::serialize(buf, bitmap_size_);
+
+		Int layout_size = layout_size_ / 4;
+
+		FieldFactory<Int>::serialize(buf, layout(), layout_size);
+
+		FieldFactory<Bitmap>::serialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
+	}
+
+	void deserialize(DeserializationData& buf)
+	{
+		FieldFactory<Int>::deserialize(buf, allocator_offset_);
+		FieldFactory<Int>::deserialize(buf, block_size_);
+		FieldFactory<Int>::deserialize(buf, layout_size_);
+		FieldFactory<Int>::deserialize(buf, bitmap_size_);
+
+		Int layout_size = layout_size_ / 4;
+
+		FieldFactory<Int>::deserialize(buf, layout(), layout_size);
+
+		FieldFactory<Bitmap>::deserialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
+	}
+
 
 private:
 

@@ -20,9 +20,6 @@
 namespace memoria    {
 namespace btree      {
 
-
-#pragma pack(1)
-
 template <
         typename Types
 >
@@ -242,8 +239,6 @@ template <
 >
 PageMetadata* NodePage<Types>::page_metadata_ = NULL;
 
-
-#pragma pack()
 
 }
 }

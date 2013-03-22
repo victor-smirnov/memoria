@@ -13,7 +13,7 @@
 
 namespace memoria    {
 
-#pragma pack(1)
+
 
 template <
         typename ComponentList,
@@ -262,8 +262,6 @@ template <
         typename BaseType
 >
 PageMetadata* VectorDataPage<ComponentList, DataBlock, BaseType>::page_metadata_ = NULL;
-
-#pragma pack()
 
 }
 

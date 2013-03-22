@@ -25,9 +25,6 @@ namespace memoria    {
 
 using namespace memoria::vapi;
 
-#pragma pack(1)
-
-
 
 
 struct MEMORIA_API Page {
@@ -190,8 +187,6 @@ template <typename Types>
 class PageStart: public PageHelper<ListSize<typename Types::List>::Value - 1, Types> {
 
 };
-
-#pragma pack()
 
 }
 

@@ -314,7 +314,15 @@ public:
     virtual PageG createPage(Int initial_size)
     {
         allocs1_++;
-        Byte* buf = (Byte*) malloc(initial_size);
+        void* buf = malloc(initial_size);
+
+//        void* buf;
+//        int rc = posix_memalign(&buf, 16, initial_size);
+//
+//        if (rc != 0) {
+//        	strerror(rc);
+//        	throw Exception(MA_SRC, "Can't allocate memory for page");
+//        }
 
         memset(buf, 0, initial_size);
 

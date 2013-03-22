@@ -163,7 +163,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         void operator()(T *node)
         {
             typedef typename memoria::Type2TypeMap<T, TypeMap, void>::Result RootType;
-            can_ = node->children_count() <= RootType::Map::maxSizeFor(node->page_size() - sizeof(RootType));
+
+            Int node_children_count = node->children_count();
+
+            Int root_block_size 	= node->page_size() - sizeof(RootType) + sizeof(typename RootType::Map);
+
+            Int root_children_count = RootType::Map::max_tree_size(root_block_size);
+
+            can_ = node_children_count <= root_children_count;
         }
 
         bool can() const {
@@ -299,13 +306,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     Key getKey(const NodeBaseG& node, Int i, Int idx) const
     {
-        return memoria::btree::getKey<NodeDispatcher, Key>(node.page(), i, idx);
+        return memoria::balanced_tree::getKey<NodeDispatcher, Key>(node.page(), i, idx);
     }
 
     Accumulator getKeys(const NodeBaseG& node, Int idx) const
     {
         Accumulator keys;
-        memoria::btree::getKeys<NodeDispatcher, Indexes, Key>(node.page(), idx, keys.keys());
+        memoria::balanced_tree::getKeys<NodeDispatcher, Indexes, Key>(node.page(), idx, keys.keys());
         return keys;
     }
 
@@ -316,7 +323,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     Accumulator getMaxKeys(const NodeBaseG& node) const
     {
         Accumulator keys;
-        memoria::btree::getMaxKeys<NodeDispatcher, Indexes, Key>(node.page(), keys.keys());
+        memoria::balanced_tree::getMaxKeys<NodeDispatcher, Indexes, Key>(node.page(), keys.keys());
         return keys;
     }
 
@@ -328,19 +335,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     void setKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
         node.update();
-        memoria::btree::setKeys<NodeDispatcher>(node.page(), idx, keys.keys());
+        memoria::balanced_tree::setKeys<NodeDispatcher>(node.page(), idx, keys.keys());
     }
 
     void setChildrenCount(NodeBaseG& node, Int count) const
     {
         node.update();
-        memoria::btree::setChildrenCount<NodeDispatcher>(node.page(), count);
+        memoria::balanced_tree::setChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
     void addChildrenCount(NodeBaseG& node, Int count) const
     {
         node.update();
-        memoria::btree::addChildrenCount<NodeDispatcher>(node.page(), count);
+        memoria::balanced_tree::addChildrenCount<NodeDispatcher>(node.page(), count);
     }
 
     ID getINodeData(const NodeBaseG& node, Int idx) const
@@ -351,19 +358,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     void setINodeData(NodeBaseG& node, Int idx, const ID *id) const
     {
         node.update();
-        memoria::btree::setData<NonLeafDispatcher>(node.page(), idx, id);
+        memoria::balanced_tree::setData<NonLeafDispatcher>(node.page(), idx, id);
     }
 
     void reindex(NodeBaseG& node) const
     {
         node.update();
-        memoria::btree::Reindex<NodeDispatcher>(node.page(), 0, node->children_count());
+        memoria::balanced_tree::Reindex<NodeDispatcher>(node.page(), 0, node->children_count());
     }
 
     void reindexRegion(NodeBaseG& node, Int from, Int to) const
     {
         node.update();
-        memoria::btree::Reindex<NodeDispatcher>(node.page(), from, to);
+        memoria::balanced_tree::Reindex<NodeDispatcher>(node.page(), from, to);
     }
 
 
@@ -511,10 +518,10 @@ private:
     		for (Int c = 0; c < Indexes; c++)
     		{
     			node->map().updateUp(c, idx_, keys_[c]);
+    		}
 
-    			if (reindex_fully_) {
-    				node->map().reindex(c);
-    			}
+    		if (reindex_fully_) {
+    			node->map().reindex();
     		}
     	}
     };

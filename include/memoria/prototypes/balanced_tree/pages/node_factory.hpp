@@ -10,20 +10,17 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_NODE_FACTORY_HPP
 
 #include <memoria/core/types/static_md5.hpp>
-
-#include <memoria/core/packed/packed_sum_tree.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/prototypes/balanced_tree/pages/node_base.hpp>
+#include <memoria/prototypes/balanced_tree/pages/tree_map.hpp>
 
-//FIXME: ?????
-#include <memoria/prototypes/bstree/tools.hpp>
 
 namespace memoria    	{
 namespace balanced_tree {
 
 
-#pragma pack(1)
+
 
 template <
         typename Types
@@ -41,14 +38,12 @@ private:
 
 public:
 
-    typedef PackedSumTree<
-                PackedTreeTypes<
-                    typename Types::Key,
+    typedef TreeMap<
+                TreeMapTypes<
                     typename Types::Key,
                     typename Types::Value,
-                    Accumulators<typename Types::Key, Types::Indexes>,
                     Types::Indexes,
-                    BranchingFactor
+                    Accumulators<typename Types::Key, Types::Indexes>
                 >
     >                                                                           Map;
 
@@ -181,7 +176,7 @@ public:
         virtual Int getPageSize(const void *page) const
         {
             const Me* me = T2T<const Me*>(page);
-            return me->data_size();
+            return me->page_size();
         }
 
         virtual void resize(const void* page, void* buffer, Int new_size) const
@@ -190,9 +185,9 @@ public:
             Me* tgt = T2T<Me*>(buffer);
 
             tgt->copyFrom(me);
-            tgt->map().initByBlock(new_size - sizeof(Me));
+            tgt->map().init(new_size - sizeof(Me) + sizeof(typename Me::Map) );
 
-            me->map().transferTo(&tgt->map());
+            me->map().transferDataTo(&tgt->map());
             tgt->set_children_count(me->children_count());
 
             tgt->map().clearUnused();
@@ -245,7 +240,7 @@ template <
 PageMetadata* NodePage<Types>::page_metadata_ = NULL;
 
 
-#pragma pack()
+
 
 }
 }

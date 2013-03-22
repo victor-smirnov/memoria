@@ -14,9 +14,6 @@
 
 namespace memoria    {
 
-#pragma pack(1)
-
-
 template <
         typename ComponentList,
         typename IndexType_,
@@ -309,8 +306,6 @@ template <
         typename BaseType
 >
 PageMetadata* SequenceDataPage<ComponentList, IndexType, ElementType, BitsPerSymbol, BaseType>::page_metadata_ = NULL;
-
-#pragma pack()
 
 }
 

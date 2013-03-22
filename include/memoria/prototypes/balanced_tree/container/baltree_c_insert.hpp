@@ -95,9 +95,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     void makeRoom(TreePath& path, Int level, Int start, Int count) const;
 
     void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
-    bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const {
-        return true;
-    };
+//    bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const {
+//        return true;
+//    };
 
     void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
     Accumulator insertSubtree(Iterator& iter, ISubtreeProvider& provider);

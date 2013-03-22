@@ -75,7 +75,7 @@ public:
 
     ValueDescr findLE1(const Tree* tree, Int start_idx, Value value)
     {
-    	FindElementFn<Tree, BTreeCompareLT> fn(*tree, value);
+    	FindElementFn<Tree, btree::BTreeCompareLT> fn(*tree, value);
 
     	Int pos;
 
@@ -101,7 +101,7 @@ public:
     {
     	const typename Tree::Metadata* meta = tree->metadata();
 
-    	FindElementFn<Tree, BTreeCompareLT> fn(*tree, value, meta->index_size(), meta->size(), meta->max_size());
+    	FindElementFn<Tree, btree::BTreeCompareLT> fn(*tree, value, meta->index_size(), meta->size(), meta->max_size());
 
     	Int pos = Tree::TreeTools::find_fw(fn);
 
@@ -259,7 +259,7 @@ public:
     {
     	Base::out()<<"Test Access Speed"<<endl;
 
-    	for (Int size = 4; size <= 4096*16; size *= 2)
+    	for (Int size = 4; size <= 64; size *= 2)
     	{
     		testAccessSpeed(size*1024);
     	}
@@ -288,8 +288,6 @@ public:
     	TreePtr tree_ptr = Base::createTree(Tree::block_size(tree_size));
     	Tree* tree = tree_ptr.get();
 
-    	//cout<<"Block Size: "<<tree->block_size()<<endl;
-
     	Int idx = 0;
     	Base::fillTreeByElements(tree, data.size(), [&](){
     		return data[idx++];
@@ -313,7 +311,7 @@ public:
     {
     	Base::out()<<"Test Search Speed"<<endl;
 
-    	for (Int size = 4; size <= 4096*16; size *= 2)
+    	for (Int size = 4; size <= 1024; size *= 2)
     	{
     		testSearchSpeed(size*1024);
     	}
@@ -375,7 +373,7 @@ public:
 
     	for (Int c = 1; c <= 1024; c *= 2)
     	{
-    		testSearchLargeBlockSpeed(c * 4096, 16*1024/c);
+    		testSearchLargeBlockSpeed(c * 4096, 1024/c);
     	}
 
     	Base::out()<<endl;

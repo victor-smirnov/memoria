@@ -8,7 +8,7 @@
 
 //#include "ctr/ctr_test_suite.hpp"
 
-//#include "map/map_test_suite.hpp"
+#include "map/map_test_suite.hpp"
 //
 //#include "packed_map/pmap_test_suite.hpp"
 //#include "packed_seq/pseq_test_suite.hpp"
@@ -49,7 +49,10 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-//    MEMORIA_INIT(SmallProfile<>);
+    MEMORIA_INIT(SmallProfile<>);
+
+    SCtrTF<Map2<BigInt, BigInt>>::Type::initMetadata();
+
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
@@ -94,7 +97,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new SymbolSeqTestSuite());
 //
 //        runner.registerTask(new CtrTestSuite());
-//        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new SumTreeTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());

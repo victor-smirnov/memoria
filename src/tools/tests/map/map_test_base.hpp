@@ -8,6 +8,8 @@
 
 #include <memoria/memoria.hpp>
 
+#include <memoria/containers/map2/map_factory.hpp>
+
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
@@ -27,7 +29,7 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef SCtrTF<Map1>::Type                                                  Ctr;
+    typedef SCtrTF<Map2<BigInt, BigInt> >::Type                                 Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
     typedef typename Ctr::Accumulator                                           Accumulator;
@@ -73,8 +75,8 @@ protected:
             BigInt key   = iter.getKey(0);
             BigInt value = iter.getValue();
 
-            AssertEQ(MA_SRC, pairs[idx].key_,   key,   SBuf()<<"idx="<<idx);
-            AssertEQ(MA_SRC, pairs[idx].value_, value, SBuf()<<"idx="<<idx);
+            AssertEQ(MA_SRC, pairs[idx].key_,   key);
+            AssertEQ(MA_SRC, pairs[idx].value_, value);
 
             iter.next();
             idx++;
@@ -88,8 +90,8 @@ protected:
             BigInt  key     = iter.getKey(0);
             BigInt  value   = iter.getValue();
 
-            AssertEQ(MA_SRC, pairs[idx].key_,   key,   SBuf()<<"idx="<<idx);
-            AssertEQ(MA_SRC, pairs[idx].value_, value, SBuf()<<"idx="<<idx);
+            AssertEQ(MA_SRC, pairs[idx].key_,   key);
+            AssertEQ(MA_SRC, pairs[idx].value_, value);
 
             iter.prev();
 

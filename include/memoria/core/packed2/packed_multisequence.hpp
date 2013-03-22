@@ -96,21 +96,15 @@ public:
 		}
 	}
 
-	bool insertSubsequence(Int idx)
+	void insertSubsequence(Int idx)
 	{
-		if (labels()->insert(idx, 0))
-		{
-			labels()->reindex();
-			return true;
-		}
-		else {
-			return false;
-		}
+		labels()->insert(idx, 0);
+		labels()->reindex();
 	}
 
-	bool appendSubsequence()
+	void appendSubsequence()
 	{
-		return insertSubsequence(labels()->size());
+		insertSubsequence(labels()->size());
 	}
 
 	void insertSymbol(Int subseq_num, Int idx, Int symbol)

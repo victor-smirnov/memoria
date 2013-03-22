@@ -439,7 +439,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT(block_size, >=, 512);
 
-        node->map().initByBlock(block_size - sizeof(Node));
+        node->map().init(block_size - sizeof(Node) + sizeof (typename Node::Map));
     }
 
  private:

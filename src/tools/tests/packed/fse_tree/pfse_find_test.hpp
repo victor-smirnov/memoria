@@ -85,7 +85,7 @@ public:
 
     ValueDescr findLE1(const TreePtr& tree, Int start_idx, Value value)
     {
-    	FSEFindElementFn<Tree, BTreeCompareLT> fn(*tree.get(), value);
+    	FSEFindElementFn<Tree, btree::BTreeCompareLT> fn(*tree.get(), value);
 
     	Int pos;
 
@@ -105,7 +105,7 @@ public:
 
     ValueDescr findLE(const TreePtr& tree, Value value)
     {
-    	FSEFindElementFn<Tree, BTreeCompareLT> fn(*tree.get(), value);
+    	FSEFindElementFn<Tree, btree::BTreeCompareLT> fn(*tree.get(), value);
 
     	Int pos = tree->find_fw(fn);
 
@@ -250,7 +250,7 @@ public:
     {
     	Base::out()<<"Test Search Speed"<<endl;
 
-    	for (Int size = 4; size <= 4096*4; size *= 2)
+    	for (Int size = 4; size <= 4096; size *= 2)
     	{
     		testSearchSpeed(size*1024);
     	}
@@ -312,7 +312,7 @@ public:
 
     	for (Int c = 1; c <= 1024; c *= 2)
     	{
-    		testSearchLargeBlockSpeed(c * 4096, 16*1024/c);
+    		testSearchLargeBlockSpeed(c * 4096, 1024/c);
     	}
 
     	Base::out()<<endl;

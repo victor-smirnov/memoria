@@ -19,8 +19,6 @@ namespace memoria    {
 
 using namespace memoria::btree;
 
-#pragma pack(1)
-
 // FIXME: Make one more level of root metadata hierarchy and
 // move model_name and page_size fields into it.
 
@@ -101,7 +99,7 @@ public:
         handler->value("MODEL_NAME",        &model_name_);
         handler->value("KEY_COUNT",         &key_count_);
         handler->value("BRANCHING_FACTOR",  &branching_factor_);
-        handler->value("BRANCHING_FACTOR",  &page_size_);
+        handler->value("PAGE_SIZE",  		&page_size_);
 
         handler->startGroup("ROOTS", ROOTS);
 
@@ -214,8 +212,6 @@ public:
 
 MEMORIA_PAGE_PART_END
 
-
-#pragma pack()
 
 }
 

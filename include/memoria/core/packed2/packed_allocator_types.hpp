@@ -10,6 +10,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/exceptions/memoria.hpp>
+#include <memoria/metadata/page.hpp>
 
 namespace memoria {
 
@@ -41,7 +42,18 @@ protected:
 
 public:
 
-	static const Int AlignmentBlock = PackedAllocationAlignment;
+	static const UInt VERSION           		= 1;
+	static const Int AlignmentBlock 			= PackedAllocationAlignment;
+
+
+    typedef TypeList<
+            ConstValue<UInt, VERSION>,
+            decltype(allocator_offset_)
+    >                                           FieldsList;
+
+
+
+
 
 	PackedAllocatable() {}
 

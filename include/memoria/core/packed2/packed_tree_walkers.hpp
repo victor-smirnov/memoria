@@ -560,9 +560,9 @@ public:
 
 
 template <typename TreeType>
-class BitSelectFn: public FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, BTreeCompareLT> {
+class BitSelectFn: public FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, btree::BTreeCompareLT> {
 
-	typedef FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, BTreeCompareLT> 	Base;
+	typedef FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, btree::BTreeCompareLT> 	Base;
 
 	typedef typename TreeType::Value 							Value;
 	typedef typename TreeType::IndexKey 						IndexKey;

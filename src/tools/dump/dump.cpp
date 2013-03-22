@@ -13,6 +13,8 @@
 #include <memoria/core/tools/file.hpp>
 #include <memoria/core/tools/platform.hpp>
 
+#include <memoria/containers/map2/map_factory.hpp>
+
 #include <iostream>
 #include <set>
 
@@ -214,6 +216,8 @@ String getPath(String dump_name)
 int main(int argc, const char** argv, const char** envp)
 {
     MetadataInitializer<SmallProfile<> >::init();
+
+    SCtrTF<Map2<BigInt, BigInt>>::Type::initMetadata();
 
     try {
         logger.level() = Logger::NONE;

@@ -19,7 +19,7 @@ namespace balanced_tree {
 
 using memoria::BitBuffer;
 
-#pragma pack(1)
+
 
 template <typename Base_>
 class TreePage: public Base_ {
@@ -210,8 +210,6 @@ public:
         this->level() = page->level();
     }
 };
-
-#pragma pack()
 
 }
 }

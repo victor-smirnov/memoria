@@ -11,6 +11,8 @@
 
 #include <memoria/containers/map2/map_factory.hpp>
 
+#include <memoria/tools/tools.hpp>
+
 #include <typeinfo>
 #include <iostream>
 #include <vector>
@@ -30,17 +32,42 @@ int main(void) {
 
     Allocator allocator;
 
+    MapCtr::initMetadata();
+
     MapCtr map(&allocator);
 
-    for (int c = 0; c < 10; c++)
+    BigInt t0 = getTimeInMillis();
+
+    for (int c = 0; c < 1000000; c++)
     {
         map[c] = c + 1;
     }
 
+    BigInt t1 = getTimeInMillis();
+
+    BigInt cnt = 0;
+
     for (const auto& iter: map)
     {
-        cout<<"Map: "<<iter.key()<<" "<<iter.value()<<endl;
+        //cout<<"Map: "<<iter.key()<<" "<<iter.value()<<endl;
+
+        cnt += iter.key() + iter.value();
     }
+
+    BigInt t2 = getTimeInMillis();
+
+    allocator.commit();
+
+    FileOutputStreamHandlerImpl file("map2d.dump");
+
+
+    BigInt t3 = getTimeInMillis();
+
+    allocator.store(&file);
+
+    BigInt t4 = getTimeInMillis();
+
+    cout<<"Create: "<<FormatTime(t1 - t0)<<" Read: "<<(t2 - t1)<<" Store: "<<FormatTime(t4 - t3)<<" Result: "<<cnt<<endl;
 
     cout<<endl;
 

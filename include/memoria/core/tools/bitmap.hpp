@@ -409,6 +409,7 @@ void SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type b
 
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
+__attribute__((always_inline))
 inline GetBits0(const Buffer& buf, size_t idx, Int nbits)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
@@ -512,6 +513,7 @@ void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bi
 
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
+__attribute__((always_inline)) inline
 GetBits(const Buffer& buf, size_t idx, Int nbits)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;

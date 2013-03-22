@@ -31,6 +31,8 @@ public:
 
     MapCreateTest(): MapTestBase("Create")
     {
+    	size_ = 10000;
+
     	MEMORIA_ADD_TEST_PARAM(key_)->state();
     	MEMORIA_ADD_TEST_PARAM(value_)->state();
 

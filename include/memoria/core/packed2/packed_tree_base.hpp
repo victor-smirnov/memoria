@@ -582,63 +582,63 @@ protected:
 
 template <typename MyType>
 class ReindexFnBase {
-	public:
-		static const Int Indexes        		= MyType::Indexes;
+public:
+	static const Int Indexes        		= MyType::Indexes;
 
-		typedef typename MyType:: IndexKey 		IndexKey;
+	typedef typename MyType:: IndexKey 		IndexKey;
 
-	protected:
-		MyType& me_;
+protected:
+	MyType& me_;
 
-		IndexKey* indexes_[Indexes];
+	IndexKey* indexes_[Indexes];
 
-	public:
-		ReindexFnBase(MyType& me): me_(me)
+public:
+	ReindexFnBase(MyType& me): me_(me)
+	{
+		for (Int idx = 0; idx < Indexes; idx++)
 		{
-			for (Int idx = 0; idx < Indexes; idx++)
+			indexes_[idx] = me.indexes(idx);
+		}
+	}
+
+	Int size() const {
+		return me_.size();
+	}
+
+	Int maxSize() const {
+		return me_.max_size();
+	}
+
+	Int indexSize() const {
+		return me_.index_size();
+	}
+
+	void clearIndex(Int start, Int end)
+	{
+		for (Int idx = 0; idx < Indexes; idx++)
+		{
+			for (Int c = start; c < end; c++)
 			{
-				indexes_[idx] = me.indexes(idx);
+				indexes_[idx][c] = 0;
 			}
 		}
+	}
 
-		Int size() const {
-			return me_.size();
-		}
-
-		Int maxSize() const {
-			return me_.max_size();
-		}
-
-		Int indexSize() const {
-			return me_.index_size();
-		}
-
-		void clearIndex(Int start, Int end)
+	void processIndex(Int parent, Int start, Int end)
+	{
+		for (Int idx = 0; idx < Indexes; idx++)
 		{
-			for (Int idx = 0; idx < Indexes; idx++)
+			IndexKey sum = 0;
+
+			for (Int c = start; c < end; c++)
 			{
-				for (Int c = start; c < end; c++)
-				{
-					indexes_[idx][c] = 0;
-				}
+				sum += indexes_[idx][c];
 			}
+
+			indexes_[idx][parent] = sum;
 		}
-
-		void processIndex(Int parent, Int start, Int end)
-		{
-			for (Int idx = 0; idx < Indexes; idx++)
-			{
-				IndexKey sum = 0;
-
-				for (Int c = start; c < end; c++)
-				{
-					sum += indexes_[idx][c];
-				}
-
-				indexes_[idx][parent] = sum;
-			}
-		}
-	};
+	}
+};
 
 
 }
