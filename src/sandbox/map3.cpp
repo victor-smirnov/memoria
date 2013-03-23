@@ -1,6 +1,6 @@
 
 
-// Copyright Victor Smirnov 2012.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -77,8 +77,11 @@ int main(void) {
     	Map1Ctr map1(&allocator, CTR_CREATE, name1);
     	Map2Ctr map2(&allocator, CTR_CREATE, name2);
 
-    	SubtreeProvider<Map1Ctr> provider1(&map1, 1000000);
-    	SubtreeProvider<Map2Ctr> provider2(&map2, 1000000);
+    	map1.setNewPageSize(4096);
+    	map2.setNewPageSize(4096);
+
+    	SubtreeProvider<Map1Ctr> provider1(&map1, 10000000);
+    	SubtreeProvider<Map2Ctr> provider2(&map2, 10000000);
 
     	auto i1 = map1.Begin();
     	map1.insertSubtree(i1, provider1);
@@ -92,9 +95,6 @@ int main(void) {
     	allocator.store(&file);
     }
     else {
-
-
-
     	FileInputStreamHandlerImpl file("map3d.dump");
     	allocator.load(&file);
 
@@ -114,7 +114,7 @@ int main(void) {
 
     	for (Int c = 0; c < max_reads; c++)
     	{
-    		map1.findLE(indexes[c], 0);
+    		map1.findLE(indexes[c], 0)<<endl;
     	}
 
     	BigInt t1 = getTimeInMillis();
@@ -123,7 +123,7 @@ int main(void) {
 
     	for (Int c = 0; c < max_reads; c++)
     	{
-    		map2.findLE(indexes[c], 0);
+    		map2.findLE(indexes[c], 0)<<endl;
     	}
 
     	BigInt t3 = getTimeInMillis();
