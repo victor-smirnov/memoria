@@ -76,4 +76,65 @@ MEMORIA_BALTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)   
     }                                                                                   \
 };
 
+
+
+#define MEMORIA_FN_WRAPPER(WrapperName, TargetMethod) 	\
+struct WrapperName {									\
+	MyType* me_;										\
+	WrapperName(MyType* v): me_(v) {}					\
+	template <typename T, typename... Args>				\
+	void operator()(T arg, Args... args) const			\
+	{													\
+		me_->TargetMethod(arg, args...);				\
+	}													\
+}
+
+#define MEMORIA_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
+struct WrapperName {									\
+	typedef ReturnType_	ReturnType;						\
+	MyType* me_;										\
+	WrapperName(MyType* v): me_(v) {}					\
+	template <typename T, typename... Args>				\
+	ReturnType operator()(T arg, Args... args) const	\
+	{													\
+		return me_->TargetMethod(arg, args...);			\
+	}													\
+}
+
+#define MEMORIA_CONST_FN_WRAPPER(WrapperName, TargetMethod) \
+struct WrapperName {										\
+	const MyType* me_;										\
+	WrapperName(const MyType* v): me_(v) {}					\
+	template <typename T, typename... Args>					\
+	void operator()(T arg, Args... args) const				\
+	{														\
+		me_->TargetMethod(arg, args...);					\
+	}														\
+}
+
+#define MEMORIA_CONST_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
+struct WrapperName {									\
+	typedef ReturnType_	ReturnType;						\
+	const MyType* me_;									\
+	WrapperName(const MyType* v): me_(v) {}				\
+	template <typename T, typename... Args>				\
+	ReturnType operator()(T arg, Args... args) const	\
+	{													\
+		return me_->TargetMethod(arg, args...);			\
+	}													\
+}
+
+#define MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
+struct WrapperName {									\
+	typedef ReturnType_	ReturnType;						\
+	const MyType* me_;									\
+	WrapperName(const MyType* v): me_(v) {}				\
+	template <typename T, typename... Args>				\
+	ReturnType operator()(Args... args) const	\
+	{													\
+		return me_->template TargetMethod<T>(args...);	\
+	}													\
+}
+
+
 #endif

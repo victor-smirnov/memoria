@@ -146,7 +146,7 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
     else {
         for (Int c = 0; c < children; c++)
         {
-            ID child_id = me()->getINodeData(node, c);
+            ID child_id = me()->getChildID(node, c);
 
             NodeBaseG child = me()->getChild(node, c, Allocator::READ);
 

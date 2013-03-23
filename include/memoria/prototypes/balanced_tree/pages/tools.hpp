@@ -320,249 +320,28 @@ Base getLastChild(Node *node, Allocator &allocator, Int flags)
 }
 
 
-template <typename Int>
-class SetChildrenCountFn {
-    Int count_;
-public:
-    SetChildrenCountFn(Int count): count_(count) {}
 
-    template <typename T>
-    void operator()(T *node)
-    {
-        node->set_children_count(count_);
-    }
-};
-
-
-
-template <typename Dispatcher, typename Node, typename Int>
-void setChildrenCount(Node *node, Int count)
-{
-    SetChildrenCountFn<Int> fn(count);
-    Dispatcher::Dispatch(node, fn);
-}
-
-template <typename Int>
-class addChildrenCountFn {
-    Int count_;
-public:
-    addChildrenCountFn(Int count): count_(count) {}
-
-    template <typename T>
-    void operator()(T *node)
-    {
-        node->inc_size(count_);
-    }
-};
+//template <typename I, typename Key>
+//class SetKeyFn {
+//    I d_;
+//    I i_;
+//    Key key_;
+//public:
+//    SetKeyFn(I d, I i, Key key): d_(d), i_(i), key_(key) {}
+//
+//    template <typename T>
+//    void operator()(T *node) {
+//        node->map().key(d_, i_) = key_;
+//    }
+//};
+//
+//template <typename Dispatcher, typename Node, typename I, typename Key>
+//void setKey(Node *node, I d, I idx, Key key) {
+//    SetKeyFn<I, Key> fn(d, idx, key);
+//    Dispatcher::Dispatch(node, fn);
+//}
 
 
-template <typename Dispatcher, typename Node, typename Int>
-void addChildrenCount(Node *node, Int count)
-{
-    addChildrenCountFn<Int> fn(count);
-    Dispatcher::Dispatch(node, fn);
-}
-
-
-template <typename I, typename Data>
-class SetDataItemFn {
-    I i_;
-    Data *data_;
-public:
-    SetDataItemFn(I i, Data *data): i_(i), data_(data) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        node->map().data(i_) = *data_;
-    }
-};
-
-template <typename Dispatcher, typename Node, typename I, typename Data>
-void setData(Node *node, I idx, Data *data) {
-    SetDataItemFn<I, Data> fn(idx, data);
-    Dispatcher::Dispatch(node, fn);
-}
-
-
-template <typename Data>
-class GetValueItemFn {
-    Int i_;
-    const Data *data_;
-public:
-    GetValueItemFn(Int i): i_(i), data_(NULL) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        data_ = &node->map().data(i_);
-    }
-
-    const Data* data() const {
-        return data_;
-    }
-};
-
-template <typename Dispatcher, typename Data, typename Node>
-const Data* getValue(Node *node, Int idx) {
-    GetValueItemFn<Data> fn(idx);
-    Dispatcher::DispatchConst(node, fn);
-    return fn.data();
-}
-
-struct ReindexFn {
-    Int from_, to_;
-
-    ReindexFn(Int from, Int to): from_(from), to_(to) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        node->map().reindexAll(from_, to_);
-    }
-};
-
-template <typename Dispatcher, typename Node>
-void Reindex(Node *node, Int from, Int to)
-{
-    ReindexFn fn(from, to);
-    Dispatcher::Dispatch(node, fn);
-}
-
-template <typename I, typename Keys>
-class SetKeysFn {
-    I       i_;
-    Keys*   keys_;
-public:
-    SetKeysFn(I i, Keys *keys): i_(i), keys_(keys) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        for (Int c = 0; c < T::Map::Blocks; c++) {
-            node->map().key(c, i_) = keys_[c];
-        }
-    }
-};
-
-template <typename Dispatcher, typename Node, typename I, typename Keys>
-void setKeys(Node *node, I idx, Keys *keys) {
-    SetKeysFn<I, Keys> fn(idx, keys);
-    Dispatcher::Dispatch(node, fn);
-}
-
-
-template <typename I, typename Key>
-class SetKeyFn {
-    I d_;
-    I i_;
-    Key key_;
-public:
-    SetKeyFn(I d, I i, Key key): d_(d), i_(i), key_(key) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        node->map().key(d_, i_) = key_;
-    }
-};
-
-template <typename Dispatcher, typename Node, typename I, typename Key>
-void setKey(Node *node, I d, I idx, Key key) {
-    SetKeyFn<I, Key> fn(d, idx, key);
-    Dispatcher::Dispatch(node, fn);
-}
-
-
-template <typename Key, typename I>
-class GetKeyFn {
-    Key     key_;
-    I       i_;
-    I       idx_;
-public:
-    GetKeyFn(I i, I idx): key_(0), i_(i), idx_(idx) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        key_ = node->map().key(i_, idx_);
-    }
-
-    Key key() const {
-        return key_;
-    }
-};
-
-template <typename Dispatcher, typename Key, typename Node, typename Idx>
-Key getKey(const Node *node, Idx i, Idx idx)
-{
-    GetKeyFn<Key, Idx> fn(i, idx);
-    Dispatcher::DispatchConst(node, fn);
-    return fn.key();
-}
-
-template<typename Key, typename I>
-class GetMaxKeyFn {
-    Key key_;
-    I i_;
-public:
-    GetMaxKeyFn(I i): key_(0), i_(i) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        key_ = node->map().maxKey(i_);
-    }
-
-    Key key() {
-        return key_;
-    }
-};
-
-
-template <typename Dispatcher, typename Key, typename Node, typename I>
-Key getMaxKey(const Node *node, I i)
-{
-    GetMaxKeyFn<Key, I> fn(i);
-    Dispatcher::DispatchConst(node, fn);
-    return fn.key();
-}
-
-template<typename Key, Int Indexes>
-class GetMaxKeysFn {
-    Key* keys_;
-public:
-    GetMaxKeysFn(Key* keys): keys_(keys) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        for (Int c = 0; c < Indexes; c++) {
-            keys_[c] = node->map().maxKey(c);
-        }
-    }
-};
-
-template <typename Dispatcher, Int Indexes, typename Key, typename Node>
-void getMaxKeys(const Node *node, Key* keys)
-{
-    GetMaxKeysFn<Key, Indexes> fn(keys);
-    Dispatcher::DispatchConst(node, fn);
-}
-
-template<typename Key, Int Indexes>
-class GetKeysFn {
-    Key* keys_;
-    Int idx_;
-public:
-    GetKeysFn(Int idx, Key* keys): keys_(keys), idx_(idx) {}
-
-    template <typename T>
-    void operator()(T *node) {
-        for (Int c = 0; c < Indexes; c++) {
-            keys_[c] = node->map().key(c, idx_);
-        }
-    }
-};
-
-template <typename Dispatcher, Int Indexes, typename Key, typename Node>
-const void getKeys(const Node *node, Int idx, Key* keys)
-{
-    GetKeysFn<Key, Indexes> fn(idx, keys);
-    Dispatcher::DispatchConst(node, fn);
-}
 
 } //btree
 } //memoria

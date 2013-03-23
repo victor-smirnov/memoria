@@ -61,38 +61,33 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     static const Int Indexes                                                    = Types::Indexes;
 
 
-    struct BTreeNodeTraits {
-        typedef enum {MAX_CHILDREN} Enum;
+    enum class BTreeNodeTraits {
+        MAX_CHILDREN
     };
 
 
-    struct GetNodeTraintsFn {
-        typename BTreeNodeTraits::Enum trait_;
-        Int value_;
-        Int page_size_;
 
-        GetNodeTraintsFn(typename BTreeNodeTraits::Enum trait, Int page_size): trait_(trait), page_size_(page_size) {}
+    template <typename Node>
+    Int getNodeTraitsFn(BTreeNodeTraits trait, Int page_size) const
+    {
+    	switch (trait)
+    	{
+    		case BTreeNodeTraits::MAX_CHILDREN:
+    			return Node::Map::max_tree_size(page_size - sizeof(Node) + sizeof(typename Node::Map)); break;
 
-        template <typename Node>
-        void operator()()
-        {
-            switch (trait_)
-            {
-                case BTreeNodeTraits::MAX_CHILDREN:
-                    value_ = Node::Map::max_tree_size(page_size_ - sizeof(Node) + sizeof (typename Node::Map)); break;
+    		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait);
+    	}
+    }
 
-                default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait_);
-            }
-        };
-    };
+    MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(GetNodeTraitsFn, getNodeTraitsFn, Int);
 
-    Int getNodeTraitInt(typename BTreeNodeTraits::Enum trait, bool root, bool leaf, Int level) const
+    Int getNodeTraitInt(BTreeNodeTraits trait, bool root, bool leaf, Int level) const
     {
         Int page_size = me()->getRootMetadata().page_size();
-        GetNodeTraintsFn fn(trait, page_size);
-        NodeDispatcher::DispatchStatic(root, leaf, level, fn);
-        return fn.value_;
+        return NodeDispatcher::dispatchStaticRtn(root, leaf, level, GetNodeTraitsFn(me()), trait, page_size);
     }
+
+
 
     Int getMaxKeyCountForNode(bool root, bool leaf, Int level) const
     {
@@ -154,70 +149,59 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         memoria::balanced_tree::copyRootMetadata<RootDispatcher>(src.page(), tgt.page());
     }
 
-    template <typename TypeMap>
-    class CanConvertToRootFn {
-        bool can_;
 
-    public:
-        template <typename T>
-        void operator()(T *node)
-        {
-            typedef typename memoria::Type2TypeMap<T, TypeMap, void>::Result RootType;
 
-            Int node_children_count = node->children_count();
 
-            Int root_block_size 	= node->page_size() - sizeof(RootType) + sizeof(typename RootType::Map);
+    template <typename T>
+    bool canConvertToRootFn(const T* node) const
+    {
+    	typedef typename memoria::Type2TypeMap<T, Node2RootMap, void>::Result RootType;
 
-            Int root_children_count = RootType::Map::max_tree_size(root_block_size);
+    	Int node_children_count = node->children_count();
 
-            can_ = node_children_count <= root_children_count;
-        }
+    	Int root_block_size 	= node->page_size() - sizeof(RootType) + sizeof(typename RootType::Map);
 
-        bool can() const {
-            return can_;
-        };
-    };
+    	Int root_children_count = RootType::Map::max_tree_size(root_block_size);
+
+    	return node_children_count <= root_children_count;
+    }
+
+    MEMORIA_CONST_FN_WRAPPER_RTN(CanConvertToRootFn, canConvertToRootFn, bool);
 
     bool canConvertToRoot(NodeBase* node) const
     {
-        CanConvertToRootFn<Node2RootMap> fn;
-        NonRootDispatcher::Dispatch(node, fn);
-        return fn.can();
+        return NonRootDispatcher::dispatchConstRtn(node, CanConvertToRootFn(me()));
     }
 
-    template <typename Idx>
-    class GetPageIdFn {
-        const ID *id_;
-        Idx idx_;
-    public:
-        GetPageIdFn(Idx idx): idx_(idx) {}
 
-        template <typename T>
-        void operator()(T *node) {
-            id_ = &node->map().data(idx_);
-        }
 
-        const ID *id() const {
-            return id_;
-        };
-    };
+
+
+    template <typename Node>
+    ID getPageIdFn(const Node* node, Int idx) const
+    {
+    	return node->map().data(idx);
+    }
+
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetPageIdFn, getPageIdFn, ID);
 
     ID getPageId(const NodeBaseG& node, Int idx) const
     {
-        GetPageIdFn<Int> fn(idx);
-        NonLeafDispatcher::DispatchConst(node, fn);
-        return *fn.id();
+        return NonLeafDispatcher::dispatchConstRtn(node, GetPageIdFn(me()), idx);
     }
+
+
+
 
 
     NodeBaseG getChild(const NodeBase *node, Int idx, Int flags) const
     {
-        return memoria::btree::getChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator(), flags);
+        return memoria::balanced_tree::getChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator(), flags);
     }
 
     NodeBaseG getLastChild(const NodeBase *node, Int flags)
     {
-        return memoria::btree::getLastChild<NonLeafDispatcher, NodeBaseG>(node, me()->allocator(), flags);
+        return memoria::balanced_tree::getLastChild<NonLeafDispatcher, NodeBaseG>(node, me()->allocator(), flags);
     }
 
 
@@ -226,68 +210,47 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         return path[node->level() + 1];
     }
 
-    template <typename Max>
-    class GetCapacityFn {
-        Int cap_;
-        Max max_node_capacity_;
-    public:
-        GetCapacityFn(Max max_node_capacity): max_node_capacity_(max_node_capacity) {}
 
-        template <typename T>
-        void operator()(T *node)
-        {
-            if (max_node_capacity_ == 0)
-            {
-                cap_ = (node->map().maxSize() - node->children_count());
-            }
-            else
-            {
-                Int capacity = max_node_capacity_ - node->children_count();
-                cap_ = capacity > 0 ? capacity : 0;
-            }
-        }
+    template <typename Node>
+    Int getCapacityFn(const Node* node, Int max_node_capacity) const
+    {
+    	if (max_node_capacity == 0)
+    	{
+    		return (node->map().maxSize() - node->children_count());
+    	}
+    	else
+    	{
+    		Int capacity = max_node_capacity - node->children_count();
+    		return capacity > 0 ? capacity : 0;
+    	}
+    }
 
-        Int cap() const {
-            return cap_;
-        }
-    };
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetCapacityFn, getCapacityFn, Int);
 
     Int getCapacity(const NodeBaseG& node) const
     {
-        GetCapacityFn<Int> fn(me()->getBranchingFactor());
-        NodeDispatcher::DispatchConst(node, fn);
-        return fn.cap();
+        return NodeDispatcher::dispatchConstRtn(node, GetCapacityFn(me()), me()->getBranchingFactor());
     }
 
-    template <typename Max>
-    class getMaxCapacityFn {
-        Int cap_;
-        Max max_node_capacity_;
-    public:
-        getMaxCapacityFn(Max max_node_capacity): max_node_capacity_(max_node_capacity) {}
+    template <typename Node>
+    Int getMapCapacityFn(const Node* node, Int max_node_capacity) const
+    {
+    	if (max_node_capacity == 0)
+    	{
+    		return node->map().maxSize();
+    	}
+    	else
+    	{
+    		return max_node_capacity;
+    	}
+    }
 
-        template <typename T>
-        void operator()(T *node) {
-            if (max_node_capacity_ == 0)
-            {
-                cap_ = node->map().maxSize();
-            }
-            else
-            {
-                cap_ = max_node_capacity_;
-            }
-        }
 
-        Int cap() const {
-            return cap_;
-        }
-    };
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetMaxCapacityFn, getMaxCapacityFn, Int);
 
     Int getMaxCapacity(const NodeBaseG& node) const
     {
-        getMaxCapacityFn<Int> fn(me()->getBranchingFactor());
-        NodeDispatcher::DispatchConst(node, fn);
-        return fn.cap();
+    	return NodeDispatcher::dispatchConstRtn(node, GetCapacityFn(me()), me()->getBranchingFactor());
     }
 
     bool shouldMergeNode(const TreePath& path, Int level) const
@@ -304,126 +267,224 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
 
+    template <typename Node>
+    Key getKeyFn(const Node* node, Int i, Int idx) const
+    {
+    	return node->map().key(i, idx);
+    }
+
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetKeyFn, getKeyFn, Int);
+
     Key getKey(const NodeBaseG& node, Int i, Int idx) const
     {
-        return memoria::balanced_tree::getKey<NodeDispatcher, Key>(node.page(), i, idx);
+        return NodeDispatcher::dispatchConstRtn(node, GetKeyFn(me()), i, idx);
     }
+
+
+
+
+    template <typename Node>
+    void extractKeyValuesFn(const Node* node, Int idx, Key* keys) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		keys[c] = node->map().key(c, idx);
+    	}
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(ExtractKeyValuesFn, extractKeyValuesFn);
+
 
     Accumulator getKeys(const NodeBaseG& node, Int idx) const
     {
         Accumulator keys;
-        memoria::balanced_tree::getKeys<NodeDispatcher, Indexes, Key>(node.page(), idx, keys.keys());
+        NodeDispatcher::dispatchConst(node, ExtractKeyValuesFn(me()), idx, keys.keys());
+
         return keys;
     }
 
-    /**
-     * \brief Get maximal key value in the page.
-     */
+
+
+
+
+    template <typename Node>
+    void extractMaxKeyValuesFn(const Node* node, Key* keys) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		keys[c] = node->map().maxKey(c);
+    	}
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(ExtractMaxKeyValuesFn, extractMaxKeyValuesFn);
 
     Accumulator getMaxKeys(const NodeBaseG& node) const
     {
-        Accumulator keys;
-        memoria::balanced_tree::getMaxKeys<NodeDispatcher, Indexes, Key>(node.page(), keys.keys());
-        return keys;
+    	Accumulator keys;
+    	NodeDispatcher::dispatchConst(node, ExtractMaxKeyValuesFn(me()), keys.keys());
+
+    	return keys;
     }
+
+
+
 
     NodeBaseG getRoot(Int flags) const
     {
         return me()->allocator().getPage(me()->root(), flags);
     }
 
+
+
+    template <typename Node>
+    void setKeysFn(Node* node, Int idx, const Accumulator& keys) const
+    {
+    	for (Int c = 0; c < Node::Map::Blocks; c++)
+    	{
+    		node->map().key(c, idx) = keys[c];
+    	}
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(SetKeysFn, setKeysFn);
+
+
     void setKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
         node.update();
-        memoria::balanced_tree::setKeys<NodeDispatcher>(node.page(), idx, keys.keys());
+        NodeDispatcher::dispatch(node, SetKeysFn(me()), idx, keys);
     }
+
+
+
+
+    template <typename Node>
+    void setChildrenCountFn(Node* node, Int count) const
+    {
+    	node->set_children_count(count);
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(SetChildrenCountFn, setChildrenCountFn);
 
     void setChildrenCount(NodeBaseG& node, Int count) const
     {
         node.update();
-        memoria::balanced_tree::setChildrenCount<NodeDispatcher>(node.page(), count);
+        NodeDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
     }
+
+
+    template <typename Node>
+    void addChildrenCountFn(Node* node, Int count) const
+    {
+    	node->inc_size(count);
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(AddChildrenCountFn, addChildrenCountFn);
 
     void addChildrenCount(NodeBaseG& node, Int count) const
     {
         node.update();
-        memoria::balanced_tree::addChildrenCount<NodeDispatcher>(node.page(), count);
+        NodeDispatcher::dispatch(node, AddChildrenCountFn(me()), count);
     }
 
-    ID getINodeData(const NodeBaseG& node, Int idx) const
+
+
+    template <typename Node>
+    ID getINodeDataFn(const Node* node, Int idx) const {
+    	return node->map().data(idx);
+    }
+
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetINodeDataFn, getINodeDataFn, ID);
+
+    ID getChildID(const NodeBaseG& node, Int idx) const
     {
-        return *memoria::btree::getValue<NonLeafDispatcher, ID>(node.page(), idx);
+        return NonLeafDispatcher::dispatchConstRtn(node, GetINodeDataFn(me()), idx);
     }
 
-    void setINodeData(NodeBaseG& node, Int idx, const ID *id) const
+
+
+
+    template <typename Node>
+    void setChildID(Node* node, Int idx, const ID& id) const
+    {
+    	node->map().data(idx) = id;
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(SetChildID, setChildID);
+
+    void setChildID(NodeBaseG& node, Int idx, const ID& id) const
     {
         node.update();
-        memoria::balanced_tree::setData<NonLeafDispatcher>(node.page(), idx, id);
+        NonLeafDispatcher::dispatch(node, SetChildID(me()), idx, id);
     }
+
+
+    template <typename Node>
+    void reindexFn(Node* node, Int from, Int to) const
+    {
+    	node->map().reindexAll(from, to);
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(ReindexFn, reindexFn);
 
     void reindex(NodeBaseG& node) const
     {
         node.update();
-        memoria::balanced_tree::Reindex<NodeDispatcher>(node.page(), 0, node->children_count());
+        NodeDispatcher::dispatch(node, ReindexFn(me()), 0, node->children_count());
     }
 
     void reindexRegion(NodeBaseG& node, Int from, Int to) const
     {
         node.update();
-        memoria::balanced_tree::Reindex<NodeDispatcher>(node.page(), from, to);
+        NodeDispatcher::dispatch(node, ReindexFn(me()), from, to);
     }
 
 
-    class SetAndReindexFn {
-        Int             i_;
-        const Element&  element_;
-        const MyType*   map_;
-    public:
-        SetAndReindexFn(Int i, const Element& element, const MyType* map): i_(i), element_(element), map_(map) {}
 
-        template <typename T>
-        void operator()(T *node)
-        {
-            map_->setNodeKeyValue(node, i_, element_);
-
-            if (i_ == node->children_count() - 1)
-            {
-                node->map().reindexAll(i_, i_ + 1);
-            }
-            else {
-                node->map().reindexAll(i_, node->children_count());
-            }
-        }
-    };
 
     template <typename Node>
-    void setNodeKeyValue(Node* node, Int idx, const Element& element) const
+    void setAndReindexFn(Node* node, Int idx, const Element& element) const
     {
-        for (Int c = 0; c < MyType::Indexes; c++)
-        {
-            node->map().key(c, idx) = element.first[c];
-        }
+    	for (Int c = 0; c < MyType::Indexes; c++)
+    	{
+    		node->map().key(c, idx) = element.first[c];
+    	}
 
-        node->map().data(idx) = element.second;
+    	node->map().data(idx) = element.second;
+
+    	if (idx == node->children_count() - 1)
+    	{
+    		node->map().reindexAll(idx, idx + 1);
+    	}
+    	else {
+    		node->map().reindexAll(idx, node->children_count());
+    	}
     }
+
+    MEMORIA_CONST_FN_WRAPPER(SetAndReindexFn, setAndReindexFn);
+
 
     void setLeafDataAndReindex(NodeBaseG& node, Int idx, const Element& element) const
     {
         node.update();
-        SetAndReindexFn fn(idx, element, me());
-        LeafDispatcher::Dispatch(node.page(), fn);
+        LeafDispatcher::dispatch(node.page(), SetAndReindexFn(me()), idx, element);
     }
     
+
+
     Value getLeafData(const NodeBaseG& node, Int idx) const
     {
-        return *memoria::btree::getValue<LeafDispatcher, Value>(node.page(), idx);
+        return *memoria::balanced_tree::getValue<LeafDispatcher, Value>(node.page(), idx);
     }
 
     void setLeafData(NodeBaseG& node, Int idx, const Value &val) const
     {
         node.update();
-        memoria::btree::setData<LeafDispatcher>(node.page(), idx, &val);
+        memoria::balanced_tree::setData<LeafDispatcher>(node.page(), idx, &val);
     }
+
+
+
+
 
     void dump(PageG page, std::ostream& out = std::cout) const
     {
@@ -484,68 +545,70 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	}
     };
 
-private:
+
+    template <typename Node>
+    void sumKeysFn(const Node* node, Int from, Int count, Accumulator& keys) const
+    {
+    	node->map().sum(from, from + count, keys);
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(SumKeysFn0, sumKeysFn);
 
 
-    struct SumKeysInOneBlockFn {
 
-    	Int             from_;
-    	Int             count_;
-    	Key&            sum_;
-    	Int             block_num_;
 
-    public:
-    	SumKeysInOneBlockFn(Int from, Int count, Key& sum, Int block_num):
-    		from_(from), count_(count), sum_(sum), block_num_(block_num) {}
+    template <typename Node>
+    void sumKeysInOneBlockFn(const Node* node, Int block_num, Int from, Int count, Key& keys) const
+    {
+    	node->map().sum(block_num, from, from + count, keys);
+    }
 
-    	template <typename T>
-    	void operator()(T *node)
+    MEMORIA_CONST_FN_WRAPPER(SumKeysInOneBlockFn, sumKeysInOneBlockFn);
+
+
+
+    template <typename Node>
+    void addKeysFn(Node* node, Int idx, const Key* keys, bool reindex_fully) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
     	{
-    		node->map().sum(block_num_, from_, from_ + count_, sum_);
+    		node->map().updateUp(c, idx, keys[c]);
     	}
-    };
 
-    struct AddKeysFn {
-    	Int idx_;
-    	const Key *keys_;
-    	bool reindex_fully_;
-
-    	AddKeysFn(Int idx, const Key* keys, bool reindex_fully): idx_(idx), keys_(keys), reindex_fully_(reindex_fully) {}
-
-    	template <typename Node>
-    	void operator()(Node *node)
+    	if (reindex_fully)
     	{
-    		for (Int c = 0; c < Indexes; c++)
-    		{
-    			node->map().updateUp(c, idx_, keys_[c]);
-    		}
-
-    		if (reindex_fully_) {
-    			node->map().reindex();
-    		}
+    		node->map().reindex();
     	}
-    };
+    }
 
-public:
+    MEMORIA_CONST_FN_WRAPPER(AddKeysFn, addKeysFn);
+
+
 
     void sumKeys(const NodeBase *node, Int from, Int count, Accumulator& keys) const
     {
+//    	Accumulator keys0 = keys;
+
     	SumKeysFn fn(from, count, keys);
     	NodeDispatcher::DispatchConst(node, fn);
+
+//    	NodeDispatcher::dispatchConst(node, SumKeysFn0(me()), from, count, keys);
+//
+//    	if (keys != keys0)
+//    	{
+//    		cout<<keys<<" - "<<keys0<<endl;
+//    	}
     }
 
     void sumKeys(const NodeBase *node, Int block_num, Int from, Int count, Key& sum) const
     {
-    	SumKeysInOneBlockFn fn(from, count, sum, block_num);
-    	NodeDispatcher::DispatchConst(node, fn);
+    	NodeDispatcher::dispatchConst(node, SumKeysInOneBlockFn(me()), block_num, from, count, sum);
     }
 
     void addKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
     {
     	node.update();
-
-    	AddKeysFn fn(idx, keys.keys(), reindex_fully);
-    	NodeDispatcher::Dispatch(node, fn);
+    	NodeDispatcher::dispatch(node, AddKeysFn(me()), idx, keys.keys(), reindex_fully);
     }
 
     bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const;

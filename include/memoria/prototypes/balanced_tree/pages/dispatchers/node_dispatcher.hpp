@@ -30,10 +30,33 @@ public:
         throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
+    template <typename Functor, typename... Args>
+    static void dispatch(NodeBase*, Functor &&, Args...) {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
+    template <typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchRtn(NodeBase*, Functor&&, Args...)
+    {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
     template <typename Functor>
     static void DispatchConst(const NodeBase*, Functor &) {
         throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
+
+    template <typename Functor, typename... Args >
+    static void dispatchConst(const NodeBase*, Functor&&, Args...) {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
+    template <typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchConstRtn(const NodeBase*, Functor&&, Args...)
+    {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
 
     template <typename Functor>
     static void Dispatch(NodeBase* node1, NodeBase* node2, Functor &functor) {
@@ -60,6 +83,18 @@ public:
     static void DispatchStatic(bool root, bool leaf, Int level, Functor& functor)
     {
         throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
+    template <typename Functor, typename... Args>
+    static void dispatchStatic(bool root, bool leaf, Int level, Functor& functor, Args... args)
+    {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
+    template <typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchStaticRtn(bool root, bool leaf, Int level, Functor& functor, Args... args)
+    {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
     static void buildMetadataList(MetadataList &list) {}
@@ -116,6 +151,7 @@ public:
             NDT1<Types, Idx - 1>::Dispatch(node1, node2, functor);
         }
     }
+
 
     template <typename Node, typename Functor>
     static void DispatchConst(const Node* node1, const NodeBase* node2, Functor &functor)
@@ -176,6 +212,36 @@ public:
         }
     }
 
+
+    template <typename Functor, typename... Args>
+    static void dispatch(NodeBase* node, Functor&& functor, Args... args)
+    {
+    	bool level1EQ = Level == ANY_LEVEL ? true : Level == node->level();
+
+    	if (level1EQ && Root == node->is_root() && Leaf == node->is_leaf())
+    	{
+    		functor(static_cast<Head*>(node), args...);
+    	}
+    	else {
+    		NDT0<Types, Idx - 1>::dispatch(node, functor, args...);
+    	}
+    }
+
+    template <typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchRtn(NodeBase* node, Functor&& functor, Args... args)
+    {
+    	bool level1EQ = Level == ANY_LEVEL ? true : Level == node->level();
+
+    	if (level1EQ && Root == node->is_root() && Leaf == node->is_leaf())
+    	{
+    		return functor(static_cast<Head*>(node), args...);
+    	}
+    	else {
+    		return NDT0<Types, Idx - 1>::dispatchRtn(node, std::move(functor), args...);
+    	}
+    }
+
+
     template <typename Functor>
     static void DispatchConst(const NodeBase* node, Functor &functor)
     {
@@ -189,6 +255,36 @@ public:
             NDT0<Types, Idx - 1>::DispatchConst(node, functor);
         }
     }
+
+    template <typename Functor, typename... Args>
+    static void dispatchConst(const NodeBase* node, Functor&& functor, Args... args)
+    {
+        bool level1EQ = Level == ANY_LEVEL ? true : Level == node->level();
+
+        if (level1EQ && Root == node->is_root() && Leaf == node->is_leaf())
+        {
+            functor(static_cast<const Head*>(node), args...);
+        }
+        else {
+            NDT0<Types, Idx - 1>::dispatchConst(node, functor, args...);
+        }
+    }
+
+    template <typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchConstRtn(const NodeBase* node, Functor&& functor, Args... args)
+    {
+    	bool level1EQ = Level == ANY_LEVEL ? true : Level == node->level();
+
+    	if (level1EQ && Root == node->is_root() && Leaf == node->is_leaf())
+    	{
+    		return functor(static_cast<const Head*>(node), args...);
+    	}
+    	else {
+    		return NDT0<Types, Idx - 1>::dispatchConstRtn(node, std::move(functor), args...);
+    	}
+    }
+
+
 
     template <typename Functor>
     static void Dispatch(NodeBase* node1, NodeBase* node2, Functor &functor)
@@ -263,6 +359,34 @@ public:
         }
         else {
             NDT0<Types, Idx - 1>::DispatchStatic(root, leaf, level, functor);
+        }
+    }
+
+    template <typename Functor, typename... Args>
+    static void dispatchStatic(bool root, bool leaf, Int level, Functor&& functor, Args... args)
+    {
+        bool levelEQ = Level == ANY_LEVEL ? true : Level == level;
+
+        if (levelEQ && Root == root && Leaf == leaf)
+        {
+            functor.template operator()<Head>(args...);
+        }
+        else {
+            NDT0<Types, Idx - 1>::dispatchStatic(root, leaf, level, functor, args...);
+        }
+    }
+
+    template <typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchStatic(bool root, bool leaf, Int level, Functor&& functor, Args... args)
+    {
+        bool levelEQ = Level == ANY_LEVEL ? true : Level == level;
+
+        if (levelEQ && Root == root && Leaf == leaf)
+        {
+            return functor.template operator()<Head>(args...);
+        }
+        else {
+            return NDT0<Types, Idx - 1>::dispatchStaticRtn(root, leaf, level, std::move(functor), args...);
         }
     }
 

@@ -398,6 +398,8 @@ private:
             typename MyType::SumKeysFn sum_fn(from_, count, result_);
             sum_fn(src);
 
+//            me()->sumKeysFn(src, from_, count, result_);
+
             if (tgt->children_count() > 0)
             {
                 tgt->map().insertSpace(0, count + shift_);
@@ -1035,7 +1037,7 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, Int idx)
     if (right_parent == left_parent)
     {
         makeRoom(left, level + 1,  parent_idx + 1, 1);
-        me()->setINodeData(left_parent, parent_idx + 1, &other->id());
+        me()->setChildID(left_parent, parent_idx + 1, other->id());
 
         //FIXME: should we proceed up to the root?
         me()->updateCounters(left_parent, parent_idx,    -keys);
@@ -1046,7 +1048,7 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, Int idx)
     }
     else {
         makeRoom(right, level + 1, 0, 1);
-        me()->setINodeData(right_parent, 0, &other->id());
+        me()->setChildID(right_parent, 0, other->id());
 
         updateUp(left,  level + 1, parent_idx, -keys);
         updateUp(right, level + 1, 0,           keys, true);
@@ -1077,7 +1079,7 @@ void M_TYPE::newRoot(TreePath& path)
 
     Accumulator keys = me()->getMaxKeys(root);
     me()->setKeys(new_root, 0, keys);
-    me()->setINodeData(new_root, 0, &root->id());
+    me()->setChildID(new_root, 0, root->id());
     me()->setChildrenCount(new_root, 1);
     me()->reindex(new_root);
 
