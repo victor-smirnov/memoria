@@ -123,6 +123,10 @@ struct EliasDeltaCodec {
 	static const Int BitsPerOffset 	= 8;
 	static const Int ElementSize	= 1; // In bits;
 
+	const void* addr(const T* buffer, size_t pos) const {
+		return &buffer[pos/TypeBitsize<T>()];
+	}
+
 	size_t length(const T* buffer, size_t idx, size_t limit) const
 	{
 		return DecodeEliasDeltaLength(buffer, idx, limit);

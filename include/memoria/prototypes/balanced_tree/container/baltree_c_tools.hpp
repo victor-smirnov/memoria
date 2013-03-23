@@ -79,7 +79,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
             switch (trait_)
             {
                 case BTreeNodeTraits::MAX_CHILDREN:
-                    value_ = Node::Map::maxSizeFor(page_size_ - sizeof(Node)); break;
+                    value_ = Node::Map::max_tree_size(page_size_ - sizeof(Node) + sizeof (typename Node::Map)); break;
 
                 default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait_);
             }

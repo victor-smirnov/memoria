@@ -72,6 +72,10 @@ struct ExintCodec {
 	static const Int BitsPerOffset 	= 4;
 	static const Int ElementSize	= 8; // In bits;
 
+	const void* addr(const T* buffer, size_t pos) const {
+		return &buffer[pos / sizeof(T)];
+	}
+
 	size_t length(const T* buffer, size_t idx, size_t limit) const {
 		return buffer[idx] + 1;
 	}

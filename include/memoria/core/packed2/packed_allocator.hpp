@@ -217,14 +217,21 @@ public:
 	const T* get(Int idx) const
 	{
 		//MEMORIA_ASSERT(element_size(idx), >, 0);
-		return T2T<const T*>(base() + element_offset(idx));
+		const T* addr = T2T<const T*>(base() + element_offset(idx));
+
+		__builtin_prefetch(addr);
+		return addr;
 	}
 
 	template <typename T>
 	T* get(Int idx)
 	{
 		//MEMORIA_ASSERT(element_size(idx), >, 0);
-		return T2T<T*>(base() + element_offset(idx));
+		T* addr = T2T<T*>(base() + element_offset(idx));
+
+		__builtin_prefetch(addr);
+
+		return addr;
 	}
 
 	bool is_empty(int idx) const

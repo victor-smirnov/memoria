@@ -373,7 +373,7 @@ public:
 
     	for (Int c = 1; c <= 1024; c *= 2)
     	{
-    		testSearchLargeBlockSpeed(c * 4096, 1024/c);
+    		testSearchLargeBlockSpeed(c * 4096, 16*1024/c);
     	}
 
     	Base::out()<<endl;

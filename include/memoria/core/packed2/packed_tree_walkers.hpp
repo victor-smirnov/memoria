@@ -37,6 +37,7 @@ class FindForwardFnBase
 {
 protected:
 	IndexKey sum_;
+//	IndexKey sum0_;
 
     BigInt limit_;
 
@@ -63,6 +64,10 @@ public:
     {
         Comparator<BigInt, IndexKey> compare;
 
+//        BigInt l0 = limit_;
+
+        __builtin_prefetch(&indexes_[start]);
+
     	for (Int c = start; c < end; c++)
         {
         	IndexKey key = indexes_[c];
@@ -74,9 +79,12 @@ public:
         	}
         	else {
         		me().processIndexes(start, c);
+//        		sum_ += (l0 - limit_);
         		return c;
         	}
         }
+
+//    	sum_ += (l0 - limit_);
 
     	me().processIndexes(start, end);
         return end;
@@ -363,6 +371,8 @@ public:
 		Comparator<IndexKey, BigInt> compare;
 		Codec codec;
 
+		__builtin_prefetch(codec.addr(values_, pos));
+
 		while (pos < end)
 		{
 			Value value;
@@ -470,6 +480,10 @@ public:
 	{
 		Comparator<Int, Value> compare;
 
+//		BigInt l0 = Base::limit_;
+
+//		__builtin_prefetch(&values_[pos]);
+
 		for (Int c = pos; c < end; c++)
 		{
 			Value value = values_[c];
@@ -483,9 +497,14 @@ public:
 			}
 			else {
 				Base::me().processValues(pos, c);
+
+//				Base::sum_ += (l0 - Base::limit_);
+
 				return c;
 			}
 		}
+
+//		Base::sum_ += (l0 - Base::limit_);
 
 		Base::me().processValues(pos, end);
 		return end;

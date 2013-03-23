@@ -63,6 +63,7 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 #define MEMORIA_ASSERT(Left, Operation, Right)
 #define MEMORIA_ASSERT_EXPR(Expr, Msg)
 #define MEMORIA_ASSERT_NOT_NULL(Operand)
+#define MEMORIA_ASSERT_TRUE(Arg0)
 
 #endif
 
