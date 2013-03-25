@@ -83,7 +83,7 @@ struct WrapperName {									\
 	MyType* me_;										\
 	WrapperName(MyType* v): me_(v) {}					\
 	template <typename T, typename... Args>				\
-	void operator()(T arg, Args... args) const			\
+	void operator()(T arg, Args... args) 				\
 	{													\
 		me_->TargetMethod(arg, args...);				\
 	}													\
@@ -95,7 +95,7 @@ struct WrapperName {									\
 	MyType* me_;										\
 	WrapperName(MyType* v): me_(v) {}					\
 	template <typename T, typename... Args>				\
-	ReturnType operator()(T arg, Args... args) const	\
+	ReturnType operator()(T arg, Args... args) 			\
 	{													\
 		return me_->TargetMethod(arg, args...);			\
 	}													\
@@ -123,6 +123,9 @@ struct WrapperName {									\
 		return me_->TargetMethod(arg, args...);			\
 	}													\
 }
+
+
+
 
 #define MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
 struct WrapperName {									\

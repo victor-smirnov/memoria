@@ -568,7 +568,7 @@ public:
         unref();
     }
 
-    void initLogger(const Logger* other)
+    void initLogger(Logger* other)
     {
         logger_.setCategory(other->category());
         logger_.setHandler(other->getHandler());
@@ -640,14 +640,18 @@ public:
         return model_type_name_;
     }
 
-    MEMORIA_PUBLIC bool is_log(Int level)
+    MEMORIA_PUBLIC bool is_log(Int level) const
     {
         return logger_.isLogEnabled(level);
     }
 
-    MEMORIA_PUBLIC memoria::vapi::Logger& logger() {
+    MEMORIA_PUBLIC const memoria::vapi::Logger& logger() const {
         return logger_;
     }
+
+    MEMORIA_PUBLIC memoria::vapi::Logger& logger() {
+            return logger_;
+        }
 
     static memoria::vapi::Logger& class_logger() {
         return class_logger_;

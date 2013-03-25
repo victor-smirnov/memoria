@@ -50,45 +50,26 @@ public:
     }
 
 //PRIVATE API:
-    void check_node_tree(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors);
+    void check_node_tree(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const;
 
-    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) {
+    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) const {
         return false;
     }
 
     template <typename Node>
-    bool checkNodeContent(Node *node) {
+    bool checkNodeContent(const Node *node) const {
         return false;
     }
 
+    MEMORIA_CONST_FN_WRAPPER_RTN(CheckNodeContentFn1, checkNodeContent, bool);
+
     template <typename Node1, typename Node2>
-    bool checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
+    bool checkNodeWithParentContent(const Node1 *node, const Node2 *parent, Int parent_idx) const;
 
-    struct checkNodeContentFn1 {
-        MyType& map_;
-        bool rtn_;
-        checkNodeContentFn1(MyType& map): map_(map) {}
+    MEMORIA_CONST_FN_WRAPPER_RTN(CheckNodeContentFn2, checkNodeWithParentContent, bool);
 
-        template <typename T>
-        void operator()(T* node) {
-            rtn_ = map_.checkNodeContent(node);
-        }
-    };
 
-    struct checkNodeContentFn2 {
-        MyType& map_;
-        bool rtn_;
-        Int parent_idx_;
-
-        checkNodeContentFn2(MyType& map, Int parent_idx): map_(map), parent_idx_(parent_idx) {}
-
-        template <typename Node1, typename Node2>
-        void operator()(Node1* node, Node2* parent) {
-            rtn_ = map_.checkNodeWithParentContent(node, parent, parent_idx_);
-        }
-    };
-
-    bool check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node);
+    bool check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node) const;
 
     bool check_keys() {
         return false;
@@ -124,7 +105,7 @@ bool M_TYPE::checkTree()
 
 
 M_PARAMS
-void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors)
+void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const
 {
     errors = me()->check_node_content(parent, parent_idx, node) || errors;
 
@@ -163,7 +144,7 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx) {
+bool M_TYPE::checkNodeWithParentContent(const Node1 *node, const Node2 *parent, Int parent_idx) const {
     bool errors = false;
     for (Int c = 0; c < Indexes; c++)
     {
@@ -191,21 +172,18 @@ bool M_TYPE::checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_i
 
 
 M_PARAMS
-bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node)
+bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node) const
 {
     bool errors = false;
 
     if (parent.isSet())
     {
-        checkNodeContentFn2 fn2(*me(), parent_idx);
-        NodeDispatcher::DoubleDispatchConst(node, parent, fn2);
-        errors = fn2.rtn_ || errors;
+        bool result = NodeDispatcher::doubleDispatchConstRtn(node, parent, CheckNodeContentFn2(me()), parent_idx);
+        errors = result || errors;
     }
     else {
-
-        checkNodeContentFn1 fn1(*me());
-        RootDispatcher::DispatchConst(node, fn1);
-        errors = fn1.rtn_ || errors;
+        bool result = RootDispatcher::dispatchConstRtn(node, CheckNodeContentFn1(me()));
+        errors = result || errors;
     }
 
     return errors;

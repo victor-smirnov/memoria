@@ -127,26 +127,96 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         return me()->getRootMetadata().branching_factor();
     }
 
-    void root2Node(NodeBaseG& node)
-    {
-        node.update();
 
-        balanced_tree::Root2NodeFn<Root2NodeMap, Allocator> fn;
-        RootDispatcher::Dispatch(node, fn);
+
+    template <typename Node>
+    void root2NodeFn(Node* src) const
+    {
+    	typedef typename memoria::Type2TypeMap<Node, Root2NodeMap>::Result NonRootNode;
+
+    	NonRootNode* tgt = T2T<NonRootNode*>(malloc(src->page_size()));
+    	memset(tgt, 0, src->page_size());
+
+    	tgt->map().init(src->page_size() - sizeof(NonRootNode) + sizeof(typename NonRootNode::Map));
+    	tgt->copyFrom(src);
+    	tgt->page_type_hash()   = NonRootNode::hash();
+    	tgt->set_root(false);
+
+    	src->map().transferDataTo(&tgt->map());
+
+    	tgt->set_children_count(src->children_count());
+
+    	tgt->map().clearUnused();
+
+    	tgt->map().reindex();
+
+    	CopyByteBuffer(tgt, src, tgt->page_size());
+
+    	free(tgt);
     }
 
-    void node2Root(NodeBaseG& node, Metadata& meta)
+    MEMORIA_CONST_FN_WRAPPER(Root2NodeFn0, root2NodeFn);
+
+
+    void root2Node(NodeBaseG& node) const
     {
         node.update();
-
-        balanced_tree::Node2RootFn<Node2RootMap, Allocator, Metadata> fn(meta);
-        NonRootDispatcher::Dispatch(node, fn);
+        RootDispatcher::dispatch(node, Root2NodeFn0(me()));
     }
 
-    void copyRootMetadata(NodeBaseG& src, NodeBaseG& tgt)
+
+    template <typename Node>
+    void node2RootFn(Node* src, const Metadata& metadata) const
+    {
+    	typedef typename memoria::Type2TypeMap<Node, Node2RootMap>::Result RootType;
+
+    	RootType* tgt = T2T<RootType*>(malloc(src->page_size()));
+    	memset(tgt, 0, src->page_size());
+
+    	tgt->map().init(src->page_size() - sizeof(RootType) + sizeof(typename RootType::Map));
+    	tgt->copyFrom(src);
+
+    	tgt->root_metadata() = metadata;
+
+    	tgt->set_root(true);
+
+    	tgt->page_type_hash()   = RootType::hash();
+
+    	src->map().transferDataTo(&tgt->map());
+
+    	tgt->set_children_count(src->children_count());
+
+    	tgt->map().clearUnused();
+
+    	tgt->map().reindex();
+
+    	CopyByteBuffer(tgt, src, tgt->page_size());
+
+    	free(tgt);
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(Node2RootFn, node2RootFn);
+
+    void node2Root(NodeBaseG& node, const Metadata& meta) const
+    {
+        node.update();
+        NonRootDispatcher::dispatch(node, Node2RootFn(me()), meta);
+    }
+
+
+
+    template <typename Node1, typename Node2>
+    void copyRootMetadataFn(Node1* src, Node2* tgt) const
+    {
+    	tgt->root_metadata() = src->root_metadata();
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(CopyRootMetadataFn, copyRootMetadataFn);
+
+    void copyRootMetadata(NodeBaseG& src, NodeBaseG& tgt) const
     {
         tgt.update();
-        memoria::balanced_tree::copyRootMetadata<RootDispatcher>(src.page(), tgt.page());
+        RootDispatcher::doubleDispatch(src, tgt, CopyRootMetadataFn(me()));
     }
 
 
@@ -191,17 +261,30 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     }
 
 
+    template <typename Node>
+    NodeBaseG getChildFn(const Node* node, Int idx, Int flags) const
+    {
+    	return me()->allocator().getPage(node->map().data(idx), flags);
+    }
 
-
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
 
     NodeBaseG getChild(const NodeBase *node, Int idx, Int flags) const
     {
-        return memoria::balanced_tree::getChild<NonLeafDispatcher, NodeBaseG>(node, idx, me()->allocator(), flags);
+    	NodeBaseG result = NonLeafDispatcher::dispatchConstRtn(node, GetChildFn(me()), idx, flags);
+
+    	if (!result.isEmpty())
+    	{
+    		return result;
+    	}
+    	else {
+    		throw NullPointerException(MEMORIA_SOURCE, "Child must not be NULL");
+    	}
     }
 
-    NodeBaseG getLastChild(const NodeBase *node, Int flags)
+    NodeBaseG getLastChild(const NodeBase *node, Int flags) const
     {
-        return memoria::balanced_tree::getLastChild<NonLeafDispatcher, NodeBaseG>(node, me()->allocator(), flags);
+        return getChild(node, node->children_count() - 1, flags);
     }
 
 
@@ -470,16 +553,36 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     }
     
 
+    template <typename Node>
+    Value getLeafDataFn(const Node* node, Int idx) const
+    {
+    	return node->map().data(idx);
+    }
+
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetLeafDataFn, getLeafDataFn, Value);
 
     Value getLeafData(const NodeBaseG& node, Int idx) const
     {
-        return *memoria::balanced_tree::getValue<LeafDispatcher, Value>(node.page(), idx);
+        return LeafDispatcher::dispatchConstRtn(node.page(), GetLeafDataFn(me()), idx);
     }
+
+
+
+
+    template <typename Node>
+    void setLeafDataFn(Node* node, Int idx, const Value& val) const
+    {
+    	node->map().data(idx) = val;
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(SetLeafDataFn, setLeafDataFn);
+
+
 
     void setLeafData(NodeBaseG& node, Int idx, const Value &val) const
     {
         node.update();
-        memoria::balanced_tree::setData<LeafDispatcher>(node.page(), idx, &val);
+        LeafDispatcher::dispatch(node.page(), SetLeafDataFn(me()), idx, val);
     }
 
 
@@ -527,43 +630,29 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     bool checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
 
 
-    //FIXME: SumKeysFn is used in MoveElementsFn
-    struct SumKeysFn {
-
-    	Int             from_;
-    	Int             count_;
-    	Accumulator&    keys_;
-
-    public:
-    	SumKeysFn(Int from, Int count, Accumulator& keys):
-    		from_(from), count_(count), keys_(keys) {}
-
-    	template <typename T>
-    	void operator()(T *node)
-    	{
-    		node->map().sum(from_, from_ + count_, keys_);
-    	}
-    };
-
 
     template <typename Node>
-    void sumKeysFn(const Node* node, Int from, Int count, Accumulator& keys) const
+    Accumulator sumKeysFn(const Node* node, Int from, Int count) const
     {
+    	Accumulator keys;
     	node->map().sum(from, from + count, keys);
+    	return keys;
     }
 
-    MEMORIA_CONST_FN_WRAPPER(SumKeysFn0, sumKeysFn);
+    MEMORIA_CONST_FN_WRAPPER_RTN(SumKeysFn, sumKeysFn, Accumulator);
 
 
 
 
     template <typename Node>
-    void sumKeysInOneBlockFn(const Node* node, Int block_num, Int from, Int count, Key& keys) const
+    Key sumKeysInOneBlockFn(const Node* node, Int block_num, Int from, Int count) const
     {
+    	Key keys = 0;
     	node->map().sum(block_num, from, from + count, keys);
+    	return keys;
     }
 
-    MEMORIA_CONST_FN_WRAPPER(SumKeysInOneBlockFn, sumKeysInOneBlockFn);
+    MEMORIA_CONST_FN_WRAPPER_RTN(SumKeysInOneBlockFn, sumKeysInOneBlockFn, Key);
 
 
 
@@ -587,22 +676,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     void sumKeys(const NodeBase *node, Int from, Int count, Accumulator& keys) const
     {
-//    	Accumulator keys0 = keys;
-
-    	SumKeysFn fn(from, count, keys);
-    	NodeDispatcher::DispatchConst(node, fn);
-
-//    	NodeDispatcher::dispatchConst(node, SumKeysFn0(me()), from, count, keys);
-//
-//    	if (keys != keys0)
-//    	{
-//    		cout<<keys<<" - "<<keys0<<endl;
-//    	}
+    	keys += NodeDispatcher::dispatchConstRtn(node, SumKeysFn(me()), from, count);
     }
 
     void sumKeys(const NodeBase *node, Int block_num, Int from, Int count, Key& sum) const
     {
-    	NodeDispatcher::dispatchConst(node, SumKeysInOneBlockFn(me()), block_num, from, count, sum);
+    	sum += NodeDispatcher::dispatchConstRtn(node, SumKeysInOneBlockFn(me()), block_num, from, count);
     }
 
     void addKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const

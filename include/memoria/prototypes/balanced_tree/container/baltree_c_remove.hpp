@@ -38,16 +38,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveName)
 
     
 
-    struct DataRemoveHandlerFn {
 
-        Int idx_, count_;
-        MyType& me_;
+    template <typename Node>
+    void dataRemoveHandlerFn(Node* node, Int idx, Int count)
+    {}
 
-        DataRemoveHandlerFn(Int idx, Int count, MyType& me): idx_(idx), count_(count), me_(me) {}
-
-        template <typename Node>
-        void operator()(Node* node) {}
-    };
+    MEMORIA_FN_WRAPPER(DataRemoveHandlerFn, dataRemoveHandlerFn);
 
     struct UpdateType {
         enum Enum {NONE, PARENT_ONLY, FULL};
@@ -187,48 +183,37 @@ private:
 
 
 
-    class RemoveElementsFn {
+    template <typename Node>
+    Accumulator removeElementsFn(Node *node, Int from, Int count, bool reindex = true)
+    {
+    	Accumulator accum;
 
-        Int             from_;
-        Int             count_;
-        bool            reindex_;
-        Accumulator&    accum_;
+    	for (Int d = 0; d < Indexes; d++)
+    	{
+    		for (Int c = from; c < from + count; c++)
+    		{
+    			accum.keys()[d] += node->map().key(d, c);
+    		}
+    	}
 
-    public:
+    	if (from + count <= node->children_count())
+    	{
+    		node->map().removeSpace(from, count);
+    	}
 
-        RemoveElementsFn(Int from, Int count, Accumulator& accum, bool reindex = true):
-                from_(from), count_(count), reindex_(reindex),
-                accum_(accum)
-        {}
+    	node->map().clear(node->children_count() - count, node->children_count());
 
-        template <typename Node>
-        void operator()(Node *node)
-        {
-            for (Int d = 0; d < Indexes; d++)
-            {
-                for (Int c = from_; c < from_ + count_; c++)
-                {
-                    accum_.keys()[d] += node->map().key(d, c);
-                }
-            }
+    	node->set_children_count(node->map().size());
 
+    	if (reindex)
+    	{
+    		node->map().reindex();
+    	}
 
-            if (from_ + count_ <= node->children_count())
-            {
-                node->map().removeSpace(from_, count_);
-            }
+    	return accum;
+    }
 
-            node->map().clear(node->children_count() - count_, node->children_count());
-
-            node->set_children_count(node->map().size());
-
-            if (reindex_)
-            {
-                node->map().reindex();
-            }
-        }
-    };
-
+    MEMORIA_FN_WRAPPER_RTN(RemoveElementsFn, removeElementsFn, Accumulator);
 
 
     /**
@@ -237,25 +222,15 @@ private:
      *
      */
 
-    class MergeNodesFn {
-        Int start_;
-    public:
-        template <typename T1, typename T2>
-        void operator()(T1 *page1, T2 *page2)
-        {
-            start_ = page1->children_count();
+    template <typename Node1, typename Node2>
+    void mergeNodesFn(Node1 *page1, Node2 *page2)
+    {
+        page2->map().copyTo(&page1->map(), 0, page2->children_count(), page1->children_count());
+        page1->inc_size(page2->children_count());
+        page1->map().reindex();
+    }
 
-            page2->map().copyTo(&page1->map(), 0, page2->children_count(), page1->children_count());
-            page1->inc_size(page2->children_count());
-            page1->map().reindex();
-        }
-
-        Int start() const {
-            return start_;
-        }
-    };
-
-
+    MEMORIA_FN_WRAPPER(MergeNodesFn, mergeNodesFn);
 
 
 MEMORIA_CONTAINER_PART_END
@@ -307,13 +282,11 @@ BigInt M_TYPE::removeRoom(TreePath& path, Int level, Int from, Int count, Accumu
             else {
                 key_count = count;
 
-                typename MyType::DataRemoveHandlerFn data_remove_handler_fn(from, count, *me());
-                LeafDispatcher::Dispatch(node, data_remove_handler_fn);
+                LeafDispatcher::dispatch(node, DataRemoveHandlerFn(me()), from, count);
             }
         }
 
-        RemoveElementsFn fn(from, count, tmp_accum);
-        NodeDispatcher::Dispatch(node, fn);
+        tmp_accum += NodeDispatcher::dispatchRtn(node, RemoveElementsFn(me()), from, count);
 
         me()->updateParentIfExists(path, level, -tmp_accum);
 
@@ -697,8 +670,7 @@ BigInt M_TYPE::removeNode(NodeBaseG node)
         }
     }
     else {
-        typename MyType::DataRemoveHandlerFn data_remove_handler_fn(0, children_count, *me());
-        LeafDispatcher::Dispatch(node, data_remove_handler_fn);
+        LeafDispatcher::dispatch(node, DataRemoveHandlerFn(me()), 0, children_count);
 
         count += children_count;
     }
@@ -1086,9 +1058,7 @@ void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
 
     Int tgt_children_count = page1->children_count();
 
-    MergeNodesFn fn;
-    NodeDispatcher::Dispatch(page1, page2, fn);
-
+    NodeDispatcher::dispatch2(page1, page2, MergeNodesFn(me()));
 
     NodeBaseG& parent   = src[level + 1].node();
     Int parent_idx      = src[level].parent_idx();

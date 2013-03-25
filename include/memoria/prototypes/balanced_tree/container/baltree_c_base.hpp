@@ -129,29 +129,26 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         return me()->createNode(0, true, true);
     }
 
-    struct GetModelNameFn
+
+
+    template <typename Node>
+    Int getModelNameFn(const Node* node) const
     {
-        BigInt name_;
+    	return node->root_metadata().model_name();
+    }
 
-        template <typename Node>
-        void operator()(const Node* node)
-        {
-            name_ = node->root_metadata().model_name();
-        }
-    };
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetModelNameFn, getModelNameFn, Int);
 
-    struct SetModelNameFn
+
+    template <typename Node>
+    void setModelNameFn(Node* node, Int name)
     {
-        BigInt name_;
+    	node->root_metadata().model_name() = name;
+    }
 
-        SetModelNameFn(BigInt name): name_(name) {}
+    MEMORIA_CONST_FN_WRAPPER_RTN(SetModelNameFn, setModelNameFn, Int);
 
-        template <typename Node>
-        void operator()(Node* node)
-        {
-            node->root_metadata().model_name() = name_;
-        }
-    };
+
 
     /**
      * \brief Get model name from the root node
@@ -163,10 +160,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         NodeBaseG root      = me()->allocator().getPage(root_id, Allocator::READ);
 
-        GetModelNameFn fn;
-        RootDispatcher::DispatchConst(root.page(), fn);
-
-        return fn.name_;
+        return RootDispatcher::dispatchConstRtn(root.page(), GetModelNameFn(me()));
     }
 
     void setModelName(BigInt name)
@@ -175,8 +169,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         NodeBaseG root  = me()->getRoot(Allocator::READ);
 
-        SetModelNameFn fn(name);
-        RootDispatcher::Dispatch(root.page(), fn);
+        RootDispatcher::dispatch(root.page(), SetModelNameFn(me()), name);
     }
 
     void initCtr(Int command)
@@ -223,18 +216,15 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         T2T<BTreeCtrShared*>(shared)->configure_metadata(MyType::getCtrRootMetadata(root));
     }
 
-    struct GetRootIDFn {
-        BigInt  name_;
-        ID      root_;
 
-        GetRootIDFn(BigInt name): name_(name) {}
 
-        template <typename Node>
-        void operator()(const Node* node)
-        {
-            root_ = node->root_metadata().roots(name_);
-        }
-    };
+    template <typename Node>
+    ID getRootIdFn(Node* node, Int name)
+    {
+    	return node->root_metadata().roots(name);
+    }
+
+    MEMORIA_FN_WRAPPER_RTN(GetRootIdFn, getRootIdFn, ID);
 
     virtual ID getRootID(BigInt name)
     {
@@ -242,38 +232,30 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         NodeBaseG root = me()->allocator().getPage(me()->root(), Allocator::READ);
 
-        GetRootIDFn fn(name);
-        RootDispatcher::DispatchConst(root.page(), fn);
-
-        return fn.root_;
+        return RootDispatcher::dispatchConstRtn(root.page(), GetRootIdFn(me()), name);
     }
 
-    struct SetRootIDFn {
-        BigInt      name_;
-        ID          root_;
 
-        Metadata    metadata_;
 
-        SetRootIDFn(BigInt name, const ID& root): name_(name), root_(root) {}
 
-        template <typename Node>
-        void operator()(Node* node)
-        {
-            node->root_metadata().roots(name_) = root_;
 
-            metadata_ = node->root_metadata();
-        }
-    };
+    template <typename Node>
+    Metadata setRootIdFn(Node* node, Int name, const ID& root)
+    {
+    	node->root_metadata().roots(name) = root;
+    	return node->root_metadata();
+    }
+
+    MEMORIA_FN_WRAPPER_RTN(SetRootIdFn, setRootIdFn, Metadata);
 
     virtual void  setRoot(BigInt name, const ID& root_id)
     {
         NodeBaseG root  = me()->allocator().getPage(me()->root(), Allocator::UPDATE);
 
-        SetRootIDFn fn(name, root_id);
-        RootDispatcher::Dispatch(root.page(), fn);
+        Metadata metadata = RootDispatcher::dispatchRtn(root.page(), SetRootIdFn(me()), name, root_id);
 
         BTreeCtrShared* shared = T2T<BTreeCtrShared*>(me()->shared());
-        shared->update_metadata(fn.metadata_);
+        shared->update_metadata(metadata);
     }
 
     BTreeCtrShared* createCtrShared(BigInt name)
@@ -283,26 +265,19 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
 
     struct GetMetadataFn {
-        Metadata metadata_;
-
-        GetMetadataFn() {}
+        typedef Metadata ReturnType;
 
         template <typename T>
-        void operator()(T *node) {
-            metadata_ = node->root_metadata();
+        Metadata operator()(const T *node) const {
+            return node->root_metadata();
         }
     };
 
-
     struct SetMetadataFn {
-        const Metadata& metadata_;
-
-        SetMetadataFn(const Metadata& metadata): metadata_(metadata) {}
-
         template <typename T>
-        void operator()(T *node)
+        void operator()(T *node, const Metadata& metadata) const
         {
-            node->root_metadata() = metadata_;
+            node->root_metadata() = metadata;
         }
     };
 
@@ -310,9 +285,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT_NOT_NULL(node);
 
-        GetMetadataFn fn;
-        RootDispatcher::DispatchConst(node, fn);
-        return fn.metadata_;
+        return RootDispatcher::dispatchConstRtn(node, GetMetadataFn());
     }
 
     /**
@@ -327,8 +300,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         MEMORIA_ASSERT_NOT_NULL(node);
 
         node.update();
-        SetMetadataFn fn(metadata);
-        RootDispatcher::Dispatch(node, fn);
+        RootDispatcher::dispatch(node, SetMetadataFn(), metadata);
     }
 
     const Metadata& getRootMetadata() const
@@ -444,24 +416,14 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
  private:
 
-    struct InitNodeFn {
-        const MyType& me_;
-        Int block_size_;
-        InitNodeFn(const MyType& me, Int block_size): me_(me), block_size_(block_size) {}
+    MEMORIA_CONST_FN_WRAPPER(InitNodeFn, initNode);
 
-        template <typename NodeT>
-        void operator()(NodeT* node) const
-        {
-            me_.initNode(node, block_size_);
-        }
-    };
 
     void initNodeSize(NodeBaseG& node, Int block_size) const
     {
         MEMORIA_ASSERT_NOT_NULL(node);
 
-        InitNodeFn fn(*me(), block_size);
-        NodeDispatcher::Dispatch(node.page(), fn);
+        NodeDispatcher::dispatch(node.page(), InitNodeFn(me()), block_size);
     }
 
     void findCtrByName()

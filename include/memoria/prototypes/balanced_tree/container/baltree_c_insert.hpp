@@ -348,77 +348,57 @@ private:
     void         split(TreePath& left, TreePath& right, Int level, Int idx);
 
 
-    class MakeRoomFn {
-        Int from_, count_;
-
-    public:
-        MakeRoomFn(Int from, Int count):
-            from_(from), count_(count)
-        {}
-
-        template <typename Node>
-        void operator()(Node *node)
-        {
-            node->map().insertSpace(from_, count_);
-
-            for (Int c = from_; c < from_ + count_; c++)
-            {
-                for (Int d = 0; d < Indexes; d++)
-                {
-                    node->map().key(d, c) = 0;
-                }
-
-                node->map().data(c) = 0;
-            }
-
-            node->set_children_count(node->map().size());
-        }
-    };
-
-
-
-    class MoveElementsFn
+    template <typename Node>
+    void makeRoomFn(Node* node, Int from, Int count) const
     {
-        Int         from_;
-        Int         shift_;
-    public:
+        node->map().insertSpace(from, count);
 
-
-        Accumulator result_;
-
-        MoveElementsFn(Int from, Int shift = 0):
-            from_(from), shift_(shift)
-        {}
-
-        template <typename Node>
-        void operator()(Node* src, Node* tgt)
+        for (Int c = from; c < from + count; c++)
         {
-            Int count = src->children_count() - from_;
-
-            typename MyType::SumKeysFn sum_fn(from_, count, result_);
-            sum_fn(src);
-
-//            me()->sumKeysFn(src, from_, count, result_);
-
-            if (tgt->children_count() > 0)
+            for (Int d = 0; d < Indexes; d++)
             {
-                tgt->map().insertSpace(0, count + shift_);
+                node->map().key(d, c) = 0;
             }
 
-            src->map().copyTo(&tgt->map(), from_, count, shift_);
-            src->map().clear(from_, from_ + count);
-
-            src->inc_size(-count);
-            tgt->inc_size(count + shift_);
-
-            tgt->map().clear(0, shift_);
-
-            src->reindex();
-            tgt->reindex();
+            node->map().data(c) = 0;
         }
-    };
+
+        node->set_children_count(node->map().size());
+    }
+
+    MEMORIA_CONST_FN_WRAPPER(MakeRoomFn, makeRoomFn);
 
 
+
+    template <typename Node>
+    Accumulator moveElementsFn(Node* src, Node* tgt, Int from, Int shift) const
+    {
+    	Accumulator result;
+
+    	Int count = src->children_count() - from;
+
+    	result = me()->sumKeysFn(src, from, count);
+
+    	if (tgt->children_count() > 0)
+    	{
+    		tgt->map().insertSpace(0, count + shift);
+    	}
+
+    	src->map().copyTo(&tgt->map(), from, count, shift);
+    	src->map().clear(from, from + count);
+
+    	src->inc_size(-count);
+    	tgt->inc_size(count + shift);
+
+    	tgt->map().clear(0, shift);
+
+    	src->reindex();
+    	tgt->reindex();
+
+    	return result;
+    }
+
+    MEMORIA_CONST_FN_WRAPPER_RTN(MoveElementsFn, moveElementsFn, Accumulator);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -466,30 +446,6 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(Iterator& iter, ISubtreeProvi
 }
 
 
-
-//M_PARAMS
-//typename M_TYPE::TreePathItem M_TYPE::splitPath(TreePath& path, Int level, Int idx)
-//{
-//  if (level < path.getSize() - 1)
-//  {
-//      NodeBaseG& parent = path[level + 1].node();
-//
-//      if (me()->getCapacity(parent) == 0)
-//      {
-//          Int idx_in_parent = path[level].parent_idx();
-//
-//          splitPath(path, level + 1, idx_in_parent + 1);
-//      }
-//
-//      return split(path, level, idx);
-//  }
-//  else
-//  {
-//      newRoot(path);
-//
-//      return split(path, level, idx);
-//  }
-//}
 
 
 M_PARAMS
@@ -564,16 +520,6 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
     me()->addTotalKeyCount(1);
 }
 
-
-
-//M_PARAMS
-//void M_TYPE::insertEntry(Iterator &iter, Key key, const Value &value) {
-//  Accumulator keys;
-//
-//  keys.key(0) = key;
-//
-//  insertEntry(iter, keys, value);
-//}
 
 M_PARAMS
 void M_TYPE::insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
@@ -873,60 +819,6 @@ void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& da
 }
 
 
-//M_PARAMS
-//void M_TYPE::fillNodeRight(TreePath& path, Int level, Int from, Int count, InsertSharedData& data)
-//{
-//    NodeBaseG&  node            = path[level].node();
-//    BigInt      subtree_size    = me()->getSubtreeSize(level);
-//
-//    makeRoom(path, level, from, count);
-//
-//    if (level > 0)
-//    {
-//        for (Int c = count - 1; c >= 0; c--)
-//        {
-//            BigInt                  requested_size  = data.remains >= subtree_size ? subtree_size : data.remains;
-//            NonLeafNodeKeyValuePair pair            = data.provider.getKVPair(
-//                                                                        ISubtreeProvider::BACKWARD,
-//                                                                        data.end,
-//                                                                        requested_size,
-//                                                                        level
-//                                                                    );
-//
-//            me()->setKeys(node, c, pair.keys);
-//            me()->setINodeData(node, c, &pair.value);
-//
-//            data.end        += pair.key_count;
-//            data.remains    -= pair.key_count;
-//        }
-//    }
-//    else {
-//        for (Int c = count - 1; c >= 0; c--)
-//        {
-//            LeafNodeKeyValuePair pair = data.provider.getLeafKVPair(ISubtreeProvider::BACKWARD, data.end);
-//
-//            me()->setKeys(node, c, pair.keys);
-//            me()->setLeafData(node, c, pair.value);
-//
-//            data.end        += 1;
-//            data.remains    -= 1;
-//        }
-//    }
-//
-//
-//// FIXME: ??????? why is this here?
-////  if (level > 0) {
-////      path[level-1].parent_idx() += count;
-////  }
-//
-//    reindexAndUpdateCounters(node, from, count);
-//
-//    Accumulator accumulator = me()->getCounters(node, from, count);
-//
-//    me()->updateParentIfExists(path, level, accumulator);
-//
-//    data.accumulator += accumulator;
-//}
 
 M_PARAMS
 void M_TYPE::makeRoom(TreePath& path, Int level, Int start, Int count) const
@@ -934,8 +826,7 @@ void M_TYPE::makeRoom(TreePath& path, Int level, Int start, Int count) const
     if (count > 0)
     {
         path[level].node().update();
-        MakeRoomFn fn(start, count);
-        NodeDispatcher::Dispatch(path[level].node(), fn);
+        NodeDispatcher::dispatch(path[level].node(), MakeRoomFn(me()), start, count);
         path.moveRight(level - 1, start, count);
     }
 
@@ -955,14 +846,14 @@ void M_TYPE::makeRoom(TreePath& path, Int level, Int start, Int count) const
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::moveElements(NodeBaseG& src, NodeBaseG& tgt, Int from, Int shift) const
 {
-    MoveElementsFn fn(from, shift);
+//    MoveElementsFn fn(from, shift);
 
     if (from < src->children_count())
     {
-        NodeDispatcher::Dispatch(src, tgt, fn);
+        return NodeDispatcher::dispatchRtn(src, tgt, MoveElementsFn(me()), from, shift);
     }
 
-    return fn.result_;
+    return Accumulator();
 }
 
 

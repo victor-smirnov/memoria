@@ -39,16 +39,16 @@ private:
 public:
 
     template <typename Walker>
-    Iterator find0(Walker& walker);
+    Iterator find0(Walker&& walker);
 
     template <typename Walker>
-    void find1(Walker& walker);
+    void find1(Walker&& walker);
 
     template <typename Walker>
-    Int findFw(TreePath& path, Int idx, Walker &walker, Int level = 0);
+    Int findFw(TreePath& path, Int idx, Walker&& walker, Int level = 0);
 
     template <typename Walker>
-    Int findBw(TreePath& path, Int idx, Walker &walker, Int level = 0);
+    Int findBw(TreePath& path, Int idx, Walker&& walker, Int level = 0);
 
     MEMORIA_PUBLIC MEMORIA_DEPRECATED BigInt getSize() const
     {
@@ -128,7 +128,7 @@ MEMORIA_CONTAINER_PART_END
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
+typename M_TYPE::Iterator M_TYPE::find0(Walker&& walker)
 {
 	walker.start() 		= 0;
 	walker.direction() 	= WalkDirection::DOWN;
@@ -144,7 +144,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 		{
 			while (!node->is_leaf())
 			{
-				NodeDispatcher::DispatchConst(node, walker);
+				NodeDispatcher::dispatchConst(node, walker);
 
 				Int idx = walker.idx();
 
@@ -152,7 +152,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 				i.setNode(node, idx);
 			}
 
-			NodeDispatcher::DispatchConst(node, walker);
+			NodeDispatcher::dispatchConst(node, walker);
 
 			Int idx = walker.idx();
 			i.key_idx() = idx;
@@ -176,7 +176,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker& walker)
 
 M_PARAMS
 template <typename Walker>
-void M_TYPE::find1(Walker& walker)
+void M_TYPE::find1(Walker&& walker)
 {
 	walker.start() 		= 0;
 	walker.direction() 	= WalkDirection::DOWN;
@@ -188,14 +188,14 @@ void M_TYPE::find1(Walker& walker)
 		{
 			while (!node->is_leaf())
 			{
-				NodeDispatcher::DispatchConst(node, walker);
+				NodeDispatcher::dispatchConst(node, walker);
 
 				Int idx = walker.idx();
 
 				node = me()->getChild(node, idx, Allocator::READ);
 			}
 
-			NodeDispatcher::DispatchConst(node, walker);
+			NodeDispatcher::dispatchConst(node, walker);
 
 			Int idx = walker.idx();
 			walker.finish(*me(), node, idx);
@@ -212,7 +212,7 @@ void M_TYPE::find1(Walker& walker)
 
 M_PARAMS
 template <typename Walker>
-Int M_TYPE::findFw(TreePath& path, Int idx, Walker &walker, Int level)
+Int M_TYPE::findFw(TreePath& path, Int idx, Walker&& walker, Int level)
 {
 	NodeBaseG node = path[level].node();
 
@@ -228,7 +228,7 @@ Int M_TYPE::findFw(TreePath& path, Int idx, Walker &walker, Int level)
 
 	if (idx < node->children_count())
 	{
-		NodeDispatcher::DispatchConst(node, walker);
+		NodeDispatcher::dispatchConst(node, walker);
 	}
 
 	if (walker.idx() >= node->children_count())
@@ -272,7 +272,7 @@ Int M_TYPE::findFw(TreePath& path, Int idx, Walker &walker, Int level)
 
 M_PARAMS
 template <typename Walker>
-Int M_TYPE::findBw(TreePath& path, Int idx, Walker &walker, Int level)
+Int M_TYPE::findBw(TreePath& path, Int idx, Walker&& walker, Int level)
 {
 	NodeBaseG node = path[level].node();
 
@@ -288,7 +288,7 @@ Int M_TYPE::findBw(TreePath& path, Int idx, Walker &walker, Int level)
 
 	if (idx >= 0)
 	{
-		NodeDispatcher::DispatchConst(node, walker);
+		NodeDispatcher::dispatchConst(node, walker);
 	}
 
 	if (walker.idx() < 0)
@@ -308,7 +308,7 @@ Int M_TYPE::findBw(TreePath& path, Int idx, Walker &walker, Int level)
 
 				walker.start() 				= child_node->children_count() - 1;
 
-				NodeDispatcher::DispatchConst(child_node, walker);
+				NodeDispatcher::dispatchConst(child_node, walker);
 
 				return walker.idx();
 			}
