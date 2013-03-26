@@ -9,8 +9,6 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_REMOVE_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_REMOVE_HPP
 
-
-#include <memoria/prototypes/balanced_tree/pages/tools.hpp>
 #include <memoria/core/container/macros.hpp>
 
 

@@ -151,69 +151,6 @@ public:
 };
 
 
-MEMORIA_PAGE_PART_BEGIN1(balanced_tree::RootNodeMetadataName, TheContainerName)
-
-    static const UInt VERSION = 1;
-
-    typedef TheContainerName       Metadata;
-
-private:
-    Metadata metadata_;
-public:
-
-    typedef typename MergeLists<
-                typename Base::FieldsList,
-                ConstValue<UInt, VERSION>,
-                typename Metadata::FieldsList
-    >::Result                                                                   FieldsList;
-
-    PagePart(): Base(), metadata_() {
-        init();
-    }
-
-    void init() {
-        Base::init();
-        Base::set_root(true);
-    }
-
-    const Metadata &root_metadata() const
-    {
-        return metadata_;
-    }
-
-    Metadata &root_metadata()
-    {
-        return metadata_;
-    }
-
-    void generateDataEvents(IPageDataEventHandler* handler) const
-    {
-        Base::generateDataEvents(handler);
-        metadata_.generateDataEvents(handler);
-    }
-
-    template <template <typename> class FieldFactory>
-    void serialize(SerializationData& buf) const
-    {
-        Base::template serialize<FieldFactory>(buf);
-
-        FieldFactory<Metadata>::serialize(buf, metadata_);
-    }
-
-    template <template <typename> class FieldFactory>
-    void deserialize(DeserializationData& buf)
-    {
-        Base::template deserialize<FieldFactory>(buf);
-
-        FieldFactory<Metadata>::deserialize(buf, metadata_);
-    }
-
-    //This part must not contain copyFrom method because it is
-    //contained only in root pages
-
-MEMORIA_PAGE_PART_END
-
-
 
 }
 

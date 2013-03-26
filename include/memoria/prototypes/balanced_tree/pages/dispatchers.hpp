@@ -9,11 +9,11 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_DISPATCHERS_HPP
 
 
-#include <memoria/prototypes/balanced_tree/pages/dispatchers/defs.hpp>
-#include <memoria/prototypes/balanced_tree/pages/dispatchers/tools.hpp>
-#include <memoria/prototypes/balanced_tree/pages/dispatchers/factory.hpp>
-#include <memoria/prototypes/balanced_tree/pages/dispatchers/node_dispatcher.hpp>
-#include <memoria/prototypes/balanced_tree/pages/dispatchers/builder.hpp>
+//#include <memoria/prototypes/balanced_tree/pages/dispatchers/defs.hpp>
+//#include <memoria/prototypes/balanced_tree/pages/dispatchers/tools.hpp>
+//#include <memoria/prototypes/balanced_tree/pages/dispatchers/factory.hpp>
+#include <memoria/prototypes/balanced_tree/pages/node_dispatcher.hpp>
+//#include <memoria/prototypes/balanced_tree/pages/dispatchers/builder.hpp>
 
 
 #endif

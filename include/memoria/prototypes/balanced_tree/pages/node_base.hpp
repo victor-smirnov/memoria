@@ -13,6 +13,7 @@
 #include <memoria/core/container/page.hpp>
 #include <memoria/core/container/logs.hpp>
 
+#include <memoria/core/types/typehash.hpp>
 
 namespace memoria    	{
 namespace balanced_tree {
@@ -23,39 +24,44 @@ using memoria::BitBuffer;
 
 template <typename Base_>
 class TreePage: public Base_ {
-
+public:
     static const UInt VERSION = 1;
 
+private:
 
     Int root_;
     Int leaf_;
     Int bitmap_;
+    Int level_;
 
     Int size_;
 
 public:
 
+
+
     enum {
         LEAF          = 0,
         ROOT          = 1,
         BITMAP        = 2
-    }                                       FLAGS;
-
-//    typedef Allocator_                        Allocator;
+    }                                       	FLAGS;
 
     typedef Base_                               Base;
     typedef TreePage<Base>                      Me;
+    typedef Me 									BasePageType;
+
     typedef typename Base::ID                   ID;
 
 
-    typedef typename MergeLists<
-                typename Base::FieldsList,
-                ConstValue<UInt, VERSION>,
-                decltype(root_),
-                decltype(leaf_),
-                decltype(bitmap_),
-                decltype(size_)
-    >::Result                                                                   FieldsList;
+//    typedef typename MergeLists<
+//                typename Base::FieldsList,
+//                ConstValue<UInt, VERSION>,
+//                decltype(root_),
+//                decltype(leaf_),
+//                decltype(bitmap_),
+//                decltype(level_),
+//                decltype(size_)
+//    >::Result                                                                   FieldsList;
 
     TreePage(): Base() {}
 
@@ -93,6 +99,16 @@ public:
         return size_;
     }
 
+    const Int& level() const
+    {
+    	return level_;
+    }
+
+    Int& level()
+    {
+    	return level_;
+    }
+
 protected:
     Int& map_size()
     {
@@ -104,10 +120,11 @@ public:
     {
         Base::generateDataEvents(handler);
 
-        handler->value("ROOT", &root_);
-        handler->value("LEAF", &leaf_);
-        handler->value("BITMAP", &bitmap_);
-        handler->value("SIZE", &size_);
+        handler->value("ROOT", 		&root_);
+        handler->value("LEAF", 		&leaf_);
+        handler->value("BITMAP",	&bitmap_);
+        handler->value("SIZE", 		&size_);
+        handler->value("LEVEL", 	&level_);
     }
 
     template <template <typename> class FieldFactory>
@@ -118,6 +135,7 @@ public:
         FieldFactory<Int>::serialize(buf, root_);
         FieldFactory<Int>::serialize(buf, leaf_);
         FieldFactory<Int>::serialize(buf, bitmap_);
+        FieldFactory<Int>::serialize(buf, level_);
 
         FieldFactory<Int>::serialize(buf, size_);
     }
@@ -130,6 +148,7 @@ public:
         FieldFactory<Int>::deserialize(buf, root_);
         FieldFactory<Int>::deserialize(buf, leaf_);
         FieldFactory<Int>::deserialize(buf, bitmap_);
+        FieldFactory<Int>::deserialize(buf, level_);
 
         FieldFactory<Int>::deserialize(buf, size_);
     }
@@ -143,8 +162,15 @@ public:
         this->set_root(page->is_root());
         this->set_leaf(page->is_leaf());
         this->setBitmap(page->isBitmap());
+
+        this->level() = page->level();
     }
 };
+
+
+
+
+
 
 
 template <
@@ -152,13 +178,13 @@ template <
 >
 class NodePageBase: public BaseType0
 {
-    Short           level_;
+
 
 public:
     typedef BaseType0                                                            Base;
     typedef BaseType0                                                            BasePageType;
 
-    NodePageBase(): BaseType0(), level_(0)
+    NodePageBase(): BaseType0()
     {
         init();
     }
@@ -167,52 +193,32 @@ public:
     {
         Base::init();
     }
-
-    const Short &level() const
-    {
-        return level_;
-    }
-
-    Short &level()
-    {
-        return level_;
-    }
-
-    void generateDataEvents(IPageDataEventHandler* handler) const
-    {
-        Base::generateDataEvents(handler);
-        handler->value("LEVEL", &level_);
-    }
-
-
-    template <template <typename> class FieldFactory>
-    void serialize(SerializationData& buf) const
-    {
-        Base::template serialize<FieldFactory>(buf);
-
-        FieldFactory<Short>::serialize(buf, level_);
-    }
-
-    template <template <typename> class FieldFactory>
-    void deserialize(DeserializationData& buf)
-    {
-        Base::template deserialize<FieldFactory>(buf);
-
-        FieldFactory<Short>::deserialize(buf, level_);
-    }
-
-
-    template <typename PageType>
-    void copyFrom(PageType* page)
-    {
-        Base::copyFrom(page);
-
-        this->level() = page->level();
-    }
 };
 
+
 }
+
+template <typename Base>
+struct TypeHash<balanced_tree::TreePage<Base>> {
+    static const UInt Value = HashHelper<
+    		TypeHash<Base>::Value,
+    		balanced_tree::TreePage<Base>::VERSION,
+    		TypeHash<Int>::Value,
+    		TypeHash<Int>::Value,
+    		TypeHash<Int>::Value,
+    		TypeHash<Int>::Value,
+    		TypeHash<Int>::Value
+    >::Value;
+};
+
+template <typename Base>
+struct TypeHash<balanced_tree::NodePageBase<Base>> {
+    static const UInt Value = TypeHash<Base>::Value;
+};
+
+
 }
+
 
 
 

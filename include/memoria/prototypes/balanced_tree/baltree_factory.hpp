@@ -14,7 +14,10 @@
 #include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
 
-#include <memoria/prototypes/balanced_tree/pages/pages.hpp>
+#include <memoria/prototypes/balanced_tree/pages/node_factory2.hpp>
+#include <memoria/prototypes/balanced_tree/pages/node_dispatcher.hpp>
+#include <memoria/prototypes/balanced_tree/pages/tree_metadata.hpp>
+#include <memoria/prototypes/balanced_tree/pages/node_list_builder.hpp>
 
 #include <memoria/prototypes/balanced_tree/container/baltree_c_base.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_tools.hpp>
@@ -77,8 +80,11 @@ struct BalancedTreeTypes {
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
     typedef typename Allocator::ID                                              ID;
 
-    typedef BTreeMetadata<ID>                                                   Metadata;
+    typedef BalancedTreeMetadata<ID>                                            Metadata;
 
+    typedef TypeList<
+    	TreeNodeType<NodePage2>
+    >																			NodeTypesList;
 
     template <
         typename Types_
@@ -147,81 +153,32 @@ public:
     >::Result                                                                   Value;
 
 
-    struct BasePartsTypes{
-        typedef balanced_tree::TreePage<typename ContainerTypes::Allocator::Page>      NodePageBase;
-        typedef typename ContainerTypes::BasePagePartsList              List;
-    };
+    typedef balanced_tree::TreePage<typename ContainerTypes::Allocator::Page>   NodePageBase0;
+    typedef PageGuard<NodePageBase0, typename ContainerTypes::Allocator>   		NodePageBase0G;
 
-    typedef PageStart<BasePartsTypes>                                           BasePageParts;
-    typedef balanced_tree::NodePageBase<BasePageParts>                          NodePageBase0;
-
-    struct NodePageContainerTypes: public NodePageBase0 {};
-
-
-    struct NodeTypesBase {
-        typedef NodePageContainerTypes                      NodePageBase;
+    struct NodeTypes {
+        typedef NodePageBase0                      			NodePageBase;
         typedef ContainerTypeName_                          Name;
+        typedef typename ContainerTypes::Metadata			Metadata;
+
+        typedef typename ListHead<typename ContainerTypes::KeysList>::Type		Key;
+        typedef typename MyType::Value                      Value;
+
         static const Int                                    Indexes             = ContainerTypes::Indexes;
-        typedef typename ContainerTypes::BasePagePartsList  BasePartsList;
+
+
     };
-
-
-    typedef typename ListHead<typename ContainerTypes::KeysList>::Type          NodeKey;
-
-    template <int Level> struct RootLeafTypes: NodeTypesBase {
-        typedef NodeKey                                                     Key;
-        typedef typename MyType::Value                                      Value;
-        typedef typename AppendTool<
-                RootPagePartsList,
-                typename ContainerTypes::LeafPagePartsList
-        >::Result                                                           List;
-        typedef balanced_tree::NodeDescriptor<true, true, Level>            Descriptor;
-    };
-
-    template <int Level> struct LeafTypes: NodeTypesBase {
-        typedef NodeKey                                                     Key;
-        typedef typename MyType::Value                                      Value;
-        typedef typename ContainerTypes::LeafPagePartsList                  List;
-        typedef balanced_tree::NodeDescriptor<false, true, Level>           Descriptor;
-    };
-
-    template <int Level> struct RootTypes: NodeTypesBase {
-        typedef NodeKey                                                     Key;
-        typedef ID                                                          Value;
-        typedef typename AppendTool<
-                RootPagePartsList,
-                typename ContainerTypes::InternalPagePartsList
-        >::Result                                                           List;
-        typedef balanced_tree::NodeDescriptor<true, false, Level>           Descriptor;
-    };
-
-    template <int Level> struct InternalTypes: NodeTypesBase {
-        typedef NodeKey                                                     Key;
-        typedef ID                                                          Value;
-        typedef typename ContainerTypes::InternalPagePartsList              List;
-        typedef balanced_tree::NodeDescriptor<false, false, Level>          Descriptor;
-    };
-
-    typedef typename balanced_tree::NodeTLBuilder <
-                MyType,
-                typename ContainerTypes::KeysList
-    >::List                                                                     NodeTypesList;
-
-    MEMORIA_STATIC_ASSERT(IsNonemptyList<NodeTypesList>::Value);
-
-
-    typedef NodePageContainerTypes                                              NodeContainerTypes;
-    typedef PageGuard<NodeContainerTypes, typename ContainerTypes::Allocator>   NodeContainerTypesG;
 
     struct DispatcherTypes
     {
-        typedef NodeTypesList                               NodeList;
-        typedef NodeContainerTypes                          NodeBase;
-        typedef NodeContainerTypesG                         NodeBaseG;
+        typedef typename ContainerTypes::NodeTypesList      NodeList;
+        typedef NodePageBase0                          		NodeBase;
+        typedef typename MyType::NodeTypes					NodeTypes;
+        typedef NodePageBase0G                         		NodeBaseG;
         typedef typename ContainerTypes::Allocator          Allocator;
     };
 
-    typedef balanced_tree::BTreeDispatchers<DispatcherTypes>                    PageDispatchers;
+    typedef balanced_tree::BTreeDispatchers2<DispatcherTypes>                    PageDispatchers;
 
 
 public:
@@ -234,21 +191,18 @@ public:
         typedef typename ContainerTypes::Allocator                              Allocator;
         typedef typename ContainerTypes::Metadata                               Metadata;
 
-        typedef NodeContainerTypes                                              NodeBase;
-        typedef NodeContainerTypesG                                             NodeBaseG;
-
+        typedef NodePageBase0                                              		NodeBase;
+        typedef NodePageBase0G                                             		NodeBaseG;
 
         typedef TypeList<>                                                      EmbeddedContainersList;
-
-
 
         typedef typename ContainerTypes::ContainerPartsList                     CtrList;
         typedef typename ContainerTypes::IteratorPartsList                      IterList;
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
-        typedef BalTreeCtrTypes<Types>                                            CtrTypes;
-        typedef BalTreeIterTypes<Types>                                           IterTypes;
+        typedef BalTreeCtrTypes<Types>                                          CtrTypes;
+        typedef BalTreeIterTypes<Types>                                         IterTypes;
 
         typedef balanced_tree::NodePath<
                 NodeBaseG, 8

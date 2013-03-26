@@ -49,11 +49,6 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
     typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
 
-    typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-    typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
-
-    typedef typename Types::Pages::NodeFactory                                  NodeFactory;
-
     typedef typename Types::Metadata                                            Metadata;
 
     typedef typename Types::TreePathItem                                        TreePathItem;
@@ -377,7 +372,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
             size = meta.page_size();
         }
 
-        NodeBaseG node = NodeFactory::create(me()->allocator(), level, root, leaf, size);
+        NodeBaseG node;// = NodeFactory::create(me()->allocator(), level, root, leaf, size);
 
         if (root)
         {
@@ -395,7 +390,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT(level, >=, 0);
 
-        NodeBaseG node = NodeFactory::create(me()->allocator(), level, true, leaf, metadata.page_size());
+        NodeBaseG node;// = NodeFactory::create(me()->allocator(), level, true, leaf, metadata.page_size());
 
         MyType::setCtrRootMetadata(node, metadata);
 

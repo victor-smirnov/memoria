@@ -6,37 +6,99 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_NODE_FACTORY_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_NODE_FACTORY_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_NODE_FACTORY2_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_NODE_FACTORY2_HPP
 
-#include <memoria/core/types/static_md5.hpp>
+#include <memoria/core/types/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/prototypes/balanced_tree/pages/node_base.hpp>
 #include <memoria/prototypes/balanced_tree/pages/tree_map.hpp>
 
-
 namespace memoria    	{
 namespace balanced_tree {
 
 
+template <typename Metadata, typename Base, bool root>
+class RootPage: public Base {
+	Metadata root_metadata_;
+public:
+
+	Metadata& root_metadata()
+	{
+		return root_metadata_;
+	}
+
+	const Metadata& root_metadata() const
+	{
+		return root_metadata_;
+	}
+
+	void generateDataEvents(IPageDataEventHandler* handler) const
+	{
+		Base::generateDataEvents(handler);
+		root_metadata_.generateDataEvents(handler);
+	}
+
+	template <template <typename> class FieldFactory>
+	void serialize(SerializationData& buf) const
+	{
+		Base::template serialize<FieldFactory>(buf);
+
+		FieldFactory<Metadata>::serialize(buf, root_metadata_);
+	}
+
+	template <template <typename> class FieldFactory>
+	void deserialize(DeserializationData& buf)
+	{
+		Base::template deserialize<FieldFactory>(buf);
+
+		FieldFactory<Metadata>::deserialize(buf, root_metadata_);
+	}
+};
+
+
+template <typename Metadata, typename Base>
+class RootPage<Metadata, Base, false>: public Base {
+
+};
+
+
+
+
+const BigInt ANY_LEVEL = 0x7fff;
+
+template <bool Root_, bool Leaf_, BigInt Level_>
+struct NodeDescriptor {
+    static const bool   Root  =      Root_;
+    static const bool   Leaf  =      Leaf_;
+    static const Int    Level =      Level_;
+};
+
 
 
 template <
-        typename Types
+	typename Types,
+	bool root, bool leaf
 >
-class NodePage: public PageStart<Types>
+class NodePage2: public RootPage<typename Types::Metadata, typename Types::NodePageBase, root>
 {
-    static const UInt VERSION                                                   = 1;
+
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 public:
 
-    typedef NodePage<Types>                                                     Me;
-    typedef PageStart<Types>                                                    Base;
+    static const UInt VERSION                                                   = 1;
+
+    typedef NodePage2<Types, root, leaf>                                        	Me;
+    typedef RootPage<typename Types::Metadata, typename Types::NodePageBase, root>  Base;
 
 private:
 
 public:
+
+
+
+    typedef NodeDescriptor<root, leaf, ANY_LEVEL> Descriptor;
 
     typedef TreeMap<
                 TreeMapTypes<
@@ -47,33 +109,9 @@ public:
                 >
     >                                                                           Map;
 
-    typedef typename Types::Descriptor                                          Descriptor;
-
-
-
 private:
 
-    // Don't forget to update fields list
-    // if type description is changed
-    typedef typename MergeLists<
-            typename Base::FieldsList,
-
-            UIntValue<VERSION>,
-            UIntValue<Descriptor::Root>,
-            UIntValue<Descriptor::Leaf>,
-            UIntValue<Descriptor::Level>,
-            UIntValue<Types::Indexes>,
-            typename Types::Name,
-            UIntValue<BranchingFactor>,
-
-            typename Map::FieldsList
-    >::Result                                                                   FieldsList;
-
-    static const UInt PAGE_HASH = md5::Md5Sum<typename TypeToValueList<FieldsList>::Type>::Result::Value32;
-
     Map map_;
-
-    static PageMetadata *page_metadata_;
 
 public:
 
@@ -82,15 +120,8 @@ public:
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
 
-    NodePage(): Base(), map_() {}
+    NodePage2(): Base(), map_() {}
 
-    static Int hash() {
-        return PAGE_HASH;
-    }
-
-    static PageMetadata *page_metadata() {
-        return page_metadata_;
-    }
 
     const Map &map() const
     {
@@ -144,10 +175,52 @@ public:
         Base::template deserialize<FieldFactory>(buf);
 
         FieldFactory<Map>::deserialize(buf, map_);
+    }
+};
 
 
+
+
+
+
+
+
+template <
+	template <typename, bool, bool> class TreeNode,
+	typename Types,
+	bool root, bool leaf
+>
+class NodePageAdaptor: public TreeNode<Types, root, leaf>
+{
+public:
+
+    typedef NodePageAdaptor<TreeNode, Types, root, leaf>                  		Me;
+    typedef TreeNode<Types, root, leaf>                                			Base;
+
+    typedef NodePageAdaptor<TreeNode, Types, true, leaf>						RootNodeType;
+    typedef NodePageAdaptor<TreeNode, Types, false, leaf>						NonRootNodeType;
+
+    typedef NodePageAdaptor<TreeNode, Types, root, true>						LeafNodeType;
+    typedef NodePageAdaptor<TreeNode, Types, root, false>						NonLeafNodeType;
+
+
+    static const UInt PAGE_HASH = TypeHash<Base>::Value;
+
+private:
+    static PageMetadata *page_metadata_;
+
+public:
+
+
+    NodePageAdaptor(): Base() {}
+
+    static Int hash() {
+        return PAGE_HASH;
     }
 
+    static PageMetadata *page_metadata() {
+        return page_metadata_;
+    }
 
     class PageOperations: public IPageOperations
     {
@@ -223,7 +296,7 @@ public:
     {
         if (page_metadata_ == NULL)
         {
-            Int attrs = BTREE + Descriptor::Root * ROOT + Descriptor::Leaf * LEAF;
+            Int attrs = 0;
 
             page_metadata_ = new PageMetadata("BTREE_PAGE", attrs, hash(), new PageOperations());
         }
@@ -235,14 +308,47 @@ public:
 
 
 template <
-        typename Types
+	template <typename, bool, bool> class TreeNode,
+	typename Types,
+	bool root, bool leaf
 >
-PageMetadata* NodePage<Types>::page_metadata_ = NULL;
+PageMetadata* NodePageAdaptor<TreeNode, Types, root, leaf>::page_metadata_ = NULL;
 
 
 
 
 }
+
+
+template <typename Metadata, typename Base>
+struct TypeHash<RootPage<Metadata, Base, true> > {
+    static const UInt Value = HashHelper<TypeHash<Base>::Value, TypeHash<Metadata>::Value>::Value;
+};
+
+
+template <typename Metadata, typename Base>
+struct TypeHash<RootPage<Metadata, Base, false> > {
+    static const UInt Value = TypeHash<Base>::Value;
+};
+
+
+template <typename Types, bool root, bool leaf>
+struct TypeHash<balanced_tree::NodePage2<Types, root, leaf> > {
+
+	typedef balanced_tree::NodePage2<Types, root, leaf> Node;
+
+    static const UInt Value = HashHelper<
+    		TypeHash<typename Node::Base>::Value,
+    		Node::VERSION,
+    		root,
+    		leaf,
+    		Types::Indexes,
+    		TypeHash<typename Types::Name>::Value,
+    		TypeHash<typename Node::Map>::Value
+    >::Value;
+};
+
+
 }
 
 #endif

@@ -9,8 +9,6 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_TOOLS_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_TOOLS_HPP
 
-#include <memoria/prototypes/balanced_tree/pages/pages.hpp>
-
 #include <memoria/metadata/tools.hpp>
 #include <memoria/core/tools/strings.hpp>
 #include <memoria/core/container/macros.hpp>
@@ -37,16 +35,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    typedef typename Base::NodeBase::Base                                       TreeNodePage;
-
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
     typedef typename Base::RootDispatcher                                       RootDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
     typedef typename Base::NonRootDispatcher                                    NonRootDispatcher;
-
-    typedef typename Base::Node2RootMap                                         Node2RootMap;
-    typedef typename Base::Root2NodeMap                                         Root2NodeMap;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -132,7 +125,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     template <typename Node>
     void root2NodeFn(Node* src) const
     {
-    	typedef typename memoria::Type2TypeMap<Node, Root2NodeMap>::Result NonRootNode;
+    	//typedef typename memoria::Type2TypeMap<Node, Root2NodeMap>::Result NonRootNode;
+
+    	typedef typename Node::NonRootNodeType NonRootNode;
 
     	NonRootNode* tgt = T2T<NonRootNode*>(malloc(src->page_size()));
     	memset(tgt, 0, src->page_size());
@@ -168,7 +163,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     template <typename Node>
     void node2RootFn(Node* src, const Metadata& metadata) const
     {
-    	typedef typename memoria::Type2TypeMap<Node, Node2RootMap>::Result RootType;
+//    	typedef typename memoria::Type2TypeMap<Node, Node2RootMap>::Result RootType;
+    	typedef typename Node::RootNodeType RootType;
 
     	RootType* tgt = T2T<RootType*>(malloc(src->page_size()));
     	memset(tgt, 0, src->page_size());
@@ -225,7 +221,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     template <typename T>
     bool canConvertToRootFn(const T* node) const
     {
-    	typedef typename memoria::Type2TypeMap<T, Node2RootMap, void>::Result RootType;
+    	typedef typename T::RootNodeType RootType;
 
     	Int node_children_count = node->children_count();
 

@@ -354,6 +354,25 @@ public:
 
 
 }
+
+
+template <typename Types>
+struct TypeHash<balanced_tree::TreeMap<Types> > {
+
+	typedef balanced_tree::TreeMap<Types> Map;
+
+    static const UInt Value = HashHelper<
+    		3211,
+    		md5::Md5Sum<
+    			typename TypeToValueList<typename Map::FieldsList>::Type
+    		>::Result::Value32
+    >::Value;
+};
+
+
+
+
+
 }
 
 
