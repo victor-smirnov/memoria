@@ -15,6 +15,7 @@ namespace balanced_tree {
 template <typename Types, int idx> class NDT0;
 template <typename Types, int idx> class NDT1;
 
+template<template <typename, bool, bool> class Type> struct TreeNodeType;
 
 //template <typename Types>
 //class NDT: public NDT0<Types, ListSize<typename Types::List>::Value - 1> {};
@@ -632,6 +633,62 @@ public:
 };
 
 
+
+template <typename List, Int Idx>
+class StaticDispatcherHelper {
+
+	typedef typename SelectByIndexTool<Idx, List>::Result Head;
+
+	static const bool Root = Head::Descriptor::Root;
+	static const bool Leaf = Head::Descriptor::Leaf;
+
+public:
+	template <typename Functor, typename... Args>
+	static void dispatch(bool root, bool leaf, Functor&& fn, Args... args)
+	{
+		if (root == Root && leaf == Leaf)
+		{
+			fn.template operator()<Head>(args...);
+		}
+		else {
+			StaticDispatcherHelper<List, Idx - 1>::dispatch(root, leaf, std::move(fn), args...);
+		}
+	}
+
+	template <typename Functor, typename... Args>
+	static typename Functor::ReturnType dispatchRtn(bool root, bool leaf, Functor&& fn, Args... args)
+	{
+		if (root == Root && leaf == Leaf)
+		{
+			return fn.template operator()<Head>(args...);
+		}
+		else {
+			return StaticDispatcherHelper<List, Idx - 1>::dispatchRtn(root, leaf, std::move(fn), args...);
+		}
+	}
+
+};
+
+
+template <typename List>
+class StaticDispatcherHelper<List, -1> {
+
+public:
+	template <typename Functor, typename... Args>
+	static void dispatch(bool root, bool leaf, Functor&& fn, Args... args)
+	{
+		throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+	}
+
+	template <typename Functor, typename... Args>
+	static typename Functor::ReturnType dispatchRtn(bool root, bool leaf, Functor&& fn, Args... args)
+	{
+		throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+	}
+
+};
+
+
 template <typename Types, int Idx>
 class NDT0 {
 
@@ -835,6 +892,38 @@ public:
         }
     }
 
+    template <
+    	template <typename, bool, bool> class TreeNode,
+    	typename Functor,
+    	typename... Args
+    >
+    static void dispatchStatic2(bool root, bool leaf, Functor&& fn, Args... args)
+    {
+    	typedef typename TreeNodeType<TreeNode>::template AllTypesList<Types> List;
+
+    	StaticDispatcherHelper<
+    		List,
+    		ListSize<List>::Value - 1
+    	>
+    	::dispatch(root, leaf, std::move(fn), args...);
+    }
+
+    template <
+    	template <typename, bool, bool> class TreeNode,
+    	typename Functor,
+    	typename... Args
+    >
+    static typename Functor::ReturnType dispatchStatic2Rtn(bool root, bool leaf, Functor&& fn, Args... args)
+    {
+    	typedef typename TreeNodeType<TreeNode>::template AllTypesList<Types> List;
+
+    	return StaticDispatcherHelper<
+    		List,
+    		ListSize<List>::Value - 1
+    	>
+    	::dispatchRtn(root, leaf, std::move(fn), args...);
+    }
+
 
     static void buildMetadataList(MetadataList &list) {
         Head::initMetadata();
@@ -842,6 +931,10 @@ public:
         NDT0<Types, Idx - 1>::buildMetadataList(list);
     }
 };
+
+
+
+
 
 
 

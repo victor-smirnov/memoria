@@ -74,10 +74,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(GetNodeTraitsFn, getNodeTraitsFn, Int);
 
-    Int getNodeTraitInt(BTreeNodeTraits trait, bool root, bool leaf, Int level) const
+    Int getNodeTraitInt(BTreeNodeTraits trait, bool root, bool leaf) const
     {
         Int page_size = me()->getRootMetadata().page_size();
-        return NodeDispatcher::dispatchStaticRtn(root, leaf, level, GetNodeTraitsFn(me()), trait, page_size);
+        return NodeDispatcher::template dispatchStatic2Rtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
     }
 
 

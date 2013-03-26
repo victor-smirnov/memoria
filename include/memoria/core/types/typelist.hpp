@@ -17,4 +17,4 @@
 #include <memoria/core/types/list/append.hpp>
 #include <memoria/core/types/list/reverse.hpp>
 
-#endif  /* _MEMORIA_CORE_TOOLS_TYPES_TYPELIST_HPP */
+#endif

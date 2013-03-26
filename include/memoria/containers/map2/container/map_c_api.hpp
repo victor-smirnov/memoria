@@ -9,7 +9,6 @@
 #define _MEMORIA_MODELS_IDX_MAP2_CONTAINER_API_HPP
 
 
-#include <memoria/prototypes/balanced_tree/pages/tools.hpp>
 #include <memoria/containers/map2/names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>

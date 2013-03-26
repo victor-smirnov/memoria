@@ -46,7 +46,7 @@ template <
 >
 struct TypeHash<Profile<T>> {
     // FIXME need template assigning unique code to the each profile level
-    typedef typename AppendValueTool<UInt, 100, typename TypeHash<T>::VList>::Result     VList;
+    typedef typename AppendValueTool<UInt, 100, ValueList<UInt, TypeHash<T>::Value>>::Result     VList;
 
     static const UInt Value = md5::Md5Sum<VList>::Result::Value32;
 };

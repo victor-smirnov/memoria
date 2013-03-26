@@ -354,6 +354,19 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         me()->setRootMetadata(metadata);
     }
 
+    template <typename Node>
+    NodeBaseG createNodeFn(Int size) const
+    {
+    	NodeBaseG node = me()->allocator().createPage(size);
+    	node->init();
+
+    	node->page_type_hash() = Node::hash();
+
+    	return node;
+    }
+
+    MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, createNodeFn, NodeBaseG);
+
     NodeBaseG createNode(Short level, bool root, bool leaf, Int size = -1) const
     {
         MEMORIA_ASSERT(level, >=, 0);
@@ -372,7 +385,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
             size = meta.page_size();
         }
 
-        NodeBaseG node;// = NodeFactory::create(me()->allocator(), level, root, leaf, size);
+        NodeBaseG node = NodeDispatcher::template dispatchStatic2Rtn<TreeMapNode>(root, leaf, CreateNodeFn(me()), size);
 
         if (root)
         {
@@ -380,6 +393,11 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         }
 
         node->ctr_type_hash() = me()->hash();
+
+        node->set_root(root);
+        node->set_leaf(leaf);
+
+        node->level() = level;
 
         initNodeSize(node, size);
 
@@ -390,11 +408,21 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT(level, >=, 0);
 
-        NodeBaseG node;// = NodeFactory::create(me()->allocator(), level, true, leaf, metadata.page_size());
+        NodeBaseG node = NodeDispatcher::template dispatchStatic2Rtn<TreeMapNode>(
+        		true,
+        		leaf,
+        		CreateNodeFn(me()),
+        		metadata.page_size()
+        );
 
         MyType::setCtrRootMetadata(node, metadata);
 
         node->ctr_type_hash() = me()->hash();
+
+        node->set_root(true);
+        node->set_leaf(leaf);
+
+        node->level() = level;
 
         initNodeSize(node, metadata.page_size());
 

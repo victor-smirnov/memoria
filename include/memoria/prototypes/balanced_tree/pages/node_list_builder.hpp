@@ -65,6 +65,10 @@ struct TreeNodeType {
 	>;
 };
 
+
+
+
+
 template <typename Types, typename NodeTypes> struct NodeTypeListBuilder;
 
 
@@ -131,7 +135,7 @@ class BTreeDispatchers2: public Types1 {
 
 public:
 
-    struct NodeTypesBase {
+    struct NodeTypesBase: Types {
         typedef NodeBase_ NodeBase;
     };
 

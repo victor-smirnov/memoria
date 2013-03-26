@@ -14,7 +14,7 @@
 
 #include <memoria/core/tools/buffer.hpp>
 #include <memoria/core/tools/id.hpp>
-#include <memoria/core/tools/md5.hpp>
+#include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/container/logs.hpp>
 
@@ -108,6 +108,14 @@ public:
 
 
 template <typename T>
+struct TypeHash<PageID<T>>: UIntValue<
+    HashHelper<101, TypeHash<T>::Value>::Value
+> {};
+
+
+
+
+template <typename T>
 static LogHandler& operator<<(LogHandler &log, const PageID<T>& value)
 {
     IDValue id(&value);
@@ -169,12 +177,14 @@ public:
 
 template <typename PageIdType, Int FlagsCount = 32>
 class AbstractPage {
-
+public:
     static const UInt VERSION                                                   = 1;
+    typedef BitBuffer<FlagsCount> FlagsType;
 
+private:
     typedef AbstractPage<PageIdType, FlagsCount> Me;
 
-    typedef BitBuffer<FlagsCount> FlagsType;
+
 
     FlagsType   flags_;
     PageIdType  id_;
@@ -322,6 +332,8 @@ public:
         IDValue id(&id_);
         handler->value("ID",                &id);
         handler->value("CRC",               &crc_);
+        handler->value("MASTER_MODEL_HASH", &master_ctr_type_hash_);
+        handler->value("OWNER_MODEL_HASH",  &owner_ctr_type_hash_);
         handler->value("MODEL_HASH",        &ctr_type_hash_);
         handler->value("PAGE_TYPE_HASH",    &page_type_hash_);
         handler->value("REFERENCES",        &references_);
@@ -365,6 +377,25 @@ public:
         FieldFactory<Int>::deserialize(buf, page_size_);
     }
 };
+
+
+//template <typename PageIdType, Int FlagsCount = 32>
+//class AbstractPage
+
+
+template <typename PageIdType, Int FlagsCount>
+struct TypeHash<AbstractPage<PageIdType, FlagsCount>> {
+    static const UInt Value = HashHelper<
+    		AbstractPage<AbstractPage<PageIdType, FlagsCount>>::VERSION,
+    		TypeHash<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>::Value,
+    		TypeHash<typename AbstractPage<PageIdType, FlagsCount>::ID>::Value,
+    		TypeHash<Int>::Value,
+    		8
+    >::Value;
+};
+
+
+
 
 
 template <typename AllocatorT>

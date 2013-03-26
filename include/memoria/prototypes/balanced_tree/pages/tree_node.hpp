@@ -12,11 +12,151 @@
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
-#include <memoria/prototypes/balanced_tree/pages/node_base.hpp>
 #include <memoria/prototypes/balanced_tree/pages/tree_map.hpp>
 
 namespace memoria    	{
 namespace balanced_tree {
+
+
+using memoria::BitBuffer;
+
+
+
+template <typename Base_>
+class TreeNodeBase: public Base_ {
+public:
+    static const UInt VERSION = 1;
+
+private:
+
+    Int root_;
+    Int leaf_;
+    Int bitmap_;
+    Int level_;
+
+    Int size_;
+
+public:
+
+
+
+    enum {
+        LEAF          = 0,
+        ROOT          = 1,
+        BITMAP        = 2
+    }                                       	FLAGS;
+
+    typedef Base_                               Base;
+    typedef TreePage<Base>                      Me;
+    typedef Me 									BasePageType;
+
+    typedef typename Base::ID                   ID;
+
+    TreeNodeBase(): Base() {}
+
+    inline bool is_root() const {
+        return root_;
+    }
+
+    void set_root(bool root) {
+        root_ = root;
+    }
+
+    inline bool is_leaf() const {
+        return leaf_;
+    }
+
+    void set_leaf(bool leaf) {
+        leaf_ = leaf;
+    }
+
+    inline bool isBitmap() const {
+        return bitmap_;
+    }
+
+    void setBitmap(bool bitmap) {
+        bitmap_ = bitmap;
+    }
+
+    Int size() const
+    {
+        return size_;
+    }
+
+    Int children_count() const
+    {
+        return size_;
+    }
+
+    const Int& level() const
+    {
+    	return level_;
+    }
+
+    Int& level()
+    {
+    	return level_;
+    }
+
+protected:
+    Int& map_size()
+    {
+        return size_;
+    }
+public:
+
+    void generateDataEvents(IPageDataEventHandler* handler) const
+    {
+        Base::generateDataEvents(handler);
+
+        handler->value("ROOT", 		&root_);
+        handler->value("LEAF", 		&leaf_);
+        handler->value("BITMAP",	&bitmap_);
+        handler->value("SIZE", 		&size_);
+        handler->value("LEVEL", 	&level_);
+    }
+
+    template <template <typename> class FieldFactory>
+    void serialize(SerializationData& buf) const
+    {
+        Base::template serialize<FieldFactory>(buf);
+
+        FieldFactory<Int>::serialize(buf, root_);
+        FieldFactory<Int>::serialize(buf, leaf_);
+        FieldFactory<Int>::serialize(buf, bitmap_);
+        FieldFactory<Int>::serialize(buf, level_);
+
+        FieldFactory<Int>::serialize(buf, size_);
+    }
+
+    template <template <typename> class FieldFactory>
+    void deserialize(DeserializationData& buf)
+    {
+        Base::template deserialize<FieldFactory>(buf);
+
+        FieldFactory<Int>::deserialize(buf, root_);
+        FieldFactory<Int>::deserialize(buf, leaf_);
+        FieldFactory<Int>::deserialize(buf, bitmap_);
+        FieldFactory<Int>::deserialize(buf, level_);
+
+        FieldFactory<Int>::deserialize(buf, size_);
+    }
+
+
+    template <typename PageType>
+    void copyFrom(const PageType* page)
+    {
+        Base::copyFrom(page);
+
+        this->set_root(page->is_root());
+        this->set_leaf(page->is_leaf());
+        this->setBitmap(page->isBitmap());
+
+        this->level() = page->level();
+    }
+};
+
+
 
 
 template <typename Metadata, typename Base, bool root>
@@ -81,7 +221,7 @@ template <
 	typename Types,
 	bool root, bool leaf
 >
-class NodePage2: public RootPage<typename Types::Metadata, typename Types::NodePageBase, root>
+class TreeMapNode: public RootPage<typename Types::Metadata, typename Types::NodePageBase, root>
 {
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
@@ -89,14 +229,15 @@ public:
 
     static const UInt VERSION                                                   = 1;
 
-    typedef NodePage2<Types, root, leaf>                                        	Me;
-    typedef RootPage<typename Types::Metadata, typename Types::NodePageBase, root>  Base;
+    typedef TreeMapNode<Types, root, leaf>                                      Me;
+    typedef RootPage<
+    			typename Types::Metadata,
+    			typename Types::NodePageBase, root
+    >  																			Base;
 
 private:
 
 public:
-
-
 
     typedef NodeDescriptor<root, leaf, ANY_LEVEL> Descriptor;
 
@@ -120,7 +261,7 @@ public:
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
 
-    NodePage2(): Base(), map_() {}
+    TreeMapNode(): Base(), map_() {}
 
 
     const Map &map() const
@@ -319,6 +460,19 @@ PageMetadata* NodePageAdaptor<TreeNode, Types, root, leaf>::page_metadata_ = NUL
 
 }
 
+template <typename Base>
+struct TypeHash<balanced_tree::TreePage<Base>> {
+    static const UInt Value = HashHelper<
+    		TypeHash<Base>::Value,
+    		balanced_tree::TreePage<Base>::VERSION,
+    		TypeHash<Int>::Value,
+    		TypeHash<Int>::Value,
+    		TypeHash<Int>::Value,
+    		TypeHash<Int>::Value,
+    		TypeHash<Int>::Value
+    >::Value;
+};
+
 
 template <typename Metadata, typename Base>
 struct TypeHash<RootPage<Metadata, Base, true> > {
@@ -333,9 +487,9 @@ struct TypeHash<RootPage<Metadata, Base, false> > {
 
 
 template <typename Types, bool root, bool leaf>
-struct TypeHash<balanced_tree::NodePage2<Types, root, leaf> > {
+struct TypeHash<balanced_tree::TreeMapNode<Types, root, leaf> > {
 
-	typedef balanced_tree::NodePage2<Types, root, leaf> Node;
+	typedef balanced_tree::TreeMapNode<Types, root, leaf> Node;
 
     static const UInt Value = HashHelper<
     		TypeHash<typename Node::Base>::Value,

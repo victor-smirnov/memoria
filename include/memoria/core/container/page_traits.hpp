@@ -19,11 +19,11 @@ namespace memoria    {
 template <typename T> struct FieldFactory;
 
 
-template <typename Object>
-struct TypeHash<PageID<Object> > {
-public:
-    static const UInt Value = TypeHash<Object>::Value;
-};
+//template <typename Object>
+//struct TypeHash<PageID<Object> > {
+//public:
+//    static const UInt Value = TypeHash<Object>::Value;
+//};
 
 template <typename T>
 struct FieldFactory<PageID<T> > {

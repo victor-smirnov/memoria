@@ -14,7 +14,7 @@
 #include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
 
-#include <memoria/prototypes/balanced_tree/pages/node_factory2.hpp>
+#include <memoria/prototypes/balanced_tree/pages/tree_node.hpp>
 #include <memoria/prototypes/balanced_tree/pages/node_dispatcher.hpp>
 #include <memoria/prototypes/balanced_tree/pages/tree_metadata.hpp>
 #include <memoria/prototypes/balanced_tree/pages/node_list_builder.hpp>
@@ -83,7 +83,7 @@ struct BalancedTreeTypes {
     typedef BalancedTreeMetadata<ID>                                            Metadata;
 
     typedef TypeList<
-    	TreeNodeType<NodePage2>
+    	TreeNodeType<balanced_tree::TreeMapNode>
     >																			NodeTypesList;
 
     template <
@@ -153,7 +153,7 @@ public:
     >::Result                                                                   Value;
 
 
-    typedef balanced_tree::TreePage<typename ContainerTypes::Allocator::Page>   NodePageBase0;
+    typedef balanced_tree::TreeNodeBase<typename ContainerTypes::Allocator::Page>   NodePageBase0;
     typedef PageGuard<NodePageBase0, typename ContainerTypes::Allocator>   		NodePageBase0G;
 
     struct NodeTypes {
