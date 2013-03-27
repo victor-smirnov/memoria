@@ -17,6 +17,8 @@ template <typename Profile> class ContainerCollectionCfg;
 
 namespace balanced_tree     {
 
+const Int DefaultTypeCode 		= -1;
+
 
 template <typename ContainerTypes>
 struct BTree0 {

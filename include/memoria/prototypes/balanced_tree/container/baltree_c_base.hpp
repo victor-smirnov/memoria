@@ -385,7 +385,11 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
             size = meta.page_size();
         }
 
-        NodeBaseG node = NodeDispatcher::template dispatchStatic2Rtn<TreeMapNode>(root, leaf, CreateNodeFn(me()), size);
+        NodeBaseG node = NodeDispatcher::template dispatchStatic2Rtn<TreeMapNode>(
+        		root,
+        		leaf,
+        		CreateNodeFn(me()), size
+        );
 
         if (root)
         {

@@ -13,6 +13,7 @@
 #include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/prototypes/balanced_tree/pages/tree_map.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_names.hpp>
 
 namespace memoria    	{
 namespace balanced_tree {
@@ -205,18 +206,6 @@ class RootPage<Metadata, Base, false>: public Base {
 
 
 
-
-const BigInt ANY_LEVEL = 0x7fff;
-
-template <bool Root_, bool Leaf_, BigInt Level_>
-struct NodeDescriptor {
-    static const bool   Root  =      Root_;
-    static const bool   Leaf  =      Leaf_;
-    static const Int    Level =      Level_;
-};
-
-
-
 template <
 	typename Types,
 	bool root, bool leaf
@@ -239,8 +228,6 @@ private:
 
 public:
 
-    typedef NodeDescriptor<root, leaf, ANY_LEVEL> Descriptor;
-
     typedef TreeMap<
                 TreeMapTypes<
                     typename Types::Key,
@@ -255,6 +242,8 @@ private:
     Map map_;
 
 public:
+
+
 
     static const long INDEXES                                                   = Types::Indexes;
 
@@ -323,9 +312,6 @@ public:
 
 
 
-
-
-
 template <
 	template <typename, bool, bool> class TreeNode,
 	typename Types,
@@ -346,6 +332,9 @@ public:
 
 
     static const UInt PAGE_HASH = TypeHash<Base>::Value;
+
+    static const bool Leaf = leaf;
+    static const bool Root = root;
 
 private:
     static PageMetadata *page_metadata_;
@@ -454,6 +443,7 @@ template <
 	bool root, bool leaf
 >
 PageMetadata* NodePageAdaptor<TreeNode, Types, root, leaf>::page_metadata_ = NULL;
+
 
 
 

@@ -83,7 +83,7 @@ struct BalancedTreeTypes {
     typedef BalancedTreeMetadata<ID>                                            Metadata;
 
     typedef TypeList<
-    	TreeNodeType<balanced_tree::TreeMapNode>
+    	AllNodeTypes<balanced_tree::TreeMapNode>
     >																			NodeTypesList;
 
     template <
