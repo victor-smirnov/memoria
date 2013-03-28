@@ -24,7 +24,19 @@ using namespace std;
 
 
 
+template <typename K1, typename K2>
+struct PackedCompareLE {
+	bool operator()(K1 k1, K2 k2) {
+		return k1 <= k2;
+	}
+};
 
+template <typename K1, typename K2>
+struct PackedCompareLT {
+	bool operator()(K1 k1, K2 k2) {
+		return k1 < k2;
+	}
+};
 
 
 template <
@@ -579,9 +591,9 @@ public:
 
 
 template <typename TreeType>
-class BitSelectFn: public FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, btree::BTreeCompareLT> {
+class BitSelectFn: public FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, PackedCompareLT> {
 
-	typedef FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, btree::BTreeCompareLT> 	Base;
+	typedef FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, PackedCompareLT> 	Base;
 
 	typedef typename TreeType::Value 							Value;
 	typedef typename TreeType::IndexKey 						IndexKey;

@@ -42,9 +42,6 @@ public:
     typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
     typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
 
-    typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-    typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Base::Key                                                  Key;
@@ -56,7 +53,7 @@ public:
     static const Int Indexes                                                    = Types::Indexes;
 
 
-    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx);
+    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) const;
 
 
 MEMORIA_CONTAINER_PART_END
@@ -65,7 +62,7 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx)
+bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) const
 {
     Int key         = me()->getKey(leaf, 0, idx);
     DataPageG data  = me()->getValuePage(leaf, idx, Allocator::READ);

@@ -38,7 +38,7 @@ public:
     template <typename T>
     SBuf& operator<<(const T& value)
     {
-        this->buffer()<<value;
+        buffer_<<value;
         return *this;
     }
 };

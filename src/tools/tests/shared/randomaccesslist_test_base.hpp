@@ -202,7 +202,7 @@ public:
 
     		for (Int idx = 0; idx < path[level]->children_count(); idx++)
     		{
-    			ID id = iter.model().getINodeData(path[level].node(), idx);
+    			ID id = iter.model().getChildID(path[level].node(), idx);
     			if (id == path[level - 1]->id())
     			{
     				if (path[level - 1].parent_idx() != idx)

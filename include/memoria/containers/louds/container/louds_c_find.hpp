@@ -38,16 +38,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 		};
 
 		Int node_indexes[1] = {2};
-		FunctorExtenderState<> node_state(1, node_indexes, rank_fn);
+		balanced_tree::FunctorExtenderState<> node_state(1, node_indexes, rank_fn);
 
 		Int data_indexes[1] = {1};
-		FunctorExtenderState<> data_state(1, data_indexes, rank_fn);
+		balanced_tree::FunctorExtenderState<> data_state(1, data_indexes, rank_fn);
 
 		typename MyType::WrappedCtr::Types::template SkipForwardWalker<
 			typename MyType::WrappedCtr::Types,
-			NodeSumExtender,
-			RankExtender,
-			FunctorExtenderState<>
+			balanced_tree::NodeSumExtender,
+			balanced_tree::RankExtender,
+			balanced_tree::FunctorExtenderState<>
 		> walker(pos, 0, node_state, data_state);
 
 		auto seq_iter = ctr.ctr().find0(walker);

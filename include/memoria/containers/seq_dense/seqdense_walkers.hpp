@@ -13,9 +13,9 @@ namespace memoria 	{
 namespace sequence 	{
 
 template <typename Walker, typename Sequence, typename State>
-class RankExtender: public SumExtenderBase<Sequence, State> {
+class RankExtender: public balanced_tree::SumExtenderBase<Sequence, State> {
 
-	typedef SumExtenderBase<Sequence, State> Base;
+	typedef balanced_tree::SumExtenderBase<Sequence, State> Base;
 
 	typedef typename Sequence::Symbol 	Symbol;
 	typedef typename Sequence::IndexKey 	IndexKey;
@@ -44,9 +44,9 @@ public:
 
 
 template <typename Walker, typename Sequence, typename State>
-class RankLoudsExtender: public SumExtenderBase<Sequence, State> {
+class RankLoudsExtender: public balanced_tree::SumExtenderBase<Sequence, State> {
 
-	typedef SumExtenderBase<Sequence, State> Base;
+	typedef balanced_tree::SumExtenderBase<Sequence, State> Base;
 
 	typedef typename Sequence::Symbol 	Symbol;
 	typedef typename Sequence::IndexKey 	IndexKey;
@@ -76,9 +76,9 @@ public:
 
 
 template <typename Walker, typename Sequence, typename State>
-class SelectExtender: public SumExtenderBase<Sequence, State> {
+class SelectExtender: public balanced_tree::SumExtenderBase<Sequence, State> {
 
-	typedef SumExtenderBase<Sequence, State> Base;
+	typedef balanced_tree::SumExtenderBase<Sequence, State> Base;
 
 	typedef typename Sequence::Symbol 	Symbol;
 	typedef typename Sequence::IndexKey 	IndexKey;
@@ -114,9 +114,9 @@ template <
 	template <typename Walker, typename Map, typename State> class Extender,
 	typename State
 >
-class SelectForwardWalker :public DataForwardWalkerBase<Sequence, MainWalker, BTreeCompareLT, Extender, State> {
+class SelectForwardWalker: public DataForwardWalkerBase<Sequence, MainWalker, balanced_tree::BTreeCompareLT, Extender, State> {
 
-	typedef DataForwardWalkerBase<Sequence, MainWalker, BTreeCompareLT, Extender, State> 		Base;
+	typedef DataForwardWalkerBase<Sequence, MainWalker, balanced_tree::BTreeCompareLT, Extender, State> 		Base;
 	typedef SelectForwardWalker<Sequence, MainWalker, Extender, State> 							MyType;
 
 	typedef typename Sequence::Symbol											Symbol;
@@ -217,9 +217,9 @@ template <
 	template <typename Walker, typename Map, typename State> class Extender,
 	typename State
 >
-class SelectBackwardWalker :public DataBackwardWalkerBase<Sequence, MainWalker, BTreeCompareLT, Extender, State> {
+class SelectBackwardWalker :public DataBackwardWalkerBase<Sequence, MainWalker, balanced_tree::BTreeCompareLT, Extender, State> {
 
-	typedef DataBackwardWalkerBase<Sequence, MainWalker, BTreeCompareLT, Extender, State> 		Base;
+	typedef DataBackwardWalkerBase<Sequence, MainWalker, balanced_tree::BTreeCompareLT, Extender, State> 		Base;
 	typedef SelectBackwardWalker<Sequence, MainWalker, Extender, State> 						MyType;
 
 	typedef typename Sequence::Symbol											Symbol;
@@ -325,7 +325,7 @@ template <
 	template <typename Walker, typename MapType, typename State> class Extender,
 	typename ExtenderState
 >
-class NodeCountForwardWalker: public NodeWalkerBase {
+class NodeCountForwardWalker: public balanced_tree::NodeWalkerBase {
 
 	typedef typename Map::Key Key;
 	typedef typename Map::IndexKey IndexKey;
@@ -421,7 +421,7 @@ template <
 	template <typename Walker, typename MapType, typename State> class Extender,
 	typename ExtenderState
 >
-class NodeCountBackwardWalker: public NodeWalkerBase {
+class NodeCountBackwardWalker: public balanced_tree::NodeWalkerBase {
 
 	typedef typename Map::Key Key;
 	typedef typename Map::IndexKey IndexKey;
@@ -521,7 +521,7 @@ template <
 	template <typename Walker, typename Map, typename State> class Extender,
 	typename State
 >
-class PackedSequenceCountForwardWalker: public btree::NodeWalkerBase {
+class PackedSequenceCountForwardWalker: public balanced_tree::NodeWalkerBase {
 
 	typedef typename Sequence::IndexKey IndexKey;
 	typedef typename Sequence::Symbol 	Symbol;
@@ -638,7 +638,7 @@ template <
 	template <typename Walker, typename Map, typename State> class Extender,
 	typename State
 >
-class PackedSequenceCountBackwardWalker: public btree::NodeWalkerBase {
+class PackedSequenceCountBackwardWalker: public balanced_tree::NodeWalkerBase {
 
 	typedef typename Sequence::IndexKey IndexKey;
 	typedef typename Sequence::Symbol 	Symbol;

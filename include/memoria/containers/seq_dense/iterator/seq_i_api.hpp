@@ -121,18 +121,18 @@ BigInt M_TYPE::selectFw(BigInt rank, Symbol symbol)
 	};
 
 	Int node_indexes[1] = {0};
-	FunctorExtenderState<> node_state(1, node_indexes, size_fn);
+	balanced_tree::FunctorExtenderState<> node_state(1, node_indexes, size_fn);
 
 	Int data_indexes[0] = {};
-	FunctorExtenderState<> data_state(0, data_indexes, size_fn);
+	balanced_tree::FunctorExtenderState<> data_state(0, data_indexes, size_fn);
 
 	sequence::SequenceForwardWalker<
 		Types,
-		NodeLTForwardWalker,
+		balanced_tree::NodeLTForwardWalker,
 		SelectForwardWalker,
-		NodeSumExtender,
+		balanced_tree::NodeSumExtender,
 		SelectExtender,
-		FunctorExtenderState<>
+		balanced_tree::FunctorExtenderState<>
 	>
 	walker(rank, symbol + 1, symbol, node_state, data_state);
 
@@ -158,18 +158,18 @@ BigInt M_TYPE::selectBw(BigInt rank, Symbol symbol)
 	};
 
 	Int node_indexes[1] = {0};
-	FunctorExtenderState<> node_state(1, node_indexes, size_fn);
+	balanced_tree::FunctorExtenderState<> node_state(1, node_indexes, size_fn);
 
 	Int data_indexes[0] = {};
-	FunctorExtenderState<> data_state(0, data_indexes, size_fn);
+	balanced_tree::FunctorExtenderState<> data_state(0, data_indexes, size_fn);
 
 	sequence::SequenceBackwardWalker<
 		Types,
-		NodeLTBackwardWalker,
+		balanced_tree::NodeLTBackwardWalker,
 		SelectBackwardWalker,
-		NodeSumExtender,
+		balanced_tree::NodeSumExtender,
 		SelectExtender,
-		FunctorExtenderState<>
+		balanced_tree::FunctorExtenderState<>
 	>
 	walker(rank, symbol + 1, symbol, node_state, data_state);
 
@@ -192,9 +192,9 @@ BigInt M_TYPE::countFw(Symbol symbol)
 		Types,
 		NodeCountForwardWalker,
 		PackedSequenceCountForwardWalker,
-		EmptyExtender,
-		EmptyExtender,
-		EmptyExtenderState
+		balanced_tree::EmptyExtender,
+		balanced_tree::EmptyExtender,
+		balanced_tree::EmptyExtenderState
 	>
 	walker(0, symbol + 1, symbol);
 
@@ -218,9 +218,9 @@ BigInt M_TYPE::countBw(Symbol symbol)
 		Types,
 		NodeCountBackwardWalker,
 		PackedSequenceCountBackwardWalker,
-		EmptyExtender,
-		EmptyExtender,
-		EmptyExtenderState
+		balanced_tree::EmptyExtender,
+		balanced_tree::EmptyExtender,
+		balanced_tree::EmptyExtenderState
 	>
 	walker(0, symbol + 1, symbol);
 
@@ -257,16 +257,16 @@ BigInt M_TYPE::rank(BigInt size, Symbol symbol) const
 		};
 
 		Int node_indexes[1] = {(Int)symbol + 1};
-		FunctorExtenderState<> node_state(1, node_indexes, rank_fn);
+		balanced_tree::FunctorExtenderState<> node_state(1, node_indexes, rank_fn);
 
 		Int data_indexes[1] = {(Int)symbol};
-		FunctorExtenderState<> data_state(1, data_indexes, rank_fn);
+		balanced_tree::FunctorExtenderState<> data_state(1, data_indexes, rank_fn);
 
 		typename Types::template SkipForwardWalker<
 		   			Types,
-		   			NodeSumExtender,
-		   			RankExtender,
-		   			FunctorExtenderState<>
+		   			balanced_tree::NodeSumExtender,
+		   			balanced_tree::RankExtender,
+		   			balanced_tree::FunctorExtenderState<>
 		> walker(size, 0, node_state, data_state);
 
 		tmp.findFw(walker);

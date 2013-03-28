@@ -11,11 +11,17 @@
 #include <memoria/core/tools/fixed_vector.hpp>
 #include <memoria/core/container/iterator.hpp>
 
+#include <memoria/prototypes/balanced_tree/pages/tree_node.hpp>
+
+
 #include <ostream>
 #include <functional>
 
 namespace memoria       {
 namespace balanced_tree {
+
+
+
 
 using namespace std;
 
@@ -774,6 +780,40 @@ public:
 		return idx_;
 	}
 };
+
+
+//template <typename NodeType> class WalkerFnWrapper;
+//
+//
+
+//
+//template <
+//	typename Types,
+//	bool root, bool leaf
+//>
+//class TreeMapNode;
+//
+//template <
+//	typename Types,
+//	bool root, bool leaf
+//>
+//using AdaptedTreeMapNode = NodePageAdaptor<TreeMapNode, Types, root, leaf>;
+
+
+//template <>
+//class WalkerFnWrapper<AdaptedTreeMapNode> {
+//
+//};
+
+//template <
+//	template <typename, bool, bool> class TreeNode,
+//	typename Types,
+//	bool root,
+//	bool leaf
+//>
+//using NodeFunctorWrapper = class FunctorWrapper<NodePageAdaptor<TreeNode, Types, root, leaf>>;
+
+
 
 
 

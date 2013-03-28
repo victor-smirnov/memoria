@@ -42,9 +42,9 @@ public:
 
 //PUBLIC API:
 
-    bool checkTree();
+    bool checkTree() const;
 
-    bool check(void *data) {
+    bool check(void *data) const {
         return me()->checkTree();
     }
 
@@ -70,7 +70,7 @@ public:
 
     bool check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node) const;
 
-    bool check_keys() {
+    bool check_keys() const {
         return false;
     }
 
@@ -81,7 +81,7 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::checkTree()
+bool M_TYPE::checkTree() const
 {
     NodeBaseG root = me()->getRoot(Allocator::READ);
     if (root != NULL)

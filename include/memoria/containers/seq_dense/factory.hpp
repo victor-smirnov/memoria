@@ -24,9 +24,9 @@ namespace memoria {
 
 
 template <typename Profile, Int BitsPerSymbol_>
-struct BTreeTypes<Profile, memoria::Sequence<BitsPerSymbol_, true>>: public BTreeTypes<Profile, memoria::ASequence>  {
+struct BalancedTreeTypes<Profile, memoria::Sequence<BitsPerSymbol_, true>>: public BalancedTreeTypes<Profile, memoria::ASequence>  {
 
-	typedef BTreeTypes<Profile, memoria::ASequence> Base;
+	typedef BalancedTreeTypes<Profile, memoria::ASequence> Base;
 
     typedef typename MergeLists<
             	typename Base::ContainerPartsList,

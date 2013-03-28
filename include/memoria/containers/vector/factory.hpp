@@ -30,9 +30,9 @@
 namespace memoria {
 
 template <typename Profile, typename ElementType_>
-struct BTreeTypes<Profile, memoria::Vector<ElementType_>>: public BTreeTypes<Profile, memoria::ASequence>  {
+struct BalancedTreeTypes<Profile, memoria::Vector<ElementType_>>: public BalancedTreeTypes<Profile, memoria::ASequence>  {
 
-	typedef BTreeTypes<Profile, memoria::ASequence> Base;
+	typedef BalancedTreeTypes<Profile, memoria::ASequence> Base;
 
     typedef typename MergeLists<
             	typename Base::ContainerPartsList,

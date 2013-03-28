@@ -38,9 +38,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 	typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
 	typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
 
-	typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-	typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
-
 	typedef typename Base::Metadata                                             Metadata;
 
 	typedef typename Base::Key                                                  Key;
@@ -59,7 +56,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
 
 	static const Int Indexes                                                    = Types::Indexes;
-	typedef Accumulators<Key, Indexes>                                          Accumulator;
+	typedef typename Types::Accumulator                                         Accumulator;
 
 	typedef typename Types::ElementType                                         ElementType;
 
@@ -79,14 +76,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
 		typename Types::template SkipForwardWalker<
 			Types,
-			NodeSumExtender,
-			RankExtender,
-			FunctorExtenderState<>
+			balanced_tree::NodeSumExtender,
+			balanced_tree::RankExtender,
+			balanced_tree::FunctorExtenderState<>
 		> walker(
 			pos,
 			0,
-			FunctorExtenderState<>(1, node_indexes, rank_fn),
-			FunctorExtenderState<>(1, data_indexes, rank_fn)
+			balanced_tree::FunctorExtenderState<>(1, node_indexes, rank_fn),
+			balanced_tree::FunctorExtenderState<>(1, data_indexes, rank_fn)
 		);
 
 		ctr.find1(walker);
@@ -105,18 +102,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 		};
 
 		Int node_indexes[1] = {0};
-		FunctorExtenderState<> node_state(1, node_indexes, size_fn);
+		balanced_tree::FunctorExtenderState<> node_state(1, node_indexes, size_fn);
 
 		Int data_indexes[0] = {};
-		FunctorExtenderState<> data_state(0, data_indexes, size_fn);
+		balanced_tree::FunctorExtenderState<> data_state(0, data_indexes, size_fn);
 
 		sequence::SequenceForwardWalker<
 			Types,
-			NodeLTForwardWalker,
-			SelectForwardWalker,
-			NodeSumExtender,
-			SelectExtender,
-			FunctorExtenderState<>
+			balanced_tree::NodeLTForwardWalker,
+			balanced_tree::SelectForwardWalker,
+			balanced_tree::NodeSumExtender,
+			balanced_tree::SelectExtender,
+			balanced_tree::FunctorExtenderState<>
 		>
 		walker(rank, symbol + 1, symbol, node_state, data_state);
 

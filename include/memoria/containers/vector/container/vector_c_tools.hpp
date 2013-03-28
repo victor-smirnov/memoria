@@ -38,8 +38,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
 	typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
 	typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
 
-	typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-	typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
 
 	typedef typename Base::Metadata                                             Metadata;
 
@@ -60,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
 
 
 	static const Int Indexes                                                    = Types::Indexes;
-	typedef Accumulators<Key, Indexes>                                          Accumulator;
+	typedef typename Types::Accumulator                                         Accumulator;
 
 	typedef typename Types::ElementType                                         ElementType;
 

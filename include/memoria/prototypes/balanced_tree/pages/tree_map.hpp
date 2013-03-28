@@ -188,6 +188,23 @@ public:
 		return acc;
 	}
 
+	const IndexKey* indexes(Int block_num) const {
+		return tree()->indexes(block_num);
+	}
+
+	IndexKey* indexes(Int block_num) {
+		return tree()->indexes(block_num);
+	}
+
+	const Key* keys(Int block_num) const {
+		return tree()->values();
+	}
+
+	Key* keys(Int block_num) {
+		return tree()->values();
+	}
+
+
 	Value& data(Int idx) {
 		return *(values() + idx);
 	}
@@ -319,6 +336,11 @@ public:
 		accum[0] += tree()->sum(start, end);
 	}
 
+	void sum(Int block_num, Int start, Int end, Key& accum) const
+	{
+		accum += tree()->sum(start, end);
+	}
+
 
 	void generateDataEvents(IPageDataEventHandler* handler) const
 	{
@@ -330,7 +352,7 @@ public:
 
 		for (Int idx = 0; idx < size(); idx++)
 		{
-			intrnl1::ValueHelper<Value>::setup(handler, data(idx));
+			internl1::ValueHelper<Value>::setup(handler, data(idx));
 		}
 
 		handler->endGroup();
@@ -348,6 +370,21 @@ public:
 		Base::deserialize(buf);
 		tree()->deserialize(buf);
 		FieldFactory<Value>::deserialize(buf, *values(), size());
+	}
+
+	template <typename Walker>
+	Int findFw(Int start, Walker& w) const {
+		return tree()->size();
+	}
+
+	template <typename Walker>
+	Int findBw(Int start, Walker& w) const {
+		return tree()->size();
+	}
+
+	template <typename Walker>
+	Int findFw(Walker& w) const {
+		return tree()->size();
 	}
 };
 

@@ -186,9 +186,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
    	{
    		typename Types::template SkipForwardWalker<
    			Types,
-   			EmptyExtender,
-   			EmptyExtender,
-   			EmptyExtenderState
+   			balanced_tree::EmptyExtender,
+   			balanced_tree::EmptyExtender,
+   			balanced_tree::EmptyExtenderState
    		>
    		walker(distance, 0);
 
@@ -201,9 +201,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::sequence::IterAPIName)
    	{
    		typename Types::template SkipBackwardWalker<
    			Types,
-   			EmptyExtender,
-   			EmptyExtender,
-   			EmptyExtenderState
+   			balanced_tree::EmptyExtender,
+   			balanced_tree::EmptyExtender,
+   			balanced_tree::EmptyExtenderState
    		> walker(distance, 0);
 
    		findBw(walker);

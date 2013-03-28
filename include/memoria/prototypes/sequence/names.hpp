@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_SEQUENCE_NAMES_HPP
 #define _MEMORIA_PROTOTYPES_SEQUENCE_NAMES_HPP
 
-#include <memoria/prototypes/bstree/names.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_names.hpp>
 
 namespace memoria    	{
 namespace sequence		{
@@ -31,10 +31,10 @@ template <typename Types>
 struct SequenceIterTypesT: IterTypesT<Types> {};
 
 template <typename Types>
-using SequenceCtrTypes  = BSTreeCtrTypes<SequenceCtrTypesT<Types>>;
+using SequenceCtrTypes  = BalTreeCtrTypes<SequenceCtrTypesT<Types>>;
 
 template <typename Types>
-using SequenceIterTypes = BSTreeIterTypes<SequenceIterTypesT<Types>>;
+using SequenceIterTypes = BalTreeIterTypes<SequenceIterTypesT<Types>>;
 
 }
 

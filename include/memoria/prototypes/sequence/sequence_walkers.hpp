@@ -13,7 +13,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/tools/idata.hpp>
 
-#include <memoria/prototypes/btree/btree_walkers.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
 
 #include <functional>
 
@@ -21,8 +21,6 @@ namespace memoria    {
 namespace sequence 	 {
 
 using namespace std;
-using namespace btree;
-
 
 
 template <typename Types>
@@ -362,10 +360,10 @@ template <
 
 	typename 											ExtenderState
 >
-class SequenceForwardWalker: public btree::BTreeForwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> {
+class SequenceForwardWalker: public balanced_tree::BTreeForwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> {
 protected:
 
-	typedef btree::BTreeForwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> 					Base;
+	typedef balanced_tree::BTreeForwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> 					Base;
 
 	typedef SequenceForwardWalker<
 				Types, NodeWalker, SequenceWalker, NodeExtender, SequenceExtender, ExtenderState
@@ -490,10 +488,10 @@ template <
 
 	typename ExtenderState
 >
-class SequenceBackwardWalker: public btree::BTreeBackwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> {
+class SequenceBackwardWalker: public balanced_tree::BTreeBackwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> {
 protected:
 
-	typedef btree::BTreeBackwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> 					Base;
+	typedef balanced_tree::BTreeBackwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> 					Base;
 
 	typedef SequenceBackwardWalker<
 		Types, NodeWalker, SequenceWalker, NodeExtender, SequenceExtender, ExtenderState
@@ -626,10 +624,10 @@ template <
 
 	typename ExtenderState
 >
-class SequenceCountBackwardWalker: public btree::BTreeBackwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> {
+class SequenceCountBackwardWalker: public balanced_tree::BTreeBackwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> {
 protected:
 
-	typedef btree::BTreeBackwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> 					Base;
+	typedef balanced_tree::BTreeBackwardWalker<Types, NodeWalker, NodeExtender, ExtenderState> 					Base;
 
 	typedef SequenceCountBackwardWalker<
 		Types, NodeWalker, SequenceWalker, NodeExtender, SequenceExtender, ExtenderState
@@ -741,12 +739,12 @@ template <
 
 	typename ExtenderState
 >
-class SequenceSkipForwardWalker: public BTreeForwardWalker<
-	Types, NodeLEForwardWalker, NodeWalkerExtender, ExtenderState
+class SequenceSkipForwardWalker: public balanced_tree::BTreeForwardWalker<
+	Types, balanced_tree::NodeLEForwardWalker, NodeWalkerExtender, ExtenderState
 > {
 protected:
 
-	typedef btree::BTreeForwardWalker<Types, NodeLEForwardWalker, NodeWalkerExtender, ExtenderState> 		Base;
+	typedef balanced_tree::BTreeForwardWalker<Types, balanced_tree::NodeLEForwardWalker, NodeWalkerExtender, ExtenderState> 		Base;
 
 	typedef SequenceSkipForwardWalker<Types, NodeWalkerExtender, SequenceWalkerExtender, ExtenderState>		MyType;
 
@@ -916,12 +914,12 @@ template <
 
 	typename ExtenderState
 >
-class SequenceSkipBackwardWalker:public BTreeBackwardWalker<
-	Types, NodeLEBackwardWalker, NodeWalkerExtender, ExtenderState
+class SequenceSkipBackwardWalker:public balanced_tree::BTreeBackwardWalker<
+	Types, balanced_tree::NodeLEBackwardWalker, NodeWalkerExtender, ExtenderState
 > {
 protected:
 
-	typedef btree::BTreeBackwardWalker<Types, NodeLEBackwardWalker, NodeWalkerExtender, ExtenderState> 		Base;
+	typedef balanced_tree::BTreeBackwardWalker<Types, balanced_tree::NodeLEBackwardWalker, NodeWalkerExtender, ExtenderState> 		Base;
 
 	typedef SequenceSkipBackwardWalker<Types, NodeWalkerExtender, SequenceWalkerExtender, ExtenderState>	MyType;
 
@@ -1036,7 +1034,7 @@ template <
 	template <typename Walker, typename Map, typename State> class Extender,
 	typename State
 >
-class DataForwardWalkerBase: public btree::NodeWalkerBase {
+class DataForwardWalkerBase: public balanced_tree::NodeWalkerBase {
 
 protected:
 	typedef typename Sequence::IndexKey IndexKey;
@@ -1112,7 +1110,7 @@ template <
 	template <typename Walker, typename Map, typename State> class Extender,
 	typename State
 >
-class DataBackwardWalkerBase: public btree::NodeWalkerBase {
+class DataBackwardWalkerBase: public balanced_tree::NodeWalkerBase {
 protected:
 	typedef typename Sequence::IndexKey IndexKey;
 
@@ -1180,9 +1178,9 @@ template <
 	template <typename, typename, typename> class NodeExtender,
 	typename ExtenderState
 >
-class FindLEWalker: public btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> {
+class FindLEWalker: public balanced_tree::BTreeForwardWalker<Types, balanced_tree::NodeLTForwardWalker, NodeExtender, ExtenderState> {
 
-	typedef btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> 	Base;
+	typedef balanced_tree::BTreeForwardWalker<Types, balanced_tree::NodeLTForwardWalker, NodeExtender, ExtenderState> 	Base;
 	typedef FindLEWalker<Types, NodeExtender, ExtenderState>											MyType;
 
 public:
@@ -1198,9 +1196,9 @@ template <
 	template <typename, typename, typename> class NodeExtender,
 	typename ExtenderState
 >
-class FindLTWalker: public btree::BTreeForwardWalker<Types, btree::NodeLEForwardWalker, NodeExtender, ExtenderState> {
+class FindLTWalker: public balanced_tree::BTreeForwardWalker<Types, balanced_tree::NodeLEForwardWalker, NodeExtender, ExtenderState> {
 
-	typedef btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> 	Base;
+	typedef balanced_tree::BTreeForwardWalker<Types, balanced_tree::NodeLTForwardWalker, NodeExtender, ExtenderState> 	Base;
 	typedef FindLTWalker<Types, NodeExtender, ExtenderState>											MyType;
 
 public:

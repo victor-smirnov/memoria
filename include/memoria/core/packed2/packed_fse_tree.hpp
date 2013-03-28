@@ -115,10 +115,10 @@ public:
 	typedef FSEValueDescr<IndexKey> 											ValueDescr;
 
 	template <typename TreeType, typename MyType>
-	using FindLTFnBase = FSEFindElementFnBase<TreeType, btree::BTreeCompareLE, MyType>;
+	using FindLTFnBase = FSEFindElementFnBase<TreeType, PackedCompareLE, MyType>;
 
 	template <typename TreeType, typename MyType>
-	using FindLEFnBase = FSEFindElementFnBase<TreeType, btree::BTreeCompareLT, MyType>;
+	using FindLEFnBase = FSEFindElementFnBase<TreeType, PackedCompareLT, MyType>;
 
 
 
@@ -518,7 +518,7 @@ public:
 
 	ValueDescr findLT(IndexKey val) const
 	{
-		FSEFindElementFn<MyType, btree::BTreeCompareLE> fn(*this, val);
+		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val);
 
 		Int pos = this->find_fw(fn);
 
@@ -529,7 +529,7 @@ public:
 
 	ValueDescr findLE(IndexKey val) const
 	{
-		FSEFindElementFn<MyType, btree::BTreeCompareLT> fn(*this, val);
+		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
 
 		Int pos = this->find_fw(fn);
 
@@ -540,7 +540,7 @@ public:
 
 	ValueDescr findLEl(IndexKey val) const
 	{
-		FSEFindElementFn<MyType, btree::BTreeCompareLT> fn(*this, val);
+		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
 
 		Int pos = fn.walkLastValuesBlock(0);
 

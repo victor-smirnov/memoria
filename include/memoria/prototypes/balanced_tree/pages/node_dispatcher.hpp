@@ -32,6 +32,12 @@ public:
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
+    template <template <typename> class Wrapper, typename Functor, typename... Args>
+    static void wrappedDispatch(NodeBase*, Functor &&, Args...) {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
+
     template <typename Functor, typename... Args>
     static typename Functor::ReturnType dispatchRtn(NodeBase*, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
@@ -86,7 +92,7 @@ public:
     	typename Functor,
     	typename... Args
     >
-    static typename Functor::ReturnType dispatchStatic2Rtn(bool, bool, Functor&&, Args...) {
+    static typename Functor::ReturnType dispatchStaticRtn(bool, bool, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
@@ -95,7 +101,7 @@ public:
     	typename Functor,
     	typename... Args
     >
-    static void dispatchStatic2(bool, bool, Functor&&, Args...) {
+    static void dispatchStatic(bool, bool, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
@@ -240,6 +246,22 @@ public:
     	}
     	else {
     		NDT0<Types, Idx - 1>::dispatch(node, functor, args...);
+    	}
+    }
+
+    template <template <typename> class Wrapper, typename Functor, typename... Args>
+    static void wrappedDispatch(NodeBase* node1, NodeBase* node2, Functor&& functor, Args... args)
+    {
+    	if (HASH == node1->page_type_hash())
+    	{
+    		Wrapper<Head> wrapper(functor);
+    		wrapper(static_cast<Head*>(node1), static_cast<Head*>(node2), args...);
+    	}
+    	else {
+    		NDT0<
+    			Types, Idx - 1
+    		>
+    		::template wrappedDispatch<Wrapper>(node1, node2, std::move(functor), args...);
     	}
     }
 
@@ -396,7 +418,7 @@ public:
     	typename Functor,
     	typename... Args
     >
-    static void dispatchStatic2(bool root, bool leaf, Functor&& fn, Args... args)
+    static void dispatchStatic(bool root, bool leaf, Functor&& fn, Args... args)
     {
     	bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -408,7 +430,7 @@ public:
     		NDT0<
     			Types, Idx - 1
     		>
-    		::template dispatchStatic2<TreeNode>(root, leaf, std::move(fn), args...);
+    		::template dispatchStatic<TreeNode>(root, leaf, std::move(fn), args...);
     	}
     }
 
@@ -418,7 +440,7 @@ public:
     	typename Functor,
     	typename... Args
     >
-    static typename Functor::ReturnType dispatchStatic2Rtn(bool root, bool leaf, Functor&& fn, Args... args)
+    static typename Functor::ReturnType dispatchStaticRtn(bool root, bool leaf, Functor&& fn, Args... args)
     {
     	bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -430,7 +452,7 @@ public:
     		return NDT0<
     			Types, Idx - 1
     		>
-    		::template dispatchStatic2Rtn<TreeNode>(root, leaf, std::move(fn), args...);
+    		::template dispatchStaticRtn<TreeNode>(root, leaf, std::move(fn), args...);
     	}
     }
 

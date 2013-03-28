@@ -54,37 +54,37 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     static const Int Indexes                                                    = Types::Indexes;
 
 
-    enum class BTreeNodeTraits {
+    enum class BalTreeNodeTraits {
         MAX_CHILDREN
     };
 
 
 
     template <typename Node>
-    Int getNodeTraitsFn(BTreeNodeTraits trait, Int page_size) const
+    Int getNodeTraitsFn(BalTreeNodeTraits trait, Int page_size) const
     {
     	switch (trait)
     	{
-    		case BTreeNodeTraits::MAX_CHILDREN:
+    		case BalTreeNodeTraits::MAX_CHILDREN:
     			return Node::Map::max_tree_size(page_size - sizeof(Node) + sizeof(typename Node::Map)); break;
 
-    		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", trait);
+    		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", (Int)trait);
     	}
     }
 
     MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(GetNodeTraitsFn, getNodeTraitsFn, Int);
 
-    Int getNodeTraitInt(BTreeNodeTraits trait, bool root, bool leaf) const
+    Int getNodeTraitInt(BalTreeNodeTraits trait, bool root, bool leaf) const
     {
         Int page_size = me()->getRootMetadata().page_size();
-        return NodeDispatcher::template dispatchStatic2Rtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
+        return NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
     }
 
 
 
     Int getMaxKeyCountForNode(bool root, bool leaf, Int level) const
     {
-        Int key_count = getNodeTraitInt(BTreeNodeTraits::MAX_CHILDREN, root, leaf, level);
+        Int key_count = getNodeTraitInt(BalTreeNodeTraits::MAX_CHILDREN, root, leaf);
         Int max_count = me()->getBranchingFactor();
 
         if (max_count == 0)

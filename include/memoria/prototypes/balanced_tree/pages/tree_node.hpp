@@ -12,8 +12,10 @@
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
+
 #include <memoria/prototypes/balanced_tree/pages/tree_map.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_names.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 
 namespace memoria    	{
 namespace balanced_tree {
@@ -48,7 +50,7 @@ public:
     }                                       	FLAGS;
 
     typedef Base_                               Base;
-    typedef TreePage<Base>                      Me;
+    typedef TreeNodeBase<Base>                  Me;
     typedef Me 									BasePageType;
 
     typedef typename Base::ID                   ID;
@@ -445,16 +447,31 @@ template <
 PageMetadata* NodePageAdaptor<TreeNode, Types, root, leaf>::page_metadata_ = NULL;
 
 
+template <
+	template <typename, bool, bool> class AdaptedTreeNode,
+	typename Types,
+	bool root, bool leaf
+>
+using TreeNode = NodePageAdaptor<AdaptedTreeNode, Types, root, leaf>;
 
+
+struct SimpleTestWalker {
+
+	template <typename Types, bool root, bool leaf>
+	void operator()(const TreeNode<TreeMapNode, Types, root, leaf>* node) const
+	{
+		cout<<"BOOO!"<<endl;
+	}
+};
 
 
 }
 
 template <typename Base>
-struct TypeHash<balanced_tree::TreePage<Base>> {
+struct TypeHash<balanced_tree::TreeNodeBase<Base>> {
     static const UInt Value = HashHelper<
     		TypeHash<Base>::Value,
-    		balanced_tree::TreePage<Base>::VERSION,
+    		balanced_tree::TreeNodeBase<Base>::VERSION,
     		TypeHash<Int>::Value,
     		TypeHash<Int>::Value,
     		TypeHash<Int>::Value,
@@ -465,13 +482,13 @@ struct TypeHash<balanced_tree::TreePage<Base>> {
 
 
 template <typename Metadata, typename Base>
-struct TypeHash<RootPage<Metadata, Base, true> > {
+struct TypeHash<balanced_tree::RootPage<Metadata, Base, true> > {
     static const UInt Value = HashHelper<TypeHash<Base>::Value, TypeHash<Metadata>::Value>::Value;
 };
 
 
 template <typename Metadata, typename Base>
-struct TypeHash<RootPage<Metadata, Base, false> > {
+struct TypeHash<balanced_tree::RootPage<Metadata, Base, false> > {
     static const UInt Value = TypeHash<Base>::Value;
 };
 

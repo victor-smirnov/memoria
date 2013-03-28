@@ -243,7 +243,210 @@ public:
 };
 
 
+template <typename Key, Int Indexes_>
+class Accumulators
+{
+    typedef Accumulators<Key, Indexes_> MyType;
 
+    Key         keys_[Indexes_];
+
+public:
+
+    static const Int Indexes = Indexes_;
+
+    Accumulators()
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            keys_[c] = 0;
+        }
+    }
+
+    Accumulators(const MyType& other)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            keys_[c] = other.keys_[c];
+        }
+    }
+
+    Accumulators(const Key* keys)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            keys_[c] = keys[c];
+        }
+    }
+
+    const Key* keys() const
+    {
+        return keys_;
+    }
+
+    Key* keys()
+    {
+        return keys_;
+    }
+
+
+
+    const Key& key(Int idx) const
+    {
+        return keys_[idx];
+    }
+
+    Key& key(Int idx)
+    {
+        return keys_[idx];
+    }
+
+    const Key& operator[](Int idx) const
+    {
+        return keys_[idx];
+    }
+
+    Key& operator[](Int idx)
+    {
+        return keys_[idx];
+    }
+
+    void clear()
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            keys_[c] = 0;
+        }
+    }
+
+    bool operator==(const MyType& other) const
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            if (keys_[c] != other.keys_[c])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool operator!=(const MyType& other) const
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            if (keys_[c] == other.keys_[c])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    MyType& operator=(const MyType& other)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            keys_[c] = other.keys_[c];
+        }
+
+        return *this;
+    }
+
+    MyType& operator=(const Key* keys)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            keys_[c] = keys[c];
+        }
+
+        return *this;
+    }
+
+    MyType& operator+=(const MyType& other)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            keys_[c] += other.keys_[c];
+        }
+
+        return *this;
+    }
+
+    MyType operator+(const MyType& other) const
+    {
+        MyType result = *this;
+
+        for (Int c = 0; c < Indexes; c++)
+        {
+            result.keys_[c] += other.keys_[c];
+        }
+
+        return result;
+    }
+
+    MyType operator-(const MyType& other) const
+    {
+        MyType result = *this;
+
+        for (Int c = 0; c < Indexes; c++)
+        {
+            result.keys_[c] -= other.keys_[c];
+        }
+
+        return result;
+    }
+
+    MyType operator-() const
+    {
+        MyType result = *this;
+
+        for (Int c = 0; c < Indexes; c++)
+        {
+            result.keys_[c] = -keys_[c];
+        }
+
+        return result;
+    }
+
+
+    MyType& operator-=(const MyType& other)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            keys_[c] -= other.keys_[c];
+        }
+
+        return *this;
+    }
+};
+
+
+
+
+}
+}
+
+namespace std {
+template <typename Key, Int Indexes>
+ostream& operator<<(ostream& out, const ::memoria::balanced_tree::Accumulators<Key, Indexes>& accum)
+{
+    out<<"[";
+
+    for (Int c = 0; c < Indexes; c++)
+    {
+        out<<accum.keys()[c];
+
+        if (c < Indexes - 1)
+        {
+            out<<", ";
+        }
+    }
+
+    out<<"]";
+
+    return out;
 }
 }
 

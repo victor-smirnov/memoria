@@ -214,7 +214,7 @@ public:
                 typename ContainerTypes::KeysList, TypeSizeValueProvider
         >::Result                                                               Key;
 
-        typedef Accumulators<Key, ContainerTypes::Indexes>                      Accumulator;
+        typedef balanced_tree::Accumulators<Key, ContainerTypes::Indexes>       Accumulator;
 
 
         typedef ValuePair<Accumulator, Value>                                   Element;

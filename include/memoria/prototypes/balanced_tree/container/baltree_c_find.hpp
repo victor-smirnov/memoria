@@ -245,7 +245,7 @@ Int M_TYPE::findFw(TreePath& path, Int idx, Walker&& walker, Int level)
 				path[level].node() 			= child_node;
 				path[level].parent_idx()	= child_idx;
 
-				NodeDispatcher::DispatchConst(child_node, walker);
+				NodeDispatcher::dispatchConst(child_node, walker);
 
 				return walker.idx();
 			}

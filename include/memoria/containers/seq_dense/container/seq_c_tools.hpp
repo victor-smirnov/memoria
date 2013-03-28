@@ -38,9 +38,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrToolsName)
 	typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
 	typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
 
-	typedef typename Types::Pages::Node2RootMap                                 Node2RootMap;
-	typedef typename Types::Pages::Root2NodeMap                                 Root2NodeMap;
-
 	typedef typename Base::Metadata                                             Metadata;
 
 	typedef typename Base::Key                                                  Key;
@@ -63,7 +60,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrToolsName)
 	static const Int Symbols                                                    = DataPage::Sequence::Symbols;
 
 
-	typedef Accumulators<Key, Indexes>                                          Accumulator;
+	typedef typename Types::Accumulator                                         Accumulator;
 
 	typedef typename Types::ElementType                                         ElementType;
 

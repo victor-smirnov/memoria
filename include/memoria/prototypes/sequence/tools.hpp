@@ -10,13 +10,15 @@
 #define _MEMORIA_PROTOTYPES_SEQUENCE_TOOLS_HPP
 
 #include <memoria/prototypes/sequence/names.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/tools/idata.hpp>
 
-namespace memoria    {
 
 
-namespace btree {
+namespace memoria    	{
+namespace balanced_tree {
+
 using namespace memoria::core;
 
 template <typename NodePage, typename DataPage, Int Size = 16>

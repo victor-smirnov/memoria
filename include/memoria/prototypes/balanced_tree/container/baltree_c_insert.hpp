@@ -234,7 +234,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
         NonLeafNodeKeyValuePair setINodeData(PairType* data, NodeBaseG& node, Int count)
         {
             SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
-            NonLeafDispatcher::Dispatch(node, fn);
+            NonLeafDispatcher::dispatch(node, fn);
             return fn.total_;
         }
 
@@ -242,7 +242,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
         NonLeafNodeKeyValuePair setLeafNodeData(PairType* data, NodeBaseG& node, Int count)
         {
             SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
-            LeafDispatcher::Dispatch(node, fn);
+            LeafDispatcher::dispatch(node, fn);
             return fn.total_;
         }
 
@@ -758,7 +758,7 @@ void M_TYPE::fillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
                                                             );
 
             me()->setKeys(node, c, pair.keys);
-            me()->setINodeData(node, c, &pair.value);
+            me()->setChildID(node, c, pair.value);
 
             data.start      += pair.key_count;
             data.remains    -= pair.key_count;

@@ -464,10 +464,10 @@ public:
     	MEMORIA_ASSERT(from, <, size());
 
     	intrnl1::EmptyMainWalker mw;
-    	btree::EmptyExtenderState state;
+    	balanced_tree::EmptyExtenderState state;
 
     	sequence::SelectForwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    		MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
     	>
     	walker(mw, *this, rank, symbol, state);
 
@@ -479,10 +479,10 @@ public:
     SelectResult selectFW(Value symbol, Int rank) const
     {
     	intrnl1::EmptyMainWalker mw;
-    	btree::EmptyExtenderState state;
+    	balanced_tree::EmptyExtenderState state;
 
     	sequence::SelectForwardWalker<
-    	 	 MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    	 	 MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
     	>
     	walker(mw, *this, rank, symbol, state);
 
@@ -495,10 +495,10 @@ public:
     SelectResult selectBW(Int from, Value symbol, Int rank) const
     {
     	intrnl1::EmptyMainWalker mw;
-    	btree::EmptyExtenderState state;
+    	balanced_tree::EmptyExtenderState state;
 
     	sequence::SelectBackwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    		MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
     	>
     	walker(mw, *this, rank, symbol, state);
 
@@ -510,10 +510,10 @@ public:
     IndexKey countFW(Int from, Value symbol) const
     {
     	intrnl1::EmptyMainWalker mw;
-    	btree::EmptyExtenderState state;
+    	balanced_tree::EmptyExtenderState state;
 
     	sequence::PackedSequenceCountForwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    		MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
     	>
     	walker(mw, *this, 0, symbol, state);
 
@@ -531,10 +531,10 @@ public:
 //    	return walker.rank();
 
     	intrnl1::EmptyMainWalker mw;
-    	btree::EmptyExtenderState state;
+    	balanced_tree::EmptyExtenderState state;
 
     	sequence::PackedSequenceCountBackwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+    		MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
     	>
     	walker(mw, *this, 0, symbol, state);
 

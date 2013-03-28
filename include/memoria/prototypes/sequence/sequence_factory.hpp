@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_SEQUENCE_FACTORY_HPP
 #define _MEMORIA_PROTOTYPES_SEQUENCE_FACTORY_HPP
 
-#include <memoria/prototypes/bstree/factory.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_factory.hpp>
 
 #include <memoria/prototypes/sequence/names.hpp>
 #include <memoria/prototypes/sequence/sequence_walkers.hpp>
@@ -52,10 +52,10 @@ struct SequenceContainerTypes: public Base {
 
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::ASequence>: public BTreeTypes<Profile, memoria::BSTree>  {
+struct BalancedTreeTypes<Profile, memoria::ASequence>: public BalancedTreeTypes<Profile, memoria::BalancedTree>  {
 
-    typedef IDType                                                              Value;
-    typedef BTreeTypes<Profile, memoria::BSTree>                                Base;
+    typedef balanced_tree::IDType                                               Value;
+    typedef BalancedTreeTypes<Profile, memoria::BalancedTree>                   Base;
 
     typedef TypeList<>                                                          DataPagePartsList;
 
@@ -125,7 +125,7 @@ struct BTreeTypes<Profile, memoria::ASequence>: public BTreeTypes<Profile, memor
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::ASequence, T>: public CtrTF<Profile, memoria::BSTree, T> {
+class CtrTF<Profile, memoria::ASequence, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
 
 };
 

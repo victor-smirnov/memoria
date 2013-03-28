@@ -385,7 +385,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
             size = meta.page_size();
         }
 
-        NodeBaseG node = NodeDispatcher::template dispatchStatic2Rtn<TreeMapNode>(
+        NodeBaseG node = NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(
         		root,
         		leaf,
         		CreateNodeFn(me()), size
@@ -412,7 +412,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT(level, >=, 0);
 
-        NodeBaseG node = NodeDispatcher::template dispatchStatic2Rtn<TreeMapNode>(
+        NodeBaseG node = NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(
         		true,
         		leaf,
         		CreateNodeFn(me()),
