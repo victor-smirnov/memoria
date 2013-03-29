@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BTREE_WALKERS_HPP
 #define _MEMORIA_PROTOTYPES_BTREE_WALKERS_HPP
 
-#include <memoria/core/tools/fixed_vector.hpp>
+#include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/iterator.hpp>
 
 #include <ostream>

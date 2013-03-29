@@ -77,7 +77,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     Int getNodeTraitInt(BalTreeNodeTraits trait, bool root, bool leaf) const
     {
         Int page_size = me()->getRootMetadata().page_size();
-        return NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
+        return NonLeafDispatcher::template dispatchStaticRtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
     }
 
 
@@ -291,37 +291,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
     template <typename Node>
-    Int getCapacityFn(const Node* node, Int max_node_capacity) const
+    Int getCapacityFn(const Node* node) const
     {
-    	if (max_node_capacity == 0)
-    	{
-    		return (node->map().maxSize() - node->children_count());
-    	}
-    	else
-    	{
-    		Int capacity = max_node_capacity - node->children_count();
-    		return capacity > 0 ? capacity : 0;
-    	}
+    	return node->capacity();
     }
 
     MEMORIA_CONST_FN_WRAPPER_RTN(GetCapacityFn, getCapacityFn, Int);
 
     Int getCapacity(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatchConstRtn(node, GetCapacityFn(me()), me()->getBranchingFactor());
+        return NodeDispatcher::dispatchConstRtn(node, GetCapacityFn(me()));
     }
 
     template <typename Node>
-    Int getMapCapacityFn(const Node* node, Int max_node_capacity) const
+    Int getMaxCapacityFn(const Node* node) const
     {
-    	if (max_node_capacity == 0)
-    	{
-    		return node->map().maxSize();
-    	}
-    	else
-    	{
-    		return max_node_capacity;
-    	}
+    	return node->max_size();
     }
 
 
@@ -329,7 +314,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     Int getMaxCapacity(const NodeBaseG& node) const
     {
-    	return NodeDispatcher::dispatchConstRtn(node, GetCapacityFn(me()), me()->getBranchingFactor());
+    	return NodeDispatcher::dispatchConstRtn(node, GetMaxCapacityFn(me()));
     }
 
     bool shouldMergeNode(const TreePath& path, Int level) const
@@ -377,7 +362,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     Accumulator getKeys(const NodeBaseG& node, Int idx) const
     {
         Accumulator keys;
-        NodeDispatcher::dispatchConst(node, ExtractKeyValuesFn(me()), idx, keys.keys());
+        NodeDispatcher::dispatchConst(node, ExtractKeyValuesFn(me()), idx, keys.values());
 
         return keys;
     }
@@ -400,7 +385,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     Accumulator getMaxKeys(const NodeBaseG& node) const
     {
     	Accumulator keys;
-    	NodeDispatcher::dispatchConst(node, ExtractMaxKeyValuesFn(me()), keys.keys());
+    	NonLeafDispatcher::dispatchConst(node, ExtractMaxKeyValuesFn(me()), keys.values());
 
     	return keys;
     }
@@ -500,7 +485,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     template <typename Node>
     void reindexFn(Node* node, Int from, Int to) const
     {
-    	node->map().reindexAll(from, to);
+    	node->reindexAll(from, to);
     }
 
     MEMORIA_CONST_FN_WRAPPER(ReindexFn, reindexFn);
@@ -552,7 +537,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     template <typename Node>
     Value getLeafDataFn(const Node* node, Int idx) const
     {
-    	return node->map().data(idx);
+    	return node->value(idx);
     }
 
     MEMORIA_CONST_FN_WRAPPER_RTN(GetLeafDataFn, getLeafDataFn, Value);
@@ -568,7 +553,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     template <typename Node>
     void setLeafDataFn(Node* node, Int idx, const Value& val) const
     {
-    	node->map().data(idx) = val;
+    	node->value(idx) = val;
     }
 
     MEMORIA_CONST_FN_WRAPPER(SetLeafDataFn, setLeafDataFn);
@@ -672,18 +657,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     void sumKeys(const NodeBase *node, Int from, Int count, Accumulator& keys) const
     {
-    	keys += NodeDispatcher::dispatchConstRtn(node, SumKeysFn(me()), from, count);
+    	keys += NonLeafDispatcher::dispatchConstRtn(node, SumKeysFn(me()), from, count);
     }
 
     void sumKeys(const NodeBase *node, Int block_num, Int from, Int count, Key& sum) const
     {
-    	sum += NodeDispatcher::dispatchConstRtn(node, SumKeysInOneBlockFn(me()), block_num, from, count);
+    	sum += NonLeafDispatcher::dispatchConstRtn(node, SumKeysInOneBlockFn(me()), block_num, from, count);
     }
 
     void addKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
     {
     	node.update();
-    	NodeDispatcher::dispatch(node, AddKeysFn(me()), idx, keys.keys(), reindex_fully);
+    	NonLeafDispatcher::dispatch(node, AddKeysFn(me()), idx, keys.values(), reindex_fully);
     }
 
     bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
@@ -811,7 +796,7 @@ M_PARAMS
 bool M_TYPE::updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
 {
     node.update();
-    me()->addKeys(node, idx, counters.keys(), reindex_fully);
+    me()->addKeys(node, idx, counters.values(), reindex_fully);
 
     return false; //proceed further unconditionally
 }

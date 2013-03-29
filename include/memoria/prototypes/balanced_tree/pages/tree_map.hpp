@@ -125,6 +125,9 @@ public:
 		return Base::template get<Value>(1);
 	}
 
+	Int capacity() const {
+		return tree()->capacity();
+	}
 
 	static Int block_size(Int tree_size)
 	{
@@ -175,7 +178,7 @@ public:
 		return tree()->size();
 	}
 
-	Int maxSize() const {
+	Int max_size() const {
 		return tree()->max_size();
 	}
 

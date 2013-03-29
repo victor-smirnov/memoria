@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_MODELS_ARRAY_ITERATOR_MODEL_API_HPP
 #define _MEMORIA_MODELS_ARRAY_ITERATOR_MODEL_API_HPP
 
-#include <memoria/containers/vector/names.hpp>
+#include <memoria/containers/vector/vector_names.hpp>
 #include <memoria/prototypes/sequence/tools.hpp>
 #include <memoria/core/container/iterator.hpp>
 

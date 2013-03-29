@@ -216,11 +216,13 @@ class TreeMapNode: public RootPage<typename Types::Metadata, typename Types::Nod
 {
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
-public:
-
-    static const UInt VERSION                                                   = 1;
 
     typedef TreeMapNode<Types, root, leaf>                                      Me;
+    typedef TreeMapNode<Types, root, leaf>                                      MyType;
+
+public:
+    static const UInt VERSION                                                   = 1;
+
     typedef RootPage<
     			typename Types::Metadata,
     			typename Types::NodePageBase, root
@@ -230,12 +232,14 @@ private:
 
 public:
 
+    typedef StaticVector<typename Types::Key, Types::Indexes>					Accumulator;
+
     typedef TreeMap<
                 TreeMapTypes<
                     typename Types::Key,
                     typename Types::Value,
                     Types::Indexes,
-                    Accumulators<typename Types::Key, Types::Indexes>
+                    Accumulator
                 >
     >                                                                           Map;
 
@@ -265,6 +269,11 @@ public:
         return map_;
     }
 
+    void init(Int block_size)
+    {
+    	map_.init(block_size - sizeof(Me) + sizeof(Map));
+    }
+
     void reindex()
     {
         map().reindex();
@@ -273,6 +282,10 @@ public:
     Int data_size() const
     {
         return sizeof(Me) + map_.getDataSize();
+    }
+
+    Int size() const {
+    	return map_.size();
     }
 
     void set_children_count(Int map_size)
@@ -285,6 +298,73 @@ public:
     {
         Base::map_size() += count;
         map_.size()      += count;
+    }
+
+    void insertSpace(Int from, Int length)
+    {
+    	map_.insertSpace(from, length);
+
+    	for (Int c = from; c < from + length; c++)
+    	{
+    		for (Int d = 0; d < INDEXES; d++)
+    		{
+    			map_.key(d, c) = 0;
+    		}
+
+    		map_.data(c) = 0;
+    	}
+
+    	this->set_children_count(map_.size());
+    }
+
+    Int capacity() const
+    {
+    	return map_.capacity();
+    }
+
+    Int max_size() const
+    {
+    	return map_.max_size();
+    }
+
+    void reindexAll(Int from, Int to)
+    {
+    	map_.reindexAll(from, to);
+    }
+
+    Value& value(Int idx) {
+    	return map_.data(idx);
+    }
+
+    const Value& value(Int idx) const {
+    	return map_.data(idx);
+    }
+
+    Accumulator moveElements(MyType* tgt, Int from, Int shift)
+    {
+    	Accumulator result;
+
+    	Int count = map_.size() - from;
+
+    	map_.sum(from, from + count, result);
+
+    	if (tgt->size() > 0)
+    	{
+    		tgt->insertSpace(0, count + shift);
+    	}
+
+    	map_.copyTo(&tgt->map(), from, count, shift);
+    	map_.clear(from, from + count);
+
+    	inc_size(-count);
+    	tgt->inc_size(count + shift);
+
+    	tgt->map().clear(0, shift);
+
+    	map_.reindex();
+    	tgt->reindex();
+
+    	return result;
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const
@@ -390,7 +470,7 @@ public:
             Me* tgt = T2T<Me*>(buffer);
 
             tgt->copyFrom(me);
-            tgt->map().init(new_size - sizeof(Me) + sizeof(typename Me::Map) );
+            tgt->init(new_size);
 
             me->map().transferDataTo(&tgt->map());
             tgt->set_children_count(me->children_count());

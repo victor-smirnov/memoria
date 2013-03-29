@@ -25,28 +25,32 @@ namespace memoria    {
 template <typename Profile, typename Key_, typename Value_, Int Indexes_>
 struct BalancedTreeTypes<Profile, memoria::Map2<Key_, Value_, Indexes_> >: public BalancedTreeTypes<Profile, memoria::BalancedTree> {
 
-    typedef BalancedTreeTypes<Profile, memoria::BSTree>                     Base;
+    typedef BalancedTreeTypes<Profile, memoria::BSTree>                     	Base;
 
-    typedef Value_                                                          Value;
-    typedef TypeList<Key_>                                                  KeysList;
+    typedef Value_                                                          	Value;
+    typedef TypeList<Key_>                                                  	KeysList;
 
-    static const Int Indexes                                                = Indexes_;
+    static const Int Indexes                                                	= Indexes_;
 
     typedef typename MergeLists<
             	typename Base::ContainerPartsList,
                 memoria::map2::CtrApiName
-    >::Result                                                               ContainerPartsList;
+    >::Result                                                               	ContainerPartsList;
 
     typedef typename MergeLists<
             	typename Base::IteratorPartsList,
                 memoria::map2::ItrApiName
-    >::Result                                                               IteratorPartsList;
+    >::Result                                                               	IteratorPartsList;
 
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
         typedef balanced_tree::BTreeIteratorPrefixCache<Iterator, Container>               Type;
     };
+
+    typedef TypeList<
+    		AllNodeTypes<balanced_tree::TreeMapNode>
+    >																			NodeTypesList;
 
 
 

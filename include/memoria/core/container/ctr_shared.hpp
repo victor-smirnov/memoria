@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CORE_CONTAINER_CTR_SHRED_HPP
 #define _MEMORIA_CORE_CONTAINER_CTR_SHARED_HPP
 
-#include <memoria/core/tools/fixed_vector.hpp>
+#include <memoria/core/tools/static_array.hpp>
 
 namespace memoria    {
 
@@ -30,7 +30,7 @@ private:
     bool updated_;
     bool deleted_;
 
-    FixedVector<CtrShared*, 4, NullPtrFunctor> children_;
+    StaticArray<CtrShared*, 4, NullPtrFunctor> children_;
 
     CtrShared* parent_;
 

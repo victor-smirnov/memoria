@@ -11,7 +11,7 @@
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/containers/vector/names.hpp>
+#include <memoria/containers/vector/vector_names.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>

@@ -190,7 +190,7 @@ private:
     	{
     		for (Int c = from; c < from + count; c++)
     		{
-    			accum.keys()[d] += node->map().key(d, c);
+    			accum.value(d) += node->map().key(d, c);
     		}
     	}
 

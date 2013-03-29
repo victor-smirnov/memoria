@@ -22,7 +22,7 @@
 #include <memoria/containers/vector_map/tools.hpp>
 
 #include <memoria/containers/set/factory.hpp>
-#include <memoria/containers/vector/factory.hpp>
+#include <memoria/containers/vector/vector_factory.hpp>
 
 #include <memoria/prototypes/composite/factory.hpp>
 

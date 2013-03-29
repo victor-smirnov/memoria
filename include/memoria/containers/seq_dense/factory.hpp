@@ -40,6 +40,10 @@ struct BalancedTreeTypes<Profile, memoria::Sequence<BitsPerSymbol_, true>>: publ
 				memoria::seq_dense::IterAPIName
 	>::Result                                                           IteratorPartsList;
 
+	typedef TypeList<
+			AllNodeTypes<balanced_tree::TreeMapNode>
+	>																	NodeTypesList;
+
 	static const Int BitsPerSymbol 										= BitsPerSymbol_;
     static const Int Indexes											= 1 + (1 << BitsPerSymbol);
 };

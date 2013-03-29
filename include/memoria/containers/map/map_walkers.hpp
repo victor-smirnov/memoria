@@ -9,7 +9,7 @@
 #define _MEMORIA_CONTAINERS_MAP_CONTAINER_WALKERS_HPP
 
 #include <memoria/prototypes/btree/tools.hpp>
-#include <memoria/core/tools/fixed_vector.hpp>
+#include <memoria/core/tools/static_array.hpp>
 
 #include <memoria/core/container/container.hpp>
 

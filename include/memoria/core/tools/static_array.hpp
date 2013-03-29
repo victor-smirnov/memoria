@@ -36,9 +36,9 @@ struct NullPtrFunctor {
 };
 
 template <typename Value, Int Size = 16, typename ClearingFunctor = EmptyValueFunctor>
-class FixedVector {
+class StaticArray{
 
-    typedef FixedVector<Value, Size, ClearingFunctor> MyType;
+    typedef StaticArray<Value, Size, ClearingFunctor> MyType;
 
     Int     size_;
     Value   values_[Size];
@@ -46,9 +46,9 @@ class FixedVector {
 public:
     typedef Value Element;
 
-    FixedVector(): size_(0) {}
+    StaticArray(): size_(0) {}
 
-    FixedVector(Int size): size_(size)
+    StaticArray(Int size): size_(size)
     {
         for (Int c = 0; c < Size; c++)
         {
@@ -56,7 +56,7 @@ public:
         }
     }
 
-    FixedVector(const MyType& other)
+    StaticArray(const MyType& other)
     {
         size_ = other.size_;
 
@@ -66,7 +66,7 @@ public:
         }
     }
 
-    FixedVector(MyType&& other)
+    StaticArray(MyType&& other)
     {
         size_ = other.size_;
 

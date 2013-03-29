@@ -140,4 +140,25 @@ struct WrapperName {									\
 }
 
 
+#define MEMORIA_DECLARE_NODE_FN(WrapperName, NodeMethodName)\
+struct WrapperName {										\
+	template <typename T, typename... Args>					\
+	void operator()(T node, Args... args) const				\
+	{														\
+		node->NodeMethodName(args...);						\
+	}														\
+}
+
+#define MEMORIA_DECLARE_NODE_FN_RTN(WrapperName, NodeMethodName, ReturnType_) \
+struct WrapperName {										\
+	typedef ReturnType_ ReturnType;							\
+	template <typename T, typename... Args>					\
+	ReturnType operator()(T node, Args... args) const		\
+	{														\
+		return node->NodeMethodName(args...);				\
+	}														\
+}
+
+
+
 #endif

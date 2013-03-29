@@ -12,11 +12,11 @@
 #include <memoria/containers/root/factory.hpp>
 #include <memoria/containers/map/map_factory.hpp>
 #include <memoria/containers/set/factory.hpp>
-#include <memoria/containers/vector/factory.hpp>
-#include <memoria/containers/vector_map/factory.hpp>
-#include <memoria/containers/seq_dense/factory.hpp>
+//#include <memoria/containers/vector/vector_factory.hpp>
+//#include <memoria/containers/vector_map/factory.hpp>
+//#include <memoria/containers/seq_dense/factory.hpp>
 
-#include <memoria/containers/louds/louds_factory.hpp>
+//#include <memoria/containers/louds/louds_factory.hpp>
 
 #include <memoria/core/container/metadata_repository.hpp>
 

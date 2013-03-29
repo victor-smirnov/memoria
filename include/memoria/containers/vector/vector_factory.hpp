@@ -14,13 +14,13 @@
 #include <memoria/containers/vector/container/vector_c_tools.hpp>
 
 #include <memoria/containers/vector/iterator/vector_i_api.hpp>
-#include <memoria/containers/vector/iterator.hpp>
+#include <memoria/containers/vector/vector_iterator.hpp>
 
 #include <memoria/containers/vector/pages/vector_datapage.hpp>
 
 
-#include <memoria/containers/vector/names.hpp>
-#include <memoria/containers/vector/tools.hpp>
+#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vector_tools.hpp>
 
 #include <memoria/prototypes/sequence/tools.hpp>
 
@@ -53,6 +53,12 @@ struct BalancedTreeTypes<Profile, memoria::Vector<ElementType_>>: public Balance
     	typedef BTreeIteratorScalarPrefixCache<Iterator, Container> Type;
     };
 
+    typedef TypeList<
+    		NonLeafNodeTypes<balanced_tree::TreeMapNode>,
+    		LeafNodeTypes<mvector::VectorDataNode>
+    >																			NodeTypesList;
+
+
 //    template <
 //    	typename Types,
 //    	template <typename, typename> class NodeExtender,
@@ -71,8 +77,8 @@ struct BalancedTreeTypes<Profile, memoria::Vector<ElementType_>>: public Balance
 };
 
 
-template <typename Profile, typename T, typename ElementType>
-class CtrTF<Profile, memoria::Vector<ElementType>, T>: public CtrTF<Profile, memoria::ASequence, T> {
+template <typename Profile, typename T, typename ElementType_>
+class CtrTF<Profile, memoria::Vector<ElementType_>, T>: public CtrTF<Profile, memoria::ASequence, T> {
 
 	typedef CtrTF<Profile, memoria::ASequence, T> 								Base;
 
@@ -84,11 +90,9 @@ public:
 
     MEMORIA_STATIC_ASSERT(IsList<DataPagePartsList>::Value);
 
-
-
-    typedef VectorDataPage<
+    typedef mvector::VectorDataPage<
     			DataPagePartsList,
-    			ElementType,
+    			ElementType_,
     			memoria::btree::TreePage<
     				typename ContainerTypes::Allocator::Page
     			>
@@ -102,10 +106,9 @@ public:
     	typedef DataPage_                                                       DataPage;
     	typedef PageGuard<DataPage, typename Base0::Allocator>                  DataPageG;
 
-    	typedef IData<ElementType>                                        		IDataType;
-    	typedef IDataSource<ElementType>                                        IDataSourceType;
-    	typedef IDataTarget<ElementType>                                        IDataTargetType;
-
+    	typedef IData<ElementType_>                                        		IDataType;
+    	typedef IDataSource<ElementType_>                                       IDataSourceType;
+    	typedef IDataTarget<ElementType_>                                       IDataTargetType;
 
     	typedef typename MergeLists<
     						DataPage_,

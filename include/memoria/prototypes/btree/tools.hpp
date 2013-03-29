@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BTREE_TOOLS_HPP
 #define _MEMORIA_PROTOTYPES_BTREE_TOOLS_HPP
 
-#include <memoria/core/tools/fixed_vector.hpp>
+#include <memoria/core/tools/static_array.hpp>
 
 #include <ostream>
 
@@ -121,9 +121,9 @@ struct Valueclearing {
 template <
     typename NodePage,
     Int Size = 8>
-class NodePath: public FixedVector<TreePathItem<NodePage>, Size, Valueclearing> {
+class NodePath: public StaticArray<TreePathItem<NodePage>, Size, Valueclearing> {
 
-    typedef FixedVector<TreePathItem<NodePage>, Size, Valueclearing>    Base;
+    typedef StaticArray<TreePathItem<NodePage>, Size, Valueclearing>    Base;
     typedef NodePath<NodePage, Size>                                    MyType;
 
 public:

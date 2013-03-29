@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_TOOLS_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_TOOLS_HPP
 
-#include <memoria/core/tools/fixed_vector.hpp>
+#include <memoria/core/tools/static_array.hpp>
 
 #include <ostream>
 
@@ -121,9 +121,9 @@ struct Valueclearing {
 template <
     typename NodePage,
     Int Size = 8>
-class NodePath: public FixedVector<TreePathItem<NodePage>, Size, Valueclearing> {
+class NodePath: public StaticArray<TreePathItem<NodePage>, Size, Valueclearing> {
 
-    typedef FixedVector<TreePathItem<NodePage>, Size, Valueclearing>    Base;
+    typedef StaticArray<TreePathItem<NodePage>, Size, Valueclearing>    Base;
     typedef NodePath<NodePage, Size>                                    MyType;
 
 public:
@@ -243,78 +243,80 @@ public:
 };
 
 
-template <typename Key, Int Indexes_>
-class Accumulators
+template <typename ElementType_, Int Indexes_>
+class StaticVector
 {
-    typedef Accumulators<Key, Indexes_> MyType;
+    typedef StaticVector<ElementType_, Indexes_> MyType;
 
-    Key         keys_[Indexes_];
+    ElementType_ values_[Indexes_];
 
 public:
+    typedef ElementType_ ElementType;
+
 
     static const Int Indexes = Indexes_;
 
-    Accumulators()
+    StaticVector()
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            keys_[c] = 0;
+            values_[c] = 0;
         }
     }
 
-    Accumulators(const MyType& other)
+    StaticVector(const MyType& other)
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            keys_[c] = other.keys_[c];
+            values_[c] = other.values_[c];
         }
     }
 
-    Accumulators(const Key* keys)
+    StaticVector(const ElementType* keys)
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            keys_[c] = keys[c];
+            values_[c] = keys[c];
         }
     }
 
-    const Key* keys() const
+    const ElementType* values() const
     {
-        return keys_;
+        return values_;
     }
 
-    Key* keys()
+    ElementType* values()
     {
-        return keys_;
+        return values_;
     }
 
 
 
-    const Key& key(Int idx) const
+    const ElementType& value(Int idx) const
     {
-        return keys_[idx];
+        return values_[idx];
     }
 
-    Key& key(Int idx)
+    ElementType& value(Int idx)
     {
-        return keys_[idx];
+        return values_[idx];
     }
 
-    const Key& operator[](Int idx) const
+    const ElementType& operator[](Int idx) const
     {
-        return keys_[idx];
+        return values_[idx];
     }
 
-    Key& operator[](Int idx)
+    ElementType& operator[](Int idx)
     {
-        return keys_[idx];
+        return values_[idx];
     }
 
     void clear()
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            keys_[c] = 0;
+            values_[c] = 0;
         }
     }
 
@@ -322,7 +324,7 @@ public:
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            if (keys_[c] != other.keys_[c])
+            if (values_[c] != other.values_[c])
             {
                 return false;
             }
@@ -335,7 +337,7 @@ public:
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            if (keys_[c] == other.keys_[c])
+            if (values_[c] == other.values_[c])
             {
                 return false;
             }
@@ -348,17 +350,17 @@ public:
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            keys_[c] = other.keys_[c];
+            values_[c] = other.values_[c];
         }
 
         return *this;
     }
 
-    MyType& operator=(const Key* keys)
+    MyType& operator=(const ElementType* keys)
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            keys_[c] = keys[c];
+            values_[c] = keys[c];
         }
 
         return *this;
@@ -368,7 +370,7 @@ public:
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            keys_[c] += other.keys_[c];
+            values_[c] += other.values_[c];
         }
 
         return *this;
@@ -380,7 +382,7 @@ public:
 
         for (Int c = 0; c < Indexes; c++)
         {
-            result.keys_[c] += other.keys_[c];
+            result.values_[c] += other.values_[c];
         }
 
         return result;
@@ -392,7 +394,7 @@ public:
 
         for (Int c = 0; c < Indexes; c++)
         {
-            result.keys_[c] -= other.keys_[c];
+            result.values_[c] -= other.values_[c];
         }
 
         return result;
@@ -404,7 +406,7 @@ public:
 
         for (Int c = 0; c < Indexes; c++)
         {
-            result.keys_[c] = -keys_[c];
+            result.values_[c] = -values_[c];
         }
 
         return result;
@@ -415,7 +417,7 @@ public:
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            keys_[c] -= other.keys_[c];
+            values_[c] -= other.values_[c];
         }
 
         return *this;
@@ -425,18 +427,20 @@ public:
 
 
 
+
+
 }
 }
 
 namespace std {
 template <typename Key, Int Indexes>
-ostream& operator<<(ostream& out, const ::memoria::balanced_tree::Accumulators<Key, Indexes>& accum)
+ostream& operator<<(ostream& out, const ::memoria::balanced_tree::StaticVector<Key, Indexes>& accum)
 {
     out<<"[";
 
     for (Int c = 0; c < Indexes; c++)
     {
-        out<<accum.keys()[c];
+        out<<accum.value(c);
 
         if (c < Indexes - 1)
         {

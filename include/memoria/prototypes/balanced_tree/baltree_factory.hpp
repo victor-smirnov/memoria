@@ -83,7 +83,7 @@ struct BalancedTreeTypes {
     typedef BalancedTreeMetadata<ID>                                            Metadata;
 
     typedef TypeList<
-    	AllNodeTypes<balanced_tree::TreeMapNode>
+    		//AllNodeTypes<balanced_tree::TreeMapNode>
     >																			NodeTypesList;
 
     template <
@@ -156,7 +156,7 @@ public:
     typedef balanced_tree::TreeNodeBase<typename ContainerTypes::Allocator::Page>   NodePageBase0;
     typedef PageGuard<NodePageBase0, typename ContainerTypes::Allocator>   		NodePageBase0G;
 
-    struct NodeTypes {
+    struct NodeTypes: ContainerTypes {
         typedef NodePageBase0                      			NodePageBase;
         typedef ContainerTypeName_                          Name;
         typedef typename ContainerTypes::Metadata			Metadata;
@@ -214,7 +214,7 @@ public:
                 typename ContainerTypes::KeysList, TypeSizeValueProvider
         >::Result                                                               Key;
 
-        typedef balanced_tree::Accumulators<Key, ContainerTypes::Indexes>       Accumulator;
+        typedef balanced_tree::StaticVector<Key, ContainerTypes::Indexes>       Accumulator;
 
 
         typedef ValuePair<Accumulator, Value>                                   Element;

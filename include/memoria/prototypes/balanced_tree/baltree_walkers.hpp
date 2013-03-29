@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_WALKERS_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_WALKERS_HPP
 
-#include <memoria/core/tools/fixed_vector.hpp>
+#include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/iterator.hpp>
 
 #include <memoria/prototypes/balanced_tree/pages/tree_node.hpp>
@@ -34,10 +34,18 @@ class BTreeWalkerBase {
 
 public:
 
+	template <typename NodeTypes, bool root, bool leaf>
+	void operator()(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node)
+	{
+		typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
+		idx_ = me().dispatchNode(*node, start_);
+	}
+
+
 	template <typename Node>
 	void operator()(const Node* node)
 	{
-		idx_ = me().dispatchNode(*node, start_);
+
 	}
 
 	MyType& me() {

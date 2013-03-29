@@ -12,7 +12,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/names.hpp>
 #include <memoria/core/types/algo.hpp>
-#include <memoria/core/tools/fixed_vector.hpp>
+#include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/macros.hpp>
 
 
@@ -438,7 +438,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT(block_size, >=, 512);
 
-        node->map().init(block_size - sizeof(Node) + sizeof (typename Node::Map));
+        node->init(block_size);
     }
 
  private:

@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CONTAINERS_VECTOR_TOOLS_HPP
 #define _MEMORIA_CONTAINERS_VECTOR_TOOLS_HPP
 
-#include <memoria/containers/vector/names.hpp>
+#include <memoria/containers/vector/vector_names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/tools/idata.hpp>
 

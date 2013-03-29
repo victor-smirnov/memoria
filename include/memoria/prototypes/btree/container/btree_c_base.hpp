@@ -13,7 +13,7 @@
 #include <memoria/core/container/names.hpp>
 #include <memoria/prototypes/btree/macros.hpp>
 #include <memoria/core/types/algo.hpp>
-#include <memoria/core/tools/fixed_vector.hpp>
+#include <memoria/core/tools/static_array.hpp>
 
 
 #include <iostream>

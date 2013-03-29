@@ -170,7 +170,7 @@ protected:
 
         iter.ComputePrefix(prefix);
 
-        if (iter.prefix() != prefix.key(0))
+        if (iter.prefix() != prefix.value(0))
         {
             iter.dump(out());
             throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefix()<<" Actual: "<<prefix);

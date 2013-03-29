@@ -22,6 +22,9 @@ namespace sequence 	 {
 
 using namespace std;
 
+using balanced_tree::TreeNode;
+using balanced_tree::TreeMapNode;
+
 
 template <typename Types>
 class FindRangeWalkerBase {
@@ -77,15 +80,21 @@ class FindEndWalker: public FindRangeWalkerBase<Types> {
 public:
 	FindEndWalker(Container& ctr): prefix_(0) {}
 
-	template <typename Node>
-	void operator()(const Node* node)
+	template <typename NodeTypes, bool root, bool leaf>
+	void operator()(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node)
 	{
+		typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
+
 		const typename Node::Map& map = node->map();
 
 		Base::idx_ = node->children_count() - 1;
 
 		prefix_ += map.maxKey(0) - map.key(0, map.size() - 1);
 	}
+
+	template <typename Node>
+	void operator()(const Node* node)
+	{}
 
 	void finish(Int idx, Iterator& iter)
 	{

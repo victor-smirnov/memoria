@@ -17,17 +17,17 @@ namespace memoria {
 template <>
 struct CtrNameDeclarator<0>: TypeDef<Root> {};
 
-template <>
-struct CtrNameDeclarator<1>: TypeDef<Vector<Byte>> {};
-
-template <>
-struct CtrNameDeclarator<2>: TypeDef<Vector<UByte>> {};
-
-template <>
-struct CtrNameDeclarator<3>: TypeDef<Vector<Int>> {};
-
-template <>
-struct CtrNameDeclarator<4>: TypeDef<Vector<BigInt>> {};
+//template <>
+//struct CtrNameDeclarator<1>: TypeDef<Vector<Byte>> {};
+//
+//template <>
+//struct CtrNameDeclarator<2>: TypeDef<Vector<UByte>> {};
+//
+//template <>
+//struct CtrNameDeclarator<3>: TypeDef<Vector<Int>> {};
+//
+//template <>
+//struct CtrNameDeclarator<4>: TypeDef<Vector<BigInt>> {};
 
 template <>
 struct CtrNameDeclarator<5>: TypeDef<Map<BigInt, BigInt>> {};
@@ -35,23 +35,23 @@ struct CtrNameDeclarator<5>: TypeDef<Map<BigInt, BigInt>> {};
 template <>
 struct CtrNameDeclarator<6>: TypeDef<Set<BigInt>> {};
 
-template <>
-struct CtrNameDeclarator<7>: TypeDef<VectorMap<BigInt, Byte>> {};
+//template <>
+//struct CtrNameDeclarator<7>: TypeDef<VectorMap<BigInt, Byte>> {};
 
-template <>
-struct CtrNameDeclarator<8>: TypeDef<Sequence<1, true>> {};
-
-template <>
-struct CtrNameDeclarator<9>: TypeDef<Sequence<2, true>> {};
-
-template <>
-struct CtrNameDeclarator<10>: TypeDef<Sequence<3, true>> {};
-
-template <>
-struct CtrNameDeclarator<11>: TypeDef<Sequence<4, true>> {};
-
-template <>
-struct CtrNameDeclarator<15>: TypeDef<LOUDS> {};
+//template <>
+//struct CtrNameDeclarator<8>: TypeDef<Sequence<1, true>> {};
+//
+//template <>
+//struct CtrNameDeclarator<9>: TypeDef<Sequence<2, true>> {};
+//
+//template <>
+//struct CtrNameDeclarator<10>: TypeDef<Sequence<3, true>> {};
+//
+//template <>
+//struct CtrNameDeclarator<11>: TypeDef<Sequence<4, true>> {};
+//
+//template <>
+//struct CtrNameDeclarator<15>: TypeDef<LOUDS> {};
 
 
 }

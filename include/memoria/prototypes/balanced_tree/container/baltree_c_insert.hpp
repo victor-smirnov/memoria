@@ -335,10 +335,7 @@ private:
 
     Accumulator moveElements(NodeBaseG& srt, NodeBaseG& tgt, Int from, Int tgt_shift = 0) const;
 
-
-
     void fillNodeLeft(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
-//    void fillNodeRight(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
     void prepareNodeFillmentRight(Int level, Int count, InsertSharedData& data);
 
 
@@ -346,57 +343,8 @@ private:
     void         split(TreePath& left, TreePath& right, Int level, Int idx);
 
 
-    template <typename Node>
-    void makeRoomFn(Node* node, Int from, Int count) const
-    {
-        node->map().insertSpace(from, count);
-
-        for (Int c = from; c < from + count; c++)
-        {
-            for (Int d = 0; d < Indexes; d++)
-            {
-                node->map().key(d, c) = 0;
-            }
-
-            node->map().data(c) = 0;
-        }
-
-        node->set_children_count(node->map().size());
-    }
-
-    MEMORIA_CONST_FN_WRAPPER(MakeRoomFn, makeRoomFn);
-
-
-
-    template <typename Node>
-    Accumulator moveElementsFn(Node* src, Node* tgt, Int from, Int shift) const
-    {
-    	Accumulator result;
-
-    	Int count = src->children_count() - from;
-
-    	result = me()->sumKeysFn(src, from, count);
-
-    	if (tgt->children_count() > 0)
-    	{
-    		tgt->map().insertSpace(0, count + shift);
-    	}
-
-    	src->map().copyTo(&tgt->map(), from, count, shift);
-    	src->map().clear(from, from + count);
-
-    	src->inc_size(-count);
-    	tgt->inc_size(count + shift);
-
-    	tgt->map().clear(0, shift);
-
-    	src->reindex();
-    	tgt->reindex();
-
-    	return result;
-    }
-
-    MEMORIA_CONST_FN_WRAPPER_RTN(MoveElementsFn, moveElementsFn, Accumulator);
+    MEMORIA_DECLARE_NODE_FN(MakeRoomFn, insertSpace);
+    MEMORIA_DECLARE_NODE_FN_RTN(MoveElementsFn, moveElements, Accumulator);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -824,7 +772,7 @@ void M_TYPE::makeRoom(TreePath& path, Int level, Int start, Int count) const
     if (count > 0)
     {
         path[level].node().update();
-        NodeDispatcher::dispatch(path[level].node(), MakeRoomFn(me()), start, count);
+        NodeDispatcher::dispatch(path[level].node(), MakeRoomFn(), start, count);
         path.moveRight(level - 1, start, count);
     }
 
@@ -844,11 +792,9 @@ void M_TYPE::makeRoom(TreePath& path, Int level, Int start, Int count) const
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::moveElements(NodeBaseG& src, NodeBaseG& tgt, Int from, Int shift) const
 {
-//    MoveElementsFn fn(from, shift);
-
     if (from < src->children_count())
     {
-        return NodeDispatcher::dispatchRtn(src, tgt, MoveElementsFn(me()), from, shift);
+        return NodeDispatcher::dispatchRtn(src, tgt, MoveElementsFn(), from, shift);
     }
 
     return Accumulator();
