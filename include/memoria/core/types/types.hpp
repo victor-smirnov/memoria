@@ -124,8 +124,11 @@ class CtrWrapper 	{};
 template <typename Key, typename Value, Int Indexes = 1>
 struct Map          {};
 
-template <typename Key, typename Value, Int Indexes = 1>
+template <typename Key, typename Value>
 struct Map2         {};
+
+template <typename Key, typename Value>
+struct MapProto     {};
 
 typedef Map<BigInt, BigInt, 1>       Map1;
 

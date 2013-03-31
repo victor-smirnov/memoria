@@ -11,12 +11,16 @@
 
 #include <memoria/containers/map2/map_walkers.hpp>
 
+#include <memoria/containers/map2/container/map_c_tools.hpp>
+#include <memoria/containers/map2/container/map_c_insert.hpp>
+#include <memoria/containers/map2/container/map_c_remove.hpp>
 #include <memoria/containers/map2/container/map_c_api.hpp>
+
 #include <memoria/containers/map2/iterator/map_i_api.hpp>
 
 #include <memoria/prototypes/balanced_tree/balanced_tree.hpp>
 
-#include <memoria/containers/map2/names.hpp>
+#include <memoria/containers/map2/map_names.hpp>
 
 namespace memoria    {
 
@@ -34,6 +38,8 @@ struct BalancedTreeTypes<Profile, memoria::Map2<Key_, Value_, Indexes_> >: publi
 
     typedef typename MergeLists<
             	typename Base::ContainerPartsList,
+            	memoria::map2::CtrToolsName,
+            	memoria::map2::CtrInsertName,
                 memoria::map2::CtrApiName
     >::Result                                                               	ContainerPartsList;
 

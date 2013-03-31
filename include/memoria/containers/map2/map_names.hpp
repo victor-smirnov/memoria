@@ -12,7 +12,11 @@
 namespace memoria    {
 namespace map2 		 {
 
-class CtrApiName {};
+class CtrApiName 	{};
+class CtrInsertName {};
+class CtrToolsName 	{};
+class CtrRemoveName {};
+
 class ItrApiName {};
 
 

@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -75,10 +75,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
         typedef MyType                      CtrType;
 
         virtual NonLeafNodeKeyValuePair getKVPair(BigInt begin, BigInt count, Int level)    = 0;
-        virtual LeafNodeKeyValuePair    getLeafKVPair(BigInt begin)                         = 0;
-        virtual BigInt                  getTotalKeyCount()                                  = 0;
+        virtual Accumulator				getTotalKeyCount()                          		= 0;
 
         virtual ISubtreeProvider&       getProvider() {return *this;}
+
+        Accumulator insertIntoFirstLeaf(NodeBaseG& leaf) = 0;
+        Accumulator insertIntoLastLeaf(NodeBaseG& leaf)  = 0;
     };
 
     BigInt divide(BigInt op1, BigInt op2)
@@ -93,26 +95,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     void makeRoom(TreePath& path, Int level, Int start, Int count) const;
 
     void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
-//    bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const {
-//        return true;
-//    };
 
     void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
     Accumulator insertSubtree(Iterator& iter, ISubtreeProvider& provider);
 
-    void insertEntry(Iterator& iter, const Element&);
-
-    bool insert(Iterator& iter, const Element& element)
-    {
-        insertEntry(iter, element);
-        return iter.nextKey();
-    }
-
-    void insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size);
-    void insertBatch(Iterator& iter, const LeafPairsVector& pairs);
+//    void insertEntry(Iterator& iter, const Element&);
+//
+//    bool insert(Iterator& iter, const Element& element)
+//    {
+//        insertEntry(iter, element);
+//        return iter.nextKey();
+//    }
 
 
-//    TreePathItem splitPath(TreePath& path, Int level, Int idx);
+//    void insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size);
+//    void insertBatch(Iterator& iter, const LeafPairsVector& pairs);
+
+
     void splitPath(TreePath& left, TreePath& right, Int level, Int idx);
     void newRoot(TreePath& path);
 
@@ -173,22 +172,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
             }
             else
             {
-                // FIXME: buffer size can be too small
-                LeafNodeKeyValuePair children[2000];
-
-                Int local = 0;
-                for (Int c = 0; c < max_keys && count < total; c++, local++, count++)
-                {
-                    children[c] =  this->getLeafKVPair(start + count);
-                }
-
                 NodeBaseG node = ctr_.createNode(level, false, true);
 
-                setLeafNodeData(children, node, local);
-                pair.keys = ctr_.getMaxKeys(node);
+                count++;
+                pair.keys = this->insertIntoFirstLeaf(node);
 
                 pair.value      =  node->id();
-                pair.key_count  += local;
+                pair.key_count  += 1;
             }
 
             return pair;
@@ -237,47 +227,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
             NonLeafDispatcher::dispatch(node, fn);
             return fn.total_;
         }
-
-        template <typename PairType>
-        NonLeafNodeKeyValuePair setLeafNodeData(PairType* data, NodeBaseG& node, Int count)
-        {
-            SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
-            LeafDispatcher::dispatch(node, fn);
-            return fn.total_;
-        }
-
-        template <typename PairType>
-        void SwapVector(PairType* data, Int total)
-        {
-            for (Int c = 0; c < total; c++)
-            {
-                PairType tmp            = data[c];
-                data[c]                 = data[total - c  - 1];
-                data[total - c  - 1]    = tmp;
-            }
-        }
-    };
-
-
-    class ArraySubtreeProvider: public DefaultSubtreeProviderBase
-    {
-        typedef DefaultSubtreeProviderBase      Base;
-
-        const LeafNodeKeyValuePair* pairs_;
-    public:
-        ArraySubtreeProvider(MyType& ctr, BigInt total, const LeafNodeKeyValuePair* pairs): Base(ctr, total), pairs_(pairs) {}
-
-        virtual LeafNodeKeyValuePair getLeafKVPair(BigInt begin)
-        {
-            return pairs_[begin];
-        }
     };
 
 
 
 
-
-private:
+//private:
 
     struct InsertSharedData
     {
@@ -310,7 +265,7 @@ private:
     }
 
 
-    void insertSubtree(
+    void insertInternalSubtree(
             TreePath& left_path,
             Int left_idx,
             TreePath& right_path,
@@ -343,6 +298,7 @@ private:
     void         split(TreePath& left, TreePath& right, Int level, Int idx);
 
 
+public:
     MEMORIA_DECLARE_NODE_FN(MakeRoomFn, insertSpace);
     MEMORIA_DECLARE_NODE_FN_RTN(MoveElementsFn, moveElements, Accumulator);
 
@@ -421,67 +377,67 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, Int idx)
 }
 
 
-M_PARAMS
-void M_TYPE::insertEntry(Iterator &iter, const Element& element)
-{
-    TreePath&   path    = iter.path();
-    NodeBaseG&  node    = path.leaf().node();
-    Int&        idx     = iter.key_idx();
+//M_PARAMS
+//void M_TYPE::insertEntry(Iterator &iter, const Element& element)
+//{
+//    TreePath&   path    = iter.path();
+//    NodeBaseG&  node    = path.leaf().node();
+//    Int&        idx     = iter.key_idx();
+//
+//    if (me()->getCapacity(node) > 0)
+//    {
+//        makeRoom(path, 0, idx, 1);
+//    }
+//    else if (idx == 0)
+//    {
+//        TreePath next = path;
+//        splitPath(path, next, 0, node->children_count() / 2);
+//        idx = 0;
+//        makeRoom(path, 0, idx, 1);
+//    }
+//    else if (idx < node->children_count())
+//    {
+//        //FIXME: does it necessary to split the page at the middle ???
+//        TreePath next = path;
+//        splitPath(path, next, 0, idx);
+//        makeRoom(path, 0, idx, 1);
+//    }
+//    else {
+//        TreePath next = path;
+//
+//        splitPath(path, next, 0, node->children_count() / 2);
+//
+//        path = next;
+//
+//        idx = node->children_count();
+//        makeRoom(path, 0, idx, 1);
+//
+//        iter.key_idx()  = idx;
+//    }
+//
+//    me()->setLeafDataAndReindex(node, idx, element);
+//
+//    me()->updateParentIfExists(path, 0, element.first);
+//
+//    me()->addTotalKeyCount(1);
+//}
 
-    if (me()->getCapacity(node) > 0)
-    {
-        makeRoom(path, 0, idx, 1);
-    }
-    else if (idx == 0)
-    {
-        TreePath next = path;
-        splitPath(path, next, 0, node->children_count() / 2);
-        idx = 0;
-        makeRoom(path, 0, idx, 1);
-    }
-    else if (idx < node->children_count())
-    {
-        //FIXME: does it necessary to split the page at the middle ???
-        TreePath next = path;
-        splitPath(path, next, 0, idx);
-        makeRoom(path, 0, idx, 1);
-    }
-    else {
-        TreePath next = path;
 
-        splitPath(path, next, 0, node->children_count() / 2);
-
-        path = next;
-
-        idx = node->children_count();
-        makeRoom(path, 0, idx, 1);
-
-        iter.key_idx()  = idx;
-    }
-
-    me()->setLeafDataAndReindex(node, idx, element);
-
-    me()->updateParentIfExists(path, 0, element.first);
-
-    me()->addTotalKeyCount(1);
-}
-
-
-M_PARAMS
-void M_TYPE::insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
-{
-    ArraySubtreeProvider provider(*me(), size, pairs);
-
-    me()->insertSubtree(iter, provider);
-}
-
-M_PARAMS
-void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& pairs)
-{
-    ArraySubtreeProvider provider(*me(), pairs.size(), &pairs.at(0));
-
-    me()->insertSubtree(iter, provider);
-}
+//M_PARAMS
+//void M_TYPE::insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
+//{
+//    ArraySubtreeProvider provider(*me(), size, pairs);
+//
+//    me()->insertSubtree(iter, provider);
+//}
+//
+//M_PARAMS
+//void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& pairs)
+//{
+//    ArraySubtreeProvider provider(*me(), pairs.size(), &pairs.at(0));
+//
+//    me()->insertSubtree(iter, provider);
+//}
 
 
 M_PARAMS
@@ -548,7 +504,7 @@ void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& 
 
 
 M_PARAMS
-void M_TYPE::insertSubtree(
+void M_TYPE::insertInternalSubtree(
         TreePath& left_path,
         Int left_idx,
         TreePath& right_path,
@@ -592,7 +548,7 @@ void M_TYPE::insertSubtree(
 
             right_idx  = 0;
 
-            insertSubtree(left_path, left_idx, right_path, right_idx, level, data);
+            insertInternalSubtree(left_path, left_idx, right_path, right_idx, level, data);
         }
     }
     else {
@@ -655,7 +611,7 @@ void M_TYPE::insertSubtree(
 
             // There is something more to insert.
             Int parent_right_idx = right_path[level].parent_idx();
-            insertSubtree
+            insertInternalSubtree
             (
                     left_path,
                     left_path[level].parent_idx() + 1,
@@ -738,7 +694,7 @@ void M_TYPE::fillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
 M_PARAMS
 void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& data)
 {
-    BigInt      subtree_size    = me()->getSubtreeSize(level);
+    BigInt subtree_size = me()->getSubtreeSize(level);
 
     if (level > 0)
     {
@@ -775,18 +731,6 @@ void M_TYPE::makeRoom(TreePath& path, Int level, Int start, Int count) const
         NodeDispatcher::dispatch(path[level].node(), MakeRoomFn(), start, count);
         path.moveRight(level - 1, start, count);
     }
-
-
-
-//  if (level > 0)
-//  {
-//      Int& parent_idx = path[level - 1].parent_idx();
-//
-//      if (parent_idx >=  (start + count))
-//      {
-//          parent_idx += count;
-//      }
-//  }
 }
 
 M_PARAMS

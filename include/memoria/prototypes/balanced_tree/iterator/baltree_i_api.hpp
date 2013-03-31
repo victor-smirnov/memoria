@@ -253,12 +253,12 @@ private:
     void compute_base(Accumulator& accum)
     {
     	TreePath&   path0 = me()->path();
-    	Int         idx   = me()->key_idx();
+//    	Int         idx   = me()->key_idx();
 
-    	for (Int c = 0; c < path0.getSize(); c++)
+    	for (Int c = 1; c < path0.getSize(); c++)
     	{
+    		Int idx = path0[c - 1].parent_idx();
     		me()->model().sumKeys(path0[c].node(), 0, idx, accum);
-    		idx = path0[c].parent_idx();
     	}
     }
 

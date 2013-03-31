@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -163,7 +163,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     template <typename Node>
     void node2RootFn(Node* src, const Metadata& metadata) const
     {
-//    	typedef typename memoria::Type2TypeMap<Node, Node2RootMap>::Result RootType;
     	typedef typename Node::RootNodeType RootType;
 
     	RootType* tgt = T2T<RootType*>(malloc(src->page_size()));
@@ -504,67 +503,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
 
-
-    template <typename Node>
-    void setAndReindexFn(Node* node, Int idx, const Element& element) const
-    {
-    	for (Int c = 0; c < MyType::Indexes; c++)
-    	{
-    		node->map().key(c, idx) = element.first[c];
-    	}
-
-    	node->map().data(idx) = element.second;
-
-    	if (idx == node->children_count() - 1)
-    	{
-    		node->map().reindexAll(idx, idx + 1);
-    	}
-    	else {
-    		node->map().reindexAll(idx, node->children_count());
-    	}
-    }
-
-    MEMORIA_CONST_FN_WRAPPER(SetAndReindexFn, setAndReindexFn);
-
-
-    void setLeafDataAndReindex(NodeBaseG& node, Int idx, const Element& element) const
-    {
-        node.update();
-        LeafDispatcher::dispatch(node.page(), SetAndReindexFn(me()), idx, element);
-    }
-    
-
-    template <typename Node>
-    Value getLeafDataFn(const Node* node, Int idx) const
-    {
-    	return node->value(idx);
-    }
-
-    MEMORIA_CONST_FN_WRAPPER_RTN(GetLeafDataFn, getLeafDataFn, Value);
-
-    Value getLeafData(const NodeBaseG& node, Int idx) const
-    {
-        return LeafDispatcher::dispatchConstRtn(node.page(), GetLeafDataFn(me()), idx);
-    }
-
-
-
-
-    template <typename Node>
-    void setLeafDataFn(Node* node, Int idx, const Value& val) const
-    {
-    	node->value(idx) = val;
-    }
-
-    MEMORIA_CONST_FN_WRAPPER(SetLeafDataFn, setLeafDataFn);
-
-
-
-    void setLeafData(NodeBaseG& node, Int idx, const Value &val) const
-    {
-        node.update();
-        LeafDispatcher::dispatch(node.page(), SetLeafDataFn(me()), idx, val);
-    }
 
 
 

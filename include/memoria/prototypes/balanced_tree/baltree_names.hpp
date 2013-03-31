@@ -59,6 +59,7 @@ class ToolsName             {};
 class FindName              {};
 class InsertName            {};
 class InsertBatchName       {};
+class InsertLeafName        {};
 class RemoveName            {};
 class ApiName               {};
 class ChecksName            {};
