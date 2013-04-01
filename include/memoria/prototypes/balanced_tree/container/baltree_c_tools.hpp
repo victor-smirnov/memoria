@@ -370,23 +370,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
 
-    template <typename Node>
-    void extractMaxKeyValuesFn(const Node* node, Key* keys) const
-    {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		keys[c] = node->map().maxKey(c);
-    	}
-    }
-
-    MEMORIA_CONST_FN_WRAPPER(ExtractMaxKeyValuesFn, extractMaxKeyValuesFn);
+    MEMORIA_DECLARE_NODE_FN_RTN(GetMaxKeyValuesFn, maxKeys, Accumulator);
 
     Accumulator getMaxKeys(const NodeBaseG& node) const
     {
-    	Accumulator keys;
-    	NonLeafDispatcher::dispatchConst(node, ExtractMaxKeyValuesFn(me()), keys.values());
+    	return NonLeafDispatcher::dispatchConstRtn(node, GetMaxKeyValuesFn());
+    }
 
-    	return keys;
+    Accumulator getLeafMaxKeys(const NodeBaseG& node) const
+    {
+    	return LeafDispatcher::dispatchConstRtn(node, GetMaxKeyValuesFn());
     }
 
 

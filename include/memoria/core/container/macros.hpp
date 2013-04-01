@@ -158,10 +158,17 @@ public:
 
 
 #define MEMORIA_CONTAINER_PART_END                                              \
+	MyType& self() {                                                            \
+        return *static_cast<MyType*>(this);                                     \
+    }                                                                           \
+                                                                                \
+    const MyType& self() const {                                                \
+        return *static_cast<const MyType*>(this);                               \
+    }                                                                           \
+    																			\
     MyType* me() {                                                              \
         return static_cast<MyType*>(this);                                      \
     }                                                                           \
-                                                                                \
     const MyType* me() const {                                                  \
         return static_cast<const MyType*>(this);                                \
     }                                                                           \
@@ -202,6 +209,14 @@ public:
 
 
 #define MEMORIA_ITERATOR_PART_END                                               \
+		MyType& self() {                                                        \
+        return *static_cast<MyType*>(this);                                     \
+    }                                                                           \
+                                                                                \
+    const MyType& self() const {                                                \
+        return *static_cast<const MyType*>(this);                               \
+    }																			\
+																				\
     MyType* me() {                                                              \
         return static_cast<MyType*>(this);                                      \
     }                                                                           \

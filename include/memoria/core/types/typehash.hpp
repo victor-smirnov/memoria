@@ -84,12 +84,16 @@ struct TypeHash<Map<Key, Value, Indexes>>:   UIntValue<
 > {};
 
 
-template <typename Key, typename Value, Int Indexes>
-struct TypeHash<Map2<Key, Value, Indexes>>:   UIntValue<
-    HashHelper<1110, TypeHash<Key>::Value, TypeHash<Value>::Value, Indexes>::Value
+template <typename Key, typename Value>
+struct TypeHash<Map2<Key, Value>>:   UIntValue<
+    HashHelper<1110, TypeHash<Key>::Value, TypeHash<Value>::Value, 1>::Value
 > {};
 
 
+template <typename Key, typename Value>
+struct TypeHash<MapProto<Key, Value>>:   UIntValue<
+    HashHelper<1111, TypeHash<Key>::Value, TypeHash<Value>::Value, 1>::Value
+> {};
 
 
 template <typename T>

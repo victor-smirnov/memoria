@@ -123,11 +123,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
         return *me();
     }
 
-    void remove()
-    {
-        Accumulator keys;
-        me()->model().removeEntry(*me(), keys);
-    }
+//    void remove()
+//    {
+//        Accumulator keys;
+//        me()->model().removeEntry(*me(), keys);
+//    }
 
     Value getValue() const
     {

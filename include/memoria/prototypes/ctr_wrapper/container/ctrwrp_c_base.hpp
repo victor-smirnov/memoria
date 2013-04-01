@@ -6,23 +6,23 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_CTRWRAPPER_CTR_BASE_HPP
-#define _MEMORIA_PROTOTYPES_CTRWRAPPER_CTR_BASE_HPP
+#ifndef _MEMORIA_PROTOTYPES_CTRWRAPPER_CTRBASE_HPP
+#define _MEMORIA_PROTOTYPES_CTRWRAPPER_CTRBASE_HPP
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/names.hpp>
-#include <memoria/prototypes/btree/macros.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
 #include <memoria/core/types/algo.hpp>
-#include <memoria/core/tools/fixed_vector.hpp>
+#include <memoria/core/tools/static_array.hpp>
 
 #include <memoria/containers/vector_map/names.hpp>
 
 #include <iostream>
 
 namespace memoria       {
-namespace vector_map    {
 
-MEMORIA_BTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperContainerBase)
+
+MEMORIA_BALTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperContainerBase1)
 
     typedef TypesType                                                           Types;
 
@@ -43,28 +43,28 @@ private:
 
 public:
 
-    CtrWrapperContainerBase(const CtrInitData& data):
+    CtrWrapperContainerBase1(const CtrInitData& data):
     	Base(data),
     	ctr_(data.owner(Base::CONTAINER_HASH))
     {}
 
-    CtrWrapperContainerBase(const ThisType& other, Allocator* allocator):
+    CtrWrapperContainerBase1(const ThisType& other, Allocator* allocator):
         Base(other, allocator),
         ctr_(other.ctr_, allocator)
     {}
 
-    CtrWrapperContainerBase(ThisType&& other, Allocator* allocator):
+    CtrWrapperContainerBase1(ThisType&& other, Allocator* allocator):
         Base(std::move(other), allocator),
         ctr_(std::move(other.ctr_), allocator)
     {}
 
     //broken constructor
-    CtrWrapperContainerBase(const ThisType& other):
+    CtrWrapperContainerBase1(const ThisType& other):
         Base(other),
         ctr_(other.init_data_.owner(Base::CONTAINER_HASH))
     {}
 
-    CtrWrapperContainerBase(ThisType&& other):
+    CtrWrapperContainerBase1(ThisType&& other):
         Base(std::move(other)),
         ctr_(other.init_data_.owner(Base::CONTAINER_HASH))
     {}
@@ -168,9 +168,9 @@ public:
         return ctr_.getRootMetadata().branching_factor();
     }
 
-MEMORIA_BTREE_MODEL_BASE_CLASS_END
+MEMORIA_BALTREE_MODEL_BASE_CLASS_END
 
 
-}}
+}
 
 #endif

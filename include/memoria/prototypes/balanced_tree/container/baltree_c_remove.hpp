@@ -84,9 +84,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveName)
     bool mergePaths(TreePath& tgt, TreePath& src, Int level = 0);
 
 
-    bool removeEntry(Iterator& iter, Accumulator& keys);
-
-    void removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge = true);
+//    bool removeEntry(Iterator& iter, Accumulator& keys);
+//
+//    void removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge = true);
 
     BigInt removeEntries(Iterator& from, Iterator& to, Accumulator& accum, bool merge = true);
 
@@ -112,7 +112,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveName)
     BigInt removeRoom(TreePath& path, Int level, Int from, Int count, Accumulator& accumulator, bool remove_children = true);
 
 
-private:
+
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
 
     void removePagesInternal(
@@ -726,24 +726,24 @@ bool M_TYPE::changeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
  * \return true if the entry has been removed
  */
 
-M_PARAMS
-bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
-{
-    if (iter.isNotEmpty() || iter.isNotEnd())
-    {
-        removeEntry(iter.path(), iter.key_idx(), keys);
-
-        if (iter.isEnd())
-        {
-            iter.nextLeaf();
-        }
-
-        return true;
-    }
-    else {
-        return false;
-    }
-}
+//M_PARAMS
+//bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
+//{
+//    if (iter.isNotEmpty() || iter.isNotEnd())
+//    {
+//        removeEntry(iter.path(), iter.key_idx(), keys);
+//
+//        if (iter.isEnd())
+//        {
+//            iter.nextLeaf();
+//        }
+//
+//        return true;
+//    }
+//    else {
+//        return false;
+//    }
+//}
 
 /**
  * \brief Remove single entry from the leaf node.
@@ -756,36 +756,36 @@ bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
  * \see mergeWithSiblings
  */
 
-M_PARAMS
-void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge)
-{
-    Int children_count  = path.leaf()->children_count();
-
-    //if leaf page has more than 1 key do regular remove
-
-    if (children_count > 1)
-    {
-        //remove 1 element rom the leaf, update parent and
-        //do not try to remove children (it's a leaf)
-
-        removeRoom(path, 0, idx, 1, keys);
-
-        //try merging this leaf with previous of following
-        //leaf if filled by half of it's capacity.
-        if (merge && me()->shouldMergeNode(path, 0))
-        {
-            me()->mergeWithSiblings(path, 0, idx);
-        }
-
-        me()->finishPathStep(path, idx);
-    }
-    else {
-        keys = me()->getKeys(path.leaf().node(), idx);
-        removePage(path, idx);
-    }
-
-    me()->addTotalKeyCount(-1);
-}
+//M_PARAMS
+//void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge)
+//{
+//    Int children_count  = path.leaf()->children_count();
+//
+//    //if leaf page has more than 1 key do regular remove
+//
+//    if (children_count > 1)
+//    {
+//        //remove 1 element rom the leaf, update parent and
+//        //do not try to remove children (it's a leaf)
+//
+//        removeRoom(path, 0, idx, 1, keys);
+//
+//        //try merging this leaf with previous of following
+//        //leaf if filled by half of it's capacity.
+//        if (merge && me()->shouldMergeNode(path, 0))
+//        {
+//            me()->mergeWithSiblings(path, 0, idx);
+//        }
+//
+//        me()->finishPathStep(path, idx);
+//    }
+//    else {
+//        keys = me()->getKeys(path.leaf().node(), idx);
+//        removePage(path, idx);
+//    }
+//
+//    me()->addTotalKeyCount(-1);
+//}
 
 /**
  * \brief Removes singular node chain starting from the tree root down to the specified level.

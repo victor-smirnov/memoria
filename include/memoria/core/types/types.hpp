@@ -125,7 +125,9 @@ template <typename Key, typename Value, Int Indexes = 1>
 struct Map          {};
 
 template <typename Key, typename Value>
-struct Map2         {};
+struct Map2      	{};
+
+
 
 template <typename Key, typename Value>
 struct MapProto     {};

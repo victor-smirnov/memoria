@@ -22,16 +22,66 @@ using namespace memoria::balanced_tree;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
-    typedef typename Base::Element                                              Element;
-    typedef typename Base::Accumulator                                          Accumulator;
+	typedef typename Base::WrappedCtr::Types                                  	WTypes;
+	typedef typename Base::WrappedCtr::Allocator                              	Allocator;
 
+	typedef typename Base::WrappedCtr::ID                                     	ID;
+
+	typedef typename WTypes::NodeBase                                           NodeBase;
+	typedef typename WTypes::NodeBaseG                                          NodeBaseG;
+
+	typedef typename Base::Iterator                                             Iterator;
+
+
+	typedef typename WTypes::Pages::NodeDispatcher                              NodeDispatcher;
+	typedef typename WTypes::Pages::RootDispatcher                              RootDispatcher;
+	typedef typename WTypes::Pages::LeafDispatcher                              LeafDispatcher;
+	typedef typename WTypes::Pages::NonLeafDispatcher                           NonLeafDispatcher;
+
+
+	typedef typename WTypes::Key                                                Key;
+	typedef typename WTypes::Value                                              Value;
+	typedef typename WTypes::Element                                            Element;
+
+	typedef typename WTypes::Metadata                                           Metadata;
+
+	typedef typename WTypes::Accumulator                                        Accumulator;
+
+	typedef typename WTypes::TreePath                                           TreePath;
+	typedef typename WTypes::TreePathItem                                       TreePathItem;
+
+
+	Iterator Begin() {
+		return Iterator(self(), self().ctr().Begin());
+	}
+
+	Iterator begin() {
+		return Iterator(self(), self().ctr().begin());
+	}
+
+	IterEndMark endm() const {
+		return IterEndMark();
+	}
+
+	Iterator RBegin() {
+		return Iterator(self(), self().ctr().RBegin());
+	}
+
+	Iterator End() {
+		return Iterator(self(), self().ctr().End());
+	}
+
+	Iterator REnd() {
+		return Iterator(self(), self().ctr().REnd());
+	}
+
+	BigInt getSize() {
+		return self().ctr().getSize();
+	}
 
     Iterator find(Key key)
     {
-        Iterator iter = me()->findLE(key, 0);
+        Iterator iter = self().findLE(key, 0);
 
         if (!iter.isEnd())
         {
@@ -40,7 +90,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
                 return iter;
             }
             else {
-                return me()->End();
+                return self().End();
             }
         }
         else {
@@ -51,15 +101,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     Iterator operator[](Key key)
     {
-        Iterator iter = me()->findLE(key, 0);
+        Iterator iter(self(), self().ctr().findLE(key, 0));
 
         if (iter.isEnd() || key != iter.key())
         {
         	Accumulator keys;
             keys[0] = key;
-            me()->insert(iter, keys);
+            self().insert(iter, keys);
 
-            iter.prevKey();
+            iter.prev();
         }
 
         return iter;
@@ -67,9 +117,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     bool remove(Key key)
     {
-        Iterator iter = me()->findLE(key, 0);
+    	Iterator iter(self(), self().ctr().findLE(key, 0));
 
-        if (key == iter.key(0))
+        if (key == iter.key())
         {
             iter.remove();
             return true;
@@ -82,7 +132,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
     void remove(Iterator& from, Iterator& to)
     {
         Accumulator keys;
-        me()->removeEntries(from, to, keys);
+        self().removeEntries(from, to, keys);
 
         if (!to.isEnd())
         {
@@ -94,7 +144,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     void insert(Iterator& iter, const Element& element)
     {
-        Accumulator delta = element.first - iter.prefixes();
+        Accumulator delta = element.first - iter.iter().prefixes();
 
         Element e(delta, element.second);
 
@@ -111,12 +161,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     bool contains(Key key)
     {
-        return !me()->find(key).isEnd();
+        return !self().find(key).isEnd();
     }
 
     bool contains1(Key key)
     {
-        return !me()->find1(key).isEnd();
+        return !self().find1(key).isEnd();
     }
 
     bool removeEntry(Iterator& iter, Accumulator& keys)

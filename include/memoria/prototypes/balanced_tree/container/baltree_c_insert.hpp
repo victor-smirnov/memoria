@@ -856,7 +856,7 @@ void M_TYPE::newRoot(TreePath& path)
 
     me()->root2Node(root);
 
-    Accumulator keys = me()->getMaxKeys(root);
+    Accumulator keys = root->is_leaf() ? me()->getLeafMaxKeys(root) : me()->getMaxKeys(root);
     me()->setKeys(new_root, 0, keys);
     me()->setChildID(new_root, 0, root->id());
     me()->setChildrenCount(new_root, 1);

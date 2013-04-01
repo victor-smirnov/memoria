@@ -52,7 +52,7 @@ public:
 
         Ctr map(&allocator);
 
-        map.setNewPageSize(8192);
+        map.ctr().setNewPageSize(8192);
 
         ctr_name_ = map.name();
 
@@ -62,7 +62,8 @@ public:
             for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
                 auto iter = map[pairs[vector_idx_].key_];
-                iter.setData(pairs[vector_idx_].value_);
+
+                iter.value() = pairs[vector_idx_].value_;
 
                 checkIterator(iter, MEMORIA_SOURCE);
 
@@ -102,7 +103,7 @@ public:
         Ctr map(&allocator, CTR_FIND, ctr_name_);
 
         auto iter = map[pairs[vector_idx_].key_];
-        iter.setData(pairs[vector_idx_].value_);
+        iter.value() = pairs[vector_idx_].value_;
 
         checkIterator(iter, MEMORIA_SOURCE);
 
@@ -163,11 +164,11 @@ public:
 
     		Iterator i3 = ctr.End();
     		AssertTrue(MA_SRC, i3.isEnd());
-    		AssertEQ(MA_SRC, i3.key_idx(), i3.page()->children_count());
+    		AssertEQ(MA_SRC, i3.entry_idx(), i3.leaf()->children_count());
 
     		Iterator i4 = ctr.REnd();
     		AssertTrue(MA_SRC, i4.isBegin());
-    		AssertEQ(MA_SRC, i4.key_idx(), -1);
+    		AssertEQ(MA_SRC, i4.entry_idx(), -1);
     	}
     	catch (...) {
     		dump_name_ = Store(allocator);

@@ -27,9 +27,9 @@ public:
 
     MapTestSuite(): TestSuite("MapSuite")
     {
-    	registerTask(new MapApiTest());
+//    	registerTask(new MapApiTest());
         registerTask(new MapCreateTest());
-//        registerTask(new MapRemoveTest());
+        registerTask(new MapRemoveTest());
     }
 
 };

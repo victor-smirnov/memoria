@@ -21,32 +21,32 @@ using namespace memoria::balanced_tree;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 
-	typedef typename Base::Types                                                Types;
-	typedef typename Base::Allocator                                            Allocator;
+	typedef typename Base::WrappedCtr::Types                                  	WTypes;
+	typedef typename Base::WrappedCtr::Allocator                              	Allocator;
 
-	typedef typename Base::ID                                                   ID;
+	typedef typename Base::WrappedCtr::ID                                     	ID;
 
-	typedef typename Types::NodeBase                                            NodeBase;
-	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::TreeNodePage                                         TreeNodePage;
+	typedef typename WTypes::NodeBase                                           NodeBase;
+	typedef typename WTypes::NodeBaseG                                          NodeBaseG;
+
 	typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-	typedef typename Base::RootDispatcher                                       RootDispatcher;
-	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+	typedef typename WTypes::Pages::NodeDispatcher                              NodeDispatcher;
+	typedef typename WTypes::Pages::RootDispatcher                              RootDispatcher;
+	typedef typename WTypes::Pages::LeafDispatcher                              LeafDispatcher;
+	typedef typename WTypes::Pages::NonLeafDispatcher                           NonLeafDispatcher;
 
 
-	typedef typename Base::Key                                                  Key;
-	typedef typename Base::Value                                                Value;
-	typedef typename Base::Element                                              Element;
+	typedef typename WTypes::Key                                                Key;
+	typedef typename WTypes::Value                                              Value;
+	typedef typename WTypes::Element                                            Element;
 
-	typedef typename Base::Metadata                                             Metadata;
+	typedef typename WTypes::Metadata                                           Metadata;
 
-	typedef typename Base::Accumulator                                          Accumulator;
+	typedef typename WTypes::Accumulator                                        Accumulator;
 
-	typedef typename Base::TreePath                                             TreePath;
-	typedef typename Base::TreePathItem                                         TreePathItem;
+	typedef typename WTypes::TreePath                                           TreePath;
+	typedef typename WTypes::TreePathItem                                       TreePathItem;
 
 
     void insertEntry(Iterator& iter, const Element&);
@@ -54,7 +54,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
     bool insert(Iterator& iter, const Element& element)
     {
     	insertEntry(iter, element);
-    	return iter.nextKey();
+    	return iter.next();
     }
 
     void splitLeafPath(TreePath& left, TreePath& right, Int idx);
@@ -65,7 +65,6 @@ MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map2::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
 
 
 M_PARAMS
@@ -103,6 +102,8 @@ void M_TYPE::splitLeaf(TreePath& left, TreePath& right, Int idx)
 {
     Int level = 0;
 
+    auto& ctr = self().ctr();
+
 	NodeBaseG& left_node    = left[level].node();
 
     NodeBaseG& left_parent  = left[level + 1].node();
@@ -112,30 +113,30 @@ void M_TYPE::splitLeaf(TreePath& left, TreePath& right, Int idx)
     left_parent.update();
     right_parent.update();
 
-    NodeBaseG other = me()->createNode(level, false, true, left_node->page_size());
+    NodeBaseG other = ctr.createNode(level, false, true, left_node->page_size());
 
-    Accumulator keys = me()->moveElements(left_node, other, idx);
+    Accumulator keys = ctr.moveElements(left_node, other, idx);
 
     Int parent_idx = left[level].parent_idx();
 
     if (right_parent == left_parent)
     {
-        me()->makeRoom(left, level + 1,  parent_idx + 1, 1);
-        me()->setChildID(left_parent, parent_idx + 1, other->id());
+    	ctr.makeRoom(left, level + 1,  parent_idx + 1, 1);
+    	ctr.setChildID(left_parent, parent_idx + 1, other->id());
 
         //FIXME: should we proceed up to the root?
-        me()->updateCounters(left_parent, parent_idx,    -keys);
-        me()->updateCounters(left_parent, parent_idx + 1, keys, true);
+    	ctr.updateCounters(left_parent, parent_idx,    -keys);
+    	ctr.updateCounters(left_parent, parent_idx + 1, keys, true);
 
         right[level].node()         = other;
         right[level].parent_idx()   = parent_idx + 1;
     }
     else {
-    	me()->makeRoom(right, level + 1, 0, 1);
-        me()->setChildID(right_parent, 0, other->id());
+    	ctr.makeRoom(right, level + 1, 0, 1);
+    	ctr.setChildID(right_parent, 0, other->id());
 
-        me()->updateUp(left,  level + 1, parent_idx, -keys);
-        me()->updateUp(right, level + 1, 0,           keys, true);
+    	ctr.updateUp(left,  level + 1, parent_idx, -keys);
+    	ctr.updateUp(right, level + 1, 0,           keys, true);
 
         right[level].node()         = other;
         right[level].parent_idx()   = 0;
@@ -148,22 +149,23 @@ M_PARAMS
 void M_TYPE::splitLeafPath(TreePath& left, TreePath& right, Int idx)
 {
     Int level = 0;
+    auto& ctr = self().ctr();
 
 	if (level < left.getSize() - 1)
     {
         NodeBaseG& parent = left[level + 1].node();
 
-        if (me()->getCapacity(parent) == 0)
+        if (ctr.getCapacity(parent) == 0)
         {
             Int idx_in_parent = left[level].parent_idx();
-            me()->splitPath(left, right, level + 1, idx_in_parent + 1);
+            ctr.splitPath(left, right, level + 1, idx_in_parent + 1);
         }
 
         splitLeaf(left, right, idx);
     }
     else
     {
-        me()->newRoot(left);
+    	ctr.newRoot(left);
 
         right.resize(left.getSize());
         right[level + 1] = left[level + 1];
@@ -177,13 +179,15 @@ void M_TYPE::splitLeafPath(TreePath& left, TreePath& right, Int idx)
 M_PARAMS
 void M_TYPE::insertEntry(Iterator &iter, const Element& element)
 {
-    TreePath&   path    = iter.path();
+    TreePath&   path    = iter.iter().path();
     NodeBaseG&  node    = path.leaf().node();
-    Int&        idx     = iter.key_idx();
+    Int&        idx     = iter.iter().key_idx();
 
-    if (me()->getCapacity(node) > 0)
+    auto& ctr = self().ctr();
+
+    if (ctr.getCapacity(node) > 0)
     {
-        me()->makeRoom(path, 0, idx, 1);
+        self().makeLeafRoom(path, idx, 1);
     }
     else if (idx == 0)
     {
@@ -209,15 +213,13 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
 
         idx = node->children_count();
         me()->makeLeafRoom(path, idx, 1);
-
-        iter.key_idx()  = idx;
     }
 
-    me()->setLeafDataAndReindex(node, idx, element);
+    self().setLeafDataAndReindex(node, idx, element);
 
-    me()->updateParentIfExists(path, 0, element.first);
+    ctr.updateParentIfExists(path, 0, element.first);
 
-    me()->addTotalKeyCount(1);
+    ctr.addTotalKeyCount(1);
 }
 
 

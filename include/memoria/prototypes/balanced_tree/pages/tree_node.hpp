@@ -332,6 +332,19 @@ public:
     	map_.reindexAll(from, to);
     }
 
+    Key key(Int idx) const
+    {
+    	return map_.key(0, idx);
+    }
+
+    Accumulator keys(Int idx) const {
+    	return map_.keysAcc(idx);
+    }
+
+    Accumulator maxKeys() const {
+    	return map_.maxKeys();
+    }
+
     Value& value(Int idx) {
     	return map_.data(idx);
     }

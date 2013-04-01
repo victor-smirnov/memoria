@@ -254,6 +254,15 @@ public:
 		return accum;
 	}
 
+	Accumulator keysAcc(Int idx) const
+	{
+		Accumulator accum;
+
+		accum[0] = tree()->value(idx);
+
+		return accum;
+	}
+
 	void updateUp(Int block_num, Int idx, IndexKey key_value)
 	{
 		tree()->updateUp(block_num, idx, key_value);

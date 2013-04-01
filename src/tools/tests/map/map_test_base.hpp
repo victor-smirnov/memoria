@@ -29,7 +29,7 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef SCtrTF<Map2<BigInt, BigInt> >::Type                                 Ctr;
+    typedef SCtrTF<Map2<BigInt, BigInt>>::Type                              	Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
     typedef typename Ctr::Accumulator                                           Accumulator;
@@ -72,8 +72,8 @@ protected:
         Int idx = 0;
         for (auto iter = map.Begin(); !iter.isEnd();)
         {
-            BigInt key   = iter.getKey(0);
-            BigInt value = iter.getValue();
+            BigInt key   = iter.key();
+            BigInt value = iter.value();
 
             AssertEQ(MA_SRC, pairs[idx].key_,   key);
             AssertEQ(MA_SRC, pairs[idx].value_, value);
@@ -87,8 +87,8 @@ protected:
         idx = pairs_size - 1;
         for (auto iter = map.RBegin(); !iter.isBegin(); )
         {
-            BigInt  key     = iter.getKey(0);
-            BigInt  value   = iter.getValue();
+            BigInt  key     = iter.key();
+            BigInt  value   = iter.value();
 
             AssertEQ(MA_SRC, pairs[idx].key_,   key);
             AssertEQ(MA_SRC, pairs[idx].value_, value);
@@ -121,7 +121,7 @@ protected:
     {
         checkIteratorPrefix(iter, source);
 
-        auto& path = iter.path();
+        auto& path = iter.iter().path();
 
         for (Int level = path.getSize() - 1; level > 0; level--)
         {
@@ -129,7 +129,7 @@ protected:
 
             for (Int idx = 0; idx < path[level]->children_count(); idx++)
             {
-                ID id = iter.model().getChildID(path[level].node(), idx);
+                ID id = iter.model().ctr().getChildID(path[level].node(), idx);
                 if (id == path[level - 1]->id())
                 {
                     if (path[level - 1].parent_idx() != idx)
