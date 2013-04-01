@@ -215,6 +215,10 @@ public:
         return reflection_->ctr_hash();
     }
 
+    const CtrInitData& init_data() const {
+    	return init_data_;
+    }
+
     PageG createRoot() {
         return PageG();
     }

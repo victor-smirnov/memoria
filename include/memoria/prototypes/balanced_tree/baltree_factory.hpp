@@ -167,6 +167,7 @@ public:
 
         typedef typename ListHead<typename ContainerTypes::KeysList>::Type		Key;
         typedef typename MyType::Value                      Value;
+        typedef typename MyType::ID							ID;
 
         static const Int                                    Indexes             = ContainerTypes::Indexes;
 

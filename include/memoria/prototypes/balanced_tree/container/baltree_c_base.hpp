@@ -396,7 +396,9 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
             MyType::setCtrRootMetadata(node, meta);
         }
 
-        node->ctr_type_hash() = me()->hash();
+        node->ctr_type_hash() 			= self().hash();
+        node->master_ctr_type_hash() 	= self().init_data().master_ctr_type_hash();
+        node->owner_ctr_type_hash() 	= self().init_data().owner_ctr_type_hash();
 
         node->set_root(root);
         node->set_leaf(leaf);
@@ -421,7 +423,9 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         MyType::setCtrRootMetadata(node, metadata);
 
-        node->ctr_type_hash() = me()->hash();
+        node->ctr_type_hash() 			= self().hash();
+        node->master_ctr_type_hash() 	= self().init_data().master_ctr_type_hash();
+        node->owner_ctr_type_hash() 	= self().init_data().owner_ctr_type_hash();
 
         node->set_root(true);
         node->set_leaf(leaf);

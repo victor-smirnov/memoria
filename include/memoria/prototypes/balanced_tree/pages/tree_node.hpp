@@ -10,6 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_NODE_FACTORY2_HPP
 
 #include <memoria/core/types/typehash.hpp>
+#include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
 
@@ -145,9 +146,7 @@ public:
         FieldFactory<Int>::deserialize(buf, size_);
     }
 
-
-    template <typename PageType>
-    void copyFrom(const PageType* page)
+    void copyFrom(const Me* page)
     {
         Base::copyFrom(page);
 
@@ -156,6 +155,9 @@ public:
         this->setBitmap(page->isBitmap());
 
         this->level() = page->level();
+
+        //???
+        this->size_  = page->size();
     }
 };
 
@@ -230,14 +232,26 @@ public:
 
 private:
 
+
+
 public:
 
     typedef StaticVector<typename Types::Key, Types::Indexes>					Accumulator;
 
+
+    typedef typename IfThenElse<
+    			leaf,
+    			typename Types::Value,
+    			typename Types::ID
+    >::Result 																	Value;
+    typedef typename Types::Key                                                 Key;
+
+
+
     typedef TreeMap<
                 TreeMapTypes<
                     typename Types::Key,
-                    typename Types::Value,
+                    Value,
                     Types::Indexes,
                     Accumulator
                 >
@@ -253,18 +267,15 @@ public:
 
     static const long INDEXES                                                   = Types::Indexes;
 
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
-
     TreeMapNode(): Base(), map_() {}
 
 
-    const Map &map() const
+    const Map& map() const
     {
         return map_;
     }
 
-    Map &map()
+    Map& map()
     {
         return map_;
     }
@@ -522,7 +533,6 @@ public:
         if (page_metadata_ == NULL)
         {
             Int attrs = 0;
-
             page_metadata_ = new PageMetadata("BTREE_PAGE", attrs, hash(), new PageOperations());
         }
         else {}
@@ -546,16 +556,6 @@ template <
 	bool root, bool leaf
 >
 using TreeNode = NodePageAdaptor<AdaptedTreeNode, Types, root, leaf>;
-
-
-struct SimpleTestWalker {
-
-	template <typename Types, bool root, bool leaf>
-	void operator()(const TreeNode<TreeMapNode, Types, root, leaf>* node) const
-	{
-		cout<<"BOOO!"<<endl;
-	}
-};
 
 
 }

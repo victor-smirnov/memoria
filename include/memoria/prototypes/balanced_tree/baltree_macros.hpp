@@ -39,9 +39,15 @@ public:
     MyType* me() {                                                                      \
         return static_cast<MyType*>(this);                                              \
     }                                                                                   \
-                                                                                        \
     const MyType* me() const {                                                          \
         return static_cast<const MyType*>(this);                                        \
+    }                                                                                   \
+    																					\
+    MyType& self() {                                                                    \
+        return *static_cast<MyType*>(this);                                             \
+    }                                                                                   \
+    const MyType& self() const {                                                        \
+        return *static_cast<const MyType*>(this);                                       \
     }                                                                                   \
 };
 
@@ -70,9 +76,16 @@ MEMORIA_BALTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)   
     MyType* me() {                                                                      \
         return static_cast<MyType*>(this);                                              \
     }                                                                                   \
-                                                                                        \
     const MyType* me() const {                                                          \
         return static_cast<const MyType*>(this);                                        \
+    }                                                                                   \
+    																					\
+    MyType& self() {                                                                    \
+        return *static_cast<MyType*>(this);                                             \
+    }                                                                                   \
+                                                                                        \
+    const MyType& self() const {                                                        \
+        return *static_cast<const MyType*>(this);                                       \
     }                                                                                   \
 };
 

@@ -346,7 +346,11 @@ public:
     {
         this->id()              = page->id();
         this->crc()             = page->crc();
-        this->ctr_type_hash()   = page->ctr_type_hash();
+
+        this->ctr_type_hash()   		= page->ctr_type_hash();
+        this->master_ctr_type_hash()   	= page->master_ctr_type_hash();
+        this->owner_ctr_type_hash()   	= page->owner_ctr_type_hash();
+
         this->page_type_hash()  = page->page_type_hash();
         this->references()      = page->references();
         this->deleted()         = page->deleted();
@@ -358,6 +362,8 @@ public:
     {
         FieldFactory<PageIdType>::serialize(buf, id());
         FieldFactory<Int>::serialize(buf, crc());
+        FieldFactory<Int>::serialize(buf, master_ctr_type_hash());
+        FieldFactory<Int>::serialize(buf, owner_ctr_type_hash());
         FieldFactory<Int>::serialize(buf, ctr_type_hash());
         FieldFactory<Int>::serialize(buf, page_type_hash());
         FieldFactory<Int>::serialize(buf, references_);
@@ -370,6 +376,8 @@ public:
     {
         FieldFactory<PageIdType>::deserialize(buf, id());
         FieldFactory<Int>::deserialize(buf, crc());
+        FieldFactory<Int>::deserialize(buf, master_ctr_type_hash());
+        FieldFactory<Int>::deserialize(buf, owner_ctr_type_hash());
         FieldFactory<Int>::deserialize(buf, ctr_type_hash());
         FieldFactory<Int>::deserialize(buf, page_type_hash());
         FieldFactory<Int>::deserialize(buf, references_);
