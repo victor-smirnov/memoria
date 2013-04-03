@@ -768,7 +768,7 @@ private:
 
         PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
-        unique_ptr<Byte> buffer((Byte*)malloc(page->page_size()));
+        unique_ptr<Byte, void (*)(void*)> buffer((Byte*)malloc(page->page_size()), free);
 
         const IPageOperations* operations = pageMetadata->getPageOperations();
 

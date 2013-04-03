@@ -80,6 +80,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 		return self().iter().prefix();
 	}
 
+	Accumulator prefixes() const {
+		Accumulator acc;
+
+		acc[0] = self().iter().prefix();
+
+		return acc;
+	}
+
 	Int entry_idx() const {
 		return self().iter().key_idx();
 	}
@@ -146,6 +154,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 	NodeBaseG& leaf()
 	{
 		return self().iter().path().leaf();
+	}
+
+
+	const TreePath& path() const
+	{
+		return self().iter().path();
+	}
+
+	TreePath& path()
+	{
+		return self().iter().path();
 	}
 
 	void remove()

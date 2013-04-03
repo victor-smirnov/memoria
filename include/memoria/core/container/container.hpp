@@ -202,8 +202,6 @@ public:
 
             Types::Pages::NodeDispatcher::buildMetadataList(list);
 
-            PageInitDispatcher<typename Types::DataPagesList>::buildMetadataList(list);
-
             reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(),
                                                 list,
                                                 CONTAINER_HASH,

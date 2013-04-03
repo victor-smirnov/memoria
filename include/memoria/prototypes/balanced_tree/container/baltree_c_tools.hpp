@@ -46,19 +46,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
     typedef typename Base::Element                                              Element;
-    typedef typename Base::Accumulator                                          Accumulator;
 
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::Position 											Position;
+
+    typedef typename Types::TreePath                                            TreePath;
+    typedef typename Types::TreePathItem                                        TreePathItem;
 
     static const Int Indexes                                                    = Types::Indexes;
-
+    static const Int Streams                                                    = Types::Streams;
 
     enum class BalTreeNodeTraits {
         MAX_CHILDREN
     };
-
-
 
     template <typename Node>
     Int getNodeTraitsFn(BalTreeNodeTraits trait, Int page_size) const
@@ -604,6 +604,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
 
+    MEMORIA_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
+    bool checkCapacities(const NodeBaseG& node, const Position& pos) const
+    {
+    	return NodeDispatcher::dispatchConstRtn(node, CheckCapacitiesFn(), pos);
+    }
 
 private:
 

@@ -13,7 +13,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-
+#include <vector>
 
 namespace memoria    {
 
@@ -44,9 +44,122 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 	typedef typename WTypes::Metadata                                           Metadata;
 
 	typedef typename WTypes::Accumulator                                        Accumulator;
+	typedef typename WTypes::Position											Position;
 
 	typedef typename WTypes::TreePath                                           TreePath;
 	typedef typename WTypes::TreePathItem                                       TreePathItem;
+
+	typedef std::pair<Key, Value> 												KVPair;
+
+	typedef std::vector<KVPair> 												LeafPairsVector;
+	typedef std::function<KVPair ()>											LeafPairProviderFn;
+
+
+
+	static const Int Indexes = WTypes::Indexes;
+
+	class MapSubtreeProvider: public Base::WrappedCtr::DefaultSubtreeProviderBase {
+
+		typedef typename Base::WrappedCtr::DefaultSubtreeProviderBase 		ProviderBase;
+		typedef typename Base::WrappedCtr::BalTreeNodeTraits				BalTreeNodeTraits;
+
+		MyType& ctr_;
+		Int total_;
+		Int inserted_;
+
+		Int page_size_;
+
+		LeafPairProviderFn pair_provider_fn_;
+
+	public:
+		MapSubtreeProvider(MyType& ctr, Int total, LeafPairProviderFn pair_provider_fn):
+			ProviderBase(ctr.ctr()),
+			ctr_(ctr),
+			total_(total),
+			inserted_(0),
+			pair_provider_fn_(pair_provider_fn)
+		{
+			page_size_ = ctr.ctr().getNewPageSize();
+		}
+
+		virtual BigInt getTotalKeyCount()
+		{
+			Int remainder = total_ - inserted_;
+
+			Int leaf_capacity = ctr_.getNodeTraitInt(BalTreeNodeTraits::MAX_CHILDREN, false, true);
+
+			return remainder / leaf_capacity + (remainder % leaf_capacity ? 1 : 0);
+		}
+
+		virtual Position getTotalSize()
+		{
+			return Position(total_);
+		}
+
+		virtual Position getTotalInserted()
+		{
+			return Position(inserted_);
+		}
+
+		virtual Position remainder()
+		{
+			return Position(total_ - inserted_);
+		}
+
+		struct InsertIntoLeafFn {
+
+			typedef Accumulator ReturnType;
+
+			template <typename Node>
+			Accumulator operator()(Node* node, MapSubtreeProvider* provider, Int pos, Int remainder)
+			{
+				Int size;
+				if (remainder <= node->capacity())
+				{
+					size = remainder;
+				}
+				else {
+					size = node->capacity();
+				}
+
+				node->insertSpace(Position(pos), Position(size));
+
+				auto* tree 	= node->map().tree();
+				auto* value = node->map().values();
+
+				for (Int c = pos; c < pos + size; c++)
+				{
+					auto pair 		= provider->pair_provider_fn_();
+					tree->value(c) 	= pair.first;
+					value[c]		= pair.second;
+				}
+
+				node->reindex();
+
+//				node->map().dump();
+
+				provider->inserted_ += size;
+
+				return node->maxKeys();
+			}
+		};
+
+		virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)
+		{
+			return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, 0, remainder().get());
+		}
+
+		virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)
+		{
+			return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, from.get(), remainder().get());
+		}
+
+		virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size)
+		{
+			return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, from.get(), size.get());
+		}
+	};
+
 
 
     void insertEntry(Iterator& iter, const Element&);
@@ -57,9 +170,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
     	return iter.next();
     }
 
-    void splitLeafPath(TreePath& left, TreePath& right, Int idx);
-    TreePathItem splitLeaf(TreePath& path, Int idx);
-    void         splitLeaf(TreePath& left, TreePath& right, Int idx);
+    void insertBatch(Iterator& iter, const LeafPairsVector& data);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -67,112 +178,38 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
-M_PARAMS
-typename M_TYPE::TreePathItem M_TYPE::splitLeaf(TreePath& path, Int idx)
-{
-    Int level = 0;
-
-	NodeBaseG& node     = path[level].node();
-    NodeBaseG& parent   = path[level + 1].node();
-
-    Int parent_idx      = path[level].parent_idx();
-
-    node.update();
-    parent.update();
-
-    NodeBaseG other = me()->createNode(level, false, true, node->page_size());
-
-    Accumulator keys = me()->moveElements(node, other, idx);
-
-    //FIXME:: Make room in the parent
-    me()->makeRoom(path, level + 1, parent_idx + 1, 1);
-
-    me()->setINodeData(parent, parent_idx + 1, &other->id());
-
-    //FIXME: Should we proceed up to the root here in general case?
-    me()->updateCounters(parent, parent_idx,    -keys);
-    me()->updateCounters(parent, parent_idx + 1, keys, true);
-
-    return TreePathItem(other, parent_idx + 1);
-}
-
 
 M_PARAMS
-void M_TYPE::splitLeaf(TreePath& left, TreePath& right, Int idx)
+void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 {
-    Int level = 0;
+	auto& self = this->self();
+	auto& ctr  = self.ctr();
 
-    auto& ctr = self().ctr();
+	TreePath& path = iter.path();
+	Position idx(iter.entry_idx());
 
-	NodeBaseG& left_node    = left[level].node();
+	Int pos = 0;
 
-    NodeBaseG& left_parent  = left[level + 1].node();
-    NodeBaseG& right_parent = right[level + 1].node();
+	MapSubtreeProvider provider(self, data.size(), [&](){
+		return data[pos++];
+	});
 
-    left_node.update();
-    left_parent.update();
-    right_parent.update();
+	ctr.insertSubtree(path, idx, provider);
 
-    NodeBaseG other = ctr.createNode(level, false, true, left_node->page_size());
+	ctr.addTotalKeyCount(data.size());
 
-    Accumulator keys = ctr.moveElements(left_node, other, idx);
+	if (iter.isEnd())
+	{
+		ctr.getNextNode(path);
+		iter.iter().key_idx() = 0;
+	}
 
-    Int parent_idx = left[level].parent_idx();
-
-    if (right_parent == left_parent)
-    {
-    	ctr.makeRoom(left, level + 1,  parent_idx + 1, 1);
-    	ctr.setChildID(left_parent, parent_idx + 1, other->id());
-
-        //FIXME: should we proceed up to the root?
-    	ctr.updateCounters(left_parent, parent_idx,    -keys);
-    	ctr.updateCounters(left_parent, parent_idx + 1, keys, true);
-
-        right[level].node()         = other;
-        right[level].parent_idx()   = parent_idx + 1;
-    }
-    else {
-    	ctr.makeRoom(right, level + 1, 0, 1);
-    	ctr.setChildID(right_parent, 0, other->id());
-
-    	ctr.updateUp(left,  level + 1, parent_idx, -keys);
-    	ctr.updateUp(right, level + 1, 0,           keys, true);
-
-        right[level].node()         = other;
-        right[level].parent_idx()   = 0;
-    }
+	for (UInt c = 0; c < data.size(); c++)
+	{
+		iter++;
+	}
 }
 
-
-
-M_PARAMS
-void M_TYPE::splitLeafPath(TreePath& left, TreePath& right, Int idx)
-{
-    Int level = 0;
-    auto& ctr = self().ctr();
-
-	if (level < left.getSize() - 1)
-    {
-        NodeBaseG& parent = left[level + 1].node();
-
-        if (ctr.getCapacity(parent) == 0)
-        {
-            Int idx_in_parent = left[level].parent_idx();
-            ctr.splitPath(left, right, level + 1, idx_in_parent + 1);
-        }
-
-        splitLeaf(left, right, idx);
-    }
-    else
-    {
-    	ctr.newRoot(left);
-
-        right.resize(left.getSize());
-        right[level + 1] = left[level + 1];
-
-        splitLeaf(left, right, idx);
-    }
-}
 
 
 
@@ -183,36 +220,36 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
     NodeBaseG&  node    = path.leaf().node();
     Int&        idx     = iter.iter().key_idx();
 
-    auto& ctr = self().ctr();
+    auto& ctr  = self().ctr();
 
     if (ctr.getCapacity(node) > 0)
     {
-        self().makeLeafRoom(path, idx, 1);
+        ctr.makeRoom(path, 0, Position(idx), Position(1));
     }
     else if (idx == 0)
     {
         TreePath next = path;
-        me()->splitLeafPath(path, next, node->children_count() / 2);
+        ctr.splitPath(path, next, 0, Position(node->children_count() / 2));
         idx = 0;
 
-        me()->makeLeafRoom(path, idx, 1);
+        ctr.makeRoom(path, 0, Position(idx), Position(1));
     }
     else if (idx < node->children_count())
     {
         //FIXME: does it necessary to split the page at the middle ???
         TreePath next = path;
-        me()->splitLeafPath(path, next, idx);
-        me()->makeLeafRoom(path, idx, 1);
+        ctr.splitPath(path, next, 0, Position(idx));
+        ctr.makeRoom(path, 0, Position(idx), Position(1));
     }
     else {
         TreePath next = path;
 
-        me()->splitLeafPath(path, next, node->children_count() / 2);
+        ctr.splitPath(path, next, 0, Position(node->children_count() / 2));
 
         path = next;
 
         idx = node->children_count();
-        me()->makeLeafRoom(path, idx, 1);
+        ctr.makeRoom(path, 0, Position(idx), Position(1));
     }
 
     self().setLeafDataAndReindex(node, idx, element);

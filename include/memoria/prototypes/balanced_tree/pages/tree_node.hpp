@@ -236,7 +236,8 @@ private:
 
 public:
 
-    typedef StaticVector<typename Types::Key, Types::Indexes>					Accumulator;
+    typedef typename Types::Accumulator											Accumulator;
+    typedef typename Types::Position											Position;
 
 
     typedef typename IfThenElse<
@@ -299,6 +300,16 @@ public:
     	return map_.size();
     }
 
+    bool isEmpty() const
+    {
+    	return size() == 0;
+    }
+
+    bool isAfterEnd(const Position& idx) const
+    {
+    	return idx.get() >= size();
+    }
+
     void set_children_count(Int map_size)
     {
         Base::map_size() = map_size;
@@ -311,8 +322,11 @@ public:
         map_.size()      += count;
     }
 
-    void insertSpace(Int from, Int length)
+    void insertSpace(const Position& from_pos, const Position& length_pos)
     {
+    	Int from 	= from_pos.get();
+    	Int length 	= length_pos.get();
+
     	map_.insertSpace(from, length);
 
     	for (Int c = from; c < from + length; c++)
@@ -364,8 +378,11 @@ public:
     	return map_.data(idx);
     }
 
-    Accumulator moveElements(MyType* tgt, Int from, Int shift)
+    Accumulator moveElements(MyType* tgt, const Position& from_pos, const Position& shift_pos)
     {
+    	Int from 	= from_pos.get();
+    	Int shift 	= shift_pos.get();
+
     	Accumulator result;
 
     	Int count = map_.size() - from;
@@ -374,7 +391,7 @@ public:
 
     	if (tgt->size() > 0)
     	{
-    		tgt->insertSpace(0, count + shift);
+    		tgt->insertSpace(Position(0), Position(count + shift));
     	}
 
     	map_.copyTo(&tgt->map(), from, count, shift);
@@ -389,6 +406,16 @@ public:
     	tgt->reindex();
 
     	return result;
+    }
+
+    Accumulator getCounters(const Position& pos, const Position& count) const
+    {
+    	return map_.sum(pos.get(), count.get());
+    }
+
+    bool checkCapacities(const Position& pos) const
+    {
+    	return capacity() >= pos.get();
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const

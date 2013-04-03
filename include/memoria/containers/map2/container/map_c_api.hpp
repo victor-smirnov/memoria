@@ -75,7 +75,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 		return Iterator(self(), self().ctr().REnd());
 	}
 
-	BigInt getSize() {
+	BigInt getSize() const {
+		return self().ctr().getSize();
+	}
+
+	BigInt size() const {
 		return self().ctr().getSize();
 	}
 

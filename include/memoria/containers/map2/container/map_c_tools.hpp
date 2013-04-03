@@ -49,6 +49,30 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
 	typedef typename WTypes::TreePath                                           TreePath;
 	typedef typename WTypes::TreePathItem                                       TreePathItem;
 
+	typedef typename Base::WrappedCtr::BalTreeNodeTraits						BalTreeNodeTraits;
+
+
+	template <typename Node>
+	Int getNodeTraitsFn(BalTreeNodeTraits trait, Int page_size) const
+	{
+		switch (trait)
+		{
+		case BalTreeNodeTraits::MAX_CHILDREN:
+			return Node::Map::max_tree_size(page_size - sizeof(Node) + sizeof(typename Node::Map)); break;
+
+		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", (Int)trait);
+		}
+	}
+
+	MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(GetNodeTraitsFn, getNodeTraitsFn, Int);
+
+	Int getNodeTraitInt(BalTreeNodeTraits trait, bool root, bool leaf) const
+	{
+		Int page_size = self().ctr().getRootMetadata().page_size();
+		return NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
+	}
+
+
     void sumLeafKeys(const NodeBase *node, Int from, Int count, Accumulator& keys) const
     {
     	keys += LeafDispatcher::dispatchConstRtn(node, typename Base::WrappedCtr::SumKeysFn(&self().ctr()), from, count);

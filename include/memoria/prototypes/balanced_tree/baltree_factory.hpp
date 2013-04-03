@@ -51,6 +51,7 @@ struct BalancedTreeTypes {
     typedef TypeList<BigInt>                                                    KeysList;
 
     static const Int Indexes                                                    = 1;
+    static const Int Streams													= 1;
 
     typedef TypeList<
             memoria::btree::AllocatorName,
@@ -61,17 +62,7 @@ struct BalancedTreeTypes {
             memoria::balanced_tree::RemoveName,
             memoria::balanced_tree::FindName
     >                                                                           ContainerPartsList;
-
-    typedef TypeList<>                                                          BasePagePartsList;
     
-    typedef TypeList<>                                                          RootPagePartsList;
-
-    typedef TypeList<>                                                          InternalPagePartsList;
-
-    typedef TypeList<>                                                          LeafPagePartsList;
-
-    typedef TypeList<>                                                          DataPagesList;
-
     typedef TypeList<
             memoria::balanced_tree::IteratorAPIName
     >                                                                           IteratorPartsList;
@@ -138,11 +129,6 @@ public:
 
     typedef BalancedTreeTypes<Profile, ContainerTypeName_>                      ContainerTypes;
 
-
-    typedef typename AppendTool<
-    			balanced_tree::RootNodeMetadataName<typename ContainerTypes::Metadata>,
-                typename ContainerTypes::RootPagePartsList
-    >::Result                                                                   RootPagePartsList;
     
     typedef typename ContainerTypes::Allocator::Page::ID                        ID;
 
@@ -155,6 +141,9 @@ public:
                 ID,
                 typename ContainerTypes::Value
     >::Result                                                                   Value;
+
+    typedef balanced_tree::StaticVector<BigInt, ContainerTypes::Indexes>    Accumulator_;
+    typedef balanced_tree::StaticVector<Int, ContainerTypes::Streams>       Position_;
 
 
     typedef balanced_tree::TreeNodeBase<typename ContainerTypes::Allocator::Page>   NodePageBase0;
@@ -170,8 +159,10 @@ public:
         typedef typename MyType::ID							ID;
 
         static const Int                                    Indexes             = ContainerTypes::Indexes;
+        static const Int                                    Streams				= ContainerTypes::Streams;
 
-
+        typedef Accumulator_ 								Accumulator;
+        typedef Position_ 									Position;
     };
 
     struct DispatcherTypes
@@ -220,6 +211,7 @@ public:
         >::Result                                                               Key;
 
         typedef balanced_tree::StaticVector<Key, ContainerTypes::Indexes>       Accumulator;
+        typedef balanced_tree::StaticVector<Int, ContainerTypes::Streams>       Position;
 
 
         typedef ValuePair<Accumulator, Value>                                   Element;

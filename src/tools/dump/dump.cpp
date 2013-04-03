@@ -218,6 +218,7 @@ int main(int argc, const char** argv, const char** envp)
     MetadataInitializer<SmallProfile<> >::init();
 
     SCtrTF<Map2<BigInt, BigInt>>::Type::initMetadata();
+    SCtrTF<Map2<BigInt, Int>>::Type::initMetadata();
 
     try {
         logger.level() = Logger::NONE;

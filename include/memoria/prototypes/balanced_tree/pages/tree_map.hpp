@@ -348,9 +348,31 @@ public:
 		accum[0] += tree()->sum(start, end);
 	}
 
+	Accumulator sum(Int start, Int end) const
+	{
+		Accumulator accum;
+		accum[0] = tree()->sum(start, end);
+		return accum;
+	}
+
 	void sum(Int block_num, Int start, Int end, Key& accum) const
 	{
 		accum += tree()->sum(start, end);
+	}
+
+	void dump(std::ostream& out = cout, bool layout = true) const
+	{
+		if (layout) {
+			Base::dump(out);
+		}
+
+		tree()->dump(out, layout);
+
+		const auto* values = this->values();
+
+		memoria::dumpArray<Value>(out, tree()->size(), [values](Int idx) -> Value {
+			return values[idx];
+		});
 	}
 
 

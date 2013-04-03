@@ -53,10 +53,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrRemoveName)
 
     void removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge = true);
 
+    bool removeEntries(Iterator& from, Iterator& to, Accumulator& keys);
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map2::CtrRemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+M_PARAMS
+bool M_TYPE::removeEntries(Iterator& from, Iterator& to, Accumulator& keys) {
+	return false;
+}
 
 
 /**

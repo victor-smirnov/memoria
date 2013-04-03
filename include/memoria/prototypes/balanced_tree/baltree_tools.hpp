@@ -243,6 +243,7 @@ public:
 };
 
 
+
 template <typename ElementType_, Int Indexes_>
 class StaticVector
 {
@@ -262,6 +263,21 @@ public:
         {
             values_[c] = 0;
         }
+    }
+
+    explicit StaticVector(const ElementType& value, Int idx = 0)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] = -1;
+        }
+
+        values_[idx] 	= value;
+    }
+
+    ElementType get() const
+    {
+    	return values_[0];
     }
 
     StaticVector(const MyType& other)
@@ -346,13 +362,54 @@ public:
         return true;
     }
 
+    bool operator<=(const MyType& other) const
+    {
+    	for (Int c = 0, mask = 1; c < Indexes; c++, mask <<= 1)
+    	{
+    		bool set = 1;
+
+    		if (set && values_[c] > other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool operator>(const MyType& other) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] <= other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool operator>(const ElementType& other) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] <= other)
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+
     MyType& operator=(const MyType& other)
     {
         for (Int c = 0; c < Indexes; c++)
         {
             values_[c] = other.values_[c];
         }
-
         return *this;
     }
 
@@ -362,7 +419,6 @@ public:
         {
             values_[c] = keys[c];
         }
-
         return *this;
     }
 

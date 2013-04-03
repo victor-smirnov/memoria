@@ -12,6 +12,8 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
+#include <memoria/containers/map2/map_factory.hpp>
+
 #include "../shared/randomaccesslist_test_base.hpp"
 
 #include <vector>
@@ -22,15 +24,15 @@
 
 namespace memoria {
 
-typedef SCtrTF<Set1>::Type SumSet1Ctr;
+typedef SCtrTF<Map2<BigInt, Int>>::Type SumSet1Ctr;
 
 class SumsetBatchTest: public RandomAccessListTestBase<
-    Set1,
+    Map2<BigInt, Int>,
     typename SumSet1Ctr::LeafPairsVector
 >
 {
     typedef RandomAccessListTestBase<
-            Set1,
+    		Map2<BigInt, Int>,
             typename SumSet1Ctr::LeafPairsVector
     >                                                                           Base;
 
@@ -38,7 +40,7 @@ class SumsetBatchTest: public RandomAccessListTestBase<
     typedef typename Base::Accumulator                                          Accumulator;
     typedef typename SumSet1Ctr::LeafPairsVector                                MemBuffer;
 
-    static const Int Indexes                                                    = Ctr::Indexes;
+//    static const Int Indexes                                                    = Ctr::Indexes;
 
 
 
@@ -48,6 +50,9 @@ public:
         Base("SumsetBatch")
     {
         size_ = 1024*1024;
+//        max_block_size_ = 4*1024;
+
+        Ctr::initMetadata();
     }
 
 
@@ -62,7 +67,7 @@ public:
         BigInt cnt = 0;
         for (auto& pair: array)
         {
-            pair.keys[0] = cnt++;
+            pair.first = cnt++;
 
             if (cnt == 10000) cnt = 0;
         }
@@ -77,8 +82,8 @@ public:
 
     	for (size_t c = 0; c < src.size(); c++)
     	{
-    		auto v1 = src[c].keys[0];
-    		auto v2 = tgt[c].keys[0];
+    		auto v1 = src[c].first;
+    		auto v2 = tgt[c].first;
 
     		AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
     	}
@@ -97,7 +102,7 @@ public:
             }
         }
 
-        AssertEQ(MA_SRC, pos, i.keyNum());
+        AssertEQ(MA_SRC, pos, i.iter().keyNum());
 
         return i;
     }
@@ -117,10 +122,7 @@ public:
     {
         for (auto& value: data)
         {
-            for (Int c = 0; c < Indexes; c++)
-            {
-                value.keys[c] = iter.getRawKey(c);
-            }
+        	value.first = iter.rawKey();
 
             if (!iter.next())
             {
@@ -156,12 +158,12 @@ public:
 
     virtual BigInt getPosition(Iterator& iter)
     {
-        return iter.keyNum();
+        return iter.iter().keyNum();
     }
 
     virtual BigInt getLocalPosition(Iterator& iter)
     {
-        return iter.key_idx();
+        return iter.entry_idx();
     }
 
     virtual BigInt getSize(Ctr& array)
