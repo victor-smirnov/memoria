@@ -316,17 +316,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	return NodeDispatcher::dispatchConstRtn(node, GetMaxCapacityFn(me()));
     }
 
-    bool shouldMergeNode(const TreePath& path, Int level) const
-    {
-        const NodeBaseG& node = path[level].node();
-        return node->children_count() <= me()->getMaxCapacity(node) / 2;
-    }
-
-    bool shouldSplitNode(const TreePath& path, Int level) const
-    {
-        const NodeBaseG& node = path[level].node();
-        return me()->getCapacity(node) == 0;
-    }
 
 
 
@@ -609,6 +598,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     {
     	return NodeDispatcher::dispatchConstRtn(node, CheckCapacitiesFn(), pos);
     }
+
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetNodeSizesFn, nodeSizes, Position);
+    Position getNodeSizes(const NodeBaseG& node) const
+    {
+    	return NodeDispatcher::dispatchConstRtn(node, GetNodeSizesFn());
+    }
+
 
 private:
 

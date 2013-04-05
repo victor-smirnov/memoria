@@ -173,12 +173,12 @@ void dumpTree(const IDValue& id, const File& folder)
     try {
         manager->getPage(page, id);
 
-        ofstream pagebin((folder.getPath() + Platform::getFilePathSeparator() + "page.bin").c_str());
-        for (Int c = 0; c < page->size(); c++)
-        {
-            pagebin<<(Byte)page->getByte(c);
-        }
-        pagebin.close();
+//        ofstream pagebin((folder.getPath() + Platform::getFilePathSeparator() + "page.bin").c_str());
+//        for (Int c = 0; c < page->size(); c++)
+//        {
+//            pagebin<<(Byte)page->getByte(c);
+//        }
+//        pagebin.close();
 
         ofstream pagetxt((folder.getPath() + Platform::getFilePathSeparator() + "page.txt").c_str());
 

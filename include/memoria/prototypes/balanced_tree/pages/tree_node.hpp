@@ -342,6 +342,56 @@ public:
     	this->set_children_count(map_.size());
     }
 
+
+    Accumulator removeSpace(const Position& from_pos, const Position& length_pos, bool reindex = true)
+    {
+    	Int from = from_pos.get();
+    	Int count = length_pos.get();
+
+    	Accumulator accum = map_.sum(from, from + count);
+
+    	Int old_size = map_.size();
+
+    	map_.removeSpace(from, count);
+
+    	map_.clear(old_size - count, old_size);
+
+    	this->set_children_count(map_.size());
+
+    	if (reindex)
+    	{
+    		map_.reindex();
+    	}
+
+    	return accum;
+    }
+
+    bool shouldMergeWithSiblings() const
+    {
+    	return capacity() >= size();
+    }
+
+    bool canMergeWith(const MyType* target) const
+    {
+    	Int size 		= this->size();
+    	Int capacity 	= target->capacity();
+
+//    	map_.dump();
+//    	target->map_.dump();
+
+//    	return size() <= target->capacity();
+
+    	return size <= capacity;
+    }
+
+    void mergeWith(MyType* target)
+    {
+    	Int size = this->size();
+    	map().copyTo(&target->map(), 0, size, target->size());
+    	target->inc_size(size);
+    	target->map().reindex();
+    }
+
     Int capacity() const
     {
     	return map_.capacity();
@@ -350,6 +400,10 @@ public:
     Int max_size() const
     {
     	return map_.max_size();
+    }
+
+    Position nodeSizes() const {
+    	return Position(size());
     }
 
     void reindexAll(Int from, Int to)

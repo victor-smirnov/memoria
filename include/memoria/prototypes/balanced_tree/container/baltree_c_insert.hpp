@@ -97,7 +97,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
     Accumulator insertSubtree(TreePath& path, Position& idx, ISubtreeProvider& provider);
 
+
+    // FIXME: Is it in use?
+    bool shouldSplitNode(const TreePath& path, Int level) const
+    {
+    	const NodeBaseG& node = path[level].node();
+    	return me()->getCapacity(node) == 0;
+    }
+
     void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx);
+
 
     void newRoot(TreePath& path);
 
@@ -363,28 +372,28 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(TreePath& path, Position& idx
 M_PARAMS
 void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx)
 {
-	auto& ctr = self();
+	auto& self = this->self();
 
     if (level < left.getSize() - 1)
     {
         NodeBaseG& parent = left[level + 1].node();
 
-        if (ctr.getCapacity(parent) == 0)
+        if (self.getCapacity(parent) == 0)
         {
             Int idx_in_parent = left[level].parent_idx();
-            ctr.splitPath(left, right, level + 1, Position(idx_in_parent + 1));
+            self.splitPath(left, right, level + 1, Position(idx_in_parent + 1));
         }
 
-        ctr.split(left, right, level, idx);
+        self.split(left, right, level, idx);
     }
     else
     {
-        ctr.newRoot(left);
+    	self.newRoot(left);
 
         right.resize(left.getSize());
         right[level + 1] = left[level + 1];
 
-        ctr.split(left, right, level, idx);
+        self.split(left, right, level, idx);
     }
 }
 
@@ -708,7 +717,7 @@ typename M_TYPE::Accumulator M_TYPE::moveElements(
 M_PARAMS
 typename M_TYPE::TreePathItem M_TYPE::split(TreePath& path, Int level, const Position& idx)
 {
-    auto& ctr = self();
+    auto& self = this->self();
 
 	NodeBaseG& node     = path[level].node();
     NodeBaseG& parent   = path[level + 1].node();
@@ -718,18 +727,18 @@ typename M_TYPE::TreePathItem M_TYPE::split(TreePath& path, Int level, const Pos
     node.update();
     parent.update();
 
-    NodeBaseG other = ctr.createNode(level, false, node->is_leaf(), node->page_size());
+    NodeBaseG other = self.createNode(level, false, node->is_leaf(), node->page_size());
 
-    Accumulator keys = ctr.moveElements(node, other, idx);
+    Accumulator keys = self.moveElements(node, other, idx);
 
     //FIXME:: Make room in the parent
-    ctr.makeRoom(path, level + 1, parent_idx + 1, 1);
+    self.makeRoom(path, level + 1, parent_idx + 1, 1);
 
-    ctr.setChildID(parent, parent_idx + 1, other->id());
+    self.setChildID(parent, parent_idx + 1, other->id());
 
     //FIXME: Should we proceed up to the root here in general case?
-    ctr.updateCounters(parent, parent_idx,    -keys);
-    ctr.updateCounters(parent, parent_idx + 1, keys, true);
+    self.updateCounters(parent, parent_idx,    -keys);
+    self.updateCounters(parent, parent_idx + 1, keys, true);
 
     if (level > 0)
     {
@@ -756,7 +765,7 @@ typename M_TYPE::TreePathItem M_TYPE::split(TreePath& path, Int level, const Pos
 M_PARAMS
 void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& idx)
 {
-	auto& ctr = self();
+	auto& self = this->self();
 
     NodeBaseG& left_node    = left[level].node();
 
@@ -767,30 +776,30 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
     left_parent.update();
     right_parent.update();
 
-    NodeBaseG other = ctr.createNode(level, false, left_node->is_leaf(), left_node->page_size());
+    NodeBaseG other = self.createNode(level, false, left_node->is_leaf(), left_node->page_size());
 
-    Accumulator keys = ctr.moveElements(left_node, other, idx);
+    Accumulator keys = self.moveElements(left_node, other, idx);
 
     Int parent_idx = left[level].parent_idx();
 
     if (right_parent == left_parent)
     {
-    	ctr.makeRoom(left, level + 1,  Position(parent_idx + 1), Position(1));
-        ctr.setChildID(left_parent, parent_idx + 1, other->id());
+    	self.makeRoom(left, level + 1,  Position(parent_idx + 1), Position(1));
+    	self.setChildID(left_parent, parent_idx + 1, other->id());
 
         //FIXME: should we proceed up to the root?
-        ctr.updateCounters(left_parent, parent_idx,    -keys);
-        ctr.updateCounters(left_parent, parent_idx + 1, keys, true);
+    	self.updateCounters(left_parent, parent_idx,    -keys);
+    	self.updateCounters(left_parent, parent_idx + 1, keys, true);
 
         right[level].node()         = other;
         right[level].parent_idx()   = parent_idx + 1;
     }
     else {
-    	ctr.makeRoom(right, level + 1, Position(0), Position(1));
-        ctr.setChildID(right_parent, 0, other->id());
+    	self.makeRoom(right, level + 1, Position(0), Position(1));
+    	self.setChildID(right_parent, 0, other->id());
 
-        ctr.updateUp(left,  level + 1, parent_idx, -keys);
-        ctr.updateUp(right, level + 1, 0,           keys, true);
+    	self.updateUp(left,  level + 1, parent_idx, -keys);
+    	self.updateUp(right, level + 1, 0,           keys, true);
 
         right[level].node()         = other;
         right[level].parent_idx()   = 0;
@@ -808,22 +817,24 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
 M_PARAMS
 void M_TYPE::newRoot(TreePath& path)
 {
+	auto& self = this->self();
+
     NodeBaseG& root         = path[path.getSize() - 1].node(); // page == root
     root.update();
 
-    NodeBaseG new_root      = me()->createNode(root->level() + 1, true, false, root->page_size());
+    NodeBaseG new_root      = self.createNode(root->level() + 1, true, false, root->page_size());
 
-    me()->copyRootMetadata(root, new_root);
+    self.copyRootMetadata(root, new_root);
 
-    me()->root2Node(root);
+    self.root2Node(root);
 
-    Accumulator keys = root->is_leaf() ? me()->getLeafMaxKeys(root) : me()->getMaxKeys(root);
-    me()->setKeys(new_root, 0, keys);
-    me()->setChildID(new_root, 0, root->id());
-    me()->setChildrenCount(new_root, 1);
-    me()->reindex(new_root);
+    Accumulator keys = root->is_leaf() ? self.getLeafMaxKeys(root) : self.getMaxKeys(root);
+    self.setKeys(new_root, 0, keys);
+    self.setChildID(new_root, 0, root->id());
+    self.setChildrenCount(new_root, 1);
+    self.reindex(new_root);
 
-    me()->set_root(new_root->id());
+    self.set_root(new_root->id());
 
     path.append(TreePathItem(new_root));
 

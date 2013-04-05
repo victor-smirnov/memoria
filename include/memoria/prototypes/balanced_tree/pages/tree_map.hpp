@@ -305,6 +305,9 @@ public:
 
 	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
 	{
+		MEMORIA_ASSERT(copy_from + count, <=, size());
+		MEMORIA_ASSERT(copy_to + count, <=, other->max_size());
+
 		tree()->copyTo(other->tree(), copy_from, count, copy_to);
 
 		CopyBuffer(this->values() + copy_from, other->values() + copy_to, count);

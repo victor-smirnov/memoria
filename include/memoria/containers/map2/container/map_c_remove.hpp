@@ -44,6 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrRemoveName)
 	typedef typename WTypes::Metadata                                           Metadata;
 
 	typedef typename WTypes::Accumulator                                        Accumulator;
+	typedef typename WTypes::Position											Position;
 
 	typedef typename WTypes::TreePath                                           TreePath;
 	typedef typename WTypes::TreePathItem                                       TreePathItem;
@@ -61,8 +62,21 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::removeEntries(Iterator& from, Iterator& to, Accumulator& keys) {
-	return false;
+bool M_TYPE::removeEntries(Iterator& from, Iterator& to, Accumulator& keys)
+{
+	auto& ctr = self().ctr();
+
+	auto& from_path 	= from.path();
+	Position from_pos 	= Position(from.entry_idx());
+
+	auto& to_path 		= to.path();
+	Position to_pos 	= Position(to.entry_idx());
+
+	bool result = ctr.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
+
+	from.iter().key_idx() = to.iter().key_idx() = to_pos.get();
+
+	return result;
 }
 
 
@@ -121,16 +135,18 @@ void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
         //remove 1 element from the leaf, update parent and
         //do not try to remove children (it's a leaf)
 
-        ctr.removeRoom(path, 0, idx, 1, keys);
+        ctr.removeRoom(path, 0, Position(idx), Position(1), keys);
 
         //try merging this leaf with previous of following
         //leaf if filled by half of it's capacity.
         if (merge && ctr.shouldMergeNode(path, 0))
         {
-            ctr.mergeWithSiblings(path, 0, idx);
+        	Position idxp(idx);
+            ctr.mergeWithSiblings(path, 0, idxp);
+        	idx = idxp.get();
         }
 
-        ctr.finishPathStep(path, idx);
+//        ctr.finishPathStep(path, idx);
     }
     else {
         keys = self().getLeafKeys(path.leaf().node(), idx);

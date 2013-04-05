@@ -59,6 +59,11 @@ public:
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
+    template <typename Functor, typename... Args>
+        static typename Functor::ReturnType dispatchConstRtn(const NodeBase*, const NodeBase*, Functor&&, Args...) {
+        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+        }
+
 
     template <typename Functor, typename... Args>
     static void dispatch2(NodeBase* node1, NodeBase* node2, Functor&& functor, Args...) {
@@ -348,7 +353,7 @@ public:
     {
     	if (HASH == node1->page_type_hash())
     	{
-    		return functor(static_cast<const Head*>(node1), static_cast<const Head*>(node1), args...);
+    		return functor(static_cast<const Head*>(node1), static_cast<const Head*>(node2), args...);
     	}
     	else {
     		return NDT0<Types, Idx - 1>::dispatchConstRtn(node1, node2, std::move(functor), args...);

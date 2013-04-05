@@ -102,7 +102,7 @@ public:
             }
         }
 
-        AssertEQ(MA_SRC, pos, i.iter().keyNum());
+//        AssertEQ(MA_SRC, pos, i.iter().keyNum());
 
         return i;
     }
@@ -143,16 +143,24 @@ public:
     {
         if (offset > 0)
         {
-            for (BigInt c = 0; c < offset; c++)
+        	Int actual = 0;
+
+        	for (BigInt c = 0; c < offset; c++)
             {
-                iter.next();
+                actual += iter.next();
             }
+
+//        	cout<<"Actual: "<<actual<<endl;
         }
         else {
+        	Int actual = 0;
+
             for (BigInt c = 0; c < -offset; c++)
             {
-                iter.prev();
+                actual += iter.prev();
             }
+
+//            cout<<"Actual: "<<actual<<endl;
         }
     }
 

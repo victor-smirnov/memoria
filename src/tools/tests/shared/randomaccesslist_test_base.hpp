@@ -70,9 +70,9 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd, 		replayInsertAtEnd);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
 
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart, 	replayRemoveFromStart);
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd, 		replayRemoveAtEnd);
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart, 	replayRemoveFromStart);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd, 		replayRemoveAtEnd);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
     }
 
     virtual ~RandomAccessListTestBase() throw() {}
@@ -412,7 +412,7 @@ public:
 
 
 
-
+    int cnt = 0;
 
     void removeFromStart(Ctr& ctr)
     {
@@ -430,7 +430,11 @@ public:
 
     	MemBuffer suffix = createSuffixCheckBuffer(iter);
 
+//    	iter.dump();
+
     	skip(iter, -size);
+
+//    	iter.dump();
 
     	remove(iter, size);
 

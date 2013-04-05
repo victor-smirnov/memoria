@@ -377,6 +377,84 @@ public:
     	return true;
     }
 
+    bool gteAll( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] < other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool gteAll(const ElementType& other) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] < other)
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool gtAny( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] > other.values_[c])
+    		{
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
+    bool gtAny( const ElementType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] > other)
+    		{
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
+    bool eqAll( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] != other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool eqAll( const ElementType_& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] != other)
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
     bool operator>(const MyType& other) const
     {
     	for (Int c = 0; c < Indexes; c++)
@@ -420,6 +498,15 @@ public:
             values_[c] = keys[c];
         }
         return *this;
+    }
+
+    MyType& setAll(const ElementType& keys)
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		values_[c] = keys;
+    	}
+    	return *this;
     }
 
     MyType& operator+=(const MyType& other)
