@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_SUMSETBATCH_SUMSETBATCHTEST_HPP_
-#define MEMORIA_TESTS_SUMSETBATCH_SUMSETBATCHTEST_HPP_
+#ifndef MEMORIA_TESTS_MAP_MAP_BATCH_TEST_HPP_
+#define MEMORIA_TESTS_MAP_MAP_BATCH_TEST_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -26,7 +26,7 @@ namespace memoria {
 
 typedef SCtrTF<Map2<BigInt, Int>>::Type SumSet1Ctr;
 
-class SumsetBatchTest: public RandomAccessListTestBase<
+class MapBatchTest: public RandomAccessListTestBase<
     Map2<BigInt, Int>,
     typename SumSet1Ctr::LeafPairsVector
 >
@@ -40,18 +40,12 @@ class SumsetBatchTest: public RandomAccessListTestBase<
     typedef typename Base::Accumulator                                          Accumulator;
     typedef typename SumSet1Ctr::LeafPairsVector                                MemBuffer;
 
-//    static const Int Indexes                                                    = Ctr::Indexes;
-
-
-
 
 public:
-    SumsetBatchTest():
-        Base("SumsetBatch")
+    MapBatchTest():
+        Base("MapBatch")
     {
         size_ = 1024*1024;
-//        max_block_size_ = 4*1024;
-
         Ctr::initMetadata();
     }
 

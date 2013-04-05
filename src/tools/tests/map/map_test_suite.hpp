@@ -13,6 +13,7 @@
 #include "map_api_test.hpp"
 #include "map_create_test.hpp"
 #include "map_remove_test.hpp"
+#include "map_batch_test.hpp"
 
 #include <vector>
 
@@ -29,7 +30,8 @@ public:
     {
 //    	registerTask(new MapApiTest());
         registerTask(new MapCreateTest());
-//        registerTask(new MapRemoveTest());
+        registerTask(new MapRemoveTest());
+        registerTask(new MapBatchTest());
     }
 
 };
