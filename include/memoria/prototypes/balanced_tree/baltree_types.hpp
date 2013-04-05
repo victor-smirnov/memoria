@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_NAMES_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_NAMES_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_TYPES_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_TYPES_HPP
 
 #include <memoria/core/container/container.hpp>
 
@@ -17,22 +17,8 @@ template <typename Profile> class ContainerCollectionCfg;
 
 namespace balanced_tree     {
 
-const Int DefaultTypeCode 		= -1;
-
-
-template <typename ContainerTypes>
-struct BTree0 {
-    typedef ContainerTypes                                                          Types;
-};
-
-struct MapTypes {
-    enum {Value, Sum};
-};
-
 class IDType {};
 
-template <typename ContainerName, typename BasePagesPartsList>
-class NodeBaseFactory               {};
 
 template <typename ContainerName>
 class ContainerPartsListFactory     {};
@@ -40,26 +26,10 @@ class ContainerPartsListFactory     {};
 template <typename ContainerName>
 class IteratorPartsListFactory      {};
 
-
-
-template <typename ContainerName>
-class BasePagePartsListFactory      {};
-
-template <typename ContainerName>
-class RootPagePartsListFactory      {};
-
-template <typename ContainerName>
-class LeafPagePartsListFactory      {};
-
-template <typename ContainerName>
-class InternalPagePartsListFactory  {};
-
-
 class ToolsName             {};
 class FindName              {};
 class InsertName            {};
 class InsertBatchName       {};
-class InsertLeafName        {};
 class RemoveName            {};
 class ApiName               {};
 class ChecksName            {};
@@ -79,28 +49,6 @@ class IteratorAPIName       {};
 class IteratorMultiskipName {};
 class IteratorContainerAPIName  {};
 class IteratorFindName		{};
-
-template <typename ContainerTypeName>
-class RootNodeMetadataName  {
-    typedef ContainerTypeName ContainerName;
-};
-
-template <
-    typename BasePagePartsListType,
-    typename RootPagePartsListType,
-    typename InternalPagePartsListType,
-    typename LeafPagePartsListType
->
-struct Lists {
-    typedef BasePagePartsListType                                               BasePagePartsList;
-    typedef RootPagePartsListType                                               RootPagePartsList;
-    typedef InternalPagePartsListType                                           InternalPagePartsList;
-    typedef LeafPagePartsListType                                               LeafPagePartsList;
-};
-
-
-template <typename Name>
-struct ValueTypeIsNotSupported;
 
 }
 

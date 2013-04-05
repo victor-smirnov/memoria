@@ -14,7 +14,7 @@
 #include <memoria/prototypes/balanced_tree/iterator/baltree_i_api.hpp>
 #include <memoria/prototypes/balanced_tree/iterator/baltree_i_base.hpp>
 #include <memoria/prototypes/balanced_tree/iterator/baltree_i_find.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_names.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 
 namespace memoria    {
 

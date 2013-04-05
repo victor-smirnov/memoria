@@ -11,7 +11,7 @@
 
 #include <memoria/core/types/types.hpp>
 
-#include <memoria/prototypes/balanced_tree/baltree_names.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 #include <memoria/core/container/macros.hpp>
 
 

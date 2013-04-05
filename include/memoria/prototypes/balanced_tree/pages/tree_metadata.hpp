@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_PARTS_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_PARTS_HPP
 
-#include <memoria/prototypes/balanced_tree/baltree_names.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
 
