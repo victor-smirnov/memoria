@@ -58,6 +58,10 @@ struct BalancedTreeTypes<Profile, memoria::MapProto<Key_, Value_> >: public Bala
         		RootLeafNodeType<TreeMapNode>
     >																			DefaultNodeTypesList;
 
+    typedef TypeList<
+        		StreamDescr<PackedFSETreeTF, PackedFSETreeTF, 1>
+    >																			StreamDescriptors;
+
 
 
 

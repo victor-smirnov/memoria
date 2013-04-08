@@ -11,6 +11,9 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/packed2/packed_fse_tree.hpp>
 #include <memoria/core/packed2/packed_allocator.hpp>
+#include <memoria/core/packed2/packed_dispatcher.hpp>
+
+#include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 
 namespace memoria 		{
 namespace balanced_tree {
@@ -47,16 +50,16 @@ struct ValueHelper<EmptyValue> {
     }
 };
 
-
 }
 
 
 
-template <typename K, typename V, Int Indexes_, typename Accum>
+template <typename K, typename V, Int Indexes_, typename Accum, typename StreamDescriptorsList>
 struct TreeMapTypes {
 	typedef K 						Key;
 	typedef V 						Value;
 	typedef Accum					Accumulator;
+	typedef StreamDescriptorsList	StreamDescriptors;
 
 	static const Int Indexes		= Indexes_;
 };
@@ -82,7 +85,14 @@ public:
 			Key,Key,Key
 	>										TreeTypes;
 
-	typedef PackedFSETree<TreeTypes>		Tree;
+	typedef typename PackedStructListBuilder<
+	    		TreeTypes,
+	    		typename Types::StreamDescriptors
+	    >::NonLeafStructList					StreamsStructList;
+
+//	typedef PackedFSETree<TreeTypes>		Tree;
+
+	typedef typename ListHead<StreamsStructList>::Type::Type Tree;
 
 	typedef typename MergeLists<
 					typename Base::FieldsList,
@@ -147,8 +157,6 @@ public:
 	void init(Int block_size)
 	{
 		Base::init(block_size, 2);
-
-//		Int client_area = Base::client_area();
 
 		Int tree_size = max_tree_size(block_size);
 

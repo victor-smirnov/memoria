@@ -697,6 +697,54 @@ struct AccumulatorBuilder<TypeList<Types...>> {
 };
 
 
+
+
+
+
+
+
+template <typename Types, typename List>
+class PackedStructListBuilder;
+
+
+template <
+	typename Types,
+	template <typename> class NonLeafStructTF,
+	template <typename> class LeafStructTF,
+	Int Indexes,
+	typename... Tail
+>
+class PackedStructListBuilder<
+	Types,
+	TypeList<
+		StreamDescr<NonLeafStructTF, LeafStructTF, Indexes>,
+		Tail...
+	>
+> {
+	typedef TypeList<StreamDescr<NonLeafStructTF, LeafStructTF, Indexes>, Tail...> List;
+	static const Int Idx = ListSize<List>::Value - ListSize<TypeList<Tail...>>::Value - 1;
+
+public:
+	typedef typename MergeLists<
+			StructDescr<typename NonLeafStructTF<Types>::Type, Idx>,
+			typename PackedStructListBuilder<Types, TypeList<Tail...>>::NonLeafStructList
+	>::Result																	NonLeafStructList;
+
+	typedef typename MergeLists<
+				StructDescr<typename LeafStructTF<Types>::Type, Idx>,
+				typename PackedStructListBuilder<Types, TypeList<Tail...>>::LeafStructList
+	>::Result																	LeafStructList;
+};
+
+
+template <typename Types>
+class PackedStructListBuilder<Types, TypeList<>> {
+public:
+	typedef TypeList<>															NonLeafStructList;
+	typedef TypeList<>															LeafStructList;
+};
+
+
 }
 }
 

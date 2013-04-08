@@ -85,7 +85,7 @@ struct BalancedTreeTypes {
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
-    		StreamDescr<1>
+//    		StreamDescr<1>
     >																			StreamDescriptors;
 
 
@@ -175,6 +175,8 @@ public:
         typedef typename ListHead<typename ContainerTypes::KeysList>::Type		Key;
         typedef typename MyType::Value                      Value;
         typedef typename MyType::ID							ID;
+
+        typedef typename ContainerTypes::StreamDescriptors	StreamDescriptors;
 
         static const Int                                    Indexes             = 1;
         static const Int                                    Streams				= MyType::Streams;

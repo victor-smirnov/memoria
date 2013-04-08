@@ -254,9 +254,12 @@ public:
                     typename Types::Key,
                     Value,
                     Types::Indexes,
-                    Accumulator
+                    Accumulator,
+                    typename Types::StreamDescriptors
                 >
     >                                                                           Map;
+
+
 
 private:
 

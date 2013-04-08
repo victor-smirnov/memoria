@@ -14,15 +14,27 @@
 namespace memoria    {
 
 template <typename Profile> class ContainerCollectionCfg;
+template <typename> 		class PackedFSETree;
 
 namespace balanced_tree     {
 
 class IDType {};
 
-template <Int Indexes_, typename IndexType_ = BigInt>
+template <
+	template <typename> class NonLeafPackedTypeFactory,
+	template <typename> class LeafPackedTypeFactory,
+	Int Indexes_
+>
 struct StreamDescr {
 	static const Int Indexes = Indexes_;
-	typedef IndexType_ IndexType;
+	typedef BigInt IndexType;
+};
+
+
+
+template <typename Types>
+struct PackedFSETreeTF {
+	typedef PackedFSETree<Types> Type;
 };
 
 template <typename ContainerName>
