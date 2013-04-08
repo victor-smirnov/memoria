@@ -75,7 +75,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
 
     void sumLeafKeys(const NodeBase *node, Int from, Int count, Accumulator& keys) const
     {
-    	keys += LeafDispatcher::dispatchConstRtn(node, typename Base::WrappedCtr::SumKeysFn(&self().ctr()), from, count);
+    	VectorAdd(keys, LeafDispatcher::dispatchConstRtn(node, typename Base::WrappedCtr::SumKeysFn(&self().ctr()), from, count));
     }
 
     template <typename Node>
@@ -83,7 +83,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
     {
     	for (Int c = 0; c < Base::WrappedCtr::Indexes; c++)
     	{
-    		node->map().key(c, idx) = element.first[c];
+    		node->map().key(c, idx) = std::get<0>(element.first)[c];
     	}
 
     	node->map().data(idx) = element.second;
@@ -162,7 +162,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
     void addLeafKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
     {
     	node.update();
-    	LeafDispatcher::dispatch(node, typename Base::WrappedCtr::AddKeysFn(&self().ctr()), idx, keys.values(), reindex_fully);
+    	LeafDispatcher::dispatch(node, typename Base::WrappedCtr::AddKeysFn(&self().ctr()), idx, keys, reindex_fully);
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -174,7 +174,7 @@ M_PARAMS
 bool M_TYPE::updateLeafCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
 {
     node.update();
-    me()->addLeafKeys(node, idx, counters.values(), reindex_fully);
+    self().addLeafKeys(node, idx, counters, reindex_fully);
 
     return false; //proceed further unconditionally
 }

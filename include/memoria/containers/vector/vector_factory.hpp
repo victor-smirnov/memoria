@@ -50,7 +50,7 @@ struct BalancedTreeTypes<Profile, memoria::Vector<ElementType_>>: public Balance
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-    	typedef BTreeIteratorScalarPrefixCache<Iterator, Container> Type;
+    	typedef balanced_tree::BTreeIteratorScalarPrefixCache<Iterator, Container> Type;
     };
 
     typedef TypeList<

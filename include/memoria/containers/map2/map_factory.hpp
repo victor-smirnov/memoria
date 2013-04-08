@@ -56,7 +56,7 @@ struct BalancedTreeTypes<Profile, memoria::MapProto<Key_, Value_> >: public Bala
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef balanced_tree::BTreeIteratorPrefixCache<Iterator, Container>               Type;
+        typedef ::memoria::balanced_tree::BTreeIteratorPrefixCache<Iterator, Container>               Type;
     };
 
     typedef TypeList<

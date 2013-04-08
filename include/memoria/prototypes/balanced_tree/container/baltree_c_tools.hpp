@@ -336,23 +336,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
     template <typename Node>
-    void extractKeyValuesFn(const Node* node, Int idx, Key* keys) const
+    Accumulator extractKeyValuesFn(const Node* node, Int idx) const
     {
+    	Accumulator accum;
+
     	for (Int c = 0; c < Indexes; c++)
     	{
-    		keys[c] = node->map().key(c, idx);
+    		get<0>(accum)[c] = node->map().key(c, idx);
     	}
+
+    	return accum;
     }
 
-    MEMORIA_CONST_FN_WRAPPER(ExtractKeyValuesFn, extractKeyValuesFn);
+    MEMORIA_CONST_FN_WRAPPER_RTN(ExtractKeyValuesFn, extractKeyValuesFn, Accumulator);
 
 
     Accumulator getKeys(const NodeBaseG& node, Int idx) const
     {
-        Accumulator keys;
-        NodeDispatcher::dispatchConst(node, ExtractKeyValuesFn(me()), idx, keys.values());
-
-        return keys;
+        return NodeDispatcher::dispatchConstRtn(node, ExtractKeyValuesFn(me()), idx);
     }
 
 
@@ -386,7 +387,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     {
     	for (Int c = 0; c < Node::Map::Blocks; c++)
     	{
-    		node->map().key(c, idx) = keys[c];
+    		node->map().key(c, idx) = std::get<0>(keys)[c];
     	}
     }
 
@@ -558,11 +559,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
     template <typename Node>
-    void addKeysFn(Node* node, Int idx, const Key* keys, bool reindex_fully) const
+    void addKeysFn(Node* node, Int idx, const Accumulator& keys, bool reindex_fully) const
     {
     	for (Int c = 0; c < Indexes; c++)
     	{
-    		node->map().updateUp(c, idx, keys[c]);
+    		node->map().updateUp(c, idx, get<0>(keys)[c]);
     	}
 
     	if (reindex_fully)
@@ -577,18 +578,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     void sumKeys(const NodeBase *node, Int from, Int count, Accumulator& keys) const
     {
-    	keys += NonLeafDispatcher::dispatchConstRtn(node, SumKeysFn(me()), from, count);
+    	VectorAdd(keys, NonLeafDispatcher::dispatchConstRtn(node, SumKeysFn(me()), from, count));
     }
 
     void sumKeys(const NodeBase *node, Int block_num, Int from, Int count, Key& sum) const
     {
-    	sum += NonLeafDispatcher::dispatchConstRtn(node, SumKeysInOneBlockFn(me()), block_num, from, count);
+    	VectorAdd(sum, NonLeafDispatcher::dispatchConstRtn(node, SumKeysInOneBlockFn(me()), block_num, from, count));
     }
 
     void addKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
     {
     	node.update();
-    	NonLeafDispatcher::dispatch(node, AddKeysFn(me()), idx, keys.values(), reindex_fully);
+    	NonLeafDispatcher::dispatch(node, AddKeysFn(me()), idx, keys, reindex_fully);
     }
 
     bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
@@ -729,7 +730,7 @@ M_PARAMS
 bool M_TYPE::updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
 {
     node.update();
-    me()->addKeys(node, idx, counters.values(), reindex_fully);
+    self().addKeys(node, idx, counters, reindex_fully);
 
     return false; //proceed further unconditionally
 }

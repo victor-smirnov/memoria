@@ -124,11 +124,11 @@ public:
 	{
 		const typename Node::Map& map = node->map();
 
-		Base::idx_ = map.findLES(Base::key_num_, Base::key_ - Base::prefix_[Base::key_num_], Base::prefix_);
+		Base::idx_ = map.findLES(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
 
 		if (node->level() != 0 && Base::idx_ == map.size())
 		{
-			Base::prefix_ -= map.keysAt(map.size() - 1);
+			VectorSub(Base::prefix_, map.keysAt(map.size() - 1));
 			Base::idx_--;
 		}
 	}
@@ -218,10 +218,10 @@ public:
 
 		if (node->level() > 0)
 		{
-			prefix_ += map.maxKeys() - map.keysAt(map.size() - 1);
+			VectorAdd(prefix_, map.maxKeys() - map.keysAt(map.size() - 1));
 		}
 		else {
-			prefix_ += map.maxKeys();
+			VectorAdd(prefix_, map.maxKeys());
 		}
 
 		Base::idx_ 	= node->children_count() - 1;
@@ -307,7 +307,7 @@ public:
 	{
 		const typename Node::Map& map = node->map();
 
-		prefix_ += map.maxKeys() - map.keysAt(map.size() - 1);
+		VectorAdd(prefix_, map.maxKeys() - map.keysAt(map.size() - 1));
 
 		Base::idx_ = node->children_count() - 1;
 	}

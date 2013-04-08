@@ -110,7 +110,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
         if (iter.isEnd() || key != iter.key())
         {
         	Accumulator keys;
-            keys[0] = key;
+            std::get<0>(keys)[0] = key;
             self().insert(iter, keys);
 
             iter.prev();

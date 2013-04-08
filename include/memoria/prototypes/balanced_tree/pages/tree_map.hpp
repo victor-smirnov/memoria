@@ -165,7 +165,7 @@ public:
 
 		auto result = tree->findLE(k);
 
-		sum[0] += result.prefix();
+		std::get<0>(sum)[0] += result.prefix();
 
 		return result.idx();
 	}
@@ -186,7 +186,7 @@ public:
 	{
 		Accumulator acc;
 
-		acc[0] = tree()->value(idx);
+		std::get<0>(acc)[0] = tree()->value(idx);
 
 		return acc;
 	}
@@ -249,7 +249,7 @@ public:
 	{
 		Accumulator accum;
 
-		accum[0] = tree()->sum();
+		std::get<0>(accum)[0] = tree()->sum();
 
 		return accum;
 	}
@@ -258,7 +258,7 @@ public:
 	{
 		Accumulator accum;
 
-		accum[0] = tree()->value(idx);
+		std::get<0>(accum)[0] = tree()->value(idx);
 
 		return accum;
 	}
@@ -348,13 +348,13 @@ public:
 
 	void sum(Int start, Int end, Accumulator& accum) const
 	{
-		accum[0] += tree()->sum(start, end);
+		std::get<0>(accum)[0] += tree()->sum(start, end);
 	}
 
 	Accumulator sum(Int start, Int end) const
 	{
 		Accumulator accum;
-		accum[0] = tree()->sum(start, end);
+		std::get<0>(accum)[0] = tree()->sum(start, end);
 		return accum;
 	}
 

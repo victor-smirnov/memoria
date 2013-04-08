@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <sstream>
 #include <memory>
+#include <tuple>
 
 namespace memoria {
 
@@ -170,7 +171,7 @@ protected:
 
         iter.ComputePrefix(prefix);
 
-        if (iter.prefix() != prefix.value(0))
+        if (iter.prefix() != std::get<0>(prefix).value(0))
         {
             iter.dump(out());
             throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefix()<<" Actual: "<<prefix);

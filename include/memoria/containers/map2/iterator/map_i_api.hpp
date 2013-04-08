@@ -83,7 +83,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 	Accumulator prefixes() const {
 		Accumulator acc;
 
-		acc[0] = self().iter().prefix();
+		std::get<0>(acc)[0] = self().iter().prefix();
 
 		return acc;
 	}

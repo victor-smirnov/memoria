@@ -192,7 +192,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
                 {
                     for (Int d = 0; d < Indexes; d++)
                     {
-                        node->map().key(d, c) = pairs_[c].keys[d];
+                        node->map().key(d, c) = std::get<0>(pairs_[c].keys)[d];
                     }
 
                     node->map().data(c) = pairs_[c].value;
@@ -204,7 +204,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
                 for (Int d = 0; d < Indexes; d++)
                 {
-                    total_.keys[d] = node->map().maxKey(d);
+                	std::get<0>(total_.keys)[d] = node->map().maxKey(d);
                 }
 
                 total_.value = node->id();
@@ -649,7 +649,7 @@ void M_TYPE::fillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
 
     self.updateParentIfExists(path, level, accumulator);
 
-    data.accumulator += accumulator;
+    VectorAdd(data.accumulator, accumulator);
 }
 
 

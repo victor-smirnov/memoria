@@ -282,7 +282,7 @@ BigInt M_TYPE::removeRoom(
             }
         }
 
-        tmp_accum += NodeDispatcher::dispatchRtn(node, RemoveSpaceFn(), from, count);
+        VectorAdd(tmp_accum, NodeDispatcher::dispatchRtn(node, RemoveSpaceFn(), from, count));
 
         if (node->is_leaf()) {
         	key_count += count.get();
@@ -295,7 +295,7 @@ BigInt M_TYPE::removeRoom(
         	path.moveLeft(level - 1, from.get(), count.get());
         }
 
-        accumulator += tmp_accum;
+        VectorAdd(accumulator, tmp_accum);
     }
 
     return key_count;

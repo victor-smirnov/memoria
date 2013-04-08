@@ -48,6 +48,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
     typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
     typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
+    typedef typename Types::Pages::DefaultDispatcher                            DefaultDispatcher;
 
     typedef typename Types::Metadata                                            Metadata;
 
@@ -153,7 +154,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT_NOT_EMPTY(root_id);
 
-        NodeBaseG root      = me()->allocator().getPage(root_id, Allocator::READ);
+        NodeBaseG root      = self().allocator().getPage(root_id, Allocator::READ);
 
         return RootDispatcher::dispatchConstRtn(root.page(), GetModelNameFn(me()));
     }
@@ -162,7 +163,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT_EXPR(name >= 0, "Container name must not be positive")
 
-        NodeBaseG root  = me()->getRoot(Allocator::READ);
+        NodeBaseG root  = self().getRoot(Allocator::READ);
 
         RootDispatcher::dispatch(root.page(), SetModelNameFn(me()), name);
     }
@@ -171,9 +172,11 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         Base::initCtr(command);
 
+        auto& self = this->self();
+
         if ((command & CTR_CREATE) && (command & CTR_FIND))
         {
-        	if (me()->allocator().hasRoot(me()->name()))
+        	if (self.allocator().hasRoot(self.name()))
         	{
         		findCtrByName();
         	}
@@ -183,14 +186,14 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         }
         else if (command & CTR_CREATE)
         {
-        	if (!me()->allocator().hasRoot(me()->name()))
+        	if (!self.allocator().hasRoot(self.name()))
         	{
         		createCtrByName();
         	}
         	else {
         		throw CtrAlreadyExistsException (
         				MEMORIA_SOURCE,
-        				SBuf()<<"Container with name "<<me()->name()<<" already exists"
+        				SBuf()<<"Container with name "<<self.name()<<" already exists"
         		);
         	}
         }
@@ -202,7 +205,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     void initCtr(const ID& root_id)
     {
     	// FIXME: Why root_id is not in use here?
-        CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
+        CtrShared* shared = self().getOrCreateCtrShared(self().name());
         Base::setCtrShared(shared);
     }
 
@@ -225,7 +228,9 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT(name, >=, 0);
 
-        NodeBaseG root = me()->allocator().getPage(me()->root(), Allocator::READ);
+        auto& self = this->self();
+
+        NodeBaseG root = self.allocator().getPage(self.root(), Allocator::READ);
 
         return RootDispatcher::dispatchConstRtn(root.page(), GetRootIdFn(me()), name);
     }
@@ -245,17 +250,19 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     virtual void  setRoot(BigInt name, const ID& root_id)
     {
-        NodeBaseG root  = me()->allocator().getPage(me()->root(), Allocator::UPDATE);
+    	auto& self = this->self();
+
+    	NodeBaseG root  = self.allocator().getPage(self.root(), Allocator::UPDATE);
 
         Metadata metadata = RootDispatcher::dispatchRtn(root.page(), SetRootIdFn(me()), name, root_id);
 
-        BTreeCtrShared* shared = T2T<BTreeCtrShared*>(me()->shared());
+        BTreeCtrShared* shared = T2T<BTreeCtrShared*>(self.shared());
         shared->update_metadata(metadata);
     }
 
     BTreeCtrShared* createCtrShared(BigInt name)
     {
-        return new (&me()->allocator()) BTreeCtrShared(name);
+        return new (&self().allocator()) BTreeCtrShared(name);
     }
 
 
@@ -300,13 +307,13 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     const Metadata& getRootMetadata() const
     {
-        return T2T<const BTreeCtrShared*>(me()->shared())->root_metadata();
+        return T2T<const BTreeCtrShared*>(self().shared())->root_metadata();
     }
 
     void setRootMetadata(const Metadata& metadata) const
     {
-        NodeBaseG root = me()->getRoot(Allocator::UPDATE);
-        me()->setRootMetadata(root, metadata);
+        NodeBaseG root = self().getRoot(Allocator::UPDATE);
+        self().setRootMetadata(root, metadata);
     }
 
     /**
@@ -319,7 +326,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         setCtrRootMetadata(node, metadata);
 
-        BTreeCtrShared* shared = T2T<BTreeCtrShared*>(me()->shared());
+        BTreeCtrShared* shared = T2T<BTreeCtrShared*>(self().shared());
         shared->update_metadata(metadata);
     }
 
@@ -334,7 +341,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         memset(&metadata, 0, sizeof(Metadata));
 
-        metadata.model_name()       = me()->name();
+        metadata.model_name()       = self().name();
         metadata.page_size()        = DEFAULT_BLOCK_SIZE;
         metadata.branching_factor() = 0;
 
@@ -343,21 +350,21 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     Int getNewPageSize() const
     {
-        return me()->getRootMetadata().page_size();
+        return self().getRootMetadata().page_size();
     }
 
     void setNewPageSize(Int page_size) const
     {
-        Metadata metadata       = me()->getRootMetadata();
+        Metadata metadata       = self().getRootMetadata();
         metadata.page_size()    = page_size;
 
-        me()->setRootMetadata(metadata);
+        self().setRootMetadata(metadata);
     }
 
     template <typename Node>
     NodeBaseG createNodeFn(Int size) const
     {
-    	NodeBaseG node = me()->allocator().createPage(size);
+    	NodeBaseG node = self().allocator().createPage(size);
     	node->init();
 
     	node->page_type_hash() = Node::hash();
@@ -371,34 +378,37 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT(level, >=, 0);
 
+        auto& self = this->self();
+
         Metadata meta;
 
-        if (!me()->isNew())
+        if (!self.isNew())
         {
-            meta = me()->getRootMetadata();
+            meta = self.getRootMetadata();
         }
         else {
-            meta = me()->createNewRootMetadata();
+            meta = self.createNewRootMetadata();
         }
 
-        if (size == -1) {
+        if (size == -1)
+        {
             size = meta.page_size();
         }
 
-        NodeBaseG node = NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(
-        		root,
-        		leaf,
-        		CreateNodeFn(me()), size
-        );
+        NodeBaseG node = DefaultDispatcher::dispatchStatic2Rtn(
+                		root,
+                		leaf,
+                		CreateNodeFn(me()), size
+                	);
 
         if (root)
         {
             MyType::setCtrRootMetadata(node, meta);
         }
 
-        node->ctr_type_hash() 			= self().hash();
-        node->master_ctr_type_hash() 	= self().init_data().master_ctr_type_hash();
-        node->owner_ctr_type_hash() 	= self().init_data().owner_ctr_type_hash();
+        node->ctr_type_hash() 			= self.hash();
+        node->master_ctr_type_hash() 	= self.init_data().master_ctr_type_hash();
+        node->owner_ctr_type_hash() 	= self.init_data().owner_ctr_type_hash();
 
         node->set_root(root);
         node->set_leaf(leaf);
@@ -414,18 +424,20 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     {
         MEMORIA_ASSERT(level, >=, 0);
 
-        NodeBaseG node = NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(
-        		true,
-        		leaf,
-        		CreateNodeFn(me()),
-        		metadata.page_size()
+        auto& self = this->self();
+
+        NodeBaseG node = NodeDispatcher::dispatchStatic2Rtn(
+        			true,
+        			leaf,
+        			CreateNodeFn(me()), metadata.page_size()
         );
+
 
         MyType::setCtrRootMetadata(node, metadata);
 
-        node->ctr_type_hash() 			= self().hash();
-        node->master_ctr_type_hash() 	= self().init_data().master_ctr_type_hash();
-        node->owner_ctr_type_hash() 	= self().init_data().owner_ctr_type_hash();
+        node->ctr_type_hash() 			= self.hash();
+        node->master_ctr_type_hash() 	= self.init_data().master_ctr_type_hash();
+        node->owner_ctr_type_hash() 	= self.init_data().owner_ctr_type_hash();
 
         node->set_root(true);
         node->set_leaf(leaf);
@@ -459,23 +471,25 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     void findCtrByName()
     {
-    	CtrShared* shared = me()->getOrCreateCtrShared(me()->name());
+    	CtrShared* shared = self().getOrCreateCtrShared(self().name());
     	Base::setCtrShared(shared);
     }
 
     void createCtrByName()
     {
-    	BTreeCtrShared* shared = me()->createCtrShared(me()->name());
-    	me()->allocator().registerCtrShared(shared);
+    	auto& self = this->self();
 
-    	NodeBaseG node          = me()->createRoot();
+    	BTreeCtrShared* shared = self.createCtrShared(self.name());
+    	self.allocator().registerCtrShared(shared);
 
-    	me()->allocator().setRoot(me()->name(), node->id());
+    	NodeBaseG node          = self.createRoot();
+
+    	self.allocator().setRoot(self.name(), node->id());
 
     	shared->root_log()      = node->id();
     	shared->updated()       = true;
 
-    	me()->configureNewCtrShared(shared, node);
+    	self.configureNewCtrShared(shared, node);
 
     	Base::setCtrShared(shared);
     }

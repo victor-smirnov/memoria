@@ -11,6 +11,7 @@
 
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/tools/idata.hpp>
+#include <memoria/core/tools/vector_tuple.hpp>
 
 #include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
@@ -49,9 +50,6 @@ struct BalancedTreeTypes {
 
     typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int Indexes                                                    = 1;
-    static const Int Streams													= 1;
-
     typedef TypeList<
             memoria::btree::AllocatorName,
             memoria::balanced_tree::ToolsName,
@@ -78,6 +76,31 @@ struct BalancedTreeTypes {
     typedef TypeList<
     		//AllNodeTypes<balanced_tree::TreeMapNode>
     >																			NodeTypesList;
+
+//    template <typename Types, bool root, bool leaf>
+//    using DefaultRootNode 		= TreeMapNode<Types, root, leaf>;
+//
+//    template <typename Types, bool root, bool leaf>
+//    using DefaultLeafNode 		= TreeMapNode<Types, root, leaf>;
+//
+//    template <typename Types, bool root, bool leaf>
+//    using DefaultRootLeafNode 	= TreeMapNode<Types, root, leaf>;
+//
+//    template <typename Types, bool root, bool leaf>
+//    using DefaultInternalNode 	= TreeMapNode<Types, root, leaf>;
+
+
+    typedef TypeList<
+    		LeafNodeType<TreeMapNode>,
+    		InternalNodeType<TreeMapNode>,
+    		RootNodeType<TreeMapNode>,
+    		RootLeafNodeType<TreeMapNode>
+    >																			DefaultNodeTypesList;
+
+    typedef TypeList<
+    		StreamDescr<1>
+    >																			StreamDescriptors;
+
 
     template <
         typename Types_
@@ -140,8 +163,18 @@ public:
                 typename ContainerTypes::Value
     >::Result                                                                   Value;
 
-    typedef balanced_tree::StaticVector<BigInt, ContainerTypes::Indexes>    Accumulator_;
-    typedef balanced_tree::StaticVector<Int, ContainerTypes::Streams>       Position_;
+    static const Int Streams = ListSize<typename ContainerTypes::StreamDescriptors>::Value;
+
+    typedef typename balanced_tree::AccumulatorBuilder<
+    			typename balanced_tree::AccumulatorListBuilder<
+    				typename ContainerTypes::StreamDescriptors
+    			>::Type
+    >::Type																		Accumulator_;
+
+    typedef balanced_tree::StaticVector<
+    			BigInt,
+    			Streams
+    >       																	Position_;
 
 
     typedef balanced_tree::TreeNodeBase<typename ContainerTypes::Allocator::Page>   NodePageBase0;
@@ -156,8 +189,8 @@ public:
         typedef typename MyType::Value                      Value;
         typedef typename MyType::ID							ID;
 
-        static const Int                                    Indexes             = ContainerTypes::Indexes;
-        static const Int                                    Streams				= ContainerTypes::Streams;
+        static const Int                                    Indexes             = 1;
+        static const Int                                    Streams				= MyType::Streams;
 
         typedef Accumulator_ 								Accumulator;
         typedef Position_ 									Position;
@@ -166,6 +199,7 @@ public:
     struct DispatcherTypes
     {
         typedef typename ContainerTypes::NodeTypesList      NodeList;
+        typedef typename ContainerTypes::DefaultNodeTypesList DefaultNodeList;
         typedef NodePageBase0                          		NodeBase;
         typedef typename MyType::NodeTypes					NodeTypes;
         typedef NodePageBase0G                         		NodeBaseG;
@@ -208,8 +242,11 @@ public:
                 typename ContainerTypes::KeysList, TypeSizeValueProvider
         >::Result                                                               Key;
 
-        typedef balanced_tree::StaticVector<Key, ContainerTypes::Indexes>       Accumulator;
-        typedef balanced_tree::StaticVector<Int, ContainerTypes::Streams>       Position;
+
+        static const Int Streams												= MyType::Streams;
+        typedef Accumulator_       												Accumulator;
+        typedef balanced_tree::StaticVector<BigInt, MyType::Streams>       		Position;
+
 
 
         typedef ValuePair<Accumulator, Value>                                   Element;

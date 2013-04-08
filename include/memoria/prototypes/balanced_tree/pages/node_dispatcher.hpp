@@ -101,6 +101,15 @@ public:
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
+
+    template <
+        	typename Functor,
+        	typename... Args
+    >
+    static typename Functor::ReturnType dispatchStatic2Rtn(bool, bool, Functor&&, Args...) {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
     template <
     	template <typename, bool, bool> class TreeNode,
     	typename Functor,
@@ -460,6 +469,25 @@ public:
     		::template dispatchStaticRtn<TreeNode>(root, leaf, std::move(fn), args...);
     	}
     }
+
+    template <
+    typename Functor,
+    typename... Args
+    >
+    static typename Functor::ReturnType dispatchStatic2Rtn(bool root, bool leaf, Functor&& fn, Args... args)
+    {
+    	if (root == Root && leaf == Leaf)
+    	{
+    		return fn.template operator()<Head>(args...);
+    	}
+    	else {
+    		return NDT0<
+    				Types, Idx - 1
+    				>
+    		::template dispatchStatic2Rtn(root, leaf, std::move(fn), args...);
+    	}
+    }
+
 
     static void buildMetadataList(MetadataList &list) {
         Head::initMetadata();

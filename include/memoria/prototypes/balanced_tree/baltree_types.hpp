@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -19,6 +19,11 @@ namespace balanced_tree     {
 
 class IDType {};
 
+template <Int Indexes_, typename IndexType_ = BigInt>
+struct StreamDescr {
+	static const Int Indexes = Indexes_;
+	typedef IndexType_ IndexType;
+};
 
 template <typename ContainerName>
 class ContainerPartsListFactory     {};

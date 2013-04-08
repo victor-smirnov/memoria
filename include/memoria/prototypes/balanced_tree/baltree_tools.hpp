@@ -9,8 +9,10 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_TOOLS_HPP
 
 #include <memoria/core/tools/static_array.hpp>
+#include <memoria/core/tools/vector_tuple.hpp>
 
 #include <ostream>
+#include <tuple>
 
 namespace memoria       {
 namespace balanced_tree {
@@ -243,6 +245,117 @@ public:
 };
 
 
+template <typename Iterator, typename Container>
+class BTreeIteratorPrefixCache: public BTreeIteratorCache<Iterator, Container> {
+    typedef BTreeIteratorCache<Iterator, Container> Base;
+    typedef typename Container::Accumulator     Accumulator;
+
+    Accumulator prefix_;
+    Accumulator current_;
+
+    static const Int Indexes = 1;
+
+public:
+
+    BTreeIteratorPrefixCache(): Base(), prefix_(), current_() {}
+
+    const BigInt& prefix(int num = 0) const
+    {
+        return get<0>(prefix_)[num];
+    }
+
+    const Accumulator& prefixes() const
+    {
+        return prefix_;
+    }
+
+    void nextKey(bool end)
+    {
+        VectorAdd(prefix_, current_);
+
+        Clear(current_);
+    };
+
+    void prevKey(bool start)
+    {
+        VectorSub(prefix_, current_);
+
+        Clear(current_);
+    };
+
+    void Prepare()
+    {
+        if (Base::iterator().key_idx() >= 0)
+        {
+            current_ = Base::iterator().getRawKeys();
+        }
+        else {
+            Clear(current_);
+        }
+    }
+
+    void setup(BigInt prefix, Int key_num)
+    {
+        get<0>(prefix_)[key_num] = prefix;
+
+        init_(key_num);
+    }
+
+    void setup(const Accumulator& prefix)
+    {
+        prefix_ = prefix;
+    }
+
+    void initState()
+    {
+        Clear(prefix_);
+
+        Int idx  = Base::iterator().key_idx();
+
+        if (idx >= 0)
+        {
+            typedef typename Iterator::Container::TreePath TreePath;
+            const TreePath& path = Base::iterator().path();
+
+            for (Int c = 0; c < path.getSize(); c++)
+            {
+                Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
+                idx = path[c].parent_idx();
+            }
+        }
+    }
+
+private:
+
+    void init_(Int skip_num)
+    {
+        typedef typename Iterator::Container::TreePath TreePath;
+
+        const TreePath& path = Base::iterator().path();
+        Int             idx  = Base::iterator().key_idx();
+
+        for (Int c = 0; c < Indexes; c++) {
+            if (c != skip_num) prefix_[c] = 0;
+        }
+
+        for (Int c = 0; c < path.getSize(); c++)
+        {
+            for (Int block_num = 0; block_num < Indexes; block_num++)
+            {
+                if (block_num != skip_num)
+                {
+                    Base::iterator().model().sumKeys(path[c].node(), block_num, 0, idx, prefix_[block_num]);
+                }
+            }
+
+            idx = path[c].parent_idx();
+        }
+    }
+
+};
+
+
+
 
 template <typename ElementType_, Int Indexes_>
 class StaticVector
@@ -265,14 +378,14 @@ public:
         }
     }
 
-    explicit StaticVector(const ElementType& value, Int idx = 0)
+    explicit StaticVector(const ElementType& value)
     {
         for (Int c = 0; c < Indexes; c++)
         {
             values_[c] = -1;
         }
 
-        values_[idx] 	= value;
+        values_[0] = value;
     }
 
     ElementType get() const
@@ -288,14 +401,6 @@ public:
         }
     }
 
-    StaticVector(const ElementType* keys)
-    {
-        for (Int c = 0; c < Indexes; c++)
-        {
-            values_[c] = keys[c];
-        }
-    }
-
     const ElementType* values() const
     {
         return values_;
@@ -305,8 +410,6 @@ public:
     {
         return values_;
     }
-
-
 
     const ElementType& value(Int idx) const
     {
@@ -569,7 +672,29 @@ public:
 
 
 
+template <typename List> struct AccumulatorListBuilder;
 
+template <typename Head, typename... Tail>
+struct AccumulatorListBuilder<TypeList<Head, Tail...>> {
+	typedef typename MergeLists<
+			StaticVector<typename Head::IndexType, Head::Indexes>,
+			typename AccumulatorListBuilder<TypeList<Tail...>>::Type
+	>::Result																	Type;
+};
+
+
+template <>
+struct AccumulatorListBuilder<TypeList<>> {
+	typedef TypeList<> 															Type;
+};
+
+
+template <typename List> struct AccumulatorBuilder;
+
+template <typename... Types>
+struct AccumulatorBuilder<TypeList<Types...>> {
+	typedef std::tuple<Types...> 												Type;
+};
 
 
 }

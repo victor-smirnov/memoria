@@ -67,6 +67,8 @@ struct AllNodeTypes {
 
 
 
+
+
 template<
 	template <typename, bool, bool> class Type
 >
@@ -99,6 +101,8 @@ struct RootNodeTypes {
 	template <typename Types>
 	using InternalTypesList = TypeList<>;
 };
+
+
 
 
 
@@ -136,6 +140,7 @@ struct LeafNodeTypes {
 };
 
 
+
 template<
 	template <typename, bool, bool> class Type
 >
@@ -170,6 +175,9 @@ struct NonRootNodeTypes {
 			NodePageAdaptor<Type, Types, false, false>
 	>;
 };
+
+
+
 
 
 template<
@@ -239,6 +247,54 @@ struct InternalNodeTypes {
 };
 
 
+
+
+
+template<
+	template <typename, bool, bool> class Type
+>
+struct RootNodeType {
+	template <typename Types>
+	using List = TypeList<
+			NodePageAdaptor<Type, Types, true, false>
+	>;
+};
+
+
+template<
+	template <typename, bool, bool> class Type
+>
+struct LeafNodeType {
+	template <typename Types>
+	using List = TypeList<
+			NodePageAdaptor<Type, Types, false, true>
+	>;
+};
+
+template<
+	template <typename, bool, bool> class Type
+>
+struct RootLeafNodeType {
+	template <typename Types>
+	using List = TypeList<
+			NodePageAdaptor<Type, Types, true, true>
+	>;
+};
+
+
+template<
+	template <typename, bool, bool> class Type
+>
+struct InternalNodeType {
+	template <typename Types>
+	using List = TypeList<
+			NodePageAdaptor<Type, Types, false, false>
+	>;
+};
+
+
+
+
 template <typename Types, typename NodeTypes> struct NodeTypeListBuilder;
 
 
@@ -292,6 +348,26 @@ struct NodeTypeListBuilder<Types, TypeList<>> {
 
 
 
+template <typename Types, typename NodeTypes> struct DefaultNodeTypeListBuilder;
+
+template <typename Types, typename Head, typename... Tail>
+struct DefaultNodeTypeListBuilder<Types, TypeList<Head, Tail...>> {
+
+	typedef typename MergeLists<
+			typename Head::template List<Types>,
+			typename DefaultNodeTypeListBuilder<Types, TypeList<Tail...>>::List
+	>::Result 																	List;
+};
+
+
+template <typename Types>
+struct DefaultNodeTypeListBuilder<Types, TypeList<>> {
+	typedef TypeList<> 															List;
+};
+
+
+
+
 template <
     typename Types1
 >
@@ -301,6 +377,7 @@ class BTreeDispatchers2: public Types1 {
 
     typedef typename Types1::NodeTypes														Types;
     typedef typename Types1::NodeList														NodeList_;
+    typedef typename Types1::DefaultNodeList												DefaultNodeList_;
     typedef typename Types1::NodeBase 														NodeBase_;
 
 public:
@@ -333,12 +410,17 @@ public:
     	typedef typename NodeTypeListBuilder<Types, NodeList_>::InternalTypesList 	List;
     };
 
+    struct DefaultTypes: NodeTypesBase {
+    	typedef typename DefaultNodeTypeListBuilder<Types, DefaultNodeList_>::List 	List;
+    };
+
     typedef NDT<AllTypes>                                   NodeDispatcher;
     typedef NDT<RootTypes>                                  RootDispatcher;
     typedef NDT<LeafTypes>                                  LeafDispatcher;
     typedef NDT<NonLeafTypes>                               NonLeafDispatcher;
     typedef NDT<NonRootTypes>                               NonRootDispatcher;
     typedef NDT<InternalTypes>                              InternalDispatcher;
+    typedef NDT<DefaultTypes>                               DefaultDispatcher;
 };
 
 
