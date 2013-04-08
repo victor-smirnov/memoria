@@ -14,7 +14,7 @@
 #include <memoria/core/tools/reflection.hpp>
 
 
-#include <memoria/prototypes/balanced_tree/pages/tree_map.hpp>
+#include <memoria/prototypes/balanced_tree/nodes/tree_map.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 

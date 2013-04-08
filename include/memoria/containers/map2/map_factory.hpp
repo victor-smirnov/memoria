@@ -41,18 +41,6 @@ struct BalancedTreeTypes<Profile, memoria::MapProto<Key_, Value_> >: public Bala
 
     static const Int Indexes                                                	= 1;
 
-//    typedef typename MergeLists<
-//            	typename Base::ContainerPartsList,
-//            	memoria::map2::CtrToolsName,
-//            	memoria::map2::CtrInsertName,
-//                memoria::map2::CtrApiName
-//    >::Result                                                               	ContainerPartsList;
-//
-//    typedef typename MergeLists<
-//            	typename Base::IteratorPartsList,
-//                memoria::map2::ItrApiName
-//    >::Result                                                               	IteratorPartsList;
-
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
@@ -62,6 +50,14 @@ struct BalancedTreeTypes<Profile, memoria::MapProto<Key_, Value_> >: public Bala
     typedef TypeList<
     		AllNodeTypes<balanced_tree::TreeMapNode>
     >																			NodeTypesList;
+
+    typedef TypeList<
+        		LeafNodeType<TreeMapNode>,
+        		InternalNodeType<TreeMapNode>,
+        		RootNodeType<TreeMapNode>,
+        		RootLeafNodeType<TreeMapNode>
+    >																			DefaultNodeTypesList;
+
 
 
 

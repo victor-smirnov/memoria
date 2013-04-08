@@ -17,10 +17,10 @@
 #include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
 
-#include <memoria/prototypes/balanced_tree/pages/tree_node.hpp>
-#include <memoria/prototypes/balanced_tree/pages/node_dispatcher.hpp>
-#include <memoria/prototypes/balanced_tree/pages/tree_metadata.hpp>
-#include <memoria/prototypes/balanced_tree/pages/node_list_builder.hpp>
+#include <memoria/prototypes/balanced_tree/nodes/tree_node.hpp>
+#include <memoria/prototypes/balanced_tree/nodes/node_dispatcher.hpp>
+#include <memoria/prototypes/balanced_tree/nodes/tree_metadata.hpp>
+#include <memoria/prototypes/balanced_tree/nodes/node_list_builder.hpp>
 
 #include <memoria/prototypes/balanced_tree/container/baltree_c_base.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_tools.hpp>
@@ -74,27 +74,14 @@ struct BalancedTreeTypes {
     typedef BalancedTreeMetadata<ID>                                            Metadata;
 
     typedef TypeList<
-    		//AllNodeTypes<balanced_tree::TreeMapNode>
+//    		AllNodeTypes<balanced_tree::TreeMapNode>
     >																			NodeTypesList;
 
-//    template <typename Types, bool root, bool leaf>
-//    using DefaultRootNode 		= TreeMapNode<Types, root, leaf>;
-//
-//    template <typename Types, bool root, bool leaf>
-//    using DefaultLeafNode 		= TreeMapNode<Types, root, leaf>;
-//
-//    template <typename Types, bool root, bool leaf>
-//    using DefaultRootLeafNode 	= TreeMapNode<Types, root, leaf>;
-//
-//    template <typename Types, bool root, bool leaf>
-//    using DefaultInternalNode 	= TreeMapNode<Types, root, leaf>;
-
-
     typedef TypeList<
-    		LeafNodeType<TreeMapNode>,
-    		InternalNodeType<TreeMapNode>,
-    		RootNodeType<TreeMapNode>,
-    		RootLeafNodeType<TreeMapNode>
+//    		LeafNodeType<TreeMapNode>,
+//    		InternalNodeType<TreeMapNode>,
+//    		RootNodeType<TreeMapNode>,
+//    		RootLeafNodeType<TreeMapNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<

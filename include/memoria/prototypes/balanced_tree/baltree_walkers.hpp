@@ -11,7 +11,7 @@
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/iterator.hpp>
 
-#include <memoria/prototypes/balanced_tree/pages/tree_node.hpp>
+#include <memoria/prototypes/balanced_tree/nodes/tree_node.hpp>
 
 
 #include <ostream>
