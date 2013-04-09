@@ -66,7 +66,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	switch (trait)
     	{
     		case BalTreeNodeTraits::MAX_CHILDREN:
-    			return Node::Map::max_tree_size(page_size - sizeof(Node) + sizeof(typename Node::Map)); break;
+    			return Node::max_tree_size_for_block(page_size); break;
 
     		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", (Int)trait);
     	}
@@ -222,9 +222,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     	Int node_children_count = node->children_count();
 
-    	Int root_block_size 	= node->page_size() - sizeof(RootType) + sizeof(typename RootType::Map);
+    	Int root_block_size 	= node->page_size();
 
-    	Int root_children_count = RootType::Map::max_tree_size(root_block_size);
+    	Int root_children_count = RootType::max_tree_size_for_block(root_block_size);
 
     	return node_children_count <= root_children_count;
     }

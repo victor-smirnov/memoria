@@ -58,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
 		switch (trait)
 		{
 		case BalTreeNodeTraits::MAX_CHILDREN:
-			return Node::Map::max_tree_size(page_size - sizeof(Node) + sizeof(typename Node::Map)); break;
+			return Node::max_tree_size_for_block(page_size); break;
 
 		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", (Int)trait);
 		}

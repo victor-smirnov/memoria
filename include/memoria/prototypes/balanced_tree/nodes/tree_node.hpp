@@ -13,10 +13,14 @@
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
+#include <memoria/core/types/types.hpp>
+#include <memoria/core/packed2/packed_fse_tree.hpp>
+#include <memoria/core/packed2/packed_allocator.hpp>
+#include <memoria/core/packed2/packed_dispatcher.hpp>
 
-#include <memoria/prototypes/balanced_tree/nodes/tree_map.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
+
 
 namespace memoria    	{
 namespace balanced_tree {
@@ -214,6 +218,42 @@ class RootPage<Metadata, Base, false>: public Base {
 };
 
 
+namespace internl1 {
+
+template <typename T>
+struct ValueHelper {
+    static void setup(IPageDataEventHandler* handler, const T& value)
+    {
+        handler->value("VALUE", &value);
+    }
+};
+
+template <typename T>
+struct ValueHelper<PageID<T> > {
+    typedef PageID<T>                                                   Type;
+
+    static void setup(IPageDataEventHandler* handler, const Type& value)
+    {
+        IDValue id(&value);
+        handler->value("VALUE", &id);
+    }
+};
+
+template <>
+struct ValueHelper<EmptyValue> {
+    typedef EmptyValue Type;
+
+    static void setup(IPageDataEventHandler* handler, const Type& value)
+    {
+        BigInt val = 0;
+        handler->value("VALUE", &val);
+    }
+};
+
+}
+
+
+
 
 template <
 	typename Types,
@@ -254,16 +294,6 @@ public:
 
 
 
-    typedef TreeMap<
-                TreeMapTypes<
-                    typename Types::Key,
-                    Value,
-                    Types::Indexes,
-                    Accumulator,
-                    typename Types::StreamDescriptors
-                >
-    >                                                                           Map;
-
     template <
         	template <typename, bool, bool> class,
         	typename,
@@ -272,73 +302,148 @@ public:
     friend class NodePageAdaptor;
 
 
+	typedef PackedFSETreeTypes<
+			Key,Key,Key
+	>																			TreeTypes;
+
+	typedef typename PackedStructListBuilder<
+	    		TreeTypes,
+	    		typename Types::StreamDescriptors
+	    >::NonLeafStructList													StreamsStructList;
+
+	typedef typename ListHead<StreamsStructList>::Type::Type 					Tree;
+
+
+private:
+
+    PackedAllocator allocator_;
+
 public:
 
-    Map map_;
+
+    static const long INDEXES                                                   = Tree::Indexes;
+
+    TreeMapNode(): Base() {}
+
+
+private:
+	struct InitFn {
+		Int block_size(Int items_number) const
+		{
+			return MyType::block_size(items_number);
+		}
+
+		Int max_elements(Int block_size)
+		{
+			return block_size / 4;
+		}
+	};
 
 public:
 
-    typedef typename Map::Tree Tree;
+	Tree* tree() {
+		return allocator_.template get<Tree>(0);
+	}
 
+	const Tree* tree() const {
+		return allocator_.template get<Tree>(0);
+	}
 
-    static const long INDEXES                                                   = Types::Indexes;
+	Value* values() {
+		return allocator_.template get<Value>(1);
+	}
 
-    TreeMapNode(): Base(), map_() {}
+	const Value* values() const {
+		return allocator_.template get<Value>(1);
+	}
 
+	Int capacity() const {
+		return tree()->capacity();
+	}
 
-//    const Map& map() const
-//    {
-//        return map_;
-//    }
-//
-//    Map& map()
-//    {
-//        return map_;
-//    }
+	static Int block_size(Int tree_size)
+	{
+		Int tree_block_size 	= Tree::block_size(tree_size);
+		Int array_block_size 	= PackedAllocator::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
 
-    Tree* tree() {
-    	return map_.tree();
-    }
+		Int client_area = tree_block_size + array_block_size;
 
-    const Tree* tree() const {
-    	return map_.tree();
-    }
+		return PackedAllocator::block_size(client_area, 2);
+	}
 
-    Value* values() {
-    	return map_.values();
-    }
+	static Int max_tree_size(Int block_size)
+	{
+		return FindTotalElementsNumber2(block_size, InitFn());
+	}
 
-    const Value* values() const {
-    	return map_.values();
-    }
+	static Int max_tree_size_for_block(Int block_size)
+	{
+		return max_tree_size(block_size - sizeof(Me) + sizeof(allocator_));
+	}
 
+	void init(Int block_size)
+	{
+		init0(block_size - sizeof(Me) + sizeof(allocator_));
+	}
 
-    void init(Int block_size)
-    {
-    	map_.init(block_size - sizeof(Me) + sizeof(Map));
-    }
+	void init0(Int block_size)
+	{
+		allocator_.init(block_size, 2);
+
+		Int tree_size = max_tree_size(block_size);
+
+		Int tree_block_size = Tree::block_size(tree_size);
+
+		allocator_.template allocate<Tree>(0, tree_block_size);
+		allocator_.template allocateArrayBySize<Value>(1, tree_size);
+	}
+
 
     void clearUnused() {
-    	map_.clearUnused();
+
     }
 
     void reindex()
     {
-        map_.reindex();
+        tree()->reindex();
     }
 
     template <typename TreeType>
-    void transferDataTo(TreeType* other) const {
-    	map_.transferDataTo(&other->map_);
+    void transferDataTo(TreeType* other) const
+    {
+    	tree()->transferDataTo(other->tree());
+
+    	const auto* my_values 	= values();
+    	auto* other_values 		= other->values();
+
+    	Int size = tree()->size();
+
+    	for (Int c = 0; c < size; c++)
+    	{
+    		other_values[c] = my_values[c];
+    	}
     }
+
+    void clear(Int start, Int end)
+    {
+    	Tree* tree 		= this->tree();
+    	Value* values	= this->values();
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		tree->value(c) 	= 0;
+    		values[c]		= 0;
+    	}
+    }
+
 
     Int data_size() const
     {
-        return sizeof(Me) + map_.getDataSize();
+        return sizeof(Me) + this->getDataSize();
     }
 
     Int size() const {
-    	return map_.size();
+    	return tree()->size();
     }
 
     bool isEmpty() const
@@ -354,54 +459,63 @@ public:
     void set_children_count(Int map_size)
     {
         Base::map_size() = map_size;
-        map_.size()      = map_size;
+        tree()->size()   = map_size;
     }
 
     void inc_size(Int count)
     {
         Base::map_size() += count;
-        map_.size()      += count;
+        tree()->size()   += count;
     }
 
     void insertSpace(const Position& from_pos, const Position& length_pos)
     {
-    	Int from 	= from_pos.get();
-    	Int length 	= length_pos.get();
+    	Int room_start 	= from_pos.get();
+    	Int room_length = length_pos.get();
 
-    	map_.insertSpace(from, length);
+    	MEMORIA_ASSERT(room_start, <=, this->size());
 
-    	for (Int c = from; c < from + length; c++)
+    	Value* values = this->values();
+    	Int size = this->size();
+
+    	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
+
+    	tree()->insertSpace(room_start, room_length);
+
+    	Accumulator zero;
+
+    	for (Int c = room_start; c < room_start + room_length; c++)
     	{
-    		for (Int d = 0; d < INDEXES; d++)
-    		{
-    			map_.key(d, c) = 0;
-    		}
-
-    		map_.data(c) = 0;
+    		setKeys(c, zero);
+    		values[c] = 0;
     	}
 
-    	this->set_children_count(map_.size());
+    	this->set_children_count(tree()->size());
     }
 
 
     Accumulator removeSpace(const Position& from_pos, const Position& length_pos, bool reindex = true)
     {
-    	Int from = from_pos.get();
-    	Int count = length_pos.get();
+    	Int room_start = from_pos.get();
+    	Int room_length = length_pos.get();
 
-    	Accumulator accum = map_.sum(from, from + count);
+    	Accumulator accum = sum(room_start, room_start + room_length);
 
-    	Int old_size = map_.size();
+    	Int old_size = this->size();
 
-    	map_.removeSpace(from, count);
+    	tree()->removeSpace(room_start, room_length);
 
-    	map_.clear(old_size - count, old_size);
+    	Value* values = this->values();
 
-    	this->set_children_count(map_.size());
+    	CopyBuffer(values + room_start + room_length, values + room_start, old_size - room_start - room_length);
+
+    	clear(old_size - room_length, old_size);
+
+    	this->set_children_count(this->size());
 
     	if (reindex)
     	{
-    		map_.reindex();
+    		this->reindex();
     	}
 
     	return accum;
@@ -420,56 +534,99 @@ public:
     	return size <= capacity;
     }
 
+    void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
+    {
+    	MEMORIA_ASSERT(copy_from + count, <=, size());
+    	MEMORIA_ASSERT(copy_to + count, <=, other->max_size());
+
+    	tree()->copyTo(other->tree(), copy_from, count, copy_to);
+
+    	CopyBuffer(this->values() + copy_from, other->values() + copy_to, count);
+    }
+
     void mergeWith(MyType* target)
     {
     	Int size = this->size();
-    	map_.copyTo(&target->map_, 0, size, target->size());
+    	copyTo(target, 0, size, target->size());
     	target->inc_size(size);
-    	target->map_.reindex();
-    }
-
-    Int capacity() const
-    {
-    	return map_.capacity();
+    	target->reindex();
     }
 
     Int max_size() const
     {
-    	return map_.max_size();
+    	return tree()->max_size();
     }
 
-    Position nodeSizes() const {
+    Position nodeSizes() const
+    {
     	return Position(size());
     }
 
     void reindexAll(Int from, Int to)
     {
-    	map_.reindexAll(from, to);
+    	tree()->reindex();
     }
 
-    Key key(Int idx) const
+    Key& key(Int block_num, Int key_num)
     {
-    	return map_.key(0, idx);
+    	MEMORIA_ASSERT(key_num, >=, 0);
+    	MEMORIA_ASSERT(key_num, <, tree()->max_size());
+
+    	Tree* tree = this->tree();
+    	return tree->value(block_num * tree->max_size() + key_num);
+    }
+
+    const Key& key(Int block_num, Int key_num) const
+    {
+    	MEMORIA_ASSERT(key_num, >=, 0);
+    	MEMORIA_ASSERT(key_num, <, tree()->max_size());
+
+    	const Tree* tree = this->tree();
+    	return tree->value(block_num * tree->max_size() + key_num);
+    }
+
+    const Key& key(Int key_num) const
+    {
+    	return key(0, key_num);
     }
 
     Accumulator keys(Int idx) const {
-    	return map_.keysAcc(idx);
+    	return keysAcc(idx);
     }
+
+	Accumulator keysAcc(Int idx) const
+	{
+		Accumulator accum;
+
+		std::get<0>(accum)[0] = tree()->value(idx);
+
+		return accum;
+	}
 
     Accumulator keysAt(Int idx) const
     {
-    	return map_.keysAt(idx);
+    	Accumulator acc;
+
+    	std::get<0>(acc)[0] = tree()->value(idx);
+
+    	return acc;
     }
 
-    Accumulator maxKeys() const {
-    	return map_.maxKeys();
+
+    Accumulator maxKeys() const
+    {
+    	Accumulator accum;
+
+    	std::get<0>(accum)[0] = tree()->sum();
+
+    	return accum;
     }
 
     void setKeys(Int idx, Accumulator& keys)
     {
-    	for (Int c = 0; c < Map::Blocks; c++)
+    	for (Int c = 0; c < INDEXES; c++)
     	{
-    		map_.key(c, idx) = std::get<0>(keys)[c];
+    		this->key(c, idx) = std::get<0>(keys)[c];
     	}
     }
 
@@ -478,35 +635,51 @@ public:
     {
     	Accumulator keys;
 
-    	for (Int c = 0; c < Map::Blocks; c++)
+    	for (Int c = 0; c < INDEXES; c++)
     	{
-    		std::get<0>(keys)[c] = map_.key(c, idx);
+    		std::get<0>(keys)[c] = this->key(c, idx);
     	}
 
     	return keys;
     }
 
 
-    Value& value(Int idx) {
-    	return map_.data(idx);
+    Value& value(Int idx)
+    {
+    	return *(values() + idx);
     }
 
-    const Value& value(Int idx) const {
-    	return map_.data(idx);
+    const Value& value(Int idx) const
+    {
+    	return *(values() + idx);
     }
 
     void sum(Int start, Int end, Accumulator& accum) const
     {
-    	map_.sum(start, end, accum);
+    	std::get<0>(accum)[0] += tree()->sum(start, end);
+    }
+
+    Accumulator sum(Int start, Int end) const
+    {
+    	Accumulator accum;
+    	std::get<0>(accum)[0] = tree()->sum(start, end);
+    	return accum;
     }
 
     void sum(Int block_num, Int start, Int end, Key& accum) const
     {
-    	map_.sum(block_num, start, end, accum);
+    	accum += tree()->sum(start, end);
     }
 
-    Int findLES(Int block_num, const Key& k, Accumulator& sum) const {
-    	return map_.findLES(block_num, k, sum);
+    Int findLES(Int block_num, const Key& k, Accumulator& sum) const
+    {
+    	const Tree* tree = this->tree();
+
+    	auto result = tree->findLE(k);
+
+    	std::get<0>(sum)[0] += result.prefix();
+
+    	return result.idx();
     }
 
     Accumulator moveElements(MyType* tgt, const Position& from_pos, const Position& shift_pos)
@@ -516,36 +689,37 @@ public:
 
     	Accumulator result;
 
-    	Int count = map_.size() - from;
+    	Int count = this->size() - from;
 
-    	map_.sum(from, from + count, result);
+    	sum(from, from + count, result);
 
     	if (tgt->size() > 0)
     	{
     		tgt->insertSpace(Position(0), Position(count + shift));
     	}
 
-    	map_.copyTo(&tgt->map_, from, count, shift);
-    	map_.clear(from, from + count);
+    	copyTo(tgt, from, count, shift);
+    	clear(from, from + count);
 
     	inc_size(-count);
     	tgt->inc_size(count + shift);
 
-    	tgt->map_.clear(0, shift);
+    	tgt->clear(0, shift);
 
-    	map_.reindex();
+    	reindex();
     	tgt->reindex();
 
     	return result;
     }
 
-    void updateUp(Int block_num, Int idx, Key key_value) {
-    	map_.updateUp(block_num, idx, key_value);
+    void updateUp(Int block_num, Int idx, Key key_value)
+    {
+    	tree()->updateUp(block_num, idx, key_value);
     }
 
     Accumulator getCounters(const Position& pos, const Position& count) const
     {
-    	return map_.sum(pos.get(), count.get());
+    	return sum(pos.get(), count.get());
     }
 
     bool checkCapacities(const Position& pos) const
@@ -556,7 +730,17 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
-        map_.generateDataEvents(handler);
+
+        tree()->generateDataEvents(handler);
+
+        handler->startGroup("TREE_VALUES", size());
+
+        for (Int idx = 0; idx < size(); idx++)
+        {
+        	internl1::ValueHelper<Value>::setup(handler, value(idx));
+        }
+
+        handler->endGroup();
     }
 
     template <template <typename> class FieldFactory>
@@ -564,7 +748,9 @@ public:
     {
         Base::template serialize<FieldFactory>(buf);
 
-        FieldFactory<Map>::serialize(buf, map_);
+        allocator_.serialize(buf);
+        tree()->serialize(buf);
+        FieldFactory<Value>::serialize(buf, *values(), size());
     }
 
     template <template <typename> class FieldFactory>
@@ -572,7 +758,9 @@ public:
     {
         Base::template deserialize<FieldFactory>(buf);
 
-        FieldFactory<Map>::deserialize(buf, map_);
+        allocator_.deserialize(buf);
+        tree()->deserialize(buf);
+        FieldFactory<Value>::deserialize(buf, *values(), size());
     }
 };
 
@@ -665,11 +853,11 @@ public:
             tgt->copyFrom(me);
             tgt->init(new_size);
 
-            me->map_.transferDataTo(&tgt->map_);
+            me->transferDataTo(tgt);
             tgt->set_children_count(me->children_count());
 
-            tgt->map_.clearUnused();
-            tgt->map_.reindex();
+            tgt->clearUnused();
+            tgt->reindex();
         }
 
         virtual void generateDataEvents(
@@ -766,8 +954,7 @@ struct TypeHash<balanced_tree::TreeMapNode<Types, root, leaf> > {
     		root,
     		leaf,
     		Types::Indexes,
-    		TypeHash<typename Types::Name>::Value,
-    		TypeHash<typename Node::Map>::Value
+    		TypeHash<typename Types::Name>::Value
     >::Value;
 };
 
