@@ -24,7 +24,12 @@ namespace balanced_tree {
 
 using memoria::BitBuffer;
 
-
+template <
+    	template <typename, bool, bool> class,
+    	typename,
+    	bool, bool
+>
+class NodePageAdaptor;
 
 template <typename Base_>
 class TreeNodeBase: public Base_ {
@@ -259,14 +264,21 @@ public:
                 >
     >                                                                           Map;
 
+    template <
+        	template <typename, bool, bool> class,
+        	typename,
+        	bool, bool
+    >
+    friend class NodePageAdaptor;
 
 
-private:
+public:
 
     Map map_;
 
 public:
 
+    typedef typename Map::Tree Tree;
 
 
     static const long INDEXES                                                   = Types::Indexes;
@@ -274,24 +286,50 @@ public:
     TreeMapNode(): Base(), map_() {}
 
 
-    const Map& map() const
-    {
-        return map_;
+//    const Map& map() const
+//    {
+//        return map_;
+//    }
+//
+//    Map& map()
+//    {
+//        return map_;
+//    }
+
+    Tree* tree() {
+    	return map_.tree();
     }
 
-    Map& map()
-    {
-        return map_;
+    const Tree* tree() const {
+    	return map_.tree();
     }
+
+    Value* values() {
+    	return map_.values();
+    }
+
+    const Value* values() const {
+    	return map_.values();
+    }
+
 
     void init(Int block_size)
     {
     	map_.init(block_size - sizeof(Me) + sizeof(Map));
     }
 
+    void clearUnused() {
+    	map_.clearUnused();
+    }
+
     void reindex()
     {
-        map().reindex();
+        map_.reindex();
+    }
+
+    template <typename TreeType>
+    void transferDataTo(TreeType* other) const {
+    	map_.transferDataTo(&other->map_);
     }
 
     Int data_size() const
@@ -379,20 +417,15 @@ public:
     	Int size 		= this->size();
     	Int capacity 	= target->capacity();
 
-//    	map_.dump();
-//    	target->map_.dump();
-
-//    	return size() <= target->capacity();
-
     	return size <= capacity;
     }
 
     void mergeWith(MyType* target)
     {
     	Int size = this->size();
-    	map().copyTo(&target->map(), 0, size, target->size());
+    	map_.copyTo(&target->map_, 0, size, target->size());
     	target->inc_size(size);
-    	target->map().reindex();
+    	target->map_.reindex();
     }
 
     Int capacity() const
@@ -423,9 +456,36 @@ public:
     	return map_.keysAcc(idx);
     }
 
+    Accumulator keysAt(Int idx) const
+    {
+    	return map_.keysAt(idx);
+    }
+
     Accumulator maxKeys() const {
     	return map_.maxKeys();
     }
+
+    void setKeys(Int idx, Accumulator& keys)
+    {
+    	for (Int c = 0; c < Map::Blocks; c++)
+    	{
+    		map_.key(c, idx) = std::get<0>(keys)[c];
+    	}
+    }
+
+
+    Accumulator getKeys(Int idx) const
+    {
+    	Accumulator keys;
+
+    	for (Int c = 0; c < Map::Blocks; c++)
+    	{
+    		std::get<0>(keys)[c] = map_.key(c, idx);
+    	}
+
+    	return keys;
+    }
+
 
     Value& value(Int idx) {
     	return map_.data(idx);
@@ -433,6 +493,20 @@ public:
 
     const Value& value(Int idx) const {
     	return map_.data(idx);
+    }
+
+    void sum(Int start, Int end, Accumulator& accum) const
+    {
+    	map_.sum(start, end, accum);
+    }
+
+    void sum(Int block_num, Int start, Int end, Key& accum) const
+    {
+    	map_.sum(block_num, start, end, accum);
+    }
+
+    Int findLES(Int block_num, const Key& k, Accumulator& sum) const {
+    	return map_.findLES(block_num, k, sum);
     }
 
     Accumulator moveElements(MyType* tgt, const Position& from_pos, const Position& shift_pos)
@@ -451,18 +525,22 @@ public:
     		tgt->insertSpace(Position(0), Position(count + shift));
     	}
 
-    	map_.copyTo(&tgt->map(), from, count, shift);
+    	map_.copyTo(&tgt->map_, from, count, shift);
     	map_.clear(from, from + count);
 
     	inc_size(-count);
     	tgt->inc_size(count + shift);
 
-    	tgt->map().clear(0, shift);
+    	tgt->map_.clear(0, shift);
 
     	map_.reindex();
     	tgt->reindex();
 
     	return result;
+    }
+
+    void updateUp(Int block_num, Int idx, Key key_value) {
+    	map_.updateUp(block_num, idx, key_value);
     }
 
     Accumulator getCounters(const Position& pos, const Position& count) const
@@ -526,6 +604,13 @@ public:
     static const bool Leaf = leaf;
     static const bool Root = root;
 
+    template <
+    	template <typename, bool, bool> class,
+    	typename,
+    	bool, bool
+    >
+    friend class NodePageAdaptor;
+
 private:
     static PageMetadata *page_metadata_;
 
@@ -580,11 +665,11 @@ public:
             tgt->copyFrom(me);
             tgt->init(new_size);
 
-            me->map().transferDataTo(&tgt->map());
+            me->map_.transferDataTo(&tgt->map_);
             tgt->set_children_count(me->children_count());
 
-            tgt->map().clearUnused();
-            tgt->map().reindex();
+            tgt->map_.clearUnused();
+            tgt->map_.reindex();
         }
 
         virtual void generateDataEvents(

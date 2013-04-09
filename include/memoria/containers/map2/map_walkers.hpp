@@ -122,13 +122,11 @@ public:
 	template <typename Node>
 	void operator()(const Node* node)
 	{
-		const typename Node::Map& map = node->map();
+		Base::idx_ = node->findLES(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
 
-		Base::idx_ = map.findLES(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
-
-		if (node->level() != 0 && Base::idx_ == map.size())
+		if (node->level() != 0 && Base::idx_ == node->children_count())
 		{
-			VectorSub(Base::prefix_, map.keysAt(map.size() - 1));
+			VectorSub(Base::prefix_, node->keysAt(node->children_count() - 1));
 			Base::idx_--;
 		}
 	}
@@ -214,14 +212,12 @@ public:
 	template <typename Node>
 	void operator()(const Node* node)
 	{
-		const typename Node::Map& map = node->map();
-
 		if (node->level() > 0)
 		{
-			VectorAdd(prefix_, map.maxKeys() - map.keysAt(map.size() - 1));
+			VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
 		}
 		else {
-			VectorAdd(prefix_, map.maxKeys());
+			VectorAdd(prefix_, node->maxKeys());
 		}
 
 		Base::idx_ 	= node->children_count() - 1;
@@ -305,9 +301,7 @@ public:
 	template <typename Node>
 	void operator()(const Node* node)
 	{
-		const typename Node::Map& map = node->map();
-
-		VectorAdd(prefix_, map.maxKeys() - map.keysAt(map.size() - 1));
+		VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
 
 		Base::idx_ = node->children_count() - 1;
 	}

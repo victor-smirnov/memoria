@@ -81,19 +81,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
     template <typename Node>
     void setAndReindexFn(Node* node, Int idx, const Element& element) const
     {
-    	for (Int c = 0; c < Base::WrappedCtr::Indexes; c++)
-    	{
-    		node->map().key(c, idx) = std::get<0>(element.first)[c];
-    	}
+//    	node->setKeys(idx, element.first);
 
-    	node->map().data(idx) = element.second;
+    	node->value(idx) = element.second;
 
     	if (idx == node->children_count() - 1)
     	{
-    		node->map().reindexAll(idx, idx + 1);
+    		node->reindexAll(idx, idx + 1);
     	}
     	else {
-    		node->map().reindexAll(idx, node->children_count());
+    		node->reindexAll(idx, node->children_count());
     	}
     }
 
@@ -102,6 +99,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
 
     void setLeafDataAndReindex(NodeBaseG& node, Int idx, const Element& element) const
     {
+    	self().ctr().setKeys(node, idx, element.first);
+
     	node.update();
     	LeafDispatcher::dispatch(node.page(), SetAndReindexFn(me()), idx, element);
     }

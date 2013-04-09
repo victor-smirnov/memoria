@@ -34,6 +34,7 @@ public:
     typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
     typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
 
+    typedef typename Types::Accumulator                               			Accumulator;
 
     static const Int Indexes                                                    = Types::Indexes;
 
@@ -143,28 +144,28 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::checkNodeWithParentContent(const Node1 *node, const Node2 *parent, Int parent_idx) const {
+bool M_TYPE::checkNodeWithParentContent(const Node1 *node, const Node2 *parent, Int parent_idx) const
+{
     bool errors = false;
-    for (Int c = 0; c < Indexes; c++)
-    {
-        if (node->map().maxKey(c) != parent->map().key(c, parent_idx))
-        {
-            MEMORIA_TRACE(
-                    me(),
-                    "Invalid parent-child nodes chain",
-                    c,
-                    node->map().maxKey(c),
-                    parent->map().key(c, parent_idx),
-                    "for node.id=",
-                    node->id(),
-                    "parent.id=",
-                    parent->id(),
-                    "parent_idx",
-                    parent_idx
-            );
+    Accumulator max = node->maxKeys();
+    Accumulator keys = parent->getKeys(parent_idx);
 
-            errors = true;
-        }
+    if (max != keys)
+    {
+    	MEMORIA_TRACE(
+    			me(),
+    			"Invalid parent-child nodes chain",
+    			(SBuf()<<max).str(),
+    			(SBuf()<<keys).str(),
+    			"for node.id=",
+    			node->id(),
+    			"parent.id=",
+    			parent->id(),
+    			"parent_idx",
+    			parent_idx
+    	);
+
+    	errors = true;
     }
     return errors;
 }

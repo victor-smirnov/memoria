@@ -124,8 +124,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 
 				node->insertSpace(Position(pos), Position(size));
 
-				auto* tree 	= node->map().tree();
-				auto* value = node->map().values();
+				auto* tree 	= node->tree();
+				auto* value = node->values();
 
 				for (Int c = pos; c < pos + size; c++)
 				{
@@ -135,8 +135,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 				}
 
 				node->reindex();
-
-//				node->map().dump();
 
 				provider->inserted_ += size;
 

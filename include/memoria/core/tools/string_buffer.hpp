@@ -35,6 +35,10 @@ public:
         return buffer_.str();
     }
 
+    operator String() const {
+    	return buffer_.str();
+    }
+
     template <typename T>
     SBuf& operator<<(const T& value)
     {

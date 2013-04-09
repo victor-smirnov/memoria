@@ -190,22 +190,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
             {
                 for (Int c = 0; c < count_; c++)
                 {
-                    for (Int d = 0; d < Indexes; d++)
-                    {
-                        node->map().key(d, c) = std::get<0>(pairs_[c].keys)[d];
-                    }
+                    node->setKeys(c, pairs_[c].keys);
 
-                    node->map().data(c) = pairs_[c].value;
+                    node->value(c) = pairs_[c].value;
                 }
 
                 node->set_children_count(count_);
 
-                node->map().reindex();
+                node->reindex();
 
-                for (Int d = 0; d < Indexes; d++)
-                {
-                	std::get<0>(total_.keys)[d] = node->map().maxKey(d);
-                }
+                total_.keys = node->maxKeys();
 
                 total_.value = node->id();
             }
