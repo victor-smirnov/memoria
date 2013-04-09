@@ -309,10 +309,11 @@ public:
 	typedef typename PackedStructListBuilder<
 	    		TreeTypes,
 	    		typename Types::StreamDescriptors
-	    >::NonLeafStructList													StreamsStructList;
+	>::NonLeafStructList														StreamsStructList;
 
 	typedef typename ListHead<StreamsStructList>::Type::Type 					Tree;
 
+	typedef typename PackedDispatcherTool<StreamsStructList>::Type				Dispatcher;
 
 private:
 
@@ -322,6 +323,8 @@ public:
 
 
     static const long INDEXES                                                   = Tree::Indexes;
+
+    static const Int ValuesBlockIdx												= ListSize<StreamsStructList>::Value;
 
     TreeMapNode(): Base() {}
 
@@ -341,34 +344,70 @@ private:
 
 public:
 
+	template <typename T>
+	T* get(Int idx)
+	{
+		return allocator_.template get<T>(idx);
+	}
+
+	template <typename T>
+	const T* get(Int idx) const
+	{
+		return allocator_.template get<T>(idx);
+	}
+
 	Tree* tree() {
-		return allocator_.template get<Tree>(0);
+		return tree0();
 	}
 
 	const Tree* tree() const {
+		return tree0();
+	}
+
+	Tree* tree0() {
+		return allocator_.template get<Tree>(0);
+	}
+
+	const Tree* tree0() const {
 		return allocator_.template get<Tree>(0);
 	}
 
 	Value* values() {
-		return allocator_.template get<Value>(1);
+		return allocator_.template get<Value>(ValuesBlockIdx);
 	}
 
 	const Value* values() const {
-		return allocator_.template get<Value>(1);
+		return allocator_.template get<Value>(ValuesBlockIdx);
 	}
 
 	Int capacity() const {
 		return tree()->capacity();
 	}
 
+private:
+	struct TreeSizeFn {
+		Int size_ = 0;
+
+		template <Int Idx, typename Node>
+		void operator()(Node*, Int tree_size)
+		{
+			size_ += Node::block_size(tree_size);
+		}
+	};
+
+public:
 	static Int block_size(Int tree_size)
 	{
-		Int tree_block_size 	= Tree::block_size(tree_size);
+		TreeSizeFn fn;
+
+		Dispatcher::dispatchAllStatic(fn, tree_size);
+
+		Int tree_block_size 	= fn.size_;
 		Int array_block_size 	= PackedAllocator::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
 
 		Int client_area = tree_block_size + array_block_size;
 
-		return PackedAllocator::block_size(client_area, 2);
+		return PackedAllocator::block_size(client_area, ValuesBlockIdx + 1);
 	}
 
 	static Int max_tree_size(Int block_size)
@@ -386,37 +425,71 @@ public:
 		init0(block_size - sizeof(Me) + sizeof(allocator_));
 	}
 
+private:
+
+	struct InitStructFn {
+		template <Int Idx, typename Tree>
+		void operator()(Tree*, Int tree_size, PackedAllocator* allocator)
+		{
+			Int tree_block_size = Tree::block_size(tree_size);
+			allocator->template allocate<Tree>(Idx, tree_block_size);
+		}
+
+		template <Int Idx>
+		void operator()(Value*, Int tree_size, PackedAllocator* allocator)
+		{
+			allocator->template allocateArrayBySize<Value>(Idx, tree_size);
+		}
+	};
+
+public:
+
 	void init0(Int block_size)
 	{
 		allocator_.init(block_size, 2);
 
 		Int tree_size = max_tree_size(block_size);
 
-		Int tree_block_size = Tree::block_size(tree_size);
+		Dispatcher::dispatchAllStatic(InitStructFn(), tree_size, &allocator_);
 
-		allocator_.template allocate<Tree>(0, tree_block_size);
-		allocator_.template allocateArrayBySize<Value>(1, tree_size);
+		allocator_.template allocateArrayBySize<Value>(ValuesBlockIdx, tree_size);
 	}
 
 
-    void clearUnused() {
+    void clearUnused() {}
 
-    }
+    struct ReindexFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree)
+    	{
+    		tree->reindex();
+    	}
+    };
 
     void reindex()
     {
-        tree()->reindex();
+    	Dispatcher::dispatchAll(&allocator_, ReindexFn());
     }
+
+
+    template <typename TreeType>
+    struct TransferToFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(const Tree* tree, TreeType* other)
+    	{
+    		tree->transferDataTo(other->template get<Tree>(Idx));
+    	}
+    };
 
     template <typename TreeType>
     void transferDataTo(TreeType* other) const
     {
-    	tree()->transferDataTo(other->tree());
+    	Dispatcher::dispatchAll(&allocator_, TransferToFn<TreeType>(), other);
 
     	const auto* my_values 	= values();
     	auto* other_values 		= other->values();
 
-    	Int size = tree()->size();
+    	Int size = this->size();
 
     	for (Int c = 0; c < size; c++)
     	{
@@ -424,15 +497,26 @@ public:
     	}
     }
 
+    struct ClearFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree, Int start, Int end)
+    	{
+    		for (Int c = start; c < end; c++)
+    		{
+    			tree->clearValues(c);
+    		}
+    	}
+    };
+
     void clear(Int start, Int end)
     {
-    	Tree* tree 		= this->tree();
+    	Dispatcher::dispatchAll(&allocator_, ClearFn(), start, end);
+
     	Value* values	= this->values();
 
     	for (Int c = start; c < end; c++)
     	{
-    		tree->value(c) 	= 0;
-    		values[c]		= 0;
+    		values[c] = 0;
     	}
     }
 
@@ -443,7 +527,7 @@ public:
     }
 
     Int size() const {
-    	return tree()->size();
+    	return tree0()->size();
     }
 
     bool isEmpty() const
@@ -456,17 +540,45 @@ public:
     	return idx.get() >= size();
     }
 
+    struct SetChildrenCountFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree, Int size)
+    	{
+    		tree->size() = size;
+    	}
+    };
+
     void set_children_count(Int map_size)
     {
         Base::map_size() = map_size;
-        tree()->size()   = map_size;
+        Dispatcher::dispatchAll(&allocator_, SetChildrenCountFn(), map_size);
     }
+
+    struct IncSizeFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree, Int size)
+    	{
+    		tree->size() += size;
+    	}
+    };
 
     void inc_size(Int count)
     {
         Base::map_size() += count;
-        tree()->size()   += count;
+        Dispatcher::dispatchAll(&allocator_, IncSizeFn(), count);
     }
+
+    struct InsertSpaceFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree, Int room_start, Int room_length)
+    	{
+    		tree->insertSpace(room_start, room_length);
+    		for (Int c = room_start; c < room_start + room_length; c++)
+    		{
+    			tree->clearValues(c);
+    		}
+    	}
+    };
 
     void insertSpace(const Position& from_pos, const Position& length_pos)
     {
@@ -475,23 +587,28 @@ public:
 
     	MEMORIA_ASSERT(room_start, <=, this->size());
 
-    	Value* values = this->values();
     	Int size = this->size();
 
+    	Dispatcher::dispatchAll(&allocator_, InsertSpaceFn(), room_start, room_length);
+
+    	Value* values = this->values();
     	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
-
-    	tree()->insertSpace(room_start, room_length);
-
-    	Accumulator zero;
 
     	for (Int c = room_start; c < room_start + room_length; c++)
     	{
-    		setKeys(c, zero);
     		values[c] = 0;
     	}
 
-    	this->set_children_count(tree()->size());
+    	this->set_children_count(this->size());
     }
+
+    struct RemoveSpaceFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree, Int room_start, Int room_length)
+    	{
+    		tree->removeSpace(room_start, room_length);
+    	}
+    };
 
 
     Accumulator removeSpace(const Position& from_pos, const Position& length_pos, bool reindex = true)
@@ -503,7 +620,7 @@ public:
 
     	Int old_size = this->size();
 
-    	tree()->removeSpace(room_start, room_length);
+    	Dispatcher::dispatchAll(&allocator_, RemoveSpaceFn(), room_start, room_length);
 
     	Value* values = this->values();
 
@@ -534,12 +651,22 @@ public:
     	return size <= capacity;
     }
 
+
+    struct CopyToFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(const Tree* tree, MyType* other, Int copy_from, Int count, Int copy_to)
+    	{
+    		tree->copyTo(other->template get<Tree>(Idx), copy_from, count, copy_to);
+    	}
+    };
+
+
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
     {
     	MEMORIA_ASSERT(copy_from + count, <=, size());
     	MEMORIA_ASSERT(copy_to + count, <=, other->max_size());
 
-    	tree()->copyTo(other->tree(), copy_from, count, copy_to);
+    	Dispatcher::dispatchAll(&allocator_, CopyToFn(), other, copy_from, count, copy_to);
 
     	CopyBuffer(this->values() + copy_from, other->values() + copy_to, count);
     }
@@ -603,42 +730,75 @@ public:
 		return accum;
 	}
 
+	struct KeysAtFn {
+		template <Int Idx, typename Tree>
+		void operator()(const Tree* tree, Int idx, Accumulator* acc)
+		{
+			std::get<Idx>(*acc)[0] = tree->value(idx);
+		}
+	};
+
     Accumulator keysAt(Int idx) const
     {
     	Accumulator acc;
 
-    	std::get<0>(acc)[0] = tree()->value(idx);
+    	Dispatcher::dispatchAll(&allocator_, KeysAtFn(), idx, &acc);
 
     	return acc;
     }
 
+    struct MaxKeysFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(const Tree* tree, Accumulator* acc)
+    	{
+    		std::get<Idx>(*acc)[0] = tree->sum();
+    	}
+    };
 
     Accumulator maxKeys() const
     {
-    	Accumulator accum;
+    	Accumulator acc;
 
-    	std::get<0>(accum)[0] = tree()->sum();
+    	Dispatcher::dispatchAll(&allocator_, MaxKeysFn(), &acc);
 
-    	return accum;
+    	return acc;
     }
+
+    struct SetKeysFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree, Int idx, Accumulator* keys)
+    	{
+    		for (Int c = 0; c < INDEXES; c++)
+    		{
+    			Key k = std::get<Idx>(*keys)[c];
+    			tree->value(c * tree->max_size() + idx) = k;
+    		}
+    	}
+    };
 
     void setKeys(Int idx, Accumulator& keys)
     {
-    	for (Int c = 0; c < INDEXES; c++)
-    	{
-    		this->key(c, idx) = std::get<0>(keys)[c];
-    	}
+    	Dispatcher::dispatchAll(&allocator_, SetKeysFn(), idx, &keys);
     }
 
+
+    struct GetKeysFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree, Int idx, Accumulator* keys)
+    	{
+    		for (Int c = 0; c < INDEXES; c++)
+    		{
+    			Key k = tree->value(c * tree->max_size() + idx);
+    			std::get<Idx>(*keys)[c] = k;
+    		}
+    	}
+    };
 
     Accumulator getKeys(Int idx) const
     {
     	Accumulator keys;
 
-    	for (Int c = 0; c < INDEXES; c++)
-    	{
-    		std::get<0>(keys)[c] = this->key(c, idx);
-    	}
+    	Dispatcher::dispatchAll(&allocator_, GetKeysFn(), idx, &keys);
 
     	return keys;
     }
@@ -654,32 +814,62 @@ public:
     	return *(values() + idx);
     }
 
+    struct SumFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(const Tree* tree, Int start, Int end, Accumulator* accum)
+    	{
+    		std::get<Idx>(*accum)[0] += tree->sum(start, end);
+    	}
+
+    	template <Int Idx, typename Tree>
+    	void operator()(const Tree* tree, Int block_num, Int start, Int end, Key* accum)
+    	{
+    		*accum += tree->sum(start, end);
+    	}
+    };
+
     void sum(Int start, Int end, Accumulator& accum) const
     {
-    	std::get<0>(accum)[0] += tree()->sum(start, end);
+    	Dispatcher::dispatchAll(&allocator_, SumFn(), start, end, &accum);
     }
 
     Accumulator sum(Int start, Int end) const
     {
     	Accumulator accum;
-    	std::get<0>(accum)[0] = tree()->sum(start, end);
+    	Dispatcher::dispatchAll(&allocator_, SumFn(), start, end, &accum);
     	return accum;
     }
 
     void sum(Int block_num, Int start, Int end, Key& accum) const
     {
-    	accum += tree()->sum(start, end);
+    	Dispatcher::dispatchAll(&allocator_, SumFn(), block_num, start, end, &accum);
     }
+
+    struct FindLESFn {
+    	typedef Int ResultType;
+
+    	template <Int Idx, typename Tree>
+    	Int operator()(const Tree* tree, const Key& k, Accumulator* accum)
+    	{
+    		auto result = tree->findLE(k);
+
+        	std::get<Idx>(*accum)[0] += result.prefix();
+
+        	return result.idx();
+    	}
+    };
 
     Int findLES(Int block_num, const Key& k, Accumulator& sum) const
     {
-    	const Tree* tree = this->tree();
+//    	const Tree* tree = this->tree();
+//
+//    	auto result = tree->findLE(k);
+//
+//    	std::get<0>(sum)[0] += result.prefix();
+//
+//    	return result.idx();
 
-    	auto result = tree->findLE(k);
-
-    	std::get<0>(sum)[0] += result.prefix();
-
-    	return result.idx();
+    	return Dispatcher::dispatchRtn(0, &allocator_, FindLESFn(), k, &sum);
     }
 
     Accumulator moveElements(MyType* tgt, const Position& from_pos, const Position& shift_pos)
@@ -727,11 +917,19 @@ public:
     	return capacity() >= pos.get();
     }
 
+    struct GenerateDataEventsFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(const Tree* tree, IPageDataEventHandler* handler)
+    	{
+    		tree->generateDataEvents(handler);
+    	}
+    };
+
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
 
-        tree()->generateDataEvents(handler);
+        Dispatcher::dispatchAll(&allocator_, GenerateDataEventsFn(), handler);
 
         handler->startGroup("TREE_VALUES", size());
 
@@ -743,15 +941,33 @@ public:
         handler->endGroup();
     }
 
+    struct SerializeFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(const Tree* tree, SerializationData* buf)
+    	{
+    		tree->serialize(*buf);
+    	}
+    };
+
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
         Base::template serialize<FieldFactory>(buf);
 
         allocator_.serialize(buf);
-        tree()->serialize(buf);
+
+        Dispatcher::dispatchAll(&allocator_, SerializeFn(), &buf);
+
         FieldFactory<Value>::serialize(buf, *values(), size());
     }
+
+    struct DeserializeFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree, DeserializationData* buf)
+    	{
+    		tree->deserialize(*buf);
+    	}
+    };
 
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
@@ -759,7 +975,9 @@ public:
         Base::template deserialize<FieldFactory>(buf);
 
         allocator_.deserialize(buf);
-        tree()->deserialize(buf);
+
+        Dispatcher::dispatchAll(&allocator_, DeserializeFn(), &buf);
+
         FieldFactory<Value>::deserialize(buf, *values(), size());
     }
 };

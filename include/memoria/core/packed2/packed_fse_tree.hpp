@@ -319,6 +319,11 @@ public:
 		return &value(0);
 	}
 
+	void clearValues(Int idx)
+	{
+		value(idx) = 0;
+	}
+
 	// ==================================== Allocation =========================================== //
 
 private:

@@ -18,6 +18,12 @@ namespace memoria {
 
 template <typename... List> class PackedDispatcher;
 
+template <typename List> struct PackedDispatcherTool;
+template <typename... List>
+struct PackedDispatcherTool<TypeList<List...>> {
+	typedef PackedDispatcher<List...> Type;
+};
+
 template <typename Struct, Int Index>
 struct StructDescr {
 	typedef Struct Type;
@@ -33,12 +39,26 @@ public:
 		if (idx == Index)
 		{
 			Head* head = alloc->template get<Head>(idx);
-			fn(head, args...);
+			fn.template operator()<Index>(head, args...);
 		}
 		else {
-			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::forward(fn), args...);
+			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::move(fn), args...);
 		}
 	}
+
+	template <typename Fn, typename... Args>
+	static void dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		if (idx == Index)
+		{
+			const Head* head = alloc->template get<Head>(idx);
+			fn.template operator()<Index>(head, args...);
+		}
+		else {
+			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::move(fn), args...);
+		}
+	}
+
 
 	template <typename Fn, typename... Args>
 	static typename Fn::ResultType dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args... args)
@@ -46,12 +66,26 @@ public:
 		if (idx == Index)
 		{
 			Head* head = alloc->template get<Head>(idx);
-			return fn(head, args...);
+			return fn.template operator()<Index>(head, args...);
 		}
 		else {
-			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::forward(fn), args...);
+			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::move(fn), args...);
 		}
 	}
+
+	template <typename Fn, typename... Args>
+	static typename Fn::ResultType dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		if (idx == Index)
+		{
+			const Head* head = alloc->template get<Head>(idx);
+			return fn.template operator()<Index>(head, args...);
+		}
+		else {
+			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::move(fn), args...);
+		}
+	}
+
 
 	template <typename Fn, typename... Args>
 	static void dispatchStatic(Int idx, Fn&& fn, Args... args)
@@ -65,40 +99,38 @@ public:
 		}
 	}
 
-
-
 	template <typename Fn, typename... Args>
-	static void dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args... args)
+	static void dispatchAllStatic(Fn&& fn, Args... args)
 	{
-		if (idx == Index)
-		{
-			const Head* head = alloc->template get<Head>(idx);
-			fn(head, args...);
-		}
-		else {
-			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::forward(fn), args...);
-		}
+		Head* head = nullptr;
+		fn.template operator()<Index>(head, args...);
+		PackedDispatcher<Tail...>::dispatchAllStatic(std::move(fn), args...);
 	}
 
 	template <typename Fn, typename... Args>
-	static typename Fn::ResultType dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args... args)
+	static void dispatchAll(PackedAllocator* alloc, Fn&& fn, Args... args)
 	{
-		if (idx == Index)
-		{
-			const Head* head = alloc->template get<Head>(idx);
-			return fn(head, args...);
-		}
-		else {
-			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::forward(fn), args...);
-		}
+		Head* head = alloc->template get<Head>(Index);
+		fn.template operator()<Index>(head, args...);
+		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
 	}
+
+	template <typename Fn, typename... Args>
+	static void dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		const Head* head = alloc->template get<Head>(Index);
+		fn.template operator()<Index>(head, args...);
+		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
+	}
+
 
 	template <typename Fn, typename... Args>
 	static typename Fn::ResultType dispatchStaticRtn(Int idx, Fn&& fn, Args... args)
 	{
 		if (idx == Index)
 		{
-			return fn.template operator()<Head>(args...);
+			const Head* head = nullptr;
+			return fn.template operator()<Index>(head, args...);
 		}
 		else {
 			return PackedDispatcher<Tail...>::dispatchStaticRtn(idx, std::forward(fn), args...);
@@ -108,7 +140,7 @@ public:
 
 template <>
 class PackedDispatcher<> {
-
+public:
 	template <typename Fn, typename... Args>
 	static void dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args...) {
 		throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
@@ -124,6 +156,18 @@ class PackedDispatcher<> {
 	{
 		throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
 	}
+
+	template <typename Fn, typename... Args>
+	static void dispatchAllStatic(Fn&& fn, Args...)
+	{}
+
+	template <typename Fn, typename... Args>
+	static void dispatchAll(PackedAllocator* alloc, Fn&& fn, Args...)
+	{}
+
+	template <typename Fn, typename... Args>
+	static void dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args...)
+	{}
 
 	template <typename Fn, typename... Args>
 	static typename Fn::ResultType dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args...) {
