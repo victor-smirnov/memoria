@@ -124,7 +124,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 
 				node->insertSpace(Position(pos), Position(size));
 
-				auto* tree 	= node->tree();
+				auto* tree 	= node->tree0();
 				auto* value = node->values();
 
 				for (Int c = pos; c < pos + size; c++)

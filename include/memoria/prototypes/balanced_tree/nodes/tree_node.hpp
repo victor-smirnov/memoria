@@ -356,14 +356,6 @@ public:
 		return allocator_.template get<T>(idx);
 	}
 
-	Tree* tree() {
-		return tree0();
-	}
-
-	const Tree* tree() const {
-		return tree0();
-	}
-
 	Tree* tree0() {
 		return allocator_.template get<Tree>(0);
 	}
@@ -381,7 +373,7 @@ public:
 	}
 
 	Int capacity() const {
-		return tree()->capacity();
+		return tree0()->capacity();
 	}
 
 private:
@@ -681,7 +673,7 @@ public:
 
     Int max_size() const
     {
-    	return tree()->max_size();
+    	return tree0()->max_size();
     }
 
     Position nodeSizes() const
@@ -691,24 +683,24 @@ public:
 
     void reindexAll(Int from, Int to)
     {
-    	tree()->reindex();
+    	tree0()->reindex();
     }
 
     Key& key(Int block_num, Int key_num)
     {
     	MEMORIA_ASSERT(key_num, >=, 0);
-    	MEMORIA_ASSERT(key_num, <, tree()->max_size());
+    	MEMORIA_ASSERT(key_num, <, tree0()->max_size());
 
-    	Tree* tree = this->tree();
+    	Tree* tree = this->tree0();
     	return tree->value(block_num * tree->max_size() + key_num);
     }
 
     const Key& key(Int block_num, Int key_num) const
     {
     	MEMORIA_ASSERT(key_num, >=, 0);
-    	MEMORIA_ASSERT(key_num, <, tree()->max_size());
+    	MEMORIA_ASSERT(key_num, <, tree0()->max_size());
 
-    	const Tree* tree = this->tree();
+    	const Tree* tree = this->tree0();
     	return tree->value(block_num * tree->max_size() + key_num);
     }
 
@@ -716,19 +708,6 @@ public:
     {
     	return key(0, key_num);
     }
-
-    Accumulator keys(Int idx) const {
-    	return keysAcc(idx);
-    }
-
-	Accumulator keysAcc(Int idx) const
-	{
-		Accumulator accum;
-
-		std::get<0>(accum)[0] = tree()->value(idx);
-
-		return accum;
-	}
 
 	struct KeysAtFn {
 		template <Int Idx, typename Tree>
@@ -861,14 +840,6 @@ public:
 
     Int findLES(Int block_num, const Key& k, Accumulator& sum) const
     {
-//    	const Tree* tree = this->tree();
-//
-//    	auto result = tree->findLE(k);
-//
-//    	std::get<0>(sum)[0] += result.prefix();
-//
-//    	return result.idx();
-
     	return Dispatcher::dispatchRtn(0, &allocator_, FindLESFn(), k, &sum);
     }
 
@@ -902,9 +873,17 @@ public:
     	return result;
     }
 
-    void updateUp(Int block_num, Int idx, Key key_value)
+    struct UpdateUpFn {
+    	template <Int Idx, typename Tree>
+    	void operator()(Tree* tree, Int idx, const Accumulator* accum)
+    	{
+    		tree->updateUp(0, idx, std::get<Idx>(*accum)[0]);
+    	}
+    };
+
+    void updateUp(Int idx, const Accumulator& keys)
     {
-    	tree()->updateUp(block_num, idx, key_value);
+    	Dispatcher::dispatchAll(&allocator_, UpdateUpFn(), idx, &keys);
     }
 
     Accumulator getCounters(const Position& pos, const Position& count) const

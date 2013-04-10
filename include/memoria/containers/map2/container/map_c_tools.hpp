@@ -145,7 +145,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
     	return LeafDispatcher::dispatchConstRtn(node.page(), GetLeafKeyFn(), idx);
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetLeafKeysFn, keys, Accumulator);
+    MEMORIA_DECLARE_NODE_FN_RTN(GetLeafKeysFn, keysAt, Accumulator);
     Accumulator getLeafKeys(const NodeBaseG& node, Int idx) const
     {
     	return LeafDispatcher::dispatchConstRtn(node.page(), GetLeafKeysFn(), idx);

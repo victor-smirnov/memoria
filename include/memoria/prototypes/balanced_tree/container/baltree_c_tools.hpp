@@ -532,10 +532,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     template <typename Node>
     void addKeysFn(Node* node, Int idx, const Accumulator& keys, bool reindex_fully) const
     {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		node->updateUp(c, idx, get<0>(keys)[c]);
-    	}
+    	node->updateUp(idx, keys);
 
     	if (reindex_fully)
     	{
