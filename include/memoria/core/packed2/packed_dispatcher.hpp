@@ -110,19 +110,26 @@ public:
 	template <typename Fn, typename... Args>
 	static void dispatchAll(PackedAllocator* alloc, Fn&& fn, Args... args)
 	{
-		Head* head = alloc->template get<Head>(Index);
-		fn.template operator()<Index>(head, args...);
+		if (!alloc->is_empty(Index))
+		{
+			Head* head = alloc->template get<Head>(Index);
+			fn.template operator()<Index>(head, args...);
+		}
+
 		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
 	}
 
 	template <typename Fn, typename... Args>
 	static void dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args... args)
 	{
-		const Head* head = alloc->template get<Head>(Index);
-		fn.template operator()<Index>(head, args...);
+		if (!alloc->is_empty(Index))
+		{
+			const Head* head = alloc->template get<Head>(Index);
+			fn.template operator()<Index>(head, args...);
+		}
+
 		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
 	}
-
 
 	template <typename Fn, typename... Args>
 	static typename Fn::ResultType dispatchStaticRtn(Int idx, Fn&& fn, Args... args)

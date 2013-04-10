@@ -331,14 +331,18 @@ public:
 
 private:
 	struct InitFn {
+		UBigInt active_streams_;
+
+		InitFn(BigInt active_streams): active_streams_(active_streams) {}
+
 		Int block_size(Int items_number) const
 		{
-			return MyType::block_size(items_number);
+			return MyType::block_size(items_number, active_streams_);
 		}
 
 		Int max_elements(Int block_size)
 		{
-			return block_size / 4;
+			return block_size;
 		}
 	};
 
@@ -380,19 +384,22 @@ private:
 	struct TreeSizeFn {
 		Int size_ = 0;
 
-		template <Int Idx, typename Node>
-		void operator()(Node*, Int tree_size)
+		template <Int StreamIndex, typename Node>
+		void operator()(Node*, Int tree_size, UBigInt active_streams)
 		{
-			size_ += Node::block_size(tree_size);
+			if (active_streams && (1 << StreamIndex))
+			{
+				size_ += Node::block_size(tree_size);
+			}
 		}
 	};
 
 public:
-	static Int block_size(Int tree_size)
+	static Int block_size(Int tree_size, UBigInt active_streams = -1)
 	{
 		TreeSizeFn fn;
 
-		Dispatcher::dispatchAllStatic(fn, tree_size);
+		Dispatcher::dispatchAllStatic(fn, tree_size, active_streams);
 
 		Int tree_block_size 	= fn.size_;
 		Int array_block_size 	= PackedAllocator::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
@@ -402,9 +409,9 @@ public:
 		return PackedAllocator::block_size(client_area, ValuesBlockIdx + 1);
 	}
 
-	static Int max_tree_size(Int block_size)
+	static Int max_tree_size(Int block_size, UBigInt active_streams = -1)
 	{
-		return FindTotalElementsNumber2(block_size, InitFn());
+		return FindTotalElementsNumber2(block_size, InitFn(active_streams));
 	}
 
 	static Int max_tree_size_for_block(Int block_size)
@@ -412,19 +419,22 @@ public:
 		return max_tree_size(block_size - sizeof(Me) + sizeof(allocator_));
 	}
 
-	void init(Int block_size)
+	void init(Int block_size, UBigInt active_streams = -1)
 	{
-		init0(block_size - sizeof(Me) + sizeof(allocator_));
+		init0(block_size - sizeof(Me) + sizeof(allocator_), active_streams);
 	}
 
 private:
 
 	struct InitStructFn {
-		template <Int Idx, typename Tree>
-		void operator()(Tree*, Int tree_size, PackedAllocator* allocator)
+		template <Int StreamIndex, typename Tree>
+		void operator()(Tree*, Int tree_size, PackedAllocator* allocator, UBigInt active_streams)
 		{
-			Int tree_block_size = Tree::block_size(tree_size);
-			allocator->template allocate<Tree>(Idx, tree_block_size);
+			if (active_streams && (1 << StreamIndex))
+			{
+				Int tree_block_size = Tree::block_size(tree_size);
+				allocator->template allocate<Tree>(StreamIndex, tree_block_size);
+			}
 		}
 
 		template <Int Idx>
@@ -436,13 +446,13 @@ private:
 
 public:
 
-	void init0(Int block_size)
+	void init0(Int block_size, UBigInt active_streams)
 	{
 		allocator_.init(block_size, 2);
 
-		Int tree_size = max_tree_size(block_size);
+		Int tree_size = max_tree_size(block_size, active_streams);
 
-		Dispatcher::dispatchAllStatic(InitStructFn(), tree_size, &allocator_);
+		Dispatcher::dispatchAllStatic(InitStructFn(), tree_size, &allocator_, active_streams);
 
 		allocator_.template allocateArrayBySize<Value>(ValuesBlockIdx, tree_size);
 	}
