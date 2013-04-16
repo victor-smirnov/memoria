@@ -5,19 +5,54 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_MAP2_CONTAINER_TOOLS_HPP
-#define _MEMORIA_CONTAINERS_MAP2_CONTAINER_TOOLS_HPP
+#ifndef _MEMORIA_CONTAINERS_VECTOR2_TOOLS_HPP
+#define _MEMORIA_CONTAINERS_VECTOR2_TOOLS_HPP
 
-#include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
+#include <memoria/prototypes/btree/tools.hpp>
+
 #include <memoria/core/tools/static_array.hpp>
+#include <memoria/core/tools/idata.hpp>
+
 #include <memoria/core/container/container.hpp>
 
+
+
 namespace memoria       {
-namespace map2        	{
+namespace mvector2     	{
+
+class VectorSource: public ISource {
+
+	IDataBase* source_;
+public:
+	VectorSource(IDataBase* source): source_(source) {}
+
+	virtual Int streams()
+	{
+		return 1;
+	}
+
+	virtual IData* stream(Int stream)
+	{
+		return source_;
+	}
+
+	virtual void newNode(INodeLayoutManager* layout_manager)
+	{}
+
+	virtual BigInt getTotalNodes(INodeLayoutManager* manager)
+	{
+		Int sizes[1] = {0};
+
+		SizeT capacity 	= manager->getNodeCapacity(sizes, 0);
+		SizeT remainder = source_->getRemainder();
+
+		return remainder / capacity + (remainder % capacity ? 1 : 0);
+	}
+};
 
 
 template <typename Iterator, typename Container>
-class MapIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Iterator, Container> {
+class VectorIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Iterator, Container> {
     typedef balanced_tree::BTreeIteratorCache<Iterator, Container> Base;
     typedef typename Container::Accumulator     Accumulator;
 
@@ -28,7 +63,7 @@ class MapIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Iterator,
 
 public:
 
-    MapIteratorPrefixCache(): Base(), prefix_(), current_() {}
+    VectorIteratorPrefixCache(): Base(), prefix_(), current_() {}
 
     const BigInt& prefix(int num = 0) const
     {
@@ -58,7 +93,7 @@ public:
     {
         if (Base::iterator().key_idx() >= 0)
         {
-            current_ = Base::iterator().getRawKeys();
+//            current_ = Base::iterator().getRawKeys();
         }
         else {
             Clear(current_);
@@ -88,7 +123,7 @@ public:
             typedef typename Iterator::Container::TreePath TreePath;
             const TreePath& path = Base::iterator().path();
 
-            for (Int c = 0; c < path.getSize(); c++)
+            for (Int c = 1; c < path.getSize(); c++)
             {
                 Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
                 idx = path[c].parent_idx();
@@ -124,6 +159,8 @@ private:
     }
 
 };
+
+
 
 
 }

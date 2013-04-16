@@ -131,7 +131,7 @@ struct WrapperName {									\
 	const MyType* me_;									\
 	WrapperName(const MyType* v): me_(v) {}				\
 	template <typename T, typename... Args>				\
-	ReturnType operator()(T arg, Args... args) const	\
+	ReturnType operator()(T arg, Args... args) const\
 	{													\
 		return me_->TargetMethod(arg, args...);			\
 	}													\
@@ -146,7 +146,7 @@ struct WrapperName {									\
 	const MyType* me_;									\
 	WrapperName(const MyType* v): me_(v) {}				\
 	template <typename T, typename... Args>				\
-	ReturnType operator()(Args... args) const	\
+	ReturnType operator()(const T*, Args... args) const \
 	{													\
 		return me_->template TargetMethod<T>(args...);	\
 	}													\

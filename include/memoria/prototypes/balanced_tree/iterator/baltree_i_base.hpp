@@ -291,7 +291,7 @@ public:
 
     void dumpPages(ostream& out)
     {
-        me()->model().dump(me()->leaf().node(), out);
+        me()->model().dump(me()->path().leaf(), out);
     }
 
 MEMORIA_BALTREE_ITERATOR_BASE_CLASS_END

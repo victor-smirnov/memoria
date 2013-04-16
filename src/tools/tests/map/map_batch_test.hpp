@@ -130,7 +130,7 @@ public:
         auto iter2 = iter;
         skip(iter2, size);
         Accumulator keys;
-        iter.model().removeEntries(iter, iter2, keys);
+        iter.model().removeMapEntries(iter, iter2, keys);
     }
 
     virtual void skip(Iterator& iter, BigInt offset)
@@ -160,7 +160,7 @@ public:
 
     virtual BigInt getPosition(Iterator& iter)
     {
-        return iter.iter().keyNum();
+        return iter.keyNum();
     }
 
     virtual BigInt getLocalPosition(Iterator& iter)

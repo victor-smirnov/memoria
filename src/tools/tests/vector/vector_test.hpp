@@ -101,7 +101,7 @@ public:
 
     virtual BigInt getLocalPosition(Iterator& iter)
     {
-        return iter.dataPos();
+        return iter.key_idx();
     }
 
     virtual BigInt getSize(Ctr& array)

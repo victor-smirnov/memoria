@@ -13,6 +13,7 @@
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
 #include <memoria/containers/map2/map_walkers.hpp>
+#include <memoria/containers/map2/map_tools.hpp>
 
 #include <memoria/containers/map2/container/map_c_tools.hpp>
 #include <memoria/containers/map2/container/map_c_insert.hpp>
@@ -21,6 +22,7 @@
 
 #include <memoria/containers/map2/map_iterator.hpp>
 #include <memoria/containers/map2/iterator/map_i_api.hpp>
+#include <memoria/containers/map2/iterator/baltree_i_api.hpp>
 
 
 
@@ -32,7 +34,7 @@ namespace memoria    {
 
 
 template <typename Profile, typename Key_, typename Value_>
-struct BalancedTreeTypes<Profile, memoria::MapProto<Key_, Value_> >: public BalancedTreeTypes<Profile, memoria::BalancedTree> {
+struct BalancedTreeTypes<Profile, memoria::Map2<Key_, Value_> >: public BalancedTreeTypes<Profile, memoria::BalancedTree> {
 
     typedef BalancedTreeTypes<Profile, memoria::BalancedTree>                   Base;
 
@@ -41,11 +43,6 @@ struct BalancedTreeTypes<Profile, memoria::MapProto<Key_, Value_> >: public Bala
 
     static const Int Indexes                                                	= 1;
 
-
-    template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef ::memoria::balanced_tree::BTreeIteratorPrefixCache<Iterator, Container>               Type;
-    };
 
     typedef TypeList<
     		AllNodeTypes<balanced_tree::TreeMapNode>
@@ -62,6 +59,27 @@ struct BalancedTreeTypes<Profile, memoria::MapProto<Key_, Value_> >: public Bala
         		StreamDescr<PackedFSETreeTF, PackedFSETreeTF, 1>
     >																			StreamDescriptors;
 
+
+	typedef typename MergeLists<
+				typename Base::ContainerPartsList,
+				memoria::map2::CtrToolsName,
+				memoria::map2::CtrInsertName,
+				memoria::map2::CtrRemoveName,
+				memoria::map2::CtrApiName
+	>::Result                                           						ContainerPartsList;
+
+
+	typedef typename MergeLists<
+				typename Base::IteratorPartsList,
+				memoria::map2::ItrApiName,
+				memoria::map2::ItrBaltreeApiName
+	>::Result                                           						IteratorPartsList;
+
+
+	template <typename Iterator, typename Container>
+	struct IteratorCacheFactory {
+		typedef map2::MapIteratorPrefixCache<Iterator, Container> Type;
+	};
 
 
 
@@ -86,54 +104,71 @@ struct BalancedTreeTypes<Profile, memoria::MapProto<Key_, Value_> >: public Bala
     using FindREndWalker 	= ::memoria::map2::FindREndWalker<Types>;
 };
 
+
+
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, memoria::MapProto<Key, Value>, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
+class CtrTF<Profile, memoria::Map2<Key, Value>, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
+
+//	typedef CtrTF<Profile, memoria::BalancedTree, T> 							Base;
+//
+//public:
+//
+//    struct Types: Base::Types {
+//    	typedef Map2CtrTypes<Types> 		CtrTypes;
+//        typedef Map2IterTypes<Types> 		IterTypes;
+//    };
+//
+//
+//    typedef typename Types::CtrTypes                                            CtrTypes;
+//    typedef typename Types::IterTypes                                           IterTypes;
+//
+//    typedef Ctr<CtrTypes>                                                       Type;
 };
 
 
 
 
-template <typename Profile_, typename Key, typename Value>
-struct WrapperTypes<Profile_, CtrWrapper<memoria::Map2<Key, Value>>>: WrapperTypes<Profile_, memoria::Map2<Key, Value> > {
-
-	typedef WrapperTypes<Profile_, memoria::Map2<Key, Value>>   			Base;
-
-	typedef typename MergeLists<
-				typename Base::ContainerPartsList,
-				memoria::map2::CtrToolsName,
-				memoria::map2::CtrInsertName,
-				memoria::map2::CtrRemoveName,
-				memoria::map2::CtrApiName
-	>::Result                                           CtrList;
-
-	typedef typename MergeLists<
-				typename Base::IteratorPartsList,
-				memoria::map2::ItrApiName
-	>::Result                                           IterList;
-
-	typedef MapProto<Key, Value>           				WrappedCtrName;
-};
-
-
-
-template <typename Profile_, typename Key, typename Value, typename T>
-class CtrTF<Profile_, memoria::Map2<Key, Value>, T>: public CtrTF<Profile_, CtrWrapper<memoria::Map2<Key, Value>>, T> {
-
-	typedef CtrTF<Profile_, CtrWrapper<memoria::Map2<Key, Value>>, T> 								Base;
-
-public:
-
-    struct Types: Base::Types {
-    	typedef Map2CtrTypes<Types> 		CtrTypes;
-        typedef Map2IterTypes<Types> 		IterTypes;
-    };
+//template <typename Profile_, typename Key, typename Value>
+//struct WrapperTypes<Profile_, CtrWrapper<memoria::Map2<Key, Value>>>: WrapperTypes<Profile_, memoria::Map2<Key, Value> > {
+//
+//	typedef WrapperTypes<Profile_, memoria::Map2<Key, Value>>   			Base;
+//
+//	typedef typename MergeLists<
+//				typename Base::ContainerPartsList,
+//				memoria::map2::CtrToolsName,
+//				memoria::map2::CtrInsertName,
+//				memoria::map2::CtrRemoveName,
+//				memoria::map2::CtrApiName
+//	>::Result                                           CtrList;
+//
+//	typedef typename MergeLists<
+//				typename Base::IteratorPartsList,
+//				memoria::map2::ItrApiName
+//	>::Result                                           IterList;
+//
+//	typedef MapProto<Key, Value>           				WrappedCtrName;
+//};
 
 
-    typedef typename Types::CtrTypes                                            CtrTypes;
-    typedef typename Types::IterTypes                                           IterTypes;
 
-    typedef Ctr<CtrTypes>                                                       Type;
-};
+//template <typename Profile_, typename Key, typename Value, typename T>
+//class CtrTF<Profile_, memoria::Map2<Key, Value>, T>: public CtrTF<Profile_, CtrWrapper<memoria::Map2<Key, Value>>, T> {
+//
+//	typedef CtrTF<Profile_, CtrWrapper<memoria::Map2<Key, Value>>, T> 								Base;
+//
+//public:
+//
+//    struct Types: Base::Types {
+//    	typedef Map2CtrTypes<Types> 		CtrTypes;
+//        typedef Map2IterTypes<Types> 		IterTypes;
+//    };
+//
+//
+//    typedef typename Types::CtrTypes                                            CtrTypes;
+//    typedef typename Types::IterTypes                                           IterTypes;
+//
+//    typedef Ctr<CtrTypes>                                                       Type;
+//};
 
 
 

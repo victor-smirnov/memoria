@@ -11,10 +11,13 @@
 
 #include <memoria/core/container/container.hpp>
 
+
+
 namespace memoria    {
 
 template <typename Profile> class ContainerCollectionCfg;
 template <typename> 		class PackedFSETree;
+template <typename> 		class PackedFSEArray;
 
 namespace balanced_tree     {
 
@@ -32,9 +35,15 @@ struct StreamDescr {
 
 
 
+
 template <typename Types>
 struct PackedFSETreeTF {
 	typedef PackedFSETree<Types> Type;
+};
+
+template <typename Types>
+struct PackedFSEArrayTF {
+	typedef PackedFSEArray<Types> Type;
 };
 
 template <typename ContainerName>

@@ -21,33 +21,36 @@ using namespace memoria::balanced_tree;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 
-	typedef typename Base::WrappedCtr::Types                                  	WTypes;
-	typedef typename Base::WrappedCtr::Allocator                              	Allocator;
+	typedef typename Base::Types                                                Types;
+	typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::WrappedCtr::ID                                     	ID;
+	typedef typename Base::ID                                                   ID;
 
-	typedef typename WTypes::NodeBase                                           NodeBase;
-	typedef typename WTypes::NodeBaseG                                          NodeBaseG;
-
+	typedef typename Types::NodeBase                                            NodeBase;
+	typedef typename Types::NodeBaseG                                           NodeBaseG;
+	typedef typename Base::TreeNodePage                                         TreeNodePage;
 	typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename WTypes::Pages::NodeDispatcher                              NodeDispatcher;
-	typedef typename WTypes::Pages::RootDispatcher                              RootDispatcher;
-	typedef typename WTypes::Pages::LeafDispatcher                              LeafDispatcher;
-	typedef typename WTypes::Pages::NonLeafDispatcher                           NonLeafDispatcher;
+	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+	typedef typename Base::RootDispatcher                                       RootDispatcher;
+	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
 
-	typedef typename WTypes::Key                                                Key;
-	typedef typename WTypes::Value                                              Value;
-	typedef typename WTypes::Element                                            Element;
+	typedef typename Base::Key                                                  Key;
+	typedef typename Base::Value                                                Value;
+	typedef typename Base::Element                                              Element;
 
-	typedef typename WTypes::Metadata                                           Metadata;
+	typedef typename Base::Metadata                                             Metadata;
 
-	typedef typename WTypes::Accumulator                                        Accumulator;
-	typedef typename WTypes::Position											Position;
+	typedef typename Types::Accumulator                                         Accumulator;
+	typedef typename Types::Position 											Position;
 
-	typedef typename WTypes::TreePath                                           TreePath;
-	typedef typename WTypes::TreePathItem                                       TreePathItem;
+	typedef typename Base::TreePath                                             TreePath;
+	typedef typename Base::TreePathItem                                         TreePathItem;
+
+	static const Int Indexes                                                    = Types::Indexes;
+	static const Int Streams                                                    = Types::Streams;
 
 	typedef std::pair<Key, Value> 												KVPair;
 
@@ -55,13 +58,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 	typedef std::function<KVPair ()>											LeafPairProviderFn;
 
 
+	class MapSubtreeProvider: public Base::DefaultSubtreeProviderBase {
 
-	static const Int Indexes = WTypes::Indexes;
-
-	class MapSubtreeProvider: public Base::WrappedCtr::DefaultSubtreeProviderBase {
-
-		typedef typename Base::WrappedCtr::DefaultSubtreeProviderBase 		ProviderBase;
-		typedef typename Base::WrappedCtr::BalTreeNodeTraits				BalTreeNodeTraits;
+		typedef typename Base::DefaultSubtreeProviderBase 		ProviderBase;
+		typedef typename Base::BalTreeNodeTraits				BalTreeNodeTraits;
 
 		MyType& ctr_;
 		Int total_;
@@ -73,13 +73,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 
 	public:
 		MapSubtreeProvider(MyType& ctr, Int total, LeafPairProviderFn pair_provider_fn):
-			ProviderBase(ctr.ctr()),
+			ProviderBase(ctr),
 			ctr_(ctr),
 			total_(total),
 			inserted_(0),
 			pair_provider_fn_(pair_provider_fn)
 		{
-			page_size_ = ctr.ctr().getNewPageSize();
+			page_size_ = ctr.getNewPageSize();
 		}
 
 		virtual BigInt getTotalKeyCount()
@@ -181,7 +181,7 @@ M_PARAMS
 void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 {
 	auto& self = this->self();
-	auto& ctr  = self.ctr();
+	auto& ctr  = self;
 
 	TreePath& path = iter.path();
 	Position idx(iter.entry_idx());
@@ -199,7 +199,7 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 	if (iter.isEnd())
 	{
 		ctr.getNextNode(path);
-		iter.iter().key_idx() = 0;
+		iter.key_idx() = 0;
 	}
 
 	for (UInt c = 0; c < data.size(); c++)
@@ -214,11 +214,11 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 M_PARAMS
 void M_TYPE::insertEntry(Iterator &iter, const Element& element)
 {
-    TreePath&   path    = iter.iter().path();
+    TreePath&   path    = iter.path();
     NodeBaseG&  node    = path.leaf().node();
-    Int&        idx     = iter.iter().key_idx();
+    Int&        idx     = iter.key_idx();
 
-    auto& ctr  = self().ctr();
+    auto& ctr  = self();
 
     if (ctr.getCapacity(node) > 0)
     {

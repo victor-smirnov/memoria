@@ -220,7 +220,7 @@ public:
     Accumulator prefixes() const
     {
         Accumulator a;
-        a[0] = prefix_;
+        std::get<0>(a)[0] = prefix_;
         return a;
     }
 

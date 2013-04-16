@@ -24,24 +24,23 @@ using namespace memoria::btree;
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 
-	typedef Ctr<typename Types::CtrTypes>                      	ContainerType;
-    typedef typename ContainerType::WrappedCtr::Iterator        WrappedIterator;
-    typedef typename ContainerType::WrappedCtr::Types			WTypes;
+	typedef Ctr<typename Types::CtrTypes>                      	Container;
 
 
-	typedef typename WTypes::Allocator                                          Allocator;
-	typedef typename WTypes::NodeBase                                           NodeBase;
-	typedef typename WTypes::NodeBaseG                                          NodeBaseG;
-	typedef typename WTypes::TreePath                                           TreePath;
+	typedef typename Base::Allocator                                            Allocator;
+	typedef typename Base::NodeBase                                             NodeBase;
+	typedef typename Base::NodeBaseG                                            NodeBaseG;
+	typedef typename Base::TreePath                                             TreePath;
 
-	typedef typename WTypes::Value                                   			Value;
-	typedef typename WTypes::Key                                     			Key;
-	typedef typename WTypes::Element                                 			Element;
-	typedef typename WTypes::Accumulator                             			Accumulator;
+	typedef typename Container::Value                                     Value;
+	typedef typename Container::Key                                       Key;
+	typedef typename Container::Element                                   Element;
+	typedef typename Container::Accumulator                               Accumulator;
+
 
 	void updateUp(const Accumulator& keys)
 	{
-		self().model().updateUp(self().iter().path(), 0, self().entry_idx(), keys);
+		self().model().updateUp(self().path(), 0, self().entry_idx(), keys);
 	}
 
 	Key rawKey() const {
@@ -49,47 +48,28 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 	}
 
 	Key key() const {
-		return prefix() + rawKey();
+		return self().prefix() + rawKey();
 	}
 
 	bool next() {
-		return self().iter().nextKey();
+		return self().nextKey();
 	}
 
 	bool prev() {
-		return self().iter().prevKey();
+		return self().prevKey();
 	}
 
-	bool isBegin() const {
-		return self().iter().isBegin();
-	}
-
-	bool isEnd() const {
-		return self().iter().isEnd();
-	}
-
-	bool isNotEnd() const {
-		return self().iter().isNotEnd();
-	}
-
-	bool isNotEmpty() const {
-		return self().iter().isNotEmpty();
-	}
-
-	Key prefix() const {
-		return self().iter().prefix();
-	}
 
 	Accumulator prefixes() const {
 		Accumulator acc;
 
-		std::get<0>(acc)[0] = self().iter().prefix();
+		std::get<0>(acc)[0] = self().prefix();
 
 		return acc;
 	}
 
 	Int entry_idx() const {
-		return self().iter().key_idx();
+		return self().key_idx();
 	}
 
 
@@ -98,15 +78,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 		self().model().setLeafData(self().leaf(), self().entry_idx(), value);
 	}
 
-	MyType& operator++(int) {
-		self().iter()++;
-		return self();
-	}
-
-	MyType& operator--(int) {
-		self().iter()--;
-		return self();
-	}
+//	MyType& operator++(int) {
+//		self().iter()++;
+//		return self();
+//	}
+//
+//	MyType& operator--(int) {
+//		self().iter()--;
+//		return self();
+//	}
 
 	class ValueAccessor {
 		MyType& iter_;
@@ -146,26 +126,31 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 		return ConstValueAccessor(self());
 	}
 
+
+	void setData(const Value& value) {
+		self().value() = value;
+	}
+
 	const NodeBaseG& leaf() const
 	{
-		return self().iter().path().leaf();
+		return self().path().leaf();
 	}
 
 	NodeBaseG& leaf()
 	{
-		return self().iter().path().leaf();
+		return self().path().leaf();
 	}
 
 
-	const TreePath& path() const
-	{
-		return self().iter().path();
-	}
-
-	TreePath& path()
-	{
-		return self().iter().path();
-	}
+//	const TreePath& path() const
+//	{
+//		return self().iter().path();
+//	}
+//
+//	TreePath& path()
+//	{
+//		return self().iter().path();
+//	}
 
 	void remove()
 	{
@@ -177,22 +162,22 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 
     void ComputePrefix(Accumulator& accum)
     {
-    	TreePath&   path0 = self().iter().path();
-    	Int         idx   = self().iter().key_idx();
+    	TreePath&   path0 = self().path();
+    	Int         idx   = self().key_idx();
 
     	self().model().sumLeafKeys(path0[0].node(), 0, idx, accum);
 
     	for (Int c = 1; c < path0.getSize(); c++)
     	{
     		idx = path0[c - 1].parent_idx();
-    		self().model().ctr().sumKeys(path0[c].node(), 0, idx, accum);
+    		self().model().sumKeys(path0[c].node(), 0, idx, accum);
     	}
     }
-
-	void dump(ostream& out = cout)
-	{
-		self().iter().dump(out);
-	}
+//
+//	void dump(ostream& out = cout)
+//	{
+//		self().().dump(out);
+//	}
 
 MEMORIA_ITERATOR_PART_END
 

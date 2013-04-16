@@ -321,7 +321,8 @@ public:
     {
     	if (HASH == node->page_type_hash())
         {
-            functor(static_cast<const Head*>(node), args...);
+    		const Head* head = static_cast<const Head*>(node);
+            functor(head, args...);
         }
         else {
             NDT0<Types, Idx - 1>::dispatchConst(node, functor, args...);
@@ -438,7 +439,8 @@ public:
 
     	if (types_equal && root == Root && leaf == Leaf)
     	{
-    		fn.template operator()<Head>(args...);
+    		const Head* head = nullptr;
+    		fn(head, args...);
     	}
     	else {
     		NDT0<
@@ -460,7 +462,8 @@ public:
 
     	if (types_equal && root == Root && leaf == Leaf)
     	{
-    		return fn.template operator()<Head>(args...);
+    		const Head* head = nullptr;
+    		return fn(head, args...);
     	}
     	else {
     		return NDT0<
@@ -478,7 +481,8 @@ public:
     {
     	if (root == Root && leaf == Leaf)
     	{
-    		return fn.template operator()<Head>(args...);
+    		const Head* head = nullptr;
+    		return fn(head, args...);
     	}
     	else {
     		return NDT0<

@@ -51,29 +51,25 @@ private:
 public:
 	PackedFSEArray() {}
 
-	void setAllocatorOffset(const void* allocator)
-	{
-		const char* my_ptr = T2T<const char*>(this);
-		const char* alc_ptr = T2T<const char*>(allocator);
-		size_t diff = T2T<size_t>(my_ptr - alc_ptr);
-		Base::allocator_offset() = diff;
-	}
-
 	Int& size() {return size_;}
 	const Int& size() const {return size_;}
 
+	Int& max_size() {return max_size_;}
+	const Int& max_size() const {return max_size_;}
+
+	Int capacity() const {return max_size_ - size_;}
+
 public:
+
+	static Int block_size(int array_size)
+	{
+		return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
+	}
+
 	void init(Int block_size)
 	{
 		size_ = 0;
-		max_size_   = block_size / sizeof(Value);
-	}
-
-
-	void initSizes(Int max)
-	{
-		size_       = 0;
-		max_size_   = max;
+		max_size_ = (block_size - sizeof(MyType)) / sizeof(Value);
 	}
 
 	Value& operator[](Int idx) {
@@ -107,6 +103,110 @@ public:
 	const Value* values() const {
 		return buffer_;
 	}
+
+	BigInt sum(Int start, Int end) const {
+		return end - start;
+	}
+
+	// =================================== Update ========================================== //
+
+	void reindex() {}
+
+	void removeSpace(Int room_start, Int room_length)
+	{
+		MEMORIA_ASSERT(room_start, <=, max_size_);
+		MEMORIA_ASSERT(room_start, <=, size_);
+		MEMORIA_ASSERT(room_length, <=, max_size_ - size_);
+
+		CopyBuffer(buffer_ + room_start + room_length, buffer_ + room_start, size_ - room_start);
+	}
+
+	void insertSpace(Int room_start, Int room_length)
+	{
+		MEMORIA_ASSERT(room_start, <=, max_size_);
+		MEMORIA_ASSERT(room_start, <=, size_);
+		MEMORIA_ASSERT(room_length, <=, max_size_ - size_);
+
+		CopyBuffer(buffer_ + room_start, buffer_ + room_start + room_length, size_ - room_start - room_length);
+	}
+
+	void clearValues(Int idx) {
+		buffer_[idx] = 0;
+	}
+
+	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
+	{
+		CopyBuffer(buffer_ + copy_from, other->buffer_ + copy_to, count);
+	}
+
+	template <typename TreeType>
+	void transferDataTo(TreeType* other) const
+	{
+		const auto* my_values 	= values();
+		auto* other_values 		= other->values();
+
+		Int size = this->size();
+
+		for (Int c = 0; c < size; c++)
+		{
+			other_values[c] 	= my_values[c];
+		}
+	}
+
+	// ===================================== IO ============================================ //
+
+	void insert(IData* data, Int pos, Int length)
+	{
+		IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
+		insertSpace(pos, length);
+
+		BigInt to_write_local = length;
+
+		while (to_write_local > 0)
+		{
+			SizeT processed = src->get(buffer_, pos, to_write_local);
+
+			pos 			+= processed;
+			to_write_local 	-= processed;
+		}
+	}
+
+	void update(IData* data, Int pos, Int length)
+	{
+		MEMORIA_ASSERT(pos, <=, size_);
+		MEMORIA_ASSERT(pos + length, <=, size_);
+
+		IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
+
+		BigInt to_write_local = length;
+
+		while (to_write_local > 0)
+		{
+			SizeT processed = src->get(buffer_, pos, to_write_local);
+
+			pos 			+= processed;
+			to_write_local 	-= processed;
+		}
+	}
+
+	void read(IData* data, Int pos, Int length)
+	{
+		MEMORIA_ASSERT(pos, <=, size_);
+		MEMORIA_ASSERT(pos + length, <=, size_);
+
+		IDataTarget<Value>* tgt = static_cast<IDataTarget<Value>*>(data);
+
+		BigInt to_read_local = length;
+
+		while (to_read_local > 0)
+		{
+			SizeT processed = tgt->put(buffer_, pos, to_read_local);
+
+			pos 			+= processed;
+			to_read_local 	-= processed;
+		}
+	}
+
 
 	// ==================================== Dump =========================================== //
 

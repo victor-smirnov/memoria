@@ -132,6 +132,9 @@ struct Map2      	{};
 template <typename Key, typename Value>
 struct MapProto     {};
 
+template <typename Value>
+struct VectorProto  {};
+
 typedef Map<BigInt, BigInt, 1>       Map1;
 
 template <typename Key, Int Indexes = 1>

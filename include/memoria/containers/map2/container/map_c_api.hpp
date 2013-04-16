@@ -22,65 +22,68 @@ using namespace memoria::balanced_tree;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
-	typedef typename Base::WrappedCtr::Types                                  	WTypes;
-	typedef typename Base::WrappedCtr::Allocator                              	Allocator;
+	typedef typename Base::Types                                                Types;
+	typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::WrappedCtr::ID                                     	ID;
+	typedef typename Base::ID                                                   ID;
 
-	typedef typename WTypes::NodeBase                                           NodeBase;
-	typedef typename WTypes::NodeBaseG                                          NodeBaseG;
-
+	typedef typename Types::NodeBase                                            NodeBase;
+	typedef typename Types::NodeBaseG                                           NodeBaseG;
+	typedef typename Base::TreeNodePage                                         TreeNodePage;
 	typedef typename Base::Iterator                                             Iterator;
 
-
-	typedef typename WTypes::Pages::NodeDispatcher                              NodeDispatcher;
-	typedef typename WTypes::Pages::RootDispatcher                              RootDispatcher;
-	typedef typename WTypes::Pages::LeafDispatcher                              LeafDispatcher;
-	typedef typename WTypes::Pages::NonLeafDispatcher                           NonLeafDispatcher;
-
-
-	typedef typename WTypes::Key                                                Key;
-	typedef typename WTypes::Value                                              Value;
-	typedef typename WTypes::Element                                            Element;
-
-	typedef typename WTypes::Metadata                                           Metadata;
-
-	typedef typename WTypes::Accumulator                                        Accumulator;
-
-	typedef typename WTypes::TreePath                                           TreePath;
-	typedef typename WTypes::TreePathItem                                       TreePathItem;
+	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+	typedef typename Base::RootDispatcher                                       RootDispatcher;
+	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
 
-	Iterator Begin() {
-		return Iterator(self(), self().ctr().Begin());
-	}
+	typedef typename Base::Key                                                  Key;
+	typedef typename Base::Value                                                Value;
+	typedef typename Base::Element                                              Element;
 
-	Iterator begin() {
-		return Iterator(self(), self().ctr().begin());
-	}
+	typedef typename Base::Metadata                                             Metadata;
 
-	IterEndMark endm() const {
-		return IterEndMark();
-	}
+	typedef typename Types::Accumulator                                         Accumulator;
+	typedef typename Types::Position 											Position;
 
-	Iterator RBegin() {
-		return Iterator(self(), self().ctr().RBegin());
-	}
+	typedef typename Base::TreePath                                             TreePath;
+	typedef typename Base::TreePathItem                                         TreePathItem;
 
-	Iterator End() {
-		return Iterator(self(), self().ctr().End());
-	}
+	static const Int Indexes                                                    = Types::Indexes;
+	static const Int Streams                                                    = Types::Streams;
 
-	Iterator REnd() {
-		return Iterator(self(), self().ctr().REnd());
-	}
 
-	BigInt getSize() const {
-		return self().ctr().getSize();
-	}
-
+//	Iterator Begin() {
+//		return Iterator(self(), self().ctr().Begin());
+//	}
+//
+//	Iterator begin() {
+//		return Iterator(self(), self().ctr().begin());
+//	}
+//
+//	IterEndMark endm() const {
+//		return IterEndMark();
+//	}
+//
+//	Iterator RBegin() {
+//		return Iterator(self(), self().ctr().RBegin());
+//	}
+//
+//	Iterator End() {
+//		return Iterator(self(), self().ctr().End());
+//	}
+//
+//	Iterator REnd() {
+//		return Iterator(self(), self().ctr().REnd());
+//	}
+//
+//	BigInt getSize() const {
+//		return self().ctr().getSize();
+//	}
+//
 	BigInt size() const {
-		return self().ctr().getSize();
+		return self().getSize();
 	}
 
     Iterator find(Key key)
@@ -105,7 +108,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     Iterator operator[](Key key)
     {
-        Iterator iter(self(), self().ctr().findLE(key, 0));
+        Iterator iter = self().findLE(key, 0);
 
         if (iter.isEnd() || key != iter.key())
         {
@@ -121,7 +124,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     bool remove(Key key)
     {
-    	Iterator iter(self(), self().ctr().findLE(key, 0));
+    	Iterator iter = self().findLE(key, 0);
 
         if (key == iter.key())
         {
@@ -148,7 +151,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     void insert(Iterator& iter, const Element& element)
     {
-        Accumulator delta = element.first - iter.iter().prefixes();
+        Accumulator delta = element.first - iter.prefixes();
 
         Element e(delta, element.second);
 

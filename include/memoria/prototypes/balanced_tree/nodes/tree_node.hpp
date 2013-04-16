@@ -853,6 +853,28 @@ public:
     	return Dispatcher::dispatchRtn(0, &allocator_, FindLESFn(), k, &sum);
     }
 
+
+    struct FindLTSFn {
+    	typedef Int ResultType;
+
+    	template <Int Idx, typename Tree>
+    	Int operator()(const Tree* tree, const Key& k, Accumulator* accum)
+    	{
+    		auto result = tree->findLT(k);
+
+        	std::get<Idx>(*accum)[0] += result.prefix();
+
+        	return result.idx();
+    	}
+    };
+
+    Int findLTS(Int block_num, const Key& k, Accumulator& sum) const
+    {
+    	return Dispatcher::dispatchRtn(0, &allocator_, FindLTSFn(), k, &sum);
+    }
+
+
+
     Accumulator moveElements(MyType* tgt, const Position& from_pos, const Position& shift_pos)
     {
     	Int from 	= from_pos.get();
@@ -905,6 +927,7 @@ public:
     {
     	return capacity() >= pos.get();
     }
+
 
     struct GenerateDataEventsFn {
     	template <Int Idx, typename Tree>
@@ -1120,6 +1143,54 @@ template <
 	bool root, bool leaf
 >
 using TreeNode = NodePageAdaptor<AdaptedTreeNode, Types, root, leaf>;
+
+
+
+template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
+void ConvertNodeToRoot(
+	const TreeNode<TreeMapNode, Types, root1, leaf1>* src,
+	TreeNode<TreeMapNode, Types, root2, leaf2>* tgt
+)
+{
+	typedef TreeNode<TreeMapNode, Types, root2, leaf2> RootType;
+
+	tgt->init(src->page_size());
+	tgt->copyFrom(src);
+
+	tgt->set_root(true);
+
+	tgt->page_type_hash()   = RootType::hash();
+
+	src->transferDataTo(tgt);
+
+	tgt->set_children_count(src->children_count());
+
+	tgt->clearUnused();
+
+	tgt->reindex();
+}
+
+template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
+void ConvertRootToNode(
+	const TreeNode<TreeMapNode, Types, root1, leaf1>* src,
+	TreeNode<TreeMapNode, Types, root2, leaf2>* tgt
+)
+{
+	typedef TreeNode<TreeMapNode, Types, root2, leaf2> NonRootNode;
+
+	tgt->init(src->page_size());
+	tgt->copyFrom(src);
+	tgt->page_type_hash()   = NonRootNode::hash();
+	tgt->set_root(false);
+
+	src->transferDataTo(tgt);
+
+	tgt->set_children_count(src->children_count());
+
+	tgt->clearUnused();
+
+	tgt->reindex();
+}
 
 
 }

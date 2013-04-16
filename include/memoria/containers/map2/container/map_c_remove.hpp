@@ -21,40 +21,43 @@ using namespace memoria::balanced_tree;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrRemoveName)
 
-	typedef typename Base::WrappedCtr::Types                                  	WTypes;
-	typedef typename Base::WrappedCtr::Allocator                              	Allocator;
+	typedef typename Base::Types                                                Types;
+	typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::WrappedCtr::ID                                     	ID;
+	typedef typename Base::ID                                                   ID;
 
-	typedef typename WTypes::NodeBase                                           NodeBase;
-	typedef typename WTypes::NodeBaseG                                          NodeBaseG;
-
+	typedef typename Types::NodeBase                                            NodeBase;
+	typedef typename Types::NodeBaseG                                           NodeBaseG;
+	typedef typename Base::TreeNodePage                                         TreeNodePage;
 	typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename WTypes::Pages::NodeDispatcher                              NodeDispatcher;
-	typedef typename WTypes::Pages::RootDispatcher                              RootDispatcher;
-	typedef typename WTypes::Pages::LeafDispatcher                              LeafDispatcher;
-	typedef typename WTypes::Pages::NonLeafDispatcher                           NonLeafDispatcher;
+	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+	typedef typename Base::RootDispatcher                                       RootDispatcher;
+	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
 
-	typedef typename WTypes::Key                                                Key;
-	typedef typename WTypes::Value                                              Value;
-	typedef typename WTypes::Element                                            Element;
+	typedef typename Base::Key                                                  Key;
+	typedef typename Base::Value                                                Value;
+	typedef typename Base::Element                                              Element;
 
-	typedef typename WTypes::Metadata                                           Metadata;
+	typedef typename Base::Metadata                                             Metadata;
 
-	typedef typename WTypes::Accumulator                                        Accumulator;
-	typedef typename WTypes::Position											Position;
+	typedef typename Types::Accumulator                                         Accumulator;
+	typedef typename Types::Position 											Position;
 
-	typedef typename WTypes::TreePath                                           TreePath;
-	typedef typename WTypes::TreePathItem                                       TreePathItem;
+	typedef typename Base::TreePath                                             TreePath;
+	typedef typename Base::TreePathItem                                         TreePathItem;
+
+	static const Int Indexes                                                    = Types::Indexes;
+	static const Int Streams                                                    = Types::Streams;
 
 
-    bool removeEntry(Iterator& iter, Accumulator& keys);
+	bool removeEntry(Iterator& iter, Accumulator& keys);
 
-    void removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge = true);
+	void removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge = true);
 
-    bool removeEntries(Iterator& from, Iterator& to, Accumulator& keys);
+	bool removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -62,9 +65,9 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::removeEntries(Iterator& from, Iterator& to, Accumulator& keys)
+bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys)
 {
-	auto& ctr = self().ctr();
+	auto& ctr = self();
 
 	auto& from_path 	= from.path();
 	Position from_pos 	= Position(from.entry_idx());
@@ -74,7 +77,7 @@ bool M_TYPE::removeEntries(Iterator& from, Iterator& to, Accumulator& keys)
 
 	bool result = ctr.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
 
-	from.iter().key_idx() = to.iter().key_idx() = to_pos.get();
+	from.key_idx() = to.key_idx() = to_pos.get();
 
 	return result;
 }
@@ -96,11 +99,11 @@ bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
 {
     if (iter.isNotEmpty() || iter.isNotEnd())
     {
-        removeEntry(iter.iter().path(), iter.iter().key_idx(), keys);
+        removeEntry(iter.path(), iter.key_idx(), keys);
 
         if (iter.isEnd())
         {
-            iter.iter().nextLeaf();
+            iter.nextLeaf();
         }
 
         return true;
@@ -124,7 +127,7 @@ bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
 M_PARAMS
 void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge)
 {
-    auto& ctr = self().ctr();
+    auto& ctr = self();
 
 	Int children_count  = path.leaf()->children_count();
 

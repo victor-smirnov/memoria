@@ -69,71 +69,69 @@ public:
     {
         Base::checkIterator(iter, source);
 
-        auto& path = iter.path();
-
-        if (path.data().node().isSet())
-        {
-            if (iter.dataPos() < 0)
-            {
-                throw TestException(source, SBuf()<<"iter.dataPos() is negative: "<<iter.dataPos());
-            }
-
-            bool found = false;
-            for (Int idx = 0; idx < path[0]->children_count(); idx++)
-            {
-                ID id = iter.model().getLeafData(path[0].node(), idx);
-                if (id == path.data()->id())
-                {
-                    if (path.data().parent_idx() != idx)
-                    {
-                        iter.dump(out());
-                        throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"
-                                                          <<path[0]->id()
-                                                          <<" DATA: "
-                                                          <<path.data()->id()
-                                                          <<" idx="
-                                                          <<idx
-                                                          <<" parent_idx="<<path.data().parent_idx());
-                    }
-                    else {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!found)
-            {
-                iter.dump(out());
-                throw TestException(source, SBuf()<<"Data: "
-                                                  <<path.data()->id()
-                                                  <<" is not fount is it's parent, parent_idx="
-                                                  <<path.data().parent_idx());
-            }
-        }
-
-
-        if (iter.isEnd())
-        {
-            if (iter.data().isSet())
-            {
-                iter.dump(out());
-                throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
-            }
-        }
-        else {
-            if (iter.data().isEmpty())
-            {
-                iter.dump(out());
-                throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
-            }
-
-            if (iter.path().data().parent_idx() != iter.key_idx())
-            {
-                iter.dump(out());
-                throw TestException(MEMORIA_SOURCE, "Iterator data.parent_idx mismatch");
-            }
-        }
+//        auto& path = iter.path();
+//
+//        if (iter.entry_idx() < 0)
+//        {
+//        	throw TestException(source, SBuf()<<"iter.entry_idx() is negative: "<<iter.entry_idx());
+//        }
+//
+//        bool found = false;
+//        for (Int idx = 0; idx < path[0]->children_count(); idx++)
+//        {
+//        	ID id = iter.model().getLeafData(path[0].node(), idx);
+//        	if (id == path.data()->id())
+//        	{
+//        		if (path.data().parent_idx() != idx)
+//        		{
+//        			iter.dump(out());
+//        			throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"
+//        					<<path[0]->id()
+//        					<<" DATA: "
+//        					<<path.data()->id()
+//        					<<" idx="
+//        					<<idx
+//        					<<" parent_idx="<<path.data().parent_idx());
+//        		}
+//        		else {
+//        			found = true;
+//        			break;
+//        		}
+//        	}
+//        }
+//
+//        if (!found)
+//        {
+//        	iter.dump(out());
+//        	throw TestException(source, SBuf()<<"Data: "
+//        			<<path.data()->id()
+//        			<<" is not fount is it's parent, parent_idx="
+//        			<<path.data().parent_idx());
+//        }
+//
+//
+//
+//        if (iter.isEnd())
+//        {
+//            if (iter.data().isSet())
+//            {
+//                iter.dump(out());
+//                throw TestException(MEMORIA_SOURCE, "Iterator is at End but data() is set");
+//            }
+//        }
+//        else {
+//            if (iter.data().isEmpty())
+//            {
+//                iter.dump(out());
+//                throw TestException(MEMORIA_SOURCE, "Iterator is NOT at End but data() is NOT set");
+//            }
+//
+//            if (iter.path().data().parent_idx() != iter.key_idx())
+//            {
+//                iter.dump(out());
+//                throw TestException(MEMORIA_SOURCE, "Iterator data.parent_idx mismatch");
+//            }
+//        }
     }
 };
 

@@ -13,6 +13,9 @@
 #include <memoria/core/tools/strings.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/prototypes/balanced_tree/nodes/tree_node.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+
 #include <iostream>
 
 namespace memoria    {
@@ -130,18 +133,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	NonRootNode* tgt = T2T<NonRootNode*>(malloc(src->page_size()));
     	memset(tgt, 0, src->page_size());
 
-    	tgt->init(src->page_size());
-    	tgt->copyFrom(src);
-    	tgt->page_type_hash()   = NonRootNode::hash();
-    	tgt->set_root(false);
+//    	tgt->init(src->page_size());
+//    	tgt->copyFrom(src);
+//    	tgt->page_type_hash()   = NonRootNode::hash();
+//    	tgt->set_root(false);
+//
+//    	src->transferDataTo(tgt);
+//
+//    	tgt->set_children_count(src->children_count());
+//
+//    	tgt->clearUnused();
+//
+//    	tgt->reindex();
 
-    	src->transferDataTo(tgt);
-
-    	tgt->set_children_count(src->children_count());
-
-    	tgt->clearUnused();
-
-    	tgt->reindex();
+    	ConvertRootToNode(src, tgt);
 
     	CopyByteBuffer(tgt, src, tgt->page_size());
 
@@ -166,22 +171,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	RootType* tgt = T2T<RootType*>(malloc(src->page_size()));
     	memset(tgt, 0, src->page_size());
 
-    	tgt->init(src->page_size());
-    	tgt->copyFrom(src);
+    	ConvertNodeToRoot(src, tgt);
 
     	tgt->root_metadata() = metadata;
-
-    	tgt->set_root(true);
-
-    	tgt->page_type_hash()   = RootType::hash();
-
-    	src->transferDataTo(tgt);
-
-    	tgt->set_children_count(src->children_count());
-
-    	tgt->clearUnused();
-
-    	tgt->reindex();
 
     	CopyByteBuffer(tgt, src, tgt->page_size());
 
@@ -300,6 +292,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         return NodeDispatcher::dispatchConstRtn(node, GetCapacityFn(me()));
     }
 
+    Int getNonLeafCapacity(const NodeBaseG& node) const
+    {
+    	return NonLeafDispatcher::dispatchConstRtn(node, GetCapacityFn(me()));
+    }
+
     template <typename Node>
     Int getMaxCapacityFn(const Node* node) const
     {
@@ -312,6 +309,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     Int getMaxCapacity(const NodeBaseG& node) const
     {
     	return NodeDispatcher::dispatchConstRtn(node, GetMaxCapacityFn(me()));
+    }
+
+    Int getNonLeafMaxCapacity(const NodeBaseG& node) const
+    {
+    	return NonLeafDispatcher::dispatchConstRtn(node, GetMaxCapacityFn(me()));
     }
 
 
@@ -330,6 +332,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         return NodeDispatcher::dispatchConstRtn(node, GetKeyFn(me()), i, idx);
     }
 
+    Key getLeafKey(const NodeBaseG& node, Int i, Int idx) const
+    {
+    	return LeafDispatcher::dispatchConstRtn(node, GetKeyFn(me()), i, idx);
+    }
+
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetKeysFn, getKeys, Accumulator);
@@ -339,7 +346,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	return NodeDispatcher::dispatchConstRtn(node, GetKeysFn(), idx);
     }
 
-
+    Accumulator getLeafKeys(const NodeBaseG& node, Int idx) const
+    {
+    	return LeafDispatcher::dispatchConstRtn(node, GetKeysFn(), idx);
+    }
 
 
 
@@ -371,6 +381,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         NodeDispatcher::dispatch(node, SetKeysFn(), idx, keys);
     }
 
+    void setNonLeafKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
+    {
+        node.update();
+        NonLeafDispatcher::dispatch(node, SetKeysFn(), idx, keys);
+    }
+
 
 
 
@@ -386,6 +402,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     {
         node.update();
         NodeDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
+    }
+
+    void setNonLeafChildrenCount(NodeBaseG& node, Int count) const
+    {
+    	node.update();
+    	NonLeafDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
     }
 
 
@@ -436,9 +458,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
     template <typename Node>
-    void reindexFn(Node* node, Int from, Int to) const
+    void reindexFn(Node* node) const
     {
-    	node->reindexAll(from, to);
+    	node->reindex();
     }
 
     MEMORIA_CONST_FN_WRAPPER(ReindexFn, reindexFn);
@@ -446,13 +468,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     void reindex(NodeBaseG& node) const
     {
         node.update();
-        NodeDispatcher::dispatch(node, ReindexFn(me()), 0, node->children_count());
+        NodeDispatcher::dispatch(node, ReindexFn(me()));
     }
 
     void reindexRegion(NodeBaseG& node, Int from, Int to) const
     {
         node.update();
-        NodeDispatcher::dispatch(node, ReindexFn(me()), from, to);
+        NodeDispatcher::dispatch(node, ReindexFn(me()));
     }
 
 
@@ -462,7 +484,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
 
-    void dump(PageG page, std::ostream& out = std::cout) const
+    void dump(NodeBaseG& page, std::ostream& out = std::cout) const
     {
         if (page != NULL)
         {

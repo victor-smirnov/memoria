@@ -122,7 +122,7 @@ protected:
     {
         checkIteratorPrefix(iter, source);
 
-        auto& path = iter.iter().path();
+        auto& path = iter.path();
 
         for (Int level = path.getSize() - 1; level > 0; level--)
         {
@@ -130,7 +130,7 @@ protected:
 
             for (Int idx = 0; idx < path[level]->children_count(); idx++)
             {
-                ID id = iter.model().ctr().getChildID(path[level].node(), idx);
+                ID id = iter.model().getChildID(path[level].node(), idx);
                 if (id == path[level - 1]->id())
                 {
                     if (path[level - 1].parent_idx() != idx)

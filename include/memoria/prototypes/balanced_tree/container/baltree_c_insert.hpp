@@ -88,6 +88,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetCountersFn, getCounters, Accumulator);
     Accumulator getCounters(const NodeBaseG& node, const Position& from, const Position& count) const;
+    Accumulator getNonLeafCounters(const NodeBaseG& node, const Position& from, const Position& count) const;
 
     void makeRoom(TreePath& path, Int level, const Position& start, const Position& count) const;
 
@@ -372,7 +373,7 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Positio
     {
         NodeBaseG& parent = left[level + 1].node();
 
-        if (self.getCapacity(parent) == 0)
+        if (self.getNonLeafCapacity(parent) == 0)
         {
             Int idx_in_parent = left[level].parent_idx();
             self.splitPath(left, right, level + 1, Position(idx_in_parent + 1));
@@ -436,6 +437,11 @@ typename M_TYPE::Accumulator M_TYPE::getCounters(const NodeBaseG& node, const Po
 	return NodeDispatcher::dispatchConstRtn(node, GetCountersFn(), from, count);
 }
 
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::getNonLeafCounters(const NodeBaseG& node, const Position& from, const Position& count) const
+{
+	return NonLeafDispatcher::dispatchConstRtn(node, GetCountersFn(), from, count);
+}
 
 
 M_PARAMS
@@ -492,7 +498,7 @@ void M_TYPE::insertInternalSubtree(
 
     if (left_node == right_node)
     {
-        Int node_capacity = me()->getCapacity(left_node);
+        Int node_capacity = me()->getNonLeafCapacity(left_node);
 
         if (key_count <= subtree_size * node_capacity)
         {
@@ -521,8 +527,8 @@ void M_TYPE::insertInternalSubtree(
         }
     }
     else {
-        Int start_capacity  = me()->getCapacity(left_node);
-        Int end_capacity    = me()->getCapacity(right_node);
+        Int start_capacity  = me()->getNonLeafCapacity(left_node);
+        Int end_capacity    = me()->getNonLeafCapacity(right_node);
         Int total_capacity  = start_capacity + end_capacity;
 
 
@@ -630,7 +636,7 @@ void M_TYPE::fillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
     			level
     	);
 
-    	self.setKeys(node, c, pair.keys);
+    	self.setNonLeafKeys(node, c, pair.keys);
     	self.setChildID(node, c, pair.value);
 
     	data.start      += pair.key_count;
@@ -639,7 +645,7 @@ void M_TYPE::fillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
 
     reindexAndUpdateCounters(node, from, count);
 
-    Accumulator accumulator = self.getCounters(node, Position(from), Position(count));
+    Accumulator accumulator = self.getNonLeafCounters(node, Position(from), Position(count));
 
     self.updateParentIfExists(path, level, accumulator);
 
@@ -823,9 +829,9 @@ void M_TYPE::newRoot(TreePath& path)
     self.root2Node(root);
 
     Accumulator keys = root->is_leaf() ? self.getLeafMaxKeys(root) : self.getMaxKeys(root);
-    self.setKeys(new_root, 0, keys);
+    self.setNonLeafKeys(new_root, 0, keys);
     self.setChildID(new_root, 0, root->id());
-    self.setChildrenCount(new_root, 1);
+    self.setNonLeafChildrenCount(new_root, 1);
     self.reindex(new_root);
 
     self.set_root(new_root->id());

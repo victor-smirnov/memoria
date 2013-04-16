@@ -10,6 +10,7 @@
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/vector_tuple.hpp>
+#include <memoria/core/packed2/packed_dispatcher.hpp>
 
 #include <ostream>
 #include <tuple>
@@ -245,114 +246,7 @@ public:
 };
 
 
-template <typename Iterator, typename Container>
-class BTreeIteratorPrefixCache: public BTreeIteratorCache<Iterator, Container> {
-    typedef BTreeIteratorCache<Iterator, Container> Base;
-    typedef typename Container::Accumulator     Accumulator;
 
-    Accumulator prefix_;
-    Accumulator current_;
-
-    static const Int Indexes = 1;
-
-public:
-
-    BTreeIteratorPrefixCache(): Base(), prefix_(), current_() {}
-
-    const BigInt& prefix(int num = 0) const
-    {
-        return get<0>(prefix_)[num];
-    }
-
-    const Accumulator& prefixes() const
-    {
-        return prefix_;
-    }
-
-    void nextKey(bool end)
-    {
-        VectorAdd(prefix_, current_);
-
-        Clear(current_);
-    };
-
-    void prevKey(bool start)
-    {
-        VectorSub(prefix_, current_);
-
-        Clear(current_);
-    };
-
-    void Prepare()
-    {
-        if (Base::iterator().key_idx() >= 0)
-        {
-            current_ = Base::iterator().getRawKeys();
-        }
-        else {
-            Clear(current_);
-        }
-    }
-
-    void setup(BigInt prefix, Int key_num)
-    {
-        get<0>(prefix_)[key_num] = prefix;
-
-        init_(key_num);
-    }
-
-    void setup(const Accumulator& prefix)
-    {
-        prefix_ = prefix;
-    }
-
-    void initState()
-    {
-        Clear(prefix_);
-
-        Int idx  = Base::iterator().key_idx();
-
-        if (idx >= 0)
-        {
-            typedef typename Iterator::Container::TreePath TreePath;
-            const TreePath& path = Base::iterator().path();
-
-            for (Int c = 0; c < path.getSize(); c++)
-            {
-                Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
-                idx = path[c].parent_idx();
-            }
-        }
-    }
-
-private:
-
-    void init_(Int skip_num)
-    {
-        typedef typename Iterator::Container::TreePath TreePath;
-
-        const TreePath& path = Base::iterator().path();
-        Int             idx  = Base::iterator().key_idx();
-
-        for (Int c = 0; c < Indexes; c++) {
-            if (c != skip_num) prefix_[c] = 0;
-        }
-
-        for (Int c = 0; c < path.getSize(); c++)
-        {
-            for (Int block_num = 0; block_num < Indexes; block_num++)
-            {
-                if (block_num != skip_num)
-                {
-                    Base::iterator().model().sumKeys(path[c].node(), block_num, 0, idx, prefix_[block_num]);
-                }
-            }
-
-            idx = path[c].parent_idx();
-        }
-    }
-
-};
 
 
 
@@ -493,11 +387,38 @@ public:
     	return true;
     }
 
+    bool lteAll( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] > other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+
     bool gteAll(const ElementType& other) const
     {
     	for (Int c = 0; c < Indexes; c++)
     	{
     		if (values_[c] < other)
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool lteAll(const ElementType& other) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] > other)
     		{
     			return false;
     		}
@@ -622,6 +543,16 @@ public:
         return *this;
     }
 
+    MyType& operator+=(const ElementType& other)
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		values_[c] += other;
+    	}
+
+    	return *this;
+    }
+
     MyType operator+(const MyType& other) const
     {
         MyType result = *this;
@@ -669,6 +600,70 @@ public:
         return *this;
     }
 };
+
+
+
+
+
+template <typename Tuple, Int Index = std::tuple_size<Tuple>::value> struct TupleDispatcher;
+
+template <typename... Types, Int Index>
+struct TupleDispatcher<std::tuple<Types...>, Index> {
+	typedef std::tuple<Types...> Tuple;
+
+	static const Int SIZE = std::tuple_size<Tuple>::value;
+
+	template <typename Fn, typename... Args>
+	static void dispatch(const Tuple& tuple, Fn&& fn, Args... args)
+	{
+		fn.template operator()<Index>(std::get<SIZE - Index>(tuple), args...);
+		TupleDispatcher<Tuple, Index - 1>::dispatch(tuple, std::move(fn), args...);
+	}
+};
+
+template <typename... Types>
+struct TupleDispatcher<std::tuple<Types...>, 0> {
+	typedef std::tuple<Types...> Tuple;
+
+	template <typename Fn, typename... Args>
+	static void dispatch(const Tuple& tuple, Fn&& fn, Args... args){}
+};
+
+
+template <typename Element, Int Size>
+Element GetElement(const StaticVector<Element, Size>& v, Int idx)
+{
+	return v[idx];
+}
+
+
+template <typename Value>
+struct GetElementFn {
+
+	Value value_ = 0;
+
+	template <Int Index, typename Element>
+	void operator()(const Element& element, Int tuple_index, Int value_index)
+	{
+		if (Index == tuple_index)
+		{
+			value_ = GetElement(element, value_index);
+		}
+	}
+};
+
+template <typename Element, typename... Types>
+Element GetValue(const std::tuple<Types...>& v, Int element_idx, Int value_idx)
+{
+	GetElementFn<Element> fn;
+	TupleDispatcher<std::tuple<Types...>>::dispatch(v, fn, element_idx, value_idx);
+	return fn.value_;
+}
+
+
+
+
+
 
 
 

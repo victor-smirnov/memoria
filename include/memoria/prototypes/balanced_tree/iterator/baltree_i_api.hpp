@@ -36,12 +36,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     typedef typename Base::Container::Accumulator                               Accumulator;
     typedef typename Base::Container                                            Container;
 
-    bool nextKey();
-    bool hasNextKey();
-
-    bool prevKey();
-
-    bool hasPrevKey();
+//    bool nextKey();
+//    bool hasNextKey();
+//
+//    bool prevKey();
+//    bool hasPrevKey();
 
     bool nextLeaf();
     bool hasNextLeaf();
@@ -61,67 +60,43 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     BigInt skipBw(BigInt amount);
     BigInt skip(BigInt amount);
 
-    bool operator++() {
-        return me()->nextKey();
-    }
 
-    bool operator--() {
-        return me()->prevKey();
-    }
 
-    bool operator++(int) {
-        return me()->nextKey();
-    }
+//    operator Value () const
+//    {
+//        return me()->getValue();
+//    }
+//
+//    Value value() const
+//    {
+//        return me()->getValue();
+//    }
+//
+//    Accumulator keys() const
+//    {
+//        return me()->getKeys();
+//    }
+//
+//    Key key() const
+//    {
+//        return me()->getKey(0);
+//    }
+//
+//    Key key(Int key_num) const
+//    {
+//        return me()->getKey(key_num);
+//    }
 
-    bool operator--(int) {
-        return me()->prevKey();
-    }
+//    MyType& operator<<(const Element& element)
+//    {
+//        me()->model().insert(*me(), element);
+//        return *me();
+//    }
 
-    BigInt operator+=(BigInt size)
-    {
-        return me()->skipFw(size);
-    }
-
-    BigInt operator-=(BigInt size)
-    {
-        return me()->skipBw(size);
-    }
-
-    operator Value () const
-    {
-        return me()->getValue();
-    }
-
-    Value value() const
-    {
-        return me()->getValue();
-    }
-
-    Accumulator keys() const
-    {
-        return me()->getKeys();
-    }
-
-    Key key() const
-    {
-        return me()->getKey(0);
-    }
-
-    Key key(Int key_num) const
-    {
-        return me()->getKey(key_num);
-    }
-
-    MyType& operator<<(const Element& element)
-    {
-        me()->model().insert(*me(), element);
-        return *me();
-    }
-
-    MyType& operator*()
-    {
-        return *me();
-    }
+//    MyType& operator*()
+//    {
+//        return *me();
+//    }
 
 //    void remove()
 //    {
@@ -129,32 +104,32 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
 //        me()->model().removeEntry(*me(), keys);
 //    }
 
-    Value getValue() const
-    {
-        return me()->model().getLeafData(me()->page(), me()->key_idx());
-    }
+//    Value getValue() const
+//    {
+//        return me()->model().getLeafData(me()->page(), me()->key_idx());
+//    }
+//
+//    void setData(const Value& data)
+//    {
+//        if (!me()->isEnd())
+//        {
+//            me()->model().setLeafData(me()->leaf().node(), me()->key_idx(), data);
+//        }
+//        else {
+//            throw Exception(MEMORIA_SOURCE, "insertion after the end of iterator");
+//        }
+//    }
 
-    void setData(const Value& data)
-    {
-        if (!me()->isEnd())
-        {
-            me()->model().setLeafData(me()->leaf().node(), me()->key_idx(), data);
-        }
-        else {
-            throw Exception(MEMORIA_SOURCE, "insertion after the end of iterator");
-        }
-    }
-
-    Key getRawKey(Int keyNum) const
-    {
-        return me()->model().getKey(me()->page(), keyNum, me()->key_idx());
-    }
-
-    Accumulator getRawKeys() const
-    {
-        return me()->model().getKeys(me()->page(), me()->key_idx());
-    }
-
+//    Key getRawKey(Int keyNum) const
+//    {
+//        return me()->model().getKey(me()->page(), keyNum, me()->key_idx());
+//    }
+//
+//    Accumulator getRawKeys() const
+//    {
+//        return me()->model().getKeys(me()->page(), me()->key_idx());
+//    }
+//
     void updateUp(const Accumulator& keys)
     {
         me()->model().updateUp(me()->path(), 0, me()->key_idx(), keys);
@@ -318,124 +293,124 @@ BigInt M_TYPE::skip(BigInt amount)
 }
 
 
-M_PARAMS
-bool M_TYPE::nextKey()
-{
-    if (!me()->isEnd())
-    {
-        if (me()->key_idx() < me()->page()->children_count() - 1)
-        {
-            me()->cache().Prepare();
-
-            me()->key_idx()++;
-
-            me()->keyNum()++;
-
-            me()->model().finishPathStep(me()->path(), me()->key_idx());
-
-            me()->cache().nextKey(false);
-
-            return true;
-        }
-        else {
-            me()->cache().Prepare();
-
-            bool has_next_leaf = me()->nextLeaf();
-            if (has_next_leaf)
-            {
-                me()->key_idx() = 0;
-
-                me()->cache().nextKey(false);
-            }
-            else {
-                me()->key_idx() = me()->page()->children_count();
-
-                me()->model().finishPathStep(me()->path(), me()->key_idx());
-
-                me()->cache().nextKey(true);
-            }
-
-            me()->keyNum()++;
-
-            return has_next_leaf;
-        }
-    }
-    else {
-        return false;
-    }
-}
-
-M_PARAMS
-bool M_TYPE::hasNextKey()
-{
-    if (!me()->isEnd())
-    {
-        if (me()->key_idx() < me()->page()->children_count() - 1)
-        {
-            return true;
-        }
-        else {
-            return me()->hasNextLeaf();
-        }
-    }
-    else {
-        return false;
-    }
-}
-
-
-
-M_PARAMS
-bool M_TYPE::prevKey()
-{
-    if (me()->key_idx() > 0)
-    {
-        me()->key_idx()--;
-        me()->keyNum()--;
-
-        me()->model().finishPathStep(me()->path(), me()->key_idx());
-
-        me()->cache().Prepare();
-        me()->cache().prevKey(false);
-
-        return true;
-    }
-    else {
-        bool has_prev_leaf = me()->prevLeaf();
-
-        if (has_prev_leaf)
-        {
-            me()->key_idx() = me()->page()->children_count() - 1;
-            me()->keyNum()--;
-
-            me()->cache().Prepare();
-            me()->cache().prevKey(false);
-        }
-        else {
-            me()->key_idx() = -1;
-
-            me()->model().finishPathStep(me()->path(), me()->key_idx());
-
-            me()->cache().Prepare();
-            me()->cache().prevKey(true);
-        }
-
-        return has_prev_leaf;
-    }
-}
-
-
-M_PARAMS
-bool M_TYPE::hasPrevKey()
-{
-    if (me()->key_idx() > 0)
-    {
-        return true;
-    }
-    else {
-        return me()->hasPrevLeaf();
-    }
-}
+//M_PARAMS
+//bool M_TYPE::nextKey()
+//{
+//    if (!me()->isEnd())
+//    {
+//        if (me()->key_idx() < me()->page()->children_count() - 1)
+//        {
+//            me()->cache().Prepare();
+//
+//            me()->key_idx()++;
+//
+//            me()->keyNum()++;
+//
+//            me()->model().finishPathStep(me()->path(), me()->key_idx());
+//
+//            me()->cache().nextKey(false);
+//
+//            return true;
+//        }
+//        else {
+//            me()->cache().Prepare();
+//
+//            bool has_next_leaf = me()->nextLeaf();
+//            if (has_next_leaf)
+//            {
+//                me()->key_idx() = 0;
+//
+//                me()->cache().nextKey(false);
+//            }
+//            else {
+//                me()->key_idx() = me()->page()->children_count();
+//
+//                me()->model().finishPathStep(me()->path(), me()->key_idx());
+//
+//                me()->cache().nextKey(true);
+//            }
+//
+//            me()->keyNum()++;
+//
+//            return has_next_leaf;
+//        }
+//    }
+//    else {
+//        return false;
+//    }
+//}
+//
+//M_PARAMS
+//bool M_TYPE::hasNextKey()
+//{
+//    if (!me()->isEnd())
+//    {
+//        if (me()->key_idx() < me()->page()->children_count() - 1)
+//        {
+//            return true;
+//        }
+//        else {
+//            return me()->hasNextLeaf();
+//        }
+//    }
+//    else {
+//        return false;
+//    }
+//}
+//
+//
+//
+//M_PARAMS
+//bool M_TYPE::prevKey()
+//{
+//    if (me()->key_idx() > 0)
+//    {
+//        me()->key_idx()--;
+//        me()->keyNum()--;
+//
+//        me()->model().finishPathStep(me()->path(), me()->key_idx());
+//
+//        me()->cache().Prepare();
+//        me()->cache().prevKey(false);
+//
+//        return true;
+//    }
+//    else {
+//        bool has_prev_leaf = me()->prevLeaf();
+//
+//        if (has_prev_leaf)
+//        {
+//            me()->key_idx() = me()->page()->children_count() - 1;
+//            me()->keyNum()--;
+//
+//            me()->cache().Prepare();
+//            me()->cache().prevKey(false);
+//        }
+//        else {
+//            me()->key_idx() = -1;
+//
+//            me()->model().finishPathStep(me()->path(), me()->key_idx());
+//
+//            me()->cache().Prepare();
+//            me()->cache().prevKey(true);
+//        }
+//
+//        return has_prev_leaf;
+//    }
+//}
+//
+//
+//M_PARAMS
+//bool M_TYPE::hasPrevKey()
+//{
+//    if (me()->key_idx() > 0)
+//    {
+//        return true;
+//    }
+//    else {
+//        return me()->hasPrevLeaf();
+//    }
+//}
 
 
 
