@@ -607,6 +607,19 @@ public:
 
 
 
+
+    Int findFw(Int stream, Int index, Int from) const
+    {
+    	return 0;
+    }
+
+    Int findBw(Int stream, Int index, Int from) const
+    {
+    	return 0;
+    }
+
+
+
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);

@@ -53,9 +53,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
 		return std::vector<Value>();
 	}
 
-	BigInt skip(BigInt distance) {
-		return 0;
-	}
+	BigInt skipFw(BigInt amount);
+	BigInt skipBw(BigInt amount);
 
 	BigInt pos() const {
 		return 0;
@@ -63,6 +62,35 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
 
 MEMORIA_ITERATOR_PART_END
 
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mvector2::ItrApiName)
+#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+
+M_PARAMS
+BigInt M_TYPE::skipFw(BigInt amount)
+{
+//	typedef mvector2::FindLTForwardWalker<Types> Walker;
+//
+//	auto& self = this->self();
+//
+//	Walker walker(amount, 0);
+//
+//	self.model().findFw(self.path(), self.key_idx(), walker, level);
+//
+//	return std::get<0>(walker.prefix())[0] + walker.idx();
+
+	return 0;
 }
+
+M_PARAMS
+BigInt M_TYPE::skipBw(BigInt amount)
+{
+	return 0;
+}
+
+
+}
+
+#undef M_TYPE
+#undef M_PARAMS
 
 #endif

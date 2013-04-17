@@ -270,14 +270,14 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         typedef Metadata ReturnType;
 
         template <typename T>
-        Metadata operator()(const T *node) const {
+        Metadata treeNode(const T *node) const {
             return node->root_metadata();
         }
     };
 
     struct SetMetadataFn {
         template <typename T>
-        void operator()(T *node, const Metadata& metadata) const
+        void treeNode(T *node, const Metadata& metadata) const
         {
             node->root_metadata() = metadata;
         }

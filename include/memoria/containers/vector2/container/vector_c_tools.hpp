@@ -85,8 +85,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrToolsName)
     template <typename Node>
     void setAndReindexFn(Node* node, Int idx, const Element& element) const
     {
-//    	node->setKeys(idx, element.first);
-
     	node->value(idx) = element.second;
 
     	if (idx == node->children_count() - 1)
@@ -142,78 +140,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrToolsName)
     	LeafDispatcher::dispatch(node.page(), SetLeafDataFn(me()), idx, val);
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetLeafKeyFn, key, Key);
-
-    Key getLeafKey(const NodeBaseG& node, Int idx) const
-    {
-    	return LeafDispatcher::dispatchConstRtn(node.page(), GetLeafKeyFn(), idx);
-    }
-
-    MEMORIA_DECLARE_NODE_FN_RTN(GetLeafKeysFn, keysAt, Accumulator);
-    Accumulator getLeafKeys(const NodeBaseG& node, Int idx) const
-    {
-    	return LeafDispatcher::dispatchConstRtn(node.page(), GetLeafKeysFn(), idx);
-    }
 
 
-    void makeLeafRoom(TreePath& path, Int start, Int count) const;
 
-//    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
-//    bool updateLeafCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const;
-
-
-    void addLeafKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
-    {
-    	node.update();
-    	LeafDispatcher::dispatch(node, typename Base::AddKeysFn(&self()), idx, keys, reindex_fully);
-    }
 
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector2::CtrToolsName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
-//M_PARAMS
-//bool M_TYPE::updateLeafCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
-//{
-//    node.update();
-//    self().addLeafKeys(node, idx, counters, reindex_fully);
-//
-//    return false; //proceed further unconditionally
-//}
 
 
-//M_PARAMS
-//void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully)
-//{
-//    if (level == 0)
-//    {
-//    	if (self().updateLeafCounters(path[level].node(), idx, counters, reindex_fully))
-//    	{
-//    		return;
-//    	}
-//    	else {
-//    		idx = path[level].parent_idx();
-//    	}
-//
-//    	Base::updateUp(path, level + 1, idx, counters, reindex_fully);
-//    }
-//    else {
-//    	Base::updateUp(path, level, idx, counters, reindex_fully);
-//    }
-//
-//}
-
-
-M_PARAMS
-void M_TYPE::makeLeafRoom(TreePath& path, Int start, Int count) const
-{
-    if (count > 0)
-    {
-        path[0].node().update();
-        LeafDispatcher::dispatch(path[0].node(), typename Base::WrappedCtr::MakeRoomFn(), start, count);
-    }
-}
 
 
 #undef M_TYPE

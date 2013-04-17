@@ -162,7 +162,7 @@ public:
     {
     	if (HASH == node2->page_type_hash())
     	{
-    		functor(
+    		functor.treeNode(
     				node1,
     				static_cast<Head*>(node2),
     				args...
@@ -179,7 +179,7 @@ public:
     {
     	if (HASH == node2->page_type_hash())
     	{
-    		functor(
+    		functor.treeNode(
     				node1,
     				static_cast<const Head*>(node2),
     				args...
@@ -201,7 +201,7 @@ public:
     {
     	if (HASH == node2->page_type_hash())
     	{
-    		return functor(
+    		return functor.treeNode(
     				node1,
     				static_cast<const Head*>(node2),
     				args...
@@ -256,7 +256,7 @@ public:
     {
     	if (HASH == node->page_type_hash())
     	{
-    		functor(static_cast<Head*>(node), args...);
+    		functor.treeNode(static_cast<Head*>(node), args...);
     	}
     	else {
     		NDT0<Types, Idx - 1>::dispatch(node, functor, args...);
@@ -269,7 +269,7 @@ public:
     	if (HASH == node1->page_type_hash())
     	{
     		Wrapper<Head> wrapper(functor);
-    		wrapper(static_cast<Head*>(node1), static_cast<Head*>(node2), args...);
+    		wrapper.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), args...);
     	}
     	else {
     		NDT0<
@@ -284,7 +284,7 @@ public:
     {
     	if (HASH == node1->page_type_hash())
     	{
-    		functor(static_cast<Head*>(node1), static_cast<Head*>(node2), args...);
+    		functor.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), args...);
     	}
     	else {
     		NDT0<Types, Idx - 1>::dispatch2(node1, node2, std::move(functor), args...);
@@ -297,7 +297,7 @@ public:
     {
     	if (HASH == node->page_type_hash())
     	{
-    		return functor(static_cast<Head*>(node), args...);
+    		return functor.treeNode(static_cast<Head*>(node), args...);
     	}
     	else {
     		return NDT0<Types, Idx - 1>::dispatchRtn(node, std::move(functor), args...);
@@ -309,7 +309,7 @@ public:
     {
     	if (HASH == node1->page_type_hash())
     	{
-    		return functor(static_cast<Head*>(node1), static_cast<Head*>(node2), args...);
+    		return functor.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), args...);
     	}
     	else {
     		return NDT0<Types, Idx - 1>::dispatchRtn(node1, node2, std::move(functor), args...);
@@ -322,7 +322,7 @@ public:
     	if (HASH == node->page_type_hash())
         {
     		const Head* head = static_cast<const Head*>(node);
-            functor(head, args...);
+            functor.treeNode(head, args...);
         }
         else {
             NDT0<Types, Idx - 1>::dispatchConst(node, functor, args...);
@@ -334,7 +334,7 @@ public:
     {
     	if (HASH == node1->page_type_hash())
     	{
-    		functor(static_cast<const Head*>(node1), static_cast<const Head*>(node2), args...);
+    		functor.treeNode(static_cast<const Head*>(node1), static_cast<const Head*>(node2), args...);
     	}
     	else {
     		NDT0<Types, Idx - 1>::dispatchConst(node1, node2, functor, args...);
@@ -346,7 +346,7 @@ public:
     {
     	if (HASH == node->page_type_hash())
     	{
-    		return functor(static_cast<const Head*>(node), args...);
+    		return functor.treeNode(static_cast<const Head*>(node), args...);
     	}
     	else {
     		return NDT0<Types, Idx - 1>::dispatchConstRtn(node, std::move(functor), args...);
@@ -363,7 +363,7 @@ public:
     {
     	if (HASH == node1->page_type_hash())
     	{
-    		return functor(static_cast<const Head*>(node1), static_cast<const Head*>(node2), args...);
+    		return functor.treeNode(static_cast<const Head*>(node1), static_cast<const Head*>(node2), args...);
     	}
     	else {
     		return NDT0<Types, Idx - 1>::dispatchConstRtn(node1, node2, std::move(functor), args...);
@@ -440,7 +440,7 @@ public:
     	if (types_equal && root == Root && leaf == Leaf)
     	{
     		const Head* head = nullptr;
-    		fn(head, args...);
+    		fn.treeNode(head, args...);
     	}
     	else {
     		NDT0<
@@ -463,7 +463,7 @@ public:
     	if (types_equal && root == Root && leaf == Leaf)
     	{
     		const Head* head = nullptr;
-    		return fn(head, args...);
+    		return fn.treeNode(head, args...);
     	}
     	else {
     		return NDT0<
@@ -482,7 +482,7 @@ public:
     	if (root == Root && leaf == Leaf)
     	{
     		const Head* head = nullptr;
-    		return fn(head, args...);
+    		return fn.treeNode(head, args...);
     	}
     	else {
     		return NDT0<

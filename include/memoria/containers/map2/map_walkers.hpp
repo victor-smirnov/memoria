@@ -95,7 +95,7 @@ public:
 	{}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		const typename Node::Map& map = node->map();
 
@@ -120,7 +120,7 @@ public:
 	{}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		Base::idx_ = node->findLES(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
 
@@ -210,7 +210,7 @@ public:
 	FindEndWalker(Container&) {}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		if (node->level() > 0)
 		{
@@ -243,7 +243,7 @@ public:
 	FindREndWalker(Container&) {}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		Base::idx_ = 0;
 	}
@@ -271,7 +271,7 @@ public:
 
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		Base::idx_ = 0;
 	}
@@ -299,7 +299,7 @@ public:
 	FindRBeginWalker(Container&) {}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
 

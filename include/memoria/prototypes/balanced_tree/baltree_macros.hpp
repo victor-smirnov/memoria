@@ -96,7 +96,7 @@ struct WrapperName {									\
 	MyType* me_;										\
 	WrapperName(MyType* v): me_(v) {}					\
 	template <typename T, typename... Args>				\
-	void operator()(T arg, Args... args) 				\
+	void treeNode(T arg, Args... args) 					\
 	{													\
 		me_->TargetMethod(arg, args...);				\
 	}													\
@@ -108,7 +108,7 @@ struct WrapperName {									\
 	MyType* me_;										\
 	WrapperName(MyType* v): me_(v) {}					\
 	template <typename T, typename... Args>				\
-	ReturnType operator()(T arg, Args... args) 			\
+	ReturnType treeNode(T arg, Args... args) 			\
 	{													\
 		return me_->TargetMethod(arg, args...);			\
 	}													\
@@ -119,7 +119,7 @@ struct WrapperName {										\
 	const MyType* me_;										\
 	WrapperName(const MyType* v): me_(v) {}					\
 	template <typename T, typename... Args>					\
-	void operator()(T arg, Args... args) const				\
+	void treeNode(T arg, Args... args) const				\
 	{														\
 		me_->TargetMethod(arg, args...);					\
 	}														\
@@ -131,7 +131,7 @@ struct WrapperName {									\
 	const MyType* me_;									\
 	WrapperName(const MyType* v): me_(v) {}				\
 	template <typename T, typename... Args>				\
-	ReturnType operator()(T arg, Args... args) const\
+	ReturnType treeNode(T arg, Args... args) const		\
 	{													\
 		return me_->TargetMethod(arg, args...);			\
 	}													\
@@ -146,7 +146,7 @@ struct WrapperName {									\
 	const MyType* me_;									\
 	WrapperName(const MyType* v): me_(v) {}				\
 	template <typename T, typename... Args>				\
-	ReturnType operator()(const T*, Args... args) const \
+	ReturnType treeNode(const T*, Args... args) const 	\
 	{													\
 		return me_->template TargetMethod<T>(args...);	\
 	}													\
@@ -156,7 +156,7 @@ struct WrapperName {									\
 #define MEMORIA_DECLARE_NODE_FN(WrapperName, NodeMethodName)\
 struct WrapperName {										\
 	template <typename T, typename... Args>					\
-	void operator()(T node, Args... args) const				\
+	void treeNode(T node, Args... args) const				\
 	{														\
 		node->NodeMethodName(args...);						\
 	}														\
@@ -165,7 +165,7 @@ struct WrapperName {										\
 #define MEMORIA_DECLARE_NODE2_FN(WrapperName, NodeMethodName)\
 struct WrapperName {										\
 	template <typename T, typename... Args>					\
-	void operator()(T node1, T node2, Args... args) const	\
+	void treeNode(T node1, T node2, Args... args) const		\
 	{														\
 		node1->NodeMethodName(node2, args...);				\
 	}														\
@@ -175,7 +175,7 @@ struct WrapperName {										\
 struct WrapperName {										\
 	typedef ReturnType_ ReturnType;							\
 	template <typename T, typename... Args>					\
-	ReturnType operator()(T node, Args... args) const		\
+	ReturnType treeNode(T node, Args... args) const			\
 	{														\
 		return node->NodeMethodName(args...);				\
 	}														\
@@ -185,7 +185,7 @@ struct WrapperName {										\
 struct WrapperName {										\
 	typedef ReturnType_ ReturnType;							\
 	template <typename T, typename... Args>					\
-	ReturnType operator()(T node1, T node2, Args... args) const \
+	ReturnType treeNode(T node1, T node2, Args... args) const \
 	{														\
 		return node1->NodeMethodName(node2, args...);		\
 	}														\

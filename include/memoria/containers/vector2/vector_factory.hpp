@@ -84,7 +84,7 @@ struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTree
 
 
     template <typename Types>
-    using FindLTWalker 		= ::memoria::mvector2::FindLTWalker<Types>;
+    using FindLTWalker 		= ::memoria::mvector2::FindLTForwardWalker<Types>;
 
     template <typename Types>
     using FindLEWalker 		= ::memoria::mvector2::FindLEWalker<Types>;

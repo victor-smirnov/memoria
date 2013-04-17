@@ -111,7 +111,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 			typedef Accumulator ReturnType;
 
 			template <typename Node>
-			Accumulator operator()(Node* node, MapSubtreeProvider* provider, Int pos, Int remainder)
+			Accumulator treeNode(Node* node, MapSubtreeProvider* provider, Int pos, Int remainder)
 			{
 				Int size;
 				if (remainder <= node->capacity())

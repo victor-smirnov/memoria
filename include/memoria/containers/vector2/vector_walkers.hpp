@@ -86,14 +86,16 @@ public:
 };
 
 
+
+
 template <typename Types>
-class FindLTWalker: public FindWalkerBase<Types> {
+class FindLTForwardWalker: public FindWalkerBase<Types> {
 
 	typedef FindWalkerBase<Types> 		Base;
 	typedef typename Base::Key 			Key;
 
 public:
-	FindLTWalker(Key key, Int key_num): Base(key, key_num)
+	FindLTForwardWalker(Key key, Int key_num): Base(key, key_num)
 	{}
 
 	template <typename Node>
@@ -101,7 +103,7 @@ public:
 	{
 		Base::idx_ = node->findLTS(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
 
-		if (node->level() != 0 && Base::idx_ == node->children_count())
+		if (Base::direction_ == WalkDirection::DOWN && Base::idx_ == node->children_count())
 		{
 			VectorSub(Base::prefix_, node->keysAt(node->children_count() - 1));
 			Base::idx_--;
@@ -117,15 +119,84 @@ public:
 
 		Int size = node->size(stream);
 
-		if (pos <= size)
+		auto& idx = Base::idx_;
+
+		if (Base::direction_ == WalkDirection::DOWN)
 		{
-			Base::idx_ = pos;
+			if (pos <= size)
+			{
+				idx = pos;
+			}
+			else {
+				idx = size;
+			}
 		}
 		else {
-			Base::idx_ = size;
+			Base::prefix_ += size - idx;
 		}
 	}
 };
+
+
+
+template <typename Types>
+class FindLTBackwardWalker: public FindWalkerBase<Types> {
+
+	typedef FindWalkerBase<Types> 		Base;
+	typedef typename Base::Key 			Key;
+
+public:
+	FindLTBackwardWalker(Key key, Int key_num): Base(key, key_num)
+	{}
+
+	template <typename Node>
+	void operator()(const Node* node)
+	{
+		auto& idx = Base::idx_;
+
+		idx = node->findLTSBW(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
+
+		if (Base::direction_ == WalkDirection::DOWN && idx == -1)
+		{
+			VectorAdd(Base::prefix_, node->keysAt(0));
+			idx++;
+		}
+
+		return idx;
+	}
+
+	template <typename NodeTypes, bool root, bool leaf>
+	void operator()(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node)
+	{
+		Int stream = Base::key_num_;
+		BigInt value = GetValue<BigInt>(Base::prefix_, stream, 0);
+		BigInt pos = Base::key_ - value;
+
+		Int size = node->size(stream);
+
+		auto& idx = Base::idx_;
+
+		if (Base::direction_ == WalkDirection::DOWN)
+		{
+			if (pos <= size)
+			{
+				idx = pos;
+			}
+			else {
+				idx = size;
+			}
+		}
+		else {
+			Base::prefix_ += size - idx;
+		}
+	}
+};
+
+
+
+
+
+
 
 template <typename Types>
 class FindLEWalker: public FindWalkerBase<Types> {

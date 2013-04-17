@@ -39,7 +39,7 @@ public:
 		if (idx == Index)
 		{
 			Head* head = alloc->template get<Head>(idx);
-			fn.template operator()<Index>(head, args...);
+			fn.template stream<Index>(head, args...);
 		}
 		else {
 			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::move(fn), args...);
@@ -52,7 +52,7 @@ public:
 		if (idx == Index)
 		{
 			const Head* head = alloc->template get<Head>(idx);
-			fn.template operator()<Index>(head, args...);
+			fn.template stream<Index>(head, args...);
 		}
 		else {
 			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::move(fn), args...);
@@ -66,7 +66,7 @@ public:
 		if (idx == Index)
 		{
 			Head* head = alloc->template get<Head>(idx);
-			return fn.template operator()<Index>(head, args...);
+			return fn.template stream<Index>(head, args...);
 		}
 		else {
 			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::move(fn), args...);
@@ -79,7 +79,7 @@ public:
 		if (idx == Index)
 		{
 			const Head* head = alloc->template get<Head>(idx);
-			return fn.template operator()<Index>(head, args...);
+			return fn.template stream<Index>(head, args...);
 		}
 		else {
 			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::move(fn), args...);
@@ -92,7 +92,7 @@ public:
 	{
 		if (idx == Index)
 		{
-			fn.template operator()<Head>(args...);
+			fn.template stream<Head>(args...);
 		}
 		else {
 			PackedDispatcher<Tail...>::dispatchStatic(idx, std::forward(fn), args...);
@@ -103,7 +103,7 @@ public:
 	static void dispatchAllStatic(Fn&& fn, Args... args)
 	{
 		Head* head = nullptr;
-		fn.template operator()<Index>(head, args...);
+		fn.template stream<Index>(head, args...);
 		PackedDispatcher<Tail...>::dispatchAllStatic(std::move(fn), args...);
 	}
 
@@ -113,7 +113,7 @@ public:
 		if (!alloc->is_empty(Index))
 		{
 			Head* head = alloc->template get<Head>(Index);
-			fn.template operator()<Index>(head, args...);
+			fn.template stream<Index>(head, args...);
 		}
 
 		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
@@ -125,7 +125,7 @@ public:
 		if (!alloc->is_empty(Index))
 		{
 			const Head* head = alloc->template get<Head>(Index);
-			fn.template operator()<Index>(head, args...);
+			fn.template stream<Index>(head, args...);
 		}
 
 		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
@@ -137,7 +137,7 @@ public:
 		if (idx == Index)
 		{
 			const Head* head = nullptr;
-			return fn.template operator()<Index>(head, args...);
+			return fn.template stream<Index>(head, args...);
 		}
 		else {
 			return PackedDispatcher<Tail...>::dispatchStaticRtn(idx, std::forward(fn), args...);

@@ -187,7 +187,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
             SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
 
             template <typename Node>
-            void operator()(Node* node)
+            void treeNode(Node* node)
             {
                 for (Int c = 0; c < count_; c++)
                 {
