@@ -114,10 +114,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrBaltreeApiName)
 //        }
 //    }
 
-    Key getRawKey(Int keyNum) const
+    Key getRawKey() const
     {
     	auto& self = this->self();
-        return self.model().getLeafKey(self.leaf(), keyNum, self.key_idx());
+        return self.model().getLeafKey(self.leaf(), self.key_idx());
     }
 
     Accumulator getRawKeys() const

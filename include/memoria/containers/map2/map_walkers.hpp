@@ -29,7 +29,7 @@ protected:
 
 	typedef Iter<typename Types::IterTypes> 									Iterator;
 
-	Accumulator prefix_;
+	Key prefix_ = 0;
 
 	Key key_;
 	Int key_num_;
@@ -74,7 +74,7 @@ public:
 	{
 		iter.key_idx()	= 0;
 
-		iter.cache().setup(Accumulator());
+		iter.cache().setup(0);
 	}
 
 	Int idx() const
@@ -122,35 +122,39 @@ public:
 	template <typename Node>
 	void treeNode(const Node* node)
 	{
-		Base::idx_ = node->findLES(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
+		node->find(0, *this, node->level());
+	}
 
-		if (node->level() != 0 && Base::idx_ == node->children_count())
+	typedef Int ResultType;
+
+	template <Int Idx, typename Tree>
+	Int stream(const Tree* tree, Int level)
+	{
+		auto& key		= Base::key_;
+		auto& prefix 	= Base::prefix_;
+		auto& idx		= Base::idx_;
+
+		auto target 	= key - prefix;
+
+		auto result 	= tree->findLE(target);
+
+		prefix += result.prefix();
+
+		idx = result.idx();
+
+		Int size = tree->size();
+
+		if (level != 0 && idx == size)
 		{
-			VectorSub(Base::prefix_, node->keysAt(node->children_count() - 1));
-			Base::idx_--;
+			prefix -= tree->value(size - 1);
+			idx--;
 		}
+
+		return idx;
 	}
 };
 
 
-
-
-//template <
-//	typename Types,
-//	template <typename, typename, typename> class NodeExtender,
-//	typename ExtenderState
-//>
-//class FindLE1Walker: public btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> {
-//
-//	typedef btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> 	Base;
-//	typedef FindLE1Walker<Types, NodeExtender, ExtenderState>											MyType;
-//
-//public:
-//
-//	FindLE1Walker(BigInt key, Int key_num, ExtenderState& state):
-//		Base(key, key_num, state)
-//	{}
-//};
 
 
 template <typename Types>
@@ -184,7 +188,7 @@ public:
 
 	void empty(Iterator& iter)
 	{
-		iter.cache().setup(Accumulator());
+		iter.cache().setup(0);
 	}
 
 	Int idx() const
@@ -204,7 +208,7 @@ class FindEndWalker: public FindRangeWalkerBase<Types> {
 
 	typedef typename Types::Accumulator 	Accumulator;
 
-	Accumulator prefix_;
+	BigInt prefix_ = 0;
 
 public:
 	FindEndWalker(Container&) {}
@@ -212,16 +216,23 @@ public:
 	template <typename Node>
 	void treeNode(const Node* node)
 	{
-		if (node->level() > 0)
-		{
-			VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
-		}
-		else {
-			VectorAdd(prefix_, node->maxKeys());
-		}
+		node->process(0, *this, node->level());
 
 		Base::idx_ 	= node->children_count() - 1;
 	}
+
+	template <Int Idx, typename Tree>
+	void stream(const Tree* tree, Int level)
+	{
+		if (level > 0)
+		{
+			prefix_ += tree->sumWithoutLastElement();
+		}
+		else {
+			prefix_ += tree->sum();
+		}
+	}
+
 
 	void finish(Int idx, Iterator& iter)
 	{
@@ -252,7 +263,7 @@ public:
 	{
 		iter.key_idx() = idx - 1;
 
-		iter.cache().setup(Accumulator());
+		iter.cache().setup(0);
 	}
 };
 
@@ -280,7 +291,7 @@ public:
 	{
 		iter.key_idx() = 0;
 
-		iter.cache().setup(Accumulator());
+		iter.cache().setup(0);
 	}
 };
 
@@ -293,7 +304,7 @@ class FindRBeginWalker: public FindRangeWalkerBase<Types> {
 
 	typedef typename Types::Accumulator 	Accumulator;
 
-	Accumulator prefix_;
+	BigInt prefix_ = 0;
 
 public:
 	FindRBeginWalker(Container&) {}
@@ -301,10 +312,17 @@ public:
 	template <typename Node>
 	void treeNode(const Node* node)
 	{
-		VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
+		node->process(0, *this);
 
 		Base::idx_ = node->children_count() - 1;
 	}
+
+	template <Int Idx, typename Tree>
+	void stream(const Tree* tree)
+	{
+		prefix_ += tree->sumWithoutLastElement();
+	}
+
 
 	void finish(Int idx, Iterator& iter)
 	{

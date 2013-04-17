@@ -503,6 +503,11 @@ public:
 		}
 	}
 
+	IndexKey sumWithoutLastElement() const
+	{
+		return sum(size_ - 1);
+	}
+
 	IndexKey suml(Int to) const
 	{
 		IndexKey sum = 0;

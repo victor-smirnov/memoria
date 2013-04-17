@@ -22,7 +22,7 @@
 
 
 
-//#include "vector/vector_test_suite.hpp"
+#include "vector/vector_test_suite.hpp"
 //
 //#include "vector_map/vector_map_test_suite.hpp"
 //
@@ -98,7 +98,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new CtrTestSuite());
         runner.registerTask(new MapTestSuite());
 
-//        runner.registerTask(new VectorTestSuite());
+        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
 

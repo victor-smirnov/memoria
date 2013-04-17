@@ -148,7 +148,7 @@ private:
 		Int size_ = 0;
 
 		template <Int StreamIndex, typename Node>
-		void operator()(Node*, Int tree_size, UBigInt active_streams)
+		void stream(Node*, Int tree_size, UBigInt active_streams)
 		{
 			if (active_streams && (1 << StreamIndex))
 			{
@@ -188,7 +188,7 @@ private:
 
 	struct InitStructFn {
 		template <Int StreamIndex, typename Tree>
-		void operator()(Tree*, Int tree_size, PackedAllocator* allocator, UBigInt active_streams)
+		void stream(Tree*, Int tree_size, PackedAllocator* allocator, UBigInt active_streams)
 		{
 			if (active_streams && (1 << StreamIndex))
 			{
@@ -221,7 +221,7 @@ public:
 
     struct ReindexFn {
     	template <Int Idx, typename Tree>
-    	void operator()(Tree* tree)
+    	void stream(Tree* tree)
     	{
     		tree->reindex();
     	}
@@ -236,7 +236,7 @@ public:
     template <typename TreeType>
     struct TransferToFn {
     	template <Int Idx, typename Tree>
-    	void operator()(const Tree* tree, TreeType* other)
+    	void stream(const Tree* tree, TreeType* other)
     	{
     		tree->transferDataTo(other->template get<Tree>(Idx));
     	}
@@ -259,7 +259,7 @@ public:
 		typedef Int ResultType;
 
 		template <Int StreamIndex, typename Tree>
-		ResultType operator()(const Tree* tree)
+		ResultType stream(const Tree* tree)
 		{
 			return tree->capacity();
 		}
@@ -276,7 +276,7 @@ public:
 
 	struct CapacitiesFn {
 		template <Int StreamIndex, typename Tree>
-		void operator()(const Tree* tree, Position* pos)
+		void stream(const Tree* tree, Position* pos)
 		{
 			pos->value(StreamIndex) = tree->capacity();
 		}
@@ -296,7 +296,7 @@ public:
     	typedef Int ResultType;
 
     	template <Int Idx, typename Tree>
-    	ResultType operator()(const Tree* tree)
+    	ResultType stream(const Tree* tree)
     	{
     		return tree->size();
     	}
@@ -309,7 +309,7 @@ public:
 
     struct SizesFn {
     	template <Int Idx, typename Tree>
-    	void operator()(const Tree* tree, Position* pos)
+    	void stream(const Tree* tree, Position* pos)
     	{
     		pos->value(Idx) = tree->size();
     	}
@@ -327,7 +327,7 @@ public:
     	typedef Int ResultType;
 
     	template <Int Idx, typename Tree>
-    	ResultType operator()(const Tree* tree)
+    	ResultType stream(const Tree* tree)
     	{
     		return tree->max_size();
     	}
@@ -340,7 +340,7 @@ public:
 
     struct MaxSizesFn {
     	template <Int Idx, typename Tree>
-    	void operator()(const Tree* tree, Position* pos)
+    	void stream(const Tree* tree, Position* pos)
     	{
     		pos->value(Idx) = tree->max_size();
     	}
@@ -356,7 +356,7 @@ public:
 
     struct IncSizesFn {
     	template <Int Idx, typename Tree>
-    	void operator()(Tree* tree, const Position* sizes)
+    	void stream(Tree* tree, const Position* sizes)
     	{
     		tree->size() += sizes->value(Idx);
     	}
@@ -390,7 +390,7 @@ public:
 
     struct InsertSpaceFn {
     	template <Int Idx, typename Tree>
-    	void operator()(Tree* tree, const Position* room_start, const Position* room_length)
+    	void stream(Tree* tree, const Position* room_start, const Position* room_length)
     	{
     		tree->insertSpace(room_start->value(Idx), room_length->value(Idx));
 
@@ -408,7 +408,7 @@ public:
 
     struct RemoveSpaceFn {
     	template <Int Idx, typename Tree>
-    	void operator()(Tree* tree, const Position* room_start, const Position* room_length)
+    	void stream(Tree* tree, const Position* room_start, const Position* room_length)
     	{
     		tree->removeSpace(room_start->value(Idx), room_length->value(Idx));
     	}
@@ -445,7 +445,7 @@ public:
 
     struct CopyToFn {
     	template <Int Idx, typename Tree>
-    	void operator()(
+    	void stream(
     			const Tree* tree,
     			MyType* other,
     			const Position& copy_from,
@@ -478,7 +478,7 @@ public:
 
     struct SumFn {
     	template <Int Idx, typename Tree>
-    	void operator()(const Tree* tree, const Position* start, const Position* end, Accumulator* accum)
+    	void stream(const Tree* tree, const Position* start, const Position* end, Accumulator* accum)
     	{
     		std::get<Idx>(*accum) += tree->sum(start->value(Idx), end->value(Idx));
     	}
@@ -510,7 +510,7 @@ public:
 
 //    struct MaxKeysFn {
 //    	template <Int Idx, typename Tree>
-//    	void operator()(const Tree* tree, Accumulator* acc)
+//    	void stream(const Tree* tree, Accumulator* acc)
 //    	{
 //    		//std::get<Idx>(*acc)[0] = tree->sum();
 //    	}
@@ -558,7 +558,7 @@ public:
 
     struct GenerateDataEventsFn {
     	template <Int Idx, typename Tree>
-    	void operator()(const Tree* tree, IPageDataEventHandler* handler)
+    	void stream(const Tree* tree, IPageDataEventHandler* handler)
     	{
     		tree->generateDataEvents(handler);
     	}
@@ -566,7 +566,7 @@ public:
 
     struct InsertSourceFn {
     	template <Int Idx, typename Tree>
-    	void operator()(Tree* tree, ISource* src, const Position* pos, const Position* sizes)
+    	void stream(Tree* tree, ISource* src, const Position* pos, const Position* sizes)
     	{
     		tree->insert(src->stream(Idx), pos->value(Idx), sizes->value(Idx));
     	}
@@ -579,7 +579,7 @@ public:
 
     struct UpdateSourceFn {
     	template <Int Idx, typename Tree>
-    	void operator()(Tree* tree, ISource* src, const Position* pos, const Position* sizes)
+    	void stream(Tree* tree, ISource* src, const Position* pos, const Position* sizes)
     	{
     		tree->update(src->stream(Idx), pos->value(Idx), sizes->value(Idx));
     	}
@@ -593,7 +593,7 @@ public:
 
     struct ReadToTargetFn {
     	template <Int Idx, typename Tree>
-    	void operator()(Tree* tree, ISource* src, const Position* pos, const Position* sizes)
+    	void stream(Tree* tree, ISource* src, const Position* pos, const Position* sizes)
     	{
     		tree->read(src->stream(Idx), pos->value(Idx), sizes->value(Idx));
     	}
@@ -629,7 +629,7 @@ public:
 
     struct SerializeFn {
     	template <Int Idx, typename Tree>
-    	void operator()(const Tree* tree, SerializationData* buf)
+    	void stream(const Tree* tree, SerializationData* buf)
     	{
     		tree->serialize(*buf);
     	}
@@ -647,7 +647,7 @@ public:
 
     struct DeserializeFn {
     	template <Int Idx, typename Tree>
-    	void operator()(Tree* tree, DeserializationData* buf)
+    	void stream(Tree* tree, DeserializationData* buf)
     	{
     		tree->deserialize(*buf);
     	}

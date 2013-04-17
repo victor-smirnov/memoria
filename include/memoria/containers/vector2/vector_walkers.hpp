@@ -99,7 +99,7 @@ public:
 	{}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		Base::idx_ = node->findLTS(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
 
@@ -111,7 +111,7 @@ public:
 	}
 
 	template <typename NodeTypes, bool root, bool leaf>
-	void operator()(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node)
+	void treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node)
 	{
 		Int stream = Base::key_num_;
 		BigInt value = GetValue<BigInt>(Base::prefix_, stream, 0);
@@ -132,7 +132,7 @@ public:
 			}
 		}
 		else {
-			Base::prefix_ += size - idx;
+			std::get<0>(Base::prefix_)[Base::key_num_] += size - idx;
 		}
 	}
 };
@@ -150,7 +150,7 @@ public:
 	{}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		auto& idx = Base::idx_;
 
@@ -166,7 +166,7 @@ public:
 	}
 
 	template <typename NodeTypes, bool root, bool leaf>
-	void operator()(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node)
+	void treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node)
 	{
 		Int stream = Base::key_num_;
 		BigInt value = GetValue<BigInt>(Base::prefix_, stream, 0);
@@ -209,7 +209,7 @@ public:
 	{}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		Base::idx_ = node->findLES(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
 
@@ -299,7 +299,7 @@ public:
 	FindEndWalker(Container&) {}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		if (node->level() > 0)
 		{
@@ -332,7 +332,7 @@ public:
 	FindREndWalker(Container&) {}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		Base::idx_ = 0;
 	}
@@ -360,7 +360,7 @@ public:
 
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		Base::idx_ = 0;
 	}
@@ -388,7 +388,7 @@ public:
 	FindRBeginWalker(Container&) {}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	void treeNode(const Node* node)
 	{
 		VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
 

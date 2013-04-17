@@ -736,6 +736,8 @@ public:
     	return acc;
     }
 
+
+
     struct MaxKeysFn {
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, Accumulator* acc)
@@ -752,6 +754,7 @@ public:
 
     	return acc;
     }
+
 
     struct SetKeysFn {
     	template <Int Idx, typename Tree>
@@ -853,7 +856,6 @@ public:
     	return Dispatcher::dispatchRtn(0, &allocator_, FindLESFn(), k, &sum);
     }
 
-
     struct FindLTSFn {
     	typedef Int ResultType;
 
@@ -873,6 +875,18 @@ public:
     	return Dispatcher::dispatchRtn(0, &allocator_, FindLTSFn(), k, &sum);
     }
 
+
+    template <typename Fn, typename... Args>
+    Int find(Int stream, Fn&& fn, Args... args) const
+    {
+    	return Dispatcher::dispatchRtn(stream, &allocator_, std::move(fn), args...);
+    }
+
+    template <typename Fn, typename... Args>
+    void process(Int stream, Fn&& fn, Args... args) const
+    {
+    	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
+    }
 
 
     Accumulator moveElements(MyType* tgt, const Position& from_pos, const Position& shift_pos)

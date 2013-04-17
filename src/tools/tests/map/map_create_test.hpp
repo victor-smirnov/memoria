@@ -52,6 +52,8 @@ public:
 
         Ctr map(&allocator);
 
+        allocator.commit();
+
         map.setNewPageSize(8192);
 
         ctr_name_ = map.name();

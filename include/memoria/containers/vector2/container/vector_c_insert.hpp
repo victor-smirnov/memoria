@@ -132,7 +132,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrInsertName)
 			typedef Accumulator ReturnType;
 
 			template <typename Node>
-			Accumulator operator()(
+			Accumulator treeNode(
 				Node* node,
 				VectorSubtreeProvider* provider,
 				const Position* pos,
