@@ -118,7 +118,14 @@ public:
 		MEMORIA_ASSERT(room_start, <=, size_);
 		MEMORIA_ASSERT(room_length, <=, max_size_ - size_);
 
-		CopyBuffer(buffer_ + room_start + room_length, buffer_ + room_start, size_ - room_start);
+		Int length = size_ - room_start - room_length;
+
+		if (length > 0)
+		{
+			CopyBuffer(buffer_ + room_start + room_length, buffer_ + room_start, length);
+		}
+
+		size_ -= room_length;
 	}
 
 	void insertSpace(Int room_start, Int room_length)
@@ -127,7 +134,14 @@ public:
 		MEMORIA_ASSERT(room_start, <=, size_);
 		MEMORIA_ASSERT(room_length, <=, max_size_ - size_);
 
-		CopyBuffer(buffer_ + room_start, buffer_ + room_start + room_length, size_ - room_start - room_length);
+		Int length = size_ - room_start;
+
+		if (length > 0)
+		{
+			CopyBuffer(buffer_ + room_start, buffer_ + room_start + room_length, length);
+		}
+
+		size_ += room_length;
 	}
 
 	void clearValues(Int idx) {
@@ -151,6 +165,8 @@ public:
 		{
 			other_values[c] 	= my_values[c];
 		}
+
+		other->size() = size;
 	}
 
 	// ===================================== IO ============================================ //
@@ -189,7 +205,7 @@ public:
 		}
 	}
 
-	void read(IData* data, Int pos, Int length)
+	void read(IData* data, Int pos, Int length) const
 	{
 		MEMORIA_ASSERT(pos, <=, size_);
 		MEMORIA_ASSERT(pos + length, <=, size_);
@@ -225,6 +241,43 @@ public:
 			return values_[pos];
 		});
 	}
+
+
+	void generateDataEvents(IPageDataEventHandler* handler) const
+	{
+		handler->startGroup("ARRAY");
+
+		handler->value("ALLOCATOR",     &Base::allocator_offset());
+		handler->value("SIZE",          &size_);
+		handler->value("MAX_SIZE",      &max_size_);
+
+		handler->startGroup("DATA", size_);
+
+		handler->value("DATA_ITEM", buffer_, size_, IPageDataEventHandler::BYTE_ARRAY);
+
+		handler->endGroup();
+
+		handler->endGroup();
+	}
+
+	void serialize(SerializationData& buf) const
+	{
+		FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
+		FieldFactory<Int>::serialize(buf, size_);
+		FieldFactory<Int>::serialize(buf, max_size_);
+
+		FieldFactory<Value>::serialize(buf, buffer_, size_);
+	}
+
+	void deserialize(DeserializationData& buf)
+	{
+		FieldFactory<Int>::deserialize(buf, Base::allocator_offset_);
+		FieldFactory<Int>::deserialize(buf, size_);
+		FieldFactory<Int>::deserialize(buf, max_size_);
+
+		FieldFactory<Value>::deserialize(buf, buffer_, size_);
+	}
+
 };
 
 

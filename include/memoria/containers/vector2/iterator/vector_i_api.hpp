@@ -11,8 +11,10 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/idata.hpp>
+#include <memoria/core/tools/dump.hpp>
 
 #include <memoria/containers/vector2/vector_names.hpp>
+#include <memoria/containers/vector2/vector_tools.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
@@ -20,7 +22,7 @@
 
 namespace memoria    {
 
-using namespace memoria::btree;
+
 
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
@@ -33,31 +35,156 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
 	typedef typename Base::NodeBaseG                                            NodeBaseG;
 	typedef typename Base::TreePath                                             TreePath;
 
-	typedef typename Container::Value                                     Value;
-	typedef typename Container::Key                                       Key;
-	typedef typename Container::Element                                   Element;
-	typedef typename Container::Accumulator                               Accumulator;
+	typedef typename Container::Value                                     		Value;
+	typedef typename Container::Key                                       		Key;
+	typedef typename Container::Element                                   		Element;
+	typedef typename Container::Accumulator                               		Accumulator;
 
+	typedef typename Container::DataSource                                		DataSource;
+	typedef typename Container::DataTarget                                		DataTarget;
+	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
+	typedef typename Container::Position										Position;
 
+	bool isEof() const {
+		return self().key_idx() >= self().size();
+	}
 
+	bool isBof() const {
+		return self().key_idx() < 0;
+	}
+
+	bool nextLeaf()
+	{
+		auto& self 		= this->self();
+		auto& ctr 		= self.model();
+
+		Int size 		= self.size();
+		BigInt prefix 	= self.prefix();
+
+		if (ctr.getNextNode(self.path()))
+		{
+			self.cache().setup(prefix + size);
+			self.key_idx() = 0;
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 
 	void insert(std::vector<Value>& data)
 	{
+		auto& self = this->self();
+		auto& model = self.model();
+
 		MemBuffer<Value> buf(data);
-		self().model().insert(self(), buf);
+
+		model.insert(self, buf);
+	}
+
+
+	MEMORIA_DECLARE_NODE_FN_RTN(SizeFn, size, Int);
+
+	Int size() const
+	{
+		return LeafDispatcher::dispatchConstRtn(self().leaf().node(), SizeFn(), 0);
+	}
+
+	MEMORIA_DECLARE_NODE_FN(ReadFn, read);
+
+	BigInt read(DataTarget& data)
+	{
+		auto& self = this->self();
+
+		BigInt sum = 0;
+		BigInt len = data.getRemainder();
+
+		while (len > 0)
+		{
+			Int to_read = self.size() - self.dataPos();
+
+			if (to_read > len) to_read = len;
+
+			mvector2::VectorTarget target(&data);
+
+			LeafDispatcher::dispatchConst(self.leaf().node(), ReadFn(), &target, Position(self.dataPos()), Position(to_read));
+
+			len     -= to_read;
+			sum     += to_read;
+
+			self.skipFw(to_read);
+
+			if (self.isEof())
+			{
+				break;
+			}
+		}
+
+		return sum;
+	}
+
+	BigInt read(std::vector<Value>& data)
+	{
+		MemTBuffer<Value> buf(data);
+		return read(buf);
 	}
 
 	void remove(BigInt size) {}
 
-	std::vector<Value> subVector(BigInt size) {
-		return std::vector<Value>();
+	std::vector<Value> subVector(BigInt size)
+	{
+		std::vector<Value> data(size);
+
+		auto iter = self();
+
+		iter.read(data);
+
+		return data;
 	}
 
 	BigInt skipFw(BigInt amount);
 	BigInt skipBw(BigInt amount);
 
 	BigInt pos() const {
-		return 0;
+		return prefix() + self().key_idx();
+	}
+
+	BigInt dataPos() const {
+		return self().key_idx();
+	}
+
+	BigInt prefix() const {
+		return self().cache().prefix();
+	}
+
+	Accumulator prefixes() const {
+		Accumulator acc;
+		std::get<0>(acc)[0] = prefix();
+		return acc;
+	}
+
+	void ComputePrefix(BigInt& accum)
+	{
+		TreePath&   path0 = self().path();
+		Int         idx   = self().key_idx();
+
+		for (Int c = 1; c < path0.getSize(); c++)
+		{
+			idx = path0[c - 1].parent_idx();
+			self().model().sumKeys(path0[c].node(), 0, 0, idx, accum);
+		}
+	}
+
+	void ComputePrefix(Accumulator& accum)
+	{
+		TreePath&   path0 = self().path();
+		Int         idx   = self().key_idx();
+
+		for (Int c = 1; c < path0.getSize(); c++)
+		{
+			idx = path0[c - 1].parent_idx();
+			self().model().sumKeys(path0[c].node(), 0, idx, accum);
+		}
 	}
 
 MEMORIA_ITERATOR_PART_END
@@ -68,23 +195,51 @@ MEMORIA_ITERATOR_PART_END
 M_PARAMS
 BigInt M_TYPE::skipFw(BigInt amount)
 {
-//	typedef mvector2::FindLTForwardWalker<Types> Walker;
-//
-//	auto& self = this->self();
-//
-//	Walker walker(amount, 0);
-//
-//	self.model().findFw(self.path(), self.key_idx(), walker, level);
-//
-//	return std::get<0>(walker.prefix())[0] + walker.idx();
+	typedef mvector2::FindLTForwardWalker<Types> Walker;
 
-	return 0;
+	auto& self = this->self();
+
+	Walker walker(amount, 0);
+
+	BigInt pos = self.pos();
+
+	Int idx = self.key_idx() = self.model().findFw(self.path(), 0, self.key_idx(), walker);
+
+	Int last_size = self.size();
+
+	if (idx >= last_size)
+	{
+		self.cache().setup(pos + walker.prefix() - last_size);
+		return walker.prefix();
+	}
+	else {
+		self.cache().setup(pos + walker.prefix());
+		return walker.prefix() + idx;
+	}
 }
 
 M_PARAMS
 BigInt M_TYPE::skipBw(BigInt amount)
 {
-	return 0;
+	typedef mvector2::FindLTBackwardWalker<Types> Walker;
+
+	auto& self = this->self();
+
+	BigInt pos = self.pos();
+
+	Walker walker(amount, 0);
+
+	Int idx = self.key_idx() = self.model().findBw(self.path(), 0, self.key_idx(), walker);
+
+	if (idx >= 0)
+	{
+		self.cache().setup(pos - walker.prefix());
+		return walker.prefix() - idx;
+	}
+	else {
+		self.cache().setup(0);
+		return walker.prefix();
+	}
 }
 
 

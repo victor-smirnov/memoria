@@ -448,7 +448,7 @@ public:
 
 	void init0(Int block_size, UBigInt active_streams)
 	{
-		allocator_.init(block_size, 2);
+		allocator_.init(block_size, ValuesBlockIdx + 1);
 
 		Int tree_size = max_tree_size(block_size, active_streams);
 
@@ -531,6 +531,37 @@ public:
     Int size() const {
     	return tree0()->size();
     }
+
+    struct SizeFn {
+    	typedef Int ResultType;
+
+    	template <Int Idx, typename Tree>
+    	ResultType stream(const Tree* tree)
+    	{
+    		return tree->size();
+    	}
+    };
+
+    Int size(Int stream) const
+    {
+    	return Dispatcher::dispatchRtn(stream, &allocator_, SizeFn());
+    }
+
+    struct SizesFn {
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree, Position* pos)
+    	{
+    		pos->value(Idx) = tree->size();
+    	}
+    };
+
+    Position sizes() const
+    {
+    	Position pos;
+    	Dispatcher::dispatchAll(&allocator_, SizesFn(), &pos);
+    	return pos;
+    }
+
 
     bool isEmpty() const
     {
@@ -684,11 +715,6 @@ public:
     Int max_size() const
     {
     	return tree0()->max_size();
-    }
-
-    Position nodeSizes() const
-    {
-    	return Position(size());
     }
 
     void reindexAll(Int from, Int to)
@@ -934,7 +960,7 @@ public:
 
     Accumulator getCounters(const Position& pos, const Position& count) const
     {
-    	return sum(pos.get(), count.get());
+    	return sum(pos.get(), pos.get() + count.get());
     }
 
     bool checkCapacities(const Position& pos) const
@@ -1005,6 +1031,10 @@ public:
         Dispatcher::dispatchAll(&allocator_, DeserializeFn(), &buf);
 
         FieldFactory<Value>::deserialize(buf, *values(), size());
+    }
+
+    static void InitType() {
+    	int a = 0; a++;
     }
 };
 
@@ -1131,7 +1161,9 @@ public:
 
     static Int initMetadata()
     {
-        if (page_metadata_ == NULL)
+        Base::InitType();
+
+    	if (page_metadata_ == NULL)
         {
             Int attrs = 0;
             page_metadata_ = new PageMetadata("BTREE_PAGE", attrs, hash(), new PageOperations());

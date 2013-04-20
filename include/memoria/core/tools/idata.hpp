@@ -365,6 +365,134 @@ public:
     }
 };
 
+template <typename T>
+class MemTBuffer: public IDataTarget<T> {
+protected:
+    SizeT   start_;
+    SizeT   length_;
+    T*      data_;
+    bool    owner_;
+public:
+
+    MemTBuffer(T* data, SizeT length, bool owner = false):
+        start_(0),
+        length_(length),
+        data_(data),
+        owner_(owner)
+    {}
+
+    MemTBuffer(vector<T>& data):
+        start_(0),
+        length_(data.size()),
+        data_(&data[0]),
+        owner_(false)
+    {}
+
+    MemTBuffer(SizeT length):
+        start_(0),
+        length_(length),
+        data_(T2T<T*>(::malloc(length * sizeof(T)))),
+        owner_(true)
+    {}
+
+    MemTBuffer(MemTBuffer<T>&& other):
+        start_(other.start_),
+        length_(other.length_),
+        data_(other.data_),
+        owner_(other.owner_)
+    {
+        other.data_ = NULL;
+    }
+
+    MemTBuffer(const MemTBuffer<T>& other):
+        start_(other.start_),
+        length_(other.length_),
+        owner_(true)
+    {
+        data_ = T2T<T*>(::malloc(length_*sizeof(T)));
+
+        CopyBuffer(other.data(), data_, length_);
+    }
+
+    virtual ~MemTBuffer() throw ()
+    {
+        if (owner_) ::free(data_);
+    }
+
+    virtual SizeT skip(SizeT length)
+    {
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
+
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
+    }
+
+    virtual SizeT getStart() const
+    {
+        return start_;
+    }
+
+    virtual SizeT getRemainder() const
+    {
+        return length_ - start_;
+    }
+
+    virtual SizeT getSize() const
+    {
+        return length_;
+    }
+
+    T* data()
+    {
+        return data_;
+    }
+
+    const T* data() const
+    {
+        return data_;
+    }
+
+    SizeT size() const
+    {
+        return getSize();
+    }
+
+    virtual void setSize(SizeT size)
+    {
+        length_ = size;
+    }
+
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
+    {
+        CopyBuffer(buffer + start, data_ + start_, length);
+
+        return skip(length);
+    }
+
+//    virtual SizeT get(T* buffer, SizeT start, SizeT length)
+//    {
+//        CopyBuffer(data_ + start_, buffer + start, length);
+//
+//        return skip(length);
+//    }
+
+    void dump(std::ostream& out) const {
+        dumpArray(out, data_, length_);
+    }
+
+    virtual void reset()
+    {
+        start_ = 0;
+    }
+};
+
+
+
 
 template <typename T>
 class MemBuffer<const T>: public IDataSource<T> {

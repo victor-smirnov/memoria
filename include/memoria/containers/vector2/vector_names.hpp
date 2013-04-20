@@ -18,6 +18,8 @@ class CtrApiName 	{};
 class CtrInsertName {};
 class CtrToolsName 	{};
 class CtrRemoveName {};
+class CtrChecksName {};
+class CtrFindName {};
 
 class ItrApiName {};
 class ItrBaltreeApiName {};

@@ -140,8 +140,38 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrToolsName)
     	LeafDispatcher::dispatch(node.page(), SetLeafDataFn(me()), idx, val);
     }
 
+    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) const;
 
 
+    template <typename NodeTypes, bool root, bool leaf>
+    bool canConvertToRootFn(TreeNode<TreeMapNode, NodeTypes, root, leaf>* node) const
+    {
+    	typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
+    	typedef typename Node::RootNodeType RootType;
+
+    	Int node_children_count = node->children_count();
+
+    	Int root_block_size 	= node->page_size();
+
+    	Int root_children_count = RootType::max_tree_size_for_block(root_block_size);
+
+    	return node_children_count <= root_children_count;
+    }
+
+    template <typename NodeTypes, bool root, bool leaf>
+    bool canConvertToRootFn(TreeNode<mvector2::TreeLeafNode, NodeTypes, root, leaf>* node) const
+    {
+    	typedef TreeNode<mvector2::TreeLeafNode, NodeTypes, root, leaf> Node;
+    	typedef typename Node::RootNodeType RootType;
+
+    	Position sizes = node->sizes();
+
+    	Int root_block_size = node->page_size();
+
+    	Int target_block_size = RootType::block_size(sizes);
+
+    	return target_block_size <= root_block_size;
+    }
 
 
 MEMORIA_CONTAINER_PART_END
@@ -149,6 +179,41 @@ MEMORIA_CONTAINER_PART_END
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector2::CtrToolsName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
+
+M_PARAMS
+bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) const
+{
+//    Int key         = me()->getKey(leaf, 0, idx);
+//    DataPageG data  = me()->getValuePage(leaf, idx, Allocator::READ);
+//
+//    if (data.isSet())
+//    {
+//        bool error = false;
+//
+//        if (key != data->size())
+//        {
+//            me()->dump(leaf);
+//            me()->dump(data);
+//
+//            MEMORIA_ERROR(me(), "Invalid data page size", data->id(), leaf->id(), idx, key, data->size());
+//            error = true;
+//        }
+//
+////      if (key == 0)
+////      {
+////          MEMORIA_TRACE(me(), "Zero data page size", leaf->id(), idx, key, data->data().size());
+////          error = true;
+////      }
+//
+//        return error;
+//    }
+//    else {
+//        MEMORIA_ERROR(me(), "No DataPage exists", leaf->id(), idx, key);
+//        return true;
+//    }
+
+	return false;
+}
 
 
 

@@ -51,40 +51,60 @@ public:
 };
 
 
+class VectorTarget: public ITarget {
+
+	IDataBase* target_;
+public:
+	VectorTarget(IDataBase* target): target_(target) {}
+
+	virtual Int streams()
+	{
+		return 1;
+	}
+
+	virtual IData* stream(Int stream)
+	{
+		return target_;
+	}
+};
+
+
+
+
 template <typename Iterator, typename Container>
 class VectorIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Iterator, Container> {
     typedef balanced_tree::BTreeIteratorCache<Iterator, Container> Base;
     typedef typename Container::Accumulator     Accumulator;
 
-    Accumulator prefix_;
-    Accumulator current_;
+    BigInt prefix_;
+    BigInt current_;
 
     static const Int Indexes = 1;
 
 public:
 
-    VectorIteratorPrefixCache(): Base(), prefix_(), current_() {}
+    VectorIteratorPrefixCache(): Base(), prefix_(0), current_(0) {}
 
     const BigInt& prefix(int num = 0) const
     {
-        return get<0>(prefix_)[num];
+        return prefix_;
     }
 
-    const Accumulator& prefixes() const
+    const BigInt prefixes() const
     {
         return prefix_;
     }
 
     void nextKey(bool end)
     {
-        VectorAdd(prefix_, current_);
+        prefix_ += current_;
 
         Clear(current_);
     };
 
     void prevKey(bool start)
     {
-        VectorSub(prefix_, current_);
+        prefix_ -= current_;
 
         Clear(current_);
     };
@@ -100,17 +120,19 @@ public:
         }
     }
 
-    void setup(BigInt prefix, Int key_num)
+    void setup(BigInt prefix)
     {
-        get<0>(prefix_)[key_num] = prefix;
+        prefix_ = prefix;
 
-        init_(key_num);
+        init_();
     }
 
     void setup(const Accumulator& prefix)
     {
         prefix_ = prefix;
     }
+
+    void Clear(BigInt& v) {v = 0;}
 
     void initState()
     {
@@ -125,7 +147,12 @@ public:
 
             for (Int c = 1; c < path.getSize(); c++)
             {
-                Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
+                Accumulator acc;
+
+            	Base::iterator().model().sumKeys(path[c].node(), 0, idx, acc);
+
+            	prefix_ += std::get<0>(acc)[0];
+
                 idx = path[c].parent_idx();
             }
         }
@@ -133,29 +160,9 @@ public:
 
 private:
 
-    void init_(Int skip_num)
+    void init_()
     {
-        typedef typename Iterator::Container::TreePath TreePath;
 
-        const TreePath& path = Base::iterator().path();
-        Int             idx  = Base::iterator().key_idx();
-
-        for (Int c = 0; c < Indexes; c++) {
-            if (c != skip_num) prefix_[c] = 0;
-        }
-
-        for (Int c = 0; c < path.getSize(); c++)
-        {
-            for (Int block_num = 0; block_num < Indexes; block_num++)
-            {
-                if (block_num != skip_num)
-                {
-                    Base::iterator().model().sumKeys(path[c].node(), block_num, 0, idx, prefix_[block_num]);
-                }
-            }
-
-            idx = path[c].parent_idx();
-        }
     }
 
 };

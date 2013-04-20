@@ -37,6 +37,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrInsertName)
 	typedef typename Base::RootDispatcher                                       RootDispatcher;
 	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+	typedef typename Base::DefaultDispatcher                                    DefaultDispatcher;
 
 
 	typedef typename Base::Key                                                  Key;
@@ -54,8 +55,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrInsertName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
-//	typedef typename Types::DataSource											DataSource;
-	typedef IDataSource<Value>													DataSource;
+	typedef typename Types::DataSource											DataSource;
+	typedef typename Types::DataTarget											DataTarget;
+
 
 
 
@@ -63,27 +65,33 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrInsertName)
 
 	template <typename Node>
 	class LayoutManager: public INodeLayoutManager {
+		Int block_size_;
+	public:
+		LayoutManager(Int block_size): block_size_(block_size) {}
+
 		virtual Int getNodeCapacity(const Int* sizes, Int stream)
 		{
-			return Node::capacity(sizes, stream);
+			return Node::capacity(block_size_, sizes, stream);
 		}
 	};
 
 	struct GetTotalNodesFn {
-		typedef Int ResultType;
+		typedef Int ReturnType;
 
 		template <typename Node>
-		ResultType operator()(const Node*, const Int* sizes, Int stream)
+		ReturnType treeNode(const Node*, Int block_size, const Int* sizes, Int stream)
 		{
-			return Node::capacity(sizes, stream);
+			return Node::capacity(block_size, sizes, stream);
 		}
 	};
 
 	class LeafLayoutManager: public INodeLayoutManager {
+		Int block_size_;
+	public:
+		LeafLayoutManager(Int block_size): block_size_(block_size) {}
 		virtual Int getNodeCapacity(const Int* sizes, Int stream)
 		{
-//			return DefaultDispatcher::dispatchStatic2Rtn(false, true, GetTotalNodesFn(), sizes, stream);
-			return 0;
+			return LeafDispatcher::dispatchStatic2Rtn(false, true, GetTotalNodesFn(), block_size_, sizes, stream);
 		}
 	};
 
@@ -108,7 +116,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrInsertName)
 
 		virtual BigInt getTotalKeyCount()
 		{
-			LeafLayoutManager manager;
+			LeafLayoutManager manager(ctr_.getRootMetadata().page_size());
 			return data_source_.getTotalNodes(&manager);
 		}
 
@@ -148,7 +156,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrInsertName)
 					size = node->capacities();
 				}
 
-				LayoutManager<Node> manager;
+				LayoutManager<Node> manager(node->page_size());
 
 				provider->data_source_.newNode(&manager);
 
@@ -158,7 +166,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrInsertName)
 
 				provider->inserted_ += size;
 
-				return node->sum(*pos, size);
+				return node->sum(*pos, (*pos) + size);
 			}
 		};
 
@@ -210,16 +218,12 @@ void M_TYPE::insert(Iterator& iter, DataSource& data)
 
 	ctr.addTotalKeyCount(data.getSize());
 
-	if (iter.isEnd())
+	if (iter.isEof())
 	{
-		ctr.getNextNode(path);
-		iter.key_idx() = 0;
+		iter.nextLeaf();
 	}
 
-	for (UInt c = 0; c < data.getSize(); c++)
-	{
-		iter++;
-	}
+	iter.skipFw(data.getSize());
 }
 
 

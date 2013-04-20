@@ -133,19 +133,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	NonRootNode* tgt = T2T<NonRootNode*>(malloc(src->page_size()));
     	memset(tgt, 0, src->page_size());
 
-//    	tgt->init(src->page_size());
-//    	tgt->copyFrom(src);
-//    	tgt->page_type_hash()   = NonRootNode::hash();
-//    	tgt->set_root(false);
-//
-//    	src->transferDataTo(tgt);
-//
-//    	tgt->set_children_count(src->children_count());
-//
-//    	tgt->clearUnused();
-//
-//    	tgt->reindex();
-
     	ConvertRootToNode(src, tgt);
 
     	CopyByteBuffer(tgt, src, tgt->page_size());
@@ -153,7 +140,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	free(tgt);
     }
 
-    MEMORIA_CONST_FN_WRAPPER(Root2NodeFn0, root2NodeFn);
+    MEMORIA_CONST_FN_WRAPPER(Root2NodeFn0, template root2NodeFn);
 
 
     void root2Node(NodeBaseG& node) const
@@ -212,7 +199,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     {
     	typedef typename T::RootNodeType RootType;
 
-    	Int node_children_count = node->children_count();
+    	Int node_children_count = node->size(0);
 
     	Int root_block_size 	= node->page_size();
 
@@ -499,6 +486,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         }
     }
 
+    void dump(TreePath& path, Int level = 0, std::ostream& out = std::cout)
+    {
+    	out<<"PATH of "<<path.getSize()<<" elements"<<endl;
+
+    	for (Int c = path.getSize() - 1; c >=0; c--)
+    	{
+    		out<<"parentIdx = "<<path[c].parent_idx();
+    		self().dump(path[c].node());
+    	}
+
+    }
+
     BigInt getTotalKeyCount() const;
     void setTotalKeyCount(BigInt value);
     void addTotalKeyCount(BigInt value);
@@ -573,7 +572,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     void sumKeys(const NodeBase *node, Int block_num, Int from, Int count, Key& sum) const
     {
-    	VectorAdd(sum, NonLeafDispatcher::dispatchConstRtn(node, SumKeysInOneBlockFn(me()), block_num, from, count));
+    	sum += NonLeafDispatcher::dispatchConstRtn(node, SumKeysInOneBlockFn(me()), block_num, from, count);
     }
 
     void addKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
@@ -591,12 +590,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     }
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetNodeSizesFn, nodeSizes, Position);
+    MEMORIA_DECLARE_NODE_FN_RTN(GetSizesFn, sizes, Position);
     Position getNodeSizes(const NodeBaseG& node) const
     {
-    	return NodeDispatcher::dispatchConstRtn(node, GetNodeSizesFn());
+    	return NodeDispatcher::dispatchConstRtn(node, GetSizesFn());
     }
 
+    MEMORIA_DECLARE_NODE_FN_RTN(GetSizeFn, size, Int);
+    Int getNodeSize(const NodeBaseG& node, Int stream) const
+    {
+    	return NodeDispatcher::dispatchConstRtn(node, GetSizeFn(), stream);
+    }
 
 private:
 

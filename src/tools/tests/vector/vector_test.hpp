@@ -35,6 +35,7 @@ class VectorTest: public SequenceCreateTestBase<
 
     typedef typename Base::Ctr                                                  Ctr;
     typedef typename Base::Iterator                                             Iterator;
+    typedef typename Ctr::Accumulator                                           Accumulator;
     typedef typename Base::ID                                                   ID;
 
     typedef vector<T>															MemBuffer;

@@ -46,7 +46,7 @@ public:
     bool checkTree() const;
 
     bool check(void *data) const {
-        return me()->checkTree();
+        return self().checkTree();
     }
 
 //PRIVATE API:
@@ -84,12 +84,14 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 bool M_TYPE::checkTree() const
 {
-    NodeBaseG root = me()->getRoot(Allocator::READ);
+    auto& self = this->self();
+
+	NodeBaseG root = self.getRoot(Allocator::READ);
     if (root != NULL)
     {
         bool errors = false;
-        me()->check_node_tree(NodeBaseG(), 0, root, errors);
-        return me()->check_keys() || errors;
+        self.check_node_tree(NodeBaseG(), 0, root, errors);
+        return self.check_keys() || errors;
     }
     else {
         return false;
@@ -107,7 +109,9 @@ bool M_TYPE::checkTree() const
 M_PARAMS
 void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const
 {
-    errors = me()->check_node_content(parent, parent_idx, node) || errors;
+	auto& self = this->self();
+
+    errors = self.check_node_content(parent, parent_idx, node) || errors;
 
     Int children = node->children_count();
 
@@ -121,15 +125,15 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
     {
         for (Int c = 0; c < children; c++)
         {
-            errors = me()->check_leaf_value(parent, parent_idx, node, c) || errors;
+            errors = self.check_leaf_value(parent, parent_idx, node, c) || errors;
         }
     }
     else {
         for (Int c = 0; c < children; c++)
         {
-            ID child_id = me()->getChildID(node, c);
+            ID child_id = self.getChildID(node, c);
 
-            NodeBaseG child = me()->getChild(node, c, Allocator::READ);
+            NodeBaseG child = self.getChild(node, c, Allocator::READ);
 
             if (child->id() != child_id)
             {
@@ -137,7 +141,7 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
                 MEMORIA_ERROR(me(), "child.id != child_id", child->id(), child->id(), child_id);
             }
 
-            me()->check_node_tree(node, c, child, errors);
+            self.check_node_tree(node, c, child, errors);
         }
     }
 }

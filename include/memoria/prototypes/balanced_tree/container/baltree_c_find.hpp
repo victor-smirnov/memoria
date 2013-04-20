@@ -24,6 +24,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::FindName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    typedef typename Base::LeafDispatcher                                    	LeafDispatcher;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::TreePath                                             TreePath;
 
@@ -44,10 +46,10 @@ public:
     void find1(Walker&& walker);
 
     template <typename Walker>
-    Int findFw(TreePath& path, Int idx, Walker&& walker, Int level = 0);
+    Int findFw(TreePath& path, Int stream, Int idx, Walker&& walker, Int level = 0);
 
     template <typename Walker>
-    Int findBw(TreePath& path, Int idx, Walker&& walker, Int level = 0);
+    Int findBw(TreePath& path, Int stream, Int idx, Walker&& walker, Int level = 0);
 
     MEMORIA_PUBLIC MEMORIA_DEPRECATED BigInt getSize() const
     {
@@ -129,34 +131,54 @@ M_PARAMS
 template <typename Walker>
 typename M_TYPE::Iterator M_TYPE::find0(Walker&& walker)
 {
-	walker.start() 		= 0;
+	auto& self = this->self();
+
 	walker.direction() 	= WalkDirection::DOWN;
 
-	NodeBaseG node = me()->getRoot(Allocator::READ);
+	NodeBaseG node = self.getRoot(Allocator::READ);
 	if (node.isSet())
 	{
 		Iterator i(*me(), node->level() + 1);
 
 		i.setNode(node, 0);
 
-		if (node->children_count() > 0)
+		Int size = self.getNodeSize(node, 0);
+
+		if (size > 0)
 		{
+			bool out_of_range = false;
+
 			while (!node->is_leaf())
 			{
-				NodeDispatcher::dispatchConst(node, walker);
+				Int idx;
+				if (!out_of_range)
+				{
+					idx = NodeDispatcher::dispatchConstRtn(node, walker, 0);
 
-				Int idx = walker.idx();
+					size = self.getNodeSize(node, 0);
+
+					if (idx >= size)
+					{
+						out_of_range = true;
+						idx = size - 1;
+					}
+				}
+				else {
+					idx = self.getNodeSize(node, 0) - 1;
+				}
 
 				node = me()->getChild(node, idx, Allocator::READ);
 				i.setNode(node, idx);
 			}
 
-			NodeDispatcher::dispatchConst(node, walker);
-
-			Int idx = walker.idx();
-			i.key_idx() = idx;
-
-			me()->finishPathStep(i.path(), idx);
+			Int idx;
+			if (!out_of_range)
+			{
+				i.key_idx() = idx = NodeDispatcher::dispatchConstRtn(node, walker, 0);
+			}
+			else {
+				i.key_idx() = idx = self.getNodeSize(node, 0);
+			}
 
 			walker.finish(idx, i);
 		}
@@ -211,8 +233,10 @@ void M_TYPE::find1(Walker&& walker)
 
 M_PARAMS
 template <typename Walker>
-Int M_TYPE::findFw(TreePath& path, Int idx, Walker&& walker, Int level)
+Int M_TYPE::findFw(TreePath& path, Int stream, Int start, Walker&& walker, Int level)
 {
+	auto& self = this->self();
+
 	NodeBaseG node = path[level].node();
 
 	if (node->is_root())
@@ -223,56 +247,65 @@ Int M_TYPE::findFw(TreePath& path, Int idx, Walker&& walker, Int level)
 		walker.direction() 	= WalkDirection::UP;
 	}
 
-	walker.idx() = walker.start() = idx;
+	Int size = self.getNodeSize(node, stream);
 
-	if (idx < node->children_count())
+	Int idx;
+
+	if (start < size)
 	{
-		NodeDispatcher::dispatchConst(node, walker);
+		idx = NodeDispatcher::dispatchConstRtn(node, walker, start);
+	}
+	else {
+		idx = size;
 	}
 
-	if (walker.idx() >= node->children_count())
+	if (idx >= size)
 	{
 		if (!node->is_root())
 		{
 			// Step up the tree
-			Int child_idx = findFw(path, path[level].parent_idx() + 1, walker, level + 1);
+			Int child_idx = findFw(path, stream, path[level].parent_idx() + 1, walker, level + 1);
 
-			if (child_idx < path[level + 1].node()->children_count())
+
+			Int parent_size = self.getNodeSize(path[level + 1].node(), stream);
+			if (child_idx < parent_size)
 			{
 				// Step down the tree
-				NodeBaseG child_node		= me()->getChild(path[level + 1].node(), child_idx, Allocator::READ);
+				NodeBaseG child_node		= self.getChild(path[level + 1].node(), child_idx, Allocator::READ);
 
 				path[level].node() 			= child_node;
 				path[level].parent_idx()	= child_idx;
 
-				NodeDispatcher::dispatchConst(child_node, walker);
-
-				return walker.idx();
+				return NodeDispatcher::dispatchConstRtn(child_node, walker, 0);
 			}
 			else {
-				return path[level].node()->children_count();
+				// Step down the tree
+				NodeBaseG child_node		= self.getChild(path[level + 1].node(), parent_size - 1, Allocator::READ);
+
+				path[level].node() 			= child_node;
+				path[level].parent_idx()	= parent_size - 1;
+
+				return self.getNodeSize(child_node, stream);
 			}
 		}
 		else {
 			walker.direction() 	= WalkDirection::DOWN;
-			walker.start() 		= 0;
-
-			return walker.idx();
+			return size;
 		}
 	}
 	else {
 		walker.direction() 	= WalkDirection::DOWN;
-		walker.start() 		= 0;
-
-		return walker.idx();
+		return idx;
 	}
 }
 
 
 M_PARAMS
 template <typename Walker>
-Int M_TYPE::findBw(TreePath& path, Int idx, Walker&& walker, Int level)
+Int M_TYPE::findBw(TreePath& path, Int stream, Int start, Walker&& walker, Int level)
 {
+	auto& self = this->self();
+
 	NodeBaseG node = path[level].node();
 
 	if (node->is_root())
@@ -283,41 +316,44 @@ Int M_TYPE::findBw(TreePath& path, Int idx, Walker&& walker, Int level)
 		walker.direction() 	= WalkDirection::UP;
 	}
 
-	walker.idx() = walker.start() = idx;
+	Int idx;
 
-	if (idx >= 0)
+	if (start >= 0)
 	{
-		NodeDispatcher::dispatchConst(node, walker);
+		idx = NodeDispatcher::dispatchConstRtn(node, walker, start);
+	}
+	else {
+		idx = -1;
 	}
 
-	if (walker.idx() < 0)
+	if (idx < 0)
 	{
 		if (!node->is_root())
 		{
 			// Step up the tree
-			Int child_idx			= findBw(path, path[level].parent_idx() - 1, walker, level + 1);
+			Int child_idx = findBw(path, stream, path[level].parent_idx() - 1, walker, level + 1);
 
 			if (child_idx >= 0)
 			{
 				// Step down the tree
-				NodeBaseG child_node		= me()->getChild(path[level + 1].node(), child_idx, Allocator::READ);
+				NodeBaseG child_node		= self.getChild(path[level + 1].node(), child_idx, Allocator::READ);
 
 				path[level].node() 			= child_node;
 				path[level].parent_idx()	= child_idx;
 
-				walker.start() 				= child_node->children_count() - 1;
+				Int start = self.getNodeSize(child_node, stream) - !child_node->is_leaf();
 
-				NodeDispatcher::dispatchConst(child_node, walker);
-
-				return walker.idx();
+				return NodeDispatcher::dispatchConstRtn(child_node, walker, start);
 			}
 			else {
+				// Step down the tree
+				NodeBaseG child_node		= self.getChild(path[level + 1].node(), 0, Allocator::READ);
+
+				path[level].node() 			= child_node;
+				path[level].parent_idx()	= 0;
+
 				return -1;
 			}
-		}
-		else if (node->is_leaf())
-		{
-			return walker.idx();
 		}
 		else {
 			return -1;
@@ -325,9 +361,7 @@ Int M_TYPE::findBw(TreePath& path, Int idx, Walker&& walker, Int level)
 	}
 	else {
 		walker.direction() 	= WalkDirection::DOWN;
-		walker.start() 		= 0;
-
-		return walker.idx();
+		return idx;
 	}
 }
 

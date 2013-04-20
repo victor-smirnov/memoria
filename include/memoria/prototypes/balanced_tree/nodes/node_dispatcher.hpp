@@ -14,6 +14,7 @@ namespace balanced_tree {
 
 template <typename Types, int idx> class NDT0;
 template <typename Types, int idx> class NDT1;
+template <typename Types, int idx> class NDT2;
 
 
 
@@ -60,7 +61,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-        static typename Functor::ReturnType dispatchConstRtn(const NodeBase*, const NodeBase*, Functor&&, Args...) {
+        static typename Functor::ReturnType dispatchConstRtn2(const NodeBase*, const NodeBase*, Functor&&, Args...) {
         	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
 
@@ -86,9 +87,19 @@ public:
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
+    template <typename Functor, typename... Args>
+    static void dispatchTreeConst(const NodeBase* node1, const NodeBase* node2, Functor&& functor, Args...) {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
 
     template <typename Functor, typename... Args>
     static typename Functor::ReturnType doubleDispatchConstRtn(const NodeBase*, const NodeBase*, Functor&&, Args...) {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
+    template <typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchTreeConstRtn(const NodeBase*, const NodeBase*, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
@@ -147,6 +158,31 @@ public:
 
 
 
+template <typename Types>
+class NDT2<Types, -1> {
+    typedef typename Types::NodeBase NodeBase;
+public:
+
+    template <typename Node, typename Functor, typename... Args>
+    static void dispatch(Node*, NodeBase *, Functor&&, Args...) {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
+    template <typename Node, typename Functor, typename... Args>
+    static void dispatchTreeConst(const Node*, const NodeBase*, Functor&&, Args...) {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+
+    template <typename Node, typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchTreeConstRtn(const Node*, const NodeBase*, Functor&&, Args...) {
+    	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
+};
+
+
+
+
+
 template <typename Types, int Idx>
 class NDT1 {
 
@@ -192,6 +228,23 @@ public:
 
 
     template <typename Node, typename Functor, typename... Args>
+    static void dispatchTreeConst(const Node* parent, const NodeBase* child, Functor&& functor, Args... args)
+    {
+    	if (HASH == child->page_type_hash())
+    	{
+    		functor.treeNode(
+    				parent,
+    				static_cast<const Head*>(child),
+    				args...
+    		);
+    	}
+    	else {
+    		NDT1<Types, Idx - 1>::dispatchConst(parent, child, std::move(functor), args...);
+    	}
+    }
+
+
+    template <typename Node, typename Functor, typename... Args>
     static typename Functor::ReturnType dispatchConstRtn(
     		const Node* node1,
     		const NodeBase* node2,
@@ -211,7 +264,82 @@ public:
     		return NDT1<Types, Idx - 1>::dispatchConstRtn(node1, node2, std::move(functor), args...);
     	}
     }
+
+
+    template <typename Node, typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchTreeConstRtn(
+    		const Node* parent,
+    		const NodeBase* child,
+    		Functor&& functor,
+    		Args... args
+    )
+    {
+    	if (HASH == child->page_type_hash())
+    	{
+    		return functor.treeNode(
+    				parent,
+    				static_cast<const Head*>(child),
+    				args...
+    		);
+    	}
+    	else {
+    		return NDT1<Types, Idx - 1>::dispatchTreeConstRtn(parent, child, std::move(functor), args...);
+    	}
+    }
 };
+
+
+
+template <typename Types, int Idx>
+class NDT2 {
+
+    typedef typename Types::NodeBase NodeBase;
+    typedef typename SelectByIndexTool<Idx, typename Types::ChildList>::Result Head;
+
+    static const Int HASH = Head::PAGE_HASH;
+
+public:
+
+    template <typename Node, typename Functor, typename... Args>
+    static void dispatchTreeConst(const Node* parent, const NodeBase* child, Functor&& functor, Args... args)
+    {
+    	if (HASH == child->page_type_hash())
+    	{
+    		functor.treeNode(
+    				parent,
+    				static_cast<const Head*>(child),
+    				args...
+    		);
+    	}
+    	else {
+    		NDT2<Types, Idx - 1>::dispatchConst(parent, child, std::move(functor), args...);
+    	}
+    }
+
+
+    template <typename Node, typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchTreeConstRtn(
+    		const Node* parent,
+    		const NodeBase* child,
+    		Functor&& functor,
+    		Args... args
+    )
+    {
+    	if (HASH == child->page_type_hash())
+    	{
+    		return functor.treeNode(
+    				parent,
+    				static_cast<const Head*>(child),
+    				args...
+    		);
+    	}
+    	else {
+    		return NDT2<Types, Idx - 1>::dispatchTreeConstRtn(parent, child, std::move(functor), args...);
+    	}
+    }
+};
+
+
 
 
 
@@ -354,7 +482,20 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchConstRtn(
+    static typename Functor::ReturnType dispatchConstRtn(const NodeBase* node, Functor& functor, Args... args)
+    {
+    	if (HASH == node->page_type_hash())
+    	{
+    		return functor.treeNode(static_cast<const Head*>(node), args...);
+    	}
+    	else {
+    		return NDT0<Types, Idx - 1>::dispatchConstRtn(node, std::move(functor), args...);
+    	}
+    }
+
+
+    template <typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchConstRtn2(
     		const NodeBase* node1,
     		const NodeBase* node2,
     		Functor&& functor,
@@ -366,7 +507,7 @@ public:
     		return functor.treeNode(static_cast<const Head*>(node1), static_cast<const Head*>(node2), args...);
     	}
     	else {
-    		return NDT0<Types, Idx - 1>::dispatchConstRtn(node1, node2, std::move(functor), args...);
+    		return NDT0<Types, Idx - 1>::dispatchConstRtn2(node1, node2, std::move(functor), args...);
     	}
     }
 
@@ -406,6 +547,24 @@ public:
 
 
     template <typename Functor, typename... Args>
+    static void dispatchTreeConst(const NodeBase* parent, const NodeBase* child, Functor&& functor, Args... args)
+    {
+    	if (HASH == parent->page_type_hash())
+    	{
+    		NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>::dispatchTreeConst(
+    				static_cast<const Head*>(parent),
+    				child,
+    				functor,
+    				args...
+    		);
+    	}
+    	else {
+    		NDT0<Types, Idx - 1>::dispatchTreeConst(parent, child, std::move(functor), args...);
+    	}
+    }
+
+
+    template <typename Functor, typename... Args>
     static typename Functor::ReturnType doubleDispatchConstRtn(
     		const NodeBase* node1,
     		const NodeBase* node2,
@@ -424,6 +583,29 @@ public:
     	}
     	else {
     		return NDT0<Types, Idx - 1>::doubleDispatchConstRtn(node1, node2, std::move(functor), args...);
+    	}
+    }
+
+
+    template <typename Functor, typename... Args>
+    static typename Functor::ReturnType dispatchTreeConstRtn(
+    		const NodeBase* parent,
+    		const NodeBase* child,
+    		Functor&& functor,
+    		Args... args
+    )
+    {
+    	if (HASH == parent->page_type_hash())
+    	{
+    		return NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>::dispatchTreeConstRtn(
+    				static_cast<const Head*>(parent),
+    				child,
+    				std::move(functor),
+    				args...
+    		);
+    	}
+    	else {
+    		return NDT0<Types, Idx - 1>::dispatchTreeConstRtn(parent, child, std::move(functor), args...);
     	}
     }
 

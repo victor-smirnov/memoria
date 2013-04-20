@@ -414,6 +414,11 @@ public:
     	typedef typename DefaultNodeTypeListBuilder<Types, DefaultNodeList_>::List 	List;
     };
 
+    struct TreeTypes: NodeTypesBase {
+    	typedef typename NodeTypeListBuilder<Types, NodeList_>::NonLeafTypesList 	List;
+    	typedef typename NodeTypeListBuilder<Types, NodeList_>::AllTypesList 		ChildList;
+    };
+
     typedef NDT<AllTypes>                                   NodeDispatcher;
     typedef NDT<RootTypes>                                  RootDispatcher;
     typedef NDT<LeafTypes>                                  LeafDispatcher;
@@ -421,6 +426,7 @@ public:
     typedef NDT<NonRootTypes>                               NonRootDispatcher;
     typedef NDT<InternalTypes>                              InternalDispatcher;
     typedef NDT<DefaultTypes>                               DefaultDispatcher;
+    typedef NDT<TreeTypes>                               	TreeDispatcher;
 };
 
 

@@ -104,21 +104,17 @@ private:
 
 public:
 
-
-    static const Int ValuesBlockIdx												= ListSize<StreamsStructList>::Value;
+    static const Int Streams 													= ListSize<StreamsStructList>::Value;
 
     TreeLeafNode(): Base() {}
 
-
 private:
 	struct InitFn {
-		UBigInt active_streams_;
-
-		InitFn(BigInt active_streams): active_streams_(active_streams) {}
-
 		Int block_size(Int items_number) const
 		{
-			return MyType::block_size(items_number, active_streams_);
+			Position sizes;
+			sizes[0] = items_number;
+			return MyType::block_size(sizes);
 		}
 
 		Int max_elements(Int block_size)
@@ -148,71 +144,79 @@ private:
 		Int size_ = 0;
 
 		template <Int StreamIndex, typename Node>
-		void stream(Node*, Int tree_size, UBigInt active_streams)
+		void stream(Node*, const Position& sizes)
 		{
-			if (active_streams && (1 << StreamIndex))
+			if (sizes[StreamIndex] > 0)
 			{
-				size_ += Node::block_size(tree_size);
+				size_ += Node::block_size(sizes[StreamIndex]);
 			}
 		}
 	};
 
 public:
-	static Int block_size(Int tree_size, UBigInt active_streams = -1)
+	static Int block_size(const Position& sizes)
 	{
 		BlockSizeFn fn;
 
-		Dispatcher::dispatchAllStatic(fn, tree_size, active_streams);
+		Dispatcher::dispatchAllStatic(fn, sizes);
 
 		Int client_area = fn.size_;
 
-		return PackedAllocator::block_size(client_area, ValuesBlockIdx + 1);
+		return PackedAllocator::block_size(client_area, Streams);
 	}
 
-	static Int max_tree_size(Int block_size, UBigInt active_streams = -1)
+
+	void init(Int block_size, const Position& sizes)
 	{
-		return FindTotalElementsNumber2(block_size, InitFn(active_streams));
+		init0(block_size - sizeof(Me) + sizeof(allocator_), sizes);
 	}
 
-	static Int max_tree_size_for_block(Int block_size)
+	void init(Int block_size)
 	{
-		return max_tree_size(block_size - sizeof(Me) + sizeof(allocator_));
-	}
-
-	void init(Int block_size, UBigInt active_streams = -1)
-	{
-		init0(block_size - sizeof(Me) + sizeof(allocator_), active_streams);
+		init0(block_size - sizeof(Me) + sizeof(allocator_));
 	}
 
 private:
 
 	struct InitStructFn {
 		template <Int StreamIndex, typename Tree>
-		void stream(Tree*, Int tree_size, PackedAllocator* allocator, UBigInt active_streams)
+		void stream(Tree*, PackedAllocator* allocator, const Position& sizes)
 		{
-			if (active_streams && (1 << StreamIndex))
+			if (sizes[StreamIndex] > 0)
 			{
-				Int tree_block_size = Tree::block_size(tree_size);
-				allocator->template allocate<Tree>(StreamIndex, tree_block_size);
+				allocator->template allocate<Tree>(StreamIndex, sizes[StreamIndex]);
+			}
+		}
+
+		template <Int StreamIndex, typename Tree>
+		void stream(Tree*, PackedAllocator* allocator, Int client_area)
+		{
+			if (StreamIndex == 0)
+			{
+				allocator->template allocate<Tree>(StreamIndex, client_area);
 			}
 		}
 	};
 
 public:
 
-	void init0(Int block_size, UBigInt active_streams)
+	void init0(Int block_size, const Position& sizes)
 	{
-		allocator_.init(block_size, 2);
+		allocator_.init(block_size, Streams);
 
-		Int tree_size = max_tree_size(block_size, active_streams);
+		Dispatcher::dispatchAllStatic(InitStructFn(), &allocator_, sizes);
+	}
 
-		Dispatcher::dispatchAllStatic(InitStructFn(), tree_size, &allocator_, active_streams);
+	void init0(Int block_size)
+	{
+		allocator_.init(block_size, Streams);
 
-		allocator_.template allocateArrayBySize<Value>(ValuesBlockIdx, tree_size);
+		Dispatcher::dispatchAllStatic(InitStructFn(), &allocator_, allocator_.client_area());
 	}
 
 
-	void clear(const Position&, const Position&) {
+	void clear(const Position&, const Position&)
+	{
 
 	}
 
@@ -269,8 +273,9 @@ public:
 		return Dispatcher::dispatchRtn(stream, &allocator_, CapacityFn());
 	}
 
-	static Int capacity(const Int* sizes, Int stream) {
-		return 0;
+	static Int capacity(Int block_size, const Int* sizes, Int stream)
+	{
+		return FindTotalElementsNumber2(block_size - sizeof(Me) + sizeof(allocator_), InitFn());
 	}
 
 
@@ -508,19 +513,19 @@ public:
     	return accum;
     }
 
-//    struct MaxKeysFn {
-//    	template <Int Idx, typename Tree>
-//    	void stream(const Tree* tree, Accumulator* acc)
-//    	{
-//    		//std::get<Idx>(*acc)[0] = tree->sum();
-//    	}
-//    };
+    struct MaxKeysFn {
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree, Accumulator* acc)
+    	{
+    		std::get<Idx>(*acc)[0] = tree->size();
+    	}
+    };
 
     Accumulator maxKeys() const
     {
     	Accumulator acc;
 
-    	//Dispatcher::dispatchAll(&allocator_, MaxKeysFn(), &acc);
+    	Dispatcher::dispatchAll(&allocator_, MaxKeysFn(), &acc);
 
     	return acc;
     }
@@ -541,7 +546,7 @@ public:
     	clear(from, from + count);
 
     	inc_size(-count);
-    	tgt->inc_size(count + shift);
+//    	tgt->inc_size(count + shift);
 
     	tgt->clear(Position(0), shift);
 
@@ -585,38 +590,39 @@ public:
     	}
     };
 
-    void update(ISource& src, const Position& pos, const Position& sizes)
+    void update(ISource* src, const Position& pos, const Position& sizes)
     {
-    	Dispatcher::dispatchAll(&allocator_, UpdateSourceFn(), &src, &pos, &sizes);
+    	Dispatcher::dispatchAll(&allocator_, UpdateSourceFn(), src, &pos, &sizes);
     }
 
 
     struct ReadToTargetFn {
     	template <Int Idx, typename Tree>
-    	void stream(Tree* tree, ISource* src, const Position* pos, const Position* sizes)
+    	void stream(Tree* tree, ITarget* tgt, const Position* pos, const Position* sizes)
     	{
-    		tree->read(src->stream(Idx), pos->value(Idx), sizes->value(Idx));
+    		tree->read(tgt->stream(Idx), pos->value(Idx), sizes->value(Idx));
     	}
     };
 
-    void read(ISource& src, const Position& pos, const Position& sizes)
+    void read(ITarget* tgt, const Position& pos, const Position& sizes) const
     {
-    	Dispatcher::dispatchAll(&allocator_, ReadToTargetFn(), &src, &pos, &sizes);
+    	Dispatcher::dispatchAll(&allocator_, ReadToTargetFn(), tgt, &pos, &sizes);
     }
 
 
-
-
-
-    Int findFw(Int stream, Int index, Int from) const
+    template <typename Fn, typename... Args>
+    Int find(Int stream, Fn&& fn, Args... args) const
     {
-    	return 0;
+    	return Dispatcher::dispatchRtn(stream, &allocator_, std::move(fn), args...);
     }
 
-    Int findBw(Int stream, Int index, Int from) const
+    template <typename Fn, typename... Args>
+    void process(Int stream, Fn&& fn, Args... args) const
     {
-    	return 0;
+    	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
     }
+
+
 
 
 
@@ -662,6 +668,14 @@ public:
 
         Dispatcher::dispatchAll(&allocator_, DeserializeFn(), &buf);
     }
+
+    static void InitType() {
+    	int a = 0; a++;
+    }
+
+    void set_children_count(Int) {
+    	throw Exception(MA_SRC, "Deprecated method set_children_count()");
+    }
 };
 
 
@@ -700,20 +714,22 @@ void ConvertRootToNode(
 	TreeNode<mvector2::TreeLeafNode, Types, root2, leaf2>* tgt
 )
 {
-//	typedef TreeNode<TreeMapNode, Types, root2, leaf2> NonRootNode;
-//
-//	tgt->init(src->page_size());
-//	tgt->copyFrom(src);
-//	tgt->page_type_hash()   = NonRootNode::hash();
-//	tgt->set_root(false);
-//
-//	src->transferDataTo(tgt);
-//
-//	tgt->set_children_count(src->children_count());
-//
-//	tgt->clearUnused();
-//
-//	tgt->reindex();
+	typedef TreeNode<mvector2::TreeLeafNode, Types, root2, leaf2> NonRootNode;
+
+	tgt->copyFrom(src);
+
+	tgt->page_type_hash() = NonRootNode::hash();
+
+	tgt->set_root(false);
+
+
+	tgt->init(src->page_size());
+
+	src->transferDataTo(tgt);
+
+	tgt->clearUnused();
+
+	tgt->reindex();
 }
 
 

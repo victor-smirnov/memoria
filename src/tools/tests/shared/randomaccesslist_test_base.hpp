@@ -68,11 +68,11 @@ public:
 
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart, 	replayInsertFromStart);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd, 		replayInsertAtEnd);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
-
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart, 	replayRemoveFromStart);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd, 		replayRemoveAtEnd);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
+//
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart, 	replayRemoveFromStart);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd, 		replayRemoveAtEnd);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
     }
 
     virtual ~RandomAccessListTestBase() throw() {}
@@ -162,6 +162,7 @@ public:
     	MemBuffer buf = createBuffer(length);
 
     	skip(iter, -length);
+
     	checkIterator(iter, MA_SRC);
 
     	read(iter, buf);
@@ -256,10 +257,14 @@ public:
     	Ctr ctr(&allocator);
     	ctr_name_ = ctr.name();
 
+    	allocator.commit();
+
     	try {
     		while (ctr.size() < size_)
     		{
     			test_fn(this, ctr);
+
+    			check(allocator, "Insert: Container Check Failed", MA_SRC);
 
     			allocator.commit();
     		}
@@ -279,6 +284,8 @@ public:
 
     	Ctr ctr(&allocator);
     	ctr_name_ = ctr.name();
+
+    	allocator.commit();
 
     	try {
 
@@ -310,6 +317,8 @@ public:
     	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
 
     	test_fn(this, ctr);
+
+    	check(allocator, "Insert: Container Check Failed", MA_SRC);
     }
 
 
@@ -326,7 +335,12 @@ public:
 
     	skip(iter, -data.size());
 
+    	checkIterator(iter, MA_SRC);
+
     	checkBufferWritten(iter, data, MA_SRC);
+
+    	checkIterator(iter, MA_SRC);
+
     	checkBufferWritten(iter, suffix, MA_SRC);
     }
 
@@ -343,6 +357,7 @@ public:
     void insertAtEnd(Ctr& ctr)
     {
     	Iterator iter = seek(ctr, getSize(ctr));
+    	checkIterator(iter, MA_SRC);
 
     	MemBuffer prefix = createPrefixCheckBuffer(iter);
     	MemBuffer data 	 = createDataBuffer();
@@ -387,6 +402,8 @@ public:
 
     	MemBuffer data 	 = createDataBuffer();
 
+    	cout<<"Insert "<<data.size()<<" elements"<<endl;
+
     	insert(iter, data);
 
     	checkIterator(iter, MA_SRC);
@@ -430,11 +447,7 @@ public:
 
     	MemBuffer suffix = createSuffixCheckBuffer(iter);
 
-//    	iter.dump();
-
     	skip(iter, -size);
-
-//    	iter.dump();
 
     	remove(iter, size);
 

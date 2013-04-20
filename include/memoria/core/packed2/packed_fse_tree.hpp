@@ -319,6 +319,14 @@ public:
 		return &value(0);
 	}
 
+	Value lastValue() const {
+		return value(size_ - 1);
+	}
+
+	Value firstValue() const {
+		return value(0);
+	}
+
 	void clearValues(Int idx)
 	{
 		value(idx) = 0;

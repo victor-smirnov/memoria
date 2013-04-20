@@ -318,23 +318,28 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(TreePath& path, Position& idx
 
     if (self.checkCapacities(leaf, sizes))
     {
-    	return provider.insertIntoLeaf(leaf, idx, sizes);
+    	leaf.update();
+    	Accumulator acc = provider.insertIntoLeaf(leaf, idx, sizes);
+    	self.updateUp(path, 1, path.leaf().parent_idx(), acc, true);
+    	return acc;
     }
     else {
     	TreePath right = path;
 
-    	if (self.isEmpty(leaf) && path.getSize() == 1)
+    	if (path.getSize() == 1)
     	{
     		self.newRoot(path);
     		right = path;
     	}
-    	else if (!self.isAfterEnd(leaf, idx))
+
+    	if (!self.isAfterEnd(leaf, idx))
     	{
     		self.splitPath(path, right, 0, idx);
     	}
 
+    	leaf.update();
     	Accumulator ls = provider.insertIntoLeaf(leaf, idx);
-    	self.updateUp(path, 1, path[0].parent_idx(), ls, true);
+    	self.updateUp(path, 1, path.leaf().parent_idx(), ls, true);
 
     	Int parent_idx = path.leaf().parent_idx() + 1;
 
@@ -392,24 +397,6 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Positio
     }
 }
 
-
-
-
-//M_PARAMS
-//void M_TYPE::insertBatch(Iterator& iter, const LeafNodeKeyValuePair* pairs, BigInt size)
-//{
-//    ArraySubtreeProvider provider(*me(), size, pairs);
-//
-//    me()->insertSubtree(iter, provider);
-//}
-//
-//M_PARAMS
-//void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& pairs)
-//{
-//    ArraySubtreeProvider provider(*me(), pairs.size(), &pairs.at(0));
-//
-//    me()->insertSubtree(iter, provider);
-//}
 
 
 M_PARAMS
@@ -489,7 +476,7 @@ void M_TYPE::insertInternalSubtree(
 
 	//FIXME: check node->level() after deletion;
 
-    BigInt  subtree_size    = me()->getSubtreeSize(level);
+    BigInt  subtree_size    = self.getSubtreeSize(level);
 
     BigInt  key_count       = data.total - data.start - data.end;
 
@@ -498,7 +485,7 @@ void M_TYPE::insertInternalSubtree(
 
     if (left_node == right_node)
     {
-        Int node_capacity = me()->getNonLeafCapacity(left_node);
+        Int node_capacity = self.getNonLeafCapacity(left_node);
 
         if (key_count <= subtree_size * node_capacity)
         {
@@ -527,8 +514,8 @@ void M_TYPE::insertInternalSubtree(
         }
     }
     else {
-        Int start_capacity  = me()->getNonLeafCapacity(left_node);
-        Int end_capacity    = me()->getNonLeafCapacity(right_node);
+        Int start_capacity  = self.getNonLeafCapacity(left_node);
+        Int end_capacity    = self.getNonLeafCapacity(right_node);
         Int total_capacity  = start_capacity + end_capacity;
 
 

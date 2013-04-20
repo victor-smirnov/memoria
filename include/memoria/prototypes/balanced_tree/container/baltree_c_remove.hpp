@@ -180,7 +180,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveName)
 
     bool canMerge(TreePath& tgt, TreePath& src, Int level)
     {
-        return NodeDispatcher::dispatchConstRtn(src[level].node(), tgt[level].node(), CanMergeFn());
+        return NodeDispatcher::dispatchConstRtn2(src[level].node(), tgt[level].node(), CanMergeFn());
     }
 
     /**

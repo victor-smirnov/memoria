@@ -11,14 +11,18 @@
 #include <memoria/prototypes/balanced_tree/balanced_tree.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
+#include <memoria/core/packed2/packed_fse_array.hpp>
+
 #include <memoria/containers/vector2/vector_walkers.hpp>
 #include <memoria/containers/vector2/vector_tools.hpp>
 #include <memoria/containers/vector2/vector_names.hpp>
 
+#include <memoria/containers/vector2/container/vector_c_checks.hpp>
 #include <memoria/containers/vector2/container/vector_c_tools.hpp>
 #include <memoria/containers/vector2/container/vector_c_insert.hpp>
 #include <memoria/containers/vector2/container/vector_c_remove.hpp>
 #include <memoria/containers/vector2/container/vector_c_api.hpp>
+#include <memoria/containers/vector2/container/vector_c_find.hpp>
 
 #include <memoria/containers/vector2/vector_iterator.hpp>
 #include <memoria/containers/vector2/iterator/vector_i_api.hpp>
@@ -72,6 +76,8 @@ struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTree
     		memoria::mvector2::CtrToolsName,
     		memoria::mvector2::CtrInsertName,
     		memoria::mvector2::CtrRemoveName,
+    		memoria::mvector2::CtrChecksName,
+    		memoria::mvector2::CtrFindName,
     		memoria::mvector2::CtrApiName
     >::Result                                           						ContainerPartsList;
 
@@ -80,6 +86,9 @@ struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTree
     		memoria::mvector2::ItrApiName,
     		memoria::mvector2::ItrBaltreeApiName
     >::Result                                           						IteratorPartsList;
+
+    typedef IDataSource<Value>													DataSource;
+    typedef IDataTarget<Value>													DataTarget;
 
 
 

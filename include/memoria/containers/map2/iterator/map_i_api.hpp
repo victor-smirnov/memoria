@@ -59,6 +59,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 		return self().prevKey();
 	}
 
+	BigInt prefix() const
+	{
+		return self().cache().prefix();
+	}
 
 	Accumulator prefixes() const {
 		Accumulator acc;
@@ -160,6 +164,24 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 
 
 
+    void ComputePrefix(BigInt& accum)
+    {
+    	TreePath&   path0 = self().path();
+    	Int         idx   = self().key_idx();
+
+    	Accumulator acc0;
+
+    	self().model().sumLeafKeys(path0[0].node(), 0, idx, acc0);
+
+    	accum += std::get<0>(acc0)[0];
+
+    	for (Int c = 1; c < path0.getSize(); c++)
+    	{
+    		idx = path0[c - 1].parent_idx();
+    		self().model().sumKeys(path0[c].node(), 0, 0, idx, accum);
+    	}
+    }
+
     void ComputePrefix(Accumulator& accum)
     {
     	TreePath&   path0 = self().path();
@@ -173,6 +195,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
     		self().model().sumKeys(path0[c].node(), 0, idx, accum);
     	}
     }
+
+
 //
 //	void dump(ostream& out = cout)
 //	{

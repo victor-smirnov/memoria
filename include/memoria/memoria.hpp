@@ -17,17 +17,17 @@ namespace memoria {
 template <>
 struct CtrNameDeclarator<0>: TypeDef<Root> {};
 
-//template <>
-//struct CtrNameDeclarator<1>: TypeDef<Vector<Byte>> {};
-//
-//template <>
-//struct CtrNameDeclarator<2>: TypeDef<Vector<UByte>> {};
-//
-//template <>
-//struct CtrNameDeclarator<3>: TypeDef<Vector<Int>> {};
-//
-//template <>
-//struct CtrNameDeclarator<4>: TypeDef<Vector<BigInt>> {};
+template <>
+struct CtrNameDeclarator<1>: TypeDef<Vector<Byte>> {};
+
+template <>
+struct CtrNameDeclarator<2>: TypeDef<Vector<UByte>> {};
+
+template <>
+struct CtrNameDeclarator<3>: TypeDef<Vector<Int>> {};
+
+template <>
+struct CtrNameDeclarator<4>: TypeDef<Vector<BigInt>> {};
 
 template <>
 struct CtrNameDeclarator<5>: TypeDef<Map<BigInt, BigInt>> {};

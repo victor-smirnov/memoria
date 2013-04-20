@@ -167,11 +167,11 @@ protected:
 
     virtual void checkIteratorPrefix(Iterator& iter, const char* source)
     {
-        Accumulator prefix;
+        BigInt prefix = 0;
 
         iter.ComputePrefix(prefix);
 
-        if (iter.prefix() != std::get<0>(prefix).value(0))
+        if (iter.prefix() != prefix)
         {
             iter.dump(out());
             throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefix()<<" Actual: "<<prefix);
