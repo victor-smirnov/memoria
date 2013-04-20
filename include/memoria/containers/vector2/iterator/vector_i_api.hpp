@@ -212,10 +212,10 @@ BigInt M_TYPE::skipFw(BigInt amount)
 		self.cache().setup(pos + walker.prefix() - last_size);
 		return walker.prefix();
 	}
-	else {
+	else if (walker.leafs() == 2) {
 		self.cache().setup(pos + walker.prefix());
-		return walker.prefix() + idx;
 	}
+	return walker.prefix() + idx;
 }
 
 M_PARAMS

@@ -89,9 +89,15 @@ class FindLTForwardWalker: public FindWalkerBase<Types> {
 	typedef FindWalkerBase<Types> 		Base;
 	typedef typename Base::Key 			Key;
 
+	Int leafs_ = 0;
+
 public:
 	FindLTForwardWalker(Key key, Int): Base(key)
 	{}
+
+	Int leafs() const {
+		return leafs_;
+	}
 
 	typedef Int ReturnType;
 	typedef Int ResultType;
@@ -120,6 +126,8 @@ public:
 	template <typename NodeTypes, bool root, bool leaf>
 	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int start)
 	{
+		leafs_++;
+
 		BigInt pos = Base::key_ - Base::prefix_;
 
 		Int size = node->size(0);
@@ -131,7 +139,7 @@ public:
 				return start + pos;
 			}
 			else {
-				Base::prefix_ += size;
+				Base::prefix_ += (size - start);
 				return size;
 			}
 		}
@@ -201,11 +209,11 @@ public:
 	{
 		BigInt pos = Base::key_ - Base::prefix_;
 
-		Int size = node->size(0);
+//		Int size = node->size(0);
 
 		if (Base::direction_ == WalkDirection::DOWN)
 		{
-			Base::prefix_ += size;
+			Base::prefix_ += start;
 
 			if (start - pos >= 0)
 			{

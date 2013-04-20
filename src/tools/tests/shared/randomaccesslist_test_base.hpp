@@ -46,6 +46,7 @@ protected:
     Int prefix_size_;
     Int suffix_size_;
     Int block_size_;
+    Int random_position_;
     String dump_name_;
 
     typedef std::function<void (MyType*, Ctr&)> 										TestFn;
@@ -65,10 +66,11 @@ public:
         MEMORIA_ADD_TEST_PARAM(prefix_size_)->state();
         MEMORIA_ADD_TEST_PARAM(suffix_size_)->state();
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(random_position_)->state();
 
-        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart, 	replayInsertFromStart);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd, 		replayInsertAtEnd);
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart, 	replayInsertFromStart);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd, 		replayInsertAtEnd);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
 //
 //        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart, 	replayRemoveFromStart);
 //        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd, 		replayRemoveAtEnd);
@@ -101,8 +103,14 @@ public:
 
     virtual BigInt getRandomPosition(Ctr& array)
     {
-        BigInt size = getSize(array);
-        return getBIRandom(size);
+        if (isReplayMode())
+        {
+        	return random_position_;
+        }
+        else {
+        	BigInt size = getSize(array);
+        	return random_position_ = getBIRandom(size);
+        }
     }
 
     virtual void setUp()
@@ -401,8 +409,6 @@ public:
     	MemBuffer suffix = createSuffixCheckBuffer(iter);
 
     	MemBuffer data 	 = createDataBuffer();
-
-    	cout<<"Insert "<<data.size()<<" elements"<<endl;
 
     	insert(iter, data);
 
