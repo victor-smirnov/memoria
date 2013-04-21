@@ -47,6 +47,7 @@ public:
 
     bool check(void *data) const {
         return self().checkTree();
+//    	return false;
     }
 
 //PRIVATE API:
@@ -156,7 +157,7 @@ bool M_TYPE::checkNodeWithParentContent(const Node1 *node, const Node2 *parent, 
 
     if (max != keys)
     {
-    	MEMORIA_TRACE(
+    	MEMORIA_ERROR(
     			me(),
     			"Invalid parent-child nodes chain",
     			(SBuf()<<max).str(),

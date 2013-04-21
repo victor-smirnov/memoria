@@ -99,20 +99,22 @@ public:
 	FindLEWalker(Key key, Int key_num): Base(key, key_num)
 	{}
 
+	typedef Int ResultType;
+	typedef Int ReturnType;
+
 	template <typename Node>
-	void treeNode(const Node* node)
+	ReturnType treeNode(const Node* node, Int start)
 	{
-		node->find(0, *this, node->level());
+		return node->find(0, *this, node->level(), start);
 	}
 
-	typedef Int ResultType;
+
 
 	template <Int Idx, typename Tree>
-	Int stream(const Tree* tree, Int level)
+	Int stream(const Tree* tree, Int level, Int start)
 	{
 		auto& key		= Base::key_;
 		auto& prefix 	= Base::prefix_;
-		auto& idx		= Base::idx_;
 
 		auto target 	= key - prefix;
 
@@ -120,17 +122,7 @@ public:
 
 		prefix += result.prefix();
 
-		idx = result.idx();
-
-		Int size = tree->size();
-
-		if (level != 0 && idx == size)
-		{
-			prefix -= tree->value(size - 1);
-			idx--;
-		}
-
-		return idx;
+		return result.idx();
 	}
 };
 

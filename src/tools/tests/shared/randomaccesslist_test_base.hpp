@@ -261,6 +261,7 @@ public:
     	Allocator allocator;
     	DefaultLogHandlerImpl logHandler(out());
     	allocator.getLogger()->setHandler(&logHandler);
+    	allocator.getLogger()->level() = Logger::ERROR;
 
     	Ctr ctr(&allocator);
     	ctr_name_ = ctr.name();

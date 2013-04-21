@@ -138,7 +138,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 
 				provider->inserted_ += size;
 
-				return node->maxKeys();
+				return node->sum(pos, pos + size);
 			}
 		};
 

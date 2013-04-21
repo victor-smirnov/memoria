@@ -618,9 +618,10 @@ public:
     	Int room_start 	= from_pos.get();
     	Int room_length = length_pos.get();
 
-    	MEMORIA_ASSERT(room_start, <=, this->size());
-
     	Int size = this->size();
+
+    	MEMORIA_ASSERT(room_start, <=, size);
+    	MEMORIA_ASSERT(room_length + size, <=, max_size());
 
     	Dispatcher::dispatchAll(&allocator_, InsertSpaceFn(), room_start, room_length);
 
