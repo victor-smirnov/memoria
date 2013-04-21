@@ -64,14 +64,34 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::remove(Iterator& from, Iterator& to)
 {
+	auto& self = this->self();
 
+	auto& from_path 	= from.path();
+	Position from_pos 	= Position(from.key_idx());
+
+	auto& to_path 		= to.path();
+	Position to_pos 	= Position(to.key_idx());
+
+	Accumulator keys;
+
+	self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
+
+	from.key_idx() = to.key_idx() = to_pos.get();
 }
 
 M_PARAMS
 void M_TYPE::remove(Iterator& from, BigInt size)
 {
+	auto to = from;
+	to.skip(size);
 
+	auto& self = this->self();
 
+	self.remove(from, to);
+
+	from = to;
+
+	from.cache().initState();
 }
 
 

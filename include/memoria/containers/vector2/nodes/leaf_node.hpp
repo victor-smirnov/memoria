@@ -424,7 +424,7 @@ public:
     {
     	Accumulator accum = sum(room_start, room_start + room_length);
 
-    	Dispatcher::dispatchAll(&allocator_, RemoveSpaceFn(), room_start, room_length);
+    	Dispatcher::dispatchAll(&allocator_, RemoveSpaceFn(), &room_start, &room_length);
 
     	if (reindex)
     	{
@@ -436,7 +436,7 @@ public:
 
     bool shouldMergeWithSiblings() const
     {
-    	return capacities().getAll(sizes());
+    	return capacities().gteAll(sizes());
     }
 
     bool canMergeWith(const MyType* target) const
@@ -474,8 +474,12 @@ public:
     void mergeWith(MyType* target)
     {
     	Position sizes = this->sizes();
-    	copyTo(target, Position(0), sizes, target->sizes());
-    	target->inc_sizes(sizes);
+    	Position tgt_sizes = target->sizes();
+
+    	target->insertSpace(tgt_sizes, sizes);
+
+    	copyTo(target, Position(0), sizes, tgt_sizes);
+
     	target->reindex();
     }
 
@@ -546,7 +550,6 @@ public:
     	clear(from, from + count);
 
     	inc_size(-count);
-//    	tgt->inc_size(count + shift);
 
     	tgt->clear(Position(0), shift);
 
@@ -676,6 +679,20 @@ public:
     void set_children_count(Int) {
     	throw Exception(MA_SRC, "Deprecated method set_children_count()");
     }
+
+
+    struct DumpFn {
+    	template <Int Idx, typename Tree>
+    	void stream(Tree* tree)
+    	{
+    		tree->dump();
+    	}
+    };
+
+
+    void dump() const {
+    	Dispatcher::dispatchAll(&allocator_, DumpFn());
+    }
 };
 
 
@@ -684,29 +701,28 @@ public:
 
 namespace balanced_tree {
 
-//template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
-//void ConvertNodeToRoot(
-//	const TreeNode<TreeMapNode, Types, root1, leaf1>* src,
-//	TreeNode<TreeMapNode, Types, root2, leaf2>* tgt
-//)
-//{
-////	typedef TreeNode<TreeMapNode, Types, root2, leaf2> RootType;
-////
-////	tgt->init(src->page_size());
-////	tgt->copyFrom(src);
-////
-////	tgt->set_root(true);
-////
-////	tgt->page_type_hash()   = RootType::hash();
-////
-////	src->transferDataTo(tgt);
-////
-////	tgt->set_children_count(src->children_count());
-////
-////	tgt->clearUnused();
-////
-////	tgt->reindex();
-//}
+template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
+void ConvertNodeToRoot(
+	const TreeNode<mvector2::TreeLeafNode, Types, root1, leaf1>* src,
+	TreeNode<mvector2::TreeLeafNode, Types, root2, leaf2>* tgt
+)
+{
+	typedef TreeNode<mvector2::TreeLeafNode, Types, root2, leaf2> RootType;
+
+	tgt->copyFrom(src);
+
+	tgt->set_root(true);
+
+	tgt->page_type_hash()   = RootType::hash();
+
+	tgt->init(src->page_size());
+
+	src->transferDataTo(tgt);
+
+	tgt->clearUnused();
+
+	tgt->reindex();
+}
 
 template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
 void ConvertRootToNode(
@@ -721,7 +737,6 @@ void ConvertRootToNode(
 	tgt->page_type_hash() = NonRootNode::hash();
 
 	tgt->set_root(false);
-
 
 	tgt->init(src->page_size());
 

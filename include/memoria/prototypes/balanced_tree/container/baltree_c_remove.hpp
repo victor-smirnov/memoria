@@ -327,23 +327,7 @@ BigInt M_TYPE::removeEntries(
 {
 	auto& self = this->self();
 
-//	if (from.isEmpty() || from.isEnd())
-//    {
-//        return 0;
-//    }
-//
-//    if (to.isEmpty())
-//    {
-//        return 0;
-//    }
-
     BigInt removed_key_count = 0;
-
-//    TreePath& start     = from.path();
-//    Int&      start_idx = from.key_idx();
-//
-//    TreePath& stop      = to.path();
-//    Int&      stop_idx  = to.key_idx();
 
     bool at_end = stop_idx.gteAll(self.getNodeSizes(stop.leaf()));
 
@@ -371,7 +355,6 @@ BigInt M_TYPE::removeEntries(
         removeAllPages(start, stop, keys, removed_key_count);
 
         start_idx       = stop_idx.setAll(0);
-//        from.keyNum()   = to.keyNum()   = 0;
     }
     else if (from_start && !at_end)
     {
@@ -380,8 +363,6 @@ BigInt M_TYPE::removeEntries(
         if (merge) {
         	self.mergeWithRightSibling(stop, 0);
         }
-
-//        to.keyNum() -= removed_key_count;
 
         start       = stop;
         start_idx   = stop_idx;
@@ -403,8 +384,6 @@ BigInt M_TYPE::removeEntries(
         if (merge) {
         	self.mergeWithSiblings(stop, 0, stop_idx);
         }
-
-//        to.keyNum() -= removed_key_count;
 
         start       = stop;
         start_idx   = stop_idx;
@@ -1030,14 +1009,14 @@ void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
 {
 	auto& self = this->self();
 
-    NodeBaseG& page1 = tgt[level].node();
-    NodeBaseG& page2 = src[level].node();
+    NodeBaseG& tgt_page = tgt[level].node();
+    NodeBaseG& src_page = src[level].node();
 
-    page1.update();
+    tgt_page.update();
 
-    Int tgt_children_count = page1->children_count();
+    Int tgt_children_count = self.getNodeSize(tgt_page, 0);
 
-    NodeDispatcher::dispatch2(page2, page1, MergeNodesFn());
+    NodeDispatcher::dispatch2(src_page, tgt_page, MergeNodesFn());
 
     NodeBaseG& parent   = src[level + 1].node();
     Int parent_idx      = src[level].parent_idx();
@@ -1048,7 +1027,7 @@ void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
 
     self.updateUp(src, level + 1, parent_idx - 1, accum);
 
-    self.allocator().removePage(page2->id());
+    self.allocator().removePage(src_page->id());
 
     src[level] = tgt[level];
 

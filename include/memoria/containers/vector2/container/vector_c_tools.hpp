@@ -144,7 +144,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrToolsName)
 
 
     template <typename NodeTypes, bool root, bool leaf>
-    bool canConvertToRootFn(TreeNode<TreeMapNode, NodeTypes, root, leaf>* node) const
+    bool canConvertToRootFn(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node) const
     {
     	typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
     	typedef typename Node::RootNodeType RootType;
@@ -159,7 +159,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrToolsName)
     }
 
     template <typename NodeTypes, bool root, bool leaf>
-    bool canConvertToRootFn(TreeNode<mvector2::TreeLeafNode, NodeTypes, root, leaf>* node) const
+    bool canConvertToRootFn(const TreeNode<mvector2::TreeLeafNode, NodeTypes, root, leaf>* node) const
     {
     	typedef TreeNode<mvector2::TreeLeafNode, NodeTypes, root, leaf> Node;
     	typedef typename Node::RootNodeType RootType;

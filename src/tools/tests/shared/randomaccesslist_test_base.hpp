@@ -71,10 +71,10 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart, 	replayInsertFromStart);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd, 		replayInsertAtEnd);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
-//
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart, 	replayRemoveFromStart);
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd, 		replayRemoveAtEnd);
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
+
+        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart, 	replayRemoveFromStart);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd, 		replayRemoveAtEnd);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
     }
 
     virtual ~RandomAccessListTestBase() throw() {}
@@ -272,6 +272,8 @@ public:
     		{
     			test_fn(this, ctr);
 
+    			out()<<"Size: "<<ctr.size()<<endl;
+
     			check(allocator, "Insert: Container Check Failed", MA_SRC);
 
     			allocator.commit();
@@ -304,6 +306,10 @@ public:
     		while (ctr.size() > 0)
     		{
     			test_fn(this, ctr);
+
+    			out()<<"Size: "<<ctr.size()<<endl;
+
+    			check(allocator, "Remove: Container Check Failed", MA_SRC);
 
     			allocator.commit();
     		}

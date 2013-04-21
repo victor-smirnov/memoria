@@ -138,23 +138,18 @@ public:
     {
         Clear(prefix_);
 
-        Int idx  = Base::iterator().key_idx();
+        typedef typename Iterator::Container::TreePath TreePath;
+        const TreePath& path = Base::iterator().path();
 
-        if (idx >= 0)
+        for (Int c = 1; c < path.getSize(); c++)
         {
-            typedef typename Iterator::Container::TreePath TreePath;
-            const TreePath& path = Base::iterator().path();
+        	Int idx  = path[c - 1].parent_idx();
 
-            for (Int c = 1; c < path.getSize(); c++)
-            {
-                Accumulator acc;
+        	Accumulator acc;
 
-            	Base::iterator().model().sumKeys(path[c].node(), 0, idx, acc);
+        	Base::iterator().model().sumKeys(path[c].node(), 0, idx, acc);
 
-            	prefix_ += std::get<0>(acc)[0];
-
-                idx = path[c].parent_idx();
-            }
+        	prefix_ += std::get<0>(acc)[0];
         }
     }
 

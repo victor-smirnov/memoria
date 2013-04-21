@@ -129,7 +129,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
 		return read(buf);
 	}
 
-	void remove(BigInt size) {}
+	void remove(BigInt size)
+	{
+		auto& self = this->self();
+		self.model().remove(self, size);
+	}
 
 	std::vector<Value> subVector(BigInt size)
 	{

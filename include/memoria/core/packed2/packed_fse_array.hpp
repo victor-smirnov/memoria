@@ -116,7 +116,8 @@ public:
 	{
 		MEMORIA_ASSERT(room_start, <=, max_size_);
 		MEMORIA_ASSERT(room_start, <=, size_);
-		MEMORIA_ASSERT(room_length, <=, max_size_ - size_);
+
+		MEMORIA_ASSERT(room_start + room_length, <=, size_);
 
 		Int length = size_ - room_start - room_length;
 
