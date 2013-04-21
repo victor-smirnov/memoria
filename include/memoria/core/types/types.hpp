@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 #include <memoria/core/tools/config.hpp>
+#include <type_traits>
 
 namespace memoria    {
 

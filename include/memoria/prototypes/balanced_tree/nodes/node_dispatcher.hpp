@@ -9,6 +9,8 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_DISPATCHERS_DISPATCHER_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_DISPATCHERS_DISPATCHER_HPP
 
+#include <type_traits>
+
 namespace memoria    	{
 namespace balanced_tree {
 
@@ -40,12 +42,14 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchRtn(NodeBase*, Functor&&, Args...) {
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchRtn(NodeBase*, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchRtn(NodeBase*, NodeBase*, Functor&&, Args...) {
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchRtn(NodeBase*, NodeBase*, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
@@ -56,14 +60,16 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchConstRtn(const NodeBase*, Functor&&, Args...) {
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchConstRtn(const NodeBase*, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
     template <typename Functor, typename... Args>
-        static typename Functor::ReturnType dispatchConstRtn2(const NodeBase*, const NodeBase*, Functor&&, Args...) {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
-        }
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchConstRtn2(const NodeBase*, const NodeBase*, Functor&&, Args...) {
+      	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+    }
 
 
     template <typename Functor, typename... Args>
@@ -94,12 +100,14 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType doubleDispatchConstRtn(const NodeBase*, const NodeBase*, Functor&&, Args...) {
+    static typename std::remove_reference<Functor>::type::ReturnType
+    doubleDispatchConstRtn(const NodeBase*, const NodeBase*, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchTreeConstRtn(const NodeBase*, const NodeBase*, Functor&&, Args...) {
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchTreeConstRtn(const NodeBase*, const NodeBase*, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
@@ -108,7 +116,8 @@ public:
     	typename Functor,
     	typename... Args
     >
-    static typename Functor::ReturnType dispatchStaticRtn(bool, bool, Functor&&, Args...) {
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchStaticRtn(bool, bool, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
@@ -117,7 +126,8 @@ public:
         	typename Functor,
         	typename... Args
     >
-    static typename Functor::ReturnType dispatchStatic2Rtn(bool, bool, Functor&&, Args...) {
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchStatic2Rtn(bool, bool, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
@@ -151,7 +161,8 @@ public:
     }
 
     template <typename Node, typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchConstRtn(const Node*, const NodeBase*, Functor&&, Args...) {
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchConstRtn(const Node*, const NodeBase*, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 };
@@ -174,7 +185,8 @@ public:
     }
 
     template <typename Node, typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchTreeConstRtn(const Node*, const NodeBase*, Functor&&, Args...) {
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchTreeConstRtn(const Node*, const NodeBase*, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 };
@@ -245,7 +257,8 @@ public:
 
 
     template <typename Node, typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchConstRtn(
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchConstRtn(
     		const Node* node1,
     		const NodeBase* node2,
     		Functor&& functor,
@@ -267,7 +280,8 @@ public:
 
 
     template <typename Node, typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchTreeConstRtn(
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchTreeConstRtn(
     		const Node* parent,
     		const NodeBase* child,
     		Functor&& functor,
@@ -318,7 +332,8 @@ public:
 
 
     template <typename Node, typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchTreeConstRtn(
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchTreeConstRtn(
     		const Node* parent,
     		const NodeBase* child,
     		Functor&& functor,
@@ -421,7 +436,8 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchRtn(NodeBase* node, Functor&& functor, Args... args)
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchRtn(NodeBase* node, Functor&& functor, Args... args)
     {
     	if (HASH == node->page_type_hash())
     	{
@@ -433,7 +449,8 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchRtn(NodeBase* node1, NodeBase* node2, Functor&& functor, Args... args)
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchRtn(NodeBase* node1, NodeBase* node2, Functor&& functor, Args... args)
     {
     	if (HASH == node1->page_type_hash())
     	{
@@ -470,19 +487,8 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchConstRtn(const NodeBase* node, Functor&& functor, Args... args)
-    {
-    	if (HASH == node->page_type_hash())
-    	{
-    		return functor.treeNode(static_cast<const Head*>(node), args...);
-    	}
-    	else {
-    		return NDT0<Types, Idx - 1>::dispatchConstRtn(node, std::move(functor), args...);
-    	}
-    }
-
-    template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchConstRtn(const NodeBase* node, Functor& functor, Args... args)
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchConstRtn(const NodeBase* node, Functor&& functor, Args... args)
     {
     	if (HASH == node->page_type_hash())
     	{
@@ -495,7 +501,8 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchConstRtn2(
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchConstRtn2(
     		const NodeBase* node1,
     		const NodeBase* node2,
     		Functor&& functor,
@@ -565,7 +572,8 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType doubleDispatchConstRtn(
+    static typename std::remove_reference<Functor>::type::ReturnType
+    doubleDispatchConstRtn(
     		const NodeBase* node1,
     		const NodeBase* node2,
     		Functor&& functor,
@@ -588,7 +596,8 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static typename Functor::ReturnType dispatchTreeConstRtn(
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchTreeConstRtn(
     		const NodeBase* parent,
     		const NodeBase* child,
     		Functor&& functor,
@@ -638,7 +647,8 @@ public:
     	typename Functor,
     	typename... Args
     >
-    static typename Functor::ReturnType dispatchStaticRtn(bool root, bool leaf, Functor&& fn, Args... args)
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchStaticRtn(bool root, bool leaf, Functor&& fn, Args... args)
     {
     	bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -659,7 +669,8 @@ public:
     typename Functor,
     typename... Args
     >
-    static typename Functor::ReturnType dispatchStatic2Rtn(bool root, bool leaf, Functor&& fn, Args... args)
+    static typename std::remove_reference<Functor>::type::ReturnType
+    dispatchStatic2Rtn(bool root, bool leaf, Functor&& fn, Args... args)
     {
     	if (root == Root && leaf == Leaf)
     	{

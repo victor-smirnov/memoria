@@ -148,8 +148,6 @@ void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
             ctr.mergeWithSiblings(path, 0, idxp);
         	idx = idxp.get();
         }
-
-//        ctr.finishPathStep(path, idx);
     }
     else {
         keys = self().getLeafKeys(path.leaf().node(), idx);

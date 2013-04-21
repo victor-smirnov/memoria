@@ -61,7 +61,8 @@ public:
 
 
 	template <typename Fn, typename... Args>
-	static typename Fn::ResultType dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args... args)
+	static typename std::remove_reference<Fn>::type::ResultType
+	dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args... args)
 	{
 		if (idx == Index)
 		{
@@ -74,7 +75,8 @@ public:
 	}
 
 	template <typename Fn, typename... Args>
-	static typename Fn::ResultType dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args... args)
+	static typename std::remove_reference<Fn>::type::ResultType
+	dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args... args)
 	{
 		if (idx == Index)
 		{
@@ -132,7 +134,8 @@ public:
 	}
 
 	template <typename Fn, typename... Args>
-	static typename Fn::ResultType dispatchStaticRtn(Int idx, Fn&& fn, Args... args)
+	static typename std::remove_reference<Fn>::type::ResultType
+	dispatchStaticRtn(Int idx, Fn&& fn, Args... args)
 	{
 		if (idx == Index)
 		{

@@ -68,8 +68,8 @@ public:
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
         MEMORIA_ADD_TEST_PARAM(random_position_)->state();
 
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart, 	replayInsertFromStart);
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd, 		replayInsertAtEnd);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart, 	replayInsertFromStart);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd, 		replayInsertAtEnd);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
 //
 //        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart, 	replayRemoveFromStart);
