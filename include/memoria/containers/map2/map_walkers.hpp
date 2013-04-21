@@ -175,7 +175,7 @@ public:
 	{
 		node->process(0, *this, node->level(), start);
 
-		return node->children_count() - 1;
+		return node->size(0) - 1;
 	}
 
 	template <Int Idx, typename Tree>
@@ -277,7 +277,7 @@ public:
 	{
 		node->process(0, *this);
 
-		return node->children_count() - 1;
+		return node->size(0) - 1;
 	}
 
 	template <Int Idx, typename Tree>

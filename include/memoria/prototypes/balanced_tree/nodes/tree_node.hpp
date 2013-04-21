@@ -96,10 +96,10 @@ public:
         return size_;
     }
 
-    Int children_count() const
-    {
-        return size_;
-    }
+//    Int children_count() const
+//    {
+//        return size_;
+//    }
 
     const Int& level() const
     {
@@ -1129,7 +1129,6 @@ public:
             tgt->init(new_size);
 
             me->transferDataTo(tgt);
-            tgt->set_children_count(me->children_count());
 
             tgt->clearUnused();
             tgt->reindex();
@@ -1210,7 +1209,7 @@ void ConvertNodeToRoot(
 
 	src->transferDataTo(tgt);
 
-	tgt->set_children_count(src->children_count());
+	tgt->set_children_count(src->size(0));
 
 	tgt->clearUnused();
 
@@ -1232,7 +1231,7 @@ void ConvertRootToNode(
 
 	src->transferDataTo(tgt);
 
-	tgt->set_children_count(src->children_count());
+	tgt->set_children_count(src->size(0));
 
 	tgt->clearUnused();
 

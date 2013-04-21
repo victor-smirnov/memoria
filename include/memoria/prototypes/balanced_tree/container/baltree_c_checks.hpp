@@ -114,7 +114,7 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
 
     errors = self.check_node_content(parent, parent_idx, node) || errors;
 
-    Int children = node->children_count();
+    Int children = self.getNodeSize(node, 0);
 
     if (children == 0 && !node->is_root())
     {

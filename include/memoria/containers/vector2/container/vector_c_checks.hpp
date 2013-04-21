@@ -116,7 +116,7 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
         errors = self.check_leaf_node(parent, parent_idx, node) || errors;
     }
     else {
-    	Int children = node->children_count();
+    	Int children = self.getNodeSize(node, 0);
 
     	if (children == 0 && !node->is_root())
     	{
@@ -144,14 +144,8 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
 M_PARAMS
 bool M_TYPE::check_leaf_node(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf) const
 {
-
-
 	return false;
 }
-//template <typename Node1, typename Node2>
-//bool M_TYPE::checkNodeWithParentContent(const Node1 *node, const Node2 *parent, Int parent_idx) const
-//
-
 
 M_PARAMS
 template <typename NodeTypes, bool root, bool leaf, typename Node2>

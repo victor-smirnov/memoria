@@ -263,12 +263,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
     void reindexAndUpdateCounters(NodeBaseG& node, Int from, Int count) const
     {
-        if (from + count == node->children_count())
+    	auto& self = this->self();
+
+        if (from + count == self.getNodeSize(node, 0))
         {
-            me()->reindexRegion(node, from, from + count);
+            self.reindexRegion(node, from, from + count);
         }
         else {
-            me()->reindex(node);
+            self.reindex(node);
         }
     }
 
@@ -532,8 +534,8 @@ void M_TYPE::insertInternalSubtree(
 
             if (total_keys <= total_capacity)
             {
-                Int left_usage  = left_path[level]->children_count();
-                Int right_usage = right_path[level]->children_count();
+                Int left_usage  = self.getNodeSize(left_path[level], 0);
+                Int right_usage = self.getNodeSize(right_path[level], 0);
 
                 if (left_usage < right_usage)
                 {

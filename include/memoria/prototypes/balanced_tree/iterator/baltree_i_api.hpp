@@ -442,11 +442,14 @@ bool M_TYPE::hasNextLeaf()
 M_PARAMS
 bool M_TYPE::prevLeaf()
 {
-    if (me()->model().getPrevNode(me()->path()))
+	auto& self = this->self();
+	auto& ctr = self.model();
+
+    if (ctr.getPrevNode(self.path()))
     {
         // FIXME: keyNum
 
-        me()->key_idx() = me()->page()->children_count() - 1;
+        self.key_idx() = ctr.getNodeSize(self.page(), 0) - 1;
 
         return true;
     }

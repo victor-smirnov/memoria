@@ -129,7 +129,7 @@ void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
 {
     auto& ctr = self();
 
-	Int children_count  = path.leaf()->children_count();
+	Int children_count  = ctr.getNodeSize(path.leaf(), 0);
 
     //if leaf page has more than 1 key do regular remove
 

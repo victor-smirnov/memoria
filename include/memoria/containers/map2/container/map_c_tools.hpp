@@ -88,12 +88,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
 
     	node->value(idx) = element.second;
 
-    	if (idx == node->children_count() - 1)
+    	if (idx == node->size(0) - 1)
     	{
     		node->reindexAll(idx, idx + 1);
     	}
     	else {
-    		node->reindexAll(idx, node->children_count());
+    		node->reindexAll(idx, node->size(0));
     	}
     }
 

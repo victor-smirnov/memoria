@@ -210,7 +210,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     MEMORIA_CONST_FN_WRAPPER_RTN(CanConvertToRootFn, canConvertToRootFn, bool);
 
-    bool canConvertToRoot(NodeBase* node) const
+    bool canConvertToRoot(const NodeBaseG& node) const
     {
         return NonRootDispatcher::dispatchConstRtn(node, CanConvertToRootFn(me()));
     }
@@ -241,7 +241,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     MEMORIA_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
 
-    NodeBaseG getChild(const NodeBase *node, Int idx, Int flags) const
+    NodeBaseG getChild(const NodeBaseG& node, Int idx, Int flags) const
     {
     	NodeBaseG result = NonLeafDispatcher::dispatchConstRtn(node, GetChildFn(me()), idx, flags);
 
@@ -254,9 +254,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	}
     }
 
-    NodeBaseG getLastChild(const NodeBase *node, Int flags) const
+    NodeBaseG getLastChild(const NodeBaseG& node, Int flags) const
     {
-        return getChild(node, node->children_count() - 1, flags);
+        return getChild(node, self().getNodeSize(node, 0) - 1, flags);
     }
 
 
@@ -505,7 +505,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     bool getNextNode(TreePath& path, Int level = 0, bool down = false) const
     {
-        Int idx = path[level].node()->children_count();
+        Int idx = self().getNodeSize(path[level].node(), 0);
         return getNextNode(path, level, idx, down ? 0 : level );
     }
 
@@ -657,22 +657,20 @@ void M_TYPE::addTotalKeyCount(TreePath& path, BigInt value)
 M_PARAMS
 bool M_TYPE::getNextNode(TreePath& path, Int level, Int idx, Int target_level) const
 {
-    NodeBaseG& page = path[level].node();
+    auto& self = this->self();
 
-    if (idx < page->children_count())
+	NodeBaseG& page = path[level].node();
+
+    if (idx < self.getNodeSize(page, 0))
     {
         for(; level != target_level && level > 0; level--)
         {
-            path[level - 1].node()          = me()->getChild(path[level].node(), idx, Allocator::READ);
+            path[level - 1].node()          = self.getChild(path[level].node(), idx, Allocator::READ);
             path[level - 1].parent_idx()    = idx;
 
             idx = 0;
         }
 
-        if (level == 0)
-        {
-            me()->finishPathStep(path, idx);
-        }
         return true;
     }
     else {
@@ -689,21 +687,18 @@ bool M_TYPE::getNextNode(TreePath& path, Int level, Int idx, Int target_level) c
 M_PARAMS
 bool M_TYPE::getPrevNode(TreePath& path, Int level, Int idx, Int target_level) const
 {
-    NodeBaseG& page = path[level].node();
+	auto& self = this->self();
+
+	NodeBaseG& page = path[level].node();
 
     if (idx >= 0)
     {
         for(; level != target_level && level > 0; level--)
         {
-            path[level - 1].node()          = me()->getChild(path[level].node(), idx, Allocator::READ);
+            path[level - 1].node()          = self.getChild(path[level].node(), idx, Allocator::READ);
             path[level - 1].parent_idx()    = idx;
 
-            idx = path[level - 1].node()->children_count() - 1;
-        }
-
-        if (level == 0)
-        {
-            me()->finishPathStep(path, idx);
+            idx = self.getNodeSize(path[level - 1].node(), 0) - 1;
         }
 
         return true;
@@ -739,7 +734,7 @@ bool M_TYPE::checkNodeContent(Node *node) {
     for (Int i = 0; i < Indexes; i++) {
         Key key = 0;
 
-        for (Int c = 0; c < node->children_count(); c++) {
+        for (Int c = 0; c < self().getNodeSize(node, 0); c++) {
             key += node->map().key(i, c);
         }
 

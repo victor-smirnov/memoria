@@ -589,14 +589,16 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
 
 	for (Int c = 1; c < path.getSize(); c++)
     {
-        if (path[c]->children_count() > 1)
+		Int node_size = self.getNodeSize(path[c], 0);
+
+		if (node_size > 1)
         {
             Accumulator accum;
 
             Int idx = path[c - 1].parent_idx();
             self.removeRoom(path, c, Position(idx), Position(1), accum);
 
-            if (idx == path[c]->children_count())
+            if (idx == node_size)
             {
                 if (self.getNextNode(path, c, true))
                 {
@@ -607,12 +609,10 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
                     for (Int d = c - 1; d >= 0; d--)
                     {
                         path[d].node()          = self.getLastChild(path[d + 1].node(), Allocator::READ);
-                        path[d].parent_idx()    = path[d + 1]->children_count() - 1;
+                        path[d].parent_idx()    = self.getNodeSize(path[d + 1], 0) - 1;
                     }
 
-                    key_idx = path.leaf()->children_count();
-
-                    self.finishPathStep(path, key_idx);
+                    key_idx = self.getNodeSize(path.leaf(), 0);
                 }
             }
             else
@@ -625,7 +625,6 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
                     idx = 0;
                 }
 
-                self.finishPathStep(path, 0);
                 key_idx = 0;
             }
 
@@ -671,7 +670,7 @@ BigInt M_TYPE::removeNode(NodeBaseG node)
 {
     auto& self = this->self();
 
-	const Int children_count = node->children_count();
+	const Int children_count = self.getNodeSize(node, 0);
 
     BigInt count = 0;
 
@@ -713,7 +712,7 @@ bool M_TYPE::changeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
 {
 	auto& self = this->self();
 
-	if (parent.isSet() && parent->is_root() && parent->children_count() == 1)
+	if (parent.isSet() && parent->is_root() && self.getNodeSize(parent, 0) == 1)
     {
         Metadata meta = self.getRootMetadata();
 
@@ -753,7 +752,7 @@ void M_TYPE::removeRedundantRoot(TreePath& path, Int level)
     {
         NodeBaseG& node = path[c].node();
 
-        if (node->children_count() == 1)
+        if (self.getNodeSize(node, 0) == 1)
         {
             Metadata root_metadata = self.getRootMetadata();
 
@@ -801,7 +800,7 @@ void M_TYPE::removeRedundantRoot(TreePath& first, TreePath& second, Int level)
     {
         NodeBaseG& node = first[c].node();
 
-        if (node->children_count() == 1)
+        if (self.getNodeSize(node, 0) == 1)
         {
             Metadata root_metadata = self.getRootMetadata();
 

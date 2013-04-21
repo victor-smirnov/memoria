@@ -203,13 +203,15 @@ public:
     {
     	checkIteratorPrefix(iter, source);
 
+    	auto& ctr  = iter.model();
     	auto& path = iter.path();
 
     	for (Int level = path.getSize() - 1; level > 0; level--)
     	{
     		bool found = false;
 
-    		for (Int idx = 0; idx < path[level]->children_count(); idx++)
+    		Int node_size = ctr.getNodeSize(path[level], 0);
+    		for (Int idx = 0; idx < node_size; idx++)
     		{
     			ID id = iter.model().getChildID(path[level].node(), idx);
     			if (id == path[level - 1]->id())

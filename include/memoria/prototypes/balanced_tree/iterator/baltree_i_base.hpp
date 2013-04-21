@@ -222,7 +222,7 @@ public:
 
     bool isEnd() const
     {
-        return page().isSet() ? key_idx() >= page()->children_count() : true;
+        return page().isSet() ? key_idx() >= self().model().getNodeSize(page(), 0) : true;
     }
 
     bool isNotEnd() const
@@ -232,7 +232,7 @@ public:
 
     bool isEmpty() const
     {
-        return page().isEmpty() || page()->children_count() == 0;
+        return page().isEmpty() || self().model().getNodeSize(page(), 0) == 0;
     }
 
     bool isNotEmpty() const

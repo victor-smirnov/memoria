@@ -220,6 +220,8 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
 
     auto& ctr  = self();
 
+    Int node_size = ctr.getNodeSize(node, 0);
+
     if (ctr.getCapacity(node) > 0)
     {
         ctr.makeRoom(path, 0, Position(idx), Position(1));
@@ -227,12 +229,12 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
     else if (idx == 0)
     {
         TreePath next = path;
-        ctr.splitPath(path, next, 0, Position(node->children_count() / 2));
+        ctr.splitPath(path, next, 0, Position(node_size / 2));
         idx = 0;
 
         ctr.makeRoom(path, 0, Position(idx), Position(1));
     }
-    else if (idx < node->children_count())
+    else if (idx < node_size)
     {
         //FIXME: does it necessary to split the page at the middle ???
         TreePath next = path;
@@ -242,11 +244,11 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
     else {
         TreePath next = path;
 
-        ctr.splitPath(path, next, 0, Position(node->children_count() / 2));
+        ctr.splitPath(path, next, 0, Position(node_size / 2));
 
         path = next;
 
-        idx = node->children_count();
+        idx = ctr.getNodeSize(node, 0);
         ctr.makeRoom(path, 0, Position(idx), Position(1));
     }
 

@@ -166,7 +166,7 @@ public:
 
     		Iterator i3 = ctr.End();
     		AssertTrue(MA_SRC, i3.isEnd());
-    		AssertEQ(MA_SRC, i3.entry_idx(), i3.leaf()->children_count());
+    		AssertEQ(MA_SRC, i3.entry_idx(), ctr.getNodeSize(i3.leaf(), 0));
 
     		Iterator i4 = ctr.REnd();
     		AssertTrue(MA_SRC, i4.isBegin());

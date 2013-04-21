@@ -149,7 +149,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrToolsName)
     	typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
     	typedef typename Node::RootNodeType RootType;
 
-    	Int node_children_count = node->children_count();
+    	Int node_children_count = node->size(0);
 
     	Int root_block_size 	= node->page_size();
 
