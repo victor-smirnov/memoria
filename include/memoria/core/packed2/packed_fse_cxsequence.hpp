@@ -199,10 +199,6 @@ public:
 	{
 		if (has_index())
 		{
-			if (rank == 2 && symbol == 173) {
-				int a = 0; a++;
-			}
-
 			Int value_blocks 		= getValueBlocks(max_size());
 			Int index_from 			= value_blocks * symbol;
 			Int index_to 			= value_blocks * (symbol + 1);
@@ -210,7 +206,7 @@ public:
 			const Index* seq_index 	= index();
 
 			Int prefix   = seq_index->sum(index_from);
-			auto result  = seq_index->findLE(rank + prefix);
+			auto result  = seq_index->findLEForward(rank + prefix);
 
 			MEMORIA_ASSERT(result.idx(), <, index_to);
 

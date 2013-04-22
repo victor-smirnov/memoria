@@ -113,10 +113,9 @@ public:
 	ResultType stream(const Tree* tree, Int start)
 	{
 		auto k 		= Base::key_ - Base::prefix_;
-		auto prefix = tree->sum(0, start);
-		auto result = tree->findLT(k + prefix);
+		auto result = tree->findLTForward(start, k);
 
-		Base::prefix_ 	+= (result.prefix() - prefix);
+		Base::prefix_ 	+= result.prefix();
 
 		return result.idx();
 	}
@@ -132,26 +131,13 @@ public:
 
 		Int size = node->size(0);
 
-		if (Base::direction_ == WalkDirection::DOWN)
+		if (start + pos < size)
 		{
-			if (start + pos < size)
-			{
-				return start + pos;
-			}
-			else {
-				Base::prefix_ += (size - start);
-				return size;
-			}
+			return start + pos;
 		}
 		else {
-			if (start + pos < size)
-			{
-				return start + pos;
-			}
-			else {
-				Base::prefix_ += size - start;
-				return size;
-			}
+			Base::prefix_ += (size - start);
+			return size;
 		}
 	}
 };
@@ -180,27 +166,11 @@ public:
 	template <Int Idx, typename Tree>
 	ResultType stream(const Tree* tree, Int start)
 	{
-		auto k 		= Base::key_ - Base::prefix_;
-		auto prefix = tree->sum(0, start + 1);
+		auto k 			= Base::key_ - Base::prefix_;
+		auto result 	= tree->findLTBackward(start, k);
+		Base::prefix_ 	+= result.prefix();
 
-		auto target = prefix - k;
-
-		if (target > 0)
-		{
-			auto result 	= tree->findLT(prefix - k);
-			Base::prefix_ 	+= (prefix - (result.prefix() + tree->value(result.idx())));
-
-			return result.idx();
-		}
-		else if (target == 0)
-		{
-			Base::prefix_ 	+= prefix - tree->firstValue();
-			return 0;
-		}
-		else {
-			Base::prefix_ 	+= prefix;
-			return -1;
-		}
+		return result.idx();
 	}
 
 
@@ -209,30 +179,14 @@ public:
 	{
 		BigInt pos = Base::key_ - Base::prefix_;
 
-//		Int size = node->size(0);
+		Base::prefix_ += start;
 
-		if (Base::direction_ == WalkDirection::DOWN)
+		if (start - pos >= 0)
 		{
-			Base::prefix_ += start;
-
-			if (start - pos >= 0)
-			{
-				return start - pos;
-			}
-			else {
-				return -1;
-			}
+			return start - pos;
 		}
 		else {
-			Base::prefix_ += start;
-
-			if (start - pos >= 0)
-			{
-				return start - pos;
-			}
-			else {
-				return -1;
-			}
+			return -1;
 		}
 	}
 };

@@ -118,7 +118,7 @@ public:
 
 		auto target 	= key - prefix;
 
-		auto result 	= tree->findLE(target);
+		auto result 	= tree->findLEForward(target);
 
 		prefix += result.prefix();
 

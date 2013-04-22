@@ -93,7 +93,7 @@ public:
 
 	static const Int BranchingFactor        = Types::BranchingFactor;
 	static const Int ValuesPerBranch        = Types::ValuesPerBranch;
-	static const Int Indexes        		= Types::Blocks;
+	static const Int Indexes        		= 1;
 	static const Int Blocks        			= Types::Blocks;
 
 	struct Codec {
@@ -534,7 +534,7 @@ public:
 		return sum(to) - sum(from);
 	}
 
-	ValueDescr findLT(IndexKey val) const
+	ValueDescr findLTForward(IndexKey val) const
 	{
 		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val);
 
@@ -545,7 +545,48 @@ public:
 		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
 	}
 
-	ValueDescr findLE(IndexKey val) const
+
+	ValueDescr findLTForward(Int start, IndexKey val) const
+	{
+		auto prefix = start > 0 ? sum(start) : 0;
+
+		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val + prefix);
+
+		Int pos = this->find_fw(fn);
+
+		Value actual_value = value(pos);
+
+		return ValueDescr(actual_value + fn.sum(), pos, fn.sum() - prefix);
+	}
+
+
+	ValueDescr findLTBackward(Int start, IndexKey val) const
+	{
+		auto prefix = sum(start + 1);
+		auto target = prefix - val;
+
+		if (target > 0)
+		{
+			FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
+
+			Int pos = this->find_fw(fn);
+
+			Value actual_value = value(pos);
+
+			return ValueDescr(actual_value + fn.sum(), pos, prefix - (fn.sum() + actual_value));
+		}
+		else if (target == 0)
+		{
+			return ValueDescr(0, 0, prefix - value(0));
+		}
+		else {
+			return ValueDescr(0, -1, prefix);
+		}
+	}
+
+
+
+	ValueDescr findLEForward(IndexKey val) const
 	{
 		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
 
@@ -555,6 +596,33 @@ public:
 
 		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
 	}
+
+	ValueDescr findLEForward(Int start, IndexKey val) const
+	{
+		auto prefix = start > 0 ? sum(start) : 0;
+
+		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
+
+		Int pos = this->find_fw(fn);
+
+		Value actual_value = value(pos + prefix);
+
+		return ValueDescr(actual_value + fn.sum(), pos, fn.sum() - prefix);
+	}
+
+//	ValueDescr findLEForward(Int start, IndexKey val) const
+//	{
+//		auto prefix = sum(start);
+//
+//		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
+//
+//		Int pos = this->find_fw(fn);
+//
+//		Value actual_value = value(pos + prefix);
+//
+//		return ValueDescr(actual_value + fn.sum(), pos, fn.sum() - prefix);
+//	}
+
 
 	ValueDescr findLEl(IndexKey val) const
 	{
@@ -768,7 +836,6 @@ public:
 		if (index_size() > 0)
 		{
 			Base::update_up(idx, UpdateUpFn(*this, block_num, key_value));
-//			reindex();
 		}
 	}
 
