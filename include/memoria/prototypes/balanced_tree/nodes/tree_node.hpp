@@ -44,21 +44,9 @@ private:
 
     Int root_;
     Int leaf_;
-    Int bitmap_;
     Int level_;
 
-    Int size_;
-
 public:
-
-
-
-    enum {
-        LEAF          = 0,
-        ROOT          = 1,
-        BITMAP        = 2
-    }                                       	FLAGS;
-
     typedef Base_                               Base;
     typedef TreeNodeBase<Base>                  Me;
     typedef Me 									BasePageType;
@@ -83,24 +71,6 @@ public:
         leaf_ = leaf;
     }
 
-    inline bool isBitmap() const {
-        return bitmap_;
-    }
-
-    void setBitmap(bool bitmap) {
-        bitmap_ = bitmap;
-    }
-
-    Int size() const
-    {
-        return size_;
-    }
-
-//    Int children_count() const
-//    {
-//        return size_;
-//    }
-
     const Int& level() const
     {
     	return level_;
@@ -111,11 +81,6 @@ public:
     	return level_;
     }
 
-protected:
-    Int& map_size()
-    {
-        return size_;
-    }
 public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
@@ -124,8 +89,6 @@ public:
 
         handler->value("ROOT", 		&root_);
         handler->value("LEAF", 		&leaf_);
-        handler->value("BITMAP",	&bitmap_);
-        handler->value("SIZE", 		&size_);
         handler->value("LEVEL", 	&level_);
     }
 
@@ -136,10 +99,7 @@ public:
 
         FieldFactory<Int>::serialize(buf, root_);
         FieldFactory<Int>::serialize(buf, leaf_);
-        FieldFactory<Int>::serialize(buf, bitmap_);
         FieldFactory<Int>::serialize(buf, level_);
-
-        FieldFactory<Int>::serialize(buf, size_);
     }
 
     template <template <typename> class FieldFactory>
@@ -149,10 +109,7 @@ public:
 
         FieldFactory<Int>::deserialize(buf, root_);
         FieldFactory<Int>::deserialize(buf, leaf_);
-        FieldFactory<Int>::deserialize(buf, bitmap_);
         FieldFactory<Int>::deserialize(buf, level_);
-
-        FieldFactory<Int>::deserialize(buf, size_);
     }
 
     void copyFrom(const Me* page)
@@ -161,12 +118,7 @@ public:
 
         this->set_root(page->is_root());
         this->set_leaf(page->is_leaf());
-        this->setBitmap(page->isBitmap());
-
         this->level() = page->level();
-
-        //???
-        this->size_  = page->size();
     }
 };
 
@@ -583,7 +535,6 @@ public:
 
     void set_children_count(Int map_size)
     {
-        Base::map_size() = map_size;
         Dispatcher::dispatchAll(&allocator_, SetChildrenCountFn(), map_size);
     }
 
@@ -597,7 +548,6 @@ public:
 
     void inc_size(Int count)
     {
-        Base::map_size() += count;
         Dispatcher::dispatchAll(&allocator_, IncSizeFn(), count);
     }
 

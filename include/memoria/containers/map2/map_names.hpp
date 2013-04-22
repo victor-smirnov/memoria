@@ -20,8 +20,7 @@ class CtrToolsName 	{};
 class CtrRemoveName {};
 
 class ItrApiName {};
-class ItrBaltreeApiName {};
-class ItrBaltreeApi2Name {};
+class ItrNavName {};
 
 
 }

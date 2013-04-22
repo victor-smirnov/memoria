@@ -45,6 +45,32 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
 	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
 	typedef typename Container::Position										Position;
 
+	bool operator++() {
+		return self().skipFw(1);
+	}
+
+	bool operator--() {
+		return self().skipBw(1);
+	}
+
+	bool operator++(int) {
+		return self().skipFw(1);
+	}
+
+	bool operator--(int) {
+		return self().skipFw(1);
+	}
+
+	BigInt operator+=(BigInt size)
+	{
+		return self().skipFw(size);
+	}
+
+	BigInt operator-=(BigInt size)
+	{
+		return self().skipBw(size);
+	}
+
 	bool isEof() const {
 		return self().key_idx() >= self().size();
 	}

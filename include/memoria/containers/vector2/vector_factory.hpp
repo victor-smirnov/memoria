@@ -26,7 +26,6 @@
 
 #include <memoria/containers/vector2/vector_iterator.hpp>
 #include <memoria/containers/vector2/iterator/vector_i_api.hpp>
-#include <memoria/containers/vector2/iterator/baltree_i_api.hpp>
 
 #include <memoria/containers/vector2/vector_names.hpp>
 
@@ -83,8 +82,7 @@ struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTree
 
     typedef typename MergeLists<
     		typename Base::IteratorPartsList,
-    		memoria::mvector2::ItrApiName,
-    		memoria::mvector2::ItrBaltreeApiName
+    		memoria::mvector2::ItrApiName
     >::Result                                           						IteratorPartsList;
 
     typedef IDataSource<Value>													DataSource;

@@ -22,8 +22,6 @@ class CtrChecksName {};
 class CtrFindName {};
 
 class ItrApiName {};
-class ItrBaltreeApiName {};
-
 }
 
 template <typename Types>

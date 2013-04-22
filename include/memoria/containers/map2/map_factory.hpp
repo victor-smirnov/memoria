@@ -22,7 +22,7 @@
 
 #include <memoria/containers/map2/map_iterator.hpp>
 #include <memoria/containers/map2/iterator/map_i_api.hpp>
-#include <memoria/containers/map2/iterator/baltree_i_api.hpp>
+#include <memoria/containers/map2/iterator/map_i_nav.hpp>
 
 
 
@@ -72,7 +72,7 @@ struct BalancedTreeTypes<Profile, memoria::Map2<Key_, Value_> >: public Balanced
 	typedef typename MergeLists<
 				typename Base::IteratorPartsList,
 				memoria::map2::ItrApiName,
-				memoria::map2::ItrBaltreeApiName
+				memoria::map2::ItrNavName
 	>::Result                                           						IteratorPartsList;
 
 
