@@ -15,7 +15,7 @@
 
 #include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
 
-#include <memoria/containers/vector2/nodes/leaf_node.hpp>
+#include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
 
 #include <ostream>
 

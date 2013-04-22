@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_VECTOR2_NODES_LEAF_HPP
-#define _MEMORIA_CONTAINERS_VECTOR2_NODES_LEAF_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_NODES_LEAFNODE_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_NODES_LEAFNODE_HPP
 
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/types/algo/select.hpp>
@@ -24,7 +24,7 @@
 
 
 namespace memoria    	{
-namespace mvector2 		{
+namespace balanced_tree	{
 
 
 
@@ -33,7 +33,7 @@ template <
 	typename K,
 	typename V
 >
-struct LeafNodeTypes: PackedFSETreeTypes<K, K, V> {
+struct TreeLeafNodeTypes: PackedFSETreeTypes<K, K, V> {
 
 };
 
@@ -87,7 +87,7 @@ public:
     friend class NodePageAdaptor;
 
 
-	typedef LeafNodeTypes<
+	typedef TreeLeafNodeTypes<
 			Key,Value
 	>																			TreeTypes;
 
@@ -696,18 +696,15 @@ public:
 };
 
 
-}
 
-
-namespace balanced_tree {
 
 template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
 void ConvertNodeToRoot(
-	const TreeNode<mvector2::TreeLeafNode, Types, root1, leaf1>* src,
-	TreeNode<mvector2::TreeLeafNode, Types, root2, leaf2>* tgt
+	const TreeNode<TreeLeafNode, Types, root1, leaf1>* src,
+	TreeNode<TreeLeafNode, Types, root2, leaf2>* tgt
 )
 {
-	typedef TreeNode<mvector2::TreeLeafNode, Types, root2, leaf2> RootType;
+	typedef TreeNode<TreeLeafNode, Types, root2, leaf2> RootType;
 
 	tgt->copyFrom(src);
 
@@ -726,11 +723,11 @@ void ConvertNodeToRoot(
 
 template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
 void ConvertRootToNode(
-	const TreeNode<mvector2::TreeLeafNode, Types, root1, leaf1>* src,
-	TreeNode<mvector2::TreeLeafNode, Types, root2, leaf2>* tgt
+	const TreeNode<TreeLeafNode, Types, root1, leaf1>* src,
+	TreeNode<TreeLeafNode, Types, root2, leaf2>* tgt
 )
 {
-	typedef TreeNode<mvector2::TreeLeafNode, Types, root2, leaf2> NonRootNode;
+	typedef TreeNode<TreeLeafNode, Types, root2, leaf2> NonRootNode;
 
 	tgt->copyFrom(src);
 
@@ -754,9 +751,9 @@ void ConvertRootToNode(
 
 
 template <typename Types, bool root, bool leaf>
-struct TypeHash<mvector2::TreeLeafNode<Types, root, leaf> > {
+struct TypeHash<balanced_tree::TreeLeafNode<Types, root, leaf> > {
 
-	typedef mvector2::TreeLeafNode<Types, root, leaf> Node;
+	typedef balanced_tree::TreeLeafNode<Types, root, leaf> Node;
 
     static const UInt Value = HashHelper<
     		TypeHash<typename Node::Base>::Value,

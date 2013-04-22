@@ -79,6 +79,138 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
         virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size)	= 0;
     };
 
+
+
+
+
+
+
+
+    class DefaultSubtreeProviderBase: public ISubtreeProvider {
+
+    	MyType& ctr_;
+
+    public:
+    	DefaultSubtreeProviderBase(MyType& ctr): ctr_(ctr) {}
+
+    	virtual NonLeafNodeKeyValuePair getKVPair(BigInt begin, BigInt total, Int level)
+    	{
+    		BigInt local_count = 0;
+    		return BuildTree(begin, local_count, total, level - 1);
+    	}
+
+    	MyType& ctr() {
+    		return ctr_;
+    	}
+
+    	const MyType& ctr() const {
+    		return ctr_;
+    	}
+
+
+    private:
+    	NonLeafNodeKeyValuePair BuildTree(BigInt start, BigInt& count, const BigInt total, Int level)
+    	{
+    		NonLeafNodeKeyValuePair pair;
+    		pair.key_count = 0;
+
+
+
+    		if (level > 0)
+    		{
+    			Int max_keys = ctr_.getMaxKeyCountForNode(false, level == 0, level);
+
+    			// FIXME: buffer size can be too small
+    			NonLeafNodeKeyValuePair children[2000];
+
+    			Int local = 0;
+    			for (Int c = 0; c < max_keys && count < total; c++, local++)
+    			{
+    				children[c]     =  BuildTree(start, count, total, level - 1);
+    				pair.key_count  += children[c].key_count;
+    			}
+
+    			NodeBaseG node = ctr_.createNode(level, false, false);
+
+    			setINodeData(children, node, local);
+
+    			pair.keys  = ctr_.getMaxKeys(node);
+    			pair.value = node->id();
+    		}
+    		else
+    		{
+    			NodeBaseG node = ctr_.createNode(level, false, true);
+
+    			count++;
+    			pair.keys = this->insertIntoLeaf(node);
+
+    			pair.value      =  node->id();
+    			pair.key_count  += 1;
+    		}
+
+    		return pair;
+    	}
+
+    	template <typename PairType, typename ParentPairType>
+    	struct SetNodeValuesFn
+    	{
+    		PairType*       pairs_;
+    		Int             count_;
+
+    		ParentPairType  total_;
+
+    		SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
+
+    		template <typename Node>
+    		void treeNode(Node* node)
+    		{
+    			for (Int c = 0; c < count_; c++)
+    			{
+    				node->setKeys(c, pairs_[c].keys);
+
+    				node->value(c) = pairs_[c].value;
+    			}
+
+    			node->set_children_count(count_);
+
+    			node->reindex();
+
+    			total_.keys = node->maxKeys();
+
+    			total_.value = node->id();
+    		}
+    	};
+
+    	template <typename PairType>
+    	NonLeafNodeKeyValuePair setINodeData(PairType* data, NodeBaseG& node, Int count)
+    	{
+    		SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
+    		NonLeafDispatcher::dispatch(node, fn);
+    		return fn.total_;
+    	}
+    };
+
+    struct InsertSharedData {
+
+    	ISubtreeProvider& provider;
+
+    	Accumulator accumulator;
+
+    	BigInt start;
+    	BigInt end;
+    	BigInt total;
+
+    	BigInt remains;
+
+    	BigInt first_cell_key_count;
+
+    	InsertSharedData(ISubtreeProvider& provider_):
+    		provider(provider_), start(0), end(0),
+    		total(provider_.getTotalKeyCount()), remains(total), first_cell_key_count(0) {}
+    };
+
+
+
     BigInt divide(BigInt op1, BigInt op2)
     {
         return (op1 / op2) + ((op1 % op2 == 0) ?  0 : 1);
@@ -111,133 +243,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
     void newRoot(TreePath& path);
 
-    class DefaultSubtreeProviderBase: public ISubtreeProvider {
 
-        MyType& ctr_;
-
-    public:
-        DefaultSubtreeProviderBase(MyType& ctr): ctr_(ctr) {}
-
-        virtual NonLeafNodeKeyValuePair getKVPair(BigInt begin, BigInt total, Int level)
-        {
-            BigInt local_count = 0;
-            return BuildTree(begin, local_count, total, level - 1);
-        }
-
-        MyType& ctr() {
-            return ctr_;
-        }
-
-        const MyType& ctr() const {
-            return ctr_;
-        }
-
-
-    private:
-        NonLeafNodeKeyValuePair BuildTree(BigInt start, BigInt& count, const BigInt total, Int level)
-        {
-            NonLeafNodeKeyValuePair pair;
-            pair.key_count = 0;
-
-
-
-            if (level > 0)
-            {
-            	Int max_keys = ctr_.getMaxKeyCountForNode(false, level == 0, level);
-
-            	// FIXME: buffer size can be too small
-                NonLeafNodeKeyValuePair children[2000];
-
-                Int local = 0;
-                for (Int c = 0; c < max_keys && count < total; c++, local++)
-                {
-                    children[c]     =  BuildTree(start, count, total, level - 1);
-                    pair.key_count  += children[c].key_count;
-                }
-
-                NodeBaseG node = ctr_.createNode(level, false, false);
-
-                setINodeData(children, node, local);
-
-                pair.keys  = ctr_.getMaxKeys(node);
-                pair.value = node->id();
-            }
-            else
-            {
-                NodeBaseG node = ctr_.createNode(level, false, true);
-
-                count++;
-                pair.keys = this->insertIntoLeaf(node);
-
-                pair.value      =  node->id();
-                pair.key_count  += 1;
-            }
-
-            return pair;
-        }
-
-        template <typename PairType, typename ParentPairType>
-        struct SetNodeValuesFn
-        {
-            PairType*       pairs_;
-            Int             count_;
-
-            ParentPairType  total_;
-
-            SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
-
-            template <typename Node>
-            void treeNode(Node* node)
-            {
-                for (Int c = 0; c < count_; c++)
-                {
-                    node->setKeys(c, pairs_[c].keys);
-
-                    node->value(c) = pairs_[c].value;
-                }
-
-                node->set_children_count(count_);
-
-                node->reindex();
-
-                total_.keys = node->maxKeys();
-
-                total_.value = node->id();
-            }
-        };
-
-        template <typename PairType>
-        NonLeafNodeKeyValuePair setINodeData(PairType* data, NodeBaseG& node, Int count)
-        {
-            SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
-            NonLeafDispatcher::dispatch(node, fn);
-            return fn.total_;
-        }
-    };
 
 
 
 
 //private:
 
-    struct InsertSharedData
-    {
-        ISubtreeProvider& provider;
 
-        Accumulator accumulator;
-
-        BigInt start;
-        BigInt end;
-        BigInt total;
-
-        BigInt remains;
-
-        BigInt first_cell_key_count;
-
-        InsertSharedData(ISubtreeProvider& provider_):
-            provider(provider_), start(0), end(0),
-            total(provider_.getTotalKeyCount()), remains(total), first_cell_key_count(0) {}
-    };
 
 
     void insertSubtree(TreePath& path, Int &idx, InsertSharedData& data)

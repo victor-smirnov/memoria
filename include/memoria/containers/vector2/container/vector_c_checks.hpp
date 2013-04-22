@@ -10,7 +10,7 @@
 
 
 #include <memoria/containers/vector2/vector_names.hpp>
-#include <memoria/containers/vector2/nodes/leaf_node.hpp>
+#include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
@@ -87,7 +87,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrChecksName)
     template <typename NodeTypes, bool root, bool leaf, typename Node2>
     bool checkNodeWithParentContent1(
     		const Node2 *parent,
-    		const TreeNode<mvector2::TreeLeafNode, NodeTypes, root, leaf> *node,
+    		const TreeNode<TreeLeafNode, NodeTypes, root, leaf> *node,
     		Int parent_idx
     ) const;
 
@@ -183,7 +183,7 @@ M_PARAMS
 template <typename NodeTypes, bool root, bool leaf, typename Node2>
 bool M_TYPE::checkNodeWithParentContent1(
 		const Node2 *parent,
-		const TreeNode<mvector2::TreeLeafNode, NodeTypes, root, leaf> *node,
+		const TreeNode<TreeLeafNode, NodeTypes, root, leaf> *node,
 		Int parent_idx
 ) const
 {

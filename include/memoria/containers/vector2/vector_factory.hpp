@@ -9,7 +9,6 @@
 #define _MEMORIA_CONTAINERS_VECTOR2_FACTORY_HPP
 
 #include <memoria/prototypes/balanced_tree/balanced_tree.hpp>
-#include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
 #include <memoria/core/packed2/packed_fse_array.hpp>
 
@@ -50,15 +49,15 @@ struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTree
     };
 
     typedef TypeList<
-    		NonLeafNodeTypes<balanced_tree::TreeMapNode>,
-    		LeafNodeTypes<mvector2::TreeLeafNode>
+    		NonLeafNodeTypes<TreeMapNode>,
+    		LeafNodeTypes<TreeLeafNode>
     >																			NodeTypesList;
 
     typedef TypeList<
-        		LeafNodeType<mvector2::TreeLeafNode>,
+        		LeafNodeType<TreeLeafNode>,
         		InternalNodeType<TreeMapNode>,
         		RootNodeType<TreeMapNode>,
-        		RootLeafNodeType<mvector2::TreeLeafNode>
+        		RootLeafNodeType<TreeLeafNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<

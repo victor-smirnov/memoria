@@ -159,9 +159,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrToolsName)
     }
 
     template <typename NodeTypes, bool root, bool leaf>
-    bool canConvertToRootFn(const TreeNode<mvector2::TreeLeafNode, NodeTypes, root, leaf>* node) const
+    bool canConvertToRootFn(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node) const
     {
-    	typedef TreeNode<mvector2::TreeLeafNode, NodeTypes, root, leaf> Node;
+    	typedef TreeNode<TreeLeafNode, NodeTypes, root, leaf> Node;
     	typedef typename Node::RootNodeType RootType;
 
     	Position sizes = node->sizes();

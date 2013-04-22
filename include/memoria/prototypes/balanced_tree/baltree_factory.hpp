@@ -18,6 +18,7 @@
 #include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
 
 #include <memoria/prototypes/balanced_tree/nodes/tree_node.hpp>
+#include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
 #include <memoria/prototypes/balanced_tree/nodes/node_dispatcher.hpp>
 #include <memoria/prototypes/balanced_tree/nodes/tree_metadata.hpp>
 #include <memoria/prototypes/balanced_tree/nodes/node_list_builder.hpp>
