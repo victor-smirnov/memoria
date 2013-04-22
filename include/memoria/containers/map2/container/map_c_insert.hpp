@@ -58,9 +58,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 	typedef std::function<KVPair ()>											LeafPairProviderFn;
 
 
-	class MapSubtreeProvider: public Base::DefaultSubtreeProviderBase {
+	class MapSubtreeProvider: public Base::AbstractSubtreeProviderBase {
 
-		typedef typename Base::DefaultSubtreeProviderBase 		ProviderBase;
+		typedef typename Base::AbstractSubtreeProviderBase 		ProviderBase;
 		typedef typename Base::BalTreeNodeTraits				BalTreeNodeTraits;
 
 		MyType& ctr_;

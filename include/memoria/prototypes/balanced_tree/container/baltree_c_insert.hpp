@@ -79,19 +79,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
         virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size)	= 0;
     };
 
-
-
-
-
-
-
-
-    class DefaultSubtreeProviderBase: public ISubtreeProvider {
+    class AbstractSubtreeProviderBase: public ISubtreeProvider {
 
     	MyType& ctr_;
 
     public:
-    	DefaultSubtreeProviderBase(MyType& ctr): ctr_(ctr) {}
+    	AbstractSubtreeProviderBase(MyType& ctr): ctr_(ctr) {}
 
     	virtual NonLeafNodeKeyValuePair getKVPair(BigInt begin, BigInt total, Int level)
     	{
@@ -189,6 +182,142 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		return fn.total_;
     	}
     };
+
+
+
+    template <typename Node>
+    class LayoutManager: public INodeLayoutManager {
+    	Int block_size_;
+    public:
+    	LayoutManager(Int block_size): block_size_(block_size) {}
+
+    	virtual Int getNodeCapacity(const Int* sizes, Int stream)
+    	{
+    		return Node::capacity(block_size_, sizes, stream);
+    	}
+    };
+
+    struct GetTotalNodesFn {
+    	typedef Int ReturnType;
+
+    	template <typename Node>
+    	ReturnType treeNode(const Node*, Int block_size, const Int* sizes, Int stream)
+    	{
+    		return Node::capacity(block_size, sizes, stream);
+    	}
+    };
+
+    class LeafLayoutManager: public INodeLayoutManager {
+    	Int block_size_;
+    public:
+    	LeafLayoutManager(Int block_size): block_size_(block_size) {}
+    	virtual Int getNodeCapacity(const Int* sizes, Int stream)
+    	{
+    		return LeafDispatcher::dispatchStatic2Rtn(false, true, GetTotalNodesFn(), block_size_, sizes, stream);
+    	}
+    };
+
+
+
+    class DefaultSubtreeProvider: public AbstractSubtreeProviderBase {
+
+    	typedef AbstractSubtreeProviderBase 				ProviderBase;
+
+    	MyType& 	ctr_;
+    	Position 	total_;
+    	Position 	inserted_;
+
+    	ISource& 	data_source_;
+
+    public:
+    	DefaultSubtreeProvider(MyType& ctr, const Position& total, ISource& data_source):
+    		ProviderBase(ctr),
+    		ctr_(ctr),
+    		total_(total),
+    		data_source_(data_source)
+    	{}
+
+    	virtual BigInt getTotalKeyCount()
+    	{
+    		LeafLayoutManager manager(ctr_.getRootMetadata().page_size());
+    		return data_source_.getTotalNodes(&manager);
+    	}
+
+    	virtual Position getTotalSize()
+    	{
+    		return total_;
+    	}
+
+    	virtual Position getTotalInserted()
+    	{
+    		return inserted_;
+    	}
+
+    	virtual Position remainder()
+    	{
+    		return total_ - inserted_;
+    	}
+
+    	struct InsertIntoLeafFn {
+
+    		typedef Accumulator ReturnType;
+
+    		template <typename Node>
+    		Accumulator treeNode(
+    				Node* node,
+    				DefaultSubtreeProvider* provider,
+    				const Position* pos,
+    				const Position* remainder
+    		)
+    		{
+    			Position size;
+    			if (remainder->lteAll(node->capacities()))
+    			{
+    				size = *remainder;
+    			}
+    			else {
+    				size = node->capacities();
+    			}
+
+    			LayoutManager<Node> manager(node->page_size());
+
+    			provider->data_source_.newNode(&manager);
+
+    			node->insert(provider->data_source_, *pos, size);
+
+    			node->reindex();
+
+    			provider->inserted_ += size;
+
+    			return node->sum(*pos, (*pos) + size);
+    		}
+    	};
+
+    	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)
+    	{
+    		Position pos;
+    		Position remainder = this->remainder();
+    		return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, &pos, &remainder);
+    	}
+
+    	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)
+    	{
+    		Position remainder = this->remainder();
+    		return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, &from, &remainder);
+    	}
+
+    	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size)
+    	{
+    		return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, &from, &size);
+    	}
+    };
+
+
+
+
+
+
+
 
     struct InsertSharedData {
 
