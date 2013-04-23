@@ -113,7 +113,7 @@ public:
 	ResultType stream(const Tree* tree, Int start)
 	{
 		auto k 		= Base::key_ - Base::prefix_;
-		auto result = tree->findLTForward(start, k);
+		auto result = tree->findLTForward(0, start, k);
 
 		Base::prefix_ 	+= result.prefix();
 
@@ -167,7 +167,7 @@ public:
 	ResultType stream(const Tree* tree, Int start)
 	{
 		auto k 			= Base::key_ - Base::prefix_;
-		auto result 	= tree->findLTBackward(start, k);
+		auto result 	= tree->findLTBackward(0, start, k);
 		Base::prefix_ 	+= result.prefix();
 
 		return result.idx();

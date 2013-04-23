@@ -209,7 +209,7 @@ public:
 	static Int block_size(Int items_num)
 	{
 		Int index_size = getIndexSize(items_num);
-		Int raw_block_size = sizeof(MyType) + index_size * Indexes * sizeof(IndexKey) + items_num * sizeof(Value);
+		Int raw_block_size = sizeof(MyType) + index_size * Indexes * sizeof(IndexKey) + items_num * sizeof(Value) * Blocks;
 
 		return Allocator::roundUpBytesToAlignmentBlocks(raw_block_size);
 	}
@@ -542,7 +542,7 @@ public:
 
 		Value actual_value = value(pos);
 
-		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
+		return ValueDescr(actual_value, pos, fn.sum());
 	}
 
 
@@ -556,7 +556,23 @@ public:
 
 		Value actual_value = value(pos);
 
-		return ValueDescr(actual_value + fn.sum(), pos, fn.sum() - prefix);
+		return ValueDescr(actual_value, pos, fn.sum() - prefix);
+	}
+
+
+	ValueDescr findLTForward(Int block, Int start, IndexKey val) const
+	{
+		Int block_start = block * size_;
+
+		auto prefix = sum(block_start + start);
+
+		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val + prefix);
+
+		Int pos = this->find_fw(fn);
+
+		Value actual_value = value(pos);
+
+		return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
 	}
 
 
@@ -573,16 +589,46 @@ public:
 
 			Value actual_value = value(pos);
 
-			return ValueDescr(actual_value + fn.sum(), pos, prefix - (fn.sum() + actual_value));
+			return ValueDescr(actual_value, pos, prefix - (fn.sum() + actual_value));
 		}
 		else if (target == 0)
 		{
-			return ValueDescr(0, 0, prefix - value(0));
+			Value actual_value = value(0);
+			return ValueDescr(actual_value, 0, prefix - actual_value);
 		}
 		else {
 			return ValueDescr(0, -1, prefix);
 		}
 	}
+
+
+	ValueDescr findLTBackward(Int block, Int start, IndexKey val) const
+	{
+		Int block_start = block * size_;
+
+		auto prefix = sum(block_start, start + 1);
+		auto target = prefix - val;
+
+		if (target > 0)
+		{
+			FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
+
+			Int pos = this->find_fw(fn);
+
+			Value actual_value = value(pos);
+
+			return ValueDescr(actual_value, pos, prefix - (fn.sum() + actual_value));
+		}
+		else if (target == 0)
+		{
+			Value actual_value = value(0);
+			return ValueDescr(actual_value, 0, prefix - actual_value);
+		}
+		else {
+			return ValueDescr(0, -1, prefix);
+		}
+	}
+
 
 
 
@@ -681,10 +727,9 @@ public:
 		this->value(idx) = value;
 	}
 
-
 	void insertSpace(Int idx, Int room_length)
 	{
-		MEMORIA_ASSERT(idx, <=, size());
+		MEMORIA_ASSERT(idx, <=, this->size());
 
 		if (capacity() < room_length)
 		{
@@ -693,7 +738,16 @@ public:
 
 		Value* values = this->values();
 
-		CopyBuffer(values + idx, values + idx + room_length, size() - idx);
+		for (Int block = 0; block < Blocks; block++)
+		{
+			Int offset = (Blocks - block - 1) * size_ + idx;
+
+			CopyBuffer(
+					values + offset,
+					values + offset + room_length,
+					size_ * Blocks - offset + room_length * block
+			);
+		}
 
 		size_ += room_length;
 	}
@@ -704,14 +758,33 @@ public:
 
 		Value* values = this->values();
 
-		CopyBuffer(values + idx + room_length, values + idx, size() - idx - room_length);
+		for (Int block = 0; block < Blocks; block++)
+		{
+			Int offset = (Blocks - block - 1) * size_ + idx;
+
+			CopyBuffer(
+					values + offset + room_length,
+					values + offset,
+					size_ * Blocks - offset - room_length * (1 - block)
+			);
+		}
 
 		size_ -= room_length;
 	}
 
 	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
 	{
-		CopyBuffer(this->values() + copy_from, other->values() + copy_to, count);
+		for (Int block = 0; block < Blocks; block++)
+		{
+			Int my_offset		= block * size_;
+			Int other_offset 	= block * other->size_;
+
+			CopyBuffer(
+					this->values() + copy_from + my_offset,
+					other->values() + copy_to + other_offset,
+					count
+			);
+		}
 	}
 
 	template <typename TreeType>
@@ -722,10 +795,12 @@ public:
 
 		Int size = this->size();
 
-		for (Int c = 0; c < size; c++)
+		for (Int c = 0; c < size * Blocks; c++)
 		{
 			other_values[c] 	= my_values[c];
 		}
+
+		other->size() = size;
 	}
 
 
@@ -744,24 +819,30 @@ public:
 
 		handler->startGroup("INDEXES", index_size_);
 
-		for (Int idx = 0; idx < index_size_; idx++)
+		for (Int c = 0; c < index_size_; c++)
 		{
-			IndexKey indexes[Blocks];
-			for (Int block = 0; block < Blocks; block++)
+			IndexKey indexes[Indexes];
+			for (Int idx = 0; idx < Indexes; idx++)
 			{
-				indexes[block] = this->indexes(block)[idx];
+				indexes[idx] = this->indexes(idx)[c];
 			}
 
-			handler->value("INDEX", indexes, Blocks);
+			handler->value("INDEX", indexes, Indexes);
 		}
 
 		handler->endGroup();
 
 		handler->startGroup("DATA", size_);
 
-		for (Int idx = 0; idx < size_; idx++)
+		for (Int idx = 0; idx < size_ ; idx++)
 		{
-			handler->value("TREE_ITEM", &value(idx));
+			Value values[Blocks];
+			for (Int block = 0; block < Blocks; block++)
+			{
+				values[block] = value(idx + size_ * block);
+			}
+
+			handler->value("TREE_ITEM", values, Blocks);
 		}
 
 		handler->endGroup();
@@ -776,9 +857,9 @@ public:
 		FieldFactory<Int>::serialize(buf, max_size_);
 		FieldFactory<Int>::serialize(buf, index_size_);
 
-		FieldFactory<IndexKey>::serialize(buf, indexes(0), Blocks * index_size());
+		FieldFactory<IndexKey>::serialize(buf, indexes(0), Indexes * index_size());
 
-		FieldFactory<Key>::serialize(buf, values(), size_);
+		FieldFactory<Key>::serialize(buf, values(), size_ * Blocks);
 	}
 
 	void deserialize(DeserializationData& buf)
@@ -788,9 +869,9 @@ public:
 		FieldFactory<Int>::deserialize(buf, max_size_);
 		FieldFactory<Int>::deserialize(buf, index_size_);
 
-		FieldFactory<IndexKey>::deserialize(buf, indexes(0), Blocks * index_size());
+		FieldFactory<IndexKey>::deserialize(buf, indexes(0), Indexes * index_size());
 
-		FieldFactory<Key>::deserialize(buf, values(), size_);
+		FieldFactory<Key>::deserialize(buf, values(), size_ * Blocks);
 	}
 
 private:
