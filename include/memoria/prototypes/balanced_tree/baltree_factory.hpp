@@ -112,6 +112,21 @@ struct BalancedTreeTypes {
         typedef balanced_tree::BTreeIteratorCache<Iterator, Container>          Type;
     };
 
+    static const Int MAIN_STREAM												= 0;
+
+
+    template <typename Types>
+    using SkipForwardWalker = TypeIsNotDefined;
+
+    template <typename Types>
+    using SkipBackwardWalker = TypeIsNotDefined;
+
+    template <typename Types>
+    using NextLeafWalker = TypeIsNotDefined;
+
+    template <typename Types>
+    using PrevLeafWalker = TypeIsNotDefined;
+
 
     template <typename Types>
     using FindBeginWalker = TypeIsNotDefined;

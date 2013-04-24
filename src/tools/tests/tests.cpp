@@ -23,8 +23,8 @@
 
 
 #include "vector/vector_test_suite.hpp"
-//
-//#include "vector_map/vector_map_test_suite.hpp"
+#include "vector_map/vector_map_test_suite.hpp"
+
 //
 //#include "sequence/sequence_test_suite.hpp"
 //#include "symbol_seq/symseq_test_suite.hpp"
@@ -99,7 +99,7 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new MapTestSuite());
 
         runner.registerTask(new VectorTestSuite());
-//        runner.registerTask(new VectorMapTestSuite());
+        runner.registerTask(new VectorMapTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
 
 //        runner.registerTask(new LoudsTestSuite());

@@ -53,6 +53,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
+	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
+
 
 //	Iterator Begin() {
 //		return Iterator(self(), self().ctr().Begin());
@@ -88,7 +90,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     Iterator find(Key key)
     {
-        Iterator iter = self().findLE(key, 0);
+        Iterator iter = self().findLE(MAIN_STREAM, key, 0);
 
         if (!iter.isEnd())
         {
@@ -108,7 +110,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     Iterator operator[](Key key)
     {
-        Iterator iter = self().findLE(key, 0);
+        Iterator iter = self().findLE(MAIN_STREAM, key, 0);
 
         if (iter.isEnd() || key != iter.key())
         {
@@ -124,7 +126,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 
     bool remove(Key key)
     {
-    	Iterator iter = self().findLE(key, 0);
+    	Iterator iter = self().findLE(MAIN_STREAM, key, 0);
 
         if (key == iter.key())
         {

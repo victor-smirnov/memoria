@@ -814,6 +814,12 @@ public:
     	Dispatcher::dispatchAll(&allocator_, SumFn(), block_num, start, end, &accum);
     }
 
+    void sum(Int stream, Int block_num, Int start, Int end, Key& accum) const
+    {
+    	Dispatcher::dispatch(stream, &allocator_, SumFn(), block_num, start, end, &accum);
+    }
+
+
     struct FindLESFn {
     	typedef Int ResultType;
 

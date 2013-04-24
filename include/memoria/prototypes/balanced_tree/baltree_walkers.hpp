@@ -12,724 +12,235 @@
 #include <memoria/core/container/iterator.hpp>
 
 #include <memoria/prototypes/balanced_tree/nodes/tree_node.hpp>
-
+#include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
 
 #include <ostream>
 #include <functional>
 
+
 namespace memoria       {
 namespace balanced_tree {
 
+template <typename Types>
+class SkipWalkerBase {
+protected:
+	typedef typename Types::Position 											Position;
+	typedef typename Types::Key 												Key;
 
+	typedef Iter<typename Types::IterTypes> 									Iterator;
 
+	static const Int Streams													= Types::Streams;
 
-using namespace std;
+	Position prefix_;
 
-template <typename MyType>
-class BTreeWalkerBase {
-	Int start_ = 0;
-	Int idx_   = 0;
+	BigInt sum_ = 0;
 
-	WalkDirection direction_ = WalkDirection::UP;
+	BigInt target_;
+
+	WalkDirection direction_;
+
+	Int stream_;
+	Int block_;
+	Int size_indexes_[Streams];
 
 public:
 
-	template <typename NodeTypes, bool root, bool leaf>
-	void operator()(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node)
+	SkipWalkerBase(Int stream, Int block, BigInt target):
+		target_(target),
+		stream_(stream),
+		block_(block)
 	{
-		typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
-		idx_ = me().dispatchNode(*node, start_);
+		for (auto& i: size_indexes_) i = 0;
 	}
 
-
-	template <typename Node>
-	void operator()(const Node* node)
-	{
-
-	}
-
-	MyType& me() {
-		return *T2T<MyType*>(this);
-	}
-
-	const MyType& me() const {
-		return *T2T<const MyType*>(this);
-	}
-
-	Int& start() {
-		return start_;
-	}
-
-	const Int& start() const {
-		return start_;
-	}
-
-	Int& idx() {
-		return idx_;
-	}
-
-	const Int& idx() const {
-		return idx_;
+	const WalkDirection& direction() const {
+		return direction_;
 	}
 
 	WalkDirection& direction() {
 		return direction_;
 	}
 
-	const WalkDirection& direction() const {
-		return direction_;
-	}
-};
 
-
-template <
-	typename MyType
->
-class BTreeForwardWalkerBase: public BTreeWalkerBase<MyType> {
-
-	typedef BTreeWalkerBase<MyType> 											Base;
-
-public:
-	template <typename Node>
-	Int dispatchNode(const Node& node, Int start)
+	void finish(Int idx, Iterator& iter)
 	{
-		typedef typename Node::Map Map;
+		iter.key_idx() 	= idx;
 
-		const Map& map = node.map();
+		Int size = iter.size();
 
-		auto node_walker = me().nodeWalker(map);
-
-		Int idx = map.findFw(me().start(), node_walker);
-
-		if (idx == map.size() && Base::direction() == WalkDirection::DOWN)
+		if (idx < size)
 		{
-			node_walker.adjustEnd(map);
-			idx--;
-		}
-
-		return idx;
-	}
-
-	MyType& me()
-	{
-		return *T2T<MyType*>(this);
-	}
-
-	const MyType& me() const
-	{
-		return *T2T<const MyType*>(this);
-	}
-};
-
-
-
-
-
-
-
-template <
-	typename MyType
->
-class BTreeBackwardWalkerBase: public BTreeWalkerBase<MyType> {
-
-	typedef BTreeWalkerBase<MyType> 											Base;
-
-public:
-	template <typename Node>
-	Int dispatchNode(const Node& node, Int start)
-	{
-		typedef typename Node::Map Map;
-
-		const Map& map = node.map();
-
-		auto node_walker = me().nodeWalker(map);
-
-		Int idx = map.findBw(me().start(), node_walker);
-
-		if (idx == -1 && me().direction() == WalkDirection::DOWN)
-		{
-			node_walker.adjustStart(map);
-			idx++;
-		}
-
-		return idx;
-	}
-
-	MyType& me()
-	{
-		return *T2T<MyType*>(this);
-	}
-
-	const MyType& me() const
-	{
-		return *T2T<const MyType*>(this);
-	}
-};
-
-
-
-template <
-	typename MyType
->
-class DefaultBTreeForwardWalkerBase: public BTreeForwardWalkerBase<MyType> {
-protected:
-
-	BigInt sum_			= 0;
-	BigInt limit_;
-
-	Int block_num_;
-
-public:
-
-	DefaultBTreeForwardWalkerBase(BigInt limit, Int block_num):
-		limit_(limit),
-		block_num_(block_num)
-	{}
-
-	void adjust(BigInt adjustment)
-	{
-		sum_ 	+= adjustment;
-		limit_ 	-= adjustment;
-	}
-
-
-	BigInt sum() const {
-		return sum_;
-	}
-};
-
-
-template <
-	typename MyType
->
-class DefaultBTreeBackwardWalkerBase: public BTreeBackwardWalkerBase<MyType> {
-protected:
-
-	BigInt sum_			= 0;
-	BigInt limit_;
-
-	Int block_num_;
-
-public:
-
-	DefaultBTreeBackwardWalkerBase(BigInt limit, Int block_num):
-		limit_(limit),
-		block_num_(block_num)
-	{}
-
-	void adjust(BigInt adjustment)
-	{
-		sum_ 	+= adjustment;
-		limit_ 	-= adjustment;
-	}
-
-
-	BigInt sum() const {
-		return sum_;
-	}
-};
-
-
-
-
-template <
-	typename 										Types,
-	template <
-		typename 						MainWalker,
-		typename 						Map,
-		template <
-			typename,
-			typename,
-			typename
-		> 								class Extender,
-		typename ExtenderState
-	> 												class NodeWalker,
-	template <typename, typename, typename> 		class WalkerExtender,
-	typename 										ExtenderState
->
-class BTreeForwardWalker: public DefaultBTreeForwardWalkerBase<
-	BTreeForwardWalker<Types, NodeWalker, WalkerExtender, ExtenderState>
-> {
-
-	typedef DefaultBTreeForwardWalkerBase<
-				BTreeForwardWalker<Types, NodeWalker, WalkerExtender, ExtenderState>
-	>																								Base;
-
-	typedef BTreeForwardWalker<Types, NodeWalker, WalkerExtender, ExtenderState>					MyType;
-
-	typedef Iter<typename Types::IterTypes>															Iterator;
-
-	ExtenderState extender_state_;
-
-public:
-	BTreeForwardWalker(BigInt limit, Int block_num, const ExtenderState& state = ExtenderState()):
-		Base(limit, block_num), extender_state_(state)
-	{}
-
-	template <typename Map>
-	NodeWalker<MyType, Map, WalkerExtender, ExtenderState> nodeWalker(const Map& map)
-	{
-		return NodeWalker<
-				MyType,
-				Map,
-				WalkerExtender,
-				ExtenderState
-			   >(*this, map, Base::limit_, Base::block_num_, extender_state_);
-	}
-
-	ExtenderState& extenderState() {
-		return extender_state_;
-	}
-
-	const ExtenderState& extenderState() const {
-		return extender_state_;
-	}
-
-	void empty(Iterator& i) {}
-};
-
-
-template <
-	typename 										Types,
-
-	template <
-		typename 						MainWalker,
-		typename 						Map,
-		template <
-			typename,
-			typename,
-			typename
-		> 								class Extender,
-		typename 						ExtenderState
-	> 												class NodeWalker,
-
-	template <typename, typename, typename>			class WalkerExtender,
-
-	typename 										ExtenderState
->
-class BTreeBackwardWalker: public DefaultBTreeBackwardWalkerBase<
-	BTreeBackwardWalker<Types, NodeWalker, WalkerExtender, ExtenderState>
-> {
-
-	typedef DefaultBTreeBackwardWalkerBase<
-				BTreeBackwardWalker<Types, NodeWalker, WalkerExtender, ExtenderState>
-	>																								Base;
-
-	typedef BTreeBackwardWalker<Types, NodeWalker, WalkerExtender, ExtenderState>					MyType;
-
-	ExtenderState extender_state_;
-
-public:
-	BTreeBackwardWalker(BigInt limit, Int block_num, const ExtenderState& state = ExtenderState()):
-		Base(limit, block_num), extender_state_(state)
-	{}
-
-	template <typename Map>
-	NodeWalker<MyType, Map, WalkerExtender, ExtenderState> nodeWalker(const Map& map)
-	{
-		return NodeWalker<
-				MyType,
-				Map,
-				WalkerExtender,
-				ExtenderState
-			   >(*this, map, Base::limit_, Base::block_num_, extender_state_);
-	}
-
-	ExtenderState& extenderState() {
-		return extender_state_;
-	}
-
-	const ExtenderState& extenderState() const {
-		return extender_state_;
-	}
-};
-
-
-
-class NodeWalkerBase {
-public:
-	void prepareIndex() {}
-};
-
-
-
-template <
-	typename MainWalker,
-	typename Map,
-	template <typename K1, typename K2> class Comparator,
-	template <typename Walker, typename MapType, typename State> class Extender,
-	typename ExtenderState
->
-class NodeForwardWalker: public NodeWalkerBase {
-
-	typedef typename Map::Key Key;
-	typedef typename Map::IndexKey IndexKey;
-
-	BigInt 			sum_				= 0;
-	BigInt 			limit_;
-
-	const Key* 		keys_;
-	const IndexKey* indexes_;
-
-	MainWalker& 	main_walker_;
-
-	Extender<MainWalker, Map, ExtenderState> extender_;
-
-	Int 			block_num_;
-public:
-	NodeForwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num, ExtenderState& state):
-		limit_(limit),
-		main_walker_(main_walker),
-		extender_(main_walker, map, state),
-		block_num_(block_num)
-	{
-		keys_ 		= map.keys(block_num);
-		indexes_ 	= map.indexes(block_num);
-	}
-
-	Int walkIndex(Int start, Int end)
-	{
-		Comparator<BigInt, IndexKey> compare;
-
-		for (Int c = start; c < end; c++)
-		{
-			IndexKey key = indexes_[c];
-
-			if (compare(key, limit_))
-			{
-				sum_ 	+= key;
-				limit_ 	-= key;
-			}
-			else {
-				extender_.processIndexes(sum_, block_num_, start, c);
-				return c;
-			}
-		}
-
-		extender_.processIndexes(sum_, block_num_, start, end);
-		return end;
-	}
-
-	Int walkKeys(Int start, Int end)
-	{
-		Comparator<BigInt, Key> compare;
-
-		for (Int c = start; c < end; c++)
-		{
-			Key key = keys_[c];
-
-			if (compare(key, limit_))
-			{
-				sum_ 	+= key;
-				limit_ 	-= key;
-			}
-			else {
-				extender_.processKeys(sum_, block_num_, start, c);
-				return c;
-			}
-		}
-
-		extender_.processKeys(sum_, block_num_, start, end);
-
-		return end;
-	}
-
-	void finish() {
-		main_walker_.adjust(sum_);
-	}
-
-	void adjustEnd(const Map& map)
-	{
-		main_walker_.adjust(-keys_[map.size() - 1]);
-		extender_.subtract(map.size() - 1);
-	}
-
-	BigInt sum() const
-	{
-		return sum_;
-	}
-};
-
-
-template <
-	typename MainWalker,
-	typename Map,
-	template <typename K1, typename K2> class Comparator,
-	template <typename Walker, typename MapType, typename State> class Extender,
-	typename ExtenderState
->
-class NodeBackwardWalker: public NodeWalkerBase {
-
-	typedef typename Map::Key Key;
-	typedef typename Map::IndexKey IndexKey;
-
-	BigInt 			sum_				= 0;
-	BigInt 			limit_;
-
-	const Key* 		keys_;
-	const IndexKey* indexes_;
-
-	MainWalker& 	main_walker_;
-
-	Extender<MainWalker, Map, ExtenderState> extender_;
-
-	Int 			block_num_;
-
-public:
-	NodeBackwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num, ExtenderState& state):
-		limit_(limit),
-		main_walker_(main_walker),
-		extender_(main_walker, map, state),
-		block_num_(block_num)
-	{
-		keys_ 		= map.keys(block_num);
-		indexes_ 	= map.indexes(block_num);
-	}
-
-	Int walkIndex(Int start, Int end)
-	{
-		Comparator<BigInt, IndexKey> compare;
-
-		for (Int c = start; c > end; c--)
-		{
-			IndexKey key = indexes_[c];
-
-			if (compare(key, limit_))
-			{
-				sum_ 	+= key;
-				limit_ 	-= key;
-			}
-			else {
-				extender_.processIndexes(sum_, block_num_, c + 1, start + 1);
-				return c;
-			}
-		}
-
-		extender_.processIndexes(sum_, block_num_, end + 1, start + 1);
-		return end;
-	}
-
-	Int walkKeys(Int start, Int end)
-	{
-		Comparator<BigInt, Key> compare;
-
-		for (Int c = start; c > end; c--)
-		{
-			Key key = keys_[c];
-
-			if (compare(key, limit_))
-			{
-				sum_ 	+= key;
-				limit_ 	-= key;
-			}
-			else {
-				extender_.processKeys(sum_, block_num_, c + 1,  start + 1);
-				return c;
-			}
-		}
-
-		extender_.processKeys(sum_, block_num_, end + 1, start + 1);
-
-		return end;
-	}
-
-	void finish() {
-		main_walker_.adjust(sum_);
-	}
-
-	void adjustStart(const Map& map)
-	{
-		main_walker_.adjust(-keys_[0]);
-		extender_.subtract(0);
-	}
-
-	BigInt sum() const {
-		return sum_;
-	}
-};
-
-
-
-
-template <typename K1, typename K2>
-struct BTreeCompareLE {
-	bool operator()(K1 k1, K2 k2) {
-		return k1 <= k2;
-	}
-};
-
-template <typename K1, typename K2>
-struct BTreeCompareLT {
-	bool operator()(K1 k1, K2 k2) {
-		return k1 < k2;
-	}
-};
-
-template <typename MainWalker, typename Map, template <typename, typename, typename> class Extender, typename ExtenderState>
-using NodeLTForwardWalker = NodeForwardWalker<MainWalker, Map, BTreeCompareLT, Extender, ExtenderState>;
-
-template <typename MainWalker, typename Map, template <typename, typename, typename> class Extender, typename ExtenderState>
-using NodeLEForwardWalker = NodeForwardWalker<MainWalker, Map, BTreeCompareLE, Extender, ExtenderState>;
-
-template <typename MainWalker, typename Map, template <typename, typename, typename> class Extender, typename ExtenderState>
-using NodeLTBackwardWalker = NodeBackwardWalker<MainWalker, Map, BTreeCompareLT, Extender, ExtenderState>;
-
-template <typename MainWalker, typename Map, template <typename, typename, typename> class Extender, typename ExtenderState>
-using NodeLEBackwardWalker = NodeBackwardWalker<MainWalker, Map, BTreeCompareLE, Extender, ExtenderState>;
-
-
-template <typename Walker, typename Map, typename State>
-struct EmptyExtender {
-
-	EmptyExtender(Walker&, const Map&, State&) {}
-
-	void processIndexes(BigInt sum, Int key_num, Int start, Int end) {}
-	void processKeys(BigInt sum, Int key_num, Int start, Int end) 	 {}
-
-	void processValues(BigInt, Int, Int start, Int end) 			 {}
-	void subtract(Int idx)											 {}
-};
-
-
-
-struct EmptyExtenderState {};
-
-template <typename T = BigInt>
-class FunctorExtenderState {
-protected:
-	typedef function<void (T, Int)> ValueFunction;
-
-	Int	 		indexes_;
-	const Int* 	idx_numbers_;
-
-	ValueFunction value_;
-
-public:
-	FunctorExtenderState(Int indexes, const Int* numbers, ValueFunction value_fn):
-		indexes_(indexes), idx_numbers_(numbers), value_(value_fn)
-	{}
-
-	Int indexes() const
-	{
-		return indexes_;
-	}
-
-	Int idx(int num) const
-	{
-		return idx_numbers_[num];
-	}
-
-	ValueFunction value() const {
-		return value_;
-	}
-};
-
-
-
-
-
-
-
-template <typename Map, typename State>
-class SumExtenderBase {
-protected:
-	typedef typename Map::IndexKey 	IndexKey;
-
-	static const Int MAX_INDEXES = 8;
-
-	State& state_;
-
-	const IndexKey* indexes_[MAX_INDEXES];
-
-public:
-	SumExtenderBase(const Map& map, State& state):
-		state_(state)
-	{
-		if (state.indexes() < 8)
-		{
-			for (Int c = 0; c < state.indexes(); c++)
-			{
-				indexes_[c] = map.indexes(state_.idx(c));
-			}
+			iter.cache().setup(prefix_);
 		}
 		else {
-			throw Exception(MA_SRC, SBuf()<<"Requested number of resqested in Extender State inxeses is too large: "
-										  <<state.indexes()<<". The limit is 8.");
+			iter.cache().setup(prefix_ - size);
 		}
 	}
 
-	void processIndexes(BigInt sum, Int key_num, Int start, Int end)
+	void empty(Iterator& iter)
 	{
-		process(sum, key_num, start, end, indexes_);
+		iter.key_idx()	= 0;
+
+		iter.cache().setup(0);
 	}
 
-protected:
-	template <typename T>
-	void process(BigInt sum, Int key_num, Int start, Int end, const T** array)
-	{
-		for (Int c = 0; c < state_.indexes(); c++)
-		{
-			if (state_.idx(c) != key_num)
-			{
-				BigInt local_sum = 0;
-				const T* values = array[c];
-
-				for (Int idx = start; idx < end; idx++)
-				{
-					local_sum += values[idx];
-				}
-
-				if (local_sum > 0) {
-					state_.value()(local_sum, state_.idx(c));
-				}
-			}
-			else if (sum > 0) {
-				state_.value()(sum, state_.idx(c));
-			}
-		}
+	BigInt sum() const {
+		return sum_;
 	}
 
-	template <typename T>
-	void subtractFromState(Int idx, const T** array)
+	Int stream() const {
+		return stream_;
+	}
+
+	const Int& size_indexes(Int idx) const {
+		return size_indexes_[idx];
+	}
+
+	Int& size_indexes(Int idx) {
+		return size_indexes_[idx];
+	}
+
+	Position& prefix() {
+		return prefix_;
+	}
+
+	const Position& prefix() const {
+		return prefix_;
+	}
+
+	void prepare(Iterator& iter)
 	{
-		for (Int c = 0; c < state_.indexes(); c++)
-		{
-			state_.value()(-array[c][idx], state_.idx(c));
-		}
+		prefix_ = iter.cache().sizePrefix();
 	}
 };
 
 
 
-template <typename Walker, typename Map, typename State>
-class NodeSumExtender: public SumExtenderBase<Map, State> {
 
-	typedef SumExtenderBase<Map, State> Base;
 
-	typedef typename Map::Key 		Key;
-	typedef typename Map::IndexKey 	IndexKey;
+template <typename Types>
+class SkipForwardWalkerBase: public SkipWalkerBase<Types> {
 
-	const Key* keys_[Base::MAX_INDEXES];
+protected:
+	typedef SkipWalkerBase<Types> 		Base;
+	typedef typename Base::Key 			Key;
+	typedef typename Base::Position 	Position;
+	typedef typename Base::Iterator		Iterator;
+
+	Int leafs_ = 0;
 
 public:
+	SkipForwardWalkerBase(Int stream, Int block, Key target): Base(stream, block, target)
+	{}
 
-	NodeSumExtender(Walker&, const Map& map, State& state):
-		Base(map, state)
+	typedef Int ReturnType;
+	typedef Int ResultType;
+
+	template <typename Node>
+	ResultType treeNode(const Node* node, Int start)
 	{
-		for (Int c = 0; c < state.indexes(); c++)
+		Int idx = node->find(Base::stream_, *this, start);
+
+		for (Int s = 0; s < Base::Streams; s++)
 		{
-			keys_[c] = map.keys(Base::state_.idx(c));
+			if (s != Base::stream_)
+			{
+				node->sum(s, Base::size_indexes_[s], start, idx, Base::prefix_[s]);
+			}
+		}
+
+		return idx;
+	}
+
+	template <Int Idx, typename Tree>
+	ResultType stream(const Tree* tree, Int start)
+	{
+		auto k 		= Base::target_ - Base::sum_;
+		auto result = tree->findLTForward(Base::size_indexes_[Idx], start, k);
+
+		Base::sum_ += result.prefix();
+
+		Base::prefix_[Base::stream_] += result.prefix();
+
+		return result.idx();
+	}
+};
+
+
+
+
+
+
+template <typename Types>
+class SkipForwardWalker: public SkipForwardWalkerBase<Types> {
+
+	typedef SkipForwardWalkerBase<Types> 		Base;
+	typedef typename Base::Key 			Key;
+	typedef typename Base::Position 	Position;
+	typedef typename Base::Iterator		Iterator;
+
+	Int leafs_ = 0;
+
+public:
+	SkipForwardWalker(Int stream, Int block, Key target): Base(stream, block, target)
+	{}
+
+	Int leafs() const {
+		return leafs_;
+	}
+
+	typedef Int ReturnType;
+	typedef Int ResultType;
+
+
+	template <typename Node>
+	ResultType treeNode(const Node* node, Int start)
+	{
+		return Base::template treeNode(node, start);
+	}
+
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int start)
+	{
+		leafs_++;
+
+		auto& sum = Base::sum_;
+
+		BigInt offset  = Base::target_ - sum;
+
+		Position sizes = node->sizes();
+		Int 	 size  = sizes[Base::stream_];
+
+		if (start + offset < size)
+		{
+			sum += start + offset;
+			return start + offset;
+		}
+		else {
+			sum 			+= (size - start);
+			Base::prefix_ 	+= sizes;
+
+			return size;
 		}
 	}
 
-	void processKeys(BigInt sum, Int key_num, Int start, Int end)
-	{
-		this->process(sum, key_num, start, end, keys_);
-	}
 
-	void subtract(Int idx)
+
+	BigInt finish(Iterator& iter, Int idx)
 	{
-		this->subtractFromState(idx, keys_);
+		iter.key_idx() = idx;
+
+		Int size = iter.size();
+
+		if (idx < size) {
+			iter.cache().setSizePrefix(Base::prefix_);
+		}
+		else {
+			iter.cache().setSizePrefix(Base::prefix_ - Position(size));
+		}
+
+		return Base::sum_;
 	}
 };
 
@@ -737,89 +248,235 @@ public:
 
 
 template <typename Types>
-class FindWalkerBase {
-protected:
-	typedef typename Types::Key 												Key;
-	typedef Iter<typename Types::IterTypes> 									Iterator;
+class NextLeafWalker: public SkipForwardWalkerBase<Types> {
 
-	Key key_;
-	Int key_num_;
+	typedef SkipForwardWalkerBase<Types> 		Base;
+	typedef typename Base::Key 			Key;
+	typedef typename Base::Position 	Position;
+	typedef typename Base::Iterator		Iterator;
 
-	Key prefix_;
-	Int idx_;
-
-	WalkDirection direction_;
-
-	Int start_;
+	Int leafs_ = 0;
 
 public:
-	FindWalkerBase(Key key, Int key_num):
-		key_(key), key_num_(key_num), prefix_(0), idx_(0)
+
+	typedef Int ReturnType;
+	typedef Int ResultType;
+
+
+	NextLeafWalker(Int stream, Int block): Base(stream, block, 0)
 	{}
 
-	const WalkDirection& direction() const {
-		return direction_;
+	Int leafs() const {
+		return leafs_;
 	}
 
-	WalkDirection& direction() {
-		return direction_;
-	}
 
-	const Int& start() const {
-		return start_;
-	}
 
-	Int& start() {
-		return start_;
-	}
-
-	void finish(Int idx, Iterator& iter)
+	template <typename Node>
+	ResultType treeNode(const Node* node, Int start)
 	{
-		iter.key_idx() = idx;
-		iter.init();
+		return Base::template treeNode(node, start);
 	}
 
-	void empty(Iterator& iter)
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int start)
 	{
-		// do nothing
+		leafs_++;
+
+		if (leafs_ == 1)
+		{
+			Position sizes 	= node->sizes();
+			Base::prefix_ 	+= sizes;
+
+			return sizes[Base::stream_];
+		}
+		else {
+			return 0;
+		}
 	}
 
-	Int idx() const {
-		return idx_;
+	bool finish(Iterator& iter, Int idx)
+	{
+		Int size = iter.size();
+
+		if (idx < size)
+		{
+			iter.cache().setSizePrefix(Base::prefix_);
+			iter.key_idx() = 0;
+
+			return true;
+		}
+		else {
+			iter.cache().setSizePrefix(Base::prefix_ - Position(size));
+			iter.key_idx() = size;
+
+			return false;
+		}
 	}
 };
 
 
-//template <typename NodeType> class WalkerFnWrapper;
-//
-//
-
-//
-//template <
-//	typename Types,
-//	bool root, bool leaf
-//>
-//class TreeMapNode;
-//
-//template <
-//	typename Types,
-//	bool root, bool leaf
-//>
-//using AdaptedTreeMapNode = NodePageAdaptor<TreeMapNode, Types, root, leaf>;
 
 
-//template <>
-//class WalkerFnWrapper<AdaptedTreeMapNode> {
-//
-//};
+template <typename Types>
+class SkipBackwardWalkerBase: public SkipWalkerBase<Types> {
+protected:
+	typedef SkipWalkerBase<Types> 		Base;
+	typedef typename Base::Key 			Key;
+	typedef typename Base::Position 	Position;
+	typedef typename Base::Iterator		Iterator;
 
-//template <
-//	template <typename, bool, bool> class TreeNode,
-//	typename Types,
-//	bool root,
-//	bool leaf
-//>
-//using NodeFunctorWrapper = class FunctorWrapper<NodePageAdaptor<TreeNode, Types, root, leaf>>;
+public:
+	SkipBackwardWalkerBase(Int stream, Int block, Key target): Base(stream, block, target)
+	{}
+
+	typedef Int ReturnType;
+	typedef Int ResultType;
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
+	{
+		Int idx = node->find(Base::stream_, *this, start);
+
+		for (Int s = 0; s < Base::Streams; s++)
+		{
+			if (s != Base::stream_)
+			{
+				node->sum(s, Base::size_indexes_[s], idx + 1, start, Base::prefix_[s]);
+			}
+		}
+
+		return idx;
+	}
+
+	template <Int Idx, typename Tree>
+	ResultType stream(const Tree* tree, Int start)
+	{
+		auto k 			= Base::target_ - Base::sum_;
+		auto result 	= tree->findLTBackward(Base::size_indexes_[Idx], start, k);
+		Base::sum_ 		+= result.prefix();
+
+		Base::prefix_[Base::stream_] -= result.prefix();
+
+		return result.idx();
+	}
+};
+
+
+
+
+
+template <typename Types>
+class SkipBackwardWalker: public SkipBackwardWalkerBase<Types> {
+
+	typedef SkipBackwardWalkerBase<Types> 		Base;
+	typedef typename Base::Key 			Key;
+	typedef typename Base::Position 	Position;
+	typedef typename Base::Iterator		Iterator;
+
+	Int leafs_ = 0;
+
+public:
+	SkipBackwardWalker(Int stream, Int block, Key target): Base(stream, block, target)
+	{}
+
+	typedef Int ReturnType;
+	typedef Int ResultType;
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
+	{
+		return Base::template treeNode(node, start);
+	}
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, BigInt start)
+	{
+		leafs_++;
+
+		BigInt offset = Base::target_ - Base::sum_;
+
+		auto& sum = Base::sum_;
+
+		Position sizes = node->sizes();
+
+		if (leafs_ == 2)
+		{
+			Base::prefix_ -= sizes;
+		}
+
+		if (start - offset >= 0)
+		{
+			sum += offset;
+			return start - offset;
+		}
+		else {
+			sum += start;
+			return -1;
+		}
+	}
+
+	BigInt finish(Iterator& iter, Int idx)
+	{
+		iter.key_idx() = idx;
+		iter.cache().setSizePrefix(Base::prefix_);
+
+		return Base::sum_;
+	}
+};
+
+
+
+template <typename Types>
+class PrevLeafWalker: public SkipBackwardWalkerBase<Types> {
+
+	typedef SkipBackwardWalkerBase<Types> 		Base;
+	typedef typename Base::Key 			Key;
+	typedef typename Base::Position 	Position;
+	typedef typename Base::Iterator		Iterator;
+
+	Int leafs_ = 0;
+
+public:
+	PrevLeafWalker(Int stream, Int block): Base(stream, block, 0)
+	{}
+
+	typedef Int ReturnType;
+	typedef Int ResultType;
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
+	{
+		return Base::template treeNode(node, start);
+	}
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, BigInt start)
+	{
+		leafs_++;
+
+		Position sizes = node->sizes();
+
+		if (leafs_ == 2)
+		{
+			Base::prefix_ -= sizes;
+			return sizes[Base::stream_] > 0;
+		}
+		else {
+			return -1;
+		}
+	}
+
+	bool finish(Iterator& iter, Int idx)
+	{
+		iter.key_idx() = idx;
+		iter.cache().setSizePrefix(Base::prefix_);
+
+		return idx >= 0;
+	}
+};
+
 
 
 

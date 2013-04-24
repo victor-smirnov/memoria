@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_VECTOR2_CONTAINER_WALKERS_HPP
-#define _MEMORIA_CONTAINERS_VECTOR2_CONTAINER_WALKERS_HPP
+#ifndef _MEMORIA_CONTAINERS_VECTORMAP2_CONTAINER_WALKERS_HPP
+#define _MEMORIA_CONTAINERS_VECTORMAP2_CONTAINER_WALKERS_HPP
 
 #include <memoria/prototypes/btree/tools.hpp>
 #include <memoria/core/tools/static_array.hpp>
@@ -20,7 +20,7 @@
 #include <ostream>
 
 namespace memoria       {
-namespace mvector2      {
+namespace vmap      	{
 
 
 template <typename Types>
@@ -52,7 +52,7 @@ public:
 	}
 
 
-	void finish(Iterator& iter, Int idx)
+	void finish(Int idx, Iterator& iter)
 	{
 		iter.key_idx() 	= idx;
 
@@ -81,7 +81,7 @@ public:
 
 
 
-/*
+
 
 template <typename Types>
 class FindLTForwardWalker: public FindWalkerBase<Types> {
@@ -115,7 +115,7 @@ public:
 		auto k 		= Base::key_ - Base::prefix_;
 		auto result = tree->findLTForward(0, start, k);
 
-		Base::prefix_ += result.prefix();
+		Base::prefix_ 	+= result.prefix();
 
 		return result.idx();
 	}
@@ -191,7 +191,7 @@ public:
 	}
 };
 
-*/
+
 
 
 
@@ -266,7 +266,7 @@ class FindEndWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindEndWalker(Int stream, Container&) {}
+	FindEndWalker(Container&) {}
 
 	template <typename Node>
 	ReturnType treeNode(const Node* node)
@@ -282,7 +282,7 @@ public:
 		return node->children_count() - 1;
 	}
 
-	void finish(Iterator& iter, Int idx)
+	void finish(Int idx, Iterator& iter)
 	{
 		iter.key_idx() = idx + 1;
 		iter.cache().setup(prefix_);
@@ -301,7 +301,7 @@ class FindREndWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindREndWalker(Int stream, Container&) {}
+	FindREndWalker(Container&) {}
 
 	template <typename Node>
 	ReturnType treeNode(const Node* node)
@@ -309,7 +309,7 @@ public:
 		return 0;
 	}
 
-	void finish(Iterator& iter, Int idx)
+	void finish(Int idx, Iterator& iter)
 	{
 		iter.key_idx() = idx - 1;
 
@@ -331,7 +331,7 @@ public:
 	typedef Int ReturnType;
 
 
-	FindBeginWalker(Int stream, Container&) {}
+	FindBeginWalker(Container&) {}
 
 
 	template <typename Node>
@@ -340,7 +340,7 @@ public:
 		return 0;
 	}
 
-	void finish(Iterator& iter, Int idx)
+	void finish(Int idx, Iterator& iter)
 	{
 		iter.key_idx() = 0;
 
@@ -360,7 +360,7 @@ class FindRBeginWalker: public FindRangeWalkerBase<Types> {
 	Accumulator prefix_;
 
 public:
-	FindRBeginWalker(Int stream, Container&) {}
+	FindRBeginWalker(Container&) {}
 
 	typedef Int ReturnType;
 
@@ -374,7 +374,7 @@ public:
 		return node->children_count() - 1;
 	}
 
-	void finish(Iterator& iter, Int idx)
+	void finish(Int idx, Iterator& iter)
 	{
 		iter.key_idx() = idx;
 

@@ -5,12 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
-#define _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
+#ifndef _MEMORIA_CONTAINER_VECTORMAP2_C_REMOVE_HPP
+#define _MEMORIA_CONTAINER_VECTORMAP2_C_REMOVE_HPP
 
 
 #include <memoria/containers/vector2/vector_names.hpp>
-
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
@@ -20,7 +19,7 @@ namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrRemoveName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -53,29 +52,53 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
-	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
 
-
-	BigInt size() const {
-		return self().getSize();
-	}
-
-    Iterator seek(Key pos)
-    {
-        return self().findLT(MAIN_STREAM, pos, 0);
-    }
-
-    MyType& operator<<(vector<Value>& v)
-    {
-    	auto& self = this->self();
-    	auto i = self.seek(self.getSize());
-    	i.insert(v);
-    	return self;
-    }
+	void remove(Iterator& from, Iterator& to);
+    void remove(Iterator& from, BigInt size);
 
 MEMORIA_CONTAINER_PART_END
 
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrRemoveName)
+#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+M_PARAMS
+void M_TYPE::remove(Iterator& from, Iterator& to)
+{
+	auto& self = this->self();
+
+	auto& from_path 	= from.path();
+	Position from_pos 	= Position(from.key_idx());
+
+	auto& to_path 		= to.path();
+	Position to_pos 	= Position(to.key_idx());
+
+	Accumulator keys;
+
+	self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
+
+	from.key_idx() = to.key_idx() = to_pos.get();
 }
+
+M_PARAMS
+void M_TYPE::remove(Iterator& from, BigInt size)
+{
+	auto to = from;
+	to.skip(size);
+
+	auto& self = this->self();
+
+	self.remove(from, to);
+
+	from = to;
+
+	from.cache().initState();
+}
+
+
+}
+
+#undef M_TYPE
+#undef M_PARAMS
 
 
 #endif

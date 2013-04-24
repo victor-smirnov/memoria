@@ -33,14 +33,15 @@ protected:
 
 	Key key_;
 	Int key_num_;
+	Int stream_;
 
 	WalkDirection direction_;
 
 
 
 public:
-	FindWalkerBase(Key key, Int key_num):
-		key_(key), key_num_(key_num)
+	FindWalkerBase(Int stream, Int key_num, Key key):
+		key_(key), key_num_(key_num), stream_(stream)
 	{}
 
 	const WalkDirection& direction() const {
@@ -52,7 +53,7 @@ public:
 	}
 
 
-	void finish(Int idx, Iterator& iter)
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() 	= idx;
 
@@ -77,7 +78,7 @@ class FindLTWalker: public FindWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindLTWalker(Key key, Int key_num): Base(key, key_num)
+	FindLTWalker(Int stream, Int key_num, Int key): Base(stream, key_num, key)
 	{}
 
 	template <typename Node>
@@ -96,7 +97,7 @@ class FindLEWalker: public FindWalkerBase<Types> {
 	typedef typename Base::Key 			Key;
 
 public:
-	FindLEWalker(Key key, Int key_num): Base(key, key_num)
+	FindLEWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
 	{}
 
 	typedef Int ResultType;
@@ -105,7 +106,7 @@ public:
 	template <typename Node>
 	ReturnType treeNode(const Node* node, Int start)
 	{
-		return node->find(0, *this, node->level(), start);
+		return node->find(Base::stream_, *this, node->level(), start);
 	}
 
 
@@ -168,7 +169,7 @@ class FindEndWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindEndWalker(Container&) {}
+	FindEndWalker(Int stream, Container&) {}
 
 	template <typename Node>
 	ReturnType treeNode(const Node* node, Int start)
@@ -191,7 +192,7 @@ public:
 	}
 
 
-	void finish(Int idx, Iterator& iter)
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = idx + 1;
 		iter.cache().setup(prefix_);
@@ -210,7 +211,7 @@ class FindREndWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindREndWalker(Container&) {}
+	FindREndWalker(Int stream, Container&) {}
 
 	template <typename Node>
 	ReturnType treeNode(const Node* node, Int start)
@@ -218,7 +219,7 @@ public:
 		return 0;
 	}
 
-	void finish(Int idx, Iterator& iter)
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = idx - 1;
 
@@ -239,7 +240,7 @@ class FindBeginWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindBeginWalker(Container&) {}
+	FindBeginWalker(Int stream, Container&) {}
 
 
 	template <typename Node>
@@ -248,7 +249,7 @@ public:
 		return 0;
 	}
 
-	void finish(Int idx, Iterator& iter)
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = 0;
 
@@ -270,7 +271,7 @@ class FindRBeginWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindRBeginWalker(Container&) {}
+	FindRBeginWalker(Int stream, Container&) {}
 
 	template <typename Node>
 	ReturnType treeNode(const Node* node, Int start)
@@ -287,7 +288,7 @@ public:
 	}
 
 
-	void finish(Int idx, Iterator& iter)
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = idx;
 

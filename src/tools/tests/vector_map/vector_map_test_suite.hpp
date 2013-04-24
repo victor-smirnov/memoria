@@ -27,7 +27,7 @@ public:
     {
         registerTask(new VectorMapTest());
 
-        registerTask(new VectorMapTransferTest<UByte>("Transfer"));
+//        registerTask(new VectorMapTransferTest<UByte>("Transfer"));
     }
 
 };

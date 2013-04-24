@@ -31,7 +31,7 @@ public:
 //        registerTask(new VectorTest<BigInt>("BigInt"));
 
 //        registerTask(new VectorTransferTest<UByte>("Transfer"));
-//        registerTask(new VectorIteratorTest<Int>("Iter"));
+        registerTask(new VectorIteratorTest<Int>("Iter"));
     }
 
 };

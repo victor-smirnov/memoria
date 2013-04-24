@@ -129,14 +129,66 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrNavName)
     bool nextKey();
     bool prevKey();
 
+    bool nextLeaf();
+    bool prevLeaf();
+
+
     bool hasNextKey();
     bool hasPrevKey();
+
+    BigInt skipFw(BigInt amount);
+    BigInt skipBw(BigInt amount);
+    BigInt skip(BigInt amount);
+
+    BigInt skipStreamFw(Int stream, BigInt distance) {
+    	return skipFw(distance);
+    }
+
+    BigInt skipStreamBw(Int stream, BigInt distance) {
+    	return skipBw(distance);
+    }
 
 
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::map2::ItrNavName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+
+
+//FIXME: Should nextLeaf/PreveLeaf set to End/Start if move fails?
+M_PARAMS
+bool M_TYPE::nextLeaf()
+{
+    auto& self = this->self();
+
+	if (self.model().getNextNode(self.path()))
+    {
+        // FIXME: keyNum ?
+
+        self.key_idx() = 0;
+
+        return true;
+    }
+
+    return false;
+}
+
+
+
+
+M_PARAMS
+bool M_TYPE::prevLeaf()
+{
+    auto& self = this->self();
+
+    if (self.model().getPrevNode(self.path()))
+    {
+        self.key_idx() = self.leafSize(self.stream()) - 1;
+
+        return true;
+    }
+    return false;
+}
 
 
 
@@ -263,6 +315,60 @@ bool M_TYPE::hasPrevKey()
         return self.hasPrevLeaf();
     }
 }
+
+
+M_PARAMS
+BigInt M_TYPE::skipFw(BigInt amount)
+{
+    BigInt cnt = 0;
+
+    for (BigInt c = 0; c < amount; c++, cnt++)
+    {
+        if (!me()->nextKey())
+        {
+            break;
+        }
+    }
+
+    return cnt;
+}
+
+
+M_PARAMS
+BigInt M_TYPE::skipBw(BigInt amount)
+{
+    BigInt cnt = 0;
+
+    for (BigInt c = 0; c < amount; c++, cnt++)
+    {
+        if (!me()->prevKey())
+        {
+            break;
+        }
+    }
+
+    return cnt;
+}
+
+
+M_PARAMS
+BigInt M_TYPE::skip(BigInt amount)
+{
+    auto& self = this->self();
+
+	if (amount > 0)
+    {
+        return self.skipFw(amount);
+    }
+    else if (amount < 0) {
+        return self.skipBw(-amount);
+    }
+    else {
+    	return 0;
+    }
+}
+
+
 
 
 }

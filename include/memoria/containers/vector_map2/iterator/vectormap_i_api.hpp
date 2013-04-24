@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR2_ITERATOR_API_HPP
-#define _MEMORIA_CONTAINER_VECTOR2_ITERATOR_API_HPP
+#ifndef _MEMORIA_CONTAINER_VECTORMAP2_ITERATOR_API_HPP
+#define _MEMORIA_CONTAINER_VECTORMAP2_ITERATOR_API_HPP
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/idata.hpp>
@@ -25,7 +25,7 @@ namespace memoria    {
 
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::vmap::ItrApiName)
 
 	typedef Ctr<typename Types::CtrTypes>                      	Container;
 
@@ -108,9 +108,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
 		model.insert(self, buf);
 	}
 
+
+	MEMORIA_DECLARE_NODE_FN_RTN(SizeFn, size, Int);
+
 	Int size() const
 	{
-		return self().leafSize(0);
+		return LeafDispatcher::dispatchConstRtn(self().leaf().node(), SizeFn(), 0);
 	}
 
 	MEMORIA_DECLARE_NODE_FN(ReadFn, read);
@@ -172,7 +175,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
 
 	BigInt skipFw(BigInt amount);
 	BigInt skipBw(BigInt amount);
-	BigInt skip(BigInt amount);
 
 	BigInt pos() const {
 		return prefix() + self().key_idx();
@@ -218,44 +220,60 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector2::ItrApiName)
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mvector2::ItrApiName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::vmap::ItrApiName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
-
-M_PARAMS
-BigInt M_TYPE::skip(BigInt amount)
-{
-    auto& self = this->self();
-
-	if (amount > 0)
-    {
-        return self.skipFw(amount);
-    }
-    else if (amount < 0) {
-        return self.skipBw(-amount);
-    }
-    else {
-    	return 0;
-    }
-}
-
 
 M_PARAMS
 BigInt M_TYPE::skipFw(BigInt amount)
 {
+	typedef vmap::FindLTForwardWalker<Types> Walker;
+
 	auto& self = this->self();
 
-	return self.skipStreamFw(0, amount);
+	Walker walker(amount, 0, self.prefixes());
+
+	BigInt pos = self.pos();
+
+	Int idx = self.key_idx() = self.model().findFw(self.path(), 0, self.key_idx(), walker);
+
+	Int last_size = self.size();
+
+	if (idx >= last_size)
+	{
+		self.cache().setup(pos + walker.prefix() - last_size);
+		return walker.prefix();
+	}
+	else if (walker.leafs() == 2)
+	{
+		self.cache().setup(pos + walker.prefix());
+	}
+
+	return walker.prefix() + idx;
 }
 
 M_PARAMS
 BigInt M_TYPE::skipBw(BigInt amount)
 {
+	typedef vmap::FindLTBackwardWalker<Types> Walker;
+
 	auto& self = this->self();
 
-	return self.skipStreamBw(0, amount);
+	BigInt pos = self.pos();
+
+	Walker walker(amount, 0);
+
+	Int idx = self.key_idx() = self.model().findBw(self.path(), 0, self.key_idx(), walker);
+
+	if (idx >= 0)
+	{
+		self.cache().setup(pos - walker.prefix());
+		return walker.prefix() - idx;
+	}
+	else {
+		self.cache().setup(0);
+		return walker.prefix();
+	}
 }
-
-
 
 
 }

@@ -5,22 +5,23 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
-#define _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
+#ifndef _MEMORIA_CONTAINER_VECTORMAP2_C_INSERT_HPP
+#define _MEMORIA_CONTAINER_VECTORMAP2_C_INSERT_HPP
 
 
 #include <memoria/containers/vector2/vector_names.hpp>
+#include <memoria/containers/vector2/vector_tools.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-
+#include <vector>
 
 namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -36,6 +37,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
 	typedef typename Base::RootDispatcher                                       RootDispatcher;
 	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+	typedef typename Base::DefaultDispatcher                                    DefaultDispatcher;
 
 
 	typedef typename Base::Key                                                  Key;
@@ -53,27 +55,52 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
-	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
+	typedef typename Types::DataSource											DataSource;
+	typedef typename Types::DataTarget											DataTarget;
 
 
-	BigInt size() const {
-		return self().getSize();
-	}
 
-    Iterator seek(Key pos)
-    {
-        return self().findLT(MAIN_STREAM, pos, 0);
-    }
 
-    MyType& operator<<(vector<Value>& v)
-    {
-    	auto& self = this->self();
-    	auto i = self.seek(self.getSize());
-    	i.insert(v);
-    	return self;
-    }
+    void insert(Iterator& iter, DataSource& data);
 
 MEMORIA_CONTAINER_PART_END
+
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrInsertName)
+#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
+
+M_PARAMS
+void M_TYPE::insert(Iterator& iter, DataSource& data)
+{
+	auto& self = this->self();
+	auto& ctr  = self;
+
+	TreePath& path = iter.path();
+	Position idx(iter.key_idx());
+
+	mvector2::VectorSource source(&data);
+
+	typename Base::DefaultSubtreeProvider provider(self, Position(data.getSize()), source);
+
+	ctr.insertSubtree(path, idx, provider);
+
+	ctr.addTotalKeyCount(data.getSize());
+
+	if (iter.isEof())
+	{
+		iter.nextLeaf();
+	}
+
+	iter.skipFw(data.getSize());
+}
+
+
+
+
+
+#undef M_PARAMS
+#undef M_TYPE
 
 }
 

@@ -29,6 +29,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::FindName)
     typedef typename Base::Key                                                  Key;
     typedef typename Base::TreePath                                             TreePath;
 
+    static const Int MAIN_STREAM												= Types::MAIN_STREAM;
+
 
     struct SearchModeDefault {
         typedef enum {NONE, FIRST, LAST} Enum;
@@ -40,7 +42,7 @@ private:
 public:
 
     template <typename Walker>
-    Iterator find0(Walker&& walker);
+    Iterator find0(Int stream, Walker&& walker);
 
     template <typename Walker>
     void find1(Walker&& walker);
@@ -53,36 +55,50 @@ public:
 
     MEMORIA_PUBLIC MEMORIA_DEPRECATED BigInt getSize() const
     {
-        return me()->getTotalKeyCount();
+        return self().getTotalKeyCount();
     }
 
     MEMORIA_PUBLIC BigInt size() const
     {
-    	return me()->getTotalKeyCount();
+    	return self().getTotalKeyCount();
+    }
+
+    MEMORIA_PUBLIC Iterator streamBegin(Int stream)
+    {
+    	typename Types::template FindBeginWalker<Types> walker(stream, self());
+    	return self().find0(stream, walker);
     }
 
     MEMORIA_PUBLIC Iterator Begin()
     {
-    	typename Types::template FindBeginWalker<Types> walker(*me());
-    	return me()->find0(walker);
+    	return streamBegin(MAIN_STREAM);
     }
 
     MEMORIA_PUBLIC Iterator begin()
     {
-    	typename Types::template FindBeginWalker<Types> walker(*me());
-    	return me()->find0(walker);
+    	return streamBegin(MAIN_STREAM);
+    }
+
+    MEMORIA_PUBLIC Iterator streamRBegin(Int stream)
+    {
+    	typename Types::template FindRBeginWalker<Types> walker(stream, self());
+    	return self().find0(stream, walker);
     }
 
     MEMORIA_PUBLIC Iterator RBegin()
     {
-    	typename Types::template FindRBeginWalker<Types> walker(*me());
-    	return me()->find0(walker);
+    	return streamRBegin(MAIN_STREAM);
+    }
+
+    MEMORIA_PUBLIC Iterator streamEnd(Int stream)
+    {
+    	typename Types::template FindEndWalker<Types> walker(stream, self());
+    	return self().find0(stream, walker);
     }
 
     MEMORIA_PUBLIC Iterator End()
     {
-    	typename Types::template FindEndWalker<Types> walker(*me());
-    	return me()->find0(walker);
+    	return streamEnd(MAIN_STREAM);
     }
 
 
@@ -98,24 +114,29 @@ public:
         return IterEndMark();
     }
 
+    MEMORIA_PUBLIC Iterator streamREnd(Int stream)
+    {
+    	typename Types::template FindREndWalker<Types> walker(stream, self());
+    	return self().find0(stream, walker);
+    }
+
     MEMORIA_PUBLIC Iterator REnd()
     {
-    	typename Types::template FindREndWalker<Types> walker(*me());
-    	return me()->find0(walker);
+    	return streamREnd(MAIN_STREAM);
     }
 
-    Iterator findLT(Key key, Int key_num)
+    Iterator findLT(Int stream, Key key, Int key_num)
     {
-    	typename Types::template FindLTWalker<Types> walker(key, key_num);
+    	typename Types::template FindLTWalker<Types> walker(stream, key_num, key);
 
-    	return me()->find0(walker);
+    	return self().find0(stream, walker);
     }
 
-    Iterator findLE(Key key, Int key_num)
+    Iterator findLE(Int stream, Key key, Int key_num)
     {
-    	typename Types::template FindLEWalker<Types> walker(key, key_num);
+    	typename Types::template FindLEWalker<Types> walker(stream, key_num, key);
 
-    	return me()->find0(walker);
+    	return self().find0(stream, walker);
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -129,7 +150,7 @@ MEMORIA_CONTAINER_PART_END
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::Iterator M_TYPE::find0(Walker&& walker)
+typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
 {
 	auto& self = this->self();
 
@@ -138,11 +159,12 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker&& walker)
 	NodeBaseG node = self.getRoot(Allocator::READ);
 	if (node.isSet())
 	{
-		Iterator i(*me(), node->level() + 1);
+		Iterator i(self, node->level() + 1);
 
+		i.stream() = stream;
 		i.setNode(node, 0);
 
-		Int size = self.getNodeSize(node, 0);
+		Int size = self.getNodeSize(node, stream);
 
 		if (size > 0)
 		{
@@ -155,7 +177,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker&& walker)
 				{
 					idx = NodeDispatcher::dispatchConstRtn(node, walker, 0);
 
-					size = self.getNodeSize(node, 0);
+					size = self.getNodeSize(node, stream);
 
 					if (idx >= size)
 					{
@@ -164,7 +186,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker&& walker)
 					}
 				}
 				else {
-					idx = self.getNodeSize(node, 0) - 1;
+					idx = self.getNodeSize(node, stream) - 1;
 				}
 
 				node = me()->getChild(node, idx, Allocator::READ);
@@ -177,10 +199,10 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker&& walker)
 				i.key_idx() = idx = NodeDispatcher::dispatchConstRtn(node, walker, 0);
 			}
 			else {
-				i.key_idx() = idx = self.getNodeSize(node, 0);
+				i.key_idx() = idx = self.getNodeSize(node, stream);
 			}
 
-			walker.finish(idx, i);
+			walker.finish(i, idx);
 		}
 		else {
 			walker.empty(i);
@@ -189,7 +211,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Walker&& walker)
 		return i;
 	}
 	else {
-		return Iterator(*me());
+		return Iterator(self);
 	}
 }
 

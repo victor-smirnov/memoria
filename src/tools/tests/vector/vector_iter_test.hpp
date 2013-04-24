@@ -105,10 +105,6 @@ public:
     		{
     			Iterator i = ctr.seek(start);
 
-    			if (c==208) {
-    				int a = 0; a++;
-    			}
-
     			Int distance = i.skip(-c);
 
     			checkIteratorPrefix(i, MA_SRC);
@@ -127,7 +123,7 @@ public:
     		checkIteratorPrefix(i, MA_SRC);
 
     		AssertEQ(MA_SRC, i.pos(), -1);
-    		AssertEQ(MA_SRC, distance, c + 1);
+    		AssertEQ(MA_SRC, distance, c);
     	}
     }
 };

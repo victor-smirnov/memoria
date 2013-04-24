@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
-#define _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
+#ifndef _MEMORIA_CONTAINER_VECTORMAP2_C_FIND_HPP
+#define _MEMORIA_CONTAINER_VECTORMAP2_C_FIND_HPP
 
 
 #include <memoria/containers/vector2/vector_names.hpp>
@@ -20,7 +20,7 @@ namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrFindName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -53,27 +53,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
-	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
 
 
-	BigInt size() const {
-		return self().getSize();
-	}
-
-    Iterator seek(Key pos)
-    {
-        return self().findLT(MAIN_STREAM, pos, 0);
-    }
-
-    MyType& operator<<(vector<Value>& v)
-    {
-    	auto& self = this->self();
-    	auto i = self.seek(self.getSize());
-    	i.insert(v);
-    	return self;
-    }
 
 MEMORIA_CONTAINER_PART_END
+
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrFindName)
+#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
+#undef M_TYPE
+#undef M_PARAMS
 
 }
 

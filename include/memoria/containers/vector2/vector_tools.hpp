@@ -73,24 +73,35 @@ public:
 
 template <typename Iterator, typename Container>
 class VectorIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Iterator, Container> {
-    typedef balanced_tree::BTreeIteratorCache<Iterator, Container> Base;
-    typedef typename Container::Accumulator     Accumulator;
+    typedef balanced_tree::BTreeIteratorCache<Iterator, Container> 				Base;
+    typedef typename Container::Position 										Position;
+    typedef typename Container::Accumulator 									Accumulator;
 
-    BigInt prefix_;
-    BigInt current_;
+    Position prefix_;
+    Position current_;
 
     static const Int Indexes = 1;
 
 public:
 
-    VectorIteratorPrefixCache(): Base(), prefix_(0), current_(0) {}
+    VectorIteratorPrefixCache(): Base(), prefix_(), current_() {}
 
     const BigInt& prefix(int num = 0) const
     {
-        return prefix_;
+        return prefix_[num];
     }
 
-    const BigInt prefixes() const
+    const Position& sizePrefix() const
+    {
+    	return prefix_;
+    }
+
+    void setSizePrefix(const Position& prefix)
+    {
+    	prefix_ = prefix;
+    }
+
+    const Position& prefixes() const
     {
         return prefix_;
     }
@@ -120,19 +131,17 @@ public:
         }
     }
 
+    void setup(const Position& prefix)
+    {
+        prefix_ = prefix;
+    }
+
     void setup(BigInt prefix)
     {
-        prefix_ = prefix;
-
-        init_();
+    	prefix_[0] = prefix;
     }
 
-    void setup(const Accumulator& prefix)
-    {
-        prefix_ = prefix;
-    }
-
-    void Clear(BigInt& v) {v = 0;}
+    void Clear(Position& v) {v = Position();}
 
     void initState()
     {

@@ -6,13 +6,13 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_VECTOR2_NAMES_HPP
-#define _MEMORIA_CONTAINERS_VECTOR2_NAMES_HPP
+#ifndef _MEMORIA_CONTAINERS_VECTORMAP2_NAMES_HPP
+#define _MEMORIA_CONTAINERS_VECTORMAP2_NAMES_HPP
 
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
 
 namespace memoria    {
-namespace mvector2 	 {
+namespace vmap 	 	 {
 
 class CtrApiName 	{};
 class CtrInsertName {};
@@ -25,18 +25,18 @@ class ItrApiName {};
 }
 
 template <typename Types>
-struct Vector2CtrTypesT: CtrTypesT<Types> {};
+struct VectorMap2CtrTypesT: CtrTypesT<Types> {};
 
 template <typename Types>
-struct Vector2IterTypesT: IterTypesT<Types> {};
+struct VectorMap2IterTypesT: IterTypesT<Types> {};
 
 
 
 template <typename Types>
-using Vector2CtrTypes  = Vector2CtrTypesT<Types>;
+using VectorMap2CtrTypes  = VectorMap2CtrTypesT<Types>;
 
 template <typename Types>
-using Vector2IterTypes = Vector2IterTypesT<Types>;
+using VectorMap2IterTypes = VectorMap2IterTypesT<Types>;
 
 
 }

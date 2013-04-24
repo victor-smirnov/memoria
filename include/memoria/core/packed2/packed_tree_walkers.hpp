@@ -78,8 +78,6 @@ public:
 
 //        BigInt l0 = limit_;
 
-        __builtin_prefetch(&indexes_[start]);
-
     	for (Int c = start; c < end; c++)
         {
         	IndexKey key = indexes_[c];
@@ -383,8 +381,6 @@ public:
 		Comparator<IndexKey, BigInt> compare;
 		Codec codec;
 
-		__builtin_prefetch(codec.addr(values_, pos));
-
 		while (pos < end)
 		{
 			Value value;
@@ -491,10 +487,6 @@ public:
 	Int walkValues(Int pos, Int end)
 	{
 		Comparator<Int, Value> compare;
-
-//		BigInt l0 = Base::limit_;
-
-//		__builtin_prefetch(&values_[pos]);
 
 		for (Int c = pos; c < end; c++)
 		{

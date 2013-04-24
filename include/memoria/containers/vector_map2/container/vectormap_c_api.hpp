@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
-#define _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
+#ifndef _MEMORIA_CONTAINER_VECTORMAP2_C_API_HPP
+#define _MEMORIA_CONTAINER_VECTORMAP2_C_API_HPP
 
 
 #include <memoria/containers/vector2/vector_names.hpp>
@@ -20,7 +20,7 @@ namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -53,25 +53,40 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
-	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
 
-
-	BigInt size() const {
+	BigInt totalSize() const {
 		return self().getSize();
 	}
 
-    Iterator seek(Key pos)
+	BigInt size(Key id) const
+	{
+		return seek(id).size();
+	}
+
+    Iterator seek(Key id, Key pos)
     {
-        return self().findLT(MAIN_STREAM, pos, 0);
+        return self().findLT(pos, 0);
     }
 
-    MyType& operator<<(vector<Value>& v)
+    Iterator find(Key id)
     {
     	auto& self = this->self();
-    	auto i = self.seek(self.getSize());
-    	i.insert(v);
-    	return self;
+
+    	Iterator iter = self.findLE(1, id, 0);
+
+    	if (iter.id() != id)
+    	{
+    		iter.found() = false;
+    	}
+
+    	return iter;
     }
+
+    Iterator create(Key id)
+    {
+    	return Iterator(self());
+    }
+
 
 MEMORIA_CONTAINER_PART_END
 

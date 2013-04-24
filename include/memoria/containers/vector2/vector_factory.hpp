@@ -90,24 +90,37 @@ struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTree
 
 
     template <typename Types>
-    using FindLTWalker 		= ::memoria::mvector2::FindLTForwardWalker<Types>;
+    using FindLTWalker 			= SkipForwardWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker 		= ::memoria::mvector2::FindLEWalker<Types>;
+    using FindLEWalker 			= ::memoria::mvector2::FindLEWalker<Types>;
+
+
+    template <typename Types>
+    using SkipForwardWalker 	= SkipForwardWalker<Types>;
+
+    template <typename Types>
+    using SkipBackwardWalker 	= SkipBackwardWalker<Types>;
+
+    template <typename Types>
+    using NextLeafWalker 	 	= NextLeafWalker<Types>;
+
+    template <typename Types>
+    using PrevLeafWalker 		= PrevLeafWalker<Types>;
 
 
 
     template <typename Types>
-    using FindBeginWalker 	= ::memoria::mvector2::FindBeginWalker<Types>;
+    using FindBeginWalker 		= ::memoria::mvector2::FindBeginWalker<Types>;
 
     template <typename Types>
-    using FindEndWalker 	= ::memoria::mvector2::FindEndWalker<Types>;
+    using FindEndWalker 		= ::memoria::mvector2::FindEndWalker<Types>;
 
     template <typename Types>
-    using FindRBeginWalker 	= ::memoria::mvector2::FindRBeginWalker<Types>;
+    using FindRBeginWalker 		= ::memoria::mvector2::FindRBeginWalker<Types>;
 
     template <typename Types>
-    using FindREndWalker 	= ::memoria::mvector2::FindREndWalker<Types>;
+    using FindREndWalker 		= ::memoria::mvector2::FindREndWalker<Types>;
 };
 
 
@@ -115,52 +128,6 @@ template <typename Profile, typename Value, typename T>
 class CtrTF<Profile, memoria::Vector<Value>, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
 };
 
-
-
-
-//template <typename Profile_, typename Value>
-//struct WrapperTypes<Profile_, CtrWrapper<memoria::Vector<Value>>>: WrapperTypes<Profile_, memoria::Vector<Value> > {
-//
-//	typedef WrapperTypes<Profile_, memoria::Vector<Value>>   			Base;
-//
-//	typedef typename MergeLists<
-//				typename Base::ContainerPartsList,
-//				memoria::mvector2::CtrToolsName,
-//				memoria::mvector2::CtrInsertName,
-//				memoria::mvector2::CtrRemoveName,
-//				memoria::mvector2::CtrApiName
-//	>::Result                                           CtrList;
-//
-//	typedef typename MergeLists<
-//				typename Base::IteratorPartsList,
-//				memoria::mvector2::ItrApiName
-//	>::Result                                           IterList;
-//
-//	typedef VectorProto<Value>           				WrappedCtrName;
-//};
-//
-//
-//
-//template <typename Profile_, typename Value, typename T>
-//class CtrTF<Profile_, memoria::Vector<Value>, T>: public CtrTF<Profile_, CtrWrapper<memoria::Vector<Value>>, T> {
-//
-//	typedef CtrTF<Profile_, CtrWrapper<memoria::Vector<Value>>, T> 				Base;
-//
-//public:
-//
-//    struct Types: Base::Types {
-//    	typedef IDataSource<Value>				DataSource;
-//
-//    	typedef Vector2CtrTypes<Types> 			CtrTypes;
-//        typedef Vector2IterTypes<Types> 		IterTypes;
-//    };
-//
-//
-//    typedef typename Types::CtrTypes                                            CtrTypes;
-//    typedef typename Types::IterTypes                                           IterTypes;
-//
-//    typedef Ctr<CtrTypes>                                                       Type;
-//};
 
 
 

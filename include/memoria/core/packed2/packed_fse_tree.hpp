@@ -859,7 +859,7 @@ public:
 
 		FieldFactory<IndexKey>::serialize(buf, indexes(0), Indexes * index_size());
 
-		FieldFactory<Key>::serialize(buf, values(), size_ * Blocks);
+		FieldFactory<Value>::serialize(buf, values(), size_ * Blocks);
 	}
 
 	void deserialize(DeserializationData& buf)
@@ -871,7 +871,7 @@ public:
 
 		FieldFactory<IndexKey>::deserialize(buf, indexes(0), Indexes * index_size());
 
-		FieldFactory<Key>::deserialize(buf, values(), size_ * Blocks);
+		FieldFactory<Value>::deserialize(buf, values(), size_ * Blocks);
 	}
 
 private:

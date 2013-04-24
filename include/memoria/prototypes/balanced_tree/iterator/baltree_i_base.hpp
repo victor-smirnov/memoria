@@ -44,24 +44,35 @@ private:
 
     TreePath            path_;
     Int                 key_idx_;
+    Int 				stream_;
 
     bool                found_;
 
     IteratorCache       cache_;
 
 public:
-    BalTreeIteratorBase(): Base(), path_(), key_idx_(0)
+    BalTreeIteratorBase():
+    	Base(), path_(), key_idx_(0), stream_(0), found_(false)
     {
         cache_.init(me());
     }
 
     BalTreeIteratorBase(ThisType&& other):
-        Base(std::move(other)), path_(std::move(other.path_)), key_idx_(other.key_idx_), cache_(std::move(other.cache_))
+        Base(std::move(other)),
+        path_(std::move(other.path_)),
+        key_idx_(other.key_idx_),
+        stream_(other.stream_),
+        cache_(std::move(other.cache_))
     {
         cache_.init(me());
     }
 
-    BalTreeIteratorBase(const ThisType& other): Base(other), path_(other.path_), key_idx_(other.key_idx_), cache_(other.cache_)
+    BalTreeIteratorBase(const ThisType& other):
+    	Base(other),
+    	path_(other.path_),
+    	key_idx_(other.key_idx_),
+    	stream_(other.stream_),
+    	cache_(other.cache_)
     {
         cache_.init(me());
     }
@@ -70,6 +81,7 @@ public:
     {
         path_       = other.path_;
         key_idx_    = other.key_idx_;
+        stream_     = other.stream_;
         found_      = other.found_;
 
         cache_      = other.cache_;
@@ -84,6 +96,7 @@ public:
         path_       = other.path_;
         key_idx_    = other.key_idx_;
         found_      = other.found_;
+        stream_     = other.stream_;
 
         cache_      = other.cache_;
 
@@ -164,6 +177,14 @@ public:
     {
         path_[node->level()].node()         = node;
         path_[node->level()].parent_idx()   = parent_idx;
+    }
+
+    Int& stream() {
+    	return stream_;
+    }
+
+    const Int& stream() const {
+    	return stream_;
     }
 
     Int &key_idx()
@@ -253,15 +274,17 @@ public:
 
     void dump(ostream& out = cout, const char* header = NULL)
     {
+    	auto& self = this->self();
+
         out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
 
-        me()->dumpKeys(out);
+        self.dumpKeys(out);
 
-        me()->dumpBeforePath(out);
-        me()->dumpPath(out);
+        self.dumpBeforePath(out);
+        self.dumpPath(out);
 
-        me()->dumpBeforePages(out);
-        me()->dumpPages(out);
+        self.dumpBeforePages(out);
+        self.dumpPages(out);
     }
 
     String getDumpHeader()
