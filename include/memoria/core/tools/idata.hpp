@@ -138,7 +138,7 @@ struct ISource {
 	virtual Int streams()											= 0;
 	virtual IData* stream(Int stream) 								= 0;
 
-	virtual void newNode(INodeLayoutManager* layout_manager)		= 0;
+	virtual void newNode(INodeLayoutManager* layout_manager, BigInt* sizes)	= 0;
 	virtual BigInt getTotalNodes(INodeLayoutManager* layout_manager)= 0;
 };
 
@@ -350,7 +350,7 @@ public:
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        CopyBuffer(data_ + start_, buffer + start, length);
+    	CopyBuffer(data_ + start_, buffer + start, length);
 
         return skip(length);
     }

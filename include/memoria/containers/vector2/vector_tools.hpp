@@ -36,8 +36,13 @@ public:
 		return source_;
 	}
 
-	virtual void newNode(INodeLayoutManager* layout_manager)
-	{}
+	virtual void newNode(INodeLayoutManager* layout_manager, BigInt* sizes)
+	{
+		Int allocated[1] = {0};
+		Int capacity = layout_manager->getNodeCapacity(allocated, 0);
+
+		sizes[0] = capacity;
+	}
 
 	virtual BigInt getTotalNodes(INodeLayoutManager* manager)
 	{

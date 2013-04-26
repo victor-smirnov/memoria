@@ -57,6 +57,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 	typedef std::vector<KVPair> 												LeafPairsVector;
 	typedef std::function<KVPair ()>											LeafPairProviderFn;
 
+	static const UBigInt ActiveStreams											= -1ull;
+
 
 	class MapSubtreeProvider: public Base::AbstractSubtreeProviderBase {
 
@@ -113,6 +115,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 			template <typename Node>
 			Accumulator treeNode(Node* node, MapSubtreeProvider* provider, Int pos, Int remainder)
 			{
+				if (node->is_empty())
+				{
+					node->layout(provider->getActiveStreams());
+				}
+
 				Int size;
 				if (remainder <= node->capacity())
 				{
@@ -220,6 +227,11 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
 
     auto& ctr  = self();
 
+    if (ctr.isNodeEmpty(node))
+    {
+    	ctr.layoutNode(node, 1);
+    }
+
     Int node_size = ctr.getNodeSize(node, 0);
 
     if (ctr.getCapacity(node) > 0)
@@ -229,7 +241,7 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
     else if (idx == 0)
     {
         TreePath next = path;
-        ctr.splitPath(path, next, 0, Position(node_size / 2));
+        ctr.splitPath(path, next, 0, Position(node_size / 2), ActiveStreams);
         idx = 0;
 
         ctr.makeRoom(path, 0, Position(idx), Position(1));
@@ -238,13 +250,13 @@ void M_TYPE::insertEntry(Iterator &iter, const Element& element)
     {
         //FIXME: does it necessary to split the page at the middle ???
         TreePath next = path;
-        ctr.splitPath(path, next, 0, Position(idx));
+        ctr.splitPath(path, next, 0, Position(idx), ActiveStreams);
         ctr.makeRoom(path, 0, Position(idx), Position(1));
     }
     else {
         TreePath next = path;
 
-        ctr.splitPath(path, next, 0, Position(node_size / 2));
+        ctr.splitPath(path, next, 0, Position(node_size / 2), ActiveStreams);
 
         path = next;
 

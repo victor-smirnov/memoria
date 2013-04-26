@@ -167,6 +167,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
     	LeafDispatcher::dispatch(node, typename Base::AddKeysFn(&self()), idx, keys, reindex_fully);
     }
 
+    MEMORIA_DECLARE_NODE_FN_RTN(IsNodeEmpty, is_empty, bool);
+    bool isNodeEmpty(const NodeBaseG& node)
+    {
+    	return NodeDispatcher::dispatchConstRtn(node, IsNodeEmpty());
+    }
+
+    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
+    void layoutNode(NodeBaseG& node, UBigInt active_streams) const
+    {
+    	NodeDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map2::CtrToolsName)

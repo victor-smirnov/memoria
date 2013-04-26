@@ -77,14 +77,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
         virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)  											= 0;
         virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)  						= 0;
         virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size)	= 0;
+
+        virtual UBigInt					getActiveStreams()										= 0;
     };
 
     class AbstractSubtreeProviderBase: public ISubtreeProvider {
 
     	MyType& ctr_;
+    	UBigInt active_streams_;
 
     public:
-    	AbstractSubtreeProviderBase(MyType& ctr): ctr_(ctr) {}
+    	AbstractSubtreeProviderBase(MyType& ctr, UBigInt active_streams = -1ull):
+    		ctr_(ctr),
+    		active_streams_(active_streams)
+    	{}
+
+    	virtual UBigInt	getActiveStreams() {
+    		return active_streams_;
+    	}
 
     	virtual NonLeafNodeKeyValuePair getKVPair(BigInt begin, BigInt total, Int level)
     	{
@@ -123,7 +133,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     				pair.key_count  += children[c].key_count;
     			}
 
-    			NodeBaseG node = ctr_.createNode(level, false, false);
+    			NodeBaseG node = ctr_.createNode1(level, false, false);
+
+    			ctr_.layoutNonLeafNode(node, active_streams_);
 
     			setINodeData(children, node, local);
 
@@ -132,7 +144,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		}
     		else
     		{
-    			NodeBaseG node = ctr_.createNode(level, false, true);
+    			NodeBaseG node = ctr_.createNode1(level, false, true);
 
     			count++;
     			pair.keys = this->insertIntoLeaf(node);
@@ -187,13 +199,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
     template <typename Node>
     class LayoutManager: public INodeLayoutManager {
-    	Int block_size_;
+    	const Node* node_;
     public:
-    	LayoutManager(Int block_size): block_size_(block_size) {}
+    	LayoutManager(const Node* node): node_(node) {}
 
     	virtual Int getNodeCapacity(const Int* sizes, Int stream)
     	{
-    		return Node::capacity(block_size_, sizes, stream);
+    		return node_->capacity(sizes, stream);
     	}
     };
 
@@ -270,18 +282,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     				const Position* remainder
     		)
     		{
+    			LayoutManager<Node> manager(node);
+
+    			Position capacity;
+
+    			provider->data_source_.newNode(&manager, capacity.values());
+
     			Position size;
-    			if (remainder->lteAll(node->capacities()))
+    			if (remainder->lteAll(capacity))
     			{
     				size = *remainder;
     			}
     			else {
-    				size = node->capacities();
+    				size = capacity;
     			}
-
-    			LayoutManager<Node> manager(node->page_size());
-
-    			provider->data_source_.newNode(&manager);
 
     			node->insert(provider->data_source_, *pos, size);
 

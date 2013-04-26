@@ -410,7 +410,7 @@ void M_TYPE::removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum,
 
     self.removeNode(start[level].node());
 
-    NodeBaseG node = self.createRootNode(0, true, me()->getRootMetadata());
+    NodeBaseG node = self.createRootNode1(0, true, me()->getRootMetadata());
 
     self.set_root(node->id());
 
@@ -465,8 +465,6 @@ void M_TYPE::removePagesAtEnd(TreePath& start, Position& start_idx, Accumulator&
     }
 
     removeRedundantRoot(start, 0);
-
-//    self.finishPathStep(start, start_idx);
 }
 
 
@@ -634,7 +632,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
         {
         	self.removeNode(path[c].node());
 
-            NodeBaseG node = self.createRootNode(0, true, me()->getRootMetadata());
+            NodeBaseG node = self.createRootNode1(0, true, me()->getRootMetadata());
 
             self.set_root(node->id());
             path.clear();
@@ -648,7 +646,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
 
 	self.removeNode(path.leaf().node());
 
-    NodeBaseG node = self.createRootNode(0, true, self.getRootMetadata());
+    NodeBaseG node = self.createRootNode1(0, true, self.getRootMetadata());
 
     self.set_root(node->id());
     path.clear();

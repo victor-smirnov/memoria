@@ -122,7 +122,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     }
 
     PageG createRoot() const {
-        return me()->createNode(0, true, true);
+        return me()->createNode1(0, true, true);
     }
 
 
@@ -374,7 +374,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, createNodeFn, NodeBaseG);
 
-    NodeBaseG createNode(Short level, bool root, bool leaf, Int size = -1) const
+    NodeBaseG createNode1(Short level, bool root, bool leaf, Int size = -1) const
     {
         MEMORIA_ASSERT(level, >=, 0);
 
@@ -415,12 +415,12 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         node->level() = level;
 
-        initNodeSize(node, size);
+        prepareNodeSize(node, size);
 
         return node;
     }
 
-    NodeBaseG createRootNode(Short level, bool leaf, const Metadata& metadata) const
+    NodeBaseG createRootNode1(Short level, bool leaf, const Metadata& metadata) const
     {
         MEMORIA_ASSERT(level, >=, 0);
 
@@ -444,30 +444,29 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
         node->level() = level;
 
-        initNodeSize(node, metadata.page_size());
+        prepareNodeSize(node, metadata.page_size());
 
         return node;
     }
 
     template <typename Node>
-    void initNode(Node* node, Int block_size) const
+    void prepareNode(Node* node, Int block_size) const
     {
         MEMORIA_ASSERT(block_size, >=, 512);
 
-        node->init(block_size);
+        node->prepare(block_size);
     }
 
- private:
+    MEMORIA_CONST_FN_WRAPPER(PrepareNodeFn, prepareNode);
 
-    MEMORIA_CONST_FN_WRAPPER(InitNodeFn, initNode);
-
-
-    void initNodeSize(NodeBaseG& node, Int block_size) const
+    void prepareNodeSize(NodeBaseG& node, Int block_size) const
     {
         MEMORIA_ASSERT_NOT_NULL(node);
 
-        NodeDispatcher::dispatch(node.page(), InitNodeFn(me()), block_size);
+        NodeDispatcher::dispatch(node.page(), PrepareNodeFn(me()), block_size);
     }
+
+ private:
 
     void findCtrByName()
     {

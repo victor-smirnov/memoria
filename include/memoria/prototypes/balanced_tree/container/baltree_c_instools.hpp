@@ -72,9 +72,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertToolsName)
 
     	BigInt first_cell_key_count;
 
+    	UBigInt active_streams;
+
     	InsertSharedData(ISubtreeProvider& provider_):
-    		provider(provider_), start(0), end(0),
-    		total(provider_.getTotalKeyCount()), remains(total), first_cell_key_count(0) {}
+    		provider(provider_),
+    		start(0),
+    		end(0),
+    		total(provider_.getTotalKeyCount()),
+    		remains(total),
+    		first_cell_key_count(0),
+    		active_streams(provider.getActiveStreams())
+    	{}
     };
 
 
@@ -106,10 +114,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertToolsName)
     	return me()->getCapacity(node) == 0;
     }
 
-    void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx);
+    void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
 
 
-    void newRoot(TreePath& path);
+    void newRoot(TreePath& path, UBigInt active_streams);
 
 
 
@@ -211,13 +219,13 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(TreePath& path, Position& idx
 
     	if (path.getSize() == 1)
     	{
-    		self.newRoot(path);
+    		self.newRoot(path, provider.getActiveStreams());
     		right = path;
     	}
 
     	if (!self.isAfterEnd(leaf, idx))
     	{
-    		self.splitPath(path, right, 0, idx);
+    		self.splitPath(path, right, 0, idx, provider.getActiveStreams());
     	}
 
     	leaf.update();
@@ -253,7 +261,7 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(TreePath& path, Position& idx
 
 
 M_PARAMS
-void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx)
+void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams)
 {
 	auto& self = this->self();
 
@@ -261,17 +269,17 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Positio
     {
         NodeBaseG& parent = left[level + 1].node();
 
-        if (self.getNonLeafCapacity(parent) == 0)
+        if (self.getNonLeafCapacity(parent, active_streams) == 0)
         {
             Int idx_in_parent = left[level].parent_idx();
-            self.splitPath(left, right, level + 1, Position(idx_in_parent + 1));
+            self.splitPath(left, right, level + 1, Position(idx_in_parent + 1), active_streams);
         }
 
         self.split(left, right, level, idx);
     }
     else
     {
-    	self.newRoot(left);
+    	self.newRoot(left, active_streams);
 
         right.resize(left.getSize());
         right[level + 1] = left[level + 1];
@@ -368,7 +376,7 @@ void M_TYPE::insertInternalSubtree(
 
     if (left_node == right_node)
     {
-        Int node_capacity = self.getNonLeafCapacity(left_node);
+        Int node_capacity = self.getNonLeafCapacity(left_node, data.active_streams);
 
         if (key_count <= subtree_size * node_capacity)
         {
@@ -389,16 +397,16 @@ void M_TYPE::insertInternalSubtree(
             // split the node and proceed
 
             //FIXME:
-        	self.splitPath(left_path, right_path, level, Position(left_idx));
+        	self.splitPath(left_path, right_path, level, Position(left_idx), data.active_streams);
 
-            right_idx  = 0;
+            right_idx = 0;
 
             insertInternalSubtree(left_path, left_idx, right_path, right_idx, level, data);
         }
     }
     else {
-        Int start_capacity  = self.getNonLeafCapacity(left_node);
-        Int end_capacity    = self.getNonLeafCapacity(right_node);
+        Int start_capacity  = self.getNonLeafCapacity(left_node, data.active_streams);
+        Int end_capacity    = self.getNonLeafCapacity(right_node, data.active_streams);
         Int total_capacity  = start_capacity + end_capacity;
 
 
@@ -646,7 +654,20 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
     left_parent.update();
     right_parent.update();
 
-    NodeBaseG other = self.createNode(level, false, left_node->is_leaf(), left_node->page_size());
+    NodeBaseG other = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
+
+
+
+    if (left_node->is_leaf())
+    {
+    	Position sizes = self.getNodeSizes(left_node);
+    	self.layoutLeafNode(other, sizes);
+    }
+    else {
+    	UBigInt active_streams = self.getActiveStreams(left_node);
+    	self.layoutNonLeafNode(other, active_streams);
+    }
+
 
     Accumulator keys = self.moveElements(left_node, other, idx);
 
@@ -685,14 +706,16 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
 
 
 M_PARAMS
-void M_TYPE::newRoot(TreePath& path)
+void M_TYPE::newRoot(TreePath& path, UBigInt active_streams)
 {
 	auto& self = this->self();
 
     NodeBaseG& root         = path[path.getSize() - 1].node(); // page == root
     root.update();
 
-    NodeBaseG new_root      = self.createNode(root->level() + 1, true, false, root->page_size());
+    NodeBaseG new_root      = self.createNode1(root->level() + 1, true, false, root->page_size());
+
+    self.layoutNonLeafNode(new_root, active_streams);
 
     self.copyRootMetadata(root, new_root);
 

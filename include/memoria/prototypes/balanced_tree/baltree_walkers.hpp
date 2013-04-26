@@ -231,7 +231,7 @@ public:
 	{
 		iter.key_idx() = idx;
 
-		Int size = iter.size();
+		Int size = iter.leafSize(Base::stream_);
 
 		if (idx < size) {
 			iter.cache().setSizePrefix(Base::prefix_);
@@ -298,7 +298,7 @@ public:
 
 	bool finish(Iterator& iter, Int idx)
 	{
-		Int size = iter.size();
+		Int size = iter.leafSizes(Base::stream_);
 
 		if (idx < size)
 		{

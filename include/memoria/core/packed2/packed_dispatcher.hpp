@@ -110,7 +110,7 @@ public:
 	}
 
 	template <typename Fn, typename... Args>
-	static void dispatchAll(PackedAllocator* alloc, Fn&& fn, Args... args)
+	static void dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args... args)
 	{
 		if (!alloc->is_empty(Index))
 		{
@@ -118,11 +118,11 @@ public:
 			fn.template stream<Index>(head, args...);
 		}
 
-		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
+		PackedDispatcher<Tail...>::dispatchNotEmpty(alloc, std::move(fn), args...);
 	}
 
 	template <typename Fn, typename... Args>
-	static void dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args... args)
+	static void dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args... args)
 	{
 		if (!alloc->is_empty(Index))
 		{
@@ -130,8 +130,41 @@ public:
 			fn.template stream<Index>(head, args...);
 		}
 
+		PackedDispatcher<Tail...>::dispatchNotEmpty(alloc, std::move(fn), args...);
+	}
+
+
+	template <typename Fn, typename... Args>
+	static void dispatchAll(PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		Head* head = nullptr;
+		if (!alloc->is_empty(Index))
+		{
+			head = alloc->template get<Head>(Index);
+		}
+
+		fn.template stream<Index>(head, args...);
+
 		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
 	}
+
+
+	template <typename Fn, typename... Args>
+	static void dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		const Head* head = nullptr;
+		if (!alloc->is_empty(Index))
+		{
+			head = alloc->template get<Head>(Index);
+		}
+
+		fn.template stream<Index>(head, args...);
+
+		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
+	}
+
+
+
 
 	template <typename Fn, typename... Args>
 	static typename std::remove_reference<Fn>::type::ResultType
@@ -169,6 +202,14 @@ public:
 
 	template <typename Fn, typename... Args>
 	static void dispatchAllStatic(Fn&& fn, Args...)
+	{}
+
+	template <typename Fn, typename... Args>
+	static void dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args...)
+	{}
+
+	template <typename Fn, typename... Args>
+	static void dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args...)
 	{}
 
 	template <typename Fn, typename... Args>

@@ -30,8 +30,8 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1940000880" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1155896270" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -39,8 +39,8 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.912560337" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1318837041" languageId="org.eclipse.cdt.core.parser.upc.upc" languageName="UPC" sourceContentType="org.eclipse.cdt.core.parser.upc.upcSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -48,8 +48,8 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.797022439" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.764948347" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -57,8 +57,8 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.680423812" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.259740723" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -104,6 +104,8 @@
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.2006883446" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -113,6 +115,8 @@
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.159204786" languageId="org.eclipse.cdt.core.parser.upc.upc" languageName="UPC" sourceContentType="org.eclipse.cdt.core.parser.upc.upcSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -122,6 +126,8 @@
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1687699348" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -131,6 +137,8 @@
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.936409953" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -149,16 +157,19 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="p1.null.1219388518" name="p1"/>
 	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="0.299819021">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-	</storageModule>
 	<storageModule moduleId="refreshScope" versionNumber="1">
 		<resource resourceType="PROJECT" workspacePath="/p1"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="0.299819021">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.299819021.302708119">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
 </cproject>

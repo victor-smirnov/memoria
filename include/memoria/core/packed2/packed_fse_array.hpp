@@ -60,6 +60,15 @@ public:
 
 	Int capacity() const {return max_size_ - size_;}
 
+	Int total_capacity() const
+	{
+		Int my_size		= allocator()->element_size(this);
+		Int free_space 	= allocator()->free_space();
+		Int data_size  	= sizeof(Value) * size_;
+
+		return (my_size + free_space - data_size) / sizeof(Value);
+	}
+
 public:
 
 	static Int block_size(int array_size)
@@ -67,10 +76,36 @@ public:
 		return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
 	}
 
+	static Int elements_for(Int block_size)
+	{
+		return max_size_for(block_size);
+	}
+
 	void init(Int block_size)
 	{
 		size_ = 0;
-		max_size_ = (block_size - sizeof(MyType)) / sizeof(Value);
+		max_size_ = max_size_for(block_size);
+	}
+
+	static Int max_size_for(Int block_size) {
+		return (block_size - sizeof(MyType)) / sizeof(Value);
+	}
+
+	static Int empty_size()
+	{
+		return sizeof(MyType);
+	}
+
+	void initEmpty()
+	{
+		size_ 		= 0;
+		max_size_ 	= 0;
+	}
+
+	Int object_size() const
+	{
+		Int object_size = sizeof(MyType) + sizeof(Value) * size_;
+		return PackedAllocator::roundUpBytesToAlignmentBlocks(object_size);
 	}
 
 	Value& operator[](Int idx) {
@@ -113,6 +148,22 @@ public:
 
 	void reindex() {}
 
+	void enlarge(Int items_num)
+	{
+		Allocator* alloc = allocator();
+
+		Int requested_block_size 	= (max_size_ + items_num) * sizeof(Value) + sizeof(MyType);
+		Int new_size 				= alloc->resizeBlock(this, requested_block_size);
+		max_size_ 					= max_size_for(new_size);
+	}
+
+	void shrink(Int items_num)
+	{
+		MEMORIA_ASSERT(max_size_ - items_num, >=, size_);
+
+		enlarge(-items_num);
+	}
+
 	void removeSpace(Int room_start, Int room_length)
 	{
 		MEMORIA_ASSERT(room_start, <=, max_size_);
@@ -132,9 +183,12 @@ public:
 
 	void insertSpace(Int room_start, Int room_length)
 	{
-		MEMORIA_ASSERT(room_start, <=, max_size_);
 		MEMORIA_ASSERT(room_start, <=, size_);
-		MEMORIA_ASSERT(room_length, <=, max_size_ - size_);
+
+		if (capacity() < room_length)
+		{
+			enlarge(room_length - capacity());
+		}
 
 		Int length = size_ - room_start;
 

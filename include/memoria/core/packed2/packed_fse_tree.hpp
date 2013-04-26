@@ -347,22 +347,33 @@ private:
 	};
 
 public:
+	static Int tree_size(Int block_size)
+	{
+		return block_size >= (Int)sizeof(Value) ? FindTotalElementsNumber2(block_size, InitFn()) : 0;
+	}
+
 	void init(Int block_size)
 	{
 		size_ = 0;
 
-		max_size_   = block_size >= (Int)sizeof(Value) ? FindTotalElementsNumber2(block_size, InitFn()) : 0;
+		max_size_   = tree_size(block_size);
 		index_size_ = getIndexSize(max_size_);
+	}
+
+	void object_size() const
+	{
+		Int object_size = sizeof(MyType) + getDataOffset() + data_size();
+		return Allocator::roundUpBytesToAlignmentBlocks(object_size);
 	}
 
 	Int data_size() const
 	{
-		return size() * sizeof(Value);
+		return size() * sizeof(Value) * Blocks;
 	}
 
 	Int getTotalDataSize() const
 	{
-		return max_size() * sizeof(Value);
+		return max_size() * sizeof(Value) * Blocks;
 	}
 
 	Int getDataOffset() const
@@ -372,6 +383,16 @@ public:
 
 	Int capacity() const {
 		return max_size_ - size_;
+	}
+
+	Int total_capacity() const
+	{
+		Int my_size		= allocator()->element_size(this);
+		Int free_space  = allocator()->free_space();
+		Int total_size 	= MyType::tree_size(my_size + free_space);
+		Int capacity 	= total_size - size_;
+
+		return capacity >= 0 ? capacity : 0;
 	}
 
 	Allocator* allocator()

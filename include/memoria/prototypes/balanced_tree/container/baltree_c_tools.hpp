@@ -279,9 +279,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         return NodeDispatcher::dispatchConstRtn(node, GetCapacityFn(me()));
     }
 
-    Int getNonLeafCapacity(const NodeBaseG& node) const
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, Int);
+    Int getNonLeafCapacity(const NodeBaseG& node, UBigInt active_streams) const
     {
-    	return NonLeafDispatcher::dispatchConstRtn(node, GetCapacityFn(me()));
+    	return NonLeafDispatcher::dispatchConstRtn(node, GetNonLeafCapacityFn(), active_streams);
     }
 
     template <typename Node>
@@ -600,6 +602,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     Int getNodeSize(const NodeBaseG& node, Int stream) const
     {
     	return NodeDispatcher::dispatchConstRtn(node, GetSizeFn(), stream);
+    }
+
+    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
+    void layoutNonLeafNode(NodeBaseG& node, UBigInt active_streams) const
+    {
+    	NonLeafDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
+    }
+
+    void layoutLeafNode(NodeBaseG& node, const Position& sizes) const
+    {
+    	LeafDispatcher::dispatch(node, LayoutNodeFn(), sizes);
+    }
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, UBigInt);
+    UBigInt getActiveStreams(const NodeBaseG& node) const
+    {
+    	return NodeDispatcher::dispatchConstRtn(node, GetActiveStreamsFn());
     }
 
 private:

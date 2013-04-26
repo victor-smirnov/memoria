@@ -28,8 +28,8 @@ public:
 
     MapTestSuite(): TestSuite("MapSuite")
     {
-//        registerTask(new MapCreateTest());
-//        registerTask(new MapRemoveTest());
+        registerTask(new MapCreateTest());
+        registerTask(new MapRemoveTest());
         registerTask(new MapBatchTest());
     }
 

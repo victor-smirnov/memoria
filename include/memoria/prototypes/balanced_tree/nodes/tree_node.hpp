@@ -12,6 +12,7 @@
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/reflection.hpp>
+#include <memoria/core/tools/bitmap.hpp>
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/packed2/packed_fse_tree.hpp>
@@ -165,9 +166,7 @@ public:
 
 
 template <typename Metadata, typename Base>
-class RootPage<Metadata, Base, false>: public Base {
-
-};
+class RootPage<Metadata, Base, false>: public Base {};
 
 
 namespace internl1 {
@@ -276,7 +275,8 @@ public:
 
     static const long INDEXES                                                   = Tree::Indexes;
 
-    static const Int ValuesBlockIdx												= ListSize<StreamsStructList>::Value;
+    static const Int Streams													= ListSize<StreamsStructList>::Value;
+    static const Int ValuesBlockIdx												= Streams;
 
     TreeMapNode(): Base() {}
 
@@ -328,8 +328,29 @@ public:
 		return allocator_.template get<Value>(ValuesBlockIdx);
 	}
 
-	Int capacity() const {
-		return tree0()->capacity();
+
+	Int capacity(UBigInt active_streams) const
+	{
+		Int max_size = max_tree_size(allocator_.block_size(), active_streams);
+		Int cap = max_size - size();
+		return cap >= 0 ? cap : 0;
+	}
+
+	Int capacity() const
+	{
+		return capacity(active_streams());
+	}
+
+	bool is_empty() const
+	{
+		for (Int c = 0; c < Streams; c++)
+		{
+			if (!allocator_.is_empty(c)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 private:
@@ -355,10 +376,9 @@ public:
 
 		Int tree_block_size 	= fn.size_;
 		Int array_block_size 	= PackedAllocator::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
+		Int client_area 		= tree_block_size + array_block_size;
 
-		Int client_area = tree_block_size + array_block_size;
-
-		return PackedAllocator::block_size(client_area, ValuesBlockIdx + 1);
+		return PackedAllocator::block_size(client_area, Streams + 1);
 	}
 
 	static Int max_tree_size(Int block_size, UBigInt active_streams = -1)
@@ -374,6 +394,41 @@ public:
 	void init(Int block_size, UBigInt active_streams = -1)
 	{
 		init0(block_size - sizeof(Me) + sizeof(allocator_), active_streams);
+	}
+
+	void prepare(Int block_size)
+	{
+		allocator_.init(block_size - sizeof(Me) + sizeof(allocator_), Streams + 1);
+	}
+
+	void layout(UBigInt active_streams)
+	{
+		Int block_size = allocator_.block_size();
+		init0(block_size, active_streams);
+	}
+
+	void layout(const Position& sizes)
+	{
+		UBigInt streams = -1ull;
+		for (Int c = 0; c < Streams; c++)
+		{
+			UBigInt bit = sizes[c] > 0;
+			streams |= bit << c;
+		}
+
+		layout(streams);
+	}
+
+	UBigInt active_streams() const
+	{
+		UBigInt streams = -1ull;
+		for (Int c = 0; c < Streams; c++)
+		{
+			UBigInt bit = !allocator_.is_empty(c);
+			streams |= bit << c;
+		}
+
+		return streams;
 	}
 
 private:
@@ -400,7 +455,7 @@ public:
 
 	void init0(Int block_size, UBigInt active_streams)
 	{
-		allocator_.init(block_size, ValuesBlockIdx + 1);
+		allocator_.init(block_size, Streams + 1);
 
 		Int tree_size = max_tree_size(block_size, active_streams);
 
@@ -422,7 +477,7 @@ public:
 
     void reindex()
     {
-    	Dispatcher::dispatchAll(&allocator_, ReindexFn());
+    	Dispatcher::dispatchNotEmpty(&allocator_, ReindexFn());
     }
 
 
@@ -438,7 +493,7 @@ public:
     template <typename TreeType>
     void transferDataTo(TreeType* other) const
     {
-    	Dispatcher::dispatchAll(&allocator_, TransferToFn<TreeType>(), other);
+    	Dispatcher::dispatchNotEmpty(&allocator_, TransferToFn<TreeType>(), other);
 
     	const auto* my_values 	= values();
     	auto* other_values 		= other->values();
@@ -464,7 +519,7 @@ public:
 
     void clear(Int start, Int end)
     {
-    	Dispatcher::dispatchAll(&allocator_, ClearFn(), start, end);
+    	Dispatcher::dispatchNotEmpty(&allocator_, ClearFn(), start, end);
 
     	Value* values	= this->values();
 
@@ -481,22 +536,12 @@ public:
     }
 
     Int size() const {
-    	return tree0()->size();
+    	return size(0);
     }
-
-    struct SizeFn {
-    	typedef Int ResultType;
-
-    	template <Int Idx, typename Tree>
-    	ResultType stream(const Tree* tree)
-    	{
-    		return tree->size();
-    	}
-    };
 
     Int size(Int stream) const
     {
-    	return Dispatcher::dispatchRtn(stream, &allocator_, SizeFn());
+    	return this->sizes()[stream];
     }
 
     struct SizesFn {
@@ -510,7 +555,7 @@ public:
     Position sizes() const
     {
     	Position pos;
-    	Dispatcher::dispatchAll(&allocator_, SizesFn(), &pos);
+    	Dispatcher::dispatchNotEmpty(&allocator_, SizesFn(), &pos);
     	return pos;
     }
 
@@ -535,7 +580,7 @@ public:
 
     void set_children_count(Int map_size)
     {
-        Dispatcher::dispatchAll(&allocator_, SetChildrenCountFn(), map_size);
+        Dispatcher::dispatchNotEmpty(&allocator_, SetChildrenCountFn(), map_size);
     }
 
     struct IncSizeFn {
@@ -548,7 +593,7 @@ public:
 
     void inc_size(Int count)
     {
-        Dispatcher::dispatchAll(&allocator_, IncSizeFn(), count);
+        Dispatcher::dispatchNotEmpty(&allocator_, IncSizeFn(), count);
     }
 
     struct InsertSpaceFn {
@@ -573,7 +618,7 @@ public:
     	MEMORIA_ASSERT(room_start, <=, size);
     	MEMORIA_ASSERT(room_length + size, <=, max_size());
 
-    	Dispatcher::dispatchAll(&allocator_, InsertSpaceFn(), room_start, room_length);
+    	Dispatcher::dispatchNotEmpty(&allocator_, InsertSpaceFn(), room_start, room_length);
 
     	Value* values = this->values();
     	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
@@ -604,7 +649,7 @@ public:
 
     	Int old_size = this->size();
 
-    	Dispatcher::dispatchAll(&allocator_, RemoveSpaceFn(), room_start, room_length);
+    	Dispatcher::dispatchNotEmpty(&allocator_, RemoveSpaceFn(), room_start, room_length);
 
     	Value* values = this->values();
 
@@ -650,7 +695,7 @@ public:
     	MEMORIA_ASSERT(copy_from + count, <=, size());
     	MEMORIA_ASSERT(copy_to + count, <=, other->max_size());
 
-    	Dispatcher::dispatchAll(&allocator_, CopyToFn(), other, copy_from, count, copy_to);
+    	Dispatcher::dispatchNotEmpty(&allocator_, CopyToFn(), other, copy_from, count, copy_to);
 
     	CopyBuffer(this->values() + copy_from, other->values() + copy_to, count);
     }
@@ -708,7 +753,7 @@ public:
     {
     	Accumulator acc;
 
-    	Dispatcher::dispatchAll(&allocator_, KeysAtFn(), idx, &acc);
+    	Dispatcher::dispatchNotEmpty(&allocator_, KeysAtFn(), idx, &acc);
 
     	return acc;
     }
@@ -727,7 +772,7 @@ public:
     {
     	Accumulator acc;
 
-    	Dispatcher::dispatchAll(&allocator_, MaxKeysFn(), &acc);
+    	Dispatcher::dispatchNotEmpty(&allocator_, MaxKeysFn(), &acc);
 
     	return acc;
     }
@@ -747,7 +792,7 @@ public:
 
     void setKeys(Int idx, Accumulator& keys)
     {
-    	Dispatcher::dispatchAll(&allocator_, SetKeysFn(), idx, &keys);
+    	Dispatcher::dispatchNotEmpty(&allocator_, SetKeysFn(), idx, &keys);
     }
 
 
@@ -767,7 +812,7 @@ public:
     {
     	Accumulator keys;
 
-    	Dispatcher::dispatchAll(&allocator_, GetKeysFn(), idx, &keys);
+    	Dispatcher::dispatchNotEmpty(&allocator_, GetKeysFn(), idx, &keys);
 
     	return keys;
     }
@@ -799,19 +844,19 @@ public:
 
     void sum(Int start, Int end, Accumulator& accum) const
     {
-    	Dispatcher::dispatchAll(&allocator_, SumFn(), start, end, &accum);
+    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), start, end, &accum);
     }
 
     Accumulator sum(Int start, Int end) const
     {
     	Accumulator accum;
-    	Dispatcher::dispatchAll(&allocator_, SumFn(), start, end, &accum);
+    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), start, end, &accum);
     	return accum;
     }
 
     void sum(Int block_num, Int start, Int end, Key& accum) const
     {
-    	Dispatcher::dispatchAll(&allocator_, SumFn(), block_num, start, end, &accum);
+    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), block_num, start, end, &accum);
     }
 
     void sum(Int stream, Int block_num, Int start, Int end, Key& accum) const
@@ -912,7 +957,7 @@ public:
 
     void updateUp(Int idx, const Accumulator& keys)
     {
-    	Dispatcher::dispatchAll(&allocator_, UpdateUpFn(), idx, &keys);
+    	Dispatcher::dispatchNotEmpty(&allocator_, UpdateUpFn(), idx, &keys);
     }
 
     Accumulator getCounters(const Position& pos, const Position& count) const
@@ -938,7 +983,7 @@ public:
     {
         Base::generateDataEvents(handler);
 
-        Dispatcher::dispatchAll(&allocator_, GenerateDataEventsFn(), handler);
+        Dispatcher::dispatchNotEmpty(&allocator_, GenerateDataEventsFn(), handler);
 
         handler->startGroup("TREE_VALUES", size());
 
@@ -965,7 +1010,7 @@ public:
 
         allocator_.serialize(buf);
 
-        Dispatcher::dispatchAll(&allocator_, SerializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(&allocator_, SerializeFn(), &buf);
 
         FieldFactory<Value>::serialize(buf, *values(), size());
     }
@@ -985,7 +1030,7 @@ public:
 
         allocator_.deserialize(buf);
 
-        Dispatcher::dispatchAll(&allocator_, DeserializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(&allocator_, DeserializeFn(), &buf);
 
         FieldFactory<Value>::deserialize(buf, *values(), size());
     }
