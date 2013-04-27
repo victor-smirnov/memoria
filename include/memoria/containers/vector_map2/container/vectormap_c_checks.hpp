@@ -157,7 +157,7 @@ bool M_TYPE::checkNodeWithParentContent1(
 {
     bool errors = false;
     Accumulator max = node->maxKeys();
-    Accumulator keys = parent->getKeys(parent_idx);
+    Accumulator keys = parent->keysAt(parent_idx);
 
     if (max != keys)
     {
@@ -189,7 +189,7 @@ bool M_TYPE::checkNodeWithParentContent1(
 {
     bool errors = false;
     Accumulator max = node->maxKeys();
-    Accumulator keys = parent->getKeys(parent_idx);
+    Accumulator keys = parent->keysAt(parent_idx);
 
     if (max != keys)
     {

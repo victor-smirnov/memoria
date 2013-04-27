@@ -312,6 +312,20 @@ public:
 		return allocator_.template get<T>(idx);
 	}
 
+	PackedAllocator* allocator() {
+		return &allocator_;
+	}
+
+	const PackedAllocator* allocator() const {
+		return &allocator_;
+	}
+
+	bool is_empty(Int idx) const
+	{
+		return allocator_.is_empty(idx);
+	}
+
+
 	Tree* tree0() {
 		return allocator_.template get<Tree>(0);
 	}
@@ -367,6 +381,21 @@ private:
 		}
 	};
 
+
+	struct TreeSize2Fn {
+		Int size_ = 0;
+
+		template <Int StreamIndex, typename Node>
+		void stream(Node*, const Position* sizes)
+		{
+			Int size = sizes->value(StreamIndex);
+			if (size > 0)
+			{
+				size_ += Node::block_size(size);
+			}
+		}
+	};
+
 public:
 	static Int block_size(Int tree_size, UBigInt active_streams = -1)
 	{
@@ -376,6 +405,20 @@ public:
 
 		Int tree_block_size 	= fn.size_;
 		Int array_block_size 	= PackedAllocator::roundUpBytesToAlignmentBlocks(tree_size * sizeof(Value));
+		Int client_area 		= tree_block_size + array_block_size;
+
+		return PackedAllocator::block_size(client_area, Streams + 1);
+	}
+
+
+	static Int block_size(const Position& sizes, Int values_size)
+	{
+		TreeSize2Fn fn;
+
+		Dispatcher::dispatchAllStatic(fn, &sizes);
+
+		Int tree_block_size 	= fn.size_;
+		Int array_block_size 	= PackedAllocator::roundUpBytesToAlignmentBlocks(values_size * sizeof(Value));
 		Int client_area 		= tree_block_size + array_block_size;
 
 		return PackedAllocator::block_size(client_area, Streams + 1);
@@ -486,7 +529,8 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, TreeType* other)
     	{
-    		tree->transferDataTo(other->template get<Tree>(Idx));
+    		Tree* other_tree = other->allocator()->template allocate<Tree>(Idx, tree->block_size());
+    		tree->transferDataTo(other_tree);
     	}
     };
 
@@ -495,10 +539,13 @@ public:
     {
     	Dispatcher::dispatchNotEmpty(&allocator_, TransferToFn<TreeType>(), other);
 
+    	Int size = this->size();
+
+    	Int requested_values_block_size = size * sizeof(Value);
+    	other->allocator()->resizeBlock(ValuesBlockIdx, requested_values_block_size);
+
     	const auto* my_values 	= values();
     	auto* other_values 		= other->values();
-
-    	Int size = this->size();
 
     	for (Int c = 0; c < size; c++)
     	{
@@ -510,10 +557,7 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(Tree* tree, Int start, Int end)
     	{
-    		for (Int c = start; c < end; c++)
-    		{
-    			tree->clearValues(c);
-    		}
+    		tree->clear(start, end);
     	}
     };
 
@@ -535,13 +579,29 @@ public:
         return sizeof(Me) + this->getDataSize();
     }
 
-    Int size() const {
-    	return size(0);
+    struct SizeFn {
+    	Int size_ = 0;
+
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree)
+    	{
+    		size_ = tree != nullptr ? tree->size() : 0;
+    	}
+    };
+
+
+    Int size() const
+    {
+    	SizeFn fn;
+    	Dispatcher::dispatchNotEmpty(&allocator_, fn);
+    	return fn.size_;
     }
 
     Int size(Int stream) const
     {
-    	return this->sizes()[stream];
+    	SizeFn fn;
+    	Dispatcher::dispatch(stream, &allocator_, fn);
+    	return fn.size_;
     }
 
     struct SizesFn {
@@ -578,22 +638,9 @@ public:
     	}
     };
 
-    void set_children_count(Int map_size)
+    void set_children_count1(Int map_size)
     {
         Dispatcher::dispatchNotEmpty(&allocator_, SetChildrenCountFn(), map_size);
-    }
-
-    struct IncSizeFn {
-    	template <Int Idx, typename Tree>
-    	void stream(Tree* tree, Int size)
-    	{
-    		tree->size() += size;
-    	}
-    };
-
-    void inc_size(Int count)
-    {
-        Dispatcher::dispatchNotEmpty(&allocator_, IncSizeFn(), count);
     }
 
     struct InsertSpaceFn {
@@ -616,19 +663,21 @@ public:
     	Int size = this->size();
 
     	MEMORIA_ASSERT(room_start, <=, size);
-    	MEMORIA_ASSERT(room_length + size, <=, max_size());
 
     	Dispatcher::dispatchNotEmpty(&allocator_, InsertSpaceFn(), room_start, room_length);
 
+    	Int requested_block_size = (size + room_length) * sizeof(Value);
+
+    	allocator_.resizeBlock(ValuesBlockIdx, requested_block_size);
+
     	Value* values = this->values();
+
     	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
 
     	for (Int c = room_start; c < room_start + room_length; c++)
     	{
     		values[c] = 0;
     	}
-
-    	this->set_children_count(this->size());
     }
 
     struct RemoveSpaceFn {
@@ -655,36 +704,31 @@ public:
 
     	CopyBuffer(values + room_start + room_length, values + room_start, old_size - room_start - room_length);
 
-    	clear(old_size - room_length, old_size);
-
-    	this->set_children_count(this->size());
-
     	if (reindex)
     	{
     		this->reindex();
     	}
 
+    	if (old_size - room_length > 0)
+    	{
+    		Int requested_block_size = (old_size - room_length) * sizeof(Value);
+    		allocator_.resizeBlock(values, requested_block_size);
+    	}
+    	else {
+    		allocator_.free(ValuesBlockIdx);
+    	}
+
     	return accum;
     }
 
-    bool shouldMergeWithSiblings() const
-    {
-    	return capacity() >= size();
-    }
-
-    bool canMergeWith(const MyType* target) const
-    {
-    	Int size 		= this->size();
-    	Int capacity 	= target->capacity();
-
-    	return size <= capacity;
-    }
 
 
     struct CopyToFn {
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, MyType* other, Int copy_from, Int count, Int copy_to)
     	{
+    		MEMORIA_ASSERT_TRUE(!other->allocator()->is_empty(Idx));
+
     		tree->copyTo(other->template get<Tree>(Idx), copy_from, count, copy_to);
     	}
     };
@@ -693,59 +737,149 @@ public:
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
     {
     	MEMORIA_ASSERT(copy_from + count, <=, size());
-    	MEMORIA_ASSERT(copy_to + count, <=, other->max_size());
 
     	Dispatcher::dispatchNotEmpty(&allocator_, CopyToFn(), other, copy_from, count, copy_to);
 
     	CopyBuffer(this->values() + copy_from, other->values() + copy_to, count);
     }
 
-    void mergeWith(MyType* target)
+    struct MergeWithFn {
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree, MyType* other)
+    	{
+    		Int size = tree->size();
+
+    		if (size > 0)
+    		{
+    			if (other->is_empty(Idx))
+    			{
+    				Int block_size = Tree::block_size(size);
+    				other->allocator()->template allocate<Tree>(Idx, block_size);
+    			}
+
+    			Tree* other_tree = other->template get<Tree>(Idx);
+
+    			other_tree->ensureCapacity(size);
+    			tree->copyTo(other_tree, 0, size, other_tree->size());
+
+    			other_tree->size() += size;
+    			other_tree->reindex();
+    		}
+    	}
+    };
+
+
+
+
+    void mergeWith(MyType* other)
     {
-    	Int size = this->size();
-    	copyTo(target, 0, size, target->size());
-    	target->inc_size(size);
-    	target->reindex();
+    	Int other_size 	= other->size();
+
+    	Dispatcher::dispatchNotEmpty(&allocator_, MergeWithFn(), other);
+
+    	Int my_size 	= this->size();
+
+    	Int other_values_block_size 		 = other->allocator()->element_size(ValuesBlockIdx);
+    	Int required_other_values_block_size = (my_size + other_size) * sizeof(Value);
+
+    	if (required_other_values_block_size >= other_values_block_size)
+    	{
+    		other->allocator()->resizeBlock(other->values(), required_other_values_block_size);
+    	}
+
+    	CopyBuffer(values(), other->values() + other_size, my_size);
     }
 
-    Int max_size() const
+    bool shouldBeMergedWithSiblings() const
     {
-    	return tree0()->max_size();
+    	Position sizes = this->sizes();
+    	Int values_size = this->size();
+    	Int block_size = MyType::block_size(sizes, values_size);
+
+    	return block_size <= allocator_.block_size() / 2;
+    }
+
+    bool canBeMergedWith(const MyType* other) const
+    {
+    	Position my_sizes 		= this->sizes();
+    	Position other_sizes 	= other->sizes();
+    	Position sizes 			= my_sizes + other_sizes;
+    	Int values_size 		= this->size() + other->size();
+
+    	Int required_block_size = MyType::block_size(sizes, values_size);
+
+    	return required_block_size <= other->allocator_.block_size();
+    }
+
+
+    struct SplitToFn {
+    	template <Int Idx, typename Tree>
+    	void stream(Tree* tree, MyType* other, Int idx, Int shift)
+    	{
+    		Int size = tree->size();
+    		if (size > 0)
+    		{
+    			Int remainder 		= size - idx;
+    			Int block_size 		= Tree::block_size(remainder + shift);
+    			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
+
+    			tree->clear(0, shift);
+
+    			tree->copyTo(other_tree, idx, remainder, shift);
+
+    			other_tree->size() += remainder + shift;
+    			other_tree->reindex();
+
+    			tree->removeSpace(idx, remainder);
+    		}
+    	}
+    };
+
+
+    Accumulator splitTo(MyType* other, const Position& from_pos, const Position& shift_pos)
+    {
+    	Int idx 	= from_pos.get();
+    	Int shift 	= shift_pos.get();
+
+    	Int size 		= this->size();
+    	Int remainder 	= size - idx;
+
+    	Accumulator result = this->sum(idx, size);
+
+    	Dispatcher::dispatchNotEmpty(&allocator_, SplitToFn(), other, idx, shift);
+
+    	other->allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, remainder + shift);
+
+
+    	Value* other_values = other->values();
+    	Value* my_values 	= this->values();
+
+    	for (Int c = 0; c < shift; c++)
+    	{
+    		other_values[c] = 0;
+    	}
+
+    	CopyBuffer(my_values + idx, other_values + shift, remainder);
+
+    	return result;
     }
 
     void reindexAll(Int from, Int to)
     {
-    	tree0()->reindex();
+    	reindex();
     }
 
-    Key& key(Int block_num, Int key_num)
-    {
-    	MEMORIA_ASSERT(key_num, >=, 0);
-    	MEMORIA_ASSERT(key_num, <, tree0()->max_size());
-
-    	Tree* tree = this->tree0();
-    	return tree->value(block_num * tree->max_size() + key_num);
-    }
-
-    const Key& key(Int block_num, Int key_num) const
-    {
-    	MEMORIA_ASSERT(key_num, >=, 0);
-    	MEMORIA_ASSERT(key_num, <, tree0()->max_size());
-
-    	const Tree* tree = this->tree0();
-    	return tree->value(block_num * tree->max_size() + key_num);
-    }
-
-    const Key& key(Int key_num) const
-    {
-    	return key(0, key_num);
-    }
 
 	struct KeysAtFn {
 		template <Int Idx, typename Tree>
 		void stream(const Tree* tree, Int idx, Accumulator* acc)
 		{
-			std::get<Idx>(*acc)[0] = tree->value(idx);
+			const Int Blocks = Tree::Blocks;
+
+			for (Int c = 0; c < Blocks; c++)
+			{
+				std::get<Idx>(*acc)[c] = tree->value(c, idx);
+			}
 		}
 	};
 
@@ -764,7 +898,12 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, Accumulator* acc)
     	{
-    		std::get<Idx>(*acc)[0] = tree->sum();
+    		const Int Blocks = Tree::Blocks;
+
+    		for (Int c = 0; c < Blocks; c++)
+    		{
+    			std::get<Idx>(*acc)[c] = tree->sum(c);
+    		}
     	}
     };
 
@@ -782,10 +921,10 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(Tree* tree, Int idx, Accumulator* keys)
     	{
-    		for (Int c = 0; c < INDEXES; c++)
+    		for (Int c = 0; c < Tree::Blocks; c++)
     		{
     			Key k = std::get<Idx>(*keys)[c];
-    			tree->value(c * tree->max_size() + idx) = k;
+    			tree->value(c, idx) = k;
     		}
     	}
     };
@@ -793,28 +932,6 @@ public:
     void setKeys(Int idx, Accumulator& keys)
     {
     	Dispatcher::dispatchNotEmpty(&allocator_, SetKeysFn(), idx, &keys);
-    }
-
-
-    struct GetKeysFn {
-    	template <Int Idx, typename Tree>
-    	void stream(Tree* tree, Int idx, Accumulator* keys)
-    	{
-    		for (Int c = 0; c < INDEXES; c++)
-    		{
-    			Key k = tree->value(c * tree->max_size() + idx);
-    			std::get<Idx>(*keys)[c] = k;
-    		}
-    	}
-    };
-
-    Accumulator getKeys(Int idx) const
-    {
-    	Accumulator keys;
-
-    	Dispatcher::dispatchNotEmpty(&allocator_, GetKeysFn(), idx, &keys);
-
-    	return keys;
     }
 
 
@@ -832,13 +949,16 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, Int start, Int end, Accumulator* accum)
     	{
-    		std::get<Idx>(*accum)[0] += tree->sum(start, end);
+    		for (Int c = 0; c < Tree::Blocks; c++)
+    		{
+    			std::get<Idx>(*accum)[c] += tree->sum(c, start, end);
+    		}
     	}
 
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, Int block_num, Int start, Int end, Key* accum)
     	{
-    		*accum += tree->sum(start, end);
+    		*accum += tree->sum(block_num, start, end);
     	}
     };
 
@@ -865,45 +985,6 @@ public:
     }
 
 
-    struct FindLESFn {
-    	typedef Int ResultType;
-
-    	template <Int Idx, typename Tree>
-    	Int stream(const Tree* tree, const Key& k, Accumulator* accum)
-    	{
-    		auto result = tree->findLE(k);
-
-        	std::get<Idx>(*accum)[0] += result.prefix();
-
-        	return result.idx();
-    	}
-    };
-
-    Int findLES(Int block_num, const Key& k, Accumulator& sum) const
-    {
-    	return Dispatcher::dispatchRtn(0, &allocator_, FindLESFn(), k, &sum);
-    }
-
-    struct FindLTSFn {
-    	typedef Int ResultType;
-
-    	template <Int Idx, typename Tree>
-    	Int stream(const Tree* tree, const Key& k, Accumulator* accum)
-    	{
-    		auto result = tree->findLT(k);
-
-        	std::get<Idx>(*accum)[0] += result.prefix();
-
-        	return result.idx();
-    	}
-    };
-
-    Int findLTS(Int block_num, const Key& k, Accumulator& sum) const
-    {
-    	return Dispatcher::dispatchRtn(0, &allocator_, FindLTSFn(), k, &sum);
-    }
-
-
     template <typename Fn, typename... Args>
     Int find(Int stream, Fn&& fn, Args... args) const
     {
@@ -916,42 +997,14 @@ public:
     	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
     }
 
-
-    Accumulator moveElements(MyType* tgt, const Position& from_pos, const Position& shift_pos)
-    {
-    	Int from 	= from_pos.get();
-    	Int shift 	= shift_pos.get();
-
-    	Accumulator result;
-
-    	Int count = this->size() - from;
-
-    	sum(from, from + count, result);
-
-    	if (tgt->size() > 0)
-    	{
-    		tgt->insertSpace(Position(0), Position(count + shift));
-    	}
-
-    	copyTo(tgt, from, count, shift);
-    	clear(from, from + count);
-
-    	inc_size(-count);
-    	tgt->inc_size(count + shift);
-
-    	tgt->clear(0, shift);
-
-    	reindex();
-    	tgt->reindex();
-
-    	return result;
-    }
-
     struct UpdateUpFn {
     	template <Int Idx, typename Tree>
     	void stream(Tree* tree, Int idx, const Accumulator* accum)
     	{
-    		tree->updateUp(0, idx, std::get<Idx>(*accum)[0]);
+    		for (Int c = 0; c < Tree::Blocks; c++)
+    		{
+    			tree->updateUp(c, idx, std::get<Idx>(*accum)[c]);
+    		}
     	}
     };
 
@@ -968,6 +1021,19 @@ public:
     bool checkCapacities(const Position& pos) const
     {
     	return capacity() >= pos.get();
+    }
+
+    struct DumpFn {
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree)
+    	{
+    		tree->dump(cout);
+    	}
+    };
+
+    void dump(Int stream) const
+    {
+    	Dispatcher::dispatchNotEmpty(&allocator_, DumpFn());
     }
 
 
@@ -1201,7 +1267,7 @@ void ConvertNodeToRoot(
 {
 	typedef TreeNode<TreeMapNode, Types, root2, leaf2> RootType;
 
-	tgt->init(src->page_size());
+	tgt->prepare(src->page_size());
 	tgt->copyFrom(src);
 
 	tgt->set_root(true);
@@ -1209,8 +1275,6 @@ void ConvertNodeToRoot(
 	tgt->page_type_hash()   = RootType::hash();
 
 	src->transferDataTo(tgt);
-
-	tgt->set_children_count(src->size(0));
 
 	tgt->clearUnused();
 
@@ -1225,14 +1289,12 @@ void ConvertRootToNode(
 {
 	typedef TreeNode<TreeMapNode, Types, root2, leaf2> NonRootNode;
 
-	tgt->init(src->page_size());
+	tgt->prepare(src->page_size());
 	tgt->copyFrom(src);
 	tgt->page_type_hash()   = NonRootNode::hash();
 	tgt->set_root(false);
 
 	src->transferDataTo(tgt);
-
-	tgt->set_children_count(src->size(0));
 
 	tgt->clearUnused();
 

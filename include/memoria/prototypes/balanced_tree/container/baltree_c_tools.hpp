@@ -382,7 +382,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     template <typename Node>
     void setChildrenCountFn(Node* node, Int count) const
     {
-    	node->set_children_count(count);
+    	node->set_children_count1(count);
     }
 
     MEMORIA_CONST_FN_WRAPPER(SetChildrenCountFn, setChildrenCountFn);
@@ -397,21 +397,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     {
     	node.update();
     	NonLeafDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
-    }
-
-
-    template <typename Node>
-    void addChildrenCountFn(Node* node, Int count) const
-    {
-    	node->inc_size(count);
-    }
-
-    MEMORIA_CONST_FN_WRAPPER(AddChildrenCountFn, addChildrenCountFn);
-
-    void addChildrenCount(NodeBaseG& node, Int count) const
-    {
-        node.update();
-        NodeDispatcher::dispatch(node, AddChildrenCountFn(me()), count);
     }
 
 

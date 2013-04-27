@@ -205,7 +205,7 @@ public:
 
 			const Index* seq_index 	= index();
 
-			Int prefix   = seq_index->sum(index_from);
+			Int prefix   = seq_index->sum(0, index_from);
 			auto result  = seq_index->findLEForward(rank + prefix);
 
 			MEMORIA_ASSERT(result.idx(), <, index_to);

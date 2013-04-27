@@ -84,8 +84,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
     template <typename Node>
     void setAndReindexFn(Node* node, Int idx, const Element& element) const
     {
-//    	node->setKeys(idx, element.first);
-
     	node->value(idx) = element.second;
 
     	if (idx == node->size(0) - 1)
@@ -141,7 +139,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
     	LeafDispatcher::dispatch(node.page(), SetLeafDataFn(me()), idx, val);
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetLeafKeyFn, key, Key);
+    struct GetLeafKeyFn
+    {
+    	typedef Key ReturnType;
+    	typedef Key ResultType;
+    	template <typename Node>
+    	ReturnType treeNode(const Node* node, Int idx) const
+    	{
+    		auto* tree = node->tree0();
+    		return tree->value(idx);
+    	}
+    };
+
 
     Key getLeafKey(const NodeBaseG& node, Int idx) const
     {

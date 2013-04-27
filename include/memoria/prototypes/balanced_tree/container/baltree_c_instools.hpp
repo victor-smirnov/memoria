@@ -178,7 +178,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertToolsName)
 
 public:
     MEMORIA_DECLARE_NODE_FN(MakeRoomFn, insertSpace);
-    MEMORIA_DECLARE_NODE_FN_RTN(MoveElementsFn, moveElements, Accumulator);
+    MEMORIA_DECLARE_NODE_FN_RTN(MoveElementsFn, splitTo, Accumulator);
     MEMORIA_DECLARE_NODE_FN_RTN(IsEmptyFn, isEmpty, bool);
     MEMORIA_DECLARE_NODE_FN_RTN(IsAfterEndFn, isAfterEnd, bool);
 
@@ -658,15 +658,15 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
 
 
 
-    if (left_node->is_leaf())
-    {
-    	Position sizes = self.getNodeSizes(left_node);
-    	self.layoutLeafNode(other, sizes);
-    }
-    else {
-    	UBigInt active_streams = self.getActiveStreams(left_node);
-    	self.layoutNonLeafNode(other, active_streams);
-    }
+//    if (left_node->is_leaf())
+//    {
+//    	Position sizes = self.getNodeSizes(left_node);
+//    	self.layoutLeafNode(other, sizes);
+//    }
+//    else {
+//    	UBigInt active_streams = self.getActiveStreams(left_node);
+//    	self.layoutNonLeafNode(other, active_streams);
+//    }
 
 
     Accumulator keys = self.moveElements(left_node, other, idx);

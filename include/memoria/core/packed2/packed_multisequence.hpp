@@ -72,7 +72,7 @@ public:
 
 		MEMORIA_ASSERT(to, <=, labels->value(subseq_num));
 
-		Int seq_pefix	= labels->sum(subseq_num);
+		Int seq_pefix	= labels->sum(0, subseq_num);
 
 		return seq->rank(seq_pefix, seq_pefix + to, symbol);
 	}
@@ -83,7 +83,7 @@ public:
 		const LabelArray*	labels 	= this->labels();
 
 		Int seq_size	= labels->value(subseq_num);
-		Int seq_prefix	= labels->sum(subseq_num);
+		Int seq_prefix	= labels->sum(0, subseq_num);
 		Int rank_prefix = seq->rank(seq_prefix, symbol);
 
 		SelectResult result = seq->select(rank_prefix + rank, symbol);
@@ -112,7 +112,7 @@ public:
 		Sequence* seq 		= sequence();
 		LabelArray* labels 	= this->labels();
 
-		Int seq_prefix	= labels->sum(subseq_num);
+		Int seq_prefix	= labels->sum(0, subseq_num);
 
 		MEMORIA_ASSERT(idx, <=, labels->value(subseq_num));
 
@@ -145,7 +145,7 @@ public:
 
 	const UByte& value(Int seq_num, Int idx) const
 	{
-		Int seq_prefix	= labels()->sum(seq_num);
+		Int seq_prefix	= labels()->sum(0, seq_num);
 		Int size 		= labels()->value(seq_num);
 
 		MEMORIA_ASSERT(idx, <, size);
@@ -155,7 +155,7 @@ public:
 
 	UByte& value(Int seq_num, Int idx)
 	{
-		Int seq_prefix	= labels()->sum(seq_num);
+		Int seq_prefix	= labels()->sum(0, seq_num);
 		Int size 		= labels()->value(seq_num);
 
 		MEMORIA_ASSERT(idx, <, size);

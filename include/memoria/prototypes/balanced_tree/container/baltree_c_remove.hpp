@@ -80,11 +80,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveName)
 
     bool mergePaths(TreePath& tgt, TreePath& src, Int level = 0);
 
-    MEMORIA_DECLARE_NODE_FN_RTN(ShouldMergeNodeFn, shouldMergeWithSiblings, bool);
+    MEMORIA_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
     bool shouldMergeNode(const TreePath& path, Int level) const
     {
     	const NodeBaseG& node = path[level].node();
-    	return NodeDispatcher::dispatchConstRtn(node, ShouldMergeNodeFn());
+    	return NodeDispatcher::dispatchConstRtn(node, ShouldBeMergedNodeFn());
     }
 
 
@@ -176,7 +176,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveName)
      * \return true if nodes can be merged according to the current policy
      */
 
-    MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canMergeWith, bool);
+    MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
 
     bool canMerge(TreePath& tgt, TreePath& src, Int level)
     {

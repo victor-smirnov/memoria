@@ -184,10 +184,10 @@ public:
 	{
 		if (level > 0)
 		{
-			prefix_ += tree->sumWithoutLastElement();
+			prefix_ += tree->sumWithoutLastElement(0);
 		}
 		else {
-			prefix_ += tree->sum();
+			prefix_ += tree->sum(0);
 		}
 	}
 
@@ -284,7 +284,7 @@ public:
 	template <Int Idx, typename Tree>
 	void stream(const Tree* tree)
 	{
-		prefix_ += tree->sumWithoutLastElement();
+		prefix_ += tree->sumWithoutLastElement(0);
 	}
 
 

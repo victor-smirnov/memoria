@@ -214,6 +214,11 @@ public:
 		return Allocator::roundUpBytesToAlignmentBlocks(raw_block_size);
 	}
 
+	static Int elements_for(Int block_size)
+	{
+		return tree_size(block_size);
+	}
+
 	static Int expected_block_size(Int items_num)
 	{
 		return block_size(items_num);
@@ -302,7 +307,18 @@ public:
 
 	const Value& value(Int idx) const
 	{
-		return *T2T<const Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes + idx*sizeof(Value));
+		return *T2T<const Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes + idx * sizeof(Value));
+	}
+
+
+	Value& value(Int block, Int idx)
+	{
+		return *T2T<Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes + (idx + block * size_) * sizeof(Value));
+	}
+
+	const Value& value(Int block, Int idx) const
+	{
+		return *T2T<const Value*>(buffer_+index_size_ * sizeof(IndexKey) * Indexes + (idx + block * size_) * sizeof(Value));
 	}
 
 	Int setValue(Int idx, Value val)
@@ -311,25 +327,47 @@ public:
 		return 0;
 	}
 
-	Value* values() {
+	Value* values()
+	{
 		return &value(0);
 	}
 
-	const Value* values() const {
+	const Value* values() const
+	{
 		return &value(0);
 	}
 
-	Value lastValue() const {
-		return value(size_ - 1);
+	Value* values(Int block)
+	{
+		return &value(block, 0);
 	}
 
-	Value firstValue() const {
-		return value(0);
+	const Value* values(Int block) const
+	{
+		return &value(block, 0);
+	}
+
+	Value lastValue(Int block) const {
+		return value(block, size_ - 1);
+	}
+
+	Value firstValue(Int block) const {
+		return value(block, 0);
 	}
 
 	void clearValues(Int idx)
 	{
 		value(idx) = 0;
+	}
+
+	void clear(Int start, Int end)
+	{
+		Value* values = this->values();
+
+		for (Int c = start; c < end; c++)
+		{
+			values[c] = 0;
+		}
 	}
 
 	// ==================================== Allocation =========================================== //
@@ -444,22 +482,35 @@ public:
 		*this = other;
 	}
 
-//	void shrink(Int amount)
-//	{
-//		Allocator* alloc = allocator();
-//		Int size = block_size();
-//
-//		MEMORIA_ASSERT(size - amount, >=, 0);
-//
-//		MyType other;
-//		other.init(size - amount);
-//
-//		Int new_size = alloc->shrinkBlock(this, size - amount);
-//
-//		other.init(new_size);
-//
-//		transferTo(&other, buffer_ + other.getDataOffset());
-//	}
+	void shrink(Int items_num)
+	{
+		MEMORIA_ASSERT(items_num, <=, max_size_);
+		MEMORIA_ASSERT(max_size_ - items_num, >=, size_);
+
+		Allocator* alloc = allocator();
+
+		MyType other;
+
+		Int requested_block_size = MyType::block_size(max_size_ - items_num);
+		Int current_block_size	 = alloc->element_size(this);
+
+		if (requested_block_size < current_block_size)
+		{
+			other.init(requested_block_size);
+			other.size() 				= this->size();
+			other.allocator_offset() 	= this->allocator_offset();
+
+			MEMORIA_ASSERT(other.size(), <=, other.max_size());
+
+			transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
+
+			*this = other;
+
+			alloc->resizeBlock(this, requested_block_size);
+		}
+	}
+
+
 
 
 	// ==================================== Dump =========================================== //
@@ -504,11 +555,7 @@ public:
 
 	// ==================================== Query ========================================== //
 
-	IndexKey sum() const {
-		return sum(size_);
-	}
-
-	IndexKey sum(Int to) const
+	IndexKey sum0(Int to) const
 	{
 		if (to < ValuesPerBranch)
 		{
@@ -532,9 +579,27 @@ public:
 		}
 	}
 
-	IndexKey sumWithoutLastElement() const
+	IndexKey sum0(Int from, Int to) const
 	{
-		return sum(size_ - 1);
+		return sum0(to) - sum0(from);
+	}
+
+
+	IndexKey sum(Int block) const
+	{
+		return sum(block, size_);
+	}
+
+	IndexKey sum(Int block, Int to) const
+	{
+		Int base = block * size_;
+		return sum0(base, base + to);
+	}
+
+
+	IndexKey sumWithoutLastElement(Int block) const
+	{
+		return sum(block, size_ - 1);
 	}
 
 	IndexKey suml(Int to) const
@@ -550,9 +615,10 @@ public:
 		return sum;
 	}
 
-	IndexKey sum(Int from, Int to) const
+	IndexKey sum(Int block, Int from, Int to) const
 	{
-		return sum(to) - sum(from);
+		Int base = block * size_;
+		return sum0(base + to) - sum0(base + from);
 	}
 
 	ValueDescr findLTForward(IndexKey val) const
@@ -585,7 +651,7 @@ public:
 	{
 		Int block_start = block * size_;
 
-		auto prefix = sum(block_start + start);
+		auto prefix = sum(block, block_start + start);
 
 		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val + prefix);
 
@@ -748,6 +814,19 @@ public:
 		this->value(idx) = value;
 	}
 
+	bool ensureCapacity(Int size)
+	{
+		Int capacity = this->capacity();
+		if (capacity < size)
+		{
+			enlarge(size - capacity);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	void insertSpace(Int idx, Int room_length)
 	{
 		MEMORIA_ASSERT(idx, <=, this->size());
@@ -791,6 +870,8 @@ public:
 		}
 
 		size_ -= room_length;
+
+		shrink(room_length);
 	}
 
 	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const

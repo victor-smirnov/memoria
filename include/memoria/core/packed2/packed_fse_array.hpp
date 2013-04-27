@@ -148,6 +148,20 @@ public:
 
 	void reindex() {}
 
+
+	bool ensureCapacity(Int size)
+	{
+		Int capacity = this->capacity();
+		if (capacity < size)
+		{
+			enlarge(size - capacity);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	void enlarge(Int items_num)
 	{
 		Allocator* alloc = allocator();
@@ -203,6 +217,17 @@ public:
 	void clearValues(Int idx) {
 		buffer_[idx] = 0;
 	}
+
+	void clear(Int start, Int end)
+	{
+		Value* values = this->values();
+
+		for (Int c = start; c < end; c++)
+		{
+			values[c] = 0;
+		}
+	}
+
 
 	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
 	{

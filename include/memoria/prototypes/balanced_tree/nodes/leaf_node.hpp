@@ -137,6 +137,19 @@ public:
 		return allocator_.template get<T>(idx);
 	}
 
+	PackedAllocator* allocator() {
+		return &allocator_;
+	}
+
+	const PackedAllocator* allocator() const {
+		return &allocator_;
+	}
+
+	bool is_empty(Int idx) const
+	{
+		return allocator_.is_empty(idx);
+	}
+
 
 
 private:
@@ -542,17 +555,93 @@ public:
     	return accum;
     }
 
-    bool shouldMergeWithSiblings() const
+    bool shouldBeMergedWithSiblings() const
     {
-    	return capacities().gteAll(sizes());
+    	Position sizes = this->sizes();
+    	Int block_size = MyType::block_size(sizes);
+
+    	return block_size <= allocator_.block_size() / 2;
     }
 
-    bool canMergeWith(const MyType* target) const
+    bool canBeMergedWith(const MyType* other) const
     {
-    	Position size 		= this->sizes();
-    	Position capacity 	= target->capacities();
+    	Position my_sizes 		= this->sizes();
+    	Position other_sizes 	= other->sizes();
+    	Position required_sizes	= my_sizes + other_sizes;
 
-    	return size.lteAll(capacity);
+    	Int required_block_size = MyType::block_size(required_sizes);
+
+    	return required_block_size <= other->allocator_.block_size();
+    }
+
+    struct MergeWithFn {
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree, MyType* other)
+    	{
+    		Int size = tree->size();
+
+    		if (size > 0)
+    		{
+    			if (other->is_empty(Idx))
+    			{
+    				Int block_size = Tree::block_size(size);
+    				other->allocator()->template allocate<Tree>(Idx, block_size);
+    			}
+
+    			Tree* other_tree = other->template get<Tree>(Idx);
+
+    			other_tree->ensureCapacity(size);
+    			tree->copyTo(other_tree, 0, size, other_tree->size());
+
+    			other_tree->size() += size;
+    			other_tree->reindex();
+    		}
+    	}
+    };
+
+    void mergeWith(MyType* other)
+    {
+    	Dispatcher::dispatchNotEmpty(&allocator_, MergeWithFn(), other);
+    }
+
+    struct SplitToFn {
+    	template <Int Idx, typename Tree>
+    	void stream(Tree* tree, MyType* other, const Position* indexes, const Position* shifts)
+    	{
+    		Int idx   = indexes->value(Idx);
+    		Int shift = shifts->value(Idx);
+    		Int size  = tree->size();
+
+    		if (size > 0)
+    		{
+    			Int remainder 		= size - idx;
+    			Int block_size 		= Tree::block_size(remainder);
+    			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
+
+    			tree->clear(0, shift);
+
+    			tree->copyTo(other_tree, idx, remainder, shift);
+
+    			other_tree->size() += remainder;
+    			other_tree->reindex();
+
+    			tree->removeSpace(idx, remainder);
+    		}
+    	}
+    };
+
+
+    Accumulator splitTo(MyType* other, const Position& from, const Position& shift)
+    {
+    	Accumulator result;
+
+    	Position sizes = this->sizes();
+
+    	sum(from, sizes, result);
+
+    	Dispatcher::dispatchNotEmpty(&allocator_, SplitToFn(), other, &from, &shift);
+
+    	return result;
     }
 
 
@@ -578,19 +667,6 @@ public:
 
     	Dispatcher::dispatchNotEmpty(&allocator_, CopyToFn(), other, copy_from, count, copy_to);
     }
-
-    void mergeWith(MyType* target)
-    {
-    	Position sizes = this->sizes();
-    	Position tgt_sizes = target->sizes();
-
-    	target->insertSpace(tgt_sizes, sizes);
-
-    	copyTo(target, Position(0), sizes, tgt_sizes);
-
-    	target->reindex();
-    }
-
 
 
     struct SumFn {
@@ -640,31 +716,6 @@ public:
     	Dispatcher::dispatchNotEmpty(&allocator_, MaxKeysFn(), &acc);
 
     	return acc;
-    }
-
-
-
-    Accumulator moveElements(MyType* tgt, const Position& from, const Position& shift)
-    {
-    	Accumulator result;
-
-    	Position count = this->sizes() - from;
-
-    	sum(from, from + count, result);
-
-    	tgt->insertSpace(Position(0), count + shift);
-
-    	copyTo(tgt, from, count, shift);
-    	clear(from, from + count);
-
-    	inc_size(-count);
-
-    	tgt->clear(Position(0), shift);
-
-    	reindex();
-    	tgt->reindex();
-
-    	return result;
     }
 
     bool checkCapacities(const Position& sizes) const

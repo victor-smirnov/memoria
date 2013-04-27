@@ -148,11 +148,40 @@ public:
 		return diff;
 	}
 
+//	Int resizeBlock(const void* element, Int new_size)
+//	{
+//		MEMORIA_ASSERT(new_size, >, 0);
+//
+//		Int idx 		= findElement(element);
+//
+//		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
+//
+//		Int size		= element_size(idx);
+//		Int delta 		= allocation_size - size;
+//
+//		if (delta > 0)
+//		{
+//			if (delta > free_space())
+//			{
+//				enlarge(delta);
+//			}
+//		}
+//
+//		moveElements(idx + 1, delta);
+//
+//		return allocation_size;
+//	}
+
 	Int resizeBlock(const void* element, Int new_size)
 	{
-		MEMORIA_ASSERT(new_size, >, 0);
-
 		Int idx 		= findElement(element);
+
+		return resizeBlock(idx, new_size);
+	}
+
+	Int resizeBlock(Int idx, Int new_size)
+	{
+		MEMORIA_ASSERT(new_size, >=, 0);
 
 		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
 
@@ -171,6 +200,7 @@ public:
 
 		return allocation_size;
 	}
+
 
 	Int* layout() {
 		return T2T<Int*>(buffer_);

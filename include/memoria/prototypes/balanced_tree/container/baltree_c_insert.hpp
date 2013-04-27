@@ -117,14 +117,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		NonLeafNodeKeyValuePair pair;
     		pair.key_count = 0;
 
-
-
     		if (level > 0)
     		{
     			Int max_keys = ctr_.getMaxKeyCountForNode(false, level == 0, level);
 
     			// FIXME: buffer size can be too small
     			NonLeafNodeKeyValuePair children[2000];
+
+    			NodeBaseG node = ctr_.createNode1(level, false, false);
+
+    			ctr_.layoutNonLeafNode(node, active_streams_);
 
     			Int local = 0;
     			for (Int c = 0; c < max_keys && count < total; c++, local++)
@@ -133,11 +135,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     				pair.key_count  += children[c].key_count;
     			}
 
-    			NodeBaseG node = ctr_.createNode1(level, false, false);
-
-    			ctr_.layoutNonLeafNode(node, active_streams_);
-
     			setINodeData(children, node, local);
+
+    			ctr_.dump(node);
 
     			pair.keys  = ctr_.getMaxKeys(node);
     			pair.value = node->id();
@@ -166,22 +166,31 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
     		SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
 
+    		template <Int Idx, typename Tree>
+    		void stream(Tree* tree)
+    		{
+    			for (Int block = 0; block < Tree::Blocks; block++)
+    			{
+    				auto* values = tree->values(block);
+    				for (Int c = 0; c < count_; c++)
+    				{
+    					values[c] = std::get<Idx>(pairs_[c].keys)[c];
+    				}
+    			}
+
+    			tree->size() = count_;
+    			tree->reindex();
+    		}
+
     		template <typename Node>
     		void treeNode(Node* node)
     		{
     			for (Int c = 0; c < count_; c++)
     			{
-    				node->setKeys(c, pairs_[c].keys);
-
     				node->value(c) = pairs_[c].value;
     			}
 
-    			node->set_children_count(count_);
-
-    			node->reindex();
-
-    			total_.keys = node->maxKeys();
-
+    			total_.keys  = node->maxKeys();
     			total_.value = node->id();
     		}
     	};
