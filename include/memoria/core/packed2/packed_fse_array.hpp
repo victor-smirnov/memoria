@@ -69,6 +69,11 @@ public:
 		return (my_size + free_space - data_size) / sizeof(Value);
 	}
 
+	Int block_size() const
+	{
+		return sizeof(MyType) + max_size_ * sizeof(Value);
+	}
+
 public:
 
 	static Int block_size(int array_size)

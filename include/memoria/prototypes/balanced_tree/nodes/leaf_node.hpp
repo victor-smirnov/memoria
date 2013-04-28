@@ -297,7 +297,8 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, TreeType* other)
     	{
-    		tree->transferDataTo(other->template get<Tree>(Idx));
+    		Tree* other_tree = other->allocator()->template allocate<Tree>(Idx, tree->block_size());
+    		tree->transferDataTo(other_tree);
     	}
     };
 
@@ -875,7 +876,7 @@ void ConvertNodeToRoot(
 
 	tgt->page_type_hash()   = RootType::hash();
 
-	tgt->init(src->page_size());
+	tgt->prepare(src->page_size());
 
 	src->transferDataTo(tgt);
 
@@ -898,7 +899,7 @@ void ConvertRootToNode(
 
 	tgt->set_root(false);
 
-	tgt->init(src->page_size());
+	tgt->prepare(src->page_size());
 
 	src->transferDataTo(tgt);
 

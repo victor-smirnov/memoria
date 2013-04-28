@@ -160,10 +160,10 @@ public:
             //FIXME: clear pages_log_
             //FIXME: clear ctr_shared_
 
-            if (allocs1_ - npages > 0)
-            {
-                MEMORIA_ERROR(me(), "Page leak detected:", npages, allocs1_, (allocs1_ - npages));
-            }
+//            if (allocs1_ - npages > 0)
+//            {
+//                MEMORIA_ERROR(me(), "Page leak detected:", npages, allocs1_, (allocs1_ - npages));
+//            }
         }
         catch (...) {
         }
