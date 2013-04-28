@@ -11,6 +11,7 @@
 
 #include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 #include <memoria/core/tools/reflection.hpp>
+#include <memoria/core/types/typehash.hpp>
 
 
 namespace memoria    {
@@ -22,7 +23,7 @@ using namespace memoria::balanced_tree;
 // FIXME: Make one more level of root metadata hierarchy and
 // move model_name and page_size fields into it.
 
-template <typename ID>
+template <typename ID, Int Streams>
 class BalancedTreeMetadata
 {
     static const UInt VERSION = 1;
@@ -30,7 +31,7 @@ class BalancedTreeMetadata
     static const Int ROOTS = 2;
 
     BigInt  model_name_;
-    BigInt  key_count_;
+    BigInt  size_[Streams];
 
     Int     branching_factor_;
 
@@ -44,7 +45,8 @@ public:
                 ConstValue<UInt, VERSION>,
                 ConstValue<UInt, ROOTS>,
                 decltype(model_name_),
-                decltype(key_count_),
+                decltype(size_[0]),
+                ConstValue<UInt, Streams>,
                 decltype(branching_factor_),
                 decltype(page_size_),
                 ID
@@ -62,14 +64,14 @@ public:
         return model_name_;
     }
 
-    BigInt &key_count()
+    BigInt &size(Int idx)
     {
-        return key_count_;
+        return size_[idx];
     }
 
-    const BigInt &key_count() const
+    const BigInt &size(Int idx) const
     {
-        return key_count_;
+        return size_[idx];
     }
 
     Int &branching_factor()
@@ -97,7 +99,16 @@ public:
         handler->startGroup("ROOT_METADATA");
 
         handler->value("MODEL_NAME",        &model_name_);
-        handler->value("KEY_COUNT",         &key_count_);
+
+        handler->startGroup("STREAM_SIZES", Streams);
+
+        for (Int c = 0; c < ROOTS; c++)
+        {
+        	handler->value("SIZE",  size_ + c);
+        }
+
+        handler->endGroup();
+
         handler->value("BRANCHING_FACTOR",  &branching_factor_);
         handler->value("PAGE_SIZE",  		&page_size_);
 
@@ -117,7 +128,7 @@ public:
     void serialize(SerializationData& buf) const
     {
         FieldFactory<BigInt>::serialize(buf, model_name_);
-        FieldFactory<BigInt>::serialize(buf, key_count_);
+        FieldFactory<BigInt>::serialize(buf, size_, Streams);
         FieldFactory<Int>::serialize(buf,    branching_factor_);
         FieldFactory<Int>::serialize(buf,    page_size_);
 
@@ -130,7 +141,7 @@ public:
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<BigInt>::deserialize(buf, model_name_);
-        FieldFactory<BigInt>::deserialize(buf, key_count_);
+        FieldFactory<BigInt>::deserialize(buf, size_, Streams);
         FieldFactory<Int>::deserialize(buf,    branching_factor_);
         FieldFactory<Int>::deserialize(buf,    page_size_);
 
@@ -149,7 +160,10 @@ public:
     }
 };
 
-
+template <typename ID, Int Streams>
+struct TypeHash<BalancedTreeMetadata<ID, Streams>>: UIntValue<
+	HashHelper<2500, TypeHash<ID>::Value, Streams>::Value
+> {};
 
 }
 

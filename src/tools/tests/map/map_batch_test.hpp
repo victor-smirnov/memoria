@@ -103,11 +103,11 @@ public:
 
     virtual void insert(Iterator& iter, MemBuffer& data)
     {
-        BigInt size = iter.model().getSize();
+        BigInt size = iter.model().size();
 
         iter.model().insertBatch(iter, data);
 
-        AssertNEQ(MA_SRC, size, iter.model().getSize());
+        AssertNEQ(MA_SRC, size, iter.model().size());
 
         checkSize(iter.model());
     }
@@ -170,7 +170,7 @@ public:
 
     virtual BigInt getSize(Ctr& array)
     {
-        return array.getSize();
+        return array.size();
     }
 
     void checkSize(Ctr& array)
@@ -182,7 +182,7 @@ public:
             cnt++;
         }
 
-        AssertEQ(MA_SRC, cnt, array.getSize());
+        AssertEQ(MA_SRC, cnt, array.size());
     }
 
     virtual void checkIteratorPrefix(Iterator& iter, const char* source) {}

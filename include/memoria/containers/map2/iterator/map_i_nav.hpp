@@ -272,8 +272,6 @@ bool M_TYPE::prevKey()
         self.key_idx()--;
         self.keyNum()--;
 
-        self.model().finishPathStep(self.path(), self.key_idx());
-
         self.cache().Prepare();
         self.cache().prevKey(false);
 

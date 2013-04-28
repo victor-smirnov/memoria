@@ -82,7 +82,7 @@ void M_TYPE::insert(Iterator& iter, DataSource& data)
 
 	ctr.insertSubtree(path, idx, provider);
 
-	ctr.addTotalKeyCount(data.getSize());
+	ctr.addTotalKeyCount(Position(data.getSize()));
 
 	if (iter.isEof())
 	{

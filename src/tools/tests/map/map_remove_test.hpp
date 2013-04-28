@@ -75,7 +75,7 @@ class MapRemoveTest: public MapTestBase {
 
                 BigInt size = size_ - vector_idx_ - 1;
 
-                AssertEQ(MA_SRC, size, map.getSize());
+                AssertEQ(MA_SRC, size, map.size());
 
                 PairVector pairs_sorted_tmp = pairs_sorted;
 
@@ -125,7 +125,7 @@ class MapRemoveTest: public MapTestBase {
 
         BigInt size = size_ - vector_idx_ - 1;
 
-        AssertEQ(MA_SRC, size, map.getSize());
+        AssertEQ(MA_SRC, size, map.size());
 
         for (UInt x = 0; x < pairs_sorted.size(); x++)
         {

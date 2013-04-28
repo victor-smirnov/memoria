@@ -77,7 +77,7 @@ struct BalancedTreeTypes {
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
     typedef typename Allocator::ID                                              ID;
 
-    typedef BalancedTreeMetadata<ID>                                            Metadata;
+//    typedef BalancedTreeMetadata<ID>                                            Metadata;
 
     typedef TypeList<
 //    		AllNodeTypes<balanced_tree::TreeMapNode>

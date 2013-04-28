@@ -154,7 +154,7 @@ void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge
         ctr.removePage(path, idx);
     }
 
-    ctr.addTotalKeyCount(-1);
+    ctr.addTotalKeyCount(Position(-1));
 }
 
 }

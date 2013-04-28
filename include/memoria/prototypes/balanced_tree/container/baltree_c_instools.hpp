@@ -99,6 +99,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertToolsName)
     Accumulator getNonLeafCounters(const NodeBaseG& node, const Position& from, const Position& count) const;
 
     void makeRoom(TreePath& path, Int level, const Position& start, const Position& count) const;
+    void makeRoom(TreePath& path, Int level, Int stream, Int start, Int count) const;
 
     void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
 
@@ -106,26 +107,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertToolsName)
 
     Accumulator insertSubtree(TreePath& path, Position& idx, ISubtreeProvider& provider);
 
-
-    // FIXME: Is it in use?
-    bool shouldSplitNode(const TreePath& path, Int level) const
-    {
-    	const NodeBaseG& node = path[level].node();
-    	return me()->getCapacity(node) == 0;
-    }
-
     void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
 
-
     void newRoot(TreePath& path, UBigInt active_streams);
-
-
-
-
-
-
-//private:
-
 
 
 
@@ -565,17 +549,30 @@ void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& da
 M_PARAMS
 void M_TYPE::makeRoom(TreePath& path, Int level, const Position& start, const Position& count) const
 {
-    //if (count > 0)
+	path[level].node().update();
+	NodeDispatcher::dispatch(path[level].node(), MakeRoomFn(), start, count);
+
+	if (level > 0)
+	{
+		path.moveRight(level - 1, start.get(), count.get());
+	}
+}
+
+M_PARAMS
+void M_TYPE::makeRoom(TreePath& path, Int level, Int stream, Int start, Int count) const
+{
+    if (count > 0)
     {
         path[level].node().update();
-        NodeDispatcher::dispatch(path[level].node(), MakeRoomFn(), start, count);
+        NodeDispatcher::dispatch(path[level].node(), MakeRoomFn(), stream, start, count);
 
         if (level > 0)
         {
-        	path.moveRight(level - 1, start.get(), count.get());
+        	path.moveRight(level - 1, start, count);
         }
     }
 }
+
 
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::moveElements(

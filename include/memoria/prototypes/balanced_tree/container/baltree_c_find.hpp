@@ -21,6 +21,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::FindName)
 
     typedef TypesType                                                           Types;
     typedef typename Types::Allocator                                           Allocator;
+    typedef typename Types::Position                                            Position;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
@@ -53,12 +54,7 @@ public:
     template <typename Walker>
     Int findBw(TreePath& path, Int stream, Int idx, Walker&& walker, Int level = 0);
 
-    MEMORIA_PUBLIC MEMORIA_DEPRECATED BigInt getSize() const
-    {
-        return self().getTotalKeyCount();
-    }
-
-    MEMORIA_PUBLIC BigInt size() const
+    MEMORIA_PUBLIC Position sizes() const
     {
     	return self().getTotalKeyCount();
     }

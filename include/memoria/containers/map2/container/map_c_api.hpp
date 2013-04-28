@@ -56,36 +56,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
 	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
 
 
-//	Iterator Begin() {
-//		return Iterator(self(), self().ctr().Begin());
-//	}
-//
-//	Iterator begin() {
-//		return Iterator(self(), self().ctr().begin());
-//	}
-//
-//	IterEndMark endm() const {
-//		return IterEndMark();
-//	}
-//
-//	Iterator RBegin() {
-//		return Iterator(self(), self().ctr().RBegin());
-//	}
-//
-//	Iterator End() {
-//		return Iterator(self(), self().ctr().End());
-//	}
-//
-//	Iterator REnd() {
-//		return Iterator(self(), self().ctr().REnd());
-//	}
-//
-//	BigInt getSize() const {
-//		return self().ctr().getSize();
-//	}
-//
+
 	BigInt size() const {
-		return self().getSize();
+		return self().sizes()[0];
 	}
 
     Iterator find(Key key)

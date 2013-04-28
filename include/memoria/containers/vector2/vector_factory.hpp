@@ -68,6 +68,11 @@ struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTree
         	>
     >																			StreamDescriptors;
 
+    typedef BalancedTreeMetadata<
+        		typename Base::ID,
+        		ListSize<StreamDescriptors>::Value
+    >        																	Metadata;
+
 
     typedef typename MergeLists<
     		typename Base::ContainerPartsList,

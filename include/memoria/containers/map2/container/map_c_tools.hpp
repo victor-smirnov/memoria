@@ -55,6 +55,44 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrToolsName)
 
 	typedef typename Base::BalTreeNodeTraits									BalTreeNodeTraits;
 
+
+	template <typename LeafElement>
+	struct SetLeafEntryFn {
+
+		template <Int Idx, typename Tree>
+		void stream(Tree* tree, Int idx, const LeafElement& element, Accumulator* delta)
+		{
+			MEMORIA_ASSERT_TRUE(tree != nullptr);
+
+			auto previous = tree->value(idx);
+			tree->value(idx) = std::get<Idx>(element.first)[0];
+
+			std::get<Idx>(*delta)[0] = std::get<Idx>(element.first)[0] - previous;
+
+			tree->reindex();
+		}
+
+		template <typename Node>
+		void treeNode(Node* node, Int stream, Int idx, const LeafElement& element, Accumulator* delta)
+		{
+			node->process(stream, *this, idx, element, delta);
+		}
+	};
+
+
+	template <typename LeafElement>
+	Accumulator setLeafEntry(NodeBaseG& node, Int stream, Int idx, const LeafElement& element) const
+	{
+		Accumulator delta;
+
+		node.update();
+		LeafDispatcher::dispatch(node.page(), SetLeafEntryFn<LeafElement>(), stream, idx, element, &delta);
+
+		return delta;
+	}
+
+
+
 	template <typename Node>
 	Int getNodeTraitsFn(BalTreeNodeTraits trait, Int page_size) const
 	{

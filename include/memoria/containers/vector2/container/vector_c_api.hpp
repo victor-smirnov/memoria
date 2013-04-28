@@ -57,7 +57,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
 
 
 	BigInt size() const {
-		return self().getSize();
+		return self().sizes()[0];
 	}
 
     Iterator seek(Key pos)
@@ -68,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
     MyType& operator<<(vector<Value>& v)
     {
     	auto& self = this->self();
-    	auto i = self.seek(self.getSize());
+    	auto i = self.seek(self.size());
     	i.insert(v);
     	return self;
     }

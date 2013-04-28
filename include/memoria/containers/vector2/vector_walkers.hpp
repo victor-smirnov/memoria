@@ -269,7 +269,7 @@ public:
 	FindEndWalker(Int stream, Container&) {}
 
 	template <typename Node>
-	ReturnType treeNode(const Node* node)
+	ReturnType treeNode(const Node* node, Int start)
 	{
 		if (node->level() > 0)
 		{

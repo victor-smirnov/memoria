@@ -660,9 +660,35 @@ public:
     	Int room_start 	= from_pos.get();
     	Int room_length = length_pos.get();
 
+    	insertSpace(0, room_start, room_length);
+
+//    	Int size = this->size();
+//
+//    	MEMORIA_ASSERT(room_start, <=, size);
+//
+//    	Dispatcher::dispatchNotEmpty(&allocator_, InsertSpaceFn(), room_start, room_length);
+//
+//    	Int requested_block_size = (size + room_length) * sizeof(Value);
+//
+//    	allocator_.resizeBlock(ValuesBlockIdx, requested_block_size);
+//
+//    	Value* values = this->values();
+//
+//    	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
+//
+//    	for (Int c = room_start; c < room_start + room_length; c++)
+//    	{
+//    		values[c] = 0;
+//    	}
+    }
+
+
+    void insertSpace(Int stream, Int room_start, Int room_length)
+    {
     	Int size = this->size();
 
     	MEMORIA_ASSERT(room_start, <=, size);
+    	MEMORIA_ASSERT(stream, ==, 0);
 
     	Dispatcher::dispatchNotEmpty(&allocator_, InsertSpaceFn(), room_start, room_length);
 
@@ -679,6 +705,7 @@ public:
     		values[c] = 0;
     	}
     }
+
 
     struct RemoveSpaceFn {
     	template <Int Idx, typename Tree>
@@ -831,6 +858,7 @@ public:
     			other_tree->reindex();
 
     			tree->removeSpace(idx, remainder);
+    			tree->reindex();
     		}
     	}
     };

@@ -56,8 +56,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertName)
     static const Int ActiveStreams                                              = 1;
 
 
-    template <typename Element>
-    void insertEntry(Iterator& iter, Int stream, const Element&);
+    template <typename EntryData>
+    void insertEntry(Iterator& iter, const EntryData&);
+
+    template <typename EntryData>
+    void updateEntry(Iterator& iter, const EntryData&);
 
 
 MEMORIA_CONTAINER_PART_END
@@ -65,59 +68,70 @@ MEMORIA_CONTAINER_PART_END
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::balanced_tree::InsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
+M_PARAMS
+template <typename EntryData>
+void M_TYPE::updateEntry(Iterator& iter, const EntryData& entry)
+{
+	auto& self = this->self();
+
+	auto delta = self.setLeafEntry(iter.leaf(), iter.stream(), iter.key_idx(), entry);
+
+	self.updateParentIfExists(iter.path(), 0, delta);
+}
+
 
 M_PARAMS
-template <typename Element>
-void M_TYPE::insertEntry(Iterator &iter, Int stream, const Element& element)
+template <typename EntryData>
+void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 {
     TreePath&   path    = iter.path();
-    NodeBaseG&  node    = path.leaf().node();
+    NodeBaseG&  leaf    = path.leaf();
     Int&        idx     = iter.key_idx();
+    Int 		stream  = iter.stream();
 
     auto& ctr  = self();
 
-    if (ctr.isNodeEmpty(node))
+    if (ctr.isNodeEmpty(leaf))
     {
-    	ctr.layoutNode(node, 1);
+    	ctr.layoutNode(leaf, 1);
     }
 
-    Int node_size = ctr.getNodeSize(node, 0);
+    Position leaf_sizes = ctr.getNodeSizes(leaf);
 
-    if (ctr.getCapacity(node) > 0)
+    if (ctr.getCapacity(leaf) > 0)
     {
-        ctr.makeRoom(path, 0, Position(idx), Position(1));
+        ctr.makeRoom(path, 0, stream, idx, 1);
     }
     else if (idx == 0)
     {
         TreePath next = path;
-        ctr.splitPath(path, next, 0, Position(node_size / 2), ActiveStreams);
+        ctr.splitPath(path, next, 0, leaf_sizes / 2, ActiveStreams);
         idx = 0;
 
-        ctr.makeRoom(path, 0, Position(idx), Position(1));
+        ctr.makeRoom(path, 0, stream, idx, 1);
     }
-    else if (idx < node_size)
+    else
     {
-        //FIXME: does it necessary to split the page at the middle ???
+    	Position split_idx = leaf_sizes / 2;
+
         TreePath next = path;
-        ctr.splitPath(path, next, 0, Position(idx), ActiveStreams);
-        ctr.makeRoom(path, 0, Position(idx), Position(1));
+        ctr.splitPath(path, next, 0, split_idx, ActiveStreams);
+
+        if (idx < split_idx[stream])
+        {
+        	ctr.makeRoom(path, 0, stream, idx, 1);
+        }
+        else {
+        	idx -= split_idx[stream];
+
+        	path = next;
+        	ctr.makeRoom(path, 0, stream, idx, 1);
+        }
     }
-    else {
-        TreePath next = path;
 
-        ctr.splitPath(path, next, 0, Position(node_size / 2), ActiveStreams);
+    ctr.updateEntry(iter, entry);
 
-        path = next;
-
-        idx = ctr.getNodeSize(node, 0);
-        ctr.makeRoom(path, 0, Position(idx), Position(1));
-    }
-
-    ctr.setLeafDataAndReindex(node, idx, element);
-
-    ctr.updateParentIfExists(path, 0, element.first);
-
-    ctr.addTotalKeyCount(1);
+    ctr.addTotalKeyCount(Position::create(stream, 1));
 }
 
 

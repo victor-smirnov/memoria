@@ -276,10 +276,8 @@ public:
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            values_[c] = -1;
+            values_[c] = value;
         }
-
-        values_[0] = value;
     }
 
     ElementType get() const
@@ -294,6 +292,16 @@ public:
             values_[c] = other.values_[c];
         }
     }
+
+    static MyType create(Int idx, const ElementType& value)
+    {
+    	MyType me;
+
+    	me[idx] = value;
+
+    	return me;
+    }
+
 
     const ElementType* values() const
     {
@@ -598,6 +606,18 @@ public:
         }
 
         return *this;
+    }
+
+    MyType operator/(const ElementType& divisor) const
+    {
+    	MyType result = *this;
+
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		result.values_[c] = values_[c] / divisor;
+    	}
+
+    	return result;
     }
 };
 

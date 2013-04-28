@@ -99,6 +99,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         }
     }
 
+
     bool isTheSameNode(const TreePath& path1, const TreePath& path2, int level) const
     {
         return path1[level].node()->id() == path2[level].node()->id();
@@ -286,26 +287,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	return NonLeafDispatcher::dispatchConstRtn(node, GetNonLeafCapacityFn(), active_streams);
     }
 
-    template <typename Node>
-    Int getMaxCapacityFn(const Node* node) const
-    {
-    	return node->max_size();
-    }
-
-
-    MEMORIA_CONST_FN_WRAPPER_RTN(GetMaxCapacityFn, getMaxCapacityFn, Int);
-
-    Int getMaxCapacity(const NodeBaseG& node) const
-    {
-    	return NodeDispatcher::dispatchConstRtn(node, GetMaxCapacityFn(me()));
-    }
-
-    Int getNonLeafMaxCapacity(const NodeBaseG& node) const
-    {
-    	return NonLeafDispatcher::dispatchConstRtn(node, GetMaxCapacityFn(me()));
-    }
-
-
 
 
     template <typename Node>
@@ -387,18 +368,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     MEMORIA_CONST_FN_WRAPPER(SetChildrenCountFn, setChildrenCountFn);
 
-    void setChildrenCount(NodeBaseG& node, Int count) const
-    {
-        node.update();
-        NodeDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
-    }
-
     void setNonLeafChildrenCount(NodeBaseG& node, Int count) const
     {
     	node.update();
     	NonLeafDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
     }
-
 
 
     template <typename Node>
@@ -485,10 +459,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     }
 
-    BigInt getTotalKeyCount() const;
-    void setTotalKeyCount(BigInt value);
-    void addTotalKeyCount(BigInt value);
-    void addTotalKeyCount(TreePath& path, BigInt value);
+    Position getTotalKeyCount() const;
+    void setTotalKeyCount(const Position& values);
+    void addTotalKeyCount(const Position& values);
+    void addTotalKeyCount(TreePath& path, const Position& value);
 
     bool getNextNode(TreePath& path, Int level = 0, bool down = false) const
     {
@@ -501,7 +475,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         return getPrevNode(path, level, -1, down ? 0 : level);
     }
 
-    void finishPathStep(TreePath& path, Int key_idx) const {}
 
     template <typename Node>
     bool checkNodeContent(Node *node);
@@ -619,39 +592,68 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-BigInt M_TYPE::getTotalKeyCount() const
+typename M_TYPE::Position M_TYPE::getTotalKeyCount() const
 {
-    return me()->getRootMetadata().key_count();
+	auto& self = this->self();
+
+	Position sizes;
+
+	Metadata meta = self.getRootMetadata();
+
+	for (Int c = 0; c < Streams; c++)
+	{
+		sizes[c] = meta.size(c);
+	}
+
+	return sizes;
 }
 
 M_PARAMS
-void M_TYPE::setTotalKeyCount(BigInt value)
+void M_TYPE::setTotalKeyCount(const Position& values)
 {
-    Metadata meta = me()->getRootMetadata();
-    meta.key_count() = value;
+	auto& self = this->self();
 
-    me()->setRootMetadata(meta);
+	Metadata meta = self.getRootMetadata();
+
+	for (Int c = 0; c < Streams; c++)
+	{
+		meta.size(c) = values[c];
+	}
+
+    self.setRootMetadata(meta);
 }
 
 M_PARAMS
-void M_TYPE::addTotalKeyCount(BigInt value)
+void M_TYPE::addTotalKeyCount(const Position& values)
 {
-    Metadata meta       = me()->getRootMetadata();
-    meta.key_count()    += value;
+    auto& self = this->self();
 
-    me()->setRootMetadata(meta);
+	Metadata meta = self.getRootMetadata();
+
+	for (Int c = 0; c < Streams; c++)
+	{
+		meta.size(c) += values[c];
+	}
+
+    self.setRootMetadata(meta);
 }
 
 
 M_PARAMS
-void M_TYPE::addTotalKeyCount(TreePath& path, BigInt value)
+void M_TYPE::addTotalKeyCount(TreePath& path, const Position& values)
 {
+    auto& self 			= this->self();
+
     NodeBaseG& node     = path[path.getSize() - 1].node();
 
-    Metadata meta       = me()->getRootMetadata();
-    meta.key_count()    += value;
+    Metadata meta       = self.getRootMetadata();
 
-    me()->setRootMetadata(node, meta);
+    for (Int c = 0; c < Streams; c++)
+    {
+    	meta.size(c) += values[c];
+    }
+
+    self.setRootMetadata(node, meta);
 }
 
 

@@ -389,7 +389,7 @@ BigInt M_TYPE::removeEntries(
         start_idx   = stop_idx;
     }
 
-    self.addTotalKeyCount(stop, -removed_key_count);
+    self.addTotalKeyCount(stop, Position(-removed_key_count));
 
     return removed_key_count;
 }

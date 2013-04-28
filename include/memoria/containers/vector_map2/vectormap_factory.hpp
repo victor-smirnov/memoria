@@ -62,19 +62,25 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
-        		// Vector
+    			// Map
+    			StreamDescr<
+    				PackedFSETreeTF,
+    				PackedFSETreeTF,
+    				2
+    			>,
+
+    			// Vector
     			StreamDescr<
         			PackedFSETreeTF,
         			PackedFSEArrayTF,
         			1
-        		>,
-        		// Map
-        		StreamDescr<
-        			PackedFSETreeTF,
-        			PackedFSETreeTF,
-        			2
         		>
     >																			StreamDescriptors;
+
+    typedef BalancedTreeMetadata<
+        		typename Base::ID,
+        		ListSize<StreamDescriptors>::Value
+    > 																			Metadata;
 
 
     typedef typename MergeLists<

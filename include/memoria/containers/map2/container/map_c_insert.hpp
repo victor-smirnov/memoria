@@ -167,11 +167,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrInsertName)
 
 
 
-    void insertEntry(Iterator& iter, const Element&);
-
     bool insert(Iterator& iter, const Element& element)
     {
-    	insertEntry(iter, element);
+    	self().template insertEntry(iter, element);
     	return iter.next();
     }
 
@@ -201,7 +199,7 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 
 	ctr.insertSubtree(path, idx, provider);
 
-	ctr.addTotalKeyCount(data.size());
+	ctr.addTotalKeyCount(Position(data.size()));
 
 	if (iter.isEnd())
 	{
@@ -218,58 +216,6 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 
 
 
-M_PARAMS
-void M_TYPE::insertEntry(Iterator &iter, const Element& element)
-{
-    TreePath&   path    = iter.path();
-    NodeBaseG&  node    = path.leaf().node();
-    Int&        idx     = iter.key_idx();
-
-    auto& ctr  = self();
-
-    if (ctr.isNodeEmpty(node))
-    {
-    	ctr.layoutNode(node, 1);
-    }
-
-    Int node_size = ctr.getNodeSize(node, 0);
-
-    if (ctr.getCapacity(node) > 0)
-    {
-        ctr.makeRoom(path, 0, Position(idx), Position(1));
-    }
-    else if (idx == 0)
-    {
-        TreePath next = path;
-        ctr.splitPath(path, next, 0, Position(node_size / 2), ActiveStreams);
-        idx = 0;
-
-        ctr.makeRoom(path, 0, Position(idx), Position(1));
-    }
-    else if (idx < node_size)
-    {
-        //FIXME: does it necessary to split the page at the middle ???
-        TreePath next = path;
-        ctr.splitPath(path, next, 0, Position(idx), ActiveStreams);
-        ctr.makeRoom(path, 0, Position(idx), Position(1));
-    }
-    else {
-        TreePath next = path;
-
-        ctr.splitPath(path, next, 0, Position(node_size / 2), ActiveStreams);
-
-        path = next;
-
-        idx = ctr.getNodeSize(node, 0);
-        ctr.makeRoom(path, 0, Position(idx), Position(1));
-    }
-
-    self().setLeafDataAndReindex(node, idx, element);
-
-    ctr.updateParentIfExists(path, 0, element.first);
-
-    ctr.addTotalKeyCount(1);
-}
 
 
 
