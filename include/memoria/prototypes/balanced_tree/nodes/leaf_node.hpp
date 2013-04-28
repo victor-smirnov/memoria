@@ -268,14 +268,6 @@ public:
 		return size;
 	}
 
-
-
-	void clear(const Position&, const Position&)
-	{
-
-	}
-
-
     void clearUnused() {}
 
     struct ReindexFn {

@@ -27,7 +27,9 @@
 #include <memoria/prototypes/balanced_tree/container/baltree_c_tools.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_checks.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_instools.hpp>
+#include <memoria/prototypes/balanced_tree/container/baltree_c_insbatch.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_insert.hpp>
+
 #include <memoria/prototypes/balanced_tree/container/baltree_c_remove.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_find.hpp>
 
@@ -57,6 +59,7 @@ struct BalancedTreeTypes {
             memoria::balanced_tree::ToolsName,
             memoria::balanced_tree::ChecksName,
             memoria::balanced_tree::InsertBatchName,
+            memoria::balanced_tree::InsertName,
             memoria::balanced_tree::InsertToolsName,
             memoria::balanced_tree::RemoveName,
             memoria::balanced_tree::FindName
