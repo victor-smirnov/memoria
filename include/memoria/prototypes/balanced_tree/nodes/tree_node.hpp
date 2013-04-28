@@ -997,6 +997,26 @@ public:
     	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
     }
 
+    template <typename Fn, typename... Args>
+    void process(Int stream, Fn&& fn, Args... args)
+    {
+    	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
+    }
+
+    template <typename Fn, typename... Args>
+    void processNotEmpty(Fn&& fn, Args... args) const
+    {
+    	Dispatcher::dispatchNotEmpty(&allocator_, std::move(fn), args...);
+    }
+
+    template <typename Fn, typename... Args>
+    void processNotEmpty(Fn&& fn, Args... args)
+    {
+    	Dispatcher::dispatchNotEmpty(&allocator_, std::move(fn), args...);
+    }
+
+
+
     struct UpdateUpFn {
     	template <Int Idx, typename Tree>
     	void stream(Tree* tree, Int idx, const Accumulator* accum)

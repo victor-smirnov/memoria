@@ -114,6 +114,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     private:
     	NonLeafNodeKeyValuePair BuildTree(BigInt start, BigInt& count, const BigInt total, Int level)
     	{
+    		const Int MAX_CHILDREN = 20;
+
     		NonLeafNodeKeyValuePair pair;
     		pair.key_count = 0;
 
@@ -121,23 +123,35 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		{
     			Int max_keys = ctr_.getMaxKeyCountForNode(false, level == 0, level);
 
-    			// FIXME: buffer size can be too small
-    			NonLeafNodeKeyValuePair children[2000];
-
     			NodeBaseG node = ctr_.createNode1(level, false, false);
-
     			ctr_.layoutNonLeafNode(node, active_streams_);
 
-    			Int local = 0;
-    			for (Int c = 0; c < max_keys && count < total; c++, local++)
+    			// FIXME: buffer size can be too small
+    			NonLeafNodeKeyValuePair children[MAX_CHILDREN];
+
+    			Int start = 0;
+    			for (Int c = 0; c < max_keys && count < total; start += MAX_CHILDREN)
     			{
-    				children[c]     =  BuildTree(start, count, total, level - 1);
-    				pair.key_count  += children[c].key_count;
+    				Int local = 0;
+    				for (
+    						Int batch_idx = 0;
+    						batch_idx < MAX_CHILDREN && c < max_keys && count < total;
+    						c++, batch_idx++, local++
+    				)
+    				{
+    					children[batch_idx]     =  BuildTree(start, count, total, level - 1);
+    					pair.key_count  		+= children[batch_idx].key_count;
+    				}
+
+    				setINodeData(children, node, start, local);
+
+    				if (local < MAX_CHILDREN)
+    				{
+    					break;
+    				}
     			}
 
-    			setINodeData(children, node, local);
-
-    			ctr_.dump(node);
+    			ctr_.reindex(node);
 
     			pair.keys  = ctr_.getMaxKeys(node);
     			pair.value = node->id();
@@ -156,51 +170,50 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		return pair;
     	}
 
-    	template <typename PairType, typename ParentPairType>
+    	template <typename PairType>
     	struct SetNodeValuesFn
     	{
-    		PairType*       pairs_;
+    		const PairType* pairs_;
+    		Int 			start_;
     		Int             count_;
 
-    		ParentPairType  total_;
-
-    		SetNodeValuesFn(PairType* pairs, Int count): pairs_(pairs), count_(count) {}
+    		SetNodeValuesFn(const PairType* pairs, Int start, Int count):
+    			pairs_(pairs),
+    			start_(start),
+    			count_(count) {}
 
     		template <Int Idx, typename Tree>
     		void stream(Tree* tree)
     		{
     			for (Int block = 0; block < Tree::Blocks; block++)
     			{
-    				auto* values = tree->values(block);
+    				typename Tree::Value* values = tree->values(block);
     				for (Int c = 0; c < count_; c++)
     				{
-    					values[c] = std::get<Idx>(pairs_[c].keys)[c];
+    					values[c + start_] = std::get<Idx>(pairs_[c].keys)[block];
     				}
     			}
 
-    			tree->size() = count_;
-    			tree->reindex();
+    			tree->size() += count_;
     		}
 
     		template <typename Node>
     		void treeNode(Node* node)
     		{
+    			node->processNotEmpty(*this);
+
     			for (Int c = 0; c < count_; c++)
     			{
-    				node->value(c) = pairs_[c].value;
+    				node->value(c + start_) = pairs_[c].value;
     			}
-
-    			total_.keys  = node->maxKeys();
-    			total_.value = node->id();
     		}
     	};
 
     	template <typename PairType>
-    	NonLeafNodeKeyValuePair setINodeData(PairType* data, NodeBaseG& node, Int count)
+    	void setINodeData(const PairType* data, NodeBaseG& node, Int start, Int count)
     	{
-    		SetNodeValuesFn<PairType, NonLeafNodeKeyValuePair> fn(data, count);
+    		SetNodeValuesFn<PairType> fn(data, start, count);
     		NonLeafDispatcher::dispatch(node, fn);
-    		return fn.total_;
     	}
     };
 

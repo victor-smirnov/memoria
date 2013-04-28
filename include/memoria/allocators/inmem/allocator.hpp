@@ -569,7 +569,7 @@ public:
             Int page_hash;
             input->read(page_hash);
 
-            unique_ptr<Byte> page_data((Byte*)malloc(page_data_size));
+            unique_ptr<Byte, void (*)(void*)> page_data((Byte*)malloc(page_data_size), free);
 
             Page* page      = T2T<Page*>(malloc(page_size));
 
