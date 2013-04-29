@@ -5,27 +5,27 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_VECTORMAP2_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_VECTORMAP2_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_VECTORMAP_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_VECTORMAP_FACTORY_HPP
 
-#include <memoria/containers/map2/map_factory.hpp>
-#include <memoria/containers/vector2/vector_factory.hpp>
+#include <memoria/containers/map/map_factory.hpp>
+#include <memoria/containers/vector/vector_factory.hpp>
 
-#include <memoria/containers/vector_map2/vectormap_walkers.hpp>
-#include <memoria/containers/vector_map2/vectormap_tools.hpp>
-#include <memoria/containers/vector_map2/vectormap_names.hpp>
+#include <memoria/containers/vector_map/vectormap_walkers.hpp>
+#include <memoria/containers/vector_map/vectormap_tools.hpp>
+#include <memoria/containers/vector_map/vectormap_names.hpp>
 
-#include <memoria/containers/vector_map2/container/vectormap_c_checks.hpp>
-#include <memoria/containers/vector_map2/container/vectormap_c_tools.hpp>
-#include <memoria/containers/vector_map2/container/vectormap_c_insert.hpp>
-#include <memoria/containers/vector_map2/container/vectormap_c_remove.hpp>
-#include <memoria/containers/vector_map2/container/vectormap_c_api.hpp>
-#include <memoria/containers/vector_map2/container/vectormap_c_find.hpp>
+#include <memoria/containers/vector_map/container/vectormap_c_checks.hpp>
+#include <memoria/containers/vector_map/container/vectormap_c_tools.hpp>
+#include <memoria/containers/vector_map/container/vectormap_c_insert.hpp>
+#include <memoria/containers/vector_map/container/vectormap_c_remove.hpp>
+#include <memoria/containers/vector_map/container/vectormap_c_api.hpp>
+#include <memoria/containers/vector_map/container/vectormap_c_find.hpp>
 
-#include <memoria/containers/vector_map2/vectormap_iterator.hpp>
-#include <memoria/containers/vector_map2/iterator/vectormap_i_api.hpp>
+#include <memoria/containers/vector_map/vectormap_iterator.hpp>
+#include <memoria/containers/vector_map/iterator/vectormap_i_api.hpp>
 
-#include <memoria/containers/vector_map2/vectormap_names.hpp>
+#include <memoria/containers/vector_map/vectormap_names.hpp>
 
 namespace memoria    {
 
@@ -107,7 +107,7 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     using FindLTWalker 		= SkipForwardWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker 		= ::memoria::mvector2::FindLEWalker<Types>;
+    using FindLEWalker 		= ::memoria::mvector::FindLEWalker<Types>;
 
 
 

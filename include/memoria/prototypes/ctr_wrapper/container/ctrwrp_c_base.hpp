@@ -15,8 +15,6 @@
 #include <memoria/core/types/algo.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
-#include <memoria/containers/vector_map/names.hpp>
-
 #include <iostream>
 
 namespace memoria       {

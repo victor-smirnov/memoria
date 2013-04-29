@@ -8,8 +8,8 @@
 #ifndef MEMORIA_CONTAINERS_VECTORMAP2_ITERATOR_HPP_
 #define MEMORIA_CONTAINERS_VECTORMAP2_ITERATOR_HPP_
 
-#include <memoria/prototypes/ctr_wrapper/iterator.hpp>
-#include <memoria/containers/vector_map2/vectormap_names.hpp>
+
+#include <memoria/containers/vector_map/vectormap_names.hpp>
 
 namespace memoria {
 

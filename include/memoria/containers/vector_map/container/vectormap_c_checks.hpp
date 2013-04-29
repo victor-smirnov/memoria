@@ -9,8 +9,8 @@
 #define _MEMORIA_CONTAINER_VECTORMAP2_C_CHECKS_HPP
 
 
-#include <memoria/containers/vector2/vector_names.hpp>
-#include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
+#include <memoria/containers/vector_map/vectormap_names.hpp>
+#include <memoria/containers/vector_map/vectormap_tools.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>

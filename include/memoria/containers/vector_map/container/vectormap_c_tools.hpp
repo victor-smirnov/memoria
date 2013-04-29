@@ -5,12 +5,13 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTORMAP2_C_TOOLS_HPP
-#define _MEMORIA_CONTAINER_VECTORMAP2_C_TOOLS_HPP
+#ifndef _MEMORIA_CONTAINER_VECTORMAP_C_TOOLS_HPP
+#define _MEMORIA_CONTAINER_VECTORMAP_C_TOOLS_HPP
 
 
 #include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
-#include <memoria/containers/vector2/vector_names.hpp>
+#include <memoria/containers/vector_map/vectormap_names.hpp>
+#include <memoria/containers/vector_map/vectormap_tools.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 

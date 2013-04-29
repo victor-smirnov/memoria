@@ -5,10 +5,10 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_VECTORMAP2_CONTAINER_WALKERS_HPP
-#define _MEMORIA_CONTAINERS_VECTORMAP2_CONTAINER_WALKERS_HPP
+#ifndef _MEMORIA_CONTAINERS_VECTORMAP_CONTAINER_WALKERS_HPP
+#define _MEMORIA_CONTAINERS_VECTORMAP_CONTAINER_WALKERS_HPP
 
-#include <memoria/prototypes/btree/tools.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
 #include <memoria/core/container/container.hpp>

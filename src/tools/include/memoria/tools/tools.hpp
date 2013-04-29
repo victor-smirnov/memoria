@@ -16,8 +16,9 @@
 #include <memoria/core/container/logs.hpp>
 
 #include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector_map/vectormap_names.hpp>
 #include <memoria/prototypes/sequence/names.hpp>
-#include <memoria/containers/vector_map/names.hpp>
+
 
 #include <vector>
 #include <fstream>
@@ -25,6 +26,7 @@
 namespace memoria {
 
 using namespace memoria::vapi;
+using namespace memoria::vmap;
 using namespace std;
 
 
@@ -266,7 +268,7 @@ void checkBufferWritten(BAIterator& iter, const MemBuffer& data, const char* err
 }
 
 template <typename Types, typename Item>
-void checkBufferWritten(Iter<VectorMapIterTypes<Types>>& iter, const vector<Item>& data, const char* err_msg, const char* source)
+void checkBufferWritten(Iter<VectorMap2IterTypes<Types>>& iter, const vector<Item>& data, const char* err_msg, const char* source)
 {
     Int pos = 0;
     if (!CompareBuffer(iter.ba_iter(), data, pos))
