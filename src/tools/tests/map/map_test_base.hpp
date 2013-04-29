@@ -8,8 +8,6 @@
 
 #include <memoria/memoria.hpp>
 
-#include <memoria/containers/map2/map_factory.hpp>
-
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
@@ -30,7 +28,7 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef SCtrTF<Map2<BigInt, BigInt>>::Type                              	Ctr;
+    typedef SCtrTF<Map<BigInt, BigInt>>::Type                              		Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
     typedef typename Ctr::Accumulator                                           Accumulator;

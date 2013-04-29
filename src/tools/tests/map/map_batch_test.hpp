@@ -12,8 +12,6 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/containers/map2/map_factory.hpp>
-
 #include "../shared/randomaccesslist_test_base.hpp"
 
 #include <vector>
@@ -24,15 +22,15 @@
 
 namespace memoria {
 
-typedef SCtrTF<Map2<BigInt, Int>>::Type SumSet1Ctr;
+typedef SCtrTF<Map<BigInt, Int>>::Type SumSet1Ctr;
 
 class MapBatchTest: public RandomAccessListTestBase<
-    Map2<BigInt, Int>,
+    Map<BigInt, Int>,
     typename SumSet1Ctr::LeafPairsVector
 >
 {
     typedef RandomAccessListTestBase<
-    		Map2<BigInt, Int>,
+    		Map<BigInt, Int>,
             typename SumSet1Ctr::LeafPairsVector
     >                                                                           Base;
 

@@ -13,7 +13,7 @@
 
 #include <memoria/core/container/container.hpp>
 
-#include <memoria/prototypes/btree/btree_walkers.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
 
 #include <ostream>
 
@@ -29,22 +29,19 @@ protected:
 
 	typedef Iter<typename Types::IterTypes> 									Iterator;
 
-	Accumulator prefix_;
+	Key prefix_ = 0;
 
 	Key key_;
 	Int key_num_;
-
-	Int idx_;
+	Int stream_;
 
 	WalkDirection direction_;
-
-	Int start_;
 
 
 
 public:
-	FindWalkerBase(Key key, Int key_num):
-		key_(key), key_num_(key_num), idx_(0)
+	FindWalkerBase(Int stream, Int key_num, Key key):
+		key_(key), key_num_(key_num), stream_(stream)
 	{}
 
 	const WalkDirection& direction() const {
@@ -55,15 +52,8 @@ public:
 		return direction_;
 	}
 
-	const Int& start() const {
-		return start_;
-	}
 
-	Int& start() {
-		return start_;
-	}
-
-	void finish(Int idx, Iterator& iter)
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() 	= idx;
 
@@ -74,12 +64,7 @@ public:
 	{
 		iter.key_idx()	= 0;
 
-		iter.cache().setup(Accumulator());
-	}
-
-	Int idx() const
-	{
-		return idx_;
+		iter.cache().setup(0);
 	}
 };
 
@@ -91,21 +76,17 @@ class FindLTWalker: public FindWalkerBase<Types> {
 	typedef typename Base::Key 			Key;
 
 public:
-	FindLTWalker(Key key, Int key_num): Base(key, key_num)
+	typedef Int ReturnType;
+
+	FindLTWalker(Int stream, Int key_num, Int key): Base(stream, key_num, key)
 	{}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	ReturnType treeNode(const Node* node, Int start)
 	{
 		const typename Node::Map& map = node->map();
 
-		Base::idx_ = map.findLTS(Base::key_num_, Base::key_ - Base::prefix_[Base::key_num_], Base::prefix_);
-
-		if (node->level() != 0 && Base::idx_ == map.size())
-		{
-			Base::prefix_ -= map.keysAt(map.size() - 1);
-			Base::idx_--;
-		}
+		return map.findLTS(Base::key_num_, Base::key_ - Base::prefix_[Base::key_num_], Base::prefix_);
 	}
 };
 
@@ -116,43 +97,37 @@ class FindLEWalker: public FindWalkerBase<Types> {
 	typedef typename Base::Key 			Key;
 
 public:
-	FindLEWalker(Key key, Int key_num): Base(key, key_num)
+	FindLEWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
 	{}
 
+	typedef Int ResultType;
+	typedef Int ReturnType;
+
 	template <typename Node>
-	void operator()(const Node* node)
+	ReturnType treeNode(const Node* node, Int start)
 	{
-		const typename Node::Map& map = node->map();
+		return node->find(Base::stream_, *this, node->level(), start);
+	}
 
-		Base::idx_ = map.findLES(Base::key_num_, Base::key_ - Base::prefix_[Base::key_num_], Base::prefix_);
 
-		if (node->level() != 0 && Base::idx_ == map.size())
-		{
-			Base::prefix_ -= map.keysAt(map.size() - 1);
-			Base::idx_--;
-		}
+
+	template <Int Idx, typename Tree>
+	Int stream(const Tree* tree, Int level, Int start)
+	{
+		auto& key		= Base::key_;
+		auto& prefix 	= Base::prefix_;
+
+		auto target 	= key - prefix;
+
+		auto result 	= tree->findLEForward(target);
+
+		prefix += result.prefix();
+
+		return result.idx();
 	}
 };
 
 
-
-
-//template <
-//	typename Types,
-//	template <typename, typename, typename> class NodeExtender,
-//	typename ExtenderState
-//>
-//class FindLE1Walker: public btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> {
-//
-//	typedef btree::BTreeForwardWalker<Types, btree::NodeLTForwardWalker, NodeExtender, ExtenderState> 	Base;
-//	typedef FindLE1Walker<Types, NodeExtender, ExtenderState>											MyType;
-//
-//public:
-//
-//	FindLE1Walker(BigInt key, Int key_num, ExtenderState& state):
-//		Base(key, key_num, state)
-//	{}
-//};
 
 
 template <typename Types>
@@ -163,35 +138,18 @@ protected:
 
 	typedef typename Types::Accumulator		Accumulator;
 
-	Int idx_;
-
 	WalkDirection direction_;
 
-	Int start_;
-
 public:
-	FindRangeWalkerBase(): idx_(0) {}
+	FindRangeWalkerBase() {}
 
 	WalkDirection& direction() {
 		return direction_;
 	}
 
-	const Int& start() const {
-		return start_;
-	}
-
-	Int& start() {
-		return start_;
-	}
-
 	void empty(Iterator& iter)
 	{
-		iter.cache().setup(Accumulator());
-	}
-
-	Int idx() const
-	{
-		return idx_;
+		iter.cache().setup(0);
 	}
 };
 
@@ -206,28 +164,35 @@ class FindEndWalker: public FindRangeWalkerBase<Types> {
 
 	typedef typename Types::Accumulator 	Accumulator;
 
-	Accumulator prefix_;
+	BigInt prefix_ = 0;
 
 public:
-	FindEndWalker(Container&) {}
+	typedef Int ReturnType;
+
+	FindEndWalker(Int stream, Container&) {}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	ReturnType treeNode(const Node* node, Int start)
 	{
-		const typename Node::Map& map = node->map();
+		node->process(0, *this, node->level(), start);
 
-		if (node->level() > 0)
-		{
-			prefix_ += map.maxKeys() - map.keysAt(map.size() - 1);
-		}
-		else {
-			prefix_ += map.maxKeys();
-		}
-
-		Base::idx_ 	= node->children_count() - 1;
+		return node->size(0) - 1;
 	}
 
-	void finish(Int idx, Iterator& iter)
+	template <Int Idx, typename Tree>
+	void stream(const Tree* tree, Int level, Int start)
+	{
+		if (level > 0)
+		{
+			prefix_ += tree->sumWithoutLastElement(0);
+		}
+		else {
+			prefix_ += tree->sum(0);
+		}
+	}
+
+
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = idx + 1;
 		iter.cache().setup(prefix_);
@@ -244,19 +209,21 @@ class FindREndWalker: public FindRangeWalkerBase<Types> {
 	typedef typename Types::Accumulator 	Accumulator;
 
 public:
-	FindREndWalker(Container&) {}
+	typedef Int ReturnType;
+
+	FindREndWalker(Int stream, Container&) {}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	ReturnType treeNode(const Node* node, Int start)
 	{
-		Base::idx_ = 0;
+		return 0;
 	}
 
-	void finish(Int idx, Iterator& iter)
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = idx - 1;
 
-		iter.cache().setup(Accumulator());
+		iter.cache().setup(0);
 	}
 };
 
@@ -271,20 +238,22 @@ class FindBeginWalker: public FindRangeWalkerBase<Types> {
 	typedef typename Types::Accumulator 	Accumulator;
 
 public:
-	FindBeginWalker(Container&) {}
+	typedef Int ReturnType;
+
+	FindBeginWalker(Int stream, Container&) {}
 
 
 	template <typename Node>
-	void operator()(const Node* node)
+	ReturnType treeNode(const Node* node, Int start)
 	{
-		Base::idx_ = 0;
+		return 0;
 	}
 
-	void finish(Int idx, Iterator& iter)
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = 0;
 
-		iter.cache().setup(Accumulator());
+		iter.cache().setup(0);
 	}
 };
 
@@ -297,22 +266,29 @@ class FindRBeginWalker: public FindRangeWalkerBase<Types> {
 
 	typedef typename Types::Accumulator 	Accumulator;
 
-	Accumulator prefix_;
+	BigInt prefix_ = 0;
 
 public:
-	FindRBeginWalker(Container&) {}
+	typedef Int ReturnType;
+
+	FindRBeginWalker(Int stream, Container&) {}
 
 	template <typename Node>
-	void operator()(const Node* node)
+	ReturnType treeNode(const Node* node, Int start)
 	{
-		const typename Node::Map& map = node->map();
+		node->process(0, *this);
 
-		prefix_ += map.maxKeys() - map.keysAt(map.size() - 1);
-
-		Base::idx_ = node->children_count() - 1;
+		return node->size(0) - 1;
 	}
 
-	void finish(Int idx, Iterator& iter)
+	template <Int Idx, typename Tree>
+	void stream(const Tree* tree)
+	{
+		prefix_ += tree->sumWithoutLastElement(0);
+	}
+
+
+	void finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = idx;
 

@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CONTAINERS_MAP2_ITERATOR_HPP_
-#define MEMORIA_CONTAINERS_MAP2_ITERATOR_HPP_
+#ifndef MEMORIA_CONTAINERS_MAP_ITERATOR_HPP_
+#define MEMORIA_CONTAINERS_MAP_ITERATOR_HPP_
 
 #include <memoria/prototypes/ctr_wrapper/iterator.hpp>
-#include <memoria/containers/map2/map_names.hpp>
+#include <memoria/containers/map/map_names.hpp>
 
 namespace memoria {
 

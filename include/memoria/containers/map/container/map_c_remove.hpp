@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_MODELS_IDX_MAP2_C_REMOVE_HPP
-#define _MEMORIA_MODELS_IDX_MAP2_C_REMOVE_HPP
+#ifndef _MEMORIA_CONTAINERS_MAP_CTR_REMOVE_HPP
+#define _MEMORIA_CONTAINERS_MAP_CTR_REMOVE_HPP
 
 
-#include <memoria/containers/map2/map_names.hpp>
+#include <memoria/containers/map/map_names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
@@ -19,7 +19,7 @@ namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrRemoveName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -56,7 +56,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrRemoveName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map2::CtrRemoveName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map::CtrRemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

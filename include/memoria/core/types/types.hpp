@@ -122,11 +122,11 @@ struct Root         {};
 template <typename CtrName>
 class CtrWrapper 	{};
 
-template <typename Key, typename Value, Int Indexes = 1>
+template <typename Key, typename Value>
 struct Map          {};
 
-template <typename Key, typename Value>
-struct Map2      	{};
+//template <typename Key, typename Value>
+//struct Map2      	{};
 
 
 
@@ -136,10 +136,10 @@ struct MapProto     {};
 template <typename Value>
 struct VectorProto  {};
 
-typedef Map<BigInt, BigInt, 1>       Map1;
+typedef Map<BigInt, BigInt>       Map1;
 
 template <typename Key, Int Indexes = 1>
-using Set = Map<Key, EmptyValue, Indexes>;
+using Set = Map<Key, EmptyValue>;
 
 
 typedef Set<BigInt, 1>       Set1;

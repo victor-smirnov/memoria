@@ -6,12 +6,12 @@
 
 
 
-#ifndef _MEMORIA_MODELS_IDX_MAP2_I_NAV_HPP
-#define _MEMORIA_MODELS_IDX_MAP2_I_NAV_HPP
+#ifndef _MEMORIA_CONTAINERS_MAP_ITER_NAV_HPP
+#define _MEMORIA_CONTAINERS_MAP_ITER_NAV_HPP
 
 #include <memoria/core/types/types.hpp>
 
-#include <memoria/containers/map2/map_names.hpp>
+#include <memoria/containers/map/map_names.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
@@ -20,7 +20,7 @@
 namespace memoria    {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrNavName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
 	typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
@@ -151,7 +151,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrNavName)
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::map2::ItrNavName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::map::ItrNavName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 

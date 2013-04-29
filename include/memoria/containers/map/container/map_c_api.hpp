@@ -1,36 +1,69 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011 - 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_MODELS_IDX_MAP_CONTAINER_API_HPP
-#define _MEMORIA_MODELS_IDX_MAP_CONTAINER_API_HPP
+#ifndef _MEMORIA_CONTAINERS_MAP_CTR_API_HPP
+#define _MEMORIA_CONTAINERS_MAP_CTR_API_HPP
 
 
-#include <memoria/prototypes/btree/pages/tools.hpp>
-#include <memoria/containers/map/names.hpp>
+#include <memoria/containers/map/map_names.hpp>
+
 #include <memoria/core/container/container.hpp>
+#include <memoria/core/container/macros.hpp>
 
 
 
 namespace memoria    {
 
-using namespace memoria::btree;
+using namespace memoria::balanced_tree;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
-    typedef typename Base::Element                                              Element;
-    typedef typename Base::Accumulator                                          Accumulator;
+	typedef typename Base::Types                                                Types;
+	typedef typename Base::Allocator                                            Allocator;
 
+	typedef typename Base::ID                                                   ID;
+
+	typedef typename Types::NodeBase                                            NodeBase;
+	typedef typename Types::NodeBaseG                                           NodeBaseG;
+	typedef typename Base::TreeNodePage                                         TreeNodePage;
+	typedef typename Base::Iterator                                             Iterator;
+
+	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+	typedef typename Base::RootDispatcher                                       RootDispatcher;
+	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+
+
+	typedef typename Base::Key                                                  Key;
+	typedef typename Base::Value                                                Value;
+	typedef typename Base::Element                                              Element;
+
+	typedef typename Base::Metadata                                             Metadata;
+
+	typedef typename Types::Accumulator                                         Accumulator;
+	typedef typename Types::Position 											Position;
+
+	typedef typename Base::TreePath                                             TreePath;
+	typedef typename Base::TreePathItem                                         TreePathItem;
+
+	static const Int Indexes                                                    = Types::Indexes;
+	static const Int Streams                                                    = Types::Streams;
+
+	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
+
+
+
+	BigInt size() const {
+		return self().sizes()[0];
+	}
 
     Iterator find(Key key)
     {
-        Iterator iter = me()->findLE(key, 0);
+        Iterator iter = self().findLE(MAIN_STREAM, key, 0);
 
         if (!iter.isEnd())
         {
@@ -39,7 +72,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
                 return iter;
             }
             else {
-                return me()->End();
+                return self().End();
             }
         }
         else {
@@ -50,15 +83,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator operator[](Key key)
     {
-        Iterator iter = me()->findLE(key, 0);
+        Iterator iter = self().findLE(MAIN_STREAM, key, 0);
 
         if (iter.isEnd() || key != iter.key())
         {
         	Accumulator keys;
-            keys[0] = key;
-            me()->insert(iter, keys);
+            std::get<0>(keys)[0] = key;
+            self().insert(iter, keys);
 
-            iter.prevKey();
+            iter.prev();
         }
 
         return iter;
@@ -66,9 +99,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     bool remove(Key key)
     {
-        Iterator iter = me()->findLE(key, 0);
+    	Iterator iter = self().findLE(MAIN_STREAM, key, 0);
 
-        if (key == iter.key(0))
+        if (key == iter.key())
         {
             iter.remove();
             return true;
@@ -81,7 +114,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
     void remove(Iterator& from, Iterator& to)
     {
         Accumulator keys;
-        me()->removeEntries(from, to, keys);
+        self().removeEntries(from, to, keys);
 
         if (!to.isEnd())
         {
@@ -110,15 +143,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     bool contains(Key key)
     {
-        return !me()->find(key).isEnd();
+        return !self().find(key).isEnd();
     }
 
     bool contains1(Key key)
     {
-        return !me()->find1(key).isEnd();
+        return !self().find1(key).isEnd();
     }
 
-    bool removeEntry(Iterator& iter, Accumulator& keys)
+    bool removeEntry1(Iterator& iter, Accumulator& keys)
     {
         bool result = Base::removeEntry(iter, keys);
 

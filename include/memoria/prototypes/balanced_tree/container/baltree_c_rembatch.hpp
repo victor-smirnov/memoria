@@ -14,8 +14,6 @@
 
 namespace memoria    {
 
-using namespace memoria::btree;
-
 MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveBatchName)
 
 	typedef TypesType															Types;

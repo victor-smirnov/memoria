@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -9,11 +9,12 @@
 #ifndef _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
 
-#include <memoria/containers/root/factory.hpp>
-#include <memoria/containers/map/map_factory.hpp>
-#include <memoria/containers/set/factory.hpp>
+#include <memoria/containers/root/root_factory.hpp>
+//#include <memoria/containers/map/map_factory.hpp>
+//#include <memoria/containers/set/factory.hpp>
 #include <memoria/containers/vector2/vector_factory.hpp>
-#include <memoria/containers/vector_map2/vectormap_factory.hpp>
+#include <memoria/containers/map/map_factory.hpp>
+//#include <memoria/containers/vector_map2/vectormap_factory.hpp>
 //#include <memoria/containers/seq_dense/factory.hpp>
 
 //#include <memoria/containers/louds/louds_factory.hpp>

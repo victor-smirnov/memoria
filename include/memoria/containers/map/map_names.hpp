@@ -6,13 +6,13 @@
 
 
 
-#ifndef _MEMORIA_MODELS_IDX_MAP2_NAMES_HPP
-#define _MEMORIA_MODELS_IDX_MAP2_NAMES_HPP
+#ifndef _MEMORIA_MODELS_IDX_MAP_NAMES_HPP
+#define _MEMORIA_MODELS_IDX_MAP_NAMES_HPP
 
-#include <memoria/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 
 namespace memoria    {
-namespace map2 		 {
+namespace map 		 {
 
 class CtrApiName 	{};
 class CtrInsertName {};

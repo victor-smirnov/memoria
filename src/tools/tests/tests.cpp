@@ -23,7 +23,7 @@
 
 
 #include "vector/vector_test_suite.hpp"
-#include "vector_map/vector_map_test_suite.hpp"
+//#include "vector_map/vector_map_test_suite.hpp"
 
 //
 //#include "sequence/sequence_test_suite.hpp"
@@ -49,8 +49,6 @@ const char* CFG_FILE    = "tests.properties";
 int main(int argc, const char** argv, const char** envp)
 {
     MEMORIA_INIT(SmallProfile<>);
-
-    SCtrTF<Map2<BigInt, BigInt>>::Type::initMetadata();
 
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
@@ -99,7 +97,7 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new MapTestSuite());
 
         runner.registerTask(new VectorTestSuite());
-        runner.registerTask(new VectorMapTestSuite());
+//        runner.registerTask(new VectorMapTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
 
 //        runner.registerTask(new LoudsTestSuite());

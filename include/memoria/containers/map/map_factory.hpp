@@ -6,45 +6,85 @@
 
 
 
-#ifndef _MEMORIA_MODELS_IDX_MAP_FACTORY_HPP
-#define _MEMORIA_MODELS_IDX_MAP_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_MAP_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_MAP_FACTORY_HPP
+
+#include <memoria/prototypes/balanced_tree/balanced_tree.hpp>
+#include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
 #include <memoria/containers/map/map_walkers.hpp>
+#include <memoria/containers/map/map_tools.hpp>
 
+#include <memoria/containers/map/container/map_c_tools.hpp>
+#include <memoria/containers/map/container/map_c_insert.hpp>
+#include <memoria/containers/map/container/map_c_remove.hpp>
 #include <memoria/containers/map/container/map_c_api.hpp>
-#include <memoria/containers/map/iterator/map_i_api.hpp>
 
-#include <memoria/prototypes/bstree/factory.hpp>
+#include <memoria/containers/map/map_iterator.hpp>
+#include <memoria/containers/map/iterator/map_i_api.hpp>
+#include <memoria/containers/map/iterator/map_i_nav.hpp>
+
+
+
+
+#include <memoria/containers/map/map_names.hpp>
 
 namespace memoria    {
 
 
 
-template <typename Profile, typename Key_, typename Value_, Int Indexes_>
-struct BTreeTypes<Profile, memoria::Map<Key_, Value_, Indexes_> >: public BTreeTypes<Profile, memoria::BSTree> {
+template <typename Profile, typename Key_, typename Value_>
+struct BalancedTreeTypes<Profile, memoria::Map<Key_, Value_> >: public BalancedTreeTypes<Profile, memoria::BalancedTree> {
 
-    typedef BTreeTypes<Profile, memoria::BSTree>                            Base;
+    typedef BalancedTreeTypes<Profile, memoria::BalancedTree>                   Base;
 
-    typedef Value_                                                          Value;
-    typedef TypeList<Key_>                                                  KeysList;
+    typedef Value_                                                          	Value;
+    typedef TypeList<Key_>                                                  	KeysList;
 
-    static const Int Indexes                                                = Indexes_;
-
-    typedef typename MergeLists<
-            	typename Base::ContainerPartsList,
-                memoria::map::CtrApiName
-    >::Result                                                               ContainerPartsList;
-
-    typedef typename MergeLists<
-            	typename Base::IteratorPartsList,
-                memoria::map::ItrApiName
-    >::Result                                                               IteratorPartsList;
+    static const Int Indexes                                                	= 1;
 
 
-    template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef BTreeIteratorPrefixCache<Iterator, Container>               Type;
-    };
+    typedef TypeList<
+    		AllNodeTypes<balanced_tree::TreeMapNode>
+    >																			NodeTypesList;
+
+    typedef TypeList<
+        		LeafNodeType<TreeMapNode>,
+        		InternalNodeType<TreeMapNode>,
+        		RootNodeType<TreeMapNode>,
+        		RootLeafNodeType<TreeMapNode>
+    >																			DefaultNodeTypesList;
+
+    typedef TypeList<
+        		StreamDescr<PackedFSETreeTF, PackedFSETreeTF, 1>
+    >																			StreamDescriptors;
+
+    typedef BalancedTreeMetadata<
+    		typename Base::ID,
+    		ListSize<StreamDescriptors>::Value
+    >        																	Metadata;
+
+
+	typedef typename MergeLists<
+				typename Base::ContainerPartsList,
+				memoria::map::CtrToolsName,
+				memoria::map::CtrInsertName,
+				memoria::map::CtrRemoveName,
+				memoria::map::CtrApiName
+	>::Result                                           						ContainerPartsList;
+
+
+	typedef typename MergeLists<
+				typename Base::IteratorPartsList,
+				memoria::map::ItrApiName,
+				memoria::map::ItrNavName
+	>::Result                                           						IteratorPartsList;
+
+
+	template <typename Iterator, typename Container>
+	struct IteratorCacheFactory {
+		typedef memoria::map::MapIteratorPrefixCache<Iterator, Container> Type;
+	};
 
 
 
@@ -69,9 +109,17 @@ struct BTreeTypes<Profile, memoria::Map<Key_, Value_, Indexes_> >: public BTreeT
     using FindREndWalker 	= ::memoria::map::FindREndWalker<Types>;
 };
 
-template <typename Profile, typename Key, typename Value, typename T, Int Indexes>
-class CtrTF<Profile, memoria::Map<Key, Value, Indexes>, T>: public CtrTF<Profile, memoria::BSTree, T> {
+
+
+template <typename Profile, typename Key, typename Value, typename T>
+class CtrTF<Profile, memoria::Map<Key, Value>, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
 };
+
+
+
+
+
+
 
 }
 

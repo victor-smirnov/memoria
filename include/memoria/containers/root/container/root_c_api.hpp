@@ -9,14 +9,12 @@
 #define _MEMORIA_MODELS_ROOT_API_HPP
 
 
-#include <memoria/containers/root/names.hpp>
+#include <memoria/containers/root/root_names.hpp>
 #include <memoria/core/container/container.hpp>
 
 
 
 namespace memoria    {
-
-using namespace memoria::btree;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::root::CtrApiName)
 

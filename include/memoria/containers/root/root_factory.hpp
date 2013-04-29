@@ -13,14 +13,14 @@
 
 #include <memoria/containers/root/container/root_c_api.hpp>
 
-#include <memoria/containers/root/pages/parts.hpp>
+#include <memoria/containers/root/nodes/root_metadata.hpp>
 
 namespace memoria {
 
 template <typename Profile>
-struct BTreeTypes<Profile, memoria::Root>: public BTreeTypes<Profile, memoria::Map<BigInt, NullType, 1> > {
+struct BalancedTreeTypes<Profile, memoria::Root>: public BalancedTreeTypes<Profile, memoria::Map<BigInt, NullType> > {
 
-    typedef BTreeTypes<Profile, memoria::Map<BigInt, NullType, 1>>              Base;
+    typedef BalancedTreeTypes<Profile, memoria::Map<BigInt, NullType>>      	Base;
 
     typedef typename Base::ID                                                   Value;
 
@@ -29,13 +29,13 @@ struct BTreeTypes<Profile, memoria::Root>: public BTreeTypes<Profile, memoria::M
                     memoria::root::CtrApiName
     >::Result                                                                   ContainerPartsList;
 
-    typedef RootCtrMetadata<typename Base::ID>                                  Metadata;
+    typedef RootCtrMetadata<typename Base::ID, 1>                               Metadata;
 };
 
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::Root, T>: public CtrTF<Profile, memoria::Map<BigInt, NullType, 1>, T> {
+class CtrTF<Profile, memoria::Root, T>: public CtrTF<Profile, memoria::Map<BigInt, NullType>, T> {
 };
 
 }

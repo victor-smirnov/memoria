@@ -210,7 +210,7 @@ ostream& operator<<(ostream& out, const ::memoria::tuple<Args...>& obj)
 {
     out<<"{";
 
-    internal::DoRecursive<sizeof...(Args)>::process(internal::OstreamFn<Args...>(out, obj));
+    memoria::internal::DoRecursive<sizeof...(Args)>::process(memoria::internal::OstreamFn<Args...>(out, obj));
 
     out<<"}";
     return out;

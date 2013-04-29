@@ -5,15 +5,15 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_MAP2_CONTAINER_TOOLS_HPP
-#define _MEMORIA_CONTAINERS_MAP2_CONTAINER_TOOLS_HPP
+#ifndef _MEMORIA_CONTAINERS_MAP_CONTAINER_TOOLS_HPP
+#define _MEMORIA_CONTAINERS_MAP_CONTAINER_TOOLS_HPP
 
 #include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/container.hpp>
 
 namespace memoria       {
-namespace map2        	{
+namespace map        	{
 
 
 template <typename Iterator, typename Container>
