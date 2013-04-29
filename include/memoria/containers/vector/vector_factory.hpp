@@ -1,140 +1,139 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
 #ifndef _MEMORIA_CONTAINERS_VECTOR_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_VECTOR_FACTORY_HPP
 
-#include <memoria/prototypes/sequence/sequence_factory.hpp>
+#include <memoria/prototypes/balanced_tree/balanced_tree.hpp>
 
-#include <memoria/containers/vector/container/vector_c_tools.hpp>
-
-#include <memoria/containers/vector/iterator/vector_i_api.hpp>
-#include <memoria/containers/vector/vector_iterator.hpp>
-
-#include <memoria/containers/vector/pages/vector_datapage.hpp>
-
-
-#include <memoria/containers/vector/vector_names.hpp>
-#include <memoria/containers/vector/vector_tools.hpp>
-
-#include <memoria/prototypes/sequence/tools.hpp>
-
+#include <memoria/core/packed2/packed_fse_array.hpp>
 
 #include <memoria/containers/vector/vector_walkers.hpp>
+#include <memoria/containers/vector/vector_tools.hpp>
+#include <memoria/containers/vector/vector_names.hpp>
 
-namespace memoria {
+#include <memoria/containers/vector/container/vector_c_checks.hpp>
+#include <memoria/containers/vector/container/vector_c_tools.hpp>
+#include <memoria/containers/vector/container/vector_c_insert.hpp>
+#include <memoria/containers/vector/container/vector_c_remove.hpp>
+#include <memoria/containers/vector/container/vector_c_api.hpp>
+#include <memoria/containers/vector/container/vector_c_find.hpp>
 
-template <typename Profile, typename ElementType_>
-struct BalancedTreeTypes<Profile, memoria::Vector<ElementType_>>: public BalancedTreeTypes<Profile, memoria::ASequence>  {
+#include <memoria/containers/vector/vector_iterator.hpp>
+#include <memoria/containers/vector/iterator/vector_i_api.hpp>
 
-	typedef BalancedTreeTypes<Profile, memoria::ASequence> Base;
+#include <memoria/containers/vector/vector_names.hpp>
 
-    typedef typename MergeLists<
-            	typename Base::ContainerPartsList,
-                memoria::mvector::CtrToolsName
-    >::Result                                                               	ContainerPartsList;
-
-    typedef typename MergeLists<
-    			typename Base::IteratorPartsList,
-    			memoria::mvector::IteratorContainerAPIName
-    >::Result                                                                   IteratorPartsList;
+namespace memoria    {
 
 
-    typedef ElementType_                                                        ElementType;
+
+template <typename Profile, typename Value_>
+struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTreeTypes<Profile, memoria::BalancedTree> {
+
+    typedef BalancedTreeTypes<Profile, memoria::BalancedTree>                   Base;
+
+    typedef Value_                                                          	Value;
+    typedef TypeList<BigInt>                                                  	KeysList;
+
+    static const Int Indexes                                                	= 1;
 
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-    	typedef balanced_tree::BTreeIteratorScalarPrefixCache<Iterator, Container> Type;
+        typedef ::memoria::mvector::VectorIteratorPrefixCache<Iterator, Container>               Type;
     };
 
     typedef TypeList<
-    		NonLeafNodeTypes<balanced_tree::TreeMapNode>,
-    		LeafNodeTypes<mvector::VectorDataNode>
+    		NonLeafNodeTypes<TreeMapNode>,
+    		LeafNodeTypes<TreeLeafNode>
     >																			NodeTypesList;
 
+    typedef TypeList<
+        		LeafNodeType<TreeLeafNode>,
+        		InternalNodeType<TreeMapNode>,
+        		RootNodeType<TreeMapNode>,
+        		RootLeafNodeType<TreeLeafNode>
+    >																			DefaultNodeTypesList;
 
-//    template <
-//    	typename Types,
-//    	template <typename, typename> class NodeExtender,
-//    	template <typename, typename> class DataExtender
-//    >
-//    using SkipForwardWalker = sequence::SequenceSkipForwardWalker<Types>;
-//
-//
-//    template <
-//    	typename Types,
-//    	template <typename, typename> class NodeExtender,
-//    	template <typename, typename> class DataExtender
-//    >
-//    using SkipBackwardWalker = mvector::VectorBackwardWalker<Types>;
+    typedef TypeList<
+        		StreamDescr<
+        			PackedFSETreeTF,
+        			PackedFSEArrayTF,
+        			1
+        	>
+    >																			StreamDescriptors;
 
+    typedef BalancedTreeMetadata<
+        		typename Base::ID,
+        		ListSize<StreamDescriptors>::Value
+    >        																	Metadata;
+
+
+    typedef typename MergeLists<
+    		typename Base::ContainerPartsList,
+    		memoria::mvector::CtrToolsName,
+    		memoria::mvector::CtrInsertName,
+    		memoria::mvector::CtrRemoveName,
+    		memoria::mvector::CtrChecksName,
+    		memoria::mvector::CtrFindName,
+    		memoria::mvector::CtrApiName
+    >::Result                                           						ContainerPartsList;
+
+    typedef typename MergeLists<
+    		typename Base::IteratorPartsList,
+    		memoria::mvector::ItrApiName
+    >::Result                                           						IteratorPartsList;
+
+    typedef IDataSource<Value>													DataSource;
+    typedef IDataTarget<Value>													DataTarget;
+
+
+
+    template <typename Types>
+    using FindLTWalker 			= SkipForwardWalker<Types>;
+
+    template <typename Types>
+    using FindLEWalker 			= ::memoria::mvector::FindLEWalker<Types>;
+
+
+    template <typename Types>
+    using SkipForwardWalker 	= SkipForwardWalker<Types>;
+
+    template <typename Types>
+    using SkipBackwardWalker 	= SkipBackwardWalker<Types>;
+
+    template <typename Types>
+    using NextLeafWalker 	 	= NextLeafWalker<Types>;
+
+    template <typename Types>
+    using PrevLeafWalker 		= PrevLeafWalker<Types>;
+
+
+
+    template <typename Types>
+    using FindBeginWalker 		= ::memoria::mvector::FindBeginWalker<Types>;
+
+    template <typename Types>
+    using FindEndWalker 		= ::memoria::mvector::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker 		= ::memoria::mvector::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker 		= ::memoria::mvector::FindREndWalker<Types>;
 };
 
 
-template <typename Profile, typename T, typename ElementType_>
-class CtrTF<Profile, memoria::Vector<ElementType_>, T>: public CtrTF<Profile, memoria::ASequence, T> {
-
-	typedef CtrTF<Profile, memoria::ASequence, T> 								Base;
-
-public:
-
-	typedef typename Base::ContainerTypes                                       ContainerTypes;
-
-	typedef typename ContainerTypes::DataPagePartsList                          DataPagePartsList;
-
-    MEMORIA_STATIC_ASSERT(IsList<DataPagePartsList>::Value);
-
-    typedef mvector::VectorDataPage<
-    			DataPagePartsList,
-    			ElementType_,
-    			memoria::btree::TreePage<
-    				typename ContainerTypes::Allocator::Page
-    			>
-    >                                                                           DataPage_;
-
-
-    struct Types: Base::Types {
-
-    	typedef typename Base::Types                                            Base0;
-
-    	typedef DataPage_                                                       DataPage;
-    	typedef PageGuard<DataPage, typename Base0::Allocator>                  DataPageG;
-
-    	typedef IData<ElementType_>                                        		IDataType;
-    	typedef IDataSource<ElementType_>                                       IDataSourceType;
-    	typedef IDataTarget<ElementType_>                                       IDataTargetType;
-
-    	typedef typename MergeLists<
-    						DataPage_,
-    						typename Base0::DataPagesList
-    	>::Result                                                               DataPagesList;
-
-
-    	typedef typename Base0::ContainerPartsList                              CtrList;
-    	typedef typename Base0::IteratorPartsList                               IterList;
-
-    	typedef VectorCtrTypes<Types>                                        	CtrTypes;
-    	typedef VectorIterTypes<Types>                                       	IterTypes;
-
-    	typedef DataPath<
-    				typename Base0::NodeBaseG,
-    				DataPageG
-    	>                                                                       TreePath;
-
-    	typedef typename TreePath::DataItem                                     DataPathItem;
-    };
-
-    typedef typename Types::CtrTypes                                            CtrTypes;
-
-    typedef Ctr<CtrTypes>                                                       Type;
-
+template <typename Profile, typename Value, typename T>
+class CtrTF<Profile, memoria::Vector<Value>, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
 };
+
+
 
 
 }

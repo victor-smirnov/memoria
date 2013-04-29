@@ -5,12 +5,12 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR2_C_INSERT_HPP
-#define _MEMORIA_CONTAINER_VECTOR2_C_INSERT_HPP
+#ifndef _MEMORIA_CONTAINER_VECTOR_C_INSERT_HPP
+#define _MEMORIA_CONTAINER_VECTOR_C_INSERT_HPP
 
 
-#include <memoria/containers/vector2/vector_names.hpp>
-#include <memoria/containers/vector2/vector_tools.hpp>
+#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vector_tools.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
@@ -21,7 +21,7 @@ namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrInsertName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -62,7 +62,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrInsertName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector2::CtrInsertName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -76,7 +76,7 @@ void M_TYPE::insert(Iterator& iter, DataSource& data)
 	TreePath& path = iter.path();
 	Position idx(iter.key_idx());
 
-	mvector2::VectorSource source(&data);
+	mvector::VectorSource source(&data);
 
 	typename Base::DefaultSubtreeProvider provider(self, Position(data.getSize()), source);
 

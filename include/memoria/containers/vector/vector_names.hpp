@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2012.
+// Copyright Victor Smirnov 2011.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -9,29 +9,35 @@
 #ifndef _MEMORIA_CONTAINERS_VECTOR_NAMES_HPP
 #define _MEMORIA_CONTAINERS_VECTOR_NAMES_HPP
 
-#include <memoria/prototypes/sequence/names.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 
+namespace memoria    {
+namespace mvector 	 {
 
-namespace memoria       {
-namespace mvector       {
+class CtrApiName 	{};
+class CtrInsertName {};
+class CtrToolsName 	{};
+class CtrRemoveName {};
+class CtrChecksName {};
+class CtrFindName {};
 
-class CtrToolsName {};
-
-class IteratorContainerAPIName  {};
-
+class ItrApiName {};
 }
 
 template <typename Types>
-struct VectorCtrTypesT: CtrTypesT<Types> {};
+struct Vector2CtrTypesT: CtrTypesT<Types> {};
 
 template <typename Types>
-struct VectorIterTypesT: IterTypesT<Types> {};
+struct Vector2IterTypesT: IterTypesT<Types> {};
+
+
 
 template <typename Types>
-using VectorCtrTypes  = SequenceCtrTypes<VectorCtrTypesT<Types>>;
+using Vector2CtrTypes  = Vector2CtrTypesT<Types>;
 
 template <typename Types>
-using VectorIterTypes = SequenceIterTypes<VectorIterTypesT<Types>>;
+using Vector2IterTypes = Vector2IterTypesT<Types>;
+
 
 }
 

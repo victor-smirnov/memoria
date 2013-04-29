@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
-#define _MEMORIA_CONTAINER_VECTOR2_C_API_HPP
+#ifndef _MEMORIA_CONTAINER_VECTOR_C_API_HPP
+#define _MEMORIA_CONTAINER_VECTOR_C_API_HPP
 
 
-#include <memoria/containers/vector2/vector_names.hpp>
+#include <memoria/containers/vector/vector_names.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
@@ -20,7 +20,7 @@ namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;

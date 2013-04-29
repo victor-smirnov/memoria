@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR2_C_CHECKS_HPP
-#define _MEMORIA_CONTAINER_VECTOR2_C_CHECKS_HPP
+#ifndef _MEMORIA_CONTAINER_VECTOR_C_CHECKS_HPP
+#define _MEMORIA_CONTAINER_VECTOR_C_CHECKS_HPP
 
 
-#include <memoria/containers/vector2/vector_names.hpp>
+#include <memoria/containers/vector/vector_names.hpp>
 #include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
 
 #include <memoria/core/container/container.hpp>
@@ -21,7 +21,7 @@ namespace memoria    {
 
 
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrChecksName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrChecksName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -96,7 +96,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector2::CtrChecksName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector2::CtrChecksName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrChecksName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

@@ -12,7 +12,7 @@
 #include <memoria/containers/root/root_factory.hpp>
 //#include <memoria/containers/map/map_factory.hpp>
 //#include <memoria/containers/set/factory.hpp>
-#include <memoria/containers/vector2/vector_factory.hpp>
+#include <memoria/containers/vector/vector_factory.hpp>
 #include <memoria/containers/map/map_factory.hpp>
 //#include <memoria/containers/vector_map2/vectormap_factory.hpp>
 //#include <memoria/containers/seq_dense/factory.hpp>

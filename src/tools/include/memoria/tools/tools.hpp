@@ -229,7 +229,7 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 
 
 template <typename Types, typename T>
-bool CompareBuffer(Iter<VectorIterTypes<Types>>& iter, const vector<T>& data, Int& c)
+bool CompareBuffer(Iter<Vector2IterTypes<Types>>& iter, const vector<T>& data, Int& c)
 {
     auto tmp = iter;
 
