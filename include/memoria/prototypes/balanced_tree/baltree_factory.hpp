@@ -31,6 +31,8 @@
 #include <memoria/prototypes/balanced_tree/container/baltree_c_insert.hpp>
 
 #include <memoria/prototypes/balanced_tree/container/baltree_c_remove.hpp>
+#include <memoria/prototypes/balanced_tree/container/baltree_c_remtools.hpp>
+#include <memoria/prototypes/balanced_tree/container/baltree_c_rembatch.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_find.hpp>
 
 #include <memoria/prototypes/templates/container/allocator.hpp>
@@ -61,6 +63,8 @@ struct BalancedTreeTypes {
             memoria::balanced_tree::InsertBatchName,
             memoria::balanced_tree::InsertName,
             memoria::balanced_tree::InsertToolsName,
+            memoria::balanced_tree::RemoveToolsName,
+            memoria::balanced_tree::RemoveBatchName,
             memoria::balanced_tree::RemoveName,
             memoria::balanced_tree::FindName
     >                                                                           ContainerPartsList;

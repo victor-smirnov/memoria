@@ -54,10 +54,15 @@ class IteratorPartsListFactory      {};
 
 class ToolsName             {};
 class FindName              {};
+
 class InsertName            {};
 class InsertBatchName       {};
 class InsertToolsName       {};
+
 class RemoveName            {};
+class RemoveToolsName       {};
+class RemoveBatchName       {};
+
 class ApiName               {};
 class ChecksName            {};
 class WalkName              {};

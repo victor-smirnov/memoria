@@ -82,15 +82,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 		self().model().setLeafData(self().leaf(), self().entry_idx(), value);
 	}
 
-//	MyType& operator++(int) {
-//		self().iter()++;
-//		return self();
-//	}
-//
-//	MyType& operator--(int) {
-//		self().iter()--;
-//		return self();
-//	}
 
 	class ValueAccessor {
 		MyType& iter_;
@@ -146,20 +137,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map2::ItrApiName)
 	}
 
 
-//	const TreePath& path() const
-//	{
-//		return self().iter().path();
-//	}
-//
-//	TreePath& path()
-//	{
-//		return self().iter().path();
-//	}
-
 	void remove()
 	{
 		Accumulator keys;
-		self().model().removeEntry(self(), keys);
+		self().model().removeEntry1(self(), keys);
 	}
 
 

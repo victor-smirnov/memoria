@@ -52,11 +52,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrRemoveName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
-
-	bool removeEntry(Iterator& iter, Accumulator& keys);
-
-	void removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge = true);
-
 	bool removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys);
 
 MEMORIA_CONTAINER_PART_END
@@ -82,80 +77,6 @@ bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys)
 	return result;
 }
 
-
-/**
- * \brief Remove the key and data pointed by iterator *iter* form the tree.
- *
- * This call stores removed key values in *keys* variable.
- *
- * \param iter iterator pointing to the key/data pair
- * \param keys an accumulator to add removed key value to
- *
- * \return true if the entry has been removed
- */
-
-M_PARAMS
-bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
-{
-    if (iter.isNotEmpty() || iter.isNotEnd())
-    {
-        removeEntry(iter.path(), iter.key_idx(), keys);
-
-        if (iter.isEnd())
-        {
-            iter.nextLeaf();
-        }
-
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-/**
- * \brief Remove single entry from the leaf node.
- *
- * \param path  path to the leaf
- * \param idx   index on the entry in the leaf
- * \param keys  accumulator to store values of deleted entry
- * \param merge if true then merge leaf with its siblings (if necessary)
- *
- * \see mergeWithSiblings
- */
-
-M_PARAMS
-void M_TYPE::removeEntry(TreePath& path, Int& idx, Accumulator& keys, bool merge)
-{
-    auto& ctr = self();
-
-	Int children_count  = ctr.getNodeSize(path.leaf(), 0);
-
-    //if leaf page has more than 1 key do regular remove
-
-    if (children_count > 1)
-    {
-        //remove 1 element from the leaf, update parent and
-        //do not try to remove children (it's a leaf)
-
-        ctr.removeRoom(path, 0, Position(idx), Position(1), keys);
-
-        //try merging this leaf with previous of following
-        //leaf if filled by half of it's capacity.
-        if (merge && ctr.shouldMergeNode(path, 0))
-        {
-        	Position idxp(idx);
-            ctr.mergeWithSiblings(path, 0, idxp);
-        	idx = idxp.get();
-        }
-    }
-    else {
-        keys = self().getLeafKeys(path.leaf().node(), idx);
-        ctr.removePage(path, idx);
-    }
-
-    ctr.addTotalKeyCount(Position(-1));
-}
 
 }
 

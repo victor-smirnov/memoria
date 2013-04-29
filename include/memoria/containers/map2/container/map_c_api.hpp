@@ -151,7 +151,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map2::CtrApiName)
         return !self().find1(key).isEnd();
     }
 
-    bool removeEntry(Iterator& iter, Accumulator& keys)
+    bool removeEntry1(Iterator& iter, Accumulator& keys)
     {
         bool result = Base::removeEntry(iter, keys);
 
