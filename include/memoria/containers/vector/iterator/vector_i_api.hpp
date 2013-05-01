@@ -116,32 +116,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 	BigInt read(DataTarget& data)
 	{
 		auto& self = this->self();
+		mvector::VectorTarget target(&data);
 
-		BigInt sum = 0;
-		BigInt len = data.getRemainder();
-
-		while (len > 0)
-		{
-			Int to_read = self.size() - self.dataPos();
-
-			if (to_read > len) to_read = len;
-
-			mvector::VectorTarget target(&data);
-
-			LeafDispatcher::dispatchConst(self.leaf().node(), ReadFn(), &target, Position(self.dataPos()), Position(to_read));
-
-			len     -= to_read;
-			sum     += to_read;
-
-			self.skipFw(to_read);
-
-			if (self.isEof())
-			{
-				break;
-			}
-		}
-
-		return sum;
+		return self.model().readStream(self, target);
 	}
 
 	BigInt read(std::vector<Value>& data)

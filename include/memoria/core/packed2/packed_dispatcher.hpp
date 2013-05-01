@@ -133,6 +133,30 @@ public:
 		PackedDispatcher<Tail...>::dispatchNotEmpty(alloc, std::move(fn), args...);
 	}
 
+	template <typename Fn, typename... Args>
+	static void dispatchNotEmpty(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		if (!alloc->is_empty(Index) && (streams & (1 << Index)))
+		{
+			Head* head = alloc->template get<Head>(Index);
+			fn.template stream<Index>(head, args...);
+		}
+
+		PackedDispatcher<Tail...>::dispatchNotEmpty(streams, alloc, std::move(fn), args...);
+	}
+
+	template <typename Fn, typename... Args>
+	static void dispatchNotEmpty(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		if (!alloc->is_empty(Index) && (streams & (1 << Index)))
+		{
+			Head* head = alloc->template get<Head>(Index);
+			fn.template stream<Index>(head, args...);
+		}
+
+		PackedDispatcher<Tail...>::dispatchNotEmpty(streams, alloc, std::move(fn), args...);
+	}
+
 
 	template <typename Fn, typename... Args>
 	static void dispatchAll(PackedAllocator* alloc, Fn&& fn, Args... args)
@@ -164,7 +188,33 @@ public:
 	}
 
 
+	template <typename Fn, typename... Args>
+	static void dispatchAll(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		Head* head = nullptr;
+		if (!alloc->is_empty(Index) && (streams & (1 << Index)))
+		{
+			head = alloc->template get<Head>(Index);
+		}
 
+		fn.template stream<Index>(head, args...);
+
+		PackedDispatcher<Tail...>::dispatchAll(streams, alloc, std::move(fn), args...);
+	}
+
+	template <typename Fn, typename... Args>
+	static void dispatchAll(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		Head* head = nullptr;
+		if (!alloc->is_empty(Index) && (streams & (1 << Index)))
+		{
+			head = alloc->template get<Head>(Index);
+		}
+
+		fn.template stream<Index>(head, args...);
+
+		PackedDispatcher<Tail...>::dispatchAll(streams, alloc, std::move(fn), args...);
+	}
 
 	template <typename Fn, typename... Args>
 	static typename std::remove_reference<Fn>::type::ResultType
@@ -210,6 +260,14 @@ public:
 
 	template <typename Fn, typename... Args>
 	static void dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args...)
+	{}
+
+	template <typename Fn, typename... Args>
+	static void dispatchNotEmptySelected(const PackedAllocator* alloc, Fn&& fn, Args...)
+	{}
+
+	template <typename Fn, typename... Args>
+	static void dispatchNotEmptySelected(PackedAllocator* alloc, Fn&& fn, Args...)
 	{}
 
 	template <typename Fn, typename... Args>

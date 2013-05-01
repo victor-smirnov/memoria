@@ -54,6 +54,7 @@ class IteratorPartsListFactory      {};
 
 class ToolsName             {};
 class FindName              {};
+class ReadName              {};
 
 class InsertName            {};
 class InsertBatchName       {};

@@ -15,6 +15,8 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/core/tools/idata.hpp>
+
 #include <vector>
 
 namespace memoria    {
@@ -59,19 +61,55 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
 	typedef typename Types::DataTarget											DataTarget;
 
 
+	void replaceEntry(BigInt id, DataSource& data);
 
 
-    void insert(Iterator& iter, DataSource& data);
+    void insertData(Iterator& iter, DataSource& data);
+    BigInt removeData(Iterator& iter, BigInt size);
+    BigInt updateData(Iterator& iter, DataSource& data);
 
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
+M_PARAMS
+void M_TYPE::replaceEntry(BigInt id, DataSource& data)
+{
+	auto& self = this->self();
 
+	Iterator iter = self.find(id);
+
+	if (!iter.found())
+	{
+		self.insertEntry(iter, std::pair<BigInt, BigInt>(id, data.getSize()));
+		iter.findData();
+		self.insertData(iter, data);
+	}
+	else {
+		BigInt entry_size 	= iter.entrySize();
+		BigInt data_size	= data.getSize();
+
+		if (entry_size < data_size)
+		{
+			memoria::vapi::DataSourceProxy<Value> proxy(data, entry_size);
+
+			self.updateData(iter, proxy);
+			self.insertData(iter, data);
+		}
+		else if (entry_size > data_size)
+		{
+			self.updateData(iter, data);
+			self.removeData(iter, entry_size - data_size);
+		}
+		else { // entry_size == data_size
+			self.updateData(iter, data);
+		}
+	}
+}
 
 M_PARAMS
-void M_TYPE::insert(Iterator& iter, DataSource& data)
+void M_TYPE::insertData(Iterator& iter, DataSource& data)
 {
 	auto& self = this->self();
 	auto& ctr  = self;
@@ -95,8 +133,45 @@ void M_TYPE::insert(Iterator& iter, DataSource& data)
 	iter.skipFw(data.getSize());
 }
 
+M_PARAMS
+BigInt M_TYPE::removeData(Iterator& iter, BigInt size)
+{
+	return size;
+}
 
+M_PARAMS
+BigInt M_TYPE::updateData(Iterator& iter, DataSource& data)
+{
+//	auto& self = this->self();
+//
+//	BigInt sum = 0;
+//	BigInt len = data.getRemainder();
+//
+//	while (len > 0)
+//	{
+//		Int to_read = self.size() - self.dataPos();
+//
+//		if (to_read > len) to_read = len;
+//
+//		mvector::VectorTarget target(&data);
+//
+////		LeafDispatcher::dispatchConst(self.leaf().node(), ReadFn(), &target, Position(self.dataPos()), Position(to_read));
+//
+//		len     -= to_read;
+//		sum     += to_read;
+//
+//		self.skipFw(to_read);
+//
+//		if (self.isEof())
+//		{
+//			break;
+//		}
+//	}
+//
+//	return sum;
 
+	return data.getSize();
+}
 
 
 #undef M_PARAMS

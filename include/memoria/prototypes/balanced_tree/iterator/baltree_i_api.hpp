@@ -39,10 +39,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
 
 
     bool nextLeaf();
-//    bool hasNextLeaf();
+    bool nextLeafMs(UBigInt streams);
+
 
     bool prevLeaf();
-//    bool hasPrevLeaf();
 
     bool next() {
         return self().nextKey();
@@ -142,8 +142,23 @@ BigInt M_TYPE::skipStream(Int stream, BigInt amount)
     }
 }
 
+M_PARAMS
+bool M_TYPE::nextLeafMs(UBigInt streams)
+{
+	typedef typename Types::template NextLeafMutistreamWalker<Types> Walker;
 
-//FIXME: Should nextLeaf/PreveLeaf set to End/Start if move fails?
+	auto& self = this->self();
+
+	Walker walker(streams, 0);
+
+	walker.prepare(self);
+
+	Int idx = self.model().findFw(self.path(), self.stream(), self.key_idx(), walker);
+
+	return walker.finish(self, idx);
+}
+
+
 M_PARAMS
 bool M_TYPE::nextLeaf()
 {

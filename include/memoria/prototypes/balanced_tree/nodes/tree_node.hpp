@@ -1043,6 +1043,17 @@ public:
     	Dispatcher::dispatchNotEmpty(&allocator_, std::move(fn), args...);
     }
 
+    template <typename Fn, typename... Args>
+    void processNotEmpty(UBigInt streams, Fn&& fn, Args... args) const
+    {
+    	Dispatcher::dispatchNotEmpty(streams, &allocator_, std::move(fn), args...);
+    }
+
+    template <typename Fn, typename... Args>
+    void processNotEmpty(UBigInt streams, Fn&& fn, Args... args)
+    {
+    	Dispatcher::dispatchNotEmpty(streams, &allocator_, std::move(fn), args...);
+    }
 
 
     struct UpdateUpFn {

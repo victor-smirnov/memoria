@@ -182,6 +182,53 @@ struct IDataTarget: IDataBase {
 };
 
 
+template <typename T>
+class DataSourceProxy: IDataSource<T> {
+	typedef IDataSource<T> 					Base;
+	typedef Base 							Delegate;
+
+	Delegate& 	data_;
+	BigInt 		size_;
+public:
+	DataSourceProxy(Delegate& data, SizeT size):
+		data_(data),
+		size_(size)
+	{
+		MEMORIA_ASSERT_TRUE(data.getSize() >= size);
+	}
+
+    virtual SizeT skip(SizeT length)
+    {
+    	return data_.skip(length);
+    }
+
+    virtual SizeT getStart() const
+    {
+    	return data_.getStart();
+    }
+
+    virtual SizeT getRemainder() const
+    {
+    	return size_ - data_.getStart();
+    }
+
+    virtual SizeT getSize() const
+    {
+    	return size_;
+    }
+
+    virtual void reset()
+    {
+    	data_.reset();
+    }
+
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)
+    {
+    	return data_.get(buffer, start, length);
+    }
+};
+
+
 //template <typename T>
 //struct IDataST: IDataSource<T>, IDataTarget<T> {
 //    virtual ~IDataST() throw () {}

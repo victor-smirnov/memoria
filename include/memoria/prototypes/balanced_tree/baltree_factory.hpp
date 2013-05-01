@@ -29,6 +29,7 @@
 #include <memoria/prototypes/balanced_tree/container/baltree_c_instools.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_insbatch.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_insert.hpp>
+#include <memoria/prototypes/balanced_tree/container/baltree_c_read.hpp>
 
 #include <memoria/prototypes/balanced_tree/container/baltree_c_remove.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_remtools.hpp>
@@ -66,7 +67,8 @@ struct BalancedTreeTypes {
             memoria::balanced_tree::RemoveToolsName,
             memoria::balanced_tree::RemoveBatchName,
             memoria::balanced_tree::RemoveName,
-            memoria::balanced_tree::FindName
+            memoria::balanced_tree::FindName,
+            memoria::balanced_tree::ReadName
     >                                                                           ContainerPartsList;
     
     typedef TypeList<
@@ -130,6 +132,9 @@ struct BalancedTreeTypes {
 
     template <typename Types>
     using NextLeafWalker = TypeIsNotDefined;
+
+    template <typename Types>
+    using NextLeafMutistreamWalker = TypeIsNotDefined;
 
     template <typename Types>
     using PrevLeafWalker = TypeIsNotDefined;

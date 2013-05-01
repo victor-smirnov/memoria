@@ -66,18 +66,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 
     Iterator seek(Key id, Key pos)
     {
-        return self().findLT(pos, 0);
+        Iterator iter = self().find(pos);
+        MEMORIA_ASSERT_TRUE(iter.found());
+
+        iter.findData();
+        iter.seek(pos);
     }
 
     Iterator find(Key id)
     {
     	auto& self = this->self();
 
-    	Iterator iter = self.findLE(1, id, 0);
+    	Iterator iter = self.findLE(0, id, 0);
 
-    	if (iter.id() != id)
+    	if (iter.id() == id)
     	{
-    		iter.found() = false;
+    		iter.found() 	= true;
+    		iter.lobSize()	= iter.mapEntry(0);
+
+    		iter.findData();
     	}
 
     	return iter;

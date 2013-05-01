@@ -112,6 +112,8 @@ public:
 	{
 		prefix_ = iter.cache().sizePrefix();
 	}
+
+
 };
 
 
@@ -251,9 +253,9 @@ template <typename Types>
 class NextLeafWalker: public SkipForwardWalkerBase<Types> {
 
 	typedef SkipForwardWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
-	typedef typename Base::Position 	Position;
-	typedef typename Base::Iterator		Iterator;
+	typedef typename Base::Key 					Key;
+	typedef typename Base::Position 			Position;
+	typedef typename Base::Iterator				Iterator;
 
 	Int leafs_ = 0;
 
@@ -319,6 +321,140 @@ public:
 
 
 
+
+
+template <typename Types>
+class NextLeafMultistreamWalker: public SkipWalkerBase<Types> {
+
+	typedef SkipForwardWalkerBase<Types> 		Base;
+	typedef typename Base::Key 					Key;
+	typedef typename Base::Position 			Position;
+	typedef typename Base::Iterator				Iterator;
+
+	static const Int Streams					= Types::Streams;
+
+	Int leafs_ = 0;
+
+	UBigInt 	streams_;
+	Position 	local_prefixes_;
+	Int 		indexes_[Streams];
+
+
+public:
+
+	typedef Int ReturnType;
+	typedef Int ResultType;
+
+
+	NextLeafMultistreamWalker(UBigInt streams, Int block):
+		Base(0, block, 0),
+		streams_(streams)
+	{}
+
+	Int leafs() const {
+		return leafs_;
+	}
+
+	template <typename Node>
+	ResultType treeNode(const Node* node, Int start)
+	{
+		local_prefixes_.clear();
+		for (auto& i: indexes_) i = -1;
+
+		node->processNotEmpty(streams_, *this, start);
+
+		Int min 	= 1<<31;
+		Int min_idx = Streams;
+
+		for (Int c = 0; c < Streams; c++)
+		{
+			Int index = indexes_[c];
+			if (Base::isEnabled(c) && index < min)
+			{
+				min 	= index;
+				min_idx = c;
+			}
+		}
+
+		MEMORIA_ASSERT_TRUE(min_idx < Streams);
+		MEMORIA_ASSERT_TRUE(min_idx >= 0);
+
+		for (Int s = 0; s < Base::Streams; s++)
+		{
+			if (s != min_idx)
+			{
+				BigInt prefix = 0;
+
+				node->sum(s, Base::size_indexes_[s], start, min_idx, prefix);
+
+				Base::prefix_[s] 	+= prefix;
+				Base::sums_[s] 		+= prefix;
+			}
+			else {
+				Base::prefix_[s] 	+= local_prefixes_[s];
+				Base::sums_[s] 		+= local_prefixes_[s];
+			}
+		}
+
+		return min_idx;
+	}
+
+	template <Int Idx, typename Tree>
+	void stream(const Tree* tree, Int start)
+	{
+		auto k 		= Base::target_ - Base::sum_;
+		auto result = tree->findLTForward(Base::size_indexes_[Idx], start, k);
+
+		local_prefixes_[Idx] = result.prefix();
+		indexes_[Idx]		 = result.idx();
+	}
+
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int start)
+	{
+		leafs_++;
+
+		if (leafs_ == 1)
+		{
+			Position sizes 	= node->sizes();
+			Base::prefix_ 	+= sizes;
+
+			return sizes[Base::stream_];
+		}
+		else {
+			return 0;
+		}
+	}
+
+	bool finish(Iterator& iter, Int idx)
+	{
+		Int size = iter.leafSizes(Base::stream_);
+
+		if (idx < size)
+		{
+			iter.cache().setSizePrefix(Base::prefix_);
+			iter.key_idx() = 0;
+
+			return true;
+		}
+		else {
+			iter.cache().setSizePrefix(Base::prefix_ - Position(size));
+			iter.key_idx() = size;
+
+			return false;
+		}
+	}
+};
+
+
+
+
+
+
+
+
+
 template <typename Types>
 class SkipBackwardWalkerBase: public SkipWalkerBase<Types> {
 protected:
@@ -371,9 +507,9 @@ template <typename Types>
 class SkipBackwardWalker: public SkipBackwardWalkerBase<Types> {
 
 	typedef SkipBackwardWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
-	typedef typename Base::Position 	Position;
-	typedef typename Base::Iterator		Iterator;
+	typedef typename Base::Key 					Key;
+	typedef typename Base::Position 			Position;
+	typedef typename Base::Iterator				Iterator;
 
 	Int leafs_ = 0;
 
@@ -428,6 +564,7 @@ public:
 
 
 
+
 template <typename Types>
 class PrevLeafWalker: public SkipBackwardWalkerBase<Types> {
 
@@ -449,6 +586,120 @@ public:
 	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
 	{
 		return Base::template treeNode(node, start);
+	}
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, BigInt start)
+	{
+		leafs_++;
+
+		Position sizes = node->sizes();
+
+		if (leafs_ == 2)
+		{
+			Base::prefix_ -= sizes;
+			return sizes[Base::stream_] > 0;
+		}
+		else {
+			return -1;
+		}
+	}
+
+	bool finish(Iterator& iter, Int idx)
+	{
+		iter.key_idx() = idx;
+		iter.cache().setSizePrefix(Base::prefix_);
+
+		return idx >= 0;
+	}
+};
+
+
+
+
+
+template <typename Types>
+class PrevLeafMultistreamWalker: public SkipWalkerBase<Types> {
+
+	typedef SkipBackwardWalkerBase<Types> 		Base;
+	typedef typename Base::Key 					Key;
+	typedef typename Base::Position 			Position;
+	typedef typename Base::Iterator				Iterator;
+
+	static const Int Streams					= Types::Streams;
+
+	Int leafs_ = 0;
+
+	UBigInt 	streams_;
+	Position 	local_prefixes_;
+	Int 		indexes_[Streams];
+
+
+public:
+	PrevLeafMultistreamWalker(UBigInt streams, Int block):
+		Base(stream, block, 0),
+		streams_(streams)
+	{}
+
+	typedef Int ReturnType;
+	typedef Int ResultType;
+
+	bool isEnabled(Int stream) const
+	{
+		return streams_ & (1ull << stream);
+	}
+
+	template <typename NodeTypes, bool root, bool leaf>
+	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
+	{
+		local_prefixes_.clear();
+		for (auto& i: indexes_) i = -1;
+
+		node->processNotEmpty(streams_, *this, start);
+
+		Int max 	= -1;
+		Int max_idx = -1;
+
+		for (Int c = 0; c < Streams; c++)
+		{
+			Int index = indexes_[c];
+			if (Base::isEnabled(c) && index > max)
+			{
+				max 	= index;
+				max_idx = c;
+			}
+		}
+
+		MEMORIA_ASSERT_TRUE(max_idx < Streams);
+		MEMORIA_ASSERT_TRUE(max_idx >= 0);
+
+		for (Int s = 0; s < Base::Streams; s++)
+		{
+			if (s != max_idx)
+			{
+				BigInt prefix = 0;
+				node->sum(s, Base::size_indexes_[s], max_idx + 1, start, prefix);
+
+				Base::prefix_[s] 	-= prefix;
+				Base::sums_[s] 		+= prefix;
+			}
+			else {
+				Base::prefix_[s] 	-= local_prefixes_[s];
+				Base::sums_[s] 		+= local_prefixes_[s];
+			}
+		}
+
+		return max_idx;
+	}
+
+	template <Int Idx, typename Tree>
+	void stream(const Tree* tree, Int start)
+	{
+		auto k 			= Base::target_ - Base::sum_;
+		auto result 	= tree->findLTBackward(Base::size_indexes_[Idx], start, k);
+
+		local_prefixes_[Idx] = result.prefix();
+		indexes_[Idx]		 = result.idx();
 	}
 
 	template <typename NodeTypes, bool root, bool leaf>
