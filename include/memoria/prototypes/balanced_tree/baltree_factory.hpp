@@ -74,7 +74,8 @@ struct BalancedTreeTypes {
     >                                                                           ContainerPartsList;
     
     typedef TypeList<
-            memoria::balanced_tree::IteratorAPIName
+            memoria::balanced_tree::IteratorAPIName,
+            memoria::balanced_tree::IteratorFindName
     >                                                                           IteratorPartsList;
 
     typedef EmptyType                                                           ContainerInterface;
@@ -136,10 +137,15 @@ struct BalancedTreeTypes {
     using NextLeafWalker = TypeIsNotDefined;
 
     template <typename Types>
+    using PrevLeafWalker = TypeIsNotDefined;
+
+    template <typename Types>
     using NextLeafMutistreamWalker = TypeIsNotDefined;
 
     template <typename Types>
-    using PrevLeafWalker = TypeIsNotDefined;
+    using PrevLeafMutistreamWalker = TypeIsNotDefined;
+
+
 
 
     template <typename Types>

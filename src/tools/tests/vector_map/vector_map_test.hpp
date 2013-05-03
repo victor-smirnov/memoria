@@ -185,35 +185,40 @@ public:
 
     void TestOrderedCreation()
     {
-//        out()<<"OrderedCreation Test"<<endl;
-//
-//        DefaultLogHandlerImpl logHandler(out());
-//
-//        Allocator allocator;
-//        allocator.getLogger()->setHandler(&logHandler);
-//
-//        Ctr map(&allocator);
-//
-//        ctr_name_ = map.name();
-//
-//        allocator.commit();
-//
-//        try {
-//
-//            step_ = 0;
-//
-//            Byte value = 0;
-//
+        out()<<"OrderedCreation Test"<<endl;
+
+        DefaultLogHandlerImpl logHandler(out());
+
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
+
+        Ctr map(&allocator);
+
+        ctr_name_ = map.name();
+
+        allocator.commit();
+
+        try {
+
+            step_ = 0;
+
+            Byte value = 0;
+
 //            Int total_size = 0;
-//
-//            for (Int c = 0; c < size_; c++, value++)
-//            {
-//                auto iter = map.create();
-//
-//                data_size_ = getRandom(max_block_size_);
-//
-//                vector<Byte> data = createBuffer<Byte>(data_size_, c % 256);
-//
+
+            for (Int c = 0; c < size_; c++, value++)
+            {
+
+
+                data_size_ = getRandom(max_block_size_);
+
+                vector<Byte> data = createBuffer<Byte>(data_size_, c % 256);
+
+                MemBuffer<Byte> buf(data);
+                auto iter = map.create(buf);
+
+                auto iter2 = map.seek(0, 0);
+
 //                iter = data;
 //
 //                AssertEQ(MA_SRC, iter.size(),   (BigInt)data.size());
@@ -233,13 +238,13 @@ public:
 //
 //                checkBufferWritten(iter2, data, "Buffer written does not match", MEMORIA_SOURCE);
 //
-//                allocator.commit();
-//            }
-//        }
-//        catch (...) {
-//            dump_name_ = Store(allocator);
-//            throw;
-//        }
+                allocator.commit();
+            }
+        }
+        catch (...) {
+            dump_name_ = Store(allocator);
+            throw;
+        }
     }
 
 

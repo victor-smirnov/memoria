@@ -135,6 +135,16 @@ public:
     	return self().find0(stream, walker);
     }
 
+    template <typename Walker>
+    void walkUp(const TreePath& path, Int idx, Walker&& walker, Int level = 0) const
+    {
+    	for (Int c = level; c < path.getSize(); c++)
+    	{
+    		NodeDispatcher::dispatchConst(path[c].node(), walker, idx);
+    		idx = path[c].parent_idx();
+    	}
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 
@@ -204,6 +214,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
 			walker.empty(i);
 		}
 
+		i.init();
 		return i;
 	}
 	else {

@@ -57,8 +57,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
-	typedef typename Types::DataSource											DataSource;
-	typedef typename Types::DataTarget											DataTarget;
+	typedef typename Types::IDataSourceType										DataSource;
+	typedef typename Types::IDataTargetType										DataTarget;
 
 
 	void replaceEntry(BigInt id, DataSource& data);

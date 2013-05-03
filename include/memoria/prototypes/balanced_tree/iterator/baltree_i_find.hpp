@@ -33,11 +33,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorFindName)
     typedef typename Container::TreePath                                            TreePath;
     typedef typename Container::Iterator                                            Iterator;
 
-    template <typename Comparator>
-    const Iterator _findFW(Key key, Int c);
+    template <template <typename CtrTypes> class Walker>
+    BigInt _findFw(Int index, Key key);
 
-    template <typename Comparator>
-    const Iterator _findBW(Key key, Int c);
+    template <template <typename CtrTypes> class Walker>
+    BigInt _findBw(Int index, Key key);
 
 MEMORIA_ITERATOR_PART_END
 
@@ -45,17 +45,35 @@ MEMORIA_ITERATOR_PART_END
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
-template <typename Comparator>
-const typename M_TYPE::Iterator M_TYPE::_findFW(Key key, Int c)
+template <template <typename CtrTypes> class Walker>
+BigInt M_TYPE::_findFw(Int index, Key key)
 {
-	return Iterator(*me());
+	auto& self = this->self();
+	Int stream = self.stream();
+
+	Walker<Types> walker(stream, index, key);
+
+	walker.prepare(self);
+
+	Int idx = self.model().findFw(self.path(), stream, self.key_idx(), walker);
+
+	return walker.finish(self, idx);
 }
 
 M_PARAMS
-template <typename Comparator>
-const typename M_TYPE::Iterator M_TYPE::_findBW(Key key, Int c)
+template <template <typename CtrTypes> class Walker>
+BigInt M_TYPE::_findBw(Int index, Key key)
 {
-	return Iterator(*me());
+	auto& self = this->self();
+	Int stream = self.stream();
+
+	Walker<Types> walker(stream, index, key);
+
+	walker.prepare(self);
+
+	Int idx = self.model().findBw(self.path(), stream, self.key_idx(), walker);
+
+	return walker.finish(self, idx);
 }
 
 #undef M_PARAMS

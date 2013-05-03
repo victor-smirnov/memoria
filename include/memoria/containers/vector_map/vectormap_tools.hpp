@@ -23,70 +23,58 @@ namespace vmap     		{
 
 template <typename Iterator, typename Container>
 class VectorMapIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Iterator, Container> {
-    typedef balanced_tree::BTreeIteratorCache<Iterator, Container> Base;
-    typedef typename Container::Accumulator     Accumulator;
+    typedef balanced_tree::BTreeIteratorCache<Iterator, Container> 				Base;
+    typedef typename Container::Accumulator     								Accumulator;
 
-    Accumulator prefix_;
-    Accumulator current_;
+    BigInt id_prefix_	= 0;
+    BigInt id_entry_	= 0;
+    BigInt size_		= 0;
+    BigInt base_		= 0;
 
-    static const Int Indexes = 1;
+    static const Int MapIndexes 												= 2;
 
 public:
 
-    VectorMapIteratorPrefixCache(): Base(), prefix_(0), current_(0) {}
+    VectorMapIteratorPrefixCache(): Base() {}
 
-    const BigInt& prefix(Int stream, Int num = 0) const
+
+    BigInt id() const
     {
-        return GetValue(prefix_, stream, num);
+    	return id_prefix_ + id_entry_;
     }
 
-    const Accumulator prefixes() const
+    BigInt id_prefix() const
     {
-        return prefix_;
+    	return id_prefix_;
     }
 
-    void nextLeaf(bool end)
+    BigInt id_entry() const
     {
-        prefix_ += current_;
-
-        Clear(current_);
-    };
-
-    void prevLeaf(bool start)
-    {
-        prefix_ -= current_;
-
-        Clear(current_);
-    };
-
-    void Prepare()
-    {
-    	current_ = Base::iterator().keys();
+    	return id_entry_;
     }
 
-    void setup(const Accumulator& prefix)
+    BigInt size() const
     {
-        prefix_ = prefix;
+    	return size_;
     }
 
-    void Clear(Accumulator& prefix)
+    BigInt blob_base() const
     {
-    	prefix = Accumulator();
+    	return base_;
+    }
+
+
+    void setup(BigInt id_prefix, BigInt id_entry, BigInt base, BigInt size)
+    {
+    	id_prefix_ 	= id_prefix;
+    	id_entry_	= id_entry;
+
+    	size_		= size;
+    	base_		= base;
     }
 
     void initState()
     {
-        Clear(prefix_);
-
-        typedef typename Iterator::Container::TreePath TreePath;
-        const TreePath& path = Base::iterator().path();
-
-        for (Int c = 1; c < path.getSize(); c++)
-        {
-        	Int idx  = path[c - 1].parent_idx();
-
-        	Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
-        }
     }
 
 private:
@@ -97,6 +85,10 @@ private:
     }
 
 };
+
+
+
+
 
 
 

@@ -51,12 +51,16 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 #define MEMORIA_ASSERT_NOT_NULL(Operand)                                                                        \
         if (Operand == NULL) {                                                                                  \
             throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be NULL");  \
-        }                                                                                                       \
+        }
 
 #define MEMORIA_ASSERT_NOT_EMPTY(Operand)                                                                       \
         if (Operand.isEmpty()) {                                                                                    \
             throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be 0"); \
         }
+
+
+#define MEMORIA_INVALID_STREAM(Idx) \
+	throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid Stream: "<<Idx)
 
 #else
 

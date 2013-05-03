@@ -781,8 +781,31 @@ public:
     	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
     }
 
+    template <Int StreamIdx, typename Fn, typename... Args>
+    void processStream(Fn&& fn, Args... args) const
+    {
+    	Dispatcher::template dispatch<StreamIdx>(&allocator_, fn, args...);
+    }
 
+    template <Int StreamIdx, typename Fn, typename... Args>
+    void processStream(Fn&& fn, Args... args)
+    {
+    	Dispatcher::template dispatch<StreamIdx>(&allocator_, fn, args...);
+    }
 
+    template <Int StreamIdx, typename Fn, typename... Args>
+    typename std::remove_reference<Fn>::type::ResultType
+    processStreamRtn(Fn&& fn, Args... args) const
+    {
+    	return Dispatcher::template dispatchRtn<StreamIdx>(&allocator_, fn, args...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    typename std::remove_reference<Fn>::type::ResultType
+    processStreamRtn(Fn&& fn, Args... args)
+    {
+    	return Dispatcher::template dispatchRtn<StreamIdx>(&allocator_, fn, args...);
+    }
 
 
     void generateDataEvents(IPageDataEventHandler* handler) const

@@ -81,12 +81,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 		auto& self 		= this->self();
 		auto& ctr 		= self.model();
 
-		Int size 		= self.size();
-		BigInt prefix 	= self.prefix();
-
 		if (ctr.getNextNode(self.path()))
 		{
-			self.cache().setup(prefix + size);
 			self.key_idx() = 0;
 			return true;
 		}
@@ -148,8 +144,30 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 	BigInt skipBw(BigInt amount);
 	BigInt skip(BigInt amount);
 
-	BigInt pos() const {
-		return prefix() + self().key_idx();
+
+	struct PosFn {
+		BigInt prefix_ = 0;
+
+		template <typename NodeTypes, bool root, bool leaf>
+		void treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int idx) {}
+
+		template <typename NodeTypes, bool root, bool leaf>
+		void treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, Int idx)
+		{
+			node->sum(0, 0, 0, idx, prefix_);
+		}
+	};
+
+
+	BigInt pos() const
+	{
+		auto& self = this->self();
+
+		PosFn fn;
+
+		self.model().walkUp(self.path(), self.key_idx(), fn);
+
+		return fn.prefix_ + self.key_idx();
 	}
 
 	BigInt dataPos() const {
@@ -168,26 +186,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
 	void ComputePrefix(BigInt& accum)
 	{
-		TreePath&   path0 = self().path();
-		Int         idx   = self().key_idx();
-
-		for (Int c = 1; c < path0.getSize(); c++)
-		{
-			idx = path0[c - 1].parent_idx();
-			self().model().sumKeys(path0[c].node(), 0, 0, idx, accum);
-		}
+		accum = prefix();
 	}
 
 	void ComputePrefix(Accumulator& accum)
 	{
-		TreePath&   path0 = self().path();
-		Int         idx   = self().key_idx();
-
-		for (Int c = 1; c < path0.getSize(); c++)
-		{
-			idx = path0[c - 1].parent_idx();
-			self().model().sumKeys(path0[c].node(), 0, idx, accum);
-		}
+		accum = prefixes();
 	}
 
 MEMORIA_ITERATOR_PART_END
@@ -216,17 +220,13 @@ BigInt M_TYPE::skip(BigInt amount)
 M_PARAMS
 BigInt M_TYPE::skipFw(BigInt amount)
 {
-	auto& self = this->self();
-
-	return self.skipStreamFw(0, amount);
+	return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
 }
 
 M_PARAMS
 BigInt M_TYPE::skipBw(BigInt amount)
 {
-	auto& self = this->self();
-
-	return self.skipStreamBw(0, amount);
+	return self().template _findFw<Types::template SkipBackwardWalker>(0, amount);
 }
 
 

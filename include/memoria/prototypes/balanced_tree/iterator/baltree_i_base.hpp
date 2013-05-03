@@ -105,62 +105,13 @@ public:
         Base::assign(other);
     }
 
-//    const BigInt prefix(Int num = 0) const
-//    {
-//        return me()->cache().prefix(num);
-//    }
-//
-//    const Accumulator prefixes() const
-//    {
-//        return me()->cache().prefixes();
-//    }
-//
-//    void setupPrefix(Key prefix, Int key_num)
-//    {
-//        me()->cache().setup(prefix, key_num);
-//    }
-//
-//
-//    Accumulator get_prefixes() const
-//    {
-//        Accumulator accum;
-//
-//        const TreePath& path0 = me()->path();
-//        Int             idx   = me()->key_idx();
-//
-//        for (Int c = 0; c < path0.getSize(); c++)
-//        {
-//            me()->model().sumKeys(path0[c].node(), 0, idx, accum);
-//            idx = path0[c].parent_idx();
-//        }
-//
-//        return accum;
-//    }
-//
-//    Key get_prefix(Int block_num) const
-//    {
-//        Key accum = 0;
-//
-//        const TreePath& path0 = me()->path();
-//        Int             idx   = me()->key_idx();
-//
-//        for (Int c = 0; c < path0.getSize(); c++)
-//        {
-//            me()->model().sumKeys(path0[c].node(), block_num, 0, idx, accum);
-//            idx = path0[c].parent_idx();
-//        }
-//
-//        return accum;
-//    }
-
-
-    bool IsFound() const {
+    bool& found() const {
         return found_;
     }
 
-    void setFound(bool found)
+    bool& found()
     {
-        found_ = found;
+        return found_;
     }
 
     bool isEqual(const ThisType& other) const
@@ -316,6 +267,8 @@ public:
     {
         me()->model().dump(me()->path().leaf(), out);
     }
+
+    void init() {}
 
 MEMORIA_BALTREE_ITERATOR_BASE_CLASS_END
 

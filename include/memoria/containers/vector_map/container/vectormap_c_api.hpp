@@ -54,6 +54,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
+	typedef typename Types::IDataSourceType										DataSource;
 
 	BigInt totalSize() const {
 		return self().getSize();
@@ -66,11 +67,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 
     Iterator seek(Key id, Key pos)
     {
-        Iterator iter = self().find(pos);
+        Iterator iter = self().find(id);
         MEMORIA_ASSERT_TRUE(iter.found());
 
-        iter.findData();
-        iter.seek(pos);
+//        iter.findData();
+        iter.skipStreamFw(1, pos);
+
+        return iter;
     }
 
     Iterator find(Key id)
@@ -82,7 +85,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     	if (iter.id() == id)
     	{
     		iter.found() 	= true;
-    		iter.lobSize()	= iter.mapEntry(0);
+//    		iter.lobSize()	= iter.mapEntry(0);
 
     		iter.findData();
     	}
@@ -90,9 +93,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     	return iter;
     }
 
-    Iterator create(Key id)
+    BigInt maxId()
     {
-    	return Iterator(self());
+    	auto& self = this->self();
+
+    	Iterator iter = self.REnd();
+
+    	return iter.id();
+    }
+
+    Iterator create(DataSource& src)
+    {
+    	auto& self = this->self();
+    	Iterator iter = self.End();
+
+    	return iter;
     }
 
 

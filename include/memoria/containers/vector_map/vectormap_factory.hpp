@@ -104,18 +104,38 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
 
     template <typename Types>
-    using FindLTWalker 		= SkipForwardWalker<Types>;
+    using FindLTWalker 		= ::memoria::vmap::FindLTForwardWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker 		= ::memoria::mvector::FindLEWalker<Types>;
+    using FindLEWalker 		= ::memoria::vmap::FindLTForwardWalker<Types>;
+
+    template <typename Types>
+    using SkipForwardWalker = ::memoria::vmap::FindLTForwardWalker<Types>;
+
+    template <typename Types>
+    using SkipBackwardWalker = TypeIsNotDefined;
+
+
+    template <typename Types>
+    using NextLeafWalker = NextLeafWalker<Types>;
+
+    template <typename Types>
+    using PrevLeafWalker = PrevLeafWalker<Types>;
+
+    template <typename Types>
+    using NextLeafMutistreamWalker = NextLeafMultistreamWalker<Types>;
+
+
+    template <typename Types>
+    using PrevLeafMutistreamWalker = PrevLeafMultistreamWalker<Types>;
 
 
 
     template <typename Types>
-    using FindBeginWalker 	= ::memoria::map::FindBeginWalker<Types>;
+    using FindBeginWalker 	= ::memoria::vmap::FindVMapBeginWalker<Types>;
 
     template <typename Types>
-    using FindEndWalker 	= ::memoria::map::FindEndWalker<Types>;
+    using FindEndWalker 	= ::memoria::vmap::FindVMapEndWalker<Types>;
 
     template <typename Types>
     using FindRBeginWalker 	= ::memoria::map::FindRBeginWalker<Types>;

@@ -21,6 +21,9 @@
 namespace memoria       {
 namespace balanced_tree {
 
+
+
+
 template <typename Types>
 class SkipWalkerBase {
 protected:
@@ -112,150 +115,288 @@ public:
 	{
 		prefix_ = iter.cache().sizePrefix();
 	}
-
-
 };
 
 
 
-
-
-template <typename Types>
-class SkipForwardWalkerBase: public SkipWalkerBase<Types> {
-
+template <typename Types, typename MyType>
+class FindWalkerBase {
 protected:
-	typedef SkipWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
-	typedef typename Base::Position 	Position;
-	typedef typename Base::Iterator		Iterator;
+	typedef typename Types::Position 											Position;
+	typedef typename Types::Key 												Key;
 
-	Int leafs_ = 0;
+	typedef Iter<typename Types::IterTypes> 									Iterator;
 
-public:
-	SkipForwardWalkerBase(Int stream, Int block, Key target): Base(stream, block, target)
-	{}
+	static const Int Streams													= Types::Streams;
 
-	typedef Int ReturnType;
-	typedef Int ResultType;
+	BigInt sum_ 		= 0;
+	BigInt target_		= 0;
 
-	template <typename Node>
-	ResultType treeNode(const Node* node, Int start)
-	{
-		Int idx = node->find(Base::stream_, *this, start);
+	WalkDirection direction_;
 
-		for (Int s = 0; s < Base::Streams; s++)
-		{
-			if (s != Base::stream_)
-			{
-				node->sum(s, Base::size_indexes_[s], start, idx, Base::prefix_[s]);
-			}
-		}
-
-		return idx;
-	}
-
-	template <Int Idx, typename Tree>
-	ResultType stream(const Tree* tree, Int start)
-	{
-		auto k 		= Base::target_ - Base::sum_;
-		auto result = tree->findLTForward(Base::size_indexes_[Idx], start, k);
-
-		Base::sum_ += result.prefix();
-
-		Base::prefix_[Base::stream_] += result.prefix();
-
-		return result.idx();
-	}
-};
-
-
-
-
-
-
-template <typename Types>
-class SkipForwardWalker: public SkipForwardWalkerBase<Types> {
-
-	typedef SkipForwardWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
-	typedef typename Base::Position 	Position;
-	typedef typename Base::Iterator		Iterator;
-
-	Int leafs_ = 0;
+	Int stream_;
+	Int index_;
 
 public:
-	SkipForwardWalker(Int stream, Int block, Key target): Base(stream, block, target)
+
+	typedef Int 																ReturnType;
+
+	FindWalkerBase(Int stream, Int index, BigInt target):
+		target_(target),
+		stream_(stream),
+		index_(index)
 	{}
 
-	Int leafs() const {
-		return leafs_;
+	const WalkDirection& direction() const {
+		return direction_;
 	}
 
-	typedef Int ReturnType;
-	typedef Int ResultType;
-
-
-	template <typename Node>
-	ResultType treeNode(const Node* node, Int start)
-	{
-		return Base::template treeNode(node, start);
+	WalkDirection& direction() {
+		return direction_;
 	}
-
-
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int start)
-	{
-		leafs_++;
-
-		auto& sum = Base::sum_;
-
-		BigInt offset  = Base::target_ - sum;
-
-		Position sizes = node->sizes();
-		Int 	 size  = sizes[Base::stream_];
-
-		if (start + offset < size)
-		{
-			sum += start + offset;
-			return start + offset;
-		}
-		else {
-			sum 			+= (size - start);
-			Base::prefix_ 	+= sizes;
-
-			return size;
-		}
-	}
-
-
 
 	BigInt finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = idx;
 
-		Int size = iter.leafSize(Base::stream_);
+		return sum_;
+	}
 
-		if (idx < size) {
-			iter.cache().setSizePrefix(Base::prefix_);
-		}
-		else {
-			iter.cache().setSizePrefix(Base::prefix_ - Position(size));
-		}
+	void empty(Iterator& iter)
+	{
+		iter.key_idx()	= 0;
+	}
 
-		return Base::sum_;
+	BigInt sum() const {
+		return sum_;
+	}
+
+	Int stream() const {
+		return stream_;
+	}
+
+	void prepare(Iterator& iter) {}
+
+
+	MyType& self()
+	{
+		return *T2T<MyType*>(this);
+	}
+
+	const MyType& self() const
+	{
+		return *T2T<const MyType*>(this);
+	}
+
+	template <Int StreamIdx>
+	void postProcessStreamPrefix(BigInt) {}
+
+	template <typename Node>
+	void postProcessNode(const Node*, Int, Int) {}
+
+	template <typename Node>
+	ReturnType treeNode(const Node* node, BigInt start)
+	{
+		Int idx = node->find(stream_, self(), start);
+
+		self().postProcessNode(node, start, idx);
+
+		return idx;
+	}
+};
+
+
+
+template <typename Types, typename MyType>
+class FindMinWalkerBase {
+protected:
+	typedef typename Types::Position 											Position;
+	typedef typename Types::Key 												Key;
+
+	typedef Iter<typename Types::IterTypes> 									Iterator;
+
+	static const Int Streams													= Types::Streams;
+
+	BigInt sum_[Streams];
+	BigInt target_[Streams];
+
+	WalkDirection direction_;
+
+	UBigInt streams_;
+	Int indexes_[Streams];
+
+	Int search_results_[Streams];
+
+public:
+
+	typedef Int 																ReturnType;
+	typedef Int 																ResultType;
+
+	FindMinWalkerBase(UBigInt streams):
+		streams_(streams)
+	{
+		for (auto& i: sum_) 	i = 0;
+		for (auto& i: target_) 	i = 0;
+		for (auto& i: indexes_)	i = 0;
+	}
+
+	const WalkDirection& direction() const {
+		return direction_;
+	}
+
+	WalkDirection& direction() {
+		return direction_;
+	}
+
+	BigInt sum(Int stream) const {
+		return sum_[stream];
+	}
+
+	const BigInt& target(Int stream) const {
+		return target_[stream];
+	}
+
+	BigInt& target(Int stream) {
+		return target_[stream];
+	}
+
+	const Int& indexes(Int stream) const {
+		return indexes_[stream];
+	}
+
+	Int& indexes(Int stream) {
+		return indexes_[stream];
+	}
+
+	BigInt finish(Iterator& iter, Int idx)
+	{
+		iter.key_idx() = idx;
+
+		return sum_;
+	}
+
+	void empty(Iterator& iter)
+	{
+		iter.key_idx()	= 0;
+	}
+
+	void prepare(Iterator& iter) {}
+
+
+	MyType& self()
+	{
+		return *T2T<MyType*>(this);
+	}
+
+	const MyType& self() const
+	{
+		return *T2T<const MyType*>(this);
+	}
+
+	template <Int StreamIdx>
+	void postProcessStreamPrefix(BigInt) {}
+
+	template <typename Node>
+	void postProcessNode(const Node*, Int, Int) {}
+
+	bool isEnabled(Int stream) const
+	{
+		return streams_ & (1ull << stream);
 	}
 };
 
 
 
 
-template <typename Types>
-class NextLeafWalker: public SkipForwardWalkerBase<Types> {
 
-	typedef SkipForwardWalkerBase<Types> 		Base;
-	typedef typename Base::Key 					Key;
-	typedef typename Base::Position 			Position;
-	typedef typename Base::Iterator				Iterator;
+template <typename Types, typename MyType>
+class FindForwardWalkerBase: public FindWalkerBase<Types, MyType> {
+
+protected:
+	typedef FindWalkerBase<Types, MyType> 										Base;
+	typedef typename Base::Key 													Key;
+
+	Int leafs_ = 0;
+
+public:
+	FindForwardWalkerBase(Int stream, Int block, Key target): Base(stream, block, target)
+	{}
+
+	typedef Int ResultType;
+
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start)
+	{
+		auto k 		= Base::target_ - Base::sum_;
+		auto result = tree->findLTForward(Base::index_, start, k);
+
+		Base::sum_ += result.prefix();
+
+		self().template postProcessStreamPrefix<Idx>(result.prefix());
+
+		return result.idx();
+	}
+
+	template <Int Idx, typename StreamTypes>
+	ResultType stream(const PackedFSEArray<StreamTypes>* array, Int start)
+	{
+		leafs_++;
+
+		auto& sum = Base::sum_;
+
+		BigInt offset = Base::target_ - sum;
+
+		Int	size = array->size();
+
+		if (start + offset < size)
+		{
+			sum += start + offset;
+
+			return start + offset;
+		}
+		else {
+			sum += (size - start);
+
+			return size;
+		}
+	}
+
+	MyType& self() {
+		return *T2T<MyType*>(this);
+	}
+
+	const MyType& self() const {
+		return *T2T<const MyType*>(this);
+	}
+};
+
+
+template <typename Types>
+class SkipForwardWalker: public FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
+	typedef FindForwardWalkerBase<Types, SkipForwardWalker<Types>> 				Base;
+	typedef typename Base::Key 													Key;
+public:
+	SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
+	{}
+};
+
+
+
+
+
+
+
+
+
+
+
+template <typename Types, typename MyType>
+class NextLeafWalkerBase: public FindForwardWalkerBase<Types, MyType> {
+
+	typedef FindForwardWalkerBase<Types, MyType> 								Base;
+	typedef typename Base::Key 													Key;
+	typedef typename Base::Position 											Position;
+	typedef typename Base::Iterator												Iterator;
 
 	Int leafs_ = 0;
 
@@ -264,20 +405,11 @@ public:
 	typedef Int ReturnType;
 	typedef Int ResultType;
 
-
-	NextLeafWalker(Int stream, Int block): Base(stream, block, 0)
+	NextLeafWalkerBase(Int stream, Int index): Base(stream, index, 0)
 	{}
 
 	Int leafs() const {
 		return leafs_;
-	}
-
-
-
-	template <typename Node>
-	ResultType treeNode(const Node* node, Int start)
-	{
-		return Base::template treeNode(node, start);
 	}
 
 
@@ -304,13 +436,11 @@ public:
 
 		if (idx < size)
 		{
-			iter.cache().setSizePrefix(Base::prefix_);
 			iter.key_idx() = 0;
 
 			return true;
 		}
 		else {
-			iter.cache().setSizePrefix(Base::prefix_ - Position(size));
 			iter.key_idx() = size;
 
 			return false;
@@ -320,25 +450,37 @@ public:
 
 
 
-
-
-
 template <typename Types>
-class NextLeafMultistreamWalker: public SkipWalkerBase<Types> {
+class NextLeafWalker: public NextLeafWalkerBase<Types, NextLeafWalker<Types> > {
 
-	typedef SkipForwardWalkerBase<Types> 		Base;
-	typedef typename Base::Key 					Key;
-	typedef typename Base::Position 			Position;
-	typedef typename Base::Iterator				Iterator;
+	typedef NextLeafWalkerBase<Types, NextLeafWalker<Types>> 					Base;
+	typedef typename Base::Key 													Key;
+	typedef typename Base::Position 											Position;
+	typedef typename Base::Iterator												Iterator;
 
-	static const Int Streams					= Types::Streams;
+public:
+
+	NextLeafWalker(Int stream, Int block): Base(stream, block, 0)
+	{}
+};
+
+
+
+
+
+
+template <typename Types, typename MyType>
+class FindMinForwardWalkerBase: public FindMinWalkerBase<Types, MyType> {
+
+	typedef FindMinWalkerBase<Types, MyType> 									Base;
+	typedef typename Base::Key 													Key;
+	typedef typename Base::Position 											Position;
+	typedef typename Base::Iterator												Iterator;
+
+protected:
+	static const Int Streams													= Types::Streams;
 
 	Int leafs_ = 0;
-
-	UBigInt 	streams_;
-	Position 	local_prefixes_;
-	Int 		indexes_[Streams];
-
 
 public:
 
@@ -346,9 +488,8 @@ public:
 	typedef Int ResultType;
 
 
-	NextLeafMultistreamWalker(UBigInt streams, Int block):
-		Base(0, block, 0),
-		streams_(streams)
+	FindMinForwardWalkerBase(UBigInt streams):
+		Base(streams)
 	{}
 
 	Int leafs() const {
@@ -358,17 +499,16 @@ public:
 	template <typename Node>
 	ResultType treeNode(const Node* node, Int start)
 	{
-		local_prefixes_.clear();
-		for (auto& i: indexes_) i = -1;
+		for (auto& i: Base::search_results_) i = -1;
 
-		node->processNotEmpty(streams_, *this, start);
+		node->processNotEmpty(Base::streams_, self(), start);
 
 		Int min 	= 1<<31;
 		Int min_idx = Streams;
 
 		for (Int c = 0; c < Streams; c++)
 		{
-			Int index = indexes_[c];
+			Int index = Base::search_results_[c];
 			if (Base::isEnabled(c) && index < min)
 			{
 				min 	= index;
@@ -379,34 +519,20 @@ public:
 		MEMORIA_ASSERT_TRUE(min_idx < Streams);
 		MEMORIA_ASSERT_TRUE(min_idx >= 0);
 
-		for (Int s = 0; s < Base::Streams; s++)
-		{
-			if (s != min_idx)
-			{
-				BigInt prefix = 0;
-
-				node->sum(s, Base::size_indexes_[s], start, min_idx, prefix);
-
-				Base::prefix_[s] 	+= prefix;
-				Base::sums_[s] 		+= prefix;
-			}
-			else {
-				Base::prefix_[s] 	+= local_prefixes_[s];
-				Base::sums_[s] 		+= local_prefixes_[s];
-			}
-		}
+		self().postProcessNode(node, start, min_idx);
 
 		return min_idx;
 	}
 
+
 	template <Int Idx, typename Tree>
 	void stream(const Tree* tree, Int start)
 	{
-		auto k 		= Base::target_ - Base::sum_;
-		auto result = tree->findLTForward(Base::size_indexes_[Idx], start, k);
+		auto k 		= Base::target_[Idx] - Base::sum_[Idx];
+		auto result = tree->findLTForward(Base::indexes_[Idx], start, k);
 
-		local_prefixes_[Idx] = result.prefix();
-		indexes_[Idx]		 = result.idx();
+		Base::sum_[Idx] 			+= result.prefix();
+		Base::search_results_[Idx]	= result.idx();
 	}
 
 
@@ -433,114 +559,78 @@ public:
 
 		if (idx < size)
 		{
-			iter.cache().setSizePrefix(Base::prefix_);
 			iter.key_idx() = 0;
 
 			return true;
 		}
 		else {
-			iter.cache().setSizePrefix(Base::prefix_ - Position(size));
 			iter.key_idx() = size;
 
 			return false;
 		}
 	}
+
+
+	MyType& self() {
+		return *T2T<MyType*>(this);
+	}
+
+	const MyType& self() const {
+		return *T2T<const MyType*>(this);
+	}
 };
 
 
 
-
-
-
-
-
-
 template <typename Types>
-class SkipBackwardWalkerBase: public SkipWalkerBase<Types> {
-protected:
-	typedef SkipWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
-	typedef typename Base::Position 	Position;
-	typedef typename Base::Iterator		Iterator;
-
+class NextLeafMultistreamWalker: public FindMinForwardWalkerBase<Types, NextLeafMultistreamWalker<Types> > {
+	typedef FindMinForwardWalkerBase<Types, NextLeafMultistreamWalker<Types>> 	Base;
 public:
-	SkipBackwardWalkerBase(Int stream, Int block, Key target): Base(stream, block, target)
-	{}
-
-	typedef Int ReturnType;
-	typedef Int ResultType;
-
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
-	{
-		Int idx = node->find(Base::stream_, *this, start);
-
-		for (Int s = 0; s < Base::Streams; s++)
-		{
-			if (s != Base::stream_)
-			{
-				node->sum(s, Base::size_indexes_[s], idx + 1, start, Base::prefix_[s]);
-			}
-		}
-
-		return idx;
-	}
-
-	template <Int Idx, typename Tree>
-	ResultType stream(const Tree* tree, Int start)
-	{
-		auto k 			= Base::target_ - Base::sum_;
-		auto result 	= tree->findLTBackward(Base::size_indexes_[Idx], start, k);
-		Base::sum_ 		+= result.prefix();
-
-		Base::prefix_[Base::stream_] -= result.prefix();
-
-		return result.idx();
-	}
+	NextLeafMultistreamWalker(UBigInt streams): Base(streams) {}
 };
 
 
 
 
 
-template <typename Types>
-class SkipBackwardWalker: public SkipBackwardWalkerBase<Types> {
 
-	typedef SkipBackwardWalkerBase<Types> 		Base;
-	typedef typename Base::Key 					Key;
-	typedef typename Base::Position 			Position;
-	typedef typename Base::Iterator				Iterator;
+template <typename Types, typename MyType>
+class FindBackwardWalkerBase: public FindWalkerBase<Types, MyType> {
+
+	typedef FindWalkerBase<Types, MyType> 										Base;
+
+protected:
+	typedef typename Base::Key 													Key;
 
 	Int leafs_ = 0;
 
 public:
-	SkipBackwardWalker(Int stream, Int block, Key target): Base(stream, block, target)
+	typedef Int 																ResultType;
+
+	FindBackwardWalkerBase(Int stream, Int index, Key target): Base(stream, index, target)
 	{}
 
-	typedef Int ReturnType;
-	typedef Int ResultType;
-
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start)
 	{
-		return Base::template treeNode(node, start);
+		auto k 			= Base::target_ - Base::sum_;
+		auto result 	= tree->findLTBackward(Base::index_, start, k);
+		Base::sum_ 		+= result.prefix();
+
+		self().template postProcessStreamPrefix<Idx>(result.prefix());
+
+		return result.idx();
 	}
 
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, BigInt start)
+
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSEArray<TreeTypes>* array, Int start)
 	{
 		leafs_++;
 
 		BigInt offset = Base::target_ - Base::sum_;
 
 		auto& sum = Base::sum_;
-
-		Position sizes = node->sizes();
-
-		if (leafs_ == 2)
-		{
-			Base::prefix_ -= sizes;
-		}
 
 		if (start - offset >= 0)
 		{
@@ -553,40 +643,46 @@ public:
 		}
 	}
 
-	BigInt finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() = idx;
-		iter.cache().setSizePrefix(Base::prefix_);
-
-		return Base::sum_;
+	MyType& self() {
+		return *T2T<MyType*>(this);
 	}
+
+	const MyType& self() const {
+		return *T2T<const MyType*>(this);
+	}
+};
+
+
+template <typename Types>
+class SkipBackwardWalker: public FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
+	typedef FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>			Base;
+	typedef typename Base::Key 													Key;
+public:
+	SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
+	{}
 };
 
 
 
 
-template <typename Types>
-class PrevLeafWalker: public SkipBackwardWalkerBase<Types> {
 
-	typedef SkipBackwardWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
-	typedef typename Base::Position 	Position;
-	typedef typename Base::Iterator		Iterator;
+
+template <typename Types, typename MyType>
+class PrevLeafWalkerBase: public FindBackwardWalkerBase<Types, MyType> {
+
+	typedef FindBackwardWalkerBase<Types, MyType> 								Base;
+	typedef typename Base::Key 													Key;
+	typedef typename Base::Position 											Position;
+	typedef typename Base::Iterator												Iterator;
 
 	Int leafs_ = 0;
 
 public:
-	PrevLeafWalker(Int stream, Int block): Base(stream, block, 0)
+	PrevLeafWalkerBase(Int stream, Int index): Base(stream, index, 0)
 	{}
 
 	typedef Int ReturnType;
 	typedef Int ResultType;
-
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
-	{
-		return Base::template treeNode(node, start);
-	}
 
 	template <typename NodeTypes, bool root, bool leaf>
 	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, BigInt start)
@@ -608,61 +704,62 @@ public:
 	bool finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = idx;
-		iter.cache().setSizePrefix(Base::prefix_);
-
 		return idx >= 0;
 	}
+};
+
+
+template <typename Types>
+class PrevLeafWalker: public PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> {
+
+	typedef PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> 					Base;
+	typedef typename Base::Key 													Key;
+	typedef typename Base::Position 											Position;
+	typedef typename Base::Iterator												Iterator;
+
+public:
+	PrevLeafWalker(Int stream, Int index): Base(stream, index, 0)
+	{}
 };
 
 
 
 
 
-template <typename Types>
-class PrevLeafMultistreamWalker: public SkipWalkerBase<Types> {
+template <typename Types, typename MyType>
+class FindMinBackwardWalker: public FindMinWalkerBase<Types, MyType> {
 
-	typedef SkipBackwardWalkerBase<Types> 		Base;
-	typedef typename Base::Key 					Key;
-	typedef typename Base::Position 			Position;
-	typedef typename Base::Iterator				Iterator;
+	typedef FindMinWalkerBase<Types, MyType> 									Base;
+	typedef typename Base::Key 													Key;
+	typedef typename Base::Position 											Position;
+	typedef typename Base::Iterator												Iterator;
 
-	static const Int Streams					= Types::Streams;
+	static const Int Streams													= Types::Streams;
 
 	Int leafs_ = 0;
 
-	UBigInt 	streams_;
-	Position 	local_prefixes_;
-	Int 		indexes_[Streams];
-
-
 public:
-	PrevLeafMultistreamWalker(UBigInt streams, Int block):
-		Base(stream, block, 0),
-		streams_(streams)
+	FindMinBackwardWalker(UBigInt streams):
+		Base(streams)
 	{}
 
 	typedef Int ReturnType;
 	typedef Int ResultType;
 
-	bool isEnabled(Int stream) const
-	{
-		return streams_ & (1ull << stream);
-	}
 
 	template <typename NodeTypes, bool root, bool leaf>
 	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
 	{
-		local_prefixes_.clear();
-		for (auto& i: indexes_) i = -1;
+		for (auto& i: Base::search_results_) i = -1;
 
-		node->processNotEmpty(streams_, *this, start);
+		node->processNotEmpty(Base::streams_, self(), start);
 
 		Int max 	= -1;
 		Int max_idx = -1;
 
 		for (Int c = 0; c < Streams; c++)
 		{
-			Int index = indexes_[c];
+			Int index = Base::search_results_[c];
 			if (Base::isEnabled(c) && index > max)
 			{
 				max 	= index;
@@ -673,21 +770,7 @@ public:
 		MEMORIA_ASSERT_TRUE(max_idx < Streams);
 		MEMORIA_ASSERT_TRUE(max_idx >= 0);
 
-		for (Int s = 0; s < Base::Streams; s++)
-		{
-			if (s != max_idx)
-			{
-				BigInt prefix = 0;
-				node->sum(s, Base::size_indexes_[s], max_idx + 1, start, prefix);
-
-				Base::prefix_[s] 	-= prefix;
-				Base::sums_[s] 		+= prefix;
-			}
-			else {
-				Base::prefix_[s] 	-= local_prefixes_[s];
-				Base::sums_[s] 		+= local_prefixes_[s];
-			}
-		}
+		self().postProcessNode(node, start, max_idx);
 
 		return max_idx;
 	}
@@ -695,11 +778,11 @@ public:
 	template <Int Idx, typename Tree>
 	void stream(const Tree* tree, Int start)
 	{
-		auto k 			= Base::target_ - Base::sum_;
-		auto result 	= tree->findLTBackward(Base::size_indexes_[Idx], start, k);
+		auto k 		= Base::target_[Idx] - Base::sum_[Idx];
+		auto result = tree->findLTBackward(Base::indexes_[Idx], start, k);
 
-		local_prefixes_[Idx] = result.prefix();
-		indexes_[Idx]		 = result.idx();
+		Base::sum_[Idx] 			+= result.prefix();
+		Base::search_results_[Idx]	= result.idx();
 	}
 
 	template <typename NodeTypes, bool root, bool leaf>
@@ -722,13 +805,26 @@ public:
 	bool finish(Iterator& iter, Int idx)
 	{
 		iter.key_idx() = idx;
-		iter.cache().setSizePrefix(Base::prefix_);
 
 		return idx >= 0;
+	}
+
+	MyType& self() {
+		return *T2T<MyType*>(this);
+	}
+
+	const MyType& self() const {
+		return *T2T<const MyType*>(this);
 	}
 };
 
 
+template <typename Types>
+class PrevLeafMultistreamWalker: public FindMinForwardWalkerBase<Types, PrevLeafMultistreamWalker<Types> > {
+	typedef FindMinForwardWalkerBase<Types, PrevLeafMultistreamWalker<Types>> 	Base;
+public:
+	PrevLeafMultistreamWalker(UBigInt streams): Base(streams) {}
+};
 
 
 

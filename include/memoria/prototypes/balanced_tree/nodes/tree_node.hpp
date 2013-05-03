@@ -995,6 +995,12 @@ public:
     	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), start, end, &accum);
     }
 
+
+    void sum(Int stream, Int start, Int end, Accumulator& accum) const
+    {
+    	Dispatcher::dispatch(stream, &allocator_, SumFn(), start, end, &accum);
+    }
+
     Accumulator sum(Int start, Int end) const
     {
     	Accumulator accum;
@@ -1053,6 +1059,32 @@ public:
     void processNotEmpty(UBigInt streams, Fn&& fn, Args... args)
     {
     	Dispatcher::dispatchNotEmpty(streams, &allocator_, std::move(fn), args...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    void processStream(Fn&& fn, Args... args) const
+    {
+    	Dispatcher::template dispatch<StreamIdx>(&allocator_, fn, args...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    void processStream(Fn&& fn, Args... args)
+    {
+    	Dispatcher::template dispatch<StreamIdx>(&allocator_, fn, args...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    typename std::remove_reference<Fn>::type::ResultType
+    processStreamRtn(Fn&& fn, Args... args) const
+    {
+    	return Dispatcher::template dispatchRtn<StreamIdx>(&allocator_, fn, args...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    typename std::remove_reference<Fn>::type::ResultType
+    processStreamRtn(Fn&& fn, Args... args)
+    {
+    	return Dispatcher::template dispatchRtn<StreamIdx>(&allocator_, fn, args...);
     }
 
 

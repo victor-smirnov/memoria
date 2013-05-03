@@ -59,6 +59,28 @@ public:
 		}
 	}
 
+	template <Int StreamIdx, typename Fn, typename... Args>
+	static void dispatch(PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		typedef TypeList<StructDescr<Head, Index>, Tail...> List;
+
+		typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
+
+		StreamType* head = alloc->template get<StreamType>(StreamIdx);
+		fn.template stream<StreamIdx>(head, args...);
+	}
+
+	template <Int StreamIdx, typename Fn, typename... Args>
+	static void dispatch(const PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		typedef TypeList<StructDescr<Head, Index>, Tail...> List;
+
+		typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
+
+		const StreamType* head = alloc->template get<StreamType>(StreamIdx);
+		fn.template stream<StreamIdx>(head, args...);
+	}
+
 
 	template <typename Fn, typename... Args>
 	static typename std::remove_reference<Fn>::type::ResultType
@@ -86,6 +108,30 @@ public:
 		else {
 			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::move(fn), args...);
 		}
+	}
+
+	template <Int StreamIdx, typename Fn, typename... Args>
+	static typename std::remove_reference<Fn>::type::ResultType
+	dispatchRtn(PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		typedef TypeList<StructDescr<Head, Index>, Tail...> List;
+
+		typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
+
+		StreamType* head = alloc->template get<StreamType>(StreamIdx);
+		return fn.template stream<Index>(head, args...);
+	}
+
+	template <Int StreamIdx, typename Fn, typename... Args>
+	static typename std::remove_reference<Fn>::type::ResultType
+	dispatchRtn(const PackedAllocator* alloc, Fn&& fn, Args... args)
+	{
+		typedef TypeList<StructDescr<Head, Index>, Tail...> List;
+
+		typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
+
+		const StreamType* head = alloc->template get<StreamType>(StreamIdx);
+		return fn.template stream<Index>(head, args...);
 	}
 
 

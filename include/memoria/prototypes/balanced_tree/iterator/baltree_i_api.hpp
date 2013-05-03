@@ -149,7 +149,7 @@ bool M_TYPE::nextLeafMs(UBigInt streams)
 
 	auto& self = this->self();
 
-	Walker walker(streams, 0);
+	Walker walker(streams);
 
 	walker.prepare(self);
 

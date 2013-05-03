@@ -25,7 +25,7 @@ namespace memoria    {
 
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::vmap::ItrApiName)
+MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 	typedef Ctr<typename Types::CtrTypes>                      	Container;
 
@@ -45,177 +45,192 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vmap::ItrApiName)
 	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
 	typedef typename Container::Position										Position;
 
-	bool operator++() {
-		return self().skipFw(1);
-	}
+	typedef std::pair<BigInt, BigInt> 											BlobDescriptorEntry; // ID, Size
 
-	bool operator--() {
-		return self().skipBw(1);
-	}
+//	bool operator++() {
+//		return self().skipFw(1);
+//	}
+//
+//	bool operator--() {
+//		return self().skipBw(1);
+//	}
+//
+//	bool operator++(int) {
+//		return self().skipFw(1);
+//	}
+//
+//	bool operator--(int) {
+//		return self().skipFw(1);
+//	}
+//
+//	BigInt operator+=(BigInt size)
+//	{
+//		return self().skipFw(size);
+//	}
+//
+//	BigInt operator-=(BigInt size)
+//	{
+//		return self().skipBw(size);
+//	}
+//
+//	bool isEof() const {
+//		return self().key_idx() >= self().size();
+//	}
+//
+//	bool isBof() const {
+//		return self().key_idx() < 0;
+//	}
 
-	bool operator++(int) {
-		return self().skipFw(1);
-	}
-
-	bool operator--(int) {
-		return self().skipFw(1);
-	}
-
-	BigInt operator+=(BigInt size)
+	BigInt id() const
 	{
-		return self().skipFw(size);
+		return self().cache().id();
 	}
 
-	BigInt operator-=(BigInt size)
+	BigInt global_pos() const
 	{
-		return self().skipBw(size);
+		auto& self = this->self();
+
+		MEMORIA_ASSERT_TRUE(self.stream() == 1);
+
+		return self.cache().blob_leaf_base() + self.key_idx();
 	}
 
-	bool isEof() const {
-		return self().key_idx() >= self().size();
-	}
-
-	bool isBof() const {
-		return self().key_idx() < 0;
-	}
-
-	bool nextLeaf()
+	BigInt pos() const
 	{
-		auto& self 		= this->self();
-		auto& ctr 		= self.model();
+		auto& self = this->self();
+		return self.global_pos() - self.cache().blob_base();
+	}
 
-		Int size 		= self.size();
-		BigInt prefix 	= self.prefix();
+	BigInt blob_size() const {
+		return self().cache().size();
+	}
 
-		if (ctr.getNextNode(self.path()))
+	bool isBlobEof() const
+	{
+		auto& self = this->self();
+
+		BigInt size = self.blob_size();
+		BigInt pos  = self.pos();
+
+		return pos < size;
+	}
+
+	bool isBlobBof() const
+	{
+		auto& self = this->self();
+
+		BigInt global_pos  	= self.global_pos();
+		BigInt blob_base	= self.cache().blob_base();
+
+		return global_pos < blob_base;
+	}
+
+	struct EntryFn {
+		typedef BlobDescriptorEntry ReturnType;
+		typedef BlobDescriptorEntry ResultType;
+
+		template <typename Node>
+		ReturnType treeNode(const Node* node, Int idx)
 		{
-			self.cache().setup(prefix + size);
-			self.key_idx() = 0;
-			return true;
+			return node->template processStreamRtn<0>(*this, idx);
 		}
-		else {
-			return false;
-		}
-	}
 
-	void insert(std::vector<Value>& data)
-	{
-		auto& self = this->self();
-		auto& model = self.model();
-
-		MemBuffer<Value> buf(data);
-
-		model.insert(self, buf);
-	}
-
-
-	MEMORIA_DECLARE_NODE_FN_RTN(SizeFn, size, Int);
-
-	Int size() const
-	{
-		return LeafDispatcher::dispatchConstRtn(self().leaf().node(), SizeFn(), 0);
-	}
-
-	MEMORIA_DECLARE_NODE_FN(ReadFn, read);
-
-
-	BigInt read(DataTarget& data)
-	{
-		auto& self = this->self();
-
-		BigInt sum = 0;
-		BigInt len = data.getRemainder();
-
-		while (len > 0)
+		template <Int StreamIdx, typename StreamType>
+		ResultType stream(StreamType* obj, Int idx)
 		{
-			Int to_read = self.size() - self.dataPos();
+			BlobDescriptorEntry entry;
 
-			if (to_read > len) to_read = len;
+			entry.first  = obj->value(0, idx);
+			entry.second = obj->value(1, idx);
 
-			mvector::VectorTarget target(&data);
-
-			LeafDispatcher::dispatchConst(self.leaf().node(), ReadFn(), &target, Position(self.dataPos()), Position(to_read));
-
-			len     -= to_read;
-			sum     += to_read;
-
-			self.skipFw(to_read);
-
-			if (self.isEof())
-			{
-				break;
-			}
+			return entry;
 		}
+	};
 
-		return sum;
-	}
-
-	BigInt read(std::vector<Value>& data)
-	{
-		MemTBuffer<Value> buf(data);
-		return read(buf);
-	}
-
-	void remove(BigInt size)
+	BlobDescriptorEntry entry() const
 	{
 		auto& self = this->self();
-		self.model().remove(self, size);
+
+		MEMORIA_ASSERT_TRUE(self.stream() == 0);
+
+		return LeafDispatcher::dispatchConstRtn(self.leaf().node(), EntryFn(), self.key_idx());
 	}
 
-	std::vector<Value> subVector(BigInt size)
+	void findData(BigInt offset = 0)
 	{
-		std::vector<Value> data(size);
+		auto& self = this->self();
 
-		auto iter = self();
+		if (self.stream() == 0)
+		{
+//			BigInt global_data_offset = self.cache().blob_base();
 
-		iter.read(data);
-
-		return data;
+			self.stream() = 1;
+		}
 	}
 
-	BigInt skipFw(BigInt amount);
-	BigInt skipBw(BigInt amount);
+	void findEntry()
+	{
+		auto& self = this->self();
 
-	BigInt pos() const {
-		return prefix() + self().key_idx();
+		if (self.stream() == 1)
+		{
+//			BigInt global_pos = self.global_pos();
+//
+//
+//
+//			self.stream() = 0;
+		}
 	}
 
-	BigInt dataPos() const {
-		return self().key_idx();
+	BigInt skipFw(BigInt amount)
+	{
+		auto& self = this->self();
+
+		if (self.stream() == 0)
+		{
+			self.findData(amount);
+		}
+
+		return self.template _findFw<vmap::FindLTForwardWalker>(0, amount);
 	}
 
-	BigInt prefix() const {
-		return self().cache().prefix();
+	BigInt skipBw(BigInt amount)
+	{
+		auto& self = this->self();
+		return self.template _findFw<vmap::FindLTForwardWalker>(0, amount);
 	}
 
-	Accumulator prefixes() const {
-		Accumulator acc;
-		std::get<0>(acc)[0] = prefix();
-		return acc;
+	void init()
+	{
+//		auto& self = this->self();
+//
+//		BlobDescriptorEntry entry = self.entry();
+//		self.cache().setup(entry.first);
 	}
+
 
 	void ComputePrefix(BigInt& accum)
 	{
-		TreePath&   path0 = self().path();
-		Int         idx   = self().key_idx();
-
-		for (Int c = 1; c < path0.getSize(); c++)
-		{
-			idx = path0[c - 1].parent_idx();
-			self().model().sumKeys(path0[c].node(), 0, 0, idx, accum);
-		}
+//		TreePath&   path0 = self().path();
+//		Int         idx   = self().key_idx();
+//
+//		for (Int c = 1; c < path0.getSize(); c++)
+//		{
+//			idx = path0[c - 1].parent_idx();
+//			self().model().sumKeys(path0[c].node(), 0, 0, idx, accum);
+//		}
 	}
 
 	void ComputePrefix(Accumulator& accum)
 	{
-		TreePath&   path0 = self().path();
-		Int         idx   = self().key_idx();
-
-		for (Int c = 1; c < path0.getSize(); c++)
-		{
-			idx = path0[c - 1].parent_idx();
-			self().model().sumKeys(path0[c].node(), 0, idx, accum);
-		}
+//		TreePath&   path0 = self().path();
+//		Int         idx   = self().key_idx();
+//
+//		for (Int c = 1; c < path0.getSize(); c++)
+//		{
+//			idx = path0[c - 1].parent_idx();
+//			self().model().sumKeys(path0[c].node(), 0, idx, accum);
+//		}
 	}
 
 MEMORIA_ITERATOR_PART_END
@@ -223,57 +238,7 @@ MEMORIA_ITERATOR_PART_END
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::vmap::ItrApiName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
-M_PARAMS
-BigInt M_TYPE::skipFw(BigInt amount)
-{
-	typedef vmap::FindLTForwardWalker<Types> Walker;
 
-	auto& self = this->self();
-
-	Walker walker(amount, 0, self.prefixes());
-
-	BigInt pos = self.pos();
-
-	Int idx = self.key_idx() = self.model().findFw(self.path(), 0, self.key_idx(), walker);
-
-	Int last_size = self.size();
-
-	if (idx >= last_size)
-	{
-		self.cache().setup(pos + walker.prefix() - last_size);
-		return walker.prefix();
-	}
-	else if (walker.leafs() == 2)
-	{
-		self.cache().setup(pos + walker.prefix());
-	}
-
-	return walker.prefix() + idx;
-}
-
-M_PARAMS
-BigInt M_TYPE::skipBw(BigInt amount)
-{
-	typedef vmap::FindLTBackwardWalker<Types> Walker;
-
-	auto& self = this->self();
-
-	BigInt pos = self.pos();
-
-	Walker walker(amount, 0);
-
-	Int idx = self.key_idx() = self.model().findBw(self.path(), 0, self.key_idx(), walker);
-
-	if (idx >= 0)
-	{
-		self.cache().setup(pos - walker.prefix());
-		return walker.prefix() - idx;
-	}
-	else {
-		self.cache().setup(0);
-		return walker.prefix();
-	}
-}
 
 
 }

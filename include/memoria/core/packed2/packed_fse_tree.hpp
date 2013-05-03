@@ -121,6 +121,7 @@ public:
 	using FindLEFnBase = FSEFindElementFnBase<TreeType, PackedCompareLT, MyType>;
 
 
+	enum class SearchType {LT, LE};
 
 private:
 
@@ -755,6 +756,29 @@ public:
 //
 //		return ValueDescr(actual_value + fn.sum(), pos, fn.sum() - prefix);
 //	}
+
+
+	ValueDescr findForward(SearchType search_type, Int block, Int start, IndexKey val) const
+	{
+		if (search_type == SearchType::LT)
+		{
+			return findLTForward(block, start, val);
+		}
+		else {
+			return findLEForward(block, start, val);
+		}
+	}
+
+	ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexKey val) const
+	{
+		if (search_type == SearchType::LT)
+		{
+			return findLTBackward(block, start, val);
+		}
+		else {
+			return findLEBackward(block, start, val);
+		}
+	}
 
 
 	ValueDescr findLEl(IndexKey val) const
