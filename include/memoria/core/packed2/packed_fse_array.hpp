@@ -86,6 +86,17 @@ public:
 		return max_size_for(block_size);
 	}
 
+	Int allocated_block_size() const
+	{
+		if (Base::allocator_offset() != 0)
+		{
+			return this->allocator()->element_size(this);
+		}
+		else {
+			return block_size();
+		}
+	}
+
 	void init(Int block_size)
 	{
 		size_ = 0;
@@ -202,6 +213,11 @@ public:
 
 	void insertSpace(Int room_start, Int room_length)
 	{
+		if (room_start > size_)
+		{
+			int a = 0; a++;
+		}
+
 		MEMORIA_ASSERT(room_start, <=, size_);
 
 		if (capacity() < room_length)

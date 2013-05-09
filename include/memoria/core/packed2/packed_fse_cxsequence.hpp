@@ -61,6 +61,7 @@ public:
 				Int,
 				Int,
 				UShort,
+				1,
 				PackedAllocator,
 				BranchingFactor,
 				64

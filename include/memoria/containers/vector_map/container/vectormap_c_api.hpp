@@ -56,7 +56,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 
 	typedef typename Types::IDataSourceType										DataSource;
 
-	BigInt totalSize() const {
+	BigInt totalSize() const
+	{
 		return self().getSize();
 	}
 
@@ -70,8 +71,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
         Iterator iter = self().find(id);
         MEMORIA_ASSERT_TRUE(iter.found());
 
-//        iter.findData();
-        iter.skipStreamFw(1, pos);
+        iter.findData(pos);
 
         return iter;
     }
@@ -80,14 +80,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     {
     	auto& self = this->self();
 
-    	Iterator iter = self.findLE(0, id, 0);
+    	vmap::MapFindWalker<Types> walker(id);
+
+    	Iterator iter = self.find0(0, walker);
 
     	if (iter.id() == id)
     	{
     		iter.found() 	= true;
-//    		iter.lobSize()	= iter.mapEntry(0);
-
-    		iter.findData();
+    		iter.findData(0);
     	}
 
     	return iter;
@@ -107,8 +107,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     	auto& self = this->self();
     	Iterator iter = self.End();
 
+    	BigInt id = iter.cache().id_prefix() + 1;
+
+    	std::pair<BigInt, BigInt> pair(id, src.getSize());
+
+    	self.insertEntry(iter, pair);
+
+    	iter.findData(0);
+
+    	self.insertData(iter, src);
+
     	return iter;
     }
+
 
 
 MEMORIA_CONTAINER_PART_END

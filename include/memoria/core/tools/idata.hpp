@@ -67,7 +67,7 @@ void dumpArray(std::ostream& out_, const T* data, Int count)
             out_.width(width);
             if (sizeof(T) == 1)
             {
-                out_<<(Int)data[c + d];
+                out_<<(Int)(UByte)data[c + d];
             }
             else {
                 out_<<data[c + d];
@@ -176,7 +176,6 @@ template <typename T>
 struct IDataTarget: IDataBase {
 
     virtual ~IDataTarget() throw () {}
-
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
 };
@@ -823,6 +822,30 @@ public:
 //    }
 //};
 
+
+template <typename T>
+class EmptyDataSource: public IDataSource<T> {
+public:
+	virtual SizeT get(T* buffer, SizeT start, SizeT length) {return 0;}
+
+    virtual SizeT skip(SizeT length) {return 0;}
+    virtual SizeT getStart() const {return 0;}
+    virtual SizeT getRemainder() const {return 0;}
+    virtual SizeT getSize() const {return 0;}
+    virtual void  reset() {}
+};
+
+template <typename T>
+class EmptyDataTarget: public IDataTarget<T> {
+public:
+	virtual SizeT put(const T* buffer, SizeT start, SizeT length) {return 0;}
+
+    virtual SizeT skip(SizeT length) {return 0;}
+    virtual SizeT getStart() const {return 0;}
+    virtual SizeT getRemainder() const {return 0;}
+    virtual SizeT getSize() const {return 0;}
+    virtual void  reset() {}
+};
 
 
 template <typename T>

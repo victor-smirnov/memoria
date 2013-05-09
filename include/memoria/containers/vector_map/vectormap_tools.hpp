@@ -20,6 +20,75 @@
 namespace memoria       {
 namespace vmap     		{
 
+typedef std::pair<BigInt, BigInt> VectorMapEntry;
+
+
+class VectorMapSource: public ISource {
+
+	IDataBase* sources_[2];
+
+	EmptyDataSource<VectorMapEntry> map_source_;
+
+public:
+	VectorMapSource(IDataBase* source)
+	{
+		sources_[0] = &map_source_;
+		sources_[1] = source;
+	}
+
+	virtual Int streams()
+	{
+		return 2;
+	}
+
+	virtual IData* stream(Int stream)
+	{
+		return sources_[stream];
+	}
+
+	virtual void newNode(INodeLayoutManager* layout_manager, BigInt* sizes)
+	{
+		Int allocated[2] = {0, 0};
+		Int capacity = layout_manager->getNodeCapacity(allocated, 1);
+
+		sizes[1] = capacity;
+	}
+
+	virtual BigInt getTotalNodes(INodeLayoutManager* manager)
+	{
+		Int sizes[2] = {0, 0};
+
+		SizeT capacity 	= manager->getNodeCapacity(sizes, 1);
+		SizeT remainder = sources_[1]->getRemainder();
+
+		return remainder / capacity + (remainder % capacity ? 1 : 0);
+	}
+};
+
+
+class VectorMapTarget: public ITarget {
+
+	IDataBase* targets_[2];
+
+	EmptyDataTarget<VectorMapEntry> map_target_;
+public:
+	VectorMapTarget(IDataBase* target)
+	{
+		targets_[0] = &map_target_;
+		targets_[1] = target;
+	}
+
+	virtual Int streams()
+	{
+		return 2;
+	}
+
+	virtual IData* stream(Int stream)
+	{
+		return targets_[stream];
+	}
+};
+
 
 template <typename Iterator, typename Container>
 class VectorMapIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Iterator, Container> {
@@ -73,17 +142,23 @@ public:
     	base_		= base;
     }
 
-    void initState()
+    void add(BigInt id_entry, BigInt size)
     {
+    	id_prefix_ 	+= id_entry_;
+    	base_ 		+= size_;
+
+    	id_entry_   = id_entry;
+    	size_ 		= size;
     }
 
-private:
-
-    void init_()
+    void sub(BigInt id_entry, BigInt size)
     {
+    	id_prefix_ 	-= id_entry_;
+    	base_ 		-= size_;
 
+    	id_entry_   = id_entry;
+    	size_ 		= size;
     }
-
 };
 
 

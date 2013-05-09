@@ -225,11 +225,11 @@ public:
 	void finish() {}
 
 	Int max_size() const {
-		return me_.max_size();
+		return me_.raw_max_size();
 	}
 
 	Int size() const {
-		return me_.size();
+		return me_.raw_size();
 	}
 
 	Int walkIndex(Int start, Int end, Int size)

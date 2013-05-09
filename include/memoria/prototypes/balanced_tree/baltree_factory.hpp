@@ -45,11 +45,50 @@
 #include <memoria/core/tools/assert.hpp>
 
 
-#include <memoria/prototypes/btree/names.hpp>
-
 namespace memoria    {
 
 using namespace memoria::balanced_tree;
+
+
+template <typename Types, Int StreamIdx>
+struct PackedFSETreeTF {
+
+    typedef typename Types::Key                                                 Key;
+
+    typedef typename SelectByIndexTool<
+    		StreamIdx,
+    		typename Types::StreamDescriptors
+    >::Result																	Descriptor;
+
+	typedef PackedFSETreeTypes<
+			Key,Key,Key, Descriptor::Indexes
+	>																			TreeTypes;
+
+	typedef PackedFSETree<TreeTypes> Type;
+};
+
+
+template <typename Types, Int StreamIdx>
+struct PackedFSEArrayTF {
+
+	typedef typename Types::Value												Value;
+	typedef typename Types::Key                                                 Key;
+
+	typedef typename SelectByIndexTool<
+			StreamIdx,
+			typename Types::StreamDescriptors
+	>::Result																	Descriptor;
+
+	typedef PackedFSEArrayTypes<
+			Value
+	>																			ArrayTypes;
+
+	typedef PackedFSEArray<ArrayTypes> Type;
+};
+
+
+
+
 
 template <typename Profile_, typename ContainerTypeSelector>
 struct BalancedTreeTypes {

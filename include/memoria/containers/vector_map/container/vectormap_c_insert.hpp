@@ -117,13 +117,13 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
 	TreePath& path = iter.path();
 	Position idx(iter.key_idx());
 
-	mvector::VectorSource source(&data);
+	vmap::VectorMapSource source(&data);
 
-	typename Base::DefaultSubtreeProvider provider(self, Position(data.getSize()), source);
+	typename Base::DefaultSubtreeProvider provider(self, Position::create(1, data.getSize()), source);
 
 	ctr.insertSubtree(path, idx, provider);
 
-	ctr.addTotalKeyCount(data.getSize());
+	ctr.addTotalKeyCount(Position::create(1, data.getSize()));
 
 	if (iter.isEof())
 	{

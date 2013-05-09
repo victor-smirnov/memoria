@@ -26,10 +26,10 @@ namespace memoria {
 using namespace std;
 
 template <Int BF, Int VPB>
-class PackedFSETreeFindTest: public PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>> {
+class PackedFSETreeFindTest: public PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>> {
 
 	typedef PackedFSETreeFindTest<BF, VPB> 														MyType;
-	typedef PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>> 		Base;
+	typedef PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>> 		Base;
 
 	typedef typename Base::Types			Types;
 	typedef typename Base::Tree 			Tree;

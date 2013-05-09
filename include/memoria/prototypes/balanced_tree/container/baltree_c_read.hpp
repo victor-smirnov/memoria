@@ -69,7 +69,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ReadName)
     	return size;
     }
 
-    UBigInt getActiveStreams(ITarget& target)
+    UBigInt getTargetActiveStreams(ITarget& target)
     {
     	UBigInt streams = 0;
 
@@ -118,7 +118,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ReadName)
     		len     -= to_read;
     		sum     += to_read;
 
-    		UBigInt active_streams = getActiveStreams(data_target);
+    		UBigInt active_streams = getTargetActiveStreams(data_target);
 
     		if (len.gtAny(0))
     		{

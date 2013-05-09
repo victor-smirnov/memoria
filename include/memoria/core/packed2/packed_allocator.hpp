@@ -138,6 +138,16 @@ public:
 		return sizeof(MyType) + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
 	}
 
+	static Int client_area(Int block_size, Int blocks)
+	{
+		Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
+
+		Int layout_size = layout_blocks * sizeof(Int);
+		Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
+
+		return roundDownBytesToAlignmentBlocks(block_size - (sizeof(MyType) + layout_size + bitmap_size));
+	}
+
 	Int computeElementOffset(const void* element) const
 	{
 		const UByte* base_ptr = base();

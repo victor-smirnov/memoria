@@ -106,178 +106,95 @@ public:
 
 
 template <typename Types>
-class FindLTForwardWalker: public FindWalkerBase<Types> {
+class MapFindWalker: public FindForwardWalkerBase<Types, MapFindWalker<Types>> {
 
-	typedef FindWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
+	typedef FindForwardWalkerBase<Types, MapFindWalker<Types>> 					Base;
+	typedef typename Base::Key 													Key;
+	typedef typename Types::Accumulator 										Accumulator;
+	typedef Iter<typename Types::IterTypes> 									Iterator;
 
-	Int leafs_ = 0;
+	Accumulator prefix_;
 
 public:
-	FindLTForwardWalker(Int stream, Int index, Key key):
-		Base(stream, index, key)
-	{}
-
-	Int leafs() const {
-		return leafs_;
+	MapFindWalker(Key key):
+		Base(0, 0, key)
+	{
+		Base::search_type() = SearchType::LE;
 	}
 
-	typedef Int ReturnType;
-	typedef Int ResultType;
 
-	template <typename Node>
-	ResultType treeNode(const Node* node, Int start)
+	template <Int StreamIdx, typename StreamTypes, typename SearchResult>
+	void postProcessStream(const PackedFSETree<StreamTypes>* tree, Int start, const SearchResult& result)
 	{
-		return node->find(Base::stream_, *this, start);
+		auto& index 	= Base::index_;
+
+		std::get<StreamIdx>(prefix_)[index] 		+= result.prefix();
+		std::get<StreamIdx>(prefix_)[1 - index] 	+= tree->sum(index, start, result.idx());
 	}
 
-	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start)
+
+	void prepare(Iterator& iter)
 	{
-		typedef PackedFSETree<TreeTypes> Tree;
+		std::get<0>(prefix_)[0] = iter.cache().id_prefix();
+		std::get<0>(prefix_)[1] = iter.cache().blob_base();
+	}
 
-		auto& index = Base::index_;
+	BigInt finish(Iterator& iter, Int idx)
+	{
+		iter.key_idx() 	= idx;
 
-		auto k 		= Base::key_ - Base::sum_;
-		auto result = tree->findLTForward(index, start, k);
+		BigInt id_prefix 	= std::get<0>(prefix_)[0];
+		BigInt base 		= std::get<0>(prefix_)[1];
 
-		Base::sum_	+= result.prefix();
+		BigInt id_entry 	= 0;
+		BigInt size 		= 0;
 
-		if (Idx == 0)
+
+		if (idx >=0 && idx < iter.leafSize(0))
 		{
-			std::get<Idx>(Base::prefix_)[index] 		+= result.prefix();
-			std::get<Idx>(Base::prefix_)[1 - index] 	+= tree->sum(index, start, result.idx());
+			auto entry	= iter.entry();
+
+			id_entry 	= entry.first;
+			size		= entry.second;
 		}
 
-		return result.idx();
-	}
+		iter.cache().setup(id_prefix, id_entry, size, base);
 
-
-	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSEArray<TreeTypes>* tree, Int start)
-	{
-		BigInt pos = Base::key_ - Base::sum_;
-
-		Int size = tree->size();
-
-		if (start + pos < size)
-		{
-			return start + pos;
-		}
-		else {
-			return size;
-		}
-	}
-
-
-
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int start)
-	{
-		leafs_++;
-
-		return node->find(Base::stream_, *this, start);
+		return Base::sum_;
 	}
 };
-
 
 
 template <typename Types>
-class FindLTBackwardWalker: public FindWalkerBase<Types> {
+class SkipForwardWalker: public FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
 
-	typedef FindWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
-
-	Int leafs_ = 0;
+	typedef FindForwardWalkerBase<Types, SkipForwardWalker<Types>> 				Base;
+	typedef typename Types::Key 												Key;
+	typedef typename Types::Accumulator 										Accumulator;
 
 public:
-	FindLTBackwardWalker(Key key, Int): Base(key)
-	{}
-
-	typedef Int ReturnType;
-	typedef Int ResultType;
-
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
+	SkipForwardWalker(Int stream, Int index, Key distance):
+		Base(stream, index, distance)
 	{
-		return node->find(0, *this, start);
-	}
-
-
-	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start)
-	{
-		auto k 			= Base::key_ - Base::sum_;
-		auto result 	= tree->findLTBackward(0, start, k);
-		Base::sum_ 		+= result.prefix();
-
-		if (Idx == 0)
-		{
-
-		}
-
-		return result.idx();
-	}
-
-
-	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSEArray<TreeTypes>* tree, Int start)
-	{
-		BigInt pos = Base::key_ - Base::prefix_;
-
-		Base::prefix_ += start;
-
-		if (start - pos >= 0)
-		{
-			return start - pos;
-		}
-		else {
-			return -1;
-		}
-	}
-
-
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, BigInt start)
-	{
-		leafs_++;
-		return node->find(Base::stream_, *this, start);
+		Base::search_type() = SearchType::LT;
 	}
 };
-
-
-
-
-
-
 
 
 template <typename Types>
-class FindLEWalker: public FindWalkerBase<Types> {
+class SkipBackwardWalker: public FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
 
-	typedef FindWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
+	typedef FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> 			Base;
+	typedef typename Types::Key 												Key;
+	typedef typename Types::Accumulator 										Accumulator;
 
 public:
-	FindLEWalker(Key key, Int key_num): Base(key, key_num)
-	{}
-
-	template <typename Node>
-	void treeNode(const Node* node)
+	SkipBackwardWalker(Int stream, Int index, Key distance):
+		Base(stream, index, distance)
 	{
-		Base::idx_ = node->findLES(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
-
-		if (node->level() != 0 && Base::idx_ == node->children_count())
-		{
-			VectorSub(Base::prefix_, node->keysAt(node->children_count() - 1));
-			Base::idx_--;
-		}
+		Base::search_type() = SearchType::LT;
 	}
 };
-
-
-
-
 
 
 
@@ -302,8 +219,6 @@ public:
 	{
 	}
 };
-
-
 
 
 
@@ -348,27 +263,15 @@ public:
 	{
 		typedef PackedFSETree<TreeTypes> Tree;
 
-		if (level > 0)
+		for (Int block = 0; block < Tree::Blocks; block++)
 		{
-			for (Int block = 0; block < Tree::Blocks; block++)
-			{
-				std::get<StreamIdx>(local_prefix_)[block] = tree->sumWithoutLastElement(block);
-			}
-
-			std::get<StreamIdx>(prefix_) += std::get<StreamIdx>(local_prefix_);
+			std::get<StreamIdx>(local_prefix_)[block] = tree->sum(block);
 		}
-		else {
-			for (Int block = 0; block < Tree::Blocks; block++)
-			{
-				std::get<StreamIdx>(local_prefix_)[block] = tree->sum(block);
-			}
 
-			std::get<StreamIdx>(prefix_) += std::get<StreamIdx>(local_prefix_);
-		}
+		std::get<StreamIdx>(prefix_) += std::get<StreamIdx>(local_prefix_);
 
 		size_ = tree->size();
 	}
-
 
 	void finish(Iterator& iter, Int idx)
 	{

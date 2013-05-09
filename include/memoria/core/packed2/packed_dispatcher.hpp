@@ -182,7 +182,7 @@ public:
 	template <typename Fn, typename... Args>
 	static void dispatchNotEmpty(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args... args)
 	{
-		if (!alloc->is_empty(Index) && (streams & (1 << Index)))
+		if ((streams & (1ull << Index)) && !alloc->is_empty(Index))
 		{
 			Head* head = alloc->template get<Head>(Index);
 			fn.template stream<Index>(head, args...);
@@ -194,9 +194,9 @@ public:
 	template <typename Fn, typename... Args>
 	static void dispatchNotEmpty(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args... args)
 	{
-		if (!alloc->is_empty(Index) && (streams & (1 << Index)))
+		if ((streams & (1ull << Index)) && !alloc->is_empty(Index))
 		{
-			Head* head = alloc->template get<Head>(Index);
+			const Head* head = alloc->template get<Head>(Index);
 			fn.template stream<Index>(head, args...);
 		}
 
@@ -272,7 +272,7 @@ public:
 			return fn.template stream<Index>(head, args...);
 		}
 		else {
-			return PackedDispatcher<Tail...>::dispatchStaticRtn(idx, std::forward(fn), args...);
+			return PackedDispatcher<Tail...>::dispatchStaticRtn(idx, std::move(fn), args...);
 		}
 	}
 };
@@ -307,6 +307,15 @@ public:
 	template <typename Fn, typename... Args>
 	static void dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args...)
 	{}
+
+	template <typename Fn, typename... Args>
+	static void dispatchNotEmpty(UBigInt, PackedAllocator* alloc, Fn&& fn, Args...)
+	{}
+
+	template <typename Fn, typename... Args>
+	static void dispatchNotEmpty(UBigInt, const PackedAllocator* alloc, Fn&& fn, Args...)
+	{}
+
 
 	template <typename Fn, typename... Args>
 	static void dispatchNotEmptySelected(const PackedAllocator* alloc, Fn&& fn, Args...)

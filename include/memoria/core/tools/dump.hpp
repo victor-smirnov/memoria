@@ -54,7 +54,7 @@ void dumpArray(std::ostream& out, Int count, function<V(Int)> fn)
 			out.width(width);
 			if (sizeof(V) == 1)
 			{
-				out<<(Int)fn(c + d);
+				out<<(Int)(UByte)fn(c + d);
 			}
 			else {
 				out<<fn(c + d);

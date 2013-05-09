@@ -98,6 +98,9 @@ public:
 		Base::allocator_offset() = diff;
 	}
 
+	Int raw_size() const {return size_;}
+	Int raw_max_size() const {return max_size_;}
+
 	Int& size() {return size_;}
 	const Int& size() const {return size_;}
 

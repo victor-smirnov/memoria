@@ -45,9 +45,10 @@ template <
 	typename K,
 	typename IK,
 	typename V,
-	typename Allocator_ = PackedAllocator,
-	Int BF = PackedTreeBranchingFactor,
-	Int VPB = PackedTreeBranchingFactor
+	Int Blocks_				= 1,
+	typename Allocator_ 	= PackedAllocator,
+	Int BF 					= PackedTreeBranchingFactor,
+	Int VPB 				= PackedTreeBranchingFactor
 >
 struct PackedFSETreeTypes {
     typedef K               Key;
@@ -55,7 +56,7 @@ struct PackedFSETreeTypes {
     typedef V               Value;
     typedef Allocator_  	Allocator;
 
-    static const Int Blocks                 = 1;
+    static const Int Blocks                 = Blocks_;
     static const Int BranchingFactor        = BF;
     static const Int ValuesPerBranch        = VPB;
 
@@ -121,7 +122,7 @@ public:
 	using FindLEFnBase = FSEFindElementFnBase<TreeType, PackedCompareLT, MyType>;
 
 
-	enum class SearchType {LT, LE};
+
 
 private:
 
@@ -156,6 +157,9 @@ public:
 		Base::allocator_offset() = diff;
 	}
 
+	Int raw_size() const {return size_ * Blocks;}
+	Int raw_max_size() const {return max_size_ * Blocks;}
+
 	Int& size() {return size_;}
 	const Int& size() const {return size_;}
 
@@ -163,9 +167,24 @@ public:
 
 	const Int& max_size() const {return max_size_;}
 
-	int block_size() const
+	Int block_size() const
 	{
-		return sizeof(MyType) + index_size_ * sizeof(IndexKey) * Indexes + max_size_ * sizeof(Value);
+		return sizeof(MyType) + index_size_ * sizeof(IndexKey) * Indexes + max_size_ * sizeof(Value) * Blocks;
+	}
+
+	Int allocated_block_size() const
+	{
+		if (Base::allocator_offset() != 0)
+		{
+			return this->allocator()->element_size(this);
+		}
+		else {
+			return block_size();
+		}
+	}
+
+	static Int empty_size() {
+		return sizeof(MyType);
 	}
 
 	IndexKey* indexes(Int index_block)
@@ -744,6 +763,48 @@ public:
 		return ValueDescr(actual_value + fn.sum(), pos, fn.sum() - prefix);
 	}
 
+	ValueDescr findLEForward(Int block, Int start, IndexKey val) const
+	{
+		Int block_start = block * size_;
+
+		auto prefix = sum(block, block_start + start);
+
+		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val + prefix);
+
+		Int pos = this->find_fw(fn);
+
+		Value actual_value = value(pos);
+
+		return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
+	}
+
+	ValueDescr findLEBackward(Int block, Int start, IndexKey val) const
+	{
+		Int block_start = block * size_;
+
+		auto prefix = sum(block_start, start + 1);
+		auto target = prefix - val;
+
+		if (target > 0)
+		{
+			FSEFindElementFn<MyType, PackedCompareLT> fn(*this, target);
+
+			Int pos = this->find_fw(fn);
+
+			Value actual_value = value(pos);
+
+			return ValueDescr(actual_value, pos, prefix - (fn.sum() + actual_value));
+		}
+		else if (target == 0)
+		{
+			Value actual_value = value(0);
+			return ValueDescr(actual_value, 0, prefix - actual_value);
+		}
+		else {
+			return ValueDescr(0, -1, prefix);
+		}
+	}
+
 //	ValueDescr findLEForward(Int start, IndexKey val) const
 //	{
 //		auto prefix = sum(start);
@@ -934,6 +995,63 @@ public:
 		return insert(size_, value);
 	}
 
+
+	// ===================================== IO ============================================ //
+
+	void insert(IData* data, Int pos, Int length)
+	{
+//		IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
+//		insertSpace(pos, length);
+//
+//		BigInt to_write_local = length;
+//
+//		while (to_write_local > 0)
+//		{
+//			SizeT processed = src->get(buffer_, pos, to_write_local);
+//
+//			pos 			+= processed;
+//			to_write_local 	-= processed;
+//		}
+	}
+
+	void update(IData* data, Int pos, Int length)
+	{
+//		MEMORIA_ASSERT(pos, <=, size_);
+//		MEMORIA_ASSERT(pos + length, <=, size_);
+//
+//		IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
+//
+//		BigInt to_write_local = length;
+//
+//		while (to_write_local > 0)
+//		{
+//			SizeT processed = src->get(buffer_, pos, to_write_local);
+//
+//			pos 			+= processed;
+//			to_write_local 	-= processed;
+//		}
+	}
+
+	void read(IData* data, Int pos, Int length) const
+	{
+//		MEMORIA_ASSERT(pos, <=, size_);
+//		MEMORIA_ASSERT(pos + length, <=, size_);
+//
+//		IDataTarget<Value>* tgt = static_cast<IDataTarget<Value>*>(data);
+//
+//		BigInt to_read_local = length;
+//
+//		while (to_read_local > 0)
+//		{
+//			SizeT processed = tgt->put(buffer_, pos, to_read_local);
+//
+//			pos 			+= processed;
+//			to_read_local 	-= processed;
+//		}
+	}
+
+
+
 	void generateDataEvents(IPageDataEventHandler* handler) const
 	{
 		handler->startGroup("PACKED_TREE");
@@ -965,7 +1083,7 @@ public:
 			Value values[Blocks];
 			for (Int block = 0; block < Blocks; block++)
 			{
-				values[block] = value(idx + size_ * block);
+				values[block] = value(block, idx);
 			}
 
 			handler->value("TREE_ITEM", values, Blocks);

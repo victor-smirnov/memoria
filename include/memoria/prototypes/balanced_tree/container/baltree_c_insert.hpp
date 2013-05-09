@@ -53,7 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertName)
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
-    static const Int ActiveStreams                                              = 1;
+    static const Int ActiveStreams                                              = 3;
 
 
     template <typename EntryData>
@@ -91,14 +91,14 @@ void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 
     auto& ctr  = self();
 
-    if (ctr.isNodeEmpty(leaf))
-    {
-    	ctr.layoutNode(leaf, 1);
-    }
-
     Position leaf_sizes = ctr.getNodeSizes(leaf);
 
-    if (ctr.getCapacity(leaf) > 0)
+    if (ctr.isNodeEmpty(leaf))
+    {
+    	ctr.initLeaf(leaf);
+    }
+
+    if (ctr.getStreamCapacity(leaf, stream) > 0)
     {
         ctr.makeRoom(path, 0, stream, idx, 1);
     }

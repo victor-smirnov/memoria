@@ -109,7 +109,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertToolsName)
 
     void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
 
-    void newRoot(TreePath& path, UBigInt active_streams);
+    void newRoot(TreePath& path);
 
 
 
@@ -170,8 +170,9 @@ public:
     	return NodeDispatcher::dispatchConstRtn(node, IsEmptyFn());
     }
 
-    bool isAfterEnd(const NodeBaseG& node, const Position& idx) {
-    	return NodeDispatcher::dispatchConstRtn(node, IsAfterEndFn(), idx);
+    bool isAfterEnd(const NodeBaseG& node, const Position& idx, UBigInt active_streams)
+    {
+    	return NodeDispatcher::dispatchConstRtn(node, IsAfterEndFn(), idx, active_streams);
     }
 
 
@@ -203,16 +204,17 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(TreePath& path, Position& idx
 
     	if (path.getSize() == 1)
     	{
-    		self.newRoot(path, provider.getActiveStreams());
+    		self.newRoot(path);
     		right = path;
     	}
 
-    	if (!self.isAfterEnd(leaf, idx))
+    	if (!self.isAfterEnd(leaf, idx, provider.getActiveStreams()))
     	{
     		self.splitPath(path, right, 0, idx, provider.getActiveStreams());
     	}
 
     	leaf.update();
+
     	Accumulator ls = provider.insertIntoLeaf(leaf, idx);
     	self.updateUp(path, 1, path.leaf().parent_idx(), ls, true);
 
@@ -220,7 +222,7 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(TreePath& path, Position& idx
 
     	Position remainder = provider.remainder();
 
-    	if (remainder > 0)
+    	if (remainder.gtAny(0))
     	{
     		Int path_parent_idx 	= parent_idx;
     		Int right_parent_idx 	= parent_idx;
@@ -263,7 +265,7 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Positio
     }
     else
     {
-    	self.newRoot(left, active_streams);
+    	self.newRoot(left);
 
         right.resize(left.getSize());
         right[level + 1] = left[level + 1];
@@ -703,7 +705,7 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
 
 
 M_PARAMS
-void M_TYPE::newRoot(TreePath& path, UBigInt active_streams)
+void M_TYPE::newRoot(TreePath& path)
 {
 	auto& self = this->self();
 
@@ -712,23 +714,28 @@ void M_TYPE::newRoot(TreePath& path, UBigInt active_streams)
 
     NodeBaseG new_root      = self.createNode1(root->level() + 1, true, false, root->page_size());
 
-    self.layoutNonLeafNode(new_root, active_streams);
+    UBigInt root_active_streams = self.getActiveStreams(root);
+
+    self.layoutNonLeafNode(new_root, root_active_streams);
 
     self.copyRootMetadata(root, new_root);
 
     self.root2Node(root);
 
+    path.append(TreePathItem(new_root));
+
     Accumulator keys = root->is_leaf() ? self.getLeafMaxKeys(root) : self.getMaxKeys(root);
+
+    self.makeRoom(path, path.getSize() - 1, Position(0), Position(1));
+
+    //Do it here because makeRoom shifts underling path
+    path[path.getSize() - 2].parent_idx() = 0;
+
     self.setNonLeafKeys(new_root, 0, keys);
     self.setChildID(new_root, 0, root->id());
-    self.setNonLeafChildrenCount(new_root, 1);
     self.reindex(new_root);
 
     self.set_root(new_root->id());
-
-    path.append(TreePathItem(new_root));
-
-    path[path.getSize() - 2].parent_idx() = 0;
 }
 
 #undef M_TYPE

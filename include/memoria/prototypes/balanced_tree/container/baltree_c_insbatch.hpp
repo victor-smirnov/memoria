@@ -265,7 +265,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
     public:
     	DefaultSubtreeProvider(MyType& ctr, const Position& total, ISource& data_source):
-    		ProviderBase(ctr),
+    		ProviderBase(ctr, total.gtZero()),
     		ctr_(ctr),
     		total_(total),
     		data_source_(data_source)
@@ -325,7 +325,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
     			provider->inserted_ += size;
 
-    			return node->sum(*pos, (*pos) + size);
+    			return node->sum(*pos, (*pos) + size, provider->getActiveStreams());
     		}
     	};
 

@@ -35,7 +35,7 @@ public:
     template <Int BF, Int VPB>
     void testInitByBlock(Int block_size)
     {
-    	typedef PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>	Types;
+    	typedef PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>	Types;
     	typedef PackedFSETree<Types> 										Tree;
 
     	Tree tree;
@@ -52,7 +52,7 @@ public:
     template <Int BF, Int VPB>
     void testInitByBlock()
     {
-    	typedef PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>	Types;
+    	typedef PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>	Types;
     	typedef PackedFSETree<Types> 										Tree;
 
     	Tree tree;

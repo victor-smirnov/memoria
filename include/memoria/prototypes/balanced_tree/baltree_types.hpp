@@ -24,27 +24,21 @@ namespace balanced_tree     {
 class IDType {};
 
 template <
-	template <typename> class NonLeafPackedTypeFactory,
-	template <typename> class LeafPackedTypeFactory,
-	Int Indexes_
+	template <typename, Int> class NonLeafPackedTypeFactory,
+	template <typename, Int> class LeafPackedTypeFactory,
+	Int Indexes_,
+	typename Value_ = EmptyType
 >
 struct StreamDescr {
 	static const Int Indexes = Indexes_;
 	typedef BigInt IndexType;
+	typedef Value_ Value;
 };
 
 
 
 
-template <typename Types>
-struct PackedFSETreeTF {
-	typedef PackedFSETree<Types> Type;
-};
 
-template <typename Types>
-struct PackedFSEArrayTF {
-	typedef PackedFSEArray<Types> Type;
-};
 
 template <typename ContainerName>
 class ContainerPartsListFactory     {};

@@ -13,8 +13,6 @@
 #include <memoria/core/tools/file.hpp>
 #include <memoria/core/tools/platform.hpp>
 
-#include <memoria/containers/map2/map_factory.hpp>
-
 #include <iostream>
 #include <set>
 
@@ -217,9 +215,6 @@ int main(int argc, const char** argv, const char** envp)
 {
     MetadataInitializer<SmallProfile<> >::init();
 
-    SCtrTF<Map2<BigInt, BigInt>>::Type::initMetadata();
-    SCtrTF<Map2<BigInt, Int>>::Type::initMetadata();
-
     try {
         logger.level() = Logger::NONE;
 
@@ -270,7 +265,7 @@ int main(int argc, const char** argv, const char** envp)
 
         while (!iter.isEnd())
         {
-            BigInt  name    = iter.getKey(0);
+            BigInt  name    = iter.key();
 
             BigInt  value   = iter.getValue();
             IDValue id(value);

@@ -226,6 +226,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
     	NodeDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
     }
 
+    MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, capacity, Int);
+
+    Int getStreamCapacity(const NodeBaseG& node, Int stream) const
+    {
+        return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn());
+    }
+
+    void initLeaf(NodeBaseG& node) const
+    {
+    	self().layoutNode(node, 1);
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map::CtrToolsName)

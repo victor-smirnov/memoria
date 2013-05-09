@@ -26,6 +26,11 @@
 namespace memoria    	{
 namespace balanced_tree {
 
+template <typename Types, bool root, bool leaf>
+struct TreeMapStreamTypes: Types {
+	static const bool Root = root;
+	static const bool Leaf = leaf;
+};
 
 using memoria::BitBuffer;
 
@@ -241,9 +246,6 @@ public:
     			typename Types::Value,
     			typename Types::ID
     >::Result 																	Value;
-    typedef typename Types::Key                                                 Key;
-
-
 
     template <
         	template <typename, bool, bool> class,
@@ -253,12 +255,11 @@ public:
     friend class NodePageAdaptor;
 
 
-	typedef PackedFSETreeTypes<
-			Key,Key,Key
-	>																			TreeTypes;
+
+    typedef TreeMapStreamTypes<Types, root, leaf> 								StreamTypes;
 
 	typedef typename PackedStructListBuilder<
-	    		TreeTypes,
+	    		StreamTypes,
 	    		typename Types::StreamDescriptors
 	>::NonLeafStructList														StreamsStructList;
 
@@ -464,11 +465,11 @@ public:
 
 	UBigInt active_streams() const
 	{
-		UBigInt streams = -1ull;
+		UBigInt streams = 0;
 		for (Int c = 0; c < Streams; c++)
 		{
 			UBigInt bit = !allocator_.is_empty(c);
-			streams |= bit << c;
+			streams += (bit << c);
 		}
 
 		return streams;
@@ -625,7 +626,7 @@ public:
     	return size() == 0;
     }
 
-    bool isAfterEnd(const Position& idx) const
+    bool isAfterEnd(const Position& idx, UBigInt active_streams) const
     {
     	return idx.get() >= size();
     }
@@ -661,25 +662,6 @@ public:
     	Int room_length = length_pos.get();
 
     	insertSpace(0, room_start, room_length);
-
-//    	Int size = this->size();
-//
-//    	MEMORIA_ASSERT(room_start, <=, size);
-//
-//    	Dispatcher::dispatchNotEmpty(&allocator_, InsertSpaceFn(), room_start, room_length);
-//
-//    	Int requested_block_size = (size + room_length) * sizeof(Value);
-//
-//    	allocator_.resizeBlock(ValuesBlockIdx, requested_block_size);
-//
-//    	Value* values = this->values();
-//
-//    	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
-//
-//    	for (Int c = room_start; c < room_start + room_length; c++)
-//    	{
-//    		values[c] = 0;
-//    	}
     }
 
 
@@ -951,7 +933,7 @@ public:
     	{
     		for (Int c = 0; c < Tree::Blocks; c++)
     		{
-    			Key k = std::get<Idx>(*keys)[c];
+    			auto k = std::get<Idx>(*keys)[c];
     			tree->value(c, idx) = k;
     		}
     	}
@@ -984,7 +966,7 @@ public:
     	}
 
     	template <Int Idx, typename Tree>
-    	void stream(const Tree* tree, Int block_num, Int start, Int end, Key* accum)
+    	void stream(const Tree* tree, Int block_num, Int start, Int end, BigInt* accum)
     	{
     		*accum += tree->sum(block_num, start, end);
     	}
@@ -1008,12 +990,12 @@ public:
     	return accum;
     }
 
-    void sum(Int block_num, Int start, Int end, Key& accum) const
+    void sum(Int block_num, Int start, Int end, BigInt& accum) const
     {
     	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), block_num, start, end, &accum);
     }
 
-    void sum(Int stream, Int block_num, Int start, Int end, Key& accum) const
+    void sum(Int stream, Int block_num, Int start, Int end, BigInt& accum) const
     {
     	Dispatcher::dispatch(stream, &allocator_, SumFn(), block_num, start, end, &accum);
     }

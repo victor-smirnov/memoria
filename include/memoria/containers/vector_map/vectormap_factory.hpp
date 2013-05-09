@@ -30,6 +30,24 @@
 namespace memoria    {
 
 
+template <typename Types, Int StreamIdx>
+struct PackedVMapFSETreeLeafTF {
+
+    typedef typename Types::Key                                                 Key;
+
+    typedef typename SelectByIndexTool<
+    		StreamIdx,
+    		typename Types::StreamDescriptors
+    >::Result																	Descriptor;
+
+	typedef PackedFSETreeTypes<
+			Key, Key, Key, Descriptor::Indexes
+	>																			TreeTypes;
+
+	typedef PackedFSETree<TreeTypes> Type;
+};
+
+
 
 template <typename Profile, typename Key_, typename Value_>
 struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
@@ -65,7 +83,7 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     			// Map
     			StreamDescr<
     				PackedFSETreeTF,
-    				PackedFSETreeTF,
+    				PackedVMapFSETreeLeafTF,
     				2
     			>,
 
@@ -103,14 +121,14 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
 
 
-    template <typename Types>
-    using FindLTWalker 		= ::memoria::vmap::FindLTForwardWalker<Types>;
+//    template <typename Types>
+//    using FindLTWalker 		= ::memoria::vmap::FindLTForwardWalker<Types>;
+//
+//    template <typename Types>
+//    using FindLEWalker 		= ::memoria::vmap::FindLTForwardWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker 		= ::memoria::vmap::FindLTForwardWalker<Types>;
-
-    template <typename Types>
-    using SkipForwardWalker = ::memoria::vmap::FindLTForwardWalker<Types>;
+    using SkipForwardWalker = ::memoria::vmap::SkipForwardWalker<Types>;
 
     template <typename Types>
     using SkipBackwardWalker = TypeIsNotDefined;

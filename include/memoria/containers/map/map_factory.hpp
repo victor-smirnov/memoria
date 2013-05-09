@@ -33,6 +33,12 @@ namespace memoria    {
 
 
 
+//template <typename Types, Int StreamIdx>
+//struct PackedFSETreeTF {
+//	typedef PackedFSETree<Types> Type;
+//};
+
+
 template <typename Profile, typename Key_, typename Value_>
 struct BalancedTreeTypes<Profile, memoria::Map<Key_, Value_> >: public BalancedTreeTypes<Profile, memoria::BalancedTree> {
 

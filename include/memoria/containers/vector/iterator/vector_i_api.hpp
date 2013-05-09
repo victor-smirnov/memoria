@@ -226,7 +226,7 @@ BigInt M_TYPE::skipFw(BigInt amount)
 M_PARAMS
 BigInt M_TYPE::skipBw(BigInt amount)
 {
-	return self().template _findFw<Types::template SkipBackwardWalker>(0, amount);
+	return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
 }
 
 

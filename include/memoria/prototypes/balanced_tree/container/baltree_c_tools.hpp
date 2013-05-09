@@ -277,7 +277,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     Int getCapacity(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatchConstRtn(node, GetCapacityFn(me()));
+        return NonLeafDispatcher::dispatchConstRtn(node, GetCapacityFn(me()));
+    }
+
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, stream_capacity, Int);
+
+    Int getStreamCapacity(const NodeBaseG& node, Int stream) const
+    {
+        return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn(), stream);
     }
 
 
@@ -578,6 +586,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     {
     	return NodeDispatcher::dispatchConstRtn(node, GetActiveStreamsFn());
     }
+
+    void initLeaf(NodeBaseG& node) const {}
 
 private:
 

@@ -21,10 +21,10 @@ namespace memoria {
 using namespace std;
 
 template <Int BF, Int VPB>
-class PackedFSETreeCreateTest: public PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>> {
+class PackedFSETreeCreateTest: public PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>> {
 
 	typedef PackedFSETreeCreateTest																MyType;
-	typedef PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, EmptyAllocator, BF, VPB>> 		Base;
+	typedef PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>> 		Base;
 
 	typedef typename Base::Tree 			Tree;
 	typedef typename Base::TreePtr 			TreePtr;

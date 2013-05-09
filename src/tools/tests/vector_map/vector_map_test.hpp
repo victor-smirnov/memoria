@@ -198,18 +198,18 @@ public:
 
         allocator.commit();
 
+
+
+
         try {
 
             step_ = 0;
 
             Byte value = 0;
-
-//            Int total_size = 0;
+            size_ = 1;
 
             for (Int c = 0; c < size_; c++, value++)
             {
-
-
                 data_size_ = getRandom(max_block_size_);
 
                 vector<Byte> data = createBuffer<Byte>(data_size_, c % 256);
@@ -217,7 +217,12 @@ public:
                 MemBuffer<Byte> buf(data);
                 auto iter = map.create(buf);
 
-                auto iter2 = map.seek(0, 0);
+                allocator.commit();
+
+                StoreAllocator(allocator, getResourcePath("alloc.dump"));
+
+
+
 
 //                iter = data;
 //

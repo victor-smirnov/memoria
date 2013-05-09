@@ -47,35 +47,116 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 	typedef std::pair<BigInt, BigInt> 											BlobDescriptorEntry; // ID, Size
 
-//	bool operator++() {
-//		return self().skipFw(1);
-//	}
-//
-//	bool operator--() {
-//		return self().skipBw(1);
-//	}
-//
-//	bool operator++(int) {
-//		return self().skipFw(1);
-//	}
-//
-//	bool operator--(int) {
-//		return self().skipFw(1);
-//	}
-//
-//	BigInt operator+=(BigInt size)
-//	{
-//		return self().skipFw(size);
-//	}
-//
-//	BigInt operator-=(BigInt size)
-//	{
-//		return self().skipBw(size);
-//	}
-//
-//	bool isEof() const {
-//		return self().key_idx() >= self().size();
-//	}
+	bool operator++()
+	{
+		return self().nextEntry();
+	}
+
+	bool operator++(Int)
+	{
+		return self().nextEntry();
+	}
+
+	bool operator--() {
+		return self().prevEntry();
+	}
+
+	bool operator--(Int) {
+		return self().prevEntry();
+	}
+
+	bool nextEntry()
+	{
+		auto& self = this->self();
+
+		if (self.stream() == 0)
+		{
+			Int size = self.leafSize(0);
+
+			if (self.key_idx() < size - 1)
+			{
+				self.key_idx()++;
+
+				auto entry = self.entry();
+
+				self.cache().add(entry.first, entry.second);
+
+				return true;
+			}
+			else if (self.nextLeaf())
+			{
+				auto entry = self.entry();
+				self.cache().add(entry.first, entry.second);
+
+				return true;
+			}
+			else {
+				self.key_idx() = size;
+				self.cache().add(0, 0);
+			}
+
+			return false;
+		}
+		else {
+			self.findEntry();
+			return self.nextEntry();
+		}
+	}
+
+	bool prevEntry()
+	{
+		auto& self = this->self();
+
+		if (self.stream() == 0)
+		{
+			if (self.key_idx() > 0)
+			{
+				self.key_idx()--;
+
+				auto entry = self.entry();
+
+				self.cache().sub(entry.first, entry.second);
+
+				return true;
+			}
+			else if (self.prevLeaf())
+			{
+				auto entry = self.entry();
+				self.cache().sub(entry.first, entry.second);
+
+				return true;
+			}
+			else {
+				self.key_idx() = -1;
+				self.cache().sub(0, 0);
+
+				return false;
+			}
+		}
+		else {
+			self.findEntry();
+			return self.prevEntry();
+		}
+	}
+
+	bool isEof() const
+	{
+		auto& self = this->self();
+
+		if (self.stream() == 0)
+		{
+			return self.key_idx() >= self.leafSize(0);
+		}
+		else {
+			if (self.key_idx() < self.leafSize(1))
+			{
+				return self.pos() >= self.cache().size();
+			}
+			else {
+				return true;
+			}
+		}
+	}
 //
 //	bool isBof() const {
 //		return self().key_idx() < 0;
@@ -86,13 +167,30 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		return self().cache().id();
 	}
 
+	struct GlobalPosFn {
+		BigInt prefix_ = 0;
+
+		template <typename NodeTypes, bool root, bool leaf>
+		void treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int idx) {}
+
+		template <typename NodeTypes, bool root, bool leaf>
+		void treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, Int idx)
+		{
+			node->sum(0, 0, 0, idx, prefix_);
+		}
+	};
+
 	BigInt global_pos() const
 	{
 		auto& self = this->self();
 
 		MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
-		return self.cache().blob_leaf_base() + self.key_idx();
+		GlobalPosFn fn;
+
+		self.model().walkUp(self.path(), self.key_idx(), fn);
+
+		return fn.prefix_ + self.key_idx();
 	}
 
 	BigInt pos() const
@@ -156,17 +254,66 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		return LeafDispatcher::dispatchConstRtn(self.leaf().node(), EntryFn(), self.key_idx());
 	}
 
-	void findData(BigInt offset = 0)
+	struct LocalDataOffsetFn {
+		typedef Int ReturnType;
+		typedef Int ResultType;
+
+
+		template <typename Node>
+		ReturnType treeNode(const Node* node, Int block, Int idx)
+		{
+			return node->template processStreamRtn<0>(*this, block, idx);
+		}
+
+		template <Int StreamIdx, typename StreamType>
+		ResultType stream(const StreamType* obj, Int block, Int idx)
+		{
+			return obj->sum(block, idx);
+		}
+	};
+
+	Int data_offset() const
+	{
+		auto& self = this->self();
+		return LeafDispatcher::dispatchConstRtn(self.leaf().node(), LocalDataOffsetFn(), 0, self.key_idx());
+	}
+
+
+
+	BigInt findData(BigInt offset = 0)
 	{
 		auto& self = this->self();
 
 		if (self.stream() == 0)
 		{
-//			BigInt global_data_offset = self.cache().blob_base();
-
+			Int data_offset = self.data_offset();
 			self.stream() = 1;
+
+			return self.skipFw(data_offset + offset) - data_offset;
+		}
+		else
+		{
+			findEntry();
+			return findData(offset);
 		}
 	}
+
+	struct FindEntryFn {
+		typedef Int ReturnType;
+		typedef Int ResultType;
+
+		template <typename Node>
+		ReturnType treeNode(const Node* node, Int offset)
+		{
+			return node->template processStreamRtn<0>(*this, offset);
+		}
+
+		template <Int StreamIdx, typename StreamType>
+		ResultType stream(const StreamType* obj, Int offset)
+		{
+			return obj->findLTForward(1, offset).idx();
+		}
+	};
 
 	void findEntry()
 	{
@@ -174,11 +321,16 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		if (self.stream() == 1)
 		{
-//			BigInt global_pos = self.global_pos();
-//
-//
-//
-//			self.stream() = 0;
+			BigInt offset = self.pos();
+			self.skipBw(offset);
+
+			Int local_offset = self.key_idx();
+
+			Int entry_idx = LeafDispatcher::dispatchConstRtn(self.leaf().node(), FindEntryFn(), local_offset);
+
+			self.key_idx() = entry_idx;
+
+			self.stream() = 0;
 		}
 	}
 
@@ -188,50 +340,32 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		if (self.stream() == 0)
 		{
-			self.findData(amount);
+			return self.findData(amount);
 		}
-
-		return self.template _findFw<vmap::FindLTForwardWalker>(0, amount);
+		else {
+			return self.template _findFw<vmap::SkipForwardWalker>(0, amount);
+		}
 	}
 
 	BigInt skipBw(BigInt amount)
 	{
 		auto& self = this->self();
-		return self.template _findFw<vmap::FindLTForwardWalker>(0, amount);
-	}
-
-	void init()
-	{
-//		auto& self = this->self();
-//
-//		BlobDescriptorEntry entry = self.entry();
-//		self.cache().setup(entry.first);
+		return self.template _findBw<vmap::SkipBackwardWalker>(0, amount);
 	}
 
 
-	void ComputePrefix(BigInt& accum)
-	{
-//		TreePath&   path0 = self().path();
-//		Int         idx   = self().key_idx();
-//
-//		for (Int c = 1; c < path0.getSize(); c++)
-//		{
-//			idx = path0[c - 1].parent_idx();
-//			self().model().sumKeys(path0[c].node(), 0, 0, idx, accum);
-//		}
-	}
+    BigInt read(DataTarget& tgt)
+    {
+    	auto& self = this->self();
 
-	void ComputePrefix(Accumulator& accum)
-	{
-//		TreePath&   path0 = self().path();
-//		Int         idx   = self().key_idx();
-//
-//		for (Int c = 1; c < path0.getSize(); c++)
-//		{
-//			idx = path0[c - 1].parent_idx();
-//			self().model().sumKeys(path0[c].node(), 0, idx, accum);
-//		}
-	}
+    	vmap::VectorMapTarget target(&tgt);
+
+    	Position pos;
+
+    	pos[1] = self.key_idx();
+
+    	return self.model().readStreams(self, pos, target)[1];
+    }
 
 MEMORIA_ITERATOR_PART_END
 

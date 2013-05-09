@@ -175,6 +175,59 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
     }
 
 
+    MEMORIA_DECLARE_NODE_FN_RTN(IsNodeEmpty, is_empty, bool);
+    bool isNodeEmpty(const NodeBaseG& node)
+    {
+    	return NodeDispatcher::dispatchConstRtn(node, IsNodeEmpty());
+    }
+
+    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
+    void layoutNode(NodeBaseG& node, UBigInt active_streams) const
+    {
+    	NonLeafDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
+    }
+
+
+    template <typename LeafElement>
+    struct SetLeafEntryFn {
+
+    	template <Int Idx, typename Tree>
+    	void stream(Tree* tree, Int idx, const LeafElement& element, Accumulator* delta)
+    	{
+    		MEMORIA_ASSERT_TRUE(tree != nullptr);
+
+    		auto previous0 = tree->value(0, idx);
+    		auto previous1 = tree->value(1, idx);
+
+    		tree->value(0, idx) = element.first;
+    		tree->value(1, idx) = element.second;
+
+    		std::get<Idx>(*delta)[0] = element.first - previous0;
+    		std::get<Idx>(*delta)[1] = element.first - previous1;
+
+    		tree->reindex();
+    	}
+
+    	template <typename Node>
+    	void treeNode(Node* node, Int stream, Int idx, const LeafElement& element, Accumulator* delta)
+    	{
+    		node->template processStream<0>(*this, idx, element, delta);
+    	}
+    };
+
+
+    template <typename LeafElement>
+    Accumulator setLeafEntry(NodeBaseG& node, Int stream, Int idx, const LeafElement& element) const
+    {
+    	Accumulator delta;
+
+    	node.update();
+    	LeafDispatcher::dispatch(node.page(), SetLeafEntryFn<LeafElement>(), stream, idx, element, &delta);
+
+    	return delta;
+    }
+
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrToolsName)

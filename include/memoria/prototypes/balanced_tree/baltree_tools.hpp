@@ -619,6 +619,18 @@ public:
 
     	return result;
     }
+
+    UBigInt gtZero() const
+    {
+    	UBigInt result = 0;
+
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		result += (UBigInt(values_[c] > 0)) << c;
+    	}
+
+    	return result;
+    }
 };
 
 
@@ -718,42 +730,57 @@ struct AccumulatorBuilder<TypeList<Types...>> {
 
 
 
-template <typename Types, typename List>
+template <typename Types, typename List, Int Idx = 0>
 class PackedStructListBuilder;
 
 
 template <
 	typename Types,
-	template <typename> class NonLeafStructTF,
-	template <typename> class LeafStructTF,
+	template <typename, Int> class NonLeafStructTF,
+	template <typename, Int> class LeafStructTF,
 	Int Indexes,
-	typename... Tail
+	typename... Tail,
+	Int Idx
 >
 class PackedStructListBuilder<
 	Types,
 	TypeList<
 		StreamDescr<NonLeafStructTF, LeafStructTF, Indexes>,
 		Tail...
-	>
+	>,
+	Idx
 > {
 	typedef TypeList<StreamDescr<NonLeafStructTF, LeafStructTF, Indexes>, Tail...> List;
-	static const Int Idx = ListSize<List>::Value - ListSize<TypeList<Tail...>>::Value - 1;
 
 public:
 	typedef typename MergeLists<
-			StructDescr<typename NonLeafStructTF<Types>::Type, Idx>,
-			typename PackedStructListBuilder<Types, TypeList<Tail...>>::NonLeafStructList
+			StructDescr<
+				typename NonLeafStructTF<Types, Idx>::Type,
+				Idx
+			>,
+			typename PackedStructListBuilder<
+				Types,
+				TypeList<Tail...>,
+				Idx + 1
+			>::NonLeafStructList
 	>::Result																	NonLeafStructList;
 
 	typedef typename MergeLists<
-				StructDescr<typename LeafStructTF<Types>::Type, Idx>,
-				typename PackedStructListBuilder<Types, TypeList<Tail...>>::LeafStructList
+				StructDescr<
+					typename LeafStructTF<Types, Idx>::Type,
+					Idx
+				>,
+				typename PackedStructListBuilder<
+					Types,
+					TypeList<Tail...>,
+					Idx + 1
+				>::LeafStructList
 	>::Result																	LeafStructList;
 };
 
 
-template <typename Types>
-class PackedStructListBuilder<Types, TypeList<>> {
+template <typename Types, Int Idx>
+class PackedStructListBuilder<Types, TypeList<>, Idx> {
 public:
 	typedef TypeList<>															NonLeafStructList;
 	typedef TypeList<>															LeafStructList;

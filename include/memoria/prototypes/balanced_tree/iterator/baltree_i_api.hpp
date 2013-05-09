@@ -81,6 +81,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     	return LeafDispatcher::dispatchConstRtn(self().path().leaf().node(), SizeFn(), stream);
     }
 
+    template <typename Walker>
+    bool findNextLeaf(Walker&& walker);
+
+    template <typename Walker>
+    bool findPrevLeaf(Walker&& walker);
+
 MEMORIA_ITERATOR_PART_END
 
 
@@ -151,11 +157,7 @@ bool M_TYPE::nextLeafMs(UBigInt streams)
 
 	Walker walker(streams);
 
-	walker.prepare(self);
-
-	Int idx = self.model().findFw(self.path(), self.stream(), self.key_idx(), walker);
-
-	return walker.finish(self, idx);
+	return self.findNextLeaf(walker);
 }
 
 
@@ -163,17 +165,9 @@ M_PARAMS
 bool M_TYPE::nextLeaf()
 {
 	typedef typename Types::template NextLeafWalker<Types> Walker;
+	Walker walker(self().stream(), 0);
 
-	auto& self = this->self();
-	Int stream = self.stream();
-
-	Walker walker(stream, 0);
-
-	walker.prepare(self);
-
-	Int idx = self.model().findFw(self.path(), stream, self.key_idx(), walker);
-
-	return walker.finish(self, idx);
+	return self().findNextLeaf(walker);
 }
 
 
@@ -184,18 +178,102 @@ bool M_TYPE::prevLeaf()
 {
 	typedef typename Types::template PrevLeafWalker<Types> Walker;
 
-	auto& self = this->self();
-	Int stream = self.stream();
+	Walker walker(self().stream(), 0);
 
-	Walker walker(stream, 0);
-
-	walker.prepare(self);
-
-	Int idx = self.model().findBw(self.path(), stream, self.key_idx(), walker);
-
-	return walker.finish(self, idx);
+	return self().findPrevLeaf(walker);
 }
 
+
+
+M_PARAMS
+template <typename Walker>
+bool M_TYPE::findNextLeaf(Walker&& walker)
+{
+	auto& self = this->self();
+
+	TreePath& 	path 	= self.path();
+	Int 		stream 	= self.stream();
+
+	if (path.getSize() > 1)
+	{
+		walker.prepare(self);
+
+		Int idx = self.model().findFw(path, stream, self.key_idx(), walker, 1);
+
+		Int size = self.model().getNodeSize(path[1].node(), stream);
+
+		MEMORIA_ASSERT_TRUE(size > 0);
+
+		Int child_idx;
+
+		if (idx < size)
+		{
+			child_idx = idx;
+		}
+		else {
+			child_idx = size - 1;
+		}
+
+		// Step down the tree
+		path[0].node() 			= self.model().getChild(path[1].node(), child_idx, Allocator::READ);
+		path[0].parent_idx()	= child_idx;
+
+		walker.finish(self, idx < size);
+
+		self.key_idx() = 0;
+
+		return idx < size;
+	}
+	else {
+		return false;
+	}
+}
+
+
+
+M_PARAMS
+template <typename Walker>
+bool M_TYPE::findPrevLeaf(Walker&& walker)
+{
+	auto& self = this->self();
+
+	TreePath& 	path 	= self.path();
+	Int 		stream 	= self.stream();
+
+	if (path.getSize() > 1)
+	{
+		walker.prepare(self);
+
+		Int idx = self.model().findBw(path, stream, self.key_idx(), walker, 1);
+
+		Int size = self.model().getNodeSize(path[1].node(), stream);
+
+		MEMORIA_ASSERT_TRUE(size > 0);
+
+		Int child_idx;
+
+		if (idx >= 0)
+		{
+			child_idx = idx;
+		}
+		else {
+			child_idx = 0;
+		}
+
+		// Step down the tree
+		path[0].node() 			= self.model().getChild(path[1].node(), child_idx, Allocator::READ);
+		path[0].parent_idx()	= child_idx;
+
+		walker.finish(self, idx >= 0);
+
+		self.key_idx() = 0;
+
+		return idx < size;
+	}
+	else {
+		return false;
+	}
+}
 
 
 #undef M_TYPE

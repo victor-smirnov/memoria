@@ -236,6 +236,7 @@ enum class WalkDirection {
 	UP, DOWN
 };
 
+enum class SearchType {LT, LE};
 
 extern BigInt DebugCounter;
 extern size_t MemBase;

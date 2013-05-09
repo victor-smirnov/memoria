@@ -102,7 +102,7 @@ public:
 
         handler->startGroup("STREAM_SIZES", Streams);
 
-        for (Int c = 0; c < ROOTS; c++)
+        for (Int c = 0; c < Streams; c++)
         {
         	handler->value("SIZE",  size_ + c);
         }

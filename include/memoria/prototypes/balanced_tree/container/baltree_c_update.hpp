@@ -69,7 +69,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::UpdateName)
     	return size;
     }
 
-    UBigInt getActiveStreams(ISource& source)
+    UBigInt getSourceActiveStreams(ISource& source)
     {
     	UBigInt streams = 0;
 
@@ -118,7 +118,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::UpdateName)
     		len     -= to_update;
     		sum     += to_update;
 
-    		UBigInt active_streams = getActiveStreams(data_source);
+    		UBigInt active_streams = getSourceActiveStreams(data_source);
 
     		if (len.gtAny(0))
     		{
