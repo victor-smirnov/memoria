@@ -167,6 +167,12 @@ public:
 
 	const Int& max_size() const {return max_size_;}
 
+	Int content_size_from_start(Int block) const
+	{
+		IndexKey max = sum(block);
+		return this->findLEForward(block, 0, max).idx() + 1;
+	}
+
 	Int block_size() const
 	{
 		return sizeof(MyType) + index_size_ * sizeof(IndexKey) * Indexes + max_size_ * sizeof(Value) * Blocks;
@@ -228,7 +234,7 @@ public:
 
 	static Int block_size(Int items_num)
 	{
-		Int index_size = getIndexSize(items_num);
+		Int index_size = MyType::index_size(items_num);
 		Int raw_block_size = sizeof(MyType) + index_size * Indexes * sizeof(IndexKey) + items_num * sizeof(Value) * Blocks;
 
 		return Allocator::roundUpBytesToAlignmentBlocks(raw_block_size);
@@ -244,11 +250,11 @@ public:
 		return block_size(items_num);
 	}
 
-	static Int getIndexSize(Int items_number)
+	static Int index_size(Int items_number)
 	{
 		if (items_number > ValuesPerBranch)
 		{
-			return MyType::compute_index_size(items_number);
+			return MyType::compute_index_size(items_number * Blocks);
 		}
 		else {
 			return 0;
@@ -367,26 +373,24 @@ public:
 		return &value(block, 0);
 	}
 
-	Value lastValue(Int block) const {
+	Value last_value(Int block) const {
 		return value(block, size_ - 1);
 	}
 
-	Value firstValue(Int block) const {
+	Value first_value(Int block) const {
 		return value(block, 0);
-	}
-
-	void clearValues(Int idx)
-	{
-		value(idx) = 0;
 	}
 
 	void clear(Int start, Int end)
 	{
-		Value* values = this->values();
-
-		for (Int c = start; c < end; c++)
+		for (Int block = 0; block < Blocks; block++)
 		{
-			values[c] = 0;
+			Value* values = this->values(block);
+
+			for (Int c = start; c < end; c++)
+			{
+				values[c] = 0;
+			}
 		}
 	}
 
@@ -400,7 +404,7 @@ private:
 
 		Int max_elements(Int block_size)
 		{
-			return block_size * 8;
+			return block_size;
 		}
 	};
 
@@ -415,7 +419,7 @@ public:
 		size_ = 0;
 
 		max_size_   = tree_size(block_size);
-		index_size_ = getIndexSize(max_size_);
+		index_size_ = index_size(max_size_);
 	}
 
 	void object_size() const
@@ -577,7 +581,7 @@ public:
 
 	IndexKey sum0(Int to) const
 	{
-		if (to < ValuesPerBranch)
+		if (index_size_ == 0 || to < ValuesPerBranch)
 		{
 			IndexKey sum = 0;
 
@@ -671,7 +675,7 @@ public:
 	{
 		Int block_start = block * size_;
 
-		auto prefix = sum(block, block_start + start);
+		auto prefix = sum0(block_start + start);
 
 		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val + prefix);
 
@@ -685,7 +689,7 @@ public:
 
 	ValueDescr findLTBackward(Int start, IndexKey val) const
 	{
-		auto prefix = sum(start + 1);
+		auto prefix = sum0(start + 1);
 		auto target = prefix - val;
 
 		if (target > 0)
@@ -713,7 +717,7 @@ public:
 	{
 		Int block_start = block * size_;
 
-		auto prefix = sum(block_start, start + 1);
+		auto prefix = sum0(block_start + start + 1);
 		auto target = prefix - val;
 
 		if (target > 0)
@@ -752,7 +756,7 @@ public:
 
 	ValueDescr findLEForward(Int start, IndexKey val) const
 	{
-		auto prefix = start > 0 ? sum(start) : 0;
+		auto prefix = start > 0 ? sum0(start) : 0;
 
 		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
 
@@ -767,7 +771,7 @@ public:
 	{
 		Int block_start = block * size_;
 
-		auto prefix = sum(block, block_start + start);
+		auto prefix = sum0(block_start + start);
 
 		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val + prefix);
 
@@ -782,7 +786,7 @@ public:
 	{
 		Int block_start = block * size_;
 
-		auto prefix = sum(block_start, start + 1);
+		auto prefix = sum0(block_start + start + 1);
 		auto target = prefix - val;
 
 		if (target > 0)
@@ -935,6 +939,8 @@ public:
 		}
 
 		size_ += room_length;
+
+		clear(idx, idx + room_length);
 	}
 
 	void removeSpace(Int idx, Int room_length)
@@ -1156,7 +1162,7 @@ public:
 
 	void updateUp(Int block_num, Int idx, IndexKey key_value)
 	{
-		values()[idx] += key_value;
+		value(block_num, idx) += key_value;
 
 		if (index_size() > 0)
 		{

@@ -318,32 +318,20 @@ public:
 
 
 
-	struct CapacityFn {
-		typedef Int ResultType;
-
-		template <Int StreamIndex, typename Tree>
-		ResultType stream(const Tree* tree)
-		{
-			return tree->capacity();
-		}
-	};
-
-	Int capacity(Int stream) const {
-		return Dispatcher::dispatchRtn(stream, &allocator_, CapacityFn());
-	}
-
 	struct MemUsedFn {
 		template <Int StreamIndex, typename Tree>
 		void stream(const Tree* tree, const Position* sizes, Int* mem_used, Int except)
 		{
 			if (StreamIndex != except)
 			{
+				Int size = sizes->value(StreamIndex);
+
 				if (tree != nullptr)
 				{
-					*mem_used += tree->allocated_block_size();
+//					*mem_used += tree->allocated_block_size();
+					*mem_used += Tree::block_size(size);
 				}
 				else {
-					Int size = sizes->value(StreamIndex);
 					*mem_used += Tree::block_size(size);
 				}
 			}
@@ -386,6 +374,7 @@ public:
 	{
 		Position psizes;
 		for (Int c = 0; c < Streams; c++) psizes[c] = sizes[c];
+
 		return capacity(psizes, stream);
 	}
 
@@ -421,26 +410,11 @@ public:
 	}
 
 
-	Int stream_capacity(Int stream) const
+
+	Int capacity(Int stream) const
 	{
 		Position sizes = this->sizes();
 		return capacity(sizes, stream);
-	}
-
-
-	struct CapacitiesFn {
-		template <Int StreamIndex, typename Tree>
-		void stream(const Tree* tree, Position* pos)
-		{
-			pos->value(StreamIndex) = tree->capacity();
-		}
-	};
-
-	Position capacities() const
-	{
-		Position pos;
-		Dispatcher::dispatchNotEmpty(&allocator_, CapacitiesFn(), &pos);
-		return pos;
 	}
 
 
@@ -490,7 +464,7 @@ public:
     	template <Int Idx, typename Tree>
     	ResultType stream(const Tree* tree)
     	{
-    		return tree->size();
+    		return tree != nullptr ? tree->size() : 0;
     	}
     };
 
@@ -635,11 +609,6 @@ public:
     		if (tree != nullptr)
     		{
     			tree->insertSpace(room_start->value(Idx), room_length->value(Idx));
-
-    			for (Int c = room_start->value(Idx); c < room_start->value(Idx) + room_length->value(Idx); c++)
-    			{
-    				tree->clearValues(c);
-    			}
     		}
     		else {
     			MEMORIA_ASSERT_TRUE(room_length->value(Idx) == 0);
@@ -742,17 +711,20 @@ public:
     		if (size > 0)
     		{
     			Int remainder 		= size - idx;
-    			Int block_size 		= Tree::block_size(remainder);
+    			Int block_size 		= Tree::block_size(remainder + shift);
     			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
 
-    			tree->clear(0, shift);
+    			other_tree->size() += (remainder + shift);
+
+    			other_tree->clear(0, shift);
 
     			tree->copyTo(other_tree, idx, remainder, shift);
 
-    			other_tree->size() += remainder;
     			other_tree->reindex();
 
     			tree->removeSpace(idx, remainder);
+
+    			tree->reindex();
     		}
     	}
     };
@@ -797,18 +769,52 @@ public:
 
 
     struct SumFn {
-    	template <Int Idx, typename Tree>
-    	void stream(const Tree* tree, const Position* start, const Position* end, Accumulator* accum)
+    	template <Int Idx, typename TreeTypes>
+    	void stream(const PackedFSETree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
+    	{
+    		typedef PackedFSETree<TreeTypes> Tree;
+
+    		for (Int block = 0; block < Tree::Blocks; block++)
+    		{
+    			std::get<Idx>(*accum)[block] += tree->sum(block, start->value(Idx), end->value(Idx));
+    		}
+    	}
+
+    	template <Int Idx, typename ArrayTypes>
+    	void stream(const PackedFSEArray<ArrayTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
     	{
     		std::get<Idx>(*accum) += tree->sum(start->value(Idx), end->value(Idx));
     	}
 
-    	template <Int Idx, typename Tree>
-    	void stream(const Tree* tree, const Position* start, const Position* end, Accumulator* accum, UBigInt act_streams)
+//    	template <Int Idx, typename Tree>
+//    	void stream(const Tree* tree, const Position* start, const Position* end, Accumulator* accum)
+//    	{
+//    		for (Int block = 0; block < Tree::Blocks; block++)
+//    		{
+//    			std::get<Idx>(*accum)[block] += tree->sum(block, start->value(Idx), end->value(Idx));
+//    		}
+//    	}
+
+    	template <Int Idx, typename TreeTypes>
+    	void stream(const PackedFSETree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum, UBigInt act_streams)
+    	{
+    		typedef PackedFSETree<TreeTypes> Tree;
+
+    		if (act_streams & (1<<Idx))
+    		{
+    			for (Int block = 0; block < Tree::Blocks; block++)
+    			{
+    				std::get<Idx>(*accum)[block] += tree->sum(block, start->value(Idx), end->value(Idx));
+    			}
+    		}
+    	}
+
+    	template <Int Idx, typename ArrayTypes>
+    	void stream(const PackedFSEArray<ArrayTypes>* array, const Position* start, const Position* end, Accumulator* accum, UBigInt act_streams)
     	{
     		if (act_streams & (1<<Idx))
     		{
-    			std::get<Idx>(*accum) += tree->sum(start->value(Idx), end->value(Idx));
+    			std::get<Idx>(*accum) += array->sum(start->value(Idx), end->value(Idx));
     		}
     	}
     };
@@ -968,6 +974,8 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
+
+        allocator_.generateDataEvents(handler);
 
         Dispatcher::dispatchNotEmpty(&allocator_, GenerateDataEventsFn(), handler);
     }

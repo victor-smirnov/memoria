@@ -281,11 +281,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     }
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, stream_capacity, Int);
+//    MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, capacity, Int);
+//
+//    Int getStreamCapacity(const NodeBaseG& node, Int stream) const
+//    {
+//        return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn(), stream);
+//    }
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, capacity, Int);
 
     Int getStreamCapacity(const NodeBaseG& node, Int stream) const
     {
-        return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn(), stream);
+    	Position reservation;
+    	return getStreamCapacity(node, reservation, stream);
+    }
+
+    Int getStreamCapacity(const NodeBaseG& node, const Position& reservation, Int stream) const
+    {
+    	return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn(), reservation, stream);
     }
 
 

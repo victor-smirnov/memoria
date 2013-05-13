@@ -230,7 +230,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
 
     Int getStreamCapacity(const NodeBaseG& node, Int stream) const
     {
-        return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn());
+    	Position reservation;
+        return getStreamCapacity(node, reservation, stream);
+    }
+
+    Int getStreamCapacity(const NodeBaseG& node, const Position& reservation, Int stream) const
+    {
+    	return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn());
     }
 
     void initLeaf(NodeBaseG& node) const

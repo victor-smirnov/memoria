@@ -113,6 +113,10 @@ void LoadVector(vector<T, A>& vec, StringRef file_name)
 
     file.open(file_name.c_str(), fstream::in);
 
+    if (file.fail() || file.bad()) {
+    	throw Exception(MEMORIA_SOURCE, "Can't open file: "+file_name);
+    }
+
     file>>vec;
 
     file.close();
@@ -177,6 +181,19 @@ vector<T> createBuffer(Int size, T value)
         item = cnt++;
 
         if (cnt == value) cnt = 0;
+    }
+
+    return vec;
+}
+
+template <typename T>
+vector<T> createSimpleBuffer(Int size, T value)
+{
+    vector<T> vec(size);
+
+    for (auto& item: vec)
+    {
+        item = value;
     }
 
     return vec;

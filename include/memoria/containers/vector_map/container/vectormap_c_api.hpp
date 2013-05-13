@@ -56,12 +56,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 
 	typedef typename Types::IDataSourceType										DataSource;
 
-	BigInt totalSize() const
+	BigInt total_size() const
 	{
-		return self().getSize();
+		auto sizes = self().getTotalKeyCount();
+		return sizes[1];
 	}
 
-	BigInt size(Key id) const
+	BigInt size() const
+	{
+		auto sizes = self().getTotalKeyCount();
+		return sizes[0];
+	}
+
+	BigInt blob_size(Key id) const
 	{
 		return seek(id).size();
 	}
@@ -105,17 +112,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     Iterator create(DataSource& src)
     {
     	auto& self = this->self();
-    	Iterator iter = self.End();
+    	auto iter  = self.End();
 
-    	BigInt id = iter.cache().id_prefix() + 1;
+    	BigInt id  = 1;
 
-    	std::pair<BigInt, BigInt> pair(id, src.getSize());
-
-    	self.insertEntry(iter, pair);
-
-    	iter.findData(0);
-
-    	self.insertData(iter, src);
+    	self.insert(iter, id, src);
 
     	return iter;
     }

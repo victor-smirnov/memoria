@@ -203,7 +203,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
     		tree->value(1, idx) = element.second;
 
     		std::get<Idx>(*delta)[0] = element.first - previous0;
-    		std::get<Idx>(*delta)[1] = element.first - previous1;
+    		std::get<Idx>(*delta)[1] = element.second - previous1;
 
     		tree->reindex();
     	}

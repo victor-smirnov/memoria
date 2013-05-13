@@ -38,7 +38,11 @@ public:
 	{
 		if (idx == Index)
 		{
-			Head* head = alloc->template get<Head>(idx);
+			Head* head = nullptr;
+			if (!alloc->is_empty(Index))
+			{
+				head = alloc->template get<Head>(Index);
+			}
 			fn.template stream<Index>(head, args...);
 		}
 		else {
@@ -51,7 +55,12 @@ public:
 	{
 		if (idx == Index)
 		{
-			const Head* head = alloc->template get<Head>(idx);
+			const Head* head = nullptr;
+			if (!alloc->is_empty(Index))
+			{
+				head = alloc->template get<Head>(Index);
+			}
+
 			fn.template stream<Index>(head, args...);
 		}
 		else {
@@ -66,7 +75,13 @@ public:
 
 		typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
 
-		StreamType* head = alloc->template get<StreamType>(StreamIdx);
+		StreamType* head = nullptr;
+		if (!alloc->is_empty(StreamIdx))
+		{
+			head = alloc->template get<StreamType>(StreamIdx);
+		}
+
+
 		fn.template stream<StreamIdx>(head, args...);
 	}
 
@@ -77,7 +92,12 @@ public:
 
 		typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
 
-		const StreamType* head = alloc->template get<StreamType>(StreamIdx);
+		const StreamType* head = nullptr;
+		if (!alloc->is_empty(StreamIdx))
+		{
+			head = alloc->template get<StreamType>(StreamIdx);
+		}
+
 		fn.template stream<StreamIdx>(head, args...);
 	}
 
@@ -88,7 +108,12 @@ public:
 	{
 		if (idx == Index)
 		{
-			Head* head = alloc->template get<Head>(idx);
+			Head* head = nullptr;
+			if (!alloc->is_empty(Index))
+			{
+				head = alloc->template get<Head>(Index);
+			}
+
 			return fn.template stream<Index>(head, args...);
 		}
 		else {
@@ -102,7 +127,12 @@ public:
 	{
 		if (idx == Index)
 		{
-			const Head* head = alloc->template get<Head>(idx);
+			const Head* head = nullptr;
+			if (!alloc->is_empty(Index))
+			{
+				head = alloc->template get<Head>(Index);
+			}
+
 			return fn.template stream<Index>(head, args...);
 		}
 		else {
@@ -118,8 +148,13 @@ public:
 
 		typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
 
-		StreamType* head = alloc->template get<StreamType>(StreamIdx);
-		return fn.template stream<Index>(head, args...);
+		StreamType* head = nullptr;
+		if (!alloc->is_empty(StreamIdx))
+		{
+			head = alloc->template get<StreamType>(StreamIdx);
+		}
+
+		return fn.template stream<StreamIdx>(head, args...);
 	}
 
 	template <Int StreamIdx, typename Fn, typename... Args>
@@ -130,8 +165,13 @@ public:
 
 		typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
 
-		const StreamType* head = alloc->template get<StreamType>(StreamIdx);
-		return fn.template stream<Index>(head, args...);
+		const StreamType* head = nullptr;
+		if (!alloc->is_empty(StreamIdx))
+		{
+			head = alloc->template get<StreamType>(StreamIdx);
+		}
+
+		return fn.template stream<StreamIdx>(head, args...);
 	}
 
 

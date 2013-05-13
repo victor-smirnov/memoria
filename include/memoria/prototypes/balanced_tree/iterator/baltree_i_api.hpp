@@ -36,6 +36,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     typedef typename Base::Container::Accumulator                               Accumulator;
     typedef typename Base::Container                                            Container;
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Types::Position											Position;
 
 
     bool nextLeaf();
@@ -78,7 +79,26 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
 
     Int leafSize(Int stream) const
     {
+    	return self().leaf_size(stream);
+    }
+
+    Int leaf_size(Int stream) const
+    {
     	return LeafDispatcher::dispatchConstRtn(self().path().leaf().node(), SizeFn(), stream);
+    }
+
+    Int leaf_capacity(Int stream) const
+    {
+    	auto& self = this->self();
+    	return self.leaf_capacity(Position(), stream);
+    }
+
+    Int leaf_capacity(const Position& reserved, Int stream) const
+    {
+    	auto& self = this->self();
+    	auto& ctr = self.model();
+
+    	return ctr.getStreamCapacity(self.leaf(), reserved, stream);
     }
 
     template <typename Walker>
@@ -198,7 +218,7 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
 	{
 		walker.prepare(self);
 
-		Int idx = self.model().findFw(path, stream, self.key_idx(), walker, 1);
+		Int idx = self.model().findFw(path, stream, self.leaf().parent_idx() + 1, walker, 1);
 
 		Int size = self.model().getNodeSize(path[1].node(), stream);
 
@@ -220,7 +240,7 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
 
 		walker.finish(self, idx < size);
 
-		self.key_idx() = 0;
+		self.idx() = 0;
 
 		return idx < size;
 	}
@@ -244,7 +264,7 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
 	{
 		walker.prepare(self);
 
-		Int idx = self.model().findBw(path, stream, self.key_idx(), walker, 1);
+		Int idx = self.model().findBw(path, stream, self.leaf().parent_idx() - 1, walker, 1);
 
 		Int size = self.model().getNodeSize(path[1].node(), stream);
 
@@ -266,9 +286,9 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
 
 		walker.finish(self, idx >= 0);
 
-		self.key_idx() = 0;
+		self.idx() = idx >= 0 ? self.leafSize(stream) - 1 : -1;
 
-		return idx < size;
+		return idx >= 0;
 	}
 	else {
 		return false;

@@ -209,6 +209,8 @@ public:
 		}
 
 		size_ -= room_length;
+
+		shrink(max_size_ - size_);
 	}
 
 	void insertSpace(Int room_start, Int room_length)

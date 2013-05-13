@@ -148,6 +148,16 @@ public:
         return key_idx_;
     }
 
+    Int &idx()
+    {
+    	return key_idx_;
+    }
+
+    const Int idx() const
+    {
+    	return key_idx_;
+    }
+
     NodeBaseG& page()
     {
         return path_.leaf().node();
@@ -257,7 +267,10 @@ public:
 
     void dumpKeys(ostream& out)
     {
-        out<<"KeyIdx:  "<<me()->key_idx()<<endl;
+    	auto& self = this->self();
+
+    	out<<"Stream:  "<<self.stream()<<endl;
+        out<<"Idx:  "<<self.idx()<<endl;
     }
 
     void dumpBeforePath(ostream& out){}

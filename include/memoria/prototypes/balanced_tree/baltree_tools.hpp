@@ -280,6 +280,15 @@ public:
         }
     }
 
+    StaticVector(std::initializer_list<ElementType> list)
+    {
+    	Int idx = 0;
+    	for (ElementType e: list)
+    	{
+    		values_[idx++] = e;
+    	}
+    }
+
     ElementType get() const
     {
     	return values_[0];

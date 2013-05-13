@@ -237,6 +237,7 @@ enum class WalkDirection {
 };
 
 enum class SearchType {LT, LE};
+enum class IteratorMode {FORWARD, BACKWARD};
 
 extern BigInt DebugCounter;
 extern size_t MemBase;

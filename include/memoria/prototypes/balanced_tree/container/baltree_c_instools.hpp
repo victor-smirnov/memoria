@@ -311,9 +311,11 @@ typename M_TYPE::Accumulator M_TYPE::getNonLeafCounters(const NodeBaseG& node, c
 M_PARAMS
 void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully)
 {
-    for (Int c = level; c < path.getSize(); c++)
+    auto& self = this->self();
+
+	for (Int c = level; c < path.getSize(); c++)
     {
-        if (me()->updateCounters(path[c].node(), idx, counters, reindex_fully))
+        if (self.updateCounters(path[c].node(), idx, counters, reindex_fully))
         {
             break;
         }
@@ -326,9 +328,11 @@ void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& cou
 M_PARAMS
 void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
 {
-    if (level < path.getSize() - 1)
+	auto& self = this->self();
+
+	if (level < path.getSize() - 1)
     {
-        me()->updateUp(path, level + 1, path[level].parent_idx(), counters);
+        self.updateUp(path, level + 1, path[level].parent_idx(), counters, true);
     }
 }
 
@@ -604,12 +608,12 @@ typename M_TYPE::TreePathItem M_TYPE::split(TreePath& path, Int level, const Pos
     node.update();
     parent.update();
 
-    NodeBaseG other = self.createNode(level, false, node->is_leaf(), node->page_size());
+    NodeBaseG other = self.createNode1(level, false, node->is_leaf(), node->page_size());
 
     Accumulator keys = self.moveElements(node, other, idx);
 
     //FIXME:: Make room in the parent
-    self.makeRoom(path, level + 1, parent_idx + 1, 1);
+    self.makeRoom(path, level + 1, 0, parent_idx + 1, 1);
 
     self.setChildID(parent, parent_idx + 1, other->id());
 
@@ -619,7 +623,7 @@ typename M_TYPE::TreePathItem M_TYPE::split(TreePath& path, Int level, const Pos
 
     if (level > 0)
     {
-        if (path[level - 1].parent_idx() < idx)
+        if (path[level - 1].parent_idx() < idx.get())
         {
             return TreePathItem(other, parent_idx + 1);
         }
@@ -629,7 +633,7 @@ typename M_TYPE::TreePathItem M_TYPE::split(TreePath& path, Int level, const Pos
             path[level    ].node()          = other;
             path[level    ].parent_idx()++;
 
-            path[level - 1].parent_idx()    -= idx;
+            path[level - 1].parent_idx()    -= idx.get();
 
             return item;
         }
@@ -667,7 +671,6 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
 //    	self.layoutNonLeafNode(other, active_streams);
 //    }
 
-
     Accumulator keys = self.moveElements(left_node, other, idx);
 
     Int parent_idx = left[level].parent_idx();
@@ -699,6 +702,9 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
     {
     	right.moveLeft(level - 1, 0, idx.get());
     }
+
+//    self.dump(left);
+//    self.dump(right);
 }
 
 

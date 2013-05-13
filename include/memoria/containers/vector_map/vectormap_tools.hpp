@@ -100,6 +100,8 @@ class VectorMapIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Ite
     BigInt size_		= 0;
     BigInt base_		= 0;
 
+    Int entry_idx_;
+
     static const Int MapIndexes 												= 2;
 
 public:
@@ -132,32 +134,56 @@ public:
     	return base_;
     }
 
+    Int entry_idx() const
+    {
+    	return entry_idx_;
+    }
 
-    void setup(BigInt id_prefix, BigInt id_entry, BigInt base, BigInt size)
+    void setEntryIdx(Int entry_idx)
+    {
+    	entry_idx_ = entry_idx;
+    }
+
+
+    void setup(BigInt id_prefix, BigInt id_entry, BigInt base, BigInt size, Int entry_idx)
     {
     	id_prefix_ 	= id_prefix;
     	id_entry_	= id_entry;
 
     	size_		= size;
     	base_		= base;
+
+    	entry_idx_	= entry_idx;
     }
 
-    void add(BigInt id_entry, BigInt size)
+    void add(BigInt id_entry, BigInt size, Int entry_idx)
     {
     	id_prefix_ 	+= id_entry_;
     	base_ 		+= size_;
 
     	id_entry_   = id_entry;
     	size_ 		= size;
+
+    	entry_idx_	= entry_idx;
     }
 
-    void sub(BigInt id_entry, BigInt size)
+    void sub(BigInt id_entry, BigInt size, Int entry_idx)
     {
-    	id_prefix_ 	-= id_entry_;
-    	base_ 		-= size_;
+    	id_prefix_ 	-= id_entry;
+    	base_ 		-= size;
 
     	id_entry_   = id_entry;
     	size_ 		= size;
+
+    	entry_idx_	= entry_idx;
+    }
+
+    void set(BigInt id_entry, BigInt size, Int entry_idx)
+    {
+    	id_entry_   = id_entry;
+    	size_ 		= size;
+
+    	entry_idx_	= entry_idx;
     }
 };
 

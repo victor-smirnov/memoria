@@ -156,10 +156,10 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     using FindEndWalker 	= ::memoria::vmap::FindVMapEndWalker<Types>;
 
     template <typename Types>
-    using FindRBeginWalker 	= ::memoria::map::FindRBeginWalker<Types>;
+    using FindRBeginWalker 	= ::memoria::vmap::FindVMapRBeginWalker<Types>;
 
     template <typename Types>
-    using FindREndWalker 	= ::memoria::map::FindREndWalker<Types>;
+    using FindREndWalker 	= ::memoria::vmap::FindVMapREndWalker<Types>;
 };
 
 

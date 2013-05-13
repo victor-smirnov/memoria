@@ -528,7 +528,7 @@ protected:
 	typedef typename Base::Iterator												Iterator;
 
 public:
-	PrevLeafWalkerBase(Int stream, Int index): Base(stream, index, 0)
+	PrevLeafWalkerBase(Int stream, Int index): Base(stream, index, 1)
 	{}
 
 	void finish(Iterator& iter, bool start)

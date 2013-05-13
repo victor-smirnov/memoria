@@ -65,13 +65,14 @@ public:
 
 	BigInt finish(Iterator& iter, Int idx)
 	{
-		iter.key_idx() 	= idx;
+		iter.idx() 	= idx;
 
 		BigInt id_prefix 	= std::get<0>(prefix_)[0];
 		BigInt base 		= std::get<0>(prefix_)[1];
 
 		BigInt id_entry 	= 0;
 		BigInt size 		= 0;
+
 
 
 		if (idx >=0 && idx < iter.leafSize(stream_))
@@ -85,7 +86,17 @@ public:
 			}
 		}
 
-		iter.cache().setup(id_prefix, id_entry, size, base);
+		Int entry_idx = 0;
+		if (stream_ == 0)
+		{
+			entry_idx = idx;
+		}
+		else {
+			// FIXME: correct entry_idx for data stream
+			entry_idx = iter.cache().entry_idx();
+		}
+
+		iter.cache().setup(id_prefix, id_entry, size, base, entry_idx);
 
 		return sum_;
 	}
@@ -93,7 +104,7 @@ public:
 
 	void empty(Iterator& iter)
 	{
-		iter.key_idx()	= 0;
+		iter.idx()	= 0;
 	}
 
 	BigInt prefix() const {
@@ -141,7 +152,7 @@ public:
 
 	BigInt finish(Iterator& iter, Int idx)
 	{
-		iter.key_idx() 	= idx;
+		iter.idx() 	= idx;
 
 		BigInt id_prefix 	= std::get<0>(prefix_)[0];
 		BigInt base 		= std::get<0>(prefix_)[1];
@@ -158,7 +169,7 @@ public:
 			size		= entry.second;
 		}
 
-		iter.cache().setup(id_prefix, id_entry, size, base);
+		iter.cache().setup(id_prefix, id_entry, size, base, idx);
 
 		return Base::sum_;
 	}
@@ -223,8 +234,8 @@ public:
 
 
 template <typename Types>
-class FindVMapEndWalker: public FindRangeWalkerBase<Types> {
-
+class FindVMapEndWalkerBase: public FindRangeWalkerBase<Types> {
+protected:
 	typedef FindRangeWalkerBase<Types> 											Base;
 	typedef typename Base::Iterator 											Iterator;
 	typedef typename Base::Container 											Container;
@@ -234,62 +245,114 @@ class FindVMapEndWalker: public FindRangeWalkerBase<Types> {
 
 	Accumulator 	prefix_;
 	Accumulator 	local_prefix_;
-	Int size_ 		= 0;
 
 	Int stream_;
 
+	IteratorMode mode_;
+
 public:
 	typedef Int ReturnType;
+	typedef Int ResultType;
 
-	FindVMapEndWalker(Int stream, Container&):
-		stream_(stream)
+	FindVMapEndWalkerBase(Int stream, Container&, IteratorMode mode):
+		stream_(stream),
+		mode_(mode)
 	{}
 
 	template <typename Node>
 	ReturnType treeNode(const Node* node, Int start)
 	{
-		node->process(stream_, *this, node->level(), start);
-		return size_ - 1;
-	}
-
-	template <Int Idx, typename TreeTypes>
-	void stream(const PackedFSEArray<TreeTypes>* tree, Int level, Int start)
-	{
-		MEMORIA_INVALID_STREAM(Idx);
+		return node->template processStreamRtn<0>(*this, node->level(), start);
 	}
 
 	template <Int StreamIdx, typename TreeTypes>
-	void stream(const PackedFSETree<TreeTypes>* tree, Int level, Int start)
+	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int level, Int start)
 	{
 		typedef PackedFSETree<TreeTypes> Tree;
 
+		Int size = tree->content_size_from_start(0);
+		Int idx = size - (mode_ == IteratorMode::FORWARD ? (level > 0) : 1);
+
 		for (Int block = 0; block < Tree::Blocks; block++)
 		{
-			std::get<StreamIdx>(local_prefix_)[block] = tree->sum(block);
+			std::get<StreamIdx>(local_prefix_)[block] = tree->sum(block, idx);
 		}
 
 		std::get<StreamIdx>(prefix_) += std::get<StreamIdx>(local_prefix_);
 
-		size_ = tree->size();
+		return idx;
 	}
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() = idx;
 
-		iter.found() = false;
-
-		BigInt id_prefix = std::get<0>(prefix_)[0];
-		BigInt base		 = std::get<0>(prefix_)[1];
-
-		iter.cache().setup(id_prefix, 0, base, 0);
-	}
 };
 
 
 template <typename Types>
-class FindVMapBeginWalker: public FindRangeWalkerBase<Types> {
+class FindVMapEndWalker: public FindVMapEndWalkerBase<Types> {
+	typedef FindVMapEndWalkerBase<Types> 										Base;
+	typedef typename Base::Container 											Container;
+	typedef typename Base::Iterator 											Iterator;
+public:
+	FindVMapEndWalker(Int stream, Container& ctr):
+		Base(stream, ctr, IteratorMode::FORWARD)
+	{}
 
+	void finish(Iterator& iter, Int idx)
+	{
+		iter.idx() = idx;
+
+		iter.found() = false;
+
+		BigInt id_prefix = std::get<0>(Base::prefix_)[0];
+		BigInt base		 = std::get<0>(Base::prefix_)[1];
+
+		iter.cache().setup(id_prefix, 0, base, 0, idx);
+	}
+
+};
+
+
+template <typename Types>
+class FindVMapRBeginWalker: public FindVMapEndWalkerBase<Types> {
+	typedef FindVMapEndWalkerBase<Types> 										Base;
+	typedef typename Base::Container 											Container;
+	typedef typename Base::Iterator 											Iterator;
+public:
+	FindVMapRBeginWalker(Int stream, Container& ctr):
+		Base(stream, ctr, IteratorMode::BACKWARD)
+	{}
+
+	void finish(Iterator& iter, Int idx)
+	{
+		iter.idx() = idx;
+
+		iter.found() = false;
+
+		BigInt id_prefix = std::get<0>(Base::prefix_)[0];
+		BigInt base		 = std::get<0>(Base::prefix_)[1];
+
+		if(idx < iter.leafSize(0))
+		{
+			auto entry		= iter.entry();
+
+			auto id_entry 	= entry.first;
+			auto size		= entry.second;
+
+			iter.cache().setup(id_prefix, id_entry, base, size, idx);
+		}
+		else {
+			iter.cache().setup(id_prefix, 0, base, 0, idx);
+		}
+	}
+};
+
+
+
+
+
+template <typename Types>
+class FindVMapStartWalkerBase: public FindRangeWalkerBase<Types> {
+protected:
 	typedef FindRangeWalkerBase<Types> 		Base;
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
@@ -300,7 +363,7 @@ class FindVMapBeginWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindVMapBeginWalker(Int stream, Container&)
+	FindVMapStartWalkerBase(Int stream, Container&)
 	{}
 
 	template <typename Node>
@@ -308,13 +371,47 @@ public:
 	{
 		return 0;
 	}
+};
 
+
+template <typename Types>
+class FindVMapBeginWalker: public FindVMapStartWalkerBase<Types> {
+	typedef FindVMapStartWalkerBase<Types> 										Base;
+	typedef typename Base::Iterator 											Iterator;
+	typedef typename Base::Container 											Container;
+public:
+
+	FindVMapBeginWalker(Int stream, Container& ctr): Base(stream, ctr)
+	{}
 
 	void finish(Iterator& iter, Int idx)
 	{
-		iter.key_idx() = 0;
+		iter.idx() = 0;
+
+		if (!iter.isEnd())
+		{
+			auto entry = iter.entry();
+			iter.cache().set(entry.first, entry.second, 0);
+		}
 	}
 };
+
+template <typename Types>
+class FindVMapREndWalker: public FindVMapStartWalkerBase<Types> {
+	typedef FindVMapStartWalkerBase<Types> 										Base;
+	typedef typename Base::Iterator 											Iterator;
+	typedef typename Base::Container 											Container;
+public:
+
+	FindVMapREndWalker(Int stream, Container& ctr): Base(stream, ctr)
+	{}
+
+	void finish(Iterator& iter, Int idx)
+	{
+		iter.idx() = -1;
+	}
+};
+
 
 
 }

@@ -649,10 +649,6 @@ public:
     	void stream(Tree* tree, Int room_start, Int room_length)
     	{
     		tree->insertSpace(room_start, room_length);
-    		for (Int c = room_start; c < room_start + room_length; c++)
-    		{
-    			tree->clearValues(c);
-    		}
     	}
     };
 
@@ -834,9 +830,10 @@ public:
 
     			tree->clear(0, shift);
 
+    			other_tree->size() = remainder + shift;
+
     			tree->copyTo(other_tree, idx, remainder, shift);
 
-    			other_tree->size() += remainder + shift;
     			other_tree->reindex();
 
     			tree->removeSpace(idx, remainder);
@@ -1076,7 +1073,7 @@ public:
     	{
     		for (Int c = 0; c < Tree::Blocks; c++)
     		{
-    			tree->updateUp(c, idx, std::get<Idx>(*accum)[c]);
+    			tree->value(c, idx) += std::get<Idx>(*accum)[c];
     		}
     	}
     };
@@ -1121,6 +1118,8 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
+
+        allocator_.generateDataEvents(handler);
 
         Dispatcher::dispatchNotEmpty(&allocator_, GenerateDataEventsFn(), handler);
 

@@ -227,7 +227,9 @@ public:
 
 	Int element_size(Int idx) const
 	{
-		return element_offset(idx + 1) - element_offset(idx);
+		Int size2 = element_offset(idx + 1);
+		Int size1 = element_offset(idx);
+		return size2 - size1;
 	}
 
 	Int element_size(const void* element_ptr) const
@@ -458,21 +460,28 @@ public:
 		handler->value("ALLOCATOR",     &Base::allocator_offset());
 
 		handler->value("BLOCK_SIZE",    &block_size_);
+
+		Int client_area = this->client_area();
+		Int free_space  = this->free_space();
+
+		handler->value("CLIENT_AREA",   &client_area);
+		handler->value("FREE_SPACE",   &free_space);
+
 		handler->value("LAYOUT_SIZE",   &layout_size_);
 		handler->value("BITMAP_SIZE",   &bitmap_size_);
 
-		Int layout_size = layout_size_ / 4;
-
-		handler->startGroup("LAYOUT", layout_size);
-
-		for (Int idx = 0; idx < layout_size; idx++)
-		{
-			handler->value("OFFSET", &element_offset(idx));
-		}
-
-		handler->endGroup();
-
-		handler->symbols("BITMAP", bitmap(), layout_size, 1);
+//		Int layout_size = layout_size_ / 4;
+//
+//		handler->startGroup("LAYOUT", layout_size);
+//
+//		for (Int idx = 0; idx < layout_size; idx++)
+//		{
+//			handler->value("OFFSET", &element_offset(idx));
+//		}
+//
+//		handler->endGroup();
+//
+//		handler->symbols("BITMAP", bitmap(), layout_size, 1);
 
 		handler->endGroup();
 	}

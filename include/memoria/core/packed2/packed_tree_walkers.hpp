@@ -460,7 +460,7 @@ public:
 	}
 
 	Int max_size() const {
-		return me_.max_size();
+		return me_.raw_max_size();
 	}
 
 	Int index_size() const {
@@ -468,7 +468,7 @@ public:
 	}
 
 	Int size() const {
-		return me_.size();
+		return me_.raw_size();
 	}
 
 	Int walkFirstValuesBlock(Int start, Int end)
@@ -479,7 +479,7 @@ public:
 	Int walkLastValuesBlock(Int value_block_num)
 	{
 		Int pos = value_block_num * Tree::Types::ValuesPerBranch;
-		Int end = me_.size();
+		Int end = me_.raw_size();
 
 		return walkValues(pos, end);
 	}

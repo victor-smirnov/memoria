@@ -602,11 +602,11 @@ public:
 	}
 
 	Int size() const {
-		return me_.size();
+		return me_.raw_size();
 	}
 
 	Int maxSize() const {
-		return me_.max_size();
+		return me_.raw_max_size();
 	}
 
 	Int indexSize() const {

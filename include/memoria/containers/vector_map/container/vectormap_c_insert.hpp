@@ -68,10 +68,204 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
     BigInt removeData(Iterator& iter, BigInt size);
     BigInt updateData(Iterator& iter, DataSource& data);
 
+    void insert(Iterator& iter, BigInt id, DataSource& data);
+
+    void splitLeaf(Iterator& iter, Int split_idx = -1);
+
+    template <typename EntryData>
+    void insertEntry(Iterator& iter, const EntryData&);
+
+private:
+    void splitLeafData(Iterator& iter, Int split_idx = -1);
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+M_PARAMS
+template <typename EntryData>
+void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
+{
+	Base::insertEntry(iter, entry);
+	iter.cache().set(entry.first, entry.second, iter.idx());
+}
+
+M_PARAMS
+void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
+{
+	auto& self = this->self();
+
+//	iter.dump();
+
+	std::pair<BigInt, BigInt> pair(id, src.getSize());
+
+	NodeBaseG& leaf = iter.leaf();
+
+	if (self.checkCapacities(leaf, {1, src.getSize()}) || self.isNodeEmpty(leaf))
+	{
+		self.insertEntry(iter, pair);
+		iter.findData(0);
+		self.insertData(iter, src);
+	}
+	else
+	{
+		Int map_stream_size = iter.leafSize(0);
+
+		if (iter.idx() < map_stream_size)
+		{
+			self.splitLeaf(iter, iter.idx());
+
+			self.insertEntry(iter, pair);
+			iter.findData(0);
+			self.insertData(iter, src);
+		}
+		else {
+			iter--;
+
+			Int blob_size 		= iter.blob_size();
+			Int leaf_data_size 	= iter.leafSize(1);
+			Int blob_offset 	= iter.data_offset();
+
+			if (blob_offset + blob_size > leaf_data_size)
+			{
+				iter.findData(blob_size);
+
+				Int capacity = iter.leaf_capacity(0);
+
+				if (capacity == 1)
+				{
+					if (src.getSize() > 0)
+					{
+						Int data_capacity = iter.leaf_capacity({1, 0}, 1);
+						if (data_capacity == 0)
+						{
+							self.splitLeafData(iter);
+						}
+					}
+				}
+				else if (capacity == 0)
+				{
+					self.splitLeafData(iter);
+				}
+
+				Int data_pos = iter.idx();
+
+				iter.idx() 		= 0;
+				iter.stream() 	= 0;
+
+				Base::insertEntry(iter, pair);
+
+				iter.cache().add(pair.first, pair.second, iter.idx());
+
+				iter.idx() 		= data_pos;
+				iter.stream() 	= 1;
+
+				self.insertData(iter, src);
+			}
+			else {
+				MEMORIA_ASSERT_TRUE(blob_offset + blob_size == leaf_data_size);
+
+				iter++;
+
+				Int data_capacity = iter.leaf_capacity({1, 0}, 1);
+
+				if (data_capacity > 0 || src.getSize() == 0)
+				{
+					self.insertEntry(iter, pair);
+					iter.findData(0);
+					self.insertData(iter, src);
+				}
+				else {
+					self.splitLeaf(iter, iter.idx());
+					self.insertEntry(iter, pair);
+
+					iter.stream() = 1;
+					iter.idx()    = 0;
+
+					self.insertData(iter, src);
+				}
+			}
+		}
+	}
+}
+
+
+
+M_PARAMS
+void M_TYPE::splitLeaf(Iterator& iter, Int split_idx)
+{
+	auto& self = this->self();
+
+	if (split_idx == -1)
+	{
+		split_idx = iter.leaf_size(0) / 2;
+	}
+
+	UBigInt active_streams = self.getActiveStreams(iter.leaf());
+
+	if (split_idx < iter.idx())
+	{
+		Int data_offset = iter.data_offset_for(split_idx);
+
+		auto right = iter.path();
+
+		self.splitPath(iter.path(), right, 0, {split_idx, data_offset}, active_streams);
+
+		iter.idx() -= split_idx;
+	}
+	else if (split_idx == iter.idx())
+	{
+		Int data_offset = iter.data_offset();
+
+		auto right = iter.path();
+
+		self.splitPath(iter.path(), right, 0, {split_idx, data_offset}, active_streams);
+
+		Int left_data_capacity  = iter.leaf_capacity({1, 0}, 1);
+		Int right_data_capacity = self.getStreamCapacity(right.leaf(), {1, 0}, 1);
+
+		if (right_data_capacity > left_data_capacity)
+		{
+			iter.path() = right;
+			iter.idx()  = 0;
+
+			iter.cache().setEntryIdx(iter.idx());
+		}
+		else {
+			iter.cache().set(0, 0, iter.idx());
+		}
+	}
+	else {
+		Int data_offset = iter.data_offset_for(split_idx);
+
+		auto right = iter.path();
+
+		self.splitPath(iter.path(), right, 0, {split_idx, data_offset}, active_streams);
+	}
+}
+
+M_PARAMS
+void M_TYPE::splitLeafData(Iterator& iter, Int split_idx)
+{
+	auto& self = this->self();
+
+	if (split_idx == -1)
+	{
+		split_idx = iter.idx() / 2;
+	}
+
+	auto right = iter.path();
+	self.split(iter.path(), right, 0, {0, split_idx});
+
+	iter.path() = right;
+
+	if (split_idx <= iter.idx())
+	{
+		iter.idx() -= split_idx;
+	}
+}
+
 
 M_PARAMS
 void M_TYPE::replaceEntry(BigInt id, DataSource& data)
@@ -115,7 +309,7 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
 	auto& ctr  = self;
 
 	TreePath& path = iter.path();
-	Position idx(iter.key_idx());
+	Position idx(iter.idx());
 
 	vmap::VectorMapSource source(&data);
 
