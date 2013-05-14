@@ -279,13 +279,19 @@ private:
 
 			Int limit = (ValuesPerBranch - 1 < Base::size()) ? ValuesPerBranch - 1 : Base::size() - 1;
 
+
+			IndexKey cell = 0;
+
 			for (Int c = 0; c < Base::size(); c++)
 			{
-				Base::indexes_[0][index_level_start] += Base::me_[c];
+				cell += Base::me_[c];
 
 				if (c == limit)
 				{
+					Base::indexes_[0][index_level_start] = cell;
+
 					index_level_start++;
+					cell = 0;
 
 					if (limit + ValuesPerBranch < Base::size())
 					{
@@ -379,6 +385,19 @@ public:
 
 	Value first_value(Int block) const {
 		return value(block, 0);
+	}
+
+	void clearIndex()
+	{
+		for (Int i = 0; i < Indexes; i++)
+		{
+			auto index = this->indexes(i);
+
+			for (Int c = 0; c < index_size_; c++)
+			{
+				index[c] = 0;
+			}
+		}
 	}
 
 	void clear(Int start, Int end)

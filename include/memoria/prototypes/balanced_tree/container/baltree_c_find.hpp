@@ -202,10 +202,10 @@ typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
 			Int idx;
 			if (!out_of_range)
 			{
-				i.key_idx() = idx = NodeDispatcher::dispatchConstRtn(node, walker, 0);
+				i.idx() = idx = NodeDispatcher::dispatchConstRtn(node, walker, 0);
 			}
 			else {
-				i.key_idx() = idx = self.getNodeSize(node, stream);
+				i.idx() = idx = self.getNodeSize(node, stream);
 			}
 
 			walker.finish(i, idx);

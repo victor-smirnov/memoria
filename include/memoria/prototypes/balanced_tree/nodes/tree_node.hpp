@@ -665,6 +665,10 @@ public:
     {
     	Int size = this->size();
 
+    	if (room_start > size) {
+    		int a = 0; a++;
+    	}
+
     	MEMORIA_ASSERT(room_start, <=, size);
     	MEMORIA_ASSERT(stream, ==, 0);
 
@@ -933,6 +937,8 @@ public:
     			auto k = std::get<Idx>(*keys)[c];
     			tree->value(c, idx) = k;
     		}
+
+    		tree->reindex();
     	}
     };
 

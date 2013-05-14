@@ -76,6 +76,11 @@ void M_TYPE::insert(Iterator& iter, DataSource& data)
 	TreePath& path = iter.path();
 	Position idx(iter.key_idx());
 
+	if (ctr.isNodeEmpty(iter.leaf()))
+	{
+		ctr.layoutLeafNode(iter.leaf(), 0);
+	}
+
 	mvector::VectorSource source(&data);
 
 	typename Base::DefaultSubtreeProvider provider(self, Position(data.getSize()), source);

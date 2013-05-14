@@ -197,6 +197,11 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 		return data[pos++];
 	});
 
+	if (ctr.isNodeEmpty(iter.leaf()))
+	{
+		ctr.layoutNode(iter.leaf(), ActiveStreams);
+	}
+
 	ctr.insertSubtree(path, idx, provider);
 
 	ctr.addTotalKeyCount(Position(data.size()));

@@ -174,6 +174,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
     }
 
 
+    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
+    void layoutLeafNode(NodeBaseG& node, Int size) const
+    {
+    	LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
+    }
+
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrToolsName)

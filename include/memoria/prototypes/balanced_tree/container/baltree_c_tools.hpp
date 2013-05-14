@@ -536,7 +536,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     {
     	node->updateUp(idx, keys);
 
-    	if (reindex_fully)
+    	//if (reindex_fully)
     	{
     		node->reindex();
     	}
@@ -601,6 +601,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     }
 
     void initLeaf(NodeBaseG& node) const {}
+
+    MEMORIA_DECLARE_NODE_FN_RTN(IsNodeEmpty, is_empty, bool);
+    bool isNodeEmpty(const NodeBaseG& node)
+    {
+    	return NodeDispatcher::dispatchConstRtn(node, IsNodeEmpty());
+    }
+
 
 private:
 

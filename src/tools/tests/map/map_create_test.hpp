@@ -63,7 +63,7 @@ public:
         try {
             for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
-                auto iter = map[pairs[vector_idx_].key_];
+            	auto iter = map[pairs[vector_idx_].key_];
 
                 iter.value() = pairs[vector_idx_].value_;
 

@@ -38,7 +38,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
 	void updateUp(const Accumulator& keys)
 	{
-		self().model().updateUp(self().path(), 0, self().entry_idx(), keys);
+		self().model().updateUp(self().path(), 0, self().entry_idx(), keys, true);
 	}
 
 	Key rawKey() const {

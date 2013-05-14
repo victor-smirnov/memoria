@@ -49,7 +49,7 @@ protected:
     Int random_position_;
     String dump_name_;
 
-    typedef std::function<void (MyType*, Ctr&)> 										TestFn;
+    typedef std::function<void (MyType*, Allocator&, Ctr&)> 							TestFn;
 
 public:
 
@@ -273,7 +273,7 @@ public:
     	try {
     		while (ctr.size() < size_)
     		{
-    			test_fn(this, ctr);
+    			test_fn(this, allocator, ctr);
 
     			out()<<"Size: "<<ctr.size()<<endl;
 
@@ -308,7 +308,7 @@ public:
 
     		while (ctr.size() > 0)
     		{
-    			test_fn(this, ctr);
+    			test_fn(this, allocator, ctr);
 
     			out()<<"Size: "<<ctr.size()<<endl;
 
@@ -333,13 +333,13 @@ public:
 
     	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
 
-    	test_fn(this, ctr);
+    	test_fn(this, allocator, ctr);
 
     	check(allocator, "Insert: Container Check Failed", MA_SRC);
     }
 
 
-    void insertFromStart(Ctr& ctr)
+    void insertFromStart(Allocator&, Ctr& ctr)
     {
     	Iterator iter = seek(ctr, 0);
 
@@ -371,7 +371,7 @@ public:
 
 
 
-    void insertAtEnd(Ctr& ctr)
+    void insertAtEnd(Allocator&, Ctr& ctr)
     {
     	Iterator iter = seek(ctr, getSize(ctr));
     	checkIterator(iter, MA_SRC);
@@ -410,7 +410,7 @@ public:
 
 
 
-    void insertInTheMiddle(Ctr& ctr)
+    void insertInTheMiddle(Allocator&, Ctr& ctr)
     {
     	Iterator iter 	 = seek(ctr, getRandomPosition(ctr));
 
@@ -446,7 +446,7 @@ public:
 
     int cnt = 0;
 
-    void removeFromStart(Ctr& ctr)
+    void removeFromStart(Allocator&, Ctr& ctr)
     {
     	Int size;
 
@@ -483,7 +483,7 @@ public:
 
 
 
-    void removeAtEnd(Ctr& ctr)
+    void removeAtEnd(Allocator&, Ctr& ctr)
     {
     	Int size;
 
@@ -527,7 +527,7 @@ public:
 
 
 
-    void removeInTheMiddle(Ctr& ctr)
+    void removeInTheMiddle(Allocator& allocator, Ctr& ctr)
     {
     	Iterator iter 	 = seek(ctr, getRandomPosition(ctr));
 
@@ -554,6 +554,7 @@ public:
 
     	MemBuffer prefix = createPrefixCheckBuffer(iter);
 
+
     	BigInt position = getPosition(iter);
 
     	skip(iter, size);
@@ -563,8 +564,13 @@ public:
     	skip(iter,  -size);
 
     	remove(iter, size);
+    	check(allocator, "Remove: Container Check Failed", MA_SRC);
 
     	checkIterator(iter, MA_SRC);
+
+    	iter.skip(-1);
+
+    	iter.skip(1);
 
     	AssertEQ(MA_SRC, getPosition(iter), position);
 
