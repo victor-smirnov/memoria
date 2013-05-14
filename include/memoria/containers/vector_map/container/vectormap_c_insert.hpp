@@ -96,7 +96,7 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 {
 	auto& self = this->self();
 
-	BigInt id_entry_value = id - iter.id();
+	BigInt id_entry_value = id - iter.cache().id_prefix();
 
 	std::pair<BigInt, BigInt> pair(id_entry_value, src.getSize());
 
@@ -119,7 +119,9 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 			self.splitLeaf(iter, iter.idx());
 
 			self.insertEntry(iter, pair);
-			iter.seek(0);
+
+			iter.seekLocal();
+
 			self.insertData(iter, src);
 		}
 		else {
@@ -175,7 +177,7 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 				if (data_capacity > 0 || src.getSize() == 0)
 				{
 					self.insertEntry(iter, pair);
-					iter.seek(0);
+					iter.seekLocal();
 					self.insertData(iter, src);
 				}
 				else {
@@ -194,6 +196,7 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 	if (!at_the_end)
 	{
 		iter.findEntry();
+
 		iter++;
 
 		Accumulator accum;
@@ -293,7 +296,7 @@ void M_TYPE::replaceEntry(BigInt id, DataSource& data)
 	if (!iter.found())
 	{
 		self.insertEntry(iter, std::pair<BigInt, BigInt>(id, data.getSize()));
-		iter.findData();
+		iter.seekLocal();
 		self.insertData(iter, data);
 	}
 	else {

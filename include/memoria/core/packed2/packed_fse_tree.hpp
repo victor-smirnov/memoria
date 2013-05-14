@@ -756,9 +756,15 @@ public:
 
 		Int pos = this->find_fw(fn);
 
-		Value actual_value = value(pos);
+		if (pos < block_start + size_)
+		{
+			Value actual_value = value(pos);
 
-		return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
+			return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
+		}
+		else {
+			return ValueDescr(0, size_, sum(block));
+		}
 	}
 
 
@@ -852,9 +858,15 @@ public:
 
 		Int pos = this->find_fw(fn);
 
-		Value actual_value = value(pos);
+		if (pos < block_start + size_)
+		{
+			Value actual_value = value(pos);
 
-		return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
+			return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
+		}
+		else {
+			return ValueDescr(0, size_, sum(block));
+		}
 	}
 
 	ValueDescr findLEBackward(Int block, Int start, IndexKey val) const
@@ -993,6 +1005,10 @@ public:
 
 	void insertSpace(Int idx, Int room_length)
 	{
+		if (idx > this->size()) {
+			int a = 0; a++;
+		}
+
 		MEMORIA_ASSERT(idx, <=, this->size());
 
 		if (capacity() < room_length)

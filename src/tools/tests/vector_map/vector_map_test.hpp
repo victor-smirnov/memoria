@@ -79,7 +79,8 @@ public:
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
 
-        MEMORIA_ADD_TEST_WITH_REPLAY(testOrderedCreation, replayOrderedCreation);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testOrderedCreation, replayOrderedCreation);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testRandomCreation, replayRandomCreation);
     }
 
     virtual ~VectorMapTest() throw() {}
@@ -126,7 +127,7 @@ public:
 
     		if (isReplayMode())
     		{
-    			cout<<id<<" "<<size<<endl;
+    			cout<<idx<<" "<<id<<" "<<size<<endl;
     		}
 
     		AssertEQ(MA_SRC, id, tripple.id());
@@ -140,11 +141,13 @@ public:
     			auto value = iter.value();
 
     			AssertEQ(MA_SRC, (Int)value, (Int)tripple.data());
+    			AssertEQ(MA_SRC, iter.pos(), size0);
 
     			iter.skipFw(1);
     		}
 
     		AssertEQ(MA_SRC, size, size0);
+    		AssertEQ(MA_SRC, iter.pos(), size0);
 
     		iter++;
     	}
@@ -208,7 +211,11 @@ public:
     	iter.seek(0);
 
     	AssertEQ(MA_SRC, iter.pos(), 0);
-    	AssertFalse(MA_SRC, iter.isBof());
+
+    	if (size > 0)
+    	{
+    		AssertFalse(MA_SRC, iter.isBof());
+    	}
 
     	BigInt size_cnt;
     	for (size_cnt = 0; !iter.isEof(); size_cnt++)
@@ -290,6 +297,16 @@ public:
     	replay(&MyType::orderedCreationTest);
     }
 
+    void testRandomCreation()
+    {
+    	test(&MyType::randomCreationTest);
+    }
+
+    void replayRandomCreation()
+    {
+    	replay(&MyType::randomCreationTest);
+    }
+
     void orderedCreationTest(Allocator& allocator, Ctr& map)
     {
     	if (!isReplayMode())
@@ -314,6 +331,57 @@ public:
     	}
     	catch(...) {
     		tripples_.pop_back();
+    		throw;
+    	}
+    }
+
+    BigInt getNewRandomId(Ctr& map)
+    {
+    	BigInt id;
+
+    	do {
+    		id = getBIRandom(10000);
+    	}
+    	while(map.contains(id));
+
+    	return id;
+    }
+
+    void randomCreationTest(Allocator& allocator, Ctr& map)
+    {
+    	if (!isReplayMode())
+    	{
+    		data_size_  = getRandom(max_block_size_);
+    		data_		= iteration_ & 0xFF;
+    		key_ 		= getNewRandomId(map);
+    	}
+
+    	vector<Byte> data = createSimpleBuffer<Byte>(data_size_, data_);
+
+    	MemBuffer<Byte> buf(data);
+
+    	auto iter = map.create(key_, buf);
+
+    	UInt insertion_pos;
+    	for (insertion_pos = 0; insertion_pos < tripples_.size(); insertion_pos++)
+    	{
+    		if (key_ <= tripples_[insertion_pos].id())
+    		{
+    			break;
+    		}
+    	}
+
+    	tripples_.insert(tripples_.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), data_));
+
+    	try {
+    		checkBlock(iter, iter.id(), data_size_, data_);
+
+    		checkDataFw(tripples_, map);
+    		checkDataBw(tripples_, map);
+    	}
+    	catch(...)
+    	{
+    		tripples_.erase(tripples_.begin() + insertion_pos);
     		throw;
     	}
     }

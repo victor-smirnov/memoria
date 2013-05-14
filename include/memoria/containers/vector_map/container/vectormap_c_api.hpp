@@ -96,6 +96,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     		iter.found() 	= true;
     		iter.findData(0);
     	}
+    	else {
+    		iter.found() 	= false;
+    	}
 
     	return iter;
     }

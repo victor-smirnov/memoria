@@ -169,7 +169,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		BigInt pos = self.pos();
 		BigInt size = self.cache().size();
 
-		return pos >= size;
+		return size == 0 || pos >= size;
 	}
 
 	bool isBof() const
@@ -179,7 +179,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		BigInt pos = self.pos();
 
-		return pos < 0;
+		return self.blob_size() == 0 || pos < 0;
 	}
 
 
@@ -413,17 +413,43 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		if (self.stream() == 0)
 		{
-			Int data_offset = self.data_offset();
+			if (self.blob_size() > 0)
+			{
+				Int data_offset = self.data_offset();
 
-			self.stream() 	= 1;
-			self.idx() 		= 0;
+				self.stream() 	= 1;
+				self.idx() 		= 0;
 
-			return self.skipFw(data_offset + offset) - data_offset;
+				return self.skipFw(data_offset + offset) - data_offset;
+			}
+			else {
+				self.seekLocal();
+				return 0;
+			}
 		}
 		else
 		{
 			findEntry();
-			return findData(offset);
+			return seek(offset);
+		}
+	}
+
+
+	void seekLocal()
+	{
+		auto& self = this->self();
+
+		if (self.stream() == 0)
+		{
+			Int data_offset = self.data_offset();
+
+			self.stream() 	= 1;
+			self.idx() 		= data_offset;
+		}
+		else
+		{
+			findEntry();
+			seekLocal();
 		}
 	}
 
@@ -542,13 +568,48 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	return LeafDispatcher::dispatchConstRtn(self.leaf().node(), ReadValueFn(), self.idx());
     }
 
+    struct UpdateFn {
+
+    	template <typename Node>
+    	void treeNode(Node* node, Int offset, const Accumulator& keys)
+    	{
+    		node->template processStream<0>(*this, offset, keys);
+    	}
+
+    	template <Int StreamIdx, typename StreamType>
+    	void stream(StreamType* obj, Int offset, const Accumulator& keys)
+    	{
+    		obj->updateUp(0, offset, std::get<0>(keys)[0]);
+    		obj->updateUp(1, offset, std::get<0>(keys)[1]);
+    		obj->reindex();
+    	}
+    };
+
     void update(const Accumulator& accum)
     {
     	auto& self = this->self();
 
     	MEMORIA_ASSERT_TRUE(self.stream() == 0);
 
-    	self.model().updateUp(self.path(), 0, self.idx(), accum, true);
+    	NodeBaseG& leaf = self.leaf();
+
+    	leaf.update();
+    	LeafDispatcher::dispatch(leaf, UpdateFn(), self.idx(), accum);
+
+    	self.model().updateUp(self.path(), 1, self.leaf().parent_idx(), accum, true);
+    }
+
+    void dump() {
+    	auto cache = self().cache();
+
+    	cout<<"Cache: " <<cache.id()
+    					<<" "<<cache.id_prefix()
+    					<<" "<<cache.id_entry()
+    					<<" "<<cache.size()
+    					<<" "<<cache.blob_base()
+    					<<" "<<cache.entry_idx()
+    					<<endl;
+    	Base::dump();
     }
 
 MEMORIA_ITERATOR_PART_END

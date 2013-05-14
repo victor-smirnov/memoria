@@ -47,7 +47,7 @@ public:
     
     Iter(Container &model, Int levels = 0): Base(), model_(model)
     {
-        Base::key_idx()     = 0;
+        Base::idx() = 0;
 
         Base::path().resize(levels);
     }

@@ -140,7 +140,7 @@ public:
 		auto& index 	= Base::index_;
 
 		std::get<StreamIdx>(prefix_)[index] 		+= result.prefix();
-		std::get<StreamIdx>(prefix_)[1 - index] 	+= tree->sum(index, start, result.idx());
+		std::get<StreamIdx>(prefix_)[1 - index] 	+= tree->sum(1 - index, start, result.idx());
 	}
 
 
@@ -169,7 +169,7 @@ public:
 			size		= entry.second;
 		}
 
-		iter.cache().setup(id_prefix, id_entry, size, base, idx);
+		iter.cache().setup(id_prefix, id_entry, base, size, idx);
 
 		return Base::sum_;
 	}
