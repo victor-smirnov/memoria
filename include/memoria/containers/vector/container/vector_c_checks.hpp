@@ -216,7 +216,7 @@ bool M_TYPE::checkNodeWithParentContent1(
 M_PARAMS
 bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node) const
 {
-    bool errors = false;
+	bool errors = self().checkContent(node);
 
     if (parent.isSet())
     {

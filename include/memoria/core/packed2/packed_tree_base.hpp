@@ -56,7 +56,7 @@ protected:
 protected:
 
 	template <typename Functor>
-	void reindex(Int start, Int end, Functor& fn)
+	void reindex(Int start, Int end, Functor& fn) const
 	{
 		MEMORIA_ASSERT(start, >=, 0);
 		MEMORIA_ASSERT(end, <=, fn.size());
@@ -639,6 +639,68 @@ public:
 		}
 	}
 };
+
+
+
+template <typename MyType>
+class CheckFnBase {
+public:
+	static const Int Indexes        		= MyType::Indexes;
+
+	typedef typename MyType:: IndexKey 		IndexKey;
+
+protected:
+	const MyType& me_;
+
+	const IndexKey* indexes_[Indexes];
+
+public:
+	CheckFnBase(const MyType& me): me_(me)
+	{
+		for (Int idx = 0; idx < Indexes; idx++)
+		{
+			indexes_[idx] = me.indexes(idx);
+		}
+	}
+
+	Int size() const {
+		return me_.raw_size();
+	}
+
+	Int maxSize() const {
+		return me_.raw_max_size();
+	}
+
+	Int indexSize() const {
+		return me_.index_size();
+	}
+
+	void clearIndex(Int start, Int end) const
+	{
+
+	}
+
+	void processIndex(Int parent, Int start, Int end)
+	{
+		for (Int idx = 0; idx < Indexes; idx++)
+		{
+			IndexKey sum = 0;
+
+			for (Int c = start; c < end; c++)
+			{
+				sum += indexes_[idx][c];
+			}
+
+			if (indexes_[idx][parent] != sum)
+			{
+				throw Exception(MA_SRC,
+						SBuf()<<"Invalid index: index["<<idx<<"]["<<parent<<"]="<<indexes_[idx][parent]<<", actual="<<sum);
+			}
+		}
+	}
+};
+
+
 
 
 }

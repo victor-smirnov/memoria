@@ -43,9 +43,9 @@ public:
 
     bool checkTree() const;
 
-    bool check(void *data) const {
+    bool check(void *data) const
+    {
         return self().checkTree();
-//    	return false;
     }
 
 //PRIVATE API:
@@ -56,7 +56,8 @@ public:
     }
 
     template <typename Node>
-    bool checkNodeContent(const Node *node) const {
+    bool checkNodeContent(const Node *node) const
+    {
         return false;
     }
 
@@ -72,6 +73,21 @@ public:
 
     bool check_keys() const {
         return false;
+    }
+
+    MEMORIA_DECLARE_NODE_FN(CheckContentFn, check);
+
+    bool checkContent(const NodeBaseG& node) const
+    {
+    	try {
+    		NodeDispatcher::dispatchConst(node, CheckContentFn());
+    		return false;
+    	}
+    	catch (Exception ex)
+    	{
+    		MEMORIA_ERROR(me(), ex.message());
+    		return true;
+    	}
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -177,7 +193,7 @@ bool M_TYPE::checkNodeWithParentContent(const Node1 *node, const Node2 *parent, 
 M_PARAMS
 bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node) const
 {
-    bool errors = false;
+    bool errors = self().checkContent(node);
 
     if (parent.isSet())
     {

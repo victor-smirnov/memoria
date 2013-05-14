@@ -306,6 +306,55 @@ private:
 	};
 
 
+	class CheckFn: public CheckFnBase<MyType> {
+		typedef CheckFnBase<MyType> Base;
+	public:
+		CheckFn(const MyType& me): Base(me) {}
+
+		void buildFirstIndexLine(Int index_level_start, Int index_level_size) const
+		{
+			if (Base::me_.index_size() == 0)
+			{
+				return;
+			}
+
+			Int limit = (ValuesPerBranch - 1 < Base::size()) ? ValuesPerBranch - 1 : Base::size() - 1;
+
+
+			IndexKey cell = 0;
+
+			for (Int c = 0; c < Base::size(); c++)
+			{
+				cell += Base::me_[c];
+
+				if (c == limit)
+				{
+					//Base::indexes_[0][index_level_start] = cell;
+
+					if (Base::indexes_[0][index_level_start] != cell)
+					{
+						throw Exception(MA_SRC,
+								SBuf()<<"Invalid first index: index["<<0<<"]["
+									  <<index_level_start<<"]="<<Base::indexes_[0][index_level_start]
+								      <<", actual="<<cell);
+					}
+
+					index_level_start++;
+					cell = 0;
+
+					if (limit + ValuesPerBranch < Base::size())
+					{
+						limit += ValuesPerBranch;
+					}
+					else {
+						limit = Base::size() - 1;
+					}
+				}
+			}
+		}
+	};
+
+
 
 public:
 
@@ -315,6 +364,13 @@ public:
 		Base::reindex(0, size(), fn);
 	}
 
+	void check() const
+	{
+		CheckFn fn(*this);
+		Base::reindex(0, size(), fn);
+	}
+
+
 	// ==================================== Value ========================================== //
 
 	Value& operator[](Int idx)
@@ -322,7 +378,7 @@ public:
 		return value(idx);
 	}
 
-	Value& operator[](Int idx) const
+	const Value& operator[](Int idx) const
 	{
 		return value(idx);
 	}

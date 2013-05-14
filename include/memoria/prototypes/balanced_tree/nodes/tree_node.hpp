@@ -524,6 +524,19 @@ public:
     	Dispatcher::dispatchNotEmpty(&allocator_, ReindexFn());
     }
 
+    struct CheckFn {
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree)
+    	{
+    		tree->check();
+    	}
+    };
+
+    void check() const
+    {
+    	Dispatcher::dispatchNotEmpty(&allocator_, CheckFn());
+    }
+
 
     template <typename TreeType>
     struct TransferToFn {

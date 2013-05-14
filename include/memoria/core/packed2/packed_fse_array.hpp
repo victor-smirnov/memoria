@@ -163,7 +163,7 @@ public:
 	// =================================== Update ========================================== //
 
 	void reindex() {}
-
+	void check() const {}
 
 	bool ensureCapacity(Int size)
 	{
