@@ -564,7 +564,6 @@ public:
     	skip(iter,  -size);
 
     	remove(iter, size);
-    	check(allocator, "Remove: Container Check Failed", MA_SRC);
 
     	checkIterator(iter, MA_SRC);
 

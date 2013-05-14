@@ -143,28 +143,45 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		}
 	}
 
-	bool isEof() const
+	bool isEnd() const
 	{
 		auto& self = this->self();
 
-		if (self.stream() == 0)
-		{
-			return self.idx() >= self.leafSize(0);
-		}
-		else {
-			if (self.idx() < self.leafSize(1))
-			{
-				return self.pos() >= self.cache().size();
-			}
-			else {
-				return true;
-			}
-		}
+		MEMORIA_ASSERT_TRUE(self.stream() == 0);
+
+		return self.idx() >= self.leafSize(0);
 	}
-//
-//	bool isBof() const {
-//		return self().key_idx() < 0;
-//	}
+
+	bool isBegin() const
+	{
+		auto& self = this->self();
+
+		MEMORIA_ASSERT_TRUE(self.stream() == 0);
+
+		return self.idx() < 0;
+	}
+
+	bool isEof() const
+	{
+		auto& self = this->self();
+		MEMORIA_ASSERT_TRUE(self.stream() == 1);
+
+		BigInt pos = self.pos();
+		BigInt size = self.cache().size();
+
+		return pos >= size;
+	}
+
+	bool isBof() const
+	{
+		auto& self = this->self();
+		MEMORIA_ASSERT_TRUE(self.stream() == 1);
+
+		BigInt pos = self.pos();
+
+		return pos < 0;
+	}
+
 
 	BigInt id() const
 	{
@@ -273,7 +290,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 	BigInt pos() const
 	{
 		auto& self = this->self();
-		return self.global_pos() - self.cache().blob_base();
+
+		BigInt global_pos = self.global_pos();
+		BigInt blob_base  = self.cache().blob_base();
+
+		return global_pos - blob_base;
 	}
 
 	BigInt blob_size() const {
@@ -381,8 +402,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		return local_base + local_offset;
 	}
 
-
 	BigInt findData(BigInt offset = 0)
+	{
+		return seek(offset);
+	}
+
+	BigInt seek(BigInt offset)
 	{
 		auto& self = this->self();
 
@@ -427,7 +452,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		{
 			BigInt offset = self.pos();
 
-			self.skipBw(offset);
+			self.skip(-offset);
+
 
 //			Int leaf_offset = self.idx();
 //
@@ -442,6 +468,19 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 //			self.idx() = entry_idx;
 
 			self.stream() = 0;
+		}
+	}
+
+	BigInt skip(BigInt offset)
+	{
+		auto& self = this->self();
+
+		if (offset > 0)
+		{
+			return self.skipFw(offset);
+		}
+		else {
+			return self.skipBw(-offset);
 		}
 	}
 
@@ -501,6 +540,15 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
     	return LeafDispatcher::dispatchConstRtn(self.leaf().node(), ReadValueFn(), self.idx());
+    }
+
+    void update(const Accumulator& accum)
+    {
+    	auto& self = this->self();
+
+    	MEMORIA_ASSERT_TRUE(self.stream() == 0);
+
+    	self.model().updateUp(self.path(), 0, self.idx(), accum, true);
     }
 
 MEMORIA_ITERATOR_PART_END

@@ -96,16 +96,18 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 {
 	auto& self = this->self();
 
-//	iter.dump();
+	BigInt id_entry_value = id - iter.id();
 
-	std::pair<BigInt, BigInt> pair(id, src.getSize());
+	std::pair<BigInt, BigInt> pair(id_entry_value, src.getSize());
 
 	NodeBaseG& leaf = iter.leaf();
+
+	bool at_the_end = iter.isEnd();
 
 	if (self.checkCapacities(leaf, {1, src.getSize()}) || self.isNodeEmpty(leaf))
 	{
 		self.insertEntry(iter, pair);
-		iter.findData(0);
+		iter.seek(0);
 		self.insertData(iter, src);
 	}
 	else
@@ -117,19 +119,19 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 			self.splitLeaf(iter, iter.idx());
 
 			self.insertEntry(iter, pair);
-			iter.findData(0);
+			iter.seek(0);
 			self.insertData(iter, src);
 		}
 		else {
 			iter--;
 
-			Int blob_size 		= iter.blob_size();
+			BigInt blob_size 	= iter.blob_size();
 			Int leaf_data_size 	= iter.leafSize(1);
 			Int blob_offset 	= iter.data_offset();
 
 			if (blob_offset + blob_size > leaf_data_size)
 			{
-				iter.findData(blob_size);
+				iter.seek(blob_size);
 
 				Int capacity = iter.leaf_capacity(0);
 
@@ -173,7 +175,7 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 				if (data_capacity > 0 || src.getSize() == 0)
 				{
 					self.insertEntry(iter, pair);
-					iter.findData(0);
+					iter.seek(0);
 					self.insertData(iter, src);
 				}
 				else {
@@ -187,6 +189,20 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 				}
 			}
 		}
+	}
+
+	if (!at_the_end)
+	{
+		iter.findEntry();
+		iter++;
+
+		Accumulator accum;
+
+		std::get<0>(accum)[0] = -id_entry_value;
+
+		iter.update(accum);
+
+		iter--;
 	}
 }
 

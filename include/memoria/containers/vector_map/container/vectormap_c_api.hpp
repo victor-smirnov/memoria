@@ -100,6 +100,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     	return iter;
     }
 
+    bool contains(Key id) {
+    	return find(id).found();
+    }
+
     BigInt maxId()
     {
     	auto& self = this->self();
@@ -114,9 +118,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     	auto& self = this->self();
     	auto iter  = self.End();
 
-    	BigInt id  = 1;
+    	self.insert(iter, iter.id() + 1, src);
 
-    	self.insert(iter, id, src);
+    	return iter;
+    }
+
+    Iterator create(Key id, DataSource& src)
+    {
+    	auto& self = this->self();
+    	auto iter  = self.find(id);
+
+    	if (iter.found())
+    	{
+    		//self.replaceData(iter, src);
+    	}
+    	else {
+    		self.insert(iter, id, src);
+    	}
 
     	return iter;
     }

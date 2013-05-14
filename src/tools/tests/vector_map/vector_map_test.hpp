@@ -105,6 +105,11 @@ public:
 
     void checkDataFw(const VMapData& tripples, Ctr& map)
     {
+    	if (isReplayMode())
+    	{
+    		cout<<endl<<"CheckDataFW"<<endl;
+    	}
+
     	BigInt total_size = 0;
     	for (auto& tripple: tripples) total_size += tripple.size();
 
@@ -127,9 +132,10 @@ public:
     		AssertEQ(MA_SRC, id, tripple.id());
     		AssertEQ(MA_SRC, size, tripple.size());
 
-    		iter.findData();
+    		iter.seek(0);
 
-    		for (BigInt c = 0; c < size; c++)
+    		BigInt size0;
+    		for (size0 = 0; !iter.isEof(); size0++)
     		{
     			auto value = iter.value();
 
@@ -138,6 +144,8 @@ public:
     			iter.skipFw(1);
     		}
 
+    		AssertEQ(MA_SRC, size, size0);
+
     		iter++;
     	}
     }
@@ -145,6 +153,11 @@ public:
 
     void checkDataBw(const VMapData& tripples, Ctr& map)
     {
+    	if (isReplayMode())
+    	{
+    		cout<<endl<<"CheckDataBW"<<endl;
+    	}
+
     	BigInt total_size = 0;
     	for (auto& tripple: tripples) total_size += tripple.size();
 
@@ -167,16 +180,19 @@ public:
     		AssertEQ(MA_SRC, id, tripple.id());
     		AssertEQ(MA_SRC, size, tripple.size());
 
-    		iter.findData();
+    		iter.seek(size - 1);
 
-    		for (BigInt c = 0; c < size; c++)
+    		BigInt size0;
+    		for (size0 = 0; !iter.isBof(); size0++)
     		{
     			auto value = iter.value();
 
     			AssertEQ(MA_SRC, (Int)value, (Int)tripple.data());
 
-    			iter.skipFw(1);
+    			iter.skipBw(1);
     		}
+
+    		AssertEQ(MA_SRC, size, size0);
 
     		iter--;
     	}
@@ -189,16 +205,22 @@ public:
     	AssertEQ(MA_SRC, iter.id(), id);
     	AssertEQ(MA_SRC, iter.blob_size(), size);
 
-    	iter.findData(0);
+    	iter.seek(0);
 
-		for (BigInt c = 0; c < size; c++)
-		{
-			auto value = iter.value();
+    	AssertEQ(MA_SRC, iter.pos(), 0);
+    	AssertFalse(MA_SRC, iter.isBof());
 
-			AssertEQ(MA_SRC, (Int)value, (Int)data);
+    	BigInt size_cnt;
+    	for (size_cnt = 0; !iter.isEof(); size_cnt++)
+    	{
+    		auto value = iter.value();
 
-			iter.skipFw(1);
-		}
+    		AssertEQ(MA_SRC, (Int)value, (Int)data);
+
+    		iter.skipFw(1);
+    	}
+
+    	AssertEQ(MA_SRC, size, size_cnt);
     }
 
     virtual void setUp()
