@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_VECTOR_MAP_VECTOR_MAP_TEST_HPP_
-#define MEMORIA_TESTS_VECTOR_MAP_VECTOR_MAP_TEST_HPP_
+#ifndef MEMORIA_TESTS_VECTOR_MAP_VECTORMAP_TEST_BASE_HPP_
+#define MEMORIA_TESTS_VECTOR_MAP_VECTORMAP_TEST_BASE_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -23,9 +23,9 @@ using namespace std;
 
 
 
-class VectorMapTest: public SPTestTask {
+class VectorMapTestBase: public SPTestTask {
 
-    typedef VectorMapTest                                                       MyType;
+    typedef VectorMapTestBase                                                   MyType;
 
 public:
     struct Tripple {
@@ -41,7 +41,7 @@ public:
     	BigInt data()	const {return data_;}
     };
 protected:
-    typedef Byte																Value;
+    typedef BigInt																Value;
 
     typedef vector<Tripple>                                                     VMapData;
     typedef SCtrTF<VectorMap<BigInt, Value>>::Type                              Ctr;
@@ -52,7 +52,9 @@ protected:
 
     VMapData tripples_;
 
-    Int 	max_block_size_ = 1024*40;
+    Int 	max_block_size_ 		= 1024*40;
+    bool	check_data_				= false;
+    Int 	iterator_check_count_	= 1;
 
     Int 	iteration_;
     Int     data_;
@@ -60,15 +62,20 @@ protected:
     String  tripples_data_file_;
     BigInt  key_;
     BigInt  key_num_;
+    Int 	iterator_check_counter_	= 0;
+
+
 
     BigInt  ctr_name_;
     String  dump_name_;
 
 public:
 
-    VectorMapTest(): SPTestTask("VectorMap")
+    VectorMapTestBase(StringRef name): SPTestTask(name)
     {
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
+        MEMORIA_ADD_TEST_PARAM(check_data_);
+        MEMORIA_ADD_TEST_PARAM(iterator_check_count_);
 
         MEMORIA_ADD_TEST_PARAM(iteration_)->state();
         MEMORIA_ADD_TEST_PARAM(data_)->state();
@@ -78,12 +85,10 @@ public:
         MEMORIA_ADD_TEST_PARAM(key_num_)->state();
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
-
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testOrderedCreation, replayOrderedCreation);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRandomCreation, replayRandomCreation);
+        MEMORIA_ADD_TEST_PARAM(iterator_check_counter_)->state();
     }
 
-    virtual ~VectorMapTest() throw() {}
+    virtual ~VectorMapTestBase() throw() {}
 
     void storeTripples(const VMapData& tripples)
     {
@@ -131,23 +136,44 @@ public:
     		}
 
     		AssertEQ(MA_SRC, id, tripple.id());
+
     		AssertEQ(MA_SRC, size, tripple.size());
 
-    		iter.seek(0);
-
-    		BigInt size0;
-    		for (size0 = 0; !iter.isEof(); size0++)
+    		if (check_data_)
     		{
-    			auto value = iter.value();
+    			iter.seek(0);
 
-    			AssertEQ(MA_SRC, (Int)value, (Int)tripple.data());
+    			BigInt size0;
+    			for (size0 = 0; !iter.isEof(); size0++)
+    			{
+    				auto value = iter.value();
+
+    				AssertEQ(MA_SRC, (BigInt)value, (BigInt)tripple.data());
+    				AssertEQ(MA_SRC, iter.pos(), size0);
+
+    				iter.skipFw(1);
+    			}
+
+    			AssertEQ(MA_SRC, size, size0);
     			AssertEQ(MA_SRC, iter.pos(), size0);
+    		}
+    		else if (size > 0)
+    		{
+    			iter.seek(0);
+    			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
+
+    			iter.skipFw(size - 1);
+    			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
 
     			iter.skipFw(1);
+    			AssertTrue(MA_SRC, iter.isEof());
     		}
+    		else {
+    			iter.seek(0);
 
-    		AssertEQ(MA_SRC, size, size0);
-    		AssertEQ(MA_SRC, iter.pos(), size0);
+    			AssertTrue(MA_SRC, iter.isEof());
+    			AssertTrue(MA_SRC, iter.isBof());
+    		}
 
     		iter++;
     	}
@@ -183,19 +209,53 @@ public:
     		AssertEQ(MA_SRC, id, tripple.id());
     		AssertEQ(MA_SRC, size, tripple.size());
 
-    		iter.seek(size - 1);
-
-    		BigInt size0;
-    		for (size0 = 0; !iter.isBof(); size0++)
+    		if (check_data_)
     		{
-    			auto value = iter.value();
+    			iter.seek(size - 1);
 
-    			AssertEQ(MA_SRC, (Int)value, (Int)tripple.data());
+    			BigInt size0;
+    			for (size0 = 0; !iter.isBof(); size0++)
+    			{
+    				auto value = iter.value();
+
+    				AssertEQ(MA_SRC, (Int)value, (Int)tripple.data());
+
+    				iter.skipBw(1);
+    			}
+
+    			AssertEQ(MA_SRC, size, size0);
+    		}
+    		else if (size > 0)
+    		{
+    			AssertEQ(MA_SRC, iter.seek(size - 1), size - 1);
+    			AssertEQ(MA_SRC, iter.pos(), size - 1);
+
+    			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
+
+
+    			AssertFalse(MA_SRC, iter.isBof());
+    			AssertFalse(MA_SRC, iter.isEof());
+
+    			AssertEQ(MA_SRC, iter.skipFw(1), 1);
+    			AssertTrue(MA_SRC, iter.isEof());
+    			AssertFalse(MA_SRC, iter.isBof());
+
+    			AssertEQ(MA_SRC, iter.skipBw(size), size);
+    			AssertEQ(MA_SRC, iter.pos(), 0);
+    			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
+    			AssertFalse(MA_SRC, iter.isBof());
+    			AssertFalse(MA_SRC, iter.isEof());
 
     			iter.skipBw(1);
-    		}
 
-    		AssertEQ(MA_SRC, size, size0);
+    			AssertTrue(MA_SRC, iter.isBof());
+    			AssertFalse(MA_SRC, iter.isEof());
+    		}
+    		else {
+    			iter.seek(0);
+    			AssertTrue(MA_SRC, iter.isEof());
+    			AssertTrue(MA_SRC, iter.isBof());
+    		}
 
     		iter--;
     	}
@@ -217,17 +277,41 @@ public:
     		AssertFalse(MA_SRC, iter.isBof());
     	}
 
-    	BigInt size_cnt;
-    	for (size_cnt = 0; !iter.isEof(); size_cnt++)
+    	if (check_data_)
     	{
-    		auto value = iter.value();
+    		iter.seek(0);
 
-    		AssertEQ(MA_SRC, (Int)value, (Int)data);
+    		BigInt size0;
+    		for (size0 = 0; !iter.isEof(); size0++)
+    		{
+    			auto value = iter.value();
+
+    			AssertEQ(MA_SRC, (BigInt)value, (BigInt)data);
+    			AssertEQ(MA_SRC, iter.pos(), size0);
+
+    			iter.skipFw(1);
+    		}
+
+    		AssertEQ(MA_SRC, size, size0);
+    		AssertEQ(MA_SRC, iter.pos(), size0);
+    	}
+    	else if (size > 0)
+    	{
+    		iter.seek(0);
+    		AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)data);
+
+    		iter.skipFw(size - 1);
+    		AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)data);
 
     		iter.skipFw(1);
+    		AssertTrue(MA_SRC, iter.isEof());
     	}
+    	else {
+    		iter.seek(0);
 
-    	AssertEQ(MA_SRC, size, size_cnt);
+    		AssertTrue(MA_SRC, iter.isEof());
+    		AssertTrue(MA_SRC, iter.isBof());
+    	}
     }
 
     virtual void setUp()
@@ -241,163 +325,31 @@ public:
         tripples_.clear();
     }
 
-    void test(TestFn test_fn)
-    {
-    	DefaultLogHandlerImpl logHandler(out());
 
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
-
-    	Ctr map(&allocator);
-
-    	ctr_name_ = map.name();
-
-    	allocator.commit();
-
-    	try {
-    		for (iteration_ = 0; iteration_ < size_; iteration_++)
-    		{
-    			test_fn(this, allocator, map);
-
-    			allocator.commit();
-    		}
-    	}
-    	catch (...) {
-    		dump_name_ = Store(allocator);
-    		storeTripples(tripples_);
-    		throw;
-    	}
-    }
-
-
-    void replay(TestFn test_fn)
-    {
-    	Allocator allocator;
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator.getLogger()->setHandler(&logHandler);
-
-    	LoadAllocator(allocator, dump_name_);
-
-    	tripples_ = loadTripples();
-
-    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
-
-    	test_fn(this, allocator, ctr);
-
-    	check(allocator, "Insert: Container Check Failed", MA_SRC);
-    }
-
-    void testOrderedCreation()
-    {
-    	test(&MyType::orderedCreationTest);
-    }
-
-    void replayOrderedCreation()
-    {
-    	replay(&MyType::orderedCreationTest);
-    }
-
-    void testRandomCreation()
-    {
-    	test(&MyType::randomCreationTest);
-    }
-
-    void replayRandomCreation()
-    {
-    	replay(&MyType::randomCreationTest);
-    }
-
-    void orderedCreationTest(Allocator& allocator, Ctr& map)
-    {
-    	if (!isReplayMode())
-    	{
-    		data_size_  = getRandom(max_block_size_);
-    		data_		= iteration_ & 0xFF;
-    	}
-
-    	vector<Byte> data = createSimpleBuffer<Byte>(data_size_, data_);
-
-    	MemBuffer<Byte> buf(data);
-
-    	auto iter = map.create(buf);
-
-    	tripples_.push_back(Tripple(iter.id(), iter.blob_size(), data_));
-
-    	try {
-    		checkBlock(iter, iter.id(), data_size_, data_);
-
-    		checkDataFw(tripples_, map);
-    		checkDataBw(tripples_, map);
-    	}
-    	catch(...) {
-    		tripples_.pop_back();
-    		throw;
-    	}
-    }
 
     BigInt getNewRandomId(Ctr& map)
     {
     	BigInt id;
 
     	do {
-    		id = getBIRandom(10000);
+    		id = getBIRandom(1000000);
     	}
     	while(map.contains(id));
 
     	return id;
     }
 
-    void randomCreationTest(Allocator& allocator, Ctr& map)
-    {
-    	if (!isReplayMode())
-    	{
-    		data_size_  = getRandom(max_block_size_);
-    		data_		= iteration_ & 0xFF;
-    		key_ 		= getNewRandomId(map);
-    	}
 
-    	vector<Byte> data = createSimpleBuffer<Byte>(data_size_, data_);
-
-    	MemBuffer<Byte> buf(data);
-
-    	auto iter = map.create(key_, buf);
-
-    	UInt insertion_pos;
-    	for (insertion_pos = 0; insertion_pos < tripples_.size(); insertion_pos++)
-    	{
-    		if (key_ <= tripples_[insertion_pos].id())
-    		{
-    			break;
-    		}
-    	}
-
-    	tripples_.insert(tripples_.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), data_));
-
-    	try {
-    		checkBlock(iter, iter.id(), data_size_, data_);
-
-    		checkDataFw(tripples_, map);
-    		checkDataBw(tripples_, map);
-    	}
-    	catch(...)
-    	{
-    		tripples_.erase(tripples_.begin() + insertion_pos);
-    		throw;
-    	}
-    }
 };
 
 
-static ostream& operator<<(ostream& out, const VectorMapTest::Tripple& pair)
+static ostream& operator<<(ostream& out, const VectorMapTestBase::Tripple& pair)
 {
     out<<pair.id()<<" "<<pair.size()<<" "<<pair.data();
     return out;
 }
 
-
-
-
-static istream& operator>>(istream& in, VectorMapTest::Tripple& pair)
+static istream& operator>>(istream& in, VectorMapTestBase::Tripple& pair)
 {
 	BigInt id = 0, size = 0, data = 0;
 
@@ -410,17 +362,10 @@ static istream& operator>>(istream& in, VectorMapTest::Tripple& pair)
     in>>skipws;
     in>>data;
 
-    pair = VectorMapTest::Tripple(id, size, data);
+    pair = VectorMapTestBase::Tripple(id, size, data);
 
     return in;
 }
-
-
-}
-
-
-namespace std {
-
 
 
 }

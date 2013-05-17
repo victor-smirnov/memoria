@@ -200,6 +200,14 @@ public:
         return model_;
     }
 
+    ContainerType& ctr() {
+    	return model_;
+    }
+
+    const ContainerType& ctr() const {
+    	return model_;
+    }
+
     bool operator==(const MyType& other) const
     {
         return Base::operator==(other);

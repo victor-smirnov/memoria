@@ -275,7 +275,7 @@ public:
 
 		if (start + offset < size)
 		{
-			sum += start + offset;
+			sum += offset;
 
 			return start + offset;
 		}
@@ -538,6 +538,8 @@ public:
 
 template <typename Types>
 class PrevLeafWalker: public PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> {
+
+protected:
 
 	typedef PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> 					Base;
 	typedef typename Base::Key 													Key;

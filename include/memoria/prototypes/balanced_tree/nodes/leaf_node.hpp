@@ -181,6 +181,11 @@ public:
 		return PackedAllocator::block_size(client_area, Streams);
 	}
 
+	static Int object_size(const Position& sizes)
+	{
+		return block_size(sizes) + sizeof(MyType) - sizeof(allocator_);
+	}
+
 	static Int client_area(Int block_size)
 	{
 		Int allocator_block_size = block_size - sizeof(Me) + sizeof(allocator_);
@@ -699,10 +704,11 @@ public:
 
     			Tree* other_tree = other->template get<Tree>(Idx);
 
-    			other_tree->ensureCapacity(size);
-    			tree->copyTo(other_tree, 0, size, other_tree->size());
+    			Int copy_to = other_tree->size();
 
-    			other_tree->size() += size;
+    			other_tree->resize(size);
+
+    			tree->copyTo(other_tree, 0, size, copy_to);
     			other_tree->reindex();
     		}
     	}

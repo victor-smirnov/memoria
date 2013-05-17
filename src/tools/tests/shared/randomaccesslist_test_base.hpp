@@ -348,6 +348,8 @@ public:
 
     	insert(iter, data);
 
+    	AssertEQ(MA_SRC, getPosition(iter), (BigInt)data.size());
+
     	checkIterator(iter, MA_SRC);
 
     	skip(iter, -data.size());
@@ -566,10 +568,6 @@ public:
     	remove(iter, size);
 
     	checkIterator(iter, MA_SRC);
-
-    	iter.skip(-1);
-
-    	iter.skip(1);
 
     	AssertEQ(MA_SRC, getPosition(iter), position);
 

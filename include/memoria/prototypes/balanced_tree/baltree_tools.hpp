@@ -470,6 +470,33 @@ public:
     	return false;
     }
 
+    bool gtAll( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] <= other[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool gtAll( const ElementType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] <= other)
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+
     bool eqAll( const MyType& other ) const
     {
     	for (Int c = 0; c < Indexes; c++)
@@ -501,19 +528,6 @@ public:
     	for (Int c = 0; c < Indexes; c++)
     	{
     		if (values_[c] <= other.values_[c])
-    		{
-    			return false;
-    		}
-    	}
-
-    	return true;
-    }
-
-    bool operator>(const ElementType& other) const
-    {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		if (values_[c] <= other)
     		{
     			return false;
     		}

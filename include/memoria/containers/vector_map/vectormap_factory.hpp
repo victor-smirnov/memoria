@@ -21,6 +21,7 @@
 #include <memoria/containers/vector_map/container/vectormap_c_remove.hpp>
 #include <memoria/containers/vector_map/container/vectormap_c_api.hpp>
 #include <memoria/containers/vector_map/container/vectormap_c_find.hpp>
+#include <memoria/containers/vector_map/container/vectormap_c_update.hpp>
 
 #include <memoria/containers/vector_map/vectormap_iterator.hpp>
 #include <memoria/containers/vector_map/iterator/vectormap_i_api.hpp>
@@ -106,6 +107,7 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     		memoria::vmap::CtrToolsName,
     		memoria::vmap::CtrInsertName,
     		memoria::vmap::CtrRemoveName,
+    		memoria::vmap::CtrUpdateName,
     		memoria::vmap::CtrChecksName,
     		memoria::vmap::CtrFindName,
     		memoria::vmap::CtrApiName
@@ -138,7 +140,7 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     using NextLeafWalker = NextLeafWalker<Types>;
 
     template <typename Types>
-    using PrevLeafWalker = PrevLeafWalker<Types>;
+    using PrevLeafWalker = ::memoria::vmap::PrevLeafWalker<Types>;
 
     template <typename Types>
     using NextLeafMutistreamWalker = NextLeafMultistreamWalker<Types>;

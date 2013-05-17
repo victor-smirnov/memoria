@@ -273,6 +273,17 @@ public:
 		other->size() = size;
 	}
 
+	void resize(Int delta)
+	{
+		if (delta > 0)
+		{
+			insertSpace(size_, delta);
+		}
+		else {
+			removeSpace(size_, -delta);
+		}
+	}
+
 	// ===================================== IO ============================================ //
 
 	void insert(IData* data, Int pos, Int length)

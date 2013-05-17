@@ -12,6 +12,7 @@
 #include <memoria/core/packed2/packed_tree_walkers.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
 #include <memoria/core/tools/dump.hpp>
+#include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/core/tools/accessors.hpp>
 
@@ -647,9 +648,17 @@ public:
 
 		out<<"Data:"<<endl;
 
-		dumpArray<Value>(out, size_, [this](Int idx) -> Value {
-			return this->value(idx);
-		});
+		for (Int c = 0; c < size_; c++)
+		{
+			out<<c<<" ";
+
+			for (Int block = 0; block < Blocks; block++)
+			{
+				out<<value(block, c)<<" ";
+			}
+
+			out<<endl;
+		}
 	}
 
 	// ==================================== Query ========================================== //
@@ -763,7 +772,7 @@ public:
 			return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
 		}
 		else {
-			return ValueDescr(0, size_, sum(block));
+			return ValueDescr(0, size_, sum(block) - prefix);
 		}
 	}
 
@@ -785,8 +794,8 @@ public:
 		}
 		else if (target == 0)
 		{
-			Value actual_value = value(0);
-			return ValueDescr(actual_value, 0, prefix - actual_value);
+			Value actual_value = value(start);
+			return ValueDescr(actual_value, start, prefix - actual_value);
 		}
 		else {
 			return ValueDescr(0, -1, prefix);
@@ -801,20 +810,24 @@ public:
 		auto prefix = sum0(block_start + start + 1);
 		auto target = prefix - val;
 
-		if (target > 0)
+		if (target >= 0)
 		{
 			FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
 
 			Int pos = this->find_fw(fn);
 
-			Value actual_value = value(pos);
-
-			return ValueDescr(actual_value, pos, prefix - (fn.sum() + actual_value));
-		}
-		else if (target == 0)
-		{
-			Value actual_value = value(0);
-			return ValueDescr(actual_value, 0, prefix - actual_value);
+			if (pos > block_start + start)
+			{
+				return ValueDescr(0, start, 0);
+			}
+			else if (pos >= block_start)
+			{
+				Value actual_value = value(pos);
+				return ValueDescr(actual_value, pos - block_start, prefix - (fn.sum() + actual_value));
+			}
+			else {
+				return ValueDescr(0, -1, prefix - sum0(block_start));
+			}
 		}
 		else {
 			return ValueDescr(0, -1, prefix);
@@ -865,7 +878,7 @@ public:
 			return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
 		}
 		else {
-			return ValueDescr(0, size_, sum(block));
+			return ValueDescr(0, size_, sum(block) - prefix);
 		}
 	}
 
@@ -876,15 +889,20 @@ public:
 		auto prefix = sum0(block_start + start + 1);
 		auto target = prefix - val;
 
-		if (target > 0)
+		if (target >= 0)
 		{
 			FSEFindElementFn<MyType, PackedCompareLT> fn(*this, target);
 
 			Int pos = this->find_fw(fn);
 
-			Value actual_value = value(pos);
-
-			return ValueDescr(actual_value, pos, prefix - (fn.sum() + actual_value));
+			if (pos >= block_start)
+			{
+				Value actual_value = value(pos);
+				return ValueDescr(actual_value, pos - block_start, prefix - (fn.sum() + actual_value));
+			}
+			else {
+				return ValueDescr(0, -1, prefix - sum0(block_start));
+			}
 		}
 		else if (target == 0)
 		{
@@ -1085,6 +1103,17 @@ public:
 		}
 
 		other->size() = size;
+	}
+
+	void resize(Int delta)
+	{
+		if (delta > 0)
+		{
+			insertSpace(size_, delta);
+		}
+		else {
+			removeSpace(size_, -delta);
+		}
 	}
 
 

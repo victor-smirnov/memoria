@@ -8,6 +8,9 @@
 #define MEMORIA_CORE_TOOLS_DUMP_HPP_
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/types/types.hpp>
+
+#include <memoria/core/tools/idata.hpp>
 
 #include <iostream>
 #include <functional>
@@ -19,6 +22,8 @@ using namespace std;
 template <typename V>
 void dumpArray(std::ostream& out, Int count, function<V(Int)> fn)
 {
+	using vapi::Expand;
+
 	Int columns;
 
 	switch (sizeof(V)) {

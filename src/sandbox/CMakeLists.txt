@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX dispatch)
+    set(MEMORIA_SANDBOX fse_tree)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})

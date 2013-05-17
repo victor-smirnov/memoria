@@ -251,7 +251,7 @@ public:
 			}
 		}
 
-		throw Exception(MA_SRC, "Requested element is not found in thit allocator");
+		throw Exception(MA_SRC, "Requested element is not found in this allocator");
 	}
 
 
@@ -433,9 +433,9 @@ public:
 			}
 		}
 		else {
-			throw PackedOOMException(MA_SRC, SBuf()<<"no space left in packed allocator: "
-												   <<new_size<<" bytes. Allocated = "<<allocated()
-												   <<" bytes, avaliable = "<<free_space()<<" bytes.");
+			throw PackedOOMException(MA_SRC, SBuf()<<"No space left in packed allocator. Requested "
+												   <<new_size<<" bytes. Allocated "<<allocated()
+												   <<" bytes, avaliable "<<free_space()<<" bytes.");
 		}
 
 		return block_size_;

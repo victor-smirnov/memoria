@@ -81,7 +81,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
 
 
 
-    BigInt removeRoom(
+    Position removeRoom(
     		TreePath& path,
     		Int level,
     		const Position& from,
@@ -107,13 +107,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
      * merge it with siblings.
      */
 
-    void removePage(TreePath& path, Int& idx);
+    void removePage1(TreePath& path, Int stream, Int& leaf_entry_idx);
 
 
     /**
      * \brief Delete a node with it's children.
      */
-    BigInt removeNode(NodeBaseG node);
+    Position removeNode(NodeBaseG node);
 
     bool changeRootIfSingular(NodeBaseG& parent, NodeBaseG& node);
 
@@ -179,7 +179,7 @@ MEMORIA_CONTAINER_PART_END
  */
 
 M_PARAMS
-BigInt M_TYPE::removeRoom(
+typename M_TYPE::Position M_TYPE::removeRoom(
 		TreePath& path,
 		Int level,
 		const Position& from,
@@ -192,9 +192,9 @@ BigInt M_TYPE::removeRoom(
 
 	auto& self = this->self();
 
-    BigInt key_count = 0;
+    Position key_count;
 
-    if (count > 0)
+    if (count.gtAny(0))
     {
         NodeBaseG& node = path[level].node();
         node.update();
@@ -208,9 +208,9 @@ BigInt M_TYPE::removeRoom(
                 Int stop = from.get() + count.get();
             	for (Int c = from.get(); c < stop; c++)
                 {
-                    NodeBaseG child =   self.getChild(node, c, Allocator::READ);
-                    Int tmp = self.removeNode(child);
-                    key_count       +=  tmp;
+                    NodeBaseG child = self.getChild(node, c, Allocator::READ);
+                    Position tmp 	= self.removeNode(child);
+                    key_count 		+= tmp;
                 }
             }
         }
@@ -218,7 +218,7 @@ BigInt M_TYPE::removeRoom(
         VectorAdd(tmp_accum, NodeDispatcher::dispatchRtn(node, RemoveSpaceFn(), from, count));
 
         if (node->is_leaf()) {
-        	key_count += count.get();
+        	key_count += count;
         }
 
         self.updateParentIfExists(path, level, -tmp_accum);
@@ -252,7 +252,7 @@ BigInt M_TYPE::removeRoom(
  */
 
 M_PARAMS
-void M_TYPE::removePage(TreePath& path, Int& key_idx)
+void M_TYPE::removePage1(TreePath& path, Int stream, Int& leaf_entry_idx)
 {
 	auto& self = this->self();
 
@@ -271,7 +271,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
             {
                 if (self.getNextNode(path, c, true))
                 {
-                    key_idx = 0;
+                    leaf_entry_idx = 0;
                 }
                 else
                 {
@@ -281,7 +281,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
                         path[d].parent_idx()    = self.getNodeSize(path[d + 1], 0) - 1;
                     }
 
-                    key_idx = self.getNodeSize(path.leaf(), 0);
+                    leaf_entry_idx = self.getNodeSize(path.leaf(), stream);
                 }
             }
             else
@@ -294,7 +294,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
                     idx = 0;
                 }
 
-                key_idx = 0;
+                leaf_entry_idx = 0;
             }
 
             return;
@@ -309,7 +309,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
             path.clear();
             path.append(TreePathItem(node, 0));
 
-            key_idx = 0;
+            leaf_entry_idx = 0;
 
             return;
         }
@@ -323,7 +323,7 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
     path.clear();
     path.append(TreePathItem(node, 0));
 
-    key_idx = 0;
+    leaf_entry_idx = 0;
 }
 
 /**
@@ -335,13 +335,13 @@ void M_TYPE::removePage(TreePath& path, Int& key_idx)
  */
 
 M_PARAMS
-BigInt M_TYPE::removeNode(NodeBaseG node)
+typename M_TYPE::Position M_TYPE::removeNode(NodeBaseG node)
 {
     auto& self = this->self();
 
 	const Int children_count = self.getNodeSize(node, 0);
 
-    BigInt count = 0;
+    Position count;
 
     if (!node->is_leaf())
     {
@@ -352,7 +352,7 @@ BigInt M_TYPE::removeNode(NodeBaseG node)
         }
     }
     else {
-    	Int tmp = self.getNodeSizes(node).get();
+    	Position tmp = self.getNodeSizes(node);
     	count += tmp;
     }
 
@@ -513,15 +513,17 @@ void M_TYPE::removeRedundantRoot(TreePath& first, TreePath& second, Int level)
  */
 
 M_PARAMS
-bool M_TYPE::mergeWithSiblings(TreePath& path, Int level, Position& key_idx)
+bool M_TYPE::mergeWithSiblings(TreePath& path, Int level, Position& idx)
 {
-    if (self().mergeWithRightSibling(path, level))
+	auto& self = this->self();
+
+    if (self.mergeWithRightSibling(path, level))
     {
         return true;
     }
     else
     {
-        return self().mergeWithLeftSibling(path, level, key_idx);
+        return self.mergeWithLeftSibling(path, level, idx);
     }
 }
 
@@ -543,9 +545,9 @@ bool M_TYPE::mergeWithSiblings(TreePath& path, Int level, Position& key_idx)
 
 
 M_PARAMS
-bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Position& key_idx)
+bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Position& idx)
 {
-	MEMORIA_ASSERT_TRUE(key_idx.gteAll(0));
+	MEMORIA_ASSERT_TRUE(idx.gteAll(0));
 
     auto& self = this->self();
 
@@ -564,7 +566,7 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Position& key_idx)
             if (merged)
             {
                 // FIXME: array subscripts?
-            	key_idx += size;
+            	idx += size;
                 path = prev;
             }
         }

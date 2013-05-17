@@ -23,7 +23,7 @@
 
 
 #include "vector/vector_test_suite.hpp"
-#include "vector_map/vector_map_test_suite.hpp"
+#include "vector_map/vectormap_test_suite.hpp"
 
 //
 //#include "sequence/sequence_test_suite.hpp"

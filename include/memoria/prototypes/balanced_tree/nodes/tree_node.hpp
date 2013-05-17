@@ -781,10 +781,11 @@ public:
 
     			Tree* other_tree = other->template get<Tree>(Idx);
 
-    			other_tree->ensureCapacity(size);
-    			tree->copyTo(other_tree, 0, size, other_tree->size());
+    			Int other_size = other_tree->size();
 
-    			other_tree->size() += size;
+    			other_tree->resize(size);
+    			tree->copyTo(other_tree, 0, size, other_size);
+
     			other_tree->reindex();
     		}
     	}
@@ -1120,11 +1121,10 @@ public:
     	}
     };
 
-    void dump(Int stream) const
+    void dump() const
     {
     	Dispatcher::dispatchNotEmpty(&allocator_, DumpFn());
     }
-
 
     struct GenerateDataEventsFn {
     	template <Int Idx, typename Tree>

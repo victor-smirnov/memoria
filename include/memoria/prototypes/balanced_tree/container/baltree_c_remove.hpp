@@ -70,7 +70,7 @@ bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
 
 	if (iter.isNotEmpty() || iter.isNotEnd())
     {
-        self.removeEntry(iter.path(), iter.stream(), iter.key_idx(), keys);
+        self.removeEntry(iter.path(), iter.stream(), iter.idx(), keys);
 
         if (iter.isEnd())
         {
@@ -122,7 +122,7 @@ void M_TYPE::removeEntry(TreePath& path, Int stream, Int& idx, Accumulator& keys
     }
     else {
         keys = self.getLeafKeys(path.leaf().node(), idx);
-        self.removePage(path, idx);
+        self.removePage1(path, stream, idx);
     }
 
     self.addTotalKeyCount(Position::create(stream, -1));

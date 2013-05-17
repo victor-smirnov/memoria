@@ -54,8 +54,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrRemoveName)
 	static const Int Streams                                                    = Types::Streams;
 
 
-	void remove(Iterator& from, Iterator& to);
-    void remove(Iterator& from, BigInt size);
+    void removeEntry(Iterator& iter);
+    void removeData(Iterator& iter, BigInt size);
+
+private:
+    bool mergeLeaf(Iterator& iter);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -63,37 +66,138 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-void M_TYPE::remove(Iterator& from, Iterator& to)
+void M_TYPE::removeEntry(Iterator& iter)
 {
 	auto& self = this->self();
 
-	auto& from_path 	= from.path();
-	Position from_pos 	= Position(from.key_idx());
-
-	auto& to_path 		= to.path();
-	Position to_pos 	= Position(to.key_idx());
+	Int idx					= iter.idx();
+	BigInt local_offset		= iter.data_offset();
+	BigInt size 			= iter.blob_size();
+	BigInt data_leaf_size 	= iter.leafSize(1);
 
 	Accumulator keys;
 
-	self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
+	if (local_offset + size <= data_leaf_size)
+	{
+		self.removeRoom(iter.path(), 0, {idx, local_offset}, {1, size}, keys);
+		self.addTotalKeyCount(iter.path(), {-1, -size});
 
-	from.key_idx() = to.key_idx() = to_pos.get();
+		if (iter.isEnd())
+		{
+			iter.cache().set(0,0, iter.idx());
+		}
+		else {
+			auto entry = iter.entry();
+			iter.cache().set(entry.first, entry.second, iter.idx());
+		}
+
+		self.mergeLeaf(iter);
+
+		// Is it necessary here?
+		iter.initState();
+
+		if (iter.isEnd()) {
+			iter++;
+		}
+	}
+	else {
+		Iterator to = iter;
+		to.seek(size);
+
+		TreePath& from_path = iter.path();
+		Position from_idx	= {idx, local_offset};
+
+		TreePath to_path 	= to.path();
+		Position to_idx		= {0, to.idx()};
+
+		Base::removeEntries(from_path, from_idx, to_path, to_idx, keys, true);
+
+		iter.idx() = to_idx[0];
+
+		iter.initState();
+
+		if (iter.isEnd()) {
+			iter++;
+		}
+	}
+
+	if (!iter.isEnd())
+	{
+		std::get<0>(keys)[1] = 0;
+		std::get<1>(keys)[0] = 0;
+
+		iter.update(keys);
+	}
 }
 
 M_PARAMS
-void M_TYPE::remove(Iterator& from, BigInt size)
+bool M_TYPE::mergeLeaf(Iterator& iter)
 {
-	auto to = from;
-	to.skip(size);
+	auto& self = this->self();
+
+	Position idx;
+
+	idx[0] = iter.idx();
+
+	bool merged = self.mergeWithSiblings(iter.path(), 0, idx);
+
+	iter.idx() = idx[0];
+
+	return merged;
+}
+
+
+M_PARAMS
+void M_TYPE::removeData(Iterator& iter, BigInt size)
+{
+	MEMORIA_ASSERT_TRUE(iter.stream() == 1);
 
 	auto& self = this->self();
 
-	self.remove(from, to);
+	BigInt local_offset		= iter.idx();
+	BigInt data_leaf_size 	= iter.leaf_size();
+	BigInt pos				= iter.pos();
 
-	from = to;
+	Accumulator keys;
 
-	from.cache().initState();
+	if (local_offset + size <= data_leaf_size)
+	{
+		self.removeRoom(iter.path(), 0, {0, local_offset}, {0, size}, keys);
+		self.addTotalKeyCount(iter.path(), {0, -size});
+
+		self.mergeLeaf(iter);
+	}
+	else {
+		Iterator to = iter;
+		to.seek(size);
+
+		TreePath& from_path = iter.path();
+		Position from_idx	= {iter.cache().entry_idx() + 1, local_offset};
+
+		TreePath to_path 	= to.path();
+		Position to_idx		= {0, to.idx()};
+
+		Base::removeEntries(from_path, from_idx, to_path, to_idx, keys, true);
+
+		iter.idx() = to_idx[0];
+	}
+
+	iter.findEntry();
+
+	if (!iter.isEnd())
+	{
+		std::get<0>(keys)[0] = 0;
+		std::get<0>(keys)[1] = -size;
+		std::get<1>(keys)[0] = 0;
+
+		iter.update(keys);
+
+		iter.seek(pos);
+	}
+
+
 }
+
 
 
 }

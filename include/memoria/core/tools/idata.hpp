@@ -12,6 +12,7 @@
 
 #include <memoria/core/tools/config.hpp>
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/assert.hpp>
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
@@ -182,7 +183,7 @@ struct IDataTarget: IDataBase {
 
 
 template <typename T>
-class DataSourceProxy: IDataSource<T> {
+class DataSourceProxy: public IDataSource<T> {
 	typedef IDataSource<T> 					Base;
 	typedef Base 							Delegate;
 

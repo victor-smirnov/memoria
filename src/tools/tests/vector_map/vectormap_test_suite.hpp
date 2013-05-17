@@ -9,8 +9,11 @@
 
 #include "../tests_inc.hpp"
 
-#include "vector_map_test.hpp"
-#include "vector_map_transfer_test.hpp"
+#include "vectormap_create_test.hpp"
+#include "vectormap_remove_test.hpp"
+#include "vectormap_replace_test.hpp"
+
+//#include "vectormap_transfer_test.hpp"
 
 #include <vector>
 
@@ -25,7 +28,9 @@ public:
 
     VectorMapTestSuite(): TestSuite("VectorMapSuite")
     {
-        registerTask(new VectorMapTest());
+        registerTask(new VectorMapCreateTest());
+        registerTask(new VectorMapRemoveTest());
+//        registerTask(new VectorMapReplaceTest());
 
 //        registerTask(new VectorMapTransferTest<UByte>("Transfer"));
     }

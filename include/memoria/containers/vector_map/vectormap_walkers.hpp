@@ -413,6 +413,33 @@ public:
 };
 
 
+template <typename Types>
+class PrevLeafWalker: public PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> {
+
+protected:
+
+	typedef PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> 					Base;
+	typedef typename Base::Key 													Key;
+	typedef typename Base::Position 											Position;
+	typedef typename Base::Iterator												Iterator;
+
+public:
+	PrevLeafWalker(Int stream, Int index): Base(stream, index)
+	{}
+
+//	void prepare(Iterator& iter)
+//	{
+//		Int idx = iter.idx();
+//
+//		if (idx >= 0 && idx < iter.leaf_size())
+//		{
+//			auto entry = iter.entry();
+//			Base::target_ = entry.first;
+//		}
+//	}
+};
+
+
 
 }
 }

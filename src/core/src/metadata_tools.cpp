@@ -8,6 +8,7 @@
 
 #include <memoria/metadata/tools.hpp>
 #include <memoria/core/tools/idata.hpp>
+#include <memoria/core/tools/dump.hpp>
 
 #include <sstream>
 #include <string>
@@ -84,7 +85,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            dumpArray(out_, value, count);
+        	::memoria::dumpArray<Byte>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -95,7 +96,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            dumpArray(out_, value, count);
+        	::memoria::dumpArray<UByte>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -104,20 +105,32 @@ public:
 
     virtual void value(const char* name, const Short* value, Int count = 1, Int kind = 0)
     {
-        OutNumber(name, value, count, kind);
+    	if (kind == BYTE_ARRAY)
+    	{
+    		::memoria::dumpArray<Short>(out_, count, [=](Int idx){return value[idx];});
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
     }
 
 
     virtual void value(const char* name, const UShort* value, Int count = 1, Int kind = 0)
     {
-        OutNumber(name, value, count, kind);
+    	if (kind == BYTE_ARRAY)
+    	{
+    		::memoria::dumpArray<UShort>(out_, count, [=](Int idx){return value[idx];});
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
     }
 
     virtual void value(const char* name, const Int* value, Int count = 1, Int kind = 0)
     {
         if (kind == BYTE_ARRAY)
         {
-            dumpArray(out_, value, count);
+            ::memoria::dumpArray<Int>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -127,17 +140,35 @@ public:
 
     virtual void value(const char* name, const UInt* value, Int count = 1, Int kind = 0)
     {
-        OutNumber(name, value, count, kind);
+    	if (kind == BYTE_ARRAY)
+    	{
+    		::memoria::dumpArray<UInt>(out_, count, [=](Int idx){return value[idx];});
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
     }
 
     virtual void value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)
     {
-        OutNumber(name, value, count, kind);
+    	if (kind == BYTE_ARRAY)
+    	{
+    		::memoria::dumpArray<BigInt>(out_, count, [=](Int idx){return value[idx];});
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
     }
 
     virtual void value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)
     {
-        OutNumber(name, value, count, kind);
+    	if (kind == BYTE_ARRAY)
+    	{
+    		::memoria::dumpArray<UBigInt>(out_, count, [=](Int idx){return value[idx];});
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
     }
 
 

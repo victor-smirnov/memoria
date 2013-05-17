@@ -141,8 +141,6 @@ public:
             {
                 actual += iter.next();
             }
-
-//        	cout<<"Actual: "<<actual<<endl;
         }
         else {
         	Int actual = 0;
@@ -151,8 +149,6 @@ public:
             {
                 actual += iter.prev();
             }
-
-//            cout<<"Actual: "<<actual<<endl;
         }
     }
 

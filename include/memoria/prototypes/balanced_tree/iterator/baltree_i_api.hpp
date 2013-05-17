@@ -87,6 +87,27 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     	return LeafDispatcher::dispatchConstRtn(self().path().leaf().node(), SizeFn(), stream);
     }
 
+    Int leaf_size() const
+    {
+    	return LeafDispatcher::dispatchConstRtn(self().path().leaf().node(), SizeFn(), self().stream());
+    }
+
+    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Int);
+
+    Position leaf_sizes() const {
+    	return LeafDispatcher::dispatchConstRtn(self().path().leaf().node(), SizesFn());
+    }
+
+    bool has_no_data() const
+    {
+    	return leaf_sizes().eqAll(0);
+    }
+
+    bool is_leaf_empty() const
+    {
+    	return self().model().isNodeEmpty(self().path().leaf().node());
+    }
+
     Int leaf_capacity(Int stream) const
     {
     	auto& self = this->self();
@@ -198,9 +219,12 @@ bool M_TYPE::prevLeaf()
 {
 	typedef typename Types::template PrevLeafWalker<Types> Walker;
 
-	Walker walker(self().stream(), 0);
+	auto& self = this->self();
+	Int stream = self.stream();
 
-	return self().findPrevLeaf(walker);
+	Walker walker(stream, 0);
+
+	return self.findPrevLeaf(walker);
 }
 
 

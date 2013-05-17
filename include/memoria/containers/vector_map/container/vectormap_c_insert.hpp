@@ -61,35 +61,40 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
 	typedef typename Types::IDataTargetType										DataTarget;
 
 
-	void replaceEntry(BigInt id, DataSource& data);
 
+	void insertData(Iterator& iter, DataSource& data);
 
-    void insertData(Iterator& iter, DataSource& data);
-    BigInt removeData(Iterator& iter, BigInt size);
-    BigInt updateData(Iterator& iter, DataSource& data);
 
     void insert(Iterator& iter, BigInt id, DataSource& data);
 
     void splitLeaf(Iterator& iter, Int split_idx = -1);
 
+
+
+private:
+
     template <typename EntryData>
     void insertEntry(Iterator& iter, const EntryData&);
 
-private:
+
     void splitLeafData(Iterator& iter, Int split_idx = -1);
+    void insertDataInternal(Iterator& iter, DataSource& data);
 
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
+
+
+
 M_PARAMS
-template <typename EntryData>
-void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
+void M_TYPE::insertData(Iterator& iter, DataSource& data)
 {
-	Base::insertEntry(iter, entry);
-	iter.cache().set(entry.first, entry.second, iter.idx());
+
 }
+
+
 
 M_PARAMS
 void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
@@ -107,8 +112,8 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 	if (self.checkCapacities(leaf, {1, src.getSize()}) || self.isNodeEmpty(leaf))
 	{
 		self.insertEntry(iter, pair);
-		iter.seek(0);
-		self.insertData(iter, src);
+		iter.seekLocal();
+		self.insertDataInternal(iter, src);
 	}
 	else
 	{
@@ -122,7 +127,7 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 
 			iter.seekLocal();
 
-			self.insertData(iter, src);
+			self.insertDataInternal(iter, src);
 		}
 		else {
 			iter--;
@@ -165,7 +170,7 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 				iter.idx() 		= data_pos;
 				iter.stream() 	= 1;
 
-				self.insertData(iter, src);
+				self.insertDataInternal(iter, src);
 			}
 			else {
 				MEMORIA_ASSERT_TRUE(blob_offset + blob_size == leaf_data_size);
@@ -174,20 +179,31 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 
 				Int data_capacity = iter.leaf_capacity({1, 0}, 1);
 
-				if (data_capacity > 0 || src.getSize() == 0)
+				if (data_capacity > 0)
 				{
 					self.insertEntry(iter, pair);
+
 					iter.seekLocal();
-					self.insertData(iter, src);
+
+					self.insertDataInternal(iter, src);
 				}
 				else {
-					self.splitLeaf(iter, iter.idx());
-					self.insertEntry(iter, pair);
+					Int map_capacity = iter.leaf_capacity(0);
 
-					iter.stream() = 1;
-					iter.idx()    = 0;
+					if (map_capacity > 0 && src.getSize() == 0)
+					{
+						self.insertEntry(iter, pair);
+					}
+					else {
+						self.splitLeaf(iter, iter.idx());
 
-					self.insertData(iter, src);
+						self.insertEntry(iter, pair);
+
+						iter.stream() = 1;
+						iter.idx()    = 0;
+
+						self.insertDataInternal(iter, src);
+					}
 				}
 			}
 		}
@@ -239,12 +255,11 @@ void M_TYPE::splitLeaf(Iterator& iter, Int split_idx)
 
 		auto right = iter.path();
 
+		bool return_right_path = split_idx == iter.leafSize(0);
+
 		self.splitPath(iter.path(), right, 0, {split_idx, data_offset}, active_streams);
 
-		Int left_data_capacity  = iter.leaf_capacity({1, 0}, 1);
-		Int right_data_capacity = self.getStreamCapacity(right.leaf(), {1, 0}, 1);
-
-		if (right_data_capacity > left_data_capacity)
+		if (return_right_path)
 		{
 			iter.path() = right;
 			iter.idx()  = 0;
@@ -263,6 +278,15 @@ void M_TYPE::splitLeaf(Iterator& iter, Int split_idx)
 		self.splitPath(iter.path(), right, 0, {split_idx, data_offset}, active_streams);
 	}
 }
+
+M_PARAMS
+template <typename EntryData>
+void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
+{
+	Base::insertEntry(iter, entry);
+	iter.cache().set(entry.first, entry.second, iter.idx());
+}
+
 
 M_PARAMS
 void M_TYPE::splitLeafData(Iterator& iter, Int split_idx)
@@ -286,105 +310,35 @@ void M_TYPE::splitLeafData(Iterator& iter, Int split_idx)
 }
 
 
+
 M_PARAMS
-void M_TYPE::replaceEntry(BigInt id, DataSource& data)
+void M_TYPE::insertDataInternal(Iterator& iter, DataSource& data)
 {
-	auto& self = this->self();
-
-	Iterator iter = self.find(id);
-
-	if (!iter.found())
+	if (data.getSize() > 0)
 	{
-		self.insertEntry(iter, std::pair<BigInt, BigInt>(id, data.getSize()));
-		iter.seekLocal();
-		self.insertData(iter, data);
-	}
-	else {
-		BigInt entry_size 	= iter.entrySize();
-		BigInt data_size	= data.getSize();
+		auto& self = this->self();
+		auto& ctr  = self;
 
-		if (entry_size < data_size)
+		TreePath& path = iter.path();
+		Position idx(iter.idx());
+
+		vmap::VectorMapSource source(&data);
+
+		typename Base::DefaultSubtreeProvider provider(self, Position::create(1, data.getSize()), source);
+
+		ctr.insertSubtree(path, idx, provider);
+
+		ctr.addTotalKeyCount(Position::create(1, data.getSize()));
+
+		if (iter.isEof())
 		{
-			memoria::vapi::DataSourceProxy<Value> proxy(data, entry_size);
+			iter.nextLeaf();
+		}
 
-			self.updateData(iter, proxy);
-			self.insertData(iter, data);
-		}
-		else if (entry_size > data_size)
-		{
-			self.updateData(iter, data);
-			self.removeData(iter, entry_size - data_size);
-		}
-		else { // entry_size == data_size
-			self.updateData(iter, data);
-		}
+		iter.skipFw(data.getSize());
 	}
 }
 
-M_PARAMS
-void M_TYPE::insertData(Iterator& iter, DataSource& data)
-{
-	auto& self = this->self();
-	auto& ctr  = self;
-
-	TreePath& path = iter.path();
-	Position idx(iter.idx());
-
-	vmap::VectorMapSource source(&data);
-
-	typename Base::DefaultSubtreeProvider provider(self, Position::create(1, data.getSize()), source);
-
-	ctr.insertSubtree(path, idx, provider);
-
-	ctr.addTotalKeyCount(Position::create(1, data.getSize()));
-
-	if (iter.isEof())
-	{
-		iter.nextLeaf();
-	}
-
-	iter.skipFw(data.getSize());
-}
-
-M_PARAMS
-BigInt M_TYPE::removeData(Iterator& iter, BigInt size)
-{
-	return size;
-}
-
-M_PARAMS
-BigInt M_TYPE::updateData(Iterator& iter, DataSource& data)
-{
-//	auto& self = this->self();
-//
-//	BigInt sum = 0;
-//	BigInt len = data.getRemainder();
-//
-//	while (len > 0)
-//	{
-//		Int to_read = self.size() - self.dataPos();
-//
-//		if (to_read > len) to_read = len;
-//
-//		mvector::VectorTarget target(&data);
-//
-////		LeafDispatcher::dispatchConst(self.leaf().node(), ReadFn(), &target, Position(self.dataPos()), Position(to_read));
-//
-//		len     -= to_read;
-//		sum     += to_read;
-//
-//		self.skipFw(to_read);
-//
-//		if (self.isEof())
-//		{
-//			break;
-//		}
-//	}
-//
-//	return sum;
-
-	return data.getSize();
-}
 
 
 #undef M_PARAMS

@@ -70,7 +70,7 @@ bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys)
 	auto& to_path 		= to.path();
 	Position to_pos 	= Position(to.entry_idx());
 
-	bool result = ctr.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
+	bool result = ctr.removeEntries(from_path, from_pos, to_path, to_pos, keys, true).gtAny(0);
 
 	from.key_idx() = to.key_idx() = to_pos.get();
 

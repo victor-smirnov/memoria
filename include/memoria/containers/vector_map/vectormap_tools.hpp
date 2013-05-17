@@ -185,6 +185,12 @@ public:
 
     	entry_idx_	= entry_idx;
     }
+
+    void addToEntry(BigInt entry, BigInt size)
+    {
+    	id_entry_ 	+= entry;
+    	size_ 		+= size;
+    }
 };
 
 

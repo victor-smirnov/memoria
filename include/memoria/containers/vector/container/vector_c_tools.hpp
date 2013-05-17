@@ -168,7 +168,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
 
     	Int node_block_size = node->allocator()->block_size();
 
-    	Int root_block_size = RootType::block_size(sizes);
+    	Int root_block_size = RootType::object_size(sizes);
 
     	return node_block_size <= root_block_size;
     }

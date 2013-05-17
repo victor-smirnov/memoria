@@ -62,6 +62,14 @@ public:
         return model_;
     }
 
+    ContainerType& ctr() {
+        return model_;
+    }
+
+    const ContainerType& ctr() const {
+        return model_;
+    }
+
     MyType& operator=(MyType&& other)
     {
         if (this != &other)

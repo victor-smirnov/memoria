@@ -46,7 +46,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveBatchName)
 
 
 
-    BigInt removeEntries(
+    Position removeEntries(
     		TreePath& from,
     		Position& from_idx,
     		TreePath& to,
@@ -57,11 +57,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveBatchName)
 
 
 
-    void removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum, BigInt& removed_key_count);
+    void removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum, Position& removed_key_count);
 
-    void removePagesFromStart(TreePath& stop, Position& stop_idx, Accumulator& accum, BigInt& removed_key_count);
+    void removePagesFromStart(TreePath& stop, Position& stop_idx, Accumulator& accum, Position& removed_key_count);
 
-    void removePagesAtEnd(TreePath& start, Position& start_idx, Accumulator& accum, BigInt& removed_key_count);
+    void removePagesAtEnd(TreePath& start, Position& start_idx, Accumulator& accum, Position& removed_key_count);
 
     void removePages(
             TreePath& start,
@@ -70,7 +70,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveBatchName)
             Position& stop_idx,
             Int level,
             Accumulator& accum,
-            BigInt& removed_key_count
+            Position& removed_key_count
     );
 
 
@@ -85,7 +85,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveBatchName)
             Position& stop_idx,
             Int level,
             Accumulator& accum,
-            BigInt& removed_key_count
+            Position& removed_key_count
     );
 
 
@@ -113,7 +113,7 @@ MEMORIA_CONTAINER_PART_END
  */
 
 M_PARAMS
-BigInt M_TYPE::removeEntries(
+typename M_TYPE::Position M_TYPE::removeEntries(
 		TreePath& start,
 		Position& start_idx,
 		TreePath& stop,
@@ -124,7 +124,7 @@ BigInt M_TYPE::removeEntries(
 {
 	auto& self = this->self();
 
-    BigInt removed_key_count = 0;
+    Position removed_key_count;
 
     bool at_end = stop_idx.gteAll(self.getNodeSizes(stop.leaf()));
 
@@ -157,7 +157,8 @@ BigInt M_TYPE::removeEntries(
     {
         removePagesFromStart(stop, stop_idx, keys, removed_key_count);
 
-        if (merge) {
+        if (merge)
+        {
         	self.mergeWithRightSibling(stop, 0);
         }
 
@@ -168,7 +169,8 @@ BigInt M_TYPE::removeEntries(
     {
         removePagesAtEnd(start, start_idx, keys, removed_key_count);
 
-        if (merge) {
+        if (merge)
+        {
         	self.mergeWithLeftSibling(start, 0, start_idx);
         }
 
@@ -178,7 +180,8 @@ BigInt M_TYPE::removeEntries(
     else {
         removePages(start, start_idx, stop, stop_idx, 0, keys, removed_key_count);
 
-        if (merge) {
+        if (merge)
+        {
         	self.mergeWithSiblings(stop, 0, stop_idx);
         }
 
@@ -186,7 +189,7 @@ BigInt M_TYPE::removeEntries(
         start_idx   = stop_idx;
     }
 
-    self.addTotalKeyCount(stop, Position(-removed_key_count));
+    self.addTotalKeyCount(stop, -removed_key_count);
 
     return removed_key_count;
 }
@@ -195,7 +198,7 @@ BigInt M_TYPE::removeEntries(
 
 
 M_PARAMS
-void M_TYPE::removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum, BigInt& removed_key_count)
+void M_TYPE::removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum, Position& removed_key_count)
 {
 	auto& self = this->self();
 
@@ -220,7 +223,7 @@ void M_TYPE::removeAllPages(TreePath& start, TreePath& stop, Accumulator& accum,
 
 
 M_PARAMS
-void M_TYPE::removePagesFromStart(TreePath& stop, Position& stop_idx, Accumulator& accum, BigInt& removed_key_count)
+void M_TYPE::removePagesFromStart(TreePath& stop, Position& stop_idx, Accumulator& accum, Position& removed_key_count)
 {
     auto& self = this->self();
 
@@ -239,7 +242,7 @@ void M_TYPE::removePagesFromStart(TreePath& stop, Position& stop_idx, Accumulato
 
 
 M_PARAMS
-void M_TYPE::removePagesAtEnd(TreePath& start, Position& start_idx, Accumulator& accum, BigInt& removed_key_count)
+void M_TYPE::removePagesAtEnd(TreePath& start, Position& start_idx, Accumulator& accum, Position& removed_key_count)
 {
 	auto& self = this->self();
 
@@ -253,7 +256,7 @@ void M_TYPE::removePagesAtEnd(TreePath& start, Position& start_idx, Accumulator&
 
     for (Int c = 0; c < start.getSize(); c++)
     {
-        if (idx > 0)
+        if (idx.gtAny(0))
         {
             removed_key_count += self.removeRoom(start, c, idx, self.getNodeSizes(start[c].node()) - idx, accum);
             idx = Position(start[c].parent_idx() + 1);
@@ -275,7 +278,7 @@ void M_TYPE::removePages(
                 Position& stop_idx,
                 Int level,
                 Accumulator& accum,
-                BigInt& removed_key_count
+                Position& removed_key_count
 )
 {
     if (start_idx.eqAll(0))
@@ -298,7 +301,7 @@ void M_TYPE::removePagesInternal(
                 Position& stop_idx,
                 Int level,
                 Accumulator& accum,
-                BigInt& removed_key_count)
+                Position& removed_key_count)
 {
 	auto& self = this->self();
 

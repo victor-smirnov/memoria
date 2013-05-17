@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTORMAP2_C_API_HPP
-#define _MEMORIA_CONTAINER_VECTORMAP2_C_API_HPP
+#ifndef _MEMORIA_CONTAINER_VECTORMAP_C_UPDATE_HPP
+#define _MEMORIA_CONTAINER_VECTORMAP_C_UPDATE_HPP
 
 
 #include <memoria/containers/vector_map/vectormap_names.hpp>
@@ -15,13 +15,15 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/core/tools/idata.hpp>
 
+#include <vector>
 
 namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrUpdateName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -37,6 +39,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 	typedef typename Base::RootDispatcher                                       RootDispatcher;
 	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+	typedef typename Base::DefaultDispatcher                                    DefaultDispatcher;
 
 
 	typedef typename Base::Key                                                  Key;
@@ -55,110 +58,80 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 	static const Int Streams                                                    = Types::Streams;
 
 	typedef typename Types::IDataSourceType										DataSource;
+	typedef typename Types::IDataTargetType										DataTarget;
 
-	BigInt total_size() const
-	{
-		auto sizes = self().getTotalKeyCount();
-		return sizes[1];
-	}
-
-	BigInt size() const
-	{
-		auto sizes = self().getTotalKeyCount();
-		return sizes[0];
-	}
-
-	BigInt blob_size(Key id) const
-	{
-		return seek(id).size();
-	}
-
-    Iterator seek(Key id, Key pos)
-    {
-        Iterator iter = self().find(id);
-        MEMORIA_ASSERT_TRUE(iter.found());
-
-        iter.findData(pos);
-
-        return iter;
-    }
-
-    Iterator find(Key id)
-    {
-    	auto& self = this->self();
-
-    	vmap::MapFindWalker<Types> walker(id);
-
-    	Iterator iter = self.find0(0, walker);
-
-    	if ((!iter.isEnd()) && iter.id() == id)
-    	{
-    		iter.found() 	= true;
-    	}
-    	else {
-    		iter.found() 	= false;
-    	}
-
-    	return iter;
-    }
-
-    bool contains(Key id) {
-    	return find(id).found();
-    }
-
-    BigInt maxId()
-    {
-    	auto& self = this->self();
-
-    	Iterator iter = self.REnd();
-
-    	return iter.id();
-    }
-
-    Iterator create(DataSource& src)
-    {
-    	auto& self = this->self();
-    	auto iter  = self.End();
-
-    	self.insert(iter, iter.id() + 1, src);
-
-    	return iter;
-    }
-
-    Iterator create(Key id, DataSource& src)
-    {
-    	auto& self = this->self();
-    	auto iter  = self.find(id);
-
-    	if (iter.found())
-    	{
-    		self.replaceData(iter, src);
-    	}
-    	else {
-    		self.insert(iter, id, src);
-    	}
-
-    	return iter;
-    }
-
-    bool remove(Key id)
-    {
-    	auto& self = this->self();
-    	auto iter  = self.find(id);
-
-    	if (iter.found())
-    	{
-    		self.removeEntry(iter);
-    		return true;
-    	}
-    	else {
-    		return false;
-    	}
-    }
-
-
+	void replaceData(Iterator& iter, DataSource& data);
+	BigInt updateData(Iterator& iter, DataSource& data);
 
 MEMORIA_CONTAINER_PART_END
+
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrUpdateName)
+#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+M_PARAMS
+void M_TYPE::replaceData(Iterator& iter, DataSource& data)
+{
+	auto& self = this->self();
+
+	BigInt entry_size 	= iter.blob_size();
+	BigInt data_size	= data.getSize();
+
+	if (entry_size < data_size)
+	{
+		memoria::vapi::DataSourceProxy<Value> proxy(data, entry_size);
+
+		self.updateData(iter, proxy);
+		self.insertData(iter, data);
+	}
+	else if (entry_size > data_size)
+	{
+		self.updateData(iter, data);
+		self.removeData(iter, entry_size - data_size);
+	}
+	else { // entry_size == data_size
+		self.updateData(iter, data);
+	}
+}
+
+
+
+M_PARAMS
+BigInt M_TYPE::updateData(Iterator& iter, DataSource& data)
+{
+//	auto& self = this->self();
+//
+//	BigInt sum = 0;
+//	BigInt len = data.getRemainder();
+//
+//	while (len > 0)
+//	{
+//		Int to_read = self.size() - self.dataPos();
+//
+//		if (to_read > len) to_read = len;
+//
+//		mvector::VectorTarget target(&data);
+//
+////		LeafDispatcher::dispatchConst(self.leaf().node(), ReadFn(), &target, Position(self.dataPos()), Position(to_read));
+//
+//		len     -= to_read;
+//		sum     += to_read;
+//
+//		self.skipFw(to_read);
+//
+//		if (self.isEof())
+//		{
+//			break;
+//		}
+//	}
+//
+//	return sum;
+
+	return data.getSize();
+}
+
+
+#undef M_PARAMS
+#undef M_TYPE
 
 }
 

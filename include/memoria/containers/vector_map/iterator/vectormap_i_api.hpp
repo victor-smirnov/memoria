@@ -119,22 +119,25 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 				return true;
 			}
-			else if (self.prevLeaf())
+			else
 			{
-				self.idx() = self.leafSize(self.stream()) - 1;
+				if (self.prevLeaf())
+				{
+					self.idx() = self.leafSize(self.stream()) - 1;
 
-				MEMORIA_ASSERT_TRUE(self.idx() >= 0);
+					MEMORIA_ASSERT_TRUE(self.idx() >= 0);
 
-				auto entry = self.entry();
-				self.cache().sub(entry.first, entry.second, self.idx());
+					auto entry = self.entry();
+					self.cache().sub(entry.first, entry.second, self.idx());
 
-				return true;
-			}
-			else {
-				self.idx() = -1;
-				self.cache().sub(0, 0, -1);
+					return true;
+				}
+				else {
+					self.idx() = -1;
+					self.cache().sub(0, 0, -1);
 
-				return false;
+					return false;
+				}
 			}
 		}
 		else {
@@ -142,6 +145,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 			return self.prevEntry();
 		}
 	}
+
 
 	bool isEnd() const
 	{
@@ -158,12 +162,13 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		MEMORIA_ASSERT_TRUE(self.stream() == 0);
 
-		return self.idx() < 0;
+		return self.idx() < 0 || self.leafSize(0) == 0;
 	}
 
 	bool isEof() const
 	{
 		auto& self = this->self();
+
 		MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
 		BigInt pos = self.pos();
@@ -234,7 +239,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		PrefixFn fn(1, 0);
 
-		self.model().walkUp(self.path(), 0, fn);
+		self.ctr().walkUp(self.path(), 0, fn);
 
 		MEMORIA_ASSERT_TRUE(fn.prefix_ >= 0);
 
@@ -248,7 +253,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		PrefixFn fn(0, 1);
 
-		self.model().walkUp(self.path(), 0, fn);
+		self.ctr().walkUp(self.path(), 0, fn);
 
 		Int base = fn.prefix_ - self.leaf_blob_base();
 
@@ -280,7 +285,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		EntryBlobBaseFn fn;
 
-		self.model().walkUp(self.path(), 0, fn);
+		self.ctr().walkUp(self.path(), 0, fn);
 
 		MEMORIA_ASSERT_TRUE(fn.prefix_ >= 0);
 
@@ -477,7 +482,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		if (self.stream() == 1)
 		{
 			BigInt offset = self.pos();
-
 			self.skip(-offset);
 
 
@@ -540,7 +544,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
     	pos[1] = self.idx();
 
-    	return self.model().readStreams(self, pos, target)[1];
+    	return self.ctr().readStreams(self, pos, target)[1];
     }
 
     struct ReadValueFn {
@@ -596,7 +600,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	leaf.update();
     	LeafDispatcher::dispatch(leaf, UpdateFn(), self.idx(), accum);
 
-    	self.model().updateUp(self.path(), 1, self.leaf().parent_idx(), accum, true);
+    	self.ctr().updateUp(self.path(), 1, self.leaf().parent_idx(), accum, true);
+
+    	self.cache().addToEntry(
+    		std::get<0>(accum)[0],
+    		std::get<0>(accum)[1]
+    	);
     }
 
     void dump() {
@@ -605,11 +614,60 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	cout<<"Cache: " <<cache.id()
     					<<" "<<cache.id_prefix()
     					<<" "<<cache.id_entry()
-    					<<" "<<cache.size()
     					<<" "<<cache.blob_base()
+    					<<" "<<cache.size()
     					<<" "<<cache.entry_idx()
     					<<endl;
     	Base::dump();
+    }
+
+    struct InitStateFn {
+    	Accumulator prefix_;
+
+    	template <typename Node>
+    	void treeNode(const Node* node, Int idx)
+    	{
+    		node->template processStream<0>(*this, idx);
+    	}
+
+    	template <Int StreamIdx, typename TreeTypes>
+    	void stream(const PackedFSETree<TreeTypes>* tree, Int idx)
+    	{
+    		if (tree != nullptr)
+    		{
+    			std::get<StreamIdx>(prefix_)[0] += tree->sum(0, idx);
+    			std::get<StreamIdx>(prefix_)[1] += tree->sum(1, idx);
+    		}
+    	}
+    };
+
+    void initState()
+    {
+    	auto& self = this->self();
+
+    	InitStateFn fn;
+
+    	self.ctr().walkUp(self.path(), self.idx(), fn);
+
+    	BigInt id_prefix 	= std::get<0>(fn.prefix_)[0];
+    	BigInt base 		= std::get<0>(fn.prefix_)[1];
+
+    	BigInt id_entry;
+    	BigInt size;
+
+    	if (!self.isEnd())
+    	{
+    		auto entry = self.entry();
+
+    		id_entry = entry.first;
+    		size 	 = entry.second;
+    	}
+    	else {
+    		id_entry = 0;
+    		size 	 = 0;
+    	}
+
+    	self.cache().setup(id_prefix, id_entry, base, size, self.idx());
     }
 
 MEMORIA_ITERATOR_PART_END

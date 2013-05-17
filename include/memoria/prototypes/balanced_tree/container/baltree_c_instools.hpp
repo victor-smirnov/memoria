@@ -659,18 +659,6 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
 
     NodeBaseG other = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
 
-
-
-//    if (left_node->is_leaf())
-//    {
-//    	Position sizes = self.getNodeSizes(left_node);
-//    	self.layoutLeafNode(other, sizes);
-//    }
-//    else {
-//    	UBigInt active_streams = self.getActiveStreams(left_node);
-//    	self.layoutNonLeafNode(other, active_streams);
-//    }
-
     Accumulator keys = self.moveElements(left_node, other, idx);
 
     Int parent_idx = left[level].parent_idx();
@@ -702,9 +690,6 @@ void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& i
     {
     	right.moveLeft(level - 1, 0, idx.get());
     }
-
-//    self.dump(left);
-//    self.dump(right);
 }
 
 

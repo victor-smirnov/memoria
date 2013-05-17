@@ -169,7 +169,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
 
     	Int root_block_size = node->page_size();
 
-    	Int target_block_size = RootType::block_size(sizes);
+    	Int target_block_size = RootType::object_size(sizes);
 
     	return target_block_size <= root_block_size;
     }
