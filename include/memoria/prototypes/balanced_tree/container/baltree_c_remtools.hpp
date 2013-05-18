@@ -11,6 +11,7 @@
 
 #include <memoria/core/container/macros.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_types.hpp>
+#include <functional>
 
 namespace memoria    {
 
@@ -34,6 +35,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
 
     static const Int  Indexes                                                   = Base::Indexes;
 
+    typedef std::function<void (const TreePath&, const TreePath&, Int)>			MergeFn;
+
 
     /**
      * \brief Try to merge tree node with its siblings at the specified level.
@@ -49,7 +52,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
      * \see {mergeWithLeftSibling, mergeWithRightSibling} for details
      */
 
-    bool mergeWithSiblings(TreePath& path, Int level)
+    MergeType mergeWithSiblings(TreePath& path, Int level)
     {
         Position idx(0);
         return self().mergeWithSiblings(path, level, idx);
@@ -57,9 +60,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
 
 
 
-    bool mergeWithLeftSibling(TreePath& path, Int level, Position& key_idx);
+    bool mergeWithLeftSibling(TreePath& path, Int level, MergeFn fn = [](const TreePath&, const TreePath&, Int){});
     bool mergeWithRightSibling(TreePath& path, Int level);
-    bool mergeWithSiblings(TreePath& path, Int level, Position& key_idx);
+    MergeType mergeWithSiblings(TreePath& path, Int level, MergeFn fn = [](const TreePath&, const TreePath&, Int){});
 
     bool mergePaths(TreePath& tgt, TreePath& src, Int level = 0);
 
@@ -148,7 +151,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
     }
 
     void mergeNodes(TreePath& tgt, TreePath& src, Int level);
-    bool mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level);
+    bool mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level, MergeFn fn);
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, Accumulator);
@@ -513,17 +516,20 @@ void M_TYPE::removeRedundantRoot(TreePath& first, TreePath& second, Int level)
  */
 
 M_PARAMS
-bool M_TYPE::mergeWithSiblings(TreePath& path, Int level, Position& idx)
+MergeType M_TYPE::mergeWithSiblings(TreePath& path, Int level, MergeFn fn)
 {
 	auto& self = this->self();
 
     if (self.mergeWithRightSibling(path, level))
     {
-        return true;
+        return MergeType::RIGHT;
     }
-    else
+    else if (self.mergeWithLeftSibling(path, level, fn))
     {
-        return self.mergeWithLeftSibling(path, level, idx);
+        return MergeType::LEFT;
+    }
+    else {
+    	return MergeType::NONE;
     }
 }
 
@@ -545,11 +551,9 @@ bool M_TYPE::mergeWithSiblings(TreePath& path, Int level, Position& idx)
 
 
 M_PARAMS
-bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Position& idx)
+bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, MergeFn fn)
 {
-	MEMORIA_ASSERT_TRUE(idx.gteAll(0));
-
-    auto& self = this->self();
+	auto& self = this->self();
 
     bool merged = false;
 
@@ -559,14 +563,10 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, Position& idx)
 
         if (self.getPrevNode(prev, level))
         {
-            Position size = self.getNodeSizes(prev[level]);
-
-            merged = mergeBTreeNodes(prev, path, level);
+            merged = mergeBTreeNodes(prev, path, level, fn);
 
             if (merged)
             {
-                // FIXME: array subscripts?
-            	idx += size;
                 path = prev;
             }
         }
@@ -604,7 +604,7 @@ bool M_TYPE::mergeWithRightSibling(TreePath& path, Int level)
 
         if (self.getNextNode(next))
         {
-            merged = mergeBTreeNodes(path, next, level);
+            merged = mergeBTreeNodes(path, next, level, [](const TreePath&, const TreePath&, Int){});
         }
     }
 
@@ -727,13 +727,15 @@ void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
  */
 
 M_PARAMS
-bool M_TYPE::mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level)
+bool M_TYPE::mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level, MergeFn fn)
 {
     if (canMerge(tgt, src, level))
     {
         if (isTheSameParent(tgt, src, level))
         {
-            mergeNodes(tgt, src, level);
+            fn(tgt, src, level);
+
+        	mergeNodes(tgt, src, level);
 
             removeRedundantRoot(tgt, src, level);
 
@@ -741,8 +743,10 @@ bool M_TYPE::mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level)
         }
         else
         {
-            if (self().mergeBTreeNodes(tgt, src, level + 1))
+            if (mergeBTreeNodes(tgt, src, level + 1, fn))
             {
+            	fn(tgt, src, level);
+
                 mergeNodes(tgt, src, level);
 
                 removeRedundantRoot(tgt, src, level);

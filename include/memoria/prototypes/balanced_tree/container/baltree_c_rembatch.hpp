@@ -171,7 +171,12 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 
         if (merge)
         {
-        	self.mergeWithLeftSibling(start, 0, start_idx);
+        	self.mergeWithLeftSibling(start, 0, [&start_idx, &self](const TreePath& left, const TreePath& right, Int level)
+        	{
+        		if (level == 0) {
+        			start_idx += self.getNodeSizes(left.leaf());
+        		}
+            });
         }
 
         stop        = start;
@@ -182,7 +187,13 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 
         if (merge)
         {
-        	self.mergeWithSiblings(stop, 0, stop_idx);
+        	self.mergeWithSiblings(stop, 0, [&stop_idx, &self](const TreePath& left, const TreePath& right, Int level)
+            {
+        		if (level == 0)
+        		{
+        			stop_idx += self.getNodeSizes(left.leaf());
+        		}
+            });
         }
 
         start       = stop;

@@ -135,21 +135,26 @@ bool M_TYPE::mergeLeaf(Iterator& iter)
 {
 	auto& self = this->self();
 
-	Position idx;
+	MergeType merged = self.mergeWithSiblings(iter.path(), 0, [&iter, self](const TreePath& left, const TreePath& right, Int level)
+	{
+		Position sizes = self.getNodeSizes(left.leaf());
 
-	idx[0] = iter.idx();
+		Int stream = iter.stream();
 
-	bool merged = self.mergeWithSiblings(iter.path(), 0, idx);
+		iter.idx() += sizes[stream];
 
-	iter.idx() = idx[0];
+		iter.cache().addEntryIdx(sizes[0]);
+	});
 
-	return merged;
+	return merged != MergeType::NONE;
 }
 
 
 M_PARAMS
 void M_TYPE::removeData(Iterator& iter, BigInt size)
 {
+	iter.dump();
+
 	MEMORIA_ASSERT_TRUE(iter.stream() == 1);
 
 	auto& self = this->self();

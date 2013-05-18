@@ -76,7 +76,7 @@ void M_TYPE::remove(Iterator& from, Iterator& to)
 
 	self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
 
-	from.key_idx() = to.key_idx() = to_pos.get();
+	from.idx() = to.idx() = to_pos.get();
 }
 
 M_PARAMS

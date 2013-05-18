@@ -1054,6 +1054,8 @@ public:
 
 	void removeSpace(Int idx, Int room_length)
 	{
+		MEMORIA_ASSERT_TRUE(idx >= 0);
+		MEMORIA_ASSERT_TRUE(room_length >= 0);
 		MEMORIA_ASSERT(room_length, <= , size() - idx);
 
 		Value* values = this->values();
@@ -1076,6 +1078,9 @@ public:
 
 	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
 	{
+		MEMORIA_ASSERT_TRUE(copy_from >= 0);
+		MEMORIA_ASSERT_TRUE(count >= 0);
+
 		for (Int block = 0; block < Blocks; block++)
 		{
 			Int my_offset		= block * size_;

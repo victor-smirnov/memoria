@@ -453,11 +453,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
 
-    void dump(NodeBaseG& page, std::ostream& out = std::cout) const
+    void dump(const NodeBaseG& page, std::ostream& out = std::cout) const
     {
         if (page != NULL)
         {
-            PageWrapper<Page> pw(page);
+            PageWrapper<const Page> pw(page);
             PageMetadata* meta = me()->getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
             memoria::vapi::dumpPage(meta, &pw, out);
             out<<endl;

@@ -238,6 +238,7 @@ enum class WalkDirection {
 
 enum class SearchType {LT, LE};
 enum class IteratorMode {FORWARD, BACKWARD};
+enum class MergeType {NONE, LEFT, RIGHT};
 
 extern BigInt DebugCounter;
 extern size_t MemBase;

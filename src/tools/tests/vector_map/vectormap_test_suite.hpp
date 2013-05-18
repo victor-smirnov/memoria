@@ -30,7 +30,7 @@ public:
     {
         registerTask(new VectorMapCreateTest());
         registerTask(new VectorMapRemoveTest());
-//        registerTask(new VectorMapReplaceTest());
+        registerTask(new VectorMapReplaceTest());
 
 //        registerTask(new VectorMapTransferTest<UByte>("Transfer"));
     }

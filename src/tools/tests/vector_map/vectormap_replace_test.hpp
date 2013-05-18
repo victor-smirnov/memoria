@@ -25,52 +25,31 @@ using namespace std;
 
 class VectorMapReplaceTest: public VectorMapTestBase {
 
-    typedef VectorMapReplaceTest                                                 MyType;
+    typedef VectorMapReplaceTest                                                MyType;
     typedef VectorMapTestBase													Base;
 
 protected:
 
     typedef std::function<void (MyType*, Allocator&, Ctr&)> 					TestFn;
 
+    Int replacements_ 		= 1000;
+
+    Int replacement_pos_;
+
 public:
 
     VectorMapReplaceTest(): Base("Replace")
     {
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRandomReplacement, replayRandomReplacement);
+    	MEMORIA_ADD_TEST_PARAM(replacements_);
+
+    	MEMORIA_ADD_TEST_PARAM(replacement_pos_)->state();
+
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testRandomReplacement, replayRandomReplacement);
     }
 
     virtual ~VectorMapReplaceTest() throw() {}
 
-    VMapData createRandomVMap(Ctr& map, Int size)
-    {
-    	VMapData tripples;
 
-    	for (Int c = 0; c < size; c++)
-    	{
-    		Int	data_size 	= getRandom(max_block_size_);
-    		Int	data		= c & 0xFF;
-    		Int	key 		= getNewRandomId(map);
-
-    		vector<Value> vdata = createSimpleBuffer<Value>(data_size, data);
-
-    		MemBuffer<Value> buf(vdata);
-
-    		auto iter = map.create(key, buf);
-
-    		UInt insertion_pos;
-    		for (insertion_pos = 0; insertion_pos < tripples.size(); insertion_pos++)
-    		{
-    			if (key <= tripples[insertion_pos].id())
-    			{
-    				break;
-    			}
-    		}
-
-    		tripples.insert(tripples.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), data));
-    	}
-
-    	return tripples;
-    }
 
 
     void test(TestFn test_fn)
@@ -90,15 +69,19 @@ public:
 
     	allocator.commit();
 
-    	StoreAllocator(allocator, getResourcePath("arc-alloc.dump"));
-
     	try {
-    		for (iteration_ = 0; iteration_ < size_; iteration_++)
+    		for (iteration_ = 0; iteration_ < replacements_; iteration_++)
     		{
     			test_fn(this, allocator, map);
 
     			allocator.commit();
     		}
+    	}
+    	catch (Exception ex) {
+    		cout<<ex<<endl;
+    		dump_name_ = Store(allocator);
+    		storeTripples(tripples_);
+    		throw;
     	}
     	catch (...) {
     		dump_name_ = Store(allocator);
@@ -122,7 +105,14 @@ public:
 
     	test_fn(this, allocator, ctr);
 
-    	check(allocator, "Replace: Container Check Failed", MA_SRC);
+    	try {
+    		check(allocator, "Replace: Container Check Failed", MA_SRC);
+    	}
+    	catch (...) {
+    		allocator.commit();
+    		StoreAllocator(allocator, "replay-invalid.dump");
+    		throw;
+    	}
     }
 
 
@@ -139,31 +129,26 @@ public:
 
     void randomReplacementTest(Allocator& allocator, Ctr& map)
     {
+    	out()<<iteration_<<endl;
+
     	if (!isReplayMode())
     	{
-    		key_ = tripples_[getRandom(tripples_.size())].id();
+    		data_size_  = getRandom(max_block_size_);
+    		data_		= iteration_ & 0xFF;
+
+    		replacement_pos_ 	= getRandom(tripples_.size());
+    		key_ 				= tripples_[replacement_pos_].id();
     	}
 
+    	vector<Value> data = createSimpleBuffer<Value>(data_size_, data_);
 
-    	bool removed = map.remove(key_);
+    	MemBuffer<Value> buf(data);
 
-    	AssertTrue(MA_SRC, removed);
+    	Tripple tripple = tripples_[replacement_pos_];
 
-    	Int insertion_pos = -1;
-    	for (UInt idx = 0; idx < tripples_.size(); idx++)
-    	{
-    		if (key_ == tripples_[idx].id())
-    		{
-    			insertion_pos = idx;
-    			break;
-    		}
-    	}
+    	auto iter = map.create(key_, buf);
 
-    	AssertGE(MA_SRC, insertion_pos, 0);
-
-    	auto tripple = tripples_[insertion_pos];
-
-    	tripples_.erase(tripples_.begin() + insertion_pos);
+    	tripples_[replacement_pos_] = Tripple(iter.id(), iter.blob_size(), data_);
 
     	try {
     		if (iterator_check_counter_ % iterator_check_count_ == 0)
@@ -176,7 +161,7 @@ public:
     	}
     	catch(...)
     	{
-    		tripples_.insert(tripples_.begin() + insertion_pos, tripple);
+    		tripples_[replacement_pos_] = tripple;
     		throw;
     	}
     }

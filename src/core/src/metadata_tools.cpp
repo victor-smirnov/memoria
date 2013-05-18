@@ -313,7 +313,7 @@ private:
 
 
 
-void dumpPage(PageMetadata* meta, Page* page, std::ostream& out)
+void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out)
 {
     TextPageDumper dumper(out);
 

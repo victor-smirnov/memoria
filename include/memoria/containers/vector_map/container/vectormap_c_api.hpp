@@ -132,6 +132,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 
     	if (iter.found())
     	{
+    		iter.seek(0);
     		self.replaceData(iter, src);
     	}
     	else {

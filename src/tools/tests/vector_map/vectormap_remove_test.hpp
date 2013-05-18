@@ -41,38 +41,6 @@ public:
 
     virtual ~VectorMapRemoveTest() throw() {}
 
-    VMapData createRandomVMap(Ctr& map, Int size)
-    {
-    	VMapData tripples;
-
-    	for (Int c = 0; c < size; c++)
-    	{
-    		Int	data_size 	= getRandom(max_block_size_);
-    		Int	data		= c & 0xFF;
-    		Int	key 		= getNewRandomId(map);
-
-    		vector<Value> vdata = createSimpleBuffer<Value>(data_size, data);
-
-    		MemBuffer<Value> buf(vdata);
-
-    		auto iter = map.create(key, buf);
-
-    		UInt insertion_pos;
-    		for (insertion_pos = 0; insertion_pos < tripples.size(); insertion_pos++)
-    		{
-    			if (key <= tripples[insertion_pos].id())
-    			{
-    				break;
-    			}
-    		}
-
-    		tripples.insert(tripples.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), data));
-    	}
-
-    	return tripples;
-    }
-
-
     void test(TestFn test_fn)
     {
     	DefaultLogHandlerImpl logHandler(out());
@@ -89,8 +57,6 @@ public:
     	checkDataFw(tripples_, map);
 
     	allocator.commit();
-
-    	StoreAllocator(allocator, getResourcePath("arc-alloc.dump"));
 
     	try {
     		for (iteration_ = 0; iteration_ < size_; iteration_++)

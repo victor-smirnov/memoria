@@ -144,6 +144,11 @@ public:
     	entry_idx_ = entry_idx;
     }
 
+    void addEntryIdx(Int entry_idx)
+    {
+    	entry_idx_ += entry_idx;
+    }
+
 
     void setup(BigInt id_prefix, BigInt id_entry, BigInt base, BigInt size, Int entry_idx)
     {

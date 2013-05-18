@@ -204,7 +204,9 @@ public:
 
     bool isEnd() const
     {
-        return page().isSet() ? key_idx() >= self().model().getNodeSize(page(), 0) : true;
+        auto& self = this->self();
+
+    	return page().isSet() ? idx() >= self.leaf_size() : true;
     }
 
     bool isNotEnd() const
@@ -214,7 +216,8 @@ public:
 
     bool isEmpty() const
     {
-        return page().isEmpty() || self().model().getNodeSize(page(), 0) == 0;
+    	auto& self = this->self();
+    	return page().isEmpty() || self.leaf_size() == 0;
     }
 
     bool isNotEmpty() const

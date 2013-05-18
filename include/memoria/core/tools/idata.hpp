@@ -390,13 +390,17 @@ public:
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-        CopyBuffer(buffer + start, data_ + start_, length);
+    	MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+
+    	CopyBuffer(buffer + start, data_ + start_, length);
 
         return skip(length);
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
+    	MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+
     	CopyBuffer(data_ + start_, buffer + start, length);
 
         return skip(length);

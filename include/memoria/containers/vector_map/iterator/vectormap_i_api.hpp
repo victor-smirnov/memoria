@@ -355,6 +355,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		auto& self = this->self();
 
 		MEMORIA_ASSERT_TRUE(self.stream() == 0);
+		MEMORIA_ASSERT_TRUE(self.idx() >= 0);
+		MEMORIA_ASSERT_TRUE(self.idx() < self.leaf_size());
 
 		return LeafDispatcher::dispatchConstRtn(self.leaf().node(), EntryFn(), self.idx());
 	}

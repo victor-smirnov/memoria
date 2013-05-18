@@ -150,6 +150,98 @@ public:
 };
 
 
+template <typename PageType>
+class PageWrapper<const PageType>: public Page {
+    const PageType *page_;
+public:
+    PageWrapper(const PageType* page): page_(page) {}
+    PageWrapper(): page_(NULL) {}
+
+    virtual ~PageWrapper() throw()  {}
+
+    virtual bool isNull() const {
+        return page_ == NULL;
+    }
+
+    virtual IDValue getId() const
+    {
+        if (page_ != NULL)
+        {
+            return IDValue(&page_->id());
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+        }
+    }
+
+    virtual Int getContainerHash() const
+    {
+        if (page_ != NULL)
+        {
+            return page_->ctr_type_hash();
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+        }
+    }
+
+    virtual Int getPageTypeHash() const
+    {
+        if (page_ != NULL)
+        {
+            return page_->page_type_hash();
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+        }
+    }
+
+    virtual BigInt getFlags() const {
+        return 0;
+    }
+
+    virtual void* Ptr() {
+    	throw Exception(MA_SRC, "Page in not mutable");
+    }
+
+    virtual const void* Ptr() const {
+        return page_;
+    }
+
+    virtual void setPtr(void* ptr)
+    {
+    	throw Exception(MA_SRC, "Page in not mutable");
+    }
+
+    virtual Int size() const {
+        return page_->page_size();
+    }
+
+    virtual Int getByte(Int idx) const
+    {
+        if (page_ != NULL)
+        {
+            if (idx >= 0 && idx < page_->page_size()) {
+                return T2T<UByte*>(page_)[idx];
+            }
+            else {
+                throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid byte offset: "<<idx<<" max="<<page_->page_size());
+            }
+
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
+        }
+    }
+
+    virtual void setByte(Int idx, Int value)
+    {
+    	throw Exception(MA_SRC, "Page in not mutable");
+    }
+};
+
+
+
 template <typename Name, typename Base>
 class PagePart;
 

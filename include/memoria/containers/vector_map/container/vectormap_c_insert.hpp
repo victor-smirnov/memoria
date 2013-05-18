@@ -63,22 +63,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
 
 
 	void insertData(Iterator& iter, DataSource& data);
-
-
     void insert(Iterator& iter, BigInt id, DataSource& data);
-
-    void splitLeaf(Iterator& iter, Int split_idx = -1);
-
 
 
 private:
 
+    void splitLeaf(Iterator& iter, Int split_idx = -1);
+
     template <typename EntryData>
-    void insertEntry(Iterator& iter, const EntryData&);
+    void insertMapEntry(Iterator& iter, const EntryData&);
 
 
     void splitLeafData(Iterator& iter, Int split_idx = -1);
-    void insertDataInternal(Iterator& iter, DataSource& data);
+    void insertDataInternal(Iterator& iter, const Position& idx, DataSource& data);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -91,7 +88,61 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::insertData(Iterator& iter, DataSource& data)
 {
+	auto& self = this->self();
 
+	MEMORIA_ASSERT_TRUE(iter.stream() == 1);
+
+	BigInt data_size = data.getRemainder();
+	BigInt pos		 = iter.pos();
+
+	NodeBaseG& leaf = iter.leaf();
+
+	Int idx = iter.idx();
+
+	if (self.checkCapacities(leaf, {0, data_size}) || self.isNodeEmpty(leaf))
+	{
+		insertDataInternal(iter, {-1, idx}, data);
+	}
+	else {
+
+		if (iter.leaf_size(0) == 0)
+		{
+			splitLeafData(iter, iter.idx());
+		}
+		else {
+			Int first_entry_data_offset = iter.data_offset_for(0);
+			Int entry_idx				= iter.cache().entry_idx();
+
+			if (idx <= first_entry_data_offset)
+			{
+				auto right = iter.path();
+
+				self.splitPath(iter.path(), right, 0, {0, idx}, 3);
+
+				insertDataInternal(iter, {0, idx}, data);
+			}
+			else
+			{
+				auto right = iter.path();
+
+				self.splitPath(iter.path(), right, 0, {entry_idx + 1, idx}, 3);
+
+				insertDataInternal(iter, {0, idx}, data);
+			}
+		}
+	}
+
+	iter.findEntry();
+
+	Accumulator accum;
+
+	std::get<0>(accum)[1] = data_size;
+
+	iter.update(accum);
+
+	iter.seek(pos + data_size);
+
+	self.addTotalKeyCount({0, data_size});
 }
 
 
@@ -109,11 +160,14 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 
 	bool at_the_end = iter.isEnd();
 
-	if (self.checkCapacities(leaf, {1, src.getSize()}) || self.isNodeEmpty(leaf))
+	BigInt data_size = src.getRemainder();
+
+	if (self.checkCapacities(leaf, {1, data_size}) || self.isNodeEmpty(leaf))
 	{
-		self.insertEntry(iter, pair);
+		insertMapEntry(iter, pair);
 		iter.seekLocal();
-		self.insertDataInternal(iter, src);
+		insertDataInternal(iter, {-1, iter.idx()}, src);
+		iter.skipFw(data_size);
 	}
 	else
 	{
@@ -123,11 +177,12 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 		{
 			self.splitLeaf(iter, iter.idx());
 
-			self.insertEntry(iter, pair);
+			insertMapEntry(iter, pair);
 
 			iter.seekLocal();
 
-			self.insertDataInternal(iter, src);
+			insertDataInternal(iter, {-1, iter.idx()}, src);
+			iter.skipFw(data_size);
 		}
 		else {
 			iter--;
@@ -170,7 +225,8 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 				iter.idx() 		= data_pos;
 				iter.stream() 	= 1;
 
-				self.insertDataInternal(iter, src);
+				self.insertDataInternal(iter, {-1, iter.idx()}, src);
+				iter.skipFw(data_size);
 			}
 			else {
 				MEMORIA_ASSERT_TRUE(blob_offset + blob_size == leaf_data_size);
@@ -181,33 +237,37 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 
 				if (data_capacity > 0)
 				{
-					self.insertEntry(iter, pair);
+					insertMapEntry(iter, pair);
 
 					iter.seekLocal();
 
-					self.insertDataInternal(iter, src);
+					insertDataInternal(iter, {-1, iter.idx()}, src);
+					iter.skipFw(data_size);
 				}
 				else {
 					Int map_capacity = iter.leaf_capacity(0);
 
-					if (map_capacity > 0 && src.getSize() == 0)
+					if (map_capacity > 0 && data_size == 0)
 					{
-						self.insertEntry(iter, pair);
+						insertMapEntry(iter, pair);
 					}
 					else {
 						self.splitLeaf(iter, iter.idx());
 
-						self.insertEntry(iter, pair);
+						insertMapEntry(iter, pair);
 
 						iter.stream() = 1;
 						iter.idx()    = 0;
 
-						self.insertDataInternal(iter, src);
+						insertDataInternal(iter, {-1, iter.idx()}, src);
+						iter.skipFw(data_size);
 					}
 				}
 			}
 		}
 	}
+
+	self.addTotalKeyCount({0, data_size});
 
 	if (!at_the_end)
 	{
@@ -279,9 +339,11 @@ void M_TYPE::splitLeaf(Iterator& iter, Int split_idx)
 	}
 }
 
+
+
 M_PARAMS
 template <typename EntryData>
-void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
+void M_TYPE::insertMapEntry(Iterator &iter, const EntryData& entry)
 {
 	Base::insertEntry(iter, entry);
 	iter.cache().set(entry.first, entry.second, iter.idx());
@@ -312,7 +374,7 @@ void M_TYPE::splitLeafData(Iterator& iter, Int split_idx)
 
 
 M_PARAMS
-void M_TYPE::insertDataInternal(Iterator& iter, DataSource& data)
+void M_TYPE::insertDataInternal(Iterator& iter, const Position& idx, DataSource& data)
 {
 	if (data.getSize() > 0)
 	{
@@ -320,22 +382,19 @@ void M_TYPE::insertDataInternal(Iterator& iter, DataSource& data)
 		auto& ctr  = self;
 
 		TreePath& path = iter.path();
-		Position idx(iter.idx());
 
 		vmap::VectorMapSource source(&data);
 
-		typename Base::DefaultSubtreeProvider provider(self, Position::create(1, data.getSize()), source);
+		typename Base::DefaultSubtreeProvider provider(self, {0, data.getRemainder()}, source);
 
-		ctr.insertSubtree(path, idx, provider);
+		Position idx0 = idx;
 
-		ctr.addTotalKeyCount(Position::create(1, data.getSize()));
+		ctr.insertSubtree(path, idx0, provider);
 
 		if (iter.isEof())
 		{
 			iter.nextLeaf();
 		}
-
-		iter.skipFw(data.getSize());
 	}
 }
 

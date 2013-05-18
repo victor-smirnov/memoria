@@ -115,9 +115,11 @@ void M_TYPE::removeEntry(TreePath& path, Int stream, Int& idx, Accumulator& keys
         //leaf if filled by half of it's capacity.
         if (merge && self.shouldMergeNode(path, 0))
         {
-        	Position idxp(idx);
-            self.mergeWithSiblings(path, 0, idxp);
-        	idx = idxp[stream];
+            self.mergeWithSiblings(path, 0, [&idx, &self, stream](const TreePath& left, const TreePath& right, Int level){
+            	if (level == 0) {
+            		idx += self.getNodeSize(left.leaf(), stream);
+            	}
+            });
         }
     }
     else {

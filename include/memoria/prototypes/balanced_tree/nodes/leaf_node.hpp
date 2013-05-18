@@ -727,15 +727,18 @@ public:
     		Int shift = shifts->value(Idx);
     		Int size  = tree->size();
 
+    		MEMORIA_ASSERT_TRUE(idx >= 0);
+    		MEMORIA_ASSERT_TRUE(idx <= size);
+
     		if (size > 0)
     		{
     			Int remainder 		= size - idx;
+    			MEMORIA_ASSERT_TRUE(remainder >= 0);
+
     			Int block_size 		= Tree::block_size(remainder + shift);
     			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
 
-    			other_tree->size() += (remainder + shift);
-
-    			other_tree->clear(0, shift);
+    			other_tree->insertSpace(0, remainder + shift);
 
     			tree->copyTo(other_tree, idx, remainder, shift);
 

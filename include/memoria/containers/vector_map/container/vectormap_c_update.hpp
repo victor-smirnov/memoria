@@ -63,6 +63,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrUpdateName)
 	void replaceData(Iterator& iter, DataSource& data);
 	BigInt updateData(Iterator& iter, DataSource& data);
 
+private:
+
+	MEMORIA_DECLARE_NODE_FN(UpdateFn, update);
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrUpdateName)
@@ -71,7 +75,11 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::replaceData(Iterator& iter, DataSource& data)
 {
+	MEMORIA_ASSERT_TRUE(iter.stream() == 1);
+
 	auto& self = this->self();
+
+	iter.dump();
 
 	BigInt entry_size 	= iter.blob_size();
 	BigInt data_size	= data.getSize();
@@ -98,35 +106,35 @@ void M_TYPE::replaceData(Iterator& iter, DataSource& data)
 M_PARAMS
 BigInt M_TYPE::updateData(Iterator& iter, DataSource& data)
 {
-//	auto& self = this->self();
-//
-//	BigInt sum = 0;
-//	BigInt len = data.getRemainder();
-//
-//	while (len > 0)
-//	{
-//		Int to_read = self.size() - self.dataPos();
-//
-//		if (to_read > len) to_read = len;
-//
-//		mvector::VectorTarget target(&data);
-//
-////		LeafDispatcher::dispatchConst(self.leaf().node(), ReadFn(), &target, Position(self.dataPos()), Position(to_read));
-//
-//		len     -= to_read;
-//		sum     += to_read;
-//
-//		self.skipFw(to_read);
-//
-//		if (self.isEof())
-//		{
-//			break;
-//		}
-//	}
-//
-//	return sum;
+	MEMORIA_ASSERT_TRUE(iter.stream() == 1);
 
-	return data.getSize();
+//	auto& self = this->self();
+
+	BigInt sum = 0;
+	BigInt len = data.getRemainder();
+
+	while (len > 0)
+	{
+		Int to_read = iter.leaf_size() - iter.idx();
+
+		if (to_read > len) to_read = len;
+
+		vmap::VectorMapSource target(&data);
+
+		LeafDispatcher::dispatch(iter.leaf().node(), UpdateFn(), &target, Position({0, iter.idx()}), Position({0, to_read}));
+
+		len     -= to_read;
+		sum     += to_read;
+
+		iter.skipFw(to_read);
+
+		if (iter.isEof())
+		{
+			break;
+		}
+	}
+
+	return sum;
 }
 
 

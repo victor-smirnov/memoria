@@ -26,7 +26,7 @@ void Expand(std::ostream& os, Int level);
 //void dumpData(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx);
 //void dumpGroup(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx, Int size = -1);
 
-void dumpPage(PageMetadata* meta, Page* page, std::ostream& out);
+void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out);
 
 }}
 
