@@ -91,6 +91,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 				return true;
 			}
 			else {
+				size = self.leafSize(0);
 				self.idx() = size;
 				self.cache().add(0, 0, size);
 			}
@@ -375,6 +376,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		template <Int StreamIdx, typename StreamType>
 		ResultType stream(const StreamType* obj, Int block, Int idx)
 		{
+			MEMORIA_ASSERT_TRUE(obj != nullptr);
+
 			return obj->sum(block, idx);
 		}
 	};
@@ -507,7 +510,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 	{
 		auto& self = this->self();
 
-		if (offset > 0)
+		if (offset >= 0)
 		{
 			return self.skipFw(offset);
 		}
@@ -524,15 +527,28 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		{
 			return self.findData(amount);
 		}
-		else {
+		else if (self.blob_size() > 0)
+		{
 			return self.template _findFw<vmap::SkipForwardWalker>(0, amount);
+		}
+		else {
+			return 0;
 		}
 	}
 
 	BigInt skipBw(BigInt amount)
 	{
 		auto& self = this->self();
-		return self.template _findBw<vmap::SkipBackwardWalker>(0, amount);
+
+		MEMORIA_ASSERT_TRUE(self.stream() == 1);
+
+		if (self.blob_size() > 0)
+		{
+			return self.template _findBw<vmap::SkipBackwardWalker>(0, amount);
+		}
+		else {
+			return 0;
+		}
 	}
 
 

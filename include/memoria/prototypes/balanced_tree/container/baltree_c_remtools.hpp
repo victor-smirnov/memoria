@@ -192,7 +192,6 @@ typename M_TYPE::Position M_TYPE::removeRoom(
 )
 {
     //FIXME: optimize for the case when count == 0
-
 	auto& self = this->self();
 
     Position key_count;

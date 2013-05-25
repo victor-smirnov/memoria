@@ -125,6 +125,8 @@ public:
     		}
     	}
 
+    	out()<<key_<<" "<<insertion_pos<<endl;
+
     	AssertGE(MA_SRC, insertion_pos, 0);
 
     	auto tripple = tripples_[insertion_pos];

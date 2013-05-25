@@ -79,8 +79,6 @@ void M_TYPE::replaceData(Iterator& iter, DataSource& data)
 
 	auto& self = this->self();
 
-	iter.dump();
-
 	BigInt entry_size 	= iter.blob_size();
 	BigInt data_size	= data.getSize();
 

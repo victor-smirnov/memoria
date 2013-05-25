@@ -102,7 +102,16 @@ void M_TYPE::removeEntry(Iterator& iter)
 	}
 	else {
 		Iterator to = iter;
-		to.seek(size);
+		to.findEntry();
+
+		if (!to++)
+		{
+			to--;
+			to.skipFw(iter.blob_size());
+		}
+		else {
+			to.seekLocal();
+		}
 
 		TreePath& from_path = iter.path();
 		Position from_idx	= {idx, local_offset};
@@ -135,15 +144,19 @@ bool M_TYPE::mergeLeaf(Iterator& iter)
 {
 	auto& self = this->self();
 
-	MergeType merged = self.mergeWithSiblings(iter.path(), 0, [&iter, self](const TreePath& left, const TreePath& right, Int level)
+	MergeType merged = self.mergeWithSiblings(
+			iter.path(), 0, [&iter, self](const TreePath& left, const TreePath& right, Int level)
 	{
-		Position sizes = self.getNodeSizes(left.leaf());
+		if (level == 0)
+		{
+			Position sizes = self.getNodeSizes(left.leaf());
 
-		Int stream = iter.stream();
+			Int stream = iter.stream();
 
-		iter.idx() += sizes[stream];
+			iter.idx() += sizes[stream];
 
-		iter.cache().addEntryIdx(sizes[0]);
+			iter.cache().addEntryIdx(sizes[0]);
+		}
 	});
 
 	return merged != MergeType::NONE;
@@ -153,8 +166,6 @@ bool M_TYPE::mergeLeaf(Iterator& iter)
 M_PARAMS
 void M_TYPE::removeData(Iterator& iter, BigInt size)
 {
-	iter.dump();
-
 	MEMORIA_ASSERT_TRUE(iter.stream() == 1);
 
 	auto& self = this->self();
