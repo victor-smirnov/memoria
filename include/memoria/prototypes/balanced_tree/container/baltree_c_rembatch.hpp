@@ -126,7 +126,20 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 
     Position removed_key_count;
 
-    bool at_end = stop_idx.gteAll(self.getNodeSizes(stop.leaf()));
+    Position stop_sizes = self.getNodeSizes(stop.leaf());
+
+    bool at_end;
+
+    if (stop_idx.ltAny(stop_sizes))
+    {
+    	at_end = false;
+    }
+    else
+    {
+    	auto stop_tmp = stop;
+    	at_end = !self.getNextNode(stop_tmp, 0);
+    }
+
 
     bool from_start;
 

@@ -172,23 +172,42 @@ void M_TYPE::removeData(Iterator& iter, BigInt size)
 
 	BigInt local_offset		= iter.idx();
 	BigInt data_leaf_size 	= iter.leaf_size();
-	BigInt pos				= iter.pos();
 
 	Accumulator keys;
 
+	std::get<0>(keys)[0] = 0;
+	std::get<0>(keys)[1] = -size;
+	std::get<1>(keys)[0] = 0;
+
 	if (local_offset + size <= data_leaf_size)
 	{
+		auto tmp = iter;
+
+		tmp.findEntry();
+		tmp.update(keys);
+
+		iter.cache().addToEntry(0, -size);
+
 		self.removeRoom(iter.path(), 0, {0, local_offset}, {0, size}, keys);
+
 		self.addTotalKeyCount(iter.path(), {0, -size});
 
 		self.mergeLeaf(iter);
 	}
 	else {
 		Iterator to = iter;
-		to.seek(size);
+		to.skipFw(size);
+
+		auto iter_tmp = iter;
+
+		iter_tmp.findEntry();
+		iter_tmp.update(keys);
+
+		iter.cache().addToEntry(0, -size);
+		to.cache().addToEntry(0, -size);
 
 		TreePath& from_path = iter.path();
-		Position from_idx	= {iter.cache().entry_idx() + 1, local_offset};
+		Position from_idx	= {iter.leaf_size(0), local_offset};
 
 		TreePath to_path 	= to.path();
 		Position to_idx		= {0, to.idx()};
@@ -197,21 +216,6 @@ void M_TYPE::removeData(Iterator& iter, BigInt size)
 
 		iter.idx() = to_idx[0];
 	}
-
-	iter.findEntry();
-
-	if (!iter.isEnd())
-	{
-		std::get<0>(keys)[0] = 0;
-		std::get<0>(keys)[1] = -size;
-		std::get<1>(keys)[0] = 0;
-
-		iter.update(keys);
-
-		iter.seek(pos);
-	}
-
-
 }
 
 

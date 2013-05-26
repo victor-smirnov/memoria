@@ -267,11 +267,13 @@ public:
 	template <Int Idx, typename StreamTypes>
 	ResultType stream(const PackedFSEArray<StreamTypes>* array, Int start)
 	{
+		//MEMORIA_ASSERT_TRUE(array != nullptr);
+
 		auto& sum = Base::sum_;
 
 		BigInt offset = Base::target_ - sum;
 
-		Int	size = array->size();
+		Int	size = array != nullptr? array->size() : 0;
 
 		if (start + offset < size)
 		{

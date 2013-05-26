@@ -36,15 +36,24 @@ protected:
 
     Int replacement_pos_;
 
+    Int replacement_type_	= 2;
+
+    enum class VMapType {Random, ZeroData};
+
 public:
 
     VectorMapReplaceTest(): Base("Replace")
     {
     	MEMORIA_ADD_TEST_PARAM(replacements_);
 
+    	MEMORIA_ADD_TEST_PARAM(replacement_type_)->state();
     	MEMORIA_ADD_TEST_PARAM(replacement_pos_)->state();
 
     	MEMORIA_ADD_TEST_WITH_REPLAY(testRandomReplacement, replayRandomReplacement);
+
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testZeroReplacement0, replayZeroReplacement);
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testZeroReplacement1, replayZeroReplacement);
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testZeroReplacement2, replayZeroReplacement);
     }
 
     virtual ~VectorMapReplaceTest() throw() {}
@@ -52,7 +61,7 @@ public:
 
 
 
-    void test(TestFn test_fn)
+    void test(TestFn test_fn, VMapType map_type)
     {
     	DefaultLogHandlerImpl logHandler(out());
 
@@ -63,7 +72,7 @@ public:
 
     	ctr_name_ = map.name();
 
-    	tripples_ = createRandomVMap(map, size_);
+    	tripples_ = map_type == VMapType::Random ? createRandomVMap(map, size_) : createZeroDataVMap(map, size_);
 
     	checkDataFw(tripples_, map);
 
@@ -115,29 +124,87 @@ public:
     	}
     }
 
+    Int getRandom(Int max)
+    {
+    	return ::memoria::getRandom(max) + 1;
+    }
+
 
     void testRandomReplacement()
     {
-    	test(&MyType::randomReplacementTest);
+    	test(&MyType::replacementTest, VMapType::Random);
     }
 
     void replayRandomReplacement()
     {
-    	replay(&MyType::randomReplacementTest);
+    	replay(&MyType::replacementTest);
+    }
+
+    void testZeroReplacement0()
+    {
+    	replacement_type_ = 0;
+    	test(&MyType::replacementTest, VMapType::ZeroData);
+    }
+
+    void testZeroReplacement1()
+    {
+    	replacement_type_ = 1;
+    	test(&MyType::replacementTest, VMapType::ZeroData);
+    }
+
+    void testZeroReplacement2()
+    {
+    	replacement_type_ = 2;
+    	test(&MyType::replacementTest, VMapType::ZeroData);
+    }
+
+    void replayZeroReplacement()
+    {
+    	replay(&MyType::replacementTest);
     }
 
 
-    void randomReplacementTest(Allocator& allocator, Ctr& map)
+    Int getSmallerDataSize(Int current_size)
+    {
+    	return getRandom(current_size);
+    }
+
+    Int getLargerDataSize(Int current_size)
+    {
+    	Int size;
+
+    	do {
+    		size = getRandom(max_block_size_);
+    	}
+    	while (size < current_size);
+
+    	return size;
+    }
+
+    void replacementTest(Allocator& allocator, Ctr& map)
     {
     	out()<<iteration_<<endl;
 
     	if (!isReplayMode())
     	{
-    		data_size_  = getRandom(max_block_size_);
-    		data_		= iteration_ & 0xFF;
+    		replacement_pos_ 	= ::memoria::getRandom(tripples_.size());
 
-    		replacement_pos_ 	= getRandom(tripples_.size());
-    		key_ 				= tripples_[replacement_pos_].id();
+    		auto tripple 		= tripples_[replacement_pos_];
+
+    		key_ 				= tripple.id();
+    		data_				= tripple.data();
+
+    		if (replacement_type_ == 0)
+    		{
+    			data_size_  		= getRandom(max_block_size_);
+    		}
+    		else if (replacement_type_ == 1)
+    		{
+    			data_size_  		= getSmallerDataSize(tripple.size());
+    		}
+    		else {
+    			data_size_  		= getLargerDataSize(tripple.size());
+    		}
     	}
 
     	vector<Value> data = createSimpleBuffer<Value>(data_size_, data_);
@@ -158,6 +225,12 @@ public:
     		}
 
     		iterator_check_counter_++;
+
+//    		if (!isReplayMode()) {
+//    			allocator.commit();
+//    			StoreAllocator(allocator, getResourcePath((SBuf()<<"alloc-"<<iteration_<<".dump").str()));
+//    		}
+
     	}
     	catch(...)
     	{

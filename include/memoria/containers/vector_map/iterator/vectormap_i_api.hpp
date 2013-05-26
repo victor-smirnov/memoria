@@ -439,8 +439,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		}
 		else
 		{
-			findEntry();
-			return seek(offset);
+			BigInt pos = self.pos();
+			return self.skip(offset - pos);
 		}
 	}
 
@@ -529,7 +529,20 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		}
 		else if (self.blob_size() > 0)
 		{
-			return self.template _findFw<vmap::SkipForwardWalker>(0, amount);
+			BigInt size = self.blob_size();
+			BigInt pos  = self.pos();
+
+			if (pos + amount < size)
+			{
+				return self.template _findFw<vmap::SkipForwardWalker>(0, amount);
+			}
+			else {
+				BigInt offset = self.template _findFw<vmap::SkipForwardWalker>(0, size - pos - 1);
+
+				self.idx()++;
+
+				return offset + 1;
+			}
 		}
 		else {
 			return 0;

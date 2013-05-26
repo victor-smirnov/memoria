@@ -80,18 +80,28 @@ void M_TYPE::replaceData(Iterator& iter, DataSource& data)
 	auto& self = this->self();
 
 	BigInt entry_size 	= iter.blob_size();
-	BigInt data_size	= data.getSize();
+	BigInt data_size	= data.getRemainder();
 
 	if (entry_size < data_size)
 	{
-		memoria::vapi::DataSourceProxy<Value> proxy(data, entry_size);
+		if (entry_size > 0)
+		{
+			memoria::vapi::DataSourceProxy<Value> proxy(data, entry_size);
 
-		self.updateData(iter, proxy);
+			BigInt updated = self.updateData(iter, proxy);
+			MEMORIA_ASSERT(updated, ==, entry_size);
+
+//			iter.skipBw(1);
+//			iter.idx()++;
+		}
+
 		self.insertData(iter, data);
 	}
 	else if (entry_size > data_size)
 	{
-		self.updateData(iter, data);
+		BigInt updated = self.updateData(iter, data);
+		MEMORIA_ASSERT(updated, ==, data_size);
+
 		self.removeData(iter, entry_size - data_size);
 	}
 	else { // entry_size == data_size

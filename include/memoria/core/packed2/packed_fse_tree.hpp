@@ -1291,7 +1291,7 @@ public:
 
 		if (index_size() > 0)
 		{
-			Base::update_up(idx, UpdateUpFn(*this, block_num, key_value));
+//			Base::update_up(idx, UpdateUpFn(*this, block_num, key_value));
 		}
 	}
 

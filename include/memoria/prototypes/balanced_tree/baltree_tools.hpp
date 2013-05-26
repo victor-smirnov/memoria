@@ -444,6 +444,19 @@ public:
     	return true;
     }
 
+    bool ltAny( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] < other.values_[c])
+    		{
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
     bool gtAny( const MyType& other ) const
     {
     	for (Int c = 0; c < Indexes; c++)

@@ -76,6 +76,7 @@ private:
 
     void splitLeafData(Iterator& iter, Int split_idx = -1);
     void insertDataInternal(Iterator& iter, const Position& idx, DataSource& data);
+    void insertDataInternal1(Iterator& iter, const Position& idx, DataSource& data);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -97,38 +98,51 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
 
 	NodeBaseG& leaf = iter.leaf();
 
-	Int idx = iter.idx();
+	Int idx 		= iter.idx();
 
 	if (self.checkCapacities(leaf, {0, data_size}) || self.isNodeEmpty(leaf))
 	{
-		insertDataInternal(iter, {-1, idx}, data);
+		insertDataInternal1(iter, {-1, idx}, data);
 	}
-	else {
+	else
+	{
+		Int entry_idx	= iter.cache().entry_idx();
+		Int leaf_size	= iter.leaf_size(0);
 
-		if (iter.leaf_size(0) == 0)
+		if (iter.blob_size() > 0)
 		{
-			splitLeafData(iter, iter.idx());
+			if (leaf_size == 0)
+			{
+				splitLeafData(iter, iter.idx());
+				insertDataInternal1(iter, {0, 0}, data);
+			}
+			else {
+				Int first_entry_data_offset = iter.data_offset_for(0);
+
+				auto right = iter.path();
+
+				if (idx <= first_entry_data_offset)
+				{
+					self.splitPath(iter.path(), right, 0, {0, idx}, 3);
+					insertDataInternal1(iter, {0, idx}, data);
+				}
+				else
+				{
+					self.splitPath(iter.path(), right, 0, {entry_idx + 1, idx}, 3);
+					insertDataInternal1(iter, {0, idx}, data);
+				}
+			}
+		}
+		else if (entry_idx < leaf_size)
+		{
+			auto right = iter.path();
+
+			self.splitPath(iter.path(), right, 0, {entry_idx + 1, idx}, 3);
+
+			insertDataInternal1(iter, {0, idx}, data);
 		}
 		else {
-			Int first_entry_data_offset = iter.data_offset_for(0);
-			Int entry_idx				= iter.cache().entry_idx();
-
-			if (idx <= first_entry_data_offset)
-			{
-				auto right = iter.path();
-
-				self.splitPath(iter.path(), right, 0, {0, idx}, 3);
-
-				insertDataInternal(iter, {0, idx}, data);
-			}
-			else
-			{
-				auto right = iter.path();
-
-				self.splitPath(iter.path(), right, 0, {entry_idx + 1, idx}, 3);
-
-				insertDataInternal(iter, {0, idx}, data);
-			}
+			insertDataInternal1(iter, {0, idx}, data);
 		}
 	}
 
@@ -361,7 +375,7 @@ void M_TYPE::splitLeafData(Iterator& iter, Int split_idx)
 	}
 
 	auto right = iter.path();
-	self.split(iter.path(), right, 0, {0, split_idx});
+	self.splitPath(iter.path(), right, 0, {0, split_idx}, 3);
 
 	iter.path() = right;
 
@@ -398,6 +412,28 @@ void M_TYPE::insertDataInternal(Iterator& iter, const Position& idx, DataSource&
 	}
 }
 
+
+M_PARAMS
+void M_TYPE::insertDataInternal1(Iterator& iter, const Position& idx, DataSource& data)
+{
+	if (data.getSize() > 0)
+	{
+		auto& self = this->self();
+		auto& ctr  = self;
+
+		TreePath& path = iter.path();
+
+		vmap::VectorMapSource source(&data);
+
+		typename Base::DefaultSubtreeProvider provider(self, {0, data.getRemainder()}, source);
+
+		Position idx0 = idx;
+
+		ctr.insertSubtree(path, idx0, provider);
+
+		MEMORIA_ASSERT(data.getRemainder(), ==, 0);
+	}
+}
 
 
 #undef M_PARAMS

@@ -140,6 +140,35 @@ public:
     	return tripples;
     }
 
+    VMapData createZeroDataVMap(Ctr& map, Int size)
+    {
+    	VMapData tripples;
+    	vector<Value> vdata;
+
+    	for (Int c = 0; c < size; c++)
+    	{
+    		Int	key 		= getNewRandomId(map);
+
+    		MemBuffer<Value> buf(vdata);
+
+    		auto iter = map.create(key, buf);
+
+    		UInt insertion_pos;
+    		for (insertion_pos = 0; insertion_pos < tripples.size(); insertion_pos++)
+    		{
+    			if (key <= tripples[insertion_pos].id())
+    			{
+    				break;
+    			}
+    		}
+
+    		tripples.insert(tripples.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), c & 0xFF));
+    	}
+
+    	return tripples;
+    }
+
+
     void checkDataFw(const VMapData& tripples, Ctr& map)
     {
     	if (isReplayMode())
@@ -166,7 +195,15 @@ public:
     			cout<<idx<<" "<<id<<" "<<size<<endl;
     		}
 
+    		if (id != tripple.id()) {
+    			iter.dump();
+    		}
+
     		AssertEQ(MA_SRC, id, tripple.id());
+
+    		if (size != tripple.size()) {
+    			iter.dump();
+    		}
 
     		AssertEQ(MA_SRC, size, tripple.size());
 
@@ -194,6 +231,11 @@ public:
     			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
 
     			iter.skipFw(size - 1);
+
+    			if ((BigInt)iter.value() != (BigInt)tripple.data()) {
+    				iter.dump();
+    			}
+
     			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
 
     			iter.skipFw(1);
@@ -236,7 +278,7 @@ public:
 
     		if (isReplayMode())
     		{
-    			cout<<id<<" "<<size<<endl;
+    			cout<<id<<" "<<size<<" "<<idx<<endl;
     		}
 
     		AssertEQ(MA_SRC, id, tripple.id());

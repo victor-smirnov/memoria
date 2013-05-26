@@ -452,6 +452,9 @@ public:
 			{
 				*mem_size += tree->allocated_block_size();
 			}
+			else {
+				*mem_size += Tree::block_size(size);
+			}
 		}
 	};
 
