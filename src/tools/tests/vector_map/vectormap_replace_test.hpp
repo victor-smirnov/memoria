@@ -22,15 +22,19 @@ using namespace std;
 
 
 
+template <typename Key, typename Value>
+class VectorMapReplaceTest: public VectorMapTestBase<VectorMapReplaceTest<Key, Value>, Key, Value> {
 
-class VectorMapReplaceTest: public VectorMapTestBase {
-
-    typedef VectorMapReplaceTest                                                MyType;
-    typedef VectorMapTestBase													Base;
+    typedef VectorMapReplaceTest<Key, Value>                                    MyType;
+    typedef VectorMapTestBase<VectorMapReplaceTest<Key, Value>, Value, Key>		Base;
 
 protected:
 
-    typedef std::function<void (MyType*, Allocator&, Ctr&)> 					TestFn;
+    typedef typename Base::Allocator											Allocator;
+    typedef typename Base::Ctr													Ctr;
+    typedef typename Base::VMapType												VMapType;
+    typedef typename Base::TestFn 												TestFn;
+
 
     Int replacements_ 		= 1000;
 
@@ -38,7 +42,7 @@ protected:
 
     Int replacement_type_	= 2;
 
-    enum class VMapType {Random, ZeroData};
+
 
 public:
 
@@ -59,71 +63,6 @@ public:
     virtual ~VectorMapReplaceTest() throw() {}
 
 
-
-
-    void test(TestFn test_fn, VMapType map_type)
-    {
-    	DefaultLogHandlerImpl logHandler(out());
-
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
-
-    	Ctr map(&allocator);
-
-    	ctr_name_ = map.name();
-
-    	tripples_ = map_type == VMapType::Random ? createRandomVMap(map, size_) : createZeroDataVMap(map, size_);
-
-    	checkDataFw(tripples_, map);
-
-    	allocator.commit();
-
-    	try {
-    		for (iteration_ = 0; iteration_ < replacements_; iteration_++)
-    		{
-    			test_fn(this, allocator, map);
-
-    			allocator.commit();
-    		}
-    	}
-    	catch (Exception ex) {
-    		cout<<ex<<endl;
-    		dump_name_ = Store(allocator);
-    		storeTripples(tripples_);
-    		throw;
-    	}
-    	catch (...) {
-    		dump_name_ = Store(allocator);
-    		storeTripples(tripples_);
-    		throw;
-    	}
-    }
-
-
-    void replay(TestFn test_fn)
-    {
-    	Allocator allocator;
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator.getLogger()->setHandler(&logHandler);
-
-    	LoadAllocator(allocator, dump_name_);
-
-    	tripples_ = loadTripples();
-
-    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
-
-    	test_fn(this, allocator, ctr);
-
-    	try {
-    		check(allocator, "Replace: Container Check Failed", MA_SRC);
-    	}
-    	catch (...) {
-    		allocator.commit();
-    		StoreAllocator(allocator, "replay-invalid.dump");
-    		throw;
-    	}
-    }
-
     Int getRandom(Int max)
     {
     	return ::memoria::getRandom(max) + 1;
@@ -132,35 +71,35 @@ public:
 
     void testRandomReplacement()
     {
-    	test(&MyType::replacementTest, VMapType::Random);
+    	this->testPreFilledMap(&MyType::replacementTest, VMapType::Random, replacements_);
     }
 
     void replayRandomReplacement()
     {
-    	replay(&MyType::replacementTest);
+    	this->replay(&MyType::replacementTest, "RandomReplacement");
     }
 
     void testZeroReplacement0()
     {
     	replacement_type_ = 0;
-    	test(&MyType::replacementTest, VMapType::ZeroData);
+    	this->testPreFilledMap(&MyType::replacementTest, VMapType::ZeroData, replacements_);
     }
 
     void testZeroReplacement1()
     {
     	replacement_type_ = 1;
-    	test(&MyType::replacementTest, VMapType::ZeroData);
+    	this->testPreFilledMap(&MyType::replacementTest, VMapType::ZeroData, replacements_);
     }
 
     void testZeroReplacement2()
     {
     	replacement_type_ = 2;
-    	test(&MyType::replacementTest, VMapType::ZeroData);
+    	this->testPreFilledMap(&MyType::replacementTest, VMapType::ZeroData, replacements_);
     }
 
     void replayZeroReplacement()
     {
-    	replay(&MyType::replacementTest);
+    	this->replay(&MyType::replacementTest, "ZeroReplacement");
     }
 
 
@@ -174,7 +113,7 @@ public:
     	Int size;
 
     	do {
-    		size = getRandom(max_block_size_);
+    		size = getRandom(this->max_block_size_);
     	}
     	while (size < current_size);
 
@@ -183,9 +122,14 @@ public:
 
     void replacementTest(Allocator& allocator, Ctr& map)
     {
-    	out()<<iteration_<<endl;
+    	this->out()<<this->iteration_<<endl;
 
-    	if (!isReplayMode())
+    	auto& tripples_		= this->tripples_;
+    	auto& data_size_	= this->data_size_;
+    	auto& data_			= this->data_;
+    	auto& key_			= this->key_;
+
+    	if (!this->isReplayMode())
     	{
     		replacement_pos_ 	= ::memoria::getRandom(tripples_.size());
 
@@ -196,14 +140,14 @@ public:
 
     		if (replacement_type_ == 0)
     		{
-    			data_size_  		= getRandom(max_block_size_);
+    			data_size_  		= getRandom(this->max_block_size_);
     		}
     		else if (replacement_type_ == 1)
     		{
-    			data_size_  		= getSmallerDataSize(tripple.size());
+    			data_size_  		= this->getSmallerDataSize(tripple.size());
     		}
     		else {
-    			data_size_  		= getLargerDataSize(tripple.size());
+    			data_size_  		= this->getLargerDataSize(tripple.size());
     		}
     	}
 
@@ -217,26 +161,9 @@ public:
 
     	tripples_[replacement_pos_] = Tripple(iter.id(), iter.blob_size(), data_);
 
-    	try {
-    		if (iterator_check_counter_ % iterator_check_count_ == 0)
-    		{
-    			checkDataFw(tripples_, map);
-    			checkDataBw(tripples_, map);
-    		}
-
-    		iterator_check_counter_++;
-
-//    		if (!isReplayMode()) {
-//    			allocator.commit();
-//    			StoreAllocator(allocator, getResourcePath((SBuf()<<"alloc-"<<iteration_<<".dump").str()));
-//    		}
-
-    	}
-    	catch(...)
-    	{
+    	this->checkMap(map, tripples_, [&]() {
     		tripples_[replacement_pos_] = tripple;
-    		throw;
-    	}
+    	});
     }
 };
 

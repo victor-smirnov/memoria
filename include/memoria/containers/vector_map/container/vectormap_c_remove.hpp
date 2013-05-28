@@ -60,6 +60,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrRemoveName)
 private:
     bool mergeLeaf(Iterator& iter);
 
+    void removeWithinPage(Iterator& iter, BigInt size);
+    void removeMultiPage(Iterator& iter, BigInt size);
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::vmap::CtrRemoveName)
@@ -84,11 +87,11 @@ void M_TYPE::removeEntry(Iterator& iter)
 
 		if (iter.isEnd())
 		{
-			iter.cache().set(0,0, iter.idx());
+			iter.cache().set(0,0, iter.idx(), 0, iter.cache().blob_base());
 		}
 		else {
 			auto entry = iter.entry();
-			iter.cache().set(entry.first, entry.second, iter.idx());
+			iter.cache().set(entry.first, entry.second, iter.idx(), 0, iter.cache().blob_base());
 		}
 
 		self.mergeLeaf(iter);
@@ -166,58 +169,133 @@ bool M_TYPE::mergeLeaf(Iterator& iter)
 M_PARAMS
 void M_TYPE::removeData(Iterator& iter, BigInt size)
 {
-	MEMORIA_ASSERT_TRUE(iter.stream() == 1);
-
 	auto& self = this->self();
 
-	BigInt local_offset		= iter.idx();
-	BigInt data_leaf_size 	= iter.leaf_size();
+	MEMORIA_ASSERT_TRUE(iter.stream() == 1);
 
-	Accumulator keys;
+	BigInt idx 				= iter.idx();
+	BigInt data_leaf_size 	= iter.leaf_size(1);
+	BigInt map_leaf_size 	= iter.leaf_size(0);
 
-	std::get<0>(keys)[0] = 0;
-	std::get<0>(keys)[1] = -size;
-	std::get<1>(keys)[0] = 0;
+	BigInt pos = iter.pos();
 
-	if (local_offset + size <= data_leaf_size)
+	if (pos + size > iter.blob_size())
 	{
-		auto tmp = iter;
+		size = iter.blob_size() - pos;
+	}
 
-		tmp.findEntry();
-		tmp.update(keys);
+	if (map_leaf_size > 0)
+	{
+		Int first_entry_data_offset = iter.data_offset_for(0);
 
-		iter.cache().addToEntry(0, -size);
+		if (idx <= first_entry_data_offset)
+		{
+			MEMORIA_ASSERT(idx + size, <=, first_entry_data_offset);
 
-		self.removeRoom(iter.path(), 0, {0, local_offset}, {0, size}, keys);
+			removeWithinPage(iter, size);
+		}
+		else if (idx + size <= data_leaf_size)
+		{
+			MEMORIA_ASSERT(idx + size, <=, data_leaf_size);
 
-		self.addTotalKeyCount(iter.path(), {0, -size});
+			removeWithinPage(iter, size);
+		}
+		else {
+			MEMORIA_ASSERT(iter.cache().entry_idx(), ==, iter.leaf_size(0) - 1);
 
-		self.mergeLeaf(iter);
+			removeMultiPage(iter, size);
+
+			if (pos == 0 && iter.blob_size() > 0)
+			{
+				iter.findEntry();
+
+				auto tmp = iter;
+
+				if (tmp.nextLeaf())
+				{
+					self.splitLeaf(iter, iter.cache().entry_idx());
+
+					if (!tmp.checkCapacities({1, 0}))
+					{
+						self.splitLeafData(iter, 1);
+					}
+
+					if (self.mergeWithRightSibling(iter.path(), 0))
+					{
+						iter.cache().setEntries(iter.leaf_size(0));
+					}
+					else {
+						throw Exception(MA_SRC,
+								"VectorMap data integrity failure: entry page hasn't been merged with the data page");
+					}
+				}
+				else {
+					throw Exception(MA_SRC, "VectorMap data integrity failure: no data page found");
+				}
+			}
+		}
+	}
+	else if (idx + size <= data_leaf_size)
+	{
+		removeWithinPage(iter, size);
 	}
 	else {
-		Iterator to = iter;
-		to.skipFw(size);
-
-		auto iter_tmp = iter;
-
-		iter_tmp.findEntry();
-		iter_tmp.update(keys);
-
-		iter.cache().addToEntry(0, -size);
-		to.cache().addToEntry(0, -size);
-
-		TreePath& from_path = iter.path();
-		Position from_idx	= {iter.leaf_size(0), local_offset};
-
-		TreePath to_path 	= to.path();
-		Position to_idx		= {0, to.idx()};
-
-		Base::removeEntries(from_path, from_idx, to_path, to_idx, keys, true);
-
-		iter.idx() = to_idx[0];
+		removeMultiPage(iter, size);
 	}
 }
 
+M_PARAMS
+void M_TYPE::removeWithinPage(Iterator& iter, BigInt size)
+{
+	auto& self = this->self();
+
+	BigInt local_offset	= iter.idx();
+
+	Accumulator keys;
+	std::get<0>(keys)[1] = -size;
+
+	auto tmp = iter;
+	tmp.findEntry();
+	tmp.update(keys);
+
+	iter.cache().addToEntry(0, -size);
+
+	self.removeRoom(iter.path(), 0, {0, local_offset}, {0, size}, keys);
+
+	self.addTotalKeyCount(iter.path(), {0, -size});
+
+	self.mergeLeaf(iter);
+}
+
+M_PARAMS
+void M_TYPE::removeMultiPage(Iterator& iter, BigInt size)
+{
+	Accumulator keys;
+	std::get<0>(keys)[1] = -size;
+
+	Iterator to = iter;
+	to.skipFw(size);
+
+	auto iter_tmp = iter;
+
+	iter_tmp.findEntry();
+	iter_tmp.update(keys);
+
+	iter.cache().addToEntry(0, -size);
+	to.cache().addToEntry(0, -size);
+
+	BigInt local_offset	= iter.idx();
+
+	TreePath& from_path = iter.path();
+	Position from_idx	= {iter.leaf_size(0), local_offset};
+
+	TreePath to_path 	= to.path();
+	Position to_idx		= {0, to.idx()};
+
+	Base::removeEntries(from_path, from_idx, to_path, to_idx, keys, true);
+
+	iter.idx() = to_idx[0];
+}
 
 
 }

@@ -65,7 +65,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     	return (!self.isEnd()) && self.isNotEmpty();
     }
 
-    void dumpKeys(ostream& out)
+    void dumpKeys(ostream& out) const
     {
         Base::dumpKeys(out);
 //        out<<"Prefix:  "<<self()->prefixes()<<endl;

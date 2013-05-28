@@ -71,7 +71,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		if (self.stream() == 0)
 		{
-			Int size = self.leafSize(0);
+			Int size = self.leaf_size(0);
 
 			if (self.idx() < size - 1)
 			{
@@ -80,6 +80,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 				auto entry = self.entry();
 
 				self.cache().add(entry.first, entry.second, self.idx());
+				self.cache().addToGlobalPos(entry.second);
 
 				return true;
 			}
@@ -87,13 +88,16 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 			{
 				auto entry = self.entry();
 				self.cache().add(entry.first, entry.second, 0);
+				self.cache().addToGlobalPos(entry.second);
+				self.cache().setEntries(self.leaf_size(0));
 
 				return true;
 			}
 			else {
-				size = self.leafSize(0);
+				size = self.leaf_size(0);
 				self.idx() = size;
 				self.cache().add(0, 0, size);
+				self.cache().setEntries(size);
 			}
 
 			return false;
@@ -117,6 +121,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 				auto entry = self.entry();
 
 				self.cache().sub(entry.first, entry.second, self.idx());
+				self.cache().addToGlobalPos(-entry.second);
 
 				return true;
 			}
@@ -124,12 +129,18 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 			{
 				if (self.prevLeaf())
 				{
-					self.idx() = self.leafSize(self.stream()) - 1;
+					Int entries = self.leafSize(self.stream());
+
+					self.idx() = entries - 1;
 
 					MEMORIA_ASSERT_TRUE(self.idx() >= 0);
 
 					auto entry = self.entry();
-					self.cache().sub(entry.first, entry.second, self.idx());
+					auto& cache= self.cache();
+
+					cache.sub(entry.first, entry.second, self.idx());
+					cache.addToGlobalPos(-entry.second);
+					cache.setEntries(entries);
 
 					return true;
 				}
@@ -231,7 +242,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
-		return self.leaf_blob_base() + self.idx();
+		return self.cache().global_pos();
 	}
 
 	BigInt leaf_blob_base() const
@@ -357,7 +368,13 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		MEMORIA_ASSERT_TRUE(self.stream() == 0);
 		MEMORIA_ASSERT_TRUE(self.idx() >= 0);
-		MEMORIA_ASSERT_TRUE(self.idx() < self.leaf_size());
+
+		if (self.idx() >= self.leaf_size()) {
+			self.dump();
+			int a = 0; a++;
+		}
+
+		MEMORIA_ASSERT(self.idx(), <, self.leaf_size());
 
 		return LeafDispatcher::dispatchConstRtn(self.leaf().node(), EntryFn(), self.idx());
 	}
@@ -423,17 +440,13 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		if (self.stream() == 0)
 		{
+			self.seekLocal();
+
 			if (self.blob_size() > 0)
 			{
-				Int data_offset = self.data_offset();
-
-				self.stream() 	= 1;
-				self.idx() 		= 0;
-
-				return self.skipFw(data_offset + offset) - data_offset;
+				return self.skipFw(offset);
 			}
 			else {
-				self.seekLocal();
 				return 0;
 			}
 		}
@@ -455,6 +468,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 			self.stream() 	= 1;
 			self.idx() 		= data_offset;
+
+			self.cache().set_positions(self.cache().blob_base());
 		}
 		else
 		{
@@ -489,18 +504,14 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 			BigInt offset = self.pos();
 			self.skip(-offset);
 
-
-//			Int leaf_offset = self.idx();
-//
-//			Int leaf_prefix = self.first_entry_base();
-//
-//			Int entry_data_offset = leaf_offset - leaf_prefix;
-//
-//			Int entry_idx = LeafDispatcher::dispatchConstRtn(self.leaf().node(), FindEntryFn(), entry_data_offset);
-
 			self.idx() = self.cache().entry_idx();
 
-//			self.idx() = entry_idx;
+//			if (self.cache().entries() != self.leaf_size(0))
+//			{
+//				self.dump();
+//			}
+
+			MEMORIA_ASSERT(self.cache().entries(), == ,self.leaf_size(0));
 
 			self.stream() = 0;
 		}
@@ -534,12 +545,19 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 			if (pos + amount < size)
 			{
-				return self.template _findFw<vmap::SkipForwardWalker>(0, amount);
+				BigInt offset = self.template _findFw<vmap::SkipForwardWalker>(0, amount);
+
+				self.cache().addToGlobalPos(offset);
+
+				return offset;
 			}
-			else {
+			else
+			{
 				BigInt offset = self.template _findFw<vmap::SkipForwardWalker>(0, size - pos - 1);
 
 				self.idx()++;
+
+				self.cache().addToGlobalPos(offset + 1);
 
 				return offset + 1;
 			}
@@ -557,7 +575,26 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		if (self.blob_size() > 0)
 		{
-			return self.template _findBw<vmap::SkipBackwardWalker>(0, amount);
+			BigInt pos  = self.pos();
+
+			if (amount >= pos + 1)
+			{
+				amount = pos + 1;
+			}
+
+			BigInt offset = self.template _findBw<vmap::SkipBackwardWalker>(0, amount);
+
+			if (amount > 0)
+			{
+				if (offset > 0) {
+					self.cache().addToGlobalPos(-offset);
+				}
+				else {
+					self.cache().set_positions(-1);
+				}
+			}
+
+			return offset;
 		}
 		else {
 			return 0;
@@ -639,15 +676,22 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	);
     }
 
-    void dump() {
+    bool checkCapacities(const Position& sizes)
+    {
+    	auto& self = this->self();
+    	return self.ctr().checkCapacities(self.leaf().node(), sizes);
+    }
+
+    void dump() const {
     	auto cache = self().cache();
 
-    	cout<<"Cache: " <<cache.id()
-    					<<" "<<cache.id_prefix()
-    					<<" "<<cache.id_entry()
-    					<<" "<<cache.blob_base()
-    					<<" "<<cache.size()
-    					<<" "<<cache.entry_idx()
+    	cout<<"Cache: id=" <<cache.id()
+    					<<" id_prefix="<<cache.id_prefix()
+    					<<" id_entry="<<cache.id_entry()
+    					<<" base="<<cache.blob_base()
+    					<<" size="<<cache.size()
+    					<<" idx="<<cache.entry_idx()
+    					<<" entries="<<cache.entries()
     					<<endl;
     	Base::dump();
     }
@@ -698,7 +742,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     		size 	 = 0;
     	}
 
-    	self.cache().setup(id_prefix, id_entry, base, size, self.idx());
+    	BigInt global_pos 	= base;
+
+    	self.cache().setup(id_prefix, id_entry, base, size, self.idx(), self.leaf_size(0), global_pos);
     }
 
 MEMORIA_ITERATOR_PART_END

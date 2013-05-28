@@ -20,13 +20,20 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
+template <typename Key, typename Value>
+class VectorMapCreateTest: public VectorMapTestBase<VectorMapCreateTest<Key, Value>, Key, Value> {
 
-class VectorMapCreateTest: public VectorMapTestBase {
+	typedef VectorMapTestBase<VectorMapCreateTest<Key, Value>, Key, Value>		Base;
 
-    typedef VectorMapCreateTest                                                 MyType;
-    typedef VectorMapTestBase                                                 	Base;
+    typedef VectorMapCreateTest<Key, Value>                                     MyType;
 
-    typedef std::function<void (MyType*, Allocator&, Ctr&)> 					TestFn;
+protected:
+
+    typedef typename Base::Allocator											Allocator;
+    typedef typename Base::Ctr													Ctr;
+    typedef typename Base::VMapType												VMapType;
+    typedef typename Base::TestFn 												TestFn;
+
 
 public:
 
@@ -38,78 +45,37 @@ public:
 
     virtual ~VectorMapCreateTest() throw() {}
 
-    void test(TestFn test_fn)
-    {
-    	DefaultLogHandlerImpl logHandler(out());
-
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
-
-    	Ctr map(&allocator);
-
-    	ctr_name_ = map.name();
-
-    	allocator.commit();
-
-    	try {
-    		for (iteration_ = 0; iteration_ < size_; iteration_++)
-    		{
-    			test_fn(this, allocator, map);
-
-    			allocator.commit();
-    		}
-    	}
-    	catch (...) {
-    		dump_name_ = Store(allocator);
-    		storeTripples(tripples_);
-    		throw;
-    	}
-    }
-
-
-    void replay(TestFn test_fn)
-    {
-    	Allocator allocator;
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator.getLogger()->setHandler(&logHandler);
-
-    	LoadAllocator(allocator, dump_name_);
-
-    	tripples_ = loadTripples();
-
-    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
-
-    	test_fn(this, allocator, ctr);
-
-    	check(allocator, "Insert: Container Check Failed", MA_SRC);
-    }
 
     void testOrderedCreation()
     {
-    	test(&MyType::orderedCreationTest);
+    	this->testEmptyMap(&MyType::orderedCreationTest);
     }
 
     void replayOrderedCreation()
     {
-    	replay(&MyType::orderedCreationTest);
+    	this->replay(&MyType::orderedCreationTest, "CreateOrdered");
     }
 
     void testRandomCreation()
     {
-    	test(&MyType::randomCreationTest);
+    	this->testEmptyMap(&MyType::randomCreationTest);
     }
 
     void replayRandomCreation()
     {
-    	replay(&MyType::randomCreationTest);
+    	this->replay(&MyType::randomCreationTest, "CreateRandom");
     }
 
     void orderedCreationTest(Allocator& allocator, Ctr& map)
     {
-    	if (!isReplayMode())
+    	auto& data_size_ = this->data_size_;
+    	auto& data_		 = this->data_;
+    	auto& tripples_	 = this->tripples_;
+
+    	if (!this->isReplayMode())
     	{
-    		data_size_  = getRandom(max_block_size_);
-    		data_		= iteration_ & 0xFF;
+    		data_size_  = getRandom(this->max_block_size_);
+    		data_		= this->iteration_ & 0xFF;
     	}
 
     	vector<Value> data = createSimpleBuffer<Value>(data_size_, data_);
@@ -120,22 +86,14 @@ public:
 
     	tripples_.push_back(Tripple(iter.id(), iter.blob_size(), data_));
 
-    	try {
-    		checkBlock(iter, iter.id(), data_size_, data_);
-
-    		if (iterator_check_counter_ % iterator_check_count_ == 0)
-    		{
-    			checkDataFw(tripples_, map);
-    			checkDataBw(tripples_, map);
-    		}
-
-    		iterator_check_counter_++;
-    	}
-    	catch(...) {
+    	auto rollback_fn = [&]() {
     		tripples_.pop_back();
-    		throw;
-    	}
+    	};
+
+    	this->checkIterator(iter, data_size_, data_, rollback_fn);
+    	this->checkMap(map, tripples_, rollback_fn);
     }
+
 
     BigInt getNewRandomId(Ctr& map)
     {
@@ -151,12 +109,17 @@ public:
 
     void randomCreationTest(Allocator& allocator, Ctr& map)
     {
-    	out()<<iteration_<<endl;
+    	this->out()<<this->iteration_<<endl;
 
-    	if (!isReplayMode())
+    	auto& data_size_ = this->data_size_;
+    	auto& data_		 = this->data_;
+    	auto& tripples_	 = this->tripples_;
+    	auto& key_		 = this->key_;
+
+    	if (!this->isReplayMode())
     	{
-    		data_size_  = getRandom(max_block_size_);
-    		data_		= iteration_ & 0xFF;
+    		data_size_  = getRandom(this->max_block_size_);
+    		data_		= this->iteration_ & 0xFF;
     		key_ 		= getNewRandomId(map);
     	}
 
@@ -177,22 +140,12 @@ public:
 
     	tripples_.insert(tripples_.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), data_));
 
-    	try {
-    		checkBlock(iter, iter.id(), data_size_, data_);
-
-    		if (iterator_check_counter_ % iterator_check_count_ == 0)
-    		{
-    			checkDataFw(tripples_, map);
-    			checkDataBw(tripples_, map);
-    		}
-
-    		iterator_check_counter_++;
-    	}
-    	catch(...)
-    	{
+    	auto rollback_fn = [&]() {
     		tripples_.erase(tripples_.begin() + insertion_pos);
-    		throw;
-    	}
+    	};
+
+    	this->checkIterator(iter, data_size_, data_, rollback_fn);
+    	this->checkMap(map, tripples_, rollback_fn);
     }
 };
 

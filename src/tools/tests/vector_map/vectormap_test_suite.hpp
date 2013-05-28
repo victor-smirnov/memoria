@@ -28,11 +28,9 @@ public:
 
     VectorMapTestSuite(): TestSuite("VectorMapSuite")
     {
-        registerTask(new VectorMapCreateTest());
-        registerTask(new VectorMapRemoveTest());
-        registerTask(new VectorMapReplaceTest());
-
-//        registerTask(new VectorMapTransferTest<UByte>("Transfer"));
+        registerTask(new VectorMapCreateTest<BigInt, BigInt>());
+        registerTask(new VectorMapRemoveTest<BigInt, BigInt>());
+        registerTask(new VectorMapReplaceTest<BigInt, BigInt>());
     }
 
 };

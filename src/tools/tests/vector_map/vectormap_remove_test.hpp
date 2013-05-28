@@ -22,15 +22,19 @@ using namespace std;
 
 
 
+template <typename Key, typename Value>
+class VectorMapRemoveTest: public VectorMapTestBase<VectorMapRemoveTest<Key, Value>, Key, Value> {
 
-class VectorMapRemoveTest: public VectorMapTestBase {
-
-    typedef VectorMapRemoveTest                                                 MyType;
-    typedef VectorMapTestBase													Base;
+    typedef VectorMapRemoveTest<Key, Value>                                     MyType;
+    typedef VectorMapTestBase<VectorMapRemoveTest<Key, Value>, Key, Value>		Base;
 
 protected:
 
-    typedef std::function<void (MyType*, Allocator&, Ctr&)> 					TestFn;
+    typedef typename Base::Allocator											Allocator;
+    typedef typename Base::Ctr													Ctr;
+    typedef typename Base::VMapType												VMapType;
+    typedef typename Base::TestFn 												TestFn;
+
 
 public:
 
@@ -41,71 +45,25 @@ public:
 
     virtual ~VectorMapRemoveTest() throw() {}
 
-    void test(TestFn test_fn)
-    {
-    	DefaultLogHandlerImpl logHandler(out());
-
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
-
-    	Ctr map(&allocator);
-
-    	ctr_name_ = map.name();
-
-    	tripples_ = createRandomVMap(map, size_);
-
-    	checkDataFw(tripples_, map);
-
-    	allocator.commit();
-
-    	try {
-    		for (iteration_ = 0; iteration_ < size_; iteration_++)
-    		{
-    			test_fn(this, allocator, map);
-
-    			allocator.commit();
-    		}
-    	}
-    	catch (...) {
-    		dump_name_ = Store(allocator);
-    		storeTripples(tripples_);
-    		throw;
-    	}
-    }
-
-
-    void replay(TestFn test_fn)
-    {
-    	Allocator allocator;
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator.getLogger()->setHandler(&logHandler);
-
-    	LoadAllocator(allocator, dump_name_);
-
-    	tripples_ = loadTripples();
-
-    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
-
-    	test_fn(this, allocator, ctr);
-
-    	check(allocator, "Remove: Container Check Failed", MA_SRC);
-    }
 
 
     void testRandomRemoval()
     {
-    	test(&MyType::randomRemovalTest);
+    	this->testPreFilledMap(&MyType::randomRemovalTest, VMapType::Random, this->size_);
     }
 
     void replayRandomRemoval()
     {
-    	replay(&MyType::randomRemovalTest);
+    	this->replay(&MyType::randomRemovalTest, "RandomRemoval");
     }
 
 
     void randomRemovalTest(Allocator& allocator, Ctr& map)
     {
-    	if (!isReplayMode())
+    	auto& tripples_		= this->tripples_;
+    	auto& key_			= this->key_;
+
+    	if (!this->isReplayMode())
     	{
     		key_ = tripples_[getRandom(tripples_.size())].id();
     	}
@@ -125,7 +83,7 @@ public:
     		}
     	}
 
-    	out()<<key_<<" "<<insertion_pos<<endl;
+    	this->out()<<key_<<" "<<insertion_pos<<endl;
 
     	AssertGE(MA_SRC, insertion_pos, 0);
 
@@ -133,21 +91,9 @@ public:
 
     	tripples_.erase(tripples_.begin() + insertion_pos);
 
-    	try {
-    		if (iterator_check_counter_ % iterator_check_count_ == 0)
-    		{
-    			checkDataFw(tripples_, map);
-    			checkDataBw(tripples_, map);
-    		}
-
-    		iterator_check_counter_++;
-
-    	}
-    	catch(...)
-    	{
+    	this->checkMap(map, tripples_, [&]() {
     		tripples_.insert(tripples_.begin() + insertion_pos, tripple);
-    		throw;
-    	}
+    	});
     }
 };
 

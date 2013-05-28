@@ -125,6 +125,7 @@ class MapFindWalker: public FindForwardWalkerBase<Types, MapFindWalker<Types>> {
 	typedef Iter<typename Types::IterTypes> 									Iterator;
 
 	Accumulator prefix_;
+//	Accumulator local_prefix_;
 
 public:
 	MapFindWalker(Key key):
@@ -141,13 +142,39 @@ public:
 
 		std::get<StreamIdx>(prefix_)[index] 		+= result.prefix();
 		std::get<StreamIdx>(prefix_)[1 - index] 	+= tree->sum(1 - index, start, result.idx());
+
+//		std::get<StreamIdx>(prefix_) += std::get<StreamIdx>(local_prefix_);
 	}
+
+//	struct ArrayStreamPrefixFn
+//	{
+//		Accumulator& prefix_;
+//
+//		ArrayStreamPrefixFn(Accumulator& accum): prefix_(accum) {}
+//
+//		template <Int StreamIdx, typename StreamTypes>
+//		void stream(const PackedFSETree<StreamTypes>* tree, Int start, Int end)
+//		{
+//			std::get<StreamIdx>(prefix_)[0] += tree->sum(0, start, end);
+//		}
+//
+//		template <Int StreamIdx, typename StreamTypes>
+//		void stream(const PackedFSEArray<StreamTypes>* tree, Int start, Int end)
+//		{}
+//	};
+//
+//
+//	template <typename Node>
+//	void postProcessNode(const Node* node, Int start, Int end)
+//	{
+//		node->template processStream<1>(ArrayStreamPrefixFn(prefix_), start, end);
+//	}
 
 
 	void prepare(Iterator& iter)
 	{
-		std::get<0>(prefix_)[0] = iter.cache().id_prefix();
-		std::get<0>(prefix_)[1] = iter.cache().blob_base();
+//		std::get<0>(prefix_)[0] = iter.cache().id_prefix();
+//		std::get<0>(prefix_)[1] = iter.cache().blob_base();
 	}
 
 	BigInt finish(Iterator& iter, Int idx)
@@ -160,8 +187,11 @@ public:
 		BigInt id_entry 	= 0;
 		BigInt size 		= 0;
 
+		BigInt global_pos	= base;
 
-		if (idx >=0 && idx < iter.leafSize(0))
+		Int entries			= iter.leaf_size(0);
+
+		if (idx >=0 && idx < entries)
 		{
 			auto entry	= iter.entry();
 
@@ -169,7 +199,7 @@ public:
 			size		= entry.second;
 		}
 
-		iter.cache().setup(id_prefix, id_entry, base, size, idx);
+		iter.cache().setup(id_prefix, id_entry, base, size, idx, entries, global_pos);
 
 		return Base::sum_;
 	}
@@ -306,7 +336,11 @@ public:
 		BigInt id_prefix = std::get<0>(Base::prefix_)[0];
 		BigInt base		 = std::get<0>(Base::prefix_)[1];
 
-		iter.cache().setup(id_prefix, 0, base, 0, idx);
+		BigInt global_pos 	= base;
+
+		Int entries 	= iter.leaf_size(0);
+
+		iter.cache().setup(id_prefix, 0, base, 0, idx, entries, global_pos);
 	}
 
 };
@@ -331,17 +365,21 @@ public:
 		BigInt id_prefix = std::get<0>(Base::prefix_)[0];
 		BigInt base		 = std::get<0>(Base::prefix_)[1];
 
-		if(idx < iter.leafSize(0))
+		BigInt global_pos	= base;
+
+		Int entries 	= iter.leaf_size(0);
+
+		if(idx < entries)
 		{
 			auto entry		= iter.entry();
 
 			auto id_entry 	= entry.first;
 			auto size		= entry.second;
 
-			iter.cache().setup(id_prefix, id_entry, base, size, idx);
+			iter.cache().setup(id_prefix, id_entry, base, size, idx, entries, global_pos);
 		}
 		else {
-			iter.cache().setup(id_prefix, 0, base, 0, idx);
+			iter.cache().setup(id_prefix, 0, base, 0, idx, entries, global_pos);
 		}
 	}
 };
@@ -391,7 +429,7 @@ public:
 		if (!iter.isEnd())
 		{
 			auto entry = iter.entry();
-			iter.cache().set(entry.first, entry.second, 0);
+			iter.cache().set(entry.first, entry.second, 0, iter.leaf_size(0), 0);
 		}
 	}
 };
@@ -426,17 +464,6 @@ protected:
 public:
 	PrevLeafWalker(Int stream, Int index): Base(stream, index)
 	{}
-
-//	void prepare(Iterator& iter)
-//	{
-//		Int idx = iter.idx();
-//
-//		if (idx >= 0 && idx < iter.leaf_size())
-//		{
-//			auto entry = iter.entry();
-//			Base::target_ = entry.first;
-//		}
-//	}
 };
 
 

@@ -236,7 +236,7 @@ public:
     }
 
 
-    void dump(ostream& out = cout, const char* header = NULL)
+    void dump(ostream& out = cout, const char* header = NULL) const
     {
     	auto& self = this->self();
 
@@ -251,16 +251,16 @@ public:
         self.dumpPages(out);
     }
 
-    String getDumpHeader()
+    String getDumpHeader() const
     {
         return String(me()->model().typeName()) + " Iterator State";
     }
 
-    void dumpPath(ostream& out)
+    void dumpPath(ostream& out) const
     {
         out<<"Path:"<<endl;
 
-        TreePath& path0 = me()->path();
+        auto& path0 = me()->path();
         for (int c = me()->path().getSize() - 1; c >= 0; c--)
         {
             out<<"Node("<<c<<"): "<<IDValue(path0[c]->id())
@@ -268,7 +268,7 @@ public:
         }
     }
 
-    void dumpKeys(ostream& out)
+    void dumpKeys(ostream& out) const
     {
     	auto& self = this->self();
 
@@ -276,10 +276,10 @@ public:
         out<<"Idx:  "<<self.idx()<<endl;
     }
 
-    void dumpBeforePath(ostream& out){}
-    void dumpBeforePages(ostream& out){}
+    void dumpBeforePath(ostream& out) const {}
+    void dumpBeforePages(ostream& out) const {}
 
-    void dumpPages(ostream& out)
+    void dumpPages(ostream& out) const
     {
         me()->model().dump(me()->path().leaf(), out);
     }

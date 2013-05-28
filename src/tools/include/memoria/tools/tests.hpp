@@ -20,7 +20,7 @@ namespace memoria {
 using namespace std;
 
 #define MEMORIA_ADD_TEST_PARAM(paramName)\
-    Add(#paramName, paramName)
+    this->Add(#paramName, paramName)
 
 
 #define MEMORIA_ADD_TEST(testMethodName)\

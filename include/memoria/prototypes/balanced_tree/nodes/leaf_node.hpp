@@ -811,17 +811,15 @@ public:
     		std::get<Idx>(*accum) += tree->sum(start->value(Idx), end->value(Idx));
     	}
 
-//    	template <Int Idx, typename Tree>
-//    	void stream(const Tree* tree, const Position* start, const Position* end, Accumulator* accum)
-//    	{
-//    		for (Int block = 0; block < Tree::Blocks; block++)
-//    		{
-//    			std::get<Idx>(*accum)[block] += tree->sum(block, start->value(Idx), end->value(Idx));
-//    		}
-//    	}
 
     	template <Int Idx, typename TreeTypes>
-    	void stream(const PackedFSETree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum, UBigInt act_streams)
+    	void stream(
+    			const PackedFSETree<TreeTypes>* tree,
+    			const Position* start,
+    			const Position* end,
+    			Accumulator* accum,
+    			UBigInt act_streams
+    		)
     	{
     		typedef PackedFSETree<TreeTypes> Tree;
 
@@ -835,12 +833,24 @@ public:
     	}
 
     	template <Int Idx, typename ArrayTypes>
-    	void stream(const PackedFSEArray<ArrayTypes>* array, const Position* start, const Position* end, Accumulator* accum, UBigInt act_streams)
+    	void stream(
+    			const PackedFSEArray<ArrayTypes>* array,
+    			const Position* start,
+    			const Position* end,
+    			Accumulator* accum,
+    			UBigInt act_streams
+    		)
     	{
     		if (act_streams & (1<<Idx))
     		{
     			std::get<Idx>(*accum) += array->sum(start->value(Idx), end->value(Idx));
     		}
+    	}
+
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree, Int block_num, Int start, Int end, BigInt* accum)
+    	{
+    		*accum += tree->sum(block_num, start, end);
     	}
     };
 
@@ -873,6 +883,11 @@ public:
     	Accumulator accum;
     	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), &start, &end, &accum, active_streams);
     	return accum;
+    }
+
+    void sum(Int stream, Int block_num, Int start, Int end, BigInt& accum) const
+    {
+    	Dispatcher::dispatch(stream, &allocator_, SumFn(), block_num, start, end, &accum);
     }
 
     struct MaxKeysFn {
