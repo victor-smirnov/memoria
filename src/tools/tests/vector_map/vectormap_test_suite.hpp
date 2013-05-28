@@ -10,6 +10,7 @@
 #include "../tests_inc.hpp"
 
 #include "vectormap_create_test.hpp"
+#include "vectormap_insertdata_test.hpp"
 #include "vectormap_remove_test.hpp"
 #include "vectormap_replace_test.hpp"
 
@@ -29,6 +30,7 @@ public:
     VectorMapTestSuite(): TestSuite("VectorMapSuite")
     {
         registerTask(new VectorMapCreateTest<BigInt, BigInt>());
+        registerTask(new VectorMapInsertDataTest<BigInt, BigInt>());
         registerTask(new VectorMapRemoveTest<BigInt, BigInt>());
         registerTask(new VectorMapReplaceTest<BigInt, BigInt>());
     }

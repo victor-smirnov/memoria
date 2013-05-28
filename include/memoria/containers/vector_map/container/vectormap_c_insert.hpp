@@ -128,7 +128,13 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
 
 				auto right = iter.path();
 
-				if (idx <= first_entry_data_offset)
+				if (idx < first_entry_data_offset)
+				{
+					self.splitPath(iter.path(), right, 0, {0, idx}, 3);
+
+					insertDataInternal1(iter, {0, idx}, data);
+				}
+				else if (idx == first_entry_data_offset && pos > 0)
 				{
 					self.splitPath(iter.path(), right, 0, {0, idx}, 3);
 

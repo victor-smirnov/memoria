@@ -369,11 +369,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		MEMORIA_ASSERT_TRUE(self.stream() == 0);
 		MEMORIA_ASSERT_TRUE(self.idx() >= 0);
 
-		if (self.idx() >= self.leaf_size()) {
-			self.dump();
-			int a = 0; a++;
-		}
-
 		MEMORIA_ASSERT(self.idx(), <, self.leaf_size());
 
 		return LeafDispatcher::dispatchConstRtn(self.leaf().node(), EntryFn(), self.idx());
@@ -506,12 +501,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 			self.idx() = self.cache().entry_idx();
 
-//			if (self.cache().entries() != self.leaf_size(0))
-//			{
-//				self.dump();
-//			}
-
-			MEMORIA_ASSERT(self.cache().entries(), == ,self.leaf_size(0));
+//			MEMORIA_ASSERT(self.cache().entries(), == ,self.leaf_size(0));
 
 			self.stream() = 0;
 		}
@@ -614,6 +604,25 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
     	return self.ctr().readStreams(self, pos, target)[1];
     }
+
+
+    void insert(DataSource& src)
+    {
+    	auto& self = this->self();
+
+    	MEMORIA_ASSERT_TRUE(self.stream() == 1);
+
+    	self.ctr().insertData(self, src);
+    }
+
+//    void insert(const vector<Value>& src)
+//    {
+//    	auto& self = this->self();
+//
+//    	MemBuffer<Value> buf(src);
+//
+//    	self.insert(buf);
+//    }
 
     struct ReadValueFn {
     	typedef Value ReturnType;
