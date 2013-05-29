@@ -169,7 +169,7 @@ bool M_TYPE::mergeLeaf(Iterator& iter)
 M_PARAMS
 void M_TYPE::removeData(Iterator& iter, BigInt size)
 {
-	auto& self = this->self();
+//	auto& self = this->self();
 
 	MEMORIA_ASSERT_TRUE(iter.stream() == 1);
 
@@ -188,7 +188,13 @@ void M_TYPE::removeData(Iterator& iter, BigInt size)
 	{
 		Int first_entry_data_offset = iter.data_offset_for(0);
 
-		if (idx <= first_entry_data_offset)
+		if (idx < first_entry_data_offset)
+		{
+			MEMORIA_ASSERT(idx + size, <=, first_entry_data_offset);
+
+			removeWithinPage(iter, size);
+		}
+		else if (idx == first_entry_data_offset && pos > 0 )
 		{
 			MEMORIA_ASSERT(idx + size, <=, first_entry_data_offset);
 
@@ -205,34 +211,53 @@ void M_TYPE::removeData(Iterator& iter, BigInt size)
 
 			removeMultiPage(iter, size);
 
-			if (pos == 0 && iter.blob_size() > 0)
-			{
-				iter.findEntry();
-
-				auto tmp = iter;
-
-				if (tmp.nextLeaf())
-				{
-					self.splitLeaf(iter, iter.cache().entry_idx());
-
-					if (!tmp.checkCapacities({1, 0}))
-					{
-						self.splitLeafData(iter, 1);
-					}
-
-					if (self.mergeWithRightSibling(iter.path(), 0))
-					{
-						iter.cache().setEntries(iter.leaf_size(0));
-					}
-					else {
-						throw Exception(MA_SRC,
-								"VectorMap data integrity failure: entry page hasn't been merged with the data page");
-					}
-				}
-				else {
-					throw Exception(MA_SRC, "VectorMap data integrity failure: no data page found");
-				}
-			}
+//			if (pos == 0 && iter.blob_size() > 0)
+//			{
+//				iter.findEntry();
+//
+//				iter.dump();
+//
+//				Int map_size  = iter.leaf_size(0);
+//
+//				if (iter.idx() == map_size - 1)
+//				{
+//					Int data_size = iter.leaf_size(1);
+//
+//					if (iter.data_offset() == data_size)
+//					{
+//						auto tmp = iter;
+//
+//						if (tmp.nextLeaf())
+//						{
+//							if (map_size == 1) {
+//
+//							}
+//
+//
+//							self.splitLeaf(iter, iter.cache().entry_idx());
+//
+//
+//
+//							if (!tmp.checkCapacities({1, 0}))
+//							{
+//								self.splitLeafData(tmp, 1);
+//							}
+//
+//							if (self.mergeWithRightSibling(iter.path(), 0))
+//							{
+//								iter.cache().setEntries(iter.leaf_size(0));
+//							}
+//							else {
+//								throw Exception(MA_SRC,
+//										"VectorMap data integrity failure: entry page hasn't been merged with the data page");
+//							}
+//						}
+//						else {
+//							throw Exception(MA_SRC, "VectorMap data integrity failure: no data page found");
+//						}
+//					}
+//				}
+//			}
 		}
 	}
 	else if (idx + size <= data_leaf_size)

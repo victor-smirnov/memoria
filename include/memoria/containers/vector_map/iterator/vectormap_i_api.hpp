@@ -499,11 +499,30 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 			BigInt offset = self.pos();
 			self.skip(-offset);
 
-			self.idx() = self.cache().entry_idx();
+			if (self.leaf_size(0) == 0 || self.idx() < self.data_offset_for(0))
+			{
+				self.stream() = 0;
 
-//			MEMORIA_ASSERT(self.cache().entries(), == ,self.leaf_size(0));
+				if (self.prevLeaf())
+				{
+					self.idx() = self.cache().entry_idx();
+				}
+				else {
+					throw Exception(MA_SRC, "VectorMap data integrity error: no entries page");
+				}
+			}
+			else {
+				self.stream() 	= 0;
+				self.idx() 		= self.cache().entry_idx();
+			}
 
-			self.stream() = 0;
+//			else {
+//				Int first_entry_offset = self.data_offset_for(0);
+//
+//
+//
+//				throw Exception(MA_SRC, "VectorMap: handle this case...");
+//			}
 		}
 	}
 
@@ -615,14 +634,16 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	self.ctr().insertData(self, src);
     }
 
-//    void insert(const vector<Value>& src)
-//    {
-//    	auto& self = this->self();
-//
-//    	MemBuffer<Value> buf(src);
-//
-//    	self.insert(buf);
-//    }
+    void remove(BigInt size)
+    {
+    	auto& self = this->self();
+
+    	MEMORIA_ASSERT_TRUE(self.stream() == 1);
+
+    	self.ctr().removeData(self, size);
+    }
+
+
 
     struct ReadValueFn {
     	typedef Value ReturnType;

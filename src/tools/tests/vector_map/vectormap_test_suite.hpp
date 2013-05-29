@@ -11,6 +11,7 @@
 
 #include "vectormap_create_test.hpp"
 #include "vectormap_insertdata_test.hpp"
+#include "vectormap_removedata_test.hpp"
 #include "vectormap_remove_test.hpp"
 #include "vectormap_replace_test.hpp"
 
@@ -31,6 +32,7 @@ public:
     {
         registerTask(new VectorMapCreateTest<BigInt, BigInt>());
         registerTask(new VectorMapInsertDataTest<BigInt, BigInt>());
+        registerTask(new VectorMapRemoveDataTest<BigInt, BigInt>());
         registerTask(new VectorMapRemoveTest<BigInt, BigInt>());
         registerTask(new VectorMapReplaceTest<BigInt, BigInt>());
     }

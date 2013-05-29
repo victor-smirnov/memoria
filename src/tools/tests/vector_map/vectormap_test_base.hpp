@@ -334,16 +334,16 @@ public:
 
     		AssertEQ(MA_SRC, size, tripple.size());
 
-    		if (check_data_start_)
-    		{
-    			auto tmp = iter;
-
-    			auto id1 = tmp.leaf()->id();
-    			tmp.seek(0);
-    			auto id2 = tmp.leaf()->id();
-
-    			AssertEQ(MA_SRC, id1, id2);
-    		}
+//    		if (check_data_start_)
+//    		{
+//    			auto tmp = iter;
+//
+//    			auto id1 = tmp.leaf()->id();
+//    			tmp.seek(0);
+//    			auto id2 = tmp.leaf()->id();
+//
+//    			AssertEQ(MA_SRC, id1, id2);
+//    		}
 
     		if (check_data_)
     		{

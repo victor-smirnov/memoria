@@ -34,14 +34,14 @@ protected:
     typedef typename Base::VMapType												VMapType;
     typedef typename Base::TestFn 												TestFn;
 
-    enum class InsertionType {Start, Middle, End};
+    enum class RemovalType {Start, Middle, End};
 
-    Int insertion_tripple_;
-    Int insertion_pos_;
+    Int target_tripple_;
+    Int target_pos_;
 
-    Int insertions_				= 1000;
+    Int removes_				= 1000;
 
-    InsertionType type_;
+    RemovalType type_;
 
 
 
@@ -49,10 +49,10 @@ public:
 
     VectorMapInsertDataTest(): Base("InsertData")
     {
-    	MEMORIA_ADD_TEST_PARAM(insertions_);
+    	MEMORIA_ADD_TEST_PARAM(removes_);
 
-        MEMORIA_ADD_TEST_PARAM(insertion_tripple_)->state();
-        MEMORIA_ADD_TEST_PARAM(insertion_pos_)->state();
+        MEMORIA_ADD_TEST_PARAM(target_tripple_)->state();
+        MEMORIA_ADD_TEST_PARAM(target_pos_)->state();
 
     	MEMORIA_ADD_TEST_WITH_REPLAY(testInsertionAtStart, replayTest);
     	MEMORIA_ADD_TEST_WITH_REPLAY(testInsertionAtEnd, replayTest);
@@ -71,38 +71,38 @@ public:
 
     void testInsertionAtStart()
     {
-    	type_ = InsertionType::Start;
-    	this->testPreFilledMap(&MyType::insertionTest, VMapType::Random, this->insertions_);
+    	type_ = RemovalType::Start;
+    	this->testPreFilledMap(&MyType::insertionTest, VMapType::Random, this->removes_);
     }
 
     void testInsertionAtEnd()
     {
-    	type_ = InsertionType::End;
-    	this->testPreFilledMap(&MyType::insertionTest, VMapType::Random, this->insertions_);
+    	type_ = RemovalType::End;
+    	this->testPreFilledMap(&MyType::insertionTest, VMapType::Random, this->removes_);
     }
 
     void testInsertionAtMiddle()
     {
-    	type_ = InsertionType::Middle;
-    	this->testPreFilledMap(&MyType::insertionTest, VMapType::Random, this->insertions_);
+    	type_ = RemovalType::Middle;
+    	this->testPreFilledMap(&MyType::insertionTest, VMapType::Random, this->removes_);
     }
 
     void testInsertionAtStartZero()
     {
-    	type_ = InsertionType::Start;
-    	this->testPreFilledMap(&MyType::insertionTest, VMapType::ZeroData, this->insertions_);
+    	type_ = RemovalType::Start;
+    	this->testPreFilledMap(&MyType::insertionTest, VMapType::ZeroData, this->removes_);
     }
 
     void testInsertionAtEndZero()
     {
-    	type_ = InsertionType::End;
-    	this->testPreFilledMap(&MyType::insertionTest, VMapType::ZeroData, this->insertions_);
+    	type_ = RemovalType::End;
+    	this->testPreFilledMap(&MyType::insertionTest, VMapType::ZeroData, this->removes_);
     }
 
     void testInsertionAtMiddleZero()
     {
-    	type_ = InsertionType::Middle;
-    	this->testPreFilledMap(&MyType::insertionTest, VMapType::ZeroData, this->insertions_);
+    	type_ = RemovalType::Middle;
+    	this->testPreFilledMap(&MyType::insertionTest, VMapType::ZeroData, this->removes_);
     }
 
 
@@ -118,19 +118,19 @@ public:
 
     	if (!this->isReplayMode())
     	{
-    		insertion_tripple_ 	= ::memoria::getRandom(tripples_.size());
-    		auto tripple 		= tripples_[insertion_tripple_];
+    		target_tripple_ 	= ::memoria::getRandom(tripples_.size());
+    		auto tripple 		= tripples_[target_tripple_];
 
-    		if (type_ == InsertionType::Start)
+    		if (type_ == RemovalType::Start)
     		{
-    			insertion_pos_	= 0;
+    			target_pos_	= 0;
     		}
-    		else if (type_ == InsertionType::End)
+    		else if (type_ == RemovalType::End)
     		{
-    			insertion_pos_	= tripple.size();
+    			target_pos_	= tripple.size();
     		}
     		else {
-    			insertion_pos_ 	= ::memoria::getRandom(tripple.size());
+    			target_pos_ 	= ::memoria::getRandom(tripple.size());
     		}
 
     		key_ 				= tripple.id();
@@ -143,17 +143,17 @@ public:
 
     	MemBuffer<Value> buf(data);
 
-    	Tripple tripple = tripples_[insertion_tripple_];
+    	Tripple tripple = tripples_[target_tripple_];
 
     	auto iter = map.find(key_);
 
-    	iter.seek(insertion_pos_);
+    	iter.seek(target_pos_);
     	iter.insert(buf);
 
-    	tripples_[insertion_tripple_] = Tripple(iter.id(), tripple.size() + data_size_, data_);
+    	tripples_[target_tripple_] = Tripple(iter.id(), tripple.size() + data_size_, data_);
 
     	this->checkMap(map, tripples_, [&]() {
-    		tripples_[insertion_tripple_] = tripple;
+    		tripples_[target_tripple_] = tripple;
     	});
     }
 };
