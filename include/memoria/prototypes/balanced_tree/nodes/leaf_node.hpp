@@ -344,12 +344,8 @@ public:
 			{
 				Int size = sizes->value(StreamIndex);
 
-				if (tree != nullptr)
+				if (tree != nullptr || size > 0)
 				{
-//					*mem_used += tree->allocated_block_size();
-					*mem_used += Tree::block_size(size);
-				}
-				else {
 					*mem_used += Tree::block_size(size);
 				}
 			}
@@ -365,6 +361,8 @@ public:
 			Int size = tree != nullptr ? tree->size() : 0;
 
 			Int capacity = Tree::elements_for(free_mem) - size;
+
+//			MEMORIA_ASSERT(capacity, >=, 0);
 
 			return capacity >= 0 ? capacity : 0;
 		}
@@ -444,17 +442,23 @@ public:
 		{
 			Int size = sizes->value(StreamIdx);
 
-			if (size > 0)
+			if (tree != nullptr || size > 0)
 			{
 				*mem_size += Tree::block_size(size);
 			}
-			else if (tree != nullptr)
-			{
-				*mem_size += tree->allocated_block_size();
-			}
-			else {
-				*mem_size += Tree::block_size(size);
-			}
+
+
+//			if (size > 0)
+//			{
+//				*mem_size += Tree::block_size(size);
+//			}
+//			else if (tree != nullptr)
+//			{
+//				*mem_size += tree->allocated_block_size();
+//			}
+//			else {
+//				*mem_size += Tree::block_size(size);
+//			}
 		}
 	};
 
@@ -540,20 +544,6 @@ public:
     	return pos;
     }
 
-
-//    struct IncSizesFn {
-//    	template <Int Idx, typename Tree>
-//    	void stream(Tree* tree, const Position* sizes)
-//    	{
-//    		tree->size() += sizes->value(Idx);
-//    	}
-//    };
-//
-//
-//    void inc_size(const Position& sizes)
-//    {
-//    	Dispatcher::dispatchNotEmpty(&allocator_, IncSizesFn(), &sizes);
-//    }
 
     struct MaxOfSizesFn {
     	Int max_size_ = 0;

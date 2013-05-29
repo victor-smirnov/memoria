@@ -54,12 +54,12 @@ public:
         MEMORIA_ADD_TEST_PARAM(target_tripple_)->state();
         MEMORIA_ADD_TEST_PARAM(target_pos_)->state();
 
-    	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtStart, replayTest);
-    	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd, replayTest);
-    	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtMiddle, replayTest);
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtStart, 	replayTest);
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd, 		replayTest);
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtMiddle, 	replayTest);
 
     	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtStartZero, replayTest);
-    	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEndZero, replayTest);
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEndZero, 	replayTest);
     	MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtMiddleZero, replayTest);
     }
 
