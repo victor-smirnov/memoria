@@ -654,12 +654,27 @@ public:
 
     	Dispatcher::dispatchNotEmpty(&allocator_, RemoveSpaceFn(), &room_start, &room_length);
 
+    	removeEmptyStreams();
+
     	if (reindex)
     	{
     		this->reindex();
     	}
 
     	return accum;
+    }
+
+    void removeEmptyStreams()
+    {
+    	Position sizes = this->sizes();
+
+    	for (Int c = Position::Indexes - 1; c >= 0; c--)
+    	{
+    		if (sizes[c] == 0)
+    		{
+    			allocator_.free(c);
+    		}
+    	}
     }
 
     bool shouldBeMergedWithSiblings() const
@@ -721,6 +736,11 @@ public:
     		Int size  = tree->size();
 
     		MEMORIA_ASSERT_TRUE(idx >= 0);
+
+    		if (idx > size) {
+    			int a = 0; a++;
+    		}
+
     		MEMORIA_ASSERT_TRUE(idx <= size);
 
     		if (size > 0)

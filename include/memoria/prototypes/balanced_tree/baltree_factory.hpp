@@ -319,6 +319,8 @@ public:
 
         typedef IDataSource<Value>                                     			IDataSourceType;
         typedef IDataTarget<Value>                                     			IDataTargetType;
+
+        typedef PageUpdateManager<CtrTypes>										PageUpdateMgr;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;

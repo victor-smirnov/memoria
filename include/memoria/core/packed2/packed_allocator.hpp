@@ -158,30 +158,6 @@ public:
 		return diff;
 	}
 
-//	Int resizeBlock(const void* element, Int new_size)
-//	{
-//		MEMORIA_ASSERT(new_size, >, 0);
-//
-//		Int idx 		= findElement(element);
-//
-//		Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
-//
-//		Int size		= element_size(idx);
-//		Int delta 		= allocation_size - size;
-//
-//		if (delta > 0)
-//		{
-//			if (delta > free_space())
-//			{
-//				enlarge(delta);
-//			}
-//		}
-//
-//		moveElements(idx + 1, delta);
-//
-//		return allocation_size;
-//	}
-
 	Int resizeBlock(const void* element, Int new_size)
 	{
 		Int idx 		= findElement(element);

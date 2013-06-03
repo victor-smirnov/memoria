@@ -51,6 +51,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
+    typedef typename Types::PageUpdateMgr										PageUpdateMgr;
+
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
@@ -348,16 +350,50 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     	}
     };
 
+    void insertBatch(Iterator& iter, const Position& pos, ISource* src, std::function<void ()> split_fn);
 
 
+    bool insertIntoLeaf(Iterator& iter, const Position& pos, ISource* src)
+    {
+    	return true;
+    }
 
-
+    Position appendToLeaf(Iterator& iter, ISource* src)
+    {
+    	return Position();
+    }
 
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::balanced_tree::InsertBatchName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
+M_PARAMS
+void M_TYPE::insertBatch(
+		Iterator& iter,
+		const Position& pos,
+		ISource* src,
+		std::function<void ()> split_fn)
+{
+	auto& self = this->self();
+
+	if (self.insertIntoLeaf(iter, pos, src))
+	{
+		return;
+	}
+
+	split_fn();
+
+	if (self.appendToLeaf(iter, src).eqAll(0))
+	{
+		return;
+	}
+
+	do {
+		iter.createEmptyLeaf();
+	}
+	while (self.appendToLeaf(iter, src).eqAll(0));
+}
 
 
 #undef M_TYPE

@@ -126,6 +126,10 @@ public:
         return size_;
     }
 
+    Int capacity() const {
+    	return Size - size_;
+    }
+
     void resize(Int size)
     {
         size_ = size;
@@ -182,6 +186,433 @@ public:
         size_ = 0;
     }
 };
+
+
+
+
+
+
+
+template <typename ElementType_, Int Indexes_>
+class StaticVector
+{
+    typedef StaticVector<ElementType_, Indexes_> MyType;
+
+    ElementType_ values_[Indexes_];
+
+public:
+    typedef ElementType_ ElementType;
+
+
+    static const Int Indexes = Indexes_;
+
+    StaticVector()
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] = 0;
+        }
+    }
+
+    explicit StaticVector(const ElementType& value)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] = value;
+        }
+    }
+
+    StaticVector(std::initializer_list<ElementType> list)
+    {
+    	Int idx = 0;
+    	for (ElementType e: list)
+    	{
+    		values_[idx++] = e;
+    	}
+    }
+
+    ElementType get() const
+    {
+    	return values_[0];
+    }
+
+    StaticVector(const MyType& other)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] = other.values_[c];
+        }
+    }
+
+    static MyType create(Int idx, const ElementType& value)
+    {
+    	MyType me;
+
+    	me[idx] = value;
+
+    	return me;
+    }
+
+
+    const ElementType* values() const
+    {
+        return values_;
+    }
+
+    ElementType* values()
+    {
+        return values_;
+    }
+
+    const ElementType& value(Int idx) const
+    {
+        return values_[idx];
+    }
+
+    ElementType& value(Int idx)
+    {
+        return values_[idx];
+    }
+
+    const ElementType& operator[](Int idx) const
+    {
+        return values_[idx];
+    }
+
+    ElementType& operator[](Int idx)
+    {
+        return values_[idx];
+    }
+
+    void clear()
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] = 0;
+        }
+    }
+
+    bool operator==(const MyType& other) const
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            if (values_[c] != other.values_[c])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool operator!=(const MyType& other) const
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            if (values_[c] == other.values_[c])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool operator<=(const MyType& other) const
+    {
+    	for (Int c = 0, mask = 1; c < Indexes; c++, mask <<= 1)
+    	{
+    		bool set = 1;
+
+    		if (set && values_[c] > other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool gteAll( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] < other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool lteAll( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] > other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+
+    bool gteAll(const ElementType& other) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] < other)
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool lteAll(const ElementType& other) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] > other)
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool ltAny( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] < other.values_[c])
+    		{
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
+    bool gtAny( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] > other.values_[c])
+    		{
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
+    bool gtAny( const ElementType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] > other)
+    		{
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
+    bool gtAll( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] <= other[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool gtAll( const ElementType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] <= other)
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+
+    bool eqAll( const MyType& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] != other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool eqAll( const ElementType_& other ) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] != other)
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+    bool operator>(const MyType& other) const
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		if (values_[c] <= other.values_[c])
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
+
+    MyType& operator=(const MyType& other)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] = other.values_[c];
+        }
+        return *this;
+    }
+
+    MyType& operator=(const ElementType* keys)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] = keys[c];
+        }
+        return *this;
+    }
+
+    MyType& setAll(const ElementType& keys)
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		values_[c] = keys;
+    	}
+    	return *this;
+    }
+
+    MyType& operator+=(const MyType& other)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] += other.values_[c];
+        }
+
+        return *this;
+    }
+
+    MyType& operator+=(const ElementType& other)
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		values_[c] += other;
+    	}
+
+    	return *this;
+    }
+
+    MyType operator+(const MyType& other) const
+    {
+        MyType result = *this;
+
+        for (Int c = 0; c < Indexes; c++)
+        {
+            result.values_[c] += other.values_[c];
+        }
+
+        return result;
+    }
+
+    MyType operator-(const MyType& other) const
+    {
+        MyType result = *this;
+
+        for (Int c = 0; c < Indexes; c++)
+        {
+            result.values_[c] -= other.values_[c];
+        }
+
+        return result;
+    }
+
+    MyType operator-() const
+    {
+        MyType result = *this;
+
+        for (Int c = 0; c < Indexes; c++)
+        {
+            result.values_[c] = -values_[c];
+        }
+
+        return result;
+    }
+
+
+    MyType& operator-=(const MyType& other)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] -= other.values_[c];
+        }
+
+        return *this;
+    }
+
+    MyType operator/(const ElementType& divisor) const
+    {
+    	MyType result = *this;
+
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		result.values_[c] = values_[c] / divisor;
+    	}
+
+    	return result;
+    }
+
+    UBigInt gtZero() const
+    {
+    	UBigInt result = 0;
+
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		result += (UBigInt(values_[c] > 0)) << c;
+    	}
+
+    	return result;
+    }
+};
+
+
+
 
 }
 }

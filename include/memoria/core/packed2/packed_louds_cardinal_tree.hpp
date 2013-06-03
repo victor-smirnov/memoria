@@ -140,10 +140,6 @@ public:
 
 		bool first = true;
 
-//		if (path == 0x27264dbc) {
-//			int a = 0; a++;
-//		}
-
 		if (level < size)
 		{
 			while (level < size)

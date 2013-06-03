@@ -10,11 +10,14 @@
 
 #include <memoria/core/packed2/packed_tree_base.hpp>
 #include <memoria/core/packed2/packed_tree_walkers.hpp>
+#include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
 #include <memoria/core/tools/dump.hpp>
 #include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/core/tools/accessors.hpp>
+
+#include <type_traits>
 
 namespace memoria {
 
@@ -97,6 +100,10 @@ public:
 	static const Int ValuesPerBranch        = Types::ValuesPerBranch;
 	static const Int Indexes        		= 1;
 	static const Int Blocks        			= Types::Blocks;
+
+	static const Int IOBatchSize			= 16;
+
+	typedef core::StaticVector<Value, Blocks>									Values;
 
 	struct Codec {
 		size_t length(const Value* buffer, size_t idx) const {return 1;}
@@ -279,7 +286,6 @@ private:
 			}
 
 			Int limit = (ValuesPerBranch - 1 < Base::size()) ? ValuesPerBranch - 1 : Base::size() - 1;
-
 
 			IndexKey cell = 0;
 
@@ -710,18 +716,18 @@ public:
 		return sum(block, size_ - 1);
 	}
 
-	IndexKey suml(Int to) const
-	{
-		IndexKey sum = 0;
-
-		const Value* values = this->values();
-
-		for (Int c = 0; c < to; c++) {
-			sum += values[c];
-		}
-
-		return sum;
-	}
+//	IndexKey suml(Int to) const
+//	{
+//		IndexKey sum = 0;
+//
+//		const Value* values = this->values();
+//
+//		for (Int c = 0; c < to; c++) {
+//			sum += values[c];
+//		}
+//
+//		return sum;
+//	}
 
 	IndexKey sum(Int block, Int from, Int to) const
 	{
@@ -1023,10 +1029,6 @@ public:
 
 	void insertSpace(Int idx, Int room_length)
 	{
-		if (idx > this->size()) {
-			int a = 0; a++;
-		}
-
 		MEMORIA_ASSERT(idx, <=, this->size());
 
 		if (capacity() < room_length)
@@ -1127,58 +1129,147 @@ public:
 	}
 
 
+	void moveToNextCell(Int idx, const Values& vals)
+	{
+		insertSpace(idx + 1, 1);
+
+		for (Int b = 0; b < Blocks; b++)
+		{
+			this->value(b, idx) -= vals[b];
+		}
+
+		for (Int b = 0; b < Blocks; b++)
+		{
+			this->value(b, idx + 1) = vals[b];
+		}
+
+		reindex();
+	}
+
+
 	// ===================================== IO ============================================ //
+
 
 	void insert(IData* data, Int pos, Int length)
 	{
-//		IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
-//		insertSpace(pos, length);
-//
-//		BigInt to_write_local = length;
-//
-//		while (to_write_local > 0)
-//		{
-//			SizeT processed = src->get(buffer_, pos, to_write_local);
-//
-//			pos 			+= processed;
-//			to_write_local 	-= processed;
-//		}
+		insertSpace(pos, length);
+		update(data, pos, length);
 	}
+
+	void append(IData* data, Int length)
+	{
+		if (capacity() < length)
+		{
+			Allocator* alloc = this->allocator();
+
+			Int block_size = alloc->element_size(this) + alloc->free_space();
+
+			Int size = MyType::elements_for(block_size);
+
+			if (length > size)
+			{
+				length = size;
+			}
+		}
+
+		insert(data, size(), length);
+	}
+
 
 	void update(IData* data, Int pos, Int length)
 	{
-//		MEMORIA_ASSERT(pos, <=, size_);
-//		MEMORIA_ASSERT(pos + length, <=, size_);
-//
-//		IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
-//
-//		BigInt to_write_local = length;
-//
-//		while (to_write_local > 0)
-//		{
-//			SizeT processed = src->get(buffer_, pos, to_write_local);
-//
-//			pos 			+= processed;
-//			to_write_local 	-= processed;
-//		}
+		MEMORIA_ASSERT(pos, <=, size_);
+		MEMORIA_ASSERT(pos + length, <=, size_);
+
+		IDataSource<Values>* src = static_cast<IDataSource<Values>*>(data);
+
+		IDataAPI api_type = src->api();
+
+		if (api_type == IDataAPI::Batch || api_type == IDataAPI::Both)
+		{
+			Values values[IOBatchSize];
+
+			BigInt to_write_local = length;
+
+			while (to_write_local > 0)
+			{
+				SizeT processed = src->get(&values[0], 0, src->getRemainder());
+
+				for (Int b = 0; b < Blocks; b++)
+				{
+					Value* vals = this->values(b);
+
+					for (SizeT c = 0; c < processed; c++)
+					{
+						vals[pos + c] = values[c][b];
+					}
+				}
+
+				pos 			+= processed;
+				to_write_local 	-= processed;
+			}
+		}
+		else {
+			for (Int c = 0; c < length; c++)
+			{
+				Values v = src->get();
+
+				for (Int b = 0; b < Blocks; b++)
+				{
+					this->value(b, pos + c) = v[b];
+				}
+			}
+		}
+
+		reindex();
 	}
 
 	void read(IData* data, Int pos, Int length) const
 	{
-//		MEMORIA_ASSERT(pos, <=, size_);
-//		MEMORIA_ASSERT(pos + length, <=, size_);
-//
-//		IDataTarget<Value>* tgt = static_cast<IDataTarget<Value>*>(data);
-//
-//		BigInt to_read_local = length;
-//
-//		while (to_read_local > 0)
-//		{
-//			SizeT processed = tgt->put(buffer_, pos, to_read_local);
-//
-//			pos 			+= processed;
-//			to_read_local 	-= processed;
-//		}
+		MEMORIA_ASSERT(pos, <=, size_);
+		MEMORIA_ASSERT(pos + length, <=, size_);
+
+		IDataTarget<Value>* tgt = static_cast<IDataTarget<Value>*>(data);
+
+		IDataAPI api_type = tgt->api();
+
+		if (api_type == IDataAPI::Batch || api_type == IDataAPI::Both)
+		{
+			Values values[IOBatchSize];
+
+			BigInt to_read_local = length;
+
+			while (to_read_local > 0)
+			{
+				SizeT processed = tgt->put(&values[0], 0, tgt->getRemainder());
+
+				for (Int b = 0; b < Blocks; b++)
+				{
+					const Value* vals = this->values(b);
+
+					for (SizeT c = 0; c < processed; c++)
+					{
+						values[c][b] = vals[pos + c];
+					}
+				}
+
+				pos 			+= processed;
+				to_read_local 	-= processed;
+			}
+		}
+		else {
+			for (Int c = 0; c < length; c++)
+			{
+				Values v;
+
+				for (Int b = 0; b < Blocks; b++)
+				{
+					v[b] = this->value(b, pos + c);
+				}
+
+				tgt->put(v);
+			}
+		}
 	}
 
 

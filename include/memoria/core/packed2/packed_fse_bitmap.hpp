@@ -171,8 +171,6 @@ public:
 
 		out<<"Data:"<<endl;
 
-//		const Value* values_ = buffer_;
-
 		dumpSymbols<Value>(out, size_, BitsPerSymbol, [this](Int pos) -> Value {
 			return this->value(pos);
 		});

@@ -67,7 +67,7 @@ public:
 	static const UInt VERSION               									= 1;
 
 	typedef Types_																Types;
-	typedef PackedVLETree<Types>               								MyType;
+	typedef PackedVLETree<Types>               									MyType;
 
 	typedef typename Types::Allocator											Allocator;
 
@@ -81,7 +81,8 @@ public:
 
 	static const Int BranchingFactor        = Types::BranchingFactor;
 	static const Int ValuesPerBranch        = Types::ValuesPerBranch;
-	static const Int Indexes        		= Types::Blocks;
+	static const Int Indexes        		= 1;
+	static const Int Blocks 				= Types::Blocks;
 
 	static const Int BITS_PER_OFFSET		= Codec::BitsPerOffset;
 
@@ -118,6 +119,9 @@ public:
 	Int& size() {return metadata()->size();}
 	const Int& size() const {return metadata()->size();}
 
+	Int raw_size() const {return size() * Blocks;}
+	Int raw_max_size() const {return max_size() * Blocks;}
+
 	const Int index_size() const {return metadata()->index_size();}
 
 	const Int max_size() const {return metadata()->max_size();}
@@ -132,12 +136,7 @@ public:
 
 	IndexKey* indexes(Int index_block)
 	{
-		//if (!Base::is_empty(2)) {
-			return Base::template get<IndexKey>(2) + index_block * index_size();
-//		}
-//		else {
-//			return nullptr;
-//		}
+		return Base::template get<IndexKey>(2) + index_block * index_size();
 	}
 
 	IndexKey* sizes() {
@@ -146,12 +145,7 @@ public:
 
 	const IndexKey* indexes(Int index_block) const
 	{
-//		if (!Base::is_empty(2)) {
-			return Base::template get<IndexKey>(2) + index_block * index_size();
-//		}
-//		else {
-//			return nullptr;
-//		}
+		return Base::template get<IndexKey>(2) + index_block * index_size();
 	}
 
 	const IndexKey* sizes() const {
@@ -260,20 +254,28 @@ private:
 
 			Int max_size = Base::me_.max_size();
 
-			for (Int c = 0; c < Base::me_.size(); c++)
+			IndexKey size_cell 	= 0;
+			IndexKey value_cell = 0;
+
+			for (Int c = 0; c < Base::me_.raw_size(); c++)
 			{
 				Value value;
 				Int len = codec.decode(values_, value, pos, max_size);
 
 				Int idx = index_level_start + value_block;
 
-				Base::indexes_[0][idx] += 1;
-				Base::indexes_[1][idx] += value;
+				size_cell 	+= 1;
+				value_cell	+= value;
 
 				pos += len;
 
 				if (pos >= limit)
 				{
+					Base::indexes_[0][idx] = size_cell;
+					Base::indexes_[1][idx] = value_cell;
+
+					value_cell = size_cell = 0;
+
 					value_block++;
 
 					if (value_block < Base::me_.offsets())
@@ -395,7 +397,7 @@ public:
 			reindex();
 		}
 		else {
-			throw Exception(MA_SRC, SBuf()<<"Out of block memory for value at "<<size());
+			throw Exception(MA_SRC, SBuf()<<"Out of the memory block for value at "<<size());
 		}
 	}
 
@@ -407,7 +409,7 @@ public:
 			[this, idx](const Value& value) {
 				if (this->setValue(idx, value) > 0)
 				{
-					throw Exception(MA_SRC, SBuf()<<"Out of block memory for value at "<<idx);
+					throw Exception(MA_SRC, SBuf()<<"Out of the memory block for value at "<<idx);
 				}
 			}
 		);

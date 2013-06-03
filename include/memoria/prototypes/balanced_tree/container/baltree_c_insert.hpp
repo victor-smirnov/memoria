@@ -50,6 +50,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertName)
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
+    typedef typename Types::PageUpdateMgr 										PageUpdateMgr;
+
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
@@ -74,7 +76,19 @@ void M_TYPE::updateEntry(Iterator& iter, const EntryData& entry)
 {
 	auto& self = this->self();
 
-	auto delta = self.setLeafEntry(iter.leaf(), iter.stream(), iter.key_idx(), entry);
+	PageUpdateMgr mgr(self);
+	mgr.add(iter.leaf());
+
+	Accumulator delta;
+
+	try {
+		delta = self.setLeafEntry(iter.leaf(), iter.stream(), iter.key_idx(), entry);
+	}
+	catch (PackedOOMException ex)
+	{
+		mgr.rollback();
+		throw ex;
+	}
 
 	self.updateParentIfExists(iter.path(), 0, delta);
 }
@@ -133,6 +147,7 @@ void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 
     ctr.addTotalKeyCount(Position::create(stream, 1));
 }
+
 
 
 #undef M_TYPE

@@ -562,7 +562,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	NonLeafDispatcher::dispatch(node, AddKeysFn(me()), idx, keys, reindex_fully);
     }
 
-    bool updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
+    bool updateCounters(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
+    bool updateNodeCounters(NodeBaseG& node, Int idx, const Accumulator& counters) const;
+
 
     MEMORIA_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
     bool checkCapacities(const NodeBaseG& node, const Position& pos) const
@@ -752,14 +754,25 @@ bool M_TYPE::getPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 
 
 M_PARAMS
-bool M_TYPE::updateCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
+bool M_TYPE::updateCounters(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully) const
 {
-    node.update();
-    self().addKeys(node, idx, counters, reindex_fully);
+    auto& self = this->self();
+
+	//PageUpdateMgr mgr(self);
+
+	path[level].node().update();
+    self.addKeys(path[level], idx, counters, reindex_fully);
 
     return false; //proceed further unconditionally
 }
 
+M_PARAMS
+bool M_TYPE::updateNodeCounters(NodeBaseG& node, Int idx, const Accumulator& counters) const
+{
+    node.update();
+    self().addKeys(node, idx, counters, true);
+    return false;
+}
 
 
 M_PARAMS

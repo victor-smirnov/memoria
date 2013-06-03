@@ -136,8 +136,8 @@ public:
 
     	ctr_name_ = map.name();
     	tripples_ = map_type == VMapType::Random ?
-    			createRandomVMap(map, size_) :
-    			createZeroDataVMap(map, size_);
+    			createRandomVMap(allocator, map, size_) :
+    			createZeroDataVMap(allocator, map, size_);
 
     	checkDataFw(tripples_, map);
 
@@ -236,7 +236,7 @@ public:
         return tripples;
     }
 
-    VMapData createRandomVMap(Ctr& map, Int size)
+    VMapData createRandomVMap(Allocator& alloc, Ctr& map, Int size)
     {
     	VMapData tripples;
 
@@ -267,7 +267,7 @@ public:
     	return tripples;
     }
 
-    VMapData createZeroDataVMap(Ctr& map, Int size)
+    VMapData createZeroDataVMap(Allocator& alloc, Ctr& map, Int size)
     {
     	VMapData tripples;
     	vector<Value> vdata;

@@ -128,6 +128,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     template <typename Walker>
     bool findPrevLeaf(Walker&& walker);
 
+    void createEmptyLeaf() {
+
+    }
+
 MEMORIA_ITERATOR_PART_END
 
 

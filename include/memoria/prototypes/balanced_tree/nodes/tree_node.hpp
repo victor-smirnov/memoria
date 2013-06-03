@@ -657,6 +657,38 @@ public:
         Dispatcher::dispatchNotEmpty(&allocator_, SetChildrenCountFn(), map_size);
     }
 
+
+
+
+    struct InsertFn {
+    	template <Int StreamIdx, typename StreamType>
+    	void stream(StreamType* obj, Int idx, const Accumulator& keys)
+    	{
+    		ValueSource<typename std::tuple_element<StreamIdx, Accumulator>::type> src(std::get<StreamIdx>(keys));
+    		obj->insert(&src, idx, 1);
+    	}
+    };
+
+    void insert(Int idx, const Accumulator& keys, const Value& value)
+    {
+    	Int size = this->size();
+
+    	Dispatcher::dispatchNotEmpty(&allocator_, InsertFn(), idx, keys);
+
+    	Int requested_block_size = (size + 1) * sizeof(Value);
+
+    	allocator_.resizeBlock(ValuesBlockIdx, requested_block_size);
+
+    	Value* values = this->values();
+
+    	CopyBuffer(values + idx, values + idx + 1, size - idx);
+
+    	values[idx] = value;
+    }
+
+
+
+
     struct InsertSpaceFn {
     	template <Int Idx, typename Tree>
     	void stream(Tree* tree, Int room_start, Int room_length)
@@ -677,10 +709,6 @@ public:
     void insertSpace(Int stream, Int room_start, Int room_length)
     {
     	Int size = this->size();
-
-    	if (room_start > size) {
-    		int a = 0; a++;
-    	}
 
     	MEMORIA_ASSERT(room_start, <=, size);
     	MEMORIA_ASSERT(stream, ==, 0);

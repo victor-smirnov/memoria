@@ -39,11 +39,38 @@ public:
 
     VectorMapCreateTest(): Base("Create")
     {
-        MEMORIA_ADD_TEST_WITH_REPLAY(testOrderedCreation, replayOrderedCreation);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRandomCreation, replayRandomCreation);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testOrderedCreation, replayOrderedCreation);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testRandomCreation, replayRandomCreation);
+
+        MEMORIA_ADD_TEST(testLongData);
     }
 
     virtual ~VectorMapCreateTest() throw() {}
+
+    void testLongData()
+    {
+    	Allocator allocator;
+    	Ctr map(&allocator);
+
+    	this->ctr_name_ = map.name();
+
+    	allocator.commit();
+
+    	try {
+    		vector<Value> data(1024*1024*10);
+    		MemBuffer<Value> buf(data);
+
+    		auto iter = map.create(buf);
+
+    		allocator.commit();
+
+    		this->StoreAllocator(allocator, this->getResourcePath("alloc.dump"));
+    	}
+    	catch (...) {
+    		this->dump_name_ = this->Store(allocator);
+    		throw;
+    	}
+    }
 
 
     void testOrderedCreation()
