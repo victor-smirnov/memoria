@@ -31,6 +31,8 @@
 #include <memoria/prototypes/balanced_tree/container/baltree_c_insert.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_read.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_update.hpp>
+#include <memoria/prototypes/balanced_tree/container/baltree_c_nodecompr.hpp>
+#include <memoria/prototypes/balanced_tree/container/baltree_c_nodenorm.hpp>
 
 #include <memoria/prototypes/balanced_tree/container/baltree_c_remove.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_remtools.hpp>
@@ -109,7 +111,10 @@ struct BalancedTreeTypes {
             memoria::balanced_tree::RemoveName,
             memoria::balanced_tree::FindName,
             memoria::balanced_tree::ReadName,
-            memoria::balanced_tree::UpdateName
+            memoria::balanced_tree::UpdateName,
+
+
+            memoria::balanced_tree::NodeNormName
     >                                                                           ContainerPartsList;
     
     typedef TypeList<

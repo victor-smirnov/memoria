@@ -15,18 +15,38 @@
 namespace memoria {
 
 
-class MEMORIA_API PackedOOMException: public vapi::Exception {
+class MEMORIA_API PackedOOMException: public vapi::MemoriaThrowable {
+
+	Int total_;
+	Int requested_;
+	Int free_;
+
+	const char* msg_;
 
 public:
-	PackedOOMException(const char* source, StringRef message):
-                Exception(source, message) {}
 
-	PackedOOMException(const char* source, const SBuf& message):
-                    Exception(source, message) {}
+	PackedOOMException(const char* source, Int total, Int requested, Int free):
+                MemoriaThrowable(source ),
+                total_(total),
+                requested_(requested),
+                free_(free),
+                msg_(nullptr)
+	{}
 
-	PackedOOMException(const char* source):
-                Exception(source, "PackedOOMException"){}
+	PackedOOMException(const char* source, const char* msg):
+		MemoriaThrowable(source ),
+		msg_(msg)
+	{}
 
+	virtual void dump(ostream& out) const
+	{
+		if (msg_ != nullptr) {
+			out<<"PackedOOMException at "<<source_<<": "<<msg_;
+		}
+		else {
+			out<<"PackedOOMException at "<<source_<<": Total="<<total_<<" Requested="<<requested_<<" Free="<<free_;
+		}
+	}
 };
 
 

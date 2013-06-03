@@ -21,6 +21,7 @@ namespace vapi       {
 using namespace std;
 
 class MemoriaThrowable {
+protected:
     const char* source_;
 public:
     MemoriaThrowable(const char* source): source_(source) {}
@@ -39,7 +40,6 @@ class MEMORIA_API Exception: public MemoriaThrowable {
 public:
     Exception(const char* source, StringRef message): MemoriaThrowable(source), message_(message)           {}
     Exception(const char* source, const SBuf& message): MemoriaThrowable(source), message_(message.str())   {}
-
 
     StringRef message() const {
         return message_;

@@ -59,6 +59,9 @@ class RemoveName            {};
 class RemoveToolsName       {};
 class RemoveBatchName       {};
 
+class NodeNormName       	{};
+class NodeComprName       	{};
+
 class ApiName               {};
 class ChecksName            {};
 class WalkName              {};

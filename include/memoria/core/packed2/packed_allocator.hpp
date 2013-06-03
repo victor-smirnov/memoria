@@ -404,14 +404,11 @@ public:
 				block_size_ = new_size;
 			}
 			else {
-				throw PackedOOMException(MA_SRC, SBuf()<<"Requested allocator size is too small: "
-						<<new_size<<" bytes. Allocated = "<<allocated()<<" bytes.");
+				throw PackedOOMException(MA_SRC, allocated(), new_size, free_space());
 			}
 		}
 		else {
-			throw PackedOOMException(MA_SRC, SBuf()<<"No space left in packed allocator. Requested "
-												   <<new_size<<" bytes. Allocated "<<allocated()
-												   <<" bytes, avaliable "<<free_space()<<" bytes.");
+			throw PackedOOMException(MA_SRC, allocated(), new_size, free_space());
 		}
 
 		return block_size_;

@@ -103,11 +103,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertToolsName)
     void makeRoom(TreePath& path, Int level, const Position& start, const Position& count) const;
     void makeRoom(TreePath& path, Int level, Int stream, Int start, Int count) const;
 
-    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
-
-    void updateUpNoBackup(TreePath& path, Int level, Int idx, const Accumulator& counters);
-
-    void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
+//    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
+//    void updateUpNoBackup(TreePath& path, Int level, Int idx, const Accumulator& counters);
+//    void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
 
     Accumulator insertSubtree(TreePath& path, Position& idx, ISubtreeProvider& provider);
 
@@ -161,15 +159,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertToolsName)
     void fillNodeLeft(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
     void prepareNodeFillmentRight(Int level, Int count, InsertSharedData& data);
 
-//    TreePathItem split1(TreePath& path, Int level, const Position& idx);
-
-    MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
-    void insertNonLeaf(TreePath& path, Int level, Int idx, const Accumulator& keys, const ID& id);
-    void insertNonLeaf(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
-
-
-    void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
-//    void split(TreePath& left, TreePath& right, Int level, const Position& idx);
+//    MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
+//    void insertNonLeaf(TreePath& path, Int level, Int idx, const Accumulator& keys, const ID& id);
+//    void insertNonLeaf(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
+//
+//
+//    void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
 
 public:
     MEMORIA_DECLARE_NODE_FN(MakeRoomFn, insertSpace);
@@ -293,53 +288,53 @@ typename M_TYPE::Accumulator M_TYPE::getNonLeafCounters(const NodeBaseG& node, c
 	return NonLeafDispatcher::dispatchConstRtn(node, GetCountersFn(), from, count);
 }
 
-
-M_PARAMS
-void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex)
-{
-    auto& self = this->self();
-
-	for (Int c = level; c < path.getSize(); c++)
-    {
-		if (self.updateCounters(path, c, idx, counters, reindex))
-        {
-            break;
-        }
-        else {
-            idx = path[c].parent_idx();
-        }
-    }
-}
-
-M_PARAMS
-void M_TYPE::updateUpNoBackup(TreePath& path, Int level, Int idx, const Accumulator& counters)
-{
-	auto& self = this->self();
-
-	for (Int c = level; c < path.getSize(); c++)
-	{
-		if (self.updateNodeCounters(path[c], idx, counters))
-		{
-			break;
-		}
-		else {
-			idx = path[c].parent_idx();
-		}
-	}
-}
-
-
-M_PARAMS
-void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
-{
-	auto& self = this->self();
-
-	if (level < path.getSize() - 1)
-    {
-        self.updateUp(path, level + 1, path[level].parent_idx(), counters, true);
-    }
-}
-
+//
+//M_PARAMS
+//void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex)
+//{
+//    auto& self = this->self();
+//
+//	for (Int c = level; c < path.getSize(); c++)
+//    {
+//		if (self.updateCounters(path, c, idx, counters, reindex))
+//        {
+//            break;
+//        }
+//        else {
+//            idx = path[c].parent_idx();
+//        }
+//    }
+//}
+//
+//M_PARAMS
+//void M_TYPE::updateUpNoBackup(TreePath& path, Int level, Int idx, const Accumulator& counters)
+//{
+//	auto& self = this->self();
+//
+//	for (Int c = level; c < path.getSize(); c++)
+//	{
+//		if (self.updateNodeCounters(path[c], idx, counters))
+//		{
+//			break;
+//		}
+//		else {
+//			idx = path[c].parent_idx();
+//		}
+//	}
+//}
+//
+//
+//M_PARAMS
+//void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
+//{
+//	auto& self = this->self();
+//
+//	if (level < path.getSize() - 1)
+//    {
+//        self.updateUp(path, level + 1, path[level].parent_idx(), counters, true);
+//    }
+//}
+//
 
 
 
@@ -596,229 +591,110 @@ typename M_TYPE::Accumulator M_TYPE::moveElements(
 }
 
 
-
-
-
 //M_PARAMS
-//typename M_TYPE::TreePathItem M_TYPE::split1(TreePath& path, Int level, const Position& idx)
+//void M_TYPE::insertNonLeaf(
+//		TreePath& path,
+//		Int level,
+//		Int idx,
+//		const Accumulator& keys,
+//		const ID& id
+//)
 //{
-//    auto& self = this->self();
+//	auto& self = this->self();
+//	NodeBaseG& node = path[level];
 //
-//	NodeBaseG& node     = path[level].node();
-//    NodeBaseG& parent   = path[level + 1].node();
+//	node.update();
 //
-//    Int parent_idx      = path[level].parent_idx();
+//	PageUpdateMgr mgr(self);
+//	mgr.add(node);
 //
-//    node.update();
-//    parent.update();
+//	try {
+//		NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+//	}
+//	catch (PackedOOMException ex)
+//	{
+//		mgr.rollback();
+//		auto right = path;
 //
-//    NodeBaseG other = self.createNode1(level, false, node->is_leaf(), node->page_size());
+//		Int size = self.getNodeSize(node, 0);
 //
-//    Accumulator keys = self.moveElements(node, other, idx);
+//		Int split_idx = size / 2;
 //
-//    //FIXME:: Make room in the parent
-//    self.makeRoom(path, level + 1, 0, parent_idx + 1, 1);
+//		self.splitPath(path, right, Position(split_idx), -1);
 //
-//    self.setChildID(parent, parent_idx + 1, other->id());
+//		if (idx >= split_idx)
+//		{
+//			path = right;
+//			idx -= split_idx;
+//		}
 //
-//    //FIXME: Should we proceed up to the root here in general case?
-//    self.updateCounters(parent, parent_idx,    -keys);
-//    self.updateCounters(parent, parent_idx + 1, keys, true);
-//
-//    if (level > 0)
-//    {
-//        if (path[level - 1].parent_idx() < idx.get())
-//        {
-//            return TreePathItem(other, parent_idx + 1);
-//        }
-//        else {
-//            TreePathItem item = path[level];
-//
-//            path[level    ].node()          = other;
-//            path[level    ].parent_idx()++;
-//
-//            path[level - 1].parent_idx()    -= idx.get();
-//
-//            return item;
-//        }
-//    }
-//    else {
-//        return TreePathItem(other, parent_idx + 1);
-//    }
+//		NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+//	}
 //}
 
-M_PARAMS
-void M_TYPE::insertNonLeaf(
-		TreePath& path,
-		Int level,
-		Int idx,
-		const Accumulator& keys,
-		const ID& id
-)
-{
-	auto& self = this->self();
-	NodeBaseG& node = path[level];
 
-	node.update();
-
-	PageUpdateMgr mgr(self);
-	mgr.add(node);
-
-	try {
-		NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-	}
-	catch (PackedOOMException ex)
-	{
-		mgr.rollback();
-		auto right = path;
-
-		Int size = self.getNodeSize(node, 0);
-
-		Int split_idx = size / 2;
-
-		self.splitPath(path, right, Position(split_idx), -1);
-
-		if (idx >= split_idx)
-		{
-			path = right;
-			idx -= split_idx;
-		}
-
-		NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-	}
-}
-
-
-M_PARAMS
-void M_TYPE::insertNonLeaf(
-		NodeBaseG& node,
-		Int idx,
-		const Accumulator& keys,
-		const ID& id
-)
-{
-	node.update();
-	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-}
-
-
-M_PARAMS
-void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams)
-{
-	auto& self = this->self();
-
-	if (level == left.getSize() - 1)
-	{
-		self.newRoot(left);
-		right.resize(left.getSize());
-		right[level + 1] = left[level + 1];
-	}
-
-	NodeBaseG& left_node    = left[level].node();
-	NodeBaseG& left_parent  = left[level + 1].node();
-
-	left_node.update();
-	left_parent.update();
-
-	NodeBaseG other  = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
-
-	Accumulator keys = self.moveElements(left_node, other, idx);
-
-	Int parent_idx   = left[level].parent_idx();
-
-	self.updateUpNoBackup(left, level + 1, parent_idx, -keys);
-
-	PageUpdateMgr mgr(self);
-	mgr.add(left_parent);
-
-	try {
-		self.insertNonLeaf(left_parent, parent_idx + 1, keys, other->id());
-		self.updateUpNoBackup(left, level + 2, left[level + 1].parent_idx(), keys);
-
-		right[level].node()         = other;
-		right[level].parent_idx()   = parent_idx + 1;
-	}
-	catch (PackedOOMException ex)
-	{
-		mgr.rollback();
-
-		splitPath(left, right, level + 1, Position(parent_idx + 1), active_streams);
-
-		self.insertNonLeaf(right[level + 1], 0, keys, other->id());
-		self.updateUpNoBackup(right, level + 2, right[level + 1].parent_idx(), keys);
-
-		right[level].node()         = other;
-		right[level].parent_idx()   = 0;
-	}
-
-//	if (level > 0)
-//	{
-//		right.moveLeft(level - 1, 0, idx.get());
-//	}
-}
-
-//
 //M_PARAMS
-//void M_TYPE::split(TreePath& left, TreePath& right, Int level, const Position& idx)
+//void M_TYPE::insertNonLeaf(
+//		NodeBaseG& node,
+//		Int idx,
+//		const Accumulator& keys,
+//		const ID& id
+//)
+//{
+//	node.update();
+//	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+//}
+
+
+//M_PARAMS
+//void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams)
 //{
 //	auto& self = this->self();
 //
-//    NodeBaseG& left_node    = left[level].node();
+//	if (level == left.getSize() - 1)
+//	{
+//		self.newRoot(left);
+//		right.resize(left.getSize());
+//		right[level + 1] = left[level + 1];
+//	}
 //
-//    NodeBaseG& left_parent  = left[level + 1].node();
-//    NodeBaseG& right_parent = right[level + 1].node();
+//	NodeBaseG& left_node    = left[level].node();
+//	NodeBaseG& left_parent  = left[level + 1].node();
 //
-//    left_node.update();
-//    left_parent.update();
-//    right_parent.update();
+//	left_node.update();
+//	left_parent.update();
 //
-//    NodeBaseG other = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
+//	NodeBaseG other  = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
 //
-//    Accumulator keys = self.moveElements(left_node, other, idx);
+//	Accumulator keys = self.moveElements(left_node, other, idx);
 //
-//    Int parent_idx = left[level].parent_idx();
+//	Int parent_idx   = left[level].parent_idx();
 //
-//    if (right_parent == left_parent)
-//    {
-//    	PageUpdateMgr mgr(self);
+//	self.updateUpNoBackup(left, level + 1, parent_idx, -keys);
 //
-//    	mgr.add(left_parent);
+//	PageUpdateMgr mgr(self);
+//	mgr.add(left_parent);
 //
-//    	try {
-//    		moveToNextCell(left_parent, parent_idx + 1, keys, other->id());
-//    	}
-//    	catch (PackedOOMException ex)
-//    	{
-//    		mgr.rollback();
+//	try {
+//		self.insertNonLeaf(left_parent, parent_idx + 1, keys, other->id());
+//		self.updateUpNoBackup(left, level + 2, left[level + 1].parent_idx(), keys);
 //
-//    		self.splitPath(left, right, level + 1, Position(parent_idx + 1));
+//		right[level].node()         = other;
+//		right[level].parent_idx()   = parent_idx + 1;
+//	}
+//	catch (PackedOOMException ex)
+//	{
+//		mgr.rollback();
 //
-//    		moveToNextCell(left_parent, parent_idx + 1, keys, other->id());
-//    	}
+//		splitPath(left, right, level + 1, Position(parent_idx + 1), active_streams);
 //
-//    	right[level].node()         = other;
-//    	right[level].parent_idx()   = parent_idx + 1;
-//    }
-//    else {
+//		self.insertNonLeaf(right[level + 1], 0, keys, other->id());
+//		self.updateUpNoBackup(right, level + 2, right[level + 1].parent_idx(), keys);
 //
-//
-//    	self.makeRoom(right, level + 1, Position(0), Position(1));
-//    	self.setChildID(right_parent, 0, other->id());
-//
-//    	self.updateUp(left,  level + 1, parent_idx, -keys);
-//    	self.updateUp(right, level + 1, 0,           keys, true);
-//
-//        right[level].node()         = other;
-//        right[level].parent_idx()   = 0;
-//    }
-//
-//    if (level > 0)
-//    {
-//    	right.moveLeft(level - 1, 0, idx.get());
-//    }
+//		right[level].node()         = other;
+//		right[level].parent_idx()   = 0;
+//	}
 //}
-
-
 
 
 M_PARAMS
@@ -843,14 +719,7 @@ void M_TYPE::newRoot(TreePath& path)
 
     Accumulator keys = root->is_leaf() ? self.getLeafMaxKeys(root) : self.getMaxKeys(root);
 
-    self.makeRoom(path, path.getSize() - 1, Position(0), Position(1));
-
-    //Do it here because makeRoom shifts underling path
-    path[path.getSize() - 2].parent_idx() = 0;
-
-    self.setNonLeafKeys(new_root, 0, keys);
-    self.setChildID(new_root, 0, root->id());
-    self.reindex(new_root);
+    self.insertNonLeaf(new_root, 0, keys, root->id());
 
     self.set_root(new_root->id());
 }

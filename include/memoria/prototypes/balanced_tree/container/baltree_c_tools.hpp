@@ -281,13 +281,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     }
 
 
-//    MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, capacity, Int);
-//
-//    Int getStreamCapacity(const NodeBaseG& node, Int stream) const
-//    {
-//        return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn(), stream);
-//    }
-
     MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, capacity, Int);
 
     Int getStreamCapacity(const NodeBaseG& node, Int stream) const
@@ -535,11 +528,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     void addKeysFn(Node* node, Int idx, const Accumulator& keys, bool reindex_fully) const
     {
     	node->updateUp(idx, keys);
-
-    	//if (reindex_fully)
-    	{
-    		node->reindex();
-    	}
+    	node->reindex();
     }
 
     MEMORIA_CONST_FN_WRAPPER(AddKeysFn, addKeysFn);
@@ -757,8 +746,6 @@ M_PARAMS
 bool M_TYPE::updateCounters(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully) const
 {
     auto& self = this->self();
-
-	//PageUpdateMgr mgr(self);
 
 	path[level].node().update();
     self.addKeys(path[level], idx, counters, reindex_fully);
