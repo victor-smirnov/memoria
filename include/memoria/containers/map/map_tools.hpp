@@ -35,6 +35,11 @@ public:
         return prefix_;
     }
 
+    const BigInt& current() const
+    {
+    	return current_;
+    }
+
     const Accumulator& prefixes() const
     {
         return prefix_;

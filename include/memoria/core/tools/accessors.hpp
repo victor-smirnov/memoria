@@ -86,6 +86,22 @@ public:
 		setter_fn_(value);
 		return value;
 	}
+
+	V operator+=(const V& value)
+	{
+		V v = this->value();
+
+		setter_fn_(v + value);
+		return v + value;
+	}
+
+	V operator-=(const V& value)
+	{
+		V v = this->value();
+
+		setter_fn_(v - value);
+		return v - value;
+	}
 };
 
 

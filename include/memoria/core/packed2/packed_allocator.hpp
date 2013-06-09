@@ -85,7 +85,9 @@ public:
 	}
 
 	Int free_space() const {
-		 return client_area() - allocated();
+		Int client_area = this->client_area();
+		Int allocated = this->allocated();
+		return client_area - allocated;
 	}
 
 	Int elements() const {

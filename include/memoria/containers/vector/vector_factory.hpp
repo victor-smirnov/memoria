@@ -76,6 +76,7 @@ struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTree
 
     typedef typename MergeLists<
     		typename Base::ContainerPartsList,
+    		memoria::balanced_tree::NodeNormName,
     		memoria::mvector::CtrToolsName,
     		memoria::mvector::CtrInsertName,
     		memoria::mvector::CtrRemoveName,

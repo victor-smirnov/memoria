@@ -28,7 +28,7 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef SCtrTF<Map<BigInt, BigInt>>::Type                              		Ctr;
+    typedef SCtrTF<CMap<BigInt, BigInt>>::Type                              	Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
     typedef typename Ctr::Accumulator                                           Accumulator;
@@ -43,6 +43,12 @@ protected:
     String dump_name_;
     String pairs_data_file_;
     String pairs_sorted_data_file_;
+
+    Int iterator_check_count_	= 1;
+    Int iterator_check_counter_	= 0;
+
+    Int data_check_count_	= 1;
+    Int data_check_counter_	= 0;
 
     bool throw_ex_ = false;
 
@@ -59,6 +65,13 @@ protected:
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
         MEMORIA_ADD_TEST_PARAM(pairs_data_file_)->state();
         MEMORIA_ADD_TEST_PARAM(pairs_sorted_data_file_)->state();
+
+
+        MEMORIA_ADD_TEST_PARAM(iterator_check_counter_)->state();
+        MEMORIA_ADD_TEST_PARAM(iterator_check_count_)->state();
+
+        MEMORIA_ADD_TEST_PARAM(data_check_counter_)->state();
+        MEMORIA_ADD_TEST_PARAM(data_check_count_)->state();
     }
 
     virtual ~MapTestBase() throw () {
@@ -66,38 +79,44 @@ protected:
 
     void checkContainerData(Ctr& map, PairVector& pairs)
     {
-        Int pairs_size = (Int) pairs.size();
+    	if (data_check_counter_ % data_check_count_ == 0)
+    	{
 
-        Int idx = 0;
-        for (auto iter = map.Begin(); !iter.isEnd();)
-        {
-            BigInt key   = iter.key();
-            BigInt value = iter.value();
+    		Int pairs_size = (Int) pairs.size();
 
-            AssertEQ(MA_SRC, pairs[idx].key_,   key);
-            AssertEQ(MA_SRC, pairs[idx].value_, value);
+    		Int idx = 0;
+    		for (auto iter = map.Begin(); !iter.isEnd();)
+    		{
+    			BigInt key   = iter.key();
+    			BigInt value = iter.value();
 
-            iter.next();
-            idx++;
-        }
+    			AssertEQ(MA_SRC, pairs[idx].key_,   key);
+    			AssertEQ(MA_SRC, pairs[idx].value_, value);
 
-        AssertEQ(MA_SRC, idx, pairs_size);
+    			iter.next();
+    			idx++;
+    		}
 
-        idx = pairs_size - 1;
-        for (auto iter = map.RBegin(); !iter.isBegin(); )
-        {
-            BigInt  key     = iter.key();
-            BigInt  value   = iter.value();
+    		AssertEQ(MA_SRC, idx, pairs_size);
 
-            AssertEQ(MA_SRC, pairs[idx].key_,   key);
-            AssertEQ(MA_SRC, pairs[idx].value_, value);
+    		idx = pairs_size - 1;
+    		for (auto iter = map.RBegin(); !iter.isBegin(); )
+    		{
+    			BigInt  key     = iter.key();
+    			BigInt  value   = iter.value();
 
-            iter.prev();
+    			AssertEQ(MA_SRC, pairs[idx].key_,   key);
+    			AssertEQ(MA_SRC, pairs[idx].value_, value);
 
-            idx--;
-        }
+    			iter.prev();
 
-        AssertEQ(MA_SRC, idx, -1, SBuf()<<"pairs_size="<<pairs_size);
+    			idx--;
+    		}
+
+    		AssertEQ(MA_SRC, idx, -1, SBuf()<<"pairs_size="<<pairs_size);
+    	}
+
+    	data_check_counter_++;
     }
 
     void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted)

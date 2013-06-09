@@ -65,6 +65,52 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertName)
     void updateEntry(Iterator& iter, const EntryData&);
 
 
+    void insertEntries(Iterator& iter, const Position& pos, ISource* src, std::function<void ()> split_fn = [](){});
+
+    MEMORIA_DECLARE_NODE_FN(InsertIntoLeafFn, insert);
+    bool insertIntoLeaf(Iterator& iter, const Position& pos, ISource* src)
+    {
+    	auto& self = this->self();
+    	PageUpdateMgr mgr(self);
+
+    	try {
+    		Position sizes = self.getRemainder(src);
+
+    		LeafDispatcher::dispatch(iter.leaf().node(), InsertIntoLeafFn(), pos, sizes);
+
+    		return true;
+    	}
+    	catch (PackedOOMException ex)
+    	{
+    		mgr.rollback();
+    		return false;
+    	}
+    }
+
+
+    struct AppendToLeafFn {
+    	template <typename Node>
+    	void treeNode(const Node* node, ISource* src)
+    	{
+    		LayoutManager<Node> layout_manager(node);
+
+    		Position sizes;
+
+    		src->newNode(layout_manager, sizes.values());
+
+    		node->append(src, sizes);
+    	}
+    };
+
+
+    void appendToLeaf(Iterator& iter, ISource* src)
+    {
+    	auto& self = this->self();
+
+    	LeafDispatcher::dispatch(iter.leaf().node(), AppendToLeafFn(), src);
+    }
+
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::balanced_tree::InsertName)
@@ -148,6 +194,32 @@ void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
     ctr.addTotalKeyCount(Position::create(stream, 1));
 }
 
+
+
+M_PARAMS
+void M_TYPE::insertEntries(
+		Iterator& iter,
+		const Position& pos,
+		ISource* src,
+		std::function<void ()> split_fn)
+{
+	auto& self = this->self();
+
+	if (self.insertIntoLeaf(iter, pos, src))
+	{
+		return;
+	}
+
+	split_fn();
+
+	self.appendToLeaf(iter, src);
+
+	while (self.getRemainder(src).gtAny(0))
+	{
+		iter.createEmptyLeaf();
+		self.appendToLeaf(iter, src);
+	}
+}
 
 
 #undef M_TYPE

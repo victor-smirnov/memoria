@@ -954,6 +954,25 @@ public:
     	Dispatcher::dispatchNotEmpty(&allocator_, InsertSourceFn(), &src, &pos, &sizes);
     }
 
+
+    struct AppendSourceFn {
+    	template <Int Idx, typename Tree>
+    	void stream(Tree* tree, ISource* src, const Position* sizes)
+    	{
+    		tree->append(src->stream(Idx), sizes->value(Idx));
+    	}
+    };
+
+    void append(ISource& src, const Position& sizes)
+    {
+    	initStreamsIfEmpty(sizes);
+
+    	Dispatcher::dispatchNotEmpty(&allocator_, AppendSourceFn(), &src, &sizes);
+    }
+
+
+
+
     struct UpdateSourceFn {
     	template <Int Idx, typename Tree>
     	void stream(Tree* tree, ISource* src, const Position* pos, const Position* sizes)

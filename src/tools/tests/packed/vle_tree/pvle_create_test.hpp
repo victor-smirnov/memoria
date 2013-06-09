@@ -77,7 +77,7 @@ public:
 
     	for (int idx = 0; idx < tree->size(); idx++)
     	{
-    		AssertEQ(MA_SRC, idx, tree->value(idx), SBuf()<<idx<<" "<<tree->size()<<" "<<tree->max_size());
+    		AssertEQ(MA_SRC, idx, tree->value(idx), SBuf()<<idx<<" "<<tree->size()<<" "<<tree->max_data_size());
     	}
     }
 
@@ -92,7 +92,7 @@ public:
     	TreePtr tree_ptr = Base::createTree(block_size);
     	Tree* tree 		 = tree_ptr.get();
 
-    	Int tree_max = tree->max_size();
+    	Int tree_max = tree->max_data_size();
     	vector<Value> values = Base::getRandomVector(tree_max - tree_max / 10, 100);
 
     	Int idx = 0;

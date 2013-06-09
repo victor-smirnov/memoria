@@ -196,7 +196,7 @@ private:
 
 		codec_.move(data_, pos, pos + len, total_size_ - pos);
 
-		return codec_.encode(data_, value, pos, tree_->max_size());
+		return codec_.encode(data_, value, pos, tree_->data_size());
 	}
 };
 

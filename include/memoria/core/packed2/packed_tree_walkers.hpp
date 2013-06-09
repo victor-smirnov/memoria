@@ -153,11 +153,11 @@ public:
 	}
 
 	Int max_size() const {
-		return me_.max_size();
+		return me_.data_size();
 	}
 
 	Int size() const {
-		return me_.max_size();
+		return me_.raw_size();
 	}
 
 	Int walkLastValuesBlock(Int value_block_num)
@@ -165,12 +165,10 @@ public:
 		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
 
 		Int pos = value_block_num * TreeType::ValuesPerBranch + offset;
-		Int end = me_.max_size();
+		Int end = me_.data_size();
 
 		VLECompareLE<Int, BigInt> compare;
 		Codec codec;
-
-		Int max_size = me_.max_size();
 
 		while (pos < end)
 		{
@@ -183,7 +181,7 @@ public:
 
 				Value val;
 
-				pos += codec.decode(values_, val, pos, max_size);
+				pos += codec.decode(values_, val, pos, end);
 
 				Base::me().processValue(val);
 			}
@@ -225,7 +223,7 @@ public:
 	void finish() {}
 
 	Int max_size() const {
-		return me_.raw_max_size();
+		return me_.data_size();
 	}
 
 	Int size() const {

@@ -460,6 +460,43 @@ public:
 };
 
 
+template <typename Node>
+class LayoutManager: public INodeLayoutManager {
+	const Node* node_;
+public:
+	LayoutManager(const Node* node): node_(node) {}
+
+	virtual Int getNodeCapacity(const Int* sizes, Int stream)
+	{
+		return node_->capacity(sizes, stream);
+	}
+};
+
+
+template <typename Dispatcher>
+class StaticLayoutManager: public INodeLayoutManager {
+	Int block_size_;
+public:
+
+	struct NodeFn {
+		typedef Int ReturnType;
+
+		template <typename Node>
+		ReturnType treeNode(const Node*, Int block_size, const Int* sizes, Int stream)
+		{
+			return Node::capacity(block_size, sizes, stream);
+		}
+	};
+
+	StaticLayoutManager(Int block_size): block_size_(block_size) {}
+	virtual Int getNodeCapacity(const Int* sizes, Int stream)
+	{
+		return Dispatcher::dispatchStatic2Rtn(false, true, NodeFn(), block_size_, sizes, stream);
+	}
+};
+
+
+
 
 
 }

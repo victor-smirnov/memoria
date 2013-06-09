@@ -609,6 +609,17 @@ public:
 
     	return result;
     }
+
+    ElementType sum() const
+    {
+    	ElementType value = 0;
+
+    	for (const auto& v: values_) {
+    		value += v;
+    	}
+
+    	return value;
+    }
 };
 
 

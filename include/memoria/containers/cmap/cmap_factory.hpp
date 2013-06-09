@@ -1,40 +1,40 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#ifndef _MEMORIA_CONTAINERS_MAP_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_MAP_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_CMAP_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_CMAP_FACTORY_HPP
 
 #include <memoria/prototypes/balanced_tree/balanced_tree.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
-#include <memoria/containers/map/map_walkers.hpp>
-#include <memoria/containers/map/map_tools.hpp>
+#include <memoria/containers/cmap/cmap_walkers.hpp>
+#include <memoria/containers/cmap/cmap_tools.hpp>
 
-#include <memoria/containers/map/container/map_c_tools.hpp>
-#include <memoria/containers/map/container/map_c_insert.hpp>
-#include <memoria/containers/map/container/map_c_remove.hpp>
-#include <memoria/containers/map/container/map_c_api.hpp>
+#include <memoria/containers/cmap/container/cmap_c_tools.hpp>
+#include <memoria/containers/cmap/container/cmap_c_insert.hpp>
+#include <memoria/containers/cmap/container/cmap_c_remove.hpp>
+#include <memoria/containers/cmap/container/cmap_c_api.hpp>
 
-#include <memoria/containers/map/map_iterator.hpp>
-#include <memoria/containers/map/iterator/map_i_api.hpp>
-#include <memoria/containers/map/iterator/map_i_nav.hpp>
-
-
+#include <memoria/containers/cmap/cmap_iterator.hpp>
+#include <memoria/containers/cmap/iterator/cmap_i_api.hpp>
+#include <memoria/containers/cmap/iterator/cmap_i_nav.hpp>
 
 
-#include <memoria/containers/map/map_names.hpp>
+
+
+#include <memoria/containers/cmap/cmap_names.hpp>
 
 namespace memoria    {
 
 
 
 template <typename Profile, typename Key_, typename Value_>
-struct BalancedTreeTypes<Profile, memoria::Map<Key_, Value_> >: public BalancedTreeTypes<Profile, memoria::BalancedTree> {
+struct BalancedTreeTypes<Profile, memoria::CMap<Key_, Value_> >: public BalancedTreeTypes<Profile, memoria::BalancedTree> {
 
     typedef BalancedTreeTypes<Profile, memoria::BalancedTree>                   Base;
 
@@ -56,7 +56,7 @@ struct BalancedTreeTypes<Profile, memoria::Map<Key_, Value_> >: public BalancedT
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
-        		StreamDescr<PackedFSETreeTF, PackedFSETreeTF, 1>
+        		StreamDescr<PackedVLETreeTF, PackedVLETreeTF, 1>
     >																			StreamDescriptors;
 
     typedef BalancedTreeMetadata<
@@ -67,18 +67,18 @@ struct BalancedTreeTypes<Profile, memoria::Map<Key_, Value_> >: public BalancedT
 
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
-				memoria::balanced_tree::NodeNormName,
-				memoria::map::CtrToolsName,
-				memoria::map::CtrInsert1Name,
-				memoria::map::CtrRemoveName,
-				memoria::map::CtrApiName
+				memoria::balanced_tree::NodeComprName,
+				memoria::cmap::CtrToolsName,
+				memoria::cmap::CtrInsertName,
+				memoria::cmap::CtrRemoveName,
+				memoria::cmap::CtrApiName
 	>::Result                                           						ContainerPartsList;
 
 
 	typedef typename MergeLists<
 				typename Base::IteratorPartsList,
-				memoria::map::ItrApiName,
-				memoria::map::ItrNavName
+				memoria::cmap::ItrApiName,
+				memoria::cmap::ItrNavName
 	>::Result                                           						IteratorPartsList;
 
 
@@ -113,9 +113,8 @@ struct BalancedTreeTypes<Profile, memoria::Map<Key_, Value_> >: public BalancedT
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, memoria::Map<Key, Value>, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
+class CtrTF<Profile, memoria::CMap<Key, Value>, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
 };
-
 
 
 

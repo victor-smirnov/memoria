@@ -186,6 +186,8 @@ public:
 
     	LoadAllocator(allocator, dump_name_);
 
+    	check(allocator, MA_SRC);
+
     	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
 
     	ctr[key_] = value_;

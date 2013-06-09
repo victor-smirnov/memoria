@@ -39,8 +39,8 @@ public:
 
     VectorMapCreateTest(): Base("Create")
     {
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testOrderedCreation, replayOrderedCreation);
-//        MEMORIA_ADD_TEST_WITH_REPLAY(testRandomCreation, replayRandomCreation);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testOrderedCreation, replayOrderedCreation);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testRandomCreation, replayRandomCreation);
 
         MEMORIA_ADD_TEST(testLongData);
     }

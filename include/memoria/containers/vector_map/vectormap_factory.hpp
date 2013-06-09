@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_CONTAINERS_VECTORMAP_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_VECTORMAP_FACTORY_HPP
 
-#include <memoria/containers/map/map_factory.hpp>
+//#include <memoria/containers/map/map_factory.hpp>
 #include <memoria/containers/vector/vector_factory.hpp>
 
 #include <memoria/containers/vector_map/vectormap_walkers.hpp>
@@ -104,6 +104,7 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
     typedef typename MergeLists<
     		typename Base::ContainerPartsList,
+    		memoria::balanced_tree::NodeNormName,
     		memoria::vmap::CtrToolsName,
     		memoria::vmap::CtrInsertName,
     		memoria::vmap::CtrRemoveName,

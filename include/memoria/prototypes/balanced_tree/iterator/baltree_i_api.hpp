@@ -128,8 +128,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     template <typename Walker>
     bool findPrevLeaf(Walker&& walker);
 
-    void createEmptyLeaf() {
+    void createEmptyLeaf()
+    {
+    	auto& self = this->self();
+    	auto& ctr = self.model();
 
+    	auto next = self.path();
+
+    	ctr.splitPath(self.path(), next, self.leaf_sizes());
+
+    	self.path() = next;
+
+    	self.idx() = 0;
     }
 
 MEMORIA_ITERATOR_PART_END

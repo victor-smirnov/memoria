@@ -146,15 +146,35 @@ struct EliasDeltaCodec {
 		return len;
 	}
 
+	size_t decode(const T* buffer, V& value, size_t idx) const
+	{
+		size_t len = DecodeEliasDelta(buffer, value, idx);
+
+		value--;
+
+		return len;
+	}
+
 	size_t encode(T* buffer, V value, size_t idx, size_t limit) const
 	{
 		value++;
 		return EncodeEliasDelta(buffer, value, idx, limit);
 	}
 
+	size_t encode(T* buffer, V value, size_t idx) const
+	{
+		value++;
+		return EncodeEliasDelta(buffer, value, idx);
+	}
+
 	void move(T* buffer, size_t from, size_t to, size_t size) const
 	{
 		MoveBits(buffer, buffer, from, to, size);
+	}
+
+	void copy(const T* src, size_t from, T* tgt, size_t to, size_t size) const
+	{
+		MoveBits(src, tgt, from, to, size);
 	}
 };
 

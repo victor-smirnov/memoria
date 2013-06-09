@@ -501,7 +501,7 @@ public:
 	{
 		allocator_.init(block_size, Streams + 1);
 
-		Int tree_size = max_tree_size(block_size, active_streams);
+		Int tree_size = 0;//max_tree_size(block_size, active_streams);
 
 		Dispatcher::dispatchAllStatic(InitStructFn(), tree_size, &allocator_, active_streams);
 
@@ -543,7 +543,7 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, TreeType* other)
     	{
-    		Tree* other_tree = other->allocator()->template allocate<Tree>(Idx, tree->block_size());
+    		Tree* other_tree = other->allocator()->template allocate<Tree>(Idx, tree->block_size(0));
     		tree->transferDataTo(other_tree);
     	}
     };
@@ -870,20 +870,22 @@ public:
     		Int size = tree->size();
     		if (size > 0)
     		{
-    			Int remainder 		= size - idx;
-    			Int block_size 		= Tree::block_size(remainder + shift);
+//    			Int remainder 		= size - idx;
+    			Int block_size 		= Tree::block_size(0);
     			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
 
-    			tree->clear(0, shift);
-
-    			other_tree->size() = remainder + shift;
-
-    			tree->copyTo(other_tree, idx, remainder, shift);
-
-    			other_tree->reindex();
-
-    			tree->removeSpace(idx, remainder);
-    			tree->reindex();
+    			tree->splitTo(other_tree, idx);
+//
+//    			tree->clear(0, shift);
+//
+//    			other_tree->size() = remainder + shift;
+//
+//    			tree->copyTo(other_tree, idx, remainder, shift);
+//
+//    			other_tree->reindex();
+//
+//    			tree->removeSpace(idx, remainder);
+//    			tree->reindex();
     		}
     	}
     };
@@ -1004,9 +1006,9 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, Int start, Int end, Accumulator* accum)
     	{
-    		for (Int c = 0; c < Tree::Blocks; c++)
+    		for (Int block = 0; block < Tree::Blocks; block++)
     		{
-    			std::get<Idx>(*accum)[c] += tree->sum(c, start, end);
+    			std::get<Idx>(*accum)[block] += tree->sum(block, start, end);
     		}
     	}
 
@@ -1197,7 +1199,9 @@ public:
 
         Dispatcher::dispatchNotEmpty(&allocator_, SerializeFn(), &buf);
 
-        FieldFactory<Value>::serialize(buf, *values(), size());
+        Int size = this->size();
+
+        FieldFactory<Value>::serialize(buf, *values(), size);
     }
 
     struct DeserializeFn {
@@ -1217,12 +1221,12 @@ public:
 
         Dispatcher::dispatchNotEmpty(&allocator_, DeserializeFn(), &buf);
 
-        FieldFactory<Value>::deserialize(buf, *values(), size());
+        Int size = this->size();
+
+        FieldFactory<Value>::deserialize(buf, *values(), size);
     }
 
-    static void InitType() {
-    	int a = 0; a++;
-    }
+    static void InitType() {}
 };
 
 

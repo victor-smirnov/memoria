@@ -11,6 +11,7 @@
 
 #include <memoria/containers/root/root_factory.hpp>
 #include <memoria/containers/map/map_factory.hpp>
+#include <memoria/containers/cmap/cmap_factory.hpp>
 #include <memoria/containers/vector/vector_factory.hpp>
 #include <memoria/containers/vector_map/vectormap_factory.hpp>
 

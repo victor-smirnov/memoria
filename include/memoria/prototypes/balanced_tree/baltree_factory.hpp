@@ -13,6 +13,9 @@
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/vector_tuple.hpp>
 
+#include <memoria/core/packed2/packed_fse_tree.hpp>
+#include <memoria/core/packed2/packed_vle_tree.hpp>
+
 #include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
@@ -26,7 +29,6 @@
 #include <memoria/prototypes/balanced_tree/container/baltree_c_base.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_tools.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_checks.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_instools.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_insbatch.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_insert.hpp>
 #include <memoria/prototypes/balanced_tree/container/baltree_c_read.hpp>
@@ -91,6 +93,25 @@ struct PackedFSEArrayTF {
 
 
 
+template <typename Types, Int StreamIdx>
+struct PackedVLETreeTF {
+
+    typedef typename Types::Key                                                 Key;
+
+    typedef typename SelectByIndexTool<
+    		StreamIdx,
+    		typename Types::StreamDescriptors
+    >::Result																	Descriptor;
+
+	typedef PackedVLETreeTypes<
+			Key,Key, UByteExintCodec, Descriptor::Indexes
+	>																			TreeTypes;
+
+	typedef PackedVLETree<TreeTypes> Type;
+};
+
+
+
 
 template <typename Profile_, typename ContainerTypeSelector>
 struct BalancedTreeTypes {
@@ -105,16 +126,15 @@ struct BalancedTreeTypes {
             memoria::balanced_tree::ChecksName,
             memoria::balanced_tree::InsertBatchName,
             memoria::balanced_tree::InsertName,
-            memoria::balanced_tree::InsertToolsName,
             memoria::balanced_tree::RemoveToolsName,
             memoria::balanced_tree::RemoveBatchName,
             memoria::balanced_tree::RemoveName,
             memoria::balanced_tree::FindName,
             memoria::balanced_tree::ReadName,
-            memoria::balanced_tree::UpdateName,
+            memoria::balanced_tree::UpdateName
 
 
-            memoria::balanced_tree::NodeNormName
+
     >                                                                           ContainerPartsList;
     
     typedef TypeList<
@@ -129,8 +149,6 @@ struct BalancedTreeTypes {
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
     typedef typename Allocator::ID                                              ID;
-
-//    typedef BalancedTreeMetadata<ID>                                            Metadata;
 
     typedef TypeList<
 //    		AllNodeTypes<balanced_tree::TreeMapNode>

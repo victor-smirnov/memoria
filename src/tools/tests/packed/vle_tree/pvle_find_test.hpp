@@ -62,7 +62,7 @@ public:
 
     void fillTree(Tree* tree)
     {
-    	fillTree(tree, tree->max_size());
+    	fillTree(tree, tree->max_data_size());
     }
 
     void fillTree(Tree* tree, Int size)
@@ -101,7 +101,7 @@ public:
     {
     	const typename Tree::Metadata* meta = tree->metadata();
 
-    	FindElementFn<Tree, btree::BTreeCompareLT> fn(*tree, value, meta->index_size(), meta->size(), meta->max_size());
+    	FindElementFn<Tree, btree::BTreeCompareLT> fn(*tree, value, meta->index_size(), meta->size(), meta->data_size());
 
     	Int pos = Tree::TreeTools::find_fw(fn);
 
@@ -109,7 +109,7 @@ public:
     	Value actual_value;
 
     	const auto* values_ = tree->values();
-    	codec.decode(values_, actual_value, pos, tree->max_size());
+    	codec.decode(values_, actual_value, pos, tree->max_data_size());
 
     	return ValueDescr(actual_value + fn.sum(), pos, fn.position());
     }
@@ -196,7 +196,7 @@ public:
     		Value v = values[idx];
     		auto result = findLE(tree, 0, v);
 
-    		AssertLT(MA_SRC, result.pos(), tree->max_size());
+    		AssertLT(MA_SRC, result.pos(), tree->max_data_size());
     		AssertEQ(MA_SRC, result.value(), v);
     		AssertEQ(MA_SRC, result.idx(), 0 + idx);
     	}
@@ -231,7 +231,7 @@ public:
 
     			auto result = findLE(tree, start, v);
 
-    			AssertLT(MA_SRC, result.pos(), tree->max_size());
+    			AssertLT(MA_SRC, result.pos(), tree->max_data_size());
     			AssertEQ(MA_SRC, result.value(), v);
     			AssertEQ(MA_SRC, result.idx(), start + idx);
     		}
@@ -243,15 +243,15 @@ public:
     	TreePtr tree_ptr = Base::createTree(4096);
     	Tree* tree 		 = tree_ptr.get();
 
-    	for (Int size = 0; size < tree->max_size(); size += 10)
+    	for (Int size = 0; size < tree->max_data_size(); size += 10)
     	{
     		fillTree(tree, size);
 
     		Int pos1 = tree->getValueOffset(tree->size() - 1);
     		Int pos2 = tree->getValueOffset(tree->size());
 
-    		AssertLT(MA_SRC, pos1, tree->max_size());
-    		AssertGE(MA_SRC, pos2, tree->max_size());
+    		AssertLT(MA_SRC, pos1, tree->max_data_size());
+    		AssertGE(MA_SRC, pos2, tree->max_data_size());
     	}
     }
 

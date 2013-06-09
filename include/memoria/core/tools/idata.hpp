@@ -166,6 +166,7 @@ struct IDataBase: IData {
     virtual SizeT getStart() const                                  = 0;
     virtual SizeT getRemainder() const                              = 0;
     virtual SizeT getSize() const                                   = 0;
+    virtual SizeT getAdvance() const                                = 0;
     virtual void  reset()                                           = 0;
 };
 
@@ -223,6 +224,14 @@ public:
     virtual SizeT getRemainder() const
     {
     	return size_ - data_.getStart();
+    }
+
+    virtual SizeT getAdvance() const
+    {
+    	SizeT remainder = getRemainder();
+    	SizeT advance 	= data_.getAdvance();
+
+    	return advance <= remainder ? advance : remainder;
     }
 
     virtual SizeT getSize() const
@@ -331,6 +340,11 @@ public:
     virtual SizeT getRemainder() const
     {
         return length_ - start_;
+    }
+
+    virtual SizeT getAdvance() const
+    {
+    	return getRemainder();
     }
 
     virtual SizeT getSize() const
@@ -481,6 +495,11 @@ public:
         return length_ - start_;
     }
 
+    virtual SizeT getAdvance() const
+    {
+    	return getRemainder();
+    }
+
     virtual SizeT getSize() const
     {
         return length_;
@@ -582,6 +601,11 @@ public:
         return length_ - start_;
     }
 
+    virtual SizeT getAdvance() const
+    {
+    	return getRemainder();
+    }
+
     virtual SizeT getSize() const
     {
         return length_;
@@ -663,6 +687,11 @@ public:
 		return length_ - start_;
 	}
 
+	virtual SizeT getAdvance() const
+	{
+		return getRemainder();
+	}
+
 	virtual SizeT getSize() const
 	{
 		return length_;
@@ -739,6 +768,11 @@ public:
 		return length_ - start_;
 	}
 
+	virtual SizeT getAdvance() const
+	{
+		return getRemainder();
+	}
+
 	virtual SizeT getSize() const
 	{
 		return length_;
@@ -792,6 +826,7 @@ public:
     virtual SizeT skip(SizeT length) {return 0;}
     virtual SizeT getStart() const {return 0;}
     virtual SizeT getRemainder() const {return 0;}
+    virtual SizeT getAdvance() const {return 0;}
     virtual SizeT getSize() const {return 0;}
     virtual void  reset() {}
 };
@@ -811,6 +846,7 @@ public:
     virtual SizeT skip(SizeT length) {return 0;}
     virtual SizeT getStart() const {return 0;}
     virtual SizeT getRemainder() const {return 0;}
+    virtual SizeT getAdvance() const {return 0;}
     virtual SizeT getSize() const {return 0;}
     virtual void  reset() {}
 };
@@ -852,6 +888,11 @@ public:
     virtual SizeT getRemainder() const
     {
         return length_ - start_;
+    }
+
+    virtual SizeT getAdvance() const
+    {
+    	return getRemainder();
     }
 
     virtual SizeT getSize() const {return length_;}
@@ -920,6 +961,12 @@ public:
     {
         return length_ - start_;
     }
+
+    virtual SizeT getAdvance() const
+    {
+    	return getRemainder();
+    }
+
 
     virtual SizeT getSize() const {return length_;}
 

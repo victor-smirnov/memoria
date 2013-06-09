@@ -50,7 +50,7 @@ public:
 
     		tree->init(block_size);
 
-    		AssertGE(MA_SRC, tree->max_size(), max_size);
+    		AssertGE(MA_SRC, tree->max_data_size(), max_size);
 
     		free(tree);
     	}

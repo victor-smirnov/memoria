@@ -17,6 +17,8 @@
 
 #include <memoria/core/tools/accessors.hpp>
 
+#include <memoria/core/tools/static_array.hpp>
+
 #include <type_traits>
 
 namespace memoria {
@@ -716,18 +718,6 @@ public:
 		return sum(block, size_ - 1);
 	}
 
-//	IndexKey suml(Int to) const
-//	{
-//		IndexKey sum = 0;
-//
-//		const Value* values = this->values();
-//
-//		for (Int c = 0; c < to; c++) {
-//			sum += values[c];
-//		}
-//
-//		return sum;
-//	}
 
 	IndexKey sum(Int block, Int from, Int to) const
 	{
@@ -920,19 +910,6 @@ public:
 		}
 	}
 
-//	ValueDescr findLEForward(Int start, IndexKey val) const
-//	{
-//		auto prefix = sum(start);
-//
-//		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
-//
-//		Int pos = this->find_fw(fn);
-//
-//		Value actual_value = value(pos + prefix);
-//
-//		return ValueDescr(actual_value + fn.sum(), pos, fn.sum() - prefix);
-//	}
-
 
 	ValueDescr findForward(SearchType search_type, Int block, Int start, IndexKey val) const
 	{
@@ -1096,6 +1073,18 @@ public:
 		}
 	}
 
+	void splitTo(MyType* other, Int idx)
+	{
+		Int total = this->size() - idx;
+		other->insertSpace(0, total);
+
+		copyTo(other, idx, total, 0);
+		other->reindex();
+
+		removeSpace(idx, total);
+		reindex();
+	}
+
 	template <typename TreeType>
 	void transferDataTo(TreeType* other) const
 	{
@@ -1129,22 +1118,22 @@ public:
 	}
 
 
-	void moveToNextCell(Int idx, const Values& vals)
-	{
-		insertSpace(idx + 1, 1);
-
-		for (Int b = 0; b < Blocks; b++)
-		{
-			this->value(b, idx) -= vals[b];
-		}
-
-		for (Int b = 0; b < Blocks; b++)
-		{
-			this->value(b, idx + 1) = vals[b];
-		}
-
-		reindex();
-	}
+//	void moveToNextCell(Int idx, const Values& vals)
+//	{
+//		insertSpace(idx + 1, 1);
+//
+//		for (Int b = 0; b < Blocks; b++)
+//		{
+//			this->value(b, idx) -= vals[b];
+//		}
+//
+//		for (Int b = 0; b < Blocks; b++)
+//		{
+//			this->value(b, idx + 1) = vals[b];
+//		}
+//
+//		reindex();
+//	}
 
 
 	// ===================================== IO ============================================ //
@@ -1193,7 +1182,10 @@ public:
 
 			while (to_write_local > 0)
 			{
-				SizeT processed = src->get(&values[0], 0, src->getRemainder());
+				SizeT remainder 	= src->getRemainder();
+				SizeT batch_size	= remainder > IOBatchSize ? IOBatchSize : remainder;
+
+				SizeT processed = src->get(&values[0], 0, batch_size);
 
 				for (Int b = 0; b < Blocks; b++)
 				{

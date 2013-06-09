@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_MAP_CTR_INSERT_HPP
-#define _MEMORIA_CONTAINERS_MAP_CTR_INSERT_HPP
+#ifndef _MEMORIA_CONTAINERS_CMAP_CTR_INSERT_HPP
+#define _MEMORIA_CONTAINERS_CMAP_CTR_INSERT_HPP
 
 
-#include <memoria/containers/map/map_names.hpp>
+#include <memoria/containers/cmap/cmap_names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
@@ -19,7 +19,7 @@ namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsert1Name)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrInsertName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -48,6 +48,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsert1Name)
 
 	typedef typename Base::TreePath                                             TreePath;
 	typedef typename Base::TreePathItem                                         TreePathItem;
+
+	typedef typename Types::PageUpdateMgr 										PageUpdateMgr;
 
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
@@ -166,19 +168,89 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsert1Name)
 	};
 
 
-
-    bool insert(Iterator& iter, const Element& element)
-    {
-    	self().template insertEntry(iter, element);
-    	return iter.next();
-    }
+    bool insert(Iterator& iter, const Element& element);
 
     void insertBatch(Iterator& iter, const LeafPairsVector& data);
 
+    MEMORIA_DECLARE_NODE_FN(InsertLeafFn, insert);
+    bool insertLeafEntry(Iterator& iter, const Element& element);
+
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map::CtrInsert1Name)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::cmap::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+M_PARAMS
+bool M_TYPE::insertLeafEntry(Iterator& iter, const Element& element)
+{
+	auto& self 		= this->self();
+
+	TreePath&  path = iter.path();
+	NodeBaseG& leaf = path.leaf();
+	Int idx			= iter.idx();
+
+	leaf.update();
+
+	PageUpdateMgr mgr(self);
+
+	try {
+		mgr.add(leaf);
+
+		LeafDispatcher::dispatch(leaf, InsertLeafFn(), idx, element.first, element.second);
+	}
+	catch (PackedOOMException ex)
+	{
+		mgr.rollback();
+		return false;
+	}
+
+	self.updateUp(path, 1, path.leaf().parent_idx(), element.first, true);
+
+	return true;
+}
+
+
+M_PARAMS
+bool M_TYPE::insert(Iterator& iter, const Element& element)
+{
+	auto& self = this->self();
+
+	TreePath&   path    = iter.path();
+	NodeBaseG&  leaf    = path.leaf();
+	Int&        idx     = iter.idx();
+	Int 		stream  = iter.stream();
+
+
+
+	Position leaf_sizes = self.getNodeSizes(leaf);
+
+	if (self.isNodeEmpty(leaf))
+	{
+		self.initLeaf(leaf);
+	}
+
+	if (!self.insertLeafEntry(iter, element))
+	{
+		Position split_idx = leaf_sizes / 2;
+
+		TreePath next = path;
+		self.splitPath(path, next, 0, split_idx, ActiveStreams);
+
+		if (idx >= split_idx[stream])
+		{
+			idx -= split_idx[stream];
+			path = next;
+		}
+
+		MEMORIA_ASSERT_TRUE(self.insertLeafEntry(iter, element));
+	}
+
+	self.addTotalKeyCount(Position::create(stream, 1));
+
+	return iter.next();
+}
+
+
 
 
 

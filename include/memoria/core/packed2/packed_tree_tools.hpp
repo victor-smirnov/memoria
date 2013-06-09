@@ -85,6 +85,12 @@ public:
 			}
 
 		}
+		else {
+			Int level_size    = getIndexCellsNumberFor(0, fn.maxSize());
+			Int level_start   = fn.indexSize() - level_size;
+
+			fn.buildFirstIndexLine(level_start, level_size);
+		}
 	}
 
 private:
@@ -570,7 +576,7 @@ class Reindex2FnBase {
 		}
 
 		Int maxSize() const {
-			return me_.max_size();
+			return me_.data_size();
 		}
 
 		Int indexSize() const {
@@ -603,6 +609,59 @@ class Reindex2FnBase {
 			}
 		}
 	};
+
+
+template <typename MyType>
+class Check2FnBase {
+public:
+	static const Int Indexes        		= MyType::Indexes;
+
+	typedef typename MyType:: IndexKey 		IndexKey;
+
+protected:
+	const MyType& me_;
+
+	const IndexKey* indexes_[Indexes];
+
+public:
+	Check2FnBase(const MyType& me): me_(me)
+	{
+		for (Int idx = 0; idx < Indexes; idx++)
+		{
+			indexes_[idx] = me.indexes(idx);
+		}
+	}
+
+	Int size() const {
+		return me_.size();
+	}
+
+	Int maxSize() const {
+		return me_.data_size();
+	}
+
+	Int indexSize() const {
+		return me_.index_size();
+	}
+
+	void clearIndex(Int start, Int end)
+	{}
+
+	void processIndex(Int parent, Int start, Int end)
+	{
+		for (Int idx = 0; idx < Indexes; idx++)
+		{
+			IndexKey sum = 0;
+
+			for (Int c = start; c < end; c++)
+			{
+				sum += indexes_[idx][c];
+			}
+
+			MEMORIA_ASSERT(indexes_[idx][parent], ==, sum);
+		}
+	}
+};
 
 
 }

@@ -53,6 +53,9 @@ struct CtrNameDeclarator<7>: TypeDef<VectorMap<BigInt, BigInt>> {};
 //template <>
 //struct CtrNameDeclarator<15>: TypeDef<LOUDS> {};
 
+template <>
+struct CtrNameDeclarator<16>: TypeDef<CMap<BigInt, BigInt>> {};
+
 
 }
 

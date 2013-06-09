@@ -62,6 +62,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeNormName)
 
     void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
 
+
+
+
+
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
 
     void insertNonLeaf(
@@ -167,7 +171,7 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Positio
 
 	NodeBaseG other  = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
 
-	Accumulator keys = self.moveElements(left_node, other, idx);
+	Accumulator keys = self.splitNode(left_node, other, idx);
 
 	Int parent_idx   = left[level].parent_idx();
 
@@ -191,6 +195,7 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Positio
 		right[level].parent_idx()   = 0;
 	}
 }
+
 
 #undef M_TYPE
 #undef M_PARAMS

@@ -65,7 +65,7 @@ public:
 
     void fillTree(Tree* tree, function<Value()> value_provider)
     {
-    	fillTree(tree, tree->max_size(), value_provider);
+    	fillTree(tree, tree->max_data_size(), value_provider);
     }
 
     void fillTree(Tree* tree, Int size, function<Value()> value_provider)
@@ -84,7 +84,7 @@ public:
 
     		if (pos + (Int)codec.length(value) <= size)
     		{
-    			pos += codec.encode(values, value, pos, tree->max_size());
+    			pos += codec.encode(values, value, pos, tree->max_data_size());
     			tree_size++;
     		}
     		else {
@@ -111,7 +111,7 @@ public:
     	{
     		Int value = value_provider();
 
-    		pos += codec.encode(values, value, pos, tree->max_size());
+    		pos += codec.encode(values, value, pos, tree->max_data_size());
     		tree_size++;
     	}
 
@@ -135,7 +135,7 @@ public:
     	{
     		Value value;
 
-    		pos += codec.decode(values_array, value, pos, tree->max_size());
+    		pos += codec.decode(values_array, value, pos, tree->max_data_size());
 
     		sum += value;
     		values.push_back(sum);
@@ -158,7 +158,7 @@ public:
     	{
     		Value value;
 
-    		pos += codec.decode(values, value, pos, tree->max_size());
+    		pos += codec.decode(values, value, pos, tree->max_data_size());
 
     		sum += value;
     	}

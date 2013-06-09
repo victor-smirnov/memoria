@@ -6,16 +6,16 @@
 
 
 
-#ifndef _MEMORIA_MODELS_IDX_MAP_NAMES_HPP
-#define _MEMORIA_MODELS_IDX_MAP_NAMES_HPP
+#ifndef _MEMORIA_MODELS_IDX_CMAP_NAMES_HPP
+#define _MEMORIA_MODELS_IDX_CMAP_NAMES_HPP
 
 #include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 
 namespace memoria    {
-namespace map 		 {
+namespace cmap 		 {
 
 class CtrApiName 	{};
-class CtrInsert1Name {};
+class CtrInsertName {};
 class CtrToolsName 	{};
 class CtrRemoveName {};
 
@@ -26,18 +26,18 @@ class ItrNavName {};
 }
 
 template <typename Types>
-struct Map2CtrTypesT: CtrTypesT<Types> {};
+struct CMap2CtrTypesT: CtrTypesT<Types> {};
 
 template <typename Types>
-struct Map2IterTypesT: IterTypesT<Types> {};
+struct CMap2IterTypesT: IterTypesT<Types> {};
 
 
 
 template <typename Types>
-using Map2CtrTypes  = Map2CtrTypesT<Types>;
+using CMap2CtrTypes  = CMap2CtrTypesT<Types>;
 
 template <typename Types>
-using Map2IterTypes = Map2IterTypesT<Types>;
+using CMap2IterTypes = CMap2IterTypesT<Types>;
 
 
 }

@@ -217,7 +217,7 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Positio
 
 	NodeBaseG other  = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
 
-	Accumulator keys = self.moveElements(left_node, other, idx);
+	Accumulator keys = self.splitNode(left_node, other, idx);
 
 	Int parent_idx   = left[level].parent_idx();
 

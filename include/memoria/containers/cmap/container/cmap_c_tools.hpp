@@ -5,12 +5,12 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_MAP_CTR_TOOLS_HPP
-#define _MEMORIA_CONTAINERS_MAP_CTR_TOOLS_HPP
+#ifndef _MEMORIA_CONTAINERS_CMAP_CTR_TOOLS_HPP
+#define _MEMORIA_CONTAINERS_CMAP_CTR_TOOLS_HPP
 
 
 #include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
-#include <memoria/containers/map/map_names.hpp>
+#include <memoria/containers/cmap/cmap_names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
@@ -20,7 +20,7 @@ namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrToolsName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -242,7 +242,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map::CtrToolsName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::cmap::CtrToolsName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
