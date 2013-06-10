@@ -410,6 +410,9 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         node->master_ctr_type_hash() 	= self.init_data().master_ctr_type_hash();
         node->owner_ctr_type_hash() 	= self.init_data().owner_ctr_type_hash();
 
+        node->parent_id() 				= ID(0);
+        node->parent_idx()				= 0;
+
         node->set_root(root);
         node->set_leaf(leaf);
 
@@ -438,6 +441,9 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
         node->ctr_type_hash() 			= self.hash();
         node->master_ctr_type_hash() 	= self.init_data().master_ctr_type_hash();
         node->owner_ctr_type_hash() 	= self.init_data().owner_ctr_type_hash();
+
+        node->parent_id() 				= ID(0);
+        node->parent_idx()				= 0;
 
         node->set_root(true);
         node->set_leaf(leaf);

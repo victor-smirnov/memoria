@@ -38,7 +38,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::cmap::ItrApiName)
 
 	void updateUp(const Accumulator& keys)
 	{
-		self().model().updateUp(self().path(), 0, self().entry_idx(), keys, true);
+		auto& self = this->self();
+
+		self.model().updateUp(self.path(), 0, self.idx(), keys, [&self](Int level, Int idx) {
+			if (level == 0)
+			{
+				self.idx() = idx;
+			}
+		});
 	}
 
 	Key rawKey() const {
@@ -71,7 +78,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::cmap::ItrApiName)
 	}
 
 	Int entry_idx() const {
-		return self().key_idx();
+		return self().idx();
 	}
 
 

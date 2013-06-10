@@ -204,8 +204,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
 
     void makeLeafRoom(TreePath& path, Int start, Int count) const;
 
-    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
-    bool updateLeafCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const;
+    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn);
+    bool updateLeafCounters(NodeBaseG& node, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn) const;
 
 
     void addLeafKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
@@ -246,21 +246,26 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::updateLeafCounters(NodeBaseG& node, Int idx, const Accumulator& counters, bool reindex_fully) const
+bool M_TYPE::updateLeafCounters(
+		NodeBaseG& node,
+		Int idx,
+		const Accumulator& counters,
+		std::function<void (Int, Int)> fn
+) const
 {
     node.update();
-    self().addLeafKeys(node, idx, counters, reindex_fully);
+    self().addLeafKeys(node, idx, counters, true);
 
     return false; //proceed further unconditionally
 }
 
 
 M_PARAMS
-void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully)
+void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn)
 {
     if (level == 0)
     {
-    	if (self().updateLeafCounters(path[level].node(), idx, counters, reindex_fully))
+    	if (self().updateLeafCounters(path[level].node(), idx, counters, fn))
     	{
     		return;
     	}
@@ -268,10 +273,10 @@ void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& cou
     		idx = path[level].parent_idx();
     	}
 
-    	Base::updateUp(path, level + 1, idx, counters, reindex_fully);
+    	Base::updateUp(path, level + 1, idx, counters, fn);
     }
     else {
-    	Base::updateUp(path, level, idx, counters, reindex_fully);
+    	Base::updateUp(path, level, idx, counters, fn);
     }
 
 

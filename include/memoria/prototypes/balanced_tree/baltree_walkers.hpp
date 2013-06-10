@@ -255,6 +255,7 @@ public:
 	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start)
 	{
 		auto k 		= Base::target_ - Base::sum_;
+
 		auto result = tree->findForward(Base::search_type_, Base::index_, start, k);
 
 		Base::sum_ += result.prefix();

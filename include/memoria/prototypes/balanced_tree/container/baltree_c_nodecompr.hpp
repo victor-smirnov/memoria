@@ -57,13 +57,26 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeComprName)
     static const Int Streams                                                    = Types::Streams;
 
 
-    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false);
+    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn);
+
 
     void updateUpNoBackup(TreePath& path, Int level, Int idx, const Accumulator& counters);
 
     void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
 
+    bool updateCounters(
+    		TreePath& path,
+    		Int level,
+    		Int idx,
+    		const Accumulator& counters,
+    		std::function<void (Int, Int)> fn
+    );
+
+
+
     void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
+
+
 
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
 
@@ -84,6 +97,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeComprName)
 
 
 
+
+
 MEMORIA_CONTAINER_PART_END
 
 
@@ -94,21 +109,18 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex)
+void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn)
 {
     auto& self = this->self();
 
 	for (Int c = level; c < path.getSize(); c++)
     {
-		if (self.updateCounters(path, c, idx, counters, reindex))
-        {
-            break;
-        }
-        else {
-            idx = path[c].parent_idx();
-        }
+		self.updateCounters(path, c, idx, counters, fn);
+        idx = path[c].parent_idx();
     }
 }
+
+
 
 M_PARAMS
 void M_TYPE::updateUpNoBackup(TreePath& path, Int level, Int idx, const Accumulator& counters)
@@ -117,13 +129,8 @@ void M_TYPE::updateUpNoBackup(TreePath& path, Int level, Int idx, const Accumula
 
 	for (Int c = level; c < path.getSize(); c++)
 	{
-		if (self.updateNodeCounters(path[c], idx, counters))
-		{
-			break;
-		}
-		else {
-			idx = path[c].parent_idx();
-		}
+		self.updateNodeCounters(path[c], idx, counters);
+		idx = path[c].parent_idx();
 	}
 }
 
@@ -132,12 +139,56 @@ M_PARAMS
 void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
 {
 	auto& self = this->self();
-
-	if (level < path.getSize() - 1)
-    {
-        self.updateUp(path, level + 1, path[level].parent_idx(), counters, true);
-    }
+	self.updateUp(path, level + 1, path[level].parent_idx(), counters, [](Int, Int) {});
 }
+
+
+M_PARAMS
+bool M_TYPE::updateCounters(
+		TreePath& path,
+		Int level,
+		Int idx,
+		const Accumulator& counters,
+		std::function<void (Int, Int)> fn
+)
+{
+    auto& self = this->self();
+    NodeBaseG& node = path[level];
+
+    node.update();
+
+    PageUpdateMgr mgr(self);
+    mgr.add(node);
+
+    try {
+    	self.addKeys(path[level], idx, counters, true);
+    }
+    catch (PackedOOMException ex)
+    {
+    	mgr.rollback();
+    	auto right = path;
+
+    	Int size = self.getNodeSize(node, 0);
+
+    	Int split_idx = size / 2;
+
+    	self.splitPath(path, right, level, Position(split_idx), -1);
+
+    	if (idx >= split_idx)
+    	{
+    		path = right;
+    		idx -= split_idx;
+
+    		fn(level, idx);
+    	}
+
+    	self.addKeys(path[level], idx, counters, true);
+    }
+
+    return false; //proceed further unconditionally
+}
+
+
 
 
 
@@ -171,7 +222,7 @@ void M_TYPE::insertNonLeaf(
 
 		Int split_idx = size / 2;
 
-		self.splitPath(path, right, Position(split_idx), -1);
+		self.splitPath(path, right, level, Position(split_idx), -1);
 
 		if (idx >= split_idx)
 		{
@@ -228,6 +279,11 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Positio
 
 	try {
 		self.insertNonLeaf(left_parent, parent_idx + 1, keys, other->id());
+		self.updateChildren(left_parent, parent_idx + 1);
+
+		other->parent_id()  = left_parent->id();
+		other->parent_idx() = parent_idx + 1;
+
 		self.updateUpNoBackup(left, level + 2, left[level + 1].parent_idx(), keys);
 
 		right[level].node()         = other;
@@ -240,6 +296,11 @@ void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Positio
 		splitPath(left, right, level + 1, Position(parent_idx + 1), active_streams);
 
 		self.insertNonLeaf(right[level + 1], 0, keys, other->id());
+		self.updateChildren(right[level + 1], 1);
+
+		other->parent_id()  = right[level + 1]->id();
+		other->parent_idx() = 0;
+
 		self.updateUpNoBackup(right, level + 2, right[level + 1].parent_idx(), keys);
 
 		right[level].node()         = other;

@@ -45,6 +45,9 @@ template <typename Base_>
 class TreeNodeBase: public Base_ {
 public:
     static const UInt VERSION = 1;
+    typedef Base_                               Base;
+
+    typedef typename Base::ID                   ID;
 
 private:
 
@@ -52,12 +55,15 @@ private:
     Int leaf_;
     Int level_;
 
+    ID  parent_id_;
+    Int parent_idx_;
+
 public:
-    typedef Base_                               Base;
+
     typedef TreeNodeBase<Base>                  Me;
     typedef Me 									BasePageType;
 
-    typedef typename Base::ID                   ID;
+
 
     TreeNodeBase(): Base() {}
 
@@ -87,6 +93,25 @@ public:
     	return level_;
     }
 
+    const ID& parent_id() const
+    {
+    	return parent_id_;
+    }
+
+    const Int& parent_idx() const
+    {
+    	return parent_idx_;
+    }
+
+    ID& parent_id()
+    {
+    	return parent_id_;
+    }
+
+    Int& parent_idx()
+    {
+    	return parent_idx_;
+    }
 public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
@@ -96,6 +121,10 @@ public:
         handler->value("ROOT", 		&root_);
         handler->value("LEAF", 		&leaf_);
         handler->value("LEVEL", 	&level_);
+
+        IDValue parent_id(parent_id_);
+        handler->value("PARENT_ID", &parent_id);
+        handler->value("PARENT_IDX", &parent_idx_);
     }
 
     template <template <typename> class FieldFactory>
@@ -106,6 +135,9 @@ public:
         FieldFactory<Int>::serialize(buf, root_);
         FieldFactory<Int>::serialize(buf, leaf_);
         FieldFactory<Int>::serialize(buf, level_);
+
+        FieldFactory<ID>::serialize(buf, parent_id_);
+        FieldFactory<Int>::serialize(buf, parent_idx_);
     }
 
     template <template <typename> class FieldFactory>
@@ -116,6 +148,9 @@ public:
         FieldFactory<Int>::deserialize(buf, root_);
         FieldFactory<Int>::deserialize(buf, leaf_);
         FieldFactory<Int>::deserialize(buf, level_);
+
+        FieldFactory<ID>::deserialize(buf, parent_id_);
+        FieldFactory<Int>::deserialize(buf, parent_idx_);
     }
 
     void copyFrom(const Me* page)
@@ -125,6 +160,9 @@ public:
         this->set_root(page->is_root());
         this->set_leaf(page->is_leaf());
         this->level() = page->level();
+
+        this->parent_id() = page->parent_id();
+        this->parent_idx() = page->parent_idx();
     }
 };
 
@@ -1047,6 +1085,18 @@ public:
     	Dispatcher::dispatch(stream, &allocator_, SumFn(), block_num, start, end, &accum);
     }
 
+    template <typename V>
+    void forAllValues(Int start, Int end, std::function<void (const V&, Int)> fn) const
+    {
+    	const Value* v = this->values();
+    	for (Int c = start; c < end; c++)
+    	{
+    		fn(v[c], c);
+    	}
+    }
+
+    void boo() const {}
+
 
     template <typename Fn, typename... Args>
     Int find(Int stream, Fn&& fn, Args... args) const
@@ -1429,13 +1479,17 @@ void ConvertRootToNode(
 
 template <typename Base>
 struct TypeHash<balanced_tree::TreeNodeBase<Base>> {
+	typedef balanced_tree::TreeNodeBase<Base> TargetType;
+
     static const UInt Value = HashHelper<
     		TypeHash<Base>::Value,
-    		balanced_tree::TreeNodeBase<Base>::VERSION,
+    		TargetType::VERSION,
     		TypeHash<Int>::Value,
     		TypeHash<Int>::Value,
     		TypeHash<Int>::Value,
     		TypeHash<Int>::Value,
+    		TypeHash<Int>::Value,
+    		TypeHash<typename TargetType::ID>::Value,
     		TypeHash<Int>::Value
     >::Value;
 };

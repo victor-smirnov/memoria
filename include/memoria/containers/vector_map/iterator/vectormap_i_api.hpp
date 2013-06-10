@@ -698,7 +698,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	leaf.update();
     	LeafDispatcher::dispatch(leaf, UpdateFn(), self.idx(), accum);
 
-    	self.ctr().updateUp(self.path(), 1, self.leaf().parent_idx(), accum, true);
+    	self.ctr().updateUp(self.path(), 1, self.leaf().parent_idx(), accum, [](Int, Int){});
 
     	self.cache().addToEntry(
     		std::get<0>(accum)[0],

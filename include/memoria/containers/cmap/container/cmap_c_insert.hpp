@@ -204,7 +204,12 @@ bool M_TYPE::insertLeafEntry(Iterator& iter, const Element& element)
 		return false;
 	}
 
-	self.updateUp(path, 1, path.leaf().parent_idx(), element.first, true);
+	self.updateUp(path, 1, path.leaf().parent_idx(), element.first, [&iter](Int level, Int idx){
+		if (level == 0)
+		{
+			iter.idx() = idx;
+		}
+	});
 
 	return true;
 }

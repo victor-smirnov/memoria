@@ -156,6 +156,20 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
                 MEMORIA_ERROR(me(), "child.id != child_id", child->id(), child->id(), child_id);
             }
 
+            if (child->parent_idx() != c)
+            {
+            	errors = true;
+            	MEMORIA_ERROR(me(), "child.parent_idx != idx", child->parent_idx(), c);
+            	cout<<"parent_idx: "<<child->parent_idx()<<" "<<c<<endl;
+            }
+
+            if (child->parent_id() != node->id())
+            {
+            	errors = true;
+            	MEMORIA_ERROR(me(), "child.parent_id != node.id", child->parent_id(), node->id());
+            	cout<<"parent_idx: "<<child->parent_id()<<" "<<node->id()<<endl;
+            }
+
             self.check_node_tree(node, c, child, errors);
         }
     }

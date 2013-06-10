@@ -184,6 +184,7 @@ public:
     virtual void checkBufferWritten(Iterator& iter, const MemBuffer& buffer, const char* source)
     {
     	MemBuffer data = createBuffer(buffer.size());
+
     	read(iter, data);
     	compareBuffers(buffer, data, source);
     }
@@ -305,6 +306,8 @@ public:
     		fillRandom(ctr, Base::size_);
 
     		allocator.commit();
+
+    		StoreAllocator(allocator, getResourcePath("alloc.dump"));
 
     		while (ctr.size() > 0)
     		{

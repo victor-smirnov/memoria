@@ -22,15 +22,15 @@
 
 namespace memoria {
 
-typedef SCtrTF<CMap<BigInt, Int>>::Type SumSet1Ctr;
+typedef SCtrTF<Map<BigInt, Int>>::Type SumSet1Ctr;
 
 class MapBatchTest: public RandomAccessListTestBase<
-    CMap<BigInt, Int>,
+    Map<BigInt, Int>,
     typename SumSet1Ctr::LeafPairsVector
 >
 {
     typedef RandomAccessListTestBase<
-    		CMap<BigInt, Int>,
+    		Map<BigInt, Int>,
             typename SumSet1Ctr::LeafPairsVector
     >                                                                           Base;
 

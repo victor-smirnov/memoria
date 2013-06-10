@@ -67,7 +67,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     {
         typedef MyType                      CtrType;
 
-        virtual NonLeafNodeKeyValuePair getKVPair(BigInt begin, BigInt count, Int level)    	= 0;
+        virtual NonLeafNodeKeyValuePair getKVPair(
+        									const ID& parent_id,
+        									Int parent_idx,
+        									BigInt count,
+        									Int level
+        								)    													= 0;
+
         virtual BigInt				    getTotalKeyCount()                          			= 0;
         virtual Position				getTotalSize()       									= 0;
         virtual Position				getTotalInserted()       								= 0;
@@ -98,10 +104,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		return active_streams_;
     	}
 
-    	virtual NonLeafNodeKeyValuePair getKVPair(BigInt begin, BigInt total, Int level)
+    	virtual NonLeafNodeKeyValuePair getKVPair(const ID& parent_id, Int parent_idx, BigInt total, Int level)
     	{
     		BigInt local_count = 0;
-    		return BuildTree(begin, local_count, total, level - 1);
+    		return BuildTree(parent_id, parent_idx, local_count, total, level - 1);
     	}
 
     	MyType& ctr() {
@@ -114,9 +120,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
 
     private:
-    	NonLeafNodeKeyValuePair BuildTree(BigInt start, BigInt& count, const BigInt total, Int level)
+    	NonLeafNodeKeyValuePair BuildTree(
+    			const ID& parent_id,
+    			Int parent_idx,
+    			BigInt& count,
+    			const BigInt total,
+    			Int level
+    	)
     	{
-    		const Int MAX_CHILDREN = 20;
+    		const Int MAX_CHILDREN = 200;
 
     		NonLeafNodeKeyValuePair pair;
     		pair.key_count = 0;
@@ -125,7 +137,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		{
     			Int max_keys = ctr_.getMaxKeyCountForNode(false, level == 0, level);
 
-    			NodeBaseG node = ctr_.createNode1(level, false, false);
+    			NodeBaseG node 		= ctr_.createNode1(level, false, false);
+    			node->parent_id() 	= parent_id;
+    			node->parent_idx() 	= parent_idx;
+
     			ctr_.layoutNonLeafNode(node, active_streams_);
 
     			// FIXME: buffer size can be too small
@@ -141,7 +156,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     						c++, batch_idx++, local++
     				)
     				{
-    					children[batch_idx]     =  BuildTree(start, count, total, level - 1);
+    					children[batch_idx]     =  BuildTree(
+    													node->id(),
+    													c,
+    													count,
+    													total,
+    													level - 1
+    												);
+
     					pair.key_count  		+= children[batch_idx].key_count;
     				}
 
@@ -161,6 +183,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		else
     		{
     			NodeBaseG node = ctr_.createNode1(level, false, true);
+
+    			node->parent_id() 	= parent_id;
+    			node->parent_idx() 	= parent_idx;
 
     			count++;
     			pair.keys = this->insertIntoLeaf(node);
@@ -195,13 +220,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     					values[c + start_] = std::get<Idx>(pairs_[c].keys)[block];
     				}
     			}
-
-    			tree->size() += count_;
     		}
 
     		template <typename Node>
     		void treeNode(Node* node)
     		{
+    			node->insertSpace(Position(start_), Position(count_));
+
     			node->processNotEmpty(*this);
 
     			for (Int c = 0; c < count_; c++)
@@ -358,8 +383,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     Accumulator getCounters(const NodeBaseG& node, const Position& from, const Position& count) const;
     Accumulator getNonLeafCounters(const NodeBaseG& node, const Position& from, const Position& count) const;
 
-    void makeRoom(TreePath& path, Int level, const Position& start, const Position& count) const;
-    void makeRoom(TreePath& path, Int level, Int stream, Int start, Int count) const;
+    void makeRoom(TreePath& path, Int level, const Position& start, const Position& count);
+    void makeRoom(TreePath& path, Int level, Int stream, Int start, Int count);
 
     Accumulator insertSubtree(TreePath& path, Position& idx, ISubtreeProvider& provider);
 
@@ -404,7 +429,35 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
-    Accumulator splitNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at) const;
+    Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at);
+    Accumulator splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at);
+
+    Accumulator splitNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+    {
+    	auto& self = this->self();
+
+    	if (src->is_leaf())
+    	{
+    		return self.splitLeafNode(src, tgt, split_at);
+    	}
+    	else {
+    		return self.splitNonLeafNode(src, tgt, split_at);
+    	}
+    }
+
+
+    MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
+    void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const;
+
+    void updateChildren(const NodeBaseG& node);
+    void updateChildren(const NodeBaseG& node, Int start);
+    void updateChildren(const NodeBaseG& node, Int start, Int end);
+
+private:
+    void updateChildrenInternal(const NodeBaseG& node, Int start, Int end);
+public:
+
+
 
     void fillNodeLeft(TreePath& path, Int level, Int from, Int count, InsertSharedData& data);
     void prepareNodeFillmentRight(Int level, Int count, InsertSharedData& data);
@@ -444,7 +497,7 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(TreePath& path, Position& idx
     {
     	leaf.update();
     	Accumulator acc = provider.insertIntoLeaf(leaf, idx, sizes);
-    	self.updateUp(path, 1, path.leaf().parent_idx(), acc, true);
+    	self.updateUp(path, 1, path.leaf().parent_idx(), acc, [](Int, Int){});
     	return acc;
     }
     else {
@@ -464,7 +517,7 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(TreePath& path, Position& idx
     	leaf.update();
 
     	Accumulator ls = provider.insertIntoLeaf(leaf, idx);
-    	self.updateUp(path, 1, path.leaf().parent_idx(), ls, true);
+    	self.updateUp(path, 1, path.leaf().parent_idx(), ls, [](Int, Int){});
 
     	Int parent_idx = path.leaf().parent_idx() + 1;
 
@@ -692,7 +745,8 @@ void M_TYPE::fillNodeLeft(TreePath& path, Int level, Int from, Int count, Insert
     	}
 
     	NonLeafNodeKeyValuePair pair    = data.provider.getKVPair(
-    			data.start,
+    			node->id(),
+    			c,
     			requested_size,
     			level
     	);
@@ -746,27 +800,39 @@ void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& da
 
 
 M_PARAMS
-void M_TYPE::makeRoom(TreePath& path, Int level, const Position& start, const Position& count) const
+void M_TYPE::makeRoom(TreePath& path, Int level, const Position& start, const Position& count)
 {
-	path[level].node().update();
-	NodeDispatcher::dispatch(path[level].node(), MakeRoomFn(), start, count);
+	auto& self = this->self();
+
+	NodeBaseG& node = path[level].node();
+	node.update();
+
+	NodeDispatcher::dispatch(node, MakeRoomFn(), start, count);
 
 	if (level > 0)
 	{
+		self.updateChildren(node, start.get() + count.get());
+
 		path.moveRight(level - 1, start.get(), count.get());
 	}
 }
 
 M_PARAMS
-void M_TYPE::makeRoom(TreePath& path, Int level, Int stream, Int start, Int count) const
+void M_TYPE::makeRoom(TreePath& path, Int level, Int stream, Int start, Int count)
 {
     if (count > 0)
     {
-        path[level].node().update();
-        NodeDispatcher::dispatch(path[level].node(), MakeRoomFn(), stream, start, count);
+    	auto& self = this->self();
+
+    	NodeBaseG& node = path[level].node();
+
+    	node.update();
+        NodeDispatcher::dispatch(node, MakeRoomFn(), stream, start, count);
 
         if (level > 0)
         {
+        	self.updateChildren(node, start + count);
+
         	path.moveRight(level - 1, start, count);
         }
     }
@@ -774,9 +840,75 @@ void M_TYPE::makeRoom(TreePath& path, Int level, Int stream, Int start, Int coun
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::splitNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at) const
+typename M_TYPE::Accumulator M_TYPE::splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
 {
-	return NodeDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at, Position());
+	return LeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at, Position());
+}
+
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+{
+	auto& self = this->self();
+
+	Accumulator accum = NonLeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at, Position());
+
+	self.updateChildren(tgt);
+
+	return accum;
+}
+
+M_PARAMS
+void M_TYPE::forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
+{
+	NonLeafDispatcher::dispatchConst(node, ForAllIDsFn(), start, end, fn);
+}
+
+
+M_PARAMS
+void M_TYPE::updateChildren(const NodeBaseG& node)
+{
+	if (!node->is_leaf())
+	{
+		auto& self = this->self();
+		self.updateChildrenInternal(node, 0, self.getNodeSize(node, 0));
+	}
+}
+
+M_PARAMS
+void M_TYPE::updateChildren(const NodeBaseG& node, Int start)
+{
+	if (!node->is_leaf())
+	{
+		auto& self = this->self();
+		self.updateChildrenInternal(node, start, self.getNodeSize(node, 0));
+	}
+}
+
+M_PARAMS
+void M_TYPE::updateChildren(const NodeBaseG& node, Int start, Int end)
+{
+	if (!node->is_leaf())
+	{
+		auto& self = this->self();
+		self.updateChildrenInternal(node, start, end);
+	}
+}
+
+
+M_PARAMS
+void M_TYPE::updateChildrenInternal(const NodeBaseG& node, Int start, Int end)
+{
+	auto& self = this->self();
+
+	ID node_id = node->id();
+
+	forAllIDs(node, start, end, [&self, &node_id](const ID& id, Int idx)
+	{
+		NodeBaseG child = self.allocator().getPage(id, Allocator::UPDATE);
+
+		child->parent_id() 	= node_id;
+		child->parent_idx() = idx;
+	});
 }
 
 
@@ -805,6 +937,9 @@ void M_TYPE::newRoot(TreePath& path)
     Accumulator keys = root->is_leaf() ? self.getLeafMaxKeys(root) : self.getMaxKeys(root);
 
     self.insertNonLeaf(new_root, 0, keys, root->id());
+
+    root->parent_id()  = new_root->id();
+    root->parent_idx() = 0;
 
     self.set_root(new_root->id());
 }

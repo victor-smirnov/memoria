@@ -223,7 +223,7 @@ public:
 	void finish() {}
 
 	Int max_size() const {
-		return me_.data_size();
+		return me_.max_size();
 	}
 
 	Int size() const {

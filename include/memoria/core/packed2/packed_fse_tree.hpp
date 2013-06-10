@@ -508,11 +508,11 @@ public:
 
 	void object_size() const
 	{
-		Int object_size = sizeof(MyType) + getDataOffset() + data_size();
+		Int object_size = sizeof(MyType) + getDataOffset() + tree_data_size();
 		return Allocator::roundUpBytesToAlignmentBlocks(object_size);
 	}
 
-	Int data_size() const
+	Int tree_data_size() const
 	{
 		return size() * sizeof(Value) * Blocks;
 	}
@@ -561,7 +561,7 @@ public:
 			target_memory_block = other->values();
 		}
 
-		Int data_size = this->data_size();
+		Int data_size = this->tree_data_size();
 
 		const Value* data = values();
 
@@ -1029,6 +1029,8 @@ public:
 		size_ += room_length;
 
 		clear(idx, idx + room_length);
+
+		MEMORIA_ASSERT(raw_size(), <=, max_size());
 	}
 
 	void removeSpace(Int idx, Int room_length)
@@ -1088,6 +1090,8 @@ public:
 	template <typename TreeType>
 	void transferDataTo(TreeType* other) const
 	{
+		other->insertSpace(0, size());
+
 		const auto* my_values 	= values();
 		auto* other_values 		= other->values();
 
@@ -1097,8 +1101,6 @@ public:
 		{
 			other_values[c] 	= my_values[c];
 		}
-
-		other->size() = size;
 	}
 
 	void resize(Int delta)

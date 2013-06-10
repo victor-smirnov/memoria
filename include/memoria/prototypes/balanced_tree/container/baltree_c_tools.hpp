@@ -551,7 +551,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	NonLeafDispatcher::dispatch(node, AddKeysFn(me()), idx, keys, reindex_fully);
     }
 
-    bool updateCounters(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully = false) const;
+    bool updateCounters(
+    		TreePath& path,
+    		Int level,
+    		Int idx,
+    		const Accumulator& counters,
+    		std::function<void (Int, Int)> fn
+    ) const;
+
     bool updateNodeCounters(NodeBaseG& node, Int idx, const Accumulator& counters) const;
 
 
@@ -743,12 +750,18 @@ bool M_TYPE::getPrevNode(TreePath& path, Int level, Int idx, Int target_level) c
 
 
 M_PARAMS
-bool M_TYPE::updateCounters(TreePath& path, Int level, Int idx, const Accumulator& counters, bool reindex_fully) const
+bool M_TYPE::updateCounters(
+		TreePath& path,
+		Int level,
+		Int idx,
+		const Accumulator& counters,
+		std::function<void (Int, Int)> fn
+) const
 {
     auto& self = this->self();
 
 	path[level].node().update();
-    self.addKeys(path[level], idx, counters, reindex_fully);
+    self.addKeys(path[level], idx, counters, true);
 
     return false; //proceed further unconditionally
 }

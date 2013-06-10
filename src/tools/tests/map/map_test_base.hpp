@@ -28,7 +28,7 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef SCtrTF<CMap<BigInt, BigInt>>::Type                              	Ctr;
+    typedef SCtrTF<Map<BigInt, BigInt>>::Type                              	Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
     typedef typename Ctr::Accumulator                                           Accumulator;

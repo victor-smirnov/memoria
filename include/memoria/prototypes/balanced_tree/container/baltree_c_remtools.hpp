@@ -219,6 +219,8 @@ typename M_TYPE::Position M_TYPE::removeRoom(
 
         VectorAdd(tmp_accum, NodeDispatcher::dispatchRtn(node, RemoveSpaceFn(), from, count));
 
+        self.updateChildren(node, from.get());
+
         if (node->is_leaf()) {
         	key_count += count;
         }
@@ -681,7 +683,11 @@ void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
 
     Int tgt_children_count = self.getNodeSize(tgt_page, 0);
 
+    Int tgt_size = self.getNodeSize(tgt_page, 0);
+
     NodeDispatcher::dispatch2(src_page, tgt_page, MergeNodesFn());
+
+    self.updateChildren(tgt_page, tgt_size);
 
     NodeBaseG& parent   = src[level + 1].node();
     Int parent_idx      = src[level].parent_idx();
@@ -690,7 +696,7 @@ void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
 
     removeRoom(src, level + 1, Position(parent_idx), Position(1), accum, false);
 
-    self.updateUp(src, level + 1, parent_idx - 1, accum);
+    self.updateUp(src, level + 1, parent_idx - 1, accum, [](Int, Int){});
 
     self.allocator().removePage(src_page->id());
 
@@ -701,7 +707,7 @@ void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
     	src.moveRight(level - 1, 0, tgt_children_count);
     }
 
-    self.reindex(parent); //FIXME: does it necessary?
+    self.reindex(parent); //FIXME: is it necessary?
 }
 
 /**
