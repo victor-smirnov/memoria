@@ -114,7 +114,7 @@ void M_TYPE::insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, c
 
 	node.update();
 	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-	self.updateChildren(node, idx + 1);
+	self.updateChildren(node, idx);
 
 	if (node->is_root())
 	{

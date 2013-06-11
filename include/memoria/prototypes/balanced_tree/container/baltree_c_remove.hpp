@@ -41,6 +41,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveName)
 
 	void removeEntry(TreePath& path, Int stream, Int& idx, Accumulator& keys, bool merge = true);
 
+	void removeEntryP(NodeBaseG& nde, Int stream, Int& idx, Accumulator& keys, bool merge = true)
+	{}
 
 
 

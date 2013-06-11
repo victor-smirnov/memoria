@@ -859,7 +859,7 @@ public:
 
 	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
 	{
-		throw Exception(MA_SRC, "copyTo() is not yet fully implemented for this data structure");
+		throw Exception(MA_SRC, "copyTo() haven't not been fully implemented for this data structure yet");
 	}
 
 	template <typename TreeType>
@@ -907,6 +907,10 @@ public:
 		other->reindex();
 
 		removeSpace(idx, size - idx);
+	}
+
+	void mergeWith(MyType* other) {
+
 	}
 
 	void clear(Int, Int) {}

@@ -432,6 +432,12 @@ public:
 
 	void add(NodeBaseG& node)
 	{
+		if (!node.isSet()) {
+			int a = 0; a++;
+		}
+
+		MEMORIA_ASSERT_TRUE(node.isSet());
+
 		if (pages_.capacity() > 0)
 		{
 			Int page_size = node->page_size();

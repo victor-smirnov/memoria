@@ -138,9 +138,9 @@ void M_TYPE::insertNonLeafP(
 
 	node.update();
 	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-	self.updateChildren(node, idx + 1);
+	self.updateChildren(node, idx);
 
-	if (node->is_root())
+	if (!node->is_root())
 	{
 		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
 		self.updatePath(parent, node->parent_idx(), keys);
@@ -250,7 +250,7 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
 {
 	auto& self = this->self();
 
-	if (self.updateNode(node, idx, keys))
+	if (!self.updateNode(node, idx, keys))
 	{
 		Int size 		= self.getNodeSize(node, 0);
 		Int split_idx	= size / 2;
