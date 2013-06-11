@@ -391,7 +391,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
 
     void newRoot(TreePath& path);
-
+    void newRootP(NodeBaseG& root);
 
 
     void insertSubtree(TreePath& path, Int &idx, InsertSharedData& data)
@@ -430,7 +430,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
 
     MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
     Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at);
-    Accumulator splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at);
+    Accumulator splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);
 
     Accumulator splitNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
     {
@@ -441,7 +441,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		return self.splitLeafNode(src, tgt, split_at);
     	}
     	else {
-    		return self.splitNonLeafNode(src, tgt, split_at);
+    		return self.splitNonLeafNode(src, tgt, split_at.get());
     	}
     }
 
@@ -846,11 +846,11 @@ typename M_TYPE::Accumulator M_TYPE::splitLeafNode(NodeBaseG& src, NodeBaseG& tg
 }
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+typename M_TYPE::Accumulator M_TYPE::splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at)
 {
 	auto& self = this->self();
 
-	Accumulator accum = NonLeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at, Position());
+	Accumulator accum = NonLeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), Position(split_at), Position());
 
 	self.updateChildren(tgt);
 
@@ -933,6 +933,33 @@ void M_TYPE::newRoot(TreePath& path)
     self.root2Node(root);
 
     path.append(TreePathItem(new_root));
+
+    Accumulator keys = root->is_leaf() ? self.getLeafMaxKeys(root) : self.getMaxKeys(root);
+
+    self.insertNonLeaf(new_root, 0, keys, root->id());
+
+    root->parent_id()  = new_root->id();
+    root->parent_idx() = 0;
+
+    self.set_root(new_root->id());
+}
+
+
+M_PARAMS
+void M_TYPE::newRootP(NodeBaseG& root)
+{
+	auto& self = this->self();
+
+	root.update();
+
+    NodeBaseG new_root = self.createNode1(root->level() + 1, true, false, root->page_size());
+
+    UBigInt root_active_streams = self.getActiveStreams(root);
+    self.layoutNonLeafNode(new_root, root_active_streams);
+
+    self.copyRootMetadata(root, new_root);
+
+    self.root2Node(root);
 
     Accumulator keys = root->is_leaf() ? self.getLeafMaxKeys(root) : self.getMaxKeys(root);
 

@@ -38,6 +38,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Types::Position											Position;
 
+    void buildPath(NodeBaseG& leaf)
+    {
+    	self().model().buildPath(self().path(), leaf);
+    }
 
     bool nextLeaf();
     bool nextLeafMs(UBigInt streams);

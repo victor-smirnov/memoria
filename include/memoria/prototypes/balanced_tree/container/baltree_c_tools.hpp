@@ -59,6 +59,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
+    void buildPath(TreePath& path, NodeBaseG node) const
+    {
+    	path.clear();
+
+    	path.append(TreePathItem(node, node->parent_idx()));
+
+    	while (!node->is_root())
+    	{
+    		node = getNodeParent(node, Allocator::READ);
+    		path.append(TreePathItem(node, node->parent_idx()));
+    	}
+    }
+
+
     enum class BalTreeNodeTraits {
         MAX_CHILDREN
     };
@@ -264,6 +278,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     TreePathItem& getParent(TreePath& path, const NodeBaseG& node) const
     {
         return path[node->level() + 1];
+    }
+
+    NodeBaseG getNodeParent(const NodeBaseG& node, Int flags) const
+    {
+    	return self().allocator().getPage(node->parent_id(), flags);
     }
 
 

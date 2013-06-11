@@ -53,8 +53,26 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeComprName)
 
     typedef typename Types::PageUpdateMgr										PageUpdateMgr;
 
+    typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)> 				SplitFn;
+
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
+
+    void insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
+
+    NodeBaseG splitPathP(NodeBaseG& node, Int split_at);
+    NodeBaseG splitLeafP(NodeBaseG& leaf, const Position& split_at);
+
+    NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
+
+    MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
+    bool updateNode(NodeBaseG& node, Int idx, const Accumulator& keys);
+    void updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys);
+    void updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& keys);
+
+
+
+
 
 
     void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn);
@@ -99,11 +117,183 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeComprName)
 
 
 
+
+
 MEMORIA_CONTAINER_PART_END
 
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::balanced_tree::NodeComprName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
+M_PARAMS
+void M_TYPE::insertNonLeafP(
+		NodeBaseG& node,
+		Int idx,
+		const Accumulator& keys,
+		const ID& id
+)
+{
+	auto& self = this->self();
+
+	node.update();
+	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+	self.updateChildren(node, idx + 1);
+
+	if (node->is_root())
+	{
+		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+		self.updatePath(parent, node->parent_idx(), keys);
+	}
+}
+
+
+
+
+M_PARAMS
+typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn)
+{
+	auto& self = this->self();
+
+	if (left_node->is_root())
+	{
+		self.newRootP(left_node);
+	}
+	else {
+		left_node.update();
+	}
+
+	NodeBaseG left_parent  = self.getNodeParent(left_node, Allocator::UPDATE);
+
+	NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+
+	Accumulator keys = split_fn(left_node, other);
+
+	Int parent_idx   = left_node->parent_idx();
+
+	self.updatePathNoBackup(left_parent, parent_idx, -keys);
+
+	PageUpdateMgr mgr(self);
+	mgr.add(left_parent);
+
+	try {
+		self.insertNonLeafP(left_parent, parent_idx + 1, keys, other->id());
+	}
+	catch (PackedOOMException ex)
+	{
+		mgr.rollback();
+
+		NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
+
+		mgr.add(right_parent);
+
+		try {
+			self.insertNonLeafP(right_parent, 0, keys, other->id());
+		}
+		catch (PackedOOMException ex2)
+		{
+			mgr.rollback();
+
+			Int right_parent_size = self.getNodeSize(right_parent, 0);
+
+			splitPathP(right_parent, right_parent_size / 2);
+
+			self.insertNonLeafP(right_parent, 0, keys, other->id());
+		}
+	}
+
+	return other;
+}
+
+M_PARAMS
+typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, Int split_at)
+{
+	auto& self = this->self();
+
+	return splitP(left_node, [&self, split_at](NodeBaseG& left, NodeBaseG& right){
+		return self.splitNonLeafNode(left, right, split_at);
+	});
+}
+
+M_PARAMS
+typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Position& split_at)
+{
+	auto& self = this->self();
+
+	return splitP(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right){
+		return self.splitLeafNode(left, right, split_at);
+	});
+}
+
+M_PARAMS
+bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
+{
+	auto& self = this->self();
+
+	PageUpdateMgr mgr(self);
+
+	mgr.add(node);
+
+	try {
+		NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
+		return true;
+	}
+	catch (PackedOOMException ex)
+	{
+		mgr.rollback();
+		return false;
+	}
+}
+
+M_PARAMS
+void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
+{
+	auto& self = this->self();
+
+	if (self.updateNode(node, idx, keys))
+	{
+		Int size 		= self.getNodeSize(node, 0);
+		Int split_idx	= size / 2;
+
+		NodeBaseG right = self.splitPathP(node, split_idx);
+
+		if (idx >= split_idx)
+		{
+			idx -= split_idx;
+			node = right;
+		}
+	}
+
+	if(!node->is_root())
+	{
+		Int parent_idx = node->parent_idx();
+		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+
+		self.updatePath(parent, parent_idx, keys);
+	}
+}
+
+
+M_PARAMS
+void M_TYPE::updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& keys)
+{
+	auto& self = this->self();
+
+	self.updateNode(node, idx, keys);
+
+	if(!node->is_root())
+	{
+		Int parent_idx = node->parent_idx();
+		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+
+		self.updatePathNoBackup(parent, parent_idx, keys);
+	}
+}
+
+
+
+
+
 
 
 

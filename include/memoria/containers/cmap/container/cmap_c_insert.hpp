@@ -175,6 +175,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrInsertName)
     MEMORIA_DECLARE_NODE_FN(InsertLeafFn, insert);
     bool insertLeafEntry(Iterator& iter, const Element& element);
 
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::cmap::CtrInsertName)
@@ -185,8 +186,7 @@ bool M_TYPE::insertLeafEntry(Iterator& iter, const Element& element)
 {
 	auto& self 		= this->self();
 
-	TreePath&  path = iter.path();
-	NodeBaseG& leaf = path.leaf();
+	NodeBaseG leaf  = iter.path().leaf();
 	Int idx			= iter.idx();
 
 	leaf.update();
@@ -204,12 +204,15 @@ bool M_TYPE::insertLeafEntry(Iterator& iter, const Element& element)
 		return false;
 	}
 
-	self.updateUp(path, 1, path.leaf().parent_idx(), element.first, [&iter](Int level, Int idx){
-		if (level == 0)
-		{
-			iter.idx() = idx;
-		}
-	});
+	if (!leaf->is_root())
+	{
+		NodeBaseG parent 	= self.getNodeParent(leaf, Allocator::UPDATE);
+		Int parent_idx 		= leaf->parent_idx();
+
+		self.updatePath(parent, parent_idx, element.first);
+
+		iter.buildPath(leaf);
+	}
 
 	return true;
 }
@@ -221,7 +224,7 @@ bool M_TYPE::insert(Iterator& iter, const Element& element)
 	auto& self = this->self();
 
 	TreePath&   path    = iter.path();
-	NodeBaseG&  leaf    = path.leaf();
+	NodeBaseG   leaf    = path.leaf();
 	Int&        idx     = iter.idx();
 	Int 		stream  = iter.stream();
 
@@ -238,14 +241,15 @@ bool M_TYPE::insert(Iterator& iter, const Element& element)
 	{
 		Position split_idx = leaf_sizes / 2;
 
-		TreePath next = path;
-		self.splitPath(path, next, 0, split_idx, ActiveStreams);
+		NodeBaseG next = self.splitLeafP(leaf, split_idx);
 
 		if (idx >= split_idx[stream])
 		{
 			idx -= split_idx[stream];
-			path = next;
+			leaf = next;
 		}
+
+		iter.buildPath(leaf);
 
 		MEMORIA_ASSERT_TRUE(self.insertLeafEntry(iter, element));
 	}

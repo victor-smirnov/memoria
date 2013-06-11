@@ -455,7 +455,11 @@ public:
 			Int page_size		= std::get<2>(pages_[c]);
 
 			CopyByteBuffer(backup_buffer, node.page(), page_size);
+
+			ctr_.allocator().freeMemory(backup_buffer);
 		}
+
+		pages_.clear();
 	}
 };
 
