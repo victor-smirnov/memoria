@@ -108,7 +108,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ReadName)
     		}
 
     		LeafDispatcher::dispatchConst(
-    				iter.leaf().node(),
+    				iter.leaf(),
     				ReadFn(),
     				&data_target,
     				pos,
@@ -155,7 +155,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ReadName)
     		if (to_read > len) to_read = len;
 
     		LeafDispatcher::dispatchConst(
-    				iter.leaf().node(),
+    				iter.leaf(),
     				ReadFn(),
     				&data_target,
     				Position(iter.dataPos()),

@@ -114,9 +114,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     }
 
 
-    bool isTheSameNode(const TreePath& path1, const TreePath& path2, int level) const
+    bool isTheSameNode(const NodeBaseG& node1, const NodeBaseG& node2) const
     {
-        return path1[level].node()->id() == path2[level].node()->id();
+    	return node1->id() == node2->id();
     }
 
     void setBranchingFactor(Int count)
@@ -342,22 +342,28 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetKeysFn, getKeys, Accumulator);
 
-    Accumulator getKeys(const NodeBaseG& node, Int idx) const
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetNonLeafKeysFn, keys, Accumulator);
+    Accumulator getNonLeafKeys(const NodeBaseG& node, Int idx) const
     {
-    	return NodeDispatcher::dispatchConstRtn(node, GetKeysFn(), idx);
+    	return NonLeafDispatcher::dispatchConstRtn(node, GetNonLeafKeysFn(), idx);
     }
 
+    MEMORIA_DECLARE_NODE_FN_RTN(GetKeysFn, getKeys, Accumulator);
     Accumulator getLeafKeys(const NodeBaseG& node, Int idx) const
     {
     	return LeafDispatcher::dispatchConstRtn(node, GetKeysFn(), idx);
     }
 
+    MEMORIA_DECLARE_NODE_FN_RTN(GetSumsFn, sums, Accumulator);
+    Accumulator getLeafSums(const NodeBaseG& node) const
+    {
+    	return LeafDispatcher::dispatchConstRtn(node, GetSumsFn());
+    }
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetMaxKeyValuesFn, maxKeys, Accumulator);
-
     Accumulator getMaxKeys(const NodeBaseG& node) const
     {
     	return NonLeafDispatcher::dispatchConstRtn(node, GetMaxKeyValuesFn());
@@ -467,7 +473,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
 
     void dump(const NodeBaseG& page, std::ostream& out = std::cout) const
     {
-        if (page != NULL)
+        if (page)
         {
             PageWrapper<const Page> pw(page);
             PageMetadata* meta = me()->getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
@@ -480,7 +486,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         }
     }
 
-    void dump(TreePath& path, Int level = 0, std::ostream& out = std::cout)
+    void dump(TreePath& path, Int level = 0, std::ostream& out = std::cout) const
     {
     	out<<"PATH of "<<path.getSize()<<" elements"<<endl;
 
@@ -490,6 +496,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     		self().dump(path[c].node());
     	}
 
+    }
+
+    void dumpPath(NodeBaseG node, std::ostream& out = std::cout) const
+    {
+        auto& self = this->self();
+
+    	out<<"Path:"<<endl;
+
+        self.dump(node, out);
+
+        while (!node->is_root())
+        {
+        	node = self.getNodeParent(node, Allocator::READ);
+        	self.dump(node, out);
+        }
     }
 
     Position getTotalKeyCount() const;
@@ -507,6 +528,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     {
         return getPrevNode(path, level, -1, down ? 0 : level);
     }
+
+    NodeBaseG getNextNodeP(NodeBaseG& node) const;
+    NodeBaseG getPrevNodeP(NodeBaseG& node) const;
+
 
 
     template <typename Node>
@@ -631,6 +656,8 @@ private:
     bool getNextNode(TreePath& path, Int level, Int idx, Int target_level) const;
     bool getPrevNode(TreePath& path, Int level, Int idx, Int target_level) const;
 
+
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::balanced_tree::ToolsName)
@@ -735,6 +762,76 @@ bool M_TYPE::getNextNode(TreePath& path, Int level, Int idx, Int target_level) c
 
     return false;
 }
+
+
+M_PARAMS
+typename M_TYPE::NodeBaseG M_TYPE::getNextNodeP(NodeBaseG& node) const
+{
+    auto& self = this->self();
+
+    if (!node->is_root())
+    {
+        NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
+
+    	Int size = self.getNodeSize(parent, 0);
+
+    	Int parent_idx = node->parent_idx();
+
+        if (parent_idx < size - 1)
+        {
+        	return self.getChild(parent, parent_idx + 1, Allocator::READ);
+        }
+        else {
+        	NodeBaseG target_parent = getNextNodeP(parent);
+
+        	if (target_parent.isSet())
+        	{
+        		return self.getChild(target_parent, 0, Allocator::READ);
+        	}
+        	else {
+        		return target_parent;
+        	}
+        }
+    }
+    else {
+    	return NodeBaseG();
+    }
+}
+
+
+M_PARAMS
+typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
+{
+    auto& self = this->self();
+
+    if (!node->is_root())
+    {
+        NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
+
+    	Int parent_idx = node->parent_idx();
+
+        if (parent_idx > 0)
+        {
+        	return self.getChild(parent, parent_idx - 1, Allocator::READ);
+        }
+        else {
+        	NodeBaseG target_parent = getNextNodeP(parent);
+
+        	if (target_parent.isSet())
+        	{
+        		Int node_size = self.getNodeSize(target_parent, 0);
+        		return self.getChild(target_parent, node_size - 1, Allocator::READ);
+        	}
+        	else {
+        		return target_parent;
+        	}
+        }
+    }
+    else {
+    	return NodeBaseG();
+    }
+}
+
 
 
 M_PARAMS

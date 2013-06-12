@@ -260,7 +260,7 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
 	{
 		walker.prepare(self);
 
-		Int idx = self.model().findFw(path, stream, self.leaf().parent_idx() + 1, walker, 1);
+		Int idx = self.model().findFw(path, stream, self.leaf()->parent_idx() + 1, walker, 1);
 
 		Int size = self.model().getNodeSize(path[1].node(), stream);
 
@@ -306,7 +306,7 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
 	{
 		walker.prepare(self);
 
-		Int idx = self.model().findBw(path, stream, self.leaf().parent_idx() - 1, walker, 1);
+		Int idx = self.model().findBw(path, stream, self.leaf()->parent_idx() - 1, walker, 1);
 
 		Int size = self.model().getNodeSize(path[1].node(), stream);
 

@@ -182,7 +182,6 @@ typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Positi
 M_PARAMS
 bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
 {
-	auto& self = this->self();
 	NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
 	return true;
 }
@@ -192,7 +191,7 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
 {
 	auto& self = this->self();
 
-	NodeBase tmp = node;
+	NodeBaseG tmp = node;
 
 	self.updateNode(tmp, idx, keys);
 

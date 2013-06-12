@@ -24,6 +24,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                         	Position;
@@ -35,90 +36,47 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
 
     static const Int  Indexes                                                   = Base::Indexes;
 
-    typedef std::function<void (const TreePath&, const TreePath&, Int)>			MergeFn;
+    typedef std::function<void (const NodeBaseG&, const NodeBaseG&)>			MergeFn;
+
+    void removeNode(NodeBaseG& node, Accumulator& accum, Position& sizes);
+
+    MEMORIA_DECLARE_NODE_FN(RemoveNodeContentFn, removeSpace);
+    void removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& accum, Position& sizes);
+
+    MEMORIA_DECLARE_NODE_FN_RTN(RemoveLeafContentFn, removeSpace, Accumulator);
+    Accumulator removeLeafContent(NodeBaseG& node, const Position& start, const Position& end);
+
+    Accumulator removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end);
 
 
-    /**
-     * \brief Try to merge tree node with its siblings at the specified level.
-     *
-     * First it tries to merge with left sibling, and if it fails then with the right one.
-     * The *path* object is valid after merge.
-     *
-     * \param path path to the node
-     * \param level level at the tree of the node
-     *
-     * \return true if node has been merged
-     *
-     * \see {mergeWithLeftSibling, mergeWithRightSibling} for details
-     */
-
-    MergeType mergeWithSiblings(TreePath& path, Int level)
-    {
-        Position idx(0);
-        return self().mergeWithSiblings(path, level, idx);
-    }
+    MEMORIA_DECLARE_NODE_FN_RTN(RemoveNonLeafNodeEntryFn, removeSpaceAcc, Accumulator);
+    void removeNonLeafNodeEntry(NodeBaseG& node, Int idx);
 
 
 
-    bool mergeWithLeftSibling(TreePath& path, Int level, MergeFn fn = [](const TreePath&, const TreePath&, Int){});
-    bool mergeWithRightSibling(TreePath& path, Int level);
-    MergeType mergeWithSiblings(TreePath& path, Int level, MergeFn fn = [](const TreePath&, const TreePath&, Int){});
 
-    bool mergePaths(TreePath& tgt, TreePath& src, Int level = 0);
+
+    bool mergeWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const NodeBaseG&, const NodeBaseG&){});
+    bool mergeWithRightSibling(NodeBaseG& node);
+    MergeType mergeWithSiblings(NodeBaseG& node, MergeFn fn = [](const NodeBaseG&, const NodeBaseG&){});
+
 
     MEMORIA_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
-    bool shouldMergeNode(const TreePath& path, Int level) const
+    bool shouldMergeNode(const NodeBaseG& node) const
     {
-    	const NodeBaseG& node = path[level].node();
     	return NodeDispatcher::dispatchConstRtn(node, ShouldBeMergedNodeFn());
     }
 
 
 
 
-
-
-
-
-
-
-
-
-    Position removeRoom(
-    		TreePath& path,
-    		Int level,
-    		const Position& from,
-    		const Position& count,
-    		Accumulator& accumulator,
-    		bool remove_children = true
-    );
-
-
-
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
 
 
-    void removeRedundantRoot(TreePath& path, Int level);
-    void removeRedundantRoot(TreePath& start, TreePath& stop, Int level);
+
+    void removeRedundantRootP(NodeBaseG& node);
 
 
-    /**
-     * \brief Remove a page from the btree. Do recursive removing if page's parent
-     * has no more children.
-     *
-     * If after removing the parent is less than half filled than
-     * merge it with siblings.
-     */
-
-    void removePage1(TreePath& path, Int stream, Int& leaf_entry_idx);
-
-
-    /**
-     * \brief Delete a node with it's children.
-     */
-    Position removeNode(NodeBaseG node);
-
-    bool changeRootIfSingular(NodeBaseG& parent, NodeBaseG& node);
 
     /**
      * \brief Check if two nodes can be merged.
@@ -131,27 +89,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
 
     MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
 
-    bool canMerge(TreePath& tgt, TreePath& src, Int level)
+    bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
     {
-        return NodeDispatcher::dispatchConstRtn2(src[level].node(), tgt[level].node(), CanMergeFn());
+        return NodeDispatcher::dispatchConstRtn2(src, tgt, CanMergeFn());
     }
 
-    /**
-     * \brief Check if two nodes have the same parent.
-     *
-     *
-     * \param left one path
-     * \param right another path
-     * \param level level of nodes in the paths
-     * \return true if both nodes have the same parent
-     */
-    static bool isTheSameParent(TreePath& left, TreePath& right, Int level)
+
+
+    bool isTheSameParent(const NodeBaseG& left, const NodeBaseG& right)
     {
-        return left[level + 1].node() == right[level + 1].node();
+    	return left->parent_id() == right->parent_id();
     }
 
-    void mergeNodes(TreePath& tgt, TreePath& src, Int level);
-    bool mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level, MergeFn fn);
+    void mergeNodes(NodeBaseG& tgt, NodeBaseG& src);
+    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const NodeBaseG&, const NodeBaseG&){});
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, Accumulator);
@@ -166,340 +117,139 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
-/**
- * \brief Remove 'count' elements from tree node starting from 'from' element.
- *
- * \dotfile removeRoom.dot
- *
- * \param path   path to the node
- * \param level  level of the node at the path
- * \param from   start element
- * \param count  number of elements to remove
- *
- * \param accumulator       accumulator to put cumulative values of removed elements
- * \param remove_children   if true, remove all child nodes. FIXME: what is this?
- *
- */
 
 M_PARAMS
-typename M_TYPE::Position M_TYPE::removeRoom(
-		TreePath& path,
-		Int level,
-		const Position& from,
-		const Position& count,
-		Accumulator& accumulator,
-		bool remove_children
-)
-{
-    //FIXME: optimize for the case when count == 0
-	auto& self = this->self();
-
-    Position key_count;
-
-    if (count.gtAny(0))
-    {
-        NodeBaseG& node = path[level].node();
-        node.update();
-
-        Accumulator tmp_accum;
-
-        if (remove_children)
-        {
-            if (!node->is_leaf())
-            {
-                Int stop = from.get() + count.get();
-            	for (Int c = from.get(); c < stop; c++)
-                {
-                    NodeBaseG child = self.getChild(node, c, Allocator::READ);
-                    Position tmp 	= self.removeNode(child);
-                    key_count 		+= tmp;
-                }
-            }
-        }
-
-        VectorAdd(tmp_accum, NodeDispatcher::dispatchRtn(node, RemoveSpaceFn(), from, count));
-
-        self.updateChildren(node, from.get());
-
-        if (node->is_leaf()) {
-        	key_count += count;
-        }
-
-        self.updateParentIfExists(path, level, -tmp_accum);
-
-        if (level > 0)
-        {
-        	path.moveLeft(level - 1, from.get(), count.get());
-        }
-
-        VectorAdd(accumulator, tmp_accum);
-    }
-
-    return key_count;
-}
-
-
-
-
-
-/**
- * \brief Remove leaf node from tree.
- *
- * Remove the leaf node from tree. Do recursive removal up to the root if the node's parent
- * has no more children.
- *
- * If after removing the parent is less than half filled than
- * merge it with siblings.
- *
- *
- * \see removeNode
- */
-
-M_PARAMS
-void M_TYPE::removePage1(TreePath& path, Int stream, Int& leaf_entry_idx)
+void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums, Position& sizes)
 {
 	auto& self = this->self();
 
-	for (Int c = 1; c < path.getSize(); c++)
-    {
-		Int node_size = self.getNodeSize(path[c], 0);
+	if (!node->is_leaf())
+	{
+		Int size = self.getNodeSize(node, 0);
+		self.forAllIDs(node, 0, size, [&, this](const ID& id, Int idx){
+			NodeBaseG child = self.allocator().getPage(id, Allocator::READ);
+			this->removeNode(child, sums, sizes);
+			self.allocator().removePage(id);
+		});
+	}
+	else {
+		VectorAdd(sums, self.getLeafSums(node));
+		sizes += self.getNodeSizes(node);
+	}
 
-		if (node_size > 1)
-        {
-            Accumulator accum;
-
-            Int idx = path[c - 1].parent_idx();
-            self.removeRoom(path, c, Position(idx), Position(1), accum);
-
-            if (idx == node_size)
-            {
-                if (self.getNextNode(path, c, true))
-                {
-                    leaf_entry_idx = 0;
-                }
-                else
-                {
-                    for (Int d = c - 1; d >= 0; d--)
-                    {
-                        path[d].node()          = self.getLastChild(path[d + 1].node(), Allocator::READ);
-                        path[d].parent_idx()    = self.getNodeSize(path[d + 1], 0) - 1;
-                    }
-
-                    leaf_entry_idx = self.getNodeSize(path.leaf(), stream);
-                }
-            }
-            else
-            {
-                for (Int d = c - 1; d >= 0; d--)
-                {
-                    path[d].node()          = self.getChild(path[d + 1].node(), idx, Allocator::READ);
-                    path[d].parent_idx()    = idx;
-
-                    idx = 0;
-                }
-
-                leaf_entry_idx = 0;
-            }
-
-            return;
-        }
-        else if (path[c]->is_root())
-        {
-        	self.removeNode(path[c].node());
-
-            NodeBaseG node = self.createRootNode1(0, true, me()->getRootMetadata());
-
-            self.set_root(node->id());
-            path.clear();
-            path.append(TreePathItem(node, 0));
-
-            leaf_entry_idx = 0;
-
-            return;
-        }
-    }
-
-	self.removeNode(path.leaf().node());
-
-    NodeBaseG node = self.createRootNode1(0, true, self.getRootMetadata());
-
-    self.set_root(node->id());
-    path.clear();
-    path.append(TreePathItem(node, 0));
-
-    leaf_entry_idx = 0;
+	self.allocator().removePage(node->id());
 }
 
-/**
- * \brief Remove node with all its children from the tree.
- *
- * \return number of children have been removed.
- *
- * \see removePage
- */
-
 M_PARAMS
-typename M_TYPE::Position M_TYPE::removeNode(NodeBaseG node)
-{
-    auto& self = this->self();
-
-	const Int children_count = self.getNodeSize(node, 0);
-
-    Position count;
-
-    if (!node->is_leaf())
-    {
-        for (Int c = 0; c < children_count; c++)
-        {
-            NodeBaseG child = self.getChild(node, c, Allocator::READ);
-            count += self.removeNode(child);
-        }
-    }
-    else {
-    	Position tmp = self.getNodeSizes(node);
-    	count += tmp;
-    }
-
-    if (node->is_root())
-    {
-        ID id;
-        id.setNull();
-        self.set_root(id);
-    }
-
-    self.allocator().removePage(node->id());
-
-    return count;
-}
-
-
-/**
- * If *parent* is a root and has only one child then the child is converted to root and returned in *node*.
- * Old root node is removed.
- *
- * \return true if *node* is now a root.
- */
-
-M_PARAMS
-bool M_TYPE::changeRootIfSingular(NodeBaseG& parent, NodeBaseG& node)
+void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& sums, Position& sizes)
 {
 	auto& self = this->self();
 
-	if (parent.isSet() && parent->is_root() && self.getNodeSize(parent, 0) == 1)
-    {
-        Metadata meta = self.getRootMetadata();
+	MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
-        self.node2Root(node, meta);
+	self.forAllIDs(node, start, end, [&, this](const ID& id, Int idx){
+		NodeBaseG child = self.allocator().getPage(id, Allocator::READ);
+		self.removeNode(child, sums, sizes);
+	});
 
-        self.set_root(node->id());
-
-        self.allocator().removePage(parent->id());
-
-        return true;
-    }
-    else {
-        return false;
-    }
+	NonLeafDispatcher::dispatch(node, RemoveNodeContentFn(), start, end);
 }
 
 
-
-
-/**
- * \brief Removes singular node chain starting from the tree root down to the specified level.
- *
- * Singular node chain is a chain of tree nodes where each node (except leaf)
- * has exactly one child. See the picture below for details.
- *
- * \dotfile removeRedundantRoot.dot
-
- * This call iteratively removes nodes in singular node chain starting from the root down to the *level*.
- */
-
 M_PARAMS
-void M_TYPE::removeRedundantRoot(TreePath& path, Int level)
+void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
 {
 	auto& self = this->self();
 
-    for (Int c = path.getSize() - 1; c > level; c--)
-    {
-        NodeBaseG& node = path[c].node();
+	MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
-        if (self.getNodeSize(node, 0) == 1)
-        {
-            Metadata root_metadata = self.getRootMetadata();
+	node.update();
+	Accumulator sums = NonLeafDispatcher::dispatchRtn(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
 
-            NodeBaseG& child = path[c - 1].node();
+	if (!node->is_root())
+	{
+		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
 
-            if (self.canConvertToRoot(child))
-            {
-            	self.node2Root(child, root_metadata);
-
-            	self.allocator().removePage(node->id());
-
-            	self.set_root(child->id());
-
-            	path.removeLast();
-            }
-            else {
-            	break;
-            }
-        }
-        else {
-            break;
-        }
-    }
+		self.updatePath(parent, node->parent_idx(), sums);
+	}
 }
-/**
- * \brief Removes singular node chain starting from the tree root down to the specified level.
- *
- * This call is intended to be used in batch removal operations where we have two iterators: the *start*
- * one and the *stop* one. After internal nodes are removed and range nodes are merged, we might get a redundant root
- * as a result. See the picture below for details.
- *
- * This call iteratively removes nodes in singular node chain starting from the root down to the *level*. It gets two
- * paths as a parameters. Both ones must contains the same nodes at least down to the *level*. After the call is
- * completed both paths are started from the new root node.
- *
- * \see mergeBTreeNodes, mergePaths
- */
+
+
 
 M_PARAMS
-void M_TYPE::removeRedundantRoot(TreePath& first, TreePath& second, Int level)
+typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, const Position& start, const Position& end)
 {
-    auto& self = this->self();
+	auto& self = this->self();
 
-	for (Int c = first.getSize() - 1; c > level; c--)
+	node.update();
+
+	Accumulator sums = LeafDispatcher::dispatchRtn(node, RemoveLeafContentFn(), start, end);
+
+	if (!node->is_root())
+	{
+		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+
+		self.updatePath(parent, node->parent_idx(), -sums);
+	}
+
+	return sums;
+}
+
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end)
+{
+	auto& self = this->self();
+
+	node.update();
+	Accumulator sums = LeafDispatcher::dispatchRtn(node, RemoveLeafContentFn(), stream, start, end);
+
+	if (!node->is_root())
+	{
+		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+
+		self.updatePath(parent, node->parent_idx(), -sums);
+	}
+
+	return sums;
+}
+
+
+
+M_PARAMS
+void M_TYPE::removeRedundantRootP(NodeBaseG& node)
+{
+	auto& self = this->self();
+
+    if (!node->is_root())
     {
-        NodeBaseG& node = first[c].node();
+    	NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
+    	if (!parent->is_root())
+    	{
+    		removeRedundantRootP(parent);
+    	}
 
-        if (self.getNodeSize(node, 0) == 1)
-        {
-            Metadata root_metadata = self.getRootMetadata();
+    	if (parent->is_root())
+    	{
+    		Int size = self.getNodeSize(node, 0);
+    		if (size == 1)
+    		{
+    			Metadata root_metadata = self.getRootMetadata();
 
-            NodeBaseG& child = first[c - 1].node();
+    			// FIXME redesigne it to use tryConvertToRoot(node) instead
+    			if (self.canConvertToRoot(node))
+    			{
+    				self.node2Root(node, root_metadata);
 
-            if (self.canConvertToRoot(child))
-            {
-            	self.node2Root(child, root_metadata);
+    				self.allocator().removePage(parent->id());
 
-            	self.allocator().removePage(node->id());
-
-            	self.set_root(child->id());
-
-                first.removeLast();
-
-                second.removeLast();
-            }
-            else {
-                break;
-            }
-        }
-        else {
-            break;
-        }
+    				self.set_root(node->id());
+    			}
+    		}
+    	}
     }
 }
+
+
 
 
 /**
@@ -517,15 +267,15 @@ void M_TYPE::removeRedundantRoot(TreePath& first, TreePath& second, Int level)
  */
 
 M_PARAMS
-MergeType M_TYPE::mergeWithSiblings(TreePath& path, Int level, MergeFn fn)
+MergeType M_TYPE::mergeWithSiblings(NodeBaseG& node, MergeFn fn)
 {
 	auto& self = this->self();
 
-    if (self.mergeWithRightSibling(path, level))
+    if (self.mergeWithRightSibling(node))
     {
         return MergeType::RIGHT;
     }
-    else if (self.mergeWithLeftSibling(path, level, fn))
+    else if (self.mergeWithLeftSibling(node, fn))
     {
         return MergeType::LEFT;
     }
@@ -552,23 +302,23 @@ MergeType M_TYPE::mergeWithSiblings(TreePath& path, Int level, MergeFn fn)
 
 
 M_PARAMS
-bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, MergeFn fn)
+bool M_TYPE::mergeWithLeftSibling(NodeBaseG& node, MergeFn fn)
 {
 	auto& self = this->self();
 
     bool merged = false;
 
-    if (self.shouldMergeNode(path, level))
+    if (self.shouldMergeNode(node))
     {
-        TreePath prev = path;
+        auto prev = self.getPrevNodeP(node);
 
-        if (self.getPrevNode(prev, level))
+        if (prev)
         {
-            merged = mergeBTreeNodes(prev, path, level, fn);
+            merged = mergeBTreeNodes(prev, node, fn);
 
             if (merged)
             {
-                path = prev;
+                node = prev;
             }
         }
         else {
@@ -593,68 +343,23 @@ bool M_TYPE::mergeWithLeftSibling(TreePath& path, Int level, MergeFn fn)
  */
 
 M_PARAMS
-bool M_TYPE::mergeWithRightSibling(TreePath& path, Int level)
+bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
 {
     bool merged = false;
 
     auto& self = this->self();
 
-    if (self.shouldMergeNode(path, level))
+    if (self.shouldMergeNode(node))
     {
-        TreePath next = path;
+        auto next = self.getNextNodeP(node);
 
-        if (self.getNextNode(next))
+        if (next)
         {
-            merged = mergeBTreeNodes(path, next, level, [](const TreePath&, const TreePath&, Int){});
+            merged = mergeBTreeNodes(node, next);
         }
     }
 
     return merged;
-}
-
-/**
- * \brief Merge *src* path to the *tgt* path from the tree root down to the specified *level*.
- *
- * If after nodes have been merged the resulting path is redundant, that means it consists from a single node chain,
- * then this path is truncated from the tree root down to the specified *level*.
- *
- * Unlike this call, \ref mergeBTreeNodes does not try to merge parents if nodes at the specified *level* can't be merged.
- *
- * \param tgt path to node to be merged with
- * \param src path to node to be merged
- * \param level level of the node in the tree
- * \return true if paths at the specified *level* was merged
- *
- * \see canMerge, removeRedundantRoot
- * \see mergeBTreeNodes
- */
-
-M_PARAMS
-bool M_TYPE::mergePaths(TreePath& tgt, TreePath& src, Int level)
-{
-    bool merged_at_level = false;
-
-    for (Int c = tgt.getSize() - 1; c >= level; c--)
-    {
-        if (canMerge(tgt, src, c))
-        {
-            if (tgt[c] != src[c])
-            {
-                mergeNodes(tgt, src, c);
-
-                src[c] = tgt[c];
-
-                merged_at_level = c == level;
-            }
-        }
-        else {
-            break;
-        }
-    }
-
-    removeRedundantRoot(tgt, src, level);
-
-    return merged_at_level;
 }
 
 /**
@@ -672,42 +377,32 @@ bool M_TYPE::mergePaths(TreePath& tgt, TreePath& src, Int level)
  */
 
 M_PARAMS
-void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
+void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
 	auto& self = this->self();
 
-    NodeBaseG& tgt_page = tgt[level].node();
-    NodeBaseG& src_page = src[level].node();
+    tgt.update();
 
-    tgt_page.update();
+    Int tgt_size = self.getNodeSize(tgt, 0);
 
-    Int tgt_children_count = self.getNodeSize(tgt_page, 0);
+    NodeDispatcher::dispatch2(src, tgt, MergeNodesFn());
 
-    Int tgt_size = self.getNodeSize(tgt_page, 0);
+    self.updateChildren(tgt, tgt_size);
 
-    NodeDispatcher::dispatch2(src_page, tgt_page, MergeNodesFn());
+    NodeBaseG src_parent   	= self.getNodeParent(src, Allocator::READ);
+    Int parent_idx      	= src->parent_idx();
 
-    self.updateChildren(tgt_page, tgt_size);
+    MEMORIA_ASSERT(parent_idx, >, 0);
 
-    NodeBaseG& parent   = src[level + 1].node();
-    Int parent_idx      = src[level].parent_idx();
+    Accumulator sums 		= self.getNonLeafKeys(src_parent, parent_idx);
 
-    Accumulator accum;
+    self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
-    removeRoom(src, level + 1, Position(parent_idx), Position(1), accum, false);
+    Int idx = parent_idx - 1;
 
-    self.updateUp(src, level + 1, parent_idx - 1, accum, [](Int, Int){});
+    self.updatePath(src_parent, idx, sums);
 
-    self.allocator().removePage(src_page->id());
-
-    src[level] = tgt[level];
-
-    if (level > 0)
-    {
-    	src.moveRight(level - 1, 0, tgt_children_count);
-    }
-
-    self.reindex(parent); //FIXME: is it necessary?
+    self.allocator().removePage(src->id());
 }
 
 /**
@@ -732,29 +427,34 @@ void M_TYPE::mergeNodes(TreePath& tgt, TreePath& src, Int level)
  */
 
 M_PARAMS
-bool M_TYPE::mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level, MergeFn fn)
+bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 {
-    if (canMerge(tgt, src, level))
+	auto& self = this->self();
+
+    if (canMerge(tgt, src))
     {
-        if (isTheSameParent(tgt, src, level))
+        if (isTheSameParent(tgt, src))
         {
-            fn(tgt, src, level);
+            fn(tgt, src);
 
-        	mergeNodes(tgt, src, level);
+        	mergeNodes(tgt, src);
 
-            removeRedundantRoot(tgt, src, level);
+            removeRedundantRootP(tgt);
 
             return true;
         }
         else
         {
-            if (mergeBTreeNodes(tgt, src, level + 1, fn))
+            NodeBaseG tgt_parent = self.getNodeParent(tgt, Allocator::READ);
+            NodeBaseG src_parent = self.getNodeParent(src, Allocator::READ);
+
+        	if (mergeBTreeNodes(tgt_parent, src_parent, fn))
             {
-            	fn(tgt, src, level);
+            	fn(tgt, src);
 
-                mergeNodes(tgt, src, level);
+                mergeNodes(tgt, src);
 
-                removeRedundantRoot(tgt, src, level);
+                removeRedundantRootP(tgt);
 
                 return true;
             }
@@ -779,6 +479,8 @@ bool M_TYPE::mergeBTreeNodes(TreePath& tgt, TreePath& src, Int level, MergeFn fn
 MEMORIA_PUBLIC M_PARAMS
 void M_TYPE::drop()
 {
+//	 FIXME: remove record from allocator's root directory.
+
     NodeBaseG root = self().getRoot(Allocator::READ);
 
     if (root.isSet())

@@ -102,7 +102,7 @@ bool M_TYPE::checkTree() const
     auto& self = this->self();
 
 	NodeBaseG root = self.getRoot(Allocator::READ);
-    if (root != NULL)
+    if (root)
     {
         bool errors = false;
         self.check_node_tree(NodeBaseG(), 0, root, errors);

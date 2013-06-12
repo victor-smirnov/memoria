@@ -66,10 +66,10 @@ void M_TYPE::remove(Iterator& from, Iterator& to)
 {
 	auto& self = this->self();
 
-	auto& from_path 	= from.path();
+	auto& from_path 	= from.leaf();
 	Position from_pos 	= Position(from.key_idx());
 
-	auto& to_path 		= to.path();
+	auto& to_path 		= to.leaf();
 	Position to_pos 	= Position(to.key_idx());
 
 	Accumulator keys;

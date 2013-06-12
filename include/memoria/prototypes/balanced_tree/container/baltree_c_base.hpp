@@ -285,7 +285,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     static Metadata getCtrRootMetadata(NodeBaseG node)
     {
-        MEMORIA_ASSERT_NOT_NULL(node);
+        MEMORIA_ASSERT_TRUE(node.isSet());
 
         return RootDispatcher::dispatchConstRtn(node, GetMetadataFn());
     }
@@ -299,7 +299,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     static void setCtrRootMetadata(NodeBaseG node, const Metadata& metadata)
     {
-        MEMORIA_ASSERT_NOT_NULL(node);
+        MEMORIA_ASSERT_TRUE(node.isSet());
 
         node.update();
         RootDispatcher::dispatch(node, SetMetadataFn(), metadata);
@@ -467,7 +467,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
     void prepareNodeSize(NodeBaseG& node, Int block_size) const
     {
-        MEMORIA_ASSERT_NOT_NULL(node);
+        MEMORIA_ASSERT_TRUE(node.isSet());
 
         NodeDispatcher::dispatch(node.page(), PrepareNodeFn(me()), block_size);
     }

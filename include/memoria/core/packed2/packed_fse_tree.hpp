@@ -725,6 +725,40 @@ public:
 		return sum0(base + to) - sum0(base + from);
 	}
 
+
+	Values sum_values(Int from, Int to) const
+	{
+		Values vals;
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			vals[block] = sum(block, from, to);
+		}
+
+		return vals;
+	}
+
+	Values sums() const
+	{
+		Values vals;
+
+		if (index_size() > 0)
+		{
+			for (Int block = 0; block < Blocks; block++)
+			{
+				vals[block] = indexes(block)[0];
+			}
+		}
+		else {
+			for (Int block = 0; block < Blocks; block++)
+			{
+				vals[block] = sum(block);
+			}
+		}
+
+		return vals;
+	}
+
 	ValueDescr findLTForward(IndexKey val) const
 	{
 		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val);
@@ -984,6 +1018,7 @@ public:
 
 	// ==================================== Update ========================================== //
 
+
 	void insert(Int idx, Value value)
 	{
 		insertSpace(idx, 1);
@@ -1033,17 +1068,20 @@ public:
 		MEMORIA_ASSERT(raw_size(), <=, max_size());
 	}
 
-	void removeSpace(Int idx, Int room_length)
+	void removeSpace(Int start, Int end)
 	{
-		MEMORIA_ASSERT_TRUE(idx >= 0);
-		MEMORIA_ASSERT_TRUE(room_length >= 0);
-		MEMORIA_ASSERT(room_length, <= , size() - idx);
+		MEMORIA_ASSERT_TRUE(start >= 0);
+		MEMORIA_ASSERT_TRUE(end >= 0);
+
+		Int room_length = end - start;
+
+		MEMORIA_ASSERT(room_length, <= , size() - start);
 
 		Value* values = this->values();
 
 		for (Int block = 0; block < Blocks; block++)
 		{
-			Int offset = (Blocks - block - 1) * size_ + idx;
+			Int offset = (Blocks - block - 1) * size_ + start;
 
 			CopyBuffer(
 					values + offset + room_length,

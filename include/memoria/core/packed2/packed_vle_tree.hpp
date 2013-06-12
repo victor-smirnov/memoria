@@ -811,15 +811,18 @@ public:
 	}
 
 
-	void removeSpace(Int idx, Int room_length)
+	void removeSpace(Int start, Int end)
 	{
 		Int size = this->size();
 
 		Codec codec;
 
-		MEMORIA_ASSERT_TRUE(idx >= 0);
+		MEMORIA_ASSERT_TRUE(start >= 0);
+
+		Int room_length = end - start;
+
 		MEMORIA_ASSERT_TRUE(room_length >= 0);
-		MEMORIA_ASSERT(room_length, <= , size - idx);
+		MEMORIA_ASSERT(room_length, <= , size - start);
 
 		Int total = 0;
 		Int ranges[3][Blocks];
@@ -828,25 +831,25 @@ public:
 
 		for (Int block = 0; block < Blocks; block++)
 		{
-			Int offset	= (Blocks - block - 1) * size + idx;
+			Int offset	= (Blocks - block - 1) * size + start;
 
-			Int start	= ranges[0][block] = this->getValueOffset(offset);
-			Int end		= ranges[1][block] = this->getValueOffset(offset + room_length);
+			Int block_start		= ranges[0][block] = this->getValueOffset(offset);
+			Int block_end		= ranges[1][block] = this->getValueOffset(offset + room_length);
 
-			ranges[2][block] = max - end - total;
+			ranges[2][block] = max - block_end - total;
 
-			total		+= end - start;
+			total		+= block_end - block_start;
 		}
 
 		auto* values = this->values();
 
 		for (Int block = 0; block < Blocks; block++)
 		{
-			Int start 		= ranges[0][block];
-			Int end 		= ranges[1][block];
+			Int block_start = ranges[0][block];
+			Int block_end 	= ranges[1][block];
 			Int remainder	= ranges[2][block];
 
-			codec.move(values, end, start, remainder);
+			codec.move(values, block_end, block_start, remainder);
 		}
 
 		this->size() 		-= room_length;
@@ -906,7 +909,7 @@ public:
 
 		other->reindex();
 
-		removeSpace(idx, size - idx);
+		removeSpace(idx, size);
 	}
 
 	void mergeWith(MyType* other) {
@@ -917,6 +920,9 @@ public:
 
 
 	// ==================================== IO ============================================= //
+
+
+
 private:
 	void insertData(const Values* values, Int pos, Int processed)
 	{
@@ -1030,7 +1036,7 @@ public:
 
 	void update(IData* data, Int pos, Int length)
 	{
-		removeSpace(pos, length);
+		removeSpace(pos, pos + length);
 		insert(data, pos, length);
 	}
 
@@ -1124,6 +1130,39 @@ public:
 	{
 		Int base = block * size();
 		return sum0(base + to).value() - sum0(base + from).value();
+	}
+
+	Values sum_values(Int from, Int to) const
+	{
+		Values vals;
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			vals[block] = sum(block, from, to);
+		}
+
+		return vals;
+	}
+
+	Values sums() const
+	{
+		Values vals;
+
+		if (index_size() > 0)
+		{
+			for (Int block = 0; block < Blocks; block++)
+			{
+				vals[block] = indexes(block)[0];
+			}
+		}
+		else {
+			for (Int block = 0; block < Blocks; block++)
+			{
+				vals[block] = sum(block);
+			}
+		}
+
+		return vals;
 	}
 
 

@@ -641,18 +641,36 @@ public:
 
     struct RemoveSpaceFn {
     	template <Int Idx, typename Tree>
-    	void stream(Tree* tree, const Position* room_start, const Position* room_length)
+    	void stream(Tree* tree, const Position* room_start, const Position* room_end)
     	{
-    		tree->removeSpace(room_start->value(Idx), room_length->value(Idx));
+    		tree->removeSpace(room_start->value(Idx), room_end->value(Idx));
+    	}
+
+    	template <Int Idx, typename Tree>
+    	void stream(Tree* tree, Int room_start, Int room_end)
+    	{
+    		tree->removeSpace(room_start, room_end);
     	}
     };
 
-
-    Accumulator removeSpace(const Position& room_start, const Position& room_length, bool reindex = true)
+    Accumulator removeSpace(Int stream, Int room_start, Int room_end)
     {
-    	Accumulator accum = sum(room_start, room_start + room_length);
+    	Accumulator accum = sum(stream, room_start, room_end);
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, RemoveSpaceFn(), &room_start, &room_length);
+    	Dispatcher::dispatch(stream, &allocator_, RemoveSpaceFn(), room_start, room_end);
+
+    	removeEmptyStreams();
+
+    	this->reindex();
+
+    	return accum;
+    }
+
+    Accumulator removeSpace(const Position& room_start, const Position& room_end, bool reindex = true)
+    {
+    	Accumulator accum = sum(room_start, room_end);
+
+    	Dispatcher::dispatchNotEmpty(&allocator_, RemoveSpaceFn(), &room_start, &room_end);
 
     	removeEmptyStreams();
 
@@ -862,6 +880,18 @@ public:
     	{
     		*accum += tree->sum(block_num, start, end);
     	}
+
+    	template <Int StreamIdx, typename Tree>
+    	void stream(const Tree* tree, Int start, Int end, Accumulator* accum)
+    	{
+    		std::get<StreamIdx>(*accum) += tree->sum_values(start, end);
+    	}
+
+    	template <Int StreamIdx, typename Tree>
+    	void stream(const Tree* tree, Accumulator* accum)
+    	{
+    		std::get<StreamIdx>(*accum) += tree->sums();
+    	}
     };
 
     void sum(const Position* start, const Position* end, Accumulator& accum) const
@@ -888,6 +918,13 @@ public:
     	return accum;
     }
 
+    Accumulator sum(Int stream, Int start, Int end) const
+    {
+    	Accumulator accum;
+    	Dispatcher::dispatch(stream, &allocator_, SumFn(), start, end, &accum);
+    	return accum;
+    }
+
     Accumulator sum(const Position& start, const Position& end, UBigInt active_streams) const
     {
     	Accumulator accum;
@@ -899,6 +936,15 @@ public:
     {
     	Dispatcher::dispatch(stream, &allocator_, SumFn(), block_num, start, end, &accum);
     }
+
+    Accumulator sums() const
+    {
+    	Accumulator accum;
+    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), &accum);
+    	return accum;
+    }
+
+
 
     struct MaxKeysFn {
     	template <Int Idx, typename TreeTypes>

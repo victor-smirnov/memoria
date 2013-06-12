@@ -129,7 +129,7 @@ BigInt M_TYPE::updateData(Iterator& iter, DataSource& data)
 
 		vmap::VectorMapSource target(&data);
 
-		LeafDispatcher::dispatch(iter.leaf().node(), UpdateFn(), &target, Position({0, iter.idx()}), Position({0, to_read}));
+		LeafDispatcher::dispatch(iter.leaf(), UpdateFn(), &target, Position({0, iter.idx()}), Position({0, to_read}));
 
 		len     -= to_read;
 		sum     += to_read;

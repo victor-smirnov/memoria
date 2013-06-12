@@ -76,7 +76,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertName)
     	try {
     		Position sizes = self.getRemainder(src);
 
-    		LeafDispatcher::dispatch(iter.leaf().node(), InsertIntoLeafFn(), pos, sizes);
+    		LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn(), pos, sizes);
 
     		return true;
     	}
@@ -107,7 +107,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertName)
     {
     	auto& self = this->self();
 
-    	LeafDispatcher::dispatch(iter.leaf().node(), AppendToLeafFn(), src);
+    	LeafDispatcher::dispatch(iter.leaf(), AppendToLeafFn(), src);
     }
 
 
@@ -128,7 +128,7 @@ void M_TYPE::updateEntry(Iterator& iter, const EntryData& entry)
 	Accumulator delta;
 
 	try {
-		delta = self.setLeafEntry(iter.leaf(), iter.stream(), iter.key_idx(), entry);
+		delta = self.setLeafEntry(iter.leaf(), iter.stream(), iter.idx(), entry);
 	}
 	catch (PackedOOMException ex)
 	{
@@ -146,7 +146,7 @@ void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 {
     TreePath&   path    = iter.path();
     NodeBaseG&  leaf    = path.leaf();
-    Int&        idx     = iter.key_idx();
+    Int&        idx     = iter.idx();
     Int 		stream  = iter.stream();
 
     auto& ctr  = self();

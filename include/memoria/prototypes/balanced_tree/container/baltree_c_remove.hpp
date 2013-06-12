@@ -39,9 +39,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveName)
 
 	bool removeEntry(Iterator& iter, Accumulator& keys);
 
-	void removeEntry(TreePath& path, Int stream, Int& idx, Accumulator& keys, bool merge = true);
+	void removeEntry(NodeBaseG& node, Int stream, Int& idx, Accumulator& keys, bool merge = true);
 
-	void removeEntryP(NodeBaseG& nde, Int stream, Int& idx, Accumulator& keys, bool merge = true)
+	void removeEntryP(NodeBaseG& node, Int stream, Int& idx, Accumulator& keys, bool merge = true)
 	{}
 
 
@@ -72,7 +72,7 @@ bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
 
 	if (iter.isNotEmpty() || iter.isNotEnd())
     {
-        self.removeEntry(iter.path(), iter.stream(), iter.idx(), keys);
+        self.removeEntry(iter.leaf(), iter.stream(), iter.idx(), keys);
 
         if (iter.isEnd())
         {
@@ -98,35 +98,30 @@ bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
  */
 
 M_PARAMS
-void M_TYPE::removeEntry(TreePath& path, Int stream, Int& idx, Accumulator& keys, bool merge)
+void M_TYPE::removeEntry(NodeBaseG& node, Int stream, Int& idx, Accumulator& keys, bool merge)
 {
     auto& self = this->self();
 
-	Int children_count  = self.getNodeSize(path.leaf(), stream);
+    MEMORIA_ASSERT_TRUE(node->is_leaf());
 
-    //if leaf page has more than 1 key do regular remove
+    VectorAdd(keys, self.removeLeafContent(node, stream, idx, idx + 1));
 
-    if (children_count > 1)
+    if (merge && self.shouldMergeNode(node))
     {
-        //remove 1 element from the leaf, update parent and
-        //do not try to remove children (it's a leaf)
-
-        self.removeRoom(path, 0, Position::create(stream, idx), Position::create(stream, 1), keys);
-
-        //try merging this leaf with previous of following
-        //leaf if filled by half of it's capacity.
-        if (merge && self.shouldMergeNode(path, 0))
-        {
-            self.mergeWithSiblings(path, 0, [&idx, &self, stream](const TreePath& left, const TreePath& right, Int level){
-            	if (level == 0) {
-            		idx += self.getNodeSize(left.leaf(), stream);
-            	}
-            });
-        }
+    	self.mergeWithSiblings(node, [&, stream](const NodeBaseG& left, const NodeBaseG& right) {
+    		if (left->is_leaf())
+    		{
+    			idx += self.getNodeSize(left, stream);
+    		}
+    	});
     }
-    else {
-        keys = self.getLeafKeys(path.leaf().node(), idx);
-        self.removePage1(path, stream, idx);
+
+    Position sizes = self.getNodeSizes(node);
+
+    if (sizes.eqAll(0))
+    {
+    	// TODO: find the nearest leaf for the specified stream
+    	// remove empty leaf node
     }
 
     self.addTotalKeyCount(Position::create(stream, -1));

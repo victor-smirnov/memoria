@@ -664,6 +664,10 @@ public:
         return shared_ != NULL && other.shared_ != NULL && shared_->id() != other.shared_->id();
     }
 
+    operator bool() const {
+    	return this->isSet();
+    }
+
     const PageT* page() const {
         return *shared_;
     }

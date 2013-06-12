@@ -82,8 +82,8 @@ void M_TYPE::removeEntry(Iterator& iter)
 
 	if (local_offset + size <= data_leaf_size)
 	{
-		self.removeRoom(iter.path(), 0, {idx, local_offset}, {1, size}, keys);
-		self.addTotalKeyCount(iter.path(), {-1, -size});
+		VectorAdd(keys, self.removeLeafContent(iter.leaf(), {idx, local_offset}, {1, size}));
+		self.addTotalKeyCount({-1, -size});
 
 		if (iter.isEnd())
 		{
@@ -116,13 +116,13 @@ void M_TYPE::removeEntry(Iterator& iter)
 			to.seekLocal();
 		}
 
-		TreePath& from_path = iter.path();
-		Position from_idx	= {idx, local_offset};
+		NodeBaseG& from_node 	= iter.leaf();
+		Position from_idx		= {idx, local_offset};
 
-		TreePath to_path 	= to.path();
-		Position to_idx		= {0, to.idx()};
+		NodeBaseG& to_node 		= to.leaf();
+		Position to_idx			= {0, to.idx()};
 
-		Base::removeEntries(from_path, from_idx, to_path, to_idx, keys, true);
+		Base::removeEntries(from_node, from_idx, to_node, to_idx, keys, true);
 
 		iter.idx() = to_idx[0];
 
@@ -148,11 +148,11 @@ bool M_TYPE::mergeLeaf(Iterator& iter)
 	auto& self = this->self();
 
 	MergeType merged = self.mergeWithSiblings(
-			iter.path(), 0, [&iter, self](const TreePath& left, const TreePath& right, Int level)
+			iter.leaf(), [&](const NodeBaseG& left, const NodeBaseG& right)
 	{
-		if (level == 0)
+		if (left->is_leaf())
 		{
-			Position sizes = self.getNodeSizes(left.leaf());
+			Position sizes = self.getNodeSizes(left);
 
 			Int stream = iter.stream();
 
@@ -285,7 +285,7 @@ void M_TYPE::removeWithinPage(Iterator& iter, BigInt size)
 
 	iter.cache().addToEntry(0, -size);
 
-	self.removeRoom(iter.path(), 0, {0, local_offset}, {0, size}, keys);
+	self.removeLeafContent(iter.leaf(), 1, local_offset, local_offset + size);
 
 	self.addTotalKeyCount(iter.path(), {0, -size});
 
@@ -311,13 +311,13 @@ void M_TYPE::removeMultiPage(Iterator& iter, BigInt size)
 
 	BigInt local_offset	= iter.idx();
 
-	TreePath& from_path = iter.path();
-	Position from_idx	= {iter.leaf_size(0), local_offset};
+	NodeBaseG& from_node 	= iter.leaf();
+	Position from_idx		= {iter.leaf_size(0), local_offset};
 
-	TreePath to_path 	= to.path();
-	Position to_idx		= {0, to.idx()};
+	NodeBaseG to_node 		= to.leaf();
+	Position to_idx			= {0, to.idx()};
 
-	Base::removeEntries(from_path, from_idx, to_path, to_idx, keys, true);
+	Base::removeEntries(from_node, from_idx, to_node, to_idx, keys, true);
 
 	iter.idx() = to_idx[0];
 }

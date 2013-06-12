@@ -41,6 +41,8 @@ public:
 	typedef typename Types::Allocator											Allocator;
 	typedef typename Types::Value												Value;
 
+	typedef StaticVector<BigInt, 1>												Values;
+
 
 private:
 
@@ -159,6 +161,21 @@ public:
 	BigInt sum(Int start, Int end) const {
 		return end - start;
 	}
+
+	Values sum_values(Int from, Int to) const
+	{
+		Values vals;
+
+		vals[0] = sum(from, to);
+
+		return vals;
+	}
+
+	Values sums() const
+	{
+		return Values({size_});
+	}
+
 
 	// =================================== Update ========================================== //
 

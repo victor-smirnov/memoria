@@ -200,11 +200,11 @@ bool M_TYPE::nextKey()
 
 	if (!self.isEnd())
     {
-        if (self.key_idx() < ctr.getNodeSize(self.page(), 0) - 1)
+        if (self.idx() < ctr.getNodeSize(self.leaf(), 0) - 1)
         {
             self.cache().Prepare();
 
-            self.key_idx()++;
+            self.idx()++;
 
             self.keyNum()++;
 
@@ -218,12 +218,12 @@ bool M_TYPE::nextKey()
             bool has_next_leaf = self.nextLeaf();
             if (has_next_leaf)
             {
-                self.key_idx() = 0;
+                self.idx() = 0;
 
                 self.cache().nextKey(false);
             }
             else {
-                self.key_idx() = ctr.getNodeSize(self.page(), 0);
+                self.idx() = ctr.getNodeSize(self.leaf(), 0);
 
                 self.cache().nextKey(true);
             }
@@ -246,7 +246,7 @@ bool M_TYPE::hasNextKey()
 
 	if (!self.isEnd())
     {
-        if (self.key_idx() < ctr.getNodeSize(self.page(), 0) - 1)
+        if (self.idx() < ctr.getNodeSize(self.leaf(), 0) - 1)
         {
             return true;
         }
@@ -269,7 +269,7 @@ bool M_TYPE::prevKey()
 
     if (self.key_idx() > 0)
     {
-        self.key_idx()--;
+        self.idx()--;
         self.keyNum()--;
 
         self.cache().Prepare();
@@ -282,14 +282,14 @@ bool M_TYPE::prevKey()
 
         if (has_prev_leaf)
         {
-            self.key_idx() = ctr.getNodeSize(self.page(), 0) - 1;
+            self.idx() = ctr.getNodeSize(self.leaf(), 0) - 1;
             self.keyNum()--;
 
             self.cache().Prepare();
             self.cache().prevKey(false);
         }
         else {
-            self.key_idx() = -1;
+            self.idx() = -1;
 
             self.cache().Prepare();
             self.cache().prevKey(true);

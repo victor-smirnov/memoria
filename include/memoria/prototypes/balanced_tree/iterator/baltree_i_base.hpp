@@ -42,6 +42,8 @@ public:
 
 private:
 
+    NodeBaseG 			leaf_;
+
     TreePath            path_;
     Int                 key_idx_;
     Int 				stream_;
@@ -59,6 +61,7 @@ public:
 
     BalTreeIteratorBase(ThisType&& other):
         Base(std::move(other)),
+        leaf_(other.leaf_),
         path_(std::move(other.path_)),
         key_idx_(other.key_idx_),
         stream_(other.stream_),
@@ -69,6 +72,7 @@ public:
 
     BalTreeIteratorBase(const ThisType& other):
     	Base(other),
+    	leaf_(other.leaf_),
     	path_(other.path_),
     	key_idx_(other.key_idx_),
     	stream_(other.stream_),
@@ -79,6 +83,7 @@ public:
 
     void assign(ThisType&& other)
     {
+    	leaf_		= other.leaf_;
         path_       = other.path_;
         key_idx_    = other.key_idx_;
         stream_     = other.stream_;
@@ -93,6 +98,7 @@ public:
 
     void assign(const ThisType& other)
     {
+    	leaf_		= other.leaf_;
         path_       = other.path_;
         key_idx_    = other.key_idx_;
         found_      = other.found_;
@@ -116,12 +122,12 @@ public:
 
     bool isEqual(const ThisType& other) const
     {
-        return page() == other.page() && key_idx_ == other.key_idx_ && Base::isEqual(other);
+        return leaf() == other.leaf() && key_idx_ == other.key_idx_ && Base::isEqual(other);
     }
 
     bool isNotEqual(const ThisType& other) const
     {
-        return page() != other.page() || key_idx_ != other.key_idx_ || Base::isNotEqual(other);
+        return leaf() != other.leaf() || key_idx_ != other.key_idx_ || Base::isNotEqual(other);
     }
 
     void setNode(NodeBaseG& node, Int parent_idx)
@@ -158,24 +164,15 @@ public:
     	return key_idx_;
     }
 
-    NodeBaseG& page()
+
+    NodeBaseG& leaf()
     {
-        return path_.leaf().node();
+        return leaf_;
     }
 
-    const NodeBaseG& page() const
+    const NodeBaseG& leaf() const
     {
-        return path_.leaf().node();
-    }
-
-    TreePathItem& leaf()
-    {
-        return path_.leaf();
-    }
-
-    const TreePathItem& leaf() const
-    {
-        return path_.leaf();
+        return leaf_;
     }
 
     TreePath& path()
@@ -206,7 +203,7 @@ public:
     {
         auto& self = this->self();
 
-    	return page().isSet() ? idx() >= self.leaf_size() : true;
+    	return leaf().isSet() ? idx() >= self.leaf_size() : true;
     }
 
     bool isNotEnd() const
@@ -217,7 +214,7 @@ public:
     bool isEmpty() const
     {
     	auto& self = this->self();
-    	return page().isEmpty() || self.leaf_size() == 0;
+    	return leaf().isEmpty() || self.leaf_size() == 0;
     }
 
     bool isNotEmpty() const
@@ -253,22 +250,16 @@ public:
 
     String getDumpHeader() const
     {
-        return String(me()->model().typeName()) + " Iterator State";
+        return String(self().ctr().typeName()) + " Iterator State";
     }
 
-    void dumpPath(ostream& out) const
+    void dumpPath(std::ostream& out = std::cout) const
     {
-        out<<"Path:"<<endl;
-
-        auto& path0 = me()->path();
-        for (int c = me()->path().getSize() - 1; c >= 0; c--)
-        {
-            out<<"Node("<<c<<"): "<<IDValue(path0[c]->id())
-               <<" idx="<<(c > 0 ? toString(path0[c - 1].parent_idx()) : "")<<endl;
-        }
+    	auto& self 	= this->self();
+    	self.ctr().dumpPath(self.leaf(), out);
     }
 
-    void dumpKeys(ostream& out) const
+    void dumpKeys(std::ostream& out) const
     {
     	auto& self = this->self();
 
@@ -276,12 +267,14 @@ public:
         out<<"Idx:  "<<self.idx()<<endl;
     }
 
-    void dumpBeforePath(ostream& out) const {}
-    void dumpBeforePages(ostream& out) const {}
+    void dumpBeforePath(std::ostream& out) const {}
+    void dumpBeforePages(std::ostream& out) const {}
 
-    void dumpPages(ostream& out) const
+    void dumpPages(std::ostream& out) const
     {
-        me()->model().dump(me()->path().leaf(), out);
+    	auto& self = this->self();
+
+        self.ctr().dump(self.leaf(), out);
     }
 
     void init() {}

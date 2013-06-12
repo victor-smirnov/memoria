@@ -108,7 +108,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::UpdateName)
     		}
 
     		LeafDispatcher::dispatchConst(
-    				iter.leaf().node(),
+    				iter.leaf(),
     				UpdateFn(),
     				&data_source,
     				pos,
@@ -155,7 +155,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::UpdateName)
     		if (to_update > len) to_update = len;
 
     		LeafDispatcher::dispatchConst(
-    				iter.leaf().node(),
+    				iter.leaf(),
     				UpdateFn(),
     				&data_source,
     				Position(iter.dataPos()),

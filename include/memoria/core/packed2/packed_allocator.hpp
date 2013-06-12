@@ -445,19 +445,6 @@ public:
 		handler->value("LAYOUT_SIZE",   &layout_size_);
 		handler->value("BITMAP_SIZE",   &bitmap_size_);
 
-//		Int layout_size = layout_size_ / 4;
-//
-//		handler->startGroup("LAYOUT", layout_size);
-//
-//		for (Int idx = 0; idx < layout_size; idx++)
-//		{
-//			handler->value("OFFSET", &element_offset(idx));
-//		}
-//
-//		handler->endGroup();
-//
-//		handler->symbols("BITMAP", bitmap(), layout_size, 1);
-
 		handler->endGroup();
 	}
 

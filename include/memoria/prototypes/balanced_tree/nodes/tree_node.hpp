@@ -697,7 +697,6 @@ public:
 
 
 
-
     struct InsertFn {
     	template <Int StreamIdx, typename StreamType>
     	void stream(StreamType* obj, Int idx, const Accumulator& keys)
@@ -776,35 +775,43 @@ public:
     	}
     };
 
-
-    Accumulator removeSpace(const Position& from_pos, const Position& length_pos, bool reindex = true)
+    Accumulator removeSpace(const Position& from_pos, const Position& end_pos, bool reindex = true)
     {
-    	Int room_start = from_pos.get();
-    	Int room_length = length_pos.get();
+    	return this->removeSpace(from_pos.get(), end_pos.get(), reindex);
+    }
 
-    	Accumulator accum = sum(room_start, room_start + room_length);
+    Accumulator removeSpaceAcc(Int room_start, Int room_end)
+    {
+    	Accumulator sums = this->sum_neg(room_start, room_end);
+    	removeSpace(room_start, room_end, true);
+    	return sums;
+    }
 
+    void removeSpace(Int room_start, Int room_end)
+    {
     	Int old_size = this->size();
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, RemoveSpaceFn(), room_start, room_length);
+    	Dispatcher::dispatchNotEmpty(&allocator_, RemoveSpaceFn(), room_start, room_end);
 
     	Value* values = this->values();
 
-    	CopyBuffer(values + room_start + room_length, values + room_start, old_size - room_start - room_length);
+    	CopyBuffer(values + room_end, values + room_start, old_size - room_end);
 
-    	if (reindex)
-    	{
-    		this->reindex();
-    	}
+    	this->reindex();
 
-    	if (old_size - room_length > 0)
-    	{
-    		Int requested_block_size = (old_size - room_length) * sizeof(Value);
-    		allocator_.resizeBlock(values, requested_block_size);
-    	}
-    	else {
-    		allocator_.free(ValuesBlockIdx);
-    	}
+    	MEMORIA_ASSERT(old_size, >=, room_end - room_start);
+
+    	Int requested_block_size = (old_size - (room_end - room_start)) * sizeof(Value);
+    	allocator_.resizeBlock(values, requested_block_size);
+    }
+
+    Accumulator removeSpace(Int stream, Int room_start, Int room_end)
+    {
+    	Accumulator accum;
+
+    	sum(stream, room_start, room_end, accum);
+
+    	removeSpace(room_start, room_end);
 
     	return accum;
     }
@@ -1051,6 +1058,12 @@ public:
     	}
 
     	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree, Accumulator* accum)
+    	{
+    		std::get<Idx>(*accum) += tree->sums();
+    	}
+
+    	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, Int block_num, Int start, Int end, BigInt* accum)
     	{
     		*accum += tree->sum(block_num, start, end);
@@ -1072,6 +1085,32 @@ public:
     {
     	Accumulator accum;
     	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), start, end, &accum);
+    	return accum;
+    }
+
+    Accumulator sums() const
+    {
+    	Accumulator accum;
+    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), &accum);
+    	return accum;
+    }
+
+
+    struct SumNegFn {
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree, Int start, Int end, Accumulator* accum)
+    	{
+    		for (Int block = 0; block < Tree::Blocks; block++)
+    		{
+    			std::get<Idx>(*accum)[block] -= tree->sum(block, start, end);
+    		}
+    	}
+    };
+
+    Accumulator sum_neg(Int start, Int end) const
+    {
+    	Accumulator accum;
+    	Dispatcher::dispatchNotEmpty(&allocator_, SumNegFn(), start, end, &accum);
     	return accum;
     }
 
@@ -1187,6 +1226,15 @@ public:
     {
     	return sum(pos.get(), pos.get() + count.get());
     }
+
+
+    Accumulator keys(Int pos) const
+    {
+    	return sum(pos, pos + 1);
+    }
+
+
+
 
     bool checkCapacities(const Position& pos) const
     {

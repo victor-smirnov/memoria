@@ -371,7 +371,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		MEMORIA_ASSERT(self.idx(), <, self.leaf_size());
 
-		return LeafDispatcher::dispatchConstRtn(self.leaf().node(), EntryFn(), self.idx());
+		return LeafDispatcher::dispatchConstRtn(self.leaf(), EntryFn(), self.idx());
 	}
 
 	struct LocalDataOffsetFn {
@@ -400,7 +400,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		MEMORIA_ASSERT_TRUE(self.stream() == 0);
 
-		Int local_offset = LeafDispatcher::dispatchConstRtn(self.leaf().node(), LocalDataOffsetFn(), 1, self.idx());
+		Int local_offset = LeafDispatcher::dispatchConstRtn(self.leaf(), LocalDataOffsetFn(), 1, self.idx());
 
 		MEMORIA_ASSERT_TRUE(local_offset >= 0);
 
@@ -413,7 +413,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 	{
 		auto& self = this->self();
 
-		Int local_offset 		= LeafDispatcher::dispatchConstRtn(self.leaf().node(), LocalDataOffsetFn(), 1, entry_idx);
+		Int local_offset 		= LeafDispatcher::dispatchConstRtn(self.leaf(), LocalDataOffsetFn(), 1, entry_idx);
 
 		BigInt entry_blob_base 	= self.entry_blob_base(entry_idx);
 
@@ -667,7 +667,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	auto& self = this->self();
     	MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
-    	return LeafDispatcher::dispatchConstRtn(self.leaf().node(), ReadValueFn(), self.idx());
+    	return LeafDispatcher::dispatchConstRtn(self.leaf(), ReadValueFn(), self.idx());
     }
 
     struct UpdateFn {
@@ -698,7 +698,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	leaf.update();
     	LeafDispatcher::dispatch(leaf, UpdateFn(), self.idx(), accum);
 
-    	self.ctr().updateUp(self.path(), 1, self.leaf().parent_idx(), accum, [](Int, Int){});
+    	self.ctr().updateUp(self.path(), 1, self.leaf()->parent_idx(), accum, [](Int, Int){});
 
     	self.cache().addToEntry(
     		std::get<0>(accum)[0],
@@ -709,7 +709,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     bool checkCapacities(const Position& sizes)
     {
     	auto& self = this->self();
-    	return self.ctr().checkCapacities(self.leaf().node(), sizes);
+    	return self.ctr().checkCapacities(self.leaf(), sizes);
     }
 
     void dump() const {
