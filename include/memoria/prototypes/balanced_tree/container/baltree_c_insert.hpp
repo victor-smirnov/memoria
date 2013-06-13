@@ -144,8 +144,8 @@ M_PARAMS
 template <typename EntryData>
 void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 {
-    TreePath&   path    = iter.path();
-    NodeBaseG&  leaf    = path.leaf();
+//    TreePath&   path    = iter.path();
+    NodeBaseG&  leaf    = iter.leaf();
     Int&        idx     = iter.idx();
     Int 		stream  = iter.stream();
 
@@ -160,32 +160,30 @@ void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 
     if (ctr.getStreamCapacity(leaf, stream) > 0)
     {
-        ctr.makeRoom(path, 0, stream, idx, 1);
+        ctr.makeRoom(leaf, stream, idx, 1);
     }
     else if (idx == 0)
     {
-        TreePath next = path;
-        ctr.splitPath(path, next, 0, leaf_sizes / 2, ActiveStreams);
+        auto next = ctr.splitLeafP(leaf, leaf_sizes / 2);
         idx = 0;
 
-        ctr.makeRoom(path, 0, stream, idx, 1);
+        ctr.makeRoom(leaf, stream, idx, 1);
     }
     else
     {
     	Position split_idx = leaf_sizes / 2;
 
-        TreePath next = path;
-        ctr.splitPath(path, next, 0, split_idx, ActiveStreams);
+        auto next = ctr.splitLeafP(leaf, split_idx);
 
         if (idx < split_idx[stream])
         {
-        	ctr.makeRoom(path, 0, stream, idx, 1);
+        	ctr.makeRoom(leaf, stream, idx, 1);
         }
         else {
         	idx -= split_idx[stream];
 
-        	path = next;
-        	ctr.makeRoom(path, 0, stream, idx, 1);
+        	leaf = next;
+        	ctr.makeRoom(leaf, stream, idx, 1);
         }
     }
 

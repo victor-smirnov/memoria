@@ -126,23 +126,23 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
 			else {
 				Int first_entry_data_offset = iter.data_offset_for(0);
 
-				auto right = iter.path();
+				NodeBaseG right;
 
 				if (idx < first_entry_data_offset)
 				{
-					self.splitPath(iter.path(), right, 0, {0, idx}, 3);
+					right = self.splitLeafP(iter.leaf(), {0, idx});
 
 					insertDataInternal1(iter, {0, idx}, data);
 				}
 				else if (idx == first_entry_data_offset && pos > 0)
 				{
-					self.splitPath(iter.path(), right, 0, {0, idx}, 3);
+					right = self.splitLeafP(iter.leaf(), {0, idx});
 
 					insertDataInternal1(iter, {0, idx}, data);
 				}
 				else
 				{
-					self.splitPath(iter.path(), right, 0, {entry_idx + 1, idx}, 3);
+					right = self.splitLeafP(iter.leaf(), {entry_idx + 1, idx});
 					iter.cache().setEntries(iter.leaf_size(0));
 
 					insertDataInternal1(iter, {0, idx}, data);
@@ -152,9 +152,7 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
 		else {
 			if (entry_idx < leaf_size)
 			{
-				auto right = iter.path();
-
-				self.splitPath(iter.path(), right, 0, {entry_idx + 1, idx}, 3);
+				auto right = self.splitLeafP(iter.leaf(), {entry_idx + 1, idx});
 				iter.cache().setEntries(iter.leaf_size(0));
 
 				insertDataInternal1(iter, {0, idx}, data);
@@ -332,15 +330,13 @@ void M_TYPE::splitLeaf(Iterator& iter, Int split_idx)
 		split_idx = iter.leaf_size(0) / 2;
 	}
 
-	UBigInt active_streams = self.getActiveStreams(iter.leaf());
+//	UBigInt active_streams = self.getActiveStreams(iter.leaf());
 
 	if (split_idx < iter.idx())
 	{
 		Int data_offset = iter.data_offset_for(split_idx);
 
-		auto right = iter.path();
-
-		self.splitPath(iter.path(), right, 0, {split_idx, data_offset}, active_streams);
+		auto right = self.splitLeafP(iter.leaf(), {split_idx, data_offset});
 
 		iter.idx() -= split_idx;
 	}
@@ -348,15 +344,15 @@ void M_TYPE::splitLeaf(Iterator& iter, Int split_idx)
 	{
 		Int data_offset = iter.data_offset();
 
-		auto right = iter.path();
+//		auto right = iter.path();
 
 		bool return_right_path = split_idx == iter.leaf_size(0);
 
-		self.splitPath(iter.path(), right, 0, {split_idx, data_offset}, active_streams);
+		auto right = self.splitLeafP(iter.leaf(), {split_idx, data_offset});
 
 		if (return_right_path)
 		{
-			iter.path() = right;
+			iter.leaf() = right;
 			iter.idx()  = 0;
 
 			iter.cache().setEntryIdx(iter.idx());
@@ -368,9 +364,7 @@ void M_TYPE::splitLeaf(Iterator& iter, Int split_idx)
 	else {
 		Int data_offset = iter.data_offset_for(split_idx);
 
-		auto right = iter.path();
-
-		self.splitPath(iter.path(), right, 0, {split_idx, data_offset}, active_streams);
+		auto right = self.splitLeafP(iter.leaf(), {split_idx, data_offset});
 	}
 
 	iter.cache().setEntries(iter.leaf_size(0));
@@ -397,10 +391,9 @@ void M_TYPE::splitLeafData(Iterator& iter, Int split_idx)
 		split_idx = iter.idx() / 2;
 	}
 
-	auto right = iter.path();
-	self.splitPath(iter.path(), right, 0, {0, split_idx}, 3);
+	auto right = self.splitLeafP(iter.leaf(), {0, split_idx});
 
-	iter.path() = right;
+	iter.leaf() = right;
 
 	if (split_idx <= iter.idx())
 	{
@@ -418,15 +411,13 @@ void M_TYPE::insertDataInternal(Iterator& iter, const Position& idx, DataSource&
 		auto& self = this->self();
 		auto& ctr  = self;
 
-		TreePath& path = iter.path();
-
 		vmap::VectorMapSource source(&data);
 
 		typename Base::DefaultSubtreeProvider provider(self, {0, data.getRemainder()}, source);
 
 		Position idx0 = idx;
 
-		ctr.insertSubtree(path, idx0, provider);
+		ctr.insertSubtree(iter.leaf(), idx0, provider);
 
 		if (iter.isEof())
 		{
@@ -444,15 +435,13 @@ void M_TYPE::insertDataInternal1(Iterator& iter, const Position& idx, DataSource
 		auto& self = this->self();
 		auto& ctr  = self;
 
-		TreePath& path = iter.path();
-
 		vmap::VectorMapSource source(&data);
 
 		typename Base::DefaultSubtreeProvider provider(self, {0, data.getRemainder()}, source);
 
 		Position idx0 = idx;
 
-		ctr.insertSubtree(path, idx0, provider);
+		ctr.insertSubtree(iter.leaf(), idx0, provider);
 
 		MEMORIA_ASSERT(data.getRemainder(), ==, 0);
 	}

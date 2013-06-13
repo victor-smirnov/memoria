@@ -73,8 +73,7 @@ void M_TYPE::insert(Iterator& iter, DataSource& data)
 	auto& self = this->self();
 	auto& ctr  = self;
 
-	TreePath& path = iter.path();
-	Position idx(iter.key_idx());
+	Position idx(iter.idx());
 
 	if (ctr.isNodeEmpty(iter.leaf()))
 	{
@@ -85,7 +84,7 @@ void M_TYPE::insert(Iterator& iter, DataSource& data)
 
 	typename Base::DefaultSubtreeProvider provider(self, Position(data.getSize()), source);
 
-	ctr.insertSubtree(path, idx, provider);
+	ctr.insertSubtree(iter.leaf(), idx, provider);
 
 	ctr.addTotalKeyCount(Position(data.getSize()));
 

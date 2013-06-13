@@ -356,11 +356,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	return LeafDispatcher::dispatchConstRtn(node, GetKeysFn(), idx);
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetSumsFn, sums, Accumulator);
-    Accumulator getLeafSums(const NodeBaseG& node) const
-    {
-    	return LeafDispatcher::dispatchConstRtn(node, GetSumsFn());
-    }
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetMaxKeyValuesFn, maxKeys, Accumulator);

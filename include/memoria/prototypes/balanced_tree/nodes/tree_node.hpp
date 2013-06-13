@@ -1222,10 +1222,10 @@ public:
     	Dispatcher::dispatchNotEmpty(&allocator_, UpdateUpFn(), idx, &keys);
     }
 
-    Accumulator getCounters(const Position& pos, const Position& count) const
-    {
-    	return sum(pos.get(), pos.get() + count.get());
-    }
+//    Accumulator getCounters(const Position& pos, const Position& count) const
+//    {
+//    	return sum(pos.get(), pos.get() + count.get());
+//    }
 
 
     Accumulator keys(Int pos) const

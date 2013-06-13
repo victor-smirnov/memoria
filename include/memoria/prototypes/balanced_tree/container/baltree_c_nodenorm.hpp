@@ -68,6 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeNormName)
     MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
     bool updateNode(NodeBaseG& node, Int idx, const Accumulator& keys);
     void updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys);
+    void updateParent(NodeBaseG& node, const Accumulator& sums);
 
 
 
@@ -77,7 +78,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeNormName)
 
     void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
 
-    void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
+//    void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
 
 
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
@@ -165,7 +166,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, Int split_at
 	auto& self = this->self();
 
 	return splitP(left_node, [&self, split_at](NodeBaseG& left, NodeBaseG& right){
-		return self.splitNode(left, right, split_at);
+		return self.splitNonLeafNode(left, right, split_at);
 	});
 }
 
@@ -174,7 +175,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Positi
 {
 	auto& self = this->self();
 
-	return splitP(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right){
+	return splitP(left_node, [&](NodeBaseG& left, NodeBaseG& right){
 		return self.splitLeafNode(left, right, split_at);
 	});
 }
@@ -204,6 +205,17 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
 	}
 }
 
+M_PARAMS
+void M_TYPE::updateParent(NodeBaseG& node, const Accumulator& sums)
+{
+	auto& self = this->self();
+
+	if (!node->is_root())
+	{
+		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+		self.updatePath(parent, node->parent_idx(), sums);
+	}
+}
 
 
 
@@ -274,62 +286,62 @@ void M_TYPE::insertNonLeaf(
 }
 
 
-
-
-M_PARAMS
-void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams)
-{
-	auto& self = this->self();
-
-	if (level == left.getSize() - 1)
-	{
-		self.newRoot(left);
-		right.resize(left.getSize());
-		right[level + 1] = left[level + 1];
-	}
-
-	NodeBaseG& left_node    = left[level].node();
-	NodeBaseG& left_parent  = left[level + 1].node();
-
-	left_node.update();
-	left_parent.update();
-
-	NodeBaseG other  = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
-
-	Accumulator keys = self.splitNode(left_node, other, idx);
-
-	Int parent_idx   = left[level].parent_idx();
-
-	self.updateUp(left, level + 1, parent_idx, -keys, [](Int, Int){});
-
-	if (self.getNonLeafCapacity(left_parent, active_streams) > 0)
-	{
-		self.insertNonLeaf(left_parent, parent_idx + 1, keys, other->id());
-		self.updateChildren(left_parent, parent_idx + 1);
-
-		other->parent_id()  = left_parent->id();
-		other->parent_idx() = parent_idx + 1;
-
-		self.updateUp(left, level + 2, left[level + 1].parent_idx(), keys, [](Int, Int){});
-
-		right[level].node()         = other;
-		right[level].parent_idx()   = parent_idx + 1;
-	}
-	else {
-		splitPath(left, right, level + 1, Position(parent_idx + 1), active_streams);
-
-		self.insertNonLeaf(right[level + 1], 0, keys, other->id());
-		self.updateChildren(right[level + 1], 1);
-
-		other->parent_id()  = right[level + 1]->id();
-		other->parent_idx() = 0;
-
-		self.updateUp(right, level + 2, right[level + 1].parent_idx(), keys, [](Int, Int){});
-
-		right[level].node()         = other;
-		right[level].parent_idx()   = 0;
-	}
-}
+//
+//
+//M_PARAMS
+//void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams)
+//{
+//	auto& self = this->self();
+//
+//	if (level == left.getSize() - 1)
+//	{
+//		self.newRoot(left);
+//		right.resize(left.getSize());
+//		right[level + 1] = left[level + 1];
+//	}
+//
+//	NodeBaseG& left_node    = left[level].node();
+//	NodeBaseG& left_parent  = left[level + 1].node();
+//
+//	left_node.update();
+//	left_parent.update();
+//
+//	NodeBaseG other  = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
+//
+//	Accumulator keys = self.splitNode(left_node, other, idx);
+//
+//	Int parent_idx   = left[level].parent_idx();
+//
+//	self.updateUp(left, level + 1, parent_idx, -keys, [](Int, Int){});
+//
+//	if (self.getNonLeafCapacity(left_parent, active_streams) > 0)
+//	{
+//		self.insertNonLeaf(left_parent, parent_idx + 1, keys, other->id());
+//		self.updateChildren(left_parent, parent_idx + 1);
+//
+//		other->parent_id()  = left_parent->id();
+//		other->parent_idx() = parent_idx + 1;
+//
+//		self.updateUp(left, level + 2, left[level + 1].parent_idx(), keys, [](Int, Int){});
+//
+//		right[level].node()         = other;
+//		right[level].parent_idx()   = parent_idx + 1;
+//	}
+//	else {
+//		splitPath(left, right, level + 1, Position(parent_idx + 1), active_streams);
+//
+//		self.insertNonLeaf(right[level + 1], 0, keys, other->id());
+//		self.updateChildren(right[level + 1], 1);
+//
+//		other->parent_id()  = right[level + 1]->id();
+//		other->parent_idx() = 0;
+//
+//		self.updateUp(right, level + 2, right[level + 1].parent_idx(), keys, [](Int, Int){});
+//
+//		right[level].node()         = other;
+//		right[level].parent_idx()   = 0;
+//	}
+//}
 
 
 #undef M_TYPE

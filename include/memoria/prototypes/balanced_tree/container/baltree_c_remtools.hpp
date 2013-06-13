@@ -355,7 +355,7 @@ bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
 
         if (next)
         {
-            merged = mergeBTreeNodes(node, next);
+            merged = mergeBTreeNodes(node, next, [](const NodeBaseG&, const NodeBaseG&){});
         }
     }
 

@@ -66,9 +66,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeComprName)
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
     MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
-    bool updateNode(NodeBaseG& node, Int idx, const Accumulator& keys);
-    void updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys);
-    void updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& keys);
+    bool updateNode(NodeBaseG& node, Int idx, const Accumulator& sums);
+    void updatePath(NodeBaseG& node, Int& idx, const Accumulator& sums);
+    void updateParent(NodeBaseG& node, const Accumulator& sums);
+
+    void updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& sums);
 
 
 
@@ -92,7 +94,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeComprName)
 
 
 
-    void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
+//    void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
 
 
 
@@ -130,20 +132,20 @@ M_PARAMS
 void M_TYPE::insertNonLeafP(
 		NodeBaseG& node,
 		Int idx,
-		const Accumulator& keys,
+		const Accumulator& sums,
 		const ID& id
 )
 {
 	auto& self = this->self();
 
 	node.update();
-	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+	NonLeafDispatcher::dispatch(node, InsertFn(), idx, sums, id);
 	self.updateChildren(node, idx);
 
 	if (!node->is_root())
 	{
 		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
-		self.updatePath(parent, node->parent_idx(), keys);
+		self.updatePath(parent, node->parent_idx(), sums);
 	}
 }
 
@@ -167,17 +169,17 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
 	NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
-	Accumulator keys = split_fn(left_node, other);
+	Accumulator sums = split_fn(left_node, other);
 
 	Int parent_idx   = left_node->parent_idx();
 
-	self.updatePathNoBackup(left_parent, parent_idx, -keys);
+	self.updatePathNoBackup(left_parent, parent_idx, -sums);
 
 	PageUpdateMgr mgr(self);
 	mgr.add(left_parent);
 
 	try {
-		self.insertNonLeafP(left_parent, parent_idx + 1, keys, other->id());
+		self.insertNonLeafP(left_parent, parent_idx + 1, sums, other->id());
 	}
 	catch (PackedOOMException ex)
 	{
@@ -188,7 +190,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 		mgr.add(right_parent);
 
 		try {
-			self.insertNonLeafP(right_parent, 0, keys, other->id());
+			self.insertNonLeafP(right_parent, 0, sums, other->id());
 		}
 		catch (PackedOOMException ex2)
 		{
@@ -198,7 +200,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
 			splitPathP(right_parent, right_parent_size / 2);
 
-			self.insertNonLeafP(right_parent, 0, keys, other->id());
+			self.insertNonLeafP(right_parent, 0, sums, other->id());
 		}
 	}
 
@@ -226,7 +228,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Positi
 }
 
 M_PARAMS
-bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
+bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& sums)
 {
 	auto& self = this->self();
 
@@ -235,7 +237,7 @@ bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
 	mgr.add(node);
 
 	try {
-		NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
+		NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, sums);
 		return true;
 	}
 	catch (PackedOOMException ex)
@@ -246,11 +248,11 @@ bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
 }
 
 M_PARAMS
-void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
+void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& sums)
 {
 	auto& self = this->self();
 
-	if (!self.updateNode(node, idx, keys))
+	if (!self.updateNode(node, idx, sums))
 	{
 		Int size 		= self.getNodeSize(node, 0);
 		Int split_idx	= size / 2;
@@ -269,24 +271,37 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
 		Int parent_idx = node->parent_idx();
 		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
 
-		self.updatePath(parent, parent_idx, keys);
+		self.updatePath(parent, parent_idx, sums);
+	}
+}
+
+M_PARAMS
+void M_TYPE::updateParent(NodeBaseG& node, const Accumulator& sums)
+{
+	auto& self = this->self();
+
+	if (!node->is_root())
+	{
+		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+		self.updatePath(parent, node->parent_idx(), sums);
 	}
 }
 
 
+
 M_PARAMS
-void M_TYPE::updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& keys)
+void M_TYPE::updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& sums)
 {
 	auto& self = this->self();
 
-	self.updateNode(node, idx, keys);
+	self.updateNode(node, idx, sums);
 
 	if(!node->is_root())
 	{
 		Int parent_idx = node->parent_idx();
 		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
 
-		self.updatePathNoBackup(parent, parent_idx, keys);
+		self.updatePathNoBackup(parent, parent_idx, sums);
 	}
 }
 
@@ -362,7 +377,7 @@ bool M_TYPE::updateCounters(
 
     	Int split_idx = size / 2;
 
-    	self.splitPath(path, right, level, Position(split_idx), -1);
+//    	self.splitPath(path, right, level, Position(split_idx), -1);
 
     	if (idx >= split_idx)
     	{
@@ -436,67 +451,67 @@ void M_TYPE::insertNonLeaf(
 	node.update();
 	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
-
-
-M_PARAMS
-void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams)
-{
-	auto& self = this->self();
-
-	if (level == left.getSize() - 1)
-	{
-		self.newRoot(left);
-		right.resize(left.getSize());
-		right[level + 1] = left[level + 1];
-	}
-
-	NodeBaseG& left_node    = left[level].node();
-	NodeBaseG& left_parent  = left[level + 1].node();
-
-	left_node.update();
-	left_parent.update();
-
-	NodeBaseG other  = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
-
-	Accumulator keys = self.splitNode(left_node, other, idx);
-
-	Int parent_idx   = left[level].parent_idx();
-
-	self.updateUpNoBackup(left, level + 1, parent_idx, -keys);
-
-	PageUpdateMgr mgr(self);
-	mgr.add(left_parent);
-
-	try {
-		self.insertNonLeaf(left_parent, parent_idx + 1, keys, other->id());
-		self.updateChildren(left_parent, parent_idx + 1);
-
-		other->parent_id()  = left_parent->id();
-		other->parent_idx() = parent_idx + 1;
-
-		self.updateUpNoBackup(left, level + 2, left[level + 1].parent_idx(), keys);
-
-		right[level].node()         = other;
-		right[level].parent_idx()   = parent_idx + 1;
-	}
-	catch (PackedOOMException ex)
-	{
-		mgr.rollback();
-
-		splitPath(left, right, level + 1, Position(parent_idx + 1), active_streams);
-
-		self.insertNonLeaf(right[level + 1], 0, keys, other->id());
-		self.updateChildren(right[level + 1], 1);
-
-		other->parent_id()  = right[level + 1]->id();
-		other->parent_idx() = 0;
-
-		self.updateUpNoBackup(right, level + 2, right[level + 1].parent_idx(), keys);
-
-		right[level].node()         = other;
-		right[level].parent_idx()   = 0;
-	}
-}
+//
+//
+//M_PARAMS
+//void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams)
+//{
+//	auto& self = this->self();
+//
+//	if (level == left.getSize() - 1)
+//	{
+//		self.newRoot(left);
+//		right.resize(left.getSize());
+//		right[level + 1] = left[level + 1];
+//	}
+//
+//	NodeBaseG& left_node    = left[level].node();
+//	NodeBaseG& left_parent  = left[level + 1].node();
+//
+//	left_node.update();
+//	left_parent.update();
+//
+//	NodeBaseG other  = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
+//
+//	Accumulator keys = self.splitNode(left_node, other, idx);
+//
+//	Int parent_idx   = left[level].parent_idx();
+//
+//	self.updateUpNoBackup(left, level + 1, parent_idx, -keys);
+//
+//	PageUpdateMgr mgr(self);
+//	mgr.add(left_parent);
+//
+//	try {
+//		self.insertNonLeaf(left_parent, parent_idx + 1, keys, other->id());
+//		self.updateChildren(left_parent, parent_idx + 1);
+//
+//		other->parent_id()  = left_parent->id();
+//		other->parent_idx() = parent_idx + 1;
+//
+//		self.updateUpNoBackup(left, level + 2, left[level + 1].parent_idx(), keys);
+//
+//		right[level].node()         = other;
+//		right[level].parent_idx()   = parent_idx + 1;
+//	}
+//	catch (PackedOOMException ex)
+//	{
+//		mgr.rollback();
+//
+//		splitPath(left, right, level + 1, Position(parent_idx + 1), active_streams);
+//
+//		self.insertNonLeaf(right[level + 1], 0, keys, other->id());
+//		self.updateChildren(right[level + 1], 1);
+//
+//		other->parent_id()  = right[level + 1]->id();
+//		other->parent_idx() = 0;
+//
+//		self.updateUpNoBackup(right, level + 2, right[level + 1].parent_idx(), keys);
+//
+//		right[level].node()         = other;
+//		right[level].parent_idx()   = 0;
+//	}
+//}
 
 
 #undef M_TYPE
