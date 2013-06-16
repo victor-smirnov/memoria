@@ -257,24 +257,23 @@ void M_TYPE::removeNonLeafNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumula
 {
     auto& self = this->self();
 
+    MEMORIA_ASSERT(stop_idx, >=, 0);
+
     NodeBaseG node = stop;
 
-    if (stop_idx > 0)
+    self.removeNodeContent(node, 0, stop_idx, sums, sizes);
+
+    while (!node->is_root())
     {
-    	self.removeNodeContent(node, 0, stop_idx, sums, sizes);
+    	Int parent_idx = node->parent_idx();
 
-    	while (!node->is_root())
+    	if (parent_idx > 0)
     	{
-    		Int parent_idx = node->parent_idx();
-
-    		if (parent_idx > 0)
-    		{
-    			node = self.getNodeParent(node, Allocator::UPDATE);
-    			self.removeNodeContent(node, 0, parent_idx, sums, sizes);
-    		}
-    		else {
-    			break;
-    		}
+    		node = self.getNodeParent(node, Allocator::UPDATE);
+    		self.removeNodeContent(node, 0, parent_idx, sums, sizes);
+    	}
+    	else {
+    		break;
     	}
     }
 }

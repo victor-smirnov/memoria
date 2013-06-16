@@ -137,7 +137,7 @@ public:
     {
     	NodeDispatcher::dispatchConst(node, walker, idx);
 
-    	while (node->is_root())
+    	while (!node->is_root())
     	{
     		idx = node->parent_idx();
     		node = self().getNodeParent(node, Allocator::READ);

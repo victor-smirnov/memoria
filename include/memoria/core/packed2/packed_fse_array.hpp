@@ -211,18 +211,24 @@ public:
 		enlarge(-items_num);
 	}
 
-	void removeSpace(Int room_start, Int room_length)
+	void removeSpace(Int room_start, Int room_end)
 	{
+		MEMORIA_ASSERT(room_start, >=, 0);
+		MEMORIA_ASSERT(room_end,   >=, 0);
+		MEMORIA_ASSERT(room_end,   >=, room_start);
+
 		MEMORIA_ASSERT(room_start, <=, max_size_);
 		MEMORIA_ASSERT(room_start, <=, size_);
 
-		MEMORIA_ASSERT(room_start + room_length, <=, size_);
+		Int room_length = room_end - room_start;
 
-		Int length = size_ - room_start - room_length;
+		MEMORIA_ASSERT(room_end, <=, size_);
+
+		Int length = size_ - room_end;
 
 		if (length > 0)
 		{
-			CopyBuffer(buffer_ + room_start + room_length, buffer_ + room_start, length);
+			CopyBuffer(buffer_ + room_end, buffer_ + room_start, length);
 		}
 
 		size_ -= room_length;
@@ -232,11 +238,7 @@ public:
 
 	void insertSpace(Int room_start, Int room_length)
 	{
-		if (room_start > size_)
-		{
-			int a = 0; a++;
-		}
-
+		MEMORIA_ASSERT(room_start, >=, 0);
 		MEMORIA_ASSERT(room_start, <=, size_);
 
 		if (capacity() < room_length)

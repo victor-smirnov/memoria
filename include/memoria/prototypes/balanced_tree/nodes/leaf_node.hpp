@@ -775,7 +775,7 @@ public:
 
     			other_tree->reindex();
 
-    			tree->removeSpace(idx, remainder);
+    			tree->removeSpace(idx, idx + remainder);
 
     			tree->reindex();
     		}
