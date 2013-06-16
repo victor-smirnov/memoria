@@ -150,6 +150,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     	if (iter.found())
     	{
     		self.removeEntry(iter);
+
     		return true;
     	}
     	else {

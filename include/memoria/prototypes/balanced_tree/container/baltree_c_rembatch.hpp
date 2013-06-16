@@ -155,7 +155,7 @@ typename M_TYPE::Position M_TYPE::removeEntries(
         if (prev)
         {
         	start 		= prev;
-            start_idx 	= self.getNodeSizes(start);
+            start_idx 	= self.getNodeSizes(prev);
 
             from_start 	= false;
         }
@@ -205,7 +205,7 @@ typename M_TYPE::Position M_TYPE::removeEntries(
         stop_idx    = start_idx;
     }
     else {
-        removeNodes(start, start_idx, stop, stop_idx, sums, sizes);
+    	removeNodes(start, start_idx, stop, stop_idx, sums, sizes);
 
         if (merge)
         {

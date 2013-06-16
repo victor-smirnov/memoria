@@ -1082,7 +1082,7 @@ public:
 
 		clear(idx, idx + room_length);
 
-		MEMORIA_ASSERT(raw_size(), <=, max_size());
+		MEMORIA_ASSERT(raw_size(), <=, raw_max_size());
 	}
 
 	void removeSpace(Int start, Int end)

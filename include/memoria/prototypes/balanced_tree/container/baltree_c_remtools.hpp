@@ -179,6 +179,8 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator&
 
 	NonLeafDispatcher::dispatch(node, RemoveNodeContentFn(), start, end);
 
+	VectorAdd(sums, deleted_sums);
+
 	self.updateParent(node, -deleted_sums);
 
 	self.updateChildren(node, start);
@@ -222,6 +224,7 @@ typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, Int stre
 	auto& self = this->self();
 
 	node.update();
+
 	Accumulator sums = LeafDispatcher::dispatchRtn(node, RemoveLeafContentFn(), stream, start, end);
 
 	self.updateParent(node, -sums);

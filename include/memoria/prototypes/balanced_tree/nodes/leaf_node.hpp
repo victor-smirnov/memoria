@@ -649,7 +649,9 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(Tree* tree, Int room_start, Int room_end)
     	{
-    		tree->removeSpace(room_start, room_end);
+    		if (tree != nullptr) {
+    			tree->removeSpace(room_start, room_end);
+    		}
     	}
     };
 

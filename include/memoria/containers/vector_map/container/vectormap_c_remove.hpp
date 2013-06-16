@@ -82,7 +82,7 @@ void M_TYPE::removeEntry(Iterator& iter)
 
 	if (local_offset + size <= data_leaf_size)
 	{
-		VectorAdd(keys, self.removeLeafContent(iter.leaf(), {idx, local_offset}, {1, size}));
+		VectorAdd(keys, self.removeLeafContent(iter.leaf(), {idx, local_offset}, {idx + 1, local_offset + size}));
 		self.addTotalKeyCount({-1, -size});
 
 		if (iter.isEnd())
