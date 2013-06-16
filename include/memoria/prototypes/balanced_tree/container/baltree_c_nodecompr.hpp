@@ -58,6 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeComprName)
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
+
     void insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, Int split_at);
@@ -126,7 +127,6 @@ MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::balanced_tree::NodeComprName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
 
 M_PARAMS
 void M_TYPE::insertNonLeafP(

@@ -117,7 +117,7 @@ void M_TYPE::insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, c
 	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 	self.updateChildren(node, idx);
 
-	if (node->is_root())
+	if (!node->is_root())
 	{
 		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
 		self.updatePath(parent, node->parent_idx(), keys);
@@ -196,10 +196,10 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
 
 	self.updateNode(tmp, idx, keys);
 
-	while(!node->is_root())
+	while(!tmp->is_root())
 	{
 		Int parent_idx = tmp->parent_idx();
-		tmp = self.allocator().getPage(tmp->parent_id(), Allocator::UPDATE);
+		tmp = self.getNodeParent(tmp, Allocator::UPDATE);
 
 		self.updateNode(tmp, parent_idx, keys);
 	}
@@ -213,6 +213,7 @@ void M_TYPE::updateParent(NodeBaseG& node, const Accumulator& sums)
 	if (!node->is_root())
 	{
 		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+
 		self.updatePath(parent, node->parent_idx(), sums);
 	}
 }

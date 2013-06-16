@@ -85,6 +85,8 @@ public:
     	}
     	catch (Exception ex)
     	{
+    		self().dump(node);
+
     		MEMORIA_ERROR(me(), ex.message());
     		return true;
     	}
@@ -159,7 +161,7 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
             if (child->parent_idx() != c)
             {
             	errors = true;
-            	MEMORIA_ERROR(me(), "child.parent_idx != idx", child->parent_idx(), c);
+            	MEMORIA_ERROR(me(), "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
             	cout<<"parent_idx: "<<child->parent_idx()<<" "<<c<<endl;
             }
 

@@ -40,7 +40,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
 
     void buildPath(NodeBaseG& leaf)
     {
-    	self().model().buildPath(self().path(), leaf);
+//    	self().model().buildPath(self().path(), leaf);
     }
 
     bool nextLeaf();
@@ -57,11 +57,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
         return self().prevKey();
     }
 
-    void updateUp(const Accumulator& keys)
-    {
-    	auto& self = this->self();
-    	self.model().updateUp(self.path(), 0, self.key_idx(), keys);
-    }
+//    void updateUp(const Accumulator& keys)
+//    {
+//    	auto& self = this->self();
+//    	self.model().updatePath(self.leaf(), 0, self.idx(), keys);
+//    }
 
 
     bool IsFound() {
@@ -88,18 +88,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
 
     Int leaf_size(Int stream) const
     {
-    	return LeafDispatcher::dispatchConstRtn(self().path().leaf().node(), SizeFn(), stream);
+    	return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), stream);
     }
 
     Int leaf_size() const
     {
-    	return LeafDispatcher::dispatchConstRtn(self().path().leaf().node(), SizeFn(), self().stream());
+    	return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), self().stream());
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Int);
 
     Position leaf_sizes() const {
-    	return LeafDispatcher::dispatchConstRtn(self().path().leaf().node(), SizesFn());
+    	return LeafDispatcher::dispatchConstRtn(self().leaf(), SizesFn());
     }
 
     bool has_no_data() const
@@ -109,7 +109,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
 
     bool is_leaf_empty() const
     {
-    	return self().model().isNodeEmpty(self().path().leaf().node());
+    	return self().model().isNodeEmpty(self().leaf());
     }
 
     Int leaf_capacity(Int stream) const
@@ -137,11 +137,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     	auto& self = this->self();
     	auto& ctr = self.model();
 
-    	auto next = self.path();
+    	auto next = ctr.splitLeafP(self.leaf(), self.leaf_sizes());
 
-    	ctr.splitPath(self.path(), next, self.leaf_sizes());
-
-    	self.path() = next;
+    	self.leaf() = next;
 
     	self.idx() = 0;
     }
@@ -166,7 +164,7 @@ BigInt M_TYPE::skipStreamFw(Int stream, BigInt amount)
 
 	walker.prepare(self);
 
-	Int idx = self.model().findFw(self.path(), stream, self.key_idx(), walker);
+	Int idx = self.model().findFw(self.leaf(), stream, self.idx(), walker);
 
 	return walker.finish(self, idx);
 }
@@ -182,7 +180,7 @@ BigInt M_TYPE::skipStreamBw(Int stream, BigInt amount)
 
 	walker.prepare(self);
 
-	Int idx = self.model().findBw(self.path(), stream, self.key_idx(), walker);
+	Int idx = self.model().findBw(self.leaf(), stream, self.idx(), walker);
 
 	return walker.finish(self, idx);
 }
@@ -253,16 +251,18 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
 {
 	auto& self = this->self();
 
-	TreePath& 	path 	= self.path();
+	NodeBaseG& 	leaf 	= self.leaf();
 	Int 		stream 	= self.stream();
 
-	if (path.getSize() > 1)
+	if (!leaf->is_root())
 	{
 		walker.prepare(self);
 
-		Int idx = self.model().findFw(path, stream, self.leaf()->parent_idx() + 1, walker, 1);
+		NodeBaseG parent = self.ctr().getNodeParent(leaf, Allocator::READ);
 
-		Int size = self.model().getNodeSize(path[1].node(), stream);
+		Int idx = self.ctr().findFw(parent, stream, leaf->parent_idx() + 1, walker);
+
+		Int size = self.ctr().getNodeSize(parent, stream);
 
 		MEMORIA_ASSERT_TRUE(size > 0);
 
@@ -277,8 +277,7 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
 		}
 
 		// Step down the tree
-		path[0].node() 			= self.model().getChild(path[1].node(), child_idx, Allocator::READ);
-		path[0].parent_idx()	= child_idx;
+		leaf = self.ctr().getChild(parent, child_idx, Allocator::READ);
 
 		walker.finish(self, idx < size);
 
@@ -299,16 +298,18 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
 {
 	auto& self = this->self();
 
-	TreePath& 	path 	= self.path();
+	NodeBaseG& 	leaf 	= self.leaf();
 	Int 		stream 	= self.stream();
 
-	if (path.getSize() > 1)
+	if (!leaf->is_root())
 	{
 		walker.prepare(self);
 
-		Int idx = self.model().findBw(path, stream, self.leaf()->parent_idx() - 1, walker, 1);
+		NodeBaseG parent = self.ctr().getNodeParent(leaf, Allocator::READ);
 
-		Int size = self.model().getNodeSize(path[1].node(), stream);
+		Int idx = self.model().findBw(parent, stream, leaf->parent_idx() - 1, walker);
+
+		Int size = self.model().getNodeSize(parent, stream);
 
 		MEMORIA_ASSERT_TRUE(size > 0);
 
@@ -323,8 +324,7 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
 		}
 
 		// Step down the tree
-		path[0].node() 			= self.model().getChild(path[1].node(), child_idx, Allocator::READ);
-		path[0].parent_idx()	= child_idx;
+		leaf = self.model().getChild(parent, child_idx, Allocator::READ);
 
 		walker.finish(self, idx >= 0);
 

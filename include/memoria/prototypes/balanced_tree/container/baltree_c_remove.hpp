@@ -39,10 +39,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveName)
 
 	bool removeEntry(Iterator& iter, Accumulator& keys);
 
-	void removeEntry(NodeBaseG& node, Int stream, Int& idx, Accumulator& keys, bool merge = true);
+//	void removeEntry(NodeBaseG& node, Int stream, Int& idx, Accumulator& keys, bool merge = true);
 
-	void removeEntryP(NodeBaseG& node, Int stream, Int& idx, Accumulator& keys, bool merge = true)
-	{}
+
+
+//	void removeEntryP(NodeBaseG& node, Int stream, Int& idx, Accumulator& keys, bool merge = true)
+//	{}
 
 
 
@@ -68,11 +70,48 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
 {
-	auto& self = this->self();
-
-	if (iter.isNotEmpty() || iter.isNotEnd())
+	if (iter.isNotEnd())
     {
-        self.removeEntry(iter.leaf(), iter.stream(), iter.idx(), keys);
+		auto& self = this->self();
+
+		NodeBaseG& node = iter.leaf();
+		Int& idx 		= iter.idx();
+		Int stream 		= iter.stream();
+
+//		self.dump(node);
+
+		VectorAdd(keys, self.removeLeafContent(node, stream, idx, idx + 1));
+
+		if (self.shouldMergeNode(node))
+		{
+			self.mergeWithSiblings(node, [&, stream](const NodeBaseG& left, const NodeBaseG& right) {
+				if (left->is_leaf())
+				{
+					idx += self.getNodeSize(left, stream);
+				}
+			});
+		}
+
+		Position sizes = self.getNodeSizes(node);
+
+		if (sizes.eqAll(0))
+		{
+			NodeBaseG old = node;
+
+			if (iter.nextLeaf())
+			{
+				self.removeNode(old);
+			}
+			else if (iter.prevLeaf())
+			{
+				self.removeNode(old);
+			}
+			else {
+				self.removeRedundantRootP(old);
+			}
+		}
+
+		self.addTotalKeyCount(Position::create(stream, -1));
 
         if (iter.isEnd())
         {
@@ -96,36 +135,39 @@ bool M_TYPE::removeEntry(Iterator& iter, Accumulator& keys)
  *
  * \see mergeWithSiblings
  */
-
-M_PARAMS
-void M_TYPE::removeEntry(NodeBaseG& node, Int stream, Int& idx, Accumulator& keys, bool merge)
-{
-    auto& self = this->self();
-
-    MEMORIA_ASSERT_TRUE(node->is_leaf());
-
-    VectorAdd(keys, self.removeLeafContent(node, stream, idx, idx + 1));
-
-    if (merge && self.shouldMergeNode(node))
-    {
-    	self.mergeWithSiblings(node, [&, stream](const NodeBaseG& left, const NodeBaseG& right) {
-    		if (left->is_leaf())
-    		{
-    			idx += self.getNodeSize(left, stream);
-    		}
-    	});
-    }
-
-    Position sizes = self.getNodeSizes(node);
-
-    if (sizes.eqAll(0))
-    {
-    	// TODO: find the nearest leaf for the specified stream
-    	// remove empty leaf node
-    }
-
-    self.addTotalKeyCount(Position::create(stream, -1));
-}
+//
+//M_PARAMS
+//void M_TYPE::removeEntry(NodeBaseG& node, Int stream, Int& idx, Accumulator& keys, bool merge)
+//{
+//    auto& self = this->self();
+//
+//    MEMORIA_ASSERT_TRUE(node->is_leaf());
+//
+//    VectorAdd(keys, self.removeLeafContent(node, stream, idx, idx + 1));
+//
+//    if (merge && self.shouldMergeNode(node))
+//    {
+//    	self.mergeWithSiblings(node, [&, stream](const NodeBaseG& left, const NodeBaseG& right) {
+//    		if (left->is_leaf())
+//    		{
+//    			idx += self.getNodeSize(left, stream);
+//    		}
+//    	});
+//    }
+//
+//    Position sizes = self.getNodeSizes(node);
+//
+//    if (sizes.eqAll(0))
+//    {
+//    	NodeBaseG old = node;
+//
+//    	// TODO: find the nearest leaf for the specified stream
+//    	// remove empty leaf node
+//    	throw Exception(MA_SRC, "Handle this case");
+//    }
+//
+//    self.addTotalKeyCount(Position::create(stream, -1));
+//}
 
 
 #undef M_TYPE

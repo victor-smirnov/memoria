@@ -769,21 +769,26 @@ public:
 
     struct RemoveSpaceFn {
     	template <Int Idx, typename Tree>
-    	void stream(Tree* tree, Int room_start, Int room_length)
+    	void stream(Tree* tree, Int room_start, Int room_end)
     	{
-    		tree->removeSpace(room_start, room_length);
+    		tree->removeSpace(room_start, room_end);
     	}
     };
 
-    Accumulator removeSpace(const Position& from_pos, const Position& end_pos, bool reindex = true)
+    Accumulator removeSpace(const Position& from_pos, const Position& end_pos)
     {
-    	return this->removeSpace(from_pos.get(), end_pos.get(), reindex);
+    	Accumulator sums;
+
+    	this->sum(from_pos.get(), end_pos.get(), sums);
+    	this->removeSpace(from_pos.get(), end_pos.get());
+
+    	return sums;
     }
 
     Accumulator removeSpaceAcc(Int room_start, Int room_end)
     {
     	Accumulator sums = this->sum_neg(room_start, room_end);
-    	removeSpace(room_start, room_end, true);
+    	removeSpace(room_start, room_end);
     	return sums;
     }
 
@@ -1039,11 +1044,20 @@ public:
 
     Value& value(Int idx)
     {
+    	MEMORIA_ASSERT(idx, >=, 0);
+    	MEMORIA_ASSERT(idx, <, size());
     	return *(values() + idx);
     }
 
     const Value& value(Int idx) const
     {
+    	MEMORIA_ASSERT(idx, >=, 0);
+
+    	if (idx >= size()) {
+    		int a = 0; a++;
+    	}
+
+    	MEMORIA_ASSERT(idx, <, size());
     	return *(values() + idx);
     }
 
@@ -1214,6 +1228,8 @@ public:
     		{
     			tree->value(c, idx) += std::get<Idx>(*accum)[c];
     		}
+
+    		tree->reindex();
     	}
     };
 

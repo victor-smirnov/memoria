@@ -877,7 +877,9 @@ private:
 
     Shared* get_shared(Page* page, Int op)
     {
-        Shared* shared = pool_.get(page->id());
+        MEMORIA_ASSERT_TRUE(page != nullptr);
+
+    	Shared* shared = pool_.get(page->id());
 
         if (shared == NULL)
         {

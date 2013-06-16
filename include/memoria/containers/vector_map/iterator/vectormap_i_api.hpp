@@ -251,7 +251,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		PrefixFn fn(1, 0);
 
-		self.ctr().walkUp(self.path(), 0, fn);
+		self.ctr().walkUp(self.leaf(), 0, fn);
 
 		MEMORIA_ASSERT_TRUE(fn.prefix_ >= 0);
 
@@ -265,7 +265,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		PrefixFn fn(0, 1);
 
-		self.ctr().walkUp(self.path(), 0, fn);
+		self.ctr().walkUp(self.leaf(), 0, fn);
 
 		Int base = fn.prefix_ - self.leaf_blob_base();
 
@@ -297,7 +297,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 		EntryBlobBaseFn fn;
 
-		self.ctr().walkUp(self.path(), 0, fn);
+		self.ctr().walkUp(self.leaf(), 0, fn);
 
 		MEMORIA_ASSERT_TRUE(fn.prefix_ >= 0);
 
@@ -698,7 +698,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	leaf.update();
     	LeafDispatcher::dispatch(leaf, UpdateFn(), self.idx(), accum);
 
-    	self.ctr().updateUp(self.path(), 1, self.leaf()->parent_idx(), accum, [](Int, Int){});
+    	self.ctr().updateParent(leaf, accum);
 
     	self.cache().addToEntry(
     		std::get<0>(accum)[0],
@@ -752,7 +752,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
     	InitStateFn fn;
 
-    	self.ctr().walkUp(self.path(), self.idx(), fn);
+    	self.ctr().walkUp(self.leaf(), self.idx(), fn);
 
     	BigInt id_prefix 	= std::get<0>(fn.prefix_)[0];
     	BigInt base 		= std::get<0>(fn.prefix_)[1];

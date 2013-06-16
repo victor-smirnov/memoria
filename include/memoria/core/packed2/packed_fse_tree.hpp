@@ -399,23 +399,38 @@ public:
 
 	Value& value(Int idx)
 	{
-		return *T2T<Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes + idx * sizeof(Value));
+		MEMORIA_ASSERT(idx, >=, 0);
+		MEMORIA_ASSERT(idx, <=, raw_size());
+
+		return *(values() + idx);
 	}
+
+
 
 	const Value& value(Int idx) const
 	{
-		return *T2T<const Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes + idx * sizeof(Value));
+		if (idx < 0)
+		{
+			int a = 0; a++;
+		}
+
+		MEMORIA_ASSERT(idx, >=, 0);
+		MEMORIA_ASSERT(idx, <, raw_size());
+
+		return *(values() + idx);
 	}
 
 
 	Value& value(Int block, Int idx)
 	{
-		return *T2T<Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes + (idx + block * size_) * sizeof(Value));
+		MEMORIA_ASSERT(idx, <=, size());
+		return *(values(block) + idx);
 	}
 
 	const Value& value(Int block, Int idx) const
 	{
-		return *T2T<const Value*>(buffer_+index_size_ * sizeof(IndexKey) * Indexes + (idx + block * size_) * sizeof(Value));
+		MEMORIA_ASSERT(idx, <, size());
+		return *(values(block) + idx);
 	}
 
 	Int setValue(Int idx, Value val)
@@ -426,29 +441,31 @@ public:
 
 	Value* values()
 	{
-		return &value(0);
+		return T2T<Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes);
 	}
 
 	const Value* values() const
 	{
-		return &value(0);
+		return T2T<const Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes);
 	}
 
 	Value* values(Int block)
 	{
-		return &value(block, 0);
+		return values() + block * size_;
 	}
 
 	const Value* values(Int block) const
 	{
-		return &value(block, 0);
+		return values() + block * size_;
 	}
 
-	Value last_value(Int block) const {
+	Value last_value(Int block) const
+	{
 		return value(block, size_ - 1);
 	}
 
-	Value first_value(Int block) const {
+	Value first_value(Int block) const
+	{
 		return value(block, 0);
 	}
 
@@ -1121,7 +1138,7 @@ public:
 		copyTo(other, idx, total, 0);
 		other->reindex();
 
-		removeSpace(idx, total);
+		removeSpace(idx, this->size());
 		reindex();
 	}
 

@@ -287,7 +287,7 @@ void M_TYPE::removeWithinPage(Iterator& iter, BigInt size)
 
 	self.removeLeafContent(iter.leaf(), 1, local_offset, local_offset + size);
 
-	self.addTotalKeyCount(iter.path(), {0, -size});
+	self.addTotalKeyCount({0, -size});
 
 	self.mergeLeaf(iter);
 }

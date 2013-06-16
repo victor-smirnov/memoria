@@ -169,11 +169,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsert1Name)
 
     bool insert(Iterator& iter, const Element& element)
     {
-    	self().template insertEntry(iter, element);
+    	self().template insertEntry2(iter, element);
     	return iter.next();
     }
 
     void insertBatch(Iterator& iter, const LeafPairsVector& data);
+
+    MEMORIA_DECLARE_NODE_FN(InsertLeafFn, insert);
+    bool insertLeafEntry(Iterator& iter, const Element& element);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -188,7 +191,6 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 	auto& self = this->self();
 	auto& ctr  = self;
 
-	TreePath& path = iter.path();
 	Position idx(iter.entry_idx());
 
 	Int pos = 0;
@@ -202,14 +204,19 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 		ctr.layoutNode(iter.leaf(), ActiveStreams);
 	}
 
-	ctr.insertSubtree(path, idx, provider);
+	ctr.insertSubtree(iter.leaf(), idx, provider);
 
 	ctr.addTotalKeyCount(Position(data.size()));
 
 	if (iter.isEnd())
 	{
-		ctr.getNextNode(path);
-		iter.key_idx() = 0;
+		auto next = ctr.getNextNodeP(iter.leaf());
+
+		if (next)
+		{
+			iter.leaf() = next;
+			iter.idx() = 0;
+		}
 	}
 
 	for (UInt c = 0; c < data.size(); c++)
@@ -222,6 +229,28 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 
 
 
+M_PARAMS
+bool M_TYPE::insertLeafEntry(Iterator& iter, const Element& element)
+{
+	auto& self 		= this->self();
+
+	NodeBaseG leaf  = iter.leaf();
+	Int idx			= iter.idx();
+	Int stream 		= iter.stream();
+
+	if (self.checkCapacities(leaf, Position::create(stream, 1)))
+	{
+		leaf.update();
+
+		LeafDispatcher::dispatch(leaf, InsertLeafFn(), idx, element.first, element.second);
+		self.updateParent(leaf, element.first);
+
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 
 
 #undef M_PARAMS

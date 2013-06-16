@@ -525,9 +525,8 @@ public:
 	{
 		const auto* values_ = values();
 
-		if (idx == 88) {
-			int a = 0; a++;
-		}
+		MEMORIA_ASSERT(idx, >=, 0);
+		MEMORIA_ASSERT(idx, <, raw_size());
 
 		Int pos = getValueOffset(idx);
 
@@ -550,11 +549,14 @@ public:
 
 	Int setValue(Int idx, Value value)
 	{
+		MEMORIA_ASSERT(idx, >=, 0);
+		MEMORIA_ASSERT(idx, <=, raw_size());
+
 		auto* values_ = values();
 
 		Int pos = getValueOffset(idx);
 
-		MEMORIA_ASSERT(pos, <, this->max_data_size());
+		MEMORIA_ASSERT(pos, <=, this->max_data_size());
 
 		Int total_size = data_size();
 

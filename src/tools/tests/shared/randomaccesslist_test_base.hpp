@@ -204,46 +204,46 @@ public:
     {
     	checkIteratorPrefix(iter, source);
 
-    	auto& ctr  = iter.model();
-    	auto& path = iter.path();
-
-    	for (Int level = path.getSize() - 1; level > 0; level--)
-    	{
-    		bool found = false;
-
-    		Int node_size = ctr.getNodeSize(path[level], 0);
-    		for (Int idx = 0; idx < node_size; idx++)
-    		{
-    			ID id = iter.model().getChildID(path[level].node(), idx);
-    			if (id == path[level - 1]->id())
-    			{
-    				if (path[level - 1].parent_idx() != idx)
-    				{
-    					iter.dump(out());
-    					throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"
-    							<<path[level]->id()
-    							<<" child: "
-    							<<path[level - 1]->id()
-    							<<" idx="<<idx
-    							<<" parent_idx="
-    							<<path[level-1].parent_idx());
-    				}
-    				else {
-    					found = true;
-    					break;
-    				}
-    			}
-    		}
-
-    		if (!found)
-    		{
-    			iter.dump(out());
-    			throw TestException(source, SBuf()<<"Child: "
-    					<<path[level - 1]->id()
-    					<<" is not fount is it's parent, parent_idx="
-    					<<path[level - 1].parent_idx());
-    		}
-    	}
+//    	auto& ctr  = iter.model();
+//    	auto& path = iter.path();
+//
+//    	for (Int level = path.getSize() - 1; level > 0; level--)
+//    	{
+//    		bool found = false;
+//
+//    		Int node_size = ctr.getNodeSize(path[level], 0);
+//    		for (Int idx = 0; idx < node_size; idx++)
+//    		{
+//    			ID id = iter.model().getChildID(path[level].node(), idx);
+//    			if (id == path[level - 1]->id())
+//    			{
+//    				if (path[level - 1].parent_idx() != idx)
+//    				{
+//    					iter.dump(out());
+//    					throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"
+//    							<<path[level]->id()
+//    							<<" child: "
+//    							<<path[level - 1]->id()
+//    							<<" idx="<<idx
+//    							<<" parent_idx="
+//    							<<path[level-1].parent_idx());
+//    				}
+//    				else {
+//    					found = true;
+//    					break;
+//    				}
+//    			}
+//    		}
+//
+//    		if (!found)
+//    		{
+//    			iter.dump(out());
+//    			throw TestException(source, SBuf()<<"Child: "
+//    					<<path[level - 1]->id()
+//    					<<" is not fount is it's parent, parent_idx="
+//    					<<path[level - 1].parent_idx());
+//    		}
+//    	}
     }
 
     virtual void checkIteratorPrefix(Iterator& iter, const char* source)

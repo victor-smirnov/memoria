@@ -59,7 +59,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertName)
 
 
     template <typename EntryData>
-    void insertEntry(Iterator& iter, const EntryData&);
+    void insertEntry(Iterator& iter, const EntryData& data);
+
+    template <typename EntryData>
+    void insertEntry2(Iterator& iter, const EntryData& data);
+
 
     template <typename EntryData>
     void updateEntry(Iterator& iter, const EntryData&);
@@ -136,7 +140,7 @@ void M_TYPE::updateEntry(Iterator& iter, const EntryData& entry)
 		throw ex;
 	}
 
-	self.updateParentIfExists(iter.path(), 0, delta);
+	self.updateParent(iter.leaf(), delta);
 }
 
 
@@ -144,7 +148,6 @@ M_PARAMS
 template <typename EntryData>
 void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 {
-//    TreePath&   path    = iter.path();
     NodeBaseG&  leaf    = iter.leaf();
     Int&        idx     = iter.idx();
     Int 		stream  = iter.stream();
@@ -191,6 +194,46 @@ void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 
     ctr.addTotalKeyCount(Position::create(stream, 1));
 }
+
+
+M_PARAMS
+template <typename EntryData>
+void M_TYPE::insertEntry2(Iterator& iter, const EntryData& data)
+{
+	auto& self = this->self();
+
+	NodeBaseG&  leaf    = iter.leaf();
+	Int&        idx     = iter.idx();
+	Int 		stream  = iter.stream();
+
+	Position leaf_sizes = self.getNodeSizes(leaf);
+
+	if (self.isNodeEmpty(leaf))
+	{
+		self.initLeaf(leaf);
+	}
+
+	if (!self.insertLeafEntry(iter, data))
+	{
+		Position split_idx = leaf_sizes / 2;
+
+		NodeBaseG next = self.splitLeafP(leaf, split_idx);
+
+		if (idx >= split_idx[stream])
+		{
+			idx -= split_idx[stream];
+			leaf = next;
+		}
+
+		iter.buildPath(leaf);
+
+		MEMORIA_ASSERT_TRUE(self.insertLeafEntry(iter, data));
+	}
+
+	self.addTotalKeyCount(Position::create(stream, 1));
+}
+
+
 
 
 

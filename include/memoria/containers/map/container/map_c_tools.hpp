@@ -204,7 +204,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
 
     void makeLeafRoom(TreePath& path, Int start, Int count) const;
 
-    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn);
+    void updateUp(NodeBaseG& node, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn);
     bool updateLeafCounters(NodeBaseG& node, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn) const;
 
 
@@ -261,22 +261,16 @@ bool M_TYPE::updateLeafCounters(
 
 
 M_PARAMS
-void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn)
+void M_TYPE::updateUp(NodeBaseG& node, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn)
 {
-    if (level == 0)
+    if (node->is_leaf())
     {
-    	if (self().updateLeafCounters(path[level].node(), idx, counters, fn))
-    	{
-    		return;
-    	}
-    	else {
-    		idx = path[level].parent_idx();
-    	}
+    	self().updateLeafCounters(node, idx, counters, fn);
 
-    	Base::updateUp(path, level + 1, idx, counters, fn);
+    	Base::updateParent(node, counters);
     }
     else {
-    	Base::updateUp(path, level, idx, counters, fn);
+    	Base::updatePath(node, idx, counters);
     }
 
 

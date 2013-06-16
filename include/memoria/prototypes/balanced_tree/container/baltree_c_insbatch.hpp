@@ -523,21 +523,19 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
     	Accumulator sums = provider.insertIntoLeaf(leaf, idx);
     	self.updateParent(leaf, sums);
 
-    	Int parent_idx = leaf->parent_idx() + 1;
-
     	Position remainder = provider.remainder();
 
     	if (remainder.gtAny(0))
     	{
-    		Int path_parent_idx 	= parent_idx;
-    		Int right_parent_idx 	= parent_idx;
+    		Int path_parent_idx 	= leaf->parent_idx() + 1;
+    		Int right_parent_idx 	= right->parent_idx();
 
     		InsertSharedData data(provider);
 
     		NodeBaseG leaf_parent = self.getNodeParent(leaf, Allocator::UPDATE);
     		NodeBaseG right_parent = self.getNodeParent(right, Allocator::UPDATE);
 
-    		self.insertInternalSubtree(leaf, path_parent_idx, right, right_parent_idx, data);
+    		self.insertInternalSubtree(leaf_parent, path_parent_idx, right_parent, right_parent_idx, data);
 
     		return sums + data.accumulator;
     	}

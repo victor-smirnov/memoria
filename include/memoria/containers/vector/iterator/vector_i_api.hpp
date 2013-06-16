@@ -69,32 +69,35 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 	}
 
 	bool isEof() const {
-		return self().key_idx() >= self().size();
+		return self().idx() >= self().size();
 	}
 
 	bool isBof() const {
-		return self().key_idx() < 0;
+		return self().idx() < 0;
 	}
 
-	bool nextLeaf()
-	{
-		auto& self 		= this->self();
-		auto& ctr 		= self.model();
-
-		if (ctr.getNextNode(self.path()))
-		{
-			self.key_idx() = 0;
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+//	bool nextLeaf()
+//	{
+//		auto& self 		= this->self();
+//		auto& ctr 		= self.ctr();
+//
+//		auto next = ctr.getNextNodeP(self.leaf());
+//
+//		if (next)
+//		{
+//			self.leaf() = next;
+//			self.idx() 	= 0;
+//			return true;
+//		}
+//		else {
+//			return false;
+//		}
+//	}
 
 	void insert(std::vector<Value>& data)
 	{
 		auto& self = this->self();
-		auto& model = self.model();
+		auto& model = self.ctr();
 
 		MemBuffer<Value> buf(data);
 
@@ -114,7 +117,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 		auto& self = this->self();
 		mvector::VectorTarget target(&data);
 
-		return self.model().readStream(self, target);
+		return self.ctr().readStream(self, target);
 	}
 
 	BigInt read(std::vector<Value>& data)
@@ -126,7 +129,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 	void remove(BigInt size)
 	{
 		auto& self = this->self();
-		self.model().remove(self, size);
+		self.ctr().remove(self, size);
 	}
 
 	std::vector<Value> subVector(BigInt size)
@@ -165,13 +168,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
 		PosFn fn;
 
-		self.model().walkUp(self.path(), self.key_idx(), fn);
+		self.ctr().walkUp(self.leaf(), self.idx(), fn);
 
 		return fn.prefix_ + self.key_idx();
 	}
 
 	BigInt dataPos() const {
-		return self().key_idx();
+		return self().idx();
 	}
 
 	BigInt prefix() const {

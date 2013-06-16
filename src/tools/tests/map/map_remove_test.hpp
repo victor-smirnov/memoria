@@ -135,11 +135,11 @@ class MapRemoveTest: public MapTestBase {
             }
         }
 
+        check(allocator, MEMORIA_SOURCE);
+
         checkContainerData(map, pairs_sorted);
 
         allocator.commit();
-
-        check(allocator, MEMORIA_SOURCE);
     }
 
 };

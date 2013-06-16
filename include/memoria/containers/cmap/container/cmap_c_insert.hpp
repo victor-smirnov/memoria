@@ -186,7 +186,7 @@ bool M_TYPE::insertLeafEntry(Iterator& iter, const Element& element)
 {
 	auto& self 		= this->self();
 
-	NodeBaseG leaf  = iter.path().leaf();
+	NodeBaseG leaf  = iter.leaf();
 	Int idx			= iter.idx();
 
 	leaf.update();
@@ -204,15 +204,7 @@ bool M_TYPE::insertLeafEntry(Iterator& iter, const Element& element)
 		return false;
 	}
 
-	if (!leaf->is_root())
-	{
-		NodeBaseG parent 	= self.getNodeParent(leaf, Allocator::UPDATE);
-		Int parent_idx 		= leaf->parent_idx();
-
-		self.updatePath(parent, parent_idx, element.first);
-
-		iter.buildPath(leaf);
-	}
+	self.updateParent(leaf, element.first);
 
 	return true;
 }

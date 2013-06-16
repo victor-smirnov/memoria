@@ -280,7 +280,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
         return path[node->level() + 1];
     }
 
-    NodeBaseG getNodeParent(const NodeBaseG& node, Int flags) const
+    NodeBaseG getNodeParent(const NodeBaseG& node, Int flags = Allocator::READ) const
     {
     	return self().allocator().getPage(node->parent_id(), flags);
     }
@@ -810,7 +810,7 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
         	return self.getChild(parent, parent_idx - 1, Allocator::READ);
         }
         else {
-        	NodeBaseG target_parent = getNextNodeP(parent);
+        	NodeBaseG target_parent = getPrevNodeP(parent);
 
         	if (target_parent.isSet())
         	{

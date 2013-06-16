@@ -38,11 +38,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
 	void updateUp(const Accumulator& keys)
 	{
-		self().model().updateUp(self().path(), 0, self().entry_idx(), keys, [](Int, Int){});
+		self().model().updateUp(self().leaf(), self().entry_idx(), keys, [](Int, Int){});
 	}
 
 	Key rawKey() const {
-		return self().model().getLeafKey(leaf(), entry_idx());
+		auto& self = this->self();
+		return self.model().getLeafKey(self.leaf(), entry_idx());
 	}
 
 	Key key() const {
@@ -124,63 +125,65 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 		self().value() = value;
 	}
 
-	const NodeBaseG& leaf() const
-	{
-		return self().path().leaf();
-	}
 
-	NodeBaseG& leaf()
-	{
-		return self().path().leaf();
-	}
 
 
 	void remove()
 	{
+		auto& self = this->self();
+
 		Accumulator keys;
-		self().model().removeEntry1(self(), keys);
+		self.ctr().removeEntry(self, keys);
+
+		if (!self.isEnd())
+		{
+			self.updateUp(keys);
+		}
 	}
 
 
 
     void ComputePrefix(BigInt& accum)
     {
-    	TreePath&   path0 = self().path();
-    	Int         idx   = self().key_idx();
+    	NodeBaseG   node  = self().leaf();
+    	Int         idx   = self().idx();
 
     	Accumulator acc0;
 
-    	self().model().sumLeafKeys(path0[0].node(), 0, idx, acc0);
+    	self().ctr().sumLeafKeys(node, 0, idx, acc0);
 
     	accum += std::get<0>(acc0)[0];
 
-    	for (Int c = 1; c < path0.getSize(); c++)
+    	while (!node->is_root())
     	{
-    		idx = path0[c - 1].parent_idx();
-    		self().model().sumKeys(path0[c].node(), 0, 0, idx, accum);
+    		Int parent_idx 	= node->parent_idx();
+    		node 			= self().ctr().getNodeParent(node);
+
+    		self().ctr().sumKeys(node, 0, 0, parent_idx, accum);
     	}
     }
 
     void ComputePrefix(Accumulator& accum)
     {
-    	TreePath&   path0 = self().path();
-    	Int         idx   = self().key_idx();
+    	NodeBaseG   node  = self().leaf();
+    	Int         idx   = self().idx();
 
-    	self().model().sumLeafKeys(path0[0].node(), 0, idx, accum);
+    	self().ctr().sumLeafKeys(node, 0, idx, accum);
 
-    	for (Int c = 1; c < path0.getSize(); c++)
+    	while (!node->is_root())
     	{
-    		idx = path0[c - 1].parent_idx();
-    		self().model().sumKeys(path0[c].node(), 0, idx, accum);
+    		Int parent_idx 	= node->parent_idx();
+    		node 			= self().ctr().getNodeParent(node);
+
+    		self().ctr().sumKeys(node, 0, parent_idx, accum);
     	}
     }
 
-
-//
-//	void dump(ostream& out = cout)
-//	{
-//		self().().dump(out);
-//	}
+    void dump(std::ostream& out = std::cout)
+    {
+    	out<<"Prefix="<<self().cache().prefix()<<endl;
+    	Base::dump(out);
+    }
 
 MEMORIA_ITERATOR_PART_END
 

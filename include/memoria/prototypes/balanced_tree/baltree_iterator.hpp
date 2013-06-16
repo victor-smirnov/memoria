@@ -45,11 +45,9 @@ public:
 
     typedef ContainerType                                                           Container;
     
-    Iter(Container &model, Int levels = 0): Base(), model_(model)
+    Iter(Container &model): Base(), model_(model)
     {
         Base::idx() = 0;
-
-        Base::path().resize(levels);
     }
     
     Iter(const MyType& other): Base(other), model_(other.model_) {}

@@ -55,7 +55,7 @@ BigInt M_TYPE::_findFw(Int index, Key key)
 
 	walker.prepare(self);
 
-	Int idx = self.model().findFw(self.path(), stream, self.key_idx(), walker);
+	Int idx = self.model().findFw(self.leaf(), stream, self.key_idx(), walker);
 
 	return walker.finish(self, idx);
 }
@@ -71,7 +71,7 @@ BigInt M_TYPE::_findBw(Int index, Key key)
 
 	walker.prepare(self);
 
-	Int idx = self.model().findBw(self.path(), stream, self.key_idx(), walker);
+	Int idx = self.model().findBw(self.leaf(), stream, self.key_idx(), walker);
 
 	return walker.finish(self, idx);
 }
