@@ -843,9 +843,54 @@ public:
     	CopyBuffer(this->values() + copy_from, other->values() + copy_to, count);
     }
 
+
+
+    struct CanMergeWithFn {
+    	Int mem_used_ = 0;
+
+    	template <Int StreamIdx, typename Tree>
+    	void stream(const Tree* tree, const MyType* other)
+    	{
+    		if (tree != nullptr)
+    		{
+    			if (other->allocator()->is_empty(StreamIdx))
+    			{
+    				mem_used_ += tree->block_size();
+    			}
+    			else {
+    				const Tree* other_tree = other->allocator()->template get<Tree>(StreamIdx);
+    				mem_used_ += tree->block_size(other_tree);
+    			}
+    		}
+    		else {
+    			if (!other->allocator()->is_empty(StreamIdx))
+    			{
+    				Int element_size = other->allocator()->element_size(StreamIdx);
+    				mem_used_ += element_size;
+    			}
+    		}
+    	}
+    };
+
+    bool canBeMergedWith(const MyType* other) const
+    {
+    	CanMergeWithFn fn;
+    	Dispatcher::dispatchAll(&allocator_, fn, other);
+
+    	Int free_space = this->allocator()->free_space();
+
+    	Int my_data_size 	= this->allocator()->element_size(ValuesBlockIdx);
+    	Int other_data_size = other->allocator()->element_size(ValuesBlockIdx);
+
+    	fn.mem_used_ += my_data_size;
+    	fn.mem_used_ += other_data_size;
+
+    	return free_space >= fn.mem_used_;
+    }
+
     struct MergeWithFn {
     	template <Int Idx, typename Tree>
-    	void stream(const Tree* tree, MyType* other)
+    	void stream(Tree* tree, MyType* other)
     	{
     		Int size = tree->size();
 
@@ -853,32 +898,23 @@ public:
     		{
     			if (other->is_empty(Idx))
     			{
-    				Int block_size = Tree::block_size(size);
+    				Int block_size = Tree::block_size(0);
     				other->allocator()->template allocate<Tree>(Idx, block_size);
     			}
 
     			Tree* other_tree = other->template get<Tree>(Idx);
 
-    			Int other_size = other_tree->size();
-
-    			other_tree->resize(size);
-    			tree->copyTo(other_tree, 0, size, other_size);
-
-    			other_tree->reindex();
+    			tree->mergeWith(other_tree);
     		}
     	}
     };
 
-
-
-
     void mergeWith(MyType* other)
     {
     	Int other_size 	= other->size();
+    	Int my_size 	= this->size();
 
     	Dispatcher::dispatchNotEmpty(&allocator_, MergeWithFn(), other);
-
-    	Int my_size 	= this->size();
 
     	Int other_values_block_size 		 = other->allocator()->element_size(ValuesBlockIdx);
     	Int required_other_values_block_size = (my_size + other_size) * sizeof(Value);
@@ -900,71 +936,38 @@ public:
     	return block_size <= allocator_.block_size() / 2;
     }
 
-    bool canBeMergedWith(const MyType* other) const
-    {
-    	Position my_sizes 		= this->sizes();
-    	Position other_sizes 	= other->sizes();
-    	Position sizes 			= my_sizes + other_sizes;
-    	Int values_size 		= this->size() + other->size();
-
-    	Int required_block_size = MyType::block_size(sizes, values_size);
-
-    	return required_block_size <= other->allocator_.block_size();
-    }
-
 
     struct SplitToFn {
     	template <Int Idx, typename Tree>
-    	void stream(Tree* tree, MyType* other, Int idx, Int shift)
+    	void stream(Tree* tree, MyType* other, Int idx)
     	{
     		Int size = tree->size();
     		if (size > 0)
     		{
-//    			Int remainder 		= size - idx;
     			Int block_size 		= Tree::block_size(0);
     			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
 
     			tree->splitTo(other_tree, idx);
-//
-//    			tree->clear(0, shift);
-//
-//    			other_tree->size() = remainder + shift;
-//
-//    			tree->copyTo(other_tree, idx, remainder, shift);
-//
-//    			other_tree->reindex();
-//
-//    			tree->removeSpace(idx, remainder);
-//    			tree->reindex();
     		}
     	}
     };
 
 
-    Accumulator splitTo(MyType* other, const Position& from_pos, const Position& shift_pos)
+    Accumulator splitTo(MyType* other, Int split_idx)
     {
-    	Int idx 	= from_pos.get();
-    	Int shift 	= shift_pos.get();
-
     	Int size 		= this->size();
-    	Int remainder 	= size - idx;
+    	Int remainder 	= size - split_idx;
 
-    	Accumulator result = this->sum(idx, size);
+    	Accumulator result = this->sum(split_idx, size);
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, SplitToFn(), other, idx, shift);
+    	Dispatcher::dispatchNotEmpty(&allocator_, SplitToFn(), other, split_idx);
 
-    	other->allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, remainder + shift);
-
+    	other->allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, remainder);
 
     	Value* other_values = other->values();
     	Value* my_values 	= this->values();
 
-    	for (Int c = 0; c < shift; c++)
-    	{
-    		other_values[c] = 0;
-    	}
-
-    	CopyBuffer(my_values + idx, other_values + shift, remainder);
+    	CopyBuffer(my_values + split_idx, other_values, remainder);
 
     	return result;
     }

@@ -50,10 +50,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrToolsName)
 	typedef typename Base::TreePath                                             TreePath;
 	typedef typename Base::TreePathItem                                         TreePathItem;
 
+	typedef typename Types::PageUpdateMgr										PageUpdateMgr;
+
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
 	typedef typename Base::BalTreeNodeTraits									BalTreeNodeTraits;
+
+
+	MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
+	Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+	{
+		return LeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at.get());
+	}
 
 
 	template <typename LeafElement>
@@ -205,20 +214,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrToolsName)
     void makeLeafRoom(TreePath& path, Int start, Int count) const;
 
     void updateUp(
-    		TreePath& path,
-    		Int level,
+    		NodeBaseG& node,
     		Int idx,
     		const Accumulator& counters,
     		std::function<void (Int, Int)> fn
     );
 
     bool updateLeafCounters(
-    		TreePath& path,
-    		Int level,
+    		NodeBaseG& node,
     		Int idx,
     		const Accumulator& counters,
     		std::function<void (Int, Int)> fn
-    ) const;
+    );
 
 
     void addLeafKeys(NodeBaseG& node, int idx, const Accumulator& keys, bool reindex_fully = false) const
@@ -260,17 +267,38 @@ MEMORIA_CONTAINER_PART_END
 
 M_PARAMS
 bool M_TYPE::updateLeafCounters(
-		TreePath& path,
-		Int level,
+		NodeBaseG& node,
 		Int idx,
 		const Accumulator& counters,
 		std::function<void (Int, Int)> fn
-) const
+)
 {
-    NodeBaseG& node = path[level];
+	auto& self = this->self();
 
 	node.update();
-    self().addLeafKeys(node, idx, counters, true);
+
+	PageUpdateMgr mgr(self);
+
+	try {
+		self.addLeafKeys(node, idx, counters, true);
+	}
+	catch (PackedOOMException ex)
+	{
+		Position sizes = self.getNodeSizes(node);
+
+		Position split_idx = sizes / 2;
+
+		auto next = self.splitLeafP(node, split_idx);
+
+		if (idx >= split_idx[0])
+		{
+			idx -= split_idx[0];
+			fn(0, idx);
+			node = next;
+		}
+
+		self.addLeafKeys(node, idx, counters, true);
+	}
 
     return false; //proceed further unconditionally
 }
@@ -278,30 +306,21 @@ bool M_TYPE::updateLeafCounters(
 
 M_PARAMS
 void M_TYPE::updateUp(
-		TreePath& path,
-		Int level,
+		NodeBaseG& node,
 		Int idx,
 		const Accumulator& counters,
 		std::function<void (Int, Int)> fn
 )
 {
-    if (level == 0)
-    {
-    	if (self().updateLeafCounters(path, level, idx, counters, fn))
-    	{
-    		return;
-    	}
-    	else {
-    		idx = path[level].parent_idx();
-    	}
+	if (node->is_leaf())
+	{
+		self().updateLeafCounters(node, idx, counters, fn);
 
-    	Base::updateUp(path, level + 1, idx, counters, fn);
-    }
-    else {
-    	Base::updateUp(path, level, idx, counters, fn);
-    }
-
-
+		Base::updateParent(node, counters);
+	}
+	else {
+		Base::updatePath(node, idx, counters);
+	}
 }
 
 

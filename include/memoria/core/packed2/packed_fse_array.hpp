@@ -76,6 +76,11 @@ public:
 		return sizeof(MyType) + max_size_ * sizeof(Value);
 	}
 
+	Int block_size(const MyType* other) const
+	{
+		return block_size(size_ + other->size_);
+	}
+
 public:
 
 	static Int block_size(int array_size)
@@ -268,6 +273,30 @@ public:
 		{
 			values[c] = 0;
 		}
+	}
+
+	void splitTo(MyType* other, Int idx)
+	{
+		MEMORIA_ASSERT(other->size(), ==, 0);
+
+		Int split_size = this->size() - idx;
+		other->insertSpace(0, split_size);
+
+		copyTo(other, idx, split_size, 0);
+	}
+
+	void mergeWith(MyType* other)
+	{
+		Int my_size 	= this->size();
+		Int other_size	= other->size();
+
+		other->insertSpace(other_size, my_size);
+
+		copyTo(other, 0, my_size, other_size);
+
+		removeSpace(0, my_size);
+
+		reindex();
 	}
 
 

@@ -833,7 +833,7 @@ void M_TYPE::makeRoom(NodeBaseG& node, Int stream, Int start, Int count)
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
 {
-	return LeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at, Position());
+	return LeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at);
 }
 
 M_PARAMS
@@ -841,7 +841,7 @@ typename M_TYPE::Accumulator M_TYPE::splitNonLeafNode(NodeBaseG& src, NodeBaseG&
 {
 	auto& self = this->self();
 
-	Accumulator accum = NonLeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), Position(split_at), Position());
+	Accumulator accum = NonLeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at);
 
 	self.updateChildren(tgt);
 

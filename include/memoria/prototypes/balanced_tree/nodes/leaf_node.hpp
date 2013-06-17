@@ -705,20 +705,49 @@ public:
     	return block_size <= allocator_.block_size() / 2;
     }
 
+
+    struct CanMergeWithFn {
+    	Int mem_used_ = 0;
+
+    	template <Int StreamIdx, typename Tree>
+    	void stream(const Tree* tree, const MyType* other)
+    	{
+    		if (tree != nullptr)
+    		{
+    			if (other->allocator()->is_empty(StreamIdx))
+    			{
+    				mem_used_ += tree->block_size();
+    			}
+    			else {
+    				const Tree* other_tree = other->allocator()->template get<Tree>(StreamIdx);
+    				mem_used_ += tree->block_size(other_tree);
+    			}
+    		}
+    		else {
+    			if (!other->allocator()->is_empty(StreamIdx))
+    			{
+    				Int element_size = other->allocator()->element_size(StreamIdx);
+    				mem_used_ += element_size;
+    			}
+    		}
+    	}
+    };
+
     bool canBeMergedWith(const MyType* other) const
     {
-    	Position my_sizes 		= this->sizes();
-    	Position other_sizes 	= other->sizes();
-    	Position required_sizes	= my_sizes + other_sizes;
+    	CanMergeWithFn fn;
+    	Dispatcher::dispatchAll(&allocator_, fn, other);
 
-    	Int required_block_size = MyType::block_size(required_sizes);
+    	Int free_space = this->allocator()->free_space();
 
-    	return required_block_size <= other->allocator_.block_size();
+    	return free_space >= fn.mem_used_;
     }
+
+
 
     struct MergeWithFn {
     	template <Int Idx, typename Tree>
-    	void stream(const Tree* tree, MyType* other)
+    	void stream(Tree* tree, MyType* other)
     	{
     		Int size = tree->size();
 
@@ -726,18 +755,12 @@ public:
     		{
     			if (other->is_empty(Idx))
     			{
-    				Int block_size = Tree::block_size(size);
+    				Int block_size = Tree::block_size(0);
     				other->allocator()->template allocate<Tree>(Idx, block_size);
     			}
 
     			Tree* other_tree = other->template get<Tree>(Idx);
-
-    			Int copy_to = other_tree->size();
-
-    			other_tree->resize(size);
-
-    			tree->copyTo(other_tree, 0, size, copy_to);
-    			other_tree->reindex();
+    			tree->mergeWith(other_tree);
     		}
     	}
     };
@@ -749,10 +772,10 @@ public:
 
     struct SplitToFn {
     	template <Int Idx, typename Tree>
-    	void stream(Tree* tree, MyType* other, const Position* indexes, const Position* shifts)
+    	void stream(Tree* tree, MyType* other, const Position* indexes)
     	{
     		Int idx   = indexes->value(Idx);
-    		Int shift = shifts->value(Idx);
+    		Int shift = 0;
     		Int size  = tree->size();
 
     		MEMORIA_ASSERT_TRUE(idx >= 0);
@@ -785,7 +808,7 @@ public:
     };
 
 
-    Accumulator splitTo(MyType* other, const Position& from, const Position& shift)
+    Accumulator splitTo(MyType* other, const Position& from)
     {
     	Accumulator result;
 
@@ -793,7 +816,7 @@ public:
 
     	sum(from, sizes, result);
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, SplitToFn(), other, &from, &shift);
+    	Dispatcher::dispatchNotEmpty(&allocator_, SplitToFn(), other, &from);
 
     	return result;
     }

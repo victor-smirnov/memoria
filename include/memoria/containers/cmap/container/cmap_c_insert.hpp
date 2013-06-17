@@ -215,12 +215,9 @@ bool M_TYPE::insert(Iterator& iter, const Element& element)
 {
 	auto& self = this->self();
 
-	TreePath&   path    = iter.path();
-	NodeBaseG   leaf    = path.leaf();
+	NodeBaseG&  leaf    = iter.leaf();
 	Int&        idx     = iter.idx();
 	Int 		stream  = iter.stream();
-
-
 
 	Position leaf_sizes = self.getNodeSizes(leaf);
 
@@ -241,8 +238,6 @@ bool M_TYPE::insert(Iterator& iter, const Element& element)
 			leaf = next;
 		}
 
-		iter.buildPath(leaf);
-
 		MEMORIA_ASSERT_TRUE(self.insertLeafEntry(iter, element));
 	}
 
@@ -261,7 +256,6 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 	auto& self = this->self();
 	auto& ctr  = self;
 
-	TreePath& path = iter.path();
 	Position idx(iter.entry_idx());
 
 	Int pos = 0;
@@ -275,14 +269,13 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 		ctr.layoutNode(iter.leaf(), ActiveStreams);
 	}
 
-	ctr.insertSubtree(path, idx, provider);
+	ctr.insertSubtree(iter.leaf(), idx, provider);
 
 	ctr.addTotalKeyCount(Position(data.size()));
 
 	if (iter.isEnd())
 	{
-		ctr.getNextNode(path);
-		iter.key_idx() = 0;
+		iter.nextLeaf();
 	}
 
 	for (UInt c = 0; c < data.size(); c++)

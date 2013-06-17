@@ -69,6 +69,10 @@ public:
 
 			fn.buildFirstIndexLine(level_start, level_size);
 
+			if (fn.maxSize() == 0) {
+				return;
+			}
+
 			while (level_start > 0)
 			{
 				Int parent_size 	= getIndexCellsNumberFor(1, level_size);

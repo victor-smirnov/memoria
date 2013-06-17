@@ -401,6 +401,7 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 	auto& self = this->self();
 
     tgt.update();
+    src.update();
 
     Int tgt_size = self.getNodeSize(tgt, 0);
 

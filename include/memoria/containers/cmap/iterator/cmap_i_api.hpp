@@ -40,7 +40,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::cmap::ItrApiName)
 	{
 		auto& self = this->self();
 
-		self.model().updateUp(self.path(), 0, self.idx(), keys, [&self](Int level, Int idx) {
+		self.model().updateUp(self.leaf(), self.idx(), keys, [&](Int level, Int idx) {
 			if (level == 0)
 			{
 				self.idx() = idx;
@@ -48,8 +48,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::cmap::ItrApiName)
 		});
 	}
 
-	Key rawKey() const {
-		return self().model().getLeafKey(leaf(), entry_idx());
+	Key rawKey() const
+	{
+		auto& self = this->self();
+		return self.model().getLeafKey(self.leaf(), self.idx());
 	}
 
 	Key key() const {
@@ -131,16 +133,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::cmap::ItrApiName)
 		self().value() = value;
 	}
 
-	const NodeBaseG& leaf() const
-	{
-		return self().path().leaf();
-	}
-
-	NodeBaseG& leaf()
-	{
-		return self().path().leaf();
-	}
-
 
 	void remove()
 	{
@@ -152,33 +144,38 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::cmap::ItrApiName)
 
     void ComputePrefix(BigInt& accum)
     {
-    	TreePath&   path0 = self().path();
-    	Int         idx   = self().key_idx();
+    	NodeBaseG   node  = self().leaf();
+    	Int         idx   = self().idx();
 
     	Accumulator acc0;
 
-    	self().model().sumLeafKeys(path0[0].node(), 0, idx, acc0);
+    	self().ctr().sumLeafKeys(node, 0, idx, acc0);
 
     	accum += std::get<0>(acc0)[0];
 
-    	for (Int c = 1; c < path0.getSize(); c++)
+    	while (!node->is_root())
     	{
-    		idx = path0[c - 1].parent_idx();
-    		self().model().sumKeys(path0[c].node(), 0, 0, idx, accum);
+    		Int parent_idx 	= node->parent_idx();
+    		node 			= self().ctr().getNodeParent(node);
+
+    		self().ctr().sumKeys(node, 0, 0, parent_idx, accum);
     	}
+
     }
 
     void ComputePrefix(Accumulator& accum)
     {
-    	TreePath&   path0 = self().path();
-    	Int         idx   = self().key_idx();
+    	NodeBaseG   node  = self().leaf();
+    	Int         idx   = self().idx();
 
-    	self().model().sumLeafKeys(path0[0].node(), 0, idx, accum);
+    	self().ctr().sumLeafKeys(node, 0, idx, accum);
 
-    	for (Int c = 1; c < path0.getSize(); c++)
+    	while (!node->is_root())
     	{
-    		idx = path0[c - 1].parent_idx();
-    		self().model().sumKeys(path0[c].node(), 0, idx, accum);
+    		Int parent_idx 	= node->parent_idx();
+    		node 			= self().ctr().getNodeParent(node);
+
+    		self().ctr().sumKeys(node, 0, parent_idx, accum);
     	}
     }
 

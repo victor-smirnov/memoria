@@ -28,7 +28,7 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef SCtrTF<Map<BigInt, BigInt>>::Type                              		Ctr;
+    typedef SCtrTF<CMap<BigInt, BigInt>>::Type                              	Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
     typedef typename Ctr::Accumulator                                           Accumulator;
@@ -91,6 +91,11 @@ protected:
     			BigInt value = iter.value();
 
     			if (pairs[idx].key_ != key)
+    			{
+    				iter.dump();
+    			}
+
+    			if (pairs[idx].value_ != value)
     			{
     				iter.dump();
     			}

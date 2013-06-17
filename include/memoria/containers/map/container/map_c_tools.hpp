@@ -55,6 +55,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
 
 	typedef typename Base::BalTreeNodeTraits									BalTreeNodeTraits;
 
+	MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
+	Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+	{
+		return LeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at.get());
+	}
+
 
 	template <typename LeafElement>
 	struct SetLeafEntryFn {
@@ -272,8 +278,6 @@ void M_TYPE::updateUp(NodeBaseG& node, Int idx, const Accumulator& counters, std
     else {
     	Base::updatePath(node, idx, counters);
     }
-
-
 }
 
 

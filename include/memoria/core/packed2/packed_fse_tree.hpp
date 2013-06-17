@@ -188,6 +188,11 @@ public:
 		return sizeof(MyType) + index_size_ * sizeof(IndexKey) * Indexes + max_size_ * sizeof(Value) * Blocks;
 	}
 
+	Int block_size(const MyType* other) const
+	{
+		return block_size(size_ + other->size_);
+	}
+
 	Int allocated_block_size() const
 	{
 		if (Base::allocator_offset() != 0)
@@ -1140,6 +1145,21 @@ public:
 
 		removeSpace(idx, this->size());
 		reindex();
+	}
+
+	void mergeWith(MyType* other)
+	{
+		Int my_size 	= this->size();
+		Int other_size	= other->size();
+
+		other->insertSpace(other_size, my_size);
+
+		copyTo(other, 0, my_size, other_size);
+
+		removeSpace(0, my_size);
+
+		reindex();
+		other->reindex();
 	}
 
 	template <typename TreeType>

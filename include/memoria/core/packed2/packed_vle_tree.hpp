@@ -220,6 +220,16 @@ public:
 		return Base::block_size();
 	}
 
+
+	Int block_size(const MyType* other) const
+	{
+		Int my_max 		= this->max_data_size();
+		Int other_max 	= other->max_data_size();
+
+		return block_size(my_max + other_max);
+	}
+
+
 	static Int block_size(Int max_items_num)
 	{
 		Int metadata_length	= Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
@@ -886,6 +896,8 @@ public:
 
 	void splitTo(MyType* other, Int idx)
 	{
+		MEMORIA_ASSERT(other->size(), ==, 0);
+
 		Int size = this->size();
 
 		Dimension lengths;
@@ -914,8 +926,35 @@ public:
 		removeSpace(idx, size);
 	}
 
-	void mergeWith(MyType* other) {
+	void mergeWith(MyType* other)
+	{
+		Dimension lengths;
 
+		Int my_size 	= this->size();
+		Int other_size 	= other->size();
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			lengths[block] = this->getValueOffset((block + 1) * my_size);
+		}
+
+		other->insertSpace(other->size(), lengths);
+
+		Codec codec;
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			Int my_start 	= this->getValueOffset(block * my_size);
+			Int other_start = other->getValueOffset((block + 1) * other_size);
+
+			codec.copy(values(), my_start, other->values(), other_start, lengths[block]);
+		}
+
+		other->size() += my_size;
+
+		other->reindex();
+
+		this->removeSpace(0, my_size);
 	}
 
 	void clear(Int, Int) {}
@@ -931,7 +970,6 @@ private:
 		Codec codec;
 
 		Dimension total_lengths;
-
 
 		for (Int block = 0; block < Blocks; block++)
 		{

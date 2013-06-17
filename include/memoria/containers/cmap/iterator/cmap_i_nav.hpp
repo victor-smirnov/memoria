@@ -161,11 +161,12 @@ bool M_TYPE::nextLeaf()
 {
     auto& self = this->self();
 
-	if (self.model().getNextNode(self.path()))
-    {
-        // FIXME: keyNum ?
+    auto next = self.model().getNextNodeP(self.leaf());
 
-        self.key_idx() = 0;
+	if (next)
+    {
+        self.idx() 	= 0;
+        self.leaf() = next;
 
         return true;
     }
@@ -181,9 +182,12 @@ bool M_TYPE::prevLeaf()
 {
     auto& self = this->self();
 
-    if (self.model().getPrevNode(self.path()))
+    auto prev = self.model().getPrevNodeP(self.leaf());
+
+    if (prev)
     {
-        self.key_idx() = self.leafSize(self.stream()) - 1;
+        self.idx()  = self.leafSize(self.stream()) - 1;
+        self.leaf() = prev;
 
         return true;
     }
@@ -246,7 +250,7 @@ bool M_TYPE::hasNextKey()
 
 	if (!self.isEnd())
     {
-        if (self.key_idx() < ctr.getNodeSize(self.page(), 0) - 1)
+        if (self.idx() < ctr.getNodeSize(self.page(), 0) - 1)
         {
             return true;
         }

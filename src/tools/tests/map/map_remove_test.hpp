@@ -67,11 +67,17 @@ class MapRemoveTest: public MapTestBase {
 
             for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
+            	if (vector_idx_ == 6418) {
+            		//throw Exception(MA_SRC, "Breakpoint");
+            	}
+
             	bool result = map.remove(pairs[vector_idx_].key_);
 
                 AssertTrue(MA_SRC, result);
 
                 check(allocator, MEMORIA_SOURCE);
+
+                out()<<vector_idx_<<endl;
 
                 BigInt size = size_ - vector_idx_ - 1;
 
