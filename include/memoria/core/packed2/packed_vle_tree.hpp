@@ -1020,6 +1020,28 @@ private:
 	}
 
 public:
+	void insert(Int idx, Int length, std::function<Values()> provider)
+	{
+		Values values[IOBatchSize];
+
+		Int to_write_local  = length;
+
+		while (to_write_local > 0)
+		{
+			Int batch_size = to_write_local > IOBatchSize ? IOBatchSize : to_write_local;
+
+			for (Int c = 0; c < batch_size; c++)
+			{
+				values[c] = provider();
+			}
+
+			insertData(values, idx, batch_size);
+
+			idx 			+= batch_size;
+			to_write_local 	-= batch_size;
+		}
+	}
+
 	void insert(IData* data, Int pos, Int length)
 	{
 		MEMORIA_ASSERT(pos, <=, size());
@@ -1063,8 +1085,6 @@ public:
 				to_write_local 	-= batch_size;
 			}
 		}
-
-
 
 		reindex();
 	}

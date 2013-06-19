@@ -747,24 +747,46 @@ public:
     {
     	Int size = this->size();
 
+    	MEMORIA_ASSERT(room_start, >=, 0);
     	MEMORIA_ASSERT(room_start, <=, size);
     	MEMORIA_ASSERT(stream, ==, 0);
 
     	Dispatcher::dispatchNotEmpty(&allocator_, InsertSpaceFn(), room_start, room_length);
 
-    	Int requested_block_size = (size + room_length) * sizeof(Value);
+    	insertValuesSpace(size, room_start, room_length);
+    }
+
+    void insertValuesSpace(Int old_size, Int room_start, Int room_length)
+    {
+    	MEMORIA_ASSERT(room_start, >=, 0);
+    	MEMORIA_ASSERT(room_start, <=, old_size);
+
+    	Int requested_block_size = (old_size + room_length) * sizeof(Value);
 
     	allocator_.resizeBlock(ValuesBlockIdx, requested_block_size);
 
     	Value* values = this->values();
 
-    	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
+    	CopyBuffer(values + room_start, values + room_start + room_length, old_size - room_start);
 
     	for (Int c = room_start; c < room_start + room_length; c++)
     	{
     		values[c] = 0;
     	}
     }
+
+    void insertValues(Int old_size, Int idx, Int length, std::function<Value()> provider)
+    {
+    	insertValuesSpace(old_size, idx, length);
+
+    	Value* values = this->values();
+
+    	for (Int c = idx; c < idx + length; c++)
+    	{
+    		values[c] = provider();
+    	}
+    }
+
 
 
     struct RemoveSpaceFn {

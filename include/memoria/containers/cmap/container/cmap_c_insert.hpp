@@ -62,110 +62,110 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrInsertName)
 	static const UBigInt ActiveStreams											= -1ull;
 
 
-	class MapSubtreeProvider: public Base::AbstractSubtreeProviderBase {
-
-		typedef typename Base::AbstractSubtreeProviderBase 		ProviderBase;
-		typedef typename Base::BalTreeNodeTraits				BalTreeNodeTraits;
-
-		MyType& ctr_;
-		Int total_;
-		Int inserted_;
-
-		Int page_size_;
-
-		LeafPairProviderFn pair_provider_fn_;
-
-	public:
-		MapSubtreeProvider(MyType& ctr, Int total, LeafPairProviderFn pair_provider_fn):
-			ProviderBase(ctr),
-			ctr_(ctr),
-			total_(total),
-			inserted_(0),
-			pair_provider_fn_(pair_provider_fn)
-		{
-			page_size_ = ctr.getNewPageSize();
-		}
-
-		virtual BigInt getTotalKeyCount()
-		{
-			Int remainder = total_ - inserted_;
-
-			Int leaf_capacity = ctr_.getNodeTraitInt(BalTreeNodeTraits::MAX_CHILDREN, false, true);
-
-			return remainder / leaf_capacity + (remainder % leaf_capacity ? 1 : 0);
-		}
-
-		virtual Position getTotalSize()
-		{
-			return Position(total_);
-		}
-
-		virtual Position getTotalInserted()
-		{
-			return Position(inserted_);
-		}
-
-		virtual Position remainder()
-		{
-			return Position(total_ - inserted_);
-		}
-
-		struct InsertIntoLeafFn {
-
-			typedef Accumulator ReturnType;
-
-			template <typename Node>
-			Accumulator treeNode(Node* node, MapSubtreeProvider* provider, Int pos, Int remainder)
-			{
-				if (node->is_empty())
-				{
-					node->layout(provider->getActiveStreams());
-				}
-
-				Int size;
-				if (remainder <= node->capacity())
-				{
-					size = remainder;
-				}
-				else {
-					size = node->capacity();
-				}
-
-				node->insertSpace(Position(pos), Position(size));
-
-				auto* tree 	= node->tree0();
-				auto* value = node->values();
-
-				for (Int c = pos; c < pos + size; c++)
-				{
-					auto pair 		= provider->pair_provider_fn_();
-					tree->value(c) 	= pair.first;
-					value[c]		= pair.second;
-				}
-
-				node->reindex();
-
-				provider->inserted_ += size;
-
-				return node->sum(pos, pos + size);
-			}
-		};
-
-		virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)
-		{
-			return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, 0, remainder().get());
-		}
-
-		virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)
-		{
-			return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, from.get(), remainder().get());
-		}
-
-		virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size)
-		{
-			return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, from.get(), size.get());
-		}
-	};
+//	class MapSubtreeProvider: public Base::AbstractSubtreeProviderBase {
+//
+//		typedef typename Base::AbstractSubtreeProviderBase 		ProviderBase;
+//		typedef typename Base::BalTreeNodeTraits				BalTreeNodeTraits;
+//
+//		MyType& ctr_;
+//		Int total_;
+//		Int inserted_;
+//
+//		Int page_size_;
+//
+//		LeafPairProviderFn pair_provider_fn_;
+//
+//	public:
+//		MapSubtreeProvider(MyType& ctr, Int total, LeafPairProviderFn pair_provider_fn):
+//			ProviderBase(ctr),
+//			ctr_(ctr),
+//			total_(total),
+//			inserted_(0),
+//			pair_provider_fn_(pair_provider_fn)
+//		{
+//			page_size_ = ctr.getNewPageSize();
+//		}
+//
+//		virtual BigInt getTotalKeyCount()
+//		{
+//			Int remainder = total_ - inserted_;
+//
+//			Int leaf_capacity = ctr_.getNodeTraitInt(BalTreeNodeTraits::MAX_CHILDREN, false, true);
+//
+//			return remainder / leaf_capacity + (remainder % leaf_capacity ? 1 : 0);
+//		}
+//
+//		virtual Position getTotalSize()
+//		{
+//			return Position(total_);
+//		}
+//
+//		virtual Position getTotalInserted()
+//		{
+//			return Position(inserted_);
+//		}
+//
+//		virtual Position remainder()
+//		{
+//			return Position(total_ - inserted_);
+//		}
+//
+//		struct InsertIntoLeafFn {
+//
+//			typedef Accumulator ReturnType;
+//
+//			template <typename Node>
+//			Accumulator treeNode(Node* node, MapSubtreeProvider* provider, Int pos, Int remainder)
+//			{
+//				if (node->is_empty())
+//				{
+//					node->layout(provider->getActiveStreams());
+//				}
+//
+//				Int size;
+//				if (remainder <= node->capacity())
+//				{
+//					size = remainder;
+//				}
+//				else {
+//					size = node->capacity();
+//				}
+//
+//				node->insertSpace(Position(pos), Position(size));
+//
+//				auto* tree 	= node->tree0();
+//				auto* value = node->values();
+//
+//				for (Int c = pos; c < pos + size; c++)
+//				{
+//					auto pair 		= provider->pair_provider_fn_();
+//					tree->value(c) 	= pair.first;
+//					value[c]		= pair.second;
+//				}
+//
+//				node->reindex();
+//
+//				provider->inserted_ += size;
+//
+//				return node->sum(pos, pos + size);
+//			}
+//		};
+//
+//		virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)
+//		{
+//			return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, 0, remainder().get());
+//		}
+//
+//		virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)
+//		{
+//			return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, from.get(), remainder().get());
+//		}
+//
+//		virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size)
+//		{
+//			return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, from.get(), size.get());
+//		}
+//	};
 
 
     bool insert(Iterator& iter, const Element& element);
@@ -256,20 +256,20 @@ void M_TYPE::insertBatch(Iterator& iter, const LeafPairsVector& data)
 	auto& self = this->self();
 	auto& ctr  = self;
 
-	Position idx(iter.entry_idx());
+	Position idx(iter.idx());
 
-	Int pos = 0;
+//	Int pos = 0;
 
-	MapSubtreeProvider provider(self, data.size(), [&](){
-		return data[pos++];
-	});
+//	MapSubtreeProvider provider(self, data.size(), [&](){
+//		return data[pos++];
+//	});
 
 	if (ctr.isNodeEmpty(iter.leaf()))
 	{
 		ctr.layoutNode(iter.leaf(), ActiveStreams);
 	}
 
-	ctr.insertSubtree(iter.leaf(), idx, provider);
+//	ctr.insertSubtree(iter.leaf(), idx, provider);
 
 	ctr.addTotalKeyCount(Position(data.size()));
 

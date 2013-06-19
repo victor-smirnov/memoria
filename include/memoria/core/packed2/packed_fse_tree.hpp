@@ -1041,12 +1041,7 @@ public:
 	// ==================================== Update ========================================== //
 
 
-	void insert(Int idx, Value value)
-	{
-		insertSpace(idx, 1);
 
-		this->value(idx) = value;
-	}
 
 	bool ensureCapacity(Int size)
 	{
@@ -1058,6 +1053,32 @@ public:
 		}
 		else {
 			return false;
+		}
+	}
+
+	void insert(Int idx, Value value)
+	{
+		insertSpace(idx, 1);
+
+		this->value(idx) = value;
+	}
+
+	void insert(Int idx, Int size, std::function<Values()> provider)
+	{
+		insertSpace(idx, size);
+
+		Int my_size = this->size();
+
+		Value* values = this->values();
+
+		for (Int c = idx; c < idx + size; c++)
+		{
+			Values vals = provider();
+
+			for (Int block = 0; block < Blocks; block++)
+			{
+				values[block * my_size + c] = vals[block];
+			}
 		}
 	}
 

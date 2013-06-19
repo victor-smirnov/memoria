@@ -64,15 +64,15 @@ bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys)
 {
 	auto& ctr = self();
 
-	auto& from_path 	= from.path();
-	Position from_pos 	= Position(from.entry_idx());
+	auto& from_path 	= from.leaf();
+	Position from_pos 	= Position(from.idx());
 
-	auto& to_path 		= to.path();
-	Position to_pos 	= Position(to.entry_idx());
+	auto& to_path 		= to.leaf();
+	Position to_pos 	= Position(to.idx());
 
 	bool result = ctr.removeEntries(from_path, from_pos, to_path, to_pos, keys, true).gtAny(0);
 
-	from.key_idx() = to.key_idx() = to_pos.get();
+	from.idx() = to.idx() = to_pos.get();
 
 	return result;
 }

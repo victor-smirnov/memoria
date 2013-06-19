@@ -219,7 +219,6 @@ public:
 	void removeSpace(Int room_start, Int room_end)
 	{
 		MEMORIA_ASSERT(room_start, >=, 0);
-		MEMORIA_ASSERT(room_end,   >=, 0);
 		MEMORIA_ASSERT(room_end,   >=, room_start);
 
 		MEMORIA_ASSERT(room_start, <=, max_size_);

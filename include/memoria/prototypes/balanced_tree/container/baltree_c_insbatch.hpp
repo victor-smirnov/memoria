@@ -212,27 +212,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::InsertBatchName)
     		template <Int Idx, typename Tree>
     		void stream(Tree* tree)
     		{
-    			for (Int block = 0; block < Tree::Blocks; block++)
-    			{
-    				typename Tree::Value* values = tree->values(block);
-    				for (Int c = 0; c < count_; c++)
-    				{
-    					values[c + start_] = std::get<Idx>(pairs_[c].keys)[block];
-    				}
-    			}
+    			Int c = 0;
+    			tree->insert(start_, count_, [&](){
+    				return std::get<Idx>(pairs_[c++].keys);
+    			});
     		}
 
     		template <typename Node>
     		void treeNode(Node* node)
     		{
-    			node->insertSpace(Position(start_), Position(count_));
+    			Int size = node->size();
 
     			node->processNotEmpty(*this);
 
-    			for (Int c = 0; c < count_; c++)
-    			{
-    				node->value(c + start_) = pairs_[c].value;
-    			}
+    			Int c = 0;
+    			node->insertValues(size, start_, count_, [&](){
+    				return pairs_[c++].value;
+    			});
     		}
     	};
 

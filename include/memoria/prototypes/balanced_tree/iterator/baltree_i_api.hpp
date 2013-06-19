@@ -135,7 +135,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::balanced_tree::IteratorAPIName)
     void createEmptyLeaf()
     {
     	auto& self = this->self();
-    	auto& ctr = self.model();
+    	auto& ctr  = self.model();
 
     	auto next = ctr.splitLeafP(self.leaf(), self.leaf_sizes());
 
