@@ -157,8 +157,13 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="p1.null.1219388518" name="p1"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="1">
-		<resource resourceType="PROJECT" workspacePath="/p1"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Default">
+			<resource resourceType="PROJECT" workspacePath="/p1"/>
+		</configuration>
+		<configuration configurationName="Clang">
+			<resource resourceType="PROJECT" workspacePath="/p1"/>
+		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>

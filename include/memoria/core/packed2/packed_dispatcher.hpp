@@ -46,7 +46,7 @@ public:
 			fn.template stream<Index>(head, args...);
 		}
 		else {
-			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::move(fn), args...);
+			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::forward<Fn>(fn), args...);
 		}
 	}
 
@@ -64,7 +64,7 @@ public:
 			fn.template stream<Index>(head, args...);
 		}
 		else {
-			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::move(fn), args...);
+			PackedDispatcher<Tail...>::dispatch(idx, alloc, std::forward<Fn>(fn), args...);
 		}
 	}
 
@@ -117,7 +117,7 @@ public:
 			return fn.template stream<Index>(head, args...);
 		}
 		else {
-			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::move(fn), args...);
+			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::forward<Fn>(fn), args...);
 		}
 	}
 
@@ -136,7 +136,7 @@ public:
 			return fn.template stream<Index>(head, args...);
 		}
 		else {
-			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::move(fn), args...);
+			return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::forward<Fn>(fn), args...);
 		}
 	}
 
@@ -183,7 +183,7 @@ public:
 			fn.template stream<Head>(args...);
 		}
 		else {
-			PackedDispatcher<Tail...>::dispatchStatic(idx, std::forward(fn), args...);
+			PackedDispatcher<Tail...>::dispatchStatic(idx, std::forward<Fn>(fn), args...);
 		}
 	}
 
@@ -204,7 +204,7 @@ public:
 			fn.template stream<Index>(head, args...);
 		}
 
-		PackedDispatcher<Tail...>::dispatchNotEmpty(alloc, std::move(fn), args...);
+		PackedDispatcher<Tail...>::dispatchNotEmpty(alloc, std::forward<Fn>(fn), args...);
 	}
 
 	template <typename Fn, typename... Args>
@@ -216,7 +216,7 @@ public:
 			fn.template stream<Index>(head, args...);
 		}
 
-		PackedDispatcher<Tail...>::dispatchNotEmpty(alloc, std::move(fn), args...);
+		PackedDispatcher<Tail...>::dispatchNotEmpty(alloc, std::forward<Fn>(fn), args...);
 	}
 
 	template <typename Fn, typename... Args>
@@ -228,7 +228,7 @@ public:
 			fn.template stream<Index>(head, args...);
 		}
 
-		PackedDispatcher<Tail...>::dispatchNotEmpty(streams, alloc, std::move(fn), args...);
+		PackedDispatcher<Tail...>::dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), args...);
 	}
 
 	template <typename Fn, typename... Args>
@@ -240,7 +240,7 @@ public:
 			fn.template stream<Index>(head, args...);
 		}
 
-		PackedDispatcher<Tail...>::dispatchNotEmpty(streams, alloc, std::move(fn), args...);
+		PackedDispatcher<Tail...>::dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), args...);
 	}
 
 
@@ -255,7 +255,7 @@ public:
 
 		fn.template stream<Index>(head, args...);
 
-		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
+		PackedDispatcher<Tail...>::dispatchAll(alloc, std::forward<Fn>(fn), args...);
 	}
 
 
@@ -270,7 +270,7 @@ public:
 
 		fn.template stream<Index>(head, args...);
 
-		PackedDispatcher<Tail...>::dispatchAll(alloc, std::move(fn), args...);
+		PackedDispatcher<Tail...>::dispatchAll(alloc, std::forward<Fn>(fn), args...);
 	}
 
 
@@ -285,7 +285,7 @@ public:
 
 		fn.template stream<Index>(head, args...);
 
-		PackedDispatcher<Tail...>::dispatchAll(streams, alloc, std::move(fn), args...);
+		PackedDispatcher<Tail...>::dispatchAll(streams, alloc, std::forward<Fn>(fn), args...);
 	}
 
 	template <typename Fn, typename... Args>
@@ -299,7 +299,7 @@ public:
 
 		fn.template stream<Index>(head, args...);
 
-		PackedDispatcher<Tail...>::dispatchAll(streams, alloc, std::move(fn), args...);
+		PackedDispatcher<Tail...>::dispatchAll(streams, alloc, std::forward<Fn>(fn), args...);
 	}
 
 	template <typename Fn, typename... Args>
@@ -312,7 +312,7 @@ public:
 			return fn.template stream<Index>(head, args...);
 		}
 		else {
-			return PackedDispatcher<Tail...>::dispatchStaticRtn(idx, std::move(fn), args...);
+			return PackedDispatcher<Tail...>::dispatchStaticRtn(idx, std::forward<Fn>(fn), args...);
 		}
 	}
 };

@@ -206,7 +206,7 @@ class NDT1 {
 public:
 
     template <typename Node, typename Functor, typename... Args>
-    static void dispatch(Node *node1, NodeBase *node2, Functor &functor, Args... args)
+    static void dispatch(Node *node1, NodeBase *node2, Functor&& functor, Args... args)
     {
     	if (HASH == node2->page_type_hash())
     	{
@@ -217,7 +217,7 @@ public:
     		);
     	}
     	else {
-    		NDT1<Types, Idx - 1>::dispatch(node1, node2, functor, args...);
+    		NDT1<Types, Idx - 1>::dispatch(node1, node2, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -234,7 +234,7 @@ public:
     		);
     	}
     	else {
-    		NDT1<Types, Idx - 1>::dispatchConst(node1, node2, std::move(functor), args...);
+    		NDT1<Types, Idx - 1>::dispatchConst(node1, node2, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -251,7 +251,7 @@ public:
     		);
     	}
     	else {
-    		NDT1<Types, Idx - 1>::dispatchConst(parent, child, std::move(functor), args...);
+    		NDT1<Types, Idx - 1>::dispatchConst(parent, child, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -274,7 +274,7 @@ public:
     		);
     	}
     	else {
-    		return NDT1<Types, Idx - 1>::dispatchConstRtn(node1, node2, std::move(functor), args...);
+    		return NDT1<Types, Idx - 1>::dispatchConstRtn(node1, node2, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -297,7 +297,7 @@ public:
     		);
     	}
     	else {
-    		return NDT1<Types, Idx - 1>::dispatchTreeConstRtn(parent, child, std::move(functor), args...);
+    		return NDT1<Types, Idx - 1>::dispatchTreeConstRtn(parent, child, std::forward<Functor>(functor), args...);
     	}
     }
 };
@@ -326,7 +326,7 @@ public:
     		);
     	}
     	else {
-    		NDT2<Types, Idx - 1>::dispatchConst(parent, child, std::move(functor), args...);
+    		NDT2<Types, Idx - 1>::dispatchConst(parent, child, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -349,7 +349,7 @@ public:
     		);
     	}
     	else {
-    		return NDT2<Types, Idx - 1>::dispatchTreeConstRtn(parent, child, std::move(functor), args...);
+    		return NDT2<Types, Idx - 1>::dispatchTreeConstRtn(parent, child, std::forward<Functor>(functor), args...);
     	}
     }
 };
@@ -418,7 +418,7 @@ public:
     		NDT0<
     			Types, Idx - 1
     		>
-    		::template wrappedDispatch<Wrapper>(node1, node2, std::move(functor), args...);
+    		::template wrappedDispatch<Wrapper>(node1, node2, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -430,7 +430,7 @@ public:
     		functor.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), args...);
     	}
     	else {
-    		NDT0<Types, Idx - 1>::dispatch2(node1, node2, std::move(functor), args...);
+    		NDT0<Types, Idx - 1>::dispatch2(node1, node2, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -444,7 +444,7 @@ public:
     		return functor.treeNode(static_cast<Head*>(node), args...);
     	}
     	else {
-    		return NDT0<Types, Idx - 1>::dispatchRtn(node, std::move(functor), args...);
+    		return NDT0<Types, Idx - 1>::dispatchRtn(node, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -457,7 +457,7 @@ public:
     		return functor.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), args...);
     	}
     	else {
-    		return NDT0<Types, Idx - 1>::dispatchRtn(node1, node2, std::move(functor), args...);
+    		return NDT0<Types, Idx - 1>::dispatchRtn(node1, node2, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -495,7 +495,7 @@ public:
     		return functor.treeNode(static_cast<const Head*>(node), args...);
     	}
     	else {
-    		return NDT0<Types, Idx - 1>::dispatchConstRtn(node, std::move(functor), args...);
+    		return NDT0<Types, Idx - 1>::dispatchConstRtn(node, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -514,7 +514,7 @@ public:
     		return functor.treeNode(static_cast<const Head*>(node1), static_cast<const Head*>(node2), args...);
     	}
     	else {
-    		return NDT0<Types, Idx - 1>::dispatchConstRtn2(node1, node2, std::move(functor), args...);
+    		return NDT0<Types, Idx - 1>::dispatchConstRtn2(node1, node2, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -531,7 +531,7 @@ public:
     		);
     	}
     	else {
-    		NDT0<Types, Idx - 1>::doubleDispatch(node1, node2, std::move(functor), args...);
+    		NDT0<Types, Idx - 1>::doubleDispatch(node1, node2, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -548,7 +548,7 @@ public:
     		);
     	}
     	else {
-    		NDT0<Types, Idx - 1>::doubleDispatchConst(node1, node2, std::move(functor), args...);
+    		NDT0<Types, Idx - 1>::doubleDispatchConst(node1, node2, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -566,7 +566,7 @@ public:
     		);
     	}
     	else {
-    		NDT0<Types, Idx - 1>::dispatchTreeConst(parent, child, std::move(functor), args...);
+    		NDT0<Types, Idx - 1>::dispatchTreeConst(parent, child, std::forward<Functor>(functor), args...);
     	}
     }
 
@@ -585,7 +585,7 @@ public:
     		return NDT1<Types, ListSize<typename Types::List>::Value - 1>::dispatchConstRtn(
     				static_cast<const Head*>(node1),
     				node2,
-    				std::move(functor),
+    				std::forward<Functor>(functor),
     				args...
     		);
     	}
@@ -609,7 +609,7 @@ public:
     		return NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>::dispatchTreeConstRtn(
     				static_cast<const Head*>(parent),
     				child,
-    				std::move(functor),
+    				std::forward<Functor>(functor),
     				args...
     		);
     	}
@@ -637,7 +637,7 @@ public:
     		NDT0<
     			Types, Idx - 1
     		>
-    		::template dispatchStatic<TreeNode>(root, leaf, std::move(fn), args...);
+    		::template dispatchStatic<TreeNode>(root, leaf, std::forward<Functor>(fn), args...);
     	}
     }
 
@@ -661,7 +661,7 @@ public:
     		return NDT0<
     			Types, Idx - 1
     		>
-    		::template dispatchStaticRtn<TreeNode>(root, leaf, std::move(fn), args...);
+    		::template dispatchStaticRtn<TreeNode>(root, leaf, std::forward<Functor>(fn), args...);
     	}
     }
 
@@ -681,7 +681,7 @@ public:
     		return NDT0<
     				Types, Idx - 1
     				>
-    		::template dispatchStatic2Rtn(root, leaf, std::move(fn), args...);
+    		::template dispatchStatic2Rtn(root, leaf, std::forward<Functor>(fn), args...);
     	}
     }
 
