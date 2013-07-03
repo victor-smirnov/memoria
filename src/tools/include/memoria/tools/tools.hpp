@@ -321,7 +321,7 @@ bool CompareBuffer(Iter<Types>& iter, const MemBuffer& data, Int& c)
 template <typename Types, Int Bits>
 bool CompareBuffer(Iter<SequenceIterTypes<Types>>& iter, const SymbolSequence<Bits>& data, Int& c)
 {
-    typedef Iter<Types> Iterator;
+//    typedef Iter<Types> Iterator;
 
     c = 0;
     for (size_t i = 0; i != data.size(); i++, iter.next(), c++)

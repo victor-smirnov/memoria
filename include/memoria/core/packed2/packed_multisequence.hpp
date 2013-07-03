@@ -179,9 +179,9 @@ public:
 				sequence()->index()->dump(out);
 			}
 
-			const auto* values = sequence()->symbols();
+			auto values = sequence()->symbols();
 
-			const auto labels = this->labels();
+			auto labels = this->labels();
 
 			Int offset = 0;
 

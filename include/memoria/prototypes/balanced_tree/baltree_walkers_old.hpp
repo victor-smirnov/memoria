@@ -34,7 +34,7 @@ public:
 	template <typename NodeTypes, bool root, bool leaf>
 	void operator()(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node)
 	{
-		typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
+//		typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
 		idx_ = me().dispatchNode(*node, start_);
 	}
 

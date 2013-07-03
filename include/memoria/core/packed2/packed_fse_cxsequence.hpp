@@ -275,7 +275,7 @@ public:
 
 		out<<"Symbols:"<<endl;
 
-		const auto* values = this->symbols();
+		auto values = this->symbols();
 
 		dumpSymbols<UByte>(out, size(), 8, [&](Int pos) {
 			return values[pos];
