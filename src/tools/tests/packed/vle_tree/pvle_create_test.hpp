@@ -23,10 +23,10 @@ namespace memoria {
 using namespace std;
 
 template <Int BF, Int VPB, template <typename> class Codec_>
-class PVLEMapCreateTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Codec_, 2, BF, VPB>> {
+class PVLEMapCreateTest: public PVLETestBase<Packed2TreeTypes<Int, Int, 2, Codec_, BF, VPB>> {
 
 	typedef PVLEMapCreateTest 															MyType;
-	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Codec_, 2, BF, VPB>> 			Base;
+	typedef PVLETestBase<Packed2TreeTypes<Int, Int, 2, Codec_, BF, VPB>> 				Base;
 
 	typedef typename Base::Tree 			Tree;
 	typedef typename Base::TreePtr 			TreePtr;

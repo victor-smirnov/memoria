@@ -57,6 +57,7 @@ public:
 
 	typedef Int																	Key;
 	typedef Int																	IndexKey;
+	typedef Int																	IndexValue;
 	typedef UBigInt																Value;
 
 	static const Int BranchingFactor        = Types::BranchingFactor;
@@ -293,12 +294,7 @@ public:
 	{
 		return roundBitToBytes(size());
 	}
-//
-//	Int getTotalDataSize() const
-//	{
-//		return max_size() * sizeof(Value);
-//	}
-//
+
 	Int getDataOffset() const
 	{
 		return index_size_ * sizeof(IndexKey) * Indexes;

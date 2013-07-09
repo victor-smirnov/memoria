@@ -118,8 +118,6 @@ public:
 
     	seq->reindex();
 
-//    	seq->dump();
-
     	Int rank = seq->rank(seq->size(), 1);
     	out()<<rank<<endl;
 

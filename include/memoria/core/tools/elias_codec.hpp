@@ -46,7 +46,7 @@ size_t EncodeEliasDelta(T* buffer, V value, size_t start, size_t limit = -1)
 	// Move the most significant bit of the value's length into position 0.
 	// The MSB will always be 1, so this 1 will delimit run of zeroes from
 	// the bit run of the value's length.
-	// This operation differs this code from the orginal ELias Delta code.
+	// This operation differs this code from the original ELias Delta code.
 	length0 <<= 1;
 	length0 +=  1;
 

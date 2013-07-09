@@ -123,10 +123,8 @@ struct ExintCodec {
 	}
 };
 
-
-template <typename V>
-using UByteExintCodec = ExintCodec<UByte, V>;
-
+template <typename Value>
+using UByteExintCodec = ExintCodec<UByte, Value>;
 
 }
 

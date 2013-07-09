@@ -896,7 +896,7 @@ __attribute__((always_inline))  inline size_t CountTrailingZeroes(const T* buf, 
 		if (val)
 		{
 			length += CountTrailingZeroes(val);
-			break;
+			return length;
 		}
 		else {
 			length += TypeBitsize<T>() - prefix;
@@ -908,7 +908,7 @@ __attribute__((always_inline))  inline size_t CountTrailingZeroes(const T* buf, 
 
 	if (suffix > 0)
 	{
-		T val = buf[stop_cell];
+		T val = buf[stop_cell] >> prefix;
 		if (val)
 		{
 			length += CountTrailingZeroes(val);

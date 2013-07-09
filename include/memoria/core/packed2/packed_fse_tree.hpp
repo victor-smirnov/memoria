@@ -10,6 +10,9 @@
 
 #include <memoria/core/packed2/packed_tree_base.hpp>
 #include <memoria/core/packed2/packed_tree_walkers.hpp>
+#include <memoria/core/packed2/packed_tree_tools.hpp>
+
+
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
 #include <memoria/core/tools/dump.hpp>
@@ -22,6 +25,7 @@
 #include <type_traits>
 
 namespace memoria {
+
 
 template <typename Value, typename Walker = EmptyType>
 class FSEValueDescr {
@@ -47,41 +51,18 @@ public:
 };
 
 
-template <
-	typename K,
-	typename IK,
-	typename V,
-	Int Blocks_				= 1,
-	typename Allocator_ 	= PackedAllocator,
-	Int BF 					= PackedTreeBranchingFactor,
-	Int VPB 				= PackedTreeBranchingFactor
->
-struct PackedFSETreeTypes {
-    typedef K               Key;
-    typedef IK              IndexKey;
-    typedef V               Value;
-    typedef Allocator_  	Allocator;
-
-    static const Int Blocks                 = Blocks_;
-    static const Int BranchingFactor        = BF;
-    static const Int ValuesPerBranch        = VPB;
-
-    static const Int ALIGNMENT_BLOCK        = 8;
-};
-
-
 
 template <typename Types_>
 class PackedFSETree: public PackedTreeBase <
 	PackedFSETree<Types_>,
-	typename Types_::IndexKey,
+	typename Types_::IndexValue,
 	Types_::BranchingFactor,
 	Types_::ValuesPerBranch
 > {
 
 	typedef  PackedTreeBase<
 			PackedFSETree<Types_>,
-			typename Types_::IndexKey,
+			typename Types_::IndexValue,
 			Types_::BranchingFactor,
 			Types_::ValuesPerBranch
 	>																			Base;
@@ -94,8 +75,7 @@ public:
 
 	typedef typename Types::Allocator											Allocator;
 
-	typedef typename Types::Key													Key;
-	typedef typename Types::IndexKey											IndexKey;
+	typedef typename Types::IndexValue											IndexValue;
 	typedef typename Types::Value												Value;
 
 	static const Int BranchingFactor        = Types::BranchingFactor;
@@ -105,34 +85,18 @@ public:
 
 	static const Int IOBatchSize			= 16;
 
-	typedef core::StaticVector<Value, Blocks>									Values;
+	typedef core::StaticVector<IndexValue, Blocks>								Values;
 
-	struct Codec {
-		size_t length(const Value* buffer, size_t idx) const {return 1;}
-		size_t length(Value value) const {return 1;}
+	typedef typename Types::template Codec<Value>								Codec;
+	typedef typename Codec::BufferType											BufferType;
 
-		size_t decode(const Value* buffer, Value& value, size_t idx) const {
-			value = buffer[idx];
-			return 1;
-		}
-
-		size_t encode(Value* buffer, Value value, size_t idx) const
-		{
-			buffer[idx] = value;
-			return 1;
-		}
-	};
-
-	typedef FSEValueDescr<IndexKey> 											ValueDescr;
+	typedef FSEValueDescr<IndexValue> 											ValueDescr;
 
 	template <typename TreeType, typename MyType>
 	using FindLTFnBase = FSEFindElementFnBase<TreeType, PackedCompareLE, MyType>;
 
 	template <typename TreeType, typename MyType>
 	using FindLEFnBase = FSEFindElementFnBase<TreeType, PackedCompareLT, MyType>;
-
-
-
 
 private:
 
@@ -150,8 +114,7 @@ public:
 	            decltype(size_),
 	            decltype(max_size_),
 	            decltype(index_size_),
-	            Key,
-	            IndexKey,
+	            IndexValue,
 	            Value
 	>::Result                                                                   FieldsList;
 
@@ -179,13 +142,13 @@ public:
 
 	Int content_size_from_start(Int block) const
 	{
-		IndexKey max = sum(block);
+		IndexValue max = sum(block);
 		return this->findLEForward(block, 0, max).idx() + 1;
 	}
 
 	Int block_size() const
 	{
-		return sizeof(MyType) + index_size_ * sizeof(IndexKey) * Indexes + max_size_ * sizeof(Value) * Blocks;
+		return sizeof(MyType) + index_size_ * sizeof(IndexValue) * Indexes + max_size_ * sizeof(Value) * Blocks;
 	}
 
 	Int block_size(const MyType* other) const
@@ -208,29 +171,29 @@ public:
 		return sizeof(MyType);
 	}
 
-	IndexKey* indexes(Int index_block)
+	IndexValue* indexes(Int index_block)
 	{
-		return T2T<IndexKey*>(buffer_ + index_size_ * sizeof(IndexKey) * (index_block));
+		return T2T<IndexValue*>(buffer_ + index_size_ * sizeof(IndexValue) * (index_block));
 	}
 
-	const IndexKey* indexes(Int index_block) const
+	const IndexValue* indexes(Int index_block) const
 	{
-		return T2T<const IndexKey*>(buffer_ + index_size_ * sizeof(IndexKey) * (index_block));
+		return T2T<const IndexValue*>(buffer_ + index_size_ * sizeof(IndexValue) * (index_block));
 	}
 
-	IndexKey maxValue(Int index_block) const
+	IndexValue maxValue(Int index_block) const
 	{
 		return indexes(index_block)[0];
 	}
 
 	Value* getValues()
 	{
-		return buffer_ + index_size_ * sizeof(IndexKey) * Indexes;
+		return buffer_ + index_size_ * sizeof(IndexValue) * Indexes;
 	}
 
 	const Value* getValues() const
 	{
-		return buffer_ + index_size_ * sizeof(IndexKey) * Indexes;
+		return buffer_ + index_size_ * sizeof(IndexValue) * Indexes;
 	}
 
 	static Int getValueBlocks(Int items_num)
@@ -250,9 +213,9 @@ public:
 	static Int block_size(Int items_num)
 	{
 		Int index_size = MyType::index_size(items_num);
-		Int raw_block_size = sizeof(MyType) + index_size * Indexes * sizeof(IndexKey) + items_num * sizeof(Value) * Blocks;
+		Int raw_block_size = sizeof(MyType) + index_size * Indexes * sizeof(IndexValue) + items_num * sizeof(Value) * Blocks;
 
-		return Allocator::roundUpBytesToAlignmentBlocks(raw_block_size);
+		return PackedAllocatable::roundUpBytesToAlignmentBlocks(raw_block_size);
 	}
 
 	static Int elements_for(Int block_size)
@@ -294,7 +257,7 @@ private:
 
 			Int limit = (ValuesPerBranch - 1 < Base::size()) ? ValuesPerBranch - 1 : Base::size() - 1;
 
-			IndexKey cell = 0;
+			IndexValue cell = 0;
 
 			for (Int c = 0; c < Base::size(); c++)
 			{
@@ -335,7 +298,7 @@ private:
 			Int limit = (ValuesPerBranch - 1 < Base::size()) ? ValuesPerBranch - 1 : Base::size() - 1;
 
 
-			IndexKey cell = 0;
+			IndexValue cell = 0;
 
 			for (Int c = 0; c < Base::size(); c++)
 			{
@@ -446,12 +409,12 @@ public:
 
 	Value* values()
 	{
-		return T2T<Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes);
+		return T2T<Value*>(buffer_ + index_size_ * sizeof(IndexValue) * Indexes);
 	}
 
 	const Value* values() const
 	{
-		return T2T<const Value*>(buffer_ + index_size_ * sizeof(IndexKey) * Indexes);
+		return T2T<const Value*>(buffer_ + index_size_ * sizeof(IndexValue) * Indexes);
 	}
 
 	Value* values(Int block)
@@ -528,10 +491,10 @@ public:
 		index_size_ = index_size(max_size_);
 	}
 
-	void object_size() const
+	Int object_size() const
 	{
 		Int object_size = sizeof(MyType) + getDataOffset() + tree_data_size();
-		return Allocator::roundUpBytesToAlignmentBlocks(object_size);
+		return PackedAllocatable::roundUpBytesToAlignmentBlocks(object_size);
 	}
 
 	Int tree_data_size() const
@@ -546,7 +509,7 @@ public:
 
 	Int getDataOffset() const
 	{
-		return index_size_ * sizeof(IndexKey) * Indexes;
+		return index_size_ * sizeof(IndexValue) * Indexes;
 	}
 
 	Int capacity() const {
@@ -693,11 +656,11 @@ public:
 
 	// ==================================== Query ========================================== //
 
-	IndexKey sum0(Int to) const
+	IndexValue sum0(Int to) const
 	{
 		if (index_size_ == 0 || to < ValuesPerBranch)
 		{
-			IndexKey sum = 0;
+			IndexValue sum = 0;
 
 			const Value* values = this->values();
 
@@ -717,31 +680,31 @@ public:
 		}
 	}
 
-	IndexKey sum0(Int from, Int to) const
+	IndexValue sum0(Int from, Int to) const
 	{
 		return sum0(to) - sum0(from);
 	}
 
 
-	IndexKey sum(Int block) const
+	IndexValue sum(Int block) const
 	{
 		return sum(block, size_);
 	}
 
-	IndexKey sum(Int block, Int to) const
+	IndexValue sum(Int block, Int to) const
 	{
 		Int base = block * size_;
 		return sum0(base, base + to);
 	}
 
 
-	IndexKey sumWithoutLastElement(Int block) const
+	IndexValue sumWithoutLastElement(Int block) const
 	{
 		return sum(block, size_ - 1);
 	}
 
 
-	IndexKey sum(Int block, Int from, Int to) const
+	IndexValue sum(Int block, Int from, Int to) const
 	{
 		Int base = block * size_;
 		return sum0(base + to) - sum0(base + from);
@@ -781,7 +744,7 @@ public:
 		return vals;
 	}
 
-	ValueDescr findLTForward(IndexKey val) const
+	ValueDescr findLTForward(IndexValue val) const
 	{
 		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val);
 
@@ -793,7 +756,7 @@ public:
 	}
 
 
-	ValueDescr findLTForward(Int start, IndexKey val) const
+	ValueDescr findLTForward(Int start, IndexValue val) const
 	{
 		auto prefix = start > 0 ? sum(start) : 0;
 
@@ -807,7 +770,7 @@ public:
 	}
 
 
-	ValueDescr findLTForward(Int block, Int start, IndexKey val) const
+	ValueDescr findLTForward(Int block, Int start, IndexValue val) const
 	{
 		Int block_start = block * size_;
 
@@ -829,7 +792,7 @@ public:
 	}
 
 
-	ValueDescr findLTBackward(Int start, IndexKey val) const
+	ValueDescr findLTBackward(Int start, IndexValue val) const
 	{
 		auto prefix = sum0(start + 1);
 		auto target = prefix - val;
@@ -855,7 +818,7 @@ public:
 	}
 
 
-	ValueDescr findLTBackward(Int block, Int start, IndexKey val) const
+	ValueDescr findLTBackward(Int block, Int start, IndexValue val) const
 	{
 		Int block_start = block * size_;
 
@@ -889,7 +852,7 @@ public:
 
 
 
-	ValueDescr findLEForward(IndexKey val) const
+	ValueDescr findLEForward(IndexValue val) const
 	{
 		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
 
@@ -900,7 +863,7 @@ public:
 		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
 	}
 
-	ValueDescr findLEForward(Int start, IndexKey val) const
+	ValueDescr findLEForward(Int start, IndexValue val) const
 	{
 		auto prefix = start > 0 ? sum0(start) : 0;
 
@@ -913,7 +876,7 @@ public:
 		return ValueDescr(actual_value + fn.sum(), pos, fn.sum() - prefix);
 	}
 
-	ValueDescr findLEForward(Int block, Int start, IndexKey val) const
+	ValueDescr findLEForward(Int block, Int start, IndexValue val) const
 	{
 		Int block_start = block * size_;
 
@@ -930,11 +893,11 @@ public:
 			return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
 		}
 		else {
-			return ValueDescr(0, size_, sum(block) - prefix);
+			return ValueDescr(0, size_, sum(block, start, size_));
 		}
 	}
 
-	ValueDescr findLEBackward(Int block, Int start, IndexKey val) const
+	ValueDescr findLEBackward(Int block, Int start, IndexValue val) const
 	{
 		Int block_start = block * size_;
 
@@ -967,7 +930,7 @@ public:
 	}
 
 
-	ValueDescr findForward(SearchType search_type, Int block, Int start, IndexKey val) const
+	ValueDescr findForward(SearchType search_type, Int block, Int start, IndexValue val) const
 	{
 		if (search_type == SearchType::LT)
 		{
@@ -978,7 +941,7 @@ public:
 		}
 	}
 
-	ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexKey val) const
+	ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
 	{
 		if (search_type == SearchType::LT)
 		{
@@ -990,7 +953,7 @@ public:
 	}
 
 
-	ValueDescr findLEl(IndexKey val) const
+	ValueDescr findLEl(IndexValue val) const
 	{
 		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
 
@@ -1063,7 +1026,7 @@ public:
 		this->value(idx) = value;
 	}
 
-	void insert(Int idx, Int size, std::function<Values()> provider)
+	void insert(Int idx, Int size, std::function<Values ()> provider)
 	{
 		insertSpace(idx, size);
 
@@ -1086,9 +1049,11 @@ public:
 	{
 		MEMORIA_ASSERT(idx, <=, this->size());
 
-		if (capacity() < room_length)
+		Int capacity = this->capacity();
+
+		if (capacity < room_length)
 		{
-			enlarge(room_length - capacity());
+			enlarge(room_length - capacity);
 		}
 
 		Value* values = this->values();
@@ -1377,7 +1342,7 @@ public:
 
 		for (Int c = 0; c < index_size_; c++)
 		{
-			IndexKey indexes[Indexes];
+			IndexValue indexes[Indexes];
 			for (Int idx = 0; idx < Indexes; idx++)
 			{
 				indexes[idx] = this->indexes(idx)[c];
@@ -1413,7 +1378,7 @@ public:
 		FieldFactory<Int>::serialize(buf, max_size_);
 		FieldFactory<Int>::serialize(buf, index_size_);
 
-		FieldFactory<IndexKey>::serialize(buf, indexes(0), Indexes * index_size());
+		FieldFactory<IndexValue>::serialize(buf, indexes(0), Indexes * index_size());
 
 		FieldFactory<Value>::serialize(buf, values(), size_ * Blocks);
 	}
@@ -1425,7 +1390,7 @@ public:
 		FieldFactory<Int>::deserialize(buf, max_size_);
 		FieldFactory<Int>::deserialize(buf, index_size_);
 
-		FieldFactory<IndexKey>::deserialize(buf, indexes(0), Indexes * index_size());
+		FieldFactory<IndexValue>::deserialize(buf, indexes(0), Indexes * index_size());
 
 		FieldFactory<Value>::deserialize(buf, values(), size_ * Blocks);
 	}
@@ -1436,7 +1401,7 @@ private:
 
 		MyType& me_;
 
-		IndexKey* indexes_;
+		IndexValue* indexes_;
 
 		Value value_;
 
@@ -1466,7 +1431,7 @@ private:
 public:
 
 
-	void updateUp(Int block_num, Int idx, IndexKey key_value)
+	void updateUp(Int block_num, Int idx, IndexValue key_value)
 	{
 		value(block_num, idx) += key_value;
 

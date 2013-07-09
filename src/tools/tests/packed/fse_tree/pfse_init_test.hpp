@@ -25,6 +25,26 @@ class PackedFSETreeInitTest: public TestTask {
 	typedef PackedFSETreeInitTest 											MyType;
 public:
 
+
+	template <
+		typename IK,
+		typename V,
+		Int Blocks_				= 1,
+		Int BF 					= PackedTreeBranchingFactor,
+		Int VPB 				= PackedTreeBranchingFactor
+	>
+	struct PackedFSETreeTypes {
+	    typedef IK              IndexValue;
+	    typedef V               Value;
+	    typedef EmptyAllocator	Allocator;
+
+	    static const Int Blocks                 = Blocks_;
+	    static const Int BranchingFactor        = BF;
+	    static const Int ValuesPerBranch        = VPB;
+
+	    static const Int ALIGNMENT_BLOCK        = 8;
+	};
+
 	PackedFSETreeInitTest(): TestTask("Init")
     {
     	MEMORIA_ADD_TEST(testInit);
@@ -35,7 +55,7 @@ public:
     template <Int BF, Int VPB>
     void testInitByBlock(Int block_size)
     {
-    	typedef PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>	Types;
+    	typedef PackedFSETreeTypes<Int, Int, 1, BF, VPB>					Types;
     	typedef PackedFSETree<Types> 										Tree;
 
     	Tree tree;
@@ -52,7 +72,7 @@ public:
     template <Int BF, Int VPB>
     void testInitByBlock()
     {
-    	typedef PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>	Types;
+    	typedef PackedFSETreeTypes<Int, Int, 1, BF, VPB>					Types;
     	typedef PackedFSETree<Types> 										Tree;
 
     	Tree tree;

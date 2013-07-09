@@ -464,10 +464,10 @@ public:
     	MEMORIA_ASSERT(from, <, size());
 
     	intrnl1::EmptyMainWalker mw;
-    	balanced_tree::EmptyExtenderState state;
+    	btree::EmptyExtenderState state;
 
     	sequence::SelectForwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
+    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
     	>
     	walker(mw, *this, rank, symbol, state);
 
@@ -482,7 +482,7 @@ public:
     	balanced_tree::EmptyExtenderState state;
 
     	sequence::SelectForwardWalker<
-    	 	 MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
+    	 	 MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
     	>
     	walker(mw, *this, rank, symbol, state);
 
@@ -498,7 +498,7 @@ public:
     	balanced_tree::EmptyExtenderState state;
 
     	sequence::SelectBackwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
+    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
     	>
     	walker(mw, *this, rank, symbol, state);
 
@@ -513,7 +513,7 @@ public:
     	balanced_tree::EmptyExtenderState state;
 
     	sequence::PackedSequenceCountForwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
+    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
     	>
     	walker(mw, *this, 0, symbol, state);
 
@@ -534,7 +534,7 @@ public:
     	balanced_tree::EmptyExtenderState state;
 
     	sequence::PackedSequenceCountBackwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, balanced_tree::EmptyExtender, balanced_tree::EmptyExtenderState
+    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
     	>
     	walker(mw, *this, 0, symbol, state);
 

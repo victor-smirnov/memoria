@@ -138,7 +138,7 @@ public:
 
 	static Int roundDownBitsToAlignmentBlocks(Int bits)
 	{
-		return roundDownBytesToAlignmentBlocks(roundDownBitToBytes(bits));
+		return roundDownBytesToAlignmentBlocks(roundDownBitsToBytes(bits));
 	}
 
 	static Int roundUpBitToBytes(Int bits)
@@ -146,7 +146,7 @@ public:
 		return bits / 8 + (bits % 8 > 0);
 	}
 
-	static Int roundDownBitToBytes(Int bits)
+	static Int roundDownBitsToBytes(Int bits)
 	{
 		return bits / 8 + (bits % 8 > 0);
 	}

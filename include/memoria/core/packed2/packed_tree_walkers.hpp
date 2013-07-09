@@ -127,13 +127,14 @@ struct VLECompareLT {
 
 
 template <typename TreeType, typename MyType>
-class GetValueOffsetFnBase: public FindForwardFnBase<TreeType, MyType, typename TreeType::IndexKey, VLECompareLE> {
+class GetValueOffsetFnBase: public FindForwardFnBase<TreeType, MyType, typename TreeType::IndexValue, VLECompareLE> {
 
-	typedef FindForwardFnBase<TreeType, MyType, typename TreeType::IndexKey, VLECompareLE> 	Base;
+	typedef FindForwardFnBase<TreeType, MyType, typename TreeType::IndexValue, VLECompareLE> 	Base;
 
 protected:
 
 	typedef typename TreeType::Value 		Value;
+	typedef typename TreeType::IndexValue 	IndexValue;
 	typedef typename TreeType::Codec 		Codec;
 	typedef typename TreeType::BufferType 	BufferType;
 
@@ -200,7 +201,7 @@ class SumValuesFnBase {
 
 protected:
 
-	typedef typename TreeType::IndexKey		IndexKey;
+	typedef typename TreeType::IndexValue	IndexKey;
 	typedef typename TreeType::Value 		Value;
 
 protected:
@@ -264,7 +265,7 @@ template <typename TreeType>
 class GetVLEValuesSumFn: public GetValueOffsetFnBase<TreeType, GetVLEValuesSumFn<TreeType> > {
 	typedef GetValueOffsetFnBase<TreeType, GetVLEValuesSumFn<TreeType> > Base;
 
-	typedef typename TreeType::IndexKey 			IndexKey;
+	typedef typename TreeType::IndexValue 			IndexKey;
 	typedef typename TreeType::Value 				Value;
 
 	const IndexKey* indexes_;
@@ -306,16 +307,16 @@ template <
 class FindElementFn: public FindForwardFnBase<
 	TreeType,
 	FindElementFn<TreeType, Comparator>,
-	typename TreeType::IndexKey,
+	typename TreeType::IndexValue,
 	Comparator
 >
 {
-	typedef typename TreeType::IndexKey 	IndexKey;
+	typedef typename TreeType::IndexValue	IndexValue;
 	typedef typename TreeType::Codec 		Codec;
 	typedef typename TreeType::Value		Value;
 	typedef typename TreeType::BufferType 	BufferType;
 
-	typedef FindForwardFnBase<TreeType, FindElementFn<TreeType, Comparator>, IndexKey, Comparator> 	Base;
+	typedef FindForwardFnBase<TreeType, FindElementFn<TreeType, Comparator>, IndexValue, Comparator> 	Base;
 
 public:
 
@@ -324,7 +325,7 @@ private:
 	const TreeType& 	me_;
 
 	const BufferType* 	values_;
-	const IndexKey* 	sizes_;
+	const IndexValue* 	sizes_;
 
 	Int position_;
 
@@ -376,7 +377,7 @@ public:
 
 	Int walkValues(Int pos, Int end)
 	{
-		Comparator<IndexKey, BigInt> compare;
+		Comparator<IndexValue, BigInt> compare;
 		Codec codec;
 
 		while (pos < end)
@@ -433,13 +434,13 @@ template <
 	typename MyType
 >
 class FSEFindElementFnBase: public FindForwardFnBase <
-	Tree, MyType, typename Tree::IndexKey, Comparator
+	Tree, MyType, typename Tree::IndexValue, Comparator
 > {
 
-	typedef typename Tree::IndexKey 	IndexKey;
+	typedef typename Tree::IndexValue 	IndexValue;
 	typedef typename Tree::Value 		Value;
 
-	typedef FindForwardFnBase<Tree, MyType, IndexKey, Comparator> 	Base;
+	typedef FindForwardFnBase<Tree, MyType, IndexValue, Comparator> 	Base;
 
 public:
 
@@ -555,7 +556,7 @@ class BitRankFn: public SumValuesFnBase<TreeType, BitRankFn<TreeType>> {
 	typedef SumValuesFnBase<TreeType, BitRankFn<TreeType>> 		Base;
 
 	typedef typename TreeType::Value 							Value;
-	typedef typename TreeType::IndexKey 						IndexKey;
+	typedef typename TreeType::IndexValue 						IndexValue;
 
 	const Value* values_;
 	Int bit_;
@@ -566,7 +567,7 @@ public:
 
 	void walkValues(Int start, Int end)
 	{
-		IndexKey& sum = Base::sum_;
+		IndexValue& sum = Base::sum_;
 
 		Int rank1 = PopCount(values_, start, end);
 
@@ -581,12 +582,12 @@ public:
 
 
 template <typename TreeType>
-class BitSelectFn: public FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, PackedCompareLT> {
+class BitSelectFn: public FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexValue, PackedCompareLT> {
 
-	typedef FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexKey, PackedCompareLT> 	Base;
+	typedef FindForwardFnBase<TreeType, BitSelectFn<TreeType>, typename TreeType::IndexValue, PackedCompareLT> 	Base;
 
 	typedef typename TreeType::Value 							Value;
-	typedef typename TreeType::IndexKey 						IndexKey;
+	typedef typename TreeType::IndexValue 						IndexValue;
 
 	const TreeType& tree_;
 

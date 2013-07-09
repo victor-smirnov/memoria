@@ -16,6 +16,10 @@
 #include <memoria/core/packed2/packed_fse_tree.hpp>
 #include <memoria/core/packed2/packed_vle_tree.hpp>
 
+#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
+
+#include <memoria/core/packed2/packed_allocator.hpp>
+
 #include <memoria/prototypes/balanced_tree/baltree_types.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
@@ -64,8 +68,8 @@ struct PackedFSETreeTF {
     		typename Types::StreamDescriptors
     >::Result																	Descriptor;
 
-	typedef PackedFSETreeTypes<
-			Key,Key,Key, Descriptor::Indexes
+	typedef Packed2TreeTypes<
+			Key, Key, Descriptor::Indexes
 	>																			TreeTypes;
 
 	typedef PackedFSETree<TreeTypes> Type;
@@ -103,8 +107,8 @@ struct PackedVLETreeTF {
     		typename Types::StreamDescriptors
     >::Result																	Descriptor;
 
-	typedef PackedVLETreeTypes<
-			Key,Key, UByteExintCodec, Descriptor::Indexes
+	typedef Packed2TreeTypes<
+			Key, Key, Descriptor::Indexes, UByteExintCodec
 	>																			TreeTypes;
 
 	typedef PackedVLETree<TreeTypes> Type;

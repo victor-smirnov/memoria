@@ -41,8 +41,8 @@ struct PackedVMapFSETreeLeafTF {
     		typename Types::StreamDescriptors
     >::Result																	Descriptor;
 
-	typedef PackedFSETreeTypes<
-			Key, Key, Key, Descriptor::Indexes
+	typedef Packed2TreeTypes<
+			Key, Key, Descriptor::Indexes
 	>																			TreeTypes;
 
 	typedef PackedFSETree<TreeTypes> Type;

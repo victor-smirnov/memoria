@@ -15,6 +15,57 @@
 
 namespace memoria {
 
+
+template <typename Type, typename Value>
+struct FSECodec {
+	typedef Type BufferType;
+
+	size_t length(const Type* buffer, size_t idx) const {return 1;}
+	size_t length(Value value) const {return 1;}
+
+	size_t decode(const Type* buffer, Value& value, size_t idx) const {
+		value = buffer[idx];
+		return 1;
+	}
+
+	size_t encode(Type* buffer, Value value, size_t idx) const
+	{
+		buffer[idx] = value;
+		return 1;
+	}
+};
+
+template <typename Value>
+using ValueFSECodec = FSECodec<Value, Value>;
+
+
+template <
+	typename ValueType,
+	typename IndexType 		= ValueType,
+	Int Blocks_				= 1,
+	template <typename> class CodecType = ValueFSECodec,
+
+	Int BF 					= PackedTreeBranchingFactor,
+	Int VPB 				= PackedTreeBranchingFactor
+>
+struct Packed2TreeTypes {
+	typedef ValueType       Value;
+	typedef IndexType       IndexValue;
+
+    typedef PackedAllocator	Allocator;
+
+    static const Int Blocks                 = Blocks_;
+    static const Int BranchingFactor        = BF;
+    static const Int ValuesPerBranch        = VPB;
+
+    static const Int ALIGNMENT_BLOCK        = 8;
+
+    template <typename V>
+    using Codec = CodecType<V>;
+};
+
+
+
 template <typename IndexKey, Int BranchingFactor, Int ValuesPerBranch>
 class PackedTreeTools {
 
@@ -54,12 +105,8 @@ public:
 	}
 
 	template <typename Functor>
-	static void reindex(Int start, Int end, Functor& fn)
+	static void reindex(Functor& fn)
 	{
-		MEMORIA_ASSERT(start, >=, 0);
-		MEMORIA_ASSERT(end, <=, fn.size());
-		MEMORIA_ASSERT(start, <=, end);
-
 		if (fn.indexSize() > 0)
 		{
 			Int level_size    = getIndexCellsNumberFor(0, fn.maxSize());
@@ -559,12 +606,12 @@ class Reindex2FnBase {
 	public:
 		static const Int Indexes        		= MyType::Indexes;
 
-		typedef typename MyType:: IndexKey 		IndexKey;
+		typedef typename MyType:: IndexValue 	IndexValue;
 
 	protected:
 		MyType& me_;
 
-		IndexKey* indexes_[Indexes];
+		IndexValue* indexes_[Indexes];
 
 	public:
 		Reindex2FnBase(MyType& me): me_(me)
@@ -602,7 +649,7 @@ class Reindex2FnBase {
 		{
 			for (Int idx = 0; idx < Indexes; idx++)
 			{
-				IndexKey sum = 0;
+				IndexValue sum = 0;
 
 				for (Int c = start; c < end; c++)
 				{
@@ -618,14 +665,14 @@ class Reindex2FnBase {
 template <typename MyType>
 class Check2FnBase {
 public:
-	static const Int Indexes        		= MyType::Indexes;
+	static const Int Indexes        			= MyType::Indexes;
 
-	typedef typename MyType:: IndexKey 		IndexKey;
+	typedef typename MyType:: IndexValue 		IndexValue;
 
 protected:
 	const MyType& me_;
 
-	const IndexKey* indexes_[Indexes];
+	const IndexValue* indexes_[Indexes];
 
 public:
 	Check2FnBase(const MyType& me): me_(me)
@@ -655,7 +702,7 @@ public:
 	{
 		for (Int idx = 0; idx < Indexes; idx++)
 		{
-			IndexKey sum = 0;
+			IndexValue sum = 0;
 
 			for (Int c = start; c < end; c++)
 			{

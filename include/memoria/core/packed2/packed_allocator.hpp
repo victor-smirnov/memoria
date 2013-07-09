@@ -26,13 +26,30 @@ enum class PackedBlockType {
 	RAW_MEMORY = 0, ALLOCATABLE = 1
 };
 
+//class PackedAllocator;
+//
+//template <
+//	typename K,
+//	typename IK,
+//	typename V,
+//	Int Blocks_				= 1,
+//	typename Allocator_ 	= PackedAllocator,
+//	Int BF 					= PackedTreeBranchingFactor,
+//	Int VPB 				= PackedTreeBranchingFactor
+//>
+//struct PackedFSETreeTypes;
+//
+//template <typename> class PackedFSETree;
+
+
+
 class PackedAllocator: public PackedAllocatable {
 
 	typedef PackedAllocatable													Base;
 	typedef PackedAllocator														MyType;
 	typedef PackedAllocator														Allocator;
 
-	typedef PackedFSETreeTypes <Int, Int, Int>									LayoutTypes;
+	typedef Packed2TreeTypes <Int>												LayoutTypes;
 
 public:
 	typedef PackedFSETree<LayoutTypes>											Layout;
@@ -289,6 +306,24 @@ public:
 
 		return object;
 	}
+
+	template <typename T>
+	T* allocateEmpty(Int idx)
+	{
+		static_assert(is_base_of<PackedAllocatable, T>::value, "Only derived classes of PackedAllocatable "
+				"should be instantiated this way");
+
+		Int block_size = T::empty_size();
+
+		AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
+
+		T* object = block.cast<T>();
+
+		object->init();
+
+		return object;
+	}
+
 
 	template <typename T>
 	T* allocate(Int idx)

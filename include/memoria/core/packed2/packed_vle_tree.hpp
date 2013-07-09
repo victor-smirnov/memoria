@@ -8,10 +8,12 @@
 #ifndef MEMORIA_CORE_PACKED_VLE_TREE2_HPP_
 #define MEMORIA_CORE_PACKED_VLE_TREE2_HPP_
 
-#include <memoria/core/packed2/packed_tree_tools.hpp>
 #include <memoria/core/packed2/packed_allocator.hpp>
+#include <memoria/core/packed2/packed_tree_tools.hpp>
 #include <memoria/core/packed2/packed_tree_walkers.hpp>
+
 #include <memoria/core/tools/exint_codec.hpp>
+#include <memoria/core/tools/elias_codec.hpp>
 
 #include <memoria/core/tools/accessors.hpp>
 #include <memoria/core/tools/dump.hpp>
@@ -23,27 +25,7 @@ namespace memoria {
 
 using namespace vapi;
 
-template <
-	typename IK,
-	typename V,
-	template <typename> class CodecType = UByteExintCodec,
-	Int Blocks_ 			= 2,
-	Int BF 					= PackedTreeBranchingFactor,
-	Int VPB 				= PackedExintVLETreeValuesPerBranch,
-	typename Allocator_ 	= PackedAllocator
->
-struct PackedVLETreeTypes {
-    typedef IK              IndexKey;
-    typedef V               Value;
-    typedef Allocator_  	Allocator;
 
-    static const Int Blocks                 = Blocks_;
-    static const Int BranchingFactor        = BF;
-    static const Int ValuesPerBranch        = VPB;
-
-    template <typename VV>
-    using Codec = CodecType<VV>;
-};
 
 
 template <typename Value>
@@ -78,12 +60,13 @@ public:
 	typedef Types_																Types;
 	typedef PackedVLETree<Types>               									MyType;
 
-	typedef typename Types::Allocator											Allocator;
+	typedef PackedAllocator 													Allocator;
 
-	typedef typename Types::IndexKey											IndexKey;
+	typedef typename Types::IndexValue											IndexValue;
 	typedef typename Types::Value												Value;
 
 	typedef UBigInt																OffsetsType;
+
 
 	typedef typename Types::template Codec<Value>								Codec;
 	typedef typename Codec::BufferType											BufferType;
@@ -98,13 +81,17 @@ public:
 
 	static const Int BITS_PER_OFFSET		= Codec::BitsPerOffset;
 
+	enum {
+		METADATA, OFFSETS, INDEX, VALUES
+	};
+
 	typedef core::StaticVector<Int, Blocks>										Dimension;
 	typedef core::StaticVector<Dimension, 2>									BlockRange;
-	typedef core::StaticVector<Value, Blocks>									Values;
+	typedef core::StaticVector<IndexValue, Blocks>								Values;
 
-	typedef PackedTreeTools<IndexKey, BranchingFactor, ValuesPerBranch>			TreeTools;
+	typedef PackedTreeTools<IndexValue, BranchingFactor, ValuesPerBranch>		TreeTools;
 
-	typedef VLETreeValueDescr<IndexKey>											ValueDescr;
+	typedef VLETreeValueDescr<IndexValue>										ValueDescr;
 
 	class Metadata {
 		Int size_;
@@ -129,11 +116,11 @@ public:
 
 public:
 	Metadata* metadata() {
-		return Base::template get<Metadata>(0);
+		return Base::template get<Metadata>(METADATA);
 	}
 
 	const Metadata* metadata() const {
-		return Base::template get<Metadata>(0);
+		return Base::template get<Metadata>(METADATA);
 	}
 
 	Int& size() {return metadata()->size();}
@@ -148,47 +135,47 @@ public:
 
 	const Int max_data_size() const
 	{
-		return element_size(3) * 8 / Codec::ElementSize;
+		return element_size(VALUES) * 8 / Codec::ElementSize;
 	}
 
 	OffsetsType* offsetsBlock() {
-		return Base::template get<OffsetsType>(1);
+		return Base::template get<OffsetsType>(OFFSETS);
 	}
 
 	const OffsetsType* offsetsBlock() const {
-		return Base::template get<OffsetsType>(1);
+		return Base::template get<OffsetsType>(OFFSETS);
 	}
 
 	Int offsetsBlockLength() const {
-		return Base::element_size(1) / sizeof(OffsetsType);
+		return Base::element_size(OFFSETS) / sizeof(OffsetsType);
 	}
 
-	IndexKey* indexes(Int index_block)
+	IndexValue* indexes(Int index_block)
 	{
-		return Base::template get<IndexKey>(2) + index_block * index_size();
+		return Base::template get<IndexValue>(INDEX) + index_block * index_size();
 	}
 
-	IndexKey* sizes() {
+	IndexValue* sizes() {
 		return indexes(0);
 	}
 
-	const IndexKey* indexes(Int index_block) const
+	const IndexValue* indexes(Int index_block) const
 	{
-		return Base::template get<IndexKey>(2) + index_block * index_size();
+		return Base::template get<IndexValue>(INDEX) + index_block * index_size();
 	}
 
-	const IndexKey* sizes() const {
+	const IndexValue* sizes() const {
 		return indexes(0);
 	}
 
 	BufferType* values()
 	{
-		return Base::template get<BufferType>(3);
+		return Base::template get<BufferType>(VALUES);
 	}
 
 	const BufferType* values() const
 	{
-		return Base::template get<BufferType>(3);
+		return Base::template get<BufferType>(VALUES);
 	}
 
 	static Int getValueBlocks(Int items_num)
@@ -236,7 +223,7 @@ public:
 		Int offsets_length 	= Base::roundUpBytesToAlignmentBlocks(getOffsetsBlockLength(max_items_num));
 
 		Int index_size 		= MyType::index_size(max_items_num);
-		Int index_length	= Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexKey));
+		Int index_length	= Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexValue));
 
 		Int values_length	= Base::roundUpBitsToAlignmentBlocks(max_items_num * Codec::ElementSize);
 
@@ -298,8 +285,8 @@ private:
 
 			Int max_size = Base::me_.data_size();
 
-			IndexKey size_cell 	= 0;
-			IndexKey value_cell = 0;
+			IndexValue size_cell 	= 0;
+			IndexValue value_cell = 0;
 
 			Int size = Base::me_.raw_size();
 
@@ -307,8 +294,6 @@ private:
 			{
 				Value value;
 				Int len = codec.decode(values_, value, pos, max_size);
-
-
 
 				size_cell 	+= 1;
 				value_cell	+= value;
@@ -374,8 +359,8 @@ private:
 
 			Int max_size = Base::me_.data_size();
 
-			IndexKey size_cell 	= 0;
-			IndexKey value_cell = 0;
+			IndexValue size_cell 	= 0;
+			IndexValue value_cell = 0;
 
 
 			if (Base::indexSize() == 0)
@@ -433,8 +418,6 @@ private:
 						MEMORIA_ASSERT(Base::indexes_[0][idx], ==, size_cell);
 						MEMORIA_ASSERT(Base::indexes_[1][idx], ==, value_cell);
 					}
-
-
 				}
 			}
 		}
@@ -446,13 +429,13 @@ public:
 	void reindex()
 	{
 		ReindexFn fn(*this);
-		TreeTools::reindex(0, size() * Blocks, fn);
+		TreeTools::reindex(fn);
 	}
 
 	void check() const
 	{
 		CheckFn fn(*this);
-		TreeTools::reindex(0, size() * Blocks, fn);
+		TreeTools::reindex(fn);
 
 		MEMORIA_ASSERT(data_size(), <=, max_data_size());
 		MEMORIA_ASSERT(fn.data_size_, ==, data_size());
@@ -705,11 +688,13 @@ private:
 	};
 
 public:
+	// ================================= Allocation ======================================== //
+
 	void init(Int block_size)
 	{
 		Base::init(block_size, 4);
 
-		Metadata* meta = Base::template allocate<Metadata>(0);
+		Metadata* meta = Base::template allocate<Metadata>(METADATA);
 
 		Int max_size 		= FindTotalElementsNumber2(block_size, InitFn());
 
@@ -717,17 +702,17 @@ public:
 		meta->data_size()	= 0;
 		meta->index_size() 	= MyType::index_size(max_size);
 
-		Base::template allocateArrayByLength<OffsetsType>(1, getOffsetsBlockLength(max_size));
+		Base::template allocateArrayByLength<OffsetsType>(OFFSETS, getOffsetsBlockLength(max_size));
 
 		Int index_size = meta->index_size();
-		Base::template allocateArrayBySize<IndexKey>(2, index_size * Indexes);
+		Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Indexes);
 
 		Int values_block_length = Base::roundUpBitsToAlignmentBlocks(max_size * Codec::ElementSize);
-		Base::template allocateArrayByLength<BufferType>(3, values_block_length);
+		Base::template allocateArrayByLength<BufferType>(VALUES, values_block_length);
 	}
 
 
-	// ================================= Allocation ======================================== //
+
 
 	void enlarge(Int amount)
 	{
@@ -739,7 +724,7 @@ public:
 		Int offsets_length 	= Base::roundUpBytesToAlignmentBlocks(getOffsetsBlockLength(max_items_num));
 
 		Int index_size 		= MyType::index_size(max_items_num);
-		Int index_length	= Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexKey));
+		Int index_length	= Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexValue));
 
 		Int values_length	= Base::roundUpBitsToAlignmentBlocks(max_items_num * Codec::ElementSize);
 
@@ -749,14 +734,14 @@ public:
 		{
 			resize(block_size);
 
-			resizeBlock(1, offsets_length);
-			resizeBlock(2, index_length);
-			resizeBlock(3, values_length);
+			resizeBlock(OFFSETS, offsets_length);
+			resizeBlock(INDEX, index_length);
+			resizeBlock(VALUES, values_length);
 		}
 		else {
-			resizeBlock(3, values_length);
-			resizeBlock(2, index_length);
-			resizeBlock(1, offsets_length);
+			resizeBlock(VALUES, values_length);
+			resizeBlock(INDEX, index_length);
+			resizeBlock(OFFSETS, offsets_length);
 
 			resize(block_size);
 		}
@@ -795,9 +780,7 @@ public:
 		Dimension starts;
 		Dimension remainders;
 
-
-
-		for (Int block = 0, inserted_length = 0; block < Blocks; block++, inserted_length += lengths[block])
+		for (Int block = 0, inserted_length = 0; block < Blocks; inserted_length += lengths[block], block++)
 		{
 			Int offset			= block * size + idx;
 			starts[block] 		= this->getValueOffset(offset) + inserted_length;
@@ -965,6 +948,16 @@ public:
 
 
 private:
+
+	void dumpBitmap(Int size) const
+	{
+		auto buffer = this->values();
+
+		dumpSymbols<Value>(cout, size, 1, [&](Int idx){
+			return GetBit(buffer, idx);
+		});
+	}
+
 	void insertData(const Values* values, Int pos, Int processed)
 	{
 		Codec codec;
@@ -981,7 +974,7 @@ private:
 
 		auto insertion_starts = insertSpace(pos, total_lengths);
 
-		auto* buffer = this->values();
+		auto buffer = this->values();
 
 		for (Int block = 0; block < Blocks; block++)
 		{
@@ -990,11 +983,17 @@ private:
 
 			for (SizeT c = 0; c < processed; c++)
 			{
-				start += codec.encode(buffer, values[c][block], start, limit);
+				IndexValue value = values[c][block];
+				Int len = codec.encode(buffer, value, start, limit);
+
+//				IndexValue v2;
+//				codec.decode(buffer, v2, start, limit);
+
+				start += len;
 			}
 		}
 
-		this->size() 		+= processed;
+		this->size() += processed;
 
 		reindex();
 	}
@@ -1020,7 +1019,7 @@ private:
 	}
 
 public:
-	void insert(Int idx, Int length, std::function<Values()> provider)
+	void insert(Int idx, Int length, std::function<Values ()> provider)
 	{
 		Values values[IOBatchSize];
 
@@ -1163,30 +1162,30 @@ public:
     	return ValueDescr(fn.value(), pos, to);
     }
 
-	IndexKey sum0(Int from, Int to) const
+	IndexValue sum0(Int from, Int to) const
 	{
 		return sum0(to).value() - sum0(from).value();
 	}
 
 
-	IndexKey sum(Int block) const
+	IndexValue sum(Int block) const
 	{
 		return sum(block, size());
 	}
 
-	IndexKey sum(Int block, Int to) const
+	IndexValue sum(Int block, Int to) const
 	{
 		Int base = block * size();
 		return sum0(base, base + to);
 	}
 
 
-	IndexKey sumWithoutLastElement(Int block) const
+	IndexValue sumWithoutLastElement(Int block) const
 	{
 		return sum(block, size() - 1);
 	}
 
-	IndexKey sum(Int block, Int from, Int to) const
+	IndexValue sum(Int block, Int from, Int to) const
 	{
 		Int base = block * size();
 		return sum0(base + to).value() - sum0(base + from).value();
@@ -1246,7 +1245,7 @@ public:
 		Codec codec;
 		Value actual_value;
 
-		const auto* values_ = this->values();
+		auto values_ = this->values();
 		codec.decode(values_, actual_value, pos, meta->max_size());
 
 		return ValueDescr(actual_value, pos, fn.position());
@@ -1261,7 +1260,7 @@ public:
 	}
 
 	template <template <typename, typename> class Comparator>
-	ValueDescr findForwardT(Int block, Int start, IndexKey val) const
+	ValueDescr findForwardT(Int block, Int start, IndexValue val) const
 	{
 		const Metadata* meta = this->metadata();
 
@@ -1272,7 +1271,7 @@ public:
 
 		FindElementFn<MyType, Comparator> fn(
 				*this,
-				val,
+				prefix + val,
 				meta->index_size(),
 				meta->size(),
 				meta->data_size()
@@ -1285,31 +1284,32 @@ public:
 		if (idx < block_start + size)
 		{
 			Codec codec;
-			Value actual_value;
+			IndexValue actual_value;
 
-			const auto* values = this->values();
+			auto values = this->values();
 			codec.decode(values, actual_value, pos, meta->data_size());
 
 			return ValueDescr(actual_value, pos, idx - block_start, fn.sum() - prefix);
 		}
 		else {
-			return ValueDescr(0, pos, idx, sum(block) - prefix);
+			return ValueDescr(0, pos, idx, sum(block, start, size));
 		}
 	}
 
-	ValueDescr findLTForward(Int block, Int start, IndexKey val) const
+
+	ValueDescr findLTForward(Int block, Int start, IndexValue val) const
 	{
 		return this->template findForwardT<PackedCompareLE>(block, start, val);
 	}
 
-	ValueDescr findLEForward(Int block, Int start, IndexKey val) const
+	ValueDescr findLEForward(Int block, Int start, IndexValue val) const
 	{
 		return this->template findForwardT<PackedCompareLT>(block, start, val);
 	}
 
 
 	template <template <typename, typename> class Comparator>
-	ValueDescr findBackwardT(Int block, Int start, IndexKey val) const
+	ValueDescr findBackwardT(Int block, Int start, IndexValue val) const
 	{
 		const Metadata* meta = this->metadata();
 
@@ -1355,17 +1355,17 @@ public:
 		}
 	}
 
-	ValueDescr findLTBackward(Int block, Int start, IndexKey val) const
+	ValueDescr findLTBackward(Int block, Int start, IndexValue val) const
 	{
 		return this->template findBackwardT<PackedCompareLE>(block, start, val);
 	}
 
-	ValueDescr findLEBackward(Int block, Int start, IndexKey val) const
+	ValueDescr findLEBackward(Int block, Int start, IndexValue val) const
 	{
 		return this->template findBackwardT<PackedCompareLT>(block, start, val);
 	}
 
-	ValueDescr findForward(SearchType search_type, Int block, Int start, IndexKey val) const
+	ValueDescr findForward(SearchType search_type, Int block, Int start, IndexValue val) const
 	{
 		if (search_type == SearchType::LT)
 		{
@@ -1376,7 +1376,7 @@ public:
 		}
 	}
 
-	ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexKey val) const
+	ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
 	{
 		if (search_type == SearchType::LT)
 		{
@@ -1391,21 +1391,21 @@ public:
 
 	void dumpValues(Int size) const
 	{
-		auto* values = this->values();
+		auto values = this->values();
 		Int pos = 0;
 		const Metadata* meta = this->metadata();
 		Codec codec;
 
 		dumpArray<Value>(cout, size, [&](Int) -> Value {
 			Value value;
-			pos += codec.decode(values, value, pos, meta->max_data_size());
+			pos += codec.decode(values, value, pos, meta->data_size());
 			return value;
 		});
 	}
 
 	void dumpData() const
 	{
-		auto* values = this->values();
+		auto values = this->values();
 
 		Int size = Base::element_size(3);
 
@@ -1465,9 +1465,9 @@ public:
 
 		const Metadata* meta = metadata();
 
-		dumpArray<Value>(out, meta->size(), [&](Int) -> Value {
-			Value value;
-			pos += codec.decode(values, value, pos, meta->max_data_size());
+		dumpArray<Value>(out, meta->size() * Blocks, [&](Int) -> Value {
+			IndexValue value;
+			pos += codec.decode(values, value, pos, meta->data_size());
 			return value;
 		});
 	}
@@ -1496,7 +1496,7 @@ public:
 
 		for (Int c = 0; c < index_size(); c++)
 		{
-			IndexKey indexes[Indexes];
+			IndexValue indexes[Indexes];
 			for (Int idx = 0; idx < Indexes; idx++)
 			{
 				indexes[idx] = this->indexes(idx)[c];
@@ -1537,7 +1537,7 @@ public:
 
 		FieldFactory<OffsetsType>::serialize(buf, offsetsBlock(), offsetsBlockLength());
 
-		FieldFactory<IndexKey>::serialize(buf, indexes(0), Indexes * meta->index_size());
+		FieldFactory<IndexValue>::serialize(buf, indexes(0), Indexes * meta->index_size());
 
 		FieldFactory<BufferType>::serialize(buf, values(), meta->data_size());
 	}
@@ -1554,7 +1554,7 @@ public:
 
 		FieldFactory<OffsetsType>::deserialize(buf, offsetsBlock(), offsetsBlockLength());
 
-		FieldFactory<IndexKey>::deserialize(buf, indexes(0), Indexes * meta->index_size());
+		FieldFactory<IndexValue>::deserialize(buf, indexes(0), Indexes * meta->index_size());
 
 		FieldFactory<BufferType>::deserialize(buf, values(), meta->data_size());
 	}

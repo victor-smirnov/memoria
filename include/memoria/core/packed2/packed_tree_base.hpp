@@ -15,6 +15,7 @@
 
 namespace memoria {
 
+
 template <typename MyType, typename IndexKey, Int BranchingFactor, Int ValuesPerBranch>
 class PackedTreeBase: public PackedAllocatable {
 
@@ -585,12 +586,12 @@ class ReindexFnBase {
 public:
 	static const Int Indexes        		= MyType::Indexes;
 
-	typedef typename MyType:: IndexKey 		IndexKey;
+	typedef typename MyType::IndexValue 	IndexValue;
 
 protected:
 	MyType& me_;
 
-	IndexKey* indexes_[Indexes];
+	IndexValue* indexes_[Indexes];
 
 public:
 	ReindexFnBase(MyType& me): me_(me)
@@ -628,7 +629,7 @@ public:
 	{
 		for (Int idx = 0; idx < Indexes; idx++)
 		{
-			IndexKey sum = 0;
+			IndexValue sum = 0;
 
 			for (Int c = start; c < end; c++)
 			{
@@ -647,12 +648,12 @@ class CheckFnBase {
 public:
 	static const Int Indexes        		= MyType::Indexes;
 
-	typedef typename MyType:: IndexKey 		IndexKey;
+	typedef typename MyType:: IndexValue	IndexValue;
 
 protected:
 	const MyType& me_;
 
-	const IndexKey* indexes_[Indexes];
+	const IndexValue* indexes_[Indexes];
 
 public:
 	CheckFnBase(const MyType& me): me_(me)
@@ -684,7 +685,7 @@ public:
 	{
 		for (Int idx = 0; idx < Indexes; idx++)
 		{
-			IndexKey sum = 0;
+			IndexValue sum = 0;
 
 			for (Int c = start; c < end; c++)
 			{

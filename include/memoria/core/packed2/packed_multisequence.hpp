@@ -25,7 +25,7 @@ class PackedCxMultiSequence: public PackedAllocator {
 
 public:
 
-	typedef PackedFSETreeTypes<Int, Int, Int>				LabelArrayTypes;
+	typedef Packed2TreeTypes<Int>							LabelArrayTypes;
 	typedef PackedFSETree<LabelArrayTypes>					LabelArray;
 
 	typedef PackedFSECxSequenceTypes<>						SequenceTypes;

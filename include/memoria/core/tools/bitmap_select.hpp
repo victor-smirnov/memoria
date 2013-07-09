@@ -211,6 +211,9 @@ public:
 
 	size_t idx() const   {return idx_;}
 	size_t rank() const  {return rank_;}
+
+	size_t& rank() {return rank_;}
+
 	bool is_found() const {return found_;}
 };
 

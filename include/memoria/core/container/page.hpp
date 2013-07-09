@@ -706,7 +706,7 @@ public:
     {
         if (shared_ != nullptr)
         {
-            shared_->allocator()->resizePage(shared, new_size);
+            shared_->allocator()->resizePage(shared_, new_size);
         }
     }
 

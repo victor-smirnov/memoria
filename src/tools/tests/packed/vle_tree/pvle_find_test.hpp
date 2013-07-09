@@ -13,6 +13,7 @@
 #include <memoria/prototypes/btree/tools.hpp>
 
 #include <memoria/core/packed2/packed_vle_tree.hpp>
+#include <memoria/core/packed2/packed_tree_walkers.hpp>
 
 #include <memoria/core/tools/exint_codec.hpp>
 
@@ -25,10 +26,10 @@ namespace memoria {
 using namespace std;
 
 template <Int BF, Int VPB, template <typename> class Codec_>
-class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Codec_, 2, BF, VPB>> {
+class PVLEMapFindTest: public PVLETestBase<Packed2TreeTypes<Int, Int, 2, Codec_, BF, VPB>> {
 
 	typedef PVLEMapFindTest<BF, VPB, Codec_> 											MyType;
-	typedef PVLETestBase<PackedVLETreeTypes<Int, Int, Codec_, 2, BF, VPB>> 				Base;
+	typedef PVLETestBase<Packed2TreeTypes<Int, Int, 2, Codec_, BF, VPB>> 				Base;
 
 	typedef typename Base::Types			Types;
 	typedef typename Base::Tree 			Tree;
@@ -36,7 +37,7 @@ class PVLEMapFindTest: public PVLETestBase<PackedVLETreeTypes<Int, Int, Codec_, 
 	typedef typename Base::Value			Value;
 	typedef typename Base::Codec			Codec;
 
-	typedef typename Tree::IndexKey			IndexKey;
+	typedef typename Tree::IndexValue		IndexKey;
 
 	typedef VLETreeValueDescr<Value>		ValueDescr;
 
@@ -75,7 +76,7 @@ public:
 
     ValueDescr findLE1(const Tree* tree, Int start_idx, Value value)
     {
-    	FindElementFn<Tree, btree::BTreeCompareLT> fn(*tree, value);
+    	FindElementFn<Tree, VLECompareLT> fn(*tree, value);
 
     	Int pos;
 
@@ -101,7 +102,7 @@ public:
     {
     	const typename Tree::Metadata* meta = tree->metadata();
 
-    	FindElementFn<Tree, btree::BTreeCompareLT> fn(*tree, value, meta->index_size(), meta->size(), meta->data_size());
+    	FindElementFn<Tree, VLECompareLT> fn(*tree, value, meta->index_size(), meta->size(), meta->data_size());
 
     	Int pos = Tree::TreeTools::find_fw(fn);
 

@@ -13,7 +13,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/tools/idata.hpp>
 
-#include <memoria/prototypes/balanced_tree/baltree_walkers_old.hpp>
+#include <memoria/prototypes/btree/btree_walkers.hpp>
 
 #include <functional>
 
@@ -22,8 +22,8 @@ namespace sequence 	 {
 
 using namespace std;
 
-using balanced_tree::TreeNode;
-using balanced_tree::TreeMapNode;
+using btree::TreeNode;
+using btree::TreeMapNode;
 
 
 template <typename Types>

@@ -5,20 +5,5 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-
-
-#include <memoria/allocators/inmem/factory.hpp>
-
-#include <iostream>
-
-using namespace std;
-using namespace memoria;
-
-
-namespace memoria {
-
-//template class ::memoria::InMemAllocator<SmallProfile<>, BasicContainerCollectionCfg<SmallProfile<> >::Page, EmptyType>;
-
-}
+//#include <memoria/allocators/inmem/factory.hpp>
 

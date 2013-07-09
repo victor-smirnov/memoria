@@ -34,7 +34,7 @@ template <
 	typename K,
 	typename V
 >
-struct TreeLeafNodeTypes: PackedFSETreeTypes<K, K, V> {
+struct TreeLeafNodeTypes: Packed2TreeTypes<V, K> {
 
 };
 

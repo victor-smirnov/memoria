@@ -13,9 +13,9 @@ namespace memoria 	{
 namespace sequence 	{
 
 template <typename Walker, typename Sequence, typename State>
-class RankExtender: public balanced_tree::SumExtenderBase<Sequence, State> {
+class RankExtender: public btree::SumExtenderBase<Sequence, State> {
 
-	typedef balanced_tree::SumExtenderBase<Sequence, State> Base;
+	typedef btree::SumExtenderBase<Sequence, State> Base;
 
 	typedef typename Sequence::Symbol 	Symbol;
 	typedef typename Sequence::IndexKey 	IndexKey;

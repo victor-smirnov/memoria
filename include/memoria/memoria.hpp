@@ -10,7 +10,7 @@
 
 #include <memoria/core/tools/file.hpp>
 #include <memoria/allocators/inmem/factory.hpp>
-#include <memoria/core/tools/symbol_sequence.hpp>
+//#include <memoria/core/tools/symbol_sequence.hpp>
 
 namespace memoria {
 

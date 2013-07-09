@@ -79,7 +79,7 @@ endif()
 if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -march=native -mtune=native -std=c++0x -Wall -g -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -Wcomment -Wunused-variable")
     
-    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS}") 
+    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -lstdc++") 
     
     if (CHECK_SYNTAX_ONLY)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsyntax-only")

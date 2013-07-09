@@ -57,12 +57,11 @@ public:
 	static const Int ValuesPerBranch        = Types::ValuesPerBranch;
 	static const Int Indexes        		= Types::Blocks;
 
-	typedef PackedFSETreeTypes <
-				Int,
-				Int,
+	typedef Packed2TreeTypes <
 				UShort,
+				Int,
 				1,
-				PackedAllocator,
+				FSECodec,
 				BranchingFactor,
 				64
 				>																IndexTypes;

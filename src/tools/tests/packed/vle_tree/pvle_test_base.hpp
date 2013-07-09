@@ -35,7 +35,7 @@ protected:
 	typedef typename Tree::Value			Value;
 	typedef typename Tree::Codec			Codec;
 
-	typedef typename Types::Allocator		Allocator;
+	typedef PackedAllocator					Allocator;
 
 	typedef shared_ptr<Tree> 				TreePtr;
 

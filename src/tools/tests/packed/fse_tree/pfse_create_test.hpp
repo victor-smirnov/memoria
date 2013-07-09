@@ -20,11 +20,31 @@ namespace memoria {
 
 using namespace std;
 
+template <
+	typename IK,
+	typename V,
+	Int Blocks_				= 1,
+	Int BF 					= PackedTreeBranchingFactor,
+	Int VPB 				= PackedTreeBranchingFactor
+>
+struct PackedFSETreeCreateTypes {
+    typedef IK              IndexValue;
+    typedef V               Value;
+    typedef EmptyAllocator	Allocator;
+
+    static const Int Blocks                 = Blocks_;
+    static const Int BranchingFactor        = BF;
+    static const Int ValuesPerBranch        = VPB;
+
+    static const Int ALIGNMENT_BLOCK        = 8;
+};
+
+
 template <Int BF, Int VPB>
-class PackedFSETreeCreateTest: public PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>> {
+class PackedFSETreeCreateTest: public PackedFSETestBase<PackedFSETreeCreateTypes<Int, Int, 1, BF, VPB>> {
 
 	typedef PackedFSETreeCreateTest																MyType;
-	typedef PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>> 		Base;
+	typedef PackedFSETestBase<PackedFSETreeCreateTypes<Int, Int, 1, BF, VPB>> 					Base;
 
 	typedef typename Base::Tree 			Tree;
 	typedef typename Base::TreePtr 			TreePtr;

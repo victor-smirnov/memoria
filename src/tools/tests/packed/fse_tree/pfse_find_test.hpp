@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/packed2/packed_vle_tree.hpp>
+#include <memoria/core/packed2/packed_fse_tree.hpp>
 
 #include <memoria/core/tools/exint_codec.hpp>
 
@@ -25,11 +25,30 @@ namespace memoria {
 
 using namespace std;
 
-template <Int BF, Int VPB>
-class PackedFSETreeFindTest: public PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>> {
+template <
+	typename IK,
+	typename V,
+	Int Blocks_				= 1,
+	Int BF 					= PackedTreeBranchingFactor,
+	Int VPB 				= PackedTreeBranchingFactor
+>
+struct PackedFSETreeFindTypes {
+    typedef IK              IndexValue;
+    typedef V               Value;
+    typedef EmptyAllocator	Allocator;
 
-	typedef PackedFSETreeFindTest<BF, VPB> 														MyType;
-	typedef PackedFSETestBase<PackedFSETreeTypes<Int, Int, Int, 1, EmptyAllocator, BF, VPB>> 		Base;
+    static const Int Blocks                 = Blocks_;
+    static const Int BranchingFactor        = BF;
+    static const Int ValuesPerBranch        = VPB;
+
+    static const Int ALIGNMENT_BLOCK        = 8;
+};
+
+template <Int BF, Int VPB>
+class PackedFSETreeFindTest: public PackedFSETestBase<PackedFSETreeFindTypes<Int, Int, 1, BF, VPB>> {
+
+	typedef PackedFSETreeFindTest<BF, VPB> 													MyType;
+	typedef PackedFSETestBase<PackedFSETreeFindTypes<Int, Int, 1, BF, VPB>> 				Base;
 
 	typedef typename Base::Types			Types;
 	typedef typename Base::Tree 			Tree;
@@ -37,7 +56,7 @@ class PackedFSETreeFindTest: public PackedFSETestBase<PackedFSETreeTypes<Int, In
 	typedef typename Base::Value			Value;
 
 
-	typedef typename Tree::IndexKey			IndexKey;
+	typedef typename Tree::IndexValue		IndexKey;
 
 
 	vector<Int> block_sizes_ = {50, 125, 256, 1024, 4096}; //
@@ -85,7 +104,7 @@ public:
 
     ValueDescr findLE1(const TreePtr& tree, Int start_idx, Value value)
     {
-    	FSEFindElementFn<Tree, btree::BTreeCompareLT> fn(*tree.get(), value);
+    	FSEFindElementFn<Tree, PackedCompareLT> fn(*tree.get(), value);
 
     	Int pos;
 
@@ -105,7 +124,7 @@ public:
 
     ValueDescr findLE(const TreePtr& tree, Value value)
     {
-    	FSEFindElementFn<Tree, btree::BTreeCompareLT> fn(*tree.get(), value);
+    	FSEFindElementFn<Tree, PackedCompareLT> fn(*tree.get(), value);
 
     	Int pos = tree->find_fw(fn);
 

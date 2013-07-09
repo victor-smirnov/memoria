@@ -25,7 +25,7 @@ class PVLEMapInitTest: public TestTask {
 	typedef PVLEMapInitTest 				MyType;
 
 	template <Int BF, Int VPB>
-	using TreeType = PackedVLETree<PackedVLETreeTypes<Int, Int, UByteExintCodec, 2, BF, VPB>>;
+	using TreeType = PackedVLETree<Packed2TreeTypes<Int, Int, 2, UByteExintCodec, BF, VPB>>;
 
 public:
 
