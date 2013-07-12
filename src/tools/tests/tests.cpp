@@ -13,7 +13,7 @@
 //#include "packed_map/pmap_test_suite.hpp"
 //#include "packed_seq/pseq_test_suite.hpp"
 
-//#include "packed/vle_tree/pvle_test_suite.hpp"
+#include "packed/tree/packed_tree_test_suite.hpp"
 //#include "packed/fse_tree/pfse_test_suite.hpp"
 //#include "packed/allocator/palloc_test_suite.hpp"
 //#include "packed/louds/packed_louds_suite.hpp"
@@ -77,13 +77,13 @@ int main(int argc, const char** argv, const char** envp)
 //
 //        runner.registerTask(new BitmapTestSuite());
 //        runner.registerTask(new PackedMapTestSuite());
-//        runner.registerTask(new PackedVLETestSuite());
-//        runner.registerTask(new PackedFSETestSuite());
+//        runner.registerTask(new PackedVLETreeTestSuite());
+        runner.registerTask(new PackedTreeTestSuite());
 
 //        runner.registerTask(new PackedAllocatorTestSuite());
 //        runner.registerTask(new PackedFSETreeTestSuite());
 //        runner.registerTask(new PackedVLETreeTestSuite());
-        runner.registerTask(new PackedSequenceTestSuite());
+//        runner.registerTask(new PackedSequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
 

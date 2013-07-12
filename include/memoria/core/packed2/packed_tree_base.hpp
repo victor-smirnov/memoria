@@ -57,12 +57,8 @@ protected:
 protected:
 
 	template <typename Functor>
-	void reindex(Int start, Int end, Functor& fn) const
+	void reindex(Functor& fn) const
 	{
-		MEMORIA_ASSERT(start, >=, 0);
-		MEMORIA_ASSERT(end, <=, fn.size());
-		MEMORIA_ASSERT(start, <=, end);
-
 		if (fn.indexSize() > 0)
 		{
 			Int level_size    = getIndexCellsNumberFor(0, fn.maxSize());

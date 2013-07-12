@@ -13,7 +13,6 @@
 //#include "palloc_cxmultiseq_test.hpp"
 //#include "palloc_bitvector_test.hpp"
 
-#include "palloc_sequence_test.hpp"
 #include "palloc_rank_test.hpp"
 #include "palloc_select_test.hpp"
 

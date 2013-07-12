@@ -19,16 +19,33 @@
 #include <memoria/containers/vector_map/vectormap_names.hpp>
 #include <memoria/prototypes/sequence/names.hpp>
 
+#include <memoria/core/packed2/packed_allocator_types.hpp>
 
 #include <vector>
 #include <fstream>
+
+#include <malloc.h>
 
 namespace memoria {
 
 using namespace memoria::vapi;
 using namespace memoria::vmap;
-using namespace std;
 
+class PARemover {
+	PackedAllocatable* obj_;
+public:
+	PARemover(PackedAllocatable* obj): obj_(obj) {}
+	~PARemover()
+	{
+		if (obj_->has_allocator())
+		{
+			free(obj_->allocator());
+		}
+		else {
+			free(obj_);
+		}
+	}
+};
 
 class TestException: public Exception {
 public:

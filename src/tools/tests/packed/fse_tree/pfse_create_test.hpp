@@ -10,8 +10,6 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/prototypes/btree/tools.hpp>
-
 #include "pfse_test_base.hpp"
 
 #include <memory>
@@ -30,7 +28,10 @@ template <
 struct PackedFSETreeCreateTypes {
     typedef IK              IndexValue;
     typedef V               Value;
-    typedef EmptyAllocator	Allocator;
+    typedef PackedAllocator	Allocator;
+
+    template <typename CV>
+    using Codec = FSECodec<Value, CV>;
 
     static const Int Blocks                 = Blocks_;
     static const Int BranchingFactor        = BF;
@@ -47,8 +48,8 @@ class PackedFSETreeCreateTest: public PackedFSETestBase<PackedFSETreeCreateTypes
 	typedef PackedFSETestBase<PackedFSETreeCreateTypes<Int, Int, 1, BF, VPB>> 					Base;
 
 	typedef typename Base::Tree 			Tree;
-	typedef typename Base::TreePtr 			TreePtr;
 	typedef typename Base::Value			Value;
+	typedef typename Base::Values			Values;
 
 public:
 
@@ -79,12 +80,13 @@ public:
     void testReindex(Int block_size)
     {
     	Base::out()<<"Block size: "<<block_size<<endl;
-    	TreePtr tree = Base::createTree(block_size);
+    	Tree* tree = Base::createTree(block_size);
 
     	Value c = 0;
-    	Base::fillTree(tree, [&]()->Value {
-    		return c++;
+    	Base::fillTree(0, [&]()->Values {
+    		return Values(c++);
     	});
+
 
     	for (int idx = 0; idx < tree->size(); idx++)
     	{

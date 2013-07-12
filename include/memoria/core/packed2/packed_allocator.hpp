@@ -26,22 +26,6 @@ enum class PackedBlockType {
 	RAW_MEMORY = 0, ALLOCATABLE = 1
 };
 
-//class PackedAllocator;
-//
-//template <
-//	typename K,
-//	typename IK,
-//	typename V,
-//	Int Blocks_				= 1,
-//	typename Allocator_ 	= PackedAllocator,
-//	Int BF 					= PackedTreeBranchingFactor,
-//	Int VPB 				= PackedTreeBranchingFactor
-//>
-//struct PackedFSETreeTypes;
-//
-//template <typename> class PackedFSETree;
-
-
 
 class PackedAllocator: public PackedAllocatable {
 
@@ -455,7 +439,6 @@ public:
 	{
 		block_size_ += roundDownBytesToAlignmentBlocks(amount);
 	}
-
 
 	Int pack()
 	{

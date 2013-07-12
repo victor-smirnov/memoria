@@ -24,14 +24,14 @@ using namespace std;
 
 
 
-template <typename K1, typename K2>
+template <typename K1, typename K2 = K1>
 struct PackedCompareLE {
 	bool operator()(K1 k1, K2 k2) {
 		return k1 <= k2;
 	}
 };
 
-template <typename K1, typename K2>
+template <typename K1, typename K2 = K1>
 struct PackedCompareLT {
 	bool operator()(K1 k1, K2 k2) {
 		return k1 < k2;
@@ -49,7 +49,6 @@ class FindForwardFnBase
 {
 protected:
 	IndexKey sum_;
-//	IndexKey sum0_;
 
     BigInt limit_;
 
@@ -72,11 +71,13 @@ public:
     	return index_size_;
     }
 
+    Int walkIndex(Int start, Int end) {
+    	return walkIndex(start, end, 0);
+    }
+
     Int walkIndex(Int start, Int end, Int size)
     {
         Comparator<BigInt, IndexKey> compare;
-
-//        BigInt l0 = limit_;
 
     	for (Int c = start; c < end; c++)
         {
@@ -89,12 +90,9 @@ public:
         	}
         	else {
         		me().processIndexes(start, c);
-//        		sum_ += (l0 - limit_);
         		return c;
         	}
         }
-
-//    	sum_ += (l0 - limit_);
 
     	me().processIndexes(start, end);
         return end;
@@ -153,12 +151,20 @@ public:
 		values_  = me.values();
 	}
 
-	Int max_size() const {
+	Int data_size() const {
 		return me_.data_size();
+	}
+
+	Int max_capacity() const {
+		return me_.capacity();
 	}
 
 	Int size() const {
 		return me_.raw_size();
+	}
+
+	Int walkValues(Int value_block_num) {
+		return walkLastValuesBlock(value_block_num);
 	}
 
 	Int walkLastValuesBlock(Int value_block_num)
@@ -237,8 +243,6 @@ public:
 		{
 			sum_ += indexes_[c];
 		}
-
-//		me_.processIndexes(start, end);
 		return end;
 	}
 
@@ -252,9 +256,6 @@ public:
 		{
 			sum_ += values_[c];
 		}
-
-//		me_.processValues(start, end);
-
 		return end;
 	}
 };
@@ -272,10 +273,17 @@ class GetVLEValuesSumFn: public GetValueOffsetFnBase<TreeType, GetVLEValuesSumFn
 
 	Value value_ = 0;
 
+	Int max_;
+
 public:
 	GetVLEValuesSumFn(const TreeType& me, Int limit): Base(me, limit)
 	{
-		indexes_ = me.indexes(1);
+		indexes_ 	= me.indexes(1);
+		max_ 		= me.raw_size();
+	}
+
+	Int max() const {
+		return max_;
 	}
 
 	void processIndexes(Int start, Int end)
@@ -328,63 +336,60 @@ private:
 	const IndexValue* 	sizes_;
 
 	Int position_;
-
-	Int size_;
 	Int max_size_;
 
 public:
-	FindElementFn(const TreeType& me, BigInt limit, Int index_size, Int size, Int max_size):
-		Base(me.indexes(1), limit, index_size),
+	FindElementFn(
+			const TreeType& me,
+			BigInt limit,
+			Int max_size
+		):
+		Base(me.indexes(1), limit, 0),
 		me_(me),
 		position_(0),
-		size_(size),
 		max_size_(max_size)
 	{
 		values_  = me.values();
 		sizes_   = me.sizes();
 	}
 
-	Int max_size() const {
+	Int max() const {
 		return max_size_;
-	}
-
-//	Int index_size() const {
-//		return index_size_;
-//	}
-
-	Int size() const {
-		return size_;
 	}
 
 	Int position() const {
 		return position_;
 	}
 
-	Int walkFirstValuesBlock(Int start, Int end)
-	{
-		return walkValues(start, end);
-	}
+//	Int walkFirstValuesBlock(Int start, Int end)
+//	{
+//		return walkValues(start, end);
+//	}
+//
+//	Int walkLastValuesBlock(Int value_block_num)
+//	{
+//		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
+//
+//		Int pos = value_block_num * TreeType::ValuesPerBranch + offset;
+//		Int end = max_size_;
+//
+//		return walkValues(pos, end);
+//	}
 
-	Int walkLastValuesBlock(Int value_block_num)
-	{
-		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
 
-		Int pos = value_block_num * TreeType::ValuesPerBranch + offset;
-		Int end = max_size_;
-
-		return walkValues(pos, end);
-	}
-
-	Int walkValues(Int pos, Int end)
+	Int walkValues(Int start)
 	{
 		Comparator<IndexValue, BigInt> compare;
 		Codec codec;
 
-		while (pos < end)
+		Int offset = me_.offset(start);
+		Int pos = start * TreeType::ValuesPerBranch + offset;
+
+		while (pos < max_size_)
 		{
 			Value value;
 
-			Int len = codec.decode(values_, value, pos, end);
+			Int len = codec.decode(values_, value, pos, max_size_);
 
 			if (compare(value, Base::limit_))
 			{
@@ -400,7 +405,7 @@ public:
 			}
 		}
 
-		return end;
+		return max_size_;
 	}
 
 	void processIndexes(Int start, Int end)
@@ -500,14 +505,9 @@ public:
 			}
 			else {
 				Base::me().processValues(pos, c);
-
-//				Base::sum_ += (l0 - Base::limit_);
-
 				return c;
 			}
 		}
-
-//		Base::sum_ += (l0 - Base::limit_);
 
 		Base::me().processValues(pos, end);
 		return end;
@@ -546,8 +546,6 @@ public:
 
 
 
-//template <typename TreeType, typename MyType>
-//class SumValuesFnBase<TreeType, >
 
 
 template <typename TreeType>
@@ -640,6 +638,55 @@ public:
 		return tree_.size();
 	}
 };
+
+
+
+template <typename Tree>
+class VLESumWalker {
+
+	typedef typename Tree::IndexValue		IndexValue;
+	typedef typename Tree::Codec			Codec;
+
+	const Tree& tree_;
+
+	IndexValue 	sum_ = 0;
+
+	const IndexValue* index_;
+
+
+public:
+	VLESumWalker(const Tree& tree):
+		tree_(tree),
+		index_(tree.indexes(1))
+	{}
+
+	void walkIndex(Int start, Int end)
+	{
+		for (Int c = start; c < end; c++)
+		{
+			sum_ += index_[c];
+		}
+	}
+
+	void walkValues(Int start, Int end)
+	{
+		Codec codec;
+
+		Int block = start / Tree::BranchingFactor;
+
+		start += tree_.offsets(block);
+
+		auto values = tree_.values();
+		Int limit	= tree_.data_size();
+
+		for (Int pos = start; pos < end;)
+		{
+			IndexValue val;
+			pos += codec.decode(values, val, pos, limit);
+		}
+	}
+};
+
 
 
 }

@@ -25,35 +25,17 @@ namespace memoria {
 
 using namespace std;
 
-template <
-	typename IK,
-	typename V,
-	Int Blocks_				= 1,
-	Int BF 					= PackedTreeBranchingFactor,
-	Int VPB 				= PackedTreeBranchingFactor
->
-struct PackedFSETreeFindTypes {
-    typedef IK              IndexValue;
-    typedef V               Value;
-    typedef EmptyAllocator	Allocator;
-
-    static const Int Blocks                 = Blocks_;
-    static const Int BranchingFactor        = BF;
-    static const Int ValuesPerBranch        = VPB;
-
-    static const Int ALIGNMENT_BLOCK        = 8;
-};
 
 template <Int BF, Int VPB>
-class PackedFSETreeFindTest: public PackedFSETestBase<PackedFSETreeFindTypes<Int, Int, 1, BF, VPB>> {
+class PackedFSETreeFindTest: public PackedFSETestBase<Packed2TreeTypes<Int, Int, 1, ValueFSECodec, BF, VPB>> {
 
 	typedef PackedFSETreeFindTest<BF, VPB> 													MyType;
-	typedef PackedFSETestBase<PackedFSETreeFindTypes<Int, Int, 1, BF, VPB>> 				Base;
+	typedef PackedFSETestBase<Packed2TreeTypes<Int, Int, 1, ValueFSECodec, BF, VPB>> 		Base;
 
 	typedef typename Base::Types			Types;
 	typedef typename Base::Tree 			Tree;
-	typedef typename Base::TreePtr 			TreePtr;
 	typedef typename Base::Value			Value;
+	typedef typename Base::Values			Values;
 
 
 	typedef typename Tree::IndexValue		IndexKey;
@@ -77,88 +59,18 @@ public:
 
     virtual ~PackedFSETreeFindTest() throw() {}
 
-    void fillTree(TreePtr& tree)
+    void fillTree(Tree* tree)
     {
     	fillTree(tree, tree->max_size());
     }
 
-    void fillTree(TreePtr& tree, Int size)
+    void fillTree(Tree* tree, Int size)
     {
     	Value c = 0;
-    	Base::fillTree(tree, [&]()->Value {
-    		return c++;
+    	Base::fillTree(tree, size, [&](){
+    		return Values(c++);
     	});
     }
-
-    class ValueDescr {
-    	Value value_;
-    	Int idx_;
-    public:
-    	ValueDescr(BigInt value, Int idx): value_(value), idx_(idx) {}
-
-    	Value value() const 	{return value_;}
-    	Int idx() const 		{return idx_;}
-    };
-
-
-
-    ValueDescr findLE1(const TreePtr& tree, Int start_idx, Value value)
-    {
-    	FSEFindElementFn<Tree, PackedCompareLT> fn(*tree.get(), value);
-
-    	Int pos;
-
-    	if (start_idx > 0)
-    	{
-    		Int start = tree->getValueOffset(start_idx);
-    		pos = tree->find_fw(start, fn);
-    	}
-    	else {
-    		pos = tree->find_fw(fn);
-    	}
-
-    	Value actual_value = tree->value(pos);
-
-    	return ValueDescr(actual_value + fn.sum(), pos);
-    }
-
-    ValueDescr findLE(const TreePtr& tree, Value value)
-    {
-    	FSEFindElementFn<Tree, PackedCompareLT> fn(*tree.get(), value);
-
-    	Int pos = tree->find_fw(fn);
-
-    	Value actual_value = tree->value(pos);
-
-    	return ValueDescr(actual_value + fn.sum(), pos);
-    }
-
-    ValueDescr findLE(const TreePtr& tree, Int start_idx, Value value)
-    {
-    	IndexKey prefix = sum(tree, start_idx);
-
-    	ValueDescr descr = findLE(tree, value + prefix);
-
-    	return ValueDescr(descr.value() - prefix, descr.idx());
-    }
-
-    IndexKey sum(const TreePtr& tree, Int to)
-    {
-    	GetFSEValuesSumFn<Tree> fn(*tree.get());
-
-    	tree->walk_range(to, fn);
-
-    	return fn.sum();
-    }
-
-    IndexKey sum(const TreePtr& tree, Int from, Int to)
-    {
-    	auto prefix = sum(tree, from);
-    	auto total = sum(tree, to);
-
-    	return total - prefix;
-    }
-
 
     void testSumValues()
     {
@@ -172,7 +84,7 @@ public:
     {
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
-    	TreePtr tree = Base::createTree(block_size);
+    	Tree* tree = Base::createTree(block_size);
 
     	fillTree(tree);
 
@@ -181,12 +93,14 @@ public:
     		Base::out()<<start<<endl;
     		for (Int c = start; c < tree->size(); c++)
     		{
-    			auto sum1 = sum(tree, start, c);
+    			auto sum1 = tree->sum(0, start, c);
     			auto sum2 = Base::sumValues(tree, start, c);
 
     			AssertEQ(MA_SRC, sum1, sum2);
     		}
     	}
+
+    	Base::remove(tree);
     }
 
 
@@ -201,7 +115,7 @@ public:
     {
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
-    	TreePtr tree = Base::createTree(block_size);
+    	Tree* tree = Base::createTree(block_size);
 
     	fillTree(tree);
 
@@ -210,11 +124,13 @@ public:
     	for (Int idx = 0; idx < (Int)values.size(); idx++)
     	{
     		Value v = values[idx];
-    		auto result = findLE(tree, 0, v);
+    		auto result = tree->findLEForward(0, 0, v);
 
     		AssertEQ(MA_SRC, result.value(), v);
     		AssertEQ(MA_SRC, result.idx(), 0 + idx);
     	}
+
+    	Base::remove(tree);
     }
 
     void testFind()
@@ -228,7 +144,7 @@ public:
     {
     	Base::out() <<"Block Size: "<<block_size<<endl;
 
-    	TreePtr tree = Base::createTree(block_size);
+    	Tree* tree = Base::createTree(block_size);
 
     	fillTree(tree);
 
@@ -243,17 +159,19 @@ public:
     		{
     			Value v = values[idx];
 
-    			auto result = findLE(tree, start, v);
+    			auto result = tree->findLEForward(0, start, v);
 
     			AssertEQ(MA_SRC, result.value(), v);
     			AssertEQ(MA_SRC, result.idx(), start + idx);
     		}
     	}
+
+    	Base::remove(tree);
     }
 
     void testFindExt()
     {
-    	TreePtr tree = Base::createTree(4096);
+    	Tree* tree = Base::createTree(4096);
 
     	fillTree(tree, 100);
 
@@ -262,6 +180,8 @@ public:
 
     	auto result2 = tree->template find_lt<FSEFindExtender>(10);
     	Base::out()<<result2.idx()<<" "<<result2.value()<<endl;
+
+    	Base::remove(tree);
     }
 
 
@@ -295,12 +215,11 @@ public:
 
     	Int tree_size = size_max;
 
-    	TreePtr tree_ptr = Base::createTree(Tree::block_size(tree_size));
-    	Tree* tree = tree_ptr.get();
+    	Tree* tree = Base::createTree(Tree::block_size(tree_size));
 
     	Int idx = 0;
-    	Base::fillTree(tree_ptr, data.size(), [&](){
-    		return data[idx++];
+    	Base::fillTree(tree, data.size(), [&](){
+    		return Values(data[idx++]);
     	});
 
     	Value last = 0;
@@ -317,12 +236,14 @@ public:
 
     	for (auto idx: indexes)
     	{
-    		v += findLE(tree_ptr, data[idx]).value();
+    		v += tree->findLEForward(0, 0, data[idx]).value();
     	}
 
     	BigInt t1 = getTimeInMillis();
 
     	Base::out()<<tree->size()<<" "<<tree->block_size()<<" "<<FormatTime(t1-t0)<<endl;
+
+    	Base::remove(tree);
     }
 
     void testSearchLargeBlockSpeed()
@@ -341,7 +262,7 @@ public:
     void testSearchLargeBlockSpeed(Int size_max, Int blocks)
     {
     	typedef std::pair<Int, Int> IntPair;
-    	typedef std::pair<TreePtr, vector<Value>> TreePair;
+    	typedef std::pair<Tree*, vector<Value>> TreePair;
 
     	vector<TreePair> trees;
 
@@ -355,12 +276,14 @@ public:
 
     		Int tree_size = size_max;
 
-    		TreePtr tree_ptr = Base::createTree(Tree::block_size(tree_size));
+    		Tree* tree = Base::createTree(Tree::block_size(tree_size));
 
     		Int idx = 0;
-    		Base::fillTree(tree_ptr, data.size(), [&](){
-    			return data[idx++];
+    		Base::fillTree(tree, data.size(), [&](){
+    			return Values(data[idx++]);
     		});
+
+
 
     		Value last = 0;
 
@@ -370,7 +293,7 @@ public:
     			last = v;
     		}
 
-    		trees.push_back(TreePair(tree_ptr, data));
+    		trees.push_back(TreePair(tree, data));
     	}
 
     	vector<IntPair> indexes(1000000);
@@ -388,15 +311,19 @@ public:
 
     	for (auto idx: indexes)
     	{
-    		TreePtr& tree_ptr = trees[idx.first].first;
+    		const Tree* tree_ptr = trees[idx.first].first;
     		vector<Value>& data =  trees[idx.first].second;
 
-    		v += findLE(tree_ptr, data[idx.second]).value();
+    		v += tree_ptr->findLEForward(0, 0, data[idx.second]).value();
     	}
 
     	BigInt t1 = getTimeInMillis();
 
     	Base::out()<<size_max<<" "<<blocks<<" "<<FormatTime(t1-t0)<<endl;
+
+    	for (auto pair: trees) {
+    		Base::remove(pair.first);
+    	}
     }
 };
 

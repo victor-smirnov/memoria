@@ -15,6 +15,11 @@
 
 namespace memoria {
 
+template <typename T1, typename T2>
+constexpr static T2 divUp(T1 v, T2 d) {
+	return v / d + (v % d > 0);
+}
+
 
 template <typename Type, typename Value>
 struct FSECodec {
@@ -256,7 +261,7 @@ public:
 			Int levels = 0;
 			Int level_sizes[LEVELS_MAX];
 
-			Int level_size = walker.max_size();
+			Int level_size = walker.max_capacity();
 
 			do
 			{
@@ -585,20 +590,51 @@ public:
 			for (Int nlevels=0; csize > 1; nlevels++)
 			{
 				if (nlevels > 0) {
-					csize = ((csize % BranchingFactor) == 0) ?
-								(csize / BranchingFactor) :
-									(csize / BranchingFactor) + 1;
+					csize = divUp(csize, BranchingFactor);
 				}
 				else {
-					csize = ((csize % ValuesPerBranch) == 0) ?
-								(csize / ValuesPerBranch) :
-									(csize / ValuesPerBranch) + 1;
+					csize = divUp(csize, ValuesPerBranch);
 				}
 				sum += csize;
 			}
 			return sum;
 		}
 	}
+
+	static Int compute_layout_size(Int csize)
+	{
+		if (csize == 1)
+		{
+			return 2;
+		}
+		else {
+			Int nlevels = 2;
+			csize = divUp(csize, ValuesPerBranch);
+
+			for (; csize > 1; nlevels++)
+			{
+				csize = divUp(csize, BranchingFactor);
+			}
+
+			return nlevels;
+		}
+	}
+
+
+
+	template <typename T>
+	static void buildIndexTreeLayout(T* buf, Int csize, Int layout_size)
+	{
+		buf[0] = layout_size;
+
+		csize = buf[layout_size - 1] = divUp(csize, ValuesPerBranch);
+
+		for (Int c = layout_size - 2; c > 0; c--)
+		{
+			csize = buf[c] = divUp(csize, BranchingFactor);
+		}
+	}
+
 };
 
 template <typename MyType>
@@ -627,7 +663,7 @@ class Reindex2FnBase {
 		}
 
 		Int maxSize() const {
-			return me_.data_size();
+			return me_.capacity();
 		}
 
 		Int indexSize() const {
@@ -688,7 +724,7 @@ public:
 	}
 
 	Int maxSize() const {
-		return me_.data_size();
+		return me_.capacity();
 	}
 
 	Int indexSize() const {

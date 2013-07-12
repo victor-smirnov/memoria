@@ -38,6 +38,9 @@ public:
 	    typedef V               Value;
 	    typedef EmptyAllocator	Allocator;
 
+	    template <typename CV>
+	    using Codec = FSECodec<Value, CV>;
+
 	    static const Int Blocks                 = Blocks_;
 	    static const Int BranchingFactor        = BF;
 	    static const Int ValuesPerBranch        = VPB;

@@ -31,9 +31,8 @@ protected:
 
 	typedef PackedFSETree<Types> 			Tree;
 
-	typedef shared_ptr<Tree> 				TreePtr;
-
 	typedef typename Tree::Value			Value;
+	typedef typename Tree::Values			Values;
 
 public:
 
@@ -41,42 +40,42 @@ public:
 
     virtual ~PackedFSETestBase() throw() {}
 
-    TreePtr createTree(Int size)
+    Tree* createTree(Int size)
     {
     	void* buffer = malloc(size);
     	memset(buffer, 0, size);
 
     	if (buffer)
     	{
-    		Tree* tree = T2T<Tree*>(buffer);
+    		PackedAllocator* alloc = T2T<PackedAllocator*>(buffer);
+    		alloc->init(size, 1);
 
-    		tree->init(size);
+    		Tree* tree = alloc->template allocate<Tree>(0, alloc->client_area());
 
-    		return TreePtr(tree);
+    		return tree;
     	}
     	else {
     		throw Exception(MA_SRC, SBuf()<<"Can't allocate "<<size<<" bytes");
     	}
     }
 
-    void fillTree(TreePtr& tree, function<Value()> value_provider)
+    void remove(Tree* tree)
+    {
+    	free(tree->allocator());
+    }
+
+    void fillTree(Tree* tree, function<Values ()> value_provider)
     {
     	fillTree(tree, tree->max_size(), value_provider);
     }
 
-    void fillTree(TreePtr& tree, Int size, function<Value()> value_provider)
+    void fillTree(Tree* tree, Int size, function<Values ()> value_provider)
     {
-    	for (int c = 0; c < size; c++)
-    	{
-    		tree->value(c) = value_provider();
-    	}
-
-    	tree->size() = size;
-
+    	tree->insert(0, size, value_provider);
     	tree->reindex();
     }
 
-    vector<Value> sumValues(TreePtr tree, Int start)
+    vector<Value> sumValues(const Tree* tree, Int start)
     {
     	vector<Value> values;
 
@@ -91,7 +90,7 @@ public:
     	return values;
     }
 
-    Value sumValues(TreePtr tree, Int start, Int stop) const
+    Value sumValues(const Tree* tree, Int start, Int stop) const
     {
     	Value sum = 0;
 

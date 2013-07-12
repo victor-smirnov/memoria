@@ -146,28 +146,18 @@ public:
 		return this->findLEForward(block, 0, max).idx() + 1;
 	}
 
-	Int block_size() const
-	{
-		return sizeof(MyType) + index_size_ * sizeof(IndexValue) * Indexes + max_size_ * sizeof(Value) * Blocks;
-	}
-
 	Int block_size(const MyType* other) const
 	{
 		return block_size(size_ + other->size_);
 	}
 
-	Int allocated_block_size() const
+	Int block_size() const
 	{
-		if (Base::allocator_offset() != 0)
-		{
-			return this->allocator()->element_size(this);
-		}
-		else {
-			return block_size();
-		}
+		return this->allocator()->element_size(this);
 	}
 
-	static Int empty_size() {
+	static Int empty_size()
+	{
 		return sizeof(MyType);
 	}
 
@@ -210,10 +200,10 @@ public:
 		return getOffsetsLengts(max_size_);
 	}
 
-	static Int block_size(Int items_num)
+	static Int block_size(Int tree_capacity)
 	{
-		Int index_size = MyType::index_size(items_num);
-		Int raw_block_size = sizeof(MyType) + index_size * Indexes * sizeof(IndexValue) + items_num * sizeof(Value) * Blocks;
+		Int index_size = MyType::index_size(tree_capacity);
+		Int raw_block_size = sizeof(MyType) + index_size * Indexes * sizeof(IndexValue) + tree_capacity * sizeof(Value) * Blocks;
 
 		return PackedAllocatable::roundUpBytesToAlignmentBlocks(raw_block_size);
 	}
@@ -338,13 +328,13 @@ public:
 	void reindex()
 	{
 		ReindexFn fn(*this);
-		Base::reindex(0, size(), fn);
+		Base::reindex(fn);
 	}
 
 	void check() const
 	{
 		CheckFn fn(*this);
-		Base::reindex(0, size(), fn);
+		Base::reindex(fn);
 	}
 
 
@@ -377,11 +367,6 @@ public:
 
 	const Value& value(Int idx) const
 	{
-		if (idx < 0)
-		{
-			int a = 0; a++;
-		}
-
 		MEMORIA_ASSERT(idx, >=, 0);
 		MEMORIA_ASSERT(idx, <, raw_size());
 
@@ -491,6 +476,26 @@ public:
 		index_size_ = index_size(max_size_);
 	}
 
+	void init()
+	{
+		size_ = 0;
+
+		max_size_   = 0;
+		index_size_ = index_size(max_size_);
+	}
+
+	void clear()
+	{
+		init(0);
+
+		if (Base::has_allocator())
+		{
+			Allocator* alloc = this->allocator();
+			Int empty_size = MyType::empty_size();
+			alloc->resizeBlock(this, empty_size);
+		}
+	}
+
 	Int object_size() const
 	{
 		Int object_size = sizeof(MyType) + getDataOffset() + tree_data_size();
@@ -551,6 +556,20 @@ public:
 		const Value* data = values();
 
 		CopyByteBuffer(data, target_memory_block, data_size);
+	}
+
+	bool check_capacity(Int size) const
+	{
+		MEMORIA_ASSERT_TRUE(size >= 0);
+
+		auto alloc = this->allocator();
+
+		Int total_size			= this->size() + size;
+		Int total_block_size	= MyType::block_size(total_size);
+		Int my_block_size		= alloc->element_size(this);
+		Int delta				= total_block_size - my_block_size;
+
+		return alloc->free_space() >= delta;
 	}
 
 	void enlarge(Int items_num)
@@ -1019,12 +1038,12 @@ public:
 		}
 	}
 
-	void insert(Int idx, Value value)
-	{
-		insertSpace(idx, 1);
-
-		this->value(idx) = value;
-	}
+//	void insert(Int idx, Value value)
+//	{
+//		insertSpace(idx, 1);
+//
+//		this->value(idx) = value;
+//	}
 
 	void insert(Int idx, Int size, std::function<Values ()> provider)
 	{
@@ -1043,7 +1062,37 @@ public:
 				values[block * my_size + c] = vals[block];
 			}
 		}
+
+		reindex();
 	}
+
+	Int insert(Int idx, std::function<bool (Values&)> provider)
+	{
+		Values vals;
+		Int cnt = 0;
+
+		while(provider(vals) && check_capacity(1))
+		{
+			insertSpace(idx, 1);
+
+			Value* values 	= this->values();
+			Int my_size 	= this->size();
+
+			for (Int block = 0; block < Blocks; block++)
+			{
+				values[block * my_size + idx] = vals[block];
+			}
+
+			idx++;
+			cnt++;
+		}
+
+		reindex();
+
+		return cnt;
+	}
+
+
 
 	void insertSpace(Int idx, Int room_length)
 	{

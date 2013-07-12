@@ -35,30 +35,40 @@ size_t GetEliasDeltaValueLength(V value)
 template <typename T, typename V>
 size_t EncodeEliasDelta(T* buffer, V value, size_t start, size_t limit = -1)
 {
-	size_t length 			= Log2(value);
-	size_t length_length 	= Log2(length) - 1;
+	if (value > 1)
+	{
+		size_t length 			= Log2(value);
+		size_t length_length 	= Log2(length) - 1;
 
-	// Fill in leading zeroes.
-	FillZero(buffer, start, start + length_length);
+		// Fill in leading zeroes.
+		FillZero(buffer, start, start + length_length);
 
-	V length0 = length;
+		V length0 = length;
 
-	// Move the most significant bit of the value's length into position 0.
-	// The MSB will always be 1, so this 1 will delimit run of zeroes from
-	// the bit run of the value's length.
-	// This operation differs this code from the original ELias Delta code.
-	length0 <<= 1;
-	length0 +=  1;
+		// Move the most significant bit of the value's length into position 0.
+		// The MSB will always be 1, so this 1 will delimit run of zeroes from
+		// the bit run of the value's length.
+		// This operation differs this code from the original ELias Delta code.
+		length0 <<= 1;
+		length0 +=  1;
 
-	// Write in the length
-	start += length_length;
-	SetBits(buffer, start, length0, length_length + 1);
+		// Write in the length
+		start += length_length;
+		SetBits(buffer, start, length0, length_length + 1);
 
-	// Write in the value
-	start += length_length + 1;
-	SetBits(buffer, start, value, length - 1);
+		// Write in the value
+		start += length_length + 1;
+		SetBits(buffer, start, value, length - 1);
 
-	return length_length * 2 + length;
+		return length_length * 2 + length;
+	}
+	else {
+		SetBits(buffer, start, 1, 1);
+
+		return 1;
+	}
+
+
 }
 
 template <typename T, typename V>
