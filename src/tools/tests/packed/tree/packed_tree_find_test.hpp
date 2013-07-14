@@ -59,7 +59,7 @@ public:
     {
 
 		MEMORIA_ADD_TEST(testFindForward);
-//		MEMORIA_ADD_TEST(testFindBackward);
+		MEMORIA_ADD_TEST(testFindBackward);
     }
 
     virtual ~PackedTreeFindTest() throw() {}
@@ -104,16 +104,11 @@ public:
     		{
     			sum 	+= value;
     			limit 	-= value;
-//    			cout<<c<<" "<<value<<" "<<sum<<endl;
     		}
     		else {
-//    			cout<<endl;
-
     			return c;
     		}
     	}
-
-//    	cout<<endl;
 
     	return 0;
     }
@@ -138,19 +133,17 @@ public:
 
     	Int size = tree->size();
 
-    	for (Int c = 0; c < 100; c++)
+    	for (Int c = 0; c < 1000; c++)
     	{
     		Int start 	= getRandom(size - 2);
     		Int rnd		= getRandom(size - start - 2);
     		Int end		= start + rnd + 2;
 
-    		Int block	= 0;//getRandom(Tree::Blocks);
+    		Int block	= getRandom(Tree::Blocks);
 
     		Int sum 	= tree->sum(block, start, end);
 
-    		if (start == 280 && sum == 997 && block == 0) {
-    			tree->dump();
-    		}
+    		if (sum == 0) continue;
 
     		auto result1_lt = tree->findLTForward(block, start, sum).idx();
     		auto result1_le = tree->findLEForward(block, start, sum).idx();
@@ -197,8 +190,8 @@ public:
     		// we do not handle zero sums correctly in this test yet
     		if (sum == 0) continue;
 
-    		auto result1_le = tree->findLTBackward(block, start, sum).idx();
-    		auto result1_lt = tree->findLEBackward(block, start, sum).idx();
+    		auto result1_lt = tree->findLTBackward(block, start, sum).idx();
+    		auto result1_le = tree->findLEBackward(block, start, sum).idx();
 
     		auto result2_lt = find_bw<PackedCompareLE>(tree, block, start, sum);
     		auto result2_le = find_bw<PackedCompareLT>(tree, block, start, sum);

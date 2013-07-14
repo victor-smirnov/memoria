@@ -89,7 +89,7 @@ public:
 	typedef core::StaticVector<Dimension, 2>									BlockRange;
 	typedef core::StaticVector<IndexValue, Blocks>								Values;
 
-	typedef PackedTreeTools<IndexValue, BranchingFactor, ValuesPerBranch>		TreeTools;
+	typedef PackedTreeTools<BranchingFactor, ValuesPerBranch>					TreeTools;
 
 	typedef VLETreeValueDescr<IndexValue>										ValueDescr;
 
@@ -131,6 +131,7 @@ public:
 	const Int index_size() const {return metadata()->index_size();}
 
 	const Int& data_size() const {return metadata()->data_size();}
+
 	Int& data_size() {return metadata()->data_size();}
 
 	Int data_length() const
@@ -143,13 +144,7 @@ public:
 		return byte_length / b_size + (byte_length % b_size ? 1 : 0);
 	}
 
-	static Int index_layout_size(Int capacity)
-	{
-		return TreeTools::compute_layout_size(capacity);
-	}
-
-
-	Int capacity() const
+	Int raw_capacity() const
 	{
 		return element_size(VALUES) * 8 / Codec::ElementSize;
 	}
@@ -171,9 +166,6 @@ public:
 		return Base::template get<OffsetsType>(OFFSETS);
 	}
 
-	Int offsetsBlockLength() const {
-		return Base::element_size(OFFSETS) / sizeof(OffsetsType);
-	}
 
 	IndexValue* indexes(Int index_block)
 	{
@@ -189,6 +181,7 @@ public:
 		return Base::template get<IndexValue>(INDEX) + index_block * index_size();
 	}
 
+
 	const LayoutValue* index_layout() const
 	{
 		return Base::template get<LayoutValue>(LAYOUT);
@@ -198,6 +191,12 @@ public:
 	{
 		return Base::template get<LayoutValue>(LAYOUT);
 	}
+
+	static Int index_layout_size(Int capacity)
+	{
+		return TreeTools::compute_layout_size(capacity);
+	}
+
 
 	const IndexValue* sizes() const {
 		return indexes(0);
@@ -213,30 +212,6 @@ public:
 		return Base::template get<BufferType>(VALUES);
 	}
 
-	static Int getValueBlocks(Int items_num)
-	{
-		return divUp(items_num, ValuesPerBranch);
-	}
-
-	Int getValueBlocks() const {
-		return getValueBlocks(capacity());
-	}
-
-	Int getOffsetsLengts() const
-	{
-		return getOffsetsBlockLength(capacity());
-	}
-
-	static Int getOffsetsBlockLength(Int items_num)
-	{
-		Int value_blocks = getValueBlocks(items_num);
-
-		Int offsets_bits = value_blocks * BITS_PER_OFFSET;
-
-		Int offsets_bytes = Base::roundUpBitsToAlignmentBlocks(offsets_bits);
-
-		return offsets_bytes;
-	}
 
 	Int block_size() const
 	{
@@ -285,24 +260,15 @@ public:
 		return max_tree_size(block_size);
 	}
 
-	static Int index_size(Int items_number)
-	{
-		if (items_number > ValuesPerBranch)
-		{
-			return TreeTools::compute_index_size(items_number);
-		}
-		else {
-			return 0;
-		}
-	}
+
 
 	// ================================= Reindexing ======================================== //
 
 private:
 
-	class ReindexFn: public Reindex2FnBase<MyType> {
+	class ReindexFn: public ReindexFnBase<MyType> {
 
-		typedef Reindex2FnBase<MyType> 				Base;
+		typedef ReindexFnBase<MyType> 				Base;
 
 		const BufferType* values_;
 
@@ -313,15 +279,15 @@ private:
 		}
 
 		void dump() {
-			Base::me_.dump();
+			Base::tree().dump();
 		}
 
 		void buildFirstIndexLine(Int index_level_start, Int index_level_size)
 		{
-			auto& me = Base::me_;
+			auto& me = Base::tree();
 			auto& indexes = Base::indexes_;
 
-			Int limit 		= Base::me_.data_size();
+			Int limit 		= me.data_size();
 			Int data_pos 	= 0;
 
 			Codec codec;
@@ -356,9 +322,6 @@ private:
 
 			for (;idx < index_level_size; idx++)
 			{
-				indexes[0][idx + index_level_start] = 0;
-				indexes[1][idx + index_level_start] = 0;
-
 				me.offset(idx) = 0;
 			}
 		}
@@ -366,9 +329,9 @@ private:
 
 
 
-	class CheckFn: public Check2FnBase<MyType> {
+	class CheckFn: public CheckFnBase<MyType> {
 
-		typedef Check2FnBase<MyType> 				Base;
+		typedef CheckFnBase<MyType> 				Base;
 
 		const BufferType* values_;
 	public:
@@ -461,7 +424,7 @@ public:
 		CheckFn fn(*this);
 		TreeTools::reindex(fn);
 
-		MEMORIA_ASSERT(data_size(), <=, capacity());
+		MEMORIA_ASSERT(data_size(), <=, raw_capacity());
 		MEMORIA_ASSERT(fn.data_size_, ==, data_size());
 		MEMORIA_ASSERT(fn.size_, ==, raw_size());
 	}
@@ -474,16 +437,29 @@ private:
 	class GetValueOffsetFn: public GetValueOffsetFnBase<MyType, GetValueOffsetFn> {
 		typedef GetValueOffsetFnBase<MyType, GetValueOffsetFn> Base;
 
-		Int max_;
+		Int 	max_;
+		bool 	has_index_;
+
+		const LayoutValue* layout_;
 
 	public:
 		GetValueOffsetFn(const MyType& me, Int limit):
 			Base(me, limit),
-			max_(me.data_size())
+			max_(me.data_size()),
+			has_index_(me.has_index()),
+			layout_(me.index_layout())
 		{}
 
 		Int max() const {
 			return max_;
+		}
+
+		bool has_index() const {
+			return has_index_;
+		}
+
+		const LayoutValue* index_layout() const {
+			return layout_;
 		}
 
 		void processIndexes(Int start, Int end)	{}
@@ -491,42 +467,15 @@ private:
 	};
 
 public:
-	Int getValueOffset(Int idx) const
+	Int value_offset(Int idx) const
 	{
 		GetValueOffsetFn fn(*this, idx);
 
-		Int pos = find_fw(fn);
+		Int pos = TreeTools::find(fn);
 
 		return pos;
 	}
 
-	Int max_offset() const
-	{
-		return getValueOffset(size() * Blocks);
-	}
-
-	Int max_offset(Int block) const
-	{
-		return getValueOffset(size() * (block + 1));
-	}
-
-	Int data_length(Int block, Int start, Int end) const
-	{
-		Int size 		= this->size();
-		Int pos_start 	= getValueOffset(size * block + start);
-		Int pos_end 	= getValueOffset(size * block + end);
-
-		return pos_end - pos_start;
-	}
-
-	Int getValueBlockOffset(Int block) const
-	{
-		GetValueOffsetFn fn(*this, block * size());
-
-		Int pos = TreeTools::find_fw(fn);
-
-		return pos;
-	}
 
 	Value getValue(Int idx) const
 	{
@@ -535,7 +484,7 @@ public:
 		MEMORIA_ASSERT(idx, >=, 0);
 		MEMORIA_ASSERT(idx, <, raw_size());
 
-		Int pos = getValueOffset(idx);
+		Int pos = value_offset(idx);
 
 		Codec codec;
 		Value value;
@@ -561,7 +510,7 @@ public:
 
 		auto* values_ = values();
 
-		Int pos = getValueOffset(idx);
+		Int pos = value_offset(idx);
 
 		MEMORIA_ASSERT(pos, <=, this->max_data_size());
 
@@ -734,8 +683,6 @@ public:
 
 	void clear()
 	{
-//		Int old_block_size = this->block_size();
-
 		Base::resizeBlock(VALUES, 	0);
 		Base::resizeBlock(INDEX, 	0);
 		Base::resizeBlock(OFFSETS, 	getOffsetsBlockLength(0));
@@ -757,79 +704,18 @@ public:
 		return alloc->free_space() >= delta;
 	}
 
-
-	void enlarge(Int amount)
-	{
-		Int max_tree_capacity 	= max_capacity(capacity() + amount);
-
-		MEMORIA_ASSERT_TRUE(max_tree_capacity >= 0);
-
-		Int metadata_length	= Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
-		Int offsets_length 	= Base::roundUpBytesToAlignmentBlocks(getOffsetsBlockLength(max_tree_capacity));
-
-		Int layout_size		= MyType::index_layout_size(max_tree_capacity);
-		Int layout_length	= Base::roundUpBytesToAlignmentBlocks(layout_size * sizeof(LayoutValue));
-
-		Int index_size 		= MyType::index_size(max_tree_capacity);
-		Int index_length	= Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexValue));
-
-		Int values_length	= Base::roundUpBitsToAlignmentBlocks(max_tree_capacity * Codec::ElementSize);
-
-		Int block_size		= Base::block_size(
-									metadata_length +
-									offsets_length +
-									layout_length +
-									index_length +
-									values_length,
-									5
-							);
-
-		if (amount > 0)
-		{
-			resize(block_size);
-
-			resizeBlock(OFFSETS, offsets_length);
-			resizeBlock(LAYOUT,  layout_length);
-			resizeBlock(INDEX,   index_length);
-			resizeBlock(VALUES,  values_length);
-		}
-		else {
-			resizeBlock(VALUES,  values_length);
-			resizeBlock(INDEX,   index_length);
-			resizeBlock(LAYOUT,  layout_length);
-			resizeBlock(OFFSETS, offsets_length);
-
-			resize(block_size);
-		}
-
-		TreeTools::buildIndexTreeLayout(this->index_layout(), max_tree_capacity, layout_size);
-
-		Metadata* meta 		= this->metadata();
-		meta->index_size() 	= index_size;
-
-		reindex();
+	bool has_index() const {
+		return index_size() > 0;
 	}
 
-	void shrink(Int amount)
-	{
-		enlarge(-amount);
-	}
+
+
 
 	void insertSpace(Int, Int) {
 		throw Exception(MA_SRC, "Method insertSpace(Int, Int) is not implemented for PackedVLETree");
 	}
 
-	void fillZero(Int start, Int end)
-	{
-		Codec codec;
-		Value value = 0;
-		auto values = this->values();
 
-		for (Int idx = start; idx < end; idx++)
-		{
-			codec.encode(values, value, idx);
-		}
-	}
 
 	Dimension insertSpace(Int idx, const Dimension& lengths)
 	{
@@ -837,7 +723,7 @@ public:
 
 		Int total 		= lengths.sum();
 		Int size 		= this->size();
-		Int max_size 	= this->capacity();
+		Int max_size 	= this->raw_capacity();
 		Int max  		= this->data_size();
 
 		Int capacity	= max_size - max;
@@ -855,7 +741,7 @@ public:
 		for (Int block = 0, inserted_length = 0; block < Blocks; inserted_length += lengths[block], block++)
 		{
 			Int offset			= block * size + idx;
-			Int offset_pos		= this->getValueOffset(offset);
+			Int offset_pos		= this->value_offset(offset);
 			starts[block] 		= offset_pos + inserted_length;
 			remainders[block]	= max + inserted_length - starts[block];
 		}
@@ -901,8 +787,8 @@ public:
 		{
 			Int offset	= (Blocks - block - 1) * size + start;
 
-			Int block_start		= ranges[0][block] = this->getValueOffset(offset);
-			Int block_end		= ranges[1][block] = this->getValueOffset(offset + room_length);
+			Int block_start		= ranges[0][block] = this->value_offset(offset);
+			Int block_end		= ranges[1][block] = this->value_offset(offset + room_length);
 
 			ranges[2][block] = max - block_end - total;
 
@@ -936,7 +822,7 @@ public:
 	{
 		Int size = this->size();
 
-		Int total = this->getValueOffset(size * Blocks);
+		Int total = this->value_offset(size * Blocks);
 		other->enlarge(total);
 
 		Codec codec;
@@ -967,7 +853,7 @@ public:
 		Codec codec;
 		for (Int block = 0; block < Blocks; block++)
 		{
-			Int pos = this->getValueOffset(size * block + idx);
+			Int pos = this->value_offset(size * block + idx);
 
 			codec.copy(values(), pos, other->values(), 0, lengths[block]);
 		}
@@ -989,7 +875,7 @@ public:
 
 		for (Int block = 0; block < Blocks; block++)
 		{
-			lengths[block] = this->getValueOffset((block + 1) * my_size);
+			lengths[block] = this->value_offset((block + 1) * my_size);
 		}
 
 		other->insertSpace(other->size(), lengths);
@@ -998,8 +884,8 @@ public:
 
 		for (Int block = 0; block < Blocks; block++)
 		{
-			Int my_start 	= this->getValueOffset(block * my_size);
-			Int other_start = other->getValueOffset((block + 1) * other_size);
+			Int my_start 	= this->value_offset(block * my_size);
+			Int other_start = other->value_offset((block + 1) * other_size);
 
 			codec.copy(values(), my_start, other->values(), other_start, lengths[block]);
 		}
@@ -1018,79 +904,6 @@ public:
 
 
 
-private:
-
-
-	void insertData(const Values* values, Int pos, Int processed)
-	{
-		Codec codec;
-
-		Dimension total_lengths;
-
-		for (Int block = 0; block < Blocks; block++)
-		{
-			for (SizeT c = 0; c < processed; c++)
-			{
-				total_lengths[block] += codec.length(values[c][block]);
-			}
-		}
-
-		auto insertion_starts = insertSpace(pos, total_lengths);
-
-		auto buffer = this->values();
-
-		for (Int block = 0; block < Blocks; block++)
-		{
-			size_t start = insertion_starts[block];
-			size_t limit = start + total_lengths[block];
-
-			for (SizeT c = 0; c < processed; c++)
-			{
-				IndexValue value = values[c][block];
-				Int len = codec.encode(buffer, value, start, limit);
-
-				start += len;
-			}
-		}
-
-		this->size() += processed;
-
-		reindex();
-	}
-
-	void checkAndDump() {
-		try {
-			check();
-		}
-		catch (...) {
-			dump();
-			dumpData();
-			dumpBitmap();
-			throw;
-		}
-	}
-
-	void readData(Values* values, Int pos, Int processed)
-	{
-		Codec codec;
-
-		const auto* buffer 	= this->values();
-		Int size 			= this->size();
-
-		for (Int block = 0; block < Blocks; block++)
-		{
-			Int value_idx = size * block + pos;
-
-			size_t start = this->getValueOffset(value_idx);
-
-			for (SizeT c = 0; c < processed; c++)
-			{
-				start += codec.decode(buffer, values[c][block], start);
-			}
-		}
-	}
-
-public:
 	void insert(Int idx, Int length, std::function<Values ()> provider)
 	{
 		Values values[IOBatchSize];
@@ -1257,19 +1070,7 @@ public:
 
 	// ==================================== Sum ============================================ //
 
-    ValueDescr raw_sum(Int to) const
-    {
-    	GetVLEValuesSumFn<MyType> fn(*this, to);
 
-    	Int pos = find_fw(fn);
-
-    	return ValueDescr(fn.value(), pos, to);
-    }
-
-	IndexValue raw_sum(Int from, Int to) const
-	{
-		return raw_sum(to).value() - raw_sum(from).value();
-	}
 
 	IndexValue sum(Int block) const
 	{
@@ -1331,83 +1132,7 @@ public:
 
 	// ==================================== Find =========================================== //
 
-	bool has_index() const {
-		return index_size() > 0;
-	}
 
-	template <typename Walker>
-	Int find_fw(Walker&& walker) const
-	{
-		if (has_index())
-		{
-			auto layout = this->index_layout();
-
-			Int index_tree_height = layout[0];
-
-			Int start 	= 1;
-			Int pos		= 0;
-
-			for (Int c = 2, base = 1; c < index_tree_height; c++)
-			{
-				Int level_size	= layout[c];
-				Int limit 		= level_size < BranchingFactor ? level_size : BranchingFactor;
-				Int end 		= start + limit;
-
-				pos = walker.walkIndex(start, end);
-
-				if (pos < end)
-				{
-					pos -= base;
-
-					base += level_size;
-					start = base + pos * BranchingFactor;
-				}
-				else {
-					return walker.max();
-				}
-			}
-
-			return walker.walkValues(pos);
-		}
-		else {
-			return walker.walkValues(0);
-		}
-	}
-
-
-
-	template <typename Walker>
-	void walk(Int pos, Walker&& walker) const
-	{
-		if (!has_index())
-		{
-			Int value_mask 	= ValuesPerBranch - 1;
-			Int idx_mask 	= BranchingFactor - 1;
-
-			Int idx = pos & value_mask;
-			walker.walkValues(idx, pos);
-
-			auto layout = this->index_layout();
-
-			Int index_tree_height = layout[0];
-
-			Int base = 0;
-			for (Int c = 1; c < index_tree_height; c++)
-			{
-				base += layout[c];
-			}
-
-			for (Int c = index_tree_height - 1; c > 1; c--, base -= layout[c], idx /= BranchingFactor)
-			{
-				Int start = idx & idx_mask;
-
-				walker.walkIndex(start + base, idx + base);
-			}
-		}
-		else {
-			walker.walkValues(0, end);
-		}
-	}
 
 
 	template <template <typename, typename> class Comparator>
@@ -1434,14 +1159,6 @@ public:
 		return ValueDescr(actual_value, pos, fn.position());
 	}
 
-	ValueDescr findLT(Value value) const {
-		return this->template find<PackedCompareLE>(value);
-	}
-
-	ValueDescr findLE(Value value) const {
-		return this->template find<PackedCompareLT>(value);
-	}
-
 	template <template <typename, typename> class Comparator>
 	ValueDescr findForwardT(Int block, Int start, IndexValue val) const
 	{
@@ -1458,7 +1175,7 @@ public:
 				meta->data_size()
 		);
 
-		Int pos = find_fw(fn);
+		Int pos = TreeTools::find(fn);
 
 		Int idx = fn.position() - block_start;
 
@@ -1510,7 +1227,7 @@ public:
 					meta->data_size()
 			);
 
-			Int pos = find_fw(fn);
+			Int pos = TreeTools::find(fn);
 
 			Int idx = fn.position() - block_start;
 
@@ -1679,13 +1396,13 @@ public:
 
 		out<<"size_         = "<<size()<<endl;
 		out<<"data_size_    = "<<data_size()<<endl;
-		out<<"capacity_     = "<<capacity()<<endl;
+		out<<"capacity_     = "<<raw_capacity()<<endl;
 		out<<"index_size_   = "<<index_size()<<endl;
 		out<<endl;
 
 		out<<"Offsets:"<<endl;
 
-		Int value_blocks = getValueBlocks(capacity());
+		Int value_blocks = getValueBlocks(raw_capacity());
 
 		if (value_blocks > 1)
 		{
@@ -1743,6 +1460,17 @@ public:
 
 		handler->value("MAX_DATA_SIZE", &max_size);
 
+		auto layout = this->index_layout();
+
+		handler->startGroup("INDEX_LAYOUT", layout[0] + 1);
+
+		for (Int c = 0; c < layout[0] + 1; c++)
+		{
+			handler->value("ITEM", layout[c]);
+		}
+
+		handler->endGroup();
+
 		handler->startGroup("INDEXES", index_size());
 
 		for (Int c = 0; c < index_size(); c++)
@@ -1788,6 +1516,10 @@ public:
 
 		FieldFactory<OffsetsType>::serialize(buf, offsetsBlock(), offsetsBlockLength());
 
+
+		auto layout = this->index_layout();
+		FieldFactory<IndexValue>::serialize(buf, layout, layout[0] + 1);
+
 		FieldFactory<IndexValue>::serialize(buf, indexes(0), Indexes * meta->index_size());
 
 		FieldFactory<BufferType>::serialize(buf, values(), this->data_length());
@@ -1805,12 +1537,241 @@ public:
 
 		FieldFactory<OffsetsType>::deserialize(buf, offsetsBlock(), offsetsBlockLength());
 
+		auto layout = this->index_layout();
+		FieldFactory<IndexValue>::deserialize(buf, layout, 1);
+		FieldFactory<IndexValue>::deserialize(buf, layout + 1, layout[0]);
+
 		FieldFactory<IndexValue>::deserialize(buf, indexes(0), Indexes * meta->index_size());
 
 		FieldFactory<BufferType>::deserialize(buf, values(), this->data_length());
 	}
 
+private:
+	static Int index_size(Int items_number)
+	{
+		if (items_number > ValuesPerBranch)
+		{
+			return TreeTools::compute_index_size(items_number);
+		}
+		else {
+			return 0;
+		}
+	}
 
+
+	ValueDescr raw_sum(Int to) const
+	{
+		GetVLEValuesSumFn<MyType> fn(*this, to);
+
+		Int pos = TreeTools::find(fn);
+
+		return ValueDescr(fn.value(), pos, to);
+	}
+
+	IndexValue raw_sum(Int from, Int to) const
+	{
+		return raw_sum(to).value() - raw_sum(from).value();
+	}
+
+
+	Int max_offset() const
+	{
+		return value_offset(size() * Blocks);
+	}
+
+	Int max_offset(Int block) const
+	{
+		return value_offset(size() * (block + 1));
+	}
+
+	Int data_length(Int block, Int start, Int end) const
+	{
+		Int size 		= this->size();
+		Int pos_start 	= value_offset(size * block + start);
+		Int pos_end 	= value_offset(size * block + end);
+
+		return pos_end - pos_start;
+	}
+
+	Int value_block_offset(Int block) const
+	{
+		GetValueOffsetFn fn(*this, block * size());
+
+		Int pos = TreeTools::find_fw(fn);
+
+		return pos;
+	}
+
+	static Int getValueBlocks(Int items_num)
+	{
+		return divUp(items_num, ValuesPerBranch);
+	}
+
+	Int getValueBlocks() const {
+		return getValueBlocks(raw_capacity());
+	}
+
+	Int getOffsetsLengts() const
+	{
+		return getOffsetsBlockLength(raw_capacity());
+	}
+
+	static Int getOffsetsBlockLength(Int items_num)
+	{
+		Int value_blocks = getValueBlocks(items_num);
+
+		Int offsets_bits = value_blocks * BITS_PER_OFFSET;
+
+		Int offsets_bytes = Base::roundUpBitsToAlignmentBlocks(offsets_bits);
+
+		return offsets_bytes;
+	}
+
+	Int offsetsBlockLength() const {
+		return Base::element_size(OFFSETS) / sizeof(OffsetsType);
+	}
+
+
+
+	void enlarge(Int amount)
+	{
+		Int max_tree_capacity 	= max_capacity(raw_capacity() + amount);
+
+		MEMORIA_ASSERT_TRUE(max_tree_capacity >= 0);
+
+		Int metadata_length	= Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+		Int offsets_length 	= Base::roundUpBytesToAlignmentBlocks(getOffsetsBlockLength(max_tree_capacity));
+
+		Int layout_size		= MyType::index_layout_size(max_tree_capacity);
+		Int layout_length	= Base::roundUpBytesToAlignmentBlocks(layout_size * sizeof(LayoutValue));
+
+		Int index_size 		= MyType::index_size(max_tree_capacity);
+		Int index_length	= Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexValue));
+
+		Int values_length	= Base::roundUpBitsToAlignmentBlocks(max_tree_capacity * Codec::ElementSize);
+
+		Int block_size		= Base::block_size(
+				metadata_length +
+				offsets_length +
+				layout_length +
+				index_length +
+				values_length,
+				5
+		);
+
+		if (amount > 0)
+		{
+			resize(block_size);
+
+			resizeBlock(OFFSETS, offsets_length);
+			resizeBlock(LAYOUT,  layout_length);
+			resizeBlock(INDEX,   index_length);
+			resizeBlock(VALUES,  values_length);
+		}
+		else {
+			resizeBlock(VALUES,  values_length);
+			resizeBlock(INDEX,   index_length);
+			resizeBlock(LAYOUT,  layout_length);
+			resizeBlock(OFFSETS, offsets_length);
+
+			resize(block_size);
+		}
+
+		TreeTools::buildIndexTreeLayout(this->index_layout(), max_tree_capacity, layout_size);
+
+		Metadata* meta 		= this->metadata();
+		meta->index_size() 	= index_size;
+
+		reindex();
+	}
+
+	void shrink(Int amount)
+	{
+		enlarge(-amount);
+	}
+
+
+	void fillZero(Int start, Int end)
+	{
+		Codec codec;
+		Value value = 0;
+		auto values = this->values();
+
+		for (Int idx = start; idx < end; idx++)
+		{
+			codec.encode(values, value, idx);
+		}
+	}
+
+
+	void insertData(const Values* values, Int pos, Int processed)
+	{
+		Codec codec;
+
+		Dimension total_lengths;
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			for (SizeT c = 0; c < processed; c++)
+			{
+				total_lengths[block] += codec.length(values[c][block]);
+			}
+		}
+
+		auto insertion_starts = insertSpace(pos, total_lengths);
+
+		auto buffer = this->values();
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			size_t start = insertion_starts[block];
+			size_t limit = start + total_lengths[block];
+
+			for (SizeT c = 0; c < processed; c++)
+			{
+				IndexValue value = values[c][block];
+				Int len = codec.encode(buffer, value, start, limit);
+
+				start += len;
+			}
+		}
+
+		this->size() += processed;
+
+		reindex();
+	}
+
+	void checkAndDump() {
+		try {
+			check();
+		}
+		catch (...) {
+			dump();
+			dumpData();
+			dumpBitmap();
+			throw;
+		}
+	}
+
+	void readData(Values* values, Int pos, Int processed)
+	{
+		Codec codec;
+
+		const auto* buffer 	= this->values();
+		Int size 			= this->size();
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			Int value_idx = size * block + pos;
+
+			size_t start = this->value_offset(value_idx);
+
+			for (SizeT c = 0; c < processed; c++)
+			{
+				start += codec.decode(buffer, values[c][block], start);
+			}
+		}
+	}
 };
 
 

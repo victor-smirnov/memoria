@@ -54,28 +54,14 @@ protected:
 
     const IndexKey* indexes_;
 
-    Int index_size_;
-
 public:
-    FindForwardFnBase(const IndexKey* indexes, BigInt limit, Int index_size):
+    FindForwardFnBase(const IndexKey* indexes, BigInt limit):
         sum_(0),
         limit_(limit),
-        indexes_(indexes),
-        index_size_(index_size)
+        indexes_(indexes)
     {}
 
-    void prepareIndex() {}
-    void finish() {}
-
-    Int index_size() const {
-    	return index_size_;
-    }
-
-    Int walkIndex(Int start, Int end) {
-    	return walkIndex(start, end, 0);
-    }
-
-    Int walkIndex(Int start, Int end, Int size)
+    Int walkIndex(Int start, Int end)
     {
         Comparator<BigInt, IndexKey> compare;
 
@@ -145,29 +131,17 @@ private:
 
 public:
 	GetValueOffsetFnBase(const TreeType& me, Int limit):
-		Base(me.indexes(0), limit, me.index_size()),
+		Base(me.indexes(0), limit),
 		me_(me)
 	{
 		values_  = me.values();
 	}
 
-	Int data_size() const {
-		return me_.data_size();
+	const TreeType& tree() const {
+		return me_;
 	}
 
-	Int max_capacity() const {
-		return me_.capacity();
-	}
-
-	Int size() const {
-		return me_.raw_size();
-	}
-
-	Int walkValues(Int value_block_num) {
-		return walkLastValuesBlock(value_block_num);
-	}
-
-	Int walkLastValuesBlock(Int value_block_num)
+	Int walkValues(Int value_block_num)
 	{
 		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
 
@@ -222,22 +196,15 @@ protected:
 public:
 	SumValuesFnBase(const TreeType& me, Int index): me_(me)
 	{
-		values_ 	= me.values();
 		indexes_ 	= me.indexes(index);
+		values_ 	= me.values();
 	}
 
-	void prepareIndex() {}
-	void finish() {}
-
-	Int max_size() const {
-		return me_.max_size();
+	const TreeType& tree() const {
+		return me_;
 	}
 
-	Int size() const {
-		return me_.raw_size();
-	}
-
-	Int walkIndex(Int start, Int end, Int size)
+	Int walkIndex(Int start, Int end)
 	{
 		for (Int c = start; c < end; c++)
 		{
@@ -250,13 +217,12 @@ public:
 		return sum_;
 	}
 
-	Int walkValues(Int start, Int end)
+	void walkValues(Int start, Int end)
 	{
 		for (Int c = start; c < end; c++)
 		{
 			sum_ += values_[c];
 		}
-		return end;
 	}
 };
 
@@ -267,9 +233,12 @@ class GetVLEValuesSumFn: public GetValueOffsetFnBase<TreeType, GetVLEValuesSumFn
 	typedef GetValueOffsetFnBase<TreeType, GetVLEValuesSumFn<TreeType> > Base;
 
 	typedef typename TreeType::IndexValue 			IndexKey;
+	typedef typename TreeType::LayoutValue 			LayoutValue;
 	typedef typename TreeType::Value 				Value;
 
 	const IndexKey* indexes_;
+	const LayoutValue* layout_;
+	bool has_index_;
 
 	Value value_ = 0;
 
@@ -280,10 +249,21 @@ public:
 	{
 		indexes_ 	= me.indexes(1);
 		max_ 		= me.raw_size();
+		layout_		= me.index_layout();
+
+		has_index_	= me.has_index();
 	}
 
 	Int max() const {
 		return max_;
+	}
+
+	const LayoutValue* index_layout() const {
+		return layout_;
+	}
+
+	bool has_index() const {
+		return has_index_;
 	}
 
 	void processIndexes(Int start, Int end)
@@ -320,6 +300,7 @@ class FindElementFn: public FindForwardFnBase<
 >
 {
 	typedef typename TreeType::IndexValue	IndexValue;
+	typedef typename TreeType::LayoutValue	LayoutValue;
 	typedef typename TreeType::Codec 		Codec;
 	typedef typename TreeType::Value		Value;
 	typedef typename TreeType::BufferType 	BufferType;
@@ -338,16 +319,22 @@ private:
 	Int position_;
 	Int max_size_;
 
+	bool has_index_;
+	const LayoutValue* layout_;
+
+
 public:
 	FindElementFn(
 			const TreeType& me,
 			BigInt limit,
 			Int max_size
 		):
-		Base(me.indexes(1), limit, 0),
+		Base(me.indexes(1), limit),
 		me_(me),
 		position_(0),
-		max_size_(max_size)
+		max_size_(max_size),
+		has_index_(me.has_index()),
+		layout_(me.index_layout())
 	{
 		values_  = me.values();
 		sizes_   = me.sizes();
@@ -357,24 +344,20 @@ public:
 		return max_size_;
 	}
 
+	bool has_index() const
+	{
+		return has_index_;
+	}
+
+	const LayoutValue* index_layout() const
+	{
+		return layout_;
+	}
+
+
 	Int position() const {
 		return position_;
 	}
-
-//	Int walkFirstValuesBlock(Int start, Int end)
-//	{
-//		return walkValues(start, end);
-//	}
-//
-//	Int walkLastValuesBlock(Int value_block_num)
-//	{
-//		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
-//
-//		Int pos = value_block_num * TreeType::ValuesPerBranch + offset;
-//		Int end = max_size_;
-//
-//		return walkValues(pos, end);
-//	}
 
 
 	Int walkValues(Int start)
@@ -423,8 +406,29 @@ class GetFSEValuesSumFn: public SumValuesFnBase<Tree, GetFSEValuesSumFn<Tree> > 
 
 	typedef SumValuesFnBase<Tree, GetFSEValuesSumFn<Tree> > 		Base;
 
+	bool has_index_;
+	Int max_;
+	Int capacity_;
+
 public:
-	GetFSEValuesSumFn(const Tree& me, Int index = 0): Base(me, index) {}
+	GetFSEValuesSumFn(const Tree& me, Int index = 0):
+		Base(me, index),
+		has_index_(me.index_size() > 0),
+		max_(me.size()),
+		capacity_(me.raw_capacity())
+	{}
+
+	bool has_index() const {
+		return has_index_;
+	}
+
+	bool max() const {
+		return max_;
+	}
+
+	Int capacity() const {
+		return capacity_;
+	}
 
 	void processIndexes(Int start, Int end) {}
 	void processValues(Int start, Int end) {}
@@ -457,40 +461,31 @@ private:
 
 public:
 	FSEFindElementFnBase(const Tree& me, BigInt limit, Int index = 0):
-		Base(me.indexes(index), limit, me.index_size()),
+		Base(me.indexes(index), limit),
 		me_(me)
 	{
 		values_  = me_.values();
 	}
 
-	Int max_size() const {
-		return me_.raw_max_size();
+	bool has_index() const {
+		return me_.index_size() > 0;
 	}
 
-	Int index_size() const {
-		return me_.index_size();
+	bool capacity() const {
+		return me_.raw_capacity();
 	}
 
-	Int size() const {
-		return me_.raw_size();
+	bool max() const {
+		return me_.size();
 	}
 
-	Int walkFirstValuesBlock(Int start, Int end)
-	{
-		return walkValues(start, end);
-	}
-
-	Int walkLastValuesBlock(Int value_block_num)
-	{
-		Int pos = value_block_num * Tree::Types::ValuesPerBranch;
-		Int end = me_.raw_size();
-
-		return walkValues(pos, end);
-	}
-
-	Int walkValues(Int pos, Int end)
+	Int walkValues(Int pos)
 	{
 		Comparator<Int, Value> compare;
+
+		Int end = me_.raw_size();
+
+		pos *= Tree::ValuesPerBranch;
 
 		for (Int c = pos; c < end; c++)
 		{
@@ -510,6 +505,7 @@ public:
 		}
 
 		Base::me().processValues(pos, end);
+
 		return end;
 	}
 
@@ -640,52 +636,6 @@ public:
 };
 
 
-
-template <typename Tree>
-class VLESumWalker {
-
-	typedef typename Tree::IndexValue		IndexValue;
-	typedef typename Tree::Codec			Codec;
-
-	const Tree& tree_;
-
-	IndexValue 	sum_ = 0;
-
-	const IndexValue* index_;
-
-
-public:
-	VLESumWalker(const Tree& tree):
-		tree_(tree),
-		index_(tree.indexes(1))
-	{}
-
-	void walkIndex(Int start, Int end)
-	{
-		for (Int c = start; c < end; c++)
-		{
-			sum_ += index_[c];
-		}
-	}
-
-	void walkValues(Int start, Int end)
-	{
-		Codec codec;
-
-		Int block = start / Tree::BranchingFactor;
-
-		start += tree_.offsets(block);
-
-		auto values = tree_.values();
-		Int limit	= tree_.data_size();
-
-		for (Int pos = start; pos < end;)
-		{
-			IndexValue val;
-			pos += codec.decode(values, val, pos, limit);
-		}
-	}
-};
 
 
 

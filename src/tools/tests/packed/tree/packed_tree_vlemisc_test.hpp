@@ -78,13 +78,13 @@ public:
     	vector<Int> sizes 		 = {258, 511, 1025, 4894, 8192, 512578, 398123478};
 
     	vector<vector<Int>> layouts = {
-    			{3, 1, 9},
-    			{3, 1, 16},
-    			{4, 1, 2, 33},
-    			{4, 1, 5, 153},
-    			{4, 1, 8, 256},
-    			{5, 1, 16, 501, 16019},
-    			{7, 1, 12, 380, 12150, 388793, 12441359}
+    			{2, 1, 9},
+    			{2, 1, 16},
+    			{3, 1, 2, 33},
+    			{3, 1, 5, 153},
+    			{3, 1, 8, 256},
+    			{4, 1, 16, 501, 16019},
+    			{6, 1, 12, 380, 12150, 388793, 12441359}
     	};
 
     	for (Int c = 0; c < sizes.size(); c++)
@@ -99,7 +99,7 @@ public:
     }
 
 
-    Int getValueOffset(const Tree* tree, Int idx)
+    Int value_offset(const Tree* tree, Int idx)
     {
     	typename Tree::Codec codec;
 
@@ -131,19 +131,19 @@ public:
     	Tree* tree = Base::createEmptyTree(block_size);
     	PARemover remover(tree);
 
-    	Int offset0 = tree->getValueOffset(0);
+    	Int offset0 = tree->value_offset(0);
 
     	AssertEQ(MA_SRC, offset0, 0);
 
-    	Int offset1 = tree->getValueOffset(tree->raw_size());
+    	Int offset1 = tree->value_offset(tree->raw_size());
     	AssertEQ(MA_SRC, offset1, tree->data_size());
 
-    	for (Int c = 0; c < 100; c++)
+    	for (Int c = 0; c < 1000; c++)
     	{
     		Int idx = getRandom(tree->raw_size());
 
-    		Int offset1 = tree->getValueOffset(idx);
-    		Int offset2 = getValueOffset(tree, idx);
+    		Int offset1 = tree->value_offset(idx);
+    		Int offset2 = value_offset(tree, idx);
 
     		AssertEQ(MA_SRC, offset1, offset2);
     	}

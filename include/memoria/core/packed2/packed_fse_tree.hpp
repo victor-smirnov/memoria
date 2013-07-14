@@ -8,10 +8,8 @@
 #ifndef MEMORIA_CORE_PACKED_FSE_TREE_HPP_
 #define MEMORIA_CORE_PACKED_FSE_TREE_HPP_
 
-#include <memoria/core/packed2/packed_tree_base.hpp>
 #include <memoria/core/packed2/packed_tree_walkers.hpp>
 #include <memoria/core/packed2/packed_tree_tools.hpp>
-
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
@@ -53,19 +51,9 @@ public:
 
 
 template <typename Types_>
-class PackedFSETree: public PackedTreeBase <
-	PackedFSETree<Types_>,
-	typename Types_::IndexValue,
-	Types_::BranchingFactor,
-	Types_::ValuesPerBranch
-> {
+class PackedFSETree: public PackedAllocatable {
 
-	typedef  PackedTreeBase<
-			PackedFSETree<Types_>,
-			typename Types_::IndexValue,
-			Types_::BranchingFactor,
-			Types_::ValuesPerBranch
-	>																			Base;
+	typedef PackedAllocatable 													Base;
 
 public:
 	static const UInt VERSION               									= 1;
@@ -86,6 +74,10 @@ public:
 	static const Int IOBatchSize			= 16;
 
 	typedef core::StaticVector<IndexValue, Blocks>								Values;
+
+	typedef Short																LayoutValue;
+
+	typedef PackedTreeTools<BranchingFactor, ValuesPerBranch, LayoutValue>		TreeTools;
 
 	typedef typename Types::template Codec<Value>								Codec;
 	typedef typename Codec::BufferType											BufferType;
@@ -131,14 +123,14 @@ public:
 	}
 
 	Int raw_size() const {return size_ * Blocks;}
-	Int raw_max_size() const {return max_size_ * Blocks;}
+	Int raw_capacity() const {return max_size_ * Blocks;}
 
 	Int& size() {return size_;}
 	const Int& size() const {return size_;}
 
 	const Int& index_size() const {return index_size_;}
 
-	const Int& max_size() const {return max_size_;}
+
 
 	Int content_size_from_start(Int block) const
 	{
@@ -222,7 +214,7 @@ public:
 	{
 		if (items_number > ValuesPerBranch)
 		{
-			return MyType::compute_index_size(items_number * Blocks);
+			return TreeTools::compute_index_size(items_number * Blocks);
 		}
 		else {
 			return 0;
@@ -240,34 +232,27 @@ private:
 
 		void buildFirstIndexLine(Int index_level_start, Int index_level_size)
 		{
-			if (Base::me_.index_size() == 0)
+			auto& me = Base::tree();
+			auto& indexes = Base::indexes_;
+
+			Int idx 		= 0;
+			Int block_start	= 0;
+			Int limit 		= me.raw_size();
+			auto values 	= me.values();
+
+			for (; idx < index_level_size; idx++, block_start += ValuesPerBranch)
 			{
-				return;
-			}
+				Int next 		= block_start + ValuesPerBranch;
+				Int local_limit = next <= limit ? next : limit;
 
-			Int limit = (ValuesPerBranch - 1 < Base::size()) ? ValuesPerBranch - 1 : Base::size() - 1;
+				IndexValue value = 0;
 
-			IndexValue cell = 0;
-
-			for (Int c = 0; c < Base::size(); c++)
-			{
-				cell += Base::me_[c];
-
-				if (c == limit)
+				for (Int c = block_start; c < local_limit; c++)
 				{
-					Base::indexes_[0][index_level_start] = cell;
-
-					index_level_start++;
-					cell = 0;
-
-					if (limit + ValuesPerBranch < Base::size())
-					{
-						limit += ValuesPerBranch;
-					}
-					else {
-						limit = Base::size() - 1;
-					}
+					value += values[c];
 				}
+
+				indexes[0][idx + index_level_start] = value;
 			}
 		}
 	};
@@ -280,43 +265,27 @@ private:
 
 		void buildFirstIndexLine(Int index_level_start, Int index_level_size) const
 		{
-			if (Base::me_.index_size() == 0)
+			auto& me = Base::tree();
+			auto& indexes = Base::indexes_;
+
+			Int idx 		= 0;
+			Int block_start	= 0;
+			Int limit 		= me.raw_size();
+			auto values 	= me.values();
+
+			for (; idx < index_level_size; idx++, block_start += ValuesPerBranch)
 			{
-				return;
-			}
+				Int next 		= block_start + ValuesPerBranch;
+				Int local_limit = next <= limit ? next : limit;
 
-			Int limit = (ValuesPerBranch - 1 < Base::size()) ? ValuesPerBranch - 1 : Base::size() - 1;
+				IndexValue value = 0;
 
-
-			IndexValue cell = 0;
-
-			for (Int c = 0; c < Base::size(); c++)
-			{
-				cell += Base::me_[c];
-
-				if (c == limit)
+				for (Int c = block_start; c < local_limit; c++)
 				{
-					//Base::indexes_[0][index_level_start] = cell;
-
-					if (Base::indexes_[0][index_level_start] != cell)
-					{
-						throw Exception(MA_SRC,
-								SBuf()<<"Invalid first index: index["<<0<<"]["
-									  <<index_level_start<<"]="<<Base::indexes_[0][index_level_start]
-								      <<", actual="<<cell);
-					}
-
-					index_level_start++;
-					cell = 0;
-
-					if (limit + ValuesPerBranch < Base::size())
-					{
-						limit += ValuesPerBranch;
-					}
-					else {
-						limit = Base::size() - 1;
-					}
+					value += values[c];
 				}
+
+				MEMORIA_ASSERT(indexes[0][idx + index_level_start], ==, value);
 			}
 		}
 	};
@@ -328,13 +297,13 @@ public:
 	void reindex()
 	{
 		ReindexFn fn(*this);
-		Base::reindex(fn);
+		TreeTools::reindex2(fn);
 	}
 
 	void check() const
 	{
 		CheckFn fn(*this);
-		Base::reindex(fn);
+		TreeTools::reindex2(fn);
 	}
 
 
@@ -531,19 +500,6 @@ public:
 		return capacity >= 0 ? capacity : 0;
 	}
 
-	Allocator* allocator()
-	{
-		UByte* my_ptr = T2T<UByte*>(this);
-		return T2T<Allocator*>(my_ptr - Base::allocator_offset());
-	}
-
-	const Allocator* allocator() const
-	{
-		const UByte* my_ptr = T2T<const UByte*>(this);
-		return T2T<const Allocator*>(my_ptr - Base::allocator_offset());
-	}
-
-
 	void transferTo(MyType* other, Value* target_memory_block = nullptr) const
 	{
 		if (target_memory_block == nullptr)
@@ -558,69 +514,6 @@ public:
 		CopyByteBuffer(data, target_memory_block, data_size);
 	}
 
-	bool check_capacity(Int size) const
-	{
-		MEMORIA_ASSERT_TRUE(size >= 0);
-
-		auto alloc = this->allocator();
-
-		Int total_size			= this->size() + size;
-		Int total_block_size	= MyType::block_size(total_size);
-		Int my_block_size		= alloc->element_size(this);
-		Int delta				= total_block_size - my_block_size;
-
-		return alloc->free_space() >= delta;
-	}
-
-	void enlarge(Int items_num)
-	{
-		Allocator* alloc = allocator();
-
-		MyType other;
-
-		Int requested_block_size = MyType::block_size(max_size_ + items_num);
-
-		Int new_size = alloc->resizeBlock(this, requested_block_size);
-
-		other.init(new_size);
-		other.size() 				= this->size();
-		other.allocator_offset() 	= this->allocator_offset();
-
-		MEMORIA_ASSERT(other.size(), <=, other.max_size());
-		MEMORIA_ASSERT(other.capacity(), >=, items_num);
-
-		transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
-
-		*this = other;
-	}
-
-	void shrink(Int items_num)
-	{
-		MEMORIA_ASSERT(items_num, <=, max_size_);
-		MEMORIA_ASSERT(max_size_ - items_num, >=, size_);
-
-		Allocator* alloc = allocator();
-
-		MyType other;
-
-		Int requested_block_size = MyType::block_size(max_size_ - items_num);
-		Int current_block_size	 = alloc->element_size(this);
-
-		if (requested_block_size < current_block_size)
-		{
-			other.init(requested_block_size);
-			other.size() 				= this->size();
-			other.allocator_offset() 	= this->allocator_offset();
-
-			MEMORIA_ASSERT(other.size(), <=, other.max_size());
-
-			transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
-
-			*this = other;
-
-			alloc->resizeBlock(this, requested_block_size);
-		}
-	}
 
 
 
@@ -675,36 +568,6 @@ public:
 
 	// ==================================== Query ========================================== //
 
-	IndexValue sum0(Int to) const
-	{
-		if (index_size_ == 0 || to < ValuesPerBranch)
-		{
-			IndexValue sum = 0;
-
-			const Value* values = this->values();
-
-			for (Int c = 0; c < to; c++)
-			{
-				sum += values[c];
-			}
-
-			return sum;
-		}
-		else {
-			GetFSEValuesSumFn<MyType> fn(*this);
-
-			this->walk_range(to, fn);
-
-			return fn.sum();
-		}
-	}
-
-	IndexValue sum0(Int from, Int to) const
-	{
-		return sum0(to) - sum0(from);
-	}
-
-
 	IndexValue sum(Int block) const
 	{
 		return sum(block, size_);
@@ -713,7 +576,7 @@ public:
 	IndexValue sum(Int block, Int to) const
 	{
 		Int base = block * size_;
-		return sum0(base, base + to);
+		return raw_sum(base, base + to);
 	}
 
 
@@ -726,7 +589,7 @@ public:
 	IndexValue sum(Int block, Int from, Int to) const
 	{
 		Int base = block * size_;
-		return sum0(base + to) - sum0(base + from);
+		return raw_sum(base + to) - raw_sum(base + from);
 	}
 
 
@@ -763,41 +626,15 @@ public:
 		return vals;
 	}
 
-	ValueDescr findLTForward(IndexValue val) const
-	{
-		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val);
-
-		Int pos = this->find_fw(fn);
-
-		Value actual_value = value(pos);
-
-		return ValueDescr(actual_value, pos, fn.sum());
-	}
-
-
-	ValueDescr findLTForward(Int start, IndexValue val) const
-	{
-		auto prefix = start > 0 ? sum(start) : 0;
-
-		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val + prefix);
-
-		Int pos = this->find_fw(fn);
-
-		Value actual_value = value(pos);
-
-		return ValueDescr(actual_value, pos, fn.sum() - prefix);
-	}
-
-
 	ValueDescr findLTForward(Int block, Int start, IndexValue val) const
 	{
 		Int block_start = block * size_;
 
-		auto prefix = sum0(block_start + start);
+		auto prefix = raw_sum(block_start + start);
 
 		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, val + prefix);
 
-		Int pos = this->find_fw(fn);
+		Int pos = TreeTools::find2(fn);
 
 		if (pos < block_start + size_)
 		{
@@ -811,44 +648,19 @@ public:
 	}
 
 
-	ValueDescr findLTBackward(Int start, IndexValue val) const
-	{
-		auto prefix = sum0(start + 1);
-		auto target = prefix - val;
-
-		if (target > 0)
-		{
-			FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
-
-			Int pos = this->find_fw(fn);
-
-			Value actual_value = value(pos);
-
-			return ValueDescr(actual_value, pos, prefix - (fn.sum() + actual_value));
-		}
-		else if (target == 0)
-		{
-			Value actual_value = value(start);
-			return ValueDescr(actual_value, start, prefix - actual_value);
-		}
-		else {
-			return ValueDescr(0, -1, prefix);
-		}
-	}
-
 
 	ValueDescr findLTBackward(Int block, Int start, IndexValue val) const
 	{
 		Int block_start = block * size_;
 
-		auto prefix = sum0(block_start + start + 1);
+		auto prefix = raw_sum(block_start + start + 1);
 		auto target = prefix - val;
 
 		if (target >= 0)
 		{
-			FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
+			FSEFindElementFn<MyType, PackedCompareLT> fn(*this, target);
 
-			Int pos = this->find_fw(fn);
+			Int pos = TreeTools::find2(fn);
 
 			if (pos > block_start + start)
 			{
@@ -860,7 +672,7 @@ public:
 				return ValueDescr(actual_value, pos - block_start, prefix - (fn.sum() + actual_value));
 			}
 			else {
-				return ValueDescr(0, -1, prefix - sum0(block_start));
+				return ValueDescr(0, -1, prefix - raw_sum(block_start));
 			}
 		}
 		else {
@@ -870,40 +682,15 @@ public:
 
 
 
-
-	ValueDescr findLEForward(IndexValue val) const
-	{
-		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
-
-		Int pos = this->find_fw(fn);
-
-		Value actual_value = value(pos);
-
-		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
-	}
-
-	ValueDescr findLEForward(Int start, IndexValue val) const
-	{
-		auto prefix = start > 0 ? sum0(start) : 0;
-
-		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
-
-		Int pos = this->find_fw(fn);
-
-		Value actual_value = value(pos + prefix);
-
-		return ValueDescr(actual_value + fn.sum(), pos, fn.sum() - prefix);
-	}
-
 	ValueDescr findLEForward(Int block, Int start, IndexValue val) const
 	{
 		Int block_start = block * size_;
 
-		auto prefix = sum0(block_start + start);
+		auto prefix = raw_sum(block_start + start);
 
 		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val + prefix);
 
-		Int pos = this->find_fw(fn);
+		Int pos = TreeTools::find2(fn);
 
 		if (pos < block_start + size_)
 		{
@@ -920,14 +707,14 @@ public:
 	{
 		Int block_start = block * size_;
 
-		auto prefix = sum0(block_start + start + 1);
+		auto prefix = raw_sum(block_start + start + 1);
 		auto target = prefix - val;
 
 		if (target >= 0)
 		{
-			FSEFindElementFn<MyType, PackedCompareLT> fn(*this, target);
+			FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
 
-			Int pos = this->find_fw(fn);
+			Int pos = TreeTools::find2(fn);
 
 			if (pos >= block_start)
 			{
@@ -935,7 +722,7 @@ public:
 				return ValueDescr(actual_value, pos - block_start, prefix - (fn.sum() + actual_value));
 			}
 			else {
-				return ValueDescr(0, -1, prefix - sum0(block_start));
+				return ValueDescr(0, -1, prefix - raw_sum(block_start));
 			}
 		}
 		else if (target == 0)
@@ -972,57 +759,8 @@ public:
 	}
 
 
-	ValueDescr findLEl(IndexValue val) const
-	{
-		FSEFindElementFn<MyType, PackedCompareLT> fn(*this, val);
-
-		Int pos = fn.walkLastValuesBlock(0);
-
-		Value actual_value = value(pos);
-
-		return ValueDescr(actual_value + fn.sum(), pos, fn.sum());
-	}
-
-	template <
-		template <typename TreeType, template <typename, typename> class BaseClass> class Extender
-	>
-	FSEValueDescr<
-		Value,
-		Extender<MyType, FindLEFnBase>
-	>
-	find_le(Value value) const
-	{
-		Extender<MyType, FindLEFnBase> fn(*this, value);
-
-		Int pos = this->find_fw(fn);
-
-		Value actual_value = this->value(pos);
-
-		return FSEValueDescr<Value, Extender<MyType, FindLEFnBase>>(actual_value + fn.sum(), pos, fn.sum(), fn);
-	}
-
-
-	template <
-		template <typename TreeType, template <typename, typename> class BaseClass> class Extender
-	>
-	FSEValueDescr<
-		Value,
-		Extender<MyType, FindLTFnBase>
-	>
-	find_lt(Value value) const
-	{
-		Extender<MyType, FindLTFnBase> fn(*this, value);
-
-		Int pos = this->find_fw(fn);
-
-		Value actual_value = this->value(pos);
-
-		return FSEValueDescr<Value, Extender<MyType, FindLTFnBase>>(actual_value + fn.sum(), pos, fn.sum(), fn);
-	}
 
 	// ==================================== Update ========================================== //
-
-
 
 
 	bool ensureCapacity(Int size)
@@ -1038,12 +776,6 @@ public:
 		}
 	}
 
-//	void insert(Int idx, Value value)
-//	{
-//		insertSpace(idx, 1);
-//
-//		this->value(idx) = value;
-//	}
 
 	void insert(Int idx, Int size, std::function<Values ()> provider)
 	{
@@ -1122,7 +854,7 @@ public:
 
 		clear(idx, idx + room_length);
 
-		MEMORIA_ASSERT(raw_size(), <=, raw_max_size());
+		MEMORIA_ASSERT(raw_size(), <=, raw_capacity());
 	}
 
 	void removeSpace(Int start, Int end)
@@ -1223,29 +955,6 @@ public:
 			removeSpace(size_, -delta);
 		}
 	}
-
-
-	bool append(Value value) {
-		return insert(size_, value);
-	}
-
-
-//	void moveToNextCell(Int idx, const Values& vals)
-//	{
-//		insertSpace(idx + 1, 1);
-//
-//		for (Int b = 0; b < Blocks; b++)
-//		{
-//			this->value(b, idx) -= vals[b];
-//		}
-//
-//		for (Int b = 0; b < Blocks; b++)
-//		{
-//			this->value(b, idx + 1) = vals[b];
-//		}
-//
-//		reindex();
-//	}
 
 
 	// ===================================== IO ============================================ //
@@ -1444,52 +1153,109 @@ public:
 		FieldFactory<Value>::deserialize(buf, values(), size_ * Blocks);
 	}
 
-private:
-
-	class UpdateUpFn {
-
-		MyType& me_;
-
-		IndexValue* indexes_;
-
-		Value value_;
-
-	public:
-		UpdateUpFn(MyType& me, Int index, Value value):
-			me_(me), indexes_(me_.indexes(index)), value_(value)
-		{}
-
-		Int size() const {
-			return me_.size();
-		}
-
-		Int maxSize() const {
-			return me_.max_size();
-		}
-
-		Int indexSize() const {
-			return me_.index_size();
-		}
-
-		void operator()(Int idx)
-		{
-			indexes_[idx] += value_;
-		}
-	};
-
-public:
-
 
 	void updateUp(Int block_num, Int idx, IndexValue key_value)
 	{
 		value(block_num, idx) += key_value;
+	}
 
-		if (index_size() > 0)
+
+private:
+	const Int& max_size() const {return max_size_;}
+
+
+	IndexValue raw_sum(Int to) const
+	{
+		if (index_size_ == 0 || to < ValuesPerBranch)
 		{
-//			Base::update_up(idx, UpdateUpFn(*this, block_num, key_value));
+			IndexValue sum = 0;
+
+			const Value* values = this->values();
+
+			for (Int c = 0; c < to; c++)
+			{
+				sum += values[c];
+			}
+
+			return sum;
+		}
+		else {
+			GetFSEValuesSumFn<MyType> fn(*this);
+
+			TreeTools::walk2(to, fn);
+
+			return fn.sum();
 		}
 	}
 
+	IndexValue raw_sum(Int from, Int to) const
+	{
+		return raw_sum(to) - raw_sum(from);
+	}
+
+	bool check_capacity(Int size) const
+	{
+		MEMORIA_ASSERT_TRUE(size >= 0);
+
+		auto alloc = this->allocator();
+
+		Int total_size			= this->size() + size;
+		Int total_block_size	= MyType::block_size(total_size);
+		Int my_block_size		= alloc->element_size(this);
+		Int delta				= total_block_size - my_block_size;
+
+		return alloc->free_space() >= delta;
+	}
+
+	void enlarge(Int items_num)
+	{
+		Allocator* alloc = allocator();
+
+		MyType other;
+
+		Int requested_block_size = MyType::block_size(max_size_ + items_num);
+
+		Int new_size = alloc->resizeBlock(this, requested_block_size);
+
+		other.init(new_size);
+		other.size() 				= this->size();
+		other.allocator_offset() 	= this->allocator_offset();
+
+		MEMORIA_ASSERT(other.size(), <=, other.max_size());
+		MEMORIA_ASSERT(other.capacity(), >=, items_num);
+
+		transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
+
+		*this = other;
+	}
+
+	void shrink(Int items_num)
+	{
+		MEMORIA_ASSERT(items_num, <=, max_size_);
+		MEMORIA_ASSERT(max_size_ - items_num, >=, size_);
+
+		Allocator* alloc = allocator();
+
+		MyType other;
+
+		Int requested_block_size = MyType::block_size(max_size_ - items_num);
+		Int current_block_size	 = alloc->element_size(this);
+
+		if (requested_block_size < current_block_size)
+		{
+			other.init(requested_block_size);
+			other.size() 				= this->size();
+			other.allocator_offset() 	= this->allocator_offset();
+
+			MEMORIA_ASSERT(other.size(), <=, other.max_size());
+
+			transferTo(&other, T2T<Value*>(buffer_ + other.getDataOffset()));
+
+			*this = other;
+
+			alloc->resizeBlock(this, requested_block_size);
+		}
+	}
 };
 
 

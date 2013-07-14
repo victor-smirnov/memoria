@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -23,7 +23,8 @@ static const int DEFAULT_BLOCK_SIZE         		= 4096;
 static const int PackedTreeBranchingFactor  		= 32;
 static const int PackedSeqBranchingFactor   		= 32;
 static const int PackedSeqValuesPerBranch   		= 1024;
-static const int PackedExintVLETreeValuesPerBranch  = 256;
+static const int PackedTreeExintVPB  				= 256;
+static const int PackedTreeEliasVPB  				= 1024;
 static const int PackedAllocationAlignment  		= 8;
 
 

@@ -28,20 +28,22 @@ public:
     {
         registerTask(new PackedTreeMiscTest<PackedFSETree, ValueFSECodec, 1>("Misc.1.FSE"));
 
-    	registerTask(new PackedTreeMiscTest<PackedVLETree, UByteExintCodec, 4>("Misc.4.VLE.Exint"));
-        registerTask(new PackedTreeMiscTest<PackedVLETree, UBigIntEliasCodec, 4>("Misc.4.VLE.Elias"));
+    	registerTask(new PackedTreeMiscTest<PackedVLETree, UByteExintCodec, 4, PackedTreeExintVPB>("Misc.4.VLE.Exint"));
+        registerTask(new PackedTreeMiscTest<PackedVLETree, UBigIntEliasCodec, 4, PackedTreeEliasVPB>("Misc.4.VLE.Elias"));
 
         registerTask(new PackedTreeVLEMiscTest<UByteExintCodec, 4>("VLEMisc.4.Exint"));
         registerTask(new PackedTreeVLEMiscTest<UBigIntEliasCodec, 4>("VLEMisc.4.Elias"));
 
-        registerTask(new PackedTreeSumTest<PackedVLETree,  UBigIntEliasCodec, 4>("Sum.4.VLE.Elias"));
+        registerTask(new PackedTreeSumTest<PackedVLETree,  UByteExintCodec, 4, PackedTreeExintVPB>("Sum.4.VLE.Exint"));
+        registerTask(new PackedTreeSumTest<PackedVLETree,  UBigIntEliasCodec, 4, PackedTreeEliasVPB>("Sum.4.VLE.Elias"));
 
-    	registerTask(new PackedTreeFindTest<PackedVLETree,  UBigIntEliasCodec, 4>("Find.4.VLE.Elias"));
-    	registerTask(new PackedTreeFindTest<PackedVLETree,  UByteExintCodec, 4>("Find.4.VLE.Exint"));
+    	registerTask(new PackedTreeFindTest<PackedVLETree,  UBigIntEliasCodec, 4, PackedTreeEliasVPB>("Find.4.VLE.Elias"));
+    	registerTask(new PackedTreeFindTest<PackedVLETree,  UByteExintCodec, 4, PackedTreeExintVPB>("Find.4.VLE.Exint"));
 
-//    	registerTask(new PackedTreeFindTest<PackedFSETree,  ValueFSECodec, 4>("Find.4.FSE"));
+    	registerTask(new PackedTreeFindTest<PackedFSETree,  ValueFSECodec, 4>("Find.4.FSE"));
 
 
+    	registerTask(new PackedTreeSumTest<PackedFSETree,  ValueFSECodec, 4>("Sum.4.FSE"));
     }
 
 };
