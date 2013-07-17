@@ -20,6 +20,7 @@
 
 #include <memoria/core/tools/static_array.hpp>
 
+
 #include <type_traits>
 
 namespace memoria {
@@ -71,7 +72,7 @@ public:
 	static const Int Indexes        		= 1;
 	static const Int Blocks        			= Types::Blocks;
 
-	static const Int IOBatchSize			= 16;
+	static const Int IOBatchSize			= 1024;
 
 	typedef core::StaticVector<IndexValue, Blocks>								Values;
 
@@ -114,23 +115,17 @@ public:
 
 	PackedFSETree() {}
 
-	void setAllocatorOffset(const void* allocator)
-	{
-		const char* my_ptr = T2T<const char*>(this);
-		const char* alc_ptr = T2T<const char*>(allocator);
-		size_t diff = T2T<size_t>(my_ptr - alc_ptr);
-		Base::allocator_offset() = diff;
-	}
-
 	Int raw_size() const {return size_ * Blocks;}
 	Int raw_capacity() const {return max_size_ * Blocks;}
 
 	Int& size() {return size_;}
 	const Int& size() const {return size_;}
 
+	Int data_size() const {
+		return raw_size() * sizeof (Value);
+	}
+
 	const Int& index_size() const {return index_size_;}
-
-
 
 	Int content_size_from_start(Int block) const
 	{
@@ -288,6 +283,10 @@ private:
 				MEMORIA_ASSERT(indexes[0][idx + index_level_start], ==, value);
 			}
 		}
+
+		void checkData() const {
+
+		}
 	};
 
 
@@ -302,8 +301,8 @@ public:
 
 	void check() const
 	{
-		CheckFn fn(*this);
-		TreeTools::reindex2(fn);
+//		CheckFn fn(*this);
+//		TreeTools::reindex2(fn);
 	}
 
 
@@ -359,6 +358,26 @@ public:
 	{
 		value(idx) = val;
 		return 0;
+	}
+
+	void setValues(Int idx, const core::StaticVector<Value, Blocks>& values)
+	{
+		for (Int block = 0; block < Blocks; block++)
+		{
+			value(block, idx) = values[block];
+		}
+
+		reindex();
+	}
+
+	void addValues(Int idx, const core::StaticVector<Value, Blocks>& values)
+	{
+		for (Int block = 0; block < Blocks; block++)
+		{
+			value(block, idx) += values[block];
+		}
+
+		reindex();
 	}
 
 	Value* values()

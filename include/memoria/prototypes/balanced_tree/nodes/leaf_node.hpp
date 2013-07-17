@@ -316,7 +316,7 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, TreeType* other)
     	{
-    		Tree* other_tree = other->allocator()->template allocate<Tree>(Idx, tree->allocated_block_size());
+    		Tree* other_tree = other->allocator()->template allocate<Tree>(Idx, tree->block_size());
     		tree->transferDataTo(other_tree);
     	}
     };
@@ -755,8 +755,7 @@ public:
     		{
     			if (other->is_empty(Idx))
     			{
-    				Int block_size = Tree::block_size(0);
-    				other->allocator()->template allocate<Tree>(Idx, block_size);
+    				other->allocator()->template allocateEmpty<Tree>(Idx);
     			}
 
     			Tree* other_tree = other->template get<Tree>(Idx);

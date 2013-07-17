@@ -20,18 +20,27 @@
 
 namespace memoria {
 
-class MapCreateTest: public MapTestBase {
+template <
+	template <typename, typename> class MapType
+>
+class MapCreateTest: public MapTestBase<MapType> {
 
-    typedef MapCreateTest                                                       MyType;
+    typedef MapCreateTest<MapType>                                              MyType;
+    typedef MapTestBase<MapType>												Base;
+
+    typedef typename Base::Allocator											Allocator;
+    typedef typename Base::Iterator												Iterator;
+    typedef typename Base::Ctr													Ctr;
+    typedef typename Base::PairVector											PairVector;
 
     BigInt 	key_;
     BigInt 	value_;
 
 public:
 
-    MapCreateTest(): MapTestBase("Create")
+    MapCreateTest(StringRef name): Base(name)
     {
-    	size_ = 10000;
+    	Base::size_ = 10000;
 
     	MEMORIA_ADD_TEST_PARAM(key_)->state();
     	MEMORIA_ADD_TEST_PARAM(value_)->state();
@@ -45,7 +54,7 @@ public:
 
     void runCreateTest()
     {
-        DefaultLogHandlerImpl logHandler(out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -56,68 +65,77 @@ public:
 
         map.setNewPageSize(8192);
 
-        ctr_name_ = map.name();
+        Base::ctr_name_ = map.name();
 
-        map.setBranchingFactor(btree_branching_);
+        map.setBranchingFactor(Base::btree_branching_);
+
+        auto& vector_idx 	= Base::vector_idx_;
+        auto& pairs 		= Base::pairs;
+        auto& pairs_sorted 	= Base::pairs_sorted;
 
         try {
-            for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
+
+            for (vector_idx = 0; vector_idx < Base::size_; vector_idx++)
             {
-            	auto iter = map[pairs[vector_idx_].key_];
+            	auto iter = map[pairs[vector_idx].key_];
 
-                iter.value() = pairs[vector_idx_].value_;
+                iter.value() = pairs[vector_idx].value_;
 
-                checkIterator(iter, MEMORIA_SOURCE);
+                Base::checkIterator(iter, MEMORIA_SOURCE);
 
-                check(allocator, MEMORIA_SOURCE);
+                Base::check(allocator, MEMORIA_SOURCE);
 
                 PairVector tmp = pairs_sorted;
 
-                appendToSortedVector(tmp, pairs[vector_idx_]);
+                appendToSortedVector(tmp, pairs[vector_idx]);
 
-                checkContainerData(map, tmp);
+                Base::checkContainerData(map, tmp);
 
                 allocator.commit();
 
-                check(allocator, MEMORIA_SOURCE);
+                Base::check(allocator, MEMORIA_SOURCE);
 
                 pairs_sorted = tmp;
             }
         }
         catch (...) {
-            StorePairs(pairs, pairs_sorted);
-            dump_name_ = Store(allocator);
+            Base::StorePairs(pairs, pairs_sorted);
+            Base::dump_name_ = Base::Store(allocator);
             throw;
         }
     }
 
     void replayCreateTest()
     {
-        DefaultLogHandlerImpl logHandler(out());
+        DefaultLogHandlerImpl logHandler(Base::out());
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        LoadAllocator(allocator, dump_name_);
+        auto& vector_idx_ 	= Base::vector_idx_;
+        auto& pairs 		= Base::pairs;
+        auto& pairs_sorted 	= Base::pairs_sorted;
 
-        LoadVector(pairs, pairs_data_file_);
-        LoadVector(pairs_sorted, pairs_sorted_data_file_);
+        Base::LoadAllocator(allocator, Base::dump_name_);
 
-        Ctr map(&allocator, CTR_FIND, ctr_name_);
+        LoadVector(pairs, Base::pairs_data_file_);
+        LoadVector(pairs_sorted, Base::pairs_sorted_data_file_);
+
+        Ctr map(&allocator, CTR_FIND, Base::ctr_name_);
 
         auto iter = map[pairs[vector_idx_].key_];
         iter.value() = pairs[vector_idx_].value_;
 
-        checkIterator(iter, MEMORIA_SOURCE);
+        Base::checkIterator(iter, MEMORIA_SOURCE);
 
-        check(allocator, MEMORIA_SOURCE);
+        Base::check(allocator, MEMORIA_SOURCE);
 
         appendToSortedVector(pairs_sorted, pairs[vector_idx_]);
 
-        checkContainerData(map, pairs_sorted);
+        Base::checkContainerData(map, pairs_sorted);
 
         allocator.commit();
 
-        check(allocator, MEMORIA_SOURCE);
+        Base::check(allocator, MEMORIA_SOURCE);
     }
 
     vector<Int> fillVector(Allocator& allocator, Ctr& ctr, Int size)
@@ -128,7 +146,10 @@ public:
     	{
     		key_ = value_ = c;
 
+    		Base::out()<<c<<endl;
+
     		ctr[c] = c;
+
     		v.push_back(c);
 
     		auto i = ctr[c];
@@ -145,16 +166,16 @@ public:
 
     void runIteratorTest()
     {
-    	DefaultLogHandlerImpl logHandler(out());
+    	DefaultLogHandlerImpl logHandler(Base::out());
     	Allocator allocator;
     	allocator.getLogger()->setHandler(&logHandler);
 
     	try {
     		Ctr ctr(&allocator);
 
-    		ctr_name_ = ctr.name();
+    		Base::ctr_name_ = ctr.name();
 
-    		vector<Int> v = fillVector(allocator, ctr, 10000);
+    		vector<Int> v = fillVector(allocator, ctr, Base::size_);
 
     		allocator.commit();
 
@@ -173,22 +194,22 @@ public:
     		AssertEQ(MA_SRC, i4.entry_idx(), -1);
     	}
     	catch (...) {
-    		dump_name_ = Store(allocator);
+    		Base::dump_name_ = Base::Store(allocator);
     		throw;
     	}
     }
 
     void replayIteratorTest()
     {
-    	DefaultLogHandlerImpl logHandler(out());
+    	DefaultLogHandlerImpl logHandler(Base::out());
     	Allocator allocator;
     	allocator.getLogger()->setHandler(&logHandler);
 
-    	LoadAllocator(allocator, dump_name_);
+    	Base::LoadAllocator(allocator, Base::dump_name_);
 
-    	check(allocator, MA_SRC);
+    	Base::check(allocator, MA_SRC);
 
-    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
+    	Ctr ctr(&allocator, CTR_FIND, Base::ctr_name_);
 
     	ctr[key_] = value_;
 

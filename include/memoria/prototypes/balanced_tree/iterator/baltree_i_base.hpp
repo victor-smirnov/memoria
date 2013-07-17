@@ -229,7 +229,7 @@ public:
     }
 
 
-    void dump(ostream& out = cout, const char* header = NULL) const
+    void dump(ostream& out = cout, const char* header = nullptr) const
     {
     	auto& self = this->self();
 
@@ -249,9 +249,11 @@ public:
         return String(self().ctr().typeName()) + " Iterator State";
     }
 
-    void dumpPath(std::ostream& out = std::cout) const
+    void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const
     {
     	auto& self 	= this->self();
+    	out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
+    	dumpKeys(out);
     	self.ctr().dumpPath(self.leaf(), out);
     }
 

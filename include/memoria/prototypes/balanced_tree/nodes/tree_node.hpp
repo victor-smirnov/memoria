@@ -920,8 +920,7 @@ public:
     		{
     			if (other->is_empty(Idx))
     			{
-    				Int block_size = Tree::block_size(0);
-    				other->allocator()->template allocate<Tree>(Idx, block_size);
+    				other->allocator()->template allocateEmpty<Tree>(Idx);
     			}
 
     			Tree* other_tree = other->template get<Tree>(Idx);
@@ -1249,24 +1248,15 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(Tree* tree, Int idx, const Accumulator* accum)
     	{
-    		for (Int c = 0; c < Tree::Blocks; c++)
-    		{
-    			tree->value(c, idx) += std::get<Idx>(*accum)[c];
-    		}
-
-    		tree->reindex();
+    		tree->addValues(idx, std::get<Idx>(*accum));
     	}
     };
+
 
     void updateUp(Int idx, const Accumulator& keys)
     {
     	Dispatcher::dispatchNotEmpty(&allocator_, UpdateUpFn(), idx, &keys);
     }
-
-//    Accumulator getCounters(const Position& pos, const Position& count) const
-//    {
-//    	return sum(pos.get(), pos.get() + count.get());
-//    }
 
 
     Accumulator keys(Int pos) const

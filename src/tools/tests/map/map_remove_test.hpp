@@ -20,14 +20,31 @@
 
 namespace memoria {
 
-class MapRemoveTest: public MapTestBase {
+template <
+	template <typename, typename> class MapType
+>
+class MapRemoveTest: public MapTestBase<MapType> {
 
-    typedef MapRemoveTest                                                       MyType;
+	typedef MapRemoveTest<MapType>                                              MyType;
+	typedef MapTestBase<MapType>												Base;
+
+	typedef typename Base::Allocator											Allocator;
+	typedef typename Base::Iterator												Iterator;
+	typedef typename Base::Ctr													Ctr;
+	typedef typename Base::PairVector											PairVector;
+	typedef typename Base::Pair													Pair;
 
 
-    public:
+	BigInt&  		ctr_name_		= Base::ctr_name_;
+	Int&  		size_			= Base::size_;
+	Int&  			vector_idx_ 	= Base::vector_idx_;
+	PairVector& 	pairs 			= Base::pairs;
+	PairVector& 	pairs_sorted 	= Base::pairs_sorted;
+	String& 		dump_name_ 		= Base::dump_name_;
 
-    MapRemoveTest(): MapTestBase("Remove")
+public:
+
+    MapRemoveTest(StringRef name): Base(name)
     {
         size_ = 10000;
 
@@ -38,7 +55,7 @@ class MapRemoveTest: public MapTestBase {
 
     void runRemoveTest()
     {
-        DefaultLogHandlerImpl logHandler(out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -47,7 +64,7 @@ class MapRemoveTest: public MapTestBase {
 
         ctr_name_ = map.name();
 
-        map.setBranchingFactor(btree_branching_);
+        map.setBranchingFactor(Base::btree_branching_);
 
         try {
             for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
@@ -58,7 +75,7 @@ class MapRemoveTest: public MapTestBase {
 
             allocator.commit();
 
-            check(allocator, MEMORIA_SOURCE);
+            Base::check(allocator, MEMORIA_SOURCE);
 
             for (auto iter = map.begin(); iter != map.endm(); iter++)
             {
@@ -75,9 +92,9 @@ class MapRemoveTest: public MapTestBase {
 
                 AssertTrue(MA_SRC, result);
 
-                check(allocator, MEMORIA_SOURCE);
+                Base::check(allocator, MEMORIA_SOURCE);
 
-                out()<<vector_idx_<<endl;
+                Base::out()<<vector_idx_<<endl;
 
                 BigInt size = size_ - vector_idx_ - 1;
 
@@ -93,33 +110,33 @@ class MapRemoveTest: public MapTestBase {
                     }
                 }
 
-                checkContainerData(map, pairs_sorted_tmp);
+                Base::checkContainerData(map, pairs_sorted_tmp);
 
                 allocator.commit();
 
-                check(allocator, MEMORIA_SOURCE);
+                Base::check(allocator, MEMORIA_SOURCE);
 
                 pairs_sorted = pairs_sorted_tmp;
             }
         }
         catch (...)
         {
-            StorePairs(pairs, pairs_sorted);
-            dump_name_ = Store(allocator);
+        	Base::StorePairs(pairs, pairs_sorted);
+            dump_name_ = Base::Store(allocator);
             throw;
         }
     }
 
     void replayRemoveTest()
     {
-        DefaultLogHandlerImpl logHandler(out());
+        DefaultLogHandlerImpl logHandler(Base::out());
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        LoadAllocator(allocator, dump_name_);
+        Base::LoadAllocator(allocator, dump_name_);
 
-        LoadVector(pairs, pairs_data_file_);
-        LoadVector(pairs_sorted, pairs_sorted_data_file_);
+        LoadVector(pairs, Base::pairs_data_file_);
+        LoadVector(pairs_sorted, Base::pairs_sorted_data_file_);
 
         Ctr map(&allocator, CTR_FIND, ctr_name_);
 
@@ -127,7 +144,7 @@ class MapRemoveTest: public MapTestBase {
 
         AssertTrue(MA_SRC, result);
 
-        check(allocator, MEMORIA_SOURCE);
+        Base::check(allocator, MEMORIA_SOURCE);
 
         BigInt size = size_ - vector_idx_ - 1;
 
@@ -141,9 +158,9 @@ class MapRemoveTest: public MapTestBase {
             }
         }
 
-        check(allocator, MEMORIA_SOURCE);
+        Base::check(allocator, MEMORIA_SOURCE);
 
-        checkContainerData(map, pairs_sorted);
+        Base::checkContainerData(map, pairs_sorted);
 
         allocator.commit();
     }

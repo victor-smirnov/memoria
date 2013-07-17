@@ -22,28 +22,34 @@
 
 namespace memoria {
 
-typedef SCtrTF<CMap<BigInt, Int>>::Type SumSet1Ctr;
-
+template <
+	template <typename, typename> class MapType
+>
 class MapBatchTest: public RandomAccessListTestBase<
-    CMap<BigInt, Int>,
-    typename SumSet1Ctr::LeafPairsVector
+    MapType<BigInt, Int>,
+    typename SCtrTF<MapType<BigInt, Int>>::Type::LeafPairsVector
 >
 {
+	typedef typename SCtrTF<MapType<BigInt, Int>>::Type 						SumSet1Ctr;
+
+
+
     typedef RandomAccessListTestBase<
-    		CMap<BigInt, Int>,
+    		MapType<BigInt, Int>,
             typename SumSet1Ctr::LeafPairsVector
     >                                                                           Base;
 
     typedef typename Base::Ctr                                                  Ctr;
     typedef typename Base::Accumulator                                          Accumulator;
+    typedef typename Base::Iterator                                          	Iterator;
     typedef typename SumSet1Ctr::LeafPairsVector                                MemBuffer;
 
 
 public:
-    MapBatchTest():
-        Base("MapBatch")
+    MapBatchTest(StringRef name):
+        Base(name)
     {
-        size_ = 1024*1024;
+        Base::size_ = 1024*1024;
         Ctr::initMetadata();
     }
 
@@ -174,6 +180,10 @@ public:
         for (auto iter = array.Begin(); iter.isNotEnd(); iter.next())
         {
             cnt++;
+        }
+
+        if (cnt != array.size()) {
+        	int a = 0; a++;
         }
 
         AssertEQ(MA_SRC, cnt, array.size());

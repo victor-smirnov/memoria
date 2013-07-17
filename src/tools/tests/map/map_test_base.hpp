@@ -20,6 +20,9 @@
 
 namespace memoria {
 
+template <
+	template <typename, typename> class MapType
+>
 class MapTestBase: public SPTestTask {
     typedef MapTestBase MyType;
 
@@ -28,7 +31,7 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef SCtrTF<CMap<BigInt, BigInt>>::Type                              	Ctr;
+    typedef typename SCtrTF<MapType<BigInt, BigInt>>::Type                      Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
     typedef typename Ctr::Accumulator                                           Accumulator;

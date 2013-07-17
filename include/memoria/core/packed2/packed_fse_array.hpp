@@ -125,6 +125,12 @@ public:
 		max_size_ 	= 0;
 	}
 
+	void init()
+	{
+		size_ 		= 0;
+		max_size_ 	= 0;
+	}
+
 	Int object_size() const
 	{
 		Int object_size = sizeof(MyType) + sizeof(Value) * size_;

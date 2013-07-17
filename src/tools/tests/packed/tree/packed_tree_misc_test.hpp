@@ -50,15 +50,26 @@ class PackedTreeMiscTest: public PackedTreeTestBase <
 	typedef typename Base::Tree													Tree;
 	typedef typename Base::Values												Values;
 
+	Int iterations_ = 10;
+
 public:
 
 
 	PackedTreeMiscTest(StringRef name): Base(name)
     {
-//		MEMORIA_ADD_TEST(testInsertVector);
+		MEMORIA_ADD_TEST_PARAM(iterations_);
+
+		MEMORIA_ADD_TEST(testInsertVector);
 
 		MEMORIA_ADD_TEST(testFillTree);
 
+		MEMORIA_ADD_TEST(testAddValue);
+
+		MEMORIA_ADD_TEST(testMerge);
+
+		MEMORIA_ADD_TEST(testSplit);
+
+		MEMORIA_ADD_TEST(testClear);
     }
 
     virtual ~PackedTreeMiscTest() throw() {}
@@ -108,6 +119,149 @@ public:
 
     	Base::assertEqual(tree, v);
     }
+
+    void testAddValue()
+    {
+    	for (int c = 1; c <= 32*1024; c*=2)
+    	{
+    		testAddValue(c);
+    	}
+    }
+
+    void addValues(vector<Values>& values, Int idx, const Values v)
+    {
+    	for (Int c = 0; c< Blocks; c++)
+    	{
+    		values[idx][c] += v[c];
+    	}
+    }
+
+
+    void testAddValue(Int size)
+    {
+    	Base::out()<<size<<std::endl;
+
+    	Tree* tree = Base::createEmptyTree(1024*1024);
+    	PARemover remover(tree);
+
+    	auto tree_values = Base::createRandomValuesVector(size);
+
+    	Base::fillVector(tree, tree_values);
+
+    	for (Int c = 0; c < iterations_; c++)
+    	{
+    		Values value = Base::createRandom();
+    		Int idx = getRandom(tree->size());
+
+    		tree->addValues(idx, value);
+    		Base::assertIndexCorrect(MA_SRC, tree);
+
+    		addValues(tree_values, idx, value);
+
+    		Base::assertEqual(tree, tree_values);
+    	}
+    }
+
+
+    void testSplit()
+    {
+    	for (int c = 2; c <= 32*1024; c*=2)
+    	{
+    		testSplit(c);
+    	}
+    }
+
+    void testSplit(Int size)
+    {
+    	Base::out()<<size<<std::endl;
+
+    	Tree* tree1 = Base::createEmptyTree(16*1024*1024);
+    	PARemover remover1(tree1);
+
+    	Tree* tree2 = Base::createEmptyTree(16*1024*1024);
+    	PARemover remover2(tree2);
+
+    	auto tree_values1 = Base::createRandomValuesVector(size);
+
+    	Base::fillVector(tree1, tree_values1);
+
+    	Int idx = getRandom(size);
+
+    	tree1->splitTo(tree2, idx);
+
+    	vector<Values> tree_values2(tree_values1.begin() + idx, tree_values1.end());
+
+    	tree_values1.erase(tree_values1.begin() + idx, tree_values1.end());
+
+    	Base::assertEqual(tree1, tree_values1);
+    	Base::assertEqual(tree2, tree_values2);
+    }
+
+
+    void testMerge()
+    {
+    	for (int c = 1; c <= 32*1024; c*=2)
+    	{
+    		testMerge(c);
+    	}
+    }
+
+    void testMerge(Int size)
+    {
+    	Base::out()<<size<<std::endl;
+
+    	Tree* tree1 = Base::createEmptyTree(16*1024*1024);
+    	PARemover remover1(tree1);
+
+    	Tree* tree2 = Base::createEmptyTree(16*1024*1024);
+    	PARemover remover2(tree2);
+
+    	auto tree_values1 = Base::createRandomValuesVector(size);
+    	auto tree_values2 = Base::createRandomValuesVector(size);
+
+    	Base::fillVector(tree1, tree_values1);
+    	Base::fillVector(tree2, tree_values2);
+
+    	tree1->mergeWith(tree2);
+
+    	tree_values2.insert(tree_values2.end(), tree_values1.begin(), tree_values1.end());
+
+    	Base::assertEqual(tree2, tree_values2);
+    }
+
+
+    void testClear()
+    {
+    	for (int c = 1; c <= 32*1024; c*=2)
+    	{
+    		testClear(c);
+    	}
+    }
+
+    void testClear(Int size)
+    {
+    	Base::out()<<size<<std::endl;
+
+    	Tree* tree = Base::createEmptyTree(16*1024*1024);
+    	PARemover remover(tree);
+
+    	auto tree_values = Base::createRandomValuesVector(size);
+    	Base::fillVector(tree, tree_values);
+
+    	Base::assertEqual(tree, tree_values);
+
+    	tree->clear();
+
+    	Base::assertEmpty(tree);
+
+    	Base::fillVector(tree, tree_values);
+
+    	Base::assertEqual(tree, tree_values);
+
+    	tree->clear();
+    	Base::assertEmpty(tree);
+    }
+
 };
 
 

@@ -33,8 +33,8 @@ protected:
 			Int,
 			Blocks,
 			CodecType,
-			VPB,
-			BF
+			BF,
+			VPB
 	>																			Types;
 
 	typedef TreeType<Types>														Tree;
@@ -144,6 +144,17 @@ public:
     	});
     }
 
+    Values createRandom(Int max = 100)
+    {
+    	Values values;
+
+    	for (Int c = 0; c < Blocks; c++) {
+    		values[c] = getRandom(max);
+    	}
+
+    	return values;
+    }
+
     vector<Values> createRandomValuesVector(Int size, Int max_value = 100)
     {
     	vector<Values> vals(size);
@@ -202,6 +213,16 @@ public:
     		tree->dump(out());
     		throw e;
     	}
+    }
+
+    void assertEmpty(const Tree* tree)
+    {
+    	Int empty_size = Tree::empty_size();
+
+    	AssertEQ(MA_SRC, tree->size(), 0);
+    	AssertEQ(MA_SRC, tree->data_size(), 0);
+    	AssertEQ(MA_SRC, tree->block_size(), empty_size);
+    	AssertEQ(MA_SRC, tree->index_size(), 0);
     }
 };
 

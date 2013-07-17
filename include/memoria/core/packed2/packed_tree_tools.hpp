@@ -121,7 +121,7 @@ public:
 	template <typename Functor>
 	static void check(Functor&& fn)
 	{
-		if (fn.indexSize() > 0)
+		if (fn.tree().index_size() > 0)
 		{
 			reindex(fn);
 		}

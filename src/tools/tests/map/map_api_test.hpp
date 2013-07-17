@@ -20,13 +20,20 @@
 
 namespace memoria {
 
-class MapApiTest: public MapTestBase {
+template <
+	template <typename, typename> class MapType
+>
+class MapApiTest: public MapTestBase<MapType> {
 
-    typedef MapApiTest                                                       MyType;
+	typedef MapTestBase<MapType>												Base;
+    typedef MapApiTest<MapType>                                                	MyType;
+
+    typedef typename Base::Allocator											Allocator;
+    typedef typename Base::Ctr													Ctr;
 
 public:
 
-    MapApiTest(): MapTestBase("API")
+    MapApiTest(): Base("API")
     {
         MEMORIA_ADD_TEST(runTest);
     }
@@ -36,14 +43,14 @@ public:
 
     void runTest()
     {
-        DefaultLogHandlerImpl logHandler(out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
         Ctr map(&allocator);
 
-        ctr_name_ = map.name();
+        Base::ctr_name_ = map.name();
     }
 
 
