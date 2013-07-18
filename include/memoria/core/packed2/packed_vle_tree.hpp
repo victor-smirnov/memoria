@@ -194,7 +194,7 @@ public:
 
 	static Int index_layout_size(Int capacity)
 	{
-		return capacity > 0 ? TreeTools::compute_layout_size(capacity) : 0;
+		return capacity > ValuesPerBranch ? TreeTools::compute_layout_size(capacity) : 0;
 	}
 
 
@@ -283,6 +283,10 @@ private:
 			auto& me = Base::tree();
 			auto& indexes = Base::indexes_;
 
+//			if (DebugCounter == 2) {
+//				int a = 0; a++;
+//			}
+
 			Int limit 		= me.data_size();
 			Int data_pos 	= 0;
 
@@ -292,6 +296,8 @@ private:
 			Int block_start	= 0;
 
 			Int total_size = 0;
+
+			Int cnt = 0;
 
 			for (; idx < index_level_size && data_pos < limit; idx++, block_start += ValuesPerBranch)
 			{
@@ -306,7 +312,13 @@ private:
 				while (data_pos < local_limit)
 				{
 					Value value;
+
+//					if (DebugCounter == 2 && cnt == 624) {
+//						int a = 0; a++;
+//					}
+
 					Int len = codec.decode(values_, value, data_pos, limit);
+					cnt++;
 
 					value_cell += value;
 					size_cell++;
@@ -476,6 +488,30 @@ public:
 		Int pos = TreeTools::find(fn);
 
 		return pos;
+	}
+
+	Int locate(Int idx) const
+	{
+		Codec codec;
+
+		Int limit = this->data_size();
+		auto values = this->values();
+
+		Int pos = 0;
+		Int c = 0;
+
+		for (c = 0; c < idx && pos < limit; c++)
+		{
+			Int len = codec.length(values, pos, limit);
+			pos += len;
+		}
+
+		if (c == idx) {
+			return pos;
+		}
+		else {
+			return limit;
+		}
 	}
 
 
@@ -775,6 +811,10 @@ public:
 		{
 			Int offset			= block * size + idx;
 			Int offset_pos		= this->value_offset(offset);
+
+//			Int pos1 = this->locate(offset);
+//			MEMORIA_ASSERT(offset_pos, ==, pos1);
+
 			starts[block] 		= offset_pos + inserted_length;
 			remainders[block]	= max + inserted_length - starts[block];
 		}
@@ -1302,12 +1342,12 @@ public:
 
 	ValueDescr findLTBackward(Int block, Int start, IndexValue val) const
 	{
-		return this->template findBackwardT<PackedCompareLT>(block, start, val);
+		return this->template findBackwardT<PackedCompareLE>(block, start, val);
 	}
 
 	ValueDescr findLEBackward(Int block, Int start, IndexValue val) const
 	{
-		return this->template findBackwardT<PackedCompareLE>(block, start, val);
+		return this->template findBackwardT<PackedCompareLT>(block, start, val);
 	}
 
 	ValueDescr findForward(SearchType search_type, Int block, Int start, IndexValue val) const
@@ -1426,7 +1466,7 @@ public:
 
 	void dumpLayout(std::ostream& out = std::cout) const
 	{
-		if (raw_capacity() > 0)
+		if (Base::element_size(LAYOUT) > 0)
 		{
 			auto layout = this->index_layout();
 
@@ -1442,11 +1482,11 @@ public:
 //		out<<"Layout: "<<endl;
 //		Base::dump(out);
 
-
 		out<<"size_         = "<<size()<<endl;
 		out<<"data_size_    = "<<data_size()<<endl;
 		out<<"capacity_     = "<<raw_capacity()<<endl;
 		out<<"index_size_   = "<<index_size()<<endl;
+
 		out<<endl;
 
 		out<<"Offsets:"<<endl;
@@ -1462,7 +1502,7 @@ public:
 
 		out<<endl;
 
-		out<<"Layout:"<<dec<<endl;
+		out<<"IndexLayout:"<<dec<<endl;
 
 		dumpLayout(out);
 
@@ -1786,6 +1826,11 @@ private:
 			{
 				IndexValue value = values[c][block];
 				Int len = codec.encode(buffer, value, start, limit);
+
+				IndexValue v1;
+				codec.decode(buffer, v1, start, limit);
+
+				MEMORIA_ASSERT(value, ==, v1);
 
 				start += len;
 			}

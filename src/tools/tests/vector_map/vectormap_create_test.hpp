@@ -64,7 +64,7 @@ public:
 
     		allocator.commit();
 
-    		this->StoreAllocator(allocator, this->getResourcePath("alloc.dump"));
+    		//this->StoreAllocator(allocator, this->getResourcePath("alloc.dump"));
     	}
     	catch (...) {
     		this->dump_name_ = this->Store(allocator);

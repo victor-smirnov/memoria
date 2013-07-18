@@ -100,7 +100,7 @@ public:
 
     void testFillTree()
     {
-    	for (int c = 4; c < 128; c*=2)
+    	for (int c = 1; c < 128; c*=2)
     	{
     		testFillTree(c * 1024);
     	}

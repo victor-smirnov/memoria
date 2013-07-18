@@ -392,13 +392,16 @@ public:
 	template <typename T>
 	static void buildIndexTreeLayout(T* buf, Int csize, Int layout_size)
 	{
-		buf[0] = layout_size - 1;
-
-		csize = buf[layout_size - 1] = divUp(csize, ValuesPerBranch);
-
-		for (Int c = layout_size - 2; c > 0; c--)
+		if (layout_size > 0)
 		{
-			csize = buf[c] = divUp(csize, BranchingFactor);
+			buf[0] = layout_size - 1;
+
+			csize = buf[layout_size - 1] = divUp(csize, ValuesPerBranch);
+
+			for (Int c = layout_size - 2; c > 0; c--)
+			{
+				csize = buf[c] = divUp(csize, BranchingFactor);
+			}
 		}
 	}
 

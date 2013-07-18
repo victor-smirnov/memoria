@@ -104,6 +104,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		}
 		else {
 			self.findEntry();
+
 			return self.nextEntry();
 		}
 	}

@@ -307,8 +307,6 @@ public:
 
     		allocator.commit();
 
-    		StoreAllocator(allocator, getResourcePath("alloc.dump"));
-
     		while (ctr.size() > 0)
     		{
     			test_fn(this, allocator, ctr);

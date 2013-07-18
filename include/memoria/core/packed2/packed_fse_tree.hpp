@@ -677,7 +677,7 @@ public:
 
 		if (target >= 0)
 		{
-			FSEFindElementFn<MyType, PackedCompareLT> fn(*this, target);
+			FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
 
 			Int pos = TreeTools::find2(fn);
 
@@ -731,7 +731,7 @@ public:
 
 		if (target >= 0)
 		{
-			FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
+			FSEFindElementFn<MyType, PackedCompareLT> fn(*this, target);
 
 			Int pos = TreeTools::find2(fn);
 

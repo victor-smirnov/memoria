@@ -54,9 +54,11 @@ class PackedTreeFindTest: public PackedTreeTestBase <
 
 public:
 
+	Int iterations_ = 1000;
 
 	PackedTreeFindTest(StringRef name): Base(name)
     {
+		MEMORIA_ADD_TEST_PARAM(iterations_);
 
 		MEMORIA_ADD_TEST(testFindForward);
 		MEMORIA_ADD_TEST(testFindBackward);
@@ -129,11 +131,15 @@ public:
     	Tree* tree = Base::createEmptyTree(block_size);
     	PARemover remover(tree);
 
+    	if (block_size == 1024) {
+    		DebugCounter = 1;
+    	}
+
     	auto values = Base::fillRandom(tree);
 
     	Int size = tree->size();
 
-    	for (Int c = 0; c < 1000; c++)
+    	for (Int c = 0; c < iterations_; c++)
     	{
     		Int start 	= getRandom(size - 2);
     		Int rnd		= getRandom(size - start - 2);
@@ -176,7 +182,7 @@ public:
 
     	Int size = tree->size();
 
-    	for (Int c = 0; c < 1000; c++)
+    	for (Int c = 0; c < iterations_; c++)
     	{
     		Int start 	= getRandom(size - 2) + 2;
     		Int rnd		= getRandom(start - 2) + 1;
@@ -193,8 +199,8 @@ public:
     		auto result1_lt = tree->findLTBackward(block, start, sum).idx();
     		auto result1_le = tree->findLEBackward(block, start, sum).idx();
 
-    		auto result2_lt = find_bw<PackedCompareLE>(tree, block, start, sum);
-    		auto result2_le = find_bw<PackedCompareLT>(tree, block, start, sum);
+    		auto result2_lt = find_bw<PackedCompareLT>(tree, block, start, sum);
+    		auto result2_le = find_bw<PackedCompareLE>(tree, block, start, sum);
 
     		AssertEQ(MA_SRC, result1_lt, result2_lt, SBuf()<<" - "<<start<<" "<<sum<<" "<<block);
     		AssertEQ(MA_SRC, result1_le, result2_le, SBuf()<<" - "<<start<<" "<<sum<<" "<<block);
