@@ -123,6 +123,8 @@ public:
 
 		layout_size_ = layout_blocks * sizeof(Int);
 
+
+
 		memset(buffer_, 0, layout_size_);
 
 		bitmap_size_ = roundUpBitsToAlignmentBlocks(layout_blocks);
@@ -163,6 +165,10 @@ public:
 
 	Int resizeBlock(const void* element, Int new_size)
 	{
+		if (new_size == 160) {
+			int a = 0; a++;
+		}
+
 		Int idx 		= findElement(element);
 
 		return resizeBlock(idx, new_size);
@@ -221,6 +227,7 @@ public:
 	Int findElement(const void* element_ptr) const
 	{
 		Int offset 	= computeElementOffset(element_ptr);
+		MEMORIA_ASSERT(offset, >=, 0);
 
 		for (Int c = 0; c < layout_size_ / 4; c++)
 		{

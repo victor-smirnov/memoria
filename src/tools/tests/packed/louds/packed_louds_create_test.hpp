@@ -35,7 +35,8 @@ public:
 
     void testCreateRandom()
     {
-    	LoudsTreePtr tree = createRandomTree(100000);
+    	LoudsTree* tree = createRandomTree(100000);
+    	PARemover remover(tree);
 
     	Int nodes = tree->rank1();
 
@@ -43,7 +44,7 @@ public:
     	{
     		PackedLoudsNode node(tree->select1(c), c);
 
-    		checkTreeStructure(tree.get(), node);
+    		checkTreeStructure(tree, node);
     	}
     }
 };

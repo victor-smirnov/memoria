@@ -8,7 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED2_LOUDSTREE_HPP_
 #define MEMORIA_CORE_PACKED2_LOUDSTREE_HPP_
 
-#include <memoria/core/packed2/packed_bitvector.hpp>
+#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
 
 namespace memoria {
 
@@ -81,11 +81,33 @@ public:
 };
 
 
-template <typename Types>
-class PackedLoudsTree: public PackedBitVector<Types> {
+template <
+	Int BF = PackedTreeBranchingFactor,
+	Int VPB = 512
+>
+struct LoudsTreeTypes {
+    static const Int BranchingFactor        = BF;
+    static const Int ValuesPerBranch        = VPB;
+};
 
-	typedef PackedBitVector<Types> 			Base;
-	typedef PackedLoudsTree<Types> 			MyType;
+
+template <typename Types>
+class PackedLoudsTree: public PackedFSESearchableSeq<
+PackedFSESeachableSeqTypes <
+	1,
+	Types::BranchingFactor,
+	Types::ValuesPerBranch
+>
+> {
+
+	typedef PackedFSESearchableSeq <
+			PackedFSESeachableSeqTypes <
+				1
+			>
+	> 																			Base;
+	typedef PackedLoudsTree<Types> 												MyType;
+
+	typedef typename Base::Value												Value;
 
 public:
 	PackedLoudsTree() {}
@@ -96,28 +118,23 @@ public:
 
 		for (; idx < max; idx++)
 		{
-			this->value(idx) = 1;
+			this->symbol(idx) = 1;
 		}
 
-		this->value(idx++) = 0;
+		this->symbol(idx++) = 0;
 
 		return idx;
 	}
 
+	Int insertUDS(Int idx, Int degree)
+	{
+		this->insertDataRoom(idx, degree + 1);
+		return writeUDS(idx, degree);
+	}
+
 	Int appendUDS(Int degree)
 	{
-		Int idx = Base::size();
-
-		if (idx + degree + 1 > this->max_size())
-		{
-			Base::enlarge(degree + 1);
-		}
-
-		writeUDS(idx, degree);
-
-		Base::size() += degree + 1;
-
-		return degree + 1;
+		return insertUDS(this->size(), degree);
 	}
 
 	PackedLoudsNode root() const
@@ -133,7 +150,7 @@ public:
 
 	PackedLoudsNode left_sibling(const PackedLoudsNode& node) const
 	{
-		if (this->value(node.idx() - 1) == 1)
+		if (this->symbol(node.idx() - 1) == 1)
 		{
 			return PackedLoudsNode(node.idx() - 1, node.rank1() - 1);
 		}
@@ -144,7 +161,7 @@ public:
 
 	PackedLoudsNode right_sibling(const PackedLoudsNode& node) const
 	{
-		if (this->value(node.idx() + 1) == 1)
+		if (this->symbol(node.idx() + 1) == 1)
 		{
 			return PackedLoudsNode(node.idx() + 1, node.rank1() + 1);
 		}
@@ -180,7 +197,7 @@ public:
 
 	PackedLoudsNode insertNode(const PackedLoudsNode& at)
 	{
-		this->ensureCapacity(2);
+//		this->ensureCapacity(2);
 
 		this->insert(at.idx(), 1, 1);
 		this->reindex();
@@ -196,9 +213,18 @@ public:
 		return node;
 	}
 
+	void insert(Int idx, BigInt bits, Int nbits)
+	{
+		this->insertDataRoom(idx, nbits);
+
+		Value* values = this->symbols();
+
+		SetBits(values, idx, bits, nbits);
+	}
+
 	bool isLeaf(const PackedLoudsNode& node) const
 	{
-		return this->value(node.idx()) == 0;
+		return this->symbol(node.idx()) == 0;
 	}
 
 	Int rank0(Int pos) const
@@ -218,12 +244,12 @@ public:
 
 	Int select0(Int rank) const
 	{
-		return Base::select(rank, 0).idx();
+		return Base::selectFw(0, rank).idx();
 	}
 
 	Int select1(Int rank) const
 	{
-		return Base::select(rank, 1).idx();
+		return Base::selectFw(1, rank).idx();
 	}
 
 	PackedLoudsNode select1Fw(const PackedLoudsNode& node, Int distance) const

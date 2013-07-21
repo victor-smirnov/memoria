@@ -98,6 +98,9 @@ public:
 	typedef typename Types::template Index<IndexTypes>							Index;
 	typedef typename Index::Codec												Codec;
 
+	typedef BitmapAccessor<Value*, Int, BitsPerSymbol>							SymbolAccessor;
+	typedef BitmapAccessor<const Value*, Int, BitsPerSymbol>					ConstSymbolAccessor;
+
 	static const Int IndexSizeThreshold											= 0;
 
 
@@ -164,6 +167,21 @@ public:
 		return Base::template get<Value>(SYMBOLS);
 	}
 
+	SymbolAccessor symbol(Int idx)
+	{
+		Value* symbols = this->symbols();
+
+		return SymbolAccessor(symbols, idx);
+	}
+
+	ConstSymbolAccessor symbol(Int idx) const
+	{
+		const Value* symbols = this->symbols();
+
+		return ConstSymbolAccessor(symbols, idx);
+	}
+
+
 public:
 
 	// ===================================== Allocation ================================= //
@@ -193,6 +211,9 @@ public:
 
 		meta->size() 	= 0;
 
+		Base::setBlockType(INDEX, 	PackedBlockType::ALLOCATABLE);
+		Base::setBlockType(SYMBOLS, PackedBlockType::RAW_MEMORY);
+
 		// other sections are empty at this moment
 	}
 
@@ -221,6 +242,7 @@ public:
 
 		Index* index = this->index();
 		index->init(index_block_size);
+		index->setAllocatorOffset(this);
 	}
 
 
@@ -257,7 +279,6 @@ protected:
 		{
 			Int new_size 		= size() + length;
 			Int new_block_size 	= roundUpBitToBytes(new_size * BitsPerSymbol);
-
 			Base::resizeBlock(SYMBOLS, new_block_size);
 		}
 	}
@@ -268,12 +289,14 @@ protected:
 
 		auto symbols = this->symbols();
 
-		MoveBitsFW(
+		Int rest = size() - pos;
+
+		MoveBitsBW(
 				symbols,
 				symbols,
 				pos * BitsPerSymbol,
-				(pos + 1) * BitsPerSymbol,
-				BitsPerSymbol
+				(pos + length) * BitsPerSymbol,
+				rest * BitsPerSymbol
 		);
 
 		size() += length;
@@ -297,7 +320,9 @@ public:
 	{
 		insertDataRoom(pos, 1);
 
-		SetBits(this->symbols(), pos * BitsPerSymbol, symbol, BitsPerSymbol);
+		Value* symbols = this->symbols();
+
+		SetBits(symbols, pos * BitsPerSymbol, symbol, BitsPerSymbol);
 
 		reindex();
 	}
@@ -306,12 +331,14 @@ public:
 	{
 		auto symbols = this->symbols();
 
+		Int rest = size() - end;
+
 		MoveBits(
 				symbols,
 				symbols,
 				end * BitsPerSymbol,
 				start * BitsPerSymbol,
-				(end - start) * BitsPerSymbol
+				rest * BitsPerSymbol
 		);
 
 		size() -= (end - start);
@@ -500,7 +527,7 @@ public:
 
 	Int rank(Int end, Int symbol) const
 	{
-		if (has_index() || end <= ValuesPerBranch)
+		if (has_index())
 		{
 			const Index* index = this->index();
 
@@ -521,6 +548,7 @@ public:
 			return fn(0, end, symbol);
 		}
 	}
+
 
 	SelectResult selectFw(Int start, Int symbol, BigInt rank) const
 	{

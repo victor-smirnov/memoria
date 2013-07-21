@@ -27,29 +27,33 @@ public:
 	static const Int SafetyGap 								= 8;
 	static const Int BitsPerLabel							= Types::BitsPerLabel;
 
-	typedef PackedBitVectorTypes<>							LoudsTreeTypes;
-	typedef PackedLoudsTree<LoudsTreeTypes>					LoudsTree;
+	typedef LoudsTreeTypes<>								TreeTypes;
+	typedef PackedLoudsTree<TreeTypes>						LoudsTree;
 
 	typedef PackedFSEBitmapTypes<BitsPerLabel>				LabelArrayTypes;
 	typedef PackedFSEBitmap<LabelArrayTypes>				LabelArray;
+
+	enum {
+		TREE, LABELS
+	};
 
 public:
 	PackedLoudsCardinalTree() {}
 
 	LoudsTree* tree() {
-		return Base::template get<LoudsTree>(0);
+		return Base::template get<LoudsTree>(TREE);
 	}
 
 	const LoudsTree* tree() const {
-		return Base::template get<LoudsTree>(0);
+		return Base::template get<LoudsTree>(TREE);
 	}
 
 	LabelArray* labels() {
-		return Base::template get<LabelArray>(1);
+		return Base::template get<LabelArray>(LABELS);
 	}
 
 	const LabelArray* labels() const {
-		return Base::template get<LabelArray>(1);
+		return Base::template get<LabelArray>(LABELS);
 	}
 
 	Int label(const PackedLoudsNode& node) const
@@ -66,30 +70,14 @@ public:
 		return node;
 	}
 
-	void init(Int block_size, Int nodes)
+	void init()
 	{
+		Int block_size = empty_size();
+
 		Base::init(block_size, 2);
 
-		Int bit_size	= 2 * nodes + 1 + SafetyGap;
-		Int louds_size  = LoudsTree::block_size(bit_size);
-
-		Base::template allocate<LoudsTree>(0, louds_size);
-
-		Int labels_array_size = LabelArray::block_size(nodes);
-		Base::template allocate<LabelArray>(1, labels_array_size);
-	}
-
-	void init(Int block_size)
-	{
-		Base::init(block_size, 2);
-
-		Int client_area = this->client_area();
-
-		Base::template allocate<LoudsTree>(0, client_area/8);
-
-		Int labels_array_size = client_area - Base::element_size(0);
-
-		Base::template allocate<LabelArray>(1, labels_array_size);
+		Base::template allocateEmpty<LoudsTree>(TREE);
+		Base::template allocateEmpty<LabelArray>(LABELS);
 	}
 
 	PackedLoudsNode find_child(const PackedLoudsNode& node, Int label) const
@@ -204,22 +192,28 @@ public:
 	}
 
 
-	static Int block_size(Int nodes)
+	static Int block_size(Int client_area)
 	{
-		Int bit_size	= 2 * nodes + 1 + SafetyGap;
-
-		Int client_area = roundUpBytesToAlignmentBlocks(LoudsTree::block_size(bit_size))
-						  + roundUpBytesToAlignmentBlocks(LabelArray::block_size(nodes));
-
 		return Base::block_size(client_area, 2);
+	}
+
+	static Int empty_size()
+	{
+		Int tree_block_size 	= PackedAllocator::roundUpBytesToAlignmentBlocks(LoudsTree::empty_size());
+		Int labels_block_size 	= PackedAllocator::roundUpBytesToAlignmentBlocks(LabelArray::empty_size());
+
+		Int client_area = tree_block_size + labels_block_size;
+
+		Int bs = MyType::block_size(client_area);
+		return bs;
 	}
 
 	void dump(ostream& out = cout, bool dump_index = true) const
 	{
-		if (dump_index)
-		{
-			Base::dump(out);
-		}
+//		if (dump_index)
+//		{
+//			Base::dump(out);
+//		}
 
 		out<<"Louds Tree: "<<endl;
 		tree()->dump(out, dump_index);

@@ -843,7 +843,11 @@ public:
 		return cnt;
 	}
 
-
+	void insert(Int idx, const Values& values)
+	{
+		insertSpace(idx, 1);
+		setValues(idx, values);
+	}
 
 	void insertSpace(Int idx, Int room_length)
 	{

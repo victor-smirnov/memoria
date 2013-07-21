@@ -247,10 +247,10 @@ public:
 
 			Int pos = 0;
 
-			auto symbols = seq.symbols();
-
 			index->insert(0, index_size, [&]() -> Values
 			{
+				auto symbols = seq.symbols();
+
 				Int next = pos + ValuesPerBranch;
 				Int max = next <= size ? next : size;
 

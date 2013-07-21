@@ -13,7 +13,9 @@
 #include <memoria/core/tools/dump.hpp>
 
 #include <memoria/core/packed2/packed_louds_cardinal_tree.hpp>
+#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
 #include <memoria/core/packed2/packed_multisequence.hpp>
+
 #include <memoria/core/exceptions/exceptions.hpp>
 
 namespace memoria {
@@ -33,19 +35,20 @@ class PackedWaveletTree: public PackedAllocator {
 	typedef typename Types::Allocator 											Allocator;
 
     struct CardinalTreeTypes {
-    	static const Int BitsPerLabel = Types::BitsPerLabel;
+    	static const Int BitsPerLabel 	= Types::BitsPerLabel;
     };
 
-    typedef PackedFSECxSequenceTypes<> 											MultiSequenceTypes;
+    typedef PackedCxMultiSequenceTypes<
+    		Types::BitsPerLabel
+    >																			MultiSequenceTypes;
 
 public:
     typedef PackedLoudsCardinalTree<CardinalTreeTypes>							CardinalTree;
-
-
     typedef PackedCxMultiSequence<MultiSequenceTypes>							MultiSequence;
 
-
-public:
+    enum {
+    	CTREE, MULTISEQ
+    };
 
 
 public:
@@ -55,22 +58,22 @@ public:
 
 	CardinalTree* ctree()
 	{
-		return Base::template get<CardinalTree>(0);
+		return Base::template get<CardinalTree>(CTREE);
 	}
 
 	const CardinalTree* ctree() const
 	{
-		return Base::get<CardinalTree>(0);
+		return Base::get<CardinalTree>(CTREE);
 	}
 
 	MultiSequence* msequence()
 	{
-		return Base::template get<MultiSequence>(1);
+		return Base::template get<MultiSequence>(MULTISEQ);
 	}
 
 	const MultiSequence* msequence() const
 	{
-		return Base::template get<MultiSequence>(1);
+		return Base::template get<MultiSequence>(MULTISEQ);
 	}
 
 	void prepare()
@@ -128,7 +131,7 @@ private:
 	void buildValue(Int idx, const PackedLoudsNode& node, UBigInt& value, Int level) const
 	{
 		Int 	seq_num = node.rank1() - 1;
-		UBigInt label 	= msequence()->value(seq_num, idx);
+		UBigInt label 	= msequence()->symbol(seq_num, idx);
 		Int 	rank	= msequence()->rank(seq_num, idx + 1, label);
 
 		value |= label << (level * 8);
@@ -196,17 +199,24 @@ private:
 
 public:
 
-	void init(Int block_size)
+	static Int empty_size()
 	{
+		Int ctree_block_size 	= CardinalTree::empty_size();
+		Int multiseq_block_size = MultiSequence::empty_size();
+
+		Int block_size = Base::block_size(ctree_block_size + multiseq_block_size, 2);
+
+		return block_size;
+	}
+
+	void init()
+	{
+		Int block_size = empty_size();
+
 		Base::init(block_size, 2);
 
-		Int client_area = this->client_area();
-
-		Base::template allocate<CardinalTree>(0, client_area/4);
-
-		Int multiseq_size = client_area - Base::element_size(0);
-
-		Base::allocate<MultiSequence>(1, multiseq_size);
+		Base::template allocateEmpty<CardinalTree>(CTREE);
+		Base::template allocateEmpty<MultiSequence>(MULTISEQ);
 	}
 
 	static Int block_size(Int client_area)

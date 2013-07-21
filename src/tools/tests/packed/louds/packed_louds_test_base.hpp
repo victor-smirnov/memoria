@@ -21,20 +21,14 @@ using namespace std;
 class PackedLoudsTestBase: public TestTask {
 
 protected:
-	typedef PackedLoudsTree<PackedBitVectorTypes<>> 	LoudsTree;
-	typedef shared_ptr<LoudsTree>						LoudsTreePtr;
-
+	typedef PackedLoudsTree<LoudsTreeTypes<>> 			LoudsTree;
 
 public:
 
     PackedLoudsTestBase(StringRef name): TestTask(name)
-    {
-
-    }
+    {}
 
     virtual ~PackedLoudsTestBase() throw() {}
-
-
 
 
     void checkTreeStructure(const LoudsTree* tree, const PackedLoudsNode& node, const PackedLoudsNode& parent, Int& count)
@@ -124,24 +118,18 @@ public:
     	}
     }
 
-    LoudsTreePtr createEmptyLouds(Int bitmap)
+    LoudsTree* createEmptyLouds(Int block_size = 64*1024)
     {
-    	Int block_size = LoudsTree::block_size(bitmap);
+    	PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
+    	alloc->init(block_size, 1);
 
-    	LoudsTree* tree = T2T<LoudsTree*>(malloc(block_size));
-
-    	tree->init(block_size);
-
-    	return LoudsTreePtr(tree, free);
+    	return alloc->template allocateEmpty<LoudsTree>(0);
     }
 
     template <typename T>
-    LoudsTreePtr createLouds(vector<T>& degrees)
+    LoudsTree* createLouds(vector<T>& degrees)
     {
-    	Int sum = 0;
-    	for (auto degree: degrees) sum += degree+1;
-
-    	LoudsTreePtr tree = createEmptyLouds(sum);
+    	LoudsTree* tree = createEmptyLouds();
 
     	for (auto d: degrees)
     	{
@@ -153,14 +141,13 @@ public:
     	return tree;
     }
 
-    LoudsTreePtr createRandomTree(Int size, Int max_children = 10)
+    LoudsTree* createRandomTree(Int size, Int max_children = 10)
     {
-    	LoudsTreePtr tree_ptr = createEmptyLouds(size * 2 + 1);
-    	LoudsTree& tree = *tree_ptr.get();
+    	LoudsTree* tree = createEmptyLouds();
 
     	vector<Int> level;
 
-    	tree.appendUDS(1);
+    	tree->appendUDS(1);
 
     	level.push_back(1);
 
@@ -184,7 +171,7 @@ public:
     				next_level.push_back(child_degree);
     				node_count += child_degree;
 
-    				tree.appendUDS(child_degree);
+    				tree->appendUDS(child_degree);
     			}
 
     		}
@@ -192,9 +179,9 @@ public:
     		level = next_level;
     	}
 
-    	tree.reindex();
+    	tree->reindex();
 
-    	return tree_ptr;
+    	return tree;
     }
 };
 

@@ -10,9 +10,8 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/prototypes/btree/tools.hpp>
-
-#include <memoria/core/packed2/packed_bitvector.hpp>
+#include <memoria/core/packed2/packed_wavelet_tree.hpp>
+#include <memoria/core/packed2/packed_multisequence.hpp>
 
 #include <memory>
 #include <map>
@@ -29,8 +28,6 @@ class PackedWaveletTreeTest: public TestTask {
 	typedef PackedWaveletTreeTypes<> 										Types;
 
 	typedef PackedWaveletTree<Types>										Tree;
-
-	typedef shared_ptr<Tree>												TreePtr;
 
 	typedef typename Tree::CardinalTree::LoudsTree							LoudsTree;
 
@@ -72,22 +69,14 @@ public:
 
     virtual ~PackedWaveletTreeTest() throw() {}
 
-    TreePtr createSequence(Int block_size, Int free_space)
+    Tree* createTree(Int block_size = 128*1024)
     {
-    	free_space = PackedAllocator::roundDownBytesToAlignmentBlocks(free_space);
+    	PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
+    	alloc->init(block_size, 1);
 
-    	Int tree_block_size = Tree::block_size(block_size);
+    	Tree* tree = alloc->allocateEmpty<Tree>(0);
 
-    	void* memory_block = malloc(tree_block_size + free_space);
-    	memset(memory_block, 0, tree_block_size);
-
-    	Tree* tree = T2T<Tree*>(memory_block);
-
-    	tree->init(tree_block_size);
-
-    	tree->forceResize(free_space);
-
-    	return TreePtr(tree);
+    	return tree;
     }
 
     vector <UInt> createRandomAlphabet(Int size)
@@ -176,8 +165,9 @@ public:
 
     void testTree()
     {
-    	TreePtr tree_ptr = createSequence(64*1024, 40*1024);
-    	Tree* tree = tree_ptr.get();
+    	Tree* tree = createTree();
+    	PARemover remover(tree);
+
     	tree->prepare();
 
     	auto fn = [](const PackedLoudsNode& node, Int level) {
@@ -232,13 +222,7 @@ public:
     			AssertEQ(MA_SRC, idx1, idx2);
     		}
     	}
-
-
-
-//    	tree->dump(cout, false);
-
     }
-
 };
 
 

@@ -8,14 +8,46 @@
 #ifndef MEMORIA_CORE_PACKED2_CXMULTISEQUENCE_HPP_
 #define MEMORIA_CORE_PACKED2_CXMULTISEQUENCE_HPP_
 
-#include <memoria/core/packed2/packed_louds_tree.hpp>
-#include <memoria/core/packed2/packed_fse_cxsequence.hpp>
+#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed2/packed_vle_tree.hpp>
+#include <memoria/core/packed2/packed_fse_tree.hpp>
+#include <memoria/core/tools/elias_codec.hpp>
 
 #include <functional>
 
 namespace memoria {
 
 using namespace std;
+
+template <
+	Int BitsPerSymbol_ = 8,
+
+	template <typename>	class IndexType 	= PackedVLETree,
+	template <typename>	class CodecType 	= UBigIntEliasCodec,
+
+	template <typename>	class ReindexFnType = memoria::ReindexFn,
+	template <typename>	class SelectFnType	= Sequence8SelectFn,
+	template <typename>	class RankFnType	= Sequence8RankFn
+>
+struct PackedCxMultiSequenceTypes {
+	static const Int BitsPerSymbol = BitsPerSymbol_;
+
+	template <typename T>
+	using Index 	= IndexType<T>;
+
+	template <typename V>
+	using Codec 	= CodecType<V>;
+
+	template <typename Seq>
+	using ReindexFn	= ReindexFnType<Seq>;
+
+	template <typename Seq>
+	using SelectFn	= SelectFnType<Seq>;
+
+	template <typename Seq>
+	using RankFn	= RankFnType<Seq>;
+
+};
 
 template <typename Types>
 class PackedCxMultiSequence: public PackedAllocator {
@@ -27,42 +59,65 @@ public:
 
 	typedef Packed2TreeTypes<Int>							LabelArrayTypes;
 	typedef PackedFSETree<LabelArrayTypes>					LabelArray;
+	typedef typename LabelArray::Values						LabelArrayValues;
 
-	typedef PackedFSECxSequenceTypes<>						SequenceTypes;
-	typedef PackedFSECxSequence<SequenceTypes>				Sequence;
+	typedef PackedFSESeachableSeqTypes<
+			Types::BitsPerSymbol,
+			PackedTreeBranchingFactor,
+			512,
+			Types::template Index,
+			Types::template Codec,
+			Types::template ReindexFn,
+			Types::template SelectFn,
+			Types::template RankFn
+	>														SequenceTypes;
+	typedef PackedFSESearchableSeq<SequenceTypes>			Sequence;
 
-	typedef typename Sequence::SelectResult					SelectResult;
+	typedef typename Sequence::SymbolAccessor				SymbolAccessor;
+	typedef typename Sequence::ConstSymbolAccessor			ConstSymbolAccessor;
+
+	enum {
+		LABELS, SYMBOLS
+	};
+
 
 public:
 	PackedCxMultiSequence() {}
 
 	LabelArray* labels() {
-		return Base::template get<LabelArray>(0);
+		return Base::template get<LabelArray>(LABELS);
 	}
 
 	const LabelArray* labels() const {
-		return Base::template get<LabelArray>(0);
+		return Base::template get<LabelArray>(LABELS);
 	}
 
 	Sequence* sequence() {
-		return Base::template get<Sequence>(1);
+		return Base::template get<Sequence>(SYMBOLS);
 	}
 
 	const Sequence* sequence() const {
-		return Base::template get<Sequence>(1);
+		return Base::template get<Sequence>(SYMBOLS);
 	}
 
-	void init(Int block_size)
+	static Int empty_size()
 	{
+		Int labels_block_size 	= LabelArray::empty_size();
+		Int symbols_block_size 	= Sequence::empty_size();
+
+		Int block_size = Base::block_size(labels_block_size + symbols_block_size, 2);
+
+		return block_size;
+	}
+
+	void init()
+	{
+		Int block_size = MyType::empty_size();
+
 		Base::init(block_size, 2);
 
-		Int client_area = Base::client_area();
-
-		Int label_array_size = roundUpBytesToAlignmentBlocks(client_area / 5);
-		Int sequence_size	 = client_area - label_array_size;
-
-		Base::template allocate<LabelArray>(0, label_array_size);
-		Base::template allocate<Sequence>(1, sequence_size);
+		Base::template allocateEmpty<LabelArray>(LABELS);
+		Base::template allocateEmpty<Sequence>(SYMBOLS);
 	}
 
 	Int rank(Int subseq_num, Int to, Int symbol) const
@@ -86,19 +141,19 @@ public:
 		Int seq_prefix	= labels->sum(0, subseq_num);
 		Int rank_prefix = seq->rank(seq_prefix, symbol);
 
-		SelectResult result = seq->select(rank_prefix + rank, symbol);
+		SelectResult result = seq->selectFw(symbol, rank_prefix + rank);
 		if (result.idx() - seq_prefix < seq_size)
 		{
-			return SelectResult(result.idx() - seq_prefix, rank);
+			return SelectResult(result.idx() - seq_prefix, rank, true);
 		}
 		else {
-			return SelectResult(seq_prefix + seq_size, seq->rank(seq_prefix, seq_prefix + seq_size));
+			return SelectResult(seq_prefix + seq_size, seq->rank(seq_prefix, seq_prefix + seq_size), false);
 		}
 	}
 
 	void insertSubsequence(Int idx)
 	{
-		labels()->insert(idx, 0);
+		labels()->insert(idx, LabelArrayValues());
 		labels()->reindex();
 	}
 
@@ -143,24 +198,27 @@ public:
 		return Base::block_size(client_area, 2);
 	}
 
-	const UByte& value(Int seq_num, Int idx) const
+
+	ConstSymbolAccessor
+	symbol(Int seq_num, Int idx) const
 	{
 		Int seq_prefix	= labels()->sum(0, seq_num);
 		Int size 		= labels()->value(seq_num);
 
 		MEMORIA_ASSERT(idx, <, size);
 
-		return sequence()->value(seq_prefix + idx);
+		return sequence()->symbol(seq_prefix + idx);
 	}
 
-	UByte& value(Int seq_num, Int idx)
+	SymbolAccessor
+	sumbol(Int seq_num, Int idx)
 	{
 		Int seq_prefix	= labels()->sum(0, seq_num);
 		Int size 		= labels()->value(seq_num);
 
 		MEMORIA_ASSERT(idx, <, size);
 
-		return sequence()->value(seq_prefix + idx);
+		return sequence()->symbol(seq_prefix + idx);
 	}
 
 	void dump(ostream& out = cout, bool multi = true, bool dump_index = true) const

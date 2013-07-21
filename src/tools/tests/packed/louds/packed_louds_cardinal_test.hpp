@@ -33,7 +33,6 @@ class PackedLoudsCardinalTest: public PackedLoudsTestBase {
     typedef typename CardinalTree::LoudsTree 									LoudsTree;
     typedef typename CardinalTree::LabelArray									LabelArray;
 
-    typedef shared_ptr<CardinalTree>											CardinalTreePtr;
 
 public:
 
@@ -44,25 +43,21 @@ public:
 
     virtual ~PackedLoudsCardinalTest() throw() {}
 
-    CardinalTreePtr createCardinalTree(Int nodes, Int free_space = 0)
+    CardinalTree* createCardinalTree(Int block_size = 64*1024)
     {
-    	free_space = PackedAllocator::roundDownBytesToAlignmentBlocks(free_space);
+    	PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
 
-    	Int block_size  = CardinalTree::block_size(nodes);
+    	alloc->init(block_size, 1);
 
-    	CardinalTree* tree = T2T<CardinalTree*>(malloc(block_size + free_space));
+    	CardinalTree* tree = alloc->template allocateEmpty<CardinalTree>(0);
 
-    	tree->init(block_size, nodes);
-
-    	tree->forceResize(free_space);
-
-    	return CardinalTreePtr(tree, free);
+    	return tree;
     }
 
-    UBigInt buildPath(PackedLoudsNode node, Int level, const CardinalTreePtr& tree_ptr)
+    UBigInt buildPath(PackedLoudsNode node, Int level, const CardinalTree* ctree)
     {
-    	const LoudsTree* tree 		= tree_ptr->tree();
-    	const LabelArray* labels	= tree_ptr->labels();
+    	const LoudsTree* tree 		= ctree->tree();
+    	const LabelArray* labels	= ctree->labels();
 
     	UBigInt path = 0;
 
@@ -78,19 +73,21 @@ public:
     	return path;
     }
 
-    void checkTreeContent(const CardinalTreePtr& tree_ptr, set<UBigInt>& paths)
+    void checkTreeContent(const CardinalTree* tree, set<UBigInt>& paths)
     {
-    	traverseTreePaths(tree_ptr->tree(), [this, &tree_ptr, &paths](const PackedLoudsNode& node, Int level) {
+    	traverseTreePaths(tree->tree(), [this, tree, &paths](const PackedLoudsNode& node, Int level) {
     		AssertEQ(MA_SRC, level, 4);
-    		UBigInt path = buildPath(node, level, tree_ptr);
+    		UBigInt path = buildPath(node, level, tree);
     		AssertTrue(MA_SRC, paths.find(path) != paths.end());
     	});
     }
 
     void testCreateCardinalTree()
     {
-    	CardinalTreePtr tree_ptr = createCardinalTree(100, 4096*20);
-    	tree_ptr->prepare();
+    	CardinalTree* tree = createCardinalTree();
+    	PARemover remover(tree);
+
+    	tree->prepare();
 
     	auto fn = [](const PackedLoudsNode& node, Int label, Int level){};
 
@@ -104,14 +101,13 @@ public:
 
     		paths.insert(path);
 
-    		tree_ptr->insert_path(path, 4, fn);
+    		tree->insert_path(path, 4, fn);
 
-    		checkTreeStructure(tree_ptr->tree());
-    		checkTreeContent(tree_ptr, paths);
+    		checkTreeStructure(tree->tree());
+    		checkTreeContent(tree, paths);
     	}
 
-    	tree_ptr->dump(out());
-    	cout<<tree_ptr->free_space()<<endl;
+    	out()<<"Free space in the tree: "<<tree->free_space()<<endl;
     }
 };
 

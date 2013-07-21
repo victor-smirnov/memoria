@@ -70,14 +70,28 @@ public:
 		size_ = 0;
 		alignment_gap_ = 0;
 
-		Int data_size = block_size - sizeof(MyType);
+		Int data_size = block_size - empty_size();
 
 		max_size_   = data_size * 8 / BitsPerSymbol;
+	}
+
+	void init()
+	{
+		init(empty_size());
 	}
 
 	static Int block_size(Int elements)
 	{
 		return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
+	}
+
+	Int block_size() const {
+		const Allocator* alloc = this->allocator();
+		return alloc->element_size(this);
+	}
+
+	static int empty_size() {
+		return sizeof(MyType);
 	}
 
 	static Int block_size_bs(Int block_size)
@@ -113,7 +127,7 @@ public:
 		Int amount = roundUpBitToBytes(roundUpBitToBytes(elements * BitsPerSymbol));
 		Int size = alloc->element_size(this);
 		Int new_size = alloc->resizeBlock(this, size + amount);
-		max_size_ = new_size * 8 / BitsPerSymbol;
+		max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;
 	}
 
 	bool insertSpace(Int idx, Int space)
