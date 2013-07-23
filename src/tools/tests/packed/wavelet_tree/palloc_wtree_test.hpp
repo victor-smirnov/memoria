@@ -33,7 +33,23 @@ class PackedWaveletTreeTest: public TestTask {
 
 	typedef pair<UInt, Int> 												Pair;
 
+	Int alphabet_size_ = 10;
+
 public:
+
+	PackedWaveletTreeTest(): TestTask("WaveletTree")
+    {
+		size_ = 1000;
+
+		MEMORIA_ADD_TEST_PARAM(alphabet_size_);
+
+		MEMORIA_ADD_TEST(testTree);
+    }
+
+    virtual ~PackedWaveletTreeTest() throw() {}
+
+
+
 
     void traverseTreePaths(const LoudsTree* tree, function<void (const PackedLoudsNode&, Int)> fn, Int level = 0)
     {
@@ -62,12 +78,6 @@ public:
     }
 
 
-	PackedWaveletTreeTest(): TestTask("WaveletTree")
-    {
-		MEMORIA_ADD_TEST(testTree);
-    }
-
-    virtual ~PackedWaveletTreeTest() throw() {}
 
     Tree* createTree(Int block_size = 128*1024)
     {
@@ -174,9 +184,9 @@ public:
     		AssertEQ(MA_SRC, level, 3);
     	};
 
-    	auto alphabet = createRandomAlphabet(10);
+    	auto alphabet = createRandomAlphabet(alphabet_size_);
 
-    	auto text = createRandomText(1000, alphabet);
+    	auto text = createRandomText(size_, alphabet);
 
     	for (UInt c = 0; c < text.size(); c++)
     	{
@@ -191,6 +201,7 @@ public:
     	for (UInt c = 0; c < text.size(); c++)
     	{
     		UInt value = tree->value(c);
+
     		AssertEQ(MA_SRC, value, text[c]);
     	}
 
@@ -222,6 +233,8 @@ public:
     			AssertEQ(MA_SRC, idx1, idx2);
     		}
     	}
+
+    	tree->dump();
     }
 };
 

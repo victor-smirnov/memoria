@@ -909,9 +909,8 @@ public:
 
 	void splitTo(MyType* other, Int idx)
 	{
-		MEMORIA_ASSERT(other->size(), ==, 0);
-
-		Int size = this->size();
+		Int size 		= this->size();
+		Int other_size 	= other->size();
 
 		Dimension lengths;
 
@@ -920,21 +919,29 @@ public:
 			lengths[block] = this->data_length(block, idx, size);
 		}
 
-		Int total = lengths.sum();
-		other->enlarge(total);
+		Dimension other_starts;
 
-		Codec codec;
-		for (Int block = 0, tgt_pos = 0; block < Blocks; block++)
+		for (Int block = 1, sum = lengths[0]; block < Blocks; block++)
 		{
-			Int pos = this->value_offset(size * block + idx);
-
-			codec.copy(values(), pos, other->values(), tgt_pos, lengths[block]);
-
-			tgt_pos += lengths[block];
+			Int start 			= other->value_offset(other_size * block);
+			other_starts[block] = start + sum;
+			sum 				+= lengths[block];
 		}
 
-		other->size() 		= size - idx;
-		other->data_size()	= total;
+		Int total = lengths.sum();
+		other->insertSpace(0, lengths);
+
+		Codec codec;
+		for (Int block = 0; block < Blocks; block++)
+		{
+			Int pos = this->value_offset(size * block + idx);
+			Int tgt_pos = other_starts[block];
+
+			codec.copy(values(), pos, other->values(), tgt_pos, lengths[block]);
+		}
+
+		other->size() 		+= size - idx;
+		other->data_size()	+= total;
 
 		other->reindex();
 

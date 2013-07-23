@@ -67,7 +67,8 @@ public:
 
 		MEMORIA_ADD_TEST(testMerge);
 
-		MEMORIA_ADD_TEST(testSplit);
+		MEMORIA_ADD_TEST(testSplitToEmpty);
+		MEMORIA_ADD_TEST(testSplitToPreFilled);
 
 		MEMORIA_ADD_TEST(testClear);
     }
@@ -163,15 +164,15 @@ public:
     }
 
 
-    void testSplit()
+    void testSplitToEmpty()
     {
     	for (int c = 2; c <= 32*1024; c*=2)
     	{
-    		testSplit(c);
+    		testSplitToEmpty(c);
     	}
     }
 
-    void testSplit(Int size)
+    void testSplitToEmpty(Int size)
     {
     	Base::out()<<size<<std::endl;
 
@@ -196,6 +197,43 @@ public:
     	Base::assertEqual(tree1, tree_values1);
     	Base::assertEqual(tree2, tree_values2);
     }
+
+    void testSplitToPreFilled()
+    {
+    	for (int c = 2; c <= 32*1024; c*=2)
+    	{
+    		testSplitPreFilled(c);
+    	}
+    }
+
+    void testSplitPreFilled(Int size)
+    {
+    	Base::out()<<size<<std::endl;
+
+    	Tree* tree1 = Base::createEmptyTree(16*1024*1024);
+    	PARemover remover1(tree1);
+
+    	Tree* tree2 = Base::createEmptyTree(16*1024*1024);
+    	PARemover remover2(tree2);
+
+    	auto tree_values1 = Base::createRandomValuesVector(size);
+    	auto tree_values2 = Base::createRandomValuesVector(size < 100 ? size : 100);
+
+    	Base::fillVector(tree1, tree_values1);
+    	Base::fillVector(tree2, tree_values2);
+
+    	Int idx = getRandom(size);
+
+    	tree1->splitTo(tree2, idx);
+
+    	tree_values2.insert(tree_values2.begin(), tree_values1.begin() + idx, tree_values1.end());
+
+    	tree_values1.erase(tree_values1.begin() + idx, tree_values1.end());
+
+    	Base::assertEqual(tree1, tree_values1);
+    	Base::assertEqual(tree2, tree_values2);
+    }
+
 
 
     void testMerge()
