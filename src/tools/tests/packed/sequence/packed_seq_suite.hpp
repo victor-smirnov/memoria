@@ -15,9 +15,8 @@
 
 #include "palloc_rank_test.hpp"
 #include "palloc_select_test.hpp"
+#include "palloc_misc_test.hpp"
 
-#include <memoria/core/packed2/packed_fse_tree.hpp>
-#include <memoria/core/packed2/packed_vle_tree.hpp>
 
 namespace memoria {
 
@@ -30,6 +29,43 @@ public:
 
 	PackedSequenceTestSuite(): TestSuite("Packed.SequenceSuite")
     {
+		registerTask(new PackedSearchableSequenceMiscTest<1>("Misc.1"));
+		registerTask(new PackedSearchableSequenceMiscTest<
+						4,
+						PackedFSETree,
+						ValueFSECodec,
+						::memoria::ReindexFn,
+						SequenceSelectFn,
+						SequenceRankFn
+		>("Misc.4.FSE"));
+		registerTask(new PackedSearchableSequenceMiscTest<
+						4,
+						PackedVLETree,
+						UBigIntEliasCodec,
+						VLEReindexFn,
+						SequenceSelectFn,
+						SequenceRankFn
+		>("Misc.4.Elias"));
+		registerTask(new PackedSearchableSequenceMiscTest<
+						4,
+						PackedVLETree,
+						UByteExintCodec,
+						VLEReindexFn,
+						SequenceSelectFn,
+						SequenceRankFn
+		>("Misc.4.Exint"));
+		registerTask(new PackedSearchableSequenceMiscTest<
+						8,
+						PackedVLETree,
+						UBigIntEliasCodec,
+						VLEReindexFn,
+						Sequence8SelectFn,
+						Sequence8RankFn
+		>("Misc.8.Elias"));
+
+/*
+
+
 		registerTask(new PackedSearchableSequenceRankTest<1>("Rank.1"));
 
 		registerTask(new PackedSearchableSequenceRankTest<
@@ -89,7 +125,10 @@ public:
 				Sequence8SelectFn,
 				Sequence8RankFn
 		>("Select.8.VLE"));
+		*/
     }
+
+
 
 };
 

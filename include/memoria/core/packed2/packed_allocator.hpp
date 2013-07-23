@@ -449,7 +449,8 @@ public:
 
 	Int pack()
 	{
-		return resize(block_size_ - free_space());
+		Int free_space = this->free_space();
+		return resize(block_size_ - free_space);
 	}
 
 

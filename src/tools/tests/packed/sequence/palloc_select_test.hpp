@@ -10,7 +10,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
+#include "palloc_test_base.hpp"
 
 #include <memory>
 #include <vector>
@@ -28,7 +28,14 @@ template <
 	template <typename>	class SelectFnType	= BitmapSelectFn,
 	template <typename>	class RankFnType	= BitmapRankFn
 >
-class PackedSearchableSequenceSelectTest: public TestTask {
+class PackedSearchableSequenceSelectTest: public PackedSearchableSequenceTestBase<
+	Bits,
+	IndexType,
+	CodecType,
+	ReindexFnType,
+	SelectFnType,
+	RankFnType
+> {
 
     typedef PackedSearchableSequenceSelectTest<
     		Bits,
@@ -39,19 +46,16 @@ class PackedSearchableSequenceSelectTest: public TestTask {
     		RankFnType
     > 																			MyType;
 
-    typedef PackedFSESeachableSeqTypes<
+    typedef PackedSearchableSequenceTestBase<
     		Bits,
-    		PackedTreeBranchingFactor,
-    		512,
     		IndexType,
     		CodecType,
     		ReindexFnType,
     		SelectFnType,
     		RankFnType
-    > 																			Types;
+    > 																			Base;
 
-    typedef PackedFSESearchableSeq<Types>										Seq;
-
+    typedef typename Base::Seq													Seq;
     typedef typename Seq::Value													Value;
 
 
@@ -61,10 +65,8 @@ class PackedSearchableSequenceSelectTest: public TestTask {
 
 public:
 
-    PackedSearchableSequenceSelectTest(StringRef name): TestTask(name)
+    PackedSearchableSequenceSelectTest(StringRef name): Base(name)
     {
-        size_ = 32768;
-
     	MEMORIA_ADD_TEST(runSelectFromFWTest);
         MEMORIA_ADD_TEST(runSelectFWTest);
 
@@ -73,65 +75,7 @@ public:
 
     virtual ~PackedSearchableSequenceSelectTest() throw() {}
 
-    Seq* createEmptySequence(Int capacity)
-    {
-    	Int sequence_block_size = Seq::empty_size() +
-    			PackedAllocator::roundUpBitToBytes(capacity * Bits) * 2;
 
-    	Int block_size = PackedAllocator::block_size(sequence_block_size, 1);
-
-    	void* memory_block = malloc(block_size);
-    	memset(memory_block, 0, block_size);
-
-    	PackedAllocator* allocator = T2T<PackedAllocator*>(memory_block);
-
-    	allocator->init(block_size, 1);
-
-    	allocator->allocateEmpty<Seq>(0);
-
-    	Seq* seq = allocator->template get<Seq>(0);
-
-    	return seq;
-    }
-
-    void remove(PackedAllocatable* seq)
-    {
-    	free(seq->allocator());
-    }
-
-    void fillRandom(Seq* seq, Int size)
-    {
-    	seq->insert(0, size, [](){
-    		return getRandom(Blocks);
-    	});
-    }
-
-
-    void populate(Seq* seq, Int size, Value value = 0)
-    {
-    	seq->clear();
-    	seq->insert(0, size, [=](){
-    		return value;
-    	});
-    }
-
-    void populateRandom(Seq* seq, Int size)
-    {
-    	seq->clear();
-    	fillRandom(seq, size);
-    }
-
-    Int rank(const Seq* seq, Int start, Int end, Int symbol)
-    {
-    	Int rank = 0;
-
-    	for (Int c = start; c < end; c++)
-    	{
-    		rank += seq->test(c, symbol);
-    	}
-
-    	return rank;
-    }
 
     SelectResult selectFW(const Seq* seq, size_t start, size_t rank, Value symbol)
     {
@@ -319,19 +263,20 @@ public:
 
     void runSelectFromFWTest(Value symbol)
     {
-    	out()<<"Parameters: Bits="<<Bits<<" symbol="<<(Int)symbol<<endl;
+    	this->out()<<"Parameters: Bits="<<Bits<<" symbol="<<(Int)symbol<<endl;
 
-    	Seq* seq = createEmptySequence(size_);
+    	Seq* seq = this->createEmptySequence();
+    	PARemover remover(seq);
 
-    	populate(seq, size_, symbol);
+    	this->populate(seq, this->size_, symbol);
 
     	vector<size_t> starts = createStarts(seq);
 
-    	out()<<"Solid bitmap"<<endl;
+    	this->out()<<"Solid bitmap"<<endl;
 
     	for (size_t start: starts)
     	{
-    		out()<<start<<endl;
+    		this->out()<<start<<endl;
 
     		vector<size_t> ranks = createRanks(seq, start);
 
@@ -341,14 +286,14 @@ public:
     		}
     	}
 
-    	out()<<endl;
-    	out()<<"Random bitmap, random positions"<<endl;
+    	this->out()<<endl;
+    	this->out()<<"Random bitmap, random positions"<<endl;
 
-    	populateRandom(seq, size_);
+    	this->populateRandom(seq, this->size_);
 
     	for (size_t start: starts)
     	{
-    		out()<<start<<endl;
+    		this->out()<<start<<endl;
 
     		vector<size_t> ranks = createRanks(seq, start);
 
@@ -358,14 +303,14 @@ public:
     		}
     	}
 
-    	out()<<endl;
-    	out()<<"Random bitmap, "<<(Int)symbol<<"-set positions"<<endl;
+    	this->out()<<endl;
+    	this->out()<<"Random bitmap, "<<(Int)symbol<<"-set positions"<<endl;
 
     	for (size_t start : starts)
     	{
     		auto pairs = createRanksFW(seq, start, symbol);
 
-    		out()<<start<<endl;
+    		this->out()<<start<<endl;
 
     		for (auto pair: pairs)
     		{
@@ -383,17 +328,16 @@ public:
     		}
     	}
 
-    	out()<<endl;
-
-    	remove(seq);
+    	this->out()<<endl;
     }
 
 
     void runSelectFWTest()
     {
-    	Seq* seq = createEmptySequence(size_);
+    	Seq* seq = this->createEmptySequence();
+    	PARemover remover(seq);
 
-    	populateRandom(seq, size_);
+    	this->populateRandom(seq, this->size_);
 
     	Int max_rank = seq->rank(1) + 1;
 
@@ -417,8 +361,6 @@ public:
     			AssertEQ(MA_SRC, result1.rank(), result3.rank(), SBuf()<<rank);
     		}
     	}
-
-    	remove(seq);
     }
 
 
@@ -430,21 +372,22 @@ public:
 
     void runSelectBWTest(Value symbol)
     {
-    	out()<<"Parameters: "<<Bits<<" "<<(Int)symbol<<endl;
+    	this->out()<<"Parameters: "<<Bits<<" "<<(Int)symbol<<endl;
 
-    	Seq* seq = createEmptySequence(size_);
+    	Seq* seq = this->createEmptySequence();
+    	PARemover remover(seq);
 
-    	populate(seq, size_, symbol);
+    	this->populate(seq, this->size_, symbol);
 
     	vector<size_t> starts = createStarts(seq);
 
     	starts.push_back(seq->size());
 
-    	out()<<"Solid bitmap"<<endl;
+    	this->out()<<"Solid bitmap"<<endl;
 
     	for (size_t start: starts)
     	{
-    		out()<<start<<endl;
+    		this->out()<<start<<endl;
 
     		vector<size_t> ranks = createRanks(seq, start);
 
@@ -454,14 +397,14 @@ public:
     		}
     	}
 
-    	out()<<endl;
-    	out()<<"Random bitmap, random positions"<<endl;
+    	this->out()<<endl;
+    	this->out()<<"Random bitmap, random positions"<<endl;
 
-    	populateRandom(seq, size_);
+    	this->populateRandom(seq, this->size_);
 
     	for (size_t start: starts)
     	{
-    		out()<<start<<endl;
+    		this->out()<<start<<endl;
 
     		vector<size_t> ranks = createRanks(seq, start);
 
@@ -471,14 +414,14 @@ public:
     		}
     	}
 
-    	out()<<endl;
-    	out()<<"Random bitmap, "<<(Int)symbol<<"-set positions"<<endl;
+    	this->out()<<endl;
+    	this->out()<<"Random bitmap, "<<(Int)symbol<<"-set positions"<<endl;
 
     	for (size_t start : starts)
     	{
     		if (start < seq->size())
     		{
-    			out()<<start<<endl;
+    			this->out()<<start<<endl;
 
     			auto pairs = createRanksBW(seq, start, symbol);
 
@@ -499,12 +442,10 @@ public:
     		}
     	}
 
-    	out()<<endl;
+    	this->out()<<endl;
 
     	size_t seq_rank = this->rank(seq, 0, seq->size(), symbol);
     	assertSelectBW(seq, seq->size(), seq_rank/2, symbol);
-
-    	remove(seq);
     }
 };
 

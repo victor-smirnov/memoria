@@ -464,6 +464,14 @@ public:
 		index_size_ = index_size(max_size_);
 	}
 
+	void inits(Int capacity)
+	{
+		size_ = 0;
+
+		max_size_   = capacity;
+		index_size_ = index_size(capacity);
+	}
+
 	void init()
 	{
 		size_ = 0;
@@ -474,7 +482,7 @@ public:
 
 	void clear()
 	{
-		init(0);
+		inits(0);
 
 		if (Base::has_allocator())
 		{

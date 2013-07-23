@@ -10,7 +10,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
+#include "palloc_test_base.hpp"
 
 #include <memory>
 
@@ -19,14 +19,21 @@ namespace memoria {
 using namespace std;
 
 template <
-Int Bits,
-template <typename>	class IndexType 	= PackedFSETree,
-template <typename>	class CodecType 	= ValueFSECodec,
-template <typename>	class ReindexFnType = BitmapReindexFn,
-template <typename>	class SelectFnType	= BitmapSelectFn,
-template <typename>	class RankFnType	= BitmapRankFn
+	Int Bits,
+	template <typename>	class IndexType 	= PackedFSETree,
+	template <typename>	class CodecType 	= ValueFSECodec,
+	template <typename>	class ReindexFnType = BitmapReindexFn,
+	template <typename>	class SelectFnType	= BitmapSelectFn,
+	template <typename>	class RankFnType	= BitmapRankFn
 >
-class PackedSearchableSequenceRankTest: public TestTask {
+class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
+	Bits,
+	IndexType,
+	CodecType,
+	ReindexFnType,
+	SelectFnType,
+	RankFnType
+> {
 
     typedef PackedSearchableSequenceRankTest<
     		Bits,
@@ -37,18 +44,19 @@ class PackedSearchableSequenceRankTest: public TestTask {
     		RankFnType
     > 																			MyType;
 
-    typedef PackedFSESeachableSeqTypes<
-        		Bits,
-        		PackedTreeBranchingFactor,
-        		512,
-        		IndexType,
-        		CodecType,
-        		ReindexFnType,
-        		SelectFnType,
-        		RankFnType
-    > 																			Types;
+    typedef PackedSearchableSequenceTestBase<
+    		Bits,
+    		IndexType,
+    		CodecType,
+    		ReindexFnType,
+    		SelectFnType,
+    		RankFnType
+    > 																			Base;
 
-    typedef PackedFSESearchableSeq<Types>										Seq;
+
+
+
+    typedef typename Base::Seq													Seq;
 
     typedef typename Seq::Value													Value;
 
@@ -59,62 +67,16 @@ class PackedSearchableSequenceRankTest: public TestTask {
 
 public:
 
-    PackedSearchableSequenceRankTest(StringRef name): TestTask(name)
+    PackedSearchableSequenceRankTest(StringRef name): Base(name)
     {
-        size_ = 32768;
-
-    	MEMORIA_ADD_TEST(runTest1);
-        MEMORIA_ADD_TEST(runTest2);
+        MEMORIA_ADD_TEST(runTest1);
         MEMORIA_ADD_TEST(runTest3);
         MEMORIA_ADD_TEST(runTest4);
     }
 
     virtual ~PackedSearchableSequenceRankTest() throw() {}
 
-    Seq* createEmptySequence(Int capacity)
-    {
-    	Int sequence_block_size = Seq::empty_size() +
-    			PackedAllocator::roundUpBitToBytes(capacity * Bits) * 2;
 
-    	Int block_size = PackedAllocator::block_size(sequence_block_size, 1);
-
-    	void* memory_block = malloc(block_size);
-    	memset(memory_block, 0, block_size);
-
-    	PackedAllocator* allocator = T2T<PackedAllocator*>(memory_block);
-
-    	allocator->init(block_size, 1);
-
-    	allocator->allocateEmpty<Seq>(0);
-
-    	Seq* seq = allocator->template get<Seq>(0);
-
-    	return seq;
-    }
-
-    void remove(PackedAllocatable* seq)
-    {
-    	free(seq->allocator());
-    }
-
-    void fillRandom(Seq* seq, Int size)
-    {
-    	seq->insert(0, size, [](){
-    		return getRandom(Blocks);
-    	});
-    }
-
-    Int rank(const Seq* seq, Int start, Int end, Int symbol)
-    {
-    	Int rank = 0;
-
-    	for (Int c = start; c < end; c++)
-    	{
-    		rank += seq->test(c, symbol);
-    	}
-
-    	return rank;
-    }
 
     vector<size_t> createStarts(const Seq* seq)
     {
@@ -183,7 +145,7 @@ public:
     void assertRank(const Seq* seq, size_t start, size_t end, Value symbol)
     {
     	Int local_rank 	= seq->rank(start, end, symbol);
-    	Int popc 		= rank(seq, start, end, symbol);
+    	Int popc 		= this->rank(seq, start, end, symbol);
 
     	AssertEQ(MA_SRC, local_rank, popc);
     }
@@ -198,19 +160,20 @@ public:
 
     void runTest1()
     {
-    	out()<<"Parameters: Bits="<<Bits<<endl;
+    	this->out()<<"Parameters: Bits="<<Bits<<endl;
 
-    	Seq* seq = createEmptySequence(this->size_);
+    	Seq* seq = this->createEmptySequence();
+    	PARemover remover(seq);
 
-    	fillRandom(seq, this->size_);
+    	this->fillRandom(seq, this->size_);
 
-    	assertRank(seq, 10,seq->size() - 10, 0);
+    	assertRank(seq, 10, seq->size() - 10, 0);
 
     	auto starts = createStarts(seq);
 
     	for (size_t start: starts)
     	{
-    		out()<<start<<endl;
+    		this->out()<<start<<endl;
 
     		auto ends = createEnds(seq, start);
 
@@ -220,37 +183,16 @@ public:
     			assertRank(seq, start, end, Symbols - 1);
     		}
     	}
-
-    	remove(seq);
-    }
-
-    void runTest2()
-    {
-    	out()<<"Parameters: Bits="<<Bits<<endl;
-
-//    	Seq* seq = createEmptySequence(this->size_);
-//
-//    	fillRandom(seq, this->size_);
-//
-//    	for (Int end = 1; end < seq->size(); end++)
-//    	{
-//    		seq->size() = end;
-//    		seq->reindex();
-//
-//    		assertRank(seq, 0, end - 1, 0);
-//    		assertRank(seq, 0, end - 1, Symbols - 1);
-//    	}
-//
-//    	remode(seq);
     }
 
     void runTest3()
     {
-    	out()<<"Parameters: Bits="<<Bits<<endl;
+    	this->out()<<"Parameters: Bits="<<Bits<<endl;
 
-    	Seq* seq = createEmptySequence(this->size_);
+    	Seq* seq = this->createEmptySequence();
+    	PARemover remover(seq);
 
-    	fillRandom(seq, this->size_);
+    	this->fillRandom(seq, this->size_);
 
     	Int stop = seq->size() - 1;
 
@@ -259,17 +201,16 @@ public:
     		assertRank(seq, start, stop, 0);
     		assertRank(seq, start, stop, Symbols - 1);
     	}
-
-    	remove(seq);
     }
 
     void runTest4()
     {
-    	out()<<"Parameters: Bits="<<Bits<<endl;
+    	this->out()<<"Parameters: Bits="<<Bits<<endl;
 
-    	Seq* seq = createEmptySequence(this->size_);
+    	Seq* seq = this->createEmptySequence();
+    	PARemover remover(seq);
 
-    	fillRandom(seq, this->size_);
+    	this->fillRandom(seq, this->size_);
 
     	for (Int c = 0; c <= seq->size(); c++)
     	{

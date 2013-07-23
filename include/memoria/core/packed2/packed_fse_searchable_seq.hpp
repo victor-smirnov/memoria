@@ -154,7 +154,7 @@ public:
 	}
 
 	bool has_index() const {
-		return Base::element_size(1) > 0;
+		return Base::element_size(INDEX) > 0;
 	}
 
 	Value* symbols()
@@ -186,23 +186,6 @@ public:
 
 	// ===================================== Allocation ================================= //
 
-//	static Int index_size(Int items_number)
-//	{
-//		return items_number / ValuesPerBranch + ((items_number % ValuesPerBranch) ? 1 : 0);
-//	}
-//
-//	static Int index_block_size(Int items_number)
-//	{
-//		if (items_number > ValuesPerBranch)
-//		{
-//			Int index_size = MyType::index_size(items_number);
-//			return Index::block_size(index_size);
-//		}
-//		else {
-//			return 0;
-//		}
-//	}
-
 	void init()
 	{
 		Base::init(empty_size(), 3);
@@ -227,12 +210,13 @@ public:
 		Int metadata_length	= Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 		Int index_length 	= 0;
 		Int values_length 	= 0;
-		return Base::block_size(metadata_length + index_length + values_length, 3);
+		Int block_size 		= Base::block_size(metadata_length + index_length + values_length, 3);
+		return block_size;
 	}
 
 	void removeIndex()
 	{
-		Base::resizeBlock(INDEX, 0);
+		Base::free(INDEX);
 	}
 
 	void createIndex(Int index_size)
@@ -254,7 +238,12 @@ public:
 		reindex_fn(*this);
 	}
 
-	void check() const {}
+	void check() const
+	{
+		if (has_index()) {
+			index()->check();
+		}
+	}
 
 	void set(Int idx, Int symbol)
 	{
@@ -267,6 +256,8 @@ public:
 		removeIndex();
 
 		size() = 0;
+
+		Base::pack();
 	}
 
 protected:
@@ -341,9 +332,13 @@ public:
 				rest * BitsPerSymbol
 		);
 
+		shrinkData(end - start);
+
 		size() -= (end - start);
 
 		reindex();
+
+		Base::pack();
 	}
 
 
@@ -462,15 +457,16 @@ public:
 
 	void splitTo(MyType* other, Int idx)
 	{
-		MEMORIA_ASSERT(other->size(), ==, 0);
-
-		Int to_move = this->size() - idx;
+		Int to_move 	= this->size() - idx;
+		Int other_size 	= other->size();
 
 		other->enlargeData(to_move);
 
+		MoveBits(other->symbols(), 0, other->symbols(), to_move * BitsPerSymbol, other_size * BitsPerSymbol);
+
 		MoveBits(this->symbols(), idx * BitsPerSymbol, other->symbols(), 0, to_move * BitsPerSymbol);
 
-		other->size() = to_move;
+		other->size() += to_move;
 		other->reindex();
 
 		remove(idx, this->size());
@@ -621,7 +617,9 @@ public:
 			if (has_index())
 			{
 				out<<endl;
+				out<<"========================================"<<endl;
 				this->index()->dump(out);
+				out<<"========================================"<<endl;
 			}
 			else {
 				out<<"None"<<endl;

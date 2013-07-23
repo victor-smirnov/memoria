@@ -283,10 +283,6 @@ private:
 			auto& me = Base::tree();
 			auto& indexes = Base::indexes_;
 
-//			if (DebugCounter == 2) {
-//				int a = 0; a++;
-//			}
-
 			Int limit 		= me.data_size();
 			Int data_pos 	= 0;
 
@@ -313,11 +309,8 @@ private:
 				{
 					Value value;
 
-//					if (DebugCounter == 2 && cnt == 624) {
-//						int a = 0; a++;
-//					}
-
 					Int len = codec.decode(values_, value, data_pos, limit);
+					MEMORIA_ASSERT(len, >, 0);
 					cnt++;
 
 					value_cell += value;
@@ -385,6 +378,7 @@ private:
 				{
 					Value value;
 					Int len = codec.decode(values_, value, data_pos, limit);
+					MEMORIA_ASSERT(len, >, 0);
 
 					value_cell += value;
 					size_cell++;
@@ -728,10 +722,12 @@ public:
 		meta->data_size()	= 0;
 		meta->index_size() 	= MyType::index_size(max_size);
 
-		Base::template allocateArrayByLength<OffsetsType>(OFFSETS, getOffsetsBlockLength(max_size));
+		Int offsets_length  = getOffsetsBlockLength(max_size);
+		Base::template allocateArrayByLength<OffsetsType>(OFFSETS, offsets_length);
 
 		Int layout_size = MyType::index_layout_size(max_size);
-		Base::template allocateArrayByLength<LayoutValue>(LAYOUT, layout_size);
+		Base::template allocateArrayBySize<LayoutValue>(LAYOUT, layout_size);
+		TreeTools::buildIndexTreeLayout(index_layout(), max_size, layout_size);
 
 		Int index_size = meta->index_size();
 		Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Indexes);
@@ -740,8 +736,36 @@ public:
 		Base::template allocateArrayByLength<BufferType>(VALUES, values_block_length);
 	}
 
+	void inits(Int capacity)
+	{
+		Int block_size = MyType::block_size(capacity);
+
+		Base::init(block_size, 5);
+
+		Metadata* meta = Base::template allocate<Metadata>(METADATA);
+
+		Int max_capacity = MyType::max_capacity(capacity);
+
+		meta->size() 		= 0;
+		meta->data_size()	= 0;
+		meta->index_size() 	= MyType::index_size(max_capacity);
+
+		Int offsets_length  = getOffsetsBlockLength(max_capacity);
+		Base::template allocateArrayByLength<OffsetsType>(OFFSETS, offsets_length);
+
+		Int layout_size = MyType::index_layout_size(max_capacity);
+		Base::template allocateArrayBySize<LayoutValue>(LAYOUT, layout_size);
+		TreeTools::buildIndexTreeLayout(index_layout(), max_capacity, layout_size);
+
+		Int index_size = meta->index_size();
+		Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Indexes);
+
+		Int values_block_length = Base::roundUpBitsToAlignmentBlocks(max_capacity * Codec::ElementSize);
+		Base::template allocateArrayByLength<BufferType>(VALUES, values_block_length);
+	}
+
 	void init() {
-		init(empty_size());
+		inits(0);
 	}
 
 	void clear()
@@ -1486,8 +1510,8 @@ public:
 
 	void dump(std::ostream& out = cout) const
 	{
-//		out<<"Layout: "<<endl;
-//		Base::dump(out);
+		out<<"Layout: "<<endl;
+		Base::dump(out);
 
 		out<<"size_         = "<<size()<<endl;
 		out<<"data_size_    = "<<data_size()<<endl;
