@@ -234,7 +234,7 @@ public:
     		}
     	}
 
-    	tree->dump();
+    	tree->dump(this->out());
     }
 };
 

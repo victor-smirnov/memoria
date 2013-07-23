@@ -906,7 +906,13 @@ public:
 		this->size() 		-= room_length;
 		this->data_size()	-= total;
 
-		shrink(total);
+		if (this->size() > 0)
+		{
+			shrink(total);
+		}
+		else {
+			clear();
+		}
 	}
 
 	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const

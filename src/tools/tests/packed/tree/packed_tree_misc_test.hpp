@@ -70,6 +70,9 @@ public:
 		MEMORIA_ADD_TEST(testSplitToEmpty);
 		MEMORIA_ADD_TEST(testSplitToPreFilled);
 
+		MEMORIA_ADD_TEST(testRemoveMulti);
+		MEMORIA_ADD_TEST(testRemoveAll);
+
 		MEMORIA_ADD_TEST(testClear);
     }
 
@@ -232,6 +235,55 @@ public:
 
     	Base::assertEqual(tree1, tree_values1);
     	Base::assertEqual(tree2, tree_values2);
+    }
+
+
+    void testRemoveMulti()
+    {
+    	for (Int size = 1; size <= 32768; size*=2)
+    	{
+    		Tree* tree = Base::createEmptyTree(16*1024*1024);
+    		auto tree_values = Base::createRandomValuesVector(size);
+
+    		Base::fillVector(tree, tree_values);
+
+    		this->assertEqual(tree, tree_values);
+
+    		for (Int c = 0; c < this->iterations_; c++)
+    		{
+    			Int start 	= getRandom(tree->size());
+    			Int end 	= start + getRandom(tree->size() - start);
+
+    			Int block_size = tree->block_size();
+
+    			tree->removeSpace(start, end);
+
+    			tree_values.erase(tree_values.begin() + start, tree_values.begin() + end);
+
+    			this->assertIndexCorrect(MA_SRC, tree);
+    			this->assertEqual(tree, tree_values);
+
+    			AssertLE(MA_SRC, tree->block_size(), block_size);
+    		}
+    	}
+    }
+
+    void testRemoveAll()
+    {
+    	for (Int size = 1; size <= 32768; size*=2)
+    	{
+    		this->out()<<size<<std::endl;
+
+    		Tree* tree = Base::createEmptyTree(16*1024*1024);
+    		auto tree_values = Base::createRandomValuesVector(size);
+    		Base::fillVector(tree, tree_values);
+
+    		this->assertEqual(tree, tree_values);
+
+    		tree->removeSpace(0, tree->size());
+
+    		this->assertEmpty(tree);
+    	}
     }
 
 
