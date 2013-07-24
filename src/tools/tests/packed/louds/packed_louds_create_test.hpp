@@ -28,6 +28,7 @@ public:
     PackedLoudsCreateTest(): PackedLoudsTestBase("Create")
     {
     	MEMORIA_ADD_TEST(testCreateRandom);
+    	MEMORIA_ADD_TEST(testRemoveAll);
     }
 
     virtual ~PackedLoudsCreateTest() throw() {}
@@ -45,6 +46,46 @@ public:
     		PackedLoudsNode node(tree->select1(c), c);
 
     		checkTreeStructure(tree, node);
+    	}
+    }
+
+
+    PackedLoudsNode findRandomLeaf(const LoudsTree* tree)
+    {
+    	MEMORIA_ASSERT_TRUE(tree->tree_size() >= 1);
+
+    	return findRandomLeaf(tree, tree->root());
+    }
+
+    PackedLoudsNode findRandomLeaf(const LoudsTree* tree, const PackedLoudsNode& node)
+    {
+    	auto children = tree->children(node);
+
+    	if (children.length() > 0)
+    	{
+    		Int child = getRandom(children.length());
+
+    		return findRandomLeaf(tree, children.node(child));
+    	}
+    	else {
+    		return node;
+    	}
+    }
+
+
+    void testRemoveAll()
+    {
+    	LoudsTree* tree = createRandomTree(5000);
+    	PARemover remover(tree);
+
+    	while (tree->tree_size() > 1)
+    	{
+    		this->out()<<tree->tree_size()<<std::endl;
+
+    		auto leaf = findRandomLeaf(tree);
+    		tree->removeLeaf(leaf);
+
+    		checkTreeStructure(tree);
     	}
     }
 };

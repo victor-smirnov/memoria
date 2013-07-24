@@ -341,6 +341,10 @@ public:
 		Base::pack();
 	}
 
+	void removeSymbol(Int idx) {
+		remove(idx, idx + 1);
+	}
+
 
 
 	// ====================================== Batch IO ================================= //

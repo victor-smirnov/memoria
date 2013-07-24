@@ -1516,8 +1516,8 @@ public:
 
 	void dump(std::ostream& out = cout) const
 	{
-		out<<"Layout: "<<endl;
-		Base::dump(out);
+//		out<<"Layout: "<<endl;
+//		Base::dump(out);
 
 		out<<"size_         = "<<size()<<endl;
 		out<<"data_size_    = "<<data_size()<<endl;

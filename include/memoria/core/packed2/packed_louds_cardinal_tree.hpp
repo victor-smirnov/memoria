@@ -70,6 +70,13 @@ public:
 		return node;
 	}
 
+	void removeLeaf(const PackedLoudsNode& node)
+	{
+		Int idx = node.rank1() - 1;
+		labels()->removeSpace(idx, 1);
+		tree()->removeLeaf(node);
+	}
+
 	void init()
 	{
 		Int block_size = empty_size();
@@ -90,6 +97,7 @@ public:
 		for (Int c = 0; c < children.length(); c++)
 		{
 			Int node_label = labels->value(children.rank1() + c - 1);
+
 			if (node_label >= label)
 			{
 				return PackedLoudsNode(children.idx() + c, children.rank1() + c);
@@ -180,6 +188,59 @@ public:
 		}
 
 		return level < size;
+	}
+
+	enum class Status {
+		LEAF, NOT_FOUND, OK, FINISH
+	};
+
+	Status remove_path(const PackedLoudsNode& node, UBigInt path, Int size, Int level)
+	{
+		LoudsTree* louds = tree();
+		if (!louds->isLeaf(node))
+		{
+			Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+
+			PackedLoudsNode child = find_child(node, label);
+
+			if (child.is_empty())
+			{
+				return Status::NOT_FOUND;
+			}
+			else {
+				Status status = remove_path(child, path, size, level + 1);
+
+				if (status == Status::OK)
+				{
+					bool alone = louds->isAlone(node);
+
+					if (node.idx() > 0)
+					{
+						removeLeaf(node);
+					}
+
+					if (alone)
+					{
+						return Status::OK;
+					}
+					else {
+						return Status::FINISH;
+					}
+				}
+				else {
+					return status;
+				}
+			}
+		}
+		else {
+			return Status::OK;
+		}
+	}
+
+	bool remove_path(UBigInt path, Int size)
+	{
+		PackedLoudsNode node = tree()->root();
+		return remove_path(node, path, size, 0) != Status::NOT_FOUND;
 	}
 
 	void prepare()

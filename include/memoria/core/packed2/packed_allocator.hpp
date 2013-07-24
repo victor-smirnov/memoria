@@ -165,11 +165,7 @@ public:
 
 	Int resizeBlock(const void* element, Int new_size)
 	{
-		if (new_size == 160) {
-			int a = 0; a++;
-		}
-
-		Int idx 		= findElement(element);
+		Int idx = findElement(element);
 
 		return resizeBlock(idx, new_size);
 	}
@@ -189,9 +185,15 @@ public:
 			{
 				enlarge(delta);
 			}
+
+			moveElements(idx + 1, delta);
+		}
+		else {
+			moveElements(idx + 1, delta);
+
+
 		}
 
-		moveElements(idx + 1, delta);
 
 		return allocation_size;
 	}
@@ -414,7 +416,12 @@ public:
 
 	Int enlarge(Int delta)
 	{
-		return resize(block_size_ + roundUpBytesToAlignmentBlocks(delta));
+		return resize(roundUpBytesToAlignmentBlocks(block_size_ + delta));
+	}
+
+	Int shrink(Int delta)
+	{
+		return resize(roundUpBytesToAlignmentBlocks(block_size_ - delta));
 	}
 
 

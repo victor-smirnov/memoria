@@ -43,7 +43,8 @@ public:
 
 		MEMORIA_ADD_TEST_PARAM(alphabet_size_);
 
-		MEMORIA_ADD_TEST(testTree);
+		MEMORIA_ADD_TEST(testCreateTree);
+		MEMORIA_ADD_TEST(testRemoveTree);
     }
 
     virtual ~PackedWaveletTreeTest() throw() {}
@@ -170,10 +171,21 @@ public:
     	return text.size();
     }
 
+    void assertText(const Tree* tree, const vector<UInt>& text)
+    {
+    	AssertEQ(MA_SRC, tree->size(), (Int)text.size());
+
+    	for (UInt c = 0; c < text.size(); c++)
+    	{
+    		UInt value = tree->value(c);
+
+    		AssertEQ(MA_SRC, value, text[c], SBuf()<<c);
+    	}
+    }
 
 
 
-    void testTree()
+    void testCreateTree()
     {
     	Tree* tree = createTree();
     	PARemover remover(tree);
@@ -191,19 +203,14 @@ public:
     	for (UInt c = 0; c < text.size(); c++)
     	{
     		UBigInt path = text[c];
+
+    		out()<<"Insert at "<<c<<": "<<hex<<path<<dec<<std::endl;
     		tree->insert(c, path);
 
     		traverseTreePaths(tree->ctree()->tree(), fn);
     	}
 
-    	AssertEQ(MA_SRC, tree->size(), (Int)text.size());
-
-    	for (UInt c = 0; c < text.size(); c++)
-    	{
-    		UInt value = tree->value(c);
-
-    		AssertEQ(MA_SRC, value, text[c]);
-    	}
+    	assertText(tree, text);
 
     	auto ranks = getRankedSymbols(text);
 
@@ -235,6 +242,60 @@ public:
     	}
 
     	tree->dump(this->out());
+    }
+
+    void testRemoveTree()
+    {
+    	Tree* tree = createTree();
+    	PARemover remover(tree);
+
+    	tree->prepare();
+
+    	out()<<"Process new tree"<<std::endl;
+    	testRemoveTree(tree);
+
+    	out()<<"Process used empty tree"<<std::endl;
+    	testRemoveTree(tree);
+    }
+
+    void testRemoveTree(Tree* tree)
+    {
+    	auto fn = [](const PackedLoudsNode& node, Int level) {
+    		AssertEQ(MA_SRC, level, 3);
+    	};
+
+    	auto alphabet = createRandomAlphabet(alphabet_size_);
+
+    	auto text = createRandomText(size_, alphabet);
+
+    	for (auto t: text) {
+    		out()<<hex<<t<<endl;
+    	}
+
+    	for (UInt c = 0; c < text.size(); c++)
+    	{
+    		UBigInt path = text[c];
+    		tree->insert(c, path);
+    	}
+
+    	traverseTreePaths(tree->ctree()->tree(), fn);
+
+    	tree->dump(out());
+
+    	while (tree->size() > 0)
+    	{
+    		Int idx = getRandom(tree->size());
+
+    		out()<<"Remove: "<<idx<<" "<<hex<<tree->value(idx)<<dec<<std::endl;
+
+    		tree->remove(idx);
+
+    		text.erase(text.begin() + idx);
+
+    		assertText(tree, text);
+    	}
+
+    	tree->dump(out());
     }
 };
 

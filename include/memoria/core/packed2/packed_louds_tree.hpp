@@ -197,8 +197,6 @@ public:
 
 	PackedLoudsNode insertNode(const PackedLoudsNode& at)
 	{
-//		this->ensureCapacity(2);
-
 		this->insert(at.idx(), 1, 1);
 		this->reindex();
 
@@ -222,9 +220,45 @@ public:
 		SetBits(values, idx, bits, nbits);
 	}
 
+	void removeLeaf(const PackedLoudsNode& at)
+	{
+		PackedLoudsNode child = first_child(at);
+		if (this->symbol(child.idx()) == 0)
+		{
+			Base::remove(child.idx(), 	child.idx() + 1);
+			Base::remove(at.idx(), 		at.idx() + 1);
+
+			Base::reindex();
+		}
+		else {
+			throw Exception(MA_SRC, "Can't remove non-leaf node");
+		}
+	}
+
+
+
 	bool isLeaf(const PackedLoudsNode& node) const
 	{
 		return this->symbol(node.idx()) == 0;
+	}
+
+	bool isAlone(const PackedLoudsNode& node) const
+	{
+		MEMORIA_ASSERT(node.idx(), <, this->size());
+
+		Int idx = node.idx();
+
+		Int size = (idx < this->size() - 1) ? 3 : 2;
+
+		if (idx > 0)
+		{
+			Int value = GetBits(this->symbols(), idx - 1, size);
+			return value == 2;
+		}
+		else {
+			Int value = GetBits(this->symbols(), idx, size);
+			return value == 1;
+		}
 	}
 
 	Int rank0(Int pos) const
@@ -240,6 +274,10 @@ public:
 	Int rank1() const
 	{
 		return Base::rank(this->size(), 1);
+	}
+
+	Int tree_size() const {
+		return rank1();
 	}
 
 	Int select0(Int rank) const

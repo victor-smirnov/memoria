@@ -91,31 +91,10 @@ public:
 		insert(ctree()->tree()->root(), idx, value, 3);
 	}
 
-private:
-	void insert(const PackedLoudsNode& node, Int idx, UBigInt value, Int level)
-	{
-		Int label = (value >> (level * 8)) & 0xFF;
-
-		Int seq_num = node.rank1() - 1;
-
-		msequence()->insertSymbol(seq_num, idx, label);
-		Int rank = msequence()->rank(seq_num, idx + 1, label);
-
-		if (level > 0)
-		{
-			PackedLoudsNode child = ctree()->find_child(node, label);
-
-			if (rank == 1)
-			{
-				child = ctree()->insertNode(child, label);
-				msequence()->insertSubsequence(child.rank1() - 1);
-			}
-
-			insert(child, rank - 1, value, level - 1);
-		}
+	void remove(Int idx) {
+		removeValue(idx, ctree()->tree()->root(), 3);
 	}
 
-public:
 
 	UBigInt value(Int idx) const
 	{
@@ -126,78 +105,18 @@ public:
 		return value;
 	}
 
-private:
-
-	void buildValue(Int idx, const PackedLoudsNode& node, UBigInt& value, Int level) const
-	{
-		Int 	seq_num = node.rank1() - 1;
-		UBigInt label 	= msequence()->symbol(seq_num, idx);
-		Int 	rank	= msequence()->rank(seq_num, idx + 1, label);
-
-		value |= label << (level * 8);
-
-		if (level > 0)
-		{
-			PackedLoudsNode child = ctree()->find_child(node, label);
-
-			buildValue(rank - 1, child, value, level - 1);
-		}
-	}
-
-public:
 
 	Int rank(Int idx, UBigInt symbol) const
 	{
 		return buildRank(ctree()->tree()->root(), idx, symbol, 3);
 	}
 
-private:
-
-	Int buildRank(const PackedLoudsNode& node, Int idx, UBigInt symbol, Int level) const
-	{
-		Int seq_num = node.rank1() - 1;
-		Int label 	= (symbol >> (level * 8)) & 0xFFull;
-		Int rank	= msequence()->rank(seq_num, idx + 1, label);
-
-		if (level > 0)
-		{
-			PackedLoudsNode child = ctree()->find_child(node, label);
-			return buildRank(child, rank - 1, symbol, level - 1);
-		}
-		else {
-			return rank;
-		}
-	}
-
-public:
 
 	Int select(Int rank, UBigInt symbol) const
 	{
 		return select(ctree()->tree()->root(), rank, symbol, 3) - 1;
 	}
 
-private:
-
-	Int select(const PackedLoudsNode& node, Int rank, UBigInt symbol, Int level) const
-	{
-		if (level >= 0)
-		{
-			Int label = (symbol >> (level * 8)) & 0xFFull;
-
-			PackedLoudsNode child = ctree()->find_child(node, label);
-
-			Int rnk = select(child, rank, symbol, level - 1);
-
-			Int seq_num = node.rank1() - 1;
-			return msequence()->select(seq_num, rnk, label).idx() + 1;
-		}
-		else {
-			return rank;
-		}
-	}
-
-
-public:
 
 	static Int empty_size()
 	{
@@ -226,10 +145,10 @@ public:
 
 	void dump(ostream& out = cout, bool dump_index = true) const
 	{
-		if (dump_index)
-		{
-			Base::dump(out);
-		}
+//		if (dump_index)
+//		{
+//			Base::dump(out);
+//		}
 
 		out<<"Cardinal Tree:"<<endl;
 		ctree()->dump(out, dump_index);
@@ -237,6 +156,110 @@ public:
 		out<<"MultiSequence:"<<endl;
 		msequence()->dump(out, true, dump_index);
 	}
+
+private:
+
+	void insert(const PackedLoudsNode& node, Int idx, UBigInt value, Int level)
+	{
+		Int label = (value >> (level * 8)) & 0xFF;
+
+		Int seq_num = node.rank1() - 1;
+
+		msequence()->insertSymbol(seq_num, idx, label);
+		Int rank = msequence()->rank(seq_num, idx + 1, label);
+
+		if (level > 0)
+		{
+			PackedLoudsNode child = ctree()->find_child(node, label);
+
+			if (rank == 1)
+			{
+				child = ctree()->insertNode(child, label);
+				msequence()->insertSubsequence(child.rank1() - 1);
+			}
+
+			insert(child, rank - 1, value, level - 1);
+		}
+	}
+
+
+	void buildValue(Int idx, const PackedLoudsNode& node, UBigInt& value, Int level) const
+	{
+		Int 	seq_num = node.rank1() - 1;
+		UBigInt label 	= msequence()->symbol(seq_num, idx);
+
+		Int 	rank	= msequence()->rank(seq_num, idx + 1, label);
+
+		value |= label << (level * 8);
+
+		if (level > 0)
+		{
+			PackedLoudsNode child = ctree()->find_child(node, label);
+
+			buildValue(rank - 1, child, value, level - 1);
+		}
+	}
+
+	void removeValue(Int idx, const PackedLoudsNode& node, Int level)
+	{
+		Int 	seq_num = node.rank1() - 1;
+		UBigInt label 	= msequence()->symbol(seq_num, idx);
+		Int 	rank	= msequence()->rank(seq_num, idx + 1, label);
+
+		if (level > 0)
+		{
+			PackedLoudsNode child = ctree()->find_child(node, label);
+
+			removeValue(rank - 1, child, level - 1);
+		}
+
+		auto seq = this->msequence();
+
+		seq->removeSymbol(seq_num, idx);
+
+		if (seq->length(seq_num) == 0 && node.idx() > 0)
+		{
+			seq->remove(seq_num);
+			ctree()->removeLeaf(node);
+		}
+	}
+
+	Int select(const PackedLoudsNode& node, Int rank, UBigInt symbol, Int level) const
+	{
+		if (level >= 0)
+		{
+			Int label = (symbol >> (level * 8)) & 0xFFull;
+
+			PackedLoudsNode child = ctree()->find_child(node, label);
+
+			Int rnk = select(child, rank, symbol, level - 1);
+
+			Int seq_num = node.rank1() - 1;
+			return msequence()->select(seq_num, rnk, label).idx() + 1;
+		}
+		else {
+			return rank;
+		}
+	}
+
+
+	Int buildRank(const PackedLoudsNode& node, Int idx, UBigInt symbol, Int level) const
+	{
+		Int seq_num = node.rank1() - 1;
+		Int label 	= (symbol >> (level * 8)) & 0xFFull;
+		Int rank	= msequence()->rank(seq_num, idx + 1, label);
+
+		if (level > 0)
+		{
+			PackedLoudsNode child = ctree()->find_child(node, label);
+			return buildRank(child, rank - 1, symbol, level - 1);
+		}
+		else {
+			return rank;
+		}
+	}
+
+
 };
 
 

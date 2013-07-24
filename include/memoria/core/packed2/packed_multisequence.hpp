@@ -180,6 +180,24 @@ public:
 		seq->reindex();
 	}
 
+	void removeSymbol(Int subseq_num, Int idx)
+	{
+		Sequence* seq 		= sequence();
+		LabelArray* labels 	= this->labels();
+
+		Int seq_prefix	= labels->sum(0, subseq_num);
+
+		MEMORIA_ASSERT(idx, <=, labels->value(subseq_num));
+
+		seq->removeSymbol(seq_prefix + idx);
+
+		labels->value(subseq_num)--;
+
+		labels->reindex();
+
+		seq->reindex();
+	}
+
 	void appendSymbol(Int subseq_num, Int symbol)
 	{
 		LabelArray* labels  = this->labels();
@@ -188,9 +206,22 @@ public:
 		insertSymbol(subseq_num, size, symbol);
 	}
 
+	void remove(Int subseq_num)
+	{
+		LabelArray* labels  = this->labels();
+		MEMORIA_ASSERT(labels->value(0, subseq_num), ==, 0);
+
+		labels->removeSpace(subseq_num, subseq_num + 1);
+	}
+
 	Int subseq_size(Int seq_num) const
 	{
 		return labels()->value(seq_num);
+	}
+
+	Int length(Int seq_num) const
+	{
+		return subseq_size(seq_num);
 	}
 
 	static Int block_size(Int client_area)
@@ -223,9 +254,9 @@ public:
 
 	void dump(ostream& out = cout, bool multi = true, bool dump_index = true) const
 	{
-		if (dump_index) {
-			Base::dump(out);
-		}
+//		if (dump_index) {
+//			Base::dump(out);
+//		}
 
 		out<<"Sequence Labels: "<<endl;
 		labels()->dump(out, dump_index);
@@ -233,7 +264,8 @@ public:
 
 		if (multi)
 		{
-			if (dump_index) {
+			if (dump_index && sequence()->has_index())
+			{
 				sequence()->index()->dump(out);
 			}
 
@@ -247,7 +279,7 @@ public:
 			{
 				Int size = labels->value(c);
 
-				out<<"offset: "<<offset<<" size: "<<size<<endl;
+				out<<"seq: "<<c<<" offset: "<<offset<<" size: "<<size<<endl;
 
 				dumpSymbols<typename Sequence::Value>(out, size, 8, [values, offset](Int idx) {
 					return values[idx + offset];

@@ -168,8 +168,10 @@ public:
 		MEMORIA_ASSERT(idx, <=, size_);
 		MEMORIA_ASSERT(idx + space, <=, size_);
 
+		Value* data = this->data();
+
 		Int remainder = (size_ - idx - space) * BitsPerSymbol;
-		MoveBits(data(), (idx + space) * BitsPerSymbol, data(), idx * BitsPerSymbol, remainder);
+		MoveBits(data, data, (idx + space) * BitsPerSymbol, idx * BitsPerSymbol, remainder);
 
 		size_ -= space;
 	}
