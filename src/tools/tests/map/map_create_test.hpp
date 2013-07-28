@@ -77,6 +77,8 @@ public:
 
             for (vector_idx = 0; vector_idx < Base::size_; vector_idx++)
             {
+            	this->out()<<vector_idx<<endl;
+
             	auto iter = map[pairs[vector_idx].key_];
 
                 iter.value() = pairs[vector_idx].value_;

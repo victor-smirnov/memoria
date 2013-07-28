@@ -10,7 +10,7 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
-#include "../shared/sequence_create_test_base.hpp"
+#include "sequence_test_base.hpp"
 
 #include <vector>
 
@@ -20,104 +20,31 @@ using namespace memoria::vapi;
 using namespace std;
 
 template <Int BitsPerSymbol, bool Dense = true>
-class SequenceCreateTest: public SequenceCreateTestBase <
-									Sequence<BitsPerSymbol, Dense>,
-									SymbolSequence<BitsPerSymbol>
-						  >
-{
-    typedef SequenceCreateTest<BitsPerSymbol, Dense>                            MyType;
-    typedef MyType                                                              ParamType;
-    typedef SymbolSequence<BitsPerSymbol>										MemBuffer;
+class SequenceCreateTest: public SequenceTestBase<BitsPerSymbol, Dense> {
+	typedef SequenceCreateTest<BitsPerSymbol, Dense> 							MyType;
+	typedef SequenceTestBase<BitsPerSymbol, Dense> 								Base;
 
-    typedef SequenceCreateTestBase <
-				Sequence<BitsPerSymbol, Dense>,
-				SymbolSequence<BitsPerSymbol>
-    		>                                                          			Base;
-
-    typedef typename Base::Ctr               									Ctr;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Accumulator                                          Accumulator;
-    typedef typename Base::ID                                                   ID;
-    typedef typename Ctr::Value                                                 Symbol;
-
-    typedef typename Ctr::ElementType											T;
+	typedef typename Base::Allocator											Allocator;
+	typedef typename Base::Iterator												Iterator;
+	typedef typename Base::Ctr													Ctr;
 
 public:
-    SequenceCreateTest(StringRef name):
-        Base(name)
-    {
-    	Base::size_ 			= 32 * 1024 * 1024;
-    	Base::max_block_size_ 	= 1024 * 128;
-    	Base::check_size_ 		= 1000;
-    }
 
-    virtual Iterator seek(Ctr& array, BigInt pos) {
-    	return array.seek(pos);
-    }
+	SequenceCreateTest(StringRef name): Base(name)
+	{
+		MEMORIA_ADD_TEST(testCreate);
+	}
 
-    virtual void insert(Iterator& iter, MemBuffer& data)
-    {
-    	auto src = data.source();
-    	iter.insert(src);
-    }
+	void testCreate()
+	{
+		Allocator allocator;
 
-    virtual void read(Iterator& iter, MemBuffer& data)
-    {
-    	auto tgt = data.target();
-    	iter.read(tgt);
-    }
+		Ctr ctr(&allocator);
 
-    virtual void skip(Iterator& iter, BigInt offset)
-    {
-    	iter.skip(offset);
-    }
+		ctr.insert(0, 1);
 
-    virtual BigInt getSize(Ctr& ctr) {
-    	return ctr.size();
-    }
-
-    virtual BigInt getPosition(Iterator& iter) {
-    	return iter.pos();
-    }
-
-    virtual MemBuffer createBuffer(Int size)
-    {
-    	MemBuffer data(size);
-
-    	data.resize(size);
-
-    	data.fillCells([](UBigInt& cell) {
-    		cell = 0;
-    	});
-
-        return data;
-    }
-
-    virtual MemBuffer createRandomBuffer(Int size)
-    {
-    	MemBuffer data(size);
-
-    	data.resize(size);
-
-    	data.fillCells([](UBigInt& cell) {
-    		cell = getBIRandom();
-    	});
-
-    	return data;
-    }
-
-    ostream& out() {
-    	return Base::out();
-    }
-
-
-
-    virtual void remove(Iterator& iter, BigInt size)
-    {
-    	iter.remove(size);
-    }
+	}
 };
-
 
 
 

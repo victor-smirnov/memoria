@@ -958,7 +958,6 @@ public:
 			sum 				+= lengths[block];
 		}
 
-		Int total = lengths.sum();
 		other->insertSpace(0, lengths);
 
 		Codec codec;
@@ -971,7 +970,6 @@ public:
 		}
 
 		other->size() 		+= size - idx;
-		other->data_size()	+= total;
 
 		other->reindex();
 
@@ -1219,7 +1217,7 @@ public:
 	}
 
 
-	Values sum_values(Int from, Int to) const
+	Values sums(Int from, Int to) const
 	{
 		Values vals;
 
@@ -1230,6 +1228,7 @@ public:
 
 		return vals;
 	}
+
 
 	Values sums() const
 	{

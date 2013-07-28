@@ -13,13 +13,13 @@
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/containers/seq_dense/names.hpp>
+#include <memoria/containers/seq_dense/seqdense_names.hpp>
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
 
 namespace memoria    {
 
-using namespace memoria::btree;
+
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrChecksName)
 private:

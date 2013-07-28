@@ -20,7 +20,7 @@
 
 namespace memoria {
 
-using namespace std;
+
 
 enum class PackedBlockType {
 	RAW_MEMORY = 0, ALLOCATABLE = 1
@@ -288,8 +288,9 @@ public:
 	template <typename T>
 	T* allocate(Int idx, Int block_size)
 	{
-		static_assert(is_base_of<PackedAllocatable, T>::value, "Only derived classes of PackedAllocatable "
-														"should be instantiated this way");
+		static_assert(std::is_base_of<PackedAllocatable, T>::value,
+				"Only derived classes of PackedAllocatable "
+				"should be instantiated this way");
 
 		AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
 
@@ -303,7 +304,8 @@ public:
 	template <typename T>
 	T* allocateEmpty(Int idx)
 	{
-		static_assert(is_base_of<PackedAllocatable, T>::value, "Only derived classes of PackedAllocatable "
+		static_assert(std::is_base_of<PackedAllocatable, T>::value,
+				"Only derived classes of PackedAllocatable "
 				"should be instantiated this way");
 
 		Int block_size = T::empty_size();
@@ -321,8 +323,9 @@ public:
 	template <typename T>
 	T* allocate(Int idx)
 	{
-		static_assert(!is_base_of<PackedAllocatable, T>::value, "Only classes that are not derived from PackedAllocatable "
-																"should be instantiated this way");
+		static_assert(!std::is_base_of<PackedAllocatable, T>::value,
+				"Only classes that are not derived from PackedAllocatable "
+				"should be instantiated this way");
 
 		AllocationBlock block = allocate(idx, sizeof(T), PackedBlockType::RAW_MEMORY);
 		return block.cast<T>();
@@ -331,7 +334,8 @@ public:
 	template <typename T>
 	T* allocateArrayByLength(Int idx, Int length)
 	{
-		static_assert(!is_base_of<PackedAllocatable, T>::value, "Only classes that are not derived from PackedAllocatable "
+		static_assert(!std::is_base_of<PackedAllocatable, T>::value,
+				"Only classes that are not derived from PackedAllocatable "
 				"should be instantiated this way");
 
 		AllocationBlock block = allocate(idx, length, PackedBlockType::RAW_MEMORY);
@@ -341,7 +345,8 @@ public:
 	template <typename T>
 	T* allocateArrayBySize(Int idx, Int size)
 	{
-		static_assert(!is_base_of<PackedAllocatable, T>::value, "Only classes that are not derived from PackedAllocatable "
+		static_assert(!std::is_base_of<PackedAllocatable, T>::value,
+				"Only classes that are not derived from PackedAllocatable "
 				"should be instantiated this way");
 
 		AllocationBlock block = allocate(idx, sizeof(T)*size, PackedBlockType::RAW_MEMORY);
@@ -375,6 +380,28 @@ public:
 		return AllocationBlock(allocation_size, offset, base() + offset);
 	}
 
+	void importBlock(Int idx, const PackedAllocator* src, Int src_idx)
+	{
+		auto src_block 	= src->describe(src_idx);
+		auto type		= src->block_type(src_idx);
+
+		resizeBlock(idx, src_block.size());
+		setBlockType(idx, type);
+
+		auto tgt_block 	= this->describe(idx);
+
+		const UByte* src_ptr 	= src_block.ptr();
+		UByte* tgt_ptr 			= tgt_block.ptr();
+
+		CopyByteBuffer(src_ptr, tgt_ptr, src_block.size());
+
+		if (src_block.size() > 0 && type == PackedBlockType::ALLOCATABLE)
+		{
+			PackedAllocatable* element = T2T<PackedAllocatable*>(tgt_block.ptr());
+			element->setAllocatorOffset(this);
+		}
+	}
+
 	void free(Int idx)
 	{
 		Int size 		= element_size(idx);
@@ -391,6 +418,12 @@ public:
 	{
 		Bitmap* bitmap = this->bitmap();
 		SetBit(bitmap, idx, type == PackedBlockType::ALLOCATABLE);
+	}
+
+	PackedBlockType block_type(Int idx) const
+	{
+		const Bitmap* bitmap = this->bitmap();
+		return GetBit(bitmap, idx) ? PackedBlockType::ALLOCATABLE : PackedBlockType::RAW_MEMORY;
 	}
 
 	void dump(ostream& out = cout) const

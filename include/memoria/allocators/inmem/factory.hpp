@@ -14,6 +14,7 @@
 #include <memoria/containers/cmap/cmap_factory.hpp>
 #include <memoria/containers/vector/vector_factory.hpp>
 #include <memoria/containers/vector_map/vectormap_factory.hpp>
+#include <memoria/containers/seq_dense/seqdense_factory.hpp>
 
 //#include <memoria/containers/seq_dense/factory.hpp>
 //#include <memoria/containers/louds/louds_factory.hpp>

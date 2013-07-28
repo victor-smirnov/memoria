@@ -17,6 +17,7 @@ namespace seq_dense		{
 class CtrChecksName {};
 class CtrToolsName {};
 class CtrFindName {};
+class CtrInsertName {};
 
 class IterAPIName  {};
 
@@ -29,10 +30,10 @@ template <typename Types>
 struct DenseSequenceIterTypesT: IterTypesT<Types> {};
 
 template <typename Types>
-using DenseSequenceCtrTypes  = SequenceCtrTypes<DenseSequenceCtrTypesT<Types>>;
+using DenseSequenceCtrTypes  = BalTreeCtrTypes<DenseSequenceCtrTypesT<Types>>;
 
 template <typename Types>
-using DenseSequenceIterTypes = SequenceIterTypes<DenseSequenceIterTypesT<Types>>;
+using DenseSequenceIterTypes = BalTreeCtrTypes<DenseSequenceIterTypesT<Types>>;
 
 }
 

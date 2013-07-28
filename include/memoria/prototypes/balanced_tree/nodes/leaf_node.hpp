@@ -316,8 +316,10 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, TreeType* other)
     	{
-    		Tree* other_tree = other->allocator()->template allocate<Tree>(Idx, tree->block_size());
-    		tree->transferDataTo(other_tree);
+    		auto allocator = tree->allocator();
+    		auto other_allocator = other->allocator();
+
+    		other_allocator->importBlock(Idx, allocator, Idx);
     	}
     };
 
@@ -446,19 +448,6 @@ public:
 			{
 				*mem_size += Tree::block_size(size);
 			}
-
-
-//			if (size > 0)
-//			{
-//				*mem_size += Tree::block_size(size);
-//			}
-//			else if (tree != nullptr)
-//			{
-//				*mem_size += tree->allocated_block_size();
-//			}
-//			else {
-//				*mem_size += Tree::block_size(size);
-//			}
 		}
 	};
 
@@ -774,34 +763,36 @@ public:
     	void stream(Tree* tree, MyType* other, const Position* indexes)
     	{
     		Int idx   = indexes->value(Idx);
-    		Int shift = 0;
     		Int size  = tree->size();
 
     		MEMORIA_ASSERT_TRUE(idx >= 0);
-
-    		if (idx > size) {
-    			int a = 0; a++;
-    		}
-
     		MEMORIA_ASSERT_TRUE(idx <= size);
 
     		if (size > 0)
     		{
-    			Int remainder 		= size - idx;
-    			MEMORIA_ASSERT_TRUE(remainder >= 0);
+//    			Int remainder 		= size - idx;
+//    			MEMORIA_ASSERT_TRUE(remainder >= 0);
+//
+//    			Int block_size 		= Tree::block_size(remainder + shift);
+//    			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
+//
+//    			other_tree->insertSpace(0, remainder + shift);
+//
+//    			tree->copyTo(other_tree, idx, remainder, shift);
+//
+//    			other_tree->reindex();
+//
+//    			tree->removeSpace(idx, idx + remainder);
+//
+//    			tree->reindex();
 
-    			Int block_size 		= Tree::block_size(remainder + shift);
-    			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
+        		Int size = tree->size();
+        		if (size > 0)
+        		{
+        			Tree* other_tree 	= other->allocator()->template allocateEmpty<Tree>(Idx);
 
-    			other_tree->insertSpace(0, remainder + shift);
-
-    			tree->copyTo(other_tree, idx, remainder, shift);
-
-    			other_tree->reindex();
-
-    			tree->removeSpace(idx, idx + remainder);
-
-    			tree->reindex();
+        			tree->splitTo(other_tree, idx);
+        		}
     		}
     	}
     };
@@ -849,12 +840,32 @@ public:
     	template <Int Idx, typename TreeTypes>
     	void stream(const PackedFSETree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
     	{
-    		typedef PackedFSETree<TreeTypes> Tree;
+    		Int from 	= start->value(Idx);
+    		Int to 		= end->value(Idx);
 
-    		for (Int block = 0; block < Tree::Blocks; block++)
-    		{
-    			std::get<Idx>(*accum)[block] += tree->sum(block, start->value(Idx), end->value(Idx));
-    		}
+    		std::get<Idx>(*accum) += tree->sums(from, to);
+    	}
+
+    	template <Int Idx, typename TreeTypes>
+    	void stream(const PackedVLETree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
+    	{
+    		Int from 	= start->value(Idx);
+    		Int to 		= end->value(Idx);
+
+    		std::get<Idx>(*accum) += tree->sums(from, to);
+    	}
+
+    	template <Int Idx, typename SeqTypes>
+    	void stream(
+    			const PackedFSESearchableSeq<SeqTypes>* seq,
+    			const Position* start,
+    			const Position* end,
+    			Accumulator* accum)
+    	{
+    		Int from 	= start->value(Idx);
+    		Int to 		= end->value(Idx);
+
+    		std::get<Idx>(*accum) += seq->sum(from, to);
     	}
 
     	template <Int Idx, typename ArrayTypes>
@@ -908,7 +919,7 @@ public:
     	template <Int StreamIdx, typename Tree>
     	void stream(const Tree* tree, Int start, Int end, Accumulator* accum)
     	{
-    		std::get<StreamIdx>(*accum) += tree->sum_values(start, end);
+    		std::get<StreamIdx>(*accum) += tree->sums(start, end);
     	}
 
     	template <Int StreamIdx, typename Tree>
@@ -970,32 +981,28 @@ public:
 
 
 
-    struct MaxKeysFn {
-    	template <Int Idx, typename TreeTypes>
-    	void stream(const PackedFSETree<TreeTypes>* tree, Accumulator* acc)
-    	{
-    		typedef PackedFSETree<TreeTypes> Tree;
-
-    		for (Int c = 0; c < Tree::Blocks; c++)
-    		{
-    			std::get<Idx>(*acc)[c] = tree->sum(c);
-    		}
-    	}
-
-    	template <Int Idx, typename ArrayTypes>
-    	void stream(const PackedFSEArray<ArrayTypes>* array, Accumulator* acc)
-    	{
-    		std::get<Idx>(*acc)[0] = array->size();
-    	}
-    };
+//    struct MaxKeysFn {
+//    	template <Int Idx, typename TreeTypes>
+//    	void stream(const PackedFSETree<TreeTypes>* tree, Accumulator* acc)
+//    	{
+//    		typedef PackedFSETree<TreeTypes> Tree;
+//
+//    		for (Int c = 0; c < Tree::Blocks; c++)
+//    		{
+//    			std::get<Idx>(*acc)[c] = tree->sum(c);
+//    		}
+//    	}
+//
+//    	template <Int Idx, typename ArrayTypes>
+//    	void stream(const PackedFSEArray<ArrayTypes>* array, Accumulator* acc)
+//    	{
+//    		std::get<Idx>(*acc)[0] = array->size();
+//    	}
+//    };
 
     Accumulator maxKeys() const
     {
-    	Accumulator acc;
-
-    	Dispatcher::dispatchNotEmpty(&allocator_, MaxKeysFn(), &acc);
-
-    	return acc;
+    	return sums();
     }
 
 

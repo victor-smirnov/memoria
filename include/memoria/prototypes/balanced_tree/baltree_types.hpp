@@ -26,11 +26,13 @@ class IDType {};
 template <
 	template <typename, Int> class NonLeafPackedTypeFactory,
 	template <typename, Int> class LeafPackedTypeFactory,
-	Int Indexes_,
+	Int NodeIndexes_,
+	Int LeafIndexes_ = NodeIndexes_,
 	typename Value_ = EmptyType
 >
 struct StreamDescr {
-	static const Int Indexes = Indexes_;
+	static const Int NodeIndexes = NodeIndexes_;
+	static const Int LeafIndexes = LeafIndexes_;
 	typedef BigInt IndexType;
 	typedef Value_ Value;
 };

@@ -7,748 +7,444 @@
 #ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_WALKERS_HPP
 #define _MEMORIA_CONTAINERS_SEQ_DENSE_WALKERS_HPP
 
-#include <memoria/prototypes/sequence/sequence_walkers.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
+
+#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
 
 namespace memoria 	{
-namespace sequence 	{
+namespace seq_dense	{
 
-template <typename Walker, typename Sequence, typename State>
-class RankExtender: public btree::SumExtenderBase<Sequence, State> {
-
-	typedef btree::SumExtenderBase<Sequence, State> Base;
-
-	typedef typename Sequence::Symbol 	Symbol;
-	typedef typename Sequence::IndexKey 	IndexKey;
-
-	const Sequence& seq_;
+template <typename Types>
+class SkipForwardWalker: public FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
+	typedef FindForwardWalkerBase<Types, SkipForwardWalker<Types>> 				Base;
+	typedef typename Base::Key 													Key;
 
 public:
+	typedef typename Base::ResultType											ResultType;
 
-	RankExtender(Walker&, const Sequence& seq, State& state):
-		Base(seq, state),
-		seq_(seq)
+
+	SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
 	{}
 
-	void processValues(BigInt sum, Int key_num, Int start, Int end)
-	{
-		for (Int c = 0; c < this->state_.indexes(); c++)
-		{
-			Int 	idx = this->state_.idx(c);
-
-			size_t 	cnt = seq_.rank1(start, end, idx);
-
-			this->state_.value()(cnt, idx);
-		}
-	}
-};
-
-
-template <typename Walker, typename Sequence, typename State>
-class RankLoudsExtender: public balanced_tree::SumExtenderBase<Sequence, State> {
-
-	typedef balanced_tree::SumExtenderBase<Sequence, State> Base;
-
-	typedef typename Sequence::Symbol 	Symbol;
-	typedef typename Sequence::IndexKey 	IndexKey;
-
-	const Sequence& seq_;
-
-public:
-
-	RankLoudsExtender(Walker&, const Sequence& seq, State& state):
-		Base(seq, state),
-		seq_(seq)
-	{}
-
-	void processValues(BigInt sum, Int key_num, Int start, Int end)
-	{
-		for (Int c = 0; c < this->state_.indexes(); c++)
-		{
-			Int 	idx = this->state_.idx(c);
-
-			size_t 	cnt = seq_.rank(start, end, idx);
-
-			this->state_.value()(cnt, idx);
-		}
-	}
-};
-
-
-
-template <typename Walker, typename Sequence, typename State>
-class SelectExtender: public balanced_tree::SumExtenderBase<Sequence, State> {
-
-	typedef balanced_tree::SumExtenderBase<Sequence, State> Base;
-
-	typedef typename Sequence::Symbol 	Symbol;
-	typedef typename Sequence::IndexKey 	IndexKey;
-
-	const Sequence& seq_;
-
-public:
-
-	SelectExtender(Walker&, const Sequence& seq, State& state):
-		Base(seq, state),
-		seq_(seq)
-	{}
-
-	void processValues(BigInt sum, Int key_num, Int start, Int end)
-	{
-		for (Int c = 0; c < this->state_.indexes(); c++)
-		{
-			Int 	idx = this->state_.idx(c);
-
-			size_t 	cnt = seq_.rank1(start, end, idx);
-
-			this->state_.value()(cnt, idx);
-		}
-	}
-};
-
-
-
-
-template <
-	typename Sequence,
-	typename MainWalker,
-	template <typename Walker, typename Map, typename State> class Extender,
-	typename State
->
-class SelectForwardWalker: public DataForwardWalkerBase<Sequence, MainWalker, balanced_tree::BTreeCompareLT, Extender, State> {
-
-	typedef DataForwardWalkerBase<Sequence, MainWalker, balanced_tree::BTreeCompareLT, Extender, State> 		Base;
-	typedef SelectForwardWalker<Sequence, MainWalker, Extender, State> 							MyType;
-
-	typedef typename Sequence::Symbol											Symbol;
-
-	const Symbol* symbols_;
-
-	bool found_ = false;
-
-	const Sequence& seq_;
-
-public:
-
-	SelectForwardWalker(MainWalker& main_walker, const Sequence& data, BigInt limit, Int block_num, State& state):
-		Base(main_walker, data, limit, block_num, state),
-		seq_(data)
-	{
-		symbols_ 	= data.valuesBlock();
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start) {
+		return Base::template stream<Idx>(tree, start);
 	}
 
-	Int walkValues(Int start, Int end)
+	template <Int Idx, typename StreamTypes>
+	ResultType stream(const PackedFSESearchableSeq<StreamTypes>* seq, Int start)
 	{
-		auto& sum_ 			= Base::sum_;
-		auto& limit_		= Base::limit_;
-		auto& block_num_	= Base::block_num_;
+		auto& sum = Base::sum_;
 
-		Int idx;
+		BigInt offset = Base::target_ - sum;
 
-		if (Sequence::Bits == 1)
+		Int	size = seq != nullptr? seq->size() : 0;
+
+		if (start + offset < size)
 		{
-			auto result = block_num_?
-					Select1FW(symbols_, start, end, limit_) :
-					Select0FW(symbols_, start, end, limit_);
+			sum += offset;
 
-			sum_    += result.rank();
-			limit_  -= result.rank();
-
-			idx = result.idx();
-
-			found_  = result.is_found() || limit_ == 0;
+			return start + offset;
 		}
 		else {
-			Int total = 0;
+			sum += (size - start);
 
-			found_ = false;
-
-			idx = end;
-
-			Int value_block_offset = seq_.getValueBlockOffset();
-
-			for (Int c = start; c < end; c++)
-			{
-				total += seq_.testb(value_block_offset, c, Base::block_num_);
-
-				if (total == limit_)
-				{
-					idx = c;
-					break;
-				}
-			}
-
-			sum_ 	+= total;
-			limit_  -= total;
-
-			found_ 	= limit_ == 0;
+			return size;
 		}
-
-		if (found_)
-		{
-			Base::extender_.processValues(sum_, block_num_, start, idx + 1);
-		}
-		else {
-			Base::extender_.processValues(sum_, block_num_, start, end);
-		}
-
-		return idx;
-	}
-
-	Int walkIndex(Int start, Int end, Int)
-	{
-		return Base::walkIndex(start, end);
-	}
-
-	bool is_found() const
-	{
-		return found_;
 	}
 };
 
-
-
-
-
-
-
-template <
-	typename Sequence,
-	typename MainWalker,
-	template <typename Walker, typename Map, typename State> class Extender,
-	typename State
->
-class SelectBackwardWalker :public DataBackwardWalkerBase<Sequence, MainWalker, balanced_tree::BTreeCompareLT, Extender, State> {
-
-	typedef DataBackwardWalkerBase<Sequence, MainWalker, balanced_tree::BTreeCompareLT, Extender, State> 		Base;
-	typedef SelectBackwardWalker<Sequence, MainWalker, Extender, State> 						MyType;
-
-	typedef typename Sequence::Symbol											Symbol;
-
-	const Symbol* symbols_;
-
-	bool found_ = false;
-
-	const Sequence& seq_;
+template <typename Types>
+class SkipBackwardWalker: public FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
+	typedef FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>			Base;
+	typedef typename Base::Key 													Key;
 
 public:
+	typedef typename Base::ResultType											ResultType;
 
-	SelectBackwardWalker(MainWalker& main_walker, const Sequence& data, BigInt limit, Int block_num, State& state):
-		Base(main_walker, data, limit, block_num, state),
-		seq_(data)
+	SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
 	{
-		symbols_ 	= data.valuesBlock();
+		Base::search_type_ = SearchType::LT;
 	}
 
-	Int walkValues(Int start, Int end)
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start) {
+		return Base::stream(tree, start);
+	}
+
+
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSESearchableSeq<TreeTypes>* seq, Int start)
 	{
-		auto& sum_ 			= Base::sum_;
-		auto& limit_		= Base::limit_;
-		auto& block_num_	= Base::block_num_;
+		BigInt offset = Base::target_ - Base::sum_;
 
-		Int idx;
+		auto& sum = Base::sum_;
 
-		if (Sequence::Bits == 1)
+		if (start - offset >= 0)
 		{
-			auto result = block_num_?
-					Select1BW(symbols_, start, end, limit_) :
-					Select0BW(symbols_, start, end, limit_);
-
-			sum_    += result.rank();
-			limit_  -= result.rank();
-
-			idx = result.idx();
-
-			found_  = result.is_found() || limit_ == 0;
+			sum += offset;
+			return start - offset;
 		}
 		else {
-	    	if (limit_ == 0)
-	    	{
-	    		found_ = true;
-	    		return start;
-	    	}
-
-	    	found_ = false;
-
-	    	Int total 				= 0;
-	    	Int idx					= end;
-	    	Int value_block_offset 	= seq_.getValueBlockOffset();
-
-	    	for (Int c = start; c > end; c--)
-	    	{
-	    		total += seq_.testb(value_block_offset, c - 1, Base::block_num_);
-
-	    		if (total == Base::limit_)
-	    		{
-	    			idx = c - 1;
-	    			break;
-	    		}
-	    	}
-
-	    	sum_ 	+= total;
-	    	limit_  -= total;
-	    	found_ 	= limit_ == 0;
-
-	    	return idx;
+			sum += start;
+			return -1;
 		}
+	}
+};
 
-		if (found_)
+
+
+
+template <typename Types>
+class SelectForwardWalker: public FindForwardWalkerBase<Types, SelectForwardWalker<Types>> {
+	typedef FindForwardWalkerBase<Types, SelectForwardWalker<Types>> 			Base;
+	typedef typename Base::Key 													Key;
+
+	BigInt pos_ = 0;
+
+public:
+	typedef typename Base::ResultType											ResultType;
+
+
+	SelectForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
+	{
+		Base::search_type_ = SearchType::LE;
+	}
+
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start) {
+		return Base::stream(tree, start);
+	}
+
+	template <Int StreamIdx, typename StreamType, typename Result>
+	void postProcessStream(const StreamType* stream, Int start, const Result& result)
+	{
+		if (result.is_found())
 		{
-			Base::extender_.processValues(sum_, block_num_, idx + 1, start + 1);
+			pos_ += stream->sum(0, start, result.idx());
 		}
 		else {
-			Base::extender_.processValues(sum_, block_num_, end + 1, start + 1);
+			pos_ += stream->sum(0, start, stream->size());
 		}
-
-		return idx;
 	}
 
-	Int walkIndex(Int start, Int end, Int)
+	template <Int Idx, typename StreamTypes>
+	ResultType stream(const PackedFSESearchableSeq<StreamTypes>* seq, Int start)
 	{
-		return Base::walkIndex(start, end);
-	}
+		MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-	bool is_found() const
-	{
-		return found_;
-	}
-};
+		auto& sum 		= Base::sum_;
+		auto symbol		= Base::index_ - 1;
 
+		BigInt target 	= Base::target_ - sum;
+		auto result 	= seq->selectFw(start, symbol, target);
+		Int offset 		= result.is_found() ? result.idx() : seq->size();
 
+		Int	size 		= seq->size();
 
-
-
-
-
-template <
-	typename MainWalker,
-	typename Map,
-	template <typename Walker, typename MapType, typename State> class Extender,
-	typename ExtenderState
->
-class NodeCountForwardWalker: public balanced_tree::NodeWalkerBase {
-
-	typedef typename Map::Key Key;
-	typedef typename Map::IndexKey IndexKey;
-
-	BigInt 			sum_				= 0;
-
-	const Key* 		keys_;
-	const IndexKey* indexes_;
-
-	const Key* 		size_keys_;
-	const IndexKey* size_indexes_;
-
-	MainWalker& 	main_walker_;
-
-	Extender<MainWalker, Map, ExtenderState> extender_;
-
-	Int 			block_num_;
-public:
-	NodeCountForwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num, ExtenderState& state):
-		main_walker_(main_walker),
-		extender_(main_walker, map, state),
-		block_num_(block_num)
-	{
-		keys_ 		= map.keys(block_num);
-		indexes_ 	= map.indexes(block_num);
-
-		size_keys_ 		= map.keys(0);
-		size_indexes_ 	= map.indexes(0);
-	}
-
-	Int walkIndex(Int start, Int end)
-	{
-		for (Int c = start; c < end; c++)
+		if (start + offset < size)
 		{
-			IndexKey block_rank = indexes_[c];
-			IndexKey size 		= size_indexes_[c];
+			pos_ += offset;
 
-			if (block_rank == size)
-			{
-				sum_  	+= block_rank;
-			}
-			else {
-				extender_.processIndexes(sum_, block_num_, start, c);
-				return c;
-			}
-		}
-
-		extender_.processIndexes(sum_, block_num_, start, end);
-		return end;
-	}
-
-	Int walkKeys(Int start, Int end)
-	{
-		for (Int c = start; c < end; c++)
-		{
-			IndexKey block_rank = keys_[c];
-			IndexKey size 		= size_keys_[c];
-
-			if (block_rank == size)
-			{
-				sum_  	+= block_rank;
-			}
-			else {
-				extender_.processKeys(sum_, block_num_, start, c);
-				return c;
-			}
-		}
-
-		extender_.processKeys(sum_, block_num_, start, end);
-		return end;
-	}
-
-	void finish() {
-		main_walker_.adjust(sum_);
-	}
-
-	void adjustEnd(const Map& map)
-	{
-		main_walker_.adjust(-keys_[map.size() - 1]);
-		extender_.subtract(map.size() - 1);
-	}
-
-	BigInt sum() const
-	{
-		return sum_;
-	}
-};
-
-
-template <
-	typename MainWalker,
-	typename Map,
-	template <typename Walker, typename MapType, typename State> class Extender,
-	typename ExtenderState
->
-class NodeCountBackwardWalker: public balanced_tree::NodeWalkerBase {
-
-	typedef typename Map::Key Key;
-	typedef typename Map::IndexKey IndexKey;
-
-	BigInt 			sum_				= 0;
-
-	const Key* 		keys_;
-	const IndexKey* indexes_;
-
-	const Key* 		size_keys_;
-	const IndexKey* size_indexes_;
-
-	MainWalker& 	main_walker_;
-
-	Extender<MainWalker, Map, ExtenderState> extender_;
-
-	Int 			block_num_;
-
-public:
-	NodeCountBackwardWalker(MainWalker& main_walker, const Map& map, BigInt limit, Int block_num, ExtenderState& state):
-		main_walker_(main_walker),
-		extender_(main_walker, map, state),
-		block_num_(block_num)
-	{
-		keys_ 		= map.keys(block_num);
-		indexes_ 	= map.indexes(block_num);
-
-		size_keys_ 		= map.keys(0);
-		size_indexes_ 	= map.indexes(0);
-	}
-
-	Int walkIndex(Int start, Int end)
-	{
-		for (Int c = start; c > end; c--)
-		{
-			IndexKey block_rank = indexes_[c];
-			IndexKey size 		= size_indexes_[c];
-
-			if (block_rank == size)
-			{
-				sum_   += block_rank;
-			}
-			else {
-				extender_.processIndexes(sum_, block_num_, c + 1, start + 1);
-				return c;
-			}
-		}
-
-		extender_.processIndexes(sum_, block_num_, end + 1, start + 1);
-		return end;
-	}
-
-
-	Int walkKeys(Int start, Int end)
-	{
-		for (Int c = start; c > end; c--)
-		{
-			IndexKey block_rank = keys_[c];
-			IndexKey size 		= size_keys_[c];
-
-			if (block_rank == size)
-			{
-				sum_   += block_rank;
-			}
-			else {
-				extender_.processKeys(sum_, block_num_, c + 1, start + 1);
-				return c;
-			}
-		}
-
-		extender_.processKeys(sum_, block_num_, end + 1, start + 1);
-		return end;
-	}
-
-	void finish() {
-		main_walker_.adjust(sum_);
-	}
-
-	void adjustStart(const Map& map)
-	{
-		main_walker_.adjust(-keys_[0]);
-		extender_.subtract(0);
-	}
-
-	BigInt sum() const {
-		return sum_;
-	}
-};
-
-
-
-
-
-template <
-	typename Sequence,
-	typename MainWalker,
-	template <typename Walker, typename Map, typename State> class Extender,
-	typename State
->
-class PackedSequenceCountForwardWalker: public balanced_tree::NodeWalkerBase {
-
-	typedef typename Sequence::IndexKey IndexKey;
-	typedef typename Sequence::Symbol 	Symbol;
-
-	BigInt 			sum_				= 0;
-
-	const IndexKey* indexes_;
-
-	MainWalker& 	main_walker_;
-
-	Extender<MainWalker, Sequence, State> extender_;
-
-	Int block_num_;
-
-	const Sequence& data_;
-
-	bool found_ = false;
-
-public:
-	PackedSequenceCountForwardWalker(
-			MainWalker& main_walker,
-			const Sequence& data,
-			BigInt limit,
-			Int block_num,
-			State& state
-	):
-		main_walker_(main_walker),
-		extender_(main_walker, data, state),
-		block_num_(block_num),
-		data_(data)
-	{
-		indexes_ 	= data.indexes(block_num);
-	}
-
-	Int walkIndex(Int start, Int end, Int size)
-	{
-		for (Int c = start; c < end; c++)
-		{
-			IndexKey block_rank = indexes_[c];
-
-			if (block_rank == (IndexKey)size)
-			{
-				sum_  	+= block_rank;
-			}
-			else {
-				extender_.processIndexes(sum_, block_num_, start, c);
-				return c;
-			}
-		}
-
-		extender_.processIndexes(sum_, block_num_, start, end);
-		return end;
-	}
-
-	Int walkValues(Int start, Int end)
-	{
-		if (Sequence::Bits == 1)
-		{
-			const Symbol*	bitmap = data_.valuesBlock();
-
-			Int count = block_num_? CountOneFw(bitmap, start, end) : CountZeroFw(bitmap, start, end);
-
-			sum_ 	+= count;
-			found_ 	= count < (end - start);
-
-			extender_.processValues(sum_, block_num_, start, start + count);
-
-			return start + count;
+			return start + offset;
 		}
 		else {
-			Int total = 0;
-			Int value_block_offset = data_.getValueBlockOffset();
+			pos_ += (size - start);
 
-			Int c;
-			for (c = start; c < end; c++)
-			{
-				if (data_.testb(value_block_offset, c, block_num_))
-				{
-					total++;
-				}
-				else {
-					break;
-				}
-			}
-
-			sum_  	+= total;
-			found_ 	=  c != end;
-
-			extender_.processValues(sum_, block_num_, start, c);
-
-			return c;
+			return size;
 		}
-	}
-
-	void finish()
-	{
-		main_walker_.adjust(sum_);
-	}
-
-	BigInt sum() const {
-		return sum_;
-	}
-
-	bool is_found() const {
-		return found_;
 	}
 };
 
 
 
-template <
-	typename Sequence,
-	typename MainWalker,
-	template <typename Walker, typename Map, typename State> class Extender,
-	typename State
->
-class PackedSequenceCountBackwardWalker: public balanced_tree::NodeWalkerBase {
+template <typename Types>
+class SelectBackwardWalker: public FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>> {
+	typedef FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>>			Base;
+	typedef typename Base::Key 													Key;
 
-	typedef typename Sequence::IndexKey IndexKey;
-	typedef typename Sequence::Symbol 	Symbol;
 
-	BigInt 			sum_				= 0;
-
-	const IndexKey* indexes_;
-
-	MainWalker& 	main_walker_;
-
-	Extender<MainWalker, Sequence, State> extender_;
-
-	Int block_num_;
-
-	const Sequence& data_;
-
-	bool found_ = false;
+	BigInt pos_ = 0;
 
 public:
-	PackedSequenceCountBackwardWalker(
-			MainWalker& main_walker,
-			const Sequence& data,
-			BigInt limit,
-			Int block_num,
-			State& state
-	):
-		main_walker_(main_walker),
-		extender_(main_walker, data, state),
-		block_num_(block_num),
-		data_(data)
+	typedef typename Base::ResultType											ResultType;
+
+	SelectBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
 	{
-		indexes_ 	= data.indexes(block_num);
+		Base::search_type_ = SearchType::LE;
 	}
 
-	Int walkIndex(Int start, Int end, Int size)
-	{
-		for (Int c = start; c > end; c--)
-		{
-			IndexKey block_rank = indexes_[c];
-
-			if (block_rank >= (IndexKey)size)
-			{
-				sum_  += block_rank;
-			}
-			else {
-				extender_.processIndexes(sum_, block_num_, c + 1, start + 1);
-				return c;
-			}
-		}
-
-		extender_.processIndexes(sum_, block_num_, end + 1, start + 1);
-		return end;
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start) {
+		return Base::stream(tree, start);
 	}
 
-	Int walkValues(Int start, Int end)
+	template <Int StreamIdx, typename StreamType, typename Result>
+	void postProcessStream(const StreamType* stream, Int start, const Result& result)
 	{
-		if (Sequence::Bits == 1)
+		if (result.is_found())
 		{
-			const Symbol* bitmap = data_.valuesBlock();
-
-			Int count = block_num_? CountOneBw(bitmap, start, end) : CountZeroBw(bitmap, start, end);
-
-			sum_ += count;
-
-			found_ = count < (start - end);
-
-			extender_.processIndexes(sum_, block_num_, start - count, start + 1);
-
-			return start - count - 1;
+			pos_ += stream->sum(0, result.idx() + 1, start + 1);
 		}
 		else {
-			Int total = 0;
-			Int value_block_offset = data_.getValueBlockOffset();
-
-			found_ = false;
-
-			Int c;
-			for (c = start - 1; c >= end; c--)
-			{
-				if (data_.testb(value_block_offset, c, block_num_))
-				{
-					total++;
-				}
-				else {
-					found_ = true;
-					break;
-				}
-			}
-
-			sum_  += total;
-
-			extender_.processIndexes(sum_, block_num_, c + 1, start + 1);
-
-			return c;
+			pos_ += stream->sum(0, 0, start + 1);
 		}
 	}
 
-	void finish()
+
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSESearchableSeq<TreeTypes>* seq, Int start)
 	{
-		main_walker_.adjust(sum_);
-	}
+		MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-	BigInt sum() const {
-		return sum_;
-	}
+		BigInt target 	= Base::target_ - Base::sum_;
 
-	bool is_found() const {
-		return found_;
+		auto& sum 		= Base::sum_;
+		auto symbol		= Base::index_ - 1;
+
+		auto result 	= seq->selectBw(start, symbol, target);
+		Int offset  	= result.is_found() ? result.idx() : -1;
+
+		if (start - offset >= 0)
+		{
+			sum += offset;
+			return start - offset;
+		}
+		else {
+			sum += start;
+			return -1;
+		}
 	}
 };
+
+
+
+template <typename Types>
+class RankWalker: public FindForwardWalkerBase<Types, RankWalker<Types>> {
+	typedef FindForwardWalkerBase<Types, RankWalker<Types>> 					Base;
+	typedef typename Base::Key 													Key;
+
+	BigInt rank_ = 0;
+
+public:
+	typedef typename Base::ResultType											ResultType;
+
+	RankWalker(Int stream, Int index, Key target): Base(stream, index, target)
+	{
+		Base::search_type_ = SearchType::LT;
+	}
+
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start) {
+		return Base::stream(tree, start);
+	}
+
+	template <Int StreamIdx, typename StreamType, typename Result>
+	void postProcessStream(const StreamType* stream, Int start, const Result& result)
+	{
+		Int index = Base::index_;
+
+		if (result.is_found())
+		{
+			rank_ += stream->sum(index, start, result.idx());
+		}
+		else {
+			rank_ += stream->sum(index, start, stream->size());
+		}
+	}
+
+	template <Int Idx, typename StreamTypes>
+	ResultType stream(const PackedFSESearchableSeq<StreamTypes>* seq, Int start)
+	{
+		MEMORIA_ASSERT_TRUE(seq != nullptr);
+
+		auto& sum 		= Base::sum_;
+		auto symbol		= Base::index_ - 1;
+
+		BigInt offset 	= Base::target_ - sum;
+
+
+		Int	size 		= seq->size();
+
+		if (start + offset < size)
+		{
+			rank_ += seq->rank(start, start + offset, symbol);
+
+			sum += offset;
+
+			return start + offset;
+		}
+		else {
+			rank_ += seq->rank(start, seq->size(), symbol);
+
+			sum += (size - start);
+
+			return size;
+		}
+	}
+};
+
+
+
+
+
+
+
+template <typename Types>
+class FindRangeWalkerBase {
+protected:
+	typedef Iter<typename Types::IterTypes> Iterator;
+	typedef Ctr<typename Types::CtrTypes> 	Container;
+
+	typedef typename Types::Accumulator		Accumulator;
+
+	WalkDirection direction_;
+
+public:
+	FindRangeWalkerBase() {}
+
+	WalkDirection& direction() {
+		return direction_;
+	}
+
+	void empty(Iterator& iter)
+	{
+		iter.cache().setup(Accumulator());
+	}
+};
+
+
+
+template <typename Types>
+class FindEndWalker: public FindRangeWalkerBase<Types> {
+
+	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef typename Base::Iterator 		Iterator;
+	typedef typename Base::Container 		Container;
+
+	typedef typename Types::Accumulator 	Accumulator;
+
+	Accumulator prefix_;
+
+public:
+	typedef Int ReturnType;
+
+	FindEndWalker(Int stream, Container&) {}
+
+	template <typename Node>
+	ReturnType treeNode(const Node* node, Int start)
+	{
+		if (node->level() > 0)
+		{
+			VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
+		}
+		else {
+			VectorAdd(prefix_, node->maxKeys());
+		}
+
+		return node->children_count() - 1;
+	}
+
+	void finish(Iterator& iter, Int idx)
+	{
+		iter.key_idx() = idx + 1;
+		iter.cache().setup(prefix_);
+	}
+};
+
+
+template <typename Types>
+class FindREndWalker: public FindRangeWalkerBase<Types> {
+
+	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef typename Base::Iterator 		Iterator;
+	typedef typename Base::Container 		Container;
+	typedef typename Types::Accumulator 	Accumulator;
+
+public:
+	typedef Int ReturnType;
+
+	FindREndWalker(Int stream, Container&) {}
+
+	template <typename Node>
+	ReturnType treeNode(const Node* node)
+	{
+		return 0;
+	}
+
+	void finish(Iterator& iter, Int idx)
+	{
+		iter.key_idx() = idx - 1;
+
+		iter.cache().setup(Accumulator());
+	}
+};
+
+
+
+template <typename Types>
+class FindBeginWalker: public FindRangeWalkerBase<Types> {
+
+	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef typename Base::Iterator 		Iterator;
+	typedef typename Base::Container 		Container;
+	typedef typename Types::Accumulator 	Accumulator;
+
+public:
+	typedef Int ReturnType;
+
+
+	FindBeginWalker(Int stream, Container&) {}
+
+
+	template <typename Node>
+	ReturnType treeNode(const Node* node)
+	{
+		return 0;
+	}
+
+	void finish(Iterator& iter, Int idx)
+	{
+		iter.key_idx() = 0;
+
+		iter.cache().setup(Accumulator());
+	}
+};
+
+template <typename Types>
+class FindRBeginWalker: public FindRangeWalkerBase<Types> {
+
+	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef typename Base::Iterator 		Iterator;
+	typedef typename Base::Container 		Container;
+
+	typedef typename Types::Accumulator 	Accumulator;
+
+	Accumulator prefix_;
+
+public:
+	FindRBeginWalker(Int stream, Container&) {}
+
+	typedef Int ReturnType;
+
+
+
+	template <typename Node>
+	ReturnType treeNode(const Node* node)
+	{
+		VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
+
+		return node->children_count() - 1;
+	}
+
+	void finish(Iterator& iter, Int idx)
+	{
+		iter.key_idx() = idx;
+
+		iter.cache().setup(prefix_);
+	}
+};
+
 
 
 

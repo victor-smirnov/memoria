@@ -101,6 +101,7 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
 
 	Int idx 		= iter.idx();
 
+
 	if (self.checkCapacities(leaf, {0, data_size}) || self.isNodeEmpty(leaf))
 	{
 		insertDataInternal1(iter, {-1, idx}, data);

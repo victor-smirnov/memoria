@@ -13,12 +13,12 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/tools/idata.hpp>
 
-#include <memoria/prototypes/btree/btree_walkers.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
 
 #include <functional>
 
 namespace memoria    {
-namespace sequence 	 {
+namespace seq_dense	 {
 
 using namespace std;
 

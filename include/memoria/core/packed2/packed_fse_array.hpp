@@ -173,7 +173,7 @@ public:
 		return end - start;
 	}
 
-	Values sum_values(Int from, Int to) const
+	Values sums(Int from, Int to) const
 	{
 		Values vals;
 
@@ -181,6 +181,7 @@ public:
 
 		return vals;
 	}
+
 
 	Values sums() const
 	{
@@ -288,6 +289,8 @@ public:
 		other->insertSpace(0, split_size);
 
 		copyTo(other, idx, split_size, 0);
+
+		removeSpace(idx, this->size());
 	}
 
 	void mergeWith(MyType* other)

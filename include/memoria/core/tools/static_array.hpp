@@ -501,14 +501,14 @@ public:
         return *this;
     }
 
-    MyType& operator=(const ElementType* keys)
-    {
-        for (Int c = 0; c < Indexes; c++)
-        {
-            values_[c] = keys[c];
-        }
-        return *this;
-    }
+//    MyType& operator=(const ElementType* keys)
+//    {
+//        for (Int c = 0; c < Indexes; c++)
+//        {
+//            values_[c] = keys[c];
+//        }
+//        return *this;
+//    }
 
     MyType& setAll(const ElementType& keys)
     {

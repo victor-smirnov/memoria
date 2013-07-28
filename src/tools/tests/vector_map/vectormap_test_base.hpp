@@ -139,6 +139,12 @@ public:
     			createRandomVMap(allocator, map, size_) :
     			createZeroDataVMap(allocator, map, size_);
 
+    	allocator.commit();
+
+    	StoreAllocator(allocator, getResourcePath("prealloc.dump"));
+
+    	check(allocator, MA_SRC);
+
     	checkDataFw(tripples_, map);
 
     	allocator.commit();
@@ -147,6 +153,8 @@ public:
     		for (this->iteration_ = 0; this->iteration_ < max_iterations; this->iteration_++)
     		{
     			test_fn(T2T<TestType*>(this), allocator, map);
+
+    			check(allocator, MA_SRC);
 
     			allocator.commit();
     		}

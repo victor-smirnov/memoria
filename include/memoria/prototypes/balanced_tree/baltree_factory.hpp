@@ -69,7 +69,7 @@ struct PackedFSETreeTF {
     >::Result																	Descriptor;
 
 	typedef Packed2TreeTypes<
-			Key, Key, Descriptor::Indexes
+			Key, Key, Descriptor::NodeIndexes
 	>																			TreeTypes;
 
 	typedef PackedFSETree<TreeTypes> Type;
@@ -108,7 +108,7 @@ struct PackedVLETreeTF {
     >::Result																	Descriptor;
 
 	typedef Packed2TreeTypes<
-			Key, Key, Descriptor::Indexes, UByteExintCodec
+			Key, Key, Descriptor::NodeIndexes, UByteExintCodec
 	>																			TreeTypes;
 
 	typedef PackedVLETree<TreeTypes> Type;

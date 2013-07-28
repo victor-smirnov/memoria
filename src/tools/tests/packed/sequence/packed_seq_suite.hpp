@@ -9,9 +9,8 @@
 
 #include "../../tests_inc.hpp"
 
-//#include "palloc_cxseq_test.hpp"
+
 //#include "palloc_cxmultiseq_test.hpp"
-//#include "palloc_bitvector_test.hpp"
 
 #include "palloc_rank_test.hpp"
 #include "palloc_select_test.hpp"

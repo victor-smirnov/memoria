@@ -323,7 +323,7 @@ template <typename List> struct AccumulatorListBuilder;
 template <typename Head, typename... Tail>
 struct AccumulatorListBuilder<TypeList<Head, Tail...>> {
 	typedef typename MergeLists<
-			StaticVector<typename Head::IndexType, Head::Indexes>,
+			StaticVector<typename Head::IndexType, Head::NodeIndexes>,
 			typename AccumulatorListBuilder<TypeList<Tail...>>::Type
 	>::Result																	Type;
 };

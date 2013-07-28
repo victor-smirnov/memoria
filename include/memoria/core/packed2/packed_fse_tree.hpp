@@ -620,7 +620,7 @@ public:
 	}
 
 
-	Values sum_values(Int from, Int to) const
+	Values sums(Int from, Int to) const
 	{
 		Values vals;
 
@@ -632,26 +632,19 @@ public:
 		return vals;
 	}
 
+
 	Values sums() const
 	{
 		Values vals;
 
-		if (index_size() > 0)
+		for (Int block = 0; block < Blocks; block++)
 		{
-			for (Int block = 0; block < Blocks; block++)
-			{
-				vals[block] = indexes(block)[0];
-			}
-		}
-		else {
-			for (Int block = 0; block < Blocks; block++)
-			{
-				vals[block] = sum(block);
-			}
+			vals[block] = sum(block);
 		}
 
 		return vals;
 	}
+
 
 	ValueDescr findLTForward(Int block, Int start, IndexValue val) const
 	{

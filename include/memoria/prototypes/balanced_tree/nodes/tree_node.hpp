@@ -581,8 +581,10 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, TreeType* other)
     	{
-    		Tree* other_tree = other->allocator()->template allocate<Tree>(Idx, tree->block_size(0));
-    		tree->transferDataTo(other_tree);
+    		auto allocator = tree->allocator();
+    		auto other_allocator = other->allocator();
+
+    		other_allocator->importBlock(Idx, allocator, Idx);
     	}
     };
 
@@ -965,9 +967,7 @@ public:
     		Int size = tree->size();
     		if (size > 0)
     		{
-    			Int block_size 		= Tree::block_size(0);
-    			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
-
+    			Tree* other_tree = other->allocator()->template allocateEmpty<Tree>(Idx);
     			tree->splitTo(other_tree, idx);
     		}
     	}

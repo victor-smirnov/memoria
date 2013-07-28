@@ -249,7 +249,7 @@ public:
 	FindForwardWalkerBase(Int stream, Int block, Key target): Base(stream, block, target)
 	{}
 
-	typedef Int ResultType;
+	typedef Int 																ResultType;
 
 	template <Int Idx, typename TreeTypes>
 	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start)

@@ -22,7 +22,7 @@ namespace memoria {
 
 
 template <
-	Int BitsPerSymbol_		= 8,
+	Int BitsPerSymbol_		= 1,
 	Int BF 					= PackedTreeBranchingFactor,
 	Int VPB 				= 512,
 
@@ -102,6 +102,8 @@ public:
 	typedef BitmapAccessor<const Value*, Int, BitsPerSymbol>					ConstSymbolAccessor;
 
 	static const Int IndexSizeThreshold											= 0;
+
+	typedef StaticVector<BigInt, Indexes + 1> 									Values;
 
 
 	class Metadata {
@@ -466,9 +468,9 @@ public:
 
 		other->enlargeData(to_move);
 
-		MoveBits(other->symbols(), 0, other->symbols(), to_move * BitsPerSymbol, other_size * BitsPerSymbol);
+		MoveBits(other->symbols(), other->symbols(), 0, to_move * BitsPerSymbol, other_size * BitsPerSymbol);
 
-		MoveBits(this->symbols(), idx * BitsPerSymbol, other->symbols(), 0, to_move * BitsPerSymbol);
+		MoveBits(this->symbols(), other->symbols(), idx * BitsPerSymbol, 0, to_move * BitsPerSymbol);
 
 		other->size() += to_move;
 		other->reindex();
@@ -494,6 +496,34 @@ public:
 
 
 	// ========================================= Query ================================= //
+
+	Values sums() const
+	{
+//		if (has_index())
+//		{
+//			auto index = this->index();
+//			return index->sums();
+//		}
+//		else {
+//			return Values();
+//		}
+
+		return Values();
+	}
+
+	Values sums(Int to) const
+	{
+		return Values();
+	}
+
+	Values sums(Int from, Int to) const
+	{
+		return sums(to) - sums(from);
+	}
+
+	Values sum(Int from, Int to) const {
+		return sums(from, to);
+	}
 
 	Int get(Int idx) const
 	{

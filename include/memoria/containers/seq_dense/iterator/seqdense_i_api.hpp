@@ -1,28 +1,29 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR_ITERATOR_API_HPP
-#define _MEMORIA_CONTAINER_VECTOR_ITERATOR_API_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQDENSE_ITERATOR_API_HPP
+#define _MEMORIA_CONTAINERS_SEQDENSE_ITERATOR_API_HPP
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/dump.hpp>
 
-#include <memoria/containers/vector/vector_names.hpp>
-#include <memoria/containers/vector/vector_tools.hpp>
+#include <memoria/containers/seq_dense/seqdense_names.hpp>
+#include <memoria/containers/seq_dense/seqdense_tools.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <iostream>
+#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
 
 namespace memoria    {
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
+
+MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
 
 	typedef Ctr<typename Types::CtrTypes>                      					Container;
 
@@ -37,8 +38,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 	typedef typename Container::Element                                   		Element;
 	typedef typename Container::Accumulator                               		Accumulator;
 
-	typedef typename Container::DataSource                                		DataSource;
-	typedef typename Container::DataTarget                                		DataTarget;
+//	typedef typename Container::DataSource                                		DataSource;
+//	typedef typename Container::DataTarget                                		DataTarget;
 	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
 	typedef typename Container::Position										Position;
 
@@ -76,71 +77,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 		return self().idx() < 0;
 	}
 
-//	bool nextLeaf()
-//	{
-//		auto& self 		= this->self();
-//		auto& ctr 		= self.ctr();
-//
-//		auto next = ctr.getNextNodeP(self.leaf());
-//
-//		if (next)
-//		{
-//			self.leaf() = next;
-//			self.idx() 	= 0;
-//			return true;
-//		}
-//		else {
-//			return false;
-//		}
-//	}
-
-	void insert(std::vector<Value>& data)
-	{
-		auto& self = this->self();
-		auto& model = self.ctr();
-
-		MemBuffer<Value> buf(data);
-
-		model.insert(self, buf);
-	}
-
 	Int size() const
 	{
 		return self().leafSize(0);
-	}
-
-	MEMORIA_DECLARE_NODE_FN(ReadFn, read);
-
-
-	BigInt read(DataTarget& data)
-	{
-		auto& self = this->self();
-		mvector::VectorTarget target(&data);
-
-		return self.ctr().readStream(self, target);
-	}
-
-	BigInt read(std::vector<Value>& data)
-	{
-		MemTBuffer<Value> buf(data);
-		return read(buf);
-	}
-
-	void remove(BigInt size)
-	{
-		auto& self = this->self();
-		self.ctr().remove(self, size);
-	}
-
-	std::vector<Value> subVector(BigInt size)
-	{
-		std::vector<Value> data(size);
-
-		auto iter = self();
-
-		iter.read(data);
-
-		return data;
 	}
 
 	BigInt skipFw(BigInt amount);
@@ -170,36 +109,22 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
 		self.ctr().walkUp(self.leaf(), self.idx(), fn);
 
-		return fn.prefix_ + self.key_idx();
+		return fn.prefix_ + self.idx();
 	}
 
-	BigInt dataPos() const {
-		return self().idx();
+	void insert(Int symbol) {
+
 	}
 
-	BigInt prefix() const {
-		return self().cache().prefix();
+	void remove(Int symbol) {
+
 	}
 
-	Accumulator prefixes() const {
-		Accumulator acc;
-		std::get<0>(acc)[0] = prefix();
-		return acc;
-	}
-
-	void ComputePrefix(BigInt& accum)
-	{
-		accum = prefix();
-	}
-
-	void ComputePrefix(Accumulator& accum)
-	{
-		accum = prefixes();
-	}
-
+    
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mvector::ItrApiName)
+
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::seq_dense::IterAPIName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
@@ -235,9 +160,13 @@ BigInt M_TYPE::skipBw(BigInt amount)
 
 
 
-}
 
 #undef M_TYPE
 #undef M_PARAMS
+
+
+}
+
+
 
 #endif

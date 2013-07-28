@@ -42,7 +42,7 @@ struct PackedVMapFSETreeLeafTF {
     >::Result																	Descriptor;
 
 	typedef Packed2TreeTypes<
-			Key, Key, Descriptor::Indexes
+			Key, Key, Descriptor::LeafIndexes
 	>																			TreeTypes;
 
 	typedef PackedFSETree<TreeTypes> Type;
