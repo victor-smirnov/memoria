@@ -1283,6 +1283,19 @@ public:
     void dump() const
     {
     	Dispatcher::dispatchNotEmpty(&allocator_, DumpFn());
+    	dumpValues();
+    }
+
+    void dumpValues() const
+    {
+    	Int size = this->size();
+    	auto values = this->values();
+
+    	std::cout<<"Values:"<<std::endl;
+    	for (Int c = 0; c < size; c++)
+    	{
+    		std::cout<<c<<" "<<values[c]<<std::endl;
+    	}
     }
 
     struct GenerateDataEventsFn {

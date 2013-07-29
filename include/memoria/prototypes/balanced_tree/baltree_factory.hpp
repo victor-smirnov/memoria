@@ -136,9 +136,6 @@ struct BalancedTreeTypes {
             memoria::balanced_tree::FindName,
             memoria::balanced_tree::ReadName,
             memoria::balanced_tree::UpdateName
-
-
-
     >                                                                           ContainerPartsList;
     
     typedef TypeList<

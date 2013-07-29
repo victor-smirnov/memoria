@@ -72,6 +72,8 @@ public:
 	static const Int Indexes        		= 1;
 	static const Int Blocks        			= Types::Blocks;
 
+	static const bool FixedSizeElement		= true;
+
 	static const Int IOBatchSize			= 1024;
 
 	typedef core::StaticVector<IndexValue, Blocks>								Values;
@@ -892,15 +894,20 @@ public:
 
 		Value* values = this->values();
 
-		for (Int block = 0; block < Blocks; block++)
+		for (Int block = Blocks - 1, sum = 0; block >= 0; block--)
 		{
-			Int offset = (Blocks - block - 1) * size_ + start;
+			Int to 		= block * size_ + start;
+			Int from 	= block * size_ + end;
+
+			Int length = size_ - end + sum;
 
 			CopyBuffer(
-					values + offset + room_length,
-					values + offset,
-					size_ * Blocks - offset - room_length * (1 - block)
+					values + from,
+					values + to,
+					length
 			);
+
+			sum += size_ - (end - start);
 		}
 
 		size_ -= room_length;

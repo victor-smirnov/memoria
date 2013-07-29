@@ -20,6 +20,7 @@
 #include <memoria/containers/seq_dense/container/seqdense_c_tools.hpp>
 #include <memoria/containers/seq_dense/container/seqdense_c_find.hpp>
 #include <memoria/containers/seq_dense/container/seqdense_c_insert.hpp>
+#include <memoria/containers/seq_dense/container/seqdense_c_remove.hpp>
 
 #include <memoria/containers/seq_dense/iterator/seqdense_i_api.hpp>
 
@@ -44,12 +45,13 @@ struct PackedFSESeqTF {
 			PackedFSESeachableSeqTypes<
 				1,
 				PackedTreeBranchingFactor,
-				32,
+				1024,
 				PackedFSETree,
 				ValueFSECodec,
 				BitmapReindexFn,
 				BitmapSelectFn,
-				BitmapRankFn
+				BitmapRankFn,
+				BitmapSumFn
 			>,
 			typename IfThenElse<
 				(BitsPerSymbol > 1 && BitsPerSymbol < 8),
@@ -61,17 +63,19 @@ struct PackedFSESeqTF {
 					UByteExintCodec,
 					VLEReindexFn,
 					SequenceSelectFn,
-					SequenceRankFn
+					SequenceRankFn,
+					SequenceSumFn
 				>,
 				PackedFSESeachableSeqTypes<
 					BitsPerSymbol,
 					PackedTreeBranchingFactor,
-					1024,
+					256,
 					PackedVLETree,
 					UBigIntEliasCodec,
 					VLEReindexFn,
 					Sequence8SelectFn,
-					Sequence8RankFn
+					Sequence8RankFn,
+					Sequence8SumFn
 				>
 			>::Result
 	>::Result																	SequenceTypes;
@@ -119,10 +123,11 @@ struct BalancedTreeTypes<Profile, memoria::Sequence<1, true> >:
 
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
-				memoria::balanced_tree::NodeNormName,
+				memoria::balanced_tree::NodeComprName,
 				memoria::seq_dense::CtrToolsName,
 				memoria::seq_dense::CtrFindName,
-				memoria::seq_dense::CtrInsertName
+				memoria::seq_dense::CtrInsertName,
+				memoria::seq_dense::CtrRemoveName
 	>::Result                                           						ContainerPartsList;
 
 

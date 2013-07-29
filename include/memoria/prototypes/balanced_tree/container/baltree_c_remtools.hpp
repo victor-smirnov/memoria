@@ -11,7 +11,12 @@
 
 #include <memoria/core/container/macros.hpp>
 #include <memoria/prototypes/balanced_tree/baltree_types.hpp>
+#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+
+
 #include <functional>
+
+
 
 namespace memoria    {
 
@@ -88,12 +93,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
      * \return true if nodes can be merged according to the current policy
      */
 
-    MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
 
-    bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
-    {
-        return NodeDispatcher::dispatchConstRtn2(src, tgt, CanMergeFn());
-    }
 
 
 
@@ -102,12 +102,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::RemoveToolsName)
     	return left->parent_id() == right->parent_id();
     }
 
-    void mergeNodes(NodeBaseG& tgt, NodeBaseG& src);
-    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const NodeBaseG&, const NodeBaseG&){});
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, Accumulator);
-    MEMORIA_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
+
 
     MEMORIA_PUBLIC void drop();
 
@@ -333,7 +331,7 @@ bool M_TYPE::mergeWithLeftSibling(NodeBaseG& node, MergeFn fn)
 
         if (prev)
         {
-            merged = mergeBTreeNodes(prev, node, fn);
+            merged = self.mergeBTreeNodes(prev, node, fn);
 
             if (merged)
             {
@@ -374,121 +372,14 @@ bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
 
         if (next)
         {
-            merged = mergeBTreeNodes(node, next, [](const NodeBaseG&, const NodeBaseG&){});
+            merged = self.mergeBTreeNodes(node, next, [](const NodeBaseG&, const NodeBaseG&){});
         }
     }
 
     return merged;
 }
 
-/**
- * \brief Merge *src* path to the *tgt* path unconditionally.
- *
- * Perform merging of two paths, *src* to *dst* at the specified *level*. Both nodes (at boths paths) must
- * have the same parent.
- *
- * \param tgt path to node to be merged with
- * \param src path to node to be merged
- * \param level level of the node in the tree
- * \return true if paths have been merged
- *
- * \see mergeWithSiblings - this is the basic method
- */
 
-M_PARAMS
-void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
-{
-	auto& self = this->self();
-
-    tgt.update();
-    src.update();
-
-    Int tgt_size = self.getNodeSize(tgt, 0);
-
-    NodeDispatcher::dispatch2(src, tgt, MergeNodesFn());
-
-    self.updateChildren(tgt, tgt_size);
-
-    NodeBaseG src_parent   	= self.getNodeParent(src, Allocator::READ);
-    Int parent_idx      	= src->parent_idx();
-
-    MEMORIA_ASSERT(parent_idx, >, 0);
-
-    Accumulator sums 		= self.getNonLeafKeys(src_parent, parent_idx);
-
-    self.removeNonLeafNodeEntry(src_parent, parent_idx);
-
-    Int idx = parent_idx - 1;
-
-    self.updatePath(src_parent, idx, sums);
-
-    self.allocator().removePage(src->id());
-}
-
-/**
- * \brief Merge *src* path to the *tgt* path.
- *
- * Merge two tree paths, *src* to *dst* upward starting from nodes specified with *level*. If both these
- * nodes have different parents, then recursively merge parents first. Calls \ref canMerge to check if nodes can be merged.
- * This call will try to merge parents only if current nodes can be merged.
- *
- * If after nodes have been merged the resulting path is redundant, that means it consists from a single node chain,
- * then this path is truncated from the tree root down to the specified *level*.
- *
- * Unlike this call, \ref mergePaths tries to merge paths starting from the root down to the specified *level*.
- *
- * \param tgt path to node to be merged with
- * \param src path to node to be merged
- * \param level level of the node in the tree
- * \return true if paths have been merged
- *
- * \see mergeWithSiblings - this is the basic method
- * \see canMerge, removeRedundantRoot, mergeNodes, isTheSameParent
- */
-
-M_PARAMS
-bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
-{
-	auto& self = this->self();
-
-    if (canMerge(tgt, src))
-    {
-        if (isTheSameParent(tgt, src))
-        {
-            fn(tgt, src);
-
-        	mergeNodes(tgt, src);
-
-            removeRedundantRootP(tgt);
-
-            return true;
-        }
-        else
-        {
-            NodeBaseG tgt_parent = self.getNodeParent(tgt, Allocator::READ);
-            NodeBaseG src_parent = self.getNodeParent(src, Allocator::READ);
-
-        	if (mergeBTreeNodes(tgt_parent, src_parent, fn))
-            {
-            	fn(tgt, src);
-
-                mergeNodes(tgt, src);
-
-                removeRedundantRootP(tgt);
-
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-    }
-    else
-    {
-        return false;
-    }
-}
 
 
 /**

@@ -200,6 +200,9 @@ class StaticVector
 
     ElementType_ values_[Indexes_];
 
+    template <typename, Int>
+    friend class StaticVector;
+
 public:
     typedef ElementType_ ElementType;
 
@@ -290,6 +293,19 @@ public:
         {
             values_[c] = 0;
         }
+    }
+
+    template <typename T, Int TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
+    MyType& assignUp(const StaticVector<T, TIndexes>& other)
+    {
+    	Int shift = Indexes - TIndexes;
+
+    	for (Int c = Indexes - 1; c >= shift ; c--)
+    	{
+    		values_[c] = other.values_[c - shift];
+    	}
+
+    	return *this;
     }
 
     bool operator==(const MyType& other) const

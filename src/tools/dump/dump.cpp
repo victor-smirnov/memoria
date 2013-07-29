@@ -107,6 +107,7 @@ public:
     }
 
     virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol) {}
+    virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol) {}
 
     const IDValueVector& values() const
     {
@@ -216,6 +217,7 @@ int main(int argc, const char** argv, const char** envp)
     MetadataInitializer<SmallProfile<> >::init();
 
     SCtrTF<Map<BigInt, Int>>::Type::initMetadata();
+    SCtrTF<Sequence<1, true>>::Type::initMetadata();
 
     try {
         logger.level() = Logger::NONE;

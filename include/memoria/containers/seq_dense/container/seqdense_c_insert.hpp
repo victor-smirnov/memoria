@@ -62,18 +62,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 	struct InsertIntoLeafFn {
 
 		template <Int Idx, typename SeqTypes>
-		void stream(const PackedFSESearchableSeq<SeqTypes>* seq, Int idx, Int symbol, Accumulator* delta)
+		void stream(PackedFSESearchableSeq<SeqTypes>* seq, Int idx, Int symbol, Accumulator* delta)
 		{
 			MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-//			typedef PackedFSESearchableSeq<SeqTypes> 	Seq;
-//			typedef typename Seq::Value 				Symbol;
+			typedef PackedFSESearchableSeq<SeqTypes> 	Seq;
+			typedef typename Seq::Value 				Symbol;
 
 			auto old_indexes = seq->sums();
 
-//			seq->insert(idx, 1, [=]() -> Symbol {
-//				return symbol;
-//			});
+			seq->insert(idx, 1, [=]() -> Symbol {
+				return symbol;
+			});
 
 			auto new_indexes = seq->sums();
 
@@ -82,9 +82,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 			std::get<Idx>(*delta) = indexes;
 		}
 
-		template <typename Node>
-		void treeNode(Node* node, Int stream, Int idx, Int symbol, Accumulator* delta)
+
+		template <typename NTypes, bool root>
+		void treeNode(TreeNode<TreeLeafNode, NTypes, root, true>* node, Int stream, Int idx, Int symbol, Accumulator* delta)
 		{
+			node->layout(1);
 			node->process(stream, *this, idx, symbol, delta);
 		}
 	};
@@ -122,7 +124,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 	{
 		auto& self 	= this->self();
 		auto& leaf 	= iter.leaf();
-		Int idx		= iter.idx();
+		Int& idx	= iter.idx();
+		Int stream 	= iter.stream();
 
 		Accumulator sums;
 
@@ -135,8 +138,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 			Int size 		= iter.leaf_size(0);
 			Int split_idx	= size/2;
 
-			self.splitLeafP(leaf, Position::create(0, split_idx));
+			auto right = self.splitLeafP(leaf, Position::create(0, split_idx));
+
+			if (idx > split_idx)
+			{
+				leaf = right;
+				idx -= split_idx;
+			}
+
+			MEMORIA_ASSERT_TRUE(self.insertIntoLeaf(leaf, idx, symbol, sums));
+			self.updateParent(leaf, sums);
 		}
+
+		self.addTotalKeyCount(Position::create(stream, 1));
 	}
 
 
@@ -148,7 +162,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::seq_dense::CtrFindName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::seq_dense::CtrRemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

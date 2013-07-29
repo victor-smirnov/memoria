@@ -112,8 +112,44 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
 		return fn.prefix_ + self.idx();
 	}
 
-	void insert(Int symbol) {
+	struct SymbolFn {
+		Int symbol_ = 0;
 
+		template <Int Idx, typename SeqTypes>
+		void stream(const PackedFSESearchableSeq<SeqTypes>* seq, Int idx)
+		{
+			MEMORIA_ASSERT_TRUE(seq != nullptr);
+			MEMORIA_ASSERT(idx, <, seq->size());
+
+			symbol_ = seq->symbol(idx);
+		}
+
+
+		template <typename NodeTypes, bool root, bool leaf>
+		void treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int idx)
+		{
+			node->process(0, *this, idx);
+		}
+	};
+
+	Int symbol() const
+	{
+		auto& self 	= this->self();
+
+		SymbolFn fn;
+
+		Int idx = self.idx();
+
+		LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
+
+		return fn.symbol_;
+	}
+
+	void insert(Int symbol) {
+		auto& self 	= this->self();
+		auto& ctr 	= self.ctr();
+
+		ctr.insert(self, symbol);
 	}
 
 	void remove(Int symbol) {

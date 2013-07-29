@@ -205,6 +205,11 @@ public:
     	dumpSymbols(out_, value, count, bits_per_symbol);
     }
 
+    virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)
+    {
+    	dumpSymbols(out_, value, count, bits_per_symbol);
+    }
+
 private:
 
 

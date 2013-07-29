@@ -16,6 +16,11 @@ namespace memoria {
 
 template <typename Seq>
 class BitmapSelectFn {
+
+	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
+
+	static_assert(BitsPerSymbol == 1, "BitmapSelectFn<> can only be used with 1-bit sequences");
+
 	const Seq& seq_;
 public:
 	BitmapSelectFn(const Seq& seq): seq_(seq) {}
@@ -35,6 +40,12 @@ public:
 
 template <typename Seq>
 class BitmapRankFn {
+
+	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
+
+	static_assert(BitsPerSymbol == 1, "BitmapRankFn<> can only be used with 1-bit sequences");
+
+
 	const Seq& seq_;
 public:
 	BitmapRankFn(const Seq& seq): seq_(seq) {}
@@ -52,6 +63,90 @@ public:
 };
 
 
+template <typename Seq>
+class BitmapSumFn {
+	typedef typename Seq::Values 			Values;
+
+	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
+
+	static_assert(BitsPerSymbol == 1, "BitmapSumFn<> can only be used with 1-bit sequences");
+
+	const Seq& seq_;
+public:
+	BitmapSumFn(const Seq& seq): seq_(seq) {}
+
+	Values operator()(Int start, Int end)
+	{
+		Values values;
+
+		BigInt rank1 = PopCount(seq_.symbols(), start, end);
+
+		values[2] = rank1;
+		values[0] = end - start;
+		values[1] = end - start - rank1;
+
+		return values;
+	}
+};
+
+template <typename Seq>
+class SequenceSumFn {
+	typedef typename Seq::Values 			Values;
+	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
+
+	static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
+				"SequenceSumFn<> can only be used with 2-7-bit sequences");
+
+	const Seq& seq_;
+public:
+	SequenceSumFn(const Seq& seq): seq_(seq) {}
+
+	Values operator()(Int start, Int end)
+	{
+		Values values;
+
+		values[0] = end - start;
+
+		auto symbols = seq_.symbols();
+
+		for (Int idx = start * BitsPerSymbol; idx < end * BitsPerSymbol; idx += BitsPerSymbol)
+		{
+			Int symbol = GetBits(symbols, idx, BitsPerSymbol) + 1;
+			values[symbol]++;
+		}
+
+		return values;
+	}
+};
+
+template <typename Seq>
+class Sequence8SumFn {
+	typedef typename Seq::Values 			Values;
+	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
+
+	static_assert(BitsPerSymbol == 8, "Sequence8SumFn<> can only be used with 8-bit sequences");
+
+	const Seq& seq_;
+public:
+	Sequence8SumFn(const Seq& seq): seq_(seq) {}
+
+	Values operator()(Int start, Int end)
+	{
+		Values values;
+
+		values[0] = end - start;
+
+		auto symbols = seq_.symbols();
+
+		for (Int idx = start; idx < end; idx++)
+		{
+			Int symbol = symbols[idx] + 1;
+			values[symbol]++;
+		}
+
+		return values;
+	}
+};
 
 template <typename Seq>
 class SequenceSelectFn {
@@ -61,7 +156,8 @@ class SequenceSelectFn {
 
 	const Seq& seq_;
 
-
+	static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
+			"SequenceSelectFn<> can only be used with 2-7-bit sequences");
 
 public:
 	SequenceSelectFn(const Seq& seq): seq_(seq) {}
@@ -96,6 +192,9 @@ class SequenceRankFn {
 
 	static const Int BitsPerSymbol = Seq::BitsPerSymbol;
 
+	static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
+			"SequenceRankFn<> can only be used with 2-7-bit sequences");
+
 	const Seq& seq_;
 
 public:
@@ -125,7 +224,14 @@ public:
 
 template <typename Seq>
 class Sequence8SelectFn {
+
+	static const Int BitsPerSymbol = Seq::BitsPerSymbol;
+
+	static_assert(BitsPerSymbol == 8,
+			"Sequence8SelectFn<> can only be used with 8-bit sequences");
+
 	const Seq& seq_;
+
 public:
 	Sequence8SelectFn(const Seq& seq): seq_(seq) {}
 
@@ -154,6 +260,12 @@ public:
 
 template <typename Seq>
 class Sequence8RankFn {
+
+	static const Int BitsPerSymbol = Seq::BitsPerSymbol;
+
+	static_assert(BitsPerSymbol == 8,
+			"Sequence8RankFn<> can only be used with 2-7-bit sequences");
+
 	const Seq& seq_;
 public:
 	Sequence8RankFn(const Seq& seq): seq_(seq) {}
@@ -182,9 +294,16 @@ class BitmapReindexFn {
 	typedef typename Seq::Index 		Index;
 	typedef typename Index::Values 		Values;
 
-	static const Int BitsPerSymbol 		= Seq::BitsPerSymbol;
-	static const Int ValuesPerBranch 	= Seq::ValuesPerBranch;
-	static const Int Blocks				= Index::Blocks;
+	static const Int BitsPerSymbol 				= Seq::BitsPerSymbol;
+	static const Int ValuesPerBranch 			= Seq::ValuesPerBranch;
+	static const Int Blocks						= Index::Blocks;
+	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
+
+	static_assert(BitsPerSymbol == 1,
+			"BitmapReindexFn<> can only be used with 1-bit sequences");
+
+	static_assert(FixedSizeElementIndex,
+			"BitmapReindexFn<> can only be used with PackedFSETree<>-indexed sequences ");
 
 public:
 	void operator()(Seq& seq)
@@ -229,9 +348,16 @@ class ReindexFn {
 	typedef typename Seq::Index 		Index;
 	typedef typename Index::Values 		Values;
 
-	static const Int BitsPerSymbol 		= Seq::BitsPerSymbol;
-	static const Int ValuesPerBranch 	= Seq::ValuesPerBranch;
-	static const Int Blocks				= Index::Blocks;
+	static const Int BitsPerSymbol 				= Seq::BitsPerSymbol;
+	static const Int ValuesPerBranch 			= Seq::ValuesPerBranch;
+	static const Int Blocks						= Index::Blocks;
+	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
+
+	static_assert(BitsPerSymbol > 2,
+				"ReindexFn<> can only be used with 2-8-bit sequences");
+
+	static_assert(FixedSizeElementIndex,
+					"ReindexFn<> can only be used with PackedFSETree<>-indexed sequences ");
 
 public:
 	void operator()(Seq& seq)
@@ -278,9 +404,16 @@ class VLEReindexFn {
 	typedef typename Index::Values 		Values;
 	typedef typename Index::Codec 		Codec;
 
-	static const Int BitsPerSymbol 		= Seq::BitsPerSymbol;
-	static const Int ValuesPerBranch 	= Seq::ValuesPerBranch;
-	static const Int Blocks				= Index::Blocks;
+	static const Int BitsPerSymbol 				= Seq::BitsPerSymbol;
+	static const Int ValuesPerBranch 			= Seq::ValuesPerBranch;
+	static const Int Blocks						= Index::Blocks;
+	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
+
+	static_assert(BitsPerSymbol > 2,
+				"ReindexFn<> can only be used with 2-8-bit sequences");
+
+	static_assert(!FixedSizeElementIndex,
+				"ReindexFn<> can only be used with PackedVLETree<>-indexed sequences ");
 
 public:
 	void operator()(Seq& seq)

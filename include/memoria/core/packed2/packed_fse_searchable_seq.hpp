@@ -14,6 +14,7 @@
 #include <memoria/core/packed2/packed_fse_searchable_seq_fn.hpp>
 
 #include <memoria/core/types/algo/select.hpp>
+#include <memoria/core/tools/static_array.hpp>
 
 #include <ostream>
 
@@ -30,7 +31,8 @@ template <
 	template <typename>	class CodecType 	= ValueFSECodec,
 	template <typename>	class ReindexFnType = BitmapReindexFn,
 	template <typename>	class SelectFnType	= BitmapSelectFn,
-	template <typename>	class RankFnType	= BitmapRankFn
+	template <typename>	class RankFnType	= BitmapRankFn,
+	template <typename>	class SumFnType		= BitmapSumFn
 >
 struct PackedFSESeachableSeqTypes {
 
@@ -53,6 +55,9 @@ struct PackedFSESeachableSeqTypes {
 
     template <typename Seq>
     using RankFn	= RankFnType<Seq>;
+
+    template <typename Seq>
+    using SumFn		= SumFnType<Seq>;
 };
 
 
@@ -103,7 +108,7 @@ public:
 
 	static const Int IndexSizeThreshold											= 0;
 
-	typedef StaticVector<BigInt, Indexes + 1> 									Values;
+	typedef core::StaticVector<BigInt, Indexes + 1> 							Values;
 
 
 	class Metadata {
@@ -187,6 +192,13 @@ public:
 public:
 
 	// ===================================== Allocation ================================= //
+
+	void init(Int block_size)
+	{
+		MEMORIA_ASSERT(block_size, >=, empty_size());
+
+		init();
+	}
 
 	void init()
 	{
@@ -322,9 +334,21 @@ public:
 
 	void remove(Int start, Int end)
 	{
+		Int& size = this->size();
+
+		MEMORIA_ASSERT(start, >=, 0);
+		MEMORIA_ASSERT(end, >=, 0);
+		MEMORIA_ASSERT(start, <=, end);
+
+		if (end > size) {
+			int a = 0; a++;
+		}
+
+		MEMORIA_ASSERT(end, <=, size);
+
 		auto symbols = this->symbols();
 
-		Int rest = size() - end;
+		Int rest = size - end;
 
 		MoveBits(
 				symbols,
@@ -336,7 +360,7 @@ public:
 
 		shrinkData(end - start);
 
-		size() -= (end - start);
+		size -= (end - start);
 
 		reindex();
 
@@ -478,20 +502,18 @@ public:
 		remove(idx, this->size());
 	}
 
-	void mergeWith(MyType* other)
+	void mergeWith(MyType* other) const
 	{
 		Int my_size 	= this->size();
 		Int other_size 	= other->size();
 
 		other->enlargeData(my_size);
 
-		MoveBits(this->symbols(), 0, other->symbols(), other_size * BitsPerSymbol, my_size * BitsPerSymbol);
+		MoveBits(this->symbols(), other->symbols(), 0, other_size * BitsPerSymbol, my_size * BitsPerSymbol);
 
 		other->size() += my_size;
 
 		other->reindex();
-
-		this->removeSpace(0, my_size);
 	}
 
 
@@ -499,21 +521,50 @@ public:
 
 	Values sums() const
 	{
-//		if (has_index())
-//		{
-//			auto index = this->index();
-//			return index->sums();
-//		}
-//		else {
-//			return Values();
-//		}
+		if (has_index())
+		{
+			auto index = this->index();
+			auto isums = index->sums();
 
-		return Values();
+			Values vsums;
+
+			vsums.assignUp(isums);
+			vsums[0] = size();
+
+			return vsums;
+		}
+		else {
+			return sums(size());
+		}
 	}
 
 	Values sums(Int to) const
 	{
-		return Values();
+		if (has_index())
+		{
+			auto index = this->index();
+
+			Int index_block = to / ValuesPerBranch;
+
+			auto isums = index->sums(0, index_block);
+
+			typename Types::template SumFn<MyType> fn(*this);
+
+			auto vsums = fn(index_block * ValuesPerBranch, to);
+
+			vsums.assignUp(isums);
+			vsums[0] += index_block * ValuesPerBranch;
+
+			return vsums;
+		}
+		else
+		{
+			typename Types::template SumFn<MyType> fn(*this);
+
+			auto vsums = fn(0, to);
+
+			return vsums;
+		}
 	}
 
 	Values sums(Int from, Int to) const
@@ -669,6 +720,70 @@ public:
 		});
 	}
 
+
+	void generateDataEvents(IPageDataEventHandler* handler) const
+	{
+		Base::generateDataEvents(handler);
+
+		handler->startGroup("PACKED_SEQUENCE");
+
+		handler->value("SIZE",          &size());
+
+		Int max_size = this->max_size();
+		handler->value("MAX_SIZE",      &max_size);
+
+		if (has_index())
+		{
+			index()->generateDataEvents(handler);
+		}
+
+		handler->startGroup("DATA", size());
+
+		handler->symbols("SYMBOLS", symbols(), size(), BitsPerSymbol);
+
+		handler->endGroup();
+
+		handler->endGroup();
+	}
+
+	void serialize(SerializationData& buf) const
+	{
+		Base::serialize(buf);
+
+		const Metadata* meta = this->metadata();
+
+		FieldFactory<Int>::serialize(buf, meta->size());
+
+		if (has_index()) {
+			index()->serialize(buf);
+		}
+
+		FieldFactory<Value>::serialize(buf, symbols(), symbol_buffer_size());
+	}
+
+	void deserialize(DeserializationData& buf)
+	{
+		Base::deserialize(buf);
+
+		Metadata* meta = this->metadata();
+
+		FieldFactory<Int>::deserialize(buf, meta->size());
+
+		if (has_index()) {
+			index()->deserialize(buf);
+		}
+
+		FieldFactory<Value>::deserialize(buf, symbols(), symbol_buffer_size());
+	}
+
+private:
+	Int symbol_buffer_size() const
+	{
+		Int bit_size 	= this->element_size(SYMBOLS) * 8;
+		Int byte_size 	= Base::roundUpBitsToAlignmentBlocks(bit_size);
+
+		return byte_size / sizeof(Value);
+	}
 };
 
 

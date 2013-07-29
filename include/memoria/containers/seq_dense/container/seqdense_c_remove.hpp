@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_SEQDENSE_SEQ_C_FIND_HPP
-#define _MEMORIA_CONTAINERS_SEQDENSE_SEQ_C_FIND_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQDENSE_SEQ_C_REMOVE_HPP
+#define _MEMORIA_CONTAINERS_SEQDENSE_SEQ_C_REMOVE_HPP
 
 
 #include <memoria/core/types/typelist.hpp>
@@ -16,9 +16,11 @@
 #include <memoria/containers/seq_dense/seqdense_walkers.hpp>
 #include <memoria/containers/seq_dense/seqdense_names.hpp>
 
+#include <memoria/core/tools/static_array.hpp>
+
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -48,52 +50,83 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 	typedef typename Base::TreePath                                             TreePath;
 	typedef typename Base::TreePathItem                                         TreePathItem;
 
+	typedef typename Types::PageUpdateMgr										PageUpdateMgr;
+
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
 	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
 
-	BigInt size() const {
-		return self().sizes()[0];
-	}
+	struct RemoveFromLeafFn {
 
-	BigInt rank(Int idx, Int symbol) const
-	{
-		return 0;
-	}
+		template <Int Idx, typename SeqTypes>
+		void stream(PackedFSESearchableSeq<SeqTypes>* seq, Int idx, Accumulator* delta)
+		{
+			MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-	class SSelectResult {
-		BigInt value_;
-		bool found_;
-	public:
-		SSelectResult(BigInt value, bool found): value_(value), found_(found) {}
+			typedef PackedFSESearchableSeq<SeqTypes> 	Seq;
+			typedef typename Seq::Values 				Values;
 
-		BigInt value() const {return value_;};
-		bool found() const {return found_;};
+			Int sym = seq->symbol(idx);
+
+			seq->remove(idx, idx + 1);
+
+			Values indexes;
+
+			indexes[0]  	 = -1;
+			indexes[sym + 1] = -1;
+
+			std::get<Idx>(*delta) = indexes;
+		}
+
+
+		template <typename NTypes, bool root>
+		void treeNode(TreeNode<TreeLeafNode, NTypes, root, true>* node, Int stream, Int idx, Accumulator* delta)
+		{
+			node->layout(1);
+			node->process(stream, *this, idx, delta);
+		}
 	};
 
-	SSelectResult select(Int symbol, BigInt rank) const {
-		return SSelectResult(0, false);
-	}
 
-	Iterator seek(Int pos) const
+
+	void removeFromLeaf(NodeBaseG& leaf, Int idx, Accumulator& indexes)
 	{
-		auto self = this->self();
-		return self.findLT(MAIN_STREAM, pos, 0);
+		LeafDispatcher::dispatch(leaf, RemoveFromLeafFn(), 0, idx, &indexes);
 	}
 
-
-	Int symbol(Int idx) const
+	void remove(BigInt idx)
 	{
-		auto self = this->self();
-		return seek(idx).symbol();
+		auto& self 	= this->self();
+		auto iter 	= self.seek(idx);
+
+		self.remove(iter);
 	}
+
+	void remove(Iterator& iter)
+	{
+		auto& self 	= this->self();
+		auto& leaf 	= iter.leaf();
+		Int& idx	= iter.idx();
+		Int stream 	= iter.stream();
+
+		Accumulator sums;
+
+		self.removeFromLeaf(leaf, idx, sums);
+
+		self.updateParent(leaf, sums);
+
+		self.addTotalKeyCount(Position::create(stream, -1));
+
+		self.mergeWithSiblings(leaf);
+	}
+
 
 
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::seq_dense::CtrFindName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::seq_dense::CtrRemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

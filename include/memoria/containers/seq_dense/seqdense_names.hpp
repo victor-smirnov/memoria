@@ -18,6 +18,7 @@ class CtrChecksName {};
 class CtrToolsName {};
 class CtrFindName {};
 class CtrInsertName {};
+class CtrRemoveName {};
 
 class IterAPIName  {};
 

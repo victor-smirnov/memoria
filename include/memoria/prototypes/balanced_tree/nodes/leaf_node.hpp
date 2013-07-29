@@ -192,6 +192,11 @@ public:
 		return PackedAllocator::client_area(allocator_block_size, Streams);
 	}
 
+	Int total_size() const
+	{
+		return allocator_.allocated();
+	}
+
 	void init(Int block_size, const Position& sizes)
 	{
 		init0(block_size - sizeof(Me) + sizeof(allocator_), sizes);
@@ -211,6 +216,27 @@ public:
 	{
 		Int block_size = this->page_size();
 		init(block_size, sizes);
+	}
+
+
+	struct LayoutFn {
+		template <Int StreamIndex, typename Stream>
+		void stream(Stream*, PackedAllocator* alloc, UBigInt streams)
+		{
+			if (streams & (1<<StreamIndex))
+			{
+				if (alloc->is_empty(StreamIndex))
+				{
+					alloc->template allocateEmpty<Stream>(StreamIndex);
+				}
+			}
+		}
+	};
+
+
+	void layout(UBigInt streams)
+	{
+		Dispatcher::dispatchAllStatic(LayoutFn(), this->allocator(), streams);
 	}
 
 
@@ -688,10 +714,10 @@ public:
 
     bool shouldBeMergedWithSiblings() const
     {
-    	Position sizes = this->sizes();
-    	Int block_size = MyType::block_size(sizes);
+    	Int client_area	= allocator_.client_area();
+    	Int used 		= allocator_.allocated();
 
-    	return block_size <= allocator_.block_size() / 2;
+    	return used < client_area / 2;
     }
 
 
@@ -1086,6 +1112,12 @@ public:
 
     template <typename Fn, typename... Args>
     void process(Int stream, Fn&& fn, Args... args) const
+    {
+    	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
+    }
+
+    template <typename Fn, typename... Args>
+    void process(Int stream, Fn&& fn, Args... args)
     {
     	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
     }

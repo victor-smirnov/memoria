@@ -32,9 +32,18 @@ protected:
 	typedef typename Ctr::Accumulator                                           Accumulator;
 	typedef typename Ctr::ID                                                    ID;
 
-public:
-	SequenceTestBase(StringRef name): Base(name) {}
+	String dump_name_;
 
+public:
+	SequenceTestBase(StringRef name): Base(name)
+	{
+		MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
+	}
+
+	void fillRandom(Ctr& ctr, Int size)
+	{
+
+	}
 
 
 

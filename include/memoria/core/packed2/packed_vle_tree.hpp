@@ -78,6 +78,7 @@ public:
 	static const Int Indexes        		= 2;
 	static const Int Blocks 				= Types::Blocks;
 	static const Int IOBatchSize			= 1024;
+	static const bool FixedSizeElement		= false;
 
 	static const Int BITS_PER_OFFSET		= Codec::BitsPerOffset;
 

@@ -58,6 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeComprName)
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
+    typedef std::function<void (const NodeBaseG&, const NodeBaseG&)>			MergeFn;
 
     void insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
 
@@ -74,8 +75,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::NodeComprName)
     void updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& sums);
 
 
-    bool tryMergeNodes(NodeBaseG& src, NodeBaseG& tgt);
-
+    MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
+    bool tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const NodeBaseG&, const NodeBaseG&){});
+    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const NodeBaseG&, const NodeBaseG&){});
 
 
 
@@ -303,35 +305,88 @@ void M_TYPE::updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& sum
 
 
 M_PARAMS
-bool M_TYPE::tryMergeNodes(NodeBaseG& src, NodeBaseG& tgt)
+bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 {
 	auto& self = this->self();
 
 	PageUpdateMgr mgr(self);
 
-	if (self.canMerge(tgt, src))
+	src.update();
+	tgt.update();
+
+	mgr.add(src);
+	mgr.add(tgt);
+
+	try {
+		Int tgt_size 			= self.getNodeSize(tgt, 0);
+		NodeBaseG src_parent   	= self.getNodeParent(src, Allocator::READ);
+		Int parent_idx      	= src->parent_idx();
+
+		MEMORIA_ASSERT(parent_idx, >, 0);
+
+		NodeDispatcher::dispatch2(src, tgt, TryMergeNodesFn());
+
+		self.updateChildren(tgt, tgt_size);
+
+		Accumulator sums 		= self.getNonLeafKeys(src_parent, parent_idx);
+
+		self.removeNonLeafNodeEntry(src_parent, parent_idx);
+
+		Int idx = parent_idx - 1;
+
+		self.updatePath(src_parent, idx, sums);
+
+		self.allocator().removePage(src->id());
+
+		return true;
+	}
+	catch (PackedOOMException ex)
 	{
-		mgr.add(src);
-		mgr.add(tgt);
-
-		try {
-//			self.
-
-			return true;
-		}
-		catch (PackedOOMException ex)
-		{
-			mgr.rollback();
-		}
+		mgr.rollback();
 	}
 
 	return false;
 }
 
 
+M_PARAMS
+bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+{
+	auto& self = this->self();
 
+	if (self.isTheSameParent(tgt, src))
+	{
+		if (self.tryMergeNodes(tgt, src, fn))
+		{
+			self.removeRedundantRootP(tgt);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else
+	{
+		NodeBaseG tgt_parent = self.getNodeParent(tgt, Allocator::READ);
+		NodeBaseG src_parent = self.getNodeParent(src, Allocator::READ);
 
-
+		if (mergeBTreeNodes(tgt_parent, src_parent, fn))
+		{
+			if (self.tryMergeNodes(tgt, src, fn))
+			{
+				self.removeRedundantRootP(tgt);
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	}
+}
 
 
 

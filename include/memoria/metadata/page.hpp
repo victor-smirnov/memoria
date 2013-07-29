@@ -53,7 +53,8 @@ struct IPageDataEventHandler {
     virtual void value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)     = 0;
     virtual void value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)     = 0;
 
-    virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol) = 0;
+    virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol) 	= 0;
+    virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol) 		= 0;
 };
 
 struct DataEventsParams {};

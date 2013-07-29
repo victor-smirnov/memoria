@@ -115,5 +115,6 @@ struct TypeHash<CtrWrapper<CtrName>>: UIntValue<HashHelper<1700, TypeHash<CtrNam
 
 }
 
+
 #endif  /* _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP */
 
