@@ -35,7 +35,6 @@ public:
 
 	V operator=(const V& value)
 	{
-		//MEMORIA_ASSERT(value, <=, static_cast<UInt>(-1) >> (TypeBitsize<UInt>() - BitsPerElement));
 		SetBits(values_, idx_ * BitsPerElement, value, BitsPerElement);
 		return value;
 	}

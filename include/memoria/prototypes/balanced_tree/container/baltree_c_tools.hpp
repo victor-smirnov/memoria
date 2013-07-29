@@ -176,6 +176,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::ToolsName)
     	ConvertNodeToRoot(src, tgt);
 
     	tgt->root_metadata() = metadata;
+    	tgt->parent_id().clear();
+    	tgt->parent_idx() = 0;
 
     	CopyByteBuffer(tgt, src, tgt->page_size());
 

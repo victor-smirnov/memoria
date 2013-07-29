@@ -172,6 +172,9 @@ public:
 template <typename Metadata, typename Base, bool root>
 class RootPage: public Base {
 	Metadata root_metadata_;
+
+	static_assert(sizeof(Metadata) % 8 == 0, "Root metadata size must be 8-multiple");
+
 public:
 
 	Metadata& root_metadata()
@@ -209,7 +212,9 @@ public:
 
 
 template <typename Metadata, typename Base>
-class RootPage<Metadata, Base, false>: public Base {};
+class RootPage<Metadata, Base, false>: public Base {
+	Int dummy_;
+};
 
 
 namespace internl1 {

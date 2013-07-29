@@ -239,7 +239,7 @@ size_t PopCount(const T* buffer, size_t start, size_t stop)
 
 		for (size_t c = (start >> divisor) + 1; c < (stop >> divisor); c++)
 		{
-#if __GNUC__ == 4 && __GNUC_MINOR__ == 7
+#if __GNUC__ == 4 && (__GNUC_MINOR__ == 7)
 			volatile T value = *(buffer + c);
 			total += PopCnt(value);
 #else

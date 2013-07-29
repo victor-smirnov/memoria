@@ -28,14 +28,10 @@ class SequenceCreateTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 	typedef typename Base::Iterator												Iterator;
 	typedef typename Base::Ctr													Ctr;
 
-	Int trap_ = 500;
-
 public:
 
 	SequenceCreateTest(StringRef name): Base(name)
 	{
-		MEMORIA_ADD_TEST_PARAM(trap_);
-
 		MEMORIA_ADD_TEST(testCreate);
 	}
 
@@ -51,10 +47,13 @@ public:
 			for (Int c = 0; c < this->size_; c++)
 			{
 				Int bit1 = getRandom(2);
+				Int idx  = getRandom(c + 1);
 
-				ctr.insert(c, bit1);
+				this->out()<<c<<" "<<idx<<std::endl;
 
-				Int bit2 = ctr.symbol(c);
+				ctr.insert(idx , bit1);
+
+				Int bit2 = ctr.symbol(idx);
 
 				AssertEQ(MA_SRC, bit1, bit2);
 			}
@@ -72,19 +71,9 @@ public:
 			{
 				Int idx = getRandom(size - c);
 
-				if (size - c == trap_) {
-					DebugCounter = 1;
-				}
-
 				ctr.remove(idx);
 
 				AssertEQ(MA_SRC, ctr.size(), size - c - 1);
-
-				if (size - c == trap_)
-				{
-					allocator.commit();
-					this->StoreAllocator(allocator, this->getResourcePath((SBuf()<<"alloc"<<(size-c)<<".dump").str()));
-				}
 			}
 
 

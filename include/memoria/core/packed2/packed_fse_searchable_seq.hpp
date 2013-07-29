@@ -340,10 +340,6 @@ public:
 		MEMORIA_ASSERT(end, >=, 0);
 		MEMORIA_ASSERT(start, <=, end);
 
-		if (end > size) {
-			int a = 0; a++;
-		}
-
 		MEMORIA_ASSERT(end, <=, size);
 
 		auto symbols = this->symbols();
@@ -395,6 +391,40 @@ public:
 			pos 			+= processed;
 			to_read_local 	-= processed;
 		}
+	}
+
+	void assertAligns1() const
+	{
+		MEMORIA_ASSERT(T2T<size_t>(metadata()) % 8, ==, 0);
+
+		if (has_index()) {
+			MEMORIA_ASSERT(T2T<size_t>(index()) % 8, ==, 0);
+		}
+
+		MEMORIA_ASSERT(T2T<size_t>(symbols()) % 8, ==, 0);
+	}
+
+	void assertAligns2() const
+	{
+		MEMORIA_ASSERT(T2T<size_t>(metadata()) % 8, ==, 0);
+
+		if (has_index()) {
+			MEMORIA_ASSERT(T2T<size_t>(index()) % 8, ==, 0);
+		}
+
+		MEMORIA_ASSERT(T2T<size_t>(symbols()) % 8, ==, 0);
+	}
+
+
+	void assertAligns3() const
+	{
+		MEMORIA_ASSERT(T2T<size_t>(metadata()) % 8, ==, 0);
+
+		if (has_index()) {
+			MEMORIA_ASSERT(T2T<size_t>(index()) % 8, ==, 0);
+		}
+
+		MEMORIA_ASSERT(T2T<size_t>(symbols()) % 8, ==, 0);
 	}
 
 	void insert(IData* data, Int pos, Int length)
