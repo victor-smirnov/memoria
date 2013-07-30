@@ -24,7 +24,8 @@ template <
 	template <typename>	class CodecType 	= ValueFSECodec,
 	template <typename>	class ReindexFnType = BitmapReindexFn,
 	template <typename>	class SelectFnType	= BitmapSelectFn,
-	template <typename>	class RankFnType	= BitmapRankFn
+	template <typename>	class RankFnType	= BitmapRankFn,
+	template <typename>	class ToolsFnType	= BitmapToolsFn
 >
 class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
 	Bits,
@@ -32,7 +33,8 @@ class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
 	CodecType,
 	ReindexFnType,
 	SelectFnType,
-	RankFnType
+	RankFnType,
+	ToolsFnType
 > {
 
     typedef PackedSearchableSequenceRankTest<
@@ -41,7 +43,8 @@ class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
     		CodecType,
     		ReindexFnType,
     		SelectFnType,
-    		RankFnType
+    		RankFnType,
+    		ToolsFnType
     > 																			MyType;
 
     typedef PackedSearchableSequenceTestBase<
@@ -50,7 +53,8 @@ class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
     		CodecType,
     		ReindexFnType,
     		SelectFnType,
-    		RankFnType
+    		RankFnType,
+    		ToolsFnType
     > 																			Base;
 
 

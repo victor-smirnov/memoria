@@ -85,7 +85,7 @@ MEMORIA_API const char* ExtractMemoriaPath(const char* path);
 namespace std {
 using namespace memoria::vapi;
 
-ostream& operator<<(ostream& out, MemoriaThrowable& t);
+ostream& operator<<(ostream& out, const MemoriaThrowable& t);
 
 }
 

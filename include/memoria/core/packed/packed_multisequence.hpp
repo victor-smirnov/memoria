@@ -25,9 +25,10 @@ template <
 	template <typename>	class IndexType 	= PackedVLETree,
 	template <typename>	class CodecType 	= UBigIntEliasCodec,
 
-	template <typename>	class ReindexFnType = memoria::ReindexFn,
+	template <typename>	class ReindexFnType = VLEReindexFn,
 	template <typename>	class SelectFnType	= Sequence8SelectFn,
-	template <typename>	class RankFnType	= Sequence8RankFn
+	template <typename>	class RankFnType	= Sequence8RankFn,
+	template <typename>	class ToolsFnType	= Sequence8ToolsFn
 >
 struct PackedCxMultiSequenceTypes {
 	static const Int BitsPerSymbol = BitsPerSymbol_;
@@ -46,6 +47,9 @@ struct PackedCxMultiSequenceTypes {
 
 	template <typename Seq>
 	using RankFn	= RankFnType<Seq>;
+
+	template <typename Seq>
+	using ToolsFn	= ToolsFnType<Seq>;
 
 };
 
@@ -69,7 +73,8 @@ public:
 			Types::template Codec,
 			Types::template ReindexFn,
 			Types::template SelectFn,
-			Types::template RankFn
+			Types::template RankFn,
+			Types::template ToolsFn
 	>														SequenceTypes;
 	typedef PackedFSESearchableSeq<SequenceTypes>			Sequence;
 

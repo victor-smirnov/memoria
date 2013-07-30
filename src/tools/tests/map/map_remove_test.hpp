@@ -119,8 +119,10 @@ public:
                 pairs_sorted = pairs_sorted_tmp;
             }
         }
-        catch (...)
+        catch (MemoriaThrowable& e)
         {
+        	this->out()<<e<<endl;
+
         	Base::StorePairs(pairs, pairs_sorted);
             dump_name_ = Base::Store(allocator);
             throw;

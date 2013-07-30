@@ -64,7 +64,7 @@ public:
 
 
 template <typename Seq>
-class BitmapSumFn {
+class BitmapToolsFn {
 	typedef typename Seq::Values 			Values;
 
 	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
@@ -73,9 +73,9 @@ class BitmapSumFn {
 
 	const Seq& seq_;
 public:
-	BitmapSumFn(const Seq& seq): seq_(seq) {}
+	BitmapToolsFn(const Seq& seq): seq_(seq) {}
 
-	Values operator()(Int start, Int end)
+	Values sum(Int start, Int end)
 	{
 		Values values;
 
@@ -90,7 +90,7 @@ public:
 };
 
 template <typename Seq>
-class SequenceSumFn {
+class SequenceToolsFn {
 	typedef typename Seq::Values 			Values;
 	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
 
@@ -99,9 +99,9 @@ class SequenceSumFn {
 
 	const Seq& seq_;
 public:
-	SequenceSumFn(const Seq& seq): seq_(seq) {}
+	SequenceToolsFn(const Seq& seq): seq_(seq) {}
 
-	Values operator()(Int start, Int end)
+	Values sum(Int start, Int end)
 	{
 		Values values;
 
@@ -120,7 +120,7 @@ public:
 };
 
 template <typename Seq>
-class Sequence8SumFn {
+class Sequence8ToolsFn {
 	typedef typename Seq::Values 			Values;
 	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
 
@@ -128,9 +128,9 @@ class Sequence8SumFn {
 
 	const Seq& seq_;
 public:
-	Sequence8SumFn(const Seq& seq): seq_(seq) {}
+	Sequence8ToolsFn(const Seq& seq): seq_(seq) {}
 
-	Values operator()(Int start, Int end)
+	Values sum(Int start, Int end)
 	{
 		Values values;
 
@@ -147,6 +147,9 @@ public:
 		return values;
 	}
 };
+
+
+
 
 template <typename Seq>
 class SequenceSelectFn {

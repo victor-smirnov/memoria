@@ -21,6 +21,7 @@ using namespace std;
 
 template <Int BitsPerSymbol, bool Dense = true>
 class SequenceCreateTest: public SequenceTestBase<BitsPerSymbol, Dense> {
+
 	typedef SequenceCreateTest<BitsPerSymbol, Dense> 							MyType;
 	typedef SequenceTestBase<BitsPerSymbol, Dense> 								Base;
 
@@ -32,10 +33,10 @@ public:
 
 	SequenceCreateTest(StringRef name): Base(name)
 	{
-		MEMORIA_ADD_TEST(testCreate);
+		MEMORIA_ADD_TEST(testCreateRemoveRandom);
 	}
 
-	void testCreate()
+	void testCreateRemoveRandom()
 	{
 		Allocator allocator;
 

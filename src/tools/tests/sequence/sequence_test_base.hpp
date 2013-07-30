@@ -10,7 +10,7 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
-
+#include <memoria/core/packed/wrappers/symbol_sequence.hpp>
 
 #include <vector>
 
@@ -32,6 +32,8 @@ protected:
 	typedef typename Ctr::Accumulator                                           Accumulator;
 	typedef typename Ctr::ID                                                    ID;
 
+	typedef PackedFSESequence<BitsPerSymbol>									PackedSeq;
+
 	String dump_name_;
 
 public:
@@ -40,7 +42,7 @@ public:
 		MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
 	}
 
-	void fillRandom(Ctr& ctr, Int size)
+	PackedSeq fillRandom(Ctr& ctr, Int size)
 	{
 
 	}

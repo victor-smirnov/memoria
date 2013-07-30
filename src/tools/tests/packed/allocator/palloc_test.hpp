@@ -10,8 +10,6 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/prototypes/btree/tools.hpp>
-
 #include <memoria/core/packed/packed_allocator.hpp>
 
 #include <memory>

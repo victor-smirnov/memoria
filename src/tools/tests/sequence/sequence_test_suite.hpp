@@ -11,7 +11,7 @@
 
 //#include "sequence_iter_test.hpp"
 #include "sequence_create_test.hpp"
-//#include "sequence_rank_test.hpp"
+#include "sequence_rank_test.hpp"
 //#include "sequence_select_test.hpp"
 //#include "sequence_count_test.hpp"
 
@@ -34,7 +34,7 @@ public:
     	registerTask(new SequenceCreateTest<1>("Create.1"));
 //    	registerTask(new SequenceCreateTest<3>("Create.3"));
 
-//    	registerTask(new SequenceRankTest<1>("Rank.1"));
+    	registerTask(new SequenceRankTest<1>("Rank.1"));
 //    	registerTask(new SequenceRankTest<3>("Rank.3"));
 
 //    	registerTask(new SequenceSelectTest<1>("Select.1"));

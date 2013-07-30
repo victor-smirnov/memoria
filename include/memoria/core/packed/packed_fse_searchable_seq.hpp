@@ -32,7 +32,7 @@ template <
 	template <typename>	class ReindexFnType = BitmapReindexFn,
 	template <typename>	class SelectFnType	= BitmapSelectFn,
 	template <typename>	class RankFnType	= BitmapRankFn,
-	template <typename>	class SumFnType		= BitmapSumFn
+	template <typename>	class ToolsFnType	= BitmapToolsFn
 >
 struct PackedFSESeachableSeqTypes {
 
@@ -57,7 +57,7 @@ struct PackedFSESeachableSeqTypes {
     using RankFn	= RankFnType<Seq>;
 
     template <typename Seq>
-    using SumFn		= SumFnType<Seq>;
+    using ToolsFn	= ToolsFnType<Seq>;
 };
 
 
@@ -228,6 +228,22 @@ public:
 		return block_size;
 	}
 
+	static Int estimate_block_size(Int size, Int density_hi = 1, Int density_lo = 1)
+	{
+		MEMORIA_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
+		MEMORIA_ASSERT(density_lo, ==, 1);
+
+		Int symbols_block_size 	= Base::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
+		Int index_size 			= divUp(size , ValuesPerBranch);
+		Int index_block_size	= Index::estimate_block_size(index_size);
+		Int metadata_block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+
+		Int client_area 		= metadata_block_size + index_block_size + symbols_block_size;
+		Int block_size 			= Base::block_size(client_area, 3);
+
+		return block_size;
+	}
+
 	void removeIndex()
 	{
 		Base::free(INDEX);
@@ -241,6 +257,10 @@ public:
 		Index* index = this->index();
 		index->init(index_block_size);
 		index->setAllocatorOffset(this);
+	}
+
+	std::pair<Int, Int> density() const {
+		return std::pair<Int, Int>(1,1);
 	}
 
 
@@ -578,9 +598,9 @@ public:
 
 			auto isums = index->sums(0, index_block);
 
-			typename Types::template SumFn<MyType> fn(*this);
+			typename Types::template ToolsFn<MyType> fn(*this);
 
-			auto vsums = fn(index_block * ValuesPerBranch, to);
+			auto vsums = fn.sum(index_block * ValuesPerBranch, to);
 
 			vsums.assignUp(isums);
 			vsums[0] += index_block * ValuesPerBranch;
@@ -589,9 +609,9 @@ public:
 		}
 		else
 		{
-			typename Types::template SumFn<MyType> fn(*this);
+			typename Types::template ToolsFn<MyType> fn(*this);
 
-			auto vsums = fn(0, to);
+			auto vsums = fn.sum(0, to);
 
 			return vsums;
 		}
@@ -832,7 +852,7 @@ public:
 					BitmapReindexFn,
 					BitmapSelectFn,
 					BitmapRankFn,
-					BitmapSumFn
+					BitmapToolsFn
 				>,
 				typename IfThenElse<
 					(BitsPerSymbol > 1 && BitsPerSymbol < 8),
@@ -845,18 +865,18 @@ public:
 						VLEReindexFn,
 						SequenceSelectFn,
 						SequenceRankFn,
-						SequenceSumFn
+						SequenceToolsFn
 					>,
 					PackedFSESeachableSeqTypes<
 						BitsPerSymbol,
 						PackedTreeBranchingFactor,
-						256,
+						1024,
 						PackedVLETree,
 						UBigIntEliasCodec,
 						VLEReindexFn,
 						Sequence8SelectFn,
 						Sequence8RankFn,
-						Sequence8SumFn
+						Sequence8ToolsFn
 					>
 				>::Result
 	>::Result																	Type;

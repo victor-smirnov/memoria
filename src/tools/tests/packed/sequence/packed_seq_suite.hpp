@@ -35,7 +35,8 @@ public:
 						ValueFSECodec,
 						::memoria::ReindexFn,
 						SequenceSelectFn,
-						SequenceRankFn
+						SequenceRankFn,
+						SequenceToolsFn
 		>("Misc.4.FSE"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
@@ -43,7 +44,8 @@ public:
 						UBigIntEliasCodec,
 						VLEReindexFn,
 						SequenceSelectFn,
-						SequenceRankFn
+						SequenceRankFn,
+						SequenceToolsFn
 		>("Misc.4.Elias"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
@@ -51,7 +53,8 @@ public:
 						UByteExintCodec,
 						VLEReindexFn,
 						SequenceSelectFn,
-						SequenceRankFn
+						SequenceRankFn,
+						SequenceToolsFn
 		>("Misc.4.Exint"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						8,
@@ -59,10 +62,9 @@ public:
 						UBigIntEliasCodec,
 						VLEReindexFn,
 						Sequence8SelectFn,
-						Sequence8RankFn
+						Sequence8RankFn,
+						Sequence8ToolsFn
 		>("Misc.8.Elias"));
-
-/*
 
 
 		registerTask(new PackedSearchableSequenceRankTest<1>("Rank.1"));
@@ -104,7 +106,8 @@ public:
 				ValueFSECodec,
 				::memoria::ReindexFn,
 				SequenceSelectFn,
-				SequenceRankFn
+				SequenceRankFn,
+				SequenceToolsFn
 		>("Select.4.FSE"));
 
 		registerTask(new PackedSearchableSequenceSelectTest<
@@ -113,7 +116,8 @@ public:
 				UBigIntEliasCodec,
 				VLEReindexFn,
 				SequenceSelectFn,
-				SequenceRankFn
+				SequenceRankFn,
+				SequenceToolsFn
 		>("Select.4.VLE"));
 
 		registerTask(new PackedSearchableSequenceSelectTest<
@@ -122,9 +126,9 @@ public:
 				UBigIntEliasCodec,
 				VLEReindexFn,
 				Sequence8SelectFn,
-				Sequence8RankFn
+				Sequence8RankFn,
+				Sequence8ToolsFn
 		>("Select.8.VLE"));
-		*/
     }
 
 

@@ -211,8 +211,12 @@ public:
 	typedef typename Seq::ConstSymbolAccessor									ConstSymbolAccessor;
 	typedef typename Seq::SymbolAccessor										SymbolAccessor;
 
-	PackedFSESequence(Int block_size = 64*1024)
+	PackedFSESequence(Int capacity = 1024, Int density_hi = 1, Int density_lo = 1)
 	{
+		Int sequence_block_size = Seq::estimate_block_size(capacity, density_hi, density_lo);
+
+		Int block_size = PackedAllocator::block_size(sequence_block_size, 1);
+
 		PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
 		alloc->init(block_size, 1);
 
@@ -338,6 +342,30 @@ public:
     {
     	const Symbol* syms = sequence_->symbols();
     	tgt.put(syms, from, tgt.getSize());
+    }
+
+    Int rank(Int end, Int symbol) const {
+    	return sequence_->rank(end, symbol);
+    }
+
+    Int rank(Int start, Int end, Int symbol) const {
+    	return sequence_->rank(start, end, symbol);
+    }
+
+    SelectResult selectFw(Int symbol, Int rank) const {
+    	return sequence_->selectFw(symbol, rank);
+    }
+
+    SelectResult selectFw(Int start, Int symbol, Int rank) const {
+    	return sequence_->selectFw(start, symbol, rank);
+    }
+
+    SelectResult selectBw(Int symbol, Int rank) const {
+    	return sequence_->selectFw(symbol, rank);
+    }
+
+    SelectResult selectBw(Int start, Int symbol, Int rank) const {
+    	return sequence_->selectFw(start, symbol, rank);
     }
 };
 

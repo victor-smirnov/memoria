@@ -24,7 +24,8 @@ template <
 	template <typename>	class CodecType,
 	template <typename>	class ReindexFnType,
 	template <typename>	class SelectFnType,
-	template <typename>	class RankFnType
+	template <typename>	class RankFnType,
+	template <typename>	class ToolsFnType
 >
 class PackedSearchableSequenceTestBase: public TestTask {
 
@@ -34,7 +35,8 @@ class PackedSearchableSequenceTestBase: public TestTask {
     		CodecType,
     		ReindexFnType,
     		SelectFnType,
-    		RankFnType
+    		RankFnType,
+    		ToolsFnType
     > 																			MyType;
 
     typedef PackedFSESeachableSeqTypes<
@@ -45,7 +47,8 @@ class PackedSearchableSequenceTestBase: public TestTask {
         		CodecType,
         		ReindexFnType,
         		SelectFnType,
-        		RankFnType
+        		RankFnType,
+        		ToolsFnType
     > 																			Types;
 
 protected:

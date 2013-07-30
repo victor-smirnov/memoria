@@ -69,7 +69,11 @@ Int Task::Run()
 
         result = false;
     }
-    catch (Exception e) {
+    catch (const std::exception& e)
+    {
+    	(*out_)<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+    }
+    catch (const Exception& e) {
         (*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;
 
         String path = getTaskParametersFilePath();
@@ -78,7 +82,7 @@ Int Task::Run()
 
         result = true;
     }
-    catch (MemoriaThrowable e) {
+    catch (const MemoriaThrowable& e) {
         (*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;
 
         String path = getTaskParametersFilePath();
@@ -89,7 +93,7 @@ Int Task::Run()
     }
     catch (...)
     {
-        (*out_)<<"FAILED"<<endl;
+        (*out_)<<"FAILED: Unknown Exception"<<endl;
 
         String path = getTaskParametersFilePath();
 

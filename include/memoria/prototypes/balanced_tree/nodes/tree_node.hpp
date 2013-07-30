@@ -551,6 +551,17 @@ public:
 		allocator_.template allocateArrayBySize<Value>(ValuesBlockIdx, tree_size);
 	}
 
+	static Int client_area(Int block_size)
+	{
+		Int allocator_block_size = block_size - sizeof(Me) + sizeof(allocator_);
+		return PackedAllocator::client_area(allocator_block_size, Streams);
+	}
+
+	Int total_size() const
+	{
+		return allocator_.allocated();
+	}
+
 
     void clearUnused() {}
 

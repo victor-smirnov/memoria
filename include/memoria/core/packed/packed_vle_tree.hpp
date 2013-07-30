@@ -246,6 +246,12 @@ public:
 		return Base::block_size(metadata_length + offsets_length + layout_length + index_length + values_length, 5);
 	}
 
+	static Int estimate_block_size(Int tree_capacity, Int density_hi = 1000, Int density_lo = 333)
+	{
+		Int max_tree_capacity = (tree_capacity * Blocks * density_hi) / density_lo;
+		return block_size(max_tree_capacity);
+	}
+
 	static Int empty_size()
 	{
 		return block_size(0);
@@ -261,6 +267,14 @@ public:
 		return max_tree_size(block_size);
 	}
 
+	std::pair<Int, Int>
+	density() const
+	{
+		Int data_size 	= this->data_size();
+		Int raw_size	= this->raw_size();
+
+		return std::pair<Int, Int>(data_size, raw_size);
+	}
 
 
 	// ================================= Reindexing ======================================== //
@@ -1452,7 +1466,7 @@ public:
 		{
 			IndexValue v;
 			Int len = codec.decode(values, v, pos, limit);
-			cout<<idx<<" "<<pos<<" "<<len<<" "<<hex<<v<<dec<<endl;
+			std::cout<<idx<<" "<<pos<<" "<<len<<" "<<std::hex<<v<<std::dec<<std::endl;
 			pos += len;
 		}
 	}
@@ -1482,7 +1496,7 @@ public:
 
 		Int size = data_length();
 
-		dumpArray<BufferType>(cout, size, [&](Int idx) {
+		dumpArray<BufferType>(std::cout, size, [&](Int idx) {
 			return values[idx];
 		});
 	}
@@ -1497,7 +1511,7 @@ public:
 			{
 				out<<indexes(block)[c]<<" ";
 			}
-			out<<endl;
+			out<<std::endl;
 		}
 	}
 
@@ -1509,24 +1523,28 @@ public:
 
 			for (Int c = 0; c < layout[0] + 1; c++)
 			{
-				out<<c<<" "<<layout[c]<<endl;
+				out<<c<<" "<<layout[c]<<std::endl;
 			}
 		}
 	}
 
 	void dump(std::ostream& out = cout) const
 	{
-//		out<<"Layout: "<<endl;
+//		out<<"Layout: "<<std::endl;
 //		Base::dump(out);
 
-		out<<"size_         = "<<size()<<endl;
-		out<<"data_size_    = "<<data_size()<<endl;
-		out<<"capacity_     = "<<raw_capacity()<<endl;
-		out<<"index_size_   = "<<index_size()<<endl;
+		out<<"size_         = "<<size()<<std::endl;
+		out<<"data_size_    = "<<data_size()<<std::endl;
+		out<<"capacity_     = "<<raw_capacity()<<std::endl;
+		out<<"index_size_   = "<<index_size()<<std::endl;
 
-		out<<endl;
+		auto density = this->density();
+		out<<"density_   	= "<<density.first<<" "<<density.second<<" "
+							   <<((float)density.first/(float)density.second)<<std::endl;
 
-		out<<"Offsets:"<<endl;
+		out<<std::endl;
+
+		out<<"Offsets:"<<std::endl;
 
 		Int value_blocks = getValueBlocks(raw_capacity());
 
@@ -1537,19 +1555,19 @@ public:
 			});
 		}
 
-		out<<endl;
+		out<<std::endl;
 
-		out<<"IndexLayout:"<<dec<<endl;
+		out<<"IndexLayout:"<<std::dec<<std::endl;
 
 		dumpLayout(out);
 
-		out<<"Indexes:"<<dec<<endl;
+		out<<"Indexes:"<<std::dec<<std::endl;
 
 		dumpIndex(out);
 
-		out<<endl;
+		out<<std::endl;
 
-		out<<"Data:"<<endl;
+		out<<"Data:"<<std::endl;
 
 		const BufferType* values = this->values();
 

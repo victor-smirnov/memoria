@@ -260,6 +260,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrToolsName)
     	self().layoutNode(node, 1);
     }
 
+
+    template <typename T>
+    bool canConvertToRootFn(const T* node) const
+    {
+    	typedef typename T::RootNodeType RootType;
+
+		Int root_block_size = node->page_size();
+
+		Int root_available 	= RootType::client_area(root_block_size);
+		Int node_used 		= node->total_size();
+
+		return root_available >= node_used;
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::cmap::CtrToolsName)

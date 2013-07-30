@@ -192,9 +192,21 @@ public:
 	static Int block_size(Int tree_capacity)
 	{
 		Int index_size = MyType::index_size(tree_capacity);
-		Int raw_block_size = sizeof(MyType) + index_size * Indexes * sizeof(IndexValue) + tree_capacity * sizeof(Value) * Blocks;
+
+		Int raw_block_size = sizeof(MyType) +
+								index_size *
+								Indexes *
+								sizeof(IndexValue) +
+								tree_capacity *
+								sizeof(Value) *
+								Blocks;
 
 		return PackedAllocatable::roundUpBytesToAlignmentBlocks(raw_block_size);
+	}
+
+	static Int estimate_block_size(Int tree_capacity)
+	{
+		return block_size(tree_capacity);
 	}
 
 	static Int elements_for(Int block_size)

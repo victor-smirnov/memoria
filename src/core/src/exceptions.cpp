@@ -29,7 +29,7 @@ namespace std {
 
 using namespace memoria::vapi;
 
-ostream& operator<<(ostream& out, MemoriaThrowable& t) {
+ostream& operator<<(ostream& out, const MemoriaThrowable& t) {
     t.dump(out);
     return out;
 }

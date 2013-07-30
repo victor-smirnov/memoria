@@ -198,7 +198,7 @@ bool M_TYPE::insertLeafEntry(Iterator& iter, const Element& element)
 
 		LeafDispatcher::dispatch(leaf, InsertLeafFn(), idx, element.first, element.second);
 	}
-	catch (PackedOOMException ex)
+	catch (PackedOOMException& ex)
 	{
 		mgr.rollback();
 		return false;

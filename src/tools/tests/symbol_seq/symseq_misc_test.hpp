@@ -35,7 +35,7 @@ public:
 
     SymSeqMiscTest(): TestTask((SBuf()<<"Misc."<<Bits).str())
     {
-    	size_ = 10000;
+    	this->size_ = 10000;
 
     	MEMORIA_ADD_TEST_PARAM(iterations_);
 
@@ -48,7 +48,7 @@ public:
 
     void testCreate()
     {
-    	Seq seq;
+    	Seq seq(this->size_);
 
     	for (Int c = 0; c < this->size_; c++)
     	{
@@ -67,7 +67,7 @@ public:
 
     void testAdapter()
     {
-    	Seq seq1;
+    	Seq seq1(this->size_);
 
     	seq1.append(this->size_, []() -> Symbol {
     		return getRandom(Symbols);
@@ -79,7 +79,7 @@ public:
 
     	for (Int c = 0; c < iterations_; c++)
     	{
-    		Seq seq2;
+    		Seq seq2(this->size_);
 
     		Int src_start 	= getRandom(size);
     		Int src_size 	= 1 + getRandom(size - src_start - 1);
