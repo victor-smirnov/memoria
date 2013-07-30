@@ -10,7 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BTREE_MODEL_ALLOCATOR_HPP
 
 #include <iostream>
-#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_names.hpp>
 #include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 

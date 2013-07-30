@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_MODELS_IDX_CMAP_NAMES_HPP
 #define _MEMORIA_MODELS_IDX_CMAP_NAMES_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_names.hpp>
 
 namespace memoria    {
 namespace cmap 		 {

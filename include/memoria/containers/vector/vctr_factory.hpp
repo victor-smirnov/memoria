@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_tree.hpp>
+#include <memoria/prototypes/balanced_tree/bt_factory.hpp>
 
 #include <memoria/core/packed2/packed_fse_array.hpp>
 

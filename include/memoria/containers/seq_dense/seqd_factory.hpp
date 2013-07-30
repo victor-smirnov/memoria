@@ -9,6 +9,8 @@
 #ifndef _MEMORIA_CONTAINERS_seqd_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_seqd_FACTORY_HPP
 
+#include <memoria/prototypes/balanced_tree/bt_factory.hpp>
+
 #include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
 #include <memoria/core/packed2/packed_fse_tree.hpp>
 #include <memoria/core/packed2/packed_vle_tree.hpp>

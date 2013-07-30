@@ -14,7 +14,7 @@
 #include <memoria/prototypes/balanced_tree/iterator/bt_i_api.hpp>
 #include <memoria/prototypes/balanced_tree/iterator/bt_i_base.hpp>
 #include <memoria/prototypes/balanced_tree/iterator/bt_i_find.hpp>
-#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_names.hpp>
 
 namespace memoria    {
 

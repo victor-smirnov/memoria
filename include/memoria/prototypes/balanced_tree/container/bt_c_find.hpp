@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_FIND_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_FIND_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_names.hpp>
 
 #include <memoria/core/container/macros.hpp>
 

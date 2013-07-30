@@ -10,7 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_REMOVE_HPP
 
 #include <memoria/core/container/macros.hpp>
-#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_names.hpp>
 
 namespace memoria    {
 

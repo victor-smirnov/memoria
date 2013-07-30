@@ -9,7 +9,7 @@
 #ifndef __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_FIND_H
 #define __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_FIND_H
 
-#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_names.hpp>
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/container/iterator.hpp>

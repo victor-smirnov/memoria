@@ -10,7 +10,7 @@
 #define __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_BASE_H
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_names.hpp>
 #include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 
 #include <memoria/core/tools/hash.hpp>

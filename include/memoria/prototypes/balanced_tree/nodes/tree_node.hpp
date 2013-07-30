@@ -20,7 +20,7 @@
 #include <memoria/core/packed2/packed_dispatcher.hpp>
 
 #include <memoria/prototypes/balanced_tree/bt_tools.hpp>
-#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_names.hpp>
 
 
 namespace memoria    	{
