@@ -11,22 +11,22 @@
 //#include <memoria/containers/map/map_factory.hpp>
 #include <memoria/containers/vector/vctr_factory.hpp>
 
-#include <memoria/containers/vector_map/vectormap_walkers.hpp>
-#include <memoria/containers/vector_map/vectormap_tools.hpp>
-#include <memoria/containers/vector_map/vectormap_names.hpp>
+#include <memoria/containers/vector_map/vmap_walkers.hpp>
+#include <memoria/containers/vector_map/vmap_tools.hpp>
+#include <memoria/containers/vector_map/vmap_names.hpp>
 
-#include <memoria/containers/vector_map/container/vectormap_c_checks.hpp>
-#include <memoria/containers/vector_map/container/vectormap_c_tools.hpp>
-#include <memoria/containers/vector_map/container/vectormap_c_insert.hpp>
-#include <memoria/containers/vector_map/container/vectormap_c_remove.hpp>
-#include <memoria/containers/vector_map/container/vectormap_c_api.hpp>
-#include <memoria/containers/vector_map/container/vectormap_c_find.hpp>
-#include <memoria/containers/vector_map/container/vectormap_c_update.hpp>
+#include <memoria/containers/vector_map/container/vmap_c_checks.hpp>
+#include <memoria/containers/vector_map/container/vmap_c_tools.hpp>
+#include <memoria/containers/vector_map/container/vmap_c_insert.hpp>
+#include <memoria/containers/vector_map/container/vmap_c_remove.hpp>
+#include <memoria/containers/vector_map/container/vmap_c_api.hpp>
+#include <memoria/containers/vector_map/container/vmap_c_find.hpp>
+#include <memoria/containers/vector_map/container/vmap_c_update.hpp>
 
-#include <memoria/containers/vector_map/vectormap_iterator.hpp>
-#include <memoria/containers/vector_map/iterator/vectormap_i_api.hpp>
+#include <memoria/containers/vector_map/vmap_iterator.hpp>
+#include <memoria/containers/vector_map/iterator/vmap_i_api.hpp>
 
-#include <memoria/containers/vector_map/vectormap_names.hpp>
+#include <memoria/containers/vector_map/vmap_names.hpp>
 
 namespace memoria    {
 

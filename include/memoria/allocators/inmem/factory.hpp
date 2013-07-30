@@ -13,7 +13,7 @@
 #include <memoria/containers/map/map_factory.hpp>
 #include <memoria/containers/cmap/cmap_factory.hpp>
 #include <memoria/containers/vector/vctr_factory.hpp>
-#include <memoria/containers/vector_map/vectormap_factory.hpp>
+#include <memoria/containers/vector_map/vmap_factory.hpp>
 #include <memoria/containers/seq_dense/seqd_factory.hpp>
 
 //#include <memoria/containers/seq_dense/factory.hpp>

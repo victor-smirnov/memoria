@@ -9,8 +9,8 @@
 #define _MEMORIA_CONTAINER_VECTORMAP_C_FIND_HPP
 
 
-#include <memoria/containers/vector_map/vectormap_names.hpp>
-#include <memoria/containers/vector_map/vectormap_tools.hpp>
+#include <memoria/containers/vector_map/vmap_names.hpp>
+#include <memoria/containers/vector_map/vmap_tools.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>

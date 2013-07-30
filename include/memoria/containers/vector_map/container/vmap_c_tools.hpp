@@ -10,8 +10,8 @@
 
 
 #include <memoria/prototypes/balanced_tree/bt_macros.hpp>
-#include <memoria/containers/vector_map/vectormap_names.hpp>
-#include <memoria/containers/vector_map/vectormap_tools.hpp>
+#include <memoria/containers/vector_map/vmap_names.hpp>
+#include <memoria/containers/vector_map/vmap_tools.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 

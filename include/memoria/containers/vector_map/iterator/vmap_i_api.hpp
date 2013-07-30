@@ -13,8 +13,8 @@
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/dump.hpp>
 
-#include <memoria/containers/vector_map/vectormap_names.hpp>
-#include <memoria/containers/vector_map/vectormap_tools.hpp>
+#include <memoria/containers/vector_map/vmap_names.hpp>
+#include <memoria/containers/vector_map/vmap_tools.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 

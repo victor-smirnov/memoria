@@ -9,7 +9,7 @@
 #define MEMORIA_CONTAINERS_VECTORMAP2_ITERATOR_HPP_
 
 
-#include <memoria/containers/vector_map/vectormap_names.hpp>
+#include <memoria/containers/vector_map/vmap_names.hpp>
 
 namespace memoria {
 
