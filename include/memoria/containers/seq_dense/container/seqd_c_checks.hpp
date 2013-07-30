@@ -6,14 +6,14 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_SEQDENSE_CONTAINER_SEQ_C_CHECKS_HPP
-#define _MEMORIA_CONTAINERS_SEQDENSE_CONTAINER_SEQ_C_CHECKS_HPP
+#ifndef _MEMORIA_CONTAINERS_seqd_CONTAINER_SEQ_C_CHECKS_HPP
+#define _MEMORIA_CONTAINERS_seqd_CONTAINER_SEQ_C_CHECKS_HPP
 
 
 
 #include <memoria/prototypes/btree/btree.hpp>
 
-#include <memoria/containers/seq_dense/seqdense_names.hpp>
+#include <memoria/containers/seq_dense/seqd_names.hpp>
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
 

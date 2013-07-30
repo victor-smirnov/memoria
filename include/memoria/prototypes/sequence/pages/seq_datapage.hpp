@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_SEQDENSE_PAGES_SEQ_DATAPAGE_HPP
-#define _MEMORIA_CONTAINERS_SEQDENSE_PAGES_SEQ_DATAPAGE_HPP
+#ifndef _MEMORIA_CONTAINERS_seqd_PAGES_SEQ_DATAPAGE_HPP
+#define _MEMORIA_CONTAINERS_seqd_PAGES_SEQ_DATAPAGE_HPP
 
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/packed/packed_seq.hpp>

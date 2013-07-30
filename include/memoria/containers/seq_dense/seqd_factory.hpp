@@ -6,23 +6,23 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_SEQDENSE_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_SEQDENSE_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_seqd_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_seqd_FACTORY_HPP
 
 #include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
 #include <memoria/core/packed2/packed_fse_tree.hpp>
 #include <memoria/core/packed2/packed_vle_tree.hpp>
 
-#include <memoria/containers/seq_dense/seqdense_names.hpp>
-#include <memoria/containers/seq_dense/seqdense_tools.hpp>
+#include <memoria/containers/seq_dense/seqd_names.hpp>
+#include <memoria/containers/seq_dense/seqd_tools.hpp>
 
-//#include <memoria/containers/seq_dense/container/seqdense_c_checks.hpp>
-#include <memoria/containers/seq_dense/container/seqdense_c_tools.hpp>
-#include <memoria/containers/seq_dense/container/seqdense_c_find.hpp>
-#include <memoria/containers/seq_dense/container/seqdense_c_insert.hpp>
-#include <memoria/containers/seq_dense/container/seqdense_c_remove.hpp>
+//#include <memoria/containers/seq_dense/container/seqd_c_checks.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_tools.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_find.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_remove.hpp>
 
-#include <memoria/containers/seq_dense/iterator/seqdense_i_api.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_api.hpp>
 
 namespace memoria {
 

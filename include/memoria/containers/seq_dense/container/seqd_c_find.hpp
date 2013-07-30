@@ -6,15 +6,15 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_SEQDENSE_SEQ_C_FIND_HPP
-#define _MEMORIA_CONTAINERS_SEQDENSE_SEQ_C_FIND_HPP
+#ifndef _MEMORIA_CONTAINERS_seqd_SEQ_C_FIND_HPP
+#define _MEMORIA_CONTAINERS_seqd_SEQ_C_FIND_HPP
 
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
 
-#include <memoria/containers/seq_dense/seqdense_walkers.hpp>
-#include <memoria/containers/seq_dense/seqdense_names.hpp>
+#include <memoria/containers/seq_dense/seqd_walkers.hpp>
+#include <memoria/containers/seq_dense/seqd_names.hpp>
 
 namespace memoria    {
 

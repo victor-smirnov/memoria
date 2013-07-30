@@ -24,7 +24,7 @@
 
 #include <memoria/core/packed/tree_walkers.hpp>
 
-#include <memoria/containers/seq_dense/seqdense_walkers.hpp>
+#include <memoria/containers/seq_dense/seqd_walkers.hpp>
 
 #include <functional>
 #include <algorithm>

@@ -6,15 +6,15 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_SEQDENSE_ITERATOR_API_HPP
-#define _MEMORIA_CONTAINERS_SEQDENSE_ITERATOR_API_HPP
+#ifndef _MEMORIA_CONTAINERS_seqd_ITERATOR_API_HPP
+#define _MEMORIA_CONTAINERS_seqd_ITERATOR_API_HPP
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/dump.hpp>
 
-#include <memoria/containers/seq_dense/seqdense_names.hpp>
-#include <memoria/containers/seq_dense/seqdense_tools.hpp>
+#include <memoria/containers/seq_dense/seqd_names.hpp>
+#include <memoria/containers/seq_dense/seqd_tools.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 

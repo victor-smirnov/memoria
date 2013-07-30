@@ -11,7 +11,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/containers/louds/louds_names.hpp>
 #include <memoria/containers/louds/louds_tools.hpp>
-#include <memoria/containers/seq_dense/seqdense_walkers.hpp>
+#include <memoria/containers/seq_dense/seqd_walkers.hpp>
 
 
 #include <memoria/prototypes/ctr_wrapper/iterator.hpp>
