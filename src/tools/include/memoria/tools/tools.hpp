@@ -19,7 +19,7 @@
 #include <memoria/containers/vector_map/vmap_names.hpp>
 #include <memoria/prototypes/sequence/names.hpp>
 
-#include <memoria/core/packed2/packed_allocator_types.hpp>
+#include <memoria/core/packed/packed_allocator_types.hpp>
 
 #include <vector>
 #include <fstream>

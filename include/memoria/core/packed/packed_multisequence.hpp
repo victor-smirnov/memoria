@@ -8,9 +8,9 @@
 #ifndef MEMORIA_CORE_PACKED2_CXMULTISEQUENCE_HPP_
 #define MEMORIA_CORE_PACKED2_CXMULTISEQUENCE_HPP_
 
-#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
-#include <memoria/core/packed2/packed_vle_tree.hpp>
-#include <memoria/core/packed2/packed_fse_tree.hpp>
+#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/packed_vle_tree.hpp>
+#include <memoria/core/packed/packed_fse_tree.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
 
 #include <functional>

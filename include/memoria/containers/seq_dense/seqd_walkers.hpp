@@ -9,7 +9,7 @@
 
 #include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
 
-#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
 
 namespace memoria 	{
 namespace seq_dense	{

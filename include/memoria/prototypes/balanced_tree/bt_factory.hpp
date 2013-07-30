@@ -13,12 +13,12 @@
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/vector_tuple.hpp>
 
-#include <memoria/core/packed2/packed_fse_tree.hpp>
-#include <memoria/core/packed2/packed_vle_tree.hpp>
+#include <memoria/core/packed/packed_fse_tree.hpp>
+#include <memoria/core/packed/packed_vle_tree.hpp>
 
-#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
 
-#include <memoria/core/packed2/packed_allocator.hpp>
+#include <memoria/core/packed/packed_allocator.hpp>
 
 #include <memoria/prototypes/balanced_tree/bt_names.hpp>
 #include <memoria/prototypes/balanced_tree/bt_tools.hpp>

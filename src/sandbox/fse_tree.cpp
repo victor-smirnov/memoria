@@ -9,8 +9,8 @@
 #include <iostream>
 
 
-#include <memoria/core/packed2/packed_fse_tree.hpp>
-#include <memoria/core/packed2/packed_allocator.hpp>
+#include <memoria/core/packed/packed_fse_tree.hpp>
+#include <memoria/core/packed/packed_allocator.hpp>
 
 using namespace std;
 using namespace memoria;

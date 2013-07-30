@@ -8,7 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED2_LOUDSTREE_HPP_
 #define MEMORIA_CORE_PACKED2_LOUDSTREE_HPP_
 
-#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
 
 namespace memoria {
 

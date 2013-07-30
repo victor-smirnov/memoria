@@ -10,7 +10,7 @@
 
 #include <memoria/prototypes/balanced_tree/bt_factory.hpp>
 
-#include <memoria/core/packed2/packed_fse_array.hpp>
+#include <memoria/core/packed/packed_fse_array.hpp>
 
 #include <memoria/containers/vector/vctr_walkers.hpp>
 #include <memoria/containers/vector/vctr_tools.hpp>

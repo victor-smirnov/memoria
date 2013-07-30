@@ -12,9 +12,9 @@
 #include <memoria/core/tools/accessors.hpp>
 #include <memoria/core/tools/dump.hpp>
 
-#include <memoria/core/packed2/packed_louds_cardinal_tree.hpp>
-#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
-#include <memoria/core/packed2/packed_multisequence.hpp>
+#include <memoria/core/packed/packed_louds_cardinal_tree.hpp>
+#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/packed_multisequence.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
 

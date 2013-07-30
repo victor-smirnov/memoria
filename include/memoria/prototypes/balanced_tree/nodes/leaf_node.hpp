@@ -14,10 +14,10 @@
 #include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/core/packed2/packed_fse_tree.hpp>
-#include <memoria/core/packed2/packed_fse_array.hpp>
-#include <memoria/core/packed2/packed_allocator.hpp>
-#include <memoria/core/packed2/packed_dispatcher.hpp>
+#include <memoria/core/packed/packed_fse_tree.hpp>
+#include <memoria/core/packed/packed_fse_array.hpp>
+#include <memoria/core/packed/packed_allocator.hpp>
+#include <memoria/core/packed/packed_dispatcher.hpp>
 
 #include <memoria/prototypes/balanced_tree/bt_tools.hpp>
 #include <memoria/prototypes/balanced_tree/bt_names.hpp>

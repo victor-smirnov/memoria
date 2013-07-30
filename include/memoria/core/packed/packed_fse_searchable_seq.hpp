@@ -8,10 +8,10 @@
 #ifndef MEMORIA_CORE_PACKED_FSE_SEARCHABLESEQ_HPP_
 #define MEMORIA_CORE_PACKED_FSE_SEARCHABLESEQ_HPP_
 
-#include <memoria/core/packed2/packed_allocator.hpp>
-#include <memoria/core/packed2/packed_tree_tools.hpp>
+#include <memoria/core/packed/packed_allocator.hpp>
+#include <memoria/core/packed/packed_tree_tools.hpp>
 
-#include <memoria/core/packed2/packed_fse_searchable_seq_fn.hpp>
+#include <memoria/core/packed/packed_fse_searchable_seq_fn.hpp>
 
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/static_array.hpp>

@@ -11,7 +11,7 @@
 #include <memoria/core/types/type2type.hpp>
 
 
-#include <memoria/core/packed2/packed_allocator.hpp>
+#include <memoria/core/packed/packed_allocator.hpp>
 
 
 namespace memoria {

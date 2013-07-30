@@ -13,8 +13,8 @@
 #include <memoria/prototypes/btree/tools.hpp>
 
 
-#include <memoria/core/packed2/packed_multisequence.hpp>
-#include <memoria/core/packed2/packed_wavelet_tree.hpp>
+#include <memoria/core/packed/packed_multisequence.hpp>
+#include <memoria/core/packed/packed_wavelet_tree.hpp>
 
 #include <memory>
 

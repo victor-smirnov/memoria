@@ -10,7 +10,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
 
 #include <memory>
 

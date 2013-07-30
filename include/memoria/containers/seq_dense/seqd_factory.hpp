@@ -11,9 +11,9 @@
 
 #include <memoria/prototypes/balanced_tree/bt_factory.hpp>
 
-#include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
-#include <memoria/core/packed2/packed_fse_tree.hpp>
-#include <memoria/core/packed2/packed_vle_tree.hpp>
+#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/packed_fse_tree.hpp>
+#include <memoria/core/packed/packed_vle_tree.hpp>
 
 #include <memoria/containers/seq_dense/seqd_names.hpp>
 #include <memoria/containers/seq_dense/seqd_tools.hpp>

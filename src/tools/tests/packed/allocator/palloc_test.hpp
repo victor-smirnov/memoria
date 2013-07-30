@@ -12,7 +12,7 @@
 
 #include <memoria/prototypes/btree/tools.hpp>
 
-#include <memoria/core/packed2/packed_allocator.hpp>
+#include <memoria/core/packed/packed_allocator.hpp>
 
 #include <memory>
 
