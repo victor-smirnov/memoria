@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR_C_FIND_HPP
-#define _MEMORIA_CONTAINER_VECTOR_C_FIND_HPP
+#ifndef _MEMORIA_CONTAINER_vctr_C_API_HPP
+#define _MEMORIA_CONTAINER_vctr_C_API_HPP
 
 
-#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vctr_names.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
@@ -20,7 +20,7 @@ namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -53,14 +53,27 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
+	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
+
+
+	BigInt size() const {
+		return self().sizes()[0];
+	}
+
+    Iterator seek(Key pos)
+    {
+        return self().findLT(MAIN_STREAM, pos, 0);
+    }
+
+    MyType& operator<<(vector<Value>& v)
+    {
+    	auto& self = this->self();
+    	auto i = self.seek(self.size());
+    	i.insert(v);
+    	return self;
+    }
+
 MEMORIA_CONTAINER_PART_END
-
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrFindName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
-
-#undef M_TYPE
-#undef M_PARAMS
 
 }
 

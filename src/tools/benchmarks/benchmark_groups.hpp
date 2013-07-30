@@ -17,9 +17,9 @@
 #include "stl/stlset_scan.hpp"
 #include "stl/stluset_find_mem.hpp"
 #include "stl/stluset_find_size.hpp"
-#include "stl/stl_vector_random_read.hpp"
-#include "stl/stl_vector_linear_read.hpp"
-#include "stl/stl_vector_insert.hpp"
+#include "stl/stl_vctr_random_read.hpp"
+#include "stl/stl_vctr_linear_read.hpp"
+#include "stl/stl_vctr_insert.hpp"
 
 
 #include "set/set_scan.hpp"
@@ -31,12 +31,12 @@
 #include "set/set_insert.hpp"
 #include "set/set_insert_batch.hpp"
 
-#include "vector/vector_append.hpp"
-#include "vector/vector_insert_batch.hpp"
-#include "vector/vector_read.hpp"
-#include "vector/vector_random_read.hpp"
-#include "vector/vector_sequential_read.hpp"
-#include "vector/vector_random_insert.hpp"
+#include "vector/vctr_append.hpp"
+#include "vector/vctr_insert_batch.hpp"
+#include "vector/vctr_read.hpp"
+#include "vector/vctr_random_read.hpp"
+#include "vector/vctr_sequential_read.hpp"
+#include "vector/vctr_random_insert.hpp"
 
 #include "vector_map/vector_map_append.hpp"
 #include "vector_map/vector_map_batch_insert.hpp"

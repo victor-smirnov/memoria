@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR_C_CHECKS_HPP
-#define _MEMORIA_CONTAINER_VECTOR_C_CHECKS_HPP
+#ifndef _MEMORIA_CONTAINER_vctr_C_CHECKS_HPP
+#define _MEMORIA_CONTAINER_vctr_C_CHECKS_HPP
 
 
-#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vctr_names.hpp>
 #include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
 
 #include <memoria/core/container/container.hpp>

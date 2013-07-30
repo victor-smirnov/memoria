@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_BIT_VECTOR_BITMAP_TEST_BASE_HPP_
-#define MEMORIA_TESTS_BIT_VECTOR_BITMAP_TEST_BASE_HPP_
+#ifndef MEMORIA_TESTS_BIT_vctr_BITMAP_TEST_BASE_HPP_
+#define MEMORIA_TESTS_BIT_vctr_BITMAP_TEST_BASE_HPP_
 
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>

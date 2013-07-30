@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_VECTOR_CONTAINER_WALKERS_HPP
-#define _MEMORIA_CONTAINERS_VECTOR_CONTAINER_WALKERS_HPP
+#ifndef _MEMORIA_CONTAINERS_vctr_CONTAINER_WALKERS_HPP
+#define _MEMORIA_CONTAINERS_vctr_CONTAINER_WALKERS_HPP
 
 #include <memoria/prototypes/balanced_tree/bt_tools.hpp>
 #include <memoria/core/tools/static_array.hpp>

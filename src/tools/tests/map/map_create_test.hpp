@@ -69,19 +69,19 @@ public:
 
         map.setBranchingFactor(Base::btree_branching_);
 
-        auto& vector_idx 	= Base::vector_idx_;
+        auto& vctr_idx 	= Base::vctr_idx_;
         auto& pairs 		= Base::pairs;
         auto& pairs_sorted 	= Base::pairs_sorted;
 
         try {
 
-            for (vector_idx = 0; vector_idx < Base::size_; vector_idx++)
+            for (vctr_idx = 0; vctr_idx < Base::size_; vctr_idx++)
             {
-            	this->out()<<vector_idx<<endl;
+            	this->out()<<vctr_idx<<endl;
 
-            	auto iter = map[pairs[vector_idx].key_];
+            	auto iter = map[pairs[vctr_idx].key_];
 
-                iter.value() = pairs[vector_idx].value_;
+                iter.value() = pairs[vctr_idx].value_;
 
                 Base::checkIterator(iter, MEMORIA_SOURCE);
 
@@ -89,7 +89,7 @@ public:
 
                 PairVector tmp = pairs_sorted;
 
-                appendToSortedVector(tmp, pairs[vector_idx]);
+                appendToSortedVector(tmp, pairs[vctr_idx]);
 
                 Base::checkContainerData(map, tmp);
 
@@ -113,7 +113,7 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        auto& vector_idx_ 	= Base::vector_idx_;
+        auto& vctr_idx_ 	= Base::vctr_idx_;
         auto& pairs 		= Base::pairs;
         auto& pairs_sorted 	= Base::pairs_sorted;
 
@@ -124,14 +124,14 @@ public:
 
         Ctr map(&allocator, CTR_FIND, Base::ctr_name_);
 
-        auto iter = map[pairs[vector_idx_].key_];
-        iter.value() = pairs[vector_idx_].value_;
+        auto iter = map[pairs[vctr_idx_].key_];
+        iter.value() = pairs[vctr_idx_].value_;
 
         Base::checkIterator(iter, MEMORIA_SOURCE);
 
         Base::check(allocator, MEMORIA_SOURCE);
 
-        appendToSortedVector(pairs_sorted, pairs[vector_idx_]);
+        appendToSortedVector(pairs_sorted, pairs[vctr_idx_]);
 
         Base::checkContainerData(map, pairs_sorted);
 

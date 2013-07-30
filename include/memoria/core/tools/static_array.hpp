@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CORE_TOOLS_VECTOR_HPP
-#define _MEMORIA_CORE_TOOLS_VECTOR_HPP
+#ifndef _MEMORIA_CORE_TOOLS_vctr_HPP
+#define _MEMORIA_CORE_TOOLS_vctr_HPP
 
 
 #include <memoria/core/types/types.hpp>

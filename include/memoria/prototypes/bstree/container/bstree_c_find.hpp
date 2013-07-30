@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_MODELS_VECTOR_MODEL_FIND_HPP
-#define _MEMORIA_MODELS_VECTOR_MODEL_FIND_HPP
+#ifndef _MEMORIA_MODELS_vctr_MODEL_FIND_HPP
+#define _MEMORIA_MODELS_vctr_MODEL_FIND_HPP
 
 
 #include <memoria/prototypes/bstree/names.hpp>

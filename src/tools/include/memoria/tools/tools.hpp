@@ -15,7 +15,7 @@
 //#include <memoria/core/tools/symbol_sequence.hpp>
 #include <memoria/core/container/logs.hpp>
 
-#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vctr_names.hpp>
 #include <memoria/containers/vector_map/vectormap_names.hpp>
 #include <memoria/prototypes/sequence/names.hpp>
 

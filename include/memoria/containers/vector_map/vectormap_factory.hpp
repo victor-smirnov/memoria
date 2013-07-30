@@ -9,7 +9,7 @@
 #define _MEMORIA_CONTAINERS_VECTORMAP_FACTORY_HPP
 
 //#include <memoria/containers/map/map_factory.hpp>
-#include <memoria/containers/vector/vector_factory.hpp>
+#include <memoria/containers/vector/vctr_factory.hpp>
 
 #include <memoria/containers/vector_map/vectormap_walkers.hpp>
 #include <memoria/containers/vector_map/vectormap_tools.hpp>

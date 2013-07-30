@@ -5,12 +5,12 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR_C_TOOLS_HPP
-#define _MEMORIA_CONTAINER_VECTOR_C_TOOLS_HPP
+#ifndef _MEMORIA_CONTAINER_vctr_C_TOOLS_HPP
+#define _MEMORIA_CONTAINER_vctr_C_TOOLS_HPP
 
 
 #include <memoria/prototypes/balanced_tree/bt_macros.hpp>
-#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vctr_names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 

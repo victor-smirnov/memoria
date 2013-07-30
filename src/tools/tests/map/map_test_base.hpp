@@ -39,7 +39,7 @@ protected:
     PairVector pairs;
     PairVector pairs_sorted;
 
-    Int vector_idx_;
+    Int vctr_idx_;
     Int step_;
 
     BigInt ctr_name_;
@@ -61,7 +61,7 @@ protected:
     {
         MEMORIA_ADD_TEST_PARAM(throw_ex_);
 
-        MEMORIA_ADD_TEST_PARAM(vector_idx_)->state();
+        MEMORIA_ADD_TEST_PARAM(vctr_idx_)->state();
         MEMORIA_ADD_TEST_PARAM(step_)->state();
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();

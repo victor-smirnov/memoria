@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_VECTOR_TOOLS_HPP
-#define _MEMORIA_CONTAINERS_VECTOR_TOOLS_HPP
+#ifndef _MEMORIA_CONTAINERS_vctr_TOOLS_HPP
+#define _MEMORIA_CONTAINERS_vctr_TOOLS_HPP
 
 #include <memoria/prototypes/balanced_tree/bt_tools.hpp>
 

@@ -37,7 +37,7 @@ class MapRemoveTest: public MapTestBase<MapType> {
 
 	BigInt&  		ctr_name_		= Base::ctr_name_;
 	Int&  		size_			= Base::size_;
-	Int&  			vector_idx_ 	= Base::vector_idx_;
+	Int&  			vctr_idx_ 	= Base::vctr_idx_;
 	PairVector& 	pairs 			= Base::pairs;
 	PairVector& 	pairs_sorted 	= Base::pairs_sorted;
 	String& 		dump_name_ 		= Base::dump_name_;
@@ -67,10 +67,10 @@ public:
         map.setBranchingFactor(Base::btree_branching_);
 
         try {
-            for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
+            for (vctr_idx_ = 0; vctr_idx_ < size_; vctr_idx_++)
             {
-                auto iter = map[pairs[vector_idx_].key_];
-                iter.value() = pairs[vector_idx_].value_;
+                auto iter = map[pairs[vctr_idx_].key_];
+                iter.value() = pairs[vctr_idx_].value_;
             }
 
             allocator.commit();
@@ -82,21 +82,21 @@ public:
                 pairs_sorted.push_back(Pair(iter.key(), iter.value()));
             }
 
-            for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
+            for (vctr_idx_ = 0; vctr_idx_ < size_; vctr_idx_++)
             {
-            	if (vector_idx_ == 6418) {
+            	if (vctr_idx_ == 6418) {
             		//throw Exception(MA_SRC, "Breakpoint");
             	}
 
-            	bool result = map.remove(pairs[vector_idx_].key_);
+            	bool result = map.remove(pairs[vctr_idx_].key_);
 
                 AssertTrue(MA_SRC, result);
 
                 Base::check(allocator, MEMORIA_SOURCE);
 
-                Base::out()<<vector_idx_<<endl;
+                Base::out()<<vctr_idx_<<endl;
 
-                BigInt size = size_ - vector_idx_ - 1;
+                BigInt size = size_ - vctr_idx_ - 1;
 
                 AssertEQ(MA_SRC, size, map.size());
 
@@ -104,7 +104,7 @@ public:
 
                 for (UInt x = 0; x < pairs_sorted_tmp.size(); x++)
                 {
-                    if (pairs_sorted_tmp[x].key_ == pairs[vector_idx_].key_)
+                    if (pairs_sorted_tmp[x].key_ == pairs[vctr_idx_].key_)
                     {
                         pairs_sorted_tmp.erase(pairs_sorted_tmp.begin() + x);
                     }
@@ -140,19 +140,19 @@ public:
 
         Ctr map(&allocator, CTR_FIND, ctr_name_);
 
-        bool result = map.remove(pairs[vector_idx_].key_);
+        bool result = map.remove(pairs[vctr_idx_].key_);
 
         AssertTrue(MA_SRC, result);
 
         Base::check(allocator, MEMORIA_SOURCE);
 
-        BigInt size = size_ - vector_idx_ - 1;
+        BigInt size = size_ - vctr_idx_ - 1;
 
         AssertEQ(MA_SRC, size, map.size());
 
         for (UInt x = 0; x < pairs_sorted.size(); x++)
         {
-            if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
+            if (pairs_sorted[x].key_ == pairs[vctr_idx_].key_)
             {
                 pairs_sorted.erase(pairs_sorted.begin() + x);
             }

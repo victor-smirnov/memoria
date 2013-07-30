@@ -5,21 +5,23 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_VECTOR_C_REMOVE_HPP
-#define _MEMORIA_CONTAINER_VECTOR_C_REMOVE_HPP
+#ifndef _MEMORIA_CONTAINER_vctr_C_INSERT_HPP
+#define _MEMORIA_CONTAINER_vctr_C_INSERT_HPP
 
 
-#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vctr_names.hpp>
+#include <memoria/containers/vector/vctr_tools.hpp>
+
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-
+#include <vector>
 
 namespace memoria    {
 
 using namespace memoria::balanced_tree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrRemoveName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
 
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
@@ -35,6 +37,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrRemoveName)
 	typedef typename Base::RootDispatcher                                       RootDispatcher;
 	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+	typedef typename Base::DefaultDispatcher                                    DefaultDispatcher;
 
 
 	typedef typename Base::Key                                                  Key;
@@ -52,53 +55,55 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrRemoveName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
+	typedef typename Types::DataSource											DataSource;
+	typedef typename Types::DataTarget											DataTarget;
 
-	void remove(Iterator& from, Iterator& to);
-    void remove(Iterator& from, BigInt size);
+    void insert(Iterator& iter, DataSource& data);
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrRemoveName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
-M_PARAMS
-void M_TYPE::remove(Iterator& from, Iterator& to)
-{
-	auto& self = this->self();
 
-	auto& from_path 	= from.leaf();
-	Position from_pos 	= Position(from.key_idx());
-
-	auto& to_path 		= to.leaf();
-	Position to_pos 	= Position(to.key_idx());
-
-	Accumulator keys;
-
-	self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
-
-	from.idx() = to.idx() = to_pos.get();
-}
 
 M_PARAMS
-void M_TYPE::remove(Iterator& from, BigInt size)
+void M_TYPE::insert(Iterator& iter, DataSource& data)
 {
-	auto to = from;
-	to.skip(size);
-
 	auto& self = this->self();
+	auto& ctr  = self;
 
-	self.remove(from, to);
+	Position idx(iter.idx());
 
-	from = to;
+	if (ctr.isNodeEmpty(iter.leaf()))
+	{
+		ctr.layoutLeafNode(iter.leaf(), 0);
+	}
 
-	from.cache().initState();
+	mvector::VectorSource source(&data);
+
+	typename Base::DefaultSubtreeProvider provider(self, Position(data.getSize()), source);
+
+	ctr.insertSubtree(iter.leaf(), idx, provider);
+
+	ctr.addTotalKeyCount(Position(data.getSize()));
+
+	if (iter.isEof())
+	{
+		iter.nextLeaf();
+	}
+
+	iter.skipFw(data.getSize());
 }
 
 
-}
 
-#undef M_TYPE
+
+
 #undef M_PARAMS
+#undef M_TYPE
+
+}
 
 
 #endif

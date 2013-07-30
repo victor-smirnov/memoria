@@ -5,11 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CONTAINERS_VECTOR_ITERATOR_HPP_
-#define MEMORIA_CONTAINERS_VECTOR_ITERATOR_HPP_
+#ifndef MEMORIA_CONTAINERS_vctr_ITERATOR_HPP_
+#define MEMORIA_CONTAINERS_vctr_ITERATOR_HPP_
 
 #include <memoria/prototypes/ctr_wrapper/iterator.hpp>
-#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vctr_names.hpp>
 
 namespace memoria {
 

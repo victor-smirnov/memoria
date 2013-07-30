@@ -3,8 +3,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_EXAMPLES_VECTOR_MAP_HPP_
-#define MEMORIA_EXAMPLES_VECTOR_MAP_HPP_
+#ifndef MEMORIA_EXAMPLES_vector_map_HPP_
+#define MEMORIA_EXAMPLES_vector_map_HPP_
 
 #include "examples.hpp"
 

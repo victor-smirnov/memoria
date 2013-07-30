@@ -5,28 +5,28 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_VECTOR_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_VECTOR_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
 
 #include <memoria/prototypes/balanced_tree/bt_tree.hpp>
 
 #include <memoria/core/packed2/packed_fse_array.hpp>
 
-#include <memoria/containers/vector/vector_walkers.hpp>
-#include <memoria/containers/vector/vector_tools.hpp>
-#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vctr_walkers.hpp>
+#include <memoria/containers/vector/vctr_tools.hpp>
+#include <memoria/containers/vector/vctr_names.hpp>
 
-#include <memoria/containers/vector/container/vector_c_checks.hpp>
-#include <memoria/containers/vector/container/vector_c_tools.hpp>
-#include <memoria/containers/vector/container/vector_c_insert.hpp>
-#include <memoria/containers/vector/container/vector_c_remove.hpp>
-#include <memoria/containers/vector/container/vector_c_api.hpp>
-#include <memoria/containers/vector/container/vector_c_find.hpp>
+#include <memoria/containers/vector/container/vctr_c_checks.hpp>
+#include <memoria/containers/vector/container/vctr_c_tools.hpp>
+#include <memoria/containers/vector/container/vctr_c_insert.hpp>
+#include <memoria/containers/vector/container/vctr_c_remove.hpp>
+#include <memoria/containers/vector/container/vctr_c_api.hpp>
+#include <memoria/containers/vector/container/vctr_c_find.hpp>
 
-#include <memoria/containers/vector/vector_iterator.hpp>
-#include <memoria/containers/vector/iterator/vector_i_api.hpp>
+#include <memoria/containers/vector/vctr_iterator.hpp>
+#include <memoria/containers/vector/iterator/vctr_i_api.hpp>
 
-#include <memoria/containers/vector/vector_names.hpp>
+#include <memoria/containers/vector/vctr_names.hpp>
 
 namespace memoria    {
 
