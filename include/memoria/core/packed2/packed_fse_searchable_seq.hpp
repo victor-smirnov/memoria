@@ -817,6 +817,52 @@ private:
 };
 
 
+
+template <Int BitsPerSymbol>
+class PackedFSESearchableSeqTF {
+public:
+	typedef typename IfThenElse<
+				BitsPerSymbol == 1,
+				PackedFSESeachableSeqTypes<
+					1,
+					PackedTreeBranchingFactor,
+					1024,
+					PackedFSETree,
+					ValueFSECodec,
+					BitmapReindexFn,
+					BitmapSelectFn,
+					BitmapRankFn,
+					BitmapSumFn
+				>,
+				typename IfThenElse<
+					(BitsPerSymbol > 1 && BitsPerSymbol < 8),
+					PackedFSESeachableSeqTypes<
+						BitsPerSymbol,
+						PackedTreeBranchingFactor,
+						256,
+						PackedVLETree,
+						UByteExintCodec,
+						VLEReindexFn,
+						SequenceSelectFn,
+						SequenceRankFn,
+						SequenceSumFn
+					>,
+					PackedFSESeachableSeqTypes<
+						BitsPerSymbol,
+						PackedTreeBranchingFactor,
+						256,
+						PackedVLETree,
+						UBigIntEliasCodec,
+						VLEReindexFn,
+						Sequence8SelectFn,
+						Sequence8RankFn,
+						Sequence8SumFn
+					>
+				>::Result
+	>::Result																	Types;
+};
+
+
 }
 
 
