@@ -123,8 +123,6 @@ public:
 
 		layout_size_ = layout_blocks * sizeof(Int);
 
-
-
 		memset(buffer_, 0, layout_size_);
 
 		bitmap_size_ = roundUpBitsToAlignmentBlocks(layout_blocks);
@@ -246,8 +244,9 @@ public:
 	template <typename T>
 	const T* get(Int idx) const
 	{
-		//MEMORIA_ASSERT(element_size(idx), >, 0);
 		const T* addr = T2T<const T*>(base() + element_offset(idx));
+
+		MEMORIA_ASSERT_ALIGN(addr, 8);
 
 		__builtin_prefetch(addr);
 		return addr;
@@ -256,8 +255,9 @@ public:
 	template <typename T>
 	T* get(Int idx)
 	{
-		//MEMORIA_ASSERT(element_size(idx), >, 0);
 		T* addr = T2T<T*>(base() + element_offset(idx));
+
+		MEMORIA_ASSERT_ALIGN(addr, 8);
 
 		__builtin_prefetch(addr);
 
@@ -376,6 +376,8 @@ public:
 			PackedAllocatable* alc = T2T<PackedAllocatable*>(base() + offset);
 			alc->setAllocatorOffset(this);
 		}
+
+		MEMORIA_ASSERT_ALIGN(base() + offset, 8);
 
 		return AllocationBlock(allocation_size, offset, base() + offset);
 	}
