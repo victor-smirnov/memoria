@@ -13,7 +13,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/tools/idata.hpp>
 
-#include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
+#include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
 
 #include <functional>
 

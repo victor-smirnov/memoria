@@ -10,7 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_BTREE_HPP
 
 
-#include <memoria/prototypes/balanced_tree/baltree_factory.hpp>
+#include <memoria/prototypes/balanced_tree/bt_factory.hpp>
 
 #endif
 

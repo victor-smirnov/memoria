@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_SEQUENCE_FACTORY_HPP
 #define _MEMORIA_PROTOTYPES_SEQUENCE_FACTORY_HPP
 
-#include <memoria/prototypes/balanced_tree/baltree_factory.hpp>
+#include <memoria/prototypes/balanced_tree/bt_factory.hpp>
 
 #include <memoria/prototypes/sequence/names.hpp>
 #include <memoria/prototypes/sequence/sequence_walkers.hpp>

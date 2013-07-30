@@ -11,7 +11,7 @@
 
 #include <memoria/core/container/macros.hpp>
 
-#define MEMORIA_BALTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeContainerBaseClassName)     \
+#define MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeContainerBaseClassName)     \
 template <                                                                              \
         typename TypesType                                                              \
 >                                                                                       \
@@ -23,8 +23,8 @@ class BTreeContainerBaseClassName: public ContainerBase<TypesType> {            
                                                                                         \
 public:
 
-#define MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBaseClassName)             \
-    MEMORIA_BALTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeContainerBaseClassName)         \
+#define MEMORIA_bt_MODEL_BASE_CLASS_BEGIN(BTreeContainerBaseClassName)             \
+    MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeContainerBaseClassName)         \
                                                                                         \
     BTreeContainerBaseClassName(const CtrInitData& data): Base(data) {}                 \
     BTreeContainerBaseClassName(const ThisType& other): Base(other) {}                  \
@@ -35,7 +35,7 @@ public:
         Base(other, allocator)        {}                                                \
 
 
-#define MEMORIA_BALTREE_MODEL_BASE_CLASS_END                                            \
+#define MEMORIA_bt_MODEL_BASE_CLASS_END                                            \
     MyType* me() {                                                                      \
         return static_cast<MyType*>(this);                                              \
     }                                                                                   \
@@ -53,7 +53,7 @@ public:
 
 
 
-#define MEMORIA_BALTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)     \
+#define MEMORIA_bt_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)     \
 template <                                                                              \
         typename TypesType                                                              \
 >                                                                                       \
@@ -67,12 +67,12 @@ public:                                                                         
 
 
         
-#define MEMORIA_BALTREE_ITERATOR_BASE_CLASS_BEGIN(BTreeIteratorBaseClassName)      		\
-MEMORIA_BALTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)      		\
+#define MEMORIA_bt_ITERATOR_BASE_CLASS_BEGIN(BTreeIteratorBaseClassName)      		\
+MEMORIA_bt_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)      		\
     BTreeIteratorBaseClassName(): Base() {}
 
 
-#define MEMORIA_BALTREE_ITERATOR_BASE_CLASS_END                                         \
+#define MEMORIA_bt_ITERATOR_BASE_CLASS_END                                         \
     MyType* me() {                                                                      \
         return static_cast<MyType*>(this);                                              \
     }                                                                                   \

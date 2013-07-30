@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_CONTAINERS_VECTOR_TOOLS_HPP
 #define _MEMORIA_CONTAINERS_VECTOR_TOOLS_HPP
 
-#include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
+#include <memoria/prototypes/balanced_tree/bt_tools.hpp>
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/idata.hpp>

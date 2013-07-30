@@ -14,7 +14,7 @@
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/prototypes/balanced_tree/nodes/tree_node.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 
 #include <iostream>
 

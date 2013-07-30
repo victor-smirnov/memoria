@@ -10,7 +10,7 @@
 #define _MEMORIA_PROTOTYPES_SEQUENCE_TOOLS_HPP
 
 #include <memoria/prototypes/sequence/names.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
+#include <memoria/prototypes/balanced_tree/bt_tools.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/tools/idata.hpp>
 

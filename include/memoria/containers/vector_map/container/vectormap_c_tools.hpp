@@ -9,7 +9,7 @@
 #define _MEMORIA_CONTAINER_VECTORMAP_C_TOOLS_HPP
 
 
-#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 #include <memoria/containers/vector_map/vectormap_names.hpp>
 #include <memoria/containers/vector_map/vectormap_tools.hpp>
 #include <memoria/core/container/container.hpp>

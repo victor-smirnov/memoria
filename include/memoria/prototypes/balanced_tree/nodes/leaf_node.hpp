@@ -19,8 +19,8 @@
 #include <memoria/core/packed2/packed_allocator.hpp>
 #include <memoria/core/packed2/packed_dispatcher.hpp>
 
-#include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_tools.hpp>
+#include <memoria/prototypes/balanced_tree/bt_types.hpp>
 #include <memoria/prototypes/balanced_tree/nodes/tree_node.hpp>
 
 

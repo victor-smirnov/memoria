@@ -20,9 +20,9 @@
 
 #include <memoria/core/packed2/packed_allocator.hpp>
 
-#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_tools.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
+#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_tools.hpp>
+#include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
 
 #include <memoria/prototypes/balanced_tree/nodes/tree_node.hpp>
 #include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
@@ -30,24 +30,24 @@
 #include <memoria/prototypes/balanced_tree/nodes/tree_metadata.hpp>
 #include <memoria/prototypes/balanced_tree/nodes/node_list_builder.hpp>
 
-#include <memoria/prototypes/balanced_tree/container/baltree_c_base.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_tools.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_checks.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_insbatch.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_insert.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_read.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_update.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_nodecompr.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_nodenorm.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_base.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_tools.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_checks.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_insbatch.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_insert.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_read.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_update.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_nodecompr.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_nodenorm.hpp>
 
-#include <memoria/prototypes/balanced_tree/container/baltree_c_remove.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_remtools.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_rembatch.hpp>
-#include <memoria/prototypes/balanced_tree/container/baltree_c_find.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_remove.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_remtools.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_rembatch.hpp>
+#include <memoria/prototypes/balanced_tree/container/bt_c_find.hpp>
 
 #include <memoria/prototypes/templates/container/allocator.hpp>
 
-#include <memoria/prototypes/balanced_tree/baltree_iterator.hpp>
+#include <memoria/prototypes/balanced_tree/bt_iterator.hpp>
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>

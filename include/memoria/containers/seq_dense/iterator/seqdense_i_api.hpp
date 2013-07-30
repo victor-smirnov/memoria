@@ -18,7 +18,7 @@
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 
 namespace memoria    {
 

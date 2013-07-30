@@ -9,7 +9,7 @@
 #define _MEMORIA_CONTAINER_VECTOR_C_TOOLS_HPP
 
 
-#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 #include <memoria/containers/vector/vector_names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>

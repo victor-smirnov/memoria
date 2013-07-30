@@ -16,14 +16,14 @@
 #include <memoria/core/container/macros.hpp>
 
 
-#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 
 #include <iostream>
 
 namespace memoria       	{
 namespace balanced_tree     {
 
-MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
+MEMORIA_bt_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
 
 
     typedef typename Base::Types                                                Types;
@@ -499,7 +499,7 @@ MEMORIA_BALTREE_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
     	Base::setCtrShared(shared);
     }
 
-MEMORIA_BALTREE_MODEL_BASE_CLASS_END
+MEMORIA_bt_MODEL_BASE_CLASS_END
 
 
 }}

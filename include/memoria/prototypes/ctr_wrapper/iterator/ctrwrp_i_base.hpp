@@ -7,11 +7,11 @@
 #ifndef _MEMORIA_PROTOTYPES_CTRWRAPPER_ITER_BASE_HPP
 #define _MEMORIA_PROTOTYPES_CTRWRAPPER_ITER_BASE_HPP
 
-#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 
 namespace memoria {
 
-MEMORIA_BALTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
+MEMORIA_bt_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
 
 	typedef TypesType 															Types;
 	typedef Ctr<typename Types::CtrTypes> 										Container;
@@ -61,7 +61,7 @@ MEMORIA_BALTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
 
 	}
 
-MEMORIA_BALTREE_ITERATOR_BASE_CLASS_END;
+MEMORIA_bt_ITERATOR_BASE_CLASS_END;
 
 }
 

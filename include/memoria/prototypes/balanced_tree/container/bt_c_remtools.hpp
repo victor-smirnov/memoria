@@ -10,8 +10,8 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_REMTOOLS_HPP
 
 #include <memoria/core/container/macros.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 
 
 #include <functional>

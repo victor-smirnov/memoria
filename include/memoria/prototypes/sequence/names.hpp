@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_SEQUENCE_NAMES_HPP
 #define _MEMORIA_PROTOTYPES_SEQUENCE_NAMES_HPP
 
-#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_types.hpp>
 
 namespace memoria    	{
 namespace sequence		{

@@ -10,8 +10,8 @@
 #define __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_BASE_H
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_types.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 
 #include <memoria/core/tools/hash.hpp>
 
@@ -22,7 +22,7 @@ namespace memoria    {
 using namespace memoria::balanced_tree;
 
 
-MEMORIA_BALTREE_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BalTreeIteratorBase)
+MEMORIA_bt_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BalTreeIteratorBase)
 public:
     typedef typename Base::Container::Types                                             Types;
     typedef typename Base::Container::TreePath                                          TreePath;
@@ -277,7 +277,7 @@ public:
 
     void init() {}
 
-MEMORIA_BALTREE_ITERATOR_BASE_CLASS_END
+MEMORIA_bt_ITERATOR_BASE_CLASS_END
 
 } //memoria
 

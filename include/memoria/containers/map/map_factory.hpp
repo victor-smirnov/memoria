@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CONTAINERS_MAP_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_MAP_FACTORY_HPP
 
-#include <memoria/prototypes/balanced_tree/balanced_tree.hpp>
+#include <memoria/prototypes/balanced_tree/bt_tree.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
 #include <memoria/containers/map/map_walkers.hpp>

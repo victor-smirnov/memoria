@@ -7,7 +7,7 @@
 #ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_WALKERS_HPP
 #define _MEMORIA_CONTAINERS_SEQ_DENSE_WALKERS_HPP
 
-#include <memoria/prototypes/balanced_tree/baltree_walkers.hpp>
+#include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
 
 #include <memoria/core/packed2/packed_fse_searchable_seq.hpp>
 

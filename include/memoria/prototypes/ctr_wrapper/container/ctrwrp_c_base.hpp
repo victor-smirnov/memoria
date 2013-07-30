@@ -11,7 +11,7 @@
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/names.hpp>
-#include <memoria/prototypes/balanced_tree/baltree_macros.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 #include <memoria/core/types/algo.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
@@ -20,7 +20,7 @@
 namespace memoria       {
 
 
-MEMORIA_BALTREE_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperContainerBase1)
+MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperContainerBase1)
 
     typedef TypesType                                                           Types;
 
@@ -166,7 +166,7 @@ public:
         return ctr_.getRootMetadata().branching_factor();
     }
 
-MEMORIA_BALTREE_MODEL_BASE_CLASS_END
+MEMORIA_bt_MODEL_BASE_CLASS_END
 
 
 }
