@@ -10,17 +10,14 @@
 #define _MEMORIA_PROTOTYPES_BTREE_MODEL_ALLOCATOR_HPP
 
 #include <iostream>
-
-#include <memoria/prototypes/btree/pages/pages.hpp>
-#include <memoria/prototypes/btree/names.hpp>
-
+#include <memoria/prototypes/balanced_tree/bt_types.hpp>
+#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
 namespace memoria    {
 
-using namespace memoria::btree;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::btree::AllocatorName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::balanced_tree::AllocatorName)
 private:
     
 public:
@@ -123,7 +120,7 @@ public:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::btree::AllocatorName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::balanced_tree::AllocatorName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS

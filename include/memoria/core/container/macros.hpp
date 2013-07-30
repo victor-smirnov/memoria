@@ -10,15 +10,16 @@
 #define _MEMORIA_CORE_CONTAINER_MACROS_HPP
 
 #include <memoria/core/tools/config.hpp>
+#include <memoria/core/packed/packed_sum_tree.hpp>
 
-#ifndef __CLING__
+#if 0
 #define MEMORIA_EXTERN_TREE(Key, Value, Indexes)            \
 MEMORIA_TEMPLATE_EXTERN template class PackedSumTree<       \
     PackedTreeTypes<                                        \
         Key,                                                \
         Key,                                                \
         Value,                                              \
-        memoria::btree::Accumulators<Key, Indexes>,         \
+        memoria::balanced_tree::Accumulators<Key, Indexes>, \
         Indexes                                             \
     >                                                       \
 >;                                                          \

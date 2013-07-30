@@ -125,7 +125,7 @@ struct BalancedTreeTypes {
     typedef TypeList<BigInt>                                                    KeysList;
 
     typedef TypeList<
-            memoria::btree::AllocatorName,
+            memoria::balanced_tree::AllocatorName,
             memoria::balanced_tree::ToolsName,
             memoria::balanced_tree::ChecksName,
             memoria::balanced_tree::InsertBatchName,

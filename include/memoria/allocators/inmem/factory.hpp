@@ -26,8 +26,6 @@
 
 namespace memoria    {
 
-using namespace memoria::btree;
-
 
 template <typename Profile>
 class ContainerCollectionCfg;

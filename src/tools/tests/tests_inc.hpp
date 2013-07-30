@@ -10,10 +10,7 @@
 
 #include <memoria/tools/tools.hpp>
 #include <memoria/core/types/types.hpp>
-#include <memoria/prototypes/btree/tools.hpp>
-
 #include <memoria/tools/profile_tests.hpp>
-
 #include <memoria/core/tools/string_buffer.hpp>
 
 

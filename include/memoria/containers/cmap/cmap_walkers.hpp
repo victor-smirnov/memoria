@@ -8,7 +8,6 @@
 #ifndef _MEMORIA_CONTAINERS_CMAP_CONTAINER_WALKERS_HPP
 #define _MEMORIA_CONTAINERS_CMAP_CONTAINER_WALKERS_HPP
 
-#include <memoria/prototypes/btree/tools.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
 #include <memoria/core/container/container.hpp>
