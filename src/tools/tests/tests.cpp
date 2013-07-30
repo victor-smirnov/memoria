@@ -23,7 +23,8 @@
 #include "vector_map/vectormap_test_suite.hpp"
 #include "sequence/sequence_test_suite.hpp"
 
-//#include "symbol_seq/symseq_test_suite.hpp"
+#include "symbol_seq/symseq_test_suite.hpp"
+
 //#include "bitmap/bitmap_test_suite.hpp"
 //
 //#include "template/template_test_suite.hpp"
@@ -44,7 +45,7 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MEMORIA_INIT(SmallProfile<>);
+//    MEMORIA_INIT(SmallProfile<>);
 
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
@@ -78,6 +79,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
+        runner.registerTask(new SymbolSeqTestSuite());
 
 
 

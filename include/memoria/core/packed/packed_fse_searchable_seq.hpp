@@ -859,7 +859,7 @@ public:
 						Sequence8SumFn
 					>
 				>::Result
-	>::Result																	Types;
+	>::Result																	Type;
 };
 
 

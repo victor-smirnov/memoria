@@ -409,7 +409,7 @@ class VLEReindexFn {
 	static const Int Blocks						= Index::Blocks;
 	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
 
-	static_assert(BitsPerSymbol > 2,
+	static_assert(BitsPerSymbol > 1,
 				"ReindexFn<> can only be used with 2-8-bit sequences");
 
 	static_assert(!FixedSizeElementIndex,

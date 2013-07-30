@@ -22,7 +22,7 @@ template <Int BitsPerSymbol, bool Dense = true>
 class SequenceIteratorTest: public SPTestTask{
 
     typedef SequenceIteratorTest<BitsPerSymbol, Dense>                          MyType;
-    typedef SymbolSequence<BitsPerSymbol>										MemBuffer;
+    typedef PackedFSESequence<BitsPerSymbol>										MemBuffer;
 
     typedef SPTestTask                                                          Base;
 

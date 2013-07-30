@@ -21,7 +21,7 @@ template <Int BitsPerSymbol, bool Dense = true>
 class SequenceSelectTest: public SPTestTask{
 
     typedef SequenceSelectTest<BitsPerSymbol, Dense>                            MyType;
-    typedef SymbolSequence<BitsPerSymbol>										MemBuffer;
+    typedef PackedFSESequence<BitsPerSymbol>										MemBuffer;
 
     typedef SPTestTask                                                          Base;
 

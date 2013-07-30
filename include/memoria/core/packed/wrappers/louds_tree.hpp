@@ -9,7 +9,7 @@
 #ifndef MEMORIA_CORE_TOOLS_LOUDSTREE_HPP
 #define MEMORIA_CORE_TOOLS_LOUDSTREE_HPP
 
-#include <memoria/core/tools/symbol_sequence.hpp>
+#include <memoria/core/packed/wrappers/symbol_sequence.hpp>
 
 #include <vector>
 
@@ -17,10 +17,10 @@ namespace memoria {
 
 using namespace std;
 
-class LoudsTree: public SymbolSequence<1> {
+class LoudsTree: public PackedFSESequence<1> {
 
 	typedef LoudsTree 															MyType;
-	typedef SymbolSequence<1>													Base;
+	typedef PackedFSESequence<1>													Base;
 
 public:
 	static const size_t END														= static_cast<size_t>(-1);

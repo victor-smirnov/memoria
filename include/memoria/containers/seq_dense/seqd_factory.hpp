@@ -42,7 +42,7 @@ struct PackedFSESeqTF {
 
 	static const Int BitsPerSymbol = Types::BitsPerSymbol;
 
-	typedef typename PackedFSESearchableSeqTF<BitsPerSymbol>::Types				SequenceTypes;
+	typedef typename PackedFSESearchableSeqTF<BitsPerSymbol>::Type				SequenceTypes;
 
 	typedef PackedFSESearchableSeq<SequenceTypes> Type;
 };
