@@ -876,9 +876,9 @@ public:
 						PkdVTree,
 						UByteExintCodec,
 						VLEReindexFn,
-						SequenceSelectFn,
-						SequenceRankFn,
-						SequenceToolsFn
+						SeqSelectFn,
+						SeqRankFn,
+						SeqToolsFn
 					>,
 					PkdFSSeqTypes<
 						BitsPerSymbol,
@@ -887,9 +887,9 @@ public:
 						PkdVTree,
 						UBigIntEliasCodec,
 						VLEReindexFn,
-						Sequence8SelectFn,
-						Sequence8RankFn,
-						Sequence8ToolsFn
+						Seq8SelectFn,
+						Seq8RankFn,
+						Seq8ToolsFn
 					>
 				>::Result
 	>::Result																	Type;

@@ -90,16 +90,16 @@ public:
 };
 
 template <typename Seq>
-class SequenceToolsFn {
+class SeqToolsFn {
 	typedef typename Seq::Values 			Values;
 	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
 
 	static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
-				"SequenceToolsFn<> can only be used with 2-7-bit sequences");
+				"SeqToolsFn<> can only be used with 2-7-bit sequences");
 
 	const Seq& seq_;
 public:
-	SequenceToolsFn(const Seq& seq): seq_(seq) {}
+	SeqToolsFn(const Seq& seq): seq_(seq) {}
 
 	Values sum(Int start, Int end)
 	{
@@ -120,15 +120,15 @@ public:
 };
 
 template <typename Seq>
-class Sequence8ToolsFn {
+class Seq8ToolsFn {
 	typedef typename Seq::Values 			Values;
 	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
 
-	static_assert(BitsPerSymbol == 8, "Sequence8ToolsFn<> can only be used with 8-bit sequences");
+	static_assert(BitsPerSymbol == 8, "Seq8ToolsFn<> can only be used with 8-bit sequences");
 
 	const Seq& seq_;
 public:
-	Sequence8ToolsFn(const Seq& seq): seq_(seq) {}
+	Seq8ToolsFn(const Seq& seq): seq_(seq) {}
 
 	Values sum(Int start, Int end)
 	{
@@ -152,7 +152,7 @@ public:
 
 
 template <typename Seq>
-class SequenceSelectFn {
+class SeqSelectFn {
 	typedef typename Seq::Value Value;
 
 	static const Int BitsPerSymbol = Seq::BitsPerSymbol;
@@ -160,10 +160,10 @@ class SequenceSelectFn {
 	const Seq& seq_;
 
 	static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
-			"SequenceSelectFn<> can only be used with 2-7-bit sequences");
+			"SeqSelectFn<> can only be used with 2-7-bit sequences");
 
 public:
-	SequenceSelectFn(const Seq& seq): seq_(seq) {}
+	SeqSelectFn(const Seq& seq): seq_(seq) {}
 
 	SelectResult operator()(Int start, Int end, Value symbol, Int rank)
 	{
@@ -190,18 +190,18 @@ public:
 
 
 template <typename Seq>
-class SequenceRankFn {
+class SeqRankFn {
 	typedef typename Seq::Value Value;
 
 	static const Int BitsPerSymbol = Seq::BitsPerSymbol;
 
 	static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
-			"SequenceRankFn<> can only be used with 2-7-bit sequences");
+			"SeqRankFn<> can only be used with 2-7-bit sequences");
 
 	const Seq& seq_;
 
 public:
-	SequenceRankFn(const Seq& seq): seq_(seq) {}
+	SeqRankFn(const Seq& seq): seq_(seq) {}
 
 	Int operator()(Int start, Int end, Value symbol)
 	{
@@ -226,17 +226,17 @@ public:
 
 
 template <typename Seq>
-class Sequence8SelectFn {
+class Seq8SelectFn {
 
 	static const Int BitsPerSymbol = Seq::BitsPerSymbol;
 
 	static_assert(BitsPerSymbol == 8,
-			"Sequence8SelectFn<> can only be used with 8-bit sequences");
+			"Seq8SelectFn<> can only be used with 8-bit sequences");
 
 	const Seq& seq_;
 
 public:
-	Sequence8SelectFn(const Seq& seq): seq_(seq) {}
+	Seq8SelectFn(const Seq& seq): seq_(seq) {}
 
 	SelectResult operator()(Int start, Int end, Int symbol, Int rank)
 	{
@@ -262,16 +262,16 @@ public:
 
 
 template <typename Seq>
-class Sequence8RankFn {
+class Seq8RankFn {
 
 	static const Int BitsPerSymbol = Seq::BitsPerSymbol;
 
 	static_assert(BitsPerSymbol == 8,
-			"Sequence8RankFn<> can only be used with 2-7-bit sequences");
+			"Seq8RankFn<> can only be used with 2-7-bit sequences");
 
 	const Seq& seq_;
 public:
-	Sequence8RankFn(const Seq& seq): seq_(seq) {}
+	Seq8RankFn(const Seq& seq): seq_(seq) {}
 
 	Int operator()(Int start, Int end, Int symbol)
 	{

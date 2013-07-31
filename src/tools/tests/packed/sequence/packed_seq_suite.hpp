@@ -34,36 +34,36 @@ public:
 						PkdFTree,
 						ValueFSECodec,
 						::memoria::ReindexFn,
-						SequenceSelectFn,
-						SequenceRankFn,
-						SequenceToolsFn
+						SeqSelectFn,
+						SeqRankFn,
+						SeqToolsFn
 		>("Misc.4.FSE"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
 						PkdVTree,
 						UBigIntEliasCodec,
 						VLEReindexFn,
-						SequenceSelectFn,
-						SequenceRankFn,
-						SequenceToolsFn
+						SeqSelectFn,
+						SeqRankFn,
+						SeqToolsFn
 		>("Misc.4.Elias"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
 						PkdVTree,
 						UByteExintCodec,
 						VLEReindexFn,
-						SequenceSelectFn,
-						SequenceRankFn,
-						SequenceToolsFn
+						SeqSelectFn,
+						SeqRankFn,
+						SeqToolsFn
 		>("Misc.4.Exint"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						8,
 						PkdVTree,
 						UBigIntEliasCodec,
 						VLEReindexFn,
-						Sequence8SelectFn,
-						Sequence8RankFn,
-						Sequence8ToolsFn
+						Seq8SelectFn,
+						Seq8RankFn,
+						Seq8ToolsFn
 		>("Misc.8.Elias"));
 
 
@@ -74,8 +74,8 @@ public:
 				PkdFTree,
 				ValueFSECodec,
 				::memoria::ReindexFn,
-				SequenceSelectFn,
-				SequenceRankFn
+				SeqSelectFn,
+				SeqRankFn
 		>("Rank.4.FSE"));
 
 		registerTask(new PackedSearchableSequenceRankTest<
@@ -83,8 +83,8 @@ public:
 				PkdVTree,
 				UBigIntEliasCodec,
 				VLEReindexFn,
-				SequenceSelectFn,
-				SequenceRankFn
+				SeqSelectFn,
+				SeqRankFn
 		>("Rank.4.VLE"));
 
 		registerTask(new PackedSearchableSequenceRankTest<
@@ -92,8 +92,8 @@ public:
 				PkdVTree,
 				UBigIntEliasCodec,
 				VLEReindexFn,
-				Sequence8SelectFn,
-				Sequence8RankFn
+				Seq8SelectFn,
+				Seq8RankFn
 		>("Rank.8.VLE"));
 
 
@@ -105,9 +105,9 @@ public:
 				PkdFTree,
 				ValueFSECodec,
 				::memoria::ReindexFn,
-				SequenceSelectFn,
-				SequenceRankFn,
-				SequenceToolsFn
+				SeqSelectFn,
+				SeqRankFn,
+				SeqToolsFn
 		>("Select.4.FSE"));
 
 		registerTask(new PackedSearchableSequenceSelectTest<
@@ -115,9 +115,9 @@ public:
 				PkdVTree,
 				UBigIntEliasCodec,
 				VLEReindexFn,
-				SequenceSelectFn,
-				SequenceRankFn,
-				SequenceToolsFn
+				SeqSelectFn,
+				SeqRankFn,
+				SeqToolsFn
 		>("Select.4.VLE"));
 
 		registerTask(new PackedSearchableSequenceSelectTest<
@@ -125,9 +125,9 @@ public:
 				PkdVTree,
 				UBigIntEliasCodec,
 				VLEReindexFn,
-				Sequence8SelectFn,
-				Sequence8RankFn,
-				Sequence8ToolsFn
+				Seq8SelectFn,
+				Seq8RankFn,
+				Seq8ToolsFn
 		>("Select.8.VLE"));
     }
 

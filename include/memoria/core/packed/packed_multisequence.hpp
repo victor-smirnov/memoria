@@ -26,9 +26,9 @@ template <
 	template <typename>	class CodecType 	= UBigIntEliasCodec,
 
 	template <typename>	class ReindexFnType = VLEReindexFn,
-	template <typename>	class SelectFnType	= Sequence8SelectFn,
-	template <typename>	class RankFnType	= Sequence8RankFn,
-	template <typename>	class ToolsFnType	= Sequence8ToolsFn
+	template <typename>	class SelectFnType	= Seq8SelectFn,
+	template <typename>	class RankFnType	= Seq8RankFn,
+	template <typename>	class ToolsFnType	= Seq8ToolsFn
 >
 struct PackedCxMultiSequenceTypes {
 	static const Int BitsPerSymbol = BitsPerSymbol_;
