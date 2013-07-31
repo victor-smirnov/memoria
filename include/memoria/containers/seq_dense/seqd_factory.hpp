@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CONTAINERS_seqd_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_seqd_FACTORY_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_factory.hpp>
+#include <memoria/prototypes/bt/bt_factory.hpp>
 
 #include <memoria/core/packed/packed_fse_searchable_seq.hpp>
 #include <memoria/core/packed/packed_fse_tree.hpp>
@@ -87,7 +87,7 @@ struct BalancedTreeTypes<Profile, memoria::Sequence<1, true> >:
 
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
-				memoria::balanced_tree::NodeComprName,
+				memoria::bt::NodeComprName,
 				memoria::seq_dense::CtrToolsName,
 				memoria::seq_dense::CtrFindName,
 				memoria::seq_dense::CtrInsertName,
@@ -111,11 +111,13 @@ struct BalancedTreeTypes<Profile, memoria::Sequence<1, true> >:
     template <typename Types>
     using FindLTWalker 		= ::memoria::seq_dense::SkipForwardWalker<Types>;
 
+
     template <typename Types>
     using RankFWWalker 		= ::memoria::seq_dense::RankFWWalker<Types>;
 
     template <typename Types>
     using RankBWWalker 		= ::memoria::seq_dense::RankBWWalker<Types>;
+
 
     template <typename Types>
     using SelectFwWalker 	= ::memoria::seq_dense::SelectForwardWalker<Types>;
@@ -123,17 +125,20 @@ struct BalancedTreeTypes<Profile, memoria::Sequence<1, true> >:
     template <typename Types>
     using SelectBwWalker 	= ::memoria::seq_dense::SelectBackwardWalker<Types>;
 
+
     template <typename Types>
     using SkipForwardWalker 	= ::memoria::seq_dense::SkipForwardWalker<Types>;
 
     template <typename Types>
     using SkipBackwardWalker 	= ::memoria::seq_dense::SkipBackwardWalker<Types>;
 
-    template <typename Types>
-    using NextLeafWalker 	 	= ::memoria::balanced_tree::NextLeafWalker<Types>;
 
     template <typename Types>
-    using PrevLeafWalker 		= ::memoria::balanced_tree::PrevLeafWalker<Types>;
+    using NextLeafWalker 	 	= ::memoria::bt::NextLeafWalker<Types>;
+
+    template <typename Types>
+    using PrevLeafWalker 		= ::memoria::bt::PrevLeafWalker<Types>;
+
 
     template <typename Types>
     using FindBeginWalker 	= ::memoria::seq_dense::FindBeginWalker<Types>;

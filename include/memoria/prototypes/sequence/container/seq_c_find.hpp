@@ -72,9 +72,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::sequence::CtrFindName)
 
     	typename Types::template SkipForwardWalker<
     		Types,
-    		balanced_tree::EmptyExtender,
-    		balanced_tree::EmptyExtender,
-    		balanced_tree::EmptyExtenderState
+    		bt::EmptyExtender,
+    		bt::EmptyExtender,
+    		bt::EmptyExtenderState
     	> walker(pos, 0);
 
     	return ctr.find0(walker);

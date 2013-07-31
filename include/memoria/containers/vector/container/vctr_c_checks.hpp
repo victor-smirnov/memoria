@@ -10,7 +10,7 @@
 
 
 #include <memoria/containers/vector/vctr_names.hpp>
-#include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
+#include <memoria/prototypes/bt/nodes/leaf_node.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>

@@ -7,7 +7,7 @@
 #ifndef _MEMORIA_PROTOTYPES_CTRWRAPPER_ITER_BASE_HPP
 #define _MEMORIA_PROTOTYPES_CTRWRAPPER_ITER_BASE_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 
 namespace memoria {
 

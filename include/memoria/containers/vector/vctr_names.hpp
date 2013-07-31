@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CONTAINERS_vctr_NAMES_HPP
 #define _MEMORIA_CONTAINERS_vctr_NAMES_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_factory.hpp>
+#include <memoria/prototypes/bt/bt_factory.hpp>
 
 namespace memoria    {
 namespace mvector 	 {

@@ -11,7 +11,7 @@
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/names.hpp>
-#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/types/algo.hpp>
 #include <memoria/core/tools/static_array.hpp>
 

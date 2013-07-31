@@ -7,7 +7,7 @@
 #ifndef _MEMORIA_CONTAINERS_SEQDENSE_EDGE_WALKERS_HPP
 #define _MEMORIA_CONTAINERS_SEQDENSE_EDGE_WALKERS_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
+#include <memoria/prototypes/bt/bt_walkers.hpp>
 
 #include <memoria/core/packed/packed_fse_searchable_seq.hpp>
 

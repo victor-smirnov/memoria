@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_CONTAINERS_VECTORMAP_TOOLS_HPP
 #define _MEMORIA_CONTAINERS_VECTORMAP_TOOLS_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_tools.hpp>
+#include <memoria/prototypes/bt/bt_tools.hpp>
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/idata.hpp>
@@ -91,8 +91,8 @@ public:
 
 
 template <typename Iterator, typename Container>
-class VectorMapIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Iterator, Container> {
-    typedef balanced_tree::BTreeIteratorCache<Iterator, Container> 				Base;
+class VectorMapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
+    typedef bt::BTreeIteratorCache<Iterator, Container> 				Base;
     typedef typename Container::Accumulator     								Accumulator;
 
     BigInt id_prefix_	= 0;

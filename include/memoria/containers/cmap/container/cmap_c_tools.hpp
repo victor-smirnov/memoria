@@ -9,7 +9,7 @@
 #define _MEMORIA_CONTAINERS_CMAP_CTR_TOOLS_HPP
 
 
-#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/containers/cmap/cmap_names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
@@ -18,7 +18,7 @@
 
 namespace memoria    {
 
-using namespace memoria::balanced_tree;
+using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrToolsName)
 

@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_SEQUENCE_FACTORY_HPP
 #define _MEMORIA_PROTOTYPES_SEQUENCE_FACTORY_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_factory.hpp>
+#include <memoria/prototypes/bt/bt_factory.hpp>
 
 #include <memoria/prototypes/sequence/names.hpp>
 #include <memoria/prototypes/sequence/sequence_walkers.hpp>
@@ -54,7 +54,7 @@ struct SequenceContainerTypes: public Base {
 template <typename Profile>
 struct BalancedTreeTypes<Profile, memoria::ASequence>: public BalancedTreeTypes<Profile, memoria::BalancedTree>  {
 
-    typedef balanced_tree::IDType                                               Value;
+    typedef bt::IDType                                               Value;
     typedef BalancedTreeTypes<Profile, memoria::BalancedTree>                   Base;
 
     typedef TypeList<>                                                          DataPagePartsList;
@@ -79,7 +79,7 @@ struct BalancedTreeTypes<Profile, memoria::ASequence>: public BalancedTreeTypes<
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-    	typedef balanced_tree::BTreeIteratorScalarPrefixCache<Iterator, Container> Type;
+    	typedef bt::BTreeIteratorScalarPrefixCache<Iterator, Container> Type;
     };
 
     typedef SequenceMetadata<typename Base::ID>                                 Metadata;

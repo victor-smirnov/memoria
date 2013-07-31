@@ -7,7 +7,7 @@
 #ifndef _MEMORIA_CONTAINERS_SEQDENSE_SELECT_WALKERS_HPP
 #define _MEMORIA_CONTAINERS_SEQDENSE_SELECT_WALKERS_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
+#include <memoria/prototypes/bt/bt_walkers.hpp>
 
 #include <memoria/core/packed/packed_fse_searchable_seq.hpp>
 
@@ -18,8 +18,8 @@ namespace seq_dense	{
 
 
 template <typename Types>
-class SelectForwardWalker: public balanced_tree::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> {
-	typedef balanced_tree::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> 		Base;
+class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> {
+	typedef bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> 		Base;
 	typedef typename Base::Key 																Key;
 
 	BigInt pos_ = 0;
@@ -81,8 +81,8 @@ public:
 
 
 template <typename Types>
-class SelectBackwardWalker: public balanced_tree::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>> {
-	typedef balanced_tree::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>>		Base;
+class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>> {
+	typedef bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>>		Base;
 	typedef typename Base::Key 																Key;
 
 

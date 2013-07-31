@@ -104,7 +104,7 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
     typedef typename MergeLists<
     		typename Base::ContainerPartsList,
-    		memoria::balanced_tree::NodeNormName,
+    		memoria::bt::NodeNormName,
     		memoria::vmap::CtrToolsName,
     		memoria::vmap::CtrInsertName,
     		memoria::vmap::CtrRemoveName,

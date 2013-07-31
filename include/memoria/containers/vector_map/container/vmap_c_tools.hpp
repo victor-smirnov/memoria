@@ -9,7 +9,7 @@
 #define _MEMORIA_CONTAINER_VECTORMAP_C_TOOLS_HPP
 
 
-#include <memoria/prototypes/balanced_tree/bt_macros.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/containers/vector_map/vmap_names.hpp>
 #include <memoria/containers/vector_map/vmap_tools.hpp>
 #include <memoria/core/container/container.hpp>
@@ -19,7 +19,7 @@
 
 namespace memoria    {
 
-using namespace memoria::balanced_tree;
+using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
 

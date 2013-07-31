@@ -23,7 +23,7 @@ struct WrapperTypes {
     typedef Profile_                                                            Profile;
 
     typedef TypeList<
-        memoria::balanced_tree::AllocatorName
+        memoria::bt::AllocatorName
     >                                                                           ContainerPartsList;
 
     typedef TypeList<>                                                          IteratorPartsList;

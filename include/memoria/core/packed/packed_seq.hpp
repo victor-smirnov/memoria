@@ -479,7 +479,7 @@ public:
     SelectResult selectFW(Value symbol, Int rank) const
     {
     	intrnl1::EmptyMainWalker mw;
-    	balanced_tree::EmptyExtenderState state;
+    	bt::EmptyExtenderState state;
 
     	sequence::SelectForwardWalker<
     	 	 MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
@@ -495,7 +495,7 @@ public:
     SelectResult selectBW(Int from, Value symbol, Int rank) const
     {
     	intrnl1::EmptyMainWalker mw;
-    	balanced_tree::EmptyExtenderState state;
+    	bt::EmptyExtenderState state;
 
     	sequence::SelectBackwardWalker<
     		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
@@ -510,7 +510,7 @@ public:
     IndexKey countFW(Int from, Value symbol) const
     {
     	intrnl1::EmptyMainWalker mw;
-    	balanced_tree::EmptyExtenderState state;
+    	bt::EmptyExtenderState state;
 
     	sequence::PackedSequenceCountForwardWalker<
     		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
@@ -531,7 +531,7 @@ public:
 //    	return walker.rank();
 
     	intrnl1::EmptyMainWalker mw;
-    	balanced_tree::EmptyExtenderState state;
+    	bt::EmptyExtenderState state;
 
     	sequence::PackedSequenceCountBackwardWalker<
     		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState

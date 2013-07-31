@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_factory.hpp>
+#include <memoria/prototypes/bt/bt_factory.hpp>
 
 #include <memoria/core/packed/packed_fse_array.hpp>
 
@@ -76,7 +76,7 @@ struct BalancedTreeTypes<Profile, memoria::Vector<Value_> >: public BalancedTree
 
     typedef typename MergeLists<
     		typename Base::ContainerPartsList,
-    		memoria::balanced_tree::NodeNormName,
+    		memoria::bt::NodeNormName,
     		memoria::mvector::CtrToolsName,
     		memoria::mvector::CtrInsertName,
     		memoria::mvector::CtrRemoveName,

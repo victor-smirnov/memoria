@@ -19,7 +19,7 @@ MEMORIA_TEMPLATE_EXTERN template class PackedSumTree<       \
         Key,                                                \
         Key,                                                \
         Value,                                              \
-        memoria::balanced_tree::Accumulators<Key, Indexes>, \
+        memoria::bt::Accumulators<Key, Indexes>, \
         Indexes                                             \
     >                                                       \
 >;                                                          \

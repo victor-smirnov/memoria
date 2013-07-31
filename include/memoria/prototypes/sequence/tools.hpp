@@ -10,14 +10,14 @@
 #define _MEMORIA_PROTOTYPES_SEQUENCE_TOOLS_HPP
 
 #include <memoria/prototypes/sequence/names.hpp>
-#include <memoria/prototypes/balanced_tree/bt_tools.hpp>
+#include <memoria/prototypes/bt/bt_tools.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/tools/idata.hpp>
 
 
 
 namespace memoria    	{
-namespace balanced_tree {
+namespace bt {
 
 using namespace memoria::core;
 

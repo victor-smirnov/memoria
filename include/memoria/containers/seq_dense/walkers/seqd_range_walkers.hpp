@@ -7,7 +7,7 @@
 #ifndef _MEMORIA_CONTAINERS_SEQDENSE_RANGE_WALKERS_HPP
 #define _MEMORIA_CONTAINERS_SEQDENSE_RANGE_WALKERS_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
+#include <memoria/prototypes/bt/bt_walkers.hpp>
 
 #include <memoria/core/packed/packed_fse_searchable_seq.hpp>
 
@@ -15,8 +15,8 @@ namespace memoria 	{
 namespace seq_dense	{
 
 template <typename Types>
-class SkipForwardWalker: public balanced_tree::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
-	typedef balanced_tree::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> 	Base;
+class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
+	typedef bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> 	Base;
 	typedef typename Base::Key 														Key;
 
 public:
@@ -55,8 +55,8 @@ public:
 };
 
 template <typename Types>
-class SkipBackwardWalker: public balanced_tree::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
-	typedef balanced_tree::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>		Base;
+class SkipBackwardWalker: public bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
+	typedef bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>		Base;
 	typedef typename Base::Key 															Key;
 
 public:

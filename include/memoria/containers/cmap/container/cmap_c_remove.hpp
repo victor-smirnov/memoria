@@ -17,7 +17,7 @@
 
 namespace memoria    {
 
-using namespace memoria::balanced_tree;
+using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrRemoveName)
 

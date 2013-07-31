@@ -8,14 +8,14 @@
 #ifndef _MEMORIA_CONTAINERS_VECTORMAP_CONTAINER_WALKERS_HPP
 #define _MEMORIA_CONTAINERS_VECTORMAP_CONTAINER_WALKERS_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_tools.hpp>
+#include <memoria/prototypes/bt/bt_tools.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
 #include <memoria/core/container/container.hpp>
 
-#include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
+#include <memoria/prototypes/bt/bt_walkers.hpp>
 
-#include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
+#include <memoria/prototypes/bt/nodes/leaf_node.hpp>
 
 #include <ostream>
 

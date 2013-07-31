@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_CONTAINERS_MAP_CONTAINER_TOOLS_HPP
 #define _MEMORIA_CONTAINERS_MAP_CONTAINER_TOOLS_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_tools.hpp>
+#include <memoria/prototypes/bt/bt_tools.hpp>
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/container.hpp>
 
@@ -17,8 +17,8 @@ namespace map        	{
 
 
 template <typename Iterator, typename Container>
-class MapIteratorPrefixCache: public balanced_tree::BTreeIteratorCache<Iterator, Container> {
-    typedef balanced_tree::BTreeIteratorCache<Iterator, Container> Base;
+class MapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
+    typedef bt::BTreeIteratorCache<Iterator, Container> Base;
     typedef typename Container::Accumulator     Accumulator;
 
     BigInt prefix_ = 0;

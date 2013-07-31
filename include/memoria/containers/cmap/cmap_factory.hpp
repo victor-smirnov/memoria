@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CONTAINERS_CMAP_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_CMAP_FACTORY_HPP
 
-#include <memoria/prototypes/balanced_tree/bt_factory.hpp>
+#include <memoria/prototypes/bt/bt_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
 #include <memoria/containers/cmap/cmap_walkers.hpp>
@@ -45,7 +45,7 @@ struct BalancedTreeTypes<Profile, memoria::CMap<Key_, Value_> >: public Balanced
 
 
     typedef TypeList<
-    		AllNodeTypes<balanced_tree::TreeMapNode>
+    		AllNodeTypes<bt::TreeMapNode>
     >																			NodeTypesList;
 
     typedef TypeList<
@@ -67,7 +67,7 @@ struct BalancedTreeTypes<Profile, memoria::CMap<Key_, Value_> >: public Balanced
 
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
-				memoria::balanced_tree::NodeComprName,
+				memoria::bt::NodeComprName,
 				memoria::cmap::CtrToolsName,
 				memoria::cmap::CtrInsertName,
 				memoria::cmap::CtrRemoveName,

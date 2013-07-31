@@ -12,7 +12,7 @@
 
 #include <memoria/core/container/container.hpp>
 
-#include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
+#include <memoria/prototypes/bt/bt_walkers.hpp>
 
 #include <ostream>
 

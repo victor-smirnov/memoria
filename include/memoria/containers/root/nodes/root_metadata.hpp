@@ -10,7 +10,7 @@
 #define _MEMORIA_CONTAINERS_ROOT_NODES_ROOTMETADATA_HPP
 
 
-#include <memoria/prototypes/balanced_tree/nodes/tree_metadata.hpp>
+#include <memoria/prototypes/bt/nodes/tree_metadata.hpp>
 
 namespace memoria    {
 
