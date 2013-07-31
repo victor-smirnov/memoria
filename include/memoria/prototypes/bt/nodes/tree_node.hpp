@@ -1086,18 +1086,15 @@ public:
     {
     	MEMORIA_ASSERT(idx, >=, 0);
     	MEMORIA_ASSERT(idx, <, size());
+
     	return *(values() + idx);
     }
 
     const Value& value(Int idx) const
     {
     	MEMORIA_ASSERT(idx, >=, 0);
-
-    	if (idx >= size()) {
-    		int a = 0; a++;
-    	}
-
     	MEMORIA_ASSERT(idx, <, size());
+
     	return *(values() + idx);
     }
 

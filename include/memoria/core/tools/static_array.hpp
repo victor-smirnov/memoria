@@ -308,6 +308,19 @@ public:
     	return *this;
     }
 
+    template <typename T, Int TIndexes, typename = std::enable_if<TIndexes >= Indexes>>
+    MyType& assignDown(const StaticVector<T, TIndexes>& other)
+    {
+    	Int shift = TIndexes - Indexes;
+
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		values_[c] = other.values_[c + shift];
+    	}
+
+    	return *this;
+    }
+
     template <typename T, Int TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
     MyType& sumUp(const StaticVector<T, TIndexes>& other)
     {

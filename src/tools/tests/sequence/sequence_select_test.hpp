@@ -10,342 +10,181 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
+#include "sequence_test_base.hpp"
+
 #include <vector>
 
 namespace memoria {
 
-using namespace memoria::vapi;
-using namespace std;
 
 template <Int BitsPerSymbol, bool Dense = true>
-class SequenceSelectTest: public SPTestTask{
+class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
-    typedef SequenceSelectTest<BitsPerSymbol, Dense>                            MyType;
-    typedef PackedFSESequence<BitsPerSymbol>										MemBuffer;
+	typedef SequenceSelectTest<BitsPerSymbol, Dense> 							MyType;
+	typedef SequenceTestBase<BitsPerSymbol, Dense> 								Base;
 
-    typedef SPTestTask                                                          Base;
+	typedef typename Base::Allocator											Allocator;
+	typedef typename Base::Iterator												Iterator;
+	typedef typename Base::Ctr													Ctr;
 
-    typedef typename SCtrTF<Sequence<BitsPerSymbol, Dense>>::Type               Ctr;
-    typedef typename Ctr::Iterator                                              Iterator;
-    typedef typename Ctr::Accumulator                                           Accumulator;
-    typedef typename Ctr::ID                                                    ID;
-
-    typedef typename Ctr::ElementType											T;
-
-    static const Int Symbols = 1 << BitsPerSymbol;
+	static const Int Symbols													= Base::Symbols;
 
     Int ctr_name_;
-    String dump_name_;
-
-    Int rank_ = 1;
+    Int iterations_ = 100000;
 
 public:
     SequenceSelectTest(StringRef name):
         Base(name)
     {
-        Base::size_ = 2048*1024;
+        Base::size_ = 30000;
 
-        MEMORIA_ADD_TEST_PARAM(rank_)->minValue(1);
+        MEMORIA_ADD_TEST_PARAM(iterations_);
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
-        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
 
-        MEMORIA_ADD_TEST(runSelectTest);
-        MEMORIA_ADD_TEST(runIteratorSequentialSelectNextTest);
-        MEMORIA_ADD_TEST(runIteratorSequentialSelectPrevTest);
+        MEMORIA_ADD_TEST(testCtrSelect);
+        MEMORIA_ADD_TEST(testIterSelectFw);
+        MEMORIA_ADD_TEST(testIterSelectBw);
     }
 
-    void checkIterator(Iterator& iter)
-    {
-    	Accumulator acc;
-    	iter.ComputePrefix(acc);
 
-    	AssertEQ(MA_SRC, acc[0], iter.prefix());
+    void testCtrSelect()
+    {
+		Allocator allocator;
+
+		Ctr ctr(&allocator);
+
+		allocator.commit();
+
+		try {
+			auto seq = Base::fillRandom(ctr, this->size_);
+
+			allocator.commit();
+
+			auto ranks = seq.ranks();
+
+			for (Int c = 0; c < iterations_; c++)
+			{
+				this->out()<<c<<std::endl;
+
+				Int symbol 	= getRandom(Base::Symbols);
+				Int rank 	= getRandom(ranks[symbol]);
+
+				if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
+
+				auto iter1 = ctr.select(symbol, rank);
+				auto iter2 = seq.select(symbol, rank);
+
+				AssertFalse(MA_SRC, iter1.isEof());
+				AssertTrue(MA_SRC,  iter2.is_found());
+
+				AssertEQ(MA_SRC, iter1.pos(), iter2.idx());
+			}
+		}
+		catch (...) {
+			Base::dump_name_ = Base::Store(allocator);
+			throw;
+		}
     }
 
-    void fillRandom(Ctr& ctr, Int size)
+
+    void testIterSelectFw()
     {
-    	MemBuffer buffer(size);
-    	buffer.resize(size);
+    	Allocator allocator;
 
-    	buffer.fillCells([](T& cell) {
-    		cell = getBIRandom();
-    	});
+    	Ctr ctr(&allocator);
 
-    	buffer[0] 		 = 1;
-    	buffer[size - 1] = 1;
+    	allocator.commit();
 
-    	auto src = buffer.source();
+    	try {
+    		auto seq = Base::fillRandom(ctr, this->size_);
 
-    	ctr.begin().insert(src);
-    }
+    		allocator.commit();
 
-    SelectResult selectFW(Ctr& ctr, Int rank, Int symbol)
-    {
-    	Iterator iter = ctr.begin();
+    		Int size = this->size_;
 
-    	BigInt 	total_rank 		= 0;
-
-    	while (!iter.isEof())
-    	{
-    		Int start 		= iter.dataPos();
-
-    		auto result 	= iter.data()->sequence().selectFW(start, rank - total_rank, symbol);
-
-    		if (result.is_found())
+    		for (Int c = 0; c < iterations_; c++)
     		{
-    			return SelectResult(result.idx() + iter.prefix(0), rank, true);
-    		}
+    			this->out()<<c<<std::endl;
 
-    		total_rank 		+= result.rank();
+    			Int pos		= getRandom(size);
+    			Int symbol 	= getRandom(Base::Symbols);
 
-    		iter.nextKey();
-    	}
+    			Int max_rank = seq.rank(pos, size, symbol);
 
-    	return SelectResult(ctr.size(), total_rank, false);
-    }
-
-    struct Pair {
-    	Int rank;
-    	Int idx;
-    	Pair(Int r, Int i): rank(r), idx(i) {}
-    };
-
-    vector<Pair> getSelections(Ctr& ctr, Int from, Int to, Int symbol)
-	{
-    	Iterator iter = ctr.seek(from);
-
-    	Int 	total_size 	= 0;
-    	BigInt 	rank 		= 0;
-    	BigInt  size 		= to - from;
-    	Int 	step 		= 10;
-
-    	auto& data 			= iter.data();
-
-    	vector<Pair> pairs;
-
-    	while (!iter.isEof())
-    	{
-    		Int data_size	= data->size();
-    		Int start 		= iter.dataPos();
-
-    		const auto& sequence = data->sequence();
-
-    		Int local_rank = 1;
-
-    		UInt size_limit = (total_size + data_size <= size) ? data_size : (size - total_size);
-
-    		while (true)
-    		{
-    			auto result = sequence.selectFW(start, symbol, local_rank);
-
-    			if (result.is_found())
+    			if (max_rank > 0)
     			{
-    				pairs.push_back(Pair(rank + local_rank, result.idx() + iter.prefix(0)));
-    				local_rank += step;
+    				Int rank 	= getRandom(max_rank);
+
+    				if (rank == 0) rank = 1;
+
+    				auto iter 	= ctr.seek(pos);
+
+    				BigInt pos_delta1 = iter.selectFw(rank, symbol);
+
+    				auto tgt_pos2 = seq.selectFw(pos, symbol, rank);
+
+    				AssertEQ(MA_SRC, iter.pos(), tgt_pos2.idx());
+    				AssertEQ(MA_SRC, pos_delta1, tgt_pos2.idx() - pos);
     			}
-    			else {
-    				local_rank = result.rank();
+    		}
+    	}
+    	catch (...) {
+    		Base::dump_name_ = Base::Store(allocator);
+    		throw;
+    	}
+    }
 
-    				Int rank0 = sequence.rank(0, sequence.size()-1, symbol);
 
-    				rank += rank0;
 
-    				break;
-    			}
+    void testIterSelectBw()
+    {
+    	Allocator allocator;
 
-    			if (result.idx() >= size_limit)
+    	Ctr ctr(&allocator);
+
+    	allocator.commit();
+
+    	try {
+    		auto seq = Base::fillRandom(ctr, this->size_);
+
+    		allocator.commit();
+
+    		Int size = this->size_;
+
+    		for (Int c = 0; c < iterations_; c++)
+    		{
+    			this->out()<<c<<std::endl;
+
+    			Int pos		= getRandom(size);
+    			Int symbol 	= getRandom(Base::Symbols);
+
+    			Int max_rank = seq.rank(0, pos, symbol);
+
+    			if (max_rank > 0)
     			{
-    				break;
+    				Int rank 	= getRandom(max_rank);
+
+    				if (rank == 0) rank = 1;
+
+    				auto iter 	= ctr.seek(pos);
+
+    				auto tgt_pos 		= seq.selectBw(pos, symbol, rank);
+    				BigInt pos_delta1 	= iter.selectBw(rank, symbol);
+
+    				AssertEQ(MA_SRC, iter.pos(), tgt_pos.idx());
+    				AssertEQ(MA_SRC, pos_delta1, pos - tgt_pos.idx());
     			}
     		}
-
-    		if (total_size + data_size >= size)
-    		{
-    			break;
-    		}
-
-    		total_size += data_size;
-
-    		iter.nextKey();
     	}
-
-    	return pairs;
-	}
-
-    void assertSelect1(Ctr& ctr, Int rank, Int pos, Int symbol)
-    {
-    	Iterator iter = ctr.select(rank, symbol);
-    	BigInt rank1 = ctr.rank(iter.pos() + 1, symbol);
-
-    	AssertTrue(MA_SRC, !iter.isEof());
-
-    	AssertEQ(MA_SRC, rank1, rank);
-    	AssertEQ(MA_SRC, iter.pos(), pos);
+    	catch (...) {
+    		Base::dump_name_ = Base::Store(allocator);
+    		throw;
+    	}
     }
 
-    void assertSelect2(Ctr& ctr, Int rank, Int pos, Int symbol)
-    {
-//    	BigInt idx = ctr.selectIdx(rank, symbol);
-//    	BigInt rank1 = ctr.rank(idx + 1, symbol);
-//
-//    	AssertEQ(MA_SRC, rank1, rank);
-//    	AssertEQ(MA_SRC, idx, pos);
-    }
-
-    void runSelectTest()
-    {
-    	Allocator allocator;
-    	Ctr ctr(&allocator);
-    	ctr_name_ = ctr.name();
-
-    	fillRandom(ctr, Base::size_);
-
-    	allocator.commit();
-
-    	vector<Pair> ranks = getSelections(ctr, 0, ctr.size(), 1);
-
-    	vector<Int> cells(ranks.size());
-
-    	for (Int& cell: cells)
-    	{
-    		cell = getRandom(cells.size());
-    	}
-
-    	out()<<"Selections: "<<ranks.size()<<endl;
-
-    	BigInt t0 = getTimeInMillis();
-
-//    	for (Pair pair: ranks)
-//    	{
-//    		assertSelect(ctr, pair.rank, pair.idx, 1);
-//    	}
-
-    	for (Int cell: cells)
-    	{
-    		Pair& pair = ranks[cell];
-    		assertSelect1(ctr, pair.rank, pair.idx, 1);
-    	}
-
-    	BigInt t1 = getTimeInMillis();
-
-    	for (Int cell: cells)
-    	{
-    		Pair& pair = ranks[cell];
-    		assertSelect2(ctr, pair.rank, pair.idx, 1);
-    	}
-
-    	BigInt t2 = getTimeInMillis();
-
-    	out()<<"times = "<<FormatTime(t1 - t0)<<" "<<FormatTime(t2 - t1)<<endl;
-    }
-
-    void runSelect1Test(ostream& out)
-    {
-    	Allocator allocator;
-    	Ctr ctr(&allocator);
-    	ctr_name_ = ctr.name();
-
-    	fillRandom(ctr, Base::size_);
-
-    	allocator.commit();
-
-    	dump_name_ = Store(allocator);
-
-    	Int symbol = 1;
-
-    	BigInt pos = ctr.size();
-
-    	BigInt rank = ctr.rank(pos, symbol);
-//    	Iterator iter1 = ctr.select(rank, symbol);
-    	Iterator iter2 = ctr.RBegin();
-
-    	iter2.selectBw(rank -1, symbol);
-
-//    	AssertEQ(MA_SRC, iter1.pos(), ctr.size() - 1);
-    	AssertGT(MA_SRC, iter2.pos(), 0);
-    }
-
-
-    void runIteratorSequentialSelectNextTest()
-    {
-    	Allocator allocator;
-    	Ctr ctr(&allocator);
-    	ctr_name_ = ctr.name();
-
-    	fillRandom(ctr, Base::size_);
-
-    	allocator.commit();
-
-    	Int symbol 	= 1;
-
-    	Int selections = 0;
-
-    	BigInt t0 = getTimeInMillis();
-
-    	for (Int rank = rank_; rank < 1000000; rank += 1000)
-    	{
-    		auto iter = ctr.begin();
-
-    		while ((!iter.isEof()) && iter.selectFw(rank, symbol) == rank)
-    		{
-    			checkIterator(iter);
-
-    			Int s = iter.element();
-
-    			AssertEQ(MA_SRC, s, symbol);
-
-    			iter++;
-    			selections++;
-    		}
-    	}
-
-    	BigInt t1 = getTimeInMillis();
-    	out()<<"FW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
-    }
-
-    void runIteratorSequentialSelectPrevTest()
-    {
-    	Allocator allocator;
-    	Ctr ctr(&allocator);
-    	ctr_name_ = ctr.name();
-
-    	fillRandom(ctr, Base::size_);
-
-    	allocator.commit();
-
-    	Int symbol 	= 1;
-
-    	Int selections = 0;
-
-    	BigInt t0 = getTimeInMillis();
-
-    	for (Int rank = rank_; rank < 100000; rank += 1000)
-    	{
-    		auto iter = ctr.RBegin();
-
-    		while (iter.selectBw(rank, symbol) == rank)
-    		{
-    			checkIterator(iter);
-
-    			Int s = iter.element();
-
-    			AssertEQ(MA_SRC, s, symbol);
-
-    			if (!iter--) break;
-    			selections++;
-    		}
-    	}
-
-    	BigInt t1 = getTimeInMillis();
-    	out()<<"BW time="<<FormatTime(t1 - t0)<<" selections="<<selections<<endl;
-    }
 };
 
-
-
-
 }
-
 
 #endif

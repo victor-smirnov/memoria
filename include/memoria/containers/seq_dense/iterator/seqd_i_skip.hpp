@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_seqd_ITERATOR_API_HPP
-#define _MEMORIA_CONTAINERS_seqd_ITERATOR_API_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQD_ITERATOR_SKIP_HPP
+#define _MEMORIA_CONTAINERS_SEQD_ITERATOR_SKIP_HPP
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/idata.hpp>
@@ -23,7 +23,7 @@
 namespace memoria    {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
 
 	typedef Ctr<typename Types::CtrTypes>                      					Container;
 
@@ -38,8 +38,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
 	typedef typename Container::Element                                   		Element;
 	typedef typename Container::Accumulator                               		Accumulator;
 
-//	typedef typename Container::DataSource                                		DataSource;
-//	typedef typename Container::DataTarget                                		DataTarget;
 	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
 	typedef typename Container::Position										Position;
 
@@ -111,108 +109,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
 
 		return fn.prefix_ + self.idx();
 	}
-
-	struct SymbolFn {
-		Int symbol_ = 0;
-
-		template <Int Idx, typename SeqTypes>
-		void stream(const PkdFSSeq<SeqTypes>* seq, Int idx)
-		{
-			MEMORIA_ASSERT_TRUE(seq != nullptr);
-			MEMORIA_ASSERT(idx, <, seq->size());
-
-			symbol_ = seq->symbol(idx);
-		}
-
-
-		template <typename NodeTypes, bool root, bool leaf>
-		void treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int idx)
-		{
-			node->process(0, *this, idx);
-		}
-	};
-
-	Int symbol() const
-	{
-		auto& self 	= this->self();
-
-		SymbolFn fn;
-
-		Int idx = self.idx();
-
-		LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
-
-		return fn.symbol_;
-	}
-
-	void insert(Int symbol)
-	{
-		auto& self 	= this->self();
-		auto& ctr 	= self.ctr();
-
-		ctr.insert(self, symbol);
-	}
-
-	void remove(Int symbol)
-	{
-
-	}
-
-	BigInt rank(BigInt delta, Int symbol)
-	{
-		auto& self 	= this->self();
-
-		if (delta > 0)
-		{
-			return self.rankFw(delta, symbol);
-		}
-		else if (delta < 0)
-		{
-			return self.rankBw(-delta, symbol);
-		}
-		else {
-			return 0;
-		}
-	}
-
-	BigInt rankFw(BigInt delta, Int symbol)
-	{
-		auto& self 	= this->self();
-		auto& ctr 	= self.ctr();
-		Int stream  = self.stream();
-
-		MEMORIA_ASSERT(delta, >=, 0);
-
-		typename Types::template RankFWWalker<Types> walker(stream, symbol, delta);
-
-		walker.prepare(self);
-
-		Int idx = ctr.findFw(self.leaf(), stream, self.idx(), walker);
-
-		return walker.finish(self, idx);
-	}
-
-	BigInt rankBw(BigInt delta, Int symbol)
-	{
-		auto& self 	= this->self();
-		auto& ctr 	= self.ctr();
-		Int stream  = self.stream();
-
-		MEMORIA_ASSERT(delta, >=, 0);
-
-		typename Types::template RankBWWalker<Types> walker(stream, symbol, delta);
-
-		walker.prepare(self);
-
-		Int idx = ctr.findBw(self.leaf(), stream, self.idx(), walker);
-
-		return walker.finish(self, idx);
-	}
-    
 MEMORIA_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::seq_dense::IterAPIName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::seq_dense::IterSkipName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
@@ -244,7 +144,6 @@ BigInt M_TYPE::skipBw(BigInt amount)
 {
 	return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
 }
-
 
 
 

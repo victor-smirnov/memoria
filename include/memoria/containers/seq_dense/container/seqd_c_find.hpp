@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_seqd_SEQ_C_FIND_HPP
-#define _MEMORIA_CONTAINERS_seqd_SEQ_C_FIND_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQD_SEQ_C_FIND_HPP
+#define _MEMORIA_CONTAINERS_SEQD_SEQ_C_FIND_HPP
 
 
 #include <memoria/core/types/typelist.hpp>
@@ -69,25 +69,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 		return walker.rank();
 	}
 
-	class SSelectResult {
-		BigInt value_;
-		bool found_;
-	public:
-		SSelectResult(BigInt value, bool found): value_(value), found_(found) {}
 
-		BigInt value() const {return value_;};
-		bool found() const {return found_;};
-	};
 
-	SSelectResult select(Int symbol, BigInt rank) const
+	Iterator select(Int symbol, BigInt rank)
 	{
-//		auto& self = this->self();
-//
-//		typename Types::template SelectFwWalker<Types> walker(0, symbol, rank);
-//
-//		auto iter = self.find0(0, walker);
+		auto& self = this->self();
 
-		return SSelectResult(0, false);
+		MEMORIA_ASSERT(rank, >, 1);
+		MEMORIA_ASSERT(symbol, >=, 0);
+
+		typename Types::template SelectFwWalker<Types> walker(0, symbol, rank);
+
+		auto iter = self.find0(0, walker);
+
+		return iter;
 	}
 
 	Iterator seek(Int pos)

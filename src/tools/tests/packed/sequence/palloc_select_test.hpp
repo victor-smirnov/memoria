@@ -81,11 +81,13 @@ public:
 
 
 
-    SelectResult selectFW(const Seq* seq, size_t start, size_t rank, Value symbol)
+    SelectResult selectFW(const Seq* seq, Int start, Int rank, Value symbol)
     {
-    	size_t total = 0;
+    	MEMORIA_ASSERT(rank, >, 0);
 
-    	for (size_t c = start; c < (size_t)seq->size(); c++)
+    	Int total = 0;
+
+    	for (Int c = start; c < seq->size(); c++)
     	{
     		total += seq->test(c, symbol);
 
@@ -99,29 +101,26 @@ public:
     }
 
 
-    SelectResult selectBW(const Seq* seq, size_t start, size_t stop, size_t rank, Value symbol)
+    SelectResult selectBW(const Seq* seq, Int start, Int rank, Value symbol)
     {
-    	if (rank == 0)
-    	{
-    		return SelectResult(start, 0, true);
-    	}
+    	MEMORIA_ASSERT(rank, >, 0);
 
-    	size_t total = 0;
+    	Int total = 0;
 
-    	for (size_t c = start + 1; c > stop; c--)
+    	for (Int c = start - 1; c >= 0; c--)
     	{
-    		total += seq->test(c - 1, symbol);
+    		total += seq->test(c, symbol);
 
     		if (total == rank)
     		{
-    			return SelectResult(c - 1, rank, true);
+    			return SelectResult(c, rank, true);
     		}
     	}
 
-    	return SelectResult(stop, total, total == rank);
+    	return SelectResult(-1, total, total == rank);
     }
 
-    void assertSelectFW(const Seq* seq, size_t start, size_t rank, Value symbol)
+    void assertSelectFW(const Seq* seq, Int start, Int rank, Value symbol)
     {
     	auto result1 = seq->selectFw(start, symbol, rank);
     	auto result2 = selectFW(seq, start, rank, symbol);
@@ -137,10 +136,10 @@ public:
     	}
     }
 
-    void assertSelectBW(const Seq* seq, size_t start, size_t rank, Value symbol)
+    void assertSelectBW(const Seq* seq, Int start, Int rank, Value symbol)
     {
     	auto result1 = seq->selectBw(start, symbol, rank);
-    	auto result2 = selectBW(seq, start, 0, rank, symbol);
+    	auto result2 = selectBW(seq, start, rank, symbol);
 
     	AssertEQ(MA_SRC, result1.is_found(),  result2.is_found(), SBuf()<<start<<" "<<rank);
 
@@ -153,21 +152,21 @@ public:
     	}
     }
 
-    vector<size_t> createStarts(const Seq* seq)
+    vector<Int> createStarts(const Seq* seq)
 	{
-    	size_t max_block  = seq->size() / VPB + (seq->size() % VPB == 0 ? 0 : 1);
+    	Int max_block  = seq->size() / VPB + (seq->size() % VPB == 0 ? 0 : 1);
 
-    	vector<size_t> starts;
+    	vector<Int> starts;
 
-    	for (size_t block = 0; block < max_block; block++)
+    	for (Int block = 0; block < max_block; block++)
     	{
-    		size_t block_start = block * VPB;
-    		size_t block_end = block_start + VPB <= (size_t)seq->size() ? block_start + VPB : seq->size();
+    		Int block_start = block * VPB;
+    		Int block_end = block_start + VPB <= (Int)seq->size() ? block_start + VPB : seq->size();
 
     		starts.push_back(block_start);
     		starts.push_back(block_start + 1);
 
-    		for (size_t d = 2; d < (size_t)VPB && block_start + d < block_end; d += 128)
+    		for (Int d = 2; d < (Int)VPB && block_start + d < block_end; d += 128)
     		{
     			starts.push_back(block_start + d);
     		}
@@ -180,16 +179,16 @@ public:
 	}
 
 
-    vector<size_t> createRanks(const Seq* seq, size_t start)
+    vector<Int> createRanks(const Seq* seq, Int start)
     {
-    	size_t max_block  = seq->size() / VPB + (seq->size() % VPB == 0 ? 0 : 1);
+    	Int max_block  = seq->size() / VPB + (seq->size() % VPB == 0 ? 0 : 1);
 
-    	vector<size_t> ranks;
+    	vector<Int> ranks;
 
-    	for (size_t block = start / VPB; block < max_block; block++)
+    	for (Int block = start / VPB; block < max_block; block++)
     	{
-    		size_t block_start = block * VPB;
-    		size_t block_end = block_start + VPB <= (size_t)seq->size() ? block_start + VPB : seq->size();
+    		Int block_start = block * VPB;
+    		Int block_end = block_start + VPB <= (Int)seq->size() ? block_start + VPB : seq->size();
 
     		appendRank(ranks, block_start);
     		appendRank(ranks, block_start + 1);
@@ -208,7 +207,7 @@ public:
     	return ranks;
     }
 
-    void appendRank(vector<size_t>& v, size_t rank)
+    void appendRank(vector<Int>& v, Int rank)
     {
     	if (rank > 0)
     	{
@@ -217,19 +216,19 @@ public:
     }
 
     struct Pair {
-    	size_t rank;
-    	size_t idx;
+    	Int rank;
+    	Int idx;
 
-    	Pair(size_t r, size_t i): rank(r), idx(i) {}
+    	Pair(Int r, Int i): rank(r), idx(i) {}
     };
 
-    vector<Pair> createRanksFW(const Seq* seq, size_t start, Value symbol)
+    vector<Pair> createRanksFW(const Seq* seq, Int start, Value symbol)
     {
     	vector<Pair> ranks;
 
-    	size_t rank = 0;
+    	Int rank = 0;
 
-    	for (size_t c = start; c < (size_t)seq->size(); c++)
+    	for (Int c = start; c < (Int)seq->size(); c++)
     	{
     		if (seq->test(c, symbol))
     		{
@@ -241,11 +240,11 @@ public:
     	return ranks;
     }
 
-    vector<Pair> createRanksBW(const Seq* seq, size_t start, Value symbol)
+    vector<Pair> createRanksBW(const Seq* seq, Int start, Value symbol)
 	{
     	vector<Pair> ranks;
 
-    	size_t rank = 0;
+    	Int rank = 0;
 
     	for (Int c = start; c >= 0; c--)
     	{
@@ -274,17 +273,17 @@ public:
 
     	this->populate(seq, this->size_, symbol);
 
-    	vector<size_t> starts = createStarts(seq);
+    	vector<Int> starts = createStarts(seq);
 
     	this->out()<<"Solid bitmap"<<endl;
 
-    	for (size_t start: starts)
+    	for (Int start: starts)
     	{
     		this->out()<<start<<endl;
 
-    		vector<size_t> ranks = createRanks(seq, start);
+    		vector<Int> ranks = createRanks(seq, start);
 
-    		for (size_t rank: ranks)
+    		for (Int rank: ranks)
     		{
     			assertSelectFW(seq, start, rank, symbol);
     		}
@@ -295,13 +294,13 @@ public:
 
     	this->populateRandom(seq, this->size_);
 
-    	for (size_t start: starts)
+    	for (Int start: starts)
     	{
     		this->out()<<start<<endl;
 
-    		vector<size_t> ranks = createRanks(seq, start);
+    		vector<Int> ranks = createRanks(seq, start);
 
-    		for (size_t rank: ranks)
+    		for (Int rank: ranks)
     		{
     			assertSelectFW(seq, start, rank, symbol);
     		}
@@ -310,7 +309,7 @@ public:
     	this->out()<<endl;
     	this->out()<<"Random bitmap, "<<(Int)symbol<<"-set positions"<<endl;
 
-    	for (size_t start : starts)
+    	for (Int start : starts)
     	{
     		auto pairs = createRanksFW(seq, start, symbol);
 
@@ -383,19 +382,19 @@ public:
 
     	this->populate(seq, this->size_, symbol);
 
-    	vector<size_t> starts = createStarts(seq);
+    	vector<Int> starts = createStarts(seq);
 
     	starts.push_back(seq->size());
 
     	this->out()<<"Solid bitmap"<<endl;
 
-    	for (size_t start: starts)
+    	for (Int start: starts)
     	{
     		this->out()<<start<<endl;
 
-    		vector<size_t> ranks = createRanks(seq, start);
+    		vector<Int> ranks = createRanks(seq, start);
 
-    		for (size_t rank: ranks)
+    		for (Int rank: ranks)
     		{
     			assertSelectBW(seq, start, rank, symbol);
     		}
@@ -406,13 +405,13 @@ public:
 
     	this->populateRandom(seq, this->size_);
 
-    	for (size_t start: starts)
+    	for (Int start: starts)
     	{
     		this->out()<<start<<endl;
 
-    		vector<size_t> ranks = createRanks(seq, start);
+    		vector<Int> ranks = createRanks(seq, start);
 
-    		for (size_t rank: ranks)
+    		for (Int rank: ranks)
     		{
     			assertSelectBW(seq, start, rank, symbol);
     		}
@@ -421,13 +420,13 @@ public:
     	this->out()<<endl;
     	this->out()<<"Random bitmap, "<<(Int)symbol<<"-set positions"<<endl;
 
-    	for (size_t start : starts)
+    	for (Int start : starts)
     	{
-    		if (start < seq->size())
+    		if (start > 0 && start < seq->size())
     		{
     			this->out()<<start<<endl;
 
-    			auto pairs = createRanksBW(seq, start, symbol);
+    			auto pairs = createRanksBW(seq, start-1, symbol);
 
     			for (auto pair: pairs)
     			{
@@ -448,7 +447,7 @@ public:
 
     	this->out()<<endl;
 
-    	size_t seq_rank = this->rank(seq, 0, seq->size(), symbol);
+    	Int seq_rank = this->rank(seq, 0, seq->size(), symbol);
     	assertSelectBW(seq, seq->size(), seq_rank/2, symbol);
     }
 };

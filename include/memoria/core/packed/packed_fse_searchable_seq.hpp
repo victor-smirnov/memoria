@@ -738,7 +738,7 @@ public:
 
 	SelectResult selectBw(Int start, Int symbol, BigInt rank) const
 	{
-		Int local_rank = this->rank(start + 1, symbol);
+		Int local_rank = this->rank(start, symbol);
 
 		if (local_rank >= rank)
 		{
@@ -751,7 +751,7 @@ public:
 
 	SelectResult selectBw(Int symbol, BigInt rank) const
 	{
-		return selectBw(0, symbol, rank);
+		return selectBw(size(), symbol, rank);
 	}
 
 	void dump(std::ostream& out = cout, bool dump_index = true) const

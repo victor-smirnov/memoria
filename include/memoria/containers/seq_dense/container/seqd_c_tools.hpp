@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_seqd_SEQ_C_TOOLS_HPP
-#define _MEMORIA_CONTAINERS_seqd_SEQ_C_TOOLS_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQD_SEQ_C_TOOLS_HPP
+#define _MEMORIA_CONTAINERS_SEQD_SEQ_C_TOOLS_HPP
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>

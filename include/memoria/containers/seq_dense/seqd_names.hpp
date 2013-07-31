@@ -14,27 +14,31 @@
 namespace memoria    	{
 namespace seq_dense		{
 
-class CtrChecksName {};
-class CtrToolsName {};
-class CtrFindName {};
-class CtrInsertName {};
-class CtrRemoveName {};
+class CtrChecksName 	{};
+class CtrToolsName 		{};
+class CtrFindName 		{};
+class CtrInsertName 	{};
+class CtrRemoveName 	{};
 
-class IterAPIName  {};
+class IterMiscName  	{};
+class IterRankName  	{};
+class IterSelectName  	{};
+class IterCountName  	{};
+class IterSkipName  	{};
 
 }
 
 template <typename Types>
-struct DenseSequenceCtrTypesT: CtrTypesT<Types> {};
+struct DenseSeqCtrTypesT: CtrTypesT<Types> {};
 
 template <typename Types>
-struct DenseSequenceIterTypesT: IterTypesT<Types> {};
+struct DenseSeqIterTypesT: IterTypesT<Types> {};
 
 template <typename Types>
-using DenseSequenceCtrTypes  = BTCtrTypes<DenseSequenceCtrTypesT<Types>>;
+using DenseSeqCtrTypes  = BTCtrTypes<DenseSeqCtrTypesT<Types>>;
 
 template <typename Types>
-using DenseSequenceIterTypes = BTCtrTypes<DenseSequenceIterTypesT<Types>>;
+using DenseSeqIterTypes = BTCtrTypes<DenseSeqIterTypesT<Types>>;
 
 }
 

@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_seqd_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_seqd_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQD_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_SEQD_FACTORY_HPP
 
 #include <memoria/prototypes/bt/bt_factory.hpp>
 
@@ -24,7 +24,11 @@
 #include <memoria/containers/seq_dense/container/seqd_c_insert.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_remove.hpp>
 
-#include <memoria/containers/seq_dense/iterator/seqd_i_api.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_count.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_misc.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_rank.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_select.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_skip.hpp>
 
 namespace memoria {
 
@@ -97,7 +101,13 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >:
 
 	typedef typename MergeLists<
 				typename Base::IteratorPartsList,
-				memoria::seq_dense::IterAPIName
+
+				memoria::seq_dense::IterSelectName,
+				memoria::seq_dense::IterMiscName,
+				memoria::seq_dense::IterCountName,
+				memoria::seq_dense::IterRankName,
+				memoria::seq_dense::IterSkipName
+
 	>::Result                                           						IteratorPartsList;
 
 

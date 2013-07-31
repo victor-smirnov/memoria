@@ -188,10 +188,10 @@ public:
 template <Int BitsPerSymbol>
 class PackedFSESequence {
 protected:
-	typedef PackedFSESequence<BitsPerSymbol> 										MyType;
+	typedef PackedFSESequence<BitsPerSymbol> 									MyType;
 
-	typedef typename PkdFSSeqTF<BitsPerSymbol>::Type				Types;
-	typedef PkdFSSeq<Types>										Seq;
+	typedef typename PkdFSSeqTF<BitsPerSymbol>::Type							Types;
+	typedef PkdFSSeq<Types>														Seq;
 
 	Seq* sequence_;
 
@@ -210,6 +210,8 @@ public:
 
 	typedef typename Seq::ConstSymbolAccessor									ConstSymbolAccessor;
 	typedef typename Seq::SymbolAccessor										SymbolAccessor;
+
+	typedef StaticVector<BigInt, Symbols>										Ranks;
 
 	PackedFSESequence(Int capacity = 1024, Int density_hi = 1, Int density_lo = 1)
 	{
@@ -352,7 +354,7 @@ public:
     	return sequence_->rank(start, end, symbol);
     }
 
-    SelectResult selectFw(Int symbol, Int rank) const {
+    SelectResult select(Int symbol, Int rank) const {
     	return sequence_->selectFw(symbol, rank);
     }
 
@@ -365,7 +367,30 @@ public:
     }
 
     SelectResult selectBw(Int start, Int symbol, Int rank) const {
-    	return sequence_->selectFw(start, symbol, rank);
+    	return sequence_->selectBw(start, symbol, rank);
+    }
+
+    Ranks ranks() const
+    {
+    	return ranks(size());
+    }
+
+    Ranks ranks(Int to) const
+    {
+    	auto s_ranks = sequence_->sums(to);
+    	Ranks ranks;
+    	ranks.assignDown(s_ranks);
+
+    	return ranks;
+    }
+
+    Ranks ranks(Int from, Int to) const
+    {
+    	auto s_ranks = sequence_->sums(from, to);
+    	Ranks ranks;
+    	ranks.assignDown(s_ranks);
+
+    	return ranks;
     }
 };
 

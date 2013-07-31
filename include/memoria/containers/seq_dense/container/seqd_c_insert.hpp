@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_seqd_SEQ_C_INSERT_HPP
-#define _MEMORIA_CONTAINERS_seqd_SEQ_C_INSERT_HPP
+#ifndef _MEMORIA_CONTAINERS_SEQD_SEQ_C_INSERT_HPP
+#define _MEMORIA_CONTAINERS_SEQD_SEQ_C_INSERT_HPP
 
 
 #include <memoria/core/types/typelist.hpp>

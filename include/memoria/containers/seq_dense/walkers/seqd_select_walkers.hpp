@@ -20,33 +20,37 @@ namespace seq_dense	{
 template <typename Types>
 class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> {
 	typedef bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> 		Base;
-	typedef typename Base::Key 																Key;
+	typedef typename Base::Key 													Key;
 
 	BigInt pos_ = 0;
 
 public:
 	typedef typename Base::ResultType											ResultType;
+	typedef typename Base::Iterator												Iterator;
 
 
-	SelectForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
+	SelectForwardWalker(Int stream, Int index, Key target): Base(stream, index + 1, target)
 	{
 		Base::search_type_ = SearchType::LE;
 	}
 
 	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start) {
-		return Base::stream(tree, start);
+	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
+	{
+		return Base::template stream<Idx>(tree, start);
 	}
 
 	template <Int StreamIdx, typename StreamType, typename Result>
 	void postProcessStream(const StreamType* stream, Int start, const Result& result)
 	{
-		if (result.is_found())
+		Int size 	= stream->size();
+
+		if (result.idx() < size)
 		{
 			pos_ += stream->sum(0, start, result.idx());
 		}
 		else {
-			pos_ += stream->sum(0, start, stream->size());
+			pos_ += stream->sum(0, start, size);
 		}
 	}
 
@@ -60,21 +64,28 @@ public:
 
 		BigInt target 	= Base::target_ - sum;
 		auto result 	= seq->selectFw(start, symbol, target);
-		Int offset 		= result.is_found() ? result.idx() : seq->size();
 
-		Int	size 		= seq->size();
-
-		if (start + offset < size)
+		if (result.is_found())
 		{
-			pos_ += offset;
+			pos_ += result.idx() - start;
 
-			return start + offset;
+			return result.idx();
 		}
 		else {
+			Int	size = seq->size();
+
+			sum  += result.rank();
 			pos_ += (size - start);
 
 			return size;
 		}
+	}
+
+	BigInt finish(Iterator& iter, Int idx)
+	{
+		iter.idx() = idx;
+
+		return pos_;
 	}
 };
 
@@ -83,28 +94,30 @@ public:
 template <typename Types>
 class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>> {
 	typedef bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>>		Base;
-	typedef typename Base::Key 																Key;
+	typedef typename Base::Key 													Key;
 
 
 	BigInt pos_ = 0;
 
 public:
 	typedef typename Base::ResultType											ResultType;
+	typedef typename Base::Iterator												Iterator;
 
-	SelectBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
+	SelectBackwardWalker(Int stream, Int index, Key target): Base(stream, index + 1, target)
 	{
-		Base::search_type_ = SearchType::LE;
+		Base::search_type_ = SearchType::LT;
 	}
 
 	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start) {
-		return Base::stream(tree, start);
+	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
+	{
+		return Base::template stream<Idx>(tree, start);
 	}
 
 	template <Int StreamIdx, typename StreamType, typename Result>
 	void postProcessStream(const StreamType* stream, Int start, const Result& result)
 	{
-		if (result.is_found())
+		if (result.idx() >= 0)
 		{
 			pos_ += stream->sum(0, result.idx() + 1, start + 1);
 		}
@@ -125,17 +138,24 @@ public:
 		auto symbol		= Base::index_ - 1;
 
 		auto result 	= seq->selectBw(start, symbol, target);
-		Int offset  	= result.is_found() ? result.idx() : -1;
 
-		if (start - offset >= 0)
+		if (result.is_found())
 		{
-			sum += offset;
-			return start - offset;
+			pos_ += start - result.idx();
+			return result.idx();
 		}
 		else {
-			sum += start;
+			pos_ += start;
+			sum += result.rank();
 			return -1;
 		}
+	}
+
+	BigInt finish(Iterator& iter, Int idx)
+	{
+		iter.idx() = idx;
+
+		return pos_;
 	}
 };
 
