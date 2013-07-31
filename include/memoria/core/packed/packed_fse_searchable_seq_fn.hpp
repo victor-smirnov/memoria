@@ -69,7 +69,7 @@ class BitmapToolsFn {
 
 	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
 
-	static_assert(BitsPerSymbol == 1, "BitmapSumFn<> can only be used with 1-bit sequences");
+	static_assert(BitsPerSymbol == 1, "BitmapToolsFn<> can only be used with 1-bit sequences");
 
 	const Seq& seq_;
 public:
@@ -95,7 +95,7 @@ class SequenceToolsFn {
 	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
 
 	static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
-				"SequenceSumFn<> can only be used with 2-7-bit sequences");
+				"SequenceToolsFn<> can only be used with 2-7-bit sequences");
 
 	const Seq& seq_;
 public:
@@ -124,7 +124,7 @@ class Sequence8ToolsFn {
 	typedef typename Seq::Values 			Values;
 	static const Int BitsPerSymbol 			= Seq::BitsPerSymbol;
 
-	static_assert(BitsPerSymbol == 8, "Sequence8SumFn<> can only be used with 8-bit sequences");
+	static_assert(BitsPerSymbol == 8, "Sequence8ToolsFn<> can only be used with 8-bit sequences");
 
 	const Seq& seq_;
 public:
@@ -306,7 +306,7 @@ class BitmapReindexFn {
 			"BitmapReindexFn<> can only be used with 1-bit sequences");
 
 	static_assert(FixedSizeElementIndex,
-			"BitmapReindexFn<> can only be used with PackedFSETree<>-indexed sequences ");
+			"BitmapReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
 	void operator()(Seq& seq)
@@ -360,7 +360,7 @@ class ReindexFn {
 				"ReindexFn<> can only be used with 2-8-bit sequences");
 
 	static_assert(FixedSizeElementIndex,
-					"ReindexFn<> can only be used with PackedFSETree<>-indexed sequences ");
+					"ReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
 	void operator()(Seq& seq)
@@ -416,7 +416,7 @@ class VLEReindexFn {
 				"ReindexFn<> can only be used with 2-8-bit sequences");
 
 	static_assert(!FixedSizeElementIndex,
-				"ReindexFn<> can only be used with PackedVLETree<>-indexed sequences ");
+				"ReindexFn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
 	void operator()(Seq& seq)

@@ -36,7 +36,7 @@ class PackedAllocator: public PackedAllocatable {
 	typedef Packed2TreeTypes <Int>												LayoutTypes;
 
 public:
-	typedef PackedFSETree<LayoutTypes>											Layout;
+	typedef PkdFTree<LayoutTypes>											Layout;
 
 	typedef UBigInt																Bitmap;
 

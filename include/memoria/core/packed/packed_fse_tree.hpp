@@ -52,7 +52,7 @@ public:
 
 
 template <typename Types_>
-class PackedFSETree: public PackedAllocatable {
+class PkdFTree: public PackedAllocatable {
 
 	typedef PackedAllocatable 													Base;
 
@@ -60,7 +60,7 @@ public:
 	static const UInt VERSION               									= 1;
 
 	typedef Types_																Types;
-	typedef PackedFSETree<Types>               									MyType;
+	typedef PkdFTree<Types>               										MyType;
 
 	typedef typename Types::Allocator											Allocator;
 
@@ -115,7 +115,7 @@ public:
 
 
 
-	PackedFSETree() {}
+	PkdFTree() {}
 
 	Int raw_size() const {return size_ * Blocks;}
 	Int raw_capacity() const {return max_size_ * Blocks;}

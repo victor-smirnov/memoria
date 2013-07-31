@@ -50,7 +50,7 @@ public:
 
 
 template <typename Types_>
-class PackedVLETree: public PackedAllocator
+class PkdVTree: public PackedAllocator
 {
 	typedef PackedAllocator														Base;
 
@@ -58,7 +58,7 @@ public:
 	static const UInt VERSION               									= 1;
 
 	typedef Types_																Types;
-	typedef PackedVLETree<Types>               									MyType;
+	typedef PkdVTree<Types>               									MyType;
 
 	typedef PackedAllocator 													Allocator;
 
@@ -109,11 +109,11 @@ public:
 		Int& data_size() 				{return data_size_;};
 		Int& index_size() 				{return index_size_;};
 
-		template<typename> friend class PackedVLETree;
+		template<typename> friend class PkdVTree;
 	};
 
 public:
-	PackedVLETree() {}
+	PkdVTree() {}
 
 public:
 	Metadata* metadata() {
@@ -820,7 +820,7 @@ public:
 
 
 	void insertSpace(Int, Int) {
-		throw Exception(MA_SRC, "Method insertSpace(Int, Int) is not implemented for PackedVLETree");
+		throw Exception(MA_SRC, "Method insertSpace(Int, Int) is not implemented for PkdVTree");
 	}
 
 

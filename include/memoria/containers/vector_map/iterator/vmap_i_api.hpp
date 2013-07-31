@@ -285,7 +285,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		}
 
 		template <Int StreamIdx, typename TreeTypes>
-		void stream(const PackedFSETree<TreeTypes>* tree, Int idx)
+		void stream(const PkdFTree<TreeTypes>* tree, Int idx)
 		{
 			prefix_ += tree->sum(1, idx);
 		}
@@ -737,7 +737,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	}
 
     	template <Int StreamIdx, typename TreeTypes>
-    	void stream(const PackedFSETree<TreeTypes>* tree, Int idx)
+    	void stream(const PkdFTree<TreeTypes>* tree, Int idx)
     	{
     		if (tree != nullptr)
     		{

@@ -34,7 +34,7 @@ public:
 	}
 
 	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start) {
+	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start) {
 		return Base::stream(tree, start);
 	}
 
@@ -97,7 +97,7 @@ public:
 	}
 
 	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start) {
+	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start) {
 		return Base::stream(tree, start);
 	}
 

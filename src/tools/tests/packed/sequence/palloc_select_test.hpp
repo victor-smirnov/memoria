@@ -22,7 +22,7 @@ using namespace std;
 
 template <
 	Int Bits,
-	template <typename>	class IndexType 	= PackedFSETree,
+	template <typename>	class IndexType 	= PkdFTree,
 	template <typename>	class CodecType 	= ValueFSECodec,
 	template <typename>	class ReindexFnType = BitmapReindexFn,
 	template <typename>	class SelectFnType	= BitmapSelectFn,

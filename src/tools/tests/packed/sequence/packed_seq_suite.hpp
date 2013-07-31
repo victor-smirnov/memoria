@@ -31,7 +31,7 @@ public:
 		registerTask(new PackedSearchableSequenceMiscTest<1>("Misc.1"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
-						PackedFSETree,
+						PkdFTree,
 						ValueFSECodec,
 						::memoria::ReindexFn,
 						SequenceSelectFn,
@@ -40,7 +40,7 @@ public:
 		>("Misc.4.FSE"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
-						PackedVLETree,
+						PkdVTree,
 						UBigIntEliasCodec,
 						VLEReindexFn,
 						SequenceSelectFn,
@@ -49,7 +49,7 @@ public:
 		>("Misc.4.Elias"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
-						PackedVLETree,
+						PkdVTree,
 						UByteExintCodec,
 						VLEReindexFn,
 						SequenceSelectFn,
@@ -58,7 +58,7 @@ public:
 		>("Misc.4.Exint"));
 		registerTask(new PackedSearchableSequenceMiscTest<
 						8,
-						PackedVLETree,
+						PkdVTree,
 						UBigIntEliasCodec,
 						VLEReindexFn,
 						Sequence8SelectFn,
@@ -71,7 +71,7 @@ public:
 
 		registerTask(new PackedSearchableSequenceRankTest<
 				4,
-				PackedFSETree,
+				PkdFTree,
 				ValueFSECodec,
 				::memoria::ReindexFn,
 				SequenceSelectFn,
@@ -80,7 +80,7 @@ public:
 
 		registerTask(new PackedSearchableSequenceRankTest<
 				4,
-				PackedVLETree,
+				PkdVTree,
 				UBigIntEliasCodec,
 				VLEReindexFn,
 				SequenceSelectFn,
@@ -89,7 +89,7 @@ public:
 
 		registerTask(new PackedSearchableSequenceRankTest<
 				8,
-				PackedVLETree,
+				PkdVTree,
 				UBigIntEliasCodec,
 				VLEReindexFn,
 				Sequence8SelectFn,
@@ -102,7 +102,7 @@ public:
 
 		registerTask(new PackedSearchableSequenceSelectTest<
 				4,
-				PackedFSETree,
+				PkdFTree,
 				ValueFSECodec,
 				::memoria::ReindexFn,
 				SequenceSelectFn,
@@ -112,7 +112,7 @@ public:
 
 		registerTask(new PackedSearchableSequenceSelectTest<
 				4,
-				PackedVLETree,
+				PkdVTree,
 				UBigIntEliasCodec,
 				VLEReindexFn,
 				SequenceSelectFn,
@@ -122,7 +122,7 @@ public:
 
 		registerTask(new PackedSearchableSequenceSelectTest<
 				8,
-				PackedVLETree,
+				PkdVTree,
 				UBigIntEliasCodec,
 				VLEReindexFn,
 				Sequence8SelectFn,

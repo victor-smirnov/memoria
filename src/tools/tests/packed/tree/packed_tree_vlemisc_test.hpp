@@ -23,7 +23,7 @@ template <
 	Int BF 			= PackedTreeBranchingFactor
 >
 class PackedTreeVLEMiscTest: public PackedTreeTestBase <
-	PackedVLETree,
+	PkdVTree,
 	CodecType,
 	Blocks,
 	VPB,
@@ -38,7 +38,7 @@ class PackedTreeVLEMiscTest: public PackedTreeTestBase <
 	> 																			MyType;
 
 	typedef PackedTreeTestBase <
-		PackedVLETree,
+		PkdVTree,
 		CodecType,
 		Blocks,
 		VPB,

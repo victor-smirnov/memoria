@@ -864,7 +864,7 @@ public:
 
     struct SumFn {
     	template <Int Idx, typename TreeTypes>
-    	void stream(const PackedFSETree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
+    	void stream(const PkdFTree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
     	{
     		Int from 	= start->value(Idx);
     		Int to 		= end->value(Idx);
@@ -873,7 +873,7 @@ public:
     	}
 
     	template <Int Idx, typename TreeTypes>
-    	void stream(const PackedVLETree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
+    	void stream(const PkdVTree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
     	{
     		Int from 	= start->value(Idx);
     		Int to 		= end->value(Idx);
@@ -903,14 +903,14 @@ public:
 
     	template <Int Idx, typename TreeTypes>
     	void stream(
-    			const PackedFSETree<TreeTypes>* tree,
+    			const PkdFTree<TreeTypes>* tree,
     			const Position* start,
     			const Position* end,
     			Accumulator* accum,
     			UBigInt act_streams
     		)
     	{
-    		typedef PackedFSETree<TreeTypes> Tree;
+    		typedef PkdFTree<TreeTypes> Tree;
 
     		if (act_streams & (1<<Idx))
     		{
@@ -1009,9 +1009,9 @@ public:
 
 //    struct MaxKeysFn {
 //    	template <Int Idx, typename TreeTypes>
-//    	void stream(const PackedFSETree<TreeTypes>* tree, Accumulator* acc)
+//    	void stream(const PkdFTree<TreeTypes>* tree, Accumulator* acc)
 //    	{
-//    		typedef PackedFSETree<TreeTypes> Tree;
+//    		typedef PkdFTree<TreeTypes> Tree;
 //
 //    		for (Int c = 0; c < Tree::Blocks; c++)
 //    		{

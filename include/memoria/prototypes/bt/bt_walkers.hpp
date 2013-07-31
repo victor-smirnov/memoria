@@ -252,7 +252,7 @@ public:
 	typedef Int 																ResultType;
 
 	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start)
+	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
 	{
 		auto k 		= Base::target_ - Base::sum_;
 
@@ -467,7 +467,7 @@ public:
 	{}
 
 	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int start)
+	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
 	{
 		auto k 			= Base::target_ - Base::sum_;
 		auto result 	= tree->findBackward(Base::search_type_, Base::index_, start, k);

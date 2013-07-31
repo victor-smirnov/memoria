@@ -45,7 +45,7 @@ struct PackedVMapFSETreeLeafTF {
 			Key, Key, Descriptor::LeafIndexes
 	>																			TreeTypes;
 
-	typedef PackedFSETree<TreeTypes> Type;
+	typedef PkdFTree<TreeTypes> Type;
 };
 
 
@@ -83,14 +83,14 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     typedef TypeList<
     			// Map
     			StreamDescr<
-    				PackedFSETreeTF,
+    				PkdFTreeTF,
     				PackedVMapFSETreeLeafTF,
     				2
     			>,
 
     			// Vector
     			StreamDescr<
-        			PackedFSETreeTF,
+        			PkdFTreeTF,
         			PackedFSEArrayTF,
         			1
         		>

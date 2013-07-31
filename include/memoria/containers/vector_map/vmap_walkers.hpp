@@ -136,7 +136,7 @@ public:
 
 
 	template <Int StreamIdx, typename StreamTypes, typename SearchResult>
-	void postProcessStream(const PackedFSETree<StreamTypes>* tree, Int start, const SearchResult& result)
+	void postProcessStream(const PkdFTree<StreamTypes>* tree, Int start, const SearchResult& result)
 	{
 		auto& index 	= Base::index_;
 
@@ -153,7 +153,7 @@ public:
 //		ArrayStreamPrefixFn(Accumulator& accum): prefix_(accum) {}
 //
 //		template <Int StreamIdx, typename StreamTypes>
-//		void stream(const PackedFSETree<StreamTypes>* tree, Int start, Int end)
+//		void stream(const PkdFTree<StreamTypes>* tree, Int start, Int end)
 //		{
 //			std::get<StreamIdx>(prefix_)[0] += tree->sum(0, start, end);
 //		}
@@ -296,9 +296,9 @@ public:
 	}
 
 	template <Int StreamIdx, typename TreeTypes>
-	ResultType stream(const PackedFSETree<TreeTypes>* tree, Int level, Int start)
+	ResultType stream(const PkdFTree<TreeTypes>* tree, Int level, Int start)
 	{
-		typedef PackedFSETree<TreeTypes> Tree;
+		typedef PkdFTree<TreeTypes> Tree;
 
 		Int size = tree->content_size_from_start(0);
 		Int idx = size - (mode_ == IteratorMode::FORWARD ? (level > 0) : 1);

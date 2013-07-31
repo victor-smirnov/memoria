@@ -62,7 +62,7 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
     typedef TypeList<
         		StreamDescr<
-        			PackedFSETreeTF,
+        			PkdFTreeTF,
         			PackedFSEArrayTF,
         			1
         	>

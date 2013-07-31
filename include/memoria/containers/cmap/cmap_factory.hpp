@@ -56,7 +56,7 @@ struct BTTypes<Profile, memoria::CMap<Key_, Value_> >: public BTTypes<Profile, m
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
-        		StreamDescr<PackedVLETreeTF, PackedVLETreeTF, 1>
+        		StreamDescr<PkdVTreeTF, PkdVTreeTF, 1>
     >																			StreamDescriptors;
 
     typedef BalancedTreeMetadata<

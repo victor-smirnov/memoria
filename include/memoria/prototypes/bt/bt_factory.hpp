@@ -56,7 +56,7 @@
 namespace memoria    {
 
 template <typename Types, Int StreamIdx>
-struct PackedFSETreeTF {
+struct PkdFTreeTF {
 
     typedef typename Types::Key                                                 Key;
 
@@ -69,7 +69,7 @@ struct PackedFSETreeTF {
 			Key, Key, Descriptor::NodeIndexes
 	>																			TreeTypes;
 
-	typedef PackedFSETree<TreeTypes> Type;
+	typedef PkdFTree<TreeTypes> Type;
 };
 
 
@@ -95,7 +95,7 @@ struct PackedFSEArrayTF {
 
 
 template <typename Types, Int StreamIdx>
-struct PackedVLETreeTF {
+struct PkdVTreeTF {
 
     typedef typename Types::Key                                                 Key;
 
@@ -108,7 +108,7 @@ struct PackedVLETreeTF {
 			Key, Key, Descriptor::NodeIndexes, UByteExintCodec
 	>																			TreeTypes;
 
-	typedef PackedVLETree<TreeTypes> Type;
+	typedef PkdVTree<TreeTypes> Type;
 };
 
 

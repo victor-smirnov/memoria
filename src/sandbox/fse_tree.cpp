@@ -26,8 +26,8 @@ int main(void) {
 	PackedAllocator* alloc = T2T<PackedAllocator*>(buf);
 	alloc->init(SIZE, 1);
 
-	typedef PackedFSETreeTypes<Int, Int, Int, 2> 	Types;
-	typedef PackedFSETree<Types>					Tree;
+	typedef PkdFTreeTypes<Int, Int, Int, 2> 	Types;
+	typedef PkdFTree<Types>					Tree;
 
 	Int client_area =  alloc->client_area();
 

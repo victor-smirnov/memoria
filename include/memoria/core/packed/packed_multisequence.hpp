@@ -22,7 +22,7 @@ using namespace std;
 template <
 	Int BitsPerSymbol_ = 8,
 
-	template <typename>	class IndexType 	= PackedVLETree,
+	template <typename>	class IndexType 	= PkdVTree,
 	template <typename>	class CodecType 	= UBigIntEliasCodec,
 
 	template <typename>	class ReindexFnType = VLEReindexFn,
@@ -62,7 +62,7 @@ class PackedCxMultiSequence: public PackedAllocator {
 public:
 
 	typedef Packed2TreeTypes<Int>							LabelArrayTypes;
-	typedef PackedFSETree<LabelArrayTypes>					LabelArray;
+	typedef PkdFTree<LabelArrayTypes>					LabelArray;
 	typedef typename LabelArray::Values						LabelArrayValues;
 
 	typedef PkdFSSeqTypes<
