@@ -190,8 +190,8 @@ class PackedFSESequence {
 protected:
 	typedef PackedFSESequence<BitsPerSymbol> 										MyType;
 
-	typedef typename PackedFSESearchableSeqTF<BitsPerSymbol>::Type				Types;
-	typedef PackedFSESearchableSeq<Types>										Seq;
+	typedef typename PkdFSSeqTF<BitsPerSymbol>::Type				Types;
+	typedef PkdFSSeq<Types>										Seq;
 
 	Seq* sequence_;
 

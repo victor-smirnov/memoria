@@ -32,7 +32,7 @@ public:
 	}
 
 	template <Int Idx, typename StreamTypes>
-	ResultType stream(const PackedFSESearchableSeq<StreamTypes>* seq, Int start)
+	ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
 	{
 		auto& sum = Base::sum_;
 
@@ -74,7 +74,7 @@ public:
 
 
 	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSESearchableSeq<TreeTypes>* seq, Int start)
+	ResultType stream(const PkdFSSeq<TreeTypes>* seq, Int start)
 	{
 		BigInt offset = Base::target_ - Base::sum_;
 

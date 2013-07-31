@@ -65,7 +65,7 @@ public:
 	typedef PackedFSETree<LabelArrayTypes>					LabelArray;
 	typedef typename LabelArray::Values						LabelArrayValues;
 
-	typedef PackedFSESeachableSeqTypes<
+	typedef PkdFSSeqTypes<
 			Types::BitsPerSymbol,
 			PackedTreeBranchingFactor,
 			512,
@@ -76,7 +76,7 @@ public:
 			Types::template RankFn,
 			Types::template ToolsFn
 	>														SequenceTypes;
-	typedef PackedFSESearchableSeq<SequenceTypes>			Sequence;
+	typedef PkdFSSeq<SequenceTypes>			Sequence;
 
 	typedef typename Sequence::SymbolAccessor				SymbolAccessor;
 	typedef typename Sequence::ConstSymbolAccessor			ConstSymbolAccessor;

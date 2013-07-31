@@ -34,7 +34,7 @@ template <
 	template <typename>	class RankFnType	= BitmapRankFn,
 	template <typename>	class ToolsFnType	= BitmapToolsFn
 >
-struct PackedFSESeachableSeqTypes {
+struct PkdFSSeqTypes {
 
     static const Int Blocks                 = 1 << BitsPerSymbol_;
     static const Int BranchingFactor        = BF;
@@ -62,7 +62,7 @@ struct PackedFSESeachableSeqTypes {
 
 
 template <typename Types_>
-class PackedFSESearchableSeq: public PackedAllocator {
+class PkdFSSeq: public PackedAllocator {
 
 	typedef PackedAllocator														Base;
 
@@ -70,7 +70,7 @@ public:
 	static const UInt VERSION               									= 1;
 
 	typedef Types_																Types;
-	typedef PackedFSESearchableSeq<Types_>               						MyType;
+	typedef PkdFSSeq<Types_>               										MyType;
 
 	typedef PackedAllocator														Allocator;
 
@@ -119,7 +119,7 @@ public:
 	};
 
 public:
-	PackedFSESearchableSeq() {}
+	PkdFSSeq() {}
 
 	Int& size() {return metadata()->size();}
 	const Int& size() const {return metadata()->size();}
@@ -852,11 +852,11 @@ private:
 
 
 template <Int BitsPerSymbol>
-class PackedFSESearchableSeqTF {
+class PkdFSSeqTF {
 public:
 	typedef typename IfThenElse<
 				BitsPerSymbol == 1,
-				PackedFSESeachableSeqTypes<
+				PkdFSSeqTypes<
 					1,
 					PackedTreeBranchingFactor,
 					1024,
@@ -869,7 +869,7 @@ public:
 				>,
 				typename IfThenElse<
 					(BitsPerSymbol > 1 && BitsPerSymbol < 8),
-					PackedFSESeachableSeqTypes<
+					PkdFSSeqTypes<
 						BitsPerSymbol,
 						PackedTreeBranchingFactor,
 						256,
@@ -880,7 +880,7 @@ public:
 						SequenceRankFn,
 						SequenceToolsFn
 					>,
-					PackedFSESeachableSeqTypes<
+					PkdFSSeqTypes<
 						BitsPerSymbol,
 						PackedTreeBranchingFactor,
 						1024,

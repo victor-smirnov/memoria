@@ -51,7 +51,7 @@ public:
 	}
 
 	template <Int Idx, typename StreamTypes>
-	ResultType stream(const PackedFSESearchableSeq<StreamTypes>* seq, Int start)
+	ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
 	{
 		MEMORIA_ASSERT_TRUE(seq != nullptr);
 
@@ -115,7 +115,7 @@ public:
 
 
 	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PackedFSESearchableSeq<TreeTypes>* seq, Int start)
+	ResultType stream(const PkdFSSeq<TreeTypes>* seq, Int start)
 	{
 		MEMORIA_ASSERT_TRUE(seq != nullptr);
 

@@ -62,11 +62,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 	struct InsertIntoLeafFn {
 
 		template <Int Idx, typename SeqTypes>
-		void stream(PackedFSESearchableSeq<SeqTypes>* seq, Int idx, Int symbol, Accumulator* delta)
+		void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int symbol, Accumulator* delta)
 		{
 			MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-			typedef PackedFSESearchableSeq<SeqTypes> 	Seq;
+			typedef PkdFSSeq<SeqTypes> 	Seq;
 			typedef typename Seq::Value 				Symbol;
 
 			auto old_indexes = seq->sums();

@@ -60,11 +60,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 	struct RemoveFromLeafFn {
 
 		template <Int Idx, typename SeqTypes>
-		void stream(PackedFSESearchableSeq<SeqTypes>* seq, Int idx, Accumulator* delta)
+		void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Accumulator* delta)
 		{
 			MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-			typedef PackedFSESearchableSeq<SeqTypes> 	Seq;
+			typedef PkdFSSeq<SeqTypes> 	Seq;
 			typedef typename Seq::Values 				Values;
 
 			Int sym = seq->symbol(idx);

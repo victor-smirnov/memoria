@@ -883,7 +883,7 @@ public:
 
     	template <Int Idx, typename SeqTypes>
     	void stream(
-    			const PackedFSESearchableSeq<SeqTypes>* seq,
+    			const PkdFSSeq<SeqTypes>* seq,
     			const Position* start,
     			const Position* end,
     			Accumulator* accum)

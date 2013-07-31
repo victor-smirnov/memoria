@@ -116,7 +116,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
 		Int symbol_ = 0;
 
 		template <Int Idx, typename SeqTypes>
-		void stream(const PackedFSESearchableSeq<SeqTypes>* seq, Int idx)
+		void stream(const PkdFSSeq<SeqTypes>* seq, Int idx)
 		{
 			MEMORIA_ASSERT_TRUE(seq != nullptr);
 			MEMORIA_ASSERT(idx, <, seq->size());

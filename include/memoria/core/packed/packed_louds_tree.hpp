@@ -92,16 +92,16 @@ struct LoudsTreeTypes {
 
 
 template <typename Types>
-class PackedLoudsTree: public PackedFSESearchableSeq<
-PackedFSESeachableSeqTypes <
+class PackedLoudsTree: public PkdFSSeq<
+PkdFSSeqTypes <
 	1,
 	Types::BranchingFactor,
 	Types::ValuesPerBranch
 >
 > {
 
-	typedef PackedFSESearchableSeq <
-			PackedFSESeachableSeqTypes <
+	typedef PkdFSSeq <
+			PkdFSSeqTypes <
 				1
 			>
 	> 																			Base;

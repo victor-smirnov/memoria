@@ -39,7 +39,7 @@ class PackedSearchableSequenceTestBase: public TestTask {
     		ToolsFnType
     > 																			MyType;
 
-    typedef PackedFSESeachableSeqTypes<
+    typedef PkdFSSeqTypes<
         		Bits,
         		PackedTreeBranchingFactor,
         		512,
@@ -53,7 +53,7 @@ class PackedSearchableSequenceTestBase: public TestTask {
 
 protected:
 
-    typedef PackedFSESearchableSeq<Types>										Seq;
+    typedef PkdFSSeq<Types>										Seq;
 
     typedef typename Seq::Value													Value;
 
