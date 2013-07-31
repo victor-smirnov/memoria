@@ -55,9 +55,6 @@
 
 namespace memoria    {
 
-using namespace memoria::bt;
-
-
 template <typename Types, Int StreamIdx>
 struct PackedFSETreeTF {
 
@@ -118,7 +115,7 @@ struct PackedVLETreeTF {
 
 
 template <typename Profile_, typename ContainerTypeSelector>
-struct BalancedTreeTypes {
+struct BTTypes {
 
     typedef Profile_                                                            Profile;
 
@@ -171,7 +168,7 @@ struct BalancedTreeTypes {
         typename Types_
     >
     struct CtrBaseFactory {
-        typedef bt::BTreeContainerBase<Types_>                       Type;
+        typedef bt::BTreeContainerBase<Types_>                       			Type;
     };
 
     template <
@@ -184,44 +181,44 @@ struct BalancedTreeTypes {
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef bt::BTreeIteratorCache<Iterator, Container>          Type;
+        typedef bt::BTreeIteratorCache<Iterator, Container>          			Type;
     };
 
     static const Int MAIN_STREAM												= 0;
 
 
     template <typename Types>
-    using SkipForwardWalker = TypeIsNotDefined;
+    using SkipForwardWalker 				= TypeIsNotDefined;
 
     template <typename Types>
-    using SkipBackwardWalker = TypeIsNotDefined;
+    using SkipBackwardWalker 				= TypeIsNotDefined;
 
     template <typename Types>
-    using NextLeafWalker = TypeIsNotDefined;
+    using NextLeafWalker 					= TypeIsNotDefined;
 
     template <typename Types>
-    using PrevLeafWalker = TypeIsNotDefined;
+    using PrevLeafWalker 					= TypeIsNotDefined;
 
     template <typename Types>
-    using NextLeafMutistreamWalker = TypeIsNotDefined;
+    using NextLeafMutistreamWalker 			= TypeIsNotDefined;
 
     template <typename Types>
-    using PrevLeafMutistreamWalker = TypeIsNotDefined;
+    using PrevLeafMutistreamWalker 			= TypeIsNotDefined;
 
 
 
 
     template <typename Types>
-    using FindBeginWalker = TypeIsNotDefined;
+    using FindBeginWalker 					= TypeIsNotDefined;
 
     template <typename Types>
-    using FindEndWalker = TypeIsNotDefined;
+    using FindEndWalker 					= TypeIsNotDefined;
 
     template <typename Types>
-    using FindRBeginWalker = TypeIsNotDefined;
+    using FindRBeginWalker 					= TypeIsNotDefined;
 
     template <typename Types>
-    using FindREndWalker = TypeIsNotDefined;
+    using FindREndWalker 					= TypeIsNotDefined;
 };
 
 
@@ -229,14 +226,14 @@ template <
         typename Profile,
         typename ContainerTypeName_
 >
-class CtrTF<Profile, memoria::BalancedTree, ContainerTypeName_> {
+class CtrTF<Profile, memoria::BT, ContainerTypeName_> {
 
-    typedef CtrTF<Profile, memoria::BalancedTree, ContainerTypeName_>           MyType;
+    typedef CtrTF<Profile, memoria::BT, ContainerTypeName_>           			MyType;
 
 public:
 
 
-    typedef BalancedTreeTypes<Profile, ContainerTypeName_>                      ContainerTypes;
+    typedef BTTypes<Profile, ContainerTypeName_>                      			ContainerTypes;
 
     
     typedef typename ContainerTypes::Allocator::Page::ID                        ID;
@@ -265,7 +262,7 @@ public:
     >       																	Position_;
 
 
-    typedef bt::TreeNodeBase<typename ContainerTypes::Allocator::Page>   NodePageBase0;
+    typedef bt::TreeNodeBase<typename ContainerTypes::Allocator::Page>   		NodePageBase0;
     typedef PageGuard<NodePageBase0, typename ContainerTypes::Allocator>   		NodePageBase0G;
 
     struct NodeTypes: ContainerTypes {
@@ -296,7 +293,7 @@ public:
         typedef typename ContainerTypes::Allocator          Allocator;
     };
 
-    typedef bt::BTreeDispatchers2<DispatcherTypes>                    PageDispatchers;
+    typedef bt::BTreeDispatchers2<DispatcherTypes>                    			PageDispatchers;
 
 
 public:
@@ -335,7 +332,7 @@ public:
 
         static const Int Streams												= MyType::Streams;
         typedef Accumulator_       												Accumulator;
-        typedef bt::StaticVector<BigInt, MyType::Streams>       		Position;
+        typedef bt::StaticVector<BigInt, MyType::Streams>       				Position;
 
 
 

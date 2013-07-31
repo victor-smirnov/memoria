@@ -50,10 +50,10 @@ struct PackedFSESeqTF {
 
 
 template <typename Profile>
-struct BalancedTreeTypes<Profile, memoria::Sequence<1, true> >:
-	public BalancedTreeTypes<Profile, memoria::BalancedTree> {
+struct BTTypes<Profile, memoria::Sequence<1, true> >:
+	public BTTypes<Profile, memoria::BT> {
 
-    typedef BalancedTreeTypes<Profile, memoria::BalancedTree>                   Base;
+    typedef BTTypes<Profile, memoria::BT>                   Base;
 
     typedef UBigInt                                                          	Value;
     typedef TypeList<BigInt>                                                  	KeysList;
@@ -156,7 +156,7 @@ struct BalancedTreeTypes<Profile, memoria::Sequence<1, true> >:
 
 
 template <typename Profile, Int BitsPerSymbol, bool Dense, typename T>
-class CtrTF<Profile, memoria::Sequence<BitsPerSymbol, Dense>, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
+class CtrTF<Profile, memoria::Sequence<BitsPerSymbol, Dense>, T>: public CtrTF<Profile, memoria::BT, T> {
 };
 
 }

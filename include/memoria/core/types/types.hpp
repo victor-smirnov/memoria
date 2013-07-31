@@ -113,10 +113,10 @@ template <typename T> struct TypeHash; // must define Value constant
  * Container type names & profiles
  */
 
-struct BalancedTree {};
+struct BT {};
 
-struct BTree        {};
-struct BSTree       {};
+
+
 struct Composite    {};
 struct Root         {};
 

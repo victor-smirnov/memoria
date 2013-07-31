@@ -18,9 +18,9 @@
 namespace memoria {
 
 template <typename Profile>
-struct BalancedTreeTypes<Profile, memoria::Root>: public BalancedTreeTypes<Profile, memoria::Map<BigInt, NullType> > {
+struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::Map<BigInt, NullType> > {
 
-    typedef BalancedTreeTypes<Profile, memoria::Map<BigInt, NullType>>      	Base;
+    typedef BTTypes<Profile, memoria::Map<BigInt, NullType>>      	Base;
 
     typedef typename Base::ID                                                   Value;
 

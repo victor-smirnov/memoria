@@ -66,8 +66,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
 		auto iter = self.find0(0, walker);
 
-		MEMORIA_ASSERT(iter.pos(), ==, idx);
-
 		return walker.rank();
 	}
 
@@ -81,7 +79,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 		bool found() const {return found_;};
 	};
 
-	SSelectResult select(Int symbol, BigInt rank) const {
+	SSelectResult select(Int symbol, BigInt rank) const
+	{
+//		auto& self = this->self();
+//
+//		typename Types::template SelectFwWalker<Types> walker(0, symbol, rank);
+//
+//		auto iter = self.find0(0, walker);
+
 		return SSelectResult(0, false);
 	}
 

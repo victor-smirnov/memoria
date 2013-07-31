@@ -51,11 +51,11 @@ struct PackedVMapFSETreeLeafTF {
 
 
 template <typename Profile, typename Key_, typename Value_>
-struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
-	public BalancedTreeTypes<Profile, memoria::BalancedTree>
+struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
+	public BTTypes<Profile, memoria::BT>
 {
 
-    typedef BalancedTreeTypes<Profile, memoria::BalancedTree>                   Base;
+    typedef BTTypes<Profile, memoria::BT>                   Base;
 
     typedef Value_                                                          	Value;
     typedef TypeList<BigInt>                                                  	KeysList;
@@ -167,7 +167,7 @@ struct BalancedTreeTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, memoria::VectorMap<Key, Value>, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
+class CtrTF<Profile, memoria::VectorMap<Key, Value>, T>: public CtrTF<Profile, memoria::BT, T> {
 };
 
 

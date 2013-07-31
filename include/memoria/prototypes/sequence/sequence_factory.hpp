@@ -52,10 +52,10 @@ struct SequenceContainerTypes: public Base {
 
 
 template <typename Profile>
-struct BalancedTreeTypes<Profile, memoria::ASequence>: public BalancedTreeTypes<Profile, memoria::BalancedTree>  {
+struct BTTypes<Profile, memoria::ASequence>: public BTTypes<Profile, memoria::BT>  {
 
     typedef bt::IDType                                               Value;
-    typedef BalancedTreeTypes<Profile, memoria::BalancedTree>                   Base;
+    typedef BTTypes<Profile, memoria::BT>                   Base;
 
     typedef TypeList<>                                                          DataPagePartsList;
 
@@ -125,7 +125,7 @@ struct BalancedTreeTypes<Profile, memoria::ASequence>: public BalancedTreeTypes<
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::ASequence, T>: public CtrTF<Profile, memoria::BalancedTree, T> {
+class CtrTF<Profile, memoria::ASequence, T>: public CtrTF<Profile, memoria::BT, T> {
 
 };
 
