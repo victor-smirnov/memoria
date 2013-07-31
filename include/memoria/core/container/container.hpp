@@ -77,10 +77,10 @@ public:
 
 
 template <typename TypesType>
-class ContainerBase: public TypesType::Allocator {
+class CtrBase: public TypesType::Allocator {
 public:
 
-    typedef ContainerBase<TypesType>                                            ThisType;
+    typedef CtrBase<TypesType>                                            ThisType;
     typedef Ctr<TypesType>                                                      MyType;
 
     typedef typename TypesType::ContainerTypeName                               ContainerTypeName;
@@ -107,35 +107,35 @@ protected:
     CtrInitData init_data_;
 
 public:
-    ContainerBase(const CtrInitData& data): shared_(nullptr), init_data_(data)
+    CtrBase(const CtrInitData& data): shared_(nullptr), init_data_(data)
     {}
 
-    ContainerBase(const ThisType& other):
+    CtrBase(const ThisType& other):
         shared_(other.shared_),
     	init_data_(other.init_data_)
     {}
 
-    ContainerBase(const ThisType& other, Allocator* allocator):
+    CtrBase(const ThisType& other, Allocator* allocator):
         shared_(other.shared_),
     	init_data_(other.init_data_)
     {}
 
     //shared_ is configured in move constructors of subclasses.
-    ContainerBase(ThisType&& other):
+    CtrBase(ThisType&& other):
         shared_(other.shared_),
     	init_data_(other.init_data_)
     {
         other.shared_ = NULL;
     }
 
-    ContainerBase(ThisType&& other, Allocator* allocator):
+    CtrBase(ThisType&& other, Allocator* allocator):
         shared_(other.shared_),
     	init_data_(other.init_data_)
     {
         other.shared_ = NULL;
     }
 
-    virtual ~ContainerBase() throw () {}
+    virtual ~CtrBase() throw () {}
 
     void operator=(ThisType&& other)
     {
@@ -318,7 +318,7 @@ private:
 };
 
 template <typename TypesType>
-ContainerMetadata* ContainerBase<TypesType>::reflection_ = NULL;
+ContainerMetadata* CtrBase<TypesType>::reflection_ = NULL;
 
 
 

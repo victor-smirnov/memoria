@@ -36,7 +36,7 @@ struct CompositeTypes {
 
     template <typename Types_>
     struct CtrBaseFactory {
-        typedef ContainerBase<Types_>                                           Type;
+        typedef CtrBase<Types_>                                           Type;
     };
 };
 

@@ -53,7 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
 	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
 
-	typedef typename Base::BalTreeNodeTraits									BalTreeNodeTraits;
+	typedef typename Base::BTNodeTraits									BTNodeTraits;
 
 	MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
 	Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
@@ -100,11 +100,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
 
 
 	template <typename Node>
-	Int getNodeTraitsFn(BalTreeNodeTraits trait, Int page_size) const
+	Int getNodeTraitsFn(BTNodeTraits trait, Int page_size) const
 	{
 		switch (trait)
 		{
-		case BalTreeNodeTraits::MAX_CHILDREN:
+		case BTNodeTraits::MAX_CHILDREN:
 			return Node::max_tree_size_for_block(page_size); break;
 
 		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", (Int)trait);
@@ -113,7 +113,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrToolsName)
 
 	MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(GetNodeTraitsFn, getNodeTraitsFn, Int);
 
-	Int getNodeTraitInt(BalTreeNodeTraits trait, bool root, bool leaf) const
+	Int getNodeTraitInt(BTNodeTraits trait, bool root, bool leaf) const
 	{
 		Int page_size = self().getRootMetadata().page_size();
 		return NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(&self()), trait, page_size);

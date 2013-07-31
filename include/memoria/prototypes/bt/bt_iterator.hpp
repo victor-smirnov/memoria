@@ -27,10 +27,10 @@ template <typename Name, typename Base, typename Types> class IterPart;
 template<
         typename Types
 >
-class Iter<BalTreeIterTypes<Types>>: public IterStart<BalTreeIterTypes<Types>>
+class Iter<BTIterTypes<Types>>: public IterStart<BTIterTypes<Types>>
 {
-    typedef Iter<BalTreeIterTypes<Types>>                                           MyType;
-    typedef IterStart<BalTreeIterTypes<Types>>                                      Base;
+    typedef Iter<BTIterTypes<Types>>                                           MyType;
+    typedef IterStart<BTIterTypes<Types>>                                      Base;
     typedef Ctr<typename Types::CtrTypes>                                           ContainerType;
     typedef EmptyType                                                               Txn;
 
@@ -147,13 +147,13 @@ public:
 };
 
 template <typename Types>
-bool operator==(const Iter<BalTreeIterTypes<Types> >& iter, const IterEndMark& mark)
+bool operator==(const Iter<BTIterTypes<Types> >& iter, const IterEndMark& mark)
 {
     return iter.isEnd();
 }
 
 template <typename Types>
-bool operator!=(const Iter<BalTreeIterTypes<Types> >& iter, const IterEndMark& mark)
+bool operator!=(const Iter<BTIterTypes<Types> >& iter, const IterEndMark& mark)
 {
     return iter.isNotEnd();
 }

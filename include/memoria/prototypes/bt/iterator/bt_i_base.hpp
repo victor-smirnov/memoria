@@ -22,7 +22,7 @@ namespace memoria    {
 using namespace memoria::bt;
 
 
-MEMORIA_bt_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BalTreeIteratorBase)
+MEMORIA_bt_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
     typedef typename Base::Container::Types                                             Types;
     typedef typename Base::Container::TreePath                                          TreePath;
@@ -53,13 +53,13 @@ private:
     IteratorCache       cache_;
 
 public:
-    BalTreeIteratorBase():
+    BTIteratorBase():
     	Base(), idx_(0), stream_(0), found_(false)
     {
         cache_.init(me());
     }
 
-    BalTreeIteratorBase(ThisType&& other):
+    BTIteratorBase(ThisType&& other):
         Base(std::move(other)),
         leaf_(other.leaf_),
         idx_(other.idx_),
@@ -69,7 +69,7 @@ public:
         cache_.init(me());
     }
 
-    BalTreeIteratorBase(const ThisType& other):
+    BTIteratorBase(const ThisType& other):
     	Base(other),
     	leaf_(other.leaf_),
     	idx_(other.idx_),

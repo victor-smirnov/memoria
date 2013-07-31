@@ -86,17 +86,17 @@ class IteratorFindName		{};
 }
 
 template <typename Types>
-struct BalTreeCtrTypesT: CtrTypesT<Types>         {};
+struct BTCtrTypesT: CtrTypesT<Types>         {};
 
 template <typename Types>
-struct BalTreeIterTypesT: IterTypesT<Types>   {};
+struct BTIterTypesT: IterTypesT<Types>   {};
 
 
 template <typename Types>
-using BalTreeCtrTypes = BalTreeCtrTypesT<Types>;
+using BTCtrTypes = BTCtrTypesT<Types>;
 
 template <typename Types>
-using BalTreeIterTypes = BalTreeIterTypesT<Types>;
+using BTIterTypes = BTIterTypesT<Types>;
 
 
 }

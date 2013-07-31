@@ -23,7 +23,7 @@
 namespace memoria       	{
 namespace bt     {
 
-MEMORIA_bt_MODEL_BASE_CLASS_BEGIN(BTreeContainerBase)
+MEMORIA_bt_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     typedef typename Base::Types                                                Types;

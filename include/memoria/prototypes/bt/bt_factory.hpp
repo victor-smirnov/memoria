@@ -168,14 +168,14 @@ struct BTTypes {
         typename Types_
     >
     struct CtrBaseFactory {
-        typedef bt::BTreeContainerBase<Types_>                       			Type;
+        typedef bt::BTreeCtrBase<Types_>                       			Type;
     };
 
     template <
         typename Types_
     >
     struct IterBaseFactory {
-        typedef BalTreeIteratorBase<Types_>                      				Type;
+        typedef BTIteratorBase<Types_>                      				Type;
     };
 
 
@@ -316,8 +316,8 @@ public:
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
-        typedef BalTreeCtrTypes<Types>                                          CtrTypes;
-        typedef BalTreeIterTypes<Types>                                         IterTypes;
+        typedef BTCtrTypes<Types>                                          CtrTypes;
+        typedef BTIterTypes<Types>                                         IterTypes;
 
         typedef bt::NodePath<
                 NodeBaseG, 8

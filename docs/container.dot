@@ -10,5 +10,5 @@ digraph G {
     CtrPart1 [label="CtrPart"];
     CtrPart2 [label="CtrPart"];
     
-    Ctr->CtrStart->CtrHelper1->CtrPart1->CtrHelper2->CtrPart2->CtrHelper3->ContainerBase;
+    Ctr->CtrStart->CtrHelper1->CtrPart1->CtrHelper2->CtrPart2->CtrHelper3->CtrBase;
 }

@@ -53,7 +53,7 @@ MEMORIA_TEMPLATE_EXTERN template class BaseName<CollectionName::Types<CtrName>::
 #define MEMORIA_EXTERN_CONTAINER(CollectionName,  CtrName, CtrBaseName, IterBaseName)   \
 MEMORIA_EXTERN_CTR(CollectionName,  CtrName)                                            \
 MEMORIA_EXTERN_ITER(CollectionName,  CtrName)                                           \
-MEMORIA_EXTERN_CTR_BASE(CollectionName,  CtrName, memoria::ContainerBase)               \
+MEMORIA_EXTERN_CTR_BASE(CollectionName,  CtrName, memoria::CtrBase)               \
 MEMORIA_EXTERN_CTR_BASE(CollectionName,  CtrName, CtrBaseName)                          \
 MEMORIA_EXTERN_ITER_BASE(CollectionName,  CtrName, memoria::IteratorBase)               \
 MEMORIA_EXTERN_ITER_BASE(CollectionName,  CtrName, IterBaseName)                        \
@@ -63,7 +63,7 @@ MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, LeafTypes, ANY_LEVEL)         
 MEMORIA_EXTERN_DATAPAGE(CollectionName,  CtrName, InternalTypes, ANY_LEVEL)
 
 #define MEMORIA_EXTERN_BASIC_CONTAINER(CollectionName,  CtrName) MEMORIA_EXTERN_CONTAINER(CollectionName, CtrName, \
-        memoria::btree::BTreeContainerBase, memoria::BTreeIteratorBase)
+        memoria::btree::BTreeCtrBase, memoria::BTreeIteratorBase)
 
 
 

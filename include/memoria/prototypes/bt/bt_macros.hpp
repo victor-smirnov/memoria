@@ -11,27 +11,27 @@
 
 #include <memoria/core/container/macros.hpp>
 
-#define MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeContainerBaseClassName)     \
+#define MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)     \
 template <                                                                              \
         typename TypesType                                                              \
 >                                                                                       \
-class BTreeContainerBaseClassName: public ContainerBase<TypesType> {                    \
+class BTreeCtrBaseClassName: public CtrBase<TypesType> {                    \
                                                                                         \
-    typedef BTreeContainerBaseClassName<TypesType>                              ThisType;\
-    typedef ContainerBase<TypesType>                                            Base;   \
+    typedef BTreeCtrBaseClassName<TypesType>                              ThisType;\
+    typedef CtrBase<TypesType>                                            Base;   \
     typedef Ctr<TypesType>                                                      MyType; \
                                                                                         \
 public:
 
-#define MEMORIA_bt_MODEL_BASE_CLASS_BEGIN(BTreeContainerBaseClassName)             \
-    MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeContainerBaseClassName)         \
+#define MEMORIA_bt_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)             \
+    MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)         \
                                                                                         \
-    BTreeContainerBaseClassName(const CtrInitData& data): Base(data) {}                 \
-    BTreeContainerBaseClassName(const ThisType& other): Base(other) {}                  \
-    BTreeContainerBaseClassName(ThisType&& other): Base(std::move(other)) {}            \
-    BTreeContainerBaseClassName(ThisType&& other, typename TypesType::Allocator* allocator): \
+    BTreeCtrBaseClassName(const CtrInitData& data): Base(data) {}                 \
+    BTreeCtrBaseClassName(const ThisType& other): Base(other) {}                  \
+    BTreeCtrBaseClassName(ThisType&& other): Base(std::move(other)) {}            \
+    BTreeCtrBaseClassName(ThisType&& other, typename TypesType::Allocator* allocator): \
         Base(std::move(other), allocator)  {}                                           \
-    BTreeContainerBaseClassName(const ThisType& other, typename TypesType::Allocator* allocator): \
+    BTreeCtrBaseClassName(const ThisType& other, typename TypesType::Allocator* allocator): \
         Base(other, allocator)        {}                                                \
 
 

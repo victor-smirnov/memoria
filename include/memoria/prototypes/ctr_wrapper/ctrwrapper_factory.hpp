@@ -37,7 +37,7 @@ struct WrapperTypes {
 
     template <typename Types_>
     struct CtrBaseFactory {
-        typedef CtrWrapperContainerBase1<Types_>            Type;
+        typedef CtrWrapperCtrBase1<Types_>            Type;
     };
 };
 

@@ -20,7 +20,7 @@
 namespace memoria       {
 
 
-MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperContainerBase1)
+MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperCtrBase1)
 
     typedef TypesType                                                           Types;
 
@@ -41,28 +41,28 @@ private:
 
 public:
 
-    CtrWrapperContainerBase1(const CtrInitData& data):
+    CtrWrapperCtrBase1(const CtrInitData& data):
     	Base(data),
     	ctr_(data.owner(Base::CONTAINER_HASH))
     {}
 
-    CtrWrapperContainerBase1(const ThisType& other, Allocator* allocator):
+    CtrWrapperCtrBase1(const ThisType& other, Allocator* allocator):
         Base(other, allocator),
         ctr_(other.ctr_, allocator)
     {}
 
-    CtrWrapperContainerBase1(ThisType&& other, Allocator* allocator):
+    CtrWrapperCtrBase1(ThisType&& other, Allocator* allocator):
         Base(std::move(other), allocator),
         ctr_(std::move(other.ctr_), allocator)
     {}
 
     //broken constructor
-    CtrWrapperContainerBase1(const ThisType& other):
+    CtrWrapperCtrBase1(const ThisType& other):
         Base(other),
         ctr_(other.init_data_.owner(Base::CONTAINER_HASH))
     {}
 
-    CtrWrapperContainerBase1(ThisType&& other):
+    CtrWrapperCtrBase1(ThisType&& other):
         Base(std::move(other)),
         ctr_(other.init_data_.owner(Base::CONTAINER_HASH))
     {}

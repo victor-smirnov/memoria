@@ -65,7 +65,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrInsertName)
 //	class MapSubtreeProvider: public Base::AbstractSubtreeProviderBase {
 //
 //		typedef typename Base::AbstractSubtreeProviderBase 		ProviderBase;
-//		typedef typename Base::BalTreeNodeTraits				BalTreeNodeTraits;
+//		typedef typename Base::BTNodeTraits				BTNodeTraits;
 //
 //		MyType& ctr_;
 //		Int total_;
@@ -90,7 +90,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrInsertName)
 //		{
 //			Int remainder = total_ - inserted_;
 //
-//			Int leaf_capacity = ctr_.getNodeTraitInt(BalTreeNodeTraits::MAX_CHILDREN, false, true);
+//			Int leaf_capacity = ctr_.getNodeTraitInt(BTNodeTraits::MAX_CHILDREN, false, true);
 //
 //			return remainder / leaf_capacity + (remainder % leaf_capacity ? 1 : 0);
 //		}

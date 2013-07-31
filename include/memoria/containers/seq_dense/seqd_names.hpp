@@ -31,10 +31,10 @@ template <typename Types>
 struct DenseSequenceIterTypesT: IterTypesT<Types> {};
 
 template <typename Types>
-using DenseSequenceCtrTypes  = BalTreeCtrTypes<DenseSequenceCtrTypesT<Types>>;
+using DenseSequenceCtrTypes  = BTCtrTypes<DenseSequenceCtrTypesT<Types>>;
 
 template <typename Types>
-using DenseSequenceIterTypes = BalTreeCtrTypes<DenseSequenceIterTypesT<Types>>;
+using DenseSequenceIterTypes = BTCtrTypes<DenseSequenceIterTypesT<Types>>;
 
 }
 
