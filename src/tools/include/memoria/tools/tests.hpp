@@ -39,8 +39,6 @@ protected:
     typedef Task Base;
 
     Int     size_;
-    Int     btree_branching_;
-    bool    btree_random_branching_;
 
     String  current_test_name_;
 
@@ -98,15 +96,12 @@ public:
         Task(name),
         replay_(false),
         size_(200),
-        btree_branching_(0),
-        btree_random_branching_(true),
         configurator_(nullptr)
     {
         own_folder = true;
 
         Add("size", size_);
-        Add("btree_branching", btree_branching_);
-        Add("btree_random_branching", btree_random_branching_);
+        Add("size_", size_);
     }
 
 

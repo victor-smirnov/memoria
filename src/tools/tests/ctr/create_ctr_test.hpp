@@ -61,14 +61,6 @@ public:
 
     virtual ~CreateCtrTest() throw() {}
 
-    virtual void setUp()
-    {
-    	if (btree_random_branching_)
-    	{
-    		btree_branching_ = 8 + getRandom(100);
-    		out()<<"BTree Branching: "<<btree_branching_<<endl;
-    	}
-    }
 
     void assertEmpty(const char* src, Allocator& allocator)
     {

@@ -53,13 +53,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
 	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
 
-	BigInt size() const {
+	BigInt size() const
+	{
 		return self().sizes()[0];
 	}
 
-	BigInt rank(Int idx, Int symbol) const
+	BigInt rank(BigInt idx, Int symbol)
 	{
-		return 0;
+		auto& self = this->self();
+
+		typename Types::template RankFWWalker<Types> walker(0, symbol, idx);
+
+		auto iter = self.find0(0, walker);
+
+		MEMORIA_ASSERT(iter.pos(), ==, idx);
+
+		return walker.rank();
 	}
 
 	class SSelectResult {
@@ -76,16 +85,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 		return SSelectResult(0, false);
 	}
 
-	Iterator seek(Int pos) const
+	Iterator seek(Int pos)
 	{
-		auto self = this->self();
+		auto& self = this->self();
+
 		return self.findLT(MAIN_STREAM, pos, 0);
 	}
 
 
-	Int symbol(Int idx) const
+	Int symbol(Int idx)
 	{
-		auto self = this->self();
+		auto& self = this->self();
 		return seek(idx).symbol();
 	}
 

@@ -638,7 +638,8 @@ public:
         return *allocator_;
     }
 
-    MEMORIA_PUBLIC const char* typeName() const {
+    MEMORIA_PUBLIC const char* typeName() const
+    {
         return model_type_name_;
     }
 

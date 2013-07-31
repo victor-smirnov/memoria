@@ -27,7 +27,7 @@ using btree::TreeMapNode;
 
 
 template <typename Types>
-class FindRangeWalkerBase {
+class FindEdgeWalkerBase {
 protected:
 	typedef Iter<typename Types::IterTypes> Iterator;
 	typedef Ctr<typename Types::CtrTypes> 	Container;
@@ -39,7 +39,7 @@ protected:
 	Int start_;
 
 public:
-	FindRangeWalkerBase(): idx_(0) {}
+	FindEdgeWalkerBase(): idx_(0) {}
 
 	WalkDirection& direction() {
 		return direction_;
@@ -67,9 +67,9 @@ public:
 
 
 template <typename Types>
-class FindEndWalker: public FindRangeWalkerBase<Types> {
+class FindEndWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef FindEdgeWalkerBase<Types> 		Base;
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 
@@ -109,9 +109,9 @@ public:
 
 
 template <typename Types>
-class FindREndWalker: public FindRangeWalkerBase<Types> {
+class FindREndWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef FindEdgeWalkerBase<Types> 		Base;
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 
@@ -139,9 +139,9 @@ public:
 
 
 template <typename Types>
-class FindBeginWalker: public FindRangeWalkerBase<Types> {
+class FindBeginWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef FindEdgeWalkerBase<Types> 		Base;
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 
@@ -167,9 +167,9 @@ public:
 };
 
 template <typename Types>
-class FindRBeginWalker: public FindRangeWalkerBase<Types> {
+class FindRBeginWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef FindEdgeWalkerBase<Types> 		Base;
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 

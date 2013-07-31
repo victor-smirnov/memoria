@@ -34,6 +34,8 @@ protected:
 
 	typedef PackedFSESequence<BitsPerSymbol>									PackedSeq;
 
+	static const Int Symbols													= 1<<BitsPerSymbol;
+
 	String dump_name_;
 
 public:
@@ -44,7 +46,20 @@ public:
 
 	PackedSeq fillRandom(Ctr& ctr, Int size)
 	{
+		PackedSeq seq(size);
 
+		auto iter = ctr.Begin();
+
+		for (Int c = 0; c <size; c++)
+		{
+			Int symbol = getRandom(Symbols);
+
+			iter.insert(symbol);
+
+			seq.append(symbol);
+		}
+
+		return seq;
 	}
 
 

@@ -308,6 +308,19 @@ public:
     	return *this;
     }
 
+    template <typename T, Int TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
+    MyType& sumUp(const StaticVector<T, TIndexes>& other)
+    {
+    	Int shift = Indexes - TIndexes;
+
+    	for (Int c = Indexes - 1; c >= shift ; c--)
+    	{
+    		values_[c] += other.values_[c - shift];
+    	}
+
+    	return *this;
+    }
+
     bool operator==(const MyType& other) const
     {
         for (Int c = 0; c < Indexes; c++)
@@ -327,11 +340,11 @@ public:
         {
             if (values_[c] == other.values_[c])
             {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     bool operator<=(const MyType& other) const

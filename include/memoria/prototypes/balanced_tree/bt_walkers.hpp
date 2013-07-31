@@ -62,7 +62,7 @@ public:
 
 	BigInt finish(Iterator& iter, Int idx)
 	{
-		iter.key_idx() = idx;
+		iter.idx() = idx;
 
 		return sum_;
 	}
@@ -474,6 +474,7 @@ public:
 		Base::sum_ 		+= result.prefix();
 
 		self().template postProcessStreamPrefix<Idx>(result.prefix());
+		self().template postProcessStream<Idx>(tree, start, result);
 
 		return result.idx();
 	}

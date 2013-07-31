@@ -168,7 +168,7 @@ class FindEndWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindEndWalker(Int stream, Container&) {}
+	FindEndWalker(Int stream, const Container&) {}
 
 	template <typename Node>
 	ReturnType treeNode(const Node* node, Int start)
@@ -210,7 +210,7 @@ class FindREndWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindREndWalker(Int stream, Container&) {}
+	FindREndWalker(Int stream, const Container&) {}
 
 	template <typename Node>
 	ReturnType treeNode(const Node* node, Int start)
@@ -239,7 +239,7 @@ class FindBeginWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindBeginWalker(Int stream, Container&) {}
+	FindBeginWalker(Int stream, const Container&) {}
 
 
 	template <typename Node>
@@ -270,7 +270,7 @@ class FindRBeginWalker: public FindRangeWalkerBase<Types> {
 public:
 	typedef Int ReturnType;
 
-	FindRBeginWalker(Int stream, Container&) {}
+	FindRBeginWalker(Int stream, const Container&) {}
 
 	template <typename Node>
 	ReturnType treeNode(const Node* node, Int start)

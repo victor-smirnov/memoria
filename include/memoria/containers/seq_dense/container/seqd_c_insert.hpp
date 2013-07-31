@@ -151,6 +151,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 		}
 
 		self.addTotalKeyCount(Position::create(stream, 1));
+
+//		if (DebugCounter) {
+//			iter.dumpPath();
+//		}
+
+		iter++;
 	}
 
 

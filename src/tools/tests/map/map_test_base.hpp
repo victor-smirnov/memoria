@@ -213,12 +213,6 @@ protected:
 
     virtual void setUp()
     {
-        if (btree_random_branching_)
-        {
-            btree_branching_ = 8 + getRandom(100);
-            out()<<"BTree Branching: "<<btree_branching_<<endl;
-        }
-
         pairs.clear();
         pairs_sorted.clear();
 

@@ -145,17 +145,69 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterAPIName)
 		return fn.symbol_;
 	}
 
-	void insert(Int symbol) {
+	void insert(Int symbol)
+	{
 		auto& self 	= this->self();
 		auto& ctr 	= self.ctr();
 
 		ctr.insert(self, symbol);
 	}
 
-	void remove(Int symbol) {
+	void remove(Int symbol)
+	{
 
 	}
 
+	BigInt rank(BigInt delta, Int symbol)
+	{
+		auto& self 	= this->self();
+
+		if (delta > 0)
+		{
+			return self.rankFw(delta, symbol);
+		}
+		else if (delta < 0)
+		{
+			return self.rankBw(-delta, symbol);
+		}
+		else {
+			return 0;
+		}
+	}
+
+	BigInt rankFw(BigInt delta, Int symbol)
+	{
+		auto& self 	= this->self();
+		auto& ctr 	= self.ctr();
+		Int stream  = self.stream();
+
+		MEMORIA_ASSERT(delta, >=, 0);
+
+		typename Types::template RankFWWalker<Types> walker(stream, symbol, delta);
+
+		walker.prepare(self);
+
+		Int idx = ctr.findFw(self.leaf(), stream, self.idx(), walker);
+
+		return walker.finish(self, idx);
+	}
+
+	BigInt rankBw(BigInt delta, Int symbol)
+	{
+		auto& self 	= this->self();
+		auto& ctr 	= self.ctr();
+		Int stream  = self.stream();
+
+		MEMORIA_ASSERT(delta, >=, 0);
+
+		typename Types::template RankBWWalker<Types> walker(stream, symbol, delta);
+
+		walker.prepare(self);
+
+		Int idx = ctr.findBw(self.leaf(), stream, self.idx(), walker);
+
+		return walker.finish(self, idx);
+	}
     
 MEMORIA_ITERATOR_PART_END
 

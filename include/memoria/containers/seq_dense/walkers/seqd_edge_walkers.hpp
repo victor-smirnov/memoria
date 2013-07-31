@@ -4,116 +4,19 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_CONTAINERS_vctr_CONTAINER_WALKERS_HPP
-#define _MEMORIA_CONTAINERS_vctr_CONTAINER_WALKERS_HPP
-
-#include <memoria/prototypes/balanced_tree/bt_tools.hpp>
-#include <memoria/core/tools/static_array.hpp>
-
-#include <memoria/core/container/container.hpp>
+#ifndef _MEMORIA_CONTAINERS_SEQDENSE_EDGE_WALKERS_HPP
+#define _MEMORIA_CONTAINERS_SEQDENSE_EDGE_WALKERS_HPP
 
 #include <memoria/prototypes/balanced_tree/bt_walkers.hpp>
 
-#include <memoria/prototypes/balanced_tree/nodes/leaf_node.hpp>
+#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
 
-#include <ostream>
-
-namespace memoria       {
-namespace mvector       {
+namespace memoria 	{
+namespace seq_dense	{
 
 
 template <typename Types>
-class FindWalkerBase {
-protected:
-	typedef typename Types::Key 												Key;
-	typedef typename Types::Accumulator 										Accumulator;
-
-	typedef Iter<typename Types::IterTypes> 									Iterator;
-
-	BigInt prefix_ = 0;
-
-	Key key_;
-
-	WalkDirection direction_;
-
-public:
-
-	FindWalkerBase(Key key):
-		key_(key)
-	{}
-
-	const WalkDirection& direction() const {
-		return direction_;
-	}
-
-	WalkDirection& direction() {
-		return direction_;
-	}
-
-
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() 	= idx;
-
-		Int size = iter.size();
-
-		if (idx < size)
-		{
-			iter.cache().setup(prefix_);
-		}
-		else {
-			iter.cache().setup(prefix_ - size);
-		}
-	}
-
-	void empty(Iterator& iter)
-	{
-		iter.key_idx()	= 0;
-
-		iter.cache().setup(0);
-	}
-
-	BigInt prefix() const {
-		return prefix_;
-	}
-};
-
-
-
-
-
-template <typename Types>
-class FindLEWalker: public FindWalkerBase<Types> {
-
-	typedef FindWalkerBase<Types> 		Base;
-	typedef typename Base::Key 			Key;
-
-public:
-	FindLEWalker(Key key, Int key_num): Base(key, key_num)
-	{}
-
-	template <typename Node>
-	void treeNode(const Node* node)
-	{
-		Base::idx_ = node->findLES(Base::key_num_, Base::key_ - std::get<0>(Base::prefix_)[Base::key_num_], Base::prefix_);
-
-		if (node->level() != 0 && Base::idx_ == node->children_count())
-		{
-			VectorSub(Base::prefix_, node->keysAt(node->children_count() - 1));
-			Base::idx_--;
-		}
-	}
-};
-
-
-
-
-
-
-
-template <typename Types>
-class FindRangeWalkerBase {
+class FindEdgeWalkerBase {
 protected:
 	typedef Iter<typename Types::IterTypes> Iterator;
 	typedef Ctr<typename Types::CtrTypes> 	Container;
@@ -123,7 +26,7 @@ protected:
 	WalkDirection direction_;
 
 public:
-	FindRangeWalkerBase() {}
+	FindEdgeWalkerBase() {}
 
 	WalkDirection& direction() {
 		return direction_;
@@ -131,16 +34,16 @@ public:
 
 	void empty(Iterator& iter)
 	{
-		iter.cache().setup(Accumulator());
+//		iter.cache().setup(Accumulator());
 	}
 };
 
 
 
 template <typename Types>
-class FindEndWalker: public FindRangeWalkerBase<Types> {
+class FindEndWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef FindEdgeWalkerBase<Types> 		Base;
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 
@@ -176,9 +79,9 @@ public:
 
 
 template <typename Types>
-class FindREndWalker: public FindRangeWalkerBase<Types> {
+class FindREndWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef FindEdgeWalkerBase<Types> 		Base;
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 	typedef typename Types::Accumulator 	Accumulator;
@@ -205,9 +108,9 @@ public:
 
 
 template <typename Types>
-class FindBeginWalker: public FindRangeWalkerBase<Types> {
+class FindBeginWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef FindEdgeWalkerBase<Types> 		Base;
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 	typedef typename Types::Accumulator 	Accumulator;
@@ -220,23 +123,21 @@ public:
 
 
 	template <typename Node>
-	ReturnType treeNode(const Node* node)
+	ReturnType treeNode(const Node* node, Int)
 	{
 		return 0;
 	}
 
 	void finish(Iterator& iter, Int idx)
 	{
-		iter.key_idx() = 0;
-
-		iter.cache().setup(Accumulator());
+		iter.idx() = 0;
 	}
 };
 
 template <typename Types>
-class FindRBeginWalker: public FindRangeWalkerBase<Types> {
+class FindRBeginWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
+	typedef FindEdgeWalkerBase<Types> 		Base;
 	typedef typename Base::Iterator 		Iterator;
 	typedef typename Base::Container 		Container;
 
@@ -266,6 +167,9 @@ public:
 		iter.cache().setup(prefix_);
 	}
 };
+
+
+
 
 
 }

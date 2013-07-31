@@ -31,7 +31,7 @@ public:
 //    	registerTask(new SequenceIteratorTest<1>("Iter.1"));
 //    	registerTask(new SequenceIteratorTest<3>("Iter.3"));
 
-    	registerTask(new SequenceCreateTest<1>("Create.1"));
+//    	registerTask(new SequenceCreateTest<1>("Create.1"));
 //    	registerTask(new SequenceCreateTest<3>("Create.3"));
 
     	registerTask(new SequenceRankTest<1>("Rank.1"));

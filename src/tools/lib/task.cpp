@@ -72,6 +72,7 @@ Int Task::Run()
     catch (const std::exception& e)
     {
     	(*out_)<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+    	result = true;
     }
     catch (const Exception& e) {
         (*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;

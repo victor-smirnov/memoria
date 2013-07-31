@@ -64,8 +64,6 @@ public:
 
         ctr_name_ = map.name();
 
-        map.setBranchingFactor(Base::btree_branching_);
-
         try {
             for (vctr_idx_ = 0; vctr_idx_ < size_; vctr_idx_++)
             {
@@ -84,10 +82,6 @@ public:
 
             for (vctr_idx_ = 0; vctr_idx_ < size_; vctr_idx_++)
             {
-            	if (vctr_idx_ == 6418) {
-            		//throw Exception(MA_SRC, "Breakpoint");
-            	}
-
             	bool result = map.remove(pairs[vctr_idx_].key_);
 
                 AssertTrue(MA_SRC, result);

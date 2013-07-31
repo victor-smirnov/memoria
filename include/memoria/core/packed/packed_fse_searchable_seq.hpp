@@ -316,7 +316,7 @@ protected:
 
 		Int rest = size() - pos;
 
-		MoveBitsBW(
+		MoveBits(
 				symbols,
 				symbols,
 				pos * BitsPerSymbol,
@@ -602,7 +602,7 @@ public:
 
 			auto vsums = fn.sum(index_block * ValuesPerBranch, to);
 
-			vsums.assignUp(isums);
+			vsums.sumUp(isums);
 			vsums[0] += index_block * ValuesPerBranch;
 
 			return vsums;
@@ -615,6 +615,19 @@ public:
 
 			return vsums;
 		}
+	}
+
+	Values ranks(Int to) const
+	{
+		Values vals;
+		vals[0] = to;
+
+		for (Int symbol = 0; symbol < Indexes; symbol++)
+		{
+			vals[symbol + 1] = rank(to, symbol);
+		}
+
+		return vals;
 	}
 
 	Values sums(Int from, Int to) const

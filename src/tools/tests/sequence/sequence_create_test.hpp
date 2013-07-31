@@ -34,6 +34,7 @@ public:
 	SequenceCreateTest(StringRef name): Base(name)
 	{
 		MEMORIA_ADD_TEST(testCreateRemoveRandom);
+		MEMORIA_ADD_TEST(testAppend);
 	}
 
 	void testCreateRemoveRandom()
@@ -50,12 +51,13 @@ public:
 				Int bit1 = getRandom(2);
 				Int idx  = getRandom(c + 1);
 
-				this->out()<<c<<" "<<idx<<std::endl;
-
 				ctr.insert(idx , bit1);
 
-				Int bit2 = ctr.symbol(idx);
+				auto iter = ctr.seek(idx);
 
+				Int bit2 = iter.symbol();
+
+				AssertEQ(MA_SRC, iter.pos(), idx);
 				AssertEQ(MA_SRC, bit1, bit2);
 			}
 
@@ -81,6 +83,44 @@ public:
 			allocator.commit();
 
 			this->StoreAllocator(allocator, this->getResourcePath("alloc2.dump"));
+		}
+		catch (...) {
+			Base::dump_name_ = Base::Store(allocator);
+			throw;
+		}
+	}
+
+	void testAppend()
+	{
+		Allocator allocator;
+
+		Ctr ctr(&allocator);
+
+		allocator.commit();
+
+		try {
+
+			auto seq = Base::fillRandom(ctr, this->size_);
+
+			Int cnt = 0;
+			for (auto i = ctr.Begin(); !i.isEof(); i++, cnt++)
+			{
+				Int symbol1 = i.symbol();
+				Int symbol2 = seq[cnt];
+
+				AssertEQ(MA_SRC, symbol1, symbol2);
+			}
+
+			AssertEQ(MA_SRC, cnt, this->size_);
+
+			for (Int c = 0; c < this->size_; c++)
+			{
+				Int symbol1 = ctr.seek(c).symbol();
+				Int symbol2 = seq[c];
+
+				AssertEQ(MA_SRC, symbol1, symbol2);
+			}
+
 		}
 		catch (...) {
 			Base::dump_name_ = Base::Store(allocator);

@@ -67,8 +67,6 @@ public:
 
         Base::ctr_name_ = map.name();
 
-        map.setBranchingFactor(Base::btree_branching_);
-
         auto& vctr_idx 	= Base::vctr_idx_;
         auto& pairs 		= Base::pairs;
         auto& pairs_sorted 	= Base::pairs_sorted;

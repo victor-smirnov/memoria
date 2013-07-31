@@ -112,7 +112,10 @@ struct BalancedTreeTypes<Profile, memoria::Sequence<1, true> >:
     using FindLTWalker 		= ::memoria::seq_dense::SkipForwardWalker<Types>;
 
     template <typename Types>
-    using RankWalker 		= ::memoria::seq_dense::RankWalker<Types>;
+    using RankFWWalker 		= ::memoria::seq_dense::RankFWWalker<Types>;
+
+    template <typename Types>
+    using RankBWWalker 		= ::memoria::seq_dense::RankBWWalker<Types>;
 
     template <typename Types>
     using SelectFwWalker 	= ::memoria::seq_dense::SelectForwardWalker<Types>;
@@ -120,6 +123,17 @@ struct BalancedTreeTypes<Profile, memoria::Sequence<1, true> >:
     template <typename Types>
     using SelectBwWalker 	= ::memoria::seq_dense::SelectBackwardWalker<Types>;
 
+    template <typename Types>
+    using SkipForwardWalker 	= ::memoria::seq_dense::SkipForwardWalker<Types>;
+
+    template <typename Types>
+    using SkipBackwardWalker 	= ::memoria::seq_dense::SkipBackwardWalker<Types>;
+
+    template <typename Types>
+    using NextLeafWalker 	 	= ::memoria::balanced_tree::NextLeafWalker<Types>;
+
+    template <typename Types>
+    using PrevLeafWalker 		= ::memoria::balanced_tree::PrevLeafWalker<Types>;
 
     template <typename Types>
     using FindBeginWalker 	= ::memoria::seq_dense::FindBeginWalker<Types>;
