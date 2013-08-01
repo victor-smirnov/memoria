@@ -93,6 +93,8 @@ public:
 
     		this->assertIndexCorrect(MA_SRC, seq);
     		this->assertEqual(seq, symbols);
+
+//    		seq->dump(this->out());
     	}
     }
 

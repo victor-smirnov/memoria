@@ -14,7 +14,6 @@
 namespace memoria {
 
 
-
 template <typename Seq>
 class BitmapToolsFn {
 	typedef typename Seq::Values 			Values;
@@ -46,9 +45,24 @@ public:
 		return GetBit(symbols, idx);
 	}
 
+	bool test(const Value* symbols, Int idx, Value value)
+	{
+		return TestBit(symbols, idx) == value;
+	}
+
 	void set(Value* symbols, Int idx, Value value)
 	{
 		return SetBit(symbols, idx, value);
+	}
+
+	void move(Value* symbols, Int from, Int to, Int lenght)
+	{
+		MoveBits(symbols, symbols, from, to, lenght);
+	}
+
+	void move(const Value* src, Value* dst, Int from, Int to, Int lenght)
+	{
+		MoveBits(src, dst, from, to, lenght);
 	}
 };
 
@@ -88,12 +102,27 @@ public:
 
 	Value get(const Value* symbols, Int idx)
 	{
-		return GetBits(symbols, idx, BitsPerSymbol);
+		return GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+	}
+
+	bool test(const Value* symbols, Int idx, Value value)
+	{
+		return TestBits(symbols, idx * BitsPerSymbol, value, BitsPerSymbol);
 	}
 
 	void set(Value* symbols, Int idx, Value value)
 	{
-		return SetBits(symbols, idx, value, BitsPerSymbol);
+		return SetBits(symbols, idx * BitsPerSymbol, value, BitsPerSymbol);
+	}
+
+	void move(Value* symbols, Int from, Int to, Int lenght)
+	{
+		MoveBits(symbols, symbols, from * BitsPerSymbol, to * BitsPerSymbol, lenght * BitsPerSymbol);
+	}
+
+	void move(const Value* src, Value* dst, Int from, Int to, Int lenght)
+	{
+		MoveBits(src, dst, from * BitsPerSymbol, to * BitsPerSymbol, lenght * BitsPerSymbol);
 	}
 };
 
@@ -135,9 +164,24 @@ public:
 		return symbols[idx];
 	}
 
+	bool test(const Value* symbols, Int idx, Value value)
+	{
+		return symbols[idx] == value;
+	}
+
 	void set(Value* symbols, Int idx, Value value)
 	{
-		return symbols[idx];
+		symbols[idx] = value;
+	}
+
+	void move(Value* symbols, Int from, Int to, Int lenght)
+	{
+		CopyByteBuffer(symbols + from, symbols + to, lenght);
+	}
+
+	void move(const Value* src, Value* dst, Int from, Int to, Int lenght)
+	{
+		CopyByteBuffer(src + from, dst + to, lenght);
 	}
 };
 

@@ -29,6 +29,7 @@ public:
 	PackedSequenceTestSuite(): TestSuite("Packed.SequenceSuite")
     {
 		registerTask(new PackedSearchableSequenceMiscTest<1>("Misc.1"));
+
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
 						PkdFTree,
@@ -38,6 +39,7 @@ public:
 						SeqRankFn,
 						SeqToolsFn
 		>("Misc.4.FSE"));
+
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
 						PkdVTree,
@@ -47,6 +49,7 @@ public:
 						SeqRankFn,
 						SeqToolsFn
 		>("Misc.4.Elias"));
+
 		registerTask(new PackedSearchableSequenceMiscTest<
 						4,
 						PkdVTree,
@@ -56,6 +59,7 @@ public:
 						SeqRankFn,
 						SeqToolsFn
 		>("Misc.4.Exint"));
+
 		registerTask(new PackedSearchableSequenceMiscTest<
 						8,
 						PkdVTree,
@@ -67,6 +71,9 @@ public:
 		>("Misc.8.Elias"));
 
 
+
+
+
 		registerTask(new PackedSearchableSequenceRankTest<1>("Rank.1"));
 
 		registerTask(new PackedSearchableSequenceRankTest<
@@ -75,7 +82,8 @@ public:
 				ValueFSECodec,
 				::memoria::ReindexFn,
 				SeqSelectFn,
-				SeqRankFn
+				SeqRankFn,
+				SeqToolsFn
 		>("Rank.4.FSE"));
 
 		registerTask(new PackedSearchableSequenceRankTest<
@@ -84,7 +92,8 @@ public:
 				UBigIntEliasCodec,
 				VLEReindexFn,
 				SeqSelectFn,
-				SeqRankFn
+				SeqRankFn,
+				SeqToolsFn
 		>("Rank.4.VLE"));
 
 		registerTask(new PackedSearchableSequenceRankTest<
@@ -93,8 +102,12 @@ public:
 				UBigIntEliasCodec,
 				VLEReindex8Fn,
 				Seq8SelectFn,
-				Seq8RankFn
+				Seq8RankFn,
+				Seq8ToolsFn
 		>("Rank.8.VLE"));
+
+
+
 
 
 

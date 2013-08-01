@@ -669,5 +669,28 @@ public:
 
 }
 }
+
+namespace std {
+template <typename Key, Int Indexes>
+ostream& operator<<(ostream& out, const ::memoria::core::StaticVector<Key, Indexes>& accum)
+{
+    out<<"[";
+
+    for (Int c = 0; c < Indexes; c++)
+    {
+        out<<accum.value(c);
+
+        if (c < Indexes - 1)
+        {
+            out<<", ";
+        }
+    }
+
+    out<<"]";
+
+    return out;
+}
+}
+
 #endif
 

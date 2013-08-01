@@ -10,6 +10,9 @@
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tree/packed_tree_tools.hpp>
+#include <memoria/core/packed/tree/packed_fse_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_tree.hpp>
+
 
 #include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_rank_fn.hpp>
 #include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_reindex_fn.hpp>
@@ -106,12 +109,11 @@ public:
 	typedef typename Types::template Index<IndexTypes>							Index;
 	typedef typename Index::Codec												Codec;
 
-	typedef BitmapAccessor<Value*, Int, BitsPerSymbol>							SymbolAccessor;
-	typedef BitmapAccessor<const Value*, Int, BitsPerSymbol>					ConstSymbolAccessor;
-
 	static const Int IndexSizeThreshold											= 0;
 
 	typedef core::StaticVector<BigInt, Indexes + 1> 							Values;
+
+	typedef typename Types::template ToolsFn<MyType>							Tools;
 
 
 	class Metadata {
@@ -177,18 +179,50 @@ public:
 		return Base::template get<Value>(SYMBOLS);
 	}
 
+	class SymbolAccessor {
+		MyType& seq_;
+		Int idx_;
+	public:
+		SymbolAccessor(MyType& seq, Int idx): seq_(seq), idx_(idx) {}
+
+		Value operator=(Value val)
+		{
+			seq_.set(idx_, val);
+			return val;
+		}
+
+		operator Value() const {
+			return seq_.get(idx_);
+		}
+
+		Value value() const {
+			return seq_.get(idx_);
+		}
+	};
+
 	SymbolAccessor symbol(Int idx)
 	{
-		Value* symbols = this->symbols();
-
-		return SymbolAccessor(symbols, idx);
+		return SymbolAccessor(*this, idx);
 	}
+
+	class ConstSymbolAccessor {
+		const MyType& seq_;
+		Int idx_;
+	public:
+		ConstSymbolAccessor(const MyType& seq, Int idx): seq_(seq), idx_(idx) {}
+
+		operator Value() const {
+			return seq_.get(idx_);
+		}
+
+		Value value() const {
+			return seq_.get(idx_);
+		}
+	};
 
 	ConstSymbolAccessor symbol(Int idx) const
 	{
-		const Value* symbols = this->symbols();
-
-		return ConstSymbolAccessor(symbols, idx);
+		return ConstSymbolAccessor(*this, idx);
 	}
 
 
@@ -284,7 +318,7 @@ public:
 
 	void set(Int idx, Int symbol)
 	{
-		SetBits(symbols(), idx * BitsPerSymbol, symbol, BitsPerSymbol);
+		tools().set(symbols(), idx, symbol);
 	}
 
 	void clear()
@@ -344,13 +378,15 @@ protected:
 
 public:
 
+
+
 	void insert(Int pos, Int symbol)
 	{
 		insertDataRoom(pos, 1);
 
 		Value* symbols = this->symbols();
 
-		SetBits(symbols, pos * BitsPerSymbol, symbol, BitsPerSymbol);
+		tools().set(symbols, pos, symbol);
 
 		reindex();
 	}
@@ -369,13 +405,7 @@ public:
 
 		Int rest = size - end;
 
-		MoveBits(
-				symbols,
-				symbols,
-				end * BitsPerSymbol,
-				start * BitsPerSymbol,
-				rest * BitsPerSymbol
-		);
+		tools().move(symbols, end, start, rest);
 
 		shrinkData(end - start);
 
@@ -479,11 +509,12 @@ public:
 	void fill(Int start, Int end, std::function<Value ()> fn)
 	{
 		auto symbols = this->symbols();
+		auto tools = this->tools();
 
 		for (Int c = start; c < end; c++)
 		{
 			Value val = fn();
-			SetBits(symbols, c * BitsPerSymbol, val, BitsPerSymbol);
+			tools.set(symbols, c, val);
 		}
 	}
 
@@ -545,9 +576,11 @@ public:
 
 		other->enlargeData(to_move);
 
-		MoveBits(other->symbols(), other->symbols(), 0, to_move * BitsPerSymbol, other_size * BitsPerSymbol);
+		auto tools = this->tools();
 
-		MoveBits(this->symbols(), other->symbols(), idx * BitsPerSymbol, 0, to_move * BitsPerSymbol);
+		tools.move(other->symbols(), other->symbols(), 0, to_move, other_size);
+
+		tools.move(this->symbols(), other->symbols(), idx, 0, to_move);
 
 		other->size() += to_move;
 		other->reindex();
@@ -562,7 +595,7 @@ public:
 
 		other->enlargeData(my_size);
 
-		MoveBits(this->symbols(), other->symbols(), 0, other_size * BitsPerSymbol, my_size * BitsPerSymbol);
+		tools().move(this->symbols(), other->symbols(), 0, other_size, my_size);
 
 		other->size() += my_size;
 
@@ -601,9 +634,7 @@ public:
 
 			auto isums = index->sums(0, index_block);
 
-			typename Types::template ToolsFn<MyType> fn(*this);
-
-			auto vsums = fn.sum(index_block * ValuesPerBranch, to);
+			auto vsums = tools().sum(index_block * ValuesPerBranch, to);
 
 			vsums.sumUp(isums);
 			vsums[0] += index_block * ValuesPerBranch;
@@ -612,9 +643,7 @@ public:
 		}
 		else
 		{
-			typename Types::template ToolsFn<MyType> fn(*this);
-
-			auto vsums = fn.sum(0, to);
+			auto vsums = tools().sum(0, to);
 
 			return vsums;
 		}
@@ -644,12 +673,12 @@ public:
 
 	Int get(Int idx) const
 	{
-		return GetBits(symbols(), idx * BitsPerSymbol, BitsPerSymbol);
+		return tools().get(symbols(), idx);
 	}
 
 	bool test(Int idx, Value symbol) const
 	{
-		return TestBits(symbols(), idx * BitsPerSymbol, symbol, BitsPerSymbol);
+		return tools().test(symbols(), idx, symbol);
 	}
 
 	Int rank(Int symbol) const
@@ -843,6 +872,10 @@ public:
 	}
 
 private:
+	Tools tools() const {
+		return Tools(*this);
+	}
+
 	Int symbol_buffer_size() const
 	{
 		Int bit_size 	= this->element_size(SYMBOLS) * 8;

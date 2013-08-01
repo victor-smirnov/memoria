@@ -8,8 +8,11 @@
 
 #include <memoria/memoria.hpp>
 
+#include <memoria/tools/profile_tests.hpp>
+
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
+
 
 
 #include <vector>
