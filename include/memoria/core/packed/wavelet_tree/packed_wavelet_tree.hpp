@@ -14,7 +14,7 @@
 
 #include <memoria/core/packed/louds/packed_louds_cardinal_tree.hpp>
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
-#include <memoria/core/packed/misc/packed_multisequence.hpp>
+#include <memoria/core/packed/sseq/packed_multisequence.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
