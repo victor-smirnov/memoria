@@ -8,7 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED_FSE_BITMAP_HPP_
 #define MEMORIA_CORE_PACKED_FSE_BITMAP_HPP_
 
-#include <memoria/core/packed/packed_allocator.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/tools/accessors.hpp>
 #include <memoria/core/tools/dump.hpp>
 

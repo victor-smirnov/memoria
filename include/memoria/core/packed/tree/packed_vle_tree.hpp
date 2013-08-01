@@ -8,7 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED_VLE_TREE2_HPP_
 #define MEMORIA_CORE_PACKED_VLE_TREE2_HPP_
 
-#include <memoria/core/packed/packed_allocator.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tree/packed_tree_tools.hpp>
 #include <memoria/core/packed/tree/packed_tree_walkers.hpp>
 

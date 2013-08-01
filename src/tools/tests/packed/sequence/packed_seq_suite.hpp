@@ -60,7 +60,7 @@ public:
 						8,
 						PkdVTree,
 						UBigIntEliasCodec,
-						VLEReindexFn,
+						VLEReindex8Fn,
 						Seq8SelectFn,
 						Seq8RankFn,
 						Seq8ToolsFn
@@ -91,7 +91,7 @@ public:
 				8,
 				PkdVTree,
 				UBigIntEliasCodec,
-				VLEReindexFn,
+				VLEReindex8Fn,
 				Seq8SelectFn,
 				Seq8RankFn
 		>("Rank.8.VLE"));
@@ -124,7 +124,7 @@ public:
 				8,
 				PkdVTree,
 				UBigIntEliasCodec,
-				VLEReindexFn,
+				VLEReindex8Fn,
 				Seq8SelectFn,
 				Seq8RankFn,
 				Seq8ToolsFn

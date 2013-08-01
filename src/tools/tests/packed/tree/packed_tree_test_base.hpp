@@ -10,9 +10,9 @@
 #include "../../tests_inc.hpp"
 
 
-#include <memoria/core/packed/packed_fse_tree.hpp>
-#include <memoria/core/packed/packed_vle_tree.hpp>
-#include <memoria/core/packed/packed_allocator.hpp>
+#include <memoria/core/packed/tree/packed_fse_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_tree.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 
 namespace memoria {
 

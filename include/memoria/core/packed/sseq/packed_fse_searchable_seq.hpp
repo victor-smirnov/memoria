@@ -8,13 +8,13 @@
 #ifndef MEMORIA_CORE_PACKED_FSE_SEARCHABLESEQ_HPP_
 #define MEMORIA_CORE_PACKED_FSE_SEARCHABLESEQ_HPP_
 
-#include <memoria/core/packed/packed_allocator.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tree/packed_tree_tools.hpp>
 
-#include <memoria/core/packed/seq_fn/pkd_f_sseq_rank_fn.hpp>
-#include <memoria/core/packed/seq_fn/pkd_f_sseq_reindex_fn.hpp>
-#include <memoria/core/packed/seq_fn/pkd_f_sseq_select_fn.hpp>
-#include <memoria/core/packed/seq_fn/pkd_f_sseq_tools_fn.hpp>
+#include <memoria/core/packed/sseq/pkd_f_sseq_rank_fn.hpp>
+#include <memoria/core/packed/sseq/pkd_f_sseq_reindex_fn.hpp>
+#include <memoria/core/packed/sseq/pkd_f_sseq_select_fn.hpp>
+#include <memoria/core/packed/sseq/pkd_f_sseq_tools_fn.hpp>
 
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/static_array.hpp>

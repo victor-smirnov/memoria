@@ -138,10 +138,10 @@ class VLEReindexFn {
 	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
 
 	static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
-				"ReindexFn<> can only be used with 2-7-bit sequences");
+				"VLEReindexFn<> can only be used with 2-7-bit sequences");
 
 	static_assert(!FixedSizeElementIndex,
-				"ReindexFn<> can only be used with PkdVTree<>-indexed sequences ");
+				"VLEReindexFn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
 	void operator()(Seq& seq)
@@ -221,10 +221,10 @@ class VLEReindex8Fn {
 	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
 
 	static_assert(BitsPerSymbol == 8,
-				"ReindexFn<> can only be used with 8-bit sequences");
+				"VLEReindex8Fn<> can only be used with 8-bit sequences");
 
 	static_assert(!FixedSizeElementIndex,
-				"ReindexFn<> can only be used with PkdVTree<>-indexed sequences ");
+				"VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
 	void operator()(Seq& seq)

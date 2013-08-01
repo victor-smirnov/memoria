@@ -10,7 +10,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/core/packed/packed_allocator.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memory>
 

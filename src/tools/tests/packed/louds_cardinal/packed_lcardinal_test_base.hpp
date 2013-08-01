@@ -10,7 +10,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/core/packed/packed_louds_cardinal_tree.hpp>
+#include <memoria/core/packed/louds/packed_louds_cardinal_tree.hpp>
 
 #include <memory>
 

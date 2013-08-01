@@ -8,8 +8,8 @@
 #ifndef MEMORIA_CORE_PACKED2_LOUDSCARDINALTREE_HPP_
 #define MEMORIA_CORE_PACKED2_LOUDSCARDINALTREE_HPP_
 
-#include <memoria/core/packed/packed_louds_tree.hpp>
-#include <memoria/core/packed/packed_fse_bitmap.hpp>
+#include <memoria/core/packed/louds/packed_louds_tree.hpp>
+#include <memoria/core/packed/array/packed_fse_bitmap.hpp>
 
 #include <functional>
 

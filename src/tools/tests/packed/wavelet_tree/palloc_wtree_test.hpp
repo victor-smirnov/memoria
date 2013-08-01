@@ -10,8 +10,8 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/core/packed/packed_wavelet_tree.hpp>
-#include <memoria/core/packed/packed_multisequence.hpp>
+#include <memoria/core/packed/misc/packed_wavelet_tree.hpp>
+#include <memoria/core/packed/misc/packed_multisequence.hpp>
 
 #include <memory>
 #include <map>

@@ -10,7 +10,7 @@
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/vector_tuple.hpp>
-#include <memoria/core/packed/packed_dispatcher.hpp>
+#include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
 #include <ostream>
 #include <tuple>

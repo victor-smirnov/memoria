@@ -11,7 +11,7 @@
 
 
 
-#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 #include <memoria/core/packed/tree/packed_fse_tree.hpp>
 #include <memoria/core/packed/tree/packed_vle_tree.hpp>
 

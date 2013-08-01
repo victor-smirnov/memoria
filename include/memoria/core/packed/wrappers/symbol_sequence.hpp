@@ -12,7 +12,7 @@
 
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/isequencedata.hpp>
-#include <memoria/core/packed/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
 #include <malloc.h>
 #include <iostream>

@@ -6,21 +6,21 @@
 
 
 
-//#include "packed/allocator/palloc_test_suite.hpp"
-//#include "packed/tree/packed_tree_test_suite.hpp"
-//#include "packed/sequence/packed_seq_suite.hpp"
-//#include "packed/louds/packed_louds_suite.hpp"
-//#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
-//#include "packed/wavelet_tree/packed_wtree_suite.hpp"
+#include "packed/allocator/palloc_test_suite.hpp"
+#include "packed/tree/packed_tree_test_suite.hpp"
+#include "packed/sequence/packed_seq_suite.hpp"
+#include "packed/louds/packed_louds_suite.hpp"
+#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
+#include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
 
 //#include "ctr/ctr_test_suite.hpp"
 //#include "map/map_test_suite.hpp"
 //#include "vector/vector_test_suite.hpp"
 //#include "vector_map/vectormap_test_suite.hpp"
-#include "sequence/sequence_test_suite.hpp"
+//#include "sequence/sequence_test_suite.hpp"
 
-//#include "symbol_seq/symseq_test_suite.hpp"
+#include "symbol_seq/symseq_test_suite.hpp"
 //
 //#include "bitmap/bitmap_test_suite.hpp"
 
@@ -43,7 +43,7 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MEMORIA_INIT(SmallProfile<>);
+//    MEMORIA_INIT(SmallProfile<>);
 
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
@@ -73,7 +73,7 @@ int main(int argc, const char** argv, const char** envp)
 //
 //        runner.registerTask(new PackedAllocatorTestSuite());
 //        runner.registerTask(new PackedTreeTestSuite());
-//        runner.registerTask(new PackedSequenceTestSuite());
+        runner.registerTask(new PackedSequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
@@ -86,7 +86,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
-        runner.registerTask(new SequenceTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
 
 //        runner.registerTask(new LoudsTestSuite());
 //        runner.registerTask(new StaticLoudsTestSuite());
