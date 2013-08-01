@@ -267,12 +267,9 @@ public:
 
 	static Int estimate_block_size(Int size, Int density_hi = 1, Int density_lo = 1)
 	{
-		MEMORIA_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
-		MEMORIA_ASSERT(density_lo, ==, 1);
-
 		Int symbols_block_size 	= Base::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
 		Int index_size 			= divUp(size , ValuesPerBranch);
-		Int index_block_size	= Index::estimate_block_size(index_size);
+		Int index_block_size	= Index::estimate_block_size(index_size, density_hi, density_lo);
 		Int metadata_block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
 		Int client_area 		= metadata_block_size + index_block_size + symbols_block_size;

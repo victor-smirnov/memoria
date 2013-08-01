@@ -34,8 +34,8 @@ public:
 		Base::search_type_ = SearchType::LE;
 	}
 
-	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
+	template <Int Idx, typename Tree>
+	ResultType stream(const Tree* tree, Int start)
 	{
 		return Base::template stream<Idx>(tree, start);
 	}
@@ -108,8 +108,8 @@ public:
 		Base::search_type_ = SearchType::LT;
 	}
 
-	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
+	template <Int Idx, typename Tree>
+	ResultType stream(const Tree* tree, Int start)
 	{
 		return Base::template stream<Idx>(tree, start);
 	}

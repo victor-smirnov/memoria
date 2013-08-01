@@ -626,9 +626,11 @@ public:
 	{
 		for (Int block = 0; block < Blocks; block++)
 		{
-			Value val = getValue(block, idx);
-
-			setValue(block, idx, val + values[block]);
+			if (values[block] != 0)
+			{
+				Value val = getValue(block, idx);
+				setValue(block, idx, val + values[block]);
+			}
 		}
 	}
 
@@ -1249,18 +1251,9 @@ public:
 	{
 		Values vals;
 
-		if (index_size() > 0)
+		for (Int block = 0; block < Blocks; block++)
 		{
-			for (Int block = 0; block < Blocks; block++)
-			{
-				vals[block] = indexes(block)[0];
-			}
-		}
-		else {
-			for (Int block = 0; block < Blocks; block++)
-			{
-				vals[block] = sum(block);
-			}
+			vals[block] = sum(block);
 		}
 
 		return vals;
@@ -1592,11 +1585,15 @@ public:
 	{
 		Base::generateDataEvents(handler);
 
-		handler->startGroup("PACKED_TREE");
+		handler->startGroup("PACKED_VLE_TREE");
 
 		const Metadata* meta = this->metadata();
 
 		handler->value("SIZE",          &meta->size_);
+
+		Int raw_size = this->raw_size();
+		handler->value("RAW_SIZE",      &raw_size);
+
 		handler->value("DATA_SIZE",     &meta->data_size_);
 		handler->value("INDEX_SIZE",    &meta->index_size_);
 

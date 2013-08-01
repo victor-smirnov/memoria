@@ -32,10 +32,10 @@ public:
     	registerTask(new SequenceCreateTest<8>("Create.8"));
 
 //    	registerTask(new SequenceRankTest<1>("Rank.1"));
-//    	registerTask(new SequenceRankTest<3>("Rank.3"));
+    	registerTask(new SequenceRankTest<8>("Rank.8"));
 
 //    	registerTask(new SequenceSelectTest<1>("Select.1"));
-//    	registerTask(new SequenceSelectTest<3>("Select.3"));
+    	registerTask(new SequenceSelectTest<8>("Select.8"));
     }
 
 };

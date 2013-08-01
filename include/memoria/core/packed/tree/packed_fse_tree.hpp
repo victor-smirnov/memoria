@@ -204,8 +204,11 @@ public:
 		return PackedAllocatable::roundUpBytesToAlignmentBlocks(raw_block_size);
 	}
 
-	static Int estimate_block_size(Int tree_capacity)
+	static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
 	{
+		MEMORIA_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
+		MEMORIA_ASSERT(density_lo, ==, 1);
+
 		return block_size(tree_capacity);
 	}
 
@@ -1132,7 +1135,7 @@ public:
 
 	void generateDataEvents(IPageDataEventHandler* handler) const
 	{
-		handler->startGroup("PACKED_TREE");
+		handler->startGroup("PACKED_FSE_TREE");
 
 		handler->value("ALLOCATOR",     &Base::allocator_offset());
 		handler->value("SIZE",          &size_);

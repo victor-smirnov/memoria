@@ -60,7 +60,7 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
-        		StreamDescr<PkdFTreeTF, PackedFSESeqTF, Indexes>
+        		StreamDescr<PkdVTreeTF, PackedFSESeqTF, Indexes>
     >																			StreamDescriptors;
 
     typedef BalancedTreeMetadata<

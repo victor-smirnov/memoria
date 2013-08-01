@@ -29,6 +29,8 @@ class SequenceCreateTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 	typedef typename Base::Iterator												Iterator;
 	typedef typename Base::Ctr													Ctr;
 
+	static const Int Symbols													= Base::Symbols;
+
 public:
 
 	SequenceCreateTest(StringRef name): Base(name)
@@ -48,8 +50,10 @@ public:
 		try {
 			for (Int c = 0; c < this->size_; c++)
 			{
-				Int bit1 = getRandom(2);
+				Int bit1 = getRandom(Symbols);
 				Int idx  = getRandom(c + 1);
+
+				this->out()<<c<<" Insert: "<<bit1<<" at "<<idx<<endl;
 
 				ctr.insert(idx , bit1);
 
@@ -65,7 +69,7 @@ public:
 
 			allocator.commit();
 
-			this->StoreAllocator(allocator, this->getResourcePath("alloc1.dump"));
+			this->StoreAllocator(allocator, this->getResourcePath("create.dump"));
 
 
 			BigInt size = ctr.size();
@@ -82,7 +86,7 @@ public:
 
 			allocator.commit();
 
-			this->StoreAllocator(allocator, this->getResourcePath("alloc2.dump"));
+			this->StoreAllocator(allocator, this->getResourcePath("remove.dump"));
 		}
 		catch (...) {
 			Base::dump_name_ = Base::Store(allocator);
@@ -101,6 +105,10 @@ public:
 		try {
 
 			auto seq = Base::fillRandom(ctr, this->size_);
+
+			allocator.commit();
+
+			this->StoreAllocator(allocator, this->getResourcePath("append.dump"));
 
 			Int cnt = 0;
 			for (auto i = ctr.Begin(); !i.isEof(); i++, cnt++)

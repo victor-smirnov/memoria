@@ -123,11 +123,13 @@ void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
 				out_<<hex;
 				out_.width(width);
 
+				Int idx = (c + d) * bits_per_symbol;
+
 				if (sizeof(T) > 1) {
-					out_<<GetBits(symbols, c + d, bits_per_symbol);
+					out_<<GetBits(symbols, idx, bits_per_symbol);
 				}
 				else {
-					out_<<(Int)GetBits(symbols, c + d, bits_per_symbol);
+					out_<<(Int)GetBits(symbols, idx, bits_per_symbol);
 				}
 			}
 

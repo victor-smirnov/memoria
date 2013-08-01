@@ -8,9 +8,10 @@
 #define MEMORIA_TESTS_SEQUENCE_SEQUENCE_TEST_BASE_HPP_
 
 #include <memoria/memoria.hpp>
-#include <memoria/tools/tests.hpp>
+#include <memoria/tools/profile_tests.hpp>
 
 #include <memoria/core/packed/wrappers/symbol_sequence.hpp>
+
 
 #include <vector>
 
@@ -46,16 +47,14 @@ public:
 
 	PackedSeq fillRandom(Ctr& ctr, Int size)
 	{
-		PackedSeq seq(size);
+		PackedSeq seq(size, 10, 1);
 
 		auto iter = ctr.Begin();
 
 		for (Int c = 0; c <size; c++)
 		{
 			Int symbol = getRandom(Symbols);
-
 			iter.insert(symbol);
-
 			seq.append(symbol);
 		}
 

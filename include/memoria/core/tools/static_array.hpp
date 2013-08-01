@@ -671,12 +671,13 @@ public:
 }
 
 namespace std {
-template <typename Key, Int Indexes>
+
+template <typename Key, memoria::Int Indexes>
 ostream& operator<<(ostream& out, const ::memoria::core::StaticVector<Key, Indexes>& accum)
 {
     out<<"[";
 
-    for (Int c = 0; c < Indexes; c++)
+    for (memoria::Int c = 0; c < Indexes; c++)
     {
         out<<accum.value(c);
 

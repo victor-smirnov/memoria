@@ -796,22 +796,6 @@ public:
 
     		if (size > 0)
     		{
-//    			Int remainder 		= size - idx;
-//    			MEMORIA_ASSERT_TRUE(remainder >= 0);
-//
-//    			Int block_size 		= Tree::block_size(remainder + shift);
-//    			Tree* other_tree 	= other->allocator()->template allocate<Tree>(Idx, block_size);
-//
-//    			other_tree->insertSpace(0, remainder + shift);
-//
-//    			tree->copyTo(other_tree, idx, remainder, shift);
-//
-//    			other_tree->reindex();
-//
-//    			tree->removeSpace(idx, idx + remainder);
-//
-//    			tree->reindex();
-
         		Int size = tree->size();
         		if (size > 0)
         		{

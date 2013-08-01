@@ -75,7 +75,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 	{
 		auto& self = this->self();
 
-		MEMORIA_ASSERT(rank, >, 1);
+		MEMORIA_ASSERT(rank, >=, 1);
 		MEMORIA_ASSERT(symbol, >=, 0);
 
 		typename Types::template SelectFwWalker<Types> walker(0, symbol, rank);

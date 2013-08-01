@@ -265,6 +265,20 @@ public:
 		return result.idx();
 	}
 
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PkdVTree<TreeTypes>* tree, Int start)
+	{
+		auto k 		= Base::target_ - Base::sum_;
+
+		auto result = tree->findForward(Base::search_type_, Base::index_, start, k);
+
+		Base::sum_ += result.prefix();
+
+		self().template postProcessStream<Idx>(tree, start, result);
+
+		return result.idx();
+	}
+
 	template <Int Idx, typename StreamTypes>
 	ResultType stream(const PackedFSEArray<StreamTypes>* array, Int start)
 	{
@@ -468,6 +482,19 @@ public:
 
 	template <Int Idx, typename TreeTypes>
 	ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
+	{
+		auto k 			= Base::target_ - Base::sum_;
+		auto result 	= tree->findBackward(Base::search_type_, Base::index_, start, k);
+		Base::sum_ 		+= result.prefix();
+
+		self().template postProcessStreamPrefix<Idx>(result.prefix());
+		self().template postProcessStream<Idx>(tree, start, result);
+
+		return result.idx();
+	}
+
+	template <Int Idx, typename TreeTypes>
+	ResultType stream(const PkdVTree<TreeTypes>* tree, Int start)
 	{
 		auto k 			= Base::target_ - Base::sum_;
 		auto result 	= tree->findBackward(Base::search_type_, Base::index_, start, k);
