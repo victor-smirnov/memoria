@@ -11,7 +11,7 @@
 #include <memoria/core/types/type2type.hpp>
 
 #include <memoria/core/packed/packed_allocator_types.hpp>
-#include <memoria/core/packed/packed_fse_tree.hpp>
+#include <memoria/core/packed/tree/packed_fse_tree.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/dump.hpp>

@@ -240,51 +240,6 @@ private:
 
 
 
-
-//    template <typename T>
-//    void dumpArray(const char* name, const T* data, Int count)
-//    {
-//        Int columns;
-//
-//        switch (sizeof(T)) {
-//            case 1: columns = 32; break;
-//            case 2: columns = 16; break;
-//            case 4: columns = 16; break;
-//            default: columns = 8;
-//        }
-//
-//        Int width = sizeof(T) * 2 + 1;
-//
-//        out_<<endl;
-//        Expand(out_, 19 + width);
-//        for (int c = 0; c < columns; c++)
-//        {
-//            out_.width(width);
-//            out_<<hex<<c;
-//        }
-//        out_<<endl;
-//
-//        for (Int c = 0; c < count; c+= columns)
-//        {
-//            Expand(out_, 12);
-//            out_<<" ";
-//            out_.width(6);
-//            out_<<dec<<c<<" "<<hex;
-//            out_.width(6);
-//            out_<<c<<": ";
-//
-//            for (Int d = 0; d < columns && c + d < count; d++)
-//            {
-//                out_<<hex;
-//                out_.width(width);
-//                out_<<cvt(data[c + d]);
-//            }
-//
-//            out_<<dec<<endl;
-//        }
-//    }
-
-
     template <typename T>
     void OutNumber(const char* name, const T* value, Int count, Int kind)
     {

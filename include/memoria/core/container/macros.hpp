@@ -10,7 +10,7 @@
 #define _MEMORIA_CORE_CONTAINER_MACROS_HPP
 
 #include <memoria/core/tools/config.hpp>
-#include <memoria/core/packed/packed_sum_tree.hpp>
+#include <memoria/core/packed/tree/packed_sum_tree.hpp>
 
 #if 0
 #define MEMORIA_EXTERN_TREE(Key, Value, Indexes)            \

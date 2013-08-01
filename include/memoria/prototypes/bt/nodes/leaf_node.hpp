@@ -14,7 +14,7 @@
 #include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/core/packed/packed_fse_tree.hpp>
+#include <memoria/core/packed/tree/packed_fse_tree.hpp>
 #include <memoria/core/packed/packed_fse_array.hpp>
 #include <memoria/core/packed/packed_allocator.hpp>
 #include <memoria/core/packed/packed_dispatcher.hpp>

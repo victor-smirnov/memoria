@@ -9,8 +9,8 @@
 #define MEMORIA_CORE_PACKED_VLE_TREE2_HPP_
 
 #include <memoria/core/packed/packed_allocator.hpp>
-#include <memoria/core/packed/packed_tree_tools.hpp>
-#include <memoria/core/packed/packed_tree_walkers.hpp>
+#include <memoria/core/packed/tree/packed_tree_tools.hpp>
+#include <memoria/core/packed/tree/packed_tree_walkers.hpp>
 
 #include <memoria/core/tools/exint_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>

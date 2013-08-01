@@ -9,8 +9,6 @@
 #ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_TOOLS_HPP
 #define _MEMORIA_CONTAINERS_SEQ_DENSE_TOOLS_HPP
 
-#include <memoria/core/packed/tree_walkers.hpp>
-
 namespace memoria    	{
 
 

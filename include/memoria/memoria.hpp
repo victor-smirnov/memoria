@@ -41,6 +41,9 @@ struct CtrNameDeclarator<7>: TypeDef<VectorMap<BigInt, BigInt>> {};
 template <>
 struct CtrNameDeclarator<8>: TypeDef<Sequence<1, true>> {};
 
+template <>
+struct CtrNameDeclarator<9>: TypeDef<Sequence<8, true>> {};
+
 //
 //template <>
 //struct CtrNameDeclarator<9>: TypeDef<Sequence<2, true>> {};
