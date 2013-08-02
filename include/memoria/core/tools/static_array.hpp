@@ -349,9 +349,9 @@ public:
 
     bool operator!=(const MyType& other) const
     {
-        for (Int c = 0; c < Indexes; c++)
+    	for (Int c = 0; c < Indexes; c++)
         {
-            if (values_[c] == other.values_[c])
+            if (values_[c] != other.values_[c])
             {
                 return true;
             }

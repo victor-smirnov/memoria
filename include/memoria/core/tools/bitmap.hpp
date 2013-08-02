@@ -222,9 +222,9 @@ inline Int PopCnt(UInt arg, Int start, Int length)
 template <typename T>
 size_t PopCount(const T* buffer, size_t start, size_t stop)
 {
-	size_t bitsize 	= TypeBitsize<T>();
-	size_t mask 	= TypeBitmask<T>();
-	size_t divisor 	= TypeBitmaskPopCount(mask);
+	const size_t bitsize 	= TypeBitsize<T>();
+	const size_t mask 		= TypeBitmask<T>();
+	const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 	size_t prefix 	= bitsize - (start & mask);
 
@@ -262,9 +262,9 @@ size_t PopCount(const T* buffer, size_t start, size_t stop)
 template <typename T>
 void FillOne(T* buffer, size_t start, size_t stop)
 {
-	size_t bitsize 	= TypeBitsize<T>();
-	size_t mask 	= TypeBitmask<T>();
-	size_t divisor 	= TypeBitmaskPopCount(mask);
+	const size_t bitsize 	= TypeBitsize<T>();
+	const size_t mask 		= TypeBitmask<T>();
+	const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 	size_t prefix 	= bitsize - (start & mask);
 
@@ -297,9 +297,9 @@ void FillOne(T* buffer, size_t start, size_t stop)
 template <typename T>
 void FillZero(T* buffer, size_t start, size_t stop)
 {
-	size_t bitsize 	= TypeBitsize<T>();
-	size_t mask 	= TypeBitmask<T>();
-	size_t divisor 	= TypeBitmaskPopCount(mask);
+	const size_t bitsize 	= TypeBitsize<T>();
+	const size_t mask 		= TypeBitmask<T>();
+	const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 	size_t prefix 	= bitsize - (start & mask);
 
@@ -334,8 +334,8 @@ void SetBit(Buffer& buf, size_t idx, Int value)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
 
-	size_t mask 	= TypeBitmask<T>();
-    size_t divisor 	= TypeBitmaskPopCount(mask);
+    const size_t mask 		= TypeBitmask<T>();
+    const size_t divisor 	= TypeBitmaskPopCount(mask);
 
     size_t haddr 	= (idx & ~mask) >> divisor;
     size_t laddr 	= idx & mask;
@@ -362,8 +362,8 @@ Int GetBit(const Buffer& buf, size_t idx)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
 
-	size_t mask = TypeBitmask<T>();
-	size_t divisor = TypeBitmaskPopCount(mask);
+	const size_t mask 		= TypeBitmask<T>();
+	const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 	size_t haddr = (idx & ~mask) >> divisor;
 	size_t laddr = idx & mask;
@@ -387,8 +387,8 @@ void SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type b
 
 	if (nbits > 0)
 	{
-		size_t mask = TypeBitmask<T>();
-		size_t divisor = TypeBitmaskPopCount(mask);
+		const size_t mask 		= TypeBitmask<T>();
+		const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 		size_t haddr = (idx & ~mask) >> divisor;
 		size_t laddr = idx & mask;
@@ -419,8 +419,8 @@ inline GetBits0(const Buffer& buf, size_t idx, Int nbits)
 
 	if (nbits > 0)
 	{
-		size_t mask = TypeBitmask<T>();
-		size_t divisor = TypeBitmaskPopCount(mask);
+		const size_t mask 		= TypeBitmask<T>();
+		const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 		size_t haddr = (idx & ~mask) >> divisor; // FIXME: Why negation with mask here?
 		size_t laddr = idx & mask;
@@ -437,8 +437,8 @@ inline GetBits0(const Buffer& buf, size_t idx, Int nbits)
 template <typename T>
 inline bool TestBits(const T* buf, size_t idx, T bits, Int nbits)
 {
-	size_t mask = TypeBitmask<T>();
-    size_t divisor = TypeBitmaskPopCount(mask);
+	const size_t mask 		= TypeBitmask<T>();
+	const size_t divisor 	= TypeBitmaskPopCount(mask);
 
     size_t haddr = (idx & ~mask) >> divisor;
     size_t laddr = idx & mask;
@@ -452,8 +452,8 @@ inline bool TestBits(const T* buf, size_t idx, T bits, Int nbits)
 template <typename T>
 inline bool TestBit(const T* buf, size_t idx)
 {
-	size_t mask = TypeBitmask<T>();
-    size_t divisor = TypeBitmaskPopCount(mask);
+	const size_t mask 		= TypeBitmask<T>();
+	const size_t divisor 	= TypeBitmaskPopCount(mask);
 
     size_t haddr = (idx & ~mask) >> divisor;
     size_t laddr = idx & mask;
@@ -464,11 +464,10 @@ inline bool TestBit(const T* buf, size_t idx)
 
 
 template <typename T>
-
 T GetBitsNeg0(const T* buf, size_t idx, Int nbits)
 {
-	size_t mask = TypeBitmask<T>();
-    size_t divisor = TypeBitmaskPopCount(mask);
+	const size_t mask 		= TypeBitmask<T>();
+	const size_t divisor 	= TypeBitmaskPopCount(mask);
 
     size_t haddr = (idx & ~mask) >> divisor;
     size_t laddr = idx & mask;
@@ -603,9 +602,9 @@ void MoveBitsFW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t len
 
     	src_idx += prefix;
 
-    	size_t divisor 		= TypeBitmaskPopCount(mask);
-    	size_t start_cell 	= extent >> divisor;
-    	size_t stop_cell 	= (dst_idx + length) >> divisor;
+    	const size_t divisor 	= TypeBitmaskPopCount(mask);
+    	const size_t start_cell = extent >> divisor;
+    	const size_t stop_cell 	= (dst_idx + length) >> divisor;
 
     	size_t cell;
     	for (cell = start_cell; cell < stop_cell; cell++, src_idx += bitsize)
@@ -646,9 +645,9 @@ void MoveBitsBW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t len
 
     	SetBits(dst, extent, GetBits(src, src_idx, suffix), suffix);
 
-    	size_t divisor 		= TypeBitmaskPopCount(mask);
-    	size_t start_cell 	= dst_idx >> divisor;
-    	size_t stop_cell 	= (dst_to >> divisor) - 1;
+    	const size_t divisor 	= TypeBitmaskPopCount(mask);
+    	const size_t start_cell = dst_idx >> divisor;
+    	const size_t stop_cell 	= (dst_to >> divisor) - 1;
 
     	size_t cell;
     	for (cell = stop_cell; cell > start_cell; cell--)
@@ -772,9 +771,9 @@ size_t CountFw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
 
 	if (cnt == extent - from)
 	{
-		size_t divisor 		= TypeBitmaskPopCount(mask);
-		size_t start_cell 	= extent >> divisor;
-		size_t stop_cell 	= to >> divisor;
+		const size_t divisor 	= TypeBitmaskPopCount(mask);
+		const size_t start_cell = extent >> divisor;
+		const size_t stop_cell 	= to >> divisor;
 
 		T value = zero ? 0 : static_cast<T>(-1);
 
@@ -830,9 +829,9 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
 
 	if (cnt == from - extent)
 	{
-		size_t divisor 		= TypeBitmaskPopCount(mask);
-		size_t start_cell 	= (extent >> divisor) - 1;
-		size_t stop_cell 	= to >> divisor;
+		const size_t divisor 	= TypeBitmaskPopCount(mask);
+		const size_t start_cell = (extent >> divisor) - 1;
+		const size_t stop_cell 	= to >> divisor;
 
 		T value = zero ? 0 : static_cast<T>(-1);
 

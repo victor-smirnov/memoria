@@ -29,7 +29,7 @@ public:
         registerTask(new PackedTreeMiscTest<PkdFTree, ValueFSECodec, 4>("Misc.4.FSE"));
 
     	registerTask(new PackedTreeMiscTest<PkdVTree, UByteExintCodec, 4, PackedTreeExintVPB>("Misc.4.VLE.Exint"));
-        registerTask(new PackedTreeMiscTest<PkdVTree, UBigIntEliasCodec, 4, PackedTreeExintVPB>("Misc.4.VLE.Elias"));
+        registerTask(new PackedTreeMiscTest<PkdVTree, UBigIntEliasCodec, 4, PackedTreeEliasVPB>("Misc.4.VLE.Elias"));
 
         registerTask(new PackedTreeVLEMiscTest<UByteExintCodec, 4>("VLEMisc.4.Exint"));
         registerTask(new PackedTreeVLEMiscTest<UBigIntEliasCodec, 4>("VLEMisc.4.Elias"));

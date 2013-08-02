@@ -74,7 +74,7 @@ public:
 
 	static const bool FixedSizeElement		= true;
 
-	static const Int IOBatchSize			= 1024;
+	static const Int IOBatchSize			= Blocks <= 2 ? 256: (Blocks <= 4 ? 64 : (Blocks <= 16 ? 16 : 4));
 
 	typedef core::StaticVector<IndexValue, Blocks>								Values;
 

@@ -221,9 +221,9 @@ public:
 template <typename T>
 SelectResult Select1FW(const T* buffer, size_t start, size_t stop, size_t rank)
 {
-	size_t bitsize 	= TypeBitsize<T>();
-	size_t mask 	= TypeBitmask<T>();
-	size_t divisor 	= TypeBitmaskPopCount(mask);
+	const size_t bitsize 	= TypeBitsize<T>();
+	const size_t mask 		= TypeBitmask<T>();
+	const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 	size_t prefix 	= bitsize - (start & mask);
 
@@ -293,9 +293,9 @@ SelectResult Select1FW(const T* buffer, size_t start, size_t stop, size_t rank)
 template <typename T>
 SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t rank)
 {
-	size_t bitsize 	= TypeBitsize<T>();
-	size_t mask 	= TypeBitmask<T>();
-	size_t divisor 	= TypeBitmaskPopCount(mask);
+	const size_t bitsize 	= TypeBitsize<T>();
+	const size_t mask 		= TypeBitmask<T>();
+	const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 	size_t prefix 	= bitsize - (start & mask);
 
@@ -365,8 +365,8 @@ SelectResult Select0FW(const T* buffer, size_t start, size_t stop, size_t rank)
 template <typename T>
 T GetBits00(const T* buf, size_t idx, Int nbits)
 {
-	size_t mask = TypeBitmask<T>();
-    size_t divisor = TypeBitmaskPopCount(mask);
+	const size_t mask = TypeBitmask<T>();
+	const size_t divisor = TypeBitmaskPopCount(mask);
 
     size_t haddr = (idx & ~mask) >> divisor;
     size_t laddr = idx & mask;
@@ -382,8 +382,8 @@ T GetBits00(const T* buf, size_t idx, Int nbits)
 template <typename T>
 T GetBitsNeg00(const T* buf, size_t idx, Int nbits)
 {
-	size_t mask = TypeBitmask<T>();
-    size_t divisor = TypeBitmaskPopCount(mask);
+	const size_t mask = TypeBitmask<T>();
+	const size_t divisor = TypeBitmaskPopCount(mask);
 
     size_t haddr = (idx & ~mask) >> divisor;
     size_t laddr = idx & mask;
@@ -403,9 +403,9 @@ SelectResult Select1BW(const T* buffer, size_t start, size_t stop, size_t rank)
 {
 	if (start - stop > 0)
 	{
-		size_t bitsize 	= TypeBitsize<T>();
-		size_t mask 	= TypeBitmask<T>();
-		size_t divisor 	= TypeBitmaskPopCount(mask);
+		const size_t bitsize 	= TypeBitsize<T>();
+		const size_t mask 		= TypeBitmask<T>();
+		const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 		size_t prefix 	= start & mask;
 		size_t padding  = stop & mask;
@@ -486,9 +486,9 @@ SelectResult Select0BW(const T* buffer, size_t start, size_t stop, size_t rank)
 {
 	if (start - stop > 0)
 	{
-		size_t bitsize 	= TypeBitsize<T>();
-		size_t mask 	= TypeBitmask<T>();
-		size_t divisor 	= TypeBitmaskPopCount(mask);
+		const size_t bitsize 	= TypeBitsize<T>();
+		const size_t mask 		= TypeBitmask<T>();
+		const size_t divisor 	= TypeBitmaskPopCount(mask);
 
 		size_t prefix 	= start & mask;
 		size_t padding  = stop & mask;

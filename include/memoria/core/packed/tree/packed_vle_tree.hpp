@@ -77,7 +77,7 @@ public:
 	static const Int ValuesPerBranch        = Types::ValuesPerBranch;
 	static const Int Indexes        		= 2;
 	static const Int Blocks 				= Types::Blocks;
-	static const Int IOBatchSize			= 1024;
+	static const Int IOBatchSize			= Blocks <= 2 ? 256: (Blocks <= 4 ? 64 : (Blocks <= 16 ? 16 : 4));
 	static const bool FixedSizeElement		= false;
 
 	static const Int BITS_PER_OFFSET		= Codec::BitsPerOffset;
@@ -827,7 +827,7 @@ public:
 
 
 
-	Dimension insertSpace(Int idx, const Dimension& lengths)
+	Dimension insertSpace2(Int idx, const Dimension& lengths)
 	{
 		MEMORIA_ASSERT_TRUE(idx >= 0);
 
@@ -853,9 +853,6 @@ public:
 			Int offset			= block * size + idx;
 			Int offset_pos		= this->value_offset(offset);
 
-//			Int pos1 = this->locate(offset);
-//			MEMORIA_ASSERT(offset_pos, ==, pos1);
-
 			starts[block] 		= offset_pos + inserted_length;
 			remainders[block]	= max + inserted_length - starts[block];
 		}
@@ -871,19 +868,95 @@ public:
 			MEMORIA_ASSERT(remainder, >=, 0);
 
 			codec.move(values, start, end, remainder);
+
+			DebugCounter += remainder;
+			DebugCounter1++;
 		}
 
-		this->data_size() += lengths.sum();
+		this->data_size() += total;
 
 		return starts;
 	}
 
 
+	Dimension insertSpace(Int idx, const Dimension& lengths)
+	{
+		MEMORIA_ASSERT_TRUE(idx >= 0);
+
+		Int size 		= this->size();
+		Int max_size 	= this->raw_capacity();
+		Int max  		= this->data_size();
+
+		Int capacity	= max_size - max;
+
+		Dimension lengths_s;
+
+		lengths_s[0] = lengths[0];
+
+		for (Int c = 1; c < Blocks; c++)
+		{
+			lengths_s[c] += lengths[c] + lengths_s[c - 1];
+		}
+
+		Int total = lengths_s[Blocks - 1];
+
+		if (total > capacity)
+		{
+			enlarge(total - capacity);
+		}
+
+		Codec codec;
+
+		Dimension starts;
+		Dimension ends;
+		Dimension t_lengths;
+		Dimension starts_i;
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			Int offset		= block * size + idx;
+			starts[block]	= this->value_offset(offset);
+		}
+
+		for (Int block = 0; block < Blocks - 1; block++)
+		{
+			t_lengths[block]= starts[block + 1] - starts[block];
+			ends[block]		+= starts[block] + lengths_s[block];
+		}
+
+		ends[Blocks - 1] 		= starts[Blocks - 1] + lengths_s[Blocks - 1];
+		t_lengths[Blocks - 1]	= max - starts[Blocks - 1];
+
+		starts_i[0] = starts[0];
+
+		for (Int c = 1; c < Blocks; c++)
+		{
+			starts_i[c] = starts[c] + lengths_s[c - 1];
+		}
+
+		auto* values = this->values();
+
+		for (Int block = Blocks - 1; block >= 0; block--)
+		{
+			Int start 	= starts[block];
+			Int end 	= ends[block];
+			Int length	= t_lengths[block];
+
+			if (length > 0)
+			{
+				codec.move(values, start, end, length);
+			}
+		}
+
+		this->data_size() += total;
+
+		return starts_i;
+	}
+
 	void removeSpace(Int start, Int end)
 	{
 		Int size = this->size();
-
-		Codec codec;
+		Int max  = this->data_size();
 
 		MEMORIA_ASSERT_TRUE(start >= 0);
 
@@ -892,33 +965,41 @@ public:
 		MEMORIA_ASSERT_TRUE(room_length >= 0);
 		MEMORIA_ASSERT(room_length, <= , size - start);
 
-		Int total = 0;
-		Int ranges[3][Blocks];
+		Codec codec;
 
-		Int max = this->data_size();
+		Dimension starts;
+		Dimension ends;
 
 		for (Int block = 0; block < Blocks; block++)
 		{
-			Int offset	= (Blocks - block - 1) * size + start;
-
-			Int block_start		= ranges[0][block] = this->value_offset(offset);
-			Int block_end		= ranges[1][block] = this->value_offset(offset + room_length);
-
-			ranges[2][block] = max - block_end - total;
-
-			total		+= block_end - block_start;
+			starts[block]	= this->value_offset(block * size + start);
+			ends[block]		= this->value_offset(block * size + end);
 		}
 
 		auto* values = this->values();
 
-		for (Int block = 0; block < Blocks; block++)
-		{
-			Int block_start = ranges[0][block];
-			Int block_end 	= ranges[1][block];
-			Int remainder	= ranges[2][block];
+		Int total = 0;
 
-			codec.move(values, block_end, block_start, remainder);
+		for (Int block = 0; block < Blocks - 1; block++)
+		{
+			Int start 	= ends[block];
+			Int length	= starts[block + 1] - start;
+			Int end 	= starts[block] - total;
+
+			if (length > 0)
+			{
+				codec.move(values, start, end, length);
+			}
+
+			total += ends[block] - starts[block];
 		}
+
+		if (max - ends[Blocks - 1] > 0)
+		{
+			codec.move(values, ends[Blocks - 1], starts[Blocks - 1] - total, max - ends[Blocks - 1]);
+		}
+
+		total += ends[Blocks - 1] - starts[Blocks - 1];
 
 		this->size() 		-= room_length;
 		this->data_size()	-= total;
@@ -931,6 +1012,7 @@ public:
 			clear();
 		}
 	}
+
 
 	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
 	{

@@ -103,7 +103,7 @@ public:
 				1<<BitsPerSymbol,
 				Types::template Codec,
 				BranchingFactor,
-				64
+				512
 	>																			IndexTypes;
 
 	typedef typename Types::template Index<IndexTypes>							Index;
@@ -350,13 +350,7 @@ protected:
 
 		Int rest = size() - pos;
 
-		MoveBits(
-				symbols,
-				symbols,
-				pos * BitsPerSymbol,
-				(pos + length) * BitsPerSymbol,
-				rest * BitsPerSymbol
-		);
+		tools().move(symbols, pos, (pos + length), rest);
 
 		size() += length;
 	}

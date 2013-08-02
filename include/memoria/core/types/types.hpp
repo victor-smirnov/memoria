@@ -246,6 +246,8 @@ enum class MergeType {NONE, LEFT, RIGHT};
 enum class MergePossibility {YES, NO, MAYBE};
 
 extern BigInt DebugCounter;
+extern BigInt DebugCounter1;
+extern BigInt DebugCounter2;
 extern size_t MemBase;
 
 

@@ -59,21 +59,21 @@ public:
     {
 		MEMORIA_ADD_TEST_PARAM(iterations_);
 
-		MEMORIA_ADD_TEST(testInsertVector);
-
-		MEMORIA_ADD_TEST(testFillTree);
-
-		MEMORIA_ADD_TEST(testAddValue);
-
-		MEMORIA_ADD_TEST(testMerge);
-
-		MEMORIA_ADD_TEST(testSplitToEmpty);
-		MEMORIA_ADD_TEST(testSplitToPreFilled);
+//		MEMORIA_ADD_TEST(testInsertVector);
+//
+//		MEMORIA_ADD_TEST(testFillTree);
+//
+//		MEMORIA_ADD_TEST(testAddValue);
+//
+//		MEMORIA_ADD_TEST(testMerge);
+//
+//		MEMORIA_ADD_TEST(testSplitToEmpty);
+//		MEMORIA_ADD_TEST(testSplitToPreFilled);
 
 		MEMORIA_ADD_TEST(testRemoveMulti);
 		MEMORIA_ADD_TEST(testRemoveAll);
 
-		MEMORIA_ADD_TEST(testClear);
+//		MEMORIA_ADD_TEST(testClear);
     }
 
     virtual ~PackedTreeMiscTest() throw() {}
@@ -88,9 +88,12 @@ public:
 
     void testInsertVector(Int size)
     {
+    	DebugCounter = 0;
+    	DebugCounter1 = 0;
+
     	Base::out()<<size<<std::endl;
 
-    	Tree* tree = Base::createEmptyTree(1024*1024);
+    	Tree* tree = Base::createEmptyTree(4 * 1024 * 1024);
     	PARemover remover(tree);
 
     	vector<Values> v = Base::createRandomValuesVector(size);
@@ -100,6 +103,8 @@ public:
     	Base::assertIndexCorrect(MA_SRC, tree);
 
     	Base::assertEqual(tree, v);
+
+    	cout<<"Insert: "<<DebugCounter<<" "<<DebugCounter1<<endl;
     }
 
     void testFillTree()
@@ -112,6 +117,9 @@ public:
 
     void testFillTree(Int block_size)
     {
+    	DebugCounter = 0;
+    	DebugCounter1 = 0;
+
     	Base::out()<<block_size/1024<<"K"<<std::endl;
 
     	Tree* tree = Base::createEmptyTree(block_size);
@@ -122,11 +130,13 @@ public:
     	Base::assertIndexCorrect(MA_SRC, tree);
 
     	Base::assertEqual(tree, v);
+
+    	cout<<"Fill: "<<DebugCounter<<" "<<DebugCounter1<<endl;
     }
 
     void testAddValue()
     {
-    	for (int c = 1; c <= 32*1024; c*=2)
+    	for (int c = 1; c <= 64; c*=2)
     	{
     		testAddValue(c);
     	}
@@ -143,9 +153,12 @@ public:
 
     void testAddValue(Int size)
     {
+    	DebugCounter = 0;
+    	DebugCounter1 = 0;
+
     	Base::out()<<size<<std::endl;
 
-    	Tree* tree = Base::createEmptyTree(1024*1024);
+    	Tree* tree = Base::createEmptyTree(4*1024*1024);
     	PARemover remover(tree);
 
     	auto tree_values = Base::createRandomValuesVector(size);
@@ -164,6 +177,8 @@ public:
 
     		Base::assertEqual(tree, tree_values);
     	}
+
+    	cout<<"Add: "<<DebugCounter<<" "<<DebugCounter1<<endl;
     }
 
 
@@ -242,6 +257,11 @@ public:
     {
     	for (Int size = 1; size <= 32768; size*=2)
     	{
+    		DebugCounter = DebugCounter1 = 0;
+
+    		this->out()<<size<<std::endl;
+//    		cout<<size<<std::endl;
+
     		Tree* tree = Base::createEmptyTree(16*1024*1024);
     		auto tree_values = Base::createRandomValuesVector(size);
 
@@ -265,14 +285,21 @@ public:
 
     			AssertLE(MA_SRC, tree->block_size(), block_size);
     		}
+
+    		cout<<"Multi: "<<DebugCounter<<" "<<DebugCounter1<<endl;
     	}
+
+    	cout<<endl;
     }
 
     void testRemoveAll()
     {
     	for (Int size = 1; size <= 32768; size*=2)
     	{
+    		DebugCounter = DebugCounter1 = 0;
+
     		this->out()<<size<<std::endl;
+    		//this->out()<<size<<std::endl;
 
     		Tree* tree = Base::createEmptyTree(16*1024*1024);
     		auto tree_values = Base::createRandomValuesVector(size);
@@ -283,7 +310,11 @@ public:
     		tree->removeSpace(0, tree->size());
 
     		this->assertEmpty(tree);
+
+    		cout<<"All: "<<DebugCounter<<" "<<DebugCounter1<<endl;
     	}
+    	cout<<endl;
+
     }
 
 

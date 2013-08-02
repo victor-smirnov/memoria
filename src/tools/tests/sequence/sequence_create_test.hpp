@@ -71,7 +71,6 @@ public:
 
 			this->StoreAllocator(allocator, this->getResourcePath("create.dump"));
 
-
 			BigInt size = ctr.size();
 
 			for (Int c = 0; c < size; c++)
@@ -82,7 +81,6 @@ public:
 
 				AssertEQ(MA_SRC, ctr.size(), size - c - 1);
 			}
-
 
 			allocator.commit();
 
@@ -128,7 +126,6 @@ public:
 
 				AssertEQ(MA_SRC, symbol1, symbol2);
 			}
-
 		}
 		catch (...) {
 			Base::dump_name_ = Base::Store(allocator);
