@@ -97,7 +97,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >:
 
 	template <typename Iterator, typename Container>
 	struct IteratorCacheFactory {
-		typedef memoria::map::MapIteratorPrefixCache<Iterator, Container> Type;
+		typedef memoria::seq_dense::SequenceIteratorCache<Iterator, Container> Type;
 	};
 
 

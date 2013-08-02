@@ -4,24 +4,23 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef _MEMORIA_CONTAINERS_SEQDENSE_RANGE_WALKERS_HPP
-#define _MEMORIA_CONTAINERS_SEQDENSE_RANGE_WALKERS_HPP
+#ifndef _MEMORIA_CONTAINERS_LOUDS_RANGE_WALKERS_HPP
+#define _MEMORIA_CONTAINERS_LOUDS_RANGE_WALKERS_HPP
 
 #include <memoria/prototypes/bt/bt_walkers.hpp>
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
 namespace memoria 	{
-namespace seq_dense	{
+namespace louds		{
 
 template <typename Types>
 class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
-	typedef bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> 			Base;
-	typedef typename Base::Key 													Key;
+	typedef bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> 	Base;
+	typedef typename Base::Key 														Key;
 
 public:
 	typedef typename Base::ResultType											ResultType;
-	typedef typename Base::Iterator												Iterator;
 
 
 	SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
@@ -53,25 +52,15 @@ public:
 			return size;
 		}
 	}
-
-	BigInt finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = idx;
-
-		iter.cache().add(this->sum_);
-
-		return this->sum_;
-	}
 };
 
 template <typename Types>
 class SkipBackwardWalker: public bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
 	typedef bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>		Base;
-	typedef typename Base::Key 													Key;
+	typedef typename Base::Key 															Key;
 
 public:
 	typedef typename Base::ResultType											ResultType;
-	typedef typename Base::Iterator												Iterator;
 
 	SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
 	{
@@ -100,15 +89,6 @@ public:
 			sum += start;
 			return -1;
 		}
-	}
-
-	BigInt finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = idx;
-
-		iter.cache().sub(this->sum_);
-
-		return this->sum_;
 	}
 };
 

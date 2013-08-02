@@ -15,13 +15,12 @@
 
 #include <memoria/prototypes/ctr_wrapper/iterator.hpp>
 
-#include <memoria/core/tools/louds_tree.hpp>
+#include <memoria/core/packed/wrappers/louds_tree.hpp>
 
 #include <functional>
 
 namespace memoria    {
 
-using namespace memoria::btree;
 using namespace louds;
 using namespace std;
 

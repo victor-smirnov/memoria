@@ -17,49 +17,117 @@
 #include <memoria/containers/louds/iterator/louds_i_api.hpp>
 
 
-#include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
+#include <memoria/containers/seq_dense/seqd_factory.hpp>
+#include <memoria/containers/louds/louds_walkers.hpp>
 
 namespace memoria {
 
-template <typename Profile_>
-struct WrapperTypes<Profile_, CtrWrapper<LOUDS>>: WrapperTypes<Profile_, LOUDS> {
 
-	typedef WrapperTypes<Profile_, LOUDS>   			Base;
+
+template <typename Profile>
+struct BTTypes<Profile, memoria::LOUDS >: BTTypes<Profile, memoria::Sequence<1, true> > {
+
+    typedef BTTypes<Profile, memoria::Sequence<1, true>>                   		Base;
+
+    typedef UBigInt                                                          	Value;
+    typedef TypeList<BigInt>                                                  	KeysList;
+
+    static const Int BitsPerSymbol                                              = 1;
+    static const Int Indexes                                                	= (1 << BitsPerSymbol) + 1;
+
+
+
+    typedef TypeList<
+    			NonLeafNodeTypes<TreeMapNode>,
+    			LeafNodeTypes<TreeLeafNode>
+    >																			NodeTypesList;
+
+    typedef TypeList<
+    			LeafNodeType<TreeLeafNode>,
+    		    InternalNodeType<TreeMapNode>,
+    		    RootNodeType<TreeMapNode>,
+    		    RootLeafNodeType<TreeLeafNode>
+    >																			DefaultNodeTypesList;
+
+    typedef TypeList<
+        		StreamDescr<PkdFTreeTF, PackedFSESeqTF, Indexes>
+    >																			StreamDescriptors;
+
+    typedef BalancedTreeMetadata<
+    		typename Base::ID,
+    		ListSize<StreamDescriptors>::Value
+    >        																	Metadata;
+
 
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
+				memoria::bt::NodeComprName,
 				memoria::louds::CtrApiName,
 				memoria::louds::CtrFindName
-	>::Result                                           CtrList;
+	>::Result                                           						ContainerPartsList;
+
 
 	typedef typename MergeLists<
 				typename Base::IteratorPartsList,
 				memoria::louds::ItrApiName
-	>::Result                                           IterList;
+	>::Result                                           						IteratorPartsList;
 
-	typedef Sequence<1, true>           				WrappedCtrName;
+//  FIXIT
+//	template <typename Iterator, typename Container>
+//	struct IteratorCacheFactory {
+//		typedef memoria::map::MapIteratorPrefixCache<Iterator, Container> Type;
+//	};
+
+
+
+    template <typename Types>
+    using FindLTWalker 		= ::memoria::louds::SkipForwardWalker<Types>;
+
+
+    template <typename Types>
+    using RankFWWalker 		= ::memoria::louds::RankFWWalker<Types>;
+
+    template <typename Types>
+    using RankBWWalker 		= ::memoria::louds::RankBWWalker<Types>;
+
+
+    template <typename Types>
+    using SelectFwWalker 	= ::memoria::louds::SelectForwardWalker<Types>;
+
+    template <typename Types>
+    using SelectBwWalker 	= ::memoria::louds::SelectBackwardWalker<Types>;
+
+
+    template <typename Types>
+    using SkipForwardWalker 	= ::memoria::louds::SkipForwardWalker<Types>;
+
+    template <typename Types>
+    using SkipBackwardWalker 	= ::memoria::louds::SkipBackwardWalker<Types>;
+
+
+    template <typename Types>
+    using NextLeafWalker 	 	= ::memoria::bt::NextLeafWalker<Types>;
+
+    template <typename Types>
+    using PrevLeafWalker 		= ::memoria::bt::PrevLeafWalker<Types>;
+
+    template <typename Types>
+    using FindBeginWalker 	= ::memoria::louds::FindBeginWalker<Types>;
+
+    template <typename Types>
+    using FindEndWalker 	= ::memoria::louds::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker 	= ::memoria::louds::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker 	= ::memoria::louds::FindREndWalker<Types>;
 };
 
 
 
-template <typename Profile_, typename T>
-class CtrTF<Profile_, LOUDS, T>: public CtrTF<Profile_, CtrWrapper<LOUDS>, T> {
-
-	typedef CtrTF<Profile_, CtrWrapper<LOUDS>, T> 								Base;
-
-public:
-
-    struct Types: Base::Types {
-
-    	typedef LoudsCtrTypes<Types> 		CtrTypes;
-        typedef LoudsIterTypes<Types> 		IterTypes;
-    };
-
-
-    typedef typename Types::CtrTypes                                            CtrTypes;
-    typedef typename Types::IterTypes                                           IterTypes;
-
-    typedef Ctr<CtrTypes>                                                       Type;
+template <typename Profile, typename T>
+class CtrTF<Profile, memoria::LOUDS, T>: public CtrTF<Profile, memoria::Sequence<1, true>, T> {
 };
 
 

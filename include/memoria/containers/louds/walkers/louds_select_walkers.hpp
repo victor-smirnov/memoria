@@ -4,15 +4,15 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef _MEMORIA_CONTAINERS_SEQDENSE_SELECT_WALKERS_HPP
-#define _MEMORIA_CONTAINERS_SEQDENSE_SELECT_WALKERS_HPP
+#ifndef _MEMORIA_CONTAINERS_LOUDS_SELECT_WALKERS_HPP
+#define _MEMORIA_CONTAINERS_LOUDS_SELECT_WALKERS_HPP
 
 #include <memoria/prototypes/bt/bt_walkers.hpp>
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
 namespace memoria 	{
-namespace seq_dense	{
+namespace louds		{
 
 
 
@@ -69,8 +69,6 @@ public:
 		{
 			pos_ += result.idx() - start;
 
-
-
 			return result.idx();
 		}
 		else {
@@ -86,8 +84,6 @@ public:
 	BigInt finish(Iterator& iter, Int idx)
 	{
 		iter.idx() = idx;
-
-		iter.cache().add(pos_);
 
 		return pos_;
 	}
@@ -158,8 +154,6 @@ public:
 	BigInt finish(Iterator& iter, Int idx)
 	{
 		iter.idx() = idx;
-
-		iter.cache().sub(pos_);
 
 		return pos_;
 	}

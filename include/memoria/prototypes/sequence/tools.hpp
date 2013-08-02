@@ -17,7 +17,7 @@
 
 
 namespace memoria    	{
-namespace bt {
+namespace bt 			{
 
 using namespace memoria::core;
 

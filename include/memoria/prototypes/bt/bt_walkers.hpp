@@ -60,12 +60,7 @@ public:
 		return direction_;
 	}
 
-	BigInt finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = idx;
 
-		return sum_;
-	}
 
 	void empty(Iterator& iter)
 	{
@@ -89,6 +84,12 @@ public:
 	}
 
 	void prepare(Iterator& iter) {}
+
+	BigInt finish(Iterator& iter, Int idx)
+	{
+		iter.idx() = idx;
+		return sum_;
+	}
 
 
 	MyType& self()

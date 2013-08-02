@@ -8,39 +8,47 @@
 #ifndef MEMORIA_CONTAINERS_LOUDS_TOOLS_HPP_
 #define MEMORIA_CONTAINERS_LOUDS_TOOLS_HPP_
 
+#include <memoria/core/tools/isequencedata.hpp>
+
+
 namespace memoria 	{
 namespace louds 	{
 
-//class SelectResult {
-//	BigInt node_idx_;
-//	BigInt node_rank_;
-//	Int value_;
-//	bool found_;
-//
-//public:
-//	SelectResult(BigInt node_idx, BigInt node_rank, Int value, bool found):
-//		node_idx_(node_idx),
-//		node_rank_(node_rank),
-//		value_(value),
-//		found_(found)
-//	{}
-//
-//	BigInt node_idx() const {
-//		return node_idx_;
-//	}
-//
-//	BigInt node_rank() const {
-//		return node_rank_;
-//	}
-//
-//	bool found() const {
-//		return found_;
-//	}
-//
-//	Int value() const {
-//		return value_;
-//	}
-//};
+
+template <typename Iterator, typename Container>
+class LOUDSIteratorCache: public bt::BTreeIteratorCache<Iterator, Container> {
+
+	typedef bt::BTreeIteratorCache<Iterator, Container> 	Base;
+
+    BigInt pos_ 	= 0;
+    BigInt rank1_ 	= 0;
+
+public:
+
+    LOUDSIteratorCache(): Base() {}
+
+    BigInt pos() const {
+    	return pos_;
+    }
+
+    BigInt rank1() const {
+    	return rank1_;
+    }
+
+    void setup(BigInt pos, BigInt rank1)
+    {
+    	pos_ 	= pos;
+    	rank1_	= rank1;
+    }
+
+    void add(BigInt pos, BigInt rank1)
+    {
+    	pos_ 	+= pos;
+    	rank1_	+= rank1;
+    }
+};
+
+
 
 class LoudsNode {
 protected:

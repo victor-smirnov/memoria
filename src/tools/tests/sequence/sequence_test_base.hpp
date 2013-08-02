@@ -47,7 +47,7 @@ public:
 
 	PackedSeq fillRandom(Ctr& ctr, Int size)
 	{
-		PackedSeq seq(size, 10, 1);
+		PackedSeq seq(size, (BitsPerSymbol == 8) ? 10 : 1, 1);
 
 		auto iter = ctr.Begin();
 

@@ -20,7 +20,7 @@ using namespace std;
 class LoudsTree: public PackedFSESequence<1> {
 
 	typedef LoudsTree 															MyType;
-	typedef PackedFSESequence<1>													Base;
+	typedef PackedFSESequence<1>												Base;
 
 public:
 	static const size_t END														= static_cast<size_t>(-1);
@@ -116,7 +116,6 @@ public:
 	size_t appendUDS(size_t value)
 	{
 		size_t idx = Base::size();
-		Base::enlarge(value + 1);
 
 		writeUDS(idx, value);
 
@@ -158,44 +157,44 @@ public:
 
 	size_t select(size_t rank, Int symbol) const
 	{
-		SelectResult result = Base::sequence_->selectFW(symbol, rank);
+		SelectResult result = Base::sequence_->selectFw(symbol, rank);
 		return result.is_found() ? result.idx() : END;
 	}
 
 	size_t selectFw(size_t start, size_t rank, Int symbol) const
 	{
-		SelectResult result = Base::sequence_->selectFW(start, symbol, rank);
+		SelectResult result = Base::sequence_->selectFw(start, symbol, rank);
 		return result.is_found() ? result.idx() : Base::sequence_->size();
 	}
 
 	size_t selectBw(size_t start, size_t rank, Int symbol) const
 	{
-		SelectResult result = Base::sequence_->selectBW(start, symbol, rank);
+		SelectResult result = Base::sequence_->selectBw(start, symbol, rank);
 		return result.is_found() ? result.idx() : END;
 	}
 
 
 	size_t rank1(size_t idx) const
 	{
-		return Base::sequence_->rank1(idx + 1, 1);
+		return Base::sequence_->rank(idx + 1, 1);
 	}
 
 	size_t rank1(size_t start, size_t end) const
 	{
-		return Base::sequence_->rank1(start, end + 1, 1);
+		return Base::sequence_->rank(start, end + 1, 1);
 	}
 
 	size_t rank0(size_t idx) const
 	{
-		return Base::sequence_->rank1(idx + 1, 0);
+		return Base::sequence_->rank(idx + 1, 0);
 	}
 
 	size_t rank1() const {
-		return sequence_->maxIndex(1);
+		return sequence_->rank(1);
 	}
 
 	size_t rank0() const {
-		return sequence_->maxIndex(0);
+		return sequence_->rank(0);
 	}
 
 	size_t nodes() const {
@@ -386,10 +385,7 @@ private:
 
 	void checkCapacity(size_t requested)
 	{
-		if (this->ensureCapacity(requested))
-		{
-			this->reindex();
-		}
+
 	}
 
 	template <typename Functor>

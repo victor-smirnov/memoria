@@ -18,7 +18,7 @@
 
 #include <memoria/core/container/iterator.hpp>
 
-#include <memoria/core/tools/louds_tree.hpp>
+#include <memoria/core/packed/wrappers/louds_tree.hpp>
 
 #include <vector>
 #include <iostream>
@@ -216,10 +216,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
     	iter.skipBw();
     }
 
-    IDataAdapter<WrappedIterator> source(BigInt length = -1) const
-    {
-    	return IDataAdapter<WrappedIterator>(*me()->iter(), length);
-    }
+//    IDataAdapter<WrappedIterator> source(BigInt length = -1) const
+//    {
+//    	return IDataAdapter<WrappedIterator>(*me()->iter(), length);
+//    }
 
 MEMORIA_ITERATOR_PART_END
 
