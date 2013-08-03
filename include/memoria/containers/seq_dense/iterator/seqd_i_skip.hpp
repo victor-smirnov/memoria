@@ -54,7 +54,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
 	}
 
 	bool operator--(int) {
-		return self().skipFw(1);
+		return self().skipBw(1);
 	}
 
 	BigInt operator+=(BigInt size)

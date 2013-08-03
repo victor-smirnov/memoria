@@ -41,6 +41,32 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
 	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
 	typedef typename Container::Position										Position;
 
+	struct RankFn {
+		BigInt rank_ = 0;
+		Int symbol_;
+		RankFn(Int symbol): symbol_(symbol) {}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(const PkdFSSeq<StreamTypes>* seq, Int idx)
+		{
+			rank_ += seq->rank(0, idx, symbol_);
+		}
+
+		template <typename NodeTypes, bool root>
+		void treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, true>* node, Int idx)
+		{
+			node->template processStream<0>(*this, idx);
+		}
+
+		template <typename NodeTypes, bool root>
+		void treeNode(const TreeNode<TreeMapNode, NodeTypes, root, false>* node, Int idx)
+		{
+			node->sum(0, symbol_ + 1, 0, idx, rank_);
+		}
+	};
+
+	BigInt rank(Int symbol) const;
+	BigInt ranki(Int symbol) const;
 
 	BigInt rank(BigInt delta, Int symbol);
 	BigInt rankFw(BigInt delta, Int symbol);
@@ -51,6 +77,33 @@ MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::seq_dense::IterRankName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+
+M_PARAMS
+BigInt M_TYPE::rank(Int symbol) const
+{
+	auto& self = this->self();
+
+	RankFn fn(symbol);
+
+	if (self.idx() >= 0)
+	{
+		self.ctr().walkUp(self.leaf(), self.idx(), fn);
+	}
+
+	return fn.rank_;
+}
+
+M_PARAMS
+BigInt M_TYPE::ranki(Int symbol) const
+{
+	auto& self = this->self();
+
+	RankFn fn(symbol);
+
+	self.ctr().walkUp(self.leaf(), self.idx() + 1, fn);
+
+	return fn.rank_;
+}
 
 M_PARAMS
 BigInt M_TYPE::rank(BigInt delta, Int symbol)

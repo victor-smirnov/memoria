@@ -22,7 +22,8 @@ class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, SelectForward
 	typedef bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> 		Base;
 	typedef typename Base::Key 													Key;
 
-	BigInt pos_ = 0;
+	BigInt pos_ 	= 0;
+	BigInt rank1_ 	= 0;
 
 public:
 	typedef typename Base::ResultType											ResultType;
@@ -68,6 +69,7 @@ public:
 		if (result.is_found())
 		{
 			pos_ += result.idx() - start;
+			sum  += target;
 
 			return result.idx();
 		}
@@ -81,9 +83,28 @@ public:
 		}
 	}
 
+	void prepare(Iterator& iter)
+	{
+		MEMORIA_ASSERT_TRUE(!iter.isBof());
+	}
+
 	BigInt finish(Iterator& iter, Int idx)
 	{
 		iter.idx() = idx;
+
+		Int symbol = this->index_ - 1;
+		auto sum   = this->sum_;
+
+		if (!iter.isEof())
+		{
+			sum -= iter.symbol() == symbol;
+		}
+
+		BigInt rank1 =  symbol ? sum : pos_ - sum;
+
+		iter.cache().add(pos_, rank1);
+
+		iter.check();
 
 		return pos_;
 	}
@@ -96,8 +117,7 @@ class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, SelectBackw
 	typedef bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>>		Base;
 	typedef typename Base::Key 													Key;
 
-
-	BigInt pos_ = 0;
+	BigInt pos_ 	= 0;
 
 public:
 	typedef typename Base::ResultType											ResultType;
@@ -142,18 +162,41 @@ public:
 		if (result.is_found())
 		{
 			pos_ += start - result.idx();
+			sum  += target;
+
 			return result.idx();
 		}
 		else {
 			pos_ += start;
-			sum += result.rank();
+			sum  += result.rank();
+
 			return -1;
 		}
+	}
+
+	void prepare(Iterator& iter)
+	{
+		MEMORIA_ASSERT_TRUE(!iter.isBof());
 	}
 
 	BigInt finish(Iterator& iter, Int idx)
 	{
 		iter.idx() = idx;
+
+		Int symbol = this->index_ - 1;
+		auto sum   = this->sum_;
+
+		if (idx >= 0)
+		{
+			BigInt rank1 =  symbol ? sum : pos_ - sum;
+
+			iter.cache().sub(pos_, rank1);
+		}
+		else {
+			iter.cache().setup(-1, 0);
+		}
+
+		iter.check();
 
 		return pos_;
 	}

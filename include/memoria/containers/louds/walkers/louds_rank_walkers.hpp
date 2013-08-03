@@ -34,12 +34,14 @@ public:
 		symbol_ 			= index;
 	}
 
-	BigInt rank() const {
+	BigInt rank() const
+	{
 		return rank_;
 	}
 
 	template <Int Idx, typename Tree>
-	ResultType stream(const Tree* tree, Int start) {
+	ResultType stream(const Tree* tree, Int start)
+	{
 		return Base::template stream<Idx>(tree, start);
 	}
 
@@ -52,7 +54,8 @@ public:
 		{
 			rank_ += stream->sum(symbol_ + 1, start, result.idx());
 		}
-		else {
+		else
+		{
 			rank_ += stream->sum(symbol_ + 1, start, size);
 		}
 	}
@@ -65,7 +68,6 @@ public:
 		auto& sum 		= Base::sum_;
 
 		BigInt offset 	= Base::target_ - sum;
-
 
 		Int	size 		= seq->size();
 
@@ -89,6 +91,18 @@ public:
 	BigInt finish(Iterator& iter, Int idx)
 	{
 		iter.idx() = idx;
+
+		BigInt rank1 = symbol_ ? rank_ : this->sum_ - rank_;
+
+		if (idx >= 0)
+		{
+			iter.cache().add(this->sum_, rank1);
+		}
+		else {
+			iter.cache().setup(-1, 0);
+		}
+
+		iter.cache().setRank1(iter.rank(1));
 
 		return rank_;
 	}
@@ -116,7 +130,8 @@ public:
 		symbol_ 			= index;
 	}
 
-	BigInt rank() const {
+	BigInt rank() const
+	{
 		return rank_;
 	}
 
@@ -164,6 +179,18 @@ public:
 	BigInt finish(Iterator& iter, Int idx)
 	{
 		iter.idx() = idx;
+
+		BigInt rank1 = symbol_ ? rank_ : this->sum_ - rank_;
+
+		if (idx >= 0)
+		{
+			iter.cache().sub(this->sum_, rank1);
+		}
+		else {
+			iter.cache().sub(iter.cache().pos() + 1, rank1);
+		}
+
+		iter.cache().setRank1(iter.rank(1));
 
 		return rank_;
 	}

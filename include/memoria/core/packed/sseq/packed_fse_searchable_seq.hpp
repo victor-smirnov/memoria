@@ -205,6 +205,7 @@ public:
 		return SymbolAccessor(*this, idx);
 	}
 
+
 	class ConstSymbolAccessor {
 		const MyType& seq_;
 		Int idx_;

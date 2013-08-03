@@ -29,6 +29,7 @@ class LoudsCreateTest: public LoudsTestBase {
 
     BigInt 	tree_size_ 	= 100000;
     Int 	nodes_		= 10;
+    Int 	iterations_ = 1;
 
 public:
 
@@ -36,6 +37,7 @@ public:
     {
         MEMORIA_ADD_TEST_PARAM(tree_size_);
         MEMORIA_ADD_TEST_PARAM(nodes_);
+        MEMORIA_ADD_TEST_PARAM(iterations_);
 
     	MEMORIA_ADD_TEST(runCreateRandomTest);
     }
@@ -46,7 +48,7 @@ public:
 
     void runCreateRandomTest()
     {
-    	for (Int c = 1; c <= 10; c++)
+    	for (Int c = 1; c <= iterations_; c++)
     	{
     		Allocator allocator;
 
@@ -55,6 +57,12 @@ public:
     		BigInt t0 = getTimeInMillis();
 
     		BigInt count0 = createRandomLouds(ctr, tree_size_ * c, nodes_);
+
+    		allocator.commit();
+
+    		DebugCounter = 1;
+
+    		StoreResource(allocator, "louds", c);
 
     		BigInt t1 = getTimeInMillis();
 
@@ -70,6 +78,8 @@ public:
     		AssertEQ(MA_SRC, count1, nodes);
 
     		cout<<"TreeSize: "<<nodes<<" Tree Build Time: "<<FormatTime(t1-t0)<<", Traverse Time: "<<FormatTime(t2-t1)<<endl;
+
+    		DebugCounter = 0;
     	}
     }
 

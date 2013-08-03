@@ -55,6 +55,10 @@ public:
         allocator.store(out.get());
     }
 
+    virtual void StoreResource(Allocator& allocator, StringRef file_name, Int mark) const {
+    	StoreAllocator(allocator, getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
+    }
+
 
 
     virtual String Store(Allocator& allocator) const

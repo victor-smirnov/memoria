@@ -28,38 +28,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
 	typedef typename Base::Iterator 											Iterator;
 
-	Iterator begin() {
-		return Iterator(*me(), me()->ctr().begin());
-	}
 
-	Iterator Begin() {
-		return begin();
-	}
-
-	Iterator End() {
-		return Iterator(*me(), me()->ctr().End());
-	}
-
-	Iterator end()
-	{
-		Iterator iter(*me());
-		iter.type() = Iterator::END;
-		return iter;
-	}
-
-	IterEndMark endm()
-	{
-		return IterEndMark();
-	}
 
 	LoudsNode rootNode()
 	{
-		return me()->find(0).node();
+		return self().seek(0).node();
 	}
 
 	Iterator parent(const LoudsNode& node)
 	{
-		return me()->select1(node.rank0());
+		auto iter = self().select1(node.rank0());
+		return iter;
 	}
 
 	LoudsNode parentNode(const LoudsNode& node)
@@ -83,7 +62,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 	{
 		Iterator iter = firstChild(node);
 
-		iter.iter().skipFw(child_num);
+		iter().skipFw(child_num);
 
 		iter.node_rank() += child_num;
 
@@ -97,28 +76,27 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
 	Iterator firstChild(const LoudsNode& node)
 	{
-		Iterator iter 	= me()->select0(node.rank1());
+		Iterator iter = self().select0(node.rank1());
 
-		iter.skipFw();
+		iter++;
 
 		return iter;
 	}
 
 	Iterator lastChild(const LoudsNode& node)
 	{
-		Iterator iter 	= me()->select0(node.rank1() + 1);
+		Iterator iter 	= self().select0(node.rank1() + 1);
 
-		iter.skipBw();
+		iter--;
 
 		return iter;
 	}
 
-	BigInt size() {
-		return me()->ctr().size();
-	}
+	BigInt nodes()
+	{
+		auto& self = this->self();
 
-	BigInt nodes() {
-		return me()->rank1(size() - 1);
+		return self.rank1(self.size() - 1);
 	}
 
 //	LoudsTree getLoudsSubtree(const LoudsNode& node)
@@ -154,6 +132,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 		BigInt count = 0;
 
 		this->traverseSubtree(node, [&count](const Iterator& left, BigInt length, Int level) {
+//			cout<<"TS: "<<left.pos()<<" "<<left.cpos()<<" "<<length<<" "<<level<<endl;
+
 			if (level == 0)
 			{
 				count += left.rank1(length - 1);
@@ -170,7 +150,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
 	void traverseSubtree(const LoudsNode& node, function<void (const Iterator&, BigInt, Int)> fn)
 	{
-		Iterator left = me()->find(node.node());
+		Iterator left = self().seek(node.node());
 		Iterator right = left;
 
 		traverseSubtree(left, right, fn);

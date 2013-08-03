@@ -25,44 +25,28 @@
 
 namespace memoria    {
 
-using namespace std;
-using namespace ::memoria::louds;
+MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
-MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
-
-	typedef Ctr<typename Types::CtrTypes>                      	ContainerType;
-    typedef typename ContainerType::WrappedCtr::Iterator        WrappedIterator;
-
-
-	BigInt node_rank_;
-
-	IterPart(): Base(), node_rank_(0) {}
-    IterPart(ThisPartType&& other): Base(std::move(other)), node_rank_(other.node_rank_) {}
-    IterPart(const ThisPartType& other): Base(other), node_rank_(other.node_rank_) {}
-    virtual ~IterPart() throw() {}
-
-    const BigInt& node_rank() const {
-    	return node_rank_;
-    }
-
-    BigInt& node_rank() {
-    	return node_rank_;
+    BigInt node_rank() const
+	{
+		auto& self = this->self();
+		return self.cache().rank1() + (self.symbol() == 1);
     }
 
     Int value() const
     {
-    	if (!me()->iter().isEof())
+    	if (!self().isEof())
     	{
-    		return me()->iter().element();
+    		return self().symbol();
     	}
     	else {
     		return 0;
     	}
     }
 
-    bool test(Int value) const
+    bool test(Int val) const
     {
-    	return me()->iter().test(value);
+    	return self().symbol() == val;
     }
 
     bool isNode() const
@@ -75,146 +59,124 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::louds::ItrApiName)
     	return test(0);
     }
 
-    bool isEof() const {
-    	return me()->iter().isEof();
-    }
-
-    bool operator++()
-    {
-    	if (me()->iter()++)
-    	{
-    		node_rank_ += test(1);
-    		return true;
-    	}
-
-    	return false;
-    }
-
-    bool skipFw() {
-    	if (me()->iter()++)
-    	{
-    		node_rank_ += test(1);
-    		return true;
-    	}
-
-    	return false;
-    }
-
-    bool skipBw() {
-
-    	Int value = test(1);
-
-    	if (me()->iter()--)
-    	{
-    		node_rank_ -= value;
-
-    		return true;
-    	}
-
-    	return false;
-    }
-
-//    bool operator--()
-//    {
-//    	if (me()->iter()--)
-//    	{
-//    		node_rank_ -= test(1);
-//    		return true;
-//    	}
-//
-//    	return false;
-//    }
-
     BigInt nodeIdx() const
     {
-    	return me()->iter().pos();
+    	return self().pos();
+    }
+
+    BigInt countFw(Int symbol)
+    {
+    	MEMORIA_ASSERT_TRUE(symbol == 0 || symbol == 1);
+
+    	auto& self = this->self();
+
+    	return self.selectFw(1, 1 - symbol);
     }
 
     LoudsNode node() const
     {
-    	return LoudsNode(nodeIdx(), node_rank(), value());
+    	return LoudsNode(nodeIdx(), rank1(), value());
     }
 
     BigInt nextSiblings()
     {
-    	BigInt count = me()->iter().countFw(1);
-
-    	node_rank_ += count;
-
-    	return count;
+    	return self().countFw(1);
     }
 
     void insertDegree(BigInt degree)
     {
-    	node_rank_ += degree;
+    	auto& self = this->self();
 
-    	NodeDegreeSourceAdaptor<typename MyType::WrappedIterator::ElementType> adaptor(degree);
+    	for (BigInt c = 0; c < degree; c++)
+    	{
+    		self.insert(1);
+    	}
 
-    	me()->iter().insert(adaptor);
+    	self.insert(0);
     }
 
     void insertZeroes(BigInt length)
     {
-    	ZeroSourceAdaptor<typename MyType::WrappedIterator::ElementType> adaptor(length);
+    	auto& self = this->self();
 
-    	me()->iter().insert(adaptor);
+    	for (BigInt c = 0; c < length; c++)
+    	{
+    		self.insert(0);
+    	}
     }
 
-    void dump(ostream& out = cout)
-    {
-    	me()->iter().dump(out);
-    }
 
     BigInt select1Fw(BigInt rank)
     {
-    	BigInt actual_rank = me()->iter().selectFw(rank, 1);
-    	node_rank_ += actual_rank;
-    	return actual_rank;
+    	return self().selectFw(rank, 1);
     }
 
     BigInt select1Bw(BigInt rank)
     {
-    	BigInt actual_rank = me()->iter().selectBw(rank, 1);
-    	node_rank_ -= (actual_rank - 1);
-    	return actual_rank;
+    	return self().selectBw(rank, 1);
     }
 
     BigInt rank1(BigInt length) const
     {
-    	return me()->iter().rank(length, 1);
+    	auto iter = self();
+    	return iter.rank(length, 1);
     }
 
     BigInt rank1() const {
-    	return node_rank_;
+    	return node_rank();
     }
 
     BigInt rank0() const {
-    	return nodeIdx() + 1 - node_rank_;
+    	return nodeIdx() + 1 - rank1();
     }
 
-    void firstChild() {
-    	MyType& iter = *me();
+    void firstChild()
+    {
+    	auto& self = this->self();
 
-    	BigInt rank0 = iter.nodeIdx() + 1 - node_rank_;
+    	self.check();
 
-    	BigInt drank = iter.iter().selectFw(node_rank_ - rank0, 0);
+    	BigInt rank0 = self.rank0();
 
-    	node_rank_ = iter.nodeIdx() + 1 - (rank0 + drank);
+    	self.check();
 
-    	iter.skipFw();
+    	self.selectFw(self.rank1() - rank0, 0);
+    	self++;
+
+    	self.check();
     }
 
-    void lastChild() {
-    	MyType& iter = *me();
+    void lastChild()
+    {
+    	auto& self = this->self();
 
-    	BigInt rank0 = iter.nodeIdx() + 1 - node_rank_;
+    	BigInt rank0 = self.rank0();
 
-    	BigInt drank = iter.iter().selectFw(node_rank_ + 1 - rank0, 0);
-
-    	node_rank_ = iter.nodeIdx() + 1 - (rank0 + drank);
-
-    	iter.skipBw();
+    	self.selectFw(self.rank1() + 1 - rank0, 0);
+    	self--;
     }
+
+    void check() const {
+    	auto& self = this->self();
+
+		BigInt gpos  	= self.gpos();
+		BigInt pos 		= self.pos();
+
+		MEMORIA_ASSERT(gpos, ==, pos);
+
+		BigInt rank1_a 	= self.rank(1);
+		BigInt rank1_b	= self.cache().rank1();
+
+		if (rank1_a != rank1_b)
+		{
+			cout<<"Check: "<<rank1_a<<" "<<rank1_b<<" "<<self.pos()<<endl;
+		}
+
+		MEMORIA_ASSERT(rank1_a, ==, rank1_b);
+    }
+
+
+
 
 //    IDataAdapter<WrappedIterator> source(BigInt length = -1) const
 //    {

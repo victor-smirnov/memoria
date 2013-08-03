@@ -46,6 +46,17 @@ public:
     	pos_ 	+= pos;
     	rank1_	+= rank1;
     }
+
+    void sub(BigInt pos, BigInt rank1)
+    {
+    	pos_ 	-= pos;
+    	rank1_	-= rank1;
+    }
+
+    void setRank1(BigInt rank1)
+    {
+    	rank1_ = rank1;
+    }
 };
 
 

@@ -72,11 +72,11 @@ struct BTTypes<Profile, memoria::LOUDS >: BTTypes<Profile, memoria::Sequence<1, 
 				memoria::louds::ItrApiName
 	>::Result                                           						IteratorPartsList;
 
-//  FIXIT
-//	template <typename Iterator, typename Container>
-//	struct IteratorCacheFactory {
-//		typedef memoria::map::MapIteratorPrefixCache<Iterator, Container> Type;
-//	};
+
+	template <typename Iterator, typename Container>
+	struct IteratorCacheFactory {
+		typedef memoria::louds::LOUDSIteratorCache<Iterator, Container> Type;
+	};
 
 
 

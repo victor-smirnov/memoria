@@ -56,6 +56,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 		void stream(const PkdFSSeq<SeqTypes>* seq, Int idx)
 		{
 			MEMORIA_ASSERT_TRUE(seq != nullptr);
+
+			if (idx >= seq->size()) {
+				int a = 0; a++;
+			}
+
 			MEMORIA_ASSERT(idx, <, seq->size());
 
 			symbol_ = seq->symbol(idx);

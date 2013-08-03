@@ -53,8 +53,8 @@ struct CtrNameDeclarator<9>: TypeDef<Sequence<8, true>> {};
 //template <>
 //struct CtrNameDeclarator<11>: TypeDef<Sequence<4, true>> {};
 //
-//template <>
-//struct CtrNameDeclarator<15>: TypeDef<LOUDS> {};
+template <>
+struct CtrNameDeclarator<15>: TypeDef<LOUDS> {};
 
 template <>
 struct CtrNameDeclarator<16>: TypeDef<CMap<BigInt, BigInt>> {};

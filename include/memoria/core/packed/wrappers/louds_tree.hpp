@@ -23,8 +23,8 @@ class LoudsTree: public PackedFSESequence<1> {
 	typedef PackedFSESequence<1>												Base;
 
 public:
-	static const size_t END														= static_cast<size_t>(-1);
-	typedef std::pair<size_t, size_t> 											LevelRange;
+	static const Int END														= static_cast<Int>(-1);
+	typedef std::pair<Int, Int> 											LevelRange;
 	typedef vector<LevelRange>													SubtreeRange;
 
 public:
@@ -32,7 +32,7 @@ public:
 	LoudsTree(): Base()
 	{}
 
-	LoudsTree(size_t capacity): Base(capacity)
+	LoudsTree(Int capacity): Base(capacity)
 	{}
 
 	LoudsTree(const MyType& other): Base(other)
@@ -41,15 +41,15 @@ public:
 	LoudsTree(MyType&& other): Base(other)
 	{}
 
-	size_t parent(size_t idx) const
+	Int parent(Int idx) const
 	{
-		size_t rank = rank0(idx);
+		Int rank = rank0(idx);
 		return select1(rank);
 	}
 
-	size_t firstChild(size_t idx) const
+	Int firstChild(Int idx) const
 	{
-		size_t idx1 = firstChildNode(idx);
+		Int idx1 = firstChildNode(idx);
 
 		if ((*this)[idx1] == 1)
 		{
@@ -60,17 +60,17 @@ public:
 		}
 	}
 
-	size_t firstChildNode(size_t idx) const
+	Int firstChildNode(Int idx) const
 	{
-		size_t rank = rank1(idx);
-		size_t idx1 = select0(rank) + 1;
+		Int rank = rank1(idx);
+		Int idx1 = select0(rank) + 1;
 
 		return idx1;
 	}
 
-	size_t lastChild(size_t idx) const
+	Int lastChild(Int idx) const
 	{
-		size_t idx1 = lastChildNode(idx);
+		Int idx1 = lastChildNode(idx);
 
 		if ((*this)[idx1] == 1)
 		{
@@ -81,17 +81,17 @@ public:
 		}
 	}
 
-	size_t lastChildNode(size_t idx) const
+	Int lastChildNode(Int idx) const
 	{
-		size_t rank = rank1(idx) + 1;
-		size_t idx1 = select0(rank) - 1;
+		Int rank = rank1(idx) + 1;
+		Int idx1 = select0(rank) - 1;
 
 		return idx1;
 	}
 
 
 
-	size_t nextSibling(size_t idx) const
+	Int nextSibling(Int idx) const
 	{
 		if ((*this)[idx + 1] == 1)
 		{
@@ -102,7 +102,7 @@ public:
 		}
 	}
 
-	size_t prevSibling(size_t idx) const
+	Int prevSibling(Int idx) const
 	{
 		if ((*this)[idx - 1] == 1)
 		{
@@ -113,18 +113,18 @@ public:
 		}
 	}
 
-	size_t appendUDS(size_t value)
+	Int appendUDS(Int value)
 	{
-		size_t idx = Base::size();
+		Int idx = Base::size();
 
 		writeUDS(idx, value);
 
 		return value + 1;
 	}
 
-	size_t writeUDS(size_t idx, size_t value)
+	Int writeUDS(Int idx, Int value)
 	{
-		size_t max = idx + value;
+		Int max = idx + value;
 
 		for (; idx < max; idx++)
 		{
@@ -136,87 +136,87 @@ public:
 		return idx;
 	}
 
-	size_t select1(size_t rank) const
+	Int select1(Int rank) const
 	{
 		return select(rank, 1);
 	}
 
-	size_t select1Fw(size_t start, size_t rank) const {
+	Int select1Fw(Int start, Int rank) const {
 		return selectFw(start, rank, 1);
 	}
 
-	size_t select1Bw(size_t start, size_t rank) const {
+	Int select1Bw(Int start, Int rank) const {
 		return selectBw(start, rank, 1);
 	}
 
 
-	size_t select0(size_t rank) const
+	Int select0(Int rank) const
 	{
 		return select(rank, 0);
 	}
 
-	size_t select(size_t rank, Int symbol) const
+	Int select(Int rank, Int symbol) const
 	{
 		SelectResult result = Base::sequence_->selectFw(symbol, rank);
 		return result.is_found() ? result.idx() : END;
 	}
 
-	size_t selectFw(size_t start, size_t rank, Int symbol) const
+	Int selectFw(Int start, Int rank, Int symbol) const
 	{
 		SelectResult result = Base::sequence_->selectFw(start, symbol, rank);
 		return result.is_found() ? result.idx() : Base::sequence_->size();
 	}
 
-	size_t selectBw(size_t start, size_t rank, Int symbol) const
+	Int selectBw(Int start, Int rank, Int symbol) const
 	{
 		SelectResult result = Base::sequence_->selectBw(start, symbol, rank);
 		return result.is_found() ? result.idx() : END;
 	}
 
 
-	size_t rank1(size_t idx) const
+	Int rank1(Int idx) const
 	{
 		return Base::sequence_->rank(idx + 1, 1);
 	}
 
-	size_t rank1(size_t start, size_t end) const
+	Int rank1(Int start, Int end) const
 	{
 		return Base::sequence_->rank(start, end + 1, 1);
 	}
 
-	size_t rank0(size_t idx) const
+	Int rank0(Int idx) const
 	{
 		return Base::sequence_->rank(idx + 1, 0);
 	}
 
-	size_t rank1() const {
+	Int rank1() const {
 		return sequence_->rank(1);
 	}
 
-	size_t rank0() const {
+	Int rank0() const {
 		return sequence_->rank(0);
 	}
 
-	size_t nodes() const {
+	Int nodes() const {
 		return rank1();
 	}
 
 
-	bool isLeaf(size_t node) const
+	bool isLeaf(Int node) const
 	{
 		return (*this)[node] == 0;
 	}
 
-	bool isNotLeaf(size_t node) const
+	bool isNotLeaf(Int node) const
 	{
 		return (*this)[node] != 0;
 	}
 
-	LoudsTree getSubtree(size_t node) const
+	LoudsTree getSubtree(Int node) const
 	{
-		size_t tree_size = 0;
+		Int tree_size = 0;
 
-		this->traverseSubtree(node, [&tree_size](size_t left, size_t right, size_t level)
+		this->traverseSubtree(node, [&tree_size](Int left, Int right, Int level)
 		{
 			if (left <= right)
 			{
@@ -226,7 +226,7 @@ public:
 
 		LoudsTree tree(tree_size);
 
-		this->traverseSubtree(node, [&tree, this](size_t left, size_t right, size_t level)
+		this->traverseSubtree(node, [&tree, this](Int left, Int right, Int level)
 		{
 			if (left <= right)
 			{
@@ -245,22 +245,22 @@ public:
 		return tree;
 	}
 
-	size_t levels(size_t node = 0) const
+	Int levels(Int node = 0) const
 	{
-		size_t level_counter = 0;
+		Int level_counter = 0;
 
-		this->traverseSubtree(node, [&level_counter](size_t left, size_t right, size_t level) {
+		this->traverseSubtree(node, [&level_counter](Int left, Int right, Int level) {
 			level_counter++;
 		});
 
 		return level_counter;
 	}
 
-	SubtreeRange getSubtreeRange(size_t node) const
+	SubtreeRange getSubtreeRange(Int node) const
 	{
 		SubtreeRange range;
 
-		this->traverseSubtree(node, [&range](size_t left, size_t right, size_t level)	{
+		this->traverseSubtree(node, [&range](Int left, Int right, Int level)	{
 			if (left <= right)
 			{
 				range.push_back(LevelRange(left, right));
@@ -270,11 +270,11 @@ public:
 		return range;
 	}
 
-	size_t getSubtreeSize(size_t node) const
+	Int getSubtreeSize(Int node) const
 	{
-		size_t count = 0;
+		Int count = 0;
 
-		this->traverseSubtree(node, [&count, this](size_t left, size_t right, size_t level) {
+		this->traverseSubtree(node, [&count, this](Int left, Int right, Int level) {
 			if (level == 0) {
 				count += this->rank1(left, right - 1);
 			}
@@ -286,13 +286,13 @@ public:
 		return count;
 	}
 
-	void insertAt(size_t tgt_node, const LoudsTree& tree)
+	void insertAt(Int tgt_node, const LoudsTree& tree)
 	{
 		MyType& me = *this;
 
 		bool insert_at_leaf = me.isLeaf(tgt_node);
 
-		tree.traverseSubtree(0, [&](size_t left, size_t right, size_t level)
+		tree.traverseSubtree(0, [&](Int left, Int right, Int level)
 		{
 			if (insert_at_leaf)
 			{
@@ -330,7 +330,7 @@ public:
 	}
 
 
-	void removeSubtree(size_t tgt_node)
+	void removeSubtree(Int tgt_node)
 	{
 		MyType& me = *this;
 
@@ -338,7 +338,7 @@ public:
 		{
 			if (me.isNotLeaf(tgt_node))
 			{
-				me.traverseSubtreeReverse(tgt_node, [&me](size_t left, size_t right, size_t level){
+				me.traverseSubtreeReverse(tgt_node, [&me](Int left, Int right, Int level){
 					me.remove(left, right - left + (level > 0 ? 1 : 0));
 				});
 
@@ -352,13 +352,13 @@ public:
 	}
 
 	template <typename Functor>
-	void traverseSubtree(size_t node, Functor&& fn) const
+	void traverseSubtree(Int node, Functor&& fn) const
 	{
 		traverseSubtree(node, node, fn);
 	}
 
 	template <typename Functor>
-	void traverseSubtreeReverse(size_t node, Functor&& fn) const
+	void traverseSubtreeReverse(Int node, Functor&& fn) const
 	{
 		traverseSubtreeReverse(node, node, fn);
 	}
@@ -383,13 +383,13 @@ private:
 		src.reset();
 	}
 
-	void checkCapacity(size_t requested)
+	void checkCapacity(Int requested)
 	{
 
 	}
 
 	template <typename Functor>
-	void traverseSubtree(size_t left_node, size_t right_node, Functor&& fn, size_t level = 0) const
+	void traverseSubtree(Int left_node, Int right_node, Functor&& fn, Int level = 0) const
 	{
 		const MyType& tree = *this;
 
@@ -400,7 +400,7 @@ private:
 
 		if (!left_leaf || !right_leaf || !is_end(left_node, right_node))
 		{
-			size_t left_tgt;
+			Int left_tgt;
 			if (left_leaf)
 			{
 				left_tgt = tree.select1Fw(left_node, 1);
@@ -409,7 +409,7 @@ private:
 				left_tgt = left_node;
 			}
 
-			size_t right_tgt;
+			Int right_tgt;
 			if (right_leaf)
 			{
 				right_tgt = tree.select1Bw(right_node, 1);
@@ -420,8 +420,8 @@ private:
 
 			if (left_tgt < tree.size())
 			{
-				size_t left_child 	= tree.firstChildNode(left_tgt);
-				size_t right_child 	= tree.lastChildNode(right_tgt);
+				Int left_child 	= tree.firstChildNode(left_tgt);
+				Int right_child 	= tree.lastChildNode(right_tgt);
 
 				traverseSubtree(left_child, right_child, fn, level + 1);
 			}
@@ -430,7 +430,7 @@ private:
 
 
 	template <typename Functor>
-	void traverseSubtreeReverse(size_t left_node, size_t right_node, Functor&& fn, size_t level = 0) const
+	void traverseSubtreeReverse(Int left_node, Int right_node, Functor&& fn, Int level = 0) const
 	{
 		const MyType& tree = *this;
 
@@ -439,7 +439,7 @@ private:
 
 		if (!left_leaf || !right_leaf || !is_end(left_node, right_node))
 		{
-			size_t left_tgt;
+			Int left_tgt;
 			if (left_leaf)
 			{
 				left_tgt = tree.select1Fw(left_node, 1);
@@ -448,7 +448,7 @@ private:
 				left_tgt = left_node;
 			}
 
-			size_t right_tgt;
+			Int right_tgt;
 			if (right_leaf)
 			{
 				right_tgt = tree.select1Bw(right_node, 1);
@@ -459,8 +459,8 @@ private:
 
 			if (left_tgt < tree.size())
 			{
-				size_t left_child 	= tree.firstChildNode(left_tgt);
-				size_t right_child 	= tree.lastChildNode(right_tgt);
+				Int left_child 	= tree.firstChildNode(left_tgt);
+				Int right_child 	= tree.lastChildNode(right_tgt);
 
 				traverseSubtreeReverse(left_child, right_child, fn, level + 1);
 			}
@@ -469,7 +469,7 @@ private:
 		fn(left_node, right_node + 1, level);
 	}
 
-	bool is_end(size_t left_node, size_t right_node) const
+	bool is_end(Int left_node, Int right_node) const
 	{
 		return left_node >= right_node;
 	}

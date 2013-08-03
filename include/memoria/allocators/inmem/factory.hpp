@@ -15,7 +15,7 @@
 #include <memoria/containers/vector/vctr_factory.hpp>
 #include <memoria/containers/vector_map/vmap_factory.hpp>
 #include <memoria/containers/seq_dense/seqd_factory.hpp>
-//#include <memoria/containers/louds/louds_factory.hpp>
+#include <memoria/containers/louds/louds_factory.hpp>
 
 #include <memoria/core/container/metadata_repository.hpp>
 

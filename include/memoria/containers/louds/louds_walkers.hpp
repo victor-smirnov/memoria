@@ -9,7 +9,7 @@
 #define MEMORIA_CONTAINERS_LOUDS_WALKERS_HPP_
 
 #include <memoria/containers/louds/walkers/louds_edge_walkers.hpp>
-#include <memoria/containers/louds/walkers/louds_range_walkers.hpp>
+#include <memoria/containers/louds/walkers/louds_skip_walkers.hpp>
 #include <memoria/containers/louds/walkers/louds_rank_walkers.hpp>
 #include <memoria/containers/louds/walkers/louds_select_walkers.hpp>
 

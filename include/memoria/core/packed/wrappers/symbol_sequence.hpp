@@ -274,7 +274,7 @@ public:
 
     ConstSymbolAccessor operator[](Int idx) const
     {
-    	return sequence_->symbol(idx);
+    	return static_cast<const Seq*>(sequence_)->symbol(idx);
     }
 
     SourceAdapter source(Int idx, Int length) const
@@ -305,7 +305,7 @@ public:
 
     void insert(Int at, IDataSrc& src)
     {
-    	sequence_->insert(src, at, src.getRemainder());
+    	sequence_->insert(&src, at, src.getRemainder());
     }
 
     void insert(Int at, Int symbol)
@@ -326,7 +326,7 @@ public:
     void append(IDataSrc& src)
     {
     	Int at = sequence_->size();
-    	insert(src, at, src.getRemainder());
+    	sequence_->insert(&src, at, src.getRemainder());
     }
 
     void append(Int length, std::function<Symbol ()> fn)
