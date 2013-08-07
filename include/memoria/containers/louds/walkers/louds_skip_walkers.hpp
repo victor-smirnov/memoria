@@ -81,8 +81,6 @@ public:
 
 		iter.cache().add(this->sum_, rank1_);
 
-		iter.check();
-
 		return this->sum_;
 	}
 };
@@ -156,8 +154,6 @@ public:
 		else {
 			iter.cache().setup(-1, 0);
 		}
-
-		iter.check();
 
 		return this->sum_;
 	}

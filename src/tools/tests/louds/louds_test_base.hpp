@@ -26,7 +26,7 @@ class LoudsTestBase: public SPTestTask {
     typedef LoudsTestBase                                                     	MyType;
 
 protected:
-    typedef typename SCtrTF<LOUDS>::Type 										Ctr;
+    typedef typename SCtrTF<LOUDS<>>::Type 										Ctr;
     typedef typename Ctr::Iterator 												Iterator;
 
 public:

@@ -438,40 +438,6 @@ public:
 		}
 	}
 
-	void assertAligns1() const
-	{
-		MEMORIA_ASSERT(T2T<size_t>(metadata()) % 8, ==, 0);
-
-		if (has_index()) {
-			MEMORIA_ASSERT(T2T<size_t>(index()) % 8, ==, 0);
-		}
-
-		MEMORIA_ASSERT(T2T<size_t>(symbols()) % 8, ==, 0);
-	}
-
-	void assertAligns2() const
-	{
-		MEMORIA_ASSERT(T2T<size_t>(metadata()) % 8, ==, 0);
-
-		if (has_index()) {
-			MEMORIA_ASSERT(T2T<size_t>(index()) % 8, ==, 0);
-		}
-
-		MEMORIA_ASSERT(T2T<size_t>(symbols()) % 8, ==, 0);
-	}
-
-
-	void assertAligns3() const
-	{
-		MEMORIA_ASSERT(T2T<size_t>(metadata()) % 8, ==, 0);
-
-		if (has_index()) {
-			MEMORIA_ASSERT(T2T<size_t>(index()) % 8, ==, 0);
-		}
-
-		MEMORIA_ASSERT(T2T<size_t>(symbols()) % 8, ==, 0);
-	}
-
 	void insert(IData* data, Int pos, Int length)
 	{
 		IDataSource<Value>* tgt = static_cast<IDataSource<Value>*>(data);
@@ -616,6 +582,10 @@ public:
 		}
 	}
 
+	Values sums2() const {
+		return sums();
+	}
+
 	Values sums(Int to) const
 	{
 		if (has_index())
@@ -658,6 +628,37 @@ public:
 	{
 		return sums(to) - sums(from);
 	}
+
+	Values sums2(Int from, Int to) const
+	{
+		return sums(to) - sums(from);
+	}
+
+	void sums(Int from, Int to, Values& values) const
+	{
+		values += sums(from, to);
+	}
+
+//	void sums(Int from, Int to, Values2& values) const
+//	{
+//		values[0] += to - from;
+//		values.sumUp(sums(from, to));
+//	}
+
+	void sums(Values& values) const
+	{
+		values += sums();
+	}
+
+//	void sums(Values2& values) const
+//	{
+//		values[0] += size();
+//		values.sumUp(sums());
+//	}
+
+
+
+
 
 	Values sum(Int from, Int to) const {
 		return sums(from, to);

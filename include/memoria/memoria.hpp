@@ -54,10 +54,13 @@ struct CtrNameDeclarator<9>: TypeDef<Sequence<8, true>> {};
 //struct CtrNameDeclarator<11>: TypeDef<Sequence<4, true>> {};
 //
 template <>
-struct CtrNameDeclarator<15>: TypeDef<LOUDS> {};
+struct CtrNameDeclarator<15>: TypeDef<LOUDS<>> {};
 
 template <>
-struct CtrNameDeclarator<16>: TypeDef<CMap<BigInt, BigInt>> {};
+struct CtrNameDeclarator<16>: TypeDef<LOUDS<FLabel<UByte>, VLabel<BigInt, Granularity::Bit, Indexed::Yes>>> {};
+
+template <>
+struct CtrNameDeclarator<17>: TypeDef<CMap<BigInt, BigInt>> {};
 
 
 }

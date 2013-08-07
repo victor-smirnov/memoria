@@ -28,7 +28,7 @@ template <
 	template <typename, Int> class LeafPackedTypeFactory,
 	Int NodeIndexes_,
 	Int LeafIndexes_ = NodeIndexes_,
-	typename Value_ = EmptyType
+	typename Value_ = BigInt
 >
 struct StreamDescr {
 	static const Int NodeIndexes = NodeIndexes_;

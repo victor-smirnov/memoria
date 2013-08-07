@@ -104,8 +104,6 @@ public:
 
 		iter.cache().add(pos_, rank1);
 
-		iter.check();
-
 		return pos_;
 	}
 };
@@ -195,8 +193,6 @@ public:
 		else {
 			iter.cache().setup(-1, 0);
 		}
-
-		iter.check();
 
 		return pos_;
 	}

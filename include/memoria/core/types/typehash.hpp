@@ -106,8 +106,36 @@ template <> struct TypeHash<Root>: UIntValue<1400> {};
 template <Int BitsPerSymbol, bool Dense>
 struct TypeHash<Sequence<BitsPerSymbol, Dense>>: UIntValue<HashHelper<1500, BitsPerSymbol, Dense>::Value> {};
 
-template <>
-struct TypeHash<LOUDS>: UIntValue<1600> {};
+template <typename T, Indexed sr>
+struct TypeHash<FLabel<T, sr> >: UIntValue<HashHelper<1610, (UInt)sr>::Value> {};
+
+template <Int BitsPerSymbol>
+struct TypeHash<FBLabel<BitsPerSymbol>>: UIntValue<HashHelper<1620, BitsPerSymbol>::Value> {};
+
+template <typename T, Indexed sr, Granularity gr>
+struct TypeHash<VLabel<T, gr, sr> >: UIntValue<HashHelper<1630, (UInt)sr, (UInt)gr>::Value> {};
+
+
+template <typename... LabelDescriptors>
+struct TypeHash<LOUDS<LabelDescriptors...>> {
+private:
+	typedef typename TypeToValueList<TypeList<LabelDescriptors...>>::Type 	ValueList;
+	typedef typename AppendValueTool<UInt, 1600, ValueList>::Result			TaggedValueList;
+
+public:
+	static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
+};
+
+
+template <typename... LabelDescriptors>
+struct TypeHash<LOUDS<TypeList<LabelDescriptors...>>> {
+private:
+	typedef typename TypeToValueList<TypeList<LabelDescriptors...>>::Type 	ValueList;
+	typedef typename AppendValueTool<UInt, 1600, ValueList>::Result			TaggedValueList;
+
+public:
+	static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
+};
 
 
 template <typename CtrName>

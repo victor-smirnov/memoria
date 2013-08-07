@@ -27,10 +27,22 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
+	typedef Ctr<typename Types::CtrTypes>                      					Container;
+
+	typedef typename Container::Allocator                                       Allocator;
+	typedef typename Container::NodeBaseG                                       NodeBaseG;
+
+	typedef typename Container::Accumulator                               		Accumulator;
+	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
+	typedef typename Container::Position										Position;
+	typedef typename Container::Types::LabelsTuple								LabelsTuple;
+
     BigInt node_rank() const
 	{
 		auto& self = this->self();
-		return self.cache().rank1() + (self.symbol() == 1);
+//		return self.cache().rank1() + (self.symbol() == 1);
+
+		return self.ranki(1);
     }
 
     Int value() const
@@ -134,16 +146,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     {
     	auto& self = this->self();
 
-    	self.check();
-
     	BigInt rank0 = self.rank0();
-
-    	self.check();
 
     	self.selectFw(self.rank1() - rank0, 0);
     	self++;
-
-    	self.check();
     }
 
     void lastChild()
@@ -156,26 +162,63 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     	self--;
     }
 
-    void check() const {
+    void parent()
+    {
     	auto& self = this->self();
 
-		BigInt gpos  	= self.gpos();
-		BigInt pos 		= self.pos();
+    	self = self.parent(self.node());
+    }
 
-		MEMORIA_ASSERT(gpos, ==, pos);
+//    void check() const {
+//    	auto& self = this->self();
+//
+//		BigInt gpos  	= self.gpos();
+//		BigInt pos 		= self.pos();
+//
+//		MEMORIA_ASSERT(gpos, ==, pos);
+//
+//		BigInt rank1_a 	= self.rank(1);
+//		BigInt rank1_b	= self.cache().rank1();
+//
+//		if (rank1_a != rank1_b)
+//		{
+//			cout<<"Check: "<<rank1_a<<" "<<rank1_b<<" "<<self.pos()<<endl;
+//		}
+//
+//		MEMORIA_ASSERT(rank1_a, ==, rank1_b);
+//    }
 
-		BigInt rank1_a 	= self.rank(1);
-		BigInt rank1_b	= self.cache().rank1();
+    Int label_idx() const
+    {
+    	auto& self = this->self();
+    	return self.label_idx(self.idx());
+    }
 
-		if (rank1_a != rank1_b)
-		{
-			cout<<"Check: "<<rank1_a<<" "<<rank1_b<<" "<<self.pos()<<endl;
-		}
-
-		MEMORIA_ASSERT(rank1_a, ==, rank1_b);
+    Int label_idx(Int node_idx) const
+    {
+    	auto& self = this->self();
+    	return self.local_rank(node_idx, 1);
     }
 
 
+
+    LabelsTuple labels() const
+    {
+    	auto& self = this->self();
+    	return self.ctr().getLabels(self.leaf(), self.label_idx());
+    }
+
+
+
+
+    void insertNode(const LabelsTuple& tuple)
+    {
+    	auto& self = this->self();
+
+    	self.ctr().insertNode(self, tuple);
+    	self.firstChild();
+    	self.ctr().insertZero(self);
+    }
 
 
 //    IDataAdapter<WrappedIterator> source(BigInt length = -1) const

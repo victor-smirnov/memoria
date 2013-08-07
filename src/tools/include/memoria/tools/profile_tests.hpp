@@ -59,6 +59,9 @@ public:
     	StoreAllocator(allocator, getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
     }
 
+    virtual void LoadResource(Allocator& allocator, StringRef file_name, Int mark) const {
+    	LoadAllocator(allocator, getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
+    }
 
 
     virtual String Store(Allocator& allocator) const

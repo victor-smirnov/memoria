@@ -182,10 +182,28 @@ public:
 		return vals;
 	}
 
+	Values sums2(Int from, Int to) const {
+		return sums(from, to);
+	}
 
 	Values sums() const
 	{
 		return Values({size_});
+	}
+
+	Values sums2() const
+	{
+		return Values({size_});
+	}
+
+	void sums(Int from, Int to, Values& values) const
+	{
+		values += sums(from, to);
+	}
+
+	void sums(Values& values) const
+	{
+		values += sums();
 	}
 
 
@@ -223,7 +241,7 @@ public:
 		enlarge(-items_num);
 	}
 
-	void removeSpace(Int room_start, Int room_end)
+	void remove(Int room_start, Int room_end)
 	{
 		MEMORIA_ASSERT(room_start, >=, 0);
 		MEMORIA_ASSERT(room_end,   >=, room_start);
@@ -247,9 +265,18 @@ public:
 		shrink(max_size_ - size_);
 	}
 
+	void removeSpace(Int room_start, Int room_end) {
+		remove(room_start, room_end);
+	}
+
 	void insertSpace(Int room_start, Int room_length)
 	{
 		MEMORIA_ASSERT(room_start, >=, 0);
+
+		if (room_start > size_) {
+			int a = 0; a++;
+		}
+
 		MEMORIA_ASSERT(room_start, <=, size_);
 
 		if (capacity() < room_length)
@@ -356,6 +383,12 @@ public:
 			pos 			+= processed;
 			to_write_local 	-= processed;
 		}
+	}
+
+	void insert(Int pos, Value val)
+	{
+		insertSpace(pos, 1);
+		value(pos) = val;
 	}
 
 	void update(IData* data, Int pos, Int length)

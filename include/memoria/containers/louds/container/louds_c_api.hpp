@@ -13,22 +13,23 @@
 #include <memoria/containers/louds/louds_names.hpp>
 #include <memoria/containers/louds/louds_tools.hpp>
 
-#include <memoria/prototypes/ctr_wrapper/iterator.hpp>
-
 #include <memoria/core/packed/wrappers/louds_tree.hpp>
 
 #include <functional>
 
-namespace memoria    {
+namespace memoria {
 
-using namespace louds;
-using namespace std;
+using louds::LoudsNode;
+using louds::LoudsNodeRange;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
 	typedef typename Base::Iterator 											Iterator;
 
-
+	Iterator findNode(const LoudsNode& node)
+	{
+		return self().seek(node.node());
+	}
 
 	LoudsNode rootNode()
 	{
@@ -62,9 +63,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 	{
 		Iterator iter = firstChild(node);
 
-		iter().skipFw(child_num);
-
-		iter.node_rank() += child_num;
+		iter.skipFw(child_num);
 
 		return iter;
 	}
@@ -132,8 +131,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 		BigInt count = 0;
 
 		this->traverseSubtree(node, [&count](const Iterator& left, BigInt length, Int level) {
-//			cout<<"TS: "<<left.pos()<<" "<<left.cpos()<<" "<<length<<" "<<level<<endl;
-
 			if (level == 0)
 			{
 				count += left.rank1(length - 1);

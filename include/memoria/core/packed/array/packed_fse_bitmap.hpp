@@ -109,6 +109,19 @@ public:
 		return BitmapAccessor<const Value*, Value, BitsPerSymbol>(buffer_, idx);
 	}
 
+
+	template <typename T, Int I>
+	void sums(Int from, Int to, StaticVector<T, I>& values) const
+	{
+		values[0] += to - from;
+	}
+
+	template <typename T, Int I>
+	void sums(StaticVector<T, I>& values) const
+	{
+		values[0] += size();
+	}
+
 	Value* data() {
 		return buffer_;
 	}

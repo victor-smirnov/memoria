@@ -357,19 +357,21 @@ template <
 	typename Types,
 	template <typename, Int> class NonLeafStructTF,
 	template <typename, Int> class LeafStructTF,
-	Int Indexes,
+	Int Indexes1,
+	Int Indexes2,
+	typename Value,
 	typename... Tail,
 	Int Idx
 >
 class PackedStructListBuilder<
 	Types,
 	TypeList<
-		StreamDescr<NonLeafStructTF, LeafStructTF, Indexes>,
+		StreamDescr<NonLeafStructTF, LeafStructTF, Indexes1, Indexes2, Value>,
 		Tail...
 	>,
 	Idx
 > {
-	typedef TypeList<StreamDescr<NonLeafStructTF, LeafStructTF, Indexes>, Tail...> List;
+	typedef TypeList<StreamDescr<NonLeafStructTF, LeafStructTF, Indexes1, Indexes2, Value>, Tail...> List;
 
 public:
 	typedef typename MergeLists<
@@ -504,6 +506,94 @@ public:
 		return Dispatcher::dispatchStatic2Rtn(false, true, NodeFn(), block_size_, sizes, stream);
 	}
 };
+
+template <typename T>
+struct ExtendIntType {
+	typedef T Type;
+};
+
+template <>
+struct ExtendIntType<Short> {
+	typedef BigInt Type;
+};
+
+template <>
+struct ExtendIntType<Int> {
+	typedef BigInt Type;
+};
+
+
+template <>
+struct ExtendIntType<Byte> {
+	typedef Int Type;
+};
+
+template <>
+struct ExtendIntType<UByte> {
+	typedef Int Type;
+};
+
+
+
+//template <typename Node, typename Fn, Int StreamIdx, typename... Args> struct VarArgStreamHelper1;
+//
+//template <typename Node, typename Fn, Int StreamIdx, typename Arg, typename... Args>
+//struct VarArgStreamHelper1<Node, Fn, StreamIdx, Arg, Args...> {
+//	static void insert(Node* node, Fn&& fn, Int idx, const Arg& arg, Args... rest)
+//	{
+//		node->template processStream<StreamIdx>(fn, idx, arg);
+//		VarArgStreamHelper1<Node, Fn, StreamIdx + 1, Args...>::insert(node, std::forward(fn), idx, rest...);
+//	}
+//};
+//
+//template <typename Node, typename Fn, Int StreamIdx>
+//struct VarArgStreamHelper1<Node, Fn, StreamIdx> {
+//	static void insert(Node* node, Fn&& fn, Int idx) {}
+//};
+
+//template <typename Node, typename Fn, Int StreamIdx> struct VarArgStreamHelper1;
+
+template <typename Node, Int StreamIdx>
+struct VarArgStreamHelper1 {
+
+	template <typename Fn, typename Arg, typename... Args>
+	static void insert(Node* node, Fn&& fn, Int idx, const Arg& arg, Args... rest)
+	{
+		node->template processStream<StreamIdx>(fn, idx, arg);
+		VarArgStreamHelper1<Node, StreamIdx + 1>::template insert(node, std::move(fn), idx, rest...);
+	}
+
+	template <typename Fn>
+	static void insert(Node* node, Fn&& fn, Int idx) {}
+};
+
+//template <typename Node, typename Fn, Int StreamIdx>
+//struct VarArgStreamHelper1<Node, Fn, StreamIdx> {
+//	static void insert(Node* node, Fn&& fn, Int idx) {}
+//};
+
+
+
+
+template <typename Node, typename Fn, Int StreamIdx, typename... Args> struct VarArgStreamHelper2;
+
+template <typename Node, typename Fn, Int StreamIdx, typename Arg, typename... Args>
+struct VarArgStreamHelper2<Node, Fn, StreamIdx, Arg, Args...> {
+	static void insert(Node* node, Fn&& fn, Int idx1, Int idx2, const Arg& arg, Args... rest)
+	{
+		node->template processStream<StreamIdx>(fn, idx1, idx2, arg);
+		VarArgStreamHelper2<Node, Fn, StreamIdx + 1, Args...>::insert(node, std::forward(fn), idx1, idx2, rest...);
+	}
+};
+
+template <typename Node, typename Fn, Int StreamIdx>
+struct VarArgStreamHelper2<Node, Fn, StreamIdx> {
+	static void insert(Node* node, Fn&& fn, Int idx1, Int idx2) {}
+};
+
+
+
+
 
 
 }

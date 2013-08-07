@@ -13,6 +13,8 @@
 #include <iostream>
 #include <typeinfo>
 
+
+
 namespace memoria        {
 
 
@@ -75,6 +77,11 @@ struct ValueTraits<EmptyValue> {
 
 
 #undef MEMORIA_VALUE_TRAITS
+
+
+
+
+
 
 } //memoria
 

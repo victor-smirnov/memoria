@@ -49,7 +49,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
 		template <Int Idx, typename StreamTypes>
 		void stream(const PkdFSSeq<StreamTypes>* seq, Int idx)
 		{
-			rank_ += seq->rank(0, idx, symbol_);
+			if (seq != nullptr) {
+				rank_ += seq->rank(0, idx, symbol_);
+			}
 		}
 
 		template <typename NodeTypes, bool root>
@@ -61,12 +63,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
 		template <typename NodeTypes, bool root>
 		void treeNode(const TreeNode<TreeMapNode, NodeTypes, root, false>* node, Int idx)
 		{
-			node->sum(0, symbol_ + 1, 0, idx, rank_);
+			if (node != nullptr)
+			{
+				node->sum(0, symbol_ + 1, 0, idx, rank_);
+			}
 		}
 	};
 
 	BigInt rank(Int symbol) const;
 	BigInt ranki(Int symbol) const;
+
+	BigInt local_rank(Int idx, Int symbol) const;
 
 	BigInt rank(BigInt delta, Int symbol);
 	BigInt rankFw(BigInt delta, Int symbol);
@@ -92,6 +99,19 @@ BigInt M_TYPE::rank(Int symbol) const
 
 	return fn.rank_;
 }
+
+M_PARAMS
+BigInt M_TYPE::local_rank(Int idx, Int symbol) const
+{
+	auto& self = this->self();
+
+	RankFn fn(symbol);
+
+	LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
+
+	return fn.rank_;
+}
+
 
 M_PARAMS
 BigInt M_TYPE::ranki(Int symbol) const

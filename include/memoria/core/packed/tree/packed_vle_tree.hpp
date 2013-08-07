@@ -58,7 +58,7 @@ public:
 	static const UInt VERSION               									= 1;
 
 	typedef Types_																Types;
-	typedef PkdVTree<Types>               									MyType;
+	typedef PkdVTree<Types>               										MyType;
 
 	typedef PackedAllocator 													Allocator;
 
@@ -89,6 +89,7 @@ public:
 	typedef core::StaticVector<Int, Blocks>										Dimension;
 	typedef core::StaticVector<Dimension, 2>									BlockRange;
 	typedef core::StaticVector<IndexValue, Blocks>								Values;
+	typedef core::StaticVector<IndexValue, Blocks + 1>							Values2;
 
 	typedef PackedTreeTools<BranchingFactor, ValuesPerBranch>					TreeTools;
 
@@ -528,6 +529,11 @@ public:
 	{
 		const auto* values_ = values();
 
+		if (idx >= raw_size())
+		{
+			int a = 0; a++;
+		}
+
 		MEMORIA_ASSERT(idx, >=, 0);
 		MEMORIA_ASSERT(idx, <, raw_size());
 
@@ -535,12 +541,6 @@ public:
 
 		Codec codec;
 		Value value;
-
-//		if (pos  == data_size()) {
-//			dump();
-//
-//			Int pos2 = value_offset(idx);
-//		}
 
 		MEMORIA_ASSERT(pos, <, data_size());
 
@@ -818,6 +818,9 @@ public:
 		return index_size() > 0;
 	}
 
+	bool has_index_layout() const {
+		return element_size(LAYOUT) > 0;
+	}
 
 
 
@@ -953,7 +956,7 @@ public:
 		return starts_i;
 	}
 
-	void removeSpace(Int start, Int end)
+	void remove(Int start, Int end)
 	{
 		Int size = this->size();
 		Int max  = this->data_size();
@@ -1011,6 +1014,10 @@ public:
 		else {
 			clear();
 		}
+	}
+
+	void removeSpace(Int start, Int end) {
+		remove(start, end);
 	}
 
 
@@ -1177,6 +1184,11 @@ public:
 		return cnt;
 	}
 
+	void insert(Int idx, const Values& values)
+	{
+		insertData(&values, idx, 1);
+	}
+
 
 	void insert(IData* data, Int pos, Int length)
 	{
@@ -1329,6 +1341,8 @@ public:
 	}
 
 
+
+
 	Values sums() const
 	{
 		Values vals;
@@ -1339,6 +1353,57 @@ public:
 		}
 
 		return vals;
+	}
+
+	Values2 sums2() const
+	{
+		Values vals;
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			vals[block + 1] = sum(block);
+		}
+
+		vals[0] = size();
+
+		return vals;
+	}
+
+	Values2 sums2(Int from, Int to) const
+	{
+		Values2 vals;
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			vals[block + 1] = sum(block, from, to);
+		}
+
+		vals[0] = to - from;
+
+		return vals;
+	}
+
+
+	void sums(Int from, Int to, Values& values) const
+	{
+		values += sums(from, to);
+	}
+
+	void sums(Int from, Int to, Values2& values) const
+	{
+		values[0] += to - from;
+		values.sumUp(sums(from, to));
+	}
+
+	void sums(Values& values) const
+	{
+		values += sums();
+	}
+
+	void sums(Values2& values) const
+	{
+		values[0] += size();
+		values.sumUp(sums());
 	}
 
 
@@ -1667,7 +1732,7 @@ public:
 	{
 		Base::generateDataEvents(handler);
 
-		handler->startGroup("PACKED_VLE_TREE");
+		handler->startGroup("VLE_TREE");
 
 		const Metadata* meta = this->metadata();
 
@@ -1683,22 +1748,25 @@ public:
 
 		handler->value("MAX_DATA_SIZE", &max_size);
 
-		auto layout = this->index_layout();
-
-		handler->startGroup("INDEX_TREE_LAYOUT", layout[0] + 1);
-
+		if (has_index_layout())
 		{
-			Int value = layout[0];
-			handler->value("LEVELS#", &value);
-		}
+			auto layout = this->index_layout();
 
-		for (Int c = 1; c <= layout[0]; c++)
-		{
-			Int value = layout[c];
-			handler->value("LVL_SIZE", &value);
-		}
+			handler->startGroup("INDEX_TREE_LAYOUT", layout[0] + 1);
 
-		handler->endGroup();
+			{
+				Int value = layout[0];
+				handler->value("LEVELS#", &value);
+			}
+
+			for (Int c = 1; c <= layout[0]; c++)
+			{
+				Int value = layout[c];
+				handler->value("LVL_SIZE", &value);
+			}
+
+			handler->endGroup();
+		}
 
 		handler->startGroup("INDEXES", index_size());
 
@@ -1745,9 +1813,11 @@ public:
 
 		FieldFactory<OffsetsType>::serialize(buf, offsetsBlock(), offsetsBlockLength());
 
-
-		auto layout = this->index_layout();
-		FieldFactory<LayoutValue>::serialize(buf, layout, layout[0] + 1);
+		if (has_index_layout())
+		{
+			auto layout = this->index_layout();
+			FieldFactory<LayoutValue>::serialize(buf, layout, layout[0] + 1);
+		}
 
 		FieldFactory<IndexValue>::serialize(buf, indexes(0), Indexes * meta->index_size());
 
@@ -1766,9 +1836,12 @@ public:
 
 		FieldFactory<OffsetsType>::deserialize(buf, offsetsBlock(), offsetsBlockLength());
 
-		auto layout = this->index_layout();
-		FieldFactory<LayoutValue>::deserialize(buf, layout, 1);
-		FieldFactory<LayoutValue>::deserialize(buf, layout + 1, layout[0]);
+		if (has_index_layout())
+		{
+			auto layout = this->index_layout();
+			FieldFactory<LayoutValue>::deserialize(buf, layout, 1);
+			FieldFactory<LayoutValue>::deserialize(buf, layout + 1, layout[0]);
+		}
 
 		FieldFactory<IndexValue>::deserialize(buf, indexes(0), Indexes * meta->index_size());
 

@@ -149,9 +149,6 @@ using Set = Map<Key, EmptyValue>;
 typedef Set<BigInt, 1>       Set1;
 typedef Set<BigInt, 2>       Set2;
 
-struct DFUDS        {};
-struct LOUDS        {};
-
 template <typename Key, typename Value>
 struct VectorMap    {};
 
@@ -169,10 +166,50 @@ using BitVector = Sequence<1, Dense>;
 template <typename ChildType = void>
 class SmallProfile 	{};
 
+
+struct DFUDS        {};
+
+
+enum class Granularity 	{Bit, Byte};
+enum class Indexed 		{No, Yes};
+
+template <
+	typename LblType,
+	Indexed indexed 		= Indexed::No
+>
+struct FLabel		{};
+
+template <
+	Int BitsPerSymbol
+>
+struct FBLabel		{};
+
+template <
+	typename LblType,
+	Granularity granularity = Granularity::Bit,
+	Indexed indexed 		= Indexed::No
+>
+struct VLabel		{};
+
+
+template <typename... LabelDescriptors>
+struct LOUDS        {};
+
+
+
 /*
  * End of container type names and profiles
  */
 
+/*
+ * Prototype names
+ */
+
+class Tree {};
+
+/*
+ * End of prototype names
+ */
 
 struct NullType {};
 
@@ -224,7 +261,7 @@ struct ValuePair {
     ValuePair(const First& f): first(f) {}
 };
 
-//struct NoParamCtr {};
+
 struct IterEndMark {};
 
 struct SerializationData {

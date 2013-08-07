@@ -22,9 +22,11 @@ namespace internal {
 template <Int Idx>
 struct DoRecursive {
 	template <typename Fn>
-	static void process(Fn&& fn){
+	static void process(Fn&& fn)
+	{
+		DoRecursive<Idx - 1>::process(std::forward<Fn>(fn));
+
 		fn.template operator()<Idx - 1>();
-		DoRecursive<Idx - 1>::process(std::move(fn));
 	}
 };
 
@@ -132,6 +134,11 @@ struct OstreamFn {
 	void operator()()
 	{
 		out_<<std::get<Idx>(obj_);
+
+		if (Idx < sizeof...(Args) - 1)
+		{
+			out_<<", ";
+		}
 	}
 };
 

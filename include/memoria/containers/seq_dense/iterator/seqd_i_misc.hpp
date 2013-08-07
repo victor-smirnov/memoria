@@ -20,6 +20,8 @@
 
 #include <memoria/prototypes/bt/bt_macros.hpp>
 
+#include <memoria/core/packed/array/packed_fse_bitmap.hpp>
+
 namespace memoria    {
 
 
@@ -53,17 +55,38 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 		Int symbol_ = 0;
 
 		template <Int Idx, typename SeqTypes>
-		void stream(const PkdFSSeq<SeqTypes>* seq, Int idx)
+		void stream(const PkdFSSeq<SeqTypes>* obj, Int idx)
 		{
-			MEMORIA_ASSERT_TRUE(seq != nullptr);
+			MEMORIA_ASSERT_TRUE(obj != nullptr);
+			symbol_ = obj->symbol(idx);
+		}
 
-			if (idx >= seq->size()) {
-				int a = 0; a++;
-			}
+		template <Int Idx, typename StreamTypes>
+		void stream(const PackedFSEArray<StreamTypes>* obj, Int idx)
+		{
+			MEMORIA_ASSERT_TRUE(obj != nullptr);
+			symbol_ = obj->value(idx);
+		}
 
-			MEMORIA_ASSERT(idx, <, seq->size());
+		template <Int Idx, typename StreamTypes>
+		void stream(const PkdFTree<StreamTypes>* obj, Int idx)
+		{
+			MEMORIA_ASSERT_TRUE(obj != nullptr);
+			symbol_ = obj->value(0, idx);
+		}
 
-			symbol_ = seq->symbol(idx);
+		template <Int Idx, typename StreamTypes>
+		void stream(const PkdVTree<StreamTypes>* obj, Int idx)
+		{
+			MEMORIA_ASSERT_TRUE(obj != nullptr);
+			symbol_ = obj->value(0, idx);
+		}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(const PackedFSEBitmap<StreamTypes>* obj, Int idx)
+		{
+			MEMORIA_ASSERT_TRUE(obj != nullptr);
+			symbol_ = obj->value(idx);
 		}
 
 
@@ -87,6 +110,19 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 		return fn.symbol_;
 	}
 
+	BigInt label(Int label_idx) const
+	{
+		auto& self 	= this->self();
+
+		SymbolFn fn;
+
+		Int idx = self.label_idx();
+
+		LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
+
+		return fn.symbol_;
+	}
+
 	void insert(Int symbol)
 	{
 		auto& self 	= this->self();
@@ -95,10 +131,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 		ctr.insert(self, symbol);
 	}
 
-	void remove(Int symbol)
+	void remove()
 	{
+		auto& self 	= this->self();
+		auto& ctr 	= self.ctr();
 
+		ctr.remove(self);
 	}
+
 MEMORIA_ITERATOR_PART_END
 
 

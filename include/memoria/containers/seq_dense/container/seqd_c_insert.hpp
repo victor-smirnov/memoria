@@ -152,10 +152,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
 		self.addTotalKeyCount(Position::create(stream, 1));
 
-//		if (DebugCounter) {
-//			iter.dumpPath();
-//		}
-
 		iter++;
 	}
 
@@ -168,7 +164,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::seq_dense::CtrRemoveName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::seq_dense::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

@@ -14,10 +14,13 @@
 namespace memoria    {
 namespace louds	 	 {
 
-class CtrApiName {};
-class CtrFindName {};
+class CtrApiName 		{};
+class CtrFindName 		{};
+class CtrInsertName 	{};
+class CtrUpdateName 	{};
+class CtrRemoveName 	{};
 
-class ItrApiName {};
+class ItrApiName 		{};
 
 }
 

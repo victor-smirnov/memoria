@@ -862,7 +862,7 @@ public:
     		Int from 	= start->value(Idx);
     		Int to 		= end->value(Idx);
 
-    		std::get<Idx>(*accum) += tree->sums(from, to);
+    		tree->sums(from, to, std::get<Idx>(*accum));
     	}
 
     	template <Int Idx, typename SeqTypes>
@@ -935,7 +935,7 @@ public:
     	template <Int StreamIdx, typename Tree>
     	void stream(const Tree* tree, Accumulator* accum)
     	{
-    		std::get<StreamIdx>(*accum) += tree->sums();
+    		tree->sums(std::get<StreamIdx>(*accum));
     	}
     };
 
@@ -1104,6 +1104,18 @@ public:
     void process(Int stream, Fn&& fn, Args... args)
     {
     	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
+    }
+
+    template <typename Fn, typename... Args>
+    void processAll(Fn&& fn, Args... args) const
+    {
+    	Dispatcher::dispatchAll(&allocator_, std::move(fn), args...);
+    }
+
+    template <typename Fn, typename... Args>
+    void processAll(Fn&& fn, Args... args)
+    {
+    	Dispatcher::dispatchAll(&allocator_, std::move(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>

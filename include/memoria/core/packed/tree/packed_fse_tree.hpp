@@ -77,6 +77,7 @@ public:
 	static const Int IOBatchSize			= Blocks <= 2 ? 256: (Blocks <= 4 ? 64 : (Blocks <= 16 ? 16 : 4));
 
 	typedef core::StaticVector<IndexValue, Blocks>								Values;
+	typedef core::StaticVector<IndexValue, Blocks + 1>							Values2;
 
 	typedef Short																LayoutValue;
 
@@ -662,6 +663,27 @@ public:
 		return vals;
 	}
 
+	void sums(Int from, Int to, Values& values) const
+	{
+		values += sums(from, to);
+	}
+
+	void sums(Int from, Int to, Values2& values) const
+	{
+		values[0] += to - from;
+		values.sumUp(sums(from, to));
+	}
+
+	void sums(Values& values) const
+	{
+		values += sums();
+	}
+
+	void sums(Values2& values) const
+	{
+		values[0] += size();
+		values.sumUp(sums());
+	}
 
 	ValueDescr findLTForward(Int block, Int start, IndexValue val) const
 	{
@@ -1135,7 +1157,7 @@ public:
 
 	void generateDataEvents(IPageDataEventHandler* handler) const
 	{
-		handler->startGroup("PACKED_FSE_TREE");
+		handler->startGroup("FSE_TREE");
 
 		handler->value("ALLOCATOR",     &Base::allocator_offset());
 		handler->value("SIZE",          &size_);

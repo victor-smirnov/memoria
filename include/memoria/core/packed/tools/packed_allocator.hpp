@@ -498,9 +498,9 @@ public:
 
 	void generateDataEvents(IPageDataEventHandler* handler) const
 	{
-		handler->startGroup("PACKED_ALLOCATOR");
+		handler->startGroup("ALLOCATOR");
 
-		handler->value("ALLOCATOR",     &Base::allocator_offset());
+		handler->value("PARENT_ALLOCATOR", &Base::allocator_offset());
 
 		handler->value("BLOCK_SIZE",    &block_size_);
 
