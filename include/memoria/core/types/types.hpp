@@ -167,9 +167,6 @@ template <typename ChildType = void>
 class SmallProfile 	{};
 
 
-struct DFUDS        {};
-
-
 enum class Granularity 	{Bit, Byte};
 enum class Indexed 		{No, Yes};
 
@@ -193,7 +190,7 @@ struct VLabel		{};
 
 
 template <typename... LabelDescriptors>
-struct LOUDS        {};
+struct LabeledTree  {};
 
 
 

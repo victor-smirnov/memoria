@@ -5,12 +5,12 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CONTAINERS_LOUDS_LOUDS_C_UPDATE_HPP
-#define MEMORIA_CONTAINERS_LOUDS_LOUDS_C_UPDATE_HPP
+#ifndef MEMORIA_CONTAINERS_LBLTREE_C_UPDATE_HPP
+#define MEMORIA_CONTAINERS_LBLTREE_C_UPDATE_HPP
 
 #include <memoria/core/container/container.hpp>
-#include <memoria/containers/louds/louds_names.hpp>
-#include <memoria/containers/louds/louds_tools.hpp>
+#include <memoria/containers/labeled_tree/ltree_names.hpp>
+#include <memoria/containers/labeled_tree/ltree_tools.hpp>
 #include <memoria/containers/seq_dense/seqd_walkers.hpp>
 
 

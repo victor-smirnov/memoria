@@ -4,32 +4,32 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CONTAINERS_LOUDS_FACTORY_HPP_
-#define MEMORIA_CONTAINERS_LOUDS_FACTORY_HPP_
+#ifndef MEMORIA_CONTAINERS_LBLTREE_FACTORY_HPP_
+#define MEMORIA_CONTAINERS_LBLTREE_FACTORY_HPP_
 
 #include <memoria/core/types/types.hpp>
 
-#include <memoria/containers/louds/louds_names.hpp>
+#include <memoria/containers/labeled_tree/ltree_names.hpp>
 
-#include <memoria/containers/louds/container/louds_c_api.hpp>
-#include <memoria/containers/louds/container/louds_c_find.hpp>
-#include <memoria/containers/louds/container/louds_c_insert.hpp>
-#include <memoria/containers/louds/container/louds_c_update.hpp>
-#include <memoria/containers/louds/container/louds_c_remove.hpp>
+#include <memoria/containers/labeled_tree/container/ltree_c_api.hpp>
+#include <memoria/containers/labeled_tree/container/ltree_c_find.hpp>
+#include <memoria/containers/labeled_tree/container/ltree_c_insert.hpp>
+#include <memoria/containers/labeled_tree/container/ltree_c_update.hpp>
+#include <memoria/containers/labeled_tree/container/ltree_c_remove.hpp>
 
-#include <memoria/containers/louds/iterator/louds_i_api.hpp>
+#include <memoria/containers/labeled_tree/iterator/ltree_i_api.hpp>
 
 
 #include <memoria/containers/seq_dense/seqd_factory.hpp>
-#include <memoria/containers/louds/louds_walkers.hpp>
-#include <memoria/containers/louds/louds_tools.hpp>
+#include <memoria/containers/labeled_tree/ltree_walkers.hpp>
+#include <memoria/containers/labeled_tree/ltree_tools.hpp>
 
 namespace memoria {
 
 
 
 template <typename Profile, typename... LabelDescriptors>
-struct BTTypes<Profile, memoria::LOUDS<LabelDescriptors...>>: BTTypes<Profile, memoria::Sequence<1, true>> {
+struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, memoria::Sequence<1, true>> {
 
     typedef BTTypes<Profile, memoria::Sequence<1, true>>                   		Base;
 
@@ -134,7 +134,7 @@ struct BTTypes<Profile, memoria::LOUDS<LabelDescriptors...>>: BTTypes<Profile, m
 
 
 template <typename Profile, typename... LabelDescriptors, typename T>
-class CtrTF<Profile, memoria::LOUDS<LabelDescriptors...>, T>: public CtrTF<Profile, memoria::Sequence<1, true>, T> {
+class CtrTF<Profile, memoria::LabeledTree<LabelDescriptors...>, T>: public CtrTF<Profile, memoria::Sequence<1, true>, T> {
 };
 
 

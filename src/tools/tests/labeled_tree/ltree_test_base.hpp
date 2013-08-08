@@ -32,7 +32,7 @@ protected:
 
 
     typedef typename SCtrTF<
-       					LOUDS<
+       					LabeledTree<
        						FLabel<UByte>,
        						VLabel<BigInt, Granularity::Bit, Indexed::Yes>
        					>

@@ -6,8 +6,8 @@
 
 
 
-#ifndef MEMORIA_CONTAINERS_LOUDS_NAMES_HPP_
-#define MEMORIA_CONTAINERS_LOUDS_NAMES_HPP_
+#ifndef MEMORIA_CONTAINERS_LBLTREE_NAMES_HPP_
+#define MEMORIA_CONTAINERS_LBLTREE_NAMES_HPP_
 
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
 

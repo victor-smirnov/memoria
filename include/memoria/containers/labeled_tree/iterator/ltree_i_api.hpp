@@ -6,15 +6,15 @@
 
 
 
-#ifndef MEMORIA_CONTAINERS_LOUDS_ITERATOR_API_HPP
-#define MEMORIA_CONTAINERS_LOUDS_ITERATOR_API_HPP
+#ifndef MEMORIA_CONTAINERS_LBLTREE_ITERATOR_API_HPP
+#define MEMORIA_CONTAINERS_LBLTREE_ITERATOR_API_HPP
 
 #include <memoria/core/types/types.hpp>
 
 #include <memoria/core/container/container.hpp>
 
-#include <memoria/containers/louds/louds_names.hpp>
-#include <memoria/containers/louds/louds_tools.hpp>
+#include <memoria/containers/labeled_tree/ltree_names.hpp>
+#include <memoria/containers/labeled_tree/ltree_tools.hpp>
 
 #include <memoria/core/container/iterator.hpp>
 
@@ -40,9 +40,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     BigInt node_rank() const
 	{
 		auto& self = this->self();
-//		return self.cache().rank1() + (self.symbol() == 1);
+		return self.cache().rank1() + (self.symbol() == 1);
 
-		return self.ranki(1);
+//		return self.ranki(1);
     }
 
     Int value() const

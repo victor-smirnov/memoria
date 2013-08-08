@@ -117,7 +117,7 @@ struct TypeHash<VLabel<T, gr, sr> >: UIntValue<HashHelper<1630, (UInt)sr, (UInt)
 
 
 template <typename... LabelDescriptors>
-struct TypeHash<LOUDS<LabelDescriptors...>> {
+struct TypeHash<LabeledTree<LabelDescriptors...>> {
 private:
 	typedef typename TypeToValueList<TypeList<LabelDescriptors...>>::Type 	ValueList;
 	typedef typename AppendValueTool<UInt, 1600, ValueList>::Result			TaggedValueList;
@@ -128,7 +128,7 @@ public:
 
 
 template <typename... LabelDescriptors>
-struct TypeHash<LOUDS<TypeList<LabelDescriptors...>>> {
+struct TypeHash<LabeledTree<TypeList<LabelDescriptors...>>> {
 private:
 	typedef typename TypeToValueList<TypeList<LabelDescriptors...>>::Type 	ValueList;
 	typedef typename AppendValueTool<UInt, 1600, ValueList>::Result			TaggedValueList;

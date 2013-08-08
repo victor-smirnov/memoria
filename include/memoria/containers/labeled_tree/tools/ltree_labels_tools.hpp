@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CONTAINERS_LOUDS_TOOLS_LABELS_HPP_
-#define MEMORIA_CONTAINERS_LOUDS_TOOLS_LABELS_HPP_
+#ifndef MEMORIA_CONTAINERS_LBLTREE_TOOLS_LABELS_HPP_
+#define MEMORIA_CONTAINERS_LBLTREE_TOOLS_LABELS_HPP_
 
 #include <memoria/core/tools/isequencedata.hpp>
 #include <memoria/core/packed/array/packed_fse_bitmap.hpp>
@@ -92,4 +92,4 @@ public:
 }
 
 
-#endif /* LOUDS_TOOLS_HPP_ */
+#endif /* LBLTREE_TOOLS_HPP_ */
