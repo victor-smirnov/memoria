@@ -10,8 +10,9 @@
 
 #include "../tests_inc.hpp"
 
-#include "ltree_api_test.hpp"
-//#include "ltree_create_test.hpp"
+#include "ltree_iter_test.hpp"
+#include "ltree_create_test.hpp"
+#include "ltree_remove_test.hpp"
 
 #include <vector>
 
@@ -26,8 +27,9 @@ public:
 
     LabeledTreeTestSuite(): TestSuite("LabeledTreeSuite")
     {
-    	registerTask(new LabeledTreeApiTest());
-//    	registerTask(new LabeledTreeCreateTest());
+    	registerTask(new LabeledTreeIterTest());
+    	registerTask(new LabeledTreeCreateTest());
+    	registerTask(new LabeledTreeRemoveTest());
     }
 
 };

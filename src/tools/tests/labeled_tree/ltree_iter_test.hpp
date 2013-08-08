@@ -3,15 +3,15 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_LOUDS_LOUDS_API_TEST_HPP_
-#define MEMORIA_TESTS_LOUDS_LOUDS_API_TEST_HPP_
+#ifndef MEMORIA_TESTS_LABELEDTREE_ITER_TEST_HPP_
+#define MEMORIA_TESTS_LABELEDTREE_ITER_TEST_HPP_
 
 #include <memoria/memoria.hpp>
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "louds_test_base.hpp"
+#include "ltree_test_base.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -22,69 +22,33 @@ namespace memoria {
 
 using namespace memoria::louds;
 
-class LoudsApiTest: public LoudsTestBase {
+class LabeledTreeIterTest: public LabeledTreeTestBase {
 
-    typedef LoudsApiTest                                                       	MyType;
+    typedef LabeledTreeIterTest                                                  MyType;
 
-    vector<char> degrees_ = {1,4,2,2,2,2,0,0,2,1,0,0,2,0,0,0,1,1,0,0,0};
-
-    BigInt 	tree_size_ 	= 10000;
-    Int 	iterations_ = 1000;
-    Int 	nodes_ 		= 10;
-
-    Int start_ = 0;
-    Int rank_  = 1;
+    Int iterations_ = 1000;
+    Int max_degree_ = 4;
 
 public:
 
-    LoudsApiTest(): LoudsTestBase("Api")
+    LabeledTreeIterTest(): LabeledTreeTestBase("Iter")
     {
-    	MEMORIA_ADD_TEST_PARAM(tree_size_);
+    	size_ = 20000;
+
     	MEMORIA_ADD_TEST_PARAM(iterations_);
-    	MEMORIA_ADD_TEST_PARAM(nodes_);
+    	MEMORIA_ADD_TEST_PARAM(max_degree_);
 
-    	MEMORIA_ADD_TEST_PARAM(start_);
-    	MEMORIA_ADD_TEST_PARAM(rank_);
-
-//    	MEMORIA_ADD_TEST(runParent);
         MEMORIA_ADD_TEST(testIteratorCache);
     }
 
-    virtual ~LoudsApiTest() throw () {}
-
-    void runParent()
-    {
-    	Allocator allocator;
-    	Ctr tree(&allocator);
-
-    	createLouds(tree, degrees_);
-
-    	auto iter = tree.select1(1);
-
-    	checkTreeStructure(tree);
-
-    	BigInt count = tree.nodes();
-
-    	AssertEQ(MA_SRC, count, tree.getSubtreeSize(tree.rootNode()));
-    }
-
-    void assertIterator(Iterator& iter)
-    {
-    	AssertEQ(MA_SRC, iter.pos(), iter.gpos());
-
-    	if (!(iter.isEof() || iter.isBof()))
-    	{
-    		AssertEQ(MA_SRC, iter.rank1(), iter.ranki(1));
-    	}
-    }
+    virtual ~LabeledTreeIterTest() throw () {}
 
     void testIteratorCache()
     {
-
     	Allocator allocator;
     	Ctr ctr(&allocator);
 
-    	Int nodes = createRandomLouds(ctr, tree_size_ , nodes_);
+    	this->fillRandom(ctr, size_, max_degree_);
 
     	allocator.commit();
 
@@ -93,6 +57,8 @@ public:
     	auto skip_iter = ctr.seek(0);
 
     	assertIterator(skip_iter);
+
+    	Int nodes = ctr.nodes();
 
     	out()<<"Forward skip"<<std::endl;
     	while (!skip_iter.isEof())
@@ -213,6 +179,16 @@ public:
 
     		iter_rankfw1.rank(-skip, 1);
     		assertIterator(iter_rankfw1);
+    	}
+    }
+
+    void assertIterator(Iterator& iter)
+    {
+    	AssertEQ(MA_SRC, iter.pos(), iter.gpos());
+
+    	if (!(iter.isEof() || iter.isBof()))
+    	{
+    		AssertEQ(MA_SRC, iter.rank1(), iter.ranki(1));
     	}
     }
 };

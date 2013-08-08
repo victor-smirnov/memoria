@@ -27,62 +27,40 @@ class LabeledTreeCreateTest: public LabeledTreeTestBase {
 
     typedef LabeledTreeCreateTest                                               MyType;
 
-    BigInt 	tree_size_ 	= 100000;
-    Int 	nodes_		= 10;
+    Int 	max_degree_	= 10;
     Int 	iterations_ = 1;
 
 public:
 
     LabeledTreeCreateTest(): LabeledTreeTestBase("Create")
     {
-        MEMORIA_ADD_TEST_PARAM(tree_size_);
-        MEMORIA_ADD_TEST_PARAM(nodes_);
+        MEMORIA_ADD_TEST_PARAM(max_degree_);
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
-    	MEMORIA_ADD_TEST(runCreateRandomTest);
+    	MEMORIA_ADD_TEST(testFillTree);
     }
 
     virtual ~LabeledTreeCreateTest() throw () {}
 
-
-
-    void runCreateRandomTest()
+    void testFillTree()
     {
-    	for (Int c = 1; c <= iterations_; c++)
-    	{
-    		Allocator allocator;
+    	Allocator allocator;
+    	Ctr tree(&allocator);
 
-    		Ctr ctr(&allocator);
-
-    		BigInt t0 = getTimeInMillis();
-
-    		BigInt count0 = createRandomLouds(ctr, tree_size_ * c, nodes_);
+    	try {
+    		TreeNode root = this->fillRandom(tree, size_, max_degree_);
 
     		allocator.commit();
 
-    		DebugCounter = 1;
+    		StoreResource(allocator, "ftree", 0);
 
-    		StoreResource(allocator, "louds", c);
-
-    		BigInt t1 = getTimeInMillis();
-
-    		checkTreeStructure(ctr);
-
-    		BigInt t2 = getTimeInMillis();
-
-    		BigInt count1 = ctr.getSubtreeSize(ctr.rootNode());
-
-    		BigInt nodes = ctr.nodes();
-
-    		AssertEQ(MA_SRC, count0 + 1, nodes);
-    		AssertEQ(MA_SRC, count1, nodes);
-
-    		cout<<"TreeSize: "<<nodes<<" Tree Build Time: "<<FormatTime(t1-t0)<<", Traverse Time: "<<FormatTime(t2-t1)<<endl;
-
-    		DebugCounter = 0;
+    		checkTree(tree, root);
+    	}
+    	catch (...) {
+    		this->dump_name_ =  Store(allocator);
+    		throw;
     	}
     }
-
 };
 
 }
