@@ -193,6 +193,8 @@ template <typename... LabelDescriptors>
 struct LabeledTree  {};
 
 
+struct WT 			{};
+
 
 /*
  * End of container type names and profiles
@@ -278,6 +280,8 @@ enum class SearchType {LT, LE};
 enum class IteratorMode {FORWARD, BACKWARD};
 enum class MergeType {NONE, LEFT, RIGHT};
 enum class MergePossibility {YES, NO, MAYBE};
+
+class NoParamCtr {};
 
 extern BigInt DebugCounter;
 extern BigInt DebugCounter1;

@@ -164,6 +164,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 		iter.remove();
 	}
 
+	void removeLeaf(Iterator& iter)
+	{
+		auto& self = this->self();
+
+		BigInt idx = iter.pos();
+
+		MEMORIA_ASSERT_TRUE(iter.symbol() == 1);
+
+		iter.firstChild();
+
+		MEMORIA_ASSERT_TRUE(iter.symbol() == 0);
+
+		iter.remove();
+
+		iter = self.seek(idx);
+		iter.remove();
+	}
+
 MEMORIA_CONTAINER_PART_END
 
 }

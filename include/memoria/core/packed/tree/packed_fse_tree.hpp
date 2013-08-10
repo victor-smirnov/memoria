@@ -398,6 +398,29 @@ public:
 		reindex();
 	}
 
+	void addValue(Int block, Int idx, Value value)
+	{
+		if (value != 0)
+		{
+			Value val = this->value(block, idx);
+			setValue(block, idx, val + value);
+		}
+	}
+
+	BigInt setValue(Int block, Int idx, Value value)
+	{
+		if (value != 0)
+		{
+			Value val = this->value(block, idx);
+			this->value(block, idx) = value;
+
+			return val - value;
+		}
+		else {
+			return 0;
+		}
+	}
+
 	Value* values()
 	{
 		return T2T<Value*>(buffer_ + index_size_ * sizeof(IndexValue) * Indexes);

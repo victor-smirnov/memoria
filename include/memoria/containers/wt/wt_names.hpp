@@ -15,6 +15,7 @@ namespace memoria    {
 namespace wt 	 	 {
 
 class CtrApiName 	{};
+class CtrCTreeName 	{};
 class CtrInsertName {};
 class CtrToolsName 	{};
 class CtrRemoveName {};

@@ -55,11 +55,11 @@ public:
         allocator.store(out.get());
     }
 
-    virtual void StoreResource(Allocator& allocator, StringRef file_name, Int mark) const {
+    virtual void StoreResource(Allocator& allocator, StringRef file_name, Int mark = 0) const {
     	StoreAllocator(allocator, getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
     }
 
-    virtual void LoadResource(Allocator& allocator, StringRef file_name, Int mark) const {
+    virtual void LoadResource(Allocator& allocator, StringRef file_name, Int mark = 0) const {
     	LoadAllocator(allocator, getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
     }
 

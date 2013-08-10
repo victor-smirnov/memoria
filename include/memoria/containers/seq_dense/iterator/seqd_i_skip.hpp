@@ -99,7 +99,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
 	};
 
 
-	BigInt gpos() const
+	BigInt pos() const
 	{
 		auto& self = this->self();
 
@@ -110,11 +110,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
 		return fn.prefix_ + self.idx();
 	}
 
-	BigInt pos() const
-	{
-		auto& self = this->self();
-		return self.cache().pos();
-	}
+//	BigInt cpos() const
+//	{
+//		auto& self = this->self();
+//		return self.cache().pos();
+//	}
 
 MEMORIA_ITERATOR_PART_END
 

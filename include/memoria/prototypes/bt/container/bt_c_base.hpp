@@ -23,7 +23,7 @@
 namespace memoria       	{
 namespace bt     {
 
-MEMORIA_bt_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
+MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     typedef typename Base::Types                                                Types;
@@ -499,7 +499,7 @@ MEMORIA_bt_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     	Base::setCtrShared(shared);
     }
 
-MEMORIA_bt_MODEL_BASE_CLASS_END
+MEMORIA_BT_MODEL_BASE_CLASS_END
 
 
 }}

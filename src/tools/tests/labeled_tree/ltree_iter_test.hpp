@@ -184,7 +184,7 @@ public:
 
     void assertIterator(Iterator& iter)
     {
-    	AssertEQ(MA_SRC, iter.pos(), iter.gpos());
+//    	AssertEQ(MA_SRC, iter.pos(), iter.gpos());
 
     	if (!(iter.isEof() || iter.isBof()))
     	{

@@ -60,6 +60,9 @@ struct CtrNameDeclarator<16>: TypeDef<LabeledTree<FLabel<UByte>, VLabel<BigInt, 
 template <>
 struct CtrNameDeclarator<17>: TypeDef<CMap<BigInt, BigInt>> {};
 
+template <>
+struct CtrNameDeclarator<18>: TypeDef<WT> {};
+
 
 }
 

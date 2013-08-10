@@ -544,16 +544,6 @@ public:
         //FIXME: ref() ???
     }
 
-//    MEMORIA_PUBLIC Ctr(const NoParamCtr&):
-//        Base(CtrInitData()),
-//        allocator_(NULL),
-//        model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
-//        logger_(model_type_name_, Logger::DERIVED, NULL),
-//        debug_(false)
-//    {
-//        Base::setCtrShared(NULL);
-//        //FIXME: ref() ???
-//    }
 
     MEMORIA_PUBLIC Ctr(const CtrInitData& data):
         Base(data),

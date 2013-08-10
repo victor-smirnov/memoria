@@ -290,6 +290,194 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 		return iter.node();
 	}
 
+	void newNodeAt(Iterator& iter, const LabelsTuple& labels)
+	{
+		auto& self = this->self();
+
+		BigInt pos = iter.pos();
+
+		self.insertNode(iter, labels);
+
+		iter.firstChild();
+
+		self.insertZero(iter);
+
+		iter.skipBw(iter.pos() - pos);
+	}
+
+
+	struct SetLabelValueFn {
+
+		Accumulator& delta_;
+		BigInt value_;
+
+		SetLabelValueFn(Accumulator& delta, BigInt value):
+			delta_(delta),
+			value_(value)
+		{}
+
+		template <Int Idx, typename SeqTypes>
+		void stream(PkdFSSeq<SeqTypes>* seq, Int idx) {}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(PackedFSEArray<StreamTypes>* labels, Int idx)
+		{
+			labels->value(idx) = value_;
+		}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(PkdVTree<StreamTypes>* obj, Int idx)
+		{
+			BigInt delta = obj->setValue1(0, idx, value_);
+
+			std::get<Idx>(delta_)[0] = 0;
+			std::get<Idx>(delta_)[1] = delta;
+		}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(PkdFTree<StreamTypes>* obj, Int idx)
+		{
+			BigInt delta = obj->setValue(0, idx, value_);
+
+			std::get<Idx>(delta_)[0] = 0;
+			std::get<Idx>(delta_)[1] = delta;
+		}
+
+
+		template <typename Node>
+		void treeNode(Node* node, Int label, Int label_idx)
+		{
+			node->layout(-1);
+			node->template process(label + 1, *this, label_idx);
+		}
+	};
+
+
+	template <typename Fn>
+	bool updateNodeLabel(
+			NodeBaseG& leaf,
+			Int label,
+			Int label_idx,
+			Accumulator& sums,
+			BigInt value
+	)
+	{
+		auto& self = this->self();
+
+		PageUpdateMgr mgr(self);
+
+		mgr.add(leaf);
+
+		try {
+			LeafDispatcher::dispatch(leaf, Fn(sums, value), label, label_idx);
+
+			return true;
+		}
+		catch (PackedOOMException& e)
+		{
+			mgr.rollback();
+			return false;
+		}
+	}
+
+
+	void setLabel(Iterator& iter, Int label, BigInt value)
+	{
+		auto& self 	= this->self();
+		auto& leaf 	= iter.leaf();
+
+		Int label_idx = iter.label_idx();
+
+		Accumulator sums;
+
+		if (self.template updateNodeLabel<SetLabelValueFn>(leaf, label, label_idx, sums, value))
+		{
+			self.updateParent(leaf, sums);
+		}
+		else
+		{
+			self.split(iter);
+
+			label_idx = iter.label_idx();
+
+			MEMORIA_ASSERT_TRUE(self.template updateNodeLabel<SetLabelValueFn>(leaf, label, label_idx, sums, value));
+			self.updateParent(leaf, sums);
+		}
+	}
+
+
+
+
+	struct AddLabelValueFn {
+
+		Accumulator& delta_;
+		BigInt value_;
+
+		AddLabelValueFn(Accumulator& delta, BigInt value):
+			delta_(delta),
+			value_(value)
+		{}
+
+		template <Int Idx, typename SeqTypes>
+		void stream(PkdFSSeq<SeqTypes>* seq, Int idx) {}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(PackedFSEArray<StreamTypes>* labels, Int idx)
+		{
+			labels->value(idx) += value_;
+		}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(PkdVTree<StreamTypes>* obj, Int idx)
+		{
+			obj->addValue(0, idx, value_);
+
+			std::get<Idx>(delta_)[0] = 0;
+			std::get<Idx>(delta_)[1] = value_;
+		}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(PkdFTree<StreamTypes>* obj, Int idx)
+		{
+			obj->addValue(0, idx, value_);
+
+			std::get<Idx>(delta_)[0] = 0;
+			std::get<Idx>(delta_)[1] = value_;
+		}
+
+		template <typename Node>
+		void treeNode(Node* node, Int label, Int label_idx)
+		{
+			node->layout(-1);
+			node->template process(label + 1, *this, label_idx);
+		}
+	};
+
+
+	void addLabel(Iterator& iter, Int label, BigInt value)
+	{
+		auto& self 	= this->self();
+		auto& leaf 	= iter.leaf();
+
+		Int label_idx = iter.label_idx();
+
+		Accumulator sums;
+
+		if (updateNodeLabel<AddLabelValueFn>(leaf, label, label_idx, sums, value))
+		{
+			self.updateParent(leaf, sums);
+		}
+		else
+		{
+			self.split(iter);
+
+			label_idx = iter.label_idx();
+
+			MEMORIA_ASSERT_TRUE(updateNodeLabel<AddLabelValueFn>(leaf, label, label_idx, sums, value));
+			self.updateParent(leaf, sums);
+		}
+	}
+
 
 MEMORIA_CONTAINER_PART_END
 

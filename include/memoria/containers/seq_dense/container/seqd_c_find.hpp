@@ -69,6 +69,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 		return walker.rank();
 	}
 
+	BigInt rank(BigInt start, BigInt idx, Int symbol)
+	{
+		auto& self = this->self();
+
+		auto iter = self.seek(start);
+
+		return iter.rankFw(idx, symbol);
+	}
+
 
 
 	Iterator select(Int symbol, BigInt rank)
@@ -81,6 +90,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 		typename Types::template SelectFwWalker<Types> walker(0, symbol, rank);
 
 		auto iter = self.find0(0, walker);
+
+		return iter;
+	}
+
+	Iterator select(BigInt start, Int symbol, BigInt rank)
+	{
+		auto& self = this->self();
+
+		auto iter = self.seek(start);
+
+		iter.selectFw(symbol, rank);
 
 		return iter;
 	}

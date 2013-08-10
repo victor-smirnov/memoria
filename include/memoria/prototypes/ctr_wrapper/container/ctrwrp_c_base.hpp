@@ -20,7 +20,7 @@
 namespace memoria       {
 
 
-MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperCtrBase1)
+MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperCtrBase1)
 
     typedef TypesType                                                           Types;
 
@@ -166,7 +166,7 @@ public:
         return ctr_.getRootMetadata().branching_factor();
     }
 
-MEMORIA_bt_MODEL_BASE_CLASS_END
+MEMORIA_BT_MODEL_BASE_CLASS_END
 
 
 }

@@ -634,6 +634,31 @@ public:
 		}
 	}
 
+	void addValue(Int block, Int idx, Value value)
+	{
+		if (value != 0)
+		{
+			Value val = getValue(block, idx);
+			setValue(block, idx, val + value);
+		}
+	}
+
+	BigInt setValue1(Int block, Int idx, Value value)
+	{
+		if (value != 0)
+		{
+			Value val = getValue(block, idx);
+			setValue(block, idx, value);
+
+			return val - value;
+		}
+		else {
+			return 0;
+		}
+	}
+
+
+
 	void appendValue(Value value)
 	{
 		Int len = setValue(size(), value);

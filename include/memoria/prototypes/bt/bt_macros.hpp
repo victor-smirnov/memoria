@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -11,7 +11,7 @@
 
 #include <memoria/core/container/macros.hpp>
 
-#define MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)     \
+#define MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)     \
 template <                                                                              \
         typename TypesType                                                              \
 >                                                                                       \
@@ -23,8 +23,8 @@ class BTreeCtrBaseClassName: public CtrBase<TypesType> {                    \
                                                                                         \
 public:
 
-#define MEMORIA_bt_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)             \
-    MEMORIA_bt_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)         \
+#define MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)             \
+    MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)         \
                                                                                         \
     BTreeCtrBaseClassName(const CtrInitData& data): Base(data) {}                 \
     BTreeCtrBaseClassName(const ThisType& other): Base(other) {}                  \
@@ -35,7 +35,7 @@ public:
         Base(other, allocator)        {}                                                \
 
 
-#define MEMORIA_bt_MODEL_BASE_CLASS_END                                            \
+#define MEMORIA_BT_MODEL_BASE_CLASS_END                                            \
     MyType* me() {                                                                      \
         return static_cast<MyType*>(this);                                              \
     }                                                                                   \
@@ -53,7 +53,7 @@ public:
 
 
 
-#define MEMORIA_bt_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)     \
+#define MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)     \
 template <                                                                              \
         typename TypesType                                                              \
 >                                                                                       \
@@ -67,12 +67,12 @@ public:                                                                         
 
 
         
-#define MEMORIA_bt_ITERATOR_BASE_CLASS_BEGIN(BTreeIteratorBaseClassName)      		\
-MEMORIA_bt_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)      		\
+#define MEMORIA_BT_ITERATOR_BASE_CLASS_BEGIN(BTreeIteratorBaseClassName)      		\
+MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)      		\
     BTreeIteratorBaseClassName(): Base() {}
 
 
-#define MEMORIA_bt_ITERATOR_BASE_CLASS_END                                         \
+#define MEMORIA_BT_ITERATOR_BASE_CLASS_END                                         \
     MyType* me() {                                                                      \
         return static_cast<MyType*>(this);                                              \
     }                                                                                   \

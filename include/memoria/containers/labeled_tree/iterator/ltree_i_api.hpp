@@ -40,9 +40,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     BigInt node_rank() const
 	{
 		auto& self = this->self();
-		return self.cache().rank1() + (self.symbol() == 1);
+//		return self.cache().rank1() + (self.symbol() == 1);
 
-//		return self.ranki(1);
+		return self.ranki(1);
     }
 
     Int value() const
@@ -166,7 +166,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     {
     	auto& self = this->self();
 
-    	self = self.parent(self.node());
+    	self = self.ctr().parent(self.node());
     }
 
 //    void check() const {
@@ -218,6 +218,69 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     	self.ctr().insertNode(self, tuple);
     	self.firstChild();
     	self.ctr().insertZero(self);
+    }
+
+    void insertZero()
+    {
+    	auto& self = this->self();
+    	self.ctr().insertZero(self);
+    }
+
+
+    template <Int LabelIdx>
+	struct SumLabelFn {
+		BigInt sum_ = 0;
+
+		template <Int Idx, typename StreamTypes>
+		void stream(const PkdVTree<StreamTypes>* obj, Int idx)
+		{
+			if (obj != nullptr)
+			{
+				sum_ += obj->sum(0, 0, idx);
+			}
+		}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(const PkdFTree<StreamTypes>* obj, Int idx)
+		{
+			if (obj != nullptr)
+			{
+				sum_ += obj->sum(0, 0, idx);
+			}
+		}
+
+		template <typename Node>
+		void treeNode(const Node* node, Int idx)
+		{
+			node->template processStream<LabelIdx + 1>(*this, idx);
+		}
+	};
+
+    template <Int LabelIdx>
+    BigInt sumLabel() const
+    {
+    	auto& self = this->self();
+
+    	SumLabelFn<LabelIdx> fn;
+
+    	if (self.idx() >= 0)
+    	{
+    		self.ctr().walkUp(self.leaf(), self.label_idx(), fn);
+    	}
+
+    	return fn.sum_;
+    }
+
+    void setLabel(Int label, Int value)
+    {
+    	auto& self = this->self();
+    	self.ctr().setLabel(self, label, value);
+    }
+
+    void addLabel(Int label, Int value)
+    {
+    	auto& self = this->self();
+    	self.ctr().addLabel(self, label, value);
     }
 
 

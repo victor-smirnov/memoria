@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_COMPOSITE_FACTORY_HPP
 #define _MEMORIA_PROTOTYPES_COMPOSITE_FACTORY_HPP
 
-#include <memoria/prototypes/composite/names.hpp>
+#include <memoria/prototypes/composite/comp_names.hpp>
 #include <memoria/core/container/container.hpp>
 
 namespace memoria    {
@@ -22,7 +22,7 @@ struct CompositeTypes {
     typedef Profile_                                                            Profile;
 
     typedef TypeList<
-        memoria::btree::AllocatorName
+        memoria::bt::AllocatorName
     >                                                                           ContainerPartsList;
 
     typedef TypeList<>                                                          IteratorPartsList;
@@ -31,7 +31,7 @@ struct CompositeTypes {
 
     template <typename Types_>
     struct IterBaseFactory {
-        typedef IteratorBase<Types_>                                            Type;
+        typedef IteratorBase<Types_>                                      Type;
     };
 
     template <typename Types_>

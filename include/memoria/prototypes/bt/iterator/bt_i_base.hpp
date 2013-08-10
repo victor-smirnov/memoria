@@ -22,7 +22,7 @@ namespace memoria    {
 using namespace memoria::bt;
 
 
-MEMORIA_bt_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
+MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
     typedef typename Base::Container::Types                                             Types;
     typedef typename Base::Container::TreePath                                          TreePath;
@@ -277,7 +277,7 @@ public:
 
     void init() {}
 
-MEMORIA_bt_ITERATOR_BASE_CLASS_END
+MEMORIA_BT_ITERATOR_BASE_CLASS_END
 
 } //memoria
 
