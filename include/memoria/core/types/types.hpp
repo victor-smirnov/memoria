@@ -194,6 +194,7 @@ struct LabeledTree  {};
 
 
 struct WT 			{};
+struct VTree		{};
 
 
 /*

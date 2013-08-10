@@ -144,6 +144,9 @@ struct TypeHash<CtrWrapper<CtrName>>: UIntValue<HashHelper<1700, TypeHash<CtrNam
 template <>
 struct TypeHash<WT>: UIntValue<1800> {};
 
+template <>
+struct TypeHash<VTree>: UIntValue<1900> {};
+
 }
 
 

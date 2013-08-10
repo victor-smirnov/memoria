@@ -63,6 +63,9 @@ struct CtrNameDeclarator<17>: TypeDef<CMap<BigInt, BigInt>> {};
 template <>
 struct CtrNameDeclarator<18>: TypeDef<WT> {};
 
+template <>
+struct CtrNameDeclarator<19>: TypeDef<VTree> {};
+
 
 }
 

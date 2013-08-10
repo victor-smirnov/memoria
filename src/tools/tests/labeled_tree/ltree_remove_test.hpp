@@ -60,7 +60,7 @@ public:
     	{
     		for (Int c = 0; c < tree_node.children();)
     		{
-    			LoudsNode child = tree.childNode(node, c);
+    			LoudsNode child = tree.child(node, c).node();
     			if (removeNode(tree, child, tree_node.child(c), size, max_size))
     			{
     				tree_node.removeChild(c);

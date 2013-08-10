@@ -28,6 +28,7 @@ namespace memoria    {
 MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
 	typedef Ctr<typename Types::CtrTypes>                      					Container;
+	typedef Ctr<typename Types::IterTypes>                      				Iterator;
 
 	typedef typename Container::Allocator                                       Allocator;
 	typedef typename Container::NodeBaseG                                       NodeBaseG;
@@ -93,6 +94,58 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     BigInt nextSiblings()
     {
     	return self().countFw(1);
+    }
+
+    BigInt next_siblings() const
+    {
+    	Iterator iter = self();
+    	return iter.countFw(1) - 1;
+    }
+
+    BigInt prev_siblings() const
+    {
+    	Iterator iter = self();
+    	return iter.countBw(1);
+    }
+
+    bool next_sibling()
+    {
+    	auto& self = this->self();
+
+    	if (self++)
+    	{
+    		if (self.symbol() == 1)
+    		{
+    			return true;
+    		}
+    		else
+    		{
+    			return false;
+    		}
+    	}
+    	else {
+    		throw Exception(MA_SRC, "Invalid tree structure");
+    	}
+    }
+
+    bool prev_sibling()
+    {
+    	auto& self = this->self();
+
+    	if (self--)
+    	{
+    		if (self.symbol() == 1)
+    		{
+    			return true;
+    		}
+    		else
+    		{
+    			return false;
+    		}
+    	}
+    	else {
+    		return false;
+    	}
     }
 
     void insertDegree(BigInt degree)

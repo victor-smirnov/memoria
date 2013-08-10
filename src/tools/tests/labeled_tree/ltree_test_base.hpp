@@ -42,7 +42,7 @@ protected:
 
     String dump_name_;
 
-    typedef LblTreeNode<UByte, BigInt>											TreeNode;
+    typedef LblTreeNode<EmptyType, UByte, BigInt>								TreeNode;
 
     static const Int LabelNumber 												= 2;
 
@@ -174,17 +174,24 @@ private:
 
     	if (node.node() > 0)
     	{
-    		BigInt parentIdx = tree.parentNode(node).node();
+    		BigInt parentIdx = tree.parent(node).pos();
     		AssertEQ(MA_SRC, parentIdx, parent.node());
     	}
 
-    	LoudsNodeRange children = tree.children(node);
+    	Iterator children = tree.children(node);
 
-    	AssertNEQ(MA_SRC, node.node(), children.node());
+//    	LoudsNodeRange children = tree.children(node);
 
-    	for (LoudsNode child = children.first(); child < children.last(); child++)
+//    	AssertNEQ(MA_SRC, node.node(), children.node());
+
+//    	for (LoudsNode child = children.first(); child < children.last(); child++)
+//    	{
+//    		checkTreeStructure(tree, child, node, count);
+//    	}
+
+    	while (children.next_sibling())
     	{
-    		checkTreeStructure(tree, child, node, count);
+    		checkTreeStructure(tree, children.node(), node, count);
     	}
     }
 
@@ -203,15 +210,18 @@ private:
     {
     	assertTreeNode(tree, node, tree_node);
 
-    	LoudsNodeRange children = tree.children(node);
-
-    	AssertNEQ(MA_SRC, node.node(), children.node());
+    	Iterator children = tree.children(node);
 
     	Int child_idx = 0;
-    	for (LoudsNode child = children.first(); child < children.last(); child++, child_idx++)
+    	while (children.next_sibling())
     	{
-    		checkTree(tree, child, node, tree_node.child(child_idx), tree_node, size);
+    		AssertLE(MA_SRC, child_idx, tree_node.children());
+    		checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size);
+
+    		child_idx++;
     	}
+
+    	AssertEQ(MA_SRC, child_idx, tree_node.children());
     }
 
     void checkTree(
@@ -227,18 +237,21 @@ private:
 
     	size++;
 
-    	BigInt parentIdx = tree.parentNode(node).node();
+    	BigInt parentIdx = tree.parent(node).pos();
     	AssertEQ(MA_SRC, parentIdx, parent.node());
 
-    	LoudsNodeRange children = tree.children(node);
-
-    	AssertNEQ(MA_SRC, node.node(), children.node());
+    	Iterator children = tree.children(node);
 
     	Int child_idx = 0;
-    	for (LoudsNode child = children.first(); child < children.last(); child++, child_idx++)
+    	while (children.next_sibling())
     	{
-    		checkTree(tree, child, node, tree_node.child(child_idx), tree_node, size);
+    		AssertLE(MA_SRC, child_idx, tree_node.children());
+    		checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size);
+
+    		child_idx++;
     	}
+
+    	AssertEQ(MA_SRC, child_idx, tree_node.children());
     }
 
 
@@ -246,11 +259,11 @@ private:
     {
     	fn(node);
 
-    	LoudsNodeRange children = tree.children(node);
+    	Iterator children = tree.children(node);
 
-    	for (LoudsNode child = children.first(); child < children.last(); child++)
+    	while(children.next_sibling())
     	{
-    		traverseTree(tree, child, fn);
+    		traverseTree(tree, children.node(), fn);
     	}
     }
 

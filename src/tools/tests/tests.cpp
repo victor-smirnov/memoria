@@ -6,24 +6,25 @@
 
 
 
-#include "packed/allocator/palloc_test_suite.hpp"
-#include "packed/tree/packed_tree_test_suite.hpp"
-#include "packed/sequence/packed_seq_suite.hpp"
-#include "packed/louds/packed_louds_suite.hpp"
-#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
-#include "packed/wavelet_tree/packed_wtree_suite.hpp"
+//#include "packed/allocator/palloc_test_suite.hpp"
+//#include "packed/tree/packed_tree_test_suite.hpp"
+//#include "packed/sequence/packed_seq_suite.hpp"
+//#include "packed/louds/packed_louds_suite.hpp"
+//#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
+//#include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
 
 //#include "ctr/ctr_test_suite.hpp"
-#include "map/map_test_suite.hpp"
-#include "vector/vector_test_suite.hpp"
-#include "vector_map/vectormap_test_suite.hpp"
-#include "sequence/sequence_test_suite.hpp"
+//#include "map/map_test_suite.hpp"
+//#include "vector/vector_test_suite.hpp"
+//#include "vector_map/vectormap_test_suite.hpp"
+//#include "sequence/sequence_test_suite.hpp"
 #include "labeled_tree/ltree_test_suite.hpp"
-#include "wt/wt_test_suite.hpp"
+//#include "wt/wt_test_suite.hpp"
+#include "vector_tree/vtree_test_suite.hpp"
 
-#include "symbol_seq/symseq_test_suite.hpp"
-#include "bitmap/bitmap_test_suite.hpp"
+//#include "symbol_seq/symseq_test_suite.hpp"
+//#include "bitmap/bitmap_test_suite.hpp"
 
 
 
@@ -68,13 +69,13 @@ int main(int argc, const char** argv, const char** envp)
 
 
 //        runner.registerTask(new BitmapTestSuite());
-//
+
 //        runner.registerTask(new PackedAllocatorTestSuite());
 //        runner.registerTask(new PackedTreeTestSuite());
 //        runner.registerTask(new PackedSequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
-        runner.registerTask(new PackedWaveletTreeTestSuite());
+//        runner.registerTask(new PackedWaveletTreeTestSuite());
 //        runner.registerTask(new SymbolSeqTestSuite());
 
 
@@ -85,9 +86,10 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
-        runner.registerTask(new WTTestSuite());
+//        runner.registerTask(new WTTestSuite());
+        runner.registerTask(new VTreeTestSuite());
+        runner.registerTask(new LabeledTreeTestSuite());
 
-//        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new StaticLoudsTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());

@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_NAMES_HPP
 #define _MEMORIA_CONTAINERS_SEQ_DENSE_NAMES_HPP
 
-#include <memoria/prototypes/sequence/names.hpp>
+#include <memoria/prototypes/bt/bt_names.hpp>
 
 namespace memoria    	{
 namespace seq_dense		{

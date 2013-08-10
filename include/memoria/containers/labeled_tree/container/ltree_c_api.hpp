@@ -31,33 +31,27 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 		return self().seek(node.node());
 	}
 
-	LoudsNode rootNode()
+	Iterator findNode(BigInt node_idx)
 	{
-		return self().seek(0).node();
+		return self().seek(node_idx);
+	}
+
+	Iterator rootNode()
+	{
+		return self().seek(0);
 	}
 
 	Iterator parent(const LoudsNode& node)
 	{
-		auto iter = self().select1(node.rank0());
-		return iter;
+		return self().select1(node.rank0());
 	}
 
-	LoudsNode parentNode(const LoudsNode& node)
+
+	Iterator children(const LoudsNode& node)
 	{
-		return parent(node).node();
+		return self().preFirstChild(node);
 	}
 
-
-	LoudsNodeRange children(const LoudsNode& node)
-	{
-		Iterator iter = firstChild(node);
-
-		LoudsNode first_child = iter.node();
-
-		BigInt count = iter.nextSiblings();
-
-		return LoudsNodeRange(first_child, count);
-	}
 
 	Iterator child(const LoudsNode& node, BigInt child_num)
 	{
@@ -68,11 +62,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 		return iter;
 	}
 
-	LoudsNode childNode(const LoudsNode& node, BigInt child_num)
-	{
-		return child(node, child_num).node();
-	}
-
 	Iterator firstChild(const LoudsNode& node)
 	{
 		Iterator iter = self().select0(node.rank1());
@@ -80,6 +69,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 		iter++;
 
 		return iter;
+	}
+
+	Iterator preFirstChild(const LoudsNode& node)
+	{
+		return self().select0(node.rank1());
 	}
 
 	Iterator lastChild(const LoudsNode& node)
@@ -94,7 +88,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 	BigInt nodes()
 	{
 		auto& self = this->self();
-
 		return self.rank1(self.size() - 1);
 	}
 

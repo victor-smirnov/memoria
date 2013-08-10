@@ -17,7 +17,6 @@
 
 #include <memoria/containers/vector/vctr_names.hpp>
 #include <memoria/containers/vector_map/vmap_names.hpp>
-#include <memoria/prototypes/sequence/names.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 

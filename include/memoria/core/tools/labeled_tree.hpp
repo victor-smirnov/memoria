@@ -18,12 +18,15 @@ namespace tools 	{
 
 
 
-template <typename... Labels>
+template <typename Data, typename... Labels>
 class LblTreeNode {
-	typedef LblTreeNode<Labels...>												MyType;
+	typedef LblTreeNode<Data, Labels...>										MyType;
 
 	std::vector<MyType> children_;
 	std::tuple<Labels...> labels_;
+
+	Data data_;
+
 public:
 	LblTreeNode() {}
 
@@ -39,7 +42,6 @@ public:
 	{
 		return children_.size();
 	}
-
 
 	MyType& addChild(Int idx)
 	{
@@ -64,6 +66,14 @@ public:
 
 	const std::tuple<Labels...>& labels() const {
 		return labels_;
+	}
+
+	Data& data() {
+		return data_;
+	}
+
+	const Data& data() const {
+		return data_;
 	}
 };
 
