@@ -44,6 +44,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
 
     typedef typename CtrTF<Profile, TreeName, TreeName>::Type  					Tree;
     typedef typename CtrTF<Profile, VectorName, VectorName>::Type        		Vec;
+    typedef typename Vec::Value													Value;
 
 private:
     Tree   tree_;

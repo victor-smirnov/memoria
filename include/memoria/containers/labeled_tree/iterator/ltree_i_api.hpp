@@ -46,6 +46,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 		return self.ranki(1);
     }
 
+    bool isRoot() const
+    {
+    	return self().pos() == 0;
+    }
+
     Int value() const
     {
     	if (!self().isEof())
@@ -324,13 +329,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     	return fn.sum_;
     }
 
-    void setLabel(Int label, Int value)
+    void setLabel(Int label, BigInt value)
     {
     	auto& self = this->self();
     	self.ctr().setLabel(self, label, value);
     }
 
-    void addLabel(Int label, Int value)
+    void addLabel(Int label, BigInt value)
     {
     	auto& self = this->self();
     	self.ctr().addLabel(self, label, value);

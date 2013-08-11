@@ -104,6 +104,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 		model.insert(self, buf);
 	}
 
+	void insert(Value data)
+	{
+		auto& self = this->self();
+		auto& model = self.ctr();
+
+		MemBuffer<Value> buf(&data, 1);
+
+		model.insert(self, buf);
+	}
+
 	Int size() const
 	{
 		return self().leafSize(0);
@@ -124,6 +134,26 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 	{
 		MemTBuffer<Value> buf(data);
 		return read(buf);
+	}
+
+	Value value() const
+	{
+		Value data;
+		MemTBuffer<Value> buf(&data, 1);
+
+		BigInt length = read(buf);
+
+		if (length == 1)
+		{
+			return data;
+		}
+		else if (length == 0)
+		{
+			throw Exception(MA_SRC, "Attempt to read vector after its end");
+		}
+		else {
+			throw Exception(MA_SRC, "Invalid vector read");
+		}
 	}
 
 	void remove(BigInt size)
@@ -147,6 +177,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 	BigInt skipBw(BigInt amount);
 	BigInt skip(BigInt amount);
 
+	void seek(BigInt pos)
+	{
+		BigInt current_pos = self().pos();
+		self().skip(pos - current_pos);
+	}
 
 	struct PosFn {
 		BigInt prefix_ = 0;

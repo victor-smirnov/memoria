@@ -696,6 +696,12 @@ public:
 
 	Int rank(Int end, Int symbol) const
 	{
+		if (end > size()) {
+			int a = 0; a++;
+		}
+
+		MEMORIA_ASSERT(end, <=, size());
+
 		if (has_index())
 		{
 			const Index* index = this->index();

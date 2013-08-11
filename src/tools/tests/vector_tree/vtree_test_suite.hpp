@@ -9,7 +9,8 @@
 
 #include "../tests_inc.hpp"
 
-#include "vtree_test.hpp"
+#include "vtree_create_test.hpp"
+#include "vtree_remove_test.hpp"
 
 #include <vector>
 
@@ -24,7 +25,8 @@ public:
 
 	VTreeTestSuite(): TestSuite("VTreeSuite")
     {
-        registerTask(new VTreeTest("Int"));
+        registerTask(new VectorTreeCreateTest());
+        registerTask(new VectorTreeRemoveTest());
     }
 };
 
