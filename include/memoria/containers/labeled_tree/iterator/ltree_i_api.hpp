@@ -288,14 +288,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     template <Int LabelIdx>
 	struct SumLabelFn {
 		BigInt sum_ = 0;
+		Int block_ = 0;
+
 
 		template <Int Idx, typename StreamTypes>
 		void stream(const PkdVTree<StreamTypes>* obj, Int idx)
 		{
 			if (obj != nullptr)
 			{
-				sum_ += obj->sum(0, 0, idx);
+				sum_ += obj->sum(block_, 0, idx);
 			}
+
+			block_ = 1;
 		}
 
 		template <Int Idx, typename StreamTypes>
@@ -303,8 +307,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 		{
 			if (obj != nullptr)
 			{
-				sum_ += obj->sum(0, 0, idx);
+				sum_ += obj->sum(block_, 0, idx);
 			}
+
+			block_ = 1;
 		}
 
 		template <typename Node>

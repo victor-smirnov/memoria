@@ -76,11 +76,13 @@ public:
 
     		auto ranks = getRankedSymbols(text);
 
+    		out()<<"Check ranks"<<std::endl;
+
     		for (auto& rnk: ranks)
     		{
     			UInt sym = rnk.first;
 
-    			for (UInt c = 0; c < text.size(); c++)
+    			for (UInt c = 0; c < text.size(); c += 10)
     			{
     				Int rank1 = ctr.rank(c, sym);
     				Int rank2 = rank(text, c, sym);
@@ -88,6 +90,8 @@ public:
     				AssertEQ(MA_SRC, rank1, rank2);
     			}
     		}
+
+    		out()<<"Check selects"<<std::endl;
 
     		for (auto& rnk: ranks)
     		{
@@ -103,7 +107,7 @@ public:
     			}
     		}
 
-    		StoreResource(allocator, "wt");
+    		StoreResource(allocator, "wtc");
     	}
     	catch (...) {
     		 Store(allocator);
@@ -155,7 +159,7 @@ public:
 
     		allocator.commit();
 
-    		StoreResource(allocator, "wt");
+    		StoreResource(allocator, "wtr");
     	}
     	catch (...) {
     		Store(allocator);

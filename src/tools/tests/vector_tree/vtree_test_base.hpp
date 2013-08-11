@@ -85,6 +85,8 @@ public:
     	auto first_child = tree.insert(iter, std::get<0>(tree_node.labels()));
     	iter.insert(tree_node.data());
 
+//    	assertTreeNode(tree, node, tree_node);
+
     	for (Int c = 0; c < tree_node.children(); c++)
     	{
     		insertNode(tree, first_child, tree_node.child(c));
@@ -207,9 +209,17 @@ private:
     void assertTreeNode(Ctr& ctr, const LoudsNode& node, const TreeNode& tree_node)
     {
     	auto labels = ctr.tree().labels(node);
-
-
     	AssertEQ(MA_SRC, labels, tree_node.labels());
+
+    	auto vtree_node = ctr.seek(node.node());
+    	auto data = vtree_node.read();
+
+    	AssertEQ(MA_SRC, data.size(), tree_node.data().size());
+
+    	for (UInt c = 0; c < data.size(); c++)
+    	{
+    		AssertEQ(MA_SRC, data[c], tree_node.data()[c], SBuf()<<c);
+    	}
     }
 
     void checkTree(Ctr& tree, const LoudsNode& node, const TreeNode& tree_node, Int& size)

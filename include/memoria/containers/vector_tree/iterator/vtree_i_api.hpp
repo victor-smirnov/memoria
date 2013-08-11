@@ -53,6 +53,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
 
 	bool prev_sibling()
 	{
+		auto& self = this->self();
+
 		if (self.tree_iter().prev_sibling())
 		{
 			BigInt data_base = self.tree_iter().template sumLabel<1>();
@@ -154,7 +156,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
 	}
 
 	std::vector<Value> read() {
-		return self.vector_iter().read();
+		BigInt data_size = self().lobSize();
+		return self().vector_iter().subVector(data_size);
 	}
 
 MEMORIA_ITERATOR_PART_END
