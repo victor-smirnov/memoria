@@ -23,8 +23,8 @@
 #include <memoria/prototypes/bt/bt_names.hpp>
 
 
-namespace memoria    	{
-namespace bt {
+namespace memoria	{
+namespace bt 		{
 
 template <typename Types, bool root, bool leaf>
 struct TreeMapStreamTypes: Types {
@@ -41,7 +41,9 @@ template <
 >
 class NodePageAdaptor;
 
-template <typename Base_>
+
+
+template <typename Metadata, typename Base_>
 class TreeNodeBase: public Base_ {
 public:
     static const UInt VERSION = 1;
@@ -58,12 +60,13 @@ private:
     ID  parent_id_;
     Int parent_idx_;
 
+    PackedAllocator allocator_;
+
 public:
 
-    typedef TreeNodeBase<Base>                  Me;
-    typedef Me 									BasePageType;
+    enum {METADATA = 0, STREAMS = 1};
 
-
+    typedef TreeNodeBase<Metadata, Base>        Me;
 
     TreeNodeBase(): Base() {}
 
@@ -112,20 +115,68 @@ public:
     {
     	return parent_idx_;
     }
+
+    PackedAllocator* allocator() {
+    	return &allocator_;
+    }
+
+    const PackedAllocator* allocator() const {
+    	return &allocator_;
+    }
+
+    bool has_root_metadata() const
+    {
+    	return allocator()->element_size(METADATA) == 0;
+    }
+
+    const Metadata& root_metadata() const
+    {
+    	return *allocator()->template get<Metadata>(METADATA);
+    }
+
+    Metadata& root_metadata()
+    {
+    	return *allocator()->template get<Metadata>(METADATA);
+    }
+
+    void init()
+    {
+    	Int page_size = this->page_size();
+    	MEMORIA_ASSERT(page_size, >, sizeof(Me) + sizeof(PackedAllocator));
+    	allocator_.init(page_size - sizeof(Me) + sizeof(PackedAllocator), STREAMS + 1);
+    }
+
+    void transferDataTo(Me* other) const
+    {
+    	for (Int c = 0; c < STREAMS; c++)
+    	{
+    		other->allocator_.importBlock(c, &allocator_, c);
+    	}
+    }
+
 public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
 
-        handler->value("ROOT", 		&root_);
-        handler->value("LEAF", 		&leaf_);
-        handler->value("LEVEL", 	&level_);
+        handler->value("ROOT", 	&root_);
+        handler->value("LEAF", 	&leaf_);
+        handler->value("LEVEL", &level_);
 
         IDValue parent_id(parent_id_);
         handler->value("PARENT_ID", &parent_id);
         handler->value("PARENT_IDX", &parent_idx_);
+
+        allocator()->generateDataEvents(handler);
+
+        if (has_root_metadata())
+        {
+        	const Metadata& meta = this->root_metadata();
+        	meta.generateDataEvents(handler);
+        }
     }
+
 
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
@@ -138,7 +189,16 @@ public:
 
         FieldFactory<ID>::serialize(buf, parent_id_);
         FieldFactory<Int>::serialize(buf, parent_idx_);
+
+        allocator()->serialize(buf);
+
+        if (has_root_metadata())
+        {
+        	const Metadata& meta = this->root_metadata();
+        	FieldFactory<Metadata>::serialize(buf, meta);
+        }
     }
+
 
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
@@ -151,6 +211,14 @@ public:
 
         FieldFactory<ID>::deserialize(buf, parent_id_);
         FieldFactory<Int>::deserialize(buf, parent_idx_);
+
+        allocator()->deserialize(buf);
+
+        if (has_root_metadata())
+        {
+        	Metadata& meta = this->root_metadata();
+        	FieldFactory<Metadata>::deserialize(buf, meta);
+        }
     }
 
     void copyFrom(const Me* page)
@@ -159,62 +227,19 @@ public:
 
         this->set_root(page->is_root());
         this->set_leaf(page->is_leaf());
-        this->level() = page->level();
 
-        this->parent_id() = page->parent_id();
-        this->parent_idx() = page->parent_idx();
+        this->level() 		= page->level();
+
+        this->parent_id() 	= page->parent_id();
+        this->parent_idx() 	= page->parent_idx();
+
+
+
+        //FIXME: copy allocator?
     }
 };
 
 
-
-
-template <typename Metadata, typename Base, bool root>
-class RootPage: public Base {
-	Metadata root_metadata_;
-
-	static_assert(sizeof(Metadata) % 8 == 0, "Root metadata size must be 8-multiple");
-
-public:
-
-	Metadata& root_metadata()
-	{
-		return root_metadata_;
-	}
-
-	const Metadata& root_metadata() const
-	{
-		return root_metadata_;
-	}
-
-	void generateDataEvents(IPageDataEventHandler* handler) const
-	{
-		Base::generateDataEvents(handler);
-		root_metadata_.generateDataEvents(handler);
-	}
-
-	template <template <typename> class FieldFactory>
-	void serialize(SerializationData& buf) const
-	{
-		Base::template serialize<FieldFactory>(buf);
-
-		FieldFactory<Metadata>::serialize(buf, root_metadata_);
-	}
-
-	template <template <typename> class FieldFactory>
-	void deserialize(DeserializationData& buf)
-	{
-		Base::template deserialize<FieldFactory>(buf);
-
-		FieldFactory<Metadata>::deserialize(buf, root_metadata_);
-	}
-};
-
-
-template <typename Metadata, typename Base>
-class RootPage<Metadata, Base, false>: public Base {
-	Int dummy_;
-};
 
 
 namespace internl1 {
@@ -258,7 +283,7 @@ template <
 	typename Types,
 	bool root, bool leaf
 >
-class TreeMapNode: public RootPage<typename Types::Metadata, typename Types::NodePageBase, root>
+class TreeMapNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
@@ -269,14 +294,10 @@ class TreeMapNode: public RootPage<typename Types::Metadata, typename Types::Nod
 public:
     static const UInt VERSION                                                   = 1;
 
-    typedef RootPage<
-    			typename Types::Metadata,
-    			typename Types::NodePageBase, root
+    typedef TreeNodeBase<
+    	typename Types::Metadata,
+    	typename Types::NodeBase
     >  																			Base;
-
-private:
-
-
 
 public:
 
@@ -285,37 +306,29 @@ public:
 
 
     typedef typename IfThenElse<
-    			leaf,
-    			typename Types::Value,
-    			typename Types::ID
+    	leaf,
+    	typename Types::Value,
+    	typename Types::ID
     >::Result 																	Value;
 
     template <
-        	template <typename, bool, bool> class,
-        	typename,
-        	bool, bool
+        template <typename, bool, bool> class,
+        typename,
+        bool, bool
     >
     friend class NodePageAdaptor;
-
-
 
     typedef TreeMapStreamTypes<Types, root, leaf> 								StreamTypes;
 
 	typedef typename PackedStructListBuilder<
 	    		StreamTypes,
-	    		typename Types::StreamDescriptors
+	    		typename Types::StreamDescriptors,
+	    		0
 	>::NonLeafStructList														StreamsStructList;
 
 	typedef typename ListHead<StreamsStructList>::Type::Type 					Tree;
 
 	typedef typename PackedDispatcherTool<StreamsStructList>::Type				Dispatcher;
-
-private:
-
-    PackedAllocator allocator_;
-
-public:
-
 
     static const long INDEXES                                                   = Tree::Indexes;
 
@@ -323,7 +336,6 @@ public:
     static const Int ValuesBlockIdx												= Streams;
 
     TreeMapNode(): Base() {}
-
 
 private:
 	struct InitFn {
@@ -347,49 +359,51 @@ public:
 	template <typename T>
 	T* get(Int idx)
 	{
-		return allocator_.template get<T>(idx);
+		return allocator()->template get<T>(idx);
 	}
 
 	template <typename T>
 	const T* get(Int idx) const
 	{
-		return allocator_.template get<T>(idx);
+		return allocator()->template get<T>(idx);
 	}
 
-	PackedAllocator* allocator() {
-		return &allocator_;
+	PackedAllocator* allocator()
+	{
+		return Base::allocator()->template get<PackedAllocator>(Base::STREAMS);
 	}
 
-	const PackedAllocator* allocator() const {
-		return &allocator_;
+	const PackedAllocator* allocator() const
+	{
+		return Base::allocator()->template get<PackedAllocator>(Base::STREAMS);
 	}
 
 	bool is_empty(Int idx) const
 	{
-		return allocator_.is_empty(idx);
+		return allocator()->is_empty(idx);
 	}
 
 
 	Tree* tree0() {
-		return allocator_.template get<Tree>(0);
+		return allocator()->template get<Tree>(0);
 	}
 
 	const Tree* tree0() const {
-		return allocator_.template get<Tree>(0);
+		return allocator()->template get<Tree>(0);
 	}
 
 	Value* values() {
-		return allocator_.template get<Value>(ValuesBlockIdx);
+		return allocator()->template get<Value>(ValuesBlockIdx);
 	}
 
 	const Value* values() const {
-		return allocator_.template get<Value>(ValuesBlockIdx);
+		return allocator()->template get<Value>(ValuesBlockIdx);
 	}
 
 
 	Int capacity(UBigInt active_streams) const
 	{
-		Int max_size = max_tree_size(allocator_.block_size(), active_streams);
+		Int max_size = max_tree_size(allocator()->block_size(), active_streams);
 		Int cap = max_size - size();
 		return cap >= 0 ? cap : 0;
 	}
@@ -403,7 +417,7 @@ public:
 	{
 		for (Int c = 0; c < Streams; c++)
 		{
-			if (!allocator_.is_empty(c)) {
+			if (!allocator()->is_empty(c)) {
 				return false;
 			}
 		}
@@ -475,43 +489,45 @@ public:
 
 	static Int max_tree_size_for_block(Int block_size)
 	{
-		return max_tree_size(block_size - sizeof(Me) + sizeof(allocator_));
+		return max_tree_size(block_size - sizeof(Me) + sizeof(PackedAllocator));
 	}
 
-	void init(Int block_size, UBigInt active_streams = -1)
+
+
+	void prepare()
 	{
-		init0(block_size - sizeof(Me) + sizeof(allocator_), active_streams);
+		Base::init();
+		Base::allocator()->allocateAllocator(Base::STREAMS, Streams);
 	}
 
-	void prepare(Int block_size)
-	{
-		allocator_.init(block_size - sizeof(Me) + sizeof(allocator_), Streams + 1);
-	}
+
+	struct LayoutFn {
+		template <Int StreamIndex, typename StreamType>
+		void stream(StreamType*, PackedAllocator* allocator, UBigInt active_streams)
+		{
+			if (active_streams && (1 << StreamIndex))
+			{
+				if (allocator->is_empty(StreamIndex))
+				{
+					allocator->template allocateEmpty<StreamType>(StreamIndex);
+				}
+			}
+		}
+	};
+
 
 	void layout(UBigInt active_streams)
 	{
-		Int block_size = allocator_.block_size();
-		init0(block_size, active_streams);
+		Dispatcher::dispatchAllStatic(LayoutFn(), allocator(), active_streams);
 	}
 
-	void layout(const Position& sizes)
-	{
-		UBigInt streams = -1ull;
-		for (Int c = 0; c < Streams; c++)
-		{
-			UBigInt bit = sizes[c] > 0;
-			streams |= bit << c;
-		}
-
-		layout(streams);
-	}
 
 	UBigInt active_streams() const
 	{
 		UBigInt streams = 0;
 		for (Int c = 0; c < Streams; c++)
 		{
-			UBigInt bit = !allocator_.is_empty(c);
+			UBigInt bit = !allocator()->is_empty(c);
 			streams += (bit << c);
 		}
 
@@ -542,24 +558,24 @@ public:
 
 	void init0(Int block_size, UBigInt active_streams)
 	{
-		allocator_.init(block_size, Streams + 1);
+		allocator()->init(block_size, Streams + 1);
 
 		Int tree_size = 0;//max_tree_size(block_size, active_streams);
 
-		Dispatcher::dispatchAllStatic(InitStructFn(), tree_size, &allocator_, active_streams);
+		Dispatcher::dispatchAllStatic(InitStructFn(), tree_size, allocator(), active_streams);
 
-		allocator_.template allocateArrayBySize<Value>(ValuesBlockIdx, tree_size);
+		allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, tree_size);
 	}
 
 	static Int client_area(Int block_size)
 	{
-		Int allocator_block_size = block_size - sizeof(Me) + sizeof(allocator_);
+		Int allocator_block_size = block_size - sizeof(Me) + sizeof(PackedAllocator);
 		return PackedAllocator::client_area(allocator_block_size, Streams);
 	}
 
 	Int total_size() const
 	{
-		return allocator_.allocated();
+		return allocator()->allocated();
 	}
 
 
@@ -575,7 +591,7 @@ public:
 
     void reindex()
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, ReindexFn());
+    	Dispatcher::dispatchNotEmpty(allocator(), ReindexFn());
     }
 
     struct CheckFn {
@@ -588,7 +604,7 @@ public:
 
     void check() const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, CheckFn());
+    	Dispatcher::dispatchNotEmpty(allocator(), CheckFn());
     }
 
 
@@ -597,8 +613,8 @@ public:
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, TreeType* other)
     	{
-    		auto allocator = tree->allocator();
-    		auto other_allocator = other->allocator();
+    		auto allocator 			= tree->allocator();
+    		auto other_allocator 	= other->allocator();
 
     		other_allocator->importBlock(Idx, allocator, Idx);
     	}
@@ -607,7 +623,9 @@ public:
     template <typename TreeType>
     void transferDataTo(TreeType* other) const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, TransferToFn<TreeType>(), other);
+    	Base::transferDataTo(other);
+
+    	Dispatcher::dispatchNotEmpty(allocator(), TransferToFn<TreeType>(), other);
 
     	Int size = this->size();
 
@@ -633,7 +651,7 @@ public:
 
     void clear(Int start, Int end)
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, ClearFn(), start, end);
+    	Dispatcher::dispatchNotEmpty(allocator(), ClearFn(), start, end);
 
     	Value* values	= this->values();
 
@@ -663,14 +681,14 @@ public:
     Int size() const
     {
     	SizeFn fn;
-    	Dispatcher::dispatchNotEmpty(&allocator_, fn);
+    	Dispatcher::dispatchNotEmpty(allocator(), fn);
     	return fn.size_;
     }
 
     Int size(Int stream) const
     {
     	SizeFn fn;
-    	Dispatcher::dispatch(stream, &allocator_, fn);
+    	Dispatcher::dispatch(stream, allocator(), fn);
     	return fn.size_;
     }
 
@@ -685,7 +703,7 @@ public:
     Position sizes() const
     {
     	Position pos;
-    	Dispatcher::dispatchNotEmpty(&allocator_, SizesFn(), &pos);
+    	Dispatcher::dispatchNotEmpty(allocator(), SizesFn(), &pos);
     	return pos;
     }
 
@@ -710,7 +728,7 @@ public:
 
     void set_children_count1(Int map_size)
     {
-        Dispatcher::dispatchNotEmpty(&allocator_, SetChildrenCountFn(), map_size);
+        Dispatcher::dispatchNotEmpty(allocator(), SetChildrenCountFn(), map_size);
     }
 
 
@@ -728,11 +746,11 @@ public:
     {
     	Int size = this->size();
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, InsertFn(), idx, keys);
+    	Dispatcher::dispatchNotEmpty(allocator(), InsertFn(), idx, keys);
 
     	Int requested_block_size = (size + 1) * sizeof(Value);
 
-    	allocator_.resizeBlock(ValuesBlockIdx, requested_block_size);
+    	allocator()->resizeBlock(ValuesBlockIdx, requested_block_size);
 
     	Value* values = this->values();
 
@@ -769,7 +787,7 @@ public:
     	MEMORIA_ASSERT(room_start, <=, size);
     	MEMORIA_ASSERT(stream, ==, 0);
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, InsertSpaceFn(), room_start, room_length);
+    	Dispatcher::dispatchNotEmpty(allocator(), InsertSpaceFn(), room_start, room_length);
 
     	insertValuesSpace(size, room_start, room_length);
     }
@@ -781,7 +799,7 @@ public:
 
     	Int requested_block_size = (old_size + room_length) * sizeof(Value);
 
-    	allocator_.resizeBlock(ValuesBlockIdx, requested_block_size);
+    	allocator()->resizeBlock(ValuesBlockIdx, requested_block_size);
 
     	Value* values = this->values();
 
@@ -836,7 +854,7 @@ public:
     {
     	Int old_size = this->size();
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, RemoveSpaceFn(), room_start, room_end);
+    	Dispatcher::dispatchNotEmpty(allocator(), RemoveSpaceFn(), room_start, room_end);
 
     	Value* values = this->values();
 
@@ -847,7 +865,7 @@ public:
     	MEMORIA_ASSERT(old_size, >=, room_end - room_start);
 
     	Int requested_block_size = (old_size - (room_end - room_start)) * sizeof(Value);
-    	allocator_.resizeBlock(values, requested_block_size);
+    	allocator()->resizeBlock(values, requested_block_size);
     }
 
     Accumulator removeSpace(Int stream, Int room_start, Int room_end)
@@ -878,7 +896,7 @@ public:
     {
     	MEMORIA_ASSERT(copy_from + count, <=, size());
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, CopyToFn(), other, copy_from, count, copy_to);
+    	Dispatcher::dispatchNotEmpty(allocator(), CopyToFn(), other, copy_from, count, copy_to);
 
     	CopyBuffer(this->values() + copy_from, other->values() + copy_to, count);
     }
@@ -915,7 +933,7 @@ public:
     bool canBeMergedWith(const MyType* other) const
     {
     	CanMergeWithFn fn;
-    	Dispatcher::dispatchAll(&allocator_, fn, other);
+    	Dispatcher::dispatchAll(allocator(), fn, other);
 
     	Int free_space = this->allocator()->free_space();
 
@@ -953,7 +971,7 @@ public:
     	Int other_size 	= other->size();
     	Int my_size 	= this->size();
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, MergeWithFn(), other);
+    	Dispatcher::dispatchNotEmpty(allocator(), MergeWithFn(), other);
 
     	Int other_values_block_size 		 = other->allocator()->element_size(ValuesBlockIdx);
     	Int required_other_values_block_size = (my_size + other_size) * sizeof(Value);
@@ -972,7 +990,7 @@ public:
     	Int values_size = this->size();
     	Int block_size = MyType::block_size(sizes, values_size);
 
-    	return block_size <= allocator_.block_size() / 2;
+    	return block_size <= allocator()->block_size() / 2;
     }
 
 
@@ -997,7 +1015,7 @@ public:
 
     	Accumulator result = this->sum(split_idx, size);
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, SplitToFn(), other, split_idx);
+    	Dispatcher::dispatchNotEmpty(allocator(), SplitToFn(), other, split_idx);
 
     	other->allocator()->template allocateArrayBySize<Value>(ValuesBlockIdx, remainder);
 
@@ -1032,7 +1050,7 @@ public:
     {
     	Accumulator acc;
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, KeysAtFn(), idx, &acc);
+    	Dispatcher::dispatchNotEmpty(allocator(), KeysAtFn(), idx, &acc);
 
     	return acc;
     }
@@ -1056,7 +1074,7 @@ public:
     {
     	Accumulator acc;
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, MaxKeysFn(), &acc);
+    	Dispatcher::dispatchNotEmpty(allocator(), MaxKeysFn(), &acc);
 
     	return acc;
     }
@@ -1078,7 +1096,7 @@ public:
 
     void setKeys(Int idx, Accumulator& keys)
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, SetKeysFn(), idx, &keys);
+    	Dispatcher::dispatchNotEmpty(allocator(), SetKeysFn(), idx, &keys);
     }
 
 
@@ -1123,26 +1141,26 @@ public:
 
     void sum(Int start, Int end, Accumulator& accum) const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), start, end, &accum);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), start, end, &accum);
     }
 
 
     void sum(Int stream, Int start, Int end, Accumulator& accum) const
     {
-    	Dispatcher::dispatch(stream, &allocator_, SumFn(), start, end, &accum);
+    	Dispatcher::dispatch(stream, allocator(), SumFn(), start, end, &accum);
     }
 
     Accumulator sum(Int start, Int end) const
     {
     	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), start, end, &accum);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), start, end, &accum);
     	return accum;
     }
 
     Accumulator sums() const
     {
     	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), &accum);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &accum);
     	return accum;
     }
 
@@ -1161,18 +1179,18 @@ public:
     Accumulator sum_neg(Int start, Int end) const
     {
     	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumNegFn(), start, end, &accum);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumNegFn(), start, end, &accum);
     	return accum;
     }
 
     void sum(Int block_num, Int start, Int end, BigInt& accum) const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), block_num, start, end, &accum);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), block_num, start, end, &accum);
     }
 
     void sum(Int stream, Int block_num, Int start, Int end, BigInt& accum) const
     {
-    	Dispatcher::dispatch(stream, &allocator_, SumFn(), block_num, start, end, &accum);
+    	Dispatcher::dispatch(stream, allocator(), SumFn(), block_num, start, end, &accum);
     }
 
     template <typename V>
@@ -1191,69 +1209,69 @@ public:
     template <typename Fn, typename... Args>
     Int find(Int stream, Fn&& fn, Args... args) const
     {
-    	return Dispatcher::dispatchRtn(stream, &allocator_, std::move(fn), args...);
+    	return Dispatcher::dispatchRtn(stream, allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void process(Int stream, Fn&& fn, Args... args) const
     {
-    	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
+    	Dispatcher::dispatch(stream, allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void process(Int stream, Fn&& fn, Args... args)
     {
-    	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
+    	Dispatcher::dispatch(stream, allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void processNotEmpty(Fn&& fn, Args... args) const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, std::move(fn), args...);
+    	Dispatcher::dispatchNotEmpty(allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void processNotEmpty(Fn&& fn, Args... args)
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, std::move(fn), args...);
+    	Dispatcher::dispatchNotEmpty(allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void processNotEmpty(UBigInt streams, Fn&& fn, Args... args) const
     {
-    	Dispatcher::dispatchNotEmpty(streams, &allocator_, std::move(fn), args...);
+    	Dispatcher::dispatchNotEmpty(streams, allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void processNotEmpty(UBigInt streams, Fn&& fn, Args... args)
     {
-    	Dispatcher::dispatchNotEmpty(streams, &allocator_, std::move(fn), args...);
+    	Dispatcher::dispatchNotEmpty(streams, allocator(), std::move(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     void processStream(Fn&& fn, Args... args) const
     {
-    	Dispatcher::template dispatch<StreamIdx>(&allocator_, fn, args...);
+    	Dispatcher::template dispatch<StreamIdx>(allocator(), fn, args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     void processStream(Fn&& fn, Args... args)
     {
-    	Dispatcher::template dispatch<StreamIdx>(&allocator_, fn, args...);
+    	Dispatcher::template dispatch<StreamIdx>(allocator(), fn, args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     typename std::remove_reference<Fn>::type::ResultType
     processStreamRtn(Fn&& fn, Args... args) const
     {
-    	return Dispatcher::template dispatchRtn<StreamIdx>(&allocator_, fn, args...);
+    	return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), fn, args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     typename std::remove_reference<Fn>::type::ResultType
     processStreamRtn(Fn&& fn, Args... args)
     {
-    	return Dispatcher::template dispatchRtn<StreamIdx>(&allocator_, fn, args...);
+    	return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), fn, args...);
     }
 
 
@@ -1268,7 +1286,7 @@ public:
 
     void updateUp(Int idx, const Accumulator& keys)
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, UpdateUpFn(), idx, &keys);
+    	Dispatcher::dispatchNotEmpty(allocator(), UpdateUpFn(), idx, &keys);
     }
 
 
@@ -1295,7 +1313,7 @@ public:
 
     void dump() const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, DumpFn());
+    	Dispatcher::dispatchNotEmpty(allocator(), DumpFn());
     	dumpValues();
     }
 
@@ -1323,9 +1341,9 @@ public:
     {
         Base::generateDataEvents(handler);
 
-        allocator_.generateDataEvents(handler);
+        allocator()->generateDataEvents(handler);
 
-        Dispatcher::dispatchNotEmpty(&allocator_, GenerateDataEventsFn(), handler);
+        Dispatcher::dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
 
         handler->startGroup("TREE_VALUES", size());
 
@@ -1338,10 +1356,10 @@ public:
     }
 
     struct SerializeFn {
-    	template <Int Idx, typename Tree>
-    	void stream(const Tree* tree, SerializationData* buf)
+    	template <Int Idx, typename StreamObj>
+    	void stream(const StreamObj* stream, SerializationData* buf)
     	{
-    		tree->serialize(*buf);
+    		stream->serialize(*buf);
     	}
     };
 
@@ -1350,9 +1368,9 @@ public:
     {
         Base::template serialize<FieldFactory>(buf);
 
-        allocator_.serialize(buf);
+        allocator()->serialize(buf);
 
-        Dispatcher::dispatchNotEmpty(&allocator_, SerializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
 
         Int size = this->size();
 
@@ -1360,10 +1378,10 @@ public:
     }
 
     struct DeserializeFn {
-    	template <Int Idx, typename Tree>
-    	void stream(Tree* tree, DeserializationData* buf)
+    	template <Int Idx, typename StreamObj>
+    	void stream(StreamObj* obj, DeserializationData* buf)
     	{
-    		tree->deserialize(*buf);
+    		obj->deserialize(*buf);
     	}
     };
 
@@ -1372,9 +1390,9 @@ public:
     {
         Base::template deserialize<FieldFactory>(buf);
 
-        allocator_.deserialize(buf);
+        allocator()->deserialize(buf);
 
-        Dispatcher::dispatchNotEmpty(&allocator_, DeserializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
 
         Int size = this->size();
 
@@ -1471,7 +1489,7 @@ public:
             Me* tgt = T2T<Me*>(buffer);
 
             tgt->copyFrom(me);
-            tgt->init(new_size);
+//            tgt->init(new_size);
 
             me->transferDataTo(tgt);
 
@@ -1545,8 +1563,8 @@ void ConvertNodeToRoot(
 {
 	typedef TreeNode<TreeMapNode, Types, root2, leaf2> RootType;
 
-	tgt->prepare(src->page_size());
 	tgt->copyFrom(src);
+	tgt->prepare();
 
 	tgt->set_root(true);
 
@@ -1567,8 +1585,9 @@ void ConvertRootToNode(
 {
 	typedef TreeNode<TreeMapNode, Types, root2, leaf2> NonRootNode;
 
-	tgt->prepare(src->page_size());
 	tgt->copyFrom(src);
+	tgt->prepare();
+
 	tgt->page_type_hash()   = NonRootNode::hash();
 	tgt->set_root(false);
 
@@ -1582,9 +1601,9 @@ void ConvertRootToNode(
 
 }
 
-template <typename Base>
-struct TypeHash<bt::TreeNodeBase<Base>> {
-	typedef bt::TreeNodeBase<Base> TargetType;
+template <typename Metadata, typename Base>
+struct TypeHash<bt::TreeNodeBase<Metadata, Base>> {
+	typedef bt::TreeNodeBase<Metadata, Base> TargetType;
 
     static const UInt Value = HashHelper<
     		TypeHash<Base>::Value,
@@ -1595,20 +1614,9 @@ struct TypeHash<bt::TreeNodeBase<Base>> {
     		TypeHash<Int>::Value,
     		TypeHash<Int>::Value,
     		TypeHash<typename TargetType::ID>::Value,
-    		TypeHash<Int>::Value
+    		TypeHash<Int>::Value,
+    		TypeHash<Metadata>::Value
     >::Value;
-};
-
-
-template <typename Metadata, typename Base>
-struct TypeHash<bt::RootPage<Metadata, Base, true> > {
-    static const UInt Value = HashHelper<TypeHash<Base>::Value, TypeHash<Metadata>::Value>::Value;
-};
-
-
-template <typename Metadata, typename Base>
-struct TypeHash<bt::RootPage<Metadata, Base, false> > {
-    static const UInt Value = TypeHash<Base>::Value;
 };
 
 

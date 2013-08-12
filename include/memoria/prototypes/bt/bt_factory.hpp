@@ -261,12 +261,16 @@ public:
     			Streams
     >       																	Position_;
 
+    typedef typename ContainerTypes::Allocator::Page							Page;
 
-    typedef bt::TreeNodeBase<typename ContainerTypes::Allocator::Page>   		NodePageBase0;
+    typedef TreeNodeBase<
+    		typename ContainerTypes::Metadata,
+    		Page
+    >  																			NodePageBase0;
     typedef PageGuard<NodePageBase0, typename ContainerTypes::Allocator>   		NodePageBase0G;
 
     struct NodeTypes: ContainerTypes {
-        typedef NodePageBase0                      			NodePageBase;
+        typedef Page                      					NodeBase;
         typedef ContainerTypeName_                          Name;
         typedef typename ContainerTypes::Metadata			Metadata;
 
@@ -278,6 +282,8 @@ public:
 
         static const Int                                    Indexes             = 1;
         static const Int                                    Streams				= MyType::Streams;
+
+        static const Int									StreamsIdxStart		= 0;
 
         typedef Accumulator_ 								Accumulator;
         typedef Position_ 									Position;
@@ -316,8 +322,8 @@ public:
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
-        typedef BTCtrTypes<Types>                                          CtrTypes;
-        typedef BTIterTypes<Types>                                         IterTypes;
+        typedef BTCtrTypes<Types>                                          		CtrTypes;
+        typedef BTIterTypes<Types>                                         		IterTypes;
 
         typedef bt::NodePath<
                 NodeBaseG, 8

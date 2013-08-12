@@ -81,7 +81,6 @@ public:
 			head = alloc->template get<StreamType>(StreamIdx);
 		}
 
-
 		fn.template stream<StreamIdx>(head, args...);
 	}
 

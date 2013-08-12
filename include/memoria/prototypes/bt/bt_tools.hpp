@@ -349,7 +349,7 @@ struct AccumulatorBuilder<TypeList<Types...>> {
 
 
 
-template <typename Types, typename List, Int Idx = 0>
+template <typename Types, typename List, Int Idx>
 class PackedStructListBuilder;
 
 

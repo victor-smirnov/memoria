@@ -24,8 +24,8 @@
 #include <memoria/prototypes/bt/nodes/tree_node.hpp>
 
 
-namespace memoria    	{
-namespace bt	{
+namespace memoria	{
+namespace bt		{
 
 
 
@@ -49,7 +49,7 @@ template <
 	typename Types,
 	bool root, bool leaf
 >
-class TreeLeafNode: public bt::RootPage<typename Types::Metadata, typename Types::NodePageBase, root>
+class TreeLeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
@@ -60,9 +60,9 @@ class TreeLeafNode: public bt::RootPage<typename Types::Metadata, typename Types
 public:
     static const UInt VERSION                                                   = 2;
 
-    typedef bt::RootPage<
+    typedef bt::TreeNodeBase<
     			typename Types::Metadata,
-    			typename Types::NodePageBase, root
+    			typename Types::NodeBase
     >  																			Base;
 
 private:
@@ -85,16 +85,11 @@ public:
 
 	typedef typename PackedStructListBuilder<
 				StreamTypes,
-	    		typename Types::StreamDescriptors
+	    		typename Types::StreamDescriptors,
+	    		0
 	>::LeafStructList															StreamsStructList;
 
 	typedef typename PackedDispatcherTool<StreamsStructList>::Type				Dispatcher;
-
-private:
-
-    PackedAllocator allocator_;
-
-public:
 
     static const Int Streams 													= ListSize<StreamsStructList>::Value;
 
@@ -117,36 +112,46 @@ private:
 
 public:
 
+	PackedAllocator* allocator()
+	{
+		return Base::allocator();
+	}
+
+	const PackedAllocator* allocator() const
+	{
+		return Base::allocator();
+	}
+
 	template <typename T>
 	T* get(Int idx)
 	{
-		return allocator_.template get<T>(idx);
+		return allocator()->template get<T>(idx);
 	}
 
 	template <typename T>
 	const T* get(Int idx) const
 	{
-		return allocator_.template get<T>(idx);
+		return allocator()->template get<T>(idx);
 	}
 
-	PackedAllocator* allocator() {
-		return &allocator_;
-	}
-
-	const PackedAllocator* allocator() const {
-		return &allocator_;
-	}
+//	PackedAllocator* allocator() {
+//		return &allocator_;
+//	}
+//
+//	const PackedAllocator* allocator() const {
+//		return &allocator_;
+//	}
 
 	bool is_empty(Int idx) const
 	{
-		return allocator_.is_empty(idx);
+		return allocator()->is_empty(idx);
 	}
 
 	bool is_empty() const
 	{
 		for (Int c = 0; c < Streams; c++)
 		{
-			if (!allocator_.is_empty(c)) {
+			if (!allocator()->is_empty(c)) {
 				return false;
 			}
 		}
@@ -183,39 +188,40 @@ public:
 
 	static Int object_size(const Position& sizes)
 	{
-		return block_size(sizes) + sizeof(MyType) - sizeof(allocator_);
+		return block_size(sizes) + sizeof(MyType) - sizeof(PackedAllocator);
 	}
 
 	static Int client_area(Int block_size)
 	{
-		Int allocator_block_size = block_size - sizeof(Me) + sizeof(allocator_);
+		Int allocator_block_size = block_size - sizeof(Me) + sizeof(PackedAllocator);
 		return PackedAllocator::client_area(allocator_block_size, Streams);
 	}
 
 	Int total_size() const
 	{
-		return allocator_.allocated();
+		return allocator()->allocated();
 	}
 
-	void init(Int block_size, const Position& sizes)
-	{
-		init0(block_size - sizeof(Me) + sizeof(allocator_), sizes);
-	}
+//	void init(Int block_size, const Position& sizes)
+//	{
+//		init0(block_size - sizeof(Me) + sizeof(PackedAllocator), sizes);
+//	}
+//
+//	void init(Int block_size)
+//	{
+//		init0(block_size - sizeof(Me) + sizeof(PackedAllocator));
+//	}
 
-	void init(Int block_size)
+	void prepare()
 	{
-		init0(block_size - sizeof(Me) + sizeof(allocator_));
-	}
-
-	void prepare(Int block_size)
-	{
-		allocator_.init(block_size - sizeof(Me) + sizeof(allocator_), Streams);
+		Base::init();
+		Base::allocator()->allocateAllocator(Base::STREAMS, Streams);
 	}
 
 	void layout(const Position& sizes)
 	{
-		Int block_size = this->page_size();
-		init(block_size, sizes);
+//		Int block_size = this->page_size();
+//		init(block_size, sizes);
 	}
 
 
@@ -245,7 +251,7 @@ public:
 		UBigInt streams = 0;
 		for (Int c = 0; c < Streams; c++)
 		{
-			UBigInt bit = !allocator_.is_empty(c);
+			UBigInt bit = !allocator()->is_empty(c);
 			streams += (bit << c);
 		}
 
@@ -279,16 +285,16 @@ public:
 
 	void init0(Int block_size, const Position& sizes)
 	{
-		allocator_.init(block_size, Streams);
+		allocator()->init(block_size, Streams);
 
-		Dispatcher::dispatchAllStatic(InitStructFn(), &allocator_, sizes);
+		Dispatcher::dispatchAllStatic(InitStructFn(), allocator(), sizes);
 	}
 
 	void init0(Int block_size)
 	{
-		allocator_.init(block_size, Streams);
+		allocator()->init(block_size, Streams);
 
-		Dispatcher::dispatchAllStatic(InitStructFn(), &allocator_, allocator_.client_area());
+		Dispatcher::dispatchAllStatic(InitStructFn(), allocator(), allocator()->client_area());
 	}
 
 
@@ -304,7 +310,7 @@ public:
 	Int object_size() const
 	{
 		Int size = 0;
-		Dispatcher::dispatchNotEmpty(ObjectSizeFn(), &allocator_, &size);
+		Dispatcher::dispatchNotEmpty(ObjectSizeFn(), allocator(), &size);
 		return size;
 	}
 
@@ -320,7 +326,7 @@ public:
 
     void reindex()
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, ReindexFn());
+    	Dispatcher::dispatchNotEmpty(allocator(), ReindexFn());
     }
 
     struct CheckFn {
@@ -333,7 +339,7 @@ public:
 
     void check() const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, CheckFn());
+    	Dispatcher::dispatchNotEmpty(allocator(), CheckFn());
     }
 
 
@@ -352,7 +358,9 @@ public:
     template <typename TreeType>
     void transferDataTo(TreeType* other) const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, TransferToFn<TreeType>(), other);
+    	Base::transferDataTo(other);
+
+    	Dispatcher::dispatchNotEmpty(allocator(), TransferToFn<TreeType>(), other);
     }
 
 
@@ -407,11 +415,11 @@ public:
 		}
 
 		Int mem_used = 0;
-		Dispatcher::dispatchAll(&allocator_, MemUsedFn(), &fillment, &mem_used, stream);
+		Dispatcher::dispatchAll(allocator(), MemUsedFn(), &fillment, &mem_used, stream);
 
-		Int client_area	= allocator_.client_area();
+		Int client_area	= allocator()->client_area();
 
-		return Dispatcher::dispatchRtn(stream, &allocator_, Capacity3Fn(), client_area - mem_used);
+		return Dispatcher::dispatchRtn(stream, allocator(), Capacity3Fn(), client_area - mem_used);
 	}
 
 	Int capacity(const Int* sizes, Int stream) const
@@ -488,9 +496,9 @@ public:
 
 		Int mem_size = 0;
 
-		Dispatcher::dispatchAll(&allocator_, CheckCapacitiesFn(), &fillment, &mem_size);
+		Dispatcher::dispatchAll(allocator(), CheckCapacitiesFn(), &fillment, &mem_size);
 
-		Int client_area	= allocator_.client_area();
+		Int client_area	= allocator()->client_area();
 
 		return client_area >= mem_size;
 	}
@@ -510,7 +518,7 @@ public:
 
     Int size(Int stream) const
     {
-    	return Dispatcher::dispatchRtn(stream, &allocator_, SizeFn());
+    	return Dispatcher::dispatchRtn(stream, allocator(), SizeFn());
     }
 
     struct SizesFn {
@@ -524,7 +532,7 @@ public:
     Position sizes() const
     {
     	Position pos;
-    	Dispatcher::dispatchNotEmpty(&allocator_, SizesFn(), &pos);
+    	Dispatcher::dispatchNotEmpty(allocator(), SizesFn(), &pos);
     	return pos;
     }
 
@@ -541,7 +549,7 @@ public:
 
     Int max_size(Int stream) const
     {
-    	return Dispatcher::dispatchRtn(stream, &allocator_, MaxSizeFn());
+    	return Dispatcher::dispatchRtn(stream, allocator(), MaxSizeFn());
     }
 
     struct MaxSizesFn {
@@ -555,7 +563,7 @@ public:
     Position max_sizes() const
     {
     	Position pos;
-    	Dispatcher::dispatchNotEmpty(&allocator_, MaxSizesFn(), &pos);
+    	Dispatcher::dispatchNotEmpty(allocator(), MaxSizesFn(), &pos);
     	return pos;
     }
 
@@ -576,7 +584,7 @@ public:
     Int maxOfSizes() const
     {
     	MaxOfSizesFn fn;
-    	Dispatcher::dispatchNotEmpty(&allocator_, fn);
+    	Dispatcher::dispatchNotEmpty(allocator(), fn);
     	return fn.max_size_;
     }
 
@@ -624,7 +632,7 @@ public:
 
     void initStreamsIfEmpty(const Position& sizes)
     {
-    	Dispatcher::dispatchAll(&allocator_, InitStreamIfEmpty(), &allocator_, &sizes);
+    	Dispatcher::dispatchAll(allocator(), InitStreamIfEmpty(), allocator(), &sizes);
     }
 
 
@@ -646,7 +654,7 @@ public:
     {
     	initStreamsIfEmpty(room_length);
 
-    	Dispatcher::dispatchAll(&allocator_, InsertSpaceFn(), &allocator_, &room_start, &room_length);
+    	Dispatcher::dispatchAll(allocator(), InsertSpaceFn(), allocator(), &room_start, &room_length);
     }
 
     void insertSpace(Int stream, Int room_start, Int room_length)
@@ -674,7 +682,7 @@ public:
     {
     	Accumulator accum = sum(stream, room_start, room_end);
 
-    	Dispatcher::dispatch(stream, &allocator_, RemoveSpaceFn(), room_start, room_end);
+    	Dispatcher::dispatch(stream, allocator(), RemoveSpaceFn(), room_start, room_end);
 
     	removeEmptyStreams();
 
@@ -687,7 +695,7 @@ public:
     {
     	Accumulator accum = sum(room_start, room_end);
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, RemoveSpaceFn(), &room_start, &room_end);
+    	Dispatcher::dispatchNotEmpty(allocator(), RemoveSpaceFn(), &room_start, &room_end);
 
     	removeEmptyStreams();
 
@@ -707,15 +715,15 @@ public:
     	{
     		if (sizes[c] == 0)
     		{
-    			allocator_.free(c);
+    			allocator()->free(c);
     		}
     	}
     }
 
     bool shouldBeMergedWithSiblings() const
     {
-    	Int client_area	= allocator_.client_area();
-    	Int used 		= allocator_.allocated();
+    	Int client_area	= allocator()->client_area();
+    	Int used 		= allocator()->allocated();
 
     	return used < client_area / 2;
     }
@@ -751,7 +759,7 @@ public:
     bool canBeMergedWith(const MyType* other) const
     {
     	CanMergeWithFn fn;
-    	Dispatcher::dispatchAll(&allocator_, fn, other);
+    	Dispatcher::dispatchAll(allocator(), fn, other);
 
     	Int free_space = this->allocator()->free_space();
 
@@ -781,7 +789,7 @@ public:
 
     void mergeWith(MyType* other)
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, MergeWithFn(), other);
+    	Dispatcher::dispatchNotEmpty(allocator(), MergeWithFn(), other);
     }
 
     struct SplitToFn {
@@ -816,7 +824,7 @@ public:
 
     	sum(from, sizes, result);
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, SplitToFn(), other, &from);
+    	Dispatcher::dispatchNotEmpty(allocator(), SplitToFn(), other, &from);
 
     	return result;
     }
@@ -842,7 +850,7 @@ public:
     	MEMORIA_ASSERT_TRUE((copy_from + count).lteAll(sizes()));
     	MEMORIA_ASSERT_TRUE((copy_to + count).lteAll(other->max_sizes()));
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, CopyToFn(), other, copy_from, count, copy_to);
+    	Dispatcher::dispatchNotEmpty(allocator(), CopyToFn(), other, copy_from, count, copy_to);
     }
 
 
@@ -941,51 +949,51 @@ public:
 
     void sum(const Position* start, const Position* end, Accumulator& accum) const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), start, end, &accum);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), start, end, &accum);
     }
 
     void sum(const Position& start, const Position& end, Accumulator& accum) const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), &start, &end, &accum);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &start, &end, &accum);
     }
 
     Accumulator sum(const Position* start, const Position* end) const
     {
     	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), start, end, &accum);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), start, end, &accum);
     	return accum;
     }
 
     Accumulator sum(const Position& start, const Position& end) const
     {
     	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), &start, &end, &accum, -1ull);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &start, &end, &accum, -1ull);
     	return accum;
     }
 
     Accumulator sum(Int stream, Int start, Int end) const
     {
     	Accumulator accum;
-    	Dispatcher::dispatch(stream, &allocator_, SumFn(), start, end, &accum);
+    	Dispatcher::dispatch(stream, allocator(), SumFn(), start, end, &accum);
     	return accum;
     }
 
     Accumulator sum(const Position& start, const Position& end, UBigInt active_streams) const
     {
     	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), &start, &end, &accum, active_streams);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &start, &end, &accum, active_streams);
     	return accum;
     }
 
     void sum(Int stream, Int block_num, Int start, Int end, BigInt& accum) const
     {
-    	Dispatcher::dispatch(stream, &allocator_, SumFn(), block_num, start, end, &accum);
+    	Dispatcher::dispatch(stream, allocator(), SumFn(), block_num, start, end, &accum);
     }
 
     Accumulator sums() const
     {
     	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(&allocator_, SumFn(), &accum);
+    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &accum);
     	return accum;
     }
 
@@ -1038,7 +1046,7 @@ public:
     {
     	initStreamsIfEmpty(sizes);
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, InsertSourceFn(), &src, &pos, &sizes);
+    	Dispatcher::dispatchNotEmpty(allocator(), InsertSourceFn(), &src, &pos, &sizes);
     }
 
 
@@ -1054,7 +1062,7 @@ public:
     {
     	initStreamsIfEmpty(sizes);
 
-    	Dispatcher::dispatchNotEmpty(&allocator_, AppendSourceFn(), &src, &sizes);
+    	Dispatcher::dispatchNotEmpty(allocator(), AppendSourceFn(), &src, &sizes);
     }
 
 
@@ -1070,7 +1078,7 @@ public:
 
     void update(ISource* src, const Position& pos, const Position& sizes)
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, UpdateSourceFn(), src, &pos, &sizes);
+    	Dispatcher::dispatchNotEmpty(allocator(), UpdateSourceFn(), src, &pos, &sizes);
     }
 
 
@@ -1084,64 +1092,64 @@ public:
 
     void read(ITarget* tgt, const Position& pos, const Position& sizes) const
     {
-    	Dispatcher::dispatchNotEmpty(&allocator_, ReadToTargetFn(), tgt, &pos, &sizes);
+    	Dispatcher::dispatchNotEmpty(allocator(), ReadToTargetFn(), tgt, &pos, &sizes);
     }
 
 
     template <typename Fn, typename... Args>
     Int find(Int stream, Fn&& fn, Args... args) const
     {
-    	return Dispatcher::dispatchRtn(stream, &allocator_, std::move(fn), args...);
+    	return Dispatcher::dispatchRtn(stream, allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void process(Int stream, Fn&& fn, Args... args) const
     {
-    	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
+    	Dispatcher::dispatch(stream, allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void process(Int stream, Fn&& fn, Args... args)
     {
-    	Dispatcher::dispatch(stream, &allocator_, std::move(fn), args...);
+    	Dispatcher::dispatch(stream, allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void processAll(Fn&& fn, Args... args) const
     {
-    	Dispatcher::dispatchAll(&allocator_, std::move(fn), args...);
+    	Dispatcher::dispatchAll(allocator(), std::move(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void processAll(Fn&& fn, Args... args)
     {
-    	Dispatcher::dispatchAll(&allocator_, std::move(fn), args...);
+    	Dispatcher::dispatchAll(allocator(), std::move(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     void processStream(Fn&& fn, Args... args) const
     {
-    	Dispatcher::template dispatch<StreamIdx>(&allocator_, fn, args...);
+    	Dispatcher::template dispatch<StreamIdx>(allocator(), fn, args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     void processStream(Fn&& fn, Args... args)
     {
-    	Dispatcher::template dispatch<StreamIdx>(&allocator_, fn, args...);
+    	Dispatcher::template dispatch<StreamIdx>(allocator(), fn, args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     typename std::remove_reference<Fn>::type::ResultType
     processStreamRtn(Fn&& fn, Args... args) const
     {
-    	return Dispatcher::template dispatchRtn<StreamIdx>(&allocator_, fn, args...);
+    	return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), fn, args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     typename std::remove_reference<Fn>::type::ResultType
     processStreamRtn(Fn&& fn, Args... args)
     {
-    	return Dispatcher::template dispatchRtn<StreamIdx>(&allocator_, fn, args...);
+    	return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), fn, args...);
     }
 
 
@@ -1149,9 +1157,9 @@ public:
     {
         Base::generateDataEvents(handler);
 
-        allocator_.generateDataEvents(handler);
+        allocator()->generateDataEvents(handler);
 
-        Dispatcher::dispatchNotEmpty(&allocator_, GenerateDataEventsFn(), handler);
+        Dispatcher::dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
     }
 
     struct SerializeFn {
@@ -1167,9 +1175,9 @@ public:
     {
         Base::template serialize<FieldFactory>(buf);
 
-        allocator_.serialize(buf);
+        allocator()->serialize(buf);
 
-        Dispatcher::dispatchNotEmpty(&allocator_, SerializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
     }
 
     struct DeserializeFn {
@@ -1185,19 +1193,17 @@ public:
     {
         Base::template deserialize<FieldFactory>(buf);
 
-        allocator_.deserialize(buf);
+        allocator()->deserialize(buf);
 
-        Dispatcher::dispatchNotEmpty(&allocator_, DeserializeFn(), &buf);
+        Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
     }
 
-    static void InitType() {
-    	int a = 0; a++;
-    }
+    static void InitType() {}
 
-    void set_children_count(Int) {
+    void set_children_count(Int)
+    {
     	throw Exception(MA_SRC, "Deprecated method set_children_count()");
     }
-
 
     struct DumpFn {
     	template <Int Idx, typename Tree>
@@ -1209,7 +1215,7 @@ public:
 
 
     void dump() const {
-    	Dispatcher::dispatchNotEmpty(&allocator_, DumpFn());
+    	Dispatcher::dispatchNotEmpty(allocator(), DumpFn());
     }
 };
 
@@ -1230,7 +1236,7 @@ void ConvertNodeToRoot(
 
 	tgt->page_type_hash()   = RootType::hash();
 
-	tgt->prepare(src->page_size());
+	tgt->prepare();
 
 	src->transferDataTo(tgt);
 
@@ -1253,7 +1259,7 @@ void ConvertRootToNode(
 
 	tgt->set_root(false);
 
-	tgt->prepare(src->page_size());
+	tgt->prepare();
 
 	src->transferDataTo(tgt);
 

@@ -41,7 +41,6 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Types::NodeBase::BasePageType                              TreeNodePage;
 
     typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
     typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
@@ -418,7 +417,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->level() = level;
 
-        prepareNodeSize(node, size);
+        prepareNode(node);
 
         return node;
     }
@@ -450,26 +449,24 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         node->level() = level;
 
-        prepareNodeSize(node, metadata.page_size());
+        prepareNode(node);
 
         return node;
     }
 
     template <typename Node>
-    void prepareNode(Node* node, Int block_size) const
+    void prepareNode(Node* node) const
     {
-        MEMORIA_ASSERT(block_size, >=, 512);
-
-        node->prepare(block_size);
+        node->prepare();
     }
 
     MEMORIA_CONST_FN_WRAPPER(PrepareNodeFn, prepareNode);
 
-    void prepareNodeSize(NodeBaseG& node, Int block_size) const
+    void prepareNode(NodeBaseG& node) const
     {
         MEMORIA_ASSERT_TRUE(node.isSet());
 
-        NodeDispatcher::dispatch(node.page(), PrepareNodeFn(me()), block_size);
+        NodeDispatcher::dispatch(node.page(), PrepareNodeFn(me()));
     }
 
  private:

@@ -28,7 +28,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsert1Name)
 
 	typedef typename Types::NodeBase                                            NodeBase;
 	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::TreeNodePage                                         TreeNodePage;
 	typedef typename Base::Iterator                                             Iterator;
 
 	typedef typename Base::NodeDispatcher                                       NodeDispatcher;

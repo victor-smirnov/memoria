@@ -30,7 +30,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrChecksName)
 
 	typedef typename Types::NodeBase                                            NodeBase;
 	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::TreeNodePage                                         TreeNodePage;
 	typedef typename Base::Iterator                                             Iterator;
 
 	typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;

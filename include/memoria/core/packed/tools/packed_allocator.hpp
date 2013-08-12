@@ -36,7 +36,7 @@ class PackedAllocator: public PackedAllocatable {
 	typedef Packed2TreeTypes <Int>												LayoutTypes;
 
 public:
-	typedef PkdFTree<LayoutTypes>											Layout;
+	typedef PkdFTree<LayoutTypes>												Layout;
 
 	typedef UBigInt																Bitmap;
 
@@ -129,6 +129,11 @@ public:
 
 		Bitmap* bitmap = this->bitmap();
 		memset(bitmap, 0, bitmap_size_);
+	}
+
+	static Int empty_size(Int blocks)
+	{
+		return block_size(0, blocks);
 	}
 
 	static Int block_size(Int client_area, Int blocks)
@@ -315,6 +320,20 @@ public:
 		T* object = block.cast<T>();
 
 		object->init();
+
+		return object;
+	}
+
+
+	PackedAllocator* allocateAllocator(Int idx, Int streams)
+	{
+		Int block_size = PackedAllocator::empty_size(streams);
+
+		AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
+
+		PackedAllocator* object = block.cast<PackedAllocator>();
+
+		object->init(block_size, streams);
 
 		return object;
 	}

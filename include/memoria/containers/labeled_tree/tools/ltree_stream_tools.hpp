@@ -45,7 +45,7 @@ public:
 template <typename Types, Int StreamIdx>
 struct PkdFTreeNodeTF {
     typedef typename SelectByIndexTool<
-    		StreamIdx,
+    		StreamIdx - Types::StreamsIdxStart,
     		typename Types::StreamDescriptors
     >::Result																	Descriptor;
 
@@ -60,7 +60,7 @@ struct PkdFTreeNodeTF {
 template <typename Types, Int StreamIdx>
 struct PkdFTreeLeafTF {
     typedef typename SelectByIndexTool<
-    		StreamIdx,
+    		StreamIdx - Types::StreamsIdxStart,
     		typename Types::StreamDescriptors
     >::Result																	Descriptor;
 
@@ -78,7 +78,7 @@ template <typename Types, Int StreamIdx>
 struct PackedFSEArrayLeafTF {
 
 	typedef typename SelectByIndexTool<
-			StreamIdx,
+			StreamIdx - Types::StreamsIdxStart,
 			typename Types::StreamDescriptors
 	>::Result																	Descriptor;
 
@@ -93,7 +93,7 @@ template <typename Types, Int StreamIdx>
 struct PackedFSEBitmapLeafTF {
 
 	typedef typename SelectByIndexTool<
-			StreamIdx,
+			StreamIdx - Types::StreamsIdxStart,
 			typename Types::StreamDescriptors
 	>::Result																	Descriptor;
 
@@ -111,7 +111,7 @@ template <typename Types, Int StreamIdx>
 struct PkdVTreeNodeTF {
 
     typedef typename SelectByIndexTool<
-    		StreamIdx,
+    		StreamIdx - Types::StreamsIdxStart,
     		typename Types::StreamDescriptors
     >::Result																	Descriptor;
 
@@ -129,7 +129,7 @@ struct PkdVTreeNodeTF {
 template <typename Types, Int StreamIdx>
 struct PkdVTreeByteLeafTF {
     typedef typename SelectByIndexTool<
-    		StreamIdx,
+    		StreamIdx - Types::StreamsIdxStart,
     		typename Types::StreamDescriptors
     >::Result																	Descriptor;
 
@@ -152,7 +152,7 @@ struct PkdVTreeByteLeafTF {
 template <typename Types, Int StreamIdx>
 struct PkdVTreeBitLeafTF {
     typedef typename SelectByIndexTool<
-    		StreamIdx,
+    		StreamIdx - Types::StreamsIdxStart,
     		typename Types::StreamDescriptors
     >::Result																	Descriptor;
 
