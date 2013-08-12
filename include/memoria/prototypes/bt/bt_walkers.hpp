@@ -11,7 +11,7 @@
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/iterator.hpp>
 
-#include <memoria/prototypes/bt/nodes/tree_node.hpp>
+#include <memoria/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/prototypes/bt/nodes/leaf_node.hpp>
 
 #include <ostream>
@@ -435,7 +435,7 @@ public:
 
 
 	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int start)
+	ReturnType treeNode(const TreeNode<LeafNode, NodeTypes, root, leaf>* node, Int start)
 	{
 		return 0;
 	}
@@ -609,7 +609,7 @@ public:
 
 
 	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, BigInt start)
+	ReturnType treeNode(const TreeNode<BranchNode, NodeTypes, root, leaf>* node, BigInt start)
 	{
 		for (auto& i: Base::search_results_) i = -1;
 
@@ -647,7 +647,7 @@ public:
 	}
 
 	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, BigInt start)
+	ReturnType treeNode(const TreeNode<LeafNode, NodeTypes, root, leaf>* node, BigInt start)
 	{
 		return 0;
 	}

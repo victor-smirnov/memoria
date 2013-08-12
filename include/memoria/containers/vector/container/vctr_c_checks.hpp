@@ -78,7 +78,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrChecksName)
     template <typename NodeTypes, bool root, bool leaf, typename Node2>
     bool checkNodeWithParentContent1(
     		const Node2 *parent,
-    		const TreeNode<TreeMapNode, NodeTypes, root, leaf> *node,
+    		const TreeNode<BranchNode, NodeTypes, root, leaf> *node,
     		Int parent_idx
     ) const;
 
@@ -86,7 +86,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrChecksName)
     template <typename NodeTypes, bool root, bool leaf, typename Node2>
     bool checkNodeWithParentContent1(
     		const Node2 *parent,
-    		const TreeNode<TreeLeafNode, NodeTypes, root, leaf> *node,
+    		const TreeNode<LeafNode, NodeTypes, root, leaf> *node,
     		Int parent_idx
     ) const;
 
@@ -162,7 +162,7 @@ M_PARAMS
 template <typename NodeTypes, bool root, bool leaf, typename Node2>
 bool M_TYPE::checkNodeWithParentContent1(
 		const Node2 *parent,
-		const TreeNode<TreeMapNode, NodeTypes, root, leaf> *node,
+		const TreeNode<BranchNode, NodeTypes, root, leaf> *node,
 		Int parent_idx
 ) const
 {
@@ -194,7 +194,7 @@ M_PARAMS
 template <typename NodeTypes, bool root, bool leaf, typename Node2>
 bool M_TYPE::checkNodeWithParentContent1(
 		const Node2 *parent,
-		const TreeNode<TreeLeafNode, NodeTypes, root, leaf> *node,
+		const TreeNode<LeafNode, NodeTypes, root, leaf> *node,
 		Int parent_idx
 ) const
 {

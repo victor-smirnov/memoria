@@ -72,7 +72,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
 	Int getNodeTraitInt(BTNodeTraits trait, bool root, bool leaf) const
 	{
 		Int page_size = self().ctr().getRootMetadata().page_size();
-		return NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
+		return NodeDispatcher::template dispatchStaticRtn<BranchNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
 	}
 
 
@@ -143,9 +143,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
 
 
     template <typename NodeTypes, bool root, bool leaf>
-    bool canConvertToRootFn(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node) const
+    bool canConvertToRootFn(const TreeNode<BranchNode, NodeTypes, root, leaf>* node) const
     {
-    	typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
+    	typedef TreeNode<BranchNode, NodeTypes, root, leaf> Node;
     	typedef typename Node::RootNodeType RootType;
 
     	Int node_children_count = node->size(0);
@@ -158,9 +158,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
     }
 
     template <typename NodeTypes, bool root, bool leaf>
-    bool canConvertToRootFn(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node) const
+    bool canConvertToRootFn(const TreeNode<LeafNode, NodeTypes, root, leaf>* node) const
     {
-    	typedef TreeNode<TreeLeafNode, NodeTypes, root, leaf> Node;
+    	typedef TreeNode<LeafNode, NodeTypes, root, leaf> Node;
     	typedef typename Node::RootNodeType RootType;
 
     	Position sizes = node->sizes();

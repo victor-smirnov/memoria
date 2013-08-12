@@ -118,7 +118,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::cmap::CtrToolsName)
 	Int getNodeTraitInt(BTNodeTraits trait, bool root, bool leaf) const
 	{
 		Int page_size = self().getRootMetadata().page_size();
-		return NodeDispatcher::template dispatchStaticRtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(&self()), trait, page_size);
+		return NodeDispatcher::template dispatchStaticRtn<BranchNode>(root, leaf, GetNodeTraitsFn(&self()), trait, page_size);
 	}
 
 

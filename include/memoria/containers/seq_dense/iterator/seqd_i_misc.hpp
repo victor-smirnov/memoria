@@ -91,7 +91,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
 
 		template <typename NodeTypes, bool root, bool leaf>
-		void treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int idx)
+		void treeNode(const TreeNode<LeafNode, NodeTypes, root, leaf>* node, Int idx)
 		{
 			node->process(0, *this, idx);
 		}

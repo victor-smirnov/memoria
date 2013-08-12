@@ -54,9 +54,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrToolsName)
 	bool checkNodeWithParentContent(const Node1 *node, const Node2 *parent, Int parent_idx) const;
 
 	template <typename NodeTypes, bool root, bool leaf>
-	bool canConvertToRootFn(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node) const
+	bool canConvertToRootFn(const TreeNode<BranchNode, NodeTypes, root, leaf>* node) const
 	{
-		typedef TreeNode<TreeMapNode, NodeTypes, root, leaf> Node;
+		typedef TreeNode<BranchNode, NodeTypes, root, leaf> Node;
 		typedef typename Node::RootNodeType RootType;
 
 		Int node_children_count = node->size(0);
@@ -69,9 +69,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrToolsName)
 	}
 
 	template <typename NodeTypes, bool root, bool leaf>
-	bool canConvertToRootFn(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node) const
+	bool canConvertToRootFn(const TreeNode<LeafNode, NodeTypes, root, leaf>* node) const
 	{
-		typedef TreeNode<TreeLeafNode, NodeTypes, root, leaf> Node;
+		typedef TreeNode<LeafNode, NodeTypes, root, leaf> Node;
 		typedef typename Node::RootNodeType RootType;
 
 		Int root_block_size = node->page_size();

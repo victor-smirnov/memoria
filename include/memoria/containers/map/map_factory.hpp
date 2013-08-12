@@ -45,14 +45,14 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
 
     typedef TypeList<
-    		AllNodeTypes<bt::TreeMapNode>
+    		AllNodeTypes<bt::BranchNode>
     >																			NodeTypesList;
 
     typedef TypeList<
-        		LeafNodeType<TreeMapNode>,
-        		InternalNodeType<TreeMapNode>,
-        		RootNodeType<TreeMapNode>,
-        		RootLeafNodeType<TreeMapNode>
+        		LeafNodeType<BranchNode>,
+        		InternalNodeType<BranchNode>,
+        		RootNodeType<BranchNode>,
+        		RootLeafNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<

@@ -21,7 +21,7 @@
 
 #include <memoria/prototypes/bt/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_names.hpp>
-#include <memoria/prototypes/bt/nodes/tree_node.hpp>
+#include <memoria/prototypes/bt/nodes/branch_node.hpp>
 
 
 namespace memoria	{
@@ -49,13 +49,13 @@ template <
 	typename Types,
 	bool root, bool leaf
 >
-class TreeLeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
+class LeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
-    typedef TreeLeafNode<Types, root, leaf>                                      Me;
-    typedef TreeLeafNode<Types, root, leaf>                                      MyType;
+    typedef LeafNode<Types, root, leaf>                                      Me;
+    typedef LeafNode<Types, root, leaf>                                      MyType;
 
 public:
     static const UInt VERSION                                                   = 2;
@@ -93,7 +93,7 @@ public:
 
     static const Int Streams 													= ListSize<StreamsStructList>::Value;
 
-    TreeLeafNode(): Base() {}
+    LeafNode(): Base() {}
 
 private:
 	struct InitFn {
@@ -1224,11 +1224,11 @@ public:
 
 template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
 void ConvertNodeToRoot(
-	const TreeNode<TreeLeafNode, Types, root1, leaf1>* src,
-	TreeNode<TreeLeafNode, Types, root2, leaf2>* tgt
+	const TreeNode<LeafNode, Types, root1, leaf1>* src,
+	TreeNode<LeafNode, Types, root2, leaf2>* tgt
 )
 {
-	typedef TreeNode<TreeLeafNode, Types, root2, leaf2> RootType;
+	typedef TreeNode<LeafNode, Types, root2, leaf2> RootType;
 
 	tgt->copyFrom(src);
 
@@ -1247,11 +1247,11 @@ void ConvertNodeToRoot(
 
 template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
 void ConvertRootToNode(
-	const TreeNode<TreeLeafNode, Types, root1, leaf1>* src,
-	TreeNode<TreeLeafNode, Types, root2, leaf2>* tgt
+	const TreeNode<LeafNode, Types, root1, leaf1>* src,
+	TreeNode<LeafNode, Types, root2, leaf2>* tgt
 )
 {
-	typedef TreeNode<TreeLeafNode, Types, root2, leaf2> NonRootNode;
+	typedef TreeNode<LeafNode, Types, root2, leaf2> NonRootNode;
 
 	tgt->copyFrom(src);
 
@@ -1275,9 +1275,9 @@ void ConvertRootToNode(
 
 
 template <typename Types, bool root, bool leaf>
-struct TypeHash<bt::TreeLeafNode<Types, root, leaf> > {
+struct TypeHash<bt::LeafNode<Types, root, leaf> > {
 
-	typedef bt::TreeLeafNode<Types, root, leaf> Node;
+	typedef bt::LeafNode<Types, root, leaf> Node;
 
     static const UInt Value = HashHelper<
     		TypeHash<typename Node::Base>::Value,

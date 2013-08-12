@@ -215,7 +215,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		PrefixFn(Int stream, Int block): stream_(stream), block_(block) {}
 
 		template <typename NodeTypes, bool root, bool leaf>
-		void treeNode(const TreeNode<TreeLeafNode, NodeTypes, root, leaf>* node, Int idx)
+		void treeNode(const TreeNode<LeafNode, NodeTypes, root, leaf>* node, Int idx)
 		{
 			if (stream_ == 0)
 			{
@@ -224,7 +224,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 		}
 
 		template <typename NodeTypes, bool root, bool leaf>
-		void treeNode(const TreeNode<TreeMapNode, NodeTypes, root, leaf>* node, Int idx)
+		void treeNode(const TreeNode<BranchNode, NodeTypes, root, leaf>* node, Int idx)
 		{
 			node->sum(stream_, block_, 0, idx, prefix_);
 		}

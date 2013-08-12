@@ -52,15 +52,15 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >:
 
 
     typedef TypeList<
-    			NonLeafNodeTypes<TreeMapNode>,
-    			LeafNodeTypes<TreeLeafNode>
+    			NonLeafNodeTypes<BranchNode>,
+    			LeafNodeTypes<LeafNode>
     >																			NodeTypesList;
 
     typedef TypeList<
-    			LeafNodeType<TreeLeafNode>,
-    		    InternalNodeType<TreeMapNode>,
-    		    RootNodeType<TreeMapNode>,
-    		    RootLeafNodeType<TreeLeafNode>
+    			LeafNodeType<LeafNode>,
+    		    InternalNodeType<BranchNode>,
+    		    RootNodeType<BranchNode>,
+    		    RootLeafNodeType<LeafNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<

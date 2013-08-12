@@ -39,15 +39,15 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
     static const Int Indexes                                                	= 3;
 
     typedef TypeList<
-    			NonLeafNodeTypes<TreeMapNode>,
-    			LeafNodeTypes<TreeLeafNode>
+    			NonLeafNodeTypes<BranchNode>,
+    			LeafNodeTypes<LeafNode>
     >																			NodeTypesList;
 
     typedef TypeList<
-    			LeafNodeType<TreeLeafNode>,
-    		    InternalNodeType<TreeMapNode>,
-    		    RootNodeType<TreeMapNode>,
-    		    RootLeafNodeType<TreeLeafNode>
+    			LeafNodeType<LeafNode>,
+    		    InternalNodeType<BranchNode>,
+    		    RootNodeType<BranchNode>,
+    		    RootLeafNodeType<LeafNode>
     >																			DefaultNodeTypesList;
 
 

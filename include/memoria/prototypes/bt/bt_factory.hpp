@@ -24,7 +24,7 @@
 #include <memoria/prototypes/bt/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_walkers.hpp>
 
-#include <memoria/prototypes/bt/nodes/tree_node.hpp>
+#include <memoria/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/prototypes/bt/nodes/node_dispatcher.hpp>
 #include <memoria/prototypes/bt/nodes/tree_metadata.hpp>

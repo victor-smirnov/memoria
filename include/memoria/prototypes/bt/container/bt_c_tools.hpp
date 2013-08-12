@@ -13,7 +13,7 @@
 #include <memoria/core/tools/strings.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/prototypes/bt/nodes/tree_node.hpp>
+#include <memoria/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
 
 #include <iostream>
@@ -94,7 +94,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     Int getNodeTraitInt(BTNodeTraits trait, bool root, bool leaf) const
     {
         Int page_size = me()->getRootMetadata().page_size();
-        return NonLeafDispatcher::template dispatchStaticRtn<TreeMapNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
+        return NonLeafDispatcher::template dispatchStaticRtn<BranchNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
     }
 
 

@@ -110,7 +110,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
 		template <typename NTypes, bool root, typename... Labels>
 		void treeNode(
-				TreeNode<TreeLeafNode, NTypes, root, true>* node,
+				TreeNode<LeafNode, NTypes, root, true>* node,
 				Int node_idx,
 				Int label_idx,
 				Int symbol
@@ -125,7 +125,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
 		template <typename NTypes, bool root, typename... Labels>
 		void treeNode(
-				TreeNode<TreeLeafNode, NTypes, root, true>* node,
+				TreeNode<LeafNode, NTypes, root, true>* node,
 				Int node_idx
 		)
 		{
