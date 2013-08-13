@@ -33,7 +33,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrChecksName)
 	typedef typename Base::Iterator                                             Iterator;
 
 	typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-	typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
+	typedef typename Types::Pages::NodeDispatcher                               RootDispatcher;
 	typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
 	typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
 	typedef typename Types::Pages::TreeDispatcher                               TreeDispatcher;
@@ -75,18 +75,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrChecksName)
 //
 //    }
 
-    template <typename NodeTypes, bool root, bool leaf, typename Node2>
+    template <typename NodeTypes, bool leaf, typename Node2>
     bool checkNodeWithParentContent1(
     		const Node2 *parent,
-    		const TreeNode<BranchNode, NodeTypes, root, leaf> *node,
+    		const TreeNode<BranchNode, NodeTypes, leaf> *node,
     		Int parent_idx
     ) const;
 
 
-    template <typename NodeTypes, bool root, bool leaf, typename Node2>
+    template <typename NodeTypes, bool leaf, typename Node2>
     bool checkNodeWithParentContent1(
     		const Node2 *parent,
-    		const TreeNode<LeafNode, NodeTypes, root, leaf> *node,
+    		const TreeNode<LeafNode, NodeTypes, leaf> *node,
     		Int parent_idx
     ) const;
 
@@ -159,10 +159,10 @@ bool M_TYPE::check_leaf_node(const NodeBaseG& parent, Int parent_idx, const Node
 }
 
 M_PARAMS
-template <typename NodeTypes, bool root, bool leaf, typename Node2>
+template <typename NodeTypes, bool leaf, typename Node2>
 bool M_TYPE::checkNodeWithParentContent1(
 		const Node2 *parent,
-		const TreeNode<BranchNode, NodeTypes, root, leaf> *node,
+		const TreeNode<BranchNode, NodeTypes, leaf> *node,
 		Int parent_idx
 ) const
 {
@@ -191,10 +191,10 @@ bool M_TYPE::checkNodeWithParentContent1(
 }
 
 M_PARAMS
-template <typename NodeTypes, bool root, bool leaf, typename Node2>
+template <typename NodeTypes, bool leaf, typename Node2>
 bool M_TYPE::checkNodeWithParentContent1(
 		const Node2 *parent,
-		const TreeNode<LeafNode, NodeTypes, root, leaf> *node,
+		const TreeNode<LeafNode, NodeTypes, leaf> *node,
 		Int parent_idx
 ) const
 {

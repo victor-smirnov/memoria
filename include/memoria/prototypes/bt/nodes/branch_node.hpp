@@ -26,18 +26,17 @@
 namespace memoria	{
 namespace bt 		{
 
-template <typename Types, bool root, bool leaf>
+template <typename Types, bool leaf>
 struct TreeMapStreamTypes: Types {
-	static const bool Root = root;
 	static const bool Leaf = leaf;
 };
 
 using memoria::BitBuffer;
 
 template <
-    	template <typename, bool, bool> class,
+    	template <typename, bool> class,
     	typename,
-    	bool, bool
+    	bool
 >
 class NodePageAdaptor;
 
@@ -59,6 +58,8 @@ private:
 
     ID  parent_id_;
     Int parent_idx_;
+
+    Int alignment_gap_;
 
     PackedAllocator allocator_;
 
@@ -126,7 +127,7 @@ public:
 
     bool has_root_metadata() const
     {
-    	return allocator()->element_size(METADATA) == 0;
+    	return allocator()->element_size(METADATA) >= sizeof(Metadata);
     }
 
     const Metadata& root_metadata() const
@@ -136,8 +137,53 @@ public:
 
     Metadata& root_metadata()
     {
+    	MEMORIA_ASSERT_TRUE(!allocator_.is_empty(METADATA));
     	return *allocator()->template get<Metadata>(METADATA);
     }
+
+    void setMetadata(const Metadata& meta)
+    {
+    	if (!has_root_metadata())
+    	{
+    		allocator_.template allocate<Metadata>(METADATA);
+    	}
+
+    	root_metadata() = meta;
+    }
+
+    void clearMetadata() {
+    	allocator_.free(METADATA);
+    }
+
+    bool canConvertToRoot() const
+    {
+    	if (!has_root_metadata())
+    	{
+    		const Int metadata_size = PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+    		return allocator_.free_space() >= metadata_size;
+    	}
+    	else {
+    		return true;
+    	}
+    }
+
+    static Int free_space(Int page_size, bool root)
+    {
+    	Int block_size = page_size - sizeof(Me) + sizeof(PackedAllocator);
+    	Int client_area = PackedAllocator::client_area(block_size, STREAMS + 1);
+
+    	return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+    }
+
+    bool shouldBeMergedWithSiblings() const
+    {
+    	Int client_area	= allocator_.client_area();
+    	Int used 		= allocator_.allocated();
+
+    	return used < client_area / 2;
+    }
+
+public:
 
     void init()
     {
@@ -242,54 +288,20 @@ public:
 
 
 
-namespace internl1 {
-
-template <typename T>
-struct ValueHelper {
-    static void setup(IPageDataEventHandler* handler, const T& value)
-    {
-        handler->value("VALUE", &value);
-    }
-};
-
-template <typename T>
-struct ValueHelper<PageID<T> > {
-    typedef PageID<T>                                                   Type;
-
-    static void setup(IPageDataEventHandler* handler, const Type& value)
-    {
-        IDValue id(&value);
-        handler->value("VALUE", &id);
-    }
-};
-
-template <>
-struct ValueHelper<EmptyValue> {
-    typedef EmptyValue Type;
-
-    static void setup(IPageDataEventHandler* handler, const Type& value)
-    {
-        BigInt val = 0;
-        handler->value("VALUE", &val);
-    }
-};
-
-}
-
 
 
 
 template <
 	typename Types,
-	bool root, bool leaf
+	bool leaf
 >
 class BranchNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
-    typedef BranchNode<Types, root, leaf>                                      	Me;
-    typedef BranchNode<Types, root, leaf>                                      	MyType;
+    typedef BranchNode<Types, leaf>                                      		Me;
+    typedef BranchNode<Types, leaf>                                      		MyType;
 
 public:
     static const UInt VERSION                                                   = 1;
@@ -312,13 +324,13 @@ public:
     >::Result 																	Value;
 
     template <
-        template <typename, bool, bool> class,
+        template <typename, bool> class,
         typename,
-        bool, bool
+        bool
     >
     friend class NodePageAdaptor;
 
-    typedef TreeMapStreamTypes<Types, root, leaf> 								StreamTypes;
+    typedef TreeMapStreamTypes<Types, leaf> 									StreamTypes;
 
 	typedef typename PackedStructListBuilder<
 	    		StreamTypes,
@@ -403,7 +415,7 @@ public:
 
 	Int capacity(UBigInt active_streams) const
 	{
-		Int max_size = max_tree_size(allocator()->block_size(), active_streams);
+		Int max_size = max_tree_size1(allocator()->block_size(), active_streams);
 		Int cap = max_size - size();
 		return cap >= 0 ? cap : 0;
 	}
@@ -482,14 +494,18 @@ public:
 		return PackedAllocator::block_size(client_area, Streams + 1);
 	}
 
-	static Int max_tree_size(Int block_size, UBigInt active_streams = -1)
+private:
+	static Int max_tree_size1(Int block_size, UBigInt active_streams = -1)
 	{
 		return FindTotalElementsNumber2(block_size, InitFn(active_streams));
 	}
 
-	static Int max_tree_size_for_block(Int block_size)
+public:
+	static Int max_tree_size_for_block(Int page_size, bool root)
 	{
-		return max_tree_size(block_size - sizeof(Me) + sizeof(PackedAllocator));
+		Int block_size = Base::free_space(page_size, root);
+
+		return max_tree_size1(block_size);
 	}
 
 
@@ -497,7 +513,7 @@ public:
 	void prepare()
 	{
 		Base::init();
-		Base::allocator()->allocateAllocator(Base::STREAMS, Streams);
+		Base::allocator()->allocateAllocator(Base::STREAMS, Streams + 1);
 	}
 
 
@@ -984,14 +1000,14 @@ public:
     	CopyBuffer(values(), other->values() + other_size, my_size);
     }
 
-    bool shouldBeMergedWithSiblings() const
-    {
-    	Position sizes = this->sizes();
-    	Int values_size = this->size();
-    	Int block_size = MyType::block_size(sizes, values_size);
-
-    	return block_size <= allocator()->block_size() / 2;
-    }
+//    bool shouldBeMergedWithSiblings() const
+//    {
+//    	Position sizes = this->sizes();
+//    	Int values_size = this->size();
+//    	Int block_size = MyType::block_size(sizes, values_size);
+//
+//    	return block_size <= allocator()->block_size() / 2;
+//    }
 
 
     struct SplitToFn {
@@ -1349,7 +1365,7 @@ public:
 
         for (Int idx = 0; idx < size(); idx++)
         {
-        	internl1::ValueHelper<Value>::setup(handler, value(idx));
+        	vapi::ValueHelper<Value>::setup(handler, value(idx));
         }
 
         handler->endGroup();
@@ -1407,33 +1423,29 @@ public:
 
 
 template <
-	template <typename, bool, bool> class TreeNode,
+	template <typename, bool> class TreeNode,
 	typename Types,
-	bool root, bool leaf
+	bool leaf
 >
-class NodePageAdaptor: public TreeNode<Types, root, leaf>
+class NodePageAdaptor: public TreeNode<Types, leaf>
 {
 public:
 
-    typedef NodePageAdaptor<TreeNode, Types, root, leaf>                  		Me;
-    typedef TreeNode<Types, root, leaf>                                			Base;
+    typedef NodePageAdaptor<TreeNode, Types, leaf>                  			Me;
+    typedef TreeNode<Types, leaf>                                				Base;
 
-    typedef NodePageAdaptor<TreeNode, Types, true, leaf>						RootNodeType;
-    typedef NodePageAdaptor<TreeNode, Types, false, leaf>						NonRootNodeType;
-
-    typedef NodePageAdaptor<TreeNode, Types, root, true>						LeafNodeType;
-    typedef NodePageAdaptor<TreeNode, Types, root, false>						NonLeafNodeType;
+    typedef NodePageAdaptor<TreeNode, Types, true>								LeafNodeType;
+    typedef NodePageAdaptor<TreeNode, Types, false>								BranchNodeType;
 
 
     static const UInt PAGE_HASH = TypeHash<Base>::Value;
 
     static const bool Leaf = leaf;
-    static const bool Root = root;
 
     template <
-    	template <typename, bool, bool> class,
+    	template <typename, bool> class,
     	typename,
-    	bool, bool
+    	bool
     >
     friend class NodePageAdaptor;
 
@@ -1539,29 +1551,29 @@ public:
 
 
 template <
-	template <typename, bool, bool> class TreeNode,
+	template <typename, bool> class TreeNode,
 	typename Types,
-	bool root, bool leaf
+	bool leaf
 >
-PageMetadata* NodePageAdaptor<TreeNode, Types, root, leaf>::page_metadata_ = NULL;
+PageMetadata* NodePageAdaptor<TreeNode, Types, leaf>::page_metadata_ = NULL;
 
 
 template <
-	template <typename, bool, bool> class AdaptedTreeNode,
+	template <typename, bool> class AdaptedTreeNode,
 	typename Types,
-	bool root, bool leaf
+	bool leaf
 >
-using TreeNode = NodePageAdaptor<AdaptedTreeNode, Types, root, leaf>;
+using TreeNode = NodePageAdaptor<AdaptedTreeNode, Types, leaf>;
 
 
 
-template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
+template <typename Types, bool leaf1, bool leaf2>
 void ConvertNodeToRoot(
-	const TreeNode<BranchNode, Types, root1, leaf1>* src,
-	TreeNode<BranchNode, Types, root2, leaf2>* tgt
+	const TreeNode<BranchNode, Types, leaf1>* src,
+	TreeNode<BranchNode, Types, leaf2>* tgt
 )
 {
-	typedef TreeNode<BranchNode, Types, root2, leaf2> RootType;
+	typedef TreeNode<BranchNode, Types, leaf2> RootType;
 
 	tgt->copyFrom(src);
 	tgt->prepare();
@@ -1577,13 +1589,13 @@ void ConvertNodeToRoot(
 	tgt->reindex();
 }
 
-template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
+template <typename Types, bool leaf1, bool leaf2>
 void ConvertRootToNode(
-	const TreeNode<BranchNode, Types, root1, leaf1>* src,
-	TreeNode<BranchNode, Types, root2, leaf2>* tgt
+	const TreeNode<BranchNode, Types, leaf1>* src,
+	TreeNode<BranchNode, Types, leaf2>* tgt
 )
 {
-	typedef TreeNode<BranchNode, Types, root2, leaf2> NonRootNode;
+	typedef TreeNode<BranchNode, Types, leaf2> NonRootNode;
 
 	tgt->copyFrom(src);
 	tgt->prepare();
@@ -1620,15 +1632,14 @@ struct TypeHash<bt::TreeNodeBase<Metadata, Base>> {
 };
 
 
-template <typename Types, bool root, bool leaf>
-struct TypeHash<bt::BranchNode<Types, root, leaf> > {
+template <typename Types, bool leaf>
+struct TypeHash<bt::BranchNode<Types, leaf> > {
 
-	typedef bt::BranchNode<Types, root, leaf> Node;
+	typedef bt::BranchNode<Types, leaf> Node;
 
     static const UInt Value = HashHelper<
     		TypeHash<typename Node::Base>::Value,
     		Node::VERSION,
-    		root,
     		leaf,
     		Types::Indexes,
     		TypeHash<typename Types::Name>::Value

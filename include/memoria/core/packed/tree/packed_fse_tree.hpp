@@ -368,6 +368,11 @@ public:
 
 	const Value& value(Int block, Int idx) const
 	{
+		if (idx >= size())
+		{
+			int a = 0; a++;
+		}
+
 		MEMORIA_ASSERT(idx, <, size());
 		return *(values(block) + idx);
 	}
@@ -944,6 +949,11 @@ public:
 	}
 
 	void removeSpace(Int start, Int end)
+	{
+		remove(start, end);
+	}
+
+	void remove(Int start, Int end)
 	{
 		MEMORIA_ASSERT_TRUE(start >= 0);
 		MEMORIA_ASSERT_TRUE(end >= 0);

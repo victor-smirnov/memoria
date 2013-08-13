@@ -54,10 +54,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeComprName)
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)> 				SplitFn;
 
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
-    typedef std::function<void (const NodeBaseG&, const NodeBaseG&)>			MergeFn;
+    typedef std::function<void (const Position&)>								MergeFn;
 
     void insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
 
@@ -75,10 +74,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeComprName)
 
 
     MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
-    bool tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const NodeBaseG&, const NodeBaseG&){});
-    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const NodeBaseG&, const NodeBaseG&){});
-
-
+    bool tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
+    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
 
     void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn);
 
@@ -316,6 +313,8 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 	mgr.add(src);
 	mgr.add(tgt);
 
+	Position tgt_sizes = self.getNodeSizes(tgt);
+
 	try {
 		Int tgt_size 			= self.getNodeSize(tgt, 0);
 		NodeBaseG src_parent   	= self.getNodeParent(src, Allocator::READ);
@@ -336,6 +335,8 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 		self.updatePath(src_parent, idx, sums);
 
 		self.allocator().removePage(src->id());
+
+		fn(tgt_sizes);
 
 		return true;
 	}

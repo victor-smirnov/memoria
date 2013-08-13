@@ -106,7 +106,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
             return true;
         }
         else {
-            return false;
+        	return false;
         }
     }
 
@@ -129,7 +129,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
         Element e(delta, element.second);
 
-        if (Base::insert(iter, e))
+        if (self().insertMapEntry(iter, e))
         {
             iter.updateUp(-delta);
         }
@@ -152,7 +152,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     bool removeEntry1(Iterator& iter, Accumulator& keys)
     {
-        bool result = Base::removeEntry(iter, keys);
+        bool result = self().removeMapEntry(iter, keys);
 
         if (!iter.isEnd())
         {

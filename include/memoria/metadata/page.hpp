@@ -11,7 +11,13 @@
 
 #include <memoria/metadata/group.hpp>
 
+
+
 namespace memoria    {
+
+template <typename T> class PageID;
+
+
 namespace vapi       {
 
 enum {BTREE = 1, ROOT = 2, LEAF = 4, BITMAP = 8};
@@ -105,6 +111,38 @@ private:
 
     const IPageOperations* page_operations_;
 };
+
+
+template <typename T>
+struct ValueHelper {
+    static void setup(IPageDataEventHandler* handler, const T& value)
+    {
+        handler->value("VALUE", &value);
+    }
+};
+
+template <typename T>
+struct ValueHelper<PageID<T> > {
+    typedef PageID<T>                                                   Type;
+
+    static void setup(IPageDataEventHandler* handler, const Type& value)
+    {
+        IDValue id(&value);
+        handler->value("VALUE", &id);
+    }
+};
+
+template <>
+struct ValueHelper<EmptyValue> {
+    typedef EmptyValue Type;
+
+    static void setup(IPageDataEventHandler* handler, const Type& value)
+    {
+        BigInt val = 0;
+        handler->value("VALUE", &val);
+    }
+};
+
 
 
 

@@ -186,11 +186,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 	struct PosFn {
 		BigInt prefix_ = 0;
 
-		template <typename NodeTypes, bool root, bool leaf>
-		void treeNode(const TreeNode<LeafNode, NodeTypes, root, leaf>* node, Int idx) {}
+		template <typename NodeTypes, bool leaf>
+		void treeNode(const TreeNode<LeafNode, NodeTypes, leaf>* node, Int idx) {}
 
-		template <typename NodeTypes, bool root, bool leaf>
-		void treeNode(const TreeNode<BranchNode, NodeTypes, root, leaf>* node, Int idx)
+		template <typename NodeTypes, bool leaf>
+		void treeNode(const TreeNode<BranchNode, NodeTypes, leaf>* node, Int idx)
 		{
 			node->sum(0, 0, 0, idx, prefix_);
 		}

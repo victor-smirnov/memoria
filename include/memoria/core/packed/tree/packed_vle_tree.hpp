@@ -821,8 +821,6 @@ public:
 		meta->size() 		= 0;
 		meta->data_size() 	= 0;
 		meta->index_size() 	= 0;
-
-		Base::pack();
 	}
 
 	bool check_capacity(Int size) const

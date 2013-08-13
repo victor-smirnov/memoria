@@ -194,7 +194,10 @@ public:
 		else {
 			moveElements(idx + 1, delta);
 
-
+			if (allocator_offset() > 0)
+			{
+				pack();
+			}
 		}
 
 
@@ -396,7 +399,9 @@ public:
 			alc->setAllocatorOffset(this);
 		}
 
-		MEMORIA_ASSERT_ALIGN(base() + offset, 8);
+		auto offs = base() + offset;
+
+		MEMORIA_ASSERT_ALIGN(offs, 8);
 
 		return AllocationBlock(allocation_size, offset, base() + offset);
 	}

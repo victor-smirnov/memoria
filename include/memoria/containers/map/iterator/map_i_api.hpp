@@ -15,6 +15,8 @@
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/core/packed/map/packed_fse_map.hpp>
+
 #include <iostream>
 
 namespace memoria    {
@@ -22,32 +24,67 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
-	typedef Ctr<typename Types::CtrTypes>                      	Container;
-
+	typedef Ctr<typename Types::CtrTypes>                      					Container;
 
 	typedef typename Base::Allocator                                            Allocator;
 	typedef typename Base::NodeBase                                             NodeBase;
 	typedef typename Base::NodeBaseG                                            NodeBaseG;
 	typedef typename Base::TreePath                                             TreePath;
 
-	typedef typename Container::Value                                     Value;
-	typedef typename Container::Key                                       Key;
-	typedef typename Container::Element                                   Element;
-	typedef typename Container::Accumulator                               Accumulator;
+	typedef typename Container::Value                                     		Value;
+	typedef typename Container::Key                                       		Key;
+	typedef typename Container::Element                                   		Element;
+	typedef typename Container::Accumulator                               		Accumulator;
+	typedef typename Container::Position                               			Position;
+
+	typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
 
 
 	void updateUp(const Accumulator& keys)
 	{
-		self().model().updateUp(self().leaf(), self().entry_idx(), keys, [](Int, Int){});
-	}
-
-	Key rawKey() const {
 		auto& self = this->self();
-		return self.model().getLeafKey(self.leaf(), entry_idx());
+
+		self.ctr().updateUp(self.leaf(), self.idx(), keys, [&](Int, Int idx) {
+			self.idx() = idx;
+			self.updatePrefix();
+		});
 	}
 
-	Key key() const {
-		return self().prefix() + rawKey();
+
+	struct KeyFn {
+		Key value_;
+
+		template <Int Idx, typename StreamTypes>
+		void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
+		{
+			if (map != nullptr)
+			{
+				value_ = map->tree()->value(0, idx);
+			}
+		}
+
+		template <typename Node>
+		void treeNode(const Node* node, Int idx)
+		{
+			node->template processStream<0>(*this, idx);
+		}
+	};
+
+
+	Key raw_key() const
+	{
+		auto& self = this->self();
+
+		KeyFn fn;
+
+		LeafDispatcher::dispatchConst(self.leaf(), fn, self.idx());
+
+		return fn.value_;
+	}
+
+	Key key() const
+	{
+		return self().prefix() + raw_key();
 	}
 
 	bool next() {
@@ -71,16 +108,35 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 		return acc;
 	}
 
-	Int entry_idx() const {
-		return self().key_idx();
+	Int entry_idx() const
+	{
+		return self().idx();
 	}
+
+
+	struct SetValueFn {
+
+		template <Int Idx, typename StreamTypes>
+		void stream(PackedFSEMap<StreamTypes>* map, Int idx, const Value& value)
+		{
+			MEMORIA_ASSERT_TRUE(map != nullptr);
+			map->value(idx) = value;
+		}
+
+		template <typename Node>
+		void treeNode(Node* node, Int idx, const Value& value)
+		{
+			node->template processStream<0>(*this, idx, value);
+		}
+	};
 
 
 	void setValue(const Value& value)
 	{
-		self().model().setLeafData(self().leaf(), self().entry_idx(), value);
+		auto& self = this->self();
+		self.leaf().update();
+		LeafDispatcher::dispatch(self.leaf(), SetValueFn(), self.idx(), value);
 	}
-
 
 	class ValueAccessor {
 		MyType& iter_;
@@ -108,8 +164,37 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 	};
 
 
-	Value getValue() const {
-		return self().model().getLeafData(self().leaf(), self().entry_idx());
+	struct GetValueFn {
+		Value value_;
+
+		template <Int Idx, typename StreamTypes>
+		void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
+		{
+			if (map != nullptr)
+			{
+				value_ = map->value(idx);
+			}
+		}
+
+		template <typename Node>
+		void treeNode(const Node* node, Int idx)
+		{
+			node->template processStream<0>(*this, idx);
+		}
+	};
+
+
+
+
+	Value getValue() const
+	{
+		auto& self = this->self();
+
+		GetValueFn fn;
+
+		LeafDispatcher::dispatchConst(self.leaf(), fn, self.idx());
+
+		return fn.value_;
 	}
 
 	ValueAccessor value() {
@@ -121,7 +206,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 	}
 
 
-	void setData(const Value& value) {
+	void setData(const Value& value)
+	{
 		self().value() = value;
 	}
 
@@ -133,7 +219,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 		auto& self = this->self();
 
 		Accumulator keys;
-		self.ctr().removeEntry(self, keys);
+		self.ctr().removeMapEntry(self, keys);
 
 		if (!self.isEnd())
 		{
@@ -145,44 +231,101 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
     void ComputePrefix(BigInt& accum)
     {
-    	NodeBaseG   node  = self().leaf();
-    	Int         idx   = self().idx();
+    	auto& self = this->self();
 
-    	Accumulator acc0;
+    	PrefixFn fn;
 
-    	self().ctr().sumLeafKeys(node, 0, idx, acc0);
-
-    	accum += std::get<0>(acc0)[0];
-
-    	while (!node->is_root())
+    	if (self.idx() >= 0)
     	{
-    		Int parent_idx 	= node->parent_idx();
-    		node 			= self().ctr().getNodeParent(node);
-
-    		self().ctr().sumKeys(node, 0, 0, parent_idx, accum);
+    		self.ctr().walkUp(self.leaf(), self.idx(), fn);
     	}
+
+    	accum = fn.prefix_;
     }
 
     void ComputePrefix(Accumulator& accum)
     {
-    	NodeBaseG   node  = self().leaf();
-    	Int         idx   = self().idx();
-
-    	self().ctr().sumLeafKeys(node, 0, idx, accum);
-
-    	while (!node->is_root())
-    	{
-    		Int parent_idx 	= node->parent_idx();
-    		node 			= self().ctr().getNodeParent(node);
-
-    		self().ctr().sumKeys(node, 0, parent_idx, accum);
-    	}
+    	ComputePrefix(std::get<0>(accum)[0]);
     }
 
     void dump(std::ostream& out = std::cout)
     {
     	out<<"Prefix="<<self().cache().prefix()<<endl;
     	Base::dump(out);
+    }
+
+    struct PrefixFn {
+    	BigInt prefix_ = 0;
+
+    	PrefixFn() {}
+
+    	template <Int Idx, typename StreamTypes>
+    	void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
+    	{
+    		if (map != nullptr)
+    		{
+    			prefix_ += map->tree()->sum(0, idx);
+    		}
+    	}
+
+    	template <Int Idx, typename StreamTypes>
+    	void stream(const PkdFTree<StreamTypes>* tree, Int idx)
+    	{
+    		if (tree != nullptr)
+    		{
+    			prefix_ += tree->sum(0, idx);
+    		}
+    	}
+
+    	template <Int Idx, typename StreamTypes>
+    	void stream(const PkdVTree<StreamTypes>* tree, Int idx)
+    	{
+    		if (tree != nullptr)
+    		{
+    			prefix_ += tree->sum(0, idx);
+    		}
+    	}
+
+    	template <typename Node>
+    	void treeNode(const Node* node, Int idx)
+    	{
+    		node->template processStream<0>(*this, idx);
+    	}
+    };
+
+    void updatePrefix()
+    {
+    	auto& self = this->self();
+
+    	PrefixFn fn;
+
+    	if (self.idx() >= 0)
+    	{
+    		self.ctr().walkUp(self.leaf(), self.idx(), fn);
+    	}
+
+    	self.cache().setup(fn.prefix_);
+    }
+
+    void split()
+    {
+    	auto& self = this->self();
+
+    	NodeBaseG& leaf = self.leaf();
+    	Int& idx		= self.idx();
+
+    	Int size 		= self.leaf_size(0);
+    	Int split_idx	= size/2;
+
+    	auto right = self.ctr().splitLeafP(leaf, Position::create(0, split_idx));
+
+    	if (idx > split_idx)
+    	{
+    		leaf = right;
+    		idx -= split_idx;
+
+    		self.updatePrefix();
+    	}
     }
 
 MEMORIA_ITERATOR_PART_END

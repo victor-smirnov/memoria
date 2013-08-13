@@ -117,13 +117,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
     Key getRawKey() const
     {
     	auto& self = this->self();
-        return self.model().getLeafKey(self.leaf(), self.key_idx());
+        return self.raw_key();
     }
 
     Accumulator getRawKeys() const
     {
     	auto& self = this->self();
-    	return self.model().getLeafKeys(self.leaf(), self.key_idx());
+
+    	Accumulator accum;
+
+    	std::get<0>(accum)[0] = self.raw_key();
+
+    	return accum;
     }
 
     bool nextKey();

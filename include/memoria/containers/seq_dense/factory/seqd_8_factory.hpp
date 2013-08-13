@@ -54,9 +54,7 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
 
     typedef TypeList<
     			LeafNodeType<LeafNode>,
-    		    InternalNodeType<BranchNode>,
-    		    RootNodeType<BranchNode>,
-    		    RootLeafNodeType<LeafNode>
+    		    BranchNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
@@ -71,22 +69,22 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
 
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
-				memoria::bt::NodeComprName,
-				memoria::seq_dense::CtrToolsName,
-				memoria::seq_dense::CtrFindName,
-				memoria::seq_dense::CtrInsertName,
-				memoria::seq_dense::CtrRemoveName
+				bt::NodeComprName,
+				seq_dense::CtrToolsName,
+				seq_dense::CtrFindName,
+				seq_dense::CtrInsertName,
+				seq_dense::CtrRemoveName
 	>::Result                                           						ContainerPartsList;
 
 
 	typedef typename MergeLists<
 				typename Base::IteratorPartsList,
 
-				memoria::seq_dense::IterSelectName,
-				memoria::seq_dense::IterMiscName,
-				memoria::seq_dense::IterCountName,
-				memoria::seq_dense::IterRankName,
-				memoria::seq_dense::IterSkipName
+				seq_dense::IterSelectName,
+				seq_dense::IterMiscName,
+				seq_dense::IterCountName,
+				seq_dense::IterRankName,
+				seq_dense::IterSkipName
 
 	>::Result                                           						IteratorPartsList;
 

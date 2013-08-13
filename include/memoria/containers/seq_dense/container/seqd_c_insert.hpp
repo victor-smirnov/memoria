@@ -82,8 +82,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 		}
 
 
-		template <typename NTypes, bool root>
-		void treeNode(TreeNode<LeafNode, NTypes, root, true>* node, Int stream, Int idx, Int symbol, Accumulator* delta)
+		template <typename NTypes>
+		void treeNode(TreeNode<LeafNode, NTypes, true>* node, Int stream, Int idx, Int symbol, Accumulator* delta)
 		{
 			node->layout(1);
 			node->process(stream, *this, idx, symbol, delta);

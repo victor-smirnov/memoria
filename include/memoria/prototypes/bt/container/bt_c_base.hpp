@@ -43,10 +43,10 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
     typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
+    typedef typename Types::Pages::NodeDispatcher                               RootDispatcher;
     typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
     typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
-    typedef typename Types::Pages::NonRootDispatcher                            NonRootDispatcher;
+    typedef typename Types::Pages::NodeDispatcher                            	NonRootDispatcher;
     typedef typename Types::Pages::DefaultDispatcher                            DefaultDispatcher;
 
     typedef typename Types::Metadata                                            Metadata;
@@ -214,14 +214,14 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-
-    template <typename Node>
-    ID getRootIdFn(Node* node, Int name)
-    {
-    	return node->root_metadata().roots(name);
-    }
-
-    MEMORIA_FN_WRAPPER_RTN(GetRootIdFn, getRootIdFn, ID);
+//
+//    template <typename Node>
+//    ID getRootIdFn(Node* node, Int name)
+//    {
+//    	return node->root_metadata().roots(name);
+//    }
+//
+//    MEMORIA_FN_WRAPPER_RTN(GetRootIdFn, getRootIdFn, ID);
 
     virtual ID getRootID(BigInt name)
     {
@@ -231,19 +231,20 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG root = self.allocator().getPage(self.root(), Allocator::READ);
 
-        return RootDispatcher::dispatchConstRtn(root.page(), GetRootIdFn(me()), name);
+        return root->root_metadata().roots(name);
+
+//        return RootDispatcher::dispatchConstRtn(root.page(), GetRootIdFn(me()), name);
     }
 
 
 
 
 
-    template <typename Node>
-    Metadata setRootIdFn(Node* node, Int name, const ID& root)
-    {
-    	node->root_metadata().roots(name) = root;
-    	return node->root_metadata();
-    }
+//    template <typename Node>
+//    Metadata setRootIdFn(Node* node, Int name, const ID& root)
+//    {
+//
+//    }
 
     MEMORIA_FN_WRAPPER_RTN(SetRootIdFn, setRootIdFn, Metadata);
 
@@ -253,7 +254,10 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     	NodeBaseG root  = self.allocator().getPage(self.root(), Allocator::UPDATE);
 
-        Metadata metadata = RootDispatcher::dispatchRtn(root.page(), SetRootIdFn(me()), name, root_id);
+//        Metadata metadata = RootDispatcher::dispatchRtn(root.page(), SetRootIdFn(me()), name, root_id);
+
+    	Metadata& metadata = root->root_metadata();
+    	metadata.roots(name) = root;
 
         BTreeCtrShared* shared = T2T<BTreeCtrShared*>(self.shared());
         shared->update_metadata(metadata);
@@ -265,28 +269,31 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    struct GetMetadataFn {
-        typedef Metadata ReturnType;
-
-        template <typename T>
-        Metadata treeNode(const T *node) const {
-            return node->root_metadata();
-        }
-    };
-
-    struct SetMetadataFn {
-        template <typename T>
-        void treeNode(T *node, const Metadata& metadata) const
-        {
-            node->root_metadata() = metadata;
-        }
-    };
+//    struct GetMetadataFn {
+//        typedef Metadata ReturnType;
+//
+//        template <typename T>
+//        Metadata treeNode(const T *node) const {
+//            return node->root_metadata();
+//        }
+//    };
+//
+//    struct SetMetadataFn {
+//        template <typename T>
+//        void treeNode(T *node, const Metadata& metadata) const
+//        {
+//            node->root_metadata() = metadata;
+//        }
+//    };
 
     static Metadata getCtrRootMetadata(NodeBaseG node)
     {
         MEMORIA_ASSERT_TRUE(node.isSet());
+        MEMORIA_ASSERT_TRUE(node->has_root_metadata());
 
-        return RootDispatcher::dispatchConstRtn(node, GetMetadataFn());
+//        return RootDispatcher::dispatchConstRtn(node, GetMetadataFn());
+
+        return node->root_metadata();
     }
 
     /**
@@ -301,7 +308,9 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         MEMORIA_ASSERT_TRUE(node.isSet());
 
         node.update();
-        RootDispatcher::dispatch(node, SetMetadataFn(), metadata);
+//        RootDispatcher::dispatch(node, SetMetadataFn(), metadata);
+
+        node->setMetadata(metadata);
     }
 
     const Metadata& getRootMetadata() const
@@ -395,15 +404,11 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
 
         NodeBaseG node = DefaultDispatcher::dispatchStatic2Rtn(
-                		root,
                 		leaf,
                 		CreateNodeFn(me()), size
                 	);
 
-        if (root)
-        {
-            MyType::setCtrRootMetadata(node, meta);
-        }
+
 
         node->ctr_type_hash() 			= self.hash();
         node->master_ctr_type_hash() 	= self.init_data().master_ctr_type_hash();
@@ -419,6 +424,11 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         prepareNode(node);
 
+        if (root)
+        {
+        	MyType::setCtrRootMetadata(node, meta);
+        }
+
         return node;
     }
 
@@ -429,13 +439,10 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         auto& self = this->self();
 
         NodeBaseG node = NodeDispatcher::dispatchStatic2Rtn(
-        			true,
         			leaf,
         			CreateNodeFn(me()), metadata.page_size()
         );
 
-
-        MyType::setCtrRootMetadata(node, metadata);
 
         node->ctr_type_hash() 			= self.hash();
         node->master_ctr_type_hash() 	= self.init_data().master_ctr_type_hash();
@@ -450,6 +457,8 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->level() = level;
 
         prepareNode(node);
+
+        MyType::setCtrRootMetadata(node, metadata);
 
         return node;
     }

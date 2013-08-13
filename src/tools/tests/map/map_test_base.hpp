@@ -94,6 +94,7 @@ protected:
     		for (auto iter = map.Begin(); !iter.isEnd();)
     		{
     			BigInt key   = iter.key();
+
     			BigInt value = iter.value();
 
     			if (pairs[idx].key_ != key)
@@ -121,8 +122,8 @@ protected:
     			BigInt  key     = iter.key();
     			BigInt  value   = iter.value();
 
-    			AssertEQ(MA_SRC, pairs[idx].key_,   key);
-    			AssertEQ(MA_SRC, pairs[idx].value_, value);
+    			AssertEQ(MA_SRC, pairs[idx].key_,   key, SBuf()<<idx);
+    			AssertEQ(MA_SRC, pairs[idx].value_, value, SBuf()<<idx);
 
     			iter.prev();
 

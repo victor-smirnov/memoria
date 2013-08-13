@@ -39,9 +39,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
-    static const Int  Indexes                                                   = Base::Indexes;
-
-    typedef std::function<void (const NodeBaseG&, const NodeBaseG&)>			MergeFn;
+    typedef std::function<void (const Position&)>								MergeFn;
 
     void removeNode(NodeBaseG& node, Accumulator& accum, Position& sizes);
     void removeNode(NodeBaseG& node);
@@ -62,9 +60,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
 
 
-    bool mergeWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const NodeBaseG&, const NodeBaseG&){});
+    bool mergeWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&){});
     bool mergeWithRightSibling(NodeBaseG& node);
-    MergeType mergeWithSiblings(NodeBaseG& node, MergeFn fn = [](const NodeBaseG&, const NodeBaseG&){});
+    MergeType mergeWithSiblings(NodeBaseG& node, MergeFn fn = [](const Position&){});
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
@@ -372,7 +370,7 @@ bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
 
         if (next)
         {
-            merged = self.mergeBTreeNodes(node, next, [](const NodeBaseG&, const NodeBaseG&){});
+            merged = self.mergeBTreeNodes(node, next, [](const Position&){});
         }
     }
 

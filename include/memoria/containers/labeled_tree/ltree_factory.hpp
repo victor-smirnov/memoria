@@ -45,9 +45,7 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
 
     typedef TypeList<
     			LeafNodeType<LeafNode>,
-    		    InternalNodeType<BranchNode>,
-    		    RootNodeType<BranchNode>,
-    		    RootLeafNodeType<LeafNode>
+    		    BranchNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
 
@@ -63,18 +61,18 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
 
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
-				memoria::bt::NodeComprName,
-				memoria::louds::CtrApiName,
-				memoria::louds::CtrFindName,
-				memoria::louds::CtrInsertName,
-				memoria::louds::CtrUpdateName,
-				memoria::louds::CtrRemoveName
+				bt::NodeComprName,
+				louds::CtrApiName,
+				louds::CtrFindName,
+				louds::CtrInsertName,
+				louds::CtrUpdateName,
+				louds::CtrRemoveName
 	>::Result                                           						ContainerPartsList;
 
 
 	typedef typename MergeLists<
 				typename Base::IteratorPartsList,
-				memoria::louds::ItrApiName
+				louds::ItrApiName
 	>::Result                                           						IteratorPartsList;
 
 	typedef typename louds::LabelsTupleTF<LabelDescriptors...>::Type			LabelsTuple;

@@ -29,12 +29,12 @@ public:
     MapTestSuite(): TestSuite("MapSuite")
     {
         registerTask(new MapCreateTest<Map>("Create.Map"));
-        registerTask(new MapCreateTest<CMap>("Create.CMap"));
+//        registerTask(new MapCreateTest<CMap>("Create.CMap"));
 
         registerTask(new MapRemoveTest<Map>("Remove.Map"));
-        registerTask(new MapRemoveTest<CMap>("Remove.CMap"));
+//        registerTask(new MapRemoveTest<CMap>("Remove.CMap"));
 
-        registerTask(new MapBatchTest<Map>("Batch.Map"));
+//        registerTask(new MapBatchTest<Map>("Batch.Map"));
 
         // FIXME: CMap is does not contain working batch operations
         //registerTask(new MapBatchTest<CMap>("Batch.CMap"));

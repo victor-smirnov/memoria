@@ -49,15 +49,13 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     };
 
     typedef TypeList<
-    		NonLeafNodeTypes<BranchNode>,
-    		LeafNodeTypes<LeafNode>
+    		LeafNodeTypes<LeafNode>,
+    		NonLeafNodeTypes<BranchNode>
     >																			NodeTypesList;
 
     typedef TypeList<
         		LeafNodeType<LeafNode>,
-        		InternalNodeType<BranchNode>,
-        		RootNodeType<BranchNode>,
-        		RootLeafNodeType<LeafNode>
+        		BranchNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
@@ -76,18 +74,18 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
     typedef typename MergeLists<
     		typename Base::ContainerPartsList,
-    		memoria::bt::NodeNormName,
-    		memoria::mvector::CtrToolsName,
-    		memoria::mvector::CtrInsertName,
-    		memoria::mvector::CtrRemoveName,
-    		memoria::mvector::CtrChecksName,
-    		memoria::mvector::CtrFindName,
-    		memoria::mvector::CtrApiName
+    		bt::NodeNormName,
+    		mvector::CtrToolsName,
+    		mvector::CtrInsertName,
+    		mvector::CtrRemoveName,
+    		mvector::CtrChecksName,
+    		mvector::CtrFindName,
+    		mvector::CtrApiName
     >::Result                                           						ContainerPartsList;
 
     typedef typename MergeLists<
     		typename Base::IteratorPartsList,
-    		memoria::mvector::ItrApiName
+    		mvector::ItrApiName
     >::Result                                           						IteratorPartsList;
 
     typedef IDataSource<Value>													DataSource;

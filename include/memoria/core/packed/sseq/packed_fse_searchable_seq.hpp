@@ -325,8 +325,6 @@ public:
 		removeIndex();
 
 		size() = 0;
-
-		Base::pack();
 	}
 
 protected:
@@ -404,8 +402,6 @@ public:
 		size -= (end - start);
 
 		reindex();
-
-		Base::pack();
 	}
 
 	void removeSymbol(Int idx) {

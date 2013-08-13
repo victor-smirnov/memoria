@@ -16,164 +16,53 @@ namespace memoria    	{
 namespace bt	{
 
 template <
-	template <typename, bool, bool> class TreeNode,
+	template <typename, bool> class TreeNode,
 	typename Types,
-	bool root, bool leaf
+	bool leaf
 >
 class NodePageAdaptor;
 
 
 template<
-	template <typename, bool, bool> class Type
+	template <typename, bool> class Type
 >
 struct AllNodeTypes {
 	template <typename Types>
 	using AllTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, true>,
-			NodePageAdaptor<Type, Types, true, false>,
-			NodePageAdaptor<Type, Types, false, true>,
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using RootTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, true>,
-			NodePageAdaptor<Type, Types, true, false>
+			NodePageAdaptor<Type, Types, true>,
+			NodePageAdaptor<Type, Types, false>
 	>;
 
 	template <typename Types>
 	using LeafTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, true>,
-			NodePageAdaptor<Type, Types, false, true>
-	>;
-
-	template <typename Types>
-	using NonRootTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, true>,
-			NodePageAdaptor<Type, Types, false, false>
+			NodePageAdaptor<Type, Types, true>
 	>;
 
 	template <typename Types>
 	using NonLeafTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, false>,
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using InternalTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
+			NodePageAdaptor<Type, Types, false>
 	>;
 };
 
 
 
 
-
 template<
-	template <typename, bool, bool> class Type
->
-struct RootNodeTypes {
-	template <typename Types>
-	using AllTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, true>,
-			NodePageAdaptor<Type, Types, true, false>
-	>;
-
-	template <typename Types>
-	using RootTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, true>,
-			NodePageAdaptor<Type, Types, true, false>
-	>;
-
-	template <typename Types>
-	using LeafTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, true>
-	>;
-
-	template <typename Types>
-	using NonRootTypesList = TypeList<>;
-
-	template <typename Types>
-	using NonLeafTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, false>
-	>;
-
-	template <typename Types>
-	using InternalTypesList = TypeList<>;
-};
-
-
-
-
-
-template<
-	template <typename, bool, bool> class Type
+	template <typename, bool> class Type
 >
 struct LeafNodeTypes {
 	template <typename Types>
 	using AllTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, true>,
-			NodePageAdaptor<Type, Types, false, true>
-	>;
-
-	template <typename Types>
-	using RootTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, true>
+			NodePageAdaptor<Type, Types, true>
 	>;
 
 	template <typename Types>
 	using LeafTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, true>,
-			NodePageAdaptor<Type, Types, false, true>
-	>;
-
-	template <typename Types>
-	using NonRootTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, true>
+			NodePageAdaptor<Type, Types, true>
 	>;
 
 	template <typename Types>
 	using NonLeafTypesList = TypeList<>;
-
-	template <typename Types>
-	using InternalTypesList = TypeList<>;
-};
-
-
-
-template<
-	template <typename, bool, bool> class Type
->
-struct NonRootNodeTypes {
-	template <typename Types>
-	using AllTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, true>,
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using RootTypesList = TypeList<>;
-
-	template <typename Types>
-	using LeafTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, true>
-	>;
-
-	template <typename Types>
-	using NonRootTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, true>,
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using NonLeafTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using InternalTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
-	>;
 };
 
 
@@ -181,68 +70,20 @@ struct NonRootNodeTypes {
 
 
 template<
-	template <typename, bool, bool> class Type
+	template <typename, bool> class Type
 >
 struct NonLeafNodeTypes {
 	template <typename Types>
 	using AllTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, false>,
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using RootTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, false>
+			NodePageAdaptor<Type, Types, false>
 	>;
 
 	template <typename Types>
 	using LeafTypesList = TypeList<>;
 
 	template <typename Types>
-	using NonRootTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
 	using NonLeafTypesList = TypeList<
-			NodePageAdaptor<Type, Types, true, false>,
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using InternalTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-};
-
-template<
-	template <typename, bool, bool> class Type
->
-struct InternalNodeTypes {
-	template <typename Types>
-	using AllTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using RootTypesList = TypeList<>;
-
-	template <typename Types>
-	using LeafTypesList = TypeList<>;
-
-	template <typename Types>
-	using NonRootTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using NonLeafTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-
-	template <typename Types>
-	using InternalTypesList = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
+			NodePageAdaptor<Type, Types, false>
 	>;
 };
 
@@ -250,47 +91,41 @@ struct InternalNodeTypes {
 
 
 
+
 template<
-	template <typename, bool, bool> class Type
+	template <typename, bool> class Type
 >
 struct RootNodeType {
 	template <typename Types>
 	using List = TypeList<
-			NodePageAdaptor<Type, Types, true, false>
+			NodePageAdaptor<Type, Types, false>
+	>;
+};
+
+template<
+	template <typename, bool> class Type
+>
+struct BranchNodeType {
+	template <typename Types>
+	using List = TypeList<
+			NodePageAdaptor<Type, Types, false>
 	>;
 };
 
 
+
 template<
-	template <typename, bool, bool> class Type
+	template <typename, bool> class Type
 >
 struct LeafNodeType {
 	template <typename Types>
 	using List = TypeList<
-			NodePageAdaptor<Type, Types, false, true>
-	>;
-};
-
-template<
-	template <typename, bool, bool> class Type
->
-struct RootLeafNodeType {
-	template <typename Types>
-	using List = TypeList<
-			NodePageAdaptor<Type, Types, true, true>
+			NodePageAdaptor<Type, Types, true>
 	>;
 };
 
 
-template<
-	template <typename, bool, bool> class Type
->
-struct InternalNodeType {
-	template <typename Types>
-	using List = TypeList<
-			NodePageAdaptor<Type, Types, false, false>
-	>;
-};
+
 
 
 
@@ -308,40 +143,22 @@ struct NodeTypeListBuilder<Types, TypeList<Head, Tail...>> {
 
 
 	typedef typename MergeLists<
-			typename Head::template RootTypesList<Types>,
-			typename NodeTypeListBuilder<Types, TypeList<Tail...>>::RootTypesList
-	>::Result 																	RootTypesList;
-
-	typedef typename MergeLists<
 			typename Head::template LeafTypesList<Types>,
 			typename NodeTypeListBuilder<Types, TypeList<Tail...>>::LeafTypesList
 	>::Result 																	LeafTypesList;
 
 	typedef typename MergeLists<
-			typename Head::template NonRootTypesList<Types>,
-			typename NodeTypeListBuilder<Types, TypeList<Tail...>>::NonRootTypesList
-	>::Result 																	NonRootTypesList;
-
-	typedef typename MergeLists<
 			typename Head::template NonLeafTypesList<Types>,
 			typename NodeTypeListBuilder<Types, TypeList<Tail...>>::NonLeafTypesList
 	>::Result 																	NonLeafTypesList;
-
-	typedef typename MergeLists<
-			typename Head::template InternalTypesList<Types>,
-			typename NodeTypeListBuilder<Types, TypeList<Tail...>>::InternalTypesList
-	>::Result 																	InternalTypesList;
 };
 
 
 template <typename Types>
 struct NodeTypeListBuilder<Types, TypeList<>> {
 	typedef TypeList<> 															AllTypesList;
-	typedef TypeList<> 															RootTypesList;
 	typedef TypeList<> 															LeafTypesList;
-	typedef TypeList<> 															NonRootTypesList;
 	typedef TypeList<> 															NonLeafTypesList;
-	typedef TypeList<> 															InternalTypesList;
 };
 
 
@@ -390,24 +207,12 @@ public:
         typedef typename NodeTypeListBuilder<Types, NodeList_>::AllTypesList 		List;
     };
 
-    struct RootTypes: NodeTypesBase {
-    	typedef typename NodeTypeListBuilder<Types, NodeList_>::RootTypesList 		List;
-    };
-
     struct LeafTypes: NodeTypesBase {
     	typedef typename NodeTypeListBuilder<Types, NodeList_>::LeafTypesList 		List;
     };
 
     struct NonLeafTypes: NodeTypesBase {
     	typedef typename NodeTypeListBuilder<Types, NodeList_>::NonLeafTypesList 	List;
-    };
-
-    struct NonRootTypes: NodeTypesBase {
-    	typedef typename NodeTypeListBuilder<Types, NodeList_>::NonRootTypesList 	List;
-    };
-
-    struct InternalTypes: NodeTypesBase {
-    	typedef typename NodeTypeListBuilder<Types, NodeList_>::InternalTypesList 	List;
     };
 
     struct DefaultTypes: NodeTypesBase {
@@ -420,11 +225,11 @@ public:
     };
 
     typedef NDT<AllTypes>                                   NodeDispatcher;
-    typedef NDT<RootTypes>                                  RootDispatcher;
+    typedef NDT<AllTypes>                                   RootDispatcher; // FIXME: remove RootDispatcher
     typedef NDT<LeafTypes>                                  LeafDispatcher;
     typedef NDT<NonLeafTypes>                               NonLeafDispatcher;
-    typedef NDT<NonRootTypes>                               NonRootDispatcher;
-    typedef NDT<InternalTypes>                              InternalDispatcher;
+//    typedef NDT<NonRootTypes>                               NonRootDispatcher;
+//    typedef NDT<InternalTypes>                              InternalDispatcher;
     typedef NDT<DefaultTypes>                               DefaultDispatcher;
     typedef NDT<TreeTypes>                               	TreeDispatcher;
 };

@@ -61,7 +61,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
 		switch (trait)
 		{
 		case BTNodeTraits::MAX_CHILDREN:
-			return Node::max_tree_size_for_block(page_size); break;
+			return Node::max_tree_size_for_block(page_size, true); break;
 
 		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", (Int)trait);
 		}
@@ -142,10 +142,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
     bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) const;
 
 
-    template <typename NodeTypes, bool root, bool leaf>
-    bool canConvertToRootFn(const TreeNode<BranchNode, NodeTypes, root, leaf>* node) const
+    template <typename NodeTypes, bool leaf>
+    bool canConvertToRootFn(const TreeNode<BranchNode, NodeTypes, leaf>* node) const
     {
-    	typedef TreeNode<BranchNode, NodeTypes, root, leaf> Node;
+    	typedef TreeNode<BranchNode, NodeTypes, leaf> Node;
     	typedef typename Node::RootNodeType RootType;
 
     	Int node_children_count = node->size(0);
@@ -157,10 +157,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
     	return node_children_count <= root_children_count;
     }
 
-    template <typename NodeTypes, bool root, bool leaf>
-    bool canConvertToRootFn(const TreeNode<LeafNode, NodeTypes, root, leaf>* node) const
+    template <typename NodeTypes, bool leaf>
+    bool canConvertToRootFn(const TreeNode<LeafNode, NodeTypes, leaf>* node) const
     {
-    	typedef TreeNode<LeafNode, NodeTypes, root, leaf> Node;
+    	typedef TreeNode<LeafNode, NodeTypes, leaf> Node;
     	typedef typename Node::RootNodeType RootType;
 
     	Position sizes = node->sizes();

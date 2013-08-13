@@ -30,7 +30,8 @@ public:
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
     typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::RootDispatcher                               RootDispatcher;
+    typedef typename Types::Pages::NodeDispatcher                               RootDispatcher;
+    typedef typename Types::Pages::TreeDispatcher                               TreeDispatcher;
 
     typedef typename Types::Accumulator                               			Accumulator;
 
@@ -179,7 +180,7 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::checkNodeWithParentContent(const Node1 *node, const Node2 *parent, Int parent_idx) const
+bool M_TYPE::checkNodeWithParentContent(const Node1 *parent, const Node2* node, Int parent_idx) const
 {
     bool errors = false;
     Accumulator max = node->maxKeys();
@@ -202,6 +203,7 @@ bool M_TYPE::checkNodeWithParentContent(const Node1 *node, const Node2 *parent, 
 
     	errors = true;
     }
+
     return errors;
 }
 
@@ -213,7 +215,7 @@ bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const N
 
     if (parent.isSet())
     {
-        bool result = NodeDispatcher::doubleDispatchConstRtn(node, parent, CheckNodeContentFn2(me()), parent_idx);
+        bool result = TreeDispatcher::dispatchTreeConstRtn(parent, node, CheckNodeContentFn2(me()), parent_idx);
         errors = result || errors;
     }
     else {

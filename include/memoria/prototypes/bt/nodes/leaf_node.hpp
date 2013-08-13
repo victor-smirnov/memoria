@@ -14,7 +14,12 @@
 #include <memoria/core/tools/reflection.hpp>
 
 #include <memoria/core/types/types.hpp>
+
 #include <memoria/core/packed/tree/packed_fse_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_tree.hpp>
+
+#include <memoria/core/packed/map/packed_fse_map.hpp>
+
 #include <memoria/core/packed/array/packed_fse_array.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
@@ -38,24 +43,23 @@ struct TreeLeafNodeTypes: Packed2TreeTypes<V, K> {
 
 };
 
-template <typename Types, bool root, bool leaf>
+template <typename Types, bool leaf>
 struct TreeLeafStreamTypes: Types {
-	static const bool Root = root;
 	static const bool Leaf = leaf;
 };
 
 
 template <
 	typename Types,
-	bool root, bool leaf
+	bool leaf
 >
 class LeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
-    typedef LeafNode<Types, root, leaf>                                      Me;
-    typedef LeafNode<Types, root, leaf>                                      MyType;
+    typedef LeafNode<Types, leaf>                                      			Me;
+    typedef LeafNode<Types, leaf>                                      			MyType;
 
 public:
     static const UInt VERSION                                                   = 2;
@@ -75,13 +79,13 @@ public:
     typedef typename Types::Position											Position;
 
     template <
-        	template <typename, bool, bool> class,
+        	template <typename, bool> class,
         	typename,
-        	bool, bool
+        	bool
     >
     friend class NodePageAdaptor;
 
-    typedef TreeLeafStreamTypes<Types, root, leaf> 								StreamTypes;
+    typedef TreeLeafStreamTypes<Types, leaf> 									StreamTypes;
 
 	typedef typename PackedStructListBuilder<
 				StreamTypes,
@@ -114,12 +118,12 @@ public:
 
 	PackedAllocator* allocator()
 	{
-		return Base::allocator();
+		return Base::allocator()->template get<PackedAllocator>(Base::STREAMS);
 	}
 
 	const PackedAllocator* allocator() const
 	{
-		return Base::allocator();
+		return Base::allocator()->template get<PackedAllocator>(Base::STREAMS);
 	}
 
 	template <typename T>
@@ -133,14 +137,6 @@ public:
 	{
 		return allocator()->template get<T>(idx);
 	}
-
-//	PackedAllocator* allocator() {
-//		return &allocator_;
-//	}
-//
-//	const PackedAllocator* allocator() const {
-//		return &allocator_;
-//	}
 
 	bool is_empty(Int idx) const
 	{
@@ -397,8 +393,6 @@ public:
 			Int size = tree != nullptr ? tree->size() : 0;
 
 			Int capacity = Tree::elements_for(free_mem) - size;
-
-//			MEMORIA_ASSERT(capacity, >=, 0);
 
 			return capacity >= 0 ? capacity : 0;
 		}
@@ -720,15 +714,6 @@ public:
     	}
     }
 
-    bool shouldBeMergedWithSiblings() const
-    {
-    	Int client_area	= allocator()->client_area();
-    	Int used 		= allocator()->allocated();
-
-    	return used < client_area / 2;
-    }
-
-
     struct CanMergeWithFn {
     	Int mem_used_ = 0;
 
@@ -892,6 +877,12 @@ public:
     		std::get<Idx>(*accum) += tree->sum(start->value(Idx), end->value(Idx));
     	}
 
+    	template <Int Idx, typename ArrayTypes>
+    	void stream(const PackedFSEMap<ArrayTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
+    	{
+    		std::get<Idx>(*accum) += tree->sum(0, start->value(Idx), end->value(Idx));
+    	}
+
 
     	template <Int Idx, typename TreeTypes>
     	void stream(
@@ -928,6 +919,21 @@ public:
     		}
     	}
 
+    	template <Int Idx, typename ArrayTypes>
+    	void stream(
+    			const PackedFSEMap<ArrayTypes>* array,
+    			const Position* start,
+    			const Position* end,
+    			Accumulator* accum,
+    			UBigInt act_streams
+    	)
+    	{
+    		if (act_streams & (1<<Idx))
+    		{
+    			std::get<Idx>(*accum) += array->sum(start->value(Idx), end->value(Idx));
+    		}
+    	}
+
     	template <Int Idx, typename Tree>
     	void stream(const Tree* tree, Int block_num, Int start, Int end, BigInt* accum)
     	{
@@ -937,7 +943,8 @@ public:
     	template <Int StreamIdx, typename Tree>
     	void stream(const Tree* tree, Int start, Int end, Accumulator* accum)
     	{
-    		std::get<StreamIdx>(*accum) += tree->sums(start, end);
+//    		std::get<StreamIdx>(*accum) += tree->sums(start, end);
+    		tree->sums(start, end, std::get<StreamIdx>(*accum));
     	}
 
     	template <Int StreamIdx, typename Tree>
@@ -999,24 +1006,6 @@ public:
 
 
 
-//    struct MaxKeysFn {
-//    	template <Int Idx, typename TreeTypes>
-//    	void stream(const PkdFTree<TreeTypes>* tree, Accumulator* acc)
-//    	{
-//    		typedef PkdFTree<TreeTypes> Tree;
-//
-//    		for (Int c = 0; c < Tree::Blocks; c++)
-//    		{
-//    			std::get<Idx>(*acc)[c] = tree->sum(c);
-//    		}
-//    	}
-//
-//    	template <Int Idx, typename ArrayTypes>
-//    	void stream(const PackedFSEArray<ArrayTypes>* array, Accumulator* acc)
-//    	{
-//    		std::get<Idx>(*acc)[0] = array->size();
-//    	}
-//    };
 
     Accumulator maxKeys() const
     {
@@ -1222,13 +1211,13 @@ public:
 
 
 
-template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
+template <typename Types, bool leaf1, bool leaf2>
 void ConvertNodeToRoot(
-	const TreeNode<LeafNode, Types, root1, leaf1>* src,
-	TreeNode<LeafNode, Types, root2, leaf2>* tgt
+	const TreeNode<LeafNode, Types, leaf1>* src,
+	TreeNode<LeafNode, Types, leaf2>* tgt
 )
 {
-	typedef TreeNode<LeafNode, Types, root2, leaf2> RootType;
+	typedef TreeNode<LeafNode, Types, leaf2> RootType;
 
 	tgt->copyFrom(src);
 
@@ -1245,13 +1234,13 @@ void ConvertNodeToRoot(
 	tgt->reindex();
 }
 
-template <typename Types, bool root1, bool leaf1, bool root2, bool leaf2>
+template <typename Types, bool leaf1, bool leaf2>
 void ConvertRootToNode(
-	const TreeNode<LeafNode, Types, root1, leaf1>* src,
-	TreeNode<LeafNode, Types, root2, leaf2>* tgt
+	const TreeNode<LeafNode, Types, leaf1>* src,
+	TreeNode<LeafNode, Types, leaf2>* tgt
 )
 {
-	typedef TreeNode<LeafNode, Types, root2, leaf2> NonRootNode;
+	typedef TreeNode<LeafNode, Types, leaf2> NonRootNode;
 
 	tgt->copyFrom(src);
 
@@ -1274,15 +1263,14 @@ void ConvertRootToNode(
 
 
 
-template <typename Types, bool root, bool leaf>
-struct TypeHash<bt::LeafNode<Types, root, leaf> > {
+template <typename Types, bool leaf>
+struct TypeHash<bt::LeafNode<Types, leaf> > {
 
-	typedef bt::LeafNode<Types, root, leaf> Node;
+	typedef bt::LeafNode<Types, leaf> Node;
 
     static const UInt Value = HashHelper<
     		TypeHash<typename Node::Base>::Value,
     		Node::VERSION,
-    		root,
     		leaf,
     		Types::Indexes,
     		TypeHash<typename Types::Name>::Value

@@ -134,7 +134,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     		if (level > 0)
     		{
-    			Int max_keys = ctr_.getMaxKeyCountForNode(false, level == 0, level);
+    			Int max_keys = ctr_.getMaxKeyCountForNode(level == 0, level);
 
     			NodeBaseG node 		= ctr_.createNode1(level, false, false);
     			node->parent_id() 	= parent_id;
@@ -561,7 +561,7 @@ BigInt M_TYPE::getSubtreeSize(Int level) const
 
     for (int c = 1; c < level; c++)
     {
-        BigInt children_at_level = self().getMaxKeyCountForNode(false, c == 0, c);
+        BigInt children_at_level = self().getMaxKeyCountForNode(c == 0, c);
 
         result *= children_at_level;
     }

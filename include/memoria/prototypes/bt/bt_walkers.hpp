@@ -434,8 +434,8 @@ public:
 	}
 
 
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<LeafNode, NodeTypes, root, leaf>* node, Int start)
+	template <typename NodeTypes, bool leaf>
+	ReturnType treeNode(const TreeNode<LeafNode, NodeTypes, leaf>* node, Int start)
 	{
 		return 0;
 	}
@@ -608,8 +608,8 @@ public:
 	typedef Int ResultType;
 
 
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<BranchNode, NodeTypes, root, leaf>* node, BigInt start)
+	template <typename NodeTypes, bool leaf>
+	ReturnType treeNode(const TreeNode<BranchNode, NodeTypes, leaf>* node, BigInt start)
 	{
 		for (auto& i: Base::search_results_) i = -1;
 
@@ -646,8 +646,8 @@ public:
 		Base::search_results_[Idx]	= result.idx();
 	}
 
-	template <typename NodeTypes, bool root, bool leaf>
-	ReturnType treeNode(const TreeNode<LeafNode, NodeTypes, root, leaf>* node, BigInt start)
+	template <typename NodeTypes, bool leaf>
+	ReturnType treeNode(const TreeNode<LeafNode, NodeTypes, leaf>* node, BigInt start)
 	{
 		return 0;
 	}

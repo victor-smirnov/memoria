@@ -13,6 +13,8 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/core/packed/map/packed_fse_map.hpp>
+
 
 
 namespace memoria    {
@@ -48,8 +50,60 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 	typedef typename Base::TreePath                                             TreePath;
 	typedef typename Base::TreePathItem                                         TreePathItem;
 
-	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
+
+
+
+	struct RemoveFromLeafFn {
+		Accumulator& entry_;
+
+		RemoveFromLeafFn(Accumulator& sums):entry_(sums) {}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(PackedFSEMap<StreamTypes>* map, Int idx)
+		{
+			std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
+			map->remove(idx, idx + 1);
+		}
+
+		template <typename Node>
+		void treeNode(Node* node, Int idx)
+		{
+			node->layout(1);
+			node->template processStream<0>(*this, idx);
+		}
+	};
+
+	void removeMapEntry(Iterator& iter, Accumulator& sums)
+	{
+		auto& self 	= this->self();
+		auto& leaf 	= iter.leaf();
+		Int& idx	= iter.idx();
+
+		RemoveFromLeafFn fn(sums);
+
+		leaf.update();
+
+		LeafDispatcher::dispatch(leaf, fn, idx);
+
+		self.updateParent(leaf, -fn.entry_);
+
+		self.addTotalKeyCount(Position::create(0, -1));
+
+		self.mergeWithSiblings(leaf, [&](const Position& prev_sizes) {
+			idx += prev_sizes[0];
+		});
+
+		if (iter.isEnd())
+		{
+			iter.nextLeaf();
+		}
+
+		self.removeRedundantRootP(leaf);
+	}
+
+
+
 
 	bool removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys);
 

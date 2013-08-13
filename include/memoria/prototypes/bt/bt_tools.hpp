@@ -503,7 +503,7 @@ public:
 	StaticLayoutManager(Int block_size): block_size_(block_size) {}
 	virtual Int getNodeCapacity(const Int* sizes, Int stream)
 	{
-		return Dispatcher::dispatchStatic2Rtn(false, true, NodeFn(), block_size_, sizes, stream);
+		return Dispatcher::dispatchStatic2Rtn(true, NodeFn(), block_size_, sizes, stream);
 	}
 };
 

@@ -108,13 +108,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 			std::get<Idx>(delta_) = indexes;
 		}
 
-		template <typename NTypes, bool root, typename... Labels>
-		void treeNode(
-				TreeNode<LeafNode, NTypes, root, true>* node,
-				Int node_idx,
-				Int label_idx,
-				Int symbol
-			)
+		template <typename NTypes, typename... Labels>
+		void treeNode(TreeNode<LeafNode, NTypes, true>* node, Int node_idx, Int label_idx, Int symbol)
 		{
 			node->layout(-1);
 			node->template processStream<0>(*this, node_idx, symbol);
@@ -123,11 +118,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 			node->processAll(fn, label_idx);
 		}
 
-		template <typename NTypes, bool root, typename... Labels>
-		void treeNode(
-				TreeNode<LeafNode, NTypes, root, true>* node,
-				Int node_idx
-		)
+		template <typename NTypes, typename... Labels>
+		void treeNode(TreeNode<LeafNode, NTypes, true>* node, Int node_idx)
 		{
 			node->layout(1);
 			node->template processStream<0>(*this, node_idx, 0);
@@ -139,13 +131,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
 
 
-	bool insertLoudsNode(
-			NodeBaseG& leaf,
-			Int node_idx,
-			Int label_idx,
-			Accumulator& sums,
-			const LabelsTuple& labels
-	)
+	bool insertLoudsNode(NodeBaseG& leaf, Int node_idx, Int label_idx, Accumulator& sums, const LabelsTuple& labels)
 	{
 		auto& self = this->self();
 
@@ -176,11 +162,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
 
 
-	bool insertLoudsZero(
-			NodeBaseG& leaf,
-			Int node_idx,
-			Accumulator& sums
-	)
+	bool insertLoudsZero(NodeBaseG& leaf, Int node_idx, Accumulator& sums)
 	{
 		auto& self = this->self();
 

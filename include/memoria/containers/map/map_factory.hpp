@@ -27,10 +27,29 @@
 
 
 
+
 #include <memoria/containers/map/map_names.hpp>
 
 namespace memoria    {
 
+
+template <typename Types, Int StreamIdx>
+struct PackedFSEMapTF {
+
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
+
+    typedef typename SelectByIndexTool<
+    		StreamIdx,
+    		typename Types::StreamDescriptors
+    >::Result																	Descriptor;
+
+	typedef PackedFSEMapTypes<
+			Key, Value, Descriptor::NodeIndexes
+	>																			MapTypes;
+
+	typedef PackedFSEMap<MapTypes> 												Type;
+};
 
 
 template <typename Profile, typename Key_, typename Value_>
@@ -45,18 +64,17 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
 
     typedef TypeList<
-    		AllNodeTypes<bt::BranchNode>
+    		LeafNodeTypes<LeafNode>,
+    		NonLeafNodeTypes<BranchNode>
     >																			NodeTypesList;
 
     typedef TypeList<
-        		LeafNodeType<BranchNode>,
-        		InternalNodeType<BranchNode>,
-        		RootNodeType<BranchNode>,
-        		RootLeafNodeType<BranchNode>
+        		LeafNodeType<LeafNode>,
+        		BranchNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
-        		StreamDescr<PkdFTreeTF, PkdFTreeTF, 1>
+        		StreamDescr<PkdFTreeTF, PackedFSEMapTF, 1>
     >																			StreamDescriptors;
 
     typedef BalancedTreeMetadata<
@@ -67,18 +85,18 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
-				memoria::bt::NodeNormName,
-				memoria::map::CtrToolsName,
-				memoria::map::CtrInsert1Name,
-				memoria::map::CtrRemoveName,
-				memoria::map::CtrApiName
+				bt::NodeComprName,
+				map::CtrToolsName,
+				map::CtrInsert1Name,
+				map::CtrRemoveName,
+				map::CtrApiName
 	>::Result                                           						ContainerPartsList;
 
 
 	typedef typename MergeLists<
 				typename Base::IteratorPartsList,
-				memoria::map::ItrApiName,
-				memoria::map::ItrNavName
+				map::ItrApiName,
+				map::ItrNavName
 	>::Result                                           						IteratorPartsList;
 
 

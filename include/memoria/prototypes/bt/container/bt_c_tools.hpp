@@ -91,18 +91,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(GetNodeTraitsFn, getNodeTraitsFn, Int);
 
-    Int getNodeTraitInt(BTNodeTraits trait, bool root, bool leaf) const
+    Int getNodeTraitInt(BTNodeTraits trait, bool leaf) const
     {
-        Int page_size = me()->getRootMetadata().page_size();
-        return NonLeafDispatcher::template dispatchStaticRtn<BranchNode>(root, leaf, GetNodeTraitsFn(me()), trait, page_size);
+        Int page_size = self().getRootMetadata().page_size();
+        return NonLeafDispatcher::template dispatchStaticRtn<BranchNode>(leaf, GetNodeTraitsFn(me()), trait, page_size);
     }
 
 
 
-    Int getMaxKeyCountForNode(bool root, bool leaf, Int level) const
+    Int getMaxKeyCountForNode(bool leaf, Int level) const
     {
-        Int key_count = getNodeTraitInt(BTNodeTraits::MAX_CHILDREN, root, leaf);
-        Int max_count = me()->getBranchingFactor();
+        Int key_count = getNodeTraitInt(BTNodeTraits::MAX_CHILDREN, leaf);
+        Int max_count = self().getBranchingFactor();
 
         if (max_count == 0)
         {
@@ -126,7 +126,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
             Metadata meta           = me()->getRootMetadata();
             meta.branching_factor() = count;
 
-            me()->setRootMetadata(meta);
+            self().setRootMetadata(meta);
         }
         else {
             throw Exception(MEMORIA_SOURCE, SBuf()<<"Incorrect setBranchingFactor value: "<<count<<". It must be 0 or > 2");
@@ -135,106 +135,40 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     Int getBranchingFactor() const
     {
-        return me()->getRootMetadata().branching_factor();
+        return self().getRootMetadata().branching_factor();
     }
-
-
-
-    template <typename Node>
-    void root2NodeFn(Node* src) const
-    {
-    	typedef typename Node::NonRootNodeType NonRootNode;
-
-    	NonRootNode* tgt = T2T<NonRootNode*>(malloc(src->page_size()));
-    	memset(tgt, 0, src->page_size());
-
-    	ConvertRootToNode(src, tgt);
-
-    	CopyByteBuffer(tgt, src, tgt->page_size());
-
-    	free(tgt);
-    }
-
-    MEMORIA_CONST_FN_WRAPPER(Root2NodeFn0, template root2NodeFn);
-
 
     void root2Node(NodeBaseG& node) const
     {
         node.update();
-        RootDispatcher::dispatch(node, Root2NodeFn0(me()));
+
+        node->set_root(false);
+
+        node->clearMetadata();
     }
-
-
-    template <typename Node>
-    void node2RootFn(Node* src, const Metadata& metadata) const
-    {
-    	typedef typename Node::RootNodeType RootType;
-
-    	RootType* tgt = T2T<RootType*>(malloc(src->page_size()));
-    	memset(tgt, 0, src->page_size());
-
-    	ConvertNodeToRoot(src, tgt);
-
-    	tgt->root_metadata() = metadata;
-    	tgt->parent_id().clear();
-    	tgt->parent_idx() = 0;
-
-    	CopyByteBuffer(tgt, src, tgt->page_size());
-
-    	free(tgt);
-    }
-
-    MEMORIA_CONST_FN_WRAPPER(Node2RootFn, node2RootFn);
 
     void node2Root(NodeBaseG& node, const Metadata& meta) const
     {
         node.update();
-        NonRootDispatcher::dispatch(node, Node2RootFn(me()), meta);
+
+        node->set_root(true);
+
+        node->parent_id().clear();
+        node->parent_idx() = 0;
+
+        node->setMetadata(meta);
     }
-
-
-
-    template <typename Node1, typename Node2>
-    void copyRootMetadataFn(Node1* src, Node2* tgt) const
-    {
-    	tgt->root_metadata() = src->root_metadata();
-    }
-
-    MEMORIA_CONST_FN_WRAPPER(CopyRootMetadataFn, copyRootMetadataFn);
 
     void copyRootMetadata(NodeBaseG& src, NodeBaseG& tgt) const
     {
         tgt.update();
-        RootDispatcher::doubleDispatch(src, tgt, CopyRootMetadataFn(me()));
+        tgt->setMetadata(src->root_metadata());
     }
-
-
-
-
-    template <typename T>
-    bool canConvertToRootFn(const T* node) const
-    {
-    	typedef typename T::RootNodeType RootType;
-
-    	Int node_children_count = node->size(0);
-
-    	Int root_block_size 	= node->page_size();
-
-    	Int root_children_count = RootType::max_tree_size_for_block(root_block_size);
-
-    	return node_children_count <= root_children_count;
-    }
-
-    MEMORIA_CONST_FN_WRAPPER_RTN(CanConvertToRootFn, canConvertToRootFn, bool);
 
     bool canConvertToRoot(const NodeBaseG& node) const
     {
-        return NonRootDispatcher::dispatchConstRtn(node, CanConvertToRootFn(me()));
+    	return node->canConvertToRoot();
     }
-
-
-
-
 
     template <typename Node>
     ID getPageIdFn(const Node* node, Int idx) const

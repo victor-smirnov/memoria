@@ -112,12 +112,12 @@ public:
     }
 
     template <
-    	template <typename, bool, bool> class TreeNode,
+    	template <typename, bool> class TreeNode,
     	typename Functor,
     	typename... Args
     >
     static typename std::remove_reference<Functor>::type::ReturnType
-    dispatchStaticRtn(bool, bool, Functor&&, Args...) {
+    dispatchStaticRtn(bool, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
@@ -127,16 +127,16 @@ public:
         	typename... Args
     >
     static typename std::remove_reference<Functor>::type::ReturnType
-    dispatchStatic2Rtn(bool, bool, Functor&&, Args...) {
+    dispatchStatic2Rtn(bool, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
     template <
-    	template <typename, bool, bool> class TreeNode,
+    	template <typename, bool> class TreeNode,
     	typename Functor,
     	typename... Args
     >
-    static void dispatchStatic(bool, bool, Functor&&, Args...) {
+    static void dispatchStatic(bool, Functor&&, Args...) {
     	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
     }
 
@@ -360,7 +360,7 @@ public:
 
 
 template <
-	template <typename, bool, bool> class TreeNode,
+	template <typename, bool> class TreeNode,
 	typename TreeNodeAdaptor
 >
 struct IsTreeNode {
@@ -369,12 +369,11 @@ struct IsTreeNode {
 
 
 template <
-	template <typename, bool, bool> class TreeNode,
+	template <typename, bool> class TreeNode,
 	typename Types,
-	bool root,
 	bool leaf
 >
-struct IsTreeNode<TreeNode, NodePageAdaptor<TreeNode, Types, root, leaf>> {
+struct IsTreeNode<TreeNode, NodePageAdaptor<TreeNode, Types, leaf>> {
 	static const bool Value = true;
 };
 
@@ -387,7 +386,7 @@ class NDT0 {
     typedef typename SelectByIndexTool<Idx, typename Types::List>::Result Head;
 
     static const Int HASH 		= Head::PAGE_HASH;
-    static const bool Root 		= Head::Root;
+//    static const bool Root 		= Head::Root;
     static const bool Leaf 		= Head::Leaf;
 
 
@@ -620,68 +619,59 @@ public:
 
 
     template <
-    	template <typename, bool, bool> class TreeNode,
+    	template <typename, bool> class TreeNode,
     	typename Functor,
     	typename... Args
     >
-    static void dispatchStatic(bool root, bool leaf, Functor&& fn, Args... args)
+    static void dispatchStatic(bool leaf, Functor&& fn, Args... args)
     {
     	bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
-    	if (types_equal && root == Root && leaf == Leaf)
+    	if (types_equal && leaf == Leaf)
     	{
     		const Head* head = nullptr;
     		fn.treeNode(head, args...);
     	}
     	else {
-    		NDT0<
-    			Types, Idx - 1
-    		>
-    		::template dispatchStatic<TreeNode>(root, leaf, std::forward<Functor>(fn), args...);
+    		NDT0<Types, Idx - 1>::template dispatchStatic<TreeNode>(leaf, std::forward<Functor>(fn), args...);
     	}
     }
 
 
     template <
-    	template <typename, bool, bool> class TreeNode,
+    	template <typename, bool> class TreeNode,
     	typename Functor,
     	typename... Args
     >
     static typename std::remove_reference<Functor>::type::ReturnType
-    dispatchStaticRtn(bool root, bool leaf, Functor&& fn, Args... args)
+    dispatchStaticRtn(bool leaf, Functor&& fn, Args... args)
     {
     	bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
-    	if (types_equal && root == Root && leaf == Leaf)
+    	if (types_equal && leaf == Leaf)
     	{
     		const Head* head = nullptr;
     		return fn.treeNode(head, args...);
     	}
     	else {
-    		return NDT0<
-    			Types, Idx - 1
-    		>
-    		::template dispatchStaticRtn<TreeNode>(root, leaf, std::forward<Functor>(fn), args...);
+    		return NDT0<Types, Idx - 1>::template dispatchStaticRtn<TreeNode>(leaf, std::forward<Functor>(fn), args...);
     	}
     }
 
     template <
-    typename Functor,
-    typename... Args
+    	typename Functor,
+    	typename... Args
     >
     static typename std::remove_reference<Functor>::type::ReturnType
-    dispatchStatic2Rtn(bool root, bool leaf, Functor&& fn, Args... args)
+    dispatchStatic2Rtn(bool leaf, Functor&& fn, Args... args)
     {
-    	if (root == Root && leaf == Leaf)
+    	if (leaf == Leaf)
     	{
     		const Head* head = nullptr;
     		return fn.treeNode(head, args...);
     	}
     	else {
-    		return NDT0<
-    				Types, Idx - 1
-    				>
-    		::template dispatchStatic2Rtn(root, leaf, std::forward<Functor>(fn), args...);
+    		return NDT0<Types, Idx - 1>::template dispatchStatic2Rtn(leaf, std::forward<Functor>(fn), args...);
     	}
     }
 
