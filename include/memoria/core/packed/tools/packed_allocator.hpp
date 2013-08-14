@@ -63,6 +63,11 @@ public:
 
 	PackedAllocator() {}
 
+	void setTopLevelAllocator()
+	{
+		allocator_offset() = 0;
+	}
+
 	bool is_allocatable(Int idx) const
 	{
 		const Bitmap* bmp = bitmap();
@@ -191,7 +196,8 @@ public:
 
 			moveElements(idx + 1, delta);
 		}
-		else {
+		else if (delta < 0)
+		{
 			moveElements(idx + 1, delta);
 
 			if (allocator_offset() > 0)

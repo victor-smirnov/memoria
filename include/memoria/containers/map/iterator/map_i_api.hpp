@@ -63,6 +63,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 			}
 		}
 
+		template <Int Idx, typename StreamTypes>
+		void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
+		{
+			if (map != nullptr)
+			{
+				value_ = map->tree()->value(0, idx);
+			}
+		}
+
 		template <typename Node>
 		void treeNode(const Node* node, Int idx)
 		{
@@ -123,6 +132,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 			map->value(idx) = value;
 		}
 
+		template <Int Idx, typename StreamTypes>
+		void stream(PackedVLEMap<StreamTypes>* map, Int idx, const Value& value)
+		{
+			MEMORIA_ASSERT_TRUE(map != nullptr);
+			map->value(idx) = value;
+		}
+
 		template <typename Node>
 		void treeNode(Node* node, Int idx, const Value& value)
 		{
@@ -169,6 +185,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
 		template <Int Idx, typename StreamTypes>
 		void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
+		{
+			if (map != nullptr)
+			{
+				value_ = map->value(idx);
+			}
+		}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
 		{
 			if (map != nullptr)
 			{
@@ -261,6 +286,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
     	template <Int Idx, typename StreamTypes>
     	void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
+    	{
+    		if (map != nullptr)
+    		{
+    			prefix_ += map->tree()->sum(0, idx);
+    		}
+    	}
+
+    	template <Int Idx, typename StreamTypes>
+    	void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
     	{
     		if (map != nullptr)
     		{

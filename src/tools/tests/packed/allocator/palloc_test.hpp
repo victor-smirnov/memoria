@@ -140,6 +140,7 @@ public:
     	Allocator* alloc 	= T2T<Allocator*>(mem_block);
 
     	alloc->init(block_size, elements);
+    	alloc->setTopLevelAllocator();
 
     	AssertEQ(MA_SRC, alloc->elements(), elements);
     	AssertEQ(MA_SRC, alloc->block_size(), block_size);

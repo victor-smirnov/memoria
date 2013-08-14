@@ -19,8 +19,6 @@
 
 namespace memoria    {
 
-using namespace memoria::bt;
-
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
 	typedef typename Base::Types                                                Types;
@@ -61,6 +59,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
 		template <Int Idx, typename StreamTypes>
 		void stream(PackedFSEMap<StreamTypes>* map, Int idx)
+		{
+			std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
+			map->remove(idx, idx + 1);
+		}
+
+		template <Int Idx, typename StreamTypes>
+		void stream(PackedVLEMap<StreamTypes>* map, Int idx)
 		{
 			std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
 			map->remove(idx, idx + 1);

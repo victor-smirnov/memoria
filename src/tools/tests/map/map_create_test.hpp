@@ -21,12 +21,12 @@
 namespace memoria {
 
 template <
-	template <typename, typename> class MapType
+	typename MapName
 >
-class MapCreateTest: public MapTestBase<MapType> {
+class MapCreateTest: public MapTestBase<MapName> {
 
-    typedef MapCreateTest<MapType>                                              MyType;
-    typedef MapTestBase<MapType>												Base;
+    typedef MapCreateTest<MapName>                                              MyType;
+    typedef MapTestBase<MapName>												Base;
 
     typedef typename Base::Allocator											Allocator;
     typedef typename Base::Iterator												Iterator;

@@ -15,29 +15,27 @@ namespace memoria    {
 namespace map 		 {
 
 class CtrApiName 	{};
-class CtrInsert1Name {};
-class CtrToolsName 	{};
+class CtrInsertName {};
 class CtrRemoveName {};
 
 class ItrApiName {};
 class ItrNavName {};
 
-
 }
 
 template <typename Types>
-struct Map2CtrTypesT: CtrTypesT<Types> {};
+struct MapCtrTypesT: CtrTypesT<Types> {};
 
 template <typename Types>
-struct Map2IterTypesT: IterTypesT<Types> {};
+struct MapIterTypesT: IterTypesT<Types> {};
 
 
 
 template <typename Types>
-using Map2CtrTypes  = Map2CtrTypesT<Types>;
+using MapCtrTypes  = MapCtrTypesT<Types>;
 
 template <typename Types>
-using Map2IterTypes = Map2IterTypesT<Types>;
+using MapIterTypes = MapIterTypesT<Types>;
 
 
 }

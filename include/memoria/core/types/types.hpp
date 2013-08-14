@@ -127,14 +127,6 @@ template <typename Key, typename Value>
 struct Map          {};
 
 template <typename Key, typename Value>
-struct CMap         {};
-
-//template <typename Key, typename Value>
-//struct Map2      	{};
-
-
-
-template <typename Key, typename Value>
 struct MapProto     {};
 
 template <typename Value>
@@ -195,6 +187,9 @@ struct LabeledTree  {};
 
 struct WT 			{};
 struct VTree		{};
+
+template <Granularity gr = Granularity::Byte>
+struct CMap         {};
 
 
 /*

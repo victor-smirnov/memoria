@@ -19,6 +19,7 @@
 #include <memoria/core/packed/tree/packed_vle_tree.hpp>
 
 #include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_vle_map.hpp>
 
 #include <memoria/core/packed/array/packed_fse_array.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
@@ -879,6 +880,12 @@ public:
 
     	template <Int Idx, typename ArrayTypes>
     	void stream(const PackedFSEMap<ArrayTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
+    	{
+    		std::get<Idx>(*accum) += tree->sum(0, start->value(Idx), end->value(Idx));
+    	}
+
+    	template <Int Idx, typename ArrayTypes>
+    	void stream(const PackedVLEMap<ArrayTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
     	{
     		std::get<Idx>(*accum) += tree->sum(0, start->value(Idx), end->value(Idx));
     	}

@@ -83,9 +83,9 @@ struct TypeHash<Map<Key, Value>>:   UIntValue<
     HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
-template <typename Key, typename Value>
-struct TypeHash<CMap<Key, Value>>:   UIntValue<
-    HashHelper<1112, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+template <Granularity gr>
+struct TypeHash<CMap<gr>>:   UIntValue<
+    HashHelper<1112, (UInt)gr>::Value
 > {};
 
 

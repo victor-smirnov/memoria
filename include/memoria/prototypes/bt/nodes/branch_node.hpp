@@ -189,6 +189,8 @@ public:
     {
     	Int page_size = this->page_size();
     	MEMORIA_ASSERT(page_size, >, sizeof(Me) + sizeof(PackedAllocator));
+
+    	allocator_.setTopLevelAllocator();
     	allocator_.init(page_size - sizeof(Me) + sizeof(PackedAllocator), STREAMS + 1);
     }
 

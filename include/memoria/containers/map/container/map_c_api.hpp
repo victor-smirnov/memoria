@@ -18,8 +18,6 @@
 
 namespace memoria    {
 
-using namespace memoria::bt;
-
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
 	typedef typename Base::Types                                                Types;

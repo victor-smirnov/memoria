@@ -43,8 +43,8 @@ public:
 
 		MEMORIA_ADD_TEST_PARAM(alphabet_size_);
 
-//		MEMORIA_ADD_TEST(testCreateTree);
-//		MEMORIA_ADD_TEST(testRemoveTree);
+		MEMORIA_ADD_TEST(testCreateTree);
+		MEMORIA_ADD_TEST(testRemoveTree);
 
 		MEMORIA_ADD_TEST(testDump);
     }
@@ -101,6 +101,7 @@ public:
     {
     	PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
     	alloc->init(block_size, 1);
+    	alloc->setTopLevelAllocator();
 
     	Tree* tree = alloc->allocateEmpty<Tree>(0);
 

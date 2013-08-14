@@ -4,15 +4,13 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_PACKED_TREE_TEST_BASE_HPP_
-#define MEMORIA_TESTS_PACKED_TREE_TEST_BASE_HPP_
+#ifndef MEMORIA_TESTS_PACKED_ARRAY_TEST_BASE_HPP_
+#define MEMORIA_TESTS_PACKED_ARRAY_TEST_BASE_HPP_
 
 #include "../../tests_inc.hpp"
 
-
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_tree.hpp>
-#include <memoria/core/packed/tools/packed_allocator.hpp>
+#include <memoria/core/packed/array/packed_vle_array.hpp>
+#include <memoria/core/packed/map/packed_vle_map.hpp>
 
 namespace memoria {
 
@@ -21,17 +19,14 @@ using namespace std;
 
 template <
 	template <typename> class TreeType,
-	template <typename> class CodecType = ValueFSECodec,
-	Int Blocks		= 1,
-	Int VPB 		= PackedTreeBranchingFactor,
-	Int BF 			= PackedTreeBranchingFactor
+	template <typename> class CodecType,
+	Int VPB,
+	Int BF
 >
-class PackedTreeTestBase: public TestTask {
+class PackedArrayTestBase: public TestTask {
 protected:
-	typedef Packed2TreeTypes<
-			Int,
-			Int,
-			Blocks,
+	typedef PackedVLEMapTypes<
+			1,
 			CodecType,
 			BF,
 			VPB
@@ -43,15 +38,19 @@ protected:
 	typedef typename Tree::IndexValue											IndexValue;
 	typedef typename Tree::Values												Values;
 
+	static const Int Blocks														= 1;
+
 public:
 
-    PackedTreeTestBase(StringRef name): TestTask(name)
+    PackedArrayTestBase(StringRef name): TestTask(name)
     {}
 
     Tree* createEmptyTree(Int block_size = 65536)
     {
     	void* block = malloc(block_size);
+
     	PackedAllocator* allocator = T2T<PackedAllocator*>(block);
+
     	allocator->init(block_size, 1);
     	allocator->setTopLevelAllocator();
 
@@ -67,7 +66,9 @@ public:
     	Int allocator_size 	= PackedAllocator::block_size(tree_block_size + free_space, 1);
 
     	void* block = malloc(allocator_size);
+
     	PackedAllocator* allocator = T2T<PackedAllocator*>(block);
+
     	allocator->init(tree_block_size, 1);
     	allocator->setTopLevelAllocator();
 

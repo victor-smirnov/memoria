@@ -12,9 +12,13 @@
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/container.hpp>
 
+#include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_vle_map.hpp>
+
+#include <memoria/core/tools/elias_codec.hpp>
+
 namespace memoria       {
 namespace map        	{
-
 
 template <typename Iterator, typename Container>
 class MapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
@@ -106,6 +110,82 @@ private:
     {
     }
 
+};
+
+
+
+
+template <typename Types, Int StreamIdx>
+struct PackedFSEMapTF {
+
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
+
+    typedef typename SelectByIndexTool<
+    		StreamIdx,
+    		typename Types::StreamDescriptors
+    >::Result																	Descriptor;
+
+	typedef PackedFSEMapTypes<
+			Key, Value, Descriptor::NodeIndexes
+	>																			MapTypes;
+
+	typedef PackedFSEMap<MapTypes> 												Type;
+};
+
+
+template <typename Types, Int StreamIdx>
+struct PackedEliasMapTF {
+
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
+
+    typedef typename SelectByIndexTool<
+    		StreamIdx,
+    		typename Types::StreamDescriptors
+    >::Result																	Descriptor;
+
+	typedef PackedVLEMapTypes<
+			Descriptor::NodeIndexes, UBigIntEliasCodec, PackedTreeEliasVPB
+	>																			MapTypes;
+
+	typedef PackedVLEMap<MapTypes> 												Type;
+};
+
+
+template <typename Types, Int StreamIdx>
+struct PackedExintMapTF {
+
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
+
+    typedef typename SelectByIndexTool<
+    		StreamIdx,
+    		typename Types::StreamDescriptors
+    >::Result																	Descriptor;
+
+	typedef PackedVLEMapTypes<
+			Descriptor::NodeIndexes, UByteExintCodec, PackedTreeExintVPB
+	>																			MapTypes;
+
+	typedef PackedVLEMap<MapTypes> 												Type;
+};
+
+template <Granularity gr> struct MapTypeTF;
+
+
+template <>
+struct MapTypeTF<Granularity::Byte> {
+
+	template <typename Types, Int StreamIdx>
+	using Type = PackedExintMapTF<Types, StreamIdx>;
+};
+
+template <>
+struct MapTypeTF<Granularity::Bit> {
+
+	template <typename Types, Int StreamIdx>
+	using Type = PackedEliasMapTF<Types, StreamIdx>;
 };
 
 

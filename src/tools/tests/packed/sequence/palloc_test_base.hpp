@@ -83,6 +83,7 @@ public:
     	PackedAllocator* allocator = T2T<PackedAllocator*>(memory_block);
 
     	allocator->init(block_size, 1);
+    	allocator->setTopLevelAllocator();
 
     	allocator->allocateEmpty<Seq>(0);
 

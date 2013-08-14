@@ -4,13 +4,13 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_PACKED_PACKED_TREE_MISC_HPP_
-#define MEMORIA_TESTS_PACKED_PACKED_TREE_MISC_HPP_
+#ifndef MEMORIA_TESTS_PACKED_PACKED_ARRAY_MISC_HPP_
+#define MEMORIA_TESTS_PACKED_PACKED_ARRAY_MISC_HPP_
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "packed_tree_test_base.hpp"
+#include "packed_array_test_base.hpp"
 
 namespace memoria {
 
@@ -18,31 +18,27 @@ using namespace std;
 
 template <
 	template <typename> class TreeType,
-	template <typename> class CodecType = ValueFSECodec,
-	Int Blocks		= 1,
-	Int VPB 		= PackedTreeBranchingFactor,
-	Int BF 			= PackedTreeBranchingFactor
+	template <typename> class CodecType,
+	Int VPB,
+	Int BF = PackedTreeBranchingFactor
 >
-class PackedTreeMiscTest: public PackedTreeTestBase <
+class PackedArrayMiscTest: public PackedArrayTestBase <
 	TreeType,
 	CodecType,
-	Blocks,
 	VPB,
 	BF
 > {
 
-	typedef PackedTreeMiscTest<
+	typedef PackedArrayMiscTest<
 			TreeType,
 			CodecType,
-			Blocks,
 			VPB,
 			BF
 	> 																			MyType;
 
-	typedef PackedTreeTestBase <
+	typedef PackedArrayTestBase <
 		TreeType,
 		CodecType,
-		Blocks,
 		VPB,
 		BF
 	>																			Base;
@@ -55,7 +51,7 @@ class PackedTreeMiscTest: public PackedTreeTestBase <
 public:
 
 
-	PackedTreeMiscTest(StringRef name): Base(name)
+	PackedArrayMiscTest(StringRef name): Base(name)
     {
 		MEMORIA_ADD_TEST_PARAM(iterations_);
 
@@ -76,7 +72,7 @@ public:
 		MEMORIA_ADD_TEST(testClear);
     }
 
-    virtual ~PackedTreeMiscTest() throw() {}
+    virtual ~PackedArrayMiscTest() throw() {}
 
     void testInsertVector()
     {
@@ -134,7 +130,7 @@ public:
 
     void addValues(vector<Values>& values, Int idx, const Values v)
     {
-    	for (Int c = 0; c< Blocks; c++)
+    	for (Int c = 0; c< Base::Blocks; c++)
     	{
     		values[idx][c] += v[c];
     	}
@@ -244,6 +240,7 @@ public:
     	{
     		this->out()<<size<<std::endl;
 
+
     		Tree* tree = Base::createEmptyTree(16*1024*1024);
     		auto tree_values = Base::createRandomValuesVector(size);
 
@@ -268,6 +265,8 @@ public:
     			AssertLE(MA_SRC, tree->block_size(), block_size);
     		}
     	}
+
+    	cout<<endl;
     }
 
     void testRemoveAll()

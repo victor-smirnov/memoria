@@ -14,7 +14,7 @@
 namespace memoria {
 
 template <typename Types, typename Value>
-void AssignToItem(Iter<Map2IterTypes<Types>>& iter, const Value& value)
+void AssignToItem(Iter<MapIterTypes<Types>>& iter, const Value& value)
 {
     iter.setValue(value);
 }

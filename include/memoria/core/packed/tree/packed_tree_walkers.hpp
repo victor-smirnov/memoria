@@ -365,7 +365,7 @@ public:
 		Comparator<IndexValue, BigInt> compare;
 		Codec codec;
 
-		Int offset = me_.offset(start);
+		Int offset = start ? me_.offset(start) : 0;
 		Int pos = start * TreeType::ValuesPerBranch + offset;
 
 		while (pos < max_size_)

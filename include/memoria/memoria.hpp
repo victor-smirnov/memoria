@@ -29,12 +29,6 @@ template <>
 struct CtrNameDeclarator<4>: TypeDef<Vector<BigInt>> {};
 
 template <>
-struct CtrNameDeclarator<5>: TypeDef<Map<BigInt, BigInt>> {};
-
-//template <>
-//struct CtrNameDeclarator<6>: TypeDef<Set<BigInt>> {};
-
-template <>
 struct CtrNameDeclarator<7>: TypeDef<VectorMap<BigInt, BigInt>> {};
 
 template <>
@@ -43,22 +37,9 @@ struct CtrNameDeclarator<8>: TypeDef<Sequence<1, true>> {};
 template <>
 struct CtrNameDeclarator<9>: TypeDef<Sequence<8, true>> {};
 
-//
-//template <>
-//struct CtrNameDeclarator<9>: TypeDef<Sequence<2, true>> {};
-//
-//template <>
-//struct CtrNameDeclarator<10>: TypeDef<Sequence<3, true>> {};
-//
-//template <>
-//struct CtrNameDeclarator<11>: TypeDef<Sequence<4, true>> {};
-//
 
 template <>
 struct CtrNameDeclarator<16>: TypeDef<LabeledTree<FLabel<UByte>, VLabel<BigInt, Granularity::Bit, Indexed::Yes>>> {};
-
-template <>
-struct CtrNameDeclarator<17>: TypeDef<CMap<BigInt, BigInt>> {};
 
 template <>
 struct CtrNameDeclarator<18>: TypeDef<WT> {};

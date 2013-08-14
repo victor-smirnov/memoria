@@ -10,10 +10,10 @@
 
 #include "../tests_inc.hpp"
 
-#include "map_api_test.hpp"
+//#include "map_api_test.hpp"
 #include "map_create_test.hpp"
 #include "map_remove_test.hpp"
-#include "map_batch_test.hpp"
+//#include "map_batch_test.hpp"
 
 #include <vector>
 
@@ -28,16 +28,13 @@ public:
 
     MapTestSuite(): TestSuite("MapSuite")
     {
-        registerTask(new MapCreateTest<Map>("Create.Map"));
-//        registerTask(new MapCreateTest<CMap>("Create.CMap"));
+        registerTask(new MapCreateTest<Map<BigInt, BigInt>>("Map.Create"));
+        registerTask(new MapCreateTest<CMap<Granularity::Bit>>("CMap1.Create"));
+        registerTask(new MapCreateTest<CMap<Granularity::Byte>>("CMap2.Create"));
 
-        registerTask(new MapRemoveTest<Map>("Remove.Map"));
-//        registerTask(new MapRemoveTest<CMap>("Remove.CMap"));
-
-//        registerTask(new MapBatchTest<Map>("Batch.Map"));
-
-        // FIXME: CMap is does not contain working batch operations
-        //registerTask(new MapBatchTest<CMap>("Batch.CMap"));
+        registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("Map.Remove"));
+        registerTask(new MapRemoveTest<CMap<Granularity::Bit>>("CMap1.Remove"));
+        registerTask(new MapRemoveTest<CMap<Granularity::Byte>>("CMap2.Remove"));
     }
 
 };

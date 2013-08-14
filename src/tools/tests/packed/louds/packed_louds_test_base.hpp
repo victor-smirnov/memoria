@@ -122,6 +122,7 @@ public:
     {
     	PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
     	alloc->init(block_size, 1);
+    	alloc->setTopLevelAllocator();
 
     	return alloc->template allocateEmpty<LoudsTree>(0);
     }
