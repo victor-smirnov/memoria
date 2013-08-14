@@ -21,38 +21,19 @@ namespace memoria    {
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
 	typedef typename Base::Types                                                Types;
-	typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::ID                                                   ID;
 
-	typedef typename Types::NodeBase                                            NodeBase;
 	typedef typename Types::NodeBaseG                                           NodeBaseG;
 	typedef typename Base::Iterator                                             Iterator;
-
-	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-	typedef typename Base::RootDispatcher                                       RootDispatcher;
-	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
-
 
 	typedef typename Base::Key                                                  Key;
 	typedef typename Base::Value                                                Value;
 	typedef typename Base::Element                                              Element;
 
-	typedef typename Base::Metadata                                             Metadata;
-
 	typedef typename Types::Accumulator                                         Accumulator;
 	typedef typename Types::Position 											Position;
 
-	typedef typename Base::TreePath                                             TreePath;
-	typedef typename Base::TreePathItem                                         TreePathItem;
-
-	static const Int Indexes                                                    = Types::Indexes;
 	static const Int Streams                                                    = Types::Streams;
-
-	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
-
-
 
 	BigInt size() const {
 		return self().sizes()[0];
@@ -60,7 +41,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator find(Key key)
     {
-        Iterator iter = self().findLE(MAIN_STREAM, key, 0);
+        Iterator iter = self().findLE(0, key, 0);
 
         if (!iter.isEnd())
         {
@@ -80,7 +61,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator operator[](Key key)
     {
-        Iterator iter = self().findLE(MAIN_STREAM, key, 0);
+        Iterator iter = self().findLE(0, key, 0);
 
         if (iter.isEnd() || key != iter.key())
         {
@@ -96,7 +77,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     bool remove(Key key)
     {
-    	Iterator iter = self().findLE(MAIN_STREAM, key, 0);
+    	Iterator iter = self().findLE(0, key, 0);
 
         if (key == iter.key())
         {
@@ -133,19 +114,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
         }
     }
 
-    void insertRaw(Iterator& iter, const Element& element)
-    {
-        Base::insert(iter, element);
-    }
-
     bool contains(Key key)
     {
         return !self().find(key).isEnd();
-    }
-
-    bool contains1(Key key)
-    {
-        return !self().find1(key).isEnd();
     }
 
     bool removeEntry1(Iterator& iter, Accumulator& keys)
