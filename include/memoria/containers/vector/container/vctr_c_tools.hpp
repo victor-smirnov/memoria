@@ -130,48 +130,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
     }
 
     MEMORIA_CONST_FN_WRAPPER(SetLeafDataFn, setLeafDataFn);
-
-
-
     void setLeafData(NodeBaseG& node, Int idx, const Value &val)
     {
     	node.update();
     	LeafDispatcher::dispatch(node.page(), SetLeafDataFn(me()), idx, val);
     }
-
-    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) const;
-
-
-    template <typename NodeTypes, bool leaf>
-    bool canConvertToRootFn(const TreeNode<BranchNode, NodeTypes, leaf>* node) const
-    {
-    	typedef TreeNode<BranchNode, NodeTypes, leaf> Node;
-    	typedef typename Node::RootNodeType RootType;
-
-    	Int node_children_count = node->size(0);
-
-    	Int root_block_size 	= node->page_size();
-
-    	Int root_children_count = RootType::max_tree_size_for_block(root_block_size);
-
-    	return node_children_count <= root_children_count;
-    }
-
-    template <typename NodeTypes, bool leaf>
-    bool canConvertToRootFn(const TreeNode<LeafNode, NodeTypes, leaf>* node) const
-    {
-    	typedef TreeNode<LeafNode, NodeTypes, leaf> Node;
-    	typedef typename Node::RootNodeType RootType;
-
-    	Position sizes = node->sizes();
-
-    	Int node_block_size = Node::object_size(sizes);//node->allocator()->block_size();
-
-    	Int root_block_size = RootType::object_size(sizes);
-
-    	return root_block_size <= node_block_size;
-    }
-
 
     MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
     void layoutLeafNode(NodeBaseG& node, Int size) const
@@ -179,47 +142,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
     	LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
     }
 
-
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrToolsName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
-
-M_PARAMS
-bool M_TYPE::check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) const
-{
-//    Int key         = me()->getKey(leaf, 0, idx);
-//    DataPageG data  = me()->getValuePage(leaf, idx, Allocator::READ);
-//
-//    if (data.isSet())
-//    {
-//        bool error = false;
-//
-//        if (key != data->size())
-//        {
-//            me()->dump(leaf);
-//            me()->dump(data);
-//
-//            MEMORIA_ERROR(me(), "Invalid data page size", data->id(), leaf->id(), idx, key, data->size());
-//            error = true;
-//        }
-//
-////      if (key == 0)
-////      {
-////          MEMORIA_TRACE(me(), "Zero data page size", leaf->id(), idx, key, data->data().size());
-////          error = true;
-////      }
-//
-//        return error;
-//    }
-//    else {
-//        MEMORIA_ERROR(me(), "No DataPage exists", leaf->id(), idx, key);
-//        return true;
-//    }
-
-	return false;
-}
 
 
 

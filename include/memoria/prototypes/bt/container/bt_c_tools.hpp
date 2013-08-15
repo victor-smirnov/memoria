@@ -101,41 +101,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     Int getMaxKeyCountForNode(bool leaf, Int level) const
     {
-        Int key_count = getNodeTraitInt(BTNodeTraits::MAX_CHILDREN, leaf);
-        Int max_count = self().getBranchingFactor();
-
-        if (max_count == 0)
-        {
-            return key_count;
-        }
-        else {
-            return key_count < max_count? key_count : max_count;
-        }
+        return getNodeTraitInt(BTNodeTraits::MAX_CHILDREN, leaf);
     }
 
 
     bool isTheSameNode(const NodeBaseG& node1, const NodeBaseG& node2) const
     {
     	return node1->id() == node2->id();
-    }
-
-    void setBranchingFactor(Int count)
-    {
-        if (count == 0 || count > 2)
-        {
-            Metadata meta           = me()->getRootMetadata();
-            meta.branching_factor() = count;
-
-            self().setRootMetadata(meta);
-        }
-        else {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Incorrect setBranchingFactor value: "<<count<<". It must be 0 or > 2");
-        }
-    }
-
-    Int getBranchingFactor() const
-    {
-        return self().getRootMetadata().branching_factor();
     }
 
     void root2Node(NodeBaseG& node) const
@@ -462,16 +434,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     NodeBaseG getNextNodeP(NodeBaseG& node) const;
     NodeBaseG getPrevNodeP(NodeBaseG& node) const;
-
-
-
-    template <typename Node>
-    bool checkNodeContent(Node *node);
-
-
-    template <typename Node1, typename Node2>
-    bool checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx);
-
 
 
     template <typename Node>
@@ -819,60 +781,6 @@ bool M_TYPE::updateNodeCounters(NodeBaseG& node, Int idx, const Accumulator& cou
     node.update();
     self().addKeys(node, idx, counters, true);
     return false;
-}
-
-
-M_PARAMS
-template <typename Node>
-bool M_TYPE::checkNodeContent(Node *node) {
-    bool errors = false;
-
-    for (Int i = 0; i < Indexes; i++) {
-        Key key = 0;
-
-        for (Int c = 0; c < self().getNodeSize(node, 0); c++) {
-            key += node->map().key(i, c);
-        }
-
-        if (key != node->map().maxKey(i))
-        {
-            //me()->dump(node);
-            MEMORIA_ERROR(me(), "Sum of keys doen't match maxKey for key", i, key, node->map().maxKey(i));
-            errors = true;
-        }
-    }
-
-    return errors;
-}
-
-M_PARAMS
-template <typename Node1, typename Node2>
-bool M_TYPE::checkNodeWithParentContent(Node1 *node, Node2 *parent, Int parent_idx)
-{
-    bool errors = false;
-    for (Int c = 0; c < Indexes; c++)
-    {
-        if (node->map().maxKey(c) != parent->map().key(c, parent_idx))
-        {
-            MEMORIA_ERROR(
-                    me(),
-                    "Invalid parent-child nodes chain",
-                    c,
-                    node->map().maxKey(c),
-                    parent->map().key(c, parent_idx),
-                    "for",
-                    node->id(),
-                    parent->id(),
-                    parent_idx
-            );
-
-            errors = true;
-        }
-    }
-
-    errors = checkNodeContent(node) || errors;
-
-    return errors;
 }
 
 

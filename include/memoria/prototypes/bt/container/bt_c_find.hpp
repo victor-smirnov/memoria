@@ -225,42 +225,6 @@ typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
 	}
 }
 
-//
-//
-//M_PARAMS
-//template <typename Walker>
-//void M_TYPE::find1(Walker&& walker)
-//{
-//	walker.start() 		= 0;
-//	walker.direction() 	= WalkDirection::DOWN;
-//
-//	NodeBaseG node = me()->getRoot(Allocator::READ);
-//	if (node.isSet())
-//	{
-//		if (node->children_count() > 0)
-//		{
-//			while (!node->is_leaf())
-//			{
-//				NodeDispatcher::dispatchConst(node, walker);
-//
-//				Int idx = walker.idx();
-//
-//				node = me()->getChild(node, idx, Allocator::READ);
-//			}
-//
-//			NodeDispatcher::dispatchConst(node, walker);
-//
-//			Int idx = walker.idx();
-//			walker.finish(*me(), node, idx);
-//		}
-//		else {
-//			walker.empty();
-//		}
-//	}
-//	else {
-//		walker.empty();
-//	}
-//}
 
 
 M_PARAMS

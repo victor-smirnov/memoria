@@ -126,11 +126,6 @@ public:
         return leaf() != other.leaf() || idx_ != other.idx_ || Base::isNotEqual(other);
     }
 
-//    void setNode(NodeBaseG& node, Int parent_idx)
-//    {
-//        path_[node->level()].node()         = node;
-//        path_[node->level()].parent_idx()   = parent_idx;
-//    }
 
     Int& stream() {
     	return stream_;
@@ -171,15 +166,6 @@ public:
         return leaf_;
     }
 
-//    TreePath& path()
-//    {
-//        return path_;
-//    }
-//
-//    const TreePath& path() const
-//    {
-//        return path_;
-//    }
 
     IteratorCache& cache() {
         return cache_;
@@ -236,9 +222,6 @@ public:
         out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
 
         self.dumpKeys(out);
-
-//        self.dumpBeforePath(out);
-//        self.dumpPath(out);
 
         self.dumpBeforePages(out);
         self.dumpPages(out);

@@ -39,8 +39,6 @@
 #include <memoria/prototypes/bt/container/bt_c_update.hpp>
 #include <memoria/prototypes/bt/container/bt_c_nodecompr.hpp>
 #include <memoria/prototypes/bt/container/bt_c_nodenorm.hpp>
-
-#include <memoria/prototypes/bt/container/bt_c_remove.hpp>
 #include <memoria/prototypes/bt/container/bt_c_remtools.hpp>
 #include <memoria/prototypes/bt/container/bt_c_rembatch.hpp>
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
@@ -122,22 +120,21 @@ struct BTTypes {
     typedef TypeList<BigInt>                                                    KeysList;
 
     typedef TypeList<
-            memoria::bt::AllocatorName,
-            memoria::bt::ToolsName,
-            memoria::bt::ChecksName,
-            memoria::bt::InsertBatchName,
-            memoria::bt::InsertName,
-            memoria::bt::RemoveToolsName,
-            memoria::bt::RemoveBatchName,
-            memoria::bt::RemoveName,
-            memoria::bt::FindName,
-            memoria::bt::ReadName,
-            memoria::bt::UpdateName
+            bt::AllocatorName,
+            bt::ToolsName,
+            bt::ChecksName,
+            bt::InsertBatchName,
+            bt::InsertName,
+            bt::RemoveToolsName,
+            bt::RemoveBatchName,
+            bt::FindName,
+            bt::ReadName,
+            bt::UpdateName
     >                                                                           ContainerPartsList;
     
     typedef TypeList<
-            memoria::bt::IteratorAPIName,
-            memoria::bt::IteratorFindName
+            bt::IteratorAPIName,
+            bt::IteratorFindName
     >                                                                           IteratorPartsList;
 
     typedef EmptyType                                                           ContainerInterface;

@@ -383,7 +383,6 @@ private:
 				MEMORIA_ASSERT(me.offset(idx), ==, data_pos - block_start);
 
 				IndexValue size_cell  = 0;
-				IndexValue value_cell = 0;
 
 				while (data_pos < local_limit)
 				{

@@ -38,10 +38,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Types::Position											Position;
 
-    void buildPath(NodeBaseG& leaf)
-    {
-//    	self().model().buildPath(self().path(), leaf);
-    }
+
 
     bool nextLeaf();
     bool nextLeafMs(UBigInt streams);
@@ -57,11 +54,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
         return self().prevKey();
     }
 
-//    void updateUp(const Accumulator& keys)
-//    {
-//    	auto& self = this->self();
-//    	self.model().updatePath(self.leaf(), 0, self.idx(), keys);
-//    }
 
 
     bool IsFound() {
@@ -72,7 +64,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     void dumpKeys(ostream& out) const
     {
         Base::dumpKeys(out);
-//        out<<"Prefix:  "<<self()->prefixes()<<endl;
     }
 
     BigInt skipStreamFw(Int stream, BigInt distance);

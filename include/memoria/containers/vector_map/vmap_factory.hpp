@@ -8,14 +8,11 @@
 #ifndef _MEMORIA_CONTAINERS_VECTORMAP_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_VECTORMAP_FACTORY_HPP
 
-//#include <memoria/containers/map/map_factory.hpp>
-#include <memoria/containers/vector/vctr_factory.hpp>
-
 #include <memoria/containers/vector_map/vmap_walkers.hpp>
 #include <memoria/containers/vector_map/vmap_tools.hpp>
 #include <memoria/containers/vector_map/vmap_names.hpp>
 
-#include <memoria/containers/vector_map/container/vmap_c_checks.hpp>
+
 #include <memoria/containers/vector_map/container/vmap_c_tools.hpp>
 #include <memoria/containers/vector_map/container/vmap_c_insert.hpp>
 #include <memoria/containers/vector_map/container/vmap_c_remove.hpp>
@@ -107,7 +104,6 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     		memoria::vmap::CtrInsertName,
     		memoria::vmap::CtrRemoveName,
     		memoria::vmap::CtrUpdateName,
-    		memoria::vmap::CtrChecksName,
     		memoria::vmap::CtrFindName,
     		memoria::vmap::CtrApiName
     >::Result                                           						ContainerPartsList;
@@ -123,44 +119,44 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
 
 //    template <typename Types>
-//    using FindLTWalker 		= ::memoria::vmap::FindLTForwardWalker<Types>;
+//    using FindLTWalker 			= ::memoria::vmap::FindLTForwardWalker<Types>;
 //
 //    template <typename Types>
-//    using FindLEWalker 		= ::memoria::vmap::FindLTForwardWalker<Types>;
+//    using FindLEWalker 			= ::memoria::vmap::FindLTForwardWalker<Types>;
 
     template <typename Types>
-    using SkipForwardWalker = ::memoria::vmap::SkipForwardWalker<Types>;
+    using SkipForwardWalker 		= vmap::SkipForwardWalker<Types>;
 
     template <typename Types>
-    using SkipBackwardWalker = TypeIsNotDefined;
-
-
-    template <typename Types>
-    using NextLeafWalker = NextLeafWalker<Types>;
-
-    template <typename Types>
-    using PrevLeafWalker = ::memoria::vmap::PrevLeafWalker<Types>;
-
-    template <typename Types>
-    using NextLeafMutistreamWalker = NextLeafMultistreamWalker<Types>;
+    using SkipBackwardWalker 		= TypeIsNotDefined;
 
 
     template <typename Types>
-    using PrevLeafMutistreamWalker = PrevLeafMultistreamWalker<Types>;
+    using NextLeafWalker 			= bt::NextLeafWalker<Types>;
+
+    template <typename Types>
+    using PrevLeafWalker 			= vmap::PrevLeafWalker<Types>;
+
+    template <typename Types>
+    using NextLeafMutistreamWalker 	= bt::NextLeafMultistreamWalker<Types>;
+
+
+    template <typename Types>
+    using PrevLeafMutistreamWalker 	= bt::PrevLeafMultistreamWalker<Types>;
 
 
 
     template <typename Types>
-    using FindBeginWalker 	= ::memoria::vmap::FindVMapBeginWalker<Types>;
+    using FindBeginWalker 			= vmap::FindVMapBeginWalker<Types>;
 
     template <typename Types>
-    using FindEndWalker 	= ::memoria::vmap::FindVMapEndWalker<Types>;
+    using FindEndWalker 			= vmap::FindVMapEndWalker<Types>;
 
     template <typename Types>
-    using FindRBeginWalker 	= ::memoria::vmap::FindVMapRBeginWalker<Types>;
+    using FindRBeginWalker 			= vmap::FindVMapRBeginWalker<Types>;
 
     template <typename Types>
-    using FindREndWalker 	= ::memoria::vmap::FindVMapREndWalker<Types>;
+    using FindREndWalker 			= vmap::FindVMapREndWalker<Types>;
 };
 
 

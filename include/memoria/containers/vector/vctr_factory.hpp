@@ -16,7 +16,6 @@
 #include <memoria/containers/vector/vctr_tools.hpp>
 #include <memoria/containers/vector/vctr_names.hpp>
 
-#include <memoria/containers/vector/container/vctr_c_checks.hpp>
 #include <memoria/containers/vector/container/vctr_c_tools.hpp>
 #include <memoria/containers/vector/container/vctr_c_insert.hpp>
 #include <memoria/containers/vector/container/vctr_c_remove.hpp>
@@ -75,10 +74,10 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     typedef typename MergeLists<
     		typename Base::ContainerPartsList,
     		bt::NodeNormName,
+
     		mvector::CtrToolsName,
     		mvector::CtrInsertName,
     		mvector::CtrRemoveName,
-    		mvector::CtrChecksName,
     		mvector::CtrFindName,
     		mvector::CtrApiName
     >::Result                                           						ContainerPartsList;

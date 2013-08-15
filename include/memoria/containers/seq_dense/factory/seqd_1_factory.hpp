@@ -18,8 +18,6 @@
 #include <memoria/containers/seq_dense/seqd_names.hpp>
 #include <memoria/containers/seq_dense/seqd_tools.hpp>
 
-//#include <memoria/containers/seq_dense/container/seqd_c_checks.hpp>
-#include <memoria/containers/seq_dense/container/seqd_c_tools.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_find.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_insert.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_remove.hpp>
@@ -74,7 +72,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >:
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
 				bt::NodeComprName,
-				seq_dense::CtrToolsName,
+
 				seq_dense::CtrFindName,
 				seq_dense::CtrInsertName,
 				seq_dense::CtrRemoveName
