@@ -35,8 +35,6 @@ public:
 
     typedef typename Types::Accumulator                               			Accumulator;
 
-    static const Int Indexes                                                    = Types::Indexes;
-
 
 //PROTECETED API:
 
@@ -49,35 +47,7 @@ public:
         return self().checkTree();
     }
 
-//PRIVATE API:
-    void check_node_tree(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const;
-
-    bool check_leaf_value(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& leaf, Int idx) const {
-        return false;
-    }
-
-    template <typename Node>
-    bool checkNodeContent(const Node *node) const
-    {
-        return false;
-    }
-
-    MEMORIA_CONST_FN_WRAPPER_RTN(CheckNodeContentFn1, checkNodeContent, bool);
-
-    template <typename Node1, typename Node2>
-    bool checkNodeWithParentContent(const Node1 *node, const Node2 *parent, Int parent_idx) const;
-
-    MEMORIA_CONST_FN_WRAPPER_RTN(CheckNodeContentFn2, checkNodeWithParentContent, bool);
-
-
-    bool check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node) const;
-
-    bool check_keys() const {
-        return false;
-    }
-
     MEMORIA_DECLARE_NODE_FN(CheckContentFn, check);
-
     bool checkContent(const NodeBaseG& node) const
     {
     	try {
@@ -93,6 +63,17 @@ public:
     	}
     }
 
+
+
+//PRIVATE API:
+    void checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const;
+
+
+    template <typename Node1, typename Node2>
+    bool checkTypedNodeContent(const Node1 *node, const Node2 *parent, Int parent_idx) const;
+
+    MEMORIA_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, checkTypedNodeContent, bool);
+
 MEMORIA_CONTAINER_PART_END
 
 
@@ -105,14 +86,15 @@ bool M_TYPE::checkTree() const
     auto& self = this->self();
 
 	NodeBaseG root = self.getRoot(Allocator::READ);
-    if (root)
+	if (root)
     {
         bool errors = false;
-        self.check_node_tree(NodeBaseG(), 0, root, errors);
-        return self.check_keys() || errors;
+        self.checkTreeStructure(NodeBaseG(), 0, root, errors);
+        return errors;
     }
     else {
-        return false;
+    	MEMORIA_ERROR(me(), "No root node for container");
+        return true;
     }
 }
 
@@ -125,11 +107,17 @@ bool M_TYPE::checkTree() const
 
 
 M_PARAMS
-void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const
+void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const
 {
 	auto& self = this->self();
 
-    errors = self.check_node_content(parent, parent_idx, node) || errors;
+	errors = self.checkContent(node) || errors;
+
+	if (!node->is_root())
+	{
+		errors = TreeDispatcher::dispatchTreeConstRtn(parent, node, CheckTypedNodeContentFn(me()), parent_idx) || errors;
+	}
+
 
     Int children = self.getNodeSize(node, 0);
 
@@ -139,14 +127,8 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
         MEMORIA_ERROR(me(), "children == 0 for non-root node", node->id());
     }
 
-    if (node->is_leaf())
+    if (!node->is_leaf())
     {
-        for (Int c = 0; c < children; c++)
-        {
-            errors = self.check_leaf_value(parent, parent_idx, node, c) || errors;
-        }
-    }
-    else {
         for (Int c = 0; c < children; c++)
         {
             ID child_id = self.getChildID(node, c);
@@ -173,14 +155,14 @@ void M_TYPE::check_node_tree(const NodeBaseG& parent, Int parent_idx, const Node
             	cout<<"parent_idx: "<<child->parent_id()<<" "<<node->id()<<endl;
             }
 
-            self.check_node_tree(node, c, child, errors);
+            self.checkTreeStructure(node, c, child, errors);
         }
     }
 }
 
 M_PARAMS
 template <typename Node1, typename Node2>
-bool M_TYPE::checkNodeWithParentContent(const Node1 *parent, const Node2* node, Int parent_idx) const
+bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int parent_idx) const
 {
     bool errors = false;
     Accumulator max = node->maxKeys();
@@ -202,25 +184,6 @@ bool M_TYPE::checkNodeWithParentContent(const Node1 *parent, const Node2* node, 
     	);
 
     	errors = true;
-    }
-
-    return errors;
-}
-
-
-M_PARAMS
-bool M_TYPE::check_node_content(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node) const
-{
-    bool errors = self().checkContent(node);
-
-    if (parent.isSet())
-    {
-        bool result = TreeDispatcher::dispatchTreeConstRtn(parent, node, CheckNodeContentFn2(me()), parent_idx);
-        errors = result || errors;
-    }
-    else {
-        bool result = RootDispatcher::dispatchConstRtn(node, CheckNodeContentFn1(me()));
-        errors = result || errors;
     }
 
     return errors;
