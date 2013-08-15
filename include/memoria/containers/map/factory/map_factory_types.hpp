@@ -48,8 +48,8 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
     >																			NodeTypesList;
 
     typedef TypeList<
-        		LeafNodeType<LeafNode>,
-        		BranchNodeType<BranchNode>
+    			TreeNodeType<LeafNode>,
+    			TreeNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
@@ -64,6 +64,7 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
 	typedef typename MergeLists<
 				typename Base::ContainerPartsList,
+
 				bt::NodeComprName,
 				map::CtrInsertName,
 				map::CtrRemoveName,
@@ -73,6 +74,7 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
 	typedef typename MergeLists<
 				typename Base::IteratorPartsList,
+
 				map::ItrApiName,
 				map::ItrNavName
 	>::Result                                           						IteratorPartsList;

@@ -53,8 +53,8 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     >																			NodeTypesList;
 
     typedef TypeList<
-        		LeafNodeType<LeafNode>,
-        		BranchNodeType<BranchNode>
+    		TreeNodeType<LeafNode>,
+    		TreeNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<

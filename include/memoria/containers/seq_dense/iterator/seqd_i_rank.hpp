@@ -55,13 +55,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
 		}
 
 		template <typename NodeTypes>
-		void treeNode(const TreeNode<LeafNode, NodeTypes, true>* node, Int idx)
+		void treeNode(const LeafNode<NodeTypes>* node, Int idx)
 		{
 			node->template processStream<0>(*this, idx);
 		}
 
 		template <typename NodeTypes>
-		void treeNode(const TreeNode<BranchNode, NodeTypes, false>* node, Int idx)
+		void treeNode(const BranchNode<NodeTypes>* node, Int idx)
 		{
 			if (node != nullptr)
 			{

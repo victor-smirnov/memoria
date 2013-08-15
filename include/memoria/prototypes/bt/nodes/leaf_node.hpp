@@ -44,26 +44,27 @@ struct TreeLeafNodeTypes: Packed2TreeTypes<V, K> {
 
 };
 
-template <typename Types, bool leaf>
-struct TreeLeafStreamTypes: Types {
-	static const bool Leaf = leaf;
+template <typename Types>
+struct LeafNodeStreamTypes: Types {
+	static const bool Leaf = true;
 };
 
 
 template <
-	typename Types,
-	bool leaf
+	typename Types
 >
 class LeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
-    typedef LeafNode<Types, leaf>                                      			Me;
-    typedef LeafNode<Types, leaf>                                      			MyType;
+    typedef LeafNode<Types>                                      			Me;
+    typedef LeafNode<Types>                                      			MyType;
 
 public:
     static const UInt VERSION                                                   = 2;
+
+    static const bool Leaf 														= true;
 
     typedef bt::TreeNodeBase<
     			typename Types::Metadata,
@@ -80,13 +81,12 @@ public:
     typedef typename Types::Position											Position;
 
     template <
-        	template <typename, bool> class,
-        	typename,
-        	bool
+        	template <typename> class,
+        	typename
     >
     friend class NodePageAdaptor;
 
-    typedef TreeLeafStreamTypes<Types, leaf> 									StreamTypes;
+    typedef LeafNodeStreamTypes<Types> 											StreamTypes;
 
 	typedef typename PackedStructListBuilder<
 				StreamTypes,
@@ -1213,69 +1213,69 @@ public:
 };
 
 
+//
+//
+//template <typename Types, bool leaf1, bool leaf2>
+//void ConvertNodeToRoot(
+//	const TreeNode<LeafNode, Types, leaf1>* src,
+//	TreeNode<LeafNode, Types, leaf2>* tgt
+//)
+//{
+//	typedef TreeNode<LeafNode, Types, leaf2> RootType;
+//
+//	tgt->copyFrom(src);
+//
+//	tgt->set_root(true);
+//
+//	tgt->page_type_hash()   = RootType::hash();
+//
+//	tgt->prepare();
+//
+//	src->transferDataTo(tgt);
+//
+//	tgt->clearUnused();
+//
+//	tgt->reindex();
+//}
+//
+//template <typename Types, bool leaf1, bool leaf2>
+//void ConvertRootToNode(
+//	const TreeNode<LeafNode, Types, leaf1>* src,
+//	TreeNode<LeafNode, Types, leaf2>* tgt
+//)
+//{
+//	typedef TreeNode<LeafNode, Types, leaf2> NonRootNode;
+//
+//	tgt->copyFrom(src);
+//
+//	tgt->page_type_hash() = NonRootNode::hash();
+//
+//	tgt->set_root(false);
+//
+//	tgt->prepare();
+//
+//	src->transferDataTo(tgt);
+//
+//	tgt->clearUnused();
+//
+//	tgt->reindex();
+//}
 
 
-template <typename Types, bool leaf1, bool leaf2>
-void ConvertNodeToRoot(
-	const TreeNode<LeafNode, Types, leaf1>* src,
-	TreeNode<LeafNode, Types, leaf2>* tgt
-)
-{
-	typedef TreeNode<LeafNode, Types, leaf2> RootType;
 
-	tgt->copyFrom(src);
-
-	tgt->set_root(true);
-
-	tgt->page_type_hash()   = RootType::hash();
-
-	tgt->prepare();
-
-	src->transferDataTo(tgt);
-
-	tgt->clearUnused();
-
-	tgt->reindex();
 }
 
-template <typename Types, bool leaf1, bool leaf2>
-void ConvertRootToNode(
-	const TreeNode<LeafNode, Types, leaf1>* src,
-	TreeNode<LeafNode, Types, leaf2>* tgt
-)
-{
-	typedef TreeNode<LeafNode, Types, leaf2> NonRootNode;
-
-	tgt->copyFrom(src);
-
-	tgt->page_type_hash() = NonRootNode::hash();
-
-	tgt->set_root(false);
-
-	tgt->prepare();
-
-	src->transferDataTo(tgt);
-
-	tgt->clearUnused();
-
-	tgt->reindex();
-}
 
 
+template <typename Types>
+struct TypeHash<bt::LeafNode<Types> > {
 
-}
-
-
-
-template <typename Types, bool leaf>
-struct TypeHash<bt::LeafNode<Types, leaf> > {
-
-	typedef bt::LeafNode<Types, leaf> Node;
+	typedef bt::LeafNode<Types> Node;
 
     static const UInt Value = HashHelper<
     		TypeHash<typename Node::Base>::Value,
     		Node::VERSION,
-    		leaf,
+    		true,
     		Types::Indexes,
     		TypeHash<typename Types::Name>::Value
     >::Value;

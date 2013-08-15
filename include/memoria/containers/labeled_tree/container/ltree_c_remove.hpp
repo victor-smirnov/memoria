@@ -106,7 +106,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
 
 		template <typename NTypes>
-		void treeNode(TreeNode<LeafNode, NTypes, true>* node, Int idx)
+		void treeNode(LeafNode<NTypes>* node, Int idx)
 		{
 			node->processAll(*this, idx);
 		}

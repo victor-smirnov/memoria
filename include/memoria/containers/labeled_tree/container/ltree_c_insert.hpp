@@ -109,7 +109,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 		}
 
 		template <typename NTypes, typename... Labels>
-		void treeNode(TreeNode<LeafNode, NTypes, true>* node, Int node_idx, Int label_idx, Int symbol)
+		void treeNode(LeafNode<NTypes>* node, Int node_idx, Int label_idx, Int symbol)
 		{
 			node->layout(-1);
 			node->template processStream<0>(*this, node_idx, symbol);
@@ -119,7 +119,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 		}
 
 		template <typename NTypes, typename... Labels>
-		void treeNode(TreeNode<LeafNode, NTypes, true>* node, Int node_idx)
+		void treeNode(LeafNode<NTypes>* node, Int node_idx)
 		{
 			node->layout(1);
 			node->template processStream<0>(*this, node_idx, 0);
@@ -208,7 +208,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 		auto& self 	= this->self();
 		auto& leaf 	= iter.leaf();
 		Int& idx	= iter.idx();
-//		Int stream 	= iter.stream();
 
 		Int label_idx = iter.label_idx();
 
@@ -238,7 +237,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 		auto& self 	= this->self();
 		auto& leaf 	= iter.leaf();
 		Int& idx	= iter.idx();
-//		Int stream 	= iter.stream();
+
 
 		Accumulator sums;
 

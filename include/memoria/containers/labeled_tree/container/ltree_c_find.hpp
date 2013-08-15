@@ -85,7 +85,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 
 
 		template <typename NTypes>
-		void treeNode(const TreeNode<LeafNode, NTypes, true>* node, Int label_idx)
+		void treeNode(const LeafNode<NTypes>* node, Int label_idx)
 		{
 			node->processAll(*this, label_idx);
 		}

@@ -48,8 +48,8 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
     >																			NodeTypesList;
 
     typedef TypeList<
-        	LeafNodeType<LeafNode>,
-        	BranchNodeType<BranchNode>
+    		TreeNodeType<LeafNode>,
+    		TreeNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<

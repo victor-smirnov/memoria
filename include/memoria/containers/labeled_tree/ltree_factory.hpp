@@ -44,8 +44,8 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
     >																			NodeTypesList;
 
     typedef TypeList<
-    			LeafNodeType<LeafNode>,
-    		    BranchNodeType<BranchNode>
+    			TreeNodeType<LeafNode>,
+    			TreeNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
 

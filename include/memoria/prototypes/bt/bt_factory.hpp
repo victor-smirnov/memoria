@@ -146,18 +146,12 @@ struct BTTypes {
     typedef typename Allocator::ID                                              ID;
 
     typedef TypeList<
-//    		AllNodeTypes<bt::TreeMapNode>
     >																			NodeTypesList;
 
     typedef TypeList<
-//    		LeafNodeType<TreeMapNode>,
-//    		InternalNodeType<TreeMapNode>,
-//    		RootNodeType<TreeMapNode>,
-//    		RootLeafNodeType<TreeMapNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
-//    		StreamDescr<1>
     >																			StreamDescriptors;
 
 

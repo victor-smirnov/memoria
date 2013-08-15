@@ -61,7 +61,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
 
 		template <typename NTypes>
-		void treeNode(TreeNode<LeafNode, NTypes, true>* node, Int idx)
+		void treeNode(LeafNode<NTypes>* node, Int idx)
 		{
 			node->layout(1);
 			node->template processStream<0>(*this, idx);
@@ -97,7 +97,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 		}
 
 		template <typename NTypes>
-		void treeNode(TreeNode<LeafNode, NTypes, true>* node, Int idx)
+		void treeNode(LeafNode<NTypes>* node, Int idx)
 		{
 			node->template processStream<0>(*this, idx);
 		}

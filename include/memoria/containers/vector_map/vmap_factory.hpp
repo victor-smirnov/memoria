@@ -71,8 +71,8 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     >																			NodeTypesList;
 
     typedef TypeList<
-        		LeafNodeType<LeafNode>,
-        		BranchNodeType<BranchNode>
+    		TreeNodeType<LeafNode>,
+    		TreeNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<

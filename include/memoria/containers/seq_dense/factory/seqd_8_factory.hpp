@@ -51,8 +51,8 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
     >																			NodeTypesList;
 
     typedef TypeList<
-    			LeafNodeType<LeafNode>,
-    		    BranchNodeType<BranchNode>
+    			TreeNodeType<LeafNode>,
+    			TreeNodeType<BranchNode>
     >																			DefaultNodeTypesList;
 
     typedef TypeList<
@@ -60,8 +60,8 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
     >																			StreamDescriptors;
 
     typedef BalancedTreeMetadata<
-    		typename Base::ID,
-    		ListSize<StreamDescriptors>::Value
+    			typename Base::ID,
+    			ListSize<StreamDescriptors>::Value
     >        																	Metadata;
 
 

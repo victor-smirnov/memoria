@@ -80,7 +80,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
 
 		template <typename NTypes>
-		void treeNode(TreeNode<LeafNode, NTypes, true>* node, Int stream, Int idx, Accumulator* delta)
+		void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Accumulator* delta)
 		{
 			node->layout(1);
 			node->process(stream, *this, idx, delta);

@@ -112,7 +112,7 @@ public:
     }
 
     template <
-    	template <typename, bool> class TreeNode,
+    	template <typename> class TreeNode,
     	typename Functor,
     	typename... Args
     >
@@ -132,7 +132,7 @@ public:
     }
 
     template <
-    	template <typename, bool> class TreeNode,
+    	template <typename> class TreeNode,
     	typename Functor,
     	typename... Args
     >
@@ -360,7 +360,7 @@ public:
 
 
 template <
-	template <typename, bool> class TreeNode,
+	template <typename> class TreeNode,
 	typename TreeNodeAdaptor
 >
 struct IsTreeNode {
@@ -369,11 +369,10 @@ struct IsTreeNode {
 
 
 template <
-	template <typename, bool> class TreeNode,
-	typename Types,
-	bool leaf
+	template <typename> class TreeNode,
+	typename Types
 >
-struct IsTreeNode<TreeNode, NodePageAdaptor<TreeNode, Types, leaf>> {
+struct IsTreeNode<TreeNode, NodePageAdaptor<TreeNode, Types>> {
 	static const bool Value = true;
 };
 
@@ -619,7 +618,7 @@ public:
 
 
     template <
-    	template <typename, bool> class TreeNode,
+    	template <typename> class TreeNode,
     	typename Functor,
     	typename... Args
     >
@@ -639,7 +638,7 @@ public:
 
 
     template <
-    	template <typename, bool> class TreeNode,
+    	template <typename> class TreeNode,
     	typename Functor,
     	typename... Args
     >

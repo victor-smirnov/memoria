@@ -26,17 +26,15 @@
 namespace memoria	{
 namespace bt 		{
 
-template <typename Types, bool leaf>
-struct TreeMapStreamTypes: Types {
-	static const bool Leaf = leaf;
+template <typename Types>
+struct BranchNodeStreamTypes: Types {
+	static const bool Leaf = false;
 };
 
-using memoria::BitBuffer;
 
 template <
-    	template <typename, bool> class,
-    	typename,
-    	bool
+    	template <typename> class,
+    	typename
 >
 class NodePageAdaptor;
 
@@ -294,19 +292,20 @@ public:
 
 
 template <
-	typename Types,
-	bool leaf
+	typename Types
 >
 class BranchNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
-    typedef BranchNode<Types, leaf>                                      		Me;
-    typedef BranchNode<Types, leaf>                                      		MyType;
+    typedef BranchNode<Types>                                      				Me;
+    typedef BranchNode<Types>                                      				MyType;
 
 public:
     static const UInt VERSION                                                   = 1;
+
+    static const bool Leaf 														= false;
 
     typedef TreeNodeBase<
     	typename Types::Metadata,
@@ -318,21 +317,15 @@ public:
     typedef typename Types::Accumulator											Accumulator;
     typedef typename Types::Position											Position;
 
-
-    typedef typename IfThenElse<
-    	leaf,
-    	typename Types::Value,
-    	typename Types::ID
-    >::Result 																	Value;
+    typedef typename Types::ID													Value;
 
     template <
-        template <typename, bool> class,
-        typename,
-        bool
+        template <typename> class,
+        typename
     >
     friend class NodePageAdaptor;
 
-    typedef TreeMapStreamTypes<Types, leaf> 									StreamTypes;
+    typedef BranchNodeStreamTypes<Types> 										StreamTypes;
 
 	typedef typename PackedStructListBuilder<
 	    		StreamTypes,
@@ -340,11 +333,7 @@ public:
 	    		0
 	>::NonLeafStructList														StreamsStructList;
 
-	typedef typename ListHead<StreamsStructList>::Type::Type 					Tree;
-
 	typedef typename PackedDispatcherTool<StreamsStructList>::Type				Dispatcher;
-
-    static const long INDEXES                                                   = Tree::Indexes;
 
     static const Int Streams													= ListSize<StreamsStructList>::Value;
     static const Int ValuesBlockIdx												= Streams;
@@ -395,15 +384,6 @@ public:
 	bool is_empty(Int idx) const
 	{
 		return allocator()->is_empty(idx);
-	}
-
-
-	Tree* tree0() {
-		return allocator()->template get<Tree>(0);
-	}
-
-	const Tree* tree0() const {
-		return allocator()->template get<Tree>(0);
 	}
 
 	Value* values() {
@@ -1004,15 +984,6 @@ public:
     	CopyBuffer(values(), other->values() + other_size, my_size);
     }
 
-//    bool shouldBeMergedWithSiblings() const
-//    {
-//    	Position sizes = this->sizes();
-//    	Int values_size = this->size();
-//    	Int block_size = MyType::block_size(sizes, values_size);
-//
-//    	return block_size <= allocator()->block_size() / 2;
-//    }
-
 
     struct SplitToFn {
     	template <Int Idx, typename Tree>
@@ -1431,29 +1402,27 @@ public:
 
 
 template <
-	template <typename, bool> class TreeNode,
-	typename Types,
-	bool leaf
+	template <typename> class TreeNode,
+	typename Types
 >
-class NodePageAdaptor: public TreeNode<Types, leaf>
+class NodePageAdaptor: public TreeNode<Types>
 {
 public:
 
-    typedef NodePageAdaptor<TreeNode, Types, leaf>                  			Me;
-    typedef TreeNode<Types, leaf>                                				Base;
+    typedef NodePageAdaptor<TreeNode, Types>                  					Me;
+    typedef TreeNode<Types>                                						Base;
 
-    typedef NodePageAdaptor<TreeNode, Types, true>								LeafNodeType;
-    typedef NodePageAdaptor<TreeNode, Types, false>								BranchNodeType;
+//    typedef NodePageAdaptor<TreeNode, Types, true>								LeafNodeType;
+//    typedef NodePageAdaptor<TreeNode, Types, false>								BranchNodeType;
 
 
     static const UInt PAGE_HASH = TypeHash<Base>::Value;
 
-    static const bool Leaf = leaf;
+
 
     template <
-    	template <typename, bool> class,
-    	typename,
-    	bool
+    	template <typename> class,
+    	typename
     >
     friend class NodePageAdaptor;
 
@@ -1559,65 +1528,10 @@ public:
 
 
 template <
-	template <typename, bool> class TreeNode,
-	typename Types,
-	bool leaf
+	template <typename> class TreeNode,
+	typename Types
 >
-PageMetadata* NodePageAdaptor<TreeNode, Types, leaf>::page_metadata_ = NULL;
-
-
-template <
-	template <typename, bool> class AdaptedTreeNode,
-	typename Types,
-	bool leaf
->
-using TreeNode = NodePageAdaptor<AdaptedTreeNode, Types, leaf>;
-
-
-
-template <typename Types, bool leaf1, bool leaf2>
-void ConvertNodeToRoot(
-	const TreeNode<BranchNode, Types, leaf1>* src,
-	TreeNode<BranchNode, Types, leaf2>* tgt
-)
-{
-	typedef TreeNode<BranchNode, Types, leaf2> RootType;
-
-	tgt->copyFrom(src);
-	tgt->prepare();
-
-	tgt->set_root(true);
-
-	tgt->page_type_hash()   = RootType::hash();
-
-	src->transferDataTo(tgt);
-
-	tgt->clearUnused();
-
-	tgt->reindex();
-}
-
-template <typename Types, bool leaf1, bool leaf2>
-void ConvertRootToNode(
-	const TreeNode<BranchNode, Types, leaf1>* src,
-	TreeNode<BranchNode, Types, leaf2>* tgt
-)
-{
-	typedef TreeNode<BranchNode, Types, leaf2> NonRootNode;
-
-	tgt->copyFrom(src);
-	tgt->prepare();
-
-	tgt->page_type_hash()   = NonRootNode::hash();
-	tgt->set_root(false);
-
-	src->transferDataTo(tgt);
-
-	tgt->clearUnused();
-
-	tgt->reindex();
-}
-
+PageMetadata* NodePageAdaptor<TreeNode, Types>::page_metadata_ = NULL;
 
 }
 
@@ -1640,15 +1554,15 @@ struct TypeHash<bt::TreeNodeBase<Metadata, Base>> {
 };
 
 
-template <typename Types, bool leaf>
-struct TypeHash<bt::BranchNode<Types, leaf> > {
+template <typename Types>
+struct TypeHash<bt::BranchNode<Types> > {
 
-	typedef bt::BranchNode<Types, leaf> Node;
+	typedef bt::BranchNode<Types> Node;
 
     static const UInt Value = HashHelper<
     		TypeHash<typename Node::Base>::Value,
     		Node::VERSION,
-    		leaf,
+    		false,
     		Types::Indexes,
     		TypeHash<typename Types::Name>::Value
     >::Value;
