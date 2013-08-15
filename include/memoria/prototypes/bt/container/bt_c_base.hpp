@@ -214,15 +214,6 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-//
-//    template <typename Node>
-//    ID getRootIdFn(Node* node, Int name)
-//    {
-//    	return node->root_metadata().roots(name);
-//    }
-//
-//    MEMORIA_FN_WRAPPER_RTN(GetRootIdFn, getRootIdFn, ID);
-
     virtual ID getRootID(BigInt name)
     {
         MEMORIA_ASSERT(name, >=, 0);
@@ -232,19 +223,8 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         NodeBaseG root = self.allocator().getPage(self.root(), Allocator::READ);
 
         return root->root_metadata().roots(name);
-
-//        return RootDispatcher::dispatchConstRtn(root.page(), GetRootIdFn(me()), name);
     }
 
-
-
-
-
-//    template <typename Node>
-//    Metadata setRootIdFn(Node* node, Int name, const ID& root)
-//    {
-//
-//    }
 
     MEMORIA_FN_WRAPPER_RTN(SetRootIdFn, setRootIdFn, Metadata);
 
@@ -254,10 +234,8 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     	NodeBaseG root  = self.allocator().getPage(self.root(), Allocator::UPDATE);
 
-//        Metadata metadata = RootDispatcher::dispatchRtn(root.page(), SetRootIdFn(me()), name, root_id);
-
     	Metadata& metadata = root->root_metadata();
-    	metadata.roots(name) = root;
+    	metadata.roots(name) = root_id;
 
         BTreeCtrShared* shared = T2T<BTreeCtrShared*>(self.shared());
         shared->update_metadata(metadata);
@@ -268,30 +246,10 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return new (&self().allocator()) BTreeCtrShared(name);
     }
 
-
-//    struct GetMetadataFn {
-//        typedef Metadata ReturnType;
-//
-//        template <typename T>
-//        Metadata treeNode(const T *node) const {
-//            return node->root_metadata();
-//        }
-//    };
-//
-//    struct SetMetadataFn {
-//        template <typename T>
-//        void treeNode(T *node, const Metadata& metadata) const
-//        {
-//            node->root_metadata() = metadata;
-//        }
-//    };
-
     static Metadata getCtrRootMetadata(NodeBaseG node)
     {
         MEMORIA_ASSERT_TRUE(node.isSet());
         MEMORIA_ASSERT_TRUE(node->has_root_metadata());
-
-//        return RootDispatcher::dispatchConstRtn(node, GetMetadataFn());
 
         return node->root_metadata();
     }

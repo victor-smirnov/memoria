@@ -17,10 +17,11 @@ namespace memoria    {
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
 
 	typedef TypesType															Types;
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::ID                                                   ID;
+	typedef typename Base::Allocator                                            Allocator;
+
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
+
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
@@ -29,14 +30,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
     typedef typename Types::Position                                         	Position;
 
     typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
-
-    static const Int  Indexes                                                   = Base::Indexes;
-
-    
-
 
 
     Position removeEntries(
@@ -192,11 +185,11 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 
         if (merge)
         {
-        	self.mergeWithLeftSibling(start, [&](const NodeBaseG& left, const NodeBaseG& right)
+        	self.mergeWithLeftSibling(start, [&](const Position& left_sizes, Int level)
         	{
-        		if (left->is_leaf())
+        		if (level == 0)
         		{
-        			start_idx += self.getNodeSizes(left);
+        			start_idx += left_sizes;
         		}
             });
         }
@@ -209,11 +202,11 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 
         if (merge)
         {
-        	self.mergeWithSiblings(stop, [&](const NodeBaseG& left, const NodeBaseG& right)
+        	self.mergeWithSiblings(stop, [&](const Position& left_sizes, Int level)
             {
-        		if (left->is_leaf())
+        		if (level == 0)
         		{
-        			stop_idx += self.getNodeSizes(left);
+        			stop_idx += left_sizes;
         		}
             });
         }

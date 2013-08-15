@@ -83,6 +83,7 @@ public:
     	auto iter = tree.seek(node.node());
 
     	auto first_child = tree.insert(iter, std::get<0>(tree_node.labels()));
+
     	iter.insert(tree_node.data());
 
 //    	assertTreeNode(tree, node, tree_node);
@@ -216,9 +217,22 @@ private:
 
     	AssertEQ(MA_SRC, data.size(), tree_node.data().size());
 
-    	for (UInt c = 0; c < data.size(); c++)
+    	try {
+    		for (UInt c = 0; c < data.size(); c++)
+    		{
+    			AssertEQ(MA_SRC, data[c], tree_node.data()[c], SBuf()<<c<<" "<<node.node());
+    		}
+    	}
+    	catch (...)
     	{
-    		AssertEQ(MA_SRC, data[c], tree_node.data()[c], SBuf()<<c);
+    		vtree_node = ctr.seek(node.node());
+
+    		vtree_node.tree_iter().dump();
+    		vtree_node.vector_iter().dump();
+
+    		data = vtree_node.read();
+
+    		throw;
     	}
     }
 

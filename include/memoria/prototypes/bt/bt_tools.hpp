@@ -496,7 +496,7 @@ public:
 		template <typename Node>
 		ReturnType treeNode(const Node*, Int block_size, const Int* sizes, Int stream)
 		{
-			return Node::capacity(block_size, sizes, stream);
+			return Node::capacity(block_size, sizes, stream, false);
 		}
 	};
 

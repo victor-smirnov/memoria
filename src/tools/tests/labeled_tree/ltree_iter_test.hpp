@@ -102,7 +102,7 @@ public:
     	{
     		out()<<"FW: "<<c<<std::endl;
 
-    		Int node = getRandom(nodes / 2);
+    		Int node = getRandom(nodes / 2) + 1;
     		auto iter = ctr.select1(node);
 
     		assertIterator(iter);

@@ -28,14 +28,14 @@ public:
 
     SequenceTestSuite(): TestSuite("SequenceSuite")
     {
-    	registerTask(new SequenceCreateTest<1>("Create.1"));
-    	registerTask(new SequenceCreateTest<8>("Create.8"));
+    	registerTask(new SequenceCreateTest<1>("1.Create"));
+    	registerTask(new SequenceCreateTest<8>("8.Create"));
 
-    	registerTask(new SequenceRankTest<1>("Rank.1"));
-    	registerTask(new SequenceRankTest<8>("Rank.8"));
+    	registerTask(new SequenceRankTest<1>("1.Rank"));
+    	registerTask(new SequenceRankTest<8>("8.Rank"));
 
-    	registerTask(new SequenceSelectTest<1>("Select.1"));
-    	registerTask(new SequenceSelectTest<8>("Select.8"));
+    	registerTask(new SequenceSelectTest<1>("1.Select"));
+    	registerTask(new SequenceSelectTest<8>("8.Select"));
     }
 
 };

@@ -57,7 +57,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
-    typedef std::function<void (const NodeBaseG&, const NodeBaseG&)>			MergeFn;
+    typedef std::function<void (const Position&, Int)>							MergeFn;
 
     void insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
 
@@ -78,8 +78,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn);
 
     void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
-
-//    void splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams);
 
 
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
@@ -109,7 +107,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
 
     MEMORIA_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
     void mergeNodes(NodeBaseG& tgt, NodeBaseG& src);
-    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const NodeBaseG&, const NodeBaseG&){});
+    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
 
 
 MEMORIA_CONTAINER_PART_END
@@ -377,7 +375,7 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
     {
         if (self.isTheSameParent(tgt, src))
         {
-            fn(tgt, src);
+        	fn(self.getNodeSizes(tgt), tgt->level());
 
         	mergeNodes(tgt, src);
 
@@ -392,7 +390,7 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         	if (mergeBTreeNodes(tgt_parent, src_parent, fn))
             {
-            	fn(tgt, src);
+            	fn(self.getNodeSizes(tgt), tgt->level());
 
                 mergeNodes(tgt, src);
 

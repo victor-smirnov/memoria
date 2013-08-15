@@ -183,31 +183,17 @@ public:
 		return PackedAllocator::block_size(client_area, Streams);
 	}
 
-	static Int object_size(const Position& sizes)
-	{
-		return block_size(sizes) + sizeof(MyType) - sizeof(PackedAllocator);
-	}
 
-	static Int client_area(Int block_size)
+	static Int client_area(Int block_size, bool root)
 	{
-		Int allocator_block_size = block_size - sizeof(Me) + sizeof(PackedAllocator);
-		return PackedAllocator::client_area(allocator_block_size, Streams);
+		Int free_space = Base::free_space(block_size, root);
+		return PackedAllocator::client_area(free_space, Streams);
 	}
 
 	Int total_size() const
 	{
 		return allocator()->allocated();
 	}
-
-//	void init(Int block_size, const Position& sizes)
-//	{
-//		init0(block_size - sizeof(Me) + sizeof(PackedAllocator), sizes);
-//	}
-//
-//	void init(Int block_size)
-//	{
-//		init0(block_size - sizeof(Me) + sizeof(PackedAllocator));
-//	}
 
 	void prepare()
 	{
@@ -217,8 +203,14 @@ public:
 
 	void layout(const Position& sizes)
 	{
-//		Int block_size = this->page_size();
-//		init(block_size, sizes);
+		UBigInt streams = 0;
+
+		for (Int c = 0; c < Streams; c++)
+		{
+			streams |= 1<<c;
+		}
+
+		layout(streams);
 	}
 
 
@@ -412,7 +404,7 @@ public:
 		Int mem_used = 0;
 		Dispatcher::dispatchAll(allocator(), MemUsedFn(), &fillment, &mem_used, stream);
 
-		Int client_area	= allocator()->client_area();
+		Int client_area	= MyType::client_area(this->page_size(), this->is_root());
 
 		return Dispatcher::dispatchRtn(stream, allocator(), Capacity3Fn(), client_area - mem_used);
 	}
@@ -439,7 +431,7 @@ public:
 		}
 	};
 
-	static Int capacity(Int block_size, const Int* sizes, Int stream)
+	static Int capacity(Int block_size, const Int* sizes, Int stream, bool root)
 	{
 		Position fillment;
 
@@ -451,7 +443,7 @@ public:
 		Int mem_used = 0;
 		Dispatcher::dispatchAllStatic(MemUsedFn(), &fillment, &mem_used, stream);
 
-		Int client_area	= MyType::client_area(block_size);
+		Int client_area	= MyType::client_area(block_size, root);
 
 		return Dispatcher::dispatchStaticRtn(stream, Capacity3Fn(), client_area - mem_used);
 	}
@@ -482,6 +474,10 @@ public:
 
 	bool checkCapacities(const Position& sizes) const
 	{
+		if (DebugCounter) {
+			int a = 0; a++;
+		}
+
 		Position fillment = this->sizes();
 
 		for (Int c = 0; c < Streams; c++)
@@ -493,7 +489,8 @@ public:
 
 		Dispatcher::dispatchAll(allocator(), CheckCapacitiesFn(), &fillment, &mem_size);
 
-		Int client_area	= allocator()->client_area();
+		Int free_space 		= Base::free_space(this->page_size(), this->is_root());
+		Int client_area		= PackedAllocator::client_area(free_space, Streams);
 
 		return client_area >= mem_size;
 	}

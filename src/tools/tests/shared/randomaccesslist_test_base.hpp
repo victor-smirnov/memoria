@@ -39,7 +39,7 @@ protected:
 
     static const Int Indexes = Ctr::Indexes;
 
-    Int max_block_size_     = 1024*40;
+    Int max_block_size_     = 1024*4;
     Int check_size_     	= 1000;
 
     Int ctr_name_;
@@ -349,7 +349,11 @@ public:
 
     	checkIterator(iter, MA_SRC);
 
+    	DebugCounter = 1;
+
     	checkBufferWritten(iter, data, MA_SRC);
+
+    	DebugCounter = 0;
 
     	checkIterator(iter, MA_SRC);
 

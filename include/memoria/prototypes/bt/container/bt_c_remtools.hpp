@@ -27,6 +27,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     typedef typename Base::ID                                                   ID;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
+
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
@@ -36,10 +37,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
-
-    typedef std::function<void (const Position&)>								MergeFn;
+    typedef std::function<void (const Position&, Int)>							MergeFn;
 
     void removeNode(NodeBaseG& node, Accumulator& accum, Position& sizes);
     void removeNode(NodeBaseG& node);
@@ -60,9 +58,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
 
 
-    bool mergeWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&){});
+    bool mergeWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
     bool mergeWithRightSibling(NodeBaseG& node);
-    MergeType mergeWithSiblings(NodeBaseG& node, MergeFn fn = [](const Position&){});
+    MergeType mergeWithSiblings(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
@@ -370,7 +368,7 @@ bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
 
         if (next)
         {
-            merged = self.mergeBTreeNodes(node, next, [](const Position&){});
+            merged = self.mergeBTreeNodes(node, next, [](const Position&, Int){});
         }
     }
 

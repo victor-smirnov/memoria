@@ -83,6 +83,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 	{
 		auto& self = this->self();
 
+		if (rank < 1) {
+			int a = 0; a++;
+		}
+
 		MEMORIA_ASSERT(rank, >=, 1);
 		MEMORIA_ASSERT(symbol, >=, 0);
 

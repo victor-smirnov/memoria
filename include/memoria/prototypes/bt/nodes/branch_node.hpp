@@ -417,8 +417,10 @@ public:
 
 	Int capacity(UBigInt active_streams) const
 	{
-		Int max_size = max_tree_size1(allocator()->block_size(), active_streams);
-		Int cap = max_size - size();
+		Int free_space 	= Base::free_space(Base::page_size(), Base::is_root());
+		Int max_size 	= max_tree_size1(free_space, active_streams);
+		Int cap 		= max_size - size();
+
 		return cap >= 0 ? cap : 0;
 	}
 
@@ -1031,6 +1033,8 @@ public:
     	Int size 		= this->size();
     	Int remainder 	= size - split_idx;
 
+    	MEMORIA_ASSERT(split_idx, <=, size);
+
     	Accumulator result = this->sum(split_idx, size);
 
     	Dispatcher::dispatchNotEmpty(allocator(), SplitToFn(), other, split_idx);
@@ -1039,6 +1043,8 @@ public:
 
     	Value* other_values = other->values();
     	Value* my_values 	= this->values();
+
+
 
     	CopyBuffer(my_values + split_idx, other_values, remainder);
 

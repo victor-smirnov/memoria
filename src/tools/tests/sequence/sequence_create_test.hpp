@@ -37,6 +37,8 @@ public:
 	{
 		MEMORIA_ADD_TEST(testCreateRemoveRandom);
 		MEMORIA_ADD_TEST(testAppend);
+
+//		MEMORIA_ADD_TEST_WITH_REPLAY(testAppend2, replayAppend2);
 	}
 
 	void testCreateRemoveRandom()
@@ -92,6 +94,7 @@ public:
 		}
 	}
 
+
 	void testAppend()
 	{
 		Allocator allocator;
@@ -114,7 +117,7 @@ public:
 				Int symbol1 = i.symbol();
 				Int symbol2 = seq[cnt];
 
-				AssertEQ(MA_SRC, symbol1, symbol2);
+				AssertEQ(MA_SRC, symbol1, symbol2, SBuf()<<cnt);
 			}
 
 			AssertEQ(MA_SRC, cnt, this->size_);
@@ -132,6 +135,85 @@ public:
 			throw;
 		}
 	}
+
+
+	void testAppend2()
+	{
+		Allocator allocator;
+
+		Ctr ctr(&allocator);
+
+		allocator.commit();
+
+		try {
+
+			typename Base::PackedSeq seq(this->size_, (BitsPerSymbol == 8) ? 10 : 1, 1);
+
+			auto iter = ctr.Begin();
+
+			for (Int c = 0; c < this->size_; c++)
+			{
+				this->out()<<"Append: "<<c<<std::endl;
+
+				Int symbol = getRandom(Symbols);
+				iter.insert(symbol);
+				seq.append(symbol);
+
+
+
+//				for (Int d = 0; d <= c; d++)
+//				{
+//					Int symbol1 = ctr.seek(d).symbol();
+//					Int symbol2 = seq[d];
+//
+//					AssertEQ(MA_SRC, symbol1, symbol2, SBuf()<<d);
+//				}
+
+				Int tgt = c > 2000 ? c - 2000 : 0;
+
+				Int cnt = tgt;
+				for (auto i = ctr.seek(tgt); !i.isEof(); i++, cnt++)
+				{
+					Int symbol1 = i.symbol();
+					Int symbol2 = seq[cnt];
+
+					AssertEQ(MA_SRC, symbol1, symbol2, SBuf()<<cnt);
+				}
+
+				allocator.commit();
+			}
+		}
+		catch (...) {
+			Base::dump_name_ = Base::Store(allocator);
+			throw;
+		}
+	}
+
+
+	void replayAppend2()
+	{
+		Allocator allocator;
+		allocator.commit();
+
+		this->LoadAllocator(allocator, Base::dump_name_);
+
+		Ctr ctr(&allocator, CTR_FIND, 1000001);
+
+		auto iter = ctr.seek(ctr.size());
+
+		iter.insert(123);
+		allocator.commit();
+
+		iter.insert(123);
+		allocator.commit();
+
+		iter.insert(123);
+		allocator.commit();
+
+		Base::StoreAllocator(allocator, "seq.dump");
+	}
+
+
 };
 
 

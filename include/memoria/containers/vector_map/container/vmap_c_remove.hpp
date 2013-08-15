@@ -146,18 +146,15 @@ bool M_TYPE::mergeLeaf(Iterator& iter)
 {
 	auto& self = this->self();
 
-	MergeType merged = self.mergeWithSiblings(
-			iter.leaf(), [&](const NodeBaseG& left, const NodeBaseG& right)
+	MergeType merged = self.mergeWithSiblings(iter.leaf(), [&](const Position& left_sizes, Int level)
 	{
-		if (left->is_leaf())
+		if (level == 0)
 		{
-			Position sizes = self.getNodeSizes(left);
-
 			Int stream = iter.stream();
 
-			iter.idx() += sizes[stream];
+			iter.idx() += left_sizes[stream];
 
-			iter.cache().addEntryIdx(sizes[0]);
+			iter.cache().addEntryIdx(left_sizes[0]);
 		}
 	});
 

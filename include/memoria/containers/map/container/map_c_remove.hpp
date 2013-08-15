@@ -24,17 +24,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 	typedef typename Base::Types                                                Types;
 	typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::ID                                                   ID;
 
-	typedef typename Types::NodeBase                                            NodeBase;
 	typedef typename Types::NodeBaseG                                           NodeBaseG;
 	typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-	typedef typename Base::RootDispatcher                                       RootDispatcher;
 	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
-
 
 	typedef typename Base::Key                                                  Key;
 	typedef typename Base::Value                                                Value;
@@ -44,13 +38,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
 	typedef typename Types::Accumulator                                         Accumulator;
 	typedef typename Types::Position 											Position;
-
-	typedef typename Base::TreePath                                             TreePath;
-	typedef typename Base::TreePathItem                                         TreePathItem;
-
-	static const Int Streams                                                    = Types::Streams;
-
-
 
 	struct RemoveFromLeafFn {
 		Accumulator& entry_;
@@ -95,8 +82,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
 		self.addTotalKeyCount(Position::create(0, -1));
 
-		self.mergeWithSiblings(leaf, [&](const Position& prev_sizes) {
-			idx += prev_sizes[0];
+		self.mergeWithSiblings(leaf, [&](const Position& prev_sizes, Int level) {
+			if (level == 0)
+			{
+				idx += prev_sizes[0];
+			}
 		});
 
 		if (iter.isEnd())
