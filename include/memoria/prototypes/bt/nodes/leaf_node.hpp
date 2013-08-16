@@ -672,29 +672,24 @@ public:
 
     Accumulator removeSpace(Int stream, Int room_start, Int room_end)
     {
-    	Accumulator accum = sum(stream, room_start, room_end);
+    	Accumulator accum;
+    	this->sums(stream, room_start, room_end, accum);
 
     	Dispatcher::dispatch(stream, allocator(), RemoveSpaceFn(), room_start, room_end);
 
     	removeEmptyStreams();
 
-    	this->reindex();
-
     	return accum;
     }
 
-    Accumulator removeSpace(const Position& room_start, const Position& room_end, bool reindex = true)
+    Accumulator removeSpace(const Position& room_start, const Position& room_end)
     {
-    	Accumulator accum = sum(room_start, room_end);
+    	Accumulator accum;
+    	this->sums(room_start, room_end, accum);
 
     	Dispatcher::dispatchNotEmpty(allocator(), RemoveSpaceFn(), &room_start, &room_end);
 
     	removeEmptyStreams();
-
-    	if (reindex)
-    	{
-    		this->reindex();
-    	}
 
     	return accum;
     }
@@ -805,7 +800,7 @@ public:
 
     	Position sizes = this->sizes();
 
-    	sum(from, sizes, result);
+    	sums(from, sizes, result);
 
     	Dispatcher::dispatchNotEmpty(allocator(), SplitToFn(), other, &from);
 
@@ -837,170 +832,6 @@ public:
     }
 
 
-    struct SumFn {
-    	template <Int Idx, typename TreeTypes>
-    	void stream(const PkdFTree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
-    	{
-    		Int from 	= start->value(Idx);
-    		Int to 		= end->value(Idx);
-
-    		std::get<Idx>(*accum) += tree->sums(from, to);
-    	}
-
-    	template <Int Idx, typename TreeTypes>
-    	void stream(const PkdVTree<TreeTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
-    	{
-    		Int from 	= start->value(Idx);
-    		Int to 		= end->value(Idx);
-
-    		tree->sums(from, to, std::get<Idx>(*accum));
-    	}
-
-    	template <Int Idx, typename SeqTypes>
-    	void stream(
-    			const PkdFSSeq<SeqTypes>* seq,
-    			const Position* start,
-    			const Position* end,
-    			Accumulator* accum)
-    	{
-    		Int from 	= start->value(Idx);
-    		Int to 		= end->value(Idx);
-
-    		std::get<Idx>(*accum) += seq->sum(from, to);
-    	}
-
-    	template <Int Idx, typename ArrayTypes>
-    	void stream(const PackedFSEArray<ArrayTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
-    	{
-    		std::get<Idx>(*accum) += tree->sum(start->value(Idx), end->value(Idx));
-    	}
-
-    	template <Int Idx, typename ArrayTypes>
-    	void stream(const PackedFSEMap<ArrayTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
-    	{
-    		std::get<Idx>(*accum) += tree->sum(0, start->value(Idx), end->value(Idx));
-    	}
-
-    	template <Int Idx, typename ArrayTypes>
-    	void stream(const PackedVLEMap<ArrayTypes>* tree, const Position* start, const Position* end, Accumulator* accum)
-    	{
-    		std::get<Idx>(*accum) += tree->sum(0, start->value(Idx), end->value(Idx));
-    	}
-
-
-    	template <Int Idx, typename TreeTypes>
-    	void stream(
-    			const PkdFTree<TreeTypes>* tree,
-    			const Position* start,
-    			const Position* end,
-    			Accumulator* accum,
-    			UBigInt act_streams
-    		)
-    	{
-    		typedef PkdFTree<TreeTypes> Tree;
-
-    		if (act_streams & (1<<Idx))
-    		{
-    			for (Int block = 0; block < Tree::Blocks; block++)
-    			{
-    				std::get<Idx>(*accum)[block] += tree->sum(block, start->value(Idx), end->value(Idx));
-    			}
-    		}
-    	}
-
-    	template <Int Idx, typename ArrayTypes>
-    	void stream(
-    			const PackedFSEArray<ArrayTypes>* array,
-    			const Position* start,
-    			const Position* end,
-    			Accumulator* accum,
-    			UBigInt act_streams
-    		)
-    	{
-    		if (act_streams & (1<<Idx))
-    		{
-    			std::get<Idx>(*accum) += array->sum(start->value(Idx), end->value(Idx));
-    		}
-    	}
-
-    	template <Int Idx, typename ArrayTypes>
-    	void stream(
-    			const PackedFSEMap<ArrayTypes>* array,
-    			const Position* start,
-    			const Position* end,
-    			Accumulator* accum,
-    			UBigInt act_streams
-    	)
-    	{
-    		if (act_streams & (1<<Idx))
-    		{
-    			std::get<Idx>(*accum) += array->sum(start->value(Idx), end->value(Idx));
-    		}
-    	}
-
-    	template <Int Idx, typename Tree>
-    	void stream(const Tree* tree, Int block_num, Int start, Int end, BigInt* accum)
-    	{
-    		*accum += tree->sum(block_num, start, end);
-    	}
-
-    	template <Int StreamIdx, typename Tree>
-    	void stream(const Tree* tree, Int start, Int end, Accumulator* accum)
-    	{
-//    		std::get<StreamIdx>(*accum) += tree->sums(start, end);
-    		tree->sums(start, end, std::get<StreamIdx>(*accum));
-    	}
-
-    	template <Int StreamIdx, typename Tree>
-    	void stream(const Tree* tree, Accumulator* accum)
-    	{
-    		tree->sums(std::get<StreamIdx>(*accum));
-    	}
-    };
-
-    void sum(const Position* start, const Position* end, Accumulator& accum) const
-    {
-    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), start, end, &accum);
-    }
-
-    void sum(const Position& start, const Position& end, Accumulator& accum) const
-    {
-    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &start, &end, &accum);
-    }
-
-    Accumulator sum(const Position* start, const Position* end) const
-    {
-    	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), start, end, &accum);
-    	return accum;
-    }
-
-    Accumulator sum(const Position& start, const Position& end) const
-    {
-    	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &start, &end, &accum, -1ull);
-    	return accum;
-    }
-
-    Accumulator sum(Int stream, Int start, Int end) const
-    {
-    	Accumulator accum;
-    	Dispatcher::dispatch(stream, allocator(), SumFn(), start, end, &accum);
-    	return accum;
-    }
-
-    Accumulator sum(const Position& start, const Position& end, UBigInt active_streams) const
-    {
-    	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &start, &end, &accum, active_streams);
-    	return accum;
-    }
-
-    void sum(Int stream, Int block_num, Int start, Int end, BigInt& accum) const
-    {
-    	Dispatcher::dispatch(stream, allocator(), SumFn(), block_num, start, end, &accum);
-    }
-
     struct SumsFn {
     	template <Int StreamIdx, typename StreamType>
     	void stream(const StreamType* obj, Int start, Int end, Accumulator& accum)
@@ -1009,9 +840,24 @@ public:
     	}
 
     	template <Int StreamIdx, typename StreamType>
+    	void stream(const StreamType* obj, Int block, Int start, Int end, BigInt& accum)
+    	{
+    		accum += obj->sum(block, start, end);
+    	}
+
+    	template <Int StreamIdx, typename StreamType>
     	void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum)
     	{
     		obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
+    	}
+
+    	template <Int StreamIdx, typename StreamType>
+    	void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum, UBigInt streams)
+    	{
+    		if (streams && (1ull<<StreamIdx))
+    		{
+    			obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
+    		}
     	}
 
     	template <Int StreamIdx, typename StreamType>
@@ -1026,16 +872,30 @@ public:
     	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
     }
 
+    void sums(Int stream, Int start, Int end, Accumulator& sums) const
+    {
+    	Dispatcher::dispatch(stream, allocator(), SumsFn(), start, end, sums);
+    }
+
     void sums(const Position& start, const Position& end, Accumulator& sums) const
     {
     	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+    }
+
+    void sums(const Position& start, const Position& end, Accumulator& sums, UBigInt active_stereams) const
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums, active_stereams);
+    }
+
+    void sum(Int stream, Int block_num, Int start, Int end, BigInt& accum) const
+    {
+    	Dispatcher::dispatch(stream, allocator(), SumsFn(), block_num, start, end, &accum);
     }
 
     void sums(Accumulator& sums) const
     {
     	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
     }
-
 
     Accumulator sums() const
     {
@@ -1044,24 +904,6 @@ public:
     	return sums;
     }
 
-
-
-
-    Accumulator maxKeys() const
-    {
-    	return sums();
-    }
-
-
-
-
-    struct GenerateDataEventsFn {
-    	template <Int Idx, typename Tree>
-    	void stream(const Tree* tree, IPageDataEventHandler* handler)
-    	{
-    		tree->generateDataEvents(handler);
-    	}
-    };
 
     struct InsertSourceFn {
     	template <Int Idx, typename Tree>
@@ -1093,7 +935,6 @@ public:
 
     	Dispatcher::dispatchNotEmpty(allocator(), AppendSourceFn(), &src, &sizes);
     }
-
 
 
 
@@ -1182,6 +1023,14 @@ public:
     }
 
 
+    struct GenerateDataEventsFn {
+    	template <Int Idx, typename Tree>
+    	void stream(const Tree* tree, IPageDataEventHandler* handler)
+    	{
+    		tree->generateDataEvents(handler);
+    	}
+    };
+
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         Base::generateDataEvents(handler);
@@ -1248,54 +1097,6 @@ public:
     }
 };
 
-
-//
-//
-//template <typename Types, bool leaf1, bool leaf2>
-//void ConvertNodeToRoot(
-//	const TreeNode<LeafNode, Types, leaf1>* src,
-//	TreeNode<LeafNode, Types, leaf2>* tgt
-//)
-//{
-//	typedef TreeNode<LeafNode, Types, leaf2> RootType;
-//
-//	tgt->copyFrom(src);
-//
-//	tgt->set_root(true);
-//
-//	tgt->page_type_hash()   = RootType::hash();
-//
-//	tgt->prepare();
-//
-//	src->transferDataTo(tgt);
-//
-//	tgt->clearUnused();
-//
-//	tgt->reindex();
-//}
-//
-//template <typename Types, bool leaf1, bool leaf2>
-//void ConvertRootToNode(
-//	const TreeNode<LeafNode, Types, leaf1>* src,
-//	TreeNode<LeafNode, Types, leaf2>* tgt
-//)
-//{
-//	typedef TreeNode<LeafNode, Types, leaf2> NonRootNode;
-//
-//	tgt->copyFrom(src);
-//
-//	tgt->page_type_hash() = NonRootNode::hash();
-//
-//	tgt->set_root(false);
-//
-//	tgt->prepare();
-//
-//	src->transferDataTo(tgt);
-//
-//	tgt->clearUnused();
-//
-//	tgt->reindex();
-//}
 
 
 

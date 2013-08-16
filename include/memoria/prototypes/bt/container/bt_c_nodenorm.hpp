@@ -334,7 +334,7 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     MEMORIA_ASSERT(parent_idx, >, 0);
 
-    Accumulator sums 		= self.getNonLeafKeys(src_parent, parent_idx);
+    Accumulator sums 		= self.sums(src_parent, parent_idx, parent_idx + 1);
 
     self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
@@ -409,65 +409,6 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
         return false;
     }
 }
-
-
-
-//
-//
-//M_PARAMS
-//void M_TYPE::splitPath(TreePath& left, TreePath& right, Int level, const Position& idx, UBigInt active_streams)
-//{
-//	auto& self = this->self();
-//
-//	if (level == left.getSize() - 1)
-//	{
-//		self.newRoot(left);
-//		right.resize(left.getSize());
-//		right[level + 1] = left[level + 1];
-//	}
-//
-//	NodeBaseG& left_node    = left[level].node();
-//	NodeBaseG& left_parent  = left[level + 1].node();
-//
-//	left_node.update();
-//	left_parent.update();
-//
-//	NodeBaseG other  = self.createNode1(level, false, left_node->is_leaf(), left_node->page_size());
-//
-//	Accumulator keys = self.splitNode(left_node, other, idx);
-//
-//	Int parent_idx   = left[level].parent_idx();
-//
-//	self.updateUp(left, level + 1, parent_idx, -keys, [](Int, Int){});
-//
-//	if (self.getNonLeafCapacity(left_parent, active_streams) > 0)
-//	{
-//		self.insertNonLeaf(left_parent, parent_idx + 1, keys, other->id());
-//		self.updateChildren(left_parent, parent_idx + 1);
-//
-//		other->parent_id()  = left_parent->id();
-//		other->parent_idx() = parent_idx + 1;
-//
-//		self.updateUp(left, level + 2, left[level + 1].parent_idx(), keys, [](Int, Int){});
-//
-//		right[level].node()         = other;
-//		right[level].parent_idx()   = parent_idx + 1;
-//	}
-//	else {
-//		splitPath(left, right, level + 1, Position(parent_idx + 1), active_streams);
-//
-//		self.insertNonLeaf(right[level + 1], 0, keys, other->id());
-//		self.updateChildren(right[level + 1], 1);
-//
-//		other->parent_id()  = right[level + 1]->id();
-//		other->parent_idx() = 0;
-//
-//		self.updateUp(right, level + 2, right[level + 1].parent_idx(), keys, [](Int, Int){});
-//
-//		right[level].node()         = other;
-//		right[level].parent_idx()   = 0;
-//	}
-//}
 
 
 #undef M_TYPE

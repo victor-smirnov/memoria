@@ -116,20 +116,25 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
 	if (!node->is_root())
 	{
 		errors = TreeDispatcher::dispatchTreeConstRtn(parent, node, CheckTypedNodeContentFn(me()), parent_idx) || errors;
+
+		if (!node->is_leaf())
+		{
+			Int children = self.getNodeSize(node, 0);
+
+			if (children == 0 && !node->is_root())
+			{
+				errors = true;
+				MEMORIA_ERROR(me(), "children == 0 for non-root node", node->id());
+				self.dump(node);
+			}
+		}
 	}
-
-
-    Int children = self.getNodeSize(node, 0);
-
-    if (children == 0 && !node->is_root())
-    {
-        errors = true;
-        MEMORIA_ERROR(me(), "children == 0 for non-root node", node->id());
-    }
 
     if (!node->is_leaf())
     {
-        for (Int c = 0; c < children; c++)
+    	Int children = self.getNodeSize(node, 0);
+
+    	for (Int c = 0; c < children; c++)
         {
             ID child_id = self.getChildID(node, c);
 
@@ -198,13 +203,7 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int p
 #undef M_TYPE
 #undef M_PARAMS
 
-
-
-
-
-
 }
 
 
-
-#endif  /* _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_CHECKS_HPP */
+#endif

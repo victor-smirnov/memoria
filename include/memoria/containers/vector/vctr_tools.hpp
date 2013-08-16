@@ -163,7 +163,7 @@ public:
 
         	Accumulator acc;
 
-        	ctr.sumKeys(node, 0, idx, acc);
+        	ctr.sums(node, 0, idx, acc);
 
         	prefix_ += std::get<0>(acc)[0];
         }

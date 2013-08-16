@@ -327,7 +327,7 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
 		self.updateChildren(tgt, tgt_size);
 
-		Accumulator sums 		= self.getNonLeafKeys(src_parent, parent_idx);
+		Accumulator sums 		= self.sums(src_parent, parent_idx, parent_idx + 1);
 
 		self.removeNonLeafNodeEntry(src_parent, parent_idx);
 

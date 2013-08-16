@@ -176,7 +176,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     			ctr_.reindex(node);
 
-    			pair.keys  = ctr_.getMaxKeys(node);
+    			ctr_.sums(node, pair.keys);
     			pair.value = node->id();
     		}
     		else
@@ -289,8 +289,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     		Accumulator treeNode(
     				Node* node,
     				DefaultSubtreeProvider* provider,
-    				const Position* pos,
-    				const Position* remainder
+    				const Position& pos,
+    				const Position& remainder
     		)
     		{
     			LayoutManager<Node> manager(node);
@@ -300,21 +300,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     			provider->data_source_.newNode(&manager, capacity.values());
 
     			Position size;
-    			if (remainder->lteAll(capacity))
+    			if (remainder.lteAll(capacity))
     			{
-    				size = *remainder;
+    				size = remainder;
     			}
     			else {
     				size = capacity;
     			}
 
-    			node->insert(provider->data_source_, *pos, size);
+    			node->insert(provider->data_source_, pos, size);
 
+    			//FIXME: remove explicit node reindexing
     			node->reindex();
 
     			provider->inserted_ += size;
 
-    			return node->sum(*pos, (*pos) + size, provider->getActiveStreams());
+    			Accumulator sums;
+    			node->sums(pos, pos + size, sums, provider->getActiveStreams());
+    			return sums;
     		}
     	};
 
@@ -322,18 +325,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     	{
     		Position pos;
     		Position remainder = this->remainder();
-    		return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, &pos, &remainder);
+    		return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, pos, remainder);
     	}
 
     	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)
     	{
     		Position remainder = this->remainder();
-    		return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, &from, &remainder);
+    		return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, from, remainder);
     	}
 
     	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size)
     	{
-    		return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, &from, &size);
+    		return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, from, size);
     	}
     };
 
@@ -406,15 +409,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     void reindexAndUpdateCounters(NodeBaseG& node, Int from, Int count) const
     {
-    	auto& self = this->self();
-
-    	if (from + count == self.getNodeSize(node, 0))
-    	{
-    		self.reindexRegion(node, from, from + count);
-    	}
-    	else {
-    		self.reindex(node);
-    	}
+    	self().reindex(node);
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);

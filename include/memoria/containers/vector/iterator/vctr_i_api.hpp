@@ -184,7 +184,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 	}
 
 	struct PosFn {
-		BigInt prefix_ = 0;
+		Accumulator prefix_;
 
 		template <typename NodeTypes>
 		void treeNode(const LeafNode<NodeTypes>* node, Int idx) {}
@@ -192,7 +192,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 		template <typename NodeTypes>
 		void treeNode(const BranchNode<NodeTypes>* node, Int idx)
 		{
-			node->sum(0, 0, 0, idx, prefix_);
+			node->sums(0, idx, prefix_);
 		}
 	};
 
@@ -205,14 +205,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
 		self.ctr().walkUp(self.leaf(), self.idx(), fn);
 
-		return fn.prefix_ + self.key_idx();
+		return std::get<0>(fn.prefix_)[0] + self.key_idx();
 	}
 
-	BigInt dataPos() const {
+	BigInt dataPos() const
+	{
 		return self().idx();
 	}
 
-	BigInt prefix() const {
+	BigInt prefix() const
+	{
 		return self().cache().prefix();
 	}
 
