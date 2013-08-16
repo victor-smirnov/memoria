@@ -1001,11 +1001,47 @@ public:
     	Dispatcher::dispatch(stream, allocator(), SumFn(), block_num, start, end, &accum);
     }
 
+    struct SumsFn {
+    	template <Int StreamIdx, typename StreamType>
+    	void stream(const StreamType* obj, Int start, Int end, Accumulator& accum)
+    	{
+    		obj->sums(start, end, std::get<StreamIdx>(accum));
+    	}
+
+    	template <Int StreamIdx, typename StreamType>
+    	void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum)
+    	{
+    		obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
+    	}
+
+    	template <Int StreamIdx, typename StreamType>
+    	void stream(const StreamType* obj, Accumulator& accum)
+    	{
+    		obj->sums(std::get<StreamIdx>(accum));
+    	}
+    };
+
+    void sums(Int start, Int end, Accumulator& sums) const
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+    }
+
+    void sums(const Position& start, const Position& end, Accumulator& sums) const
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+    }
+
+    void sums(Accumulator& sums) const
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
+    }
+
+
     Accumulator sums() const
     {
-    	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &accum);
-    	return accum;
+    	Accumulator sums;
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
+    	return sums;
     }
 
 

@@ -278,6 +278,49 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
 
+
+
+    MEMORIA_DECLARE_NODE_FN(SumsFn, sums);
+    void sums(const NodeBaseG& node, Accumulator& sums) const
+    {
+    	NodeDispatcher::dispatchConst(node, SumsFn(), sums);
+    }
+
+    MEMORIA_DECLARE_NODE_FN_RTN(SumsRtnFn, sums, Accumulator);
+    Accumulator sums(const NodeBaseG& node) const
+    {
+    	return NodeDispatcher::dispatchConstRtn(node, SumsRtnFn());
+    }
+
+    void sums(const NodeBaseG& node, Int start, Int end, Accumulator& sums) const
+    {
+    	NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+    }
+
+    Accumulator sums(const NodeBaseG& node, Int start, Int end) const
+    {
+    	Accumulator sums;
+    	NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+    	return sums;
+    }
+
+    void sums(const NodeBaseG& node, const Position& start, const Position& end, Accumulator& sums) const
+    {
+    	NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+    }
+
+    Accumulator sums(const NodeBaseG& node, const Position& start, const Position& end) const
+    {
+    	Accumulator sums;
+    	NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+    	return sums;
+    }
+
+
+
+
+
+
     NodeBaseG getRoot(Int flags) const
     {
         return me()->allocator().getPage(me()->root(), flags);
@@ -290,7 +333,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     void setKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
         node.update();
-        NodeDispatcher::dispatch(node, SetKeysFn(), idx, keys);
+        NonLeafDispatcher::dispatch(node, SetKeysFn(), idx, keys);
     }
 
     void setNonLeafKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const

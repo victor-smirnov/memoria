@@ -374,19 +374,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     BigInt getSubtreeSize(Int level) const;
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetLeafCountersFn, sum, Accumulator);
-    Accumulator getLeafSums(const NodeBaseG& node, const Position& from, const Position& count) const;
-
-    MEMORIA_DECLARE_NODE_FN_RTN(GetSumsFn, sums, Accumulator);
-    Accumulator getLeafSums(const NodeBaseG& node) const
-    {
-    	return LeafDispatcher::dispatchConstRtn(node, GetSumsFn());
-    }
-
-
-    MEMORIA_DECLARE_NODE_FN_RTN(GetNonLeafCountersFn, sum, Accumulator);
-    Accumulator getNonLeafSums(const NodeBaseG& node, Int from, Int count) const;
-
     void makeRoom(NodeBaseG& node, const Position& start, const Position& count);
     void makeRoom(NodeBaseG& node, Int stream, Int start, Int count);
 
@@ -571,19 +558,6 @@ BigInt M_TYPE::getSubtreeSize(Int level) const
 
 
 
-M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::getLeafSums(const NodeBaseG& node, const Position& from, const Position& count) const
-{
-	return NodeDispatcher::dispatchConstRtn(node, GetLeafCountersFn(), from, from + count);
-}
-
-M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::getNonLeafSums(const NodeBaseG& node, Int from, Int count) const
-{
-	return NonLeafDispatcher::dispatchConstRtn(node, GetNonLeafCountersFn(), from, from + count);
-}
-
-
 
 
 //// ==================================================  PRIVATE API ================================================== ////
@@ -753,7 +727,7 @@ void M_TYPE::fillNodeLeft(NodeBaseG& node, Int from, Int count, InsertSharedData
 
     reindexAndUpdateCounters(node, from, count);
 
-    Accumulator sums = self.getNonLeafSums(node, from, count);
+    Accumulator sums = self.sums(node, from, from + count);
 
     self.updateParent(node, sums);
 
@@ -918,7 +892,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 
     self.root2Node(root);
 
-    Accumulator keys = root->is_leaf() ? self.getLeafMaxKeys(root) : self.getMaxKeys(root);
+    Accumulator keys = self.sums(root);
 
     self.insertNonLeaf(new_root, 0, keys, root->id());
 

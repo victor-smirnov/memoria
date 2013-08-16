@@ -1077,11 +1077,11 @@ public:
 
     struct SetKeysFn {
     	template <Int Idx, typename Tree>
-    	void stream(Tree* tree, Int idx, Accumulator* keys)
+    	void stream(Tree* tree, Int idx, const Accumulator& keys)
     	{
     		for (Int c = 0; c < Tree::Blocks; c++)
     		{
-    			auto k = std::get<Idx>(*keys)[c];
+    			auto k = std::get<Idx>(keys)[c];
     			tree->value(c, idx) = k;
     		}
 
@@ -1089,9 +1089,9 @@ public:
     	}
     };
 
-    void setKeys(Int idx, Accumulator& keys)
+    void setKeys(Int idx, const Accumulator& keys)
     {
-    	Dispatcher::dispatchNotEmpty(allocator(), SetKeysFn(), idx, &keys);
+    	Dispatcher::dispatchNotEmpty(allocator(), SetKeysFn(), idx, keys);
     }
 
 
@@ -1152,12 +1152,12 @@ public:
     	return accum;
     }
 
-    Accumulator sums() const
-    {
-    	Accumulator accum;
-    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &accum);
-    	return accum;
-    }
+//    Accumulator sums() const
+//    {
+//    	Accumulator accum;
+//    	Dispatcher::dispatchNotEmpty(allocator(), SumFn(), &accum);
+//    	return accum;
+//    }
 
 
     struct SumNegFn {
@@ -1188,6 +1188,49 @@ public:
     	Dispatcher::dispatch(stream, allocator(), SumFn(), block_num, start, end, &accum);
     }
 
+
+    struct SumsFn {
+    	template <Int StreamIdx, typename StreamType>
+    	void stream(const StreamType* obj, Int start, Int end, Accumulator& accum)
+    	{
+    		obj->sums(start, end, std::get<StreamIdx>(accum));
+    	}
+
+    	template <Int StreamIdx, typename StreamType>
+    	void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum)
+    	{
+    		obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
+    	}
+
+    	template <Int StreamIdx, typename StreamType>
+    	void stream(const StreamType* obj, Accumulator& accum)
+    	{
+    		obj->sums(std::get<StreamIdx>(accum));
+    	}
+    };
+
+    void sums(Int start, Int end, Accumulator& sums) const
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+    }
+
+    void sums(const Position& start, const Position& end, Accumulator& sums) const
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+    }
+
+    void sums(Accumulator& sums) const
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
+    }
+
+    Accumulator sums() const
+    {
+    	Accumulator sums;
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
+    	return sums;
+    }
+
     template <typename V>
     void forAllValues(Int start, Int end, std::function<void (const V&, Int)> fn) const
     {
@@ -1197,9 +1240,6 @@ public:
     		fn(v[c], c);
     	}
     }
-
-    void boo() const {}
-
 
     template <typename Fn, typename... Args>
     Int find(Int stream, Fn&& fn, Args... args) const

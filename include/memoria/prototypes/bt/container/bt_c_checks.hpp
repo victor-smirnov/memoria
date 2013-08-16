@@ -165,15 +165,18 @@ template <typename Node1, typename Node2>
 bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int parent_idx) const
 {
     bool errors = false;
-    Accumulator max = node->maxKeys();
+
+    Accumulator sums;
+    node->sums(sums);
+
     Accumulator keys = parent->keysAt(parent_idx);
 
-    if (max != keys)
+    if (sums != keys)
     {
     	MEMORIA_ERROR(
     			me(),
     			"Invalid parent-child nodes chain",
-    			(SBuf()<<max).str(),
+    			(SBuf()<<sums).str(),
     			(SBuf()<<keys).str(),
     			"for node.id=",
     			node->id(),
@@ -184,7 +187,10 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int p
     	);
 
     	errors = true;
+
+//    	cout<<"Check failed for "<<IDValue(node->id())<<endl;
     }
+
 
     return errors;
 }

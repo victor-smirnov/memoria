@@ -128,7 +128,7 @@ void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums, Position& sizes)
 		});
 	}
 	else {
-		VectorAdd(sums, self.getLeafSums(node));
+		self.sums(node, sums);
 		sizes += self.getNodeSizes(node);
 	}
 
