@@ -14,8 +14,6 @@
 #include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
 #include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
-
-//#include "ctr/ctr_test_suite.hpp"
 #include "map/map_test_suite.hpp"
 #include "vector/vector_test_suite.hpp"
 #include "vector_map/vectormap_test_suite.hpp"
@@ -27,7 +25,7 @@
 #include "symbol_seq/symseq_test_suite.hpp"
 #include "bitmap/bitmap_test_suite.hpp"
 
-
+//#include "ctr/ctr_test_suite.hpp"
 
 
 

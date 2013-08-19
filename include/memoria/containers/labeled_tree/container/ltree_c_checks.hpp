@@ -75,31 +75,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrChecksName)
 		{
 			if (has_seq_)
 			{
-				if (rank1_ > 0 && labels == nullptr)
+				if (labels != nullptr)
 				{
-					MEMORIA_ERROR(ctr_,
-							"Node",
-							id_,
-							"has positive rank, but stream ",
-							Idx,
-							" is empty. Rank=",
-							rank1_
-					);
-				}
-				else if (labels->size() != rank1_)
-				{
-					MEMORIA_ERROR(ctr_,
-							"Node",
-							id_,
-							"has stream ",
-							Idx,
-							" with invalid size. Rank=",
-							rank1_,
-							"size=",
-							labels->size()
-					);
+					if (labels->size() != rank1_)
+					{
+						MEMORIA_ERROR(ctr_, "Node", id_, "has stream", Idx, "with invalid size. Rank=", rank1_,
+											"size=",labels->size());
 
-					errors_ = true;
+						errors_ = true;
+					}
+				}
+				else if (rank1_ > 0)
+				{
+					MEMORIA_ERROR(ctr_, "Node", id_, "has positive rank, but stream", Idx, "is empty. Rank=", rank1_);
 				}
 			}
 		}
