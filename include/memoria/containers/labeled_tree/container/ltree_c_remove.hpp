@@ -172,7 +172,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
 		MEMORIA_ASSERT_TRUE(iter.symbol() == 1);
 
+//		if (idx == 4) {
+//			DebugCounter++;
+//		}
+
+		if (DebugCounter == 3) {
+			iter.dumpPath();
+		}
+
 		iter.firstChild();
+
+		if (iter.symbol() != 0)
+		{
+			iter.dumpPath();
+		}
 
 		MEMORIA_ASSERT_TRUE(iter.symbol() == 0);
 

@@ -49,14 +49,28 @@ public:
 	{
 		PackedSeq seq(size, (BitsPerSymbol == 8) ? 10 : 1, 1);
 
+		seq.insert(0, size, [](){
+			return getRandom(Symbols);
+		});
+
+//		for (Int c = 0; c < size; c++)
+//		{
+//			Int symbol = getRandom(Symbols);
+//			seq.append(symbol);
+//		}
+
 		auto iter = ctr.Begin();
+
+		BigInt t0 = getTimeInMillis();
 
 		for (Int c = 0; c <size; c++)
 		{
-			Int symbol = getRandom(Symbols);
-			iter.insert(symbol);
-			seq.append(symbol);
+			iter.insert(seq[c]);
 		}
+
+		BigInt t1 = getTimeInMillis();
+
+		cout<<"Sequence creation time: "<<FormatTime(t1 - t0)<<endl;
 
 		return seq;
 	}

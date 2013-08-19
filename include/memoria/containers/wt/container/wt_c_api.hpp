@@ -25,7 +25,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
 	typedef typename Tree::Iterator												TreeIterator;
 	typedef typename Seq::Iterator												SeqIterator;
 
-
 	void prepare()
 	{
 		auto& self = this->self();
@@ -186,9 +185,12 @@ private:
 
 		BigInt seq_length = std::get<1>(node.labels());
 
-		if (seq_length == 0 && node.idx() > 0)
+		if (seq_length == 0)
 		{
-			tree.removeLeaf(node);
+			if (node.pos() > 0)
+			{
+				tree.removeLeaf(node);
+			}
 		}
 	}
 

@@ -97,15 +97,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 		{
 			MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-			auto old_indexes = seq->sums();
-
 			seq->insert(idx, symbol);
 
-			auto new_indexes = seq->sums();
-
-			auto indexes = new_indexes - old_indexes;
-
-			std::get<Idx>(delta_) = indexes;
+			std::get<Idx>(delta_)[0]++;
+			std::get<Idx>(delta_)[symbol + 1]++;
 		}
 
 		template <typename NTypes, typename... Labels>
@@ -152,6 +147,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 		}
 		catch (PackedOOMException& e)
 		{
+			Clear(sums);
 			mgr.rollback();
 			return false;
 		}
@@ -176,6 +172,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 		}
 		catch (PackedOOMException& e)
 		{
+			Clear(sums);
 			mgr.rollback();
 			return false;
 		}
@@ -223,7 +220,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
 			label_idx = iter.label_idx();
 
-			MEMORIA_ASSERT_TRUE(self.insertLoudsNode(leaf, idx, label_idx, sums, labels));
+			bool result = self.insertLoudsNode(leaf, idx, label_idx, sums, labels);
+			MEMORIA_ASSERT_TRUE(result);
 			self.updateParent(leaf, sums);
 		}
 
@@ -249,7 +247,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 		{
 			self.split(iter);
 
-			MEMORIA_ASSERT_TRUE(self.insertLoudsZero(leaf, idx, sums));
+			bool result = self.insertLoudsZero(leaf, idx, sums);
+
+			MEMORIA_ASSERT_TRUE(result);
 			self.updateParent(leaf, sums);
 		}
 

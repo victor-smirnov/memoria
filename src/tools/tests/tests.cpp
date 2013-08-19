@@ -6,13 +6,13 @@
 
 
 
-//#include "packed/allocator/palloc_test_suite.hpp"
-//#include "packed/tree/packed_tree_test_suite.hpp"
-//#include "packed/array/packed_array_test_suite.hpp"
-//#include "packed/sequence/packed_seq_suite.hpp"
-//#include "packed/louds/packed_louds_suite.hpp"
-//#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
-//#include "packed/wavelet_tree/packed_wtree_suite.hpp"
+#include "packed/allocator/palloc_test_suite.hpp"
+#include "packed/tree/packed_tree_test_suite.hpp"
+#include "packed/array/packed_array_test_suite.hpp"
+#include "packed/sequence/packed_seq_suite.hpp"
+#include "packed/louds/packed_louds_suite.hpp"
+#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
+#include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
 
 //#include "ctr/ctr_test_suite.hpp"
@@ -21,11 +21,11 @@
 #include "vector_map/vectormap_test_suite.hpp"
 #include "sequence/sequence_test_suite.hpp"
 #include "labeled_tree/ltree_test_suite.hpp"
-#include "wt/wt_test_suite.hpp"
 #include "vector_tree/vtree_test_suite.hpp"
+#include "wt/wt_test_suite.hpp"
 
-//#include "symbol_seq/symseq_test_suite.hpp"
-//#include "bitmap/bitmap_test_suite.hpp"
+#include "symbol_seq/symseq_test_suite.hpp"
+#include "bitmap/bitmap_test_suite.hpp"
 
 
 
@@ -48,10 +48,6 @@ int main(int argc, const char** argv, const char** envp)
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
-        //FIXME: C++11 RNG seed doesn't work
-        //Seed(getTimeInMillis());
-        //SeedBI(getTimeInMillis());
-
         Int default_seed = getTimeInMillis() % 100000;
 
         Int seed = cmd_line.getConfigurator().getValue<Int>("seed", default_seed);
@@ -69,20 +65,18 @@ int main(int argc, const char** argv, const char** envp)
 
 
 
-//        runner.registerTask(new BitmapTestSuite());
+        runner.registerTask(new BitmapTestSuite());
 
-//        runner.registerTask(new PackedAllocatorTestSuite());
-//        runner.registerTask(new PackedTreeTestSuite());
-//        runner.registerTask(new PackedArrayTestSuite());
-//        runner.registerTask(new PackedSequenceTestSuite());
-//        runner.registerTask(new PackedLoudsTestSuite());
-//        runner.registerTask(new PackedLoudsCardinalTestSuite());
-//        runner.registerTask(new PackedWaveletTreeTestSuite());
-//        runner.registerTask(new SymbolSeqTestSuite());
+        runner.registerTask(new PackedAllocatorTestSuite());
+        runner.registerTask(new PackedTreeTestSuite());
+        runner.registerTask(new PackedArrayTestSuite());
+        runner.registerTask(new PackedSequenceTestSuite());
+        runner.registerTask(new PackedLoudsTestSuite());
+        runner.registerTask(new PackedLoudsCardinalTestSuite());
+        runner.registerTask(new PackedWaveletTreeTestSuite());
 
+        runner.registerTask(new SymbolSeqTestSuite());
 
-
-//        runner.registerTask(new CtrTestSuite());
 
         runner.registerTask(new MapTestSuite());
         runner.registerTask(new VectorTestSuite());
@@ -92,7 +86,11 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new VTreeTestSuite());
         runner.registerTask(new LabeledTreeTestSuite());
 
+
+
+
 //        runner.registerTask(new StaticLoudsTestSuite());
+//        runner.registerTask(new CtrTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

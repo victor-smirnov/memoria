@@ -42,7 +42,7 @@ class PackedSearchableSequenceTestBase: public TestTask {
     typedef PkdFSSeqTypes<
         		Bits,
         		PackedTreeBranchingFactor,
-        		512,
+        		1024,
         		IndexType,
         		CodecType,
         		ReindexFnType,

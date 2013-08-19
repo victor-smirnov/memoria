@@ -16,6 +16,7 @@
 #include <memoria/containers/labeled_tree/container/ltree_c_insert.hpp>
 #include <memoria/containers/labeled_tree/container/ltree_c_update.hpp>
 #include <memoria/containers/labeled_tree/container/ltree_c_remove.hpp>
+#include <memoria/containers/labeled_tree/container/ltree_c_checks.hpp>
 
 #include <memoria/containers/labeled_tree/iterator/ltree_i_api.hpp>
 
@@ -66,7 +67,8 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
 				louds::CtrFindName,
 				louds::CtrInsertName,
 				louds::CtrUpdateName,
-				louds::CtrRemoveName
+				louds::CtrRemoveName,
+				louds::CtrChecksName
 	>::Result                                           						ContainerPartsList;
 
 
@@ -86,47 +88,47 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
 
 
     template <typename Types>
-    using FindLTWalker 		= ::memoria::louds::SkipForwardWalker<Types>;
+    using FindLTWalker 			= louds::SkipForwardWalker<Types>;
 
 
     template <typename Types>
-    using RankFWWalker 		= ::memoria::louds::RankFWWalker<Types>;
+    using RankFWWalker 			= louds::RankFWWalker<Types>;
 
     template <typename Types>
-    using RankBWWalker 		= ::memoria::louds::RankBWWalker<Types>;
-
-
-    template <typename Types>
-    using SelectFwWalker 	= ::memoria::louds::SelectForwardWalker<Types>;
-
-    template <typename Types>
-    using SelectBwWalker 	= ::memoria::louds::SelectBackwardWalker<Types>;
+    using RankBWWalker 			= louds::RankBWWalker<Types>;
 
 
     template <typename Types>
-    using SkipForwardWalker 	= ::memoria::louds::SkipForwardWalker<Types>;
+    using SelectFwWalker 		= louds::SelectForwardWalker<Types>;
 
     template <typename Types>
-    using SkipBackwardWalker 	= ::memoria::louds::SkipBackwardWalker<Types>;
+    using SelectBwWalker 		= louds::SelectBackwardWalker<Types>;
 
 
     template <typename Types>
-    using NextLeafWalker 	 	= ::memoria::bt::NextLeafWalker<Types>;
+    using SkipForwardWalker 	= louds::SkipForwardWalker<Types>;
 
     template <typename Types>
-    using PrevLeafWalker 		= ::memoria::bt::PrevLeafWalker<Types>;
+    using SkipBackwardWalker 	= louds::SkipBackwardWalker<Types>;
+
 
     template <typename Types>
-    using FindBeginWalker 		= ::memoria::louds::FindBeginWalker<Types>;
+    using NextLeafWalker 	 	= bt::NextLeafWalker<Types>;
 
     template <typename Types>
-    using FindEndWalker 		= ::memoria::louds::FindEndWalker<Types>;
+    using PrevLeafWalker 		= bt::PrevLeafWalker<Types>;
 
     template <typename Types>
-    using FindRBeginWalker 		= ::memoria::louds::FindRBeginWalker<Types>;
+    using FindBeginWalker 		= louds::FindBeginWalker<Types>;
 
     template <typename Types>
-    using FindREndWalker 		= ::memoria::louds::FindREndWalker<Types>;
+    using FindEndWalker 		= louds::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker 		= louds::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker 		= louds::FindREndWalker<Types>;
 };
 
 

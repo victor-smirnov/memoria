@@ -177,6 +177,70 @@ public:
 
 
 template <typename TreeType, typename MyType>
+class GetValueOnlyOffsetFnBase: public FindForwardFnBase<TreeType, MyType, typename TreeType::IndexValue, VLECompareLE> {
+
+	typedef FindForwardFnBase<TreeType, MyType, typename TreeType::IndexValue, VLECompareLE> 	Base;
+
+protected:
+
+	typedef typename TreeType::Value 		Value;
+	typedef typename TreeType::IndexValue 	IndexValue;
+	typedef typename TreeType::Codec 		Codec;
+	typedef typename TreeType::BufferType 	BufferType;
+
+
+private:
+
+	const TreeType& me_;
+
+	const BufferType* values_;
+
+public:
+	GetValueOnlyOffsetFnBase(const TreeType& me, Int limit):
+		Base(me.indexes(0), limit),
+		me_(me)
+	{
+		values_  = me.values();
+	}
+
+	const TreeType& tree() const {
+		return me_;
+	}
+
+	Int walkValues(Int value_block_num)
+	{
+		Int offset = value_block_num ? me_.offset(value_block_num) : 0;
+
+		Int pos = value_block_num * TreeType::ValuesPerBranch + offset;
+		Int end = me_.data_size();
+
+		VLECompareLE<Int, BigInt> compare;
+		Codec codec;
+
+		while (pos < end)
+		{
+			Int value = pos < end;
+
+			if (compare(value, Base::limit_))
+			{
+				Base::sum_ 	 ++;
+				Base::limit_ --;
+
+				pos += codec.length(values_, pos, end);
+			}
+			else {
+				return pos;
+			}
+		}
+
+		return end;
+	}
+};
+
+
+
+
+template <typename TreeType, typename MyType>
 class SumValuesFnBase {
 
 protected:

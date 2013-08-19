@@ -150,6 +150,10 @@ BigInt M_TYPE::rankFw(BigInt delta, Int symbol)
 	auto& ctr 	= self.ctr();
 	Int stream  = self.stream();
 
+	if (delta < 0) {
+		int a = 0; a++;
+	}
+
 	MEMORIA_ASSERT(delta, >=, 0);
 
 	typename Types::template RankFWWalker<Types> walker(stream, symbol, delta);

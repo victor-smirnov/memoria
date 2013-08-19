@@ -98,7 +98,7 @@ public:
 	>::Result																	Value;
 
 	typedef Packed2TreeTypes<
-				IndexValue,
+				UBigInt,
 				IndexValue,
 				1<<BitsPerSymbol,
 				Types::template Codec,
@@ -692,10 +692,6 @@ public:
 
 	Int rank(Int end, Int symbol) const
 	{
-		if (end > size()) {
-			int a = 0; a++;
-		}
-
 		MEMORIA_ASSERT(end, <=, size());
 
 		if (has_index())
@@ -916,8 +912,8 @@ public:
 						PackedTreeBranchingFactor,
 						1024,
 						PkdVTree,
-						UBigIntEliasCodec,
-						VLEReindex8Fn,
+						UBigIntI64Codec,
+						VLEReindex8BlkFn,
 						Seq8SelectFn,
 						Seq8RankFn,
 						Seq8ToolsFn

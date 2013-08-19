@@ -438,6 +438,11 @@ public:
 	{
 		Int size 		= element_size(idx);
 		moveElements(idx + 1, -size);
+
+		if (allocator_offset() > 0)
+		{
+			pack();
+		}
 	}
 
 	void clear(Int idx)

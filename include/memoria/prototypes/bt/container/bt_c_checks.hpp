@@ -47,6 +47,18 @@ public:
         return self().checkTree();
     }
 
+    void checkIt()
+    {
+    	auto& self = this->self();
+
+    	self.logger().level() = Logger::ERROR;
+
+    	if (self.checkTree())
+    	{
+    		throw Exception(MA_SRC, SBuf()<<"Container "<<self.name()<<" ("<<self.type_name_str()<<") check failed");
+    	}
+    }
+
     MEMORIA_DECLARE_NODE_FN(CheckContentFn, check);
     bool checkContent(const NodeBaseG& node) const
     {

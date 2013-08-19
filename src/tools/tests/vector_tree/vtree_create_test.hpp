@@ -25,7 +25,8 @@ using namespace memoria::louds;
 
 class VectorTreeCreateTest: public VectorTreeTestBase {
 
-    typedef VectorTreeCreateTest                                               MyType;
+	typedef VectorTreeTestBase													Base;
+    typedef VectorTreeCreateTest                                               	MyType;
 
     Int 	max_degree_	= 10;
     Int 	iterations_ = 1;
@@ -53,6 +54,8 @@ public:
     		allocator.commit();
 
     		StoreResource(allocator, "vtree", 0);
+
+    		forceCheck(allocator, MA_SRC);
 
     		checkTree(tree, root);
     	}

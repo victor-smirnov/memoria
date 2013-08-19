@@ -14,6 +14,7 @@
 
 #include <memoria/core/tools/exint_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
+#include <memoria/core/tools/i64_codec.hpp>
 
 #include <memoria/core/tools/accessors.hpp>
 #include <memoria/core/tools/dump.hpp>
@@ -346,6 +347,53 @@ private:
 				me.offset(idx) = 0;
 			}
 		}
+
+		template <typename T>
+		void buildFirstIndexLine(Int index_level_start, Int index_level_size, const T* data, Int data_size)
+		{
+			auto& me = Base::tree();
+			auto& indexes = Base::indexes_;
+
+			Int limit 		= me.data_size();
+			Int data_pos 	= 0;
+
+			Codec codec;
+
+			Int idx 		= 0;
+			Int block_start	= 0;
+
+			for (Int cnt = 0; idx < index_level_size && data_pos < limit; idx++, block_start += ValuesPerBranch)
+			{
+				Int next 		= block_start + ValuesPerBranch;
+				Int local_limit = next <= limit ? next : limit;
+
+				me.offset(idx) = data_pos - block_start;
+
+				IndexValue size_cell  = 0;
+				IndexValue value_cell = 0;
+
+				while (data_pos < local_limit)
+				{
+					Value value = data[cnt];
+					Int len = codec.length(value);
+
+					cnt++;
+
+					value_cell += value;
+					size_cell++;
+
+					data_pos += len;
+				}
+
+				indexes[0][idx + index_level_start] = size_cell;
+				indexes[1][idx + index_level_start] = value_cell;
+			}
+
+			for (;idx < index_level_size; idx++)
+			{
+				me.offset(idx) = 0;
+			}
+		}
 	};
 
 
@@ -443,6 +491,13 @@ public:
 		TreeTools::reindex(fn);
 	}
 
+	template <typename T>
+	void reindexBlock(const T* data, Int size)
+	{
+		ReindexFn fn(*this);
+		TreeTools::reindexBlock(fn, data, size);
+	}
+
 	void check() const
 	{
 		CheckFn fn(*this);
@@ -458,8 +513,8 @@ public:
 
 private:
 
-	class GetValueOffsetFn: public GetValueOffsetFnBase<MyType, GetValueOffsetFn> {
-		typedef GetValueOffsetFnBase<MyType, GetValueOffsetFn> Base;
+	class GetValueOffsetFn: public GetValueOnlyOffsetFnBase<MyType, GetValueOffsetFn> {
+		typedef GetValueOnlyOffsetFnBase<MyType, GetValueOffsetFn> Base;
 
 		Int 	max_;
 		bool 	has_index_;
@@ -487,7 +542,6 @@ private:
 		}
 
 		void processIndexes(Int start, Int end)	{}
-		void processValue(Value value)	{}
 	};
 
 public:
@@ -1260,6 +1314,35 @@ public:
 		reindex();
 	}
 
+	template <Int LineWidth, typename T>
+	void insertBlock(const T* data, Int blocks)
+	{
+//		MEMORIA_ASSERT(blocks * Blocks, ==, raw_size());
+
+		auto values = this->values();
+		Codec codec;
+
+		Int pos = 0;
+
+		for (Int block = 0; block < Blocks; block++)
+		{
+			for (Int idx = 0; idx < blocks; idx++)
+			{
+				Int data_idx = block * LineWidth + idx;
+
+				pos += codec.encode(values, data[data_idx], pos);
+			}
+		}
+
+		this->data_size() 	= pos;
+		this->size() 		= blocks;
+
+//		reindexBlock(data, blocks);
+
+		reindex();
+	}
+
+
 	void append(IData* src, Int pos, Int length)
 	{
 		insert(src, size(), length);
@@ -1370,10 +1453,12 @@ public:
 	{
 		Values vals;
 
-		for (Int block = 0; block < Blocks; block++)
-		{
-			vals[block] = sum(block);
-		}
+//		for (Int block = 0; block < Blocks; block++)
+//		{
+//			vals[block] = sum(block);
+//		}
+
+		sumsSmall<0>(vals);
 
 		return vals;
 	}
@@ -1420,13 +1505,18 @@ public:
 
 	void sums(Values& values) const
 	{
-		values += sums();
+		//values += sums();
+
+		sumsSmall<0>(values);
 	}
 
 	void sums(Values2& values) const
 	{
 		values[0] += size();
-		values.sumUp(sums());
+
+		sumsSmall<1>(values);
+
+		//values.sumUp(sums());
 	}
 
 
@@ -1479,12 +1569,10 @@ public:
 
 		Int idx = fn.position() - block_start;
 
-
-
 		if (idx < size)
 		{
 			Codec codec;
-			IndexValue actual_value;
+			Value actual_value;
 
 			auto values = this->values();
 			codec.decode(values, actual_value, pos, meta->data_size());
@@ -1741,7 +1829,7 @@ public:
 		const Metadata* meta = metadata();
 
 		dumpArray<Value>(out, meta->size() * Blocks, [&](Int) -> Value {
-			IndexValue value;
+			Value value;
 			pos += codec.decode(values, value, pos, meta->data_size());
 			return value;
 		});
@@ -1886,6 +1974,8 @@ private:
 
 	ValueDescr raw_sum(Int to) const
 	{
+		DebugCounter2++;
+
 		GetVLEValuesSumFn<MyType> fn(*this, to);
 
 		Int pos = TreeTools::find(fn);
@@ -1960,7 +2050,28 @@ private:
 
 	void enlarge(Int amount)
 	{
-		Int max_tree_capacity 	= max_capacity(raw_capacity() + amount);
+		Int max_tree_capacity = max_capacity(raw_capacity() + amount);;
+
+//		if (amount > 0)
+//		{
+//			max_tree_capacity
+//		}
+//		else if (amount < 0)
+//		{
+////			max_tree_capacity = max_capacity(data_size() + amount);
+////			cout<<amount<<" "<<data_size()<<" "<<max_tree_capacity<<" "<<raw_capacity()<<endl;
+//			max_tree_capacity = max_capacity(raw_capacity() + amount);
+//		}
+//		else {
+//			return;
+//		}
+//
+//		if (max_tree_capacity < 0) {
+//
+//			cout<<raw_size()<<endl;
+//			cout<<data_size()<<endl;
+//			int a = 0; a++;
+//		}
 
 		MEMORIA_ASSERT_TRUE(max_tree_capacity >= 0);
 
@@ -2015,7 +2126,6 @@ private:
 		enlarge(-amount);
 	}
 
-
 	void fillZero(Int start, Int end)
 	{
 		Codec codec;
@@ -2056,12 +2166,6 @@ private:
 			{
 				IndexValue value = values[c][block];
 				Int len = codec.encode(buffer, value, start, limit);
-
-				IndexValue v1;
-				codec.decode(buffer, v1, start, limit);
-
-				MEMORIA_ASSERT(value, ==, v1);
-
 				start += len;
 			}
 		}
@@ -2099,6 +2203,30 @@ private:
 			for (SizeT c = 0; c < processed; c++)
 			{
 				start += codec.decode(buffer, values[c][block], start);
+			}
+		}
+	}
+
+	template <Int Offset, typename Vals>
+	void sumsSmall(Vals& values) const
+	{
+		DebugCounter1++;
+
+		Codec codec;
+
+		auto buffer = this->values();
+
+		Int size = this->size();
+
+		for (Int block = 0, pos = 0; block < Blocks; block++)
+		{
+			Int block_end = this->value_offset((block + 1) * size);
+
+			while (pos < block_end)
+			{
+				Value value;
+				pos += codec.decode(buffer, value, pos, block_end);
+				values[block + Offset] += value;
 			}
 		}
 	}

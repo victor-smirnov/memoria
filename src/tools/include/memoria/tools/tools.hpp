@@ -28,7 +28,6 @@
 namespace memoria {
 
 using namespace memoria::vapi;
-using namespace memoria::vmap;
 
 class PARemover {
 	PackedAllocatable* obj_;
@@ -71,14 +70,14 @@ struct KVPair {
 };
 
 template <typename K, typename V>
-ostream& operator<<(ostream& out, const memoria::KVPair<K, V>& pair)
+std::ostream& operator<<(std::ostream& out, const memoria::KVPair<K, V>& pair)
 {
     out<<pair.key_<<" "<<pair.value_;
     return out;
 }
 
 template <typename T, typename A>
-ostream& operator<<(ostream& out, const vector<T, A>& vec)
+std::ostream& operator<<(std::ostream& out, const vector<T, A>& vec)
 {
     for (const T& value : vec)
     {
@@ -87,9 +86,23 @@ ostream& operator<<(ostream& out, const vector<T, A>& vec)
     return out;
 }
 
+template <typename A>
+std::ostream& operator<<(std::ostream& out, const std::vector<UByte, A>& vec)
+{
+	out<<hex;
+
+    for (auto& value : vec)
+    {
+        out<<(Int)value<<endl;
+    }
+
+    return out;
+}
+
+
 
 template <typename K, typename V>
-istream& operator>>(istream& in, memoria::KVPair<K, V>& pair)
+istream& operator>>(std::istream& in, memoria::KVPair<K, V>& pair)
 {
     in>>skipws;
     in>>pair.key_;
@@ -101,7 +114,7 @@ istream& operator>>(istream& in, memoria::KVPair<K, V>& pair)
 
 
 template <typename T, typename A>
-istream& operator>>(istream& in, vector<T, A>& vec)
+istream& operator>>(std::istream& in, std::vector<T, A>& vec)
 {
     T value;
 
@@ -120,14 +133,32 @@ istream& operator>>(istream& in, vector<T, A>& vec)
     return in;
 }
 
+template <typename A>
+istream& operator>>(std::istream& in, std::vector<UByte, A>& vec)
+{
+    Int value;
 
+    do {
+        in>>std::hex>>value;
+        if (in.eof()) break;
+        if (in.bad())
+        {
+            throw Exception(MEMORIA_SOURCE, "Invalid data record format");
+        }
+
+        vec.push_back(value);
+    }
+    while (true);
+
+    return in;
+}
 
 template <typename T, typename A>
-void LoadVector(vector<T, A>& vec, StringRef file_name)
+void LoadVector(std::vector<T, A>& vec, StringRef file_name)
 {
-    fstream file;
+    std::fstream file;
 
-    file.open(file_name.c_str(), fstream::in);
+    file.open(file_name.c_str(), std::fstream::in);
 
     if (file.fail() || file.bad()) {
     	throw Exception(MEMORIA_SOURCE, "Can't open file: "+file_name);
@@ -139,11 +170,11 @@ void LoadVector(vector<T, A>& vec, StringRef file_name)
 }
 
 template <typename T, typename A>
-void StoreVector(const vector<T, A>& vec, StringRef file_name)
+void StoreVector(const std::vector<T, A>& vec, StringRef file_name)
 {
-    fstream file;
+    std::fstream file;
 
-    file.open(file_name.c_str(), fstream::out);
+    file.open(file_name.c_str(), std::fstream::out);
 
     file<<vec;
 
@@ -152,7 +183,7 @@ void StoreVector(const vector<T, A>& vec, StringRef file_name)
 
 
 template <typename T, typename A>
-size_t appendToSortedVector(vector<T, A>& vec, const T& value)
+size_t appendToSortedVector(std::vector<T, A>& vec, const T& value)
 {
     size_t cnt = 0;
     for (auto i = vec.begin(); i != vec.end(); i++, cnt++)

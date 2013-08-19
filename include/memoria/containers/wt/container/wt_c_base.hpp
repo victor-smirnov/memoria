@@ -32,7 +32,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::CtrShared                                            CtrShared;
 
-    typedef LabeledTree<
+    typedef WTLabeledTree<
     			FLabel<UByte>,
     			VLabel<BigInt,
     				Granularity::Bit,
@@ -187,6 +187,12 @@ public:
 
     CtrShared* shared() {
         return tree_.shared();
+    }
+
+    void checkIt()
+    {
+    	tree().checkIt();
+    	seq().checkIt();
     }
 
 private:

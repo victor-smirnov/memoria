@@ -50,7 +50,12 @@ public:
 
     void testCreate()
     {
+    	DefaultLogHandlerImpl logHandler(Base::out());
+
     	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+    	allocator.logger().level() = Logger::ERROR;
+
     	Ctr ctr(&allocator);
 
     	allocator.commit();
@@ -68,11 +73,15 @@ public:
     			UBigInt value1 = text[c];
 
     			ctr.insert(c, value1);
+
+    			check(allocator, MA_SRC);
+
+    			allocator.commit();
     		}
 
-    		assertText(ctr, text);
+    		forceCheck(allocator, MA_SRC);
 
-    		allocator.commit();
+    		assertText(ctr, text);
 
     		auto ranks = getRankedSymbols(text);
 
@@ -82,7 +91,7 @@ public:
     		{
     			UInt sym = rnk.first;
 
-    			for (UInt c = 0; c < text.size(); c += 10)
+    			for (UInt c = 0; c < text.size(); c += 100)
     			{
     				Int rank1 = ctr.rank(c, sym);
     				Int rank2 = rank(text, c, sym);
@@ -117,7 +126,11 @@ public:
 
     void testRemove()
     {
+    	DefaultLogHandlerImpl logHandler(Base::out());
+
     	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+
     	Ctr ctr(&allocator);
 
     	allocator.commit();
@@ -155,11 +168,13 @@ public:
     			{
     				assertText(ctr, text);
     			}
+
+    			check(allocator, MA_SRC);
+
+    			allocator.commit();
     		}
 
-    		allocator.commit();
-
-    		StoreResource(allocator, "wtr");
+    		check(allocator, MA_SRC);
     	}
     	catch (...) {
     		Store(allocator);

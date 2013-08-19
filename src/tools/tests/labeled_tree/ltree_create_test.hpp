@@ -25,6 +25,7 @@ using namespace memoria::louds;
 
 class LabeledTreeCreateTest: public LabeledTreeTestBase {
 
+	typedef LabeledTreeTestBase													Base;
     typedef LabeledTreeCreateTest                                               MyType;
 
     Int 	max_degree_	= 10;
@@ -44,11 +45,17 @@ public:
 
     void testFillTree()
     {
+    	DefaultLogHandlerImpl logHandler(Base::out());
+
     	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+
     	Ctr tree(&allocator);
 
     	try {
     		TreeNode root = this->fillRandom(tree, size_, max_degree_);
+
+    		forceCheck(allocator, MA_SRC);
 
     		allocator.commit();
 

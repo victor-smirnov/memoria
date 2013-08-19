@@ -10,6 +10,7 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 #include <memoria/core/tools/bitmap_select.hpp>
+#include <memoria/core/tools/i64_codec.hpp>
 
 #include "bitmap_test_base.hpp"
 

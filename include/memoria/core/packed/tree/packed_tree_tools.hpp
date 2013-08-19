@@ -117,6 +117,39 @@ public:
 	}
 
 
+	template <typename Functor, typename T>
+	static void reindexBlock(Functor&& fn, const T* data, Int size)
+	{
+		if (fn.tree().index_size() > 0)
+		{
+			auto layout = fn.tree().index_layout();
+
+			Int index_tree_height = layout[0];
+
+			Int base = 0;
+			for (Int c = 1; c < index_tree_height; c++)
+			{
+				base += layout[c];
+			}
+
+			fn.buildFirstIndexLine(base, layout[index_tree_height], data, size);
+
+			for (Int c = index_tree_height; c > 1; c--, base -= layout[c])
+			{
+				Int level_size 	= layout[c];
+				Int parent_base	= base - layout[c - 1];
+
+				for (Int idx = 0; idx < level_size; idx += BranchingFactor)
+				{
+					Int next 	= idx + BranchingFactor;
+					Int limit 	= next < level_size ? next : level_size;
+
+					fn.processIndex(parent_base + idx / BranchingFactor, base + idx, base + limit);
+				}
+			}
+		}
+	}
+
 
 	template <typename Functor>
 	static void check(Functor&& fn)

@@ -105,6 +105,11 @@ public:
         check_count++;
     }
 
+    void forceCheck(Allocator& allocator, const char* source)
+    {
+    	::memoria::check<Allocator>(allocator, "Allocator check failed", source);
+    }
+
     void check(Allocator& allocator, const char* message, const char* source)
     {
         Int step_count = getcheckStep();

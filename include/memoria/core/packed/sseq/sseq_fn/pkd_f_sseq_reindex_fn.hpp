@@ -270,6 +270,8 @@ public:
 
 			index->insert(0, index_size, [&]() -> Values
 			{
+				DebugCounter1++;
+
 				Int next = pos + ValuesPerBranch;
 				Int max = next <= size ? next : size;
 
@@ -292,6 +294,85 @@ public:
 	}
 };
 
+
+
+template <typename Seq>
+class VLEReindex8BlkFn: public VLEReindex8Fn<Seq> {
+
+	typedef VLEReindex8Fn<Seq>			Base;
+	typedef typename Seq::Index 		Index;
+	typedef typename Index::Values 		Values;
+	typedef typename Index::Codec 		Codec;
+
+	static const Int BitsPerSymbol 				= Seq::BitsPerSymbol;
+	static const Int ValuesPerBranch 			= Seq::ValuesPerBranch;
+	static const Int Blocks						= Index::Blocks;
+	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
+
+	static_assert(BitsPerSymbol == 8,
+				"VLEReindex8Fn<> can only be used with 8-bit sequences");
+
+	static_assert(!FixedSizeElementIndex,
+				"VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
+
+public:
+	void operator()(Seq& seq)
+	{
+		Int size = seq.size();
+
+		if (DebugCounter) {
+			int a = 0; a++;
+		}
+
+
+		if (size <= ValuesPerBranch)
+		{
+			seq.removeIndex();
+		}
+		else if (size > ValuesPerBranch && size <= 4096)
+		{
+			Codec codec;
+
+			const Int LineWidth = 4096/ValuesPerBranch;
+
+			UShort frequences[LineWidth * 256];
+			memset(frequences, 0, sizeof(frequences));
+
+			Int length = 0;
+
+			auto symbols = seq.symbols();
+
+			Int block = 0;
+			for (Int b = 0; b < size; b += ValuesPerBranch, block++)
+			{
+				Int next = b + ValuesPerBranch;
+				Int max = next <= size ? next : size;
+
+				//Values values;
+
+				for (Int pos = b; pos < max; pos++)
+				{
+					Int symbol = symbols[pos];
+					frequences[symbol * LineWidth + block]++;
+				}
+
+				for (Int c = 0; c < Blocks; c++)
+				{
+					length += codec.length(frequences[c * LineWidth + block]);
+				}
+			}
+
+			seq.createIndex(length);
+
+			Index* index = seq.index();
+
+			index->template insertBlock<LineWidth>(frequences, block);
+		}
+		else {
+			Base::operator ()(seq);
+		}
+	}
+};
 
 
 }

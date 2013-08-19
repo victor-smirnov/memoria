@@ -65,20 +65,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 		{
 			MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-			typedef PkdFSSeq<SeqTypes> 	Seq;
+			typedef PkdFSSeq<SeqTypes> 					Seq;
 			typedef typename Seq::Value 				Symbol;
-
-			auto old_indexes = seq->sums();
 
 			seq->insert(idx, 1, [=]() -> Symbol {
 				return symbol;
 			});
 
-			auto new_indexes = seq->sums();
-
-			auto indexes = new_indexes - old_indexes;
-
-			std::get<Idx>(*delta) = indexes;
+			std::get<Idx>(*delta)[0]++;
+			std::get<Idx>(*delta)[symbol + 1]++;
 		}
 
 
@@ -106,6 +101,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 		}
 		catch (PackedOOMException& e)
 		{
+			Clear(indexes);
 			mgr.rollback();
 			return false;
 		}
@@ -126,6 +122,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 		Int& idx	= iter.idx();
 		Int stream 	= iter.stream();
 
+		leaf.update();
+
 		Accumulator sums;
 
 		if (self.insertIntoLeaf(leaf, idx, symbol, sums))
@@ -145,19 +143,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 				idx -= split_idx;
 			}
 
-			MEMORIA_ASSERT_TRUE(self.insertIntoLeaf(leaf, idx, symbol, sums));
+			bool result = self.insertIntoLeaf(leaf, idx, symbol, sums);
+			MEMORIA_ASSERT_TRUE(result);
 			self.updateParent(leaf, sums);
 		}
 
 		self.addTotalKeyCount(Position::create(stream, 1));
 
 		iter++;
-	}
-
-
-	void append(Int symbol)
-	{
-
 	}
 
 

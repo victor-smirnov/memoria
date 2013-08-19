@@ -118,7 +118,7 @@ struct PkdVTreeNodeTF {
 	typedef Packed2TreeTypes<
 			BigInt, BigInt, Descriptor::NodeIndexes, UByteExintCodec,
 			PackedTreeBranchingFactor,
-			PackedTreeEliasVPB
+			PackedTreeExintVPB
 	>																			TreeTypes;
 
 	typedef PkdVTree<TreeTypes> Type;
@@ -162,7 +162,7 @@ struct PkdVTreeBitLeafTF {
 			Value,
 			typename bt::ExtendIntType<Value>::Type,
 			Descriptor::LeafIndexes,
-			UBigIntEliasCodec,
+			UBigIntI64Codec,
 			PackedTreeBranchingFactor,
 			PackedTreeEliasVPB
 	>																			TreeTypes;

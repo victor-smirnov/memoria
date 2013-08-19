@@ -13,6 +13,7 @@
 #include "bitmap_rank_test.hpp"
 #include "bitmap_count_test.hpp"
 #include "bitmap_select_test.hpp"
+#include "bitmap_speed_test.hpp"
 
 
 #include <vector>
@@ -38,6 +39,8 @@ public:
     	registerTask(new BitmapCountTest<UInt>("Count.UInt"));
 
     	registerTask(new BitmapSelectTest("Select"));
+
+    	registerTask(new BitmapSpeedTest<UBigInt>("Speed"));
     }
 
 };

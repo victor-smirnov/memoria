@@ -24,6 +24,7 @@ using namespace memoria::louds;
 
 class LabeledTreeRemoveTest: public LabeledTreeTestBase {
 
+	typedef LabeledTreeTestBase													Base;
     typedef LabeledTreeRemoveTest                                               MyType;
 
     Int 	iterations_ 	= 1000;
@@ -88,7 +89,11 @@ public:
 
     void testRemoveNodes()
     {
+    	DefaultLogHandlerImpl logHandler(Base::out());
+
     	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+
     	Ctr tree(&allocator);
 
     	try {
@@ -103,6 +108,8 @@ public:
     			out()<<c<<std::endl;
 
     			removeNodes(tree, root, remove_batch_);
+
+    			forceCheck(allocator, MA_SRC);
 
     			checkTree(tree, root);
 

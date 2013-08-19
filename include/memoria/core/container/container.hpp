@@ -634,6 +634,17 @@ public:
         return model_type_name_;
     }
 
+    MEMORIA_PUBLIC static String type_name_str()
+    {
+    	return TypeNameFactory<ContainerTypeName>::name();
+    }
+
+    MEMORIA_PUBLIC static const char* type_name_cstr()
+    {
+    	return TypeNameFactory<ContainerTypeName>::cname();
+    }
+
+
     MEMORIA_PUBLIC bool is_log(Int level) const
     {
         return logger_.isLogEnabled(level);

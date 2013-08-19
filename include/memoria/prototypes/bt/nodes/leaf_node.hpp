@@ -58,8 +58,8 @@ class LeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::No
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
-    typedef LeafNode<Types>                                      			Me;
-    typedef LeafNode<Types>                                      			MyType;
+    typedef LeafNode<Types>                                      				Me;
+    typedef LeafNode<Types>                                      				MyType;
 
 public:
     static const UInt VERSION                                                   = 2;

@@ -19,6 +19,7 @@ class CtrFindName 		{};
 class CtrInsertName 	{};
 class CtrUpdateName 	{};
 class CtrRemoveName 	{};
+class CtrChecksName 	{};
 
 class ItrApiName 		{};
 

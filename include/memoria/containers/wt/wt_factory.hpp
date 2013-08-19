@@ -25,6 +25,7 @@
 
 #include <memoria/prototypes/composite/comp_factory.hpp>
 
+#include <memoria/containers/wt/factory/wt_lt_factory.hpp>
 
 
 namespace memoria {

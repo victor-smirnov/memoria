@@ -192,12 +192,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     	return iter.rank(length, 1);
     }
 
-    BigInt rank1() const {
+    BigInt rank1() const
+    {
     	return node_rank();
     }
 
-    BigInt rank0() const {
-    	return nodeIdx() + 1 - rank1();
+    BigInt rank0() const
+    {
+    	Int nodeIdx = this->nodeIdx();
+    	Int rank1 	= this->rank1();
+
+    	return nodeIdx + 1 - rank1;
     }
 
     void firstChild()

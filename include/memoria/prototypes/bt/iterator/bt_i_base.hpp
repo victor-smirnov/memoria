@@ -215,11 +215,11 @@ public:
     }
 
 
-    void dump(ostream& out = cout, const char* header = nullptr) const
+    void dump(std::ostream& out = cout, const char* header = nullptr) const
     {
     	auto& self = this->self();
 
-        out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
+        out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
 
         self.dumpKeys(out);
 
@@ -235,17 +235,18 @@ public:
     void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const
     {
     	auto& self 	= this->self();
-    	out<<(header != NULL ? header : me()->getDumpHeader())<<endl;
+    	out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
     	dumpKeys(out);
     	self.ctr().dumpPath(self.leaf(), out);
+    	out<<"======================================================================"<<std::endl;
     }
 
     void dumpKeys(std::ostream& out) const
     {
     	auto& self = this->self();
 
-    	out<<"Stream:  "<<self.stream()<<endl;
-        out<<"Idx:  "<<self.idx()<<endl;
+    	out<<"Stream:  "<<self.stream()<<std::endl;
+        out<<"Idx:  "<<self.idx()<<std::endl;
     }
 
     void dumpBeforePath(std::ostream& out) const {}

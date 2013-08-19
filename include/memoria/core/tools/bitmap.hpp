@@ -381,7 +381,9 @@ Int GetBit(const Buffer& buf, size_t idx)
  */
 
 template <typename Buffer>
-void SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
+void
+//__attribute__((always_inline))
+SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
 
@@ -422,7 +424,7 @@ inline GetBits0(const Buffer& buf, size_t idx, Int nbits)
 		const size_t mask 		= TypeBitmask<T>();
 		const size_t divisor 	= TypeBitmaskPopCount(mask);
 
-		size_t haddr = (idx & ~mask) >> divisor; // FIXME: Why negation with mask here?
+		size_t haddr = (idx & ~mask) >> divisor; // FIXME: Why negation of with mask is here?
 		size_t laddr = idx & mask;
 
 		T bitmask = MakeMask<T>(0, nbits);
@@ -485,6 +487,7 @@ T GetBitsNeg0(const T* buf, size_t idx, Int nbits)
  */
 
 template <typename Buffer>
+//__attribute__((always_inline))
 void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, Int nbits)
 {
 	typedef typename intrnl::ElementT<Buffer>::Type T;
@@ -573,15 +576,6 @@ inline T GetBits2(const T* buf, size_t& pos, size_t nbits)
 
 	return value;
 }
-
-
-/**
- * Move 'bitCount' bits from buffer 'src_array':srcBit to 'dst_array':dstBit.
- *
- * Note that src_aray and dst_array MUST be different buffers.
- *
- * Note that bitCount is not limited by Long.
- */
 
 template <typename T>
 void MoveBitsFW(const T* src, T* dst, size_t src_idx, size_t dst_idx, size_t length)

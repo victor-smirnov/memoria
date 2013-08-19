@@ -139,7 +139,8 @@ void M_TYPE::insertNonLeafP(
 	if (!node->is_root())
 	{
 		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
-		self.updatePath(parent, node->parent_idx(), sums);
+		Int parent_idx = node->parent_idx();
+		self.updatePath(parent, parent_idx, sums);
 	}
 }
 
@@ -197,6 +198,10 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 			self.insertNonLeafP(right_parent, 0, sums, other->id());
 		}
 	}
+	catch (Exception& ex) {
+		cout<<ex<<endl;
+		throw;
+	}
 
 	return other;
 }
@@ -246,6 +251,8 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& sums)
 {
 	auto& self = this->self();
 
+	node.update();
+
 	if (!self.updateNode(node, idx, sums))
 	{
 		Int size 		= self.getNodeSize(node, 0);
@@ -258,6 +265,9 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& sums)
 			idx -= split_idx;
 			node = right;
 		}
+
+		bool result = self.updateNode(node, idx, sums);
+		MEMORIA_ASSERT_TRUE(result);
 	}
 
 	if(!node->is_root())

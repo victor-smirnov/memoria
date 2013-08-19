@@ -9,24 +9,25 @@
 #define _MEMORIA_CONTAINERS_WT_TOOLS_HPP
 
 #include <memoria/prototypes/bt/bt_tools.hpp>
+#include <memoria/containers/wt/wt_names.hpp>
 
-#include <memoria/core/tools/static_array.hpp>
-#include <memoria/core/tools/idata.hpp>
-
-#include <memoria/core/container/container.hpp>
-
-
+#include <memoria/core/types/typehash.hpp>
 
 namespace memoria       {
 namespace wt     		{
-
-
-
-
-
-
-
 }
+
+
+template <typename... LabelDescriptors>
+struct TypeHash<wt::WTLabeledTree<LabelDescriptors...>>: TypeHash<LabeledTree<LabelDescriptors...>> {};
+
+template <typename... LabelDescriptors>
+struct TypeHash<wt::WTLabeledTree<TypeList<LabelDescriptors...>>>: TypeHash<LabeledTree<LabelDescriptors...>> {};
+
+
+
+
+
 }
 
 #endif

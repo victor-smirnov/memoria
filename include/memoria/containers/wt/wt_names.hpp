@@ -14,6 +14,9 @@
 namespace memoria    {
 namespace wt 	 	 {
 
+template <typename... LabelDescriptors>
+class WTLabeledTree	{};
+
 class CtrApiName 	{};
 class CtrCTreeName 	{};
 class CtrInsertName {};
@@ -39,6 +42,8 @@ using WTCtrTypes  = WTCtrTypesT<Types>;
 
 template <typename Types>
 using WTIterTypes = WTIterTypesT<Types>;
+
+
 
 
 }
