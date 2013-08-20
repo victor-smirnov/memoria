@@ -16,6 +16,34 @@ using namespace memoria::vapi;
 
 void CmdLine::Process()
 {
+	String image_name = getImageName();
+
+	if (image_name == "dump")
+	{
+		processDump();
+	}
+	else {
+		processTests();
+	}
+}
+
+void CmdLine::processDump()
+{
+	if (argc_ == 1) {
+		throw Exception(MA_SRC, SBuf()<<"Dump file name must be specified");
+	}
+	else if (argc_ > 2) {
+		throw Exception(MA_SRC, SBuf()<<"Incorrect number of dump parameters specified");
+	}
+	else {
+		dump_file_ = argv_[1];
+		dump_ = true;
+	}
+}
+
+
+void CmdLine::processTests()
+{
     bool cfg_cpecified = false;
 
     for (Int c = 1; c < argc_; c++)
@@ -36,9 +64,30 @@ void CmdLine::Process()
         {
             help_ = true;
         }
-        else if (arg == "--dump")
+        else if (arg == "--list")
         {
             list_ = true;
+        }
+        else if (arg == "--dump")
+        {
+        	if (!list_)
+        	{
+        		if (c < argc_ - 1)
+        		{
+        			if (!dump_)
+        			{
+        				dump_file_ 	= argv_[c + 1];
+        				dump_ 		= true;
+        				c += 1;
+        			}
+        			else {
+        				throw Exception(MEMORIA_SOURCE, "Dump operation has been already specified");
+        			}
+        		}
+        		else {
+        			throw Exception(MEMORIA_SOURCE, "Incorrect --dump parameters number");
+        		}
+        	}
         }
         else if (arg == "--config")
         {
@@ -115,7 +164,7 @@ void CmdLine::Process()
         }
     }
 
-    if (!cfg_cpecified &!list_)
+    if ((!cfg_cpecified) && !list_)
     {
         File f0(cfg_file_name_);
 
@@ -136,6 +185,13 @@ void CmdLine::Process()
         }
     }
 }
+
+
+
+
+
+
+
 
 String CmdLine::getImagePathPart(const char* str)
 {

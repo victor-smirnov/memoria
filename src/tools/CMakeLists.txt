@@ -15,10 +15,6 @@ if (NOT DEFINED BUILD_BENCHMARKS)
     set(BUILD_BENCHMARKS false)
 endif()
 
-if (NOT DEFINED BUILD_DUMP)
-    set(BUILD_DUMP false)
-endif()
-
 if (NOT DEFINED BUILD_EXAMPLES)
     set(BUILD_EXAMPLES false)
 endif()
@@ -29,10 +25,6 @@ endif()
 
 if (BUILD_BENCHMARKS) 
     add_subdirectory(benchmarks)
-endif()
-
-if (BUILD_DUMP)
-    add_subdirectory(dump)
 endif()
 
 if (BUILD_EXAMPLES)

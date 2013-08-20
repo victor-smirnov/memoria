@@ -27,10 +27,12 @@ class CmdLine {
 
     bool            help_;
     bool            list_;
-
+    bool            dump_;
 
     String          image_name_;
     String          cfg_file_name_;
+
+    String 			dump_file_;
 
     Configurator    cfg_file_;
     Configurator    cfg_cmdline_;
@@ -54,6 +56,7 @@ public:
         envp_(envp),
         help_(false),
         list_(false),
+        dump_(false),
         image_name_(getImageName(argv[0])),
         cfg_file_name_(cfg_file_name),
         cfg_file_(),
@@ -76,6 +79,11 @@ public:
         return image_name_;
     }
 
+    StringRef getDumpFileName() const
+    {
+    	return dump_file_;
+    }
+
     const char* getOutFolder() const
     {
         return out_folder_;
@@ -88,6 +96,10 @@ public:
 
     bool IsList() const {
         return list_;
+    }
+
+    bool IsDump() const {
+    	return dump_;
     }
 
     bool IsReplay() const {
@@ -112,6 +124,9 @@ public:
 protected:
     static String getImagePathPart(const char* str);
     static String getImageName(const char* str);
+
+    void processTests();
+    void processDump();
 };
 
 

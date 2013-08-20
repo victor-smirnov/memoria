@@ -1,30 +1,16 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+#ifndef MEMORIA_TESTS_DUMP_INC 
+#define MEMORIA_TESTS_DUMP_INC
 
-
-
-
-#include <memoria/memoria.hpp>
-
-#include <memoria/core/tools/file.hpp>
-#include <memoria/core/tools/platform.hpp>
-
-#include <iostream>
-#include <set>
-
-
-using namespace memoria;
-
-using namespace std;
-
-typedef SmallInMemAllocator VStreamAllocator;
+typedef memoria::SmallInMemAllocator VStreamAllocator;
 
 VStreamAllocator* manager;
-set<IDValue> processed;
+std::set<IDValue> processed;
 
 void LoadFile(VStreamAllocator& allocator, const char* file)
 {
@@ -172,13 +158,6 @@ void dumpTree(const IDValue& id, const File& folder)
     try {
         manager->getPage(page, id);
 
-//        ofstream pagebin((folder.getPath() + Platform::getFilePathSeparator() + "page.bin").c_str());
-//        for (Int c = 0; c < page->size(); c++)
-//        {
-//            pagebin<<(Byte)page->getByte(c);
-//        }
-//        pagebin.close();
-
         ofstream pagetxt((folder.getPath() + Platform::getFilePathSeparator() + "page.txt").c_str());
 
         PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->getContainerHash(), page->getPageTypeHash());
@@ -212,23 +191,13 @@ String getPath(String dump_name)
 }
 
 
-int main(int argc, const char** argv, const char** envp)
+
+Int DumpAllocator(String file_name)
 {
-    MetadataInitializer<SmallProfile<> >::init();
-
-    SCtrTF<Map<BigInt, Int>>::Type::initMetadata();
-    SCtrTF<Map<BigInt, BigInt>>::Type::initMetadata();
-
     try {
         logger.level() = Logger::NONE;
 
-        if (argc != 3 && argc != 2)
-        {
-            cerr<<"Usage: dump file.dump [/path/to/folder/to/dump/into]"<<endl;
-            return 1;
-        }
-
-        File file(argv[1]);
+        File file(file_name);
         if (file.isDirectory())
         {
             cerr<<"ERROR: "<<file.getPath()<<" is a directory"<<endl;
@@ -240,7 +209,7 @@ int main(int argc, const char** argv, const char** envp)
             return 1;
         }
 
-        File path(argc == 3 ? String(argv[2]) : getPath(argv[1]));
+        File path(getPath(file_name));
         if (path.isExists() && !path.isDirectory())
         {
             cerr<<"ERROR: "<<path.getPath()<<" is not a directory"<<endl;
@@ -269,9 +238,9 @@ int main(int argc, const char** argv, const char** envp)
 
         while (!iter.isEnd())
         {
-            BigInt  name    = iter.key();
+            BigInt name    	= iter.key();
+            BigInt value   	= iter.getValue();
 
-            BigInt  value   = iter.getValue();
             IDValue id(value);
 
             cout<<"dumping name="<<name<<" root="<<id<<endl;
@@ -296,23 +265,24 @@ int main(int argc, const char** argv, const char** envp)
             iter.next();
         }
     }
-    catch (Exception ex) {
+    catch (Exception& ex) {
         cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
     }
-    catch (MemoriaThrowable *ex) {
+    catch (MemoriaThrowable* ex) {
         cout<<"Exception* "<<ex->source()<<" "<<*ex<<endl;
     }
-    catch (MemoriaThrowable ex) {
+    catch (MemoriaThrowable& ex) {
         cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
     }
-    catch (int i) {
-        cout<<"IntegerEx: "<<i<<endl;
-    }
-    catch (exception e) {
+    catch (exception& e) {
         cout<<"StdEx: "<<e.what()<<endl;
     }
     catch(...) {
         cout<<"Unrecognized exception"<<endl;
     }
+
+    return 0;
 }
 
+
+#endif

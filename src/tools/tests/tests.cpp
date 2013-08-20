@@ -24,18 +24,14 @@
 #include "vector_tree/vtree_test_suite.hpp"
 #include "wt/wt_test_suite.hpp"
 
-
-
-
-
-
-
 #include <memoria/tools/cmdline.hpp>
 
 #include <iostream>
 
 using namespace std;
 using namespace memoria;
+
+#include "dump.inc"
 
 const char* DESCRIPTION = "Run Memoria regression tests with specified configuration";
 const char* CFG_FILE    = "tests.properties";
@@ -64,8 +60,6 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.setRunCount(cmd_line.getCount());
 
-
-
         runner.registerTask(new BitmapTestSuite());
 
         runner.registerTask(new PackedAllocatorTestSuite());
@@ -78,7 +72,6 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.registerTask(new SymbolSeqTestSuite());
 
-
         runner.registerTask(new CtrTestSuite());
         runner.registerTask(new MapTestSuite());
         runner.registerTask(new VectorTestSuite());
@@ -89,8 +82,6 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new WTTestSuite());
 
 
-
-
         runner.Configure(&cmd_line.getConfigurator());
 
         if (cmd_line.IsHelp())
@@ -98,12 +89,13 @@ int main(int argc, const char** argv, const char** envp)
             cout<<endl;
             cout<<"Description: "<<DESCRIPTION<<endl;
             cout<<"Usage: "<<cmd_line.getImageName()<<" [options]"<<endl;
-            cout<<"    --help                     Display this help and exit"<<endl;
-            cout<<"    --count N                  Run all tests N times"<<endl;
-            cout<<"    --config <file.properties> Use the specified config file"<<endl;
-            cout<<"    --list                     List available tasks and their configuration properties and exit"<<endl;
-            cout<<"    --replay <update_op.properties> Replay the failed update operation"<<endl;
-            cout<<"    --out <output folder>           Path where tests output will be put. "
+            cout<<"    --help                           Display this help and exit"<<endl;
+            cout<<"    --count N                        Run all tests N times"<<endl;
+            cout<<"    --config <file.properties>       Use the specified config file"<<endl;
+            cout<<"    --list                           List available tasks and their configuration properties and exit"<<endl;
+            cout<<"    --dump <allocator.dump>          Dump allocator's content to disk"<<endl;
+            cout<<"    --replay <update_op.properties>  Replay the failed update operation"<<endl;
+            cout<<"    --out <output folder>            Path where tests output will be put. "
                 <<"(It will be recreated if already exists)"<<endl;
         }
         else if (cmd_line.IsList())
@@ -114,6 +106,10 @@ int main(int argc, const char** argv, const char** envp)
         {
             runner.Replay(cout, cmd_line.getReplayFile());
             return 0;
+        }
+        else if (cmd_line.IsDump())
+        {
+        	DumpAllocator(cmd_line.getDumpFileName());
         }
         else {
             cout<<"Seed: "<<seed<<endl;
@@ -129,7 +125,7 @@ int main(int argc, const char** argv, const char** envp)
             return failed;
         }
     }
-    catch (MemoriaThrowable e)
+    catch (MemoriaThrowable& e)
     {
         cerr<<e.source()<<" ERROR: "<<e<<endl;
     }

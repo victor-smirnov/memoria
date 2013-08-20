@@ -1,4 +1,4 @@
-set (SRCS tests.cpp cling_tests.cpp)
+set (SRCS tests.cpp)
 
 add_executable(tests ${SRCS})
 set_target_properties(tests PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
