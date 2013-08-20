@@ -764,16 +764,14 @@ private:
 
         const IPageOperations* operations = pageMetadata->getPageOperations();
 
-        operations->serialize(page, buffer.get());
+        Int total_data_size = operations->serialize(page, buffer.get());
 
-        Int page_data_size = operations->getPageSize(page);
-
-        output->write(page_data_size);
+        output->write(total_data_size);
         output->write(page->page_size());
         output->write(page->ctr_type_hash());
         output->write(page->page_type_hash());
 
-        output->write(buffer.get(), 0, page_data_size);
+        output->write(buffer.get(), 0, total_data_size);
     }
 
     void set_root(BigInt name, const ID &page_id)

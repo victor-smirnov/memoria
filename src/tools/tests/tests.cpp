@@ -4,7 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
+#include "symbol_seq/symseq_test_suite.hpp"
+#include "bitmap/bitmap_test_suite.hpp"
 
 #include "packed/allocator/palloc_test_suite.hpp"
 #include "packed/tree/packed_tree_test_suite.hpp"
@@ -23,8 +24,7 @@
 #include "vector_tree/vtree_test_suite.hpp"
 #include "wt/wt_test_suite.hpp"
 
-#include "symbol_seq/symseq_test_suite.hpp"
-#include "bitmap/bitmap_test_suite.hpp"
+
 
 
 
@@ -84,9 +84,11 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new VectorTestSuite());
         runner.registerTask(new VectorMapTestSuite());
         runner.registerTask(new SequenceTestSuite());
-        runner.registerTask(new WTTestSuite());
-        runner.registerTask(new VTreeTestSuite());
         runner.registerTask(new LabeledTreeTestSuite());
+        runner.registerTask(new VTreeTestSuite());
+        runner.registerTask(new WTTestSuite());
+
+
 
 
         runner.Configure(&cmd_line.getConfigurator());

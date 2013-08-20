@@ -262,6 +262,8 @@ struct IterEndMark {};
 struct SerializationData {
     char* buf;
     Int total;
+
+    SerializationData(): buf(nullptr), total(0) {}
 };
 
 struct DeserializationData {

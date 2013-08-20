@@ -42,6 +42,8 @@ public:
 
 		MEMORIA_ADD_TEST(testCreate);
 		MEMORIA_ADD_TEST(testRemove);
+
+		MEMORIA_ADD_TEST(testStore);
     }
 
     virtual ~WTTest() throw() {}
@@ -186,7 +188,57 @@ public:
     	}
     }
 
+    void testStore()
+    {
+    	DefaultLogHandlerImpl logHandler(Base::out());
 
+    	Allocator allocator;
+    	allocator.getLogger()->setHandler(&logHandler);
+
+    	Ctr ctr(&allocator);
+
+    	allocator.commit();
+
+    	try {
+    		ctr.prepare();
+
+    		auto alphabet = createRandomAlphabet(alphabet_size_);
+    		auto text = createRandomText(this->size_, alphabet);
+
+    		for (UInt c = 0; c < text.size(); c++)
+    		{
+    			out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+
+    			UBigInt value1 = text[c];
+
+    			ctr.insert(c, value1);
+    		}
+
+    		forceCheck(allocator, MA_SRC);
+
+    		assertText(ctr, text);
+
+    		allocator.commit();
+
+    		StoreResource(allocator, "wts");
+
+    		Allocator alloc2;
+
+    		LoadResource(alloc2, "wts");
+
+    		forceCheck(alloc2, MA_SRC);
+
+    		Ctr wt2(&alloc2, CTR_FIND, ctr.name());
+
+    		assertText(wt2, text);
+    	}
+    	catch (...) {
+    		Store(allocator);
+    		throw;
+    	}
+
+
+    }
 
 
     vector <UInt> createRandomAlphabet(Int size)
