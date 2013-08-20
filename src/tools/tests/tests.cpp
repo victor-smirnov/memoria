@@ -63,26 +63,26 @@ int main(int argc, const char** argv, const char** envp)
 
 
 
-        runner.registerTask(new BitmapTestSuite());
+//        runner.registerTask(new BitmapTestSuite());
+//
+//        runner.registerTask(new PackedAllocatorTestSuite());
+//        runner.registerTask(new PackedTreeTestSuite());
+//        runner.registerTask(new PackedArrayTestSuite());
+//        runner.registerTask(new PackedSequenceTestSuite());
+//        runner.registerTask(new PackedLoudsTestSuite());
+//        runner.registerTask(new PackedLoudsCardinalTestSuite());
+//        runner.registerTask(new PackedWaveletTreeTestSuite());
+//
+//        runner.registerTask(new SymbolSeqTestSuite());
 
-        runner.registerTask(new PackedAllocatorTestSuite());
-        runner.registerTask(new PackedTreeTestSuite());
-        runner.registerTask(new PackedArrayTestSuite());
-        runner.registerTask(new PackedSequenceTestSuite());
-        runner.registerTask(new PackedLoudsTestSuite());
-        runner.registerTask(new PackedLoudsCardinalTestSuite());
-        runner.registerTask(new PackedWaveletTreeTestSuite());
 
-        runner.registerTask(new SymbolSeqTestSuite());
-
-
-        runner.registerTask(new MapTestSuite());
-        runner.registerTask(new VectorTestSuite());
-        runner.registerTask(new VectorMapTestSuite());
+//        runner.registerTask(new MapTestSuite());
+//        runner.registerTask(new VectorTestSuite());
+//        runner.registerTask(new VectorMapTestSuite());
         runner.registerTask(new SequenceTestSuite());
-        runner.registerTask(new WTTestSuite());
-        runner.registerTask(new VTreeTestSuite());
-        runner.registerTask(new LabeledTreeTestSuite());
+//        runner.registerTask(new WTTestSuite());
+//        runner.registerTask(new VTreeTestSuite());
+//        runner.registerTask(new LabeledTreeTestSuite());
 
 
 

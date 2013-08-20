@@ -53,12 +53,6 @@ public:
 			return getRandom(Symbols);
 		});
 
-//		for (Int c = 0; c < size; c++)
-//		{
-//			Int symbol = getRandom(Symbols);
-//			seq.append(symbol);
-//		}
-
 		auto iter = ctr.Begin();
 
 		BigInt t0 = getTimeInMillis();
@@ -70,7 +64,7 @@ public:
 
 		BigInt t1 = getTimeInMillis();
 
-		cout<<"Sequence creation time: "<<FormatTime(t1 - t0)<<endl;
+		this->out()<<"Sequence creation time: "<<FormatTime(t1 - t0)<<std::endl;
 
 		return seq;
 	}

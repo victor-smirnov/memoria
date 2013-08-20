@@ -50,7 +50,10 @@ public:
 
     void testCtrSelect()
     {
+		DefaultLogHandlerImpl logHandler(Base::out());
+
 		Allocator allocator;
+		allocator.getLogger()->setHandler(&logHandler);
 
 		Ctr ctr(&allocator);
 
@@ -58,6 +61,8 @@ public:
 
 		try {
 			auto seq = Base::fillRandom(ctr, this->size_);
+
+			this->forceCheck(allocator, MA_SRC);
 
 			allocator.commit();
 
@@ -90,7 +95,10 @@ public:
 
     void testIterSelectFw()
     {
-    	Allocator allocator;
+		DefaultLogHandlerImpl logHandler(Base::out());
+
+		Allocator allocator;
+		allocator.getLogger()->setHandler(&logHandler);
 
     	Ctr ctr(&allocator);
 
@@ -98,6 +106,8 @@ public:
 
     	try {
     		auto seq = Base::fillRandom(ctr, this->size_);
+
+    		this->forceCheck(allocator, MA_SRC);
 
     		allocator.commit();
 
@@ -139,7 +149,10 @@ public:
 
     void testIterSelectBw()
     {
-    	Allocator allocator;
+		DefaultLogHandlerImpl logHandler(Base::out());
+
+		Allocator allocator;
+		allocator.getLogger()->setHandler(&logHandler);
 
     	Ctr ctr(&allocator);
 
@@ -147,6 +160,8 @@ public:
 
     	try {
     		auto seq = Base::fillRandom(ctr, this->size_);
+
+    		this->forceCheck(allocator, MA_SRC);
 
     		allocator.commit();
 

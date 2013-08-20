@@ -40,10 +40,7 @@ class SequenceCreateTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
 public:
 
-	SequenceCreateTest(StringRef name) :
-			Base(name) {
-//		MEMORIA_ADD_TEST(testCreateRemoveRandom);
-//		MEMORIA_ADD_TEST(testAppend);
+	SequenceCreateTest(StringRef name): Base(name) {
 
 		MEMORIA_ADD_TEST_PARAM(seq_check_count_);
 		MEMORIA_ADD_TEST_PARAM(seq_check_start_);
@@ -52,25 +49,32 @@ public:
 		MEMORIA_ADD_TEST_PARAM(last_symbol_)->state();
 		MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
 
-		MEMORIA_ADD_TEST_WITH_REPLAY(testAppend2, replayAppend2);
+		MEMORIA_ADD_TEST(testCreateRemoveRandom);
+		MEMORIA_ADD_TEST_WITH_REPLAY(testAppend, replayAppend);
 	}
 
-	void testCreateRemoveRandom() {
+	void testCreateRemoveRandom()
+	{
+		DefaultLogHandlerImpl logHandler(Base::out());
+
 		Allocator allocator;
+		allocator.getLogger()->setHandler(&logHandler);
 
 		Ctr ctr(&allocator);
 
 		allocator.commit();
 
 		try {
-			for (Int c = 0; c < this->size_; c++) {
+			for (Int c = 0; c < this->size_; c++)
+			{
 				Int bit1 = getRandom(Symbols);
 				Int idx = getRandom(c + 1);
 
-				this->out() << c << " Insert: " << bit1 << " at " << idx
-						<< endl;
+				this->out() << c << " Insert: " << bit1 << " at " << idx << endl;
 
 				ctr.insert(idx, bit1);
+
+				this->check(allocator, MA_SRC);
 
 				auto iter = ctr.seek(idx);
 
@@ -78,11 +82,11 @@ public:
 
 				AssertEQ(MA_SRC, iter.pos(), idx);
 				AssertEQ(MA_SRC,bit1, bit2);
+
+				allocator.commit();
 			}
 
 			AssertEQ(MA_SRC, ctr.size(), this->size_);
-
-			allocator.commit();
 
 			this->StoreAllocator(allocator, this->getResourcePath("create.dump"));
 
@@ -107,48 +111,6 @@ public:
 		}
 	}
 
-
-//	void testAppend()
-//	{
-//		Allocator allocator;
-//
-//		Ctr ctr(&allocator);
-//
-//		allocator.commit();
-//
-//		try {
-//			auto seq = Base::fillRandom(ctr, this->size_);
-//
-//			allocator.commit();
-//
-//			this->StoreAllocator(allocator, this->getResourcePath("append.dump"));
-//
-//			Int cnt = 0;
-//			for (auto i = ctr.Begin(); !i.isEof(); i++, cnt++)
-//			{
-//				Int symbol1 = i.symbol();
-//				Int symbol2 = seq[cnt];
-//
-//				AssertEQ(MA_SRC, symbol1, symbol2, SBuf()<<cnt);
-//			}
-//
-//			AssertEQ(MA_SRC, cnt, this->size_);
-//
-//			for (Int c = 0; c < this->size_; c++)
-//			{
-//				Int symbol1 = ctr.seek(c).symbol();
-//				Int symbol2 = seq[c];
-//
-//				AssertEQ(MA_SRC, symbol1, symbol2);
-//			}
-//		}
-//		catch (...) {
-//			Base::dump_name_ = Base::Store(allocator);
-//			throw;
-//		}
-//	}
-
-
 	void StoreSequenceData(const vector<UByte>& seq)
 	{
 		String basic_name = "Data." + this->getName();
@@ -169,13 +131,6 @@ public:
 			Int symbol1 = i.symbol();
 			Int symbol2 = data[cnt];
 
-//			this->out()<<cnt<<" "<<hex<<symbol1<<" "<<symbol2<<" "<<dec<<i.pos()<<endl;
-//
-//			if (cnt != i.pos()) {
-//				this->out()<<"Not Equal!"<<endl;
-//				return;
-//			}
-
 			AssertEQ(MA_SRC, cnt, i.pos());
 			AssertEQ(MA_SRC, symbol1, symbol2, SBuf()<<cnt);
 		}
@@ -183,7 +138,7 @@ public:
 
 
 
-	void testAppend2()
+	void testAppend()
 	{
 		DefaultLogHandlerImpl logHandler(Base::out());
 
@@ -240,7 +195,7 @@ public:
 	}
 
 
-	void replayAppend2()
+	void replayAppend()
 	{
 		Allocator allocator;
 		allocator.commit();
