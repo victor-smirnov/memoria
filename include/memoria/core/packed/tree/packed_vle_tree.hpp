@@ -1086,7 +1086,8 @@ public:
 
 		if (this->size() > 0)
 		{
-			shrink(total);
+//			shrink(total);
+			pack();
 		}
 		else {
 			clear();
@@ -1317,8 +1318,6 @@ public:
 	template <Int LineWidth, typename T>
 	void insertBlock(const T* data, Int blocks)
 	{
-//		MEMORIA_ASSERT(blocks * Blocks, ==, raw_size());
-
 		auto values = this->values();
 		Codec codec;
 
@@ -1452,11 +1451,6 @@ public:
 	Values sums() const
 	{
 		Values vals;
-
-//		for (Int block = 0; block < Blocks; block++)
-//		{
-//			vals[block] = sum(block);
-//		}
 
 		sumsSmall<0>(vals);
 
@@ -2050,28 +2044,7 @@ private:
 
 	void enlarge(Int amount)
 	{
-		Int max_tree_capacity = max_capacity(raw_capacity() + amount);;
-
-//		if (amount > 0)
-//		{
-//			max_tree_capacity
-//		}
-//		else if (amount < 0)
-//		{
-////			max_tree_capacity = max_capacity(data_size() + amount);
-////			cout<<amount<<" "<<data_size()<<" "<<max_tree_capacity<<" "<<raw_capacity()<<endl;
-//			max_tree_capacity = max_capacity(raw_capacity() + amount);
-//		}
-//		else {
-//			return;
-//		}
-//
-//		if (max_tree_capacity < 0) {
-//
-//			cout<<raw_size()<<endl;
-//			cout<<data_size()<<endl;
-//			int a = 0; a++;
-//		}
+		Int max_tree_capacity = max_capacity(raw_capacity() + amount);
 
 		MEMORIA_ASSERT_TRUE(max_tree_capacity >= 0);
 
@@ -2124,6 +2097,19 @@ private:
 	void shrink(Int amount)
 	{
 		enlarge(-amount);
+	}
+
+	void pack()
+	{
+		Int current_size 		= this->data_size();
+		Int required_capacity	= MyType::max_capacity(current_size);
+
+		Int values_length 		= this->element_size(VALUES);
+		Int current_capacity	= values_length * 8 / Codec::ElementSize;
+
+		Int capacity_delta		= current_capacity - required_capacity;
+
+		shrink(capacity_delta);
 	}
 
 	void fillZero(Int start, Int end)

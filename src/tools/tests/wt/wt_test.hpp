@@ -79,6 +79,8 @@ public:
     			allocator.commit();
     		}
 
+    		StoreResource(allocator, "wtc");
+
     		forceCheck(allocator, MA_SRC);
 
     		assertText(ctr, text);
@@ -116,7 +118,7 @@ public:
     			}
     		}
 
-    		StoreResource(allocator, "wtc");
+
     	}
     	catch (...) {
     		 Store(allocator);
@@ -174,7 +176,9 @@ public:
     			allocator.commit();
     		}
 
-    		check(allocator, MA_SRC);
+    		StoreResource(allocator, "wtr");
+
+    		forceCheck(allocator, MA_SRC);
     	}
     	catch (...) {
     		Store(allocator);
