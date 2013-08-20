@@ -41,6 +41,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
     void removeNode(NodeBaseG& node, Accumulator& accum, Position& sizes);
     void removeNode(NodeBaseG& node);
+    void removeRootNode(NodeBaseG& node);
 
     MEMORIA_DECLARE_NODE_FN(RemoveNodeContentFn, removeSpace);
     void removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& sums, Position& sizes);
@@ -103,7 +104,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     MEMORIA_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, Accumulator);
 
 
-    MEMORIA_PUBLIC void drop();
+    MEMORIA_PUBLIC void drop()
+    {
+    	NodeBaseG root = self().getRoot(Allocator::READ);
+    	self().removeRootNode(root);
+    }
 
 MEMORIA_CONTAINER_PART_END
 
@@ -155,6 +160,23 @@ void M_TYPE::removeNode(NodeBaseG& node)
 		throw Exception(MA_SRC, "Empty root node should not be deleted with this method.");
 	}
 }
+
+M_PARAMS
+void M_TYPE::removeRootNode(NodeBaseG& node)
+{
+	auto& self = this->self();
+
+	MEMORIA_ASSERT_TRUE(node->is_root());
+
+	Accumulator sums;
+	Position sizes;
+
+	auto ctr_name	= self.name();
+	auto root_id 	= node->id();
+
+	self.removeNode(node, sums, sizes);
+}
+
 
 
 M_PARAMS
@@ -378,23 +400,7 @@ bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
 
 
 
-/**
- * \brief Delete container from allocator with all associated data.
- *
- * Note that this call does not destruct container object.
- */
-MEMORIA_PUBLIC M_PARAMS
-void M_TYPE::drop()
-{
-//	 FIXME: remove record from allocator's root directory.
 
-    NodeBaseG root = self().getRoot(Allocator::READ);
-
-    if (root.isSet())
-    {
-    	self().removeNode(root);
-    }
-}
 
 
 #undef M_TYPE

@@ -96,6 +96,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 		return self().prefix() + raw_key();
 	}
 
+
+	std::pair<Key, Value> operator*() const
+	{
+		return std::pair<Key, Value>(key(), value());
+	}
+
+
 	bool next() {
 		return self().nextKey();
 	}

@@ -14,6 +14,7 @@
 #include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
 #include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
+#include "ctr/ctr_test_suite.hpp"
 #include "map/map_test_suite.hpp"
 #include "vector/vector_test_suite.hpp"
 #include "vector_map/vectormap_test_suite.hpp"
@@ -25,7 +26,7 @@
 #include "symbol_seq/symseq_test_suite.hpp"
 #include "bitmap/bitmap_test_suite.hpp"
 
-//#include "ctr/ctr_test_suite.hpp"
+
 
 
 
@@ -78,6 +79,7 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new SymbolSeqTestSuite());
 
 
+        runner.registerTask(new CtrTestSuite());
         runner.registerTask(new MapTestSuite());
         runner.registerTask(new VectorTestSuite());
         runner.registerTask(new VectorMapTestSuite());
@@ -86,11 +88,6 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new VTreeTestSuite());
         runner.registerTask(new LabeledTreeTestSuite());
 
-
-
-
-//        runner.registerTask(new StaticLoudsTestSuite());
-//        runner.registerTask(new CtrTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

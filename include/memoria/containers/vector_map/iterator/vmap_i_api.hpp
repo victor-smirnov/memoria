@@ -625,12 +625,36 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     	return self.ctr().readStreams(self, pos, target)[1];
     }
 
+    vector<Value>
+    read()
+    {
+    	auto& self = this->self();
+    	vector<Value> data(self.blob_size());
+
+    	MemTBuffer<Value> buf(data);
+
+    	self.read(buf);
+
+    	return data;
+    }
+
 
     void insert(DataSource& src)
     {
     	auto& self = this->self();
 
     	MEMORIA_ASSERT_TRUE(self.stream() == 1);
+
+    	self.ctr().insertData(self, src);
+    }
+
+    void insert(const std::vector<Value>& data)
+    {
+    	auto& self = this->self();
+
+    	MEMORIA_ASSERT_TRUE(self.stream() == 1);
+
+    	MemBuffer<const Value> src(data);
 
     	self.ctr().insertData(self, src);
     }

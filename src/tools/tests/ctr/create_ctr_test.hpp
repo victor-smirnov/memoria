@@ -7,17 +7,16 @@
 #ifndef MEMORIA_TESTS_CREATE_CTR_CREATE_CTR_TEST_HPP_
 #define MEMORIA_TESTS_CREATE_CTR_CREATE_CTR_TEST_HPP_
 
-#include "../tests_inc.hpp"
+#include <memoria/tools/profile_tests.hpp>
+#include <memoria/tools/tools.hpp>
 
 #include <vector>
 
+#include "../tests_inc.hpp"
+
+
+
 namespace memoria {
-
-using namespace memoria::vapi;
-using namespace std;
-
-
-
 
 
 
@@ -27,31 +26,32 @@ class CreateCtrTest: public SPTestTask {
 
     typedef KVPair<BigInt, BigInt>                                              Pair;
     typedef vector<Pair>                                                        PairVector;
-    typedef SCtrTF<VectorMap<BigInt, Byte>>::Type                               VectorMapCtr;
-    typedef SCtrTF<Map1>::Type                                                  MapCtr;
-    typedef VectorMapCtr::Iterator                                              VMIterator;
+    typedef SCtrTF<WT>::Type                               						WTCtr;
+    typedef SCtrTF<Map<BigInt, BigInt>>::Type                                   MapCtr;
 
     PairVector pairs_;
 
-    Int map_size_           = 1024*256;
-    Int vector_map_size_    = 200;
-    Int block_size_         = 1024;
+    Int map_size_           = 10000;
+    Int wt_size_    		= 500;
 
     Int iteration_          = 0;
 
     BigInt map_name_;
-    BigInt vector_map_name_;
+    BigInt wt_name_;
 
 public:
 
-    CreateCtrTest(): SPTestTask("CreateCtr")
+    CreateCtrTest(): SPTestTask("Create")
     {
+    	MapCtr::initMetadata();
+
+
         MEMORIA_ADD_TEST_PARAM(map_size_)->setDescription("Size of the Map container");
-        MEMORIA_ADD_TEST_PARAM(vector_map_size_)->setDescription("Size of the VectorMap container");
-        MEMORIA_ADD_TEST_PARAM(block_size_)->setDescription("Size of data block inserted into VectorMap container");
+        MEMORIA_ADD_TEST_PARAM(wt_size_)->setDescription("Size of the WaveletTree container");
+
 
         MEMORIA_ADD_TEST_PARAM(map_name_)->state();
-        MEMORIA_ADD_TEST_PARAM(vector_map_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(wt_name_)->state();
         MEMORIA_ADD_TEST_PARAM(iteration_)->state();
 
 
@@ -113,31 +113,31 @@ public:
     	assertSize(MA_SRC, allocator, 1);
 
     	AssertThrows<CtrTypeException>(MA_SRC, [&]{
-    		VectorMapCtr map(&allocator, CTR_FIND, 12345);
+    		WTCtr map(&allocator, CTR_FIND, 12345);
     	});
 
     	assertSize(MA_SRC, allocator, 1);
 
     	AssertThrows<NoCtrException>(MA_SRC, [&]{
-    		VectorMapCtr map(&allocator, CTR_FIND, 12346);
+    		WTCtr map(&allocator, CTR_FIND, 12346);
     	});
 
     	assertSize(MA_SRC, allocator, 1);
 
     	AssertDoesntThrow(MA_SRC, [&]{
-    		VectorMapCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
+    		WTCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
     	});
 
     	assertSize(MA_SRC, allocator, 2);
 
     	AssertDoesntThrow(MA_SRC, [&]{
-    		VectorMapCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
+    		WTCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
     	});
 
     	assertSize(MA_SRC, allocator, 2);
 
     	AssertDoesntThrow(MA_SRC, [&]{
-    		VectorMapCtr map(&allocator, CTR_FIND, 12346);
+    		WTCtr map(&allocator, CTR_FIND, 12346);
     	});
 
     	assertSize(MA_SRC, allocator, 2);
@@ -165,18 +165,19 @@ public:
 
     	MapCtr map(&allocator, CTR_FIND, name);
 
-    	for (auto& iter: map)
+    	for (auto pair: map)
     	{
-    		AssertEQ(MA_SRC, iter.key(), iter.value() - 1);
+    		AssertEQ(MA_SRC, pair.first, pair.second - 1);
     	}
 
-    	map.drop();
+    	//Container removal is not fully implemented yet
+    	//map.drop();
 
-    	assertSize(MA_SRC, allocator, 2);
+    	assertSize(MA_SRC, allocator, 3);
 
     	allocator.commit();
 
-    	assertSize(MA_SRC, allocator, 2);
+    	assertSize(MA_SRC, allocator, 3);
 
 
     	BigInt name1 = allocator.createCtrName();
@@ -198,8 +199,6 @@ public:
 
         MapCtr map(&allocator);
 
-        map.setBranchingFactor(100);
-
         map_name_ = map.name();
 
         BigInt t00 = getTimeInMillis();
@@ -209,20 +208,19 @@ public:
             map[getRandom()] = getRandom();
         }
 
-        VectorMapCtr vector_map(&allocator);
+        WTCtr wt_ctr(&allocator);
+        wt_ctr.prepare();
 
-        vector_map.setBranchingFactor(100);
+        wt_name_ = wt_ctr.name();
 
-        vector_map_name_ = vector_map.name();
-
-        for (Int c = 0; c < vector_map_size_; c++)
+        for (Int c = 0; c < wt_size_; c++)
         {
-            vector_map[getRandom()] = createBuffer<Byte>(getRandom(block_size_), getRandom(256));
+            wt_ctr.insert(c, getRandom());
         }
 
         allocator.commit();
 
-        check(allocator, MA_SRC);
+        forceCheck(allocator, MA_SRC);
 
         BigInt t0 = getTimeInMillis();
 
@@ -241,37 +239,32 @@ public:
         out()<<"Store Time: "<<FormatTime(t1 - t0)<<endl;
         out()<<"Load Time:  "<<FormatTime(t2 - t1)<<endl;
 
-        check(new_alloc, MA_SRC);
+        forceCheck(new_alloc, MA_SRC);
 
         MapCtr new_map(&new_alloc, CTR_FIND, map.name());
 
-        AssertEQ(MA_SRC, map.getBranchingFactor(), new_map.getBranchingFactor());
-
-        AssertEQ(MA_SRC, map.getSize(), new_map.getSize());
+        AssertEQ(MA_SRC, map.size(), new_map.size());
 
         auto new_iter = new_map.Begin();
 
-        for (auto iter = map.Begin(); !iter.isEnd(); iter.nextKey(), new_iter.nextKey())
+        for (auto iter = map.Begin(); !iter.isEnd(); iter++, new_iter++)
         {
-            AssertEQ(MA_SRC, iter.getKey(0), new_iter.getKey(0));
-            AssertEQ(MA_SRC, iter.getValue(), new_iter.getValue());
+            AssertEQ(MA_SRC, iter.key(), new_iter.key());
+            AssertEQ(MA_SRC, iter.value(), new_iter.value());
         }
 
         BigInt t22 = getTimeInMillis();
 
-        VectorMapCtr new_vector_map(&new_alloc, CTR_FIND, vector_map.name());
+        WTCtr new_wt(&new_alloc, CTR_FIND, wt_ctr.name());
 
-        AssertEQ(MA_SRC, vector_map.getBranchingFactor(), new_vector_map.getBranchingFactor());
+        AssertEQ(MA_SRC, wt_ctr.size(), new_wt.size());
 
-        auto new_vm_iter = new_vector_map.Begin();
-
-        for (auto iter = vector_map.Begin(); iter.isNotEnd(); iter.next(), new_vm_iter.next())
+        for (Int c = 0; c < wt_ctr.size(); c++)
         {
-        	AssertEQ(MA_SRC, iter.size(), new_vm_iter.size());
+        	auto sym1 = wt_ctr.value(c);
+        	auto sym2 = new_wt.value(c);
 
-            vector<Byte> data = iter.read();
-
-            checkBufferWritten(new_vm_iter, data, "Array data check failed", MA_SRC);
+        	AssertEQ(MA_SRC, sym1, sym2);
         }
 
         BigInt t33 = getTimeInMillis();
@@ -281,6 +274,20 @@ public:
         out()<<"check Time:  "<<FormatTime(t33 - t22)<<endl;
     }
 
+
+    template <typename T>
+    void compareBuffers(const vector<T>& src, const vector<T>& tgt, const char* source)
+    {
+    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+
+    	for (size_t c = 0; c < src.size(); c++)
+    	{
+    		auto v1 = src[c];
+    		auto v2 = tgt[c];
+
+    		AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
+    	}
+    }
 
 };
 

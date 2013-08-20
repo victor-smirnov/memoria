@@ -394,8 +394,8 @@ public:
 		Base(streams)
 	{}
 
-	template <typename Node>
-	ResultType treeNode(const Node* node, Int start)
+	template <typename NTypes>
+	ResultType treeNode(const BranchNode<NTypes>* node, Int start)
 	{
 		for (auto& i: Base::search_results_) i = -1;
 

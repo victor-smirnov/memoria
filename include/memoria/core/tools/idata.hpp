@@ -579,6 +579,12 @@ public:
         length_(other.length_)
     {}
 
+    MemBuffer(const vector<T>& data):
+    	start_(0),
+    	length_(data.size()),
+    	data_(&data[0])
+    {}
+
     virtual ~MemBuffer() throw () {}
 
     virtual IDataAPI api() const
