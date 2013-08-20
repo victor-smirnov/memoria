@@ -12,7 +12,7 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/strings.hpp>
 #include <memoria/core/tools/idata.hpp>
-//#include <memoria/core/tools/symbol_sequence.hpp>
+#include <memoria/core/tools/terminal.hpp>
 #include <memoria/core/container/logs.hpp>
 
 #include <memoria/containers/vector/vctr_names.hpp>
@@ -28,6 +28,7 @@
 namespace memoria {
 
 using namespace memoria::vapi;
+using tools::Term;
 
 class PARemover {
 	PackedAllocatable* obj_;
@@ -611,6 +612,8 @@ void AssertNEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 		throw TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
 	}
 }
+
+
 
 
 }

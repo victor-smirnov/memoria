@@ -255,7 +255,11 @@ public:
     {
         Task::Run();
 
-        return failures_.size();
+        Int failures = failures_.size();
+
+        failures_.clear();
+
+        return failures;
     }
 
     template <typename T>

@@ -5,6 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #include <memoria/tools/tests.hpp>
+#include <memoria/tools/tools.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 
 #include <algorithm>
@@ -33,16 +34,23 @@ void TestTask::Run(std::ostream& out)
 
         this->setUp();
 
-        try {
+        BigInt t0 = getTimeInMillis();
 
-        	out<<"Test: "<<current_test_name_<<endl;
+        try {
+        	out<<"Test: "<<current_test_name_<<std::endl;
             descr->run(this, out);
-            out<<"TEST PASSED"<<endl<<endl;
+
+            BigInt t1 = getTimeInMillis();
+
+            out<<"TEST PASSED in "<<FormatTime(t1 - t0)<<std::endl<<std::endl;
 
             this->tearDown();
         }
-        catch (...) {
-        	out<<"TEST FAILED"<<endl;
+        catch (...)
+        {
+        	BigInt t1 = getTimeInMillis();
+
+        	out<<"TEST FAILED in "<<FormatTime(t1 - t0)<<std::endl;
             this->tearDown();
             throw;
         }

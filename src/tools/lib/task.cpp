@@ -62,10 +62,15 @@ Int Task::Run()
     BuildResources();
 
     bool result;
-    try {
-        Run(*out_);
 
-        (*out_)<<"PASSED"<<endl;
+    try {
+    	BigInt t0  = getTimeInMillis();
+
+    	Run(*out_);
+
+        BigInt t1 = getTimeInMillis();
+
+        (*out_)<<"PASSED in "<<FormatTime(t1 - t0)<<endl;
 
         result = false;
     }
@@ -151,7 +156,8 @@ void TaskGroup::Run(ostream& out)
 
     if (failures_.size() > 0)
     {
-        cout<<" FAILED: ";
+        cout<<Term::red_s()<<" FAILED: "<<Term::red_e();
+        out<<"FAILED: ";
 
         for (UInt c = 0; c < failures_.size(); c++)
         {
@@ -165,13 +171,11 @@ void TaskGroup::Run(ostream& out)
         }
     }
     else {
-        cout<<" PASSED";
+        cout<<Term::green_s()<<" PASSED"<<Term::green_e();
     }
 
     out<<endl;
     cout<<endl;
-
-    failures_.clear();
 }
 
 void TaskGroup::registerTask(Task* task)
@@ -277,7 +281,7 @@ Int GroupRunner::Run()
                 t->setOutputFolder(folder);
                 t->setIteration(c);
 
-                if (Int failures = t->Run())
+                if (Int failures = t->Run() > 0)
                 {
                     failures_.push_back(FailureDescriptor(t->getIteration(), t->getName()));
 
@@ -291,7 +295,7 @@ Int GroupRunner::Run()
 
     if (failures_.size() > 0)
     {
-        cout<<"FAILURES: "<<endl;
+        cout<<Term::red_s()<<"FAILURES: "<<Term::red_e()<<endl;
         out<<"FAILURES: "<<endl;
 
         map<String, vector<Int>> failures;
@@ -322,7 +326,7 @@ Int GroupRunner::Run()
         }
     }
     else {
-        cout<<"PASSED: ALL"<<endl;
+        cout<<Term::green_s()<<"PASSED: ALL"<<Term::green_e()<<endl;
         out<<"PASSED: ALL"<<endl;
     }
 
