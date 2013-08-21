@@ -40,7 +40,9 @@ class SequenceCreateTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
 public:
 
-	SequenceCreateTest(StringRef name): Base(name) {
+	SequenceCreateTest(StringRef name): Base(name)
+	{
+		this->size_ = BitsPerSymbol == 8 ? 50000 : 300000;
 
 		MEMORIA_ADD_TEST_PARAM(seq_check_count_);
 		MEMORIA_ADD_TEST_PARAM(seq_check_start_);

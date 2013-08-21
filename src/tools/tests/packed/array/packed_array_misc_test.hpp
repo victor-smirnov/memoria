@@ -53,6 +53,8 @@ public:
 
 	PackedArrayMiscTest(StringRef name): Base(name)
     {
+		this->size_ = 8192;
+
 		MEMORIA_ADD_TEST_PARAM(iterations_);
 
 		MEMORIA_ADD_TEST(testInsertVector);
@@ -266,7 +268,7 @@ public:
     		}
     	}
 
-    	cout<<endl;
+    	out()<<endl;
     }
 
     void testRemoveAll()

@@ -70,6 +70,8 @@ public:
 
     PackedSearchableSequenceMiscTest(StringRef name): Base(name)
     {
+    	this->size_ = 8192;
+
     	MEMORIA_ADD_TEST(testCreate);
     	MEMORIA_ADD_TEST(testInsertSingle);
     	MEMORIA_ADD_TEST(testInsertMultiple);

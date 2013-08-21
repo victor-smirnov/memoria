@@ -33,7 +33,7 @@ public:
     TaskParametersSet(StringRef name):
         ParametersSet(name),
         enabled(true),
-        check_step(1),
+        check_step(100),
         memory_limit(LLONG_MAX),
         own_folder(false)
     {

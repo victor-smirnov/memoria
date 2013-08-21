@@ -39,34 +39,16 @@ public:
 
 	PackedWaveletTreeTest(): TestTask("WaveletTree")
     {
-		size_ = 1000;
+		size_ = 514;
 
 		MEMORIA_ADD_TEST_PARAM(alphabet_size_);
 
 		MEMORIA_ADD_TEST(testCreateTree);
 		MEMORIA_ADD_TEST(testRemoveTree);
-
-		MEMORIA_ADD_TEST(testDump);
     }
 
     virtual ~PackedWaveletTreeTest() throw() {}
 
-    void testDump()
-    {
-    	Tree* tree = createTree();
-    	PARemover remover(tree);
-
-    	tree->prepare();
-
-    	tree->insert(0, 0x76053612);
-    	tree->insert(1, 0x5e3a3092);
-//    	tree->insert(2, 0x7b4f865a);
-//    	tree->insert(3, 0x372507b5);
-
-    	cout<<hex<<tree->value(0)<<dec<<endl;
-
-    	tree->dump();
-    }
 
 
     void traverseTreePaths(const LoudsTree* tree, function<void (const PackedLoudsNode&, Int)> fn, Int level = 0)

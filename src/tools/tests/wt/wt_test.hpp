@@ -35,13 +35,13 @@ public:
 
 	WTTest(StringRef name): SPTestTask(name)
     {
-		size_ = 1000;
+		size_ = 5000;
 
 		MEMORIA_ADD_TEST_PARAM(alphabet_size_);
 		MEMORIA_ADD_TEST_PARAM(remove_check_);
 
-//		MEMORIA_ADD_TEST(testCreate);
-//		MEMORIA_ADD_TEST(testRemove);
+		MEMORIA_ADD_TEST(testCreate);
+		MEMORIA_ADD_TEST(testRemove);
 
 		MEMORIA_ADD_TEST(testStore);
     }

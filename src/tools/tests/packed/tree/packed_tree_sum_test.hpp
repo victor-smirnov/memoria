@@ -51,11 +51,17 @@ class PackedTreeSumTest: public PackedTreeTestBase <
 	typedef typename Base::Values												Values;
 	typedef typename Tree::IndexValue											IndexValue;
 
+	Int iterations_;
+
 public:
 
 
 	PackedTreeSumTest(StringRef name): Base(name)
     {
+		this->size_ = 8192;
+
+		MEMORIA_ADD_TEST_PARAM(iterations_);
+
 		MEMORIA_ADD_TEST(testBlockSum);
     }
 
@@ -90,9 +96,9 @@ public:
 
     void testBlockSum()
     {
-    	for (Int c = 1; c <= 10; c++)
+    	for (Int c = 1024; c <= this->size_; c += 1024)
     	{
-    		testBlockSum(c * 1024);
+    		testBlockSum(c);
     	}
     }
 
@@ -107,7 +113,7 @@ public:
 
     	Int size = tree->size();
 
-    	for (Int c = 0; c < 1000; c++)
+    	for (Int c = 0; c < iterations_; c++)
     	{
     		Int end 	= getRandom(size / 2) + size / 2;
     		Int start 	= getRandom(size / 2);

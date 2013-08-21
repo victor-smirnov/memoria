@@ -45,7 +45,7 @@ public:
         Base(name)
     {
         Base::max_block_size_ = 1024*40;
-        Base::size_           = 1024*1024*16;
+        Base::size_           = 1024*1024*2;
     }
 
     virtual MemBuffer createBuffer(Int size)

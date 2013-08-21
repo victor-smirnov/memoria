@@ -42,6 +42,8 @@ protected:
 public:
 	SequenceTestBase(StringRef name): Base(name)
 	{
+		this->size_ = 100000;
+
 		MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
 	}
 

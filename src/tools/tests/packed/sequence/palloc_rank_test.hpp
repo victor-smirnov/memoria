@@ -73,7 +73,9 @@ public:
 
     PackedSearchableSequenceRankTest(StringRef name): Base(name)
     {
-        MEMORIA_ADD_TEST(runTest1);
+        this->size_ = 8192;
+
+    	MEMORIA_ADD_TEST(runTest1);
         MEMORIA_ADD_TEST(runTest3);
         MEMORIA_ADD_TEST(runTest4);
     }

@@ -44,11 +44,17 @@ class PackedArrayVLEMiscTest: public PackedArrayTestBase <
 	typedef typename Base::Tree													Tree;
 	typedef typename Base::Values												Values;
 
+	Int iterations_ = 1000;
+
 public:
 
 
 	PackedArrayVLEMiscTest(StringRef name): Base(name)
     {
+		this->size_ = 8192;
+
+		MEMORIA_ADD_TEST_PARAM(iterations_);
+
 		MEMORIA_ADD_TEST(testIndexLayoutSize);
 		MEMORIA_ADD_TEST(testIndexLayout);
 
@@ -114,7 +120,7 @@ public:
 
     void testGetValueOffset()
     {
-    	for (Int c = 256; c < 16384; c *= 2)
+    	for (Int c = 256; c < this->size_; c *= 2)
     	{
     		testGetValueOffset(c);
     	}
@@ -134,7 +140,7 @@ public:
     	Int offset1 = tree->value_offset(tree->raw_size());
     	AssertEQ(MA_SRC, offset1, tree->data_size());
 
-    	for (Int c = 0; c < 1000; c++)
+    	for (Int c = 0; c < iterations_; c++)
     	{
     		Int idx = getRandom(tree->raw_size());
 

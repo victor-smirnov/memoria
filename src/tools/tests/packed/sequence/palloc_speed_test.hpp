@@ -87,11 +87,9 @@ public:
 
     	this->fillRandom(seq, this->size_);
 
-//    	seq->index()->dump();
-
     	Int rs = seq->index()->raw_size();
     	Int ds = seq->index()->data_size();
-    	cout<<"BPE: "<<ds/(float)rs<<" BS: "<<seq->index()->block_size()<<endl;
+    	Base::out()<<"BPE: "<<ds/(float)rs<<" BS: "<<seq->index()->block_size()<<endl;
 
 
 
@@ -110,9 +108,7 @@ public:
 
     	BigInt t2 = getTimeInMillis();
 
-
-
-    	cout<<FormatTime(t1 - t0)<<" "<<FormatTime(t2 - t1)<<endl;
+    	Base::out()<<FormatTime(t1 - t0)<<" "<<FormatTime(t2 - t1)<<endl;
     }
 
 

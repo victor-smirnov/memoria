@@ -33,7 +33,7 @@ public:
 
     PackedLoudsCardinalTest(): Base("Create")
     {
-//    	MEMORIA_ADD_TEST(testCreateCardinalTree);
+    	MEMORIA_ADD_TEST(testCreateCardinalTree);
     	MEMORIA_ADD_TEST(testRemoveCardinalTree);
     }
 
@@ -44,6 +44,7 @@ public:
     	PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
 
     	alloc->init(block_size, 1);
+    	alloc->setTopLevelAllocator();
 
     	CardinalTree* tree = alloc->template allocateEmpty<CardinalTree>(0);
 
@@ -155,7 +156,7 @@ public:
     		checkTreeContent(tree, paths);
     	}
 
-    	tree->dump();
+    	tree->dump(out());
     }
 };
 

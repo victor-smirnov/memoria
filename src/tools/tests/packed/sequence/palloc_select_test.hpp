@@ -71,6 +71,8 @@ public:
 
     PackedSearchableSequenceSelectTest(StringRef name): Base(name)
     {
+    	this->size_ = 8192;
+
     	MEMORIA_ADD_TEST(runSelectFromFWTest);
         MEMORIA_ADD_TEST(runSelectFWTest);
 

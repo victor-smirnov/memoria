@@ -190,15 +190,11 @@ private:
 
 		Int 	rank	= msequence()->rank(seq_num, idx + 1, label);
 
-		cout<<idx<<" "<<hex<<label<<dec<<" "<<rank<<" "<<node.idx()<<endl;
-
 		value |= label << (level * 8);
 
 		if (level > 0)
 		{
 			PackedLoudsNode child = ctree()->find_child(node, label);
-
-			cout<<"child: "<<child.idx()<<endl;
 
 			buildValue(rank - 1, child, value, level - 1);
 		}

@@ -57,6 +57,8 @@ public:
 
 	PackedTreeMiscTest(StringRef name): Base(name)
     {
+		this->size_ = 8192;
+
 		MEMORIA_ADD_TEST_PARAM(iterations_);
 
 		MEMORIA_ADD_TEST(testInsertVector);
@@ -169,7 +171,7 @@ public:
 
     void testSplitToEmpty()
     {
-    	for (int c = 2; c <= 32*1024; c*=2)
+    	for (int c = 2; c <= this->size_; c*=2)
     	{
     		testSplitToEmpty(c);
     	}
@@ -203,7 +205,7 @@ public:
 
     void testSplitToPreFilled()
     {
-    	for (int c = 2; c <= 32*1024; c*=2)
+    	for (int c = 2; c <= this->size_; c*=2)
     	{
     		testSplitPreFilled(c);
     	}
@@ -240,7 +242,7 @@ public:
 
     void testRemoveMulti()
     {
-    	for (Int size = 1; size <= 32768; size*=2)
+    	for (Int size = 1; size <= this->size_; size*=2)
     	{
     		this->out()<<size<<std::endl;
 
@@ -272,7 +274,7 @@ public:
 
     void testRemoveAll()
     {
-    	for (Int size = 1; size <= 32768; size*=2)
+    	for (Int size = 1; size <= this->size_; size*=2)
     	{
     		this->out()<<size<<std::endl;
 
@@ -292,7 +294,7 @@ public:
 
     void testMerge()
     {
-    	for (int c = 1; c <= 32*1024; c*=2)
+    	for (int c = 1; c <= this->size_; c*=2)
     	{
     		testMerge(c);
     	}
@@ -324,7 +326,7 @@ public:
 
     void testClear()
     {
-    	for (int c = 1; c <= 32*1024; c*=2)
+    	for (int c = 1; c <= this->size_; c*=2)
     	{
     		testClear(c);
     	}

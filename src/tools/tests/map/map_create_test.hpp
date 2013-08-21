@@ -40,7 +40,8 @@ public:
 
     MapCreateTest(StringRef name): Base(name)
     {
-    	Base::size_ = 10000;
+    	Base::size_ 		= 10000;
+    	Base::check_step	= 0;
 
     	MEMORIA_ADD_TEST_PARAM(key_)->state();
     	MEMORIA_ADD_TEST_PARAM(value_)->state();

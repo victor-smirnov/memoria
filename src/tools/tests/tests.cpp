@@ -14,7 +14,7 @@
 #include "packed/louds/packed_louds_suite.hpp"
 #include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
 #include "packed/wavelet_tree/packed_wtree_suite.hpp"
-
+//
 #include "ctr/ctr_test_suite.hpp"
 #include "map/map_test_suite.hpp"
 #include "vector/vector_test_suite.hpp"
@@ -31,7 +31,7 @@
 using namespace std;
 using namespace memoria;
 
-#include "dump.inc"
+//#include "dump.inc"
 
 const char* DESCRIPTION = "Run Memoria regression tests with specified configuration";
 const char* CFG_FILE    = "tests.properties";
@@ -70,7 +70,7 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new PackedLoudsCardinalTestSuite());
         runner.registerTask(new PackedWaveletTreeTestSuite());
 
-        runner.registerTask(new SymbolSeqTestSuite());
+//        runner.registerTask(new SymbolSeqTestSuite());
 
         runner.registerTask(new CtrTestSuite());
         runner.registerTask(new MapTestSuite());
@@ -109,7 +109,7 @@ int main(int argc, const char** argv, const char** envp)
         }
         else if (cmd_line.IsDump())
         {
-        	DumpAllocator(cmd_line.getDumpFileName());
+//        	DumpAllocator(cmd_line.getDumpFileName());
         }
         else {
             cout<<"Seed: "<<seed<<endl;

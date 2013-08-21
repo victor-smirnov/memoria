@@ -38,7 +38,7 @@ public:
         MEMORIA_ADD_TEST(testSpeed2);
 
         MEMORIA_ADD_TEST(testI64Codec);
-//        MEMORIA_ADD_TEST(testEliasCodec);
+        MEMORIA_ADD_TEST(testEliasCodec);
     }
 
     void testSpeed1()
@@ -54,7 +54,7 @@ public:
 
     	BigInt t1 = getTimeInMillis();
 
-    	cout<<"Move time: "<<FormatTime(t1 - t0)<<endl;
+    	this->out()<<"Move time: "<<FormatTime(t1 - t0)<<endl;
 
     	free(buf);
     }
@@ -85,7 +85,7 @@ public:
 
     	BigInt t1 = getTimeInMillis();
 
-    	cout<<"GetBits Time: "<<FormatTime(t1 - t0)<<" "<<sum<<" "<<cnt<<endl;
+    	this->out()<<"GetBits Time: "<<FormatTime(t1 - t0)<<" "<<sum<<" "<<cnt<<endl;
 
     	free(buf);
     }
@@ -144,7 +144,7 @@ public:
     		AssertEQ(MA_SRC, values[c], values2[c]);
     	}
 
-    	cout<<"write: "<<FormatTime(t1 - t0)<<" read: "<<FormatTime(t2 - t1)<<endl;
+    	this->out()<<"write: "<<FormatTime(t1 - t0)<<" read: "<<FormatTime(t2 - t1)<<endl;
 
     	free(buf);
     }

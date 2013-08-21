@@ -46,19 +46,21 @@ protected:
 	String pairs_data_file_;
 	String pairs_sorted_data_file_;
 
-	Int iterator_check_count_ = 1;
+	Int iterator_check_count_ = 100;
 	Int iterator_check_counter_ = 0;
 
-	Int data_check_count_ = 1;
+	Int data_check_count_ = 100;
 	Int data_check_counter_ = 0;
 
 	bool throw_ex_ = false;
 
 public:
 
-	MapTestBase(StringRef name) :
-			SPTestTask(name) {
+	MapTestBase(StringRef name): SPTestTask(name)
+	{
 		Ctr::initMetadata();
+
+		size_ = 10000;
 
 		MEMORIA_ADD_TEST_PARAM(throw_ex_);
 

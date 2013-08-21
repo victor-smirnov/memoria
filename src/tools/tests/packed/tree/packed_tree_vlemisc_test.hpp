@@ -48,11 +48,17 @@ class PackedTreeVLEMiscTest: public PackedTreeTestBase <
 	typedef typename Base::Tree													Tree;
 	typedef typename Base::Values												Values;
 
+	Int iterations_	= 1000;
+
 public:
 
 
 	PackedTreeVLEMiscTest(StringRef name): Base(name)
     {
+		this->size_ = 8192;
+
+		MEMORIA_ADD_TEST_PARAM(iterations_);
+
 		MEMORIA_ADD_TEST(testIndexLayoutSize);
 		MEMORIA_ADD_TEST(testIndexLayout);
 
@@ -61,8 +67,8 @@ public:
 
     virtual ~PackedTreeVLEMiscTest() throw() {}
 
-    void testIndexLayoutSize() {
-
+    void testIndexLayoutSize()
+    {
     	vector<Int> sizes 		 = {258, 511, 1025, 4894, 8192, 512578, 398123478};
     	vector<Int> layout_sizes = {3, 3, 4, 4, 4, 5, 7};
 
@@ -118,7 +124,7 @@ public:
 
     void testGetValueOffset()
     {
-    	for (Int c = 256; c < 16384; c *= 2)
+    	for (Int c = 256; c < this->size_; c *= 2)
     	{
     		testGetValueOffset(c);
     	}
@@ -138,7 +144,7 @@ public:
     	Int offset1 = tree->value_offset(tree->raw_size());
     	AssertEQ(MA_SRC, offset1, tree->data_size());
 
-    	for (Int c = 0; c < 1000; c++)
+    	for (Int c = 0; c < iterations_; c++)
     	{
     		Int idx = getRandom(tree->raw_size());
 

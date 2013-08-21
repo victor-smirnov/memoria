@@ -57,7 +57,7 @@ protected:
 
     Int 	max_block_size_ 		= 1024*40;
     bool	check_data_				= false;
-    Int 	iterator_check_count_	= 1;
+    Int 	iterator_check_count_	= 10;
 
     Int 	iteration_;
     Int     data_;

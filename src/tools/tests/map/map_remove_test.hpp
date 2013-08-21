@@ -46,7 +46,8 @@ public:
 
     MapRemoveTest(StringRef name): Base(name)
     {
-        size_ = 10000;
+    	Base::size_ 		= 10000;
+    	Base::check_step	= 0;
 
     	MEMORIA_ADD_TEST_WITH_REPLAY(runRemoveTest, replayRemoveTest);
     }

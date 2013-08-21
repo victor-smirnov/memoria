@@ -58,6 +58,8 @@ public:
 
 	PackedTreeFindTest(StringRef name): Base(name)
     {
+		this->size_ = 8192;
+
 		MEMORIA_ADD_TEST_PARAM(iterations_);
 
 		MEMORIA_ADD_TEST(testFindForward);
@@ -118,9 +120,9 @@ public:
 
     void testFindForward()
     {
-    	for (Int c = 1; c <= 10; c++)
+    	for (Int c = 1024; c <= this->size_; c += 1024)
     	{
-    		testFindForward(c * 1024);
+    		testFindForward(c);
     	}
     }
 
@@ -130,10 +132,6 @@ public:
 
     	Tree* tree = Base::createEmptyTree(block_size);
     	PARemover remover(tree);
-
-    	if (block_size == 1024) {
-    		DebugCounter = 1;
-    	}
 
     	auto values = Base::fillRandom(tree);
 
@@ -165,9 +163,9 @@ public:
 
     void testFindBackward()
     {
-    	for (Int c = 1; c <= 10; c++)
+    	for (Int c = 1024; c <= this->size_; c += 1024)
     	{
-    		testFindBackward(c * 1024);
+    		testFindBackward(c);
     	}
     }
 
