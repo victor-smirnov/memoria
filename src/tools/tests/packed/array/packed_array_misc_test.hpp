@@ -268,7 +268,7 @@ public:
     		}
     	}
 
-    	out()<<endl;
+    	this->out()<<endl;
     }
 
     void testRemoveAll()
