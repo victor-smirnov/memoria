@@ -26,13 +26,13 @@ class CreateCtrTest: public SPTestTask {
 
     typedef KVPair<BigInt, BigInt>                                              Pair;
     typedef vector<Pair>                                                        PairVector;
-    typedef SCtrTF<WT>::Type                               						WTCtr;
+    typedef SCtrTF<WT>::Type                                                    WTCtr;
     typedef SCtrTF<Map<BigInt, BigInt>>::Type                                   MapCtr;
 
     PairVector pairs_;
 
     Int map_size_           = 10000;
-    Int wt_size_    		= 500;
+    Int wt_size_            = 500;
 
     Int iteration_          = 0;
 
@@ -43,7 +43,7 @@ public:
 
     CreateCtrTest(): SPTestTask("Create")
     {
-    	MapCtr::initMetadata();
+        MapCtr::initMetadata();
 
 
         MEMORIA_ADD_TEST_PARAM(map_size_)->setDescription("Size of the Map container");
@@ -64,129 +64,129 @@ public:
 
     void assertEmpty(const char* src, Allocator& allocator)
     {
-    	AssertEQ(src, allocator.size(), 0);
+        AssertEQ(src, allocator.size(), 0);
     }
 
     void assertSize(const char* src, Allocator& allocator, Int size)
     {
-    	AssertEQ(src, allocator.size(), size);
+        AssertEQ(src, allocator.size(), size);
     }
 
     void runCreateCtrTest()
     {
-    	DefaultLogHandlerImpl logHandler(out());
+        DefaultLogHandlerImpl logHandler(out());
 
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
-    	allocator.commit();
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
+        allocator.commit();
 
-    	assertEmpty(MA_SRC, allocator);
+        assertEmpty(MA_SRC, allocator);
 
-    	AssertThrows<Exception>(MA_SRC, []{
-    		MapCtr map(nullptr);
-    	});
+        AssertThrows<Exception>(MA_SRC, []{
+            MapCtr map(nullptr);
+        });
 
-    	AssertThrows<Exception>(MA_SRC, [&]{
-    		MapCtr map(&allocator, 0);
-    	});
+        AssertThrows<Exception>(MA_SRC, [&]{
+            MapCtr map(&allocator, 0);
+        });
 
-    	assertEmpty(MA_SRC, allocator);
+        assertEmpty(MA_SRC, allocator);
 
-    	AssertThrows<NoCtrException>(MA_SRC, [&]{
-    		MapCtr map(&allocator, CTR_FIND, 12345);
-    	});
+        AssertThrows<NoCtrException>(MA_SRC, [&]{
+            MapCtr map(&allocator, CTR_FIND, 12345);
+        });
 
-    	assertEmpty(MA_SRC, allocator);
+        assertEmpty(MA_SRC, allocator);
 
-    	// Ensure subsequent CTR_FIND with the same name
-    	// doesn't affect allocator
-    	AssertThrows<NoCtrException>(MA_SRC, [&]{
-    		MapCtr map(&allocator, CTR_FIND, 12345);
-    	});
+        // Ensure subsequent CTR_FIND with the same name
+        // doesn't affect allocator
+        AssertThrows<NoCtrException>(MA_SRC, [&]{
+            MapCtr map(&allocator, CTR_FIND, 12345);
+        });
 
-    	assertEmpty(MA_SRC, allocator);
+        assertEmpty(MA_SRC, allocator);
 
-    	AssertDoesntThrow(MA_SRC, [&]{
-    		MapCtr map(&allocator, CTR_CREATE | CTR_FIND, 12345);
-    	});
+        AssertDoesntThrow(MA_SRC, [&]{
+            MapCtr map(&allocator, CTR_CREATE | CTR_FIND, 12345);
+        });
 
-    	assertSize(MA_SRC, allocator, 1);
+        assertSize(MA_SRC, allocator, 1);
 
-    	AssertThrows<CtrTypeException>(MA_SRC, [&]{
-    		WTCtr map(&allocator, CTR_FIND, 12345);
-    	});
+        AssertThrows<CtrTypeException>(MA_SRC, [&]{
+            WTCtr map(&allocator, CTR_FIND, 12345);
+        });
 
-    	assertSize(MA_SRC, allocator, 1);
+        assertSize(MA_SRC, allocator, 1);
 
-    	AssertThrows<NoCtrException>(MA_SRC, [&]{
-    		WTCtr map(&allocator, CTR_FIND, 12346);
-    	});
+        AssertThrows<NoCtrException>(MA_SRC, [&]{
+            WTCtr map(&allocator, CTR_FIND, 12346);
+        });
 
-    	assertSize(MA_SRC, allocator, 1);
+        assertSize(MA_SRC, allocator, 1);
 
-    	AssertDoesntThrow(MA_SRC, [&]{
-    		WTCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
-    	});
+        AssertDoesntThrow(MA_SRC, [&]{
+            WTCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
+        });
 
-    	assertSize(MA_SRC, allocator, 2);
+        assertSize(MA_SRC, allocator, 2);
 
-    	AssertDoesntThrow(MA_SRC, [&]{
-    		WTCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
-    	});
+        AssertDoesntThrow(MA_SRC, [&]{
+            WTCtr map(&allocator, CTR_FIND | CTR_CREATE, 12346);
+        });
 
-    	assertSize(MA_SRC, allocator, 2);
+        assertSize(MA_SRC, allocator, 2);
 
-    	AssertDoesntThrow(MA_SRC, [&]{
-    		WTCtr map(&allocator, CTR_FIND, 12346);
-    	});
+        AssertDoesntThrow(MA_SRC, [&]{
+            WTCtr map(&allocator, CTR_FIND, 12346);
+        });
 
-    	assertSize(MA_SRC, allocator, 2);
+        assertSize(MA_SRC, allocator, 2);
 
-    	BigInt name;
+        BigInt name;
 
-    	{	// Container object lifecycle scope.
+        {   // Container object lifecycle scope.
 
-    		MapCtr map(&allocator);
-    		name = map.name();
+            MapCtr map(&allocator);
+            name = map.name();
 
-    		assertSize(MA_SRC, allocator, 3);
+            assertSize(MA_SRC, allocator, 3);
 
-    		for (Int c = 0; c < 1000; c++)
-    		{
-    			map[c] = c + 1;
-    		}
+            for (Int c = 0; c < 1000; c++)
+            {
+                map[c] = c + 1;
+            }
 
-    		// Container's data still exists in allocator
-    	}	// after control leaves the cope
+            // Container's data still exists in allocator
+        }   // after control leaves the cope
 
-    	AssertEQ(MA_SRC, name, INITAL_CTR_NAME_COUNTER + 1);
+        AssertEQ(MA_SRC, name, INITAL_CTR_NAME_COUNTER + 1);
 
-    	assertSize(MA_SRC, allocator, 3);
+        assertSize(MA_SRC, allocator, 3);
 
-    	MapCtr map(&allocator, CTR_FIND, name);
+        MapCtr map(&allocator, CTR_FIND, name);
 
-    	for (auto pair: map)
-    	{
-    		AssertEQ(MA_SRC, pair.first, pair.second - 1);
-    	}
+        for (auto pair: map)
+        {
+            AssertEQ(MA_SRC, pair.first, pair.second - 1);
+        }
 
-    	//Container removal is not fully implemented yet
-    	//map.drop();
+        //Container removal is not fully implemented yet
+        //map.drop();
 
-    	assertSize(MA_SRC, allocator, 3);
+        assertSize(MA_SRC, allocator, 3);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	assertSize(MA_SRC, allocator, 3);
+        assertSize(MA_SRC, allocator, 3);
 
 
-    	BigInt name1 = allocator.createCtrName();
+        BigInt name1 = allocator.createCtrName();
 
-    	allocator.rollback();
+        allocator.rollback();
 
-    	BigInt name2 = allocator.createCtrName();
+        BigInt name2 = allocator.createCtrName();
 
-    	AssertEQ(MA_SRC, name1, name2);
+        AssertEQ(MA_SRC, name1, name2);
     }
 
 
@@ -261,10 +261,10 @@ public:
 
         for (Int c = 0; c < wt_ctr.size(); c++)
         {
-        	auto sym1 = wt_ctr.value(c);
-        	auto sym2 = new_wt.value(c);
+            auto sym1 = wt_ctr.value(c);
+            auto sym2 = new_wt.value(c);
 
-        	AssertEQ(MA_SRC, sym1, sym2);
+            AssertEQ(MA_SRC, sym1, sym2);
         }
 
         BigInt t33 = getTimeInMillis();
@@ -278,15 +278,15 @@ public:
     template <typename T>
     void compareBuffers(const vector<T>& src, const vector<T>& tgt, const char* source)
     {
-    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+        AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
 
-    	for (size_t c = 0; c < src.size(); c++)
-    	{
-    		auto v1 = src[c];
-    		auto v2 = tgt[c];
+        for (size_t c = 0; c < src.size(); c++)
+        {
+            auto v1 = src[c];
+            auto v2 = tgt[c];
 
-    		AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
-    	}
+            AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
+        }
     }
 
 };

@@ -51,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     typedef typename Base::Element                                              Element;
 
     typedef typename Types::Accumulator                                         Accumulator;
-    typedef typename Types::Position 											Position;
+    typedef typename Types::Position                                            Position;
 
     typedef typename Types::TreePath                                            TreePath;
     typedef typename Types::TreePathItem                                        TreePathItem;
@@ -66,13 +66,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     template <typename Node>
     Int getNodeTraitsFn(BTNodeTraits trait, Int page_size) const
     {
-    	switch (trait)
-    	{
-    		case BTNodeTraits::MAX_CHILDREN:
-    			return Node::max_tree_size_for_block(page_size); break;
+        switch (trait)
+        {
+            case BTNodeTraits::MAX_CHILDREN:
+                return Node::max_tree_size_for_block(page_size); break;
 
-    		default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", (Int)trait);
-    	}
+            default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", (Int)trait);
+        }
     }
 
     MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(GetNodeTraitsFn, getNodeTraitsFn, Int);
@@ -93,7 +93,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     bool isTheSameNode(const NodeBaseG& node1, const NodeBaseG& node2) const
     {
-    	return node1->id() == node2->id();
+        return node1->id() == node2->id();
     }
 
     void root2Node(NodeBaseG& node) const
@@ -125,13 +125,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     bool canConvertToRoot(const NodeBaseG& node) const
     {
-    	return node->canConvertToRoot();
+        return node->canConvertToRoot();
     }
 
     template <typename Node>
     ID getPageIdFn(const Node* node, Int idx) const
     {
-    	return node->map().data(idx);
+        return node->map().data(idx);
     }
 
     MEMORIA_CONST_FN_WRAPPER_RTN(GetPageIdFn, getPageIdFn, ID);
@@ -145,22 +145,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     template <typename Node>
     NodeBaseG getChildFn(const Node* node, Int idx, Int flags) const
     {
-    	return me()->allocator().getPage(node->value(idx), flags);
+        return me()->allocator().getPage(node->value(idx), flags);
     }
 
     MEMORIA_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
 
     NodeBaseG getChild(const NodeBaseG& node, Int idx, Int flags) const
     {
-    	NodeBaseG result = NonLeafDispatcher::dispatchConstRtn(node, GetChildFn(me()), idx, flags);
+        NodeBaseG result = NonLeafDispatcher::dispatchConstRtn(node, GetChildFn(me()), idx, flags);
 
-    	if (!result.isEmpty())
-    	{
-    		return result;
-    	}
-    	else {
-    		throw NullPointerException(MEMORIA_SOURCE, "Child must not be NULL");
-    	}
+        if (!result.isEmpty())
+        {
+            return result;
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Child must not be NULL");
+        }
     }
 
     NodeBaseG getLastChild(const NodeBaseG& node, Int flags) const
@@ -176,14 +176,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     NodeBaseG getNodeParent(const NodeBaseG& node, Int flags = Allocator::READ) const
     {
-    	return self().allocator().getPage(node->parent_id(), flags);
+        return self().allocator().getPage(node->parent_id(), flags);
     }
 
 
     template <typename Node>
     Int getCapacityFn(const Node* node) const
     {
-    	return node->capacity();
+        return node->capacity();
     }
 
     MEMORIA_CONST_FN_WRAPPER_RTN(GetCapacityFn, getCapacityFn, Int);
@@ -198,20 +198,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     Int getStreamCapacity(const NodeBaseG& node, Int stream) const
     {
-    	Position reservation;
-    	return getStreamCapacity(node, reservation, stream);
+        Position reservation;
+        return getStreamCapacity(node, reservation, stream);
     }
 
     Int getStreamCapacity(const NodeBaseG& node, const Position& reservation, Int stream) const
     {
-    	return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn(), reservation, stream);
+        return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn(), reservation, stream);
     }
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, Int);
     Int getNonLeafCapacity(const NodeBaseG& node, UBigInt active_streams) const
     {
-    	return NonLeafDispatcher::dispatchConstRtn(node, GetNonLeafCapacityFn(), active_streams);
+        return NonLeafDispatcher::dispatchConstRtn(node, GetNonLeafCapacityFn(), active_streams);
     }
 
 
@@ -220,37 +220,37 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN(SumsFn, sums);
     void sums(const NodeBaseG& node, Accumulator& sums) const
     {
-    	NodeDispatcher::dispatchConst(node, SumsFn(), sums);
+        NodeDispatcher::dispatchConst(node, SumsFn(), sums);
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(SumsRtnFn, sums, Accumulator);
     Accumulator sums(const NodeBaseG& node) const
     {
-    	return NodeDispatcher::dispatchConstRtn(node, SumsRtnFn());
+        return NodeDispatcher::dispatchConstRtn(node, SumsRtnFn());
     }
 
     void sums(const NodeBaseG& node, Int start, Int end, Accumulator& sums) const
     {
-    	NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+        NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
     }
 
     Accumulator sums(const NodeBaseG& node, Int start, Int end) const
     {
-    	Accumulator sums;
-    	NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
-    	return sums;
+        Accumulator sums;
+        NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+        return sums;
     }
 
     void sums(const NodeBaseG& node, const Position& start, const Position& end, Accumulator& sums) const
     {
-    	NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+        NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
     }
 
     Accumulator sums(const NodeBaseG& node, const Position& start, const Position& end) const
     {
-    	Accumulator sums;
-    	NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
-    	return sums;
+        Accumulator sums;
+        NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+        return sums;
     }
 
 
@@ -281,21 +281,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     template <typename Node>
     void setChildrenCountFn(Node* node, Int count) const
     {
-    	node->set_children_count1(count);
+        node->set_children_count1(count);
     }
 
     MEMORIA_CONST_FN_WRAPPER(SetChildrenCountFn, setChildrenCountFn);
 
     void setNonLeafChildrenCount(NodeBaseG& node, Int count) const
     {
-    	node.update();
-    	NonLeafDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
+        node.update();
+        NonLeafDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
     }
 
 
     template <typename Node>
     ID getINodeDataFn(const Node* node, Int idx) const {
-    	return node->value(idx);
+        return node->value(idx);
     }
 
     MEMORIA_CONST_FN_WRAPPER_RTN(GetINodeDataFn, getINodeDataFn, ID);
@@ -309,7 +309,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     template <typename Node>
     void setChildID(Node* node, Int idx, const ID& id) const
     {
-    	node->value(idx) = id;
+        node->value(idx) = id;
     }
 
     MEMORIA_CONST_FN_WRAPPER(SetChildID, setChildID);
@@ -346,13 +346,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void dump(TreePath& path, Int level = 0, std::ostream& out = std::cout) const
     {
-    	out<<"PATH of "<<path.getSize()<<" elements"<<std::endl;
+        out<<"PATH of "<<path.getSize()<<" elements"<<std::endl;
 
-    	for (Int c = path.getSize() - 1; c >=0; c--)
-    	{
-    		out<<"parentIdx = "<<path[c].parent_idx();
-    		self().dump(path[c].node());
-    	}
+        for (Int c = path.getSize() - 1; c >=0; c--)
+        {
+            out<<"parentIdx = "<<path[c].parent_idx();
+            self().dump(path[c].node());
+        }
 
     }
 
@@ -360,14 +360,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     {
         auto& self = this->self();
 
-    	out<<"Path:"<<std::endl;
+        out<<"Path:"<<std::endl;
 
         self.dump(node, out);
 
         while (!node->is_root())
         {
-        	node = self.getNodeParent(node, Allocator::READ);
-        	self.dump(node, out);
+            node = self.getNodeParent(node, Allocator::READ);
+            self.dump(node, out);
         }
     }
 
@@ -393,45 +393,45 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN(AddKeysFn, updateUp);
     void addKeys(NodeBaseG& node, int idx, const Accumulator& keys)
     {
-    	node.update();
-    	NonLeafDispatcher::dispatch(node, AddKeysFn(me()), idx, keys);
+        node.update();
+        NonLeafDispatcher::dispatch(node, AddKeysFn(me()), idx, keys);
     }
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
     bool checkCapacities(const NodeBaseG& node, const Position& pos) const
     {
-    	return NodeDispatcher::dispatchConstRtn(node, CheckCapacitiesFn(), pos);
+        return NodeDispatcher::dispatchConstRtn(node, CheckCapacitiesFn(), pos);
     }
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetSizesFn, sizes, Position);
     Position getNodeSizes(const NodeBaseG& node) const
     {
-    	return NodeDispatcher::dispatchConstRtn(node, GetSizesFn());
+        return NodeDispatcher::dispatchConstRtn(node, GetSizesFn());
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetSizeFn, size, Int);
     Int getNodeSize(const NodeBaseG& node, Int stream) const
     {
-    	return NodeDispatcher::dispatchConstRtn(node, GetSizeFn(), stream);
+        return NodeDispatcher::dispatchConstRtn(node, GetSizeFn(), stream);
     }
 
     MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
     void layoutNonLeafNode(NodeBaseG& node, UBigInt active_streams) const
     {
-    	NonLeafDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
+        NonLeafDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
     }
 
     void layoutLeafNode(NodeBaseG& node, const Position& sizes) const
     {
-    	LeafDispatcher::dispatch(node, LayoutNodeFn(), sizes);
+        LeafDispatcher::dispatch(node, LayoutNodeFn(), sizes);
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, UBigInt);
     UBigInt getActiveStreams(const NodeBaseG& node) const
     {
-    	return NodeDispatcher::dispatchConstRtn(node, GetActiveStreamsFn());
+        return NodeDispatcher::dispatchConstRtn(node, GetActiveStreamsFn());
     }
 
     void initLeaf(NodeBaseG& node) const {}
@@ -439,7 +439,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN_RTN(IsNodeEmpty, is_empty, bool);
     bool isNodeEmpty(const NodeBaseG& node)
     {
-    	return NodeDispatcher::dispatchConstRtn(node, IsNodeEmpty());
+        return NodeDispatcher::dispatchConstRtn(node, IsNodeEmpty());
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -452,31 +452,31 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 typename M_TYPE::Position M_TYPE::getTotalKeyCount() const
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	Position sizes;
+    Position sizes;
 
-	Metadata meta = self.getRootMetadata();
+    Metadata meta = self.getRootMetadata();
 
-	for (Int c = 0; c < Streams; c++)
-	{
-		sizes[c] = meta.size(c);
-	}
+    for (Int c = 0; c < Streams; c++)
+    {
+        sizes[c] = meta.size(c);
+    }
 
-	return sizes;
+    return sizes;
 }
 
 M_PARAMS
 void M_TYPE::setTotalKeyCount(const Position& values)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	Metadata meta = self.getRootMetadata();
+    Metadata meta = self.getRootMetadata();
 
-	for (Int c = 0; c < Streams; c++)
-	{
-		meta.size(c) = values[c];
-	}
+    for (Int c = 0; c < Streams; c++)
+    {
+        meta.size(c) = values[c];
+    }
 
     self.setRootMetadata(meta);
 }
@@ -486,12 +486,12 @@ void M_TYPE::addTotalKeyCount(const Position& values)
 {
     auto& self = this->self();
 
-	Metadata meta = self.getRootMetadata();
+    Metadata meta = self.getRootMetadata();
 
-	for (Int c = 0; c < Streams; c++)
-	{
-		meta.size(c) += values[c];
-	}
+    for (Int c = 0; c < Streams; c++)
+    {
+        meta.size(c) += values[c];
+    }
 
     self.setRootMetadata(meta);
 }
@@ -500,7 +500,7 @@ void M_TYPE::addTotalKeyCount(const Position& values)
 M_PARAMS
 void M_TYPE::addTotalKeyCount(TreePath& path, const Position& values)
 {
-    auto& self 			= this->self();
+    auto& self          = this->self();
 
     NodeBaseG& node     = path[path.getSize() - 1].node();
 
@@ -508,7 +508,7 @@ void M_TYPE::addTotalKeyCount(TreePath& path, const Position& values)
 
     for (Int c = 0; c < Streams; c++)
     {
-    	meta.size(c) += values[c];
+        meta.size(c) += values[c];
     }
 
     self.setRootMetadata(node, meta);
@@ -524,28 +524,28 @@ typename M_TYPE::NodeBaseG M_TYPE::getNextNodeP(NodeBaseG& node) const
     {
         NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
 
-    	Int size = self.getNodeSize(parent, 0);
+        Int size = self.getNodeSize(parent, 0);
 
-    	Int parent_idx = node->parent_idx();
+        Int parent_idx = node->parent_idx();
 
         if (parent_idx < size - 1)
         {
-        	return self.getChild(parent, parent_idx + 1, Allocator::READ);
+            return self.getChild(parent, parent_idx + 1, Allocator::READ);
         }
         else {
-        	NodeBaseG target_parent = getNextNodeP(parent);
+            NodeBaseG target_parent = getNextNodeP(parent);
 
-        	if (target_parent.isSet())
-        	{
-        		return self.getChild(target_parent, 0, Allocator::READ);
-        	}
-        	else {
-        		return target_parent;
-        	}
+            if (target_parent.isSet())
+            {
+                return self.getChild(target_parent, 0, Allocator::READ);
+            }
+            else {
+                return target_parent;
+            }
         }
     }
     else {
-    	return NodeBaseG();
+        return NodeBaseG();
     }
 }
 
@@ -559,27 +559,27 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
     {
         NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
 
-    	Int parent_idx = node->parent_idx();
+        Int parent_idx = node->parent_idx();
 
         if (parent_idx > 0)
         {
-        	return self.getChild(parent, parent_idx - 1, Allocator::READ);
+            return self.getChild(parent, parent_idx - 1, Allocator::READ);
         }
         else {
-        	NodeBaseG target_parent = getPrevNodeP(parent);
+            NodeBaseG target_parent = getPrevNodeP(parent);
 
-        	if (target_parent.isSet())
-        	{
-        		Int node_size = self.getNodeSize(target_parent, 0);
-        		return self.getChild(target_parent, node_size - 1, Allocator::READ);
-        	}
-        	else {
-        		return target_parent;
-        	}
+            if (target_parent.isSet())
+            {
+                Int node_size = self.getNodeSize(target_parent, 0);
+                return self.getChild(target_parent, node_size - 1, Allocator::READ);
+            }
+            else {
+                return target_parent;
+            }
         }
     }
     else {
-    	return NodeBaseG();
+        return NodeBaseG();
     }
 }
 

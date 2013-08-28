@@ -12,11 +12,11 @@
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
 
 namespace memoria    {
-namespace vmap 	 	 {
+namespace vmap       {
 
-class CtrApiName 	{};
+class CtrApiName    {};
 class CtrInsertName {};
-class CtrToolsName 	{};
+class CtrToolsName  {};
 class CtrRemoveName {};
 class CtrChecksName {};
 class CtrUpdateName {};

@@ -24,7 +24,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperCtrBase1)
 
     typedef TypesType                                                           Types;
 
-	typedef typename Types::WrappedCtrName                                      WrappedCtrName;
+    typedef typename Types::WrappedCtrName                                      WrappedCtrName;
 
     typedef typename Types::Profile                                             Profile;
 
@@ -42,8 +42,8 @@ private:
 public:
 
     CtrWrapperCtrBase1(const CtrInitData& data):
-    	Base(data),
-    	ctr_(data.owner(Base::CONTAINER_HASH))
+        Base(data),
+        ctr_(data.owner(Base::CONTAINER_HASH))
     {}
 
     CtrWrapperCtrBase1(const ThisType& other, Allocator* allocator):
@@ -72,7 +72,7 @@ public:
     }
 
     const WrappedCtr& ctr() const {
-    	return ctr_;
+        return ctr_;
     }
 
     void operator=(ThisType&& other)
@@ -106,26 +106,26 @@ public:
 
     static Int initMetadata()
     {
-    	Int hash = WrappedCtr::initMetadata();
+        Int hash = WrappedCtr::initMetadata();
 
-    	if (Base::getMetadata() == NULL)
-    	{
-    		MetadataList list;
+        if (Base::getMetadata() == NULL)
+        {
+            MetadataList list;
 
-    		list.push_back(WrappedCtr::getMetadata());
+            list.push_back(WrappedCtr::getMetadata());
 
-    		Base::setMetadata(new ContainerMetadata(
-    									TypeNameFactory<typename Types::ContainerTypeName>::name(),
-    									list,
-    									Base::CONTAINER_HASH,
-    									Base::getContainerInterface()
-    						  	  )
-    						 );
+            Base::setMetadata(new ContainerMetadata(
+                                        TypeNameFactory<typename Types::ContainerTypeName>::name(),
+                                        list,
+                                        Base::CONTAINER_HASH,
+                                        Base::getContainerInterface()
+                                  )
+                             );
 
-    		MetadataRepository<typename Types::Profile>::registerMetadata(Base::getMetadata());
-    	}
+            MetadataRepository<typename Types::Profile>::registerMetadata(Base::getMetadata());
+        }
 
-    	return hash;
+        return hash;
     }
 
 

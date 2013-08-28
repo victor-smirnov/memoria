@@ -18,59 +18,59 @@
 
 
 namespace memoria       {
-namespace mvector      	{
+namespace mvector       {
 
 class VectorSource: public ISource {
 
-	IDataBase* source_;
+    IDataBase* source_;
 public:
-	VectorSource(IDataBase* source): source_(source) {}
+    VectorSource(IDataBase* source): source_(source) {}
 
-	virtual Int streams()
-	{
-		return 1;
-	}
+    virtual Int streams()
+    {
+        return 1;
+    }
 
-	virtual IData* stream(Int stream)
-	{
-		return source_;
-	}
+    virtual IData* stream(Int stream)
+    {
+        return source_;
+    }
 
-	virtual void newNode(INodeLayoutManager* layout_manager, BigInt* sizes)
-	{
-		Int allocated[1] = {0};
-		Int capacity = layout_manager->getNodeCapacity(allocated, 0);
+    virtual void newNode(INodeLayoutManager* layout_manager, BigInt* sizes)
+    {
+        Int allocated[1] = {0};
+        Int capacity = layout_manager->getNodeCapacity(allocated, 0);
 
-		sizes[0] = capacity;
-	}
+        sizes[0] = capacity;
+    }
 
-	virtual BigInt getTotalNodes(INodeLayoutManager* manager)
-	{
-		Int sizes[1] = {0};
+    virtual BigInt getTotalNodes(INodeLayoutManager* manager)
+    {
+        Int sizes[1] = {0};
 
-		SizeT capacity 	= manager->getNodeCapacity(sizes, 0);
-		SizeT remainder = source_->getRemainder();
+        SizeT capacity  = manager->getNodeCapacity(sizes, 0);
+        SizeT remainder = source_->getRemainder();
 
-		return remainder / capacity + (remainder % capacity ? 1 : 0);
-	}
+        return remainder / capacity + (remainder % capacity ? 1 : 0);
+    }
 };
 
 
 class VectorTarget: public ITarget {
 
-	IDataBase* target_;
+    IDataBase* target_;
 public:
-	VectorTarget(IDataBase* target): target_(target) {}
+    VectorTarget(IDataBase* target): target_(target) {}
 
-	virtual Int streams()
-	{
-		return 1;
-	}
+    virtual Int streams()
+    {
+        return 1;
+    }
 
-	virtual IData* stream(Int stream)
-	{
-		return target_;
-	}
+    virtual IData* stream(Int stream)
+    {
+        return target_;
+    }
 };
 
 
@@ -78,9 +78,9 @@ public:
 
 template <typename Iterator, typename Container>
 class VectorIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
-    typedef bt::BTreeIteratorCache<Iterator, Container> 				Base;
-    typedef typename Container::Position 										Position;
-    typedef typename Container::Accumulator 									Accumulator;
+    typedef bt::BTreeIteratorCache<Iterator, Container>                 Base;
+    typedef typename Container::Position                                        Position;
+    typedef typename Container::Accumulator                                     Accumulator;
 
     Position prefix_;
     Position current_;
@@ -98,12 +98,12 @@ public:
 
     const Position& sizePrefix() const
     {
-    	return prefix_;
+        return prefix_;
     }
 
     void setSizePrefix(const Position& prefix)
     {
-    	prefix_ = prefix;
+        prefix_ = prefix;
     }
 
     const Position& prefixes() const
@@ -143,7 +143,7 @@ public:
 
     void setup(BigInt prefix)
     {
-    	prefix_[0] = prefix;
+        prefix_[0] = prefix;
     }
 
     void Clear(Position& v) {v = Position();}
@@ -158,14 +158,14 @@ public:
 
         while (!node->is_root())
         {
-        	Int idx = node->parent_idx();
-        	node = ctr.getNodeParent(node);
+            Int idx = node->parent_idx();
+            node = ctr.getNodeParent(node);
 
-        	Accumulator acc;
+            Accumulator acc;
 
-        	ctr.sums(node, 0, idx, acc);
+            ctr.sums(node, 0, idx, acc);
 
-        	prefix_ += std::get<0>(acc)[0];
+            prefix_ += std::get<0>(acc)[0];
         }
     }
 

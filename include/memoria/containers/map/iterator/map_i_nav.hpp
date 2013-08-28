@@ -22,7 +22,7 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
-	typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::TreePath                                             TreePath;
@@ -34,101 +34,46 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
     typedef typename Base::Container                                            Container;
 
     bool operator++() {
-    	return me()->nextKey();
+        return me()->nextKey();
     }
 
     bool operator--() {
-    	return me()->prevKey();
+        return me()->prevKey();
     }
 
     bool operator++(int) {
-    	return me()->nextKey();
+        return me()->nextKey();
     }
 
     bool operator--(int) {
-    	return me()->prevKey();
+        return me()->prevKey();
     }
 
     BigInt operator+=(BigInt size)
-	{
-    	return me()->skipFw(size);
+    {
+        return me()->skipFw(size);
     }
 
     BigInt operator-=(BigInt size)
     {
-    	return me()->skipBw(size);
+        return me()->skipBw(size);
     }
-
-
-//    operator Value () const
-//    {
-//        return self.getValue();
-//    }
-//
-//    Value value() const
-//    {
-//        return self.getValue();
-//    }
-//
-//    Accumulator keys() const
-//    {
-//        return self.getKeys();
-//    }
-//
-//    Key key() const
-//    {
-//        return self.getKey(0);
-//    }
-//
-//    Key key(Int key_num) const
-//    {
-//        return self.getKey(key_num);
-//    }
-//
-//    MyType& operator<<(const Element& element)
-//    {
-//        self.model().insert(*me(), element);
-//        return *me();
-//    }
-
-//    MyType& operator*()
-//    {
-//        return *me();
-//    }
-
-
-
-//    Value getValue() const
-//    {
-//        return self.model().getLeafData(self.page(), self.key_idx());
-//    }
-//
-//    void setData(const Value& data)
-//    {
-//        if (!self.isEnd())
-//        {
-//            self.model().setLeafData(self.leaf().node(), self.key_idx(), data);
-//        }
-//        else {
-//            throw Exception(MEMORIA_SOURCE, "insertion after the end of iterator");
-//        }
-//    }
 
     Key getRawKey() const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
         return self.raw_key();
     }
 
     Accumulator getRawKeys() const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Accumulator accum;
+        Accumulator accum;
 
-    	std::get<0>(accum)[0] = self.raw_key();
+        std::get<0>(accum)[0] = self.raw_key();
 
-    	return accum;
+        return accum;
     }
 
     bool nextKey();
@@ -146,11 +91,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
     BigInt skip(BigInt amount);
 
     BigInt skipStreamFw(Int stream, BigInt distance) {
-    	return skipFw(distance);
+        return skipFw(distance);
     }
 
     BigInt skipStreamBw(Int stream, BigInt distance) {
-    	return skipBw(distance);
+        return skipBw(distance);
     }
 
 
@@ -168,7 +113,7 @@ bool M_TYPE::nextLeaf()
 
     auto next = self.ctr().getNextNodeP(self.leaf());
 
-	if (next)
+    if (next)
     {
         self.leaf() = next;
         self.idx()  = 0;
@@ -191,7 +136,7 @@ bool M_TYPE::prevLeaf()
     if (prev)
     {
         self.leaf() = prev;
-    	self.idx() 	= self.leafSize(self.stream()) - 1;
+        self.idx()  = self.leafSize(self.stream()) - 1;
 
         return true;
     }
@@ -207,7 +152,7 @@ bool M_TYPE::nextKey()
     auto& self = this->self();
     auto& ctr  = self.ctr();
 
-	if (!self.isEnd())
+    if (!self.isEnd())
     {
         if (self.idx() < ctr.getNodeSize(self.leaf(), 0) - 1)
         {
@@ -250,10 +195,10 @@ bool M_TYPE::nextKey()
 M_PARAMS
 bool M_TYPE::hasNextKey()
 {
-	auto& self = this->self();
-	auto& ctr  = self.model();
+    auto& self = this->self();
+    auto& ctr  = self.model();
 
-	if (!self.isEnd())
+    if (!self.isEnd())
     {
         if (self.idx() < ctr.getNodeSize(self.leaf(), 0) - 1)
         {
@@ -273,7 +218,7 @@ bool M_TYPE::hasNextKey()
 M_PARAMS
 bool M_TYPE::prevKey()
 {
-	auto& self = this->self();
+    auto& self = this->self();
     auto& ctr  = self.model();
 
     if (self.key_idx() > 0)
@@ -312,7 +257,7 @@ bool M_TYPE::prevKey()
 M_PARAMS
 bool M_TYPE::hasPrevKey()
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
     if (self.key_idx() > 0)
     {
@@ -363,7 +308,7 @@ BigInt M_TYPE::skip(BigInt amount)
 {
     auto& self = this->self();
 
-	if (amount > 0)
+    if (amount > 0)
     {
         return self.skipFw(amount);
     }
@@ -371,7 +316,7 @@ BigInt M_TYPE::skip(BigInt amount)
         return self.skipBw(-amount);
     }
     else {
-    	return 0;
+        return 0;
     }
 }
 

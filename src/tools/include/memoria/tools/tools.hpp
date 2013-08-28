@@ -31,19 +31,19 @@ using namespace memoria::vapi;
 using tools::Term;
 
 class PARemover {
-	PackedAllocatable* obj_;
+    PackedAllocatable* obj_;
 public:
-	PARemover(PackedAllocatable* obj): obj_(obj) {}
-	~PARemover()
-	{
-		if (obj_->has_allocator())
-		{
-			free(obj_->allocator());
-		}
-		else {
-			free(obj_);
-		}
-	}
+    PARemover(PackedAllocatable* obj): obj_(obj) {}
+    ~PARemover()
+    {
+        if (obj_->has_allocator())
+        {
+            free(obj_->allocator());
+        }
+        else {
+            free(obj_);
+        }
+    }
 };
 
 class TestException: public Exception {
@@ -90,7 +90,7 @@ std::ostream& operator<<(std::ostream& out, const vector<T, A>& vec)
 template <typename A>
 std::ostream& operator<<(std::ostream& out, const std::vector<UByte, A>& vec)
 {
-	out<<hex;
+    out<<hex;
 
     for (auto& value : vec)
     {
@@ -162,7 +162,7 @@ void LoadVector(std::vector<T, A>& vec, StringRef file_name)
     file.open(file_name.c_str(), std::fstream::in);
 
     if (file.fail() || file.bad()) {
-    	throw Exception(MEMORIA_SOURCE, "Can't open file: "+file_name);
+        throw Exception(MEMORIA_SOURCE, "Can't open file: "+file_name);
     }
 
     file>>vec;
@@ -333,7 +333,9 @@ void checkBufferWritten(BAIterator& iter, const MemBuffer& data, const char* err
 }
 
 template <typename Types, typename Item>
-void checkBufferWritten(Iter<VectorMap2IterTypes<Types>>& iter, const vector<Item>& data, const char* err_msg, const char* source)
+void checkBufferWritten(
+        Iter<VectorMap2IterTypes<Types>>& iter, const vector<Item>& data, const char* err_msg, const char* source
+     )
 {
     Int pos = 0;
     if (!CompareBuffer(iter.ba_iter(), data, pos))
@@ -366,27 +368,6 @@ bool CompareBuffer(Iter<Types>& iter, const MemBuffer& data, Int& c)
 }
 
 
-//template <typename Types, Int Bits>
-//bool CompareBuffer(Iter<SequenceIterTypes<Types>>& iter, const SymbolSequence<Bits>& data, Int& c)
-//{
-////    typedef Iter<Types> Iterator;
-//
-//    c = 0;
-//    for (size_t i = 0; i != data.size(); i++, iter.next(), c++)
-//    {
-//
-//
-////            auto value = iter.getRawKey(d);
-////
-////            if (value != data[c])
-////            {
-////                return false;
-////            }
-//
-//    }
-//
-//    return true;
-//}
 
 
 template <typename T, typename A>
@@ -426,191 +407,191 @@ BigInt getUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
 template <typename Exception, typename Functor>
 void AssertThrows(const char* src, Functor&& fn)
 {
-	bool throwsException;
+    bool throwsException;
 
-	try {
-		fn();
-		throwsException = false;
-	}
-	catch (Exception ex)
-	{
-		throwsException = true;
-	}
-	catch (...)
-	{
-		throw TestException(src, SBuf()<<"Code throws unexpected exception");
-	}
+    try {
+        fn();
+        throwsException = false;
+    }
+    catch (Exception ex)
+    {
+        throwsException = true;
+    }
+    catch (...)
+    {
+        throw TestException(src, SBuf()<<"Code throws unexpected exception");
+    }
 
-	if (!throwsException)
-	{
-		throw TestException(src, SBuf()<<"Code doesn't throw exception "<<TypeNameFactory<Exception>::name());
-	}
+    if (!throwsException)
+    {
+        throw TestException(src, SBuf()<<"Code doesn't throw exception "<<TypeNameFactory<Exception>::name());
+    }
 }
 
 template <typename Exception, typename Functor>
 void AssertDoesntThrowEx(const char* src, Functor&& fn)
 {
-	try {
-		fn();
-	}
-	catch (Exception ex)
-	{
-		throw TestException(src, SBuf()<<"Code throws exception "<<TypeNameFactory<Exception>::name());
-	}
-	catch (...)
-	{
-		throw TestException(src, SBuf()<<"Code throws unexpected exception");
-	}
+    try {
+        fn();
+    }
+    catch (Exception ex)
+    {
+        throw TestException(src, SBuf()<<"Code throws exception "<<TypeNameFactory<Exception>::name());
+    }
+    catch (...)
+    {
+        throw TestException(src, SBuf()<<"Code throws unexpected exception");
+    }
 }
 
 template <typename Functor>
 void AssertDoesntThrow(const char* src, Functor&& fn)
 {
-	try {
-		fn();
-	}
-	catch (...)
-	{
-		throw TestException(src, SBuf()<<"Code throws exception");
-	}
+    try {
+        fn();
+    }
+    catch (...)
+    {
+        throw TestException(src, SBuf()<<"Code throws exception");
+    }
 }
 
 template <typename Op>
 void AssertTrue(const char* src, const Op& op, const SBuf& msg)
 {
-	if (!(op))
-	{
-		throw TestException(src, SBuf()<<"True assertion failed: "<<op<<" "<<msg.str());
-	}
+    if (!(op))
+    {
+        throw TestException(src, SBuf()<<"True assertion failed: "<<op<<" "<<msg.str());
+    }
 }
 
 template <typename Op>
 void AssertTrue(const char* src, const Op& op)
 {
-	if (!(op))
-	{
-		throw TestException(src, SBuf()<<"True assertion failed: "<<op);
-	}
+    if (!(op))
+    {
+        throw TestException(src, SBuf()<<"True assertion failed: "<<op);
+    }
 }
 
 
 template <typename Op>
 void AssertFalse(const char* src, const Op& op)
 {
-	if (op)
-	{
-		throw TestException(src, SBuf()<<"False assertion failed: "<<op);
-	}
+    if (op)
+    {
+        throw TestException(src, SBuf()<<"False assertion failed: "<<op);
+    }
 }
 
 template <typename Op>
 void AssertFalse(const char* src, const Op& op, const SBuf& msg)
 {
-	if (op)
-	{
-		throw TestException(src, SBuf()<<"False assertion failed: "<<op<<" "<<msg.str());
-	}
+    if (op)
+    {
+        throw TestException(src, SBuf()<<"False assertion failed: "<<op<<" "<<msg.str());
+    }
 }
 
 
 template <typename Op1, typename Op2>
 void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
-	if (!(op1 == op2))
-	{
-		throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
-	}
+    if (!(op1 == op2))
+    {
+        throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+    }
 }
 
 template <typename Op1, typename Op2>
 void AssertEQ(const char* src, const Op1& op1, const Op2& op2, const std::function<SBuf ()> msg_fn)
 {
-	if (!(op1 == op2))
-	{
-		throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2<<" "<<msg_fn().str());
-	}
+    if (!(op1 == op2))
+    {
+        throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2<<" "<<msg_fn().str());
+    }
 }
 
 template <typename Op1, typename Op2>
 void AssertEQ(const char* src, const Op1& op1, const Op2& op2)
 {
-	if (!(op1 == op2))
-	{
-		throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2);
-	}
+    if (!(op1 == op2))
+    {
+        throw TestException(src, SBuf()<<"EQ assertion failed: "<<op1<<" "<<op2);
+    }
 }
 
 template <typename Op1, typename Op2>
 void AssertLT(const char* src, const Op1& op1, const Op2& op2)
 {
-	if (!(op1 < op2))
-	{
-		throw TestException(src, SBuf()<<"LT assertion failed: "<<op1<<" "<<op2);
-	}
+    if (!(op1 < op2))
+    {
+        throw TestException(src, SBuf()<<"LT assertion failed: "<<op1<<" "<<op2);
+    }
 }
 
 template <typename Op1, typename Op2>
 void AssertLT(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
-	if (!(op1 < op2))
-	{
-		throw TestException(src, SBuf()<<"LT assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
-	}
+    if (!(op1 < op2))
+    {
+        throw TestException(src, SBuf()<<"LT assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+    }
 }
 
 template <typename Op1, typename Op2>
 void AssertLE(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
-	if (!(op1 <= op2))
-	{
-		throw TestException(src, SBuf()<<"LE assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
-	}
+    if (!(op1 <= op2))
+    {
+        throw TestException(src, SBuf()<<"LE assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+    }
 }
 
 template <typename Op1, typename Op2>
 void AssertLE(const char* src, const Op1& op1, const Op2& op2)
 {
-	if (!(op1 <= op2))
-	{
-		throw TestException(src, SBuf()<<"LE assertion failed: "<<op1<<" "<<op2);
-	}
+    if (!(op1 <= op2))
+    {
+        throw TestException(src, SBuf()<<"LE assertion failed: "<<op1<<" "<<op2);
+    }
 }
 
 template <typename Op1, typename Op2>
 void AssertGT(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
 {
-	if (!(op1 > op2))
-	{
-		throw TestException(src, SBuf()<<"GT assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
-	}
+    if (!(op1 > op2))
+    {
+        throw TestException(src, SBuf()<<"GT assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+    }
 }
 
 template <typename Op1, typename Op2>
 void AssertGE(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg = SBuf())
 {
-	if (!(op1 >= op2))
-	{
-		throw TestException(src, SBuf()<<"GE assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
-	}
+    if (!(op1 >= op2))
+    {
+        throw TestException(src, SBuf()<<"GE assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+    }
 }
 
 template <typename Op1, typename Op2>
 void AssertNEQ(const char* src, const Op1& op1, const Op2& op2)
 {
-	if (!(op1 != op2))
-	{
-		throw TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2);
-	}
+    if (!(op1 != op2))
+    {
+        throw TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2);
+    }
 }
 
 
 template <typename Op1, typename Op2>
 void AssertNEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 {
-	if (!(op1 != op2))
-	{
-		throw TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
-	}
+    if (!(op1 != op2))
+    {
+        throw TestException(src, SBuf()<<"NEQ assertion failed: "<<op1<<" "<<op2<<" "<<msg.str());
+    }
 }
 
 

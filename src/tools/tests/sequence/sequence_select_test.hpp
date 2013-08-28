@@ -20,14 +20,14 @@ namespace memoria {
 template <Int BitsPerSymbol, bool Dense = true>
 class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
-	typedef SequenceSelectTest<BitsPerSymbol, Dense> 							MyType;
-	typedef SequenceTestBase<BitsPerSymbol, Dense> 								Base;
+    typedef SequenceSelectTest<BitsPerSymbol, Dense>                            MyType;
+    typedef SequenceTestBase<BitsPerSymbol, Dense>                              Base;
 
-	typedef typename Base::Allocator											Allocator;
-	typedef typename Base::Iterator												Iterator;
-	typedef typename Base::Ctr													Ctr;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Iterator                                             Iterator;
+    typedef typename Base::Ctr                                                  Ctr;
 
-	static const Int Symbols													= Base::Symbols;
+    static const Int Symbols                                                    = Base::Symbols;
 
     Int ctr_name_;
     Int iterations_ = 100000;
@@ -50,152 +50,152 @@ public:
 
     void testCtrSelect()
     {
-		DefaultLogHandlerImpl logHandler(Base::out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
-		Allocator allocator;
-		allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-		Ctr ctr(&allocator);
+        Ctr ctr(&allocator);
 
-		allocator.commit();
+        allocator.commit();
 
-		try {
-			auto seq = Base::fillRandom(ctr, this->size_);
+        try {
+            auto seq = Base::fillRandom(ctr, this->size_);
 
-			this->forceCheck(allocator, MA_SRC);
+            this->forceCheck(allocator, MA_SRC);
 
-			allocator.commit();
+            allocator.commit();
 
-			auto ranks = seq.ranks();
+            auto ranks = seq.ranks();
 
-			for (Int c = 0; c < iterations_; c++)
-			{
-				this->out()<<c<<std::endl;
+            for (Int c = 0; c < iterations_; c++)
+            {
+                this->out()<<c<<std::endl;
 
-				Int symbol 	= getRandom(Base::Symbols);
-				Int rank 	= getRandom(ranks[symbol]);
+                Int symbol  = getRandom(Base::Symbols);
+                Int rank    = getRandom(ranks[symbol]);
 
-				if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
+                if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
 
-				auto iter1 = ctr.select(symbol, rank);
-				auto iter2 = seq.select(symbol, rank);
+                auto iter1 = ctr.select(symbol, rank);
+                auto iter2 = seq.select(symbol, rank);
 
-				AssertFalse(MA_SRC, iter1.isEof());
-				AssertTrue(MA_SRC,  iter2.is_found());
+                AssertFalse(MA_SRC, iter1.isEof());
+                AssertTrue(MA_SRC,  iter2.is_found());
 
-				AssertEQ(MA_SRC, iter1.pos(), iter2.idx());
-			}
-		}
-		catch (...) {
-			Base::dump_name_ = Base::Store(allocator);
-			throw;
-		}
+                AssertEQ(MA_SRC, iter1.pos(), iter2.idx());
+            }
+        }
+        catch (...) {
+            Base::dump_name_ = Base::Store(allocator);
+            throw;
+        }
     }
 
 
     void testIterSelectFw()
     {
-		DefaultLogHandlerImpl logHandler(Base::out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
-		Allocator allocator;
-		allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Ctr ctr(&allocator);
+        Ctr ctr(&allocator);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
-    		auto seq = Base::fillRandom(ctr, this->size_);
+        try {
+            auto seq = Base::fillRandom(ctr, this->size_);
 
-    		this->forceCheck(allocator, MA_SRC);
+            this->forceCheck(allocator, MA_SRC);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		Int size = this->size_;
+            Int size = this->size_;
 
-    		for (Int c = 0; c < iterations_; c++)
-    		{
-    			this->out()<<c<<std::endl;
+            for (Int c = 0; c < iterations_; c++)
+            {
+                this->out()<<c<<std::endl;
 
-    			Int pos		= getRandom(size);
-    			Int symbol 	= getRandom(Base::Symbols);
+                Int pos     = getRandom(size);
+                Int symbol  = getRandom(Base::Symbols);
 
-    			Int max_rank = seq.rank(pos, size, symbol);
+                Int max_rank = seq.rank(pos, size, symbol);
 
-    			if (max_rank > 0)
-    			{
-    				Int rank 	= getRandom(max_rank);
+                if (max_rank > 0)
+                {
+                    Int rank    = getRandom(max_rank);
 
-    				if (rank == 0) rank = 1;
+                    if (rank == 0) rank = 1;
 
-    				auto iter 	= ctr.seek(pos);
+                    auto iter   = ctr.seek(pos);
 
-    				BigInt pos_delta1 = iter.selectFw(rank, symbol);
+                    BigInt pos_delta1 = iter.selectFw(rank, symbol);
 
-    				auto tgt_pos2 = seq.selectFw(pos, symbol, rank);
+                    auto tgt_pos2 = seq.selectFw(pos, symbol, rank);
 
-    				AssertEQ(MA_SRC, iter.pos(), tgt_pos2.idx());
-    				AssertEQ(MA_SRC, pos_delta1, tgt_pos2.idx() - pos);
-    			}
-    		}
-    	}
-    	catch (...) {
-    		Base::dump_name_ = Base::Store(allocator);
-    		throw;
-    	}
+                    AssertEQ(MA_SRC, iter.pos(), tgt_pos2.idx());
+                    AssertEQ(MA_SRC, pos_delta1, tgt_pos2.idx() - pos);
+                }
+            }
+        }
+        catch (...) {
+            Base::dump_name_ = Base::Store(allocator);
+            throw;
+        }
     }
 
 
 
     void testIterSelectBw()
     {
-		DefaultLogHandlerImpl logHandler(Base::out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
-		Allocator allocator;
-		allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Ctr ctr(&allocator);
+        Ctr ctr(&allocator);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
-    		auto seq = Base::fillRandom(ctr, this->size_);
+        try {
+            auto seq = Base::fillRandom(ctr, this->size_);
 
-    		this->forceCheck(allocator, MA_SRC);
+            this->forceCheck(allocator, MA_SRC);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		Int size = this->size_;
+            Int size = this->size_;
 
-    		for (Int c = 0; c < iterations_; c++)
-    		{
-    			this->out()<<c<<std::endl;
+            for (Int c = 0; c < iterations_; c++)
+            {
+                this->out()<<c<<std::endl;
 
-    			Int pos		= getRandom(size);
-    			Int symbol 	= getRandom(Base::Symbols);
+                Int pos     = getRandom(size);
+                Int symbol  = getRandom(Base::Symbols);
 
-    			Int max_rank = seq.rank(0, pos, symbol);
+                Int max_rank = seq.rank(0, pos, symbol);
 
-    			if (max_rank > 0)
-    			{
-    				Int rank 	= getRandom(max_rank);
+                if (max_rank > 0)
+                {
+                    Int rank    = getRandom(max_rank);
 
-    				if (rank == 0) rank = 1;
+                    if (rank == 0) rank = 1;
 
-    				auto iter 	= ctr.seek(pos);
+                    auto iter   = ctr.seek(pos);
 
-    				auto tgt_pos 		= seq.selectBw(pos, symbol, rank);
-    				BigInt pos_delta1 	= iter.selectBw(rank, symbol);
+                    auto tgt_pos        = seq.selectBw(pos, symbol, rank);
+                    BigInt pos_delta1   = iter.selectBw(rank, symbol);
 
-    				AssertEQ(MA_SRC, iter.pos(), tgt_pos.idx());
-    				AssertEQ(MA_SRC, pos_delta1, pos - tgt_pos.idx());
-    			}
-    		}
-    	}
-    	catch (...) {
-    		Base::dump_name_ = Base::Store(allocator);
-    		throw;
-    	}
+                    AssertEQ(MA_SRC, iter.pos(), tgt_pos.idx());
+                    AssertEQ(MA_SRC, pos_delta1, pos - tgt_pos.idx());
+                }
+            }
+        }
+        catch (...) {
+            Base::dump_name_ = Base::Store(allocator);
+            throw;
+        }
     }
 
 };

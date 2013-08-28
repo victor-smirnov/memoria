@@ -29,7 +29,7 @@ struct RemoveTool<Item, TypeList<Head, Tail...>, All> {
 
 template <typename Item, typename ... Tail>
 struct RemoveTool<Item, TypeList<Item, Tail...>, false> {
-    typedef TypeList<Tail...>                                                       Result;
+    typedef TypeList<Tail...>                                                   Result;
 };
 
 template <typename Item, typename ... Tail>
@@ -44,7 +44,7 @@ struct RemoveTool<Item, TypeList<Item, Tail... >, true> {
 
 template <typename Item, bool All>
 struct RemoveTool<Item, TypeList<>, All> {
-    typedef TypeList<>                                                              Result;
+    typedef TypeList<>                                                          Result;
 };
 
 
@@ -55,7 +55,7 @@ template <typename List> struct RemoveDuplicatesTool;
 
 template<>
 struct RemoveDuplicatesTool<TypeList<>> {
-    typedef TypeList<>                                                              Result;
+    typedef TypeList<>                                                          Result;
 };
 
 

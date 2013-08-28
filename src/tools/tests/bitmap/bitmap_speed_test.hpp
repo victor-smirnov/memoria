@@ -43,110 +43,110 @@ public:
 
     void testSpeed1()
     {
-    	Int bufsize = 1024*1024*128;
-    	Int bitsize = bufsize * 8;
+        Int bufsize = 1024*1024*128;
+        Int bitsize = bufsize * 8;
 
-    	T* buf = T2T<T*>(malloc(bufsize));
+        T* buf = T2T<T*>(malloc(bufsize));
 
-    	BigInt t0 = getTimeInMillis();
+        BigInt t0 = getTimeInMillis();
 
-    	MoveBits(buf, buf, 18, 29, bitsize - 100);
+        MoveBits(buf, buf, 18, 29, bitsize - 100);
 
-    	BigInt t1 = getTimeInMillis();
+        BigInt t1 = getTimeInMillis();
 
-    	this->out()<<"Move time: "<<FormatTime(t1 - t0)<<endl;
+        this->out()<<"Move time: "<<FormatTime(t1 - t0)<<endl;
 
-    	free(buf);
+        free(buf);
     }
 
     void testSpeed2()
     {
-    	Int bufsize = 1024*1024*128;
-    	Int bitsize = bufsize * 8;
+        Int bufsize = 1024*1024*128;
+        Int bitsize = bufsize * 8;
 
-    	T* buf = T2T<T*>(malloc(bufsize));
+        T* buf = T2T<T*>(malloc(bufsize));
 
-    	BigInt t0 = getTimeInMillis();
+        BigInt t0 = getTimeInMillis();
 
-    	Int pos = 0;
-    	Int length = 17;
+        Int pos = 0;
+        Int length = 17;
 
-    	BigInt sum = 0;
+        BigInt sum = 0;
 
-    	Int cnt = 0;
+        Int cnt = 0;
 
-    	while(pos < bitsize)
-    	{
-    		sum += GetBits(buf, pos, length);
+        while(pos < bitsize)
+        {
+            sum += GetBits(buf, pos, length);
 
-    		pos += length;
-    		cnt++;
-    	}
+            pos += length;
+            cnt++;
+        }
 
-    	BigInt t1 = getTimeInMillis();
+        BigInt t1 = getTimeInMillis();
 
-    	this->out()<<"GetBits Time: "<<FormatTime(t1 - t0)<<" "<<sum<<" "<<cnt<<endl;
+        this->out()<<"GetBits Time: "<<FormatTime(t1 - t0)<<" "<<sum<<" "<<cnt<<endl;
 
-    	free(buf);
+        free(buf);
     }
 
     void testI64Codec()
     {
-    	testCodec<I64Codec>(64);
-    	testCodec<I64Codec>(1<<24);
+        testCodec<I64Codec>(64);
+        testCodec<I64Codec>(1<<24);
     }
 
     void testEliasCodec()
     {
-    	testCodec<EliasDeltaCodec>(64);
-    	testCodec<EliasDeltaCodec>(1<<24);
+        testCodec<EliasDeltaCodec>(64);
+        testCodec<EliasDeltaCodec>(1<<24);
     }
 
     template <
-    	template <typename, typename> class Codec
+        template <typename, typename> class Codec
     >
     void testCodec(Int max)
     {
-    	std::vector<Int> values(1024*1024*4);
-    	std::vector<Int> values2(1024*1024*4);
+        std::vector<Int> values(1024*1024*4);
+        std::vector<Int> values2(1024*1024*4);
 
-    	for (auto& v: values)
-    	{
-    		v = getRandom(max);
-    	}
+        for (auto& v: values)
+        {
+            v = getRandom(max);
+        }
 
-    	T* buf = T2T<T*>(malloc(1024*1024*16));
+        T* buf = T2T<T*>(malloc(1024*1024*16));
 
-    	Codec<T,BigInt> codec;
+        Codec<T,BigInt> codec;
 
-    	BigInt t0 = getTimeInMillis();
+        BigInt t0 = getTimeInMillis();
 
-    	for (Int c = 0, pos = 0; c < values.size(); c++)
-    	{
-    		pos += codec.encode(buf, values[c], pos);
-    	}
+        for (Int c = 0, pos = 0; c < values.size(); c++)
+        {
+            pos += codec.encode(buf, values[c], pos);
+        }
 
-    	BigInt t1 = getTimeInMillis();
+        BigInt t1 = getTimeInMillis();
 
-    	for (Int c = 0, pos = 0; c < values2.size(); c++)
-    	{
-    		BigInt value;
+        for (Int c = 0, pos = 0; c < values2.size(); c++)
+        {
+            BigInt value;
 
-    		pos += codec.decode(buf, value, pos);
+            pos += codec.decode(buf, value, pos);
 
-    		values2[c] = value;
-    	}
+            values2[c] = value;
+        }
 
-    	BigInt t2 = getTimeInMillis();
+        BigInt t2 = getTimeInMillis();
 
-    	for (Int c = 0; c < values.size(); c++)
-    	{
-    		AssertEQ(MA_SRC, values[c], values2[c]);
-    	}
+        for (Int c = 0; c < values.size(); c++)
+        {
+            AssertEQ(MA_SRC, values[c], values2[c]);
+        }
 
-    	this->out()<<"write: "<<FormatTime(t1 - t0)<<" read: "<<FormatTime(t2 - t1)<<endl;
+        this->out()<<"write: "<<FormatTime(t1 - t0)<<" read: "<<FormatTime(t2 - t1)<<endl;
 
-    	free(buf);
+        free(buf);
     }
 };
 

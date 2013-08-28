@@ -27,117 +27,117 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
-	typedef Ctr<typename Types::CtrTypes>                      					Container;
+    typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 
-	typedef typename Base::Allocator                                            Allocator;
-	typedef typename Base::NodeBase                                             NodeBase;
-	typedef typename Base::NodeBaseG                                            NodeBaseG;
-	typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    typedef typename Base::TreePath                                             TreePath;
 
-	typedef typename Container::Value                                     		Value;
-	typedef typename Container::Key                                       		Key;
-	typedef typename Container::Element                                   		Element;
-	typedef typename Container::Accumulator                               		Accumulator;
+    typedef typename Container::Value                                           Value;
+    typedef typename Container::Key                                             Key;
+    typedef typename Container::Element                                         Element;
+    typedef typename Container::Accumulator                                     Accumulator;
 
-//	typedef typename Container::DataSource                                		DataSource;
-//	typedef typename Container::DataTarget                                		DataTarget;
-	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
-	typedef typename Container::Position										Position;
-
-
-	Int size() const
-	{
-		return self().leafSize(0);
-	}
-
-	struct SymbolFn {
-		Int symbol_ = 0;
-
-		template <Int Idx, typename SeqTypes>
-		void stream(const PkdFSSeq<SeqTypes>* obj, Int idx)
-		{
-			MEMORIA_ASSERT_TRUE(obj != nullptr);
-			symbol_ = obj->symbol(idx);
-		}
-
-		template <Int Idx, typename StreamTypes>
-		void stream(const PackedFSEArray<StreamTypes>* obj, Int idx)
-		{
-			MEMORIA_ASSERT_TRUE(obj != nullptr);
-			symbol_ = obj->value(idx);
-		}
-
-		template <Int Idx, typename StreamTypes>
-		void stream(const PkdFTree<StreamTypes>* obj, Int idx)
-		{
-			MEMORIA_ASSERT_TRUE(obj != nullptr);
-			symbol_ = obj->value(0, idx);
-		}
-
-		template <Int Idx, typename StreamTypes>
-		void stream(const PkdVTree<StreamTypes>* obj, Int idx)
-		{
-			MEMORIA_ASSERT_TRUE(obj != nullptr);
-			symbol_ = obj->value(0, idx);
-		}
-
-		template <Int Idx, typename StreamTypes>
-		void stream(const PackedFSEBitmap<StreamTypes>* obj, Int idx)
-		{
-			MEMORIA_ASSERT_TRUE(obj != nullptr);
-			symbol_ = obj->value(idx);
-		}
+//  typedef typename Container::DataSource                                      DataSource;
+//  typedef typename Container::DataTarget                                      DataTarget;
+    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Container::Position                                        Position;
 
 
-		template <typename NodeTypes>
-		void treeNode(const LeafNode<NodeTypes>* node, Int idx)
-		{
-			node->process(0, *this, idx);
-		}
-	};
+    Int size() const
+    {
+        return self().leafSize(0);
+    }
 
-	Int symbol() const
-	{
-		auto& self 	= this->self();
+    struct SymbolFn {
+        Int symbol_ = 0;
 
-		SymbolFn fn;
+        template <Int Idx, typename SeqTypes>
+        void stream(const PkdFSSeq<SeqTypes>* obj, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(obj != nullptr);
+            symbol_ = obj->symbol(idx);
+        }
 
-		Int idx = self.idx();
+        template <Int Idx, typename StreamTypes>
+        void stream(const PackedFSEArray<StreamTypes>* obj, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(obj != nullptr);
+            symbol_ = obj->value(idx);
+        }
 
-		LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
+        template <Int Idx, typename StreamTypes>
+        void stream(const PkdFTree<StreamTypes>* obj, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(obj != nullptr);
+            symbol_ = obj->value(0, idx);
+        }
 
-		return fn.symbol_;
-	}
+        template <Int Idx, typename StreamTypes>
+        void stream(const PkdVTree<StreamTypes>* obj, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(obj != nullptr);
+            symbol_ = obj->value(0, idx);
+        }
 
-	BigInt label(Int label_idx) const
-	{
-		auto& self 	= this->self();
+        template <Int Idx, typename StreamTypes>
+        void stream(const PackedFSEBitmap<StreamTypes>* obj, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(obj != nullptr);
+            symbol_ = obj->value(idx);
+        }
 
-		SymbolFn fn;
 
-		Int idx = self.label_idx();
+        template <typename NodeTypes>
+        void treeNode(const LeafNode<NodeTypes>* node, Int idx)
+        {
+            node->process(0, *this, idx);
+        }
+    };
 
-		LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
+    Int symbol() const
+    {
+        auto& self  = this->self();
 
-		return fn.symbol_;
-	}
+        SymbolFn fn;
 
-	void insert(Int symbol)
-	{
-		auto& self 	= this->self();
-		auto& ctr 	= self.ctr();
+        Int idx = self.idx();
 
-		ctr.insert(self, symbol);
-	}
+        LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
 
-	void remove()
-	{
-		auto& self 	= this->self();
-		auto& ctr 	= self.ctr();
+        return fn.symbol_;
+    }
 
-		ctr.remove(self);
-	}
+    BigInt label(Int label_idx) const
+    {
+        auto& self  = this->self();
+
+        SymbolFn fn;
+
+        Int idx = self.label_idx();
+
+        LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
+
+        return fn.symbol_;
+    }
+
+    void insert(Int symbol)
+    {
+        auto& self  = this->self();
+        auto& ctr   = self.ctr();
+
+        ctr.insert(self, symbol);
+    }
+
+    void remove()
+    {
+        auto& self  = this->self();
+        auto& ctr   = self.ctr();
+
+        ctr.remove(self);
+    }
 
 MEMORIA_ITERATOR_PART_END
 

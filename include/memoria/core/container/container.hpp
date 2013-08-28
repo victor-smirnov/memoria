@@ -32,7 +32,7 @@
 
 
 #define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() \
-		throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "\
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "\
         <<me()->typeName())
 
 namespace memoria    {
@@ -48,32 +48,32 @@ template <typename Profile> class MetadataRepository;
 
 
 class CtrInitData {
-	Int master_ctr_type_hash_;
-	Int owner_ctr_type_hash_;
+    Int master_ctr_type_hash_;
+    Int owner_ctr_type_hash_;
 
 public:
-	CtrInitData(Int master_hash, Int owner_hash):
-		master_ctr_type_hash_(master_hash),
-		owner_ctr_type_hash_(owner_hash)
-	{}
+    CtrInitData(Int master_hash, Int owner_hash):
+        master_ctr_type_hash_(master_hash),
+        owner_ctr_type_hash_(owner_hash)
+    {}
 
-	CtrInitData(Int master_hash):
-		master_ctr_type_hash_(master_hash),
-		owner_ctr_type_hash_(0)
-	{}
+    CtrInitData(Int master_hash):
+        master_ctr_type_hash_(master_hash),
+        owner_ctr_type_hash_(0)
+    {}
 
-	Int owner_ctr_type_hash() const {
-		return owner_ctr_type_hash_;
-	}
+    Int owner_ctr_type_hash() const {
+        return owner_ctr_type_hash_;
+    }
 
-	Int master_ctr_type_hash() const {
-		return master_ctr_type_hash_;
-	}
+    Int master_ctr_type_hash() const {
+        return master_ctr_type_hash_;
+    }
 
-	CtrInitData owner(int owner_hash) const
-	{
-		return CtrInitData(master_ctr_type_hash_, owner_hash);
-	}
+    CtrInitData owner(int owner_hash) const
+    {
+        return CtrInitData(master_ctr_type_hash_, owner_hash);
+    }
 };
 
 
@@ -81,7 +81,7 @@ template <typename TypesType>
 class CtrBase: public TypesType::Allocator {
 public:
 
-    typedef CtrBase<TypesType>                                            ThisType;
+    typedef CtrBase<TypesType>                                                  ThisType;
     typedef Ctr<TypesType>                                                      MyType;
 
     typedef typename TypesType::ContainerTypeName                               ContainerTypeName;
@@ -113,25 +113,25 @@ public:
 
     CtrBase(const ThisType& other):
         shared_(other.shared_),
-    	init_data_(other.init_data_)
+        init_data_(other.init_data_)
     {}
 
     CtrBase(const ThisType& other, Allocator* allocator):
         shared_(other.shared_),
-    	init_data_(other.init_data_)
+        init_data_(other.init_data_)
     {}
 
     //shared_ is configured in move constructors of subclasses.
     CtrBase(ThisType&& other):
         shared_(other.shared_),
-    	init_data_(other.init_data_)
+        init_data_(other.init_data_)
     {
         other.shared_ = NULL;
     }
 
     CtrBase(ThisType&& other, Allocator* allocator):
         shared_(other.shared_),
-    	init_data_(other.init_data_)
+        init_data_(other.init_data_)
     {
         other.shared_ = NULL;
     }
@@ -140,16 +140,16 @@ public:
 
     void operator=(ThisType&& other)
     {
-        shared_ 	= other.shared_;
-        init_data_	= other.init_data_;
+        shared_     = other.shared_;
+        init_data_  = other.init_data_;
 
         other.shared_ = NULL;
     }
 
     void operator=(const ThisType& other)
     {
-        shared_ 	= other.shared_;
-        init_data_	= other.init_data_;
+        shared_     = other.shared_;
+        init_data_  = other.init_data_;
     }
 
     MEMORIA_PUBLIC static Int hash() {
@@ -215,7 +215,7 @@ public:
     }
 
     const CtrInitData& init_data() const {
-    	return init_data_;
+        return init_data_;
     }
 
     PageG createRoot() {
@@ -243,31 +243,31 @@ public:
 
             if (node.isSet())
             {
-            	CtrShared* shared = me()->createCtrShared(name);
-            	me()->allocator().registerCtrShared(shared);
+                CtrShared* shared = me()->createCtrShared(name);
+                me()->allocator().registerCtrShared(shared);
 
-            	if (node->ctr_type_hash() == CONTAINER_HASH)
-            	{
-            		if (node.is_updated())
-            		{
-            			shared->root_log() = node->id();
-            			shared->updated() = true;
-            		}
-            		else {
-            			shared->root() = node->id();
-            			shared->updated() = false;
-            		}
+                if (node->ctr_type_hash() == CONTAINER_HASH)
+                {
+                    if (node.is_updated())
+                    {
+                        shared->root_log() = node->id();
+                        shared->updated() = true;
+                    }
+                    else {
+                        shared->root() = node->id();
+                        shared->updated() = false;
+                    }
 
-            		me()->configureNewCtrShared(shared, node);
+                    me()->configureNewCtrShared(shared, node);
 
-            		return shared;
-            	}
-            	else {
-            		throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->ctr_type_hash());
-            	}
+                    return shared;
+                }
+                else {
+                    throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->ctr_type_hash());
+                }
             }
             else {
-            	throw NoCtrException(MEMORIA_SOURCE, SBuf()<<"Container with name "<<name<<" does not exists");
+                throw NoCtrException(MEMORIA_SOURCE, SBuf()<<"Container with name "<<name<<" does not exists");
             }
         }
     }
@@ -439,16 +439,16 @@ private:
 
     bool        debug_;
 
-    Int 		owner_ctr_type_hash_ = 0;
-    Int 		master_ctr_type_hash_ = 0;
+    Int         owner_ctr_type_hash_ = 0;
+    Int         master_ctr_type_hash_ = 0;
 
 public:
 
     MEMORIA_PUBLIC Ctr(
-    		Allocator* allocator,
-    		Int command = CTR_CREATE,
-    		BigInt name = CTR_DEFAULT_NAME,
-    		const char* mname = NULL
+            Allocator* allocator,
+            Int command = CTR_CREATE,
+            BigInt name = CTR_DEFAULT_NAME,
+            const char* mname = NULL
     ):
         Base(CtrInitData(Base::CONTAINER_HASH)),
         allocator_(allocator),
@@ -463,24 +463,24 @@ public:
 
         if (name == CTR_DEFAULT_NAME)
         {
-        	initCtr(allocator, allocator->createCtrName(), command, model_type_name_);
+            initCtr(allocator, allocator->createCtrName(), command, model_type_name_);
         }
         else {
-        	initCtr(allocator, name, command, model_type_name_);
+            initCtr(allocator, name, command, model_type_name_);
         }
     }
 
     void checkCommandArguments(Int command, BigInt name)
     {
-    	if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
-    	{
-    		throw memoria::vapi::Exception(MEMORIA_SOURCE, "Either CTR_CREATE, CTR_FIND or both must be specified");
-    	}
+        if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
+        {
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, "Either CTR_CREATE, CTR_FIND or both must be specified");
+        }
 
-    	if ((command & CTR_FIND) && name == CTR_DEFAULT_NAME)
-    	{
-    		throw memoria::vapi::Exception(MEMORIA_SOURCE, "Container name must be specified for the CTR_FIND operation");
-    	}
+        if ((command & CTR_FIND) && name == CTR_DEFAULT_NAME)
+        {
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, "Container name must be specified for the CTR_FIND operation");
+        }
     }
 
 
@@ -530,7 +530,7 @@ public:
         logger_(other.logger_),
         debug_(other.debug_)
     {
-    	//FIXME: ref() ???
+        //FIXME: ref() ???
     }
 
     Ctr(MyType&& other, Allocator* allocator):
@@ -552,8 +552,8 @@ public:
         logger_(model_type_name_, Logger::DERIVED, NULL),
         debug_(false)
     {
-    	Base::setCtrShared(NULL);
-    	//FIXME: ref() ???
+        Base::setCtrShared(NULL);
+        //FIXME: ref() ???
     }
 
     MEMORIA_PUBLIC virtual ~Ctr() throw()
@@ -605,11 +605,11 @@ public:
     }
 
     Int owner_ctr_type_hash () const {
-    	return owner_ctr_type_hash_;
+        return owner_ctr_type_hash_;
     }
 
     Int master_ctr_type_hash() const {
-    	return master_ctr_type_hash_;
+        return master_ctr_type_hash_;
     }
 
 
@@ -636,12 +636,12 @@ public:
 
     MEMORIA_PUBLIC static String type_name_str()
     {
-    	return TypeNameFactory<ContainerTypeName>::name();
+        return TypeNameFactory<ContainerTypeName>::name();
     }
 
     MEMORIA_PUBLIC static const char* type_name_cstr()
     {
-    	return TypeNameFactory<ContainerTypeName>::cname();
+        return TypeNameFactory<ContainerTypeName>::cname();
     }
 
 

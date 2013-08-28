@@ -19,13 +19,13 @@
 
 namespace memoria    {
 
-static const int DEFAULT_BLOCK_SIZE         		= 4096;
-static const int PackedTreeBranchingFactor  		= 32;
-static const int PackedSeqBranchingFactor   		= 32;
-static const int PackedSeqValuesPerBranch   		= 1024;
-static const int PackedTreeExintVPB  				= 256;
-static const int PackedTreeEliasVPB  				= 1024;
-static const int PackedAllocationAlignment  		= 8;
+static const int DEFAULT_BLOCK_SIZE                 = 4096;
+static const int PackedTreeBranchingFactor          = 32;
+static const int PackedSeqBranchingFactor           = 32;
+static const int PackedSeqValuesPerBranch           = 1024;
+static const int PackedTreeExintVPB                 = 256;
+static const int PackedTreeEliasVPB                 = 1024;
+static const int PackedAllocationAlignment          = 8;
 
 
 typedef int64_t             BigInt;
@@ -56,14 +56,14 @@ struct PlatformLongHelper<8> {
 };
 }
 
-const BigInt CTR_DEFAULT_NAME 			= -1;
-const BigInt INITAL_CTR_NAME_COUNTER	= 1000000;
+const BigInt CTR_DEFAULT_NAME           = -1;
+const BigInt INITAL_CTR_NAME_COUNTER    = 1000000;
 
 enum {
-	CTR_NONE 				= 0,
-	CTR_CREATE 				= 1,
-	CTR_FIND 				= 1<<1,
-	CTR_THROW_IF_EXISTS 	= 1<<2,
+    CTR_NONE                = 0,
+    CTR_CREATE              = 1,
+    CTR_FIND                = 1<<1,
+    CTR_THROW_IF_EXISTS     = 1<<2,
 };
 
 /**
@@ -121,7 +121,7 @@ struct Composite    {};
 struct Root         {};
 
 template <typename CtrName>
-class CtrWrapper 	{};
+class CtrWrapper    {};
 
 template <typename Key, typename Value>
 struct Map          {};
@@ -147,46 +147,46 @@ struct VectorMap    {};
 template <typename T>
 struct Vector       {};
 
-struct ASequence	{};
+struct ASequence    {};
 
 template <Int BitsPerSymbol, bool Dense = true>
-struct Sequence	{};
+struct Sequence {};
 
 template <bool Dense = true>
 using BitVector = Sequence<1, Dense>;
 
 template <typename ChildType = void>
-class SmallProfile 	{};
+class SmallProfile  {};
 
 
-enum class Granularity 	{Bit, Byte};
-enum class Indexed 		{No, Yes};
-
-template <
-	typename LblType,
-	Indexed indexed 		= Indexed::No
->
-struct FLabel		{};
+enum class Granularity  {Bit, Byte};
+enum class Indexed      {No, Yes};
 
 template <
-	Int BitsPerSymbol
+    typename LblType,
+    Indexed indexed         = Indexed::No
 >
-struct FBLabel		{};
+struct FLabel       {};
 
 template <
-	typename LblType,
-	Granularity granularity = Granularity::Bit,
-	Indexed indexed 		= Indexed::No
+    Int BitsPerSymbol
 >
-struct VLabel		{};
+struct FBLabel      {};
+
+template <
+    typename LblType,
+    Granularity granularity = Granularity::Bit,
+    Indexed indexed         = Indexed::No
+>
+struct VLabel       {};
 
 
 template <typename... LabelDescriptors>
 struct LabeledTree  {};
 
 
-struct WT 			{};
-struct VTree		{};
+struct WT           {};
+struct VTree        {};
 
 template <Granularity gr = Granularity::Byte>
 struct CMap         {};
@@ -243,7 +243,7 @@ struct ValueList {};
 
 
 template <typename T> struct DeclType {
-	typedef T Type;
+    typedef T Type;
 };
 
 template <typename First, typename Second>
@@ -271,7 +271,7 @@ struct DeserializationData {
 };
 
 enum class WalkDirection {
-	UP, DOWN
+    UP, DOWN
 };
 
 enum class SearchType {LT, LE};

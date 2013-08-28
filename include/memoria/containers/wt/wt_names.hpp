@@ -12,15 +12,15 @@
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
 
 namespace memoria    {
-namespace wt 	 	 {
+namespace wt         {
 
 template <typename... LabelDescriptors>
-class WTLabeledTree	{};
+class WTLabeledTree {};
 
-class CtrApiName 	{};
-class CtrCTreeName 	{};
+class CtrApiName    {};
+class CtrCTreeName  {};
 class CtrInsertName {};
-class CtrToolsName 	{};
+class CtrToolsName  {};
 class CtrRemoveName {};
 class CtrChecksName {};
 class CtrUpdateName {};

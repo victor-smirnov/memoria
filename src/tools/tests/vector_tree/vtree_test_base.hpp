@@ -31,16 +31,16 @@ class VectorTreeTestBase: public SPTestTask {
 protected:
 
 
-    typedef typename SCtrTF<VTree>::Type 										Ctr;
+    typedef typename SCtrTF<VTree>::Type                                        Ctr;
 
-    typedef typename Ctr::Iterator 												Iterator;
-    typedef typename Ctr::Value 												Value;
+    typedef typename Ctr::Iterator                                              Iterator;
+    typedef typename Ctr::Value                                                 Value;
 
     String dump_name_;
 
-    typedef LblTreeNode<std::vector<Value>, UByte, BigInt>						TreeNode;
+    typedef LblTreeNode<std::vector<Value>, UByte, BigInt>                      TreeNode;
 
-    static const Int LabelNumber 												= 2;
+    static const Int LabelNumber                                                = 2;
 
     Int max_data_size_ = 10;
 
@@ -48,8 +48,8 @@ public:
 
     VectorTreeTestBase(StringRef name): SPTestTask(name)
     {
-    	MEMORIA_ADD_TEST_PARAM(max_data_size_);
-    	MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(max_data_size_);
+        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
 
     }
 
@@ -57,53 +57,53 @@ public:
 
     TreeNode createRandomLabeledTree(Int size, Int node_degree = 10)
     {
-    	TreeNode root;
+        TreeNode root;
 
-    	Int tree_size = 1;
-    	createRandomLabeledTree(root, tree_size, size, node_degree);
+        Int tree_size = 1;
+        createRandomLabeledTree(root, tree_size, size, node_degree);
 
-    	return root;
+        return root;
     }
 
     TreeNode fillRandom(Ctr& tree, Int size, Int max_degree = 10)
     {
-    	TreeNode tree_node = createRandomLabeledTree(size, max_degree);
+        TreeNode tree_node = createRandomLabeledTree(size, max_degree);
 
-    	tree.prepare();
+        tree.prepare();
 
-    	LoudsNode root = tree.seek(0).node();
+        LoudsNode root = tree.seek(0).node();
 
-    	insertNode(tree, root, tree_node);
+        insertNode(tree, root, tree_node);
 
-    	return tree_node;
+        return tree_node;
     }
 
     void insertNode(Ctr& tree, const LoudsNode& node, const TreeNode& tree_node)
     {
-    	auto iter = tree.seek(node.node());
+        auto iter = tree.seek(node.node());
 
-    	auto first_child = tree.insert(iter, std::get<0>(tree_node.labels()));
+        auto first_child = tree.insert(iter, std::get<0>(tree_node.labels()));
 
-    	iter.insert(tree_node.data());
+        iter.insert(tree_node.data());
 
-//    	assertTreeNode(tree, node, tree_node);
+//      assertTreeNode(tree, node, tree_node);
 
-    	for (Int c = 0; c < tree_node.children(); c++)
-    	{
-    		insertNode(tree, first_child, tree_node.child(c));
-    		first_child++;
-    	}
+        for (Int c = 0; c < tree_node.children(); c++)
+        {
+            insertNode(tree, first_child, tree_node.child(c));
+            first_child++;
+        }
     }
 
 
     void checkTree(Ctr& tree, TreeNode& root_node)
     {
-    	Int size = 1;
-    	auto root = tree.seek(0).node();
+        Int size = 1;
+        auto root = tree.seek(0).node();
 
-    	checkTree(tree, root, root_node, size);
+        checkTree(tree, root, root_node, size);
 
-    	AssertEQ(MA_SRC, size, tree.nodes());
+        AssertEQ(MA_SRC, size, tree.nodes());
     }
 
 
@@ -112,40 +112,40 @@ public:
 
     void checkTreeStructure(Ctr& tree, const LoudsNode& node, LoudsNode parent)
     {
-    	BigInt count = 0;
-    	checkTreeStructure(tree, node, parent, count);
+        BigInt count = 0;
+        checkTreeStructure(tree, node, parent, count);
     }
 
     void checkTreeStructure(Ctr& tree)
     {
-    	if (tree.bitmap_size() > 2)
-    	{
-    		BigInt count = 0;
-    		checkTreeStructure(tree, LoudsNode(0, 1, 1), LoudsNode(0, 1, 1), count);
+        if (tree.bitmap_size() > 2)
+        {
+            BigInt count = 0;
+            checkTreeStructure(tree, LoudsNode(0, 1, 1), LoudsNode(0, 1, 1), count);
 
-    		AssertEQ(MA_SRC, count, tree.nodes());
-    	}
-    	else
-    	{
-    		AssertEQ(MA_SRC, tree.bitmap_size(), 0);
-    	}
+            AssertEQ(MA_SRC, count, tree.nodes());
+        }
+        else
+        {
+            AssertEQ(MA_SRC, tree.bitmap_size(), 0);
+        }
     }
 
     void traverseTree(Ctr& tree, std::function<void (LoudsNode node)> fn)
     {
-    	auto root = tree.seek(0).node();
+        auto root = tree.seek(0).node();
 
-    	traverseTree(tree, root, fn);
+        traverseTree(tree, root, fn);
     }
 
     void traverseTree(const TreeNode& node, std::function<void (const TreeNode& node)> fn)
     {
-    	fn(node);
+        fn(node);
 
-    	for (Int c = 0; c < node.children(); c++)
-    	{
-    		traverseTree(node.child(c), fn);
-    	}
+        for (Int c = 0; c < node.children(); c++)
+        {
+            traverseTree(node.child(c), fn);
+        }
     }
 
 private:
@@ -155,52 +155,52 @@ private:
 
     void createRandomLabeledTree(TreeNode& node, Int& size, Int max_size, Int max_degree, Int level = 0)
     {
-    	Int degree = level > 0 ? getRandom(max_degree) : max_degree;
+        Int degree = level > 0 ? getRandom(max_degree) : max_degree;
 
-    	std::get<0>(node.labels()) 	= getRandom(256);
+        std::get<0>(node.labels())  = getRandom(256);
 
-    	Int data_size 				= getRandom(max_data_size_);
-    	std::get<1>(node.labels()) 	= data_size;
+        Int data_size               = getRandom(max_data_size_);
+        std::get<1>(node.labels())  = data_size;
 
-		std::vector<Value> data(data_size);
+        std::vector<Value> data(data_size);
 
-		for (auto& v: data)
-		{
-			v = getRandom(256);
-		}
+        for (auto& v: data)
+        {
+            v = getRandom(256);
+        }
 
-		node.data() = data;
+        node.data() = data;
 
 
-    	if (level < 32)
-    	{
-    		for (Int c = 0; c < degree && size < max_size; c++)
-    		{
-    			TreeNode& child = node.appendChild();
+        if (level < 32)
+        {
+            for (Int c = 0; c < degree && size < max_size; c++)
+            {
+                TreeNode& child = node.appendChild();
 
-    			size++;
-    			createRandomLabeledTree(child, size, max_size, max_degree, level + 1);
-    		}
-    	}
+                size++;
+                createRandomLabeledTree(child, size, max_size, max_degree, level + 1);
+            }
+        }
     }
 
 
     void checkTreeStructure(Ctr& tree, const LoudsNode& node, const LoudsNode& parent, BigInt& count)
     {
-    	count++;
+        count++;
 
-    	if (node.node() > 0)
-    	{
-    		BigInt parentIdx = tree.parent(node).node().node();
-    		AssertEQ(MA_SRC, parentIdx, parent.node());
-    	}
+        if (node.node() > 0)
+        {
+            BigInt parentIdx = tree.parent(node).node().node();
+            AssertEQ(MA_SRC, parentIdx, parent.node());
+        }
 
-    	Iterator children = tree.children(node);
+        Iterator children = tree.children(node);
 
-    	while (children.next_sibling())
-    	{
-    		checkTreeStructure(tree, children.node(), node, count);
-    	}
+        while (children.next_sibling())
+        {
+            checkTreeStructure(tree, children.node(), node, count);
+        }
     }
 
 
@@ -209,92 +209,92 @@ private:
 
     void assertTreeNode(Ctr& ctr, const LoudsNode& node, const TreeNode& tree_node)
     {
-    	auto labels = ctr.tree().labels(node);
-    	AssertEQ(MA_SRC, labels, tree_node.labels());
+        auto labels = ctr.tree().labels(node);
+        AssertEQ(MA_SRC, labels, tree_node.labels());
 
-    	auto vtree_node = ctr.seek(node.node());
-    	auto data = vtree_node.read();
+        auto vtree_node = ctr.seek(node.node());
+        auto data = vtree_node.read();
 
-    	AssertEQ(MA_SRC, data.size(), tree_node.data().size());
+        AssertEQ(MA_SRC, data.size(), tree_node.data().size());
 
-    	try {
-    		for (UInt c = 0; c < data.size(); c++)
-    		{
-    			AssertEQ(MA_SRC, data[c], tree_node.data()[c], SBuf()<<c<<" "<<node.node());
-    		}
-    	}
-    	catch (...)
-    	{
-    		vtree_node = ctr.seek(node.node());
+        try {
+            for (UInt c = 0; c < data.size(); c++)
+            {
+                AssertEQ(MA_SRC, data[c], tree_node.data()[c], SBuf()<<c<<" "<<node.node());
+            }
+        }
+        catch (...)
+        {
+            vtree_node = ctr.seek(node.node());
 
-    		vtree_node.tree_iter().dump();
-    		vtree_node.vector_iter().dump();
+            vtree_node.tree_iter().dump();
+            vtree_node.vector_iter().dump();
 
-    		data = vtree_node.read();
+            data = vtree_node.read();
 
-    		throw;
-    	}
+            throw;
+        }
     }
 
     void checkTree(Ctr& tree, const LoudsNode& node, const TreeNode& tree_node, Int& size)
     {
-    	assertTreeNode(tree, node, tree_node);
+        assertTreeNode(tree, node, tree_node);
 
-    	Iterator children = tree.children(node);
+        Iterator children = tree.children(node);
 
-    	Int child_idx = 0;
-    	while (children.next_sibling())
-    	{
-    		AssertLE(MA_SRC, child_idx, tree_node.children());
-    		checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size);
+        Int child_idx = 0;
+        while (children.next_sibling())
+        {
+            AssertLE(MA_SRC, child_idx, tree_node.children());
+            checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size);
 
-    		child_idx++;
-    	}
+            child_idx++;
+        }
 
-    	AssertEQ(MA_SRC, child_idx, tree_node.children());
+        AssertEQ(MA_SRC, child_idx, tree_node.children());
     }
 
     void checkTree(
-    		Ctr& tree,
-    		const LoudsNode& node,
-    		const LoudsNode& parent,
-    		const TreeNode& tree_node,
-    		const TreeNode& tree_parent,
-    		Int& size
+            Ctr& tree,
+            const LoudsNode& node,
+            const LoudsNode& parent,
+            const TreeNode& tree_node,
+            const TreeNode& tree_parent,
+            Int& size
     )
     {
-    	assertTreeNode(tree, node, tree_node);
+        assertTreeNode(tree, node, tree_node);
 
-    	size++;
+        size++;
 
-    	BigInt parentIdx = tree.parent(node).node().node();
-    	AssertEQ(MA_SRC, parentIdx, parent.node());
+        BigInt parentIdx = tree.parent(node).node().node();
+        AssertEQ(MA_SRC, parentIdx, parent.node());
 
-    	Iterator children = tree.children(node);
+        Iterator children = tree.children(node);
 
-    	Int child_idx = 0;
-    	while (children.next_sibling())
-    	{
-    		AssertLE(MA_SRC, child_idx, tree_node.children());
-    		checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size);
+        Int child_idx = 0;
+        while (children.next_sibling())
+        {
+            AssertLE(MA_SRC, child_idx, tree_node.children());
+            checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size);
 
-    		child_idx++;
-    	}
+            child_idx++;
+        }
 
-    	AssertEQ(MA_SRC, child_idx, tree_node.children());
+        AssertEQ(MA_SRC, child_idx, tree_node.children());
     }
 
 
     void traverseTree(Ctr& tree, const LoudsNode& node, std::function<void (LoudsNode)> fn)
     {
-    	fn(node);
+        fn(node);
 
-    	Iterator children = tree.children(node);
+        Iterator children = tree.children(node);
 
-    	while(children.next_sibling())
-    	{
-    		traverseTree(tree, children.node(), fn);
-    	}
+        while(children.next_sibling())
+        {
+            traverseTree(tree, children.node(), fn);
+        }
     }
 
 };

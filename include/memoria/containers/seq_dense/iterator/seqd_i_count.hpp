@@ -25,21 +25,21 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterCountName)
 
-	typedef Ctr<typename Types::CtrTypes>                      					Container;
+    typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 
-	typedef typename Base::Allocator                                            Allocator;
-	typedef typename Base::NodeBase                                             NodeBase;
-	typedef typename Base::NodeBaseG                                            NodeBaseG;
-	typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    typedef typename Base::TreePath                                             TreePath;
 
-	typedef typename Container::Value                                     		Value;
-	typedef typename Container::Key                                       		Key;
-	typedef typename Container::Element                                   		Element;
-	typedef typename Container::Accumulator                               		Accumulator;
+    typedef typename Container::Value                                           Value;
+    typedef typename Container::Key                                             Key;
+    typedef typename Container::Element                                         Element;
+    typedef typename Container::Accumulator                                     Accumulator;
 
-	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
-	typedef typename Container::Position										Position;
+    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Container::Position                                        Position;
 
     
 MEMORIA_ITERATOR_PART_END

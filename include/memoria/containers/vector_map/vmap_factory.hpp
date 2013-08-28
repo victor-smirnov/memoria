@@ -34,30 +34,30 @@ struct PackedVMapFSETreeLeafTF {
     typedef typename Types::Key                                                 Key;
 
     typedef typename SelectByIndexTool<
-    		StreamIdx,
-    		typename Types::StreamDescriptors
-    >::Result																	Descriptor;
+            StreamIdx,
+            typename Types::StreamDescriptors
+    >::Result                                                                   Descriptor;
 
-	typedef Packed2TreeTypes<
-			Key, Key, Descriptor::LeafIndexes
-	>																			TreeTypes;
+    typedef Packed2TreeTypes<
+            Key, Key, Descriptor::LeafIndexes
+    >                                                                           TreeTypes;
 
-	typedef PkdFTree<TreeTypes> Type;
+    typedef PkdFTree<TreeTypes> Type;
 };
 
 
 
 template <typename Profile, typename Key_, typename Value_>
 struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
-	public BTTypes<Profile, memoria::BT>
+    public BTTypes<Profile, memoria::BT>
 {
 
     typedef BTTypes<Profile, memoria::BT>                   Base;
 
-    typedef Value_                                                          	Value;
-    typedef TypeList<BigInt>                                                  	KeysList;
+    typedef Value_                                                              Value;
+    typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int Indexes                                                	= 1;
+    static const Int Indexes                                                    = 1;
 
 
     template <typename Iterator, typename Container>
@@ -66,97 +66,97 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     };
 
     typedef TypeList<
-    		NonLeafNodeTypes<BranchNode>,
-    		LeafNodeTypes<LeafNode>
-    >																			NodeTypesList;
+            NonLeafNodeTypes<BranchNode>,
+            LeafNodeTypes<LeafNode>
+    >                                                                           NodeTypesList;
 
     typedef TypeList<
-    		TreeNodeType<LeafNode>,
-    		TreeNodeType<BranchNode>
-    >																			DefaultNodeTypesList;
+            TreeNodeType<LeafNode>,
+            TreeNodeType<BranchNode>
+    >                                                                           DefaultNodeTypesList;
 
     typedef TypeList<
-    			// Map
-    			StreamDescr<
-    				PkdFTreeTF,
-    				PackedVMapFSETreeLeafTF,
-    				2
-    			>,
+                // Map
+                StreamDescr<
+                    PkdFTreeTF,
+                    PackedVMapFSETreeLeafTF,
+                    2
+                >,
 
-    			// Vector
-    			StreamDescr<
-        			PkdFTreeTF,
-        			PackedFSEArrayTF,
-        			1
-        		>
-    >																			StreamDescriptors;
+                // Vector
+                StreamDescr<
+                    PkdFTreeTF,
+                    PackedFSEArrayTF,
+                    1
+                >
+    >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<
-        		typename Base::ID,
-        		ListSize<StreamDescriptors>::Value
-    > 																			Metadata;
+                typename Base::ID,
+                ListSize<StreamDescriptors>::Value
+    >                                                                           Metadata;
 
 
     typedef typename MergeLists<
-    		typename Base::ContainerPartsList,
-    		memoria::bt::NodeNormName,
-    		memoria::vmap::CtrToolsName,
-    		memoria::vmap::CtrInsertName,
-    		memoria::vmap::CtrRemoveName,
-    		memoria::vmap::CtrUpdateName,
-    		memoria::vmap::CtrFindName,
-    		memoria::vmap::CtrApiName
-    >::Result                                           						ContainerPartsList;
+            typename Base::ContainerPartsList,
+            memoria::bt::NodeNormName,
+            memoria::vmap::CtrToolsName,
+            memoria::vmap::CtrInsertName,
+            memoria::vmap::CtrRemoveName,
+            memoria::vmap::CtrUpdateName,
+            memoria::vmap::CtrFindName,
+            memoria::vmap::CtrApiName
+    >::Result                                                                   ContainerPartsList;
 
     typedef typename MergeLists<
-    		typename Base::IteratorPartsList,
-    		memoria::vmap::ItrApiName
-    >::Result                                           						IteratorPartsList;
+            typename Base::IteratorPartsList,
+            memoria::vmap::ItrApiName
+    >::Result                                                                   IteratorPartsList;
 
-    typedef IDataSource<Value>													DataSource;
-    typedef IDataTarget<Value>													DataTarget;
+    typedef IDataSource<Value>                                                  DataSource;
+    typedef IDataTarget<Value>                                                  DataTarget;
 
 
 
 //    template <typename Types>
-//    using FindLTWalker 			= ::memoria::vmap::FindLTForwardWalker<Types>;
+//    using FindLTWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
 //
 //    template <typename Types>
-//    using FindLEWalker 			= ::memoria::vmap::FindLTForwardWalker<Types>;
+//    using FindLEWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
 
     template <typename Types>
-    using SkipForwardWalker 		= vmap::SkipForwardWalker<Types>;
+    using SkipForwardWalker         = vmap::SkipForwardWalker<Types>;
 
     template <typename Types>
-    using SkipBackwardWalker 		= TypeIsNotDefined;
-
-
-    template <typename Types>
-    using NextLeafWalker 			= bt::NextLeafWalker<Types>;
-
-    template <typename Types>
-    using PrevLeafWalker 			= vmap::PrevLeafWalker<Types>;
-
-    template <typename Types>
-    using NextLeafMutistreamWalker 	= bt::NextLeafMultistreamWalker<Types>;
+    using SkipBackwardWalker        = TypeIsNotDefined;
 
 
     template <typename Types>
-    using PrevLeafMutistreamWalker 	= bt::PrevLeafMultistreamWalker<Types>;
+    using NextLeafWalker            = bt::NextLeafWalker<Types>;
+
+    template <typename Types>
+    using PrevLeafWalker            = vmap::PrevLeafWalker<Types>;
+
+    template <typename Types>
+    using NextLeafMutistreamWalker  = bt::NextLeafMultistreamWalker<Types>;
+
+
+    template <typename Types>
+    using PrevLeafMutistreamWalker  = bt::PrevLeafMultistreamWalker<Types>;
 
 
 
     template <typename Types>
-    using FindBeginWalker 			= vmap::FindVMapBeginWalker<Types>;
+    using FindBeginWalker           = vmap::FindVMapBeginWalker<Types>;
 
     template <typename Types>
-    using FindEndWalker 			= vmap::FindVMapEndWalker<Types>;
+    using FindEndWalker             = vmap::FindVMapEndWalker<Types>;
 
     template <typename Types>
-    using FindRBeginWalker 			= vmap::FindVMapRBeginWalker<Types>;
+    using FindRBeginWalker          = vmap::FindVMapRBeginWalker<Types>;
 
     template <typename Types>
-    using FindREndWalker 			= vmap::FindVMapREndWalker<Types>;
+    using FindREndWalker            = vmap::FindVMapREndWalker<Types>;
 };
 
 

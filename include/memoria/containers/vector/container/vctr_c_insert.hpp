@@ -23,39 +23,39 @@ using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
 
-	typedef typename Base::Types                                                Types;
-	typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Types                                                Types;
+    typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::ID                                                   ID;
+    typedef typename Base::ID                                                   ID;
 
-	typedef typename Types::NodeBase                                            NodeBase;
-	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::Iterator                                             Iterator;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-	typedef typename Base::RootDispatcher                                       RootDispatcher;
-	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
-	typedef typename Base::DefaultDispatcher                                    DefaultDispatcher;
+    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+    typedef typename Base::RootDispatcher                                       RootDispatcher;
+    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    typedef typename Base::DefaultDispatcher                                    DefaultDispatcher;
 
 
-	typedef typename Base::Key                                                  Key;
-	typedef typename Base::Value                                                Value;
-	typedef typename Base::Element                                              Element;
+    typedef typename Base::Key                                                  Key;
+    typedef typename Base::Value                                                Value;
+    typedef typename Base::Element                                              Element;
 
-	typedef typename Base::Metadata                                             Metadata;
+    typedef typename Base::Metadata                                             Metadata;
 
-	typedef typename Types::Accumulator                                         Accumulator;
-	typedef typename Types::Position 											Position;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::Position                                            Position;
 
-	typedef typename Base::TreePath                                             TreePath;
-	typedef typename Base::TreePathItem                                         TreePathItem;
+    typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::TreePathItem                                         TreePathItem;
 
-	static const Int Indexes                                                    = Types::Indexes;
-	static const Int Streams                                                    = Types::Streams;
+    static const Int Indexes                                                    = Types::Indexes;
+    static const Int Streams                                                    = Types::Streams;
 
-	typedef typename Types::DataSource											DataSource;
-	typedef typename Types::DataTarget											DataTarget;
+    typedef typename Types::DataSource                                          DataSource;
+    typedef typename Types::DataTarget                                          DataTarget;
 
     void insert(Iterator& iter, DataSource& data);
 
@@ -69,30 +69,30 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::insert(Iterator& iter, DataSource& data)
 {
-	auto& self = this->self();
-	auto& ctr  = self;
+    auto& self = this->self();
+    auto& ctr  = self;
 
-	Position idx(iter.idx());
+    Position idx(iter.idx());
 
-	if (ctr.isNodeEmpty(iter.leaf()))
-	{
-		ctr.layoutLeafNode(iter.leaf(), 0);
-	}
+    if (ctr.isNodeEmpty(iter.leaf()))
+    {
+        ctr.layoutLeafNode(iter.leaf(), 0);
+    }
 
-	mvector::VectorSource source(&data);
+    mvector::VectorSource source(&data);
 
-	typename Base::DefaultSubtreeProvider provider(self, Position(data.getSize()), source);
+    typename Base::DefaultSubtreeProvider provider(self, Position(data.getSize()), source);
 
-	ctr.insertSubtree(iter.leaf(), idx, provider);
+    ctr.insertSubtree(iter.leaf(), idx, provider);
 
-	ctr.addTotalKeyCount(Position(data.getSize()));
+    ctr.addTotalKeyCount(Position(data.getSize()));
 
-	if (iter.isEof())
-	{
-		iter.nextLeaf();
-	}
+    if (iter.isEof())
+    {
+        iter.nextLeaf();
+    }
 
-	iter.skipFw(data.getSize());
+    iter.skipFw(data.getSize());
 }
 
 

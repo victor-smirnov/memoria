@@ -64,9 +64,9 @@ Int Task::Run()
     bool result;
 
     try {
-    	BigInt t0  = getTimeInMillis();
+        BigInt t0  = getTimeInMillis();
 
-    	Run(*out_);
+        Run(*out_);
 
         BigInt t1 = getTimeInMillis();
 
@@ -76,8 +76,8 @@ Int Task::Run()
     }
     catch (const std::exception& e)
     {
-    	(*out_)<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
-    	result = true;
+        (*out_)<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+        result = true;
     }
     catch (const Exception& e) {
         (*out_)<<"FAILED: "<<e.source()<<": "<<e<<endl;

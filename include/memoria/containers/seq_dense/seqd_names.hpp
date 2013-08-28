@@ -11,20 +11,20 @@
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 
-namespace memoria    	{
-namespace seq_dense		{
+namespace memoria       {
+namespace seq_dense     {
 
-class CtrChecksName 	{};
-class CtrToolsName 		{};
-class CtrFindName 		{};
-class CtrInsertName 	{};
-class CtrRemoveName 	{};
+class CtrChecksName     {};
+class CtrToolsName      {};
+class CtrFindName       {};
+class CtrInsertName     {};
+class CtrRemoveName     {};
 
-class IterMiscName  	{};
-class IterRankName  	{};
-class IterSelectName  	{};
-class IterCountName  	{};
-class IterSkipName  	{};
+class IterMiscName      {};
+class IterRankName      {};
+class IterSelectName    {};
+class IterCountName     {};
+class IterSkipName      {};
 
 }
 

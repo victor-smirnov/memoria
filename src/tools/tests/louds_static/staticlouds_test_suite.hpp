@@ -21,10 +21,10 @@ class StaticLoudsTestSuite: public TestSuite {
 
 public:
 
-	StaticLoudsTestSuite(): TestSuite("StaticLoudsSuite")
+    StaticLoudsTestSuite(): TestSuite("StaticLoudsSuite")
     {
-    	registerTask(new StaticLoudsMiscTest());
-    	registerTask(new StaticLoudsSubtreeTest());
+        registerTask(new StaticLoudsMiscTest());
+        registerTask(new StaticLoudsSubtreeTest());
     }
 
 };

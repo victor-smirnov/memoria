@@ -32,14 +32,14 @@ class ContainerCollectionCfg;
 template <typename T>
 class ContainerCollectionCfg<SmallProfile<T> > {
 public:
-    typedef BasicContainerCollectionCfg<SmallProfile<T> >                               Types;
+    typedef BasicContainerCollectionCfg<SmallProfile<T> >                       Types;
 };
 
 
 typedef memoria::InMemAllocator<
             SmallProfile<>,
             ContainerCollectionCfg<SmallProfile<> >::Types::Page
-        >                                                                               SmallInMemAllocator;
+        >                                                                       SmallInMemAllocator;
 
 
 template <typename CtrName>

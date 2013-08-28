@@ -21,36 +21,6 @@ template <
         typename Accumulator
 >
 struct ForEach;
-/*
-template <
-        typename Config,
-        template <typename, typename, typename> class Handler,
-        typename Accumulator
->
-struct ForEach<Config, NullType, Handler, Accumulator> {
-    typedef Accumulator                                                         Result;
-};
-
-template <
-        typename Config,
-        typename Head,
-        typename Tail,
-        template <typename, typename, typename> class Handler,
-        typename Accumulator
->
-struct ForEach<Config, TL<Head, Tail>, Handler, Accumulator> {
-    typedef typename ForEach<
-                Config,
-                Tail,
-                Handler,
-                Handler<Config, Head, Accumulator>
-    >::Result                                                                   Result;
-};
-
-
-*/
-
-
 
 
 template <

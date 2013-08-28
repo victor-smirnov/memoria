@@ -70,11 +70,11 @@ public:
         if (v2.totalDataSize() != v2.totalDataSize())
         {
             throw TestException(
-            		src,
-            		SBuf()<<"VectorMaps have different sizes: "
-            			  <<v1.totalDataSize()
-            			  <<" "
-            			  <<v2.totalDataSize()
+                    src,
+                    SBuf()<<"VectorMaps have different sizes: "
+                          <<v1.totalDataSize()
+                          <<" "
+                          <<v2.totalDataSize()
             );
         }
 

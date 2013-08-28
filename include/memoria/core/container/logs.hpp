@@ -173,15 +173,15 @@ public:
 
     LogHandler* getHandler()
     {
-    	if (handler_ != NULL) {
-    		return handler_;
-    	}
-    	else if (parent_ != NULL) {
-    		return parent_->getHandler();
-    	}
-    	else {
-    		return default_handler_;
-    	}
+        if (handler_ != NULL) {
+            return handler_;
+        }
+        else if (parent_ != NULL) {
+            return parent_->getHandler();
+        }
+        else {
+            return default_handler_;
+        }
     }
 
     void setHandler(LogHandler* handler)

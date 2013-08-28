@@ -19,11 +19,6 @@ namespace memoria    {
 template <typename T> struct FieldFactory;
 
 
-//template <typename Object>
-//struct TypeHash<PageID<Object> > {
-//public:
-//    static const UInt Value = TypeHash<Object>::Value;
-//};
 
 template <typename T>
 struct FieldFactory<PageID<T> > {
@@ -35,8 +30,8 @@ public:
     {
         memmove(data.buf, &field, sizeof(Type) * count);
 
-        data.buf 	+= sizeof(Type) * count;
-        data.total 	+= sizeof(Type) * count;
+        data.buf    += sizeof(Type) * count;
+        data.total  += sizeof(Type) * count;
     }
 
     static void deserialize(DeserializationData& data, Type& field, Int count = 1)
@@ -54,8 +49,8 @@ struct FieldFactory<BitBuffer<Size> > {
     static void serialize(SerializationData& data, const Type& field)
     {
         memmove(data.buf, &field, sizeof(Type));
-        data.buf 	+= sizeof(Type);
-        data.total 	+= sizeof(Type);
+        data.buf    += sizeof(Type);
+        data.total  += sizeof(Type);
     }
 
     static void deserialize(DeserializationData& data, Type& field)

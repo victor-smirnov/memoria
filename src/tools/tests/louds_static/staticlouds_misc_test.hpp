@@ -22,21 +22,14 @@ using namespace std;
 
 class StaticLoudsMiscTest: public StaticLoudsTestBase {
 
-    typedef StaticLoudsMiscTest 												MyType;
-
-
+    typedef StaticLoudsMiscTest                                                 MyType;
 
 public:
 
     StaticLoudsMiscTest(): StaticLoudsTestBase("Misc")
-    {
-
-    }
+    {}
 
     virtual ~StaticLoudsMiscTest() throw() {}
-
-
-
 };
 
 

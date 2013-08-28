@@ -25,50 +25,50 @@ using namespace memoria::louds;
 
 class LabeledTreeCreateTest: public LabeledTreeTestBase {
 
-	typedef LabeledTreeTestBase													Base;
+    typedef LabeledTreeTestBase                                                 Base;
     typedef LabeledTreeCreateTest                                               MyType;
 
-    Int 	max_degree_	= 10;
-    Int 	iterations_ = 1;
+    Int     max_degree_ = 10;
+    Int     iterations_ = 1;
 
 public:
 
     LabeledTreeCreateTest(): LabeledTreeTestBase("Create")
     {
-    	size_ = 100000;
+        size_ = 100000;
 
         MEMORIA_ADD_TEST_PARAM(max_degree_);
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
-    	MEMORIA_ADD_TEST(testFillTree);
+        MEMORIA_ADD_TEST(testFillTree);
     }
 
     virtual ~LabeledTreeCreateTest() throw () {}
 
     void testFillTree()
     {
-    	DefaultLogHandlerImpl logHandler(Base::out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Ctr tree(&allocator);
+        Ctr tree(&allocator);
 
-    	try {
-    		TreeNode root = this->fillRandom(tree, size_, max_degree_);
+        try {
+            TreeNode root = this->fillRandom(tree, size_, max_degree_);
 
-    		forceCheck(allocator, MA_SRC);
+            forceCheck(allocator, MA_SRC);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		StoreResource(allocator, "ftree", 0);
+            StoreResource(allocator, "ftree", 0);
 
-    		checkTree(tree, root);
-    	}
-    	catch (...) {
-    		this->dump_name_ =  Store(allocator);
-    		throw;
-    	}
+            checkTree(tree, root);
+        }
+        catch (...) {
+            this->dump_name_ =  Store(allocator);
+            throw;
+        }
     }
 };
 

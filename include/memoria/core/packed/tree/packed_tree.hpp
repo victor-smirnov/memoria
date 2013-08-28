@@ -260,31 +260,31 @@ public:
     }
 
     Key* keys(Int block) {
-    	return T2T<Key*>(memory_block_ + getKeyBlockOffset(block));
+        return T2T<Key*>(memory_block_ + getKeyBlockOffset(block));
     }
 
     const Key* keys(Int block) const {
-    	return T2T<const Key*>(memory_block_ + getKeyBlockOffset(block));
+        return T2T<const Key*>(memory_block_ + getKeyBlockOffset(block));
     }
 
     IndexKey* indexes(Int block) {
-    	return T2T<IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+        return T2T<IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
     const IndexKey* indexes(Int block) const {
-    	return T2T<const IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+        return T2T<const IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
     Accumulator keysAt(Int idx) const
     {
-    	Accumulator acc;
+        Accumulator acc;
 
-    	for (Int c = 0; c < Blocks; c++)
-    	{
-    		acc[c] = key(c, idx);
-    	}
+        for (Int c = 0; c < Blocks; c++)
+        {
+            acc[c] = key(c, idx);
+        }
 
-    	return acc;
+        return acc;
     }
 
 
@@ -453,14 +453,14 @@ public:
 
     Accumulator maxKeys() const
     {
-    	Accumulator acc;
+        Accumulator acc;
 
-    	for (Int c = 0; c < Blocks; c++)
-    	{
-    		acc[c] = maxKey(c);
-    	}
+        for (Int c = 0; c < Blocks; c++)
+        {
+            acc[c] = maxKey(c);
+        }
 
-    	return acc;
+        return acc;
     }
 
     Value& value(Int value_num)
@@ -760,14 +760,14 @@ public:
 private:
     template <typename Walker>
     class FinishHandler {
-    	Walker& walker_;
+        Walker& walker_;
     public:
-    	FinishHandler(Walker& walker): walker_(walker) {}
+        FinishHandler(Walker& walker): walker_(walker) {}
 
-    	~FinishHandler()
-    	{
-    		walker_.finish();
-    	}
+        ~FinishHandler()
+        {
+            walker_.finish();
+        }
     };
 
 public:
@@ -776,42 +776,42 @@ public:
     template <typename Walker>
     Int find(Walker &walker) const
     {
-    	FinishHandler<Walker> finish_handler(walker);
+        FinishHandler<Walker> finish_handler(walker);
 
-    	Int levels = 0;
-    	Int level_sizes[LEVELS_MAX];
+        Int levels = 0;
+        Int level_sizes[LEVELS_MAX];
 
-    	Int level_size = max_size_;
+        Int level_size = max_size_;
 
-    	do
-    	{
-    		level_size = getIndexCellsNumberFor(level_size);
-    		level_sizes[levels++] = level_size;
-    	}
-    	while (level_size > 1);
+        do
+        {
+            level_size = getIndexCellsNumberFor(level_size);
+            level_sizes[levels++] = level_size;
+        }
+        while (level_size > 1);
 
-    	Int base = 1, start = 0;
+        Int base = 1, start = 0;
 
-    	for (Int level = levels - 2; level >= 0; level--)
-    	{
-    		Int level_size  = level_sizes[level];
-    		Int end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
+        for (Int level = levels - 2; level >= 0; level--)
+        {
+            Int level_size  = level_sizes[level];
+            Int end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
 
-    		Int idx = walker.walkIndex(start + base, end + base) - base;
-    		if (idx < end)
-    		{
-    			start = idx * BranchingFactor;
-    		}
-    		else {
-    			return size_;
-    		}
+            Int idx = walker.walkIndex(start + base, end + base) - base;
+            if (idx < end)
+            {
+                start = idx * BranchingFactor;
+            }
+            else {
+                return size_;
+            }
 
-    		base += level_size;
-    	}
+            base += level_size;
+        }
 
-    	Int end = (start + BranchingFactor) > size_ ? size_ : start + BranchingFactor;
+        Int end = (start + BranchingFactor) > size_ ? size_ : start + BranchingFactor;
 
-    	return walker.walkKeys(start, end);
+        return walker.walkKeys(start, end);
     }
 
 
@@ -1251,7 +1251,8 @@ private:
         const Byte* end             = memory_block_ + this->getValueBlockOffset() + maxSize() * getValueSize();
 
         const Byte* target_start    = target_memory_block + target->getKeyBlockOffset(0);
-        const Byte* target_end      = target_memory_block + target->getValueBlockOffset() + target->maxSize() * target->getValueSize();
+        const Byte* target_end      = target_memory_block + target->getValueBlockOffset()
+                                        + target->maxSize() * target->getValueSize();
 
         return start <= target_start && end >= target_end;
     }
@@ -1268,7 +1269,8 @@ private:
         const Byte* end             = memory_block_ + this->getValueBlockOffset() + maxSize() * getValueSize();
 
         const Byte* target_start    = target_memory_block + target->getKeyBlockOffset(0);
-        const Byte* target_end      = target_memory_block + target->getValueBlockOffset() + target->maxSize() * target->getValueSize();
+        const Byte* target_end      = target_memory_block + target->getValueBlockOffset()
+                                        + target->maxSize() * target->getValueSize();
 
         return start >= target_start && end <= target_end;
     }
@@ -1299,7 +1301,13 @@ private:
     }
 
     template <typename Comparator>
-    Int findRange(const Byte* memory_block, const Byte* target_memory_block, Int item_size, Int target_item_size, const Comparator& cmp) const
+    Int findRange(
+            const Byte* memory_block,
+            const Byte* target_memory_block,
+            Int item_size,
+            Int target_item_size,
+            const Comparator& cmp
+        ) const
     {
         for (Int c = 0; c < size(); c++)
         {
@@ -1342,14 +1350,26 @@ private:
 
         if (this->isMeInsideTarget(key_block, target_key_block, key_block_size, target_key_block_size))
         {
-            Int range = this->findRange(key_block, target_key_block, item_size, target_item_size, std::less_equal<const Byte*>());
+            Int range = this->findRange(
+                                key_block,
+                                target_key_block,
+                                item_size,
+                                target_item_size,
+                                std::less_equal<const Byte*>()
+                            );
 
             copyKeysAsc(other, target_memory_block, offset, target_offset, 0, range);
             copyKeysDsc(other, target_memory_block, offset, target_offset, range, size());
         }
         else if (this->isTargetInsideMe(key_block, target_key_block, key_block_size, target_key_block_size))
         {
-            Int range = this->findRange(key_block, target_key_block, item_size, target_item_size, std::greater_equal<const Byte*>());
+            Int range = this->findRange(
+                                key_block,
+                                target_key_block,
+                                item_size,
+                                target_item_size,
+                                std::greater_equal<const Byte*>()
+                            );
 
             copyKeysDsc(other, target_memory_block, offset, target_offset, 0, range);
             copyKeysAsc(other, target_memory_block, offset, target_offset, range, size());
@@ -1411,7 +1431,13 @@ private:
 
         if (this->isMeInsideTarget(value_block, target_value_block, value_block_size, target_value_block_size))
         {
-            Int range = this->findRange(value_block, target_value_block, getValueSize(), other->getValueSize(), std::less_equal<const Byte*>());
+            Int range = this->findRange(
+                                value_block,
+                                target_value_block,
+                                getValueSize(),
+                                other->getValueSize(),
+                                std::less_equal<const Byte*>()
+                            );
 
             copyValuesAsc(other, target_memory_block, offset, target_offset, 0, range);
             copyValuesDsc(other, target_memory_block, offset, target_offset, range, size());
@@ -1419,7 +1445,13 @@ private:
         }
         else if (this->isTargetInsideMe(value_block, target_value_block, value_block_size, target_value_block_size))
         {
-            Int range = this->findRange(value_block, target_value_block, getValueSize(), other->getValueSize(), std::greater_equal<const Byte*>());
+            Int range = this->findRange(
+                                value_block,
+                                target_value_block,
+                                getValueSize(),
+                                other->getValueSize(),
+                                std::greater_equal<const Byte*>()
+                            );
 
             copyValuesDsc(other, target_memory_block, offset, target_offset, 0, range);
             copyValuesAsc(other, target_memory_block, offset, target_offset, range, size());

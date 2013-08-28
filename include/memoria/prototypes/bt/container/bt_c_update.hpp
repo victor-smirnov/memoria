@@ -45,7 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::Accumulator                                         Accumulator;
-    typedef typename Types::Position 											Position;
+    typedef typename Types::Position                                            Position;
 
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
@@ -53,126 +53,126 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::IDataTargetType                            			DataTarget;
+    typedef typename Types::IDataTargetType                                     DataTarget;
 
     Position getRemainder(ISource& source)
     {
-    	Position size;
+        Position size;
 
-    	for (Int c = 0; c < source.streams(); c++)
-    	{
-    		IDataBase* data = T2T<IDataBase*>(source.stream(c));
-    		size[c] = data->getRemainder();
-    	}
+        for (Int c = 0; c < source.streams(); c++)
+        {
+            IDataBase* data = T2T<IDataBase*>(source.stream(c));
+            size[c] = data->getRemainder();
+        }
 
-    	return size;
+        return size;
     }
 
     UBigInt getSourceActiveStreams(ISource& source)
     {
-    	UBigInt streams = 0;
+        UBigInt streams = 0;
 
-    	for (Int c = 0; c < Streams; c++)
-    	{
-    		IDataBase* data = T2T<IDataBase*>(source.stream(c));
-    		UBigInt active 	= data->getRemainder() > 0;
+        for (Int c = 0; c < Streams; c++)
+        {
+            IDataBase* data = T2T<IDataBase*>(source.stream(c));
+            UBigInt active  = data->getRemainder() > 0;
 
-    		streams |= (active << c);
-    	}
+            streams |= (active << c);
+        }
 
-    	return streams;
+        return streams;
     }
 
     MEMORIA_DECLARE_NODE_FN(UpdateFn, update);
 
     Position updateStreams(Iterator& iter, const Position& start, ISource& data_source)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Position pos = start;
+        Position pos = start;
 
-    	Position sum;
-    	Position len = getRemainder(data_source);
+        Position sum;
+        Position len = getRemainder(data_source);
 
-    	while (len.gtAny(0))
-    	{
-    		Position to_update = self.getNodeSizes(iter.leaf()) - pos;
+        while (len.gtAny(0))
+        {
+            Position to_update = self.getNodeSizes(iter.leaf()) - pos;
 
-    		for (Int c = 0; c < Streams; c++)
-    		{
-    			if (to_update[c] > len[c])
-    			{
-    				to_update[c] = len[c];
-    			}
-    		}
+            for (Int c = 0; c < Streams; c++)
+            {
+                if (to_update[c] > len[c])
+                {
+                    to_update[c] = len[c];
+                }
+            }
 
-    		LeafDispatcher::dispatchConst(
-    				iter.leaf(),
-    				UpdateFn(),
-    				&data_source,
-    				pos,
-    				to_update
-    		);
+            LeafDispatcher::dispatchConst(
+                    iter.leaf(),
+                    UpdateFn(),
+                    &data_source,
+                    pos,
+                    to_update
+            );
 
-    		len     -= to_update;
-    		sum     += to_update;
+            len     -= to_update;
+            sum     += to_update;
 
-    		UBigInt active_streams = getSourceActiveStreams(data_source);
+            UBigInt active_streams = getSourceActiveStreams(data_source);
 
-    		if (len.gtAny(0))
-    		{
-    			iter.nextLeafMs(active_streams);
-    			pos.clear();
+            if (len.gtAny(0))
+            {
+                iter.nextLeafMs(active_streams);
+                pos.clear();
 
-    			if (iter.isEof())
-    			{
-    				break;
-    			}
-    		}
-    		else {
-    			iter.key_idx() += to_update[iter.stream()];
-    			break;
-    		}
-    	}
+                if (iter.isEof())
+                {
+                    break;
+                }
+            }
+            else {
+                iter.key_idx() += to_update[iter.stream()];
+                break;
+            }
+        }
 
-    	return sum;
+        return sum;
     }
 
 
 
     BigInt updateStream(Iterator& iter, ISource& data_source)
     {
-    	IDataBase* data = T2T<IDataBase*>(data_source.stream(iter.stream()));
+        IDataBase* data = T2T<IDataBase*>(data_source.stream(iter.stream()));
 
-    	BigInt sum = 0;
-    	BigInt len = data->getRemainder();
+        BigInt sum = 0;
+        BigInt len = data->getRemainder();
 
-    	while (len > 0)
-    	{
-    		Int to_update = iter.size() - iter.dataPos();
+        while (len > 0)
+        {
+            Int to_update = iter.size() - iter.dataPos();
 
-    		if (to_update > len) to_update = len;
+            if (to_update > len) to_update = len;
 
-    		LeafDispatcher::dispatchConst(
-    				iter.leaf(),
-    				UpdateFn(),
-    				&data_source,
-    				Position(iter.dataPos()),
-    				Position(to_update)
-    		);
+            LeafDispatcher::dispatchConst(
+                    iter.leaf(),
+                    UpdateFn(),
+                    &data_source,
+                    Position(iter.dataPos()),
+                    Position(to_update)
+            );
 
-    		len     -= to_update;
-    		sum     += to_update;
+            len     -= to_update;
+            sum     += to_update;
 
-    		iter.skipFw(to_update);
+            iter.skipFw(to_update);
 
-    		if (iter.isEof())
-    		{
-    			break;
-    		}
-    	}
+            if (iter.isEof())
+            {
+                break;
+            }
+        }
 
-    	return sum;
+        return sum;
     }
 
 

@@ -83,82 +83,82 @@ void dumpArray(std::ostream& out_, const T* data, Int count)
 template <typename T>
 void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
 {
-	Int columns;
+    Int columns;
 
-	switch (bits_per_symbol)
-	{
-		case 1: columns = 100; break;
-		case 2: columns = 100; break;
-		case 4: columns = 100; break;
-		default: columns = 50;
-	}
+    switch (bits_per_symbol)
+    {
+        case 1: columns = 100; break;
+        case 2: columns = 100; break;
+        case 4: columns = 100; break;
+        default: columns = 50;
+    }
 
-	Int width = bits_per_symbol <= 4 ? 1 : 3;
+    Int width = bits_per_symbol <= 4 ? 1 : 3;
 
-	Int c = 0;
+    Int c = 0;
 
-	do
-	{
-		out_<<endl;
-		Expand(out_, 31 - width * 5 - (bits_per_symbol <= 4 ? 2 : 0));
-		for (int c = 0; c < columns; c += 5)
-		{
-			out_.width(width*5);
-			out_<<dec<<c;
-		}
-		out_<<endl;
+    do
+    {
+        out_<<endl;
+        Expand(out_, 31 - width * 5 - (bits_per_symbol <= 4 ? 2 : 0));
+        for (int c = 0; c < columns; c += 5)
+        {
+            out_.width(width*5);
+            out_<<dec<<c;
+        }
+        out_<<endl;
 
-		Int rows = 0;
-		for (; c < size_ && rows < 10; c += columns, rows++)
-		{
-			Expand(out_, 12);
-			out_<<" ";
-			out_.width(6);
-			out_<<dec<<c<<" "<<hex;
-			out_.width(6);
-			out_<<c<<": ";
+        Int rows = 0;
+        for (; c < size_ && rows < 10; c += columns, rows++)
+        {
+            Expand(out_, 12);
+            out_<<" ";
+            out_.width(6);
+            out_<<dec<<c<<" "<<hex;
+            out_.width(6);
+            out_<<c<<": ";
 
-			for (Int d = 0; d < columns && c + d < size_; d++)
-			{
-				out_<<hex;
-				out_.width(width);
+            for (Int d = 0; d < columns && c + d < size_; d++)
+            {
+                out_<<hex;
+                out_.width(width);
 
-				Int idx = (c + d) * bits_per_symbol;
+                Int idx = (c + d) * bits_per_symbol;
 
-				if (sizeof(T) > 1) {
-					out_<<GetBits(symbols, idx, bits_per_symbol);
-				}
-				else {
-					out_<<(Int)GetBits(symbols, idx, bits_per_symbol);
-				}
-			}
+                if (sizeof(T) > 1) {
+                    out_<<GetBits(symbols, idx, bits_per_symbol);
+                }
+                else {
+                    out_<<(Int)GetBits(symbols, idx, bits_per_symbol);
+                }
+            }
 
-			out_<<dec<<endl;
-		}
-	} while (c < size_);
+            out_<<dec<<endl;
+        }
+    } while (c < size_);
 }
 
 enum class IDataAPI {
-	Batch = 1, Single = 2, Both = 3
+    Batch = 1, Single = 2, Both = 3
 };
 
 struct IData {};
 
 struct INodeLayoutManager {
-	virtual Int getNodeCapacity(const Int* sizes, Int stream) 		= 0;
+    virtual Int getNodeCapacity(const Int* sizes, Int stream)       = 0;
 };
 
 struct ISource {
-	virtual Int streams()											= 0;
-	virtual IData* stream(Int stream) 								= 0;
+    virtual Int streams()                                           = 0;
+    virtual IData* stream(Int stream)                               = 0;
 
-	virtual void newNode(INodeLayoutManager* layout_manager, BigInt* sizes)	= 0;
-	virtual BigInt getTotalNodes(INodeLayoutManager* layout_manager)= 0;
+    virtual void newNode(INodeLayoutManager* layout_manager, BigInt* sizes) = 0;
+    virtual BigInt getTotalNodes(INodeLayoutManager* layout_manager)= 0;
 };
 
 struct ITarget {
-	virtual Int streams()											= 0;
-	virtual IData* stream(Int stream) 								= 0;
+    virtual Int streams()                                           = 0;
+    virtual IData* stream(Int stream)                               = 0;
 };
 
 
@@ -168,7 +168,7 @@ struct IDataBase: IData {
 
     virtual ~IDataBase() throw () {}
 
-    virtual IDataAPI api() const									= 0;
+    virtual IDataAPI api() const                                    = 0;
 
     virtual SizeT skip(SizeT length)                                = 0;
     virtual SizeT getStart() const                                  = 0;
@@ -185,8 +185,8 @@ struct IDataSource: IDataBase {
 
     virtual ~IDataSource() throw () {}
 
-    virtual SizeT get(T* buffer, SizeT start, SizeT length)               		= 0;
-    virtual T get()																= 0;
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)                     = 0;
+    virtual T get()                                                             = 0;
 };
 
 
@@ -196,69 +196,69 @@ struct IDataTarget: IDataBase {
     virtual ~IDataTarget() throw () {}
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
-    virtual void put(const T& value)											= 0;
+    virtual void put(const T& value)                                            = 0;
 };
 
 
 template <typename T>
 class DataSourceProxy: public IDataSource<T> {
-	typedef IDataSource<T> 					Base;
-	typedef Base 							Delegate;
+    typedef IDataSource<T>                  Base;
+    typedef Base                            Delegate;
 
-	Delegate& 	data_;
-	BigInt 		size_;
+    Delegate&   data_;
+    BigInt      size_;
 public:
-	DataSourceProxy(Delegate& data, SizeT size):
-		data_(data),
-		size_(size)
-	{
-		MEMORIA_ASSERT_TRUE(data.getSize() >= size);
-	}
+    DataSourceProxy(Delegate& data, SizeT size):
+        data_(data),
+        size_(size)
+    {
+        MEMORIA_ASSERT_TRUE(data.getSize() >= size);
+    }
 
-	virtual IDataAPI api() const {
-		return data_.api();
-	}
+    virtual IDataAPI api() const {
+        return data_.api();
+    }
 
     virtual SizeT skip(SizeT length)
     {
-    	return data_.skip(length);
+        return data_.skip(length);
     }
 
     virtual SizeT getStart() const
     {
-    	return data_.getStart();
+        return data_.getStart();
     }
 
     virtual SizeT getRemainder() const
     {
-    	return size_ - data_.getStart();
+        return size_ - data_.getStart();
     }
 
     virtual SizeT getAdvance() const
     {
-    	SizeT remainder = getRemainder();
-    	SizeT advance 	= data_.getAdvance();
+        SizeT remainder = getRemainder();
+        SizeT advance   = data_.getAdvance();
 
-    	return advance <= remainder ? advance : remainder;
+        return advance <= remainder ? advance : remainder;
     }
 
     virtual SizeT getSize() const
     {
-    	return size_;
+        return size_;
     }
 
     virtual void reset()
     {
-    	data_.reset();
+        data_.reset();
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-    	return data_.get(buffer, start, length);
+        return data_.get(buffer, start, length);
     }
 
-    virtual T get()	{
-    	return data_.get();
+    virtual T get() {
+        return data_.get();
     }
 };
 
@@ -324,7 +324,7 @@ public:
 
     virtual IDataAPI api() const
     {
-    	return IDataAPI::Both;
+        return IDataAPI::Both;
     }
 
     virtual SizeT skip(SizeT length)
@@ -352,7 +352,7 @@ public:
 
     virtual SizeT getAdvance() const
     {
-    	return getRemainder();
+        return getRemainder();
     }
 
     virtual SizeT getSize() const
@@ -382,29 +382,29 @@ public:
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-    	MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+        MEMORIA_ASSERT_TRUE(start_ + length <= length_);
 
-    	CopyBuffer(buffer + start, data_ + start_, length);
+        CopyBuffer(buffer + start, data_ + start_, length);
 
         return skip(length);
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-    	MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+        MEMORIA_ASSERT_TRUE(start_ + length <= length_);
 
-    	CopyBuffer(data_ + start_, buffer + start, length);
+        CopyBuffer(data_ + start_, buffer + start, length);
 
         return skip(length);
     }
 
     virtual T get()
     {
-    	T value = *(data_ + start_);
+        T value = *(data_ + start_);
 
-    	skip(1);
+        skip(1);
 
-    	return value;
+        return value;
     }
 
     void dump(std::ostream& out) const
@@ -477,7 +477,7 @@ public:
 
     virtual IDataAPI api() const
     {
-    	return IDataAPI::Both;
+        return IDataAPI::Both;
     }
 
     virtual SizeT skip(SizeT length)
@@ -505,7 +505,7 @@ public:
 
     virtual SizeT getAdvance() const
     {
-    	return getRemainder();
+        return getRemainder();
     }
 
     virtual SizeT getSize() const
@@ -542,8 +542,8 @@ public:
 
     virtual void put(const T& value)
     {
-    	*(data_ + start_) = value;
-    	skip(1);
+        *(data_ + start_) = value;
+        skip(1);
     }
 
     void dump(std::ostream& out) const {
@@ -580,16 +580,16 @@ public:
     {}
 
     MemBuffer(const vector<T>& data):
-    	start_(0),
-    	length_(data.size()),
-    	data_(&data[0])
+        start_(0),
+        length_(data.size()),
+        data_(&data[0])
     {}
 
     virtual ~MemBuffer() throw () {}
 
     virtual IDataAPI api() const
     {
-    	return IDataAPI::Both;
+        return IDataAPI::Both;
     }
 
     virtual SizeT skip(SizeT length)
@@ -617,7 +617,7 @@ public:
 
     virtual SizeT getAdvance() const
     {
-    	return getRemainder();
+        return getRemainder();
     }
 
     virtual SizeT getSize() const
@@ -644,11 +644,11 @@ public:
 
     virtual T get()
     {
-    	T value = *(data_ + start_);
+        T value = *(data_ + start_);
 
-    	skip(1);
+        skip(1);
 
-    	return value;
+        return value;
     }
 
     void dump(std::ostream& out) const
@@ -665,142 +665,142 @@ public:
 
 template <typename Value>
 class ValueSource: public IDataSource<Value> {
-	const Value& value_;
+    const Value& value_;
 
-	SizeT start_ 	= 0;
-	SizeT length_ 	= 1;
+    SizeT start_    = 0;
+    SizeT length_   = 1;
 
 public:
-	ValueSource(const Value& value): value_(value) {}
+    ValueSource(const Value& value): value_(value) {}
 
-	virtual IDataAPI api() const
-	{
-		return IDataAPI::Both;
-	}
+    virtual IDataAPI api() const
+    {
+        return IDataAPI::Both;
+    }
 
-	virtual SizeT skip(SizeT length)
-	{
-		if (start_ + length <= length_)
-		{
-			start_ += length;
-			return length;
-		}
+    virtual SizeT skip(SizeT length)
+    {
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
 
-		SizeT distance = length_ - start_;
-		start_ = length_;
-		return distance;
-	}
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
+    }
 
-	virtual SizeT getStart() const
-	{
-		return start_;
-	}
+    virtual SizeT getStart() const
+    {
+        return start_;
+    }
 
-	virtual SizeT getRemainder() const
-	{
-		return length_ - start_;
-	}
+    virtual SizeT getRemainder() const
+    {
+        return length_ - start_;
+    }
 
-	virtual SizeT getAdvance() const
-	{
-		return getRemainder();
-	}
+    virtual SizeT getAdvance() const
+    {
+        return getRemainder();
+    }
 
-	virtual SizeT getSize() const
-	{
-		return length_;
-	}
+    virtual SizeT getSize() const
+    {
+        return length_;
+    }
 
-	SizeT size() const
-	{
-		return getSize();
-	}
+    SizeT size() const
+    {
+        return getSize();
+    }
 
-	virtual void setSize(SizeT size)
-	{
-		length_ = size;
-	}
+    virtual void setSize(SizeT size)
+    {
+        length_ = size;
+    }
 
-	virtual SizeT get(Value* buffer, SizeT start, SizeT length)
-	{
-		MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+    virtual SizeT get(Value* buffer, SizeT start, SizeT length)
+    {
+        MEMORIA_ASSERT_TRUE(start_ + length <= length_);
 
-		CopyBuffer(&value_ + start_, buffer + start, length);
+        CopyBuffer(&value_ + start_, buffer + start, length);
 
-		return skip(length);
-	}
+        return skip(length);
+    }
 
-	virtual Value get()
-	{
-		skip(1);
+    virtual Value get()
+    {
+        skip(1);
 
-		return value_;
-	}
+        return value_;
+    }
 
-	virtual void reset()
-	{
-		start_ = 0;
-	}
+    virtual void reset()
+    {
+        start_ = 0;
+    }
 };
 
 
 template <typename Value>
 class ValueTarget: public IDataSource<Value> {
-	Value& value_;
+    Value& value_;
 
-	SizeT start_ 	= 0;
-	SizeT length_ 	= 1;
+    SizeT start_    = 0;
+    SizeT length_   = 1;
 
 public:
-	ValueTarget(Value& value): value_(value) {}
+    ValueTarget(Value& value): value_(value) {}
 
-	virtual IDataAPI api() const
-	{
-		return IDataAPI::Both;
-	}
+    virtual IDataAPI api() const
+    {
+        return IDataAPI::Both;
+    }
 
-	virtual SizeT skip(SizeT length)
-	{
-		if (start_ + length <= length_)
-		{
-			start_ += length;
-			return length;
-		}
+    virtual SizeT skip(SizeT length)
+    {
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
 
-		SizeT distance = length_ - start_;
-		start_ = length_;
-		return distance;
-	}
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
+    }
 
-	virtual SizeT getStart() const
-	{
-		return start_;
-	}
+    virtual SizeT getStart() const
+    {
+        return start_;
+    }
 
-	virtual SizeT getRemainder() const
-	{
-		return length_ - start_;
-	}
+    virtual SizeT getRemainder() const
+    {
+        return length_ - start_;
+    }
 
-	virtual SizeT getAdvance() const
-	{
-		return getRemainder();
-	}
+    virtual SizeT getAdvance() const
+    {
+        return getRemainder();
+    }
 
-	virtual SizeT getSize() const
-	{
-		return length_;
-	}
+    virtual SizeT getSize() const
+    {
+        return length_;
+    }
 
-	SizeT size() const
-	{
-		return getSize();
-	}
+    SizeT size() const
+    {
+        return getSize();
+    }
 
-	virtual void setSize(SizeT size)
-	{
-		length_ = size;
-	}
+    virtual void setSize(SizeT size)
+    {
+        length_ = size;
+    }
 
     virtual SizeT put(const Value* buffer, SizeT start, SizeT length)
     {
@@ -811,14 +811,14 @@ public:
 
     virtual void put(const Value& value)
     {
-    	value_ = value;
-    	skip(1);
+        value_ = value;
+        skip(1);
     }
 
-	virtual void reset()
-	{
-		start_ = 0;
-	}
+    virtual void reset()
+    {
+        start_ = 0;
+    }
 };
 
 
@@ -828,14 +828,14 @@ public:
 template <typename T>
 class EmptyDataSource: public IDataSource<T> {
 public:
-	virtual SizeT get(T* buffer, SizeT start, SizeT length) {return 0;}
+    virtual SizeT get(T* buffer, SizeT start, SizeT length) {return 0;}
     virtual T get() {throw Exception(MA_SRC, "Unsupported operation");}
 
 
-	virtual IDataAPI api() const
-	{
-		return IDataAPI::Both;
-	}
+    virtual IDataAPI api() const
+    {
+        return IDataAPI::Both;
+    }
 
     virtual SizeT skip(SizeT length) {return 0;}
     virtual SizeT getStart() const {return 0;}
@@ -849,13 +849,13 @@ public:
 template <typename T>
 class EmptyDataTarget: public IDataTarget<T> {
 public:
-	virtual SizeT put(const T* buffer, SizeT start, SizeT length) {return 0;}
-	virtual void put(const T&) {throw Exception(MA_SRC, "Unsupported operation");}
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length) {return 0;}
+    virtual void put(const T&) {throw Exception(MA_SRC, "Unsupported operation");}
 
-	virtual IDataAPI api() const
-	{
-		return IDataAPI::Both;
-	}
+    virtual IDataAPI api() const
+    {
+        return IDataAPI::Both;
+    }
 
     virtual SizeT skip(SizeT length) {return 0;}
     virtual SizeT getStart() const {return 0;}
@@ -876,7 +876,7 @@ public:
 
     virtual IDataAPI api() const
     {
-    	return IDataAPI::Both;
+        return IDataAPI::Both;
     }
 
     virtual SizeT skip(SizeT length)
@@ -906,7 +906,7 @@ public:
 
     virtual SizeT getAdvance() const
     {
-    	return getRemainder();
+        return getRemainder();
     }
 
     virtual SizeT getSize() const {return length_;}
@@ -925,13 +925,13 @@ public:
 
     virtual T get()
     {
-    	T value;
-    	is_>>value;
+        T value;
+        is_>>value;
 
-    	// FIXME: EOF handling?
-    	skip(1);
+        // FIXME: EOF handling?
+        skip(1);
 
-    	return value;
+        return value;
     }
 
     virtual void reset()
@@ -950,7 +950,7 @@ public:
 
     virtual IDataAPI api() const
     {
-    	return IDataAPI::Both;
+        return IDataAPI::Both;
     }
 
     virtual SizeT skip(SizeT length)
@@ -978,7 +978,7 @@ public:
 
     virtual SizeT getAdvance() const
     {
-    	return getRemainder();
+        return getRemainder();
     }
 
 
@@ -997,10 +997,10 @@ public:
 
     virtual void put(const T& value)
     {
-    	os_<<value;
+        os_<<value;
 
-    	// FIXME EOF handling?
-    	skip(1);
+        // FIXME EOF handling?
+        skip(1);
     }
 
     virtual void reset()

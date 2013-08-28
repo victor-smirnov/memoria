@@ -33,10 +33,10 @@ public:
 
     LabeledTreeIterTest(): LabeledTreeTestBase("Iter")
     {
-    	size_ = 20000;
+        size_ = 20000;
 
-    	MEMORIA_ADD_TEST_PARAM(iterations_);
-    	MEMORIA_ADD_TEST_PARAM(max_degree_);
+        MEMORIA_ADD_TEST_PARAM(iterations_);
+        MEMORIA_ADD_TEST_PARAM(max_degree_);
 
         MEMORIA_ADD_TEST(testIteratorCache);
     }
@@ -45,151 +45,151 @@ public:
 
     void testIteratorCache()
     {
-    	Allocator allocator;
-    	Ctr ctr(&allocator);
+        Allocator allocator;
+        Ctr ctr(&allocator);
 
-    	this->fillRandom(ctr, size_, max_degree_);
+        this->fillRandom(ctr, size_, max_degree_);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	StoreResource(allocator, "iter", 0);
+        StoreResource(allocator, "iter", 0);
 
-    	auto skip_iter = ctr.seek(0);
+        auto skip_iter = ctr.seek(0);
 
-    	assertIterator(skip_iter);
+        assertIterator(skip_iter);
 
-    	Int nodes = ctr.nodes();
+        Int nodes = ctr.nodes();
 
-    	out()<<"Forward skip"<<std::endl;
-    	while (!skip_iter.isEof())
-    	{
-    		skip_iter++;
-    		assertIterator(skip_iter);
-    	}
-    	out()<<std::endl;
+        out()<<"Forward skip"<<std::endl;
+        while (!skip_iter.isEof())
+        {
+            skip_iter++;
+            assertIterator(skip_iter);
+        }
+        out()<<std::endl;
 
-    	out()<<"Backward skip"<<std::endl;
-    	while (!skip_iter.isBegin())
-    	{
-    		if (skip_iter.pos() == 0)
-    		{
-    			int a = 0; a++;
-    		}
+        out()<<"Backward skip"<<std::endl;
+        while (!skip_iter.isBegin())
+        {
+            if (skip_iter.pos() == 0)
+            {
+                int a = 0; a++;
+            }
 
-    		skip_iter--;
-    		assertIterator(skip_iter);
-    	}
-    	out()<<std::endl;
+            skip_iter--;
+            assertIterator(skip_iter);
+        }
+        out()<<std::endl;
 
-    	out()<<"Forward skip"<<std::endl;
-    	while (!skip_iter.isEof())
-    	{
-    		skip_iter++;
-    		assertIterator(skip_iter);
-    	}
-    	out()<<std::endl;
+        out()<<"Forward skip"<<std::endl;
+        while (!skip_iter.isEof())
+        {
+            skip_iter++;
+            assertIterator(skip_iter);
+        }
+        out()<<std::endl;
 
-    	out()<<"Backward skip"<<std::endl;
-    	while (!skip_iter.isBegin())
-    	{
-    		skip_iter--;
-    		assertIterator(skip_iter);
-    	}
-    	out()<<std::endl;
+        out()<<"Backward skip"<<std::endl;
+        while (!skip_iter.isBegin())
+        {
+            skip_iter--;
+            assertIterator(skip_iter);
+        }
+        out()<<std::endl;
 
-    	out()<<"Random forward select/skip"<<std::endl;
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		out()<<"FW: "<<c<<std::endl;
+        out()<<"Random forward select/skip"<<std::endl;
+        for (Int c = 0; c < iterations_; c++)
+        {
+            out()<<"FW: "<<c<<std::endl;
 
-    		Int node = getRandom(nodes / 2) + 1;
-    		auto iter = ctr.select1(node);
+            Int node = getRandom(nodes / 2) + 1;
+            auto iter = ctr.select1(node);
 
-    		assertIterator(iter);
+            assertIterator(iter);
 
-    		Int skip = getRandom(nodes / 2 - 1);
+            Int skip = getRandom(nodes / 2 - 1);
 
-    		auto iter_select0 	= iter;
-    		auto iter_select1 	= iter;
+            auto iter_select0   = iter;
+            auto iter_select1   = iter;
 
-    		auto iter_skip 		= iter;
+            auto iter_skip      = iter;
 
-    		iter_select0.selectFw(skip, 0);
-    		assertIterator(iter_select0);
+            iter_select0.selectFw(skip, 0);
+            assertIterator(iter_select0);
 
-    		iter_select1.selectFw(skip, 1);
-    		assertIterator(iter_select1);
+            iter_select1.selectFw(skip, 1);
+            assertIterator(iter_select1);
 
-    		iter_skip.skipFw(skip * 2);
-    		assertIterator(iter_skip);
-    	}
-    	out()<<std::endl;
+            iter_skip.skipFw(skip * 2);
+            assertIterator(iter_skip);
+        }
+        out()<<std::endl;
 
-    	out()<<"Random backward select/skip"<<std::endl;
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		out()<<"BW: "<<c<<std::endl;
+        out()<<"Random backward select/skip"<<std::endl;
+        for (Int c = 0; c < iterations_; c++)
+        {
+            out()<<"BW: "<<c<<std::endl;
 
-    		Int node = getRandom(nodes / 2) + nodes / 2 - 1;
-    		auto iter = ctr.select1(node);
+            Int node = getRandom(nodes / 2) + nodes / 2 - 1;
+            auto iter = ctr.select1(node);
 
-    		assertIterator(iter);
+            assertIterator(iter);
 
-    		Int skip = getRandom(nodes / 2);
+            Int skip = getRandom(nodes / 2);
 
-    		auto iter_select0 	= iter;
-    		auto iter_select1 	= iter;
+            auto iter_select0   = iter;
+            auto iter_select1   = iter;
 
-    		auto iter_skip 		= iter;
+            auto iter_skip      = iter;
 
-    		iter_select0.selectBw(skip, 0);
-    		assertIterator(iter_select0);
+            iter_select0.selectBw(skip, 0);
+            assertIterator(iter_select0);
 
-    		iter_select1.selectBw(skip, 1);
-    		assertIterator(iter_select1);
+            iter_select1.selectBw(skip, 1);
+            assertIterator(iter_select1);
 
-    		iter_skip.skipBw(skip * 2);
-    		assertIterator(iter_skip);
-    	}
-    	out()<<std::endl;
+            iter_skip.skipBw(skip * 2);
+            assertIterator(iter_skip);
+        }
+        out()<<std::endl;
 
-    	out()<<"Random forward/backward rank"<<std::endl;
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		out()<<"Rank: "<<c<<std::endl;
+        out()<<"Random forward/backward rank"<<std::endl;
+        for (Int c = 0; c < iterations_; c++)
+        {
+            out()<<"Rank: "<<c<<std::endl;
 
-    		Int node = getRandom(ctr.size() / 2);
-    		auto iter = ctr.seek(node);
+            Int node = getRandom(ctr.size() / 2);
+            auto iter = ctr.seek(node);
 
-    		assertIterator(iter);
+            assertIterator(iter);
 
-    		Int skip = getRandom(nodes / 2 - 1);
+            Int skip = getRandom(nodes / 2 - 1);
 
-    		auto iter_rankfw0 	= iter;
-    		auto iter_rankfw1 	= iter;
+            auto iter_rankfw0   = iter;
+            auto iter_rankfw1   = iter;
 
-    		iter_rankfw0.rank(skip, 0);
-    		assertIterator(iter_rankfw0);
+            iter_rankfw0.rank(skip, 0);
+            assertIterator(iter_rankfw0);
 
-    		iter_rankfw0.rank(-skip, 0);
-    		assertIterator(iter_rankfw0);
+            iter_rankfw0.rank(-skip, 0);
+            assertIterator(iter_rankfw0);
 
-    		iter_rankfw1.rank(skip, 1);
-    		assertIterator(iter_rankfw1);
+            iter_rankfw1.rank(skip, 1);
+            assertIterator(iter_rankfw1);
 
-    		iter_rankfw1.rank(-skip, 1);
-    		assertIterator(iter_rankfw1);
-    	}
+            iter_rankfw1.rank(-skip, 1);
+            assertIterator(iter_rankfw1);
+        }
     }
 
     void assertIterator(Iterator& iter)
     {
-//    	AssertEQ(MA_SRC, iter.pos(), iter.gpos());
+//      AssertEQ(MA_SRC, iter.pos(), iter.gpos());
 
-    	if (!(iter.isEof() || iter.isBof()))
-    	{
-    		AssertEQ(MA_SRC, iter.rank1(), iter.ranki(1));
-    	}
+        if (!(iter.isEof() || iter.isBof()))
+        {
+            AssertEQ(MA_SRC, iter.rank1(), iter.ranki(1));
+        }
     }
 };
 

@@ -32,7 +32,7 @@ class CmdLine {
     String          image_name_;
     String          cfg_file_name_;
 
-    String 			dump_file_;
+    String          dump_file_;
 
     Configurator    cfg_file_;
     Configurator    cfg_cmdline_;
@@ -81,7 +81,7 @@ public:
 
     StringRef getDumpFileName() const
     {
-    	return dump_file_;
+        return dump_file_;
     }
 
     const char* getOutFolder() const
@@ -99,7 +99,7 @@ public:
     }
 
     bool IsDump() const {
-    	return dump_;
+        return dump_;
     }
 
     bool IsReplay() const {

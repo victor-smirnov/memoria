@@ -31,12 +31,12 @@ struct CompositeTypes {
 
     template <typename Types_>
     struct IterBaseFactory {
-        typedef IteratorBase<Types_>                                      Type;
+        typedef IteratorBase<Types_>                        Type;
     };
 
     template <typename Types_>
     struct CtrBaseFactory {
-        typedef CtrBase<Types_>                                           Type;
+        typedef CtrBase<Types_>                             Type;
     };
 };
 
@@ -52,11 +52,11 @@ class CtrTF<Profile_, memoria::Composite, T> {
 public:
 
     struct Types {
-        typedef Profile_                        Profile;
-        typedef MyType::Allocator               Allocator;
+        typedef Profile_                                    Profile;
+        typedef MyType::Allocator                           Allocator;
 
-        typedef CtrTypesT<Types>        		CtrTypes;
-        typedef IterTypesT<Types>       		IterTypes;
+        typedef CtrTypesT<Types>                            CtrTypes;
+        typedef IterTypesT<Types>                           IterTypes;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;

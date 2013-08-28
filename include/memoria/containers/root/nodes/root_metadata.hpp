@@ -66,7 +66,7 @@ public:
 
 template <typename ID, Int Streams>
 struct TypeHash<RootCtrMetadata<ID, Streams>>: UIntValue<
-	HashHelper<2600, TypeHash<ID>::Value, Streams>::Value
+    HashHelper<2600, TypeHash<ID>::Value, Streams>::Value
 > {};
 
 

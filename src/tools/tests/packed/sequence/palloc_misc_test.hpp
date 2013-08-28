@@ -19,214 +19,214 @@ namespace memoria {
 using namespace std;
 
 template <
-	Int Bits,
-	template <typename>	class IndexType 	= PkdFTree,
-	template <typename>	class CodecType 	= ValueFSECodec,
-	template <typename>	class ReindexFnType = BitmapReindexFn,
-	template <typename>	class SelectFnType	= BitmapSelectFn,
-	template <typename>	class RankFnType	= BitmapRankFn,
-	template <typename>	class ToolsFnType	= BitmapToolsFn
+    Int Bits,
+    template <typename> class IndexType     = PkdFTree,
+    template <typename> class CodecType     = ValueFSECodec,
+    template <typename> class ReindexFnType = BitmapReindexFn,
+    template <typename> class SelectFnType  = BitmapSelectFn,
+    template <typename> class RankFnType    = BitmapRankFn,
+    template <typename> class ToolsFnType   = BitmapToolsFn
 >
 class PackedSearchableSequenceMiscTest: public PackedSearchableSequenceTestBase<
-	Bits,
-	IndexType,
-	CodecType,
-	ReindexFnType,
-	SelectFnType,
-	RankFnType,
-	ToolsFnType
+    Bits,
+    IndexType,
+    CodecType,
+    ReindexFnType,
+    SelectFnType,
+    RankFnType,
+    ToolsFnType
 > {
 
     typedef PackedSearchableSequenceMiscTest<
-    		Bits,
-    		IndexType,
-    		CodecType,
-    		ReindexFnType,
-    		SelectFnType,
-    		RankFnType,
-    		ToolsFnType
-    > 																			MyType;
+            Bits,
+            IndexType,
+            CodecType,
+            ReindexFnType,
+            SelectFnType,
+            RankFnType,
+            ToolsFnType
+    >                                                                           MyType;
 
     typedef PackedSearchableSequenceTestBase<
-    		Bits,
-    		IndexType,
-    		CodecType,
-    		ReindexFnType,
-    		SelectFnType,
-    		RankFnType,
-    		ToolsFnType
-    > 																			Base;
+            Bits,
+            IndexType,
+            CodecType,
+            ReindexFnType,
+            SelectFnType,
+            RankFnType,
+            ToolsFnType
+    >                                                                           Base;
 
-    typedef typename Base::Seq													Seq;
+    typedef typename Base::Seq                                                  Seq;
 
-    typedef typename Seq::Value													Value;
+    typedef typename Seq::Value                                                 Value;
 
 
     static const Int Blocks                 = Seq::Indexes;
     static const Int Symbols                = 1<<Bits;
-    static const Int VPB					= Seq::ValuesPerBranch;
+    static const Int VPB                    = Seq::ValuesPerBranch;
 
 public:
 
     PackedSearchableSequenceMiscTest(StringRef name): Base(name)
     {
-    	this->size_ = 8192;
+        this->size_ = 8192;
 
-    	MEMORIA_ADD_TEST(testCreate);
-    	MEMORIA_ADD_TEST(testInsertSingle);
-    	MEMORIA_ADD_TEST(testInsertMultiple);
-    	MEMORIA_ADD_TEST(testRemoveMulti);
-    	MEMORIA_ADD_TEST(testRemoveAll);
-    	MEMORIA_ADD_TEST(testClear);
+        MEMORIA_ADD_TEST(testCreate);
+        MEMORIA_ADD_TEST(testInsertSingle);
+        MEMORIA_ADD_TEST(testInsertMultiple);
+        MEMORIA_ADD_TEST(testRemoveMulti);
+        MEMORIA_ADD_TEST(testRemoveAll);
+        MEMORIA_ADD_TEST(testClear);
     }
 
     virtual ~PackedSearchableSequenceMiscTest() throw() {}
 
     void testCreate()
     {
-    	for (Int size = 1; size < this->size_; size *= 2)
-    	{
-    		this->out()<<size<<std::endl;
+        for (Int size = 1; size < this->size_; size *= 2)
+        {
+            this->out()<<size<<std::endl;
 
-    		Seq* seq = this->createEmptySequence();
-    		PARemover remover(seq);
+            Seq* seq = this->createEmptySequence();
+            PARemover remover(seq);
 
-    		auto symbols = this->fillRandom(seq, size);
+            auto symbols = this->fillRandom(seq, size);
 
-    		this->assertIndexCorrect(MA_SRC, seq);
-    		this->assertEqual(seq, symbols);
-    	}
+            this->assertIndexCorrect(MA_SRC, seq);
+            this->assertEqual(seq, symbols);
+        }
     }
 
 
     void testInsertSingle()
     {
-    	for (Int size = 1; size <= this->size_; size *= 2)
-    	{
-    		this->out()<<size<<std::endl;
+        for (Int size = 1; size <= this->size_; size *= 2)
+        {
+            this->out()<<size<<std::endl;
 
-    		Seq* seq = this->createEmptySequence();
-    		PARemover remover(seq);
+            Seq* seq = this->createEmptySequence();
+            PARemover remover(seq);
 
-    		auto symbols = this->fillRandom(seq, size);
+            auto symbols = this->fillRandom(seq, size);
 
-    		for (Int c = 0; c < this->iterations_; c++)
-    		{
-    			Int idx 	= getRandom(seq->size());
-    			Int symbol 	= getRandom(Blocks);
+            for (Int c = 0; c < this->iterations_; c++)
+            {
+                Int idx     = getRandom(seq->size());
+                Int symbol  = getRandom(Blocks);
 
-    			seq->insert(idx, symbol);
+                seq->insert(idx, symbol);
 
-    			symbols.insert(symbols.begin() + idx, symbol);
+                symbols.insert(symbols.begin() + idx, symbol);
 
-    			this->assertIndexCorrect(MA_SRC, seq);
-    			this->assertEqual(seq, symbols);
-    		}
-    	}
+                this->assertIndexCorrect(MA_SRC, seq);
+                this->assertEqual(seq, symbols);
+            }
+        }
     }
 
     void testInsertMultiple()
     {
-    	for (Int size = 1; size <= this->size_; size *= 2)
-    	{
-    		this->out()<<size<<std::endl;
+        for (Int size = 1; size <= this->size_; size *= 2)
+        {
+            this->out()<<size<<std::endl;
 
-    		Seq* seq = this->createEmptySequence();
-    		PARemover remover(seq);
+            Seq* seq = this->createEmptySequence();
+            PARemover remover(seq);
 
-    		auto symbols = this->fillRandom(seq, size);
+            auto symbols = this->fillRandom(seq, size);
 
-    		for (Int c = 0; c < this->iterations_; c++)
-    		{
-    			Int idx 	= getRandom(seq->size());
+            for (Int c = 0; c < this->iterations_; c++)
+            {
+                Int idx     = getRandom(seq->size());
 
-    			vector<Int> block(10);
-    			for (Int d = 0; d < block.size(); d++)
-    			{
-    				block[d] = getRandom(Blocks);
-    			}
+                vector<Int> block(10);
+                for (Int d = 0; d < block.size(); d++)
+                {
+                    block[d] = getRandom(Blocks);
+                }
 
-    			Int cnt = 0;
-    			seq->insert(idx, block.size(), [&](){
-    				return block[cnt++];
-    			});
+                Int cnt = 0;
+                seq->insert(idx, block.size(), [&](){
+                    return block[cnt++];
+                });
 
-    			symbols.insert(symbols.begin() + idx, block.begin(), block.end());
+                symbols.insert(symbols.begin() + idx, block.begin(), block.end());
 
-    			this->assertIndexCorrect(MA_SRC, seq);
-    			this->assertEqual(seq, symbols);
-    		}
-    	}
+                this->assertIndexCorrect(MA_SRC, seq);
+                this->assertEqual(seq, symbols);
+            }
+        }
     }
 
     void testRemoveMulti()
     {
-    	for (Int size = 1; size <= this->size_; size *= 2)
-    	{
-    		this->out()<<size<<std::endl;
+        for (Int size = 1; size <= this->size_; size *= 2)
+        {
+            this->out()<<size<<std::endl;
 
-    		Seq* seq = this->createEmptySequence();
-    		PARemover remover(seq);
+            Seq* seq = this->createEmptySequence();
+            PARemover remover(seq);
 
-    		auto symbols = this->fillRandom(seq, size);
+            auto symbols = this->fillRandom(seq, size);
 
-    		for (Int c = 0; c < this->iterations_; c++)
-    		{
-    			Int start 	= getRandom(seq->size());
-    			Int end 	= start + getRandom(seq->size() - start);
+            for (Int c = 0; c < this->iterations_; c++)
+            {
+                Int start   = getRandom(seq->size());
+                Int end     = start + getRandom(seq->size() - start);
 
-    			Int block_size = seq->block_size();
+                Int block_size = seq->block_size();
 
-    			seq->remove(start, end);
+                seq->remove(start, end);
 
-    			symbols.erase(symbols.begin() + start, symbols.begin() + end);
+                symbols.erase(symbols.begin() + start, symbols.begin() + end);
 
-    			this->assertIndexCorrect(MA_SRC, seq);
-    			this->assertEqual(seq, symbols);
+                this->assertIndexCorrect(MA_SRC, seq);
+                this->assertEqual(seq, symbols);
 
-    			AssertLE(MA_SRC, seq->block_size(), block_size);
-    		}
-    	}
+                AssertLE(MA_SRC, seq->block_size(), block_size);
+            }
+        }
     }
 
     void testRemoveAll()
     {
-    	for (Int size = 1; size <= this->size_; size *= 2)
-    	{
-    		this->out()<<size<<std::endl;
+        for (Int size = 1; size <= this->size_; size *= 2)
+        {
+            this->out()<<size<<std::endl;
 
-    		Seq* seq = this->createEmptySequence();
-    		PARemover remover(seq);
+            Seq* seq = this->createEmptySequence();
+            PARemover remover(seq);
 
-    		auto symbols = this->fillRandom(seq, size);
-    		this->assertEqual(seq, symbols);
+            auto symbols = this->fillRandom(seq, size);
+            this->assertEqual(seq, symbols);
 
-    		seq->remove(0, seq->size());
+            seq->remove(0, seq->size());
 
-    		this->assertEmpty(seq);
-    	}
+            this->assertEmpty(seq);
+        }
     }
 
     void testClear()
     {
-    	for (Int size = 1; size <= this->size_; size *= 2)
-    	{
-    		this->out()<<size<<std::endl;
+        for (Int size = 1; size <= this->size_; size *= 2)
+        {
+            this->out()<<size<<std::endl;
 
-    		Seq* seq = this->createEmptySequence();
-    		PARemover remover(seq);
+            Seq* seq = this->createEmptySequence();
+            PARemover remover(seq);
 
-    		this->assertEmpty(seq);
+            this->assertEmpty(seq);
 
-    		this->fillRandom(seq, size);
+            this->fillRandom(seq, size);
 
-    		AssertNEQ(MA_SRC, seq->size(), 0);
-    		AssertGT(MA_SRC, seq->block_size(), Seq::empty_size());
+            AssertNEQ(MA_SRC, seq->size(), 0);
+            AssertGT(MA_SRC, seq->block_size(), Seq::empty_size());
 
-    		seq->clear();
+            seq->clear();
 
-    		this->assertEmpty(seq);
-    	}
+            this->assertEmpty(seq);
+        }
     }
 
 };

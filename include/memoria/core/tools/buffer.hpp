@@ -23,8 +23,8 @@ namespace memoria    {
 template <size_t Size>
 class StaticBuffer {
 public:
-	typedef UInt            Element;
-	typedef UInt            ElementType;
+    typedef UInt            Element;
+    typedef UInt            ElementType;
 
 private:
     ElementType buffer_[Size];

@@ -35,12 +35,12 @@ public:
 
     SymSeqMiscTest(): TestTask((SBuf()<<"Misc."<<Bits).str())
     {
-    	this->size_ = 10000;
+        this->size_ = 10000;
 
-    	MEMORIA_ADD_TEST_PARAM(iterations_);
+        MEMORIA_ADD_TEST_PARAM(iterations_);
 
-    	MEMORIA_ADD_TEST(testCreate);
-    	MEMORIA_ADD_TEST(testAdapter);
+        MEMORIA_ADD_TEST(testCreate);
+        MEMORIA_ADD_TEST(testAdapter);
     }
 
     virtual ~SymSeqMiscTest() throw() {}
@@ -48,56 +48,56 @@ public:
 
     void testCreate()
     {
-    	Seq seq(this->size_);
+        Seq seq(this->size_);
 
-    	for (Int c = 0; c < this->size_; c++)
-    	{
-    		seq.append(c);
-    	}
+        for (Int c = 0; c < this->size_; c++)
+        {
+            seq.append(c);
+        }
 
-    	AssertEQ(MA_SRC, seq.size(), this->size_);
+        AssertEQ(MA_SRC, seq.size(), this->size_);
 
-    	Symbol mask = MakeMask<Symbol>(0, Bits);
+        Symbol mask = MakeMask<Symbol>(0, Bits);
 
-    	for (Int c = 0; c < seq.size(); c++)
-    	{
-    		AssertEQ(MA_SRC, seq[c].value(), c & mask);
-    	}
+        for (Int c = 0; c < seq.size(); c++)
+        {
+            AssertEQ(MA_SRC, seq[c].value(), c & mask);
+        }
     }
 
     void testAdapter()
     {
-    	Seq seq1(this->size_);
+        Seq seq1(this->size_);
 
-    	seq1.append(this->size_, []() -> Symbol {
-    		return getRandom(Symbols);
-    	});
+        seq1.append(this->size_, []() -> Symbol {
+            return getRandom(Symbols);
+        });
 
-    	AssertEQ(MA_SRC, seq1.size(), this->size_);
+        AssertEQ(MA_SRC, seq1.size(), this->size_);
 
-    	Int size = this->size_;
+        Int size = this->size_;
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		Seq seq2(this->size_);
+        for (Int c = 0; c < iterations_; c++)
+        {
+            Seq seq2(this->size_);
 
-    		Int src_start 	= getRandom(size);
-    		Int src_size 	= 1 + getRandom(size - src_start - 1);
+            Int src_start   = getRandom(size);
+            Int src_size    = 1 + getRandom(size - src_start - 1);
 
-    		Int dst_start 	= getRandom(size - src_size);
+            Int dst_start   = getRandom(size - src_size);
 
-    		auto adapter = seq1.source(src_start, src_size);
+            auto adapter = seq1.source(src_start, src_size);
 
-    		seq2.update(dst_start, adapter);
+            seq2.update(dst_start, adapter);
 
-    		for (Int c = src_start, dst_c = dst_start; c < src_start + src_size; c++, dst_c++)
-    		{
-    			Symbol src_value = seq1[c];
-    			Symbol dst_value = seq2[dst_c];
+            for (Int c = src_start, dst_c = dst_start; c < src_start + src_size; c++, dst_c++)
+            {
+                Symbol src_value = seq1[c];
+                Symbol dst_value = seq2[dst_c];
 
-    			AssertEQ(MA_SRC, src_value, dst_value, SBuf()<<c<<" "<<dst_c);
-    		}
-    	}
+                AssertEQ(MA_SRC, src_value, dst_value, SBuf()<<c<<" "<<dst_c);
+            }
+        }
     }
 
 };

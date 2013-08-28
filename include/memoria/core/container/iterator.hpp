@@ -47,6 +47,7 @@ public:
 
 template <typename Types>
 class IterHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
+
     typedef Iter<Types>                                                             MyType;
     typedef IterHelper<-1, Types>                                                   ThisType;
 
@@ -60,6 +61,7 @@ public:
 
 template <typename Types>
 class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Types> {
+
     typedef Iter<Types>                                                             MyType;
     typedef IterStart<Types>                                                        ThisType;
 
@@ -153,9 +155,6 @@ public:
     const char* typeName() const {
         return me()->model().typeName();
     }
-
-
-//    void init() {}
 };
 
 
@@ -201,11 +200,11 @@ public:
     }
 
     ContainerType& ctr() {
-    	return model_;
+        return model_;
     }
 
     const ContainerType& ctr() const {
-    	return model_;
+        return model_;
     }
 
     bool operator==(const MyType& other) const

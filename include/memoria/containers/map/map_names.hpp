@@ -12,9 +12,9 @@
 #include <memoria/prototypes/bt/bt_names.hpp>
 
 namespace memoria    {
-namespace map 		 {
+namespace map        {
 
-class CtrApiName 	{};
+class CtrApiName    {};
 class CtrInsertName {};
 class CtrRemoveName {};
 

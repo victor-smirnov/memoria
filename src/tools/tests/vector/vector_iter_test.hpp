@@ -37,94 +37,86 @@ public:
     {
         MEMORIA_ADD_TEST_PARAM(distance_);
 
-//    	MEMORIA_ADD_TEST(runSkipFwTest);
-    	MEMORIA_ADD_TEST(runSkipBwTest);
+        MEMORIA_ADD_TEST(runSkipFwTest);
+        MEMORIA_ADD_TEST(runSkipBwTest);
     }
 
     void checkIteratorPrefix(Iterator& iter, const char* source)
     {
-//    	Accumulator prefixes;
-//    	iter.ComputePrefix(prefixes);
-//
-//    	if (iter.prefixes() != prefixes)
-//    	{
-//    		iter.dump(out());
-//    		throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefixes()<<" Actual: "<<prefixes);
-//    	}
     }
 
     void runSkipFwTest()
     {
-    	Allocator allocator;
-    	Ctr ctr(&allocator);
+        Allocator allocator;
+        Ctr ctr(&allocator);
 
-    	vector<T> buf(100000);
+        vector<T> buf(100000);
 
-    	ctr<<buf;
+        ctr<<buf;
 
-    	for (Int start = 0; start < ctr.size(); start += 500)
-    	{
-    		for (Int c = 0; c < ctr.size() - start; c++)
-    		{
-    			Iterator i = ctr.seek(start);
+        for (Int start = 0; start < ctr.size(); start += 500)
+        {
+            for (Int c = 0; c < ctr.size() - start; c++)
+            {
+                Iterator i = ctr.seek(start);
 
-    			Int distance = i.skip(c);
+                Int distance = i.skip(c);
 
-    			checkIteratorPrefix(i, MA_SRC);
+                checkIteratorPrefix(i, MA_SRC);
 
-    			AssertEQ(MA_SRC, c + start, i.pos());
-    			AssertEQ(MA_SRC, c, distance);
-    		}
-    	}
+                AssertEQ(MA_SRC, c + start, i.pos());
+                AssertEQ(MA_SRC, c, distance);
+            }
+        }
 
-    	for (Int c = 1; c < ctr.size(); c++)
-    	{
-    		Iterator i = ctr.seek(c);
+        for (Int c = 1; c < ctr.size(); c++)
+        {
+            Iterator i = ctr.seek(c);
 
-    		Int distance = i.skip(ctr.size());
+            Int distance = i.skip(ctr.size());
 
-    		checkIteratorPrefix(i, MA_SRC);
+            checkIteratorPrefix(i, MA_SRC);
 
-    		AssertEQ(MA_SRC, i.pos(), ctr.size());
-    		AssertEQ(MA_SRC, distance, ctr.size() - c);
-    	}
+            AssertEQ(MA_SRC, i.pos(), ctr.size());
+            AssertEQ(MA_SRC, distance, ctr.size() - c);
+        }
     }
 
     void runSkipBwTest()
     {
-    	Allocator allocator;
-    	Ctr ctr(&allocator);
+        Allocator allocator;
+        Ctr ctr(&allocator);
 
-    	vector<T> buf(100000);
+        vector<T> buf(100000);
 
-    	ctr<<buf;
+        ctr<<buf;
 
-    	for (Int start = ctr.size() - 1; start > 0; start -= 500)
-    	{
-    		for (Int c = 0; c < start; c++)
-    		{
-    			Iterator i = ctr.seek(start);
+        for (Int start = ctr.size() - 1; start > 0; start -= 500)
+        {
+            for (Int c = 0; c < start; c++)
+            {
+                Iterator i = ctr.seek(start);
 
-    			Int distance = i.skip(-c);
+                Int distance = i.skip(-c);
 
-    			checkIteratorPrefix(i, MA_SRC);
+                checkIteratorPrefix(i, MA_SRC);
 
-    			AssertEQ(MA_SRC, start - c, i.pos());
-    			AssertEQ(MA_SRC, c, distance);
-    		}
-    	}
+                AssertEQ(MA_SRC, start - c, i.pos());
+                AssertEQ(MA_SRC, c, distance);
+            }
+        }
 
-    	for (Int c = 0; c < ctr.size(); c++)
-    	{
-    		Iterator i = ctr.seek(c);
+        for (Int c = 0; c < ctr.size(); c++)
+        {
+            Iterator i = ctr.seek(c);
 
-    		Int distance = i.skip(-ctr.size());
+            Int distance = i.skip(-ctr.size());
 
-    		checkIteratorPrefix(i, MA_SRC);
+            checkIteratorPrefix(i, MA_SRC);
 
-    		AssertEQ(MA_SRC, i.pos(), -1);
-    		AssertEQ(MA_SRC, distance, c);
-    	}
+            AssertEQ(MA_SRC, i.pos(), -1);
+            AssertEQ(MA_SRC, distance, c);
+        }
     }
 };
 

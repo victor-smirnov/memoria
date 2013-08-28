@@ -38,7 +38,7 @@ class VectorTest: public SequenceCreateTestBase<
     typedef typename Ctr::Accumulator                                           Accumulator;
     typedef typename Base::ID                                                   ID;
 
-    typedef vector<T>															MemBuffer;
+    typedef vector<T>                                                           MemBuffer;
 
 public:
     VectorTest(StringRef name):
@@ -50,24 +50,24 @@ public:
 
     virtual MemBuffer createBuffer(Int size)
     {
-    	MemBuffer data(size);
-    	for (auto& item: data)
-    	{
-    		item = 0;
-    	}
+        MemBuffer data(size);
+        for (auto& item: data)
+        {
+            item = 0;
+        }
 
-    	return data;
+        return data;
     }
 
     virtual MemBuffer createRandomBuffer(Int size)
     {
-    	MemBuffer data(size);
-    	for (auto& item: data)
-    	{
-    		item = getRandom();
-    	}
+        MemBuffer data(size);
+        for (auto& item: data)
+        {
+            item = getRandom();
+        }
 
-    	return data;
+        return data;
     }
 
     virtual Iterator seek(Ctr& array, BigInt pos)
@@ -111,7 +111,7 @@ public:
     }
 
     ostream& out() {
-    	return Base::out();
+        return Base::out();
     }
 };
 

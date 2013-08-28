@@ -138,7 +138,7 @@ template <typename Base1, typename TypesType>                                   
 class CtrPart<PartName, Base1, TypesType>: public Base1 {                       \
     typedef Base1 Base;                                                         \
     typedef CtrPart<PartName, Base1, TypesType> ThisType;                       \
-    typedef Ctr<TypesType> MyType;                           					\
+    typedef Ctr<TypesType> MyType;                                              \
 public:
 
 
@@ -159,14 +159,14 @@ public:
 
 
 #define MEMORIA_CONTAINER_PART_END                                              \
-	MyType& self() {                                                            \
+    MyType& self() {                                                            \
         return *static_cast<MyType*>(this);                                     \
     }                                                                           \
                                                                                 \
     const MyType& self() const {                                                \
         return *static_cast<const MyType*>(this);                               \
     }                                                                           \
-    																			\
+                                                                                \
     MyType* me() {                                                              \
         return static_cast<MyType*>(this);                                      \
     }                                                                           \
@@ -210,14 +210,14 @@ public:
 
 
 #define MEMORIA_ITERATOR_PART_END                                               \
-		MyType& self() {                                                        \
+        MyType& self() {                                                        \
         return *static_cast<MyType*>(this);                                     \
     }                                                                           \
                                                                                 \
     const MyType& self() const {                                                \
         return *static_cast<const MyType*>(this);                               \
-    }																			\
-																				\
+    }                                                                           \
+                                                                                \
     MyType* me() {                                                              \
         return static_cast<MyType*>(this);                                      \
     }                                                                           \

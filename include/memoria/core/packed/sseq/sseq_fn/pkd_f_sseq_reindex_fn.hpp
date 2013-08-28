@@ -19,279 +19,279 @@ namespace memoria {
 
 template <typename Seq>
 class BitmapReindexFn {
-	typedef typename Seq::Index 		Index;
-	typedef typename Index::Values 		Values;
+    typedef typename Seq::Index                                                 Index;
+    typedef typename Index::Values                                              Values;
 
-	static const Int BitsPerSymbol 				= Seq::BitsPerSymbol;
-	static const Int ValuesPerBranch 			= Seq::ValuesPerBranch;
-	static const Int Blocks						= Index::Blocks;
-	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
+    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const Int Blocks                                                     = Index::Blocks;
+    static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
-	static_assert(BitsPerSymbol == 1,
-			"BitmapReindexFn<> can only be used with 1-bit sequences");
+    static_assert(BitsPerSymbol == 1,
+            "BitmapReindexFn<> can only be used with 1-bit sequences");
 
-	static_assert(FixedSizeElementIndex,
-			"BitmapReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
+    static_assert(FixedSizeElementIndex,
+            "BitmapReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
-	void operator()(Seq& seq)
-	{
-		Int size = seq.size();
+    void operator()(Seq& seq)
+    {
+        Int size = seq.size();
 
-		if (size > ValuesPerBranch)
-		{
-			Int index_size 	= size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
-			seq.createIndex(index_size);
+        if (size > ValuesPerBranch)
+        {
+            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+            seq.createIndex(index_size);
 
-			Index* index = seq.index();
+            Index* index = seq.index();
 
-			Int pos = 0;
+            Int pos = 0;
 
-			auto symbols = seq.symbols();
+            auto symbols = seq.symbols();
 
-			index->insert(0, index_size, [&]() -> Values
-			{
-				Int next = pos + ValuesPerBranch;
-				Int max = next <= size ? next : size;
+            index->insert(0, index_size, [&]() -> Values
+            {
+                Int next = pos + ValuesPerBranch;
+                Int max = next <= size ? next : size;
 
-				Values values;
+                Values values;
 
-				values[1] = PopCount(symbols, pos, max);
-				values[0] = (max - pos) - values[1];
+                values[1] = PopCount(symbols, pos, max);
+                values[0] = (max - pos) - values[1];
 
-				pos = next;
+                pos = next;
 
-				return values;
-			});
-		}
-		else {
-			seq.removeIndex();
-		}
-	}
+                return values;
+            });
+        }
+        else {
+            seq.removeIndex();
+        }
+    }
 };
 
 
 template <typename Seq>
 class ReindexFn {
-	typedef typename Seq::Index 		Index;
-	typedef typename Index::Values 		Values;
+    typedef typename Seq::Index                                                 Index;
+    typedef typename Index::Values                                              Values;
 
-	static const Int BitsPerSymbol 				= Seq::BitsPerSymbol;
-	static const Int ValuesPerBranch 			= Seq::ValuesPerBranch;
-	static const Int Blocks						= Index::Blocks;
-	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
+    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const Int Blocks                                                     = Index::Blocks;
+    static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
-	static_assert(BitsPerSymbol > 2,
-				"ReindexFn<> can only be used with 2-8-bit sequences");
+    static_assert(BitsPerSymbol > 2,
+                "ReindexFn<> can only be used with 2-8-bit sequences");
 
-	static_assert(FixedSizeElementIndex,
-					"ReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
+    static_assert(FixedSizeElementIndex,
+                    "ReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
-	void operator()(Seq& seq)
-	{
-		Int size = seq.size();
+    void operator()(Seq& seq)
+    {
+        Int size = seq.size();
 
-		if (size > ValuesPerBranch)
-		{
-			Int index_size 	= size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
-			seq.createIndex(index_size);
+        if (size > ValuesPerBranch)
+        {
+            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+            seq.createIndex(index_size);
 
-			Index* index = seq.index();
+            Index* index = seq.index();
 
-			Int pos = 0;
+            Int pos = 0;
 
-			index->insert(0, index_size, [&]() -> Values
-			{
-				auto symbols = seq.symbols();
+            index->insert(0, index_size, [&]() -> Values
+            {
+                auto symbols = seq.symbols();
 
-				Int next = pos + ValuesPerBranch;
-				Int max = next <= size ? next : size;
+                Int next = pos + ValuesPerBranch;
+                Int max = next <= size ? next : size;
 
-				Values values;
+                Values values;
 
-				for (; pos < max; pos++)
-				{
-					Int symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
-					values[symbol]++;
-				}
+                for (; pos < max; pos++)
+                {
+                    Int symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
+                    values[symbol]++;
+                }
 
-				return values;
-			});
-		}
-		else {
-			seq.removeIndex();
-		}
-	}
+                return values;
+            });
+        }
+        else {
+            seq.removeIndex();
+        }
+    }
 };
 
 
 template <typename Seq>
 class VLEReindexFn {
-	typedef typename Seq::Index 		Index;
-	typedef typename Index::Values 		Values;
-	typedef typename Index::Codec 		Codec;
+    typedef typename Seq::Index                                                 Index;
+    typedef typename Index::Values                                              Values;
+    typedef typename Index::Codec                                               Codec;
 
-	static const Int BitsPerSymbol 				= Seq::BitsPerSymbol;
-	static const Int ValuesPerBranch 			= Seq::ValuesPerBranch;
-	static const Int Blocks						= Index::Blocks;
-	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
+    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const Int Blocks                                                     = Index::Blocks;
+    static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
-	static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
-				"VLEReindexFn<> can only be used with 2-7-bit sequences");
+    static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
+                "VLEReindexFn<> can only be used with 2-7-bit sequences");
 
-	static_assert(!FixedSizeElementIndex,
-				"VLEReindexFn<> can only be used with PkdVTree<>-indexed sequences ");
+    static_assert(!FixedSizeElementIndex,
+                "VLEReindexFn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-	void operator()(Seq& seq)
-	{
-		Int size = seq.size();
+    void operator()(Seq& seq)
+    {
+        Int size = seq.size();
 
-		if (size > ValuesPerBranch)
-		{
-			Codec codec;
+        if (size > ValuesPerBranch)
+        {
+            Codec codec;
 
-			Int length = 0;
+            Int length = 0;
 
-			auto symbols = seq.symbols();
+            auto symbols = seq.symbols();
 
-			for (Int b = 0; b < size; b += ValuesPerBranch)
-			{
-				Int next = b + ValuesPerBranch;
-				Int max = next <= size ? next : size;
+            for (Int b = 0; b < size; b += ValuesPerBranch)
+            {
+                Int next = b + ValuesPerBranch;
+                Int max = next <= size ? next : size;
 
-				Values values;
+                Values values;
 
-				for (Int pos = b; pos < max; pos++)
-				{
-					Int symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
-					values[symbol]++;
-				}
+                for (Int pos = b; pos < max; pos++)
+                {
+                    Int symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
+                    values[symbol]++;
+                }
 
-				for (Int c = 0; c < Blocks; c++)
-				{
-					length += codec.length(values[c]);
-				}
-			}
+                for (Int c = 0; c < Blocks; c++)
+                {
+                    length += codec.length(values[c]);
+                }
+            }
 
-			seq.createIndex(length);
+            seq.createIndex(length);
 
-			Index* index = seq.index();
+            Index* index = seq.index();
 
-			Int pos = 0;
+            Int pos = 0;
 
-			symbols = seq.symbols();
+            symbols = seq.symbols();
 
-			Int index_size 	= size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
 
-			index->insert(0, index_size, [&]() -> Values
-			{
-				Int next = pos + ValuesPerBranch;
-				Int max = next <= size ? next : size;
+            index->insert(0, index_size, [&]() -> Values
+            {
+                Int next = pos + ValuesPerBranch;
+                Int max = next <= size ? next : size;
 
-				Values values;
+                Values values;
 
-				for (; pos < max; pos++)
-				{
-					Int symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
-					values[symbol]++;
-				}
+                for (; pos < max; pos++)
+                {
+                    Int symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
+                    values[symbol]++;
+                }
 
-				return values;
-			});
-		}
-		else {
-			seq.removeIndex();
-		}
-	}
+                return values;
+            });
+        }
+        else {
+            seq.removeIndex();
+        }
+    }
 };
 
 
 
 template <typename Seq>
 class VLEReindex8Fn {
-	typedef typename Seq::Index 		Index;
-	typedef typename Index::Values 		Values;
-	typedef typename Index::Codec 		Codec;
+    typedef typename Seq::Index                                                 Index;
+    typedef typename Index::Values                                              Values;
+    typedef typename Index::Codec                                               Codec;
 
-	static const Int BitsPerSymbol 				= Seq::BitsPerSymbol;
-	static const Int ValuesPerBranch 			= Seq::ValuesPerBranch;
-	static const Int Blocks						= Index::Blocks;
-	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
+    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const Int Blocks                                                     = Index::Blocks;
+    static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
-	static_assert(BitsPerSymbol == 8,
-				"VLEReindex8Fn<> can only be used with 8-bit sequences");
+    static_assert(BitsPerSymbol == 8,
+                "VLEReindex8Fn<> can only be used with 8-bit sequences");
 
-	static_assert(!FixedSizeElementIndex,
-				"VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
+    static_assert(!FixedSizeElementIndex,
+                "VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-	void operator()(Seq& seq)
-	{
-		Int size = seq.size();
+    void operator()(Seq& seq)
+    {
+        Int size = seq.size();
 
-		if (size > ValuesPerBranch)
-		{
-			Codec codec;
+        if (size > ValuesPerBranch)
+        {
+            Codec codec;
 
-			Int length = 0;
+            Int length = 0;
 
-			auto symbols = seq.symbols();
+            auto symbols = seq.symbols();
 
-			for (Int b = 0; b < size; b += ValuesPerBranch)
-			{
-				Int next = b + ValuesPerBranch;
-				Int max = next <= size ? next : size;
+            for (Int b = 0; b < size; b += ValuesPerBranch)
+            {
+                Int next = b + ValuesPerBranch;
+                Int max = next <= size ? next : size;
 
-				Values values;
+                Values values;
 
-				for (Int pos = b; pos < max; pos++)
-				{
-					Int symbol = symbols[pos];
-					values[symbol]++;
-				}
+                for (Int pos = b; pos < max; pos++)
+                {
+                    Int symbol = symbols[pos];
+                    values[symbol]++;
+                }
 
-				for (Int c = 0; c < Blocks; c++)
-				{
-					length += codec.length(values[c]);
-				}
-			}
+                for (Int c = 0; c < Blocks; c++)
+                {
+                    length += codec.length(values[c]);
+                }
+            }
 
-			seq.createIndex(length);
+            seq.createIndex(length);
 
-			Index* index = seq.index();
+            Index* index = seq.index();
 
-			Int pos = 0;
+            Int pos = 0;
 
 
 
-			Int index_size 	= size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
 
-			index->insert(0, index_size, [&]() -> Values
-			{
-				DebugCounter1++;
+            index->insert(0, index_size, [&]() -> Values
+            {
+                DebugCounter1++;
 
-				Int next = pos + ValuesPerBranch;
-				Int max = next <= size ? next : size;
+                Int next = pos + ValuesPerBranch;
+                Int max = next <= size ? next : size;
 
-				auto symbols = seq.symbols();
+                auto symbols = seq.symbols();
 
-				Values values;
+                Values values;
 
-				for (; pos < max; pos++)
-				{
-					Int symbol = symbols[pos];
-					values[symbol]++;
-				}
+                for (; pos < max; pos++)
+                {
+                    Int symbol = symbols[pos];
+                    values[symbol]++;
+                }
 
-				return values;
-			});
-		}
-		else {
-			seq.removeIndex();
-		}
-	}
+                return values;
+            });
+        }
+        else {
+            seq.removeIndex();
+        }
+    }
 };
 
 
@@ -299,79 +299,79 @@ public:
 template <typename Seq>
 class VLEReindex8BlkFn: public VLEReindex8Fn<Seq> {
 
-	typedef VLEReindex8Fn<Seq>			Base;
-	typedef typename Seq::Index 		Index;
-	typedef typename Index::Values 		Values;
-	typedef typename Index::Codec 		Codec;
+    typedef VLEReindex8Fn<Seq>                                                  Base;
+    typedef typename Seq::Index                                                 Index;
+    typedef typename Index::Values                                              Values;
+    typedef typename Index::Codec                                               Codec;
 
-	static const Int BitsPerSymbol 				= Seq::BitsPerSymbol;
-	static const Int ValuesPerBranch 			= Seq::ValuesPerBranch;
-	static const Int Blocks						= Index::Blocks;
-	static const bool FixedSizeElementIndex		= Index::FixedSizeElement;
+    static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
+    static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
+    static const Int Blocks                                                     = Index::Blocks;
+    static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
-	static_assert(BitsPerSymbol == 8,
-				"VLEReindex8Fn<> can only be used with 8-bit sequences");
+    static_assert(BitsPerSymbol == 8,
+                "VLEReindex8Fn<> can only be used with 8-bit sequences");
 
-	static_assert(!FixedSizeElementIndex,
-				"VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
+    static_assert(!FixedSizeElementIndex,
+                "VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-	void operator()(Seq& seq)
-	{
-		Int size = seq.size();
+    void operator()(Seq& seq)
+    {
+        Int size = seq.size();
 
-		if (DebugCounter) {
-			int a = 0; a++;
-		}
+        if (DebugCounter) {
+            int a = 0; a++;
+        }
 
 
-		if (size <= ValuesPerBranch)
-		{
-			seq.removeIndex();
-		}
-		else if (size > ValuesPerBranch && size <= 4096)
-		{
-			Codec codec;
+        if (size <= ValuesPerBranch)
+        {
+            seq.removeIndex();
+        }
+        else if (size > ValuesPerBranch && size <= 4096)
+        {
+            Codec codec;
 
-			const Int LineWidth = 4096/ValuesPerBranch;
+            const Int LineWidth = 4096/ValuesPerBranch;
 
-			UShort frequences[LineWidth * 256];
-			memset(frequences, 0, sizeof(frequences));
+            UShort frequences[LineWidth * 256];
+            memset(frequences, 0, sizeof(frequences));
 
-			Int length = 0;
+            Int length = 0;
 
-			auto symbols = seq.symbols();
+            auto symbols = seq.symbols();
 
-			Int block = 0;
-			for (Int b = 0; b < size; b += ValuesPerBranch, block++)
-			{
-				Int next = b + ValuesPerBranch;
-				Int max = next <= size ? next : size;
+            Int block = 0;
+            for (Int b = 0; b < size; b += ValuesPerBranch, block++)
+            {
+                Int next = b + ValuesPerBranch;
+                Int max = next <= size ? next : size;
 
-				//Values values;
+                //Values values;
 
-				for (Int pos = b; pos < max; pos++)
-				{
-					Int symbol = symbols[pos];
-					frequences[symbol * LineWidth + block]++;
-				}
+                for (Int pos = b; pos < max; pos++)
+                {
+                    Int symbol = symbols[pos];
+                    frequences[symbol * LineWidth + block]++;
+                }
 
-				for (Int c = 0; c < Blocks; c++)
-				{
-					length += codec.length(frequences[c * LineWidth + block]);
-				}
-			}
+                for (Int c = 0; c < Blocks; c++)
+                {
+                    length += codec.length(frequences[c * LineWidth + block]);
+                }
+            }
 
-			seq.createIndex(length);
+            seq.createIndex(length);
 
-			Index* index = seq.index();
+            Index* index = seq.index();
 
-			index->template insertBlock<LineWidth>(frequences, block);
-		}
-		else {
-			Base::operator ()(seq);
-		}
-	}
+            index->template insertBlock<LineWidth>(frequences, block);
+        }
+        else {
+            Base::operator ()(seq);
+        }
+    }
 };
 
 

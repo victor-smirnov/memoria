@@ -27,7 +27,7 @@ using namespace std;
     MyType::addTest(#testMethodName, &MyType::testMethodName)
 
 #define MEMORIA_ADD_TEST_WITH_REPLAY(testMethodName, replayMethodName)\
-	MyType::addTest(#testMethodName, &MyType::testMethodName, &MyType::replayMethodName)
+    MyType::addTest(#testMethodName, &MyType::testMethodName, &MyType::replayMethodName)
 
 
 
@@ -109,12 +109,12 @@ public:
 
     void setOut(ostream* out)
     {
-    	out_ = out;
+        out_ = out;
     }
 
     ostream& out()
     {
-    	return *out_;
+        return *out_;
     }
 
     virtual void Configure(Configurator* cfg)

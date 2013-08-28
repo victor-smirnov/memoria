@@ -28,5 +28,5 @@ class NodeType: public Base {
 int main()
 {
 
-	return 0;
+    return 0;
 }

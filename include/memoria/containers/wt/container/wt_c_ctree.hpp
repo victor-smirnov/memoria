@@ -19,274 +19,274 @@ namespace memoria {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrCTreeName)
 
-	typedef typename Base::Tree													Tree;
-	typedef typename Base::Seq													Seq;
+    typedef typename Base::Tree                                                 Tree;
+    typedef typename Base::Seq                                                  Seq;
 
-	typedef typename Tree::Iterator												TreeIterator;
+    typedef typename Tree::Iterator                                             TreeIterator;
 
-//	typedef std::function<Int (Int)>											LabelProviderFn;
-//	typedef std::function<void (SeqIterator& Int)>								SeqHandlerFn;
+//  typedef std::function<Int (Int)>                                            LabelProviderFn;
+//  typedef std::function<void (SeqIterator& Int)>                              SeqHandlerFn;
 
-	static const Int BitsPerlabel = 8;
+    static const Int BitsPerlabel = 8;
 
-	struct FindChildFn {
+    struct FindChildFn {
 
-		Int label_;
-		Int label_idx_;
+        Int label_;
+        Int label_idx_;
 
-		Int start_;
-		Int end_;
+        Int start_;
+        Int end_;
 
-		Int target_idx_ = -1;
-		bool try_next_;
+        Int target_idx_ = -1;
+        bool try_next_;
 
-		Int size_;
+        Int size_;
 
-		FindChildFn(Int label): label_(label) {}
+        FindChildFn(Int label): label_(label) {}
 
-		template <Int Idx, typename StreamTypes>
-		void stream(const PkdFSSeq<StreamTypes>* seq, Int idx)
-		{
-			start_ 		= seq->rank(idx, 1);
-			auto result = seq->selectFw(idx, 0, 1);
+        template <Int Idx, typename StreamTypes>
+        void stream(const PkdFSSeq<StreamTypes>* seq, Int idx)
+        {
+            start_      = seq->rank(idx, 1);
+            auto result = seq->selectFw(idx, 0, 1);
 
-			size_ 		= seq->size();
+            size_       = seq->size();
 
-			if (result.is_found())
-			{
-				end_ = start_ + (result.idx() - idx);
-			}
-			else {
-				end_ = start_ + (size_ - idx);
-			}
+            if (result.is_found())
+            {
+                end_ = start_ + (result.idx() - idx);
+            }
+            else {
+                end_ = start_ + (size_ - idx);
+            }
 
-			try_next_ = !result.is_found();
-		}
+            try_next_ = !result.is_found();
+        }
 
-		template <Int Idx, typename StreamTypes>
-		void stream(const PackedFSEArray<StreamTypes>* labels)
-		{
-			for (Int c = start_; c < end_; c++)
-			{
-				Int lbl = labels->value(c);
+        template <Int Idx, typename StreamTypes>
+        void stream(const PackedFSEArray<StreamTypes>* labels)
+        {
+            for (Int c = start_; c < end_; c++)
+            {
+                Int lbl = labels->value(c);
 
-				if (lbl >= label_)
-				{
-					target_idx_ = c - start_;
-					return;
-				}
-			}
-		}
+                if (lbl >= label_)
+                {
+                    target_idx_ = c - start_;
+                    return;
+                }
+            }
+        }
 
-		template <typename Node>
-		void treeNode(const Node* node, Int start)
-		{
-			node->template processStream<0>(*this, start);
+        template <typename Node>
+        void treeNode(const Node* node, Int start)
+        {
+            node->template processStream<0>(*this, start);
 
-			if (end_ > start_)
-			{
-				node->template processStream<1>(*this);
-			}
-		}
-	};
-
-
-
-	TreeIterator findChild(TreeIterator& node, Int label)
-	{
-		auto& self = this->self();
-		auto& tree = self.tree();
-
-		auto iter = tree.firstChild(node.node());
-
-		while (true)
-		{
-			FindChildFn fn(label);
-			Int idx = iter.idx();
-
-			Tree::LeafDispatcher::dispatchConst(iter.leaf(), fn, idx);
-
-			if (fn.target_idx_ >= 0)
-			{
-				if (idx + fn.target_idx_ < fn.size_)
-				{
-					iter.idx() += fn.target_idx_;
-				}
-
-				break;
-			}
-			else if (fn.try_next_)
-			{
-				Int leaf_rest = iter.leaf_size(0) - iter.idx();
-
-				iter.skipFw(leaf_rest);
-
-				if (iter.isEof())
-				{
-					break;
-				}
-			}
-			else {
-				iter.idx() += fn.end_ - fn.start_;
-				break;
-			}
-		}
-
-		return iter;
-	}
+            if (end_ > start_)
+            {
+                node->template processStream<1>(*this);
+            }
+        }
+    };
 
 
-//	TreeIterator insertNode(const LoudsNode& at, Int label)
-//	{
-//		auto& self = this->self();
-//		auto& tree = self.tree();
+
+    TreeIterator findChild(TreeIterator& node, Int label)
+    {
+        auto& self = this->self();
+        auto& tree = self.tree();
+
+        auto iter = tree.firstChild(node.node());
+
+        while (true)
+        {
+            FindChildFn fn(label);
+            Int idx = iter.idx();
+
+            Tree::LeafDispatcher::dispatchConst(iter.leaf(), fn, idx);
+
+            if (fn.target_idx_ >= 0)
+            {
+                if (idx + fn.target_idx_ < fn.size_)
+                {
+                    iter.idx() += fn.target_idx_;
+                }
+
+                break;
+            }
+            else if (fn.try_next_)
+            {
+                Int leaf_rest = iter.leaf_size(0) - iter.idx();
+
+                iter.skipFw(leaf_rest);
+
+                if (iter.isEof())
+                {
+                    break;
+                }
+            }
+            else {
+                iter.idx() += fn.end_ - fn.start_;
+                break;
+            }
+        }
+
+        return iter;
+    }
+
+
+//  TreeIterator insertNode(const LoudsNode& at, Int label)
+//  {
+//      auto& self = this->self();
+//      auto& tree = self.tree();
 //
-//		LoudsNode node = tree.insertNode(at);
-//		MEMORIA_ASSERT_TRUE(node);
-//		MEMORIA_ASSERT_TRUE(labels()->insert(node.rank1() - 1, label));
+//      LoudsNode node = tree.insertNode(at);
+//      MEMORIA_ASSERT_TRUE(node);
+//      MEMORIA_ASSERT_TRUE(labels()->insert(node.rank1() - 1, label));
 //
-//		return node;
-//	}
+//      return node;
+//  }
 
 
 /*
-	void insertPath(UBigInt path, Int size, function<void (const LoudsNode&, Int label, Int level)> fn)
-	{
-		auto& self = this->self();
-		auto& tree = self.tree();
+    void insertPath(UBigInt path, Int size, function<void (const LoudsNode&, Int label, Int level)> fn)
+    {
+        auto& self = this->self();
+        auto& tree = self.tree();
 
 
-		LoudsTree* louds = tree();
+        LoudsTree* louds = tree();
 
-		LoudsNode node = louds->root();
+        LoudsNode node = louds->root();
 
-		Int level = 0;
+        Int level = 0;
 
-		while (!louds->isLeaf(node))
-		{
-			Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+        while (!louds->isLeaf(node))
+        {
+            Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
-			node = find_child(node, label);
+            node = find_child(node, label);
 
-			Int lbl = labels()->value(node.rank1() - 1);
+            Int lbl = labels()->value(node.rank1() - 1);
 
-			if (!louds->isLeaf(node) && lbl == label)
-			{
-				level++;
-			}
-			else {
-				break;
-			}
-		}
+            if (!louds->isLeaf(node) && lbl == label)
+            {
+                level++;
+            }
+            else {
+                break;
+            }
+        }
 
-		bool first = true;
+        bool first = true;
 
-		if (level < size)
-		{
-			while (level < size)
-			{
-				louds = this->tree();
+        if (level < size)
+        {
+            while (level < size)
+            {
+                louds = this->tree();
 
-				louds->insert(node.idx(), 1, 2 - first);
-				louds->reindex();
+                louds->insert(node.idx(), 1, 2 - first);
+                louds->reindex();
 
-				node = louds->node(node.idx()); // refresh
+                node = louds->node(node.idx()); // refresh
 
-				Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+                Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
-				labels()->insert(node.rank1() - 1, label);
+                labels()->insert(node.rank1() - 1, label);
 
-				louds->reindex();
+                louds->reindex();
 
-				MEMORIA_ASSERT(louds, ==, this->tree());
+                MEMORIA_ASSERT(louds, ==, this->tree());
 
-				fn(node, label, level);
+                fn(node, label, level);
 
-				node = louds->first_child(node);
+                node = louds->first_child(node);
 
-				level++;
-				first = false;
-			}
+                level++;
+                first = false;
+            }
 
-			tree()->insert(node.idx(), 0, 1);
-			tree()->reindex();
-		}
-	}
+            tree()->insert(node.idx(), 0, 1);
+            tree()->reindex();
+        }
+    }
 
-	bool query_path(UBigInt path, Int size, function<void (const LoudsNode&, Int label, Int level)> fn) const
-	{
-		LoudsTree* louds = tree();
+    bool query_path(UBigInt path, Int size, function<void (const LoudsNode&, Int label, Int level)> fn) const
+    {
+        LoudsTree* louds = tree();
 
-		LoudsNode node = louds->root();
+        LoudsNode node = louds->root();
 
-		Int level = 0;
+        Int level = 0;
 
-		while (!louds->isLeaf(node))
-		{
-			Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+        while (!louds->isLeaf(node))
+        {
+            Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
-			LoudsNode child = find_child(node, label);
+            LoudsNode child = find_child(node, label);
 
-			MEMORIA_ASSERT(child.is_empty(), !=, true);
+            MEMORIA_ASSERT(child.is_empty(), !=, true);
 
-			level++;
-		}
+            level++;
+        }
 
-		return level < size;
-	}
+        return level < size;
+    }
 
-	enum class Status {
-		LEAF, NOT_FOUND, OK, FINISH
-	};
+    enum class Status {
+        LEAF, NOT_FOUND, OK, FINISH
+    };
 
-	Status remove_path(const LoudsNode& node, UBigInt path, Int size, Int level)
-	{
-		LoudsTree* louds = tree();
-		if (!louds->isLeaf(node))
-		{
-			Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
+    Status remove_path(const LoudsNode& node, UBigInt path, Int size, Int level)
+    {
+        LoudsTree* louds = tree();
+        if (!louds->isLeaf(node))
+        {
+            Int label = GetBits(&path, level * BitsPerLabel, BitsPerLabel);
 
-			LoudsNode child = find_child(node, label);
+            LoudsNode child = find_child(node, label);
 
-			if (child.is_empty())
-			{
-				return Status::NOT_FOUND;
-			}
-			else {
-				Status status = remove_path(child, path, size, level + 1);
+            if (child.is_empty())
+            {
+                return Status::NOT_FOUND;
+            }
+            else {
+                Status status = remove_path(child, path, size, level + 1);
 
-				if (status == Status::OK)
-				{
-					bool alone = louds->isAlone(node);
+                if (status == Status::OK)
+                {
+                    bool alone = louds->isAlone(node);
 
-					if (node.idx() > 0)
-					{
-						removeLeaf(node);
-					}
+                    if (node.idx() > 0)
+                    {
+                        removeLeaf(node);
+                    }
 
-					if (alone)
-					{
-						return Status::OK;
-					}
-					else {
-						return Status::FINISH;
-					}
-				}
-				else {
-					return status;
-				}
-			}
-		}
-		else {
-			return Status::OK;
-		}
-	}
+                    if (alone)
+                    {
+                        return Status::OK;
+                    }
+                    else {
+                        return Status::FINISH;
+                    }
+                }
+                else {
+                    return status;
+                }
+            }
+        }
+        else {
+            return Status::OK;
+        }
+    }
 
-	bool remove_path(UBigInt path, Int size)
-	{
-		LoudsNode node = tree()->root();
-		return remove_path(node, path, size, 0) != Status::NOT_FOUND;
-	}
+    bool remove_path(UBigInt path, Int size)
+    {
+        LoudsNode node = tree()->root();
+        return remove_path(node, path, size, 0) != Status::NOT_FOUND;
+    }
 */
 MEMORIA_CONTAINER_PART_END
 

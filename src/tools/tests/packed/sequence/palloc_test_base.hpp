@@ -19,48 +19,48 @@ namespace memoria {
 using namespace std;
 
 template <
-	Int Bits,
-	template <typename>	class IndexType,
-	template <typename>	class CodecType,
-	template <typename>	class ReindexFnType,
-	template <typename>	class SelectFnType,
-	template <typename>	class RankFnType,
-	template <typename>	class ToolsFnType
+    Int Bits,
+    template <typename> class IndexType,
+    template <typename> class CodecType,
+    template <typename> class ReindexFnType,
+    template <typename> class SelectFnType,
+    template <typename> class RankFnType,
+    template <typename> class ToolsFnType
 >
 class PackedSearchableSequenceTestBase: public TestTask {
 
     typedef PackedSearchableSequenceTestBase<
-    		Bits,
-    		IndexType,
-    		CodecType,
-    		ReindexFnType,
-    		SelectFnType,
-    		RankFnType,
-    		ToolsFnType
-    > 																			MyType;
+            Bits,
+            IndexType,
+            CodecType,
+            ReindexFnType,
+            SelectFnType,
+            RankFnType,
+            ToolsFnType
+    >                                                                           MyType;
 
     typedef PkdFSSeqTypes<
-        		Bits,
-        		PackedTreeBranchingFactor,
-        		1024,
-        		IndexType,
-        		CodecType,
-        		ReindexFnType,
-        		SelectFnType,
-        		RankFnType,
-        		ToolsFnType
-    > 																			Types;
+                Bits,
+                PackedTreeBranchingFactor,
+                1024,
+                IndexType,
+                CodecType,
+                ReindexFnType,
+                SelectFnType,
+                RankFnType,
+                ToolsFnType
+    >                                                                           Types;
 
 protected:
 
-    typedef PkdFSSeq<Types>										Seq;
+    typedef PkdFSSeq<Types>                                     Seq;
 
-    typedef typename Seq::Value													Value;
+    typedef typename Seq::Value                                                 Value;
 
 
     static const Int Blocks                 = Seq::Indexes;
     static const Int Symbols                = 1<<Bits;
-    static const Int VPB					= Seq::ValuesPerBranch;
+    static const Int VPB                    = Seq::ValuesPerBranch;
 
     Int iterations_ = 100;
 
@@ -77,94 +77,94 @@ public:
 
     Seq* createEmptySequence(Int block_size = 1024*1024)
     {
-    	void* memory_block = malloc(block_size);
-    	memset(memory_block, 0, block_size);
+        void* memory_block = malloc(block_size);
+        memset(memory_block, 0, block_size);
 
-    	PackedAllocator* allocator = T2T<PackedAllocator*>(memory_block);
+        PackedAllocator* allocator = T2T<PackedAllocator*>(memory_block);
 
-    	allocator->init(block_size, 1);
-    	allocator->setTopLevelAllocator();
+        allocator->init(block_size, 1);
+        allocator->setTopLevelAllocator();
 
-    	allocator->allocateEmpty<Seq>(0);
+        allocator->allocateEmpty<Seq>(0);
 
-    	Seq* seq = allocator->template get<Seq>(0);
+        Seq* seq = allocator->template get<Seq>(0);
 
-    	return seq;
+        return seq;
     }
 
 
 
     vector<Int> populate(Seq* seq, Int size, Value value = 0)
     {
-    	vector<Int> symbols;
+        vector<Int> symbols;
 
-    	seq->clear();
-    	seq->insert(0, size, [&](){
-    		symbols.push_back(value);
-    		return value;
-    	});
+        seq->clear();
+        seq->insert(0, size, [&](){
+            symbols.push_back(value);
+            return value;
+        });
 
-    	return symbols;
+        return symbols;
     }
 
     vector<Int> populateRandom(Seq* seq, Int size)
     {
-    	seq->clear();
-    	return fillRandom(seq, size);
+        seq->clear();
+        return fillRandom(seq, size);
     }
 
     vector<Int> fillRandom(Seq* seq, Int size)
     {
-    	vector<Int> symbols;
+        vector<Int> symbols;
 
-    	seq->insert(0, size, [&]() {
-    		Int sym = getRandom(Blocks);
-    		symbols.push_back(sym);
-    		return sym;
-    	});
+        seq->insert(0, size, [&]() {
+            Int sym = getRandom(Blocks);
+            symbols.push_back(sym);
+            return sym;
+        });
 
-    	return symbols;
+        return symbols;
     }
 
     Int rank(const Seq* seq, Int start, Int end, Int symbol)
     {
-    	Int rank = 0;
+        Int rank = 0;
 
-    	for (Int c = start; c < end; c++)
-    	{
-    		rank += seq->test(c, symbol);
-    	}
+        for (Int c = start; c < end; c++)
+        {
+            rank += seq->test(c, symbol);
+        }
 
-    	return rank;
+        return rank;
     }
 
     void assertIndexCorrect(const char* src, const Seq* seq)
     {
-    	try {
-    		seq->check();
-    	}
-    	catch (Exception& e) {
-    		out()<<"Sequence structure check failed"<<std::endl;
-    		seq->dump(out());
-    		throw e;
-    	}
+        try {
+            seq->check();
+        }
+        catch (Exception& e) {
+            out()<<"Sequence structure check failed"<<std::endl;
+            seq->dump(out());
+            throw e;
+        }
     }
 
     void assertEmpty(const Seq* seq)
     {
-    	AssertEQ(MA_SRC, seq->size(), 0);
-    	AssertEQ(MA_SRC, seq->block_size(), Seq::empty_size());
-    	AssertFalse(MA_SRC, seq->has_index());
+        AssertEQ(MA_SRC, seq->size(), 0);
+        AssertEQ(MA_SRC, seq->block_size(), Seq::empty_size());
+        AssertFalse(MA_SRC, seq->has_index());
     }
 
     void assertEqual(const Seq* seq, const vector<Int>& symbols)
     {
-    	AssertEQ(MA_SRC, seq->size(), (Int)symbols.size());
+        AssertEQ(MA_SRC, seq->size(), (Int)symbols.size());
 
-    	for (Int c = 0; c < seq->size(); c++)
-    	{
-    		AssertEQ(MA_SRC, seq->symbol(c), (Value)symbols[c]);
-    	}
+        for (Int c = 0; c < seq->size(); c++)
+        {
+            AssertEQ(MA_SRC, seq->symbol(c), (Value)symbols[c]);
+        }
     }
 };
 

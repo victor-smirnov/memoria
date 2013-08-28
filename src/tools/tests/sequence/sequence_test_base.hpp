@@ -23,53 +23,53 @@ using namespace std;
 
 template <Int BitsPerSymbol, bool Dense = true>
 class SequenceTestBase: public SPTestTask {
-	typedef SequenceTestBase<BitsPerSymbol, Dense> 								MyType;
-	typedef SPTestTask															Base;
+    typedef SequenceTestBase<BitsPerSymbol, Dense>                              MyType;
+    typedef SPTestTask                                                          Base;
 
 protected:
 
-	typedef typename SCtrTF<Sequence<BitsPerSymbol, Dense> >::Type              Ctr;
-	typedef typename Ctr::Iterator                                              Iterator;
-	typedef typename Ctr::Accumulator                                           Accumulator;
-	typedef typename Ctr::ID                                                    ID;
+    typedef typename SCtrTF<Sequence<BitsPerSymbol, Dense> >::Type              Ctr;
+    typedef typename Ctr::Iterator                                              Iterator;
+    typedef typename Ctr::Accumulator                                           Accumulator;
+    typedef typename Ctr::ID                                                    ID;
 
-	typedef PackedFSESequence<BitsPerSymbol>									PackedSeq;
+    typedef PackedFSESequence<BitsPerSymbol>                                    PackedSeq;
 
-	static const Int Symbols													= 1<<BitsPerSymbol;
+    static const Int Symbols                                                    = 1<<BitsPerSymbol;
 
-	String dump_name_;
+    String dump_name_;
 
 public:
-	SequenceTestBase(StringRef name): Base(name)
-	{
-		this->size_ = 100000;
+    SequenceTestBase(StringRef name): Base(name)
+    {
+        this->size_ = 100000;
 
-		MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
-	}
+        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
+    }
 
-	PackedSeq fillRandom(Ctr& ctr, Int size)
-	{
-		PackedSeq seq(size, (BitsPerSymbol == 8) ? 10 : 1, 1);
+    PackedSeq fillRandom(Ctr& ctr, Int size)
+    {
+        PackedSeq seq(size, (BitsPerSymbol == 8) ? 10 : 1, 1);
 
-		seq.insert(0, size, [](){
-			return getRandom(Symbols);
-		});
+        seq.insert(0, size, [](){
+            return getRandom(Symbols);
+        });
 
-		auto iter = ctr.Begin();
+        auto iter = ctr.Begin();
 
-		BigInt t0 = getTimeInMillis();
+        BigInt t0 = getTimeInMillis();
 
-		for (Int c = 0; c <size; c++)
-		{
-			iter.insert(seq[c]);
-		}
+        for (Int c = 0; c <size; c++)
+        {
+            iter.insert(seq[c]);
+        }
 
-		BigInt t1 = getTimeInMillis();
+        BigInt t1 = getTimeInMillis();
 
-		this->out()<<"Sequence creation time: "<<FormatTime(t1 - t0)<<std::endl;
+        this->out()<<"Sequence creation time: "<<FormatTime(t1 - t0)<<std::endl;
 
-		return seq;
-	}
+        return seq;
+    }
 
 
 

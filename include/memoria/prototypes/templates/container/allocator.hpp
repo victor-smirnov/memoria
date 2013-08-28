@@ -87,7 +87,7 @@ public:
 
     virtual bool hasRoot(BigInt name)
     {
-    	return isCtrSharedRegistered(name); // Is it correct?
+        return isCtrSharedRegistered(name); // Is it correct?
     }
 
     virtual PageG getPage(const ID& id, Int flags);

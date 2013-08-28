@@ -85,7 +85,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-        	::memoria::dumpArray<Byte>(out_, count, [=](Int idx){return value[idx];});
+            ::memoria::dumpArray<Byte>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -96,7 +96,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-        	::memoria::dumpArray<UByte>(out_, count, [=](Int idx){return value[idx];});
+            ::memoria::dumpArray<UByte>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -105,25 +105,25 @@ public:
 
     virtual void value(const char* name, const Short* value, Int count = 1, Int kind = 0)
     {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		::memoria::dumpArray<Short>(out_, count, [=](Int idx){return value[idx];});
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<Short>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
 
     virtual void value(const char* name, const UShort* value, Int count = 1, Int kind = 0)
     {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		::memoria::dumpArray<UShort>(out_, count, [=](Int idx){return value[idx];});
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<UShort>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
     virtual void value(const char* name, const Int* value, Int count = 1, Int kind = 0)
@@ -140,35 +140,35 @@ public:
 
     virtual void value(const char* name, const UInt* value, Int count = 1, Int kind = 0)
     {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		::memoria::dumpArray<UInt>(out_, count, [=](Int idx){return value[idx];});
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<UInt>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
     virtual void value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)
     {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		::memoria::dumpArray<BigInt>(out_, count, [=](Int idx){return value[idx];});
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<BigInt>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
     virtual void value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)
     {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		::memoria::dumpArray<UBigInt>(out_, count, [=](Int idx){return value[idx];});
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<UBigInt>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
 
@@ -202,12 +202,12 @@ public:
 
     virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)
     {
-    	dumpSymbols(out_, value, count, bits_per_symbol);
+        dumpSymbols(out_, value, count, bits_per_symbol);
     }
 
     virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)
     {
-    	dumpSymbols(out_, value, count, bits_per_symbol);
+        dumpSymbols(out_, value, count, bits_per_symbol);
     }
 
 private:

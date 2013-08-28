@@ -20,12 +20,6 @@ namespace memoria    {
 namespace vapi       {
 
 void Expand(std::ostream& os, Int level);
-
-//void dumpField(FieldMetadata* field, Page* page, std::ostream &out, Int level, Int idx);
-//void dumpMap(MapMetadata* group, Page* page, std::ostream &out, Int level, Int idx);
-//void dumpData(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx);
-//void dumpGroup(MetadataGroup* group, Page* page, std::ostream &out, Int level, Int idx, Int size = -1);
-
 void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out);
 
 }}

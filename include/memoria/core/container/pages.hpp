@@ -201,7 +201,7 @@ public:
     }
 
     virtual void* Ptr() {
-    	throw Exception(MA_SRC, "Page in not mutable");
+        throw Exception(MA_SRC, "Page in not mutable");
     }
 
     virtual const void* Ptr() const {
@@ -210,7 +210,7 @@ public:
 
     virtual void setPtr(void* ptr)
     {
-    	throw Exception(MA_SRC, "Page in not mutable");
+        throw Exception(MA_SRC, "Page in not mutable");
     }
 
     virtual Int size() const {
@@ -236,7 +236,7 @@ public:
 
     virtual void setByte(Int idx, Int value)
     {
-    	throw Exception(MA_SRC, "Page in not mutable");
+        throw Exception(MA_SRC, "Page in not mutable");
     }
 };
 

@@ -69,7 +69,7 @@ template <> struct FieldFactory<Type> {                                         
     static void serialize(SerializationData& data, const Type& field) {         \
         memmove(data.buf, &field, sizeof(Type));                                \
         data.buf += sizeof(Type);                                               \
-        data.total += sizeof(Type);												\
+        data.total += sizeof(Type);                                             \
     }                                                                           \
     static void deserialize(DeserializationData& data, Type& field) {           \
         memmove(&field, data.buf, sizeof(Type));                                \
@@ -79,7 +79,7 @@ template <> struct FieldFactory<Type> {                                         
     static void serialize(SerializationData& data, const Type& field, Int count) {\
         memmove(data.buf, &field, count*sizeof(Type));                          \
         data.buf += count * sizeof(Type);                                       \
-        data.total += count * sizeof(Type);										\
+        data.total += count * sizeof(Type);                                     \
     }                                                                           \
     static void deserialize(DeserializationData& data, Type& field, Int count) {\
         memmove(&field, data.buf, count*sizeof(Type));                          \
@@ -88,7 +88,7 @@ template <> struct FieldFactory<Type> {                                         
     static void serialize(SerializationData& data, const Type* field, Int count) {\
         memmove(data.buf, field, count*sizeof(Type));                           \
         data.buf += count * sizeof(Type);                                       \
-        data.total += count * sizeof(Type);										\
+        data.total += count * sizeof(Type);                                     \
     }                                                                           \
     static void deserialize(DeserializationData& data, Type* field, Int count) {\
         memmove(field, data.buf, count*sizeof(Type));                           \

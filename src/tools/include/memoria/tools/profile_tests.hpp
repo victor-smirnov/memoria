@@ -56,11 +56,11 @@ public:
     }
 
     virtual void StoreResource(Allocator& allocator, StringRef file_name, Int mark = 0) const {
-    	StoreAllocator(allocator, getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
+        StoreAllocator(allocator, getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
     }
 
     virtual void LoadResource(Allocator& allocator, StringRef file_name, Int mark = 0) const {
-    	LoadAllocator(allocator, getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
+        LoadAllocator(allocator, getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
     }
 
 
@@ -107,7 +107,7 @@ public:
 
     void forceCheck(Allocator& allocator, const char* source)
     {
-    	::memoria::check<Allocator>(allocator, "Allocator check failed", source);
+        ::memoria::check<Allocator>(allocator, "Allocator check failed", source);
     }
 
     void check(Allocator& allocator, const char* message, const char* source)

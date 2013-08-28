@@ -26,7 +26,7 @@ void TestTask::Run(std::ostream& out)
 {
     setOut(&out);
 
-	for (TestDescriptor* descr: tests_)
+    for (TestDescriptor* descr: tests_)
     {
         Base::Configure(configurator_);
 
@@ -37,7 +37,7 @@ void TestTask::Run(std::ostream& out)
         BigInt t0 = getTimeInMillis();
 
         try {
-        	out<<"Test: "<<current_test_name_<<std::endl;
+            out<<"Test: "<<current_test_name_<<std::endl;
             descr->run(this, out);
 
             BigInt t1 = getTimeInMillis();
@@ -48,9 +48,9 @@ void TestTask::Run(std::ostream& out)
         }
         catch (...)
         {
-        	BigInt t1 = getTimeInMillis();
+            BigInt t1 = getTimeInMillis();
 
-        	out<<"TEST FAILED in "<<FormatTime(t1 - t0)<<std::endl;
+            out<<"TEST FAILED in "<<FormatTime(t1 - t0)<<std::endl;
             this->tearDown();
             throw;
         }
@@ -59,8 +59,8 @@ void TestTask::Run(std::ostream& out)
 
 void TestTask::Replay(ostream& out, Configurator* cfg)
 {
-	setOut(&out);
-	setReplayMode();
+    setOut(&out);
+    setReplayMode();
 
     configurator_ = cfg;
 
@@ -146,7 +146,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
         }
         catch (const std::exception& e)
         {
-        	out<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+            out<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
         }
         catch (const Exception& e)
         {

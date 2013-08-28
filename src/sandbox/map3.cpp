@@ -32,32 +32,32 @@ typedef typename Map2Ctr::ISubtreeProvider                       Map2ISubtreePro
 typedef typename Map2Ctr::DefaultSubtreeProviderBase             Map2DefaultSubtreeProviderBase;
 typedef typename Map2Ctr::NonLeafNodeKeyValuePair                Map2NonLeafNodeKeyValuePair;
 typedef typename Map2Ctr::LeafNodeKeyValuePair                   Map2LeafNodeKeyValuePair;
-typedef typename Map2Ctr::Accumulator                   		 Map2Accumulator;
-typedef typename Map2Ctr::Value                   		 		 Map2Value;
+typedef typename Map2Ctr::Accumulator                            Map2Accumulator;
+typedef typename Map2Ctr::Value                                  Map2Value;
 
 
 template <typename CtrType>
 class SubtreeProvider: public CtrType::DefaultSubtreeProviderBase
 {
-	typedef typename CtrType::ISubtreeProvider                       ISubtreeProvider;
-	typedef typename CtrType::DefaultSubtreeProviderBase             DefaultSubtreeProviderBase;
-	typedef typename CtrType::NonLeafNodeKeyValuePair                NonLeafNodeKeyValuePair;
-	typedef typename CtrType::LeafNodeKeyValuePair                   LeafNodeKeyValuePair;
-	typedef typename CtrType::Accumulator                   		 Accumulator;
-	typedef typename CtrType::Value                   		 		 Value;
+    typedef typename CtrType::ISubtreeProvider                       ISubtreeProvider;
+    typedef typename CtrType::DefaultSubtreeProviderBase             DefaultSubtreeProviderBase;
+    typedef typename CtrType::NonLeafNodeKeyValuePair                NonLeafNodeKeyValuePair;
+    typedef typename CtrType::LeafNodeKeyValuePair                   LeafNodeKeyValuePair;
+    typedef typename CtrType::Accumulator                            Accumulator;
+    typedef typename CtrType::Value                                  Value;
 
 
-	typedef DefaultSubtreeProviderBase          Base;
+    typedef DefaultSubtreeProviderBase          Base;
 
 public:
-	SubtreeProvider(CtrType* ctr, BigInt total): Base(*ctr, total) {}
+    SubtreeProvider(CtrType* ctr, BigInt total): Base(*ctr, total) {}
 
-	virtual LeafNodeKeyValuePair getLeafKVPair(BigInt begin)
-	{
-		Accumulator acc;
-		acc[0] = 1;
-		return LeafNodeKeyValuePair(acc, Value());
-	}
+    virtual LeafNodeKeyValuePair getLeafKVPair(BigInt begin)
+    {
+        Accumulator acc;
+        acc[0] = 1;
+        return LeafNodeKeyValuePair(acc, Value());
+    }
 };
 
 
@@ -74,62 +74,62 @@ int main(void) {
 
     if (!File("map3d.dump").isExists())
     {
-    	Map1Ctr map1(&allocator, CTR_CREATE, name1);
-    	Map2Ctr map2(&allocator, CTR_CREATE, name2);
+        Map1Ctr map1(&allocator, CTR_CREATE, name1);
+        Map2Ctr map2(&allocator, CTR_CREATE, name2);
 
-    	map1.setNewPageSize(4096);
-    	map2.setNewPageSize(4096);
+        map1.setNewPageSize(4096);
+        map2.setNewPageSize(4096);
 
-    	SubtreeProvider<Map1Ctr> provider1(&map1, 10000000);
-    	SubtreeProvider<Map2Ctr> provider2(&map2, 10000000);
+        SubtreeProvider<Map1Ctr> provider1(&map1, 10000000);
+        SubtreeProvider<Map2Ctr> provider2(&map2, 10000000);
 
-    	auto i1 = map1.Begin();
-    	map1.insertSubtree(i1, provider1);
+        auto i1 = map1.Begin();
+        map1.insertSubtree(i1, provider1);
 
-    	auto i2 = map2.Begin();
-    	map2.insertSubtree(i2, provider2);
+        auto i2 = map2.Begin();
+        map2.insertSubtree(i2, provider2);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	FileOutputStreamHandlerImpl file("map3d.dump");
-    	allocator.store(&file);
+        FileOutputStreamHandlerImpl file("map3d.dump");
+        allocator.store(&file);
     }
     else {
-    	FileInputStreamHandlerImpl file("map3d.dump");
-    	allocator.load(&file);
+        FileInputStreamHandlerImpl file("map3d.dump");
+        allocator.load(&file);
 
-    	Map1Ctr map1(&allocator, CTR_FIND, name1);
-    	Map2Ctr map2(&allocator, CTR_FIND, name2);
+        Map1Ctr map1(&allocator, CTR_FIND, name1);
+        Map2Ctr map2(&allocator, CTR_FIND, name2);
 
-    	Int max_reads = 1000000;
+        Int max_reads = 1000000;
 
-    	vector<Int> indexes(max_reads);
+        vector<Int> indexes(max_reads);
 
-    	for (auto& v: indexes)
-    	{
-    		v = getRandom(map1.size());
-    	}
+        for (auto& v: indexes)
+        {
+            v = getRandom(map1.size());
+        }
 
-    	BigInt t0 = getTimeInMillis();
+        BigInt t0 = getTimeInMillis();
 
-    	for (Int c = 0; c < max_reads; c++)
-    	{
-    		map1.findLE(indexes[c], 0)<<endl;
-    	}
+        for (Int c = 0; c < max_reads; c++)
+        {
+            map1.findLE(indexes[c], 0)<<endl;
+        }
 
-    	BigInt t1 = getTimeInMillis();
+        BigInt t1 = getTimeInMillis();
 
-    	BigInt t2 = getTimeInMillis();
+        BigInt t2 = getTimeInMillis();
 
-    	for (Int c = 0; c < max_reads; c++)
-    	{
-    		map2.findLE(indexes[c], 0)<<endl;
-    	}
+        for (Int c = 0; c < max_reads; c++)
+        {
+            map2.findLE(indexes[c], 0)<<endl;
+        }
 
-    	BigInt t3 = getTimeInMillis();
+        BigInt t3 = getTimeInMillis();
 
-    	cout<<"Map1 Random Read: "<<FormatTime(t1 - t0)<<endl;
-    	cout<<"Map2 Random Read: "<<FormatTime(t3 - t2)<<endl;
+        cout<<"Map1 Random Read: "<<FormatTime(t1 - t0)<<endl;
+        cout<<"Map2 Random Read: "<<FormatTime(t3 - t2)<<endl;
     }
 
     return 0;

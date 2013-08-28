@@ -23,35 +23,35 @@ using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrFindName)
 
-	typedef typename Base::Types                                                Types;
-	typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Types                                                Types;
+    typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::ID                                                   ID;
+    typedef typename Base::ID                                                   ID;
 
-	typedef typename Types::NodeBase                                            NodeBase;
-	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::Iterator                                             Iterator;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-	typedef typename Base::RootDispatcher                                       RootDispatcher;
-	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+    typedef typename Base::RootDispatcher                                       RootDispatcher;
+    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
 
-	typedef typename Base::Key                                                  Key;
-	typedef typename Base::Value                                                Value;
-	typedef typename Base::Element                                              Element;
+    typedef typename Base::Key                                                  Key;
+    typedef typename Base::Value                                                Value;
+    typedef typename Base::Element                                              Element;
 
-	typedef typename Base::Metadata                                             Metadata;
+    typedef typename Base::Metadata                                             Metadata;
 
-	typedef typename Types::Accumulator                                         Accumulator;
-	typedef typename Types::Position 											Position;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::Position                                            Position;
 
-	typedef typename Base::TreePath                                             TreePath;
-	typedef typename Base::TreePathItem                                         TreePathItem;
+    typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::TreePathItem                                         TreePathItem;
 
-	static const Int Indexes                                                    = Types::Indexes;
-	static const Int Streams                                                    = Types::Streams;
+    static const Int Indexes                                                    = Types::Indexes;
+    static const Int Streams                                                    = Types::Streams;
 
 
 

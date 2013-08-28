@@ -31,7 +31,7 @@
 using namespace std;
 using namespace memoria;
 
-//#include "dump.inc"
+#include "dump.inc"
 
 const char* DESCRIPTION = "Run Memoria regression tests with specified configuration";
 const char* CFG_FILE    = "tests.properties";
@@ -40,7 +40,7 @@ int main(int argc, const char** argv, const char** envp)
 {
     MEMORIA_INIT(SmallProfile<>);
 
-	Term::init(argc, argv, envp);
+    Term::init(argc, argv, envp);
 
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
@@ -92,7 +92,8 @@ int main(int argc, const char** argv, const char** envp)
             cout<<"    --help                           Display this help and exit"<<endl;
             cout<<"    --count N                        Run all tests N times"<<endl;
             cout<<"    --config <file.properties>       Use the specified config file"<<endl;
-            cout<<"    --list                           List available tasks and their configuration properties and exit"<<endl;
+            cout<<"    --list                           "
+                <<"List available tasks and their configuration properties and exit"<<endl;
             cout<<"    --dump <allocator.dump>          Dump allocator's content to disk"<<endl;
             cout<<"    --replay <update_op.properties>  Replay the failed update operation"<<endl;
             cout<<"    --out <output folder>            Path where tests output will be put. "
@@ -109,7 +110,7 @@ int main(int argc, const char** argv, const char** envp)
         }
         else if (cmd_line.IsDump())
         {
-//        	DumpAllocator(cmd_line.getDumpFileName());
+            DumpAllocator(cmd_line.getDumpFileName());
         }
         else {
             cout<<"Seed: "<<seed<<endl;

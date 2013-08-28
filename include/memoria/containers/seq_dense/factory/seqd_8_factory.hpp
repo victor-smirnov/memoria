@@ -33,110 +33,110 @@ namespace memoria {
 
 template <typename Profile>
 struct BTTypes<Profile, memoria::Sequence<8, true> >:
-	public BTTypes<Profile, memoria::BT> {
+    public BTTypes<Profile, memoria::BT> {
 
-    typedef BTTypes<Profile, memoria::BT>                   Base;
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef UBigInt                                                          	Value;
-    typedef TypeList<BigInt>                                                  	KeysList;
+    typedef UBigInt                                                             Value;
+    typedef TypeList<BigInt>                                                    KeysList;
 
     static const Int BitsPerSymbol                                              = 8;
-    static const Int Indexes                                                	= (1 << BitsPerSymbol) + 1;
+    static const Int Indexes                                                    = (1 << BitsPerSymbol) + 1;
 
 
 
     typedef TypeList<
-    			NonLeafNodeTypes<BranchNode>,
-    			LeafNodeTypes<LeafNode>
-    >																			NodeTypesList;
+                NonLeafNodeTypes<BranchNode>,
+                LeafNodeTypes<LeafNode>
+    >                                                                           NodeTypesList;
 
     typedef TypeList<
-    			TreeNodeType<LeafNode>,
-    			TreeNodeType<BranchNode>
-    >																			DefaultNodeTypesList;
+                TreeNodeType<LeafNode>,
+                TreeNodeType<BranchNode>
+    >                                                                           DefaultNodeTypesList;
 
     typedef TypeList<
-        		StreamDescr<PkdVTreeTF, PackedFSESeqTF, Indexes>
-    >																			StreamDescriptors;
+                StreamDescr<PkdVTreeTF, PackedFSESeqTF, Indexes>
+    >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<
-    			typename Base::ID,
-    			ListSize<StreamDescriptors>::Value
-    >        																	Metadata;
+                typename Base::ID,
+                ListSize<StreamDescriptors>::Value
+    >                                                                           Metadata;
 
 
-	typedef typename MergeLists<
-				typename Base::ContainerPartsList,
-				bt::NodeComprName,
+    typedef typename MergeLists<
+                typename Base::ContainerPartsList,
+                bt::NodeComprName,
 
-				seq_dense::CtrFindName,
-				seq_dense::CtrInsertName,
-				seq_dense::CtrRemoveName
-	>::Result                                           						ContainerPartsList;
-
-
-	typedef typename MergeLists<
-				typename Base::IteratorPartsList,
-
-				seq_dense::IterSelectName,
-				seq_dense::IterMiscName,
-				seq_dense::IterCountName,
-				seq_dense::IterRankName,
-				seq_dense::IterSkipName
-
-	>::Result                                           						IteratorPartsList;
+                seq_dense::CtrFindName,
+                seq_dense::CtrInsertName,
+                seq_dense::CtrRemoveName
+    >::Result                                                                   ContainerPartsList;
 
 
-	template <typename Iterator, typename Container>
-	struct IteratorCacheFactory {
-		typedef memoria::seq_dense::SequenceIteratorCache<Iterator, Container> 	Type;
-	};
+    typedef typename MergeLists<
+                typename Base::IteratorPartsList,
+
+                seq_dense::IterSelectName,
+                seq_dense::IterMiscName,
+                seq_dense::IterCountName,
+                seq_dense::IterRankName,
+                seq_dense::IterSkipName
+
+    >::Result                                                                   IteratorPartsList;
 
 
+    template <typename Iterator, typename Container>
+    struct IteratorCacheFactory {
+        typedef memoria::seq_dense::SequenceIteratorCache<Iterator, Container>  Type;
+    };
 
-    template <typename Types>
-    using FindLTWalker 		= ::memoria::seq_dense::SkipForwardWalker<Types>;
 
 
     template <typename Types>
-    using RankFWWalker 		= ::memoria::seq_dense::RankFWWalker<Types>;
-
-    template <typename Types>
-    using RankBWWalker 		= ::memoria::seq_dense::RankBWWalker<Types>;
+    using FindLTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types>;
 
 
     template <typename Types>
-    using SelectFwWalker 	= ::memoria::seq_dense::SelectForwardWalker<Types>;
+    using RankFWWalker          = ::memoria::seq_dense::RankFWWalker<Types>;
 
     template <typename Types>
-    using SelectBwWalker 	= ::memoria::seq_dense::SelectBackwardWalker<Types>;
-
-
-    template <typename Types>
-    using SkipForwardWalker 	= ::memoria::seq_dense::SkipForwardWalker<Types>;
-
-    template <typename Types>
-    using SkipBackwardWalker 	= ::memoria::seq_dense::SkipBackwardWalker<Types>;
+    using RankBWWalker          = ::memoria::seq_dense::RankBWWalker<Types>;
 
 
     template <typename Types>
-    using NextLeafWalker 	 	= ::memoria::bt::NextLeafWalker<Types>;
+    using SelectFwWalker        = ::memoria::seq_dense::SelectForwardWalker<Types>;
 
     template <typename Types>
-    using PrevLeafWalker 		= ::memoria::bt::PrevLeafWalker<Types>;
+    using SelectBwWalker        = ::memoria::seq_dense::SelectBackwardWalker<Types>;
 
 
     template <typename Types>
-    using FindBeginWalker 	= ::memoria::seq_dense::FindBeginWalker<Types>;
+    using SkipForwardWalker     = ::memoria::seq_dense::SkipForwardWalker<Types>;
 
     template <typename Types>
-    using FindEndWalker 	= ::memoria::seq_dense::FindEndWalker<Types>;
+    using SkipBackwardWalker    = ::memoria::seq_dense::SkipBackwardWalker<Types>;
+
 
     template <typename Types>
-    using FindRBeginWalker 	= ::memoria::seq_dense::FindRBeginWalker<Types>;
+    using NextLeafWalker        = ::memoria::bt::NextLeafWalker<Types>;
 
     template <typename Types>
-    using FindREndWalker 	= ::memoria::seq_dense::FindREndWalker<Types>;
+    using PrevLeafWalker        = ::memoria::bt::PrevLeafWalker<Types>;
+
+
+    template <typename Types>
+    using FindBeginWalker       = ::memoria::seq_dense::FindBeginWalker<Types>;
+
+    template <typename Types>
+    using FindEndWalker         = ::memoria::seq_dense::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker      = ::memoria::seq_dense::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker        = ::memoria::seq_dense::FindREndWalker<Types>;
 };
 
 }

@@ -45,19 +45,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::Accumulator                                         Accumulator;
-    typedef typename Types::Position 											Position;
+    typedef typename Types::Position                                            Position;
 
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
-    typedef typename Types::PageUpdateMgr										PageUpdateMgr;
+    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)> 				SplitFn;
+    typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
 
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
-    typedef std::function<void (const Position&, Int)>							MergeFn;
+    typedef std::function<void (const Position&, Int)>                          MergeFn;
 
     void insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
 
@@ -83,18 +83,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
 
     void insertNonLeaf(
-    		TreePath& path,
-    		Int level,
-    		Int idx,
-    		const Accumulator& keys,
-    		const ID& id
+            TreePath& path,
+            Int level,
+            Int idx,
+            const Accumulator& keys,
+            const ID& id
     );
 
     void insertNonLeaf(
-    		NodeBaseG& node,
-    		Int idx,
-    		const Accumulator& keys,
-    		const ID& id
+            NodeBaseG& node,
+            Int idx,
+            const Accumulator& keys,
+            const ID& id
     );
 
 
@@ -121,17 +121,17 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	node.update();
-	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-	self.updateChildren(node, idx);
+    node.update();
+    NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+    self.updateChildren(node, idx);
 
-	if (!node->is_root())
-	{
-		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
-		self.updatePath(parent, node->parent_idx(), keys);
-	}
+    if (!node->is_root())
+    {
+        NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+        self.updatePath(parent, node->parent_idx(), keys);
+    }
 }
 
 
@@ -139,93 +139,93 @@ void M_TYPE::insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, c
 M_PARAMS
 typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	if (left_node->is_root())
-	{
-		self.newRootP(left_node);
-	}
+    if (left_node->is_root())
+    {
+        self.newRootP(left_node);
+    }
 
-	left_node.update();
-	NodeBaseG left_parent = self.getNodeParent(left_node, Allocator::UPDATE);
+    left_node.update();
+    NodeBaseG left_parent = self.getNodeParent(left_node, Allocator::UPDATE);
 
-	NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
-	Accumulator keys = split_fn(left_node, other);
+    Accumulator keys = split_fn(left_node, other);
 
-	Int parent_idx   = left_node->parent_idx();
+    Int parent_idx   = left_node->parent_idx();
 
-	self.updatePath(left_parent, parent_idx, -keys);
+    self.updatePath(left_parent, parent_idx, -keys);
 
-	if (self.getNonLeafCapacity(left_parent, -1) > 0)
-	{
-		self.insertNonLeafP(left_parent, parent_idx + 1, keys, other->id());
-	}
-	else {
-		NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
+    if (self.getNonLeafCapacity(left_parent, -1) > 0)
+    {
+        self.insertNonLeafP(left_parent, parent_idx + 1, keys, other->id());
+    }
+    else {
+        NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
 
-		self.insertNonLeafP(right_parent, 0, keys, other->id());
-	}
+        self.insertNonLeafP(right_parent, 0, keys, other->id());
+    }
 
-	return other;
+    return other;
 }
 
 M_PARAMS
 typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, Int split_at)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	return splitP(left_node, [&self, split_at](NodeBaseG& left, NodeBaseG& right){
-		return self.splitNonLeafNode(left, right, split_at);
-	});
+    return splitP(left_node, [&self, split_at](NodeBaseG& left, NodeBaseG& right){
+        return self.splitNonLeafNode(left, right, split_at);
+    });
 }
 
 M_PARAMS
 typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Position& split_at)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	return splitP(left_node, [&](NodeBaseG& left, NodeBaseG& right){
-		return self.splitLeafNode(left, right, split_at);
-	});
+    return splitP(left_node, [&](NodeBaseG& left, NodeBaseG& right){
+        return self.splitLeafNode(left, right, split_at);
+    });
 }
 
 M_PARAMS
 bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
 {
-	NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
-	return true;
+    NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
+    return true;
 }
 
 M_PARAMS
 void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	NodeBaseG tmp = node;
+    NodeBaseG tmp = node;
 
-	self.updateNode(tmp, idx, keys);
+    self.updateNode(tmp, idx, keys);
 
-	while(!tmp->is_root())
-	{
-		Int parent_idx = tmp->parent_idx();
-		tmp = self.getNodeParent(tmp, Allocator::UPDATE);
+    while(!tmp->is_root())
+    {
+        Int parent_idx = tmp->parent_idx();
+        tmp = self.getNodeParent(tmp, Allocator::UPDATE);
 
-		self.updateNode(tmp, parent_idx, keys);
-	}
+        self.updateNode(tmp, parent_idx, keys);
+    }
 }
 
 M_PARAMS
 void M_TYPE::updateParent(NodeBaseG& node, const Accumulator& sums)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	if (!node->is_root())
-	{
-		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+    if (!node->is_root())
+    {
+        NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
 
-		self.updatePath(parent, node->parent_idx(), sums);
-	}
+        self.updatePath(parent, node->parent_idx(), sums);
+    }
 }
 
 
@@ -241,9 +241,9 @@ void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& cou
 {
     auto& self = this->self();
 
-	for (Int c = level; c < path.getSize(); c++)
+    for (Int c = level; c < path.getSize(); c++)
     {
-		if (self.updateCounters(path, c, idx, counters, fn))
+        if (self.updateCounters(path, c, idx, counters, fn))
         {
             break;
         }
@@ -257,9 +257,9 @@ void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& cou
 M_PARAMS
 void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	if (level < path.getSize() - 1)
+    if (level < path.getSize() - 1)
     {
         self.updateUp(path, level + 1, path[level].parent_idx(), counters, [](Int, Int){});
     }
@@ -268,32 +268,32 @@ void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& 
 
 M_PARAMS
 void M_TYPE::insertNonLeaf(
-		TreePath& path,
-		Int level,
-		Int idx,
-		const Accumulator& keys,
-		const ID& id
+        TreePath& path,
+        Int level,
+        Int idx,
+        const Accumulator& keys,
+        const ID& id
 )
 {
-	auto& self = this->self();
-	NodeBaseG& node = path[level];
+    auto& self = this->self();
+    NodeBaseG& node = path[level];
 
-	node.update();
+    node.update();
 
-	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+    NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
 
 
 M_PARAMS
 void M_TYPE::insertNonLeaf(
-		NodeBaseG& node,
-		Int idx,
-		const Accumulator& keys,
-		const ID& id
+        NodeBaseG& node,
+        Int idx,
+        const Accumulator& keys,
+        const ID& id
 )
 {
-	node.update();
-	NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+    node.update();
+    NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
 
 
@@ -318,7 +318,7 @@ void M_TYPE::insertNonLeaf(
 M_PARAMS
 void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
     tgt.update();
     src.update();
@@ -329,12 +329,12 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.updateChildren(tgt, tgt_size);
 
-    NodeBaseG src_parent   	= self.getNodeParent(src, Allocator::READ);
-    Int parent_idx      	= src->parent_idx();
+    NodeBaseG src_parent    = self.getNodeParent(src, Allocator::READ);
+    Int parent_idx          = src->parent_idx();
 
     MEMORIA_ASSERT(parent_idx, >, 0);
 
-    Accumulator sums 		= self.sums(src_parent, parent_idx, parent_idx + 1);
+    Accumulator sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
 
     self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
@@ -369,15 +369,15 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 M_PARAMS
 bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
     if (self.canMerge(tgt, src))
     {
         if (self.isTheSameParent(tgt, src))
         {
-        	fn(self.getNodeSizes(tgt), tgt->level());
+            fn(self.getNodeSizes(tgt), tgt->level());
 
-        	mergeNodes(tgt, src);
+            mergeNodes(tgt, src);
 
             self.removeRedundantRootP(tgt);
 
@@ -388,9 +388,9 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
             NodeBaseG tgt_parent = self.getNodeParent(tgt, Allocator::READ);
             NodeBaseG src_parent = self.getNodeParent(src, Allocator::READ);
 
-        	if (mergeBTreeNodes(tgt_parent, src_parent, fn))
+            if (mergeBTreeNodes(tgt_parent, src_parent, fn))
             {
-            	fn(self.getNodeSizes(tgt), tgt->level());
+                fn(self.getNodeSizes(tgt), tgt->level());
 
                 mergeNodes(tgt, src);
 

@@ -137,13 +137,13 @@ static LogHandler* logIt(LogHandler* log, const PageID<T>& value)
 template <Int Size>
 class BitBuffer: public StaticBuffer<Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1)> {
     typedef StaticBuffer<
-    			(Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1))
-    >       																	Base;
+                (Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1))
+    >                                                                           Base;
 public:
 
 
-    typedef Int                         										Index;
-    typedef typename Base::ElementType											Bits;
+    typedef Int                                                                 Index;
+    typedef typename Base::ElementType                                          Bits;
 
     static const Int kBitSize           = Size;
 
@@ -213,7 +213,7 @@ public:
                 decltype(page_size_)
     >                                                                           FieldsList;
 
-    typedef PageIdType      													ID;
+    typedef PageIdType                                                          ID;
 
     AbstractPage(): flags_(), id_() {}
 
@@ -347,9 +347,9 @@ public:
         this->id()              = page->id();
         this->crc()             = page->crc();
 
-        this->ctr_type_hash()   		= page->ctr_type_hash();
-        this->master_ctr_type_hash()   	= page->master_ctr_type_hash();
-        this->owner_ctr_type_hash()   	= page->owner_ctr_type_hash();
+        this->ctr_type_hash()           = page->ctr_type_hash();
+        this->master_ctr_type_hash()    = page->master_ctr_type_hash();
+        this->owner_ctr_type_hash()     = page->owner_ctr_type_hash();
 
         this->page_type_hash()  = page->page_type_hash();
         this->references()      = page->references();
@@ -394,11 +394,11 @@ public:
 template <typename PageIdType, Int FlagsCount>
 struct TypeHash<AbstractPage<PageIdType, FlagsCount>> {
     static const UInt Value = HashHelper<
-    		AbstractPage<AbstractPage<PageIdType, FlagsCount>>::VERSION,
-    		TypeHash<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>::Value,
-    		TypeHash<typename AbstractPage<PageIdType, FlagsCount>::ID>::Value,
-    		TypeHash<Int>::Value,
-    		8
+            AbstractPage<AbstractPage<PageIdType, FlagsCount>>::VERSION,
+            TypeHash<typename AbstractPage<PageIdType, FlagsCount>::FlagsType>::Value,
+            TypeHash<typename AbstractPage<PageIdType, FlagsCount>::ID>::Value,
+            TypeHash<Int>::Value,
+            8
     >::Value;
 };
 
@@ -665,7 +665,7 @@ public:
     }
 
     operator bool() const {
-    	return this->isSet();
+        return this->isSet();
     }
 
     const PageT* page() const {

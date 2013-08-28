@@ -16,25 +16,25 @@
 namespace memoria    {
 
 template <typename Profile> class ContainerCollectionCfg;
-template <typename> 		class PkdFTree;
-template <typename> 		class PackedFSEArray;
+template <typename>         class PkdFTree;
+template <typename>         class PackedFSEArray;
 
 namespace bt     {
 
 class IDType {};
 
 template <
-	template <typename, Int> class NonLeafPackedTypeFactory,
-	template <typename, Int> class LeafPackedTypeFactory,
-	Int NodeIndexes_,
-	Int LeafIndexes_ = NodeIndexes_,
-	typename Value_ = BigInt
+    template <typename, Int> class NonLeafPackedTypeFactory,
+    template <typename, Int> class LeafPackedTypeFactory,
+    Int NodeIndexes_,
+    Int LeafIndexes_ = NodeIndexes_,
+    typename Value_ = BigInt
 >
 struct StreamDescr {
-	static const Int NodeIndexes = NodeIndexes_;
-	static const Int LeafIndexes = LeafIndexes_;
-	typedef BigInt IndexType;
-	typedef Value_ Value;
+    static const Int NodeIndexes = NodeIndexes_;
+    static const Int LeafIndexes = LeafIndexes_;
+    typedef BigInt IndexType;
+    typedef Value_ Value;
 };
 
 
@@ -61,8 +61,8 @@ class RemoveName            {};
 class RemoveToolsName       {};
 class RemoveBatchName       {};
 
-class NodeNormName       	{};
-class NodeComprName       	{};
+class NodeNormName          {};
+class NodeComprName         {};
 
 class ApiName               {};
 class ChecksName            {};
@@ -81,7 +81,7 @@ class IteratorToolsName     {};
 class IteratorAPIName       {};
 class IteratorMultiskipName {};
 class IteratorContainerAPIName  {};
-class IteratorFindName		{};
+class IteratorFindName      {};
 
 }
 

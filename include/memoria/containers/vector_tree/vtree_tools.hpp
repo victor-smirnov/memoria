@@ -18,7 +18,7 @@
 
 
 namespace memoria       {
-namespace vtree    		{
+namespace vtree         {
 
 
 

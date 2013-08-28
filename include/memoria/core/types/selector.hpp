@@ -21,12 +21,12 @@ struct Any {};
 
 template <typename Name>
 struct IsVectorName {
-    static const bool Value = false;
+    static const bool Value                                                     = false;
 };
 
 template <typename Element>
 struct IsVectorName<Vector<Element>> {
-    static const bool Value = true;
+    static const bool Value                                                     = true;
 };
 
 
@@ -35,7 +35,7 @@ class IsVectorTest {
     typedef typename Types::Name        Name;
     typedef typename Types::ElementType ElementType;
 
-    static const bool IsAVector = IsVectorName<Name>::Value;
+    static const bool IsAVector                                                 = IsVectorName<Name>::Value;
 
     static const bool IsTheVector =
             IfThenElse<
@@ -73,7 +73,7 @@ class IsVectorMapTest {
     typedef typename Types::Key         Key;
     typedef typename Types::Value       Value_;
 
-    static const bool IsAVectorMap = IsVectorMapName<Name>::Value;
+    static const bool IsAVectorMap                                              = IsVectorMapName<Name>::Value;
 
     static const bool IsKey =
             IfThenElse<
@@ -91,7 +91,7 @@ class IsVectorMapTest {
 
 public:
 
-    static const bool Value = IsAVectorMap && IsKey && IsValue;
+    static const bool Value                                                     = IsAVectorMap && IsKey && IsValue;
 };
 
 template <typename Types, typename Key = Any, typename Value = Any>

@@ -205,14 +205,14 @@ public:
 
     MyType* minValue(const T& value)
     {
-    	min_value_ = value;
-    	return this;
+        min_value_ = value;
+        return this;
     }
 
     MyType* maxValue(const T& value)
     {
-    	max_value_ = value;
-    	return this;
+        max_value_ = value;
+        return this;
     }
 
     virtual StringRef getName() const
@@ -306,7 +306,7 @@ protected:
 template <typename T, size_t Size>
 class ParamDescriptor<T[Size]>: public AbstractParamDescriptor {
 
-    typedef ParamDescriptor<T[Size]>                      						MyType;
+    typedef ParamDescriptor<T[Size]>                                            MyType;
 
     ParametersSet*      cfg_;
 
@@ -444,19 +444,19 @@ protected:
 
     virtual String valueToString() const
     {
-    	stringstream str;
+        stringstream str;
 
-    	for (size_t c = 0; c < Size; c++)
-    	{
-    		str<<value_[c];
+        for (size_t c = 0; c < Size; c++)
+        {
+            str<<value_[c];
 
-    		if (c < Size - 1)
-    		{
-    			str<<", ";
-    		}
-    	}
+            if (c < Size - 1)
+            {
+                str<<", ";
+            }
+        }
 
-    	return str.str();
+        return str.str();
     }
 };
 

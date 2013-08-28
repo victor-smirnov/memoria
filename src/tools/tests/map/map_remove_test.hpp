@@ -21,35 +21,35 @@
 namespace memoria {
 
 template <
-	typename MapName
+    typename MapName
 >
 class MapRemoveTest: public MapTestBase<MapName> {
 
-	typedef MapRemoveTest<MapName>                                              MyType;
-	typedef MapTestBase<MapName>												Base;
+    typedef MapRemoveTest<MapName>                                              MyType;
+    typedef MapTestBase<MapName>                                                Base;
 
-	typedef typename Base::Allocator											Allocator;
-	typedef typename Base::Iterator												Iterator;
-	typedef typename Base::Ctr													Ctr;
-	typedef typename Base::PairVector											PairVector;
-	typedef typename Base::Pair													Pair;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Iterator                                             Iterator;
+    typedef typename Base::Ctr                                                  Ctr;
+    typedef typename Base::PairVector                                           PairVector;
+    typedef typename Base::Pair                                                 Pair;
 
 
-	BigInt&  		ctr_name_		= Base::ctr_name_;
-	Int&  			size_			= Base::size_;
-	Int&  			vector_idx_ 	= Base::vector_idx_;
-	PairVector& 	pairs 			= Base::pairs;
-	PairVector& 	pairs_sorted 	= Base::pairs_sorted;
-	String& 		dump_name_ 		= Base::dump_name_;
+    BigInt&         ctr_name_       = Base::ctr_name_;
+    Int&            size_           = Base::size_;
+    Int&            vector_idx_     = Base::vector_idx_;
+    PairVector&     pairs           = Base::pairs;
+    PairVector&     pairs_sorted    = Base::pairs_sorted;
+    String&         dump_name_      = Base::dump_name_;
 
 public:
 
     MapRemoveTest(StringRef name): Base(name)
     {
-    	Base::size_ 		= 10000;
-    	Base::check_step	= 0;
+        Base::size_         = 10000;
+        Base::check_step    = 0;
 
-    	MEMORIA_ADD_TEST_WITH_REPLAY(runRemoveTest, replayRemoveTest);
+        MEMORIA_ADD_TEST_WITH_REPLAY(runRemoveTest, replayRemoveTest);
     }
 
     virtual ~MapRemoveTest() throw () {}
@@ -83,7 +83,7 @@ public:
 
             for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
-            	bool result = map.remove(pairs[vector_idx_].key_);
+                bool result = map.remove(pairs[vector_idx_].key_);
 
                 AssertTrue(MA_SRC, result);
 
@@ -116,9 +116,9 @@ public:
         }
         catch (MemoriaThrowable& e)
         {
-        	this->out()<<e<<endl;
+            this->out()<<e<<endl;
 
-        	Base::StorePairs(pairs, pairs_sorted);
+            Base::StorePairs(pairs, pairs_sorted);
             dump_name_ = Base::Store(allocator);
             throw;
         }

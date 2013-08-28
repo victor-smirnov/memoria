@@ -34,79 +34,79 @@ namespace memoria    {
 template <typename Profile, Granularity gr>
 struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT> {
 
-    typedef BTTypes<Profile, memoria::BT>                   					Base;
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef BigInt                                                          	Value;
-    typedef TypeList<BigInt>                                                  	KeysList;
+    typedef BigInt                                                              Value;
+    typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int Indexes                                                	= 1;
+    static const Int Indexes                                                    = 1;
 
-
-    typedef TypeList<
-    		LeafNodeTypes<LeafNode>,
-    		NonLeafNodeTypes<BranchNode>
-    >																			NodeTypesList;
 
     typedef TypeList<
-    		TreeNodeType<LeafNode>,
-    		TreeNodeType<BranchNode>
-    >																			DefaultNodeTypesList;
+            LeafNodeTypes<LeafNode>,
+            NonLeafNodeTypes<BranchNode>
+    >                                                                           NodeTypesList;
 
     typedef TypeList<
-    		StreamDescr<
-    			PkdFTreeTF,
-    			map::MapTypeTF<Granularity::Bit>::Type,
-    			1
-    		>
-    >																			StreamDescriptors;
+            TreeNodeType<LeafNode>,
+            TreeNodeType<BranchNode>
+    >                                                                           DefaultNodeTypesList;
+
+    typedef TypeList<
+            StreamDescr<
+                PkdFTreeTF,
+                map::MapTypeTF<Granularity::Bit>::Type,
+                1
+            >
+    >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<
-    		typename Base::ID,
-    		ListSize<StreamDescriptors>::Value
-    >        																	Metadata;
+            typename Base::ID,
+            ListSize<StreamDescriptors>::Value
+    >                                                                           Metadata;
 
 
-	typedef typename MergeLists<
-				typename Base::ContainerPartsList,
-				bt::NodeComprName,
-				map::CtrInsertName,
-				map::CtrRemoveName,
-				map::CtrApiName
-	>::Result                                           						ContainerPartsList;
+    typedef typename MergeLists<
+                typename Base::ContainerPartsList,
+                bt::NodeComprName,
+                map::CtrInsertName,
+                map::CtrRemoveName,
+                map::CtrApiName
+    >::Result                                                                   ContainerPartsList;
 
 
-	typedef typename MergeLists<
-				typename Base::IteratorPartsList,
-				map::ItrApiName,
-				map::ItrNavName
-	>::Result                                           						IteratorPartsList;
+    typedef typename MergeLists<
+                typename Base::IteratorPartsList,
+                map::ItrApiName,
+                map::ItrNavName
+    >::Result                                                                   IteratorPartsList;
 
 
-	template <typename Iterator, typename Container>
-	struct IteratorCacheFactory {
-		typedef map::MapIteratorPrefixCache<Iterator, Container> Type;
-	};
+    template <typename Iterator, typename Container>
+    struct IteratorCacheFactory {
+        typedef map::MapIteratorPrefixCache<Iterator, Container> Type;
+    };
 
-
-
-    template <typename Types>
-    using FindLTWalker 		= map::FindLTWalker<Types>;
-
-    template <typename Types>
-    using FindLEWalker 		= map::FindLEWalker<Types>;
 
 
     template <typename Types>
-    using FindBeginWalker 	= map::FindBeginWalker<Types>;
+    using FindLTWalker      = map::FindLTWalker<Types>;
 
     template <typename Types>
-    using FindEndWalker 	= map::FindEndWalker<Types>;
+    using FindLEWalker      = map::FindLEWalker<Types>;
+
 
     template <typename Types>
-    using FindRBeginWalker 	= map::FindRBeginWalker<Types>;
+    using FindBeginWalker   = map::FindBeginWalker<Types>;
 
     template <typename Types>
-    using FindREndWalker 	= map::FindREndWalker<Types>;
+    using FindEndWalker     = map::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker  = map::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker    = map::FindREndWalker<Types>;
 };
 
 

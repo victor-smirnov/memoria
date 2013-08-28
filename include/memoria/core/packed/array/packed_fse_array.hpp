@@ -17,12 +17,12 @@ namespace memoria {
 
 
 template <
-	typename V,
-	typename Allocator_ = PackedAllocator
+    typename V,
+    typename Allocator_ = PackedAllocator
 >
 struct PackedFSEArrayTypes {
     typedef V               Value;
-    typedef Allocator_  	Allocator;
+    typedef Allocator_      Allocator;
 };
 
 
@@ -30,457 +30,457 @@ struct PackedFSEArrayTypes {
 template <typename Types_>
 class PackedFSEArray: public PackedAllocatable {
 
-	typedef PackedAllocatable													Base;
+    typedef PackedAllocatable                                                   Base;
 
 public:
-	static const UInt VERSION               									= 1;
+    static const UInt VERSION                                                   = 1;
 
-	typedef Types_																Types;
-	typedef PackedFSEArray<Types>               								MyType;
+    typedef Types_                                                              Types;
+    typedef PackedFSEArray<Types>                                               MyType;
 
-	typedef typename Types::Allocator											Allocator;
-	typedef typename Types::Value												Value;
+    typedef typename Types::Allocator                                           Allocator;
+    typedef typename Types::Value                                               Value;
 
-	typedef StaticVector<BigInt, 1>												Values;
+    typedef StaticVector<BigInt, 1>                                             Values;
 
 
 private:
 
-	Int size_;
-	Int max_size_;
+    Int size_;
+    Int max_size_;
 
-	Value buffer_[];
-
-public:
-	PackedFSEArray() {}
-
-	Int& size() {return size_;}
-	const Int& size() const {return size_;}
-
-	Int& max_size() {return max_size_;}
-	const Int& max_size() const {return max_size_;}
-
-	Int capacity() const {return max_size_ - size_;}
-
-	Int total_capacity() const
-	{
-		Int my_size		= allocator()->element_size(this);
-		Int free_space 	= allocator()->free_space();
-		Int data_size  	= sizeof(Value) * size_;
-
-		return (my_size + free_space - data_size) / sizeof(Value);
-	}
-
-	Int block_size() const
-	{
-		return sizeof(MyType) + max_size_ * sizeof(Value);
-	}
-
-	Int block_size(const MyType* other) const
-	{
-		return block_size(size_ + other->size_);
-	}
+    Value buffer_[];
 
 public:
+    PackedFSEArray() {}
+
+    Int& size() {return size_;}
+    const Int& size() const {return size_;}
+
+    Int& max_size() {return max_size_;}
+    const Int& max_size() const {return max_size_;}
+
+    Int capacity() const {return max_size_ - size_;}
+
+    Int total_capacity() const
+    {
+        Int my_size     = allocator()->element_size(this);
+        Int free_space  = allocator()->free_space();
+        Int data_size   = sizeof(Value) * size_;
+
+        return (my_size + free_space - data_size) / sizeof(Value);
+    }
+
+    Int block_size() const
+    {
+        return sizeof(MyType) + max_size_ * sizeof(Value);
+    }
+
+    Int block_size(const MyType* other) const
+    {
+        return block_size(size_ + other->size_);
+    }
+
+public:
+
+    static Int block_size(int array_size)
+    {
+        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
+    }
+
+    static Int elements_for(Int block_size)
+    {
+        return max_size_for(block_size);
+    }
+
+    Int allocated_block_size() const
+    {
+        if (Base::allocator_offset() != 0)
+        {
+            return this->allocator()->element_size(this);
+        }
+        else {
+            return block_size();
+        }
+    }
+
+    void init(Int block_size)
+    {
+        size_ = 0;
+        max_size_ = max_size_for(block_size);
+    }
+
+    static Int max_size_for(Int block_size) {
+        return (block_size - sizeof(MyType)) / sizeof(Value);
+    }
+
+    static Int empty_size()
+    {
+        return sizeof(MyType);
+    }
+
+    void initEmpty()
+    {
+        size_       = 0;
+        max_size_   = 0;
+    }
+
+    void init()
+    {
+        size_       = 0;
+        max_size_   = 0;
+    }
+
+    Int object_size() const
+    {
+        Int object_size = sizeof(MyType) + sizeof(Value) * size_;
+        return PackedAllocator::roundUpBytesToAlignmentBlocks(object_size);
+    }
+
+    Value& operator[](Int idx) {
+        return buffer_[idx];
+    }
+
+    const Value& operator[](Int idx) const {
+        return buffer_[idx];
+    }
+
+    Value& value(Int idx) {
+        return buffer_[idx];
+    }
+
+    const Value& value(Int idx) const {
+        return buffer_[idx];
+    }
+
+    Value* data() {
+        return buffer_;
+    }
 
-	static Int block_size(int array_size)
-	{
-		return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
-	}
-
-	static Int elements_for(Int block_size)
-	{
-		return max_size_for(block_size);
-	}
-
-	Int allocated_block_size() const
-	{
-		if (Base::allocator_offset() != 0)
-		{
-			return this->allocator()->element_size(this);
-		}
-		else {
-			return block_size();
-		}
-	}
-
-	void init(Int block_size)
-	{
-		size_ = 0;
-		max_size_ = max_size_for(block_size);
-	}
-
-	static Int max_size_for(Int block_size) {
-		return (block_size - sizeof(MyType)) / sizeof(Value);
-	}
-
-	static Int empty_size()
-	{
-		return sizeof(MyType);
-	}
-
-	void initEmpty()
-	{
-		size_ 		= 0;
-		max_size_ 	= 0;
-	}
-
-	void init()
-	{
-		size_ 		= 0;
-		max_size_ 	= 0;
-	}
-
-	Int object_size() const
-	{
-		Int object_size = sizeof(MyType) + sizeof(Value) * size_;
-		return PackedAllocator::roundUpBytesToAlignmentBlocks(object_size);
-	}
-
-	Value& operator[](Int idx) {
-		return buffer_[idx];
-	}
-
-	const Value& operator[](Int idx) const {
-		return buffer_[idx];
-	}
-
-	Value& value(Int idx) {
-		return buffer_[idx];
-	}
-
-	const Value& value(Int idx) const {
-		return buffer_[idx];
-	}
-
-	Value* data() {
-		return buffer_;
-	}
-
-	const Value* data() const {
-		return buffer_;
-	}
-
-	Value* values() {
-		return buffer_;
-	}
-
-	const Value* values() const {
-		return buffer_;
-	}
-
-	BigInt sum(Int start, Int end) const {
-		return end - start;
-	}
-
-	Values sums(Int from, Int to) const
-	{
-		Values vals;
-
-		vals[0] = sum(from, to);
-
-		return vals;
-	}
-
-	Values sums2(Int from, Int to) const {
-		return sums(from, to);
-	}
+    const Value* data() const {
+        return buffer_;
+    }
 
-	Values sums() const
-	{
-		return Values({size_});
-	}
+    Value* values() {
+        return buffer_;
+    }
 
-	Values sums2() const
-	{
-		return Values({size_});
-	}
+    const Value* values() const {
+        return buffer_;
+    }
 
-	void sums(Int from, Int to, Values& values) const
-	{
-		values += sums(from, to);
-	}
+    BigInt sum(Int start, Int end) const {
+        return end - start;
+    }
 
-	void sums(Values& values) const
-	{
-		values += sums();
-	}
+    Values sums(Int from, Int to) const
+    {
+        Values vals;
 
+        vals[0] = sum(from, to);
 
-	// =================================== Update ========================================== //
+        return vals;
+    }
 
-	void reindex() {}
-	void check() const {}
-
-	bool ensureCapacity(Int size)
-	{
-		Int capacity = this->capacity();
-		if (capacity < size)
-		{
-			enlarge(size - capacity);
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+    Values sums2(Int from, Int to) const {
+        return sums(from, to);
+    }
 
-	void enlarge(Int items_num)
-	{
-		Allocator* alloc = allocator();
+    Values sums() const
+    {
+        return Values({size_});
+    }
 
-		Int requested_block_size 	= (max_size_ + items_num) * sizeof(Value) + sizeof(MyType);
-		Int new_size 				= alloc->resizeBlock(this, requested_block_size);
-		max_size_ 					= max_size_for(new_size);
-	}
+    Values sums2() const
+    {
+        return Values({size_});
+    }
 
-	void shrink(Int items_num)
-	{
-		MEMORIA_ASSERT(max_size_ - items_num, >=, size_);
+    void sums(Int from, Int to, Values& values) const
+    {
+        values += sums(from, to);
+    }
 
-		enlarge(-items_num);
-	}
+    void sums(Values& values) const
+    {
+        values += sums();
+    }
 
-	void remove(Int room_start, Int room_end)
-	{
-		MEMORIA_ASSERT(room_start, >=, 0);
-		MEMORIA_ASSERT(room_end,   >=, room_start);
 
-		MEMORIA_ASSERT(room_start, <=, max_size_);
-		MEMORIA_ASSERT(room_start, <=, size_);
+    // =================================== Update ========================================== //
 
-		Int room_length = room_end - room_start;
+    void reindex() {}
+    void check() const {}
 
-		MEMORIA_ASSERT(room_end, <=, size_);
+    bool ensureCapacity(Int size)
+    {
+        Int capacity = this->capacity();
+        if (capacity < size)
+        {
+            enlarge(size - capacity);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
-		Int length = size_ - room_end;
+    void enlarge(Int items_num)
+    {
+        Allocator* alloc = allocator();
 
-		if (length > 0)
-		{
-			CopyBuffer(buffer_ + room_end, buffer_ + room_start, length);
-		}
+        Int requested_block_size    = (max_size_ + items_num) * sizeof(Value) + sizeof(MyType);
+        Int new_size                = alloc->resizeBlock(this, requested_block_size);
+        max_size_                   = max_size_for(new_size);
+    }
 
-		size_ -= room_length;
+    void shrink(Int items_num)
+    {
+        MEMORIA_ASSERT(max_size_ - items_num, >=, size_);
 
-		shrink(max_size_ - size_);
-	}
+        enlarge(-items_num);
+    }
 
-	void removeSpace(Int room_start, Int room_end) {
-		remove(room_start, room_end);
-	}
+    void remove(Int room_start, Int room_end)
+    {
+        MEMORIA_ASSERT(room_start, >=, 0);
+        MEMORIA_ASSERT(room_end,   >=, room_start);
 
-	void insertSpace(Int room_start, Int room_length)
-	{
-		MEMORIA_ASSERT(room_start, >=, 0);
+        MEMORIA_ASSERT(room_start, <=, max_size_);
+        MEMORIA_ASSERT(room_start, <=, size_);
 
-		if (room_start > size_) {
-			int a = 0; a++;
-		}
+        Int room_length = room_end - room_start;
 
-		MEMORIA_ASSERT(room_start, <=, size_);
+        MEMORIA_ASSERT(room_end, <=, size_);
 
-		if (capacity() < room_length)
-		{
-			enlarge(room_length - capacity());
-		}
+        Int length = size_ - room_end;
 
-		Int length = size_ - room_start;
+        if (length > 0)
+        {
+            CopyBuffer(buffer_ + room_end, buffer_ + room_start, length);
+        }
 
-		if (length > 0)
-		{
-			CopyBuffer(buffer_ + room_start, buffer_ + room_start + room_length, length);
-		}
+        size_ -= room_length;
 
-		size_ += room_length;
-	}
+        shrink(max_size_ - size_);
+    }
 
-	void clearValues(Int idx) {
-		buffer_[idx] = 0;
-	}
+    void removeSpace(Int room_start, Int room_end) {
+        remove(room_start, room_end);
+    }
 
-	void clear(Int start, Int end)
-	{
-		Value* values = this->values();
+    void insertSpace(Int room_start, Int room_length)
+    {
+        MEMORIA_ASSERT(room_start, >=, 0);
 
-		for (Int c = start; c < end; c++)
-		{
-			values[c] = 0;
-		}
-	}
+        if (room_start > size_) {
+            int a = 0; a++;
+        }
 
-	void splitTo(MyType* other, Int idx)
-	{
-		MEMORIA_ASSERT(other->size(), ==, 0);
+        MEMORIA_ASSERT(room_start, <=, size_);
 
-		Int split_size = this->size() - idx;
-		other->insertSpace(0, split_size);
+        if (capacity() < room_length)
+        {
+            enlarge(room_length - capacity());
+        }
 
-		copyTo(other, idx, split_size, 0);
+        Int length = size_ - room_start;
 
-		removeSpace(idx, this->size());
-	}
+        if (length > 0)
+        {
+            CopyBuffer(buffer_ + room_start, buffer_ + room_start + room_length, length);
+        }
 
-	void mergeWith(MyType* other)
-	{
-		Int my_size 	= this->size();
-		Int other_size	= other->size();
+        size_ += room_length;
+    }
 
-		other->insertSpace(other_size, my_size);
+    void clearValues(Int idx) {
+        buffer_[idx] = 0;
+    }
 
-		copyTo(other, 0, my_size, other_size);
+    void clear(Int start, Int end)
+    {
+        Value* values = this->values();
 
-		removeSpace(0, my_size);
+        for (Int c = start; c < end; c++)
+        {
+            values[c] = 0;
+        }
+    }
 
-		reindex();
-	}
+    void splitTo(MyType* other, Int idx)
+    {
+        MEMORIA_ASSERT(other->size(), ==, 0);
 
+        Int split_size = this->size() - idx;
+        other->insertSpace(0, split_size);
 
-	void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
-	{
-		CopyBuffer(buffer_ + copy_from, other->buffer_ + copy_to, count);
-	}
+        copyTo(other, idx, split_size, 0);
 
-	template <typename TreeType>
-	void transferDataTo(TreeType* other) const
-	{
-		const auto* my_values 	= values();
-		auto* other_values 		= other->values();
+        removeSpace(idx, this->size());
+    }
 
-		Int size = this->size();
+    void mergeWith(MyType* other)
+    {
+        Int my_size     = this->size();
+        Int other_size  = other->size();
 
-		for (Int c = 0; c < size; c++)
-		{
-			other_values[c] 	= my_values[c];
-		}
+        other->insertSpace(other_size, my_size);
 
-		other->size() = size;
-	}
+        copyTo(other, 0, my_size, other_size);
 
-	void resize(Int delta)
-	{
-		if (delta > 0)
-		{
-			insertSpace(size_, delta);
-		}
-		else {
-			removeSpace(size_, -delta);
-		}
-	}
+        removeSpace(0, my_size);
 
-	// ===================================== IO ============================================ //
+        reindex();
+    }
 
-	void insert(IData* data, Int pos, Int length)
-	{
-		IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
-		insertSpace(pos, length);
 
-		BigInt to_write_local = length;
+    void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
+    {
+        CopyBuffer(buffer_ + copy_from, other->buffer_ + copy_to, count);
+    }
 
-		while (to_write_local > 0)
-		{
-			SizeT processed = src->get(buffer_, pos, to_write_local);
+    template <typename TreeType>
+    void transferDataTo(TreeType* other) const
+    {
+        const auto* my_values   = values();
+        auto* other_values      = other->values();
 
-			pos 			+= processed;
-			to_write_local 	-= processed;
-		}
-	}
+        Int size = this->size();
 
-	void insert(Int pos, Value val)
-	{
-		insertSpace(pos, 1);
-		value(pos) = val;
-	}
+        for (Int c = 0; c < size; c++)
+        {
+            other_values[c]     = my_values[c];
+        }
 
-	void update(IData* data, Int pos, Int length)
-	{
-		MEMORIA_ASSERT(pos, <=, size_);
-		MEMORIA_ASSERT(pos + length, <=, size_);
+        other->size() = size;
+    }
 
-		IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
+    void resize(Int delta)
+    {
+        if (delta > 0)
+        {
+            insertSpace(size_, delta);
+        }
+        else {
+            removeSpace(size_, -delta);
+        }
+    }
 
-		BigInt to_write_local = length;
+    // ===================================== IO ============================================ //
 
-		while (to_write_local > 0)
-		{
-			SizeT processed = src->get(buffer_, pos, to_write_local);
+    void insert(IData* data, Int pos, Int length)
+    {
+        IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
+        insertSpace(pos, length);
 
-			pos 			+= processed;
-			to_write_local 	-= processed;
-		}
-	}
+        BigInt to_write_local = length;
 
-	void read(IData* data, Int pos, Int length) const
-	{
-		MEMORIA_ASSERT(pos, <=, size_);
-		MEMORIA_ASSERT(pos + length, <=, size_);
+        while (to_write_local > 0)
+        {
+            SizeT processed = src->get(buffer_, pos, to_write_local);
 
-		IDataTarget<Value>* tgt = static_cast<IDataTarget<Value>*>(data);
+            pos             += processed;
+            to_write_local  -= processed;
+        }
+    }
 
-		BigInt to_read_local = length;
+    void insert(Int pos, Value val)
+    {
+        insertSpace(pos, 1);
+        value(pos) = val;
+    }
 
-		while (to_read_local > 0)
-		{
-			SizeT processed = tgt->put(buffer_, pos, to_read_local);
+    void update(IData* data, Int pos, Int length)
+    {
+        MEMORIA_ASSERT(pos, <=, size_);
+        MEMORIA_ASSERT(pos + length, <=, size_);
 
-			pos 			+= processed;
-			to_read_local 	-= processed;
-		}
-	}
+        IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
 
+        BigInt to_write_local = length;
 
-	// ==================================== Dump =========================================== //
+        while (to_write_local > 0)
+        {
+            SizeT processed = src->get(buffer_, pos, to_write_local);
 
+            pos             += processed;
+            to_write_local  -= processed;
+        }
+    }
 
-	void dump(std::ostream& out = cout) const
-	{
-		out<<"size_       = "<<size_<<endl;
-		out<<"max_size_   = "<<max_size_<<endl;
-		out<<endl;
+    void read(IData* data, Int pos, Int length) const
+    {
+        MEMORIA_ASSERT(pos, <=, size_);
+        MEMORIA_ASSERT(pos + length, <=, size_);
 
-		out<<"Data:"<<endl;
+        IDataTarget<Value>* tgt = static_cast<IDataTarget<Value>*>(data);
 
-		const Value* values_ = buffer_;
+        BigInt to_read_local = length;
 
-		dumpArray<Value>(out, size_, [&](Int pos) -> Value {
-			return values_[pos];
-		});
-	}
+        while (to_read_local > 0)
+        {
+            SizeT processed = tgt->put(buffer_, pos, to_read_local);
 
+            pos             += processed;
+            to_read_local   -= processed;
+        }
+    }
 
-	void generateDataEvents(IPageDataEventHandler* handler) const
-	{
-		handler->startGroup("ARRAY");
 
-		handler->value("ALLOCATOR",     &Base::allocator_offset());
-		handler->value("SIZE",          &size_);
-		handler->value("MAX_SIZE",      &max_size_);
+    // ==================================== Dump =========================================== //
 
-		handler->startGroup("DATA", size_);
 
-		handler->value("DATA_ITEM", buffer_, size_, IPageDataEventHandler::BYTE_ARRAY);
+    void dump(std::ostream& out = cout) const
+    {
+        out<<"size_       = "<<size_<<endl;
+        out<<"max_size_   = "<<max_size_<<endl;
+        out<<endl;
 
-		handler->endGroup();
+        out<<"Data:"<<endl;
 
-		handler->endGroup();
-	}
+        const Value* values_ = buffer_;
 
-	void serialize(SerializationData& buf) const
-	{
-		FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
-		FieldFactory<Int>::serialize(buf, size_);
-		FieldFactory<Int>::serialize(buf, max_size_);
+        dumpArray<Value>(out, size_, [&](Int pos) -> Value {
+            return values_[pos];
+        });
+    }
 
-		FieldFactory<Value>::serialize(buf, buffer_, size_);
-	}
 
-	void deserialize(DeserializationData& buf)
-	{
-		FieldFactory<Int>::deserialize(buf, Base::allocator_offset_);
-		FieldFactory<Int>::deserialize(buf, size_);
-		FieldFactory<Int>::deserialize(buf, max_size_);
+    void generateDataEvents(IPageDataEventHandler* handler) const
+    {
+        handler->startGroup("ARRAY");
 
-		FieldFactory<Value>::deserialize(buf, buffer_, size_);
-	}
+        handler->value("ALLOCATOR",     &Base::allocator_offset());
+        handler->value("SIZE",          &size_);
+        handler->value("MAX_SIZE",      &max_size_);
+
+        handler->startGroup("DATA", size_);
+
+        handler->value("DATA_ITEM", buffer_, size_, IPageDataEventHandler::BYTE_ARRAY);
+
+        handler->endGroup();
+
+        handler->endGroup();
+    }
+
+    void serialize(SerializationData& buf) const
+    {
+        FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
+        FieldFactory<Int>::serialize(buf, size_);
+        FieldFactory<Int>::serialize(buf, max_size_);
+
+        FieldFactory<Value>::serialize(buf, buffer_, size_);
+    }
+
+    void deserialize(DeserializationData& buf)
+    {
+        FieldFactory<Int>::deserialize(buf, Base::allocator_offset_);
+        FieldFactory<Int>::deserialize(buf, size_);
+        FieldFactory<Int>::deserialize(buf, max_size_);
+
+        FieldFactory<Value>::deserialize(buf, buffer_, size_);
+    }
 
 };
 

@@ -35,7 +35,7 @@ namespace memoria {
 namespace intrnl1 {
 
 struct EmptyMainWalker {
-	void adjust(BigInt value) {}
+    void adjust(BigInt value) {}
 };
 
 template <typename T>
@@ -72,19 +72,19 @@ struct ValueHelper<EmptyValue> {
 }
 
 template <
-	typename IK = UInt,
-	typename V  = UBigInt,
-	Int Bits_ = 1,
-	Int BF = PackedSeqBranchingFactor,
-	Int VPB = PackedSeqValuesPerBranch
+    typename IK = UInt,
+    typename V  = UBigInt,
+    Int Bits_ = 1,
+    Int BF = PackedSeqBranchingFactor,
+    Int VPB = PackedSeqValuesPerBranch
 >
 struct PackedSeqTypes {
     typedef IK              IndexKey;
     typedef V               Value;
 
-    static const Int Bits                 	= Bits_;
+    static const Int Bits                   = Bits_;
     static const Int BranchingFactor        = BF;
-    static const Int ValuesPerBranch		= VPB;
+    static const Int ValuesPerBranch        = VPB;
 };
 
 template <typename Types>
@@ -100,7 +100,7 @@ public:
     typedef typename Types::Value           Value;
     typedef typename Types::Value           Symbol;
 
-    static const Int Bits					= Types::Bits;
+    static const Int Bits                   = Types::Bits;
     static const Int Blocks                 = 1<<Bits;
     static const Int Symbols                = Blocks;
     static const Int BranchingFactor        = Types::BranchingFactor;
@@ -215,10 +215,10 @@ public:
 
     static size_t getObjectSzie(size_t capacity)
     {
-    	MyType seq;
-    	seq.initSizes(capacity);
+        MyType seq;
+        seq.initSizes(capacity);
 
-    	return seq.getObjectSize();
+        return seq.getObjectSize();
     }
 
     Int getObjectDataSize() const
@@ -233,18 +233,18 @@ public:
 
     static Int getValueCellsCount(Int values_count)
     {
-    	Int total_bits 	= values_count * Bits;
-    	size_t mask 	= TypeBitmask<Value>();
-    	size_t bitsize	= TypeBitsize<Value>();
+        Int total_bits  = values_count * Bits;
+        size_t mask     = TypeBitmask<Value>();
+        size_t bitsize  = TypeBitsize<Value>();
 
-    	size_t suffix 	= total_bits & mask;
+        size_t suffix   = total_bits & mask;
 
-    	return total_bits / bitsize + (suffix > 0);
+        return total_bits / bitsize + (suffix > 0);
     }
 
     static Int getValueBlockSize(Int values_count)
     {
-    	return getValueCellsCount(values_count) * sizeof(Value);
+        return getValueCellsCount(values_count) * sizeof(Value);
     }
 
     Int getDataSize() const
@@ -259,17 +259,17 @@ public:
 
     Int getUsedValueCells() const
     {
-    	return getValueCellsCount(size_);
+        return getValueCellsCount(size_);
     }
 
     Int getTotalValueCells() const
     {
-    	return getValueCellsCount(max_size_);
+        return getValueCellsCount(max_size_);
     }
 
     Int getValueCellsCapacity() const
     {
-    	return getValueCellsCount(max_size_ - size_);
+        return getValueCellsCount(max_size_ - size_);
     }
 
     Int& size() {
@@ -282,7 +282,7 @@ public:
     }
 
     Int capacity() const {
-    	return max_size_ - size_;
+        return max_size_ - size_;
     }
 
     Int indexSize() const
@@ -318,30 +318,30 @@ public:
 
     Value* valuesBlock()
     {
-    	return T2T<Value*>(memory_block_ + getValueBlockOffset());
+        return T2T<Value*>(memory_block_ + getValueBlockOffset());
     }
 
     const Value* valuesBlock() const
     {
-    	return T2T<const Value*>(memory_block_ + getValueBlockOffset());
+        return T2T<const Value*>(memory_block_ + getValueBlockOffset());
     }
 
     IndexKey* indexBlock()
     {
-    	return T2T<IndexKey*>(memory_block_);
+        return T2T<IndexKey*>(memory_block_);
     }
 
     const IndexKey* indexBlock() const
     {
-    	return T2T<const IndexKey*>(memory_block_);
+        return T2T<const IndexKey*>(memory_block_);
     }
 
     IndexKey* indexes(Int block) {
-    	return T2T<IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+        return T2T<IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
     const IndexKey* indexes(Int block) const {
-    	return T2T<const IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
+        return T2T<const IndexKey*>(memory_block_ + getIndexKeyBlockOffset(block));
     }
 
 
@@ -409,238 +409,238 @@ public:
 
     Int rank(Int from, Int to, Value symbol) const
     {
-    	MEMORIA_ASSERT(from, >=, 0);
-    	MEMORIA_ASSERT(to, >=, from);
-    	MEMORIA_ASSERT(to, <, size());
+        MEMORIA_ASSERT(from, >=, 0);
+        MEMORIA_ASSERT(to, >=, from);
+        MEMORIA_ASSERT(to, <, size());
 
-    	RankWalker<MyType, Bits> walker(*this, symbol);
+        RankWalker<MyType, Bits> walker(*this, symbol);
 
-    	walkRange(from, to + 1, walker);
+        walkRange(from, to + 1, walker);
 
-    	return walker.sum();
+        return walker.sum();
     }
 
     Int rank(Int to, Value symbol) const
     {
-    	MEMORIA_ASSERT(to, <, size());
+        MEMORIA_ASSERT(to, <, size());
 
-    	RankWalker<MyType, Bits> walker(*this, symbol);
+        RankWalker<MyType, Bits> walker(*this, symbol);
 
-    	walkRange(to + 1, walker);
+        walkRange(to + 1, walker);
 
-    	return walker.sum();
+        return walker.sum();
     }
 
 
     Int rank1(Int from, Int to, Value symbol) const
     {
-    	MEMORIA_ASSERT(from, >=, 0);
-    	MEMORIA_ASSERT(to, >=, from);
-    	MEMORIA_ASSERT(to, <=, size());
+        MEMORIA_ASSERT(from, >=, 0);
+        MEMORIA_ASSERT(to, >=, from);
+        MEMORIA_ASSERT(to, <=, size());
 
-    	RankWalker<MyType, Bits> walker(*this, symbol);
+        RankWalker<MyType, Bits> walker(*this, symbol);
 
-    	walkRange(from, to, walker);
+        walkRange(from, to, walker);
 
-    	return walker.sum();
+        return walker.sum();
     }
 
     Int rank1(Int to, Value symbol) const
     {
-    	MEMORIA_ASSERT(to, <=, size());
+        MEMORIA_ASSERT(to, <=, size());
 
-    	RankWalker<MyType, Bits> walker(*this, symbol);
+        RankWalker<MyType, Bits> walker(*this, symbol);
 
-    	walkRange(to, walker);
+        walkRange(to, walker);
 
-    	return walker.sum();
+        return walker.sum();
     }
 
 
 
     SelectResult selectFW(Int from, Value symbol, Int rank) const
     {
-    	MEMORIA_ASSERT(from, >=, 0);
-    	MEMORIA_ASSERT(from, <, size());
+        MEMORIA_ASSERT(from, >=, 0);
+        MEMORIA_ASSERT(from, <, size());
 
-    	intrnl1::EmptyMainWalker mw;
-    	btree::EmptyExtenderState state;
+        intrnl1::EmptyMainWalker mw;
+        btree::EmptyExtenderState state;
 
-    	sequence::SelectForwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
-    	>
-    	walker(mw, *this, rank, symbol, state);
+        sequence::SelectForwardWalker<
+            MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+        >
+        walker(mw, *this, rank, symbol, state);
 
-    	size_t idx = findFw(from, walker);
+        size_t idx = findFw(from, walker);
 
-    	return SelectResult(idx, walker.sum(), walker.is_found());
+        return SelectResult(idx, walker.sum(), walker.is_found());
     }
 
     SelectResult selectFW(Value symbol, Int rank) const
     {
-    	intrnl1::EmptyMainWalker mw;
-    	bt::EmptyExtenderState state;
+        intrnl1::EmptyMainWalker mw;
+        bt::EmptyExtenderState state;
 
-    	sequence::SelectForwardWalker<
-    	 	 MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
-    	>
-    	walker(mw, *this, rank, symbol, state);
+        sequence::SelectForwardWalker<
+             MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+        >
+        walker(mw, *this, rank, symbol, state);
 
-    	size_t idx = findFw(walker);
+        size_t idx = findFw(walker);
 
-    	return SelectResult(idx, walker.sum(), walker.is_found());
+        return SelectResult(idx, walker.sum(), walker.is_found());
     }
 
 
     SelectResult selectBW(Int from, Value symbol, Int rank) const
     {
-    	intrnl1::EmptyMainWalker mw;
-    	bt::EmptyExtenderState state;
+        intrnl1::EmptyMainWalker mw;
+        bt::EmptyExtenderState state;
 
-    	sequence::SelectBackwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
-    	>
-    	walker(mw, *this, rank, symbol, state);
+        sequence::SelectBackwardWalker<
+            MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+        >
+        walker(mw, *this, rank, symbol, state);
 
-    	size_t idx = findBw(from, walker);
+        size_t idx = findBw(from, walker);
 
-    	return SelectResult(idx, walker.sum(), walker.is_found());
+        return SelectResult(idx, walker.sum(), walker.is_found());
     }
 
     IndexKey countFW(Int from, Value symbol) const
     {
-    	intrnl1::EmptyMainWalker mw;
-    	bt::EmptyExtenderState state;
+        intrnl1::EmptyMainWalker mw;
+        bt::EmptyExtenderState state;
 
-    	sequence::PackedSequenceCountForwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
-    	>
-    	walker(mw, *this, 0, symbol, state);
+        sequence::PackedSequenceCountForwardWalker<
+            MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+        >
+        walker(mw, *this, 0, symbol, state);
 
-    	findFw(from, walker);
+        findFw(from, walker);
 
-    	return walker.sum();
+        return walker.sum();
     }
 
     IndexKey countBW(Int from, Value symbol) const
     {
-//    	CountBWWalker<MyType, Bits> walker(*this, symbol);
+//      CountBWWalker<MyType, Bits> walker(*this, symbol);
 //
-//    	findBw(from, walker);
+//      findBw(from, walker);
 //
-//    	return walker.rank();
+//      return walker.rank();
 
-    	intrnl1::EmptyMainWalker mw;
-    	bt::EmptyExtenderState state;
+        intrnl1::EmptyMainWalker mw;
+        bt::EmptyExtenderState state;
 
-    	sequence::PackedSequenceCountBackwardWalker<
-    		MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
-    	>
-    	walker(mw, *this, 0, symbol, state);
+        sequence::PackedSequenceCountBackwardWalker<
+            MyType, intrnl1::EmptyMainWalker, btree::EmptyExtender, btree::EmptyExtenderState
+        >
+        walker(mw, *this, 0, symbol, state);
 
-    	findBw(from, walker);
+        findBw(from, walker);
 
-    	return walker.sum();
+        return walker.sum();
     }
 
     void dump(ostream& out_ = cout) const
     {
-    	out_<<"size_ = "<<size_<<endl;
-    	out_<<"max_size_ = "<<max_size_<<endl;
-    	out_<<"index_size_ = "<<index_size_<<endl;
+        out_<<"size_ = "<<size_<<endl;
+        out_<<"max_size_ = "<<max_size_<<endl;
+        out_<<"index_size_ = "<<index_size_<<endl;
 
-    	Expand(out_, 5);
-    	for (Int d = 0; d < Blocks; d++)
-    	{
-    		out_.width(5);
-    		out_<<d;
-    	}
+        Expand(out_, 5);
+        for (Int d = 0; d < Blocks; d++)
+        {
+            out_.width(5);
+            out_<<d;
+        }
 
-    	out_<<endl<<endl;
+        out_<<endl<<endl;
 
-    	for (Int c = 0; c < index_size_; c++)
-    	{
-    		out_.width(4);
-    		out_<<c<<": ";
-    		for (Int d = 0; d < Blocks; d++)
-    		{
-    			out_.width(4);
-    			out_<<this->indexb(this->getIndexKeyBlockOffset(d), c)<<" ";
-    		}
-    		out_<<endl;
-    	}
+        for (Int c = 0; c < index_size_; c++)
+        {
+            out_.width(4);
+            out_<<c<<": ";
+            for (Int d = 0; d < Blocks; d++)
+            {
+                out_.width(4);
+                out_<<this->indexb(this->getIndexKeyBlockOffset(d), c)<<" ";
+            }
+            out_<<endl;
+        }
 
 
-    	Int columns;
+        Int columns;
 
-    	switch (Bits) {
-    	case 1: columns = 100; break;
-    	case 2: columns = 100; break;
-    	case 4: columns = 100; break;
-    	default: columns = 50;
-    	}
+        switch (Bits) {
+        case 1: columns = 100; break;
+        case 2: columns = 100; break;
+        case 4: columns = 100; break;
+        default: columns = 50;
+        }
 
-    	Int width = Bits <= 4 ? 1 : 3;
+        Int width = Bits <= 4 ? 1 : 3;
 
-    	Int c = 0;
+        Int c = 0;
 
-    	do
-    	{
-    		out_<<endl;
-    		Expand(out_, 31 - width*5 - (Bits <= 4 ? 2 : 0));
-    		for (int c = 0; c < columns; c += 5)
-    		{
-    			out_.width(width*5);
-    			out_<<dec<<c;
-    		}
-    		out_<<endl;
+        do
+        {
+            out_<<endl;
+            Expand(out_, 31 - width*5 - (Bits <= 4 ? 2 : 0));
+            for (int c = 0; c < columns; c += 5)
+            {
+                out_.width(width*5);
+                out_<<dec<<c;
+            }
+            out_<<endl;
 
-    		Int rows = 0;
-    		for (; c < size() && rows < 10; c += columns, rows++)
-    		{
-    			Expand(out_, 12);
-    			out_<<" ";
-    			out_.width(6);
-    			out_<<dec<<c<<" "<<hex;
-    			out_.width(6);
-    			out_<<c<<": ";
+            Int rows = 0;
+            for (; c < size() && rows < 10; c += columns, rows++)
+            {
+                Expand(out_, 12);
+                out_<<" ";
+                out_.width(6);
+                out_<<dec<<c<<" "<<hex;
+                out_.width(6);
+                out_<<c<<": ";
 
-    			for (Int d = 0; d < columns && c + d < size(); d++)
-    			{
-    				out_<<hex;
-    				out_.width(width);
-    				out_<<value(c + d);
-    			}
+                for (Int d = 0; d < columns && c + d < size(); d++)
+                {
+                    out_<<hex;
+                    out_.width(width);
+                    out_<<value(c + d);
+                }
 
-    			out_<<dec<<endl;
-    		}
-    	} while (c < size());
+                out_<<dec<<endl;
+            }
+        } while (c < size());
     }
 
 private:
 
     class ValueSetter {
-    	MyType&	me_;
-    	Int 	block_offset_;
-    	Int 	idx_;
+        MyType& me_;
+        Int     block_offset_;
+        Int     idx_;
 
     public:
-    	ValueSetter(MyType& me, Int block_offset, Int idx):
-    		me_(me),
-    		block_offset_(block_offset),
-    		idx_(idx)
-    	{}
+        ValueSetter(MyType& me, Int block_offset, Int idx):
+            me_(me),
+            block_offset_(block_offset),
+            idx_(idx)
+        {}
 
-    	operator Value() const
-    	{
-    		return me_.getValueItem(block_offset_, idx_);
-    	}
+        operator Value() const
+        {
+            return me_.getValueItem(block_offset_, idx_);
+        }
 
-    	Value operator=(const Value& v)
-    	{
-    		me_.setValueItem(block_offset_, idx_, v);
-    		return v;
-    	}
+        Value operator=(const Value& v)
+        {
+            me_.setValueItem(block_offset_, idx_, v);
+            return v;
+        }
     };
 
 
@@ -680,75 +680,75 @@ public:
 
     Value getValueItem(Int block_offset, Int item_idx) const
     {
-    	if (Bits == 1 || Bits == 2 || Bits == 4)
-    	{
-    		const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
-    		return GetBits0(buffer, item_idx * Bits, Bits);
-    	}
-    	else if (Bits == 8)
-    	{
-    		const UByte* buffer = T2T<const UByte*>(memory_block_ + block_offset);
-    		return buffer[item_idx];
-    	}
-    	else
-    	{
-    		const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
-    		return GetBits(buffer, item_idx * Bits, Bits);
-    	}
+        if (Bits == 1 || Bits == 2 || Bits == 4)
+        {
+            const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
+            return GetBits0(buffer, item_idx * Bits, Bits);
+        }
+        else if (Bits == 8)
+        {
+            const UByte* buffer = T2T<const UByte*>(memory_block_ + block_offset);
+            return buffer[item_idx];
+        }
+        else
+        {
+            const Value* buffer = T2T<const Value*>(memory_block_ + block_offset);
+            return GetBits(buffer, item_idx * Bits, Bits);
+        }
     }
 
     void setValueItem(Int block_offset, Int item_idx, const Value& v)
     {
-    	if (Bits == 1 || Bits == 2 || Bits == 4)
-    	{
-    		Value* buffer = T2T<Value*>(memory_block_ + block_offset);
-    		SetBits0(buffer, item_idx * Bits, v, Bits);
-    	}
-    	else if (Bits == 8)
-    	{
-    		UByte* buffer = T2T<UByte*>(memory_block_ + block_offset);
-    		buffer[item_idx] = v;
-    	}
-    	else
-    	{
-    		Value* buffer = T2T<Value*>(memory_block_ + block_offset);
-    		SetBits(buffer, item_idx * Bits, v, Bits);
-    	}
+        if (Bits == 1 || Bits == 2 || Bits == 4)
+        {
+            Value* buffer = T2T<Value*>(memory_block_ + block_offset);
+            SetBits0(buffer, item_idx * Bits, v, Bits);
+        }
+        else if (Bits == 8)
+        {
+            UByte* buffer = T2T<UByte*>(memory_block_ + block_offset);
+            buffer[item_idx] = v;
+        }
+        else
+        {
+            Value* buffer = T2T<Value*>(memory_block_ + block_offset);
+            SetBits(buffer, item_idx * Bits, v, Bits);
+        }
     }
 
     bool testb(Int block_offset, Int item_idx, Value value) const
     {
-    	if (Bits == 1 || Bits == 2 || Bits == 4)
-    	{
-    		const Value* buffer = valuesBlock();
-    		return TestBits(buffer, item_idx * Bits, value, Bits);
-    	}
-    	else {
-    		return valueb(block_offset, item_idx) == value;
-    	}
+        if (Bits == 1 || Bits == 2 || Bits == 4)
+        {
+            const Value* buffer = valuesBlock();
+            return TestBits(buffer, item_idx * Bits, value, Bits);
+        }
+        else {
+            return valueb(block_offset, item_idx) == value;
+        }
     }
 
     bool test(Int item_idx, Value value) const
     {
-    	if (Bits == 1 || Bits == 2 || Bits == 4)
-    	{
-    		const Value* buffer = valuesBlock();
-    		return TestBits(buffer, item_idx * Bits, value, Bits);
-    	}
-    	else {
-    		Int block_offset = getValueBlockOffset();
-    		return valueb(block_offset, item_idx) == value;
-    	}
+        if (Bits == 1 || Bits == 2 || Bits == 4)
+        {
+            const Value* buffer = valuesBlock();
+            return TestBits(buffer, item_idx * Bits, value, Bits);
+        }
+        else {
+            Int block_offset = getValueBlockOffset();
+            return valueb(block_offset, item_idx) == value;
+        }
     }
 
     const Value* cellAddr(Int idx) const
     {
-    	return T2T<const Value*>(valuesBlock() + idx);
+        return T2T<const Value*>(valuesBlock() + idx);
     }
 
     Value* cellAddr(Int idx)
     {
-    	return T2T<Value*>(valuesBlock() + idx);
+        return T2T<Value*>(valuesBlock() + idx);
     }
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
@@ -760,20 +760,20 @@ public:
 
         MEMORIA_ASSERT(copy_to + count, <=, other->max_size_);
 
-        const Value* src 	= valuesBlock();
-        Value* dst 			= other->valuesBlock();
+        const Value* src    = valuesBlock();
+        Value* dst          = other->valuesBlock();
 
         MoveBits(src, dst, copy_from * Bits, copy_to * Bits, count * Bits);
     }
 
     void clearValues(Int from, Int to)
     {
-    	Int block_offset = this->getValueBlockOffset();
+        Int block_offset = this->getValueBlockOffset();
 
-    	for (Int idx = from; idx < to; idx++)
-    	{
-    		valueb(block_offset, idx) = 0;
-    	}
+        for (Int idx = from; idx < to; idx++)
+        {
+            valueb(block_offset, idx) = 0;
+        }
     }
 
     void clear(Int from, Int to)
@@ -928,17 +928,17 @@ public:
 
         Int block_offset    = getIndexKeyBlockOffset(block_num);
 
-        Int level 			= 0;
+        Int level           = 0;
 
         do {
             level_size      = getIndexCellsNumberFor(level, level_size);
             level_start     -= level_size;
 
             if (level > 0) {
-            	idx /= BranchingFactor;
+                idx /= BranchingFactor;
             }
             else {
-            	idx /= ValuesPerBranch;
+                idx /= ValuesPerBranch;
             }
 
             indexb(block_offset, idx + level_start) += key_value;
@@ -964,263 +964,264 @@ public:
 
         if (Bits < 3)
         {
-        	for (Int block = 0; block < Blocks; block++)
-        	{
-        		Int index_block_offset  = getIndexKeyBlockOffset(block);
+            for (Int block = 0; block < Blocks; block++)
+            {
+                Int index_block_offset  = getIndexKeyBlockOffset(block);
 
-        		for (Int c = block_start; c < block_end; c += ValuesPerBranch)
-        		{
-        			Int max      = c + ValuesPerBranch <= level_max ? c + ValuesPerBranch : level_max;
+                for (Int c = block_start; c < block_end; c += ValuesPerBranch)
+                {
+                    Int max      = c + ValuesPerBranch <= level_max ? c + ValuesPerBranch : level_max;
 
-        			IndexKey sum = popCount(value_block_offset, c, max, block);
+                    IndexKey sum = popCount(value_block_offset, c, max, block);
 
-        			Int idx = c / ValuesPerBranch + index_level_start;
-        			indexb(index_block_offset, idx) = sum;
-        		}
-        	}
+                    Int idx = c / ValuesPerBranch + index_level_start;
+                    indexb(index_block_offset, idx) = sum;
+                }
+            }
         }
         else {
-        	for (Int c = block_start; c < block_end; c += ValuesPerBranch)
-        	{
-        		Int max      = c + ValuesPerBranch <= level_max ? c + ValuesPerBranch : level_max;
+            for (Int c = block_start; c < block_end; c += ValuesPerBranch)
+            {
+                Int max      = c + ValuesPerBranch <= level_max ? c + ValuesPerBranch : level_max;
 
-        		IndexKey sums[Blocks];
-        		for (Int block = 0; block < Blocks; block++) sums[block] = 0;
+                IndexKey sums[Blocks];
+                for (Int block = 0; block < Blocks; block++) sums[block] = 0;
 
-        		for (Int d = c; d < max; d++)
-        		{
-        			Value symbol = valueb(value_block_offset, d);
-        			sums[symbol]++;
-        		}
+                for (Int d = c; d < max; d++)
+                {
+                    Value symbol = valueb(value_block_offset, d);
+                    sums[symbol]++;
+                }
 
-        		Int idx = c / ValuesPerBranch + index_level_start;
+                Int idx = c / ValuesPerBranch + index_level_start;
 
-        		for (Int block = 0; block < Blocks; block++)
-        		{
-        			index(block, idx) = sums[block];
-        		}
-        	}
+                for (Int block = 0; block < Blocks; block++)
+                {
+                    index(block, idx) = sums[block];
+                }
+            }
         }
 
 
         for (Int block = 0; block < Blocks; block ++)
         {
-        	Int block_start0 		= block_start;
-        	Int block_end0 			= block_end;
-        	Int level_max0			= level_max;
-        	Int index_level_start0 	= index_level_start;
-        	Int index_level_size0 	= index_level_size;
+            Int block_start0        = block_start;
+            Int block_end0          = block_end;
+            Int level_max0          = level_max;
+            Int index_level_start0  = index_level_start;
+            Int index_level_size0   = index_level_size;
 
 
-        	Int level = 0;
-        	Int index_block_offset = getIndexKeyBlockOffset(block);
+            Int level = 0;
+            Int index_block_offset = getIndexKeyBlockOffset(block);
 
-        	Int divider = ValuesPerBranch;
+            Int divider = ValuesPerBranch;
 
-        	while (index_level_start0 > 0)
-        	{
-        		level_max0      = getIndexCellsNumberFor(level, level_max0);
-        		block_start0    = getBlockStart(block_start0 / divider);
-        		block_end0      = getBlockEnd(block_end0 / divider);
+            while (index_level_start0 > 0)
+            {
+                level_max0      = getIndexCellsNumberFor(level, level_max0);
+                block_start0    = getBlockStart(block_start0 / divider);
+                block_end0      = getBlockEnd(block_end0 / divider);
 
-        		Int index_parent_size   = getIndexCellsNumberFor(level + 1, index_level_size0);
-        		Int index_parent_start  = index_level_start0 - index_parent_size;
+                Int index_parent_size   = getIndexCellsNumberFor(level + 1, index_level_size0);
+                Int index_parent_start  = index_level_start0 - index_parent_size;
 
-        		for (Int c = block_start0; c < block_end0; c += BranchingFactor)
-        		{
-        			IndexKey sum = 0;
-        			Int max      = (c + BranchingFactor <= level_max0 ? c + BranchingFactor : level_max0) + index_level_start0;
+                for (Int c = block_start0; c < block_end0; c += BranchingFactor)
+                {
+                    IndexKey sum = 0;
+                    Int max      = (c + BranchingFactor <= level_max0 ? c + BranchingFactor : level_max0)
+                                    + index_level_start0;
 
-        			for (Int d = c + index_level_start0; d < max; d++)
-        			{
-        				sum += indexb(index_block_offset, d);
-        			}
+                    for (Int d = c + index_level_start0; d < max; d++)
+                    {
+                        sum += indexb(index_block_offset, d);
+                    }
 
-        			Int idx = c / BranchingFactor + index_parent_start;
-        			indexb(index_block_offset, idx) = sum;
-        		}
+                    Int idx = c / BranchingFactor + index_parent_start;
+                    indexb(index_block_offset, idx) = sum;
+                }
 
-        		index_level_size0    = index_parent_size;
-        		index_level_start0   -= index_parent_size;
+                index_level_size0    = index_parent_size;
+                index_level_start0   -= index_parent_size;
 
-        		level++;
+                level++;
 
-        		divider = BranchingFactor;
-        	}
+                divider = BranchingFactor;
+            }
         }
     }
 
     void reindex()
     {
-    	clearIndexes();
-    	reindex(0, size());
+        clearIndexes();
+        reindex(0, size());
     }
 
 
     IndexKey popCount(Int start, Int end, Value symbol) const
     {
-    	Int block_offset = getValueBlockOffset();
-    	return popCount(block_offset, start, end, symbol);
+        Int block_offset = getValueBlockOffset();
+        return popCount(block_offset, start, end, symbol);
     }
 
     IndexKey popCount(Int block_offset, Int start, Int end, Value symbol) const
     {
-    	if (Bits == 1)
-    	{
-    		const Value* buffer = this->valuesBlock();
-    		size_t rank = PopCount(buffer, start, end);
-    		if (symbol) {
-    			return rank;
-    		}
-    		else {
-    			return end - start - rank;
-    		}
-    	}
-    	else {
-    		IndexKey total = 0;
+        if (Bits == 1)
+        {
+            const Value* buffer = this->valuesBlock();
+            size_t rank = PopCount(buffer, start, end);
+            if (symbol) {
+                return rank;
+            }
+            else {
+                return end - start - rank;
+            }
+        }
+        else {
+            IndexKey total = 0;
 
-    		for (Int c = start; c < end; c++)
-    		{
-    			total += testb(block_offset, c, symbol);
-    		}
+            for (Int c = start; c < end; c++)
+            {
+                total += testb(block_offset, c, symbol);
+            }
 
-    		return total;
-    	}
+            return total;
+        }
     }
 
 private:
     template <typename Walker>
     class FinishHandler {
-    	Walker& walker_;
+        Walker& walker_;
     public:
-    	FinishHandler(Walker& walker): walker_(walker) {}
+        FinishHandler(Walker& walker): walker_(walker) {}
 
-    	~FinishHandler()
-    	{
-    		walker_.finish();
-    	}
+        ~FinishHandler()
+        {
+            walker_.finish();
+        }
     };
 
 public:
     template <typename Functor>
     void walkRange(Int start, Int end, Functor& walker) const
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(end,   <=,  size());
-    	MEMORIA_ASSERT(start, <=,  end);
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(end,   <=,  size());
+        MEMORIA_ASSERT(start, <=,  end);
 
-    	FinishHandler<Functor> finish_handler(walker);
+        FinishHandler<Functor> finish_handler(walker);
 
-    	if (end - start <= ValuesPerBranch * 2)
-    	{
-    		walker.walkValues(start, end);
-    	}
-    	else {
-    		Int block_start_end     = getBlockStartEndV(start);
-    		Int block_end_start     = getBlockStartV(end);
+        if (end - start <= ValuesPerBranch * 2)
+        {
+            walker.walkValues(start, end);
+        }
+        else {
+            Int block_start_end     = getBlockStartEndV(start);
+            Int block_end_start     = getBlockStartV(end);
 
-    		walker.walkValues(start, block_start_end);
+            walker.walkValues(start, block_start_end);
 
-    		if (block_start_end < block_end_start)
-    		{
-    			Int level_size = getIndexCellsNumberFor(0, max_size_);
-    			walker.prepareIndex();
-    			walkIndexRange(
-    					start / ValuesPerBranch + 1,
-    					end / ValuesPerBranch,
-    					walker,
-    					index_size_ - level_size,
-    					level_size,
-    					ValuesPerBranch
-    			);
-    		}
+            if (block_start_end < block_end_start)
+            {
+                Int level_size = getIndexCellsNumberFor(0, max_size_);
+                walker.prepareIndex();
+                walkIndexRange(
+                        start / ValuesPerBranch + 1,
+                        end / ValuesPerBranch,
+                        walker,
+                        index_size_ - level_size,
+                        level_size,
+                        ValuesPerBranch
+                );
+            }
 
-    		walker.walkValues(block_end_start, end);
-    	}
+            walker.walkValues(block_end_start, end);
+        }
     }
 
     template <typename Walker>
     void walkRange(Int target, Walker& walker) const
     {
-    	MEMORIA_ASSERT(target,   <=,  size());
+        MEMORIA_ASSERT(target,   <=,  size());
 
-    	FinishHandler<Walker> finish_handler(walker);
+        FinishHandler<Walker> finish_handler(walker);
 
-    	Int levels = 0;
-    	Int level_sizes[LEVELS_MAX];
+        Int levels = 0;
+        Int level_sizes[LEVELS_MAX];
 
-    	Int level_size = max_size_;
-    	Int cell_size = 1;
+        Int level_size = max_size_;
+        Int cell_size = 1;
 
-    	do
-    	{
-    		level_size = getIndexCellsNumberFor(levels, level_size);
-    		level_sizes[levels++] = level_size;
-    	}
-    	while (level_size > 1);
+        do
+        {
+            level_size = getIndexCellsNumberFor(levels, level_size);
+            level_sizes[levels++] = level_size;
+        }
+        while (level_size > 1);
 
-    	cell_size = ValuesPerBranch;
-    	for (Int c = 0; c < levels - 2; c++)
-    	{
-    		cell_size *= BranchingFactor;
-    	}
+        cell_size = ValuesPerBranch;
+        for (Int c = 0; c < levels - 2; c++)
+        {
+            cell_size *= BranchingFactor;
+        }
 
-    	Int base = 1, start = 0, target_idx = target;
+        Int base = 1, start = 0, target_idx = target;
 
-    	for (Int level = levels - 2; level >= 0; level--)
-    	{
-    		Int end = target_idx / cell_size;
+        for (Int level = levels - 2; level >= 0; level--)
+        {
+            Int end = target_idx / cell_size;
 
-    		walker.walkIndex(start + base, end + base);
+            walker.walkIndex(start + base, end + base);
 
-    		start 		= level > 0 ? end * BranchingFactor : end * ValuesPerBranch;
-    		base 		+= level_sizes[level];
-    		cell_size 	/= BranchingFactor;
-    	}
+            start       = level > 0 ? end * BranchingFactor : end * ValuesPerBranch;
+            base        += level_sizes[level];
+            cell_size   /= BranchingFactor;
+        }
 
-    	return walker.walkValues(start, target);
+        return walker.walkValues(start, target);
     }
 
 
     template <typename Walker>
     Int findFw(Walker &walker) const
     {
-    	FinishHandler<Walker> finish_handler(walker);
+        FinishHandler<Walker> finish_handler(walker);
 
-    	Int levels = 0;
-    	Int level_sizes[LEVELS_MAX];
+        Int levels = 0;
+        Int level_sizes[LEVELS_MAX];
 
-    	Int level_size = max_size_;
+        Int level_size = max_size_;
 
-    	do
-    	{
-    		level_size = getIndexCellsNumberFor(levels, level_size);
-    		level_sizes[levels++] = level_size;
-    	}
-    	while (level_size > 1);
+        do
+        {
+            level_size = getIndexCellsNumberFor(levels, level_size);
+            level_sizes[levels++] = level_size;
+        }
+        while (level_size > 1);
 
-    	Int base = 1, start = 0;
+        Int base = 1, start = 0;
 
-    	for (Int level = levels - 2; level >= 0; level--)
-    	{
-    		Int level_size  = level_sizes[level];
-    		Int end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
+        for (Int level = levels - 2; level >= 0; level--)
+        {
+            Int level_size  = level_sizes[level];
+            Int end         = (start + BranchingFactor < level_size) ? (start + BranchingFactor) : level_size;
 
-    		Int idx = walker.walkIndex(start + base, end + base, 0) - base;
-    		if (idx < end)
-    		{
-    			start = level > 0 ? idx * BranchingFactor : idx * ValuesPerBranch;
-    		}
-    		else {
-    			return size_;
-    		}
+            Int idx = walker.walkIndex(start + base, end + base, 0) - base;
+            if (idx < end)
+            {
+                start = level > 0 ? idx * BranchingFactor : idx * ValuesPerBranch;
+            }
+            else {
+                return size_;
+            }
 
-    		base += level_size;
-    	}
+            base += level_size;
+        }
 
-    	Int end = (start + ValuesPerBranch) > size_ ? size_ : start + ValuesPerBranch;
+        Int end = (start + ValuesPerBranch) > size_ ? size_ : start + ValuesPerBranch;
 
-    	return walker.walkValues(start, end);
+        return walker.walkValues(start, end);
     }
 
 
@@ -1228,51 +1229,51 @@ public:
     template <typename Walker>
     Int findFw(Int start, Walker& walker) const
     {
-    	MEMORIA_ASSERT(start, <=, size());
+        MEMORIA_ASSERT(start, <=, size());
 
-    	FinishHandler<Walker> finish_handler(walker);
+        FinishHandler<Walker> finish_handler(walker);
 
-    	Int block_limit     = getBlockStartEndV(start);
+        Int block_limit     = getBlockStartEndV(start);
 
-    	if (block_limit >= size())
-    	{
-    		return walker.walkValues(start, size());
-    	}
-    	else
-    	{
-    		Int limit = walker.walkValues(start, block_limit);
-    		if (limit < block_limit)
-    		{
-    			return limit;
-    		}
-    		else {
-    			walker.prepareIndex();
+        if (block_limit >= size())
+        {
+            return walker.walkValues(start, size());
+        }
+        else
+        {
+            Int limit = walker.walkValues(start, block_limit);
+            if (limit < block_limit)
+            {
+                return limit;
+            }
+            else {
+                walker.prepareIndex();
 
-    			Int level_size      = getIndexCellsNumberFor(0, max_size_);
-    			Int level_limit     = getIndexCellsNumberFor(0, size_);
-    			Int last_start      = walkIndexFw(
-    					block_limit/ValuesPerBranch,
-    					walker,
-    					index_size_ - level_size,
-    					level_size,
-    					level_limit,
-    					ValuesPerBranch,
-    					ValuesPerBranch
-    			);
+                Int level_size      = getIndexCellsNumberFor(0, max_size_);
+                Int level_limit     = getIndexCellsNumberFor(0, size_);
+                Int last_start      = walkIndexFw(
+                        block_limit/ValuesPerBranch,
+                        walker,
+                        index_size_ - level_size,
+                        level_size,
+                        level_limit,
+                        ValuesPerBranch,
+                        ValuesPerBranch
+                );
 
-    			if (last_start < size())
-    			{
-    				Int last_start_end  = getBlockStartEndV(last_start);
+                if (last_start < size())
+                {
+                    Int last_start_end  = getBlockStartEndV(last_start);
 
-    				Int last_end = last_start_end <= size()? last_start_end : size();
+                    Int last_end = last_start_end <= size()? last_start_end : size();
 
-    				return walker.walkValues(last_start, last_end);
-    			}
-    			else {
-    				return size();
-    			}
-    		}
-    	}
+                    return walker.walkValues(last_start, last_end);
+                }
+                else {
+                    return size();
+                }
+            }
+        }
     }
 
     template <typename Walker>
@@ -1300,20 +1301,20 @@ public:
 
                 Int level_size = getIndexCellsNumberFor(0, max_size_);
                 Int last_start = walkIndexBw(
-                					block_end/ValuesPerBranch - 1,
-                					walker,
-                					index_size_ - level_size,
-                					level_size,
-                					ValuesPerBranch,
-                					ValuesPerBranch
-                				 );
+                                    block_end/ValuesPerBranch - 1,
+                                    walker,
+                                    index_size_ - level_size,
+                                    level_size,
+                                    ValuesPerBranch,
+                                    ValuesPerBranch
+                                 );
 
                 if (last_start > 0)
                 {
-                	return walker.walkValues(last_start, last_start - ValuesPerBranch);
+                    return walker.walkValues(last_start, last_start - ValuesPerBranch);
                 }
                 else {
-                	return 0;
+                    return 0;
                 }
             }
         }
@@ -1332,12 +1333,12 @@ protected:
 
     static Int getBlockStartV(Int i)
     {
-    	return (i / ValuesPerBranch) * ValuesPerBranch;
+        return (i / ValuesPerBranch) * ValuesPerBranch;
     }
 
     static Int getBlockStartEndV(Int i)
     {
-    	return (i / ValuesPerBranch + 1) * ValuesPerBranch;
+        return (i / ValuesPerBranch + 1) * ValuesPerBranch;
     }
 
     static Int getBlockStartEndBw(Int i)
@@ -1347,7 +1348,7 @@ protected:
 
     static Int getBlockStartEndBwV(Int i)
     {
-    	return (i / ValuesPerBranch) * ValuesPerBranch;
+        return (i / ValuesPerBranch) * ValuesPerBranch;
     }
 
     static Int getBlockEnd(Int i)
@@ -1357,22 +1358,22 @@ protected:
 
     static Int getBlockEndV(Int i)
     {
-    	return (i / ValuesPerBranch + ((i % ValuesPerBranch) ? 1 : 0)) * ValuesPerBranch;
+        return (i / ValuesPerBranch + ((i % ValuesPerBranch) ? 1 : 0)) * ValuesPerBranch;
     }
 
     static Int getIndexCellsNumberFor(Int i)
     {
-    	return getIndexCellsNumberFor(1, i);
+        return getIndexCellsNumberFor(1, i);
     }
 
     static Int getIndexCellsNumberFor(Int level, Int i)
     {
         if (level > 0)
         {
-        	return i / BranchingFactor + ((i % BranchingFactor) ? 1 : 0);
+            return i / BranchingFactor + ((i % BranchingFactor) ? 1 : 0);
         }
         else {
-        	return i / ValuesPerBranch + ((i % ValuesPerBranch) ? 1 : 0);
+            return i / ValuesPerBranch + ((i % ValuesPerBranch) ? 1 : 0);
         }
     }
 
@@ -1410,118 +1411,118 @@ private:
 
     template <typename Walker>
     Int walkIndexFw(
-    		Int start,
-    		Walker& walker,
-    		Int level_offet,
-    		Int level_size,
-    		Int level_limit,
-    		Int cells_number_on_lower_level,
-    		Int cell_size
+            Int start,
+            Walker& walker,
+            Int level_offet,
+            Int level_size,
+            Int level_limit,
+            Int cells_number_on_lower_level,
+            Int cell_size
     ) const
     {
-    	Int block_start_end     = getBlockStartEnd(start);
+        Int block_start_end     = getBlockStartEnd(start);
 
-    	if (block_start_end >= level_limit)
-    	{
-    		return (walker.walkIndex(
-    							start + level_offet,
-    							level_limit + level_offet,
-    							cell_size
-    					   )
-    					   - level_offet) * cells_number_on_lower_level;
-    	}
-    	else
-    	{
-    		Int limit = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
-    		if (limit < block_start_end)
-    		{
-    			return limit * cells_number_on_lower_level;
-    		}
-    		else {
-    			Int level_size0     = getIndexCellsNumberFor(level_size);
-    			Int level_limit0    = getIndexCellsNumberFor(level_limit);
+        if (block_start_end >= level_limit)
+        {
+            return (walker.walkIndex(
+                                start + level_offet,
+                                level_limit + level_offet,
+                                cell_size
+                           )
+                           - level_offet) * cells_number_on_lower_level;
+        }
+        else
+        {
+            Int limit = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
+            if (limit < block_start_end)
+            {
+                return limit * cells_number_on_lower_level;
+            }
+            else {
+                Int level_size0     = getIndexCellsNumberFor(level_size);
+                Int level_limit0    = getIndexCellsNumberFor(level_limit);
 
-    			Int last_start      = walkIndexFw(
-    									block_start_end / BranchingFactor,
-    									walker,
-    									level_offet - level_size0,
-    									level_size0,
-    									level_limit0,
-    									BranchingFactor,
-    									cell_size * BranchingFactor
-    								  );
+                Int last_start      = walkIndexFw(
+                                        block_start_end / BranchingFactor,
+                                        walker,
+                                        level_offet - level_size0,
+                                        level_size0,
+                                        level_limit0,
+                                        BranchingFactor,
+                                        cell_size * BranchingFactor
+                                      );
 
-    			Int last_start_end  = getBlockStartEnd(last_start);
+                Int last_start_end  = getBlockStartEnd(last_start);
 
-    			Int last_end = last_start_end <= level_limit ? last_start_end : level_limit;
+                Int last_end = last_start_end <= level_limit ? last_start_end : level_limit;
 
-    			return (walker.walkIndex(
-    								last_start + level_offet,
-    								last_end + level_offet,
-    								cell_size
-    						   )
-    						   - level_offet) * cells_number_on_lower_level;
-    		}
-    	}
+                return (walker.walkIndex(
+                                    last_start + level_offet,
+                                    last_end + level_offet,
+                                    cell_size
+                               )
+                               - level_offet) * cells_number_on_lower_level;
+            }
+        }
     }
 
     template <typename Walker>
     Int walkIndexBw(
-    		Int start,
-    		Walker& walker,
-    		Int level_offet,
-    		Int level_size,
-    		Int cells_number_on_lower_level,
-    		Int cell_size
+            Int start,
+            Walker& walker,
+            Int level_offet,
+            Int level_size,
+            Int cells_number_on_lower_level,
+            Int cell_size
     ) const
     {
-    	Int block_start_end     = getBlockStartEndBw(start);
+        Int block_start_end     = getBlockStartEndBw(start);
 
-    	if (block_start_end == -1)
-    	{
-    		return (walker.walkIndex(
-    							start + level_offet,
-    							level_offet - 1,
-    							cell_size
-    					   )
-    					   - level_offet + 1) * cells_number_on_lower_level;
-    	}
-    	else
-    	{
-    		Int idx = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
-    		if (idx > block_start_end)
-    		{
-    			return (idx + 1) * cells_number_on_lower_level;
-    		}
-    		else {
-    			Int level_size0 = getIndexCellsNumberFor(level_size);
-    			Int last_start  = walkIndexBw(
-    								block_start_end / BranchingFactor,
-    								walker,
-    								level_offet - level_size0,
-    								level_size0,
-    								BranchingFactor,
-    								cell_size * BranchingFactor
-    							  ) - 1;
+        if (block_start_end == -1)
+        {
+            return (walker.walkIndex(
+                                start + level_offet,
+                                level_offet - 1,
+                                cell_size
+                           )
+                           - level_offet + 1) * cells_number_on_lower_level;
+        }
+        else
+        {
+            Int idx = walker.walkIndex(start + level_offet, block_start_end + level_offet, cell_size) - level_offet;
+            if (idx > block_start_end)
+            {
+                return (idx + 1) * cells_number_on_lower_level;
+            }
+            else {
+                Int level_size0 = getIndexCellsNumberFor(level_size);
+                Int last_start  = walkIndexBw(
+                                    block_start_end / BranchingFactor,
+                                    walker,
+                                    level_offet - level_size0,
+                                    level_size0,
+                                    BranchingFactor,
+                                    cell_size * BranchingFactor
+                                  ) - 1;
 
-    			Int last_start_end = getBlockStartEndBw(last_start);
+                Int last_start_end = getBlockStartEndBw(last_start);
 
-    			return (walker.walkIndex(
-    								last_start + level_offet,
-    								last_start_end + level_offet,
-    								cell_size
-    						   )
-    						   - level_offet + 1) * cells_number_on_lower_level;
-    		}
-    	}
+                return (walker.walkIndex(
+                                    last_start + level_offet,
+                                    last_start_end + level_offet,
+                                    cell_size
+                               )
+                               - level_offet + 1) * cells_number_on_lower_level;
+            }
+        }
     }
 
 
     void copyValuesBlock(MyType* other, Byte* target_memory_block) const
     {
-    	Value* tgt = T2T<Value*>(target_memory_block + other->getValueBlockOffset());
+        Value* tgt = T2T<Value*>(target_memory_block + other->getValueBlockOffset());
 
-    	CopyBuffer(valuesBlock(), tgt, getValueCellsCount(size()));
+        CopyBuffer(valuesBlock(), tgt, getValueCellsCount(size()));
     }
 
     static Int getBlockSize(Int item_count)
@@ -1539,12 +1540,12 @@ private:
             Int sum = 0;
             for (Int nlevels=0; csize > 1; nlevels++)
             {
-            	if (nlevels > 0) {
-            		csize = ((csize % BranchingFactor) == 0) ? (csize / BranchingFactor) : (csize / BranchingFactor) + 1;
-            	}
-            	else {
-            		csize = ((csize % ValuesPerBranch) == 0) ? (csize / ValuesPerBranch) : (csize / ValuesPerBranch) + 1;
-            	}
+                if (nlevels > 0) {
+                    csize = ((csize % BranchingFactor) == 0) ? (csize / BranchingFactor) : (csize / BranchingFactor) + 1;
+                }
+                else {
+                    csize = ((csize % ValuesPerBranch) == 0) ? (csize / ValuesPerBranch) : (csize / ValuesPerBranch) + 1;
+                }
                 sum += csize;
             }
             return sum;
@@ -1593,7 +1594,7 @@ private:
 
         if (getIndexSize(max) <= getIndexSize(max_size))
         {
-        	return max;
+            return max;
         }
 
         return max_size;

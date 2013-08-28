@@ -17,16 +17,16 @@ namespace memoria {
 
 
 template <
-	Int BitsPerSymbol_,
-	typename V = UBigInt,
-	typename Allocator_ = PackedAllocator
+    Int BitsPerSymbol_,
+    typename V = UBigInt,
+    typename Allocator_ = PackedAllocator
 >
 struct PackedFSEBitmapTypes {
 
-	static const Int 		BitsPerSymbol			= BitsPerSymbol_;
+    static const Int        BitsPerSymbol           = BitsPerSymbol_;
 
-	typedef V               Value;
-    typedef Allocator_  	Allocator;
+    typedef V               Value;
+    typedef Allocator_      Allocator;
 };
 
 
@@ -34,176 +34,176 @@ struct PackedFSEBitmapTypes {
 template <typename Types_>
 class PackedFSEBitmap: public PackedAllocatable {
 
-	typedef PackedAllocatable													Base;
+    typedef PackedAllocatable                                                   Base;
 
 public:
-	static const UInt VERSION               									= 1;
+    static const UInt VERSION                                                   = 1;
 
-	typedef Types_																Types;
-	typedef PackedFSEBitmap<Types>               								MyType;
+    typedef Types_                                                              Types;
+    typedef PackedFSEBitmap<Types>                                              MyType;
 
-	typedef typename Types::Allocator											Allocator;
-	typedef typename Types::Value												Value;
+    typedef typename Types::Allocator                                           Allocator;
+    typedef typename Types::Value                                               Value;
 
-	static const Int BitsPerSymbol												= Types::BitsPerSymbol;
+    static const Int BitsPerSymbol                                              = Types::BitsPerSymbol;
 
 private:
 
-	Int size_;
-	Int max_size_;
-	Int alignment_gap_;
+    Int size_;
+    Int max_size_;
+    Int alignment_gap_;
 
-	Value buffer_[];
-
-public:
-	PackedFSEBitmap() {}
-
-	Int& size() {return size_;}
-	const Int& size() const {return size_;}
-
-	Int& max_size() {return max_size_;}
-	const Int& max_size() const {return max_size_;}
+    Value buffer_[];
 
 public:
-	void init(Int block_size)
-	{
-		size_ = 0;
-		alignment_gap_ = 0;
+    PackedFSEBitmap() {}
 
-		Int data_size = block_size - empty_size();
+    Int& size() {return size_;}
+    const Int& size() const {return size_;}
 
-		max_size_   = data_size * 8 / BitsPerSymbol;
-	}
+    Int& max_size() {return max_size_;}
+    const Int& max_size() const {return max_size_;}
 
-	void init()
-	{
-		init(empty_size());
-	}
+public:
+    void init(Int block_size)
+    {
+        size_ = 0;
+        alignment_gap_ = 0;
 
-	static Int block_size(Int elements)
-	{
-		return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
-	}
+        Int data_size = block_size - empty_size();
 
-	Int block_size() const {
-		const Allocator* alloc = this->allocator();
-		return alloc->element_size(this);
-	}
+        max_size_   = data_size * 8 / BitsPerSymbol;
+    }
 
-	static int empty_size() {
-		return sizeof(MyType);
-	}
+    void init()
+    {
+        init(empty_size());
+    }
 
-	static Int block_size_bs(Int block_size)
-	{
-		return sizeof(MyType) + block_size;
-	}
+    static Int block_size(Int elements)
+    {
+        return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
+    }
 
-	BitmapAccessor<Value*, Value, BitsPerSymbol>
-	value(Int idx) {
-		return BitmapAccessor<Value*, Value, BitsPerSymbol>(buffer_, idx);
-	}
+    Int block_size() const {
+        const Allocator* alloc = this->allocator();
+        return alloc->element_size(this);
+    }
 
-	BitmapAccessor<const Value*, Value, BitsPerSymbol>
-	value(Int idx) const {
-		return BitmapAccessor<const Value*, Value, BitsPerSymbol>(buffer_, idx);
-	}
+    static int empty_size() {
+        return sizeof(MyType);
+    }
 
+    static Int block_size_bs(Int block_size)
+    {
+        return sizeof(MyType) + block_size;
+    }
 
-	template <typename T, Int I>
-	void sums(Int from, Int to, StaticVector<T, I>& values) const
-	{
-		values[0] += to - from;
-	}
+    BitmapAccessor<Value*, Value, BitsPerSymbol>
+    value(Int idx) {
+        return BitmapAccessor<Value*, Value, BitsPerSymbol>(buffer_, idx);
+    }
 
-	template <typename T, Int I>
-	void sums(StaticVector<T, I>& values) const
-	{
-		values[0] += size();
-	}
-
-	Value* data() {
-		return buffer_;
-	}
-
-	const Value* data() const {
-		return buffer_;
-	}
-
-	Int capacity() const {
-		return max_size_ - size_;
-	}
-
-	void enlarge(Int elements)
-	{
-		Allocator* alloc = Base::allocator();
-		Int amount = roundUpBitToBytes(roundUpBitToBytes(elements * BitsPerSymbol));
-		Int size = alloc->element_size(this);
-		Int new_size = alloc->resizeBlock(this, size + amount);
-		max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;
-	}
-
-	bool insertSpace(Int idx, Int space)
-	{
-		if (space > capacity())
-		{
-			enlarge(space - capacity());
-		}
-
-		MEMORIA_ASSERT(idx, >=, 0);
-		MEMORIA_ASSERT(idx, <=, size_);
-		MEMORIA_ASSERT(size_ + space, <=, max_size_);
-
-		Int remainder = (size_ - idx) * BitsPerSymbol;
-
-		Value* data = this->data();
-
-		MoveBits(data, data, idx * BitsPerSymbol, (idx + space) * BitsPerSymbol, remainder);
-
-		size_ += space;
-
-		return true;
-	}
-
-	bool insert(Int idx, Value value)
-	{
-		if (insertSpace(idx, 1))
-		{
-			this->value(idx) = value;
-			return true;
-		}
-		return false;
-	}
-
-	void removeSpace(Int idx, Int space)
-	{
-		MEMORIA_ASSERT(idx, >=, 0);
-		MEMORIA_ASSERT(idx, <=, size_);
-		MEMORIA_ASSERT(idx + space, <=, size_);
-
-		Value* data = this->data();
-
-		Int remainder = (size_ - idx - space) * BitsPerSymbol;
-		MoveBits(data, data, (idx + space) * BitsPerSymbol, idx * BitsPerSymbol, remainder);
-
-		size_ -= space;
-	}
-
-	// ==================================== Dump =========================================== //
+    BitmapAccessor<const Value*, Value, BitsPerSymbol>
+    value(Int idx) const {
+        return BitmapAccessor<const Value*, Value, BitsPerSymbol>(buffer_, idx);
+    }
 
 
-	void dump(std::ostream& out = cout) const
-	{
-		out<<"size_       = "<<size_<<endl;
-		out<<"max_size_   = "<<max_size_<<endl;
-		out<<endl;
+    template <typename T, Int I>
+    void sums(Int from, Int to, StaticVector<T, I>& values) const
+    {
+        values[0] += to - from;
+    }
 
-		out<<"Data:"<<endl;
+    template <typename T, Int I>
+    void sums(StaticVector<T, I>& values) const
+    {
+        values[0] += size();
+    }
 
-		dumpSymbols<Value>(out, size_, BitsPerSymbol, [this](Int pos) -> Value {
-			return this->value(pos);
-		});
-	}
+    Value* data() {
+        return buffer_;
+    }
+
+    const Value* data() const {
+        return buffer_;
+    }
+
+    Int capacity() const {
+        return max_size_ - size_;
+    }
+
+    void enlarge(Int elements)
+    {
+        Allocator* alloc = Base::allocator();
+        Int amount = roundUpBitToBytes(roundUpBitToBytes(elements * BitsPerSymbol));
+        Int size = alloc->element_size(this);
+        Int new_size = alloc->resizeBlock(this, size + amount);
+        max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;
+    }
+
+    bool insertSpace(Int idx, Int space)
+    {
+        if (space > capacity())
+        {
+            enlarge(space - capacity());
+        }
+
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <=, size_);
+        MEMORIA_ASSERT(size_ + space, <=, max_size_);
+
+        Int remainder = (size_ - idx) * BitsPerSymbol;
+
+        Value* data = this->data();
+
+        MoveBits(data, data, idx * BitsPerSymbol, (idx + space) * BitsPerSymbol, remainder);
+
+        size_ += space;
+
+        return true;
+    }
+
+    bool insert(Int idx, Value value)
+    {
+        if (insertSpace(idx, 1))
+        {
+            this->value(idx) = value;
+            return true;
+        }
+        return false;
+    }
+
+    void removeSpace(Int idx, Int space)
+    {
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <=, size_);
+        MEMORIA_ASSERT(idx + space, <=, size_);
+
+        Value* data = this->data();
+
+        Int remainder = (size_ - idx - space) * BitsPerSymbol;
+        MoveBits(data, data, (idx + space) * BitsPerSymbol, idx * BitsPerSymbol, remainder);
+
+        size_ -= space;
+    }
+
+    // ==================================== Dump =========================================== //
+
+
+    void dump(std::ostream& out = cout) const
+    {
+        out<<"size_       = "<<size_<<endl;
+        out<<"max_size_   = "<<max_size_<<endl;
+        out<<endl;
+
+        out<<"Data:"<<endl;
+
+        dumpSymbols<Value>(out, size_, BitsPerSymbol, [this](Int pos) -> Value {
+            return this->value(pos);
+        });
+    }
 };
 
 

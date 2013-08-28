@@ -33,7 +33,7 @@ public:
     typedef typename Types::Pages::NodeDispatcher                               RootDispatcher;
     typedef typename Types::Pages::TreeDispatcher                               TreeDispatcher;
 
-    typedef typename Types::Accumulator                               			Accumulator;
+    typedef typename Types::Accumulator                                         Accumulator;
 
 
 //PROTECETED API:
@@ -49,30 +49,30 @@ public:
 
     void checkIt()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.logger().level() = Logger::ERROR;
+        self.logger().level() = Logger::ERROR;
 
-    	if (self.checkTree())
-    	{
-    		throw Exception(MA_SRC, SBuf()<<"Container "<<self.name()<<" ("<<self.type_name_str()<<") check failed");
-    	}
+        if (self.checkTree())
+        {
+            throw Exception(MA_SRC, SBuf()<<"Container "<<self.name()<<" ("<<self.type_name_str()<<") check failed");
+        }
     }
 
     MEMORIA_DECLARE_NODE_FN(CheckContentFn, check);
     bool checkContent(const NodeBaseG& node) const
     {
-    	try {
-    		NodeDispatcher::dispatchConst(node, CheckContentFn());
-    		return false;
-    	}
-    	catch (Exception ex)
-    	{
-    		self().dump(node);
+        try {
+            NodeDispatcher::dispatchConst(node, CheckContentFn());
+            return false;
+        }
+        catch (Exception ex)
+        {
+            self().dump(node);
 
-    		MEMORIA_ERROR(me(), ex.message());
-    		return true;
-    	}
+            MEMORIA_ERROR(me(), ex.message());
+            return true;
+        }
     }
 
 
@@ -97,15 +97,15 @@ bool M_TYPE::checkTree() const
 {
     auto& self = this->self();
 
-	NodeBaseG root = self.getRoot(Allocator::READ);
-	if (root)
+    NodeBaseG root = self.getRoot(Allocator::READ);
+    if (root)
     {
         bool errors = false;
         self.checkTreeStructure(NodeBaseG(), 0, root, errors);
         return errors;
     }
     else {
-    	MEMORIA_ERROR(me(), "No root node for container");
+        MEMORIA_ERROR(me(), "No root node for container");
         return true;
     }
 }
@@ -121,32 +121,32 @@ bool M_TYPE::checkTree() const
 M_PARAMS
 void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	errors = self.checkContent(node) || errors;
+    errors = self.checkContent(node) || errors;
 
-	if (!node->is_root())
-	{
-		errors = TreeDispatcher::dispatchTreeConstRtn(parent, node, CheckTypedNodeContentFn(me()), parent_idx) || errors;
+    if (!node->is_root())
+    {
+        errors = TreeDispatcher::dispatchTreeConstRtn(parent, node, CheckTypedNodeContentFn(me()), parent_idx) || errors;
 
-		if (!node->is_leaf())
-		{
-			Int children = self.getNodeSize(node, 0);
+        if (!node->is_leaf())
+        {
+            Int children = self.getNodeSize(node, 0);
 
-			if (children == 0 && !node->is_root())
-			{
-				errors = true;
-				MEMORIA_ERROR(me(), "children == 0 for non-root node", node->id());
-				self.dump(node);
-			}
-		}
-	}
+            if (children == 0 && !node->is_root())
+            {
+                errors = true;
+                MEMORIA_ERROR(me(), "children == 0 for non-root node", node->id());
+                self.dump(node);
+            }
+        }
+    }
 
     if (!node->is_leaf())
     {
-    	Int children = self.getNodeSize(node, 0);
+        Int children = self.getNodeSize(node, 0);
 
-    	for (Int c = 0; c < children; c++)
+        for (Int c = 0; c < children; c++)
         {
             ID child_id = self.getChildID(node, c);
 
@@ -160,16 +160,16 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
 
             if (child->parent_idx() != c)
             {
-            	errors = true;
-            	MEMORIA_ERROR(me(), "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
-            	cout<<"parent_idx: "<<child->parent_idx()<<" "<<c<<endl;
+                errors = true;
+                MEMORIA_ERROR(me(), "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
+                cout<<"parent_idx: "<<child->parent_idx()<<" "<<c<<endl;
             }
 
             if (child->parent_id() != node->id())
             {
-            	errors = true;
-            	MEMORIA_ERROR(me(), "child.parent_id != node.id", child->parent_id(), node->id());
-            	cout<<"parent_idx: "<<child->parent_id()<<" "<<node->id()<<endl;
+                errors = true;
+                MEMORIA_ERROR(me(), "child.parent_id != node.id", child->parent_id(), node->id());
+                cout<<"parent_idx: "<<child->parent_id()<<" "<<node->id()<<endl;
             }
 
             self.checkTreeStructure(node, c, child, errors);
@@ -190,22 +190,20 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int p
 
     if (sums != keys)
     {
-    	MEMORIA_ERROR(
-    			me(),
-    			"Invalid parent-child nodes chain",
-    			(SBuf()<<sums).str(),
-    			(SBuf()<<keys).str(),
-    			"for node.id=",
-    			node->id(),
-    			"parent.id=",
-    			parent->id(),
-    			"parent_idx",
-    			parent_idx
-    	);
+        MEMORIA_ERROR(
+                me(),
+                "Invalid parent-child nodes chain",
+                (SBuf()<<sums).str(),
+                (SBuf()<<keys).str(),
+                "for node.id=",
+                node->id(),
+                "parent.id=",
+                parent->id(),
+                "parent_idx",
+                parent_idx
+        );
 
-    	errors = true;
-
-//    	cout<<"Check failed for "<<IDValue(node->id())<<endl;
+        errors = true;
     }
 
 

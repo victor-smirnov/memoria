@@ -24,17 +24,17 @@ template <typename T, T Item1, typename List> struct AppendValueTool;
 
 template <typename Item, typename ... List>
 struct AppendTool<Item, TypeList<List...> > {
-    typedef TypeList<Item, List...>                                     Result;
+    typedef TypeList<Item, List...>                                             Result;
 };
 
 template <typename ... List1, typename ... List2>
 struct AppendTool<TypeList<List1...>, TypeList<List2...> > {
-    typedef TypeList<List1..., List2...>                                Result;
+    typedef TypeList<List1..., List2...>                                        Result;
 };
 
 template <typename ... List, typename Item>
 struct AppendTool<TypeList<List...>, Item > {
-    typedef TypeList<List..., Item>                                     Result;
+    typedef TypeList<List..., Item>                                             Result;
 };
 
 
@@ -42,23 +42,23 @@ struct AppendTool<TypeList<List...>, Item > {
 // ValueList
 template <typename T, T Item, T ... List>
 struct AppendValueTool<T, Item, ValueList<T, List...> > {
-    typedef ValueList<T, Item, List...>                                 Result;
+    typedef ValueList<T, Item, List...>                                         Result;
 };
 
 template <typename T, T ... List1, T ... List2>
 struct AppendTool<ValueList<T, List1...>, ValueList<T, List2...> > {
-    typedef ValueList<T, List1..., List2...>                            Result;
+    typedef ValueList<T, List1..., List2...>                                    Result;
 };
 
 
 template <typename ... List, typename ... Items>
 struct AppendToList<TypeList<List...>, Items...> {
-    typedef TypeList<List..., Items...>                                 Result;
+    typedef TypeList<List..., Items...>                                         Result;
 };
 
 template <typename ... List, typename ... Items>
 struct PrependToList<TypeList<List...>, Items...> {
-    typedef TypeList<Items..., List...>                                 Result;
+    typedef TypeList<Items..., List...>                                         Result;
 };
 
 

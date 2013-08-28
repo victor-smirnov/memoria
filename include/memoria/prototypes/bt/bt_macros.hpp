@@ -11,38 +11,38 @@
 
 #include <memoria/core/container/macros.hpp>
 
-#define MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)     \
+#define MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)                \
 template <                                                                              \
         typename TypesType                                                              \
 >                                                                                       \
-class BTreeCtrBaseClassName: public CtrBase<TypesType> {                    \
+class BTreeCtrBaseClassName: public CtrBase<TypesType> {                                \
                                                                                         \
-    typedef BTreeCtrBaseClassName<TypesType>                              ThisType;\
-    typedef CtrBase<TypesType>                                            Base;   \
+    typedef BTreeCtrBaseClassName<TypesType>                              ThisType;     \
+    typedef CtrBase<TypesType>                                            Base;         \
     typedef Ctr<TypesType>                                                      MyType; \
                                                                                         \
 public:
 
-#define MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)             \
-    MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)         \
+#define MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)                        \
+    MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)                    \
                                                                                         \
-    BTreeCtrBaseClassName(const CtrInitData& data): Base(data) {}                 \
-    BTreeCtrBaseClassName(const ThisType& other): Base(other) {}                  \
-    BTreeCtrBaseClassName(ThisType&& other): Base(std::move(other)) {}            \
-    BTreeCtrBaseClassName(ThisType&& other, typename TypesType::Allocator* allocator): \
+    BTreeCtrBaseClassName(const CtrInitData& data): Base(data) {}                       \
+    BTreeCtrBaseClassName(const ThisType& other): Base(other) {}                        \
+    BTreeCtrBaseClassName(ThisType&& other): Base(std::move(other)) {}                  \
+    BTreeCtrBaseClassName(ThisType&& other, typename TypesType::Allocator* allocator):  \
         Base(std::move(other), allocator)  {}                                           \
     BTreeCtrBaseClassName(const ThisType& other, typename TypesType::Allocator* allocator): \
         Base(other, allocator)        {}                                                \
 
 
-#define MEMORIA_BT_MODEL_BASE_CLASS_END                                            \
+#define MEMORIA_BT_MODEL_BASE_CLASS_END                                                 \
     MyType* me() {                                                                      \
         return static_cast<MyType*>(this);                                              \
     }                                                                                   \
     const MyType* me() const {                                                          \
         return static_cast<const MyType*>(this);                                        \
     }                                                                                   \
-    																					\
+                                                                                        \
     MyType& self() {                                                                    \
         return *static_cast<MyType*>(this);                                             \
     }                                                                                   \
@@ -53,7 +53,7 @@ public:
 
 
 
-#define MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)     \
+#define MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)        \
 template <                                                                              \
         typename TypesType                                                              \
 >                                                                                       \
@@ -67,19 +67,19 @@ public:                                                                         
 
 
         
-#define MEMORIA_BT_ITERATOR_BASE_CLASS_BEGIN(BTreeIteratorBaseClassName)      		\
-MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)      		\
+#define MEMORIA_BT_ITERATOR_BASE_CLASS_BEGIN(BTreeIteratorBaseClassName)                \
+MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)                \
     BTreeIteratorBaseClassName(): Base() {}
 
 
-#define MEMORIA_BT_ITERATOR_BASE_CLASS_END                                         \
+#define MEMORIA_BT_ITERATOR_BASE_CLASS_END                                              \
     MyType* me() {                                                                      \
         return static_cast<MyType*>(this);                                              \
     }                                                                                   \
     const MyType* me() const {                                                          \
         return static_cast<const MyType*>(this);                                        \
     }                                                                                   \
-    																					\
+                                                                                        \
     MyType& self() {                                                                    \
         return *static_cast<MyType*>(this);                                             \
     }                                                                                   \
@@ -91,104 +91,104 @@ MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)      		
 
 
 
-#define MEMORIA_FN_WRAPPER(WrapperName, TargetMethod) 	\
-struct WrapperName {									\
-	MyType* me_;										\
-	WrapperName(MyType* v): me_(v) {}					\
-	template <typename T, typename... Args>				\
-	void treeNode(T arg, Args&&... args) 				\
-	{													\
-		me_->TargetMethod(arg, args...);				\
-	}													\
+#define MEMORIA_FN_WRAPPER(WrapperName, TargetMethod)   \
+struct WrapperName {                                    \
+    MyType* me_;                                        \
+    WrapperName(MyType* v): me_(v) {}                   \
+    template <typename T, typename... Args>             \
+    void treeNode(T arg, Args&&... args)                \
+    {                                                   \
+        me_->TargetMethod(arg, args...);                \
+    }                                                   \
 }
 
 #define MEMORIA_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
-struct WrapperName {									\
-	typedef ReturnType_	ReturnType;						\
-	MyType* me_;										\
-	WrapperName(MyType* v): me_(v) {}					\
-	template <typename T, typename... Args>				\
-	ReturnType treeNode(T arg, Args&&... args) 			\
-	{													\
-		return me_->TargetMethod(arg, args...);			\
-	}													\
+struct WrapperName {                                    \
+    typedef ReturnType_ ReturnType;                     \
+    MyType* me_;                                        \
+    WrapperName(MyType* v): me_(v) {}                   \
+    template <typename T, typename... Args>             \
+    ReturnType treeNode(T arg, Args&&... args)          \
+    {                                                   \
+        return me_->TargetMethod(arg, args...);         \
+    }                                                   \
 }
 
 #define MEMORIA_CONST_FN_WRAPPER(WrapperName, TargetMethod) \
-struct WrapperName {										\
-	const MyType* me_;										\
-	WrapperName(const MyType* v): me_(v) {}					\
-	template <typename T, typename... Args>					\
-	void treeNode(T arg, Args&&... args) const				\
-	{														\
-		me_->TargetMethod(arg, args...);					\
-	}														\
+struct WrapperName {                                        \
+    const MyType* me_;                                      \
+    WrapperName(const MyType* v): me_(v) {}                 \
+    template <typename T, typename... Args>                 \
+    void treeNode(T arg, Args&&... args) const              \
+    {                                                       \
+        me_->TargetMethod(arg, args...);                    \
+    }                                                       \
 }
 
 #define MEMORIA_CONST_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
-struct WrapperName {									\
-	typedef ReturnType_	ReturnType;						\
-	const MyType* me_;									\
-	WrapperName(const MyType* v): me_(v) {}				\
-	template <typename T, typename... Args>				\
-	ReturnType treeNode(T arg, Args&&... args) const	\
-	{													\
-		return me_->TargetMethod(arg, args...);			\
-	}													\
+struct WrapperName {                                    \
+    typedef ReturnType_ ReturnType;                     \
+    const MyType* me_;                                  \
+    WrapperName(const MyType* v): me_(v) {}             \
+    template <typename T, typename... Args>             \
+    ReturnType treeNode(T arg, Args&&... args) const    \
+    {                                                   \
+        return me_->TargetMethod(arg, args...);         \
+    }                                                   \
 }
 
 
 
 
 #define MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
-struct WrapperName {									\
-	typedef ReturnType_	ReturnType;						\
-	const MyType* me_;									\
-	WrapperName(const MyType* v): me_(v) {}				\
-	template <typename T, typename... Args>				\
-	ReturnType treeNode(const T*, Args&&... args) const \
-	{													\
-		return me_->template TargetMethod<T>(args...);	\
-	}													\
+struct WrapperName {                                    \
+    typedef ReturnType_ ReturnType;                     \
+    const MyType* me_;                                  \
+    WrapperName(const MyType* v): me_(v) {}             \
+    template <typename T, typename... Args>             \
+    ReturnType treeNode(const T*, Args&&... args) const \
+    {                                                   \
+        return me_->template TargetMethod<T>(args...);  \
+    }                                                   \
 }
 
 
 #define MEMORIA_DECLARE_NODE_FN(WrapperName, NodeMethodName)\
-struct WrapperName {										\
-	template <typename T, typename... Args>					\
-	void treeNode(T node, Args&&... args) const				\
-	{														\
-		node->NodeMethodName(args...);						\
-	}														\
+struct WrapperName {                                        \
+    template <typename T, typename... Args>                 \
+    void treeNode(T node, Args&&... args) const             \
+    {                                                       \
+        node->NodeMethodName(args...);                      \
+    }                                                       \
 }
 
 #define MEMORIA_DECLARE_NODE2_FN(WrapperName, NodeMethodName)\
-struct WrapperName {										\
-	template <typename T, typename... Args>					\
-	void treeNode(T node1, T node2, Args&&... args) const	\
-	{														\
-		node1->NodeMethodName(node2, args...);				\
-	}														\
+struct WrapperName {                                        \
+    template <typename T, typename... Args>                 \
+    void treeNode(T node1, T node2, Args&&... args) const   \
+    {                                                       \
+        node1->NodeMethodName(node2, args...);              \
+    }                                                       \
 }
 
 #define MEMORIA_DECLARE_NODE_FN_RTN(WrapperName, NodeMethodName, ReturnType_) \
-struct WrapperName {										\
-	typedef ReturnType_ ReturnType;							\
-	template <typename T, typename... Args>					\
-	ReturnType treeNode(T node, Args&&... args) const		\
-	{														\
-		return node->NodeMethodName(args...);				\
-	}														\
+struct WrapperName {                                        \
+    typedef ReturnType_ ReturnType;                         \
+    template <typename T, typename... Args>                 \
+    ReturnType treeNode(T node, Args&&... args) const       \
+    {                                                       \
+        return node->NodeMethodName(args...);               \
+    }                                                       \
 }
 
 #define MEMORIA_DECLARE_NODE2_FN_RTN(WrapperName, NodeMethodName, ReturnType_) \
-struct WrapperName {										\
-	typedef ReturnType_ ReturnType;							\
-	template <typename T, typename... Args>					\
-	ReturnType treeNode(T node1, T node2, Args&&... args) const \
-	{														\
-		return node1->NodeMethodName(node2, args...);		\
-	}														\
+struct WrapperName {                                        \
+    typedef ReturnType_ ReturnType;                         \
+    template <typename T, typename... Args>                 \
+    ReturnType treeNode(T node1, T node2, Args&&... args) const \
+    {                                                       \
+        return node1->NodeMethodName(node2, args...);       \
+    }                                                       \
 }
 
 

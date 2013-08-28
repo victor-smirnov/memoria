@@ -14,29 +14,29 @@
 #include <ostream>
 
 namespace memoria       {
-namespace map        	{
+namespace map           {
 
 template <typename Types>
 class FindRangeWalkerBase {
 protected:
-	typedef Iter<typename Types::IterTypes> Iterator;
-	typedef Ctr<typename Types::CtrTypes> 	Container;
+    typedef Iter<typename Types::IterTypes> Iterator;
+    typedef Ctr<typename Types::CtrTypes>   Container;
 
-	typedef typename Types::Accumulator		Accumulator;
+    typedef typename Types::Accumulator     Accumulator;
 
-	WalkDirection direction_;
+    WalkDirection direction_;
 
 public:
-	FindRangeWalkerBase() {}
+    FindRangeWalkerBase() {}
 
-	WalkDirection& direction() {
-		return direction_;
-	}
+    WalkDirection& direction() {
+        return direction_;
+    }
 
-	void empty(Iterator& iter)
-	{
-		iter.cache().setup(0);
-	}
+    void empty(Iterator& iter)
+    {
+        iter.cache().setup(0);
+    }
 };
 
 
@@ -44,73 +44,73 @@ public:
 template <typename Types>
 class FindEndWalker: public FindRangeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
-	typedef typename Base::Iterator 		Iterator;
-	typedef typename Base::Container 		Container;
+    typedef FindRangeWalkerBase<Types>      Base;
+    typedef typename Base::Iterator         Iterator;
+    typedef typename Base::Container        Container;
 
-	typedef typename Types::Accumulator 	Accumulator;
+    typedef typename Types::Accumulator     Accumulator;
 
-	BigInt prefix_ = 0;
+    BigInt prefix_ = 0;
 
 public:
-	typedef Int ReturnType;
+    typedef Int ReturnType;
 
-	FindEndWalker(Int stream, const Container&) {}
+    FindEndWalker(Int stream, const Container&) {}
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node, Int start)
-	{
-		node->process(0, *this, node->level(), start);
+    template <typename Node>
+    ReturnType treeNode(const Node* node, Int start)
+    {
+        node->process(0, *this, node->level(), start);
 
-		return node->size(0) - 1;
-	}
+        return node->size(0) - 1;
+    }
 
-	template <Int Idx, typename Tree>
-	void stream(const Tree* tree, Int level, Int start)
-	{
-		if (level > 0)
-		{
-			prefix_ += tree->sumWithoutLastElement(0);
-		}
-		else {
-			prefix_ += tree->sum(0);
-		}
-	}
+    template <Int Idx, typename Tree>
+    void stream(const Tree* tree, Int level, Int start)
+    {
+        if (level > 0)
+        {
+            prefix_ += tree->sumWithoutLastElement(0);
+        }
+        else {
+            prefix_ += tree->sum(0);
+        }
+    }
 
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() = idx + 1;
-		iter.cache().setup(prefix_);
-	}
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.key_idx() = idx + 1;
+        iter.cache().setup(prefix_);
+    }
 };
 
 
 template <typename Types>
 class FindREndWalker: public FindRangeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
-	typedef typename Base::Iterator 		Iterator;
-	typedef typename Base::Container 		Container;
-	typedef typename Types::Accumulator 	Accumulator;
+    typedef FindRangeWalkerBase<Types>      Base;
+    typedef typename Base::Iterator         Iterator;
+    typedef typename Base::Container        Container;
+    typedef typename Types::Accumulator     Accumulator;
 
 public:
-	typedef Int ReturnType;
+    typedef Int ReturnType;
 
-	FindREndWalker(Int stream, const Container&) {}
+    FindREndWalker(Int stream, const Container&) {}
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node, Int start)
-	{
-		return 0;
-	}
+    template <typename Node>
+    ReturnType treeNode(const Node* node, Int start)
+    {
+        return 0;
+    }
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() = idx - 1;
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.key_idx() = idx - 1;
 
-		iter.cache().setup(0);
-	}
+        iter.cache().setup(0);
+    }
 };
 
 
@@ -118,68 +118,68 @@ public:
 template <typename Types>
 class FindBeginWalker: public FindRangeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
-	typedef typename Base::Iterator 		Iterator;
-	typedef typename Base::Container 		Container;
-	typedef typename Types::Accumulator 	Accumulator;
+    typedef FindRangeWalkerBase<Types>      Base;
+    typedef typename Base::Iterator         Iterator;
+    typedef typename Base::Container        Container;
+    typedef typename Types::Accumulator     Accumulator;
 
 public:
-	typedef Int ReturnType;
+    typedef Int ReturnType;
 
-	FindBeginWalker(Int stream, const Container&) {}
+    FindBeginWalker(Int stream, const Container&) {}
 
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node, Int start)
-	{
-		return 0;
-	}
+    template <typename Node>
+    ReturnType treeNode(const Node* node, Int start)
+    {
+        return 0;
+    }
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() = 0;
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.key_idx() = 0;
 
-		iter.cache().setup(0);
-	}
+        iter.cache().setup(0);
+    }
 };
 
 template <typename Types>
 class FindRBeginWalker: public FindRangeWalkerBase<Types> {
 
-	typedef FindRangeWalkerBase<Types> 		Base;
-	typedef typename Base::Iterator 		Iterator;
-	typedef typename Base::Container 		Container;
+    typedef FindRangeWalkerBase<Types>      Base;
+    typedef typename Base::Iterator         Iterator;
+    typedef typename Base::Container        Container;
 
-	typedef typename Types::Accumulator 	Accumulator;
+    typedef typename Types::Accumulator     Accumulator;
 
-	BigInt prefix_ = 0;
+    BigInt prefix_ = 0;
 
 public:
-	typedef Int ReturnType;
+    typedef Int ReturnType;
 
-	FindRBeginWalker(Int stream, const Container&) {}
+    FindRBeginWalker(Int stream, const Container&) {}
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node, Int start)
-	{
-		node->process(0, *this);
+    template <typename Node>
+    ReturnType treeNode(const Node* node, Int start)
+    {
+        node->process(0, *this);
 
-		return node->size(0) - 1;
-	}
+        return node->size(0) - 1;
+    }
 
-	template <Int Idx, typename Tree>
-	void stream(const Tree* tree)
-	{
-		prefix_ += tree->sumWithoutLastElement(0);
-	}
+    template <Int Idx, typename Tree>
+    void stream(const Tree* tree)
+    {
+        prefix_ += tree->sumWithoutLastElement(0);
+    }
 
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() = idx;
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.key_idx() = idx;
 
-		iter.cache().setup(prefix_);
-	}
+        iter.cache().setup(prefix_);
+    }
 };
 
 

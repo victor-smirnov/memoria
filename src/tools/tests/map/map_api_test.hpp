@@ -21,15 +21,15 @@
 namespace memoria {
 
 template <
-	template <typename, typename> class MapType
+    template <typename, typename> class MapType
 >
 class MapApiTest: public MapTestBase<MapType> {
 
-	typedef MapTestBase<MapType>												Base;
-    typedef MapApiTest<MapType>                                                	MyType;
+    typedef MapTestBase<MapType>                                                Base;
+    typedef MapApiTest<MapType>                                                 MyType;
 
-    typedef typename Base::Allocator											Allocator;
-    typedef typename Base::Ctr													Ctr;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Ctr                                                  Ctr;
 
 public:
 

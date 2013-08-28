@@ -59,34 +59,34 @@ struct PkdFTreeTF {
     typedef typename Types::Key                                                 Key;
 
     typedef typename SelectByIndexTool<
-    		StreamIdx,
-    		typename Types::StreamDescriptors
-    >::Result																	Descriptor;
+            StreamIdx,
+            typename Types::StreamDescriptors
+    >::Result                                                                   Descriptor;
 
-	typedef Packed2TreeTypes<
-			Key, Key, Descriptor::NodeIndexes
-	>																			TreeTypes;
+    typedef Packed2TreeTypes<
+            Key, Key, Descriptor::NodeIndexes
+    >                                                                           TreeTypes;
 
-	typedef PkdFTree<TreeTypes> Type;
+    typedef PkdFTree<TreeTypes> Type;
 };
 
 
 template <typename Types, Int StreamIdx>
 struct PackedFSEArrayTF {
 
-	typedef typename Types::Value												Value;
-	typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
+    typedef typename Types::Key                                                 Key;
 
-	typedef typename SelectByIndexTool<
-			StreamIdx,
-			typename Types::StreamDescriptors
-	>::Result																	Descriptor;
+    typedef typename SelectByIndexTool<
+            StreamIdx,
+            typename Types::StreamDescriptors
+    >::Result                                                                   Descriptor;
 
-	typedef PackedFSEArrayTypes<
-			Value
-	>																			ArrayTypes;
+    typedef PackedFSEArrayTypes<
+            Value
+    >                                                                           ArrayTypes;
 
-	typedef PackedFSEArray<ArrayTypes> Type;
+    typedef PackedFSEArray<ArrayTypes> Type;
 };
 
 
@@ -98,15 +98,15 @@ struct PkdVTreeTF {
     typedef typename Types::Key                                                 Key;
 
     typedef typename SelectByIndexTool<
-    		StreamIdx,
-    		typename Types::StreamDescriptors
-    >::Result																	Descriptor;
+            StreamIdx,
+            typename Types::StreamDescriptors
+    >::Result                                                                   Descriptor;
 
-	typedef Packed2TreeTypes<
-			Key, Key, Descriptor::NodeIndexes, UByteExintCodec
-	>																			TreeTypes;
+    typedef Packed2TreeTypes<
+            Key, Key, Descriptor::NodeIndexes, UByteExintCodec
+    >                                                                           TreeTypes;
 
-	typedef PkdVTree<TreeTypes> Type;
+    typedef PkdVTree<TreeTypes> Type;
 };
 
 
@@ -146,70 +146,70 @@ struct BTTypes {
     typedef typename Allocator::ID                                              ID;
 
     typedef TypeList<
-    >																			NodeTypesList;
+    >                                                                           NodeTypesList;
 
     typedef TypeList<
-    >																			DefaultNodeTypesList;
+    >                                                                           DefaultNodeTypesList;
 
     typedef TypeList<
-    >																			StreamDescriptors;
+    >                                                                           StreamDescriptors;
 
 
     template <
         typename Types_
     >
     struct CtrBaseFactory {
-        typedef bt::BTreeCtrBase<Types_>                       			Type;
+        typedef bt::BTreeCtrBase<Types_>                                Type;
     };
 
     template <
         typename Types_
     >
     struct IterBaseFactory {
-        typedef BTIteratorBase<Types_>                      				Type;
+        typedef BTIteratorBase<Types_>                                      Type;
     };
 
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef bt::BTreeIteratorCache<Iterator, Container>          			Type;
+        typedef bt::BTreeIteratorCache<Iterator, Container>                     Type;
     };
 
-    static const Int MAIN_STREAM												= 0;
+    static const Int MAIN_STREAM                                                = 0;
 
 
     template <typename Types>
-    using SkipForwardWalker 				= TypeIsNotDefined;
+    using SkipForwardWalker                 = TypeIsNotDefined;
 
     template <typename Types>
-    using SkipBackwardWalker 				= TypeIsNotDefined;
+    using SkipBackwardWalker                = TypeIsNotDefined;
 
     template <typename Types>
-    using NextLeafWalker 					= TypeIsNotDefined;
+    using NextLeafWalker                    = TypeIsNotDefined;
 
     template <typename Types>
-    using PrevLeafWalker 					= TypeIsNotDefined;
+    using PrevLeafWalker                    = TypeIsNotDefined;
 
     template <typename Types>
-    using NextLeafMutistreamWalker 			= TypeIsNotDefined;
+    using NextLeafMutistreamWalker          = TypeIsNotDefined;
 
     template <typename Types>
-    using PrevLeafMutistreamWalker 			= TypeIsNotDefined;
+    using PrevLeafMutistreamWalker          = TypeIsNotDefined;
 
 
 
 
     template <typename Types>
-    using FindBeginWalker 					= TypeIsNotDefined;
+    using FindBeginWalker                   = TypeIsNotDefined;
 
     template <typename Types>
-    using FindEndWalker 					= TypeIsNotDefined;
+    using FindEndWalker                     = TypeIsNotDefined;
 
     template <typename Types>
-    using FindRBeginWalker 					= TypeIsNotDefined;
+    using FindRBeginWalker                  = TypeIsNotDefined;
 
     template <typename Types>
-    using FindREndWalker 					= TypeIsNotDefined;
+    using FindREndWalker                    = TypeIsNotDefined;
 };
 
 
@@ -219,12 +219,12 @@ template <
 >
 class CtrTF<Profile, memoria::BT, ContainerTypeName_> {
 
-    typedef CtrTF<Profile, memoria::BT, ContainerTypeName_>           			MyType;
+    typedef CtrTF<Profile, memoria::BT, ContainerTypeName_>                     MyType;
 
 public:
 
 
-    typedef BTTypes<Profile, ContainerTypeName_>                      			ContainerTypes;
+    typedef BTTypes<Profile, ContainerTypeName_>                                ContainerTypes;
 
     
     typedef typename ContainerTypes::Allocator::Page::ID                        ID;
@@ -242,55 +242,55 @@ public:
     static const Int Streams = ListSize<typename ContainerTypes::StreamDescriptors>::Value;
 
     typedef typename bt::AccumulatorBuilder<
-    			typename bt::AccumulatorListBuilder<
-    				typename ContainerTypes::StreamDescriptors
-    			>::Type
-    >::Type																		Accumulator_;
+                typename bt::AccumulatorListBuilder<
+                    typename ContainerTypes::StreamDescriptors
+                >::Type
+    >::Type                                                                     Accumulator_;
 
     typedef bt::StaticVector<
-    			BigInt,
-    			Streams
-    >       																	Position_;
+                BigInt,
+                Streams
+    >                                                                           Position_;
 
-    typedef typename ContainerTypes::Allocator::Page							Page;
+    typedef typename ContainerTypes::Allocator::Page                            Page;
 
     typedef TreeNodeBase<
-    		typename ContainerTypes::Metadata,
-    		Page
-    >  																			NodePageBase0;
-    typedef PageGuard<NodePageBase0, typename ContainerTypes::Allocator>   		NodePageBase0G;
+            typename ContainerTypes::Metadata,
+            Page
+    >                                                                           NodePageBase0;
+    typedef PageGuard<NodePageBase0, typename ContainerTypes::Allocator>        NodePageBase0G;
 
     struct NodeTypes: ContainerTypes {
-        typedef Page                      					NodeBase;
+        typedef Page                                        NodeBase;
         typedef ContainerTypeName_                          Name;
-        typedef typename ContainerTypes::Metadata			Metadata;
+        typedef typename ContainerTypes::Metadata           Metadata;
 
-        typedef typename ListHead<typename ContainerTypes::KeysList>::Type		Key;
+        typedef typename ListHead<typename ContainerTypes::KeysList>::Type      Key;
         typedef typename MyType::Value                      Value;
-        typedef typename MyType::ID							ID;
+        typedef typename MyType::ID                         ID;
 
-        typedef typename ContainerTypes::StreamDescriptors	StreamDescriptors;
+        typedef typename ContainerTypes::StreamDescriptors  StreamDescriptors;
 
         static const Int                                    Indexes             = 1;
-        static const Int                                    Streams				= MyType::Streams;
+        static const Int                                    Streams             = MyType::Streams;
 
-        static const Int									StreamsIdxStart		= 0;
+        static const Int                                    StreamsIdxStart     = 0;
 
-        typedef Accumulator_ 								Accumulator;
-        typedef Position_ 									Position;
+        typedef Accumulator_                                Accumulator;
+        typedef Position_                                   Position;
     };
 
     struct DispatcherTypes
     {
         typedef typename ContainerTypes::NodeTypesList      NodeList;
         typedef typename ContainerTypes::DefaultNodeTypesList DefaultNodeList;
-        typedef NodePageBase0                          		NodeBase;
-        typedef typename MyType::NodeTypes					NodeTypes;
-        typedef NodePageBase0G                         		NodeBaseG;
+        typedef NodePageBase0                               NodeBase;
+        typedef typename MyType::NodeTypes                  NodeTypes;
+        typedef NodePageBase0G                              NodeBaseG;
         typedef typename ContainerTypes::Allocator          Allocator;
     };
 
-    typedef bt::BTreeDispatchers2<DispatcherTypes>                    			PageDispatchers;
+    typedef bt::BTreeDispatchers2<DispatcherTypes>                              PageDispatchers;
 
 
 public:
@@ -303,8 +303,8 @@ public:
         typedef typename ContainerTypes::Allocator                              Allocator;
         typedef typename ContainerTypes::Metadata                               Metadata;
 
-        typedef NodePageBase0                                              		NodeBase;
-        typedef NodePageBase0G                                             		NodeBaseG;
+        typedef NodePageBase0                                                   NodeBase;
+        typedef NodePageBase0G                                                  NodeBaseG;
 
         typedef TypeList<>                                                      EmbeddedContainersList;
 
@@ -313,8 +313,8 @@ public:
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
-        typedef BTCtrTypes<Types>                                          		CtrTypes;
-        typedef BTIterTypes<Types>                                         		IterTypes;
+        typedef BTCtrTypes<Types>                                               CtrTypes;
+        typedef BTIterTypes<Types>                                              IterTypes;
 
         typedef bt::NodePath<
                 NodeBaseG, 8
@@ -327,18 +327,18 @@ public:
         >::Result                                                               Key;
 
 
-        static const Int Streams												= MyType::Streams;
-        typedef Accumulator_       												Accumulator;
-        typedef bt::StaticVector<BigInt, MyType::Streams>       				Position;
+        static const Int Streams                                                = MyType::Streams;
+        typedef Accumulator_                                                    Accumulator;
+        typedef bt::StaticVector<BigInt, MyType::Streams>                       Position;
 
 
 
         typedef ValuePair<Accumulator, Value>                                   Element;
 
-        typedef IDataSource<Value>                                     			IDataSourceType;
-        typedef IDataTarget<Value>                                     			IDataTargetType;
+        typedef IDataSource<Value>                                              IDataSourceType;
+        typedef IDataTarget<Value>                                              IDataTargetType;
 
-        typedef PageUpdateManager<CtrTypes>										PageUpdateMgr;
+        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;

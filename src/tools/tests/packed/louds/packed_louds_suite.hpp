@@ -20,9 +20,9 @@ using namespace std;
 class PackedLoudsTestSuite: public TestSuite {
 public:
 
-	PackedLoudsTestSuite(): TestSuite("Packed.LoudsSuite")
+    PackedLoudsTestSuite(): TestSuite("Packed.LoudsSuite")
     {
-		registerTask(new PackedLoudsCreateTest());
+        registerTask(new PackedLoudsCreateTest());
     }
 };
 

@@ -18,23 +18,23 @@ namespace memoria {
 template <typename Types>
 class Iter<VTreeIterTypes<Types> >: public IterStart<VTreeIterTypes<Types> >
 {
-    typedef IterStart<VTreeIterTypes<Types> >               					Base;
-    typedef Iter<VTreeIterTypes<Types> >                    					MyType;
-    typedef Ctr<VTreeCtrTypes<Types> >                      					ContainerType;
+    typedef IterStart<VTreeIterTypes<Types> >                                   Base;
+    typedef Iter<VTreeIterTypes<Types> >                                        MyType;
+    typedef Ctr<VTreeCtrTypes<Types> >                                          ContainerType;
 
-    typedef typename ContainerType::Vec::Iterator            					VectorIterator;
-    typedef typename ContainerType::Tree::Iterator         						TreeIterator;
+    typedef typename ContainerType::Vec::Iterator                               VectorIterator;
+    typedef typename ContainerType::Tree::Iterator                              TreeIterator;
 
-    typedef typename Types::Profile                             				Profile;
-    typedef typename Types::Allocator                           				Allocator;
-    typedef typename Types::Allocator::CtrShared                				CtrShared;
-    typedef typename Types::Allocator::PageG                    				PageG;
-    typedef typename PageG::Page::ID                                   			ID;
+    typedef typename Types::Profile                                             Profile;
+    typedef typename Types::Allocator                                           Allocator;
+    typedef typename Types::Allocator::CtrShared                                CtrShared;
+    typedef typename Types::Allocator::PageG                                    PageG;
+    typedef typename PageG::Page::ID                                            ID;
 
 
     ContainerType&      model_;
 
-    TreeIterator   		tree_iter_;
+    TreeIterator        tree_iter_;
     VectorIterator      vec_iter_;
     bool                exists_;
 
@@ -66,11 +66,11 @@ public:
     }
 
     MyType& self() {
-    	return *this;
+        return *this;
     }
 
     const MyType& self() const {
-    	return *this;
+        return *this;
     }
 
     ContainerType& model() {

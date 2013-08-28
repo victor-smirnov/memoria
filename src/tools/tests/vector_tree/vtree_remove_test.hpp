@@ -24,22 +24,22 @@ using namespace memoria::louds;
 
 class VectorTreeRemoveTest: public VectorTreeTestBase {
 
-	typedef VectorTreeTestBase													Base;
-    typedef VectorTreeRemoveTest                                               	MyType;
+    typedef VectorTreeTestBase                                                  Base;
+    typedef VectorTreeRemoveTest                                                MyType;
 
-    Int 	iterations_ 	= 1000;
-    Int 	max_degree_		= 10;
-    Int 	remove_batch_	= 100;
+    Int     iterations_     = 1000;
+    Int     max_degree_     = 10;
+    Int     remove_batch_   = 100;
 
 public:
 
     VectorTreeRemoveTest(): VectorTreeTestBase("Remove")
     {
-    	size_ = 20000;
+        size_ = 20000;
 
-    	MEMORIA_ADD_TEST_PARAM(iterations_);
-    	MEMORIA_ADD_TEST_PARAM(max_degree_);
-    	MEMORIA_ADD_TEST_PARAM(remove_batch_);
+        MEMORIA_ADD_TEST_PARAM(iterations_);
+        MEMORIA_ADD_TEST_PARAM(max_degree_);
+        MEMORIA_ADD_TEST_PARAM(remove_batch_);
 
         MEMORIA_ADD_TEST(testRemoveNodes);
     }
@@ -49,75 +49,75 @@ public:
 
     void removeNodes(Ctr& tree, TreeNode& tree_node, Int max_size)
     {
-    	Int size = 0;
-    	LoudsNode root = tree.seek(0).node();
+        Int size = 0;
+        LoudsNode root = tree.seek(0).node();
 
-    	removeNode(tree, root, tree_node, size, max_size);
+        removeNode(tree, root, tree_node, size, max_size);
     }
 
     bool removeNode(Ctr& tree, const LoudsNode& node, TreeNode& tree_node, Int& size, Int max_size)
     {
-    	if (size < max_size)
-    	{
-    		for (Int c = 0; c < tree_node.children();)
-    		{
-    			LoudsNode child = tree.child(node, c).node();
-    			if (removeNode(tree, child, tree_node.child(c), size, max_size))
-    			{
-    				tree_node.removeChild(c);
-    			}
-    			else {
-    				c++;
-    			}
-    		}
+        if (size < max_size)
+        {
+            for (Int c = 0; c < tree_node.children();)
+            {
+                LoudsNode child = tree.child(node, c).node();
+                if (removeNode(tree, child, tree_node.child(c), size, max_size))
+                {
+                    tree_node.removeChild(c);
+                }
+                else {
+                    c++;
+                }
+            }
 
-    		if (tree_node.children() == 0)
-    		{
-    			if (getRandom(2) && tree.nodes() > 1)
-    			{
-    				tree.removeLeaf(node);
-    				size++;
+            if (tree_node.children() == 0)
+            {
+                if (getRandom(2) && tree.nodes() > 1)
+                {
+                    tree.removeLeaf(node);
+                    size++;
 
-    				return true;
-    			}
-    		}
-    	}
+                    return true;
+                }
+            }
+        }
 
-    	return false;
+        return false;
     }
 
 
     void testRemoveNodes()
     {
-    	Allocator allocator;
-    	Ctr tree(&allocator);
+        Allocator allocator;
+        Ctr tree(&allocator);
 
-    	try {
-    		TreeNode root = this->fillRandom(tree, size_, max_degree_);
+        try {
+            TreeNode root = this->fillRandom(tree, size_, max_degree_);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		StoreResource(allocator, "rtree_c", 0);
+            StoreResource(allocator, "rtree_c", 0);
 
-    		for (Int c = 0; c < iterations_ && tree.nodes() > 1; c++)
-    		{
-    			out()<<c<<std::endl;
+            for (Int c = 0; c < iterations_ && tree.nodes() > 1; c++)
+            {
+                out()<<c<<std::endl;
 
-    			removeNodes(tree, root, remove_batch_);
+                removeNodes(tree, root, remove_batch_);
 
-    			forceCheck(allocator, MA_SRC);
+                forceCheck(allocator, MA_SRC);
 
-    			checkTree(tree, root);
+                checkTree(tree, root);
 
-    			allocator.commit();
-    		}
+                allocator.commit();
+            }
 
-    		StoreResource(allocator, "rtree_d", 0);
-    	}
-    	catch (...) {
-    		this->dump_name_ =  Store(allocator);
-    		throw;
-    	}
+            StoreResource(allocator, "rtree_d", 0);
+        }
+        catch (...) {
+            this->dump_name_ =  Store(allocator);
+            throw;
+        }
     }
 };
 

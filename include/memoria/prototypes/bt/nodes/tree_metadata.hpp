@@ -104,13 +104,13 @@ public:
 
         for (Int c = 0; c < Streams; c++)
         {
-        	handler->value("SIZE",  size_ + c);
+            handler->value("SIZE",  size_ + c);
         }
 
         handler->endGroup();
 
         handler->value("BRANCHING_FACTOR",  &branching_factor_);
-        handler->value("PAGE_SIZE",  		&page_size_);
+        handler->value("PAGE_SIZE",         &page_size_);
 
         handler->startGroup("ROOTS", ROOTS);
 
@@ -162,7 +162,7 @@ public:
 
 template <typename ID, Int Streams>
 struct TypeHash<BalancedTreeMetadata<ID, Streams>>: UIntValue<
-	HashHelper<2500, TypeHash<ID>::Value, Streams>::Value
+    HashHelper<2500, TypeHash<ID>::Value, Streams>::Value
 > {};
 
 }

@@ -35,55 +35,55 @@ namespace memoria {
 template <typename Profile_>
 struct CompositeTypes<Profile_, WT>: public CompositeTypes<Profile_, Composite> {
 
-	typedef WT																	ContainerTypeName;
+    typedef WT                                                                  ContainerTypeName;
 
-	typedef CompositeTypes<Profile_, Composite>                                 Base;
+    typedef CompositeTypes<Profile_, Composite>                                 Base;
 
-	typedef typename MergeLists<
-			typename Base::ContainerPartsList,
+    typedef typename MergeLists<
+            typename Base::ContainerPartsList,
 
-			wt::CtrApiName,
-			wt::CtrCTreeName
-	>::Result                                                           		CtrList;
+            wt::CtrApiName,
+            wt::CtrCTreeName
+    >::Result                                                                   CtrList;
 
-	typedef typename MergeLists<
-			typename Base::IteratorPartsList,
+    typedef typename MergeLists<
+            typename Base::IteratorPartsList,
 
-			wt::ItrApiName
-	>::Result                                                           		IterList;
+            wt::ItrApiName
+    >::Result                                                                   IterList;
 
 
-	template <typename Types_>
-	struct CtrBaseFactory {
-		typedef wt::WTCtrBase<Types_>                                  			Type;
-	};
+    template <typename Types_>
+    struct CtrBaseFactory {
+        typedef wt::WTCtrBase<Types_>                                           Type;
+    };
 };
 
 
 template <typename Profile_, typename T>
 class CtrTF<Profile_, WT, T> {
 
-	typedef CtrTF<Profile_, WT, T>                                       		MyType;
+    typedef CtrTF<Profile_, WT, T>                                              MyType;
 
-	typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
+    typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 
-	typedef CompositeTypes<Profile_, WT>                                 		ContainerTypes;
+    typedef CompositeTypes<Profile_, WT>                                        ContainerTypes;
 
 public:
 
-	struct Types: public ContainerTypes
-	{
-		typedef Profile_                                        Profile;
-		typedef MyType::Allocator                               Allocator;
+    struct Types: public ContainerTypes
+    {
+        typedef Profile_                                        Profile;
+        typedef MyType::Allocator                               Allocator;
 
-		typedef WTCtrTypes<Types>                				CtrTypes;
-		typedef WTIterTypes<Types>               				IterTypes;
-	};
+        typedef WTCtrTypes<Types>                               CtrTypes;
+        typedef WTIterTypes<Types>                              IterTypes;
+    };
 
-	typedef typename Types::CtrTypes                                            CtrTypes;
-	typedef typename Types::IterTypes                                           IterTypes;
+    typedef typename Types::CtrTypes                                            CtrTypes;
+    typedef typename Types::IterTypes                                           IterTypes;
 
-	typedef Ctr<CtrTypes>                                                       Type;
+    typedef Ctr<CtrTypes>                                                       Type;
 };
 
 

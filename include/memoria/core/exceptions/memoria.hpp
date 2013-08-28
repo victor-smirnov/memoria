@@ -60,15 +60,15 @@ public:
 class MEMORIA_API NoCtrException: public Exception {
 
 public:
-	NoCtrException(const char* source, StringRef message): Exception(source, message)     {}
-	NoCtrException(const char* source, const SBuf& message): Exception(source, message)   {}
+    NoCtrException(const char* source, StringRef message): Exception(source, message)     {}
+    NoCtrException(const char* source, const SBuf& message): Exception(source, message)   {}
 };
 
 class MEMORIA_API CtrAlreadyExistsException: public Exception {
 
 public:
-	CtrAlreadyExistsException(const char* source, StringRef message): Exception(source, message)     {}
-	CtrAlreadyExistsException(const char* source, const SBuf& message): Exception(source, message)   {}
+    CtrAlreadyExistsException(const char* source, StringRef message): Exception(source, message)     {}
+    CtrAlreadyExistsException(const char* source, const SBuf& message): Exception(source, message)   {}
 };
 
 class MemoriaSigSegv: public Exception {

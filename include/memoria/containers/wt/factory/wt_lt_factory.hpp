@@ -17,21 +17,21 @@ namespace memoria {
 
 template <typename Profile, typename... LabelDescriptors>
 struct BTTypes<Profile, wt::WTLabeledTree<LabelDescriptors...>>:
-	BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>> {
+    BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>> {
 
-	typedef BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>> 		Base;
+    typedef BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>         Base;
 
-	typedef typename MergeLists<
-					typename Base::ContainerPartsList,
-					wt::CtrChecksName
-	>::Result                                           						ContainerPartsList;
+    typedef typename MergeLists<
+                    typename Base::ContainerPartsList,
+                    wt::CtrChecksName
+    >::Result                                                                   ContainerPartsList;
 
 };
 
 
 template <typename Profile, typename... LabelDescriptors, typename T>
 class CtrTF<Profile, wt::WTLabeledTree<LabelDescriptors...>, T>:
-	public CtrTF<Profile, memoria::LabeledTree<LabelDescriptors...>, T> {
+    public CtrTF<Profile, memoria::LabeledTree<LabelDescriptors...>, T> {
 };
 
 

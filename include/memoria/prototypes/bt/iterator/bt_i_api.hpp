@@ -36,7 +36,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     typedef typename Base::Container::Accumulator                               Accumulator;
     typedef typename Base::Container                                            Container;
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
-    typedef typename Types::Position											Position;
+    typedef typename Types::Position                                            Position;
 
 
 
@@ -57,8 +57,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
 
     bool IsFound() {
-    	auto& self = this->self();
-    	return (!self.isEnd()) && self.isNotEmpty();
+        auto& self = this->self();
+        return (!self.isEnd()) && self.isNotEmpty();
     }
 
     void dumpKeys(ostream& out) const
@@ -74,47 +74,47 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     Int leafSize(Int stream) const
     {
-    	return self().leaf_size(stream);
+        return self().leaf_size(stream);
     }
 
     Int leaf_size(Int stream) const
     {
-    	return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), stream);
+        return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), stream);
     }
 
     Int leaf_size() const
     {
-    	return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), self().stream());
+        return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), self().stream());
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Int);
 
     Position leaf_sizes() const {
-    	return LeafDispatcher::dispatchConstRtn(self().leaf(), SizesFn());
+        return LeafDispatcher::dispatchConstRtn(self().leaf(), SizesFn());
     }
 
     bool has_no_data() const
     {
-    	return leaf_sizes().eqAll(0);
+        return leaf_sizes().eqAll(0);
     }
 
     bool is_leaf_empty() const
     {
-    	return self().model().isNodeEmpty(self().leaf());
+        return self().model().isNodeEmpty(self().leaf());
     }
 
     Int leaf_capacity(Int stream) const
     {
-    	auto& self = this->self();
-    	return self.leaf_capacity(Position(), stream);
+        auto& self = this->self();
+        return self.leaf_capacity(Position(), stream);
     }
 
     Int leaf_capacity(const Position& reserved, Int stream) const
     {
-    	auto& self = this->self();
-    	auto& ctr = self.model();
+        auto& self = this->self();
+        auto& ctr = self.model();
 
-    	return ctr.getStreamCapacity(self.leaf(), reserved, stream);
+        return ctr.getStreamCapacity(self.leaf(), reserved, stream);
     }
 
     template <typename Walker>
@@ -125,14 +125,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     void createEmptyLeaf()
     {
-    	auto& self = this->self();
-    	auto& ctr  = self.model();
+        auto& self = this->self();
+        auto& ctr  = self.model();
 
-    	auto next = ctr.splitLeafP(self.leaf(), self.leaf_sizes());
+        auto next = ctr.splitLeafP(self.leaf(), self.leaf_sizes());
 
-    	self.leaf() = next;
+        self.leaf() = next;
 
-    	self.idx() = 0;
+        self.idx() = 0;
     }
 
 MEMORIA_ITERATOR_PART_END
@@ -147,33 +147,33 @@ MEMORIA_ITERATOR_PART_END
 M_PARAMS
 BigInt M_TYPE::skipStreamFw(Int stream, BigInt amount)
 {
-	typedef typename Types::template SkipForwardWalker<Types> Walker;
+    typedef typename Types::template SkipForwardWalker<Types> Walker;
 
-	auto& self = this->self();
+    auto& self = this->self();
 
-	Walker walker(stream, 0, amount);
+    Walker walker(stream, 0, amount);
 
-	walker.prepare(self);
+    walker.prepare(self);
 
-	Int idx = self.model().findFw(self.leaf(), stream, self.idx(), walker);
+    Int idx = self.model().findFw(self.leaf(), stream, self.idx(), walker);
 
-	return walker.finish(self, idx);
+    return walker.finish(self, idx);
 }
 
 M_PARAMS
 BigInt M_TYPE::skipStreamBw(Int stream, BigInt amount)
 {
-	typedef typename Types::template SkipBackwardWalker<Types> Walker;
+    typedef typename Types::template SkipBackwardWalker<Types> Walker;
 
-	auto& self = this->self();
+    auto& self = this->self();
 
-	Walker walker(stream, 0, amount);
+    Walker walker(stream, 0, amount);
 
-	walker.prepare(self);
+    walker.prepare(self);
 
-	Int idx = self.model().findBw(self.leaf(), stream, self.idx(), walker);
+    Int idx = self.model().findBw(self.leaf(), stream, self.idx(), walker);
 
-	return walker.finish(self, idx);
+    return walker.finish(self, idx);
 }
 
 
@@ -184,7 +184,7 @@ BigInt M_TYPE::skipStream(Int stream, BigInt amount)
 {
     auto& self = this->self();
 
-	if (amount > 0)
+    if (amount > 0)
     {
         return self.skipStreamFw(stream, amount);
     }
@@ -192,30 +192,30 @@ BigInt M_TYPE::skipStream(Int stream, BigInt amount)
         return self.skipStreamBw(stream, -amount);
     }
     else {
-    	return 0;
+        return 0;
     }
 }
 
 M_PARAMS
 bool M_TYPE::nextLeafMs(UBigInt streams)
 {
-	typedef typename Types::template NextLeafMutistreamWalker<Types> Walker;
+    typedef typename Types::template NextLeafMutistreamWalker<Types> Walker;
 
-	auto& self = this->self();
+    auto& self = this->self();
 
-	Walker walker(streams);
+    Walker walker(streams);
 
-	return self.findNextLeaf(walker);
+    return self.findNextLeaf(walker);
 }
 
 
 M_PARAMS
 bool M_TYPE::nextLeaf()
 {
-	typedef typename Types::template NextLeafWalker<Types> Walker;
-	Walker walker(self().stream(), 0);
+    typedef typename Types::template NextLeafWalker<Types> Walker;
+    Walker walker(self().stream(), 0);
 
-	return self().findNextLeaf(walker);
+    return self().findNextLeaf(walker);
 }
 
 
@@ -224,14 +224,14 @@ bool M_TYPE::nextLeaf()
 M_PARAMS
 bool M_TYPE::prevLeaf()
 {
-	typedef typename Types::template PrevLeafWalker<Types> Walker;
+    typedef typename Types::template PrevLeafWalker<Types> Walker;
 
-	auto& self = this->self();
-	Int stream = self.stream();
+    auto& self = this->self();
+    Int stream = self.stream();
 
-	Walker walker(stream, 0);
+    Walker walker(stream, 0);
 
-	return self.findPrevLeaf(walker);
+    return self.findPrevLeaf(walker);
 }
 
 
@@ -240,45 +240,45 @@ M_PARAMS
 template <typename Walker>
 bool M_TYPE::findNextLeaf(Walker&& walker)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	NodeBaseG& 	leaf 	= self.leaf();
-	Int 		stream 	= self.stream();
+    NodeBaseG&  leaf    = self.leaf();
+    Int         stream  = self.stream();
 
-	if (!leaf->is_root())
-	{
-		walker.prepare(self);
+    if (!leaf->is_root())
+    {
+        walker.prepare(self);
 
-		NodeBaseG parent = self.ctr().getNodeParent(leaf, Allocator::READ);
+        NodeBaseG parent = self.ctr().getNodeParent(leaf, Allocator::READ);
 
-		Int idx = self.ctr().findFw(parent, stream, leaf->parent_idx() + 1, walker);
+        Int idx = self.ctr().findFw(parent, stream, leaf->parent_idx() + 1, walker);
 
-		Int size = self.ctr().getNodeSize(parent, stream);
+        Int size = self.ctr().getNodeSize(parent, stream);
 
-		MEMORIA_ASSERT_TRUE(size > 0);
+        MEMORIA_ASSERT_TRUE(size > 0);
 
-		Int child_idx;
+        Int child_idx;
 
-		if (idx < size)
-		{
-			child_idx = idx;
-		}
-		else {
-			child_idx = size - 1;
-		}
+        if (idx < size)
+        {
+            child_idx = idx;
+        }
+        else {
+            child_idx = size - 1;
+        }
 
-		// Step down the tree
-		leaf = self.ctr().getChild(parent, child_idx, Allocator::READ);
+        // Step down the tree
+        leaf = self.ctr().getChild(parent, child_idx, Allocator::READ);
 
-		walker.finish(self, idx < size);
+        walker.finish(self, idx < size);
 
-		self.idx() = 0;
+        self.idx() = 0;
 
-		return idx < size;
-	}
-	else {
-		return false;
-	}
+        return idx < size;
+    }
+    else {
+        return false;
+    }
 }
 
 
@@ -287,45 +287,45 @@ M_PARAMS
 template <typename Walker>
 bool M_TYPE::findPrevLeaf(Walker&& walker)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	NodeBaseG& 	leaf 	= self.leaf();
-	Int 		stream 	= self.stream();
+    NodeBaseG&  leaf    = self.leaf();
+    Int         stream  = self.stream();
 
-	if (!leaf->is_root())
-	{
-		walker.prepare(self);
+    if (!leaf->is_root())
+    {
+        walker.prepare(self);
 
-		NodeBaseG parent = self.ctr().getNodeParent(leaf, Allocator::READ);
+        NodeBaseG parent = self.ctr().getNodeParent(leaf, Allocator::READ);
 
-		Int idx = self.model().findBw(parent, stream, leaf->parent_idx() - 1, walker);
+        Int idx = self.model().findBw(parent, stream, leaf->parent_idx() - 1, walker);
 
-		Int size = self.model().getNodeSize(parent, stream);
+        Int size = self.model().getNodeSize(parent, stream);
 
-		MEMORIA_ASSERT_TRUE(size > 0);
+        MEMORIA_ASSERT_TRUE(size > 0);
 
-		Int child_idx;
+        Int child_idx;
 
-		if (idx >= 0)
-		{
-			child_idx = idx;
-		}
-		else {
-			child_idx = 0;
-		}
+        if (idx >= 0)
+        {
+            child_idx = idx;
+        }
+        else {
+            child_idx = 0;
+        }
 
-		// Step down the tree
-		leaf = self.model().getChild(parent, child_idx, Allocator::READ);
+        // Step down the tree
+        leaf = self.model().getChild(parent, child_idx, Allocator::READ);
 
-		walker.finish(self, idx >= 0);
+        walker.finish(self, idx >= 0);
 
-		self.idx() = idx >= 0 ? self.leafSize(stream) - 1 : -1;
+        self.idx() = idx >= 0 ? self.leafSize(stream) - 1 : -1;
 
-		return idx >= 0;
-	}
-	else {
-		return false;
-	}
+        return idx >= 0;
+    }
+    else {
+        return false;
+    }
 }
 
 

@@ -20,7 +20,7 @@
 #include <ostream>
 
 namespace memoria       {
-namespace vtree    		{
+namespace vtree         {
 
 
 

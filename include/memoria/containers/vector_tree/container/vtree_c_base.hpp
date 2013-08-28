@@ -21,7 +21,7 @@
 #include <iostream>
 
 namespace memoria       {
-namespace vtree    		{
+namespace vtree         {
 
 MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
 
@@ -33,18 +33,18 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
     typedef typename Base::CtrShared                                            CtrShared;
 
     typedef LabeledTree<
-    			FLabel<UByte>,
-    			VLabel<BigInt,
-    				Granularity::Bit,
-    				Indexed::Yes
-    			>
-    >																			TreeName;
+                FLabel<UByte>,
+                VLabel<BigInt,
+                    Granularity::Bit,
+                    Indexed::Yes
+                >
+    >                                                                           TreeName;
 
-    typedef Vector<UByte>														VectorName;
+    typedef Vector<UByte>                                                       VectorName;
 
-    typedef typename CtrTF<Profile, TreeName, TreeName>::Type  					Tree;
-    typedef typename CtrTF<Profile, VectorName, VectorName>::Type        		Vec;
-    typedef typename Vec::Value													Value;
+    typedef typename CtrTF<Profile, TreeName, TreeName>::Type                   Tree;
+    typedef typename CtrTF<Profile, VectorName, VectorName>::Type               Vec;
+    typedef typename Vec::Value                                                 Value;
 
 private:
     Tree   tree_;
@@ -103,7 +103,7 @@ public:
     {
         Base::operator=(std::move(other));
 
-        tree_  	= std::move(other.tree_);
+        tree_   = std::move(other.tree_);
         vector_ = std::move(other.vector_);
 
     }
@@ -119,7 +119,7 @@ public:
 
     void initCtr(Int command)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
         tree_.initCtr(&self.allocator(), self.name(), command);
         vector_. initCtr(&tree_, 0, command);
@@ -129,9 +129,9 @@ public:
 
     void initCtr(const ID& root_id)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	tree_.initCtr(&self.allocator(), root_id);
+        tree_.initCtr(&self.allocator(), root_id);
         vector_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, 0));
 
         Base::setCtrShared(NULL);

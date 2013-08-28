@@ -27,9 +27,9 @@ public:
 
     LabeledTreeTestSuite(): TestSuite("LabeledTreeSuite")
     {
-    	registerTask(new LabeledTreeIterTest());
-    	registerTask(new LabeledTreeCreateTest());
-    	registerTask(new LabeledTreeRemoveTest());
+        registerTask(new LabeledTreeIterTest());
+        registerTask(new LabeledTreeCreateTest());
+        registerTask(new LabeledTreeRemoveTest());
     }
 
 };

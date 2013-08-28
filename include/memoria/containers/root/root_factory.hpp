@@ -20,12 +20,12 @@ namespace memoria {
 template <typename Profile>
 struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::Map<BigInt, NullType> > {
 
-    typedef BTTypes<Profile, memoria::Map<BigInt, NullType>>      	Base;
+    typedef BTTypes<Profile, memoria::Map<BigInt, NullType>>                    Base;
 
     typedef typename Base::ID                                                   Value;
 
     typedef typename MergeLists<
-                	typename Base::ContainerPartsList,
+                    typename Base::ContainerPartsList,
                     memoria::root::CtrApiName
     >::Result                                                                   ContainerPartsList;
 

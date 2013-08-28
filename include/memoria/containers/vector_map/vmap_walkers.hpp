@@ -20,96 +20,96 @@
 #include <ostream>
 
 namespace memoria       {
-namespace vmap      	{
+namespace vmap          {
 
 
 template <typename Types>
 class FindWalkerBase {
 protected:
-	typedef typename Types::Key 												Key;
-	typedef typename Types::Accumulator 										Accumulator;
-	typedef Iter<typename Types::IterTypes> 									Iterator;
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef Iter<typename Types::IterTypes>                                     Iterator;
 
-	Accumulator prefix_;
+    Accumulator prefix_;
 
-	Key sum_ = 0;
+    Key sum_ = 0;
 
-	Int stream_;
-	Int index_;
-	Key key_;
+    Int stream_;
+    Int index_;
+    Key key_;
 
 
-	WalkDirection direction_;
+    WalkDirection direction_;
 
 public:
 
-	FindWalkerBase(Int stream, Int index, Key key):
-		stream_(stream),
-		index_(index),
-		key_(key)
-	{}
+    FindWalkerBase(Int stream, Int index, Key key):
+        stream_(stream),
+        index_(index),
+        key_(key)
+    {}
 
-	const WalkDirection& direction() const {
-		return direction_;
-	}
+    const WalkDirection& direction() const {
+        return direction_;
+    }
 
-	WalkDirection& direction() {
-		return direction_;
-	}
+    WalkDirection& direction() {
+        return direction_;
+    }
 
-	void prepare(Iterator& iter)
-	{
-		std::get<0>(prefix_)[0] = iter.cache().id_prefix();
-		std::get<0>(prefix_)[1] = iter.cache().blob_base();
-	}
+    void prepare(Iterator& iter)
+    {
+        std::get<0>(prefix_)[0] = iter.cache().id_prefix();
+        std::get<0>(prefix_)[1] = iter.cache().blob_base();
+    }
 
-	BigInt finish(Iterator& iter, Int idx)
-	{
-		iter.idx() 	= idx;
+    BigInt finish(Iterator& iter, Int idx)
+    {
+        iter.idx()  = idx;
 
-		BigInt id_prefix 	= std::get<0>(prefix_)[0];
-		BigInt base 		= std::get<0>(prefix_)[1];
+        BigInt id_prefix    = std::get<0>(prefix_)[0];
+        BigInt base         = std::get<0>(prefix_)[1];
 
-		BigInt id_entry 	= 0;
-		BigInt size 		= 0;
-
-
-
-		if (idx >=0 && idx < iter.leafSize(stream_))
-		{
-			if (stream_ == 0)
-			{
-				auto entry	= iter.entry();
-
-				id_entry 	= entry.first;
-				size		= entry.second;
-			}
-		}
-
-		Int entry_idx = 0;
-		if (stream_ == 0)
-		{
-			entry_idx = idx;
-		}
-		else {
-			// FIXME: correct entry_idx for data stream
-			entry_idx = iter.cache().entry_idx();
-		}
-
-		iter.cache().setup(id_prefix, id_entry, size, base, entry_idx);
-
-		return sum_;
-	}
+        BigInt id_entry     = 0;
+        BigInt size         = 0;
 
 
-	void empty(Iterator& iter)
-	{
-		iter.idx()	= 0;
-	}
 
-	BigInt prefix() const {
-		return prefix_;
-	}
+        if (idx >=0 && idx < iter.leafSize(stream_))
+        {
+            if (stream_ == 0)
+            {
+                auto entry  = iter.entry();
+
+                id_entry    = entry.first;
+                size        = entry.second;
+            }
+        }
+
+        Int entry_idx = 0;
+        if (stream_ == 0)
+        {
+            entry_idx = idx;
+        }
+        else {
+            // FIXME: correct entry_idx for data stream
+            entry_idx = iter.cache().entry_idx();
+        }
+
+        iter.cache().setup(id_prefix, id_entry, size, base, entry_idx);
+
+        return sum_;
+    }
+
+
+    void empty(Iterator& iter)
+    {
+        iter.idx()  = 0;
+    }
+
+    BigInt prefix() const {
+        return prefix_;
+    }
 };
 
 
@@ -119,122 +119,93 @@ public:
 template <typename Types>
 class MapFindWalker: public FindForwardWalkerBase<Types, MapFindWalker<Types>> {
 
-	typedef FindForwardWalkerBase<Types, MapFindWalker<Types>> 					Base;
-	typedef typename Base::Key 													Key;
-	typedef typename Types::Accumulator 										Accumulator;
-	typedef Iter<typename Types::IterTypes> 									Iterator;
+    typedef FindForwardWalkerBase<Types, MapFindWalker<Types>>                  Base;
+    typedef typename Base::Key                                                  Key;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef Iter<typename Types::IterTypes>                                     Iterator;
 
-	Accumulator prefix_;
-//	Accumulator local_prefix_;
+    Accumulator prefix_;
 
 public:
-	MapFindWalker(Key key):
-		Base(0, 0, key)
-	{
-		Base::search_type() = SearchType::LE;
-	}
+    MapFindWalker(Key key):
+        Base(0, 0, key)
+    {
+        Base::search_type() = SearchType::LE;
+    }
 
 
-	template <Int StreamIdx, typename StreamTypes, typename SearchResult>
-	void postProcessStream(const PkdFTree<StreamTypes>* tree, Int start, const SearchResult& result)
-	{
-		auto& index 	= Base::index_;
+    template <Int StreamIdx, typename StreamTypes, typename SearchResult>
+    void postProcessStream(const PkdFTree<StreamTypes>* tree, Int start, const SearchResult& result)
+    {
+        auto& index     = Base::index_;
 
-		std::get<StreamIdx>(prefix_)[index] 		+= result.prefix();
-		std::get<StreamIdx>(prefix_)[1 - index] 	+= tree->sum(1 - index, start, result.idx());
-
-//		std::get<StreamIdx>(prefix_) += std::get<StreamIdx>(local_prefix_);
-	}
-
-//	struct ArrayStreamPrefixFn
-//	{
-//		Accumulator& prefix_;
-//
-//		ArrayStreamPrefixFn(Accumulator& accum): prefix_(accum) {}
-//
-//		template <Int StreamIdx, typename StreamTypes>
-//		void stream(const PkdFTree<StreamTypes>* tree, Int start, Int end)
-//		{
-//			std::get<StreamIdx>(prefix_)[0] += tree->sum(0, start, end);
-//		}
-//
-//		template <Int StreamIdx, typename StreamTypes>
-//		void stream(const PackedFSEArray<StreamTypes>* tree, Int start, Int end)
-//		{}
-//	};
-//
-//
-//	template <typename Node>
-//	void postProcessNode(const Node* node, Int start, Int end)
-//	{
-//		node->template processStream<1>(ArrayStreamPrefixFn(prefix_), start, end);
-//	}
+        std::get<StreamIdx>(prefix_)[index]         += result.prefix();
+        std::get<StreamIdx>(prefix_)[1 - index]     += tree->sum(1 - index, start, result.idx());
+    }
 
 
-	void prepare(Iterator& iter)
-	{
-//		std::get<0>(prefix_)[0] = iter.cache().id_prefix();
-//		std::get<0>(prefix_)[1] = iter.cache().blob_base();
-	}
+    void prepare(Iterator& iter)
+    {
+    }
 
-	BigInt finish(Iterator& iter, Int idx)
-	{
-		iter.idx() 	= idx;
+    BigInt finish(Iterator& iter, Int idx)
+    {
+        iter.idx()  = idx;
 
-		BigInt id_prefix 	= std::get<0>(prefix_)[0];
-		BigInt base 		= std::get<0>(prefix_)[1];
+        BigInt id_prefix    = std::get<0>(prefix_)[0];
+        BigInt base         = std::get<0>(prefix_)[1];
 
-		BigInt id_entry 	= 0;
-		BigInt size 		= 0;
+        BigInt id_entry     = 0;
+        BigInt size         = 0;
 
-		BigInt global_pos	= base;
+        BigInt global_pos   = base;
 
-		Int entries			= iter.leaf_size(0);
+        Int entries         = iter.leaf_size(0);
 
-		if (idx >=0 && idx < entries)
-		{
-			auto entry	= iter.entry();
+        if (idx >=0 && idx < entries)
+        {
+            auto entry  = iter.entry();
 
-			id_entry 	= entry.first;
-			size		= entry.second;
-		}
+            id_entry    = entry.first;
+            size        = entry.second;
+        }
 
-		iter.cache().setup(id_prefix, id_entry, base, size, idx, entries, global_pos);
+        iter.cache().setup(id_prefix, id_entry, base, size, idx, entries, global_pos);
 
-		return Base::sum_;
-	}
+        return Base::sum_;
+    }
 };
 
 
 template <typename Types>
 class SkipForwardWalker: public FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
 
-	typedef FindForwardWalkerBase<Types, SkipForwardWalker<Types>> 				Base;
-	typedef typename Types::Key 												Key;
-	typedef typename Types::Accumulator 										Accumulator;
+    typedef FindForwardWalkerBase<Types, SkipForwardWalker<Types>>              Base;
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Accumulator                                         Accumulator;
 
 public:
-	SkipForwardWalker(Int stream, Int index, Key distance):
-		Base(stream, index, distance)
-	{
-		Base::search_type() = SearchType::LT;
-	}
+    SkipForwardWalker(Int stream, Int index, Key distance):
+        Base(stream, index, distance)
+    {
+        Base::search_type() = SearchType::LT;
+    }
 };
 
 
 template <typename Types>
 class SkipBackwardWalker: public FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
 
-	typedef FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> 			Base;
-	typedef typename Types::Key 												Key;
-	typedef typename Types::Accumulator 										Accumulator;
+    typedef FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>            Base;
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Accumulator                                         Accumulator;
 
 public:
-	SkipBackwardWalker(Int stream, Int index, Key distance):
-		Base(stream, index, distance)
-	{
-		Base::search_type() = SearchType::LT;
-	}
+    SkipBackwardWalker(Int stream, Int index, Key distance):
+        Base(stream, index, distance)
+    {
+        Base::search_type() = SearchType::LT;
+    }
 };
 
 
@@ -242,23 +213,23 @@ public:
 template <typename Types>
 class FindRangeWalkerBase {
 protected:
-	typedef Iter<typename Types::IterTypes> Iterator;
-	typedef Ctr<typename Types::CtrTypes> 	Container;
+    typedef Iter<typename Types::IterTypes> Iterator;
+    typedef Ctr<typename Types::CtrTypes>   Container;
 
-	typedef typename Types::Accumulator		Accumulator;
+    typedef typename Types::Accumulator     Accumulator;
 
-	WalkDirection direction_;
+    WalkDirection direction_;
 
 public:
-	FindRangeWalkerBase() {}
+    FindRangeWalkerBase() {}
 
-	WalkDirection& direction() {
-		return direction_;
-	}
+    WalkDirection& direction() {
+        return direction_;
+    }
 
-	void empty(Iterator& iter)
-	{
-	}
+    void empty(Iterator& iter)
+    {
+    }
 };
 
 
@@ -266,52 +237,52 @@ public:
 template <typename Types>
 class FindVMapEndWalkerBase: public FindRangeWalkerBase<Types> {
 protected:
-	typedef FindRangeWalkerBase<Types> 											Base;
-	typedef typename Base::Iterator 											Iterator;
-	typedef typename Base::Container 											Container;
+    typedef FindRangeWalkerBase<Types>                                          Base;
+    typedef typename Base::Iterator                                             Iterator;
+    typedef typename Base::Container                                            Container;
 
-	typedef typename Types::Accumulator 										Accumulator;
+    typedef typename Types::Accumulator                                         Accumulator;
 
 
-	Accumulator 	prefix_;
-	Accumulator 	local_prefix_;
+    Accumulator     prefix_;
+    Accumulator     local_prefix_;
 
-	Int stream_;
+    Int stream_;
 
-	IteratorMode mode_;
+    IteratorMode mode_;
 
 public:
-	typedef Int ReturnType;
-	typedef Int ResultType;
+    typedef Int ReturnType;
+    typedef Int ResultType;
 
-	FindVMapEndWalkerBase(Int stream, Container&, IteratorMode mode):
-		stream_(stream),
-		mode_(mode)
-	{}
+    FindVMapEndWalkerBase(Int stream, Container&, IteratorMode mode):
+        stream_(stream),
+        mode_(mode)
+    {}
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node, Int start)
-	{
-		return node->template processStreamRtn<0>(*this, node->level(), start);
-	}
+    template <typename Node>
+    ReturnType treeNode(const Node* node, Int start)
+    {
+        return node->template processStreamRtn<0>(*this, node->level(), start);
+    }
 
-	template <Int StreamIdx, typename TreeTypes>
-	ResultType stream(const PkdFTree<TreeTypes>* tree, Int level, Int start)
-	{
-		typedef PkdFTree<TreeTypes> Tree;
+    template <Int StreamIdx, typename TreeTypes>
+    ResultType stream(const PkdFTree<TreeTypes>* tree, Int level, Int start)
+    {
+        typedef PkdFTree<TreeTypes> Tree;
 
-		Int size = tree->content_size_from_start(0);
-		Int idx = size - (mode_ == IteratorMode::FORWARD ? (level > 0) : 1);
+        Int size = tree->content_size_from_start(0);
+        Int idx = size - (mode_ == IteratorMode::FORWARD ? (level > 0) : 1);
 
-		for (Int block = 0; block < Tree::Blocks; block++)
-		{
-			std::get<StreamIdx>(local_prefix_)[block] = tree->sum(block, idx);
-		}
+        for (Int block = 0; block < Tree::Blocks; block++)
+        {
+            std::get<StreamIdx>(local_prefix_)[block] = tree->sum(block, idx);
+        }
 
-		std::get<StreamIdx>(prefix_) += std::get<StreamIdx>(local_prefix_);
+        std::get<StreamIdx>(prefix_) += std::get<StreamIdx>(local_prefix_);
 
-		return idx;
-	}
+        return idx;
+    }
 
 
 };
@@ -319,69 +290,69 @@ public:
 
 template <typename Types>
 class FindVMapEndWalker: public FindVMapEndWalkerBase<Types> {
-	typedef FindVMapEndWalkerBase<Types> 										Base;
-	typedef typename Base::Container 											Container;
-	typedef typename Base::Iterator 											Iterator;
+    typedef FindVMapEndWalkerBase<Types>                                        Base;
+    typedef typename Base::Container                                            Container;
+    typedef typename Base::Iterator                                             Iterator;
 public:
-	FindVMapEndWalker(Int stream, Container& ctr):
-		Base(stream, ctr, IteratorMode::FORWARD)
-	{}
+    FindVMapEndWalker(Int stream, Container& ctr):
+        Base(stream, ctr, IteratorMode::FORWARD)
+    {}
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = idx;
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.idx() = idx;
 
-		iter.found() = false;
+        iter.found() = false;
 
-		BigInt id_prefix = std::get<0>(Base::prefix_)[0];
-		BigInt base		 = std::get<0>(Base::prefix_)[1];
+        BigInt id_prefix = std::get<0>(Base::prefix_)[0];
+        BigInt base      = std::get<0>(Base::prefix_)[1];
 
-		BigInt global_pos 	= base;
+        BigInt global_pos   = base;
 
-		Int entries 	= iter.leaf_size(0);
+        Int entries     = iter.leaf_size(0);
 
-		iter.cache().setup(id_prefix, 0, base, 0, idx, entries, global_pos);
-	}
+        iter.cache().setup(id_prefix, 0, base, 0, idx, entries, global_pos);
+    }
 
 };
 
 
 template <typename Types>
 class FindVMapRBeginWalker: public FindVMapEndWalkerBase<Types> {
-	typedef FindVMapEndWalkerBase<Types> 										Base;
-	typedef typename Base::Container 											Container;
-	typedef typename Base::Iterator 											Iterator;
+    typedef FindVMapEndWalkerBase<Types>                                        Base;
+    typedef typename Base::Container                                            Container;
+    typedef typename Base::Iterator                                             Iterator;
 public:
-	FindVMapRBeginWalker(Int stream, Container& ctr):
-		Base(stream, ctr, IteratorMode::BACKWARD)
-	{}
+    FindVMapRBeginWalker(Int stream, Container& ctr):
+        Base(stream, ctr, IteratorMode::BACKWARD)
+    {}
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = idx;
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.idx() = idx;
 
-		iter.found() = false;
+        iter.found() = false;
 
-		BigInt id_prefix = std::get<0>(Base::prefix_)[0];
-		BigInt base		 = std::get<0>(Base::prefix_)[1];
+        BigInt id_prefix = std::get<0>(Base::prefix_)[0];
+        BigInt base      = std::get<0>(Base::prefix_)[1];
 
-		BigInt global_pos	= base;
+        BigInt global_pos   = base;
 
-		Int entries 	= iter.leaf_size(0);
+        Int entries     = iter.leaf_size(0);
 
-		if(idx < entries)
-		{
-			auto entry		= iter.entry();
+        if(idx < entries)
+        {
+            auto entry      = iter.entry();
 
-			auto id_entry 	= entry.first;
-			auto size		= entry.second;
+            auto id_entry   = entry.first;
+            auto size       = entry.second;
 
-			iter.cache().setup(id_prefix, id_entry, base, size, idx, entries, global_pos);
-		}
-		else {
-			iter.cache().setup(id_prefix, 0, base, 0, idx, entries, global_pos);
-		}
-	}
+            iter.cache().setup(id_prefix, id_entry, base, size, idx, entries, global_pos);
+        }
+        else {
+            iter.cache().setup(id_prefix, 0, base, 0, idx, entries, global_pos);
+        }
+    }
 };
 
 
@@ -391,63 +362,63 @@ public:
 template <typename Types>
 class FindVMapStartWalkerBase: public FindRangeWalkerBase<Types> {
 protected:
-	typedef FindRangeWalkerBase<Types> 		Base;
-	typedef typename Base::Iterator 		Iterator;
-	typedef typename Base::Container 		Container;
+    typedef FindRangeWalkerBase<Types>      Base;
+    typedef typename Base::Iterator         Iterator;
+    typedef typename Base::Container        Container;
 
-	typedef typename Types::Accumulator 	Accumulator;
+    typedef typename Types::Accumulator     Accumulator;
 
 
 public:
-	typedef Int ReturnType;
+    typedef Int ReturnType;
 
-	FindVMapStartWalkerBase(Int stream, Container&)
-	{}
+    FindVMapStartWalkerBase(Int stream, Container&)
+    {}
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node, Int start)
-	{
-		return 0;
-	}
+    template <typename Node>
+    ReturnType treeNode(const Node* node, Int start)
+    {
+        return 0;
+    }
 };
 
 
 template <typename Types>
 class FindVMapBeginWalker: public FindVMapStartWalkerBase<Types> {
-	typedef FindVMapStartWalkerBase<Types> 										Base;
-	typedef typename Base::Iterator 											Iterator;
-	typedef typename Base::Container 											Container;
+    typedef FindVMapStartWalkerBase<Types>                                      Base;
+    typedef typename Base::Iterator                                             Iterator;
+    typedef typename Base::Container                                            Container;
 public:
 
-	FindVMapBeginWalker(Int stream, Container& ctr): Base(stream, ctr)
-	{}
+    FindVMapBeginWalker(Int stream, Container& ctr): Base(stream, ctr)
+    {}
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = 0;
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.idx() = 0;
 
-		if (!iter.isEnd())
-		{
-			auto entry = iter.entry();
-			iter.cache().set(entry.first, entry.second, 0, iter.leaf_size(0), 0);
-		}
-	}
+        if (!iter.isEnd())
+        {
+            auto entry = iter.entry();
+            iter.cache().set(entry.first, entry.second, 0, iter.leaf_size(0), 0);
+        }
+    }
 };
 
 template <typename Types>
 class FindVMapREndWalker: public FindVMapStartWalkerBase<Types> {
-	typedef FindVMapStartWalkerBase<Types> 										Base;
-	typedef typename Base::Iterator 											Iterator;
-	typedef typename Base::Container 											Container;
+    typedef FindVMapStartWalkerBase<Types>                                      Base;
+    typedef typename Base::Iterator                                             Iterator;
+    typedef typename Base::Container                                            Container;
 public:
 
-	FindVMapREndWalker(Int stream, Container& ctr): Base(stream, ctr)
-	{}
+    FindVMapREndWalker(Int stream, Container& ctr): Base(stream, ctr)
+    {}
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = -1;
-	}
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.idx() = -1;
+    }
 };
 
 
@@ -456,14 +427,14 @@ class PrevLeafWalker: public PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> {
 
 protected:
 
-	typedef PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> 					Base;
-	typedef typename Base::Key 													Key;
-	typedef typename Base::Position 											Position;
-	typedef typename Base::Iterator												Iterator;
+    typedef PrevLeafWalkerBase<Types, PrevLeafWalker<Types>>                    Base;
+    typedef typename Base::Key                                                  Key;
+    typedef typename Base::Position                                             Position;
+    typedef typename Base::Iterator                                             Iterator;
 
 public:
-	PrevLeafWalker(Int stream, Int index): Base(stream, index)
-	{}
+    PrevLeafWalker(Int stream, Int index): Base(stream, index)
+    {}
 };
 
 

@@ -18,13 +18,13 @@ namespace vapi       {
 
 template <typename T, Int BitsPerSymbol>
 struct ISequenceDataSource: IDataSource<T> {
-	virtual ~ISequenceDataSource() throw() {}
+    virtual ~ISequenceDataSource() throw() {}
 };
 
 
 template <typename T, Int BitsPerSymbol>
 struct ISequenceDataTarget: IDataTarget<T> {
-	virtual ~ISequenceDataTarget() throw() {}
+    virtual ~ISequenceDataTarget() throw() {}
 };
 
 

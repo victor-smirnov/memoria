@@ -11,7 +11,7 @@
 
 #include <memoria/core/container/names.hpp>
 
-namespace memoria    	{
+namespace memoria       {
 
 template <typename Types>
 struct CtrWrapperTypes: CtrTypesT<Types> {};

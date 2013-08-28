@@ -29,13 +29,11 @@ template<
 >
 class Iter<BTIterTypes<Types>>: public IterStart<BTIterTypes<Types>>
 {
-    typedef Iter<BTIterTypes<Types>>                                           MyType;
-    typedef IterStart<BTIterTypes<Types>>                                      Base;
-    typedef Ctr<typename Types::CtrTypes>                                           ContainerType;
-    typedef EmptyType                                                               Txn;
+    typedef Iter<BTIterTypes<Types>>                                            MyType;
+    typedef IterStart<BTIterTypes<Types>>                                       Base;
+    typedef Ctr<typename Types::CtrTypes>                                       ContainerType;
 
-    typedef typename ContainerType::Types::NodeBase                                 NodeBase;
-    typedef typename ContainerType::Types::NodeBaseG                                NodeBaseG;
+    typedef typename ContainerType::Types::NodeBaseG                            NodeBaseG;
 
     ContainerType&      model_;
 
@@ -43,7 +41,7 @@ public:
 
     enum {GENERIC_ITERATOR, BEGIN_ITERATOR, END_ITERATOR, REVERSE_BEGIN_ITERATOR, REVERSE_END_ITERATOR};
 
-    typedef ContainerType                                                           Container;
+    typedef ContainerType                                                       Container;
     
     Iter(Container &model): Base(), model_(model)
     {

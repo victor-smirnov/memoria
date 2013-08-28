@@ -18,7 +18,7 @@ namespace memoria {
 template <typename Profile_, typename ContainerTypeSelector>
 struct WrapperTypes {
 
-	typedef ContainerTypeSelector                       						ContainerTypeName;
+    typedef ContainerTypeSelector                                               ContainerTypeName;
 
     typedef Profile_                                                            Profile;
 
@@ -37,7 +37,7 @@ struct WrapperTypes {
 
     template <typename Types_>
     struct CtrBaseFactory {
-        typedef CtrWrapperCtrBase1<Types_>            Type;
+        typedef CtrWrapperCtrBase1<Types_>                  Type;
     };
 };
 
@@ -50,12 +50,12 @@ class CtrTF<Profile_, CtrWrapper<CtrName>, T> {
 
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 
-    typedef WrapperTypes<Profile_, CtrWrapper<CtrName>> 						TypesBase;
+    typedef WrapperTypes<Profile_, CtrWrapper<CtrName>>                         TypesBase;
 
 public:
 
     struct Types: TypesBase {
-    	typedef MyType::Allocator               			Allocator;
+        typedef MyType::Allocator                           Allocator;
     };
 };
 

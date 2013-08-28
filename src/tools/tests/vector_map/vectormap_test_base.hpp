@@ -21,16 +21,16 @@ using namespace memoria::vapi;
 using namespace std;
 
 struct Tripple {
-	BigInt id_;
-	BigInt size_;
-	BigInt data_;
+    BigInt id_;
+    BigInt size_;
+    BigInt data_;
 
-	Tripple(): id_(0), size_(0), data_(0) {}
-	Tripple(BigInt id, BigInt size, BigInt data): id_(id), size_(size), data_(data) {}
+    Tripple(): id_(0), size_(0), data_(0) {}
+    Tripple(BigInt id, BigInt size, BigInt data): id_(id), size_(size), data_(data) {}
 
-	BigInt id() 	const {return id_;}
-	BigInt size()	const {return size_;}
-	BigInt data()	const {return data_;}
+    BigInt id()     const {return id_;}
+    BigInt size()   const {return size_;}
+    BigInt data()   const {return data_;}
 };
 
 
@@ -43,30 +43,30 @@ class VectorMapTestBase: public SPTestTask {
 public:
 
 protected:
-    typedef Key_																Key;
-    typedef Value_																Value;
+    typedef Key_                                                                Key;
+    typedef Value_                                                              Value;
 
     typedef vector<Tripple>                                                     VMapData;
     typedef typename SCtrTF<VectorMap<Key, Value>>::Type                        Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
 
-    typedef std::function<void (TestType*, Allocator&, Ctr&)> 					TestFn;
+    typedef std::function<void (TestType*, Allocator&, Ctr&)>                   TestFn;
 
 
     VMapData tripples_;
 
-    Int 	max_block_size_ 		= 1024*40;
-    bool	check_data_				= false;
-    Int 	iterator_check_count_	= 10;
+    Int     max_block_size_         = 1024*40;
+    bool    check_data_             = false;
+    Int     iterator_check_count_   = 10;
 
-    Int 	iteration_;
+    Int     iteration_;
     Int     data_;
     Int     data_size_;
     String  tripples_data_file_;
     BigInt  key_;
     BigInt  key_num_;
-    Int 	iterator_check_counter_	= 0;
-    bool 	check_data_start_		= true;
+    Int     iterator_check_counter_ = 0;
+    bool    check_data_start_       = true;
 
 
 
@@ -99,129 +99,129 @@ public:
 
     void testEmptyMap(TestFn test_fn)
     {
-    	DefaultLogHandlerImpl logHandler(out());
+        DefaultLogHandlerImpl logHandler(out());
 
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Ctr map(&allocator);
+        Ctr map(&allocator);
 
-    	ctr_name_ = map.name();
+        ctr_name_ = map.name();
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
-    		for (iteration_ = 0; iteration_ < size_; iteration_++)
-    		{
-    			test_fn(T2T<TestType*>(this), allocator, map);
+        try {
+            for (iteration_ = 0; iteration_ < size_; iteration_++)
+            {
+                test_fn(T2T<TestType*>(this), allocator, map);
 
-    			allocator.commit();
-    		}
-    	}
-    	catch (...) {
-    		dump_name_ = Store(allocator);
-    		storeTripples(tripples_);
-    		throw;
-    	}
+                allocator.commit();
+            }
+        }
+        catch (...) {
+            dump_name_ = Store(allocator);
+            storeTripples(tripples_);
+            throw;
+        }
     }
 
     void testPreFilledMap(TestFn test_fn, VMapType map_type, Int max_iterations)
     {
-    	DefaultLogHandlerImpl logHandler(this->out());
+        DefaultLogHandlerImpl logHandler(this->out());
 
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Ctr map(&allocator);
+        Ctr map(&allocator);
 
-    	ctr_name_ = map.name();
-    	tripples_ = map_type == VMapType::Random ?
-    			createRandomVMap(allocator, map, size_) :
-    			createZeroDataVMap(allocator, map, size_);
+        ctr_name_ = map.name();
+        tripples_ = map_type == VMapType::Random ?
+                createRandomVMap(allocator, map, size_) :
+                createZeroDataVMap(allocator, map, size_);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	StoreAllocator(allocator, getResourcePath("prealloc.dump"));
+        StoreAllocator(allocator, getResourcePath("prealloc.dump"));
 
-    	check(allocator, MA_SRC);
+        check(allocator, MA_SRC);
 
-    	checkDataFw(tripples_, map);
+        checkDataFw(tripples_, map);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
-    		for (this->iteration_ = 0; this->iteration_ < max_iterations; this->iteration_++)
-    		{
-    			test_fn(T2T<TestType*>(this), allocator, map);
+        try {
+            for (this->iteration_ = 0; this->iteration_ < max_iterations; this->iteration_++)
+            {
+                test_fn(T2T<TestType*>(this), allocator, map);
 
-    			check(allocator, MA_SRC);
+                check(allocator, MA_SRC);
 
-    			allocator.commit();
-    		}
-    	}
-    	catch (...) {
-    		dump_name_ = this->Store(allocator);
-    		storeTripples(tripples_);
-    		throw;
-    	}
+                allocator.commit();
+            }
+        }
+        catch (...) {
+            dump_name_ = this->Store(allocator);
+            storeTripples(tripples_);
+            throw;
+        }
     }
 
 
     void replay(TestFn test_fn, StringRef function)
     {
-    	Allocator allocator;
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        DefaultLogHandlerImpl logHandler(out());
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	LoadAllocator(allocator, dump_name_);
+        LoadAllocator(allocator, dump_name_);
 
-    	tripples_ = loadTripples();
+        tripples_ = loadTripples();
 
-    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
+        Ctr ctr(&allocator, CTR_FIND, ctr_name_);
 
-    	test_fn(T2T<TestType*>(this), allocator, ctr);
+        test_fn(T2T<TestType*>(this), allocator, ctr);
 
-    	try {
-    		check(allocator, (function + ": Container Check Failed").c_str(), MA_SRC);
-    	}
-    	catch (...) {
-    		allocator.commit();
-    		StoreAllocator(allocator, function + "-invalid.dump");
-    		throw;
-    	}
+        try {
+            check(allocator, (function + ": Container Check Failed").c_str(), MA_SRC);
+        }
+        catch (...) {
+            allocator.commit();
+            StoreAllocator(allocator, function + "-invalid.dump");
+            throw;
+        }
     }
 
     void checkIterator(
-    			Iterator& iter,
-    			Int data_size,
-    			Int data,
-    			std::function<void ()> rollback_fn
-    	)
+                Iterator& iter,
+                Int data_size,
+                Int data,
+                std::function<void ()> rollback_fn
+        )
     {
-    	try {
-    		checkBlock(iter, iter.id(), data_size, data);
-    	}
-    	catch(...) {
-    		rollback_fn();
-    		throw;
-    	}
+        try {
+            checkBlock(iter, iter.id(), data_size, data);
+        }
+        catch(...) {
+            rollback_fn();
+            throw;
+        }
     }
 
     void checkMap(Ctr& map, VMapData& tripples, std::function<void ()> rollback_fn)
     {
-    	try {
-    		if (iterator_check_counter_ % iterator_check_count_ == 0)
-    		{
-    			checkDataFw(tripples, map);
-    			checkDataBw(tripples, map);
-    		}
+        try {
+            if (iterator_check_counter_ % iterator_check_count_ == 0)
+            {
+                checkDataFw(tripples, map);
+                checkDataBw(tripples, map);
+            }
 
-    		iterator_check_counter_++;
-    	}
-    	catch(...) {
-    		rollback_fn();
-    		throw;
-    	}
+            iterator_check_counter_++;
+        }
+        catch(...) {
+            rollback_fn();
+            throw;
+        }
     }
 
 
@@ -238,7 +238,7 @@ public:
 
     VMapData loadTripples()
     {
-    	VMapData tripples;
+        VMapData tripples;
         LoadVector(tripples, tripples_data_file_);
 
         return tripples;
@@ -246,295 +246,295 @@ public:
 
     VMapData createRandomVMap(Allocator& alloc, Ctr& map, Int size)
     {
-    	VMapData tripples;
+        VMapData tripples;
 
-    	for (Int c = 0; c < size; c++)
-    	{
-    		Int	data_size 	= getRandom(max_block_size_);
-    		Int	data		= c & 0xFF;
-    		Int	key 		= getNewRandomId(map);
+        for (Int c = 0; c < size; c++)
+        {
+            Int data_size   = getRandom(max_block_size_);
+            Int data        = c & 0xFF;
+            Int key         = getNewRandomId(map);
 
-    		vector<Value> vdata = createSimpleBuffer<Value>(data_size, data);
+            vector<Value> vdata = createSimpleBuffer<Value>(data_size, data);
 
-    		MemBuffer<Value> buf(vdata);
+            MemBuffer<Value> buf(vdata);
 
-    		auto iter = map.create(key, buf);
+            auto iter = map.create(key, buf);
 
-    		UInt insertion_pos;
-    		for (insertion_pos = 0; insertion_pos < tripples.size(); insertion_pos++)
-    		{
-    			if (key <= tripples[insertion_pos].id())
-    			{
-    				break;
-    			}
-    		}
+            UInt insertion_pos;
+            for (insertion_pos = 0; insertion_pos < tripples.size(); insertion_pos++)
+            {
+                if (key <= tripples[insertion_pos].id())
+                {
+                    break;
+                }
+            }
 
-    		tripples.insert(tripples.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), data));
-    	}
+            tripples.insert(tripples.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), data));
+        }
 
-    	return tripples;
+        return tripples;
     }
 
     VMapData createZeroDataVMap(Allocator& alloc, Ctr& map, Int size)
     {
-    	VMapData tripples;
-    	vector<Value> vdata;
+        VMapData tripples;
+        vector<Value> vdata;
 
-    	for (Int c = 0; c < size; c++)
-    	{
-    		Int	key 		= getNewRandomId(map);
+        for (Int c = 0; c < size; c++)
+        {
+            Int key         = getNewRandomId(map);
 
-    		MemBuffer<Value> buf(vdata);
+            MemBuffer<Value> buf(vdata);
 
-    		auto iter = map.create(key, buf);
+            auto iter = map.create(key, buf);
 
-    		UInt insertion_pos;
-    		for (insertion_pos = 0; insertion_pos < tripples.size(); insertion_pos++)
-    		{
-    			if (key <= tripples[insertion_pos].id())
-    			{
-    				break;
-    			}
-    		}
+            UInt insertion_pos;
+            for (insertion_pos = 0; insertion_pos < tripples.size(); insertion_pos++)
+            {
+                if (key <= tripples[insertion_pos].id())
+                {
+                    break;
+                }
+            }
 
-    		tripples.insert(tripples.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), c & 0xFF));
-    	}
+            tripples.insert(tripples.begin() + insertion_pos, Tripple(iter.id(), iter.blob_size(), c & 0xFF));
+        }
 
-    	return tripples;
+        return tripples;
     }
 
 
     void checkDataFw(const VMapData& tripples, Ctr& map)
     {
-    	if (isReplayMode())
-    	{
-    		cout<<endl<<"CheckDataFW"<<endl;
-    	}
+        if (isReplayMode())
+        {
+            cout<<endl<<"CheckDataFW"<<endl;
+        }
 
-    	BigInt total_size = 0;
-    	for (auto& tripple: tripples) total_size += tripple.size();
+        BigInt total_size = 0;
+        for (auto& tripple: tripples) total_size += tripple.size();
 
-    	AssertEQ(MA_SRC, total_size, map.total_size());
-    	AssertEQ(MA_SRC, (BigInt)tripples.size(), map.size());
+        AssertEQ(MA_SRC, total_size, map.total_size());
+        AssertEQ(MA_SRC, (BigInt)tripples.size(), map.size());
 
-    	Int idx = 0;
-    	for (auto iter = map.Begin(); !iter.isEnd(); idx++)
-    	{
-    		auto& tripple = tripples[idx];
+        Int idx = 0;
+        for (auto iter = map.Begin(); !iter.isEnd(); idx++)
+        {
+            auto& tripple = tripples[idx];
 
-    		BigInt id 	= iter.id();
-    		BigInt size	= iter.blob_size();
+            BigInt id   = iter.id();
+            BigInt size = iter.blob_size();
 
-    		if (isReplayMode())
-    		{
-    			cout<<idx<<" "<<id<<" "<<size<<endl;
-    		}
+            if (isReplayMode())
+            {
+                cout<<idx<<" "<<id<<" "<<size<<endl;
+            }
 
-    		if (id != tripple.id()) {
-    			iter.dump();
-    		}
+            if (id != tripple.id()) {
+                iter.dump();
+            }
 
-    		AssertEQ(MA_SRC, id, tripple.id());
+            AssertEQ(MA_SRC, id, tripple.id());
 
-    		if (size != tripple.size()) {
-    			iter.dump();
-    		}
+            if (size != tripple.size()) {
+                iter.dump();
+            }
 
-    		AssertEQ(MA_SRC, size, tripple.size());
+            AssertEQ(MA_SRC, size, tripple.size());
 
-//    		if (check_data_start_)
-//    		{
-//    			auto tmp = iter;
+//          if (check_data_start_)
+//          {
+//              auto tmp = iter;
 //
-//    			auto id1 = tmp.leaf()->id();
-//    			tmp.seek(0);
-//    			auto id2 = tmp.leaf()->id();
+//              auto id1 = tmp.leaf()->id();
+//              tmp.seek(0);
+//              auto id2 = tmp.leaf()->id();
 //
-//    			AssertEQ(MA_SRC, id1, id2);
-//    		}
+//              AssertEQ(MA_SRC, id1, id2);
+//          }
 
-    		if (check_data_)
-    		{
-    			iter.seek(0);
+            if (check_data_)
+            {
+                iter.seek(0);
 
-    			BigInt size0;
-    			for (size0 = 0; !iter.isEof(); size0++)
-    			{
-    				auto value = iter.value();
+                BigInt size0;
+                for (size0 = 0; !iter.isEof(); size0++)
+                {
+                    auto value = iter.value();
 
-    				AssertEQ(MA_SRC, (BigInt)value, (BigInt)tripple.data());
-    				AssertEQ(MA_SRC, iter.pos(), size0);
+                    AssertEQ(MA_SRC, (BigInt)value, (BigInt)tripple.data());
+                    AssertEQ(MA_SRC, iter.pos(), size0);
 
-    				iter.skipFw(1);
-    			}
+                    iter.skipFw(1);
+                }
 
-    			AssertEQ(MA_SRC, size, size0);
-    			AssertEQ(MA_SRC, iter.pos(), size0);
-    		}
-    		else if (size > 0)
-    		{
-    			iter.seek(0);
-    			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
+                AssertEQ(MA_SRC, size, size0);
+                AssertEQ(MA_SRC, iter.pos(), size0);
+            }
+            else if (size > 0)
+            {
+                iter.seek(0);
+                AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
 
-    			iter.skipFw(size - 1);
+                iter.skipFw(size - 1);
 
-    			if ((BigInt)iter.value() != (BigInt)tripple.data()) {
-    				iter.dump();
-    			}
+                if ((BigInt)iter.value() != (BigInt)tripple.data()) {
+                    iter.dump();
+                }
 
-    			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
+                AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
 
-    			iter.skipFw(1);
-    			AssertTrue(MA_SRC, iter.isEof());
-    		}
-    		else {
-    			iter.seek(0);
+                iter.skipFw(1);
+                AssertTrue(MA_SRC, iter.isEof());
+            }
+            else {
+                iter.seek(0);
 
-    			AssertTrue(MA_SRC, iter.isEof());
-    			AssertTrue(MA_SRC, iter.isBof());
-    		}
+                AssertTrue(MA_SRC, iter.isEof());
+                AssertTrue(MA_SRC, iter.isBof());
+            }
 
-    		iter++;
+            iter++;
 
-    		AssertLT(MA_SRC, idx, (Int)tripples.size());
-    	}
+            AssertLT(MA_SRC, idx, (Int)tripples.size());
+        }
     }
 
 
     void checkDataBw(const VMapData& tripples, Ctr& map)
     {
-    	if (isReplayMode())
-    	{
-    		cout<<endl<<"CheckDataBW"<<endl;
-    	}
+        if (isReplayMode())
+        {
+            cout<<endl<<"CheckDataBW"<<endl;
+        }
 
-    	BigInt total_size = 0;
-    	for (auto& tripple: tripples) total_size += tripple.size();
+        BigInt total_size = 0;
+        for (auto& tripple: tripples) total_size += tripple.size();
 
-    	AssertEQ(MA_SRC, total_size, map.total_size());
-    	AssertEQ(MA_SRC, (BigInt)tripples.size(), map.size());
+        AssertEQ(MA_SRC, total_size, map.total_size());
+        AssertEQ(MA_SRC, (BigInt)tripples.size(), map.size());
 
-    	Int idx = tripples.size() - 1;
-    	for (auto iter = map.RBegin(); !iter.isBegin(); idx--)
-    	{
-    		auto& tripple = tripples[idx];
+        Int idx = tripples.size() - 1;
+        for (auto iter = map.RBegin(); !iter.isBegin(); idx--)
+        {
+            auto& tripple = tripples[idx];
 
-    		BigInt id 	= iter.id();
-    		BigInt size	= iter.blob_size();
+            BigInt id   = iter.id();
+            BigInt size = iter.blob_size();
 
-    		if (isReplayMode())
-    		{
-    			cout<<id<<" "<<size<<" "<<idx<<endl;
-    		}
+            if (isReplayMode())
+            {
+                cout<<id<<" "<<size<<" "<<idx<<endl;
+            }
 
-    		AssertEQ(MA_SRC, id, tripple.id());
-    		AssertEQ(MA_SRC, size, tripple.size());
+            AssertEQ(MA_SRC, id, tripple.id());
+            AssertEQ(MA_SRC, size, tripple.size());
 
-    		if (check_data_)
-    		{
-    			iter.seek(size - 1);
+            if (check_data_)
+            {
+                iter.seek(size - 1);
 
-    			BigInt size0;
-    			for (size0 = 0; !iter.isBof(); size0++)
-    			{
-    				auto value = iter.value();
+                BigInt size0;
+                for (size0 = 0; !iter.isBof(); size0++)
+                {
+                    auto value = iter.value();
 
-    				AssertEQ(MA_SRC, (Int)value, (Int)tripple.data());
+                    AssertEQ(MA_SRC, (Int)value, (Int)tripple.data());
 
-    				iter.skipBw(1);
-    			}
+                    iter.skipBw(1);
+                }
 
-    			AssertEQ(MA_SRC, size, size0);
-    		}
-    		else if (size > 0)
-    		{
-    			AssertEQ(MA_SRC, iter.seek(size - 1), size - 1);
-    			AssertEQ(MA_SRC, iter.pos(), size - 1);
+                AssertEQ(MA_SRC, size, size0);
+            }
+            else if (size > 0)
+            {
+                AssertEQ(MA_SRC, iter.seek(size - 1), size - 1);
+                AssertEQ(MA_SRC, iter.pos(), size - 1);
 
-    			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
+                AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
 
 
-    			AssertFalse(MA_SRC, iter.isBof());
-    			AssertFalse(MA_SRC, iter.isEof());
+                AssertFalse(MA_SRC, iter.isBof());
+                AssertFalse(MA_SRC, iter.isEof());
 
-    			AssertEQ(MA_SRC, iter.skipFw(1), 1);
-    			AssertTrue(MA_SRC, iter.isEof());
-    			AssertFalse(MA_SRC, iter.isBof());
+                AssertEQ(MA_SRC, iter.skipFw(1), 1);
+                AssertTrue(MA_SRC, iter.isEof());
+                AssertFalse(MA_SRC, iter.isBof());
 
-    			AssertEQ(MA_SRC, iter.skipBw(size), size);
-    			AssertEQ(MA_SRC, iter.pos(), 0);
-    			AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
-    			AssertFalse(MA_SRC, iter.isBof());
-    			AssertFalse(MA_SRC, iter.isEof());
+                AssertEQ(MA_SRC, iter.skipBw(size), size);
+                AssertEQ(MA_SRC, iter.pos(), 0);
+                AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)tripple.data());
+                AssertFalse(MA_SRC, iter.isBof());
+                AssertFalse(MA_SRC, iter.isEof());
 
-    			iter.skipBw(1);
+                iter.skipBw(1);
 
-    			AssertTrue(MA_SRC, iter.isBof());
-    			AssertFalse(MA_SRC, iter.isEof());
-    		}
-    		else {
-    			iter.seek(0);
-    			AssertTrue(MA_SRC, iter.isEof());
-    			AssertTrue(MA_SRC, iter.isBof());
-    		}
+                AssertTrue(MA_SRC, iter.isBof());
+                AssertFalse(MA_SRC, iter.isEof());
+            }
+            else {
+                iter.seek(0);
+                AssertTrue(MA_SRC, iter.isEof());
+                AssertTrue(MA_SRC, iter.isBof());
+            }
 
-    		iter--;
+            iter--;
 
-    		AssertLT(MA_SRC, idx, (Int)tripples.size());
-    	}
+            AssertLT(MA_SRC, idx, (Int)tripples.size());
+        }
     }
 
 
 
     void checkBlock(Iterator& iter, BigInt id, BigInt size, Value data)
     {
-    	AssertEQ(MA_SRC, iter.id(), id);
-    	AssertEQ(MA_SRC, iter.blob_size(), size);
+        AssertEQ(MA_SRC, iter.id(), id);
+        AssertEQ(MA_SRC, iter.blob_size(), size);
 
-    	iter.seek(0);
+        iter.seek(0);
 
-    	AssertEQ(MA_SRC, iter.pos(), 0);
+        AssertEQ(MA_SRC, iter.pos(), 0);
 
-    	if (size > 0)
-    	{
-    		AssertFalse(MA_SRC, iter.isBof());
-    	}
+        if (size > 0)
+        {
+            AssertFalse(MA_SRC, iter.isBof());
+        }
 
-    	if (check_data_)
-    	{
-    		iter.seek(0);
+        if (check_data_)
+        {
+            iter.seek(0);
 
-    		BigInt size0;
-    		for (size0 = 0; !iter.isEof(); size0++)
-    		{
-    			auto value = iter.value();
+            BigInt size0;
+            for (size0 = 0; !iter.isEof(); size0++)
+            {
+                auto value = iter.value();
 
-    			AssertEQ(MA_SRC, (BigInt)value, (BigInt)data);
-    			AssertEQ(MA_SRC, iter.pos(), size0);
+                AssertEQ(MA_SRC, (BigInt)value, (BigInt)data);
+                AssertEQ(MA_SRC, iter.pos(), size0);
 
-    			iter.skipFw(1);
-    		}
+                iter.skipFw(1);
+            }
 
-    		AssertEQ(MA_SRC, size, size0);
-    		AssertEQ(MA_SRC, iter.pos(), size0);
-    	}
-    	else if (size > 0)
-    	{
-    		iter.seek(0);
-    		AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)data);
+            AssertEQ(MA_SRC, size, size0);
+            AssertEQ(MA_SRC, iter.pos(), size0);
+        }
+        else if (size > 0)
+        {
+            iter.seek(0);
+            AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)data);
 
-    		iter.skipFw(size - 1);
-    		AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)data);
+            iter.skipFw(size - 1);
+            AssertEQ(MA_SRC, (BigInt)iter.value(), (BigInt)data);
 
-    		iter.skipFw(1);
-    		AssertTrue(MA_SRC, iter.isEof());
-    	}
-    	else {
-    		iter.seek(0);
+            iter.skipFw(1);
+            AssertTrue(MA_SRC, iter.isEof());
+        }
+        else {
+            iter.seek(0);
 
-    		AssertTrue(MA_SRC, iter.isEof());
-    		AssertTrue(MA_SRC, iter.isBof());
-    	}
+            AssertTrue(MA_SRC, iter.isEof());
+            AssertTrue(MA_SRC, iter.isBof());
+        }
     }
 
     virtual void setUp()
@@ -545,14 +545,14 @@ public:
 
     BigInt getNewRandomId(Ctr& map)
     {
-    	BigInt id;
+        BigInt id;
 
-    	do {
-    		id = getBIRandom(1000000);
-    	}
-    	while(map.contains(id));
+        do {
+            id = getBIRandom(1000000);
+        }
+        while(map.contains(id));
 
-    	return id;
+        return id;
     }
 };
 
@@ -566,7 +566,7 @@ static ostream& operator<<(ostream& out, const Tripple& pair)
 
 istream& operator>>(istream& in, Tripple& pair)
 {
-	BigInt id = 0, size = 0, data = 0;
+    BigInt id = 0, size = 0, data = 0;
 
     in>>skipws;
     in>>id;

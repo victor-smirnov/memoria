@@ -20,9 +20,9 @@ class PackedWaveletTreeTestSuite: public TestSuite {
 
 public:
 
-	PackedWaveletTreeTestSuite(): TestSuite("Packed.WaveletTreeSuite")
+    PackedWaveletTreeTestSuite(): TestSuite("Packed.WaveletTreeSuite")
     {
-		registerTask(new PackedWaveletTreeTest());
+        registerTask(new PackedWaveletTreeTest());
     }
 
 };

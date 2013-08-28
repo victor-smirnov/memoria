@@ -14,24 +14,24 @@
 
 #include <tuple>
 
-namespace memoria 	{
-namespace louds 	{
+namespace memoria   {
+namespace louds     {
 
 template<typename LabedDescr> struct LabelTypeTF;
 
 template<typename T, Indexed idx>
 struct LabelTypeTF<FLabel<T, idx>> {
-	typedef T Type;
+    typedef T Type;
 };
 
 template<typename T, Indexed idx, Granularity gr>
 struct LabelTypeTF<VLabel<T, gr, idx>> {
-	typedef T Type;
+    typedef T Type;
 };
 
 template<Int BitsPerLabel>
 struct LabelTypeTF<FBLabel<BitsPerLabel>> {
-	typedef UBigInt Type;
+    typedef UBigInt Type;
 };
 
 
@@ -45,24 +45,24 @@ template <typename... Labels> class LabelsTypeListBuilder;
 
 template <typename Head, typename... Tail>
 class LabelsTypeListBuilder<Head, Tail...> {
-	typedef typename LabelTypeTF<Head>::Type 									LabelDataType;
+    typedef typename LabelTypeTF<Head>::Type                                    LabelDataType;
 public:
-	typedef typename PrependToList<
-			typename LabelsTypeListBuilder<Tail...>::Type,
-			LabelDataType
-	>::Result																	Type;
+    typedef typename PrependToList<
+            typename LabelsTypeListBuilder<Tail...>::Type,
+            LabelDataType
+    >::Result                                                                   Type;
 };
 
 template <>
 class LabelsTypeListBuilder<> {
 public:
-	typedef TypeList<> Type;
+    typedef TypeList<> Type;
 };
 
 template <typename... Labels>
 class LabelsTypeListBuilder<TypeList<Labels...> > {
 public:
-	typedef typename LabelsTypeListBuilder<Labels...>::Type						Type;
+    typedef typename LabelsTypeListBuilder<Labels...>::Type                     Type;
 };
 
 
@@ -70,22 +70,22 @@ public:
 
 template <typename... Labels>
 struct TupleTF {
-	typedef std::tuple<Labels...> 												Type;
+    typedef std::tuple<Labels...>                                               Type;
 };
 
 
 template <typename... Labels>
 struct TupleTF<TypeList<Labels...>> {
-	typedef std::tuple<Labels...> 												Type;
+    typedef std::tuple<Labels...>                                               Type;
 };
 
 
 template <typename... LabelDescriptors>
 class LabelsTupleTF {
-	typedef typename LabelsTypeListBuilder<LabelDescriptors...>::Type			LabelTypesList;
+    typedef typename LabelsTypeListBuilder<LabelDescriptors...>::Type           LabelTypesList;
 
 public:
-	typedef typename TupleTF<LabelTypesList>::Type								Type;
+    typedef typename TupleTF<LabelTypesList>::Type                              Type;
 };
 
 }

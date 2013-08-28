@@ -29,7 +29,8 @@ template <
     template <typename, typename> class Element,
     typename Base
 >
-struct SimpleHierarchy<TypeList<T1, T2...>, Element, Base>: public Element<T1, SimpleHierarchy<TypeList <T2...>, Element, Base> > {};
+struct SimpleHierarchy<TypeList<T1, T2...>, Element, Base>:
+        public Element<T1, SimpleHierarchy<TypeList <T2...>, Element, Base> > {};
 
 template <
     typename T,

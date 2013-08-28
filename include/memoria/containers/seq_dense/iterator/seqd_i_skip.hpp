@@ -25,96 +25,96 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
 
-	typedef Ctr<typename Types::CtrTypes>                      					Container;
+    typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 
-	typedef typename Base::Allocator                                            Allocator;
-	typedef typename Base::NodeBase                                             NodeBase;
-	typedef typename Base::NodeBaseG                                            NodeBaseG;
-	typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    typedef typename Base::TreePath                                             TreePath;
 
-	typedef typename Container::Value                                     		Value;
-	typedef typename Container::Key                                       		Key;
-	typedef typename Container::Element                                   		Element;
-	typedef typename Container::Accumulator                               		Accumulator;
+    typedef typename Container::Value                                           Value;
+    typedef typename Container::Key                                             Key;
+    typedef typename Container::Element                                         Element;
+    typedef typename Container::Accumulator                                     Accumulator;
 
-	typedef typename Container::LeafDispatcher                                	LeafDispatcher;
-	typedef typename Container::Position										Position;
+    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Container::Position                                        Position;
 
-	bool operator++() {
-		return self().skipFw(1);
-	}
+    bool operator++() {
+        return self().skipFw(1);
+    }
 
-	bool operator--() {
-		return self().skipBw(1);
-	}
+    bool operator--() {
+        return self().skipBw(1);
+    }
 
-	bool operator++(int) {
-		return self().skipFw(1);
-	}
+    bool operator++(int) {
+        return self().skipFw(1);
+    }
 
-	bool operator--(int) {
-		return self().skipBw(1);
-	}
+    bool operator--(int) {
+        return self().skipBw(1);
+    }
 
-	BigInt operator+=(BigInt size)
-	{
-		return self().skipFw(size);
-	}
+    BigInt operator+=(BigInt size)
+    {
+        return self().skipFw(size);
+    }
 
-	BigInt operator-=(BigInt size)
-	{
-		return self().skipBw(size);
-	}
+    BigInt operator-=(BigInt size)
+    {
+        return self().skipBw(size);
+    }
 
-	bool isEof() const {
-		return self().idx() >= self().size();
-	}
+    bool isEof() const {
+        return self().idx() >= self().size();
+    }
 
-	bool isBof() const {
-		return self().idx() < 0;
-	}
+    bool isBof() const {
+        return self().idx() < 0;
+    }
 
-	Int size() const
-	{
-		return self().leafSize(0);
-	}
+    Int size() const
+    {
+        return self().leafSize(0);
+    }
 
-	BigInt skipFw(BigInt amount);
-	BigInt skipBw(BigInt amount);
-	BigInt skip(BigInt amount);
-
-
-	struct PosFn {
-		BigInt prefix_ = 0;
-
-		template <typename NodeTypes>
-		void treeNode(const LeafNode<NodeTypes>* node, Int idx) {}
-
-		template <typename NodeTypes>
-		void treeNode(const BranchNode<NodeTypes>* node, Int idx)
-		{
-			node->sum(0, 0, 0, idx, prefix_);
-		}
-	};
+    BigInt skipFw(BigInt amount);
+    BigInt skipBw(BigInt amount);
+    BigInt skip(BigInt amount);
 
 
-	BigInt pos() const
-	{
-		auto& self = this->self();
+    struct PosFn {
+        BigInt prefix_ = 0;
 
-		PosFn fn;
+        template <typename NodeTypes>
+        void treeNode(const LeafNode<NodeTypes>* node, Int idx) {}
 
-		self.ctr().walkUp(self.leaf(), self.idx(), fn);
+        template <typename NodeTypes>
+        void treeNode(const BranchNode<NodeTypes>* node, Int idx)
+        {
+            node->sum(0, 0, 0, idx, prefix_);
+        }
+    };
 
-		return fn.prefix_ + self.idx();
-	}
 
-//	BigInt cpos() const
-//	{
-//		auto& self = this->self();
-//		return self.cache().pos();
-//	}
+    BigInt pos() const
+    {
+        auto& self = this->self();
+
+        PosFn fn;
+
+        self.ctr().walkUp(self.leaf(), self.idx(), fn);
+
+        return fn.prefix_ + self.idx();
+    }
+
+//  BigInt cpos() const
+//  {
+//      auto& self = this->self();
+//      return self.cache().pos();
+//  }
 
 MEMORIA_ITERATOR_PART_END
 
@@ -127,7 +127,7 @@ BigInt M_TYPE::skip(BigInt amount)
 {
     auto& self = this->self();
 
-	if (amount > 0)
+    if (amount > 0)
     {
         return self.skipFw(amount);
     }
@@ -135,7 +135,7 @@ BigInt M_TYPE::skip(BigInt amount)
         return self.skipBw(-amount);
     }
     else {
-    	return 0;
+        return 0;
     }
 }
 
@@ -143,13 +143,13 @@ BigInt M_TYPE::skip(BigInt amount)
 M_PARAMS
 BigInt M_TYPE::skipFw(BigInt amount)
 {
-	return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
+    return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
 }
 
 M_PARAMS
 BigInt M_TYPE::skipBw(BigInt amount)
 {
-	return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
+    return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
 }
 
 

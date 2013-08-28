@@ -40,99 +40,99 @@ public:
     }
 
     void testCountOneFW() {
-    	testCountFW(1);
+        testCountFW(1);
     }
 
 
     void testCountZeroFW() {
-    	testCountFW(0);
+        testCountFW(0);
     }
 
 
     void testCountFW(Int value)
     {
-    	Base::out()<<"TestCountFw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
+        Base::out()<<"TestCountFw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
 
-    	T values[10];
+        T values[10];
 
-    	Int bitsize 	= sizeof(values) * 8;
+        Int bitsize     = sizeof(values) * 8;
 
-    	for (Int length = 0; length < bitsize; length++)
-    	{
-    		for (Int start = 0; start < bitsize - length; start++)
-    		{
-    			MyType::makeBitmap(values, bitsize, start, length, value);
+        for (Int length = 0; length < bitsize; length++)
+        {
+            for (Int start = 0; start < bitsize - length; start++)
+            {
+                MyType::makeBitmap(values, bitsize, start, length, value);
 
-    			Int count;
+                Int count;
 
-    			Int limit = start + length + 1;
+                Int limit = start + length + 1;
 
-    			if (limit > bitsize)
-    			{
-    				limit = bitsize;
-    			}
+                if (limit > bitsize)
+                {
+                    limit = bitsize;
+                }
 
-    			if (value)
-    			{
-    				count = CountOneFw(values, start, limit);
-    			}
-    			else {
-    				count = CountZeroFw(values, start, limit);
-    			}
+                if (value)
+                {
+                    count = CountOneFw(values, start, limit);
+                }
+                else {
+                    count = CountZeroFw(values, start, limit);
+                }
 
-    			AssertEQ(MA_SRC, count, length, SBuf()<<start<<" "<<length);
-    		}
-    	}
+                AssertEQ(MA_SRC, count, length, SBuf()<<start<<" "<<length);
+            }
+        }
     }
 
 
 
     void testCountOneBW() {
-    	testCountBW(1);
+        testCountBW(1);
     }
 
 
     void testCountZeroBW() {
-    	testCountBW(0);
+        testCountBW(0);
     }
 
 
     void testCountBW(Int value)
     {
-    	Base::out()<<"TestCountBw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
+        Base::out()<<"TestCountBw: "<<TypeNameFactory<T>::name()<<" "<<value<<endl;
 
-    	T values[10];
+        T values[10];
 
-    	Int bitsize 	= sizeof(values) * 8;
+        Int bitsize     = sizeof(values) * 8;
 
-    	for (Int length = 0; length < bitsize; length++)
-    	{
-    		for (Int start = 0; start < bitsize - length; start++)
-    		{
-    			MyType::makeBitmap(values, bitsize, start, length, value);
+        for (Int length = 0; length < bitsize; length++)
+        {
+            for (Int start = 0; start < bitsize - length; start++)
+            {
+                MyType::makeBitmap(values, bitsize, start, length, value);
 
-    			Int count;
+                Int count;
 
-    			Int limit = start - 1;
+                Int limit = start - 1;
 
-    			if (limit < 0)
-    			{
-    				limit = 0;
-    			}
+                if (limit < 0)
+                {
+                    limit = 0;
+                }
 
-    			Int begin = start + length;
+                Int begin = start + length;
 
-    			if (value)
-    			{
-    				count = CountOneBw(values, begin, limit);
-    			}
-    			else {
-    				count = CountZeroBw(values, begin, limit);
-    			}
+                if (value)
+                {
+                    count = CountOneBw(values, begin, limit);
+                }
+                else {
+                    count = CountZeroBw(values, begin, limit);
+                }
 
-    			AssertEQ(MA_SRC, count, length, SBuf()<<start<<" "<<length);
-    		}
-    	}
+                AssertEQ(MA_SRC, count, length, SBuf()<<start<<" "<<length);
+            }
+        }
     }
 };
 

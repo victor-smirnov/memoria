@@ -55,7 +55,7 @@ struct IAllocator {
     virtual PageG getRoot(BigInt name, Int flags)                       = 0;
     virtual ID    getRootID(BigInt name)                                = 0;
     virtual void  setRoot(BigInt name, const ID& root)                  = 0;
-    virtual bool  hasRoot(BigInt name)									= 0;
+    virtual bool  hasRoot(BigInt name)                                  = 0;
 
     // memory pool allocator
 

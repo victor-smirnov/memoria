@@ -52,7 +52,7 @@ class CreateColumnValuesList {
         typedef typename AppendTool<
                     typename WrapperProvider<ColumnType, ColumnValue>::Type,
                     typename Accumulator::Result
-        >::Result                                                                    Result;
+        >::Result                                                               Result;
     };
 
     struct Init {
@@ -83,7 +83,7 @@ class Projection {
         typedef typename AppendTool<
                     ValuesList,
                     typename Accumulator::Result
-        >::Result                                                                       Result;
+        >::Result                                                               Result;
     };
 
     struct Init {

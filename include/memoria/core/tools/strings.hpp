@@ -143,35 +143,35 @@ template <typename T, size_t Size>
 struct FromString<T[Size]> {
     static void convert(T* values, StringRef str)
     {
-    	size_t start = 0;
+        size_t start = 0;
 
-    	for (size_t c = 0; c < Size; c++)
-    	{
-    		values[c] = 0;
-    	}
+        for (size_t c = 0; c < Size; c++)
+        {
+            values[c] = 0;
+        }
 
-    	for (size_t c = 0; c < Size; c++)
-    	{
-    		size_t pos = str.find_first_of(",", start);
+        for (size_t c = 0; c < Size; c++)
+        {
+            size_t pos = str.find_first_of(",", start);
 
-    		String value = trimString(str.substr(start, pos != String::npos ? pos - start : pos));
+            String value = trimString(str.substr(start, pos != String::npos ? pos - start : pos));
 
-    		if (!isEmpty(value))
-    		{
-    			values[c] = FromString<T>::convert(value);
-    		}
-    		else {
-    			values[c] = 0;
-    		}
+            if (!isEmpty(value))
+            {
+                values[c] = FromString<T>::convert(value);
+            }
+            else {
+                values[c] = 0;
+            }
 
-    		if (pos != String::npos && pos < str.length())
-    		{
-    			start = pos + 1;
-    		}
-    		else {
-    			break;
-    		}
-    	}
+            if (pos != String::npos && pos < str.length())
+            {
+                start = pos + 1;
+            }
+            else {
+                break;
+            }
+        }
     }
 };
 

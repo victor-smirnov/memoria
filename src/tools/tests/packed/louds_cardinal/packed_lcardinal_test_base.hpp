@@ -21,12 +21,12 @@ using namespace std;
 class PackedLoudsCardinalTreeTestBase: public TestTask {
 
 protected:
-	struct CardinalTreeTypes {
-		static const Int BitsPerLabel = 8;
-	};
+    struct CardinalTreeTypes {
+        static const Int BitsPerLabel = 8;
+    };
 
-	typedef PackedLoudsCardinalTree<CardinalTreeTypes>							Tree;
-	typedef typename Tree::LoudsTree											LoudsTree;
+    typedef PackedLoudsCardinalTree<CardinalTreeTypes>                          Tree;
+    typedef typename Tree::LoudsTree                                            LoudsTree;
 
 public:
 
@@ -37,38 +37,38 @@ public:
 
     Tree* createEmptyTree(Int block_size = 1024*1024)
     {
-    	PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
-    	alloc->init(block_size, 1);
-    	alloc->setTopLevelAllocator();
+        PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
+        alloc->init(block_size, 1);
+        alloc->setTopLevelAllocator();
 
-    	return alloc->template allocateEmpty<Tree>(0);
+        return alloc->template allocateEmpty<Tree>(0);
     }
 
     void traverseTreePaths(const Tree* ctree, function<void (const PackedLoudsNode&, Int)> fn, Int level = 0)
     {
-    	auto tree = ctree->tree();
-    	traverseTreePaths(tree, tree->root(), PackedLoudsNode(), fn, level);
+        auto tree = ctree->tree();
+        traverseTreePaths(tree, tree->root(), PackedLoudsNode(), fn, level);
     }
 
     void traverseTreePaths(
-    		const LoudsTree* tree,
-    		const PackedLoudsNode& node,
-    		const PackedLoudsNode& parent,
-    		function<void (const PackedLoudsNode&, Int)> fn, Int level = 0)
+            const LoudsTree* tree,
+            const PackedLoudsNode& node,
+            const PackedLoudsNode& parent,
+            function<void (const PackedLoudsNode&, Int)> fn, Int level = 0)
     {
-    	if (tree->isLeaf(node))
-    	{
-    		fn(parent, level - 1);
-    	}
-    	else
-    	{
-    		PackedLoudsNode child = tree->first_child(node);
-    		while (child != PackedLoudsNode() && !tree->isLeaf(child))
-    		{
-    			traverseTreePaths(tree, child, node, fn, level + 1);
-    			child = tree->right_sibling(child);
-    		}
-    	}
+        if (tree->isLeaf(node))
+        {
+            fn(parent, level - 1);
+        }
+        else
+        {
+            PackedLoudsNode child = tree->first_child(node);
+            while (child != PackedLoudsNode() && !tree->isLeaf(child))
+            {
+                traverseTreePaths(tree, child, node, fn, level + 1);
+                child = tree->right_sibling(child);
+            }
+        }
     }
 
 };

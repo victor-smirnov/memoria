@@ -22,136 +22,136 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
-	typedef typename Base::Types                                                Types;
-	typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Types                                                Types;
+    typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::ID                                                   ID;
+    typedef typename Base::ID                                                   ID;
 
-	typedef typename Types::NodeBase                                            NodeBase;
-	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::Iterator                                             Iterator;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-	typedef typename Base::RootDispatcher                                       RootDispatcher;
-	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
-
-
-	typedef typename Base::Key                                                  Key;
-	typedef typename Base::Value                                                Value;
-	typedef typename Base::Element                                              Element;
-
-	typedef typename Base::Metadata                                             Metadata;
-
-	typedef typename Types::Accumulator                                         Accumulator;
-	typedef typename Types::Position 											Position;
-
-	typedef typename Base::TreePath                                             TreePath;
-	typedef typename Base::TreePathItem                                         TreePathItem;
-
-	typedef typename Types::PageUpdateMgr										PageUpdateMgr;
-
-	static const Int Indexes                                                    = Types::Indexes;
-	static const Int Streams                                                    = Types::Streams;
-
-	static const Int MAIN_STREAM												= Types::MAIN_STREAM;
+    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+    typedef typename Base::RootDispatcher                                       RootDispatcher;
+    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
 
+    typedef typename Base::Key                                                  Key;
+    typedef typename Base::Value                                                Value;
+    typedef typename Base::Element                                              Element;
 
-	struct InsertIntoLeafFn {
+    typedef typename Base::Metadata                                             Metadata;
 
-		template <Int Idx, typename SeqTypes>
-		void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int symbol, Accumulator* delta)
-		{
-			MEMORIA_ASSERT_TRUE(seq != nullptr);
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::Position                                            Position;
 
-			typedef PkdFSSeq<SeqTypes> 					Seq;
-			typedef typename Seq::Value 				Symbol;
+    typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::TreePathItem                                         TreePathItem;
 
-			seq->insert(idx, 1, [=]() -> Symbol {
-				return symbol;
-			});
+    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-			std::get<Idx>(*delta)[0]++;
-			std::get<Idx>(*delta)[symbol + 1]++;
-		}
+    static const Int Indexes                                                    = Types::Indexes;
+    static const Int Streams                                                    = Types::Streams;
 
-
-		template <typename NTypes>
-		void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Int symbol, Accumulator* delta)
-		{
-			node->layout(1);
-			node->process(stream, *this, idx, symbol, delta);
-		}
-	};
+    static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
 
 
-	bool insertIntoLeaf(NodeBaseG& leaf, Int idx, Int symbol, Accumulator& indexes)
-	{
-		auto& self = this->self();
+    struct InsertIntoLeafFn {
 
-		PageUpdateMgr mgr(self);
+        template <Int Idx, typename SeqTypes>
+        void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int symbol, Accumulator* delta)
+        {
+            MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-		mgr.add(leaf);
+            typedef PkdFSSeq<SeqTypes>                  Seq;
+            typedef typename Seq::Value                 Symbol;
 
-		try {
-			LeafDispatcher::dispatch(leaf, InsertIntoLeafFn(), 0, idx, symbol, &indexes);
-			return true;
-		}
-		catch (PackedOOMException& e)
-		{
-			Clear(indexes);
-			mgr.rollback();
-			return false;
-		}
-	}
+            seq->insert(idx, 1, [=]() -> Symbol {
+                return symbol;
+            });
 
-	void insert(BigInt idx, Int symbol)
-	{
-		auto& self 	= this->self();
-		auto iter 	= self.seek(idx);
+            std::get<Idx>(*delta)[0]++;
+            std::get<Idx>(*delta)[symbol + 1]++;
+        }
 
-		self.insert(iter, symbol);
-	}
 
-	void insert(Iterator& iter, Int symbol)
-	{
-		auto& self 	= this->self();
-		auto& leaf 	= iter.leaf();
-		Int& idx	= iter.idx();
-		Int stream 	= iter.stream();
+        template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Int symbol, Accumulator* delta)
+        {
+            node->layout(1);
+            node->process(stream, *this, idx, symbol, delta);
+        }
+    };
 
-		leaf.update();
 
-		Accumulator sums;
 
-		if (self.insertIntoLeaf(leaf, idx, symbol, sums))
-		{
-			self.updateParent(leaf, sums);
-		}
-		else
-		{
-			Int size 		= iter.leaf_size(0);
-			Int split_idx	= size/2;
+    bool insertIntoLeaf(NodeBaseG& leaf, Int idx, Int symbol, Accumulator& indexes)
+    {
+        auto& self = this->self();
 
-			auto right = self.splitLeafP(leaf, Position::create(0, split_idx));
+        PageUpdateMgr mgr(self);
 
-			if (idx > split_idx)
-			{
-				leaf = right;
-				idx -= split_idx;
-			}
+        mgr.add(leaf);
 
-			bool result = self.insertIntoLeaf(leaf, idx, symbol, sums);
-			MEMORIA_ASSERT_TRUE(result);
-			self.updateParent(leaf, sums);
-		}
+        try {
+            LeafDispatcher::dispatch(leaf, InsertIntoLeafFn(), 0, idx, symbol, &indexes);
+            return true;
+        }
+        catch (PackedOOMException& e)
+        {
+            Clear(indexes);
+            mgr.rollback();
+            return false;
+        }
+    }
 
-		self.addTotalKeyCount(Position::create(stream, 1));
+    void insert(BigInt idx, Int symbol)
+    {
+        auto& self  = this->self();
+        auto iter   = self.seek(idx);
 
-		iter++;
-	}
+        self.insert(iter, symbol);
+    }
+
+    void insert(Iterator& iter, Int symbol)
+    {
+        auto& self  = this->self();
+        auto& leaf  = iter.leaf();
+        Int& idx    = iter.idx();
+        Int stream  = iter.stream();
+
+        leaf.update();
+
+        Accumulator sums;
+
+        if (self.insertIntoLeaf(leaf, idx, symbol, sums))
+        {
+            self.updateParent(leaf, sums);
+        }
+        else
+        {
+            Int size        = iter.leaf_size(0);
+            Int split_idx   = size/2;
+
+            auto right = self.splitLeafP(leaf, Position::create(0, split_idx));
+
+            if (idx > split_idx)
+            {
+                leaf = right;
+                idx -= split_idx;
+            }
+
+            bool result = self.insertIntoLeaf(leaf, idx, symbol, sums);
+            MEMORIA_ASSERT_TRUE(result);
+            self.updateParent(leaf, sums);
+        }
+
+        self.addTotalKeyCount(Position::create(stream, 1));
+
+        iter++;
+    }
 
 
 MEMORIA_CONTAINER_PART_END

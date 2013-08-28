@@ -20,9 +20,9 @@ class PackedAllocatorTestSuite: public TestSuite {
 
 public:
 
-	PackedAllocatorTestSuite(): TestSuite("Packed.AllocatorSuite")
+    PackedAllocatorTestSuite(): TestSuite("Packed.AllocatorSuite")
     {
-		registerTask(new PackedAllocatorTest());
+        registerTask(new PackedAllocatorTest());
     }
 
 };

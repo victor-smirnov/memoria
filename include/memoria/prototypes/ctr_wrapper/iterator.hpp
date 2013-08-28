@@ -19,25 +19,24 @@ namespace memoria {
 template <typename Types>
 class Iter<IterWrapperTypes<Types> >: public IterStart<IterWrapperTypes<Types> >
 {
-    typedef IterStart<IterWrapperTypes<Types> >               	Base;
-    typedef Iter<IterWrapperTypes<Types> >                    	MyType;
+    typedef IterStart<IterWrapperTypes<Types> >                 Base;
+    typedef Iter<IterWrapperTypes<Types> >                      MyType;
 
 public:
 
-    typedef Ctr<typename Types::CtrTypes>                      	ContainerType;
+    typedef Ctr<typename Types::CtrTypes>                                       ContainerType;
 
-    typedef typename ContainerType::WrappedCtr::Iterator        WrappedIterator;
+    typedef typename ContainerType::WrappedCtr::Iterator                        WrappedIterator;
 
-    typedef typename Types::Profile                             Profile;
-    typedef typename Types::Allocator                           Allocator;
-    typedef typename Types::Allocator::CtrShared                CtrShared;
-    typedef typename Types::Allocator::PageG                    PageG;
-    typedef typename Allocator::Page                            Page;
-    typedef typename Page::ID                                   ID;
+    typedef typename Types::Profile                                             Profile;
+    typedef typename Types::Allocator                                           Allocator;
+    typedef typename Types::Allocator::CtrShared                                CtrShared;
+    typedef typename Types::Allocator::PageG                                    PageG;
+    typedef typename PageG::Page::ID                                            ID;
 
 private:
     ContainerType&      model_;
-    WrappedIterator   	iter_;
+    WrappedIterator     iter_;
 
     bool                exists_;
 

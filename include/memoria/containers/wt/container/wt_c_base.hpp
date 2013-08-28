@@ -21,7 +21,7 @@
 #include <iostream>
 
 namespace memoria       {
-namespace wt    		{
+namespace wt            {
 
 MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
 
@@ -33,17 +33,17 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
     typedef typename Base::CtrShared                                            CtrShared;
 
     typedef WTLabeledTree<
-    			FLabel<UByte>,
-    			VLabel<BigInt,
-    				Granularity::Bit,
-    				Indexed::Yes
-    			>
-    >																			TreeName;
+                FLabel<UByte>,
+                VLabel<BigInt,
+                    Granularity::Bit,
+                    Indexed::Yes
+                >
+    >                                                                           TreeName;
 
-    typedef Sequence<8, true>													SeqName;
+    typedef Sequence<8, true>                                                   SeqName;
 
-    typedef typename CtrTF<Profile, TreeName, TreeName>::Type  					Tree;
-    typedef typename CtrTF<Profile, SeqName, SeqName>::Type        				Seq;
+    typedef typename CtrTF<Profile, TreeName, TreeName>::Type                   Tree;
+    typedef typename CtrTF<Profile, SeqName, SeqName>::Type                     Seq;
 
 private:
     Tree   tree_;
@@ -118,7 +118,7 @@ public:
 
     void initCtr(Int command)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
         tree_.initCtr(&self.allocator(), self.name(), command);
         seq_. initCtr(&tree_, 0, command);
@@ -128,9 +128,9 @@ public:
 
     void initCtr(const ID& root_id)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	tree_.initCtr(&self.allocator(), root_id);
+        tree_.initCtr(&self.allocator(), root_id);
         seq_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, 0));
 
         Base::setCtrShared(NULL);
@@ -191,8 +191,8 @@ public:
 
     void checkIt()
     {
-    	tree().checkIt();
-    	seq().checkIt();
+        tree().checkIt();
+        seq().checkIt();
     }
 
 private:

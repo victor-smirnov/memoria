@@ -31,7 +31,7 @@ public:
     typedef typename Base::Container::NodeBaseG                                         NodeBaseG;
     typedef typename Base::Container::Allocator                                         Allocator;
     typedef typename Base::Container::Accumulator                                       Accumulator;
-    typedef typename Base::Container::Key                                       		Key;
+    typedef typename Base::Container::Key                                               Key;
 
     typedef typename Types::template IteratorCacheFactory<
             MyType,
@@ -42,11 +42,11 @@ public:
 
 private:
 
-    NodeBaseG 			leaf_;
+    NodeBaseG           leaf_;
 
 //    TreePath            path_;
     Int                 idx_;
-    Int 				stream_;
+    Int                 stream_;
 
     bool                found_;
 
@@ -54,7 +54,7 @@ private:
 
 public:
     BTIteratorBase():
-    	Base(), idx_(0), stream_(0), found_(false)
+        Base(), idx_(0), stream_(0), found_(false)
     {
         cache_.init(me());
     }
@@ -70,19 +70,19 @@ public:
     }
 
     BTIteratorBase(const ThisType& other):
-    	Base(other),
-    	leaf_(other.leaf_),
-    	idx_(other.idx_),
-    	stream_(other.stream_),
-    	cache_(other.cache_)
+        Base(other),
+        leaf_(other.leaf_),
+        idx_(other.idx_),
+        stream_(other.stream_),
+        cache_(other.cache_)
     {
         cache_.init(me());
     }
 
     void assign(ThisType&& other)
     {
-    	leaf_		= other.leaf_;
-        idx_    	= other.idx_;
+        leaf_       = other.leaf_;
+        idx_        = other.idx_;
         stream_     = other.stream_;
         found_      = other.found_;
 
@@ -95,8 +95,8 @@ public:
 
     void assign(const ThisType& other)
     {
-    	leaf_		= other.leaf_;
-        idx_    	= other.idx_;
+        leaf_       = other.leaf_;
+        idx_        = other.idx_;
         found_      = other.found_;
         stream_     = other.stream_;
 
@@ -128,11 +128,11 @@ public:
 
 
     Int& stream() {
-    	return stream_;
+        return stream_;
     }
 
     const Int& stream() const {
-    	return stream_;
+        return stream_;
     }
 
     Int &key_idx()
@@ -147,12 +147,12 @@ public:
 
     Int &idx()
     {
-    	return idx_;
+        return idx_;
     }
 
     const Int idx() const
     {
-    	return idx_;
+        return idx_;
     }
 
 
@@ -185,7 +185,7 @@ public:
     {
         auto& self = this->self();
 
-    	return leaf().isSet() ? idx() >= self.leaf_size() : true;
+        return leaf().isSet() ? idx() >= self.leaf_size() : true;
     }
 
     bool isNotEnd() const
@@ -195,8 +195,8 @@ public:
 
     bool isEmpty() const
     {
-    	auto& self = this->self();
-    	return leaf().isEmpty() || self.leaf_size() == 0;
+        auto& self = this->self();
+        return leaf().isEmpty() || self.leaf_size() == 0;
     }
 
     bool isNotEmpty() const
@@ -217,7 +217,7 @@ public:
 
     void dump(std::ostream& out = cout, const char* header = nullptr) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
         out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
 
@@ -234,18 +234,18 @@ public:
 
     void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const
     {
-    	auto& self 	= this->self();
-    	out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
-    	dumpKeys(out);
-    	self.ctr().dumpPath(self.leaf(), out);
-    	out<<"======================================================================"<<std::endl;
+        auto& self  = this->self();
+        out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
+        dumpKeys(out);
+        self.ctr().dumpPath(self.leaf(), out);
+        out<<"======================================================================"<<std::endl;
     }
 
     void dumpKeys(std::ostream& out) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	out<<"Stream:  "<<self.stream()<<std::endl;
+        out<<"Stream:  "<<self.stream()<<std::endl;
         out<<"Idx:  "<<self.idx()<<std::endl;
     }
 
@@ -254,7 +254,7 @@ public:
 
     void dumpPages(std::ostream& out) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
         self.ctr().dump(self.leaf(), out);
     }

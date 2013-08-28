@@ -31,11 +31,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::root::CtrApiName)
 
     Metadata createNewRootMetadata() const
     {
-    	Metadata meta = Base::createNewRootMetadata();
+        Metadata meta = Base::createNewRootMetadata();
 
-    	meta.model_name_counter() = INITAL_CTR_NAME_COUNTER;
+        meta.model_name_counter() = INITAL_CTR_NAME_COUNTER;
 
-    	return meta;
+        return meta;
     }
 
 

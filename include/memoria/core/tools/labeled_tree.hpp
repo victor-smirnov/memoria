@@ -13,68 +13,68 @@
 #include <vector>
 #include <tuple>
 
-namespace memoria 	{
-namespace tools 	{
+namespace memoria   {
+namespace tools     {
 
 
 
 template <typename Data, typename... Labels>
 class LblTreeNode {
-	typedef LblTreeNode<Data, Labels...>										MyType;
+    typedef LblTreeNode<Data, Labels...>                                        MyType;
 
-	std::vector<MyType> children_;
-	std::tuple<Labels...> labels_;
+    std::vector<MyType> children_;
+    std::tuple<Labels...> labels_;
 
-	Data data_;
+    Data data_;
 
 public:
-	LblTreeNode() {}
+    LblTreeNode() {}
 
-	MyType& child(Int idx) {
-		return children_[idx];
-	}
+    MyType& child(Int idx) {
+        return children_[idx];
+    }
 
-	const MyType& child(Int idx) const {
-		return children_[idx];
-	}
+    const MyType& child(Int idx) const {
+        return children_[idx];
+    }
 
-	Int children() const
-	{
-		return children_.size();
-	}
+    Int children() const
+    {
+        return children_.size();
+    }
 
-	MyType& addChild(Int idx)
-	{
-		children_.insert(children_.begin() + idx, MyType());
+    MyType& addChild(Int idx)
+    {
+        children_.insert(children_.begin() + idx, MyType());
 
-		return children_[idx];
-	}
+        return children_[idx];
+    }
 
-	MyType& appendChild()
-	{
-		return addChild(children());
-	}
+    MyType& appendChild()
+    {
+        return addChild(children());
+    }
 
-	void removeChild(Int idx)
-	{
-		children_.erase(children_.begin() + idx);
-	}
+    void removeChild(Int idx)
+    {
+        children_.erase(children_.begin() + idx);
+    }
 
-	std::tuple<Labels...>& labels() {
-		return labels_;
-	}
+    std::tuple<Labels...>& labels() {
+        return labels_;
+    }
 
-	const std::tuple<Labels...>& labels() const {
-		return labels_;
-	}
+    const std::tuple<Labels...>& labels() const {
+        return labels_;
+    }
 
-	Data& data() {
-		return data_;
-	}
+    Data& data() {
+        return data_;
+    }
 
-	const Data& data() const {
-		return data_;
-	}
+    const Data& data() const {
+        return data_;
+    }
 };
 
 

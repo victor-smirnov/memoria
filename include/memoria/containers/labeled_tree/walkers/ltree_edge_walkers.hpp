@@ -11,31 +11,31 @@
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
-namespace memoria 	{
-namespace louds		{
+namespace memoria   {
+namespace louds     {
 
 
 template <typename Types>
 class FindEdgeWalkerBase {
 protected:
-	typedef Iter<typename Types::IterTypes> Iterator;
-	typedef Ctr<typename Types::CtrTypes> 	Container;
+    typedef Iter<typename Types::IterTypes> Iterator;
+    typedef Ctr<typename Types::CtrTypes>   Container;
 
-	typedef typename Types::Accumulator		Accumulator;
+    typedef typename Types::Accumulator     Accumulator;
 
-	WalkDirection direction_;
+    WalkDirection direction_;
 
 public:
-	FindEdgeWalkerBase() {}
+    FindEdgeWalkerBase() {}
 
-	WalkDirection& direction() {
-		return direction_;
-	}
+    WalkDirection& direction() {
+        return direction_;
+    }
 
-	void empty(Iterator& iter)
-	{
-//		iter.cache().setup(Accumulator());
-	}
+    void empty(Iterator& iter)
+    {
+//      iter.cache().setup(Accumulator());
+    }
 };
 
 
@@ -43,66 +43,66 @@ public:
 template <typename Types>
 class FindEndWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindEdgeWalkerBase<Types> 		Base;
-	typedef typename Base::Iterator 		Iterator;
-	typedef typename Base::Container 		Container;
+    typedef FindEdgeWalkerBase<Types>       Base;
+    typedef typename Base::Iterator         Iterator;
+    typedef typename Base::Container        Container;
 
-	typedef typename Types::Accumulator 	Accumulator;
+    typedef typename Types::Accumulator     Accumulator;
 
-	Accumulator prefix_;
+    Accumulator prefix_;
 
 public:
-	typedef Int ReturnType;
+    typedef Int ReturnType;
 
-	FindEndWalker(Int stream, const Container&) {}
+    FindEndWalker(Int stream, const Container&) {}
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node, Int start)
-	{
-		if (node->level() > 0)
-		{
-			VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
-		}
-		else {
-			VectorAdd(prefix_, node->maxKeys());
-		}
+    template <typename Node>
+    ReturnType treeNode(const Node* node, Int start)
+    {
+        if (node->level() > 0)
+        {
+            VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
+        }
+        else {
+            VectorAdd(prefix_, node->maxKeys());
+        }
 
-		return node->children_count() - 1;
-	}
+        return node->children_count() - 1;
+    }
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() = idx + 1;
-		iter.cache().setup(prefix_);
-	}
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.key_idx() = idx + 1;
+        iter.cache().setup(prefix_);
+    }
 };
 
 
 template <typename Types>
 class FindREndWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindEdgeWalkerBase<Types> 		Base;
-	typedef typename Base::Iterator 		Iterator;
-	typedef typename Base::Container 		Container;
-	typedef typename Types::Accumulator 	Accumulator;
+    typedef FindEdgeWalkerBase<Types>       Base;
+    typedef typename Base::Iterator         Iterator;
+    typedef typename Base::Container        Container;
+    typedef typename Types::Accumulator     Accumulator;
 
 public:
-	typedef Int ReturnType;
+    typedef Int ReturnType;
 
-	FindREndWalker(Int stream, const Container&) {}
+    FindREndWalker(Int stream, const Container&) {}
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node)
-	{
-		return 0;
-	}
+    template <typename Node>
+    ReturnType treeNode(const Node* node)
+    {
+        return 0;
+    }
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() = idx - 1;
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.key_idx() = idx - 1;
 
-		iter.cache().setup(Accumulator());
-	}
+        iter.cache().setup(Accumulator());
+    }
 };
 
 
@@ -110,62 +110,62 @@ public:
 template <typename Types>
 class FindBeginWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindEdgeWalkerBase<Types> 		Base;
-	typedef typename Base::Iterator 		Iterator;
-	typedef typename Base::Container 		Container;
-	typedef typename Types::Accumulator 	Accumulator;
+    typedef FindEdgeWalkerBase<Types>       Base;
+    typedef typename Base::Iterator         Iterator;
+    typedef typename Base::Container        Container;
+    typedef typename Types::Accumulator     Accumulator;
 
 public:
-	typedef Int ReturnType;
+    typedef Int ReturnType;
 
 
-	FindBeginWalker(Int stream, const Container&) {}
+    FindBeginWalker(Int stream, const Container&) {}
 
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node, Int)
-	{
-		return 0;
-	}
+    template <typename Node>
+    ReturnType treeNode(const Node* node, Int)
+    {
+        return 0;
+    }
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = 0;
-	}
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.idx() = 0;
+    }
 };
 
 template <typename Types>
 class FindRBeginWalker: public FindEdgeWalkerBase<Types> {
 
-	typedef FindEdgeWalkerBase<Types> 		Base;
-	typedef typename Base::Iterator 		Iterator;
-	typedef typename Base::Container 		Container;
+    typedef FindEdgeWalkerBase<Types>       Base;
+    typedef typename Base::Iterator         Iterator;
+    typedef typename Base::Container        Container;
 
-	typedef typename Types::Accumulator 	Accumulator;
+    typedef typename Types::Accumulator     Accumulator;
 
-	Accumulator prefix_;
+    Accumulator prefix_;
 
 public:
-	FindRBeginWalker(Int stream, const Container&) {}
+    FindRBeginWalker(Int stream, const Container&) {}
 
-	typedef Int ReturnType;
+    typedef Int ReturnType;
 
 
 
-	template <typename Node>
-	ReturnType treeNode(const Node* node)
-	{
-		VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
+    template <typename Node>
+    ReturnType treeNode(const Node* node)
+    {
+        VectorAdd(prefix_, node->maxKeys() - node->keysAt(node->children_count() - 1));
 
-		return node->children_count() - 1;
-	}
+        return node->children_count() - 1;
+    }
 
-	void finish(Iterator& iter, Int idx)
-	{
-		iter.key_idx() = idx;
+    void finish(Iterator& iter, Int idx)
+    {
+        iter.key_idx() = idx;
 
-		iter.cache().setup(prefix_);
-	}
+        iter.cache().setup(prefix_);
+    }
 };
 
 

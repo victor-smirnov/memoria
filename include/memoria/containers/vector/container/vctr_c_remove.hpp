@@ -21,38 +21,38 @@ using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrRemoveName)
 
-	typedef typename Base::Types                                                Types;
-	typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Types                                                Types;
+    typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::ID                                                   ID;
+    typedef typename Base::ID                                                   ID;
 
-	typedef typename Types::NodeBase                                            NodeBase;
-	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::Iterator                                             Iterator;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-	typedef typename Base::RootDispatcher                                       RootDispatcher;
-	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
-
-
-	typedef typename Base::Key                                                  Key;
-	typedef typename Base::Value                                                Value;
-	typedef typename Base::Element                                              Element;
-
-	typedef typename Base::Metadata                                             Metadata;
-
-	typedef typename Types::Accumulator                                         Accumulator;
-	typedef typename Types::Position 											Position;
-
-	typedef typename Base::TreePath                                             TreePath;
-	typedef typename Base::TreePathItem                                         TreePathItem;
-
-	static const Int Indexes                                                    = Types::Indexes;
-	static const Int Streams                                                    = Types::Streams;
+    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+    typedef typename Base::RootDispatcher                                       RootDispatcher;
+    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
 
-	void remove(Iterator& from, Iterator& to);
+    typedef typename Base::Key                                                  Key;
+    typedef typename Base::Value                                                Value;
+    typedef typename Base::Element                                              Element;
+
+    typedef typename Base::Metadata                                             Metadata;
+
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::Position                                            Position;
+
+    typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::TreePathItem                                         TreePathItem;
+
+    static const Int Indexes                                                    = Types::Indexes;
+    static const Int Streams                                                    = Types::Streams;
+
+
+    void remove(Iterator& from, Iterator& to);
     void remove(Iterator& from, BigInt size);
 
 MEMORIA_CONTAINER_PART_END
@@ -63,34 +63,34 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::remove(Iterator& from, Iterator& to)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	auto& from_path 	= from.leaf();
-	Position from_pos 	= Position(from.key_idx());
+    auto& from_path     = from.leaf();
+    Position from_pos   = Position(from.key_idx());
 
-	auto& to_path 		= to.leaf();
-	Position to_pos 	= Position(to.key_idx());
+    auto& to_path       = to.leaf();
+    Position to_pos     = Position(to.key_idx());
 
-	Accumulator keys;
+    Accumulator keys;
 
-	self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
+    self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
 
-	from.idx() = to.idx() = to_pos.get();
+    from.idx() = to.idx() = to_pos.get();
 }
 
 M_PARAMS
 void M_TYPE::remove(Iterator& from, BigInt size)
 {
-	auto to = from;
-	to.skip(size);
+    auto to = from;
+    to.skip(size);
 
-	auto& self = this->self();
+    auto& self = this->self();
 
-	self.remove(from, to);
+    self.remove(from, to);
 
-	from = to;
+    from = to;
 
-	from.cache().initState();
+    from.cache().initState();
 }
 
 

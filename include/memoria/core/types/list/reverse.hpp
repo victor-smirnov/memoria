@@ -23,12 +23,12 @@ struct RevertList<TypeList<Head, Tail...>> {
                             TypeList<Tail...>
                          >::Type,
                 Head
-            >::Result                                       Type;
+            >::Result                                                           Type;
 };
 
 template <>
 struct RevertList<TypeList<>> {
-    typedef TypeList<>                                          Type;
+    typedef TypeList<>                                                          Type;
 };
 
 

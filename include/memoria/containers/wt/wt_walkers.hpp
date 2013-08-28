@@ -20,7 +20,7 @@
 #include <ostream>
 
 namespace memoria       {
-namespace wt      		{
+namespace wt            {
 
 
 

@@ -17,9 +17,9 @@ using namespace memoria;
 
 int main(void) {
 
-	UBigInt value = 0xff0f0f0f0f0f0f1f;
+    UBigInt value = 0xff0f0f0f0f0f0f1f;
 
-	cout<<"bitcnt="<<__builtin_popcountl(value)<<" "<<PopCnt((UInt)value)<<endl;
+    cout<<"bitcnt="<<__builtin_popcountl(value)<<" "<<PopCnt((UInt)value)<<endl;
 
     return 0;
 }

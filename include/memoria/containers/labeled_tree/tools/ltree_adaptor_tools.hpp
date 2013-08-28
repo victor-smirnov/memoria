@@ -12,8 +12,8 @@
 #include <memoria/core/types/types.hpp>
 
 
-namespace memoria 	{
-namespace louds 	{
+namespace memoria   {
+namespace louds     {
 
 
 template <typename T>
@@ -78,7 +78,7 @@ public:
 template <typename T>
 class NodeDegreeSourceAdaptor: public LoudsSourceAdaptorBase<T> {
 
-	typedef LoudsSourceAdaptorBase<T> Base;
+    typedef LoudsSourceAdaptorBase<T> Base;
 
 public:
 
@@ -90,13 +90,13 @@ public:
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-    	FillOne(buffer, start, start + length);
+        FillOne(buffer, start, start + length);
 
         SizeT result = Base::skip(length);
 
         if (Base::getRemainder() == 0)
         {
-        	SetBit(buffer, start + length - 1, 0);
+            SetBit(buffer, start + length - 1, 0);
         }
 
         return result;
@@ -107,7 +107,7 @@ public:
 template <typename T>
 class ZeroSourceAdaptor: public LoudsSourceAdaptorBase<T> {
 
-	typedef LoudsSourceAdaptorBase<T> Base;
+    typedef LoudsSourceAdaptorBase<T> Base;
 
 public:
 
@@ -119,7 +119,7 @@ public:
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-    	FillZero(buffer, start, start + length);
+        FillZero(buffer, start, start + length);
         return Base::skip(length);
     }
 };

@@ -22,19 +22,19 @@ namespace memoria {
 template <typename Types, Int StreamIdx>
 struct PackedFSESeqTF {
 
-	typedef typename Types::Value												Value;
-	typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
+    typedef typename Types::Key                                                 Key;
 
-	typedef typename SelectByIndexTool<
-			StreamIdx,
-			typename Types::StreamDescriptors
-	>::Result																	Descriptor;
+    typedef typename SelectByIndexTool<
+            StreamIdx,
+            typename Types::StreamDescriptors
+    >::Result                                                                   Descriptor;
 
-	static const Int BitsPerSymbol = Types::BitsPerSymbol;
+    static const Int BitsPerSymbol = Types::BitsPerSymbol;
 
-	typedef typename PkdFSSeqTF<BitsPerSymbol>::Type				SequenceTypes;
+    typedef typename PkdFSSeqTF<BitsPerSymbol>::Type                            SequenceTypes;
 
-	typedef PkdFSSeq<SequenceTypes> Type;
+    typedef PkdFSSeq<SequenceTypes> Type;
 };
 
 

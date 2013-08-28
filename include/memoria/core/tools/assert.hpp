@@ -37,8 +37,8 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #define MEMORIA_ASSERT_TRUE(Arg0)                                                                       \
         if (!(Arg0)) {                                                                                  \
-            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT TRUE FAILURE: "				\
-                    <<#Arg0); 																			\
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT TRUE FAILURE: "              \
+                    <<#Arg0);                                                                           \
         }
 
 
@@ -60,13 +60,13 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 
 #define MEMORIA_INVALID_STREAM(Idx) \
-	throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid Stream: "<<Idx)
+    throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid Stream: "<<Idx)
 
-#define MEMORIA_ASSERT_ALIGN(MemExpr, Align) 														\
-		if (T2T<ptrdiff_t>(MemExpr) % Align != 0) {                                                 				\
-			throw memoria::vapi::Exception(MEMORIA_SOURCE,											\
-				SBuf()<<"ASSERT FAILURE: \""<<#MemExpr<<"\" is not properly aligned ("<<Align<<")");	\
-		}
+#define MEMORIA_ASSERT_ALIGN(MemExpr, Align)                                                        \
+        if (T2T<ptrdiff_t>(MemExpr) % Align != 0) {                                                                 \
+            throw memoria::vapi::Exception(MEMORIA_SOURCE,                                          \
+                SBuf()<<"ASSERT FAILURE: \""<<#MemExpr<<"\" is not properly aligned ("<<Align<<")");    \
+        }
 
 
 #else

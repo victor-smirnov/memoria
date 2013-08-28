@@ -12,11 +12,11 @@
 #include <memoria/prototypes/bt/bt_names.hpp>
 
 namespace memoria    {
-namespace mvector 	 {
+namespace mvector    {
 
-class CtrApiName 	{};
+class CtrApiName    {};
 class CtrInsertName {};
-class CtrToolsName 	{};
+class CtrToolsName  {};
 class CtrRemoveName {};
 class CtrChecksName {};
 class CtrFindName {};

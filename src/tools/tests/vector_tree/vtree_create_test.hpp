@@ -25,11 +25,11 @@ using namespace memoria::louds;
 
 class VectorTreeCreateTest: public VectorTreeTestBase {
 
-	typedef VectorTreeTestBase													Base;
-    typedef VectorTreeCreateTest                                               	MyType;
+    typedef VectorTreeTestBase                                                  Base;
+    typedef VectorTreeCreateTest                                                MyType;
 
-    Int 	max_degree_	= 10;
-    Int 	iterations_ = 1;
+    Int     max_degree_ = 10;
+    Int     iterations_ = 1;
 
 public:
 
@@ -38,31 +38,31 @@ public:
         MEMORIA_ADD_TEST_PARAM(max_degree_);
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
-    	MEMORIA_ADD_TEST(testFillTree);
+        MEMORIA_ADD_TEST(testFillTree);
     }
 
     virtual ~VectorTreeCreateTest() throw () {}
 
     void testFillTree()
     {
-    	Allocator allocator;
-    	Ctr tree(&allocator);
+        Allocator allocator;
+        Ctr tree(&allocator);
 
-    	try {
-    		TreeNode root = this->fillRandom(tree, size_, max_degree_);
+        try {
+            TreeNode root = this->fillRandom(tree, size_, max_degree_);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		StoreResource(allocator, "vtree", 0);
+            StoreResource(allocator, "vtree", 0);
 
-    		forceCheck(allocator, MA_SRC);
+            forceCheck(allocator, MA_SRC);
 
-    		checkTree(tree, root);
-    	}
-    	catch (...) {
-    		this->dump_name_ =  Store(allocator);
-    		throw;
-    	}
+            checkTree(tree, root);
+        }
+        catch (...) {
+            this->dump_name_ =  Store(allocator);
+            throw;
+        }
     }
 };
 

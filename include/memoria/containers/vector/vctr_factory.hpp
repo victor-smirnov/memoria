@@ -36,10 +36,10 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
     typedef BTTypes<Profile, memoria::BT>                   Base;
 
-    typedef Value_                                                          	Value;
-    typedef TypeList<BigInt>                                                  	KeysList;
+    typedef Value_                                                              Value;
+    typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int Indexes                                                	= 1;
+    static const Int Indexes                                                    = 1;
 
 
     template <typename Iterator, typename Container>
@@ -48,82 +48,82 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     };
 
     typedef TypeList<
-    		LeafNodeTypes<LeafNode>,
-    		NonLeafNodeTypes<BranchNode>
-    >																			NodeTypesList;
+            LeafNodeTypes<LeafNode>,
+            NonLeafNodeTypes<BranchNode>
+    >                                                                           NodeTypesList;
 
     typedef TypeList<
-    		TreeNodeType<LeafNode>,
-    		TreeNodeType<BranchNode>
-    >																			DefaultNodeTypesList;
+            TreeNodeType<LeafNode>,
+            TreeNodeType<BranchNode>
+    >                                                                           DefaultNodeTypesList;
 
     typedef TypeList<
-        		StreamDescr<
-        			PkdFTreeTF,
-        			PackedFSEArrayTF,
-        			1
-        	>
-    >																			StreamDescriptors;
+                StreamDescr<
+                    PkdFTreeTF,
+                    PackedFSEArrayTF,
+                    1
+            >
+    >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<
-        		typename Base::ID,
-        		ListSize<StreamDescriptors>::Value
-    >        																	Metadata;
+                typename Base::ID,
+                ListSize<StreamDescriptors>::Value
+    >                                                                           Metadata;
 
 
     typedef typename MergeLists<
-    		typename Base::ContainerPartsList,
-    		bt::NodeNormName,
+            typename Base::ContainerPartsList,
+            bt::NodeNormName,
 
-    		mvector::CtrToolsName,
-    		mvector::CtrInsertName,
-    		mvector::CtrRemoveName,
-    		mvector::CtrFindName,
-    		mvector::CtrApiName
-    >::Result                                           						ContainerPartsList;
+            mvector::CtrToolsName,
+            mvector::CtrInsertName,
+            mvector::CtrRemoveName,
+            mvector::CtrFindName,
+            mvector::CtrApiName
+    >::Result                                                                   ContainerPartsList;
 
     typedef typename MergeLists<
-    		typename Base::IteratorPartsList,
-    		mvector::ItrApiName
-    >::Result                                           						IteratorPartsList;
+            typename Base::IteratorPartsList,
+            mvector::ItrApiName
+    >::Result                                                                   IteratorPartsList;
 
-    typedef IDataSource<Value>													DataSource;
-    typedef IDataTarget<Value>													DataTarget;
-
-
-
-    template <typename Types>
-    using FindLTWalker 			= SkipForwardWalker<Types>;
-
-    template <typename Types>
-    using FindLEWalker 			= ::memoria::mvector::FindLEWalker<Types>;
-
-
-    template <typename Types>
-    using SkipForwardWalker 	= SkipForwardWalker<Types>;
-
-    template <typename Types>
-    using SkipBackwardWalker 	= SkipBackwardWalker<Types>;
-
-    template <typename Types>
-    using NextLeafWalker 	 	= NextLeafWalker<Types>;
-
-    template <typename Types>
-    using PrevLeafWalker 		= PrevLeafWalker<Types>;
+    typedef IDataSource<Value>                                                  DataSource;
+    typedef IDataTarget<Value>                                                  DataTarget;
 
 
 
     template <typename Types>
-    using FindBeginWalker 		= ::memoria::mvector::FindBeginWalker<Types>;
+    using FindLTWalker          = SkipForwardWalker<Types>;
 
     template <typename Types>
-    using FindEndWalker 		= ::memoria::mvector::FindEndWalker<Types>;
+    using FindLEWalker          = ::memoria::mvector::FindLEWalker<Types>;
+
 
     template <typename Types>
-    using FindRBeginWalker 		= ::memoria::mvector::FindRBeginWalker<Types>;
+    using SkipForwardWalker     = SkipForwardWalker<Types>;
 
     template <typename Types>
-    using FindREndWalker 		= ::memoria::mvector::FindREndWalker<Types>;
+    using SkipBackwardWalker    = SkipBackwardWalker<Types>;
+
+    template <typename Types>
+    using NextLeafWalker        = NextLeafWalker<Types>;
+
+    template <typename Types>
+    using PrevLeafWalker        = PrevLeafWalker<Types>;
+
+
+
+    template <typename Types>
+    using FindBeginWalker       = ::memoria::mvector::FindBeginWalker<Types>;
+
+    template <typename Types>
+    using FindEndWalker         = ::memoria::mvector::FindEndWalker<Types>;
+
+    template <typename Types>
+    using FindRBeginWalker      = ::memoria::mvector::FindRBeginWalker<Types>;
+
+    template <typename Types>
+    using FindREndWalker        = ::memoria::mvector::FindREndWalker<Types>;
 };
 
 

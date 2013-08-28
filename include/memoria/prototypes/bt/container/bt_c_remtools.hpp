@@ -22,7 +22,7 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
-	typedef TypesType															Types;
+    typedef TypesType                                                           Types;
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::ID                                                   ID;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -33,11 +33,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
     typedef typename Types::Accumulator                                         Accumulator;
-    typedef typename Types::Position                                         	Position;
+    typedef typename Types::Position                                            Position;
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef std::function<void (const Position&, Int)>							MergeFn;
+    typedef std::function<void (const Position&, Int)>                          MergeFn;
 
     void removeNode(NodeBaseG& node, Accumulator& accum, Position& sizes);
     void removeNode(NodeBaseG& node);
@@ -67,7 +67,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     MEMORIA_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
     bool shouldMergeNode(const NodeBaseG& node) const
     {
-    	return NodeDispatcher::dispatchConstRtn(node, ShouldBeMergedNodeFn());
+        return NodeDispatcher::dispatchConstRtn(node, ShouldBeMergedNodeFn());
     }
 
 
@@ -96,7 +96,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
     bool isTheSameParent(const NodeBaseG& left, const NodeBaseG& right)
     {
-    	return left->parent_id() == right->parent_id();
+        return left->parent_id() == right->parent_id();
     }
 
 
@@ -106,8 +106,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
     MEMORIA_PUBLIC void drop()
     {
-    	NodeBaseG root = self().getRoot(Allocator::READ);
-    	self().removeRootNode(root);
+        NodeBaseG root = self().getRoot(Allocator::READ);
+        self().removeRootNode(root);
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -121,60 +121,60 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums, Position& sizes)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	if (!node->is_leaf())
-	{
-		Int size = self.getNodeSize(node, 0);
-		self.forAllIDs(node, 0, size, [&, this](const ID& id, Int idx){
-			NodeBaseG child = self.allocator().getPage(id, Allocator::READ);
-			this->removeNode(child, sums, sizes);
-			self.allocator().removePage(id);
-		});
-	}
-	else {
-		self.sums(node, sums);
-		sizes += self.getNodeSizes(node);
-	}
+    if (!node->is_leaf())
+    {
+        Int size = self.getNodeSize(node, 0);
+        self.forAllIDs(node, 0, size, [&, this](const ID& id, Int idx){
+            NodeBaseG child = self.allocator().getPage(id, Allocator::READ);
+            this->removeNode(child, sums, sizes);
+            self.allocator().removePage(id);
+        });
+    }
+    else {
+        self.sums(node, sums);
+        sizes += self.getNodeSizes(node);
+    }
 
-	self.allocator().removePage(node->id());
+    self.allocator().removePage(node->id());
 }
 
 M_PARAMS
 void M_TYPE::removeNode(NodeBaseG& node)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	Accumulator sums;
-	Position sizes;
+    Accumulator sums;
+    Position sizes;
 
-	if (!node->is_root())
-	{
-		NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+    if (!node->is_root())
+    {
+        NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
 
-		self.removeNonLeafNodeEntry(parent, node->parent_idx());
+        self.removeNonLeafNodeEntry(parent, node->parent_idx());
 
-		self.removeNode(node, sums, sizes);
-	}
-	else {
-		throw Exception(MA_SRC, "Empty root node should not be deleted with this method.");
-	}
+        self.removeNode(node, sums, sizes);
+    }
+    else {
+        throw Exception(MA_SRC, "Empty root node should not be deleted with this method.");
+    }
 }
 
 M_PARAMS
 void M_TYPE::removeRootNode(NodeBaseG& node)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	MEMORIA_ASSERT_TRUE(node->is_root());
+    MEMORIA_ASSERT_TRUE(node->is_root());
 
-	Accumulator sums;
-	Position sizes;
+    Accumulator sums;
+    Position sizes;
 
-	auto ctr_name	= self.name();
-	auto root_id 	= node->id();
+    auto ctr_name   = self.name();
+    auto root_id    = node->id();
 
-	self.removeNode(node, sums, sizes);
+    self.removeNode(node, sums, sizes);
 }
 
 
@@ -182,40 +182,40 @@ void M_TYPE::removeRootNode(NodeBaseG& node)
 M_PARAMS
 void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& sums, Position& sizes)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	MEMORIA_ASSERT_TRUE(!node->is_leaf());
+    MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
-	Accumulator deleted_sums;
+    Accumulator deleted_sums;
 
-	self.forAllIDs(node, start, end, [&, this](const ID& id, Int idx){
-		NodeBaseG child = self.allocator().getPage(id, Allocator::READ);
-		self.removeNode(child, deleted_sums, sizes);
-	});
+    self.forAllIDs(node, start, end, [&, this](const ID& id, Int idx){
+        NodeBaseG child = self.allocator().getPage(id, Allocator::READ);
+        self.removeNode(child, deleted_sums, sizes);
+    });
 
-	NonLeafDispatcher::dispatch(node, RemoveNodeContentFn(), start, end);
+    NonLeafDispatcher::dispatch(node, RemoveNodeContentFn(), start, end);
 
-	VectorAdd(sums, deleted_sums);
+    VectorAdd(sums, deleted_sums);
 
-	self.updateParent(node, -deleted_sums);
+    self.updateParent(node, -deleted_sums);
 
-	self.updateChildren(node, start);
+    self.updateChildren(node, start);
 }
 
 
 M_PARAMS
 void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	MEMORIA_ASSERT_TRUE(!node->is_leaf());
+    MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
-	node.update();
-	Accumulator sums = NonLeafDispatcher::dispatchRtn(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
+    node.update();
+    Accumulator sums = NonLeafDispatcher::dispatchRtn(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
 
-	self.updateChildren(node, start);
+    self.updateChildren(node, start);
 
-	self.updateParent(node, sums);
+    self.updateParent(node, sums);
 }
 
 
@@ -223,29 +223,29 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, const Position& start, const Position& end)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	node.update();
+    node.update();
 
-	Accumulator sums = LeafDispatcher::dispatchRtn(node, RemoveLeafContentFn(), start, end);
+    Accumulator sums = LeafDispatcher::dispatchRtn(node, RemoveLeafContentFn(), start, end);
 
-	self.updateParent(node, -sums);
+    self.updateParent(node, -sums);
 
-	return sums;
+    return sums;
 }
 
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	node.update();
+    node.update();
 
-	Accumulator sums = LeafDispatcher::dispatchRtn(node, RemoveLeafContentFn(), stream, start, end);
+    Accumulator sums = LeafDispatcher::dispatchRtn(node, RemoveLeafContentFn(), stream, start, end);
 
-	self.updateParent(node, -sums);
+    self.updateParent(node, -sums);
 
-	return sums;
+    return sums;
 }
 
 
@@ -253,34 +253,34 @@ typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, Int stre
 M_PARAMS
 void M_TYPE::removeRedundantRootP(NodeBaseG& node)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
     if (!node->is_root())
     {
-    	NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
-    	if (!parent->is_root())
-    	{
-    		removeRedundantRootP(parent);
-    	}
+        NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
+        if (!parent->is_root())
+        {
+            removeRedundantRootP(parent);
+        }
 
-    	if (parent->is_root())
-    	{
-    		Int size = self.getNodeSize(parent, 0);
-    		if (size == 1)
-    		{
-    			Metadata root_metadata = self.getRootMetadata();
+        if (parent->is_root())
+        {
+            Int size = self.getNodeSize(parent, 0);
+            if (size == 1)
+            {
+                Metadata root_metadata = self.getRootMetadata();
 
-    			// FIXME redesigne it to use tryConvertToRoot(node) instead
-    			if (self.canConvertToRoot(node))
-    			{
-    				self.node2Root(node, root_metadata);
+                // FIXME redesigne it to use tryConvertToRoot(node) instead
+                if (self.canConvertToRoot(node))
+                {
+                    self.node2Root(node, root_metadata);
 
-    				self.allocator().removePage(parent->id());
+                    self.allocator().removePage(parent->id());
 
-    				self.set_root(node->id());
-    			}
-    		}
-    	}
+                    self.set_root(node->id());
+                }
+            }
+        }
     }
 }
 
@@ -304,7 +304,7 @@ void M_TYPE::removeRedundantRootP(NodeBaseG& node)
 M_PARAMS
 MergeType M_TYPE::mergeWithSiblings(NodeBaseG& node, MergeFn fn)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
     if (self.mergeWithRightSibling(node))
     {
@@ -315,7 +315,7 @@ MergeType M_TYPE::mergeWithSiblings(NodeBaseG& node, MergeFn fn)
         return MergeType::LEFT;
     }
     else {
-    	return MergeType::NONE;
+        return MergeType::NONE;
     }
 }
 
@@ -339,7 +339,7 @@ MergeType M_TYPE::mergeWithSiblings(NodeBaseG& node, MergeFn fn)
 M_PARAMS
 bool M_TYPE::mergeWithLeftSibling(NodeBaseG& node, MergeFn fn)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
     bool merged = false;
 

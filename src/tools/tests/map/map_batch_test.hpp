@@ -23,25 +23,25 @@
 namespace memoria {
 
 template <
-	template <typename, typename> class MapType
+    template <typename, typename> class MapType
 >
 class MapBatchTest: public RandomAccessListTestBase<
     MapType<BigInt, Int>,
     typename SCtrTF<MapType<BigInt, Int>>::Type::LeafPairsVector
 >
 {
-	typedef typename SCtrTF<MapType<BigInt, Int>>::Type 						SumSet1Ctr;
+    typedef typename SCtrTF<MapType<BigInt, Int>>::Type                         SumSet1Ctr;
 
 
 
     typedef RandomAccessListTestBase<
-    		MapType<BigInt, Int>,
+            MapType<BigInt, Int>,
             typename SumSet1Ctr::LeafPairsVector
     >                                                                           Base;
 
     typedef typename Base::Ctr                                                  Ctr;
     typedef typename Base::Accumulator                                          Accumulator;
-    typedef typename Base::Iterator                                          	Iterator;
+    typedef typename Base::Iterator                                             Iterator;
     typedef typename SumSet1Ctr::LeafPairsVector                                MemBuffer;
 
 
@@ -55,7 +55,7 @@ public:
 
 
     virtual MemBuffer createBuffer(Int size) {
-    	return createRandomBuffer(size);
+        return createRandomBuffer(size);
     }
 
     virtual MemBuffer createRandomBuffer(Int size)
@@ -76,15 +76,15 @@ public:
 
     virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
     {
-    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+        AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
 
-    	for (size_t c = 0; c < src.size(); c++)
-    	{
-    		auto v1 = src[c].first;
-    		auto v2 = tgt[c].first;
+        for (size_t c = 0; c < src.size(); c++)
+        {
+            auto v1 = src[c].first;
+            auto v2 = tgt[c].first;
 
-    		AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
-    	}
+            AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
+        }
     }
 
 
@@ -120,7 +120,7 @@ public:
     {
         for (auto& value: data)
         {
-        	value.first = iter.rawKey();
+            value.first = iter.rawKey();
 
             if (!iter.next())
             {
@@ -141,15 +141,15 @@ public:
     {
         if (offset > 0)
         {
-        	Int actual = 0;
+            Int actual = 0;
 
-        	for (BigInt c = 0; c < offset; c++)
+            for (BigInt c = 0; c < offset; c++)
             {
                 actual += iter.next();
             }
         }
         else {
-        	Int actual = 0;
+            Int actual = 0;
 
             for (BigInt c = 0; c < -offset; c++)
             {
@@ -183,7 +183,7 @@ public:
         }
 
         if (cnt != array.size()) {
-        	int a = 0; a++;
+            int a = 0; a++;
         }
 
         AssertEQ(MA_SRC, cnt, array.size());

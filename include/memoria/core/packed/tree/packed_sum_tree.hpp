@@ -23,23 +23,23 @@ namespace memoria {
 template <typename Types>
 class PackedSumTree: public PackedTree<Types> {
 
-    typedef PackedTree<Types>               Base;
-    typedef PackedSumTree<Types>            MyType;
+    typedef PackedTree<Types>                                                   Base;
+    typedef PackedSumTree<Types>                                                MyType;
 
 public:
 
-    typedef typename Base::Key              Key;
-    typedef typename Base::IndexKey         IndexKey;
-    typedef typename Base::Value            Value;
-    typedef typename Base::Accumulator      Accumulator;
+    typedef typename Base::Key                                                  Key;
+    typedef typename Base::IndexKey                                             IndexKey;
+    typedef typename Base::Value                                                Value;
+    typedef typename Base::Accumulator                                          Accumulator;
 
-    static const Int Blocks                 = Base::Blocks;
-    static const Int BranchingFactor        = Base::BranchingFactor;
+    static const Int Blocks                                                     = Base::Blocks;
+    static const Int BranchingFactor                                            = Base::BranchingFactor;
 
     typedef typename MergeLists<
                 typename Base::FieldsList,
                 ConstValue<UInt, 1>
-    >::Result                                                                           FieldsList;
+    >::Result                                                                   FieldsList;
 
 private:
 
@@ -162,62 +162,62 @@ public:
 
     Int findLE(Int block_num, const Key& k) const
     {
-    	FindSumPositionFwLeFn<MyType, Key, IndexKey> walker(*this, block_num, k);
-    	return Base::find(walker);
+        FindSumPositionFwLeFn<MyType, Key, IndexKey> walker(*this, block_num, k);
+        return Base::find(walker);
     }
 
     Int findLES(Int block_num, const Key& k, Key& sum) const
     {
-    	FindSumPositionFwLeFn<MyType, Key, IndexKey> fn(*this, block_num, k);
+        FindSumPositionFwLeFn<MyType, Key, IndexKey> fn(*this, block_num, k);
 
-    	Int idx = Base::find(fn);
+        Int idx = Base::find(fn);
 
-    	if (idx < Base::size())
-    	{
-    		sum += fn.sum();
-    	}
+        if (idx < Base::size())
+        {
+            sum += fn.sum();
+        }
 
-    	return idx;
+        return idx;
     }
 
 
     Int findLES(Int block_num, const Key& k, Accumulator& sum) const
     {
-    	FindSumPositionFwAccLeFn<MyType> fn(*this, block_num, k);
+        FindSumPositionFwAccLeFn<MyType> fn(*this, block_num, k);
 
-    	Int idx = Base::find(fn);
+        Int idx = Base::find(fn);
 
-    	sum += fn.sum();
+        sum += fn.sum();
 
-    	return idx;
+        return idx;
     }
 
     Int findLT(Int block_num, const Key& k) const
     {
-    	FindSumPositionFwLtFn<MyType, Key, IndexKey> walker(*this, block_num, k);
-    	return Base::find(walker);
+        FindSumPositionFwLtFn<MyType, Key, IndexKey> walker(*this, block_num, k);
+        return Base::find(walker);
     }
 
     Int findLTS(Int block_num, const Key& k, Key& sum) const
     {
-    	FindSumPositionFwLtFn<MyType, Key, IndexKey> fn(*this, block_num, k);
+        FindSumPositionFwLtFn<MyType, Key, IndexKey> fn(*this, block_num, k);
 
-    	Int idx = Base::find(fn);
+        Int idx = Base::find(fn);
 
-    	sum += fn.sum();
+        sum += fn.sum();
 
-    	return idx;
+        return idx;
     }
 
     Int findLTS(Int block_num, const Key& k, Accumulator& sum) const
     {
-    	FindSumPositionFwAccLtFn<MyType> fn(*this, block_num, k);
+        FindSumPositionFwAccLtFn<MyType> fn(*this, block_num, k);
 
-    	Int idx = Base::find(fn);
+        Int idx = Base::find(fn);
 
-    	sum += fn.sum();
+        sum += fn.sum();
 
-    	return idx;
+        return idx;
     }
 
     void sum(Int block_num, Int start, Int end, IndexKey& sum) const
@@ -234,7 +234,7 @@ public:
 
 //    Int findFwLT(Int block_num, Int start, Key key, Accumulator& acc) const
 //    {
-//    	FindSumPositionFwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
+//      FindSumPositionFwLtFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 //        return Base::walkFw(start, walker);
 //    }
 //
@@ -258,13 +258,13 @@ public:
 
     Int findFwLE(Int block_num, Int start, Key key, IndexKey& acc) const
     {
-    	FindSumPositionFwLeFn<MyType, Key, IndexKey> walker(*this, block_num, key);
+        FindSumPositionFwLeFn<MyType, Key, IndexKey> walker(*this, block_num, key);
 
-    	Int position = Base::findFw(start, walker);
+        Int position = Base::findFw(start, walker);
 
-    	acc += walker.sum();
+        acc += walker.sum();
 
-    	return position;
+        return position;
     }
 
     Int findBwLT(Int block_num, Int start, Key key, IndexKey& acc) const

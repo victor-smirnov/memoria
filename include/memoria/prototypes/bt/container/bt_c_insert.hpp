@@ -44,12 +44,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::Accumulator                                         Accumulator;
-    typedef typename Types::Position 											Position;
+    typedef typename Types::Position                                            Position;
 
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
-    typedef typename Types::PageUpdateMgr 										PageUpdateMgr;
+    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
     static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
@@ -73,44 +73,44 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     MEMORIA_DECLARE_NODE_FN(InsertIntoLeafFn, insert);
     bool insertIntoLeaf(Iterator& iter, const Position& pos, ISource* src)
     {
-    	auto& self = this->self();
-    	PageUpdateMgr mgr(self);
+        auto& self = this->self();
+        PageUpdateMgr mgr(self);
 
-    	try {
-    		Position sizes = self.getRemainder(src);
+        try {
+            Position sizes = self.getRemainder(src);
 
-    		LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn(), pos, sizes);
+            LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn(), pos, sizes);
 
-    		return true;
-    	}
-    	catch (PackedOOMException ex)
-    	{
-    		mgr.rollback();
-    		return false;
-    	}
+            return true;
+        }
+        catch (PackedOOMException ex)
+        {
+            mgr.rollback();
+            return false;
+        }
     }
 
 
     struct AppendToLeafFn {
-    	template <typename Node>
-    	void treeNode(const Node* node, ISource* src)
-    	{
-    		LayoutManager<Node> layout_manager(node);
+        template <typename Node>
+        void treeNode(const Node* node, ISource* src)
+        {
+            LayoutManager<Node> layout_manager(node);
 
-    		Position sizes;
+            Position sizes;
 
-    		src->newNode(layout_manager, sizes.values());
+            src->newNode(layout_manager, sizes.values());
 
-    		node->append(src, sizes);
-    	}
+            node->append(src, sizes);
+        }
     };
 
 
     void appendToLeaf(Iterator& iter, ISource* src)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	LeafDispatcher::dispatch(iter.leaf(), AppendToLeafFn(), src);
+        LeafDispatcher::dispatch(iter.leaf(), AppendToLeafFn(), src);
     }
 
 
@@ -123,23 +123,23 @@ M_PARAMS
 template <typename EntryData>
 void M_TYPE::updateEntry(Iterator& iter, const EntryData& entry)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	PageUpdateMgr mgr(self);
-	mgr.add(iter.leaf());
+    PageUpdateMgr mgr(self);
+    mgr.add(iter.leaf());
 
-	Accumulator delta;
+    Accumulator delta;
 
-	try {
-		delta = self.setLeafEntry(iter.leaf(), iter.stream(), iter.idx(), entry);
-	}
-	catch (PackedOOMException ex)
-	{
-		mgr.rollback();
-		throw ex;
-	}
+    try {
+        delta = self.setLeafEntry(iter.leaf(), iter.stream(), iter.idx(), entry);
+    }
+    catch (PackedOOMException ex)
+    {
+        mgr.rollback();
+        throw ex;
+    }
 
-	self.updateParent(iter.leaf(), delta);
+    self.updateParent(iter.leaf(), delta);
 }
 
 
@@ -149,7 +149,7 @@ void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 {
     NodeBaseG&  leaf    = iter.leaf();
     Int&        idx     = iter.idx();
-    Int 		stream  = iter.stream();
+    Int         stream  = iter.stream();
 
     auto& ctr  = self();
 
@@ -157,7 +157,7 @@ void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
 
     if (ctr.isNodeEmpty(leaf))
     {
-    	ctr.initLeaf(leaf);
+        ctr.initLeaf(leaf);
     }
 
     if (ctr.getStreamCapacity(leaf, stream) > 0)
@@ -173,19 +173,19 @@ void M_TYPE::insertEntry(Iterator &iter, const EntryData& entry)
     }
     else
     {
-    	Position split_idx = leaf_sizes / 2;
+        Position split_idx = leaf_sizes / 2;
 
         auto next = ctr.splitLeafP(leaf, split_idx);
 
         if (idx < split_idx[stream])
         {
-        	ctr.makeRoom(leaf, stream, idx, 1);
+            ctr.makeRoom(leaf, stream, idx, 1);
         }
         else {
-        	idx -= split_idx[stream];
+            idx -= split_idx[stream];
 
-        	leaf = next;
-        	ctr.makeRoom(leaf, stream, idx, 1);
+            leaf = next;
+            ctr.makeRoom(leaf, stream, idx, 1);
         }
     }
 
@@ -199,37 +199,37 @@ M_PARAMS
 template <typename EntryData>
 void M_TYPE::insertEntry2(Iterator& iter, const EntryData& data)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	NodeBaseG&  leaf    = iter.leaf();
-	Int&        idx     = iter.idx();
-	Int 		stream  = iter.stream();
+    NodeBaseG&  leaf    = iter.leaf();
+    Int&        idx     = iter.idx();
+    Int         stream  = iter.stream();
 
-	Position leaf_sizes = self.getNodeSizes(leaf);
+    Position leaf_sizes = self.getNodeSizes(leaf);
 
-	if (self.isNodeEmpty(leaf))
-	{
-		self.initLeaf(leaf);
-	}
+    if (self.isNodeEmpty(leaf))
+    {
+        self.initLeaf(leaf);
+    }
 
-	if (!self.insertLeafEntry(iter, data))
-	{
-		Position split_idx = leaf_sizes / 2;
+    if (!self.insertLeafEntry(iter, data))
+    {
+        Position split_idx = leaf_sizes / 2;
 
-		NodeBaseG next = self.splitLeafP(leaf, split_idx);
+        NodeBaseG next = self.splitLeafP(leaf, split_idx);
 
-		if (idx >= split_idx[stream])
-		{
-			idx -= split_idx[stream];
-			leaf = next;
-		}
+        if (idx >= split_idx[stream])
+        {
+            idx -= split_idx[stream];
+            leaf = next;
+        }
 
-		iter.buildPath(leaf);
+        iter.buildPath(leaf);
 
-		MEMORIA_ASSERT_TRUE(self.insertLeafEntry(iter, data));
-	}
+        MEMORIA_ASSERT_TRUE(self.insertLeafEntry(iter, data));
+    }
 
-	self.addTotalKeyCount(Position::create(stream, 1));
+    self.addTotalKeyCount(Position::create(stream, 1));
 }
 
 
@@ -238,27 +238,27 @@ void M_TYPE::insertEntry2(Iterator& iter, const EntryData& data)
 
 M_PARAMS
 void M_TYPE::insertEntries(
-		Iterator& iter,
-		const Position& pos,
-		ISource* src,
-		std::function<void ()> split_fn)
+        Iterator& iter,
+        const Position& pos,
+        ISource* src,
+        std::function<void ()> split_fn)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	if (self.insertIntoLeaf(iter, pos, src))
-	{
-		return;
-	}
+    if (self.insertIntoLeaf(iter, pos, src))
+    {
+        return;
+    }
 
-	split_fn();
+    split_fn();
 
-	self.appendToLeaf(iter, src);
+    self.appendToLeaf(iter, src);
 
-	while (self.getRemainder(src).gtAny(0))
-	{
-		iter.createEmptyLeaf();
-		self.appendToLeaf(iter, src);
-	}
+    while (self.getRemainder(src).gtAny(0))
+    {
+        iter.createEmptyLeaf();
+        self.appendToLeaf(iter, src);
+    }
 }
 
 

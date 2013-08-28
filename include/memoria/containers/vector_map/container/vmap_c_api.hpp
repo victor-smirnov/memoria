@@ -23,54 +23,54 @@ using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 
-	typedef typename Base::Types                                                Types;
-	typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Types                                                Types;
+    typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename Base::ID                                                   ID;
+    typedef typename Base::ID                                                   ID;
 
-	typedef typename Types::NodeBase                                            NodeBase;
-	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::Iterator                                             Iterator;
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-	typedef typename Base::RootDispatcher                                       RootDispatcher;
-	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-	typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
+    typedef typename Base::RootDispatcher                                       RootDispatcher;
+    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
 
-	typedef typename Base::Key                                                  Key;
-	typedef typename Base::Value                                                Value;
-	typedef typename Base::Element                                              Element;
+    typedef typename Base::Key                                                  Key;
+    typedef typename Base::Value                                                Value;
+    typedef typename Base::Element                                              Element;
 
-	typedef typename Base::Metadata                                             Metadata;
+    typedef typename Base::Metadata                                             Metadata;
 
-	typedef typename Types::Accumulator                                         Accumulator;
-	typedef typename Types::Position 											Position;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::Position                                            Position;
 
-	typedef typename Base::TreePath                                             TreePath;
-	typedef typename Base::TreePathItem                                         TreePathItem;
+    typedef typename Base::TreePath                                             TreePath;
+    typedef typename Base::TreePathItem                                         TreePathItem;
 
-	static const Int Indexes                                                    = Types::Indexes;
-	static const Int Streams                                                    = Types::Streams;
+    static const Int Indexes                                                    = Types::Indexes;
+    static const Int Streams                                                    = Types::Streams;
 
-	typedef typename Types::IDataSourceType										DataSource;
+    typedef typename Types::IDataSourceType                                     DataSource;
 
-	BigInt total_size() const
-	{
-		auto sizes = self().getTotalKeyCount();
-		return sizes[1];
-	}
+    BigInt total_size() const
+    {
+        auto sizes = self().getTotalKeyCount();
+        return sizes[1];
+    }
 
-	BigInt size() const
-	{
-		auto sizes = self().getTotalKeyCount();
-		return sizes[0];
-	}
+    BigInt size() const
+    {
+        auto sizes = self().getTotalKeyCount();
+        return sizes[0];
+    }
 
-	BigInt blob_size(Key id) const
-	{
-		return seek(id).size();
-	}
+    BigInt blob_size(Key id) const
+    {
+        return seek(id).size();
+    }
 
     Iterator seek(Key id, Key pos)
     {
@@ -84,77 +84,77 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 
     Iterator find(Key id)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	vmap::MapFindWalker<Types> walker(id);
+        vmap::MapFindWalker<Types> walker(id);
 
-    	Iterator iter = self.find0(0, walker);
+        Iterator iter = self.find0(0, walker);
 
-    	if ((!iter.isEnd()) && iter.id() == id)
-    	{
-    		iter.found() 	= true;
-    	}
-    	else {
-    		iter.found() 	= false;
-    	}
+        if ((!iter.isEnd()) && iter.id() == id)
+        {
+            iter.found()    = true;
+        }
+        else {
+            iter.found()    = false;
+        }
 
-    	return iter;
+        return iter;
     }
 
     bool contains(Key id) {
-    	return find(id).found();
+        return find(id).found();
     }
 
     BigInt maxId()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Iterator iter = self.REnd();
+        Iterator iter = self.REnd();
 
-    	return iter.id();
+        return iter.id();
     }
 
     Iterator create(DataSource& src)
     {
-    	auto& self = this->self();
-    	auto iter  = self.End();
+        auto& self = this->self();
+        auto iter  = self.End();
 
-    	self.insert(iter, iter.id() + 1, src);
+        self.insert(iter, iter.id() + 1, src);
 
-    	return iter;
+        return iter;
     }
 
     Iterator create(Key id, DataSource& src)
     {
-    	auto& self = this->self();
-    	auto iter  = self.find(id);
+        auto& self = this->self();
+        auto iter  = self.find(id);
 
-    	if (iter.found())
-    	{
-    		iter.seek(0);
-    		self.replaceData(iter, src);
-    	}
-    	else {
-    		self.insert(iter, id, src);
-    	}
+        if (iter.found())
+        {
+            iter.seek(0);
+            self.replaceData(iter, src);
+        }
+        else {
+            self.insert(iter, id, src);
+        }
 
-    	return iter;
+        return iter;
     }
 
     bool remove(Key id)
     {
-    	auto& self = this->self();
-    	auto iter  = self.find(id);
+        auto& self = this->self();
+        auto iter  = self.find(id);
 
-    	if (iter.found())
-    	{
-    		self.removeEntry(iter);
+        if (iter.found())
+        {
+            self.removeEntry(iter);
 
-    		return true;
-    	}
-    	else {
-    		return false;
-    	}
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
 

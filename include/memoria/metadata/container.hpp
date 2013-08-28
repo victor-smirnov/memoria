@@ -74,7 +74,7 @@ public:
                 page_map_[page->hash() ^ ctr_hash] = page;
             }
             else if (content[c]->getTypeCode() == Metadata::CONTAINER) {
-            	// nothing to do
+                // nothing to do
             }
             else {
                 //exception;

@@ -18,36 +18,36 @@ using namespace memoria;
 
 int main(void) {
 
-	Int SIZE = 1024;
+    Int SIZE = 1024;
 
-	void* buf = malloc(SIZE);
-	memset(buf, 0, SIZE);
+    void* buf = malloc(SIZE);
+    memset(buf, 0, SIZE);
 
-	PackedAllocator* alloc = T2T<PackedAllocator*>(buf);
-	alloc->init(SIZE, 1);
+    PackedAllocator* alloc = T2T<PackedAllocator*>(buf);
+    alloc->init(SIZE, 1);
 
-	typedef PkdFTreeTypes<Int, Int, Int, 2> 	Types;
-	typedef PkdFTree<Types>					Tree;
+    typedef PkdFTreeTypes<Int, Int, Int, 2>     Types;
+    typedef PkdFTree<Types>                 Tree;
 
-	Int client_area =  alloc->client_area();
+    Int client_area =  alloc->client_area();
 
-	Tree* tree = alloc->allocate<Tree>(0, client_area);
+    Tree* tree = alloc->allocate<Tree>(0, client_area);
 
-	tree->insertSpace(0, tree->max_size());
+    tree->insertSpace(0, tree->max_size());
 
-	for (Int c = 0; c < tree->size(); c++)
-	{
-		tree->value(0, c) = 1;
-		tree->value(1, c) = 2;
-	}
+    for (Int c = 0; c < tree->size(); c++)
+    {
+        tree->value(0, c) = 1;
+        tree->value(1, c) = 2;
+    }
 
-	tree->reindex();
-	//tree->dump();
+    tree->reindex();
+    //tree->dump();
 
-//	auto result = tree->findLTForward(0, 1, 0);
-	auto result = tree->findLEBackward(1, 2, 6);
+//  auto result = tree->findLTForward(0, 1, 0);
+    auto result = tree->findLEBackward(1, 2, 6);
 
-	cout<<result.idx()<<" "<<result.prefix()<<endl;
+    cout<<result.idx()<<" "<<result.prefix()<<endl;
 
 
 

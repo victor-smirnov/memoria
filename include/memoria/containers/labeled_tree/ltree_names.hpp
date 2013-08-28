@@ -12,16 +12,16 @@
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
 
 namespace memoria    {
-namespace louds	 	 {
+namespace louds      {
 
-class CtrApiName 		{};
-class CtrFindName 		{};
-class CtrInsertName 	{};
-class CtrUpdateName 	{};
-class CtrRemoveName 	{};
-class CtrChecksName 	{};
+class CtrApiName        {};
+class CtrFindName       {};
+class CtrInsertName     {};
+class CtrUpdateName     {};
+class CtrRemoveName     {};
+class CtrChecksName     {};
 
-class ItrApiName 		{};
+class ItrApiName        {};
 
 }
 

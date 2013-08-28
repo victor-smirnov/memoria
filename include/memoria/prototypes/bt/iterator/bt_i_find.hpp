@@ -48,32 +48,32 @@ M_PARAMS
 template <template <typename CtrTypes> class Walker>
 BigInt M_TYPE::_findFw(Int index, Key key)
 {
-	auto& self = this->self();
-	Int stream = self.stream();
+    auto& self = this->self();
+    Int stream = self.stream();
 
-	Walker<Types> walker(stream, index, key);
+    Walker<Types> walker(stream, index, key);
 
-	walker.prepare(self);
+    walker.prepare(self);
 
-	Int idx = self.model().findFw(self.leaf(), stream, self.key_idx(), walker);
+    Int idx = self.model().findFw(self.leaf(), stream, self.key_idx(), walker);
 
-	return walker.finish(self, idx);
+    return walker.finish(self, idx);
 }
 
 M_PARAMS
 template <template <typename CtrTypes> class Walker>
 BigInt M_TYPE::_findBw(Int index, Key key)
 {
-	auto& self = this->self();
-	Int stream = self.stream();
+    auto& self = this->self();
+    Int stream = self.stream();
 
-	Walker<Types> walker(stream, index, key);
+    Walker<Types> walker(stream, index, key);
 
-	walker.prepare(self);
+    walker.prepare(self);
 
-	Int idx = self.model().findBw(self.leaf(), stream, self.key_idx(), walker);
+    Int idx = self.model().findBw(self.leaf(), stream, self.key_idx(), walker);
 
-	return walker.finish(self, idx);
+    return walker.finish(self, idx);
 }
 
 #undef M_PARAMS

@@ -20,24 +20,24 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
-	typedef typename Base::Types                                                Types;
+    typedef typename Base::Types                                                Types;
 
 
-	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::Iterator                                             Iterator;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::Key                                                  Key;
-	typedef typename Base::Value                                                Value;
-	typedef typename Base::Element                                              Element;
+    typedef typename Base::Key                                                  Key;
+    typedef typename Base::Value                                                Value;
+    typedef typename Base::Element                                              Element;
 
-	typedef typename Types::Accumulator                                         Accumulator;
-	typedef typename Types::Position 											Position;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::Position                                            Position;
 
-	static const Int Streams                                                    = Types::Streams;
+    static const Int Streams                                                    = Types::Streams;
 
-	BigInt size() const {
-		return self().sizes()[0];
-	}
+    BigInt size() const {
+        return self().sizes()[0];
+    }
 
     Iterator find(Key key)
     {
@@ -65,7 +65,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
         if (iter.isEnd() || key != iter.key())
         {
-        	Accumulator keys;
+            Accumulator keys;
             std::get<0>(keys)[0] = key;
             self().insert(iter, keys);
 
@@ -77,7 +77,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     bool remove(Key key)
     {
-    	Iterator iter = self().findLE(0, key, 0);
+        Iterator iter = self().findLE(0, key, 0);
 
         if (key == iter.key())
         {
@@ -85,7 +85,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
             return true;
         }
         else {
-        	return false;
+            return false;
         }
     }
 

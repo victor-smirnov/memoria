@@ -57,17 +57,6 @@ public:
 };
 
 
-//template <
-//        template <typename Item> class ValueProvider,
-//        bool Asc,
-//        typename ValueType,
-//        typename Result
-//>
-//class Sort<NullType, ValueProvider, Asc, ValueType, Result> {
-//public:
-//    typedef Result                                                              List;
-//};
-
 template <
         template <typename Item> class ValueProvider,
         bool Asc,

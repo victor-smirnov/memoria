@@ -43,7 +43,7 @@ using namespace memoria::vapi;
 template <typename Profile, typename PageType, typename TxnType = EmptyType>
 class InMemAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> >::Type {
 
-    typedef IAllocator<PageType>                                        Base;
+    typedef IAllocator<PageType>                                                Base;
     typedef InMemAllocator<Profile, PageType, TxnType>                          Me;
 
 public:
@@ -339,13 +339,13 @@ public:
 
     virtual bool hasRoot(BigInt name)
     {
-    	if (root_map_)
-    	{
-    		return get_value_for_key(name) != ID(0);
-    	}
-    	else {
-    		return false;
-    	}
+        if (root_map_)
+        {
+            return get_value_for_key(name) != ID(0);
+        }
+        else {
+            return false;
+        }
     }
 
     void stat() {
@@ -726,9 +726,9 @@ public:
     virtual BigInt createCtrName()
     {
         //FIXME Ctr name counter is Txn-aware just because we
-    	// currently have only one acive Txn at a time.
+        // currently have only one acive Txn at a time.
 
-    	RootMetatata meta = root_map_->getRootMetadata();
+        RootMetatata meta = root_map_->getRootMetadata();
 
         BigInt new_name = ++meta.model_name_counter();
 
@@ -739,7 +739,7 @@ public:
 
     BigInt size()
     {
-    	return root_map_->size();
+        return root_map_->size();
     }
 
 private:
@@ -877,7 +877,7 @@ private:
     {
         MEMORIA_ASSERT_TRUE(page != nullptr);
 
-    	Shared* shared = pool_.get(page->id());
+        Shared* shared = pool_.get(page->id());
 
         if (shared == NULL)
         {

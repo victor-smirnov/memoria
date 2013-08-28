@@ -20,143 +20,143 @@ using namespace std;
 
 class PackedLoudsCardinalTest: public PackedLoudsCardinalTreeTestBase {
 
-	typedef PackedLoudsCardinalTreeTestBase										Base;
-    typedef PackedLoudsCardinalTest 											MyType;
+    typedef PackedLoudsCardinalTreeTestBase                                     Base;
+    typedef PackedLoudsCardinalTest                                             MyType;
 
-    typedef typename Base::Tree													CardinalTree;
+    typedef typename Base::Tree                                                 CardinalTree;
 
-    typedef typename CardinalTree::LoudsTree 									LoudsTree;
-    typedef typename CardinalTree::LabelArray									LabelArray;
+    typedef typename CardinalTree::LoudsTree                                    LoudsTree;
+    typedef typename CardinalTree::LabelArray                                   LabelArray;
 
 
 public:
 
     PackedLoudsCardinalTest(): Base("Create")
     {
-    	MEMORIA_ADD_TEST(testCreateCardinalTree);
-    	MEMORIA_ADD_TEST(testRemoveCardinalTree);
+        MEMORIA_ADD_TEST(testCreateCardinalTree);
+        MEMORIA_ADD_TEST(testRemoveCardinalTree);
     }
 
     virtual ~PackedLoudsCardinalTest() throw() {}
 
     CardinalTree* createCardinalTree(Int block_size = 64*1024)
     {
-    	PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
+        PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
 
-    	alloc->init(block_size, 1);
-    	alloc->setTopLevelAllocator();
+        alloc->init(block_size, 1);
+        alloc->setTopLevelAllocator();
 
-    	CardinalTree* tree = alloc->template allocateEmpty<CardinalTree>(0);
+        CardinalTree* tree = alloc->template allocateEmpty<CardinalTree>(0);
 
-    	return tree;
+        return tree;
     }
 
     UBigInt buildPath(PackedLoudsNode node, Int level, const CardinalTree* ctree)
     {
-    	const LoudsTree* tree 		= ctree->tree();
-    	const LabelArray* labels	= ctree->labels();
+        const LoudsTree* tree       = ctree->tree();
+        const LabelArray* labels    = ctree->labels();
 
-    	UBigInt path = 0;
+        UBigInt path = 0;
 
-    	for (Int l = level - 1; l >= 0; l--)
-    	{
-    		UBigInt label = labels->value(node.rank1() - 1);
+        for (Int l = level - 1; l >= 0; l--)
+        {
+            UBigInt label = labels->value(node.rank1() - 1);
 
-    		path |= label << (8 * l);
+            path |= label << (8 * l);
 
-    		node = tree->parent(node);
-    	}
+            node = tree->parent(node);
+        }
 
-    	return path;
+        return path;
     }
 
     void checkTreeContent(const CardinalTree* tree, set<UBigInt>& paths)
     {
-    	traverseTreePaths(tree, [this, tree, &paths](const PackedLoudsNode& node, Int level) {
-    		AssertEQ(MA_SRC, level, 4);
-    		UBigInt path = buildPath(node, level, tree);
-    		AssertTrue(MA_SRC, paths.find(path) != paths.end());
-    	});
+        traverseTreePaths(tree, [this, tree, &paths](const PackedLoudsNode& node, Int level) {
+            AssertEQ(MA_SRC, level, 4);
+            UBigInt path = buildPath(node, level, tree);
+            AssertTrue(MA_SRC, paths.find(path) != paths.end());
+        });
     }
 
 
     void testCreateCardinalTree()
     {
-    	CardinalTree* tree = createCardinalTree();
-    	PARemover remover(tree);
+        CardinalTree* tree = createCardinalTree();
+        PARemover remover(tree);
 
-    	tree->prepare();
+        tree->prepare();
 
-    	auto fn = [](const PackedLoudsNode& node, Int label, Int level){};
+        auto fn = [](const PackedLoudsNode& node, Int label, Int level){};
 
-    	set<UBigInt> paths;
+        set<UBigInt> paths;
 
-    	for (Int c = 0; c < 1000; c++)
-    	{
-    		UInt path = getRandom();
+        for (Int c = 0; c < 1000; c++)
+        {
+            UInt path = getRandom();
 
-    		out()<<c<<" "<<hex<<path<<dec<<endl;
+            out()<<c<<" "<<hex<<path<<dec<<endl;
 
-    		paths.insert(path);
+            paths.insert(path);
 
-    		tree->insert_path(path, 4, fn);
+            tree->insert_path(path, 4, fn);
 
-    		checkTreeContent(tree, paths);
-    	}
+            checkTreeContent(tree, paths);
+        }
 
-    	out()<<"Free space in the tree: "<<tree->free_space()<<endl;
+        out()<<"Free space in the tree: "<<tree->free_space()<<endl;
     }
 
 
     void testRemoveCardinalTree()
     {
-    	CardinalTree* tree = createCardinalTree();
-    	PARemover remover(tree);
+        CardinalTree* tree = createCardinalTree();
+        PARemover remover(tree);
 
-    	tree->prepare();
+        tree->prepare();
 
-    	auto fn = [](const PackedLoudsNode& node, Int label, Int level){};
+        auto fn = [](const PackedLoudsNode& node, Int label, Int level){};
 
-    	set<UBigInt> paths;
+        set<UBigInt> paths;
 
-    	for (Int c = 0; c < 100; c++)
-    	{
-    		UInt path = getRandom();
+        for (Int c = 0; c < 100; c++)
+        {
+            UInt path = getRandom();
 
-    		out()<<c<<" "<<hex<<path<<dec<<endl;
+            out()<<c<<" "<<hex<<path<<dec<<endl;
 
-    		paths.insert(path);
+            paths.insert(path);
 
-    		tree->insert_path(path, 4, fn);
+            tree->insert_path(path, 4, fn);
 
-    		checkTreeContent(tree, paths);
-    	}
+            checkTreeContent(tree, paths);
+        }
 
-    	while (paths.size() > 0)
-    	{
-    		Int idx = getRandom(paths.size());
-    		UBigInt path;
+        while (paths.size() > 0)
+        {
+            Int idx = getRandom(paths.size());
+            UBigInt path;
 
-    		for (auto p: paths)
-    		{
-    			if (idx-- == 0)
-    			{
-    				path = p;
-    				break;
-    			}
-    		}
+            for (auto p: paths)
+            {
+                if (idx-- == 0)
+                {
+                    path = p;
+                    break;
+                }
+            }
 
-    		out()<<"Remove: "<<hex<<path<<dec<<" "<<paths.size()<<endl;
+            out()<<"Remove: "<<hex<<path<<dec<<" "<<paths.size()<<endl;
 
-    		bool result = tree->remove_path(path, 4);
-    		AssertTrue(MA_SRC, result);
+            bool result = tree->remove_path(path, 4);
+            AssertTrue(MA_SRC, result);
 
-    		paths.erase(path);
+            paths.erase(path);
 
-    		checkTreeContent(tree, paths);
-    	}
+            checkTreeContent(tree, paths);
+        }
 
-    	tree->dump(out());
+        tree->dump(out());
     }
 };
 

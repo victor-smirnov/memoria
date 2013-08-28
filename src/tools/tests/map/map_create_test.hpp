@@ -21,30 +21,30 @@
 namespace memoria {
 
 template <
-	typename MapName
+    typename MapName
 >
 class MapCreateTest: public MapTestBase<MapName> {
 
     typedef MapCreateTest<MapName>                                              MyType;
-    typedef MapTestBase<MapName>												Base;
+    typedef MapTestBase<MapName>                                                Base;
 
-    typedef typename Base::Allocator											Allocator;
-    typedef typename Base::Iterator												Iterator;
-    typedef typename Base::Ctr													Ctr;
-    typedef typename Base::PairVector											PairVector;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Iterator                                             Iterator;
+    typedef typename Base::Ctr                                                  Ctr;
+    typedef typename Base::PairVector                                           PairVector;
 
-    BigInt 	key_;
-    BigInt 	value_;
+    BigInt  key_;
+    BigInt  value_;
 
 public:
 
     MapCreateTest(StringRef name): Base(name)
     {
-    	Base::size_ 		= 10000;
-    	Base::check_step	= 0;
+        Base::size_         = 10000;
+        Base::check_step    = 0;
 
-    	MEMORIA_ADD_TEST_PARAM(key_)->state();
-    	MEMORIA_ADD_TEST_PARAM(value_)->state();
+        MEMORIA_ADD_TEST_PARAM(key_)->state();
+        MEMORIA_ADD_TEST_PARAM(value_)->state();
 
         MEMORIA_ADD_TEST_WITH_REPLAY(runCreateTest, replayCreateTest);
         MEMORIA_ADD_TEST_WITH_REPLAY(runIteratorTest, replayIteratorTest);
@@ -68,17 +68,17 @@ public:
 
         Base::ctr_name_ = map.name();
 
-        auto& vector_idx 	= Base::vector_idx_;
-        auto& pairs 		= Base::pairs;
-        auto& pairs_sorted 	= Base::pairs_sorted;
+        auto& vector_idx    = Base::vector_idx_;
+        auto& pairs         = Base::pairs;
+        auto& pairs_sorted  = Base::pairs_sorted;
 
         try {
 
             for (vector_idx = 0; vector_idx < Base::size_; vector_idx++)
             {
-            	this->out()<<vector_idx<<endl;
+                this->out()<<vector_idx<<endl;
 
-            	auto iter = map[pairs[vector_idx].key_];
+                auto iter = map[pairs[vector_idx].key_];
 
                 iter.value() = pairs[vector_idx].value_;
 
@@ -112,9 +112,9 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
-        auto& vector_idx_ 	= Base::vector_idx_;
-        auto& pairs 		= Base::pairs;
-        auto& pairs_sorted 	= Base::pairs_sorted;
+        auto& vector_idx_   = Base::vector_idx_;
+        auto& pairs         = Base::pairs;
+        auto& pairs_sorted  = Base::pairs_sorted;
 
         Base::LoadAllocator(allocator, Base::dump_name_);
 
@@ -141,83 +141,83 @@ public:
 
     vector<Int> fillVector(Allocator& allocator, Ctr& ctr, Int size)
     {
-    	vector<Int> v;
+        vector<Int> v;
 
-    	for (int c = 0; c < size; c++)
-    	{
-    		key_ = value_ = c;
+        for (int c = 0; c < size; c++)
+        {
+            key_ = value_ = c;
 
-    		Base::out()<<c<<endl;
+            Base::out()<<c<<endl;
 
-    		ctr[c] = c;
+            ctr[c] = c;
 
-    		v.push_back(c);
+            v.push_back(c);
 
-    		auto i = ctr[c];
+            auto i = ctr[c];
 
-    		AssertEQ(MA_SRC, i.key(), c);
-    		AssertEQ(MA_SRC, i.value(), c);
+            AssertEQ(MA_SRC, i.key(), c);
+            AssertEQ(MA_SRC, i.value(), c);
 
-    		allocator.commit();
-    	}
+            allocator.commit();
+        }
 
-    	return v;
+        return v;
     }
 
 
     void runIteratorTest()
     {
-    	DefaultLogHandlerImpl logHandler(Base::out());
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
+        DefaultLogHandlerImpl logHandler(Base::out());
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	try {
-    		Ctr ctr(&allocator);
+        try {
+            Ctr ctr(&allocator);
 
-    		Base::ctr_name_ = ctr.name();
+            Base::ctr_name_ = ctr.name();
 
-    		vector<Int> v = fillVector(allocator, ctr, Base::size_);
+            vector<Int> v = fillVector(allocator, ctr, Base::size_);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		Iterator i1 = ctr.Begin();
-    		AssertEQ(MA_SRC, i1.key(), v[0]);
+            Iterator i1 = ctr.Begin();
+            AssertEQ(MA_SRC, i1.key(), v[0]);
 
-    		Iterator i2 = ctr.RBegin();
-    		AssertEQ(MA_SRC, i2.key(), v[v.size() - 1]);
+            Iterator i2 = ctr.RBegin();
+            AssertEQ(MA_SRC, i2.key(), v[v.size() - 1]);
 
-    		Iterator i3 = ctr.End();
-    		AssertTrue(MA_SRC, i3.isEnd());
-    		AssertEQ(MA_SRC, i3.entry_idx(), ctr.getNodeSize(i3.leaf(), 0));
+            Iterator i3 = ctr.End();
+            AssertTrue(MA_SRC, i3.isEnd());
+            AssertEQ(MA_SRC, i3.entry_idx(), ctr.getNodeSize(i3.leaf(), 0));
 
-    		Iterator i4 = ctr.REnd();
-    		AssertTrue(MA_SRC, i4.isBegin());
-    		AssertEQ(MA_SRC, i4.entry_idx(), -1);
-    	}
-    	catch (...) {
-    		Base::dump_name_ = Base::Store(allocator);
-    		throw;
-    	}
+            Iterator i4 = ctr.REnd();
+            AssertTrue(MA_SRC, i4.isBegin());
+            AssertEQ(MA_SRC, i4.entry_idx(), -1);
+        }
+        catch (...) {
+            Base::dump_name_ = Base::Store(allocator);
+            throw;
+        }
     }
 
     void replayIteratorTest()
     {
-    	DefaultLogHandlerImpl logHandler(Base::out());
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
+        DefaultLogHandlerImpl logHandler(Base::out());
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Base::LoadAllocator(allocator, Base::dump_name_);
+        Base::LoadAllocator(allocator, Base::dump_name_);
 
-    	Base::check(allocator, MA_SRC);
+        Base::check(allocator, MA_SRC);
 
-    	Ctr ctr(&allocator, CTR_FIND, Base::ctr_name_);
+        Ctr ctr(&allocator, CTR_FIND, Base::ctr_name_);
 
-    	ctr[key_] = value_;
+        ctr[key_] = value_;
 
-		auto i = ctr[key_];
+        auto i = ctr[key_];
 
-		AssertEQ(MA_SRC, i.key(), key_);
-		AssertEQ(MA_SRC, i.value(), value_);
+        AssertEQ(MA_SRC, i.key(), key_);
+        AssertEQ(MA_SRC, i.value(), value_);
     }
 
 };

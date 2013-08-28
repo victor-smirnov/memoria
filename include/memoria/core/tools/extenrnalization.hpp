@@ -6,8 +6,8 @@
 #ifndef MEMORIA_CORE_TOOLS_EXTENRNALIZATION_HPP_
 #define MEMORIA_CORE_TOOLS_EXTENRNALIZATION_HPP_
 
-namespace memoria 	{
-namespace core 		{
+namespace memoria   {
+namespace core      {
 
 
 

@@ -11,152 +11,152 @@
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
-namespace memoria 	{
-namespace louds		{
+namespace memoria   {
+namespace louds     {
 
 template <typename Types>
 class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
-	typedef bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> 			Base;
-	typedef typename Base::Key 													Key;
+    typedef bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>>          Base;
+    typedef typename Base::Key                                                  Key;
 
-	BigInt rank1_ = 0;
+    BigInt rank1_ = 0;
 
 public:
-	typedef typename Base::ResultType											ResultType;
-	typedef typename Base::Iterator												Iterator;
+    typedef typename Base::ResultType                                           ResultType;
+    typedef typename Base::Iterator                                             Iterator;
 
 
-	SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
-	{}
+    SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
+    {}
 
-	template <Int Idx, typename Tree>
-	ResultType stream(Tree* tree, Int start)
-	{
-		return Base::template stream<Idx>(tree, start);
-	}
+    template <Int Idx, typename Tree>
+    ResultType stream(Tree* tree, Int start)
+    {
+        return Base::template stream<Idx>(tree, start);
+    }
 
-	template <Int StreamIdx, typename StreamType, typename Result>
-	void postProcessStream(const StreamType* stream, Int start, const Result& result)
-	{
-		Int size = stream->size();
+    template <Int StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    {
+        Int size = stream->size();
 
-		if (result.idx() < size)
-		{
-			rank1_ += stream->sum(2, start, result.idx());
-		}
-		else {
-			rank1_ += stream->sum(2, start, size);
-		}
-	}
+        if (result.idx() < size)
+        {
+            rank1_ += stream->sum(2, start, result.idx());
+        }
+        else {
+            rank1_ += stream->sum(2, start, size);
+        }
+    }
 
-	template <Int Idx, typename StreamTypes>
-	ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
-	{
-		auto& sum = Base::sum_;
+    template <Int Idx, typename StreamTypes>
+    ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
+    {
+        auto& sum = Base::sum_;
 
-		BigInt offset = Base::target_ - sum;
+        BigInt offset = Base::target_ - sum;
 
-		Int	size = seq != nullptr? seq->size() : 0;
+        Int size = seq != nullptr? seq->size() : 0;
 
-		if (start + offset < size)
-		{
-			sum += offset;
+        if (start + offset < size)
+        {
+            sum += offset;
 
-			rank1_ += seq->rank(start >= 0 ? start : 0, start + offset, 1);
+            rank1_ += seq->rank(start >= 0 ? start : 0, start + offset, 1);
 
-			return start + offset;
-		}
-		else {
-			sum += (size - start);
+            return start + offset;
+        }
+        else {
+            sum += (size - start);
 
-			rank1_ += seq->rank(start >= 0 ? start : 0, seq->size(), 1);
+            rank1_ += seq->rank(start >= 0 ? start : 0, seq->size(), 1);
 
-			return size;
-		}
-	}
+            return size;
+        }
+    }
 
-	BigInt finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = idx;
+    BigInt finish(Iterator& iter, Int idx)
+    {
+        iter.idx() = idx;
 
-		iter.cache().add(this->sum_, rank1_);
+        iter.cache().add(this->sum_, rank1_);
 
-		return this->sum_;
-	}
+        return this->sum_;
+    }
 };
 
 template <typename Types>
 class SkipBackwardWalker: public bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
-	typedef bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>		Base;
-	typedef typename Base::Key 													Key;
+    typedef bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>        Base;
+    typedef typename Base::Key                                                  Key;
 
-	BigInt rank1_ = 0;
+    BigInt rank1_ = 0;
 
 public:
-	typedef typename Base::ResultType											ResultType;
-	typedef typename Base::Iterator												Iterator;
+    typedef typename Base::ResultType                                           ResultType;
+    typedef typename Base::Iterator                                             Iterator;
 
-	SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
-	{
-		Base::search_type_ = SearchType::LT;
-	}
+    SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
+    {
+        Base::search_type_ = SearchType::LT;
+    }
 
-	template <Int Idx, typename Tree>
-	ResultType stream(const Tree* tree, Int start) {
-		return Base::template stream<Idx>(tree, start);
-	}
+    template <Int Idx, typename Tree>
+    ResultType stream(const Tree* tree, Int start) {
+        return Base::template stream<Idx>(tree, start);
+    }
 
-	template <Int StreamIdx, typename StreamType, typename Result>
-	void postProcessStream(const StreamType* stream, Int start, const Result& result)
-	{
-		if (result.idx() >= 0)
-		{
-			rank1_ += stream->sum(2, result.idx() + 1, start + 1);
-		}
-		else {
-			rank1_ += stream->sum(2, 0, start + 1);
-		}
-	}
+    template <Int StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    {
+        if (result.idx() >= 0)
+        {
+            rank1_ += stream->sum(2, result.idx() + 1, start + 1);
+        }
+        else {
+            rank1_ += stream->sum(2, 0, start + 1);
+        }
+    }
 
 
-	template <Int Idx, typename TreeTypes>
-	ResultType stream(const PkdFSSeq<TreeTypes>* seq, Int start)
-	{
-		BigInt offset = Base::target_ - Base::sum_;
+    template <Int Idx, typename TreeTypes>
+    ResultType stream(const PkdFSSeq<TreeTypes>* seq, Int start)
+    {
+        BigInt offset = Base::target_ - Base::sum_;
 
-		auto& sum = Base::sum_;
+        auto& sum = Base::sum_;
 
-		if (start - offset >= 0)
-		{
-			sum += offset;
+        if (start - offset >= 0)
+        {
+            sum += offset;
 
-			rank1_ += seq->rank(start - offset, start, 1);
+            rank1_ += seq->rank(start - offset, start, 1);
 
-			return start - offset;
-		}
-		else {
-			sum += start;
+            return start - offset;
+        }
+        else {
+            sum += start;
 
-			rank1_ += seq->rank(0, start, 1);
+            rank1_ += seq->rank(0, start, 1);
 
-			return -1;
-		}
-	}
+            return -1;
+        }
+    }
 
-	BigInt finish(Iterator& iter, Int idx)
-	{
-		iter.idx() = idx;
+    BigInt finish(Iterator& iter, Int idx)
+    {
+        iter.idx() = idx;
 
-		if (idx >= 0)
-		{
-			iter.cache().sub(this->sum_, rank1_);
-		}
-		else {
-			iter.cache().setup(-1, 0);
-		}
+        if (idx >= 0)
+        {
+            iter.cache().sub(this->sum_, rank1_);
+        }
+        else {
+            iter.cache().setup(-1, 0);
+        }
 
-		return this->sum_;
-	}
+        return this->sum_;
+    }
 };
 
 

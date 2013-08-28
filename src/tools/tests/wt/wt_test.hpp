@@ -19,31 +19,31 @@ using namespace std;
 
 class WTTest: public SPTestTask {
 
-	typedef SPTestTask														Base;
-	typedef WTTest 															MyType;
+    typedef SPTestTask                                                      Base;
+    typedef WTTest                                                          MyType;
 
-	typedef typename SCtrTF<WT>::Type                                    	Ctr;
-	typedef typename Ctr::Iterator                                          Iterator;
+    typedef typename SCtrTF<WT>::Type                                       Ctr;
+    typedef typename Ctr::Iterator                                          Iterator;
 
 
-	typedef pair<UInt, Int> 												Pair;
+    typedef pair<UInt, Int>                                                 Pair;
 
-	Int alphabet_size_ 	= 10;
-	Int remove_check_ 	= 100;
+    Int alphabet_size_  = 10;
+    Int remove_check_   = 100;
 
 public:
 
-	WTTest(StringRef name): SPTestTask(name)
+    WTTest(StringRef name): SPTestTask(name)
     {
-		size_ = 5000;
+        size_ = 5000;
 
-		MEMORIA_ADD_TEST_PARAM(alphabet_size_);
-		MEMORIA_ADD_TEST_PARAM(remove_check_);
+        MEMORIA_ADD_TEST_PARAM(alphabet_size_);
+        MEMORIA_ADD_TEST_PARAM(remove_check_);
 
-		MEMORIA_ADD_TEST(testCreate);
-		MEMORIA_ADD_TEST(testRemove);
+        MEMORIA_ADD_TEST(testCreate);
+        MEMORIA_ADD_TEST(testRemove);
 
-		MEMORIA_ADD_TEST(testStore);
+        MEMORIA_ADD_TEST(testStore);
     }
 
     virtual ~WTTest() throw() {}
@@ -52,190 +52,190 @@ public:
 
     void testCreate()
     {
-    	DefaultLogHandlerImpl logHandler(Base::out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
-    	allocator.logger().level() = Logger::ERROR;
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
+        allocator.logger().level() = Logger::ERROR;
 
-    	Ctr ctr(&allocator);
+        Ctr ctr(&allocator);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
-    		ctr.prepare();
+        try {
+            ctr.prepare();
 
-    		auto alphabet = createRandomAlphabet(alphabet_size_);
-    		auto text = createRandomText(this->size_, alphabet);
+            auto alphabet = createRandomAlphabet(alphabet_size_);
+            auto text = createRandomText(this->size_, alphabet);
 
-    		for (UInt c = 0; c < text.size(); c++)
-    		{
-    			out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+            for (UInt c = 0; c < text.size(); c++)
+            {
+                out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 
-    			UBigInt value1 = text[c];
+                UBigInt value1 = text[c];
 
-    			ctr.insert(c, value1);
+                ctr.insert(c, value1);
 
-    			check(allocator, MA_SRC);
+                check(allocator, MA_SRC);
 
-    			allocator.commit();
-    		}
+                allocator.commit();
+            }
 
-    		StoreResource(allocator, "wtc");
+            StoreResource(allocator, "wtc");
 
-    		forceCheck(allocator, MA_SRC);
+            forceCheck(allocator, MA_SRC);
 
-    		assertText(ctr, text);
+            assertText(ctr, text);
 
-    		auto ranks = getRankedSymbols(text);
+            auto ranks = getRankedSymbols(text);
 
-    		out()<<"Check ranks"<<std::endl;
+            out()<<"Check ranks"<<std::endl;
 
-    		for (auto& rnk: ranks)
-    		{
-    			UInt sym = rnk.first;
+            for (auto& rnk: ranks)
+            {
+                UInt sym = rnk.first;
 
-    			for (UInt c = 0; c < text.size(); c += 100)
-    			{
-    				Int rank1 = ctr.rank(c, sym);
-    				Int rank2 = rank(text, c, sym);
+                for (UInt c = 0; c < text.size(); c += 100)
+                {
+                    Int rank1 = ctr.rank(c, sym);
+                    Int rank2 = rank(text, c, sym);
 
-    				AssertEQ(MA_SRC, rank1, rank2);
-    			}
-    		}
+                    AssertEQ(MA_SRC, rank1, rank2);
+                }
+            }
 
-    		out()<<"Check selects"<<std::endl;
+            out()<<"Check selects"<<std::endl;
 
-    		for (auto& rnk: ranks)
-    		{
-    			UInt sym = rnk.first;
-    			Int rank = rnk.second;
+            for (auto& rnk: ranks)
+            {
+                UInt sym = rnk.first;
+                Int rank = rnk.second;
 
-    			for (Int r = 1; r <= rank; r++)
-    			{
-    				Int idx1 = ctr.select(r, sym);
-    				Int idx2 = select(text, r, sym);
+                for (Int r = 1; r <= rank; r++)
+                {
+                    Int idx1 = ctr.select(r, sym);
+                    Int idx2 = select(text, r, sym);
 
-    				AssertEQ(MA_SRC, idx1, idx2);
-    			}
-    		}
+                    AssertEQ(MA_SRC, idx1, idx2);
+                }
+            }
 
 
-    	}
-    	catch (...) {
-    		 Store(allocator);
-    		 throw;
-    	}
+        }
+        catch (...) {
+             Store(allocator);
+             throw;
+        }
     }
 
     void testRemove()
     {
-    	DefaultLogHandlerImpl logHandler(Base::out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Ctr ctr(&allocator);
+        Ctr ctr(&allocator);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
-    		ctr.prepare();
+        try {
+            ctr.prepare();
 
-    		auto alphabet = createRandomAlphabet(alphabet_size_);
-    		auto text = createRandomText(this->size_, alphabet);
+            auto alphabet = createRandomAlphabet(alphabet_size_);
+            auto text = createRandomText(this->size_, alphabet);
 
-    		for (UInt c = 0; c < text.size(); c++)
-    		{
-    			out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+            for (UInt c = 0; c < text.size(); c++)
+            {
+                out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 
-    			UBigInt value1 = text[c];
+                UBigInt value1 = text[c];
 
-    			ctr.insert(c, value1);
-    		}
+                ctr.insert(c, value1);
+            }
 
-    		assertText(ctr, text);
+            assertText(ctr, text);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		Int cnt = 0;
-    		while (ctr.size() > 0)
-    		{
-    			Int idx = getRandom(ctr.size());
+            Int cnt = 0;
+            while (ctr.size() > 0)
+            {
+                Int idx = getRandom(ctr.size());
 
-    			out()<<"Remove at "<<idx<<endl;
+                out()<<"Remove at "<<idx<<endl;
 
-    			ctr.remove(idx);
-    			text.erase(text.begin() + idx);
+                ctr.remove(idx);
+                text.erase(text.begin() + idx);
 
-    			if ((cnt++) % remove_check_ == 0)
-    			{
-    				assertText(ctr, text);
-    			}
+                if ((cnt++) % remove_check_ == 0)
+                {
+                    assertText(ctr, text);
+                }
 
-    			check(allocator, MA_SRC);
+                check(allocator, MA_SRC);
 
-    			allocator.commit();
-    		}
+                allocator.commit();
+            }
 
-    		StoreResource(allocator, "wtr");
+            StoreResource(allocator, "wtr");
 
-    		forceCheck(allocator, MA_SRC);
-    	}
-    	catch (...) {
-    		Store(allocator);
-    		throw;
-    	}
+            forceCheck(allocator, MA_SRC);
+        }
+        catch (...) {
+            Store(allocator);
+            throw;
+        }
     }
 
     void testStore()
     {
-    	DefaultLogHandlerImpl logHandler(Base::out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Ctr ctr(&allocator);
+        Ctr ctr(&allocator);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
-    		ctr.prepare();
+        try {
+            ctr.prepare();
 
-    		auto alphabet = createRandomAlphabet(alphabet_size_);
-    		auto text = createRandomText(this->size_, alphabet);
+            auto alphabet = createRandomAlphabet(alphabet_size_);
+            auto text = createRandomText(this->size_, alphabet);
 
-    		for (UInt c = 0; c < text.size(); c++)
-    		{
-    			out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+            for (UInt c = 0; c < text.size(); c++)
+            {
+                out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 
-    			UBigInt value1 = text[c];
+                UBigInt value1 = text[c];
 
-    			ctr.insert(c, value1);
-    		}
+                ctr.insert(c, value1);
+            }
 
-    		forceCheck(allocator, MA_SRC);
+            forceCheck(allocator, MA_SRC);
 
-    		assertText(ctr, text);
+            assertText(ctr, text);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		StoreResource(allocator, "wts");
+            StoreResource(allocator, "wts");
 
-    		Allocator alloc2;
+            Allocator alloc2;
 
-    		LoadResource(alloc2, "wts");
+            LoadResource(alloc2, "wts");
 
-    		forceCheck(alloc2, MA_SRC);
+            forceCheck(alloc2, MA_SRC);
 
-    		Ctr wt2(&alloc2, CTR_FIND, ctr.name());
+            Ctr wt2(&alloc2, CTR_FIND, ctr.name());
 
-    		assertText(wt2, text);
-    	}
-    	catch (...) {
-    		Store(allocator);
-    		throw;
-    	}
+            assertText(wt2, text);
+        }
+        catch (...) {
+            Store(allocator);
+            throw;
+        }
 
 
     }
@@ -243,95 +243,95 @@ public:
 
     vector <UInt> createRandomAlphabet(Int size)
     {
-    	vector <UInt> text(size);
+        vector <UInt> text(size);
 
-    	for (auto& v: text)
-    	{
-    		v = getRandom();
-    	}
+        for (auto& v: text)
+        {
+            v = getRandom();
+        }
 
-    	return text;
+        return text;
     }
 
     vector <UInt> createRandomText(Int size, const vector<UInt>& alphabet)
     {
-    	vector <UInt> text(size);
+        vector <UInt> text(size);
 
-    	for (auto& v: text)
-    	{
-    		v = alphabet[getRandom(alphabet.size())];
-    	}
+        for (auto& v: text)
+        {
+            v = alphabet[getRandom(alphabet.size())];
+        }
 
-    	return text;
+        return text;
     }
 
     vector<Pair> getRankedSymbols(const vector<UInt>& text)
     {
-    	vector<Pair> result;
+        vector<Pair> result;
 
-    	std::map<UInt, Int> ranks;
+        std::map<UInt, Int> ranks;
 
-    	for (UInt c = 0; c < text.size(); c++)
-    	{
-    		UInt letter = text[c];
+        for (UInt c = 0; c < text.size(); c++)
+        {
+            UInt letter = text[c];
 
-    		if (ranks.find(letter) == ranks.end())
-    		{
-    			ranks[letter] = 0;
-    		}
+            if (ranks.find(letter) == ranks.end())
+            {
+                ranks[letter] = 0;
+            }
 
-    		ranks[letter]++;
-    	}
+            ranks[letter]++;
+        }
 
-    	for (auto pair: ranks)
-    	{
-    		result.push_back(pair);
-    	}
+        for (auto pair: ranks)
+        {
+            result.push_back(pair);
+        }
 
-    	std::sort(result.begin(), result.end(), [](const Pair& a, const Pair& b ) {
-    		return a.second > b.second;
-    	});
+        std::sort(result.begin(), result.end(), [](const Pair& a, const Pair& b ) {
+            return a.second > b.second;
+        });
 
-    	return result;
+        return result;
     }
 
     Int rank(const vector<UInt>& text, Int idx, UInt symbol)
     {
-    	Int sum = 0;
+        Int sum = 0;
 
-    	for (Int c = 0; c <= idx; c++)
-    	{
-    		sum += text[c] == symbol;
-    	}
+        for (Int c = 0; c <= idx; c++)
+        {
+            sum += text[c] == symbol;
+        }
 
-    	return sum;
+        return sum;
     }
 
     Int select(const vector<UInt>& text, Int rank, UInt symbol)
     {
-    	for (UInt c = 0; c < text.size(); c++)
-    	{
-    		rank -= text[c] == symbol;
+        for (UInt c = 0; c < text.size(); c++)
+        {
+            rank -= text[c] == symbol;
 
-    		if (rank == 0)
-    		{
-    			return c;
-    		}
-    	}
+            if (rank == 0)
+            {
+                return c;
+            }
+        }
 
-    	return text.size();
+        return text.size();
     }
 
     void assertText(Ctr& tree, const vector<UInt>& text)
     {
-    	AssertEQ(MA_SRC, tree.size(), (BigInt)text.size());
+        AssertEQ(MA_SRC, tree.size(), (BigInt)text.size());
 
-    	for (UInt c = 0; c < text.size(); c++)
-    	{
-    		UInt value = tree.value(c);
+        for (UInt c = 0; c < text.size(); c++)
+        {
+            UInt value = tree.value(c);
 
-    		AssertEQ(MA_SRC, value, text[c], SBuf()<<c);
-    	}
+            AssertEQ(MA_SRC, value, text[c], SBuf()<<c);
+        }
     }
 };
 

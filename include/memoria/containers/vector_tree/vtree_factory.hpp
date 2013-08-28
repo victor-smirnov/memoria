@@ -34,54 +34,54 @@ namespace memoria {
 template <typename Profile_>
 struct CompositeTypes<Profile_, VTree>: public CompositeTypes<Profile_, Composite> {
 
-	typedef VTree																ContainerTypeName;
+    typedef VTree                                                               ContainerTypeName;
 
-	typedef CompositeTypes<Profile_, Composite>                                 Base;
+    typedef CompositeTypes<Profile_, Composite>                                 Base;
 
-	typedef typename MergeLists<
-			typename Base::ContainerPartsList,
+    typedef typename MergeLists<
+            typename Base::ContainerPartsList,
 
-			vtree::CtrApiName
-	>::Result                                                           		CtrList;
+            vtree::CtrApiName
+    >::Result                                                                   CtrList;
 
-	typedef typename MergeLists<
-			typename Base::IteratorPartsList,
+    typedef typename MergeLists<
+            typename Base::IteratorPartsList,
 
-			vtree::ItrApiName
-	>::Result                                                           		IterList;
+            vtree::ItrApiName
+    >::Result                                                                   IterList;
 
 
-	template <typename Types_>
-	struct CtrBaseFactory {
-		typedef vtree::VTreeCtrBase<Types_>                                  	Type;
-	};
+    template <typename Types_>
+    struct CtrBaseFactory {
+        typedef vtree::VTreeCtrBase<Types_>                                     Type;
+    };
 };
 
 
 template <typename Profile_, typename T>
 class CtrTF<Profile_, VTree, T> {
 
-	typedef CtrTF<Profile_, VTree, T>                                       	MyType;
+    typedef CtrTF<Profile_, VTree, T>                                           MyType;
 
-	typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
+    typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
 
-	typedef CompositeTypes<Profile_, VTree>                                		ContainerTypes;
+    typedef CompositeTypes<Profile_, VTree>                                     ContainerTypes;
 
 public:
 
-	struct Types: public ContainerTypes
-	{
-		typedef Profile_                                        Profile;
-		typedef MyType::Allocator                               Allocator;
+    struct Types: public ContainerTypes
+    {
+        typedef Profile_                                        Profile;
+        typedef MyType::Allocator                               Allocator;
 
-		typedef VTreeCtrTypes<Types>                			CtrTypes;
-		typedef VTreeIterTypes<Types>               			IterTypes;
-	};
+        typedef VTreeCtrTypes<Types>                            CtrTypes;
+        typedef VTreeIterTypes<Types>                           IterTypes;
+    };
 
-	typedef typename Types::CtrTypes                                            CtrTypes;
-	typedef typename Types::IterTypes                                           IterTypes;
+    typedef typename Types::CtrTypes                                            CtrTypes;
+    typedef typename Types::IterTypes                                           IterTypes;
 
-	typedef Ctr<CtrTypes>                                                       Type;
+    typedef Ctr<CtrTypes>                                                       Type;
 };
 
 
