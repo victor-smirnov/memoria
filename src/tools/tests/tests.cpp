@@ -25,11 +25,15 @@
 #include "wt/wt_test_suite.hpp"
 
 #include <memoria/tools/cmdline.hpp>
+#include <memoria/tools/tools.hpp>
+#include <memoria/tools/tests.hpp>
+#include <memoria/core/tools/terminal.hpp>
 
 #include <iostream>
 
 using namespace std;
 using namespace memoria;
+using namespace memoria::tools;
 
 #include "dump.inc"
 

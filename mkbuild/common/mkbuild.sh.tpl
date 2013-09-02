@@ -36,6 +36,10 @@ cmake -G "Unix Makefiles" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER=$C_COMPILER \
     -DCMAKE_CXX_COMPILER=$CXX_COMPILER \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -DEMIT_LLVM=false \
+    -DBUILD_ASAN=false \
+    -DEMIT_AST=false \
     $ADDITIONAL_CMAKE_PARAMS \
     ../../$SOURCE_DIR
 

@@ -25,6 +25,10 @@ project (Memoria)
 #
 # MEMORIA_TESTS                    Enumeration of tests to be compiled. See src/tests/CmakeLists.txt for defaults.
 # MEMORIA_TOOLS                    Enumeration of tests to be compiled. See src/tools/CmakeLists.txt for defaults.
+#
+# EMIT_LLVM                        Emit LLVM bitcode for executables using clang compiler
+# BUILD_ASAN                       Build with address sanitizer enabled
+
 
 
 
@@ -51,8 +55,16 @@ else()
     set (CLANG_COMPILER true)
 endif()
 
-if (NOT DEFINED BUILD_LLVM_BITCODE)
-    set(BUILD_LLVM_BITCODE false)
+if (NOT DEFINED EMIT_LLVM)
+    set(EMIT_LLVM false)
+endif()
+
+if (NOT DEFINED BUILD_ASAN)
+    set(BUILD_ASAN false)
+endif()
+
+if (NOT DEFINED EMIT_AST)
+    set(EMIT_AST false)
 endif()
 
 if (UNIX AND NOT CYGWIN)
@@ -75,36 +87,51 @@ if (NOT DEFINED CHECK_SYNTAX_ONLY)
     set (CHECK_SYNTAX_ONLY false)
 endif()
 
-# -fno-elide-constructors 
+
 if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -march=native -mtune=native -std=c++0x -Wall -g -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -Wcomment -Wunused-variable")
+
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -march=native -mtune=native -std=c++11 -Wall ")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wcomment -Wunused-variable")
     
-    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -lstdc++") 
+    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -lstdc++ ")
     
-    if (CHECK_SYNTAX_ONLY)
-        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsyntax-only")
+    if (BUILD_ASAN AND NOT EMIT_LLVM)
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address")
+        set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -fsanitize=address")
     endif()
+    
 else()
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3")
 endif()
 
-if (CLANG_COMPILER AND BUILD_LLVM_BITCODE)
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -cc1 -emit-llvm")
-    set(CMAKE_AR "llvm-ar")
-    set(CMAKE_RANLIB "llvm-ranlib")
-    set (CMAKE_CXX_LINK_EXECUTABLE "llvm-link")
-    set (CMAKE_C_LINK_EXECUTABLE "llvm-link")
+if (EMIT_LLVM)
+    if (EMIT_AST)
+        message(FATAL_ERROR "EMIT_LLVM can't be used with EMIT_AST")
+    endif()
+
+    if (CLANG_COMPILER)
+        set (MEMORIA_COMPILE_FLAGS "-emit-llvm -fno-use-cxa-atexit -fexceptions ${MEMORIA_COMPILE_FLAGS}")
+    
+        set(CMAKE_AR "llvm-ar")
+        set(CMAKE_RANLIB "llvm-ranlib")
+    
+        set(CMAKE_CXX_LINK_EXECUTABLE "llvm-link <OBJECTS> -o <TARGET>.bc")
+        set(CMAKE_C_LINK_EXECUTABLE "llvm-link <OBJECTS> -o <TARGET>.bc")
+    else()
+        message(FATAL_ERROR "EMIT_LLVM is supported only for clang compiler")
+    endif()
+endif()
+
+
+if (EMIT_AST)
+    if (NOT CLANG_COMPILER)
+        message(FATAL_ERROR "EMIT_AST is supported only for clang compiler")
+    endif()
 endif()
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 
 add_subdirectory(src/build-tools)
-
-if (CHECK_SYNTAX_ONLY)
-    set(CMAKE_AR "${EXECUTABLE_OUTPUT_PATH}/do-nothing")
-    set(CMAKE_RANLIB "${EXECUTABLE_OUTPUT_PATH}/do-nothing")
-    set(CMAKE_CXX_LINK_EXECUTABLE "${EXECUTABLE_OUTPUT_PATH}/do-nothing")
-    set(CMAKE_C_LINK_EXECUTABLE "${EXECUTABLE_OUTPUT_PATH}/do-nothing")
-endif()
 
 add_subdirectory(src)

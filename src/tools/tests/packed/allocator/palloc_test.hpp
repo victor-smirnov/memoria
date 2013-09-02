@@ -151,7 +151,7 @@ public:
 
         AssertGE(MA_SRC, alloc->client_area(), client_area_size);
 
-        return AllocatorPtr(alloc);
+        return AllocatorPtr(alloc, free);
     }
 
     AllocatorPtr createSampleAllocator(Int client_area_size, Int elements)
