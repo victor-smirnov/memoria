@@ -98,7 +98,7 @@ public:
 
     static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
 
-    LeafNode(): Base() {}
+    LeafNode() = default;
 
 private:
     struct InitFn {

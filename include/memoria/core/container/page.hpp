@@ -18,6 +18,7 @@
 
 #include <memoria/core/container/logs.hpp>
 
+#include <type_traits>
 
 
 namespace memoria    {
@@ -38,13 +39,16 @@ public:
     typedef PageID<T>                                                           ValueType;
     typedef ValueBuffer<T>                                                      Base;
 
-    PageID(): Base() {}
+    PageID() = default;
 
-    PageID(const T &t) : Base(t) {}
+    PageID(const T& t): Base(t) {}
 
-    PageID(const memoria::vapi::IDValue& id): Base() {
+    PageID(const memoria::vapi::IDValue& id): Base()
+    {
         Base::copyFrom(id.ptr());
     }
+
+    static_assert(std::is_trivial<ValueBuffer<T>>::value, "ValueBuffer<> must be a trivial type");
 
     bool isNull() const {
         return isEmpty();
@@ -70,11 +74,11 @@ public:
         Base::clear();
     }
 
-    ValueType& operator=(const ValueType& other)
-    {
-        Base::value() = other.value();
-        return *this;
-    }
+    ValueType& operator=(const ValueType& other) = default;
+//    {
+//        Base::value() = other.value();
+//        return *this;
+//    }
 
     ValueType& operator=(const T& other)
     {
@@ -150,7 +154,7 @@ public:
     static const int RESERVED_SIZE      = 0;
     static const int RESERVED_BITSIZE   = RESERVED_SIZE * 8;
 
-    BitBuffer() : Base() {}
+    BitBuffer() = default;
 
     bool isBit(Index index) const {
         return GetBit(*this, index + RESERVED_BITSIZE);
@@ -177,6 +181,8 @@ public:
 
 template <typename PageIdType, Int FlagsCount = 32>
 class AbstractPage {
+	static_assert(std::is_trivial<PageIdType>::value, "PageIdType must be a trivial type");
+
 public:
     static const UInt VERSION                                                   = 1;
     typedef BitBuffer<FlagsCount> FlagsType;
@@ -215,7 +221,7 @@ public:
 
     typedef PageIdType                                                          ID;
 
-    AbstractPage(): flags_(), id_() {}
+    AbstractPage() = default;
 
     AbstractPage(const PageIdType &id): flags_(), id_(id) {}
 
@@ -341,7 +347,7 @@ public:
         handler->value("PAGE_SIZE",         &page_size_);
     }
 
-    //template <typename PageType>
+
     void copyFrom(const Me* page)
     {
         this->id()              = page->id();
@@ -386,9 +392,6 @@ public:
     }
 };
 
-
-//template <typename PageIdType, Int FlagsCount = 32>
-//class AbstractPage
 
 
 template <typename PageIdType, Int FlagsCount>

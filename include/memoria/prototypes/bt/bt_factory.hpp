@@ -159,20 +159,20 @@ struct BTTypes {
         typename Types_
     >
     struct CtrBaseFactory {
-        typedef bt::BTreeCtrBase<Types_>                                Type;
+        typedef bt::BTreeCtrBase<Types_>                    Type;
     };
 
     template <
         typename Types_
     >
     struct IterBaseFactory {
-        typedef BTIteratorBase<Types_>                                      Type;
+        typedef BTIteratorBase<Types_>                      Type;
     };
 
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef bt::BTreeIteratorCache<Iterator, Container>                     Type;
+        typedef bt::BTreeIteratorCache<Iterator, Container> Type;
     };
 
     static const Int MAIN_STREAM                                                = 0;

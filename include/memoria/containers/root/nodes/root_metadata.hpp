@@ -32,7 +32,7 @@ public:
                 decltype(model_name_counter_)
     >::Result                                                                   FieldsList;
 
-    RootCtrMetadata() {}
+    RootCtrMetadata() = default;
 
     BigInt &model_name_counter() {
         return model_name_counter_;

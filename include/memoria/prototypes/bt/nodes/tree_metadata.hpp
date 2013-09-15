@@ -52,7 +52,7 @@ public:
                 ID
     >                                                                           FieldsList;
 
-    BalancedTreeMetadata() {}
+    BalancedTreeMetadata()  = default;
 
     BigInt &model_name()
     {

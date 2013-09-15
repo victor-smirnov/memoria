@@ -61,7 +61,7 @@ public:
 
     >::Result                                                                   FieldsList;
 
-    PackedAllocator() {}
+    PackedAllocator() = default;
 
     void setTopLevelAllocator()
     {

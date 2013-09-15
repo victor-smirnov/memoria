@@ -15,7 +15,7 @@
 #include <memoria/core/types/typehash.hpp>
 
 #include <iostream>
-
+#include <type_traits>
 
 
 namespace memoria    {
@@ -33,12 +33,9 @@ private:
 
 public:
 
-    StaticBuffer() {}
+    StaticBuffer() = default;
 
-    const Me& operator=(const Me& other) {
-        CopyBuffer(other.buffer_, buffer_, Size);
-        return *this;
-    }
+    Me& operator=(const Me& other) = default;
 
     bool operator==(const Me&other) const {
         return CompareBuffers(buffer_, other.buffer_, Size);
@@ -78,13 +75,16 @@ public:
 
 template <typename Object>
 class ValueBuffer {
+
+	static_assert(std::is_trivial<Object>::value, "Object must be a trivial type");
+
     typedef ValueBuffer<Object>                                                 MyType;
     Object value_;
 
 public:
     typedef Object                                                              ValueType;
 
-    ValueBuffer() {}
+    ValueBuffer() = default;
 
     ValueBuffer(const Object &obj) {
         value() = obj;

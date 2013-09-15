@@ -48,6 +48,12 @@ public:
 
     typedef typename Base::ID                   ID;
 
+
+    static_assert(std::is_trivial<Metadata>::value, "TreeNodeBase: metadata must be a trivial type");
+    static_assert(std::is_trivial<Base_>::value, 	"TreeNodeBase: base must be a trivial type");
+    static_assert(std::is_trivial<ID>::value, 		"TreeNodeBase: ID must be a trivial type");
+
+
 private:
 
     Int root_;
@@ -67,7 +73,7 @@ public:
 
     typedef TreeNodeBase<Metadata, Base>        Me;
 
-    TreeNodeBase(): Base() {}
+    TreeNodeBase() = default;
 
     inline bool is_root() const {
         return root_;
@@ -297,6 +303,11 @@ template <
 class BranchNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
+	static_assert(
+			std::is_trivial<TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>>::value,
+			"TreeNodeBase must be a trivial type"
+			);
+
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
     typedef BranchNode<Types>                                                   Me;
@@ -338,7 +349,7 @@ public:
     static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
     static const Int ValuesBlockIdx                                             = Streams;
 
-    BranchNode(): Base() {}
+    BranchNode() = default;
 
 private:
     struct InitFn {
@@ -1088,71 +1099,6 @@ public:
         return *(values() + idx);
     }
 
-//    struct SumFn {
-//      template <Int Idx, typename Tree>
-//      void stream(const Tree* tree, Int start, Int end, Accumulator* accum)
-//      {
-//          for (Int block = 0; block < Tree::Blocks; block++)
-//          {
-//              std::get<Idx>(*accum)[block] += tree->sum(block, start, end);
-//          }
-//      }
-//
-//      template <Int Idx, typename Tree>
-//      void stream(const Tree* tree, Accumulator* accum)
-//      {
-//          std::get<Idx>(*accum) += tree->sums();
-//      }
-//
-//      template <Int Idx, typename Tree>
-//      void stream(const Tree* tree, Int block_num, Int start, Int end, BigInt* accum)
-//      {
-//          *accum += tree->sum(block_num, start, end);
-//      }
-//    };
-//
-//    void sum(Int start, Int end, Accumulator& accum) const
-//    {
-//      Dispatcher::dispatchNotEmpty(allocator(), SumFn(), start, end, &accum);
-//    }
-//
-//
-//    void sum(Int stream, Int start, Int end, Accumulator& accum) const
-//    {
-//      Dispatcher::dispatch(stream, allocator(), SumFn(), start, end, &accum);
-//    }
-//
-//    Accumulator sum(Int start, Int end) const
-//    {
-//      Accumulator accum;
-//      Dispatcher::dispatchNotEmpty(allocator(), SumFn(), start, end, &accum);
-//      return accum;
-//    }
-//
-//    struct SumNegFn {
-//      template <Int Idx, typename Tree>
-//      void stream(const Tree* tree, Int start, Int end, Accumulator* accum)
-//      {
-//          for (Int block = 0; block < Tree::Blocks; block++)
-//          {
-//              std::get<Idx>(*accum)[block] -= tree->sum(block, start, end);
-//          }
-//      }
-//    };
-//
-//    Accumulator sum_neg(Int start, Int end) const
-//    {
-//      Accumulator accum;
-//      Dispatcher::dispatchNotEmpty(allocator(), SumNegFn(), start, end, &accum);
-//      return accum;
-//    }
-//
-//    void sum(Int block_num, Int start, Int end, BigInt& accum) const
-//    {
-//      Dispatcher::dispatchNotEmpty(allocator(), SumFn(), block_num, start, end, &accum);
-//    }
-
-
     struct SumsFn {
         template <Int StreamIdx, typename StreamType>
         void stream(const StreamType* obj, Int start, Int end, Accumulator& accum)
@@ -1430,12 +1376,10 @@ public:
     typedef NodePageAdaptor<TreeNode, Types>                                    Me;
     typedef TreeNode<Types>                                                     Base;
 
-//    typedef NodePageAdaptor<TreeNode, Types, true>                                LeafNodeType;
-//    typedef NodePageAdaptor<TreeNode, Types, false>                               BranchNodeType;
-
 
     static const UInt PAGE_HASH = TypeHash<Base>::Value;
 
+    static_assert(std::is_trivial<TreeNode<Types>>::value, "TreeNode must be a trivial type");
 
 
     template <
@@ -1450,7 +1394,7 @@ private:
 public:
 
 
-    NodePageAdaptor(): Base() {}
+    NodePageAdaptor() = default;
 
     static Int hash() {
         return PAGE_HASH;

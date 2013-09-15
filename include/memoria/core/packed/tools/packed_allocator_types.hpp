@@ -75,7 +75,7 @@ public:
 
 
 
-    PackedAllocatable() {}
+    PackedAllocatable() = default;
 
     const Int& allocator_offset() const {return allocator_offset_;}
 
