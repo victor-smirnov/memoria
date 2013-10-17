@@ -97,6 +97,33 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         }
     };
 
+    struct SetSymbolFn {
+    	Int symbol_ = 0;
+    	Accumulator accum_;
+
+
+    	SetSymbolFn(Int symbol): symbol_(symbol) {}
+
+    	template <Int Idx, typename SeqTypes>
+    	void stream(PkdFSSeq<SeqTypes>* obj, Int idx)
+    	{
+    		MEMORIA_ASSERT_TRUE(obj != nullptr);
+
+    		std::get<Idx>(accum_)[symbol_ + 1] = symbol_ - obj->symbol(idx);
+
+    		obj->symbol(idx) = symbol_;
+    	}
+
+    	template <typename NodeTypes>
+    	void treeNode(LeafNode<NodeTypes>* node, Int idx)
+    	{
+    		node->process(0, *this, idx);
+    	}
+    };
+
+
+
+
     Int symbol() const
     {
         auto& self  = this->self();
@@ -108,6 +135,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
 
         return fn.symbol_;
+    }
+
+    void setSymbol(Int symbol)
+    {
+    	auto& self  = this->self();
+
+    	SetSymbolFn fn(symbol);
+
+    	Int idx = self.idx();
+
+    	self.leaf().update();
+
+    	LeafDispatcher::dispatch(self.leaf(), fn, idx);
+
+    	self.ctr().updateParent(self.leaf(), fn.accum_);
     }
 
     BigInt label(Int label_idx) const

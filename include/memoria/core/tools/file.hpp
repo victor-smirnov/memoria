@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -13,6 +13,7 @@
 #include <memoria/core/tools/config.hpp>
 
 #include <vector>
+#include <memory>
 
 namespace memoria{
 
@@ -49,6 +50,51 @@ public:
     static FileListType* readDir(const File& file);
 protected:
     static String normalizePath(StringRef name);
+};
+
+
+
+struct IRandomAccessFile {
+
+	enum {
+		READ = 1, WRITE = 2, CREATE = 4,
+		SET = 1, CUR = 2, END = 4
+	};
+
+
+	virtual ~IRandomAccessFile() {}
+
+	virtual void open(const char* name, Int mode) 								= 0;
+	virtual void close() 														= 0;
+
+	virtual UBigInt seek(UBigInt pos, Int where)								= 0;
+	virtual UBigInt read(void* buf, UBigInt size) 								= 0;
+	virtual void readAll(void* buf, UBigInt size) 								= 0;
+	virtual void write(const void* buf, UBigInt size) 							= 0;
+
+	virtual void sync() 														= 0;
+};
+
+
+struct RAFileImpl;
+
+class RAFile: public IRandomAccessFile {
+
+	RAFileImpl* pimpl_;
+public:
+
+	RAFile();
+
+	virtual ~RAFile();
+
+	virtual void open(const char* name, Int mode);
+	virtual void close();
+
+	virtual UBigInt seek(UBigInt pos, Int mode);
+	virtual UBigInt read(void* buf, UBigInt size);
+	virtual void readAll(void* buf, UBigInt size);
+	virtual void write(const void* buf, UBigInt size);
+	virtual void sync();
 };
 
 }

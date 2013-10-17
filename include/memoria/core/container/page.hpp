@@ -214,17 +214,22 @@ private:
     Int         owner_ctr_type_hash_;
     Int         ctr_type_hash_;
     Int         page_type_hash_;
+    Int         page_size_;
+
+    UBigInt		next_block_pos_;
+    UBigInt		target_block_pos_;
+
+    PageIdType  id_;
 
     FlagsType   flags_;
-    PageIdType  id_;
+
 
     Int         references_;
     Int         deleted_;
-    Int         page_size_;
+
 
     //Txn rollback intrusive list fields. Not used by containers.
-    UBigInt		next_block_pos_;
-    UBigInt		target_block_pos_;
+
 
 public:
     typedef TypeList<
@@ -247,7 +252,7 @@ public:
 
     AbstractPage() = default;
 
-    AbstractPage(const PageIdType &id): flags_(), id_(id) {}
+    AbstractPage(const PageIdType &id): id_(id), flags_() {}
 
     const PageIdType &id() const {
         return id_;
@@ -418,14 +423,13 @@ public:
         FieldFactory<Int>::serialize(buf, page_type_hash());
         FieldFactory<Int>::serialize(buf, page_size_);
 
+        FieldFactory<UBigInt>::serialize(buf, next_block_pos_);
+        FieldFactory<UBigInt>::serialize(buf, target_block_pos_);
+
         FieldFactory<PageIdType>::serialize(buf, id());
 
         FieldFactory<Int>::serialize(buf, references_);
         FieldFactory<Int>::serialize(buf, deleted_);
-
-
-        FieldFactory<UBigInt>::serialize(buf, next_block_pos_);
-        FieldFactory<UBigInt>::serialize(buf, target_block_pos_);
     }
 
     template <template <typename> class FieldFactory>
@@ -438,13 +442,13 @@ public:
         FieldFactory<Int>::deserialize(buf, page_type_hash());
         FieldFactory<Int>::deserialize(buf, page_size_);
 
+        FieldFactory<UBigInt>::deserialize(buf, next_block_pos_);
+        FieldFactory<UBigInt>::deserialize(buf, target_block_pos_);
+
         FieldFactory<PageIdType>::deserialize(buf, id());
 
         FieldFactory<Int>::deserialize(buf, references_);
         FieldFactory<Int>::deserialize(buf, deleted_);
-
-        FieldFactory<UBigInt>::deserialize(buf, next_block_pos_);
-        FieldFactory<UBigInt>::deserialize(buf, target_block_pos_);
     }
 };
 

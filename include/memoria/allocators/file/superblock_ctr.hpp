@@ -18,6 +18,7 @@
 #include <memoria/core/tools/assert.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/isymbols.hpp>
+#include <memoria/core/tools/file.hpp>
 
 #include <fstream>
 #include <memory>
@@ -33,7 +34,7 @@ public:
 	typedef std::unique_ptr<char, void (*)(void*)>								IOBufferPtr;
 
 private:
-	filebuf& file_;
+	IRandomAccessFile& file_;
 	Int block_size_;
 	Int superblock_size_;
 
@@ -45,7 +46,7 @@ private:
 public:
 
 	// Load existing file
-	SuperblockCtr(std::filebuf& file):
+	SuperblockCtr(IRandomAccessFile& file):
 		file_(file),
 		block_size_(0),
 		superblock_size_(0),
@@ -74,7 +75,7 @@ public:
 	}
 
 	// Fill newly created file
-	SuperblockCtr(std::filebuf& file, Int block_size):
+	SuperblockCtr(IRandomAccessFile& file, Int block_size):
 		file_(file),
 		superblock_(nullptr, free),
 		updated_(nullptr, free),
@@ -191,6 +192,11 @@ public:
 		return updated_->total_blocks();
 	}
 
+	void decFreeBlocks(UBigInt amount = 1)
+	{
+		updated_->free_blocks() -= amount;
+	}
+
 	void setMainBlockMap(UBigInt total_blocks, UBigInt free_blocks)
 	{
 		update();
@@ -223,7 +229,7 @@ public:
 
 	bool use_temporary_allocator() const
 	{
-		return updated_->blockmap()->metadata()->allocated() > 0;
+		return updated_->blockmap()->metadata()->length() > 0;
 	}
 
 	void updateMainBlockMapMetadata()
@@ -255,7 +261,9 @@ public:
 
 	UBigInt allocateTemporaryBlock()
 	{
-		return updated_->blockmap()->allocateBlock();
+		UBigInt block_idx  = updated_->blockmap()->allocateBlock();
+
+		return updated_->blockmap()->start_position() + block_idx * updated_->block_size();
 	}
 
 	UBigInt file_size() const
@@ -275,15 +283,13 @@ public:
 
 protected:
 
-	void load(SuperblockPtrType& block, std::streamsize pos)
+	void load(SuperblockPtrType& block, UBigInt pos)
 	{
-		auto tpos = file_.pubseekpos(pos);
-		MEMORIA_ASSERT(tpos, ==, pos);
+		file_.seek(pos, IRandomAccessFile::SET);
 
 		memset(block.get(), 0, superblock_size_);
 
-		auto size = file_.sgetn(io_buffer_.get(), superblock_size_);
-		MEMORIA_ASSERT_TRUE(size == (std::streamsize)superblock_size_);
+		file_.readAll(io_buffer_.get(), superblock_size_);
 
 		DeserializationData data;
 		data.buf = io_buffer_.get();
@@ -293,8 +299,7 @@ protected:
 
 	void loadHeader(SuperblockType& block, std::streamsize pos)
 	{
-		auto tpos = file_.pubseekpos(pos);
-		MEMORIA_ASSERT(tpos, ==, pos);
+		file_.seek(pos, IRandomAccessFile::SET);
 
 		const std::size_t HEADER_SIZE  = sizeof(SuperblockType);
 
@@ -302,8 +307,7 @@ protected:
 
 		memset(buffer, 0, sizeof(buffer));
 
-		auto size = file_.sgetn(buffer, HEADER_SIZE);
-		MEMORIA_ASSERT_TRUE(size == HEADER_SIZE);
+		file_.readAll(buffer, HEADER_SIZE);
 
 		DeserializationData data;
 		data.buf = buffer;
@@ -311,10 +315,9 @@ protected:
 		block.deserializeHeader(data);
 	}
 
-	void store(const SuperblockPtrType& block, std::streamsize pos)
+	void store(const SuperblockPtrType& block, UBigInt pos)
 	{
-		auto tpos = file_.pubseekpos(pos);
-		MEMORIA_ASSERT(tpos, ==, pos);
+		file_.seek(pos, IRandomAccessFile::SET);
 
 		memset(io_buffer_.get(), 0, superblock_size_);
 
@@ -323,11 +326,9 @@ protected:
 
 		block->serialize(data);
 
-		auto size = file_.sputn(io_buffer_.get(), superblock_size_);
-		MEMORIA_ASSERT_TRUE(size == (std::streamsize)superblock_size_);
+		file_.write(io_buffer_.get(), superblock_size_);
 
-		Int status = file_.pubsync();
-		MEMORIA_ASSERT_TRUE(status == 0);
+		file_.sync();
 	}
 
 	void storeSuperblocks()

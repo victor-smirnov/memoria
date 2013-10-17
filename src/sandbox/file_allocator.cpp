@@ -14,11 +14,42 @@ Int main() {
 
 	MetadataRepository<FileProfile<> >::init();
 
+	typedef FCtrTF<Vector<Int>>::Type CtrType;
+
+	CtrType::initMetadata();
+
 	try {
 
 		GenericFileAllocator allocator("file.db");
 
-		allocator.commit();
+		if (allocator.is_new())
+		{
+			CtrType ctr(&allocator, CTR_CREATE, 100000);
+
+			vector<Int> data(1000000);
+
+			Int cnt = 0;
+			for (auto& a: data)
+			{
+				a = cnt++;
+			}
+
+			ctr.seek(0).insert(data);
+
+			allocator.commit();
+		}
+		else {
+			CtrType ctr(&allocator, CTR_FIND, 100000);
+
+			std::cout<<"Size: "<<ctr.size()<<std::endl;
+
+			auto iter = ctr.seek(0);
+
+			while (iter.nextLeaf())
+			{
+				iter.dump();
+			}
+		}
 	}
 	catch (Exception ex)
 	{

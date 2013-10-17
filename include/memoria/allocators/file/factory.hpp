@@ -41,6 +41,9 @@ typedef memoria::FileAllocator<
             ContainerCollectionCfg<FileProfile<> >::Types::Page
 >                                                                       		GenericFileAllocator;
 
+template <typename CtrName>
+using FCtrTF = CtrTF<FileProfile<>, CtrName>;
+
 
 //template <typename CtrName>
 //using SCtrTF = CtrTF<SmallProfile<>, CtrName>;

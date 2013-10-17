@@ -119,6 +119,10 @@ public:
 		return Base::template get<IDMapEntry>(IDMAP);
 	}
 
+	UBigInt start_position() const {
+		return metadata()->start_position();
+	}
+
 	void clear()
 	{
 		Base::free(BITMAP);
@@ -152,9 +156,11 @@ public:
 
 		SetBit(bitmap, result.idx(), 1);
 
-		UBigInt global_pos = metadata->start_position() + result.idx();
+		metadata->allocated()++;
 
-		return global_pos;
+		MEMORIA_ASSERT(metadata->allocated(), <=, metadata->length());
+
+		return result.idx();
 	}
 
 	void markAllocated(UBigInt pos)

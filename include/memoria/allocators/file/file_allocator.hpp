@@ -24,8 +24,8 @@
 #include <memoria/core/container/container.hpp>
 
 #include <memoria/allocators/file/superblock_ctr.hpp>
-#include <memoria/allocators/file/file_allocator_idmap.hpp>
-#include <memoria/allocators/file/file_allocator_blockmap.hpp>
+//#include <memoria/allocators/file/file_allocator_idmap.hpp>
+//#include <memoria/allocators/file/file_allocator_blockmap.hpp>
 
 #include <memoria/core/tools/lru_cache.hpp>
 
@@ -46,12 +46,12 @@ using namespace std;
 using namespace memoria::vapi;
 
 template <typename Profile, typename PageType, typename TxnType = EmptyType>
-class FileAllocator: public IAllocator<PageType> {
+class FileAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> >::Type {
 
-    typedef IAllocator<PageType>                                                Base;
+    typedef typename AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> >::Type Base;
 
-    template <typename, typename> friend class IDMapFileAllocator;
-    template <typename, typename> friend class BlockMapFileAllocator;
+//    template <typename, typename> friend class IDMapFileAllocator;
+//    template <typename, typename> friend class BlockMapFileAllocator;
 
 public:
     typedef typename Base::Page                                                 Page;
@@ -188,7 +188,7 @@ private:
 
     String				file_name_;
 
-    std::filebuf		file_;
+    RAFile				file_;
 
     PageCacheType       pages_;
     IDPageOpMap         pages_log_;
@@ -203,7 +203,7 @@ private:
 
     SuperblockCtrPtr	superblock_;
     BlockMapPtr			block_map_;
-    IDMapPtr        	id_map_;
+
     RootMapPtr        	root_map_;
 
     bool				id_map_entered_ = false;
@@ -231,6 +231,8 @@ private:
 
     Properties properties_;
 
+    bool is_new_;
+
 public:
     FileAllocator(StringRef& file_name):
     	file_name_(file_name),
@@ -241,12 +243,9 @@ public:
         properties_(superblock_)
     {
     	BlockMapType::initMetadata();
-    	IDMapType::initMetadata();
     	RootMapType::initMetadata();
 
     	File file(file_name);
-
-    	bool is_new;
 
     	if (file.isExists())
     	{
@@ -259,13 +258,13 @@ public:
     			throw FileException(MA_SRC, "Requested file is a directory");
     		}
 
-    		is_new = false;
+    		is_new_ = false;
     	}
     	else {
     		createFile();
 
     		superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_, default_block_size_));
-    		is_new 		= true;
+    		is_new_		= true;
     	}
 
     	page_buffer_ 		= CharBufferPtr(T2T<char*>(malloc(default_block_size_)), free);
@@ -273,41 +272,36 @@ public:
 
     	blockmap_buffer_->clear();
 
-    	if (is_new)
+    	if (is_new_)
     	{
     		allocateFileSpace();
     		// make superblock's space allocated
-    		superblock_->markAllocated(0);
+    		this->allocateEmptyBlock();
 
-    		id_map_ 	= IDMapPtr(new IDMapType(this, CTR_CREATE, 1));
+
     		block_map_ 	= BlockMapPtr(new BlockMapType(this, CTR_CREATE, 0));
-    		root_map_ 	= RootMapPtr(new RootMapType(this, CTR_CREATE, 2));
 
-    	}
-    	else {
-    		block_map_ 	= BlockMapPtr(new BlockMapType(this, CTR_FIND, 0));
-    		id_map_ 	= IDMapPtr(new IDMapType(this, CTR_FIND, 1));
-    		root_map_ 	= RootMapPtr(new RootMapType(this, CTR_FIND, 2));
-    	}
-
-
-
-    	if (is_new)
-    	{
     		commitTemporaryToBlockMap();
-
     		finishFileSpaceAllocation();
+
+    		root_map_ 	= RootMapPtr(new RootMapType(this, CTR_CREATE, 2));
 
     		superblock_->storeSuperblock();
 
     		commit();
+    	}
+    	else {
+    		block_map_ 	= BlockMapPtr(new BlockMapType(this, CTR_FIND, 0));
+    		root_map_ 	= RootMapPtr(new RootMapType(this, CTR_FIND, 2));
     	}
     }
 
     virtual ~FileAllocator()
     {}
 
-
+    bool is_new() const {
+    	return is_new_;
+    }
 
     // IAllocator
 
@@ -324,7 +318,7 @@ public:
     	{
         	if (entry)
         	{
-        		Shared* shared = get_shared(entry->page(), (Int)entry->page_op());
+        		Shared* shared = get_shared(entry->front_page(), (Int)entry->page_op());
         		pages_.touch(entry);
         		return PageG(shared);
         	}
@@ -338,7 +332,7 @@ public:
     		if (entry)
     		{
     			pages_.touch(entry);
-    			return PageG(get_shared(entry->page(), (Int)entry->page_op()));
+    			return PageG(get_shared(entry->front_page(), (Int)entry->page_op()));
     		}
     		else {
     			PageCacheEntryType* entry = get_entry(id);
@@ -439,8 +433,8 @@ public:
     		entry->page_op() = PageOp::DELETE;
     	}
 
-    	bool result = id_map_->remove(id.value());
-    	MEMORIA_ASSERT_TRUE(result);
+//    	bool result = id_map_->remove(id.value());
+//    	MEMORIA_ASSERT_TRUE(result);
     }
 
     virtual PageG createPage(Int initial_size)
@@ -453,6 +447,7 @@ public:
     	PageCacheEntryType* entry = new PageCacheEntryType(gid, pos);
 
     	entry->counter() = 1;
+    	entry->page_op() = PageOp::UPDATE;
 
     	createEmptyPage(*entry, initial_size);
 
@@ -645,8 +640,7 @@ public:
     }
 
     void sync() {
-    	Int status = file_.pubsync();
-    	MEMORIA_ASSERT_TRUE(status == 0);
+    	file_.sync();
     }
 
     void commit()
@@ -655,7 +649,7 @@ public:
 
     	UBigInt updated = computeUpdatedPages();
 
-    	while (superblock_->free_blocks() >= updated)
+    	while (superblock_->free_blocks() < updated)
     	{
     		ensureCapacity(updated);
     		updated = computeUpdatedPages();
@@ -670,6 +664,8 @@ public:
 
     	for (auto i: pages_log_)
     	{
+    		//std::cout<<"Log: "<<i.first<<" "<<(Int)i.second->page_op()<<std::endl;
+
     		PageCacheEntryType* entry = i.second;
     		if (isUpdatedEntry(entry))
     		{
@@ -773,14 +769,12 @@ private:
 
     void openFile()
     {
-    	filebuf* result = file_.open(file_name_.c_str(), std::ios::in | std::ios::out | std::ios::binary);
-    	MEMORIA_ASSERT_TRUE(result != nullptr);
+    	file_.open(file_name_.c_str(), IRandomAccessFile::READ | IRandomAccessFile::WRITE);
     }
 
     void createFile()
     {
-    	filebuf* result = file_.open(file_name_.c_str(), std::ios::in | std::ios::out | std::ios::binary | std::ios::app);
-    	MEMORIA_ASSERT_TRUE(result != nullptr);
+    	file_.open(file_name_.c_str(), IRandomAccessFile::READ | IRandomAccessFile::WRITE | IRandomAccessFile::CREATE);
     }
 
     PageCacheEntryType* get_from_log(const ID &page_id) const
@@ -799,13 +793,19 @@ private:
     {
     	return pages_.get_entry(page_id, [this](PageCacheEntryType& entry) {
     		UBigInt pos = this->get_position(entry.key());
+
+    		if (!entry.page())
+    		{
+    			entry.page() = T2T<Page*>(::malloc(default_block_size_));
+    		}
+
     		this->loadPage(pos, entry.page());
     	});
     }
 
     Shared* get_shared(Page* page, Int op)
     {
-    	MEMORIA_ASSERT_TRUE(page != nullptr);
+      	MEMORIA_ASSERT_TRUE(page != nullptr);
 
     	Shared* shared = pool_.get(page->id());
 
@@ -871,89 +871,35 @@ private:
 
     		MEMORIA_ASSERT_FALSE(iter.isEnd());
 
-    		return iter.pos();
+    		iter.setSymbol(1);
+    		superblock_->decFreeBlocks();
+
+    		return iter.pos() * default_block_size_;
     	}
     }
 
     ID createGID(UBigInt position)
     {
-    	ID gid = superblock_->new_id();
-
-    	if (!id_map_entered_)
-    	{
-    		insertGID(gid, position);
-
-    		applyGIDBuffer();
-    	}
-    	else {
-    		local_idmap_[gid] = position;
-    	}
-
-    	return gid;
-    }
-
-    void insertGID(const ID& gid, UBigInt position)
-    {
-    	id_map_entered_ = true;
-
-    	auto iter = this->id_map_->find(gid);
-
-    	MEMORIA_ASSERT_TRUE(iter.isEnd() || iter.key() != gid);
-
-    	this->id_map_->insertIFNotExists(gid.value()).value() = position;
-
-    	// FIXME: exception safety
-    	id_map_entered_ = false;
-    }
-
-    void applyGIDBuffer()
-    {
-    	while (local_idmap_.size() > 0)
-    	{
-    		LocalIDMap map = local_idmap_;
-    		local_idmap_.clear();
-
-    		for (auto pair: map)
-    		{
-    			insertGID(pair.first, pair.second);
-    		}
-    	}
-    }
-
-
-
-    bool removeGID(const ID& gid)
-    {
-    	this->id_map_->remove(gid.value());
-    }
-
-    bool hasGID(const ID& gid)
-    {
-    	return this->id_map_->contains(gid.value());
+    	return position;
     }
 
     UBigInt get_position(const ID& id)
     {
-    	auto iter = this->id_map_->find(id);
-
-    	MEMORIA_ASSERT_FALSE(iter.isEnd());
-
-    	return iter.value();
+    	return id.value();
     }
 
     void loadPage(UBigInt pos, Page* page)
     {
-    	auto seek_result = file_.pubseekpos(pos);
-    	MEMORIA_ASSERT(seek_result, ==, pos);
-
-    	auto read_result = file_.sgetn(page_buffer_.get(), default_block_size_);
-    	MEMORIA_ASSERT(read_result, ==, default_block_size_);
+    	file_.seek(pos, IRandomAccessFile::SET);
+    	file_.read(page_buffer_.get(), default_block_size_);
 
     	Page* disk_page = T2T<Page*>(page_buffer_.get());
 
     	Int page_data_size 	= disk_page->page_size();
     	Int ctr_type_hash	= disk_page->ctr_type_hash();
     	Int page_type_hash	= disk_page->page_type_hash();
+
+    	MEMORIA_ASSERT(page_data_size, ==, default_block_size_);
 
     	PageMetadata* page_metadata 		= metadata_->getPageMetadata(ctr_type_hash, page_type_hash);
     	const IPageOperations* operations 	= page_metadata->getPageOperations();
@@ -963,8 +909,9 @@ private:
 
     void storePage(UBigInt pos, Page* page)
     {
-    	auto seek_result = file_.pubseekpos(pos);
-    	MEMORIA_ASSERT(seek_result, ==, pos);
+    	MEMORIA_ASSERT(page->page_size(), ==, default_block_size_);
+
+    	file_.seek(pos, IRandomAccessFile::SET);
 
     	Int ctr_type_hash	= page->ctr_type_hash();
     	Int page_type_hash	= page->page_type_hash();
@@ -976,8 +923,7 @@ private:
 
     	operations->serialize(page, page_buffer_.get());
 
-    	auto write_result = file_.sputn(page_buffer_.get(), default_block_size_);
-    	MEMORIA_ASSERT(write_result, ==, default_block_size_);
+    	file_.write(page_buffer_.get(), default_block_size_);
     }
 
     void clearPageBuffer()
@@ -991,17 +937,14 @@ private:
 
     	UBigInt file_size = superblock_->file_size();
 
-    	auto pos = file_.pubseekoff(0, ios_base::end);
-
-    	MEMORIA_ASSERT(pos, ==, file_size);
+    	file_.seek(0, IRandomAccessFile::END);
 
     	for (UBigInt c = 0; c < allocation_batch_size_; c++)
     	{
-    		auto size = file_.sputn(page_buffer_.get(), default_block_size_);
-    		MEMORIA_ASSERT(size, ==, default_block_size_);
+    		file_.write(page_buffer_.get(), default_block_size_);
     	}
 
-    	pos = file_.pubseekoff(0, ios_base::cur);
+    	auto pos = file_.seek(0, IRandomAccessFile::CUR);
 
     	MEMORIA_ASSERT(pos, ==, file_size + allocation_batch_size_ * default_block_size_);
 
@@ -1013,16 +956,21 @@ private:
     {
     	auto iter = block_map_->seek(block_map_->size());
     	iter.insert(*blockmap_buffer_.get());
+    	blockmap_buffer_->reset();
     }
 
     void finishFileSpaceAllocation()
     {
+    	auto iter = block_map_->seek(superblock_->total_blocks());
+
     	auto buffer = superblock_->temporary_blockmap_buffer();
 
     	UBigInt allocated_before = superblock_->temporary_allocated_blocks();
 
     	// this operation must not allocate new blocks
-    	//iter.update(buffer);
+    	UBigInt updated = iter.update(buffer);
+
+    	MEMORIA_ASSERT(updated, ==, allocation_batch_size_);
 
     	UBigInt allocated_after = superblock_->temporary_allocated_blocks();
 
@@ -1067,7 +1015,8 @@ private:
 
     bool isUpdatedEntry(PageCacheEntryType* entry)
     {
-    	return entry->page_op() == PageOp::UPDATE && hasGID(entry->key());
+    	// check if entry is UPDATE entry
+    	return entry->page_op() == PageOp::UPDATE && pages_.contains_key(entry->key());
     }
 
     const SuperblockCtrType* superblock() const {
