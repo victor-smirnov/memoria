@@ -256,6 +256,29 @@ public:
         return Base::block_size();
     }
 
+    static Int packed_block_size(Int array_size)
+    {
+    	return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
+    }
+
+private:
+    struct ElementsForFn {
+        Int block_size(Int items_number) const {
+            return MyType::estimate_block_size(items_number);
+        }
+
+        Int max_elements(Int block_size)
+        {
+            return block_size * 8;
+        }
+    };
+
+public:
+    static Int elements_for(Int block_size)
+    {
+    	return FindTotalElementsNumber2(block_size, ElementsForFn());
+    }
+
 
     static Int empty_size()
     {
@@ -403,6 +426,11 @@ public:
 
         reindex();
     }
+
+    void removeSpace(Int start, Int end) {
+    	remove(start, end);
+    }
+
 
     void removeSymbol(Int idx) {
         remove(idx, idx + 1);

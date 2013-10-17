@@ -40,8 +40,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     typedef typename Container::Element                                         Element;
     typedef typename Container::Accumulator                                     Accumulator;
 
-//  typedef typename Container::DataSource                                      DataSource;
-//  typedef typename Container::DataTarget                                      DataTarget;
+    typedef typename Container::Types::DataSource                               DataSource;
+    typedef typename Container::Types::DataTarget                               DataTarget;
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
@@ -137,6 +137,71 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         auto& ctr   = self.ctr();
 
         ctr.remove(self);
+    }
+
+    void remove(BigInt size)
+    {
+        auto& self  = this->self();
+        auto& ctr   = self.ctr();
+
+        ctr.removeBlock(self, size);
+    }
+
+    Int dataPos() const {
+    	return self().idx();
+    }
+
+    BigInt read(DataTarget& data)
+    {
+    	auto& self = this->self();
+    	seq_dense::SequenceTarget target(&data);
+
+    	return self.ctr().readStream(self, target);
+    }
+
+    void insert(DataSource& data)
+    {
+    	auto& self = this->self();
+    	self.ctr().insertBlock(self, data);
+    }
+
+    BigInt update(DataSource& data)
+    {
+    	auto& self = this->self();
+    	return self.ctr().updateBlock(self, data);
+    }
+
+    void ComputePrefix(BigInt& accum)
+    {
+
+    }
+
+    void ComputePrefix(Accumulator& accum)
+    {
+
+    }
+
+    Accumulator prefixes() const {
+    	return Accumulator();
+    }
+
+    void createEmptyLeaf()
+    {
+    	auto& self  = this->self();
+    	auto& ctr   = self.ctr();
+
+    	NodeBaseG next = ctr.createNextLeaf(self.leaf());
+
+    	self.leaf() = next;
+    	self.idx()  = 0;
+    }
+
+    Int leaf_capacity()
+    {
+    	auto& self  = this->self();
+    	auto& ctr   = self.ctr();
+
+    	return ctr.getStreamCapacity(self.leaf(), Position::create(0, 0), 0);
     }
 
 MEMORIA_ITERATOR_PART_END

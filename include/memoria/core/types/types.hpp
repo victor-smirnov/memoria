@@ -158,6 +158,8 @@ using BitVector = Sequence<1, Dense>;
 template <typename ChildType = void>
 class SmallProfile  {};
 
+template <typename ChildType = void>
+class FileProfile  {};
 
 enum class Granularity  {Bit, Byte};
 enum class Indexed      {No, Yes};

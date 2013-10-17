@@ -4,25 +4,25 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include "symbol_seq/symseq_test_suite.hpp"
-#include "bitmap/bitmap_test_suite.hpp"
-
-#include "packed/allocator/palloc_test_suite.hpp"
-#include "packed/tree/packed_tree_test_suite.hpp"
-#include "packed/array/packed_array_test_suite.hpp"
-#include "packed/sequence/packed_seq_suite.hpp"
-#include "packed/louds/packed_louds_suite.hpp"
-#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
-#include "packed/wavelet_tree/packed_wtree_suite.hpp"
+//#include "symbol_seq/symseq_test_suite.hpp"
+//#include "bitmap/bitmap_test_suite.hpp"
 //
-#include "ctr/ctr_test_suite.hpp"
-#include "map/map_test_suite.hpp"
+//#include "packed/allocator/palloc_test_suite.hpp"
+//#include "packed/tree/packed_tree_test_suite.hpp"
+//#include "packed/array/packed_array_test_suite.hpp"
+//#include "packed/sequence/packed_seq_suite.hpp"
+//#include "packed/louds/packed_louds_suite.hpp"
+//#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
+//#include "packed/wavelet_tree/packed_wtree_suite.hpp"
+////
+//#include "ctr/ctr_test_suite.hpp"
+//#include "map/map_test_suite.hpp"
 #include "vector/vector_test_suite.hpp"
-#include "vector_map/vectormap_test_suite.hpp"
+//#include "vector_map/vectormap_test_suite.hpp"
 #include "sequence/sequence_test_suite.hpp"
-#include "labeled_tree/ltree_test_suite.hpp"
-#include "vector_tree/vtree_test_suite.hpp"
-#include "wt/wt_test_suite.hpp"
+//#include "labeled_tree/ltree_test_suite.hpp"
+//#include "vector_tree/vtree_test_suite.hpp"
+//#include "wt/wt_test_suite.hpp"
 
 #include <memoria/tools/cmdline.hpp>
 #include <memoria/tools/tools.hpp>
@@ -64,26 +64,26 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.setRunCount(cmd_line.getCount());
 
-        runner.registerTask(new BitmapTestSuite());
-
-        runner.registerTask(new PackedAllocatorTestSuite());
-        runner.registerTask(new PackedTreeTestSuite());
-        runner.registerTask(new PackedArrayTestSuite());
-        runner.registerTask(new PackedSequenceTestSuite());
-        runner.registerTask(new PackedLoudsTestSuite());
-        runner.registerTask(new PackedLoudsCardinalTestSuite());
-        runner.registerTask(new PackedWaveletTreeTestSuite());
-
-//        runner.registerTask(new SymbolSeqTestSuite());
-
-        runner.registerTask(new CtrTestSuite());
-        runner.registerTask(new MapTestSuite());
-        runner.registerTask(new VectorTestSuite());
-        runner.registerTask(new VectorMapTestSuite());
+//        runner.registerTask(new BitmapTestSuite());
+//
+//        runner.registerTask(new PackedAllocatorTestSuite());
+//        runner.registerTask(new PackedTreeTestSuite());
+//        runner.registerTask(new PackedArrayTestSuite());
+//        runner.registerTask(new PackedSequenceTestSuite());
+//        runner.registerTask(new PackedLoudsTestSuite());
+//        runner.registerTask(new PackedLoudsCardinalTestSuite());
+//        runner.registerTask(new PackedWaveletTreeTestSuite());
+//
+////        runner.registerTask(new SymbolSeqTestSuite());
+//
+//        runner.registerTask(new CtrTestSuite());
+//        runner.registerTask(new MapTestSuite());
+//        runner.registerTask(new VectorTestSuite());
+//        runner.registerTask(new VectorMapTestSuite());
         runner.registerTask(new SequenceTestSuite());
-        runner.registerTask(new LabeledTreeTestSuite());
-        runner.registerTask(new VTreeTestSuite());
-        runner.registerTask(new WTTestSuite());
+//        runner.registerTask(new LabeledTreeTestSuite());
+//        runner.registerTask(new VTreeTestSuite());
+//        runner.registerTask(new WTTestSuite());
 
 
         runner.Configure(&cmd_line.getConfigurator());

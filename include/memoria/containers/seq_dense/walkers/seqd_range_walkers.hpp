@@ -82,7 +82,7 @@ public:
 
     template <Int Idx, typename Tree>
     ResultType stream(const Tree* tree, Int start) {
-        return Base::stream(tree, start);
+        return Base::template stream<Idx>(tree, start);
     }
 
 

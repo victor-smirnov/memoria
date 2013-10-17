@@ -88,6 +88,11 @@ public:
         return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
     }
 
+    static Int packed_block_size(int array_size)
+    {
+    	return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
+    }
+
     static Int elements_for(Int block_size)
     {
         return max_size_for(block_size);

@@ -1,12 +1,12 @@
 
-// Copyright Victor Smirnov 2011-2012.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef     _MEMORIA_MODULES_CONTAINERS_STREAM_POSIX_MANAGER_HPP
-#define     _MEMORIA_MODULES_CONTAINERS_STREAM_POSIX_MANAGER_HPP
+#ifndef _MEMORIA_ALLOCATORS_INMEM_ALLOCATOR_HPP
+#define _MEMORIA_ALLOCATORS_INMEM_ALLOCATOR_HPP
 
 //#include <map>
 #include <unordered_map>
@@ -26,17 +26,6 @@ namespace memoria {
 
 using namespace std;
 
-typedef struct
-{
-    template <typename T>
-    long operator() (const PageID<T> &k) const { return k.value(); }
-} IDKeyHash;
-
-typedef struct
-{
-    template <typename T>
-    bool operator() (const PageID<T> &x, const PageID<T> &y) const { return x == y; }
-} IDKeyEq;
 
 using namespace memoria::vapi;
 
@@ -44,7 +33,7 @@ template <typename Profile, typename PageType, typename TxnType = EmptyType>
 class InMemAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> >::Type {
 
     typedef IAllocator<PageType>                                                Base;
-    typedef InMemAllocator<Profile, PageType, TxnType>                          Me;
+    typedef InMemAllocator<Profile, PageType, TxnType>                          MyType;
 
 public:
     typedef typename Base::Page                                                 Page;
@@ -53,14 +42,16 @@ public:
     typedef typename Base::CtrShared                                            CtrShared;
     typedef typename Page::ID                                                   ID;
 
-    typedef Base                                                                AbstractAllocator;
+//    typedef Base                                                                AbstractAllocator;
 
     typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>                        RootMapType;
     typedef typename RootMapType::Metadata                                      RootMetatata;
     typedef typename RootMapType::BTreeCtrShared                                RootCtrShared;
 
+    typedef Ctr<typename CtrTF<Profile, BitVector<>>::CtrTypes>                 BlockMapType;
+
 private:
-    typedef InMemAllocator<Profile, PageType, TxnType>                          MyType;
+
 
     struct PageOp
     {
@@ -92,7 +83,7 @@ private:
     BigInt              allocs1_;
     BigInt              allocs2_;
 
-    Me*                 roots_;
+    MyType*             roots_;
 
     RootMapType*        root_map_;
 
@@ -100,6 +91,17 @@ private:
 
     // For Allocator copy initialization
     ID                  root_id0_;
+
+
+    class Properties: public IAllocatorProperties {
+    	public:
+    	virtual Int defaultPageSize() const
+    	{
+    		return 4096;
+    	}
+    };
+
+    Properties properties_;
 
 public:
     InMemAllocator() :
@@ -736,6 +738,12 @@ public:
 
         return new_name;
     }
+
+    virtual const IAllocatorProperties& properties() const
+    {
+    	return properties_;
+    }
+
 
     BigInt size()
     {

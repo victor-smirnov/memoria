@@ -16,7 +16,8 @@
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/types/typelist.hpp>
 
-
+#include <memoria/core/exceptions/memoria.hpp>
+#include <memoria/metadata/metadata.hpp>
 
 namespace memoria    {
 

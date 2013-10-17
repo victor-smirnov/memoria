@@ -106,7 +106,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
                 }
             }
 
-            LeafDispatcher::dispatchConst(
+            LeafDispatcher::dispatch(
                     iter.leaf(),
                     UpdateFn(),
                     &data_source,
@@ -153,7 +153,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
 
             if (to_update > len) to_update = len;
 
-            LeafDispatcher::dispatchConst(
+            LeafDispatcher::dispatch(
                     iter.leaf(),
                     UpdateFn(),
                     &data_source,

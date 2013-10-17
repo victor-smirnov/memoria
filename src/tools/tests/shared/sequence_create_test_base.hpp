@@ -53,8 +53,8 @@ public:
 
         for (size_t c = 0; c < src.size(); c++)
         {
-            auto v1 = src[c];
-            auto v2 = tgt[c];
+            typename MemBuffer::value_type v1 = src[c];
+            typename MemBuffer::value_type v2 = tgt[c];
 
             AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
         }

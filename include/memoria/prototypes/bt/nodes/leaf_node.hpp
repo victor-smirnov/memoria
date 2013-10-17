@@ -371,7 +371,7 @@ public:
 
                 if (tree != nullptr || size > 0)
                 {
-                    *mem_used += Tree::block_size(size);
+                    *mem_used += Tree::packed_block_size(size);
                 }
             }
         }
@@ -467,7 +467,7 @@ public:
 
             if (tree != nullptr || size > 0)
             {
-                *mem_size += Tree::block_size(size);
+                *mem_size += Tree::packed_block_size(size);
             }
         }
     };
@@ -967,59 +967,59 @@ public:
 
 
     template <typename Fn, typename... Args>
-    Int find(Int stream, Fn&& fn, Args... args) const
+    Int find(Int stream, Fn&& fn, Args&&... args) const
     {
-        return Dispatcher::dispatchRtn(stream, allocator(), std::move(fn), args...);
+        return Dispatcher::dispatchRtn(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void process(Int stream, Fn&& fn, Args... args) const
+    void process(Int stream, Fn&& fn, Args&&... args) const
     {
-        Dispatcher::dispatch(stream, allocator(), std::move(fn), args...);
+        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void process(Int stream, Fn&& fn, Args... args)
+    void process(Int stream, Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatch(stream, allocator(), std::move(fn), args...);
+        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void processAll(Fn&& fn, Args... args) const
+    void processAll(Fn&& fn, Args&&... args) const
     {
-        Dispatcher::dispatchAll(allocator(), std::move(fn), args...);
+        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void processAll(Fn&& fn, Args... args)
+    void processAll(Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatchAll(allocator(), std::move(fn), args...);
+        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args... args) const
+    void processStream(Fn&& fn, Args&&... args) const
     {
-        Dispatcher::template dispatch<StreamIdx>(allocator(), fn, args...);
+        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args... args)
+    void processStream(Fn&& fn, Args&&... args)
     {
-        Dispatcher::template dispatch<StreamIdx>(allocator(), fn, args...);
-    }
-
-    template <Int StreamIdx, typename Fn, typename... Args>
-    typename std::remove_reference<Fn>::type::ResultType
-    processStreamRtn(Fn&& fn, Args... args) const
-    {
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), fn, args...);
+        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     typename std::remove_reference<Fn>::type::ResultType
-    processStreamRtn(Fn&& fn, Args... args)
+    processStreamRtn(Fn&& fn, Args&&... args) const
     {
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), fn, args...);
+        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    typename std::remove_reference<Fn>::type::ResultType
+    processStreamRtn(Fn&& fn, Args&&... args)
+    {
+        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
 

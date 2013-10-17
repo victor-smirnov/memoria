@@ -652,6 +652,132 @@ private:
 
 };
 
+
+template <typename... Types> struct SerializeTool;
+
+template <typename Head, typename... Tail>
+struct SerializeTool<Head, Tail...> {
+	static void serialize(const PackedAllocator* allocator, SerializationData& buf, Int idx = 0)
+	{
+		if (!allocator->is_empty(idx))
+		{
+			const Head* obj = allocator->template get<Head>(idx);
+			obj->serialize(buf);
+		}
+
+		SerializeTool<Tail...>::serialize(allocator, buf, idx + 1);
+	}
+};
+
+template <typename Head, typename... Tail>
+struct SerializeTool<TypeList<Head, Tail...>> {
+	static void serialize(const PackedAllocator* allocator, SerializationData& buf, Int idx = 0)
+	{
+		if (!allocator->is_empty(idx))
+		{
+			const Head* obj = allocator->template get<Head>(idx);
+			obj->serialize(buf);
+		}
+
+		SerializeTool<Tail...>::serialize(allocator, buf, idx + 1);
+	}
+};
+
+template <>
+struct SerializeTool<> {
+	static void serialize(const PackedAllocator* allocator, SerializationData& buf, Int idx = 0) {}
+};
+
+template <>
+struct SerializeTool<TypeList<>> {
+	static void serialize(const PackedAllocator* allocator, SerializationData& buf, Int idx = 0) {}
+};
+
+
+
+template <typename... Types> struct DeserializeTool;
+
+template <typename Head, typename... Tail>
+struct DeserializeTool<Head, Tail...> {
+	static void deserialize(PackedAllocator* allocator, DeserializationData& buf, Int idx = 0)
+	{
+		if (!allocator->is_empty(idx))
+		{
+			Head* obj = allocator->template get<Head>(idx);
+			obj->deserialize(buf);
+		}
+
+		DeserializeTool<Tail...>::deserialize(allocator, buf, idx + 1);
+	}
+};
+
+template <typename Head, typename... Tail>
+struct DeserializeTool<TypeList<Head, Tail...>> {
+	static void deserialize(PackedAllocator* allocator, DeserializationData& buf, Int idx = 0)
+	{
+		if (!allocator->is_empty(idx))
+		{
+			Head* obj = allocator->template get<Head>(idx);
+			obj->deserialize(buf);
+		}
+
+		DeserializeTool<Tail...>::deserialize(allocator, buf, idx + 1);
+	}
+};
+
+template <>
+struct DeserializeTool<> {
+	static void deserialize(PackedAllocator* allocator, DeserializationData& buf, Int idx = 0) {}
+};
+
+template <>
+struct DeserializeTool<TypeList<>> {
+	static void deserialize(PackedAllocator* allocator, DeserializationData& buf, Int idx = 0) {}
+};
+
+
+
+template <typename... Types> struct GenerateDataEventsTool;
+
+template <typename Head, typename... Tail>
+struct GenerateDataEventsTool<Head, Tail...> {
+	static void generateDataEvents(const PackedAllocator* allocator, IPageDataEventHandler* handler, Int idx = 0)
+	{
+		if (!allocator->is_empty(idx))
+		{
+			Head* obj = allocator->template get<Head>(idx);
+			obj->generateDataEvents(handler);
+		}
+
+		DeserializeTool<Tail...>::generateDataEvents(allocator, handler, idx + 1);
+	}
+};
+
+template <typename Head, typename... Tail>
+struct GenerateDataEventsTool<TypeList<Head, Tail...>> {
+	static void generateDataEvents(const PackedAllocator* allocator, IPageDataEventHandler* handler, Int idx = 0)
+	{
+		if (!allocator->is_empty(idx))
+		{
+			Head* obj = allocator->template get<Head>(idx);
+			obj->generateDataEvents(handler);
+		}
+
+		DeserializeTool<Tail...>::generateDataEvents(allocator, handler, idx + 1);
+	}
+};
+
+template <>
+struct GenerateDataEventsTool<> {
+	static void generateDataEvents(PackedAllocator* allocator, IPageDataEventHandler* handler, Int idx = 0) {}
+};
+
+template <>
+struct GenerateDataEventsTool<TypeList<>> {
+	static void generateDataEvents(PackedAllocator* allocator, IPageDataEventHandler* handler, Int idx = 0) {}
+};
+
+
 }
 
 

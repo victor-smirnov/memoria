@@ -35,6 +35,8 @@ protected:
 
     typedef PackedFSESequence<BitsPerSymbol>                                    PackedSeq;
 
+    typedef SymbolsBuffer<BitsPerSymbol>										MemBuffer;
+
     static const Int Symbols                                                    = 1<<BitsPerSymbol;
 
     String dump_name_;
@@ -71,7 +73,44 @@ public:
         return seq;
     }
 
+    virtual MemBuffer createBuffer(Int size, Int symbol)
+    {
+    	MemBuffer data(size);
+    	for (SizeT c = 0; c < size; c++)
+    	{
+    		data.put(symbol);
+    	}
 
+    	data.reset();
+
+    	return data;
+    }
+
+    virtual MemBuffer createRandomBuffer(Int size)
+    {
+    	MemBuffer data(size);
+    	for (SizeT c = 0; c < size; c++)
+    	{
+    		data.put(getRandom(1 << BitsPerSymbol));
+    	}
+
+    	data.reset();
+
+    	return data;
+    }
+
+    virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
+    {
+    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+
+    	for (size_t c = 0; c < src.size(); c++)
+    	{
+    		typename MemBuffer::value_type v1 = src[c];
+    		typename MemBuffer::value_type v2 = tgt[c];
+
+    		AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
+    	}
+    }
 
 };
 

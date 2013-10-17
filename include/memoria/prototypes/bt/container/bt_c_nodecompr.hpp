@@ -62,6 +62,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeComprName)
 
     NodeBaseG splitPathP(NodeBaseG& node, Int split_at);
     NodeBaseG splitLeafP(NodeBaseG& leaf, const Position& split_at);
+    NodeBaseG createNextLeaf(NodeBaseG& leaf);
 
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
@@ -224,6 +225,63 @@ typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Positi
     return splitP(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right){
         return self.splitLeafNode(left, right, split_at);
     });
+}
+
+M_PARAMS
+typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
+{
+	auto& self = this->self();
+
+	if (left_node->is_root())
+	{
+		self.newRootP(left_node);
+	}
+	else {
+		left_node.update();
+	}
+
+	NodeBaseG left_parent  = self.getNodeParent(left_node, Allocator::UPDATE);
+
+	NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+
+	Accumulator sums;
+
+	Int parent_idx = left_node->parent_idx();
+
+	PageUpdateMgr mgr(self);
+	mgr.add(left_parent);
+
+	try {
+		self.insertNonLeafP(left_parent, parent_idx + 1, sums, other->id());
+	}
+	catch (PackedOOMException ex)
+	{
+		mgr.rollback();
+
+		NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
+
+		mgr.add(right_parent);
+
+		try {
+			self.insertNonLeafP(right_parent, 0, sums, other->id());
+		}
+		catch (PackedOOMException ex2)
+		{
+			mgr.rollback();
+
+			Int right_parent_size = self.getNodeSize(right_parent, 0);
+
+			splitPathP(right_parent, right_parent_size / 2);
+
+			self.insertNonLeafP(right_parent, 0, sums, other->id());
+		}
+	}
+	catch (Exception& ex) {
+		cout<<ex<<endl;
+		throw;
+	}
+
+	return other;
 }
 
 M_PARAMS

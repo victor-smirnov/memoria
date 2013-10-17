@@ -15,6 +15,8 @@
 #include <memoria/metadata/container.hpp>
 #include <memoria/containers/roots.hpp>
 
+#include <memoria/core/types/algo/select.hpp>
+
 namespace memoria {
 
 using memoria::vapi::ContainerMetadataRepository;

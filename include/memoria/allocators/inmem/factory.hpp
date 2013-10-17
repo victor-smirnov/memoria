@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
+#ifndef _MEMORIA_ALLOCATORS_INMEM_FACTORY_HPP
+#define _MEMORIA_ALLOCATORS_INMEM_FACTORY_HPP
 
 #include <memoria/containers/root/root_factory.hpp>
 #include <memoria/containers/map/map_factory.hpp>

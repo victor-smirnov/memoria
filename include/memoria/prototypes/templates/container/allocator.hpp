@@ -117,6 +117,11 @@ public:
         return me()->allocator().createCtrName();
     }
 
+    virtual const IAllocatorProperties& properties() const
+    {
+    	return self().allocator().properties();
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 

@@ -41,6 +41,12 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
                     <<#Arg0);                                                                           \
         }
 
+#define MEMORIA_ASSERT_FALSE(Arg0)                                                                      \
+        if ((Arg0)) {                                                                                   \
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FALSE FAILURE: "             \
+                    <<#Arg0);                                                                           \
+        }
+
 
 #define MEMORIA_ASSERT_EXPR(Expr, Msg)                                                              \
         if (!(Expr)) {                                                                              \

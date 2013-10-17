@@ -39,6 +39,7 @@ public:
     typedef PageID<T>                                                           ValueType;
     typedef ValueBuffer<T>                                                      Base;
 
+
     PageID() = default;
 
     PageID(const T& t): Base(t) {}
@@ -108,6 +109,12 @@ public:
     operator BigInt () const {
         return Base::value();
     }
+
+    ValueType& operator+=(const ValueType& other)
+    {
+    	Base::value() += other.value();
+    	return *this;
+    }
 };
 
 
@@ -115,6 +122,18 @@ template <typename T>
 struct TypeHash<PageID<T>>: UIntValue<
     HashHelper<101, TypeHash<T>::Value>::Value
 > {};
+
+typedef struct
+{
+    template <typename T>
+    long operator() (const PageID<T> &k) const { return k.value(); }
+} IDKeyHash;
+
+typedef struct
+{
+    template <typename T>
+    bool operator() (const PageID<T> &x, const PageID<T> &y) const { return x == y; }
+} IDKeyEq;
 
 
 
@@ -190,19 +209,22 @@ public:
 private:
     typedef AbstractPage<PageIdType, FlagsCount> Me;
 
-
-
-    FlagsType   flags_;
-    PageIdType  id_;
-
     Int         crc_;
     Int         master_ctr_type_hash_;
     Int         owner_ctr_type_hash_;
     Int         ctr_type_hash_;
     Int         page_type_hash_;
+
+    FlagsType   flags_;
+    PageIdType  id_;
+
     Int         references_;
     Int         deleted_;
     Int         page_size_;
+
+    //Txn rollback intrusive list fields. Not used by containers.
+    UBigInt		next_block_pos_;
+    UBigInt		target_block_pos_;
 
 public:
     typedef TypeList<
@@ -216,7 +238,9 @@ public:
                 decltype(page_type_hash_),
                 decltype(references_),
                 decltype(deleted_),
-                decltype(page_size_)
+                decltype(page_size_),
+                decltype(next_block_pos_),
+                decltype(target_block_pos_)
     >                                                                           FieldsList;
 
     typedef PageIdType                                                          ID;
@@ -322,6 +346,24 @@ public:
         return flags_.setBit(0, updated);
     }
 
+    UBigInt& next_block_pos() {
+    	return next_block_pos_;
+    }
+
+    const UBigInt& next_block_pos() const {
+    	return next_block_pos_;
+    }
+
+    UBigInt& target_block_pos() {
+    	return target_block_pos_;
+    }
+
+    const UBigInt& target_block_pos() const {
+    	return target_block_pos_;
+    }
+
+
+
     void *operator new(size_t size, void *page) {
         return page;
     }
@@ -345,6 +387,9 @@ public:
         handler->value("REFERENCES",        &references_);
         handler->value("DELETED",           &deleted_);
         handler->value("PAGE_SIZE",         &page_size_);
+
+        handler->value("NEXT_BLOCK_POS",    &next_block_pos_);
+        handler->value("TARGET_BLOCK_POS",  &target_block_pos_);
     }
 
 
@@ -366,29 +411,40 @@ public:
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<PageIdType>::serialize(buf, id());
         FieldFactory<Int>::serialize(buf, crc());
         FieldFactory<Int>::serialize(buf, master_ctr_type_hash());
         FieldFactory<Int>::serialize(buf, owner_ctr_type_hash());
         FieldFactory<Int>::serialize(buf, ctr_type_hash());
         FieldFactory<Int>::serialize(buf, page_type_hash());
+        FieldFactory<Int>::serialize(buf, page_size_);
+
+        FieldFactory<PageIdType>::serialize(buf, id());
+
         FieldFactory<Int>::serialize(buf, references_);
         FieldFactory<Int>::serialize(buf, deleted_);
-        FieldFactory<Int>::serialize(buf, page_size_);
+
+
+        FieldFactory<UBigInt>::serialize(buf, next_block_pos_);
+        FieldFactory<UBigInt>::serialize(buf, target_block_pos_);
     }
 
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<PageIdType>::deserialize(buf, id());
         FieldFactory<Int>::deserialize(buf, crc());
         FieldFactory<Int>::deserialize(buf, master_ctr_type_hash());
         FieldFactory<Int>::deserialize(buf, owner_ctr_type_hash());
         FieldFactory<Int>::deserialize(buf, ctr_type_hash());
         FieldFactory<Int>::deserialize(buf, page_type_hash());
+        FieldFactory<Int>::deserialize(buf, page_size_);
+
+        FieldFactory<PageIdType>::deserialize(buf, id());
+
         FieldFactory<Int>::deserialize(buf, references_);
         FieldFactory<Int>::deserialize(buf, deleted_);
-        FieldFactory<Int>::deserialize(buf, page_size_);
+
+        FieldFactory<UBigInt>::deserialize(buf, next_block_pos_);
+        FieldFactory<UBigInt>::deserialize(buf, target_block_pos_);
     }
 };
 

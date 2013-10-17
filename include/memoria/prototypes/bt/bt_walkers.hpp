@@ -283,8 +283,6 @@ public:
     template <Int Idx, typename StreamTypes>
     ResultType stream(const PackedFSEArray<StreamTypes>* array, Int start)
     {
-        //MEMORIA_ASSERT_TRUE(array != nullptr);
-
         auto& sum = Base::sum_;
 
         BigInt offset = Base::target_ - sum;
@@ -302,6 +300,28 @@ public:
 
             return size;
         }
+    }
+
+    template <Int Idx, typename StreamTypes>
+    ResultType stream(const PkdFSSeq<StreamTypes>* array, Int start)
+    {
+    	auto& sum = Base::sum_;
+
+    	BigInt offset = Base::target_ - sum;
+
+    	Int size = array != nullptr? array->size() : 0;
+
+    	if (start + offset < size)
+    	{
+    		sum += offset;
+
+    		return start + offset;
+    	}
+    	else {
+    		sum += (size - start);
+
+    		return size;
+    	}
     }
 
     MyType& self() {
@@ -524,6 +544,24 @@ public:
             sum += start;
             return -1;
         }
+    }
+
+    template <Int Idx, typename TreeTypes>
+    ResultType stream(const PkdFSSeq<TreeTypes>* array, Int start)
+    {
+    	BigInt offset = Base::target_ - Base::sum_;
+
+    	auto& sum = Base::sum_;
+
+    	if (start - offset >= 0)
+    	{
+    		sum += offset;
+    		return start - offset;
+    	}
+    	else {
+    		sum += start;
+    		return -1;
+    	}
     }
 
     MyType& self() {

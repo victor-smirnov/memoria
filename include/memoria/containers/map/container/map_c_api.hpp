@@ -75,6 +75,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
         return iter;
     }
 
+    Iterator insertIFNotExists(Key key)
+    {
+    	Iterator iter = self().findLE(0, key, 0);
+
+    	if (iter.isEnd() || key != iter.key())
+    	{
+    		Accumulator keys;
+    		std::get<0>(keys)[0] = key;
+    		self().insert(iter, keys);
+
+    		iter.prev();
+    	}
+    	else {
+    		throw Exception(MA_SRC, "Inserted Key already exists");
+    	}
+
+    	return iter;
+    }
+
     bool remove(Key key)
     {
         Iterator iter = self().findLE(0, key, 0);

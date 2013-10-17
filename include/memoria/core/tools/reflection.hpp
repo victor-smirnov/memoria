@@ -10,6 +10,7 @@
 #define _MEMORIA_CORE_TOOLS_REFLECTION_HPP
 
 #include <memoria/core/tools/md5.hpp>
+#include <memoria/core/types/type2type.hpp>
 
 #include <string.h>
 

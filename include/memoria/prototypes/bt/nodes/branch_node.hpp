@@ -1166,71 +1166,71 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    Int find(Int stream, Fn&& fn, Args... args) const
+    Int find(Int stream, Fn&& fn, Args&&... args) const
     {
-        return Dispatcher::dispatchRtn(stream, allocator(), std::move(fn), args...);
+        return Dispatcher::dispatchRtn(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void process(Int stream, Fn&& fn, Args... args) const
     {
-        Dispatcher::dispatch(stream, allocator(), std::move(fn), args...);
+        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void process(Int stream, Fn&& fn, Args... args)
+    void process(Int stream, Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatch(stream, allocator(), std::move(fn), args...);
+        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void processNotEmpty(Fn&& fn, Args... args) const
+    void processNotEmpty(Fn&& fn, Args&&... args) const
     {
-        Dispatcher::dispatchNotEmpty(allocator(), std::move(fn), args...);
+        Dispatcher::dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void processNotEmpty(Fn&& fn, Args... args)
+    void processNotEmpty(Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatchNotEmpty(allocator(), std::move(fn), args...);
+        Dispatcher::dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void processNotEmpty(UBigInt streams, Fn&& fn, Args... args) const
+    void processNotEmpty(UBigInt streams, Fn&& fn, Args&&... args) const
     {
-        Dispatcher::dispatchNotEmpty(streams, allocator(), std::move(fn), args...);
+        Dispatcher::dispatchNotEmpty(streams, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void processNotEmpty(UBigInt streams, Fn&& fn, Args... args)
+    void processNotEmpty(UBigInt streams, Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatchNotEmpty(streams, allocator(), std::move(fn), args...);
+        Dispatcher::dispatchNotEmpty(streams, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args... args) const
+    void processStream(Fn&& fn, Args&&... args) const
     {
-        Dispatcher::template dispatch<StreamIdx>(allocator(), fn, args...);
+        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args... args)
+    void processStream(Fn&& fn, Args&&... args)
     {
-        Dispatcher::template dispatch<StreamIdx>(allocator(), fn, args...);
-    }
-
-    template <Int StreamIdx, typename Fn, typename... Args>
-    typename std::remove_reference<Fn>::type::ResultType
-    processStreamRtn(Fn&& fn, Args... args) const
-    {
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), fn, args...);
+        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     typename std::remove_reference<Fn>::type::ResultType
-    processStreamRtn(Fn&& fn, Args... args)
+    processStreamRtn(Fn&& fn, Args&&... args) const
     {
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), fn, args...);
+        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    typename std::remove_reference<Fn>::type::ResultType
+    processStreamRtn(Fn&& fn, Args&&... args)
+    {
+        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
 

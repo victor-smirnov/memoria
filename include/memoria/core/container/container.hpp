@@ -239,7 +239,8 @@ public:
             return me()->allocator().getCtrShared(name);
         }
         else {
-            PageG node = me()->allocator().getRoot(name, Allocator::READ);
+        	ID root_id = self().allocator().getRootID(name);
+            PageG node = self().allocator().getPage(root_id, Allocator::READ);
 
             if (node.isSet())
             {
@@ -315,6 +316,16 @@ private:
 
     const MyType* me() const {
         return static_cast<const MyType*>(this);
+    }
+
+    MyType& self()
+    {
+        return *static_cast<MyType*>(this);
+    }
+
+    const MyType& self() const
+    {
+        return *static_cast<const MyType*>(this);
     }
 };
 

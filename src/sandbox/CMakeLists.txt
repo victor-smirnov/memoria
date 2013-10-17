@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX )
+    set(MEMORIA_SANDBOX lru_cache file_allocator)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
@@ -10,6 +10,6 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
     set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/sandbox")
     if (NOT CHECK_SYNTAX_ONLY)
-        target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS} pugixml)
+        target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS})
     endif()
 ENDFOREACH(MEMORIA_TARGET)
