@@ -24,8 +24,6 @@
 #include <memoria/core/container/container.hpp>
 
 #include <memoria/allocators/file/superblock_ctr.hpp>
-//#include <memoria/allocators/file/file_allocator_idmap.hpp>
-//#include <memoria/allocators/file/file_allocator_blockmap.hpp>
 
 #include <memoria/core/tools/lru_cache.hpp>
 
@@ -50,8 +48,8 @@ class FileAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorN
 
     typedef typename AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> >::Type Base;
 
-//    template <typename, typename> friend class IDMapFileAllocator;
-//    template <typename, typename> friend class BlockMapFileAllocator;
+
+
 
 public:
     typedef typename Base::Page                                                 Page;
@@ -78,13 +76,16 @@ private:
     struct PageCacheEvictionPredicate {
     	bool operator()(const Entry& entry)
     	{
-    		return (!entry.is_updated()) && entry.current_page()->references() == 0;
+    		return !(entry.is_updated() || entry.shared());
     	}
     };
 
     enum class PageOp {
-    	UPDATE = Shared::UPDATE, DELETE = Shared::DELETE, NONE
+    	UPDATE = Base::Shared::UPDATE, DELETE = Base::Shared::DELETE, NONE
     };
+
+    class MyShared;
+    typedef MyShared* MySharedPtr;
 
     template <typename Node>
     struct LRUNode: Node {
@@ -97,6 +98,8 @@ private:
     	PageOp  page_op_;
 
     	UBigInt position_;
+
+    	MySharedPtr shared_;
 
     	LRUNode()
     	{
@@ -126,6 +129,7 @@ private:
 
     		page_op_ 	= PageOp::NONE;
     		position_	= 0;
+    		shared_		= nullptr;
     	}
 
     	PagePtr& page() {return page_;}
@@ -156,10 +160,12 @@ private:
 
     	bool is_updated() const
     	{
-    		return front_page_ != nullptr || page_op_ != PageOp::NONE;
+    		return page_op_ != PageOp::NONE;
     	}
-    };
 
+    	MySharedPtr& shared() {return shared_;}
+    	const MySharedPtr& shared() const {return shared_;}
+    };
 
 
 
@@ -171,12 +177,27 @@ private:
     > 																			PageCacheType;
 
     typedef typename PageCacheType::Entry										PageCacheEntryType;
+    typedef typename PageCacheType::Entry*										PageCacheEntryPtrType;
+
+    class MyShared: public Base::Shared {
+    	typedef PageCacheEntryType* PageCacheEntryPtr;
+    	PageCacheEntryPtr entry_;
+    	bool is_new_ = false;
+    public:
+    	PageCacheEntryPtr& entry() {return entry_;}
+    	const PageCacheEntryPtr& entry() const {return entry_;}
+
+    	bool& is_new() {return is_new_;}
+    	const bool& is_new() const {return is_new_;}
+    };
 
     typedef std::unordered_map<ID, PageCacheEntryType*, IDKeyHash, IDKeyEq>     IDPageOpMap;
     typedef std::unordered_map<BigInt, CtrShared*>                              CtrSharedMap;
 
     typedef std::set<UBigInt>                              						PositionSet;
     typedef IDHashMap<ID, BigInt>                              					LocalIDMap;
+
+    typedef std::unordered_set<ID, IDKeyHash, IDKeyEq>     						IDSet;
 
     typedef std::unique_ptr<SuperblockCtrType>									SuperblockCtrPtr;
     typedef std::unique_ptr<BlockMapType>										BlockMapPtr;
@@ -192,11 +213,13 @@ private:
 
     PageCacheType       pages_;
     IDPageOpMap         pages_log_;
+    IDSet				deleted_log_;
+
     CtrSharedMap        ctr_shared_;
 
     Logger              logger_;
 
-    ContainerMetadataRepository*    metadata_;
+    ContainerMetadataRepository* metadata_;
 
 
     const char*         type_name_ 						= "FileAllocator";
@@ -211,8 +234,6 @@ private:
 
     CharBufferPtr		page_buffer_;
     BlockMapBufferPtr	blockmap_buffer_;
-
-    StaticPool<ID, Shared>  pool_;
 
     Int 				default_block_size_ 			= 4096;
     UBigInt 			allocation_batch_size_			= 64; // in blocks
@@ -231,19 +252,33 @@ private:
 
     Properties properties_;
 
+    OpenMode mode_;
     bool is_new_;
 
+    UBigInt created_ = 0;
+    UBigInt updated_ = 0;
+    UBigInt deleted_ = 0;
+    UBigInt locked_  = 0;
+
 public:
-    FileAllocator(StringRef& file_name):
+    FileAllocator(StringRef& file_name, OpenMode mode = OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE):
     	file_name_(file_name),
     	pages_(1024),
     	logger_("memoria::FileAllocator", Logger::DERIVED, &memoria::vapi::logger),
         metadata_(MetadataRepository<Profile>::getMetadata()),
         page_buffer_(nullptr, free),
-        properties_(superblock_)
+        properties_(superblock_),
+        mode_(mode)
     {
     	BlockMapType::initMetadata();
     	RootMapType::initMetadata();
+
+    	mode = mode | OpenMode::READ;
+
+    	if (to_bool(mode & OpenMode::TRUNC) && !to_bool(mode & OpenMode::WRITE))
+    	{
+    		throw Exception(MA_SRC, "TRUNC is only valid for WRITE-enabled databases");
+    	}
 
     	File file(file_name);
 
@@ -251,17 +286,24 @@ public:
     	{
     		if (!file.isDirectory())
     		{
-    			openFile();
-    			superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_));
+    			openFile(mode);
+
+    			is_new_ = to_bool(mode & OpenMode::TRUNC);
+
+    			if (!is_new_)
+    			{
+    				superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_));
+    			}
+    			else {
+    				superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_, default_block_size_));
+    			}
     		}
     		else {
     			throw FileException(MA_SRC, "Requested file is a directory");
     		}
-
-    		is_new_ = false;
     	}
     	else {
-    		createFile();
+    		openFile(mode);
 
     		superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_, default_block_size_));
     		is_new_		= true;
@@ -277,7 +319,6 @@ public:
     		allocateFileSpace();
     		// make superblock's space allocated
     		this->allocateEmptyBlock();
-
 
     		block_map_ 	= BlockMapPtr(new BlockMapType(this, CTR_CREATE, 0));
 
@@ -297,16 +338,37 @@ public:
     }
 
     virtual ~FileAllocator()
-    {}
+    {
+    	try {
+    		this->close(false);
+    	}
+    	catch (...) {
+    		//log exception here
+    	}
+    }
 
     bool is_new() const {
     	return is_new_;
+    }
+
+    bool is_read_only() const {
+    	return !to_bool(mode_ & OpenMode::WRITE);
+    }
+
+    bool is_clean() const
+    {
+    	return pages_log_.size() == 0 && !superblock_->is_updated();
+    }
+
+    UBigInt allocation_batch_size() const {
+    	return allocation_batch_size_;
     }
 
     // IAllocator
 
     virtual PageG getPage(const ID& id, Int flags)
     {
+    	//FIXME: throw exception
     	if (id.isNull())
     	{
     		return PageG();
@@ -314,55 +376,42 @@ public:
 
     	PageCacheEntryType* entry = get_from_log(id);
 
+
     	if (flags == Base::READ)
     	{
         	if (entry)
         	{
-        		Shared* shared = get_shared(entry->front_page(), (Int)entry->page_op());
         		pages_.touch(entry);
-        		return PageG(shared);
+
+        		createSharedIfNecessary(entry, Shared::UPDATE);
         	}
         	else {
-        		PageCacheEntryType* entry = get_entry(id);
-        		Shared* shared = get_shared(entry->page(), Shared::READ);
-        		return PageG(shared);
+        		entry = get_entry(id);
+
+        		createSharedIfNecessary(entry, Shared::READ);
         	}
     	}
     	else {
     		if (entry)
     		{
     			pages_.touch(entry);
-    			return PageG(get_shared(entry->front_page(), (Int)entry->page_op()));
     		}
     		else {
-    			PageCacheEntryType* entry = get_entry(id);
+    			entry = get_entry(id);
 
-    			Int page_size = entry->page()->page_size();
-    			char* buffer = (char*) malloc(page_size);
+    			MEMORIA_ASSERT_FALSE(entry->front_page());
 
-    			CopyByteBuffer(entry->page(), buffer, page_size);
-    			Page* new_page = T2T<Page*>(buffer);
-
-    			entry->front_page() = new_page;
+    			entry->front_page() = copyPage(entry->page());
 
     			pages_log_[id] = entry;
-
-    			Shared* shared = pool_.get(id);
-
-    			if (shared == nullptr)
-    			{
-    				shared = pool_.allocate(id);
-
-    				shared->set_allocator(this);
-    				shared->id() = id;
-    			}
-
-    			shared->set_page(new_page);
-    			shared->state() = Shared::UPDATE;
-
-    			return PageG(shared);
     		}
+
+    		createSharedIfNecessary(entry, Shared::UPDATE);
     	}
+
+    	MEMORIA_ASSERT_TRUE(entry->shared());
+
+    	return PageG(entry->shared());
     }
 
     virtual PageG getPageG(Page* page)
@@ -372,69 +421,44 @@ public:
 
     virtual void updatePage(Shared* shared)
     {
-    	if (shared->state() == Shared::READ)
+    	MyShared* my_shared = static_cast<MyShared*>(shared);
+
+    	if (my_shared->state() == Shared::READ)
     	{
-    		Int page_size = shared->get()->page_size();
+    		MEMORIA_ASSERT_FALSE(get_from_log(shared->id()))
 
-    		Byte* buffer = T2T<Byte*>(malloc(page_size));
+    		PageCacheEntryType* entry = my_shared->entry();
 
-    		CopyByteBuffer(shared->get(), buffer, page_size);
-    		Page* front_page = T2T<Page*>(buffer);
+    		MEMORIA_ASSERT_TRUE(entry->page());
+    		MEMORIA_ASSERT_FALSE(entry->front_page());
 
-    		PageCacheEntryType* entry = get_entry(shared->id());
+    		entry->front_page() = copyPage(entry->page());
 
     		entry->page_op() 	= PageOp::UPDATE;
-    		entry->front_page() = front_page;
 
-    		pages_log_[front_page->id()] = entry;
+    		pages_log_[entry->key()] = entry;
 
-    		shared->set_page(front_page);
+    		shared->set_page(entry->front_page());
+
     		shared->state() = Shared::UPDATE;
     	}
     }
 
     virtual void removePage(const ID& id)
     {
-    	Shared* shared = pool_.get(id);
-    	if (shared)
+    	deleted_log_.insert(id);
+
+    	if (pages_.contains_key(id))
     	{
-    		// FIXME it isn't really necessary to inform PageGuards that the page is deleted
-    		shared->state() = Shared::DELETE;
-
-    		PageCacheEntryType* entry = get_from_log(id);
-
-    		if (!entry)
-    		{
-    			entry = get_entry(id);
-
-    			pages_log_[id] = entry;
-    		}
-
+    		PageCacheEntryType* entry = get_entry(id);
     		entry->page_op() = PageOp::DELETE;
-    	}
-    	else {
-    		PageCacheEntryType* entry = get_from_log(id);
 
-    		if (!entry)
+    		if (entry->shared())
     		{
-    			if (pages_.contains_key(id))
-    			{
-    				entry = get_entry(id);
-    			}
-    			else {
-    				entry = new PageCacheEntryType();
-
-    				entry->key() = id;
-    			}
-
-    			pages_log_[id] = entry;
+    			// FIXME it isn't really necessary to inform PageGuards that the page is marked deleted
+    			entry->shared()->state() = Shared::DELETE;
     		}
-
-    		entry->page_op() = PageOp::DELETE;
     	}
-
-//    	bool result = id_map_->remove(id.value());
-//    	MEMORIA_ASSERT_TRUE(result);
     }
 
     virtual PageG createPage(Int initial_size)
@@ -449,19 +473,13 @@ public:
     	entry->counter() = 1;
     	entry->page_op() = PageOp::UPDATE;
 
-    	createEmptyPage(*entry, initial_size);
+    	entry->front_page() = createPage(gid);
 
-    	pages_log_[gid] 	= entry;
+    	pages_log_[gid]  = entry;
 
-    	Shared* shared  	= pool_.allocate(gid);
+    	createShared(entry, Shared::UPDATE);
 
-    	shared->id()        = gid;
-    	shared->state()     = Shared::UPDATE;
-
-    	shared->set_page(entry->front_page());
-    	shared->set_allocator(this);
-
-    	return PageG(shared);
+    	return PageG(entry->shared());
     }
 
     virtual void resizePage(Shared* page, Int new_size)
@@ -471,7 +489,20 @@ public:
 
     virtual void releasePage(Shared* shared)
     {
-    	pool_.release(shared->id());
+    	MyShared* my_shared = static_cast<MyShared*>(shared);
+
+    	PageCacheEntryType* entry = my_shared->entry();
+
+    	MEMORIA_ASSERT_TRUE(entry->shared() == my_shared);
+
+    	delete my_shared;
+
+    	entry->shared() = nullptr;
+
+    	if ((!entry->is_allocated()) && (!get_from_log(entry->key())))
+    	{
+    		//freeEntry(entry);
+    	}
     }
 
     virtual CtrShared* getCtrShared(BigInt name)
@@ -633,10 +664,13 @@ public:
     	return metadata_;
     }
 
-    void close()
+    void close(bool commit = true)
     {
-    	commit();
-    	MEMORIA_ASSERT_TRUE(file_.close() == nullptr);
+    	if (commit) {
+    		this->commit();
+    	}
+
+    	file_.close();
     }
 
     void sync() {
@@ -646,6 +680,16 @@ public:
     void commit()
     {
     	// ensure file has enough room for backup
+
+    	if (is_read_only())
+    	{
+    		if (!is_clean())
+    		{
+    			rollback();
+
+    			throw Exception(MA_SRC, "Can't modify read-only allocator");
+    		}
+    	}
 
     	UBigInt updated = computeUpdatedPages();
 
@@ -664,8 +708,6 @@ public:
 
     	for (auto i: pages_log_)
     	{
-    		//std::cout<<"Log: "<<i.first<<" "<<(Int)i.second->page_op()<<std::endl;
-
     		PageCacheEntryType* entry = i.second;
     		if (isUpdatedEntry(entry))
     		{
@@ -690,9 +732,9 @@ public:
 
     	superblock_->set_backup_list(backup_list_head, backup_list_size);
 
-    	superblock_->storeBackup();
+    	superblock_->storeBackup(); // sync
 
-    	sync();
+
 
     	// commit updates
 
@@ -700,18 +742,25 @@ public:
     	{
     		PageCacheEntryType* entry = i.second;
 
+    		// commit page update
     		if (entry->page_op() == PageOp::UPDATE)
     		{
     			MEMORIA_ASSERT_TRUE(entry->front_page());
 
-    			Shared* shared = pool_.get(entry->key());
-    			if (shared)
+    			if (entry->shared())
     			{
-    				shared->state() = Shared::READ;
-    				shared->set_page(entry->front_page());
+    				entry->shared()->state() = Shared::READ;
+    				entry->shared()->set_page(entry->front_page());
     			}
 
-    			pages_.insert(entry);
+    			if (!entry->is_allocated())
+    			{
+    				MEMORIA_ASSERT_FALSE(entry->page());
+    				pages_.insert(entry);
+    			}
+    			else {
+    				MEMORIA_ASSERT_TRUE(entry->page());
+    			}
 
     			std::swap(entry->page(), entry->front_page());
 
@@ -719,21 +768,20 @@ public:
 
     			entry->page_op() = PageOp::NONE;
 
-    			::free(entry->front_page());
+    			if (entry->front_page())
+    			{
+    				::free(entry->front_page());
+    				entry->front_page() = nullptr;
+    			}
     		}
     		else // commit page deletion
     		{
-    			if (pages_.contains_entry(entry))
+    			pages_.remove_entry(entry);
+
+    			if (!entry->shared())
     			{
-    				PageCacheEntryType* cache_entry = pages_.remove_entry(entry->key());
-
-    				if (cache_entry != entry)
-    				{
-    					freeEntry(cache_entry);
-    				}
+    				freeEntry(entry);
     			}
-
-    			freeEntry(entry);
     		}
     	}
 
@@ -743,18 +791,39 @@ public:
     	}
 
     	pages_log_.clear();
+    	deleted_log_.clear();
 
     	sync();
 
-    	superblock_->storeSuperblock();
+    	superblock_->storeSuperblock(); //sync
     }
 
     void rollback()
     {
     	for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
     	{
-    		PageOp op = i->second;
-    		::free(op.page_);
+    		PageCacheEntryType* entry = i->second;
+
+    		MEMORIA_ASSERT_TRUE(entry->front_page());
+
+    		::free(entry->front_page());
+
+    		if (!entry->is_allocated())
+    		{
+    			MEMORIA_ASSERT_FALSE(entry->page());
+    		}
+    		else {
+    			MEMORIA_ASSERT_TRUE(entry->page());
+
+    			entry->front_page() = nullptr;
+    			entry->page_op() = PageOp::NONE;
+
+    			if (entry->shared())
+    			{
+    				entry->shared()->state() = Shared::READ;
+    				entry->shared()->set_page(entry->page());
+    			}
+    		}
     	}
 
     	for (auto i = ctr_shared_.begin(); i != ctr_shared_.end(); i++)
@@ -762,19 +831,17 @@ public:
     		i->second->rollback();
     	}
 
+    	superblock_->rollback();
+
     	pages_log_.clear();
+    	deleted_log_.clear();
     }
 
 private:
 
-    void openFile()
+    void openFile(OpenMode mode)
     {
-    	file_.open(file_name_.c_str(), IRandomAccessFile::READ | IRandomAccessFile::WRITE);
-    }
-
-    void createFile()
-    {
-    	file_.open(file_name_.c_str(), IRandomAccessFile::READ | IRandomAccessFile::WRITE | IRandomAccessFile::CREATE);
+    	file_.open(file_name_.c_str(), mode);
     }
 
     PageCacheEntryType* get_from_log(const ID &page_id) const
@@ -796,53 +863,84 @@ private:
 
     		if (!entry.page())
     		{
-    			entry.page() = T2T<Page*>(::malloc(default_block_size_));
+    			entry.page() = createPage(ID(0));
     		}
 
     		this->loadPage(pos, entry.page());
     	});
     }
 
-    Shared* get_shared(Page* page, Int op)
+
+    MyShared* createSharedIfNecessary(PageCacheEntryType* entry, Int op)
     {
-      	MEMORIA_ASSERT_TRUE(page != nullptr);
-
-    	Shared* shared = pool_.get(page->id());
-
-    	if (shared == nullptr)
+    	if (!entry->shared())
     	{
-    		shared = pool_.allocate(page->id());
-
-    		shared->id()    = page->id();
-    		shared->state()	= op;
-
-    		shared->set_page(page);
-    		shared->set_allocator(this);
+    		return createShared(entry, op);
     	}
+
+    	return entry->shared();
+    }
+
+    MyShared* createShared(PageCacheEntryType* entry, Int op)
+    {
+    	MyShared* shared = new MyShared();
+
+    	shared->id()    = entry->key();
+    	shared->state()	= op;
+
+    	shared->set_page(entry->current_page());
+    	shared->set_allocator(this);
+
+    	entry->shared() = shared;
+    	shared->entry() = entry;
 
     	return shared;
     }
 
-    void createEmptyPage(PageCacheEntryType& entry, Int initial_size)
+    Page* copyPage(Page* src)
     {
-    	if (!entry.front_page())
-    	{
-    		if (entry.page())
-    		{
-    			std::swap(entry.front_page(), entry.page());
-    		}
-    		else {
-    			void* buf = malloc(initial_size);
-    			memset(buf, 0, initial_size);
+    	Int page_size = src->page_size();
+    	char* buffer = (char*) malloc(page_size);
 
-    			Page* p = new (buf) Page(entry.key());
+    	CopyByteBuffer(src, buffer, page_size);
+    	Page* new_page = T2T<Page*>(buffer);
 
-    			p->page_size() = initial_size;
-
-    			entry.front_page() = p;
-    		}
-    	}
+    	return new_page;
     }
+
+    Page* createPage(const ID& id)
+    {
+    	void* buf = malloc(default_block_size_);
+    	memset(buf, 0, default_block_size_);
+
+    	Page* p = new (buf) Page(id);
+
+    	p->page_size() = default_block_size_;
+
+    	return p;
+    }
+
+
+//    void createEmptyPage(PageCacheEntryType& entry, Int initial_size)
+//    {
+//    	if (!entry.front_page())
+//    	{
+//    		if (entry.page())
+//    		{
+//    			std::swap(entry.front_page(), entry.page());
+//    		}
+//    		else {
+//    			void* buf = malloc(initial_size);
+//    			memset(buf, 0, initial_size);
+//
+//    			Page* p = new (buf) Page(entry.key());
+//
+//    			p->page_size() = initial_size;
+//
+//    			entry.front_page() = p;
+//    		}
+//    	}
+//    }
 
     void freeEntry(PageCacheEntryType* entry)
     {
@@ -890,7 +988,7 @@ private:
 
     void loadPage(UBigInt pos, Page* page)
     {
-    	file_.seek(pos, IRandomAccessFile::SET);
+    	file_.seek(pos, SeekType::SET);
     	file_.read(page_buffer_.get(), default_block_size_);
 
     	Page* disk_page = T2T<Page*>(page_buffer_.get());
@@ -911,7 +1009,7 @@ private:
     {
     	MEMORIA_ASSERT(page->page_size(), ==, default_block_size_);
 
-    	file_.seek(pos, IRandomAccessFile::SET);
+    	file_.seek(pos, SeekType::SET);
 
     	Int ctr_type_hash	= page->ctr_type_hash();
     	Int page_type_hash	= page->page_type_hash();
@@ -937,14 +1035,14 @@ private:
 
     	UBigInt file_size = superblock_->file_size();
 
-    	file_.seek(0, IRandomAccessFile::END);
+    	file_.seek(0, SeekType::END);
 
     	for (UBigInt c = 0; c < allocation_batch_size_; c++)
     	{
     		file_.write(page_buffer_.get(), default_block_size_);
     	}
 
-    	auto pos = file_.seek(0, IRandomAccessFile::CUR);
+    	auto pos = file_.seek(0, SeekType::CUR);
 
     	MEMORIA_ASSERT(pos, ==, file_size + allocation_batch_size_ * default_block_size_);
 
@@ -1016,7 +1114,7 @@ private:
     bool isUpdatedEntry(PageCacheEntryType* entry)
     {
     	// check if entry is UPDATE entry
-    	return entry->page_op() == PageOp::UPDATE && pages_.contains_key(entry->key());
+    	return entry->page_op() == PageOp::UPDATE && entry->is_allocated();
     }
 
     const SuperblockCtrType* superblock() const {

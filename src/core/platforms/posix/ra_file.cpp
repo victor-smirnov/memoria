@@ -31,24 +31,24 @@ RAFile::~RAFile()
 	delete pimpl_;
 }
 
-void RAFile::open(const char* name, Int mode)
+void RAFile::open(const char* name, OpenMode mode)
 {
 	Int flags = 0;
 
-	if ((mode & READ) && (mode & WRITE))
+	if (to_bool(mode & OpenMode::READ) && to_bool(mode & OpenMode::WRITE))
 	{
 		flags = O_RDWR;
 	}
-	else if (mode & READ)
+	else if (to_bool(mode & OpenMode::READ))
 	{
 		flags = O_RDONLY;
 
-		if (mode & CREATE)
+		if (to_bool(mode & OpenMode::CREATE))
 		{
 			throw Exception(MA_SRC, "CREATE with READ without WRITE flags is meaningless");
 		}
 	}
-	else if (mode & WRITE)
+	else if (to_bool(mode & OpenMode::WRITE))
 	{
 		flags = O_WRONLY;
 	}
@@ -56,9 +56,14 @@ void RAFile::open(const char* name, Int mode)
 		throw Exception(MA_SRC, "At least one READ or WRITE flag must be specified");
 	}
 
-	if (mode & CREATE)
+	if (to_bool(mode & OpenMode::CREATE))
 	{
 		flags |= O_CREAT;
+	}
+
+	if (to_bool(mode & OpenMode::TRUNC))
+	{
+		flags |= O_TRUNC;
 	}
 
 	pimpl_->fd_ = ::open(name, flags, S_IRUSR | S_IWUSR);
@@ -77,28 +82,28 @@ void RAFile::close()
 	}
 }
 
-UBigInt RAFile::seek(UBigInt pos, Int mode)
+UBigInt RAFile::seek(UBigInt pos, SeekType whence)
 {
-	Int whence = 0;
+	Int seek_whence = 0;
 
-	if (mode & CUR) {
-		whence = SEEK_CUR;
+	if (whence == SeekType::CUR) {
+		seek_whence = SEEK_CUR;
 	}
-	else if (mode & SET) {
-		whence = SEEK_SET;
+	else if (whence == SeekType::SET) {
+		seek_whence = SEEK_SET;
 	}
-	else if (mode & END) {
-		whence = SEEK_END;
+	else if (whence == SeekType::END) {
+		seek_whence = SEEK_END;
 	}
 
-	off_t offset = lseek(pimpl_->fd_, pos, whence);
+	off_t offset = lseek(pimpl_->fd_, pos, seek_whence);
 
 	if (offset == (off_t)-1)
 	{
 		throw Exception(MA_SRC, SBuf()<<"Can't lseek to the specified position: "
 									  <<toString(pos)<<" "<<String(strerror(errno)));
 	}
-	else if ((whence == SEEK_SET) && (offset != pos))
+	else if ((seek_whence == SEEK_SET) && (offset != pos))
 	{
 		throw Exception(MA_SRC, SBuf()<<"Failed lseek to the specified position: "<<toString(pos));
 	}

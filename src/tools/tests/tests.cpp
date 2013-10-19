@@ -17,12 +17,14 @@
 ////
 //#include "ctr/ctr_test_suite.hpp"
 //#include "map/map_test_suite.hpp"
-#include "vector/vector_test_suite.hpp"
+//#include "vector/vector_test_suite.hpp"
 //#include "vector_map/vectormap_test_suite.hpp"
-#include "sequence/sequence_test_suite.hpp"
+//#include "sequence/sequence_test_suite.hpp"
 //#include "labeled_tree/ltree_test_suite.hpp"
 //#include "vector_tree/vtree_test_suite.hpp"
 //#include "wt/wt_test_suite.hpp"
+
+#include "file_allocator/file_alloc_test_suite.hpp"
 
 #include <memoria/tools/cmdline.hpp>
 #include <memoria/tools/tools.hpp>
@@ -42,7 +44,7 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MEMORIA_INIT(SmallProfile<>);
+//    MEMORIA_INIT(SmallProfile<>);
 
     Term::init(argc, argv, envp);
 
@@ -80,10 +82,12 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
-        runner.registerTask(new SequenceTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new VTreeTestSuite());
 //        runner.registerTask(new WTTestSuite());
+
+        runner.registerTask(new FileAllocatorTestSuite());
 
 
         runner.Configure(&cmd_line.getConfigurator());

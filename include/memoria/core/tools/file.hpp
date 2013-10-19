@@ -53,21 +53,39 @@ protected:
 };
 
 
+enum class OpenMode: Int {
+	READ = 1, WRITE = 2, CREATE = 4, TRUNC = 8
+};
+
+
+
+inline constexpr OpenMode operator&(OpenMode m1, OpenMode m2)
+{
+	return static_cast<OpenMode>(static_cast<Int>(m1) & static_cast<Int>(m2));
+}
+
+inline constexpr OpenMode operator|(OpenMode m1, OpenMode m2)
+{
+	return static_cast<OpenMode>(static_cast<Int>(m1) | static_cast<Int>(m2));
+}
+
+inline constexpr bool to_bool(OpenMode mode) {
+	return static_cast<Int>(mode) > 0;
+}
+
+enum class SeekType: Int {
+	SET = 1, CUR = 2, END = 4
+};
+
 
 struct IRandomAccessFile {
 
-	enum {
-		READ = 1, WRITE = 2, CREATE = 4,
-		SET = 1, CUR = 2, END = 4
-	};
-
-
 	virtual ~IRandomAccessFile() {}
 
-	virtual void open(const char* name, Int mode) 								= 0;
+	virtual void open(const char* name, OpenMode mode) 							= 0;
 	virtual void close() 														= 0;
 
-	virtual UBigInt seek(UBigInt pos, Int where)								= 0;
+	virtual UBigInt seek(UBigInt pos, SeekType where)							= 0;
 	virtual UBigInt read(void* buf, UBigInt size) 								= 0;
 	virtual void readAll(void* buf, UBigInt size) 								= 0;
 	virtual void write(const void* buf, UBigInt size) 							= 0;
@@ -87,10 +105,10 @@ public:
 
 	virtual ~RAFile();
 
-	virtual void open(const char* name, Int mode);
+	virtual void open(const char* name, OpenMode mode);
 	virtual void close();
 
-	virtual UBigInt seek(UBigInt pos, Int mode);
+	virtual UBigInt seek(UBigInt pos, SeekType where);
 	virtual UBigInt read(void* buf, UBigInt size);
 	virtual void readAll(void* buf, UBigInt size);
 	virtual void write(const void* buf, UBigInt size);

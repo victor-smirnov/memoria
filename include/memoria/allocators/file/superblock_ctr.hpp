@@ -129,6 +129,11 @@ public:
 		store(superblock_, 0);
 	}
 
+	void rollback()
+	{
+		CopyByteBuffer(superblock_.get(), updated_.get(), superblock_size_);
+	}
+
 	const ID& blockmap_root_id() const
 	{
 		return updated_->blockmap_root_id();
@@ -176,11 +181,11 @@ public:
 		return updated_->new_ctr_name();
 	}
 
-	UBigInt new_id()
-	{
-		update();
-		return updated_->new_id();
-	}
+//	UBigInt new_id()
+//	{
+//		update();
+//		return updated_->new_id();
+//	}
 
 	UBigInt free_blocks() const
 	{
@@ -285,7 +290,7 @@ protected:
 
 	void load(SuperblockPtrType& block, UBigInt pos)
 	{
-		file_.seek(pos, IRandomAccessFile::SET);
+		file_.seek(pos, SeekType::SET);
 
 		memset(block.get(), 0, superblock_size_);
 
@@ -299,7 +304,7 @@ protected:
 
 	void loadHeader(SuperblockType& block, std::streamsize pos)
 	{
-		file_.seek(pos, IRandomAccessFile::SET);
+		file_.seek(pos, SeekType::SET);
 
 		const std::size_t HEADER_SIZE  = sizeof(SuperblockType);
 
@@ -317,7 +322,7 @@ protected:
 
 	void store(const SuperblockPtrType& block, UBigInt pos)
 	{
-		file_.seek(pos, IRandomAccessFile::SET);
+		file_.seek(pos, SeekType::SET);
 
 		memset(io_buffer_.get(), 0, superblock_size_);
 

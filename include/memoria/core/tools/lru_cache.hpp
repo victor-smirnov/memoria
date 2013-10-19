@@ -38,6 +38,8 @@ template <
 >
 class LRUCache {
 
+	typedef LRUCache<Key, EvictionPredicate, NodeExtender, Map>		MyType;
+
 	template <
 		template <typename> class NodeExtender
 	>
@@ -50,6 +52,8 @@ class LRUCache {
 		UBigInt counter_ = 0;
 
 		Key 	key_;
+
+		MyType* owner_;
 
 	public:
 		NodeBase():
@@ -69,11 +73,23 @@ class LRUCache {
 		Key& key() {return key_;}
 		const Key& key() const {return key_;}
 
+		bool is_allocated() const
+		{
+			return owner_ != nullptr;
+		}
+
 		void reset()
 		{
 			next_ = prev_ = nullptr;
+
 			counter_ 	= 0;
+			owner_		= nullptr;
 		}
+
+	//private:
+		void set_owner(MyType* owner) {this->owner_ = owner;}
+		MyType* owner() {return owner_;}
+		const MyType* owner() const {return owner_;}
 	};
 
 public:
@@ -112,13 +128,22 @@ public:
 
 	bool contains_entry(const Entry* entry) const
 	{
-		return map_.find(entry->key()) != map_.end();
+		return entry->owner() == this;
 	}
 
 	bool insert(Entry* entry)
 	{
+		MyType* owner = entry->owner();
+
 		if (!contains_entry(entry))
 		{
+			if (owner)
+			{
+				owner->remove_entry(entry);
+			}
+
+			entry->set_owner(this);
+
 			map_[entry->key()] = entry;
 			list_.insert(list_.begin(), entry);
 
@@ -169,7 +194,9 @@ public:
 
 				entry_to_evict->reset();
 
-				entry_to_evict->key() = key;
+				entry_to_evict->key() 			= key;
+
+				entry_to_evict->set_owner(this);
 
 				try {
 					fill_fn(*entry_to_evict);
@@ -185,7 +212,8 @@ public:
 					throw;
 				}
 			}
-			else if (max_size_ > 0) {
+			else if (max_size_ > 0)
+			{
 				throw vapi::Exception(MA_SRC, "Nothing to evict");
 			}
 			else {
@@ -195,6 +223,7 @@ public:
 		else {
 			Entry* entry 	= new Entry();
 			entry->key() 	= key;
+			entry->set_owner(this);
 
 			fill_fn(*entry);
 
@@ -219,6 +248,22 @@ public:
 		}
 		else {
 			return nullptr;
+		}
+	}
+
+	bool remove_entry(Entry* entry)
+	{
+		if (entry->owner() == this)
+		{
+			list_.erase(entry);
+			map_.erase(entry->key());
+
+			entry->set_owner(nullptr);
+
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 

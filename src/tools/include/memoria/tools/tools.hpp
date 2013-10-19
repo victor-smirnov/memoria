@@ -413,7 +413,7 @@ void AssertThrows(const char* src, Functor&& fn)
         fn();
         throwsException = false;
     }
-    catch (Exception ex)
+    catch (Exception& ex)
     {
         throwsException = true;
     }
@@ -434,7 +434,7 @@ void AssertDoesntThrowEx(const char* src, Functor&& fn)
     try {
         fn();
     }
-    catch (Exception ex)
+    catch (Exception& ex)
     {
         throw TestException(src, SBuf()<<"Code throws exception "<<TypeNameFactory<Exception>::name());
     }
@@ -450,9 +450,13 @@ void AssertDoesntThrow(const char* src, Functor&& fn)
     try {
         fn();
     }
+    catch (Exception& ex)
+    {
+    	throw TestException(src, SBuf()<<"Code throws unexpected exception: "<<ex.source()<<" "<<ex);
+    }
     catch (...)
     {
-        throw TestException(src, SBuf()<<"Code throws exception");
+        throw TestException(src, SBuf()<<"Code throws unknown exception");
     }
 }
 

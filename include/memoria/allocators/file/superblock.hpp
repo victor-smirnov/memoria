@@ -50,7 +50,7 @@ class Superblock {
 	Int block_size_;
 
 	BigInt name_counter_;
-	UBigInt id_counter_;
+//	UBigInt id_counter_;
 
 	UBigInt file_size_;
 
@@ -103,13 +103,14 @@ public:
 		block_size_			= block_size;
 
 		name_counter_		= 1000;
-		id_counter_			= 1;
+//		id_counter_			= 1;
 
 		file_size_			= 0;
 		total_blocks_		= 0;
 		free_blocks_		= 0;
 
 		allocator_.init(superblock_size_ - sizeof(MyType) + sizeof(PackedAllocator), ListSize<ObjectsList>::Value);
+		allocator_.setTopLevelAllocator();
 
 		Dispatcher::dispatchAllStatic(InitFn(), &allocator_);
 	}
@@ -211,9 +212,9 @@ public:
 		return name_counter_;
 	}
 
-	const UBigInt& id_counter() const {
-		return id_counter_;
-	}
+//	const UBigInt& id_counter() const {
+//		return id_counter_;
+//	}
 
 	UBigInt& file_size() {
 		return file_size_;
@@ -244,10 +245,10 @@ public:
 		return name_counter_++;
 	}
 
-	UBigInt new_id()
-	{
-		return id_counter_++;
-	}
+//	UBigInt new_id()
+//	{
+//		return id_counter_++;
+//	}
 
 	PackedAllocator* allocator() {
 		return allocator_;
@@ -289,7 +290,7 @@ public:
 		handler->value("BLOCK_SIZE",		&block_size_);
 
 		handler->value("NAME_COUNTER",		&name_counter_);
-		handler->value("ID_COUNTER",		&id_counter_);
+//		handler->value("ID_COUNTER",		&id_counter_);
 
 		handler->value("FILE_SIZE",			&file_size_);
 
@@ -321,7 +322,7 @@ public:
 		FieldFactory<Int>::serialize(buf, block_size_);
 
 		FieldFactory<BigInt>::serialize(buf, name_counter_);
-		FieldFactory<UBigInt>::serialize(buf, id_counter_);
+//		FieldFactory<UBigInt>::serialize(buf, id_counter_);
 
 		FieldFactory<UBigInt>::serialize(buf, file_size_);
 
@@ -351,7 +352,7 @@ public:
 		FieldFactory<Int>::deserialize(buf, block_size_);
 
 		FieldFactory<BigInt>::deserialize(buf, name_counter_);
-		FieldFactory<UBigInt>::deserialize(buf, id_counter_);
+//		FieldFactory<UBigInt>::deserialize(buf, id_counter_);
 
 		FieldFactory<UBigInt>::deserialize(buf, file_size_);
 
