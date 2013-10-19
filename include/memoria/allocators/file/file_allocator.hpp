@@ -53,6 +53,7 @@ class FileAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorN
 
 public:
     typedef typename Base::Page                                                 Page;
+
     typedef typename Base::PageG                                                PageG;
     typedef typename Base::Shared                                               Shared;
     typedef typename Base::CtrShared                                            CtrShared;
@@ -66,6 +67,7 @@ public:
 
 private:
     typedef FileAllocator<Profile, PageType, TxnType>                           MyType;
+    typedef typename Base::Page*                                                PagePtr;
 
 
 
@@ -89,8 +91,6 @@ private:
 
     template <typename Node>
     struct LRUNode: Node {
-
-    	typedef Page* PagePtr;
 
     	PagePtr page_;
     	PagePtr front_page_;
@@ -501,7 +501,7 @@ public:
 
     	if ((!entry->is_allocated()) && (!get_from_log(entry->key())))
     	{
-    		//freeEntry(entry);
+    		freeEntry(entry);
     	}
     }
 
@@ -770,8 +770,7 @@ public:
 
     			if (entry->front_page())
     			{
-    				::free(entry->front_page());
-    				entry->front_page() = nullptr;
+    				freePagePtr(entry->front_page());
     			}
     		}
     		else // commit page deletion
@@ -807,6 +806,7 @@ public:
     		MEMORIA_ASSERT_TRUE(entry->front_page());
 
     		::free(entry->front_page());
+    		entry->front_page() = nullptr;
 
     		if (!entry->is_allocated())
     		{
@@ -921,37 +921,15 @@ private:
     }
 
 
-//    void createEmptyPage(PageCacheEntryType& entry, Int initial_size)
-//    {
-//    	if (!entry.front_page())
-//    	{
-//    		if (entry.page())
-//    		{
-//    			std::swap(entry.front_page(), entry.page());
-//    		}
-//    		else {
-//    			void* buf = malloc(initial_size);
-//    			memset(buf, 0, initial_size);
-//
-//    			Page* p = new (buf) Page(entry.key());
-//
-//    			p->page_size() = initial_size;
-//
-//    			entry.front_page() = p;
-//    		}
-//    	}
-//    }
-
     void freeEntry(PageCacheEntryType* entry)
     {
-    	::free(entry->page());
-    	::free(entry->front_page());
+    	freePagePtr(entry->page());
+    	freePagePtr(entry->front_page());
 
     	delete entry;
     }
 
     // Operations on embedded containers
-
     UBigInt allocateEmptyBlock()
     {
     	if (superblock_->use_temporary_allocator())
@@ -1123,6 +1101,12 @@ private:
 
     SuperblockCtrType* superblock() {
     	return superblock_.get();
+    }
+
+    void freePagePtr(PagePtr& ptr)
+    {
+    	::free(ptr);
+    	ptr = nullptr;
     }
 };
 
