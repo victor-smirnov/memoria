@@ -91,8 +91,9 @@ class IntrusiveList {
 	public:
 		ForwardListIterator(Node* node) noexcept : IteratorBase(node) {}
 
-		void operator++() noexcept {
+		ForwardListIterator& operator++() noexcept {
 			this->node_ = this->node_->next();
+			return *this;
 		}
 
 		void operator--() noexcept {
@@ -119,8 +120,7 @@ class IntrusiveList {
 		ForwardListConstIterator(Node* node) noexcept : ConstIteratorBase(node) {}
 
 		void operator++() noexcept {
-			this->node_ =
-					this->node_->next();
+			this->node_ = this->node_->next();
 		}
 
 		void operator--() noexcept {
@@ -146,7 +146,7 @@ class IntrusiveList {
 
 public:
 
-	typedef Node 						value_type;
+	typedef Node* 						value_type;
 	typedef std::size_t 				size_type;
 	typedef std::ptrdiff_t				difference_type;
 	typedef value_type&					reference;
@@ -246,6 +246,14 @@ public:
 		}
 
 		size_++;
+	}
+
+	Node* takeTop() noexcept {
+		Node* top = head_;
+
+		erase(top);
+
+		return top;
 	}
 
 	void erase(iterator iter) noexcept

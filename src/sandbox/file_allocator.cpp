@@ -26,7 +26,7 @@ Int main() {
 		{
 			CtrType ctr(&allocator, CTR_CREATE, 100000);
 
-			vector<Int> data(2000000);
+			vector<Int> data(200000);
 
 			Int cnt = 0;
 			for (auto& a: data)

@@ -35,8 +35,8 @@ public:
 		MapCtr::initMetadata();
 
 		MEMORIA_ADD_TEST(testOpenMode);
-//		MEMORIA_ADD_TEST(testAttributes);
-//		MEMORIA_ADD_TEST(testInitialFileSize);
+		MEMORIA_ADD_TEST(testAttributes);
+		MEMORIA_ADD_TEST(testInitialFileSize);
 	}
 
 	void testOpenMode()
@@ -132,7 +132,7 @@ public:
 		File file(name);
 
 		Int page_size 	= allocator.properties().defaultPageSize();
-		Int batch_size 	= allocator.allocation_batch_size();
+		Int batch_size 	= allocator.cfg().initial_allocation_size();
 
 		AssertEQ(MA_SRC, file.size(), batch_size * page_size);
 	}

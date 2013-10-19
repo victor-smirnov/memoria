@@ -113,6 +113,22 @@ public:
 
 	LRUCache(std::size_t max_size): max_size_(max_size) {}
 
+	MapType& map() {
+		return map_;
+	}
+
+	const MapType& map() const {
+		return map_;
+	}
+
+	ListType& list() {
+		return list_;
+	}
+
+	const ListType& list() const {
+		return list_;
+	}
+
 	std::size_t size() const {
 		return map_.size();
 	}

@@ -65,6 +65,20 @@ public:
 		AssertFalse(MA_SRC, allocator.getRootID(10001).isSet());
 	}
 
+	void testUpdateLogOverflow()
+	{
+		String name = getResourcePath("update_log_overflow.db");
+		Allocator allocator(name, OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC);
+
+		Ctr ctr(&allocator, CTR_CREATE, 10000);
+
+		vector<Int> data(2000000);
+
+		AssertThrows<Exception>(MA_SRC, [&ctr, &data]() {
+			ctr.seek(0).insert(data);
+		});
+	}
+
 };
 
 }

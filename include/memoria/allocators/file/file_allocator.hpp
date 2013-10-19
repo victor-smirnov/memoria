@@ -48,9 +48,6 @@ class FileAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorN
 
     typedef typename AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> >::Type Base;
 
-
-
-
 public:
     typedef typename Base::Page                                                 Page;
 
@@ -180,16 +177,39 @@ private:
     typedef typename PageCacheType::Entry*										PageCacheEntryPtrType;
 
     class MyShared: public Base::Shared {
+
     	typedef PageCacheEntryType* PageCacheEntryPtr;
+    	typedef MyShared*			MySharedPtr;
+
     	PageCacheEntryPtr entry_;
-    	bool is_new_ = false;
+
+    	MySharedPtr next_;
+    	MySharedPtr prev_;
+
     public:
+    	MyShared() {
+    		prev_ = next_ = nullptr;
+
+    		init();
+    	}
+
     	PageCacheEntryPtr& entry() {return entry_;}
     	const PageCacheEntryPtr& entry() const {return entry_;}
 
-    	bool& is_new() {return is_new_;}
-    	const bool& is_new() const {return is_new_;}
+    	MySharedPtr& next() {return next_;}
+    	const MySharedPtr& next() const {return next_;}
+
+    	MySharedPtr& prev() {return prev_;}
+    	const MySharedPtr& prev() const {return prev_;}
+
+    	void init()
+    	{
+    		Base::Shared::init();
+    		entry_	= nullptr;
+    	}
     };
+
+    typedef IntrusiveList<MyShared>												SharedPool;
 
     typedef std::unordered_map<ID, PageCacheEntryType*, IDKeyHash, IDKeyEq>     IDPageOpMap;
     typedef std::unordered_map<BigInt, CtrShared*>                              CtrSharedMap;
@@ -210,6 +230,7 @@ private:
     String				file_name_;
 
     RAFile				file_;
+
 
     PageCacheType       pages_;
     IDPageOpMap         pages_log_;
@@ -235,8 +256,8 @@ private:
     CharBufferPtr		page_buffer_;
     BlockMapBufferPtr	blockmap_buffer_;
 
-    Int 				default_block_size_ 			= 4096;
-    UBigInt 			allocation_batch_size_			= 64; // in blocks
+    // memory pool for PageShared objects
+    SharedPool			shared_pool_;
 
     class Properties: public IAllocatorProperties {
     	const SuperblockCtrPtr& superblock_;
@@ -255,20 +276,81 @@ private:
     OpenMode mode_;
     bool is_new_;
 
-    UBigInt created_ = 0;
-    UBigInt updated_ = 0;
-    UBigInt deleted_ = 0;
-    UBigInt locked_  = 0;
+    typename SharedPool::size_type shared_pool_max_size_ = 256;
+
+    BigInt created_ 		= 0;
+    BigInt updated_ 		= 0;
+    BigInt deleted_ 		= 0;
+    BigInt read_locked_ 	= 0;
+
+    public:
+
+    class Cfg {
+    	Int 	default_block_size_ 			= 4096;
+    	UBigInt initial_allocation_size_		= 4;
+    	UBigInt allocation_size_				= 64;
+    	BigInt	pages_buffer_size_ 				= 1024;
+
+    public:
+
+    	Int block_size() const {
+    		return default_block_size_;
+    	}
+
+    	Cfg& block_size(Int size) {
+    		default_block_size_ = size;
+    		return *this;
+    	}
+
+    	UBigInt allocation_size() const {
+    		return allocation_size_;
+    	}
+
+    	Cfg& allocation_size(UBigInt size)
+    	{
+    		allocation_size_ = size;
+    		return *this;
+    	}
+
+    	UBigInt initial_allocation_size() const {
+    		return initial_allocation_size_;
+    	}
+
+    	Cfg& initial_allocation_size(UBigInt size)
+    	{
+    		initial_allocation_size_ = size;
+    		return *this;
+    	}
+
+    	BigInt pages_buffer_size() const {
+    		return pages_buffer_size_;
+    	}
+
+    	Cfg& pages_buffer_size(BigInt size) const
+    	{
+    		pages_buffer_size_ = size;
+    		return *this;
+    	}
+    };
+
+private:
+
+    Cfg cfg_;
 
 public:
-    FileAllocator(StringRef& file_name, OpenMode mode = OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE):
+    FileAllocator(
+    		StringRef& file_name,
+    		OpenMode mode = OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE,
+    		const Cfg& cfg = Cfg()
+    ):
     	file_name_(file_name),
-    	pages_(1024),
+    	pages_(cfg.pages_buffer_size()),
     	logger_("memoria::FileAllocator", Logger::DERIVED, &memoria::vapi::logger),
         metadata_(MetadataRepository<Profile>::getMetadata()),
         page_buffer_(nullptr, free),
         properties_(superblock_),
-        mode_(mode)
+        mode_(mode),
+        cfg_(cfg)
     {
     	BlockMapType::initMetadata();
     	RootMapType::initMetadata();
@@ -295,7 +377,7 @@ public:
     				superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_));
     			}
     			else {
-    				superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_, default_block_size_));
+    				superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_, cfg.block_size()));
     			}
     		}
     		else {
@@ -305,18 +387,23 @@ public:
     	else {
     		openFile(mode);
 
-    		superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_, default_block_size_));
+    		superblock_ = SuperblockCtrPtr(new SuperblockCtrType(file_, cfg.block_size()));
     		is_new_		= true;
     	}
 
-    	page_buffer_ 		= CharBufferPtr(T2T<char*>(malloc(default_block_size_)), free);
-    	blockmap_buffer_	= BlockMapBufferPtr(new SymbolsBuffer<1>(allocation_batch_size_));
+    	page_buffer_ 		= CharBufferPtr(T2T<char*>(malloc(cfg.block_size())), free);
+    	blockmap_buffer_	= BlockMapBufferPtr(new SymbolsBuffer<1>(cfg.allocation_size()));
 
     	blockmap_buffer_->clear();
 
+    	for (Int c = 0; c < shared_pool_max_size_; c++)
+    	{
+    		shared_pool_.insert(shared_pool_.begin(), new MyShared());
+    	}
+
     	if (is_new_)
     	{
-    		allocateFileSpace();
+    		allocateFileSpace(cfg_.initial_allocation_size());
     		// make superblock's space allocated
     		this->allocateEmptyBlock();
 
@@ -337,14 +424,44 @@ public:
     	}
     }
 
+    FileAllocator(const MyType&) 		= delete;
+    FileAllocator(MyType&&) 			= delete;
+
+    MyType& operator=(const MyType&) 	= delete;
+    MyType& operator=(MyType&&) 		= delete;
+
     virtual ~FileAllocator()
     {
+    	PageCacheEntryType* head = pages_.list().begin().node();
+
+    	while(head)
+    	{
+    		auto tmp = head->next();
+    		freeEntry(head);
+    		head = tmp;
+    	}
+
+    	MyShared* shared_head = shared_pool_.begin().node();
+
+    	while(shared_head)
+    	{
+    		auto tmp = shared_head->next();
+
+    		delete shared_head;
+
+    		shared_head = tmp;
+    	}
+
     	try {
     		this->close(false);
     	}
     	catch (...) {
     		//log exception here
     	}
+    }
+
+    const Cfg& cfg() const {
+    	return cfg_;
     }
 
     bool is_new() const {
@@ -360,8 +477,49 @@ public:
     	return pages_log_.size() == 0 && !superblock_->is_updated();
     }
 
-    UBigInt allocation_batch_size() const {
-    	return allocation_batch_size_;
+    UBigInt allocation_size() const {
+    	return cfg_.allocation_size();
+    }
+
+    typename SharedPool::size_type shared_pool_size() const {
+    	return shared_pool_.size();
+    }
+
+    typename SharedPool::size_type shared_pool_max_size() const {
+    	return shared_pool_max_size_;
+    }
+
+    typename SharedPool::size_type shared_pool_capacity() const {
+    	return shared_pool_max_size_ - shared_pool_.size();
+    }
+
+    BigInt free_cache_slots() const
+    {
+    	return static_cast<BigInt>(cfg_.pages_buffer_size()) - (pages_log_.size() + read_locked_);
+    }
+
+    BigInt cache_eviction_capacity() const {
+    	return free_cache_slots() - created_;
+    }
+
+    BigInt created() const {
+    	return created_;
+    }
+
+    BigInt updated() const {
+    	return updated_;
+    }
+
+    BigInt deleted() const {
+    	return deleted_;
+    }
+
+    BigInt locked() const {
+    	return shared_pool_max_size() - shared_pool_size();
+    }
+
+    BigInt read_locked() const {
+    	return read_locked_;
     }
 
     // IAllocator
@@ -425,6 +583,9 @@ public:
 
     	if (my_shared->state() == Shared::READ)
     	{
+    		read_locked_--;
+
+    		MEMORIA_ASSERT_TRUE(read_locked_ >= 0);
     		MEMORIA_ASSERT_FALSE(get_from_log(shared->id()))
 
     		PageCacheEntryType* entry = my_shared->entry();
@@ -441,12 +602,16 @@ public:
     		shared->set_page(entry->front_page());
 
     		shared->state() = Shared::UPDATE;
+
+    		updated_++;
     	}
     }
 
     virtual void removePage(const ID& id)
     {
     	deleted_log_.insert(id);
+
+    	deleted_++;
 
     	if (pages_.contains_key(id))
     	{
@@ -456,6 +621,13 @@ public:
     		if (entry->shared())
     		{
     			// FIXME it isn't really necessary to inform PageGuards that the page is marked deleted
+
+    			if (entry->shared()->state() == Shared::READ)
+    			{
+    				read_locked_--;
+    				MEMORIA_ASSERT_TRUE(read_locked_ >= 0);
+    			}
+
     			entry->shared()->state() = Shared::DELETE;
     		}
     	}
@@ -463,7 +635,11 @@ public:
 
     virtual PageG createPage(Int initial_size)
     {
-    	MEMORIA_ASSERT(initial_size, ==, default_block_size_);
+    	MEMORIA_ASSERT(initial_size, ==, cfg_.block_size());
+
+    	if (free_cache_slots() == 0) {
+    		throw Exception(MA_SRC, "Update buffer is full");
+    	}
 
     	UBigInt pos = this->allocateEmptyBlock();
     	ID gid		= this->createGID(pos);
@@ -479,6 +655,8 @@ public:
 
     	createShared(entry, Shared::UPDATE);
 
+    	created_++;
+
     	return PageG(entry->shared());
     }
 
@@ -491,13 +669,17 @@ public:
     {
     	MyShared* my_shared = static_cast<MyShared*>(shared);
 
+    	if (my_shared->state() == Shared::READ)
+    	{
+    		read_locked_--;
+    		MEMORIA_ASSERT_TRUE(read_locked_ >= 0);
+    	}
+
     	PageCacheEntryType* entry = my_shared->entry();
 
     	MEMORIA_ASSERT_TRUE(entry->shared() == my_shared);
 
-    	delete my_shared;
-
-    	entry->shared() = nullptr;
+    	freePageShared(entry->shared());
 
     	if ((!entry->is_allocated()) && (!get_from_log(entry->key())))
     	{
@@ -734,8 +916,6 @@ public:
 
     	superblock_->storeBackup(); // sync
 
-
-
     	// commit updates
 
     	for (auto i: pages_log_)
@@ -751,6 +931,8 @@ public:
     			{
     				entry->shared()->state() = Shared::READ;
     				entry->shared()->set_page(entry->front_page());
+
+    				read_locked_++;
     			}
 
     			if (!entry->is_allocated())
@@ -792,6 +974,10 @@ public:
     	pages_log_.clear();
     	deleted_log_.clear();
 
+    	created_ 	 = 0;
+    	updated_ 	 = 0;
+    	deleted_ 	 = 0;
+
     	sync();
 
     	superblock_->storeSuperblock(); //sync
@@ -805,8 +991,7 @@ public:
 
     		MEMORIA_ASSERT_TRUE(entry->front_page());
 
-    		::free(entry->front_page());
-    		entry->front_page() = nullptr;
+    		freePagePtr(entry->front_page());
 
     		if (!entry->is_allocated())
     		{
@@ -822,6 +1007,8 @@ public:
     			{
     				entry->shared()->state() = Shared::READ;
     				entry->shared()->set_page(entry->page());
+
+    				read_locked_++;
     			}
     		}
     	}
@@ -835,6 +1022,10 @@ public:
 
     	pages_log_.clear();
     	deleted_log_.clear();
+
+    	created_ 	 = 0;
+    	updated_ 	 = 0;
+    	deleted_ 	 = 0;
     }
 
 private:
@@ -883,7 +1074,7 @@ private:
 
     MyShared* createShared(PageCacheEntryType* entry, Int op)
     {
-    	MyShared* shared = new MyShared();
+    	MyShared* shared = allocatePageShared();
 
     	shared->id()    = entry->key();
     	shared->state()	= op;
@@ -893,6 +1084,11 @@ private:
 
     	entry->shared() = shared;
     	shared->entry() = entry;
+
+    	if (op == Shared::READ)
+    	{
+    		read_locked_++;
+    	}
 
     	return shared;
     }
@@ -910,12 +1106,12 @@ private:
 
     Page* createPage(const ID& id)
     {
-    	void* buf = malloc(default_block_size_);
-    	memset(buf, 0, default_block_size_);
+    	void* buf = malloc(cfg_.block_size());
+    	memset(buf, 0, cfg_.block_size());
 
     	Page* p = new (buf) Page(id);
 
-    	p->page_size() = default_block_size_;
+    	p->page_size() = cfg_.block_size();
 
     	return p;
     }
@@ -925,6 +1121,11 @@ private:
     {
     	freePagePtr(entry->page());
     	freePagePtr(entry->front_page());
+
+    	if (entry->shared())
+    	{
+    		entry->shared()->entry() = nullptr;
+    	}
 
     	delete entry;
     }
@@ -940,7 +1141,7 @@ private:
     	{
     		if (superblock_->free_blocks() == 0)
     		{
-    			enlargeFile();
+    			enlargeFile(cfg_.allocation_size());
     		}
 
     		auto iter = block_map_->select(0, 1);
@@ -950,7 +1151,7 @@ private:
     		iter.setSymbol(1);
     		superblock_->decFreeBlocks();
 
-    		return iter.pos() * default_block_size_;
+    		return iter.pos() * cfg_.block_size();
     	}
     }
 
@@ -967,7 +1168,7 @@ private:
     void loadPage(UBigInt pos, Page* page)
     {
     	file_.seek(pos, SeekType::SET);
-    	file_.read(page_buffer_.get(), default_block_size_);
+    	file_.read(page_buffer_.get(), cfg_.block_size());
 
     	Page* disk_page = T2T<Page*>(page_buffer_.get());
 
@@ -975,7 +1176,7 @@ private:
     	Int ctr_type_hash	= disk_page->ctr_type_hash();
     	Int page_type_hash	= disk_page->page_type_hash();
 
-    	MEMORIA_ASSERT(page_data_size, ==, default_block_size_);
+    	MEMORIA_ASSERT(page_data_size, ==, cfg_.block_size());
 
     	PageMetadata* page_metadata 		= metadata_->getPageMetadata(ctr_type_hash, page_type_hash);
     	const IPageOperations* operations 	= page_metadata->getPageOperations();
@@ -985,7 +1186,7 @@ private:
 
     void storePage(UBigInt pos, Page* page)
     {
-    	MEMORIA_ASSERT(page->page_size(), ==, default_block_size_);
+    	MEMORIA_ASSERT(page->page_size(), ==, cfg_.block_size());
 
     	file_.seek(pos, SeekType::SET);
 
@@ -995,19 +1196,19 @@ private:
     	PageMetadata* page_metadata 		= metadata_->getPageMetadata(ctr_type_hash, page_type_hash);
     	const IPageOperations* operations 	= page_metadata->getPageOperations();
 
-    	memset(page_buffer_.get(), 0, default_block_size_);
+    	memset(page_buffer_.get(), 0, cfg_.block_size());
 
     	operations->serialize(page, page_buffer_.get());
 
-    	file_.write(page_buffer_.get(), default_block_size_);
+    	file_.write(page_buffer_.get(), cfg_.block_size());
     }
 
     void clearPageBuffer()
     {
-    	memset(page_buffer_.get(), 0, default_block_size_);
+    	memset(page_buffer_.get(), 0, cfg_.block_size());
     }
 
-    void allocateFileSpace()
+    void allocateFileSpace(UBigInt allocation_size)
     {
     	clearPageBuffer();
 
@@ -1015,17 +1216,17 @@ private:
 
     	file_.seek(0, SeekType::END);
 
-    	for (UBigInt c = 0; c < allocation_batch_size_; c++)
+    	for (UBigInt c = 0; c < allocation_size; c++)
     	{
-    		file_.write(page_buffer_.get(), default_block_size_);
+    		file_.write(page_buffer_.get(), cfg_.block_size());
     	}
 
     	auto pos = file_.seek(0, SeekType::CUR);
 
-    	MEMORIA_ASSERT(pos, ==, file_size + allocation_batch_size_ * default_block_size_);
+    	MEMORIA_ASSERT(pos, ==, file_size + allocation_size * cfg_.block_size());
 
-    	superblock_->enlargeFile(allocation_batch_size_ * default_block_size_);
-    	superblock_->setTemporaryBlockMap(file_size, allocation_batch_size_);
+    	superblock_->enlargeFile(allocation_size * cfg_.block_size());
+    	superblock_->setTemporaryBlockMap(file_size, allocation_size);
     }
 
     void commitTemporaryToBlockMap()
@@ -1044,9 +1245,7 @@ private:
     	UBigInt allocated_before = superblock_->temporary_allocated_blocks();
 
     	// this operation must not allocate new blocks
-    	UBigInt updated = iter.update(buffer);
-
-    	MEMORIA_ASSERT(updated, ==, allocation_batch_size_);
+    	iter.update(buffer);
 
     	UBigInt allocated_after = superblock_->temporary_allocated_blocks();
 
@@ -1056,9 +1255,9 @@ private:
     	superblock_->clearTemporaryBlockMap();
     }
 
-    void enlargeFile()
+    void enlargeFile(UBigInt allocation_size)
     {
-    	allocateFileSpace();
+    	allocateFileSpace(allocation_size);
     	commitTemporaryToBlockMap();
     	finishFileSpaceAllocation();
 
@@ -1069,7 +1268,7 @@ private:
     {
     	while (superblock_->free_blocks() < capacity)
     	{
-    		enlargeFile();
+    		enlargeFile(cfg_.allocation_size());
     	}
     }
 
@@ -1107,6 +1306,29 @@ private:
     {
     	::free(ptr);
     	ptr = nullptr;
+    }
+
+    MyShared* allocatePageShared()
+    {
+    	MEMORIA_ASSERT_TRUE(shared_pool_.size() > 0);
+
+    	MyShared* shared = shared_pool_.takeTop();
+
+    	shared->init();
+
+    	return shared;
+    }
+
+    void freePageShared(MySharedPtr& shared)
+    {
+    	MEMORIA_ASSERT_FALSE(shared->next());
+    	MEMORIA_ASSERT_FALSE(shared->prev());
+
+    	MEMORIA_ASSERT(shared_pool_.size(), <, shared_pool_max_size_);
+
+    	shared_pool_.insert(shared_pool_.begin(), shared);
+
+    	shared = nullptr;
     }
 };
 
