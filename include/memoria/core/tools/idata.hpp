@@ -182,6 +182,7 @@ struct IDataBase: IData {
 
 template <typename T>
 struct IDataSource: IDataBase {
+	typedef T Type;
 
     virtual ~IDataSource() throw () {}
 

@@ -112,6 +112,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     		std::get<Idx>(accum_)[symbol_ + 1] = symbol_ - obj->symbol(idx);
 
     		obj->symbol(idx) = symbol_;
+
+    		obj->reindex();
     	}
 
     	template <typename NodeTypes>

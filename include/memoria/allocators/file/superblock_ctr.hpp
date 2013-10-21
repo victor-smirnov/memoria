@@ -181,12 +181,6 @@ public:
 		return updated_->new_ctr_name();
 	}
 
-//	UBigInt new_id()
-//	{
-//		update();
-//		return updated_->new_id();
-//	}
-
 	UBigInt free_blocks() const
 	{
 		return updated_->free_blocks();
@@ -200,6 +194,11 @@ public:
 	void decFreeBlocks(UBigInt amount = 1)
 	{
 		updated_->free_blocks() -= amount;
+	}
+
+	void incFreeBlocks(UBigInt amount = 1)
+	{
+		updated_->free_blocks() += amount;
 	}
 
 	void setMainBlockMap(UBigInt total_blocks, UBigInt free_blocks)

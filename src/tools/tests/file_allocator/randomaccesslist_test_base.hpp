@@ -56,6 +56,8 @@ protected:
 
     Int check_count_ = 0;
 
+    bool clear_cache_ = true;
+
     OpenMode mode_ = OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC;
 
     typedef std::function<void (MyType*, Allocator&, Ctr&)>                     TestFn;
@@ -71,6 +73,7 @@ public:
 
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
         MEMORIA_ADD_TEST_PARAM(check_size_);
+        MEMORIA_ADD_TEST_PARAM(clear_cache_);
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
         MEMORIA_ADD_TEST_PARAM(block_size_)->state();
@@ -293,6 +296,10 @@ public:
                 checkAllocator(allocator, "Insert: Container Check Failed", MA_SRC);
 
                 allocator.commit();
+
+                if (clear_cache_) {
+                	allocator.clearCache();
+                }
             }
         }
         catch (...) {
@@ -332,6 +339,10 @@ public:
                 checkAllocator(allocator, "Remove: Container Check Failed", MA_SRC);
 
                 allocator.commit();
+
+                if (clear_cache_) {
+                	allocator.clearCache();
+                }
             }
         }
         catch (...) {

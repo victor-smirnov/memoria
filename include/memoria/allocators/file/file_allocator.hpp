@@ -422,8 +422,8 @@ public:
 
     		block_map_ 	= BlockMapPtr(new BlockMapType(this, CTR_CREATE, 0));
 
-    		commitTemporaryToBlockMap();
-    		finishFileSpaceAllocation();
+    		commitTemporaryToBlockMap(cfg_.initial_allocation_size());
+    		finishFileSpaceAllocation(cfg_.initial_allocation_size());
 
     		root_map_ 	= RootMapPtr(new RootMapType(this, CTR_CREATE, 2));
 
@@ -681,8 +681,6 @@ public:
     	UBigInt pos = this->allocateEmptyBlock();
     	ID gid		= this->createGID(pos);
 
-//    	cout<<"createPage(): "<<gid<<endl;
-
     	PageCacheEntryType* entry = new PageCacheEntryType(gid, pos);
 
     	entry->counter() = 1;
@@ -910,15 +908,7 @@ public:
 
     	for (auto gid: deleted_log_)
     	{
-    		UBigInt pos = get_position(gid);
-
-    		UBigInt block = pos >> cfg_.block_size_mask();
-
-    		auto iter = block_map_->seek(block);
-
-    		MEMORIA_ASSERT_FALSE(iter.isEnd());
-
-    		iter.setSymbol(0);
+    		freeEmptyBlock(gid);
     	}
 
     	UBigInt updated = computeUpdatedPages();
@@ -1280,8 +1270,27 @@ private:
     		iter.setSymbol(1);
     		superblock_->decFreeBlocks();
 
+    		MEMORIA_ASSERT(superblock_->free_blocks(), ==, block_map_->rank(0));
+
     		return iter.pos() * cfg_.block_size();
     	}
+    }
+
+    void freeEmptyBlock(const ID& gid)
+    {
+    	UBigInt pos = get_position(gid);
+
+    	UBigInt block = pos >> cfg_.block_size_mask();
+
+    	auto iter = block_map_->seek(block);
+
+    	MEMORIA_ASSERT_FALSE(iter.isEnd());
+
+    	iter.setSymbol(0);
+
+    	superblock_->incFreeBlocks(1);
+
+    	MEMORIA_ASSERT(superblock_->free_blocks(), ==, block_map_->rank(0));
     }
 
     ID createGID(UBigInt position)
@@ -1361,20 +1370,27 @@ private:
     	superblock_->setTemporaryBlockMap(file_size, allocation_size);
     }
 
-    void commitTemporaryToBlockMap()
+    void commitTemporaryToBlockMap(UBigInt allocation_size)
     {
     	auto iter = block_map_->seek(block_map_->size());
-    	iter.insert(*blockmap_buffer_.get());
+
+    	auto src_buffer = blockmap_buffer_.get();
+
+    	DataSourceProxy<UBigInt> proxy(*src_buffer, allocation_size);
+
+    	iter.insert(proxy);
     	blockmap_buffer_->reset();
     }
 
-    void finishFileSpaceAllocation()
+    void finishFileSpaceAllocation(UBigInt allocation_size)
     {
     	auto iter = block_map_->seek(superblock_->total_blocks());
 
     	auto buffer = superblock_->temporary_blockmap_buffer();
 
     	UBigInt allocated_before = superblock_->temporary_allocated_blocks();
+
+    	DataSourceProxy<UBigInt> proxy(buffer, allocation_size);
 
     	// this operation must not allocate new blocks
     	iter.update(buffer);
@@ -1385,13 +1401,16 @@ private:
 
     	superblock_->updateMainBlockMapMetadata();
     	superblock_->clearTemporaryBlockMap();
+
+//    	cout<<"finishAllocation: "<<superblock_->total_blocks()<<" "<<superblock_->free_blocks()<<" - "
+//    		<<block_map_->rank(0)<<" "<<block_map_->rank(1)<<" "<<block_map_->size()<<endl;
     }
 
     void enlargeFile(UBigInt allocation_size)
     {
     	allocateFileSpace(allocation_size);
-    	commitTemporaryToBlockMap();
-    	finishFileSpaceAllocation();
+    	commitTemporaryToBlockMap(allocation_size);
+    	finishFileSpaceAllocation(allocation_size);
 
     	MEMORIA_ASSERT(superblock_->free_blocks(), >, 0);
     }

@@ -68,6 +68,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
         return walker.rank();
     }
 
+    BigInt rank(Int symbol) {
+    	return rank(self().size(), symbol);
+    }
+
     BigInt rank(BigInt start, BigInt idx, Int symbol)
     {
         auto& self = this->self();
