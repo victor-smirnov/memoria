@@ -28,6 +28,14 @@ RAFile::RAFile(): pimpl_(new RAFileImpl)
 
 RAFile::~RAFile()
 {
+	if (pimpl_->fd_)
+	{
+		if(::close(pimpl_->fd_) == -1)
+		{
+			// log this error
+		}
+	}
+
 	delete pimpl_;
 }
 
@@ -72,14 +80,18 @@ void RAFile::open(const char* name, OpenMode mode)
 	{
 		throw Exception(MA_SRC, SBuf()<<String(strerror(errno)));
 	}
+
+	closed_ = false;
 }
 
 void RAFile::close()
 {
-	if (::close(pimpl_->fd_) == -1)
+	if ((!closed_) && (::close(pimpl_->fd_) == -1))
 	{
 		throw Exception(MA_SRC, SBuf()<<String(strerror(errno)));
 	}
+
+	closed_ = true;
 }
 
 UBigInt RAFile::seek(UBigInt pos, SeekType whence)

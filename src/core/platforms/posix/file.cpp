@@ -297,5 +297,24 @@ String File::normalizePath(StringRef path)
     }
 }
 
+
+void File::copy(StringRef new_file)
+{
+	RAFile src_file;
+	RAFile tgt_file;
+
+	src_file.open(getPath().c_str(), OpenMode::READ);
+	tgt_file.open(new_file.c_str(), OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC);
+
+	char buffer[4096];
+
+	UBigInt size;
+	while ((size = src_file.read(buffer, sizeof(buffer))))
+	{
+		tgt_file.write(buffer, size);
+	}
+}
+
+
 }
 

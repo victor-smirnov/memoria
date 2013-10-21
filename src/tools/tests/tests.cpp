@@ -37,7 +37,7 @@ using namespace std;
 using namespace memoria;
 using namespace memoria::tools;
 
-#include "dump.inc"
+#include "dump.hpp"
 
 const char* DESCRIPTION = "Run Memoria regression tests with specified configuration";
 const char* CFG_FILE    = "tests.properties";

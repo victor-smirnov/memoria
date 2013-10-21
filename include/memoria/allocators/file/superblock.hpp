@@ -103,7 +103,6 @@ public:
 		block_size_			= block_size;
 
 		name_counter_		= 1000;
-//		id_counter_			= 1;
 
 		file_size_			= 0;
 		total_blocks_		= 0;
@@ -122,11 +121,27 @@ public:
 		checkVersion();
 	}
 
+
+	bool testMagic()
+	{
+		return strncmp(magic_, "MEMORIA FILE", sizeof(magic_)) == 0;
+	}
+
+	bool testVersion() {
+		return true;
+	}
+
+	bool testTypeHash()
+	{
+		return true;
+	}
+
+
 	void checkMagic()
 	{
-		if (strncmp(magic_, "MEMORIA FILE", sizeof(magic_)))
+		if (!testMagic())
 		{
-			throw Exception(MA_SRC, "Invalid File Descriptor");
+			throw Exception(MA_SRC, "Memoria FileAllocator DB is not recognized.");
 		}
 	}
 

@@ -282,6 +282,9 @@ private:
     BigInt updated_ 		= 0;
     BigInt deleted_ 		= 0;
     BigInt read_locked_ 	= 0;
+    BigInt cache_hits_		= 0;
+    BigInt cache_misses_	= 0;
+    BigInt stored_			= 0;
 
     public:
 
@@ -291,14 +294,24 @@ private:
     	UBigInt allocation_size_				= 64;
     	BigInt	pages_buffer_size_ 				= 1024;
 
+    	Int block_size_mask_ 					= 12;
+
     public:
 
     	Int block_size() const {
     		return default_block_size_;
     	}
 
-    	Cfg& block_size(Int size) {
+    	Int block_size_mask() const {
+    		return block_size_mask_;
+    	}
+
+    	Cfg& block_size(Int size)
+    	{
     		default_block_size_ = size;
+
+    		block_size_mask_ = Log2(size);
+
     		return *this;
     	}
 
@@ -326,7 +339,7 @@ private:
     		return pages_buffer_size_;
     	}
 
-    	Cfg& pages_buffer_size(BigInt size) const
+    	Cfg& pages_buffer_size(BigInt size)
     	{
     		pages_buffer_size_ = size;
     		return *this;
@@ -522,6 +535,22 @@ public:
     	return read_locked_;
     }
 
+    RootMapType* roots() {
+    	return root_map_.get();
+    }
+
+    const RootMapType* roots() const {
+    	return root_map_.get();
+    }
+
+    StringRef file_name() const {
+    	return file_name_;
+    }
+
+    void sync() {
+    	file_.sync();
+    }
+
     // IAllocator
 
     virtual PageG getPage(const ID& id, Int flags)
@@ -534,12 +563,13 @@ public:
 
     	PageCacheEntryType* entry = get_from_log(id);
 
-
     	if (flags == Base::READ)
     	{
         	if (entry)
         	{
         		pages_.touch(entry);
+
+        		cache_hits_++;
 
         		createSharedIfNecessary(entry, Shared::UPDATE);
         	}
@@ -553,6 +583,8 @@ public:
     		if (entry)
     		{
     			pages_.touch(entry);
+
+    			cache_hits_++;
     		}
     		else {
     			entry = get_entry(id);
@@ -560,6 +592,7 @@ public:
     			MEMORIA_ASSERT_FALSE(entry->front_page());
 
     			entry->front_page() = copyPage(entry->page());
+    			entry->page_op() 	= PageOp::UPDATE;
 
     			pages_log_[id] = entry;
     		}
@@ -568,6 +601,8 @@ public:
     	}
 
     	MEMORIA_ASSERT_TRUE(entry->shared());
+
+
 
     	return PageG(entry->shared());
     }
@@ -630,6 +665,8 @@ public:
 
     			entry->shared()->state() = Shared::DELETE;
     		}
+
+    		pages_log_[id] = entry;
     	}
     }
 
@@ -643,6 +680,8 @@ public:
 
     	UBigInt pos = this->allocateEmptyBlock();
     	ID gid		= this->createGID(pos);
+
+//    	cout<<"createPage(): "<<gid<<endl;
 
     	PageCacheEntryType* entry = new PageCacheEntryType(gid, pos);
 
@@ -855,10 +894,6 @@ public:
     	file_.close();
     }
 
-    void sync() {
-    	file_.sync();
-    }
-
     void commit()
     {
     	// ensure file has enough room for backup
@@ -871,6 +906,19 @@ public:
 
     			throw Exception(MA_SRC, "Can't modify read-only allocator");
     		}
+    	}
+
+    	for (auto gid: deleted_log_)
+    	{
+    		UBigInt pos = get_position(gid);
+
+    		UBigInt block = pos >> cfg_.block_size_mask();
+
+    		auto iter = block_map_->seek(block);
+
+    		MEMORIA_ASSERT_FALSE(iter.isEnd());
+
+    		iter.setSymbol(0);
     	}
 
     	UBigInt updated = computeUpdatedPages();
@@ -902,7 +950,7 @@ public:
 
     			MEMORIA_ASSERT_FALSE(blockmap_iter.isEnd());
 
-    			UBigInt new_pos = blockmap_iter.pos();
+    			UBigInt new_pos = blockmap_iter.pos() * cfg_.block_size();
 
     			storePage(new_pos, page);
 
@@ -978,9 +1026,52 @@ public:
     	updated_ 	 = 0;
     	deleted_ 	 = 0;
 
+    	cache_misses_ 	= 0;
+    	cache_hits_ 	= 0;
+    	stored_			= 0;
+
     	sync();
 
     	superblock_->storeSuperblock(); //sync
+    }
+
+    void dumpStat()
+    {
+    	cout<<"PageLog: "<<pages_log_.size()<<" "<<deleted_log_.size()<<" "
+    	    <<cache_hits_<<" "<<cache_misses_<<" "<<stored_<<" "<<updated_
+    	    <<" "<<deleted_<<endl;
+    }
+
+    void clearCache()
+    {
+    	vector<PageCacheEntryType*> removed_entries;
+
+    	PageCacheEntryType* entry = pages_.list().begin().node();
+
+    	BigInt total = 0, removed = 0;
+
+    	while(entry)
+    	{
+    		if (entry->page_op() == PageOp::NONE && !entry->shared())
+    		{
+    			MEMORIA_ASSERT_FALSE(entry->front_page());
+
+    			removed_entries.push_back(entry);
+
+    			removed++;
+    		}
+
+    		total++;
+
+    		entry = entry->next();
+    	}
+
+    	for (auto e: removed_entries)
+    	{
+    		pages_.remove_entry(e);
+
+    		freeEntry(e);
+    	}
     }
 
     void rollback()
@@ -1026,7 +1117,36 @@ public:
     	created_ 	 = 0;
     	updated_ 	 = 0;
     	deleted_ 	 = 0;
+
+    	cache_misses_ 	= 0;
+    	cache_hits_ 	= 0;
+
+    	stored_		= 0;
     }
+
+    bool check()
+    {
+    	bool result = false;
+
+    	for (auto iter = this->root_map_->Begin(); !iter.isEnd(); )
+    	{
+    		PageG page = this->getPage(iter.getValue(), Base::READ);
+
+    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+
+    		result = ctr_meta->getCtrInterface()->check(&page->id(), this) || result;
+
+    		iter.next();
+    	}
+
+    	return result;
+    }
+
+    static Int testFile(StringRef file_name)
+    {
+    	return SuperblockCtrType::testHeader(file_name);
+    }
+
 
 private:
 
@@ -1049,6 +1169,8 @@ private:
 
     PageCacheEntryType* get_entry(const ID &page_id)
     {
+    	cache_hits_++;
+
     	return pages_.get_entry(page_id, [this](PageCacheEntryType& entry) {
     		UBigInt pos = this->get_position(entry.key());
 
@@ -1057,7 +1179,14 @@ private:
     			entry.page() = createPage(ID(0));
     		}
 
+    		cache_hits_--;
+    		cache_misses_++;
+
+    		entry.position() = pos;
+
     		this->loadPage(pos, entry.page());
+
+    		MEMORIA_ASSERT(entry.key(), ==, entry.page()->id());
     	});
     }
 
@@ -1186,6 +1315,9 @@ private:
 
     void storePage(UBigInt pos, Page* page)
     {
+    	stored_++;
+//    	cout<<"Store "<<page->id()<<" at "<<pos<<endl;
+
     	MEMORIA_ASSERT(page->page_size(), ==, cfg_.block_size());
 
     	file_.seek(pos, SeekType::SET);

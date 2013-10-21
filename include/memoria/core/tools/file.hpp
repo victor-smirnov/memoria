@@ -47,6 +47,8 @@ public:
 
     virtual void rename(StringRef new_name);
 
+    virtual void copy(StringRef new_file);
+
     static FileListType* readDir(const File& file);
 protected:
     static String normalizePath(StringRef name);
@@ -54,7 +56,13 @@ protected:
 
 
 enum class OpenMode: Int {
-	READ = 1, WRITE = 2, CREATE = 4, TRUNC = 8
+	READ = 1, WRITE = 2, CREATE = 4, TRUNC = 8,
+
+	RW = OpenMode::READ | OpenMode::WRITE,
+
+	RWC = OpenMode::RW | OpenMode::CREATE,
+
+	RWCT = OpenMode::RWC | OpenMode::TRUNC
 };
 
 
@@ -99,6 +107,8 @@ struct RAFileImpl;
 class RAFile: public IRandomAccessFile {
 
 	RAFileImpl* pimpl_;
+	bool closed_ = true;
+
 public:
 
 	RAFile();

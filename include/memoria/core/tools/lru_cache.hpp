@@ -210,7 +210,7 @@ public:
 
 				entry_to_evict->reset();
 
-				entry_to_evict->key() 			= key;
+				entry_to_evict->key() = key;
 
 				entry_to_evict->set_owner(this);
 
@@ -323,6 +323,10 @@ private:
 				return &entry;
 			}
 		}
+
+//		for (Entry& entry: list_) {
+////			cout<<entry.is_updated()<<" "<<entry.shared()<<endl;
+//		}
 
 		return nullptr;
 	}

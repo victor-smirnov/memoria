@@ -281,6 +281,14 @@ void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out)
 }
 
 
+void dumpPageData(PageMetadata* meta, const void* page, std::ostream& out)
+{
+    TextPageDumper dumper(out);
+
+    meta->getPageOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
+}
+
+
 }}
 
 

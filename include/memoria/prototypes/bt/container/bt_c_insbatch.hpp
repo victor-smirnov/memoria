@@ -478,8 +478,11 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
     if (self.checkCapacities(leaf, sizes))
     {
         leaf.update();
+
         Accumulator sums = provider.insertIntoLeaf(leaf, idx, sizes);
+
         self.updateParent(leaf, sums);
+
         return sums;
     }
     else {
@@ -492,12 +495,13 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
         if (!self.isAfterEnd(leaf, idx, provider.getActiveStreams()))
         {
-            right = self.splitLeafP(leaf, idx);
+        	right = self.splitLeafP(leaf, idx);
         }
 
         leaf.update();
 
         Accumulator sums = provider.insertIntoLeaf(leaf, idx);
+
         self.updateParent(leaf, sums);
 
         Position remainder = provider.remainder();

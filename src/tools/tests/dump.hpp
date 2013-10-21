@@ -4,13 +4,13 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_DUMP_INC 
-#define MEMORIA_TESTS_DUMP_INC
+#ifndef MEMORIA_TESTS_DUMP_HPP
+#define MEMORIA_TESTS_DUMP_HPP
 
 typedef memoria::SmallInMemAllocator VStreamAllocator;
 
-VStreamAllocator* manager;
-std::set<IDValue> processed;
+//VStreamAllocator* manager;
+//std::set<IDValue> processed;
 
 void LoadFile(VStreamAllocator& allocator, const char* file)
 {
@@ -102,13 +102,29 @@ public:
 };
 
 
-void dumpTree(const IDValue& id, const File& folder);
+template <typename Allocator>
+void dumpTree(
+		const IDValue& id, 
+		const File& folder, 
+		std::set<IDValue>& processed,
+		Allocator* dumpmanager
+);
 
-void dumpTree(PageMetadata* group, Page* page, const File& folder)
+
+
+
+template <typename Allocator, typename Page>
+void dumpTree(
+		PageMetadata* group, 
+		Page& page, 
+		const File& folder, 
+		std::set<IDValue>& processed,
+		Allocator* manager
+	)
 {
     IDSelector selector;
 
-    group->getPageOperations()->generateDataEvents(page->Ptr(), DataEventsParams(), &selector);
+    group->getPageOperations()->generateDataEvents(page.page(), DataEventsParams(), &selector);
 
     for (const NamedIDValue& entry: selector.values())
     {
@@ -142,29 +158,37 @@ void dumpTree(PageMetadata* group, Page* page, const File& folder)
                 File folder2(folder.getPath() + Platform::getFilePathSeparator() + str.str());
                 folder2.mkDirs();
 
-                dumpTree(id, folder2);
+                dumpTree(id, folder2, processed, manager);
             }
         }
     }
 }
 
-void dumpTree(const IDValue& id, const File& folder)
+template <typename Allocator>
+void dumpTree(
+		const IDValue& id, 
+		const File& folder, 
+		std::set<IDValue>& processed, 
+		Allocator* manager
+	)
 {
     processed.insert(id);
-    Page* page = manager->createPageWrapper();
 
 //  FIXME: IDValue
 
     try {
-        manager->getPage(page, id);
+    	auto page = manager->getPage(id, Allocator::READ);
+    	
+        //manager->getPage(page, id);
 
         ofstream pagetxt((folder.getPath() + Platform::getFilePathSeparator() + "page.txt").c_str());
 
-        PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->getContainerHash(), page->getPageTypeHash());
+        //PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->getContainerHash(), page->getPageTypeHash());
+        PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
-        dumpPage(meta, page, pagetxt);
+        dumpPageData(meta, page, pagetxt);
 
-        dumpTree(meta, page, folder);
+        dumpTree(meta, page, folder, processed, manager);
 
         pagetxt.close();
     }
@@ -172,8 +196,6 @@ void dumpTree(const IDValue& id, const File& folder)
     {
         cout<<"NullPointerException: "<<e.message()<<" at "<<e.source()<<endl;
     }
-
-    delete page;
 }
 
 
@@ -190,7 +212,43 @@ String getPath(String dump_name)
     }
 }
 
+template <typename Allocator>
+void DumpAllocator(Allocator& allocator, File& path) 
+{
+	typename Allocator::RootMapType* root = allocator.roots();
+	auto iter = root->Begin();
 
+	while (!iter.isEnd())
+	{
+		BigInt name    	= iter.key();
+		BigInt value   	= iter.getValue();
+
+		IDValue id(value);
+
+		cout<<"dumping name="<<name<<" root="<<id<<endl;
+
+		stringstream str;
+		str<<name<<"___"<<id;
+
+		File folder(path.getPath() + "/" + str.str());
+
+		if (folder.isExists())
+		{
+			if (!folder.delTree())
+			{
+				throw Exception("dump.cpp", SBuf()<<"can't remove file "<<folder.getPath());
+			}
+		}
+
+		folder.mkDirs();
+
+		std::set<IDValue> processed;
+
+		dumpTree(id, folder, processed, &allocator);
+
+		iter.next();
+	}
+}
 
 Int DumpAllocator(String file_name)
 {
@@ -224,46 +282,28 @@ Int DumpAllocator(String file_name)
             path.delTree();
             path.mkDirs();
         }
+        
+        
 
-
-        VStreamAllocator allocator;
-        manager = &allocator;
-
-        cout<<"Load file: "+file.getPath()<<endl;
-
-        LoadFile(allocator, file.getPath().c_str());
-
-        VStreamAllocator::RootMapType* root = manager->roots();
-        auto iter = root->Begin();
-
-        while (!iter.isEnd())
+        Int status = GenericFileAllocator::testFile(file.getPath());  
+        
+        if (status == 7) 
         {
-            BigInt name    	= iter.key();
-            BigInt value   	= iter.getValue();
-
-            IDValue id(value);
-
-            cout<<"dumping name="<<name<<" root="<<id<<endl;
-
-            stringstream str;
-            str<<name<<"___"<<id;
-
-            File folder(path.getPath() + "/" + str.str());
-
-            if (folder.isExists())
-            {
-                if (!folder.delTree())
-                {
-                    throw Exception("dump.cpp", SBuf()<<"can't remove file "<<folder.getPath());
-                }
-            }
-
-            folder.mkDirs();
-
-            dumpTree(id, folder);
-
-            iter.next();
+        	cout<<"Load FileAllocator file: "+file.getPath()<<endl;
+        	GenericFileAllocator allocator(file.getPath(), OpenMode::READ);
+        	
+        	DumpAllocator(allocator, path);
         }
+        else {
+        	VStreamAllocator allocator;
+        	
+        	cout<<"Load InMemAllocator file: "+file.getPath()<<endl;
+
+        	LoadFile(allocator, file.getPath().c_str());
+
+        	DumpAllocator(allocator, path);
+        }
+
     }
     catch (Exception& ex) {
         cout<<"Exception "<<ex.source()<<" "<<ex<<endl;

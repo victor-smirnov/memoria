@@ -193,7 +193,8 @@ typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Positi
 M_PARAMS
 bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
 {
-    NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
+    node.update();
+	NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
     return true;
 }
 

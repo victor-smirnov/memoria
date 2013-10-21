@@ -19,6 +19,7 @@
 #include "file_alloc_commit_test.hpp"
 #include "file_alloc_pageshared_test.hpp"
 #include "file_alloc_ctr_test.hpp"
+#include "file_alloc_vector_test.hpp"
 
 namespace memoria {
 
@@ -30,6 +31,7 @@ struct FileAllocatorTestSuite: public TestSuite {
         registerTask(new FileAllocatorCommitTest("Commit"));
         registerTask(new FileAllocatorPageSharedTest("PageShared"));
         registerTask(new FileAllocatorCtrTest("Ctr"));
+        registerTask(new FileAllocatorVectorTest<UByte>("Vector"));
     }
 
 };

@@ -276,6 +276,10 @@ public:
 
     void insertSpace(Int room_start, Int room_length)
     {
+    	if (room_start < 0) {
+    		int a = 0; a++;
+    	}
+
         MEMORIA_ASSERT(room_start, >=, 0);
 
         if (room_start > size_) {

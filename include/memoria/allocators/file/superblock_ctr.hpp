@@ -56,7 +56,7 @@ public:
 	{
 		SuperblockType superblockHeader;
 
-		loadHeader(superblockHeader, 0);
+		loadHeader(file_, superblockHeader, 0);
 
 		superblockHeader.assertValid();
 
@@ -286,6 +286,35 @@ public:
 		updated_->file_size() -= delta;
 	}
 
+	static Int testHeader(StringRef file_name)
+	{
+		RAFile file; // auto close
+		file.open(file_name.c_str(), OpenMode::READ);
+
+		SuperblockPtrType block(T2T<SuperblockType*>(malloc(sizeof(SuperblockType))), free);
+
+		loadHeader(file, *block.get(), 0);
+
+		Int status = 0;
+
+		if (block->testMagic())
+		{
+			status += 1;
+		}
+
+		if (block->testVersion())
+		{
+			status += 2;
+		}
+
+		if (block->testTypeHash())
+		{
+			status += 4;
+		}
+
+		return status;
+	}
+
 protected:
 
 	void load(SuperblockPtrType& block, UBigInt pos)
@@ -302,9 +331,9 @@ protected:
 		block->deserialize(data);
 	}
 
-	void loadHeader(SuperblockType& block, std::streamsize pos)
+	static void loadHeader(IRandomAccessFile& file, SuperblockType& block, std::streamsize pos)
 	{
-		file_.seek(pos, SeekType::SET);
+		file.seek(pos, SeekType::SET);
 
 		const std::size_t HEADER_SIZE  = sizeof(SuperblockType);
 
@@ -312,7 +341,7 @@ protected:
 
 		memset(buffer, 0, sizeof(buffer));
 
-		file_.readAll(buffer, HEADER_SIZE);
+		file.readAll(buffer, HEADER_SIZE);
 
 		DeserializationData data;
 		data.buf = buffer;
