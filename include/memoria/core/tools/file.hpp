@@ -97,6 +97,7 @@ struct IRandomAccessFile {
 	virtual UBigInt read(void* buf, UBigInt size) 								= 0;
 	virtual void readAll(void* buf, UBigInt size) 								= 0;
 	virtual void write(const void* buf, UBigInt size) 							= 0;
+	virtual void truncate(UBigInt size) 										= 0;
 
 	virtual void sync() 														= 0;
 };
@@ -122,6 +123,7 @@ public:
 	virtual UBigInt read(void* buf, UBigInt size);
 	virtual void readAll(void* buf, UBigInt size);
 	virtual void write(const void* buf, UBigInt size);
+	virtual void truncate(UBigInt size);
 	virtual void sync();
 };
 

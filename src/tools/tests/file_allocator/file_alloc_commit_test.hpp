@@ -35,12 +35,20 @@ public:
 		Ctr::initMetadata();
 
 		MEMORIA_ADD_TEST(testCleanStatus);
+		MEMORIA_ADD_TEST(testUpdateLogOverflow);
+		MEMORIA_ADD_TEST(testFileSizeAfterRollback);
+
+		MEMORIA_ADD_TEST(testRecoverNewDB);
+		MEMORIA_ADD_TEST(testRecoverCleanDB);
+
+		MEMORIA_ADD_TEST(testRecoverFromFailureBeforeBackup);
+		MEMORIA_ADD_TEST(testRecoverFromFailureBeforeCommit);
 	}
 
 	void testCleanStatus()
 	{
 		String name = getResourcePath("clean_status.db");
-		Allocator allocator(name, OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC);
+		Allocator allocator(name, OpenMode::RWCT);
 
 		AssertTrue(MA_SRC, allocator.is_clean());
 
@@ -68,7 +76,7 @@ public:
 	void testUpdateLogOverflow()
 	{
 		String name = getResourcePath("update_log_overflow.db");
-		Allocator allocator(name, OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC);
+		Allocator allocator(name, OpenMode::RWCT);
 
 		Ctr ctr(&allocator, CTR_CREATE, 10000);
 
@@ -79,6 +87,130 @@ public:
 		});
 	}
 
+
+	void testFileSizeAfterRollback()
+	{
+		String name = getResourcePath("rollback_file_size.db");
+		Allocator allocator(name, OpenMode::RWCT);
+
+		allocator.commit();
+
+		UBigInt file_size = allocator.file_size();
+
+		AssertEQ(MA_SRC, file_size, allocator.superblock()->file_size());
+
+		Ctr ctr(&allocator, CTR_CREATE, 10000);
+
+		vector<Int> data(20000);
+
+		ctr.seek(0).insert(data);
+
+		allocator.rollback();
+
+		UBigInt new_file_size = allocator.file_size();
+
+		AssertEQ(MA_SRC, new_file_size, allocator.superblock()->file_size());
+		AssertEQ(MA_SRC, new_file_size, file_size);
+	}
+
+	void testRecoverNewDB()
+	{
+		String name = getResourcePath("new.db");
+		Allocator allocator(name, OpenMode::RWCT);
+
+		allocator.commit();
+		allocator.close();
+
+		AssertEQ(MA_SRC, (Int)Allocator::recover(name), (Int)Allocator::RecoveryStatus::CLEAN);
+
+		AssertDoesntThrow(MA_SRC, [name]() {
+			Allocator allocator2(name, OpenMode::RWCT);
+		});
+	}
+
+	void testRecoverCleanDB()
+	{
+		String name = getResourcePath("clean.db");
+		Allocator allocator(name, OpenMode::RWCT);
+
+		Ctr ctr(&allocator, CTR_CREATE, 10000);
+
+		vector<Int> data(20000);
+
+		ctr.seek(0).insert(data);
+
+		allocator.commit();
+		allocator.close();
+
+		AssertEQ(MA_SRC, (Int)Allocator::recover(name), (Int)Allocator::RecoveryStatus::CLEAN);
+
+		AssertDoesntThrow(MA_SRC, [name]() {
+			Allocator allocator2(name, OpenMode::RWCT);
+		});
+	}
+
+	void testRecoverFromFailureBeforeBackup()
+	{
+		String name = getResourcePath("failure_before_log.db");
+		Allocator allocator(name, OpenMode::RWCT);
+
+		Ctr ctr(&allocator, CTR_CREATE, 10000);
+
+		vector<Int> data(20000);
+
+		ctr.seek(0).insert(data);
+
+		allocator.failure() = Allocator::FAILURE_BEFORE_BACKUP;
+
+		AssertThrows<Exception>(MA_SRC, [&allocator]() {
+			allocator.commit();
+		});
+
+		allocator.close(false);
+
+		AssertEQ(MA_SRC, (Int)Allocator::recover(name), (Int)Allocator::RecoveryStatus::FILE_SIZE);
+
+		AssertDoesntThrow(MA_SRC, [name]() {
+			Allocator allocator2(name, OpenMode::RWCT);
+
+			//AssertEQ(MA_SRC, allocator2.file_size(), )
+		});
+	}
+
+
+	void testRecoverFromFailureBeforeCommit()
+	{
+		String name = getResourcePath("failure_before_commit.db");
+		Allocator allocator(name, OpenMode::RWCT);
+
+		Ctr ctr(&allocator, CTR_CREATE, 10000);
+
+		vector<Int> data(200000);
+
+		ctr.seek(0).insert(data);
+
+		allocator.commit();
+
+		ctr.seek(0).insert(data);
+
+		allocator.failure() = Allocator::FAILURE_BEFORE_COMMIT;
+
+		AssertThrows<Exception>(MA_SRC, [&allocator]() {
+			allocator.commit();
+		});
+
+		allocator.close(false);
+
+		AssertEQ(MA_SRC, (Int)Allocator::recover(name), (Int)Allocator::RecoveryStatus::LOG);
+
+		AssertDoesntThrow(MA_SRC, [name]() {
+			Allocator allocator2(name, OpenMode::RWC);
+
+			Ctr ctr(&allocator2, CTR_FIND, 10000);
+
+			AssertEQ(MA_SRC, ctr.size(), 200000);
+		});
+	}
 };
 
 }

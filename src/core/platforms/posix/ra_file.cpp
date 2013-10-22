@@ -165,10 +165,18 @@ void RAFile::write(const void* buf, UBigInt size)
 
 void RAFile::sync()
 {
-//	if (::fsync(pimpl_->fd_) == -1)
-//	{
-//		throw Exception(MA_SRC, SBuf()<<String(strerror(errno)));
-//	}
+	if (::fsync(pimpl_->fd_) == -1)
+	{
+		throw Exception(MA_SRC, SBuf()<<String(strerror(errno)));
+	}
+}
+
+void RAFile::truncate(UBigInt size)
+{
+	if (::ftruncate(pimpl_->fd_, size) == -1)
+	{
+		throw Exception(MA_SRC, SBuf()<<String(strerror(errno)));
+	}
 }
 
 

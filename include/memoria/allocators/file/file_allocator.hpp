@@ -17,6 +17,7 @@
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/file.hpp>
 #include <memoria/core/tools/config.hpp>
+#include <memoria/core/tools/assert.hpp>
 #include <memoria/core/types/types.hpp>
 
 #include <memoria/core/container/allocator.hpp>
@@ -38,10 +39,8 @@
 
 namespace memoria {
 
-using namespace std;
 
 
-using namespace memoria::vapi;
 
 template <typename Profile, typename PageType, typename TxnType = EmptyType>
 class FileAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> >::Type {
@@ -225,6 +224,7 @@ private:
     typedef std::unique_ptr<RootMapType>										RootMapPtr;
 
     typedef std::unique_ptr<char, void (*)(void*)>								CharBufferPtr;
+    typedef std::unique_ptr<Page, void (*)(void*)>								PageBufferPtr;
     typedef std::unique_ptr<SymbolsBuffer<1>>									BlockMapBufferPtr;
 
     String				file_name_;
@@ -293,6 +293,7 @@ private:
     	UBigInt initial_allocation_size_		= 4;
     	UBigInt allocation_size_				= 64;
     	BigInt	pages_buffer_size_ 				= 1024;
+    	bool	sync_on_commit_					= true;
 
     	Int block_size_mask_ 					= 12;
 
@@ -344,6 +345,15 @@ private:
     		pages_buffer_size_ = size;
     		return *this;
     	}
+
+    	bool sync_on_commit() const {
+    		return sync_on_commit_;
+    	}
+
+    	void sync_on_commit(bool sync)
+    	{
+    		sync_on_commit_ = sync;
+    	}
     };
 
 private:
@@ -372,7 +382,7 @@ public:
 
     	if (to_bool(mode & OpenMode::TRUNC) && !to_bool(mode & OpenMode::WRITE))
     	{
-    		throw Exception(MA_SRC, "TRUNC is only valid for WRITE-enabled databases");
+    		throw vapi::Exception(MA_SRC, "TRUNC is only valid for WRITE-enabled databases");
     	}
 
     	File file(file_name);
@@ -394,7 +404,7 @@ public:
     			}
     		}
     		else {
-    			throw FileException(MA_SRC, "Requested file is a directory");
+    			throw vapi::FileException(MA_SRC, "Requested file is a directory");
     		}
     	}
     	else {
@@ -547,6 +557,15 @@ public:
     	return file_name_;
     }
 
+    UBigInt file_size()
+    {
+    	return file_.seek(0, SeekType::END);
+    }
+
+    const SuperblockCtrType* superblock() const {
+    	return superblock_.get();
+    }
+
     void sync() {
     	file_.sync();
     }
@@ -655,14 +674,13 @@ public:
 
     		if (entry->shared())
     		{
-    			// FIXME it isn't really necessary to inform PageGuards that the page is marked deleted
-
     			if (entry->shared()->state() == Shared::READ)
     			{
     				read_locked_--;
     				MEMORIA_ASSERT_TRUE(read_locked_ >= 0);
     			}
 
+    			// FIXME it isn't really necessary to inform PageGuards that the page is marked deleted
     			entry->shared()->state() = Shared::DELETE;
     		}
 
@@ -885,14 +903,15 @@ public:
 
     void close(bool commit = true)
     {
-    	if (commit) {
+    	if (commit)
+    	{
     		this->commit();
     	}
 
     	file_.close();
     }
 
-    void commit()
+    void commit(bool force_sync = false)
     {
     	// ensure file has enough room for backup
 
@@ -900,9 +919,9 @@ public:
     	{
     		if (!is_clean())
     		{
-    			rollback();
+    			rollback(force_sync);
 
-    			throw Exception(MA_SRC, "Can't modify read-only allocator");
+    			throw vapi::Exception(MA_SRC, "Can't modify read-only allocator");
     		}
     	}
 
@@ -919,6 +938,12 @@ public:
     		updated = computeUpdatedPages();
     	}
 
+#ifdef MEMORIA_TESTS
+    	if (failure() == FAILURE_BEFORE_BACKUP) {
+    		throw Exception(MA_SRC, "Artificial failure before backup of updated blocks");
+    	}
+#endif
+
     	// backup updated pages
 
     	UBigInt backup_list_head = 0;
@@ -931,14 +956,14 @@ public:
     		PageCacheEntryType* entry = i.second;
     		if (isUpdatedEntry(entry))
     		{
+    			blockmap_iter.selectFw(1, 0);
+
+    			MEMORIA_ASSERT_FALSE(blockmap_iter.isEnd());
+
     			Page* page = entry->page();
 
     			page->target_block_pos() 	= entry->position();
     			page->next_block_pos() 		= backup_list_head;
-
-    			blockmap_iter.selectFw(1, 0);
-
-    			MEMORIA_ASSERT_FALSE(blockmap_iter.isEnd());
 
     			UBigInt new_pos = blockmap_iter.pos() * cfg_.block_size();
 
@@ -947,12 +972,15 @@ public:
     			backup_list_head = new_pos;
 
     			backup_list_size++;
+
+    			blockmap_iter++;
     		}
     	}
 
     	superblock_->set_backup_list(backup_list_head, backup_list_size);
 
-    	superblock_->storeBackup(); // sync
+    	superblock_->storeBackup();
+    	syncIfConfigured(force_sync);
 
     	// commit updates
 
@@ -1020,9 +1048,22 @@ public:
     	cache_hits_ 	= 0;
     	stored_			= 0;
 
-    	sync();
+    	// It looks like it is not necessary to sync here, because at this point
+    	// all sensitive information has been already backuped
+    	//syncIfConfigured(force_sync);
 
-    	superblock_->storeSuperblock(); //sync
+#ifdef MEMORIA_TESTS
+    	if (failure() == FAILURE_BEFORE_COMMIT) {
+    		throw Exception(MA_SRC, "Artificial failure before commit of superblock");
+    	}
+#endif
+
+    	superblock_->storeSuperblock();
+
+    	syncIfConfigured(force_sync);
+
+    	MEMORIA_ASSERT(block_map_->size() * cfg_.block_size(), ==, superblock_->file_size());
+    	MEMORIA_ASSERT(file_size(), ==, superblock_->file_size());
     }
 
     void dumpStat()
@@ -1064,7 +1105,7 @@ public:
     	}
     }
 
-    void rollback()
+    void rollback(bool force_sync = false)
     {
     	for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
     	{
@@ -1112,6 +1153,12 @@ public:
     	cache_hits_ 	= 0;
 
     	stored_		= 0;
+
+    	// check if file size matches blockmap size
+    	MEMORIA_ASSERT(block_map_->size() * cfg_.block_size(), ==, superblock_->file_size());
+
+    	// return the file space allocated in transaction
+    	checkAndFixFileSize(file_, superblock_);
     }
 
     bool check()
@@ -1137,8 +1184,81 @@ public:
     	return SuperblockCtrType::testHeader(file_name);
     }
 
+    enum class RecoveryStatus: Int {
+    	CLEAN, FILE_SIZE, LOG
+    };
+
+    static RecoveryStatus recover(StringRef file_name)
+    {
+    	RAFile file;
+    	file.open(file_name.c_str(), OpenMode::RW);
+
+    	SuperblockCtrPtr superblock(new SuperblockCtrType(file, false));
+
+    	if (superblock->is_dirty())
+    	{
+    		UBigInt list_size_cnt = 0;
+
+    		UBigInt list_head = superblock->backup_list_start();
+    		UBigInt list_size = superblock->backup_list_size();
+
+    		Int block_size = superblock->block_size();
+
+    		PageBufferPtr page(T2T<Page*>(malloc(block_size)), free);
+
+    		// recover updated blocks from backup blocks
+    		while (list_head)
+    		{
+    			file.seek(list_head, SeekType::SET);
+    			file.readAll(page.get(), block_size);
+
+    			UBigInt target = page->target_block_pos();
+    			file.seek(target, SeekType::SET);
+
+    			file.write(page.get(), block_size);
+
+    			list_head = page->next_block_pos();
+
+    			list_size_cnt++;
+    		}
+
+    		MEMORIA_ASSERT(list_size_cnt, == ,list_size);
+
+    		// recover superblock
+    		superblock->rollback();
+
+    		superblock->storeSuperblock();
+    		superblock->storeBackup();
+
+    		file.sync();
+
+    		// return allocated file space
+    		checkAndFixFileSize(file, superblock);
+
+    		return RecoveryStatus::LOG;
+    	}
+    	else
+    	{
+    		return checkAndFixFileSize(file, superblock);
+    	}
+    }
 
 private:
+
+    static RecoveryStatus checkAndFixFileSize(IRandomAccessFile& file, const SuperblockCtrPtr& superblock)
+    {
+    	BigInt size = file.seek(0, SeekType::END);
+
+    	if (size > superblock->file_size())
+    	{
+    		file.truncate(superblock->file_size());
+
+    		return RecoveryStatus::FILE_SIZE;
+    	}
+    	else {
+    		return RecoveryStatus::CLEAN;
+    	}
+    }
 
     void openFile(OpenMode mode)
     {
@@ -1305,43 +1425,69 @@ private:
 
     void loadPage(UBigInt pos, Page* page)
     {
-    	file_.seek(pos, SeekType::SET);
-    	file_.read(page_buffer_.get(), cfg_.block_size());
+    	loadPage(file_, cfg_.block_size(), pos, page, page_buffer_, metadata_);
+    }
 
-    	Page* disk_page = T2T<Page*>(page_buffer_.get());
+    static void loadPage(
+    		IRandomAccessFile& file,
+    		Int block_size,
+    		UBigInt pos,
+    		Page* page,
+    		CharBufferPtr& page_buffer,
+    		ContainerMetadataRepository* metadata
+    )
+    {
+    	file.seek(pos, SeekType::SET);
+    	file.read(page_buffer.get(), block_size);
+
+    	Page* disk_page = T2T<Page*>(page_buffer.get());
 
     	Int page_data_size 	= disk_page->page_size();
     	Int ctr_type_hash	= disk_page->ctr_type_hash();
     	Int page_type_hash	= disk_page->page_type_hash();
 
-    	MEMORIA_ASSERT(page_data_size, ==, cfg_.block_size());
+    	MEMORIA_ASSERT(page_data_size, ==, block_size);
 
-    	PageMetadata* page_metadata 		= metadata_->getPageMetadata(ctr_type_hash, page_type_hash);
+    	PageMetadata* page_metadata 		= metadata->getPageMetadata(ctr_type_hash, page_type_hash);
     	const IPageOperations* operations 	= page_metadata->getPageOperations();
 
-    	operations->deserialize(page_buffer_.get(), page_data_size, T2T<void*>(page));
+    	operations->deserialize(page_buffer.get(), page_data_size, T2T<void*>(page));
     }
+
 
     void storePage(UBigInt pos, Page* page)
     {
     	stored_++;
-//    	cout<<"Store "<<page->id()<<" at "<<pos<<endl;
 
-    	MEMORIA_ASSERT(page->page_size(), ==, cfg_.block_size());
+    	storePage(file_, cfg_.block_size(), pos, page, page_buffer_, metadata_);
+    }
 
-    	file_.seek(pos, SeekType::SET);
+
+
+    static void storePage(
+    		IRandomAccessFile& file,
+    		Int block_size,
+    		UBigInt pos,
+    		Page* page,
+    		CharBufferPtr& page_buffer,
+    		ContainerMetadataRepository* metadata
+    )
+    {
+    	MEMORIA_ASSERT(page->page_size(), ==, block_size);
+
+    	file.seek(pos, SeekType::SET);
 
     	Int ctr_type_hash	= page->ctr_type_hash();
     	Int page_type_hash	= page->page_type_hash();
 
-    	PageMetadata* page_metadata 		= metadata_->getPageMetadata(ctr_type_hash, page_type_hash);
+    	PageMetadata* page_metadata 		= metadata->getPageMetadata(ctr_type_hash, page_type_hash);
     	const IPageOperations* operations 	= page_metadata->getPageOperations();
 
-    	memset(page_buffer_.get(), 0, cfg_.block_size());
+    	memset(page_buffer.get(), 0, block_size);
 
-    	operations->serialize(page, page_buffer_.get());
+    	operations->serialize(page, page_buffer.get());
 
-    	file_.write(page_buffer_.get(), cfg_.block_size());
+    	file.write(page_buffer.get(), block_size);
     }
 
     void clearPageBuffer()
@@ -1401,9 +1547,6 @@ private:
 
     	superblock_->updateMainBlockMapMetadata();
     	superblock_->clearTemporaryBlockMap();
-
-//    	cout<<"finishAllocation: "<<superblock_->total_blocks()<<" "<<superblock_->free_blocks()<<" - "
-//    		<<block_map_->rank(0)<<" "<<block_map_->rank(1)<<" "<<block_map_->size()<<endl;
     }
 
     void enlargeFile(UBigInt allocation_size)
@@ -1445,14 +1588,6 @@ private:
     	return entry->page_op() == PageOp::UPDATE && entry->is_allocated();
     }
 
-    const SuperblockCtrType* superblock() const {
-    	return superblock_.get();
-    }
-
-    SuperblockCtrType* superblock() {
-    	return superblock_.get();
-    }
-
     void freePagePtr(PagePtr& ptr)
     {
     	::free(ptr);
@@ -1481,6 +1616,31 @@ private:
 
     	shared = nullptr;
     }
+
+    void syncIfConfigured(bool force_sync)
+    {
+    	if (cfg_.sync_on_commit() || force_sync)
+    	{
+    		file_.sync();
+    	}
+    }
+
+
+#ifdef MEMORIA_TESTS
+public:
+    enum {
+    	NO_FAILURE				= 0,
+    	FAILURE_BEFORE_BACKUP 	= 1,
+    	FAILURE_BEFORE_COMMIT 	= 2
+    };
+
+    Int failure_ = NO_FAILURE;
+
+    Int& failure() {return failure_;}
+    const Int& failure() const {return failure_;}
+
+#endif
+
 };
 
 }

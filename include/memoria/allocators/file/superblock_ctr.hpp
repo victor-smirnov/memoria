@@ -46,7 +46,7 @@ private:
 public:
 
 	// Load existing file
-	SuperblockCtr(IRandomAccessFile& file):
+	SuperblockCtr(IRandomAccessFile& file, bool check_versions = false):
 		file_(file),
 		block_size_(0),
 		superblock_size_(0),
@@ -58,7 +58,9 @@ public:
 
 		loadHeader(file_, superblockHeader, 0);
 
+
 		superblockHeader.assertValid();
+
 
 		superblock_size_ 	= superblockHeader.superblock_size();
 		block_size_ 		= superblockHeader.block_size();
@@ -71,7 +73,9 @@ public:
 		load(superblock_, 0);
 		load(updated_, superblock_size_);
 
-		MEMORIA_ASSERT_TRUE(superblock_->superblock_version() == updated_->superblock_version());
+		if (check_versions) {
+			MEMORIA_ASSERT_TRUE(superblock_->superblock_version() == updated_->superblock_version());
+		}
 	}
 
 	// Fill newly created file
@@ -91,6 +95,14 @@ public:
 
 		superblock_->init(superblock_size_, block_size_);
 		updated_->init(superblock_size_, block_size_);
+	}
+
+	const SuperblockType* superblock() const {
+		return superblock_.get();
+	}
+
+	const SuperblockType* updated() const {
+		return updated_.get();
 	}
 
 	Int superblock_size() const
@@ -173,6 +185,16 @@ public:
 
 		updated_->backup_list_start() 	= list_head;
 		updated_->backup_list_size() 	= list_size;
+	}
+
+	UBigInt backup_list_start() const
+	{
+		return updated_->backup_list_start();
+	}
+
+	UBigInt backup_list_size() const
+	{
+		return updated_->backup_list_size();
 	}
 
 	BigInt new_ctr_name()
@@ -314,7 +336,24 @@ public:
 		return status;
 	}
 
-protected:
+	static Int readSuperblockSize(RAFile& file)
+	{
+		SuperblockPtrType superblockHeader(T2T<SuperblockType*>(malloc(sizeof(SuperblockType))), free);
+
+		loadHeader(file, *superblockHeader.get(), 0);
+
+		superblockHeader.assertValid();
+
+		return superblockHeader->superblock_size();
+	}
+
+	bool is_dirty() const
+	{
+		return is_updated();
+	}
+
+
+private:
 
 	void load(SuperblockPtrType& block, UBigInt pos)
 	{
@@ -360,17 +399,25 @@ protected:
 		block->serialize(data);
 
 		file_.write(io_buffer_.get(), superblock_size_);
-
-		file_.sync();
 	}
 
-	void storeSuperblocks()
+	void storeSuperblocks(bool sync)
 	{
 		store(updated_, superblock_size_);
 
 		CopyByteBuffer(updated_.get(), superblock_.get(), superblock_size_);
 
+		if (sync)
+		{
+			file_.sync();
+		}
+
 		store(superblock_, 0);
+
+		if (sync)
+		{
+			file_.sync();
+		}
 	}
 };
 

@@ -51,6 +51,9 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1223824715" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
+								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.764948347" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.1694871730" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
@@ -128,6 +131,9 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+								</option>
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1965418758" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1687699348" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
