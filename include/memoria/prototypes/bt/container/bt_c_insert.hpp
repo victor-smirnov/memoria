@@ -51,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    static const Int Indexes                                                    = Types::Indexes;
+
     static const Int Streams                                                    = Types::Streams;
 
     static const Int ActiveStreams                                              = 3;

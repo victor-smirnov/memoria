@@ -190,6 +190,11 @@ public:
         return getOffsetsLengts(max_size_);
     }
 
+    static Int packed_block_size(Int tree_capacity)
+    {
+    	return block_size(tree_capacity);
+    }
+
     static Int block_size(Int tree_capacity)
     {
         Int index_size = MyType::index_size(tree_capacity);

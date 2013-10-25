@@ -51,7 +51,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrNormName)
     typedef typename Types::DataSource                                          DataSource;
     typedef typename Types::DataTarget                                          DataTarget;
 
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;

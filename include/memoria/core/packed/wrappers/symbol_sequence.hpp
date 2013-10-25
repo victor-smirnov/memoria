@@ -79,7 +79,7 @@ public:
         return getRemainder();
     }
 
-    virtual void  reset()
+    virtual void  reset(SizeT pos)
     {
         start_  = start0_;
     }
@@ -160,7 +160,7 @@ public:
         return getRemainder();
     }
 
-    virtual void  reset()
+    virtual void  reset(SizeT pos)
     {
         start_  = start0_;
     }

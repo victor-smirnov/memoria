@@ -39,8 +39,6 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     typedef Value_                                                              Value;
     typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int Indexes                                                    = 1;
-
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {

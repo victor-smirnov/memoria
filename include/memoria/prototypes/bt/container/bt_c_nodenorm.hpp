@@ -54,7 +54,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
 
-    static const Int Indexes                                                    = Types::Indexes;
+
     static const Int Streams                                                    = Types::Streams;
 
     typedef std::function<void (const Position&, Int)>                          MergeFn;

@@ -138,9 +138,27 @@ void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
     } while (c < size_);
 }
 
-enum class IDataAPI {
-    Batch = 1, Single = 2, Both = 3
+enum class IDataAPI: Int {
+    None = 0, Batch = 1, Single = 2, Both = 3
 };
+
+inline constexpr IDataAPI operator&(IDataAPI m1, IDataAPI m2)
+{
+	return static_cast<IDataAPI>(static_cast<Int>(m1) & static_cast<Int>(m2));
+}
+
+inline constexpr IDataAPI operator|(IDataAPI m1, IDataAPI m2)
+{
+	return static_cast<IDataAPI>(static_cast<Int>(m1) | static_cast<Int>(m2));
+}
+
+inline constexpr bool to_bool(IDataAPI mode) {
+	return static_cast<Int>(mode) > 0;
+}
+
+
+
+
 
 struct IData {};
 
@@ -175,7 +193,7 @@ struct IDataBase: IData {
     virtual SizeT getRemainder() const                              = 0;
     virtual SizeT getSize() const                                   = 0;
     virtual SizeT getAdvance() const                                = 0;
-    virtual void  reset()                                           = 0;
+    virtual void  reset(BigInt pos = 0)                             = 0;
 };
 
 
@@ -248,9 +266,9 @@ public:
         return size_;
     }
 
-    virtual void reset()
+    virtual void reset(BigInt pos = 0)
     {
-        data_.reset();
+        data_.reset(pos);
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
@@ -267,41 +285,266 @@ public:
 
 
 
-
-
 template <typename T>
-class MemBuffer: public IDataSource<T> {
+class AbstractData: public IDataSource<T>, public IDataTarget<T> {
 protected:
     SizeT   start_;
     SizeT   length_;
+
+public:
+
+    AbstractData(SizeT start, SizeT length):
+        start_(start),
+        length_(length)
+    {}
+
+    virtual ~AbstractData() throw ()
+    {}
+
+
+
+    virtual SizeT skip(SizeT length)
+    {
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
+
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
+    }
+
+    virtual SizeT getStart() const
+    {
+        return start_;
+    }
+
+    virtual SizeT getRemainder() const
+    {
+        return length_ - start_;
+    }
+
+    virtual SizeT getAdvance() const
+    {
+        return getRemainder();
+    }
+
+    virtual SizeT getSize() const
+    {
+        return length_;
+    }
+
+    SizeT size() const
+    {
+        return getSize();
+    }
+
+    virtual void setSize(SizeT size)
+    {
+        length_ = size;
+    }
+
+    virtual IDataAPI api() const 												= 0;
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)				= 0;
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)						= 0;
+
+
+    virtual T get()																= 0;
+    virtual void put(const T& value)											= 0;
+
+    virtual void reset(BigInt pos = 0)
+    {
+        start_ = pos;
+    }
+};
+
+
+template <typename T>
+class AbstractDataSource: public IDataSource<T> {
+protected:
+    SizeT   start_;
+    SizeT   length_;
+
+public:
+
+    AbstractDataSource(SizeT start, SizeT length):
+        start_(start),
+        length_(length)
+    {}
+
+    virtual ~AbstractDataSource() throw ()
+    {}
+
+
+
+    virtual SizeT skip(SizeT length)
+    {
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
+
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
+    }
+
+    virtual SizeT getStart() const
+    {
+        return start_;
+    }
+
+    virtual SizeT getRemainder() const
+    {
+        return length_ - start_;
+    }
+
+    virtual SizeT getAdvance() const
+    {
+        return getRemainder();
+    }
+
+    virtual SizeT getSize() const
+    {
+        return length_;
+    }
+
+    SizeT size() const
+    {
+        return getSize();
+    }
+
+    virtual void setSize(SizeT size)
+    {
+        length_ = size;
+    }
+
+    virtual IDataAPI api() const 												= 0;
+
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)						= 0;
+    virtual T get()																= 0;
+
+
+    virtual void reset(BigInt pos = 0)
+    {
+        start_ = pos;
+    }
+};
+
+
+
+template <typename T>
+class AbstractDataTarget: public IDataTarget<T> {
+protected:
+    SizeT   start_;
+    SizeT   length_;
+
+public:
+
+    AbstractDataTarget(SizeT start, SizeT length):
+        start_(start),
+        length_(length)
+    {}
+
+    virtual ~AbstractDataTarget() throw () {}
+
+
+
+    virtual SizeT skip(SizeT length)
+    {
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
+
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
+    }
+
+    virtual SizeT getStart() const
+    {
+        return start_;
+    }
+
+    virtual SizeT getRemainder() const
+    {
+        return length_ - start_;
+    }
+
+    virtual SizeT getAdvance() const
+    {
+        return getRemainder();
+    }
+
+    virtual SizeT getSize() const
+    {
+        return length_;
+    }
+
+    SizeT size() const
+    {
+        return getSize();
+    }
+
+    virtual void setSize(SizeT size)
+    {
+        length_ = size;
+    }
+
+    virtual IDataAPI api() const 												= 0;
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)				= 0;
+    virtual void put(const T& value)											= 0;
+
+    virtual void reset(BigInt pos = 0)
+    {
+        start_ = pos;
+    }
+};
+
+
+
+
+
+
+
+
+
+template <typename T>
+class MemBuffer: public AbstractData<T> {
+protected:
+
+	typedef AbstractData<T>														Base;
+
     T*      data_;
     bool    owner_;
+
 public:
 
     MemBuffer(T* data, SizeT length, bool owner = false):
-        start_(0),
-        length_(length),
+    	Base(0, length),
         data_(data),
         owner_(owner)
     {}
 
     MemBuffer(vector<T>& data):
-        start_(0),
-        length_(data.size()),
+    	Base(0, data.size()),
         data_(&data[0]),
         owner_(false)
     {}
 
     MemBuffer(SizeT length):
-        start_(0),
-        length_(length),
+    	Base(0, length),
         data_(T2T<T*>(::malloc(length * sizeof(T)))),
         owner_(true)
     {}
 
     MemBuffer(MemBuffer<T>&& other):
-        start_(other.start_),
-        length_(other.length_),
+    	Base(other.start_, other.length_),
         data_(other.data_),
         owner_(other.owner_)
     {
@@ -309,18 +552,19 @@ public:
     }
 
     MemBuffer(const MemBuffer<T>& other):
-        start_(other.start_),
-        length_(other.length_),
-        owner_(true)
+    	Base(other.start_, other.length_),
+    	owner_(true)
     {
-        data_ = T2T<T*>(::malloc(length_*sizeof(T)));
+        data_ = T2T<T*>(::malloc(Base::length_*sizeof(T)));
 
-        CopyBuffer(other.data(), data_, length_);
+        CopyBuffer(other.data(), data_, Base::length_);
     }
 
     virtual ~MemBuffer() throw ()
     {
-        if (owner_) ::free(data_);
+        if (owner_) {
+        	::free(data_);
+        }
     }
 
     virtual IDataAPI api() const
@@ -328,38 +572,6 @@ public:
         return IDataAPI::Both;
     }
 
-    virtual SizeT skip(SizeT length)
-    {
-        if (start_ + length <= length_)
-        {
-            start_ += length;
-            return length;
-        }
-
-        SizeT distance = length_ - start_;
-        start_ = length_;
-        return distance;
-    }
-
-    virtual SizeT getStart() const
-    {
-        return start_;
-    }
-
-    virtual SizeT getRemainder() const
-    {
-        return length_ - start_;
-    }
-
-    virtual SizeT getAdvance() const
-    {
-        return getRemainder();
-    }
-
-    virtual SizeT getSize() const
-    {
-        return length_;
-    }
 
     T* data()
     {
@@ -373,217 +585,71 @@ public:
 
     SizeT size() const
     {
-        return getSize();
-    }
-
-    virtual void setSize(SizeT size)
-    {
-        length_ = size;
+        return Base::getSize();
     }
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-        MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+        MEMORIA_ASSERT_TRUE(Base::start_ + length <= Base::length_);
 
-        CopyBuffer(buffer + start, data_ + start_, length);
+        CopyBuffer(buffer + start, data_ + Base::start_, length);
 
-        return skip(length);
+        return Base::skip(length);
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+        MEMORIA_ASSERT_TRUE(Base::start_ + length <= Base::length_);
 
-        CopyBuffer(data_ + start_, buffer + start, length);
+        CopyBuffer(data_ + Base::start_, buffer + start, length);
 
-        return skip(length);
+        return Base::skip(length);
     }
 
     virtual T get()
     {
-        T value = *(data_ + start_);
+        T value = *(data_ + Base::start_);
 
-        skip(1);
+        Base::skip(1);
 
         return value;
     }
 
-    void dump(std::ostream& out) const
-    {
-        dumpArray(out, data_, length_);
-    }
-
-    virtual void reset()
-    {
-        start_ = 0;
-    }
-};
-
-
-
-
-template <typename T>
-class MemTBuffer: public IDataTarget<T> {
-protected:
-    SizeT   start_;
-    SizeT   length_;
-    T*      data_;
-    bool    owner_;
-public:
-
-    MemTBuffer(T* data, SizeT length, bool owner = false):
-        start_(0),
-        length_(length),
-        data_(data),
-        owner_(owner)
-    {}
-
-    MemTBuffer(vector<T>& data):
-        start_(0),
-        length_(data.size()),
-        data_(&data[0]),
-        owner_(false)
-    {}
-
-    MemTBuffer(SizeT length):
-        start_(0),
-        length_(length),
-        data_(T2T<T*>(::malloc(length * sizeof(T)))),
-        owner_(true)
-    {}
-
-    MemTBuffer(MemTBuffer<T>&& other):
-        start_(other.start_),
-        length_(other.length_),
-        data_(other.data_),
-        owner_(other.owner_)
-    {
-        other.data_ = NULL;
-    }
-
-    MemTBuffer(const MemTBuffer<T>& other):
-        start_(other.start_),
-        length_(other.length_),
-        owner_(true)
-    {
-        data_ = T2T<T*>(::malloc(length_*sizeof(T)));
-
-        CopyBuffer(other.data(), data_, length_);
-    }
-
-    virtual ~MemTBuffer() throw ()
-    {
-        if (owner_) ::free(data_);
-    }
-
-    virtual IDataAPI api() const
-    {
-        return IDataAPI::Both;
-    }
-
-    virtual SizeT skip(SizeT length)
-    {
-        if (start_ + length <= length_)
-        {
-            start_ += length;
-            return length;
-        }
-
-        SizeT distance = length_ - start_;
-        start_ = length_;
-        return distance;
-    }
-
-    virtual SizeT getStart() const
-    {
-        return start_;
-    }
-
-    virtual SizeT getRemainder() const
-    {
-        return length_ - start_;
-    }
-
-    virtual SizeT getAdvance() const
-    {
-        return getRemainder();
-    }
-
-    virtual SizeT getSize() const
-    {
-        return length_;
-    }
-
-    T* data()
-    {
-        return data_;
-    }
-
-    const T* data() const
-    {
-        return data_;
-    }
-
-    SizeT size() const
-    {
-        return getSize();
-    }
-
-    virtual void setSize(SizeT size)
-    {
-        length_ = size;
-    }
-
-    virtual SizeT put(const T* buffer, SizeT start, SizeT length)
-    {
-        CopyBuffer(buffer + start, data_ + start_, length);
-
-        return skip(length);
-    }
-
     virtual void put(const T& value)
     {
-        *(data_ + start_) = value;
-        skip(1);
+    	*(data_ + Base::start_) = value;
+    	Base::skip(1);
     }
 
-    void dump(std::ostream& out) const {
-        dumpArray(out, data_, length_);
-    }
-
-    virtual void reset()
+    void dump(std::ostream& out) const
     {
-        start_ = 0;
+        dumpArray(out, data_, Base::length_);
     }
 };
 
 
 
-
 template <typename T>
-class MemBuffer<const T>: public IDataSource<T> {
+class MemBuffer<const T>: public AbstractDataSource<T> {
 protected:
-    SizeT       start_;
-    SizeT       length_;
-    const T*    data_;
+	typedef AbstractDataSource<T>												Base;
+
+	const T*    data_;
 public:
 
     MemBuffer(const T* data, SizeT length):
-        start_(0),
-        length_(length),
-        data_(data)
+        Base(0, length),
+    	data_(data)
     {}
 
     MemBuffer(const MemBuffer<const T>& other):
-        start_(other.start_),
-        data_(other.data_),
-        length_(other.length_)
+        Base(other.start_, other.length_),
+        data_(other.data_)
     {}
 
     MemBuffer(const vector<T>& data):
-        start_(0),
-        length_(data.size()),
-        data_(&data[0])
+        Base(0, data.size()),
+    	data_(&data[0])
     {}
 
     virtual ~MemBuffer() throw () {}
@@ -593,232 +659,122 @@ public:
         return IDataAPI::Both;
     }
 
-    virtual SizeT skip(SizeT length)
-    {
-        if (start_ + length <= length_)
-        {
-            start_ += length;
-            return length;
-        }
-
-        SizeT distance = length_ - start_;
-        start_ = length_;
-        return distance;
-    }
-
-    virtual SizeT getStart() const
-    {
-        return start_;
-    }
-
-    virtual SizeT getRemainder() const
-    {
-        return length_ - start_;
-    }
-
-    virtual SizeT getAdvance() const
-    {
-        return getRemainder();
-    }
-
-    virtual SizeT getSize() const
-    {
-        return length_;
-    }
-
     const T* data() const
     {
         return data_;
     }
 
     SizeT size() const {
-        return getSize();
+        return this->getSize();
     }
 
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        CopyBuffer(data_ + start_, buffer + start, length);
+        CopyBuffer(data_ + this->start_, buffer + start, length);
 
-        return skip(length);
+        return this->skip(length);
     }
 
     virtual T get()
     {
-        T value = *(data_ + start_);
+        T value = *(data_ + this->start_);
 
-        skip(1);
+        this->skip(1);
 
         return value;
     }
 
     void dump(std::ostream& out) const
     {
-        dumpArray(out, data_, length_);
-    }
-
-    virtual void reset()
-    {
-        start_ = 0;
+        dumpArray(out, data_, this->length_);
     }
 };
 
 
-template <typename Value>
-class ValueSource: public IDataSource<Value> {
-    const Value& value_;
 
-    SizeT start_    = 0;
-    SizeT length_   = 1;
+
+
+
+
+
+
+
+
+
+template <typename Value>
+class ValueSource: public AbstractDataSource<Value> {
+protected:
+	typedef AbstractDataSource<Value>											Base;
+
+	const Value& value_;
 
 public:
-    ValueSource(const Value& value): value_(value) {}
+    ValueSource(const Value& value):
+    	Base(0, 1),
+    	value_(value) {}
 
     virtual IDataAPI api() const
     {
         return IDataAPI::Both;
     }
 
-    virtual SizeT skip(SizeT length)
-    {
-        if (start_ + length <= length_)
-        {
-            start_ += length;
-            return length;
-        }
-
-        SizeT distance = length_ - start_;
-        start_ = length_;
-        return distance;
-    }
-
-    virtual SizeT getStart() const
-    {
-        return start_;
-    }
-
-    virtual SizeT getRemainder() const
-    {
-        return length_ - start_;
-    }
-
-    virtual SizeT getAdvance() const
-    {
-        return getRemainder();
-    }
-
-    virtual SizeT getSize() const
-    {
-        return length_;
-    }
-
     SizeT size() const
     {
-        return getSize();
-    }
-
-    virtual void setSize(SizeT size)
-    {
-        length_ = size;
+        return this->getSize();
     }
 
     virtual SizeT get(Value* buffer, SizeT start, SizeT length)
     {
-        MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+        MEMORIA_ASSERT_TRUE(this->start_ + length <= this->length_);
 
-        CopyBuffer(&value_ + start_, buffer + start, length);
+        CopyBuffer(&value_ + this->start_, buffer + start, length);
 
-        return skip(length);
+        return this->skip(length);
     }
 
     virtual Value get()
     {
-        skip(1);
+        this->skip(1);
 
         return value_;
-    }
-
-    virtual void reset()
-    {
-        start_ = 0;
     }
 };
 
 
 template <typename Value>
-class ValueTarget: public IDataSource<Value> {
+class ValueTarget: public AbstractDataTarget<Value> {
+protected:
+
+	typedef AbstractDataTarget<Value>											Base;
+
     Value& value_;
 
-    SizeT start_    = 0;
-    SizeT length_   = 1;
-
 public:
-    ValueTarget(Value& value): value_(value) {}
+    ValueTarget(Value& value): Base(0, 1), value_(value) {}
 
     virtual IDataAPI api() const
     {
         return IDataAPI::Both;
     }
 
-    virtual SizeT skip(SizeT length)
-    {
-        if (start_ + length <= length_)
-        {
-            start_ += length;
-            return length;
-        }
-
-        SizeT distance = length_ - start_;
-        start_ = length_;
-        return distance;
-    }
-
-    virtual SizeT getStart() const
-    {
-        return start_;
-    }
-
-    virtual SizeT getRemainder() const
-    {
-        return length_ - start_;
-    }
-
-    virtual SizeT getAdvance() const
-    {
-        return getRemainder();
-    }
-
-    virtual SizeT getSize() const
-    {
-        return length_;
-    }
 
     SizeT size() const
     {
-        return getSize();
-    }
-
-    virtual void setSize(SizeT size)
-    {
-        length_ = size;
+        return this->getSize();
     }
 
     virtual SizeT put(const Value* buffer, SizeT start, SizeT length)
     {
-        CopyBuffer(buffer + start, &value_ + start_, length);
+        CopyBuffer(buffer + start, &value_ + this->start_, length);
 
-        return skip(length);
+        return this->skip(length);
     }
 
     virtual void put(const Value& value)
     {
         value_ = value;
-        skip(1);
-    }
-
-    virtual void reset()
-    {
-        start_ = 0;
+        this->skip(1);
     }
 };
 
@@ -843,7 +799,7 @@ public:
     virtual SizeT getRemainder() const {return 0;}
     virtual SizeT getAdvance() const {return 0;}
     virtual SizeT getSize() const {return 0;}
-    virtual void  reset() {}
+    virtual void  reset(SizeT pos = 0) {}
 };
 
 
@@ -863,7 +819,7 @@ public:
     virtual SizeT getRemainder() const {return 0;}
     virtual SizeT getAdvance() const {return 0;}
     virtual SizeT getSize() const {return 0;}
-    virtual void  reset() {}
+    virtual void  reset(SizeT pos = 0) {}
 };
 
 
@@ -935,9 +891,9 @@ public:
         return value;
     }
 
-    virtual void reset()
+    virtual void reset(SizeT pos = 0)
     {
-        start_ = 0;
+        start_ = pos;
     }
 };
 
@@ -1004,9 +960,9 @@ public:
         skip(1);
     }
 
-    virtual void reset()
+    virtual void reset(SizeT pos = 0)
     {
-        start_ = 0;
+        start_ = pos;
     }
 };
 

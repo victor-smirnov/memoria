@@ -38,13 +38,11 @@ public:
             typename Base::Container
     >::Type                                                                             IteratorCache;
 
-    static const Int Indexes                                                            = Base::Container::Indexes;
 
 private:
 
     NodeBaseG           leaf_;
 
-//    TreePath            path_;
     Int                 idx_;
     Int                 stream_;
 

@@ -7,6 +7,9 @@
 #ifndef MEMORIA_TESTS_DUMP_HPP
 #define MEMORIA_TESTS_DUMP_HPP
 
+#include <memoria/allocators/file/factory.hpp>
+#include <memoria/allocators/inmem/factory.hpp>
+
 typedef memoria::SmallInMemAllocator VStreamAllocator;
 
 //VStreamAllocator* manager;
@@ -283,8 +286,6 @@ Int DumpAllocator(String file_name)
             path.mkDirs();
         }
         
-        
-
         Int status = GenericFileAllocator::testFile(file.getPath());  
         
         if (status == 7) 

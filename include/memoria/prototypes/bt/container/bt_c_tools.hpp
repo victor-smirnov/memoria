@@ -56,7 +56,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     typedef typename Types::TreePath                                            TreePath;
     typedef typename Types::TreePathItem                                        TreePathItem;
 
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
     enum class BTNodeTraits {

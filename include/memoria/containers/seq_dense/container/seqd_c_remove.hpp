@@ -51,7 +51,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
@@ -93,9 +92,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
     	void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int length, Accumulator& delta)
     	{
     		MEMORIA_ASSERT_TRUE(seq != nullptr);
-
-    		typedef PkdFSSeq<SeqTypes>  				Seq;
-    		typedef typename Seq::Values                Values;
 
     		std::get<Idx>(delta).assignUp(seq->sums(idx, idx + length));
     		std::get<Idx>(delta)[0] = length;

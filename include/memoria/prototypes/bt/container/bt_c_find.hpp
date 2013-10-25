@@ -33,10 +33,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
 
-//    struct SearchModeDefault {
-//        typedef enum {NONE, FIRST, LAST} Enum;
-//    };
-
 private:
 
 

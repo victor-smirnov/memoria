@@ -47,11 +47,11 @@ SizeT RoundSymbolsToStorageType(SizeT length)
 };
 
 template <Int BitsPerSymbol, typename T = UBigInt>
-class SymbolsBuffer: public IDataSource<T>, public IDataTarget<T> {
+class SymbolsBuffer: public AbstractData<T> {
 	typedef SymbolsBuffer<BitsPerSymbol, T>										MyType;
 protected:
-    SizeT   start_;
-    SizeT   length_;
+	typedef AbstractData<T>														Base;
+
     T*      data_;
     bool    owner_;
 public:
@@ -64,22 +64,19 @@ public:
     }
 
     SymbolsBuffer(T* data, SizeT length, bool owner = false):
-        start_(0),
-        length_(length),
-        data_(data),
+        Base(0, length),
+    	data_(data),
         owner_(owner)
     {}
 
     SymbolsBuffer(SizeT length):
-        start_(0),
-        length_(length),
+    	Base(0, length),
         data_(T2T<T*>(length > 0 ?::malloc(storage_size(length)) : nullptr)),
         owner_(true)
     {}
 
     SymbolsBuffer(MyType&& other):
-        start_(other.start_),
-        length_(other.length_),
+    	Base(other.start_, other.length_),
         data_(other.data_),
         owner_(other.owner_)
     {
@@ -87,56 +84,26 @@ public:
     }
 
     SymbolsBuffer(const MyType& other):
-        start_(other.start_),
-        length_(other.length_),
-        owner_(true)
+    	Base(other.start, other.length_),
+    	owner_(true)
     {
-        data_ = T2T<T*>(length_ > 0 ?::malloc(storage_size(length_)) : nullptr);
+    	SizeT ssize = storage_size(this->length_);
 
-        CopyBuffer(other.data(), data_, length_);
+        data_ = T2T<T*>(this->length_ > 0 ?::malloc(ssize) : nullptr);
+
+        CopyBuffer(other.data(), data_, ssize);
     }
 
     virtual ~SymbolsBuffer() throw ()
     {
-        if (owner_) ::free(data_);
+        if (owner_) {
+        	::free(data_);
+        }
     }
 
     virtual IDataAPI api() const
     {
         return IDataAPI::Both;
-    }
-
-    virtual SizeT skip(SizeT length)
-    {
-        if (start_ + length <= length_)
-        {
-            start_ += length;
-            return length;
-        }
-
-        SizeT distance = length_ - start_;
-        start_ = length_;
-        return distance;
-    }
-
-    virtual SizeT getStart() const
-    {
-        return start_;
-    }
-
-    virtual SizeT getRemainder() const
-    {
-        return length_ - start_;
-    }
-
-    virtual SizeT getAdvance() const
-    {
-        return getRemainder();
-    }
-
-    virtual SizeT getSize() const
-    {
-        return length_;
     }
 
     T* data()
@@ -151,37 +118,33 @@ public:
 
     SizeT size() const
     {
-        return getSize();
+        return this->getSize();
     }
 
-    virtual void setSize(SizeT size)
-    {
-        length_ = size;
-    }
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)
     {
-        MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+        MEMORIA_ASSERT_TRUE(this->start_ + length <= this->length_);
 
-        MoveBits(buffer, data_, start * BitsPerSymbol, start_ * BitsPerSymbol, length * BitsPerSymbol);
+        MoveBits(buffer, data_, start * BitsPerSymbol, this->start_ * BitsPerSymbol, length * BitsPerSymbol);
 
-        return skip(length);
+        return this->skip(length);
     }
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        MEMORIA_ASSERT_TRUE(start_ + length <= length_);
+        MEMORIA_ASSERT_TRUE(this->start_ + length <= this->length_);
 
-        MoveBits(data_, buffer, start_ * BitsPerSymbol, start * BitsPerSymbol, length * BitsPerSymbol);
+        MoveBits(data_, buffer, this->start_ * BitsPerSymbol, start * BitsPerSymbol, length * BitsPerSymbol);
 
-        return skip(length);
+        return this->skip(length);
     }
 
     virtual T get()
     {
-        T value = GetBits(data_, start_ * BitsPerSymbol, BitsPerSymbol);
+        T value = GetBits(data_, this->start_ * BitsPerSymbol, BitsPerSymbol);
 
-        skip(1);
+        this->skip(1);
 
         return value;
     }
@@ -190,25 +153,19 @@ public:
 
     virtual void put(const T& value)
     {
-    	SetBits(data_, start_ * BitsPerSymbol, value, BitsPerSymbol);
-    	skip(1);
+    	SetBits(data_, this->start_ * BitsPerSymbol, value, BitsPerSymbol);
+    	this->skip(1);
     }
 
 
     void dump(std::ostream& out) const
     {
-        dumpSymbols(out, data_, length_, BitsPerSymbol);
+        dumpSymbols(out, data_, this->length_, BitsPerSymbol);
     }
-
-    virtual void reset()
-    {
-        start_ = 0;
-    }
-
 
     void clear()
     {
-    	SizeT len = storage_size(length_) / sizeof(T);
+    	SizeT len = storage_size(this->length_) / sizeof(T);
 
     	for (SizeT c = 0; c < len; c++)
     	{
@@ -234,12 +191,12 @@ public:
 
 
 template <Int BitsPerSymbol, typename T>
-class SymbolsBuffer<BitsPerSymbol, const T>: public IDataSource<T> {
+class SymbolsBuffer<BitsPerSymbol, const T>: public AbstractDataSource<T> {
 	typedef SymbolsBuffer<BitsPerSymbol, T>										MyType;
 
 protected:
-    SizeT       start_;
-    SizeT       length_;
+	typedef AbstractDataSource<T>												Base;
+
     const T*    data_;
 public:
 
@@ -249,15 +206,13 @@ public:
     }
 
     SymbolsBuffer(const T* data, SizeT length):
-        start_(0),
-        length_(length),
-        data_(data)
+        Base(0, length),
+    	data_(data)
     {}
 
     SymbolsBuffer(const MyType& other):
-        start_(other.start_),
-        data_(other.data_),
-        length_(other.length_)
+    	Base(other.start_, other.length_),
+        data_(other.data_)
     {}
 
 
@@ -268,73 +223,40 @@ public:
         return IDataAPI::Both;
     }
 
-    virtual SizeT skip(SizeT length)
-    {
-        if (start_ + length <= length_)
-        {
-            start_ += length;
-            return length;
-        }
-
-        SizeT distance = length_ - start_;
-        start_ = length_;
-        return distance;
-    }
-
-    virtual SizeT getStart() const
-    {
-        return start_;
-    }
-
-    virtual SizeT getRemainder() const
-    {
-        return length_ - start_;
-    }
-
-    virtual SizeT getAdvance() const
-    {
-        return getRemainder();
-    }
-
-    virtual SizeT getSize() const
-    {
-        return length_;
-    }
-
     const T* data() const
     {
         return data_;
     }
 
     SizeT size() const {
-        return getSize();
+        return this->getSize();
     }
 
 
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
-        MoveBits(data_, buffer, start_ * BitsPerSymbol, start * BitsPerSymbol, length * BitsPerSymbol);
+        MoveBits(data_, buffer, this->start_ * BitsPerSymbol, start * BitsPerSymbol, length * BitsPerSymbol);
 
-        return skip(length);
+        return this->skip(length);
     }
 
     virtual T get()
     {
-    	T value = GetBits(data_, start_ * BitsPerSymbol, BitsPerSymbol);
+    	T value = GetBits(data_, this->start_ * BitsPerSymbol, BitsPerSymbol);
 
-        skip(1);
+    	this->skip(1);
 
         return value;
     }
 
     void dump(std::ostream& out) const
     {
-        dumpSymbols(out, data_, length_, BitsPerSymbol);
+        dumpSymbols(out, data_, this->length_, BitsPerSymbol);
     }
 
-    virtual void reset()
+    virtual void reset(SizeT pos = 0)
     {
-        start_ = 0;
+    	this->start_ = pos;
     }
 };
 

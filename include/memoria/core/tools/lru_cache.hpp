@@ -41,10 +41,10 @@ class LRUCache {
 	typedef LRUCache<Key, EvictionPredicate, NodeExtender, Map>		MyType;
 
 	template <
-		template <typename> class NodeExtender
+		template <typename> class NodeExtender1
 	>
 	class NodeBase {
-		typedef NodeExtender<NodeBase<NodeExtender>>* NodePtr;
+		typedef NodeExtender<NodeBase<NodeExtender1>>* NodePtr;
 
 		NodePtr next_;
 		NodePtr prev_;

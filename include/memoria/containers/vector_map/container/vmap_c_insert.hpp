@@ -50,14 +50,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
-
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::IDataSourceType                                     DataSource;
-    typedef typename Types::IDataTargetType                                     DataTarget;
+    typedef typename Types::DataSource                                     		DataSource;
+    typedef typename Types::DataTarget                                     		DataTarget;
 
 
 
@@ -150,15 +146,16 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
             }
         }
         else {
-            if (entry_idx < leaf_size)
+        	// -1 added for DblMap
+            if (entry_idx < leaf_size/* - 1*/)
             {
-                auto right = self.splitLeafP(iter.leaf(), {entry_idx + 1, idx});
+            	auto right = self.splitLeafP(iter.leaf(), {entry_idx + 1, idx});
                 iter.cache().setEntries(iter.leaf_size(0));
 
                 insertDataInternal1(iter, {0, idx}, data);
             }
             else {
-                insertDataInternal1(iter, {0, idx}, data);
+            	insertDataInternal1(iter, {0, idx}, data);
             }
         }
     }

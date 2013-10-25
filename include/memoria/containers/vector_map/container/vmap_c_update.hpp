@@ -50,14 +50,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrUpdateName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
-
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::IDataSourceType                                     DataSource;
-    typedef typename Types::IDataTargetType                                     DataTarget;
+    typedef typename Types::DataSource                                     		DataSource;
+    typedef typename Types::DataTarget                                     		DataTarget;
 
     void replaceData(Iterator& iter, DataSource& data);
     BigInt updateData(Iterator& iter, DataSource& data);
@@ -85,7 +81,7 @@ void M_TYPE::replaceData(Iterator& iter, DataSource& data)
     {
         if (entry_size > 0)
         {
-            memoria::vapi::DataSourceProxy<Value> proxy(data, entry_size);
+            memoria::vapi::DataSourceProxy<typename Types::IOValue> proxy(data, entry_size);
 
             BigInt updated = self.updateData(iter, proxy);
             MEMORIA_ASSERT(updated, ==, entry_size);

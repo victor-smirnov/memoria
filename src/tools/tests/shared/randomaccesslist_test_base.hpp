@@ -37,7 +37,7 @@ protected:
     typedef typename Ctr::Accumulator                                                   Accumulator;
     typedef typename Ctr::ID                                                            ID;
 
-    static const Int Indexes = Ctr::Indexes;
+//    static const Int Indexes = Ctr::Indexes;
 
     Int max_block_size_     = 1024*4;
     Int check_size_         = 1000;

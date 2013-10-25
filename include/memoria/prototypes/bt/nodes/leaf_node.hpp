@@ -739,7 +739,7 @@ public:
         CanMergeWithFn fn;
         Dispatcher::dispatchAll(allocator(), fn, other);
 
-        Int free_space = this->allocator()->free_space();
+        Int free_space = this->allocator()->free_space() + Base::allocator()->free_space();
 
         return free_space >= fn.mem_used_;
     }
@@ -776,6 +776,10 @@ public:
         {
             Int idx   = indexes->value(Idx);
             Int size  = tree->size();
+
+            if (idx < 0) {
+            	int a = 0; a++;
+            }
 
             MEMORIA_ASSERT_TRUE(idx >= 0);
             MEMORIA_ASSERT_TRUE(idx <= size);

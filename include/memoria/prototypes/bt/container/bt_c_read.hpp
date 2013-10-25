@@ -50,10 +50,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::IDataTargetType                                     DataTarget;
+    typedef typename Types::DataTarget                                     		DataTarget;
 
     Position getRemainder(ITarget& target)
     {

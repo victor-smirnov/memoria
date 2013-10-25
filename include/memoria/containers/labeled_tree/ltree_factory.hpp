@@ -37,8 +37,6 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
     typedef UBigInt                                                             Value;
     typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int Indexes                                                    = 3;
-
     typedef TypeList<
                 NonLeafNodeTypes<BranchNode>,
                 LeafNodeTypes<LeafNode>

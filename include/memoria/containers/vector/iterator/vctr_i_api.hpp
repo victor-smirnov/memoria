@@ -132,14 +132,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     BigInt read(std::vector<Value>& data)
     {
-        MemTBuffer<Value> buf(data);
+        MemBuffer<Value> buf(data);
         return read(buf);
     }
 
     Value value() const
     {
         Value data;
-        MemTBuffer<Value> buf(&data, 1);
+        MemBuffer<Value> buf(&data, 1);
 
         BigInt length = read(buf);
 

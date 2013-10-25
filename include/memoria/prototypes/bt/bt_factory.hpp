@@ -154,7 +154,6 @@ struct BTTypes {
     typedef TypeList<
     >                                                                           StreamDescriptors;
 
-
     template <
         typename Types_
     >
@@ -176,6 +175,10 @@ struct BTTypes {
     };
 
     static const Int MAIN_STREAM                                                = 0;
+
+
+    typedef EmptyType															DataSource;
+    typedef EmptyType															DataTarget;
 
 
     template <typename Types>
@@ -331,12 +334,7 @@ public:
         typedef Accumulator_                                                    Accumulator;
         typedef bt::StaticVector<BigInt, MyType::Streams>                       Position;
 
-
-
         typedef ValuePair<Accumulator, Value>                                   Element;
-
-        typedef IDataSource<Value>                                              IDataSourceType;
-        typedef IDataTarget<Value>                                              IDataTargetType;
 
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
     };

@@ -39,8 +39,6 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
     typedef BigInt                                                              Value;
     typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int Indexes                                                    = 1;
-
 
     typedef TypeList<
             LeafNodeTypes<LeafNode>,

@@ -109,7 +109,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     };
 
 
-    static const Int  Indexes                                                   = Types::Indexes;
+
 
 
     void operator=(ThisType&& other) {

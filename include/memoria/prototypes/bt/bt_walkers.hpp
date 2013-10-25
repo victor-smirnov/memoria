@@ -19,7 +19,7 @@
 
 
 namespace memoria       {
-namespace bt {
+namespace bt 			{
 
 
 template <typename Types, typename MyType>
@@ -255,55 +255,52 @@ public:
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
     {
-        auto k      = Base::target_ - Base::sum_;
-
-        auto result = tree->findForward(Base::search_type_, Base::index_, start, k);
-
-        Base::sum_ += result.prefix();
-
-        self().template postProcessStream<Idx>(tree, start, result);
-
-        return result.idx();
+    	return self().template tree<Idx>(tree, start);
     }
+
+    template <Int Idx, typename TreeTypes>
+    ResultType stream(const PackedFSEMap<TreeTypes>* tree, Int start)
+    {
+    	return self().template tree<Idx>(tree, start);
+    }
+
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdVTree<TreeTypes>* tree, Int start)
     {
-        auto k      = Base::target_ - Base::sum_;
-
-        auto result = tree->findForward(Base::search_type_, Base::index_, start, k);
-
-        Base::sum_ += result.prefix();
-
-        self().template postProcessStream<Idx>(tree, start, result);
-
-        return result.idx();
+    	return self().template tree<Idx>(tree, start);
     }
 
     template <Int Idx, typename StreamTypes>
     ResultType stream(const PackedFSEArray<StreamTypes>* array, Int start)
     {
-        auto& sum = Base::sum_;
-
-        BigInt offset = Base::target_ - sum;
-
-        Int size = array != nullptr? array->size() : 0;
-
-        if (start + offset < size)
-        {
-            sum += offset;
-
-            return start + offset;
-        }
-        else {
-            sum += (size - start);
-
-            return size;
-        }
+    	return self().template array<Idx>(array, start);
     }
 
     template <Int Idx, typename StreamTypes>
     ResultType stream(const PkdFSSeq<StreamTypes>* array, Int start)
+    {
+    	return self().template array<Idx>(array, start);
+    }
+
+
+
+    template <Int Idx, typename Tree>
+    ResultType tree(const Tree* tree, Int start)
+    {
+    	auto k      = Base::target_ - Base::sum_;
+
+    	auto result = tree->findForward(Base::search_type_, Base::index_, start, k);
+
+    	Base::sum_ += result.prefix();
+
+    	self().template postProcessStream<Idx>(tree, start, result);
+
+    	return result.idx();
+    }
+
+    template <Int Idx, typename Array>
+    ResultType array(const Array* array, Int start)
     {
     	auto& sum = Base::sum_;
 
@@ -323,6 +320,7 @@ public:
     		return size;
     	}
     }
+
 
     MyType& self() {
         return *T2T<MyType*>(this);
@@ -504,50 +502,52 @@ public:
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
     {
-        auto k          = Base::target_ - Base::sum_;
-        auto result     = tree->findBackward(Base::search_type_, Base::index_, start, k);
-        Base::sum_      += result.prefix();
-
-        self().template postProcessStreamPrefix<Idx>(result.prefix());
-        self().template postProcessStream<Idx>(tree, start, result);
-
-        return result.idx();
+    	return self().template tree<Idx>(tree, start);
     }
+
+    template <Int Idx, typename TreeTypes>
+    ResultType stream(const PackedFSEMap<TreeTypes>* tree, Int start)
+    {
+    	return self().template tree<Idx>(tree, start);
+    }
+
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdVTree<TreeTypes>* tree, Int start)
     {
-        auto k          = Base::target_ - Base::sum_;
-        auto result     = tree->findBackward(Base::search_type_, Base::index_, start, k);
-        Base::sum_      += result.prefix();
-
-        self().template postProcessStreamPrefix<Idx>(result.prefix());
-        self().template postProcessStream<Idx>(tree, start, result);
-
-        return result.idx();
+    	return self().template tree<Idx>(tree, start);
     }
 
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEArray<TreeTypes>* array, Int start)
     {
-        BigInt offset = Base::target_ - Base::sum_;
-
-        auto& sum = Base::sum_;
-
-        if (start - offset >= 0)
-        {
-            sum += offset;
-            return start - offset;
-        }
-        else {
-            sum += start;
-            return -1;
-        }
+    	return self().template array<Idx>(array, start);
     }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdFSSeq<TreeTypes>* array, Int start)
+    {
+    	return self().template array<Idx>(array, start);
+    }
+
+
+    template <Int Idx, typename Tree>
+    ResultType tree(const Tree* tree, Int start)
+    {
+        auto k          = Base::target_ - Base::sum_;
+        auto result     = tree->findBackward(Base::search_type_, Base::index_, start, k);
+        Base::sum_      += result.prefix();
+
+        self().template postProcessStreamPrefix<Idx>(result.prefix());
+        self().template postProcessStream<Idx>(tree, start, result);
+
+        return result.idx();
+    }
+
+
+    template <Int Idx, typename Array>
+    ResultType array(const Array* array, Int start)
     {
     	BigInt offset = Base::target_ - Base::sum_;
 
