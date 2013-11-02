@@ -713,6 +713,149 @@ public:
 
 
 
+template <typename Types>
+class SelectForwardWalkerBase: public FindForwardWalkerBase<Types, SelectForwardWalkerBase<Types>> {
+
+    typedef FindForwardWalkerBase<Types, SelectForwardWalkerBase<Types>>        Base;
+
+protected:
+    typedef typename Base::Key                                                  Key;
+
+    BigInt pos_ = 0;
+
+    Int size_index_;
+    Int symbol_;
+
+public:
+    typedef typename Base::ResultType                                           ResultType;
+    typedef typename Base::Iterator                                             Iterator;
+
+
+    SelectForwardWalkerBase(Int stream, Int index, Int symbol, Key target, Int size_index = 0):
+    	Base(stream, index + 1, target),
+    	size_index_(size_index),
+    	symbol_(symbol)
+    {
+        Base::search_type_ = SearchType::LE;
+    }
+
+    template <Int Idx, typename Tree>
+    ResultType stream(const Tree* tree, Int start)
+    {
+        return Base::template stream<Idx>(tree, start);
+    }
+
+    template <Int StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    {
+        Int size    = stream->size();
+
+        if (result.idx() < size)
+        {
+            pos_ += stream->sum(size_index_, start, result.idx());
+        }
+        else {
+            pos_ += stream->sum(size_index_, start, size);
+        }
+    }
+
+    template <Int Idx, typename StreamObj>
+    ResultType select(const StreamObj* seq, Int start)
+    {
+        MEMORIA_ASSERT_TRUE(seq != nullptr);
+
+        auto& sum       = Base::sum_;
+
+        BigInt target   = Base::target_ - sum;
+        auto result     = seq->selectFw(start, symbol_, target);
+
+        if (result.is_found())
+        {
+            pos_ += result.idx() - start;
+            return result.idx();
+        }
+        else {
+            Int size = seq->size();
+
+            sum  += result.rank();
+            pos_ += (size - start);
+
+            return size;
+        }
+    }
+};
+
+
+
+
+template <typename Types>
+class SelectBackwardWalkerBase: public FindBackwardWalkerBase<Types, SelectBackwardWalkerBase<Types>> {
+
+    typedef FindBackwardWalkerBase<Types, SelectBackwardWalkerBase<Types>>      Base;
+
+protected:
+    typedef typename Base::Key                                                  Key;
+
+    BigInt pos_ = 0;
+
+    Int size_index_;
+    Int symbol_;
+
+public:
+    typedef typename Base::ResultType                                           ResultType;
+    typedef typename Base::Iterator                                             Iterator;
+
+    SelectBackwardWalkerBase(Int stream, Int index, Int symbol, Key target, Int size_index = 0):
+    	Base(stream, index + 1, target),
+    	size_index_(size_index),
+    	symbol_(symbol)
+    {
+        Base::search_type_ = SearchType::LT;
+    }
+
+    template <Int Idx, typename Tree>
+    ResultType stream(const Tree* tree, Int start)
+    {
+        return Base::template stream<Idx>(tree, start);
+    }
+
+    template <Int StreamIdx, typename StreamType, typename Result>
+    void postProcessStream(const StreamType* stream, Int start, const Result& result)
+    {
+        if (result.idx() >= 0)
+        {
+            pos_ += stream->sum(size_index_, result.idx() + 1, start + 1);
+        }
+        else {
+            pos_ += stream->sum(size_index_, 0, start + 1);
+        }
+    }
+
+    template <Int Idx, typename StreamObj>
+    ResultType select(const StreamObj* seq, Int start)
+    {
+        MEMORIA_ASSERT_TRUE(seq != nullptr);
+
+        BigInt target   = Base::target_ - Base::sum_;
+
+        auto& sum       = Base::sum_;
+
+        auto result     = seq->selectBw(start, symbol_, target);
+
+        if (result.is_found())
+        {
+            pos_ += start - result.idx();
+            return result.idx();
+        }
+        else {
+            pos_ += start;
+            sum += result.rank();
+            return -1;
+        }
+    }
+};
+
+
 
 }
 }

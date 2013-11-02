@@ -18,6 +18,7 @@
 #include <memoria/containers/wt/wt_factory.hpp>
 #include <memoria/containers/vector_tree/vtree_factory.hpp>
 #include <memoria/containers/dbl_map/dblmap_factory.hpp>
+#include <memoria/containers/smrk_map/smrkmap_factory.hpp>
 
 #include <memoria/core/container/metadata_repository.hpp>
 

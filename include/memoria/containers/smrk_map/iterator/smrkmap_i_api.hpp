@@ -6,23 +6,24 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_MAP_ITER_API_HPP
-#define _MEMORIA_CONTAINERS_MAP_ITER_API_HPP
+#ifndef _MEMORIA_CONTAINERS_SMRKMAP_ITER_API_HPP
+#define _MEMORIA_CONTAINERS_SMRKMAP_ITER_API_HPP
 
 #include <memoria/core/types/types.hpp>
 
-#include <memoria/containers/map/map_names.hpp>
+#include <memoria/containers/smrk_map/smrkmap_names.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_fse_smark_map.hpp>
 
 #include <iostream>
 
 namespace memoria    {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
@@ -53,24 +54,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
     struct KeyFn {
         Key value_ = 0;
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
-        {
-            if (map != nullptr)
-            {
-                value_ = map->tree()->value(0, idx);
-            }
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
-        {
-            if (map != nullptr)
-            {
-                value_ = map->tree()->value(0, idx);
-            }
-        }
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
@@ -128,7 +111,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
     Accumulator prefixes() const {
         Accumulator acc;
 
-        std::get<0>(acc)[0] = self().prefix();
+        std::get<0>(acc)[1] = self().prefix();
 
         return acc;
     }
@@ -140,22 +123,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
 
     struct SetValueFn {
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEMap<StreamTypes>* map, Int idx, const Value& value)
-        {
-            MEMORIA_ASSERT_TRUE(map != nullptr);
-            map->value(idx) = value;
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx, const Value& value)
-        {
-            MEMORIA_ASSERT_TRUE(map != nullptr);
-            map->value(idx) = value;
-        }
-
-        template <Int Idx, typename StreamTypes>
+    	template <Int Idx, typename StreamTypes>
         void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, const Value& value)
         {
         	MEMORIA_ASSERT_TRUE(map != nullptr);
@@ -206,23 +174,23 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
     struct GetValueFn {
         Value value_ = 0;
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
-        {
-            if (map != nullptr)
-            {
-                value_ = map->value(idx);
-            }
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
-        {
-            if (map != nullptr)
-            {
-                value_ = map->value(idx);
-            }
-        }
+//        template <Int Idx, typename StreamTypes>
+//        void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
+//        {
+//            if (map != nullptr)
+//            {
+//                value_ = map->value(idx);
+//            }
+//        }
+//
+//        template <Int Idx, typename StreamTypes>
+//        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
+//        {
+//            if (map != nullptr)
+//            {
+//                value_ = map->value(idx);
+//            }
+//        }
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
@@ -269,6 +237,119 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
     }
 
 
+    struct SetMarkFn {
+
+    	Int old_mark_;
+
+    	template <Int Idx, typename StreamTypes>
+    	void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, Int mark)
+    	{
+    		MEMORIA_ASSERT_TRUE(map != nullptr);
+
+    		old_mark_ = map->mark(idx);
+
+    		map->mark(idx) = mark;
+
+    		map->bitmap()->reindex();
+    	}
+
+
+    	template <typename NTypes>
+    	void treeNode(LeafNode<NTypes>* node, Int idx, Int mark)
+    	{
+    		node->layout(1);
+    		node->template processStream<0>(*this, idx, mark);
+    	}
+    };
+
+
+    void setMark(Int mark)
+    {
+    	auto& self = this->self();
+
+    	self.leaf().update();
+
+    	SetMarkFn fn;
+
+    	LeafDispatcher::dispatch(self.leaf(), fn, self.idx(), mark);
+
+    	Accumulator sums;
+
+    	std::get<0>(sums)[2 + fn.old_mark_] = -1;
+    	std::get<0>(sums)[2 + mark] = 1;
+
+    	self.ctr().updateParent(self.leaf(), sums);
+    }
+
+    struct AssingFn {
+    	template <Int Idx, typename StreamTypes>
+    	void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, Int mark, const Value& value)
+    	{
+    		MEMORIA_ASSERT_TRUE(map != nullptr);
+
+    		map->mark(idx)  = mark;
+    		map->value(idx) = value;
+
+    		map->bitmap()->reindex();
+    	}
+
+
+    	template <typename NTypes>
+    	void treeNode(LeafNode<NTypes>* node, Int idx, Int mark, const Value& value)
+    	{
+    		node->layout(1);
+    		node->template processStream<0>(*this, idx, mark, value);
+    	}
+    };
+
+
+    void assing(Int mark, const Value& value)
+    {
+    	auto& self = this->self();
+
+    	self.leaf().update();
+
+    	LeafDispatcher::dispatch(self.leaf(), AssingFn(), self.idx(), mark, value);
+
+    	Accumulator sums;
+
+    	std::get<0>(sums)[2 + mark] = 1;
+
+    	self.ctr().updateParent(self.leaf(), sums);
+    }
+
+
+
+    struct GetMarkFn {
+    	Int mark_;
+
+    	template <Int Idx, typename StreamTypes>
+    	void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+    	{
+    		MEMORIA_ASSERT_TRUE(map != nullptr);
+
+    		this->mark_ =  map->mark(idx);
+    	}
+
+
+    	template <typename NTypes>
+    	void treeNode(const LeafNode<NTypes>* node, Int idx)
+    	{
+    		node->template processStream<0>(*this, idx);
+    	}
+    };
+
+    Int mark() const
+    {
+    	GetMarkFn fn;
+
+    	LeafDispatcher::dispatchConst(self().leaf(), fn, self().idx());
+
+    	return fn.mark_;
+    }
+
+
+
 
 
     void remove()
@@ -280,7 +361,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
         if (!self.isEnd())
         {
-            self.updateUp(keys);
+            std::get<0>(keys)[0] = 0;
+
+            for (Int c = 0; c < 1<<Types::BitsPerMark; c++)
+            {
+            	std::get<0>(keys)[c + 2] = 0;
+            }
+
+        	self.updateUp(keys);
         }
     }
 
@@ -302,7 +390,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
     void ComputePrefix(Accumulator& accum)
     {
-        ComputePrefix(std::get<0>(accum)[0]);
+        ComputePrefix(std::get<0>(accum)[1]);
     }
 
     void dump(std::ostream& out = std::cout)
@@ -316,41 +404,41 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
         PrefixFn() {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
-        {
-            if (map != nullptr)
-            {
-                prefix_ += map->tree()->sum(0, idx);
-            }
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
-        {
-            if (map != nullptr)
-            {
-                prefix_ += map->tree()->sum(0, idx);
-            }
-        }
-
+//        template <Int Idx, typename StreamTypes>
+//        void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
+//        {
+//            if (map != nullptr)
+//            {
+//                prefix_ += map->tree()->sum(0, idx);
+//            }
+//        }
+//
+//        template <Int Idx, typename StreamTypes>
+//        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
+//        {
+//            if (map != nullptr)
+//            {
+//                prefix_ += map->tree()->sum(0, idx);
+//            }
+//        }
+//
         template <Int Idx, typename StreamTypes>
         void stream(const PkdFTree<StreamTypes>* tree, Int idx)
         {
             if (tree != nullptr)
             {
-                prefix_ += tree->sum(0, idx);
+                prefix_ += tree->sum(1, idx);
             }
         }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdVTree<StreamTypes>* tree, Int idx)
-        {
-            if (tree != nullptr)
-            {
-                prefix_ += tree->sum(0, idx);
-            }
-        }
+//
+//        template <Int Idx, typename StreamTypes>
+//        void stream(const PkdVTree<StreamTypes>* tree, Int idx)
+//        {
+//            if (tree != nullptr)
+//            {
+//                prefix_ += tree->sum(1, idx);
+//            }
+//        }
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)

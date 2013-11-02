@@ -14,6 +14,7 @@
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_fse_smark_map.hpp>
 
 
 
@@ -56,6 +57,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
         {
             std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
             map->remove(idx, idx + 1);
+        }
+
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	map->addKeys(idx, std::get<Idx>(entry_));
+        	map->remove(idx, idx + 1);
         }
 
         template <typename Node>

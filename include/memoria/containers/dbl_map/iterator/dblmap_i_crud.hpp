@@ -182,8 +182,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
 
     	self.findData();
 
-//    	self.dump();
-
     	if (self.find2ndLE(key))
     	{
     		auto k = self.key2();

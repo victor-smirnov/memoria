@@ -13,7 +13,7 @@
 #include <memoria/core/container/ctr_shared.hpp>
 #include <memoria/core/container/page.hpp>
 
-
+#include <memory>
 
 namespace memoria    {
 
@@ -25,10 +25,14 @@ struct ICtrDirectory {
     virtual void  setRoot(BigInt name, const ID& root)                  		= 0;
     virtual bool  hasRoot(BigInt name)                                  		= 0;
     virtual BigInt createCtrName()                                      		= 0;
+
+    virtual ~ICtrDirectory() {}
 };
 
 struct IAllocatorProperties {
 	virtual Int defaultPageSize() const											= 0;
+
+	virtual ~IAllocatorProperties() {}
 };
 
 
@@ -80,39 +84,28 @@ public:
     typedef IAllocator<PageType>                                                Type;
 };
 
+
 template <typename PageType>
 struct ITxn: IAllocator<PageType> {
 	virtual void commit() 														= 0;
 	virtual void rollback() 													= 0;
 };
 
+
 template <typename PageType>
-struct ITxnManager {
+struct IMVCCTxnMgr {
 	typedef ITxn<PageType>														Txn;
+	typedef	std::shared_ptr<Txn>												TxnPtr;
 
-	virtual Txn* begin() 														= 0;
+	virtual TxnPtr begin() 														= 0;
+
+	virtual ~IMVCCTxnMgr() {}
 };
 
 
-template <typename PageType>
-struct IBranch {
 
-};
 
-template <typename T>
-struct IIterator {
-	virtual bool next() 														= 0;
-};
 
-template <typename PageType>
-struct ICtrCollection {
-	typedef IBranch<PageType>													Branch;
-
-	virtual Branch* root()														= 0;
-	virtual String name()														= 0;
-
-	virtual IIterator<Branch>* children()										= 0;
-};
 
 }
 

@@ -225,6 +225,9 @@ public:
         }
     }
 
+
+
+
     StaticVector(std::initializer_list<ElementType> list)
     {
         Int idx = 0;
@@ -332,6 +335,17 @@ public:
         }
 
         return *this;
+    }
+
+    template <typename T, Int TIndexes, typename = std::enable_if<TIndexes <= Indexes>>
+    MyType& sumAt(Int idx, const StaticVector<T, TIndexes>& other)
+    {
+    	for (Int c = 0; c < TIndexes; c++)
+    	{
+    		values_[c + idx] += other.values_[c];
+    	}
+
+    	return *this;
     }
 
     bool operator==(const MyType& other) const

@@ -111,7 +111,8 @@ public:
 
     static const Int IndexSizeThreshold                                         = 0;
 
-    typedef core::StaticVector<BigInt, Indexes + 1>                             Values;
+    typedef core::StaticVector<BigInt, Indexes>                             	Values;
+    typedef core::StaticVector<BigInt, Indexes + 1>                             Values2;
 
     typedef typename Types::template ToolsFn<MyType>                            Tools;
 
@@ -339,7 +340,9 @@ public:
 
     void set(Int idx, Int symbol)
     {
-        tools().set(symbols(), idx, symbol);
+    	MEMORIA_ASSERT(idx , <, size());
+
+    	tools().set(symbols(), idx, symbol);
     }
 
     void clear()
@@ -587,14 +590,14 @@ public:
 
     // ========================================= Query ================================= //
 
-    Values sums() const
+    Values2 sums2() const
     {
         if (has_index())
         {
             auto index = this->index();
             auto isums = index->sums();
 
-            Values vsums;
+            Values2 vsums;
 
             vsums.assignUp(isums);
             vsums[0] = size();
@@ -602,15 +605,17 @@ public:
             return vsums;
         }
         else {
-            return sums(size());
+            return sums2(size());
         }
     }
 
-    Values sums2() const {
-        return sums();
+    Values sums() const
+    {
+    	Values2 values2 = sums2();
+    	return convert(values2);
     }
 
-    Values sums(Int to) const
+    Values2 sums2(Int to) const
     {
         if (has_index())
         {
@@ -635,9 +640,15 @@ public:
         }
     }
 
-    Values ranks(Int to) const
+    Values sums(Int to) const
     {
-        Values vals;
+    	return convert(sums2(to));
+    }
+
+
+    Values2 ranks(Int to) const
+    {
+        Values2 vals;
         vals[0] = to;
 
         for (Int symbol = 0; symbol < Indexes; symbol++)
@@ -653,49 +664,61 @@ public:
         return sums(to) - sums(from);
     }
 
-    Values sums2(Int from, Int to) const
+    Values2 sums2(Int from, Int to) const
     {
-        return sums(to) - sums(from);
+        return sums2(to) - sums2(from);
+    }
+
+    void sums(Int from, Int to, Values2& values) const
+    {
+        values += sums2(from, to);
     }
 
     void sums(Int from, Int to, Values& values) const
     {
-        values += sums(from, to);
+    	values += sums(from, to);
     }
 
-//  void sums(Int from, Int to, Values2& values) const
-//  {
-//      values[0] += to - from;
-//      values.sumUp(sums(from, to));
-//  }
+    void sums(Values2& values) const
+    {
+        values += sums2();
+    }
 
     void sums(Values& values) const
     {
-        values += sums();
+    	values += sums();
     }
 
-//  void sums(Values2& values) const
-//  {
-//      values[0] += size();
-//      values.sumUp(sums());
-//  }
+    Values2 sum(Int from, Int to) const {
+        return sums2(from, to);
+    }
 
 
+    void addKeys(Int idx, Values& values) const
+    {
+    	Int symbol = this->symbol(idx);
+    	values[symbol]++;
+    }
 
+    void addKeys(Int idx, Values2& values) const
+    {
+    	values[0] += 1;
 
-
-    Values sum(Int from, Int to) const {
-        return sums(from, to);
+    	Int symbol = this->symbol(idx);
+    	values[symbol]++;
     }
 
     Int get(Int idx) const
     {
-        return tools().get(symbols(), idx);
+        MEMORIA_ASSERT(idx , <, size());
+
+    	return tools().get(symbols(), idx);
     }
 
     bool test(Int idx, Value symbol) const
     {
-        return tools().test(symbols(), idx, symbol);
+    	MEMORIA_ASSERT(idx , <, size());
+    	return tools().test(symbols(), idx, symbol);
     }
 
     Int rank(Int symbol) const
@@ -901,6 +924,17 @@ private:
         Int byte_size   = Base::roundUpBitsToAlignmentBlocks(bit_size);
 
         return byte_size / sizeof(Value);
+    }
+
+    static Values convert(const Values2& v)
+    {
+    	Values values;
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		values[c] = v[c + 1];
+    	}
+
+    	return values;
     }
 };
 

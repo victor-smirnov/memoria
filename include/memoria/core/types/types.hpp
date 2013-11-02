@@ -193,6 +193,16 @@ struct VTree        {};
 template <Granularity gr = Granularity::Byte>
 struct CMap         {};
 
+// A map with marked K/V pairs
+template <typename Key, typename Value, Int BitsPerMark = 1>
+struct MrkMap		{};
+
+// A map with marked K/V pairs, with search over marks
+template <typename Key, typename Value, Int BitsPerMark = 1>
+struct SMrkMap		{};
+
+
+
 
 /*
  * End of container type names and profiles

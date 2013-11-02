@@ -412,9 +412,19 @@ public:
     {
         if (value != 0)
         {
-            Value val = this->value(block, idx);
-            setValue(block, idx, val + value);
+        	this->value(block, idx) += value;
         }
+    }
+
+    template <typename Value, Int Indexes>
+    void addValues(Int idx, Int from, Int size, const core::StaticVector<Value, Indexes>& values)
+    {
+    	for (Int block = 0; block < size; block++)
+    	{
+    		value(block, idx) += values[block + from];
+    	}
+
+    	reindex();
     }
 
     BigInt setValue(Int block, Int idx, Value value)
@@ -717,6 +727,26 @@ public:
         values[0] += size();
         values.sumUp(sums());
     }
+
+
+    void addKeys(Int idx, Values& values) const
+    {
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		values[block] += this->value(block, idx);
+    	}
+    }
+
+    void addKeys(Int idx, Values2& values) const
+    {
+    	values[0] += 1;
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		values[block + 1] += this->value(block, idx);
+    	}
+    }
+
 
     ValueDescr findLTForward(Int block, Int start, IndexValue val) const
     {

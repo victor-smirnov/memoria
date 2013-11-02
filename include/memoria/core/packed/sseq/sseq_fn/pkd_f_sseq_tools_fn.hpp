@@ -16,7 +16,7 @@ namespace memoria {
 
 template <typename Seq>
 class BitmapToolsFn {
-    typedef typename Seq::Values                                                Values;
+    typedef typename Seq::Values2                                               Values;
     typedef typename Seq::Value                                                 Value;
 
     static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
@@ -71,7 +71,7 @@ public:
 
 template <typename Seq>
 class SeqToolsFn {
-    typedef typename Seq::Values            Values;
+    typedef typename Seq::Values2           Values;
     typedef typename Seq::Value             Value;
 
     static const Int BitsPerSymbol          = Seq::BitsPerSymbol;
@@ -131,7 +131,7 @@ public:
 
 template <typename Seq>
 class Seq8ToolsFn {
-    typedef typename Seq::Values            Values;
+    typedef typename Seq::Values2           Values;
     typedef typename Seq::Value             Value;
 
     static const Int BitsPerSymbol          = Seq::BitsPerSymbol;

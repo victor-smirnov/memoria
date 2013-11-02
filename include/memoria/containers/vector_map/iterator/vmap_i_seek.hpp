@@ -46,6 +46,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     typedef typename Container::Position                                        Position;
     typedef std::pair<BigInt, BigInt>                                           BlobDescriptorEntry; // ID, Size
 
+
+
     template <typename T>
     using FwWalker = typename Container::Types::template SkipForwardWalker<T>;
 
@@ -240,7 +242,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         template <Int StreamIdx, typename Tree>
         void stream(const Tree* tree, Int idx)
         {
-            prefix_ += tree->sum(block_, idx);
+        	if (idx > 0)
+        	{
+        		MEMORIA_ASSERT_TRUE(tree != nullptr);
+        	}
+
+            prefix_ += tree ? tree->sum(block_, idx) : 0;
         }
     };
 
@@ -295,7 +302,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         template <Int StreamIdx, typename TreeTypes>
         void stream(const PkdFTree<TreeTypes>* tree, Int idx)
         {
-            prefix_ += tree->sum(1, idx);
+        	if (idx > 0)
+        	{
+        		MEMORIA_ASSERT_TRUE(tree != nullptr);
+        	}
+
+        	prefix_ += tree ? tree->sum(1, idx) : 0;
         }
     };
 
@@ -362,7 +374,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         template <Int StreamIdx, typename StreamType>
         ResultType stream(StreamType* obj, Int idx)
         {
-            BlobDescriptorEntry entry;
+        	MEMORIA_ASSERT_TRUE(obj != nullptr && idx >= 0 && idx < obj->size());
+
+        	BlobDescriptorEntry entry;
 
             entry.first  = obj->value(0, idx);
             entry.second = obj->value(1, idx);
@@ -397,9 +411,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         template <Int StreamIdx, typename StreamType>
         ResultType stream(const StreamType* obj, Int block, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
+            if (idx > 0)
+            {
+            	MEMORIA_ASSERT_TRUE(obj != nullptr);
+            }
 
-            return obj->sum(block, idx);
+            return obj ? obj->sum(block, idx) : 0;
         }
     };
 

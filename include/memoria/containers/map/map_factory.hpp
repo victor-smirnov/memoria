@@ -23,7 +23,6 @@ template <typename Profile, Granularity gr, typename T>
 class CtrTF<Profile, memoria::CMap<gr>, T>: public CtrTF<Profile, memoria::BT, T> {
 };
 
-
 }
 
 #endif

@@ -23,9 +23,7 @@ namespace memoria    {
 MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
-    typedef typename Base::TreePath                                             TreePath;
 
     typedef typename Base::Container::Value                                     Value;
     typedef typename Base::Container::Key                                       Key;
@@ -42,21 +40,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
     }
 
     bool operator++(int) {
-        return me()->nextKey();
+        return self().nextKey();
     }
 
     bool operator--(int) {
-        return me()->prevKey();
+        return self().prevKey();
     }
 
     BigInt operator+=(BigInt size)
     {
-        return me()->skipFw(size);
+        return self().skipFw(size);
     }
 
     BigInt operator-=(BigInt size)
     {
-        return me()->skipBw(size);
+        return self().skipBw(size);
     }
 
     Key getRawKey() const
