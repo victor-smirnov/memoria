@@ -126,6 +126,9 @@ class CtrWrapper    {};
 template <typename Key, typename Value>
 struct Map          {};
 
+template <typename K, typename V>
+using DblMap = Map<K, Map<K, V>>;
+
 template <typename Key, typename Value>
 struct MapProto     {};
 
@@ -201,7 +204,8 @@ struct MrkMap		{};
 template <typename Key, typename Value, Int BitsPerMark = 1>
 struct SMrkMap		{};
 
-
+template <typename K, typename V, Int BitsPerMark>
+using DblMrkMap = Map<K, MrkMap<K, V, BitsPerMark>>;
 
 
 /*

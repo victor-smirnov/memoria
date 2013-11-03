@@ -18,12 +18,12 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-template <typename Key, typename Value>
-class DblMapCreateTest: public DblMapTestBase<Key, Value> {
+template <typename CtrName>
+class DblMapCreateTest: public DblMapTestBase<CtrName> {
 
-    typedef DblMapTestBase<Key, Value>     	 									Base;
+    typedef DblMapTestBase<CtrName>     	 									Base;
 
-    typedef DblMapCreateTest<Key, Value>                                     	MyType;
+    typedef DblMapCreateTest<CtrName>                                     		MyType;
 
 protected:
 
@@ -33,11 +33,14 @@ protected:
 
     typedef typename Base::StdDblMap											StdDblMap;
 
+    typedef typename Base::Key													Key;
+    typedef typename Base::Value												Value;
+
     Int dblmap_check_step_ = 10;
 
 public:
 
-    DblMapCreateTest(): Base("Create")
+    DblMapCreateTest(StringRef name): Base(name)
     {
     	MEMORIA_ADD_TEST_PARAM(dblmap_check_step_);
 

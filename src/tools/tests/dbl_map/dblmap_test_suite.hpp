@@ -21,8 +21,11 @@ public:
 
     DblMapTestSuite(): TestSuite("DblMapSuite")
     {
-        registerTask(new DblMapCreateTest<BigInt, BigInt>());
-        registerTask(new DblMapRemoveTest<BigInt, BigInt>());
+        registerTask(new DblMapCreateTest<DblMap<BigInt, BigInt>>("Create"));
+        registerTask(new DblMapCreateTest<DblMrkMap<BigInt, BigInt, 1>>("Mrk.Create"));
+
+        registerTask(new DblMapRemoveTest<DblMap<BigInt, BigInt>>("Remove"));
+        registerTask(new DblMapRemoveTest<DblMrkMap<BigInt, BigInt, 1>>("Mrk.Remove"));
     }
 
 };

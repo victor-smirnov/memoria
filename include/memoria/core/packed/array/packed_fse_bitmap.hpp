@@ -85,6 +85,11 @@ public:
         init(empty_size());
     }
 
+    static Int packed_block_size(Int elements)
+    {
+    	return block_size(elements);
+    }
+
     static Int block_size(Int elements)
     {
         return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
@@ -153,18 +158,17 @@ public:
         return max_size_ - size_;
     }
 
-    void enlarge(Int elements)
+    void enlarge1(Int elements)
     {
         Allocator* alloc = Base::allocator();
         Int amount = roundUpBitToBytes(roundUpBitToBytes(elements * BitsPerSymbol));
         Int size = alloc->element_size(this);
-        Int new_size = alloc->resizeBlock(this, size + amount);
+        Int new_size = alloc->resizeBlock(this, size + amount + empty_size());
         max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;
     }
 
-    void enlargeData(Int elements) {
-    	enlarge(elements);
-    }
+
+
 
     bool insertSpace(Int idx, Int space)
     {
@@ -212,6 +216,8 @@ public:
 
         Int remainder = (size_ - end) * BitsPerSymbol;
         MoveBits(data, data, end * BitsPerSymbol, start * BitsPerSymbol, remainder);
+
+        shrink(end - start);
 
         size_ -= (end - start);
     }
@@ -322,6 +328,30 @@ private:
     void move(const Value* src, Value* dst, Int from, Int to, Int lenght) const
     {
         MoveBits(src, dst, from * BitsPerSymbol, to * BitsPerSymbol, lenght * BitsPerSymbol);
+    }
+
+    void enlargeData(Int elements) {
+    	enlarge(elements);
+    }
+
+    void enlarge(Int elements)
+    {
+    	Allocator* alloc = Base::allocator();
+    	Int amount = roundUpBitsToAlignmentBlocks((size_ + elements) * BitsPerSymbol);
+
+    	Int new_size = alloc->resizeBlock(this, amount + empty_size());
+    	max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;
+    }
+
+    void shrink(Int elements)
+    {
+    	MEMORIA_ASSERT(size_, >=, elements);
+
+    	Allocator* alloc = Base::allocator();
+    	Int amount = roundUpBitsToAlignmentBlocks((size_ - elements) * BitsPerSymbol);
+
+    	Int new_size = alloc->resizeBlock(this, amount + empty_size());
+    	max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;
     }
 };
 

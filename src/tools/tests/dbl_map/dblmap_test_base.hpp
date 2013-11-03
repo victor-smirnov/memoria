@@ -17,18 +17,21 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-template <typename Key, typename Value>
+template <typename CtrName>
 class DblMapTestBase: public SPTestTask {
 
     typedef SPTestTask      													Base;
 
-    typedef DblMapTestBase<Key, Value>                                     		MyType;
+    typedef DblMapTestBase<CtrName>                                     		MyType;
 
 protected:
 
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename SCtrTF<Map<BigInt, Map<BigInt, BigInt> > >::Type			Ctr;
+    typedef typename SCtrTF<CtrName>::Type										Ctr;
     typedef typename Ctr::Iterator												Iterator;
+
+    typedef typename Ctr::Types::Key 											Key;
+    typedef typename Ctr::Types::Value											Value;
 
     typedef std::map<Key, std::map<Key, Value>>									StdDblMap;
 
@@ -37,7 +40,7 @@ protected:
     BigInt 	ctr_name_;
     Key 	key1_;
     Key 	key2_;
-    Value 	value_;
+    BigInt 	value_;
 
     String 	dump_name_;
 
@@ -175,8 +178,8 @@ public:
 
     			this->out()<<"Entry: "<<entry2.first<<" "<<entry2.second<<" "<<iter1.key2()<<" "<<iter1.value()<<std::endl;
 
-    			AssertEQ(MA_SRC, entry2.first, iter1.key2());
-    			AssertEQ(MA_SRC, entry2.second, iter1.value());
+    			AssertEQ(MA_SRC, iter1.key2(), entry2.first);
+    			AssertEQ(MA_SRC, iter1.value(), entry2.second);
 
     			iter1.skipFw(1);
     			m_iter++;

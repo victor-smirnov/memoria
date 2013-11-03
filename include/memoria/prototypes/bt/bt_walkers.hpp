@@ -14,6 +14,9 @@
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/prototypes/bt/nodes/leaf_node.hpp>
 
+#include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_fse_mark_map.hpp>
+
 #include <ostream>
 #include <functional>
 
@@ -260,6 +263,12 @@ public:
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMap<TreeTypes>* tree, Int start)
+    {
+    	return self().template tree<Idx>(tree, start);
+    }
+
+    template <Int Idx, typename TreeTypes>
+    ResultType stream(const PackedFSEMarkableMap<TreeTypes>* tree, Int start)
     {
     	return self().template tree<Idx>(tree, start);
     }

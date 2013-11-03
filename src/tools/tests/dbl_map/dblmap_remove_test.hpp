@@ -18,12 +18,12 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-template <typename Key, typename Value>
-class DblMapRemoveTest: public DblMapTestBase<Key, Value> {
+template <typename CtrName>
+class DblMapRemoveTest: public DblMapTestBase<CtrName> {
 
-    typedef DblMapTestBase<Key, Value>     	 									Base;
+    typedef DblMapTestBase<CtrName>     	 									Base;
 
-    typedef DblMapRemoveTest<Key, Value>                                     	MyType;
+    typedef DblMapRemoveTest<CtrName>                                     		MyType;
 
 protected:
 
@@ -32,6 +32,9 @@ protected:
     typedef typename Ctr::Iterator												Iterator;
 
     typedef typename Base::StdDblMap											StdDblMap;
+
+    typedef typename Base::Key													Key;
+    typedef typename Base::Value												Value;
 
     typedef StaticVector<Key, 1>												KeyV;
     typedef std::pair<KeyV, Value>												IOValue;
@@ -42,7 +45,7 @@ protected:
 
 public:
 
-    DblMapRemoveTest(): Base("Remove")
+    DblMapRemoveTest(StringRef name): Base(name)
     {
     	MEMORIA_ADD_TEST_PARAM(dblmap_check_step_);
 
@@ -116,7 +119,7 @@ public:
     		while (std_map.size() > 0)
     		{
     			Key key1, key2;
-    			Value value;
+    			BigInt value;
     			bool map2_empty = map2_empty_ = false;
 
     			Int idx1 = getRandom(std_map.size());

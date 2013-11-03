@@ -15,10 +15,69 @@
 
 #include <memoria/core/container/container.hpp>
 
-
+#include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
 namespace memoria       {
 namespace dblmap        {
+
+
+template <typename Types, Int StreamIdx>
+struct PackedOuterMapLeafTF {
+
+    typedef typename Types::Key                                                 Key;
+
+    typedef typename SelectByIndexTool<
+            StreamIdx,
+            typename Types::StreamDescriptors
+    >::Result                                                                   Descriptor;
+
+    typedef Packed2TreeTypes<
+            Key, Key, Descriptor::LeafIndexes
+    >                                                                           TreeTypes;
+
+    typedef PkdFTree<TreeTypes> 												Type;
+};
+
+template <typename Types, Int StreamIdx>
+struct PackedInnerMapLeafTF {
+
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
+
+    typedef typename SelectByIndexTool<
+            StreamIdx,
+            typename Types::StreamDescriptors
+    >::Result                                                                   Descriptor;
+
+    typedef PackedFSEMapTypes<
+            Key, Value, Descriptor::LeafIndexes
+    >                                                                           MapTypes;
+
+    typedef PackedFSEMap<MapTypes> 												Type;
+};
+
+
+template <typename Types, Int StreamIdx>
+struct PackedInnerMarkedMapLeafTF {
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
+
+    typedef typename SelectByIndexTool<
+            StreamIdx,
+            typename Types::StreamDescriptors
+    >::Result                                                                   Descriptor;
+
+    typedef PackedFSEMarkableMapTypes<
+    		Key,
+    		Value,
+            Descriptor::LeafIndexes,
+            Types::BitsPerMark
+    >                                                                           MapTypes;
+
+    typedef PackedFSEMarkableMap<MapTypes>                            			Type;
+};
+
 
 typedef std::pair<BigInt, BigInt> VectorMapEntry;
 
@@ -107,8 +166,6 @@ class DblMapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Contain
 
     Int entry_idx_      = 0;
     Int entries_        = 0;
-
-
 
 public:
 

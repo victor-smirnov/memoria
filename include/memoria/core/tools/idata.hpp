@@ -716,7 +716,7 @@ public:
 
     virtual IDataAPI api() const
     {
-        return IDataAPI::Both;
+        return IDataAPI::Single;
     }
 
     SizeT size() const
@@ -726,11 +726,7 @@ public:
 
     virtual SizeT get(Value* buffer, SizeT start, SizeT length)
     {
-        MEMORIA_ASSERT_TRUE(this->start_ + length <= this->length_);
-
-        CopyBuffer(&value_ + this->start_, buffer + start, length);
-
-        return this->skip(length);
+        return 0;
     }
 
     virtual Value get()
@@ -755,7 +751,7 @@ public:
 
     virtual IDataAPI api() const
     {
-        return IDataAPI::Both;
+        return IDataAPI::Single;
     }
 
 
@@ -766,9 +762,7 @@ public:
 
     virtual SizeT put(const Value* buffer, SizeT start, SizeT length)
     {
-        CopyBuffer(buffer + start, &value_ + this->start_, length);
-
-        return this->skip(length);
+       return 0;
     }
 
     virtual void put(const Value& value)

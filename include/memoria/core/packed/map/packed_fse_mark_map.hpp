@@ -12,6 +12,8 @@
 
 #include <memoria/metadata/page.hpp>
 
+#include <ostream>
+
 namespace memoria {
 
 template <typename Value>
@@ -43,7 +45,21 @@ struct MarkedValue {
 
 		return other;
 	}
+
+	bool operator==(const MyType& other) const {
+		return second == other.second;
+	}
+
+	bool operator==(const Value& other) const {
+		return second == other;
+	}
+
+	operator Value() const {
+		return second;
+	}
 };
+
+
 
 
 template <
@@ -219,7 +235,7 @@ public:
     static Int packed_block_size(Int size)
     {
     	Int tree_block_size 	= Tree::packed_block_size(size);
-    	Int bitmap_block_size 	= Bitmap::estimate_block_size(size);
+    	Int bitmap_block_size 	= Bitmap::packed_block_size(size);
 
     	Int data_block_size 	= Base::roundUpBytesToAlignmentBlocks(sizeof(Value) * size);
 
@@ -602,6 +618,15 @@ public:
 
 
 
+}
+
+
+namespace std {
+template <typename Value>
+ostream& operator<<(ostream& out, const memoria::MarkedValue<Value>& value) {
+	out<<"["<<value.first<<", "<<value.second<<"]";
+	return out;
+}
 }
 
 #endif
