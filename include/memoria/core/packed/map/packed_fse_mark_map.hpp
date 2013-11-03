@@ -14,13 +14,49 @@
 
 namespace memoria {
 
+template <typename Value>
+struct MarkedValue {
+	typedef MarkedValue<Value> 	MyType;
+
+	typedef Int 	first_type;
+	typedef Value 	second_type;
+
+	Int 	first;
+	Value 	second;
+
+	MarkedValue() {}
+	MarkedValue(Int mark, const Value& value): first(mark), second(value) {}
+	MarkedValue(const Value& value): first(0), second(value) {}
+
+	MyType& operator=(const MyType& other)
+	{
+		first 	= other.first;
+		second	= other.second;
+
+		return *this;
+	}
+
+	Value operator=(const Value& other)
+	{
+		first 	= 0;
+		second	= other;
+
+		return other;
+	}
+};
+
+
 template <
     typename Key,
-    typename Value,
+    typename Value_,
     Int Blocks      	= 1,
-    Int BitsPerSymbol 	= 1
+    Int BitsPerSymbol_ 	= 1
 >
-struct PackedFSEMarkableMapTypes: Packed2TreeTypes<Key, BigInt, Blocks> {};
+struct PackedFSEMarkableMapTypes: Packed2TreeTypes<Key, BigInt, Blocks> {
+	static const Int BitsPerSymbol	= BitsPerSymbol_;
+
+	typedef Value_ MapValue;
+};
 
 template <typename Types>
 class PackedFSEMarkableMap: public PackedAllocator {
@@ -32,24 +68,34 @@ public:
     enum {TREE, BITMAP, ARRAY};
 
     typedef PkdFTree<Types>                                                     Tree;
-    typedef PackedFSEBitmap<PackedFSEBitmapTypes<BitsPerSymbol>>				Bitmap;
+    typedef PackedFSEBitmap<
+    			PackedFSEBitmapTypes<Types::BitsPerSymbol>
+    >																			Bitmap;
 
     static const Int Indexes = Tree::Blocks;
 
-    typedef typename Types::Value                                               Value;
+    typedef typename Types::MapValue                                  			Value;
+    typedef typename Types::MapValue::second_type                    			SecondValue;
+
+
     typedef StaticVector<BigInt, Indexes>										Values;
     typedef StaticVector<BigInt, Indexes + 1>									Values2;
 
     typedef typename Tree::IndexValue                                           IndexValue;
     typedef typename Tree::ValueDescr                                           ValueDescr;
 
+
+
     typedef std::pair<
     		typename Tree::Values,
-    		std::pair<Int, Value>
+    		Value
     >																			IOValue;
 
     typedef IDataSource<IOValue>												DataSource;
     typedef IDataTarget<IOValue>												DataTarget;
+
+    typedef typename Bitmap::SymbolAccessor										SymbolAccessor;
+    typedef typename Bitmap::ConstSymbolAccessor								ConstSymbolAccessor;
 
     Tree* tree() {
         return Base::template get<Tree>(TREE);
@@ -68,12 +114,12 @@ public:
     	return Base::template get<Bitmap>(BITMAP);
     }
 
-    Value* values() {
-        return Base::template get<Value>(ARRAY);
+    SecondValue* values() {
+        return Base::template get<SecondValue>(ARRAY);
     }
 
-    const Value* values() const {
-        return Base::template get<Value>(ARRAY);
+    const SecondValue* values() const {
+        return Base::template get<SecondValue>(ARRAY);
     }
 
     Int size() const
@@ -81,15 +127,71 @@ public:
         return tree()->size();
     }
 
-    Value& value(Int idx)
+
+    class ValueAccessor {
+    	MyType& me_;
+    	Int idx_;
+    public:
+    	ValueAccessor(MyType& me, Int idx): me_(me), idx_(idx) {}
+
+    	Value operator=(const Value& value)
+    	{
+    		me_.mark(idx_) 		= value.first;
+    		me_.values()[idx_]	= value.second;
+    		return value;
+    	}
+
+    	SecondValue operator=(const SecondValue& value)
+    	{
+    		me_.values()[idx_] = value;
+    		return value;
+    	}
+
+    	operator Value() const {
+    		return Value(me_.mark(idx_), me_.values()[idx_]);
+    	}
+
+//    	operator SecondValue() const {
+//    		return me_.values()[idx_];
+//    	}
+    };
+
+
+    class ConstValueAccessor {
+    	const MyType& me_;
+    	Int idx_;
+    public:
+    	ConstValueAccessor(const MyType& me, Int idx): me_(me), idx_(idx) {}
+
+    	operator Value() const {
+    		return Value(me_.mark(idx_), me_.values()[idx_]);
+    	}
+
+//    	operator SecondValue() const {
+//    		return me_.values()[idx_];
+//    	}
+    };
+
+    ValueAccessor value(Int idx)
     {
-        return values()[idx];
+        return ValueAccessor(*this, idx);
     }
 
-    const Value& value(Int idx) const
+    ConstValueAccessor value(Int idx) const
     {
-        return values()[idx];
+    	return ConstValueAccessor(*this, idx);
     }
+
+
+    SymbolAccessor mark(Int idx) {
+    	return bitmap()->symbol(idx);
+    }
+
+    const ConstSymbolAccessor mark(Int idx) const {
+    	return bitmap()->symbol(idx);
+    }
+
+
 
     static Int empty_size()
     {
@@ -149,8 +251,8 @@ public:
         Base::init(empty_size(), 3);
 
         Base::template allocateEmpty<Tree>(TREE);
-        Base::template allocateEmpty<Tree>(BITMAP);
-        Base::template allocateArrayByLength<Value>(ARRAY, 0);
+        Base::template allocateEmpty<Bitmap>(BITMAP);
+        Base::template allocateArrayByLength<SecondValue>(ARRAY, 0);
     }
 
     void init(Int block_size)
@@ -158,26 +260,26 @@ public:
     	Base::init(block_size, 3);
 
     	Base::template allocateEmpty<Tree>(TREE);
-    	Base::template allocateEmpty<Tree>(BITMAP);
-    	Base::template allocateArrayByLength<Value>(ARRAY, 0);
+    	Base::template allocateEmpty<Bitmap>(BITMAP);
+    	Base::template allocateArrayByLength<SecondValue>(ARRAY, 0);
     }
 
-    void insert(Int idx, const Values& keys, const Value& value, Int mark)
+    void insert(Int idx, const Values& keys, const Value& value)
     {
         Int size = this->size();
 
         tree()->insert(idx, keys);
-        bitmap()->insert(idx, mark);
+        bitmap()->insert(idx, value.first);
 
-        Int requested_block_size = (size + 1) * sizeof(Value);
+        Int requested_block_size = (size + 1) * sizeof(SecondValue);
 
         Base::resizeBlock(ARRAY, requested_block_size);
 
-        Value* values = this->values();
+        SecondValue* values = this->values();
 
         CopyBuffer(values + idx, values + idx + 1, size - idx);
 
-        values[idx] = value;
+        values[idx] = value.second;
     }
 
 
@@ -191,11 +293,11 @@ public:
     	tree()->insertSpace(room_start, room_length);
     	bitmap()->insertSpace(room_start, room_length);
 
-    	Int requested_block_size = (size + room_length) * sizeof(Value);
+    	Int requested_block_size = (size + room_length) * sizeof(SecondValue);
 
     	Base::resizeBlock(ARRAY, requested_block_size);
 
-    	Value* values = this->values();
+    	SecondValue* values = this->values();
 
     	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
     }
@@ -213,11 +315,11 @@ public:
         MEMORIA_ASSERT(room_end, >=, room_start);
         MEMORIA_ASSERT(room_end, <=, old_size);
 
-        Value* values = this->values();
+        SecondValue* values = this->values();
 
         CopyBuffer(values + room_end, values + room_start, old_size - room_end);
 
-        Int requested_block_size = (old_size - (room_end - room_start)) * sizeof(Value);
+        Int requested_block_size = (old_size - (room_end - room_start)) * sizeof(SecondValue);
 
         Base::resizeBlock(values, requested_block_size);
 
@@ -225,7 +327,6 @@ public:
         bitmap()->remove(room_start, room_end);
 
         tree()->reindex();
-        bitmap()->reindex();
     }
 
     void splitTo(MyType* other, Int split_idx)
@@ -237,10 +338,10 @@ public:
 
         Int remainder = size - split_idx;
 
-        other->template allocateArrayBySize<Value>(ARRAY, remainder);
+        other->template allocateArrayBySize<SecondValue>(ARRAY, remainder);
 
-        Value* other_values = other->values();
-        Value* my_values    = this->values();
+        SecondValue* other_values = other->values();
+        SecondValue* my_values    = this->values();
 
         CopyBuffer(my_values + split_idx, other_values, remainder);
     }
@@ -254,7 +355,7 @@ public:
         bitmap()->mergeWith(other->bitmap());
 
         Int other_values_block_size          = other->element_size(ARRAY);
-        Int required_other_values_block_size = (my_size + other_size) * sizeof(Value);
+        Int required_other_values_block_size = (my_size + other_size) * sizeof(SecondValue);
 
         if (required_other_values_block_size >= other_values_block_size)
         {
@@ -266,7 +367,6 @@ public:
 
     void reindex() {
         tree()->reindex();
-        bitmap()->reindex();
     }
 
     void check() const
@@ -339,6 +439,8 @@ public:
     }
 
 
+
+
     void sums(Values2& values) const
     {
         tree()->sums(values);
@@ -393,7 +495,7 @@ public:
     	{
     		IOValue v = src->get();
 
-    		this->insert(pos + c, v.first, v.second.first, v.second.second);
+    		this->insert(pos + c, v.first, v.second);
     	}
 
     	reindex();
@@ -409,9 +511,9 @@ public:
         MEMORIA_ASSERT_TRUE(to_bool(src->api() & IDataAPI::Single));
         MEMORIA_ASSERT(src->getRemainder(), >=, length);
 
-        Tree* 	tree 	= this->tree();
-        Bitmap* bitmap 	= this->bitmap();
-        Value* 	array 	= this->values();
+        Tree* 	tree 		= this->tree();
+        Bitmap* bitmap 		= this->bitmap();
+        SecondValue* array 	= this->values();
 
         for (SizeT c = pos; c < pos + length; c++)
         {
@@ -439,13 +541,13 @@ public:
         MEMORIA_ASSERT_TRUE(to_bool(tgt->api() & IDataAPI::Single));
         MEMORIA_ASSERT(tgt->getRemainder(), >=, length);
 
-        const Tree*  tree 		= this->tree();
-        const Bitmap* bitmap 	= this->bitmap();
-        const Value* array 		= this->values();
+        const Tree*  tree 			= this->tree();
+        const Bitmap* bitmap 		= this->bitmap();
+        const SecondValue* array 	= this->values();
 
         for (SizeT c = pos; c < pos + length; c++)
         {
-        	IOValue v(tree->values(c), std::pair(bitmap->symbol(c), array[c]));
+        	IOValue v(tree->values(c), std::pair<Int, Value>(bitmap->symbol(c), array[c]));
         	tgt->put(v);
         }
     }
@@ -468,7 +570,7 @@ public:
 
         for (Int idx = 0; idx < size(); idx++)
         {
-            vapi::ValueHelper<Value>::setup(handler, values[idx]);
+            vapi::ValueHelper<SecondValue>::setup(handler, values[idx]);
         }
 
         handler->endGroup();
@@ -483,7 +585,7 @@ public:
         tree()->serialize(buf);
         bitmap()->serialize(buf);
 
-        FieldFactory<Value>::serialize(buf, values(), size());
+        FieldFactory<SecondValue>::serialize(buf, values(), size());
     }
 
     void deserialize(DeserializationData& buf)
@@ -493,7 +595,7 @@ public:
         tree()->deserialize(buf);
         bitmap()->deserialize(buf);
 
-        FieldFactory<Value>::deserialize(buf, values(), size());
+        FieldFactory<SecondValue>::deserialize(buf, values(), size());
     }
 
 };

@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_MAP_FACTORY_TYPES_HPP
-#define _MEMORIA_CONTAINERS_MAP_FACTORY_TYPES_HPP
+#ifndef _MEMORIA_CONTAINERS_MRKMAP_FACTORY_TYPES_HPP
+#define _MEMORIA_CONTAINERS_MRKMAP_FACTORY_TYPES_HPP
 
 #include <memoria/prototypes/bt/bt_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
@@ -22,22 +22,47 @@
 #include <memoria/containers/map/map_iterator.hpp>
 #include <memoria/containers/map/iterator/map_i_api.hpp>
 #include <memoria/containers/map/iterator/map_i_nav.hpp>
-#include <memoria/containers/map/iterator/map_i_value.hpp>
-
-
-
-
+#include <memoria/containers/map/iterator/mrkmap_i_value.hpp>
 
 #include <memoria/containers/map/map_names.hpp>
 
+#include <memoria/core/packed/map/packed_fse_mark_map.hpp>
+
 namespace memoria    {
 
-template <typename Profile, typename Key_, typename Value_>
-struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, memoria::BT> {
+template <typename Types, Int StreamIdx>
+struct MarkableMapTF {
+
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
+
+    typedef typename SelectByIndexTool<
+            StreamIdx,
+            typename Types::StreamDescriptors
+    >::Result                                                                   Descriptor;
+
+    typedef PackedFSEMarkableMapTypes<
+    		Key,
+    		Value,
+            Descriptor::LeafIndexes,
+            Types::BitsPerMark
+    >                                                                           MapTypes;
+
+    typedef PackedFSEMarkableMap<MapTypes>                            			Type;
+};
+
+
+
+template <typename Profile, typename Key_, typename Value_, Int BitsPerMark_>
+struct BTTypes<Profile, MrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Profile, memoria::BT> {
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef Value_                                                              Value;
+    typedef Key_                                                              	Key;
+    typedef MarkedValue<Value_>                                                 Value;
+
+    static const Int BitsPerMark												= BitsPerMark_;
+
     typedef TypeList<Key_>                                                      KeysList;
 
 
@@ -53,7 +78,7 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
     >                                                                           DefaultNodeTypesList;
 
     typedef TypeList<
-                StreamDescr<PkdFTreeTF, map::PackedFSEMapTF, 1>
+                StreamDescr<PkdFTreeTF, MarkableMapTF, 1>
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<
@@ -77,7 +102,7 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
                 map::ItrApiName,
                 map::ItrNavName,
-                map::ItrValueName
+                map::ItrMrkValueName
     >::Result                                                                   IteratorPartsList;
 
 

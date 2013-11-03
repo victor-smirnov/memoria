@@ -66,6 +66,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
         	map->remove(idx, idx + 1);
         }
 
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
+        	map->remove(idx, idx + 1);
+        }
+
         template <typename Node>
         void treeNode(Node* node, Int idx)
         {

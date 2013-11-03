@@ -71,10 +71,6 @@ public:
             decltype(allocator_offset_)
     >                                           FieldsList;
 
-
-
-
-
     PackedAllocatable() = default;
 
     const Int& allocator_offset() const {return allocator_offset_;}
@@ -150,6 +146,17 @@ public:
     {
         return bits / 8 + (bits % 8 > 0);
     }
+
+    void serialize(SerializationData& buf) const
+    {
+    	FieldFactory<Int>::serialize(buf, allocator_offset_);
+    }
+
+    void deserialize(DeserializationData& buf)
+    {
+    	FieldFactory<Int>::deserialize(buf, allocator_offset_);
+    }
+
 };
 
 template <Int Alignment = PackedAllocationAlignment>

@@ -12,6 +12,8 @@
 #include <memoria/core/tools/accessors.hpp>
 #include <memoria/core/tools/dump.hpp>
 
+#include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_tools_fn.hpp>
+
 namespace memoria {
 
 
@@ -46,6 +48,9 @@ public:
     typedef typename Types::Value                                               Value;
 
     static const Int BitsPerSymbol                                              = Types::BitsPerSymbol;
+
+    typedef BitmapAccessor<Value*, Value, BitsPerSymbol>						SymbolAccessor;
+    typedef BitmapAccessor<const Value*, Value, BitsPerSymbol>					ConstSymbolAccessor;
 
 private:
 
@@ -99,14 +104,20 @@ public:
         return sizeof(MyType) + block_size;
     }
 
-    BitmapAccessor<Value*, Value, BitsPerSymbol>
-    value(Int idx) {
-        return BitmapAccessor<Value*, Value, BitsPerSymbol>(buffer_, idx);
+    SymbolAccessor value(Int idx) {
+        return SymbolAccessor(buffer_, idx);
     }
 
-    BitmapAccessor<const Value*, Value, BitsPerSymbol>
-    value(Int idx) const {
-        return BitmapAccessor<const Value*, Value, BitsPerSymbol>(buffer_, idx);
+    ConstSymbolAccessor value(Int idx) const {
+        return ConstSymbolAccessor(buffer_, idx);
+    }
+
+    SymbolAccessor symbol(Int idx) {
+        return SymbolAccessor(buffer_, idx);
+    }
+
+    ConstSymbolAccessor symbol(Int idx) const {
+        return ConstSymbolAccessor(buffer_, idx);
     }
 
 
@@ -130,6 +141,14 @@ public:
         return buffer_;
     }
 
+    Value* symbols() {
+        return buffer_;
+    }
+
+    const Value* symbols() const {
+        return buffer_;
+    }
+
     Int capacity() const {
         return max_size_ - size_;
     }
@@ -141,6 +160,10 @@ public:
         Int size = alloc->element_size(this);
         Int new_size = alloc->resizeBlock(this, size + amount);
         max_size_ = (new_size - empty_size()) * 8 / BitsPerSymbol;
+    }
+
+    void enlargeData(Int elements) {
+    	enlarge(elements);
     }
 
     bool insertSpace(Int idx, Int space)
@@ -175,18 +198,54 @@ public:
         return false;
     }
 
-    void removeSpace(Int idx, Int space)
+    void remove(Int start, Int end) {
+    	removeSpace(start, end);
+    }
+
+    void removeSpace(Int start, Int end)
     {
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <=, size_);
-        MEMORIA_ASSERT(idx + space, <=, size_);
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, size_);
+        MEMORIA_ASSERT(end, <=, size_);
 
         Value* data = this->data();
 
-        Int remainder = (size_ - idx - space) * BitsPerSymbol;
-        MoveBits(data, data, (idx + space) * BitsPerSymbol, idx * BitsPerSymbol, remainder);
+        Int remainder = (size_ - end) * BitsPerSymbol;
+        MoveBits(data, data, end * BitsPerSymbol, start * BitsPerSymbol, remainder);
 
-        size_ -= space;
+        size_ -= (end - start);
+    }
+
+    void check() const {}
+
+    // ==================================== Node =========================================== //
+
+    void splitTo(MyType* other, Int idx)
+    {
+    	Int to_move     = this->size() - idx;
+    	Int other_size  = other->size();
+
+    	other->enlargeData(to_move);
+
+    	move(other->symbols(), other->symbols(), 0, to_move, other_size);
+
+    	move(this->symbols(), other->symbols(), idx, 0, to_move);
+
+    	other->size() += to_move;
+
+    	removeSpace(idx, this->size());
+    }
+
+    void mergeWith(MyType* other) const
+    {
+    	Int my_size     = this->size();
+    	Int other_size  = other->size();
+
+    	other->enlargeData(my_size);
+
+    	move(this->symbols(), other->symbols(), 0, other_size, my_size);
+
+    	other->size() += my_size;
     }
 
     // ==================================== Dump =========================================== //
@@ -203,6 +262,66 @@ public:
         dumpSymbols<Value>(out, size_, BitsPerSymbol, [this](Int pos) -> Value {
             return this->value(pos);
         });
+    }
+
+    void generateDataEvents(IPageDataEventHandler* handler) const
+    {
+    	handler->startGroup("PACKED_FSE_BITMAP");
+
+    	handler->value("PARENT_ALLOCATOR", &(Base::allocator_offset_));
+
+    	handler->value("SIZE", &size_);
+    	handler->value("MAX_SIZE", &max_size_);
+
+    	handler->startGroup("DATA", size());
+
+    	handler->symbols("SYMBOLS", buffer_, size(), BitsPerSymbol);
+
+    	handler->endGroup();
+
+    	handler->endGroup();
+    }
+
+    void serialize(SerializationData& buf) const
+    {
+    	Base::serialize(buf);
+
+    	FieldFactory<Int>::serialize(buf, size_);
+    	FieldFactory<Int>::serialize(buf, max_size_);
+
+    	FieldFactory<Value>::serialize(buf, buffer_, symbols_buffer_size());
+    }
+
+    void deserialize(DeserializationData& buf)
+    {
+    	Base::deserialize(buf);
+
+    	FieldFactory<Int>::deserialize(buf, size_);
+    	FieldFactory<Int>::deserialize(buf, max_size_);
+
+    	FieldFactory<Value>::deserialize(buf, buffer_, symbols_buffer_size());
+    }
+
+private:
+    Int symbols_buffer_size() const
+    {
+    	Int block_size 	= this->block_size();
+    	Int buffer_size	= block_size - sizeof(MyType);
+
+    	Int bit_size    = buffer_size * 8;
+    	Int byte_size   = Base::roundUpBitsToAlignmentBlocks(bit_size);
+
+    	return byte_size / sizeof(Value);
+    }
+
+    void move(Value* symbols, Int from, Int to, Int lenght) const
+    {
+        MoveBits(symbols, symbols, from * BitsPerSymbol, to * BitsPerSymbol, lenght * BitsPerSymbol);
+    }
+
+    void move(const Value* src, Value* dst, Int from, Int to, Int lenght) const
+    {
+        MoveBits(src, dst, from * BitsPerSymbol, to * BitsPerSymbol, lenght * BitsPerSymbol);
     }
 };
 

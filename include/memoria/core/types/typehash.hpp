@@ -88,6 +88,11 @@ struct TypeHash<SMrkMap<Key, Value, BitsPerMark>>:   UIntValue<
     HashHelper<1101, TypeHash<Key>::Value, TypeHash<Value>::Value, BitsPerMark>::Value
 > {};
 
+template <typename Key, typename Value, Int BitsPerMark>
+struct TypeHash<MrkMap<Key, Value, BitsPerMark>>:   UIntValue<
+    HashHelper<1102, TypeHash<Key>::Value, TypeHash<Value>::Value, BitsPerMark>::Value
+> {};
+
 
 
 template <Granularity gr>

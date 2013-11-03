@@ -18,8 +18,12 @@ class CtrApiName    {};
 class CtrInsertName {};
 class CtrRemoveName {};
 
+
 class ItrApiName {};
 class ItrNavName {};
+
+class ItrValueName {};
+class ItrMrkValueName {};
 
 }
 

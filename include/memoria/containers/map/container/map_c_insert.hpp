@@ -14,6 +14,7 @@
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
 #include <vector>
 
@@ -59,6 +60,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
             map->insert(idx, std::get<Idx>(element_.first), element_.second);
         }
 
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	MEMORIA_ASSERT_TRUE(map!= nullptr);
+        	map->insert(idx, std::get<Idx>(element_.first), element_.second);
+        }
+
 
         template <typename NTypes>
         void treeNode(LeafNode<NTypes>* node, Int idx)
@@ -90,6 +98,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedVLEMap<StreamTypes>* map, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(map != nullptr);
+
+            map->tree()->addValues(idx, std::get<Idx>(element_));
+        }
+
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
         {
             MEMORIA_ASSERT_TRUE(map != nullptr);
 

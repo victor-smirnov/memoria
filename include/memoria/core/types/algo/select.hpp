@@ -67,7 +67,7 @@ template <bool Value, typename ResultIfTrue, typename Else>
 struct IfThenElse {
     typedef typename Select<
                 Value ? 0 : 1,
-                TypeList<ResultIfTrue, Else >
+                TypeList<ResultIfTrue, Else>
     >::Result                                                                   Result;
 };
 
