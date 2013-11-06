@@ -42,8 +42,6 @@ public:
     typedef typename Base::CtrShared                                            CtrShared;
     typedef typename Page::ID                                                   ID;
 
-//    typedef Base                                                                AbstractAllocator;
-
     typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>                        RootMapType;
     typedef typename RootMapType::Metadata                                      RootMetatata;
     typedef typename RootMapType::BTreeCtrShared                                RootCtrShared;
@@ -99,6 +97,18 @@ private:
     	{
     		return 4096;
     	}
+
+    	virtual BigInt lastCommitId() const {
+    		return 0;
+    	}
+
+    	virtual void setLastCommitId(BigInt txn_id) {}
+
+    	virtual BigInt newTxnId() {return 0;}
+
+    	virtual bool isMVCC() const {return false;}
+    	virtual void setMVCC(bool mvcc) {}
+
     };
 
     Properties properties_;
@@ -270,7 +280,7 @@ public:
         return getPage(page->id(), Base::READ);
     }
 
-    virtual void updatePage(Shared* shared)
+    virtual PageG updatePage(Shared* shared)
     {
         if (shared->state() == Shared::READ)
         {
@@ -287,6 +297,8 @@ public:
             shared->set_page(page0);
             shared->state() = Shared::UPDATE;
         }
+
+        return PageG(shared);
     }
 
     virtual void  removePage(const ID& id)
@@ -320,7 +332,7 @@ public:
 
         memset(buf, 0, initial_size);
 
-        ID id = counter_++;
+        ID id = newId();
 
         Page* p = new (buf) Page(id);
 
@@ -368,7 +380,7 @@ public:
 //      counter_    = 100;
 //  }
 
-    void commit()
+    virtual void commit(bool force_sync = false)
     {
         for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
         {
@@ -421,7 +433,7 @@ public:
         pages_log_.clear();
     }
 
-    void rollback()
+    virtual void rollback(bool force_sync = false)
     {
         for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
         {
@@ -739,9 +751,13 @@ public:
         return new_name;
     }
 
-    virtual const IAllocatorProperties& properties() const
+    virtual IAllocatorProperties& properties()
     {
     	return properties_;
+    }
+
+    virtual ID newId() {
+    	return counter_++;
     }
 
 

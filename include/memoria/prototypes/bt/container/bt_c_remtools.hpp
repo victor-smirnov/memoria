@@ -171,8 +171,8 @@ void M_TYPE::removeRootNode(NodeBaseG& node)
     Accumulator sums;
     Position sizes;
 
-    auto ctr_name   = self.name();
-    auto root_id    = node->id();
+//    auto ctr_name   = self.name();
+//    auto root_id    = node->id();
 
     self.removeNode(node, sums, sizes);
 }

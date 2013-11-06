@@ -34,10 +34,24 @@ public:
         data.total  += sizeof(Type) * count;
     }
 
+    static void serialize(SerializationData& data, const Type* field, Int count = 1)
+    {
+        memmove(data.buf, field, sizeof(Type) * count);
+
+        data.buf    += sizeof(Type) * count;
+        data.total  += sizeof(Type) * count;
+    }
+
     static void deserialize(DeserializationData& data, Type& field, Int count = 1)
     {
         memmove(&field, data.buf, sizeof(Type) * count);
         data.buf += sizeof(Type) * count;
+    }
+
+    static void deserialize(DeserializationData& data, Type* field, Int count = 1)
+    {
+    	memmove(field, data.buf, sizeof(Type) * count);
+    	data.buf += sizeof(Type) * count;
     }
 };
 

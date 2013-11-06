@@ -269,6 +269,29 @@ private:
     	{
     		return superblock_->block_size();
     	}
+
+    	virtual BigInt lastCommitId() const {
+    		return superblock_->last_commit_id();
+    	}
+
+    	virtual void setLastCommitId(BigInt txn_id)
+    	{
+    		superblock_->setLastCommitId(txn_id);
+    	}
+
+    	virtual BigInt newTxnId()
+    	{
+    		return superblock_->new_ctr_name();
+    	}
+
+    	virtual bool isMVCC() const	{
+    		return superblock_->is_mvcc();
+    	}
+
+    	virtual void setMVCC(bool mvcc)
+    	{
+    		return superblock_->setMVCC(mvcc);
+    	}
     };
 
     Properties properties_;
@@ -290,7 +313,7 @@ private:
 
     class Cfg {
     	Int 	default_block_size_ 			= 4096;
-    	UBigInt initial_allocation_size_		= 4;
+    	UBigInt initial_allocation_size_		= 8;
     	UBigInt allocation_size_				= 64;
     	BigInt	pages_buffer_size_ 				= 1024;
     	bool	sync_on_commit_					= true;
@@ -375,8 +398,7 @@ public:
         mode_(mode),
         cfg_(cfg)
     {
-    	BlockMapType::initMetadata();
-    	RootMapType::initMetadata();
+    	initMetadata();
 
     	mode = mode | OpenMode::READ;
 
@@ -481,6 +503,12 @@ public:
     	catch (...) {
     		//log exception here
     	}
+    }
+
+    static void initMetadata()
+    {
+    	BlockMapType::initMetadata();
+    	RootMapType::initMetadata();
     }
 
     const Cfg& cfg() const {
@@ -628,10 +656,10 @@ public:
 
     virtual PageG getPageG(Page* page)
     {
-    	return getPage(page->id(), Base::READ);
+    	return getPage(page->gid(), Base::READ);
     }
 
-    virtual void updatePage(Shared* shared)
+    virtual PageG updatePage(Shared* shared)
     {
     	MyShared* my_shared = static_cast<MyShared*>(shared);
 
@@ -659,6 +687,8 @@ public:
 
     		updated_++;
     	}
+
+    	return PageG(shared);
     }
 
     virtual void removePage(const ID& id)
@@ -880,7 +910,7 @@ public:
     	else
     	{
     		auto iter = root_map_->find(name);
-    		return !iter.isEnd();
+    		return (!iter.isEnd()) && iter.key() == name;
     	}
     }
 
@@ -889,10 +919,15 @@ public:
     	return superblock_->new_ctr_name();
     }
 
-    virtual const IAllocatorProperties& properties() const
+    virtual IAllocatorProperties& properties()
     {
     	return properties_;
     }
+
+    virtual ID newId() {
+    	return superblock_->new_id();
+    }
+
 
     //public stuff
 
@@ -911,7 +946,7 @@ public:
     	file_.close();
     }
 
-    void commit(bool force_sync = false)
+    virtual void commit(bool force_sync = false)
     {
     	// ensure file has enough room for backup
 
@@ -1105,7 +1140,7 @@ public:
     	}
     }
 
-    void rollback(bool force_sync = false)
+    virtual void rollback(bool force_sync = false)
     {
     	for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
     	{
@@ -1296,7 +1331,7 @@ private:
 
     		this->loadPage(pos, entry.page());
 
-    		MEMORIA_ASSERT(entry.key(), ==, entry.page()->id());
+    		MEMORIA_ASSERT(entry.key(), ==, entry.page()->gid());
     	});
     }
 
@@ -1445,6 +1480,10 @@ private:
     	Int page_data_size 	= disk_page->page_size();
     	Int ctr_type_hash	= disk_page->ctr_type_hash();
     	Int page_type_hash	= disk_page->page_type_hash();
+
+    	if (page_data_size != block_size) {
+    		int a = 0; a++;
+    	}
 
     	MEMORIA_ASSERT(page_data_size, ==, block_size);
 

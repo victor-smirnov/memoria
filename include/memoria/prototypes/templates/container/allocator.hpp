@@ -94,7 +94,7 @@ public:
 
     virtual PageG getPageG(Page* page);
 
-    virtual void  updatePage(Shared* shared);
+    virtual PageG updatePage(Shared* shared);
 
     virtual void  removePage(const ID& id);
 
@@ -103,6 +103,16 @@ public:
     virtual void  resizePage(Shared* page, Int new_size);
 
     virtual void  releasePage(Shared* shared);
+
+    virtual void commit(bool force_sync = false)
+    {
+    	self().allocator().commit(force_sync);
+    }
+
+    virtual void rollback(bool force_sync = false)
+    {
+    	self().allocator().rollback(force_sync);
+    }
 
 
 
@@ -117,9 +127,14 @@ public:
         return me()->allocator().createCtrName();
     }
 
-    virtual const IAllocatorProperties& properties() const
+    virtual IAllocatorProperties& properties()
     {
     	return self().allocator().properties();
+    }
+
+    virtual ID newId()
+    {
+    	return self().allocator().newId();
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -139,8 +154,8 @@ typename M_TYPE::PageG M_TYPE::getPageG(Page* page) {
 }
 
 M_PARAMS
-void M_TYPE::updatePage(Shared* shared) {
-    me()->allocator().updatePage(shared);
+typename M_TYPE::PageG M_TYPE::updatePage(Shared* shared) {
+    return me()->allocator().updatePage(shared);
 }
 
 M_PARAMS
@@ -194,4 +209,4 @@ void M_TYPE::freeMemory(void* ptr)
 
 
 
-#endif  /* _MEMORIA_PROTOTYPES_BTREE_MODEL_CHECKS_HPP */
+#endif

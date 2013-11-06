@@ -32,6 +32,13 @@ struct ICtrDirectory {
 struct IAllocatorProperties {
 	virtual Int defaultPageSize() const											= 0;
 
+	virtual BigInt lastCommitId() const											= 0;
+	virtual void setLastCommitId(BigInt txn_id)									= 0;
+	virtual BigInt newTxnId()													= 0;
+
+	virtual bool isMVCC() const													= 0;
+	virtual void setMVCC(bool mvcc)												= 0;
+
 	virtual ~IAllocatorProperties() {}
 };
 
@@ -56,7 +63,7 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
     virtual PageG getPage(const ID& id, Int flags)                      		= 0;
     virtual PageG getPageG(Page* page)                                  		= 0;
-    virtual void  updatePage(Shared* shared)                            		= 0;
+    virtual PageG updatePage(Shared* shared)                            		= 0;
     virtual void  removePage(const ID& id)                              		= 0;
     virtual PageG createPage(Int initial_size)                          		= 0;
     virtual void  resizePage(Shared* page, Int new_size)                		= 0;
@@ -68,13 +75,18 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual void unregisterCtrShared(CtrShared* shared)                 		= 0;
     virtual void registerCtrShared(CtrShared* shared)                   		= 0;
 
+    virtual ID newId()															= 0;
+
+    virtual void commit(bool force_sync = false)								= 0;
+    virtual void rollback(bool force_sync = false)								= 0;
+
     // memory pool allocator
 
     virtual void* allocateMemory(size_t size)                           		= 0;
     virtual void  freeMemory(void* ptr)                                 		= 0;
 
     virtual Logger& logger()                                            		= 0;
-    virtual const IAllocatorProperties& properties() const						= 0;
+    virtual IAllocatorProperties& properties()									= 0;
 };
 
 
@@ -85,21 +97,46 @@ public:
 };
 
 
+enum class EntryStatus: Int {
+	CLEAN, UPDATED, DELETED, CREATED // 2 bits per value
+};
+
+static inline Int toInt(EntryStatus es) {
+	return static_cast<Int>(es);
+}
+
 template <typename PageType>
 struct ITxn: IAllocator<PageType> {
+
+	virtual BigInt txn_id()	const												= 0;
+
 	virtual void commit() 														= 0;
 	virtual void rollback() 													= 0;
 };
 
 
 template <typename PageType>
-struct IMVCCTxnMgr {
+struct IMVCCAllocator: public IAllocator<PageType> {
+	typedef IAllocator<PageType>												Base;
+
 	typedef ITxn<PageType>														Txn;
 	typedef	std::shared_ptr<Txn>												TxnPtr;
 
-	virtual TxnPtr begin() 														= 0;
+	typedef typename Base::PageG                                     			PageG;
+	typedef typename Base::Page                                     			Page;
+	typedef typename Base::Shared                                     			Shared;
+	typedef typename Base::CtrShared                                     		CtrShared;
+	typedef typename Base::ID                                     				ID;
 
-	virtual ~IMVCCTxnMgr() {}
+	virtual ~IMVCCAllocator() {}
+
+	virtual PageG getPage(BigInt txn_id, const ID& id)               			= 0;
+	virtual ID getCtrDirectoryRootID(BigInt txn_id)								= 0;
+	virtual void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)		= 0;
+
+	virtual BigInt commited_txn_id()											= 0;
+
+	virtual TxnPtr begin() 														= 0;
 };
 
 

@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_SHARED_SEQUENCE_CREATE_TEST_BASE_HPP_
-#define MEMORIA_TESTS_SHARED_SEQUENCE_CREATE_TEST_BASE_HPP_
+#ifndef MEMORIA_TESTS_FILEALLOC_SEQUENCE_CREATE_TEST_BASE_HPP_
+#define MEMORIA_TESTS_FILEALLOC_SEQUENCE_CREATE_TEST_BASE_HPP_
 
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>

@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_TESTS_FILEALLOC_TEST_BASE_HPP_
-#define MEMORIA_TESTS_FILEALLOC_TEST_BASE_HPP_
+#ifndef MEMORIA_TESTS_MVCC_TEST_SUITE_HPP_
+#define MEMORIA_TESTS_MVCC_TEST_SUITE_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -14,22 +14,17 @@
 #include <memoria/tools/tools.hpp>
 
 #include <memoria/allocators/file/factory.hpp>
+#include <memoria/allocators/mvcc/mvcc_allocator.hpp>
+
+#include "mvcc_create_test.hpp"
 
 namespace memoria {
 
-class FileAllocatorTestBase: public TestTask {
-protected:
-	typedef GenericFileAllocator												Allocator;
-
-public:
-
-	FileAllocatorTestBase(StringRef name): TestTask(name)
-	{
-		MetadataRepository<FileProfile<>>::init();
-	}
-
-
-
+struct MVCCTestSuite: public TestSuite {
+	MVCCTestSuite(): TestSuite("MVCCSuite")
+    {
+        registerTask(new MVCCCreateTest("Create"));
+    }
 };
 
 }

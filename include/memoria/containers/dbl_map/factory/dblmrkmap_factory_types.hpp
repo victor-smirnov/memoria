@@ -111,7 +111,9 @@ struct BTTypes<Profile, DblMrkMap<Key_, Value_, BitsPerMark_> >:
 
 
     template <typename Types>
-    using FindLEWalker              = dblmap::SecondMapFindWalker<Types>;
+    using FindLEWalker              = dblmap::SecondMapFindLEWalker<Types>;
+    template <typename Types>
+    using FindLTWalker              = dblmap::SecondMapFindLTWalker<Types>;
 
     template <typename Types>
     using SkipForwardWalker         = dblmap::SkipForwardWalker<Types>;

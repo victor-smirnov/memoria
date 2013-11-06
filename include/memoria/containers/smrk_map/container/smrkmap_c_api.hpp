@@ -58,6 +58,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
         }
     }
 
+    Iterator findKey(Key key) {
+    	return self().findLE(0, key, 0);
+    }
+
 
     Iterator operator[](Key key)
     {
@@ -67,7 +71,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
         {
             Accumulator keys;
             std::get<0>(keys)[1] = key;
-            self().insert(iter, keys);
+            self().insert(iter, keys, 0);
 
             iter.prev();
         }
@@ -121,13 +125,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
         to.cache().initState();
     }
 
-    void insert(Iterator& iter, const Element& element)
+    void insert(Iterator& iter, const Element& element, Int mark)
     {
         Accumulator delta = element.first - iter.prefixes();
 
         Element e(delta, element.second);
 
-        if (self().insertMapEntry(iter, e))
+        if (self().insertMapEntry(iter, e, mark))
         {
             iter.updateUp(-delta);
         }

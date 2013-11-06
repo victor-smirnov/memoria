@@ -12,9 +12,6 @@
 
 typedef memoria::SmallInMemAllocator VStreamAllocator;
 
-//VStreamAllocator* manager;
-//std::set<IDValue> processed;
-
 void LoadFile(VStreamAllocator& allocator, const char* file)
 {
     FileInputStreamHandler* in = FileInputStreamHandler::create(file);
@@ -76,23 +73,26 @@ public:
 
     virtual void value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)
     {
-        NamedIDValue entry;
+    	if (strcmp(name, "GID") != 0)
+    	{
+    		NamedIDValue entry;
 
-        entry.count = count;
-        entry.name  = name_;
-        entry.index = idx_;
+    		entry.count = count;
+    		entry.name  = name_;
+    		entry.index = idx_;
 
-        for (Int c = 0; c < count; c++)
-        {
-            entry.id[c] = *value;
-        }
+    		for (Int c = 0; c < count; c++)
+    		{
+    			entry.id[c] = *value;
+    		}
 
-        values_.push_back(entry);
+    		values_.push_back(entry);
 
-        if (!line_)
-        {
-            idx_++;
-        }
+    		if (!line_)
+    		{
+    			idx_++;
+    		}
+    	}
     }
 
     virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol) {}
@@ -172,26 +172,21 @@ void dumpTree(
 		const IDValue& id, 
 		const File& folder, 
 		std::set<IDValue>& processed, 
-		Allocator* manager
+		Allocator* allocator
 	)
 {
     processed.insert(id);
 
-//  FIXME: IDValue
-
     try {
-    	auto page = manager->getPage(id, Allocator::READ);
+    	auto page = allocator->getPage(id, Allocator::READ);
     	
-        //manager->getPage(page, id);
-
         ofstream pagetxt((folder.getPath() + Platform::getFilePathSeparator() + "page.txt").c_str());
 
-        //PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->getContainerHash(), page->getPageTypeHash());
-        PageMetadata* meta = manager->getMetadata()->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+        PageMetadata* meta = allocator->getMetadata()->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         dumpPageData(meta, page, pagetxt);
 
-        dumpTree(meta, page, folder, processed, manager);
+        dumpTree(meta, page, folder, processed, allocator);
 
         pagetxt.close();
     }
@@ -218,7 +213,7 @@ String getPath(String dump_name)
 template <typename Allocator>
 void DumpAllocator(Allocator& allocator, File& path) 
 {
-	typename Allocator::RootMapType* root = allocator.roots();
+	auto* root = allocator.roots();
 	auto iter = root->Begin();
 
 	while (!iter.isEnd())
@@ -293,7 +288,20 @@ Int DumpAllocator(String file_name)
         	cout<<"Load FileAllocator file: "+file.getPath()<<endl;
         	GenericFileAllocator allocator(file.getPath(), OpenMode::READ);
         	
-        	DumpAllocator(allocator, path);
+        	if (allocator.properties().isMVCC())
+        	{
+        		cout<<"Dump MVCCV FileAllocator"<<endl;
+        		typedef MVCCAllocator<FileProfile<>, GenericFileAllocator::Page> TxnMgr;
+
+        		TxnMgr::initMetadata();
+
+        		TxnMgr mvcc_allocator(&allocator);
+
+        		DumpAllocator(mvcc_allocator, path);
+        	}
+        	else {
+        		DumpAllocator(allocator, path);
+        	}
         }
         else {
         	VStreamAllocator allocator;

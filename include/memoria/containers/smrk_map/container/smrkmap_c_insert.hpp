@@ -77,9 +77,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrInsertName)
 
 
 
-    bool insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element);
+    bool insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element, Int mark);
 
-    bool insertMapEntry(Iterator& iter, const Element& element);
+    bool insertMapEntry(Iterator& iter, const Element& element, Int mark);
 
 
 
@@ -122,7 +122,7 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-bool M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element)
+bool M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element, Int mark)
 {
     auto& self = this->self();
 
@@ -133,7 +133,7 @@ bool M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element)
     mgr.add(leaf);
 
     try {
-        LeafDispatcher::dispatch(leaf, InsertIntoLeafFn(std::get<0>(element.first)[1], element.second, 0), idx);
+        LeafDispatcher::dispatch(leaf, InsertIntoLeafFn(std::get<0>(element.first)[1], element.second, mark), idx);
         return true;
     }
     catch (PackedOOMException& e)
@@ -146,16 +146,16 @@ bool M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element)
 
 
 M_PARAMS
-bool M_TYPE::insertMapEntry(Iterator& iter, const Element& element)
+bool M_TYPE::insertMapEntry(Iterator& iter, const Element& element, Int mark)
 {
     auto& self      = this->self();
     NodeBaseG& leaf = iter.leaf();
     Int& idx        = iter.idx();
 
-    if (!self.insertIntoLeaf(leaf, idx, element))
+    if (!self.insertIntoLeaf(leaf, idx, element, mark))
     {
         iter.split();
-        if (!self.insertIntoLeaf(leaf, idx, element))
+        if (!self.insertIntoLeaf(leaf, idx, element, mark))
         {
             throw Exception(MA_SRC, "Second insertion attempt failed");
         }
@@ -163,8 +163,8 @@ bool M_TYPE::insertMapEntry(Iterator& iter, const Element& element)
 
     Accumulator e = element.first;
 
-    std::get<0>(e)[0] = 1;
-    std::get<0>(e)[2] = 1;
+    std::get<0>(e)[0] 			= 1;
+    std::get<0>(e)[2 + mark] 	= 1;
 
     self.updateParent(leaf, e);
 

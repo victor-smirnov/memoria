@@ -199,9 +199,11 @@ public:
 
 
 template <typename Types>
-class SecondMapFindWalker: public FindForwardWalkerBase<Types, SecondMapFindWalker<Types>> {
+class SecondMapFindWalkerBase: public FindForwardWalkerBase<Types, SecondMapFindWalkerBase<Types>> {
 
-    typedef FindForwardWalkerBase<Types, SecondMapFindWalker<Types>>            Base;
+    typedef FindForwardWalkerBase<Types, SecondMapFindWalkerBase<Types>>        Base;
+
+protected:
     typedef typename Base::Key                                                  Key;
     typedef typename Types::Accumulator                                         Accumulator;
     typedef Iter<typename Types::IterTypes>                                     Iterator;
@@ -209,11 +211,9 @@ class SecondMapFindWalker: public FindForwardWalkerBase<Types, SecondMapFindWalk
     BigInt prefix_ = 0;
 
 public:
-    SecondMapFindWalker(Int stream, Int index, Key key):
+    SecondMapFindWalkerBase(Int stream, Int index, Key key):
         Base(stream, index, key)
-    {
-        Base::search_type() = SearchType::LE;
-    }
+    {}
 
 
     template <Int StreamIdx, typename StreamTypes, typename SearchResult>
@@ -273,6 +273,42 @@ public:
 };
 
 
+
+template <typename Types>
+class SecondMapFindLEWalker: public SecondMapFindWalkerBase<Types> {
+
+    typedef SecondMapFindWalkerBase<Types>        								Base;
+
+protected:
+    typedef typename Base::Key                                                  Key;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef Iter<typename Types::IterTypes>                                     Iterator;
+
+public:
+    SecondMapFindLEWalker(Int stream, Int index, Key key):
+        Base(stream, index, key)
+    {
+        Base::search_type() = SearchType::LE;
+    }
+};
+
+template <typename Types>
+class SecondMapFindLTWalker: public SecondMapFindWalkerBase<Types> {
+
+    typedef SecondMapFindWalkerBase<Types>        								Base;
+
+protected:
+    typedef typename Base::Key                                                  Key;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef Iter<typename Types::IterTypes>                                     Iterator;
+
+public:
+    SecondMapFindLTWalker(Int stream, Int index, Key key):
+        Base(stream, index, key)
+    {
+        Base::search_type() = SearchType::LT;
+    }
+};
 
 
 

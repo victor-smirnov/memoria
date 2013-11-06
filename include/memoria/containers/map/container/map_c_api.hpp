@@ -58,6 +58,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
         }
     }
 
+    Iterator findKey(Key key) {
+    	return self().findLE(0, key, 0);
+    }
 
     Iterator operator[](Key key)
     {
@@ -132,6 +135,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
             iter.updateUp(-delta);
         }
     }
+
 
     bool contains(Key key)
     {

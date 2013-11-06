@@ -203,6 +203,12 @@ public:
 		return updated_->new_ctr_name();
 	}
 
+	BigInt new_id()
+	{
+		update();
+		return updated_->new_id();
+	}
+
 	UBigInt free_blocks() const
 	{
 		return updated_->free_blocks();
@@ -256,6 +262,28 @@ public:
 	bool use_temporary_allocator() const
 	{
 		return updated_->blockmap()->metadata()->length() > 0;
+	}
+
+	BigInt last_commit_id() const
+	{
+		return updated_->last_commit_id();
+	}
+
+	void setLastCommitId(BigInt txn_id)
+	{
+		update();
+
+		updated_->last_commit_id() = txn_id;
+	}
+
+	bool is_mvcc() const {
+		return updated_->mvcc();
+	}
+
+	void setMVCC(bool mvcc)
+	{
+		update();
+		updated_->mvcc() = mvcc;
 	}
 
 	void updateMainBlockMapMetadata()

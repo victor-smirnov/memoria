@@ -41,6 +41,7 @@ public:
 
 
     PageID() = default;
+    PageID(const PageID<T>&) = default;
 
     PageID(const T& t): Base(t) {}
 
@@ -220,6 +221,7 @@ private:
     UBigInt		target_block_pos_;
 
     PageIdType  id_;
+    PageIdType  gid_;
 
     FlagsType   flags_;
 
@@ -252,7 +254,7 @@ public:
 
     AbstractPage() = default;
 
-    AbstractPage(const PageIdType &id): id_(id), flags_() {}
+    AbstractPage(const PageIdType &id): id_(id), gid_(id), flags_() {}
 
     const PageIdType &id() const {
         return id_;
@@ -260,6 +262,14 @@ public:
 
     PageIdType &id() {
         return id_;
+    }
+
+    const PageIdType &gid() const {
+        return gid_;
+    }
+
+    PageIdType &gid() {
+        return gid_;
     }
 
     void init() {}
@@ -383,6 +393,9 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         IDValue id(&id_);
+        IDValue gid(&gid_);
+
+        handler->value("GID",               &gid);
         handler->value("ID",                &id);
         handler->value("CRC",               &crc_);
         handler->value("MASTER_MODEL_HASH", &master_ctr_type_hash_);
@@ -401,6 +414,7 @@ public:
     void copyFrom(const Me* page)
     {
         this->id()              = page->id();
+        this->gid()             = page->gid();
         this->crc()             = page->crc();
 
         this->ctr_type_hash()           = page->ctr_type_hash();
@@ -427,6 +441,7 @@ public:
         FieldFactory<UBigInt>::serialize(buf, target_block_pos_);
 
         FieldFactory<PageIdType>::serialize(buf, id());
+        FieldFactory<PageIdType>::serialize(buf, gid());
 
         FieldFactory<Int>::serialize(buf, references_);
         FieldFactory<Int>::serialize(buf, deleted_);
@@ -446,6 +461,7 @@ public:
         FieldFactory<UBigInt>::deserialize(buf, target_block_pos_);
 
         FieldFactory<PageIdType>::deserialize(buf, id());
+        FieldFactory<PageIdType>::deserialize(buf, gid());
 
         FieldFactory<Int>::deserialize(buf, references_);
         FieldFactory<Int>::deserialize(buf, deleted_);
@@ -604,7 +620,7 @@ public:
     }
 
 
-    PageGuard(): shared_(NULL)
+    PageGuard(): shared_(nullptr)
     {
         inc();
     }
@@ -759,9 +775,14 @@ public:
 
     void update()
     {
-        if (shared_ != NULL && !shared_->updated())
+        if (shared_ && !shared_->updated())
         {
-            shared_->allocator()->updatePage(shared_);
+            auto guard = shared_->allocator()->updatePage(shared_);
+
+            if (guard.shared() != shared_)
+            {
+            	*this = guard;
+            }
         }
     }
 
@@ -774,7 +795,7 @@ public:
     }
 
     void clear() {
-        *this = NULL;
+        *this = nullptr;
     }
 
     const Shared* shared() const {
@@ -797,7 +818,7 @@ private:
 
     void ref()
     {
-        if (shared_ != NULL)
+        if (shared_ != nullptr)
         {
             shared_->ref();
         }
@@ -805,7 +826,7 @@ private:
 
     void unref()
     {
-        if (shared_ != NULL)
+        if (shared_ != nullptr)
         {
             if (shared_->unref() == 0)
             {

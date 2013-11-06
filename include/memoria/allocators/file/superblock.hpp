@@ -37,6 +37,7 @@ class Superblock {
 
 	Int version_major_;
 	Int version_minor_;
+	Int mvcc_;
 
 	ID blockmap_root_id_;
 	ID idmap_root_id_;
@@ -50,12 +51,14 @@ class Superblock {
 	Int block_size_;
 
 	BigInt name_counter_;
-//	UBigInt id_counter_;
+	UBigInt id_counter_;
 
 	UBigInt file_size_;
 
 	UBigInt total_blocks_;
 	UBigInt free_blocks_;
+
+	BigInt last_commit_id_;
 
 	PackedAllocator allocator_;
 
@@ -91,6 +94,8 @@ public:
 		version_major_ 		= 1;
 		version_minor_ 		= 0;
 
+		mvcc_				= false;
+
 		blockmap_root_id_ 	= ID(0);
 		idmap_root_id_ 		= ID(0);
 		rootmap_id_ 		= ID(0);
@@ -102,11 +107,14 @@ public:
 		superblock_size_ 	= superblock_size;
 		block_size_			= block_size;
 
-		name_counter_		= 1000;
+		name_counter_		= 10000;
+		id_counter_			= 1;
 
 		file_size_			= 0;
 		total_blocks_		= 0;
 		free_blocks_		= 0;
+
+		last_commit_id_		= 0;
 
 		allocator_.init(superblock_size_ - sizeof(MyType) + sizeof(PackedAllocator), ListSize<ObjectsList>::Value);
 		allocator_.setTopLevelAllocator();
@@ -165,6 +173,14 @@ public:
 
 	const Int& version_minor() const {
 		return version_minor_;
+	}
+
+	Int& mvcc() {
+		return mvcc_;
+	}
+
+	const Int& mvcc() const {
+		return mvcc_;
 	}
 
 	ID& blockmap_root_id() {
@@ -227,9 +243,9 @@ public:
 		return name_counter_;
 	}
 
-//	const UBigInt& id_counter() const {
-//		return id_counter_;
-//	}
+	const ID id_counter() const {
+		return id_counter_;
+	}
 
 	UBigInt& file_size() {
 		return file_size_;
@@ -255,15 +271,23 @@ public:
 		return free_blocks_;
 	}
 
+	BigInt& last_commit_id() {
+		return last_commit_id_;
+	}
+
+	const BigInt& last_commit_id() const {
+		return last_commit_id_;
+	}
+
 	BigInt new_ctr_name()
 	{
 		return name_counter_++;
 	}
 
-//	UBigInt new_id()
-//	{
-//		return id_counter_++;
-//	}
+	ID new_id()
+	{
+		return id_counter_++;
+	}
 
 	PackedAllocator* allocator() {
 		return allocator_;
@@ -293,6 +317,8 @@ public:
 		handler->value("VERSION_MAJOR",   	&version_major_);
 		handler->value("VERSION_MINOR",   	&version_minor_);
 
+		handler->value("MVCC",   			&mvcc_);
+
 		handler->value("BLOCKMAP_ROOT_ID",	&blockmap_root_id_);
 		handler->value("IDMAP_ROOT_ID",		&idmap_root_id_);
 		handler->value("ROOTMAP_ID",		&rootmap_id_);
@@ -305,12 +331,14 @@ public:
 		handler->value("BLOCK_SIZE",		&block_size_);
 
 		handler->value("NAME_COUNTER",		&name_counter_);
-//		handler->value("ID_COUNTER",		&id_counter_);
+		handler->value("ID_COUNTER",		&id_counter_);
 
 		handler->value("FILE_SIZE",			&file_size_);
 
 		handler->value("TOTAL_BLOCKS",		&total_blocks_);
 		handler->value("FREE_BLOCKS",		&free_blocks_);
+
+		handler->value("LAST_COMMIT_ID",	&last_commit_id_);
 
 		GenerateDataEventsTool<ObjectsList>::generateDataEvents(&allocator_, handler);
 
@@ -324,6 +352,7 @@ public:
 		FieldFactory<Int>::serialize(buf, type_hash_);
 		FieldFactory<Int>::serialize(buf, version_major_);
 		FieldFactory<Int>::serialize(buf, version_minor_);
+		FieldFactory<Int>::serialize(buf, mvcc_);
 
 		FieldFactory<ID>::serialize(buf, blockmap_root_id_);
 		FieldFactory<ID>::serialize(buf, idmap_root_id_);
@@ -337,12 +366,14 @@ public:
 		FieldFactory<Int>::serialize(buf, block_size_);
 
 		FieldFactory<BigInt>::serialize(buf, name_counter_);
-//		FieldFactory<UBigInt>::serialize(buf, id_counter_);
+		FieldFactory<UBigInt>::serialize(buf, id_counter_);
 
 		FieldFactory<UBigInt>::serialize(buf, file_size_);
 
 		FieldFactory<UBigInt>::serialize(buf, total_blocks_);
 		FieldFactory<UBigInt>::serialize(buf, free_blocks_);
+
+		FieldFactory<BigInt>::serialize(buf, last_commit_id_);
 
 		SerializeTool<ObjectsList>::serialize(&allocator_, buf);
 	}
@@ -354,6 +385,7 @@ public:
 		FieldFactory<Int>::deserialize(buf, type_hash_);
 		FieldFactory<Int>::deserialize(buf, version_major_);
 		FieldFactory<Int>::deserialize(buf, version_minor_);
+		FieldFactory<Int>::deserialize(buf, mvcc_);
 
 		FieldFactory<ID>::deserialize(buf, blockmap_root_id_);
 		FieldFactory<ID>::deserialize(buf, idmap_root_id_);
@@ -367,12 +399,14 @@ public:
 		FieldFactory<Int>::deserialize(buf, block_size_);
 
 		FieldFactory<BigInt>::deserialize(buf, name_counter_);
-//		FieldFactory<UBigInt>::deserialize(buf, id_counter_);
+		FieldFactory<UBigInt>::deserialize(buf, id_counter_);
 
 		FieldFactory<UBigInt>::deserialize(buf, file_size_);
 
 		FieldFactory<UBigInt>::deserialize(buf, total_blocks_);
 		FieldFactory<UBigInt>::deserialize(buf, free_blocks_);
+
+		FieldFactory<BigInt>::deserialize(buf, last_commit_id_);
 	}
 
 	void deserialize(DeserializationData& buf)

@@ -372,6 +372,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
         }
     }
 
+    void insert(const Key& key, const Value& value, Int mark)
+    {
+    	auto& self = this->self();
+
+    	Accumulator sums;
+    	std::get<0>(sums)[1] = key;
+
+    	self.ctr().insert(self, Element(sums, value), mark);
+    }
+
 
 
     void ComputePrefix(BigInt& accum)

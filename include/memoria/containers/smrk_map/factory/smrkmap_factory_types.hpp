@@ -30,6 +30,7 @@
 #include <memoria/containers/smrk_map/smrkmap_names.hpp>
 
 #include <memoria/core/packed/map/packed_fse_smark_map.hpp>
+#include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
 namespace memoria {
 

@@ -119,42 +119,34 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrMrkValueName)
 
 
     struct GetValueFn {
-        Value value_ = 0;
+        Value value_;
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
         {
-            if (map != nullptr)
-            {
-                value_ = map->value(idx);
-            }
+            MEMORIA_ASSERT_TRUE(map);
+            value_ = map->value(idx);
         }
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
         {
-            if (map != nullptr)
-            {
-                value_ = map->value(idx);
-            }
+        	MEMORIA_ASSERT_TRUE(map);
+            value_ = map->value(idx);
         }
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
         {
-        	if (map != nullptr)
-        	{
-        		value_ = map->value(idx);
-        	}
+        	MEMORIA_ASSERT_TRUE(map);
+        	value_ = map->value(idx);
         }
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSEMarkableMap<StreamTypes>* map, Int idx)
         {
-        	if (map != nullptr)
-        	{
-        		value_ = map->value(idx);
-        	}
+        	MEMORIA_ASSERT_TRUE(map);
+        	value_ = map->value(idx);
         }
 
         template <typename Node>

@@ -45,6 +45,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     template <typename T>
     using Find2ndLEWalker = typename Container::Types::template FindLEWalker<T>;
 
+    template <typename T>
+    using Find2ndLTWalker = typename Container::Types::template FindLTWalker<T>;
+
 
     struct ReadValueFn {
         typedef Value ReturnType;
@@ -157,6 +160,47 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     	if (size > 0)
     	{
     		BigInt offset = self.template _findFw<Find2ndLEWalker>(0, key);
+
+    		self.cache().addToGlobalPos(offset);
+
+    		if (offset < size)
+    		{
+    			return true;
+    		}
+    		else {
+    			self.skipBw(offset - size);
+
+    			return false;
+    		}
+    	}
+    	else {
+    		return false;
+    	}
+    }
+
+    bool find2ndLT(Key key)
+    {
+    	auto& self = this->self();
+
+    	BigInt size = self.blob_size();
+
+    	if (self.stream() == 0)
+    	{
+    		self.findData(0);
+    	}
+    	else
+    	{
+    		BigInt pos = self.pos();
+
+    		if (pos > 0)
+    		{
+    			self.skipBw(pos);
+    		}
+    	}
+
+    	if (size > 0)
+    	{
+    		BigInt offset = self.template _findFw<Find2ndLTWalker>(0, key);
 
     		self.cache().addToGlobalPos(offset);
 
