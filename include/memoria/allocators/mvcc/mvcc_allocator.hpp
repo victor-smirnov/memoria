@@ -52,7 +52,9 @@ public:
 
 	typedef std::unordered_map<BigInt, CtrShared*>                              CtrSharedMap;
 
-	typedef typename CtrTF<Profile, SMrkMap<BigInt, ID, 2>>::Type				CtrDirectory;
+	typedef TxnValue<ID>														CtrDurectoryTxnValue;
+
+	typedef typename CtrTF<Profile, SMrkMap<BigInt, CtrDurectoryTxnValue, 2>>::Type	CtrDirectory;
 	typedef typename CtrDirectory::Types::Value									CtrDirectoryValue;
 	typedef std::unique_ptr<CtrDirectory>										CtrDirectoryPtr;
 
@@ -236,8 +238,18 @@ public:
 		}
 		else {
 			CommitHistoryValue value = iter.value();
-			value.first = toInt(EntryStatus::DELETED);
-			iter.setValue(value);
+
+			if (value.first != toInt(EntryStatus::DELETED))
+			{
+				value.first = toInt(EntryStatus::DELETED);
+
+				if (value.second.isSet())
+				{
+					allocator_->removePage(value.second);
+				}
+
+				iter.setValue(value);
+			}
 		}
 	}
 
@@ -285,12 +297,22 @@ public:
 
 			if (is_found(iter, name))
 			{
-				return iter.value();
+				return iter.value().value().value();
 			}
 			else {
 				throw Exception(MA_SRC, SBuf()<<"Ctr root ID is not found for name: "<<name);
 			}
 		}
+	}
+
+	virtual void markUpdated(BigInt name)
+	{
+
+	}
+
+	virtual BigInt currentTxnId() const
+	{
+		return last_commited_txn_id_;
 	}
 
 
@@ -375,12 +397,6 @@ private:
 	typename CommitHistory::Iterator findGIDInHistory(BigInt txn_id, const ID& id)
 	{
 		auto iter = commit_history_.find(id);
-
-		if (!iter.found())
-		{
-			cout<<txn_id<<" "<<id<<endl;
-			iter.dumpPath();
-		}
 
 		MEMORIA_ASSERT_TRUE(iter.found());
 		MEMORIA_ASSERT_TRUE(iter.blob_size() > 0);

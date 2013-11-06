@@ -102,6 +102,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         MemBuffer<Value> buf(data);
 
         model.insert(self, buf);
+
+        model.markCtrUpdated();
     }
 
     void insert(Value data)
@@ -112,6 +114,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         MemBuffer<Value> buf(&data, 1);
 
         model.insert(self, buf);
+
+        model.markCtrUpdated();
     }
 
     Int size() const
@@ -160,6 +164,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     {
         auto& self = this->self();
         self.ctr().remove(self, size);
+
+        self.ctr().markCtrUpdated();
     }
 
     std::vector<Value> subVector(BigInt size)

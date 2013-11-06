@@ -16,12 +16,14 @@ namespace memoria {
 
 template <
     typename Key,
-    typename Value,
+    typename Value_,
     Int Blocks      	= 1,
     Int BitsPerMark_ 	= 1
 >
 struct PackedFSESearchableMarkableMapTypes: Packed2TreeTypes<Key, BigInt, Blocks> {
 	static const Int BitsPerMark = BitsPerMark_;
+
+	typedef Value_ MapValue;
 };
 
 template <typename Types>
@@ -38,7 +40,7 @@ public:
 
     static const Int Indexes = Tree::Blocks + Bitmap::Indexes;
 
-    typedef typename Types::Value                                               Value;
+    typedef typename Types::MapValue                                            Value;
     typedef StaticVector<BigInt, Indexes>										Values;
     typedef StaticVector<BigInt, Indexes + 1>									Values2;
 
@@ -612,6 +614,7 @@ public:
         handler->endGroup();
     }
 
+//    template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
         Base::serialize(buf);
@@ -622,6 +625,7 @@ public:
         FieldFactory<Value>::serialize(buf, values(), size());
     }
 
+//    template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
         Base::deserialize(buf);

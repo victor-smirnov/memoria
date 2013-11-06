@@ -489,6 +489,15 @@ public:
         new_root(name, root);
     }
 
+    virtual void markUpdated(BigInt name) {}
+
+    virtual BigInt currentTxnId() const
+	{
+		return 0;
+	}
+
+
+
     virtual CtrShared* getCtrShared(BigInt name)
     {
         auto i = ctr_shared_.find(name);

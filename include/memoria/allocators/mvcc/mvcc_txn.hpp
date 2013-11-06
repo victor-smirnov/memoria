@@ -205,7 +205,7 @@ public:
 
 			if (!(iter.isEnd() || iter.key() != name))
 			{
-				return iter.value();
+				return iter.value().value().value();
 			}
 			else {
 				return ID(0);
@@ -243,7 +243,7 @@ public:
 				iter.insert(name, root, toInt(EntryStatus::CREATED));
 			}
 			else {
-				throw Exception(MA_SRC, "Try to remove nonexistent root ID form root directory");
+				throw vapi::Exception(MA_SRC, "Try to remove nonexistent root ID form root directory");
 			}
 		}
 		else {
@@ -253,10 +253,30 @@ public:
 
 	virtual bool hasRoot(BigInt name)
 	{
-		auto iter = root_map_.find(name);
+		auto iter = root_map_.findKey(name);
 		return is_found(iter, name);
 	}
 
+	virtual void markUpdated(BigInt name)
+	{
+		auto iter = root_map_.findKey(name);
+		if (is_found(iter, name))
+		{
+			Int mark = iter.mark();
+
+			if (mark == toInt(EntryStatus::CLEAN))
+			{
+				iter.setMark(toInt(EntryStatus::UPDATED));
+			}
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"CtrDirectory entry for name "<<name<<" is not found");
+		}
+	}
+
+	virtual BigInt currentTxnId() const	{
+		return txn_id_;
+	}
 
 
 

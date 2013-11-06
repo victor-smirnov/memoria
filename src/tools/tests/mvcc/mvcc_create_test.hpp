@@ -58,8 +58,10 @@ public:
 
 		BigInt ctr_name = ctr.name();
 
-		vector<Int> data(100000);
+		vector<Int> data(10000);
 
+		ctr.seek(0).insert(data);
+		ctr.seek(0).insert(data);
 		ctr.seek(0).insert(data);
 
 		allocator.commit();
@@ -73,11 +75,11 @@ public:
 
 		VectorCtr ctr2(&mgr2, CTR_FIND, ctr_name);
 
-		AssertEQ(MA_SRC, ctr2.size(), 100000);
+		AssertEQ(MA_SRC, ctr2.size(), 30000);
 
-		vector<Int> v = ctr.seek(0).subVector(100000);
+		vector<Int> v = ctr2.seek(0).subVector(30000);
 
-		AssertEQ(MA_SRC, v.size(), 100000ul);
+		AssertEQ(MA_SRC, v.size(), 30000ul);
 	}
 };
 

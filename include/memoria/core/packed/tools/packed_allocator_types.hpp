@@ -10,6 +10,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/exceptions/memoria.hpp>
+#include <memoria/core/tools/reflection.hpp>
 #include <memoria/metadata/page.hpp>
 
 namespace memoria {

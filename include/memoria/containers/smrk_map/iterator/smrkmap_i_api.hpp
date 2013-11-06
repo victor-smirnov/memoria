@@ -158,6 +158,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
             iter_.setValue(value);
             return value;
         }
+
+        Value value() const {
+        	return iter_.getValue();
+        }
     };
 
     class ConstValueAccessor {
@@ -168,37 +172,22 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
         operator Value() const {
             return iter_.getValue();
         }
+
+        Value value() const {
+        	return iter_.getValue();
+        }
     };
 
 
     struct GetValueFn {
-        Value value_ = 0;
-
-//        template <Int Idx, typename StreamTypes>
-//        void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
-//        {
-//            if (map != nullptr)
-//            {
-//                value_ = map->value(idx);
-//            }
-//        }
-//
-//        template <Int Idx, typename StreamTypes>
-//        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
-//        {
-//            if (map != nullptr)
-//            {
-//                value_ = map->value(idx);
-//            }
-//        }
+        Value value_;
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
         {
-        	if (map != nullptr)
-        	{
-        		value_ = map->value(idx);
-        	}
+        	MEMORIA_ASSERT_TRUE(map)
+
+        	value_ = map->value(idx);
         }
 
         template <typename Node>

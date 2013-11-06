@@ -12,6 +12,8 @@
 #include <memoria/core/exceptions/memoria.hpp>
 
 #include <memoria/core/container/allocator.hpp>
+#include <memoria/core/tools/reflection.hpp>
+#include <memoria/metadata/page.hpp>
 
 #include <unordered_map>
 
@@ -134,6 +136,88 @@ public:
     	allocator_->rollback(force_sync);
     }
 };
+
+
+
+template <typename Value>
+class TxnValue {
+
+	BigInt txn_id_;
+	Value value_;
+
+public:
+	TxnValue() = default;
+
+	TxnValue(BigInt txn_id, const Value& value):
+		txn_id_(txn_id),
+		value_(value)
+	{}
+
+	TxnValue(const Value& value):
+		txn_id_(0),
+		value_(value)
+	{}
+
+	BigInt& txn_id() {
+		return txn_id_;
+	}
+
+	const BigInt& txn_id() const {
+		return txn_id_;
+	}
+
+	Value& value() {
+		return value_;
+	}
+
+	const Value& value() const {
+		return value_;
+	}
+
+//	operator Value() const {
+//		return value_;
+//	}
+
+	operator BigInt() const {
+		return value_;
+	}
+
+	void generateDataEvents(IPageDataEventHandler* handler) const
+	{
+		handler->startLine("VALUE");
+
+		handler->value("TXN_ID", &txn_id_);
+
+		vapi::ValueHelper<Value>::setup(handler, value_);
+
+		handler->endLine();
+	}
+
+	void serialize(SerializationData& buf) const
+	{
+		FieldFactory<BigInt>::serialize(buf, txn_id_);
+		FieldFactory<Value>::serialize(buf, value_);
+	}
+
+	void deserialize(DeserializationData& buf)
+	{
+		FieldFactory<BigInt>::deserialize(buf, txn_id_);
+		FieldFactory<Value>::deserialize(buf, value_);
+	}
+};
+
+
+template <typename T>
+struct ValueHelper<TxnValue<T> > {
+    typedef TxnValue<T>												Type;
+
+    static void setup(IPageDataEventHandler* handler, const Type& value)
+    {
+        value.generateDataEvents(handler);
+    }
+};
+
+
 
 }
 

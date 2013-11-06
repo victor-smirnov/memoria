@@ -23,6 +23,8 @@ template <typename ID>
 struct ICtrDirectory {
     virtual ID    getRootID(BigInt name)                                		= 0;
     virtual void  setRoot(BigInt name, const ID& root)                  		= 0;
+    virtual void markUpdated(BigInt name)										= 0;
+
     virtual bool  hasRoot(BigInt name)                                  		= 0;
     virtual BigInt createCtrName()                                      		= 0;
 
@@ -76,6 +78,7 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual void registerCtrShared(CtrShared* shared)                   		= 0;
 
     virtual ID newId()															= 0;
+    virtual BigInt currentTxnId() const											= 0;
 
     virtual void commit(bool force_sync = false)								= 0;
     virtual void rollback(bool force_sync = false)								= 0;

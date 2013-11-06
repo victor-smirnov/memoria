@@ -914,6 +914,12 @@ public:
     	}
     }
 
+    virtual void markUpdated(BigInt name) {}
+
+    virtual BigInt currentTxnId() const	{
+    	return 0;
+    }
+
     virtual BigInt createCtrName()
     {
     	return superblock_->new_ctr_name();

@@ -39,6 +39,8 @@ class BalancedTreeMetadata
 
     ID      roots_[2];
 
+    BigInt  txn_id_;
+
 public:
 
     typedef TypeList<
@@ -112,7 +114,7 @@ public:
         handler->value("BRANCHING_FACTOR",  &branching_factor_);
         handler->value("PAGE_SIZE",         &page_size_);
 
-        handler->startGroup("ROOTS", ROOTS);
+        handler->startLine("ROOTS", ROOTS);
 
         for (Int c = 0; c < ROOTS; c++)
         {
@@ -120,7 +122,9 @@ public:
             handler->value("ROOT",  &id);
         }
 
-        handler->endGroup();
+        handler->endLine();
+
+        handler->value("TXN_ID", &txn_id_);
 
         handler->endGroup();
     }
@@ -136,6 +140,8 @@ public:
         {
             FieldFactory<ID>::serialize(buf, roots(c));
         }
+
+        FieldFactory<BigInt>::serialize(buf, txn_id_);
     }
 
     void deserialize(DeserializationData& buf)
@@ -149,6 +155,8 @@ public:
         {
             FieldFactory<ID>::deserialize(buf, roots(c));
         }
+
+        FieldFactory<BigInt>::deserialize(buf, txn_id_);
     }
 
     const ID& roots(Int idx) const {
@@ -157,6 +165,14 @@ public:
 
     ID& roots(Int idx) {
         return roots_[idx];
+    }
+
+    BigInt& txn_id() {
+    	return txn_id_;
+    }
+
+    const BigInt& txn_id() const {
+    	return txn_id_;
     }
 };
 

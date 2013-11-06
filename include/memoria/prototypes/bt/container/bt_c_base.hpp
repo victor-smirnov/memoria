@@ -436,6 +436,31 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         NodeDispatcher::dispatch(node.page(), PrepareNodeFn(me()));
     }
 
+    void markCtrUpdated()
+    {
+    	auto& self = this->self();
+
+    	BigInt txn_id = self.allocator().currentTxnId();
+    	const Metadata& metadata = self.getRootMetadata();
+
+    	if (txn_id == metadata.txn_id())
+    	{
+    		// do nothing
+    	}
+    	else if (txn_id > metadata.txn_id())
+    	{
+    		Metadata copy = metadata;
+    		copy.txn_id() = txn_id;
+
+    		self.setRootMetadata(copy);
+
+    		self.allocator().markUpdated(self.name());
+    	}
+    	else {
+    		throw vapi::Exception(MA_SRC, SBuf()<<"Invalid txn_id "<<txn_id<<" < "<<metadata.txn_id());
+    	}
+    }
+
  private:
 
     void findCtrByName()

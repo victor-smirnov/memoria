@@ -90,6 +90,15 @@ public:
         return isCtrSharedRegistered(name); // Is it correct?
     }
 
+    virtual void markUpdated(BigInt name)
+    {
+    	return self().allocator().markUpdated(name);
+    }
+
+    virtual BigInt currentTxnId() const {
+    	return self().allocator().currentTxnId();
+    }
+
     virtual PageG getPage(const ID& id, Int flags);
 
     virtual PageG getPageG(Page* page);
