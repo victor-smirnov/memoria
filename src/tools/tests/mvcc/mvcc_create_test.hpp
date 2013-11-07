@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_TESTS_FILEALLOC_CREATE_TEST_HPP_
-#define MEMORIA_TESTS_FILEALLOC_CREATE_TEST_HPP_
+#ifndef MEMORIA_TESTS_MVCC_CREATE_TEST_HPP_
+#define MEMORIA_TESTS_MVCC_TEST_HPP_
 
 #include <memoria/memoria.hpp>
 

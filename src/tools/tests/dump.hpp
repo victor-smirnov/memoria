@@ -178,7 +178,7 @@ void dumpTree(
     processed.insert(id);
 
     try {
-    	auto page = allocator->getPage(id, Allocator::READ);
+    	auto page = allocator->getPage(id, Allocator::READ, -1);
     	
         ofstream pagetxt((folder.getPath() + Platform::getFilePathSeparator() + "page.txt").c_str());
 

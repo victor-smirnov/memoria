@@ -106,7 +106,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrNormName)
 
     void insertBlockIntoLeaf(NodeBaseG& leaf, Int idx, Int length, DataSource& data)
     {
-    	leaf.update();
+    	self().updatePageG(leaf);
 
     	Accumulator accum;
     	LeafDispatcher::dispatch(leaf, InsertBlockIntoLeafFn(), idx, length, data, accum);
@@ -116,7 +116,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrNormName)
 
     void updateBlockLeaf(NodeBaseG& leaf, Int idx, Int length, DataSource& data)
     {
-    	leaf.update();
+    	self().updatePageG(leaf);
 
     	Accumulator accum;
     	LeafDispatcher::dispatch(leaf, UpdateBlockFn(), idx, length, data, accum);

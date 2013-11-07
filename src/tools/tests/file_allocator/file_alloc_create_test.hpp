@@ -62,7 +62,7 @@ public:
 		{
 			Allocator allocator(db_file.getPath(), OpenMode::READ);
 
-			auto page = allocator.createPage(allocator.properties().defaultPageSize());
+			auto page = allocator.createPage(allocator.properties().defaultPageSize(), -1);
 
 			allocator.commit();
 		});
@@ -71,7 +71,7 @@ public:
 		{
 			Allocator allocator(db_file.getPath(), OpenMode::READ);
 
-			auto page = allocator.createPage(allocator.properties().defaultPageSize());
+			auto page = allocator.createPage(allocator.properties().defaultPageSize(), -1);
 
 			allocator.rollback();
 		});

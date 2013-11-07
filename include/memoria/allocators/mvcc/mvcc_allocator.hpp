@@ -58,7 +58,7 @@ public:
 	typedef typename CtrDirectory::Types::Value									CtrDirectoryValue;
 	typedef std::unique_ptr<CtrDirectory>										CtrDirectoryPtr;
 
-	static const Int RootMapName												= 1;
+	static const Int CtrDirectoryName												= 1;
 
 private:
 
@@ -92,7 +92,7 @@ public:
 
 			last_commited_txn_id_ = allocator_->properties().newTxnId();
 
-			root_map_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_CREATE, RootMapName));
+			root_map_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_CREATE, CtrDirectoryName));
 
 			allocator_->properties().setLastCommitId(last_commited_txn_id_);
 
@@ -103,7 +103,7 @@ public:
 		else {
 			last_commited_txn_id_ = allocator_->properties().lastCommitId();
 
-			root_map_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_FIND, RootMapName));
+			root_map_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_FIND, CtrDirectoryName));
 		}
 	}
 
@@ -126,7 +126,7 @@ public:
 	}
 
 
-	virtual PageG getPage(BigInt txn_id, const ID& id)
+	virtual PageG getPage(BigInt txn_id, const ID& id, BigInt name)
 	{
 		auto iter = findGIDInHistory(txn_id, id);
 
@@ -134,7 +134,7 @@ public:
 
 		ID gid = iter.value().second;
 
-		return allocator_->getPage(gid, Allocator::READ);
+		return allocator_->getPage(gid, Allocator::READ, name);
 	}
 
 	virtual ID getCtrDirectoryRootID(BigInt txn_id)
@@ -174,9 +174,11 @@ public:
 		return std::make_shared<TxnImpl>(this, newTxnId());
 	}
 
-	void commit(TxnImpl* txn)
+	void commit(TxnImpl& txn)
 	{
-		//typename TxnImpl::CtrDirectory root_map(txn, CTR_FIND, 0);
+//		auto& txn_ctr_directory = txn.ctr_directory();
+
+
 	}
 
 	BigInt newTxnId()
@@ -187,19 +189,19 @@ public:
 
 	// IAllocator
 
-	virtual PageG getPage(const ID& id, Int flags)
+	virtual PageG getPage(const ID& id, Int flags, BigInt name)
 	{
-		PageG page = getPage(last_commited_txn_id_, id);
+		PageG page = getPage(last_commited_txn_id_, id, name);
 
 		if (flags == Allocator::UPDATE)
 		{
-			page.update();
+			page.update(name);
 		}
 
 		return page;
 	}
 
-	virtual PageG updatePage(Shared* shared)
+	virtual PageG updatePage(Shared* shared, BigInt name)
 	{
 		MEMORIA_ASSERT(shared->id(), ==, shared->get()->gid());
 
@@ -211,7 +213,7 @@ public:
 		{
 			Int page_size = shared->get()->page_size();
 
-			PageG new_page 	= allocator_->createPage(page_size);
+			PageG new_page 	= allocator_->createPage(page_size, name);
 			ID new_gid 		= new_page->gid();
 
 			CopyByteBuffer(shared->get(), new_page.page(), page_size);
@@ -224,11 +226,11 @@ public:
 			return new_page;
 		}
 		else {
-			return allocator_->updatePage(shared);
+			return allocator_->updatePage(shared, name);
 		}
 	}
 
-	virtual void removePage(const ID& id)
+	virtual void removePage(const ID& id, BigInt name)
 	{
 		auto iter = findGIDInHistory(last_commited_txn_id_, id);
 
@@ -245,7 +247,7 @@ public:
 
 				if (value.second.isSet())
 				{
-					allocator_->removePage(value.second);
+					allocator_->removePage(value.second, name);
 				}
 
 				iter.setValue(value);
@@ -253,9 +255,9 @@ public:
 		}
 	}
 
-	virtual PageG createPage(Int initial_size)
+	virtual PageG createPage(Int initial_size, BigInt name)
 	{
-		PageG new_page 	= allocator_->createPage(initial_size);
+		PageG new_page 	= allocator_->createPage(initial_size, name);
 		ID new_gid 		= new_page->gid();
 		ID new_id		= allocator_->newId();
 		new_page->id()	= new_id;
@@ -279,7 +281,7 @@ public:
 
 	virtual ID getRootID(BigInt name)
 	{
-		if (name == RootMapName)
+		if (name == CtrDirectoryName)
 		{
 			auto iter = roots_.findKey(last_commited_txn_id_);
 
@@ -318,7 +320,7 @@ public:
 
 	virtual void setRoot(BigInt name, const ID& root)
 	{
-		if (name == RootMapName)
+		if (name == CtrDirectoryName)
 		{
 			auto iter = roots_.findKey(last_commited_txn_id_);
 
@@ -368,7 +370,7 @@ public:
 
 	virtual bool hasRoot(BigInt name)
 	{
-		if (name == RootMapName)
+		if (name == CtrDirectoryName)
 		{
 			auto iter = roots_.findKey(last_commited_txn_id_);
 			return !iter.isEnd();

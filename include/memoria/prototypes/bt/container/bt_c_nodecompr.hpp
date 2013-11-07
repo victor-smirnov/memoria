@@ -133,7 +133,7 @@ void M_TYPE::insertNonLeafP(
 {
     auto& self = this->self();
 
-    node.update();
+    self.updatePageG(node);
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, sums, id);
     self.updateChildren(node, idx);
 
@@ -158,7 +158,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
         self.newRootP(left_node);
     }
     else {
-        left_node.update();
+    	self.updatePageG(left_node);
     }
 
     NodeBaseG left_parent  = self.getNodeParent(left_node, Allocator::UPDATE);
@@ -237,7 +237,7 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 		self.newRootP(left_node);
 	}
 	else {
-		left_node.update();
+		self.updatePageG(left_node);
 	}
 
 	NodeBaseG left_parent  = self.getNodeParent(left_node, Allocator::UPDATE);
@@ -309,7 +309,7 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& sums)
 {
     auto& self = this->self();
 
-    node.update();
+    self.updatePageG(node);
 
     if (!self.updateNode(node, idx, sums))
     {
@@ -375,8 +375,8 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
     PageUpdateMgr mgr(self);
 
-    src.update();
-    tgt.update();
+    self.updatePageG(src);
+    self.updatePageG(tgt);
 
     mgr.add(src);
     mgr.add(tgt);
@@ -403,7 +403,7 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         self.updatePath(src_parent, idx, sums);
 
-        self.allocator().removePage(src->id());
+        self.allocator().removePage(src->id(), self.master_name());
 
         fn(tgt_sizes, tgt_level);
 
@@ -606,7 +606,7 @@ void M_TYPE::insertNonLeaf(
         const ID& id
 )
 {
-    node.update();
+	self().updatePageG(node);
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
 

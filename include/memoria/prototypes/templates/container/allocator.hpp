@@ -82,7 +82,8 @@ public:
     // Allocator directory interface part
     virtual PageG getRoot(BigInt name, Int flags)
     {
-        return me()->allocator().getPage(me()->getRootID(name), flags);
+    	auto& self = this->self();
+        return self.allocator().getPage(self.getRootID(name), flags, self.master_name());
     }
 
     virtual bool hasRoot(BigInt name)
@@ -99,15 +100,16 @@ public:
     	return self().allocator().currentTxnId();
     }
 
-    virtual PageG getPage(const ID& id, Int flags);
+    virtual PageG getPage(const ID& id, Int flags, BigInt name);
+
+    virtual PageG updatePage(Shared* shared, BigInt name);
+
+    virtual void  removePage(const ID& id, BigInt name);
+
+    virtual PageG createPage(Int initial_size, BigInt name);
+
 
     virtual PageG getPageG(Page* page);
-
-    virtual PageG updatePage(Shared* shared);
-
-    virtual void  removePage(const ID& id);
-
-    virtual PageG createPage(Int initial_size = Allocator::MaxPageSize);
 
     virtual void  resizePage(Shared* page, Int new_size);
 
@@ -153,8 +155,8 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::getPage(const ID& id, Int flags) {
-    return me()->allocator().getPage(id, flags);
+typename M_TYPE::PageG M_TYPE::getPage(const ID& id, Int flags, BigInt name) {
+    return me()->allocator().getPage(id, flags, name);
 }
 
 M_PARAMS
@@ -163,18 +165,18 @@ typename M_TYPE::PageG M_TYPE::getPageG(Page* page) {
 }
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::updatePage(Shared* shared) {
-    return me()->allocator().updatePage(shared);
+typename M_TYPE::PageG M_TYPE::updatePage(Shared* shared, BigInt name) {
+    return me()->allocator().updatePage(shared, name);
 }
 
 M_PARAMS
-void M_TYPE::removePage(const ID& id) {
-    me()->allocator().removePage(id);
+void M_TYPE::removePage(const ID& id, BigInt name) {
+    me()->allocator().removePage(id, name);
 }
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::createPage(Int initial_size) {
-    return me()->allocator().createPage(initial_size);
+typename M_TYPE::PageG M_TYPE::createPage(Int initial_size, BigInt name) {
+    return me()->allocator().createPage(initial_size, name);
 }
 
 M_PARAMS

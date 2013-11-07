@@ -123,7 +123,7 @@ void M_TYPE::insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, c
 {
     auto& self = this->self();
 
-    node.update();
+    self.updatePageG(node);
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
     self.updateChildren(node, idx);
 
@@ -146,7 +146,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
         self.newRootP(left_node);
     }
 
-    left_node.update();
+    self.updatePageG(left_node);
     NodeBaseG left_parent = self.getNodeParent(left_node, Allocator::UPDATE);
 
     NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
@@ -193,7 +193,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Positi
 M_PARAMS
 bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
 {
-    node.update();
+	self().updatePageG(node);
 	NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
     return true;
 }
@@ -279,7 +279,7 @@ void M_TYPE::insertNonLeaf(
     auto& self = this->self();
     NodeBaseG& node = path[level];
 
-    node.update();
+    self.updatePageG(node);
 
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
@@ -293,7 +293,7 @@ void M_TYPE::insertNonLeaf(
         const ID& id
 )
 {
-    node.update();
+	self().updatePageG(node);
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
 
@@ -321,8 +321,8 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
-    tgt.update();
-    src.update();
+    self.updatePageG(tgt);
+    self.updatePageG(src);
 
     Int tgt_size = self.getNodeSize(tgt, 0);
 
@@ -343,7 +343,7 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.updatePath(src_parent, idx, sums);
 
-    self.allocator().removePage(src->id());
+    self.allocator().removePage(src->id(), self.master_name());
 }
 
 /**

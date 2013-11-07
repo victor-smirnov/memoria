@@ -53,50 +53,59 @@ public:
 
 private:
 
-	Allocator*	allocator_;
+	Allocator*		allocator_;
 
-	TxnMgr* 	txn_mgr_;
+	TxnMgr* 		txn_mgr_;
 
-	BigInt 		txn_id_;
+	BigInt 			txn_id_;
 
-	UpdateLog	update_log_;
-	CtrDirectory		root_map_;
+	UpdateLog		update_log_;
+	CtrDirectory	ctr_directory_;
 
 public:
 
-	MVCCTxn(TxnMgr* txn_mgr, BigInt txn_id, Int root_map_cmd = CTR_FIND):
+	MVCCTxn(TxnMgr* txn_mgr, BigInt txn_id):
 		Base(txn_mgr->allocator()),
 		allocator_(txn_mgr->allocator()),
 		txn_mgr_(txn_mgr),
 		txn_id_(txn_id),
-		update_log_(txn_mgr->allocator(), CTR_CREATE | CTR_THROW_IF_EXISTS, txn_id_),
-		root_map_(this, root_map_cmd, TxnMgr::RootMapName)
+		update_log_(txn_mgr->allocator(), CTR_CREATE, txn_id_),
+		ctr_directory_(this, CTR_FIND, TxnMgr::CtrDirectoryName)
 	{
 		UpdateLog::initMetadata();
 	}
 
 	virtual ~MVCCTxn() {}
 
+	UpdateLog& update_log()
+	{
+		return update_log_;
+	}
+
+	CtrDirectory& ctr_directory()
+	{
+		return ctr_directory_;
+	}
 
 	virtual BigInt txn_id() const
 	{
 		return txn_id_;
 	}
 
-	virtual PageG getPage(const ID& id, Int flags)
+	virtual PageG getPage(const ID& id, Int flags, BigInt name)
 	{
 		auto iter = update_log_.find(id);
 
 		if (is_not_found(iter, id))
 		{
-			PageG old_page = txn_mgr_->getPage(txn_id_, id);
+			PageG old_page = txn_mgr_->getPage(txn_id_, id, name);
 
 			if (flags == Allocator::READ)
 			{
 				return old_page;
 			}
 			else {
-				PageG new_page 	= allocator_->createPage(old_page->page_size());
+				PageG new_page 	= allocator_->createPage(old_page->page_size(), name);
 				ID new_gid 		= new_page->gid();
 
 				CopyByteBuffer(old_page.page(), new_page.page(), old_page->page_size());
@@ -119,11 +128,11 @@ public:
 
 			ID gid = log_entry.second;
 
-			return allocator_->getPage(gid, flags);
+			return allocator_->getPage(gid, flags, name);
 		}
 	}
 
-	virtual PageG updatePage(Shared* shared)
+	virtual PageG updatePage(Shared* shared, BigInt name)
 	{
 		MEMORIA_ASSERT(shared->id(), ==, shared->get()->gid());
 
@@ -139,7 +148,7 @@ public:
 
 			Int page_size = shared->get()->page_size();
 
-			PageG new_page 	= allocator_->createPage(page_size);
+			PageG new_page 	= allocator_->createPage(page_size, name);
 			ID new_gid 		= new_page->gid();
 
 			CopyByteBuffer(shared->get(), new_page.page(), page_size);
@@ -152,17 +161,17 @@ public:
 			return new_page;
 		}
 		else {
-			return allocator_->updatePage(shared);
+			return allocator_->updatePage(shared, name);
 		}
 	}
 
-	virtual void removePage(const ID& id)
+	virtual void removePage(const ID& id, BigInt name)
 	{
 		auto iter = update_log_.find(id);
 
 		if (is_not_found(iter, id))
 		{
-			PageG page = txn_mgr_->getPage(txn_id_, id);
+			PageG page = txn_mgr_->getPage(txn_id_, id, name);
 
 			iter.insert(id, UpdateLogValue(toInt(EntryStatus::DELETED), page->gid())); // mark the page deleted
 		}
@@ -172,9 +181,9 @@ public:
 		}
 	}
 
-	virtual PageG createPage(Int initial_size)
+	virtual PageG createPage(Int initial_size, BigInt name)
 	{
-		PageG new_page 	= allocator_->createPage(initial_size);
+		PageG new_page 	= allocator_->createPage(initial_size, name);
 		ID new_gid 		= new_page->gid();
 		ID new_id		= allocator_->newId();
 
@@ -201,7 +210,7 @@ public:
 	{
 		if (name > 0)
 		{
-			auto iter = root_map_.find(name);
+			auto iter = ctr_directory_.find(name);
 
 			if (!(iter.isEnd() || iter.key() != name))
 			{
@@ -220,7 +229,7 @@ public:
 	{
 		if (name > 0)
 		{
-			auto iter = root_map_.find(name);
+			auto iter = ctr_directory_.find(name);
 
 			if (is_found(iter, name))
 			{
@@ -253,13 +262,13 @@ public:
 
 	virtual bool hasRoot(BigInt name)
 	{
-		auto iter = root_map_.findKey(name);
+		auto iter = ctr_directory_.findKey(name);
 		return is_found(iter, name);
 	}
 
 	virtual void markUpdated(BigInt name)
 	{
-		auto iter = root_map_.findKey(name);
+		auto iter = ctr_directory_.findKey(name);
 		if (is_found(iter, name))
 		{
 			Int mark = iter.mark();
@@ -284,7 +293,7 @@ public:
 
 	virtual void commit()
 	{
-		txn_mgr_->commit(this);
+		txn_mgr_->commit(*this);
 	}
 
 	virtual void rollback()
@@ -298,7 +307,7 @@ public:
 			auto mark = entry.first;
 			if (mark == 0 || mark == 1)
 			{
-				allocator_->removePage(entry.second);
+				allocator_->removePage(entry.second, -1);
 			}
 
 			iter++;

@@ -47,7 +47,7 @@ typedef memoria::InMemAllocator<
 template <typename CtrName>
 using SCtrTF = CtrTF<SmallProfile<>, CtrName>;
 
-typedef PageID<UInt> ID4;
+typedef PageID<BigInt> ID4;
 
 MEMORIA_EXTERN_TREE(BigInt, BigInt,     1);
 MEMORIA_EXTERN_TREE(BigInt, EmptyValue, 1);

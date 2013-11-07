@@ -97,7 +97,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
         auto& self = this->self();
         MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
-        self.leaf().update();
+        self.ctr().updatePageG(self.leaf());
 
         LeafDispatcher::dispatch(self.leaf(), SetValueFn(), self.idx(), value);
     }
@@ -417,7 +417,8 @@ public:
 
         NodeBaseG& leaf = self.leaf();
 
-        leaf.update();
+        self.ctr().updatePageG(leaf);
+
         LeafDispatcher::dispatch(leaf, UpdateFn(), self.idx(), accum);
 
         self.ctr().updateParent(leaf, accum);

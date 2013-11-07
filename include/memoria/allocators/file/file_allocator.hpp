@@ -600,7 +600,7 @@ public:
 
     // IAllocator
 
-    virtual PageG getPage(const ID& id, Int flags)
+    virtual PageG getPage(const ID& id, Int flags, BigInt name)
     {
     	//FIXME: throw exception
     	if (id.isNull())
@@ -656,10 +656,10 @@ public:
 
     virtual PageG getPageG(Page* page)
     {
-    	return getPage(page->gid(), Base::READ);
+    	return getPage(page->gid(), Base::READ, -1);
     }
 
-    virtual PageG updatePage(Shared* shared)
+    virtual PageG updatePage(Shared* shared, BigInt name)
     {
     	MyShared* my_shared = static_cast<MyShared*>(shared);
 
@@ -691,7 +691,7 @@ public:
     	return PageG(shared);
     }
 
-    virtual void removePage(const ID& id)
+    virtual void removePage(const ID& id, BigInt name)
     {
     	deleted_log_.insert(id);
 
@@ -718,7 +718,7 @@ public:
     	}
     }
 
-    virtual PageG createPage(Int initial_size)
+    virtual PageG createPage(Int initial_size, BigInt name)
     {
     	MEMORIA_ASSERT(initial_size, ==, cfg_.block_size());
 
@@ -1208,11 +1208,13 @@ public:
 
     	for (auto iter = this->root_map_->Begin(); !iter.isEnd(); )
     	{
-    		PageG page = this->getPage(iter.getValue(), Base::READ);
+    		BigInt ctr_name = iter.key();
+
+    		PageG page = this->getPage(iter.getValue(), Base::READ, ctr_name);
 
     		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
-    		result = ctr_meta->getCtrInterface()->check(&page->id(), this) || result;
+    		result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
 
     		iter.next();
     	}

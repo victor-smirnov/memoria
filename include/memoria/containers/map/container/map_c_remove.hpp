@@ -89,7 +89,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
         RemoveFromLeafFn fn(sums);
 
-        leaf.update();
+        self.updatePageG(leaf);
 
         LeafDispatcher::dispatch(leaf, fn, idx);
 

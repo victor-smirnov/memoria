@@ -110,7 +110,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrInsertName)
 
     void initLeaf(NodeBaseG& node) const
     {
-        node.update();
+    	self().updatePageG(node);
         self().layoutNode(node, 1);
     }
 
@@ -128,7 +128,7 @@ bool M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element, In
 
     PageUpdateMgr mgr(self);
 
-    leaf.update();
+    self.updatePageG(leaf);
 
     mgr.add(leaf);
 
@@ -180,7 +180,7 @@ void M_TYPE::updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, s
 {
     auto& self = this->self();
 
-    node.update();
+    self.updatePageG(node);
 
     PageUpdateMgr mgr(self);
 

@@ -100,7 +100,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
     {
         self().ctr().setKeys(node, idx, element.first);
 
-        node.update();
+        self().ctr().updatePageG(node);
         LeafDispatcher::dispatch(node.page(), SetAndReindexFn(me()), idx, element);
     }
 
@@ -133,7 +133,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
 
     void setLeafData(NodeBaseG& node, Int idx, const Value &val)
     {
-        node.update();
+    	self().updatePageG(node);
         LeafDispatcher::dispatch(node.page(), SetLeafDataFn(me()), idx, val);
     }
 
@@ -177,7 +177,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
     {
         Accumulator delta;
 
-        node.update();
+        self().updatePageG(node);
         LeafDispatcher::dispatch(node.page(), SetLeafEntryFn<LeafElement>(), stream, idx, element, &delta);
 
         return delta;

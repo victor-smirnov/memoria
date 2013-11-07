@@ -147,7 +147,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
     	Int idx = self.idx();
 
-    	self.leaf().update();
+    	self.ctr().updatePageG(self.leaf());
 
     	LeafDispatcher::dispatch(self.leaf(), fn, idx);
 

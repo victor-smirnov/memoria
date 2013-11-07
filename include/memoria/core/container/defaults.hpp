@@ -25,7 +25,9 @@ public:
 using namespace memoria::vapi;
 
 
-template <typename Profile, typename IDValueType = UInt, int FlagsCount = 32, typename TransactionType = AbstractTransaction>
+template <
+	typename Profile, typename IDValueType = BigInt, int FlagsCount = 32, typename TransactionType = AbstractTransaction
+>
 struct BasicContainerCollectionCfg {
 
     typedef PageID<IDValueType>                                                 ID;

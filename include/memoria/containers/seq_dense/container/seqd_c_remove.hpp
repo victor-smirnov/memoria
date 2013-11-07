@@ -63,7 +63,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
             MEMORIA_ASSERT_TRUE(seq != nullptr);
 
             typedef PkdFSSeq<SeqTypes>  Seq;
-            typedef typename Seq::Values                Values;
+            typedef typename Seq::Values2                Values;
 
             Int sym = seq->symbol(idx);
 
@@ -112,13 +112,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
     void removeFromLeaf(NodeBaseG& leaf, Int idx, Accumulator& indexes)
     {
-    	leaf.update();
+    	self().updatePageG(leaf);
     	LeafDispatcher::dispatch(leaf, RemoveFromLeafFn(), 0, idx, indexes);
     }
 
     void removeBlockFromNode(NodeBaseG& leaf, Int idx, Int length)
     {
-    	leaf.update();
+    	self().updatePageG(leaf);
 
     	Accumulator indexes;
     	LeafDispatcher::dispatch(leaf, RemoveBlockFromLeafFn(), 0, idx, length, indexes);

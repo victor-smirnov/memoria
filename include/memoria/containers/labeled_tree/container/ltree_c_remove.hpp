@@ -52,7 +52,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
             MEMORIA_ASSERT_TRUE(seq != nullptr);
 
             typedef PkdFSSeq<SeqTypes>  Seq;
-            typedef typename Seq::Values                Values;
+            typedef typename Seq::Values2                Values;
 
             Int sym = seq->symbol(idx);
 

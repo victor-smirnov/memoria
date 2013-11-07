@@ -141,7 +141,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
     void setValue(const Value& value)
     {
         auto& self = this->self();
-        self.leaf().update();
+        self.ctr().updatePageG(self.leaf());
         LeafDispatcher::dispatch(self.leaf(), SetValueFn(), self.idx(), value);
     }
 
@@ -256,7 +256,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
     {
     	auto& self = this->self();
 
-    	self.leaf().update();
+    	self.ctr().updatePageG(self.leaf());
 
     	SetMarkFn fn;
 
@@ -296,7 +296,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
     {
     	auto& self = this->self();
 
-    	self.leaf().update();
+    	self.ctr().updatePageG(self.leaf());
 
     	LeafDispatcher::dispatch(self.leaf(), AssingFn(), self.idx(), mark, value);
 

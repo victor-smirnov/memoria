@@ -773,11 +773,11 @@ public:
         return shared_->updated();
     }
 
-    void update()
+    void update(BigInt name)
     {
         if (shared_ && !shared_->updated())
         {
-            auto guard = shared_->allocator()->updatePage(shared_);
+            auto guard = shared_->allocator()->updatePage(shared_, name);
 
             if (guard.shared() != shared_)
             {

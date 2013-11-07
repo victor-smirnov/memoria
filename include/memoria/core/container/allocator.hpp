@@ -63,13 +63,17 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
     typedef ContainerShared<ID>                                         		CtrShared;
 
-    virtual PageG getPage(const ID& id, Int flags)                      		= 0;
-    virtual PageG getPageG(Page* page)                                  		= 0;
-    virtual PageG updatePage(Shared* shared)                            		= 0;
-    virtual void  removePage(const ID& id)                              		= 0;
-    virtual PageG createPage(Int initial_size)                          		= 0;
+
+
+    virtual PageG getPage(const ID& id, Int flags, BigInt name)            		= 0;
+    virtual PageG updatePage(Shared* shared, BigInt name)                  		= 0;
+    virtual void  removePage(const ID& id, BigInt name)                    		= 0;
+    virtual PageG createPage(Int initial_size, BigInt name)                		= 0;
+
+
     virtual void  resizePage(Shared* page, Int new_size)                		= 0;
     virtual void  releasePage(Shared* shared)                           		= 0;
+    virtual PageG getPageG(Page* page)                                  		= 0;
 
     virtual CtrShared* getCtrShared(BigInt name)                        		= 0;
     virtual bool isCtrSharedRegistered(BigInt name)                     		= 0;
@@ -133,7 +137,7 @@ struct IMVCCAllocator: public IAllocator<PageType> {
 
 	virtual ~IMVCCAllocator() {}
 
-	virtual PageG getPage(BigInt txn_id, const ID& id)               			= 0;
+	virtual PageG getPage(BigInt txn_id, const ID& id, BigInt name)    			= 0;
 	virtual ID getCtrDirectoryRootID(BigInt txn_id)								= 0;
 	virtual void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)		= 0;
 

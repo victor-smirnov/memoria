@@ -217,7 +217,7 @@ public:
 
 
 
-    virtual PageG getPage(const ID& id, Int flags)
+    virtual PageG getPage(const ID& id, Int flags, BigInt name)
     {
         if (id.isNull())
         {
@@ -277,10 +277,10 @@ public:
 
     virtual PageG getPageG(Page* page)
     {
-        return getPage(page->id(), Base::READ);
+    	return getPage(page->id(), Base::READ, -1);
     }
 
-    virtual PageG updatePage(Shared* shared)
+    virtual PageG updatePage(Shared* shared, BigInt name)
     {
         if (shared->state() == Shared::READ)
         {
@@ -301,7 +301,7 @@ public:
         return PageG(shared);
     }
 
-    virtual void  removePage(const ID& id)
+    virtual void  removePage(const ID& id, BigInt name)
     {
         Shared* shared = pool_.get(id);
         if (shared != NULL)
@@ -325,7 +325,7 @@ public:
      * If a tree page is created using new (allocator) PageType call
      * than Page() constructor is invoked twice with undefined results
      */
-    virtual PageG createPage(Int initial_size)
+    virtual PageG createPage(Int initial_size, BigInt name)
     {
         allocs1_++;
         void* buf = malloc(initial_size);
@@ -466,10 +466,10 @@ public:
     {
         if (name == 0)
         {
-            return getPage(root(), flags);
+            return getPage(root(), flags, name);
         }
         else {
-            return getPage(roots_->get_value_for_key(name), flags);
+            return getPage(roots_->get_value_for_key(name), flags, name);
         }
     }
 
@@ -723,11 +723,13 @@ public:
 
         for (auto iter = this->roots()->Begin(); !iter.isEnd(); )
         {
-            PageG page = this->getPage(iter.getValue(), Base::READ);
+            BigInt ctr_name = iter.key();
+
+        	PageG page = this->getPage(iter.getValue(), Base::READ, ctr_name);
 
             ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
-            result = ctr_meta->getCtrInterface()->check(&page->id(), this) || result;
+            result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
 
             iter.next();
         }

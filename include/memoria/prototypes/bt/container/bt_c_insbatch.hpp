@@ -477,7 +477,7 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
     if (self.checkCapacities(leaf, sizes))
     {
-        leaf.update();
+    	self.updatePageG(leaf);
 
         Accumulator sums = provider.insertIntoLeaf(leaf, idx, sizes);
 
@@ -498,7 +498,7 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
         	right = self.splitLeafP(leaf, idx);
         }
 
-        leaf.update();
+        self.updatePageG(leaf);
 
         Accumulator sums = provider.insertIntoLeaf(leaf, idx);
 
@@ -770,7 +770,7 @@ void M_TYPE::makeRoom(NodeBaseG& node, const Position& start, const Position& co
 {
     auto& self = this->self();
 
-    node.update();
+    self.updatePageG(node);
 
     NodeDispatcher::dispatch(node, MakeRoomFn(), start, count);
 
@@ -787,7 +787,7 @@ void M_TYPE::makeRoom(NodeBaseG& node, Int stream, Int start, Int count)
     {
         auto& self = this->self();
 
-        node.update();
+        self.updatePageG(node);
         NodeDispatcher::dispatch(node, MakeRoomFn(), stream, start, count);
 
         if (!node->is_leaf())
@@ -863,7 +863,7 @@ void M_TYPE::updateChildrenInternal(const NodeBaseG& node, Int start, Int end)
 
     forAllIDs(node, start, end, [&self, &node_id](const ID& id, Int idx)
     {
-        NodeBaseG child = self.allocator().getPage(id, Allocator::UPDATE);
+        NodeBaseG child = self.allocator().getPage(id, Allocator::UPDATE, self.master_name());
 
         child->parent_id()  = node_id;
         child->parent_idx() = idx;
@@ -880,7 +880,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 {
     auto& self = this->self();
 
-    root.update();
+    self.updatePageG(root);
 
     NodeBaseG new_root = self.createNode1(root->level() + 1, true, false, root->page_size());
 

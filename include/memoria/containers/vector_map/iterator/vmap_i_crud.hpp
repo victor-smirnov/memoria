@@ -155,7 +155,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrCRUDName)
 
         NodeBaseG& leaf = self.leaf();
 
-        leaf.update();
+        self.ctr().updatePageG(leaf);
         LeafDispatcher::dispatch(leaf, UpdateFn(), self.idx(), accum);
 
         self.ctr().updateParent(leaf, accum);

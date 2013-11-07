@@ -48,19 +48,30 @@ template <typename Profile> class MetadataRepository;
 
 
 class CtrInitData {
-    Int master_ctr_type_hash_;
+	BigInt master_name_;
+	Int master_ctr_type_hash_;
     Int owner_ctr_type_hash_;
 
 public:
-    CtrInitData(Int master_hash, Int owner_hash):
-        master_ctr_type_hash_(master_hash),
+    CtrInitData(BigInt master_name, Int master_hash, Int owner_hash):
+    	master_name_(master_name),
+    	master_ctr_type_hash_(master_hash),
         owner_ctr_type_hash_(owner_hash)
     {}
 
     CtrInitData(Int master_hash):
-        master_ctr_type_hash_(master_hash),
+        master_name_(-1),
+    	master_ctr_type_hash_(master_hash),
         owner_ctr_type_hash_(0)
     {}
+
+    BigInt master_name() const {
+    	return master_name_;
+    }
+
+    void set_master_name(BigInt name){
+    	master_name_ = name;
+    }
 
     Int owner_ctr_type_hash() const {
         return owner_ctr_type_hash_;
@@ -72,7 +83,7 @@ public:
 
     CtrInitData owner(int owner_hash) const
     {
-        return CtrInitData(master_ctr_type_hash_, owner_hash);
+        return CtrInitData(master_name_, master_ctr_type_hash_, owner_hash);
     }
 };
 
@@ -177,14 +188,14 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-        virtual bool check(const void* id, void* allocator) const
+        virtual bool check(const void* id, BigInt name, void* allocator) const
         {
             Allocator* alloc = T2T<Allocator*>(allocator);
             ID* root_id = T2T<ID*>(id);
 
-            PageG page = alloc->getPage(*root_id, Allocator::READ);
+            PageG page = alloc->getPage(*root_id, Allocator::READ, name);
 
-            MyType ctr(alloc, *root_id, CtrInitData(page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
+            MyType ctr(alloc, *root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
             return ctr.check(NULL);
         }
     };
@@ -218,6 +229,10 @@ public:
         return init_data_;
     }
 
+    CtrInitData& init_data() {
+    	return init_data_;
+    }
+
     PageG createRoot() {
         return PageG();
     }
@@ -240,7 +255,7 @@ public:
         }
         else {
         	ID root_id = self().allocator().getRootID(name);
-            PageG node = self().allocator().getPage(root_id, Allocator::READ);
+            PageG node = self().allocator().getPage(root_id, Allocator::READ, name);
 
             if (node.isSet())
             {
@@ -590,9 +605,14 @@ public:
     {
         MEMORIA_ASSERT(name, >=, 0);
 
+        auto& self = this->self();
+
         allocator_          = allocator;
         name_               = name;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
+
+        self.init_data().set_master_name(name);
+
         //FIXME: init logger correctly
 
         Base::initCtr(command);
@@ -604,9 +624,12 @@ public:
     {
         MEMORIA_ASSERT_EXPR(root_id.isNotEmpty(), "Container root ID must not be empty");
 
+//        this->init_data().set_master_name(master_name);
+
         allocator_          = allocator;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
-        name_               = me()->getModelName(root_id);
+        name_               = this->getModelName(root_id);
+
 
         //FIXME: init logger correctly
 
@@ -677,8 +700,9 @@ public:
         return name_;
     }
 
-    MEMORIA_PUBLIC BigInt& name() {
-        return name_;
+    MEMORIA_PUBLIC BigInt master_name() const
+    {
+    	return Base::init_data().master_name();
     }
 
     MyType& operator=(const MyType& other)
