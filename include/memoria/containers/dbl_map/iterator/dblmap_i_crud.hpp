@@ -121,6 +121,14 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     	}
     };
 
+    Key key() const
+    {
+    	auto prefix = self().cache().id_prefix();
+    	Key value 	= self().cache().id_entry();
+
+    	return value + prefix;
+    }
+
     Key key2() const
     {
     	auto prefix = self().cache().second_prefix();

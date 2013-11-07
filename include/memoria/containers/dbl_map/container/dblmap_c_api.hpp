@@ -126,6 +126,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApiName)
         return iter;
     }
 
+    Iterator createNew(const Key& id)
+    {
+        auto& self = this->self();
+        auto iter  = self.find(id);
+
+        if (!iter.found())
+        {
+        	EmptyDataSource<typename Types::IOValue> src;
+        	self.insert(iter, id, src);
+        	iter.found() = true;
+        }
+        else {
+        	throw vapi::Exception(MA_SRC, SBuf()<<"DmblMap Entry with key "<<id<<" already exists");
+        }
+
+        return iter;
+    }
+
+
     bool remove(Key id)
     {
         auto& self = this->self();

@@ -76,6 +76,12 @@ public:
     MemoriaSigSegv(const char* source, StringRef message): Exception(source, message) {}
 };
 
+class RollbackException: public Exception {
+public:
+    RollbackException(const char* source, StringRef message): Exception(source, message) {}
+};
+
+
 
 MEMORIA_API const char* ExtractMemoriaPath(const char* path);
 

@@ -105,7 +105,7 @@ public:
         Base::assign(other);
     }
 
-    bool& found() const {
+    const bool& found() const {
         return found_;
     }
 

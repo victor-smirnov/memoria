@@ -40,7 +40,7 @@ public:
 
 	typedef typename Base::CtrShared                                         	CtrShared;
 
-	typedef typename CtrTF<Profile, MrkMap<BigInt, ID>>::Type					UpdateLog;
+	typedef typename CtrTF<Profile, DblMrkMap<BigInt, ID, 2>>::Type				UpdateLog;
 
 	typedef std::unordered_map<BigInt, CtrShared*>                              CtrSharedMap;
 
@@ -94,9 +94,9 @@ public:
 
 	virtual PageG getPage(const ID& id, Int flags, BigInt name)
 	{
-		auto iter = update_log_.find(id);
+		auto iter = findGIDInHistory(id, name);
 
-		if (is_not_found(iter, id))
+		if (h_is_not_found(iter, id))
 		{
 			PageG old_page = txn_mgr_->getPage(txn_id_, id, name);
 
@@ -113,7 +113,12 @@ public:
 				new_page->gid() = new_gid;
 				new_page->id() 	= id;
 
-				iter.insert(id, UpdateLogValue(0, new_gid));
+				if (iter.found())
+				{
+					iter = update_log_.create(name);
+				}
+
+				iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::UPDATED), new_gid));
 
 				return new_page;
 			}
@@ -138,9 +143,9 @@ public:
 
 		ID id = shared->get()->id();
 
-		auto iter = update_log_.find(id);
+		auto iter = findGIDInHistory(id, name);
 
-		if (is_not_found(iter, id))
+		if (h_is_not_found(iter, id))
 		{
 			UpdateLogValue entry = iter.value();
 
@@ -156,7 +161,12 @@ public:
 			new_page->gid() = new_gid;
 			new_page->id() 	= id;
 
-			iter.insert(id, UpdateLogValue(toInt(EntryStatus::UPDATED), new_gid));
+			if (iter.found())
+			{
+				iter = update_log_.create(name);
+			}
+
+			iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::UPDATED), new_gid));
 
 			return new_page;
 		}
@@ -167,17 +177,32 @@ public:
 
 	virtual void removePage(const ID& id, BigInt name)
 	{
-		auto iter = update_log_.find(id);
+		auto iter = findGIDInHistory(id, name);
 
-		if (is_not_found(iter, id))
+		if (h_is_not_found(iter, id))
 		{
 			PageG page = txn_mgr_->getPage(txn_id_, id, name);
 
-			iter.insert(id, UpdateLogValue(toInt(EntryStatus::DELETED), page->gid())); // mark the page deleted
+			if (iter.found())
+			{
+				iter = update_log_.create(name);
+			}
+
+			iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::DELETED), page->gid())); // mark the page deleted
 		}
 		else {
-			ID gid = iter.value();
-			iter.value() = UpdateLogValue(toInt(EntryStatus::DELETED), gid);
+			UpdateLogValue value 	= iter.value();
+			ID gid 					= value.second;
+
+			if (value.first != toInt(EntryStatus::DELETED))
+			{
+				allocator_->removePage(gid, name);
+
+				iter.value() = UpdateLogValue(toInt(EntryStatus::DELETED), ID(0));
+			}
+			else {
+				throw vapi::Exception(MA_SRC, SBuf()<<"Page id="<<id<<" gid="<<gid<<" has been already deleted.");
+			}
 		}
 	}
 
@@ -189,7 +214,14 @@ public:
 
 		new_page->id()	= new_id;
 
-		update_log_.insertIFNotExists(new_id) = UpdateLogValue(toInt(EntryStatus::CREATED), new_gid);
+		auto iter = update_log_.find(name);
+
+		if (!iter.found())
+		{
+			iter = update_log_.create(name);
+		}
+
+		iter.insert2nd(new_id, UpdateLogValue(toInt(EntryStatus::CREATED), new_gid));
 
 		return new_page;
 	}
@@ -302,18 +334,36 @@ public:
 
 		while (!iter.isEnd())
 		{
-			UpdateLogValue entry = iter.value();
+			BigInt name = iter.key();
 
-			auto mark = entry.first;
-			if (mark == 0 || mark == 1)
+			while(!iter.isEof())
 			{
-				allocator_->removePage(entry.second, -1);
+				UpdateLogValue entry = iter.value();
+
+				auto mark = entry.first;
+				if (mark == toInt(EntryStatus::DELETED))
+				{
+					allocator_->removePage(entry.second, name);
+				}
+
+				iter.skipFw(1);
 			}
 
 			iter++;
 		}
 
 		update_log_.drop();
+	}
+
+	void forceRollback(const SBuf& msg)
+	{
+		forceRollback(msg.str());
+	}
+
+	void forceRollback(StringRef msg)
+	{
+		rollback();
+		throw vapi::RollbackException(MA_SRC, msg);
 	}
 
 private:
@@ -327,6 +377,29 @@ private:
 	static bool is_not_found(Iterator& iter, const Key& key)
 	{
 		return iter.isEnd() || iter.key() != key;
+	}
+
+	bool h_is_not_found(const typename UpdateLog::Iterator& iter, const ID& id) const
+	{
+		return (!iter.found()) || iter.isEof() || iter.key2() != id;
+	}
+
+	bool h_is_found(const typename UpdateLog::Iterator& iter, const ID& id) const
+	{
+		return iter.found() && (!iter.isEof()) && iter.key2() == id;
+	}
+
+
+	typename UpdateLog::Iterator findGIDInHistory(const ID& id, BigInt name)
+	{
+		auto iter = update_log_.find(name);
+
+		if (iter.found())
+		{
+			iter.find2ndLE(id);
+		}
+
+		return iter;
 	}
 };
 

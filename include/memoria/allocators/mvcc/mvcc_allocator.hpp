@@ -21,6 +21,8 @@
 #include <memoria/allocators/mvcc/mvcc_txn.hpp>
 #include <memoria/allocators/mvcc/mvcc_tools.hpp>
 
+#include <memoria/core/exceptions/memoria.hpp>
+
 #include <unordered_set>
 #include <memory>
 
@@ -52,9 +54,9 @@ public:
 
 	typedef std::unordered_map<BigInt, CtrShared*>                              CtrSharedMap;
 
-	typedef TxnValue<ID>														CtrDurectoryTxnValue;
+	typedef TxnValue<ID>														CtrDirectoryTxnValue;
 
-	typedef typename CtrTF<Profile, SMrkMap<BigInt, CtrDurectoryTxnValue, 2>>::Type	CtrDirectory;
+	typedef typename CtrTF<Profile, SMrkMap<BigInt, CtrDirectoryTxnValue, 2>>::Type	CtrDirectory;
 	typedef typename CtrDirectory::Types::Value									CtrDirectoryValue;
 	typedef std::unique_ptr<CtrDirectory>										CtrDirectoryPtr;
 
@@ -71,9 +73,9 @@ private:
 
 	std::unordered_set<TxnPtr> transactions_;
 
-	CtrDirectoryPtr root_map_;
+	CtrDirectoryPtr ctr_directory_;
 
-	BigInt last_commited_txn_id_;
+	BigInt 			last_commited_txn_id_;
 
 public:
 
@@ -88,11 +90,11 @@ public:
 
 		if (commit_history_.size() == 0)
 		{
-			// create initial RootMap
+			// create initial CtrDirectory
 
 			last_commited_txn_id_ = allocator_->properties().newTxnId();
 
-			root_map_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_CREATE, CtrDirectoryName));
+			ctr_directory_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_CREATE, CtrDirectoryName));
 
 			allocator_->properties().setLastCommitId(last_commited_txn_id_);
 
@@ -103,7 +105,7 @@ public:
 		else {
 			last_commited_txn_id_ = allocator_->properties().lastCommitId();
 
-			root_map_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_FIND, CtrDirectoryName));
+			ctr_directory_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_FIND, CtrDirectoryName));
 		}
 	}
 
@@ -111,7 +113,7 @@ public:
 
 	CtrDirectory* roots()
 	{
-		return root_map_.get();
+		return ctr_directory_.get();
 	}
 
 	static void initMetadata()
@@ -176,9 +178,149 @@ public:
 
 	void commit(TxnImpl& txn)
 	{
-//		auto& txn_ctr_directory = txn.ctr_directory();
+		auto& txn_ctr_directory = txn.ctr_directory();
 
 
+		// Check containers for conflicts
+
+		auto txn_iter = txn_ctr_directory.select(toInt(EntryStatus::UPDATED), 1);
+
+		while (!txn_iter.isEnd())
+		{
+			BigInt name = txn_iter.key();
+			auto iter 	= ctr_directory_->findKey(name);
+
+			if (is_not_found(iter, name))
+			{
+				txn.forceRollback(SBuf()<<"Update non-existent/removed container "<<name);
+			}
+			else {
+				CtrDirectoryValue txn_entry = txn_iter.value();
+				CtrDirectoryValue entry 	= iter.value();
+
+				BigInt src_txn_id = txn_entry.txn_id();
+				BigInt tgt_txn_id = entry.txn_id();
+
+				if (tgt_txn_id > src_txn_id)
+				{
+					txn.forceRollback(SBuf()<<"Update/update conflict for container "<<name);
+				}
+			}
+
+			txn_iter++;
+			txn_iter.selectFw(toInt(EntryStatus::UPDATED), 1);
+		}
+
+
+
+		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::CREATED), 1);
+
+		while (!txn_iter.isEnd())
+		{
+			BigInt name = txn_iter.key();
+			auto iter 	= ctr_directory_->findKey(name);
+
+			if (is_found(iter, name))
+			{
+				txn.forceRollback(SBuf()<<"Create/exists conflict for container "<<name);
+			}
+
+			txn_iter++;
+			txn_iter.selectFw(toInt(EntryStatus::UPDATED), 1);
+		}
+
+
+		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::DELETED), 1);
+
+		while (!txn_iter.isEnd())
+		{
+			BigInt name = txn_iter.key();
+			auto iter 	= ctr_directory_->findKey(name);
+
+			if (is_found(iter, name))
+			{
+				CtrDirectoryValue txn_entry = txn_iter.value();
+				CtrDirectoryValue entry 	= iter.value();
+
+				BigInt src_txn_id = txn_entry.txn_id();
+				BigInt tgt_txn_id = entry.txn_id();
+
+				if (tgt_txn_id > src_txn_id)
+				{
+					txn.forceRollback(SBuf()<<"Delete/update conflict for container "<<name);
+				}
+			}
+
+			txn_iter++;
+			txn_iter.selectFw(toInt(EntryStatus::UPDATED), 1);
+		}
+
+
+		// Commit changes to commit_history_
+
+		last_commited_txn_id_ = newTxnId();
+
+		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::UPDATED), 1);
+
+		while (!txn_iter.isEnd())
+		{
+			BigInt name = txn_iter.key();
+			ID id = txn_iter.value().value().value();
+
+			auto iter = ctr_directory_->findKey(name);
+			MEMORIA_ASSERT_TRUE(is_found(iter, name));
+
+			iter.value() = CtrDirectoryValue(last_commited_txn_id_, id);
+
+			importPages(txn.update_log(), name);
+
+			txn_iter++;
+			txn_iter.selectFw(toInt(EntryStatus::UPDATED), 1);
+		}
+
+
+		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::CREATED), 1);
+
+		while (!txn_iter.isEnd())
+		{
+			BigInt name = txn_iter.key();
+			ID id = txn_iter.value().value().value();
+
+			auto iter = ctr_directory_->findKey(name);
+			MEMORIA_ASSERT_TRUE(is_not_found(iter, name));
+
+			iter.insert(name, CtrDirectoryValue(last_commited_txn_id_, id), toInt(EntryStatus::CLEAN));
+
+			importPages(txn.update_log(), name);
+
+			txn_iter++;
+			txn_iter.selectFw(toInt(EntryStatus::CREATED), 1);
+		}
+
+
+
+		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::DELETED), 1);
+
+		while (!txn_iter.isEnd())
+		{
+			BigInt name = txn_iter.key();
+
+			auto iter = ctr_directory_->findKey(name);
+
+			if (is_found(iter, name))
+			{
+				iter.remove();
+			}
+			else {
+				txn_iter++;
+			}
+
+			importPages(txn.update_log(), name);
+
+			txn_iter.selectFw(toInt(EntryStatus::DELETED), 1);
+		}
+
+		allocator_->commit();
 	}
 
 	BigInt newTxnId()
@@ -295,7 +437,7 @@ public:
 		}
 		else
 		{
-			auto iter = root_map_->findKey(name);
+			auto iter = ctr_directory_->findKey(name);
 
 			if (is_found(iter, name))
 			{
@@ -344,7 +486,7 @@ public:
 		}
 		else
 		{
-			auto iter = root_map_->findKey(name);
+			auto iter = ctr_directory_->findKey(name);
 
 			if (root.isSet())
 			{
@@ -377,7 +519,7 @@ public:
 		}
 		else
 		{
-			auto iter = root_map_->findKey(name);
+			auto iter = ctr_directory_->findKey(name);
 			return is_found(iter, name);
 		}
 	}
@@ -407,6 +549,51 @@ private:
 
 		return iter;
 	}
+
+	template <typename Ctr>
+	void importPages(Ctr& ctr, BigInt name)
+	{
+		auto iter = ctr.find(name);
+		MEMORIA_ASSERT_TRUE(iter.found());
+
+		iter.findData();
+
+		while (iter.isEof())
+		{
+			typename Ctr::Types::Value value = iter.value();
+
+			EntryStatus status	= static_cast<EntryStatus>(value.first);
+			ID gid				= value.second;
+			ID id 				= iter.key2();
+
+			if (status == EntryStatus::CREATED)
+			{
+				auto h_iter = commit_history_.createNew(id);
+
+				h_iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::CREATED), gid));
+			}
+			else if (status == EntryStatus::UPDATED)
+			{
+				auto h_iter = commit_history_.find(id);
+				MEMORIA_ASSERT_TRUE(h_iter.found());
+
+				h_iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), gid));
+			}
+			else if (status == EntryStatus::DELETED)
+			{
+				auto h_iter = commit_history_.find(id);
+				MEMORIA_ASSERT_TRUE(h_iter.found());
+
+				h_iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::DELETED), ID(0)));
+			}
+			else {
+				throw vapi::Exception(MA_SRC, SBuf()<<"Unknown entry status value: "<<toInt(status));
+			}
+
+			iter.skipFw(1);
+		}
+	}
+
 };
 
 }

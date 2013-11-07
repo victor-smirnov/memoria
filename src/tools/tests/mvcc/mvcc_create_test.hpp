@@ -47,7 +47,7 @@ public:
 
 	void testCreate()
 	{
-		String name = getResourcePath("mvcc.db");
+		String name = getResourcePath("create.db");
 		Allocator allocator(name, OpenMode::RWCT);
 
 		TxnMgr mgr(&allocator);
