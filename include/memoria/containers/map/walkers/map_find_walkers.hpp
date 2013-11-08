@@ -72,17 +72,31 @@ class FindLTWalker: public FindWalkerBase<Types> {
     typedef typename Base::Key          Key;
 
 public:
-    typedef Int ReturnType;
-
-    FindLTWalker(Int stream, Int key_num, Int key): Base(stream, key_num, key)
+    FindLTWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
     {}
+
+    typedef Int ResultType;
+    typedef Int ReturnType;
 
     template <typename Node>
     ReturnType treeNode(const Node* node, Int start)
     {
-        const typename Node::Map& map = node->map();
+        return node->find(Base::stream_, *this, node->level(), start);
+    }
 
-        return map.findLTS(Base::key_num_, Base::key_ - Base::prefix_[Base::key_num_], Base::prefix_);
+    template <Int Idx, typename Tree>
+    Int stream(const Tree* tree, Int level, Int start)
+    {
+        auto& key       = Base::key_;
+        auto& prefix    = Base::prefix_;
+
+        auto target     = key - prefix;
+
+        auto result     = tree->findLTForward(0, 0, target);
+
+        prefix += result.prefix();
+
+        return result.idx();
     }
 };
 

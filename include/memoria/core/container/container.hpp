@@ -274,6 +274,8 @@ public:
                         shared->updated() = false;
                     }
 
+//                    self().dump(node);
+
                     me()->configureNewCtrShared(shared, node);
 
                     return shared;

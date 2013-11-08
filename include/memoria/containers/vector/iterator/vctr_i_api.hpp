@@ -174,7 +174,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
         auto iter = self();
 
-        iter.read(data);
+        auto readed = iter.read(data);
+
+        MEMORIA_ASSERT(readed, ==, size);
 
         return data;
     }

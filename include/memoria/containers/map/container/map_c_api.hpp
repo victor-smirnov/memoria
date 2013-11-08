@@ -62,6 +62,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
     	return self().findLE(0, key, 0);
     }
 
+    Iterator findKeyLT(Key key) {
+    	return self().findLT(0, key, 0);
+    }
+
     Iterator operator[](Key key)
     {
         Iterator iter = self().findLE(0, key, 0);

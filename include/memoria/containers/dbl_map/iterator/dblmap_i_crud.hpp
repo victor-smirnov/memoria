@@ -71,6 +71,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     Value value()
     {
         auto& self = this->self();
+
+        if (self.stream() != 1) {
+        	int a = 0; a++;
+        }
+
         MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
         return LeafDispatcher::dispatchConstRtn(self.leaf(), ReadValueFn(), self.idx());

@@ -26,7 +26,7 @@ public:
     typedef typename Base::ResultType                                           ResultType;
     typedef typename Base::Iterator                                             Iterator;
 
-    BigInt prefix_;
+    BigInt prefix_ = 0;
 
     SelectForwardWalker(Int stream, Int symbol, Key target): Base(stream, symbol + 2, target)
     {

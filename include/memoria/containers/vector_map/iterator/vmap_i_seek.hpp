@@ -192,6 +192,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     {
         auto& self = this->self();
 
+        if (self.stream() != 1) {
+        	int a = 0; a++;
+        }
+
         MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
         BigInt pos = self.pos();

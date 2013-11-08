@@ -12,7 +12,9 @@
 
 typedef memoria::SmallInMemAllocator VStreamAllocator;
 
-void LoadFile(VStreamAllocator& allocator, const char* file)
+namespace memoria {
+
+static void LoadFile(VStreamAllocator& allocator, const char* file)
 {
     FileInputStreamHandler* in = FileInputStreamHandler::create(file);
     allocator.load(in);
@@ -248,7 +250,7 @@ void DumpAllocator(Allocator& allocator, File& path)
 	}
 }
 
-Int DumpAllocator(String file_name)
+static Int DumpAllocator(String file_name)
 {
     try {
         logger.level() = Logger::NONE;
@@ -333,5 +335,6 @@ Int DumpAllocator(String file_name)
     return 0;
 }
 
+}
 
 #endif

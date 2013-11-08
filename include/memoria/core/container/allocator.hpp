@@ -139,7 +139,7 @@ struct IMVCCAllocator: public IAllocator<PageType> {
 
 	virtual PageG getPage(BigInt txn_id, const ID& id, BigInt name)    			= 0;
 	virtual ID getCtrDirectoryRootID(BigInt txn_id)								= 0;
-	virtual void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)		= 0;
+//	virtual void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)		= 0;
 
 	virtual BigInt commited_txn_id()											= 0;
 

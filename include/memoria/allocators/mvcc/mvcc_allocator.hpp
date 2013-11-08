@@ -22,6 +22,9 @@
 #include <memoria/allocators/mvcc/mvcc_tools.hpp>
 
 #include <memoria/core/exceptions/memoria.hpp>
+#include <memoria/metadata/tools.hpp>
+
+
 
 #include <unordered_set>
 #include <memory>
@@ -121,6 +124,7 @@ public:
 		CommitHistory::initMetadata();
 		Roots::initMetadata();
 		CtrDirectory::initMetadata();
+		TxnImpl::UpdateLog::initMetadata();
 	}
 
 	ContainerMetadataRepository* getMetadata() const {
@@ -136,14 +140,18 @@ public:
 
 		ID gid = iter.value().second;
 
-		return allocator_->getPage(gid, Allocator::READ, name);
+		PageG page = allocator_->getPage(gid, Allocator::READ, name);
+
+		page.shared()->set_allocator(this);
+
+		return page;
 	}
 
 	virtual ID getCtrDirectoryRootID(BigInt txn_id)
 	{
-		auto iter = roots_.findKey(txn_id);
+		auto iter = findLE(roots_, txn_id);
 
-		if (is_found(iter, txn_id))
+		if (!iter.isEnd())
 		{
 			return iter.value();
 		}
@@ -154,18 +162,7 @@ public:
 		}
 	}
 
-	virtual void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)
-	{
-		auto iter = roots_.findKey(txn_id);
 
-		if (is_found(iter, txn_id))
-		{
-			iter.value() = root_id;
-		}
-		else {
-			iter.insert(txn_id, root_id);
-		}
-	}
 
 	virtual BigInt commited_txn_id() {
 		return last_commited_txn_id_;
@@ -180,7 +177,6 @@ public:
 	{
 		auto& txn_ctr_directory = txn.ctr_directory();
 
-
 		// Check containers for conflicts
 
 		auto txn_iter = txn_ctr_directory.select(toInt(EntryStatus::UPDATED), 1);
@@ -192,7 +188,7 @@ public:
 
 			if (is_not_found(iter, name))
 			{
-				txn.forceRollback(SBuf()<<"Update non-existent/removed container "<<name);
+				txn.forceRollback(MA_SRC, SBuf()<<"Update non-existent/removed container "<<name);
 			}
 			else {
 				CtrDirectoryValue txn_entry = txn_iter.value();
@@ -203,7 +199,7 @@ public:
 
 				if (tgt_txn_id > src_txn_id)
 				{
-					txn.forceRollback(SBuf()<<"Update/update conflict for container "<<name);
+					txn.forceRollback(MA_SRC, SBuf()<<"Update/update conflict for container "<<name);
 				}
 			}
 
@@ -222,7 +218,10 @@ public:
 
 			if (is_found(iter, name))
 			{
-				txn.forceRollback(SBuf()<<"Create/exists conflict for container "<<name);
+				iter.dumpPath();
+				txn_ctr_directory.Begin().dumpPath();
+
+				txn.forceRollback(MA_SRC, SBuf()<<"Create/exists conflict for container "<<name);
 			}
 
 			txn_iter++;
@@ -247,7 +246,7 @@ public:
 
 				if (tgt_txn_id > src_txn_id)
 				{
-					txn.forceRollback(SBuf()<<"Delete/update conflict for container "<<name);
+					txn.forceRollback(MA_SRC, SBuf()<<"Delete/update conflict for container "<<name);
 				}
 			}
 
@@ -321,6 +320,16 @@ public:
 		}
 
 		allocator_->commit();
+
+
+//		cout<<"Commit History"<<endl;
+//		commit_history_.Begin().dumpPath();
+//
+//		cout<<"Ctr Directory"<<endl;
+//		ctr_directory_->Begin().dumpPath();
+//
+//		cout<<"Roots"<<endl;
+//		roots_.Begin().dumpPath();
 	}
 
 	BigInt newTxnId()
@@ -333,15 +342,41 @@ public:
 
 	virtual PageG getPage(const ID& id, Int flags, BigInt name)
 	{
-		PageG page = getPage(last_commited_txn_id_, id, name);
+		auto iter = findGIDInHistory(last_commited_txn_id_, id);
 
-		if (flags == Allocator::UPDATE)
+		MEMORIA_ASSERT_FALSE(iter.isEof());
+
+		ID gid = iter.value().second;
+
+		PageG old_page = allocator_->getPage(gid, Allocator::READ, name);
+
+		if (flags == Allocator::READ)
 		{
-			page.update(name);
+			return old_page;
 		}
+		else if (iter.key2() != last_commited_txn_id_)
+		{
+			PageG new_page 	= allocator_->createPage(old_page->page_size(), name);
+			ID new_gid 		= new_page->gid();
+			new_page.shared()->set_allocator(this);
 
-		return page;
+			CopyByteBuffer(old_page.page(), new_page.page(), old_page->page_size());
+
+			new_page->gid() = new_gid;
+			new_page->id() 	= id;
+
+			iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), new_gid));
+
+			return new_page;
+		}
+		else {
+			old_page.update(name);
+			return old_page;
+		}
 	}
+
+
+
 
 	virtual PageG updatePage(Shared* shared, BigInt name)
 	{
@@ -356,6 +391,8 @@ public:
 			Int page_size = shared->get()->page_size();
 
 			PageG new_page 	= allocator_->createPage(page_size, name);
+			new_page.shared()->set_allocator(this);
+
 			ID new_gid 		= new_page->gid();
 
 			CopyByteBuffer(shared->get(), new_page.page(), page_size);
@@ -368,7 +405,10 @@ public:
 			return new_page;
 		}
 		else {
-			return allocator_->updatePage(shared, name);
+			PageG updated = allocator_->updatePage(shared, name);
+			updated.shared()->set_allocator(this);
+
+			return updated;
 		}
 	}
 
@@ -407,6 +447,8 @@ public:
 		auto iter = commit_history_.create(new_id);
 
 		iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::DELETED), new_gid));
+
+		new_page.shared()->set_allocator(this);
 
 		return new_page;
 	}
@@ -490,12 +532,14 @@ public:
 
 			if (root.isSet())
 			{
+				CtrDirectoryValue root_value(last_commited_txn_id_, root);
+
 				if (is_found(iter, name))
 				{
-					iter.value() = root;
+					iter.value() = root_value;
 				}
 				else {
-					iter.insert(name, root, toInt(EntryStatus::CLEAN));
+					iter.insert(name, root_value, toInt(EntryStatus::CLEAN));
 				}
 			}
 			else {
@@ -524,6 +568,13 @@ public:
 		}
 	}
 
+	void dumpPage(const PageG& page)
+	{
+		auto page_metadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+
+		vapi::dumpPageData(page_metadata, page.page(), std::cout);
+	}
+
 
 private:
 	template <typename Iterator, typename Key>
@@ -542,10 +593,24 @@ private:
 	{
 		auto iter = commit_history_.find(id);
 
+		if (!iter.found()) {
+			int a = 0; a++;
+		}
+
 		MEMORIA_ASSERT_TRUE(iter.found());
 		MEMORIA_ASSERT_TRUE(iter.blob_size() > 0);
 
 		iter.find2ndLE(txn_id);
+
+		if (iter.isEof() || iter.key2() > txn_id)
+		{
+			iter.skipBw(1);
+		}
+
+		if (!iter.isEof())
+		{
+			MEMORIA_ASSERT(iter.key2(), <=, txn_id);
+		}
 
 		return iter;
 	}
@@ -558,7 +623,7 @@ private:
 
 		iter.findData();
 
-		while (iter.isEof())
+		while (!iter.isEof())
 		{
 			typename Ctr::Types::Value value = iter.value();
 
@@ -594,6 +659,36 @@ private:
 		}
 	}
 
+	void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)
+	{
+		auto iter = roots_.findKey(txn_id);
+
+		if (is_found(iter, txn_id))
+		{
+			iter.value() = root_id;
+		}
+		else {
+			iter.insert(txn_id, root_id);
+		}
+	}
+
+
+	typename Roots::Iterator findLE(Roots& ctr, BigInt key)
+	{
+		auto iter = ctr.findKey(key);
+
+		if (iter.isEnd() || iter.key() > key)
+		{
+			iter--;
+		}
+
+		if (!iter.isEnd())
+		{
+			MEMORIA_ASSERT(iter.key(), <=, key);
+		}
+
+		return iter;
+	}
 };
 
 }

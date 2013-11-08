@@ -52,7 +52,7 @@ struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
 
 
 struct ContainerInterface {
-    virtual bool check(const void* id, BigInt name, void* allocator) const   = 0;
+    virtual bool check(const void* id, BigInt name, void* allocator) const   	= 0;
 
     virtual ~ContainerInterface() {}
 };

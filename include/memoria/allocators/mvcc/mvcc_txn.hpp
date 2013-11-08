@@ -59,6 +59,8 @@ private:
 
 	BigInt 			txn_id_;
 
+	ID				ctr_directory_root_id_;
+
 	UpdateLog		update_log_;
 	CtrDirectory	ctr_directory_;
 
@@ -69,10 +71,11 @@ public:
 		allocator_(txn_mgr->allocator()),
 		txn_mgr_(txn_mgr),
 		txn_id_(txn_id),
+		ctr_directory_root_id_(0),
 		update_log_(txn_mgr->allocator(), CTR_CREATE, txn_id_),
 		ctr_directory_(this, CTR_FIND, TxnMgr::CtrDirectoryName)
 	{
-		UpdateLog::initMetadata();
+
 	}
 
 	virtual ~MVCCTxn() {}
@@ -87,6 +90,11 @@ public:
 		return ctr_directory_;
 	}
 
+	ID ctr_directory_root_id() const
+	{
+		return ctr_directory_root_id_;
+	}
+
 	virtual BigInt txn_id() const
 	{
 		return txn_id_;
@@ -94,26 +102,40 @@ public:
 
 	virtual PageG getPage(const ID& id, Int flags, BigInt name)
 	{
-		auto iter = findGIDInHistory(id, name);
+		auto iter = update_log_.find(name);
 
-		if (h_is_not_found(iter, id))
+		bool found;
+
+		if (iter.found())
+		{
+			iter.find2ndLE(id);
+
+			found = (!iter.isEof()) && iter.key2() == id;
+		}
+		else {
+			found = false;
+		}
+
+		if (!found)
 		{
 			PageG old_page = txn_mgr_->getPage(txn_id_, id, name);
 
 			if (flags == Allocator::READ)
 			{
+				old_page.shared()->set_allocator(this);
 				return old_page;
 			}
 			else {
 				PageG new_page 	= allocator_->createPage(old_page->page_size(), name);
 				ID new_gid 		= new_page->gid();
+				new_page.shared()->set_allocator(this);
 
 				CopyByteBuffer(old_page.page(), new_page.page(), old_page->page_size());
 
 				new_page->gid() = new_gid;
 				new_page->id() 	= id;
 
-				if (iter.found())
+				if (!iter.found())
 				{
 					iter = update_log_.create(name);
 				}
@@ -133,7 +155,10 @@ public:
 
 			ID gid = log_entry.second;
 
-			return allocator_->getPage(gid, flags, name);
+			PageG page = allocator_->getPage(gid, flags, name);
+			page.shared()->set_allocator(this);
+
+			return page;
 		}
 	}
 
@@ -147,21 +172,18 @@ public:
 
 		if (h_is_not_found(iter, id))
 		{
-			UpdateLogValue entry = iter.value();
-
-			MEMORIA_ASSERT(entry.second, ==, shared->id());
-
 			Int page_size = shared->get()->page_size();
 
 			PageG new_page 	= allocator_->createPage(page_size, name);
 			ID new_gid 		= new_page->gid();
+			new_page.shared()->set_allocator(this);
 
 			CopyByteBuffer(shared->get(), new_page.page(), page_size);
 
 			new_page->gid() = new_gid;
 			new_page->id() 	= id;
 
-			if (iter.found())
+			if (!iter.found())
 			{
 				iter = update_log_.create(name);
 			}
@@ -181,14 +203,12 @@ public:
 
 		if (h_is_not_found(iter, id))
 		{
-			PageG page = txn_mgr_->getPage(txn_id_, id, name);
-
-			if (iter.found())
+			if (!iter.found())
 			{
 				iter = update_log_.create(name);
 			}
 
-			iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::DELETED), page->gid())); // mark the page deleted
+			iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::DELETED), ID(0))); // mark the page deleted
 		}
 		else {
 			UpdateLogValue value 	= iter.value();
@@ -211,6 +231,7 @@ public:
 		PageG new_page 	= allocator_->createPage(initial_size, name);
 		ID new_gid 		= new_page->gid();
 		ID new_id		= allocator_->newId();
+		new_page.shared()->set_allocator(this);
 
 		new_page->id()	= new_id;
 
@@ -240,7 +261,7 @@ public:
 
 	virtual ID getRootID(BigInt name)
 	{
-		if (name > 0)
+		if (name != TxnMgr::CtrDirectoryName)
 		{
 			auto iter = ctr_directory_.find(name);
 
@@ -252,43 +273,49 @@ public:
 				return ID(0);
 			}
 		}
+		else if (ctr_directory_root_id_.isSet())
+		{
+			return ctr_directory_root_id_;
+		}
 		else {
-			return txn_mgr_->getRootID(txn_id_);
+			return txn_mgr_->getCtrDirectoryRootID(txn_id_);
 		}
 	}
 
 	virtual void setRoot(BigInt name, const ID& root)
 	{
-		if (name > 0)
+		if (name != TxnMgr::CtrDirectoryName)
 		{
-			auto iter = ctr_directory_.find(name);
+			auto iter = ctr_directory_.findKey(name);
 
 			if (is_found(iter, name))
 			{
 				if (root.isSet())
 				{
-					//iter.value() = RootMapValue(toInt(EntryStatus::UPDATED), root);
-					iter.value() = root;
-					iter.setMark(toInt(EntryStatus::UPDATED));
+					EntryStatus status = static_cast<EntryStatus>(iter.mark());
+
+					iter.value() = CtrDirectoryValue(txn_id_, root);
+
+					if (!(status == EntryStatus::CREATED || status == EntryStatus::UPDATED))
+					{
+						iter.setMark(toInt(EntryStatus::UPDATED));
+					}
 				}
 				else {
-					//iter.value() = RootMapValue(toInt(EntryStatus::DELETED), root);
-
-					iter.value() = root;
+					iter.value() = CtrDirectoryValue(txn_id_, root);
 					iter.setMark(toInt(EntryStatus::DELETED));
 				}
 			}
 			else if (root.isSet())
 			{
-				//iter.insert(name, RootMapValue(toInt(EntryStatus::CREATED), root));
-				iter.insert(name, root, toInt(EntryStatus::CREATED));
+				iter.insert(name, CtrDirectoryValue(txn_id_, root), toInt(EntryStatus::CREATED));
 			}
 			else {
 				throw vapi::Exception(MA_SRC, "Try to remove nonexistent root ID form root directory");
 			}
 		}
 		else {
-			return txn_mgr_->setCtrDirectoryRootID(txn_id_, root);
+			ctr_directory_root_id_ = root;
 		}
 	}
 
@@ -303,9 +330,9 @@ public:
 		auto iter = ctr_directory_.findKey(name);
 		if (is_found(iter, name))
 		{
-			Int mark = iter.mark();
+			EntryStatus status = static_cast<EntryStatus>(iter.mark());
 
-			if (mark == toInt(EntryStatus::CLEAN))
+			if (!(status == EntryStatus::CREATED || status == EntryStatus::UPDATED))
 			{
 				iter.setMark(toInt(EntryStatus::UPDATED));
 			}
@@ -336,12 +363,15 @@ public:
 		{
 			BigInt name = iter.key();
 
+			iter.findData();
+
 			while(!iter.isEof())
 			{
 				UpdateLogValue entry = iter.value();
 
-				auto mark = entry.first;
-				if (mark == toInt(EntryStatus::DELETED))
+				EntryStatus status = static_cast<EntryStatus>(entry.first);
+
+				if (status != EntryStatus::DELETED)
 				{
 					allocator_->removePage(entry.second, name);
 				}
@@ -355,15 +385,15 @@ public:
 		update_log_.drop();
 	}
 
-	void forceRollback(const SBuf& msg)
+	void forceRollback(const char* src, const SBuf& msg)
 	{
-		forceRollback(msg.str());
+		forceRollback(src, msg.str());
 	}
 
-	void forceRollback(StringRef msg)
+	void forceRollback(const char* src, StringRef msg)
 	{
 		rollback();
-		throw vapi::RollbackException(MA_SRC, msg);
+		throw vapi::RollbackException(src, msg);
 	}
 
 private:
@@ -388,7 +418,6 @@ private:
 	{
 		return iter.found() && (!iter.isEof()) && iter.key2() == id;
 	}
-
 
 	typename UpdateLog::Iterator findGIDInHistory(const ID& id, BigInt name)
 	{
