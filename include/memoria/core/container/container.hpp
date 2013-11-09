@@ -193,7 +193,7 @@ public:
             Allocator* alloc = T2T<Allocator*>(allocator);
             ID* root_id = T2T<ID*>(id);
 
-            PageG page = alloc->getPage(*root_id, Allocator::READ, name);
+            PageG page = alloc->getPage(*root_id, name);
 
             MyType ctr(alloc, *root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
             return ctr.check(nullptr);
@@ -209,7 +209,7 @@ public:
         	Allocator* alloc = T2T<Allocator*>(allocator);
         	ID* root_id = T2T<ID*>(id);
 
-        	PageG page = alloc->getPage(*root_id, Allocator::READ, name);
+        	PageG page = alloc->getPage(*root_id, name);
 
         	MyType ctr(alloc, *root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
 
@@ -273,7 +273,7 @@ public:
         }
         else {
         	ID root_id = self().allocator().getRootID(name);
-            PageG node = self().allocator().getPage(root_id, Allocator::READ, name);
+            PageG node = self().allocator().getPage(root_id, name);
 
             if (node.isSet())
             {

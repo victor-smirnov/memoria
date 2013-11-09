@@ -231,7 +231,7 @@ void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums
     NodeBaseG node = start;
 
     while (!node->is_root()) {
-        node = self.getNodeParent(node, Allocator::READ);
+        node = self.getNodeParent(node);
     }
 
     self.removeNode(node, sums, sizes);
@@ -262,7 +262,7 @@ void M_TYPE::removeNonLeafNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumula
 
         if (parent_idx > 0)
         {
-            node = self.getNodeParent(node, Allocator::UPDATE);
+            node = self.getNodeParentForUpdate(node);
             self.removeNodeContent(node, 0, parent_idx, sums, sizes);
         }
         else {
@@ -284,7 +284,7 @@ void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Acc
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+        NodeBaseG parent = self.getNodeParentForUpdate(node);
 
         Int parent_idx = node->parent_idx();
 
@@ -310,7 +310,7 @@ void M_TYPE::removeNonLeafNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulato
     {
         Int parent_idx  = node->parent_idx();
 
-        node            = self.getNodeParent(node, Allocator::UPDATE);
+        node            = self.getNodeParentForUpdate(node);
         node_size       = self.getNodeSize(node, 0);
 
         if (parent_idx < node_size - 1)
@@ -336,7 +336,7 @@ void M_TYPE::removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Accum
 
     if (!start->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(start, Allocator::UPDATE);
+        NodeBaseG parent = self.getNodeParentForUpdate(start);
 
         self.removeNonLeafNodesAtEnd(parent, start->parent_idx() + 1, sums, sizes);
 
@@ -390,8 +390,8 @@ void M_TYPE::removeNodes(
         Int start_parent_idx    = start->parent_idx();
         Int stop_parent_idx     = stop->parent_idx();
 
-        NodeBaseG start_parent  = self.getNodeParent(start, Allocator::UPDATE);
-        NodeBaseG stop_parent   = self.getNodeParent(stop, Allocator::UPDATE);
+        NodeBaseG start_parent  = self.getNodeParentForUpdate(start);
+        NodeBaseG stop_parent   = self.getNodeParentForUpdate(stop);
 
         removeNonLeafNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sums, sizes);
 
@@ -460,8 +460,8 @@ void M_TYPE::removeNonLeafNodes(
         Int start_parent_idx    = start->parent_idx();
         Int stop_parent_idx     = stop->parent_idx();
 
-        NodeBaseG start_parent  = self.getNodeParent(start, Allocator::UPDATE);
-        NodeBaseG stop_parent   = self.getNodeParent(stop, Allocator::UPDATE);
+        NodeBaseG start_parent  = self.getNodeParentForUpdate(start);
+        NodeBaseG stop_parent   = self.getNodeParentForUpdate(stop);
 
         removeNonLeafNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sums, sizes);
 

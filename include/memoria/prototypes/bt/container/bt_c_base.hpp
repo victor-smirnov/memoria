@@ -155,7 +155,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto& self = this->self();
 
-        NodeBaseG root = self.allocator().getPage(root_id, Allocator::READ, self.master_name());
+        NodeBaseG root = self.allocator().getPage(root_id, self.master_name());
 
         return RootDispatcher::dispatchConstRtn(root.page(), GetModelNameFn(me()));
     }
@@ -164,7 +164,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         MEMORIA_ASSERT_EXPR(name >= 0, "Container name must not be positive")
 
-        NodeBaseG root  = self().getRoot(Allocator::READ);
+        NodeBaseG root  = self().getRoot();
 
         RootDispatcher::dispatch(root.page(), SetModelNameFn(me()), name);
     }
@@ -222,7 +222,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto& self = this->self();
 
-        NodeBaseG root = self.allocator().getPage(self.root(), Allocator::READ, self.master_name());
+        NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
 
         return root->root_metadata().roots(name);
     }
@@ -234,7 +234,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG root  = self.allocator().getPage(self.root(), Allocator::UPDATE, self.master_name());
+        NodeBaseG root  = self.allocator().getPageForUpdate(self.root(), self.master_name());
 
         Metadata& metadata = root->root_metadata();
         metadata.roots(name) = root_id;
@@ -278,7 +278,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void setRootMetadata(const Metadata& metadata) const
     {
-        NodeBaseG root = self().getRoot(Allocator::UPDATE);
+        NodeBaseG root = self().getRootForUpdate();
         self().setRootMetadata(root, metadata);
     }
 

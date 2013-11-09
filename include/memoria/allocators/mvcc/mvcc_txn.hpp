@@ -100,7 +100,17 @@ public:
 		return txn_id_;
 	}
 
-	virtual PageG getPage(const ID& id, Int flags, BigInt name)
+
+    virtual PageG getPage(const ID& id, BigInt name) {
+    	return getPage(id, Allocator::READ, name);
+    }
+
+    virtual PageG getPageForUpdate(const ID& id, BigInt name)
+    {
+    	return getPage(id, Allocator::UPDATE, name);
+    }
+
+	PageG getPage(const ID& id, Int flags, BigInt name)
 	{
 		auto iter = update_log_.find(name);
 
@@ -155,7 +165,15 @@ public:
 
 			ID gid = log_entry.second;
 
-			PageG page = allocator_->getPage(gid, flags, name);
+			PageG page;
+
+			if (flags == Allocator::READ) {
+				page = allocator_->getPage(gid, name);
+			}
+			else {
+				page = allocator_->getPageForUpdate(gid, name);
+			}
+
 			page.shared()->set_allocator(this);
 
 			return page;

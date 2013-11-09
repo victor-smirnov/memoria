@@ -136,7 +136,7 @@ public:
         while (!node->is_root())
         {
             idx = node->parent_idx();
-            node = self().getNodeParent(node, Allocator::READ);
+            node = self().getNodeParent(node);
 
             NodeDispatcher::dispatchConst(node, walker, idx);
         }
@@ -159,7 +159,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
 
     walker.direction()  = WalkDirection::DOWN;
 
-    NodeBaseG node = self.getRoot(Allocator::READ);
+    NodeBaseG node = self.getRoot();
     if (node.isSet())
     {
         Iterator i(self);
@@ -191,7 +191,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
                     idx = self.getNodeSize(node, stream) - 1;
                 }
 
-                node = me()->getChild(node, idx, Allocator::READ);
+                node = me()->getChild(node, idx);
             }
 
             Int idx;
@@ -253,7 +253,7 @@ Int M_TYPE::findFw(NodeBaseG& node, Int stream, Int start, Walker&& walker)
     {
         if (!node->is_root())
         {
-            NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
+            NodeBaseG parent = self.getNodeParent(node);
 
             // Step up the tree
             Int child_idx = findFw(parent, stream, node->parent_idx() + 1, walker);
@@ -262,13 +262,13 @@ Int M_TYPE::findFw(NodeBaseG& node, Int stream, Int start, Walker&& walker)
             if (child_idx < parent_size)
             {
                 // Step down the tree
-                node = self.getChild(parent, child_idx, Allocator::READ);
+                node = self.getChild(parent, child_idx);
 
                 return NodeDispatcher::dispatchConstRtn(node, walker, 0);
             }
             else {
                 // Step down the tree
-                node = self.getChild(parent, parent_size - 1, Allocator::READ);
+                node = self.getChild(parent, parent_size - 1);
 
                 return self.getNodeSize(node, stream);
             }
@@ -316,7 +316,7 @@ Int M_TYPE::findBw(NodeBaseG& node, Int stream, Int start, Walker&& walker)
     {
         if (!node->is_root())
         {
-            NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
+            NodeBaseG parent = self.getNodeParent(node);
 
             // Step up the tree
             Int child_idx = findBw(parent, stream, node->parent_idx() - 1, walker);
@@ -324,14 +324,14 @@ Int M_TYPE::findBw(NodeBaseG& node, Int stream, Int start, Walker&& walker)
             if (child_idx >= 0)
             {
                 // Step down the tree
-                node        = self.getChild(parent, child_idx, Allocator::READ);
+                node        = self.getChild(parent, child_idx);
                 Int start   = self.getNodeSize(node, stream) - !node->is_leaf();
 
                 return NodeDispatcher::dispatchConstRtn(node, walker, start);
             }
             else {
                 // Step down the tree
-                node = self.getChild(parent, 0, Allocator::READ);
+                node = self.getChild(parent, 0);
 
                 return -1;
             }

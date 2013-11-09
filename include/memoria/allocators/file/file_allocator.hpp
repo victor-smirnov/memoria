@@ -600,7 +600,16 @@ public:
 
     // IAllocator
 
-    virtual PageG getPage(const ID& id, Int flags, BigInt name)
+    virtual PageG getPage(const ID& id, BigInt name) {
+    	return getPage(id, Base::READ, name);
+    }
+
+    virtual PageG getPageForUpdate(const ID& id, BigInt name)
+    {
+    	return getPage(id, Base::UPDATE, name);
+    }
+
+    PageG getPage(const ID& id, Int flags, BigInt name)
     {
     	//FIXME: throw exception
     	if (id.isNull())

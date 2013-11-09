@@ -106,7 +106,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
     MEMORIA_PUBLIC void drop()
     {
-        NodeBaseG root = self().getRoot(Allocator::READ);
+        NodeBaseG root = self().getRoot();
         self().removeRootNode(root);
     }
 
@@ -129,7 +129,7 @@ void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums, Position& sizes)
         self.forAllIDs(node, 0, size, [&, this](const ID& id, Int idx)
         {
         	auto& self = this->self();
-            NodeBaseG child = self.allocator().getPage(id, Allocator::READ, self.master_name());
+            NodeBaseG child = self.allocator().getPage(id, self.master_name());
             this->removeNode(child, sums, sizes);
             self.allocator().removePage(id, self.master_name());
         });
@@ -152,7 +152,7 @@ void M_TYPE::removeNode(NodeBaseG& node)
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+        NodeBaseG parent = self.getNodeParentForUpdate(node);
 
         self.removeNonLeafNodeEntry(parent, node->parent_idx());
 
@@ -192,7 +192,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator&
 
     self.forAllIDs(node, start, end, [&, this](const ID& id, Int idx){
     	auto& self = this->self();
-        NodeBaseG child = self.allocator().getPage(id, Allocator::READ, self.master_name());
+        NodeBaseG child = self.allocator().getPage(id, self.master_name());
         self.removeNode(child, deleted_sums, sizes);
     });
 
@@ -260,7 +260,7 @@ void M_TYPE::removeRedundantRootP(NodeBaseG& node)
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
+        NodeBaseG parent = self.getNodeParent(node);
         if (!parent->is_root())
         {
             removeRedundantRootP(parent);

@@ -80,12 +80,6 @@ public:
 
 
     // Allocator directory interface part
-    virtual PageG getRoot(BigInt name, Int flags)
-    {
-    	auto& self = this->self();
-        return self.allocator().getPage(self.getRootID(name), flags, self.master_name());
-    }
-
     virtual bool hasRoot(BigInt name)
     {
         return isCtrSharedRegistered(name); // Is it correct?
@@ -100,7 +94,17 @@ public:
     	return self().allocator().currentTxnId();
     }
 
-    virtual PageG getPage(const ID& id, Int flags, BigInt name);
+
+
+    virtual PageG getPage(const ID& id, BigInt name)
+    {
+    	return self().allocator().getPage(id, name);
+    }
+
+    virtual PageG getPageForUpdate(const ID& id, BigInt name)
+    {
+    	return self().allocator().getPageForUpdate(id, name);
+    }
 
     virtual PageG updatePage(Shared* shared, BigInt name);
 
@@ -141,11 +145,6 @@ MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::AllocatorName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
-M_PARAMS
-typename M_TYPE::PageG M_TYPE::getPage(const ID& id, Int flags, BigInt name) {
-    return me()->allocator().getPage(id, flags, name);
-}
 
 M_PARAMS
 typename M_TYPE::PageG M_TYPE::getPageG(Page* page) {

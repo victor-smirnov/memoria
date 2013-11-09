@@ -41,7 +41,7 @@ public:
     {
     	auto& self = this->self();
 
-    	NodeBaseG root = self.getRoot(Allocator::READ);
+    	NodeBaseG root = self.getRoot();
 
     	walker->beginCtr(
     	    			TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
@@ -108,7 +108,7 @@ private:
     	{
     		self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const ID& id, Int idx)
     		{
-    			NodeBaseG child = self.allocator().getPage(id, Allocator::READ, self.master_name());
+    			NodeBaseG child = self.allocator().getPage(id, self.master_name());
 
     			self.traverseTree(child, walker);
     		});

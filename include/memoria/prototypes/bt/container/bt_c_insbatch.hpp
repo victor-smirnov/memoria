@@ -513,8 +513,8 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
             InsertSharedData data(provider);
 
-            NodeBaseG leaf_parent = self.getNodeParent(leaf, Allocator::UPDATE);
-            NodeBaseG right_parent = self.getNodeParent(right, Allocator::UPDATE);
+            NodeBaseG leaf_parent = self.getNodeParentForUpdate(leaf);
+            NodeBaseG right_parent = self.getNodeParentForUpdate(right);
 
             self.insertInternalSubtree(leaf_parent, path_parent_idx, right_parent, right_parent_idx, data);
 
@@ -669,8 +669,8 @@ void M_TYPE::insertInternalSubtree(
             // There is something more to insert.
             Int parent_right_idx = right_node->parent_idx();
 
-            NodeBaseG left_parent = self.getNodeParent(left_node, Allocator::READ);
-            NodeBaseG right_parent = self.getNodeParent(right_node, Allocator::READ);
+            NodeBaseG left_parent = self.getNodeParent(left_node);
+            NodeBaseG right_parent = self.getNodeParent(right_node);
 
             insertInternalSubtree
             (
@@ -863,7 +863,7 @@ void M_TYPE::updateChildrenInternal(const NodeBaseG& node, Int start, Int end)
 
     self.forAllIDs(node, start, end, [&self, &node_id](const ID& id, Int idx)
     {
-        NodeBaseG child = self.allocator().getPage(id, Allocator::UPDATE, self.master_name());
+        NodeBaseG child = self.allocator().getPageForUpdate(id, self.master_name());
 
         child->parent_id()  = node_id;
         child->parent_idx() = idx;

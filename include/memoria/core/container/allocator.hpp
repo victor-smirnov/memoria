@@ -66,8 +66,10 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     typedef ContainerShared<ID>                                         		CtrShared;
 
 
+    virtual PageG getPage(const ID& id, BigInt name)            				= 0;
+    virtual PageG getPageForUpdate(const ID& id, BigInt name)            		= 0;
 
-    virtual PageG getPage(const ID& id, Int flags, BigInt name)            		= 0;
+//    virtual PageG getPage(const ID& id, Int flags, BigInt name)            		= 0;
     virtual PageG updatePage(Shared* shared, BigInt name)                  		= 0;
     virtual void  removePage(const ID& id, BigInt name)                    		= 0;
     virtual PageG createPage(Int initial_size, BigInt name)                		= 0;

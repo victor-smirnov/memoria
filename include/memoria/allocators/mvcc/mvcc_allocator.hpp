@@ -132,6 +132,8 @@ public:
 	}
 
 
+
+
 	virtual PageG getPage(BigInt txn_id, const ID& id, BigInt name)
 	{
 		auto iter = commit_history_.find(id);
@@ -142,7 +144,7 @@ public:
 			{
 				ID gid = iter.value().second;
 
-				PageG page = allocator_->getPage(gid, Allocator::READ, name);
+				PageG page = allocator_->getPage(gid, name);
 
 				page.shared()->set_allocator(this);
 
@@ -341,7 +343,17 @@ public:
 
 	// IAllocator
 
-	virtual PageG getPage(const ID& id, Int flags, BigInt name)
+    virtual PageG getPage(const ID& id, BigInt name) {
+    	return getPage(id, Allocator::READ, name);
+    }
+
+    virtual PageG getPageForUpdate(const ID& id, BigInt name)
+    {
+    	return getPage(id, Allocator::UPDATE, name);
+    }
+
+
+	PageG getPage(const ID& id, Int flags, BigInt name)
 	{
 		auto iter = commit_history_.find(id);
 
@@ -351,7 +363,7 @@ public:
 			{
 				ID gid = iter.value().second;
 
-				PageG old_page = allocator_->getPage(gid, Allocator::READ, name);
+				PageG old_page = allocator_->getPage(gid, name);
 				old_page.shared()->set_allocator(this);
 
 				if (flags == Allocator::READ)
@@ -693,7 +705,7 @@ private:
 				Int mark 	= value.first;
 				ID gid 		= value.second;
 
-				PageG page = allocator_->getPage(gid, Allocator::READ, -1); // fixme: provide Ctr name here
+				PageG page = allocator_->getPage(gid, -1); // fixme: provide Ctr name here
 
 				walker->singleNode((SBuf()<<txn_id<<"__"<<mark<<"__"<<gid).str().c_str(), page.page());
 

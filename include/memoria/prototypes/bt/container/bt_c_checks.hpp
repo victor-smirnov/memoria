@@ -97,7 +97,7 @@ bool M_TYPE::checkTree() const
 {
     auto& self = this->self();
 
-    NodeBaseG root = self.getRoot(Allocator::READ);
+    NodeBaseG root = self.getRoot();
     if (root)
     {
         bool errors = false;
@@ -150,7 +150,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
         {
             ID child_id = self.getChildID(node, c);
 
-            NodeBaseG child = self.getChild(node, c, Allocator::READ);
+            NodeBaseG child = self.getChild(node, c);
 
             if (child->id() != child_id)
             {
