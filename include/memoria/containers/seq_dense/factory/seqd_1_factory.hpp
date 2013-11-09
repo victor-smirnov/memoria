@@ -103,7 +103,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
 
 
     template <typename Types>
-    using FindLTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types>;
+    using FindGTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types>;
 
 
     template <typename Types>

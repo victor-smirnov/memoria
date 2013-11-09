@@ -125,10 +125,10 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
 
 //    template <typename Types>
-//    using FindLTWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
+//    using FindGTWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
 //
 //    template <typename Types>
-//    using FindLEWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
+//    using FindGEWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
 
     template <typename Types>
     using SkipForwardWalker         = vmap::SkipForwardWalker<Types>;

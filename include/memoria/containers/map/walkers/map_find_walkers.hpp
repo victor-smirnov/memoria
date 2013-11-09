@@ -66,13 +66,13 @@ public:
 
 
 template <typename Types>
-class FindLTWalker: public FindWalkerBase<Types> {
+class FindGTWalker: public FindWalkerBase<Types> {
 
     typedef FindWalkerBase<Types>       Base;
     typedef typename Base::Key          Key;
 
 public:
-    FindLTWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
+    FindGTWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
     {}
 
     typedef Int ResultType;
@@ -101,13 +101,13 @@ public:
 };
 
 template <typename Types>
-class FindLEWalker: public FindWalkerBase<Types> {
+class FindGEWalker: public FindWalkerBase<Types> {
 
     typedef FindWalkerBase<Types>       Base;
     typedef typename Base::Key          Key;
 
 public:
-    FindLEWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
+    FindGEWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
     {}
 
     typedef Int ResultType;

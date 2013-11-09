@@ -43,10 +43,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     typedef typename Container::Position                                        Position;
 
     template <typename T>
-    using Find2ndLEWalker = typename Container::Types::template FindLEWalker<T>;
+    using Find2ndGEWalker = typename Container::Types::template FindGEWalker<T>;
 
     template <typename T>
-    using Find2ndLTWalker = typename Container::Types::template FindLTWalker<T>;
+    using Find2ndGTWalker = typename Container::Types::template FindGTWalker<T>;
 
 
     struct ReadValueFn {
@@ -150,29 +150,15 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     }
 
 
-    bool find2ndLE(Key key)
+    bool find2ndGE(Key key)
     {
     	auto& self = this->self();
 
-    	BigInt size = self.blob_size();
-
-    	if (self.stream() == 0)
-    	{
-    		self.findData(0);
-    	}
-    	else
-    	{
-    		BigInt pos = self.pos();
-
-    		if (pos > 0)
-    		{
-    			self.skipBw(pos);
-    		}
-    	}
+    	BigInt size = prepareFind2();
 
     	if (size > 0)
     	{
-    		BigInt offset = self.template _findFw<Find2ndLEWalker>(0, key);
+    		BigInt offset = self.template _findFw<Find2ndGEWalker>(0, key);
 
     		self.cache().addToGlobalPos(offset);
 
@@ -191,29 +177,58 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     	}
     }
 
-    bool find2ndLT(Key key)
+
+    bool find2ndLE(Key key)
     {
     	auto& self = this->self();
 
-    	BigInt size = self.blob_size();
-
-    	if (self.stream() == 0)
-    	{
-    		self.findData(0);
-    	}
-    	else
-    	{
-    		BigInt pos = self.pos();
-
-    		if (pos > 0)
-    		{
-    			self.skipBw(pos);
-    		}
-    	}
+    	BigInt size = prepareFind2();
 
     	if (size > 0)
     	{
-    		BigInt offset = self.template _findFw<Find2ndLTWalker>(0, key);
+    		BigInt offset = self.template _findFw<Find2ndGEWalker>(0, key);
+
+    		self.cache().addToGlobalPos(offset);
+
+    		if (offset < size)
+    		{
+    			if (self.key() > key)
+    			{
+    				if (self.pos() > 0)
+    				{
+    					self.skipBw(1);
+
+    					return self.key2() <= key;
+    				}
+    				else {
+    					return false;
+    				}
+    			}
+    			else {
+    				return true;
+    			}
+    		}
+    		else {
+    			self.skipBw(offset - size + 1);
+    			return self.key2() <= key;
+    		}
+    	}
+    	else {
+    		return false;
+    	}
+    }
+
+
+
+    bool find2ndGT(Key key)
+    {
+    	auto& self = this->self();
+
+    	BigInt size = prepareFind2();
+
+    	if (size > 0)
+    	{
+    		BigInt offset = self.template _findFw<Find2ndGTWalker>(0, key);
 
     		self.cache().addToGlobalPos(offset);
 
@@ -223,7 +238,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     		}
     		else {
     			self.skipBw(offset - size);
-
     			return false;
     		}
     	}
@@ -239,7 +253,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
 
     	self.findData();
 
-    	if (self.find2ndLE(key))
+    	if (self.find2ndGE(key))
     	{
     		auto k = self.key2();
 
@@ -260,6 +274,30 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     }
 
 private:
+
+    BigInt prepareFind2()
+    {
+    	auto& self = this->self();
+
+    	BigInt size = self.blob_size();
+
+    	if (self.stream() == 0)
+    	{
+    		self.findData(0);
+    	}
+    	else
+    	{
+    		BigInt pos = self.pos();
+
+    		if (pos > 0)
+    		{
+    			self.skipBw(pos);
+    		}
+    	}
+
+    	return size;
+    }
+
 
     struct AddKey2Fn {
 
@@ -331,7 +369,7 @@ public:
     		self.skipBw(pos);
     	}
 
-    	if (self.find2ndLE(key))
+    	if (self.find2ndGE(key))
     	{
     		if (self.key2() == key)
     		{

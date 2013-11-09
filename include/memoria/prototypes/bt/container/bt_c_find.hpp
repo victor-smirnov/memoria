@@ -114,16 +114,16 @@ public:
         return streamREnd(MAIN_STREAM);
     }
 
-    Iterator findLT(Int stream, Key key, Int key_num)
+    Iterator findGT(Int stream, Key key, Int key_num)
     {
-        typename Types::template FindLTWalker<Types> walker(stream, key_num, key);
+        typename Types::template FindGTWalker<Types> walker(stream, key_num, key);
 
         return self().find0(stream, walker);
     }
 
-    Iterator findLE(Int stream, Key key, Int key_num)
+    Iterator findGE(Int stream, Key key, Int key_num)
     {
-        typename Types::template FindLEWalker<Types> walker(stream, key_num, key);
+        typename Types::template FindGEWalker<Types> walker(stream, key_num, key);
 
         return self().find0(stream, walker);
     }

@@ -41,7 +41,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator find(Key key)
     {
-        Iterator iter = self().findLE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
         if (!iter.isEnd())
         {
@@ -58,17 +58,50 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
         }
     }
 
-    Iterator findKey(Key key) {
-    	return self().findLE(0, key, 0);
+    Iterator findKeyGE(Key key)
+    {
+    	return self().findGE(0, key, 0);
     }
 
-    Iterator findKeyLT(Key key) {
-    	return self().findLT(0, key, 0);
+    Iterator findKeyLE(Key key)
+    {
+    	Iterator iter = self().findGE(0, key, 0);
+
+    	if (iter.isEnd() || iter.key() > key)
+    	{
+    		iter--;
+
+    		if (iter.isBegin())
+    		{
+    			iter.idx() = 0;
+    		}
+    	}
+
+    	return iter;
     }
+
+    Iterator findKeyLT(Key key)
+    {
+    	Iterator iter = self().findGE(0, key, 0);
+
+    	if (iter.isEnd() || iter.key() >= key)
+    	{
+    		iter--;
+
+    		if (iter.isBegin())
+    		{
+    			iter.idx() = 0;
+    		}
+    	}
+
+    	return iter;
+    }
+
+
 
     Iterator operator[](Key key)
     {
-        Iterator iter = self().findLE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
         if (iter.isEnd() || key != iter.key())
         {
@@ -84,7 +117,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator insertIFNotExists(Key key)
     {
-    	Iterator iter = self().findLE(0, key, 0);
+    	Iterator iter = self().findGE(0, key, 0);
 
     	if (iter.isEnd() || key != iter.key())
     	{
@@ -103,7 +136,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     bool remove(Key key)
     {
-        Iterator iter = self().findLE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
         if (key == iter.key())
         {

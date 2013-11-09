@@ -89,10 +89,10 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
 
     template <typename Types>
-    using FindLTWalker      = map::FindLTWalker<Types>;
+    using FindGTWalker      = map::FindGTWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker      = map::FindLEWalker<Types>;
+    using FindGEWalker      = map::FindGEWalker<Types>;
 
 
     template <typename Types>

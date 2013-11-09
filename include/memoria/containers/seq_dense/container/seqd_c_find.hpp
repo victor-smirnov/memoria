@@ -115,7 +115,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     {
         auto& self = this->self();
 
-        return self.findLT(MAIN_STREAM, pos, 0);
+        return self.findGT(MAIN_STREAM, pos, 0);
     }
 
 

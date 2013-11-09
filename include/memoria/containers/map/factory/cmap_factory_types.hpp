@@ -90,10 +90,10 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
 
 
     template <typename Types>
-    using FindLTWalker      = map::FindLTWalker<Types>;
+    using FindGTWalker      = map::FindGTWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker      = map::FindLEWalker<Types>;
+    using FindGEWalker      = map::FindGEWalker<Types>;
 
 
     template <typename Types>

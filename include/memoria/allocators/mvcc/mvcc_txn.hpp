@@ -108,7 +108,7 @@ public:
 
 		if (iter.found())
 		{
-			iter.find2ndLE(id);
+			iter.find2ndGE(id);
 
 			found = (!iter.isEof()) && iter.key2() == id;
 		}
@@ -286,9 +286,9 @@ public:
 	{
 		if (name != TxnMgr::CtrDirectoryName)
 		{
-			auto iter = ctr_directory_.findKey(name);
+			auto iter = ctr_directory_.findKeyGE(name);
 
-			if (is_found(iter, name))
+			if (iter.is_found_eq(name))
 			{
 				if (root.isSet())
 				{
@@ -321,16 +321,16 @@ public:
 
 	virtual bool hasRoot(BigInt name)
 	{
-		auto iter = ctr_directory_.findKey(name);
-		return is_found(iter, name);
+		auto iter = ctr_directory_.findKeyGE(name);
+		return iter.is_found_eq(name);
 	}
 
 	virtual void markUpdated(BigInt name)
 	{
 		if (name != TxnMgr::CtrDirectoryName)
 		{
-			auto iter = ctr_directory_.findKey(name);
-			if (is_found(iter, name))
+			auto iter = ctr_directory_.findKeyGE(name);
+			if (iter.is_found_eq(name))
 			{
 				EntryStatus status = static_cast<EntryStatus>(iter.mark());
 
@@ -401,18 +401,6 @@ public:
 	}
 
 private:
-	template <typename Iterator, typename Key>
-	static bool is_found(Iterator& iter, const Key& key)
-	{
-		return (!iter.isEnd()) && iter.key() == key;
-	}
-
-	template <typename Iterator, typename Key>
-	static bool is_not_found(Iterator& iter, const Key& key)
-	{
-		return iter.isEnd() || iter.key() != key;
-	}
-
 	bool h_is_not_found(const typename UpdateLog::Iterator& iter, const ID& id) const
 	{
 		return (!iter.found()) || iter.isEof() || iter.key2() != id;
@@ -429,7 +417,7 @@ private:
 
 		if (iter.found())
 		{
-			iter.find2ndLE(id);
+			iter.find2ndGE(id);
 		}
 
 		return iter;

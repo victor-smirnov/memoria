@@ -86,7 +86,7 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
 
 
     template <typename Types>
-    using FindLTWalker          = louds::SkipForwardWalker<Types>;
+    using FindGTWalker          = louds::SkipForwardWalker<Types>;
 
 
     template <typename Types>

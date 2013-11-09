@@ -275,7 +275,7 @@ public:
 
 
 template <typename Types>
-class SecondMapFindLEWalker: public SecondMapFindWalkerBase<Types> {
+class SecondMapFindGEWalker: public SecondMapFindWalkerBase<Types> {
 
     typedef SecondMapFindWalkerBase<Types>        								Base;
 
@@ -285,7 +285,7 @@ protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
 
 public:
-    SecondMapFindLEWalker(Int stream, Int index, Key key):
+    SecondMapFindGEWalker(Int stream, Int index, Key key):
         Base(stream, index, key)
     {
         Base::search_type() = SearchType::GE;
@@ -293,7 +293,7 @@ public:
 };
 
 template <typename Types>
-class SecondMapFindLTWalker: public SecondMapFindWalkerBase<Types> {
+class SecondMapFindGTWalker: public SecondMapFindWalkerBase<Types> {
 
     typedef SecondMapFindWalkerBase<Types>        								Base;
 
@@ -303,7 +303,7 @@ protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
 
 public:
-    SecondMapFindLTWalker(Int stream, Int index, Key key):
+    SecondMapFindGTWalker(Int stream, Int index, Key key):
         Base(stream, index, key)
     {
         Base::search_type() = SearchType::GT;

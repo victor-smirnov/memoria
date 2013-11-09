@@ -108,9 +108,9 @@ struct BTTypes<Profile, DblMap<Key_, Value_> >:
 
 
     template <typename Types>
-    using FindLEWalker              = dblmap::SecondMapFindLEWalker<Types>;
+    using FindGEWalker              = dblmap::SecondMapFindGEWalker<Types>;
     template <typename Types>
-    using FindLTWalker              = dblmap::SecondMapFindLTWalker<Types>;
+    using FindGTWalker              = dblmap::SecondMapFindGTWalker<Types>;
 
 
     template <typename Types>

@@ -60,7 +60,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
 
     Iterator seek(Key pos)
     {
-        return self().findLT(MAIN_STREAM, pos, 0);
+        return self().findGT(MAIN_STREAM, pos, 0);
     }
 
     MyType& operator<<(vector<Value>& v)

@@ -134,24 +134,37 @@ public:
 
 	virtual PageG getPage(BigInt txn_id, const ID& id, BigInt name)
 	{
-		auto iter = findGIDInHistory(txn_id, id);
+		auto iter = commit_history_.find(id);
 
-		MEMORIA_ASSERT_FALSE(iter.isEof());
+		if (iter.found())
+		{
+			if (iter.find2ndLE(txn_id))
+			{
+				ID gid = iter.value().second;
 
-		ID gid = iter.value().second;
+				PageG page = allocator_->getPage(gid, Allocator::READ, name);
 
-		PageG page = allocator_->getPage(gid, Allocator::READ, name);
+				page.shared()->set_allocator(this);
 
-		page.shared()->set_allocator(this);
-
-		return page;
+				return page;
+			}
+			else {
+				throw vapi::Exception(
+						MA_SRC,
+						SBuf()<<"Page with id="<<id<<" is not found in commit history for txn_id="<<txn_id
+				);
+			}
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Page with id="<<id<<" is not found in commit history");
+		}
 	}
 
 	virtual ID getCtrDirectoryRootID(BigInt txn_id)
 	{
-		auto iter = findLE(roots_, txn_id);
+		auto iter = roots_.findKeyLE(txn_id);
 
-		if (!iter.isEnd())
+		if (iter.is_found_le(txn_id))
 		{
 			return iter.value();
 		}
@@ -183,9 +196,9 @@ public:
 		while (!txn_iter.isEnd())
 		{
 			BigInt name = txn_iter.key();
-			auto iter 	= ctr_directory_->findKey(name);
+			auto iter 	= ctr_directory_->findKeyGE(name);
 
-			if (is_not_found(iter, name))
+			if (!iter.is_found_eq(name))
 			{
 				txn.forceRollback(MA_SRC, SBuf()<<"Update non-existent/removed container "<<name);
 			}
@@ -213,9 +226,9 @@ public:
 		while (!txn_iter.isEnd())
 		{
 			BigInt name = txn_iter.key();
-			auto iter 	= ctr_directory_->findKey(name);
+			auto iter 	= ctr_directory_->findKeyGE(name);
 
-			if (is_found(iter, name))
+			if (iter.is_found_eq(name))
 			{
 				txn.forceRollback(MA_SRC, SBuf()<<"Create/exists conflict for container "<<name);
 			}
@@ -230,9 +243,9 @@ public:
 		while (!txn_iter.isEnd())
 		{
 			BigInt name = txn_iter.key();
-			auto iter 	= ctr_directory_->findKey(name);
+			auto iter 	= ctr_directory_->findKeyGE(name);
 
-			if (is_found(iter, name))
+			if (iter.is_found_eq(name))
 			{
 				CtrDirectoryValue txn_entry = txn_iter.value();
 				CtrDirectoryValue entry 	= iter.value();
@@ -262,8 +275,8 @@ public:
 			BigInt name = txn_iter.key();
 			ID id = txn_iter.value().value().value();
 
-			auto iter = ctr_directory_->findKey(name);
-			MEMORIA_ASSERT_TRUE(is_found(iter, name));
+			auto iter = ctr_directory_->findKeyGE(name);
+			MEMORIA_ASSERT_TRUE(iter.is_found_eq(name));
 
 			iter.value() = CtrDirectoryValue(last_commited_txn_id_, id);
 
@@ -281,8 +294,8 @@ public:
 			BigInt name = txn_iter.key();
 			ID id = txn_iter.value().value().value();
 
-			auto iter = ctr_directory_->findKey(name);
-			MEMORIA_ASSERT_TRUE(is_not_found(iter, name));
+			auto iter = ctr_directory_->findKeyGE(name);
+			MEMORIA_ASSERT_TRUE(!iter.is_found_eq(name));
 
 			iter.insert(name, CtrDirectoryValue(last_commited_txn_id_, id), toInt(EntryStatus::CLEAN));
 
@@ -300,9 +313,9 @@ public:
 		{
 			BigInt name = txn_iter.key();
 
-			auto iter = ctr_directory_->findKey(name);
+			auto iter = ctr_directory_->findKeyGE(name);
 
-			if (is_found(iter, name))
+			if (iter.is_found_eq(name))
 			{
 				iter.remove();
 			}
@@ -318,16 +331,6 @@ public:
 		allocator_->properties().setLastCommitId(last_commited_txn_id_);
 
 		allocator_->commit();
-
-
-//		cout<<"Commit History"<<endl;
-//		commit_history_.Begin().dumpPath();
-//
-//		cout<<"Ctr Directory"<<endl;
-//		ctr_directory_->Begin().dumpPath();
-//
-//		cout<<"Roots"<<endl;
-//		roots_.Begin().dumpPath();
 	}
 
 	BigInt newTxnId()
@@ -340,41 +343,52 @@ public:
 
 	virtual PageG getPage(const ID& id, Int flags, BigInt name)
 	{
-		auto iter = findGIDInHistory(last_commited_txn_id_, id);
+		auto iter = commit_history_.find(id);
 
-		MEMORIA_ASSERT_FALSE(iter.isEof());
-
-		ID gid = iter.value().second;
-
-		PageG old_page = allocator_->getPage(gid, Allocator::READ, name);
-		old_page.shared()->set_allocator(this);
-
-		if (flags == Allocator::READ)
+		if (iter.found())
 		{
-			return old_page;
-		}
-		else if (iter.key2() != last_commited_txn_id_)
-		{
-			PageG new_page 	= allocator_->createPage(old_page->page_size(), name);
-			ID new_gid 		= new_page->gid();
-			new_page.shared()->set_allocator(this);
+			if (iter.find2ndLE(last_commited_txn_id_))
+			{
+				ID gid = iter.value().second;
 
-			CopyByteBuffer(old_page.page(), new_page.page(), old_page->page_size());
+				PageG old_page = allocator_->getPage(gid, Allocator::READ, name);
+				old_page.shared()->set_allocator(this);
 
-			new_page->gid() = new_gid;
-			new_page->id() 	= id;
+				if (flags == Allocator::READ)
+				{
+					return old_page;
+				}
+				else if (iter.key2() != last_commited_txn_id_)
+				{
+					PageG new_page 	= allocator_->createPage(old_page->page_size(), name);
+					ID new_gid 		= new_page->gid();
+					new_page.shared()->set_allocator(this);
 
-			iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), new_gid));
+					CopyByteBuffer(old_page.page(), new_page.page(), old_page->page_size());
 
-			return new_page;
+					new_page->gid() = new_gid;
+					new_page->id() 	= id;
+
+					iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), new_gid));
+
+					return new_page;
+				}
+				else {
+					old_page.update(name);
+					return old_page;
+				}
+			}
+			else {
+				throw vapi::Exception(
+						MA_SRC,
+						SBuf()<<"Page with id="<<id<<" is not found in commit history for txn_id="<<last_commited_txn_id_
+				);
+			}
 		}
 		else {
-			old_page.update(name);
-			return old_page;
+			throw vapi::Exception(MA_SRC, SBuf()<<"Page with id="<<id<<" is not found in commit history");
 		}
 	}
-
-
 
 
 	virtual PageG updatePage(Shared* shared, BigInt name)
@@ -383,59 +397,90 @@ public:
 
 		ID id = shared->get()->id();
 
-		auto iter = findGIDInHistory(last_commited_txn_id_, id);
+		auto iter = commit_history_.find(id);
 
-		if (iter.key2() != last_commited_txn_id_)
+		if (iter.found())
 		{
-			Int page_size = shared->get()->page_size();
+			if (iter.find2ndLE(last_commited_txn_id_))
+			{
+				if (iter.key2() != last_commited_txn_id_)
+				{
+					Int page_size = shared->get()->page_size();
 
-			PageG new_page 	= allocator_->createPage(page_size, name);
-			new_page.shared()->set_allocator(this);
+					PageG new_page 	= allocator_->createPage(page_size, name);
+					new_page.shared()->set_allocator(this);
 
-			ID new_gid 		= new_page->gid();
+					ID new_gid 		= new_page->gid();
 
-			CopyByteBuffer(shared->get(), new_page.page(), page_size);
+					CopyByteBuffer(shared->get(), new_page.page(), page_size);
 
-			new_page->gid() = new_gid;
-			new_page->id() 	= id;
+					new_page->gid() = new_gid;
+					new_page->id() 	= id;
 
-			iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), new_gid));
+					iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), new_gid));
 
-			return new_page;
+					return new_page;
+				}
+				else {
+					PageG updated = allocator_->updatePage(shared, name);
+
+					updated.shared()->set_allocator(this);
+
+					return updated;
+				}
+			}
+			else {
+				throw vapi::Exception(
+						MA_SRC,
+						SBuf()<<"Page with id="<<id<<" is not found in commit history for txn_id="<<last_commited_txn_id_
+				);
+			}
 		}
 		else {
-			PageG updated = allocator_->updatePage(shared, name);
-
-			updated.shared()->set_allocator(this);
-
-			return updated;
+			throw vapi::Exception(MA_SRC, SBuf()<<"Page with id="<<id<<" is not found in commit history");
 		}
 	}
 
 	virtual void removePage(const ID& id, BigInt name)
 	{
-		auto iter = findGIDInHistory(last_commited_txn_id_, id);
+		auto iter = commit_history_.find(id);
 
-		if (iter.key2() != last_commited_txn_id_)
+		if (iter.found())
 		{
-			iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::DELETED), 0));
-		}
-		else {
-			CommitHistoryValue value = iter.value();
-
-			if (value.first != toInt(EntryStatus::DELETED))
+			if (iter.find2ndLE(last_commited_txn_id_))
 			{
-				value.first = toInt(EntryStatus::DELETED);
-
-				if (value.second.isSet())
+				if (iter.key2() != last_commited_txn_id_)
 				{
-					allocator_->removePage(value.second, name);
+					iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::DELETED), 0));
 				}
+				else {
+					CommitHistoryValue value = iter.value();
 
-				iter.setValue(value);
+					if (value.first != toInt(EntryStatus::DELETED))
+					{
+						value.first = toInt(EntryStatus::DELETED);
+
+						if (value.second.isSet())
+						{
+							allocator_->removePage(value.second, name);
+						}
+
+						iter.setValue(value);
+					}
+				}
+			}
+			else {
+				throw vapi::Exception(
+						MA_SRC,
+						SBuf()<<"Page with id="<<id<<" is not found in commit history for txn_id="<<last_commited_txn_id_
+				);
 			}
 		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Page with id="<<id<<" is not found in commit history");
+		}
 	}
+
 
 	virtual PageG createPage(Int initial_size, BigInt name)
 	{
@@ -467,9 +512,9 @@ public:
 	{
 		if (name == CtrDirectoryName)
 		{
-			auto iter = findLE(roots_, last_commited_txn_id_);
+			auto iter = roots_.findKeyLE(last_commited_txn_id_);
 
-			if (!iter.isEnd())
+			if (iter.is_found_le(last_commited_txn_id_))
 			{
 				return iter.value();
 			}
@@ -479,9 +524,9 @@ public:
 		}
 		else
 		{
-			auto iter = ctr_directory_->findKey(name);
+			auto iter = ctr_directory_->findKeyGE(name);
 
-			if (is_found(iter, name))
+			if (iter.is_found_eq(name))
 			{
 				return iter.value().value().value();
 			}
@@ -506,9 +551,9 @@ public:
 	{
 		if (name == CtrDirectoryName)
 		{
-			auto iter = roots_.findKey(last_commited_txn_id_);
+			auto iter = roots_.findKeyLE(last_commited_txn_id_);
 
-			if (is_found(iter, last_commited_txn_id_))
+			if (iter.is_found_eq(last_commited_txn_id_))
 			{
 				if (root.isSet())
 				{
@@ -528,13 +573,13 @@ public:
 		}
 		else
 		{
-			auto iter = ctr_directory_->findKey(name);
+			auto iter = ctr_directory_->findKeyGE(name);
 
 			if (root.isSet())
 			{
 				CtrDirectoryValue root_value(last_commited_txn_id_, root);
 
-				if (is_found(iter, name))
+				if (iter.is_found_eq(name))
 				{
 					iter.value() = root_value;
 				}
@@ -543,7 +588,7 @@ public:
 				}
 			}
 			else {
-				if (is_found(iter, name))
+				if (iter.is_found_eq(name))
 				{
 					iter.remove();
 				}
@@ -558,13 +603,13 @@ public:
 	{
 		if (name == CtrDirectoryName)
 		{
-			auto iter = roots_.findKey(last_commited_txn_id_);
-			return !iter.isEnd();
+			auto iter = roots_.findKeyLE(last_commited_txn_id_);
+			return iter.is_found_le(last_commited_txn_id_);
 		}
 		else
 		{
-			auto iter = ctr_directory_->findKey(name);
-			return is_found(iter, name);
+			auto iter = ctr_directory_->findKeyGE(name);
+			return iter.is_found_eq(name);
 		}
 	}
 
@@ -664,48 +709,6 @@ private:
 	}
 
 
-
-	template <typename Iterator, typename Key>
-	static bool is_found(Iterator& iter, const Key& key)
-	{
-		return (!iter.isEnd()) && iter.key() == key;
-	}
-
-	template <typename Iterator, typename Key>
-	static bool is_not_found(Iterator& iter, const Key& key)
-	{
-		return iter.isEnd() || iter.key() != key;
-	}
-
-	typename CommitHistory::Iterator findGIDInHistory(BigInt txn_id, const ID& id)
-	{
-		auto iter = commit_history_.find(id);
-
-		MEMORIA_ASSERT_TRUE(iter.found());
-		MEMORIA_ASSERT_TRUE(iter.blob_size() > 0);
-
-		iter.find2ndLE(txn_id);
-
-		if (iter.isEof() || iter.key2() > txn_id)
-		{
-			if (iter.pos() > 0)
-			{
-				iter.skipBw(1);
-			}
-			else {
-				iter.dumpPath();
-				throw vapi::Exception(MA_SRC, SBuf()<<"Requested txn_id "<<txn_id<<" not found");
-			}
-		}
-
-		if (!iter.isEof())
-		{
-			MEMORIA_ASSERT(iter.key2(), <=, txn_id);
-		}
-
-		return iter;
-	}
-
 	template <typename Ctr>
 	void importPages(Ctr& ctr, BigInt name)
 	{
@@ -761,24 +764,6 @@ private:
 		else {
 			iter.insert(txn_id, root_id);
 		}
-	}
-
-
-	typename Roots::Iterator findLE(Roots& ctr, BigInt key)
-	{
-		auto iter = ctr.findKey(key);
-
-		if (iter.isEnd() || iter.key() > key)
-		{
-			iter--;
-		}
-
-		if (!iter.isEnd())
-		{
-			MEMORIA_ASSERT(iter.key(), <=, key);
-		}
-
-		return iter;
 	}
 };
 

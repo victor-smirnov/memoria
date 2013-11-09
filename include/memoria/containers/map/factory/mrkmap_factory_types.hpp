@@ -114,10 +114,10 @@ struct BTTypes<Profile, MrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pro
 
 
     template <typename Types>
-    using FindLTWalker      = map::FindLTWalker<Types>;
+    using FindGTWalker      = map::FindGTWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker      = map::FindLEWalker<Types>;
+    using FindGEWalker      = map::FindGEWalker<Types>;
 
 
     template <typename Types>

@@ -91,10 +91,10 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
 
     template <typename Types>
-    using FindLTWalker          = SkipForwardWalker<Types>;
+    using FindGTWalker          = SkipForwardWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker          = ::memoria::mvector::FindLEWalker<Types>;
+    using FindGEWalker          = ::memoria::mvector::FindGEWalker<Types>;
 
 
     template <typename Types>
