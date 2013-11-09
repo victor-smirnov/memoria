@@ -92,7 +92,7 @@ public:
 
         auto target     = key - prefix;
 
-        auto result     = tree->findLTForward(0, 0, target);
+        auto result     = tree->findGTForward(0, 0, target);
 
         prefix += result.prefix();
 
@@ -127,7 +127,7 @@ public:
 
         auto target     = key - prefix;
 
-        auto result     = tree->findLEForward(0, 0, target);
+        auto result     = tree->findGEForward(0, 0, target);
 
         prefix += result.prefix();
 

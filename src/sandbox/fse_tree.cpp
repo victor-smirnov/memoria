@@ -44,8 +44,8 @@ int main(void) {
     tree->reindex();
     //tree->dump();
 
-//  auto result = tree->findLTForward(0, 1, 0);
-    auto result = tree->findLEBackward(1, 2, 6);
+//  auto result = tree->findGTForward(0, 1, 0);
+    auto result = tree->findGEBackward(1, 2, 6);
 
     cout<<result.idx()<<" "<<result.prefix()<<endl;
 

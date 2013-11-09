@@ -30,7 +30,7 @@ public:
 
     RankFWWalker(Int stream, Int index, Key target): Base(stream, 0, target)
     {
-        Base::search_type_  = SearchType::LT;
+        Base::search_type_  = SearchType::GT;
         symbol_             = index;
     }
 
@@ -126,7 +126,7 @@ public:
 
     RankBWWalker(Int stream, Int index, Key target): Base(stream, 0, target)
     {
-        Base::search_type_  = SearchType::LT;
+        Base::search_type_  = SearchType::GT;
         symbol_             = index;
     }
 

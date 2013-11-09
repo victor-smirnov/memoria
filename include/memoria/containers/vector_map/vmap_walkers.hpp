@@ -130,7 +130,7 @@ public:
     MapFindWalker(Key key):
         Base(0, 0, key)
     {
-        Base::search_type() = SearchType::LE;
+        Base::search_type() = SearchType::GE;
     }
 
 
@@ -188,7 +188,7 @@ public:
     SkipForwardWalker(Int stream, Int index, Key distance):
         Base(stream, index, distance)
     {
-        Base::search_type() = SearchType::LT;
+        Base::search_type() = SearchType::GT;
     }
 };
 
@@ -204,7 +204,7 @@ public:
     SkipBackwardWalker(Int stream, Int index, Key distance):
         Base(stream, index, distance)
     {
-        Base::search_type() = SearchType::LT;
+        Base::search_type() = SearchType::GT;
     }
 };
 

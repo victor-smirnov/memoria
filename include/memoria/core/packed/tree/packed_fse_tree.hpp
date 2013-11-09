@@ -133,7 +133,7 @@ public:
     Int content_size_from_start(Int block) const
     {
         IndexValue max = sum(block);
-        return this->findLEForward(block, 0, max).idx() + 1;
+        return this->findGEForward(block, 0, max).idx() + 1;
     }
 
     Int block_size(const MyType* other) const
@@ -748,7 +748,7 @@ public:
     }
 
 
-    ValueDescr findLTForward(Int block, Int start, IndexValue val) const
+    ValueDescr findGTForward(Int block, Int start, IndexValue val) const
     {
         Int block_start = block * size_;
 
@@ -771,7 +771,7 @@ public:
 
 
 
-    ValueDescr findLTBackward(Int block, Int start, IndexValue val) const
+    ValueDescr findGTBackward(Int block, Int start, IndexValue val) const
     {
         Int block_start = block * size_;
 
@@ -804,7 +804,7 @@ public:
 
 
 
-    ValueDescr findLEForward(Int block, Int start, IndexValue val) const
+    ValueDescr findGEForward(Int block, Int start, IndexValue val) const
     {
         Int block_start = block * size_;
 
@@ -825,7 +825,7 @@ public:
         }
     }
 
-    ValueDescr findLEBackward(Int block, Int start, IndexValue val) const
+    ValueDescr findGEBackward(Int block, Int start, IndexValue val) const
     {
         Int block_start = block * size_;
 
@@ -860,23 +860,23 @@ public:
 
     ValueDescr findForward(SearchType search_type, Int block, Int start, IndexValue val) const
     {
-        if (search_type == SearchType::LT)
+        if (search_type == SearchType::GT)
         {
-            return findLTForward(block, start, val);
+            return findGTForward(block, start, val);
         }
         else {
-            return findLEForward(block, start, val);
+            return findGEForward(block, start, val);
         }
     }
 
     ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
     {
-        if (search_type == SearchType::LT)
+        if (search_type == SearchType::GT)
         {
-            return findLTBackward(block, start, val);
+            return findGTBackward(block, start, val);
         }
         else {
-            return findLEBackward(block, start, val);
+            return findGEBackward(block, start, val);
         }
     }
 

@@ -32,7 +32,7 @@ public:
 
     SelectForwardWalker(Int stream, Int index, Key target): Base(stream, index + 1, target)
     {
-        Base::search_type_ = SearchType::LE;
+        Base::search_type_ = SearchType::GE;
     }
 
     template <Int Idx, typename Tree>
@@ -150,7 +150,7 @@ public:
 
     SelectBackwardWalker(Int stream, Int index, Key target): Base(stream, index + 1, target)
     {
-        Base::search_type_ = SearchType::LT;
+        Base::search_type_ = SearchType::GT;
     }
 
     template <Int Idx, typename Tree>

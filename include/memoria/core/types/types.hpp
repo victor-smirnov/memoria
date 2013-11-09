@@ -290,7 +290,7 @@ enum class WalkDirection {
     UP, DOWN
 };
 
-enum class SearchType {LT, LE};
+enum class SearchType {LT, LE, GT, GE};
 enum class IteratorMode {FORWARD, BACKWARD};
 enum class MergeType {NONE, LEFT, RIGHT};
 enum class MergePossibility {YES, NO, MAYBE};

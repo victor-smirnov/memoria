@@ -516,7 +516,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         template <Int StreamIdx, typename StreamType>
         ResultType stream(const StreamType* obj, Int offset)
         {
-            return obj->findLTForward(1, 0, offset).idx();
+            return obj->findGTForward(1, 0, offset).idx();
         }
     };
 

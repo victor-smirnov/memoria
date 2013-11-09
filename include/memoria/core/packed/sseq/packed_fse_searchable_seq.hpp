@@ -786,7 +786,7 @@ public:
 
             Int index_size = index->size();
 
-            auto result = index->findLEForward(symbol, 0, rank);
+            auto result = index->findGEForward(symbol, 0, rank);
 
             if (result.idx() < index_size)
             {

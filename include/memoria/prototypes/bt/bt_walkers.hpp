@@ -35,7 +35,7 @@ protected:
 
     static const Int Streams                                                    = Types::Streams;
 
-    SearchType search_type_ = SearchType::LT;
+    SearchType search_type_ = SearchType::GT;
 
     BigInt sum_         = 0;
     BigInt target_      = 0;
@@ -137,7 +137,7 @@ protected:
 
     static const Int Streams                                                    = Types::Streams;
 
-    SearchType  search_type_ = SearchType::LT;
+    SearchType  search_type_ = SearchType::GT;
 
     BigInt      sum_[Streams];
     BigInt      target_[Streams];
@@ -590,7 +590,7 @@ class SkipBackwardWalker: public FindBackwardWalkerBase<Types, SkipBackwardWalke
 public:
     SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {
-        Base::search_type_ = SearchType::LT;
+        Base::search_type_ = SearchType::GT;
     }
 };
 
@@ -745,7 +745,7 @@ public:
     	size_index_(size_index),
     	symbol_(symbol)
     {
-        Base::search_type_ = SearchType::LE;
+        Base::search_type_ = SearchType::GE;
     }
 
     template <Int Idx, typename Tree>
@@ -819,7 +819,7 @@ public:
     	size_index_(size_index),
     	symbol_(symbol)
     {
-        Base::search_type_ = SearchType::LT;
+        Base::search_type_ = SearchType::GT;
     }
 
     template <Int Idx, typename Tree>

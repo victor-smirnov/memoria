@@ -116,7 +116,7 @@ public:
 
         auto target     = key - prefix;
 
-        auto result     = tree->findLEForward(1, 0, target);
+        auto result     = tree->findGEForward(1, 0, target);
 
         prefix += result.prefix();
 
@@ -131,7 +131,7 @@ public:
 
     	auto target     = key - prefix;
 
-    	auto result     = map->findLEForward(0, 0, target);
+    	auto result     = map->findGEForward(0, 0, target);
 
     	prefix += result.prefix();
 
