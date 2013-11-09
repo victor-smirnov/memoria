@@ -19,7 +19,7 @@
 
 namespace memoria {
 
-template <typename Base, typename Allocator = IAllocator<typename Base::Page>>
+template <typename Base, typename Allocator = IJournaledAllocator<typename Base::Page>>
 class MVCCAllocatorBase: public Base {
 
 

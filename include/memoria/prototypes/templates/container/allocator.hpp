@@ -115,18 +115,6 @@ public:
 
     virtual void  releasePage(Shared* shared);
 
-    virtual void commit(bool force_sync = false)
-    {
-    	self().allocator().commit(force_sync);
-    }
-
-    virtual void rollback(bool force_sync = false)
-    {
-    	self().allocator().rollback(force_sync);
-    }
-
-
-
     virtual Logger& logger();
 
     virtual void* allocateMemory(size_t size);

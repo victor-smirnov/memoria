@@ -86,9 +86,6 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual ID newId()															= 0;
     virtual BigInt currentTxnId() const											= 0;
 
-    virtual void commit(bool force_sync = false)								= 0;
-    virtual void rollback(bool force_sync = false)								= 0;
-
     // memory pool allocator
 
     virtual void* allocateMemory(size_t size)                           		= 0;
@@ -98,11 +95,15 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual IAllocatorProperties& properties()									= 0;
 };
 
-
+template <typename PageType>
+struct IJournaledAllocator: IAllocator<PageType> {
+	virtual void commit(bool force_sync = false)								= 0;
+	virtual void rollback(bool force_sync = false)								= 0;
+};
 
 
 template <typename PageType>
-struct IWalkableAllocator: IAllocator<PageType> {
+struct IWalkableAllocator: IJournaledAllocator<PageType> {
 	virtual void walkContainers(vapi::ContainerWalker* walker, const char* allocator_descr = nullptr) = 0;
 };
 
