@@ -430,8 +430,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     }
 
 
-    MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
-    void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const;
+//    MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
+//    void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const;
 
     void updateChildren(const NodeBaseG& node);
     void updateChildren(const NodeBaseG& node, Int start);
@@ -816,11 +816,11 @@ typename M_TYPE::Accumulator M_TYPE::splitNonLeafNode(NodeBaseG& src, NodeBaseG&
     return accum;
 }
 
-M_PARAMS
-void M_TYPE::forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
-{
-    NonLeafDispatcher::dispatchConst(node, ForAllIDsFn(), start, end, fn);
-}
+//M_PARAMS
+//void M_TYPE::forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
+//{
+//    NonLeafDispatcher::dispatchConst(node, ForAllIDsFn(), start, end, fn);
+//}
 
 
 M_PARAMS
@@ -861,7 +861,7 @@ void M_TYPE::updateChildrenInternal(const NodeBaseG& node, Int start, Int end)
 
     ID node_id = node->id();
 
-    forAllIDs(node, start, end, [&self, &node_id](const ID& id, Int idx)
+    self.forAllIDs(node, start, end, [&self, &node_id](const ID& id, Int idx)
     {
         NodeBaseG child = self.allocator().getPage(id, Allocator::UPDATE, self.master_name());
 

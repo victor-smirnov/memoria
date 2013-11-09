@@ -196,8 +196,26 @@ public:
             PageG page = alloc->getPage(*root_id, Allocator::READ, name);
 
             MyType ctr(alloc, *root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
-            return ctr.check(NULL);
+            return ctr.check(nullptr);
         }
+
+        virtual void walk(
+        		const void* id,
+        		BigInt name,
+        		void* allocator,
+        		ContainerWalker* walker
+        ) const
+        {
+        	Allocator* alloc = T2T<Allocator*>(allocator);
+        	ID* root_id = T2T<ID*>(id);
+
+        	PageG page = alloc->getPage(*root_id, Allocator::READ, name);
+
+        	MyType ctr(alloc, *root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
+
+        	ctr.walkTree(walker);
+        }
+
     };
 
 

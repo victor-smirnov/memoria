@@ -1222,6 +1222,30 @@ public:
     	return result;
     }
 
+    void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
+    {
+    	walker->beginAllocator("FileAllocator", allocator_descr);
+
+    	auto iter = root_map_->Begin();
+
+    	while (!iter.isEnd())
+    	{
+    		BigInt ctr_name = iter.key();
+    		ID root_id		= iter.value();
+
+    		PageG page 		= this->getPage(root_id, Base::READ, ctr_name);
+
+    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+
+    		ctr_meta->getCtrInterface()->walk(&page->gid(), ctr_name, this, walker);
+
+    		iter++;
+    	}
+
+    	walker->endAllocator();
+    }
+
+
     static Int testFile(StringRef file_name)
     {
     	return SuperblockCtrType::testHeader(file_name);

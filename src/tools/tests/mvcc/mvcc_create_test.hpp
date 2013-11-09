@@ -133,11 +133,9 @@ public:
 		assertCtrContent(mgr, ctr2_name, 4000);
 
 
-//		String path_name = getResourcePath("mvcc-dump");
-//		File path(path_name);
-//		path.mkDirs();
-//
-//		DumpAllocator(mgr, path);
+		String path = getResourcePath("mvcc-dump");
+
+		FSDumpMVCCAllocator<Allocator>(&mgr, path);
 	}
 
 	VectorCtr createCtr(TxnPtr& txn, BigInt size)

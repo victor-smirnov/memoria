@@ -21,7 +21,6 @@
 
 #include <vector>
 #include <unordered_map>
-#include <map>
 #include <string>
 
 namespace memoria    {
@@ -34,8 +33,9 @@ struct ContainerCollection;
 struct Container;
 
 typedef std::vector<Metadata*>                          MetadataList;
-typedef std::map<Int, PageMetadata*>                    PageMetadataMap;
-typedef std::map<Int, ContainerMetadata*>               ContainerMetadataMap;
+typedef std::unordered_map<Int, PageMetadata*>          PageMetadataMap;
+typedef std::unordered_map<Int, ContainerMetadata*>     ContainerMetadataMap;
+
 
 struct MEMORIA_API Metadata {
 

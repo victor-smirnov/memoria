@@ -14,12 +14,12 @@
 #include <memoria/metadata/page.hpp>
 #include <memoria/core/container/pages.hpp>
 
+
 #include <iostream>
 
 namespace memoria    {
 namespace vapi       {
 
-void Expand(std::ostream& os, Int level);
 void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out);
 void dumpPageData(PageMetadata* meta, const void* page, std::ostream& out);
 

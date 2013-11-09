@@ -576,6 +576,32 @@ public:
 	}
 
 
+	void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
+    {
+		walker->beginAllocator("MVCCAllocator", allocator_descr);
+    	walker->beginSnapshot("trunk");
+
+    	auto iter = ctr_directory_->Begin();
+
+    	while (!iter.isEnd())
+    	{
+    		BigInt ctr_name = iter.key();
+    		ID root_id		= iter.value().value().value();
+
+    		PageG page 		= this->getPage(root_id, Base::READ, ctr_name);
+
+    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+
+    		ctr_meta->getCtrInterface()->walk(&page->id(), ctr_name, this, walker);
+
+    		iter++;
+    	}
+
+    	walker->endSnapshot();
+    	walker->endAllocator();
+    }
+
+
 private:
 	template <typename Iterator, typename Key>
 	static bool is_found(Iterator& iter, const Key& key)

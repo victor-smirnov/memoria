@@ -445,6 +445,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return NodeDispatcher::dispatchConstRtn(node, IsNodeEmpty());
     }
 
+
+    MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
+    void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
+    {
+        NonLeafDispatcher::dispatchConst(node, ForAllIDsFn(), start, end, fn);
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::ToolsName)

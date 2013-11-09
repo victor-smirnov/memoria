@@ -729,12 +729,35 @@ public:
 
             ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
-            result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
+            result = ctr_meta->getCtrInterface()->check(&page->gid(), ctr_name, this) || result;
 
             iter.next();
         }
 
         return result;
+    }
+
+    void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
+    {
+    	walker->beginAllocator("InMemAllocator", allocator_descr);
+
+    	auto iter = root_map_->Begin();
+
+    	while (!iter.isEnd())
+    	{
+    		BigInt ctr_name = iter.key();
+    		ID root_id		= iter.value();
+
+    		PageG page 		= this->getPage(root_id, Base::READ, ctr_name);
+
+    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+
+    		ctr_meta->getCtrInterface()->walk(&page->gid(), ctr_name, this, walker);
+
+    		iter++;
+    	}
+
+    	walker->endAllocator();
     }
 
 

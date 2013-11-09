@@ -42,6 +42,7 @@
 #include <memoria/prototypes/bt/container/bt_c_remtools.hpp>
 #include <memoria/prototypes/bt/container/bt_c_rembatch.hpp>
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
+#include <memoria/prototypes/bt/container/bt_c_walk.hpp>
 
 #include <memoria/prototypes/templates/container/allocator.hpp>
 
@@ -129,7 +130,8 @@ struct BTTypes {
             bt::RemoveBatchName,
             bt::FindName,
             bt::ReadName,
-            bt::UpdateName
+            bt::UpdateName,
+            bt::WalkName
     >                                                                           ContainerPartsList;
     
     typedef TypeList<

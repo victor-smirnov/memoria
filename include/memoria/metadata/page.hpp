@@ -10,6 +10,8 @@
 #define _MEMORIA_VAPI_METADATA_PAGE_HPP
 
 #include <memoria/metadata/group.hpp>
+#include <memoria/core/tools/idata.hpp>
+#include <memoria/core/tools/dump.hpp>
 
 
 
@@ -141,6 +143,264 @@ struct ValueHelper<EmptyValue> {
         handler->value("VALUE", &val);
     }
 };
+
+
+
+
+
+
+void Expand(std::ostream& os, Int level);
+
+class TextPageDumper: public IPageDataEventHandler {
+    std::ostream& out_;
+
+    Int level_;
+    Int cnt_;
+
+    bool line_;
+
+public:
+    TextPageDumper(std::ostream& out): out_(out), level_(0), cnt_(0), line_(false) {}
+    virtual ~TextPageDumper() {}
+
+    virtual void startPage(const char* name)
+    {
+        out_<<name<<endl;
+        level_++;
+    }
+
+    virtual void endPage()
+    {
+        out_<<endl;
+        level_--;
+    }
+
+    virtual void startGroup(const char* name, Int elements = -1)
+    {
+        cnt_ = 0;
+        Expand(out_, level_++);
+
+        out_<<name;
+
+        if (elements >= 0)
+        {
+            out_<<": "<<elements;
+        }
+
+        out_<<endl;
+    };
+
+    virtual void endGroup()
+    {
+        level_--;
+    }
+
+
+    virtual void startLine(const char* name, Int size = -1)
+    {
+        dumpLineHeader(out_, level_, cnt_++, name);
+        line_ = true;
+    }
+
+    virtual void endLine()
+    {
+        line_ = false;
+        out_<<endl;
+    }
+
+
+
+    virtual void value(const char* name, const Byte* value, Int count = 1, Int kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<Byte>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const UByte* value, Int count = 1, Int kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<UByte>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const Short* value, Int count = 1, Int kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<Short>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+
+    virtual void value(const char* name, const UShort* value, Int count = 1, Int kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<UShort>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const Int* value, Int count = 1, Int kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<Int>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+
+    virtual void value(const char* name, const UInt* value, Int count = 1, Int kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<UInt>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<BigInt>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+    virtual void value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)
+    {
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<UBigInt>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
+    }
+
+
+
+    virtual void value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)
+    {
+        if (!line_)
+        {
+            dumpFieldHeader(out_, level_, cnt_++, name);
+        }
+        else {
+            out_<<"    "<<name<<" ";
+        }
+
+        for (Int c = 0; c < count; c++)
+        {
+            out_<<*value;
+
+            if (c < count - 1)
+            {
+                out_<<", ";
+            }
+        }
+
+        if (!line_)
+        {
+            out_<<endl;
+        }
+    }
+
+
+    virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)
+    {
+        dumpSymbols(out_, value, count, bits_per_symbol);
+    }
+
+    virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)
+    {
+        dumpSymbols(out_, value, count, bits_per_symbol);
+    }
+
+private:
+
+
+
+
+    void dumpFieldHeader(ostream &out, Int level, Int idx, StringRef name)
+    {
+        stringstream str;
+        Expand(str, level);
+        str<<"FIELD: ";
+        str<<idx<<" "<<name;
+
+        int size = str.str().size();
+        Expand(str, 30 - size);
+        out<<str.str();
+    }
+
+    void dumpLineHeader(ostream &out, Int level, Int idx, StringRef name)
+    {
+        stringstream str;
+        Expand(str, level);
+        str<<name<<": ";
+        str<<idx<<" ";
+
+        int size = str.str().size();
+        Expand(str, 15 - size);
+        out<<str.str();
+    }
+
+
+
+    template <typename T>
+    void OutNumber(const char* name, const T* value, Int count, Int kind)
+    {
+        if (!line_)
+        {
+            dumpFieldHeader(out_, level_, cnt_++, name);
+        }
+        else {
+            out_<<"    "<<name<<" ";
+        }
+
+        for (Int c = 0; c < count; c++)
+        {
+            out_.width(12);
+            out_<<*(value + c);
+
+            if (c < count - 1)
+            {
+                out_<<",";
+            }
+
+            out_<<" ";
+        }
+
+        if (!line_)
+        {
+            out_<<endl;
+        }
+    }
+};
+
 
 
 

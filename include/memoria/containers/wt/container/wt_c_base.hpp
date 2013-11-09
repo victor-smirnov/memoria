@@ -195,6 +195,21 @@ public:
         seq().checkIt();
     }
 
+    void walkTree(ContainerWalker* walker)
+    {
+    	auto& self = this->self();
+
+    	walker->beginCompositeCtr(
+    			TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
+    			self.name()
+    	);
+
+    	tree_.walkTree(walker);
+    	seq_.walkTree(walker);
+
+    	walker->endCompositeCtr();
+    }
+
 private:
 
     static ID get_ctr_root(Allocator& allocator, const ID& root_id, BigInt ctr_name, BigInt name)
