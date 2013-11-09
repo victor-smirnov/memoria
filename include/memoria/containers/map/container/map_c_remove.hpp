@@ -110,6 +110,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
         }
 
         self.removeRedundantRootP(leaf);
+
+        self.markCtrUpdated();
     }
 
 
@@ -136,6 +138,8 @@ bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys)
     bool result = ctr.removeEntries(from_node, from_pos, to_node, to_pos, keys, true).gtAny(0);
 
     from.idx() = to.idx() = to_pos.get();
+
+    ctr.markCtrUpdated();
 
     return result;
 }

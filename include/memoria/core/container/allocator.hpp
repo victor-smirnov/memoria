@@ -13,6 +13,8 @@
 #include <memoria/core/container/ctr_shared.hpp>
 #include <memoria/core/container/page.hpp>
 
+#include <memoria/metadata/container.hpp>
+
 #include <memory>
 
 namespace memoria    {
@@ -97,10 +99,18 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 };
 
 
+
+
+template <typename PageType>
+struct IWalkableAllocator: IAllocator<PageType> {
+	virtual void walkContainers(vapi::ContainerWalker* walker, const char* allocator_descr = nullptr) = 0;
+};
+
+
 template <typename Profile, typename PageType>
 class AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> > {
 public:
-    typedef IAllocator<PageType>                                                Type;
+    typedef IWalkableAllocator<PageType>                                       	Type;
 };
 
 
@@ -123,7 +133,7 @@ struct ITxn: IAllocator<PageType> {
 
 
 template <typename PageType>
-struct IMVCCAllocator: public IAllocator<PageType> {
+struct IMVCCAllocator: public IWalkableAllocator<PageType> {
 	typedef IAllocator<PageType>												Base;
 
 	typedef ITxn<PageType>														Txn;
@@ -139,7 +149,6 @@ struct IMVCCAllocator: public IAllocator<PageType> {
 
 	virtual PageG getPage(BigInt txn_id, const ID& id, BigInt name)    			= 0;
 	virtual ID getCtrDirectoryRootID(BigInt txn_id)								= 0;
-//	virtual void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)		= 0;
 
 	virtual BigInt commited_txn_id()											= 0;
 

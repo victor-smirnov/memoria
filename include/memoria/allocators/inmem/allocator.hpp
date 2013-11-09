@@ -737,7 +737,7 @@ public:
         return result;
     }
 
-    void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
+    virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
     	walker->beginAllocator("InMemAllocator", allocator_descr);
 

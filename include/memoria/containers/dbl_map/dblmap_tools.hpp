@@ -238,6 +238,8 @@ public:
     void addToEntry(BigInt entry, BigInt size) {
         id_entry_   += entry;
         size_       += size;
+
+        second_prefix_ = 0;
     }
 
 
@@ -272,6 +274,8 @@ public:
         size_       = size;
 
         entry_idx_  = entry_idx;
+
+        second_prefix_ = 0;
     }
 
     void sub(BigInt id_entry, BigInt size, Int entry_idx)
@@ -283,6 +287,8 @@ public:
         size_       = size;
 
         entry_idx_  = entry_idx;
+
+        second_prefix_ = 0;
     }
 
     void set(BigInt id_entry, BigInt size, Int entry_idx, Int entries, BigInt global_pos)
@@ -294,6 +300,8 @@ public:
         entries_    = entries;
 
         global_pos_ = global_pos;
+
+        second_prefix_ = 0;
     }
 
     BigInt& second_prefix() {

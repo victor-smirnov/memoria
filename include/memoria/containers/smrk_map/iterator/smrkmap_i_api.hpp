@@ -143,6 +143,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
         auto& self = this->self();
         self.ctr().updatePageG(self.leaf());
         LeafDispatcher::dispatch(self.leaf(), SetValueFn(), self.idx(), value);
+
+        self.ctr().markCtrUpdated();
     }
 
     class ValueAccessor {
@@ -268,6 +270,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
     	std::get<0>(sums)[2 + mark] = 1;
 
     	self.ctr().updateParent(self.leaf(), sums);
+
+    	self.ctr().markCtrUpdated();
     }
 
     struct AssingFn {
@@ -305,6 +309,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
     	std::get<0>(sums)[2 + mark] = 1;
 
     	self.ctr().updateParent(self.leaf(), sums);
+
+    	self.ctr().markCtrUpdated();
     }
 
 

@@ -119,10 +119,10 @@ public:
 		if (!found)
 		{
 			PageG old_page = txn_mgr_->getPage(txn_id_, id, name);
+			old_page.shared()->set_allocator(this);
 
 			if (flags == Allocator::READ)
 			{
-				old_page.shared()->set_allocator(this);
 				return old_page;
 			}
 			else {
@@ -327,18 +327,22 @@ public:
 
 	virtual void markUpdated(BigInt name)
 	{
-		auto iter = ctr_directory_.findKey(name);
-		if (is_found(iter, name))
+		if (name != TxnMgr::CtrDirectoryName)
 		{
-			EntryStatus status = static_cast<EntryStatus>(iter.mark());
-
-			if (!(status == EntryStatus::CREATED || status == EntryStatus::UPDATED))
+			auto iter = ctr_directory_.findKey(name);
+			if (is_found(iter, name))
 			{
-				iter.setMark(toInt(EntryStatus::UPDATED));
+				EntryStatus status = static_cast<EntryStatus>(iter.mark());
+
+				if (!(status == EntryStatus::CREATED || status == EntryStatus::UPDATED))
+				{
+					iter.setMark(toInt(EntryStatus::UPDATED));
+				}
 			}
-		}
-		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"CtrDirectory entry for name "<<name<<" is not found");
+			else {
+				iter.dumpPath();
+				throw vapi::Exception(MA_SRC, SBuf()<<"CtrDirectory entry for name "<<name<<" is not found");
+			}
 		}
 	}
 

@@ -311,6 +311,9 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         metadata.page_size()        = DEFAULT_BLOCK_SIZE;
         metadata.branching_factor() = 0;
 
+        BigInt txn_id = self().allocator().currentTxnId();
+        metadata.txn_id() = txn_id;
+
         return metadata;
     }
 

@@ -85,27 +85,21 @@ public:
 
 		TxnMgr mgr(&allocator);
 
-		allocator.commit();
-
 		auto txn = mgr.begin();
 
 		BigInt ctr_name = createCtr(txn, 2000).name();
-		assertCtrContent(txn, ctr_name, 2000);
 
 		txn->commit();
 
-		assertCtrContent(mgr, ctr_name, 2000);
+		allocator.close();
 
-		auto txn2 = mgr.begin();
+		Allocator allocator2(name, OpenMode::RW);
+
+		TxnMgr mgr2(&allocator2);
+
+		auto txn2 = mgr2.begin();
 
 		assertCtrContent(txn2, ctr_name, 2000);
-
-//		allocator.close();
-//
-//		Allocator allocator2(name, OpenMode::RW);
-//		TxnMgr mgr2(&allocator2);
-//
-//		assertCtrContent(mgr2, ctr_name, 200);
 	}
 
 
@@ -133,9 +127,16 @@ public:
 		assertCtrContent(mgr, ctr2_name, 4000);
 
 
-		String path = getResourcePath("mvcc-dump");
+		allocator.close();
 
-		FSDumpMVCCAllocator<Allocator>(&mgr, path);
+		Allocator allocator2(name, OpenMode::RW);
+
+		DebugCounter = 1;
+
+		TxnMgr mgr2(&allocator2);
+
+		assertCtrContent(mgr2, ctr1_name, 2000);
+		assertCtrContent(mgr2, ctr2_name, 4000);
 	}
 
 	VectorCtr createCtr(TxnPtr& txn, BigInt size)
@@ -145,6 +146,18 @@ public:
 		VectorCtr ctr(txn.get(), CTR_CREATE);
 		ctr.seek(0).insert(data);
 
+		return ctr;
+	}
+
+	VectorCtr createCtr(TxnPtr& txn)
+	{
+		VectorCtr ctr(txn.get(), CTR_CREATE);
+		return ctr;
+	}
+
+	VectorCtr createCtr(TxnMgr& mgr)
+	{
+		VectorCtr ctr(&mgr, CTR_CREATE);
 		return ctr;
 	}
 

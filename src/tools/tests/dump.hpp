@@ -79,7 +79,7 @@ static Int DumpAllocator(String file_name)
 
         		TxnMgr mvcc_allocator(&allocator);
 
-        		FSDumpMVCCAllocator<GenericFileAllocator>(&mvcc_allocator, path.getAbsolutePath());
+        		FSDumpAllocator(&mvcc_allocator, path.getAbsolutePath());
         	}
         	else {
         		FSDumpAllocator(&allocator, path.getAbsolutePath());

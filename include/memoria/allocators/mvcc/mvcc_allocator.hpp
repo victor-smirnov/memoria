@@ -38,7 +38,7 @@ class MVCCAllocator: public MVCCAllocatorBase<IMVCCAllocator<PageType>> {
 public:
 	typedef MVCCAllocator<Profile, PageType>									MyType;
 
-	typedef IAllocator<PageType>												Allocator;
+	typedef IWalkableAllocator<PageType>										Allocator;
 
 	typedef typename Base::ID													ID;
 	typedef typename Base::PageG												PageG;
@@ -157,7 +157,6 @@ public:
 		}
 		else {
 			iter.dumpPath();
-
 			throw Exception(MA_SRC, SBuf()<<"No container directory root ID for txn: "<<txn_id);
 		}
 	}
@@ -218,9 +217,6 @@ public:
 
 			if (is_found(iter, name))
 			{
-				iter.dumpPath();
-				txn_ctr_directory.Begin().dumpPath();
-
 				txn.forceRollback(MA_SRC, SBuf()<<"Create/exists conflict for container "<<name);
 			}
 
@@ -319,6 +315,8 @@ public:
 			txn_iter.selectFw(toInt(EntryStatus::DELETED), 1);
 		}
 
+		allocator_->properties().setLastCommitId(last_commited_txn_id_);
+
 		allocator_->commit();
 
 
@@ -349,6 +347,7 @@ public:
 		ID gid = iter.value().second;
 
 		PageG old_page = allocator_->getPage(gid, Allocator::READ, name);
+		old_page.shared()->set_allocator(this);
 
 		if (flags == Allocator::READ)
 		{
@@ -406,6 +405,7 @@ public:
 		}
 		else {
 			PageG updated = allocator_->updatePage(shared, name);
+
 			updated.shared()->set_allocator(this);
 
 			return updated;
@@ -446,7 +446,7 @@ public:
 
 		auto iter = commit_history_.create(new_id);
 
-		iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::DELETED), new_gid));
+		iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::CREATED), new_gid));
 
 		new_page.shared()->set_allocator(this);
 
@@ -467,7 +467,7 @@ public:
 	{
 		if (name == CtrDirectoryName)
 		{
-			auto iter = roots_.findKey(last_commited_txn_id_);
+			auto iter = findLE(roots_, last_commited_txn_id_);
 
 			if (!iter.isEnd())
 			{
@@ -576,10 +576,17 @@ public:
 	}
 
 
-	void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
+	virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
+		allocator_->walkContainers(walker, allocator_descr);
+
 		walker->beginAllocator("MVCCAllocator", allocator_descr);
+
+		dumpHistory(walker);
+
     	walker->beginSnapshot("trunk");
+
+    	ctr_directory_->walkTree(walker);
 
     	auto iter = ctr_directory_->Begin();
 
@@ -601,8 +608,63 @@ public:
     	walker->endAllocator();
     }
 
+	void dumpAllocator(StringRef path, const char* descr = nullptr)
+	{
+		typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
+		Walker walker(metadata_, path);
+
+		walkContainers(&walker, descr);
+	}
+
+	void dumpHistory(StringRef path)
+	{
+		typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
+		Walker walker(metadata_, path);
+
+		dumpHistory(&walker);
+	}
 
 private:
+
+	void dumpHistory(ContainerWalker* walker)
+	{
+		auto iter = commit_history_.Begin();
+
+		walker->beginSection("CommitHistory");
+
+		while (!iter.isEnd())
+		{
+			ID id = iter.key();
+
+			walker->beginSection((SBuf()<<id).str().c_str());
+
+			iter.findData();
+
+			while (!iter.isEof())
+			{
+				BigInt txn_id 				= iter.key2();
+				CommitHistoryValue value	= iter.value();
+
+				Int mark 	= value.first;
+				ID gid 		= value.second;
+
+				PageG page = allocator_->getPage(gid, Allocator::READ, -1); // fixme: provide Ctr name here
+
+				walker->singleNode((SBuf()<<txn_id<<"__"<<mark<<"__"<<gid).str().c_str(), page.page());
+
+				iter.skipFw(1);
+			}
+
+			walker->endSection();
+
+			iter++;
+		}
+
+		walker->endSection();
+	}
+
+
+
 	template <typename Iterator, typename Key>
 	static bool is_found(Iterator& iter, const Key& key)
 	{
@@ -619,10 +681,6 @@ private:
 	{
 		auto iter = commit_history_.find(id);
 
-		if (!iter.found()) {
-			int a = 0; a++;
-		}
-
 		MEMORIA_ASSERT_TRUE(iter.found());
 		MEMORIA_ASSERT_TRUE(iter.blob_size() > 0);
 
@@ -630,7 +688,14 @@ private:
 
 		if (iter.isEof() || iter.key2() > txn_id)
 		{
-			iter.skipBw(1);
+			if (iter.pos() > 0)
+			{
+				iter.skipBw(1);
+			}
+			else {
+				iter.dumpPath();
+				throw vapi::Exception(MA_SRC, SBuf()<<"Requested txn_id "<<txn_id<<" not found");
+			}
 		}
 
 		if (!iter.isEof())

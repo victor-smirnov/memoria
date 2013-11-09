@@ -78,6 +78,13 @@ struct ContainerWalker {
 
 	virtual void rootLeaf(Int idx, const void* page)							= 0;
 	virtual void leaf(Int idx, const void* page)								= 0;
+
+	virtual void singleNode(const char* descr, const void* page)				= 0;
+
+	virtual void beginSection(const char* name)									= 0;
+	virtual void endSection()													= 0;
+
+	virtual void content(const char* name, const char* content)					= 0;
 };
 
 
@@ -268,6 +275,30 @@ public:
 		path_.pop();
 	}
 
+	virtual void singleNode(const char* description, const void* page_data)
+	{
+		const Page* page = T2T<Page*>(page_data);
+
+		String file_name = path_.top().getPath() + Platform::getFilePathSeparator() + description + ".txt";
+
+		dumpPage(file_name, page);
+	}
+
+
+	virtual void beginSection(const char* name)
+	{
+		pushFolder(name);
+	}
+
+	virtual void endSection() {
+		path_.pop();
+	}
+
+	virtual void content(const char* name, const char* content)
+	{
+		dumpDescription(name, content);
+	}
+
 private:
 
 	void beginNonLeaf(const char* type, Int idx, const void* page_data)
@@ -340,18 +371,18 @@ void FSDumpAllocator(Allocator* allocator, StringRef path)
 	allocator->walkContainers(&walker);
 }
 
-template <typename BasicAllocator, typename Allocator>
-void FSDumpMVCCAllocator(Allocator* mvcc_allocator, StringRef path)
-{
-	typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
-
-	Walker walker(mvcc_allocator->getMetadata(), path);
-
-	BasicAllocator* basic_allocator = static_cast<BasicAllocator*>(mvcc_allocator->allocator());
-
-	basic_allocator->walkContainers(&walker);
-	mvcc_allocator->walkContainers(&walker);
-}
+//template <typename BasicAllocator, typename Allocator>
+//void FSDumpMVCCAllocator(Allocator* mvcc_allocator, StringRef path)
+//{
+//	typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
+//
+//	Walker walker(mvcc_allocator->getMetadata(), path);
+//
+//	BasicAllocator* basic_allocator = static_cast<BasicAllocator*>(mvcc_allocator->allocator());
+//
+////	basic_allocator->walkContainers(&walker);
+//	mvcc_allocator->walkContainers(&walker);
+//}
 
 
 

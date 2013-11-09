@@ -170,6 +170,8 @@ bool M_TYPE::insertMapEntry(Iterator& iter, const Element& element, Int mark)
 
     self.addTotalKeyCount(Position::create(0, 1));
 
+    self.markCtrUpdated();
+
     return iter++;
 }
 
