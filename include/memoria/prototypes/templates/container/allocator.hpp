@@ -117,7 +117,7 @@ public:
 
     virtual void  resizePage(Shared* page, Int new_size);
 
-    virtual void  releasePage(Shared* shared);
+    virtual void  releasePage(Shared* shared) noexcept;
 
     virtual Logger& logger();
 
@@ -172,7 +172,7 @@ void M_TYPE::resizePage(Shared* page, Int new_size) {
 }
 
 M_PARAMS
-void M_TYPE::releasePage(Shared* shared) {
+void M_TYPE::releasePage(Shared* shared) noexcept {
     me()->allocator().releasePage(shared);
 }
 

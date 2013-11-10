@@ -80,15 +80,15 @@ int main(int argc, const char** argv, const char** envp)
 ////
 //        runner.registerTask(new SymbolSeqTestSuite());
 ////
-        runner.registerTask(new CtrTestSuite());
-        runner.registerTask(new MapTestSuite());
-        runner.registerTask(new VectorTestSuite());
-        runner.registerTask(new VectorMapTestSuite());
-        runner.registerTask(new DblMapTestSuite());
-        runner.registerTask(new SequenceTestSuite());
-        runner.registerTask(new LabeledTreeTestSuite());
-        runner.registerTask(new VTreeTestSuite());
-        runner.registerTask(new WTTestSuite());
+//        runner.registerTask(new CtrTestSuite());
+//        runner.registerTask(new MapTestSuite());
+//        runner.registerTask(new VectorTestSuite());
+//        runner.registerTask(new VectorMapTestSuite());
+//        runner.registerTask(new DblMapTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
+//        runner.registerTask(new LabeledTreeTestSuite());
+//        runner.registerTask(new VTreeTestSuite());
+//        runner.registerTask(new WTTestSuite());
 
         runner.registerTask(new FileAllocatorTestSuite());
 

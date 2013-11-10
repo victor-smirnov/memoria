@@ -46,6 +46,7 @@ public:
 	typedef typename Base::TxnPtr												TxnPtr;
 	typedef typename Base::CtrShared											CtrShared;
 	typedef typename Base::Shared												Shared;
+	typedef typename Base::Shared*												PageSharedPtr;
 
 	typedef MVCCTxn<Profile, MyType, PageType>									TxnImpl;
 
@@ -63,9 +64,129 @@ public:
 	typedef typename CtrDirectory::Types::Value									CtrDirectoryValue;
 	typedef std::unique_ptr<CtrDirectory>										CtrDirectoryPtr;
 
-	static const Int CtrDirectoryName												= 1;
+	static const Int CtrDirectoryName											= 0;
+
+
+	class MVCCPageShared;
+	typedef MVCCPageShared*														MVCCPageSharedPtr;
+
+	typedef std::unordered_map<ID, MVCCPageSharedPtr, IDKeyHash, IDKeyEq>     	PageSharedMap;
+
+
+	class MVCCPageShared: public Shared {
+
+		PageSharedPtr delegate_;
+
+		MVCCPageSharedPtr next_;
+		MVCCPageSharedPtr prev_;
+
+	public:
+
+		MVCCPageShared() {
+			next_ = prev_ = nullptr;
+			init();
+		}
+
+		void init()
+		{
+			Shared::init();
+
+			delegate_ = nullptr;
+		}
+
+		Int unref()
+		{
+			Int references = Shared::unref();
+
+			if (references == 0)
+			{
+				unrefDelegate();
+			}
+
+			return references;
+		}
+
+
+		void setDelegate(Shared* delegate)
+		{
+			unrefDelegate();
+
+			delegate_ = delegate;
+
+			delegate->ref();
+		}
+
+		PageSharedPtr delegate() {
+			return delegate_;
+		}
+
+		const PageSharedPtr delegate() const {
+			return delegate_;
+		}
+
+		MVCCPageSharedPtr& next() {
+			return next_;
+		}
+
+		const MVCCPageSharedPtr& next() const {
+			return next_;
+		}
+
+		MVCCPageSharedPtr& prev() {
+			return prev_;
+		}
+
+		const MVCCPageSharedPtr& prev() const {
+			return prev_;
+		}
+
+	private:
+		void unrefDelegate()
+		{
+			if (delegate_ && delegate_->unref() == 0)
+			{
+				delegate_->allocator()->releasePage(delegate_);
+				delegate_ = nullptr;
+			}
+		}
+	};
+
+
+
+	class SharedPool: public IntrusiveList<MVCCPageShared> {
+		typedef IntrusiveList<MVCCPageShared> 	Base;
+		typedef typename Base::size_type		size_type;
+
+		size_type max_size_;
+
+	public:
+		SharedPool() = default;
+
+		SharedPool(size_type size, size_type max_size): max_size_(max_size)
+		{
+			for (Int c = 0; c < size; c++)
+			{
+				this->insert(this->begin(), new MVCCPageShared());
+			}
+		}
+
+		size_type max_size() const
+		{
+			return max_size_;
+		}
+
+		void put(MVCCPageShared* shared)
+		{
+			this->insert(this->begin(), shared);
+		}
+	};
 
 private:
+
+	// memory pool for PageShared objects
+
+	SharedPool		shared_pool_;
+	PageSharedMap	allocated_shared_objects_;
 
 	ContainerMetadataRepository* metadata_;
 
@@ -80,10 +201,13 @@ private:
 
 	BigInt 			last_commited_txn_id_;
 
+
+
 public:
 
 	MVCCAllocator(Allocator* allocator):
 		Base(allocator),
+		shared_pool_(256, 256),
 		metadata_(MetadataRepository<Profile>::getMetadata()),
 		allocator_(allocator),
 		commit_history_(allocator, CTR_CREATE | CTR_FIND, 10),
@@ -143,12 +267,7 @@ public:
 			if (iter.find2ndLE(txn_id))
 			{
 				ID gid = iter.value().second;
-
-				PageG page = allocator_->getPage(gid, name);
-
-				page.shared()->set_allocator(this);
-
-				return page;
+				return wrapPageG(allocator_->getPage(gid, name));
 			}
 			else {
 				throw vapi::Exception(
@@ -343,71 +462,83 @@ public:
 
 	// IAllocator
 
-    virtual PageG getPage(const ID& id, BigInt name) {
-    	return getPage(id, Allocator::READ, name);
+    virtual PageG getPage(const ID& id, BigInt name)
+    {
+    	auto iter = commit_history_.find(id);
+
+    	if (iter.found())
+    	{
+    		if (iter.find2ndLE(last_commited_txn_id_))
+    		{
+    			ID gid = iter.value().second;
+
+    			return wrapPageG(allocator_->getPage(gid, name));
+    		}
+    		else {
+    			throw vapi::Exception(
+    					MA_SRC,
+    					SBuf()<<"Page with id="<<id<<" is not found in commit history for txn_id="<<last_commited_txn_id_
+    			);
+    		}
+    	}
+    	else {
+    		throw vapi::Exception(MA_SRC, SBuf()<<"Page with id="<<id<<" is not found in commit history");
+    	}
     }
+
+
 
     virtual PageG getPageForUpdate(const ID& id, BigInt name)
     {
-    	return getPage(id, Allocator::UPDATE, name);
+    	auto iter = commit_history_.find(id);
+
+    	if (iter.found())
+    	{
+    		if (iter.find2ndLE(last_commited_txn_id_))
+    		{
+    			ID gid = iter.value().second;
+
+    			PageG old_page = allocator_->getPage(gid, name);
+
+    			if (iter.key2() == last_commited_txn_id_)
+    			{
+    				return wrapPageG(old_page);
+    			}
+    			else
+    			{
+    				PageG new_page 	= allocator_->createPage(old_page->page_size(), name);
+    				ID new_gid 		= new_page->gid();
+
+    				CopyByteBuffer(old_page.page(), new_page.page(), old_page->page_size());
+
+    				new_page->gid() = new_gid;
+    				new_page->id() 	= id;
+
+    				iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), new_gid));
+
+    				return wrapPageG(new_page);
+    			}
+    		}
+    		else {
+    			throw vapi::Exception(
+    					MA_SRC,
+    					SBuf()<<"Page with id="<<id<<" is not found in commit history for txn_id="<<last_commited_txn_id_
+    			);
+    		}
+    	}
+    	else {
+    		throw vapi::Exception(MA_SRC, SBuf()<<"Page with id="<<id<<" is not found in commit history");
+    	}
     }
 
 
-	PageG getPage(const ID& id, Int flags, BigInt name)
+
+
+	virtual PageG updatePage(Shared* _shared, BigInt name)
 	{
-		auto iter = commit_history_.find(id);
+		MVCCPageShared* shared = static_cast<MVCCPageShared*>(_shared);
 
-		if (iter.found())
-		{
-			if (iter.find2ndLE(last_commited_txn_id_))
-			{
-				ID gid = iter.value().second;
-
-				PageG old_page = allocator_->getPage(gid, name);
-				old_page.shared()->set_allocator(this);
-
-				if (flags == Allocator::READ)
-				{
-					return old_page;
-				}
-				else if (iter.key2() != last_commited_txn_id_)
-				{
-					PageG new_page 	= allocator_->createPage(old_page->page_size(), name);
-					ID new_gid 		= new_page->gid();
-					new_page.shared()->set_allocator(this);
-
-					CopyByteBuffer(old_page.page(), new_page.page(), old_page->page_size());
-
-					new_page->gid() = new_gid;
-					new_page->id() 	= id;
-
-					iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), new_gid));
-
-					return new_page;
-				}
-				else {
-					old_page.update(name);
-					return old_page;
-				}
-			}
-			else {
-				throw vapi::Exception(
-						MA_SRC,
-						SBuf()<<"Page with id="<<id<<" is not found in commit history for txn_id="<<last_commited_txn_id_
-				);
-			}
-		}
-		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Page with id="<<id<<" is not found in commit history");
-		}
-	}
-
-
-	virtual PageG updatePage(Shared* shared, BigInt name)
-	{
-		MEMORIA_ASSERT(shared->id(), ==, shared->get()->gid());
-
-		ID id = shared->get()->id();
+		ID id = shared->id();
 
 		auto iter = commit_history_.find(id);
 
@@ -415,13 +546,11 @@ public:
 		{
 			if (iter.find2ndLE(last_commited_txn_id_))
 			{
-				if (iter.key2() != last_commited_txn_id_)
+				if (iter.key2() < last_commited_txn_id_)
 				{
 					Int page_size = shared->get()->page_size();
 
 					PageG new_page 	= allocator_->createPage(page_size, name);
-					new_page.shared()->set_allocator(this);
-
 					ID new_gid 		= new_page->gid();
 
 					CopyByteBuffer(shared->get(), new_page.page(), page_size);
@@ -431,14 +560,10 @@ public:
 
 					iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), new_gid));
 
-					return new_page;
+					return wrapPageG(new_page);
 				}
 				else {
-					PageG updated = allocator_->updatePage(shared, name);
-
-					updated.shared()->set_allocator(this);
-
-					return updated;
+					return wrapPageG(shared, allocator_->updatePage(shared->delegate(), name));
 				}
 			}
 			else {
@@ -452,6 +577,9 @@ public:
 			throw vapi::Exception(MA_SRC, SBuf()<<"Page with id="<<id<<" is not found in commit history");
 		}
 	}
+
+
+
 
 	virtual void removePage(const ID& id, BigInt name)
 	{
@@ -480,6 +608,8 @@ public:
 						iter.setValue(value);
 					}
 				}
+
+				// Is it necessary to mark existing page guards DELETEd?
 			}
 			else {
 				throw vapi::Exception(
@@ -505,19 +635,23 @@ public:
 
 		iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::CREATED), new_gid));
 
-		new_page.shared()->set_allocator(this);
-
-		return new_page;
+		return wrapPageG(new_page);
 	}
 
-	virtual void resizePage(Shared* page, Int new_size)
+	virtual void resizePage(Shared* _shared, Int new_size)
 	{
-		return allocator_->resizePage(page, new_size);
+		MVCCPageShared* shared = static_cast<MVCCPageShared*>(_shared);
+
+		return allocator_->resizePage(shared->delegate(), new_size);
 	}
 
-	virtual void releasePage(Shared* shared)
+	virtual void releasePage(Shared* _shared) noexcept
 	{
-		allocator_->releasePage(shared);
+		MVCCPageShared* shared = static_cast<MVCCPageShared*>(_shared);
+
+		allocated_shared_objects_.erase(shared->id());
+
+		freePageShared(shared);
 	}
 
 	virtual ID getRootID(BigInt name)
@@ -548,10 +682,7 @@ public:
 		}
 	}
 
-	virtual void markUpdated(BigInt name)
-	{
-
-	}
+	virtual void markUpdated(BigInt name) {}
 
 	virtual BigInt currentTxnId() const
 	{
@@ -705,7 +836,7 @@ private:
 				Int mark 	= value.first;
 				ID gid 		= value.second;
 
-				PageG page = allocator_->getPage(gid, -1); // fixme: provide Ctr name here
+				PageG page = allocator_->getPage(gid, -1); // fixme: provide valid Ctr name here
 
 				walker->singleNode((SBuf()<<txn_id<<"__"<<mark<<"__"<<gid).str().c_str(), page.page());
 
@@ -777,6 +908,79 @@ private:
 			iter.insert(txn_id, root_id);
 		}
 	}
+
+
+    MVCCPageSharedPtr allocatePageShared()
+    {
+    	MEMORIA_ASSERT_TRUE(shared_pool_.size() > 0);
+
+    	MVCCPageSharedPtr shared = shared_pool_.takeTop();
+
+    	shared->init();
+
+    	return shared;
+    }
+
+    void freePageShared(MVCCPageSharedPtr shared)
+    {
+    	MEMORIA_ASSERT_FALSE(shared->next());
+    	MEMORIA_ASSERT_FALSE(shared->prev());
+
+    	MEMORIA_ASSERT(shared_pool_.size(), <, shared_pool_.max_size());
+
+    	shared_pool_.put(shared);
+    }
+
+
+
+    template <typename PageGuard>
+    PageG wrapPageG(PageGuard&& src)
+    {
+    	ID id = src->id();
+
+    	auto iter = allocated_shared_objects_.find(id);
+
+    	if (iter != allocated_shared_objects_.end())
+    	{
+    		MVCCPageSharedPtr shared = iter->second;
+
+    		if (shared->delegate() != src.shared())
+    		{
+    			shared->setDelegate(src.shared());
+
+    			shared->state()	= src.shared()->state();
+    			shared->set_page(src.page());
+    		}
+
+    		return PageG(shared);
+    	}
+    	else {
+    		MVCCPageSharedPtr shared = allocatePageShared();
+
+    		shared->id()    = id;
+    		shared->state()	= src.shared()->state();
+
+    		shared->set_page(src.page());
+    		shared->set_allocator(this);
+
+    		shared->setDelegate(src.shared());
+
+    		allocated_shared_objects_[id] = shared;
+
+    		return PageG(shared);
+    	}
+    }
+
+
+    PageG wrapPageG(MVCCPageShared* shared, PageG src)
+    {
+    	shared->setDelegate(src.shared());
+    	shared->set_page(src.page());
+
+    	shared->state()	= src.shared()->state();
+
+    	return PageG(shared);
+    }
 };
 
 }

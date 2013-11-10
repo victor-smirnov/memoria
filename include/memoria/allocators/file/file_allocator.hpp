@@ -600,72 +600,116 @@ public:
 
     // IAllocator
 
-    virtual PageG getPage(const ID& id, BigInt name) {
-    	return getPage(id, Base::READ, name);
-    }
-
-    virtual PageG getPageForUpdate(const ID& id, BigInt name)
+    virtual PageG getPage(const ID& id, BigInt name)
     {
-    	return getPage(id, Base::UPDATE, name);
-    }
-
-    PageG getPage(const ID& id, Int flags, BigInt name)
-    {
-    	//FIXME: throw exception
-    	if (id.isNull())
-    	{
-    		return PageG();
-    	}
+    	MEMORIA_ASSERT_TRUE(id);
 
     	PageCacheEntryType* entry = get_from_log(id);
 
-    	if (flags == Base::READ)
+    	if (entry)
     	{
-        	if (entry)
-        	{
-        		pages_.touch(entry);
+    		pages_.touch(entry);
 
-        		cache_hits_++;
-
-        		createSharedIfNecessary(entry, Shared::UPDATE);
-        	}
-        	else {
-        		entry = get_entry(id);
-
-        		createSharedIfNecessary(entry, Shared::READ);
-        	}
-    	}
-    	else {
-    		if (entry)
-    		{
-    			pages_.touch(entry);
-
-    			cache_hits_++;
-    		}
-    		else {
-    			entry = get_entry(id);
-
-    			MEMORIA_ASSERT_FALSE(entry->front_page());
-
-    			entry->front_page() = copyPage(entry->page());
-    			entry->page_op() 	= PageOp::UPDATE;
-
-    			pages_log_[id] = entry;
-    		}
+    		cache_hits_++;
 
     		createSharedIfNecessary(entry, Shared::UPDATE);
+    	}
+    	else {
+    		entry = get_entry(id);
+
+    		createSharedIfNecessary(entry, Shared::READ);
     	}
 
     	MEMORIA_ASSERT_TRUE(entry->shared());
 
+    	return PageG(entry->shared());
+    }
 
+    virtual PageG getPageForUpdate(const ID& id, BigInt name)
+    {
+    	MEMORIA_ASSERT_TRUE(id);
+
+    	PageCacheEntryType* entry = get_from_log(id);
+
+    	if (entry)
+    	{
+    		pages_.touch(entry);
+
+    		cache_hits_++;
+    	}
+    	else {
+    		entry = get_entry(id);
+
+    		MEMORIA_ASSERT_FALSE(entry->front_page());
+
+    		entry->front_page() = copyPage(entry->page());
+    		entry->page_op() 	= PageOp::UPDATE;
+
+    		pages_log_[id] = entry;
+    	}
+
+    	createSharedIfNecessary(entry, Shared::UPDATE);
+
+    	MEMORIA_ASSERT_TRUE(entry->shared());
 
     	return PageG(entry->shared());
     }
 
+//    PageG getPage(const ID& id, Int flags, BigInt name)
+//    {
+//    	//FIXME: throw exception
+//    	if (id.isNull())
+//    	{
+//    		return PageG();
+//    	}
+//
+//    	PageCacheEntryType* entry = get_from_log(id);
+//
+//    	if (flags == Base::READ)
+//    	{
+//        	if (entry)
+//        	{
+//        		pages_.touch(entry);
+//
+//        		cache_hits_++;
+//
+//        		createSharedIfNecessary(entry, Shared::UPDATE);
+//        	}
+//        	else {
+//        		entry = get_entry(id);
+//
+//        		createSharedIfNecessary(entry, Shared::READ);
+//        	}
+//    	}
+//    	else {
+//    		if (entry)
+//    		{
+//    			pages_.touch(entry);
+//
+//    			cache_hits_++;
+//    		}
+//    		else {
+//    			entry = get_entry(id);
+//
+//    			MEMORIA_ASSERT_FALSE(entry->front_page());
+//
+//    			entry->front_page() = copyPage(entry->page());
+//    			entry->page_op() 	= PageOp::UPDATE;
+//
+//    			pages_log_[id] = entry;
+//    		}
+//
+//    		createSharedIfNecessary(entry, Shared::UPDATE);
+//    	}
+//
+//    	MEMORIA_ASSERT_TRUE(entry->shared());
+//
+//    	return PageG(entry->shared());
+//    }
+
     virtual PageG getPageG(Page* page)
     {
-    	return getPage(page->gid(), Base::READ, -1);
+    	return getPage(page->gid(), -1);
     }
 
     virtual PageG updatePage(Shared* shared, BigInt name)
@@ -759,7 +803,7 @@ public:
     	throw Exception(MA_SRC, "Page resizing is not yet supported");
     }
 
-    virtual void releasePage(Shared* shared)
+    virtual void releasePage(Shared* shared) noexcept
     {
     	MyShared* my_shared = static_cast<MyShared*>(shared);
 
@@ -1219,7 +1263,7 @@ public:
     	{
     		BigInt ctr_name = iter.key();
 
-    		PageG page = this->getPage(iter.getValue(), Base::READ, ctr_name);
+    		PageG page = this->getPage(iter.getValue(), ctr_name);
 
     		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
@@ -1242,7 +1286,7 @@ public:
     		BigInt ctr_name = iter.key();
     		ID root_id		= iter.value();
 
-    		PageG page 		= this->getPage(root_id, Base::READ, ctr_name);
+    		PageG page 		= this->getPage(root_id, ctr_name);
 
     		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 

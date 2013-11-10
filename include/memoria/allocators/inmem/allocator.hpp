@@ -210,7 +210,7 @@ public:
     }
 
 
-    virtual void releasePage(Shared* shared)
+    virtual void releasePage(Shared* shared) noexcept
     {
         pool_.release(shared->id());
     }

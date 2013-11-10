@@ -49,9 +49,17 @@ public:
 	typedef typename UpdateLog::Types::Value									UpdateLogValue;
 	typedef typename CtrDirectory::Types::Value									CtrDirectoryValue;
 
-
+	typedef typename TxnMgr::MVCCPageShared										MVCCPageShared;
+	typedef typename TxnMgr::MVCCPageSharedPtr									MVCCPageSharedPtr;
+	typedef typename TxnMgr::PageSharedMap										PageSharedMap;
+	typedef typename TxnMgr::SharedPool											SharedPool;
 
 private:
+
+	// memory pool for PageShared objects
+
+	SharedPool		shared_pool_;
+	PageSharedMap	allocated_shared_objects_;
 
 	Allocator*		allocator_;
 
@@ -64,10 +72,13 @@ private:
 	UpdateLog		update_log_;
 	CtrDirectory	ctr_directory_;
 
+
+
 public:
 
 	MVCCTxn(TxnMgr* txn_mgr, BigInt txn_id):
 		Base(txn_mgr->allocator()),
+		shared_pool_(128, 128),
 		allocator_(txn_mgr->allocator()),
 		txn_mgr_(txn_mgr),
 		txn_id_(txn_id),
@@ -75,7 +86,6 @@ public:
 		update_log_(txn_mgr->allocator(), CTR_CREATE, txn_id_),
 		ctr_directory_(this, CTR_FIND, TxnMgr::CtrDirectoryName)
 	{
-
 	}
 
 	virtual ~MVCCTxn() {}
@@ -129,16 +139,14 @@ public:
 		if (!found)
 		{
 			PageG old_page = txn_mgr_->getPage(txn_id_, id, name);
-			old_page.shared()->set_allocator(this);
 
 			if (flags == Allocator::READ)
 			{
-				return old_page;
+				return wrapPageG(old_page);
 			}
 			else {
 				PageG new_page 	= allocator_->createPage(old_page->page_size(), name);
 				ID new_gid 		= new_page->gid();
-				new_page.shared()->set_allocator(this);
 
 				CopyByteBuffer(old_page.page(), new_page.page(), old_page->page_size());
 
@@ -152,7 +160,7 @@ public:
 
 				iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::UPDATED), new_gid));
 
-				return new_page;
+				return wrapPageG(new_page);
 			}
 		}
 		else
@@ -167,24 +175,23 @@ public:
 
 			PageG page;
 
-			if (flags == Allocator::READ) {
+			if (flags == Allocator::READ)
+			{
 				page = allocator_->getPage(gid, name);
 			}
 			else {
 				page = allocator_->getPageForUpdate(gid, name);
 			}
 
-			page.shared()->set_allocator(this);
-
-			return page;
+			return wrapPageG(page);
 		}
 	}
 
-	virtual PageG updatePage(Shared* shared, BigInt name)
+	virtual PageG updatePage(Shared* _shared, BigInt name)
 	{
-		MEMORIA_ASSERT(shared->id(), ==, shared->get()->gid());
+		MVCCPageShared* shared = static_cast<MVCCPageShared*>(_shared);
 
-		ID id = shared->get()->id();
+		ID id = shared->id();
 
 		auto iter = findGIDInHistory(id, name);
 
@@ -194,7 +201,6 @@ public:
 
 			PageG new_page 	= allocator_->createPage(page_size, name);
 			ID new_gid 		= new_page->gid();
-			new_page.shared()->set_allocator(this);
 
 			CopyByteBuffer(shared->get(), new_page.page(), page_size);
 
@@ -208,10 +214,10 @@ public:
 
 			iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::UPDATED), new_gid));
 
-			return new_page;
+			return wrapPageG(new_page);
 		}
 		else {
-			return allocator_->updatePage(shared, name);
+			return wrapPageG(shared, allocator_->updatePage(shared->delegate(), name));
 		}
 	}
 
@@ -242,6 +248,8 @@ public:
 				throw vapi::Exception(MA_SRC, SBuf()<<"Page id="<<id<<" gid="<<gid<<" has been already deleted.");
 			}
 		}
+
+		// Is it necessary to mark existing page guards DELETEd?
 	}
 
 	virtual PageG createPage(Int initial_size, BigInt name)
@@ -249,7 +257,6 @@ public:
 		PageG new_page 	= allocator_->createPage(initial_size, name);
 		ID new_gid 		= new_page->gid();
 		ID new_id		= allocator_->newId();
-		new_page.shared()->set_allocator(this);
 
 		new_page->id()	= new_id;
 
@@ -262,17 +269,23 @@ public:
 
 		iter.insert2nd(new_id, UpdateLogValue(toInt(EntryStatus::CREATED), new_gid));
 
-		return new_page;
+		return wrapPageG(new_page);
 	}
 
-	virtual void resizePage(Shared* page, Int new_size)
+	virtual void resizePage(Shared* _shared, Int new_size)
 	{
-		allocator_->resizePage(page, new_size);
+		MVCCPageShared* shared = static_cast<MVCCPageShared*>(_shared);
+
+		return allocator_->resizePage(shared->delegate(), new_size);
 	}
 
-	virtual void releasePage(Shared* shared)
+	virtual void releasePage(Shared* _shared) noexcept
 	{
-		allocator_->releasePage(shared);
+		MVCCPageShared* shared = static_cast<MVCCPageShared*>(_shared);
+
+		allocated_shared_objects_.erase(shared->id());
+
+		freePageShared(shared);
 	}
 
 	// Ctr Directory
@@ -440,6 +453,79 @@ private:
 
 		return iter;
 	}
+
+
+    MVCCPageSharedPtr allocatePageShared()
+    {
+    	MEMORIA_ASSERT_TRUE(shared_pool_.size() > 0);
+
+    	MVCCPageSharedPtr shared = shared_pool_.takeTop();
+
+    	shared->init();
+
+    	return shared;
+    }
+
+    void freePageShared(MVCCPageSharedPtr shared)
+    {
+    	MEMORIA_ASSERT_FALSE(shared->next());
+    	MEMORIA_ASSERT_FALSE(shared->prev());
+
+    	MEMORIA_ASSERT(shared_pool_.size(), <, shared_pool_.max_size());
+
+    	shared_pool_.put(shared);
+    }
+
+
+
+    template <typename PageGuard>
+    PageG wrapPageG(PageGuard&& src)
+    {
+    	ID id = src->id();
+
+    	auto iter = allocated_shared_objects_.find(id);
+
+    	if (iter != allocated_shared_objects_.end())
+    	{
+    		MVCCPageSharedPtr shared = iter->second;
+
+    		if (shared->delegate() != src.shared())
+    		{
+    			shared->setDelegate(src.shared());
+
+    			shared->state()	= src.shared()->state();
+    			shared->set_page(src.page());
+    		}
+
+    		return PageG(shared);
+    	}
+    	else {
+    		MVCCPageSharedPtr shared = allocatePageShared();
+
+    		shared->id()    = id;
+    		shared->state()	= src.shared()->state();
+
+    		shared->set_page(src.page());
+    		shared->set_allocator(this);
+
+    		shared->setDelegate(src.shared());
+
+    		allocated_shared_objects_[id] = shared;
+
+    		return PageG(shared);
+    	}
+    }
+
+
+    PageG wrapPageG(MVCCPageShared* shared, PageG src)
+    {
+    	shared->setDelegate(src.shared());
+    	shared->set_page(src.page());
+
+    	shared->state()	= src.shared()->state();
+
+    	return PageG(shared);
+    }
 };
 
 }

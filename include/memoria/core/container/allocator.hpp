@@ -76,7 +76,7 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
 
     virtual void  resizePage(Shared* page, Int new_size)                		= 0;
-    virtual void  releasePage(Shared* shared)                           		= 0;
+    virtual void  releasePage(Shared* shared) noexcept                     		= 0;
     virtual PageG getPageG(Page* page)                                  		= 0;
 
     virtual CtrShared* getCtrShared(BigInt name)                        		= 0;

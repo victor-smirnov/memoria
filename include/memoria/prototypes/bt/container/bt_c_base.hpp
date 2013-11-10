@@ -466,7 +466,8 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     	}
     }
 
-    void updatePageG(NodeBaseG& node) const {
+    void updatePageG(NodeBaseG& node) const
+    {
     	node.update(self().master_name());
     }
 
