@@ -58,7 +58,36 @@ public:
 
 private:
 
+	class UpdateLogAllocatorProxy: public JournaledAllocatorProxy<Allocator> {
+		typedef JournaledAllocatorProxy<Allocator>			Base;
+
+		TxnMgr* txn_mgr_;
+
+	public:
+		UpdateLogAllocatorProxy(TxnMgr* txn_mgr):
+			Base(txn_mgr->allocator()),
+			txn_mgr_(txn_mgr)
+		{}
+
+	    virtual ID getRootID(BigInt name) {
+	    	return txn_mgr_->getTxnUpdateHistoryRootID(name);
+	    }
+
+	    virtual void setRoot(BigInt name, const ID& root)
+	    {
+	    	txn_mgr_->setTxnUpdateHistoryRootID(name, root);
+	    }
+
+	    virtual bool hasRoot(BigInt name)
+	    {
+	    	return txn_mgr_->hasTxnUpdateHistoryRootID(name);
+	    }
+	};
+
+
 	// memory pool for PageShared objects
+
+	UpdateLogAllocatorProxy update_log_allocator_proxy_;
 
 	SharedPool		shared_pool_;
 	PageSharedMap	allocated_shared_objects_;
@@ -80,12 +109,13 @@ public:
 
 	MVCCTxn(TxnMgr* txn_mgr, BigInt txn_id, Int ctr_cmd = CTR_CREATE):
 		Base(txn_mgr->allocator()),
+		update_log_allocator_proxy_(txn_mgr),
 		shared_pool_(128, 128),
 		allocator_(txn_mgr->allocator()),
 		txn_mgr_(txn_mgr),
 		txn_id_(txn_id),
 		ctr_directory_root_id_(0),
-		update_log_(txn_mgr->allocator(), ctr_cmd, txn_id_),
+		update_log_(&update_log_allocator_proxy_, ctr_cmd, txn_id_),
 		ctr_directory_(this, CTR_FIND, TxnMgr::CtrDirectoryName)
 	{}
 
@@ -296,7 +326,17 @@ public:
 
 	virtual ID getRootID(BigInt name)
 	{
-		if (name != TxnMgr::CtrDirectoryName)
+		if (name == TxnMgr::CtrDirectoryName)
+		{
+			if (ctr_directory_root_id_.isSet())
+			{
+				return ctr_directory_root_id_;
+			}
+			else {
+				return txn_mgr_->getCtrDirectoryRootID(txn_id_);
+			}
+		}
+		else
 		{
 			auto iter = ctr_directory_.find(name);
 
@@ -308,19 +348,17 @@ public:
 				return ID(0);
 			}
 		}
-		else if (ctr_directory_root_id_.isSet())
-		{
-			return ctr_directory_root_id_;
-		}
-		else {
-			return txn_mgr_->getCtrDirectoryRootID(txn_id_);
-		}
 	}
+
+
 
 	virtual void setRoot(BigInt name, const ID& root)
 	{
-		if (name != TxnMgr::CtrDirectoryName)
+		if (name == TxnMgr::CtrDirectoryName)
 		{
+			ctr_directory_root_id_ = root;
+		}
+		else {
 			auto iter = ctr_directory_.findKeyGE(name);
 
 			if (iter.is_found_eq(name))
@@ -349,20 +387,27 @@ public:
 				throw vapi::Exception(MA_SRC, "Try to remove nonexistent root ID form root directory");
 			}
 		}
-		else {
-			ctr_directory_root_id_ = root;
-		}
 	}
 
 	virtual bool hasRoot(BigInt name)
 	{
-		auto iter = ctr_directory_.findKeyGE(name);
-		return iter.is_found_eq(name);
+		if (name == TxnMgr::CtrDirectoryName)
+		{
+			return txn_mgr_->hasRoot(TxnMgr::CtrDirectoryName);
+		}
+		else {
+			auto iter = ctr_directory_.findKeyGE(name);
+			return iter.is_found_eq(name);
+		}
 	}
 
 	virtual void markUpdated(BigInt name)
 	{
-		if (name != TxnMgr::CtrDirectoryName)
+		if (name == TxnMgr::CtrDirectoryName)
+		{
+			// do nothing
+		}
+		else
 		{
 			auto iter = ctr_directory_.findKeyGE(name);
 			if (iter.is_found_eq(name))

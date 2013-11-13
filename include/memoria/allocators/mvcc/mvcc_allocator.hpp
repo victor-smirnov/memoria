@@ -52,7 +52,12 @@ public:
 
 	typedef typename CtrTF<Profile, DblMrkMap<BigInt, ID, 2>>::Type				CommitHistory;
 	typedef typename CtrTF<Profile, Map<BigInt, ID>>::Type						Roots;
-	typedef typename CtrTF<Profile, Map<BigInt, UByte>>::Type					Snapshots;
+	typedef typename CtrTF<Profile, SMrkMap<BigInt, ID, 2>>::Type				TxnHistory;
+	typedef typename CtrTF<Profile, Vector<BigInt>>::Type						TxnLog;
+
+	typedef typename TxnHistory::Types::Value									TxnHistoryValue;
+
+
 
 	typedef typename CommitHistory::Types::Value								CommitHistoryValue;
 	typedef std::pair<BigInt, CommitHistoryValue>								CommitHistoryEntry;
@@ -65,12 +70,12 @@ public:
 	typedef typename CtrDirectory::Types::Value									CtrDirectoryValue;
 	typedef std::unique_ptr<CtrDirectory>										CtrDirectoryPtr;
 
-	static const Int NameBase													= 0;
+	static const Int NameBase													= 1023;
 
 	static const Int CtrDirectoryName											= NameBase + 1;
 	static const Int CommitHistoryName											= NameBase + 2;
 	static const Int RootsName													= NameBase + 3;
-	static const Int SnapshotsName												= NameBase + 4;
+	static const Int TxnHistoryName												= NameBase + 4;
 
 	template <typename, typename, typename> friend class MVCCTxn;
 
@@ -159,7 +164,7 @@ private:
 
 	CommitHistory 	commit_history_;
 	Roots			roots_;
-	Snapshots		snapshots_;
+	TxnHistory		txn_history_;
 
 	std::unordered_set<TxnPtr> transactions_;
 
@@ -178,7 +183,7 @@ public:
 		allocator_(allocator),
 		commit_history_(allocator, CTR_CREATE | CTR_FIND, CommitHistoryName),
 		roots_(allocator, CTR_CREATE | CTR_FIND, RootsName),
-		snapshots_(allocator, CTR_CREATE | CTR_FIND, SnapshotsName)
+		txn_history_(allocator, CTR_CREATE | CTR_FIND, TxnHistoryName)
 	{
 		initMetadata();
 
@@ -195,6 +200,8 @@ public:
 			allocator_->properties().setMVCC(true);
 		}
 		else {
+//			commit_history_.Begin().dump();
+
 			last_commited_txn_id_ = allocator_->properties().lastCommitId();
 
 			ctr_directory_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_FIND, CtrDirectoryName));
@@ -214,6 +221,8 @@ public:
 		Roots::initMetadata();
 		CtrDirectory::initMetadata();
 		TxnImpl::UpdateLog::initMetadata();
+		TxnHistory::initMetadata();
+		TxnLog::initMetadata();
 	}
 
 	ContainerMetadataRepository* getMetadata() const {
@@ -260,9 +269,48 @@ public:
 			return iter.value();
 		}
 		else {
-			iter.dumpPath();
 			throw Exception(MA_SRC, SBuf()<<"No container directory root ID for txn: "<<txn_id);
 		}
+	}
+
+
+	virtual ID getTxnUpdateHistoryRootID(BigInt txn_id)
+	{
+		auto iter = txn_history_.findKeyGE(txn_id);
+
+		if (iter.is_found_eq(txn_id))
+		{
+			return iter.value();
+		}
+		else {
+			throw Exception(MA_SRC, SBuf()<<"No UpdateLog root ID for txn: "<<txn_id);
+		}
+	}
+
+	virtual void setTxnUpdateHistoryRootID(BigInt txn_id, const ID& id)
+	{
+		auto iter = txn_history_.findKeyGE(txn_id);
+
+		if (iter.is_found_eq(txn_id))
+		{
+			if (id.isSet())
+			{
+				iter.value() = id;
+			}
+			else {
+				iter.remove();
+			}
+		}
+		else if (id.isSet())
+		{
+			iter.insert(txn_id, id, toInt(TxnStatus::ACTIVE));
+		}
+	}
+
+	virtual bool hasTxnUpdateHistoryRootID(BigInt txn_id)
+	{
+		auto iter = txn_history_.findKeyGE(txn_id);
+		return iter.is_found_eq(txn_id);
 	}
 
 
