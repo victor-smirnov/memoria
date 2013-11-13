@@ -948,9 +948,6 @@ public:
             MEMORIA_ASSERT(remainder, >=, 0);
 
             codec.move(values, start, end, remainder);
-
-            DebugCounter += remainder;
-            DebugCounter1++;
         }
 
         this->data_size() += total;
@@ -1968,8 +1965,6 @@ private:
 
     ValueDescr raw_sum(Int to) const
     {
-        DebugCounter2++;
-
         GetVLEValuesSumFn<MyType> fn(*this, to);
 
         Int pos = TreeTools::find(fn);
@@ -2196,8 +2191,6 @@ private:
     template <Int Offset, typename Vals>
     void sumsSmall(Vals& values) const
     {
-        DebugCounter1++;
-
         Codec codec;
 
         auto buffer = this->values();

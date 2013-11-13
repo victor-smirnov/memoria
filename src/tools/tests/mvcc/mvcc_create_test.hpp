@@ -43,8 +43,8 @@ public:
 		VectorCtr::initMetadata();
 
 		MEMORIA_ADD_TEST(testCreate);
-		MEMORIA_ADD_TEST(testSingleTxn);
-		MEMORIA_ADD_TEST(testDoubleTxn);
+//		MEMORIA_ADD_TEST(testSingleTxn);
+//		MEMORIA_ADD_TEST(testDoubleTxn);
 	}
 
 
@@ -53,11 +53,15 @@ public:
 		String name = getResourcePath("create.db");
 		Allocator allocator(name, OpenMode::RWCT);
 
+		dumpStat(allocator);
+
 		TxnMgr mgr(&allocator);
 
-		allocator.commit();
+		dumpStat(allocator);
 
 		VectorCtr ctr(&mgr, CTR_CREATE);
+
+		dumpStat(allocator);
 
 		BigInt ctr_name = ctr.name();
 
@@ -67,7 +71,7 @@ public:
 		ctr.seek(0).insert(data);
 		ctr.seek(0).insert(data);
 
-		allocator.commit();
+		mgr.flush();
 
 		allocator.close();
 
@@ -91,6 +95,8 @@ public:
 
 		txn->commit();
 
+		mgr.flush();
+
 		allocator.close();
 
 		Allocator allocator2(name, OpenMode::RW);
@@ -110,8 +116,6 @@ public:
 
 		TxnMgr mgr(&allocator);
 
-		allocator.commit();
-
 		auto txn1 = mgr.begin();
 		auto txn2 = mgr.begin();
 
@@ -130,8 +134,6 @@ public:
 		allocator.close();
 
 		Allocator allocator2(name, OpenMode::RW);
-
-		DebugCounter = 1;
 
 		TxnMgr mgr2(&allocator2);
 
@@ -182,6 +184,14 @@ public:
 		AssertEQ(MA_SRC, v.size(), (size_t)size);
 	}
 
+	void dumpStat(Allocator& file_allocator)
+	{
+		out()<<"FileAllocator Stat: "
+				<<" "<<file_allocator.shared_pool_size()
+				<<" "<<file_allocator.shared_created()
+				<<" "<<file_allocator.shared_deleted()
+				<<endl;
+	}
 
 };
 

@@ -275,6 +275,8 @@ public:
                 shared->set_page(page2);
                 shared->state() = Shared::UPDATE;
 
+                shared->refresh();
+
                 return PageG(shared);
             }
             else
@@ -305,6 +307,8 @@ public:
 
             shared->set_page(page0);
             shared->state() = Shared::UPDATE;
+
+            shared->refresh();
         }
 
         return PageG(shared);
@@ -317,6 +321,7 @@ public:
         {
             // FIXME it doesn't really necessary to inform PageGuards that the page is deleted
             shared->state() = Shared::DELETE;
+            shared->refresh();
         }
 
         auto i = pages_log_.find(id);
@@ -389,7 +394,12 @@ public:
 //      counter_    = 100;
 //  }
 
-    virtual void commit(bool force_sync = false)
+    void commit(bool force_sync = false)
+    {
+    	flush(force_sync);
+    }
+
+    virtual void flush(bool force_sync = false)
     {
         for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
         {
@@ -726,7 +736,7 @@ public:
         }
     }
 
-    bool check()
+    virtual bool check()
     {
         bool result = false;
 

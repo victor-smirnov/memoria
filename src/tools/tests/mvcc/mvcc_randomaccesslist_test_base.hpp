@@ -1,16 +1,20 @@
 
-// Copyright Victor Smirnov 2012-2013.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_SHARED_RANDOMACCESSLIST_TEST_BASE_HPP_
-#define MEMORIA_TESTS_SHARED_RANDOMACCESSLIST_TEST_BASE_HPP_
+#ifndef MEMORIA_TESTS_MVCCALLOC_RANDOMACCESSLIST_TEST_BASE_HPP_
+#define MEMORIA_TESTS_MVCCALLOC_RANDOMACCESSLIST_TEST_BASE_HPP_
 
 #include <memoria/memoria.hpp>
 
 #include <memoria/tools/profile_tests.hpp>
 #include <memoria/tools/tools.hpp>
+
+#include <memoria/allocators/file/factory.hpp>
+#include <memoria/allocators/mvcc/mvcc_allocator.hpp>
+
 
 #include <functional>
 
@@ -19,25 +23,31 @@ namespace memoria {
 using namespace std;
 
 template <
-    typename ContainerTypeName,
+	typename ContainerTypeName,
     typename MemBuffer
 >
-class RandomAccessListTestBase: public SPTestTask {
+class MVCCRandomAccessListTestBase: public TestTask {
 
-    typedef RandomAccessListTestBase<
+    typedef MVCCRandomAccessListTestBase<
                 ContainerTypeName,
                 MemBuffer
-    >                                                                                   MyType;
+    >                                                                           MyType;
 
-    typedef SPTestTask                                                                  Base;
+    typedef TestTask                                                            Base;
 
 protected:
-    typedef typename SCtrTF<ContainerTypeName>::Type                                    Ctr;
-    typedef typename Ctr::Iterator                                                      Iterator;
-    typedef typename Ctr::Accumulator                                                   Accumulator;
-    typedef typename Ctr::ID                                                            ID;
+    typedef typename FCtrTF<ContainerTypeName>::Type                            Ctr;
+    typedef typename Ctr::Iterator                                              Iterator;
+    typedef typename Ctr::ID                                                    ID;
+    typedef typename Ctr::Accumulator											Accumulator;
 
-//    static const Int Indexes = Ctr::Indexes;
+
+
+    typedef GenericFileAllocator												FileAllocator;
+    typedef MVCCAllocator<FileProfile<>, FileAllocator::Page>					TxnMgr;
+    typedef IWalkableAllocator<typename FileAllocator::Page>					Allocator;
+
+
 
     Int max_block_size_     = 1024*4;
     Int check_size_         = 1000;
@@ -49,17 +59,28 @@ protected:
     Int random_position_;
     String dump_name_;
 
-    typedef std::function<void (MyType*, Allocator&, Ctr&)>                             TestFn;
+    BigInt txn_id_;
+
+    Int check_count_ = 0;
+
+    bool clear_cache_ = false;
+
+    OpenMode mode_ = OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC;
+
+    typedef std::function<void (MyType*, Allocator&, Ctr&)>                     TestFn;
 
 public:
 
-    RandomAccessListTestBase(StringRef name):
-        SPTestTask(name)
+    MVCCRandomAccessListTestBase(StringRef name):
+        TestTask(name)
     {
-        size_ = 1024*1024*16;
+        size_ = 1024*1024;
+
+        Ctr::initMetadata();
 
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
         MEMORIA_ADD_TEST_PARAM(check_size_);
+        MEMORIA_ADD_TEST_PARAM(clear_cache_);
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
         MEMORIA_ADD_TEST_PARAM(block_size_)->state();
@@ -67,6 +88,7 @@ public:
         MEMORIA_ADD_TEST_PARAM(suffix_size_)->state();
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
         MEMORIA_ADD_TEST_PARAM(random_position_)->state();
+        MEMORIA_ADD_TEST_PARAM(txn_id_)->state();
 
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart,   replayInsertFromStart);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd,       replayInsertAtEnd);
@@ -77,7 +99,7 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
     }
 
-    virtual ~RandomAccessListTestBase() throw() {}
+    virtual ~MVCCRandomAccessListTestBase() throw() {}
 
     virtual Iterator seek(Ctr& ctr, BigInt pos)                         = 0;
     virtual void insert(Iterator& iter, MemBuffer& data)                = 0;
@@ -92,12 +114,60 @@ public:
     virtual MemBuffer createRandomBuffer(Int size)                      = 0;
     virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source) = 0;
 
+    void checkAllocator(Allocator& allocator, const char* msg, const char* source)
+    {
+    	Int step_count = getcheckStep();
+
+    	if (step_count > 0 && (check_count_ % step_count == 0))
+    	{
+    		::memoria::check<Allocator>(allocator, msg, source);
+    	}
+
+    	check_count_++;
+    }
+
+    virtual String Store(FileAllocator& allocator) const
+    {
+    	String new_name = allocator.file_name() + ".valid";
+
+    	allocator.sync();
+
+    	File file(allocator.file_name());
+    	file.copy(new_name);
+
+    	allocator.flush();
+
+    	return new_name;
+    }
+
 
     virtual void fillRandom(Ctr& ctr, BigInt size)
     {
-        MemBuffer data = createRandomBuffer(size);
-        Iterator iter = seek(ctr, 0);
-        insert(iter, data);
+    	MemBuffer data = createRandomBuffer(size);
+    	Iterator iter = seek(ctr, 0);
+    	insert(iter, data);
+    }
+
+    virtual void fillRandom(Allocator& alloc, Ctr& ctr, BigInt size)
+    {
+    	BigInt block_size = size > 65536*4 ? 65536*4 : size;
+
+    	BigInt total = 0;
+
+    	Iterator iter = seek(ctr, 0);
+
+    	while (total < size)
+    	{
+    		BigInt tmp_size = size - total > block_size ? block_size : size - total;
+
+    		MemBuffer data = createRandomBuffer(tmp_size);
+
+    		insert(iter, data);
+
+    		alloc.flush();
+
+    		total += tmp_size;
+    	}
     }
 
 
@@ -212,82 +282,242 @@ public:
 
     void testInsert(TestFn test_fn)
     {
-        Allocator allocator;
+    	typename FileAllocator::Cfg cfg;
+
+    	cfg.pages_buffer_size(10240);
+    	cfg.sync_on_commit(false);
+
+        FileAllocator file_allocator(getResourcePath("insert.db"), mode_, cfg);
         DefaultLogHandlerImpl logHandler(out());
-        allocator.getLogger()->setHandler(&logHandler);
-        allocator.getLogger()->level() = Logger::ERROR;
+        file_allocator.getLogger()->setHandler(&logHandler);
+        file_allocator.getLogger()->level() = Logger::ERROR;
 
-        Ctr ctr(&allocator);
-        ctr_name_ = ctr.name();
-
-        allocator.commit();
+        TxnMgr txn_mgr(&file_allocator);
 
         try {
-            while (ctr.size() < size_)
+        	BigInt size = 0;
+
+        	ctr_name_ = txn_mgr.createCtrName();
+
+            while (size < size_)
             {
-                test_fn(this, allocator, ctr);
+            	auto txn = txn_mgr.begin();
 
-                out()<<"Size: "<<ctr.size()<<endl;
+            	txn_id_ = txn->currentTxnId();
 
-                check(allocator, "Insert: Container Check Failed", MA_SRC);
+            	Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, ctr_name_);
 
-                allocator.commit();
+            	test_fn(this, *txn.get(), ctr);
+
+                out()<<"Size: "
+                	 <<ctr.size()
+                	 <<" "<<file_allocator.shared_pool_size()
+                	 <<" "<<file_allocator.shared_created()
+                	 <<" "<<file_allocator.shared_deleted()
+                	 <<endl;
+
+                checkAllocator(*txn.get(), "Insert: Txn Check Failed", MA_SRC);
+                checkAllocator(txn_mgr, "Insert: TxnMgr Check Failed", MA_SRC);
+
+                size = ctr.size();
+
+                txn->commit();
+
+                if (clear_cache_) {
+                	file_allocator.clearCache();
+                }
             }
         }
         catch (...) {
-            dump_name_ = Store(allocator);
+            dump_name_ = Store(file_allocator);
             throw;
         }
+    }
+
+
+    void testInsert1(TestFn test_fn)
+    {
+    	typename FileAllocator::Cfg cfg;
+
+    	cfg.pages_buffer_size(10240);
+    	cfg.sync_on_commit(false);
+
+    	FileAllocator file_allocator(getResourcePath("insert.db"), mode_, cfg);
+    	DefaultLogHandlerImpl logHandler(out());
+    	file_allocator.getLogger()->setHandler(&logHandler);
+    	file_allocator.getLogger()->level() = Logger::ERROR;
+
+    	TxnMgr txn_mgr(&file_allocator);
+
+    	try {
+    		BigInt size = 0;
+
+    		ctr_name_ = txn_mgr.createCtrName();
+
+    		while (size < size_)
+    		{
+    			txn_id_ = txn_mgr.currentTxnId();
+
+    			Ctr ctr(&txn_mgr, CTR_CREATE | CTR_FIND, ctr_name_);
+
+    			test_fn(this, txn_mgr, ctr);
+
+    			out()<<"Size: "
+    					<<ctr.size()
+    					<<" "<<file_allocator.shared_pool_size()
+    					<<" "<<file_allocator.shared_created()
+    					<<" "<<file_allocator.shared_deleted()
+    					<<endl;
+
+    			checkAllocator(txn_mgr, "Insert: TxnMgr Check Failed", MA_SRC);
+
+    			size = ctr.size();
+
+    			txn_mgr.flush();
+
+    			if (clear_cache_) {
+    				file_allocator.clearCache();
+    			}
+    		}
+    	}
+    	catch (...) {
+    		dump_name_ = Store(file_allocator);
+    		throw;
+    	}
     }
 
 
     void testRemove(TestFn test_fn)
     {
-        Allocator allocator;
+    	typename FileAllocator::Cfg cfg;
+
+    	cfg.pages_buffer_size(10240);
+    	cfg.sync_on_commit(false);
+
+        FileAllocator file_allocator(getResourcePath("remove.db"), mode_, cfg);
         DefaultLogHandlerImpl logHandler(out());
-        allocator.getLogger()->setHandler(&logHandler);
+        file_allocator.getLogger()->setHandler(&logHandler);
 
-        Ctr ctr(&allocator);
-        ctr_name_ = ctr.name();
+        TxnMgr mgr(&file_allocator);
 
-        allocator.commit();
+        ctr_name_ = mgr.createCtrName();
 
         try {
+        	BigInt size;
 
-            fillRandom(ctr, Base::size_);
+        	{
+        		auto txn = mgr.begin();
 
-            allocator.commit();
+        		Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, ctr_name_);
 
-            while (ctr.size() > 0)
+        		fillRandom(*txn.get(), ctr, Base::size_);
+
+        		size = ctr.size();
+
+        		txn->commit();
+        	}
+
+
+            while (size > 0)
             {
-                test_fn(this, allocator, ctr);
+                auto txn = mgr.begin();
+
+                Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, ctr_name_);
+
+            	test_fn(this, *txn.get(), ctr);
 
                 out()<<"Size: "<<ctr.size()<<endl;
 
-                check(allocator, "Remove: Container Check Failed", MA_SRC);
+                checkAllocator(*txn.get(), "Remove: Txn Check Failed", MA_SRC);
+                checkAllocator(mgr, "Remove: TxnMgr Check Failed", MA_SRC);
 
-                allocator.commit();
+                size = ctr.size();
+
+                txn->commit();
+
+                if (clear_cache_)
+                {
+                	file_allocator.clearCache();
+                }
             }
         }
         catch (...) {
-            dump_name_ = Store(allocator);
+            dump_name_ = Store(file_allocator);
             throw;
         }
     }
 
+
+    void testRemove1(TestFn test_fn)
+    {
+    	typename FileAllocator::Cfg cfg;
+
+    	cfg.pages_buffer_size(10240);
+    	cfg.sync_on_commit(false);
+
+    	FileAllocator file_allocator(getResourcePath("remove.db"), mode_, cfg);
+    	DefaultLogHandlerImpl logHandler(out());
+    	file_allocator.getLogger()->setHandler(&logHandler);
+
+    	TxnMgr mgr(&file_allocator);
+
+    	ctr_name_ = mgr.createCtrName();
+
+    	try {
+    		BigInt size;
+
+    		{
+    			Ctr ctr(&mgr, CTR_CREATE | CTR_FIND, ctr_name_);
+
+    			fillRandom(mgr, ctr, Base::size_);
+
+    			size = ctr.size();
+    		}
+
+
+    		while (size > 0)
+    		{
+    			Ctr ctr(&mgr, CTR_CREATE | CTR_FIND, ctr_name_);
+
+    			test_fn(this, mgr, ctr);
+
+    			out()<<"Size: "<<ctr.size()<<endl;
+
+    			checkAllocator(mgr, "Remove: TxnMgr Check Failed", MA_SRC);
+
+    			size = ctr.size();
+
+    			mgr.flush();
+
+    			if (clear_cache_)
+    			{
+    				file_allocator.clearCache();
+    			}
+    		}
+    	}
+    	catch (...) {
+    		dump_name_ = Store(file_allocator);
+    		throw;
+    	}
+    }
+
+
     void replay(TestFn test_fn)
     {
-        Allocator allocator;
+        FileAllocator file_allocator(dump_name_, OpenMode::RW);
+
         DefaultLogHandlerImpl logHandler(out());
-        allocator.getLogger()->setHandler(&logHandler);
+        file_allocator.getLogger()->setHandler(&logHandler);
 
-        LoadAllocator(allocator, dump_name_);
+        TxnMgr mgr(&file_allocator);
 
-        Ctr ctr(&allocator, CTR_FIND, ctr_name_);
+        auto txn = mgr.begin();
 
-        test_fn(this, allocator, ctr);
+        Ctr ctr(txn.get(), CTR_FIND, ctr_name_);
 
-        check(allocator, "Insert: Container Check Failed", MA_SRC);
+        test_fn(this, *txn.get(), ctr);
+
+        check(*txn.get(), "Replay: Container Check Failed", MA_SRC);
     }
 
 
@@ -298,7 +528,13 @@ public:
         MemBuffer suffix = createSuffixCheckBuffer(iter);
         MemBuffer data   = createDataBuffer();
 
+        BigInt size = ctr.size();
+
         insert(iter, data);
+
+        BigInt size2 = ctr.size();
+
+        AssertEQ(MA_SRC, size2, size + data.size());
 
         AssertEQ(MA_SRC, getPosition(iter), (BigInt)data.size());
 

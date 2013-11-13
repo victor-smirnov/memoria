@@ -488,6 +488,9 @@ struct TypeHash<AbstractPage<PageIdType, FlagsCount>> {
 template <typename AllocatorT>
 class PageShared {
 
+	typedef PageShared<AllocatorT>			MyType;
+	typedef MyType*							MyTypePtr;
+
     typedef typename AllocatorT::Page       PageT;
     typedef typename AllocatorT::Page::ID   ID;
 
@@ -498,6 +501,10 @@ class PageShared {
     Int     state_;
 
     AllocatorT* allocator_;
+
+    MyType* owner_;
+
+    MyTypePtr delegate_;
 
 public:
 
@@ -565,8 +572,16 @@ public:
         return ++references_;
     }
 
-    Int unref() {
-        return --references_;
+    Int unref()
+    {
+        Int refs = --references_;
+
+        if (refs == 0)
+        {
+        	unrefDelegate();
+        }
+
+        return refs;
     }
 
     bool deleted() const
@@ -588,14 +603,79 @@ public:
         allocator_ = allocator;
     }
 
+    MyTypePtr& owner() {
+    	return owner_;
+    }
+
+    const MyTypePtr& owner() const {
+    	return owner_;
+    }
+
+    const MyTypePtr& delegate() const {
+    	return delegate_;
+    }
+
+    void setDelegate(MyType* delegate)
+    {
+    	MEMORIA_ASSERT_TRUE(delegate != this);
+
+    	if (delegate_)
+    	{
+    		delegate_->owner() = nullptr;
+    		if (delegate_->unref() == 0)
+    		{
+    			delegate_->allocator()->releasePage(delegate_);
+    			delegate_ = nullptr;
+    		}
+    	}
+
+    	delegate_ = delegate;
+    	delegate_->owner() = this;
+
+    	delegate_->ref();
+    }
+
+
+    void refresh()
+    {
+    	if (owner_)
+    	{
+    		owner_->refreshData(this);
+    	}
+    }
+
     void init()
     {
         references_ = 0;
         state_      = READ;
-        page_       = NULL;
-        allocator_  = NULL;
+        page_       = nullptr;
+        allocator_  = nullptr;
+
+        owner_		= nullptr;
+        delegate_ 	= nullptr;
     }
+
+private:
+    void refreshData(MyType* shared)
+    {
+    	this->page_ 	= shared->page_;
+    	this->state_	= shared->state_;
+
+    	refresh();
+    }
+
+	void unrefDelegate()
+	{
+		if (delegate_ && delegate_->unref() == 0)
+		{
+			delegate_->allocator()->releasePage(delegate_);
+			delegate_ = nullptr;
+		}
+	}
 };
+
+
+
 
 template <typename PageT, typename AllocatorT>
 class PageGuard {
@@ -690,7 +770,7 @@ public:
         return *this;
     }
 
-#ifndef __clang__
+//#ifndef __clang__
     MyType& operator=(MyType&& guard)
     {
         unref();
@@ -700,7 +780,7 @@ public:
         check();
         return *this;
     }
-#endif
+//#endif
 
     template <typename P>
     MyType& operator=(PageGuard<P, AllocatorT>&& guard)

@@ -98,11 +98,6 @@ public:
 
     		buffer.reset();
 
-    		if (entry1.first == 47)
-    		{
-    			DebugCounter = 1;
-    		}
-
     		iter.insert(buffer);
     	}
 

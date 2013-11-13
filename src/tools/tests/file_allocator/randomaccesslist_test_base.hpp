@@ -42,7 +42,6 @@ protected:
 
     typedef GenericFileAllocator												Allocator;
 
-//    static const Int Indexes = Ctr::Indexes;
 
     Int max_block_size_     = 1024*4;
     Int check_size_         = 1000;
@@ -373,15 +372,9 @@ public:
         MemBuffer suffix = createSuffixCheckBuffer(iter);
         MemBuffer data   = createDataBuffer();
 
-//        ctr.seek(0).dumpPath();
-
         BigInt size = ctr.size();
 
-//        cout<<"Insert "<<data.size()<<" bytes"<<endl;
-
         insert(iter, data);
-
-//        ctr.seek(0).dumpPath();
 
         BigInt size2 = ctr.size();
 
@@ -395,11 +388,7 @@ public:
 
         checkIterator(iter, MA_SRC);
 
-        DebugCounter = 1;
-
         checkBufferWritten(iter, data, MA_SRC);
-
-        DebugCounter = 0;
 
         checkIterator(iter, MA_SRC);
 

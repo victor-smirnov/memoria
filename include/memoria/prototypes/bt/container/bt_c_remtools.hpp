@@ -108,6 +108,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     {
         NodeBaseG root = self().getRoot();
         self().removeRootNode(root);
+
+        self().set_root(ID(0));
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -131,7 +133,6 @@ void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums, Position& sizes)
         	auto& self = this->self();
             NodeBaseG child = self.allocator().getPage(id, self.master_name());
             this->removeNode(child, sums, sizes);
-            self.allocator().removePage(id, self.master_name());
         });
     }
     else {
@@ -172,9 +173,6 @@ void M_TYPE::removeRootNode(NodeBaseG& node)
 
     Accumulator sums;
     Position sizes;
-
-//    auto ctr_name   = self.master_name();
-//    auto root_id    = node->id();
 
     self.removeNode(node, sums, sizes);
 }

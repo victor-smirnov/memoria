@@ -309,6 +309,9 @@ private:
     BigInt cache_misses_	= 0;
     BigInt stored_			= 0;
 
+    BigInt shared_created_	= 0;
+    BigInt shared_deleted_	= 0;
+
     public:
 
     class Cfg {
@@ -573,6 +576,9 @@ public:
     	return read_locked_;
     }
 
+    BigInt shared_created() const {return shared_created_;}
+    BigInt shared_deleted() const {return shared_deleted_;}
+
     RootMapType* roots() {
     	return root_map_.get();
     }
@@ -602,6 +608,10 @@ public:
 
     virtual PageG getPage(const ID& id, BigInt name)
     {
+    	if (!id.isSet()) {
+    		int a = 0; a++;
+    	}
+
     	MEMORIA_ASSERT_TRUE(id);
 
     	PageCacheEntryType* entry = get_from_log(id);
@@ -643,69 +653,18 @@ public:
     		MEMORIA_ASSERT_FALSE(entry->front_page());
 
     		entry->front_page() = copyPage(entry->page());
+
     		entry->page_op() 	= PageOp::UPDATE;
 
     		pages_log_[id] = entry;
     	}
 
-    	createSharedIfNecessary(entry, Shared::UPDATE);
+    	createSharedIfNecessary(entry, Shared::UPDATE)->refresh();
 
     	MEMORIA_ASSERT_TRUE(entry->shared());
 
     	return PageG(entry->shared());
     }
-
-//    PageG getPage(const ID& id, Int flags, BigInt name)
-//    {
-//    	//FIXME: throw exception
-//    	if (id.isNull())
-//    	{
-//    		return PageG();
-//    	}
-//
-//    	PageCacheEntryType* entry = get_from_log(id);
-//
-//    	if (flags == Base::READ)
-//    	{
-//        	if (entry)
-//        	{
-//        		pages_.touch(entry);
-//
-//        		cache_hits_++;
-//
-//        		createSharedIfNecessary(entry, Shared::UPDATE);
-//        	}
-//        	else {
-//        		entry = get_entry(id);
-//
-//        		createSharedIfNecessary(entry, Shared::READ);
-//        	}
-//    	}
-//    	else {
-//    		if (entry)
-//    		{
-//    			pages_.touch(entry);
-//
-//    			cache_hits_++;
-//    		}
-//    		else {
-//    			entry = get_entry(id);
-//
-//    			MEMORIA_ASSERT_FALSE(entry->front_page());
-//
-//    			entry->front_page() = copyPage(entry->page());
-//    			entry->page_op() 	= PageOp::UPDATE;
-//
-//    			pages_log_[id] = entry;
-//    		}
-//
-//    		createSharedIfNecessary(entry, Shared::UPDATE);
-//    	}
-//
-//    	MEMORIA_ASSERT_TRUE(entry->shared());
-//
-//    	return PageG(entry->shared());
-//    }
 
     virtual PageG getPageG(Page* page)
     {
@@ -738,6 +697,8 @@ public:
 
     		shared->state() = Shared::UPDATE;
 
+    		shared->refresh();
+
     		updated_++;
     	}
 
@@ -765,6 +726,7 @@ public:
 
     			// FIXME it isn't really necessary to inform PageGuards that the page is marked deleted
     			entry->shared()->state() = Shared::DELETE;
+    			entry->shared()->refresh();
     		}
 
     		pages_log_[id] = entry;
@@ -1005,7 +967,12 @@ public:
     	file_.close();
     }
 
-    virtual void commit(bool force_sync = false)
+    void commit(bool force_sync = false)
+    {
+    	flush(force_sync);
+    }
+
+    virtual void flush(bool force_sync = false)
     {
     	// ensure file has enough room for backup
 
@@ -1102,6 +1069,11 @@ public:
     			}
     			else {
     				MEMORIA_ASSERT_TRUE(entry->page());
+    			}
+
+    			if (entry->page())
+    			{
+    				MEMORIA_ASSERT(entry->page()->gid(), ==, entry->front_page()->gid());
     			}
 
     			std::swap(entry->page(), entry->front_page());
@@ -1255,9 +1227,10 @@ public:
     	checkAndFixFileSize(file_, superblock_);
     }
 
-    bool check()
+    virtual bool check()
     {
-    	bool result = false;
+    	bool result = block_map_->checkTree();
+    	result = root_map_->checkTree() || result;
 
     	for (auto iter = this->root_map_->Begin(); !iter.isEnd(); )
     	{
@@ -1278,6 +1251,8 @@ public:
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
     	walker->beginAllocator("FileAllocator", allocator_descr);
+
+    	dumpDirectories(walker);
 
     	auto iter = root_map_->Begin();
 
@@ -1416,6 +1391,10 @@ private:
 
     		this->loadPage(pos, entry.page());
 
+    		if (entry.key() != entry.page()->gid()) {
+    			int a = 0; a++;
+    		}
+
     		MEMORIA_ASSERT(entry.key(), ==, entry.page()->gid());
     	});
     }
@@ -1448,6 +1427,8 @@ private:
     	{
     		read_locked_++;
     	}
+
+    	shared_created_++;
 
     	return shared;
     }
@@ -1526,11 +1507,26 @@ private:
 
     	MEMORIA_ASSERT_FALSE(iter.isEnd());
 
-    	iter.setSymbol(0);
+    	BigInt old_rank = block_map_->rank(0);
 
-    	superblock_->incFreeBlocks(1);
+    	Int sym = iter.symbol();
 
-    	MEMORIA_ASSERT(superblock_->free_blocks(), ==, block_map_->rank(0));
+    	if (sym)
+    	{
+    		iter.setSymbol(0);
+    		superblock_->incFreeBlocks(1);
+    	}
+
+    	BigInt new_rank = block_map_->rank(0);
+
+    	if (sym && (old_rank != new_rank - 1))
+    	{
+    		cout<<"Free blocks problem: "<<old_rank<<" "<<new_rank<<endl;
+    		block_map_->seek(0).dumpPath();
+    	}
+
+
+    	MEMORIA_WARNING(superblock_->free_blocks(), !=, block_map_->rank(0));
     }
 
     ID createGID(UBigInt position)
@@ -1738,6 +1734,8 @@ private:
 
     	shared_pool_.insert(shared_pool_.begin(), shared);
 
+    	shared_deleted_++;
+
     	shared = nullptr;
     }
 
@@ -1747,6 +1745,17 @@ private:
     	{
     		file_.sync();
     	}
+    }
+
+
+    void dumpDirectories(ContainerWalker* walker)
+    {
+    	walker->beginSection("0_Directories");
+
+    	root_map_->walkTree(walker);
+    	block_map_->walkTree(walker);
+
+    	walker->endSection();
     }
 
 

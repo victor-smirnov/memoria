@@ -1166,11 +1166,6 @@ private:
     template <typename TreeType>
     void repackDataWithDifferentTypes(TreeType* other, Byte* target_memory_block) const
     {
-        if (DebugCounter == 1) {
-            int a = 0;
-            a++;
-        }
-
         Int target_max_size         = other->maxSize();
         Byte* target_keys           = other->getKeysPtr(target_memory_block);
 

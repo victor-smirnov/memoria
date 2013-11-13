@@ -126,9 +126,9 @@ public:
     	return allocator_->properties();
     }
 
-    virtual void commit(bool force_sync = false)
+    virtual void flush(bool force_sync = false)
     {
-    	allocator_->commit(force_sync);
+    	allocator_->flush(force_sync);
     }
 
     virtual void rollback(bool force_sync = false)

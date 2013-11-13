@@ -109,9 +109,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     	{
     		MEMORIA_ASSERT_TRUE(obj != nullptr);
 
-    		std::get<Idx>(accum_)[symbol_ + 1] = symbol_ - obj->symbol(idx);
+    		Int old_sym = obj->symbol(idx);
+
+    		std::get<Idx>(accum_)[old_sym + 1] = -1;
 
     		obj->symbol(idx) = symbol_;
+
+    		std::get<Idx>(accum_)[symbol_ + 1] = 1;
 
     		obj->reindex();
     	}

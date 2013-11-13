@@ -92,16 +92,17 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
     BigInt data_size = data.getRemainder();
     BigInt pos       = iter.pos();
 
-    NodeBaseG& leaf = iter.leaf();
+//    NodeBaseG& leaf = iter.leaf();
 
     Int idx         = iter.idx();
 
 
-    if (self.checkCapacities(leaf, {0, data_size}) || self.isNodeEmpty(leaf))
-    {
-        insertDataInternal1(iter, {-1, idx}, data);
-    }
-    else
+
+//    if (self.checkCapacities(leaf, {0, data_size}) || self.isNodeEmpty(leaf))
+//    {
+//        insertDataInternal1(iter, {-1, idx}, data);
+//    }
+//    else
     {
         Int entry_idx   = iter.cache().entry_idx();
         Int leaf_size   = iter.leaf_size(0);
@@ -147,7 +148,7 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
         }
         else {
         	// -1 added for DblMap
-            if (entry_idx < leaf_size/* - 1*/)
+            if (entry_idx < leaf_size - 1)
             {
             	auto right = self.splitLeafP(iter.leaf(), {entry_idx + 1, idx});
                 iter.cache().setEntries(iter.leaf_size(0));

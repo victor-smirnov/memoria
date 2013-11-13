@@ -430,7 +430,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
 
         MEMORIA_ASSERT_TRUE(self.stream() == 0);
 
-        Int local_offset = LeafDispatcher::dispatchConstRtn(self.leaf(), LocalDataOffsetFn(), 1, self.idx());
+        auto idx = self.idx();
+
+        MEMORIA_ASSERT_TRUE(idx >= 0);
+
+        Int local_offset = LeafDispatcher::dispatchConstRtn(self.leaf(), LocalDataOffsetFn(), 1, idx);
 
         MEMORIA_ASSERT_TRUE(local_offset >= 0);
 

@@ -17,6 +17,7 @@
 #include <memoria/allocators/mvcc/mvcc_allocator.hpp>
 
 #include "mvcc_create_test.hpp"
+#include "mvcc_vector_test.hpp"
 
 namespace memoria {
 
@@ -24,6 +25,7 @@ struct MVCCTestSuite: public TestSuite {
 	MVCCTestSuite(): TestSuite("MVCCSuite")
     {
         registerTask(new MVCCCreateTest("Create"));
+        registerTask(new MVCCAllocatorVectorTest<UShort>("Vector"));
     }
 };
 

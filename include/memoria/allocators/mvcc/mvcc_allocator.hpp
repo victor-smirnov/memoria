@@ -52,6 +52,7 @@ public:
 
 	typedef typename CtrTF<Profile, DblMrkMap<BigInt, ID, 2>>::Type				CommitHistory;
 	typedef typename CtrTF<Profile, Map<BigInt, ID>>::Type						Roots;
+	typedef typename CtrTF<Profile, Map<BigInt, UByte>>::Type					Snapshots;
 
 	typedef typename CommitHistory::Types::Value								CommitHistoryValue;
 	typedef std::pair<BigInt, CommitHistoryValue>								CommitHistoryEntry;
@@ -64,8 +65,14 @@ public:
 	typedef typename CtrDirectory::Types::Value									CtrDirectoryValue;
 	typedef std::unique_ptr<CtrDirectory>										CtrDirectoryPtr;
 
-	static const Int CtrDirectoryName											= 0;
+	static const Int NameBase													= 0;
 
+	static const Int CtrDirectoryName											= NameBase + 1;
+	static const Int CommitHistoryName											= NameBase + 2;
+	static const Int RootsName													= NameBase + 3;
+	static const Int SnapshotsName												= NameBase + 4;
+
+	template <typename, typename, typename> friend class MVCCTxn;
 
 	class MVCCPageShared;
 	typedef MVCCPageShared*														MVCCPageSharedPtr;
@@ -75,15 +82,13 @@ public:
 
 	class MVCCPageShared: public Shared {
 
-		PageSharedPtr delegate_;
-
 		MVCCPageSharedPtr next_;
 		MVCCPageSharedPtr prev_;
 
 	public:
 
-		MVCCPageShared() {
-			next_ = prev_ = nullptr;
+		MVCCPageShared()
+		{
 			init();
 		}
 
@@ -91,37 +96,7 @@ public:
 		{
 			Shared::init();
 
-			delegate_ = nullptr;
-		}
-
-		Int unref()
-		{
-			Int references = Shared::unref();
-
-			if (references == 0)
-			{
-				unrefDelegate();
-			}
-
-			return references;
-		}
-
-
-		void setDelegate(Shared* delegate)
-		{
-			unrefDelegate();
-
-			delegate_ = delegate;
-
-			delegate->ref();
-		}
-
-		PageSharedPtr delegate() {
-			return delegate_;
-		}
-
-		const PageSharedPtr delegate() const {
-			return delegate_;
+			next_ = prev_ = nullptr;
 		}
 
 		MVCCPageSharedPtr& next() {
@@ -138,16 +113,6 @@ public:
 
 		const MVCCPageSharedPtr& prev() const {
 			return prev_;
-		}
-
-	private:
-		void unrefDelegate()
-		{
-			if (delegate_ && delegate_->unref() == 0)
-			{
-				delegate_->allocator()->releasePage(delegate_);
-				delegate_ = nullptr;
-			}
 		}
 	};
 
@@ -194,6 +159,7 @@ private:
 
 	CommitHistory 	commit_history_;
 	Roots			roots_;
+	Snapshots		snapshots_;
 
 	std::unordered_set<TxnPtr> transactions_;
 
@@ -210,8 +176,9 @@ public:
 		shared_pool_(256, 256),
 		metadata_(MetadataRepository<Profile>::getMetadata()),
 		allocator_(allocator),
-		commit_history_(allocator, CTR_CREATE | CTR_FIND, 10),
-		roots_(allocator, CTR_CREATE | CTR_FIND, 11)
+		commit_history_(allocator, CTR_CREATE | CTR_FIND, CommitHistoryName),
+		roots_(allocator, CTR_CREATE | CTR_FIND, RootsName),
+		snapshots_(allocator, CTR_CREATE | CTR_FIND, SnapshotsName)
 	{
 		initMetadata();
 
@@ -226,8 +193,6 @@ public:
 			allocator_->properties().setLastCommitId(last_commited_txn_id_);
 
 			allocator_->properties().setMVCC(true);
-
-			allocator_->commit();
 		}
 		else {
 			last_commited_txn_id_ = allocator_->properties().lastCommitId();
@@ -267,7 +232,12 @@ public:
 			if (iter.find2ndLE(txn_id))
 			{
 				ID gid = iter.value().second;
-				return wrapPageG(allocator_->getPage(gid, name));
+
+				PageG page = allocator_->getPage(gid, name);
+
+				MEMORIA_ASSERT(page->id(), ==, id);
+
+				return wrapPageG(page);
 			}
 			else {
 				throw vapi::Exception(
@@ -303,7 +273,17 @@ public:
 
 	virtual TxnPtr begin()
 	{
-		return std::make_shared<TxnImpl>(this, newTxnId());
+		return std::make_shared<TxnImpl>(this, newTxnId(), CTR_CREATE);
+	}
+
+	TxnPtr findTxn(BigInt txn_id)
+	{
+		return std::make_shared<TxnImpl>(this, txn_id, CTR_FIND);
+	}
+
+	virtual void flush(bool force_sync = false)
+	{
+		allocator_->flush(force_sync);
 	}
 
 	void commit(TxnImpl& txn)
@@ -451,7 +431,9 @@ public:
 
 		allocator_->properties().setLastCommitId(last_commited_txn_id_);
 
-		allocator_->commit();
+		allocator_->flush();
+
+		txn.clean();
 	}
 
 	BigInt newTxnId()
@@ -472,7 +454,11 @@ public:
     		{
     			ID gid = iter.value().second;
 
-    			return wrapPageG(allocator_->getPage(gid, name));
+    			PageG page = allocator_->getPage(gid, name);
+
+    			MEMORIA_WARNING(page->id(), !=, id);
+
+    			return wrapPageG(page);
     		}
     		else {
     			throw vapi::Exception(
@@ -499,6 +485,8 @@ public:
     			ID gid = iter.value().second;
 
     			PageG old_page = allocator_->getPage(gid, name);
+
+    			MEMORIA_ASSERT(old_page->id(), ==, id);
 
     			if (iter.key2() == last_commited_txn_id_)
     			{
@@ -771,6 +759,7 @@ public:
 		walker->beginAllocator("MVCCAllocator", allocator_descr);
 
 		dumpHistory(walker);
+		dumpTransactions(walker);
 
     	walker->beginSnapshot("trunk");
 
@@ -783,7 +772,7 @@ public:
     		BigInt ctr_name = iter.key();
     		ID root_id		= iter.value().value().value();
 
-    		PageG page 		= this->getPage(root_id, Base::READ, ctr_name);
+    		PageG page 		= this->getPage(root_id, ctr_name);
 
     		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
@@ -812,7 +801,79 @@ public:
 		dumpHistory(&walker);
 	}
 
+	virtual bool check()
+	{
+		bool result = checkDictionaries();
+
+		for (auto iter = ctr_directory_->Begin(); !iter.isEnd(); )
+		{
+			BigInt ctr_name = iter.key();
+
+			PageG page = this->getPage(iter.value().value().value(), ctr_name);
+
+			ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+
+			result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
+
+			iter.next();
+		}
+
+		return result;
+	}
+
+	bool checkDictionaries()
+	{
+		bool result = ctr_directory_->checkTree();
+
+		result = commit_history_.checkTree() || result;
+		result = roots_.checkTree() || result;
+
+		checkCommitHistory();
+
+		return result;
+	}
+
 private:
+
+	void checkCommitHistory()
+	{
+		auto iter = commit_history_.Begin();
+
+		while (!iter.isEnd())
+		{
+			ID id = iter.key();
+
+			iter.findData();
+
+			while (!iter.isEof())
+			{
+				BigInt txn_id 				= iter.key2();
+				CommitHistoryValue value	= iter.value();
+
+				Int mark 	= value.first;
+				ID gid 		= value.second;
+
+				if (mark != toInt(EntryStatus::DELETED))
+				{
+					// fixme: provide valid Ctr name here
+					PageG page = allocator_->getPage(gid, -1);
+
+					if (page->id() != id)
+					{
+						throw vapi::Exception(MA_SRC, SBuf()<<"Invalid IDs for page "<<gid
+															<<" txn_id="<<txn_id
+															<<": expected ID="<<id
+															<<" actual ID="<<page->id()
+											  );
+					}
+				}
+
+				iter.skipFw(1);
+			}
+
+			iter++;
+		}
+	}
 
 	void dumpHistory(ContainerWalker* walker)
 	{
@@ -836,14 +897,44 @@ private:
 				Int mark 	= value.first;
 				ID gid 		= value.second;
 
-				PageG page = allocator_->getPage(gid, -1); // fixme: provide valid Ctr name here
+				if (mark != toInt(EntryStatus::DELETED))
+				{
+					PageG page = allocator_->getPage(gid, -1); // fixme: provide valid Ctr name here
 
-				walker->singleNode((SBuf()<<txn_id<<"__"<<mark<<"__"<<gid).str().c_str(), page.page());
+					walker->singleNode((SBuf()<<txn_id<<"__"<<mark<<"__"<<gid).str().c_str(), page.page());
+				}
+				else {
+					walker->content((SBuf()<<txn_id<<"__"<<mark<<"__"<<gid).str().c_str(), "DELETED");
+				}
 
 				iter.skipFw(1);
 			}
 
 			walker->endSection();
+
+			iter++;
+		}
+
+		walker->endSection();
+	}
+
+	void dumpTransactions(ContainerWalker* walker)
+	{
+		walker->beginSection("Transactions");
+
+		typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes> RootMap;
+
+		RootMap root_map(allocator_, CTR_FIND, 2);
+
+		auto iter = root_map.findKeyGE(10000);
+
+		while (!iter.isEnd())
+		{
+			BigInt txn_id = iter.key();
+
+			auto txn = this->findTxn(txn_id);
+
+			txn->walkContainers(walker);
 
 			iter++;
 		}
@@ -868,6 +959,7 @@ private:
 			ID gid				= value.second;
 			ID id 				= iter.key2();
 
+
 			if (status == EntryStatus::CREATED)
 			{
 				auto h_iter = commit_history_.createNew(id);
@@ -891,6 +983,8 @@ private:
 			else {
 				throw vapi::Exception(MA_SRC, SBuf()<<"Unknown entry status value: "<<toInt(status));
 			}
+
+//			MEMORIA_ASSERT_FALSE(checkDictionaries());
 
 			iter.skipFw(1);
 		}

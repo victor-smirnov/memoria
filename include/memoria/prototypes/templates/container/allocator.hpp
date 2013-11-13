@@ -34,15 +34,15 @@ public:
 
     void set_root(const ID &root)
     {
-        me()->shared()->root_log()  = root;
-        me()->shared()->updated()   = true;
+        self().shared()->root_log()  = root;
+        self().shared()->updated()   = true;
 
-        me()->allocator().setRoot(me()->name(), root);
+        self().allocator().setRoot(self().name(), root);
     }
 
     const ID &root() const
     {
-        const CtrShared* shared = me()->shared();
+        const CtrShared* shared = self().shared();
 
         if (shared->updated())
         {
@@ -54,28 +54,28 @@ public:
     }
 
     bool isNew() const {
-        return me()->shared() == nullptr;
+        return self().shared() == nullptr;
     }
 
 
     virtual CtrShared* getCtrShared(BigInt name)
     {
-        return me()->shared()->get(name);
+        return self().shared()->get(name);
     }
 
     virtual void unregisterCtrShared(CtrShared* shared)
     {
-        me()->shared()->unregisterChild(shared);
+        self().shared()->unregisterChild(shared);
     }
 
     virtual void registerCtrShared(CtrShared* shared)
     {
-        me()->shared()->registerChild(shared);
+        self().shared()->registerChild(shared);
     }
 
     virtual bool isCtrSharedRegistered(BigInt name)
     {
-        return me()->shared()->isChildRegistered(name);
+        return self().shared()->isChildRegistered(name);
     }
 
 
@@ -127,7 +127,7 @@ public:
 
     virtual BigInt createCtrName()
     {
-        return me()->allocator().createCtrName();
+        return self().allocator().createCtrName();
     }
 
     virtual IAllocatorProperties& properties()
@@ -148,50 +148,50 @@ MEMORIA_CONTAINER_PART_END
 
 M_PARAMS
 typename M_TYPE::PageG M_TYPE::getPageG(Page* page) {
-    return me()->allocator().getPageG(page);
+    return self().allocator().getPageG(page);
 }
 
 M_PARAMS
 typename M_TYPE::PageG M_TYPE::updatePage(Shared* shared, BigInt name) {
-    return me()->allocator().updatePage(shared, name);
+    return self().allocator().updatePage(shared, name);
 }
 
 M_PARAMS
 void M_TYPE::removePage(const ID& id, BigInt name) {
-    me()->allocator().removePage(id, name);
+    self().allocator().removePage(id, name);
 }
 
 M_PARAMS
 typename M_TYPE::PageG M_TYPE::createPage(Int initial_size, BigInt name) {
-    return me()->allocator().createPage(initial_size, name);
+    return self().allocator().createPage(initial_size, name);
 }
 
 M_PARAMS
 void M_TYPE::resizePage(Shared* page, Int new_size) {
-    me()->allocator().resizePage(page, new_size);
+    self().allocator().resizePage(page, new_size);
 }
 
 M_PARAMS
 void M_TYPE::releasePage(Shared* shared) noexcept {
-    me()->allocator().releasePage(shared);
+    self().allocator().releasePage(shared);
 }
 
 
 M_PARAMS
 Logger& M_TYPE::logger() {
-    return me()->allocator().logger();
+    return self().allocator().logger();
 }
 
 M_PARAMS
 void* M_TYPE::allocateMemory(size_t size)
 {
-    return me()->allocator().allocateMemory(size);
+    return self().allocator().allocateMemory(size);
 }
 
 M_PARAMS
 void M_TYPE::freeMemory(void* ptr)
 {
-    me()->allocator().freeMemory(ptr);
+    self().allocator().freeMemory(ptr);
 }
 
 

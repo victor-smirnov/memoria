@@ -269,6 +269,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     	}
     	else {
     		this->insert2ndEntry(key, value);
+
     		return true;
     	}
     }

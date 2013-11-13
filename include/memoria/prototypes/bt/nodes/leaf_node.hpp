@@ -474,10 +474,6 @@ public:
 
     bool checkCapacities(const Position& sizes) const
     {
-        if (DebugCounter) {
-            int a = 0; a++;
-        }
-
         Position fillment = this->sizes();
 
         for (Int c = 0; c < Streams; c++)

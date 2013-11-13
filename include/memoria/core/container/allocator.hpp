@@ -95,12 +95,15 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
     virtual Logger& logger()                                            		= 0;
     virtual IAllocatorProperties& properties()									= 0;
+
+
 };
 
 template <typename PageType>
 struct IJournaledAllocator: IAllocator<PageType> {
-	virtual void commit(bool force_sync = false)								= 0;
+	virtual void flush(bool force_sync = false)									= 0;
 	virtual void rollback(bool force_sync = false)								= 0;
+	virtual bool check()														= 0;
 };
 
 
@@ -126,12 +129,14 @@ static inline Int toInt(EntryStatus es) {
 }
 
 template <typename PageType>
-struct ITxn: IAllocator<PageType> {
+struct ITxn: IWalkableAllocator<PageType> {
 
 	virtual BigInt txn_id()	const												= 0;
 
 	virtual void commit() 														= 0;
 	virtual void rollback() 													= 0;
+	virtual void flush(bool force_sync = false)									= 0;
+	virtual bool check()														= 0;
 };
 
 
@@ -156,6 +161,8 @@ struct IMVCCAllocator: public IWalkableAllocator<PageType> {
 	virtual BigInt commited_txn_id()											= 0;
 
 	virtual TxnPtr begin() 														= 0;
+
+	virtual void flush(bool force_sync = false)									= 0;
 };
 
 

@@ -32,10 +32,10 @@ class MVCCTxn: public MVCCAllocatorBase<ITxn<PageType>> {
 	typedef MVCCAllocatorBase<ITxn<PageType>>									Base;
 public:
 
-	typedef IAllocator<PageType>												Allocator;
+	typedef IJournaledAllocator<PageType>										Allocator;
 	typedef PageType                                                    		Page;
 	typedef typename Page::ID                                           		ID;
-	typedef PageGuard<Page, Allocator>                                     		PageG;
+	typedef typename Base::PageG                                     			PageG;
 	typedef typename Base::Shared                                      			Shared;
 
 	typedef typename Base::CtrShared                                         	CtrShared;
@@ -53,6 +53,8 @@ public:
 	typedef typename TxnMgr::MVCCPageSharedPtr									MVCCPageSharedPtr;
 	typedef typename TxnMgr::PageSharedMap										PageSharedMap;
 	typedef typename TxnMgr::SharedPool											SharedPool;
+
+	template <typename, typename> friend class MVCCAllocator;
 
 private:
 
@@ -76,17 +78,16 @@ private:
 
 public:
 
-	MVCCTxn(TxnMgr* txn_mgr, BigInt txn_id):
+	MVCCTxn(TxnMgr* txn_mgr, BigInt txn_id, Int ctr_cmd = CTR_CREATE):
 		Base(txn_mgr->allocator()),
 		shared_pool_(128, 128),
 		allocator_(txn_mgr->allocator()),
 		txn_mgr_(txn_mgr),
 		txn_id_(txn_id),
 		ctr_directory_root_id_(0),
-		update_log_(txn_mgr->allocator(), CTR_CREATE, txn_id_),
+		update_log_(txn_mgr->allocator(), ctr_cmd, txn_id_),
 		ctr_directory_(this, CTR_FIND, TxnMgr::CtrDirectoryName)
-	{
-	}
+	{}
 
 	virtual ~MVCCTxn() {}
 
@@ -183,6 +184,8 @@ public:
 				page = allocator_->getPageForUpdate(gid, name);
 			}
 
+			MEMORIA_ASSERT(page->id(), ==, id);
+
 			return wrapPageG(page);
 		}
 	}
@@ -245,7 +248,8 @@ public:
 				iter.value() = UpdateLogValue(toInt(EntryStatus::DELETED), ID(0));
 			}
 			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Page id="<<id<<" gid="<<gid<<" has been already deleted.");
+				//throw vapi::Exception(MA_SRC, SBuf()<<"Page id="<<id<<" gid="<<gid<<" has been already deleted.");
+				cout<<"Page id="<<id<<" gid="<<gid<<" has been already deleted."<<endl;
 			}
 		}
 
@@ -371,7 +375,6 @@ public:
 				}
 			}
 			else {
-				iter.dumpPath();
 				throw vapi::Exception(MA_SRC, SBuf()<<"CtrDirectory entry for name "<<name<<" is not found");
 			}
 		}
@@ -431,7 +434,123 @@ public:
 		throw vapi::RollbackException(src, msg);
 	}
 
+	virtual bool check()
+	{
+		bool result = checkDictionaries();
+
+		auto metadata = MetadataRepository<Profile>::getMetadata();
+
+		for (auto iter = ctr_directory_.Begin(); !iter.isEnd(); )
+		{
+			BigInt ctr_name = iter.key();
+
+			PageG page = this->getPage(iter.value().value().value(), ctr_name);
+
+			ContainerMetadata* ctr_meta = metadata->getContainerMetadata(page->ctr_type_hash());
+
+			result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
+
+			iter.next();
+		}
+
+		return result;
+	}
+
+	bool checkDictionaries()
+	{
+		bool result = false;
+
+		result = ctr_directory_.checkTree() || result;
+		result = update_log_.checkTree() 	|| result;
+
+		return result;
+	}
+
+    virtual void flush(bool force_sync = false) {
+    	return allocator_->flush(force_sync);
+    }
+
+    virtual void walkContainers(vapi::ContainerWalker* walker, const char* allocator_descr = nullptr)
+    {
+    	walker->beginAllocator("MVCCTxn", allocator_descr);
+
+    	dumpUpdateLog(walker);
+
+    	ctr_directory_.walkTree(walker);
+
+    	auto metadata = MetadataRepository<Profile>::getMetadata();
+
+    	auto iter = ctr_directory_.Begin();
+
+    	while (!iter.isEnd())
+    	{
+    		BigInt ctr_name = iter.key();
+    		ID root_id		= iter.value().value().value();
+
+    		PageG page 		= this->getPage(root_id, ctr_name);
+
+    		ContainerMetadata* ctr_meta = metadata->getContainerMetadata(page->ctr_type_hash());
+
+    		ctr_meta->getCtrInterface()->walk(&page->id(), ctr_name, this, walker);
+
+    		iter++;
+    	}
+
+
+    	walker->endAllocator();
+    }
+
+
 private:
+
+    void dumpUpdateLog(vapi::ContainerWalker* walker)
+    {
+    	auto iter = update_log_.Begin();
+
+    	walker->beginSection("UpdateLog");
+
+    	while (!iter.isEnd())
+    	{
+    		BigInt name = iter.key();
+
+    		walker->beginSection((SBuf()<<name).str().c_str());
+
+    		iter.findData();
+
+    		while (!iter.isEof())
+    		{
+    			ID id 					= iter.key2();
+    			UpdateLogValue value	= iter.value();
+
+    			Int mark 	= value.first;
+    			ID gid 		= value.second;
+
+    			if (mark != toInt(EntryStatus::DELETED))
+    			{
+    				PageG page = allocator_->getPage(gid, -1); // fixme: provide valid Ctr name here
+
+    				walker->singleNode((SBuf()<<id<<"__"<<mark<<"__"<<gid).str().c_str(), page.page());
+    			}
+    			else {
+    				walker->content((SBuf()<<id<<"__"<<mark<<"__"<<gid).str().c_str(), "DELETED");
+    			}
+
+    			iter.skipFw(1);
+    		}
+
+    		walker->endSection();
+
+    		iter++;
+    	}
+
+    	walker->endSection();
+    }
+
+	void clean() {
+		update_log_.drop();
+		allocator_->flush();
+	}
+
 	bool h_is_not_found(const typename UpdateLog::Iterator& iter, const ID& id) const
 	{
 		return (!iter.found()) || iter.isEof() || iter.key2() != id;

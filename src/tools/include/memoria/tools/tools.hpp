@@ -263,18 +263,18 @@ vector<T> createRandomBuffer(T fill_value, Int max_size)
 template <typename Allocator>
 void check(Allocator& allocator, const char* message,  const char* source)
 {
-    Int level = allocator.getLogger()->level();
+    Int level = allocator.logger().level();
 
-    allocator.getLogger()->level() = Logger::ERROR;
+    allocator.logger().level() = Logger::ERROR;
 
     if (allocator.check())
     {
-        allocator.getLogger()->level() = level;
+        allocator.logger().level() = level;
 
         throw TestException(source, message);
     }
 
-    allocator.getLogger()->level() = level;
+    allocator.logger().level() = level;
 }
 
 template <typename Ctr>
