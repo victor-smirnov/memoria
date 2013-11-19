@@ -58,6 +58,7 @@ public:
 	typedef std::unique_ptr<TxnLog>												TxnLogPtr;
 
 	typedef typename TxnHistory::Types::Value									TxnHistoryValue;
+	typedef typename TxnLog::Types::Value										TxnLogValue;
 
 
 
@@ -553,6 +554,8 @@ public:
 
 			txn_iter.selectFw(toInt(EntryStatus::DELETED), 1);
 		}
+
+		cleanupCtrDirectoryBlocks(txn.update_log());
 
 		allocator_->properties().setLastCommitId(last_commited_txn_id_);
 
@@ -1095,7 +1098,6 @@ private:
 			ID gid				= value.second;
 			ID id 				= iter.key2();
 
-
 			if (status == EntryStatus::CREATED)
 			{
 				auto h_iter = commit_history_.createNew(id);
@@ -1140,8 +1142,6 @@ public:
 		{
 			auto start = findTxnHistoryStart();
 
-			cout<<"Merge Txns: "<<start.key()<<" "<<stop.key()<<" last="<<last_commited_txn_id_<<endl;
-
 			mergePages(start.key(), stop.key());
 //			mergePages(10003, stop.key());
 
@@ -1151,8 +1151,6 @@ public:
 			{
 				MEMORIA_ASSERT(start.mark(), ==, toInt(TxnStatus::COMMITED));
 
-				cout<<" Remove txn: "<<start.key()<<endl;
-
 				//fixme: txn log is removed in different iterator!!!!!
 				TxnLog txn_log(&update_allocator_proxy_, CTR_FIND, start.key());
 				txn_log.drop();
@@ -1161,6 +1159,36 @@ public:
 	}
 
 private:
+
+	template <typename Ctr>
+	void cleanupCtrDirectoryBlocks(Ctr& txn_log)
+	{
+		auto iter = txn_log.find(CtrDirectoryName);
+
+		if (iter.is_found_eq(CtrDirectoryName))
+		{
+			while (!iter.isEof())
+			{
+				typename Ctr::Types::Value value = iter.value();
+
+				EntryStatus status	= static_cast<EntryStatus>(value.first);
+				ID gid				= value.second;
+
+				if (status != EntryStatus::DELETED)
+				{
+					allocator_->removePage(gid, -1);
+				}
+
+				value.first 			= toInt(EntryStatus::DELETED);
+				value.second.value()	= ID(0);
+
+				iter.setValue(value);
+
+				iter.skipFw(1);
+			}
+		}
+	}
+
 	typename TxnHistory::Iterator findTxnHistoryStart()
 	{
 		return txn_history_.select(toInt(TxnStatus::COMMITED), 1);
@@ -1214,15 +1242,13 @@ private:
 			}
 
 
-			iter = commit_history_.Begin();
-
-			while (!iter.isEnd())
-			{
-				dumpTxns(iter, 10003, max_txn_id);
-
-				iter++;
-			}
-
+//			iter = commit_history_.Begin();
+//
+//			while (!iter.isEnd())
+//			{
+//				dumpTxns(iter, 10003, max_txn_id);
+//				iter++;
+//			}
 		}
 	}
 
@@ -1238,7 +1264,9 @@ private:
 
 		while (!i1.isEof())
 		{
-			cout<<i1.key2()<<", ";
+			CommitHistoryValue entry = i1.value();
+
+			cout<<i1.key2()<<":"<<entry.second<<", ";
 			i1.skipFw(1);
 		}
 
@@ -1296,6 +1324,7 @@ private:
 						if (status != EntryStatus::DELETED)
 						{
 							MEMORIA_ASSERT_TRUE(gid.isSet());
+
 							allocator_->removePage(gid, -1);
 						}
 

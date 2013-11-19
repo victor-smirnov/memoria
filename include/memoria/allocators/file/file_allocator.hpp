@@ -294,6 +294,8 @@ private:
     	}
     };
 
+    bool constructed_ = false;
+
     Properties properties_;
 
     OpenMode mode_;
@@ -470,6 +472,8 @@ public:
     		block_map_ 	= BlockMapPtr(new BlockMapType(this, CTR_FIND, 0));
     		root_map_ 	= RootMapPtr(new RootMapType(this, CTR_FIND, 2));
     	}
+
+    	constructed_ = true;
     }
 
     FileAllocator(const MyType&) 		= delete;
@@ -1169,6 +1173,50 @@ public:
     	vapi::dumpPageData(page_metadata, page, std::cout);
     }
 
+    void dumpAllocatedPages(StringRef path)
+    {
+    	typedef FSDumpContainerWalker<Page> Walker;
+    	Walker walker(metadata_, path);
+
+    	walker.beginAllocator("FileAllocator", nullptr);
+    	walker.beginSection("AllocatedPages");
+
+    	auto iter = this->block_map_->seek(1);
+
+    	iter.selectFw(1, 1);
+
+    	while (!iter.isEnd())
+    	{
+    		BigInt pos 	= iter.pos();
+    		ID gid 		= pos * superblock_->block_size();
+
+    		MEMORIA_ASSERT_TRUE(iter.symbol());
+
+    		PageG page 	= this->getPage(gid, -1);
+
+    		std::stringstream str;
+
+    		char prev = str.fill();
+
+    		str.fill('0');
+    		str.width(4);
+
+    		str<<pos;
+
+    		str.fill(prev);
+
+    		str<<"___"<<gid;
+
+    		walker.singleNode(str.str().c_str(), page.page());
+
+    		iter++;
+    		iter.selectFw(1, 1);
+    	}
+
+    	walker.endSection();
+    	walker.endAllocator();
+    }
+
     void clearCache()
     {
     	vector<PageCacheEntryType*> removed_entries;
@@ -1424,6 +1472,8 @@ private:
 
     		entry.position() = pos;
 
+    		MEMORIA_WARNING(isAllocated(entry.key()), !=, true);
+
     		this->loadPage(pos, entry.page());
 
     		MEMORIA_WARNING(entry.key(), !=, entry.page()->gid());
@@ -1537,6 +1587,7 @@ private:
 
     		auto iter = block_map_->select(0, 1);
 
+    		MEMORIA_ASSERT_TRUE(iter.symbol() == 0);
     		MEMORIA_ASSERT_FALSE(iter.isEnd());
 
     		iter.setSymbol(1);
@@ -1612,10 +1663,6 @@ private:
     	Int page_data_size 	= disk_page->page_size();
     	Int ctr_type_hash	= disk_page->ctr_type_hash();
     	Int page_type_hash	= disk_page->page_type_hash();
-
-    	if (page_data_size != block_size) {
-    		int a = 0; a++;
-    	}
 
     	MEMORIA_ASSERT(page_data_size, ==, block_size);
 
@@ -1807,6 +1854,24 @@ private:
     	block_map_->walkTree(walker);
 
     	walker->endSection();
+    }
+
+    bool isAllocated(const ID& id)
+    {
+    	if (constructed_)
+    	{
+    		auto iter = block_map_->seek(id.value() / cfg_.block_size());
+    		if (iter.isEnd())
+    		{
+    			return false;
+    		}
+    		else {
+    			return iter.symbol();
+    		}
+    	}
+    	else {
+    		return true;
+    	}
     }
 
 
