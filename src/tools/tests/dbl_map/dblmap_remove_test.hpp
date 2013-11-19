@@ -54,6 +54,22 @@ public:
     	MEMORIA_ADD_TEST_WITH_REPLAY(testRemove, replayRemove);
     }
 
+    void createDblMap(Ctr& ctr, StdDblMap& std_map, Int size, Int key1_max = 50, Int key2_max = 1000)
+    {
+    	for (Int c = 0; c < size; c++)
+    	{
+    		BigInt key1  = getRandom(key1_max) + 1;
+    		BigInt key2  = getRandom(key2_max) + 1;
+
+    		BigInt value = getRandom(100);
+
+    		std_map[key1][key2] = value;
+
+    		auto iter = ctr.create(key1);
+    		iter.insert2nd(key2, value);
+    	}
+    }
+
 
     void testRemove()
     {
@@ -65,50 +81,13 @@ public:
 
     	StdDblMap std_map;
 
+    	createDblMap(ctr, std_map, this->size_);
 
-    	for (Int c = 0; c < this->size_; c++)
-    	{
-    		BigInt key1  = getRandom(50) + 1;
-    		BigInt key2  = getRandom(100) + 1;
-    		BigInt value = getRandom(100);
-
-    		std_map[key1][key2] = value;
-    	}
-
-    	for (auto entry1: std_map)
-    	{
-    		auto& map = entry1.second;
-
-    		MemBuffer<IOValue> buffer(map.size());
-
-    		Key prefix = 0;
-
-    		for (auto entry2: map)
-    		{
-    			KeyV key; key[0] = entry2.first - prefix;
-
-    			IOValue io_value(key, entry2.second);
-
-    			buffer.put(io_value);
-
-    			prefix = entry2.first;
-    		}
-
-    		auto iter = ctr.create(entry1.first);
-
-    		buffer.reset();
-
-    		iter.insert(buffer);
-    	}
-
-    	this->checkMap(std_map, ctr);
-
-    	allocator.commit();
+    	allocator.flush();
 
     	this->StoreAllocator(allocator, this->getResourcePath("remove-full.dump"));
 
     	try {
-
     		Int check_cnt = 0;
 
     		while (std_map.size() > 0)
@@ -152,7 +131,8 @@ public:
 
     				std_map.erase(key1);
 
-    				ctr.remove(key1);
+    				bool deleted = ctr.remove(key1);
+    				MEMORIA_ASSERT_TRUE(deleted);
     			}
     			else {
     				this->out()<<"Remove from map: "<<key1<<" "<<key2<<std::endl;
@@ -160,9 +140,9 @@ public:
     				std_map[key1].erase(key2);
 
     				auto iter = ctr.find(key1);
-    				MEMORIA_ASSERT_TRUE(iter.found());
+    				MEMORIA_ASSERT_TRUE(iter.is_found_eq(key1));
 
-    				iter.remove2nd(key2);
+    				iter.remove(key2);
     			}
 
     			if (check_cnt % dblmap_check_step_ == 0) {
@@ -207,9 +187,9 @@ public:
     		this->out()<<"Remove from map: "<<key1<<" "<<key2<<std::endl;
 
     		auto iter = ctr.find(key1);
-    		MEMORIA_ASSERT_TRUE(iter.found());
+    		MEMORIA_ASSERT_TRUE(iter.is_found_eq(key1));
 
-    		iter.remove2nd(key2);
+    		iter.remove(key2);
     	}
 
 

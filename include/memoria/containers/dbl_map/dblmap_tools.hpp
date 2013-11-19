@@ -18,6 +18,8 @@
 #include <memoria/core/packed/map/packed_fse_map.hpp>
 #include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
+#include <tuple>
+
 namespace memoria       {
 namespace dblmap        {
 
@@ -239,7 +241,10 @@ public:
         id_entry_   += entry;
         size_       += size;
 
-        second_prefix_ = 0;
+        if (entry > 0)
+        {
+        	second_prefix_ = 0;
+        }
     }
 
 
@@ -316,6 +321,106 @@ public:
 
 
 
+
+
+template <typename Iterator, typename Container>
+class OuterMapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
+    typedef bt::BTreeIteratorCache<Iterator, Container> Base;
+
+    typedef typename Container::Accumulator     								Accumulator;
+
+    Accumulator prefix_;
+    Accumulator current_;
+
+public:
+
+    OuterMapIteratorPrefixCache(): Base(), prefix_(), current_() {}
+
+    const BigInt& prefix(int num = 0) const
+    {
+        return std::get<0>(prefix_)[num];
+    }
+
+    const Accumulator& current() const
+    {
+        return current_;
+    }
+
+    const Accumulator& prefixes() const
+    {
+        return prefix_;
+    }
+
+    Accumulator& prefixes()
+    {
+    	return prefix_;
+    }
+
+    void nextKey(bool end)
+    {
+        VectorAdd(prefix_, current_);
+
+        Clear(current_);
+    };
+
+    void prevKey(bool start)
+    {
+        VectorSub(prefix_, current_);
+
+        Clear(current_);
+    };
+
+    void setup(const Accumulator& prefix)
+    {
+        prefix_ = prefix;
+    }
+
+    void Clear(Accumulator& v) const
+    {
+        std::get<0>(v).clear();
+    }
+
+    void Prepare()
+    {
+    	if (Base::iterator().idx() >= 0)
+    	{
+    		current_ = Base::iterator().entry();
+    	}
+    	else {
+    		Clear(current_);
+    	}
+    }
+};
+
+
+
+template <typename Iterator, typename Container>
+class InnerMapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
+    typedef bt::BTreeIteratorCache<Iterator, Container> Base;
+
+    typedef typename Container::Accumulator     								Accumulator;
+
+    Accumulator prefix_;
+
+public:
+
+    InnerMapIteratorPrefixCache(): Base() {}
+
+    const Accumulator& prefixes() const
+    {
+        return prefix_;
+    }
+
+    Accumulator& prefixes()
+    {
+    	return prefix_;
+    }
+
+    void setup(const Accumulator& prefix)
+    {
+    	prefix_ = prefix;
+    }
+};
 
 
 

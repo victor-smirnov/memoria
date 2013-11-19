@@ -80,10 +80,11 @@ public:
 
 
     // Allocator directory interface part
-    virtual bool hasRoot(BigInt name)
-    {
-        return isCtrSharedRegistered(name); // Is it correct?
-    }
+//    virtual bool hasRoot(BigInt name)
+//    {
+////        throw vapi::Exception(MA_SRC, "Allocator::hasRoot(BigInt) method must be properly implements for this container");
+//    	return isCtrSharedRegistered(name); // Is it correct?
+//    }
 
     virtual void markUpdated(BigInt name)
     {

@@ -373,11 +373,6 @@ public:
 
     const Value& value(Int block, Int idx) const
     {
-        if (idx >= size())
-        {
-            int a = 0; a++;
-        }
-
         MEMORIA_ASSERT(idx, <, size());
         return *(values(block) + idx);
     }
@@ -955,6 +950,8 @@ public:
     void insertSpace(Int idx, Int room_length)
     {
         MEMORIA_ASSERT(idx, <=, this->size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(room_length, >=, 0);
 
         Int capacity = this->capacity();
 

@@ -192,7 +192,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
 
     		if (offset < size)
     		{
-    			if (self.key() > key)
+    			if (self.key2() > key)
     			{
     				if (self.pos() > 0)
     				{
@@ -374,25 +374,7 @@ public:
     	{
     		if (self.key2() == key)
     		{
-    			auto delta = self.raw_key2();
-
-    			self.remove(1);
-
-    			if (self.pos() < self.blob_size())
-    			{
-    				if (self.idx() == self.leaf_size(1))
-    				{
-    					self.nextLeaf();
-    				}
-
-    				LeafDispatcher::dispatch(self.leaf(), AddKey2Fn(), self.idx(), delta);
-
-    				Accumulator sums;
-
-    				std::get<1>(sums)[1] = delta;
-
-    				self.ctr().updateParent(self.leaf(), sums);
-    			}
+    			self.remove2nd();
 
     			return true;
     		}
@@ -402,6 +384,37 @@ public:
     	}
     	else {
     		return false;
+    	}
+    }
+
+
+    void remove2nd()
+    {
+    	auto& self = this->self();
+
+    	typedef StaticVector<Key, 1> 			KeyV;
+    	typedef std::pair<KeyV, Value> 			IOValue;
+
+    	auto delta = self.raw_key2();
+
+    	MEMORIA_ASSERT(self.pos(), <, self.blob_size());
+
+    	self.remove(1);
+
+    	if (self.pos() < self.blob_size())
+    	{
+    		if (self.idx() == self.leaf_size(1))
+    		{
+    			self.nextLeaf();
+    		}
+
+    		LeafDispatcher::dispatch(self.leaf(), AddKey2Fn(), self.idx(), delta);
+
+    		Accumulator sums;
+
+    		std::get<1>(sums)[1] = delta;
+
+    		self.ctr().updateParent(self.leaf(), sums);
     	}
     }
 

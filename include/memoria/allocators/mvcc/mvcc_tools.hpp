@@ -140,8 +140,36 @@ public:
 
 
 
+template <typename TxnMgr, typename Page>
+class TxnUpdateAllocatorProxy: public JournaledAllocatorProxy<IJournaledAllocator<Page> > {
+		typedef JournaledAllocatorProxy<IJournaledAllocator<Page>>				Base;
 
+		typedef typename Base::ID												ID;
 
+		TxnMgr* txn_mgr_;
+
+	public:
+		TxnUpdateAllocatorProxy(TxnMgr* txn_mgr):
+			Base(txn_mgr->allocator()),
+			txn_mgr_(txn_mgr)
+		{}
+
+		virtual ~TxnUpdateAllocatorProxy() = default;
+
+	    virtual ID getRootID(BigInt name) {
+	    	return txn_mgr_->getTxnUpdateHistoryRootID(name);
+	    }
+
+	    virtual void setRoot(BigInt name, const ID& root)
+	    {
+	    	txn_mgr_->setTxnUpdateHistoryRootID(name, root);
+	    }
+
+	    virtual bool hasRoot(BigInt name)
+	    {
+	    	return txn_mgr_->hasTxnUpdateHistoryRootID(name);
+	    }
+	};
 
 
 

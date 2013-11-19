@@ -204,6 +204,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
     	return iter;
     }
 
+    BigInt rank(Int mark)
+    {
+    	return 0;
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 }

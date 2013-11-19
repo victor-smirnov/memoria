@@ -147,11 +147,22 @@ struct BTTypes {
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
     typedef typename Allocator::ID                                              ID;
 
+//    typedef TypeList<
+//    >                                                                           NodeTypesList;
+//
+//    typedef TypeList<
+//    >                                                                           DefaultNodeTypesList;
+
     typedef TypeList<
+            NonLeafNodeTypes<BranchNode>,
+            LeafNodeTypes<LeafNode>
     >                                                                           NodeTypesList;
 
     typedef TypeList<
+            TreeNodeType<LeafNode>,
+            TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
+
 
     typedef TypeList<
     >                                                                           StreamDescriptors;
@@ -234,7 +245,7 @@ public:
     
     typedef typename ContainerTypes::Allocator::Page::ID                        ID;
 
-    //TAGS: #IF_THEN_ELSE_EXAMPLE
+   /* //TAGS: #IF_THEN_ELSE_EXAMPLE
     typedef typename memoria::IfThenElse<
                 IfTypesEqual<
                     typename ContainerTypes::Value,
@@ -243,6 +254,9 @@ public:
                 ID,
                 typename ContainerTypes::Value
     >::Result                                                                   Value;
+    */
+
+    typedef typename ContainerTypes::Value										Value;
 
     static const Int Streams = ListSize<typename ContainerTypes::StreamDescriptors>::Value;
 

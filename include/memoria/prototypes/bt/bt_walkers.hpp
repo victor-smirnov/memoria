@@ -67,7 +67,7 @@ public:
 
     void empty(Iterator& iter)
     {
-        iter.key_idx()  = 0;
+        iter.idx()  = 0;
     }
 
     BigInt sum() const {
@@ -76,6 +76,11 @@ public:
 
     Int stream() const {
         return stream_;
+    }
+
+    Int index() const
+    {
+    	return index_;
     }
 
     const SearchType& search_type() const {

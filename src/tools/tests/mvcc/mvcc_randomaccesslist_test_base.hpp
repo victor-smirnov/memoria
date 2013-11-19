@@ -90,12 +90,12 @@ public:
         MEMORIA_ADD_TEST_PARAM(random_position_)->state();
         MEMORIA_ADD_TEST_PARAM(txn_id_)->state();
 
-        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart,   replayInsertFromStart);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd,       replayInsertAtEnd);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
-
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart,   replayRemoveFromStart);
-        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd,       replayRemoveAtEnd);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart,   replayInsertFromStart);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd,       replayInsertAtEnd);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
+//
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart,   replayRemoveFromStart);
+//        MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd,       replayRemoveAtEnd);
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
     }
 
@@ -314,19 +314,25 @@ public:
                 	 <<" "<<file_allocator.shared_pool_size()
                 	 <<" "<<file_allocator.shared_created()
                 	 <<" "<<file_allocator.shared_deleted()
+                	 <<" txn_id="<<txn->currentTxnId()
                 	 <<endl;
 
                 checkAllocator(*txn.get(), "Insert: Txn Check Failed", MA_SRC);
-                checkAllocator(txn_mgr, "Insert: TxnMgr Check Failed", MA_SRC);
 
                 size = ctr.size();
 
                 txn->commit();
 
+                out()<<"Commited: "<<txn_mgr.currentTxnId()<<endl;
+                checkAllocator(txn_mgr, "Insert: TxnMgr Check Failed", MA_SRC);
+
                 if (clear_cache_) {
                 	file_allocator.clearCache();
                 }
             }
+
+            txn_mgr.compactifyCommitHistory();
+            txn_mgr.flush();
         }
         catch (...) {
             dump_name_ = Store(file_allocator);
@@ -417,8 +423,7 @@ public:
         		txn->commit();
         	}
 
-
-            while (size > 0)
+        	while (size > 0)
             {
                 auto txn = mgr.begin();
 
@@ -429,17 +434,21 @@ public:
                 out()<<"Size: "<<ctr.size()<<endl;
 
                 checkAllocator(*txn.get(), "Remove: Txn Check Failed", MA_SRC);
-                checkAllocator(mgr, "Remove: TxnMgr Check Failed", MA_SRC);
 
                 size = ctr.size();
 
                 txn->commit();
+
+                checkAllocator(mgr, "Remove: TxnMgr Check Failed", MA_SRC);
 
                 if (clear_cache_)
                 {
                 	file_allocator.clearCache();
                 }
             }
+
+        	mgr.compactifyCommitHistory();
+        	mgr.flush();
         }
         catch (...) {
             dump_name_ = Store(file_allocator);
@@ -616,7 +625,13 @@ public:
         skip(iter, -data.size());
         skip(iter, -prefix.size());
 
-        checkBufferWritten(iter, prefix, MA_SRC);
+        try {
+        	checkBufferWritten(iter, prefix, MA_SRC);
+        }
+        catch (...) {
+        	iter.dumpPath();
+        	throw;
+        }
         checkBufferWritten(iter, data,   MA_SRC);
         checkBufferWritten(iter, suffix, MA_SRC);
     }

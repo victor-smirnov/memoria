@@ -608,10 +608,6 @@ public:
 
     virtual PageG getPage(const ID& id, BigInt name)
     {
-    	if (!id.isSet()) {
-    		int a = 0; a++;
-    	}
-
     	MEMORIA_ASSERT_TRUE(id);
 
     	PageCacheEntryType* entry = get_from_log(id);
@@ -622,7 +618,7 @@ public:
 
     		cache_hits_++;
 
-    		createSharedIfNecessary(entry, Shared::UPDATE);
+    		createSharedIfNecessary(entry, Shared::UPDATE)->refresh(); // it is not necessary to refresh here
     	}
     	else {
     		entry = get_entry(id);
@@ -730,6 +726,24 @@ public:
     		}
 
     		pages_log_[id] = entry;
+    	}
+    	else {
+    		 PageCacheEntryType* entry = get_from_log(id);
+    		 if (entry)
+    		 {
+    			 MEMORIA_ASSERT_TRUE(entry->page_op() != PageOp::NONE)
+
+    			 entry->page_op() = PageOp::DELETE;
+
+    			 if (entry->shared())
+    			 {
+    				 MEMORIA_ASSERT_TRUE(entry->shared()->state() != Shared::READ);
+
+    				 // FIXME it isn't really necessary to inform PageGuards that the page is marked deleted
+    				 entry->shared()->state() = Shared::DELETE;
+    				 entry->shared()->refresh();
+    			 }
+    		 }
     	}
     }
 
@@ -1059,6 +1073,8 @@ public:
     				entry->shared()->state() = Shared::READ;
     				entry->shared()->set_page(entry->front_page());
 
+    				entry->shared()->refresh();
+
     				read_locked_++;
     			}
 
@@ -1135,8 +1151,22 @@ public:
     void dumpStat()
     {
     	cout<<"PageLog: "<<pages_log_.size()<<" "<<deleted_log_.size()<<" "
-    	    <<cache_hits_<<" "<<cache_misses_<<" "<<stored_<<" "<<updated_
+    	    <<cache_hits_<<" "<<cache_misses_<<" "<<stored_<<" "<<created_<<" "<<updated_
     	    <<" "<<deleted_<<endl;
+    }
+
+    void dumpPage(const PageG& page)
+    {
+    	auto page_metadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+
+    	vapi::dumpPageData(page_metadata, page.page(), std::cout);
+    }
+
+    void dumpPage(const Page* page)
+    {
+    	auto page_metadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+
+    	vapi::dumpPageData(page_metadata, page, std::cout);
     }
 
     void clearCache()
@@ -1195,6 +1225,8 @@ public:
     			{
     				entry->shared()->state() = Shared::READ;
     				entry->shared()->set_page(entry->page());
+
+    				entry->shared()->refresh();
 
     				read_locked_++;
     			}
@@ -1263,7 +1295,10 @@ public:
 
     		PageG page 		= this->getPage(root_id, ctr_name);
 
-    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+    		Int master_hash = page->master_ctr_type_hash();
+    		Int ctr_hash 	= page->ctr_type_hash();
+
+    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
     		ctr_meta->getCtrInterface()->walk(&page->gid(), ctr_name, this, walker);
 
@@ -1391,11 +1426,7 @@ private:
 
     		this->loadPage(pos, entry.page());
 
-    		if (entry.key() != entry.page()->gid()) {
-    			int a = 0; a++;
-    		}
-
-    		MEMORIA_ASSERT(entry.key(), ==, entry.page()->gid());
+    		MEMORIA_WARNING(entry.key(), !=, entry.page()->gid());
     	});
     }
 
@@ -1405,6 +1436,10 @@ private:
     	if (!entry->shared())
     	{
     		return createShared(entry, op);
+    	}
+    	else if (op == Shared::UPDATE && entry->shared()->state() == Shared::READ)
+    	{
+    		return updateShared(entry);
     	}
 
     	return entry->shared();
@@ -1428,6 +1463,21 @@ private:
     		read_locked_++;
     	}
 
+    	shared_created_++;
+
+    	return shared;
+    }
+
+    MyShared* updateShared(PageCacheEntryType* entry)
+    {
+    	MyShared* shared = entry->shared();
+
+    	shared->set_page(entry->current_page());
+    	shared->state() = Shared::UPDATE;
+
+    	shared->refresh();
+
+    	read_locked_--;
     	shared_created_++;
 
     	return shared;
@@ -1465,6 +1515,7 @@ private:
     	if (entry->shared())
     	{
     		entry->shared()->entry() = nullptr;
+    		entry->shared()->resetPage();
     	}
 
     	delete entry;

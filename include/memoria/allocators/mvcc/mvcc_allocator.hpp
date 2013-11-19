@@ -50,10 +50,12 @@ public:
 
 	typedef MVCCTxn<Profile, MyType, PageType>									TxnImpl;
 
-	typedef typename CtrTF<Profile, DblMrkMap<BigInt, ID, 2>>::Type				CommitHistory;
+	typedef typename CtrTF<Profile, DblMrkMap2<BigInt, ID, 2>>::Type			CommitHistory;
 	typedef typename CtrTF<Profile, Map<BigInt, ID>>::Type						Roots;
 	typedef typename CtrTF<Profile, SMrkMap<BigInt, ID, 2>>::Type				TxnHistory;
-	typedef typename CtrTF<Profile, Vector<BigInt>>::Type						TxnLog;
+	typedef typename CtrTF<Profile, Map<BigInt, UByte>>::Type					TxnLog;
+
+	typedef std::unique_ptr<TxnLog>												TxnLogPtr;
 
 	typedef typename TxnHistory::Types::Value									TxnHistoryValue;
 
@@ -153,8 +155,73 @@ public:
 
 private:
 
-	// memory pool for PageShared objects
+	class TxnLogAllocator: public JournaledAllocatorProxy<IJournaledAllocator<PageType>> {
+		typedef JournaledAllocatorProxy<IJournaledAllocator<PageType>> 			Base;
 
+		TxnLog& txn_log_;
+
+	public:
+		TxnLogAllocator(Allocator* allocator, TxnLog& txn_log):
+			Base(allocator),
+			txn_log_(txn_log)
+		{}
+
+	    virtual PageG getPageForUpdate(const ID& id, BigInt name)
+	    {
+	    	auto iter = txn_log_.findKeyGE(id);
+
+	    	if (!iter.is_found_eq(id))
+	    	{
+	    		iter.insert(id, 0);
+	    	}
+
+	    	return this->allocator()->getPageForUpdate(id, name);
+	    }
+
+
+	    virtual PageG updatePage(Shared* shared, BigInt name)
+	    {
+	    	PageG page = this->allocator()->updatePage(shared, name);
+
+	    	ID id = page->id();
+
+	    	auto iter = txn_log_.findKeyGE(id);
+
+	    	if (!iter.is_found_eq(id))
+	    	{
+	    		iter.insert(id, 0);
+	    	}
+
+	    	return page;
+	    }
+
+	    virtual void removePage(const ID& id, BigInt name)
+	    {
+	    	this->allocator()->removePage(id, name);
+	    }
+
+	    virtual PageG createPage(Int initial_size, BigInt name)
+	    {
+	    	PageG page = this->allocator()->createPage(initial_size, name);
+
+	    	ID id = page->id();
+
+	    	auto iter = txn_log_.findKeyGE(id);
+
+	    	MEMORIA_ASSERT_FALSE(iter.is_found_eq(id));
+
+	    	iter.insert(id, 0);
+
+	    	return page;
+	    }
+	};
+
+
+	TxnUpdateAllocatorProxy<MyType, PageType> update_allocator_proxy_;
+
+	Int commit_history_cnt_ = 0;
+
+	// memory pool for PageShared objects
 	SharedPool		shared_pool_;
 	PageSharedMap	allocated_shared_objects_;
 
@@ -178,6 +245,7 @@ public:
 
 	MVCCAllocator(Allocator* allocator):
 		Base(allocator),
+		update_allocator_proxy_(this),
 		shared_pool_(256, 256),
 		metadata_(MetadataRepository<Profile>::getMetadata()),
 		allocator_(allocator),
@@ -190,7 +258,6 @@ public:
 		if (commit_history_.size() == 0)
 		{
 			// create initial CtrDirectory
-
 			last_commited_txn_id_ = allocator_->properties().newTxnId();
 
 			ctr_directory_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_CREATE, CtrDirectoryName));
@@ -200,8 +267,6 @@ public:
 			allocator_->properties().setMVCC(true);
 		}
 		else {
-//			commit_history_.Begin().dump();
-
 			last_commited_txn_id_ = allocator_->properties().lastCommitId();
 
 			ctr_directory_ = CtrDirectoryPtr(new CtrDirectory(this, CTR_FIND, CtrDirectoryName));
@@ -236,7 +301,7 @@ public:
 	{
 		auto iter = commit_history_.find(id);
 
-		if (iter.found())
+		if (iter.is_found_eq(id))
 		{
 			if (iter.find2ndLE(txn_id))
 			{
@@ -244,7 +309,7 @@ public:
 
 				PageG page = allocator_->getPage(gid, name);
 
-				MEMORIA_ASSERT(page->id(), ==, id);
+				MEMORIA_WARNING(page->id(), !=, id);
 
 				return wrapPageG(page);
 			}
@@ -419,17 +484,29 @@ public:
 
 		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::UPDATED), 1);
 
+		TxnLog txn_log(&update_allocator_proxy_, CTR_CREATE, last_commited_txn_id_);
+
+		{
+			auto iter = txn_history_.findKeyGE(last_commited_txn_id_);
+			MEMORIA_ASSERT_TRUE(iter.is_found_eq(last_commited_txn_id_));
+			iter.setMark(toInt(TxnStatus::COMMITED));
+		}
+
+		TxnLogAllocator txn_log_allocator(this, txn_log);
+
+		CtrDirectory ctr_directory(&txn_log_allocator, CTR_FIND, CtrDirectoryName);
+
 		while (!txn_iter.isEnd())
 		{
 			BigInt name = txn_iter.key();
 			ID id = txn_iter.value().value().value();
 
-			auto iter = ctr_directory_->findKeyGE(name);
+			auto iter = ctr_directory.findKeyGE(name);
 			MEMORIA_ASSERT_TRUE(iter.is_found_eq(name));
 
 			iter.value() = CtrDirectoryValue(last_commited_txn_id_, id);
 
-			importPages(txn.update_log(), name);
+			importPages(txn.update_log(), txn_log,  name);
 
 			txn_iter++;
 			txn_iter.selectFw(toInt(EntryStatus::UPDATED), 1);
@@ -443,12 +520,12 @@ public:
 			BigInt name = txn_iter.key();
 			ID id = txn_iter.value().value().value();
 
-			auto iter = ctr_directory_->findKeyGE(name);
+			auto iter = ctr_directory.findKeyGE(name);
 			MEMORIA_ASSERT_TRUE(!iter.is_found_eq(name));
 
 			iter.insert(name, CtrDirectoryValue(last_commited_txn_id_, id), toInt(EntryStatus::CLEAN));
 
-			importPages(txn.update_log(), name);
+			importPages(txn.update_log(), txn_log, name);
 
 			txn_iter++;
 			txn_iter.selectFw(toInt(EntryStatus::CREATED), 1);
@@ -462,7 +539,7 @@ public:
 		{
 			BigInt name = txn_iter.key();
 
-			auto iter = ctr_directory_->findKeyGE(name);
+			auto iter = ctr_directory.findKeyGE(name);
 
 			if (iter.is_found_eq(name))
 			{
@@ -472,12 +549,19 @@ public:
 				txn_iter++;
 			}
 
-			importPages(txn.update_log(), name);
+			importPages(txn.update_log(), txn_log, name);
 
 			txn_iter.selectFw(toInt(EntryStatus::DELETED), 1);
 		}
 
 		allocator_->properties().setLastCommitId(last_commited_txn_id_);
+
+		if (commit_history_cnt_ % 5 == 0)
+		{
+			compactifyCommitHistory();
+		}
+
+		commit_history_cnt_++;
 
 		allocator_->flush();
 
@@ -496,7 +580,7 @@ public:
     {
     	auto iter = commit_history_.find(id);
 
-    	if (iter.found())
+    	if (iter.is_found_eq(id))
     	{
     		if (iter.find2ndLE(last_commited_txn_id_))
     		{
@@ -526,7 +610,7 @@ public:
     {
     	auto iter = commit_history_.find(id);
 
-    	if (iter.found())
+    	if (iter.is_found_eq(id))
     	{
     		if (iter.find2ndLE(last_commited_txn_id_))
     		{
@@ -578,7 +662,7 @@ public:
 
 		auto iter = commit_history_.find(id);
 
-		if (iter.found())
+		if (iter.is_found_eq(id))
 		{
 			if (iter.find2ndLE(last_commited_txn_id_))
 			{
@@ -621,7 +705,7 @@ public:
 	{
 		auto iter = commit_history_.find(id);
 
-		if (iter.found())
+		if (iter.is_found_eq(id))
 		{
 			if (iter.find2ndLE(last_commited_txn_id_))
 			{
@@ -667,7 +751,7 @@ public:
 		ID new_id		= allocator_->newId();
 		new_page->id()	= new_id;
 
-		auto iter = commit_history_.create(new_id);
+		auto iter = commit_history_.createNew(new_id);
 
 		iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::CREATED), new_gid));
 
@@ -822,7 +906,10 @@ public:
 
     		PageG page 		= this->getPage(root_id, ctr_name);
 
-    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+    		Int master_hash = page->master_ctr_type_hash();
+    		Int ctr_hash 	= page->ctr_type_hash();
+
+    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
     		ctr_meta->getCtrInterface()->walk(&page->id(), ctr_name, this, walker);
 
@@ -891,8 +978,6 @@ private:
 		{
 			ID id = iter.key();
 
-			iter.findData();
-
 			while (!iter.isEof())
 			{
 				BigInt txn_id 				= iter.key2();
@@ -935,8 +1020,6 @@ private:
 
 			walker->beginSection((SBuf()<<id).str().c_str());
 
-			iter.findData();
-
 			while (!iter.isEof())
 			{
 				BigInt txn_id 				= iter.key2();
@@ -970,19 +1053,26 @@ private:
 	{
 		walker->beginSection("Transactions");
 
-		typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes> RootMap;
+		TxnHistory txn_history(allocator_, CTR_FIND, TxnHistoryName);
 
-		RootMap root_map(allocator_, CTR_FIND, 2);
-
-		auto iter = root_map.findKeyGE(10000);
+		auto iter = txn_history.Begin();
 
 		while (!iter.isEnd())
 		{
 			BigInt txn_id = iter.key();
+			TxnStatus status = static_cast<TxnStatus>(iter.mark());
 
-			auto txn = this->findTxn(txn_id);
+			if (status == TxnStatus::ACTIVE)
+			{
+				auto txn = this->findTxn(txn_id);
 
-			txn->walkContainers(walker);
+				txn->walkContainers(walker);
+			}
+			else
+			{
+				TxnLog txn_log(&update_allocator_proxy_, CTR_FIND, txn_id);
+				txn_log.walkTree(walker);
+			}
 
 			iter++;
 		}
@@ -992,12 +1082,10 @@ private:
 
 
 	template <typename Ctr>
-	void importPages(Ctr& ctr, BigInt name)
+	void importPages(Ctr& ctr, TxnLog& txn_log, BigInt name)
 	{
 		auto iter = ctr.find(name);
-		MEMORIA_ASSERT_TRUE(iter.found());
-
-		iter.findData();
+		MEMORIA_ASSERT_TRUE(iter.is_found_eq(name));
 
 		while (!iter.isEof())
 		{
@@ -1013,20 +1101,26 @@ private:
 				auto h_iter = commit_history_.createNew(id);
 
 				h_iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::CREATED), gid));
+
+				txn_log[id].value() = toInt(EntryStatus::CREATED);
 			}
 			else if (status == EntryStatus::UPDATED)
 			{
 				auto h_iter = commit_history_.find(id);
-				MEMORIA_ASSERT_TRUE(h_iter.found());
+				MEMORIA_ASSERT_TRUE(h_iter.is_found_eq(id));
 
 				h_iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), gid));
+
+				txn_log[id].value() = toInt(EntryStatus::UPDATED);
 			}
 			else if (status == EntryStatus::DELETED)
 			{
 				auto h_iter = commit_history_.find(id);
-				MEMORIA_ASSERT_TRUE(h_iter.found());
+				MEMORIA_ASSERT_TRUE(h_iter.is_found_eq(id));
 
 				h_iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::DELETED), ID(0)));
+
+				txn_log[id].value() = toInt(EntryStatus::DELETED);
 			}
 			else {
 				throw vapi::Exception(MA_SRC, SBuf()<<"Unknown entry status value: "<<toInt(status));
@@ -1035,6 +1129,204 @@ private:
 //			MEMORIA_ASSERT_FALSE(checkDictionaries());
 
 			iter.skipFw(1);
+		}
+	}
+public:
+	void compactifyCommitHistory()
+	{
+		auto stop  = findMergeTxnHistoryTop();
+
+		if (!stop.isBegin())
+		{
+			auto start = findTxnHistoryStart();
+
+			cout<<"Merge Txns: "<<start.key()<<" "<<stop.key()<<" last="<<last_commited_txn_id_<<endl;
+
+			mergePages(start.key(), stop.key());
+//			mergePages(10003, stop.key());
+
+			BigInt top = stop.key();
+
+			while (start.key() < top)
+			{
+				MEMORIA_ASSERT(start.mark(), ==, toInt(TxnStatus::COMMITED));
+
+				cout<<" Remove txn: "<<start.key()<<endl;
+
+				//fixme: txn log is removed in different iterator!!!!!
+				TxnLog txn_log(&update_allocator_proxy_, CTR_FIND, start.key());
+				txn_log.drop();
+			}
+		}
+	}
+
+private:
+	typename TxnHistory::Iterator findTxnHistoryStart()
+	{
+		return txn_history_.select(toInt(TxnStatus::COMMITED), 1);
+	}
+
+	typename TxnHistory::Iterator findMergeTxnHistoryTop()
+	{
+		auto iter = txn_history_.select(toInt(TxnStatus::ACTIVE), 1);
+
+		iter--;
+
+		return iter;
+	}
+
+
+	void mergePages(BigInt base_txn_id, BigInt max_txn_id)
+	{
+		if (max_txn_id > base_txn_id)
+		{
+			auto iter = commit_history_.Begin();
+
+			while (!iter.isEnd())
+			{
+				mergePages(iter, base_txn_id, max_txn_id);
+
+				if (iter.blob_size() == 0)
+				{
+					auto iter2 = iter;
+
+					ID next_id(0);
+
+					if (iter2++)
+					{
+						next_id = iter2.key();
+					}
+
+					commit_history_.remove(iter.key());
+
+					if (next_id.isSet())
+					{
+						iter = commit_history_.find(next_id);
+					}
+					else {
+						break;
+					}
+				}
+				else
+				{
+					iter++;
+				}
+			}
+
+
+			iter = commit_history_.Begin();
+
+			while (!iter.isEnd())
+			{
+				dumpTxns(iter, 10003, max_txn_id);
+
+				iter++;
+			}
+
+		}
+	}
+
+	void dumpTxns(typename CommitHistory::Iterator& iter)
+	{
+		auto i1 = iter;
+
+		if (i1.pos() > 0) {
+			i1.skipBw(i1.pos());
+		}
+
+		cout<<"  Txns: ";
+
+		while (!i1.isEof())
+		{
+			cout<<i1.key2()<<", ";
+			i1.skipFw(1);
+		}
+
+		cout<<endl;
+	}
+
+	void dumpTxns(typename CommitHistory::Iterator& iter, BigInt base, BigInt max)
+	{
+		auto i1 = iter;
+
+		i1.findKeyGE(base);
+
+		stringstream ss;
+
+		ss<<"  Txns: "<<ID(iter.key())<<" ";
+
+		Int cnt = 0;
+
+		while ((!i1.isEof()) && i1.key2() < max)
+		{
+			ss<<i1.key2()<<", ";
+			i1.skipFw(1);
+
+			cnt++;
+		}
+
+		ss<<" Total="<<cnt<<endl;
+
+		if (cnt > 0) {
+			cout<<ss.str();
+		}
+	}
+
+	void mergePages(typename CommitHistory::Iterator& iter, BigInt base_txn_id, BigInt max_txn_id)
+	{
+		auto top = iter;
+
+		if (iter.findKeyGE(base_txn_id))
+		{
+			if (iter.key() < max_txn_id)
+			{
+				BigInt pos = iter.pos();
+
+				if (top.findKeyLE(max_txn_id))
+				{
+					BigInt top_txn_id = top.key2();
+
+					while(iter.key2() < top_txn_id)
+					{
+						CommitHistoryValue entry = iter.value();
+
+						EntryStatus status 	= static_cast<EntryStatus>(entry.first);
+						ID gid 				= entry.second;
+
+						if (status != EntryStatus::DELETED)
+						{
+							MEMORIA_ASSERT_TRUE(gid.isSet());
+							allocator_->removePage(gid, -1);
+						}
+
+						iter.remove();
+					}
+
+					MEMORIA_ASSERT(iter.key2(), ==, top_txn_id);
+
+					if (top_txn_id < max_txn_id)
+					{
+						iter.updateKey2(max_txn_id - top_txn_id);
+						MEMORIA_ASSERT(iter.key2(), ==, max_txn_id);
+					}
+
+					if (pos > 0)
+					{
+						CommitHistoryValue entry = iter.value();
+						EntryStatus status = static_cast<EntryStatus>(entry.first);
+
+						if (status == EntryStatus::DELETED)
+						{
+							iter.remove();
+						}
+						else if (status == EntryStatus::UPDATED)
+						{
+							entry.first = toInt(EntryStatus::CREATED);
+							iter.setValue(entry);
+						}
+					}
+				}
+			}
 		}
 	}
 

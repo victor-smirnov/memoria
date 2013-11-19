@@ -12,6 +12,7 @@
 #include "dblmap_create_test.hpp"
 #include "dblmap_remove_test.hpp"
 
+#include "dblmap2_test.hpp"
 
 namespace memoria {
 
@@ -21,11 +22,13 @@ public:
 
     DblMapTestSuite(): TestSuite("DblMapSuite")
     {
-        registerTask(new DblMapCreateTest<DblMap<BigInt, BigInt>>("Create"));
-        registerTask(new DblMapCreateTest<DblMrkMap<BigInt, BigInt, 1>>("Mrk.Create"));
+//        registerTask(new DblMapCreateTest<DblMap<BigInt, BigInt>>("Create"));
+        registerTask(new DblMapCreateTest<DblMrkMap2<BigInt, BigInt, 1>>("Mrk.Create"));
+//
+//        registerTask(new DblMapRemoveTest<DblMap<BigInt, BigInt>>("Remove"));
+        registerTask(new DblMapRemoveTest<DblMrkMap2<BigInt, BigInt, 1>>("Mrk.Remove"));
 
-        registerTask(new DblMapRemoveTest<DblMap<BigInt, BigInt>>("Remove"));
-        registerTask(new DblMapRemoveTest<DblMrkMap<BigInt, BigInt, 1>>("Mrk.Remove"));
+//    	registerTask(new DblMap2Test("Mrk.Misc"));
     }
 
 };

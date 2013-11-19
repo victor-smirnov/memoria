@@ -101,13 +101,13 @@ public:
 
     void dumpEntries(Iterator& iter)
     {
-    	iter.findData();
+//    	iter.findData();
 
     	int c = 0;
 
     	while (!iter.isEof())
     	{
-    		this->out()<<"Entry: "<<iter.key2()<<" "<<iter.value()<<" "<<iter.cache().second_prefix()<<" "<<iter.pos()<<std::endl;
+    		this->out()<<"Entry: "<<iter.key2()<<" "<<iter.value()<<" "<<iter.pos()<<std::endl;
 
     		if (c >= 5) {
     			int a = 0; a++;
@@ -165,9 +165,8 @@ public:
 
     		auto iter1 = iter;
 
-    		iter1.findData();
-
     		AssertEQ(MA_SRC, iter1.id(), key);
+
     		AssertEQ(MA_SRC, iter1.blob_size(), map2.size());
 
     		auto m_iter = map2.begin();

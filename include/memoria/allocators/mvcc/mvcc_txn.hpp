@@ -40,7 +40,7 @@ public:
 
 	typedef typename Base::CtrShared                                         	CtrShared;
 
-	typedef typename CtrTF<Profile, DblMrkMap<BigInt, ID, 2>>::Type				UpdateLog;
+	typedef typename CtrTF<Profile, DblMrkMap2<BigInt, ID, 2>>::Type			UpdateLog;
 
 	typedef std::unordered_map<BigInt, CtrShared*>                              CtrSharedMap;
 
@@ -58,37 +58,9 @@ public:
 
 private:
 
-	class UpdateLogAllocatorProxy: public JournaledAllocatorProxy<Allocator> {
-		typedef JournaledAllocatorProxy<Allocator>			Base;
-
-		TxnMgr* txn_mgr_;
-
-	public:
-		UpdateLogAllocatorProxy(TxnMgr* txn_mgr):
-			Base(txn_mgr->allocator()),
-			txn_mgr_(txn_mgr)
-		{}
-
-	    virtual ID getRootID(BigInt name) {
-	    	return txn_mgr_->getTxnUpdateHistoryRootID(name);
-	    }
-
-	    virtual void setRoot(BigInt name, const ID& root)
-	    {
-	    	txn_mgr_->setTxnUpdateHistoryRootID(name, root);
-	    }
-
-	    virtual bool hasRoot(BigInt name)
-	    {
-	    	return txn_mgr_->hasTxnUpdateHistoryRootID(name);
-	    }
-	};
-
+	TxnUpdateAllocatorProxy<TxnMgr, PageType> update_log_allocator_proxy_;
 
 	// memory pool for PageShared objects
-
-	UpdateLogAllocatorProxy update_log_allocator_proxy_;
-
 	SharedPool		shared_pool_;
 	PageSharedMap	allocated_shared_objects_;
 
@@ -155,19 +127,7 @@ public:
 	{
 		auto iter = update_log_.find(name);
 
-		bool found;
-
-		if (iter.found())
-		{
-			iter.find2ndGE(id);
-
-			found = (!iter.isEof()) && iter.key2() == id;
-		}
-		else {
-			found = false;
-		}
-
-		if (!found)
+		if (!(iter.is_found_eq(name) && find2ndEQ(iter, id)))
 		{
 			PageG old_page = txn_mgr_->getPage(txn_id_, id, name);
 
@@ -184,7 +144,7 @@ public:
 				new_page->gid() = new_gid;
 				new_page->id() 	= id;
 
-				if (!iter.found())
+				if (!iter.is_found_eq(name))
 				{
 					iter = update_log_.create(name);
 				}
@@ -226,10 +186,13 @@ public:
 
 		ID id = shared->id();
 
-		auto iter = findGIDInHistory(id, name);
+		auto iter = update_log_.find(name);
 
-		if (h_is_not_found(iter, id))
+		if (iter.is_found_eq(name) && find2ndEQ(iter, id))
 		{
+			return wrapPageG(shared, allocator_->updatePage(shared->delegate(), name));
+		}
+		else {
 			Int page_size = shared->get()->page_size();
 
 			PageG new_page 	= allocator_->createPage(page_size, name);
@@ -240,34 +203,23 @@ public:
 			new_page->gid() = new_gid;
 			new_page->id() 	= id;
 
-			if (!iter.found())
+			if (!iter.is_found_eq(name))
 			{
-				iter = update_log_.create(name);
+				iter = update_log_.createNew(name);
 			}
 
 			iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::UPDATED), new_gid));
 
 			return wrapPageG(new_page);
 		}
-		else {
-			return wrapPageG(shared, allocator_->updatePage(shared->delegate(), name));
-		}
 	}
 
 	virtual void removePage(const ID& id, BigInt name)
 	{
-		auto iter = findGIDInHistory(id, name);
+		auto iter = update_log_.find(name);
 
-		if (h_is_not_found(iter, id))
+		if (iter.is_found_eq(name) && find2ndEQ(iter, id))
 		{
-			if (!iter.found())
-			{
-				iter = update_log_.create(name);
-			}
-
-			iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::DELETED), ID(0))); // mark the page deleted
-		}
-		else {
 			UpdateLogValue value 	= iter.value();
 			ID gid 					= value.second;
 
@@ -275,12 +227,20 @@ public:
 			{
 				allocator_->removePage(gid, name);
 
-				iter.value() = UpdateLogValue(toInt(EntryStatus::DELETED), ID(0));
+				iter.setValue(UpdateLogValue(toInt(EntryStatus::DELETED), ID(0)));
 			}
 			else {
 				//throw vapi::Exception(MA_SRC, SBuf()<<"Page id="<<id<<" gid="<<gid<<" has been already deleted.");
 				cout<<"Page id="<<id<<" gid="<<gid<<" has been already deleted."<<endl;
 			}
+		}
+		else {
+			if (!iter.is_found_eq(name))
+			{
+				iter = update_log_.create(name);
+			}
+
+			iter.insert2nd(id, UpdateLogValue(toInt(EntryStatus::DELETED), ID(0))); // mark the page deleted
 		}
 
 		// Is it necessary to mark existing page guards DELETEd?
@@ -296,9 +256,9 @@ public:
 
 		auto iter = update_log_.find(name);
 
-		if (!iter.found())
+		if (!iter.is_found_eq(name))
 		{
-			iter = update_log_.create(name);
+			iter = update_log_.createNew(name);
 		}
 
 		iter.insert2nd(new_id, UpdateLogValue(toInt(EntryStatus::CREATED), new_gid));
@@ -446,8 +406,6 @@ public:
 		{
 			BigInt name = iter.key();
 
-			iter.findData();
-
 			while(!iter.isEof())
 			{
 				UpdateLogValue entry = iter.value();
@@ -560,8 +518,6 @@ private:
 
     		walker->beginSection((SBuf()<<name).str().c_str());
 
-    		iter.findData();
-
     		while (!iter.isEof())
     		{
     			ID id 					= iter.key2();
@@ -591,31 +547,16 @@ private:
     	walker->endSection();
     }
 
+
 	void clean() {
 		update_log_.drop();
 		allocator_->flush();
 	}
 
-	bool h_is_not_found(const typename UpdateLog::Iterator& iter, const ID& id) const
+
+	bool find2ndEQ(typename UpdateLog::Iterator& iter, const ID& id)
 	{
-		return (!iter.found()) || iter.isEof() || iter.key2() != id;
-	}
-
-	bool h_is_found(const typename UpdateLog::Iterator& iter, const ID& id) const
-	{
-		return iter.found() && (!iter.isEof()) && iter.key2() == id;
-	}
-
-	typename UpdateLog::Iterator findGIDInHistory(const ID& id, BigInt name)
-	{
-		auto iter = update_log_.find(name);
-
-		if (iter.found())
-		{
-			iter.find2ndGE(id);
-		}
-
-		return iter;
+		return iter.findKeyGE(id) && iter.key2() == id;
 	}
 
 

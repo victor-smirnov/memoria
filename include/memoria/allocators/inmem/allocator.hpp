@@ -769,7 +769,10 @@ public:
 
     		PageG page 		= this->getPage(root_id, Base::READ, ctr_name);
 
-    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+    		Int master_hash = page->master_ctr_type_hash();
+    		Int ctr_hash 	= page->ctr_type_hash();
+
+    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
     		ctr_meta->getCtrInterface()->walk(&page->gid(), ctr_name, this, walker);
 

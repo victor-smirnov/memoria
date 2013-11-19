@@ -568,6 +568,10 @@ public:
         this->page_ = static_cast<PageT*>(page);
     }
 
+    void resetPage() {
+    	this->page_ = nullptr;
+    }
+
     Int ref() {
         return ++references_;
     }
@@ -646,7 +650,8 @@ public:
 
     void init()
     {
-        references_ = 0;
+        id_			= 0;
+    	references_ = 0;
         state_      = READ;
         page_       = nullptr;
         allocator_  = nullptr;
@@ -855,7 +860,7 @@ public:
 
     void update(BigInt name)
     {
-        if (shared_) //  && !shared_->updated()
+        if (shared_)// && !shared_->updated())
         {
             auto guard = shared_->allocator()->updatePage(shared_, name);
 

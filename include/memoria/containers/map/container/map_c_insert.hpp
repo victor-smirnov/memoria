@@ -49,21 +49,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMap<StreamTypes>* map, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(map!= nullptr);
+            MEMORIA_ASSERT_TRUE(map);
             map->insert(idx, std::get<Idx>(element_.first), element_.second);
         }
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedVLEMap<StreamTypes>* map, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(map!= nullptr);
+            MEMORIA_ASSERT_TRUE(map);
             map->insert(idx, std::get<Idx>(element_.first), element_.second);
         }
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
         {
-        	MEMORIA_ASSERT_TRUE(map!= nullptr);
+        	MEMORIA_ASSERT_TRUE(map);
         	map->insert(idx, std::get<Idx>(element_.first), element_.second);
         }
 

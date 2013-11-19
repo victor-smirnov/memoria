@@ -38,11 +38,16 @@ protected:
 
     Int dblmap_check_step_ = 10;
 
+    Int key1_max_ = 50;
+    Int key2_max_ = 1000;
+
 public:
 
     DblMapCreateTest(StringRef name): Base(name)
     {
     	MEMORIA_ADD_TEST_PARAM(dblmap_check_step_);
+    	MEMORIA_ADD_TEST_PARAM(key1_max_);
+    	MEMORIA_ADD_TEST_PARAM(key2_max_);
 
     	MEMORIA_ADD_TEST_WITH_REPLAY(testCreate, replayCreate);
     }
@@ -64,8 +69,8 @@ public:
 
     		for (Int c = 0; c < this->size_; c++)
     		{
-    			BigInt key1  = this->key1_ = getRandom(50) + 1;
-    			BigInt key2  = this->key2_ = getRandom(1000) + 1;
+    			BigInt key1  = this->key1_ = getRandom(key1_max_) + 1;
+    			BigInt key2  = this->key2_ = getRandom(key2_max_) + 1;
 
     			BigInt value = this->value_ = getRandom(100);
 
@@ -73,6 +78,8 @@ public:
 
     			auto iter = ctr.create(key1);
     			iter.insert2nd(key2, value);
+
+    			this->check(allocator, MA_SRC);
 
     			this->out()<<"inserted: "<<key1<<" "<<key2<<" "<<value<<std::endl;
 

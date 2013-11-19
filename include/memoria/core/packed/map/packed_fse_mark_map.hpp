@@ -30,6 +30,7 @@ struct MarkedValue {
 	MarkedValue(Int mark, const Value& value): first(mark), second(value) {}
 	MarkedValue(const Value& value): first(0), second(value) {}
 
+
 	MyType& operator=(const MyType& other)
 	{
 		first 	= other.first;
@@ -296,6 +297,18 @@ public:
         CopyBuffer(values + idx, values + idx + 1, size - idx);
 
         values[idx] = value.second;
+    }
+
+    void insert(Int idx, const Values2& keys2, const Value& value)
+    {
+    	Values keys;
+
+    	for (Int c = 0; c < Values::Indexes; c++)
+    	{
+    		keys[c] = keys2[c + 1];
+    	}
+
+    	this->insert(idx, keys, value);
     }
 
 

@@ -33,6 +33,10 @@ protected:
 
 	typedef CtrTF<FileProfile<>, Vector<Int>>::Type								VectorCtr;
 
+	typedef typename Allocator::ID												ID;
+
+	typedef typename CtrTF<FileProfile<>, DblMrkMap2<BigInt, ID, 2>>::Type		Map2Ctr;
+
 public:
 
 	MVCCCreateTest(StringRef name): Base(name)
@@ -53,15 +57,9 @@ public:
 		String name = getResourcePath("create.db");
 		Allocator allocator(name, OpenMode::RWCT);
 
-		dumpStat(allocator);
-
 		TxnMgr mgr(&allocator);
 
-		dumpStat(allocator);
-
 		VectorCtr ctr(&mgr, CTR_CREATE);
-
-		dumpStat(allocator);
 
 		BigInt ctr_name = ctr.name();
 
@@ -71,7 +69,9 @@ public:
 		ctr.seek(0).insert(data);
 		ctr.seek(0).insert(data);
 
-		mgr.flush();
+		allocator.flush();
+
+		mgr.dumpAllocator(this->getResourcePath("mvcc"));
 
 		allocator.close();
 
@@ -80,6 +80,30 @@ public:
 		TxnMgr mgr2(&allocator2);
 
 		assertCtrContent(mgr2, ctr_name, 30000);
+	}
+
+	void testCreate1()
+	{
+		String name = getResourcePath("create.db");
+		Allocator allocator(name, OpenMode::RWCT);
+
+		Map2Ctr ctr(&allocator, CTR_CREATE);
+
+		for (int c = 1; c <= 3; c++)
+		{
+			auto iter = ctr.create(c);
+
+			int max = c == 2 ? 2000 : 20;
+
+			for (int d = 1; d < max; d++)
+			{
+				iter.insert(d, ID(d));
+			}
+		}
+
+
+		allocator.flush();
+
 	}
 
 	void testSingleTxn()
@@ -166,6 +190,15 @@ public:
 
 
 	void assertCtrContent(TxnMgr& mgr, BigInt name, BigInt size)
+	{
+		VectorCtr ctr(&mgr, CTR_FIND, name);
+		AssertEQ(MA_SRC, ctr.size(), size);
+
+		vector<Int> v = ctr.seek(0).subVector(size);
+		AssertEQ(MA_SRC, v.size(), (size_t)size);
+	}
+
+	void assertCtrContent(Allocator& mgr, BigInt name, BigInt size)
 	{
 		VectorCtr ctr(&mgr, CTR_FIND, name);
 		AssertEQ(MA_SRC, ctr.size(), size);

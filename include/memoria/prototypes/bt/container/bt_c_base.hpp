@@ -471,6 +471,18 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     	node.update(self().master_name());
     }
 
+
+    virtual bool hasRoot(BigInt name)
+    {
+    	MEMORIA_ASSERT(name, >=, 0);
+
+    	auto& self = this->self();
+
+    	NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
+
+    	return root->root_metadata().roots(name).isSet();
+    }
+
  private:
 
     void findCtrByName()

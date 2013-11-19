@@ -126,8 +126,15 @@ class CtrWrapper    {};
 template <typename Key, typename Value>
 struct Map          {};
 
+template <typename Key, typename Value>
+struct Map2         {};
+
 template <typename K, typename V>
 using DblMap = Map<K, Map<K, V>>;
+
+template <typename K, typename V>
+using DblMap2 = Map2<K, Map2<K, V>>;
+
 
 template <typename Key, typename Value>
 struct MapProto     {};
@@ -200,6 +207,10 @@ struct CMap         {};
 template <typename Key, typename Value, Int BitsPerMark = 1>
 struct MrkMap		{};
 
+// A map with marked K/V pairs
+template <typename Key, typename Value, Int BitsPerMark = 1>
+struct MrkMap2		{};
+
 // A map with marked K/V pairs, with search over marks
 template <typename Key, typename Value, Int BitsPerMark = 1>
 struct SMrkMap		{};
@@ -207,6 +218,8 @@ struct SMrkMap		{};
 template <typename K, typename V, Int BitsPerMark>
 using DblMrkMap = Map<K, MrkMap<K, V, BitsPerMark>>;
 
+template <typename K, typename V, Int BitsPerMark>
+using DblMrkMap2 = Map2<K, MrkMap2<K, V, BitsPerMark>>;
 
 /*
  * End of container type names and profiles
@@ -270,6 +283,7 @@ struct ValuePair {
 
     ValuePair(const First& f, const Second& s): first(f), second(s) {}
     ValuePair(const First& f): first(f) {}
+    ValuePair() {}
 };
 
 

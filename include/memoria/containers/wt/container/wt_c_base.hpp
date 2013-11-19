@@ -136,6 +136,10 @@ public:
         Base::setCtrShared(NULL);
     }
 
+    virtual bool hasRoot(BigInt name)
+    {
+    	throw vapi::Exception(MA_SRC, "Allocator::hasRoot(BigInt) method must be properly implements for this container");
+    }
 
     static Int initMetadata()
     {
