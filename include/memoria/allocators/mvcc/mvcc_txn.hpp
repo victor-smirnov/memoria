@@ -75,6 +75,7 @@ private:
 	UpdateLog		update_log_;
 	CtrDirectory	ctr_directory_;
 
+	bool snapshot_	= false;
 
 
 public:
@@ -92,6 +93,15 @@ public:
 	{}
 
 	virtual ~MVCCTxn() {}
+
+	virtual void setSnapshot(bool snapshot)
+	{
+		snapshot_ = snapshot;
+	}
+
+	virtual bool is_snapshot() const {
+		return snapshot_;
+	}
 
 	UpdateLog& update_log()
 	{

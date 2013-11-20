@@ -303,6 +303,9 @@ public:
             {
             	auto txn = txn_mgr.begin();
 
+            	bool snapshot = getRandom(10) == 0; //1 from 10 is a snapshot
+            	txn->setSnapshot(snapshot);
+
             	txn_id_ = txn->currentTxnId();
 
             	Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, ctr_name_);
@@ -315,6 +318,7 @@ public:
                 	 <<" "<<file_allocator.shared_created()
                 	 <<" "<<file_allocator.shared_deleted()
                 	 <<" txn_id="<<txn->currentTxnId()
+                	 <<" snapshot="<<txn->is_snapshot()
                 	 <<endl;
 
                 checkAllocator(*txn.get(), "Insert: Txn Check Failed", MA_SRC);
@@ -427,6 +431,9 @@ public:
             {
                 auto txn = mgr.begin();
 
+                bool snapshot = getRandom(10) == 0; //1 from 10 is a snapshot
+                txn->setSnapshot(snapshot);
+
                 Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, ctr_name_);
 
             	test_fn(this, *txn.get(), ctr);
@@ -449,8 +456,6 @@ public:
 
         	mgr.compactifyCommitHistory();
         	mgr.flush();
-
-        	file_allocator.dumpAllocatedPages(this->getResourcePath("remove-allocated"));
         }
         catch (...) {
             dump_name_ = Store(file_allocator);

@@ -146,6 +146,9 @@ struct ITxn: IWalkableAllocator<PageType> {
 	virtual void rollback() 													= 0;
 	virtual void flush(bool force_sync = false)									= 0;
 	virtual bool check()														= 0;
+
+	virtual void setSnapshot(bool snapshot)										= 0;
+	virtual bool is_snapshot() const											= 0;
 };
 
 

@@ -490,7 +490,10 @@ public:
 		{
 			auto iter = txn_history_.findKeyGE(last_commited_txn_id_);
 			MEMORIA_ASSERT_TRUE(iter.is_found_eq(last_commited_txn_id_));
-			iter.setMark(toInt(TxnStatus::COMMITED));
+
+			TxnStatus status = txn.is_snapshot() ? TxnStatus::SNAPSHOT : TxnStatus::COMMITED;
+
+			iter.setMark(toInt(status));
 		}
 
 		TxnLogAllocator txn_log_allocator(this, txn_log);
@@ -973,6 +976,22 @@ public:
 
 private:
 
+	TxnStatus getTxnStatus(BigInt txn_id)
+	{
+		auto iter = txn_history_.findKeyGE(txn_id);
+		MEMORIA_ASSERT_TRUE(iter.is_found_eq(txn_id));
+
+		return static_cast<TxnStatus>(iter.mark());
+	}
+
+	void setTxnStatus(BigInt txn_id, TxnStatus status)
+	{
+		auto iter = txn_history_.findKeyGE(txn_id);
+		MEMORIA_ASSERT_TRUE(iter.is_found_eq(txn_id));
+
+		iter.setMark(toInt(status));
+	}
+
 	void checkCommitHistory()
 	{
 		auto iter = commit_history_.Begin();
@@ -1136,29 +1155,59 @@ private:
 public:
 	void compactifyCommitHistory()
 	{
-		auto stop  = findMergeTxnHistoryTop();
+		auto start = txn_history_.select(toInt(TxnStatus::COMMITED), 1);
 
-		if (!stop.isBegin())
+		while(!start.isEnd())
 		{
-			auto start = findTxnHistoryStart();
+			auto stop = findMergeTxnHistoryStop(start);
 
-			mergePages(start.key(), stop.key());
-//			mergePages(10003, stop.key());
+			BigInt limit = stop.key();
 
-			BigInt top = stop.key();
+			cleanupTransactions(start.key(), limit);
 
-			while (start.key() < top)
+			while (start.key() < limit)
 			{
 				MEMORIA_ASSERT(start.mark(), ==, toInt(TxnStatus::COMMITED));
 
-				//fixme: txn log is removed in different iterator!!!!!
+				auto current_start_key = start.key();
+
+				// Txn log is removed in different iterator that affects current txn history iterators
+				// So they must be refreshed
 				TxnLog txn_log(&update_allocator_proxy_, CTR_FIND, start.key());
 				txn_log.drop();
+
+				// refresh iterators
+				start = txn_history_.findKeyGE(current_start_key);
 			}
+
+			start.selectNext(toInt(TxnStatus::COMMITED));
 		}
 	}
 
 private:
+
+	typename TxnHistory::Iterator findMergeTxnHistoryStop(typename TxnHistory::Iterator& start)
+	{
+		auto iter1 = start;
+		auto iter2 = start;
+
+		iter1.selectFw(1, toInt(TxnStatus::ACTIVE));
+		iter1--;
+
+		iter2.selectFw(1, toInt(TxnStatus::SNAPSHOT));
+
+		if (iter2.isEnd())
+		{
+			return iter1;
+		}
+		else if (iter1.key() < iter2.key())
+		{
+			return iter1;
+		}
+		else {
+			return iter2;
+		}
+	}
 
 	template <typename Ctr>
 	void cleanupCtrDirectoryBlocks(Ctr& txn_log)
@@ -1204,51 +1253,89 @@ private:
 	}
 
 
-	void mergePages(BigInt base_txn_id, BigInt max_txn_id)
+	TxnLog combineTxnLogs(BigInt base_txn_id, BigInt max_txn_id)
+	{
+		auto iter = txn_history_.findKeyGE(base_txn_id);
+
+		TxnLog multi_log(allocator_, CTR_CREATE);
+
+		while ((!iter.isEnd()) && iter.key() < max_txn_id)
+		{
+			BigInt txn_id = iter.key();
+			TxnLog txn_log(&update_allocator_proxy_, CTR_FIND, txn_id);
+
+			auto txn_log_iter = txn_log.Begin();
+
+			while (!txn_log_iter.isEnd())
+			{
+				ID id = txn_log_iter.key();
+
+				multi_log[id] = 0;
+
+				txn_log_iter++;
+			}
+
+			iter++;
+		}
+
+		return multi_log;
+	}
+
+
+	void cleanupTransactions(BigInt base_txn_id, BigInt max_txn_id)
 	{
 		if (max_txn_id > base_txn_id)
 		{
-			auto iter = commit_history_.Begin();
+			auto multi_log 	= combineTxnLogs(base_txn_id, max_txn_id);
+			auto iter		= multi_log.Begin();
 
 			while (!iter.isEnd())
 			{
-				mergePages(iter, base_txn_id, max_txn_id);
+				ID id = iter.key();
 
-				if (iter.blob_size() == 0)
+				auto history_iter = commit_history_.find(id);
+
+				if (history_iter.is_found_eq(id))
 				{
-					auto iter2 = iter;
+					cleanupBlocks(history_iter, base_txn_id, max_txn_id);
 
-					ID next_id(0);
-
-					if (iter2++)
+					if (history_iter.size() == 0)
 					{
-						next_id = iter2.key();
-					}
-
-					commit_history_.remove(iter.key());
-
-					if (next_id.isSet())
-					{
-						iter = commit_history_.find(next_id);
-					}
-					else {
-						break;
+						history_iter.removeEntry();
 					}
 				}
-				else
-				{
-					iter++;
-				}
+
+				iter++;
 			}
 
+			multi_log.drop();
 
-//			iter = commit_history_.Begin();
+//			auto h_iter = commit_history_.Begin();
 //
-//			while (!iter.isEnd())
+//			while (!h_iter.isEnd())
 //			{
-//				dumpTxns(iter, 10003, max_txn_id);
-//				iter++;
+//				dumpAvailableTxns(h_iter, base_txn_id, max_txn_id);
+//				h_iter++;
 //			}
+		}
+	}
+
+	void dumpIDs(TxnLog& txn_log, BigInt base, BigInt max)
+	{
+		auto iter = txn_log.Begin();
+
+		if (!iter.isEnd())
+		{
+			cout<<"=============== Combined TxnLog =============== "<<base<<" "<<max<<endl;
+
+			while (!iter.isEnd())
+			{
+				cout<<ID(iter.key())<<endl;
+
+				iter++;
+			}
+
+			cout<<endl;
 		}
 	}
 
@@ -1273,7 +1360,7 @@ private:
 		cout<<endl;
 	}
 
-	void dumpTxns(typename CommitHistory::Iterator& iter, BigInt base, BigInt max)
+	void dumpAvailableTxns(typename CommitHistory::Iterator& iter, BigInt base, BigInt max)
 	{
 		auto i1 = iter;
 
@@ -1300,13 +1387,13 @@ private:
 		}
 	}
 
-	void mergePages(typename CommitHistory::Iterator& iter, BigInt base_txn_id, BigInt max_txn_id)
+	void cleanupBlocks(typename CommitHistory::Iterator& iter, BigInt base_txn_id, BigInt max_txn_id)
 	{
 		auto top = iter;
 
 		if (iter.findKeyGE(base_txn_id))
 		{
-			if (iter.key() < max_txn_id)
+			if (iter.key2() < max_txn_id)
 			{
 				BigInt pos = iter.pos();
 
@@ -1331,15 +1418,24 @@ private:
 						iter.remove();
 					}
 
-					MEMORIA_ASSERT(iter.key2(), ==, top_txn_id);
-
 					if (top_txn_id < max_txn_id)
 					{
 						iter.updateKey2(max_txn_id - top_txn_id);
 						MEMORIA_ASSERT(iter.key2(), ==, max_txn_id);
+
+						TxnLog txn_log(&update_allocator_proxy_, CTR_FIND, max_txn_id);
+
+						ID id = iter.key();
+
+						auto i2 = txn_log.findKeyGE(id);
+
+						if (!i2.is_found_eq(id))
+						{
+							i2.insert(id, 0);
+						}
 					}
 
-					if (pos > 0)
+					if (pos == 0)
 					{
 						CommitHistoryValue entry = iter.value();
 						EntryStatus status = static_cast<EntryStatus>(entry.first);
@@ -1357,6 +1453,11 @@ private:
 				}
 			}
 		}
+	}
+
+	void removeCommitHistoryEntry(typename CommitHistory::Iterator& iter)
+	{
+
 	}
 
 	void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)

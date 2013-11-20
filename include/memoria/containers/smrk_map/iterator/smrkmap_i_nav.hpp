@@ -57,6 +57,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrNavName)
         return walker.finish(self, idx);
     }
 
+    BigInt selectNext(Int mark)
+    {
+    	auto& self  = this->self();
+
+    	if (!self.isEnd())
+    	{
+    		Int current_mark = self.mark();
+    		return self.selectFw(1 + (current_mark == mark), mark);
+    	}
+    	else {
+    		return 0;
+    	}
+    }
+
 MEMORIA_ITERATOR_PART_END
 
 }
