@@ -10,7 +10,7 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
-#include "sequence_create_test_base.hpp"
+#include "fa_sequence_test_base.hpp"
 
 #include <vector>
 

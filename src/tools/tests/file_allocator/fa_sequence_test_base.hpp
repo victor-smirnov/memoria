@@ -4,15 +4,15 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_MVCCALLOC_SEQUENCE_CREATE_TEST_BASE_HPP_
-#define MEMORIA_TESTS_MVCCALLOC_SEQUENCE_CREATE_TEST_BASE_HPP_
+#ifndef MEMORIA_TESTS_FILEALLOC_SEQUENCE_CREATE_TEST_BASE_HPP_
+#define MEMORIA_TESTS_FILEALLOC_SEQUENCE_CREATE_TEST_BASE_HPP_
 
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
 
 
-#include "mvcc_randomaccesslist_test_base.hpp"
+#include "fa_ralist_test_base.hpp"
 
 #include <vector>
 
@@ -25,16 +25,16 @@ template <
     typename ContainerTypeName,
     typename MemBuffer
 >
-class MVCCSequenceCreateTestBase: public MVCCRandomAccessListTestBase <
+class FASequenceCreateTestBase: public FARandomAccessListTestBase <
                                         ContainerTypeName,
                                         MemBuffer
                               >
 {
-    typedef MVCCSequenceCreateTestBase<ContainerTypeName, MemBuffer>              MyType;
+    typedef FASequenceCreateTestBase<ContainerTypeName, MemBuffer>              MyType;
     typedef MyType                                                              ParamType;
 
 
-    typedef MVCCRandomAccessListTestBase <
+    typedef FARandomAccessListTestBase <
                 ContainerTypeName,
                 MemBuffer
             >                                                                   Base;
@@ -45,7 +45,7 @@ protected:
     typedef typename Base::ID                                                   ID;
 
 public:
-    MVCCSequenceCreateTestBase(StringRef name):
+    FASequenceCreateTestBase(StringRef name):
         Base(name)
     {}
 

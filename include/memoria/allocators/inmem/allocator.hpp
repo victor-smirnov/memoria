@@ -48,6 +48,9 @@ public:
 
     typedef Ctr<typename CtrTF<Profile, BitVector<>>::CtrTypes>                 BlockMapType;
 
+    typedef IJournaledAllocator<Page>											JournaledAllocator;
+    typedef IWalkableAllocator<Page>											WalkableAllocator;
+
 private:
 
 

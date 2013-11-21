@@ -253,6 +253,52 @@ struct ValueHelper<TxnValue<T> > {
 
 
 
+template <typename Owner, typename TxnIterator>
+class TxnIteratorImpl: public ITxnIterator<typename Owner::BaseAllocator> {
+
+	Owner* owner_;
+	TxnStatus status_;
+	TxnIterator iterator_;
+
+public:
+	TxnIteratorImpl(Owner* owner, TxnStatus status, const TxnIterator& iter):
+		owner_(owner),
+		iterator_(iter)
+	{}
+
+	virtual BigInt txn_id() const
+	{
+		return iterator_.key();
+	}
+
+	virtual TxnStatus status() const
+	{
+		return status_;
+	}
+
+	virtual void remove()
+	{
+		owner_->removeTxn(txn_id());
+	}
+
+	virtual bool has_next() const
+	{
+		return iterator_.isEnd();
+	}
+
+	virtual void next()
+	{
+		iterator_.selectNext(toInt(status_));
+	}
+
+	virtual typename Owner::TxnPtr txn()
+	{
+		return owner_->findTxn(iterator_.key());
+	}
+};
+
+
+
 }
 
 

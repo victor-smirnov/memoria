@@ -140,7 +140,10 @@ static inline Int toInt(TxnStatus es) {
 template <typename PageType>
 struct ITxn: IWalkableAllocator<PageType> {
 
+	virtual ~ITxn() = default;
+
 	virtual BigInt txn_id()	const												= 0;
+	virtual TxnStatus status() const											= 0;
 
 	virtual void commit() 														= 0;
 	virtual void rollback() 													= 0;
@@ -152,12 +155,31 @@ struct ITxn: IWalkableAllocator<PageType> {
 };
 
 
+template <typename Owner>
+struct ITxnIterator {
+	virtual ~ITxnIterator() = default;
+
+	virtual BigInt txn_id()	const												= 0;
+	virtual TxnStatus status() const											= 0;
+	virtual void remove()														= 0;
+	virtual bool has_next() const												= 0;
+	virtual void next()															= 0;
+	virtual typename Owner::TxnPtr txn()										= 0;
+};
+
 template <typename PageType>
 struct IMVCCAllocator: public IWalkableAllocator<PageType> {
+
+	typedef IMVCCAllocator<PageType>											MyType;
+
 	typedef IAllocator<PageType>												Base;
 
 	typedef ITxn<PageType>														Txn;
+	typedef ITxnIterator<MyType>												TxnIterator;
+
 	typedef	std::shared_ptr<Txn>												TxnPtr;
+	typedef	std::weak_ptr<Txn>													WeakTxnPtr;
+	typedef	std::shared_ptr<TxnIterator>										TxnIteratorPtr;
 
 	typedef typename Base::PageG                                     			PageG;
 	typedef typename Base::Page                                     			Page;
@@ -179,8 +201,12 @@ struct IMVCCAllocator: public IWalkableAllocator<PageType> {
 	virtual BigInt commited_txn_id()											= 0;
 
 	virtual TxnPtr begin() 														= 0;
+	virtual TxnPtr findTxn(BigInt txn_id)										= 0;
 
 	virtual void flush(bool force_sync = false)									= 0;
+
+	virtual TxnIteratorPtr transactions(TxnStatus status)						= 0;
+	virtual BigInt total_transactions(TxnStatus status)							= 0;
 };
 
 

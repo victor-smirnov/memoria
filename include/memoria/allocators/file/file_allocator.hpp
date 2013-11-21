@@ -61,6 +61,9 @@ public:
     typedef Ctr<typename CtrTF<Profile, Map<BigInt, UBigInt>>::CtrTypes>       	IDMapType;
     typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>       					RootMapType;
 
+    typedef IJournaledAllocator<Page>											JournaledAllocator;
+    typedef IWalkableAllocator<Page>											WalkableAllocator;
+
 private:
     typedef FileAllocator<Profile, PageType, TxnType>                           MyType;
     typedef typename Base::Page*                                                PagePtr;
@@ -294,8 +297,6 @@ private:
     	}
     };
 
-    bool constructed_ = false;
-
     Properties properties_;
 
     OpenMode mode_;
@@ -472,8 +473,6 @@ public:
     		block_map_ 	= BlockMapPtr(new BlockMapType(this, CTR_FIND, 0));
     		root_map_ 	= RootMapPtr(new RootMapType(this, CTR_FIND, 2));
     	}
-
-    	constructed_ = true;
     }
 
     FileAllocator(const MyType&) 		= delete;
@@ -1472,8 +1471,6 @@ private:
 
     		entry.position() = pos;
 
-    		MEMORIA_WARNING(isAllocated(entry.key()), !=, true);
-
     		this->loadPage(pos, entry.page());
 
     		MEMORIA_WARNING(entry.key(), !=, entry.page()->gid());
@@ -1854,24 +1851,6 @@ private:
     	block_map_->walkTree(walker);
 
     	walker->endSection();
-    }
-
-    bool isAllocated(const ID& id)
-    {
-    	if (constructed_)
-    	{
-    		auto iter = block_map_->seek(id.value() / cfg_.block_size());
-    		if (iter.isEnd())
-    		{
-    			return false;
-    		}
-    		else {
-    			return iter.symbol();
-    		}
-    	}
-    	else {
-    		return true;
-    	}
     }
 
 

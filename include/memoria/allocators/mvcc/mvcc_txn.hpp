@@ -92,7 +92,14 @@ public:
 		ctr_directory_(this, CTR_FIND, TxnMgr::CtrDirectoryName)
 	{}
 
-	virtual ~MVCCTxn() {}
+	virtual ~MVCCTxn()
+	{
+		txn_mgr_->unregisterTxn(txn_id_);
+	}
+
+	virtual TxnStatus status() const {
+		return TxnStatus::ACTIVE;
+	}
 
 	virtual void setSnapshot(bool snapshot)
 	{

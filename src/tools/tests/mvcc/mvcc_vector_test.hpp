@@ -10,7 +10,7 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
-#include "mvcc_sequence_create_test_base.hpp"
+#include "mvcc_sequence_test_base.hpp"
 
 #include <vector>
 

@@ -26,7 +26,7 @@
 
 
 
-#include <unordered_set>
+#include <map>
 #include <memory>
 
 namespace memoria {
@@ -38,12 +38,18 @@ class MVCCAllocator: public MVCCAllocatorBase<IMVCCAllocator<PageType>> {
 public:
 	typedef MVCCAllocator<Profile, PageType>									MyType;
 
+	typedef IMVCCAllocator<PageType>											BaseAllocator;
 	typedef IWalkableAllocator<PageType>										Allocator;
 
 	typedef typename Base::ID													ID;
 	typedef typename Base::PageG												PageG;
 	typedef typename Base::Txn													Txn;
 	typedef typename Base::TxnPtr												TxnPtr;
+	typedef typename Base::WeakTxnPtr											WeakTxnPtr;
+	typedef typename Base::TxnIterator											TxnIterator;
+	typedef typename Base::TxnIteratorPtr										TxnIteratorPtr;
+
+
 	typedef typename Base::CtrShared											CtrShared;
 	typedef typename Base::Shared												Shared;
 	typedef typename Base::Shared*												PageSharedPtr;
@@ -217,6 +223,7 @@ private:
 	    }
 	};
 
+	std::map<BigInt, WeakTxnPtr> transactions_;
 
 	TxnUpdateAllocatorProxy<MyType, PageType> update_allocator_proxy_;
 
@@ -234,13 +241,9 @@ private:
 	Roots			roots_;
 	TxnHistory		txn_history_;
 
-	std::unordered_set<TxnPtr> transactions_;
-
 	CtrDirectoryPtr ctr_directory_;
 
 	BigInt 			last_commited_txn_id_;
-
-
 
 public:
 
@@ -379,20 +382,44 @@ public:
 		return iter.is_found_eq(txn_id);
 	}
 
-
-
 	virtual BigInt commited_txn_id() {
 		return last_commited_txn_id_;
 	}
 
 	virtual TxnPtr begin()
 	{
-		return std::make_shared<TxnImpl>(this, newTxnId(), CTR_CREATE);
+		TxnPtr txn = std::make_shared<TxnImpl>(this, newTxnId(), CTR_CREATE);
+
+		transactions_[txn->currentTxnId()] = txn;
+
+		return txn;
 	}
 
-	TxnPtr findTxn(BigInt txn_id)
+	virtual TxnPtr findTxn(BigInt txn_id)
 	{
-		return std::make_shared<TxnImpl>(this, txn_id, CTR_FIND);
+		auto iter = transactions_.find(txn_id);
+
+		if (iter != transactions_.end())
+		{
+			if (iter->second.expired())
+			{
+				TxnPtr txn = std::make_shared<TxnImpl>(this, txn_id, CTR_FIND);
+
+				iter->second = txn;
+
+				return txn;
+			}
+			else {
+				return iter->second.lock();
+			}
+		}
+		else {
+			TxnPtr txn = std::make_shared<TxnImpl>(this, txn_id, CTR_FIND);
+
+			transactions_[txn_id] = txn;
+
+			return txn;
+		}
 	}
 
 	virtual void flush(bool force_sync = false)
@@ -974,7 +1001,80 @@ public:
 		return result;
 	}
 
+	void compactifyCommitHistory()
+	{
+		auto start = txn_history_.select(toInt(TxnStatus::COMMITED), 1);
+
+		while(!start.isEnd())
+		{
+			BigInt limit = findMergeTxnHistoryLimit(start);
+
+			cleanupTransactions(start.key(), limit);
+
+			while (start.key() < limit)
+			{
+				MEMORIA_ASSERT(start.mark(), ==, toInt(TxnStatus::COMMITED));
+
+				auto current_start_key = start.key();
+
+				// Txn log is removed in different iterator that affects current txn history iterators
+				// So they must be refreshed
+				TxnLog txn_log(&update_allocator_proxy_, CTR_FIND, start.key());
+				txn_log.drop();
+
+				// refresh iterators
+				start = txn_history_.findKeyGE(current_start_key);
+			}
+
+			start.selectNext(toInt(TxnStatus::COMMITED));
+		}
+	}
+
+	virtual void removeTxn(BigInt txn_id)
+	{
+		TxnStatus status = getTxnStatus(txn_id);
+		if (status == TxnStatus::SNAPSHOT)
+		{
+			// Mark transaction as COMMITED. Next history compaction will
+			// free the resources.
+			setTxnStatus(txn_id, TxnStatus::COMMITED);
+		}
+	}
+
+	virtual TxnIteratorPtr transactions(TxnStatus status)
+	{
+		auto iter = txn_history_.select(1, toInt(status));
+		return std::make_shared<TxnIteratorImpl<MyType, typename TxnHistory::Iterator>>(this, status, iter);
+	}
+
+	virtual BigInt total_transactions(TxnStatus status)
+	{
+		return txn_history_.rank(toInt(status));
+	}
+
+
+	/**
+	 * Invoked at startup to fix unclean shutdown
+	 */
+	void cleanupActiveTransactions()
+	{
+		auto iter = this->transactions(TxnStatus::ACTIVE);
+
+		while (iter->has_next())
+		{
+			iter->txn()->rollback();
+		}
+	}
+
+
 private:
+
+	// *********************************** Private Methods **************************************** //
+
+	void unregisterTxn(BigInt txn_id)
+	{
+		transactions_.erase(txn_id);
+	}
 
 	TxnStatus getTxnStatus(BigInt txn_id)
 	{
@@ -1152,41 +1252,33 @@ private:
 			iter.skipFw(1);
 		}
 	}
-public:
-	void compactifyCommitHistory()
+
+
+
+
+
+	BigInt findMergeTxnHistoryLimit(typename TxnHistory::Iterator& start)
 	{
-		auto start = txn_history_.select(toInt(TxnStatus::COMMITED), 1);
+		BigInt start_txn_id = start.key();
+		BigInt limit = findMergeTxnHistoryOnlyLimit(start);
 
-		while(!start.isEnd())
+		auto lower_range = transactions_.lower_bound(start_txn_id);
+
+		if (lower_range == transactions_.end())
 		{
-			auto stop = findMergeTxnHistoryStop(start);
-
-			BigInt limit = stop.key();
-
-			cleanupTransactions(start.key(), limit);
-
-			while (start.key() < limit)
-			{
-				MEMORIA_ASSERT(start.mark(), ==, toInt(TxnStatus::COMMITED));
-
-				auto current_start_key = start.key();
-
-				// Txn log is removed in different iterator that affects current txn history iterators
-				// So they must be refreshed
-				TxnLog txn_log(&update_allocator_proxy_, CTR_FIND, start.key());
-				txn_log.drop();
-
-				// refresh iterators
-				start = txn_history_.findKeyGE(current_start_key);
-			}
-
-			start.selectNext(toInt(TxnStatus::COMMITED));
+			return limit;
+		}
+		else if (lower_range->first >= limit)
+		{
+			return limit;
+		}
+		else {
+			start.dump();
+			return lower_range->first;
 		}
 	}
 
-private:
-
-	typename TxnHistory::Iterator findMergeTxnHistoryStop(typename TxnHistory::Iterator& start)
+	BigInt findMergeTxnHistoryOnlyLimit(typename TxnHistory::Iterator& start)
 	{
 		auto iter1 = start;
 		auto iter2 = start;
@@ -1198,14 +1290,14 @@ private:
 
 		if (iter2.isEnd())
 		{
-			return iter1;
+			return iter1.key();
 		}
 		else if (iter1.key() < iter2.key())
 		{
-			return iter1;
+			return iter1.key();
 		}
 		else {
-			return iter2;
+			return iter2.key();
 		}
 	}
 
@@ -1310,15 +1402,11 @@ private:
 
 			multi_log.drop();
 
-//			auto h_iter = commit_history_.Begin();
-//
-//			while (!h_iter.isEnd())
-//			{
-//				dumpAvailableTxns(h_iter, base_txn_id, max_txn_id);
-//				h_iter++;
-//			}
+			//dumpAvailableTxns(base_txn_id, max_txn_id);
 		}
 	}
+
+
 
 	void dumpIDs(TxnLog& txn_log, BigInt base, BigInt max)
 	{
@@ -1358,6 +1446,17 @@ private:
 		}
 
 		cout<<endl;
+	}
+
+	void dumpAvailableTxns(BigInt base, BigInt max)
+	{
+		auto h_iter = commit_history_.Begin();
+
+		while (!h_iter.isEnd())
+		{
+			dumpAvailableTxns(h_iter, base, max);
+			h_iter++;
+		}
 	}
 
 	void dumpAvailableTxns(typename CommitHistory::Iterator& iter, BigInt base, BigInt max)
@@ -1453,11 +1552,6 @@ private:
 				}
 			}
 		}
-	}
-
-	void removeCommitHistoryEntry(typename CommitHistory::Iterator& iter)
-	{
-
 	}
 
 	void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)
