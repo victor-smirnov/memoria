@@ -206,7 +206,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
 
     BigInt rank(Int mark)
     {
-    	return 0;
+    	return self().End().rank(mark);
     }
 
 MEMORIA_CONTAINER_PART_END

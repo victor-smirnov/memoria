@@ -19,40 +19,42 @@
 #include <stack>
 #include <sstream>
 #include <fstream>
+#include <ostream>
 
 namespace memoria    {
 namespace vapi       {
 
 struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
 
-    public:
+public:
 
-        ContainerMetadataRepository(StringRef name, const MetadataList &content);
+	ContainerMetadataRepository(StringRef name, const MetadataList &content);
 
-        virtual ~ContainerMetadataRepository() throw () {}
+	virtual ~ContainerMetadataRepository() throw () {}
 
-        virtual Int hash() const {
-            return hash_;
-        }
+	virtual Int hash() const {
+		return hash_;
+	}
 
-        PageMetadata* getPageMetadata(Int model_hash, Int page_hash) const;
-        ContainerMetadata* getContainerMetadata(Int model_hash) const;
-
-
-        virtual void registerMetadata(ContainerMetadata* metadata)
-        {
-            process_model(metadata);
-        }
-
-        virtual void unregisterMetadata(ContainerMetadata* metadata) {}
+	PageMetadata* getPageMetadata(Int model_hash, Int page_hash) const;
+	ContainerMetadata* getContainerMetadata(Int model_hash) const;
 
 
-    private:
-        Int                     hash_;
-        PageMetadataMap         page_map_;
-        ContainerMetadataMap    model_map_;
+	virtual void registerMetadata(ContainerMetadata* metadata)
+	{
+		process_model(metadata);
+	}
 
-        void process_model(ContainerMetadata* model);
+	virtual void unregisterMetadata(ContainerMetadata* metadata) {}
+
+	void dumpMetadata(std::ostream& out);
+
+private:
+	Int                     hash_;
+	PageMetadataMap         page_map_;
+	ContainerMetadataMap    model_map_;
+
+	void process_model(ContainerMetadata* model);
 };
 
 
@@ -96,6 +98,8 @@ struct ContainerInterface {
     		void* allocator,
     		ContainerWalker* walker
     ) const   																	= 0;
+
+    virtual String ctr_type_name() const										= 0;
 
     virtual ~ContainerInterface() {}
 };
@@ -370,20 +374,6 @@ void FSDumpAllocator(Allocator* allocator, StringRef path)
 	Walker walker(allocator->getMetadata(), path);
 	allocator->walkContainers(&walker);
 }
-
-//template <typename BasicAllocator, typename Allocator>
-//void FSDumpMVCCAllocator(Allocator* mvcc_allocator, StringRef path)
-//{
-//	typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
-//
-//	Walker walker(mvcc_allocator->getMetadata(), path);
-//
-//	BasicAllocator* basic_allocator = static_cast<BasicAllocator*>(mvcc_allocator->allocator());
-//
-////	basic_allocator->walkContainers(&walker);
-//	mvcc_allocator->walkContainers(&walker);
-//}
-
 
 
 

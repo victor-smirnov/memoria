@@ -150,13 +150,11 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
-
 M_PARAMS
 template <typename Walker>
 typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
 {
-    auto& self = this->self();
-
+	auto& self = this->self();
     walker.direction()  = WalkDirection::DOWN;
 
     NodeBaseG node = self.getRoot();

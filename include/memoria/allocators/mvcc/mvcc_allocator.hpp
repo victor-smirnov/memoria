@@ -19,6 +19,7 @@
 #include <memoria/core/container/container.hpp>
 
 #include <memoria/allocators/mvcc/mvcc_txn.hpp>
+#include <memoria/allocators/mvcc/mvcc_txn_ro.hpp>
 #include <memoria/allocators/mvcc/mvcc_tools.hpp>
 
 #include <memoria/core/exceptions/memoria.hpp>
@@ -55,6 +56,7 @@ public:
 	typedef typename Base::Shared*												PageSharedPtr;
 
 	typedef MVCCTxn<Profile, MyType, PageType>									TxnImpl;
+	typedef MVCCReadOnlyTxn<Profile, MyType, PageType>							ReadOnlyTxnImpl;
 
 	typedef typename CtrTF<Profile, DblMrkMap2<BigInt, ID, 2>>::Type			CommitHistory;
 	typedef typename CtrTF<Profile, Map<BigInt, ID>>::Type						Roots;
@@ -87,6 +89,7 @@ public:
 	static const Int TxnHistoryName												= NameBase + 4;
 
 	template <typename, typename, typename> friend class MVCCTxn;
+	template <typename, typename, typename> friend class MVCCReadOnlyTxn;
 
 	class MVCCPageShared;
 	typedef MVCCPageShared*														MVCCPageSharedPtr;
@@ -223,11 +226,12 @@ private:
 	    }
 	};
 
+	bool			compactify_history_ = true;
 	std::map<BigInt, WeakTxnPtr> transactions_;
 
 	TxnUpdateAllocatorProxy<MyType, PageType> update_allocator_proxy_;
 
-	Int commit_history_cnt_ = 0;
+	Int 			commit_history_cnt_ = 0;
 
 	// memory pool for PageShared objects
 	SharedPool		shared_pool_;
@@ -298,7 +302,15 @@ public:
 		return metadata_;
 	}
 
+	bool is_compactify_history() const
+	{
+		return compactify_history_;
+	}
 
+	void setCompactifyHistory(bool compactify)
+	{
+		compactify_history_ = compactify;
+	}
 
 
 	virtual PageG getPage(BigInt txn_id, const ID& id, BigInt name)
@@ -388,7 +400,7 @@ public:
 
 	virtual TxnPtr begin()
 	{
-		TxnPtr txn = std::make_shared<TxnImpl>(this, newTxnId(), CTR_CREATE);
+		TxnPtr txn = std::make_shared<TxnImpl>(this, newTxnId(), TxnStatus::ACTIVE, CTR_CREATE);
 
 		transactions_[txn->currentTxnId()] = txn;
 
@@ -403,22 +415,42 @@ public:
 		{
 			if (iter->second.expired())
 			{
-				TxnPtr txn = std::make_shared<TxnImpl>(this, txn_id, CTR_FIND);
+				TxnStatus status 	= getTxnStatus(txn_id);
 
-				iter->second = txn;
+				if (status == TxnStatus::ACTIVE)
+				{
+					TxnPtr txn 		= std::make_shared<TxnImpl>(this, txn_id, status, CTR_FIND);
+					iter->second 	= txn;
 
-				return txn;
+					return txn;
+				}
+				else {
+					TxnPtr txn 		= std::make_shared<ReadOnlyTxnImpl>(this, txn_id, status, CTR_FIND);
+					iter->second 	= txn;
+
+					return txn;
+				}
 			}
 			else {
 				return iter->second.lock();
 			}
 		}
 		else {
-			TxnPtr txn = std::make_shared<TxnImpl>(this, txn_id, CTR_FIND);
+			TxnStatus status 		= getTxnStatus(txn_id);
 
-			transactions_[txn_id] = txn;
+			if (status == TxnStatus::ACTIVE)
+			{
+				TxnPtr txn 				= std::make_shared<TxnImpl>(this, txn_id, status, CTR_FIND);
+				transactions_[txn_id] 	= txn;
 
-			return txn;
+				return txn;
+			}
+			else {
+				TxnPtr txn 				= std::make_shared<ReadOnlyTxnImpl>(this, txn_id, status, CTR_FIND);
+				transactions_[txn_id] 	= txn;
+
+				return txn;
+			}
 		}
 	}
 
@@ -589,7 +621,7 @@ public:
 
 		allocator_->properties().setLastCommitId(last_commited_txn_id_);
 
-		if (commit_history_cnt_ % 5 == 0)
+		if (compactify_history_ && (commit_history_cnt_ % 5 == 0))
 		{
 			compactifyCommitHistory();
 		}
@@ -1043,9 +1075,10 @@ public:
 
 	virtual TxnIteratorPtr transactions(TxnStatus status)
 	{
-		auto iter = txn_history_.select(1, toInt(status));
+		auto iter = txn_history_.select(toInt(status), 1);
 		return std::make_shared<TxnIteratorImpl<MyType, typename TxnHistory::Iterator>>(this, status, iter);
 	}
+
 
 	virtual BigInt total_transactions(TxnStatus status)
 	{
@@ -1054,13 +1087,11 @@ public:
 
 
 	/**
-	 * Invoked at startup to fix unclean shutdown
+	 * Invoked manually at startup to fix unclean shutdown
 	 */
 	void cleanupActiveTransactions()
 	{
-		auto iter = this->transactions(TxnStatus::ACTIVE);
-
-		while (iter->has_next())
+		for (auto iter = this->transactions(TxnStatus::ACTIVE); iter->has_next(); iter->next())
 		{
 			iter->txn()->rollback();
 		}
@@ -1389,7 +1420,7 @@ private:
 
 				if (history_iter.is_found_eq(id))
 				{
-					cleanupBlocks(history_iter, base_txn_id, max_txn_id);
+					cleanupHistoryBlocks(history_iter, base_txn_id, max_txn_id);
 
 					if (history_iter.size() == 0)
 					{
@@ -1402,7 +1433,7 @@ private:
 
 			multi_log.drop();
 
-			//dumpAvailableTxns(base_txn_id, max_txn_id);
+			cleanupCtrDirectoryRoots(base_txn_id, max_txn_id);
 		}
 	}
 
@@ -1486,7 +1517,7 @@ private:
 		}
 	}
 
-	void cleanupBlocks(typename CommitHistory::Iterator& iter, BigInt base_txn_id, BigInt max_txn_id)
+	void cleanupHistoryBlocks(typename CommitHistory::Iterator& iter, BigInt base_txn_id, BigInt max_txn_id)
 	{
 		auto top = iter;
 
@@ -1553,6 +1584,34 @@ private:
 			}
 		}
 	}
+
+
+	void cleanupCtrDirectoryRoots(BigInt base_txn_id, BigInt max_txn_id)
+	{
+		auto base = roots_.findKeyGE(base_txn_id);
+
+		if (base.is_found_lt(max_txn_id))
+		{
+			auto top = roots_.findKeyLE(max_txn_id);
+
+			if (top.is_found_ge(base_txn_id))
+			{
+				BigInt top_txn_id = top.key();
+
+				while (base.key() < top_txn_id)
+				{
+					base.remove();
+				}
+
+				if (top_txn_id < max_txn_id)
+				{
+					base.updateKey(max_txn_id - top_txn_id);
+					MEMORIA_ASSERT(base.key(), ==, max_txn_id);
+				}
+			}
+		}
+	}
+
 
 	void setCtrDirectoryRootID(BigInt txn_id, const ID& root_id)
 	{

@@ -1331,6 +1331,7 @@ public:
     {
     	walker->beginAllocator("FileAllocator", allocator_descr);
 
+    	dumpCtrTypeNames(walker);
     	dumpDirectories(walker);
 
     	auto iter = root_map_->Begin();
@@ -1851,6 +1852,14 @@ private:
     	block_map_->walkTree(walker);
 
     	walker->endSection();
+    }
+
+    void dumpCtrTypeNames(ContainerWalker* walker)
+    {
+    	stringstream ss;
+    	metadata_->dumpMetadata(ss);
+
+    	walker->content("CtrTypeNames.txt", ss.str().c_str());
     }
 
 

@@ -70,6 +70,8 @@ private:
 
 	BigInt 			txn_id_;
 
+	TxnStatus		status_;
+
 	ID				ctr_directory_root_id_;
 
 	UpdateLog		update_log_;
@@ -80,13 +82,14 @@ private:
 
 public:
 
-	MVCCTxn(TxnMgr* txn_mgr, BigInt txn_id, Int ctr_cmd = CTR_CREATE):
+	MVCCTxn(TxnMgr* txn_mgr, BigInt txn_id, TxnStatus status, Int ctr_cmd = CTR_CREATE):
 		Base(txn_mgr->allocator()),
 		update_log_allocator_proxy_(txn_mgr),
 		shared_pool_(128, 128),
 		allocator_(txn_mgr->allocator()),
 		txn_mgr_(txn_mgr),
 		txn_id_(txn_id),
+		status_(status),
 		ctr_directory_root_id_(0),
 		update_log_(&update_log_allocator_proxy_, ctr_cmd, txn_id_),
 		ctr_directory_(this, CTR_FIND, TxnMgr::CtrDirectoryName)
@@ -98,7 +101,7 @@ public:
 	}
 
 	virtual TxnStatus status() const {
-		return TxnStatus::ACTIVE;
+		return status_;
 	}
 
 	virtual void setSnapshot(bool snapshot)
@@ -412,7 +415,21 @@ public:
 
 	virtual void commit()
 	{
-		txn_mgr_->commit(*this);
+		if (status_ == TxnStatus::ACTIVE)
+		{
+			txn_mgr_->commit(*this);
+		}
+		else if (status_ == TxnStatus::SNAPSHOT)
+		{
+			throw vapi::Exception(MA_SRC, "Can't commit snapshots");
+		}
+		else if (status_ == TxnStatus::COMMITED)
+		{
+			throw vapi::Exception(MA_SRC, "Can't commit already committed transactions");
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Unknown txn status: "<<toInt(status_));
+		}
 	}
 
 	virtual void rollback()

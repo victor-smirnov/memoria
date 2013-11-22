@@ -208,9 +208,6 @@ public:
 		return value_;
 	}
 
-//	operator Value() const {
-//		return value_;
-//	}
 
 	operator BigInt() const {
 		return value_;
@@ -263,6 +260,7 @@ class TxnIteratorImpl: public ITxnIterator<typename Owner::BaseAllocator> {
 public:
 	TxnIteratorImpl(Owner* owner, TxnStatus status, const TxnIterator& iter):
 		owner_(owner),
+		status_(status),
 		iterator_(iter)
 	{}
 
@@ -283,7 +281,7 @@ public:
 
 	virtual bool has_next() const
 	{
-		return iterator_.isEnd();
+		return !iterator_.isEnd();
 	}
 
 	virtual void next()

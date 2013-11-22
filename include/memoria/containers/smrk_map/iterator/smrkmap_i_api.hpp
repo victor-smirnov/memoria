@@ -496,6 +496,46 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
         }
     }
 
+
+    struct RankFn {
+    	BigInt rank_ = 0;
+    	BigInt symbol_;
+
+    	RankFn(Int symbol): symbol_(symbol) {}
+
+    	template <Int Idx, typename StreamTypes>
+    	void stream(const PkdFTree<StreamTypes>* tree, Int idx)
+    	{
+    		MEMORIA_ASSERT_TRUE(tree);
+    		rank_ += tree->sum(2 + symbol_, idx);
+    	}
+
+    	template <Int Idx, typename StreamTypes>
+    	void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+    	{
+    		MEMORIA_ASSERT_TRUE(map);
+    		rank_ += map->bitmap()->rank(idx, symbol_);
+    	}
+
+    	template <typename Node>
+    	void treeNode(const Node* node, Int idx)
+    	{
+    		node->template processStream<0>(*this, idx);
+    	}
+    };
+
+    BigInt rank(Int symbol)
+    {
+    	auto& self = this->self();
+
+    	RankFn fn(symbol);
+
+    	self.ctr().walkUp(self.leaf(), self.idx(), fn);
+
+    	return fn.rank_;
+    }
+
+
     bool is_found_eq(Key key) const
     {
     	auto& self = this->self();

@@ -216,6 +216,10 @@ public:
         	ctr.walkTree(walker);
         }
 
+        virtual String ctr_type_name() const
+        {
+        	return TypeNameFactory<ContainerTypeName>::name();
+        }
     };
 
 

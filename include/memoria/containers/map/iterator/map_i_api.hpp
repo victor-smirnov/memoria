@@ -301,6 +301,25 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
         }
     }
 
+    void updateKey(BigInt key)
+    {
+    	auto& self = this->self();
+
+    	Accumulator sums;
+
+    	std::get<0>(sums)[0] = key;
+
+    	self.updateUp(sums);
+
+    	if (self++)
+    	{
+    		self.updateUp(-sums);
+    	}
+
+    	self--;
+    }
+
+
     bool is_found_eq(Key key) const
     {
     	auto& self = this->self();
