@@ -288,6 +288,11 @@ public:
 		return ctr_directory_.get();
 	}
 
+	TxnHistory& txn_history()
+	{
+		return txn_history_;
+	}
+
 	static void initMetadata()
 	{
 		CommitHistory::initMetadata();
@@ -459,7 +464,7 @@ public:
 		allocator_->flush(force_sync);
 	}
 
-	void commit(TxnImpl& txn)
+	BigInt commit(TxnImpl& txn)
 	{
 		auto& txn_ctr_directory = txn.ctr_directory();
 
@@ -631,6 +636,8 @@ public:
 		allocator_->flush();
 
 		txn.clean();
+
+		return last_commited_txn_id_;
 	}
 
 	BigInt newTxnId()

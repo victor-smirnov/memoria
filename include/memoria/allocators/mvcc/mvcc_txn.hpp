@@ -413,11 +413,11 @@ public:
 
 	// ITransation
 
-	virtual void commit()
+	virtual BigInt commit()
 	{
 		if (status_ == TxnStatus::ACTIVE)
 		{
-			txn_mgr_->commit(*this);
+			return txn_mgr_->commit(*this);
 		}
 		else if (status_ == TxnStatus::SNAPSHOT)
 		{

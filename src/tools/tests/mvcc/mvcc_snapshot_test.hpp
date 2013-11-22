@@ -39,7 +39,7 @@ protected:
 
 	typedef typename Allocator::ID												ID;
 
-
+	typedef std::pair<BigInt, std::map<BigInt, vector<Int>>>  					SnapshotData;
 
 	BigInt data_size_ = 1024*4;
 
@@ -72,7 +72,7 @@ public:
 
 		TxnMgr mgr(&allocator);
 
-		std::vector<std::map<BigInt, vector<Int>>> snapshots_data;
+		std::vector<SnapshotData> snapshots_data;
 
 		for (Int c = 0; c < this->size_; c++)
 		{
@@ -92,7 +92,7 @@ public:
 
 				VectorCtr ctr(txn.get(), CTR_FIND, ctr_name);
 
-				vector<Int> ctr_data = snapshots_data[c - 1][ctr_name];
+				vector<Int> ctr_data = snapshots_data[c - 1].second[ctr_name];
 
 				assertVectorData(ctr, ctr_data);
 
@@ -116,25 +116,51 @@ public:
 
 			ctr.seek(0).insert(ctr_data);
 
-			snapshots_data.push_back(snapshot);
+			auto txn_id = txn->commit();
 
-			txn->commit();
+			snapshots_data.push_back(SnapshotData(txn_id, snapshot));
 		}
 
 		AssertEQ(MA_SRC, mgr.total_transactions(TxnStatus::SNAPSHOT), this->size_);
-		AssertEQ(MA_SRC, snapshots_data.size(), (UBigInt)this->size_);
 
+		checkSnapshots(snapshots_data, mgr);
+
+		while (snapshots_data.size() > 0)
+		{
+			Int idx = getRandom(snapshots_data.size());
+
+			BigInt snapshot_id = snapshots_data[idx].first;
+
+			snapshots_data.erase(snapshots_data.begin() + idx);
+
+			mgr.removeTxn(snapshot_id);
+			mgr.compactifyCommitHistory();
+
+			AssertLE(MA_SRC, mgr.total_transactions(TxnStatus::COMMITED), 1);
+
+			checkSnapshots(snapshots_data, mgr);
+		}
+	}
+
+	void checkSnapshots(std::vector<SnapshotData>& snapshots_data, TxnMgr& mgr)
+	{
+		this->out()<<std::endl<<"Check Snapshots ("<<snapshots_data.size()<<")"<<std::endl;
+
+		AssertEQ(MA_SRC, snapshots_data.size(), (UBigInt)mgr.total_transactions(TxnStatus::SNAPSHOT));
 		auto iter = mgr.transactions(TxnStatus::SNAPSHOT);
 
 		Int snapshot_idx = 0;
 		while (iter->has_next())
 		{
-			this->out()<<"Check Snapshot "<<snapshot_idx<<endl;
+			BigInt snapshot_id = snapshots_data[snapshot_idx].first;
+
+			this->out()<<"Snapshot "<<snapshot_id<<" ("<<snapshot_idx<<")"<<std::endl;
 
 			AssertEQ(MA_SRC, toInt(iter->status()), toInt(TxnStatus::SNAPSHOT));
 
-			DebugCounter++;
 			auto txn = iter->txn();
+
+			AssertEQ(MA_SRC, txn->currentTxnId(), snapshot_id);
 
 			CtrDirectory roots(txn.get(), CTR_FIND, TxnMgr::CtrDirectoryName);
 
@@ -144,9 +170,13 @@ public:
 
 				VectorCtr ctr(txn.get(), CTR_FIND, ctr_name);
 
-				vector<Int> ctr_data = snapshots_data[snapshot_idx][ctr_name];
+				auto ctr_iter = snapshots_data[snapshot_idx].second.find(ctr_name);
 
-				assertVectorData(ctr, ctr_data);
+				AssertTrue(MA_SRC, ctr_iter != snapshots_data[snapshot_idx].second.end());
+
+				AssertEQ(MA_SRC, ctr_name, ctr_iter->first);
+
+				assertVectorData(ctr, ctr_iter->second);
 			}
 
 			snapshot_idx++;

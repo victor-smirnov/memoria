@@ -206,7 +206,7 @@ public:
 
 	// ITransation
 
-	virtual void commit()
+	virtual BigInt commit()
 	{
 		if (status_ == TxnStatus::SNAPSHOT)
 		{

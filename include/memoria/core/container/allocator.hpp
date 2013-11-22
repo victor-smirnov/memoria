@@ -145,7 +145,7 @@ struct ITxn: IWalkableAllocator<PageType> {
 	virtual BigInt txn_id()	const												= 0;
 	virtual TxnStatus status() const											= 0;
 
-	virtual void commit() 														= 0;
+	virtual BigInt commit() 													= 0;
 	virtual void rollback() 													= 0;
 	virtual void flush(bool force_sync = false)									= 0;
 	virtual bool check()														= 0;
