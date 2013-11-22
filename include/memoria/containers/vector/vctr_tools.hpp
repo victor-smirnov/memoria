@@ -85,8 +85,6 @@ class VectorIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Contain
     Position prefix_;
     Position current_;
 
-    static const Int Indexes = 1;
-
 public:
 
     VectorIteratorPrefixCache(): Base(), prefix_(), current_() {}

@@ -66,34 +66,13 @@ public:
 
 
 template <typename Types>
-class FindLTWalker: public FindWalkerBase<Types> {
+class FindGTWalker: public FindWalkerBase<Types> {
 
     typedef FindWalkerBase<Types>       Base;
     typedef typename Base::Key          Key;
 
 public:
-    typedef Int ReturnType;
-
-    FindLTWalker(Int stream, Int key_num, Int key): Base(stream, key_num, key)
-    {}
-
-    template <typename Node>
-    ReturnType treeNode(const Node* node, Int start)
-    {
-        const typename Node::Map& map = node->map();
-
-        return map.findLTS(Base::key_num_, Base::key_ - Base::prefix_[Base::key_num_], Base::prefix_);
-    }
-};
-
-template <typename Types>
-class FindLEWalker: public FindWalkerBase<Types> {
-
-    typedef FindWalkerBase<Types>       Base;
-    typedef typename Base::Key          Key;
-
-public:
-    FindLEWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
+    FindGTWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
     {}
 
     typedef Int ResultType;
@@ -113,7 +92,42 @@ public:
 
         auto target     = key - prefix;
 
-        auto result     = tree->findLEForward(0, 0, target);
+        auto result     = tree->findGTForward(0, 0, target);
+
+        prefix += result.prefix();
+
+        return result.idx();
+    }
+};
+
+template <typename Types>
+class FindGEWalker: public FindWalkerBase<Types> {
+
+    typedef FindWalkerBase<Types>       Base;
+    typedef typename Base::Key          Key;
+
+public:
+    FindGEWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
+    {}
+
+    typedef Int ResultType;
+    typedef Int ReturnType;
+
+    template <typename Node>
+    ReturnType treeNode(const Node* node, Int start)
+    {
+        return node->find(Base::stream_, *this, node->level(), start);
+    }
+
+    template <Int Idx, typename Tree>
+    Int stream(const Tree* tree, Int level, Int start)
+    {
+        auto& key       = Base::key_;
+        auto& prefix    = Base::prefix_;
+
+        auto target     = key - prefix;
+
+        auto result     = tree->findGEForward(0, 0, target);
 
         prefix += result.prefix();
 

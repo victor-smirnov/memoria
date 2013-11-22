@@ -47,13 +47,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
-
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::IDataSourceType                                     DataSource;
+    typedef typename Types::DataSource											DataSource;
 
     BigInt total_size() const
     {

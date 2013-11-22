@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_STREAM_FACTORY_HPP
+#ifndef _MEMORIA_ALLOCATORS_INMEM_FACTORY_HPP
+#define _MEMORIA_ALLOCATORS_INMEM_FACTORY_HPP
 
 #include <memoria/containers/root/root_factory.hpp>
 #include <memoria/containers/map/map_factory.hpp>
@@ -17,6 +17,8 @@
 #include <memoria/containers/labeled_tree/ltree_factory.hpp>
 #include <memoria/containers/wt/wt_factory.hpp>
 #include <memoria/containers/vector_tree/vtree_factory.hpp>
+#include <memoria/containers/dbl_map/dblmap_factory.hpp>
+#include <memoria/containers/smrk_map/smrkmap_factory.hpp>
 
 #include <memoria/core/container/metadata_repository.hpp>
 
@@ -45,7 +47,7 @@ typedef memoria::InMemAllocator<
 template <typename CtrName>
 using SCtrTF = CtrTF<SmallProfile<>, CtrName>;
 
-typedef PageID<UInt> ID4;
+typedef PageID<BigInt> ID4;
 
 MEMORIA_EXTERN_TREE(BigInt, BigInt,     1);
 MEMORIA_EXTERN_TREE(BigInt, EmptyValue, 1);

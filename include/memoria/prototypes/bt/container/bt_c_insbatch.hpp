@@ -52,7 +52,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    static const Int Indexes                                                    = Types::Indexes;
+
     static const Int Streams                                                    = Types::Streams;
 
     struct NonLeafNodeKeyValuePair
@@ -430,8 +430,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     }
 
 
-    MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
-    void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const;
+//    MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
+//    void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const;
 
     void updateChildren(const NodeBaseG& node);
     void updateChildren(const NodeBaseG& node, Int start);
@@ -477,9 +477,12 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
     if (self.checkCapacities(leaf, sizes))
     {
-        leaf.update();
+    	self.updatePageG(leaf);
+
         Accumulator sums = provider.insertIntoLeaf(leaf, idx, sizes);
+
         self.updateParent(leaf, sums);
+
         return sums;
     }
     else {
@@ -492,12 +495,13 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
         if (!self.isAfterEnd(leaf, idx, provider.getActiveStreams()))
         {
-            right = self.splitLeafP(leaf, idx);
+        	right = self.splitLeafP(leaf, idx);
         }
 
-        leaf.update();
+        self.updatePageG(leaf);
 
         Accumulator sums = provider.insertIntoLeaf(leaf, idx);
+
         self.updateParent(leaf, sums);
 
         Position remainder = provider.remainder();
@@ -509,8 +513,8 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
             InsertSharedData data(provider);
 
-            NodeBaseG leaf_parent = self.getNodeParent(leaf, Allocator::UPDATE);
-            NodeBaseG right_parent = self.getNodeParent(right, Allocator::UPDATE);
+            NodeBaseG leaf_parent = self.getNodeParentForUpdate(leaf);
+            NodeBaseG right_parent = self.getNodeParentForUpdate(right);
 
             self.insertInternalSubtree(leaf_parent, path_parent_idx, right_parent, right_parent_idx, data);
 
@@ -665,8 +669,8 @@ void M_TYPE::insertInternalSubtree(
             // There is something more to insert.
             Int parent_right_idx = right_node->parent_idx();
 
-            NodeBaseG left_parent = self.getNodeParent(left_node, Allocator::READ);
-            NodeBaseG right_parent = self.getNodeParent(right_node, Allocator::READ);
+            NodeBaseG left_parent = self.getNodeParent(left_node);
+            NodeBaseG right_parent = self.getNodeParent(right_node);
 
             insertInternalSubtree
             (
@@ -766,7 +770,7 @@ void M_TYPE::makeRoom(NodeBaseG& node, const Position& start, const Position& co
 {
     auto& self = this->self();
 
-    node.update();
+    self.updatePageG(node);
 
     NodeDispatcher::dispatch(node, MakeRoomFn(), start, count);
 
@@ -783,7 +787,7 @@ void M_TYPE::makeRoom(NodeBaseG& node, Int stream, Int start, Int count)
     {
         auto& self = this->self();
 
-        node.update();
+        self.updatePageG(node);
         NodeDispatcher::dispatch(node, MakeRoomFn(), stream, start, count);
 
         if (!node->is_leaf())
@@ -812,11 +816,11 @@ typename M_TYPE::Accumulator M_TYPE::splitNonLeafNode(NodeBaseG& src, NodeBaseG&
     return accum;
 }
 
-M_PARAMS
-void M_TYPE::forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
-{
-    NonLeafDispatcher::dispatchConst(node, ForAllIDsFn(), start, end, fn);
-}
+//M_PARAMS
+//void M_TYPE::forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
+//{
+//    NonLeafDispatcher::dispatchConst(node, ForAllIDsFn(), start, end, fn);
+//}
 
 
 M_PARAMS
@@ -857,9 +861,9 @@ void M_TYPE::updateChildrenInternal(const NodeBaseG& node, Int start, Int end)
 
     ID node_id = node->id();
 
-    forAllIDs(node, start, end, [&self, &node_id](const ID& id, Int idx)
+    self.forAllIDs(node, start, end, [&self, &node_id](const ID& id, Int idx)
     {
-        NodeBaseG child = self.allocator().getPage(id, Allocator::UPDATE);
+        NodeBaseG child = self.allocator().getPageForUpdate(id, self.master_name());
 
         child->parent_id()  = node_id;
         child->parent_idx() = idx;
@@ -876,7 +880,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 {
     auto& self = this->self();
 
-    root.update();
+    self.updatePageG(root);
 
     NodeBaseG new_root = self.createNode1(root->level() + 1, true, false, root->page_size());
 

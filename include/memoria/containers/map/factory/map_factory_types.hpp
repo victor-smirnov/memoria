@@ -22,6 +22,7 @@
 #include <memoria/containers/map/map_iterator.hpp>
 #include <memoria/containers/map/iterator/map_i_api.hpp>
 #include <memoria/containers/map/iterator/map_i_nav.hpp>
+#include <memoria/containers/map/iterator/map_i_value.hpp>
 
 
 
@@ -39,7 +40,6 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
     typedef Value_                                                              Value;
     typedef TypeList<Key_>                                                      KeysList;
 
-    static const Int Indexes                                                    = 1;
 
 
     typedef TypeList<
@@ -76,7 +76,8 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
                 typename Base::IteratorPartsList,
 
                 map::ItrApiName,
-                map::ItrNavName
+                map::ItrNavName,
+                map::ItrValueName
     >::Result                                                                   IteratorPartsList;
 
 
@@ -88,10 +89,10 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
 
     template <typename Types>
-    using FindLTWalker      = map::FindLTWalker<Types>;
+    using FindGTWalker      = map::FindGTWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker      = map::FindLEWalker<Types>;
+    using FindGEWalker      = map::FindGEWalker<Types>;
 
 
     template <typename Types>

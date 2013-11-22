@@ -1,16 +1,20 @@
 
-// Copyright Victor Smirnov 2012.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_SHARED_RANDOMACCESSLIST_TEST_BASE_HPP_
-#define MEMORIA_TESTS_SHARED_RANDOMACCESSLIST_TEST_BASE_HPP_
+#ifndef MEMORIA_TESTS_ABSTRACT_RALIST_TEST_BASE_HPP_
+#define MEMORIA_TESTS_ABSTRACT_RALIST_TEST_BASE_HPP_
 
 #include <memoria/memoria.hpp>
 
 #include <memoria/tools/profile_tests.hpp>
 #include <memoria/tools/tools.hpp>
+
+#include <memoria/allocators/file/factory.hpp>
+#include <memoria/allocators/mvcc/mvcc_allocator.hpp>
+
 
 #include <functional>
 
@@ -19,25 +23,31 @@ namespace memoria {
 using namespace std;
 
 template <
-    typename ContainerTypeName,
+	typename Profile,
+	typename AllocatorType,
+	typename ContainerTypeName,
     typename MemBuffer
 >
-class RandomAccessListTestBase: public SPTestTask {
+class AbstractRandomAccessListTestBase: public TestTask {
 
-    typedef RandomAccessListTestBase<
+    typedef AbstractRandomAccessListTestBase<
+    			Profile,
+    			AllocatorType,
                 ContainerTypeName,
                 MemBuffer
-    >                                                                                   MyType;
+    >                                                                           MyType;
 
-    typedef SPTestTask                                                                  Base;
+    typedef TestTask                                                            Base;
 
 protected:
-    typedef typename SCtrTF<ContainerTypeName>::Type                                    Ctr;
-    typedef typename Ctr::Iterator                                                      Iterator;
-    typedef typename Ctr::Accumulator                                                   Accumulator;
-    typedef typename Ctr::ID                                                            ID;
+    typedef typename CtrTF<Profile, ContainerTypeName>::Type                    Ctr;
+    typedef typename Ctr::Iterator                                              Iterator;
+    typedef typename Ctr::ID                                                    ID;
+    typedef typename Ctr::Accumulator											Accumulator;
 
-    static const Int Indexes = Ctr::Indexes;
+    typedef AllocatorType														Allocator;
+
+
 
     Int max_block_size_     = 1024*4;
     Int check_size_         = 1000;
@@ -49,14 +59,22 @@ protected:
     Int random_position_;
     String dump_name_;
 
-    typedef std::function<void (MyType*, Allocator&, Ctr&)>                             TestFn;
+
+
+    Int check_count_ = 0;
+
+    OpenMode mode_ = OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC;
+
+    typedef std::function<void (MyType*, Allocator&, Ctr&)>                     TestFn;
 
 public:
 
-    RandomAccessListTestBase(StringRef name):
-        SPTestTask(name)
+    AbstractRandomAccessListTestBase(StringRef name):
+        TestTask(name)
     {
-        size_ = 1024*1024*16;
+        size_ = 1024*1024;
+
+        Ctr::initMetadata();
 
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
         MEMORIA_ADD_TEST_PARAM(check_size_);
@@ -68,6 +86,7 @@ public:
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
         MEMORIA_ADD_TEST_PARAM(random_position_)->state();
 
+
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart,   replayInsertFromStart);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd,       replayInsertAtEnd);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertInTheMiddle, replayInsertInTheMiddle);
@@ -77,27 +96,65 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
     }
 
-    virtual ~RandomAccessListTestBase() throw() {}
+    virtual ~AbstractRandomAccessListTestBase() throw() {}
 
-    virtual Iterator seek(Ctr& ctr, BigInt pos)                         = 0;
-    virtual void insert(Iterator& iter, MemBuffer& data)                = 0;
-    virtual void read(Iterator& iter, MemBuffer& data)                  = 0;
-    virtual void skip(Iterator& iter, BigInt offset)                    = 0;
-    virtual BigInt getSize(Ctr& ctr)                                    = 0;
-    virtual BigInt getPosition(Iterator& iter)                          = 0;
+    virtual Iterator seek(Ctr& ctr, BigInt pos)                         		= 0;
+    virtual void insert(Iterator& iter, MemBuffer& data)                		= 0;
+    virtual void read(Iterator& iter, MemBuffer& data)                  		= 0;
+    virtual void skip(Iterator& iter, BigInt offset)                    		= 0;
+    virtual BigInt getSize(Ctr& ctr)                                    		= 0;
+    virtual BigInt getPosition(Iterator& iter)                          		= 0;
 
-    virtual void remove(Iterator& iter, BigInt size)                    = 0;
+    virtual void remove(Iterator& iter, BigInt size)                    		= 0;
 
-    virtual MemBuffer createBuffer(Int size)                            = 0;
-    virtual MemBuffer createRandomBuffer(Int size)                      = 0;
+    virtual MemBuffer createBuffer(Int size)                            		= 0;
+    virtual MemBuffer createRandomBuffer(Int size)                      		= 0;
     virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source) = 0;
 
+    virtual void testInsert(TestFn test_fn) 									= 0;
+    virtual void testRemove(TestFn test_fn)										= 0;
+    virtual void replay(TestFn test_fn)											= 0;
+
+
+    virtual void checkAllocator(Allocator& allocator, const char* msg, const char* source)
+    {
+    	Int step_count = getcheckStep();
+
+    	if (step_count > 0 && (check_count_ % step_count == 0))
+    	{
+    		::memoria::check<Allocator>(allocator, msg, source);
+    	}
+
+    	check_count_++;
+    }
 
     virtual void fillRandom(Ctr& ctr, BigInt size)
     {
-        MemBuffer data = createRandomBuffer(size);
-        Iterator iter = seek(ctr, 0);
-        insert(iter, data);
+    	MemBuffer data = createRandomBuffer(size);
+    	Iterator iter = seek(ctr, 0);
+    	insert(iter, data);
+    }
+
+    virtual void fillRandom(Allocator& alloc, Ctr& ctr, BigInt size)
+    {
+    	BigInt block_size = size > 65536*4 ? 65536*4 : size;
+
+    	BigInt total = 0;
+
+    	Iterator iter = seek(ctr, 0);
+
+    	while (total < size)
+    	{
+    		BigInt tmp_size = size - total > block_size ? block_size : size - total;
+
+    		MemBuffer data = createRandomBuffer(tmp_size);
+
+    		insert(iter, data);
+
+    		alloc.flush();
+
+    		total += tmp_size;
+    	}
     }
 
 
@@ -195,47 +252,6 @@ public:
     virtual void checkIterator(Iterator& iter, const char* source)
     {
         checkIteratorPrefix(iter, source);
-
-//      auto& ctr  = iter.model();
-//      auto& path = iter.path();
-//
-//      for (Int level = path.getSize() - 1; level > 0; level--)
-//      {
-//          bool found = false;
-//
-//          Int node_size = ctr.getNodeSize(path[level], 0);
-//          for (Int idx = 0; idx < node_size; idx++)
-//          {
-//              ID id = iter.model().getChildID(path[level].node(), idx);
-//              if (id == path[level - 1]->id())
-//              {
-//                  if (path[level - 1].parent_idx() != idx)
-//                  {
-//                      iter.dump(out());
-//                      throw TestException(source, SBuf()<<"Invalid parent-child relationship for node:"
-//                              <<path[level]->id()
-//                              <<" child: "
-//                              <<path[level - 1]->id()
-//                              <<" idx="<<idx
-//                              <<" parent_idx="
-//                              <<path[level-1].parent_idx());
-//                  }
-//                  else {
-//                      found = true;
-//                      break;
-//                  }
-//              }
-//          }
-//
-//          if (!found)
-//          {
-//              iter.dump(out());
-//              throw TestException(source, SBuf()<<"Child: "
-//                      <<path[level - 1]->id()
-//                      <<" is not fount is it's parent, parent_idx="
-//                      <<path[level - 1].parent_idx());
-//          }
-//      }
     }
 
     virtual void checkIteratorPrefix(Iterator& iter, const char* source)
@@ -251,85 +267,6 @@ public:
     }
 
 
-    void testInsert(TestFn test_fn)
-    {
-        Allocator allocator;
-        DefaultLogHandlerImpl logHandler(out());
-        allocator.getLogger()->setHandler(&logHandler);
-        allocator.getLogger()->level() = Logger::ERROR;
-
-        Ctr ctr(&allocator);
-        ctr_name_ = ctr.name();
-
-        allocator.commit();
-
-        try {
-            while (ctr.size() < size_)
-            {
-                test_fn(this, allocator, ctr);
-
-                out()<<"Size: "<<ctr.size()<<endl;
-
-                check(allocator, "Insert: Container Check Failed", MA_SRC);
-
-                allocator.commit();
-            }
-        }
-        catch (...) {
-            dump_name_ = Store(allocator);
-            throw;
-        }
-    }
-
-
-    void testRemove(TestFn test_fn)
-    {
-        Allocator allocator;
-        DefaultLogHandlerImpl logHandler(out());
-        allocator.getLogger()->setHandler(&logHandler);
-
-        Ctr ctr(&allocator);
-        ctr_name_ = ctr.name();
-
-        allocator.commit();
-
-        try {
-
-            fillRandom(ctr, Base::size_);
-
-            allocator.commit();
-
-            while (ctr.size() > 0)
-            {
-                test_fn(this, allocator, ctr);
-
-                out()<<"Size: "<<ctr.size()<<endl;
-
-                check(allocator, "Remove: Container Check Failed", MA_SRC);
-
-                allocator.commit();
-            }
-        }
-        catch (...) {
-            dump_name_ = Store(allocator);
-            throw;
-        }
-    }
-
-    void replay(TestFn test_fn)
-    {
-        Allocator allocator;
-        DefaultLogHandlerImpl logHandler(out());
-        allocator.getLogger()->setHandler(&logHandler);
-
-        LoadAllocator(allocator, dump_name_);
-
-        Ctr ctr(&allocator, CTR_FIND, ctr_name_);
-
-        test_fn(this, allocator, ctr);
-
-        check(allocator, "Insert: Container Check Failed", MA_SRC);
-    }
 
 
     void insertFromStart(Allocator&, Ctr& ctr)
@@ -339,7 +276,13 @@ public:
         MemBuffer suffix = createSuffixCheckBuffer(iter);
         MemBuffer data   = createDataBuffer();
 
+        BigInt size = ctr.size();
+
         insert(iter, data);
+
+        BigInt size2 = ctr.size();
+
+        AssertEQ(MA_SRC, size2, size + data.size());
 
         AssertEQ(MA_SRC, getPosition(iter), (BigInt)data.size());
 
@@ -349,11 +292,7 @@ public:
 
         checkIterator(iter, MA_SRC);
 
-        DebugCounter = 1;
-
         checkBufferWritten(iter, data, MA_SRC);
-
-        DebugCounter = 0;
 
         checkIterator(iter, MA_SRC);
 
@@ -425,7 +364,13 @@ public:
         skip(iter, -data.size());
         skip(iter, -prefix.size());
 
-        checkBufferWritten(iter, prefix, MA_SRC);
+        try {
+        	checkBufferWritten(iter, prefix, MA_SRC);
+        }
+        catch (...) {
+        	iter.dumpPath();
+        	throw;
+        }
         checkBufferWritten(iter, data,   MA_SRC);
         checkBufferWritten(iter, suffix, MA_SRC);
     }

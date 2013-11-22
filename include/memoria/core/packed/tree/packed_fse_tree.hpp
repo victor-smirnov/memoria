@@ -133,7 +133,7 @@ public:
     Int content_size_from_start(Int block) const
     {
         IndexValue max = sum(block);
-        return this->findLEForward(block, 0, max).idx() + 1;
+        return this->findGEForward(block, 0, max).idx() + 1;
     }
 
     Int block_size(const MyType* other) const
@@ -188,6 +188,11 @@ public:
     Int getOffsetsLengts() const
     {
         return getOffsetsLengts(max_size_);
+    }
+
+    static Int packed_block_size(Int tree_capacity)
+    {
+    	return block_size(tree_capacity);
     }
 
     static Int block_size(Int tree_capacity)
@@ -368,11 +373,6 @@ public:
 
     const Value& value(Int block, Int idx) const
     {
-        if (idx >= size())
-        {
-            int a = 0; a++;
-        }
-
         MEMORIA_ASSERT(idx, <, size());
         return *(values(block) + idx);
     }
@@ -407,9 +407,19 @@ public:
     {
         if (value != 0)
         {
-            Value val = this->value(block, idx);
-            setValue(block, idx, val + value);
+        	this->value(block, idx) += value;
         }
+    }
+
+    template <typename Value, Int Indexes>
+    void addValues(Int idx, Int from, Int size, const core::StaticVector<Value, Indexes>& values)
+    {
+    	for (Int block = 0; block < size; block++)
+    	{
+    		value(block, idx) += values[block + from];
+    	}
+
+    	reindex();
     }
 
     BigInt setValue(Int block, Int idx, Value value)
@@ -713,7 +723,27 @@ public:
         values.sumUp(sums());
     }
 
-    ValueDescr findLTForward(Int block, Int start, IndexValue val) const
+
+    void addKeys(Int idx, Values& values) const
+    {
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		values[block] += this->value(block, idx);
+    	}
+    }
+
+    void addKeys(Int idx, Values2& values) const
+    {
+    	values[0] += 1;
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		values[block + 1] += this->value(block, idx);
+    	}
+    }
+
+
+    ValueDescr findGTForward(Int block, Int start, IndexValue val) const
     {
         Int block_start = block * size_;
 
@@ -736,7 +766,7 @@ public:
 
 
 
-    ValueDescr findLTBackward(Int block, Int start, IndexValue val) const
+    ValueDescr findGTBackward(Int block, Int start, IndexValue val) const
     {
         Int block_start = block * size_;
 
@@ -769,7 +799,7 @@ public:
 
 
 
-    ValueDescr findLEForward(Int block, Int start, IndexValue val) const
+    ValueDescr findGEForward(Int block, Int start, IndexValue val) const
     {
         Int block_start = block * size_;
 
@@ -790,7 +820,7 @@ public:
         }
     }
 
-    ValueDescr findLEBackward(Int block, Int start, IndexValue val) const
+    ValueDescr findGEBackward(Int block, Int start, IndexValue val) const
     {
         Int block_start = block * size_;
 
@@ -825,23 +855,23 @@ public:
 
     ValueDescr findForward(SearchType search_type, Int block, Int start, IndexValue val) const
     {
-        if (search_type == SearchType::LT)
+        if (search_type == SearchType::GT)
         {
-            return findLTForward(block, start, val);
+            return findGTForward(block, start, val);
         }
         else {
-            return findLEForward(block, start, val);
+            return findGEForward(block, start, val);
         }
     }
 
     ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
     {
-        if (search_type == SearchType::LT)
+        if (search_type == SearchType::GT)
         {
-            return findLTBackward(block, start, val);
+            return findGTBackward(block, start, val);
         }
         else {
-            return findLEBackward(block, start, val);
+            return findGEBackward(block, start, val);
         }
     }
 
@@ -920,6 +950,8 @@ public:
     void insertSpace(Int idx, Int room_length)
     {
         MEMORIA_ASSERT(idx, <=, this->size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(room_length, >=, 0);
 
         Int capacity = this->capacity();
 

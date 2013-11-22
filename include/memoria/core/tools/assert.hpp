@@ -28,16 +28,31 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #ifndef MEMORIA_NO_ASSERTS
 
-#define MEMORIA_ASSERT(Left, Operation, Right)                                                                            \
-        if (!(Left Operation Right)) {                                                                                    \
-            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "\
-                    <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right); \
+#define MEMORIA_ASSERT(Left, Operation, Right)                                                         	\
+        if (!(Left Operation Right)) {                                                                 	\
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "				   	\
+                    <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right); 			   	\
+        }
+
+
+#define MEMORIA_WARNING(Left, Operation, Right)                                                        	\
+        if ((Left Operation Right)) {                                                                  	\
+            std::cout<<"WARNING: "																	   	\
+                    <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right			   	\
+                    <<" at "<<MA_SRC																	\
+					<<std::endl;   																	   	\
         }
 
 
 #define MEMORIA_ASSERT_TRUE(Arg0)                                                                       \
         if (!(Arg0)) {                                                                                  \
             throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT TRUE FAILURE: "              \
+                    <<#Arg0);                                                                           \
+        }
+
+#define MEMORIA_ASSERT_FALSE(Arg0)                                                                      \
+        if ((Arg0)) {                                                                                   \
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FALSE FAILURE: "             \
                     <<#Arg0);                                                                           \
         }
 
@@ -63,7 +78,7 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
     throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid Stream: "<<Idx)
 
 #define MEMORIA_ASSERT_ALIGN(MemExpr, Align)                                                        \
-        if (T2T<ptrdiff_t>(MemExpr) % Align != 0) {                                                                 \
+        if (T2T<std::ptrdiff_t>(MemExpr) % Align != 0) {                                                                 \
             throw memoria::vapi::Exception(MEMORIA_SOURCE,                                          \
                 SBuf()<<"ASSERT FAILURE: \""<<#MemExpr<<"\" is not properly aligned ("<<Align<<")");    \
         }

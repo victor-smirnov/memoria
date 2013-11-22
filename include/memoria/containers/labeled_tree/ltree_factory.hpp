@@ -37,8 +37,6 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
     typedef UBigInt                                                             Value;
     typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int Indexes                                                    = 3;
-
     typedef TypeList<
                 NonLeafNodeTypes<BranchNode>,
                 LeafNodeTypes<LeafNode>
@@ -88,7 +86,7 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
 
 
     template <typename Types>
-    using FindLTWalker          = louds::SkipForwardWalker<Types>;
+    using FindGTWalker          = louds::SkipForwardWalker<Types>;
 
 
     template <typename Types>

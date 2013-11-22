@@ -120,22 +120,26 @@ public:
     {
         auto& self = this->self();
 
-        tree_.initCtr(&self.allocator(), self.name(), command);
+        tree_.initCtr(&self.allocator(), self.master_name(), command);
         seq_. initCtr(&tree_, 0, command);
 
         Base::setCtrShared(NULL);
     }
 
-    void initCtr(const ID& root_id)
+    void initCtr(const ID& root_id, BigInt name)
     {
         auto& self = this->self();
 
-        tree_.initCtr(&self.allocator(), root_id);
-        seq_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, 0));
+        tree_.initCtr(&self.allocator(), root_id, name);
+        seq_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, name, 0), 0);
 
         Base::setCtrShared(NULL);
     }
 
+    virtual bool hasRoot(BigInt name)
+    {
+    	throw vapi::Exception(MA_SRC, "Allocator::hasRoot(BigInt) method must be properly implements for this container");
+    }
 
     static Int initMetadata()
     {
@@ -195,14 +199,29 @@ public:
         seq().checkIt();
     }
 
+    void walkTree(ContainerWalker* walker)
+    {
+    	auto& self = this->self();
+
+    	walker->beginCompositeCtr(
+    			TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
+    			self.name()
+    	);
+
+    	tree_.walkTree(walker);
+    	seq_.walkTree(walker);
+
+    	walker->endCompositeCtr();
+    }
+
 private:
 
-    static ID get_ctr_root(Allocator& allocator, const ID& root_id, BigInt name)
+    static ID get_ctr_root(Allocator& allocator, const ID& root_id, BigInt ctr_name, BigInt name)
     {
         typedef typename Tree::NodeBaseG   NodeBaseG;
         typedef typename Tree::Metadata    Metadata;
 
-        NodeBaseG root  = allocator.getPage(root_id, Allocator::READ);
+        NodeBaseG root  = allocator.getPage(root_id, ctr_name);
         Metadata  meta  = Tree::getCtrRootMetadata(root);
 
         return meta.roots(name);

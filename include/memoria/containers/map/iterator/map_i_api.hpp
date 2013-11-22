@@ -16,6 +16,7 @@
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
 #include <iostream>
 
@@ -52,7 +53,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
 
     struct KeyFn {
-        Key value_;
+        Key value_ = 0;
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
@@ -70,6 +71,24 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
             {
                 value_ = map->tree()->value(0, idx);
             }
+        }
+
+        template <Int Idx, typename StreamTypes>
+        void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	if (map != nullptr)
+        	{
+        		value_ = map->tree()->value(0, idx);
+        	}
+        }
+
+        template <Int Idx, typename StreamTypes>
+        void stream(const PackedFSEMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	if (map != nullptr)
+        	{
+        		value_ = map->tree()->value(0, idx);
+        	}
         }
 
         template <typename Node>
@@ -99,7 +118,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
     std::pair<Key, Value> operator*() const
     {
-        return std::pair<Key, Value>(key(), value());
+        return std::pair<Key, Value>(self().key(), self().value());
     }
 
 
@@ -129,121 +148,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
         return self().idx();
     }
 
-
-    struct SetValueFn {
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEMap<StreamTypes>* map, Int idx, const Value& value)
-        {
-            MEMORIA_ASSERT_TRUE(map != nullptr);
-            map->value(idx) = value;
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx, const Value& value)
-        {
-            MEMORIA_ASSERT_TRUE(map != nullptr);
-            map->value(idx) = value;
-        }
-
-        template <typename Node>
-        void treeNode(Node* node, Int idx, const Value& value)
-        {
-            node->template processStream<0>(*this, idx, value);
-        }
-    };
-
-
-    void setValue(const Value& value)
+    void insert(const Key& key, const Value& value)
     {
-        auto& self = this->self();
-        self.leaf().update();
-        LeafDispatcher::dispatch(self.leaf(), SetValueFn(), self.idx(), value);
+    	auto& self = this->self();
+
+    	Accumulator sums;
+
+    	get<0>(sums)[0] = key;
+
+    	self.ctr().insert(self, Element(sums, value));
     }
-
-    class ValueAccessor {
-        MyType& iter_;
-    public:
-        ValueAccessor(MyType& iter): iter_(iter) {}
-
-        operator Value() const {
-            return iter_.getValue();
-        }
-
-        Value operator=(const Value& value) {
-            iter_.setValue(value);
-            return value;
-        }
-    };
-
-    class ConstValueAccessor {
-        const MyType& iter_;
-    public:
-        ConstValueAccessor(const MyType& iter): iter_(iter) {}
-
-        operator Value() const {
-            return iter_.getValue();
-        }
-    };
-
-
-    struct GetValueFn {
-        Value value_;
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
-        {
-            if (map != nullptr)
-            {
-                value_ = map->value(idx);
-            }
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
-        {
-            if (map != nullptr)
-            {
-                value_ = map->value(idx);
-            }
-        }
-
-        template <typename Node>
-        void treeNode(const Node* node, Int idx)
-        {
-            node->template processStream<0>(*this, idx);
-        }
-    };
-
-
-
-
-    Value getValue() const
-    {
-        auto& self = this->self();
-
-        GetValueFn fn;
-
-        LeafDispatcher::dispatchConst(self.leaf(), fn, self.idx());
-
-        return fn.value_;
-    }
-
-    ValueAccessor value() {
-        return ValueAccessor(self());
-    }
-
-    ConstValueAccessor value() const {
-        return ConstValueAccessor(self());
-    }
-
-
-    void setData(const Value& value)
-    {
-        self().value() = value;
-    }
-
-
 
 
     void remove()
@@ -327,6 +241,24 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
             }
         }
 
+        template <Int Idx, typename StreamTypes>
+        void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	if (map != nullptr)
+        	{
+        		prefix_ += map->tree()->sum(0, idx);
+        	}
+        }
+
+        template <Int Idx, typename StreamTypes>
+        void stream(const PackedFSEMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	if (map != nullptr)
+        	{
+        		prefix_ += map->tree()->sum(0, idx);
+        	}
+        }
+
         template <typename Node>
         void treeNode(const Node* node, Int idx)
         {
@@ -367,6 +299,56 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrApiName)
 
             self.updatePrefix();
         }
+    }
+
+    void updateKey(BigInt key)
+    {
+    	auto& self = this->self();
+
+    	Accumulator sums;
+
+    	std::get<0>(sums)[0] = key;
+
+    	self.updateUp(sums);
+
+    	if (self++)
+    	{
+    		self.updateUp(-sums);
+    	}
+
+    	self--;
+    }
+
+
+    bool is_found_eq(Key key) const
+    {
+    	auto& self = this->self();
+    	return (!self.isEnd()) && self.key() == key;
+    }
+
+    bool is_found_le(Key key) const
+    {
+    	auto& self = this->self();
+
+    	return self.isContent() && self.key() <= key;
+    }
+
+    bool is_found_lt(Key key) const
+    {
+    	auto& self = this->self();
+    	return self.isContent() && self.key() <= key;
+    }
+
+    bool is_found_ge(Key key) const
+    {
+    	auto& self = this->self();
+    	return self.isContent() && self.key() >= key;
+    }
+
+    bool is_found_gt(Key key) const
+    {
+    	auto& self = this->self();
+    	return self.isContent() && self.key() > key;
     }
 
 MEMORIA_ITERATOR_PART_END

@@ -32,7 +32,7 @@ public:
 
     SelectForwardWalker(Int stream, Int index, Key target): Base(stream, index + 1, target)
     {
-        Base::search_type_ = SearchType::LE;
+        Base::search_type_ = SearchType::GE;
     }
 
     template <Int Idx, typename Tree>
@@ -95,6 +95,45 @@ public:
 };
 
 
+template <typename Types>
+class SelectForwardWalker2: public bt::SelectForwardWalkerBase<Types> {
+
+    typedef bt::SelectForwardWalkerBase<Types>        							Base;
+    typedef typename Base::Key                                                  Key;
+
+public:
+    typedef typename Base::ResultType                                           ResultType;
+    typedef typename Base::Iterator                                             Iterator;
+
+
+    SelectForwardWalker2(Int stream, Int index, Key target): Base(stream, index + 1, index, target, 0)
+    {}
+
+    template <Int Idx, typename Tree>
+    ResultType stream(const Tree* tree, Int start)
+    {
+        return Base::template stream<Idx>(tree, start);
+    }
+
+
+    template <Int Idx, typename StreamTypes>
+    ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
+    {
+        return Base::template select<Idx>(seq, start);
+    }
+
+    BigInt finish(Iterator& iter, Int idx)
+    {
+        iter.idx() = idx;
+
+        iter.cache().add(this->pos_);
+
+        return this->pos_;
+    }
+};
+
+
+
 
 template <typename Types>
 class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>> {
@@ -111,7 +150,7 @@ public:
 
     SelectBackwardWalker(Int stream, Int index, Key target): Base(stream, index + 1, target)
     {
-        Base::search_type_ = SearchType::LT;
+        Base::search_type_ = SearchType::GT;
     }
 
     template <Int Idx, typename Tree>

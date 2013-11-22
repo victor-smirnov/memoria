@@ -14,6 +14,7 @@
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
 #include <vector>
 
@@ -48,15 +49,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMap<StreamTypes>* map, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(map!= nullptr);
+            MEMORIA_ASSERT_TRUE(map);
             map->insert(idx, std::get<Idx>(element_.first), element_.second);
         }
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedVLEMap<StreamTypes>* map, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(map!= nullptr);
+            MEMORIA_ASSERT_TRUE(map);
             map->insert(idx, std::get<Idx>(element_.first), element_.second);
+        }
+
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	MEMORIA_ASSERT_TRUE(map);
+        	map->insert(idx, std::get<Idx>(element_.first), element_.second);
         }
 
 
@@ -96,6 +104,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
             map->tree()->addValues(idx, std::get<Idx>(element_));
         }
 
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(map != nullptr);
+
+            map->tree()->addValues(idx, std::get<Idx>(element_));
+        }
+
         template <typename NTypes>
         void treeNode(LeafNode<NTypes>* node, Int idx)
         {
@@ -109,8 +125,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
     void initLeaf(NodeBaseG& node) const
     {
-        node.update();
-        self().layoutNode(node, 1);
+    	auto& self = this->self();
+
+    	self.updatePageG(node);
+        self.layoutNode(node, 1);
     }
 
 
@@ -127,7 +145,7 @@ bool M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element)
 
     PageUpdateMgr mgr(self);
 
-    leaf.update();
+    self.updatePageG(leaf);
 
     mgr.add(leaf);
 
@@ -173,7 +191,7 @@ void M_TYPE::updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, s
 {
     auto& self = this->self();
 
-    node.update();
+    self.updatePageG(node);
 
     PageUpdateMgr mgr(self);
 

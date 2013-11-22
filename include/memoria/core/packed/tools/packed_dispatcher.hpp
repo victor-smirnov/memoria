@@ -19,15 +19,20 @@ namespace memoria {
 template <typename... List> class PackedDispatcher;
 
 template <typename List> struct PackedDispatcherTool;
+
 template <typename... List>
 struct PackedDispatcherTool<TypeList<List...>> {
     typedef PackedDispatcher<List...> Type;
 };
 
+
+
 template <typename Struct, Int Index>
 struct StructDescr {
     typedef Struct Type;
 };
+
+
 
 template <typename Head, typename... Tail, Int Index>
 class PackedDispatcher<StructDescr<Head, Index>, Tail...> {
@@ -373,24 +378,43 @@ public:
     {}
 
     template <typename Fn, typename... Args>
-    static typename Fn::ResultType dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&...) {
+    static typename std::remove_reference<Fn>::type::ResultType
+    dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&...) {
         throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
     }
 
     template <typename Fn, typename... Args>
-    static typename Fn::ResultType dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&...) {
+    static typename std::remove_reference<Fn>::type::ResultType
+    dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&...) {
         throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
     }
 
     template <typename Fn, typename... Args>
-    static typename Fn::ResultType dispatchStaticRtn(Int idx, Fn&& fn, Args&&...)
+    static typename std::remove_reference<Fn>::type::ResultType
+    dispatchStaticRtn(Int idx, Fn&& fn, Args&&...)
     {
         throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
     }
 };
 
+template <typename List, Int Idx = 0> struct PackedDispatchersListBuilder;
+
+template <typename Head, typename... Tail, Int Idx>
+struct PackedDispatchersListBuilder<TypeList<Head, Tail...>, Idx> {
+	 typedef typename MergeLists<
+	            StructDescr<Head, Idx>,
+	            typename PackedDispatchersListBuilder<
+	                TypeList<Tail...>,
+	                Idx + 1
+	            >::Type
+	 >::Result                                                                  Type;
+};
+
+template <Int Idx>
+struct PackedDispatchersListBuilder<TypeList<>, Idx> {
+	typedef TypeList<>															Type;
+};
 
 }
-
 
 #endif

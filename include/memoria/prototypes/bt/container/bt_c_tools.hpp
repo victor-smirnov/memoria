@@ -56,7 +56,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     typedef typename Types::TreePath                                            TreePath;
     typedef typename Types::TreePathItem                                        TreePathItem;
 
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
     enum class BTNodeTraits {
@@ -98,7 +97,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void root2Node(NodeBaseG& node) const
     {
-        node.update();
+    	self().updatePageG(node);
 
         node->set_root(false);
 
@@ -107,7 +106,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void node2Root(NodeBaseG& node, const Metadata& meta) const
     {
-        node.update();
+    	self().updatePageG(node);
 
         node->set_root(true);
 
@@ -119,7 +118,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void copyRootMetadata(NodeBaseG& src, NodeBaseG& tgt) const
     {
-        tgt.update();
+    	self().updatePageG(tgt);
         tgt->setMetadata(src->root_metadata());
     }
 
@@ -143,16 +142,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
 
     template <typename Node>
-    NodeBaseG getChildFn(const Node* node, Int idx, Int flags) const
+    NodeBaseG getChildFn(const Node* node, Int idx) const
     {
-        return me()->allocator().getPage(node->value(idx), flags);
+    	auto& self = this->self();
+    	return self.allocator().getPage(node->value(idx), self.master_name());
     }
 
-    MEMORIA_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
 
-    NodeBaseG getChild(const NodeBaseG& node, Int idx, Int flags) const
+    template <typename Node>
+    NodeBaseG getChildForUpdateFn(const Node* node, Int idx) const
     {
-        NodeBaseG result = NonLeafDispatcher::dispatchConstRtn(node, GetChildFn(me()), idx, flags);
+    	auto& self = this->self();
+    	return self.allocator().getPageForUpdate(node->value(idx), self.master_name());
+    }
+
+
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
+    NodeBaseG getChild(const NodeBaseG& node, Int idx) const
+    {
+        NodeBaseG result = NonLeafDispatcher::dispatchConstRtn(node, GetChildFn(me()), idx);
 
         if (!result.isEmpty())
         {
@@ -162,6 +170,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
             throw NullPointerException(MEMORIA_SOURCE, "Child must not be NULL");
         }
     }
+
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetChildForUpdateFn, getChildForUpdateFn, NodeBaseG);
+    NodeBaseG getChildForUpdate(const NodeBaseG& node, Int idx) const
+    {
+        NodeBaseG result = NonLeafDispatcher::dispatchConstRtn(node, GetChildForUpdateFn(me()), idx);
+
+        if (!result.isEmpty())
+        {
+            return result;
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Child must not be NULL");
+        }
+    }
+
 
     NodeBaseG getLastChild(const NodeBaseG& node, Int flags) const
     {
@@ -174,9 +197,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return path[node->level() + 1];
     }
 
-    NodeBaseG getNodeParent(const NodeBaseG& node, Int flags = Allocator::READ) const
+    NodeBaseG getNodeParent(const NodeBaseG& node) const
     {
-        return self().allocator().getPage(node->parent_id(), flags);
+    	auto& self = this->self();
+    	return self.allocator().getPage(node->parent_id(), self.master_name());
+    }
+
+    NodeBaseG getNodeParentForUpdate(const NodeBaseG& node) const
+    {
+    	auto& self = this->self();
+    	return self.allocator().getPageForUpdate(node->parent_id(), self.master_name());
     }
 
 
@@ -254,9 +284,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
 
-    NodeBaseG getRoot(Int flags) const
+    NodeBaseG getRoot() const
     {
-        return me()->allocator().getPage(me()->root(), flags);
+    	auto& self = this->self();
+    	return self.allocator().getPage(self.root(), self.master_name());
+    }
+
+    NodeBaseG getRootForUpdate() const
+    {
+    	auto& self = this->self();
+    	return self.allocator().getPageForUpdate(self.root(), self.master_name());
     }
 
 
@@ -265,13 +302,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void setKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
-        node.update();
+    	self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, SetKeysFn(), idx, keys);
     }
 
     void setNonLeafKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
-        node.update();
+    	self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, SetKeysFn(), idx, keys);
     }
 
@@ -288,7 +325,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void setNonLeafChildrenCount(NodeBaseG& node, Int count) const
     {
-        node.update();
+    	self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
     }
 
@@ -316,7 +353,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void setChildID(NodeBaseG& node, Int idx, const ID& id) const
     {
-        node.update();
+    	self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, SetChildID(me()), idx, id);
     }
 
@@ -324,7 +361,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void reindex(NodeBaseG& node) const
     {
-        node.update();
+    	self().updatePageG(node);
         NodeDispatcher::dispatch(node, ReindexFn());
     }
 
@@ -366,7 +403,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
         while (!node->is_root())
         {
-            node = self.getNodeParent(node, Allocator::READ);
+            node = self.getNodeParent(node);
             self.dump(node, out);
         }
     }
@@ -393,7 +430,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN(AddKeysFn, updateUp);
     void addKeys(NodeBaseG& node, int idx, const Accumulator& keys)
     {
-        node.update();
+    	self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, AddKeysFn(me()), idx, keys);
     }
 
@@ -440,6 +477,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     bool isNodeEmpty(const NodeBaseG& node)
     {
         return NodeDispatcher::dispatchConstRtn(node, IsNodeEmpty());
+    }
+
+
+    MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
+    void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
+    {
+        NonLeafDispatcher::dispatchConst(node, ForAllIDsFn(), start, end, fn);
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -522,7 +566,7 @@ typename M_TYPE::NodeBaseG M_TYPE::getNextNodeP(NodeBaseG& node) const
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
+        NodeBaseG parent = self.getNodeParent(node);
 
         Int size = self.getNodeSize(parent, 0);
 
@@ -530,14 +574,14 @@ typename M_TYPE::NodeBaseG M_TYPE::getNextNodeP(NodeBaseG& node) const
 
         if (parent_idx < size - 1)
         {
-            return self.getChild(parent, parent_idx + 1, Allocator::READ);
+            return self.getChild(parent, parent_idx + 1);
         }
         else {
             NodeBaseG target_parent = getNextNodeP(parent);
 
             if (target_parent.isSet())
             {
-                return self.getChild(target_parent, 0, Allocator::READ);
+                return self.getChild(target_parent, 0);
             }
             else {
                 return target_parent;
@@ -557,13 +601,13 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(node, Allocator::READ);
+        NodeBaseG parent = self.getNodeParent(node);
 
         Int parent_idx = node->parent_idx();
 
         if (parent_idx > 0)
         {
-            return self.getChild(parent, parent_idx - 1, Allocator::READ);
+            return self.getChild(parent, parent_idx - 1);
         }
         else {
             NodeBaseG target_parent = getPrevNodeP(parent);
@@ -571,7 +615,7 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
             if (target_parent.isSet())
             {
                 Int node_size = self.getNodeSize(target_parent, 0);
-                return self.getChild(target_parent, node_size - 1, Allocator::READ);
+                return self.getChild(target_parent, node_size - 1);
             }
             else {
                 return target_parent;

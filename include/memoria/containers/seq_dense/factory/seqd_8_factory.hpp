@@ -92,10 +92,12 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
         typedef memoria::seq_dense::SequenceIteratorCache<Iterator, Container>  Type;
     };
 
+    typedef IDataSource<Value>                                                  DataSource;
+    typedef IDataTarget<Value>                                                  DataTarget;
 
 
     template <typename Types>
-    using FindLTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types>;
+    using FindGTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types>;
 
 
     template <typename Types>

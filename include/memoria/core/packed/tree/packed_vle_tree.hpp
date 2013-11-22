@@ -948,9 +948,6 @@ public:
             MEMORIA_ASSERT(remainder, >=, 0);
 
             codec.move(values, start, end, remainder);
-
-            DebugCounter += remainder;
-            DebugCounter1++;
         }
 
         this->data_size() += total;
@@ -1579,12 +1576,12 @@ public:
     }
 
 
-    ValueDescr findLTForward(Int block, Int start, IndexValue val) const
+    ValueDescr findGTForward(Int block, Int start, IndexValue val) const
     {
         return this->template findForwardT<PackedCompareLE>(block, start, val);
     }
 
-    ValueDescr findLEForward(Int block, Int start, IndexValue val) const
+    ValueDescr findGEForward(Int block, Int start, IndexValue val) const
     {
         return this->template findForwardT<PackedCompareLT>(block, start, val);
     }
@@ -1636,35 +1633,35 @@ public:
         }
     }
 
-    ValueDescr findLTBackward(Int block, Int start, IndexValue val) const
+    ValueDescr findGTBackward(Int block, Int start, IndexValue val) const
     {
         return this->template findBackwardT<PackedCompareLE>(block, start, val);
     }
 
-    ValueDescr findLEBackward(Int block, Int start, IndexValue val) const
+    ValueDescr findGEBackward(Int block, Int start, IndexValue val) const
     {
         return this->template findBackwardT<PackedCompareLT>(block, start, val);
     }
 
     ValueDescr findForward(SearchType search_type, Int block, Int start, IndexValue val) const
     {
-        if (search_type == SearchType::LT)
+        if (search_type == SearchType::GT)
         {
-            return findLTForward(block, start, val);
+            return findGTForward(block, start, val);
         }
         else {
-            return findLEForward(block, start, val);
+            return findGEForward(block, start, val);
         }
     }
 
     ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
     {
-        if (search_type == SearchType::LT)
+        if (search_type == SearchType::GT)
         {
-            return findLTBackward(block, start, val);
+            return findGTBackward(block, start, val);
         }
         else {
-            return findLEBackward(block, start, val);
+            return findGEBackward(block, start, val);
         }
     }
 
@@ -1968,8 +1965,6 @@ private:
 
     ValueDescr raw_sum(Int to) const
     {
-        DebugCounter2++;
-
         GetVLEValuesSumFn<MyType> fn(*this, to);
 
         Int pos = TreeTools::find(fn);
@@ -2196,8 +2191,6 @@ private:
     template <Int Offset, typename Vals>
     void sumsSmall(Vals& values) const
     {
-        DebugCounter1++;
-
         Codec codec;
 
         auto buffer = this->values();

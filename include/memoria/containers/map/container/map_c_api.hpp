@@ -41,7 +41,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator find(Key key)
     {
-        Iterator iter = self().findLE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
         if (!iter.isEnd())
         {
@@ -58,10 +58,50 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
         }
     }
 
+    Iterator findKeyGE(Key key)
+    {
+    	return self().findGE(0, key, 0);
+    }
+
+    Iterator findKeyLE(Key key)
+    {
+    	Iterator iter = self().findGE(0, key, 0);
+
+    	if (iter.isEnd() || iter.key() > key)
+    	{
+    		iter--;
+
+    		if (iter.isBegin())
+    		{
+    			iter.idx() = 0;
+    		}
+    	}
+
+    	return iter;
+    }
+
+    Iterator findKeyLT(Key key)
+    {
+    	Iterator iter = self().findGE(0, key, 0);
+
+    	if (iter.isEnd() || iter.key() >= key)
+    	{
+    		iter--;
+
+    		if (iter.isBegin())
+    		{
+    			iter.idx() = 0;
+    		}
+    	}
+
+    	return iter;
+    }
+
+
 
     Iterator operator[](Key key)
     {
-        Iterator iter = self().findLE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
         if (iter.isEnd() || key != iter.key())
         {
@@ -75,9 +115,28 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
         return iter;
     }
 
+    Iterator insertIFNotExists(Key key)
+    {
+    	Iterator iter = self().findGE(0, key, 0);
+
+    	if (iter.isEnd() || key != iter.key())
+    	{
+    		Accumulator keys;
+    		std::get<0>(keys)[0] = key;
+    		self().insert(iter, keys);
+
+    		iter.prev();
+    	}
+    	else {
+    		throw Exception(MA_SRC, "Inserted Key already exists");
+    	}
+
+    	return iter;
+    }
+
     bool remove(Key key)
     {
-        Iterator iter = self().findLE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
         if (key == iter.key())
         {
@@ -113,6 +172,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
             iter.updateUp(-delta);
         }
     }
+
 
     bool contains(Key key)
     {

@@ -54,7 +54,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
 
-    static const Int Indexes                                                    = Types::Indexes;
+
     static const Int Streams                                                    = Types::Streams;
 
     typedef std::function<void (const Position&, Int)>                          MergeFn;
@@ -123,13 +123,13 @@ void M_TYPE::insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, c
 {
     auto& self = this->self();
 
-    node.update();
+    self.updatePageG(node);
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
     self.updateChildren(node, idx);
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+        NodeBaseG parent = self.getNodeParentForUpdate(node);
         self.updatePath(parent, node->parent_idx(), keys);
     }
 }
@@ -146,8 +146,8 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
         self.newRootP(left_node);
     }
 
-    left_node.update();
-    NodeBaseG left_parent = self.getNodeParent(left_node, Allocator::UPDATE);
+    self.updatePageG(left_node);
+    NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);
 
     NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
@@ -193,7 +193,8 @@ typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Positi
 M_PARAMS
 bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
 {
-    NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
+	self().updatePageG(node);
+	NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
     return true;
 }
 
@@ -209,7 +210,7 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
     while(!tmp->is_root())
     {
         Int parent_idx = tmp->parent_idx();
-        tmp = self.getNodeParent(tmp, Allocator::UPDATE);
+        tmp = self.getNodeParentForUpdate(tmp);
 
         self.updateNode(tmp, parent_idx, keys);
     }
@@ -222,7 +223,7 @@ void M_TYPE::updateParent(NodeBaseG& node, const Accumulator& sums)
 
     if (!node->is_root())
     {
-        NodeBaseG parent = self.getNodeParent(node, Allocator::UPDATE);
+        NodeBaseG parent = self.getNodeParentForUpdate(node);
 
         self.updatePath(parent, node->parent_idx(), sums);
     }
@@ -278,7 +279,7 @@ void M_TYPE::insertNonLeaf(
     auto& self = this->self();
     NodeBaseG& node = path[level];
 
-    node.update();
+    self.updatePageG(node);
 
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
@@ -292,7 +293,7 @@ void M_TYPE::insertNonLeaf(
         const ID& id
 )
 {
-    node.update();
+	self().updatePageG(node);
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
 
@@ -320,8 +321,8 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
-    tgt.update();
-    src.update();
+    self.updatePageG(tgt);
+    self.updatePageG(src);
 
     Int tgt_size = self.getNodeSize(tgt, 0);
 
@@ -329,7 +330,7 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.updateChildren(tgt, tgt_size);
 
-    NodeBaseG src_parent    = self.getNodeParent(src, Allocator::READ);
+    NodeBaseG src_parent    = self.getNodeParent(src);
     Int parent_idx          = src->parent_idx();
 
     MEMORIA_ASSERT(parent_idx, >, 0);
@@ -342,7 +343,7 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.updatePath(src_parent, idx, sums);
 
-    self.allocator().removePage(src->id());
+    self.allocator().removePage(src->id(), self.master_name());
 }
 
 /**
@@ -385,8 +386,8 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
         }
         else
         {
-            NodeBaseG tgt_parent = self.getNodeParent(tgt, Allocator::READ);
-            NodeBaseG src_parent = self.getNodeParent(src, Allocator::READ);
+            NodeBaseG tgt_parent = self.getNodeParent(tgt);
+            NodeBaseG src_parent = self.getNodeParent(src);
 
             if (mergeBTreeNodes(tgt_parent, src_parent, fn))
             {

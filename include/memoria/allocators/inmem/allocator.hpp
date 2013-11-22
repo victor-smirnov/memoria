@@ -1,12 +1,12 @@
 
-// Copyright Victor Smirnov 2011-2012.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef     _MEMORIA_MODULES_CONTAINERS_STREAM_POSIX_MANAGER_HPP
-#define     _MEMORIA_MODULES_CONTAINERS_STREAM_POSIX_MANAGER_HPP
+#ifndef _MEMORIA_ALLOCATORS_INMEM_ALLOCATOR_HPP
+#define _MEMORIA_ALLOCATORS_INMEM_ALLOCATOR_HPP
 
 //#include <map>
 #include <unordered_map>
@@ -26,17 +26,6 @@ namespace memoria {
 
 using namespace std;
 
-typedef struct
-{
-    template <typename T>
-    long operator() (const PageID<T> &k) const { return k.value(); }
-} IDKeyHash;
-
-typedef struct
-{
-    template <typename T>
-    bool operator() (const PageID<T> &x, const PageID<T> &y) const { return x == y; }
-} IDKeyEq;
 
 using namespace memoria::vapi;
 
@@ -44,7 +33,7 @@ template <typename Profile, typename PageType, typename TxnType = EmptyType>
 class InMemAllocator: public AbstractAllocatorFactory<Profile, AbstractAllocatorName<PageType> >::Type {
 
     typedef IAllocator<PageType>                                                Base;
-    typedef InMemAllocator<Profile, PageType, TxnType>                          Me;
+    typedef InMemAllocator<Profile, PageType, TxnType>                          MyType;
 
 public:
     typedef typename Base::Page                                                 Page;
@@ -53,14 +42,17 @@ public:
     typedef typename Base::CtrShared                                            CtrShared;
     typedef typename Page::ID                                                   ID;
 
-    typedef Base                                                                AbstractAllocator;
-
     typedef Ctr<typename CtrTF<Profile, Root>::CtrTypes>                        RootMapType;
     typedef typename RootMapType::Metadata                                      RootMetatata;
     typedef typename RootMapType::BTreeCtrShared                                RootCtrShared;
 
+    typedef Ctr<typename CtrTF<Profile, BitVector<>>::CtrTypes>                 BlockMapType;
+
+    typedef IJournaledAllocator<Page>											JournaledAllocator;
+    typedef IWalkableAllocator<Page>											WalkableAllocator;
+
 private:
-    typedef InMemAllocator<Profile, PageType, TxnType>                          MyType;
+
 
     struct PageOp
     {
@@ -92,7 +84,7 @@ private:
     BigInt              allocs1_;
     BigInt              allocs2_;
 
-    Me*                 roots_;
+    MyType*             roots_;
 
     RootMapType*        root_map_;
 
@@ -100,6 +92,29 @@ private:
 
     // For Allocator copy initialization
     ID                  root_id0_;
+
+
+    class Properties: public IAllocatorProperties {
+    	public:
+    	virtual Int defaultPageSize() const
+    	{
+    		return 4096;
+    	}
+
+    	virtual BigInt lastCommitId() const {
+    		return 0;
+    	}
+
+    	virtual void setLastCommitId(BigInt txn_id) {}
+
+    	virtual BigInt newTxnId() {return 0;}
+
+    	virtual bool isMVCC() const {return false;}
+    	virtual void setMVCC(bool mvcc) {}
+
+    };
+
+    Properties properties_;
 
 public:
     InMemAllocator() :
@@ -198,14 +213,23 @@ public:
     }
 
 
-    virtual void releasePage(Shared* shared)
+    virtual void releasePage(Shared* shared) noexcept
     {
         pool_.release(shared->id());
     }
 
+    virtual PageG getPage(const ID& id, BigInt name) {
+    	return getPage(id, Base::READ, name);
+    }
+
+    virtual PageG getPageForUpdate(const ID& id, BigInt name)
+    {
+    	return getPage(id, Base::UPDATE, name);
+    }
 
 
-    virtual PageG getPage(const ID& id, Int flags)
+
+    PageG getPage(const ID& id, Int flags, BigInt name)
     {
         if (id.isNull())
         {
@@ -254,6 +278,8 @@ public:
                 shared->set_page(page2);
                 shared->state() = Shared::UPDATE;
 
+                shared->refresh();
+
                 return PageG(shared);
             }
             else
@@ -265,10 +291,10 @@ public:
 
     virtual PageG getPageG(Page* page)
     {
-        return getPage(page->id(), Base::READ);
+    	return getPage(page->id(), Base::READ, -1);
     }
 
-    virtual void updatePage(Shared* shared)
+    virtual PageG updatePage(Shared* shared, BigInt name)
     {
         if (shared->state() == Shared::READ)
         {
@@ -284,16 +310,21 @@ public:
 
             shared->set_page(page0);
             shared->state() = Shared::UPDATE;
+
+            shared->refresh();
         }
+
+        return PageG(shared);
     }
 
-    virtual void  removePage(const ID& id)
+    virtual void  removePage(const ID& id, BigInt name)
     {
         Shared* shared = pool_.get(id);
         if (shared != NULL)
         {
             // FIXME it doesn't really necessary to inform PageGuards that the page is deleted
             shared->state() = Shared::DELETE;
+            shared->refresh();
         }
 
         auto i = pages_log_.find(id);
@@ -311,14 +342,14 @@ public:
      * If a tree page is created using new (allocator) PageType call
      * than Page() constructor is invoked twice with undefined results
      */
-    virtual PageG createPage(Int initial_size)
+    virtual PageG createPage(Int initial_size, BigInt name)
     {
         allocs1_++;
         void* buf = malloc(initial_size);
 
         memset(buf, 0, initial_size);
 
-        ID id = counter_++;
+        ID id = newId();
 
         Page* p = new (buf) Page(id);
 
@@ -366,7 +397,12 @@ public:
 //      counter_    = 100;
 //  }
 
-    void commit()
+    void commit(bool force_sync = false)
+    {
+    	flush(force_sync);
+    }
+
+    virtual void flush(bool force_sync = false)
     {
         for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
         {
@@ -419,7 +455,7 @@ public:
         pages_log_.clear();
     }
 
-    void rollback()
+    virtual void rollback(bool force_sync = false)
     {
         for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
         {
@@ -452,10 +488,10 @@ public:
     {
         if (name == 0)
         {
-            return getPage(root(), flags);
+            return getPage(root(), flags, name);
         }
         else {
-            return getPage(roots_->get_value_for_key(name), flags);
+            return getPage(roots_->get_value_for_key(name), flags, name);
         }
     }
 
@@ -474,6 +510,15 @@ public:
     {
         new_root(name, root);
     }
+
+    virtual void markUpdated(BigInt name) {}
+
+    virtual BigInt currentTxnId() const
+	{
+		return 0;
+	}
+
+
 
     virtual CtrShared* getCtrShared(BigInt name)
     {
@@ -694,22 +739,50 @@ public:
         }
     }
 
-    bool check()
+    virtual bool check()
     {
         bool result = false;
 
         for (auto iter = this->roots()->Begin(); !iter.isEnd(); )
         {
-            PageG page = this->getPage(iter.getValue(), Base::READ);
+            BigInt ctr_name = iter.key();
+
+        	PageG page = this->getPage(iter.getValue(), Base::READ, ctr_name);
 
             ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
-            result = ctr_meta->getCtrInterface()->check(&page->id(), this) || result;
+            result = ctr_meta->getCtrInterface()->check(&page->gid(), ctr_name, this) || result;
 
             iter.next();
         }
 
         return result;
+    }
+
+    virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
+    {
+    	walker->beginAllocator("InMemAllocator", allocator_descr);
+
+    	auto iter = root_map_->Begin();
+
+    	while (!iter.isEnd())
+    	{
+    		BigInt ctr_name = iter.key();
+    		ID root_id		= iter.value();
+
+    		PageG page 		= this->getPage(root_id, Base::READ, ctr_name);
+
+    		Int master_hash = page->master_ctr_type_hash();
+    		Int ctr_hash 	= page->ctr_type_hash();
+
+    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
+
+    		ctr_meta->getCtrInterface()->walk(&page->gid(), ctr_name, this, walker);
+
+    		iter++;
+    	}
+
+    	walker->endAllocator();
     }
 
 
@@ -736,6 +809,16 @@ public:
 
         return new_name;
     }
+
+    virtual IAllocatorProperties& properties()
+    {
+    	return properties_;
+    }
+
+    virtual ID newId() {
+    	return counter_++;
+    }
+
 
     BigInt size()
     {

@@ -883,9 +883,6 @@ public:
             MEMORIA_ASSERT(remainder, >=, 0);
 
             codec.move(values, start, end, remainder);
-
-            DebugCounter += remainder;
-            DebugCounter1++;
         }
 
         this->data_size() += total;

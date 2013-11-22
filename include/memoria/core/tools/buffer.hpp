@@ -85,6 +85,7 @@ public:
     typedef Object                                                              ValueType;
 
     ValueBuffer() = default;
+    ValueBuffer(const MyType&) = default;
 
     ValueBuffer(const Object &obj) {
         value() = obj;

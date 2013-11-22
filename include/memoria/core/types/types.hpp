@@ -127,6 +127,16 @@ template <typename Key, typename Value>
 struct Map          {};
 
 template <typename Key, typename Value>
+struct Map2         {};
+
+template <typename K, typename V>
+using DblMap = Map<K, Map<K, V>>;
+
+template <typename K, typename V>
+using DblMap2 = Map2<K, Map2<K, V>>;
+
+
+template <typename Key, typename Value>
 struct MapProto     {};
 
 template <typename Value>
@@ -158,6 +168,8 @@ using BitVector = Sequence<1, Dense>;
 template <typename ChildType = void>
 class SmallProfile  {};
 
+template <typename ChildType = void>
+class FileProfile  {};
 
 enum class Granularity  {Bit, Byte};
 enum class Indexed      {No, Yes};
@@ -191,6 +203,23 @@ struct VTree        {};
 template <Granularity gr = Granularity::Byte>
 struct CMap         {};
 
+// A map with marked K/V pairs
+template <typename Key, typename Value, Int BitsPerMark = 1>
+struct MrkMap		{};
+
+// A map with marked K/V pairs
+template <typename Key, typename Value, Int BitsPerMark = 1>
+struct MrkMap2		{};
+
+// A map with marked K/V pairs, with search over marks
+template <typename Key, typename Value, Int BitsPerMark = 1>
+struct SMrkMap		{};
+
+template <typename K, typename V, Int BitsPerMark>
+using DblMrkMap = Map<K, MrkMap<K, V, BitsPerMark>>;
+
+template <typename K, typename V, Int BitsPerMark>
+using DblMrkMap2 = Map2<K, MrkMap2<K, V, BitsPerMark>>;
 
 /*
  * End of container type names and profiles
@@ -254,6 +283,7 @@ struct ValuePair {
 
     ValuePair(const First& f, const Second& s): first(f), second(s) {}
     ValuePair(const First& f): first(f) {}
+    ValuePair() {}
 };
 
 
@@ -274,7 +304,7 @@ enum class WalkDirection {
     UP, DOWN
 };
 
-enum class SearchType {LT, LE};
+enum class SearchType {LT, LE, GT, GE};
 enum class IteratorMode {FORWARD, BACKWARD};
 enum class MergeType {NONE, LEFT, RIGHT};
 enum class MergePossibility {YES, NO, MAYBE};

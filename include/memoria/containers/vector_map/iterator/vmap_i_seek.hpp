@@ -1,20 +1,20 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#ifndef _MEMORIA_CONTAINER_VECTORMAP_ITERATOR_API_HPP
-#define _MEMORIA_CONTAINER_VECTORMAP_ITERATOR_API_HPP
+#ifndef _MEMORIA_CONTAINER_VECTORMAP_I_API_HPP
+#define _MEMORIA_CONTAINER_VECTORMAP_I_API_HPP
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/dump.hpp>
 
-#include <memoria/containers/vector_map/vmap_names.hpp>
-#include <memoria/containers/vector_map/vmap_tools.hpp>
+#include <memoria/containers/dbl_map/dblmap_names.hpp>
+#include <memoria/containers/dbl_map/dblmap_tools.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
@@ -25,9 +25,9 @@ namespace memoria    {
 
 
 
-MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
+MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
 
-    typedef Ctr<typename Types::CtrTypes>                       Container;
+    typedef Ctr<typename Types::CtrTypes>                       				Container;
 
 
     typedef typename Base::Allocator                                            Allocator;
@@ -44,8 +44,18 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     typedef typename Container::DataTarget                                      DataTarget;
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
-
     typedef std::pair<BigInt, BigInt>                                           BlobDescriptorEntry; // ID, Size
+
+
+
+    template <typename T>
+    using FwWalker = typename Container::Types::template SkipForwardWalker<T>;
+
+    template <typename T>
+    using BwWalker = typename Container::Types::template SkipBackwardWalker<T>;
+
+
+
 
     bool operator++()
     {
@@ -182,6 +192,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
     {
         auto& self = this->self();
 
+        if (self.stream() != 1) {
+        	int a = 0; a++;
+        }
+
         MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
         BigInt pos = self.pos();
@@ -232,7 +246,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
         template <Int StreamIdx, typename Tree>
         void stream(const Tree* tree, Int idx)
         {
-            prefix_ += tree->sum(block_, idx);
+        	if (idx > 0)
+        	{
+        		MEMORIA_ASSERT_TRUE(tree != nullptr);
+        	}
+
+            prefix_ += tree ? tree->sum(block_, idx) : 0;
         }
     };
 
@@ -287,7 +306,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
         template <Int StreamIdx, typename TreeTypes>
         void stream(const PkdFTree<TreeTypes>* tree, Int idx)
         {
-            prefix_ += tree->sum(1, idx);
+        	if (idx > 0)
+        	{
+        		MEMORIA_ASSERT_TRUE(tree != nullptr);
+        	}
+
+        	prefix_ += tree ? tree->sum(1, idx) : 0;
         }
     };
 
@@ -354,7 +378,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
         template <Int StreamIdx, typename StreamType>
         ResultType stream(StreamType* obj, Int idx)
         {
-            BlobDescriptorEntry entry;
+        	MEMORIA_ASSERT_TRUE(obj != nullptr && idx >= 0 && idx < obj->size());
+
+        	BlobDescriptorEntry entry;
 
             entry.first  = obj->value(0, idx);
             entry.second = obj->value(1, idx);
@@ -389,9 +415,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
         template <Int StreamIdx, typename StreamType>
         ResultType stream(const StreamType* obj, Int block, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
+            if (idx > 0)
+            {
+            	MEMORIA_ASSERT_TRUE(obj != nullptr);
+            }
 
-            return obj->sum(block, idx);
+            return obj ? obj->sum(block, idx) : 0;
         }
     };
 
@@ -401,7 +430,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
         MEMORIA_ASSERT_TRUE(self.stream() == 0);
 
-        Int local_offset = LeafDispatcher::dispatchConstRtn(self.leaf(), LocalDataOffsetFn(), 1, self.idx());
+        auto idx = self.idx();
+
+        MEMORIA_ASSERT_TRUE(idx >= 0);
+
+        Int local_offset = LeafDispatcher::dispatchConstRtn(self.leaf(), LocalDataOffsetFn(), 1, idx);
 
         MEMORIA_ASSERT_TRUE(local_offset >= 0);
 
@@ -487,7 +520,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
         template <Int StreamIdx, typename StreamType>
         ResultType stream(const StreamType* obj, Int offset)
         {
-            return obj->findLTForward(1, 0, offset).idx();
+            return obj->findGTForward(1, 0, offset).idx();
         }
     };
 
@@ -498,9 +531,14 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
         if (self.stream() == 1)
         {
             BigInt offset = self.pos();
+
             self.skip(-offset);
 
-            if (self.leaf_size(0) == 0 || self.idx() < self.data_offset_for(0))
+            Int leaf_size 	= self.leaf_size(0);
+            Int idx 		= self.idx();
+            Int data_offset_for = self.data_offset_for(0);
+
+            if (leaf_size == 0 || idx < data_offset_for)
             {
                 self.stream() = 0;
 
@@ -516,14 +554,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
                 self.stream()   = 0;
                 self.idx()      = self.cache().entry_idx();
             }
-
-//          else {
-//              Int first_entry_offset = self.data_offset_for(0);
-//
-//
-//
-//              throw Exception(MA_SRC, "VectorMap: handle this case...");
-//          }
         }
     }
 
@@ -555,7 +585,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
             if (pos + amount < size)
             {
-                BigInt offset = self.template _findFw<vmap::SkipForwardWalker>(0, amount);
+                BigInt offset = self.template _findFw<FwWalker>(0, amount);
 
                 self.cache().addToGlobalPos(offset);
 
@@ -563,7 +593,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
             }
             else
             {
-                BigInt offset = self.template _findFw<vmap::SkipForwardWalker>(0, size - pos - 1);
+                BigInt offset = self.template _findFw<FwWalker>(0, size - pos - 1);
 
                 self.idx()++;
 
@@ -592,7 +622,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
                 amount = pos + 1;
             }
 
-            BigInt offset = self.template _findBw<vmap::SkipBackwardWalker>(0, amount);
+            BigInt offset = self.template _findBw<BwWalker>(0, amount);
 
             if (amount > 0)
             {
@@ -609,126 +639,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
         else {
             return 0;
         }
-    }
-
-
-    BigInt read(DataTarget& tgt)
-    {
-        auto& self = this->self();
-
-        vmap::VectorMapTarget target(&tgt);
-
-        Position pos;
-
-        pos[1] = self.idx();
-
-        return self.ctr().readStreams(self, pos, target)[1];
-    }
-
-    vector<Value>
-    read()
-    {
-        auto& self = this->self();
-        vector<Value> data(self.blob_size());
-
-        MemTBuffer<Value> buf(data);
-
-        self.read(buf);
-
-        return data;
-    }
-
-
-    void insert(DataSource& src)
-    {
-        auto& self = this->self();
-
-        MEMORIA_ASSERT_TRUE(self.stream() == 1);
-
-        self.ctr().insertData(self, src);
-    }
-
-    void insert(const std::vector<Value>& data)
-    {
-        auto& self = this->self();
-
-        MEMORIA_ASSERT_TRUE(self.stream() == 1);
-
-        MemBuffer<const Value> src(data);
-
-        self.ctr().insertData(self, src);
-    }
-
-    void remove(BigInt size)
-    {
-        auto& self = this->self();
-
-        MEMORIA_ASSERT_TRUE(self.stream() == 1);
-
-        self.ctr().removeData(self, size);
-    }
-
-
-
-    struct ReadValueFn {
-        typedef Value ReturnType;
-        typedef Value ResultType;
-
-        template <typename Node>
-        ReturnType treeNode(const Node* node, Int offset)
-        {
-            return node->template processStreamRtn<1>(*this, offset);
-        }
-
-        template <Int StreamIdx, typename StreamType>
-        ResultType stream(const StreamType* obj, Int offset)
-        {
-            return obj->value(offset);
-        }
-    };
-
-    Value value()
-    {
-        auto& self = this->self();
-        MEMORIA_ASSERT_TRUE(self.stream() == 1);
-
-        return LeafDispatcher::dispatchConstRtn(self.leaf(), ReadValueFn(), self.idx());
-    }
-
-    struct UpdateFn {
-
-        template <typename Node>
-        void treeNode(Node* node, Int offset, const Accumulator& keys)
-        {
-            node->template processStream<0>(*this, offset, keys);
-        }
-
-        template <Int StreamIdx, typename StreamType>
-        void stream(StreamType* obj, Int offset, const Accumulator& keys)
-        {
-            obj->updateUp(0, offset, std::get<0>(keys)[0]);
-            obj->updateUp(1, offset, std::get<0>(keys)[1]);
-            obj->reindex();
-        }
-    };
-
-    void update(const Accumulator& accum)
-    {
-        auto& self = this->self();
-
-        MEMORIA_ASSERT_TRUE(self.stream() == 0);
-
-        NodeBaseG& leaf = self.leaf();
-
-        leaf.update();
-        LeafDispatcher::dispatch(leaf, UpdateFn(), self.idx(), accum);
-
-        self.ctr().updateParent(leaf, accum);
-
-        self.cache().addToEntry(
-            std::get<0>(accum)[0],
-            std::get<0>(accum)[1]
-        );
     }
 
     bool checkCapacities(const Position& sizes)
@@ -804,7 +714,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrApiName)
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::vmap::ItrApiName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::vmap::ItrSeekName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 

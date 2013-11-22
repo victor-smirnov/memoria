@@ -109,7 +109,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     };
 
 
-    static const Int  Indexes                                                   = Types::Indexes;
+
 
 
     void operator=(ThisType&& other) {
@@ -153,7 +153,9 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         MEMORIA_ASSERT_NOT_EMPTY(root_id);
 
-        NodeBaseG root      = self().allocator().getPage(root_id, Allocator::READ);
+        auto& self = this->self();
+
+        NodeBaseG root = self.allocator().getPage(root_id, self.master_name());
 
         return RootDispatcher::dispatchConstRtn(root.page(), GetModelNameFn(me()));
     }
@@ -162,7 +164,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         MEMORIA_ASSERT_EXPR(name >= 0, "Container name must not be positive")
 
-        NodeBaseG root  = self().getRoot(Allocator::READ);
+        NodeBaseG root  = self().getRoot();
 
         RootDispatcher::dispatch(root.page(), SetModelNameFn(me()), name);
     }
@@ -175,7 +177,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if ((command & CTR_CREATE) && (command & CTR_FIND))
         {
-            if (self.allocator().hasRoot(self.name()))
+            if (self.allocator().hasRoot(self.master_name()))
             {
                 findCtrByName();
             }
@@ -185,7 +187,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         }
         else if (command & CTR_CREATE)
         {
-            if (!self.allocator().hasRoot(self.name()))
+            if (!self.allocator().hasRoot(self.master_name()))
             {
                 createCtrByName();
             }
@@ -210,7 +212,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void configureNewCtrShared(CtrShared* shared, PageG root) const
     {
-        T2T<BTreeCtrShared*>(shared)->configure_metadata(MyType::getCtrRootMetadata(root));
+        T2T<BTreeCtrShared*>(shared)->configure_metadata(self().getCtrRootMetadata(root));
     }
 
 
@@ -220,7 +222,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto& self = this->self();
 
-        NodeBaseG root = self.allocator().getPage(self.root(), Allocator::READ);
+        NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
 
         return root->root_metadata().roots(name);
     }
@@ -232,7 +234,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         auto& self = this->self();
 
-        NodeBaseG root  = self.allocator().getPage(self.root(), Allocator::UPDATE);
+        NodeBaseG root  = self.allocator().getPageForUpdate(self.root(), self.master_name());
 
         Metadata& metadata = root->root_metadata();
         metadata.roots(name) = root_id;
@@ -261,13 +263,11 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      * \param metadata metadata to set
      */
 
-    static void setCtrRootMetadata(NodeBaseG node, const Metadata& metadata)
+    void setCtrRootMetadata(NodeBaseG& node, const Metadata& metadata) const
     {
         MEMORIA_ASSERT_TRUE(node.isSet());
 
-        node.update();
-//        RootDispatcher::dispatch(node, SetMetadataFn(), metadata);
-
+        self().updatePageG(node);
         node->setMetadata(metadata);
     }
 
@@ -278,7 +278,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void setRootMetadata(const Metadata& metadata) const
     {
-        NodeBaseG root = self().getRoot(Allocator::UPDATE);
+        NodeBaseG root = self().getRootForUpdate();
         self().setRootMetadata(root, metadata);
     }
 
@@ -311,6 +311,9 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         metadata.page_size()        = DEFAULT_BLOCK_SIZE;
         metadata.branching_factor() = 0;
 
+        BigInt txn_id = self().allocator().currentTxnId();
+        metadata.txn_id() = txn_id;
+
         return metadata;
     }
 
@@ -330,7 +333,9 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     template <typename Node>
     NodeBaseG createNodeFn(Int size) const
     {
-        NodeBaseG node = self().allocator().createPage(size);
+    	auto& self = this->self();
+
+    	NodeBaseG node = self.allocator().createPage(size, self.master_name());
         node->init();
 
         node->page_type_hash() = Node::hash();
@@ -384,7 +389,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         if (root)
         {
-            MyType::setCtrRootMetadata(node, meta);
+            self.setCtrRootMetadata(node, meta);
         }
 
         return node;
@@ -416,7 +421,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         prepareNode(node);
 
-        MyType::setCtrRootMetadata(node, metadata);
+        self.setCtrRootMetadata(node, metadata);
 
         return node;
     }
@@ -434,6 +439,48 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         MEMORIA_ASSERT_TRUE(node.isSet());
 
         NodeDispatcher::dispatch(node.page(), PrepareNodeFn(me()));
+    }
+
+    void markCtrUpdated()
+    {
+    	auto& self = this->self();
+
+    	BigInt txn_id = self.allocator().currentTxnId();
+    	const Metadata& metadata = self.getRootMetadata();
+
+    	if (txn_id == metadata.txn_id())
+    	{
+    		// do nothing
+    	}
+    	else if (txn_id > metadata.txn_id())
+    	{
+    		Metadata copy = metadata;
+    		copy.txn_id() = txn_id;
+
+    		self.setRootMetadata(copy);
+
+    		self.allocator().markUpdated(self.master_name());
+    	}
+    	else {
+    		throw vapi::Exception(MA_SRC, SBuf()<<"Invalid txn_id "<<txn_id<<" < "<<metadata.txn_id());
+    	}
+    }
+
+    void updatePageG(NodeBaseG& node) const
+    {
+    	node.update(self().master_name());
+    }
+
+
+    virtual bool hasRoot(BigInt name)
+    {
+    	MEMORIA_ASSERT(name, >=, 0);
+
+    	auto& self = this->self();
+
+    	NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
+
+    	return root->root_metadata().roots(name).isSet();
     }
 
  private:

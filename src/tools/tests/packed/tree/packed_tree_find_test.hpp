@@ -149,8 +149,8 @@ public:
 
             if (sum == 0) continue;
 
-            auto result1_lt = tree->findLTForward(block, start, sum).idx();
-            auto result1_le = tree->findLEForward(block, start, sum).idx();
+            auto result1_lt = tree->findGTForward(block, start, sum).idx();
+            auto result1_le = tree->findGEForward(block, start, sum).idx();
 
             auto result2_lt = find_fw<PackedCompareLE>(tree, block, start, sum);
             auto result2_le = find_fw<PackedCompareLT>(tree, block, start, sum);
@@ -194,8 +194,8 @@ public:
             // we do not handle zero sums correctly in this test yet
             if (sum == 0) continue;
 
-            auto result1_lt = tree->findLTBackward(block, start, sum).idx();
-            auto result1_le = tree->findLEBackward(block, start, sum).idx();
+            auto result1_lt = tree->findGTBackward(block, start, sum).idx();
+            auto result1_le = tree->findGEBackward(block, start, sum).idx();
 
             auto result2_lt = find_bw<PackedCompareLT>(tree, block, start, sum);
             auto result2_le = find_bw<PackedCompareLE>(tree, block, start, sum);

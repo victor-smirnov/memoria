@@ -22,7 +22,9 @@ class CtrChecksName {};
 class CtrUpdateName {};
 class CtrFindName {};
 
-class ItrApiName {};
+class ItrCRUDName {};
+class ItrSeekName {};
+
 }
 
 template <typename Types>

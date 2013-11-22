@@ -21,7 +21,8 @@
 #include <memoria/containers/vector_map/container/vmap_c_update.hpp>
 
 #include <memoria/containers/vector_map/vmap_iterator.hpp>
-#include <memoria/containers/vector_map/iterator/vmap_i_api.hpp>
+#include <memoria/containers/vector_map/iterator/vmap_i_crud.hpp>
+#include <memoria/containers/vector_map/iterator/vmap_i_seek.hpp>
 
 #include <memoria/containers/vector_map/vmap_names.hpp>
 
@@ -56,8 +57,6 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
     typedef Value_                                                              Value;
     typedef TypeList<BigInt>                                                    KeysList;
-
-    static const Int Indexes                                                    = 1;
 
 
     template <typename Iterator, typename Container>
@@ -99,7 +98,9 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
     typedef typename MergeLists<
             typename Base::ContainerPartsList,
+
             memoria::bt::NodeNormName,
+
             memoria::vmap::CtrToolsName,
             memoria::vmap::CtrInsertName,
             memoria::vmap::CtrRemoveName,
@@ -110,25 +111,30 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
     typedef typename MergeLists<
             typename Base::IteratorPartsList,
-            memoria::vmap::ItrApiName
+
+            memoria::vmap::ItrCRUDName,
+            memoria::vmap::ItrSeekName
     >::Result                                                                   IteratorPartsList;
 
-    typedef IDataSource<Value>                                                  DataSource;
-    typedef IDataTarget<Value>                                                  DataTarget;
+
+    typedef Value																IOValue;
+
+    typedef IDataSource<IOValue>                                                DataSource;
+    typedef IDataTarget<IOValue>                                                DataTarget;
 
 
 
 //    template <typename Types>
-//    using FindLTWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
+//    using FindGTWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
 //
 //    template <typename Types>
-//    using FindLEWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
+//    using FindGEWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
 
     template <typename Types>
     using SkipForwardWalker         = vmap::SkipForwardWalker<Types>;
 
     template <typename Types>
-    using SkipBackwardWalker        = TypeIsNotDefined;
+    using SkipBackwardWalker        = vmap::SkipBackwardWalker<Types>;
 
 
     template <typename Types>

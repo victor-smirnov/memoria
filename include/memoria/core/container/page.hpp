@@ -39,7 +39,9 @@ public:
     typedef PageID<T>                                                           ValueType;
     typedef ValueBuffer<T>                                                      Base;
 
+
     PageID() = default;
+    PageID(const PageID<T>&) = default;
 
     PageID(const T& t): Base(t) {}
 
@@ -108,6 +110,12 @@ public:
     operator BigInt () const {
         return Base::value();
     }
+
+    ValueType& operator+=(const ValueType& other)
+    {
+    	Base::value() += other.value();
+    	return *this;
+    }
 };
 
 
@@ -115,6 +123,18 @@ template <typename T>
 struct TypeHash<PageID<T>>: UIntValue<
     HashHelper<101, TypeHash<T>::Value>::Value
 > {};
+
+typedef struct
+{
+    template <typename T>
+    long operator() (const PageID<T> &k) const { return k.value(); }
+} IDKeyHash;
+
+typedef struct
+{
+    template <typename T>
+    bool operator() (const PageID<T> &x, const PageID<T> &y) const { return x == y; }
+} IDKeyEq;
 
 
 
@@ -190,19 +210,28 @@ public:
 private:
     typedef AbstractPage<PageIdType, FlagsCount> Me;
 
-
-
-    FlagsType   flags_;
-    PageIdType  id_;
-
     Int         crc_;
     Int         master_ctr_type_hash_;
     Int         owner_ctr_type_hash_;
     Int         ctr_type_hash_;
     Int         page_type_hash_;
+    Int         page_size_;
+
+    UBigInt		next_block_pos_;
+    UBigInt		target_block_pos_;
+
+    PageIdType  id_;
+    PageIdType  gid_;
+
+    FlagsType   flags_;
+
+
     Int         references_;
     Int         deleted_;
-    Int         page_size_;
+
+
+    //Txn rollback intrusive list fields. Not used by containers.
+
 
 public:
     typedef TypeList<
@@ -216,14 +245,16 @@ public:
                 decltype(page_type_hash_),
                 decltype(references_),
                 decltype(deleted_),
-                decltype(page_size_)
+                decltype(page_size_),
+                decltype(next_block_pos_),
+                decltype(target_block_pos_)
     >                                                                           FieldsList;
 
     typedef PageIdType                                                          ID;
 
     AbstractPage() = default;
 
-    AbstractPage(const PageIdType &id): flags_(), id_(id) {}
+    AbstractPage(const PageIdType &id): id_(id), gid_(id), flags_() {}
 
     const PageIdType &id() const {
         return id_;
@@ -231,6 +262,14 @@ public:
 
     PageIdType &id() {
         return id_;
+    }
+
+    const PageIdType &gid() const {
+        return gid_;
+    }
+
+    PageIdType &gid() {
+        return gid_;
     }
 
     void init() {}
@@ -322,6 +361,24 @@ public:
         return flags_.setBit(0, updated);
     }
 
+    UBigInt& next_block_pos() {
+    	return next_block_pos_;
+    }
+
+    const UBigInt& next_block_pos() const {
+    	return next_block_pos_;
+    }
+
+    UBigInt& target_block_pos() {
+    	return target_block_pos_;
+    }
+
+    const UBigInt& target_block_pos() const {
+    	return target_block_pos_;
+    }
+
+
+
     void *operator new(size_t size, void *page) {
         return page;
     }
@@ -336,6 +393,9 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         IDValue id(&id_);
+        IDValue gid(&gid_);
+
+        handler->value("GID",               &gid);
         handler->value("ID",                &id);
         handler->value("CRC",               &crc_);
         handler->value("MASTER_MODEL_HASH", &master_ctr_type_hash_);
@@ -345,12 +405,16 @@ public:
         handler->value("REFERENCES",        &references_);
         handler->value("DELETED",           &deleted_);
         handler->value("PAGE_SIZE",         &page_size_);
+
+        handler->value("NEXT_BLOCK_POS",    &next_block_pos_);
+        handler->value("TARGET_BLOCK_POS",  &target_block_pos_);
     }
 
 
     void copyFrom(const Me* page)
     {
         this->id()              = page->id();
+        this->gid()             = page->gid();
         this->crc()             = page->crc();
 
         this->ctr_type_hash()           = page->ctr_type_hash();
@@ -366,29 +430,41 @@ public:
     template <template <typename> class FieldFactory>
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<PageIdType>::serialize(buf, id());
         FieldFactory<Int>::serialize(buf, crc());
         FieldFactory<Int>::serialize(buf, master_ctr_type_hash());
         FieldFactory<Int>::serialize(buf, owner_ctr_type_hash());
         FieldFactory<Int>::serialize(buf, ctr_type_hash());
         FieldFactory<Int>::serialize(buf, page_type_hash());
+        FieldFactory<Int>::serialize(buf, page_size_);
+
+        FieldFactory<UBigInt>::serialize(buf, next_block_pos_);
+        FieldFactory<UBigInt>::serialize(buf, target_block_pos_);
+
+        FieldFactory<PageIdType>::serialize(buf, id());
+        FieldFactory<PageIdType>::serialize(buf, gid());
+
         FieldFactory<Int>::serialize(buf, references_);
         FieldFactory<Int>::serialize(buf, deleted_);
-        FieldFactory<Int>::serialize(buf, page_size_);
     }
 
     template <template <typename> class FieldFactory>
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<PageIdType>::deserialize(buf, id());
         FieldFactory<Int>::deserialize(buf, crc());
         FieldFactory<Int>::deserialize(buf, master_ctr_type_hash());
         FieldFactory<Int>::deserialize(buf, owner_ctr_type_hash());
         FieldFactory<Int>::deserialize(buf, ctr_type_hash());
         FieldFactory<Int>::deserialize(buf, page_type_hash());
+        FieldFactory<Int>::deserialize(buf, page_size_);
+
+        FieldFactory<UBigInt>::deserialize(buf, next_block_pos_);
+        FieldFactory<UBigInt>::deserialize(buf, target_block_pos_);
+
+        FieldFactory<PageIdType>::deserialize(buf, id());
+        FieldFactory<PageIdType>::deserialize(buf, gid());
+
         FieldFactory<Int>::deserialize(buf, references_);
         FieldFactory<Int>::deserialize(buf, deleted_);
-        FieldFactory<Int>::deserialize(buf, page_size_);
     }
 };
 
@@ -412,6 +488,9 @@ struct TypeHash<AbstractPage<PageIdType, FlagsCount>> {
 template <typename AllocatorT>
 class PageShared {
 
+	typedef PageShared<AllocatorT>			MyType;
+	typedef MyType*							MyTypePtr;
+
     typedef typename AllocatorT::Page       PageT;
     typedef typename AllocatorT::Page::ID   ID;
 
@@ -422,6 +501,10 @@ class PageShared {
     Int     state_;
 
     AllocatorT* allocator_;
+
+    MyType* owner_;
+
+    MyTypePtr delegate_;
 
 public:
 
@@ -485,12 +568,24 @@ public:
         this->page_ = static_cast<PageT*>(page);
     }
 
+    void resetPage() {
+    	this->page_ = nullptr;
+    }
+
     Int ref() {
         return ++references_;
     }
 
-    Int unref() {
-        return --references_;
+    Int unref()
+    {
+        Int refs = --references_;
+
+        if (refs == 0)
+        {
+        	unrefDelegate();
+        }
+
+        return refs;
     }
 
     bool deleted() const
@@ -512,14 +607,80 @@ public:
         allocator_ = allocator;
     }
 
+    MyTypePtr& owner() {
+    	return owner_;
+    }
+
+    const MyTypePtr& owner() const {
+    	return owner_;
+    }
+
+    const MyTypePtr& delegate() const {
+    	return delegate_;
+    }
+
+    void setDelegate(MyType* delegate)
+    {
+    	MEMORIA_ASSERT_TRUE(delegate != this);
+
+    	if (delegate_)
+    	{
+    		delegate_->owner() = nullptr;
+    		if (delegate_->unref() == 0)
+    		{
+    			delegate_->allocator()->releasePage(delegate_);
+    			delegate_ = nullptr;
+    		}
+    	}
+
+    	delegate_ = delegate;
+    	delegate_->owner() = this;
+
+    	delegate_->ref();
+    }
+
+
+    void refresh()
+    {
+    	if (owner_)
+    	{
+    		owner_->refreshData(this);
+    	}
+    }
+
     void init()
     {
-        references_ = 0;
+        id_			= 0;
+    	references_ = 0;
         state_      = READ;
-        page_       = NULL;
-        allocator_  = NULL;
+        page_       = nullptr;
+        allocator_  = nullptr;
+
+        owner_		= nullptr;
+        delegate_ 	= nullptr;
     }
+
+private:
+    void refreshData(MyType* shared)
+    {
+    	this->page_ 	= shared->page_;
+    	this->state_	= shared->state_;
+
+    	refresh();
+    }
+
+	void unrefDelegate()
+	{
+		if (delegate_ && delegate_->unref() == 0)
+		{
+			delegate_->allocator()->releasePage(delegate_);
+			delegate_ = nullptr;
+		}
+	}
 };
+
+
+
 
 template <typename PageT, typename AllocatorT>
 class PageGuard {
@@ -544,7 +705,7 @@ public:
     }
 
 
-    PageGuard(): shared_(NULL)
+    PageGuard(): shared_(nullptr)
     {
         inc();
     }
@@ -614,7 +775,7 @@ public:
         return *this;
     }
 
-#ifndef __clang__
+//#ifndef __clang__
     MyType& operator=(MyType&& guard)
     {
         unref();
@@ -624,7 +785,7 @@ public:
         check();
         return *this;
     }
-#endif
+//#endif
 
     template <typename P>
     MyType& operator=(PageGuard<P, AllocatorT>&& guard)
@@ -697,11 +858,16 @@ public:
         return shared_->updated();
     }
 
-    void update()
+    void update(BigInt name)
     {
-        if (shared_ != NULL && !shared_->updated())
+        if (shared_)// && !shared_->updated())
         {
-            shared_->allocator()->updatePage(shared_);
+            auto guard = shared_->allocator()->updatePage(shared_, name);
+
+            if (guard.shared() != shared_)
+            {
+            	*this = guard;
+            }
         }
     }
 
@@ -714,7 +880,7 @@ public:
     }
 
     void clear() {
-        *this = NULL;
+        *this = nullptr;
     }
 
     const Shared* shared() const {
@@ -737,7 +903,7 @@ private:
 
     void ref()
     {
-        if (shared_ != NULL)
+        if (shared_ != nullptr)
         {
             shared_->ref();
         }
@@ -745,7 +911,7 @@ private:
 
     void unref()
     {
-        if (shared_ != NULL)
+        if (shared_ != nullptr)
         {
             if (shared_->unref() == 0)
             {

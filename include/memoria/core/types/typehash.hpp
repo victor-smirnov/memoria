@@ -83,6 +83,29 @@ struct TypeHash<Map<Key, Value>>:   UIntValue<
     HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
+template <typename Key, typename Value, Int BitsPerMark>
+struct TypeHash<SMrkMap<Key, Value, BitsPerMark>>:   UIntValue<
+    HashHelper<1101, TypeHash<Key>::Value, TypeHash<Value>::Value, BitsPerMark>::Value
+> {};
+
+template <typename Key, typename Value, Int BitsPerMark>
+struct TypeHash<MrkMap<Key, Value, BitsPerMark>>:   UIntValue<
+    HashHelper<1102, TypeHash<Key>::Value, TypeHash<Value>::Value, BitsPerMark>::Value
+> {};
+
+template <typename Key, typename Value, Int BitsPerMark>
+struct TypeHash<MrkMap2<Key, Value, BitsPerMark>>:   UIntValue<
+    HashHelper<11021, TypeHash<Key>::Value, TypeHash<Value>::Value, BitsPerMark>::Value
+> {};
+
+
+template <typename Key, typename Value>
+struct TypeHash<Map2<Key, Value>>:   UIntValue<
+    HashHelper<1103, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+> {};
+
+
+
 template <Granularity gr>
 struct TypeHash<CMap<gr>>:   UIntValue<
     HashHelper<1112, (UInt)gr>::Value

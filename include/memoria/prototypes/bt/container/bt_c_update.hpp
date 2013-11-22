@@ -50,10 +50,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
-    static const Int Indexes                                                    = Types::Indexes;
+
     static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::IDataTargetType                                     DataTarget;
+    typedef typename Types::DataTarget                                     		DataTarget;
 
     Position getRemainder(ISource& source)
     {
@@ -106,7 +106,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
                 }
             }
 
-            LeafDispatcher::dispatchConst(
+            LeafDispatcher::dispatch(
                     iter.leaf(),
                     UpdateFn(),
                     &data_source,
@@ -153,7 +153,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
 
             if (to_update > len) to_update = len;
 
-            LeafDispatcher::dispatchConst(
+            LeafDispatcher::dispatch(
                     iter.leaf(),
                     UpdateFn(),
                     &data_source,

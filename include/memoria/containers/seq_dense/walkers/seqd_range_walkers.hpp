@@ -77,12 +77,12 @@ public:
 
     SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {
-        Base::search_type_ = SearchType::LT;
+        Base::search_type_ = SearchType::GT;
     }
 
     template <Int Idx, typename Tree>
     ResultType stream(const Tree* tree, Int start) {
-        return Base::stream(tree, start);
+        return Base::template stream<Idx>(tree, start);
     }
 
 

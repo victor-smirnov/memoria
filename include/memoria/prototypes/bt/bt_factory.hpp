@@ -42,6 +42,7 @@
 #include <memoria/prototypes/bt/container/bt_c_remtools.hpp>
 #include <memoria/prototypes/bt/container/bt_c_rembatch.hpp>
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
+#include <memoria/prototypes/bt/container/bt_c_walk.hpp>
 
 #include <memoria/prototypes/templates/container/allocator.hpp>
 
@@ -129,7 +130,8 @@ struct BTTypes {
             bt::RemoveBatchName,
             bt::FindName,
             bt::ReadName,
-            bt::UpdateName
+            bt::UpdateName,
+            bt::WalkName
     >                                                                           ContainerPartsList;
     
     typedef TypeList<
@@ -145,15 +147,25 @@ struct BTTypes {
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
     typedef typename Allocator::ID                                              ID;
 
+//    typedef TypeList<
+//    >                                                                           NodeTypesList;
+//
+//    typedef TypeList<
+//    >                                                                           DefaultNodeTypesList;
+
     typedef TypeList<
+            NonLeafNodeTypes<BranchNode>,
+            LeafNodeTypes<LeafNode>
     >                                                                           NodeTypesList;
 
     typedef TypeList<
+            TreeNodeType<LeafNode>,
+            TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
+
 
     typedef TypeList<
     >                                                                           StreamDescriptors;
-
 
     template <
         typename Types_
@@ -176,6 +188,10 @@ struct BTTypes {
     };
 
     static const Int MAIN_STREAM                                                = 0;
+
+
+    typedef EmptyType															DataSource;
+    typedef EmptyType															DataTarget;
 
 
     template <typename Types>
@@ -229,7 +245,7 @@ public:
     
     typedef typename ContainerTypes::Allocator::Page::ID                        ID;
 
-    //TAGS: #IF_THEN_ELSE_EXAMPLE
+   /* //TAGS: #IF_THEN_ELSE_EXAMPLE
     typedef typename memoria::IfThenElse<
                 IfTypesEqual<
                     typename ContainerTypes::Value,
@@ -238,6 +254,9 @@ public:
                 ID,
                 typename ContainerTypes::Value
     >::Result                                                                   Value;
+    */
+
+    typedef typename ContainerTypes::Value										Value;
 
     static const Int Streams = ListSize<typename ContainerTypes::StreamDescriptors>::Value;
 
@@ -331,12 +350,7 @@ public:
         typedef Accumulator_                                                    Accumulator;
         typedef bt::StaticVector<BigInt, MyType::Streams>                       Position;
 
-
-
         typedef ValuePair<Accumulator, Value>                                   Element;
-
-        typedef IDataSource<Value>                                              IDataSourceType;
-        typedef IDataTarget<Value>                                              IDataTargetType;
 
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
     };

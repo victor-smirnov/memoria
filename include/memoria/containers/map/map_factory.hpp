@@ -11,6 +11,7 @@
 
 #include <memoria/containers/map/factory/map_factory_types.hpp>
 #include <memoria/containers/map/factory/cmap_factory_types.hpp>
+#include <memoria/containers/map/factory/mrkmap_factory_types.hpp>
 
 namespace memoria    {
 
@@ -23,6 +24,10 @@ template <typename Profile, Granularity gr, typename T>
 class CtrTF<Profile, memoria::CMap<gr>, T>: public CtrTF<Profile, memoria::BT, T> {
 };
 
+
+template <typename Profile, typename Key, typename Value, Int BitsPerMark, typename T>
+class CtrTF<Profile, MrkMap<Key, Value, BitsPerMark>, T>: public CtrTF<Profile, memoria::BT, T> {
+};
 
 }
 

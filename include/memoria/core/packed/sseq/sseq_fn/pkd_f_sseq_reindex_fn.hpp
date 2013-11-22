@@ -270,8 +270,6 @@ public:
 
             index->insert(0, index_size, [&]() -> Values
             {
-                DebugCounter1++;
-
                 Int next = pos + ValuesPerBranch;
                 Int max = next <= size ? next : size;
 
@@ -319,11 +317,6 @@ public:
     void operator()(Seq& seq)
     {
         Int size = seq.size();
-
-        if (DebugCounter) {
-            int a = 0; a++;
-        }
-
 
         if (size <= ValuesPerBranch)
         {

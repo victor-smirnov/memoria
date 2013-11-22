@@ -38,13 +38,11 @@ public:
             typename Base::Container
     >::Type                                                                             IteratorCache;
 
-    static const Int Indexes                                                            = Base::Container::Indexes;
 
 private:
 
     NodeBaseG           leaf_;
 
-//    TreePath            path_;
     Int                 idx_;
     Int                 stream_;
 
@@ -107,7 +105,7 @@ public:
         Base::assign(other);
     }
 
-    bool& found() const {
+    const bool& found() const {
         return found_;
     }
 
@@ -186,6 +184,12 @@ public:
         auto& self = this->self();
 
         return leaf().isSet() ? idx() >= self.leaf_size() : true;
+    }
+
+    bool isContent() const
+    {
+    	auto& self = this->self();
+    	return !(self.isBegin() || self.isEnd());
     }
 
     bool isNotEnd() const

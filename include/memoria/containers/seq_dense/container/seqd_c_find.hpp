@@ -47,7 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     typedef typename Base::TreePath                                             TreePath;
     typedef typename Base::TreePathItem                                         TreePathItem;
 
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
@@ -66,6 +65,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
         auto iter = self.find0(0, walker);
 
         return walker.rank();
+    }
+
+    BigInt rank(Int symbol) {
+    	return rank(self().size(), symbol);
     }
 
     BigInt rank(BigInt start, BigInt idx, Int symbol)
@@ -112,7 +115,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     {
         auto& self = this->self();
 
-        return self.findLT(MAIN_STREAM, pos, 0);
+        return self.findGT(MAIN_STREAM, pos, 0);
     }
 
 

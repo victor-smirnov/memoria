@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -10,6 +10,7 @@
 #define _MEMORIA_CORE_TOOLS_REFLECTION_HPP
 
 #include <memoria/core/tools/md5.hpp>
+#include <memoria/core/types/type2type.hpp>
 
 #include <string.h>
 
@@ -29,9 +30,26 @@ struct FieldFactory {
         field.serialize(data);
     }
 
+    static void serialize(SerializationData& data, const Type* field, Int size)
+    {
+    	for (Int c = 0; c < size; c++)
+    	{
+    		field[c].serialize(data);
+    	}
+    }
+
+
     static void deserialize(DeserializationData& data, Type& field)
     {
         field.deserialize(data);
+    }
+
+    static void deserialize(DeserializationData& data, Type* field, Int size)
+    {
+    	for (Int c = 0; c < size; c++)
+    	{
+    		field[c].deserialize(data);
+    	}
     }
 };
 

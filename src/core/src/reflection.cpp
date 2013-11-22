@@ -95,6 +95,20 @@ ContainerMetadata* ContainerMetadataRepository::getContainerMetadata(Int hashCod
 }
 
 
+void ContainerMetadataRepository::dumpMetadata(std::ostream& out)
+{
+	for (auto pair: model_map_)
+	{
+		if (pair.second->getCtrInterface() != nullptr)
+		{
+			out<<pair.first<<": "<<pair.second->getCtrInterface()->ctr_type_name()<<std::endl;
+		}
+		else {
+			out<<pair.first<<": "<<"Composite"<<std::endl;
+		}
+	}
+}
+
 
 PageMetadata::PageMetadata(
                 StringRef name,

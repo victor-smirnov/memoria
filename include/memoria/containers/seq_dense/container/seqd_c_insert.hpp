@@ -51,7 +51,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
@@ -122,7 +121,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
         Int& idx    = iter.idx();
         Int stream  = iter.stream();
 
-        leaf.update();
+        self.updatePageG(leaf);
 
         Accumulator sums;
 
@@ -152,6 +151,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
         iter++;
     }
+
+
 
 
 MEMORIA_CONTAINER_PART_END

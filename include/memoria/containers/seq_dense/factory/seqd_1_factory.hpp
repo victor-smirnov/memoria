@@ -18,6 +18,7 @@
 #include <memoria/containers/seq_dense/seqd_names.hpp>
 #include <memoria/containers/seq_dense/seqd_tools.hpp>
 
+#include <memoria/containers/seq_dense/container/seqd_c_norm.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_find.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_insert.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_remove.hpp>
@@ -36,8 +37,7 @@ namespace memoria {
 
 
 template <typename Profile>
-struct BTTypes<Profile, memoria::Sequence<1, true> >:
-    public BTTypes<Profile, memoria::BT> {
+struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, memoria::BT> {
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
@@ -73,6 +73,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >:
                 typename Base::ContainerPartsList,
                 bt::NodeComprName,
 
+                seq_dense::CtrNormName,
                 seq_dense::CtrFindName,
                 seq_dense::CtrInsertName,
                 seq_dense::CtrRemoveName
@@ -96,10 +97,13 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >:
         typedef memoria::seq_dense::SequenceIteratorCache<Iterator, Container> Type;
     };
 
+    typedef IDataSource<Value>                                                  DataSource;
+    typedef IDataTarget<Value>                                                  DataTarget;
+
 
 
     template <typename Types>
-    using FindLTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types>;
+    using FindGTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types>;
 
 
     template <typename Types>

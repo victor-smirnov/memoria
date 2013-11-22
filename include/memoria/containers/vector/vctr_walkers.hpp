@@ -84,13 +84,13 @@ public:
 
 
 template <typename Types>
-class FindLEWalker: public FindWalkerBase<Types> {
+class FindGEWalker: public FindWalkerBase<Types> {
 
     typedef FindWalkerBase<Types>       Base;
     typedef typename Base::Key          Key;
 
 public:
-    FindLEWalker(Key key, Int key_num): Base(key, key_num)
+    FindGEWalker(Key key, Int key_num): Base(key, key_num)
     {}
 
     template <typename Node>

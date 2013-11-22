@@ -93,8 +93,8 @@ public:
 
         while (!iter1.isEof())
         {
-            MemTBuffer<T> buf1(buffer1, 1024);
-            MemTBuffer<T> buf2(buffer2, 1024);
+            MemBuffer<T> buf1(buffer1, 1024);
+            MemBuffer<T> buf2(buffer2, 1024);
 
             BigInt size1 = iter1.read(buf1);
             BigInt size2 = iter2.read(buf2);

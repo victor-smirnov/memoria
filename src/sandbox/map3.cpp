@@ -114,7 +114,7 @@ int main(void) {
 
         for (Int c = 0; c < max_reads; c++)
         {
-            map1.findLE(indexes[c], 0)<<endl;
+            map1.findGE(indexes[c], 0)<<endl;
         }
 
         BigInt t1 = getTimeInMillis();
@@ -123,7 +123,7 @@ int main(void) {
 
         for (Int c = 0; c < max_reads; c++)
         {
-            map2.findLE(indexes[c], 0)<<endl;
+            map2.findGE(indexes[c], 0)<<endl;
         }
 
         BigInt t3 = getTimeInMillis();

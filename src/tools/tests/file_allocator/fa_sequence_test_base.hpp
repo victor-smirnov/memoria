@@ -4,13 +4,15 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_SHARED_SEQUENCE_CREATE_TEST_BASE_HPP_
-#define MEMORIA_TESTS_SHARED_SEQUENCE_CREATE_TEST_BASE_HPP_
+#ifndef MEMORIA_TESTS_FILEALLOC_SEQUENCE_CREATE_TEST_BASE_HPP_
+#define MEMORIA_TESTS_FILEALLOC_SEQUENCE_CREATE_TEST_BASE_HPP_
 
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
-#include "randomaccesslist_test_base.hpp"
+
+
+#include "fa_ralist_test_base.hpp"
 
 #include <vector>
 
@@ -23,16 +25,16 @@ template <
     typename ContainerTypeName,
     typename MemBuffer
 >
-class SequenceCreateTestBase: public RandomAccessListTestBase <
+class FASequenceCreateTestBase: public FARandomAccessListTestBase <
                                         ContainerTypeName,
                                         MemBuffer
                               >
 {
-    typedef SequenceCreateTestBase<ContainerTypeName, MemBuffer>                MyType;
+    typedef FASequenceCreateTestBase<ContainerTypeName, MemBuffer>              MyType;
     typedef MyType                                                              ParamType;
 
 
-    typedef RandomAccessListTestBase <
+    typedef FARandomAccessListTestBase <
                 ContainerTypeName,
                 MemBuffer
             >                                                                   Base;
@@ -43,7 +45,7 @@ protected:
     typedef typename Base::ID                                                   ID;
 
 public:
-    SequenceCreateTestBase(StringRef name):
+    FASequenceCreateTestBase(StringRef name):
         Base(name)
     {}
 
@@ -53,8 +55,8 @@ public:
 
         for (size_t c = 0; c < src.size(); c++)
         {
-            auto v1 = src[c];
-            auto v2 = tgt[c];
+            typename MemBuffer::value_type v1 = src[c];
+            typename MemBuffer::value_type v2 = tgt[c];
 
             AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
         }

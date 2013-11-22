@@ -249,7 +249,7 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
     {
         walker.prepare(self);
 
-        NodeBaseG parent = self.ctr().getNodeParent(leaf, Allocator::READ);
+        NodeBaseG parent = self.ctr().getNodeParent(leaf);
 
         Int idx = self.ctr().findFw(parent, stream, leaf->parent_idx() + 1, walker);
 
@@ -268,7 +268,7 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
         }
 
         // Step down the tree
-        leaf = self.ctr().getChild(parent, child_idx, Allocator::READ);
+        leaf = self.ctr().getChild(parent, child_idx);
 
         walker.finish(self, idx < size);
 
@@ -296,7 +296,7 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
     {
         walker.prepare(self);
 
-        NodeBaseG parent = self.ctr().getNodeParent(leaf, Allocator::READ);
+        NodeBaseG parent = self.ctr().getNodeParent(leaf);
 
         Int idx = self.model().findBw(parent, stream, leaf->parent_idx() - 1, walker);
 
@@ -315,7 +315,7 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
         }
 
         // Step down the tree
-        leaf = self.model().getChild(parent, child_idx, Allocator::READ);
+        leaf = self.model().getChild(parent, child_idx);
 
         walker.finish(self, idx >= 0);
 

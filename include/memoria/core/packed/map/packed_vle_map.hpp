@@ -146,14 +146,14 @@ public:
         array()->dump(out);
     }
 
-    ValueDescr findLEForward(Int block, Int start, IndexValue val) const
+    ValueDescr findGEForward(Int block, Int start, IndexValue val) const
     {
-        return this->tree()->findLEForward(block, start, val);
+        return this->tree()->findGEForward(block, start, val);
     }
 
-    ValueDescr findLTForward(Int block, Int start, IndexValue val) const
+    ValueDescr findGTForward(Int block, Int start, IndexValue val) const
     {
-        return this->tree()->findLTForward(block, start, val);
+        return this->tree()->findGTForward(block, start, val);
     }
 
     void sums(Values2& values) const

@@ -22,6 +22,7 @@
 #include <memoria/containers/map/map_iterator.hpp>
 #include <memoria/containers/map/iterator/map_i_api.hpp>
 #include <memoria/containers/map/iterator/map_i_nav.hpp>
+#include <memoria/containers/map/iterator/map_i_value.hpp>
 
 #include <memoria/containers/map/map_names.hpp>
 
@@ -38,8 +39,6 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
 
     typedef BigInt                                                              Value;
     typedef TypeList<BigInt>                                                    KeysList;
-
-    static const Int Indexes                                                    = 1;
 
 
     typedef TypeList<
@@ -78,7 +77,8 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
     typedef typename MergeLists<
                 typename Base::IteratorPartsList,
                 map::ItrApiName,
-                map::ItrNavName
+                map::ItrNavName,
+                map::ItrValueName
     >::Result                                                                   IteratorPartsList;
 
 
@@ -90,10 +90,10 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
 
 
     template <typename Types>
-    using FindLTWalker      = map::FindLTWalker<Types>;
+    using FindGTWalker      = map::FindGTWalker<Types>;
 
     template <typename Types>
-    using FindLEWalker      = map::FindLEWalker<Types>;
+    using FindGEWalker      = map::FindGEWalker<Types>;
 
 
     template <typename Types>

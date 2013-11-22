@@ -10,6 +10,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/exceptions/memoria.hpp>
+#include <memoria/core/tools/reflection.hpp>
 #include <memoria/metadata/page.hpp>
 
 namespace memoria {
@@ -70,10 +71,6 @@ public:
             ConstValue<UInt, VERSION>,
             decltype(allocator_offset_)
     >                                           FieldsList;
-
-
-
-
 
     PackedAllocatable() = default;
 
@@ -150,6 +147,17 @@ public:
     {
         return bits / 8 + (bits % 8 > 0);
     }
+
+    void serialize(SerializationData& buf) const
+    {
+    	FieldFactory<Int>::serialize(buf, allocator_offset_);
+    }
+
+    void deserialize(DeserializationData& buf)
+    {
+    	FieldFactory<Int>::deserialize(buf, allocator_offset_);
+    }
+
 };
 
 template <Int Alignment = PackedAllocationAlignment>

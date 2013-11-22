@@ -14,6 +14,7 @@
 #include <memoria/core/container/macros.hpp>
 
 #include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_fse_smark_map.hpp>
 
 
 
@@ -52,10 +53,32 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
         }
 
         template <Int Idx, typename StreamTypes>
+        void stream(PkdFTree<StreamTypes>* map, Int idx)
+        {
+        	map->sums(idx, idx+1, std::get<Idx>(entry_));
+        	map->remove(idx, idx + 1);
+        	map->reindex();
+        }
+
+        template <Int Idx, typename StreamTypes>
         void stream(PackedVLEMap<StreamTypes>* map, Int idx)
         {
             std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
             map->remove(idx, idx + 1);
+        }
+
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	map->addKeys(idx, std::get<Idx>(entry_));
+        	map->remove(idx, idx + 1);
+        }
+
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
+        {
+        	map->sums(idx, idx + 1, std::get<Idx>(entry_));
+        	map->remove(idx, idx + 1);
         }
 
         template <typename Node>
@@ -74,7 +97,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
         RemoveFromLeafFn fn(sums);
 
-        leaf.update();
+        self.updatePageG(leaf);
 
         LeafDispatcher::dispatch(leaf, fn, idx);
 
@@ -95,6 +118,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
         }
 
         self.removeRedundantRootP(leaf);
+
+        self.markCtrUpdated();
     }
 
 
@@ -113,14 +138,16 @@ bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys)
     auto& ctr = self();
 
     auto& from_node     = from.leaf();
-    Position from_pos   = Position(from.entry_idx());
+    Position from_pos   = Position(from.idx());
 
     auto& to_node       = to.leaf();
-    Position to_pos     = Position(to.entry_idx());
+    Position to_pos     = Position(to.idx());
 
     bool result = ctr.removeEntries(from_node, from_pos, to_node, to_pos, keys, true).gtAny(0);
 
     from.idx() = to.idx() = to_pos.get();
+
+    ctr.markCtrUpdated();
 
     return result;
 }

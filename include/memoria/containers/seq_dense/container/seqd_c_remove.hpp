@@ -51,7 +51,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    static const Int Indexes                                                    = Types::Indexes;
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
@@ -59,12 +58,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
     struct RemoveFromLeafFn {
 
         template <Int Idx, typename SeqTypes>
-        void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Accumulator* delta)
+        void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Accumulator& delta)
         {
             MEMORIA_ASSERT_TRUE(seq != nullptr);
 
             typedef PkdFSSeq<SeqTypes>  Seq;
-            typedef typename Seq::Values                Values;
+            typedef typename Seq::Values2                Values;
 
             Int sym = seq->symbol(idx);
 
@@ -75,23 +74,56 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
             indexes[0]       = -1;
             indexes[sym + 1] = -1;
 
-            std::get<Idx>(*delta) = indexes;
+            std::get<Idx>(delta) = indexes;
         }
 
 
         template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Accumulator* delta)
+        void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Accumulator& delta)
         {
             node->layout(1);
             node->process(stream, *this, idx, delta);
         }
     };
 
+    struct RemoveBlockFromLeafFn {
+
+    	template <Int Idx, typename SeqTypes>
+    	void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int length, Accumulator& delta)
+    	{
+    		MEMORIA_ASSERT_TRUE(seq != nullptr);
+
+    		std::get<Idx>(delta).assignUp(seq->sums(idx, idx + length));
+    		std::get<Idx>(delta)[0] = length;
+
+    		seq->remove(idx, idx + length);
+    	}
+
+
+    	template <typename NTypes>
+    	void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Int length, Accumulator& delta)
+    	{
+    		node->layout(1);
+    		node->process(stream, *this, idx, length, delta);
+    	}
+    };
+
 
 
     void removeFromLeaf(NodeBaseG& leaf, Int idx, Accumulator& indexes)
     {
-        LeafDispatcher::dispatch(leaf, RemoveFromLeafFn(), 0, idx, &indexes);
+    	self().updatePageG(leaf);
+    	LeafDispatcher::dispatch(leaf, RemoveFromLeafFn(), 0, idx, indexes);
+    }
+
+    void removeBlockFromNode(NodeBaseG& leaf, Int idx, Int length)
+    {
+    	self().updatePageG(leaf);
+
+    	Accumulator indexes;
+    	LeafDispatcher::dispatch(leaf, RemoveBlockFromLeafFn(), 0, idx, length, indexes);
+
+    	self().updateParent(leaf, -indexes);
     }
 
     void remove(BigInt idx)
@@ -121,6 +153,55 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
     }
 
 
+    void removeBlock(Iterator& iter, BigInt length)
+    {
+    	auto& self  = this->self();
+
+    	auto merge_fn = [&iter](const Position& size, Int level){
+    		if (level == 0)
+    		{
+    			iter.idx() += size[0];
+    		}
+    	};
+
+    	if (iter.idx() + length <= iter.leaf_size())
+    	{
+    		self.removeBlockFromNode(iter.leaf(), iter.idx(), length);
+
+    		if (iter.isEnd())
+    		{
+    			iter.skipFw(1);
+    		}
+
+    		self.mergeWithSiblings(iter.leaf(), merge_fn);
+    	}
+    	else {
+    		auto tmp = iter;
+    		tmp.skipFw(length);
+
+    		Int from_length = iter.leaf_size() - iter.idx();
+    		self.removeBlockFromNode(iter.leaf(), iter.idx(), from_length);
+
+    		auto bkp_iter = iter;
+
+    		while(iter.nextLeaf() && iter.leaf() != tmp.leaf())
+    		{
+    			self.removeNode(iter.leaf());
+    			iter = bkp_iter;
+    		}
+
+    		self.removeBlockFromNode(tmp.leaf(), 0, tmp.idx());
+
+    		tmp.idx() = 0;
+
+    		iter = tmp;
+
+
+    		self.mergeWithSiblings(iter.leaf(), merge_fn);
+    	}
+
+    	self.addTotalKeyCount(Position::create(0, -length));
+    }
 
 
 MEMORIA_CONTAINER_PART_END

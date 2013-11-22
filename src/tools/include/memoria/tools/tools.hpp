@@ -263,18 +263,18 @@ vector<T> createRandomBuffer(T fill_value, Int max_size)
 template <typename Allocator>
 void check(Allocator& allocator, const char* message,  const char* source)
 {
-    Int level = allocator.getLogger()->level();
+    Int level = allocator.logger().level();
 
-    allocator.getLogger()->level() = Logger::ERROR;
+    allocator.logger().level() = Logger::ERROR;
 
     if (allocator.check())
     {
-        allocator.getLogger()->level() = level;
+        allocator.logger().level() = level;
 
         throw TestException(source, message);
     }
 
-    allocator.getLogger()->level() = level;
+    allocator.logger().level() = level;
 }
 
 template <typename Ctr>
@@ -413,7 +413,7 @@ void AssertThrows(const char* src, Functor&& fn)
         fn();
         throwsException = false;
     }
-    catch (Exception ex)
+    catch (Exception& ex)
     {
         throwsException = true;
     }
@@ -434,7 +434,7 @@ void AssertDoesntThrowEx(const char* src, Functor&& fn)
     try {
         fn();
     }
-    catch (Exception ex)
+    catch (Exception& ex)
     {
         throw TestException(src, SBuf()<<"Code throws exception "<<TypeNameFactory<Exception>::name());
     }
@@ -450,9 +450,13 @@ void AssertDoesntThrow(const char* src, Functor&& fn)
     try {
         fn();
     }
+    catch (Exception& ex)
+    {
+    	throw TestException(src, SBuf()<<"Code throws unexpected exception: "<<ex.source()<<" "<<ex);
+    }
     catch (...)
     {
-        throw TestException(src, SBuf()<<"Code throws exception");
+        throw TestException(src, SBuf()<<"Code throws unknown exception");
     }
 }
 

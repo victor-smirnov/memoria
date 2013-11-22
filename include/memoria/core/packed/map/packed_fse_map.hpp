@@ -37,6 +37,11 @@ public:
     typedef typename Tree::IndexValue                                           IndexValue;
     typedef typename Tree::ValueDescr                                           ValueDescr;
 
+    typedef std::pair<typename Tree::Values, Value>								IOValue;
+
+    typedef IDataSource<IOValue>												DataSource;
+    typedef IDataTarget<IOValue>												DataTarget;
+
     Tree* tree() {
         return Base::template get<Tree>(TREE);
     }
@@ -76,12 +81,62 @@ public:
         return allocator_size + tree_empty_size;
     }
 
+    static Int block_size(Int size)
+    {
+    	return packed_block_size(size);
+    }
+
+    Int block_size(const MyType* other) const
+    {
+        return block_size(size() + other->size());
+    }
+
+    Int block_size() const {
+    	return Base::block_size();
+    }
+
+    static Int packed_block_size(Int size)
+    {
+    	Int tree_block_size = Tree::packed_block_size(size);
+    	Int data_block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Value)*size);
+
+    	Int my_block_size 	= Base::block_size(tree_block_size + data_block_size, 2);
+
+    	return my_block_size;
+    }
+
+private:
+    struct ElementsForFn {
+        Int block_size(Int items_number) const {
+            return MyType::packed_block_size(items_number);
+        }
+
+        Int max_elements(Int block_size)
+        {
+            return block_size;
+        }
+    };
+
+public:
+    static Int elements_for(Int block_size)
+    {
+    	return FindTotalElementsNumber2(block_size, ElementsForFn());
+    }
+
     void init()
     {
         Base::init(empty_size(), 2);
 
         Base::template allocateEmpty<Tree>(TREE);
         Base::template allocateArrayByLength<Value>(ARRAY, 0);
+    }
+
+    void init(Int block_size)
+    {
+    	Base::init(block_size, 2);
+
+    	Base::template allocateEmpty<Tree>(TREE);
+    	Base::template allocateArrayByLength<Value>(ARRAY, 0);
     }
 
     void insert(Int idx, const Values& keys, const Value& value)
@@ -101,7 +156,27 @@ public:
         values[idx] = value;
     }
 
-    void removeSpace(Int room_start, Int room_end) {
+
+    void insertSpace(Int room_start, Int room_length)
+    {
+    	Int size = this->size();
+
+    	MEMORIA_ASSERT(room_start, >=, 0);
+    	MEMORIA_ASSERT(room_length, >=, 0);
+
+    	tree()->insertSpace(room_start, room_length);
+
+    	Int requested_block_size = (size + room_length) * sizeof(Value);
+
+    	Base::resizeBlock(ARRAY, requested_block_size);
+
+    	Value* values = this->values();
+
+    	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
+    }
+
+    void removeSpace(Int room_start, Int room_end)
+    {
         remove(room_start, room_end);
     }
 
@@ -122,6 +197,8 @@ public:
         Base::resizeBlock(values, requested_block_size);
 
         tree()->remove(room_start, room_end);
+
+        tree()->reindex();
     }
 
     void splitTo(MyType* other, Int split_idx)
@@ -184,15 +261,49 @@ public:
     }
 
 
-    ValueDescr findLEForward(Int block, Int start, IndexValue val) const
+    ValueDescr findGEForward(Int block, Int start, IndexValue val) const
     {
-        return this->tree()->findLEForward(block, start, val);
+        return this->tree()->findGEForward(block, start, val);
     }
 
-    ValueDescr findLTForward(Int block, Int start, IndexValue val) const
+    ValueDescr findGTForward(Int block, Int start, IndexValue val) const
     {
-        return this->tree()->findLTForward(block, start, val);
+        return this->tree()->findGTForward(block, start, val);
     }
+
+    ValueDescr findGEBackward(Int block, Int start, IndexValue val) const
+    {
+        return this->tree()->findGEForward(block, start, val);
+    }
+
+    ValueDescr findGTBackward(Int block, Int start, IndexValue val) const
+    {
+        return this->tree()->findGTForward(block, start, val);
+    }
+
+
+    ValueDescr findForward(SearchType search_type, Int block, Int start, IndexValue val) const
+    {
+    	if (search_type == SearchType::GT)
+    	{
+    		return findGTForward(block, start, val);
+    	}
+    	else {
+    		return findGEForward(block, start, val);
+    	}
+    }
+
+    ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
+    {
+    	if (search_type == SearchType::GT)
+    	{
+    		return findGTBackward(block, start, val);
+    	}
+    	else {
+    		return findGEBackward(block, start, val);
+    	}
+    }
+
 
     void sums(Values2& values) const
     {
@@ -229,6 +340,76 @@ public:
     IndexValue sumWithoutLastElement(Int block) const {
         return tree()->sumWithoutLastElement(block);
     }
+
+    // ============================ IO =============================================== //
+
+
+    void insert(IData* data, Int pos, Int length)
+    {
+    	DataSource* src = static_cast<DataSource*>(data);
+
+    	MEMORIA_ASSERT_TRUE(to_bool(src->api() & IDataAPI::Single));
+    	MEMORIA_ASSERT(src->getRemainder(), >=, length);
+
+    	for (SizeT c = 0; c < length; c++)
+    	{
+    		IOValue v = src->get();
+
+    		this->insert(pos + c, v.first, v.second);
+    	}
+
+    	reindex();
+    }
+
+    void update(IData* data, Int pos, Int length)
+    {
+        MEMORIA_ASSERT(pos, <=, size());
+        MEMORIA_ASSERT(pos + length, <=, size());
+
+        DataSource* src = static_cast<DataSource*>(data);
+
+        MEMORIA_ASSERT_TRUE(to_bool(src->api() & IDataAPI::Single));
+        MEMORIA_ASSERT(src->getRemainder(), >=, length);
+
+        Tree* 	tree 	= this->tree();
+        Value* 	array 	= this->values();
+
+        for (SizeT c = pos; c < pos + length; c++)
+        {
+        	auto v = src->get();
+
+        	for (Int d = 0; d < Values::Indexes; d++)
+        	{
+        		tree->value(d, c) 	= v.first[d];
+        		array[c]			= v.second;
+        	}
+        }
+
+        reindex();
+    }
+
+    void read(IData* data, Int pos, Int length) const
+    {
+        MEMORIA_ASSERT(pos, <=, size());
+        MEMORIA_ASSERT(pos + length, <=, size());
+
+        DataTarget* tgt = static_cast<DataTarget*>(data);
+
+        MEMORIA_ASSERT_TRUE(to_bool(tgt->api() & IDataAPI::Single));
+        MEMORIA_ASSERT(tgt->getRemainder(), >=, length);
+
+        const Tree*  tree 	= this->tree();
+        const Value* array 	= this->values();
+
+        for (SizeT c = pos; c < pos + length; c++)
+        {
+        	IOValue v(tree->values(c), array[c]);
+        	tgt->put(v);
+        }
+    }
+
+
+    // ============================ Serialization ==================================== //
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
